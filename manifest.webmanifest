@@ -1,0 +1,16 @@
+{
+  "name": "AQVILA — El ascenso de Roma",
+  "short_name": "AQVILA",
+  "description": "Estrategia offline ambientada en la República romana: ciudades, legiones, héroe y batallas tácticas.",
+  "lang": "es",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a0806",
+  "theme_color": "#3a0d0a",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ]
+}

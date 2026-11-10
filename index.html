@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#3a0d0a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>AQVILA — El ascenso de Roma</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <header id="top">
+      <div id="res"></div>
+      <div id="bar2">
+        <span id="date"></span>
+        <div id="speed">
+          <button data-act="speed" data-v="0">II</button>
+          <button data-act="speed" data-v="1">▶</button>
+          <button data-act="speed" data-v="2">▶▶</button>
+          <button data-act="speed" data-v="4">▶▶▶</button>
+        </div>
+      </div>
+    </header>
+    <main id="view"></main>
+    <div id="mapwrap" hidden>
+      <canvas id="map"></canvas>
+      <div id="zoom"><button data-act="zoom" data-v="1.25">＋</button><button data-act="zoom" data-v="0.8">－</button></div>
+      <div id="sheet" hidden></div>
+    </div>
+    <nav id="tabs">
+      <button data-act="tab" data-v="city"><i>🏛️</i>Ciudad</button>
+      <button data-act="tab" data-v="army"><i>⚔️</i>Tropas</button>
+      <button data-act="tab" data-v="map"><i>🗺️</i>Mapa</button>
+      <button data-act="tab" data-v="hero"><i>🦅</i>Héroe</button>
+      <button data-act="tab" data-v="log"><i>📜</i>Crónica</button>
+    </nav>
+  </div>
+
+  <div id="battle" hidden>
+    <div id="bhud"></div>
+    <div id="bfield"><canvas id="bcanvas"></canvas></div>
+    <div id="bctl">
+      <button data-act="bpause" id="bpause">II</button>
+      <button data-act="bspeed" id="bspeed">x1</button>
+      <button data-act="bauto" id="bauto" class="on">🤖 Auto</button>
+      <button data-act="ball">☰ Todas</button>
+      <button data-act="bskip">⏭ Fin</button>
+    </div>
+    <div id="bhint">Toca tus regimientos para seleccionarlos · toca el campo para mover · toca un enemigo para atacar</div>
+  </div>
+
+  <div id="modal" hidden><div id="mbox"></div></div>
+  <div id="toasts"></div>
+  <div id="menu"></div>
+
+  <script src="js/data.js"></script>
+  <script src="js/battle.js"></script>
+  <script src="js/game.js"></script>
+  <script src="js/ui.js"></script>
+</body>
+</html>
