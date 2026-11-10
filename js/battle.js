@@ -48,7 +48,7 @@
     }
     let gen = null;
     if (a.gen) { gen = this.mk(side, 'general', 20, a); gen.name = a.gen.n; this.regs.push(gen); }
-    const f = side === 0 ? -1 : 1, base = side === 0 ? this.H - 200 : 200, SP = 78, CAP = 7;
+    const f = side === 0 ? -1 : 1, base = side === 0 ? this.H - 200 : 200, SP = 62, CAP = 7;
     const place = (row, y) => row.forEach((r, i) => { r.x = FW / 2 + (i - (row.length - 1) / 2) * SP; r.y = y; });
     let skirm = list.filter(r => r.u.cls === 'rng'), main = list.filter(r => r.u.cls === 'inf' || r.u.cls === 'spear' || r.u.cls === 'ele'), cav = list.filter(r => r.u.cls === 'cav');
     // elefantes al centro-frente, lanzas en los extremos de la línea

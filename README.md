@@ -6,35 +6,28 @@ tácticas en tiempo real que puedes ver y dirigir, y una campaña con **principi
 
 ## Qué incluye
 
-- **Ciudades y recursos** — madera, piedra, hierro, grano y denarios. Diez edificios mejorables
-  (aserradero, cantera, mina, granja, foro, almacén, cuartel, establo, muralla, templo de Marte),
-  con colas de construcción y de instrucción. Las tropas consumen grano.
-- **Ejército romano** — hastati, vélites, príncipes, triarios y équites; cada pueblo enemigo tiene
-  su propio ejército (falanges, hoplitas, honderos baleares, jinetes númidas, elefantes de guerra…).
-- **Héroe** — tu general sube de nivel, reparte puntos en Mando, Disciplina y Logística, combate
-  con su guardia y puede caer herido.
-- **Batallas visibles** — regimientos en formación, moral, huidas, flanqueos, cargas de caballería,
-  proyectiles y murallas. Puedes dar órdenes (tocar regimiento → tocar destino u objetivo), dejar
-  que luchen solos o resolverlas al instante.
-- **Mapa de campaña** — 18 ciudades reales del Mediterráneo unidas por rutas terrestres y marítimas.
-- **Hechos reales** — Pirro y sus elefantes, las Guerras Púnicas, Aníbal cruzando los Alpes, Cannas,
-  Zama, Cinoscéfalas… aparecen en su año y cambian la partida.
-- **Final de partida** — ganas si conquistas **Carthago** antes de que acabe el 146 a.C.; pierdes si
-  cae Roma o se agota el tiempo.
+- **Mapa de campaña en 3D** — el Mediterráneo con relieve (Alpes, Apeninos, Pirineos, Atlas), mar, bosques,
+  18 ciudades reales modeladas y ejércitos que marchan por rutas de tierra y mar. Es la pantalla principal.
+- **Batallas en 3D** — cada soldado es una figura animada (marcha, ataque) en formación sobre un terreno con
+  colinas, árboles y la ciudad asediada al fondo. Moral, huidas, flanqueos, cargas, proyectiles, polvo,
+  estandartes y caídos. Cámara libre (arrastrar, pellizcar, girar), tarjetas de unidad y órdenes táctiles.
+- **Ciudades y recursos** — madera, piedra, hierro, grano y denarios; diez edificios mejorables con colas.
+- **Ejército** — hastati, vélites, príncipes, triarios y équites, con retratos 3D; cada pueblo enemigo tiene
+  sus propias tropas (falanges, hoplitas, honderos baleares, jinetes númidas, elefantes de guerra…).
+- **General** — sube de nivel, reparte puntos en Mando, Disciplina y Logística, y puede caer herido.
+- **Hechos reales** — Pirro, las Guerras Púnicas, Aníbal cruzando los Alpes, Cannas, Zama… en su año.
+- **Final de partida** — ganas si conquistas **Carthago** antes de que acabe el 146 a.C.; pierdes si cae Roma.
 - **Offline** — es una PWA: se instala en el móvil y funciona sin conexión. La partida se guarda sola.
 
 ## Cómo jugar
-
-En el ordenador:
 
 ```bash
 python3 -m http.server 8000   # o cualquier servidor estático
 # abre http://localhost:8000
 ```
 
-En el móvil: publica la carpeta en cualquier alojamiento estático con HTTPS (por ejemplo GitHub
-Pages: *Settings → Pages → Deploy from a branch*), abre la dirección en Chrome o Safari y elige
-**«Añadir a pantalla de inicio»**. A partir de ahí funciona sin conexión.
+En el móvil: publica la carpeta en un alojamiento estático con HTTPS (por ejemplo GitHub Pages), ábrela en
+Chrome o Safari y elige **«Añadir a pantalla de inicio»**. Las batallas se ven mejor con el móvil en horizontal.
 
 ## Estructura
 
@@ -42,12 +35,15 @@ Pages: *Settings → Pages → Deploy from a branch*), abre la dirección en Chr
 | --- | --- |
 | `js/data.js` | Edificios, unidades, facciones, ciudades, mapa y hechos históricos |
 | `js/game.js` | Campaña: economía, colas, marchas, IA enemiga, eventos, guardado |
-| `js/battle.js` | Simulación de batalla y su dibujo en canvas |
-| `js/ui.js` | Interfaz: pestañas, mapa, modales y pantalla de batalla |
-| `sw.js`, `manifest.webmanifest` | Instalación y funcionamiento offline |
+| `js/battle.js` | Simulación de batalla (y vista 2D de reserva si no hay WebGL) |
+| `js/gfx/models.js` | Modelos 3D procedurales de las unidades, animación por shader y retratos |
+| `js/gfx/battle3d.js` | Vista 3D de la batalla |
+| `js/gfx/map3d.js` | Mapa de campaña 3D |
+| `js/ui.js` | Interfaz: paneles, modales y pantalla de batalla |
+| `js/vendor/` | three.js (MIT), incluido para funcionar sin conexión |
 | `test/sim.test.js` | Pruebas sin navegador (`node test/sim.test.js`) |
 
-Sin dependencias ni paso de compilación: HTML, CSS y JavaScript puro.
+Sin paso de compilación. Todos los modelos se generan por código: no hay arte de terceros.
 
 ## Referencias consultadas
 

@@ -3,8 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-  <meta name="theme-color" content="#3a0d0a">
+  <meta name="theme-color" content="#0b1016">
   <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <title>AQVILA — El ascenso de Roma</title>
   <link rel="manifest" href="manifest.webmanifest">
@@ -14,6 +15,7 @@
 </head>
 <body>
   <div id="app">
+    <div id="mapwrap"></div>
     <header id="top">
       <div id="res"></div>
       <div id="bar2">
@@ -26,32 +28,33 @@
         </div>
       </div>
     </header>
-    <main id="view"></main>
-    <div id="mapwrap" hidden>
-      <canvas id="map"></canvas>
-      <div id="zoom"><button data-act="zoom" data-v="1.25">＋</button><button data-act="zoom" data-v="0.8">－</button></div>
-      <div id="sheet" hidden></div>
-    </div>
+    <div id="zoom"><button data-act="zoom" data-v="1.3">＋</button><button data-act="zoom" data-v="0.77">－</button><button data-act="home">🦅</button></div>
+    <div id="sheet" hidden></div>
+    <main id="view" hidden></main>
     <nav id="tabs">
-      <button data-act="tab" data-v="city"><i>🏛️</i>Ciudad</button>
-      <button data-act="tab" data-v="army"><i>⚔️</i>Tropas</button>
       <button data-act="tab" data-v="map"><i>🗺️</i>Mapa</button>
-      <button data-act="tab" data-v="hero"><i>🦅</i>Héroe</button>
+      <button data-act="tab" data-v="city"><i>🏛️</i>Ciudad</button>
+      <button data-act="tab" data-v="army"><i>⚔️</i>Ejército</button>
+      <button data-act="tab" data-v="hero"><i>🦅</i>General</button>
       <button data-act="tab" data-v="log"><i>📜</i>Crónica</button>
     </nav>
   </div>
 
   <div id="battle" hidden>
+    <div id="bfield"></div>
     <div id="bhud"></div>
-    <div id="bfield"><canvas id="bcanvas"></canvas></div>
-    <div id="bctl">
-      <button data-act="bpause" id="bpause">II</button>
-      <button data-act="bspeed" id="bspeed">x1</button>
-      <button data-act="bauto" id="bauto" class="on">🤖 Auto</button>
-      <button data-act="ball">☰ Todas</button>
-      <button data-act="bskip">⏭ Fin</button>
+    <div id="bbottom">
+      <div id="bcards"></div>
+      <div id="bctl">
+        <button data-act="bpause" id="bpause">II</button>
+        <button data-act="bspeed" id="bspeed">x1</button>
+        <button data-act="bauto" id="bauto" class="on">Auto</button>
+        <button data-act="ball">Todas</button>
+        <button data-act="bcam">Cámara</button>
+        <button data-act="bskip">Fin</button>
+      </div>
     </div>
-    <div id="bhint">Toca tus regimientos para seleccionarlos · toca el campo para mover · toca un enemigo para atacar</div>
+    <div id="bhint">Arrastra para mover la cámara · pellizca para acercar y girar · toca un estandarte o tarjeta para seleccionar · toca el suelo o un enemigo para dar la orden</div>
   </div>
 
   <div id="modal" hidden><div id="mbox"></div></div>
@@ -61,6 +64,6 @@
   <script src="js/data.js"></script>
   <script src="js/battle.js"></script>
   <script src="js/game.js"></script>
-  <script src="js/ui.js"></script>
+  <script type="module" src="js/ui.js"></script>
 </body>
 </html>
