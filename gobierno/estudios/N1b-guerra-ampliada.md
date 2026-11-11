@@ -80,6 +80,39 @@ los principes (Livio VIII 8, por cotejar). Formaciones: testudo (aguanta proyect
 **2.7 Antes y después.** Despliegue en tu zona, con emboscada en bosque (P72). Después: persecución (la caballería
 que queda convierte huidos en bajas), heridos que vuelven y veteranía de los regimientos que sobreviven.
 
+**2.8 Campos amplios y relieve** (pedido del usuario, 11/11: «darle una vuelta al relieve, campos de batalla mucho
+más amplios»).
+- Hoy el campo mide unos 600 m y casi todo es llano. Propuesta: **dos o tres veces más ancho**, con sitio para
+  rodear, esconderse y elegir dónde chocar.
+- **Relieve variado**: lomas suaves, un cerro que domina, una cresta que tapa la vista, un valle, un río con vados
+  (cruzarlo desordena), pantano (frena a todos), bosque claro y bosque denso, una granja o un pueblo, un camino.
+- **El campo sale del sitio del mapa** donde chocan los ejércitos: la llanura de Apulia no es como los montes del
+  Samnio. Cada región tiene dos o tres campos posibles.
+- **Pasos estrechos**: en un desfiladero o junto a un río, el ejército grande no cabe en la línea y su número vale
+  menos (idea de las Termópilas y del lago Trasimeno).
+- Con un campo grande hace falta un **minimapa** y saltos de cámara a cada ala.
+- **De la maqueta de Estandartes** (concurso K4): la moral se lee en la tela del estandarte, los corchetes dorados de
+  cada ala y la cenefa de color bajo el regimiento. L2 ya llevó parte al juego; el resto entra en N3.
+- Límite honrado: más campo pinta más cosas. Se apoya en los niveles de detalle (D2), pero en un móvil real **no está
+  medido**.
+
+**2.9 Equilibrio: que no gane siempre el que tiene más tropas** (pedido del usuario, 11/11).
+- **Ancho de frente**: solo cabe en la línea un número de regimientos; el resto espera de reserva. En un paso
+  estrecho, el pequeño aguanta al grande.
+- **Se gana rompiendo, no matando**: la batalla acaba cuando un ejército huye. Un ejército grande y bisoño, con el
+  general muerto o rodeado, se deshace antes que uno pequeño y veterano.
+- **Calidad**: veteranía de los regimientos, rasgos del general y cartas pesan tanto como el número. Las levas recién
+  reclutadas empiezan en Vacilante.
+- **Un ejército grande cuesta**: come más forraje del que da la región (R13), marcha más lento y paga más cada mes.
+  Juntar tropas sin más te mata de hambre antes de combatir.
+- **Objetivos**: no todas las batallas son «mátalos a todos». Aguantar un vado tres rondas hasta que llegue ayuda,
+  salvar el bagaje, tomar el paso, escapar con el general vivo.
+- **Victorias caras**: las bajas son de verdad en la campaña. Ganar perdiendo media legión (victoria pírrica, 280–279)
+  deja la ciudad sin hombres.
+- **Retirada en orden**: el pequeño puede retirarse antes de romperse y conservar el ejército.
+- **Equilibrio medido**: el bot de pruebas juega cientos de batallas con ejércitos de distinto tamaño y calidad. Meta:
+  con buen terreno y buen plan, un ejército de dos tercios gana a menudo; sin plan, el grande gana casi siempre.
+
 ## 3. El aspecto: que parezca un juego de hoy
 Referencias de las que se toman **ideas** (nunca su arte): Total War (cámara baja que sigue el choque, estandartes
 sobre cada regimiento), Ultimate General (flechas de orden pintadas en el suelo, mapa de mesa), Frozen Synapse (siluetas
@@ -138,17 +171,19 @@ también su intención en la batalla.
 | N11 Asedios | Aguante, máquinas, brecha, asalto y socorro | 1,5 |
 | N12 Exploración y emboscadas | Niebla, exploradores, intención enemiga, P72 | 1,2 |
 | N13 Después de la batalla | Persecución, heridos, veteranía | 0,8 |
+| N14 Campos amplios y relieve | Campo dos o tres veces más ancho, cerros, río con vados, pantano, pasos; el campo sale de la región; minimapa | 1,5 |
+| N15 Equilibrio y objetivos | Ancho de frente, levas bisoñas, objetivos de batalla, bot que mide cientos de batallas | 1,2 |
 
-**Total: unos 15 M, de doce a catorce sesiones** (N1 decía 12 M; sube por la interfaz y el aspecto, que N1 no
-contaba aparte, y por N4 y N13). Afinar números de batalla suele costar el doble de lo previsto: el riesgo es al alza.
+**Total: unos 18 M, de quince a diecisiete sesiones** (N1 decía 12 M; sube por la interfaz y el aspecto, que N1 no
+contaba aparte, por N4 y N13, y por los campos amplios y el equilibrio que pidió el usuario). Afinar números de batalla suele costar el doble de lo previsto: el riesgo es al alza.
 
-**Orden recomendado**: N2 → N3 → N4 → N5 (cuatro sesiones: con eso la batalla ya juega y se ve distinta), después N6,
-N7 y N8. La campaña (N9 a N13) cuando I2 esté hecha.
+**Orden recomendado**: N2 → N3 → N4 → N5 (cuatro sesiones: con eso la batalla ya juega y se ve distinta), después N14,
+N6, N15, N7 y N8. N15 se repite al final: el equilibrio se ajusta cuando todo lo demás está. La campaña (N9 a N13) cuando I2 esté hecha.
 **Absorbe**: L3, L1b, A1, A2, A6, A8b, P72 y P73.
 
 ## 7. Lo que decide el usuario
 1. ¿Te convence el aspecto de las capturas N1b? Son la vista 3D de verdad con la interfaz nueva encima.
-2. ¿Aprobamos el carril N entero (P74) o solo el primer bloque (N2 a N5, unos 5 M)?
+2. ¿Aprobamos el carril N entero (P74, unos 18 M) o solo el primer bloque (N2 a N5, unos 5 M)?
 3. **Puntos de mando** (sigue sin contestar). Tres opciones:
    - **A. Puntos y radio** (recomendada): 4 a 6 órdenes por ronda; las que van fuera del radio del general llegan con
      retraso. Obliga a elegir, como en los juegos de cartas de mando (R10).
