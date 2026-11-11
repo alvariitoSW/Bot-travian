@@ -117,6 +117,10 @@ más amplios»).
 Referencias de las que se toman **ideas** (nunca su arte): Total War (cámara baja que sigue el choque, estandartes
 sobre cada regimiento), Ultimate General (flechas de orden pintadas en el suelo, mapa de mesa), Frozen Synapse (siluetas
 del plan), Field of Glory II (fichas que se leen de un vistazo).
+- **Pantalla limpia** (pedido del usuario, 11/11: «no metas tantas mini pantallas porque al final se te llena de
+  cosas la pantalla»). Regla: el campo 3D ocupa al menos el 80 % de la pantalla. Arriba, una sola línea fina; abajo,
+  una sola fila de botones. Nada de fichas abiertas fijas: lo que no se usa, plegado en un icono. Las marcas sobre los
+  regimientos son pequeñas y sin texto. Un solo panel a la vez, y solo cuando lo pides o al acabar la ronda.
 - **Siempre en 3D con los soldados de verdad** (modelos de 0 A.D. que ya tenemos). Se acaban los rectángulos.
 - **Plan**: cámara alta, todo parado, un poco de color apagado. Encima: flechas curvas en el suelo, siluetas del
   final, círculo del general, intención enemiga en rojo tenue si tienes exploradores.
