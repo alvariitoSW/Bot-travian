@@ -94,7 +94,7 @@ En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Ma
 
 ## Encargo de la próxima sesión
 0b. Carril Guerra interfaz: L1 hecha (11/11). Siguiente posible: L1b (testudo si el usuario lo quiere como regla, trazo en vista 2D, HUD en vertical) y las tareas L de estandartes. Ojo: L1 gastó 1,5 M (tope aconsejado).
-0. Carril Interfaz: **J6 Ciudad como pantalla principal** (aprobada; sustituye a J1 en la pantalla de ciudad), luego J7 Parte densa (incluye J2). Presupuesto J6: tope 1,2 M, todo Sonnet. J1 gastó 1,7 M sobre 0,65: no repetir.
+0. Carril Interfaz: J6 hecha (11/11). Sigue **J7 Parte densa** (incluye J2): pestañas también en el mapa, Imperio con filtros, cola de obras. Presupuestar con el dato: J6 gastó ~1,5 M sobre 0,65 presupuestado; encargar al constructor piezas más pequeñas.
 Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que lleva Campaña):
 1. I6 Región de Italia → I7 Regiones → I8 Partida corta (prioridad del usuario).
 2. Historia: H14 → H13 → H12 → H11.
@@ -123,3 +123,5 @@ Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que 
 - Gasto: A8 costó el doble de lo presupuestado (1,3 M frente a 0,55). Afinar números con pruebas cuesta más que una tarea media; presupuestar A5a y A5b con ese dato.
 - Para regenerar el arte hace falta un clon parcial de `0ad/0ad` y los cargadores de ejemplo de three.js (README).
 - 11/11/2026 — I1b hecha: fichas del registro con dictamen al día y Códice con una sola fuente (P55). Ver `partes/2026-11-11-I1b.md`.
+
+- J6 (11/11): consejo calculado en `js/ui.js` (no en game.js); medallas en `city3d.js`; pestañas `#tabs3`. En modo guerra no hay pestañas ni se ven los botones J1. Sin medir fluidez en móvil real.

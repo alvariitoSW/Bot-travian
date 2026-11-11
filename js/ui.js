@@ -131,7 +131,7 @@ function tickUI() {
   });
   document.querySelectorAll('[data-need]').forEach(b => b.classList.toggle('no', !G.canAfford(JSON.parse(b.dataset.need))));
   document.querySelectorAll('[data-have]').forEach(e => { e.textContent = 'de ' + fmt(s.res[e.dataset.have]); });
-  if (UI.tab === 'city' && UI.cityV && !UI.cityList && !$('citywrap').hidden) { const m = cityMeta(c), k = metaKey(m); if (k !== UI.metaK) renderCity3D(); }
+  if (UI.tab === 'city' && UI.cityV && !UI.cityList && !$('citywrap').hidden) { const m = cityMeta(c), k = metaKey(m); if (k !== UI.metaK) renderCity3D(); else { const ct = document.querySelector('.consejo .ct'); if (ct && ct.lastChild && ct.lastChild.nodeType === 3 && ct.lastChild.nodeValue !== m.cons.t) ct.lastChild.nodeValue = m.cons.t; } }
 }
 
 /* ---------- paneles ---------- */
@@ -316,7 +316,7 @@ function cityMeta(c) {
   for (const b in D.BUILD) if (!(c.b[b] > 0) && !puedeObra(c, b)) oculta[b] = 1;
   return { cons, rec: cons.rec ? cons.b : null, flags: cons.flags, oculta };
 }
-const metaKey = m => JSON.stringify([m.cons.b, m.cons.rec, m.cons.t, m.flags, Object.keys(m.oculta)]);
+const metaKey = m => JSON.stringify([m.cons.b, m.cons.rec, m.cons.t.replace(/Faltan .*$/, ''), m.flags, Object.keys(m.oculta)]);
 function consejoHtml(cs) {
   return '<div class="consejo' + (cs.rec ? ' rec' : '') + '"><span class="ci">' + (cs.b ? bIco(cs.b) : ICO_ALERTA) + '</span><div class="ct"><b>Consejo</b>' + esc(cs.t) + '</div>' +
     (cs.b ? '<button class="bmain' + (cs.rec ? ' rec' : '') + '" data-act="cver" data-v="' + cs.b + '">Ver obra</button>' : '') + '</div>';
