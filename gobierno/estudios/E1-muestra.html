@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AQVILA · Muestra de la guía de arte</title>
+<style>
+  :root { --noche: #0b1016; --rojo: #c0281f; --oro: #e9c063; --bronce: #b8862b; --marmol: #f1ead9; --piedra: #9aa6b4; --oliva: #8fae5a; --terracota: #d9764a;
+    --serif: 'Cinzel', 'Trajan Pro', 'Palatino Linotype', Palatino, Georgia, serif; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #05080c; color: var(--marmol); font: 15px/1.45 system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+  main { max-width: 390px; margin: 0 auto; padding: 16px 14px 40px; }
+  h1, h2 { font-family: var(--serif); font-weight: 700; letter-spacing: .14em; text-transform: uppercase; margin: 0; }
+  h1 { color: var(--oro); font-size: 26px; text-align: center; letter-spacing: .3em; }
+  .sub { text-align: center; color: var(--piedra); font-size: 12px; letter-spacing: .2em; margin: 2px 0 14px; font-family: var(--serif); }
+  h2 { color: var(--oro); font-size: 13px; }
+  .marco { background: var(--noche); border: 1px solid var(--bronce); border-radius: 7px; padding: 3px; margin-bottom: 14px; }
+  .marco > div { border: 1px solid rgba(184, 134, 43, .35); border-radius: 5px; padding: 12px; }
+  .greca { height: 12px; margin: 6px 0 12px; opacity: .8; background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='12'%3E%3Cpath d='M0 10.5h12.5v-9h-8v5h4' fill='none' stroke='%23b8862b' stroke-width='1.4'/%3E%3C/svg%3E") repeat-x; }
+  .paleta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .color { display: flex; align-items: center; gap: 8px; font-size: 12.5px; }
+  .color i { flex: none; width: 38px; height: 38px; border-radius: 5px; border: 1px solid rgba(255, 255, 255, .22); }
+  .color b { display: block; font-weight: 600; }
+  .color span { color: var(--piedra); font: 11.5px ui-monospace, Menlo, Consolas, monospace; }
+  .titulo { font-family: var(--serif); font-size: 21px; letter-spacing: .1em; color: var(--oro); text-transform: uppercase; }
+  .niv { font-family: var(--serif); color: var(--bronce); letter-spacing: .1em; }
+  p { margin: 6px 0; }
+  .ap { color: var(--piedra); font-size: 13px; }
+  .bien { color: var(--oliva); } .mal { color: var(--terracota); }
+  .iconos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; text-align: center; font-size: 12px; color: var(--piedra); }
+  .iconos svg { width: 44px; height: 44px; display: block; margin: 0 auto 2px; }
+  svg.ic { fill: none; stroke: var(--bronce); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+  svg.ic.oro { stroke: var(--oro); }
+  .barra { display: flex; justify-content: space-between; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .barra span { display: flex; align-items: center; gap: 3px; }
+  .barra svg { width: 19px; height: 19px; }
+  .barra.hoy { font-size: 13px; color: #eef1f5; }
+  .botones { display: flex; gap: 8px; margin-top: 10px; }
+  button { flex: 1; font: 600 14px system-ui, sans-serif; padding: 11px 6px; border-radius: 6px; color: var(--marmol); }
+  .b1 { background: var(--rojo); border: 1px solid var(--oro); }
+  .b2 { background: transparent; border: 1px solid var(--bronce); color: var(--oro); }
+  .pie { color: var(--piedra); font-size: 11.5px; text-align: center; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="madera" viewBox="0 0 24 24"><ellipse cx="6" cy="12" rx="2.6" ry="4.5"/><path d="M6 7.5h11.5c1.4 0 2.6 2 2.6 4.5s-1.2 4.5-2.6 4.5H6"/><path d="M6 11v2M11 10.5h4M12.5 13.5h3.5"/></symbol>
+  <symbol id="piedra" viewBox="0 0 24 24"><path d="M3 13.5h18v6.5H3zM12 13.5V20M6.5 13.5V7h11v6.5"/><path d="M9 10h2M14.5 16.8h2"/></symbol>
+  <symbol id="hierro" viewBox="0 0 24 24"><path d="M8.5 7.5h7l1.5 4.5h-10z"/><path d="M7 12l-3.5 5.5h17L17 12M8.5 7.5L3.5 17.5M15.5 7.5l5 10"/></symbol>
+  <symbol id="grano" viewBox="0 0 24 24"><path d="M12 21.5V8"/><path d="M12 8c-1.6-1.7-1.6-3.8 0-5.5 1.6 1.7 1.6 3.8 0 5.5z"/><path d="M12 13c-2.6 0-3.8-1.6-3.8-3.8 2.6 0 3.8 1.6 3.8 3.8zM12 13c2.6 0 3.8-1.6 3.8-3.8-2.6 0-3.8 1.6-3.8 3.8zM12 18c-2.6 0-3.8-1.6-3.8-3.8 2.6 0 3.8 1.6 3.8 3.8zM12 18c2.6 0 3.8-1.6 3.8-3.8-2.6 0-3.8 1.6-3.8 3.8z"/></symbol>
+  <symbol id="denario" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6.3" stroke-dasharray="1.2 2.1"/><path d="M10 9.2l4 5.6M14 9.2l-4 5.6"/></symbol>
+  <symbol id="gladius" viewBox="0 0 24 24"><path d="M12 1.8l2.3 3.4v9.3H9.7V5.2z"/><path d="M12 5.5v6.5M7.5 14.5h9M12 14.5V19"/><circle cx="12" cy="20.6" r="1.6"/></symbol>
+</svg>
+<main>
+  <h1>AQVILA</h1>
+  <div class="sub">MUESTRA DE LA GUÍA DE ARTE</div>
+
+  <section class="marco"><div>
+    <h2>Paleta</h2><div class="greca"></div>
+    <div class="paleta">
+      <div class="color"><i style="background:#0b1016"></i><div><b>Noche</b><span>#0b1016</span></div></div>
+      <div class="color"><i style="background:#c0281f"></i><div><b>Rojo legión</b><span>#c0281f</span></div></div>
+      <div class="color"><i style="background:#e9c063"></i><div><b>Oro</b><span>#e9c063</span></div></div>
+      <div class="color"><i style="background:#b8862b"></i><div><b>Bronce</b><span>#b8862b</span></div></div>
+      <div class="color"><i style="background:#f1ead9"></i><div><b>Mármol</b><span>#f1ead9</span></div></div>
+      <div class="color"><i style="background:#9aa6b4"></i><div><b>Piedra</b><span>#9aa6b4</span></div></div>
+      <div class="color"><i style="background:#8fae5a"></i><div><b>Oliva</b><span>#8fae5a</span></div></div>
+      <div class="color"><i style="background:#d9764a"></i><div><b>Terracota</b><span>#d9764a</span></div></div>
+    </div>
+  </div></section>
+
+  <section class="marco"><div>
+    <h2>Letra</h2><div class="greca"></div>
+    <div class="titulo">Senatus Populusque</div>
+    <p>Texto normal en mármol: el Senado te concede el mando de dos legiones.</p>
+    <p class="ap">Texto secundario en piedra: tardará 3 días.</p>
+    <p><span class="bien">+120 de grano</span> · <span class="mal">−40 de moral</span> · <span class="niv">NIVEL III</span></p>
+  </div></section>
+
+  <section class="marco"><div>
+    <h2>Seis iconos</h2><div class="greca"></div>
+    <div class="iconos">
+      <div><svg class="ic"><use href="#madera"/></svg>Madera</div>
+      <div><svg class="ic"><use href="#piedra"/></svg>Piedra</div>
+      <div><svg class="ic"><use href="#hierro"/></svg>Hierro</div>
+      <div><svg class="ic"><use href="#grano"/></svg>Grano</div>
+      <div><svg class="ic oro"><use href="#denario"/></svg>Denarios</div>
+      <div><svg class="ic oro"><use href="#gladius"/></svg>Guerra</div>
+    </div>
+    <p class="ap" style="margin-top:10px">Bronce en reposo; oro cuando está activo.</p>
+  </div></section>
+
+  <section class="marco"><div>
+    <h2>Antes y después</h2><div class="greca"></div>
+    <p class="ap">Hoy, con emojis (cada móvil los pinta distinto):</p>
+    <div class="barra hoy"><span>🪵 820</span><span>🪨 640</span><span>⚒️ 310</span><span>🌾 955</span><span>🪙 120</span></div>
+    <p class="ap" style="margin-top:12px">Propuesta, con iconos propios:</p>
+    <div class="barra">
+      <span><svg class="ic"><use href="#madera"/></svg>820</span>
+      <span><svg class="ic"><use href="#piedra"/></svg>640</span>
+      <span><svg class="ic"><use href="#hierro"/></svg>310</span>
+      <span><svg class="ic"><use href="#grano"/></svg>955</span>
+      <span><svg class="ic oro"><use href="#denario"/></svg>120</span>
+    </div>
+    <div class="botones"><button class="b1">Reclutar</button><button class="b2">Cancelar</button></div>
+  </div></section>
+
+  <div class="pie">Dibujos propios en SVG. No cambia nada del juego todavía.</div>
+</main>
+</body>
+</html>

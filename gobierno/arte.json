@@ -2,5 +2,12 @@
   "provisional": false,
   "descargaMB": 35,
   "triangulosPorUnidad": 4500,
-  "triangulosPorEdificio": 12000
+  "triangulosPorEdificio": 12000,
+  "escenas": {
+    "triangulosPorBatalla": 1100000,
+    "triangulosPorCiudad": 300000,
+    "ejercitoRomano": { "hastati": 400, "principes": 300, "triarii": 150, "velites": 250, "equites": 120 },
+    "nivelCiudad": 5,
+    "arboles": { "pino": 30, "cipres": 60, "algarrobo": 60, "olivo": 15 }
+  }
 }

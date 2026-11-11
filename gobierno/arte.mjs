@@ -5,6 +5,7 @@
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const P = JSON.parse(await readFile(join(RAIZ, 'gobierno', 'arte.json'), 'utf8'));
@@ -13,11 +14,12 @@ const fallos = [];
 
 async function peso(dir) { let t = 0; for (const f of await readdir(dir, { withFileTypes: true })) t += f.isDirectory() ? await peso(join(dir, f.name)) : (await stat(join(dir, f.name))).size; return t; }
 
-let total = 0;
+let total = 0; const TRIS = {};   // triángulos de cada pieza, para sumar escenas
 for (const [carpeta, indice, tope, nombre] of [['assets/units', 'units.json', P.triangulosPorUnidad, 'unidad'], ['assets/static', 'static.json', P.triangulosPorEdificio, 'edificio']]) {
   const dir = join(RAIZ, carpeta), b = await peso(dir); total += b;
   const idx = JSON.parse(await readFile(join(dir, indice), 'utf8'));
   const tris = Object.entries(idx).filter(([, v]) => v.verts).map(([k, v]) => [k, Math.round(v.verts / 3)]).sort((a, c) => c[1] - a[1]);   // mallas sin índices: 3 vértices por triángulo
+  for (const [k, n] of tris) TRIS[k] = n;
   console.log(carpeta + ' · ' + MB(b) + ' · ' + tris.length + ' piezas · la mayor: ' + tris[0][0] + ' (' + tris[0][1] + ' triángulos)');
   for (const [k, n] of tris) if (n > tope) fallos.push(k + ': ' + n + ' triángulos (tope por ' + nombre + ': ' + tope + ')');
   try { const l = await readFile(join(dir, 'LICENSE.txt'), 'utf8'); if (!/CC BY-SA 3\.0/.test(l) || !/Wildfire Games/.test(l)) fallos.push(carpeta + '/LICENSE.txt no cita a Wildfire Games y la CC BY-SA 3.0'); }
@@ -26,6 +28,36 @@ for (const [carpeta, indice, tope, nombre] of [['assets/units', 'units.json', P.
 console.log('Descarga total de arte: ' + MB(total) + ' (tope: ' + P.descargaMB + ' MB)');
 if (total > P.descargaMB * 1048576) fallos.push('el arte pesa ' + MB(total) + ' y el tope es ' + P.descargaMB + ' MB');
 for (const [f, re] of [['README.md', /CC BY-SA 3\.0/], ['js/ui.js', /Wildfire Games/]]) if (!re.test(await readFile(join(RAIZ, f), 'utf8'))) fallos.push('falta el crédito de 0 A.D. en ' + f);
+
+/* ---- Escenas típicas (E3): cuántos triángulos pide una batalla y una ciudad normales ----
+   Es una cuenta aproximada a partir de js/data.js y de los índices de assets/. Sigue las reglas de js/gfx/battle3d.js
+   (figuras por regimiento) y js/gfx/city3d.js (casas, muralla, barcos, árboles). Si esas reglas cambian, hay que cambiarlas aquí. */
+const D = createRequire(import.meta.url)(join(RAIZ, 'js', 'data.js')), E = P.escenas, mil = n => Math.round(n / 1000) + ' mil';
+const tri = k => TRIS[k] || 0;
+// Batalla: el ejército romano de arte.json contra la guarnición más grande del mapa, cada uno con su general.
+const hombres = g => Object.values(g).reduce((a, b) => a + b, 0);
+const rival = Object.entries(D.CITIES).filter(([, c]) => c.f !== 'roma').sort((a, b) => hombres(b[1].g) - hombres(a[1].g))[0];
+const bandos = [E.ejercitoRomano, rival[1].g];
+const grande = Math.max(...bandos.map(g => Object.entries(g).reduce((a, [k, n]) => a + (D.UNITS[k].cls === 'ele' ? 0 : n), 0)));
+const regimiento = Math.max(30, Math.ceil(grande / 12));                                   // como en js/battle.js
+const figurasMax = k => ({ ele: 99, cav: 30, gen: 30, rng: 50 })[D.UNITS[k].cls] || 60;        // como formation() en battle3d.js
+let soldados = 0, trisBatalla = 0;
+for (const g of bandos) for (const [k, n] of Object.entries({ ...g, general: 1 })) {
+  const regs = D.UNITS[k].cls === 'ele' || k === 'general' ? 1 : Math.ceil(n / regimiento), fig = regs * Math.min(Math.ceil(n / regs), figurasMax(k));
+  soldados += fig; trisBatalla += fig * tri(k);
+}
+// El juego ya recorta: si la batalla pide más que su tope de móvil (TRI_BUDGET en battle3d.js), pinta menos soldados.
+const recorte = +((await readFile(join(RAIZ, 'js', 'gfx', 'battle3d.js'), 'utf8')).match(/TRI_BUDGET = \(.*?\? ([\d.e]+)/) || [0, Infinity])[1];
+const pintados = Math.min(trisBatalla, recorte), visibles = Math.round(soldados * pintados / trisBatalla);
+console.log('Batalla típica (Roma contra ' + rival[1].n + '): pide ' + soldados + ' soldados y ' + mil(trisBatalla) + ' triángulos · en móvil se pintan ' + visibles + ' soldados y ' + mil(pintados) + ' (tope: ' + mil(E.triangulosPorBatalla) + ')');
+if (pintados < trisBatalla) console.log('  aviso: el juego recorta la batalla al ' + Math.round(100 * pintados / trisBatalla) + ' % de sus soldados para no pasar de ' + mil(recorte) + ' triángulos en móvil');
+if (pintados > E.triangulosPorBatalla) fallos.push('la batalla típica pinta ' + mil(pintados) + ' triángulos y el tope es ' + mil(E.triangulosPorBatalla));
+// Ciudad: todos los edificios de data.js a un nivel medio, con sus casas, muralla, barcos y arbolado.
+const nv = E.nivelCiudad, piezas = { casa: 2 + nv * 3, muro: 16, puerta: 4, torre: 21, barco: Math.min(5, nv) - Math.floor(Math.min(5, nv) / 3), trirreme: Math.floor(Math.min(5, nv) / 3), vesta: 1, arco: 1, ...E.arboles };
+for (const b in D.BUILD) if (TRIS[b]) piezas[b] = 1;
+let nPiezas = 0, trisCiudad = 0; for (const k in piezas) { nPiezas += piezas[k]; trisCiudad += piezas[k] * tri(k); }
+console.log('Ciudad típica (todos los edificios, nivel ' + nv + '): ' + nPiezas + ' piezas · ' + mil(trisCiudad) + ' triángulos (tope: ' + mil(E.triangulosPorCiudad) + ')');
+if (trisCiudad > E.triangulosPorCiudad) fallos.push('la ciudad típica pide ' + mil(trisCiudad) + ' triángulos y el tope es ' + mil(E.triangulosPorCiudad));
 
 console.log(fallos.length ? 'ARTE: NO APTO\n  ✘ ' + fallos.join('\n  ✘ ') : 'ARTE: APTO' + (P.provisional ? ' (presupuesto provisional, pendiente de que el usuario lo apruebe)' : ''));
 process.exit(fallos.length ? 1 : 0);
