@@ -484,6 +484,31 @@
    "tarea": "I2",
    "archivo": "gobierno/capturas-tarea/I2-mapa.jpg",
    "pie": "Botón «Pasar turno» por estaciones"
+  },
+  {
+   "tarea": "Q1b",
+   "archivo": "gobierno/capturas-tarea/Q1b-0-antes-cerca.jpg",
+   "pie": "Ciudad de hoy: muralla cuadrada, solares de arena"
+  },
+  {
+   "tarea": "Q1b",
+   "archivo": "gobierno/capturas-tarea/Q1b-1-romana-cerca.jpg",
+   "pie": "Maqueta: ciudad romana densa, templo en la colina"
+  },
+  {
+   "tarea": "Q1b",
+   "archivo": "gobierno/capturas-tarea/Q1b-2-romana-lejos.jpg",
+   "pie": "Maqueta de lejos: arrabales, campos y horizonte"
+  },
+  {
+   "tarea": "Q1b",
+   "archivo": "gobierno/capturas-tarea/Q1b-3-griega.jpg",
+   "pie": "Maqueta: versión griega, estuco blanco"
+  },
+  {
+   "tarea": "Q1b",
+   "archivo": "gobierno/capturas-tarea/Q1b-4-punica.jpg",
+   "pie": "Maqueta: versión púnica, ocre y tejado plano"
   }
  ],
  "informes": [
@@ -562,6 +587,10 @@
   {
    "titulo": "Q1 · Ciudad, gobierno y economía",
    "archivo": "gobierno/estudios/Q1-ciudad-gobierno-economia.md"
+  },
+  {
+   "titulo": "Q1b · Ciudad itálica (historia y aspecto)",
+   "archivo": "gobierno/estudios/Q1b-ciudad-italica.md"
   }
  ]
 }

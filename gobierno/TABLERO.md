@@ -94,7 +94,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 
 ## Carril O — Economía nueva (pedido 11/11/2026)
 - ✅ Q1 **Diseño de ciudad, gobierno y economía** (11/11): un solo modelo (caja del mes, almacén con tope, barrios, tres clases, Senado, Foro, provincias, aspecto), estudios R15 a R19 y cuatro capturas sobre la ciudad 3D. Diseño `estudios/Q1-ciudad-gobierno-economia.md`; carril Q propuesto en P75.
-- ⬜ Q1b **Ciudad nueva: plano itálico común** (P76, aprobada 11/11): estudio con la skill `historia` de cómo eran las ciudades itálicas de 280 a 146 a.C. (colinas, muralla que sigue el terreno, foro, templo en alto, casas de toba y teja apiñadas, campos y villas fuera) y referencias de otros juegos (tráileres y vídeos, solo ideas). Después, maqueta 3D sobre la vista de la ciudad con piezas de 0 A.D.: sin muralla cuadrada, sin solares de arena, ciudad densa que siga más allá del borde (arrabales, campos, niebla, horizonte), luz y suelo con color, gente y humo. Quitar o marcar lo fuera de época (anfiteatro de piedra, termas). Cambia por cultura (romana, griega, púnica). Sin tocar el juego hasta que elija. ≈1,5 M, una sesión.
+- ✅ Q1b **Ciudad nueva: plano itálico común** (11/11): estudio `estudios/Q1b-ciudad-italica.md` (dictamen: muralla cuadrada, anfiteatro, termas y acueducto de arcos fuera de época) y maqueta 3D `maquetas/ciudad-italica.mjs` con capturas `Q1b-0` a `Q1b-4` (antes, romana cerca y lejos, griega, púnica). Construirla en el juego: Q1c a Q1i, propuestas en P77.
 
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
