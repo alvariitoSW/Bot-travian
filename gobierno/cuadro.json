@@ -259,6 +259,12 @@
       "archivo": "gobierno/capturas-tarea/A7-grie-0s.jpg",
       "pie": "Defensor griego: templo de columnas",
       "ancha": true
+    },
+    {
+      "tarea": "A4",
+      "archivo": "gobierno/capturas-tarea/a4-0s.jpg",
+      "pie": "Cada regimiento lleva su papel: «Pesada», «Lanceros»…",
+      "ancha": true
     }
   ],
   "informes": [

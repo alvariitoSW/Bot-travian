@@ -29,7 +29,6 @@
   const PASO_TIRO = 0.12;       // (A3) paso en la fase de tiro: spd × 0.12 (los dos bandos; unos 6-8 s de tiro antes del choque)
   const PROY_MUL = 20;          // (A3) multiplica el daño de cada descarga de proyectiles (antes casi no mataba)
   const PESADA_DEF = 11;        // (A3) infantería con defensa >= esto, o lanceros: armadura pesada
-  const PROY_PESADA = 0.75;     // (A3) los proyectiles hacen este factor a la armadura pesada
   const FRENTE_HOMBRES = 36;    // (A3) hombres de un regimiento que pelean a la vez (frente); si hay más, las filas de atrás no pegan
   const DIST_PERSEGUIR = 170;   // (A3) la caballería persigue a un regimiento roto que esté a menos de esto
   const PERSEGUIR_MUL = 40;     // (A3) bajas por segundo al que huye (como el golpe normal × esto, sin respuesta)
@@ -38,6 +37,31 @@
   const CAB_FLANCO = 1.25;      // (A3) bonificación extra de la caballería al golpear de flanco o por la espalda
   const EMPUJE_CAB = 22;        // (A3) empuje por segundo (unidades) a la ligera arrollada durante la carga
   const DIST_ENCIMA = 90;       // un enemigo a menos de esto obliga al tirador a pelear
+  // --- Papeles de la infantería (A4) ---
+  // papel por id de unidad (lo que no está aquí se deduce de su clase y defensa: ver papelDe)
+  const PAPEL = { velites: 'tirador', hastati: 'media', principes: 'pesada', triarii: 'lanceros', vigiles: 'ligera', milicia: 'ligera',
+    hoplitas: 'lanceros', falange: 'lanceros', libios: 'media', iberos: 'ligera', galos: 'ligera', sagrada: 'pesada',
+    peltastas: 'tirador', honderos: 'tirador', equites: 'jinete', jinetes: 'jinete', numidas: 'jinete', tesalios: 'jinete', elefantes: 'elefante', general: 'jinete' };
+  const PAPEL_NOMBRE = { ligera: 'Ligera', pesada: 'Pesada', lanceros: 'Lanceros' };   // los que se muestran al jugador
+  const PAPEL_ATK = { ligera: 0.94, media: 1, pesada: 1, lanceros: 0.95 };           // multiplica el daño que hace en el choque
+  const PAPEL_CHOQUE = { ligera: 1.03, media: 1, pesada: 0.85, lanceros: 1 };          // multiplica el daño de choque frontal que recibe (el flanco no cuenta)
+  const PAPEL_MORAL = { ligera: 1.1, media: 1, pesada: 0.8, lanceros: 1 };           // multiplica la moral que pierde por bajas
+  const PAPEL_PROY = { ligera: 0.85, media: 1, pesada: 0.75, lanceros: 0.75 };        // multiplica el daño de proyectiles recibido
+  const PAPEL_VEL = { ligera: 1.1, media: 1, pesada: 0.92, lanceros: 1 };             // multiplica la velocidad
+  const PAPEL_FAT = { ligera: 0.85, media: 1, pesada: 1.3, lanceros: 1 };             // multiplica el cansancio de marchar y correr
+  const LANCEROS_VS_CAB = 1.3;  // bajas extra que los lanceros causan a la caballería (además del ×1,7 de las lanzas)
+  const LANCEROS_FLANCO = 1.2;  // los lanceros son débiles de flanco: más daño por flanco o espalda
+  const FAT_FRENADA = 12;       // cansancio de golpe que sufre la caballería al estrellarse contra lanceros de frente
+  // tipo de daño del arma por papel y tipo de armadura por papel (corte, punta, aplastamiento / cuero, malla, placa)
+  const DANO_TIPO = { ligera: 'punta', media: 'corte', pesada: 'corte', lanceros: 'punta', tirador: 'punta', jinete: 'corte', elefante: 'aplastar' };
+  const ARMA_TIPO = { ligera: 'cuero', media: 'malla', pesada: 'placa', lanceros: 'malla', tirador: 'cuero', jinete: 'malla', elefante: 'placa' };
+  const DANO_MUL = { corte: { cuero: 1.08, malla: 1, placa: 0.8 }, punta: { cuero: 1, malla: 1.1, placa: 1.1 }, aplastar: { cuero: 0.9, malla: 1, placa: 1.25 } }; // 0,8–1,25
+  function papelDe(k, u) {
+    if (PAPEL[k]) return PAPEL[k];
+    if (u.cls === 'spear') return 'lanceros';
+    if (u.cls === 'inf') return u.def <= LIGERA_DEF ? 'ligera' : u.def >= PESADA_DEF ? 'pesada' : 'media';
+    return u.cls === 'rng' ? 'tirador' : u.cls === 'ele' ? 'elefante' : 'jinete';
+  }
 
   function mkRng(seed) { let a = seed >>> 0; return function () { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   function effN(m) { return m <= 24 ? m : 24 + (m - 24) * 0.3; }
@@ -61,6 +85,7 @@
     this.start = [this.men(0), this.men(1)];
   }
 
+  Battle.PAPEL = PAPEL; Battle.PAPEL_NOMBRE = PAPEL_NOMBRE; Battle.papelDe = papelDe;
   Battle.prototype.men = function (side) { let n = 0; for (const r of this.regs) if (r.side === side && r.st === 'ok') n += r.men; return n; };
 
   Battle.prototype.mk = function (side, k, men, a) {
@@ -72,6 +97,7 @@
       id: this.regs.length + 1, side: side, k: k, u: u, men: men, max: men, hp: men * hp, mor: mor, morMax: mor,
       x: 0, y: 0, ang: side === 0 ? -Math.PI / 2 : Math.PI / 2, st: 'ok', tgt: null, order: null,
       think: this.rnd() * 0.5, cd: this.rnd() * 1.6, ammo: u.range ? 14 : 0, fight: 0, charge: 0, run: 0, flank: 0, fat: 0, mv: false, corre: false,
+      papel: papelDe(k, u), vel: u.spd * (PAPEL_VEL[papelDe(k, u)] || 1),
       atkMul: (a.atkMul || 1) * (0.92 + this.rnd() * 0.16), defMul: def // ±8 % de fortuna por regimiento
     };
   };
@@ -243,8 +269,8 @@
     const dx = x - r.x, dy = y - r.y, d = Math.hypot(dx, dy);
     if (d < 1) return 0;
     this.turn(r, Math.atan2(dy, dx), dt);
-    const m = Math.min(r.u.spd * (mul || PASO_MARCHA) * (1 - FAT_ANDA * r.fat / 100) * dt, d);
-    r.mv = true; r.fat = Math.min(100, r.fat + FAT_MARCHA * dt * (mul > 1 ? 1.6 : 1));
+    const m = Math.min(r.vel * (mul || PASO_MARCHA) * (1 - FAT_ANDA * r.fat / 100) * dt, d);
+    r.mv = true; r.fat = Math.min(100, r.fat + FAT_MARCHA * dt * (mul > 1 ? 1.6 : 1) * (PAPEL_FAT[r.papel] || 1));
     r.x += dx / d * m; r.y += dy / d * m; r.run += m;
     return d - m;
   };
@@ -264,24 +290,30 @@
     const da = Math.abs(angDiff(Math.atan2(a.y - b.y, a.x - b.x), b.ang));
     let fl = 1;
     if (da > 2.1) fl = 1.6; else if (da > 1.15) fl = 1.3;
-    if (fl > 1) { b.flank = 1; if (b.k === 'falange') fl *= 1.35; } // la falange es muy vulnerable por los flancos
+    if (fl > 1) { b.flank = 1; if (b.k === 'falange') fl *= 1.35; else if (b.papel === 'lanceros') fl *= LANCEROS_FLANCO; } // la falange es muy vulnerable por los flancos
     let m = amount * RITMO * fl * (1 - FAT_PEGA * a.fat / 100);
     const ac = a.u.cls, bc = b.u.cls;
+    const frena = !ranged && ac === 'cav' && b.papel === 'lanceros' && fl === 1; // carga de frente contra lanceros
     if (!ranged) {
-      if (ac === 'spear' && (bc === 'cav' || bc === 'ele' || bc === 'gen')) m *= 1.7;
+      m *= (PAPEL_ATK[a.papel] || 1) * ((DANO_MUL[DANO_TIPO[a.papel]] || {})[ARMA_TIPO[b.papel]] || 1);
+    }
+    if (!ranged) {
+      if (fl === 1) m *= PAPEL_CHOQUE[b.papel] || 1;
+      if (ac === 'spear' && (bc === 'cav' || bc === 'ele' || bc === 'gen')) m *= 1.7 * (a.papel === 'lanceros' && bc === 'cav' ? LANCEROS_VS_CAB : 1);
       if ((ac === 'cav' || ac === 'gen') && bc === 'spear' && fl === 1) m *= 0.6;
       if ((ac === 'cav' || ac === 'gen') && bc === 'rng') m *= 1.5;
-      if (ac === 'cav' && this.ligera(b)) m *= CAB_ARROLLA;
+      if (ac === 'cav' && this.ligera(b) && !frena) m *= CAB_ARROLLA;
       if (ac === 'cav' && fl > 1) m *= CAB_FLANCO;
-      if (a.charge > 0) m *= 2.1;
+      if (frena && a.charge > 0) { a.charge = 0; a.run = 0; a.fat = Math.min(100, a.fat + FAT_FRENADA); } // la carga se detiene: sin bonificación
+      else if (a.charge > 0) m *= 2.1;
     } else {
       if (bc === 'ele') m *= 1.5; // los proyectiles espantan a los elefantes
-      if (bc === 'spear' || (bc === 'inf' && b.u.def >= PESADA_DEF)) m *= PROY_PESADA; // armadura pesada: menos daño de proyectil
+      m *= PAPEL_PROY[b.papel] || 1; // según el papel: la ligera esquiva algo, la pesada y los lanceros aguantan
     }
     b.hp -= m;
     b.men = Math.max(0, Math.ceil(b.hp / hp));
     const killed = prev - b.men;
-    b.mor -= (m / (b.max * hp)) * 100 * MOR_BAJAS * (fl > 1 ? 1.35 : 1) * (ac === 'ele' ? 1.25 : 1);
+    b.mor -= (m / (b.max * hp)) * 100 * MOR_BAJAS * (PAPEL_MORAL[b.papel] || 1) * (fl > 1 ? 1.35 : 1) * (ac === 'ele' ? 1.25 : 1);
     if (killed > 0 && this.corpses.length < 700) {
       const n = Math.min(killed, 3);
       for (let i = 0; i < n; i++) this.corpses.push({ x: b.x + (this.rnd() - 0.5) * 50, y: b.y + (this.rnd() - 0.5) * 30, s: b.side });
@@ -309,13 +341,13 @@
     const cerca = [false, false], lento = [1e9, 1e9];
     for (const a of regs) {
       if (a.st !== 'ok') continue;
-      if (a.u.cls !== 'cav' && a.u.cls !== 'gen') lento[a.side] = Math.min(lento[a.side], a.u.spd);
+      if (a.u.cls !== 'cav' && a.u.cls !== 'gen') lento[a.side] = Math.min(lento[a.side], a.vel);
       if (cerca[a.side]) continue;
       for (const e of regs) if (e.side !== a.side && e.st === 'ok' && Math.hypot(e.x - a.x, e.y - a.y) < DIST_BLOQUE) { cerca[a.side] = true; break; }
     }
     const paso = (r, d) => {
       let mul = PASO_MARCHA;
-      if (!r.order && !cerca[r.side] && lento[r.side] < 1e9) mul = lento[r.side] * PASO_MARCHA / r.u.spd;
+      if (!r.order && !cerca[r.side] && lento[r.side] < 1e9) mul = lento[r.side] * PASO_MARCHA / r.vel;
       r.corre = false;
       if (r.u.cls === 'cav' || r.u.cls === 'gen') { if (d < DIST_CARGA_CAB) { mul = 1.25; r.corre = true; } }
       else if (d < DIST_CARGA_INF) { mul = 1; r.corre = true; }
@@ -324,7 +356,7 @@
     };
     for (const r of regs) {
       if (r.st === 'rout') {
-        r.corre = true; r.y += (r.side === 0 ? 1 : -1) * r.u.spd * 1.3 * dt; r.ang = r.side === 0 ? Math.PI / 2 : -Math.PI / 2;
+        r.corre = true; r.y += (r.side === 0 ? 1 : -1) * r.vel * 1.3 * dt; r.ang = r.side === 0 ? Math.PI / 2 : -Math.PI / 2;
         if (r.y < -30 || r.y > this.H + 30) r.st = 'fled';
         continue;
       }
