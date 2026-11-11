@@ -55,6 +55,14 @@
     {
       "titulo": "H1 · Auditoría histórica (provisional)",
       "archivo": "gobierno/historia/H1-resumen.md"
+    },
+    {
+      "titulo": "G3 · Batallas estratégicas",
+      "archivo": "gobierno/estudios/G3-batallas-estrategicas.md"
+    },
+    {
+      "titulo": "G3 · Gran diseño",
+      "archivo": "gobierno/estudios/G3-gran-diseno.md"
     }
   ]
 }

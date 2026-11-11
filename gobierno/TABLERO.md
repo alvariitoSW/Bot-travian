@@ -83,6 +83,6 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ✅ D5 Jueces automáticos: `node gobierno/jueces.mjs` (lógica + recorrido en navegador + capturas).
 
 ## Gobierno
-- 🔶 G3 Informes de diseño con plan y presupuesto: batallas estratégicas (terreno, formaciones, ritmo) y «gran diseño» (economía real, investigación, tipos de ciudad, mar, turnos y tiempo real, cableado). Los decide el usuario.
+- ✅ G3 Dos informes de diseño con plan y presupuesto: `gobierno/estudios/G3-batallas-estrategicas.md` (diez tareas; reparte A1 a A6) y `G3-gran-diseno.md` (seis decisiones y tres fases). Propuestas P40 a P49 en la bitácora; nada se construye sin aprobar.
 - ✅ G2 Ministerio de Adecuación Histórica montado (11/11/2026): skill `historia`. Sus tareas, cuando el usuario las apruebe, irán en un carril H.
 - ✅ G1 Gobierno reducido y cuadro de mando montados (11/11/2026). Guía: `gobierno/LEEME.md`.
