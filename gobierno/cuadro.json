@@ -241,6 +241,12 @@
       "tarea": "J1",
       "archivo": "gobierno/capturas-tarea/J1-maqueta-B.jpg",
       "pie": "Maqueta B «Pantalla despejada»: ciudad, menú ☰ abierto y mapa"
+    },
+    {
+      "tarea": "A4",
+      "archivo": "gobierno/capturas-tarea/a4-0s.jpg",
+      "pie": "Cada regimiento lleva su papel: «Pesada», «Lanceros»…",
+      "ancha": true
     }
   ],
   "informes": [

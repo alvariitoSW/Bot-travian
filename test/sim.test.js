@@ -147,6 +147,37 @@ for (let sd = 1; sd <= 5; sd++) { const q = fight({ principes: 150, triarii: 50 
   assert(huye.men < h0, 'la caballería causa bajas al que huye: ' + h0 + ' -> ' + huye.men); assert(cab.men === c0, 'el que huye no hace daño a la caballería');
 }
 
+// 2j. Papeles de la infantería (A4): los lanceros detienen la carga; la ligera pierde el choque contra la pesada
+{
+  assert(Battle.PAPEL.triarii === 'lanceros' && Battle.PAPEL.principes === 'pesada' && Battle.papelDe('iberos', D.UNITS.iberos) === 'ligera', 'tabla de papeles');
+  for (const k in D.UNITS) assert(Battle.papelDe(k, D.UNITS[k]), 'papel para ' + k);
+  // mismo molde y coste, distinto papel
+  D.UNITS.t_lan = Object.assign({}, D.UNITS.hastati, { cls: 'spear' }); D.UNITS.t_med = Object.assign({}, D.UNITS.hastati);
+  D.UNITS.t_lig = Object.assign({}, D.UNITS.hastati); D.UNITS.t_pes = Object.assign({}, D.UNITS.hastati);
+  Battle.PAPEL.t_lan = 'lanceros'; Battle.PAPEL.t_med = 'media'; Battle.PAPEL.t_lig = 'ligera'; Battle.PAPEL.t_pes = 'pesada';
+  const carga = k => {
+    const bt = new Battle({ sides: [side({ equites: 40 }), side({ [k]: 90 })], defender: 1, wall: 0, seed: 5 });
+    const cab = bt.regs.find(g => g.side === 0 && g.u.cls === 'cav'), inf = bt.regs.find(g => g.side === 1 && g.k === k);
+    for (const g of bt.regs) { if (g === cab || g === inf) continue; if (g.side === 0) { g.x = 40; g.y = 880; } else { g.x = 560; g.y = 40; } }
+    cab.x = 300; cab.y = 600; inf.x = 300; inf.y = 300; cab.order = { k: 'atk', r: inf }; inf.order = { k: 'move', x: 300, y: 300 };
+    let cargo = false; const c0 = cab.men, i0 = inf.men;
+    for (let i = 0; i < 400 && cab.st === 'ok' && inf.st === 'ok'; i++) { bt.step(0.1); if (cab.charge > 0) cargo = true; if (bt.t > 40) break; }
+    return { cab: c0 - cab.men, inf: i0 - inf.men, cargo };
+  };
+  const L = carga('t_lan'), M = carga('t_med');
+  assert(L.cab > M.cab, 'los lanceros hacen más bajas a la caballería que la infantería media: ' + L.cab + ' vs ' + M.cab);
+  const dc = new Battle({ sides: [side({ equites: 40 }), side({ t_lan: 90 })], defender: 1, wall: 0, seed: 5 });
+  const c2 = dc.regs.find(g => g.side === 0 && g.u.cls === 'cav'), l2 = dc.regs.find(g => g.side === 1 && g.k === 't_lan');
+  c2.x = 300; c2.y = 400; l2.x = 300; l2.y = 340; l2.ang = Math.PI / 2; c2.charge = 2.5; c2.run = 100; const f0 = c2.fat;
+  dc.hit(c2, l2, 10, false);
+  assert(c2.charge === 0 && c2.fat > f0, 'la carga contra lanceros se detiene (sin arrollar)');
+  const ganaLig = []; let gl = 0;
+  for (let sd = 1; sd <= 6; sd++) { const q = fight({ t_lig: 150 }, { t_pes: 150 }, { seed: sd }); if (q.winner === 0) gl++; ganaLig.push(q.dead[0] - q.dead[1]); }
+  assert(gl === 0, 'la ligera pierde el choque frontal contra la pesada de igual tamaño y coste (' + gl + '/6 victorias)');
+  assert(ganaLig.every(x => x > 0), 'la ligera sufre más bajas que la pesada');
+  for (const k of ['t_lan', 't_med', 't_lig', 't_pes']) { delete D.UNITS[k]; delete Battle.PAPEL[k]; }
+}
+
 // 3. Las lanzas frenan a la caballería; la muralla ayuda al defensor
 const cavVsSpear = fight({ equites: 120 }, { hoplitas: 120 }), cavVsInf = fight({ equites: 120 }, { milicia: 160 });
 assert(cavVsSpear.dead[0] > cavVsInf.dead[0], 'la caballería sufre más contra lanzas');
