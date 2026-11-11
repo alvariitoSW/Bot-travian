@@ -170,6 +170,18 @@
       "ancha": false
     },
     {
+      "tarea": "A5c",
+      "archivo": "gobierno/capturas-tarea/a5c-tres-0s.jpg",
+      "pie": "Despliegue en «Tres líneas»: hastati, principes y triarii",
+      "ancha": true
+    },
+    {
+      "tarea": "A5c",
+      "archivo": "gobierno/capturas-tarea/a5c-alas-0s.jpg",
+      "pie": "«Alas fuertes» y la barra con seis formaciones",
+      "ancha": true
+    },
+    {
       "tarea": "F5",
       "archivo": "gobierno/capturas-tarea/F5-templo.jpg",
       "pie": "Templo: elige Marte, Ceres o Neptuno"
@@ -193,6 +205,11 @@
       "tarea": "E4",
       "archivo": "gobierno/capturas-tarea/E4-acueducto.jpg",
       "pie": "Acueducto: arcada propia de seis arcos"
+    },
+    {
+      "tarea": "E1c",
+      "archivo": "gobierno/capturas-tarea/E1c-marcos.jpg",
+      "pie": "Marcos con doble filete, greca y esquinas de 8 px"
     }
   ],
   "informes": [

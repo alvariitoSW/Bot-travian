@@ -240,3 +240,17 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 .ico.oro, .chip.on .ico, .btn .ico { stroke: var(--gold); }
 .btn.gold .ico { stroke: #1c1206; }
 #res .r .ico { display: block; width: 21px; height: 21px; margin: 1px auto 2px; }
+
+/* E1c · Guía de arte, segunda parte: esquinas de 6–8 px, doble filete de bronce y greca en las cabeceras (gobierno/estudios/E1-guia-de-arte.md) */
+:root { --r: 8px; --greca: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='6'%3E%3Cpath d='M0 5.5H3V1.5H9V5.5H12' fill='none' stroke='%23b8862b' stroke-width='1'/%3E%3C/svg%3E"); }
+#tabs { border-radius: 10px; } #tabs button { border-radius: 7px; }
+#sheet, #mbox { border-radius: 8px; box-shadow: 0 10px 30px #000a, inset 0 0 0 3px #0b1016, inset 0 0 0 4px rgba(184, 134, 43, .4); }
+#mbox { position: relative; }
+#zoom button, #bctl button, #menu input { border-radius: 7px; }
+#bctl { border-radius: 8px; }
+.btn, .row, #mbox .side, .market, .cpop { border-radius: 7px; }
+.card .ic, .card .pt, .troop, .pick .pt, .ucard { border-radius: 7px; }
+.head { box-shadow: inset 0 0 0 3px #0b1016, inset 0 0 0 4px rgba(184, 134, 43, .4); padding-top: 20px; }
+.head::before, #sheet::before, #mbox::before { content: ''; position: absolute; left: 8px; right: 8px; top: 7px; height: 6px; background: var(--greca) repeat-x; opacity: .75; pointer-events: none; }
+#sheet::before, #mbox::before { top: 6px; }
+#res .r { border-radius: 8px; }
