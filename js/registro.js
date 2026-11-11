@@ -130,7 +130,21 @@
   const T_H = h('Livio 27.9-10; Gelio 16.13', 'licencia de juego', 'colonia y municipium eran estatus jurídicos (Livio 27.9-10 sobre las colonias latinas; Gelio 16.13 sobre municipios y colonias); emporion es el término griego para puerto de comercio; el reparto de oficios es invención del juego');
   const tipo = { municipio: f(SIN_T, T_H), agraria: f(SIN_T, T_H), militar: f(SIN_T, T_H), emporio: f(SIN_T, T_H), naval: f(SIN_T, T_H), saber: f(SIN_T, T_H) };
 
-  R.fichas = { edificio, tropa, ciudad, hecho, faccion, mejora, tipo };
+  // ---- Bienes especiales (D.ESPECIAL, B1). El mecanismo «tener acceso abre niveles y tropas» es licencia de juego; aquí va la fuente de que cada ciudad lo diera ----
+  const MEC = ' · el mecanismo (abrir niveles y tropas) es licencia de juego';
+  const especial = {
+    sal: f(SIN_T, h('Livio 1.33.9; Plinio, NH 31.89', 'por cotejar', 'salinas de Ostia y vía Salaria; Lilibeo y Carales sin cita' + MEC)),
+    vino: f(SIN_T, h('Plinio, NH 14.62; Polibio 3.91', 'por cotejar', 'Falerno y riqueza de la llanura campana; en el juego lo dan Messana, Agrigentum y Emporion, sin cita' + MEC)),
+    caballos: f(SIN_T, h('Livio 23.46', 'por cotejar', 'caballería de Capua; Tarento, sin cita' + MEC)),
+    hierro: f(SIN_T, h('Diodoro 5.13; Livio 28.45', 'por cotejar', 'hierro de Elba y Populonia (205 a.C.) como metal etrusco; Saguntum, sin cita' + MEC)),
+    plata: f(SIN_T, h('Polibio 34.9.8-9 en Estrabón 3.2.10', 'por cotejar', 'minas de Carthago Nova' + MEC)),
+    marmol: f(SIN_T, h('', 'por cotejar', 'mármol griego (pentélico, pario): Corinto y Pella sin cotejar para el periodo. El de Luna (Carrara) es del siglo I a.C. y no se usa' + MEC)),
+    purpura: f(SIN_T, h('Plinio, NH 9.127', 'por cotejar', 'tinte fenicio de Cartago' + MEC)),
+    maderanaval: f(SIN_T, h('', 'por cotejar', 'astilleros de Siracusa y Panormus sin cotejar' + MEC)),
+    pieles: f(SIN_T, h('', 'por cotejar', 'Mediolanum y Ambracia sin cotejar' + MEC))
+  };
+
+  R.fichas = { edificio, tropa, ciudad, hecho, faccion, mejora, tipo, especial };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -141,7 +155,8 @@
     hecho: { tabla: 'EVENTS', lista: true, numericos: ['y'], textos: ['t', 'x'] },
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },
     mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },
-    tipo: { tabla: 'TIPOS', numericos: [], textos: ['n', 'i', 'd'] }
+    tipo: { tabla: 'TIPOS', numericos: [], textos: ['n', 'i', 'd'] },
+    especial: { tabla: 'ESPECIAL', numericos: [], textos: ['n', 'i', 'd'] }
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('277-pirro') o solo el año (277). */

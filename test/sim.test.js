@@ -143,6 +143,37 @@ assert.strictEqual(ganaPas, 0, 'un bot pasivo no debe ganar nunca (' + ganaPas +
 const active = activo;
 assert(JSON.parse(JSON.stringify(active)).v === 1, 'el estado debe ser serializable');
 assert(G.myCities().length >= 3, 'un bot agresivo debe poder conquistar ciudades');
+// 7. Bien especial por ciudad (B1): abre niveles altos y tropas de élite; los bonos cambian números
+{ const s = G.newGame('Esp'), roma = s.cities.roma;
+  for (const id in D.CITIES) assert(D.ESPECIAL[D.CITIES[id].esp], 'la ciudad ' + id + ' debe tener un bien válido');
+  for (const k in D.ESPECIAL) { assert(G.dondeEspecial(k).length >= 1, 'bien sin ciudad ' + k); if (D.ESPECIAL[k].abre.edificios || D.ESPECIAL[k].abre.tropas) assert(G.dondeEspecial(k).length >= 2 && (k === 'marmol' || G.dondeEspecial(k).some(i => ['roma', 'volsinii', 'capua', 'tarentum', 'messana', 'syracusae', 'agrigentum', 'panormus', 'lilybaeum'].includes(i))), 'bien ' + k + ': al menos dos ciudades y una en Italia o Sicilia (mármol es griego: excepción histórica)'); }
+  assert(G.especiales().sal && !G.especiales().hierro, 'Roma tiene sal y aún no hierro');
+  roma.b.cuartel = 5; roma.b.establo = 1; roma.b.foro = D.ESP_NIVEL; roma.b.puerto = D.ESP_NIVEL;
+  assert(G.faltaEspecial('tropa', 'triarii') === 'hierro' && !G.unitOk(roma, 'triarii'), 'sin hierro no hay triarios');
+  s.res = { madera: 1e6, piedra: 1e6, hierro: 1e6, grano: 1e6, oro: 1e6 };
+  assert(G.faltaEspecial('edificio', 'foro', D.ESP_NIVEL) === 'marmol' && !G.upgrade('roma', 'foro'), 'sin mármol no se pasa del nivel ' + D.ESP_NIVEL);
+  assert(G.faltaEspecial('edificio', 'foro', D.ESP_NIVEL - 1) === null && G.faltaEspecial('edificio', 'aserradero', 9) === null, 'solo los edificios señalados piden bien y solo pasado el nivel');
+  const bonoAntes = { fel: G.felicidad(roma), pop: G.bonoMul('crece'), oro: G.prod().oro };
+  s.cities.volsinii.owner = 'roma'; s.cities.volsinii.units = {};   // hierro
+  assert(G.especiales().hierro && G.unitOk(roma, 'triarii') && G.faltaEspecial('tropa', 'triarii') === null, 'con Volsinii hay hierro y triarios');
+  assert(G.fuentesEspecial('hierro').join() === 'volsinii');
+  s.cities.pella.owner = 'roma'; assert(G.faltaEspecial('edificio', 'foro', D.ESP_NIVEL) === null && G.upgrade('roma', 'foro'), 'con Pella hay mármol y sube el foro');
+  s.cities.pella.owner = 'macedonia'; assert(G.faltaEspecial('edificio', 'foro', D.ESP_NIVEL) === 'marmol', 'al perder la ciudad vuelve a bloquear');
+  s.cities.volsinii.owner = 'etruscos'; assert(!G.unitOk(roma, 'triarii'), 'al perder Volsinii vuelve a bloquear los triarios');
+  // extensión para rutas comerciales (B2)
+  G.fuentesExtra.push(k => k === 'plata' ? ['carthagonova'] : []); assert(G.especiales().plata); G.fuentesExtra.pop(); assert(!G.especiales().plata);
+  // bonos
+  const own = k => { s.cities[G.dondeEspecial(k).find(i => !G.myCities().includes(i))].units = {}; s.cities[G.dondeEspecial(k).find(i => !G.myCities().includes(i))].owner = 'roma'; };
+  const f0 = G.felicidad(roma); own('vino'); assert.strictEqual(G.felicidad(roma), f0 + 5, 'vino: +5 de felicidad');
+  const o0 = G.prod().oro; own('plata'); assert(G.prod().oro > o0, 'plata: más oro de impuestos');
+  roma.units = { hastati: 100 }; const m0 = G.mantenimiento().tropas; own('pieles'); assert(Math.abs(G.mantenimiento().tropas - m0 * 0.9) < 1e-9, 'pieles: la paga cuesta un 10 % menos');
+  assert.strictEqual(G.bonoMul('crece'), 1.1, 'sal: +10 % de crecimiento');
+  const b0 = G.buildTime(roma, 'cantera'); own('marmol'); assert(G.buildTime(roma, 'cantera') < b0, 'mármol: obras más rápidas');
+  const fc0 = G.forjaCost('armas', 0, 'roma').hierro; own('hierro'); assert(G.forjaCost('armas', 0, 'roma').hierro < fc0, 'hierro: forja más barata');
+  assert(G.especiales().caballos && G.bonoMul('instr') === 0.9, 'caballos (Capua desde el inicio): instrucción un 10 % más rápida');
+  own('maderanaval'); assert(G.bonoMul('viajeMar') === 0.9, 'madera naval: viajes por mar más rápidos');
+  own('purpura'); assert(G.bonoMul('oroCom') === 1.1, 'púrpura: más oro de comercio');
+}
 // 6. Ciudad: población, mercado y puerto
 { const s = G.newGame('Eco'), roma = s.cities.roma;
   assert(roma.pop > 100 && roma.pop <= G.popCap(roma), 'población inicial dentro del tope');
