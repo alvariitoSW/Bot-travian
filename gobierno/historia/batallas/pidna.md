@@ -61,3 +61,7 @@ Nota: las cifras romanas son muy bajas para una batalla de este tamaño; algunos
 - Hammond, N. G. L., «The Battle of Pydna», *JHS* 104 (1984).
 - Hammond y Walbank, *A History of Macedonia III* (1988).
 - Johnston y Taylor, *GRBS* (2022); *Klio* (2020): artículos modernos citados por búsqueda, sin comprobar autores y títulos exactos.
+
+
+---
+**Revisión del director (11/11/2026)**: ficha **provisional**. La red de la sesión bloqueó los sitios de textos antiguos, así que ni el agente ni el director han podido leer los pasajes. He repasado 5 datos de memoria de las fuentes, no contra el texto: 20.000 muertos (Livio 44.42), más de 25.000 (Plutarco, *Emilio* 21) y 100 u 80 romanos (Posidonio y Nasica) coinciden con lo que recuerdo. **Añado**: los ~11.000 prisioneros salen, creo, de Livio 44.42 (6.000 en Pidna más 5.000 en la huida); sin comprobar. Antes de llevar nada al juego hay que cotejarlo con el texto.

@@ -58,3 +58,7 @@
 - Lazenby, J. F., *Hannibal's War* (1978).
 - Scullard, H. H., *Scipio Africanus: Soldier and Politician* (1970).
 - Goldsworthy, A., *The Fall of Carthage* (2000).
+
+
+---
+**Revisión del director (11/11/2026)**: ficha **provisional**. La red de la sesión bloqueó los sitios de textos antiguos, así que ni el agente ni el director han podido leer los pasajes. He repasado 5 datos de memoria de las fuentes, no contra el texto: más de 80 elefantes (Polibio 15.11), más de 20.000 muertos y casi otros tantos prisioneros, y unos 1.500 romanos (15.14) coinciden con lo que recuerdo; las tres líneas de Aníbal y los pasillos, también. Las cifras de ejércitos (36.000 / 29.000) son cálculos modernos, no de Polibio. Antes de llevar nada al juego hay que cotejarlo con el texto.

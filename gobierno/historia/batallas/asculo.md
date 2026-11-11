@@ -14,7 +14,7 @@
 |---|---|---|
 | Bajas romanas | unos 6.000 | Jerónimo de Cardia, citado por Plutarco, *Pirro* 21 |
 | Bajas de Pirro | 3.505 | «diarios reales» de Pirro, citados por Plutarco, *Pirro* 21 |
-| Bajas | casi 15.000 romanos y 13.000 de Pirro | Dionisio (cifra repetida en resúmenes; atribución a Ásculo **sin comprobar**, puede ser la de Heraclea) |
+| Bajas | más de 15.000 muertos **entre los dos bandos** | Dionisio, citado por Plutarco, *Pirro* 21 (corregido por el director, de memoria del pasaje; las cifras «15.000 romanos y 13.000 de Pirro» son de Heraclea, *Pirro* 17) |
 | Fuerzas de cada bando | cifras de Dionisio 20.1-3 | **sin comprobar** (resúmenes dan 40.000 por bando y unos 8.000 jinetes romanos; Frontino 2.3.21 **sin comprobar**) |
 | Elefantes de Pirro | alrededor de 19-20 | **sin comprobar** |
 
@@ -63,3 +63,7 @@
 - Dionisio de Halicarnaso, *Ant. rom.* 20.1-3 (**sin comprobar**; texto Loeb vol. VII).
 - Zonaras 8.5; Frontino, *Estratagemas* 2.3.21 (**sin comprobar**); Dión Casio (según resumen).
 - Lévêque (1957); Champion (2009) (**sin comprobar**).
+
+
+---
+**Revisión del director (11/11/2026)**: ficha **provisional**. La red de la sesión bloqueó los sitios de textos antiguos, así que ni el agente ni el director han podido leer los pasajes. He repasado 5 datos de memoria de las fuentes, no contra el texto: 6.000 romanos (Jerónimo) y 3.505 de Pirro (sus memorias), la herida de Pirro y los carros antielefante coinciden con lo que recuerdo de Plutarco, *Pirro* 21, y Dionisio 20.1. **Corregida** la fila de Dionisio (era de Heraclea). Los «40.000 por bando» vienen de Frontino; Dionisio da cifras mayores (sin comprobar). Antes de llevar nada al juego hay que cotejarlo con el texto.

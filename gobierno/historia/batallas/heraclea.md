@@ -74,3 +74,7 @@ Falta en el motor (el repaso de `js/battle.js` no encontró terreno, río ni des
 - Dionisio de Halicarnaso, *Antigüedades romanas* 19.9-12 y ss. (**sin comprobar**).
 - Zonaras 8.3; Orosio 4.1; Justino 18.1; Livio, *Periocha* 13 (**sin comprobar**).
 - Lévêque, P., *Pyrrhos* (1957); Champion, J., *Pyrrhus of Epirus* (2009) (**sin comprobar** páginas).
+
+
+---
+**Revisión del director (11/11/2026)**: ficha **provisional**. La red de la sesión bloqueó los sitios de textos antiguos, así que ni el agente ni el director han podido leer los pasajes. He repasado 5 datos de memoria de las fuentes, no contra el texto: el ejército de desembarco (Plutarco, *Pirro* 15) y las dos versiones de bajas (*Pirro* 17) coinciden con lo que recuerdo; el cambio de armadura con Megacles, también. **Dudoso**: los ~1.800 prisioneros no creo que vengan de Jerónimo; me suena a Eutropio 2.11 (queda sin comprobar). Antes de llevar nada al juego hay que cotejarlo con el texto.
