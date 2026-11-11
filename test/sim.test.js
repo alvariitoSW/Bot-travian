@@ -230,6 +230,30 @@ for (const id in D.CITIES) { assert(D.FACTIONS[D.CITIES[id].f]); for (const k in
   G.newGame('Test'); delete G.state.rutas; G.save(); assert(G.load() && Array.isArray(G.state.rutas), 'migra partidas sin rutas'); delete global.localStorage;
 }
 
+// 2k. Terreno (A5b): quien ocupa la colina gana más y pierde menos; el bosque frena, reduce los proyectiles y quita la carga
+{
+  assert(Battle.terrenoDe('roma', 1) === 'colina' && Battle.terrenoDe('zzz', 6) === 'bosque', 'terreno por ciudad o por semilla');
+  for (const id of ['colina', 'bosque', 'mixto']) { // cada bando tiene colina/bosque en su zona de despliegue
+    const bt = new Battle({ sides: [side({ hastati: 100 }), side({ libios: 100 })], defender: 1, wall: 0, seed: 1, terreno: id });
+    for (const sd of [0, 1]) { const z = bt.zona(sd); let n = 0; for (let y = z.y0; y <= z.y1; y += 20) for (let x = z.x0; x <= z.x1; x += 20) { const t = bt.terrenoEn(x, y); if (t.alt > 0 || t.bosque) n++; } assert(n > 5, id + ': el bando ' + sd + ' tiene terreno en su zona'); }
+  }
+  const alto = (bt, lado) => { const T = bt.tr; T.plano = false; for (let r = 0; r < T.rows; r++) for (let c = 0; c < T.cols; c++) T.alt[r * T.cols + c] = (r * 40 + 20 < bt.H / 2) === (lado === 1) ? 1 : 0; bt.celdas = {}; };
+  let gana = 0, bajasAlto = 0, bajasBajo = 0, ganaIz = 0;
+  for (let sd = 1; sd <= 6; sd++) for (const lado of [0, 1]) {
+    const bt = new Battle({ sides: [side({ hastati: 150, velites: 40 }), side({ hastati: 150, velites: 40 })], defender: 1, wall: 0, seed: sd, terreno: 'colina' }); alto(bt, lado); bt.finish(); const q = bt.result();
+    if (q.winner === lado) gana++; bajasAlto += q.dead[lado]; bajasBajo += q.dead[1 - lado];
+  }
+  assert(gana >= 8, 'el que ocupa la colina gana más veces (' + gana + '/12)'); assert(bajasAlto < bajasBajo, 'y sufre menos bajas: ' + bajasAlto + ' vs ' + bajasBajo);
+  // bosque: menos daño de proyectiles, más lento, sin bonificación de carga
+  const bos = en => { const bt = new Battle({ sides: [side({ hastati: 60, velites: 60 }), side({ libios: 60 })], defender: 1, wall: 0, seed: 2, terreno: 'bosque' }); bt.tr.plano = false; bt.tr.bos.fill(en ? 1 : 0); bt.tr.alt.fill(0); bt.celdas = {}; return bt; };
+  const dmg = en => { const bt = bos(en), a = bt.regs.find(g => g.k === 'velites'), b = bt.regs.find(g => g.side === 1); const h0 = b.hp; bt.hit(a, b, 100, true); return h0 - b.hp; };
+  assert(dmg(true) < dmg(false) * 0.8, 'el bosque reduce el daño de proyectiles: ' + dmg(true).toFixed(2) + ' vs ' + dmg(false).toFixed(2));
+  const mueve = en => { const bt = bos(en), a = bt.regs.find(g => g.side === 0); a.x = 300; a.y = 600; bt.moveTo(a, 300, 100, 1, 1); return 600 - a.y; };
+  assert(mueve(true) < mueve(false) * 0.8, 'el bosque frena');
+  const carga = en => { const bt = bos(en), a = bt.regs.find(g => g.side === 0), b = bt.regs.find(g => g.side === 1); a.charge = 2; bt.hit(a, b, 100, false); return 1e9 - 1e9 + (b.max * (b.u.hp || 1) - b.hp); };
+  assert(carga(true) < carga(false) * 0.7, 'la carga pierde fuerza en el bosque');
+}
+
 // 5. Campaña completa con un bot sencillo: no debe lanzar excepciones y debe terminar
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function campaign(aggressive, seed) {

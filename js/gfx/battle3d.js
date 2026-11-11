@@ -11,7 +11,7 @@ const DEAD = 150;                             // caídos visibles por tipo de un
 const LOD_MAX = 150, LOD_HIST = 0.87, REAL_FRAC = 0.3;   // el radio real se ajusta solo: 150 m como mucho y menos si hay más figuras reales que el tope (las más cercanas a la cámara son las reales)
 const TRI_BUDGET = (navigator.maxTouchPoints > 0 ? 1.0e6 : 1.6e6);
 
-const S = 0.25, FW = 600;                     // escala simulación -> mundo
+const S = 0.25, FW = 600, HILL_H = 6, MAX_ARBOLES_BOSQUE = 40;                     // escala simulación -> mundo
 let renderer = null;                          // un único contexto WebGL para todas las batallas
 
 function hash(n) { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
@@ -42,8 +42,17 @@ export class BattleView3D {
     let y = 1.3 * Math.sin(x * 0.045 + 1.3) * Math.cos(z * 0.038) + 0.6 * Math.sin(x * 0.09 + z * 0.06 + 2);
     const mx = Math.abs(x) - 84; if (mx > 0) y += Math.min(16, mx * mx * 0.02);
     const att = this.b.cfg.defender === 0 ? -1 : 1, mz = z * att - this.halfD - 6; if (mz > 0) y += Math.min(18, mz * mz * 0.02);   // colinas tras el atacante
+    y += this.colina(x, z);                                                                                                         // colinas del campo (misma cuadrícula que el motor)
     const dz = -z * att - this.halfD + 14; if (dz > 0) y *= Math.max(0, 1 - dz / 14);                                                  // explanada ante la ciudad
     return y;
+  }
+  // altura de la colina en el punto del mundo (x,z): interpolación suave de las celdas de altura del motor
+  colina(x, z) {
+    const T = this.b.tr; if (!T || T.plano) return 0;
+    const fx = x / S + FW / 2, fy = z / S + this.b.H / 2, C = this.b.constructor.CELDA || 40;
+    const u = Math.max(0, Math.min(T.cols - 1, fx / C - 0.5)), v = Math.max(0, Math.min(T.rows - 1, fy / C - 0.5)), c0 = Math.floor(u), r0 = Math.floor(v), c1 = Math.min(T.cols - 1, c0 + 1), r1 = Math.min(T.rows - 1, r0 + 1), a = u - c0, b = v - r0;
+    const g = (c, r) => T.alt[r * T.cols + c];
+    return HILL_H * ((g(c0, r0) * (1 - a) + g(c1, r0) * a) * (1 - b) + (g(c0, r1) * (1 - a) + g(c1, r1) * a) * b);
   }
   toW(x, y) { return [(x - FW / 2) * S, (y - this.b.H / 2) * S]; }
 
@@ -92,6 +101,16 @@ export class BattleView3D {
       (i < N ? t1 : t2).setMatrixAt(i % N, M); t3.setMatrixAt(i, M);
     }
     }
+    // bosque del campo: pocos árboles de los ya cargados (máx. MAX_ARBOLES_BOSQUE), repartidos por las celdas de bosque
+    if (this.b.tr && getStatic('cipres')) {
+      const T = this.b.tr, cel = []; for (let i = 0; i < T.bos.length; i++) if (T.bos[i]) cel.push(i);
+      const paso = Math.max(1, Math.ceil(cel.length / MAX_ARBOLES_BOSQUE)), lists = {}, kinds = ['pino', 'cipres', 'algarrobo', 'olivo'], qq = new THREE.Quaternion(), upv = new THREE.Vector3(0, 1, 0);
+      for (let j = 0, n = 0; j < cel.length && n < MAX_ARBOLES_BOSQUE; j += paso, n++) {
+        const i = cel[j], c = i % T.cols, r = Math.floor(i / T.cols), w = this.toW((c + 0.2 + hash(i * 1.3) * 0.6) * 40, (r + 0.2 + hash(i * 2.3) * 0.6) * 40), k = kinds[Math.floor(hash(i * 3.7) * kinds.length)], s2 = UNIT_SCALE * BK * (1.1 + hash(i * 9.1) * 0.5);
+        (lists[k] = lists[k] || []).push(new THREE.Matrix4().compose(new THREE.Vector3(w[0], this.h(w[0], w[1]) - 0.2, w[1]), qq.setFromAxisAngle(upv, hash(i) * 6.283), new THREE.Vector3(s2, s2, s2)));
+      }
+      for (const k in lists) { const t = staticInstances(k, lists[k]); if (t) sc.add(t); }
+    }
     // ciudad del defensor
     this.buildCity(-att * (hd + 9), -att);
     // proyectiles, sombras, caídos, selección
@@ -104,6 +123,14 @@ export class BattleView3D {
     { const z = this.b.zona(0), pts = [[z.x0, z.y0], [z.x1, z.y0], [z.x1, z.y1], [z.x0, z.y1], [z.x0, z.y0]], v = [];
       for (let i = 0; i < 4; i++) { const n = 24; for (let k = 0; k < n; k++) { const a = pts[i], c = pts[i + 1], w = this.toW(a[0] + (c[0] - a[0]) * k / n, a[1] + (c[1] - a[1]) * k / n), w2 = this.toW(a[0] + (c[0] - a[0]) * (k + 1) / n, a[1] + (c[1] - a[1]) * (k + 1) / n); v.push(w[0], this.h(w[0], w[1]) + 0.5, w[1], w2[0], this.h(w2[0], w2[1]) + 0.5, w2[1]); } }
       const gz = new THREE.BufferGeometry(); gz.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+      // marca discreta del terreno en tu zona: contorno de cada celda de colina (ocre) o bosque (verde oscuro)
+      const T = this.b.tr, C = 40, vh = [], vb = [];
+      if (T && !T.plano) for (let r = 0; r < T.rows; r++) for (let c = 0; c < T.cols; c++) {
+        const i = r * T.cols + c, x0 = c * C, y0 = r * C, cx = x0 + C / 2, cy = y0 + C / 2; if (cx < z.x0 || cx > z.x1 || cy < z.y0 || cy > z.y1 || (T.alt[i] < 0.5 && !T.bos[i])) continue;
+        const dst = T.bos[i] ? vb : vh, q = [[x0, y0], [x0 + C, y0], [x0 + C, y0 + C], [x0, y0 + C]];
+        for (let e = 0; e < 4; e++) { const a = q[e], d = q[(e + 1) % 4], w1 = this.toW(a[0], a[1]), w2 = this.toW(d[0], d[1]); dst.push(w1[0], this.h(w1[0], w1[1]) + 0.4, w1[1], w2[0], this.h(w2[0], w2[1]) + 0.4, w2[1]); }
+      }
+      this.terrenoLineas = [[vh, '#e0b060'], [vb, '#2f7a3a']].filter(a => a[0].length).map(a => { const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(a[0], 3)); const l = new THREE.LineSegments(gg, new THREE.LineBasicMaterial({ color: a[1], transparent: true, opacity: 0.8, depthTest: false })); l.renderOrder = 4; sc.add(l); return l; });
       this.zonaLinea = new THREE.LineSegments(gz, new THREE.LineBasicMaterial({ color: this.b.cfg.sides[0].col, transparent: true, opacity: 0.95, depthTest: false })); this.zonaLinea.renderOrder = 5; sc.add(this.zonaLinea); }
     // horizonte de montañas
     const rg = new THREE.CylinderGeometry(560, 560, 1, 90, 1, true), rp = rg.attributes.position;
@@ -445,7 +472,7 @@ export class BattleView3D {
     const k = this.opts.speed ? this.opts.speed() : 1; this.t += dt * k; uTime.value = this.t;
     this.updateArmies(dt * Math.max(k, 0.0001)); this.placeCam(dt); this.updateOverlay();
     if (this.marker.visible) { const a = (this.t - this.markT); this.marker.scale.setScalar(1 + a * 1.5); this.marker.material.opacity = Math.max(0, 0.9 - a * 1.2); if (a > 0.8) this.marker.visible = false; }
-    if (this.zonaLinea && this.b.fase !== 'despliegue') { this.scene.remove(this.zonaLinea); this.zonaLinea.geometry.dispose(); this.zonaLinea.material.dispose(); this.zonaLinea = null; }
+    if (this.zonaLinea && this.b.fase !== 'despliegue') { this.scene.remove(this.zonaLinea); this.zonaLinea.geometry.dispose(); this.zonaLinea.material.dispose(); this.zonaLinea = null; for (const l of this.terrenoLineas || []) { this.scene.remove(l); l.geometry.dispose(); l.material.dispose(); } this.terrenoLineas = null; }
     this.r.render(this.scene, this.cam);
   }
   dispose() {

@@ -343,6 +343,7 @@ function sideHtml(sd) {
 function battlePrompt() {
   const pb = S().pending[0], info = G.battleInfo(pb), d = D.CITIES[info.city];
   UI.binfo = info;
+  if (!info.cfg.terreno) info.cfg.terreno = window.Battle.terrenoDe(info.city, info.cfg.seed);   // campo tipo de la ciudad (o por semilla)
   modal('<div class="yr">' + G.yearOf(S().t) + ' A.C.</div><h2>' + (info.kind === 'attack' ? 'Asalto a ' : 'Defensa de ') + d.n + '</h2>' +
     '<div class="vs">' + sideHtml(info.cfg.sides[0]) + sideHtml(info.cfg.sides[1]) + '</div>' +
     '<div class="pw">Fuerza: ' + G.power(info.cfg.sides[0].units) + ' contra ' + G.power(info.cfg.sides[1].units) + ' · Muralla del defensor: nivel ' + info.cfg.wall + '</div>' +
@@ -366,7 +367,7 @@ function startBattle() {
   // 6 formaciones + «Empezar batalla»: en 390 px no caben en una fila, así que la barra se parte en dos filas
   $('bctl').style.flexWrap = 'wrap';
   $('bctl').innerHTML = Battle.PLANTILLAS.map(p => '<button style="flex:1 1 11%;min-width:0;padding:0 2px;font-size:12px;white-space:nowrap" data-act="bform" data-v="' + p[0] + '"' + (p[0] === 'clasica' ? ' class="on"' : '') + '>' + (Battle.CORTOS[p[0]] || p[1]) + '</button>').join('') + '<button style="flex:2 1 18%;padding:0 4px" data-act="bstart" class="on">Empezar batalla</button>';
-  $('bhint').textContent = 'Coloca tus tropas: arrastra un regimiento por el campo, o toca uno y luego el campo. Después, Empezar batalla.'; $('bhint').style.opacity = 1;
+  $('bhint').textContent = 'Coloca tus tropas: arrastra un regimiento por el campo, o toca uno y luego el campo. Después, Empezar batalla.' + (b.tr && !b.tr.plano ? ' Campo: ' + b.tr.nombre.toLowerCase() + ' (contorno en tu zona: ocre = colina, verde = bosque).' : ' Campo: llano.'); $('bhint').style.opacity = 1;
 }
 // repone la barra de mando y el texto de ayuda de antes del despliegue
 function reponerBarra(B) { if (!B || B.barra == null) return; $('bctl').style.flexWrap = ''; $('bctl').innerHTML = B.barra; $('bhint').innerHTML = B.hint; B.barra = null; }

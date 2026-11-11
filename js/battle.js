@@ -63,6 +63,23 @@
     return u.cls === 'rng' ? 'tirador' : u.cls === 'ele' ? 'elefante' : 'jinete';
   }
 
+  // --- Terreno (A5b): cuadrícula gruesa compartida con la vista 3D ---
+  const CELDA = 40;             // lado de cada celda de terreno (unidades del campo)
+  const COLINA_PEGA = 0.15;     // el regimiento en alto pega (y el de abajo pega menos) hasta ±15 % según la diferencia de altura
+  const COLINA_ALCANCE = 0.15;  // los tiradores en lo alto de la colina tienen +15 % de alcance
+  const FAT_SUBIDA = 4;         // cansancio al subir de una celda llana a una de colina (proporcional a la altura que se gana)
+  const FAT_CUESTA = 0.5;       // cansancio por segundo peleando cuesta arriba (diferencia de altura 1)
+  const BOSQUE_VEL = 0.78;       // velocidad dentro del bosque
+  const BOSQUE_PROY = 0.7;      // el daño de proyectiles que recibe un regimiento dentro del bosque
+  // campo tipo por ciudad (lo que no está aquí sale de la semilla); las manchas se repiten giradas 180° para el otro bando
+  const TERRENO_CIUDAD = { roma: 'colina', volsinii: 'bosque', capua: 'llano', tarentum: 'llano', mediolanum: 'bosque', messana: 'colina', syracusae: 'mixto', agrigentum: 'colina',
+    panormus: 'llano', lilybaeum: 'llano', carales: 'bosque', emporion: 'mixto', saguntum: 'colina', carthagonova: 'mixto', ambracia: 'bosque', pella: 'colina', corinthus: 'mixto', carthago: 'llano' };
+  const TERRENOS = { llano: { n: 'Llano', f: [] },
+    colina: { n: 'Colina', f: [['h', 0.25, 0.86, 100], ['h', 0.72, 0.62, 90]] },
+    bosque: { n: 'Bosque', f: [['b', 0.2, 0.85, 75], ['b', 0.78, 0.74, 65], ['b', 0.62, 0.56, 60]] },
+    mixto: { n: 'Mixto', f: [['h', 0.28, 0.88, 90], ['b', 0.75, 0.8, 65], ['h', 0.5, 0.5, 80], ['b', 0.2, 0.62, 55]] } };
+  const TERRENO_IDS = ['llano', 'colina', 'bosque', 'mixto'];
+
   function mkRng(seed) { let a = seed >>> 0; return function () { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   function effN(m) { return m <= 24 ? m : 24 + (m - 24) * 0.3; }
   function ratio(atk, def) { return Math.pow(atk / def, 0.85); }
@@ -76,6 +93,7 @@
     this.fase = cfg.despliegue === true ? 'despliegue' : 'lucha'; // 'despliegue': el tiempo no corre hasta empezar()
     this.H = Math.max(800, Math.min(1300, Math.round(cfg.fh || 900))); // alto del campo (se adapta a la pantalla)
     this.rnd = mkRng(cfg.seed || 1);
+    this.mkTerreno(cfg.terreno);
     this.genDown = [false, false];
     // mismo tamaño de regimiento para ambos bandos (máx. ~12 regimientos por ejército)
     let big = 0;
@@ -84,6 +102,32 @@
     for (let s = 0; s < 2; s++) this.deploy(s, cfg.sides[s]);
     this.start = [this.men(0), this.men(1)];
   }
+
+  // terreno por defecto de una ciudad (id) o, si no está en la tabla, por semilla
+  Battle.terrenoDe = function (city, seed) { return TERRENO_CIUDAD[city] || TERRENO_IDS[Math.abs(Math.floor(seed || 0)) % TERRENO_IDS.length]; };
+  Battle.TERRENOS = TERRENOS; Battle.TERRENO_CIUDAD = TERRENO_CIUDAD; Battle.CELDA = CELDA;
+
+  // cuadrícula de terreno: alt (0, 0,5 o 1) y bosque (0/1) por celda; ambos bandos tienen manchas equivalentes en su zona
+  Battle.prototype.mkTerreno = function (id) {
+    const def = TERRENOS[id] || TERRENOS.llano, H = this.H, cols = Math.ceil(FW / CELDA), rows = Math.ceil(H / CELDA);
+    const T = { id: TERRENOS[id] ? id : 'llano', nombre: def.n, cols: cols, rows: rows, alt: new Array(cols * rows).fill(0), bos: new Array(cols * rows).fill(0), plano: !def.f.length };
+    for (const f of def.f) for (const m of [1, -1]) {
+      const cx = m > 0 ? f[1] * FW : FW - f[1] * FW, cy = m > 0 ? f[2] * H : H - f[2] * H, R = f[3];
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        const d = Math.hypot((c + 0.5) * CELDA - cx, (r + 0.5) * CELDA - cy), i = r * cols + c;
+        if (f[0] === 'b') { if (d < R) T.bos[i] = 1; } else { const v = 1 - d / R, a = v >= 0.66 ? 1 : v >= 0.33 ? 0.5 : 0; if (a > T.alt[i]) T.alt[i] = a; }
+      }
+    }
+    this.tr = T; this.celdas = {};
+  };
+  // {alt, bosque} en el punto (x,y) del campo; objetos compartidos (no se modifican)
+  const LLANO = { alt: 0, bosque: 0 };
+  Battle.prototype.terrenoEn = function (x, y) {
+    const T = this.tr; if (T.plano) return LLANO;
+    const c = Math.max(0, Math.min(T.cols - 1, Math.floor(x / CELDA))), r = Math.max(0, Math.min(T.rows - 1, Math.floor(y / CELDA))), i = r * T.cols + c;
+    return this.celdas[i] || (this.celdas[i] = { alt: T.alt[i], bosque: T.bos[i] });
+  };
+  Battle.prototype.rango = function (r) { return r.u.range * (1 + COLINA_ALCANCE * this.terrenoEn(r.x, r.y).alt); };
 
   Battle.PAPEL = PAPEL; Battle.PAPEL_NOMBRE = PAPEL_NOMBRE; Battle.papelDe = papelDe;
   Battle.prototype.men = function (side) { let n = 0; for (const r of this.regs) if (r.side === side && r.st === 'ok') n += r.men; return n; };
@@ -244,14 +288,14 @@
     let best = null, bs = 1e9;
     if (r.u.cls === 'rng' && !hold && this.pantalla(r)) {
       // el tirador con munición prefiere al enemigo más cercano a tiro; sin munición solo pelea si lo tiene encima
-      const lim = r.ammo > 0 ? r.u.range : DIST_ENCIMA;
+      const lim = r.ammo > 0 ? this.rango(r) : DIST_ENCIMA;
       for (const e of this.regs) { if (e.side === r.side || e.st !== 'ok') continue; const d = Math.hypot(e.x - r.x, e.y - r.y); if (d <= lim && d < bs) { bs = d; best = e; } }
       if (best || r.ammo <= 0) return best;
     }
     for (const e of this.regs) {
       if (e.side === r.side || e.st !== 'ok') continue;
       const d = Math.hypot(e.x - r.x, e.y - r.y);
-      if (hold && d > (r.ammo > 0 ? r.u.range : 130)) continue;
+      if (hold && d > (r.ammo > 0 ? this.rango(r) : 130)) continue;
       let s = d;
       if (d < CONTACT + 6) s -= 1000;
       else if (r.u.cls === 'cav') { if (e.u.cls === 'rng') s *= 0.55; else if (e.u.cls === 'spear' || e.u.cls === 'ele') s *= 1.7; }
@@ -269,9 +313,11 @@
     const dx = x - r.x, dy = y - r.y, d = Math.hypot(dx, dy);
     if (d < 1) return 0;
     this.turn(r, Math.atan2(dy, dx), dt);
-    const m = Math.min(r.vel * (mul || PASO_MARCHA) * (1 - FAT_ANDA * r.fat / 100) * dt, d);
+    const t0 = this.terrenoEn(r.x, r.y);
+    const m = Math.min(r.vel * (mul || PASO_MARCHA) * (1 - FAT_ANDA * r.fat / 100) * (t0.bosque ? BOSQUE_VEL : 1) * dt, d);
     r.mv = true; r.fat = Math.min(100, r.fat + FAT_MARCHA * dt * (mul > 1 ? 1.6 : 1) * (PAPEL_FAT[r.papel] || 1));
     r.x += dx / d * m; r.y += dy / d * m; r.run += m;
+    const t1 = this.terrenoEn(r.x, r.y); if (t1.alt > t0.alt) r.fat = Math.min(100, r.fat + FAT_SUBIDA * (t1.alt - t0.alt));   // cuesta arriba
     return d - m;
   };
 
@@ -292,6 +338,8 @@
     if (da > 2.1) fl = 1.6; else if (da > 1.15) fl = 1.3;
     if (fl > 1) { b.flank = 1; if (b.k === 'falange') fl *= 1.35; else if (b.papel === 'lanceros') fl *= LANCEROS_FLANCO; } // la falange es muy vulnerable por los flancos
     let m = amount * RITMO * fl * (1 - FAT_PEGA * a.fat / 100);
+    const ta = this.terrenoEn(a.x, a.y), tb = this.terrenoEn(b.x, b.y);
+    m *= 1 + COLINA_PEGA * (ta.alt - tb.alt);   // arriba se pega más; el que sube pega menos
     const ac = a.u.cls, bc = b.u.cls;
     const frena = !ranged && ac === 'cav' && b.papel === 'lanceros' && fl === 1; // carga de frente contra lanceros
     if (!ranged) {
@@ -305,9 +353,10 @@
       if (ac === 'cav' && this.ligera(b) && !frena) m *= CAB_ARROLLA;
       if (ac === 'cav' && fl > 1) m *= CAB_FLANCO;
       if (frena && a.charge > 0) { a.charge = 0; a.run = 0; a.fat = Math.min(100, a.fat + FAT_FRENADA); } // la carga se detiene: sin bonificación
-      else if (a.charge > 0) m *= 2.1;
+      else if (a.charge > 0) m *= (ta.bosque || tb.bosque) ? 1 : 2.1;   // la carga se desordena en el bosque
     } else {
       if (bc === 'ele') m *= 1.5; // los proyectiles espantan a los elefantes
+      if (tb.bosque) m *= BOSQUE_PROY;
       m *= PAPEL_PROY[b.papel] || 1; // según el papel: la ligera esquiva algo, la pesada y los lanceros aguantan
     }
     b.hp -= m;
@@ -401,7 +450,7 @@
           if (sc) { const lim = sc.y + (r.side === 0 ? DIST_TIRADOR : -DIST_TIRADOR); if (r.side === 0 ? r.y <= lim : r.y >= lim) quieto = true; else ty = r.side === 0 ? Math.max(ty, lim) : Math.min(ty, lim); }
         }
         if (r.ammo > 0 && d > CONTACT + 6) {
-          if (d <= r.u.range) {
+          if (d <= this.rango(r)) {
             this.turn(r, Math.atan2(tgt.y - r.y, tgt.x - r.x), dt);
             r.cd -= dt;
             if (r.cd <= 0) {
@@ -416,6 +465,7 @@
           if (left <= CONTACT && (r.u.cls === 'cav' || r.u.cls === 'gen' || r.u.cls === 'ele') && r.run > 90) { r.charge = 2.5; r.fat = Math.min(100, r.fat + FAT_CARGA * (r.u.cls === 'cav' || r.u.cls === 'gen' ? 1.8 : r.u.cls === 'ele' ? 1.2 : 1)); }
         } else {
           fighting = true; r.run = 0; r.fat = Math.min(100, r.fat + FAT_PELEA * dt * (r.u.cls === 'cav' || r.u.cls === 'gen' ? 1.6 : 1 / Math.sqrt(r.u.mass || 1)));
+          { const dh = this.terrenoEn(tgt.x, tgt.y).alt - this.terrenoEn(r.x, r.y).alt; if (dh > 0) r.fat = Math.min(100, r.fat + FAT_CUESTA * dh * dt); }   // ataca cuesta arriba
           this.turn(r, Math.atan2(tgt.y - r.y, tgt.x - r.x), dt);
           // solo pelea el frente: las filas de atrás no pegan (el relevo es implícito al bajar el número)
           const frente = Math.min(1, FRENTE_HOMBRES / Math.max(1, r.men));
