@@ -5,6 +5,7 @@
   D.END_YEAR = 146;   // a.C. — destrucción histórica de Cartago
 
   D.RES = ['madera', 'piedra', 'hierro', 'grano', 'oro'];
+  D.POP_ICON = '👥';
   D.RES_ICON = { madera: '🪵', piedra: '🪨', hierro: '⚒️', grano: '🌾', oro: '🪙' };
   D.MONTHS = ['Ianuarius', 'Februarius', 'Martius', 'Aprilis', 'Maius', 'Iunius', 'Quintilis', 'Sextilis', 'September', 'October', 'November', 'December'];
 
@@ -13,8 +14,11 @@
     cantera: { n: 'Cantera', i: '⛏️', prod: 'piedra', cost: { madera: 50, piedra: 20, hierro: 30, grano: 20 }, time: 1.5, d: 'Produce piedra.' },
     mina: { n: 'Mina de hierro', i: '⚒️', prod: 'hierro', cost: { madera: 50, piedra: 40, hierro: 15, grano: 25 }, time: 1.5, d: 'Produce hierro.' },
     granja: { n: 'Granja', i: '🌾', prod: 'grano', cost: { madera: 40, piedra: 40, hierro: 20, grano: 10 }, time: 1.5, d: 'Produce grano. Las tropas lo consumen.' },
-    foro: { n: 'Foro', i: '🏛️', prod: 'oro', cost: { madera: 80, piedra: 90, hierro: 40, grano: 40 }, time: 2.5, d: 'Recauda denarios y acelera las obras un 4 % por nivel.' },
+    viviendas: { n: 'Ínsulas', i: '🏘️', cost: { madera: 60, piedra: 50, hierro: 10, grano: 30 }, time: 1.8, d: 'Viviendas: aumentan la población máxima. La población paga impuestos y de ella salen los reclutas.' },
+    foro: { n: 'Foro', i: '🏛️', prod: 'oro', cost: { madera: 80, piedra: 90, hierro: 40, grano: 40 }, time: 2.5, d: 'Recauda denarios, acelera las obras un 4 % por nivel y permite más población.' },
     almacen: { n: 'Almacén', i: '🏺', cost: { madera: 70, piedra: 60, hierro: 30, grano: 20 }, time: 2, d: 'Aumenta la capacidad de almacenamiento.' },
+    mercado: { n: 'Mercado', i: '⚖️', cost: { madera: 80, piedra: 70, hierro: 30, grano: 30, oro: 40 }, time: 2.5, d: 'Permite cambiar unos recursos por otros. Cada nivel mejora el cambio.' },
+    puerto: { n: 'Puerto', i: '⚓', cost: { madera: 140, piedra: 80, hierro: 50, grano: 30, oro: 60 }, time: 3, sea: true, d: 'Necesario para embarcar ejércitos por rutas marítimas. Da ingresos por comercio y acorta las travesías.' },
     cuartel: { n: 'Cuartel', i: '⚔️', cost: { madera: 90, piedra: 60, hierro: 70, grano: 40 }, time: 2.5, d: 'Recluta infantería. Nv 3: Príncipes. Nv 5: Triarios.' },
     establo: { n: 'Establo', i: '🐎', cost: { madera: 110, piedra: 60, hierro: 80, grano: 70 }, time: 3, d: 'Recluta caballería (Équites).' },
     muralla: { n: 'Muralla', i: '🧱', cost: { madera: 40, piedra: 120, hierro: 30, grano: 20 }, time: 3, d: '+10 % de defensa por nivel y más vigiles al defender.' },
@@ -94,6 +98,8 @@
     ['emporion', 'saguntum'], ['saguntum', 'carthagonova'], ['carthagonova', 'carthago', 1],
     ['ambracia', 'pella'], ['ambracia', 'corinthus'], ['pella', 'corinthus']
   ];
+
+  for (const e of D.EDGES) if (e[2]) { D.CITIES[e[0]].sea = true; D.CITIES[e[1]].sea = true; }   // ciudades con salida al mar
 
   // Proyección lon/lat -> mundo
   D.WORLD = { w: 1600, h: 800 };

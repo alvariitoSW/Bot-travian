@@ -1,12 +1,16 @@
 /* AQVILA — vista 3D de la ciudad: cada edificio del juego es un modelo real que aparece al construirlo */
 import { THREE } from './models.js';
 import { getStatic, staticMesh, staticInstances } from './statics.js';
+import { getUnit, unitMaterialReal, instancedGeometry, frameOf } from './units.js';
+
+// puntos por los que pasean los ciudadanos (calles y plazas)
+const WAY = [[0, 62], [0, 26], [26, 6], [-26, 6], [42, -14], [-40, -14], [0, -42], [-30, 40], [32, 40], [62, 8], [-62, 8], [0, 84], [-20, -30], [22, -30], [0, 110]];
 
 const D = window.DATA;
 // parcela de cada edificio: x, z, giro (grados). Los de recursos quedan fuera de la muralla
 const SLOTS = {
-  foro: [0, -6, 0], templo: [-52, -34, 20], almacen: [50, -34, -20], cuartel: [-54, 30, 90], establo: [54, 32, -90], mina: [0, 50, 180],
-  aserradero: [-118, -52, 40], cantera: [118, -58, -40], granja: [112, 66, -120]
+  foro: [0, -6, 0], templo: [-52, -34, 20], mercado: [50, -34, -20], cuartel: [-54, 30, 90], establo: [54, 32, -90], mina: [-22, 52, 180], almacen: [24, 56, 180],
+  aserradero: [-124, -40, 40], cantera: [124, -46, -40], granja: [112, 66, -120], puerto: [0, -152, 180], viviendas: [-16, -56, 0]
 };
 const WALL_R = 92, hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
@@ -18,6 +22,7 @@ export class CityView3D {
     this.labels = document.createElement('div'); this.labels.className = 'mlabels'; host.appendChild(this.labels);
     this.scene = new THREE.Scene(); this.cam = new THREE.PerspectiveCamera(42, 1, 1, 1500);
     this.c = { yaw: 0.5, dist: 250, pitch: 0.72 }; this.key = ''; this.dyn = new THREE.Group(); this.els = {};
+    this.tg = { x: 0, z: 10 }; this.goal = { x: 0, z: 10 }; this.figs = new Map(); this.cit = []; this.lastT = 0;
     this.build(); this.bind(); this.resize();
   }
   build() {
@@ -31,9 +36,10 @@ export class CityView3D {
     const pos = g.attributes.position, col = new Float32Array(pos.count * 3), c = new THREE.Color(), grass = new THREE.Color('#7c9a48'), dry = new THREE.Color('#a7a45c'), dirt = new THREE.Color('#b9a274'), pave = new THREE.Color('#c9bea4');
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i), z = pos.getZ(i), d = Math.hypot(x, z), n = 0.5 + 0.5 * Math.sin(x * 0.03 + Math.sin(z * 0.02) * 2) * Math.cos(z * 0.035);
-      pos.setY(i, d > 190 ? Math.min(40, (d - 190) * (d - 190) * 0.0012) * (0.6 + 0.4 * Math.sin(Math.atan2(z, x) * 5)) : 0);
+      pos.setY(i, z < -130 ? Math.max(-6, (-130 - z) * -0.12) : d > 190 ? Math.min(40, (d - 190) * (d - 190) * 0.0012) * (0.6 + 0.4 * Math.sin(Math.atan2(z, x) * 5)) * Math.min(1, (z + 130) / 60) : 0);
       c.copy(grass).lerp(dry, n);
       if (d < WALL_R - 4) c.lerp(dirt, 0.75); if (d < 30) c.lerp(pave, 0.8);
+      if (z < -118) c.lerp(pave, Math.min(1, (-118 - z) / 14) * 0.85); if (Math.abs(x) < 6 && z < -90 && z > -140) c.lerp(dirt, 0.9);
       if (Math.abs(x) < 7 && z > 0 && z < 230) c.lerp(dirt, 0.9); if (Math.abs(z + 6) < 6 && Math.abs(x) < 130) c.lerp(dirt, 0.7);
       c.multiplyScalar(0.9 + hash(i) * 0.2); col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
     }
@@ -41,25 +47,64 @@ export class CityView3D {
     sc.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true })));
     // arboleda alrededor
     const M = new THREE.Matrix4(), q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), list = { cipres: [], olivo: [], pino: [], algarrobo: [] }, kinds = Object.keys(list);
-    for (let i = 0; i < 150; i++) { const a = hash(i * 1.7) * 6.283, d = 135 + hash(i * 3.3) * 330, x = Math.cos(a) * d, z = Math.sin(a) * d; if (Math.abs(x) < 16 && z > 0) continue;
+    for (let i = 0; i < 170; i++) { const a = hash(i * 1.7) * 6.283, d = 135 + hash(i * 3.3) * 330, x = Math.cos(a) * d, z = Math.sin(a) * d; if ((Math.abs(x) < 16 && z > 0) || z < -112) continue;
       let ok = true; for (const k in SLOTS) if (Math.hypot(x - SLOTS[k][0], z - SLOTS[k][1]) < 34) ok = false; if (!ok) continue;
-      const s = 0.8 + hash(i * 7.1) * 0.7, y = d > 190 ? Math.min(40, (d - 190) * (d - 190) * 0.0012) * (0.6 + 0.4 * Math.sin(a * 5)) : 0;
+      const s = 0.8 + hash(i * 7.1) * 0.7, y = d > 190 ? Math.min(40, (d - 190) * (d - 190) * 0.0012) * (0.6 + 0.4 * Math.sin(a * 5)) * Math.min(1, (z + 130) / 60) : 0;
       list[kinds[Math.floor(hash(i * 9.9) * kinds.length)]].push(new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), q.setFromAxisAngle(up, hash(i) * 6.283), new THREE.Vector3(s, s, s))); }
     for (const k of kinds) { const t = staticInstances(k, list[k]); if (t) sc.add(t); }
     // campos de la granja
     const fm = new THREE.MeshLambertMaterial({ color: '#c9a94e' }); for (let i = 0; i < 3; i++) { const f = new THREE.Mesh(new THREE.PlaneGeometry(26, 34), fm); f.rotation.x = -Math.PI / 2; f.position.set(150 + i * 30, 0.15, 30 + i * 8); f.userData.field = true; f.visible = false; sc.add(f); }
+    // mar (solo en las ciudades con costa); sin costa, pradera
+    this.sea = new THREE.Mesh(new THREE.PlaneGeometry(1500, 700), new THREE.MeshPhongMaterial({ color: '#2f7fa6', transparent: true, opacity: 0.82, shininess: 90, specular: '#bfe6ff' })); this.sea.rotation.x = -Math.PI / 2; this.sea.position.set(0, -1.2, -492); sc.add(this.sea);
+    this.meadow = new THREE.Mesh(new THREE.PlaneGeometry(1500, 700), new THREE.MeshLambertMaterial({ color: '#86a04c' })); this.meadow.rotation.x = -Math.PI / 2; this.meadow.position.set(0, 0.1, -492); sc.add(this.meadow);
     sc.add(this.dyn);
     this.ring = new THREE.Mesh(new THREE.RingGeometry(20, 23, 40), new THREE.MeshBasicMaterial({ color: '#ffe27a', transparent: true, opacity: 0.9, depthWrite: false })); this.ring.rotation.x = -Math.PI / 2; this.ring.position.y = 0.4; this.ring.visible = false; sc.add(this.ring);
+    this.armyEl = document.createElement('button'); this.armyEl.className = 'mlabel cityb army2'; this.armyEl.addEventListener('click', ev => { ev.stopPropagation(); this.goal = { x: 0, z: 165 }; if (this.c.dist > 150) this.c.dist = 120; if (this.opts.onArmy) this.opts.onArmy(); }); this.labels.appendChild(this.armyEl);
     for (const b in D.BUILD) { const el = document.createElement('button'); el.className = 'mlabel cityb'; el.addEventListener('click', ev => { ev.stopPropagation(); if (this.opts.onPick) this.opts.onPick(b); }); this.labels.appendChild(el); this.els[b] = el; }
   }
+  /* figuras reales (ciudadanos y guarnición): una malla instanciada por tipo */
+  fig(key, cap) {
+    let e = this.figs.get(key); if (e) return e; const u = getUnit(key); if (!u) return null;
+    const g = instancedGeometry(u, cap), m = new THREE.InstancedMesh(g, unitMaterialReal(u, D.FACTIONS.roma.col), cap); m.frustumCulled = false; m.count = 0; this.scene.add(m);
+    e = { m: m, M: m.instanceMatrix.array, a: g.attributes.aFrame.array, cap: cap, i: 0, u: u }; this.figs.set(key, e); return e;
+  }
+  put(e, x, z, yaw, clip, t) {
+    if (!e || e.i >= e.cap) return; const M = e.M, o = e.i * 16, c = Math.cos(yaw), s = Math.sin(yaw);
+    M[o] = c; M[o + 1] = 0; M[o + 2] = -s; M[o + 3] = 0; M[o + 4] = 0; M[o + 5] = 1; M[o + 6] = 0; M[o + 7] = 0; M[o + 8] = s; M[o + 9] = 0; M[o + 10] = c; M[o + 11] = 0; M[o + 12] = x; M[o + 13] = 0.1; M[o + 14] = z; M[o + 15] = 1;
+    e.a[e.i] = frameOf(clip, t); e.i++;
+  }
+  people(city, t) {
+    const dt = Math.min(0.1, Math.max(0, t - this.lastT)); this.lastT = t;
+    for (const e of this.figs.values()) e.i = 0;
+    // ciudadanos por las calles, según la población
+    const n = Math.max(6, Math.min(70, Math.floor((city.pop || 0) / 12)));
+    while (this.cit.length < n) { const w = WAY[Math.floor(Math.random() * WAY.length)]; this.cit.push({ x: w[0] + (Math.random() - 0.5) * 10, z: w[1] + (Math.random() - 0.5) * 10, tx: w[0], tz: w[1], wait: Math.random() * 4, yaw: 0, k: this.cit.length % 6 === 5 ? 'sacerdote' : 'ciudadana', ph: Math.random() * 5 }); }
+    this.cit.length = n;
+    for (const p of this.cit) {
+      const dx = p.tx - p.x, dz = p.tz - p.z, d = Math.hypot(dx, dz), e = this.fig(p.k, 80); if (!e) continue;
+      if (p.wait > 0) { p.wait -= dt; this.put(e, p.x, p.z, p.yaw, e.u.clips.idle, t + p.ph); continue; }
+      if (d < 1.5) { const w = WAY[Math.floor(Math.random() * WAY.length)]; p.tx = w[0] + (Math.random() - 0.5) * 12; p.tz = w[1] + (Math.random() - 0.5) * 12; p.wait = Math.random() < 0.4 ? 1 + Math.random() * 5 : 0; continue; }
+      const st = Math.min(d, 4.2 * dt); p.x += dx / d * st; p.z += dz / d * st; p.yaw = Math.atan2(dx, dz); this.put(e, p.x, p.z, p.yaw, e.u.clips.walk, t + p.ph);
+    }
+    // guarnición formada ante la puerta: se ve de un vistazo el tamaño del ejército
+    let men = 0; for (const k in city.units) men += city.units[k]; this.men = men;
+    const ratio = Math.max(1, men / 420), blocks = []; let width = 0;
+    for (const k in city.units) { const cls = D.UNITS[k].cls, cnt = city.units[k]; if (cnt <= 0 || !getUnit(k)) continue; const f = cls === 'ele' ? Math.min(cnt, 20) : Math.max(1, Math.round(cnt / ratio)), sp = cls === 'ele' ? 11 : cls === 'cav' ? 5.6 : 2.9, cols = cls === 'ele' ? 5 : cls === 'cav' ? 8 : 10; blocks.push({ k: k, f: f, sp: sp, cols: cols, w: Math.min(cols, f) * sp }); width += Math.min(cols, f) * sp + 8; }
+    let x0 = -width / 2 + 4;
+    for (const B of blocks) { const e = this.fig(B.k, B.cols === 10 ? 430 : 120);
+      for (let j = 0; j < B.f; j++) { const cx = j % B.cols, cy = Math.floor(j / B.cols); this.put(e, x0 + cx * B.sp + (hash(j * 3.1) - 0.5) * 0.5, 136 + cy * B.sp * 1.1 + (hash(j * 7.7) - 0.5) * 0.5, 0, e && e.u.clips.idle, t + hash(j * 1.9 + B.cols) * 6); }
+      x0 += B.w + 8; }
+    for (const e of this.figs.values()) { e.m.count = e.i; e.m.instanceMatrix.needsUpdate = true; e.m.geometry.attributes.aFrame.needsUpdate = true; }
+  }
+
   /* reconstruye los edificios cuando cambia la ciudad o sus niveles */
   sync(city, id) {
-    const key = id + JSON.stringify(city.b) + (city.queue ? city.queue.b : '');
+    const key = id + JSON.stringify(city.b) + (city.queue ? city.queue.b : ''), coast = !!D.CITIES[id].sea; this.coast = coast; this.sea.visible = coast; this.meadow.visible = !coast;
     if (key === this.key) return; this.key = key;
     while (this.dyn.children.length) this.dyn.remove(this.dyn.children[0]);
     const col = D.FACTIONS.roma.col, deg = Math.PI / 180;
     for (const b in SLOTS) {
-      const [x, z, ry] = SLOTS[b], L = city.b[b] || 0;
+      const [x, z, ry] = SLOTS[b], L = city.b[b] || 0; if (b === 'viviendas' || (b === 'puerto' && !coast)) continue;
       if (L > 0) { const m = staticMesh(b, col); if (m) { const s = 0.82 + Math.min(L, 10) * 0.035; m.position.set(x, 0, z); m.rotation.y = ry * deg; m.scale.setScalar(s); this.dyn.add(m); } }
       else { const p = new THREE.Mesh(new THREE.PlaneGeometry(26, 26), new THREE.MeshLambertMaterial({ color: '#a88f62' })); p.rotation.x = -Math.PI / 2; p.position.set(x, 0.2, z); this.dyn.add(p);
         for (const [dx, dz] of [[-12, -12], [12, -12], [-12, 12], [12, 12]]) { const st = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 5), new THREE.MeshLambertMaterial({ color: '#5a4028' })); st.position.set(x + dx, 3, z + dz); this.dyn.add(st); } }
@@ -68,11 +113,14 @@ export class CityView3D {
     this.scene.traverse(o => { if (o.userData.field) o.visible = (city.b.granja || 0) > 0; });
     // casas: la ciudad crece con la suma de niveles
     let total = 0; for (const b in city.b) total += city.b[b];
-    const n = Math.min(26, 3 + Math.floor(total / 2)), hs = [], q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+    const n = Math.min(30, 2 + (city.b.viviendas || 0) * 3), hs = [], q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
     for (let i = 0, k = 0; k < n && i < 200; i++) { const a = hash(i * 2.39) * 6.283, d = 26 + hash(i * 5.1) * 56, x = Math.cos(a) * d, z = Math.sin(a) * d; let ok = Math.abs(x) > 12 || z < 0;
       for (const b in SLOTS) if (Math.hypot(x - SLOTS[b][0], z - SLOTS[b][1]) < 27) ok = false; for (const h of hs) if (Math.hypot(x - h.x, z - h.z) < 17) ok = false; if (!ok) continue;
       hs.push({ x: x, z: z, m: new THREE.Matrix4().compose(new THREE.Vector3(x, 0, z), q.setFromAxisAngle(up, Math.round(hash(i * 8.8) * 4) * Math.PI / 2 + a), new THREE.Vector3(0.8, 0.8, 0.8)) }); k++; }
     const houses = staticInstances('casa', hs.map(h => h.m), col); if (houses) this.dyn.add(houses);
+    // barcos amarrados según el nivel del puerto
+    if (coast && (city.b.puerto || 0) > 0) { const ships = [], war = []; for (let i = 0; i < Math.min(5, city.b.puerto); i++) (i % 3 === 2 ? war : ships).push(new THREE.Matrix4().compose(new THREE.Vector3(-58 + i * 30 + (i > 1 ? 26 : 0), -1.2, -196 - (i % 2) * 22), q.setFromAxisAngle(up, 0.4 + i * 1.3), new THREE.Vector3(1, 1, 1)));
+      for (const g of [staticInstances('barco', ships, col), staticInstances('trirreme', war, col)]) if (g) this.dyn.add(g); }
     if (total > 28) { const t = staticMesh('vesta', col); if (t) { t.position.set(-22, 0, -62); t.scale.setScalar(0.8); this.dyn.add(t); } }
     if ((city.b.foro || 0) >= 4) { const t = staticMesh('arco', col); if (t) { t.position.set(0, 0, 118); this.dyn.add(t); } }
     // muralla: anillo de tramos y torres, con la puerta hacia el camino
@@ -86,18 +134,22 @@ export class CityView3D {
     }
   }
   update(city, id, sel, t) {
-    this.sync(city, id);
-    const c = this.c, cp = Math.cos(c.pitch); this.cam.position.set(Math.sin(c.yaw) * cp * c.dist, Math.sin(c.pitch) * c.dist, Math.cos(c.yaw) * cp * c.dist + 10); this.cam.lookAt(0, 6, 10); this.cam.updateMatrixWorld();
+    this.sync(city, id); this.people(city, t);
+    const c = this.c, cp = Math.cos(c.pitch), g = this.tg; g.x += (this.goal.x - g.x) * 0.12; g.z += (this.goal.z - g.z) * 0.12;
+    this.cam.position.set(g.x + Math.sin(c.yaw) * cp * c.dist, Math.max(2.5, Math.sin(c.pitch) * c.dist), g.z + Math.cos(c.yaw) * cp * c.dist); this.cam.lookAt(g.x, 4, g.z); this.cam.updateMatrixWorld();
     const W = this.host.clientWidth, H = this.host.clientHeight, v = new THREE.Vector3();
     if (this.labels.scrollLeft || this.labels.scrollTop) { this.labels.scrollLeft = 0; this.labels.scrollTop = 0; }
     for (const b in this.els) {
       const el = this.els[b], B = D.BUILD[b], L = city.b[b] || 0, s = SLOTS[b] || [0, 0], isWall = b === 'muralla', q = city.queue && city.queue.b === b;
+      if (b === 'puerto' && !this.coast) { el.style.display = 'none'; continue; }
       const txt = B.i + ' ' + B.n + (L ? ' · ' + L : '') + (q ? ' 🏗' : ''); if (el._t !== txt) { el._t = txt; el.textContent = txt; }
       el.classList.toggle('sel', sel === b); el.classList.toggle('off', L === 0);
       if (isWall) v.set(-WALL_R * 0.7, 26, WALL_R * 0.7); else v.set(s[0], b === 'templo' ? 34 : b === 'foro' ? 24 : 18, s[1]);
       v.project(this.cam);
-      if (v.z > 1) { el.style.display = 'none'; continue; } el.style.display = ''; el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * H).toFixed(1) + 'px) translate(-50%,-100%)';
+      if (v.z > 1 || (1 - v.y) / 2 * H < 205) { el.style.display = 'none'; continue; } el.style.display = '';   // no tapar los botones de arriba el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * H).toFixed(1) + 'px) translate(-50%,-100%)';
     }
+    { const el = this.armyEl, txt = '⚔️ Guarnición · ' + (this.men || 0); if (el._t !== txt) { el._t = txt; el.textContent = txt; } v.set(0, 14, 150).project(this.cam);
+      if (v.z > 1 || !this.men || (1 - v.y) / 2 * H < 205) el.style.display = 'none'; else { el.style.display = ''; el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * H).toFixed(1) + 'px) translate(-50%,-100%)'; } }
     const ss = sel && SLOTS[sel]; this.ring.visible = !!ss; if (ss) { this.ring.position.set(ss[0], 0.4, ss[1]); this.ring.rotation.z = t * 0.8; }
     this.r.render(this.scene, this.cam);
   }
@@ -110,13 +162,16 @@ export class CityView3D {
       this.clamp(); });
     const up = e => { if (!P.has(e.pointerId)) return; P.delete(e.pointerId);
       if (st && st.mv < 10 && e.type === 'pointerup' && !P.size) { const rc = cv.getBoundingClientRect(), ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2((e.clientX - rc.left) / rc.width * 2 - 1, -((e.clientY - rc.top) / rc.height) * 2 + 1), this.cam);
-        const o = ray.ray.origin, d = ray.ray.direction, k = (4 - o.y) / d.y, x = o.x + d.x * k, z = o.z + d.z * k; let best = null, bd = 24; for (const b in SLOTS) { const dd = Math.hypot(SLOTS[b][0] - x, SLOTS[b][1] - z); if (dd < bd) { bd = dd; best = b; } }
+        const o = ray.ray.origin, d = ray.ray.direction, k = (4 - o.y) / d.y, x = o.x + d.x * k, z = o.z + d.z * k; let best = null, bd = 24; for (const b in SLOTS) { if (b === 'puerto' && !this.coast) continue; const dd = Math.hypot(SLOTS[b][0] - x, SLOTS[b][1] - z); if (dd < bd) { bd = dd; best = b; } }
+        this.goal = best ? { x: SLOTS[best][0], z: SLOTS[best][1] } : (this.c.dist > 160 ? { x: 0, z: 10 } : { x: Math.max(-140, Math.min(140, x)), z: Math.max(-170, Math.min(190, z)) });   // tocar el suelo de cerca = ir allí
         if (this.opts.onPick) this.opts.onPick(best); }
       if (!P.size) st = null; else if (st) st.d = 0; };
     cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
     cv.addEventListener('wheel', e => { this.c.dist *= e.deltaY > 0 ? 1.1 : 0.9; this.clamp(); e.preventDefault(); }, { passive: false });
   }
   zoom(f) { this.c.dist /= f; this.clamp(); }
-  clamp() { const c = this.c; c.dist = Math.max(70, Math.min(600, c.dist)); c.pitch = Math.max(0.3, Math.min(1.3, c.pitch)); }
+  /* vistas rápidas: ciudad entera, calles o ejército */
+  view(name) { const c = this.c; if (name === 'calle') { c.dist = 26; c.pitch = 0.16; this.goal = { x: 0, z: 40 }; } else if (name === 'ejercito') { c.dist = 95; c.pitch = 0.3; c.yaw = 0.35; this.goal = { x: 0, z: 165 }; } else { c.dist = this.host.clientWidth < this.host.clientHeight ? 400 : 250; c.pitch = 0.72; this.goal = { x: 0, z: 10 }; } }
+  clamp() { const c = this.c; c.dist = Math.max(16, Math.min(600, c.dist)); c.pitch = Math.max(0.08, Math.min(1.3, c.pitch)); if (c.dist > 260) this.goal = { x: 0, z: 10 }; }
   resize() { const w = this.host.clientWidth || 1, h = this.host.clientHeight || 1; this.r.setSize(w, h, false); this.cam.aspect = w / h; this.cam.fov = w < h ? 54 : 38; this.cam.updateProjectionMatrix(); if (!this.framed && w > 10) { this.framed = true; this.c.dist = w < h ? 400 : 250; } }
 }

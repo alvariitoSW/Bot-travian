@@ -1,5 +1,6 @@
 /* AQVILA — mapa de campaña en 3D: relieve del Mediterráneo, ciudades, rutas y ejércitos en marcha */
 import { THREE, uTime, unitGeometry, unitMaterial } from './models.js';
+import { staticMesh } from './statics.js';
 import { getUnit, unitMaterialReal, instancedGeometry, frameOf, UNIT_SCALE } from './units.js';
 
 const D = window.DATA, G = window.Game;
@@ -131,7 +132,9 @@ export class MapView3D {
   hAt(x, z) { const i = Math.max(0, Math.min(NX, Math.round(x / CW))), j = Math.max(0, Math.min(NZ, Math.round(z / CH))); return this.H[j * (NX + 1) + i]; }
 
   armyModel(m) {
-    const grp = new THREE.Group(), mine = m.owner === 'roma', col = D.FACTIONS[m.owner].col;
+    const grp = new THREE.Group(), mine = m.owner === 'roma', col = D.FACTIONS[m.owner].col, e = m.from && G.edge(m.from, m.to);
+    const ship = e && e[2] ? staticMesh('trirreme', col) : null;                    // por mar, el ejército viaja embarcado
+    if (ship) { ship.scale.setScalar(0.07); ship.position.y = -0.06; grp.add(ship); const el2 = document.createElement('div'); el2.className = 'mlabel army ' + (mine ? 'mine' : 'foe'); this.labels.appendChild(el2); this.scene.add(grp); return { grp: grp, el: el2, anims: [] }; }
     let main = mine ? 'hastati' : 'milicia', best = 0; for (const k in m.units) if (m.units[k] > best && D.UNITS[k].cls !== 'ele') { best = m.units[k]; main = k; }
     const anims = [], lead = m.hero || m.gen ? 'general' : (m.units.elefantes ? 'elefantes' : main), add = (key, x, z, s) => {
       const real = getUnit(key);

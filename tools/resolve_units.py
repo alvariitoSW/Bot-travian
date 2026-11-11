@@ -26,6 +26,9 @@ UNITS = {
     'iberos': 'units/iberians/infantry_swordsman_a.xml',
     'galos': 'units/gauls/infantry_spearman_b.xml',
     'sagrada': 'units/carthaginians/infantry_spearman_e.xml',
+    # civiles para las calles de la ciudad
+    'ciudadana': 'units/romans/female_citizen.xml',
+    'sacerdote': 'units/romans/healer.xml',
     # caballería y elefantes: el actor es la montura; el jinete cuelga de ella
     'equites': 'units/romans/cavalry_spearman_b_m.xml',
     'general': 'units/romans/hero_cavalry_swordsman_scipio_m.xml',

@@ -15,7 +15,9 @@ R_ = 'structures/romans/'
 STATIC = {
     # edificios de la ciudad (clave del juego -> actor)
     'aserradero': R_ + 'storehouse.xml', 'cantera': R_ + 'workshop.xml', 'mina': R_ + 'blacksmith.xml',
-    'granja': R_ + 'farmstead.xml', 'foro': R_ + 'civic_centre.xml', 'almacen': R_ + 'market.xml',
+    'granja': R_ + 'farmstead.xml', 'foro': R_ + 'civic_centre.xml', 'almacen': R_ + 'corral.xml',
+    'mercado': R_ + 'market.xml', 'puerto': R_ + 'dock.xml',
+    'barco': R_ + 'merchantman.xml', 'trirreme': R_ + 'trireme.xml',
     'cuartel': R_ + 'barracks.xml', 'establo': R_ + 'stable.xml', 'templo': R_ + 'temple_mars.xml',
     # decorado y defensas
     'casa': R_ + 'house.xml', 'arco': R_ + 'triumphal_arch.xml', 'vesta': R_ + 'temple_vesta.xml',

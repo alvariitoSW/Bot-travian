@@ -27,7 +27,8 @@
     for (const id of G.myCities()) {
       const c = s.cities[id];
       p.madera += 4 + G.rate(c.b.aserradero); p.piedra += 4 + G.rate(c.b.cantera); p.hierro += 4 + G.rate(c.b.mina); p.grano += 6 + G.rate(c.b.granja);
-      p.oro += 2 + G.rate(c.b.foro) * 0.5;
+      p.oro += G.rate(c.b.foro) * 0.5 + (c.pop || 0) * 0.03 + 5 * (c.b.puerto || 0);   // foro + impuestos de la población + comercio del puerto
+      p.grano -= (c.pop || 0) * 0.02;
       for (const k in c.units) up += c.units[k] * D.UNITS[k].up;
     }
     for (const m of s.marches) if (m.owner === 'roma') for (const k in m.units) up += m.units[k] * D.UNITS[k].up;
@@ -35,10 +36,25 @@
     return p;
   };
 
+  /* ---------- población ---------- */
+  G.popCap = c => Math.round(120 + 130 * (c.b.viviendas || 0) + 30 * (c.b.foro || 0));
+  G.MIN_POP = 50;                                   // civiles que nunca se reclutan
+  G.recruits = c => Math.max(0, Math.floor((c.pop || 0) - G.MIN_POP));
+
+  /* ---------- mercado ---------- */
+  G.marketLevel = () => { let l = 0; for (const id of G.myCities()) l = Math.max(l, G.state.cities[id].b.mercado || 0); return l; };
+  G.tradeRate = () => { const l = G.marketLevel(); return l ? Math.min(0.9, 0.45 + 0.05 * l) : 0; };
+  G.trade = function (from, to, amount) {
+    const s = G.state, rate = G.tradeRate(); amount = Math.floor(Math.min(amount, s.res[from] || 0));
+    if (!rate || from === to || amount <= 0 || !(from in s.res) || !(to in s.res)) return 0;
+    const got = Math.min(Math.floor(amount * rate), Math.max(0, G.cap() - s.res[to])); if (got <= 0) return 0;
+    s.res[from] -= Math.ceil(got / rate); s.res[to] += got; return got;
+  };
+
   G.travel = function (a, b, withHero) {
     const pa = G.pos(a), pb = G.pos(b), e = G.edge(a, b), s = G.state;
     let t = Math.hypot(pa[0] - pb[0], pa[1] - pb[1]) / 60;
-    if (e && e[2]) t *= s.mods.sea;
+    if (e && e[2]) t *= s.mods.sea * Math.max(0.6, 1 - 0.05 * ((s.cities[a].b.puerto || 1) - 1));
     if (withHero) t /= 1 + 0.08 * s.hero.sk.log;
     return Math.max(0.5, t);
   };
@@ -56,9 +72,10 @@
       const d = D.CITIES[id], w = d.w, h = Math.floor(w / 2);
       s.cities[id] = {
         owner: d.f, units: Object.assign({}, d.g), queue: null, train: [],
-        b: { aserradero: w, cantera: w, mina: w, granja: w, foro: Math.max(1, h), almacen: Math.max(1, h), cuartel: id === 'roma' ? 1 : h, establo: id === 'roma' ? 0 : Math.max(0, h - 1), muralla: d.wl, templo: 0 }
+        b: { aserradero: w, cantera: w, mina: w, granja: w, viviendas: id === 'roma' ? 2 : w, foro: Math.max(1, h), almacen: Math.max(1, h), mercado: id === 'roma' ? 0 : h, puerto: d.sea && id !== 'roma' ? Math.max(1, h) : 0, cuartel: id === 'roma' ? 1 : h, establo: id === 'roma' ? 0 : Math.max(0, h - 1), muralla: d.wl, templo: 0 }
       };
     }
+    for (const id in s.cities) s.cities[id].pop = Math.round(G.popCap(s.cities[id]) * 0.7);
     G.state = s;
     checkEvents(D.START_YEAR);
     return s;
@@ -67,7 +84,7 @@
   /* ---------- acciones del jugador ---------- */
   G.upgrade = function (cid, b) {
     const c = G.state.cities[cid], L = c.b[b] || 0;
-    if (c.owner !== 'roma' || c.queue || L >= D.MAX_LVL) return false;
+    if (c.owner !== 'roma' || c.queue || L >= D.MAX_LVL || (D.BUILD[b].sea && !D.CITIES[cid].sea)) return false;
     const cost = G.cost(b, L); if (!G.canAfford(cost)) return false;
     pay(cost); c.queue = { b: b, t0: G.state.t, t1: G.state.t + G.buildTime(c, b) };
     return true;
@@ -78,9 +95,9 @@
   G.maxTrain = function (k) { let m = 1e9; const c = D.UNITS[k].cost; for (const r in c) m = Math.min(m, Math.floor(G.state.res[r] / c[r])); return m; };
   G.train = function (cid, k, n) {
     const s = G.state, c = s.cities[cid]; n = Math.floor(n);
-    if (c.owner !== 'roma' || n <= 0 || !G.unitOk(c, k) || c.train.length >= 5) return false;
+    if (c.owner !== 'roma' || n <= 0 || !G.unitOk(c, k) || c.train.length >= 5 || G.recruits(c) < n) return false;
     const cost = G.unitCost(k, n); if (!G.canAfford(cost)) return false;
-    pay(cost);
+    pay(cost); c.pop -= n;                                 // los reclutas salen de la población
     const u = D.UNITS[k], bl = c.b[Object.keys(u.req)[0]] || 1, last = c.train[c.train.length - 1];
     const t0 = Math.max(s.t, last ? last.t1 : 0);
     c.train.push({ u: k, n: n, t0: t0, t1: t0 + n * u.time * Math.max(0.5, 1 - 0.05 * (bl - 1)) });
@@ -92,6 +109,7 @@
   G.send = function (from, to, units, withHero) {
     const s = G.state, c = s.cities[from];
     if (!c || c.owner !== 'roma' || !G.edge(from, to)) return false;
+    if (G.edge(from, to)[2] && !(c.b.puerto > 0)) return false;       // por mar hace falta un puerto
     const u = {}; let n = 0;
     for (const k in units) { const q = Math.min(Math.floor(units[k]), c.units[k] || 0); if (q > 0) { u[k] = q; n += q; } }
     if (withHero && !G.heroAvailable(from)) withHero = false;
@@ -188,6 +206,7 @@
     // economía
     const p = G.prod(), cap = G.cap();
     for (const r of D.RES) s.res[r] = Math.max(0, Math.min(cap, s.res[r] + p[r] * dm));
+    for (const id of G.myCities()) { const c = s.cities[id], pc = G.popCap(c); c.pop = s.res.grano > 0 ? Math.min(pc, c.pop + (1 + 0.03 * c.pop * Math.max(0, 1 - c.pop / pc)) * dm) : Math.max(20, c.pop * (1 - 0.02 * dm)); }
     // colas
     for (const id of G.myCities()) {
       const c = s.cities[id];
@@ -250,7 +269,7 @@
     if (pb.kind === 'attack') {
       if (win) {
         const prev = D.FACTIONS[c.owner].n;
-        c.owner = 'roma'; c.units = keep(res.surv[0], res.lost[0], 1, 0.25); c.queue = null; c.train = [];
+        c.owner = 'roma'; c.units = keep(res.surv[0], res.lost[0], 1, 0.25); c.queue = null; c.train = []; c.pop = Math.round(G.popCap(c) * 0.5);
         c.b.muralla = Math.max(0, (c.b.muralla || 0) - 1);
         if (m.hero) { h.city = cid; h.march = null; }
         const loot = Math.round(150 * d.w * (1 + 0.1 * h.sk.log)), cap = G.cap();
@@ -292,7 +311,7 @@
   /* ---------- guardado ---------- */
   G.save = function () { try { if (typeof localStorage !== 'undefined' && G.state) localStorage.setItem(SAVE_KEY, JSON.stringify(G.state)); } catch (e) { /* almacenamiento no disponible */ } };
   G.hasSave = function () { try { return typeof localStorage !== 'undefined' && !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } };
-  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; return true; } } catch (e) { /* partida corrupta */ } return false; };
+  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; for (const id in s.cities) { const c = s.cities[id]; for (const b of ['viviendas', 'mercado', 'puerto']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); } return true; } } catch (e) { /* partida corrupta */ } return false; };
   G.wipe = function () { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* nada */ } };
 
   root.Game = G;

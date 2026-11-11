@@ -59,4 +59,15 @@ const active = campaign(true);
 console.log('Bot agresivo →', active.over.win ? 'VICTORIA' : 'derrota', '·', G.yearOf(active.t), 'a.C. · ciudades:', G.myCities().length, '· héroe nv', active.hero.lvl, '·', JSON.stringify(active.stats));
 assert(JSON.parse(JSON.stringify(active)).v === 1, 'el estado debe ser serializable');
 assert(G.myCities().length >= 3, 'un bot agresivo debe poder conquistar ciudades');
+// 6. Ciudad: población, mercado y puerto
+{ const s = G.newGame('Eco'), roma = s.cities.roma;
+  assert(roma.pop > 100 && roma.pop <= G.popCap(roma), 'población inicial dentro del tope');
+  const before = roma.pop; assert(G.train('roma', 'hastati', 20)); assert.strictEqual(Math.round(before - roma.pop), 20, 'los reclutas salen de la población');
+  assert(!G.train('roma', 'hastati', 5000), 'no se recluta más gente de la que hay');
+  assert.strictEqual(G.trade('madera', 'hierro', 100), 0, 'sin mercado no hay comercio');
+  roma.b.mercado = 2; const got = G.trade('madera', 'hierro', 100); assert(got > 40 && got < 100, 'el mercado cambia con comisión: ' + got);
+  assert(!G.send('roma', 'carales', { hastati: 10 }, false), 'sin puerto no se embarca');
+  roma.b.puerto = 1; assert(G.send('roma', 'carales', { hastati: 10 }, false), 'con puerto sí');
+  assert(!G.upgrade('volsinii', 'puerto'), 'ciudad ajena o sin mar no construye puerto');
+  for (let i = 0; i < 400; i++) G.tick(0.25); assert(roma.pop > before - 20, 'la población se recupera con el tiempo'); }
 console.log('OK — todas las pruebas superadas');

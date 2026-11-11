@@ -11,7 +11,13 @@ tácticas en tiempo real que puedes ver y dirigir, y una campaña con **principi
 - **Batallas en 3D** — cada soldado es un modelo real animado (marcha, carrera, ataque, muerte) en formación sobre un terreno con
   colinas, árboles y la ciudad asediada al fondo. Moral, huidas, flanqueos, cargas, proyectiles, polvo,
   estandartes y caídos. Cámara libre (arrastrar, pellizcar, girar), tarjetas de unidad y órdenes táctiles.
-- **Ciudades y recursos** — madera, piedra, hierro, grano y denarios; diez edificios mejorables con colas.
+- **Ciudad en 3D** — cada ciudad es una escena con edificios romanos reales que aparecen al construirlos: foro,
+  templo de Marte, cuartel, establo, herrería, aserradero, cantera, granja, almacén, mercado, puerto con barcos,
+  ínsulas y muralla. Tres vistas: ciudad entera, a pie de calle (con ciudadanos paseando) y la guarnición formada
+  ante la puerta, para ver de un vistazo el tamaño del ejército.
+- **Economía** — madera, piedra, hierro, grano y denarios; **población** que crece con las ínsulas, paga impuestos y
+  de la que salen los reclutas; **mercado** para cambiar recursos; **puerto** para embarcar ejércitos por mar y
+  ganar con el comercio. Trece edificios mejorables con colas.
 - **Ejército** — hastati, vélites, príncipes, triarios y équites, con retratos 3D; cada pueblo enemigo tiene
   sus propias tropas (falanges, hoplitas, honderos baleares, jinetes númidas, elefantes de guerra…).
 - **General** — sube de nivel, reparte puntos en Mando, Disciplina y Logística, y puede caer herido.
@@ -40,6 +46,8 @@ Chrome o Safari y elige **«Añadir a pantalla de inicio»**. Las batallas se ve
 | `js/gfx/models.js` | Figuras de reserva generadas por código |
 | `js/gfx/battle3d.js` | Vista 3D de la batalla |
 | `js/gfx/map3d.js` | Mapa de campaña 3D |
+| `js/gfx/city3d.js` | Vista 3D de la ciudad (edificios, ciudadanos, guarnición) |
+| `js/gfx/statics.js` | Edificios, murallas, barcos y árboles reales |
 | `js/ui.js` | Interfaz: paneles, modales y pantalla de batalla |
 | `js/vendor/` | three.js (MIT), incluido para funcionar sin conexión |
 | `test/sim.test.js` | Pruebas sin navegador (`node test/sim.test.js`) |
@@ -48,15 +56,16 @@ Sin paso de compilación para jugar.
 
 ## Arte de las unidades
 
-Los soldados, caballos y elefantes son modelos reales con esqueleto y animaciones (reposo, marcha, carrera,
+Los soldados, caballos, elefantes, civiles, edificios, barcos y árboles son modelos reales con esqueleto y animaciones (reposo, marcha, carrera,
 ataque, muerte) tomados del juego libre **[0 A.D.](https://play0ad.com)**, de **Wildfire Games**, con licencia
-**[CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)** (ver `assets/units/LICENSE.txt`).
+**[CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)** (ver `assets/units/LICENSE.txt` y `assets/static/LICENSE.txt`).
 Esa licencia obliga a citar a Wildfire Games y a compartir este arte y sus modificaciones con la misma licencia.
 
 Para regenerarlos hace falta un clon parcial de `github.com/0ad/0ad` y los cargadores de ejemplo de three.js:
 
 ```bash
-tools/build_all.sh <clon de 0ad> <three/examples/jsm> <carpeta temporal>
+tools/build_all.sh <clon de 0ad> <three/examples/jsm> <carpeta temporal>          # unidades
+tools/build_static_all.sh <clon de 0ad> <three/examples/jsm> <carpeta temporal>   # edificios, barcos, árboles
 ```
 
 `tools/resolve_units.py` decide qué actor de 0 A.D. es cada unidad; `tools/build_units.mjs` hornea cuerpo, piezas
