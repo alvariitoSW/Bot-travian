@@ -98,3 +98,4 @@ Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que 
 - A8 (11/11): los números de ritmo, moral y cansancio son constantes al principio de `js/battle.js`. «Resolver» usa paso de 0,2 s. El bot agresivo gana 7 de 10 campañas; el pasivo, ninguna.
 - Gasto: A8 costó el doble de lo presupuestado (1,3 M frente a 0,55). Afinar números con pruebas cuesta más que una tarea media; presupuestar A5a y A5b con ese dato.
 - Para regenerar el arte hace falta un clon parcial de `0ad/0ad` y los cargadores de ejemplo de three.js (README).
+- 11/11/2026 — I1b hecha: fichas del registro con dictamen al día y Códice con una sola fuente (P55). Ver `partes/2026-11-11-I1b.md`.
