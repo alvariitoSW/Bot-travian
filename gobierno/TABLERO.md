@@ -21,9 +21,9 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ A1 Formaciones de verdad: tabla por unidad (ancho/fondo, separación), arrastrar para dar ancho y frente,
   esperar a los rezagados, columna de marcha. (Ideas del estudio de 0 A.D. y TotalWarSimulator.)
 - ⬜ A2 Animaciones por fila: falange con lanzas bajadas, testudo, postura «listo» frente a «relajado».
-- ⬜ A3 Golpe sincronizado con la animación; combate solo de las primeras filas; persecución de los que huyen.
+- ⬜ A3 Golpe sincronizado con la animación; combate solo de las primeras filas; persecución de los que huyen. Incluye la **fase de tiro** antes del choque (pedido 11/11): la infantería espera a que los tiradores descarguen, con daño según la defensa; y la caballería que arrolla a la ligera y carga por la espalda.
 - ⬜ A4 **Papeles de la infantería** (pedido 11/11): ligera (rápida, floja en el choque), pesada (aguanta la línea) y lanceros (frenan a la caballería), con daño según arma y armadura, para que haya estrategias distintas y el combate no sea rápido y a lo loco. Con las tropas que ya hay antes de inventar nuevas. Después de A3.
-- ⬜ A9 **Formación de salida y paso de marcha** (pedido 11/11, lo primero): al empezar, infantería delante, tiradores (vélites, arqueros, honderos) detrás y caballería en las alas, en los dos bandos; velocidades de marcha y carga creíbles por tipo de tropa; los tiradores disparan por encima y no se meten en el cuerpo a cuerpo. Vélites detrás: licencia de juego.
+- ✅ A9 **Formación de salida y paso de marcha** (11/11): los dos bandos salen con infantería delante, tiradores detrás y caballería en las alas; avanzan juntos a paso de marcha (la mitad que antes) y solo corren o cargan cerca del enemigo; los tiradores disparan por encima y no entran al cuerpo a cuerpo mientras aguante su infantería. Vélites detrás: licencia de juego.
 - ⬜ A5a **Despliegue antes de la batalla** (aprobada 11/11, P41): colocas tus regimientos, tres plantillas de un toque, y pulsas «Empezar batalla». 0,2 + 0,7 M · 20 min.
 - ⬜ A5b **Terreno con efecto: colina y bosque** (aprobada 11/11, P42), un campo tipo por ciudad. 0,25 + 0,9 M · 25 min. Después de A5a.
 - ✅ A8 **Ritmo y moral** (11/11): batallas igualadas de 8 a 12 minutos, sin corte a los 4; moral gradual; cansancio con marca «Cansado».
