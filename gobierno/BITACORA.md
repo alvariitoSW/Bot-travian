@@ -26,6 +26,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - 11/11/2026 — **Tipos de ciudad** (d): «Ok, y así tener diferentes tipos de ciudades, rollo una ciudad principal dentro de una región que pueda construir un número determinado de edificios y así cada ciudad tenga para recursos o para tropas o para comercio o para naval, o para investigar o hacer mezclas, y tener regiones para la industria y en cada ciudad poder tener como edificios religiosos, de ocio y demás cosas para dar más jugabilidad y que cada ciudad esté limitada para no poder tener infinitos edificios, etc.». (Lectura de Claude: acepta elegir el tipo y pide más: solares limitados, regiones con capital y edificios religiosos y de ocio. Amplía P46 y abre P50.)
 - 11/11/2026 — **Aprobadas P40 a P50** desde el cuadro: batallas (ritmo y moral, despliegue, terreno) y toda la fase 1 del gran diseño. Al tablero como A8, A5a, A5b e I1 a I8.
 - 11/11/2026 — **Turnos y tiempo real**: no contestó la pregunta, pero aprobó el «Reloj por estaciones» (P44). Lectura de Claude: vale lo recomendado, mapa por estaciones y ciudad y batalla en tiempo real (confirmar si no).
+- 11/11/2026 — **Unir I1 y seguir**: «Sí, únela ya, y para lo siguiente que dices abre una nueva sesión si es necesario». I1 unida a la rama que publica; A8 va en sesión nueva.
 - 11/11/2026 — **Cómo trabajar**: «Aplica el cuadro en las sesiones necesarias pero que no se pisen entre ellas y que cuando terminen se cierren por su cuenta y lo que me tengan que enseñar que aparezca en el cuadro de mando».
 - 11/11/2026 — **Red**: aprobó añadir al entorno penelope.uchicago.edu, www.perseus.tufts.edu y www.livius.org para cotejar las fuentes.
 - 11/11/2026 — **Historia aprobada**: H1, H2 y H3 (P14 a P16), «pueden abrirse en otros carriles». H1 y H2 en una sesión (`gob/historia`); H3 después, porque depende de H1 y toca el juego.
@@ -67,7 +68,7 @@ Una tarea por sesión, en este orden (propuesto por Claude: primero lo que desbl
 Siguiente: **A8 Ritmo y moral** (toca `js/battle.js`; no pisa a Historia 2).
 
 ## Notas para quien continúe
-- La tarea I1 está en la rama `ccr-32a2b8f1-a411vx`, no en la que publica el juego: hay que unirla (toca `index.html` y `sw.js`, no `js/data.js`). Al unir, el juez de fichas dirá qué fichas faltan o sobran por los cambios de Historia 2.
+- I1 ya está unida a la rama que publica (11/11/2026, con permiso del usuario). El cotejo de Historia 2 ya está dentro; cuando acabe H4 a H10, hacer I1b.
 - El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.
 - Las batallas igualadas se deciden de forma brusca y el bot de pruebas no llega a tomar Cartago: falta equilibrar.
 - Para regenerar el arte hace falta un clon parcial de `0ad/0ad` y los cargadores de ejemplo de three.js (README).
