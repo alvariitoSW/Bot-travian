@@ -65,7 +65,7 @@ Ninguna.
 ## Encargo en curso (11/11/2026, tarde)
 Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Tres carriles a la vez, que no se pisan:
 - **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`): A9 Formación de salida y paso de marcha → A5a Despliegue → A3 Combate que se ve → A5b Terreno.
-- **Arte** (estilos, iconos, `index.html`): E1b Iconos y letra → E2 Más piezas de 0 A.D.
+- **Arte** (estilos, iconos, `index.html`): E1b Iconos y letra (✅ hecha y unida, caché v10) → E2 Más piezas de 0 A.D.
 - **Economía** (`js/game.js`, `js/data.js`, paneles de ciudad en `js/ui.js`): I3 Mano de obra → I4 Tipos de ciudad → B1 Recurso especial → B2 Rutas.
 Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bitácora al día, capturas en el cuadro, cuadro publicado y parte.
 
@@ -78,6 +78,7 @@ Lo que espera a que acaben los carriles (tocan los mismos archivos que Economía
 
 ## Notas para quien continúe
 - I1 e Historia 2 ya están unidas en la rama que publica (11/11/2026). El jugador empieza ahora con dos ciudades (Roma y Capua): tenerlo en cuenta al equilibrar. Queda I1b (ver tablero).
+- E1b (11/11): los iconos de recursos se dibujan en `js/ui.js` (sustituyen en pantalla a los emojis de `D.RES_ICON` y `D.POP_ICON`). Son HTML: sirven en paneles, no en avisos de texto (`toast`) ni en la crónica.
 - El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.
 - A8 (11/11): los números de ritmo, moral y cansancio son constantes al principio de `js/battle.js`. «Resolver» usa paso de 0,2 s. El bot agresivo gana 7 de 10 campañas; el pasivo, ninguna.
 - Gasto: A8 costó el doble de lo presupuestado (1,3 M frente a 0,55). Afinar números con pruebas cuesta más que una tarea media; presupuestar A5a y A5b con ese dato.
