@@ -28,6 +28,23 @@ function ht(x, z) {
   return h;
 }
 
+/* ROMA: el Tíber rodea la ciudad por el oeste y el norte (junto al puerto) y siete colinas (las más notables, Capitolio y Palatino, junto al río).
+   Dentro del recinto el suelo sigue llano. Solo se usa si el id de la ciudad es 'roma'. */
+const TIBER = (() => { const P = [[-300, 260], [-280, 220], [-235, 80], [-215, -40], [-190, -140], [-120, -198], [0, -202], [150, -216], [300, -240], [420, -262]], pts = [];
+  for (let i = 0; i < P.length - 1; i++) { const a = P[Math.max(0, i - 1)], b = P[i], c = P[i + 1], d = P[Math.min(P.length - 1, i + 2)];
+    for (let k = 0; k < 10; k++) { const t = k / 10, t2 = t * t, t3 = t2 * t, f = (u, v, w, y) => 0.5 * (2 * v + (w - u) * t + (2 * u - 5 * v + 4 * w - y) * t2 + (3 * v - u - 3 * w + y) * t3); pts.push([f(a[0], b[0], c[0], d[0]), f(a[1], b[1], c[1], d[1])]); } }
+  pts.push(P[P.length - 1]); return pts; })();
+function riverD(x, z) { let m = 1e9; for (let i = 0; i < TIBER.length - 1; i++) { const a = TIBER[i], b = TIBER[i + 1], vx = b[0] - a[0], vz = b[1] - a[1], t = Math.max(0, Math.min(1, ((x - a[0]) * vx + (z - a[1]) * vz) / (vx * vx + vz * vz))), d = Math.hypot(x - a[0] - vx * t, z - a[1] - vz * t); if (d < m) m = d; } return m; }
+const HILLS = [[-150, -95, 46, 40], [-70, -135, 38, 32], [-165, 60, 38, 34], [112, -135, 34, 32], [132, 125, 42, 42], [-20, 195, 38, 48], [200, 150, 40, 42]];
+const sstep = (a, b, v) => { const t = Math.max(0, Math.min(1, (v - a) / (b - a))); return t * t * (3 - 2 * t); };
+function htR(x, z) {
+  let h = 0; const e = x - 196; if (e > 0) h = Math.min(46, e * e * 0.02) * Math.max(0, Math.min(1, (z + 128) / 50));
+  const d = Math.hypot(x, z); if (d > 300) h = Math.max(h, Math.min(40, (d - 300) * (d - 300) * 0.0012) * (0.6 + 0.4 * Math.sin(Math.atan2(z, x) * 5)) * Math.max(0, Math.min(1, (z + 128) / 60)));
+  const out = sstep(0, 26, Math.hypot(Math.max(0, Math.abs(x) - WX - 12), Math.max(0, Math.abs(z) - WZ - 12)));   // el interior del recinto queda llano
+  for (const H of HILLS) h += H[2] * Math.exp(-((x - H[0]) * (x - H[0]) + (z - H[1]) * (z - H[1])) / (H[3] * H[3])) * out;
+  const s = sstep(30, 48, riverD(x, z)); return -3 * (1 - s) + h * s;     // cauce: más hondo que el nivel del agua (-1,2)
+}
+
 export class CityView3D {
   constructor(host, opts) {
     this.host = host; this.opts = opts || {};
@@ -58,13 +75,30 @@ export class CityView3D {
       if (x > -62 && x < 8 && z > -52 && z < -6) mix(i, 2, 0.95);                                   // plaza del foro
       if (z < -116) mix(i, 2, Math.min(1, (-116 - z) / 12) * 0.9);                                  // muelle
     }
-    sc.add(new THREE.Mesh(g, applyGround(g, wt, 0.045)));
+    this.groundD = new THREE.Mesh(g, applyGround(g, wt, 0.045)); sc.add(this.groundD);
+    // suelo de Roma (solo se muestra en Roma): Tíber, colinas y muelle junto al río
+    { const gr = new THREE.PlaneGeometry(1400, 1400, 240, 240); gr.rotateX(-Math.PI / 2);
+      const ps = gr.attributes.position, w2 = new Float32Array(ps.count * 3), mx = (i, k, f) => { for (let q2 = 0; q2 < 3; q2++) w2[i * 3 + q2] = w2[i * 3 + q2] * (1 - f) + (q2 === k ? f : 0); };
+      for (let i = 0; i < ps.count; i++) {
+        const x = ps.getX(i), z = ps.getZ(i), n = 0.5 + 0.5 * Math.sin(x * 0.03 + Math.sin(z * 0.02) * 2) * Math.cos(z * 0.035), inside = Math.abs(x) < WX - 3 && Math.abs(z) < WZ - 3, h = htR(x, z), rd = riverD(x, z);
+        ps.setY(i, h); w2[i * 3] = 1 - n * 0.35 - Math.min(0.5, Math.max(0, h - 6) / 40);
+        if (inside) mx(i, 1, 0.85);
+        if (x > 150 && z > -120) mx(i, 1, Math.min(1, (x - 150) / 30));
+        if (Math.abs(x) < 6 && z > -176 && z < 200) mx(i, 2, 0.95); if (Math.abs(z) < 6 && Math.abs(x) < 200) mx(i, 2, 0.95);
+        if (x > -62 && x < 8 && z > -52 && z < -6) mx(i, 2, 0.95);
+        if (Math.abs(x) < 38 && z > -178 && z < -126) mx(i, 2, 0.9 * Math.min(1, (38 - Math.abs(x)) / 8));            // muelle del puerto
+        if (rd < 56) mx(i, 1, 0.75 * (1 - sstep(30, 56, rd)));                                                           // orilla de barro
+      }
+      this.groundR = new THREE.Mesh(gr, applyGround(gr, w2, 0.045)); this.groundR.visible = false; sc.add(this.groundR);
+      this.river = waterMesh(1400, 1400, 50); this.river.position.set(0, -1.2, 0); this.river.visible = false; sc.add(this.river); }
     // bosque al oeste (junto al aserradero) y arbolado disperso
-    const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0), list = { cipres: [], olivo: [], pino: [], algarrobo: [] }, kinds = Object.keys(list);
-    const tree = (x, z, k, s) => list[k].push(new THREE.Matrix4().compose(new THREE.Vector3(x, ht(x, z) - 0.2, z), q.setFromAxisAngle(up, hash(x + z) * 6.283), new THREE.Vector3(s, s, s)));
+    const q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+    const plant = (hf, skip) => { const grp = new THREE.Group(), list = { cipres: [], olivo: [], pino: [], algarrobo: [] }, kinds = Object.keys(list);
+    const tree = (x, z, k, s) => skip && skip(x, z) ? 0 : list[k].push(new THREE.Matrix4().compose(new THREE.Vector3(x, hf(x, z) - 0.2, z), q.setFromAxisAngle(up, hash(x + z) * 6.283), new THREE.Vector3(s, s, s)));
     for (let i = 0; i < 110; i++) { const x = -190 - hash(i * 1.7) * 170, z = -100 + hash(i * 3.3) * 250; tree(x, z, i % 6 === 0 ? 'pino' : i % 2 ? 'algarrobo' : 'cipres', 1.2 + hash(i * 7.1) * 0.9); }   // pocos pinos: son el modelo más pesado
     for (let i = 0; i < 90; i++) { const a = hash(i * 1.9) * 6.283, d = 150 + hash(i * 4.3) * 330, x = Math.cos(a) * d, z = Math.sin(a) * d; if (z < -112 || x < -170 || (x > 140 && x < 240) || (Math.abs(x) < 14) || (Math.abs(z) < 14) || (x < -70 && z > 110)) continue; tree(x, z, kinds[Math.floor(hash(i * 9.9) * 3)], 1.1 + hash(i * 7.1) * 0.8); }
-    for (const k of kinds) { const t = staticInstances(k, list[k]); if (t) sc.add(t); }
+    for (const k of kinds) { const t = staticInstances(k, list[k]); if (t) grp.add(t); } sc.add(grp); return grp; };
+    this.treesD = plant(ht, null); this.treesR = plant(htR, (x, z) => riverD(x, z) < 70); this.treesR.visible = false;
     // peñas de la cantera y bocamina
     const rk = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1, 0), new THREE.MeshLambertMaterial({ color: '#a39c8f', flatShading: true }), 70), M = new THREE.Matrix4();
     for (let i = 0; i < 70; i++) { const x = 190 + hash(i * 2.3) * 60, z = -100 + hash(i * 5.9) * 190, s2 = 2 + hash(i * 3.7) * 7; M.compose(new THREE.Vector3(x, ht(x, z) + s2 * 0.2, z), q.setFromAxisAngle(up, hash(i) * 6), new THREE.Vector3(s2, s2 * 0.7, s2)); rk.setMatrixAt(i, M); }
@@ -119,13 +153,15 @@ export class CityView3D {
 
   /* reconstruye los edificios cuando cambia la ciudad o sus niveles */
   sync(city, id) {
-    const key = id + JSON.stringify(city.b) + (city.queue ? city.queue.b : ''), coast = !!D.CITIES[id].sea; this.coast = coast; this.sea.visible = coast; this.meadow.visible = !coast;
+    const key = id + JSON.stringify(city.b) + (city.queue ? city.queue.b : ''), coast = !!D.CITIES[id].sea, roma = id === 'roma'; this.coast = coast; this.roma = roma; this.sea.visible = coast && !roma; this.meadow.visible = !coast;
+    this.groundD.visible = !roma; this.groundR.visible = roma; this.treesD.visible = !roma; this.treesR.visible = roma; this.river.visible = roma; if (roma) this.meadow.visible = false;
+    const hf = roma ? htR : ht;
     if (key === this.key) return; this.key = key;
     while (this.dyn.children.length) this.dyn.remove(this.dyn.children[0]);
     const col = D.FACTIONS.roma.col, deg = Math.PI / 180;
     for (const b in SLOTS) {
       const [x, z, ry] = SLOTS[b], L = city.b[b] || 0; if (b === 'viviendas' || (b === 'puerto' && !coast)) continue;
-      if (L > 0) { const m = staticMesh(b, col); if (m) { const s = 0.82 + Math.min(L, 10) * 0.035; m.position.set(x, ht(x, z), z); m.rotation.y = ry * deg; m.scale.setScalar(s); this.dyn.add(m); } }
+      if (L > 0) { const m = staticMesh(b, col); if (m) { const s = 0.82 + Math.min(L, 10) * 0.035; m.position.set(x, hf(x, z), z); m.rotation.y = ry * deg; m.scale.setScalar(s); this.dyn.add(m); } }
       else { const p = new THREE.Mesh(new THREE.PlaneGeometry(26, 26), new THREE.MeshLambertMaterial({ color: '#a88f62' })); p.rotation.x = -Math.PI / 2; p.position.set(x, 0.2, z); this.dyn.add(p);
         for (const [dx, dz] of [[-12, -12], [12, -12], [-12, 12], [12, 12]]) { const st = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 5), new THREE.MeshLambertMaterial({ color: '#5a4028' })); st.position.set(x + dx, 3, z + dz); this.dyn.add(st); } }
       if (city.queue && city.queue.b === b) { const sc = new THREE.Mesh(new THREE.BoxGeometry(30, 16, 30), new THREE.MeshBasicMaterial({ color: '#e9c063', wireframe: true, transparent: true, opacity: 0.55 })); sc.position.set(x, 8, z); this.dyn.add(sc); }
@@ -157,7 +193,7 @@ export class CityView3D {
     }
   }
   update(city, id, sel, t) {
-    this.sync(city, id); this.people(city, t); if (this.sea.userData.tick) this.sea.userData.tick(t);
+    this.sync(city, id); this.people(city, t); if (this.sea.userData.tick) this.sea.userData.tick(t); if (this.roma && this.river.userData.tick) this.river.userData.tick(t);
     const c = this.c, cp = Math.cos(c.pitch), g = this.tg; g.x += (this.goal.x - g.x) * 0.12; g.z += (this.goal.z - g.z) * 0.12;
     this.cam.position.set(g.x + Math.sin(c.yaw) * cp * c.dist, Math.max(1.7, Math.sin(c.pitch) * c.dist), g.z + Math.cos(c.yaw) * cp * c.dist); this.cam.lookAt(g.x, 2.4, g.z); this.cam.updateMatrixWorld();
     const W = this.host.clientWidth, H = this.host.clientHeight, v = new THREE.Vector3();

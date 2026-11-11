@@ -6,6 +6,7 @@ import { preload, loadIndex, realPortrait } from './gfx/units.js';
 import { preloadStatic, loadStaticIndex } from './gfx/statics.js';
 import { CityView3D } from './gfx/city3d.js';
 import { loadGroundTextures } from './gfx/ground.js';
+import { fijar as fijarFluidez, estaEncendido as fluidezOn } from './gfx/fluidez.js';
 
 const D = window.DATA, G = window.Game, $ = id => document.getElementById(id);
 const UI = { tab: 'map', city: 'roma', sel: null, modalQ: [], modalOpen: false, battle: null, menu: true, last: 0, saveT: 0, map: null };
@@ -49,7 +50,7 @@ function showMenu() {
     '<p>280 a.C. Gobierna tus ciudades, levanta legiones, dirige las batallas sobre el terreno y lleva las águilas hasta Cartago antes del 146 a.C.</p>' +
     (G.hasSave() ? '<button class="btn gold" data-act="continue">Continuar campaña</button>' : '') +
     '<input id="hname" maxlength="28" placeholder="Nombre de tu general" value="Lucio Cornelio Escipión">' +
-    '<button class="btn" data-act="new">Nueva campaña</button><div class="spqr">S·P·Q·R</div>' +
+    '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><div class="spqr">S·P·Q·R</div>' +
     '<div class="credits">Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0</div>';
 }
 function startGame() { UI.menu = false; $('menu').hidden = true; UI.city = 'roma'; UI.sel = null; if (UI.map) UI.map.center('roma'); setTab('map'); }
@@ -290,6 +291,7 @@ document.addEventListener('click', function (e) {
   if (!el) { if (e.target.id === 'modal' && !UI.sticky) closeModal(); return; }
   const a = el.dataset.act, v = el.dataset.v, s = S(), B = UI.battle;
   switch (a) {
+    case 'fluidez': fijarFluidez(!fluidezOn()); showMenu(); break;
     case 'new': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión'); UI.overShown = false; G.save(); startGame(); break;
     case 'continue': if (G.load()) { UI.overShown = false; startGame(); if (S().over) showOver(); } break;
     case 'tomenu': G.save(); UI.modalQ = []; closeModal(); stopBattle(); showMenu(); break;
