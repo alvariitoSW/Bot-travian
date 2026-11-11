@@ -175,6 +175,11 @@
       "tarea": "E4",
       "archivo": "gobierno/capturas-tarea/E4-acueducto.jpg",
       "pie": "Acueducto: arcada propia de seis arcos"
+    },
+    {
+      "tarea": "E1c",
+      "archivo": "gobierno/capturas-tarea/E1c-marcos.jpg",
+      "pie": "Marcos con doble filete, greca y esquinas de 8 px"
     }
   ],
   "informes": [
