@@ -54,7 +54,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 ## Carril I — Gran diseño, fase 1 (aprobado 11/11/2026; informe `gobierno/estudios/G3-gran-diseno.md`)
 Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I6, I7; I8 al final.
 - ✅ I1 Registro de piezas: `js/registro.js` (84 fichas con arte y fuente) y juez `node gobierno/fichas.mjs`, dentro de los jueces.
-- ⬜ I1b Al unir con la sesión Historia 2: pasar `node gobierno/fichas.mjs` y poner al día las fichas de lo que haya cambiado en `data.js` (tropas renombradas, hechos nuevos, dictámenes ya cotejados).
+- 🔶 I1b Fichas del registro al día tras Historia 2 (el juez pasa; 10 fichas nuevas). Falta: pasar a «histórico» los dictámenes ya cotejados y que Códice y registro compartan una sola fuente (P55).
 - ⬜ I2 **Reloj por estaciones** (P44): «consejo de estación» y botón «Pasar estación»; ciudad y batalla siguen en tiempo real. 0,2 + 0,6 M · 20 min.
 - ⬜ I3 **Mano de obra y mantenimiento** (P45): reclutar vacía los campos; edificios y tropas cuestan. 0,15 + 0,5 M · 15 min.
 - ⬜ I4 **Tipos de ciudad con solares limitados** (P46): cada ciudad tiene un número fijo de solares y se dedica a recursos, tropas, comercio, mar, investigación o una mezcla; caben templos y edificios de ocio. 0,2 + 0,7 M · 20 min.
@@ -79,14 +79,14 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ H1 Auditoría histórica cotejada con los textos (11/11/2026): `gobierno/historia/H1-resumen.md`. Los 10 fallos se confirman, con matices.
 - ✅ H2 Siete fichas de batalla cotejadas (`gobierno/historia/batallas/`). Cannas y Zama se podrían jugar con cambios medios; Trebia, Trasimeno y Pidna piden terreno y emboscadas.
 - ✅ H1b/H2b Cotejo hecho (11/11/2026): 227 datos cotejados, 43 corregidos, 60 sin comprobar. Costó 5,4 M (presupuesto 0,9 M).
-- 🔶 H4 Corregir los textos de los hechos: Pirro en 280, Cannas «según Polibio / según Livio», corvus, frases de Arquímedes y Catón.
-- 🔶 H5 Renombrar «Vigiles» → «Guardia urbana» y «Batallón Sagrado» → «Ciudadanos de Cartago».
-- 🔶 H6 Cambiar el general de Cartago en 280.
-- 🔶 H7 Mapa de 280 con sus dueños reales: Agrigento griega, Corinto macedonia, Capua aliada de Roma, Mamertinos en Messana.
-- 🔶 H8 Carthago Nova empieza como poblado íbero y pasa a Cartago hacia 228.
-- 🔶 H9 Añadir hechos que faltan: Benevento 275, Trasimeno 217, Metauro 207, Ilipa 206, Magnesia 190, Corinto y Cartago 146.
-- 🔶 H10 Etiqueta visible «licencia de juego» en lo inventado para poder jugar.
-- 🔶 H3 Códice dentro del juego, simple: una pestaña para leer las fichas ya comprobadas. Después de H1.
+- ✅ H4 Textos de los hechos corregidos con las fuentes cotejadas (11/11/2026).
+- ✅ H5 «Vigiles» es ahora «Guardia urbana» y «Batallón Sagrado», «Ciudadanos de Cartago».
+- ✅ H6 Cartago sin general con nombre hasta 149 a.C.; Asdrúbal el Beotarca, desde 149.
+- ✅ H7 Mapa de 280 real: Capua aliada de Roma, Agrigento griega (cartaginesa en 264), Corinto macedonia (aquea en 243), Mamertinos en Messana. Bot agresivo 8-9/10.
+- ✅ H8 Carthago Nova empieza como poblado íbero y pasa a Cartago hacia 228 con su hecho. El nombre en el mapa no cambia.
+- ✅ H9 Hechos nuevos: Benevento 275, Trasimeno 217, Metauro 207, Ilipa 206, Magnesia 190, Corinto y Cartago 146.
+- ✅ H10 Pastilla «licencia de juego» con su motivo en 15 hechos y en las tropas inventadas.
+- ✅ H3 Códice dentro del juego (11/11/2026): botón en «Crónica», 62 fichas de tropas, ciudades y hechos con etiqueta y fuente.
 
 ## Carril D — Técnica
 - 🔶 D1 Contador «Medir fluidez» hecho (menú principal). Falta que el usuario mida en su móvil: mapa, ciudad y batalla grande.

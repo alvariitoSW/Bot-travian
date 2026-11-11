@@ -119,6 +119,16 @@ async function navegador() {
       return { ok: !!q, detalle: q ? 'en instrucción: ' + q : 'no se reclutó nada', captura: await foto('reclutar') };
     });
 
+    await paso('Abrir el Códice', async () => {
+      await page.click('#tabs [data-v="log"]'); await espera(500);
+      await page.click('#view [data-act="codice"]'); await espera(500);
+      const r = await page.evaluate(() => ({ n: document.querySelectorAll('#view .cdx').length, h: document.querySelectorAll('#view .lic-h').length, w: document.documentElement.scrollWidth }));
+      const ok = r.n >= 15 && r.h > 0;
+      const captura = await foto('codice');
+      await page.click('#view [data-act="codice"][data-v=""]'); await espera(300);
+      return { ok, detalle: r.n + ' fichas, ' + r.h + ' históricas', captura };
+    });
+
     let objetivo = '';
     await paso('Atacar una ciudad vecina', async () => {
       objetivo = await estado(() => Game.neighbors('roma').filter(n => Game.state.cities[n].owner !== 'roma' && !Game.edge('roma', n)[2]).sort((a, b) => Game.power(Game.state.cities[a].units) - Game.power(Game.state.cities[b].units))[0] || '');

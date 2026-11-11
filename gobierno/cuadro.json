@@ -39,6 +39,26 @@
       "pie": "Impuestos altos: la población no crece"
     },
     {
+      "tarea": "H7",
+      "archivo": "gobierno/capturas-tarea/H7-mapa-280.jpg",
+      "pie": "Mapa de 280: Capua es tuya, Agrigento griega, Messana mamertina"
+    },
+    {
+      "tarea": "H8",
+      "archivo": "gobierno/capturas-tarea/H8-carthagonova.jpg",
+      "pie": "Carthago Nova empieza como poblado íbero"
+    },
+    {
+      "tarea": "H10",
+      "archivo": "gobierno/capturas-tarea/H10-licencia-hecho.jpg",
+      "pie": "Pirro: texto corregido y etiqueta «licencia de juego»"
+    },
+    {
+      "tarea": "H3",
+      "archivo": "gobierno/capturas-tarea/H3-codice.jpg",
+      "pie": "El Códice, dentro de «Crónica»"
+    },
+    {
       "tarea": "A8",
       "archivo": "gobierno/capturas-tarea/A8-min4.jpg",
       "pie": "Batalla igualada, minuto 4: sigue abierta y la moral baja poco a poco",
@@ -65,7 +85,7 @@
       "archivo": "gobierno/estudios/F1-modos-de-juego.md"
     },
     {
-      "titulo": "H1 · Auditoría histórica (provisional)",
+      "titulo": "H1 · Auditoría histórica (cotejada con las fuentes)",
       "archivo": "gobierno/historia/H1-resumen.md"
     },
     {
@@ -75,6 +95,10 @@
     {
       "titulo": "G3 · Gran diseño",
       "archivo": "gobierno/estudios/G3-gran-diseno.md"
+    },
+    {
+      "titulo": "Historia 2 · Qué ha cambiado en el juego",
+      "archivo": "gobierno/partes/2026-11-11-H4-H10.md"
     }
   ]
 }

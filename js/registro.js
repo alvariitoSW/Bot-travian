@@ -92,7 +92,15 @@
     '202-zama': f(SIN_E, h('Polibio 15.5-14; Livio 30.33')),
     '197-cinoscefalas': f(SIN_E, h('Polibio 18.18-32; Livio 33.7-10')),
     '168-pidna': f(SIN_E, h('Livio 45.29; Plutarco, Emilio Paulo 34')),
-    '149-delenda': f(SIN_E, h('Plinio, Hist. Nat. 15.74; Floro 1.31; Polibio 36.1-9; Apiano, Líbica 69 y 74-135', 'por cotejar', 'la frase literal «Carthago delenda est» es una redacción tardía'))
+    '149-delenda': f(SIN_E, h('Plinio, Hist. Nat. 15.74; Floro 1.31; Polibio 36.1-9; Apiano, Líbica 69 y 74-135', 'por cotejar', 'la frase literal «Carthago delenda est» es una redacción tardía')),
+    '275-benevento': f(SIN_E, h('Plutarco, Pirro 25-26; Livio, Períocas 14.3')),
+    '243-arato': f(SIN_E, h('Polibio 2.43; Plutarco, Arato 16-24', 'por cotejar', 'el año 243 se deduce de Polibio')),
+    '228-cartagonova': f(SIN_E, h('Polibio 2.13; Diodoro 25.12', 'por cotejar', 'probable: ninguna fuente da el año; 228 es la fecha de los historiadores modernos')),
+    '217-trasimeno': f(SIN_E, h('Polibio 3.83-85; Livio 22.4-7')),
+    '207-metauro': f(SIN_E, h('Polibio 11.1-3; Livio 27.47-49', 'por cotejar', 'cifras: Polibio y Livio no coinciden; decir «según»')),
+    '206-ilipa': f(SIN_E, h('Polibio 11.20-24; Livio 28.12-15', 'por cotejar', 'cifras: Polibio y Livio no coinciden; decir «según»')),
+    '190-magnesia': f(SIN_E, h('Livio 37.37-44; Apiano, Siria 30-36')),
+    '146-corinto-cartago': f(SIN_E, h('Pausanias 7.16; Livio, Períocas 51-52; Apiano, Libyca 127-132'))
   };
 
   // ---- Facciones (D.FACTIONS). Sin modelo: solo un nombre y un color. Fuente: H1-ciudades.md y H1-hechos.md ----
@@ -108,7 +116,9 @@
     etruscos: f(SIN_F, h('Livio 5.1', 'licencia de juego', 'eran ciudades-Estado federadas, no una nación')),
     campanos: f(SIN_F, h('Polibio 1.7; Livio 8.14', 'licencia de juego', 'Capua y Messana comparten facción por comodidad')),
     iberos: f(SIN_F, SIN_H),
-    griegos: f(SIN_F, h('Estrabón 3.4.8', 'licencia de juego', 'colonos griegos de Emporion'))
+    griegos: f(SIN_F, h('Estrabón 3.4.8', 'licencia de juego', 'colonos griegos de Emporion')),
+    mamertinos: f(SIN_F, h('Polibio 1.7-8', 'por cotejar', 'mercenarios campanos de Agatocles que tomaron Messana')),
+    akragas: f(SIN_F, h('Diodoro 22.8; Polibio 1.17-19', 'licencia de juego', 'una sola facción para una ciudad griega independiente'))
   };
 
   // ---- Mejoras de herrería (D.FORJA). Sin modelo; la herrería tampoco dibuja nada ----

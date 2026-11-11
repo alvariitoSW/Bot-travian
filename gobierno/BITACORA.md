@@ -52,11 +52,16 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 2. **Ritmo de batalla (A8)**: juega una batalla igualada y dime si 8 a 12 minutos a x1 te parece bien, largo o corto (hay x2 y x4). Y si te vale que la calidad de la tropa pese más que antes (hubo que subirlo para que la muralla siguiera ayudando).
 
 ## Propuestas por aprobar
-Ninguna ahora.
+De Historia 2 (numeradas desde P51 porque P25 a P50 ya están usadas):
+- P51 **Segunda pasada de cotejo**: los 60 datos «sin comprobar» (Justino, Valerio Máximo, Eutropio, Orosio; hace falta abrir attalus.org o similar) y los pasajes dudosos en latín y griego. ≈1,5 M Sonnet (el primer cotejo costó 5,4 M; esta vez bajando los pasajes a archivo).
+- P52 **Capua se rebela en 216**: tras Cannas, Capua se pasa a Aníbal si no la defiendes bien (Livio 23.2-7). Cambia reglas: le quita una ciudad al jugador. ≈0,3 M.
+- P53 **Pirro ataca en 280, no en 277**: hoy el texto dice la verdad pero el ataque llega en 277 para dar tiempo. Adelantarlo obliga a reequilibrar el arranque. ≈0,3 M.
+- P54 **«Poblado íbero» en el mapa**: que Carthago Nova se llame así hasta 228. ≈0,15 M.
+- P55 **Códice y registro, una sola fuente**: el Códice (H3) y el registro de piezas (I1) guardan las fuentes por duplicado; unirlos y marcar «histórico» lo ya cotejado. ≈0,3 M.
 
 ## Encargo en curso (11/11/2026)
 Rama única desde ahora: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Sesiones, que no se pisan (Diseño ya cerró: informes G3):
-- **Historia 2**: coteja las fuentes (H1b, H2b), aplica H4 a H10 y hace el Códice (H3). Toca `gobierno/historia/`, `js/data.js`, `js/game.js` y `js/ui.js`.
+- Ninguna abierta. **Historia 2** cerró el 11/11/2026: cotejo, H4 a H10 y Códice hechos (partes `2026-11-11-H1b`, `-H4-H10`, `-H3`).
 Cada una, al cerrar: tablero y bitácora al día, capturas e informes en el cuadro, cuadro publicado, aviso a la sesión madre y se archiva sola.
 
 ## Encargo de la próxima sesión
@@ -69,7 +74,7 @@ Una tarea por sesión, en este orden (propuesto por Claude: primero lo que desbl
 Siguiente: **A5a Despliegue** (toca `js/battle.js`, `js/gfx/battle3d.js` y la parte de batalla de `js/ui.js`; mejor cuando Historia 2 haya soltado `ui.js`).
 
 ## Notas para quien continúe
-- I1 ya está unida a la rama que publica (11/11/2026, con permiso del usuario). El cotejo de Historia 2 ya está dentro; cuando acabe H4 a H10, hacer I1b.
+- I1 e Historia 2 ya están unidas en la rama que publica (11/11/2026). El jugador empieza ahora con dos ciudades (Roma y Capua): tenerlo en cuenta al equilibrar. Queda I1b (ver tablero).
 - El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.
 - A8 (11/11): los números de ritmo, moral y cansancio son constantes al principio de `js/battle.js`. «Resolver» usa paso de 0,2 s. El bot agresivo gana 7 de 10 campañas; el pasivo, ninguna.
 - Gasto: A8 costó el doble de lo presupuestado (1,3 M frente a 0,55). Afinar números con pruebas cuesta más que una tarea media; presupuestar A5a y A5b con ese dato.
