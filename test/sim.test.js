@@ -149,6 +149,11 @@ assert(G.myCities().length >= 3, 'un bot agresivo debe poder conquistar ciudades
 
 assert(!G.cityGen('carthago', 280) && !G.cityGen('carthago', 150), 'Cartago no tiene general con nombre antes de 149 a.C.');
 assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defiende Cartago desde 149 a.C.');
+// Registro de piezas: carga en Node y toda tropa y edificio tiene ficha
+{ const R = require('../js/registro.js');
+  for (const t of Object.keys(D.UNITS)) assert(R.de('tropa', t) && R.de('tropa', t).historia, 'falta la ficha de la tropa ' + t);
+  for (const b of Object.keys(D.BUILD)) assert(R.de('edificio', b) && R.de('edificio', b).arte, 'falta la ficha del edificio ' + b);
+  assert(R.de('hecho', D.EVENTS[0].y), 'falta la ficha del primer hecho'); }
 
 console.log('OK — todas las pruebas superadas');
 
