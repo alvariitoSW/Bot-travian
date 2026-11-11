@@ -34,8 +34,23 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
    montó solo con el encargo escrito. ¿Quiere dar acceso para compararlo y traer lo que falte?
 
 ## Propuestas por aprobar
+Medida del gasto: **100 puntos = lo que costó montar el gobierno (sesión G1)**. Son estimaciones de Claude, sin medir.
+Las doce versiones simples suman unos 395 puntos, cuatro veces G1.
 - P1 Presupuesto de arte hasta medir en un móvil real: 35 MB de descarga, 4.500 triángulos por soldado y 12.000 por
   edificio. Hoy el juego usa 30,4 MB, 4.150 y 10.740. Está puesto como provisional en `gobierno/arte.json`.
+
+- P2 **F1 Diseño de los modos, en corto** · 15 puntos · unos 5 min. Una página con tres preguntas para ti (qué pasa con la campaña histórica, partida corta o larga, qué dios) y mi recomendación en cada una. Sin construir nada.
+- P3 **E3 Presupuesto por escena, simple** · 10 puntos · 3 min. El comprobador de arte suma también los triángulos de una batalla y de una ciudad típicas y avisa si se pasan. Sin tocar el juego.
+- P4 **D1 Medir en tu móvil, simple** · 15 puntos · 5 min. Un contador de fluidez que se enciende desde el menú. Tú juegas dos minutos y me dices el número. Con eso se sabe si D2 hace falta.
+- P5 **B6 Costes y tiempos, simple** · 30 puntos · 10 min. Ajustar los números hasta que el bot de pruebas llegue a tomar Cartago. Solo reglas; no cambia nada a la vista.
+- P6 **B8 Herrería, simple** · 35 puntos · 10 min. La herrería gana dos mejoras por niveles, armas (+ataque) y armaduras (+defensa), con su coste y su tiempo. Una tarjeta más en la ciudad.
+- P7 **B3 Felicidad e impuestos, simple** · 40 puntos · 12 min. Impuestos bajo, normal o alto: más oro a cambio de menos felicidad. Con poca felicidad la población deja de crecer. Sin revueltas ni eventos nuevos.
+- P8 **F3 Aldeanos, simple** · 40 puntos · 12 min. Repartir la población entre madera, piedra, hierro y grano con cuatro botones de más y menos; la producción cambia según el reparto. Sin verlos trabajar en 3D.
+- P9 **B4 Más edificios, simple** · 35 puntos · 10 min. Termas, acueducto y anfiteatro con efecto en población y felicidad, usando modelos que ya están en el juego. Con modelos nuevos de 0 A.D. serían unos 90 puntos.
+- P10 **E1 Guía de arte, simple** · 25 puntos · 8 min. Una página con paleta, letra y estilo de iconos para que la apruebes. Sustituir los emojis del juego por iconos propios queda como tarea aparte (unos 80 puntos).
+- P11 **D2 Niveles de detalle, simple** · 60 puntos · 20 min. Los soldados lejanos se dibujan con una figura mucho más ligera. Solo merece la pena si D1 dice que tu móvil va justo.
+- P12 **B9 Ciudad fiel, simple** · 70 puntos · 20 min. Solo Roma: el Tíber y las colinas con el suelo y los edificios que ya hay. Las demás ciudades siguen como están.
+- P13 **D3 Godot, solo estudio** · 20 puntos · 6 min. Una página que diga qué se ganaría, qué se perdería y cuánto costaría pasar el juego a Godot. Pasarlo de verdad serían más de 500 puntos: no cabe esta semana.
 
 ## Encargo de la próxima sesión
 El usuario marcó «Hacer la siguiente» en 12 tareas del cuadro (11/11/2026). Es su cola de prioridad; el resto del
