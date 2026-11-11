@@ -265,6 +265,26 @@
       "archivo": "gobierno/capturas-tarea/a4-0s.jpg",
       "pie": "Cada regimiento lleva su papel: «Pesada», «Lanceros»…",
       "ancha": true
+    },
+    {
+      "tarea": "J1",
+      "archivo": "gobierno/capturas-tarea/J1-ciudad.jpg",
+      "pie": "Pantalla limpia: Gobierno (ciudad)"
+    },
+    {
+      "tarea": "J1",
+      "archivo": "gobierno/capturas-tarea/J1-guerra.jpg",
+      "pie": "Pantalla limpia: Guerra (mapa)"
+    },
+    {
+      "tarea": "J1",
+      "archivo": "gobierno/capturas-tarea/J1-menu.jpg",
+      "pie": "Botón de modo abierto"
+    },
+    {
+      "tarea": "J1",
+      "archivo": "gobierno/capturas-tarea/J1-ciudades.jpg",
+      "pie": "Selector de ciudad"
     }
   ],
   "informes": [

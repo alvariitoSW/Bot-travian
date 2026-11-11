@@ -1,5 +1,5 @@
 /* AQVILA — service worker: todo el juego queda en caché para jugar sin conexión */
-const CACHE = 'aqvila-v28';
+const CACHE = 'aqvila-v29';
 const FILES = ['./', 'index.html', 'css/style.css', 'assets/fuentes/cinzel-400.woff2', 'assets/fuentes/cinzel-700.woff2', 'js/data.js', 'js/codice.js', 'js/registro.js', 'js/battle.js', 'js/game.js', 'js/ui.js', 'js/gfx/models.js', 'js/gfx/battle3d.js', 'js/gfx/map3d.js', 'assets/mapa/costa.js', 'js/gfx/units.js', 'js/gfx/statics.js', 'js/gfx/city3d.js', 'js/gfx/ground.js', 'js/gfx/fluidez.js', 'assets/static/static.json', 'assets/units/units.json', 'js/vendor/three.module.min.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });

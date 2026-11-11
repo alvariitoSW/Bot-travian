@@ -98,7 +98,7 @@ async function navegador() {
     });
 
     await paso('Ciudad en 3D', async () => {
-      await page.click('#tabs [data-v="city"]'); await espera(3000);
+      await espera(3000);   // la partida nueva abre en Gobierno (ciudad)
       const ok = await estado(() => !document.getElementById('citywrap').hidden && !!document.querySelector('#citywrap canvas'));
       return { ok, detalle: ok ? '' : 'no aparece la vista 3D de la ciudad', captura: await foto('ciudad') };
     });
@@ -113,14 +113,14 @@ async function navegador() {
     });
 
     await paso('Reclutar tropas', async () => {
-      await page.click('#tabs [data-v="army"]'); await espera(500);
+      await page.click('#bmodo'); await page.click('#hoja [data-act="modo"][data-v="guerra"]'); await page.click('#bact'); await espera(500);
       const b = page.locator('#view [data-act="train"]:not(.no)').first(); await b.scrollIntoViewIfNeeded(); await b.click(); await espera(500);
       const q = await estado(() => Game.state.cities.roma.train.map(t => t.n + ' ' + DATA.UNITS[t.u].n).join(', '));
       return { ok: !!q, detalle: q ? 'en instrucción: ' + q : 'no se reclutó nada', captura: await foto('reclutar') };
     });
 
     await paso('Abrir el Códice', async () => {
-      await page.click('#tabs [data-v="log"]'); await espera(500);
+      await page.click('#bmodo'); await page.click('#hoja [data-act="tab"][data-v="log"]'); await espera(500);
       await page.click('#view [data-act="codice"]'); await espera(500);
       const r = await page.evaluate(() => ({ n: document.querySelectorAll('#view .cdx').length, h: document.querySelectorAll('#view .lic-h').length, w: document.documentElement.scrollWidth }));
       const ok = r.n >= 15 && r.h > 0;
@@ -134,7 +134,7 @@ async function navegador() {
       objetivo = await estado(() => Game.neighbors('roma').filter(n => Game.state.cities[n].owner !== 'roma' && !Game.edge('roma', n)[2]).sort((a, b) => Game.power(Game.state.cities[a].units) - Game.power(Game.state.cities[b].units))[0] || '');
       if (!objetivo) return { ok: false, detalle: 'Roma no tiene vecina enemiga por tierra' };
       await page.evaluate(id => { UI.sel = id; UI.sheetKey = ''; }, objetivo);
-      await page.click('#tabs [data-v="map"]'); await espera(600);
+      await page.click('#bmodo'); await page.click('#hoja [data-act="modo"][data-v="guerra"]'); await espera(600);
       await page.click('#sheet [data-act="pick"]'); await espera(500);
       const captura = await foto('atacar');
       await page.click('#mbox [data-act="send"]'); await espera(400);

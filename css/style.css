@@ -257,3 +257,48 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 #tabs button i .ico { width: 23px; height: 23px; stroke: var(--mute); vertical-align: top; }
 #tabs button.on i .ico { stroke: #1c1206; }
 #tabs button i { filter: none; }
+
+/* J1 · Pantalla limpia (maqueta B): arriba una fila fina, abajo tres botones redondos, a la derecha una tira de vistas. Dos modos: Gobierno (oro) y Guerra (rojo). */
+#res { display: flex; align-items: center; justify-content: space-between; height: 38px; padding: 0 10px; pointer-events: auto; background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--line2); border-radius: 8px; }
+#res .r { display: flex; align-items: center; gap: 3px; background: none; border: 0; padding: 0; font-size: 14px; white-space: nowrap; }
+#res .r b { display: inline; font-size: 14px; }
+#res .r .ico { display: inline-block; width: 18px; height: 18px; margin: 0; }
+#res .r.full b { color: var(--gold); }
+#app[data-modo="gobierno"] .w-only, #app[data-modo="guerra"] .g-only { display: none; }
+#app[data-modo="guerra"] #rb-oro { order: -1; }
+#bar2 { margin-top: 5px; align-items: flex-start; }
+#citybtn, #datebox { height: 38px; display: flex; align-items: center; gap: 6px; padding: 0 12px; background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--line2); border-radius: 8px; pointer-events: auto; font-size: 13px; }
+#citybtn b { color: var(--gold); font-family: var(--serif); letter-spacing: .06em; font-weight: 700; }
+#datebox { padding: 0 0 0 12px; overflow: hidden; }
+#date { background: none; border: 0; padding: 0; border-radius: 0; backdrop-filter: none; -webkit-backdrop-filter: none; }
+#speed { display: flex; align-items: center; justify-content: center; min-width: 46px; height: 38px; padding: 0 8px; border-radius: 0; background: none; border: 0; border-left: 1px solid var(--line); color: var(--gold); font-size: 12px; letter-spacing: -1px; }
+#speed.on { background: var(--red); color: #fff; }
+#citymenu { position: absolute; left: 0; top: 86px; min-width: 210px; display: flex; flex-direction: column; gap: 4px; padding: 6px; background: rgba(11, 16, 22, .95); border: 1px solid var(--gold2); border-radius: 8px; pointer-events: auto; box-shadow: 0 10px 30px #000a; max-height: 60vh; overflow-y: auto; }
+#citymenu button { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 42px; padding: 0 12px; border: 1px solid var(--line2); border-radius: 8px; font-size: 14px; text-align: left; }
+#citymenu button.on { background: linear-gradient(var(--gold), var(--gold2)); color: #1c1206; font-weight: 700; }
+#citymenu small { color: var(--mute); font-size: 13px; } #citymenu .on small { color: #1c1206; }
+/* tira de botones redondos a la derecha */
+#zoom, #ctop { position: absolute; right: 8px; left: auto; top: calc(260px + env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 8px; z-index: 4; max-width: none; }
+#zoom button, #ctop .rd { position: static; width: 42px; height: 42px; border-radius: 50%; font-size: 18px; color: var(--gold); background: var(--glass); border: 1px solid rgba(184, 134, 43, .6); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+#ctop .rd .ico { width: 22px; height: 22px; }
+/* abajo: acción del modo, pastilla y botón de modo */
+#dock { position: absolute; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom)); height: 58px; z-index: 7; pointer-events: none; }
+#dock .rd { position: absolute; bottom: 0; width: 62px; height: 62px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 13px; line-height: 1; pointer-events: auto; border: 1px solid rgba(184, 134, 43, .6); box-shadow: 0 4px 14px #000a; }
+#bact { left: 12px; } #bmodo { right: 12px; }
+#dock .rd .em { font-size: 24px; } #dock .rd small { font-size: 12px; font-weight: 700; letter-spacing: -.3px; } #dock .rd .ico { width: 24px; height: 24px; }
+#dock .oro { background: linear-gradient(#e9c063, #b8862b); color: #1a1205; border-color: var(--gold); } #dock .oro .ico { stroke: #1a1205; }
+#dock .rojo, #dock .cierra { background: var(--red); border-color: var(--gold); color: #fff; } #dock .rojo .ico { stroke: #fff; }
+#bpill { position: absolute; left: 88px; right: 88px; bottom: 14px; height: 34px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; white-space: nowrap; background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--line2); border-radius: 8px; pointer-events: auto; }
+#bpill.w { border-color: rgba(192, 40, 31, .8); pointer-events: none; }
+#bpill .ico { width: 18px; height: 18px; }
+#hoja { position: absolute; right: 12px; bottom: calc(84px + env(safe-area-inset-bottom)); width: 230px; z-index: 8; display: flex; flex-direction: column; gap: 6px; padding: 8px; background: rgba(11, 16, 22, .95); border: 1px solid var(--gold2); border-radius: 10px; box-shadow: 0 10px 30px #000a; }
+#hoja button { display: flex; align-items: center; justify-content: flex-start; gap: 8px; min-height: 42px; padding: 0 12px; border: 1px solid var(--gold2); border-radius: 8px; font-size: 14px; }
+#hoja .dos { display: flex; gap: 6px; } #hoja .dos button { flex: 1; padding: 0 8px; justify-content: center; }
+#hoja .oro.on { background: linear-gradient(#e9c063, #b8862b); color: #1a1205; } #hoja .oro.on .ico { stroke: #1a1205; }
+#hoja .rojo { border-color: var(--red); } #hoja .rojo.on { background: var(--red); border-color: var(--gold); color: #fff; }
+#popsheet { position: absolute; left: 8px; right: 8px; bottom: calc(84px + env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; z-index: 8; max-height: 62%; overflow-y: auto; padding: 12px; background: rgba(11, 16, 22, .96); border: 1px solid var(--gold2); border-radius: 10px; box-shadow: 0 10px 30px #000a; }
+#popsheet .tt { font-family: var(--serif); color: var(--gold); letter-spacing: .08em; margin-bottom: 6px; }
+#popsheet .acts { margin-top: 8px; }
+#sheet, #csheet { bottom: calc(84px + env(safe-area-inset-bottom)); }
+#view { padding-bottom: calc(92px + env(safe-area-inset-bottom)); padding-top: calc(100px + env(safe-area-inset-top)); }
+#app[data-modo="guerra"]::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 60px rgba(192, 40, 31, .6); pointer-events: none; z-index: 2; }
