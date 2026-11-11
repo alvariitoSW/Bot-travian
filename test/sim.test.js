@@ -56,6 +56,27 @@ for (const sd of [1, 2, 3]) {
 // 2e. Toda batalla termina antes del tope, incluso con muralla alta y fuerzas parejas
 for (let sd = 1; sd <= 5; sd++) { const q = fight({ principes: 150, triarii: 50 }, { hoplitas: 200 }, { seed: sd, wall: 10 }); assert(q.time < 1500 && q.winner !== null, 'termina (semilla ' + sd + ')'); }
 
+// 2g. Despliegue (A5a)
+{
+  const mk = o => new Battle(Object.assign({ sides: [side({ hastati: 400, principes: 300, velites: 80, equites: 60 }, { gen: { n: 'Cónsul' } }), side({ libios: 200, numidas: 60, honderos: 40 })], defender: 1, wall: 0, seed: 11 }, o || {}));
+  const bd = mk({ despliegue: true });
+  assert.strictEqual(bd.fase, 'despliegue'); bd.step(5); bd.step(5); assert.strictEqual(bd.t, 0, 'despliegue: el tiempo no avanza');
+  const mio = bd.regs.find(r => r.side === 0 && r.u.cls === 'inf'), ene = bd.regs.find(r => r.side === 1), e0 = [ene.x, ene.y], z = bd.zona(0);
+  assert(bd.colocar(mio, -500, -500), 'colocar devuelve true'); assert(mio.x === z.x0 && mio.y === z.y0, 'colocar recorta a la zona');
+  assert(!bd.colocar(ene, 300, 800), 'no se coloca al enemigo'); assert.deepStrictEqual([ene.x, ene.y], e0);
+  const anchoFila1 = () => { const inf = bd.regs.filter(r => r.side === 0 && (r.u.cls === 'inf' || r.u.cls === 'spear')), yf = Math.min(...inf.map(r => r.y)), fila = inf.filter(r => Math.abs(r.y - yf) < 1); return Math.max(...fila.map(r => r.x)) - Math.min(...fila.map(r => r.x)); };
+  const w = {};
+  for (const [nom] of Battle.PLANTILLAS) {
+    bd.formar(0, nom); w[nom] = anchoFila1();
+    for (const r of bd.regs.filter(r => r.side === 0)) assert(r.x >= z.x0 && r.x <= z.x1 && r.y >= z.y0 - 0.01 && r.y <= z.y1 + 0.01 || nom === 'clasica' && r.x >= 20 && r.x <= 580, 'plantilla ' + nom + ' dentro del campo y la zona');
+  }
+  assert(w.ancha > w.clasica && w.centro < w.clasica, 'anchuras de primera fila: ' + JSON.stringify(w));
+  bd.empezar(); bd.step(1); assert(bd.t > 0, 'tras empezar el tiempo corre');
+  const bf = mk({ despliegue: true }); bf.finish(); assert(bf.over, 'finish() desde despliegue termina');
+  const ba = mk(), bb = mk({ despliegue: true }); bb.empezar(); ba.finish(); bb.finish();
+  assert.deepStrictEqual(ba.result().dead, bb.result().dead, 'despliegue + empezar() = batalla de siempre');
+}
+
 // 2f. Formación y marcha (A9)
 {
   const mix = () => side({ hastati: 200, velites: 80, equites: 60 }), enemigo = () => side({ libios: 200, numidas: 60, honderos: 40, jinetes: 60 });

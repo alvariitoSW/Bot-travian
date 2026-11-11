@@ -66,8 +66,8 @@ Ninguna.
 
 ## Encargo en curso (11/11/2026, tarde)
 Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Tres carriles a la vez, que no se pisan:
-- **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`): A9 Formación de salida y paso de marcha (✅ hecha y unida, caché v12) → A5a Despliegue → A3 Combate que se ve → A4 Papeles de la infantería → A5b Terreno.
-- **Arte** (estilos, iconos, `index.html`): E1b Iconos y letra (✅ hecha y unida, caché v11) → E2 Más piezas de 0 A.D.
+- **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`): A9 Formación de salida y paso de marcha (✅) → A5a Despliegue (✅ hecha y unida) → A3 Combate que se ve → A4 Papeles de la infantería → A5b Terreno.
+- **Arte** (estilos, iconos, `index.html`): E1b Iconos y letra (✅) → E2 Piezas por cultura (✅). Carril cerrado el 11/11; quedan E1c, E2b y E4 en el tablero.
 - **Economía** (`js/game.js`, `js/data.js`, paneles de ciudad en `js/ui.js`): I3 Mano de obra → I4 Tipos de ciudad → B1 Recurso especial → B2 Rutas.
 Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bitácora al día, capturas en el cuadro, cuadro publicado y parte.
 
@@ -83,7 +83,9 @@ Lo que espera a que acaben los carriles (tocan los mismos archivos que Economía
 - I3 (11/11): los números de mano de obra y mantenimiento son constantes en `js/data.js` (`PUESTOS_*`, `MANO_MIN`, `MANT_*`). Paga a 0,35 de oro por punto de consumo: con 0,5 el bot ya perdía una de diez. Roma pasa de +30 a +16 de oro al mes al empezar.
 - I1 e Historia 2 ya están unidas en la rama que publica (11/11/2026). El jugador empieza ahora con dos ciudades (Roma y Capua): tenerlo en cuenta al equilibrar. Queda I1b (ver tablero).
 - E1b (11/11): los iconos de recursos se dibujan en `js/ui.js` (sustituyen en pantalla a los emojis de `D.RES_ICON` y `D.POP_ICON`). Son HTML: sirven en paneles, no en avisos de texto (`toast`) ni en la crónica.
-- El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.
+- A5a (11/11): `cfg.despliegue` abre la fase de despliegue (`fase`, `zona`, `colocar`, `formar`, `empezar` en `js/battle.js`); sin él todo va como antes («Resolver» y pruebas). La barra de despliegue reutiliza `#bctl` desde `js/ui.js`, sin CSS nuevo. Los jueces pulsan «Empezar batalla».
+- E2 (11/11): las piezas por cultura se eligen en `js/gfx/map3d.js` (tablas `CULTURA` y `CENTRO`). Etruscos y mamertinos siguen con casitas. Para A7 ya están cargadas `cart_templo`, `grie_templo`, `galo_centro` e `iber_centro`. Las piezas nuevas van sin mapas de relieve ni brillo para ahorrar peso.
+- El arte pesa ~33 MB (tope 35) y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.
 - A9 (11/11): formación en `deploy` y pasos en constantes al principio de `js/battle.js` (`PASO_MARCHA` 0,5, `DIST_CARGA_INF` 110, `DIST_BLOQUE` 220, `DIST_TIRADOR` 55). Los ejércitos tardan unos 35 s en chocar. La fase de tiro antes del choque aún es corta: va en A3. Capturas de batalla: `node gobierno/captura-batalla.mjs <prefijo> <segundos> [cámara]`.
 - A8 (11/11): los números de ritmo, moral y cansancio son constantes al principio de `js/battle.js`. «Resolver» usa paso de 0,2 s. El bot agresivo gana 7 de 10 campañas; el pasivo, ninguna.
 - Gasto: A8 costó el doble de lo presupuestado (1,3 M frente a 0,55). Afinar números con pruebas cuesta más que una tarea media; presupuestar A5a y A5b con ese dato.

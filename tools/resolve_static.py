@@ -22,6 +22,10 @@ STATIC = {
     # decorado y defensas
     'casa': R_ + 'house.xml', 'arco': R_ + 'triumphal_arch.xml', 'vesta': R_ + 'temple_vesta.xml',
     'muro': R_ + 'wall_long.xml', 'torre': R_ + 'wall_tower.xml', 'puerta': R_ + 'wall_gate.xml',
+    # piezas por cultura (cartagineses, griegos, galos, íberos): centro de ciudad en el mapa y barcos
+    'cart_templo': 'structures/carthaginians/temple_big.xml', 'cart_trirreme': 'structures/carthaginians/trireme.xml',
+    'grie_templo': 'structures/hellenes/shrine_01.xml', 'grie_trirreme': 'structures/hellenes/trireme.xml',
+    'galo_centro': 'structures/gauls/civic_centre.xml', 'iber_centro': 'structures/iberians/temple.xml',
     # árboles mediterráneos
     'cipres': 'flora/trees/mediterranean_cypress.xml', 'olivo': 'flora/trees/olive.xml',
     'pino': 'flora/trees/aleppo_pine.xml', 'algarrobo': 'flora/trees/carob.xml',

@@ -109,6 +109,23 @@
       "archivo": "gobierno/capturas-tarea/I4-tipos.jpg",
       "pie": "Elegir tipo: municipio, colonia agraria, colonia militar, emporio, base naval o ciudad de artesanos",
       "ancha": false
+    },
+    {
+      "tarea": "E2",
+      "archivo": "gobierno/capturas-tarea/E2-mapa.jpg",
+      "pie": "Mapa: cada ciudad con un edificio de su cultura"
+    },
+    {
+      "tarea": "E2",
+      "archivo": "gobierno/capturas-tarea/E2-culturas.jpg",
+      "pie": "De cerca: Cartago, Siracusa, galos, íberos y barcos cartaginés y griego",
+      "ancha": true
+    },
+    {
+      "tarea": "A5a",
+      "archivo": "gobierno/capturas-tarea/A5a-cerca-0s.jpg",
+      "pie": "Despliegue: colocas tus tropas dentro de la línea roja y pulsas «Empezar batalla»",
+      "ancha": true
     }
   ],
   "informes": [
