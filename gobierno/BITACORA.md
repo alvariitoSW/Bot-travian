@@ -66,6 +66,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
+- **Arte, cola parada por gasto** (11/11, carril Arte): E4 y E1c hechas (≈2,6 M en total, todo Sonnet). Quedan **E2b** (máquinas de asedio y estandartes; templo griego de verdad: los de 0 A.D. salen vacíos con la herramienta actual; cabrían ~1,0 MB de los 35, nada más sin subir el tope) y **A7** (ciudades enemigas con edificios de su cultura: reutiliza `cart_templo`, `grie_templo`, `galo_centro`, `iber_centro`, que ya pesan; casi no añade MB). Se retoman en otra sesión cuando el usuario diga que hay margen de gasto. Si E2b pide más de 1,0 MB, decide el usuario si se sube el tope.
 1. **«Separar dos juegos»**: ¿quieres dos modos separados en pantalla (gobierno de ciudades por un lado, guerra por otro), o algo más?
 
 ## Propuestas por aprobar
