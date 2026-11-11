@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 11/11/2026 — **Carril A entero**: «Haz todo lo del tablero en la parte A». (Lectura de Claude: aprobadas todas las tareas de Guerra que quedan. Van de una en una en el carril Batallas, porque tocan los mismos archivos; A7 va al carril Arte.)
 - 11/11/2026 — **Despliegue (A5a)**, desde el cuadro: «Se le añaden arrastre y formaciones». Al publicado se le suman arrastrar el regimiento con el dedo y las formaciones «Línea», «Tres líneas» y «Alas fuertes». Al tablero como A5c.
 - 11/11/2026 — **Bienes de ciudad (B1)**, desde el cuadro: «Vale así y que solo esa ciudad pueda generar ese o esos recursos especiales para comerciar o para mejorar ciudad o para mejorar tropas». (Lectura de Claude: se queda como está, sin contador; el bien solo sale de su ciudad y llega a otras por conquista o por ruta. «Ese o esos»: una ciudad podría dar más de uno; hoy da uno.)
 - 11/11/2026 — **Cómo seguir**: «Aplica el cuadro en otras sesiones o en otros carriles para ir más rápido, cuidado con el uso de Fable que me queda poco». Las sesiones nuevas van con Sonnet de director y de agentes.
@@ -70,11 +71,10 @@ Ninguna.
 
 ## Encargo en curso (11/11/2026, noche)
 Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Cinco carriles a la vez, que no se pisan. Director y agentes en **Sonnet** (al usuario le queda poco Fable).
-- **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`, lo de batalla en `js/ui.js`): A5c Arrastre y formaciones → A3 Combate que se ve → A4 Papeles de la infantería → A5b Terreno.
+- **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`, lo de batalla en `js/ui.js`): A5c Arrastre y formaciones → A3 Combate que se ve → A4 Papeles de la infantería → A5b Terreno → A1 Formaciones de verdad → A2 Animaciones por fila → A6 Cámara, sonido y proyectiles → A8b Ajuste fino del ritmo.
 - **Campaña** (`js/game.js`, `js/data.js`, paneles de ciudad en `js/ui.js`, `js/gfx/city3d.js`): F5 Templos → B7 Saqueo → C3 Diplomacia → B5 Marina → I5 Investigación → I2 Mapa por turnos.
-- **Arte** (`css/`, `index.html`, `assets/`, `tools/`, `js/gfx/statics.js`): E4 Arte de termas, acueducto y anfiteatro → E1c Guía de arte, segunda parte → E2b Más piezas por cultura.
+- **Arte** (`css/`, `index.html`, `assets/`, `tools/`, `js/gfx/statics.js`): E4 Arte de termas, acueducto y anfiteatro → E1c Guía de arte, segunda parte → E2b Más piezas por cultura → A7 Ciudades enemigas con edificios de su cultura.
 - **Mapa** (`js/gfx/map3d.js`, `js/gfx/ground.js`): ✅ C2 Costa y relieve (hecha; queda C2b: alturas reales y espuma).
-- **Registro** (`js/registro.js`, `js/codice.js`): I1b Fichas al día y una sola fuente.
 Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bitácora al día (solo sus líneas), capturas en el cuadro, cuadro publicado y parte. Guion de capturas de batalla: `node gobierno/captura-batalla.mjs`. Al unir, mirar `git status` entero.
 
 ## Encargo de la próxima sesión
