@@ -24,7 +24,9 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ A3 Golpe sincronizado con la animación; combate solo de las primeras filas; persecución de los que huyen.
 - ⬜ A4 Daño por tipo (corte/punta/aplastamiento) y armadura; revisar equilibrio (hoy las batallas igualadas se
   deciden de forma muy brusca).
-- ⬜ A5 Despliegue antes de la batalla y terreno con efecto (altura, bosque).
+- ⬜ A5a **Despliegue antes de la batalla** (aprobada 11/11, P41): colocas tus regimientos, tres plantillas de un toque, y pulsas «Empezar batalla». 0,2 + 0,7 M · 20 min.
+- ⬜ A5b **Terreno con efecto: colina y bosque** (aprobada 11/11, P42), un campo tipo por ciudad. 0,25 + 0,9 M · 25 min. Después de A5a.
+- ⬜ A8 **Ritmo y moral** (aprobada 11/11, P40): batallas de 8 a 12 minutos, moral que baja poco a poco, cansancio. 0,15 + 0,4 M · 12 min. La primera de batallas.
 - ⬜ A6 Cámara cinematográfica (seguir cargas), sonido, proyectiles con arco y polvo mejorados.
 - ⬜ A7 Ciudades enemigas con edificios de su cultura (cartaginesa, griega, gala, íbera).
 
@@ -44,11 +46,20 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 
 ## Carril F — Modos de juego (decisión del usuario, 11/11/2026)
 - ✅ F1 Diseño de modos decidido: campaña histórica como base del modo largo, primero la partida corta, tres dioses (Marte, Ceres, Neptuno). `gobierno/estudios/F1-modos-de-juego.md`.
-- ⬜ F1b Construir la partida corta según F1 (el usuario: «podemos empezar por ahí»). Partirla en tareas de una sesión antes de empezar.
 - ⬜ F2 Tiempo real que sigue corriendo con el juego cerrado (para la partida de semanas), con tope y resumen al volver.
 - ✅ F3 Aldeanos: reparto entre madera, piedra, hierro y grano (en la vista de lista).
-- ⬜ F4 Edades (p. ej. Monarquía → República temprana → media → tardía) que desbloquean edificios, tropas y mejoras.
 - ⬜ F5 Favor de un dios (Marte, Júpiter, Ceres, Neptuno…): un poder con recarga.
+
+## Carril I — Gran diseño, fase 1 (aprobado 11/11/2026; informe `gobierno/estudios/G3-gran-diseno.md`)
+Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I6, I7; I8 al final.
+- ⬜ I1 **Registro de piezas** (P43): fichas con números, arte y fuente histórica, y un juez que las comprueba. 0,2 + 0,6 M · 20 min.
+- ⬜ I2 **Reloj por estaciones** (P44): «consejo de estación» y botón «Pasar estación»; ciudad y batalla siguen en tiempo real. 0,2 + 0,6 M · 20 min.
+- ⬜ I3 **Mano de obra y mantenimiento** (P45): reclutar vacía los campos; edificios y tropas cuestan. 0,15 + 0,5 M · 15 min.
+- ⬜ I4 **Tipos de ciudad con solares limitados** (P46): cada ciudad tiene un número fijo de solares y se dedica a recursos, tropas, comercio, mar, investigación o una mezcla; caben templos y edificios de ocio. 0,2 + 0,7 M · 20 min.
+- ⬜ I5 **Investigación y edades** (P47): árbol corto de unas 16 mejoras; la herrería pasa a ser su rama de guerra. Sustituye a F4. 0,2 + 0,7 M · 20 min.
+- ⬜ I6 **Región de Italia** montada solo con fichas (P48; prueba del cableado). 0,2 + 0,6 M · 20 min. Después de I1.
+- ⬜ I7 **Regiones** (P50): cada región tiene una ciudad principal y zonas de industria a su alrededor. 0,2 + 0,7 M · 20 min, a ojo. Después de I4 e I6.
+- ⬜ I8 **Partida corta** (P49): fundas de cero, un rival, un final. Sustituye a F1b. 0,25 + 0,8 M · 25 min. Después de I2 a I7.
 
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
