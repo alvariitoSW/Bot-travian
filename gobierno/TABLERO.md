@@ -30,7 +30,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ✅ A8 **Ritmo y moral** (11/11): batallas igualadas de 8 a 12 minutos, sin corte a los 4; moral gradual; cansancio con marca «Cansado».
 - ⬜ A8b Ajuste fino del ritmo con partidas del usuario: las muy desiguales duran unos 2,5 min y las algo desiguales 7 a 8; revisar si la calidad de tropa pesa demasiado (exponente 0,85).
 - ⬜ A6 Cámara cinematográfica (seguir cargas), sonido, proyectiles con arco y polvo mejorados.
-- ⬜ A7 Ciudades enemigas con edificios de su cultura (cartaginesa, griega, gala, íbera).
+- ✅ A7 Ciudades enemigas con edificios de su cultura (11/11/2026): en la batalla, si defiende Cartago, un pueblo griego, los galos o los íberos, su ciudad se pinta con sus propios templos o centros de 0 A.D. (`piezaCultura` en `js/gfx/statics.js`, 5 líneas en `buildRealCity` de `js/gfx/battle3d.js`). Etruscos, campanos y mamertinos siguen con lo romano. Las casas siguen siendo romanas. Parte: `partes/2026-11-11-A7.md`.
 
 ## Carril B — Ciudad y economía (tipo Travian/Ikariam)
 - ✅ B1 Recurso especial por ciudad (11/11): nueve bienes (sal, vino, caballos, hierro de calidad, plata, mármol, púrpura, madera naval, pieles), uno por ciudad y sin contador nuevo; tenerlo da una ventaja pequeña y cuatro de ellos abren triarios, équites y los niveles 7 a 10 de varios edificios.
@@ -76,7 +76,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ E1b Guía de arte, primera parte (11/11): iconos de línea para madera, piedra, hierro, grano, denarios y población; letra Cinzel incluida en el juego (SIL OFL 1.1, 29 KB); mármol, oliva y terracota en vez de blanco azulado, verde fosforito y rosa.
 - ✅ E1c Guía de arte, segunda parte (11/11/2026): esquinas de 8 px, doble filete y greca (`css/style.css`); iconos de línea propios para guerra (espadas, escudo, águila, casco), las cinco pestañas y los edificios en tarjetas y listas (`D.GUERRA_ICON`, `D.BUILD_ICON`, `bIco()` en `js/ui.js`). Quedan con emoji la etiqueta flotante de la ciudad 3D (`city3d.js`, es texto), los avisos y el resto de emojis (bienes, dioses, tipos). Las barras de moral siguen en `battle3d.js` (Batallas). Parte: `partes/2026-11-11-E1c.md`.
 - ✅ E2 Piezas de 0 A.D. por cultura (11/11): en el mapa cada ciudad lleva un edificio de su dueño (cartaginés, griego, galo, íbero; Roma, el templo redondo) y los ejércitos por mar van en barco cartaginés o griego. 6 piezas, +2,7 MB (total 33,1 de 35).
-- ⬜ E2b Más piezas por cultura cuando haya sitio: máquinas de asedio y estandartes; templo griego de verdad (los de 0 A.D. no se convierten con la herramienta actual: salen vacíos). Quedan 1,9 MB hasta el tope: subirlo lo decide el usuario.
+- ✅ E2b Piezas por cultura, lo que sirve (11/11/2026): templo griego de verdad (el templo ateniense de 0 A.D., 1.679 triángulos, columnas y frontón) en lugar del santuario. **Máquinas de asedio y estandartes NO se añaden**: el juego no tiene unidades de asedio y las banderas de regimiento ya se dibujan por código; sería arte sin uso. Se harán cuando exista la unidad (propuesta aparte). Arte 34,1 MB de 35. Parte: `partes/2026-11-11-E2b.md`.
 - ✅ E3 Presupuesto por escena en `node gobierno/arte.mjs` (batalla 1,1 millones, ciudad 300 mil; provisional hasta D1).
 
 ## Carril C — Mapa y campaña

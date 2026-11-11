@@ -59,3 +59,9 @@ export function staticInstances(key, matrices, color) {
   for (const p of st.parts) { const im = new THREE.InstancedMesh(p.geo, material(p.file, p.mode, color, p.maps), matrices.length); matrices.forEach((m, i) => im.setMatrixAt(i, m)); im.frustumCulled = false; g.add(im); }
   return g;
 }
+
+/* Cultura de cada bando -> piezas de 0 A.D. propias de su ciudad (las usan el mapa y la batalla; etruscos, campanos y mamertinos siguen con lo romano) */
+export const CULTURA = { cartago: 'cart', epiro: 'grie', macedonia: 'grie', aquea: 'grie', siracusa: 'grie', akragas: 'grie', griegos: 'grie', galos: 'galo', iberos: 'iber' };
+export const PIEZA_CULTURA = { cart: 'cart_templo', grie: 'grie_templo', galo: 'galo_centro', iber: 'iber_centro' };
+/* pieza central de la ciudad de un bando (por id de facción o por su nombre), o null si usa lo romano */
+export function piezaCultura(bando) { const D = window.DATA; let id = D.FACTIONS[bando] ? bando : Object.keys(D.FACTIONS).find(k => D.FACTIONS[k].n === bando); return PIEZA_CULTURA[CULTURA[id]] || null; }
