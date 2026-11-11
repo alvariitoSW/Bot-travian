@@ -64,7 +64,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ⬜ I8 **Partida corta** (P49): fundas de cero, un rival, un final. Sustituye a F1b. 0,25 + 0,8 M · 25 min. Después de I2 a I7.
 
 ## Carril J — Interfaz y territorio (aprobado 11/11/2026, P58 a P62)
-- ⬜ J1 **Pantalla limpia** (P58): menos botones a la vista; barra fina de recursos, barra de abajo y lo demás recogido en un botón que se despliega. Primero dos maquetas en el cuadro para que el usuario elija; luego se construye. 0,15 + 0,5 M.
+- ⬜ J1 **Pantalla limpia** (P58): menos botones a la vista; barra fina de recursos, barra de abajo y lo demás recogido en un botón que se despliega. Con dos modos separados dentro del mismo juego (decisión 11/11): «Gobierno» (ciudades, economía, política) y «Guerra» (ejércitos, marchas, batallas), y un cambio claro entre los dos. Primero dos maquetas en el cuadro para que el usuario elija; luego se construye. 0,15 + 0,5 M.
 - ⬜ J2 **Obras de un toque** (P59): panel «Obras» con todas tus ciudades y un botón por cada obra posible; «mejorar» directo al tocar un edificio. 0,15 + 0,5 M. Después de J1.
 - ⬜ J3 **Capital y pueblos** (P60; incluye I7): cada territorio tiene una capital con los edificios de gobierno y pueblos de recursos, pescadores y agricultores-ganaderos. Los pueblos producen; la capital gobierna, recluta y comercia. 0,3 + 1,0 M, en dos tareas. Después de I6.
 - ⬜ J4 **Mapa más grande por regiones** (P62; amplía I6): más ciudades y territorios, cada región con su capital y sus núcleos pequeños; lista de ciudades con fuente histórica; vigilar la fluidez. 0,3 + 1,2 M, en dos o tres tareas. Después de J3.

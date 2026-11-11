@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 11/11/2026 — **Dos modos**: «Me refiero a que la parte de las batallas de los ejércitos de modo estrategia sea un modo de jugar separado al de gobernar pero dentro del mismo juego». (Lectura de Claude: dos modos en pantalla, «Gobierno» —ciudades, economía, política— y «Guerra» —ejércitos, marchas, batallas—, con un cambio claro entre los dos. Entra en J1: las maquetas ya lo enseñan.)
 - 11/11/2026 — **Aprobadas P58 a P62** en el chat: «Las apruebo ahora en este mensaje: aprobadas». Al tablero como carril J (J1 a J5). J3 funde I7 y J4 amplía I6.
 - 11/11/2026 — **Cinco ideas** (propuestas, sin aprobar aún), literal: «1- mejora de la interfaz visual del juego en la pantalla, sin tantos botones que ocupen tanto la pantalla. 2- accesos directos mejorados para mejorar y creación de edificios tanto en la propia ciudad como en el resto. 3- rediseño de ciudades: cada ciudad debería tener una capital con los edificios de la capital, pueblos con recursos, pueblos pescadores o pueblos agricultores-ganaderos. 4- crear el apartado de política territorial para avanzar en mejoras de edificios, haciendo planes y ampliaciones de infraestructuras y tener más apartados políticos con los que interactuar sobre la ciudadanía, ejército, diplomacia, mercado. Separar 2 juegos diferentes, la guerra de las ciudades. 5- hacer el mapa más grande con más ciudades y más territorios en formato región, con su capital, sus pequeños núcleos de población, etc.». (Lectura de Claude: P58 a P62. La 3 y la 5 amplían las regiones ya aprobadas, I6 e I7. «Separar dos juegos»: lo leo como dos modos bien separados en pantalla, gobierno y guerra; por dentro ya lo están. Confirmar.)
 - 11/11/2026 — **Carril A entero**: «Haz todo lo del tablero en la parte A». (Lectura de Claude: aprobadas todas las tareas de Guerra que quedan. Van de una en una en el carril Batallas, porque tocan los mismos archivos; A7 va al carril Arte.)
@@ -66,8 +67,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-- **Arte, cola parada por gasto** (11/11, carril Arte): E4 y E1c hechas (≈2,6 M en total, todo Sonnet). Quedan **E2b** (máquinas de asedio y estandartes; templo griego de verdad: los de 0 A.D. salen vacíos con la herramienta actual; cabrían ~1,0 MB de los 35, nada más sin subir el tope) y **A7** (ciudades enemigas con edificios de su cultura: reutiliza `cart_templo`, `grie_templo`, `galo_centro`, `iber_centro`, que ya pesan; casi no añade MB). Se retoman en otra sesión cuando el usuario diga que hay margen de gasto. Si E2b pide más de 1,0 MB, decide el usuario si se sube el tope.
-1. **«Separar dos juegos»**: ¿quieres dos modos separados en pantalla (gobierno de ciudades por un lado, guerra por otro), o algo más?
+Nada.
 
 ## Propuestas por aprobar
 Ninguna.
