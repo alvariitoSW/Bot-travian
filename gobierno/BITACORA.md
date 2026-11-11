@@ -59,7 +59,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-Nada.
+1. **Bienes de ciudad (B1)**: pediste no añadir más recursos, así que el bien especial no se almacena: lo tienes si posees una ciudad que lo da. ¿Vale así, o prefieres que se acumule y se gaste como la madera?
 
 ## Propuestas por aprobar
 Ninguna.
@@ -79,6 +79,7 @@ Lo que espera a que acaben los carriles (tocan los mismos archivos que Economía
 4. C2 Costa y relieve → I6 Región de Italia → I7 Regiones → I8 Partida corta.
 
 ## Notas para quien continúe
+- B1 (11/11): bienes en `D.ESPECIAL` y `esp` en cada ciudad. `G.fuentesExtra` es el gancho para que B2 (rutas con aliados) aporte bienes. El bot agresivo bajó de 10 a 9 de 10. Seis de las nueve fichas llevan cita sin cotejar; mármol, madera naval y pieles no tienen fuente todavía (para H11).
 - I4 (11/11): tipos en `D.TIPOS` (multiplicadores en la ficha) y solares con `solar: 1` en `D.BUILD`: un edificio nuevo (templos de F5, ocio) solo tiene que declararlo. La felicidad base bajó de 60 a 55 y el municipio da +5: especializar una ciudad cuesta 5 de felicidad. El tipo «ciudad de artesanos» solo abarata la herrería hasta que llegue I5.
 - I3 (11/11): los números de mano de obra y mantenimiento son constantes en `js/data.js` (`PUESTOS_*`, `MANO_MIN`, `MANT_*`). Paga a 0,35 de oro por punto de consumo: con 0,5 el bot ya perdía una de diez. Roma pasa de +30 a +16 de oro al mes al empezar.
 - I1 e Historia 2 ya están unidas en la rama que publica (11/11/2026). El jugador empieza ahora con dos ciudades (Roma y Capua): tenerlo en cuenta al equilibrar. Queda I1b (ver tablero).

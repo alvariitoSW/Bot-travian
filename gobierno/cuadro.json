@@ -126,6 +126,18 @@
       "archivo": "gobierno/capturas-tarea/A5a-cerca-0s.jpg",
       "pie": "Despliegue: colocas tus tropas dentro de la línea roja y pulsas «Empezar batalla»",
       "ancha": true
+    },
+    {
+      "tarea": "B1",
+      "archivo": "gobierno/capturas-tarea/B1-bien.jpg",
+      "pie": "Cada ciudad da un bien (Roma, sal) y abajo ves cuáles tienes y cuáles te faltan",
+      "ancha": false
+    },
+    {
+      "tarea": "B1",
+      "archivo": "gobierno/capturas-tarea/B1-falta.jpg",
+      "pie": "Los triarios piden hierro de calidad: hay que tomar Volsinii o Saguntum",
+      "ancha": false
     }
   ],
   "informes": [

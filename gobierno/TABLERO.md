@@ -32,7 +32,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ A7 Ciudades enemigas con edificios de su cultura (cartaginesa, griega, gala, íbera).
 
 ## Carril B — Ciudad y economía (tipo Travian/Ikariam)
-- ⬜ B1 Recurso especial por ciudad (vino, mármol, plata, caballos…) necesario para niveles altos y tropas de élite.
+- ✅ B1 Recurso especial por ciudad (11/11): nueve bienes (sal, vino, caballos, hierro de calidad, plata, mármol, púrpura, madera naval, pieles), uno por ciudad y sin contador nuevo; tenerlo da una ventaja pequeña y cuatro de ellos abren triarios, équites y los niveles 7 a 10 de varios edificios.
 - ⬜ B2 Rutas comerciales entre ciudades propias y con aliados; barcos mercantes visibles.
 - ✅ B3 Felicidad e impuestos (bajo, normal, alto) por ciudad.
 - ✅ B4 Termas, acueducto y anfiteatro con sus reglas; en 3D llevan un modelo provisional hasta E4.
