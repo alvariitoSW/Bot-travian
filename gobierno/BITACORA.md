@@ -79,6 +79,7 @@ Lo que espera a que acaben los carriles (tocan los mismos archivos que Economía
 4. C2 Costa y relieve → I6 Región de Italia → I7 Regiones → I8 Partida corta.
 
 ## Notas para quien continúe
+- I4 (11/11): tipos en `D.TIPOS` (multiplicadores en la ficha) y solares con `solar: 1` en `D.BUILD`: un edificio nuevo (templos de F5, ocio) solo tiene que declararlo. La felicidad base bajó de 60 a 55 y el municipio da +5: especializar una ciudad cuesta 5 de felicidad. El tipo «ciudad de artesanos» solo abarata la herrería hasta que llegue I5.
 - I3 (11/11): los números de mano de obra y mantenimiento son constantes en `js/data.js` (`PUESTOS_*`, `MANO_MIN`, `MANT_*`). Paga a 0,35 de oro por punto de consumo: con 0,5 el bot ya perdía una de diez. Roma pasa de +30 a +16 de oro al mes al empezar.
 - I1 e Historia 2 ya están unidas en la rama que publica (11/11/2026). El jugador empieza ahora con dos ciudades (Roma y Capua): tenerlo en cuenta al equilibrar. Queda I1b (ver tablero).
 - E1b (11/11): los iconos de recursos se dibujan en `js/ui.js` (sustituyen en pantalla a los emojis de `D.RES_ICON` y `D.POP_ICON`). Son HTML: sirven en paneles, no en avisos de texto (`toast`) ni en la crónica.

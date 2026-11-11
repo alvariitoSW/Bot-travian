@@ -14,30 +14,47 @@
     cantera: { n: 'Cantera', i: '⛏️', prod: 'piedra', cost: { madera: 50, piedra: 20, hierro: 30, grano: 20 }, time: 1.5, d: 'Produce piedra.' },
     mina: { n: 'Mina de hierro', i: '⚒️', prod: 'hierro', cost: { madera: 50, piedra: 40, hierro: 15, grano: 25 }, time: 1.5, d: 'Produce hierro.' },
     granja: { n: 'Granja', i: '🌾', prod: 'grano', cost: { madera: 40, piedra: 40, hierro: 20, grano: 10 }, time: 1.5, d: 'Produce grano. Las tropas lo consumen.' },
-    viviendas: { n: 'Ínsulas', i: '🏘️', cost: { madera: 60, piedra: 50, hierro: 10, grano: 30 }, time: 1.8, d: 'Viviendas: aumentan la población máxima. La población paga impuestos y de ella salen los reclutas.' },
-    foro: { n: 'Foro', i: '🏛️', prod: 'oro', cost: { madera: 80, piedra: 90, hierro: 40, grano: 40 }, time: 2.5, d: 'Recauda denarios, acelera las obras un 4 % por nivel y permite más población.' },
-    almacen: { n: 'Almacén', i: '🏺', cost: { madera: 70, piedra: 60, hierro: 30, grano: 20 }, time: 2, d: 'Aumenta la capacidad de almacenamiento.' },
-    mercado: { n: 'Mercado', i: '⚖️', cost: { madera: 80, piedra: 70, hierro: 30, grano: 30, oro: 40 }, time: 2.5, d: 'Permite cambiar unos recursos por otros. Cada nivel mejora el cambio.' },
-    puerto: { n: 'Puerto', i: '⚓', cost: { madera: 140, piedra: 80, hierro: 50, grano: 30, oro: 60 }, time: 3, sea: true, d: 'Necesario para embarcar ejércitos por rutas marítimas. Da ingresos por comercio y acorta las travesías.' },
-    cuartel: { n: 'Cuartel', i: '⚔️', cost: { madera: 90, piedra: 60, hierro: 70, grano: 40 }, time: 2.5, d: 'Recluta infantería. Nv 3: Príncipes. Nv 5: Triarios.' },
-    establo: { n: 'Establo', i: '🐎', cost: { madera: 110, piedra: 60, hierro: 80, grano: 70 }, time: 3, d: 'Recluta caballería (Équites).' },
+    viviendas: { n: 'Ínsulas', i: '🏘️', solar: 1, cost: { madera: 60, piedra: 50, hierro: 10, grano: 30 }, time: 1.8, d: 'Viviendas: aumentan la población máxima. La población paga impuestos y de ella salen los reclutas.' },
+    foro: { n: 'Foro', i: '🏛️', solar: 1, prod: 'oro', cost: { madera: 80, piedra: 90, hierro: 40, grano: 40 }, time: 2.5, d: 'Recauda denarios, acelera las obras un 4 % por nivel y permite más población.' },
+    almacen: { n: 'Almacén', i: '🏺', solar: 1, cost: { madera: 70, piedra: 60, hierro: 30, grano: 20 }, time: 2, d: 'Aumenta la capacidad de almacenamiento.' },
+    mercado: { n: 'Mercado', i: '⚖️', solar: 1, cost: { madera: 80, piedra: 70, hierro: 30, grano: 30, oro: 40 }, time: 2.5, d: 'Permite cambiar unos recursos por otros. Cada nivel mejora el cambio.' },
+    puerto: { n: 'Puerto', i: '⚓', solar: 1, cost: { madera: 140, piedra: 80, hierro: 50, grano: 30, oro: 60 }, time: 3, sea: true, d: 'Necesario para embarcar ejércitos por rutas marítimas. Da ingresos por comercio y acorta las travesías.' },
+    cuartel: { n: 'Cuartel', i: '⚔️', solar: 1, cost: { madera: 90, piedra: 60, hierro: 70, grano: 40 }, time: 2.5, d: 'Recluta infantería. Nv 3: Príncipes. Nv 5: Triarios.' },
+    establo: { n: 'Establo', i: '🐎', solar: 1, cost: { madera: 110, piedra: 60, hierro: 80, grano: 70 }, time: 3, d: 'Recluta caballería (Équites).' },
     muralla: { n: 'Muralla', i: '🧱', cost: { madera: 40, piedra: 120, hierro: 30, grano: 20 }, time: 3, d: '+10 % de defensa por nivel y más guardia urbana al defender.' },
-    herreria: { n: 'Herrería', i: '🔨', cost: { madera: 70, piedra: 60, hierro: 90, grano: 30, oro: 30 }, time: 2.5, d: 'Forja mejoras de armas y armaduras para todo el ejército. Cada mejora no puede pasar del nivel de la herrería.' },
-    acueducto: { modelo: 'arco', n: 'Acueducto', i: '🌉', cost: { madera: 90, piedra: 160, hierro: 50, grano: 50, oro: 60 }, time: 3.5, d: 'Trae agua a la ciudad: +40 de población máxima por nivel.' },
-    termas: { modelo: 'vesta', n: 'Termas', i: '♨️', cost: { madera: 100, piedra: 140, hierro: 40, grano: 60, oro: 80 }, time: 3.5, d: 'Baños públicos: +4 de felicidad y +15 de población máxima por nivel.' },
-    anfiteatro: { modelo: 'foro', n: 'Anfiteatro', i: '🏟️', cost: { madera: 130, piedra: 180, hierro: 60, grano: 80, oro: 100 }, time: 4, d: 'Juegos y espectáculos: +6 de felicidad por nivel.' },
-    templo: { n: 'Templo de Marte', i: '🔥', cost: { madera: 80, piedra: 100, hierro: 30, grano: 60, oro: 50 }, time: 3, d: '+10 % de experiencia del héroe y +3 de moral al defender, por nivel.' }
+    herreria: { n: 'Herrería', i: '🔨', solar: 1, cost: { madera: 70, piedra: 60, hierro: 90, grano: 30, oro: 30 }, time: 2.5, d: 'Forja mejoras de armas y armaduras para todo el ejército. Cada mejora no puede pasar del nivel de la herrería.' },
+    acueducto: { modelo: 'arco', n: 'Acueducto', i: '🌉', solar: 1, cost: { madera: 90, piedra: 160, hierro: 50, grano: 50, oro: 60 }, time: 3.5, d: 'Trae agua a la ciudad: +40 de población máxima por nivel.' },
+    termas: { modelo: 'vesta', n: 'Termas', i: '♨️', solar: 1, cost: { madera: 100, piedra: 140, hierro: 40, grano: 60, oro: 80 }, time: 3.5, d: 'Baños públicos: +4 de felicidad y +15 de población máxima por nivel.' },
+    anfiteatro: { modelo: 'foro', n: 'Anfiteatro', i: '🏟️', solar: 1, cost: { madera: 130, piedra: 180, hierro: 60, grano: 80, oro: 100 }, time: 4, d: 'Juegos y espectáculos: +6 de felicidad por nivel.' },
+    templo: { n: 'Templo de Marte', i: '🔥', solar: 1, cost: { madera: 80, piedra: 100, hierro: 30, grano: 60, oro: 50 }, time: 3, d: '+10 % de experiencia del héroe y +3 de moral al defender, por nivel.' }
   };
   D.MAX_LVL = 10;
   // mejoras de la herrería: globales, nivel 0 a FORJA_MAX, +5 % por nivel. Coste y tiempo base (nivel 0), crecen x1.5 y x1.4 por nivel
   /* Impuestos: oro x mult, felicidad +/- f. Edificios que suben la felicidad: puntos por nivel (aquí se añaden termas, anfiteatro…). */
   D.IMPUESTOS = { bajo: { n: 'Impuestos bajos', mult: 0.7, f: 15 }, normal: { n: 'Impuestos normales', mult: 1, f: 0 }, alto: { n: 'Impuestos altos', mult: 1.4, f: -25 } };
-  D.FELICIDAD_BASE = 60; D.FELICIDAD_MIN_CRECER = 40;
+  D.FELICIDAD_BASE = 55;   // + 5 del municipio (tipo por defecto) = 60, como antes de I4
+  D.FELICIDAD_MIN_CRECER = 40;
   D.FELICIDAD_EDIF = { templo: 3, termas: 4, anfiteatro: 6 };
   D.POP_EDIF = { viviendas: 130, foro: 30, acueducto: 40, termas: 15 };   // población máxima por nivel de cada edificio
   // mano de obra y mantenimiento (I3): puestos = base + por nivel de aserradero/cantera/mina/granja; la producción de recursos se multiplica por pop/puestos (con suelo)
   D.PUESTOS_BASE = 20; D.PUESTOS_NIVEL = 12; D.MANO_MIN = 0.25;
   D.MANT_EDIF = 0.15; D.MANT_TROPA = 0.35;   // oro/mes por nivel de edificio no productivo y por punto de «up» de tropa (stipendium)
+  /* Solares (I4): los edificios urbanos (solar: 1 en D.BUILD) ocupan uno cuando su nivel es 1 o más; campos y muralla, no.
+     Cada ciudad tiene los suyos: D.CITIES[id].solares o 7 + riqueza/2 (nunca más de SOLARES_MAX: ninguna ciudad lo tiene todo). */
+  D.SOLARES_BASE = 7; D.SOLARES_MAX = 11;
+  /* Tipos de ciudad (licencia de juego): uno por ciudad propia. Los números son multiplicadores que lee game.js.
+     rec = producción de madera, piedra, hierro y grano; fel = felicidad; instr = velocidad de instrucción; paga = coste de la paga de la guarnición;
+     oroCom = oro de foro y puerto; mercado = mejora del cambio; viajeMar = tiempo de los viajes por mar; oroPuerto = oro por nivel de puerto;
+     forjaCoste / forjaTiempo = mejoras de la herrería encargadas desde la ciudad. */
+  D.TIPO_CAMBIO = 250;
+  D.TIPOS = {
+    municipio: { n: 'Municipio', i: '🏛️', d: 'Hace de todo: +5 de felicidad.', fel: 5 },
+    agraria: { n: 'Colonia agraria', i: '🌾', d: '+25 % de madera, piedra, hierro y grano.', rec: 1.25 },
+    militar: { n: 'Colonia militar', i: '⚔️', d: 'Instrucción un 25 % más rápida y la paga de su guarnición cuesta un 25 % menos.', instr: 0.8, paga: 0.75 },
+    emporio: { n: 'Emporio', i: '⚖️', d: '+50 % del oro de foro y puerto. Con mercado, cambias recursos a mejor precio.', oroCom: 1.5, mercado: 0.05 },
+    naval: { n: 'Base naval', i: '⚓', d: 'Solo en ciudades con mar: viajes por mar un 25 % más rápidos y +3 de oro por nivel de puerto.', mar: true, viajeMar: 0.75, oroPuerto: 3 },
+    saber: { n: 'Ciudad de artesanos', i: '🔨', d: 'Las mejoras de la herrería encargadas desde aquí cuestan y tardan un 25 % menos.', forjaCoste: 0.75, forjaTiempo: 0.75 }
+  };
   D.FORJA_MAX = 5; D.FORJA_BONO = 0.05;
   D.FORJA = {
     armas: { n: 'Armas', i: '🗡️', ef: 'ataque', cost: { hierro: 120, madera: 40, oro: 50 }, time: 3 },
@@ -88,24 +105,24 @@
 
   // w = riqueza (1-5), wl = muralla, g = guarnición inicial
   D.CITIES = {
-    roma: { n: 'Roma', lon: 12.5, lat: 41.9, f: 'roma', w: 3, wl: 1, g: { hastati: 80, velites: 40 }, h: 'La ciudad de las siete colinas. En 280 a.C. domina el Lacio y mira hacia el sur de Italia.' },
-    volsinii: { n: 'Volsinii', lon: 11.6, lat: 43.0, f: 'etruscos', w: 2, wl: 1, g: { hoplitas: 60, milicia: 50, peltastas: 20 }, h: 'Última gran ciudad etrusca independiente. Roma la tomó en 264 a.C.' },
-    capua: { n: 'Capua', lon: 14.5, lat: 40.95, f: 'roma', w: 3, wl: 1, g: { hoplitas: 30, milicia: 30 }, h: 'La ciudad más rica de Campania, aliada de Roma desde 338 a.C. (Livio 8.14). Se pasó a Aníbal tras Cannas (216 a.C.) y Roma la recuperó en 211 a.C.' },
-    tarentum: { n: 'Tarentum', lon: 17.2, lat: 40.6, f: 'epiro', w: 3, wl: 2, g: { falange: 120, hoplitas: 80, peltastas: 50, tesalios: 40, elefantes: 6 }, gen: { n: 'Pirro de Epiro', mando: 4, disc: 3, until: 272 }, h: 'Colonia espartana que llamó en su ayuda al rey Pirro. Cayó ante Roma en 272 a.C.' },
-    mediolanum: { n: 'Mediolanum', lon: 9.2, lat: 45.4, f: 'galos', w: 2, wl: 0, g: { galos: 260, jinetes: 40 }, h: 'Capital de los galos ínsubres. Tomada por Marcelo y Escipión Calvo en 222 a.C.' },
-    messana: { n: 'Messana', lon: 15.55, lat: 38.3, f: 'mamertinos', w: 2, wl: 1, g: { milicia: 60, hoplitas: 60, peltastas: 30 }, h: 'Ocupada por los mamertinos, mercenarios campanos de Agatocles (Polibio 1.7-8). Su petición de auxilio desató la Primera Guerra Púnica (264 a.C.).' },
-    syracusae: { n: 'Syracusae', lon: 15.3, lat: 37.0, f: 'siracusa', w: 4, wl: 4, g: { hoplitas: 180, peltastas: 80, jinetes: 40 }, h: 'La mayor ciudad griega de Occidente. Defendida por las máquinas de Arquímedes, cayó ante Marcelo en 212 a.C.' },
-    agrigentum: { n: 'Agrigentum', lon: 13.55, lat: 37.25, f: 'akragas', w: 3, wl: 2, g: { hoplitas: 120, peltastas: 60, jinetes: 30 }, post: { cartago: { libios: 140, iberos: 60, honderos: 40, numidas: 30 } }, h: 'Ciudad griega e independiente en 280 a.C. Cartago la hizo su base en 262 a.C. y Roma la tomó ese mismo año (Polibio 1.17-19).' },
-    panormus: { n: 'Panormus', lon: 13.35, lat: 38.2, f: 'cartago', w: 3, wl: 2, g: { libios: 160, honderos: 50, numidas: 40, elefantes: 5 }, h: 'Puerto púnico. En 250 a.C. Metelo capturó aquí los elefantes de Asdrúbal.' },
-    lilybaeum: { n: 'Lilybaeum', lon: 12.3, lat: 37.75, f: 'cartago', w: 3, wl: 4, g: { libios: 200, iberos: 80, honderos: 50, numidas: 40 }, h: 'Fortaleza cartaginesa que resistió nueve años de asedio romano (250–241 a.C.).' },
+    roma: { n: 'Roma', lon: 12.5, lat: 41.9, f: 'roma', tipo: 'municipio', solares: 10, w: 3, wl: 1, g: { hastati: 80, velites: 40 }, h: 'La ciudad de las siete colinas. En 280 a.C. domina el Lacio y mira hacia el sur de Italia.' },
+    volsinii: { n: 'Volsinii', lon: 11.6, lat: 43.0, f: 'etruscos', tipo: 'militar', w: 2, wl: 1, g: { hoplitas: 60, milicia: 50, peltastas: 20 }, h: 'Última gran ciudad etrusca independiente. Roma la tomó en 264 a.C.' },
+    capua: { n: 'Capua', lon: 14.5, lat: 40.95, f: 'roma', tipo: 'agraria', w: 3, wl: 1, g: { hoplitas: 30, milicia: 30 }, h: 'La ciudad más rica de Campania, aliada de Roma desde 338 a.C. (Livio 8.14). Se pasó a Aníbal tras Cannas (216 a.C.) y Roma la recuperó en 211 a.C.' },
+    tarentum: { n: 'Tarentum', lon: 17.2, lat: 40.6, f: 'epiro', tipo: 'naval', w: 3, wl: 2, g: { falange: 120, hoplitas: 80, peltastas: 50, tesalios: 40, elefantes: 6 }, gen: { n: 'Pirro de Epiro', mando: 4, disc: 3, until: 272 }, h: 'Colonia espartana que llamó en su ayuda al rey Pirro. Cayó ante Roma en 272 a.C.' },
+    mediolanum: { n: 'Mediolanum', lon: 9.2, lat: 45.4, f: 'galos', tipo: 'militar', w: 2, wl: 0, g: { galos: 260, jinetes: 40 }, h: 'Capital de los galos ínsubres. Tomada por Marcelo y Escipión Calvo en 222 a.C.' },
+    messana: { n: 'Messana', lon: 15.55, lat: 38.3, f: 'mamertinos', tipo: 'naval', w: 2, wl: 1, g: { milicia: 60, hoplitas: 60, peltastas: 30 }, h: 'Ocupada por los mamertinos, mercenarios campanos de Agatocles (Polibio 1.7-8). Su petición de auxilio desató la Primera Guerra Púnica (264 a.C.).' },
+    syracusae: { n: 'Syracusae', lon: 15.3, lat: 37.0, f: 'siracusa', tipo: 'emporio', w: 4, wl: 4, g: { hoplitas: 180, peltastas: 80, jinetes: 40 }, h: 'La mayor ciudad griega de Occidente. Defendida por las máquinas de Arquímedes, cayó ante Marcelo en 212 a.C.' },
+    agrigentum: { n: 'Agrigentum', lon: 13.55, lat: 37.25, f: 'akragas', tipo: 'agraria', w: 3, wl: 2, g: { hoplitas: 120, peltastas: 60, jinetes: 30 }, post: { cartago: { libios: 140, iberos: 60, honderos: 40, numidas: 30 } }, h: 'Ciudad griega e independiente en 280 a.C. Cartago la hizo su base en 262 a.C. y Roma la tomó ese mismo año (Polibio 1.17-19).' },
+    panormus: { n: 'Panormus', lon: 13.35, lat: 38.2, f: 'cartago', tipo: 'emporio', w: 3, wl: 2, g: { libios: 160, honderos: 50, numidas: 40, elefantes: 5 }, h: 'Puerto púnico. En 250 a.C. Metelo capturó aquí los elefantes de Asdrúbal.' },
+    lilybaeum: { n: 'Lilybaeum', lon: 12.3, lat: 37.75, f: 'cartago', tipo: 'militar', w: 3, wl: 4, g: { libios: 200, iberos: 80, honderos: 50, numidas: 40 }, h: 'Fortaleza cartaginesa que resistió nueve años de asedio romano (250–241 a.C.).' },
     carales: { n: 'Carales', lon: 9.1, lat: 39.25, f: 'cartago', w: 2, wl: 1, g: { libios: 100, honderos: 40, milicia: 40 }, h: 'Puerto púnico de Cerdeña. Roma se anexionó la isla en 238 a.C.' },
-    emporion: { n: 'Emporion', lon: 3.1, lat: 42.15, f: 'griegos', w: 2, wl: 1, g: { hoplitas: 70, peltastas: 30, milicia: 30 }, h: 'Colonia focense. Aquí desembarcó Cneo Escipión en 218 a.C. para iniciar la conquista de Hispania.' },
-    saguntum: { n: 'Saguntum', lon: -0.3, lat: 39.7, f: 'iberos', w: 2, wl: 2, g: { iberos: 180, honderos: 40, jinetes: 20 }, h: 'Su asedio por Aníbal en 219 a.C. fue el casus belli de la Segunda Guerra Púnica.' },
+    emporion: { n: 'Emporion', lon: 3.1, lat: 42.15, f: 'griegos', tipo: 'emporio', w: 2, wl: 1, g: { hoplitas: 70, peltastas: 30, milicia: 30 }, h: 'Colonia focense. Aquí desembarcó Cneo Escipión en 218 a.C. para iniciar la conquista de Hispania.' },
+    saguntum: { n: 'Saguntum', lon: -0.3, lat: 39.7, f: 'iberos', tipo: 'militar', w: 2, wl: 2, g: { iberos: 180, honderos: 40, jinetes: 20 }, h: 'Su asedio por Aníbal en 219 a.C. fue el casus belli de la Segunda Guerra Púnica.' },
     carthagonova: { n: 'Carthago Nova', lon: -1.0, lat: 37.6, f: 'iberos', w: 1, wl: 1, g: { iberos: 60, honderos: 20, jinetes: 8 }, en228: { w: 4, wl: 3, g: { libios: 220, iberos: 160, honderos: 60, numidas: 60, elefantes: 8 } }, h: 'En 280 a.C. era un poblado íbero junto a la bahía (probable; su tamaño es licencia de juego). Hacia 228 a.C. Asdrúbal fundó aquí Carthago Nova, capital bárcida de Hispania y sus minas de plata. Escipión la tomó por sorpresa en 209 a.C.' },
     ambracia: { n: 'Ambracia', lon: 20.9, lat: 39.2, f: 'epiro', w: 2, wl: 2, g: { falange: 140, peltastas: 60, tesalios: 40 }, h: 'Capital del rey Pirro de Epiro. Saqueada por Roma en 189 a.C.' },
-    pella: { n: 'Pella', lon: 22.5, lat: 40.8, f: 'macedonia', w: 4, wl: 3, g: { falange: 320, peltastas: 100, tesalios: 100 }, h: 'Capital de Macedonia, cuna de Alejandro. El reino cayó tras Pidna (168 a.C.).' },
-    corinthus: { n: 'Corinthus', lon: 22.9, lat: 37.9, f: 'macedonia', w: 4, wl: 3, g: { falange: 200, peltastas: 100, tesalios: 50 }, post: { aquea: { hoplitas: 300, peltastas: 100, jinetes: 50 } }, h: 'Con guarnición macedonia (probable ya en 280 a.C.). Arato la liberó hacia 243 a.C. y entró en la Liga Aquea (Polibio 2.43). Arrasada por Lucio Mumio en 146 a.C., el mismo año que Cartago.' },
-    carthago: { n: 'Carthago', lon: 10.3, lat: 36.85, f: 'cartago', w: 5, wl: 6, g: { sagrada: 300, libios: 400, iberos: 150, honderos: 120, numidas: 120, elefantes: 20 }, gen: { n: 'Asdrúbal el Beotarca', mando: 3, disc: 4, from: 149, until: 0 }, h: 'La gran rival de Roma. Escipión Emiliano la destruyó en 146 a.C.' }
+    pella: { n: 'Pella', lon: 22.5, lat: 40.8, f: 'macedonia', tipo: 'militar', w: 4, wl: 3, g: { falange: 320, peltastas: 100, tesalios: 100 }, h: 'Capital de Macedonia, cuna de Alejandro. El reino cayó tras Pidna (168 a.C.).' },
+    corinthus: { n: 'Corinthus', lon: 22.9, lat: 37.9, f: 'macedonia', tipo: 'emporio', w: 4, wl: 3, g: { falange: 200, peltastas: 100, tesalios: 50 }, post: { aquea: { hoplitas: 300, peltastas: 100, jinetes: 50 } }, h: 'Con guarnición macedonia (probable ya en 280 a.C.). Arato la liberó hacia 243 a.C. y entró en la Liga Aquea (Polibio 2.43). Arrasada por Lucio Mumio en 146 a.C., el mismo año que Cartago.' },
+    carthago: { n: 'Carthago', lon: 10.3, lat: 36.85, f: 'cartago', tipo: 'emporio', w: 5, wl: 6, g: { sagrada: 300, libios: 400, iberos: 150, honderos: 120, numidas: 120, elefantes: 20 }, gen: { n: 'Asdrúbal el Beotarca', mando: 3, disc: 4, from: 149, until: 0 }, h: 'La gran rival de Roma. Escipión Emiliano la destruyó en 146 a.C.' }
   };
 
   // [a, b, marítima]

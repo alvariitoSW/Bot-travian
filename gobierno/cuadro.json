@@ -99,6 +99,18 @@
       "ancha": true
     },
     {
+      "tarea": "I4",
+      "archivo": "gobierno/capturas-tarea/I4-solares.jpg",
+      "pie": "Cada ciudad tiene solares contados (Roma, 4 de 10 ocupados) y un tipo que eliges",
+      "ancha": false
+    },
+    {
+      "tarea": "I4",
+      "archivo": "gobierno/capturas-tarea/I4-tipos.jpg",
+      "pie": "Elegir tipo: municipio, colonia agraria, colonia militar, emporio, base naval o ciudad de artesanos",
+      "ancha": false
+    },
+    {
       "tarea": "E2",
       "archivo": "gobierno/capturas-tarea/E2-mapa.jpg",
       "pie": "Mapa: cada ciudad con un edificio de su cultura"
