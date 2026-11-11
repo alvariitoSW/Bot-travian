@@ -77,6 +77,27 @@ for (let sd = 1; sd <= 5; sd++) { const q = fight({ principes: 150, triarii: 50 
   assert.deepStrictEqual(ba.result().dead, bb.result().dead, 'despliegue + empezar() = batalla de siempre');
 }
 
+// 2h. Plantillas de despliegue (A5c): todo dentro de la zona y sin regimientos apilados; colocar() solo en despliegue
+{
+  const ejercitos = [
+    { hastati: 400, principes: 300, triarii: 120, velites: 80, equites: 60 },
+    { hastati: 900, velites: 200 },
+    { hastati: 200, principes: 200, triarii: 100, velites: 60, equites: 120, elefantes: 6 },
+    { principes: 90 }
+  ];
+  ejercitos.forEach((u, ei) => [true, false].forEach(conGen => {
+    const bt = new Battle({ sides: [side(u, conGen ? { gen: { n: 'Cónsul' } } : {}), side({ libios: 200, numidas: 60 })], defender: 1, wall: 0, seed: 5, despliegue: true });
+    for (const lado of [0, 1]) for (const [nom] of Battle.PLANTILLAS) {
+      bt.formar(lado, nom); const z = bt.zona(lado), mios = bt.regs.filter(r => r.side === lado);
+      mios.forEach(r => assert(r.x >= z.x0 && r.x <= z.x1 && r.y >= z.y0 - 0.01 && r.y <= z.y1 + 0.01, 'plantilla ' + nom + ' (ejército ' + ei + ', lado ' + lado + ') dentro de la zona'));
+      for (let i = 0; i < mios.length; i++) for (let j = i + 1; j < mios.length; j++) assert(Math.hypot(mios[i].x - mios[j].x, mios[i].y - mios[j].y) >= 20, 'plantilla ' + nom + ' (ejército ' + ei + '): dos regimientos apilados');
+    }
+  }));
+  const bt = new Battle({ sides: [side({ hastati: 300 }), side({ libios: 100 })], defender: 1, wall: 0, seed: 3, despliegue: true });
+  const m = bt.regs.find(r => r.side === 0); bt.empezar(); const p0 = [m.x, m.y];
+  assert(!bt.colocar(m, 300, 800) && m.x === p0[0] && m.y === p0[1], 'colocar() no hace nada fuera del despliegue');
+}
+
 // 2f. Formación y marcha (A9)
 {
   const mix = () => side({ hastati: 200, velites: 80, equites: 60 }), enemigo = () => side({ libios: 200, numidas: 60, honderos: 40, jinetes: 60 });

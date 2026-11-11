@@ -62,7 +62,7 @@ function showMenu() {
     (G.hasSave() ? '<button class="btn gold" data-act="continue">Continuar campaña</button>' : '') +
     '<input id="hname" maxlength="28" placeholder="Nombre de tu general" value="Lucio Cornelio Escipión">' +
     '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><div class="spqr">S·P·Q·R</div>' +
-    '<div class="credits">Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1</div>';
+    '<div class="credits">Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1<br>Termas y acueducto: dibujo propio del proyecto, CC BY-SA 3.0</div>';
 }
 function startGame() { UI.menu = false; $('menu').hidden = true; UI.city = 'roma'; UI.sel = null; if (UI.map) UI.map.center('roma'); setTab('map'); }
 function showOver() {
@@ -338,17 +338,20 @@ function startBattle() {
   catch (e) { // sin WebGL: vista 2D de reserva
     console.warn('WebGL no disponible, usando vista 2D', e);
     const cv = document.createElement('canvas'); cv.className = 'c2d'; $('bfield').appendChild(cv); B.view = new window.BattleView(cv, b); B.flat = cv;
-    cv.addEventListener('pointerdown', ev => { if (!b.over) B.view.tap(ev.clientX, ev.clientY); });
+    cv.addEventListener('pointerdown', ev => { if (!b.over) B.view.down(ev); });
+    cv.addEventListener('pointermove', ev => B.view.move(ev)); cv.addEventListener('pointerup', ev => B.view.up(ev)); cv.addEventListener('pointercancel', ev => B.view.up(ev));
   }
   UI.battle = B;
   $('bauto').classList.add('on'); $('bspeed').textContent = 'x1'; $('bpause').textContent = 'II';
   // despliegue: la barra de mando cambia hasta pulsar «Empezar batalla»
   B.barra = $('bctl').innerHTML; B.hint = $('bhint').innerHTML;
-  $('bctl').innerHTML = Battle.PLANTILLAS.map(p => '<button data-act="bform" data-v="' + p[0] + '"' + (p[0] === 'clasica' ? ' class="on"' : '') + '>' + p[1].replace('Línea ancha', 'Ancha').replace('Centro fuerte', 'Centro') + '</button>').join('') + '<button data-act="bstart" class="on">Empezar batalla</button>';
-  $('bhint').textContent = 'Coloca tus tropas: toca un regimiento y luego el campo. Después, Empezar batalla.'; $('bhint').style.opacity = 1;
+  // 6 formaciones + «Empezar batalla»: en 390 px no caben en una fila, así que la barra se parte en dos filas
+  $('bctl').style.flexWrap = 'wrap';
+  $('bctl').innerHTML = Battle.PLANTILLAS.map(p => '<button style="flex:1 1 11%;min-width:0;padding:0 2px;font-size:12px;white-space:nowrap" data-act="bform" data-v="' + p[0] + '"' + (p[0] === 'clasica' ? ' class="on"' : '') + '>' + (Battle.CORTOS[p[0]] || p[1]) + '</button>').join('') + '<button style="flex:2 1 18%;padding:0 4px" data-act="bstart" class="on">Empezar batalla</button>';
+  $('bhint').textContent = 'Coloca tus tropas: arrastra un regimiento por el campo, o toca uno y luego el campo. Después, Empezar batalla.'; $('bhint').style.opacity = 1;
 }
 // repone la barra de mando y el texto de ayuda de antes del despliegue
-function reponerBarra(B) { if (!B || B.barra == null) return; $('bctl').innerHTML = B.barra; $('bhint').innerHTML = B.hint; B.barra = null; }
+function reponerBarra(B) { if (!B || B.barra == null) return; $('bctl').style.flexWrap = ''; $('bctl').innerHTML = B.barra; $('bhint').innerHTML = B.hint; B.barra = null; }
 function stopBattle() { const B = UI.battle; if (B) { reponerBarra(B); if (B.view.dispose) B.view.dispose(); if (B.flat) B.flat.remove(); } $('battle').hidden = true; UI.battle = null; UI.binfo = null; if (UI.map) UI.map.resize(); }
 function battleHud() {
   const b = UI.battle.b, s0 = b.cfg.sides[0], s1 = b.cfg.sides[1], n0 = b.men(0), n1 = b.men(1), key = n0 + '|' + n1; if (key === UI.hudKey) return; UI.hudKey = key;

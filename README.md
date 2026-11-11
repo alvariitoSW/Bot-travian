@@ -63,7 +63,8 @@ Esa licencia obliga a citar a Wildfire Games y a compartir este arte y sus modif
 
 La letra de los títulos es **Cinzel**, de The Cinzel Project Authors, con licencia **[SIL OFL 1.1](https://openfontlicense.org)**
 (ver `assets/fuentes/LICENSE.txt`). Va incluida en el juego para que se vea igual sin conexión.
-Los iconos de recursos son dibujos propios en SVG, dentro de `js/ui.js`.
+Los iconos de recursos son dibujos propios en SVG, dentro de `js/ui.js`. Las termas y el acueducto de la ciudad son modelos propios (`tools/propio_static.mjs`),
+hechos desde cero y publicados también con CC BY-SA 3.0; el anfiteatro es el de Pompeya de 0 A.D., aligerado.
 
 Para regenerarlos hace falta un clon parcial de `github.com/0ad/0ad` y los cargadores de ejemplo de three.js:
 
@@ -73,7 +74,7 @@ tools/build_static_all.sh <clon de 0ad> <three/examples/jsm> <carpeta temporal> 
 ```
 
 `tools/resolve_units.py` decide qué actor de 0 A.D. es cada unidad; `tools/build_units.mjs` hornea cuerpo, piezas
-y animaciones a `assets/units/*.bin`; `tools/build_atlas.py` compone las texturas. Si los modelos no cargan, el
+y animaciones a `assets/units/*.bin`; `tools/build_atlas.py` compone las texturas; `tools/aligerar_static.mjs` (necesita el paquete npm `meshoptimizer`) aligera piezas que pasan del tope de triángulos. Si los modelos no cargan, el
 juego usa figuras sencillas generadas por código (`js/gfx/models.js`).
 
 ## Referencias consultadas

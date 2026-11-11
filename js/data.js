@@ -23,9 +23,9 @@
     establo: { n: 'Establo', i: '🐎', solar: 1, cost: { madera: 110, piedra: 60, hierro: 80, grano: 70 }, time: 3, d: 'Recluta caballería (Équites).' },
     muralla: { n: 'Muralla', i: '🧱', cost: { madera: 40, piedra: 120, hierro: 30, grano: 20 }, time: 3, d: '+10 % de defensa por nivel y más guardia urbana al defender.' },
     herreria: { n: 'Herrería', i: '🔨', solar: 1, cost: { madera: 70, piedra: 60, hierro: 90, grano: 30, oro: 30 }, time: 2.5, d: 'Forja mejoras de armas y armaduras para todo el ejército. Cada mejora no puede pasar del nivel de la herrería.' },
-    acueducto: { modelo: 'arco', n: 'Acueducto', i: '🌉', solar: 1, cost: { madera: 90, piedra: 160, hierro: 50, grano: 50, oro: 60 }, time: 3.5, d: 'Trae agua a la ciudad: +40 de población máxima por nivel.' },
-    termas: { modelo: 'vesta', n: 'Termas', i: '♨️', solar: 1, cost: { madera: 100, piedra: 140, hierro: 40, grano: 60, oro: 80 }, time: 3.5, d: 'Baños públicos: +4 de felicidad y +15 de población máxima por nivel.' },
-    anfiteatro: { modelo: 'foro', n: 'Anfiteatro', i: '🏟️', solar: 1, cost: { madera: 130, piedra: 180, hierro: 60, grano: 80, oro: 100 }, time: 4, d: 'Juegos y espectáculos: +6 de felicidad por nivel.' },
+    acueducto: { n: 'Acueducto', i: '🌉', solar: 1, cost: { madera: 90, piedra: 160, hierro: 50, grano: 50, oro: 60 }, time: 3.5, d: 'Trae agua a la ciudad: +40 de población máxima por nivel.' },
+    termas: { n: 'Termas', i: '♨️', solar: 1, cost: { madera: 100, piedra: 140, hierro: 40, grano: 60, oro: 80 }, time: 3.5, d: 'Baños públicos: +4 de felicidad y +15 de población máxima por nivel.' },
+    anfiteatro: { n: 'Anfiteatro', i: '🏟️', solar: 1, cost: { madera: 130, piedra: 180, hierro: 60, grano: 80, oro: 100 }, time: 4, d: 'Juegos y espectáculos: +6 de felicidad por nivel.' },
     templo: { n: 'Templo', i: '🔥', solar: 1, cost: { madera: 80, piedra: 100, hierro: 30, grano: 60, oro: 50 }, time: 3, d: 'Un templo a un dios por ciudad (Marte, Ceres o Neptuno). Por nivel: +3 de felicidad, +10 % de experiencia del héroe, calma antes a una ciudad conquistada y el don de su dios.' }
   };
   /* Templos (F5): cada ciudad puede dedicar su templo a un dios. Los dones son por nivel de templo. Licencia de juego:

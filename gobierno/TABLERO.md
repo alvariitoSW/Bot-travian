@@ -25,7 +25,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ A4 **Papeles de la infantería** (pedido 11/11): ligera (rápida, floja en el choque), pesada (aguanta la línea) y lanceros (frenan a la caballería), con daño según arma y armadura, para que haya estrategias distintas y el combate no sea rápido y a lo loco. Con las tropas que ya hay antes de inventar nuevas. Después de A3.
 - ✅ A9 **Formación de salida y paso de marcha** (11/11): los dos bandos salen con infantería delante, tiradores detrás y caballería en las alas; avanzan juntos a paso de marcha (la mitad que antes) y solo corren o cargan cerca del enemigo; los tiradores disparan por encima y no entran al cuerpo a cuerpo mientras aguante su infantería. Vélites detrás: licencia de juego.
 - ✅ A5a **Despliegue antes de la batalla** (11/11): la batalla empieza parada; tocas un regimiento y luego el campo para colocarlo dentro de tu zona (línea roja), o eliges «Clásica», «Ancha» o «Centro» de un toque, y pulsas «Empezar batalla». El enemigo sale siempre en formación clásica.
-- ⬜ A5c **Arrastre y más formaciones en el despliegue** (decisión 11/11): al despliegue publicado se le añade arrastrar el regimiento con el dedo y las formaciones «Línea», «Tres líneas» y «Alas fuertes».
+- ✅ A5c **Arrastre y más formaciones en el despliegue** (11/11): arrastras el regimiento con el dedo (3D y vista plana) y hay seis formaciones de un toque: Clásica, Línea, Ancha, Tres líneas, Centro y Alas fuertes.
 - ⬜ A5b **Terreno con efecto: colina y bosque** (aprobada 11/11, P42), un campo tipo por ciudad. 0,25 + 0,9 M · 25 min. Después de A5a.
 - ✅ A8 **Ritmo y moral** (11/11): batallas igualadas de 8 a 12 minutos, sin corte a los 4; moral gradual; cansancio con marca «Cansado».
 - ⬜ A8b Ajuste fino del ritmo con partidas del usuario: las muy desiguales duran unos 2,5 min y las algo desiguales 7 a 8; revisar si la calidad de tropa pesa demasiado (exponente 0,85).
@@ -65,16 +65,16 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
-- ⬜ E4 Arte propio para termas, acueducto y anfiteatro (pedido 11/11/2026): buscar piezas con licencia libre (skills `radar` y `arte`); mientras, llevan un modelo provisional.
+- ✅ E4 Arte propio de termas, acueducto y anfiteatro (11/11/2026): termas y acueducto dibujados desde cero (`tools/propio_static.mjs`, CC BY-SA 3.0, sin texturas nuevas); anfiteatro de Pompeya de 0 A.D. aligerado a 8.483 triángulos y a escala de ciudad (`tools/aligerar_static.mjs`). El arte pasa a 34,0 MB de 35. Parte: `partes/2026-11-11-E4.md`.
 - ✅ E1b Guía de arte, primera parte (11/11): iconos de línea para madera, piedra, hierro, grano, denarios y población; letra Cinzel incluida en el juego (SIL OFL 1.1, 29 KB); mármol, oliva y terracota en vez de blanco azulado, verde fosforito y rosa.
-- ⬜ E1c Guía de arte, segunda parte: iconos de guerra (⚔️ 🛡️ 🦅 🪖) y de edificios, marcos con doble filete y greca, esquinas de 6–8 px. Las barras de moral de la batalla siguen en el verde antiguo (`js/gfx/battle3d.js`, carril Batallas).
+- 🟨 E1c Guía de arte, segunda parte — **marcos hechos** (11/11/2026): esquinas de 8 px, doble filete de bronce y greca en cabeceras, hoja y ventanas (`css/style.css`, bloque «E1c»). **Pendiente**: iconos de línea para guerra (⚔️ 🛡️ 🦅 🪖) y edificios, que piden tocar `js/ui.js` (muchas líneas) y `data.js`. Las barras de moral siguen en `battle3d.js` (carril Batallas). Parte: `partes/2026-11-11-E1c.md`.
 - ✅ E2 Piezas de 0 A.D. por cultura (11/11): en el mapa cada ciudad lleva un edificio de su dueño (cartaginés, griego, galo, íbero; Roma, el templo redondo) y los ejércitos por mar van en barco cartaginés o griego. 6 piezas, +2,7 MB (total 33,1 de 35).
 - ⬜ E2b Más piezas por cultura cuando haya sitio: máquinas de asedio y estandartes; templo griego de verdad (los de 0 A.D. no se convierten con la herramienta actual: salen vacíos). Quedan 1,9 MB hasta el tope: subirlo lo decide el usuario.
 - ✅ E3 Presupuesto por escena en `node gobierno/arte.mjs` (batalla 1,1 millones, ciudad 300 mil; provisional hasta D1).
 
 ## Carril C — Mapa y campaña
 - ⬜ C1 Zoom continuo mapa → ciudad; ejércitos de guarnición visibles junto a cada ciudad.
-- ⬜ C2 Costa y relieve del mapa con datos mejores; texturas de terreno en el mapa.
+- ✅ C2 Costa real (Natural Earth, 15 KB) y grano de hierba en el suelo del mapa. Queda ⬜ C2b: relieve con datos de altura reales (hoy son cordilleras a mano) y orillas con espuma.
 - ⬜ C3 Diplomacia sencilla (alianzas, tributos) e IA enemiga que también construye.
 
 ## Carril H — Historia (ministerio de Adecuación Histórica)

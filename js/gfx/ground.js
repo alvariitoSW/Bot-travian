@@ -47,3 +47,24 @@ export function waterMesh(w, h, rep) {
   g.userData.tick = t => { if (a) a.offset.set(t * 0.012, t * 0.007); if (b) b.offset.set(-t * 0.009, t * 0.013); };
   return g;
 }
+
+/* Terreno del mapa de campaña: los colores de vértice siguen mandando (llanura, sequedad, roca, nieve) y la textura de hierba o
+   de hierba seca (0 A.D.) solo añade el grano, normalizado por su media para no oscurecer ni cambiar el tono del conjunto.
+   El atributo aT = (sequedad, fuerza). Sin texturas cargadas (uOn = 0) se ve igual que antes. */
+export function mapaMaterial() {
+  const m = new THREE.MeshLambertMaterial({ vertexColors: true }), U = { tA: { value: null }, tB: { value: null }, uOn: { value: 0 }, uS: { value: 0.42 } };
+  m.userData.U = U;
+  m.onBeforeCompile = sh => {
+    Object.assign(sh.uniforms, U);
+    sh.vertexShader = 'attribute vec2 aT; varying vec2 vT; varying vec2 vXZ;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vT = aT; vXZ = (modelMatrix * vec4(position, 1.0)).xz;');
+    sh.fragmentShader = 'uniform sampler2D tA, tB; uniform float uOn, uS; varying vec2 vT; varying vec2 vXZ;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+      if (uOn > 0.5) {
+        vec2 u = vXZ * uS;
+        vec3 d = mix(texture2D(tA, u).rgb, texture2D(tB, u * 0.8 + 0.37).rgb, vT.x), mu = mix(texture2D(tA, u, 12.0).rgb, texture2D(tB, u * 0.8, 12.0).rgb, vT.x);
+        diffuseColor.rgb *= mix(vec3(1.0), clamp(d / max(mu, vec3(0.05)), 0.55, 1.6), vT.y * 0.85);
+      }`);
+  };
+  return m;
+}
+/* Pone las texturas en el material del mapa cuando ya existen; devuelve true al lograrlo */
+export function mapaTexturas(m) { if (!m || !hasGround()) return false; const U = m.userData.U, a = tex('terr_grass'), b = tex('terr_dry'); if (!a || !b) return false; U.tA.value = a; U.tB.value = b; U.uOn.value = 1; return true; }
