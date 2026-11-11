@@ -31,6 +31,14 @@ console.log('Juez 1 · lógica (test/sim.test.js)');
   apunta('Pruebas de lógica', r.status === 0, ultima.slice(0, 400));
 }
 
+/* ---------- 1b. Fichas (registro de piezas) ---------- */
+console.log('Juez 1b · fichas (gobierno/fichas.mjs)');
+{
+  const r = spawnSync(process.execPath, ['gobierno/fichas.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 60000 });
+  const lineas = (r.stdout || '').trim().split('\n').filter(Boolean);
+  apunta('Fichas de las piezas', r.status === 0, (r.status === 0 ? lineas.filter(l => /^Resumen/.test(l)).join('') : lineas.filter(l => /✘ /.test(l) && !/^  ✘ (edificio|tropa|ciudad|hecho|faccion|mejora) /.test(l)).slice(0, 3).join(' | ')).slice(0, 400));
+}
+
 /* ---------- 2. Navegador ---------- */
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.txt': 'text/plain; charset=utf-8' };
 function servidor() {

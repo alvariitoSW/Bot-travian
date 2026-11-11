@@ -18,6 +18,14 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - 11/11/2026 — **Historia**: aprobadas P17 a P24 (cotejo, textos, tropas, general, mapa de 280, Carthago Nova, hechos que faltan, etiqueta de licencia). En Carthago Nova no eligió versión; Claude toma la fiel (poblado íbero hasta 228), por coherencia con el mapa real.
 - 11/11/2026 — **Batallas**, tras pasarse la campaña: «Es aún muy sencillo. Hay que hacer más cambios aparte del visual, pero las batallas deben ser más estratégicas, hasta más pausadas, que el terreno pueda jugar a tu favor o en contra, que puedas desplegar en diferentes formaciones a tus tropas, que las batallas duren más y sean más realistas. En fin, aún queda. Muchas mejoras sobre esto».
 - 11/11/2026 — **Gran diseño**: «Habría que mejorar el arte y juntarlo con la historia pero usando un cableado europeo en cuanto a cableado/código para que con cosas sencillas se pueda montar un mapa realista y que haya batallas de mar y de tierra. Que aparte veas tu ciudad crecer y los recursos recolectar y que tenga una lógica, crear el apartado de investigación y que cada cosa te permita llevar a mejoras. Hacer diferentes tipos de ciudades, unas más militares, otras de comercio, otras civiles, montar una economía más real y ampliar la que hay ahora, no en tanto a más recursos sino a que funcione como una economía real. Se podría hacer un juego casi por turnos en algunas cosas y otras en tiempo real, habría que darle una vuelta». (Lectura de Claude: pide pensarlo antes de construir; va a la sesión Diseño.)
+- 11/11/2026 — **Gran diseño, respuestas desde el cuadro**. Dijo «Ok» a cuatro preguntas; Claude lo lee como «vale lo recomendado» (confirmar si no):
+  - **Economía real** (b): mano de obra y mantenimiento primero; después precios por ciudad y rutas.
+  - **Investigación** (c): árbol corto de unas 16 mejoras ligado a edificios y edades.
+  - **Mar** (e): transporte y bloqueo primero; la batalla naval jugable, al final.
+  - **Cableado** (f): registro único de piezas, poco a poco, sin rehacer el juego. Añadió: «ayúdate de todas las skills y ministerios del repositorio fiebres-neutropenias si lo necesitas».
+- 11/11/2026 — **Tipos de ciudad** (d): «Ok, y así tener diferentes tipos de ciudades, rollo una ciudad principal dentro de una región que pueda construir un número determinado de edificios y así cada ciudad tenga para recursos o para tropas o para comercio o para naval, o para investigar o hacer mezclas, y tener regiones para la industria y en cada ciudad poder tener como edificios religiosos, de ocio y demás cosas para dar más jugabilidad y que cada ciudad esté limitada para no poder tener infinitos edificios, etc.». (Lectura de Claude: acepta elegir el tipo y pide más: solares limitados, regiones con capital y edificios religiosos y de ocio. Amplía P46 y abre P50.)
+- 11/11/2026 — **Aprobadas P40 a P50** desde el cuadro: batallas (ritmo y moral, despliegue, terreno) y toda la fase 1 del gran diseño. Al tablero como A8, A5a, A5b e I1 a I8.
+- 11/11/2026 — **Turnos y tiempo real**: no contestó la pregunta, pero aprobó el «Reloj por estaciones» (P44). Lectura de Claude: vale lo recomendado, mapa por estaciones y ciudad y batalla en tiempo real (confirmar si no).
 - 11/11/2026 — **Cómo trabajar**: «Aplica el cuadro en las sesiones necesarias pero que no se pisen entre ellas y que cuando terminen se cierren por su cuenta y lo que me tengan que enseñar que aparezca en el cuadro de mando».
 - 11/11/2026 — **Red**: aprobó añadir al entorno penelope.uchicago.edu, www.perseus.tufts.edu y www.livius.org para cotejar las fuentes.
 - 11/11/2026 — **Historia aprobada**: H1, H2 y H3 (P14 a P16), «pueden abrirse en otros carriles». H1 y H2 en una sesión (`gob/historia`); H3 después, porque depende de H1 y toca el juego.
@@ -40,34 +48,26 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 
 ## Esperando algo del usuario
 1. **Medir fluidez**: menú → «Medir fluidez»; dime la cifra en el mapa, en la ciudad y en una batalla grande. (Dijo «ok» el 11/11; faltan las cifras.)
-2. **Turnos y tiempo real** (a): ¿mapa por estaciones, y ciudad y batalla en tiempo real? Recomiendo B. Informe «G3 · Gran diseño».
-3. **Economía real** (b): ¿mano de obra y mantenimiento, y después precios por ciudad y rutas? Recomiendo B. Mismo informe.
-4. **Investigación** (c): ¿árbol corto de unas 16 mejoras ligado a edificios y edades? Recomiendo B. Mismo informe.
-5. **Tipos de ciudad** (d): ¿eliges colonia, emporio o municipio al fundar o conquistar? Recomiendo A. Mismo informe.
-6. **Mar** (e): ¿transporte y bloqueo primero, y la batalla naval jugable al final? Recomiendo A. Mismo informe.
-7. **Cableado** (f): ¿registro único de piezas, poco a poco, sin rehacer el juego? Recomiendo B. Mismo informe.
 
 ## Propuestas por aprobar
-Batallas (informe «G3 · Batallas estratégicas»; coste a ojo, Fable + Sonnet):
-- P40 **Ritmo y moral**: batallas de 8 a 12 minutos, moral que baja poco a poco, cansancio. 0,15 + 0,4 M · 12 min.
-- P41 **Despliegue antes de la batalla**: colocas tus regimientos (tres plantillas de un toque) y pulsas «Empezar batalla». 0,2 + 0,7 M · 20 min.
-- P42 **Terreno con efecto: colina y bosque**, un campo tipo por ciudad. 0,25 + 0,9 M · 25 min. Mejor después de P41.
-
-Gran diseño, fase 1 (informe «G3 · Gran diseño»; dependen de las decisiones 2 a 7 de arriba):
-- P43 **Registro de piezas**: fichas con números, arte y fuente histórica, y un juez que las comprueba. 0,2 + 0,6 M · 20 min. Va sola y la primera.
-- P44 **Reloj por estaciones**: «consejo de estación» y botón «Pasar estación». 0,2 + 0,6 M · 20 min.
-- P45 **Mano de obra y mantenimiento**: reclutar vacía los campos; edificios y tropas cuestan. 0,15 + 0,5 M · 15 min.
-- P46 **Tipos de ciudad**: colonia, emporio o municipio. 0,15 + 0,5 M · 15 min.
-- P47 **Investigación y edades**: árbol corto; la herrería pasa a ser su rama de guerra (absorbe F4). 0,2 + 0,7 M · 20 min.
-- P48 **Región de Italia** montada solo con fichas (prueba del cableado). 0,2 + 0,6 M · 20 min. Después de P43.
-- P49 **Partida corta**: fundas de cero, un rival, un final (es F1b). 0,25 + 0,8 M · 25 min. Después de P44 a P48.
+Ninguna ahora.
 
 ## Encargo en curso (11/11/2026)
 Rama única desde ahora: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Sesiones, que no se pisan (Diseño ya cerró: informes G3):
 - **Historia 2**: coteja las fuentes (H1b, H2b), aplica H4 a H10 y hace el Códice (H3). Toca `gobierno/historia/`, `js/data.js`, `js/game.js` y `js/ui.js`.
 Cada una, al cerrar: tablero y bitácora al día, capturas e informes en el cuadro, cuadro publicado, aviso a la sesión madre y se archiva sola.
 
+## Encargo de la próxima sesión
+Una tarea por sesión, en este orden (propuesto por Claude: primero lo que desbloquea a lo demás):
+1. ✅ I1 Registro de piezas, hecha. Queda I1b al unir con Historia 2.
+2. **A8 Ritmo y moral** (lo que más se nota al jugar; no depende de nada).
+3. A5a Despliegue → A5b Terreno.
+4. I3 Mano de obra → I4 Tipos de ciudad → I5 Investigación → I2 Reloj por estaciones.
+5. I6 Región de Italia → I7 Regiones → I8 Partida corta.
+Siguiente: **A8 Ritmo y moral** (toca `js/battle.js`; no pisa a Historia 2).
+
 ## Notas para quien continúe
+- La tarea I1 está en la rama `ccr-32a2b8f1-a411vx`, no en la que publica el juego: hay que unirla (toca `index.html` y `sw.js`, no `js/data.js`). Al unir, el juez de fichas dirá qué fichas faltan o sobran por los cambios de Historia 2.
 - El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.
 - Las batallas igualadas se deciden de forma brusca y el bot de pruebas no llega a tomar Cartago: falta equilibrar.
 - Para regenerar el arte hace falta un clon parcial de `0ad/0ad` y los cargadores de ejemplo de three.js (README).

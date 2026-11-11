@@ -145,4 +145,10 @@ assert(G.myCities().length >= 3, 'un bot agresivo debe poder conquistar ciudades
   assert(G.load() && G.state.cities.roma.reparto.grano === 5 && G.repartoValido(G.state.cities.roma.reparto), 'partida vieja sin reparto carga 5/5/5/5');
   const n = G.newGame('Ald2'); assert(Math.abs(G.prod().madera - p0.madera) < 1e-9, 'por defecto la producción es la de siempre'); }
 
+// Registro de piezas: carga en Node y toda tropa y edificio tiene ficha
+{ const R = require('../js/registro.js');
+  for (const t of Object.keys(D.UNITS)) assert(R.de('tropa', t) && R.de('tropa', t).historia, 'falta la ficha de la tropa ' + t);
+  for (const b of Object.keys(D.BUILD)) assert(R.de('edificio', b) && R.de('edificio', b).arte, 'falta la ficha del edificio ' + b);
+  assert(R.de('hecho', D.EVENTS[0].y), 'falta la ficha del primer hecho'); }
+
 console.log('OK — todas las pruebas superadas');
