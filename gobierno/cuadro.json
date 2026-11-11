@@ -295,56 +295,56 @@
   {
    "tarea": "K",
    "archivo": "gobierno/capturas-tarea/gob-4-cartas-1.jpg",
-   "pie": 0
+   "pie": "Gobierno · Cartas (1.º)"
   },
   {
    "tarea": "K",
    "archivo": "gobierno/capturas-tarea/gob-4-cartas-3.jpg",
-   "pie": 0
+   "pie": "Gobierno · Cartas: crisis"
   },
   {
    "tarea": "K",
    "archivo": "gobierno/capturas-tarea/gob-3-tablero-1.jpg",
-   "pie": 0
+   "pie": "Gobierno · Tablero (2.º)"
   },
   {
    "tarea": "K",
    "archivo": "gobierno/capturas-tarea/gob-3-tablero-3.jpg",
-   "pie": 0
+   "pie": "Gobierno · Tablero: tres crisis"
   },
   {
    "tarea": "K",
    "archivo": "gobierno/capturas-tarea/gob-1-senado-1.jpg",
-   "pie": 0
+   "pie": "Gobierno · Senado"
   },
   {
    "tarea": "K",
    "archivo": "gobierno/capturas-tarea/guerra-4-general-2.jpg",
-   "pie": 0,
+   "pie": "Guerra · General: rueda de órdenes (1.º)",
    "ancha": true
   },
   {
    "tarea": "K",
    "archivo": "gobierno/capturas-tarea/guerra-3-trazo-2.jpg",
-   "pie": 0,
+   "pie": "Guerra · Trazo: órdenes dibujadas (2.º)",
    "ancha": true
   },
   {
    "tarea": "K",
    "archivo": "gobierno/capturas-tarea/guerra-5-partitura-2.jpg",
-   "pie": 0,
+   "pie": "Guerra · Partitura",
    "ancha": true
   },
   {
    "tarea": "K",
    "archivo": "gobierno/capturas-tarea/guerra-1-arena-2.jpg",
-   "pie": 0,
+   "pie": "Guerra · Arena",
    "ancha": true
   },
   {
    "tarea": "K",
    "archivo": "gobierno/capturas-tarea/guerra-2-cartas-2.jpg",
-   "pie": 0,
+   "pie": "Guerra · Cartas",
    "ancha": true
   }
  ],
