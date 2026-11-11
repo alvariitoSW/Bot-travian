@@ -1,26 +1,26 @@
 # La Trebia · 218 a.C.
-**Estado de la ficha**: borrador. No pude abrir los textos antiguos en línea (red bloqueada); los pasajes y cifras de Polibio y Livio están escritos de memoria y marcados «sin comprobar» hasta que alguien los lea en LacusCurtius/Perseus.
+**Estado de la ficha**: cotejada el 11/11/2026 contra Polibio 3.70-75 (LacusCurtius) y Livio 21.54-56 (Perseus): 19 datos cotejados, 4 corregidos, 1 sin comprobar (tabla al final).
 
 **En una frase**: Aníbal atrajo al cónsul Sempronio a cruzar a nado un río helado, con el estómago vacío, y lo rodeó con una emboscada de su hermano Magón. `histórico`
 
-**Qué pasó**: Tras los Alpes, Aníbal ganó un choque de caballería en el Tesino. Los dos cónsules (Escipión herido, Sempronio al mando) acamparon junto al río Trebia, cerca de Placentia. Sempronio quería pelear antes de que acabase su mando. Aníbal escondió a Magón con unos 2.000 hombres en un cauce cubierto de maleza. Al amanecer de un día de nieve y frío mandó a sus númidas a provocar al campamento romano. Sempronio sacó a todos sin desayunar, cruzaron el río crecido y llegaron helados. El centro romano rompió a los galos y llegó a Placentia; los flancos se hundieron al aparecer Magón por la retaguardia. (Polibio 3.70-74; Livio 21.52-56, sin comprobar el detalle de cada capítulo.)
+**Qué pasó**: Tras los Alpes, Aníbal ganó un choque de caballería en el Tesino. Los dos cónsules (Escipión herido, Sempronio al mando) acamparon junto al río Trebia, cerca de Placentia. Sempronio quería pelear antes de que acabase su mando. Aníbal escondió a Magón con unos 2.000 hombres en un cauce cubierto de maleza. Al amanecer de un día de nieve y frío mandó a sus númidas a provocar al campamento romano. Sempronio sacó a todos sin desayunar, cruzaron el río crecido y llegaron helados. El centro romano rompió a los galos y llegó a Placentia; los flancos se hundieron al aparecer Magón por la retaguardia. (Polibio 3.70-74; Livio 21.54-56.)
 
-**Cifras** (todas «sin comprobar» hasta leer el pasaje):
+**Cifras** (cotejadas con los pasajes; ver la tabla final):
 | Dato | Polibio | Livio |
 |---|---|---|
-| Aníbal, infantería/caballería | unos 20.000 / 10.000 (3.72, sin comprobar) | 20.000 / 10.000 (21.55, sin comprobar) |
-| Emboscada de Magón | 2.000 (1.000 de a pie y 1.000 a caballo) (3.71, sin comprobar) | 2.000 (21.54, sin comprobar) |
-| Romanos | unos 40.000 de a pie y 4.000 jinetes (3.72, sin comprobar) | cifra distinta, sin comprobar |
-| Romanos que rompieron el centro | unos 10.000 llegan a Placentia (3.74, sin comprobar) | parecido (21.56, sin comprobar) |
-| Bajas romanas | «la mayoría» muertos junto al río (3.74), sin cifra que pueda dar | sin comprobar |
-| Bajas de Aníbal | sobre todo galos aliados; después el frío mató a casi todos los elefantes (3.74, sin comprobar) | 21.56, sin comprobar |
-Moderno: Lazenby (1978) y Goldsworthy (2000) discuten que las cifras antiguas de los ejércitos sean redondas y quizá infladas (sin comprobar página).
+| Aníbal, infantería/caballería | unos 20.000 de infantería (íberos, celtas y africanos) y más de 10.000 jinetes con los aliados celtas, más unos 8.000 honderos y lanceros ligeros delante (3.72) | 8.000 ligeros delante y 10.000 jinetes; Livio no da en este pasaje el total de infantería pesada (21.55) |
+| Emboscada de Magón | 2.000 (1.000 de a pie y 1.000 a caballo) (3.71) | 2.000 (1.000 de a pie y 1.000 a caballo) (21.54) |
+| Romanos | unos 16.000 romanos y 20.000 aliados de a pie (unos 36.000) y unos 4.000 jinetes (3.72) | 18.000 romanos, 20.000 aliados latinos y los cenomanos; 4.000 jinetes (21.55) |
+| Romanos que rompieron el centro | no menos de 10.000 llegan a Placentia (3.74) | unos 10.000 rompen el centro africano y van a Placentia (21.56) |
+| Bajas romanas | la mayor parte del resto muertos junto al río por elefantes y caballería (3.74); sin cifra | sin cifra (21.56) |
+| Bajas de Aníbal | muy pocos africanos e íberos, la pérdida cayó sobre los celtas; el frío mató a todos los elefantes menos uno (3.74) | sin cifra; mueren «casi todos» los elefantes (21.56) |
+Moderno: Lazenby (1978) y Goldsworthy (2000) discuten que las cifras antiguas de los ejércitos sean redondas y quizá infladas (libros modernos, sin comprobar página).
 
 **Despliegue**
-- Roma: infantería en el centro, caballería aliada en las alas, vélites por delante (Polibio 3.72; sin comprobar). Los legionarios cruzaron el río a la altura del pecho. `histórico` el hecho; el reparto exacto, `probable`.
-- Aníbal: vélites (honderos baleares y lanceros ligeros) por delante, infantería en una sola línea, **elefantes repartidos en las dos alas** y la caballería fuera de ellos (Polibio 3.72; Livio 21.55, sin comprobar). Magón emboscado en un barranco de un afluente.
+- Roma: infantería en el centro «a la manera romana», caballería (unos 4.000) en las alas, unos 6.000 jabalineros por delante (Polibio 3.72). Los legionarios cruzaron el río con el agua al pecho. `histórico`.
+- Aníbal: ligeros (honderos baleares y lanceros) por delante, infantería en una sola línea, la caballería a cada lado y los **elefantes delante de las alas** según Polibio (3.72); Livio los pone en los extremos, fuera de la caballería (21.55). Magón, emboscado en un cauce con zarzas.
 
-**Terreno**: llanura padana, el río Trebia (hoy Trebbia) entre ambos campamentos, crecido por el deshielo y la lluvia. Es invierno, cerca del solsticio (Livio 21.53, sin comprobar). El lugar está al sur de Piacenza; el punto exacto del cruce se desconoce y no hay lugar discutido con nombre.
+**Terreno**: llanura padana, el río Trebia (hoy Trebbia) entre ambos campamentos, crecido por el deshielo y la lluvia. Es invierno, cerca del solsticio (Polibio 3.72; Livio 21.54). El lugar está al sur de Piacenza; el punto exacto del cruce se desconoce y no hay lugar discutido con nombre.
 
 **Fases de la batalla**
 1. Los númidas provocan al campamento romano antes del alba; Sempronio saca a todo el ejército. `histórico`
@@ -29,7 +29,7 @@ Moderno: Lazenby (1978) y Goldsworthy (2000) discuten que las cifras antiguas de
 4. En el choque de infantería, Magón sale por la retaguardia romana. `histórico`
 5. Las alas romanas cercadas huyen o mueren en el río; el centro (unos 10.000) rompe y escapa a Placentia. `histórico`
 
-**Vestimenta y armas**: la infantería romana va con escudo, coraza y lanza o pilum y espada (Polibio 6.23, descrito para época algo posterior; `probable` que valga para 218). Los galos del Po combaten con espada larga y escudo grande, y se dice que sin armadura (Polibio 2.28-30 y 3.114 para Cannas, sin comprobar). Los libios de Aníbal aún llevan armas propias (largas lanzas); no las cambian por armas romanas hasta después (Polibio 3.87, sin comprobar).
+**Vestimenta y armas**: la infantería romana va con escudo, coraza y lanza o pilum y espada (Polibio 6.23: escudo, espada, dos pila, casco de bronce, grebas y pectoral; descrito para época algo posterior, `probable` que valga para 218). Los galos del Po combaten con espada que solo corta y escudo que no cubre el cuerpo; los de primera fila, desnudos (Polibio 2.28-30 para Telamon y 3.114 para Cannas). Los libios de Aníbal aún no llevan armas romanas: las toman después, en la costa adriática, tras el Trasimeno (Polibio 3.87).
 
 **Lo que se discute**: el día y el lugar exactos; el tamaño real de cada ejército; si Sempronio fue tan ciego o si Polibio carga las tintas (Livio añade su propia retórica); cuánto pesó el frío frente a la emboscada.
 
@@ -46,10 +46,40 @@ Moderno: Lazenby (1978) y Goldsworthy (2000) discuten que las cifras antiguas de
 - Río como franja que frena y baja la moral: `grande`.
 
 **Fuentes**
-- Polibio, *Historias* 3.70-74 (LacusCurtius, sin comprobar el texto).
-- Livio, *Ab urbe condita* 21.52-56 (Perseus, sin comprobar).
+- Polibio, *Historias* 3.70-74 (LacusCurtius, cotejado).
+- Livio, *Ab urbe condita* 21.54-56 (Perseus, traducción de Roberts, cotejado).
 - Lazenby, J. F., *Hannibal's War*, 1978. Goldsworthy, A., *The Fall of Carthage*, 2000.
 
 
 ---
-**Revisión del director (11/11/2026)**: ficha **provisional**. La red de la sesión bloqueó los sitios de textos antiguos, así que ni el agente ni el director han podido leer los pasajes. He repasado 5 datos de memoria de las fuentes, no contra el texto: emboscada de Magón (1.000 + 1.000), ejército de Aníbal (20.000 y más de 10.000 jinetes), los 10.000 que llegan a Placentia y los elefantes delante de las alas coinciden con lo que recuerdo de Polibio 3.71-74. **Matiz**: Polibio da 16.000 romanos más 20.000 aliados de a pie (unos 36.000, no 40.000) y Livio 18.000 más 20.000 (sin comprobar). Antes de llevar nada al juego hay que cotejarlo con el texto.
+**Revisión del director (11/11/2026)**: la ficha ya no es provisional; ver la sección «Cotejo» al final.
+
+## Cotejo (11/11/2026)
+Textos abiertos: Polibio en LacusCurtius (traducción Paton), Livio en Perseus (traducción Roberts).
+
+| Dato | Cita | Estado | Enlace | Nota |
+|---|---|---|---|---|
+| Sempronio quiere pelear antes de que acabe su mando; Escipión herido | Polibio 3.70 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#70 | Escipión aconsejaba esperar; Sempronio no quiso que los nuevos cónsules llegaran antes. |
+| Magón, emboscado con 1.000 jinetes y 1.000 de a pie, en un cauce con zarzas | Polibio 3.71 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#71 | Terreno llano y sin árboles, pero con cauce de orillas altas. |
+| Magón, 1.000 de a pie y 1.000 jinetes | Livio 21.54 | cotejado | https://www.perseus.tufts.edu/hopper/text?doc=Liv.+21.54 | Escoge antes 100 y 100, y cada uno elige otros nueve. |
+| Númidas provocan al amanecer; se quiere pelear sin desayunar | Polibio 3.71.10 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#71 | Aníbal manda a los suyos desayunar. |
+| Solsticio de invierno, nieve, sin desayuno; Trebia al pecho | Polibio 3.72.3-5 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#72 | La ficha citaba Livio 21.53; el pasaje de Livio es 21.54. |
+| Estación de invierno, nevada | Livio 21.54.7 | cotejado | https://www.perseus.tufts.edu/hopper/text?doc=Liv.+21.54 | Livio no nombra el solsticio; dice «winter» y nevada. |
+| Aníbal: unos 20.000 de infantería, más de 10.000 jinetes, 8.000 ligeros delante | Polibio 3.72.7-8 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#72 | Caballería «junto con los aliados celtas». |
+| Aníbal: 20.000 de infantería y 10.000 de caballería | Livio 21.55 | corregido | https://www.perseus.tufts.edu/hopper/text?doc=Liv.+21.55 | Decía «20.000/10.000»; Livio da 8.000 ligeros y 10.000 jinetes, sin total de infantería pesada. |
+| Elefantes delante de las alas, caballería a cada lado | Polibio 3.72.8 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#72 | Dice «en frente de las alas». |
+| Elefantes en los extremos, fuera de la caballería | Livio 21.55.2 | corregido | https://www.perseus.tufts.edu/hopper/text?doc=Liv.+21.55 | Decía «elefantes en las alas y la caballería fuera»; en Livio es al revés. Cuerpo corregido. |
+| Romanos: unos 40.000 de a pie y 4.000 jinetes | Polibio 3.72.11-13 | corregido | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#72 | Decía 40.000; Polibio da 16.000 romanos + 20.000 aliados (36.000) y unos 4.000 jinetes. |
+| Romanos: 18.000 romanos, 20.000 latinos y cenomanos; 4.000 jinetes | Livio 21.55.4-5 | cotejado | https://www.perseus.tufts.edu/hopper/text?doc=Liv.+21.55 | Sin cifra para los cenomanos. |
+| Sempronio manda primero la caballería y unos 6.000 jabalineros | Polibio 3.72.1-2 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#72 | Livio 21.54.6-7 también dice 6.000 de infantería ligera por delante. |
+| Vélites romanos gastan los dardos en la escaramuza | Polibio 3.73.3 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#73 | Además, la lluvia los inutilizó. |
+| Los númidas de la emboscada atacan el centro por detrás | Polibio 3.74.1 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#74 | Polibio habla de «númidas», no de infantería de Magón. |
+| Magón y sus númidas surgen por la retaguardia | Livio 21.55.9 | cotejado | https://www.perseus.tufts.edu/hopper/text?doc=Liv.+21.55 | Coincide con la ficha. |
+| No menos de 10.000 romanos rompen el centro y van a Placentia | Polibio 3.74.4-6 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#74 | Rompen a los celtas y a parte de los africanos. |
+| Unos 10.000 rompen el centro africano y van a Placentia | Livio 21.56.2-3 | cotejado | https://www.perseus.tufts.edu/hopper/text?doc=Liv.+21.56 | Formados en cuadro. |
+| Resto romano muerto junto al río; sin cifra de bajas | Polibio 3.74.7; Livio 21.56 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#74 | Ninguno de los dos da cifra de muertos romanos. |
+| Bajas de Aníbal: sobre todo celtas; mueren «casi todos» los elefantes | Polibio 3.74.10-11 | corregido | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#74 | Decía «casi todos»; Polibio dice todos menos uno. Livio 21.56.6 sí dice «casi todos». |
+| Armas romanas: escudo, espada, pila, casco, grebas, pectoral | Polibio 6.23 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/6*.html#23 | Descripción de época algo posterior; la ficha ya lo avisa. |
+| Galos: espada que solo corta, primera fila desnuda | Polibio 2.28-30; 3.114 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/2*.html#30 | En Telamon van desnudos los de primera fila; el resto con calzas y capa. |
+| Libios aún sin armas romanas en 218; las toman tras el Trasimeno | Polibio 3.87.3 | cotejado | https://penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/3*.html#87 | Los rearma «a la romana» en la costa. |
+| Lazenby 1978 y Goldsworthy 2000 sobre cifras redondas | autores modernos | sin comprobar | | No están en los sitios permitidos. |

@@ -63,9 +63,9 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ C3 Diplomacia sencilla (alianzas, tributos) e IA enemiga que también construye.
 
 ## Carril H — Historia (ministerio de Adecuación Histórica)
-- 🔶 H1 Auditoría histórica escrita (`gobierno/historia/H1-resumen.md`): 10 fallos y 8 cambios propuestos. Provisional: falta cotejar las citas con los textos antiguos.
-- 🔶 H2 Siete fichas de batalla escritas (`gobierno/historia/batallas/`). Provisional: falta el mismo cotejo. Cannas y Zama se podrían jugar con cambios medios; Trebia, Trasimeno y Pidna piden terreno y emboscadas.
-- 🔶 H1b/H2b Cotejar la auditoría y las fichas de batalla con los textos antiguos (Perseus, LacusCurtius, Livius.org).
+- ✅ H1 Auditoría histórica cotejada con los textos (11/11/2026): `gobierno/historia/H1-resumen.md`. Los 10 fallos se confirman, con matices.
+- ✅ H2 Siete fichas de batalla cotejadas (`gobierno/historia/batallas/`). Cannas y Zama se podrían jugar con cambios medios; Trebia, Trasimeno y Pidna piden terreno y emboscadas.
+- ✅ H1b/H2b Cotejo hecho (11/11/2026): 227 datos cotejados, 43 corregidos, 60 sin comprobar. Costó 5,4 M (presupuesto 0,9 M).
 - 🔶 H4 Corregir los textos de los hechos: Pirro en 280, Cannas «según Polibio / según Livio», corvus, frases de Arquímedes y Catón.
 - 🔶 H5 Renombrar «Vigiles» → «Guardia urbana» y «Batallón Sagrado» → «Ciudadanos de Cartago».
 - 🔶 H6 Cambiar el general de Cartago en 280.
