@@ -71,6 +71,12 @@
       "ancha": true
     },
     {
+      "tarea": "I3",
+      "archivo": "gobierno/capturas-tarea/I3-mano-de-obra.jpg",
+      "pie": "Mano de obra (gente que trabaja frente a puestos) y mantenimiento en oro: edificios y paga de las tropas",
+      "ancha": false
+    },
+    {
       "tarea": "E1b",
       "archivo": "gobierno/capturas-tarea/E1b-ciudad.jpg",
       "pie": "Iconos de línea en bronce y colores de la guía"
