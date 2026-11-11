@@ -87,6 +87,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 
 ## Carril N — Guerra nueva: «planeas y luego miras» (pedido 11/11/2026; diseño `gobierno/estudios/N1-guerra-nueva.md`)
 - ✅ N1 **Diseño y maqueta jugable de la guerra nueva** (11/11): batalla por rondas (plan en pausa, ejecución para los dos), 4 puntos de mando, sombras, relevo y enemigo con tres planes. Maqueta `gobierno/maquetas/guerra-nueva.html`; parte `partes/2026-11-11-N1.md`. En pausa hasta que el usuario decida: L3, A1, A2, A6 y A8b.
+- ⬜ N1b **Ampliar el modelo de guerra con ingeniería reversa** de juegos de estrategia de ordenador (pedido 11/11: «me gusta el concepto pero es muy simple»). Estudios por mecánica, diseño ampliado y carril N reescrito. Sesión nueva con Opus.
 - ⬜ N2 a N10 **por aprobar** (propuesta P74): rondas, mando y general, enemigo con planes, relevos y formaciones, espectáculo, ejércitos con general, comida, asedios, exploración. Unos 12 M en total; detalle en el diseño.
 
 ## Carril O — Economía nueva (pedido 11/11/2026)
