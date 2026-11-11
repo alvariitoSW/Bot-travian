@@ -71,6 +71,14 @@ textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min
 .tira figcaption b { color: var(--tinta); display: block; }
 .tira .mal b { color: var(--mal); }
 
+.informe { border-top: 1px solid var(--raya); }
+.informe > summary { cursor: pointer; padding: 12px 0; font-weight: 600; }
+.informe .md { font-size: 15px; padding-bottom: 14px; display: flex; flex-direction: column; gap: 8px; }
+.informe .md h3 { font: 700 15px var(--rotulo); margin: 8px 0 0; color: var(--bronce); }
+.informe .md ul { margin: 0; padding-left: 20px; }
+.informe .md .rollo { overflow-x: auto; }
+.informe .md table { border-collapse: collapse; font-size: 13px; }
+.informe .md td, .informe .md th { border: 1px solid var(--raya); padding: 4px 8px; text-align: left; vertical-align: top; min-width: 90px; }
 .hechos { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
 .hechos li { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--tabla); border: 1px solid var(--raya); }
 #aviso { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--tinta); color: var(--fondo); text-align: center; font-weight: 500; z-index: 5; }
@@ -118,6 +126,13 @@ textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min
     <h2 id="t-capturas">Últimas capturas</h2>
     <p class="nota">{{CAPTURAS_NOTA}}</p>
     <div class="tira">{{CAPTURAS}}</div>
+  </section>
+
+  <section aria-labelledby="t-ensenar">
+    <h2 id="t-ensenar">Para enseñarte</h2>
+    <p class="nota">Lo que han dejado las sesiones al cerrar: capturas de lo nuevo e informes para leer.</p>
+    <div class="tira">{{ENSENAR}}</div>
+    <div>{{INFORMES}}</div>
   </section>
 
   <section aria-labelledby="t-hecho">

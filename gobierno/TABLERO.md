@@ -65,7 +65,15 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 ## Carril H — Historia (ministerio de Adecuación Histórica)
 - 🔶 H1 Auditoría histórica escrita (`gobierno/historia/H1-resumen.md`): 10 fallos y 8 cambios propuestos. Provisional: falta cotejar las citas con los textos antiguos.
 - 🔶 H2 Siete fichas de batalla escritas (`gobierno/historia/batallas/`). Provisional: falta el mismo cotejo. Cannas y Zama se podrían jugar con cambios medios; Trebia, Trasimeno y Pidna piden terreno y emboscadas.
-- ⬜ H3 Códice dentro del juego, simple: una pestaña para leer las fichas ya comprobadas. Después de H1.
+- 🔶 H1b/H2b Cotejar la auditoría y las fichas de batalla con los textos antiguos (Perseus, LacusCurtius, Livius.org).
+- 🔶 H4 Corregir los textos de los hechos: Pirro en 280, Cannas «según Polibio / según Livio», corvus, frases de Arquímedes y Catón.
+- 🔶 H5 Renombrar «Vigiles» → «Guardia urbana» y «Batallón Sagrado» → «Ciudadanos de Cartago».
+- 🔶 H6 Cambiar el general de Cartago en 280.
+- 🔶 H7 Mapa de 280 con sus dueños reales: Agrigento griega, Corinto macedonia, Capua aliada de Roma, Mamertinos en Messana.
+- 🔶 H8 Carthago Nova empieza como poblado íbero y pasa a Cartago hacia 228.
+- 🔶 H9 Añadir hechos que faltan: Benevento 275, Trasimeno 217, Metauro 207, Ilipa 206, Magnesia 190, Corinto y Cartago 146.
+- 🔶 H10 Etiqueta visible «licencia de juego» en lo inventado para poder jugar.
+- 🔶 H3 Códice dentro del juego, simple: una pestaña para leer las fichas ya comprobadas. Después de H1.
 
 ## Carril D — Técnica
 - 🔶 D1 Contador «Medir fluidez» hecho (menú principal). Falta que el usuario mida en su móvil: mapa, ciudad y batalla grande.
@@ -75,5 +83,6 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ✅ D5 Jueces automáticos: `node gobierno/jueces.mjs` (lógica + recorrido en navegador + capturas).
 
 ## Gobierno
+- 🔶 G3 Informes de diseño con plan y presupuesto: batallas estratégicas (terreno, formaciones, ritmo) y «gran diseño» (economía real, investigación, tipos de ciudad, mar, turnos y tiempo real, cableado). Los decide el usuario.
 - ✅ G2 Ministerio de Adecuación Histórica montado (11/11/2026): skill `historia`. Sus tareas, cuando el usuario las apruebe, irán en un carril H.
 - ✅ G1 Gobierno reducido y cuadro de mando montados (11/11/2026). Guía: `gobierno/LEEME.md`.

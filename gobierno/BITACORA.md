@@ -14,6 +14,11 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   `fiebres-neutropenias` (se puede ampliar o mejorar), más un cuadro de mando sencillo en un Artifact.
 
 - 11/11/2026 — **Gobierno montado** (G1): equipos, jueces, bitácora, ahorro, exteriores, arte y cuadro de mando. Ver `gobierno/LEEME.md`.
+- 11/11/2026 — **Publicar**: «¡Sí, claro!». Todo pasa a la rama que publica el juego.
+- 11/11/2026 — **Historia**: aprobadas P17 a P24 (cotejo, textos, tropas, general, mapa de 280, Carthago Nova, hechos que faltan, etiqueta de licencia). En Carthago Nova no eligió versión; Claude toma la fiel (poblado íbero hasta 228), por coherencia con el mapa real.
+- 11/11/2026 — **Batallas**, tras pasarse la campaña: «Es aún muy sencillo. Hay que hacer más cambios aparte del visual, pero las batallas deben ser más estratégicas, hasta más pausadas, que el terreno pueda jugar a tu favor o en contra, que puedas desplegar en diferentes formaciones a tus tropas, que las batallas duren más y sean más realistas. En fin, aún queda. Muchas mejoras sobre esto».
+- 11/11/2026 — **Gran diseño**: «Habría que mejorar el arte y juntarlo con la historia pero usando un cableado europeo en cuanto a cableado/código para que con cosas sencillas se pueda montar un mapa realista y que haya batallas de mar y de tierra. Que aparte veas tu ciudad crecer y los recursos recolectar y que tenga una lógica, crear el apartado de investigación y que cada cosa te permita llevar a mejoras. Hacer diferentes tipos de ciudades, unas más militares, otras de comercio, otras civiles, montar una economía más real y ampliar la que hay ahora, no en tanto a más recursos sino a que funcione como una economía real. Se podría hacer un juego casi por turnos en algunas cosas y otras en tiempo real, habría que darle una vuelta». (Lectura de Claude: pide pensarlo antes de construir; va a la sesión Diseño.)
+- 11/11/2026 — **Cómo trabajar**: «Aplica el cuadro en las sesiones necesarias pero que no se pisen entre ellas y que cuando terminen se cierren por su cuenta y lo que me tengan que enseñar que aparezca en el cuadro de mando».
 - 11/11/2026 — **Red**: aprobó añadir al entorno penelope.uchicago.edu, www.perseus.tufts.edu y www.livius.org para cotejar las fuentes.
 - 11/11/2026 — **Historia aprobada**: H1, H2 y H3 (P14 a P16), «pueden abrirse en otros carriles». H1 y H2 en una sesión (`gob/historia`); H3 después, porque depende de H1 y toca el juego.
 - 11/11/2026 — **Repositorio modelo**: dio acceso («sí le doy acceso para comparar y traer lo que falte»). Ya se leyó y de ahí salió el plan socialista de AQVILA.
@@ -34,26 +39,15 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-1. **Publicar lo nuevo**: ¿paso todo a la rama que publica el juego (`claude/roman-strategy-mobile-game-bx9oq2`) para que lo veas en tu móvil? Hasta entonces el enlace enseña la versión anterior.
-2. **Medir fluidez** (cuando esté publicado): menú → «Medir fluidez»; dime la cifra en el mapa, en la ciudad y en una batalla grande.
-3. **Batalla** (D2): ¿te vale el fondo con figuras sencillas que no mueven las piernas, o prefieres menos soldados pero todos reales?
-4. **Roma** (B9): ¿te vale con el Tíber y una colina, o quieres colinas dentro de la muralla y lo mismo en otras ciudades?
+1. **Medir fluidez**: menú → «Medir fluidez»; dime la cifra en el mapa, en la ciudad y en una batalla grande. (Dijo «ok» el 11/11; faltan las cifras.)
 
 ## Propuestas por aprobar
-Salen de la auditoría histórica (`gobierno/historia/H1-resumen.md`), que es **provisional**: sus citas aún no se han cotejado con los textos antiguos.
-- P17 **Cotejar la auditoría y las fichas de batalla con los textos antiguos** (H1b y H2b) · 0,1 M Fable + 0,8 M Sonnet · 20 min. Ya se pueden abrir Perseus, LacusCurtius y Livius.org. Sin esto nada de Historia pasa al juego.
-- P18 **Corregir los textos de los hechos** · 0,15 M. Pirro marcha sobre Roma en 280 (no 277); Cannas «según Polibio / según Livio»; el corvus sin atribuir a Duilio; las frases de Arquímedes y Catón, como tradición tardía.
-- P19 **Renombrar dos tropas fuera de época** · 0,1 M. «Vigiles» (son de Augusto) pasa a «Guardia urbana»; «Batallón Sagrado» (desaparece tras 310) pasa a «Ciudadanos de Cartago». No cambia reglas.
-- P20 **Cambiar el general de Cartago en 280** · 0,05 M. Hoy es Asdrúbal el Beotarca, que es de 149-146.
-- P21 **Mapa de 280 con sus dueños reales** · 0,5 M. Agrigento griega, Corinto macedonia, Capua aliada de Roma y «Mamertinos» en Messana. Cambia el equilibrio y las partidas guardadas. La alternativa barata es dejarlo y marcarlo «licencia de juego».
-- P22 **Carthago Nova** (se fundó hacia 228, no existía en 280) · 0,05 M si se deja y se marca «licencia de juego»; 0,6 M si empieza como poblado íbero y pasa a Cartago en 228.
-- P23 **Añadir hechos que faltan** · 0,3 M. Benevento 275, Trasimeno 217, Metauro 207, Ilipa 206, Magnesia 190, Corinto y Cartago 146.
-- P24 **Etiqueta visible «licencia de juego»** en lo inventado para poder jugar · 0,2 M.
 
 ## Encargo en curso (11/11/2026)
-- Las doce tareas del plan están unidas en `ccr-07cfa4be-35ag3l` con los jueces en APTO 12/12. Parte: `gobierno/partes/2026-11-11-union.md`.
-- **Historia**: H1 y H2 escritas y unidas (`gobierno/historia/`), pero provisionales: falta cotejar las citas (P17). H3 (Códice) espera a ese cotejo.
-- Siguiente recomendada: **F1b**, partir y empezar la partida corta. Antes, que el usuario lo vea en su móvil.
+Rama única desde ahora: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Dos sesiones, que no se pisan:
+- **Historia 2**: coteja las fuentes (H1b, H2b), aplica H4 a H10 y hace el Códice (H3). Toca `gobierno/historia/`, `js/data.js`, `js/game.js` y `js/ui.js`.
+- **Diseño**: dos informes con plan y presupuesto, sin tocar el juego: batallas estratégicas y «gran diseño». Solo `gobierno/estudios/`.
+Cada una, al cerrar: tablero y bitácora al día, capturas e informes en el cuadro, cuadro publicado, aviso a la sesión madre y se archiva sola.
 
 ## Notas para quien continúe
 - El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.

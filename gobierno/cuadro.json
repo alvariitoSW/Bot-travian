@@ -1,4 +1,60 @@
 {
   "juego": "https://alvariitosw.github.io/Bot-travian/",
-  "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W"
+  "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
+  "capturas": [
+    {
+      "tarea": "B8",
+      "archivo": "gobierno/capturas-tarea/B8.jpg",
+      "pie": "Herrería: mejoras de armas y armaduras"
+    },
+    {
+      "tarea": "B4",
+      "archivo": "gobierno/capturas-tarea/B4.jpg",
+      "pie": "Termas, acueducto y anfiteatro"
+    },
+    {
+      "tarea": "D1",
+      "archivo": "gobierno/capturas-tarea/D1-menu.jpg",
+      "pie": "Botón «Medir fluidez» en el menú"
+    },
+    {
+      "tarea": "B9",
+      "archivo": "gobierno/capturas-tarea/B9-despues.jpg",
+      "pie": "Roma con el Tíber y la colina"
+    },
+    {
+      "tarea": "D2",
+      "archivo": "gobierno/capturas-tarea/D2-cerca.jpg",
+      "pie": "Batalla: figuras ligeras al fondo",
+      "ancha": true
+    },
+    {
+      "tarea": "F3",
+      "archivo": "gobierno/capturas-tarea/F3.jpg",
+      "pie": "Reparto de aldeanos"
+    },
+    {
+      "tarea": "B3",
+      "archivo": "gobierno/capturas-tarea/B3.jpg",
+      "pie": "Impuestos altos: la población no crece"
+    }
+  ],
+  "informes": [
+    {
+      "titulo": "D3 · ¿Pasar el juego a Godot?",
+      "archivo": "gobierno/estudios/D3-godot.md"
+    },
+    {
+      "titulo": "E1 · Guía de arte",
+      "archivo": "gobierno/estudios/E1-guia-de-arte.md"
+    },
+    {
+      "titulo": "F1 · Modos de juego",
+      "archivo": "gobierno/estudios/F1-modos-de-juego.md"
+    },
+    {
+      "titulo": "H1 · Auditoría histórica (provisional)",
+      "archivo": "gobierno/historia/H1-resumen.md"
+    }
+  ]
 }

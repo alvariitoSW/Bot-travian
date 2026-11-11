@@ -52,8 +52,8 @@ Cómo se trabaja cada sesión: §7 (gobierno).
 - El rendimiento en un móvil real **no está medido** (aquí solo hay render por software).
 
 ## 5. Git
-- Rama de trabajo: la que asigne la sesión; si no asigna ninguna, `claude/roman-strategy-mobile-game-bx9oq2` (desde
-  ella se publica el juego). Commit y push tras cada tanda verificada.
+- Rama de trabajo: `claude/roman-strategy-mobile-game-bx9oq2` (desde ella se publica el juego), salvo que la sesión
+  asigne otra. Solo se sube una tarea terminada y con los jueces en APTO: lo que se sube, se publica.
 - No crear PR salvo que el usuario lo pida.
 
 ## 6. Redacción

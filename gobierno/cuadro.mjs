@@ -89,6 +89,33 @@ if (informe) {
   htmlCapturas = figs.join('');
 }
 
+/* ---------- para enseñarte: capturas de tareas e informes (lista en cuadro.json) ---------- */
+const RAIZ = join(AQUI, '..');
+let htmlEnsenar = '';
+for (const c of (config.capturas || []).slice(-10).reverse()) {
+  try { const b64 = (await readFile(join(RAIZ, c.archivo))).toString('base64');
+    htmlEnsenar += '<figure class="' + (c.ancha ? 'ancha' : '') + '"><img alt="' + esc(c.pie) + '" src="data:image/jpeg;base64,' + b64 + '"><figcaption><b>' + esc(c.tarea || '') + '</b>' + esc(c.pie) + '</figcaption></figure>'; } catch (e) { }
+}
+if (!htmlEnsenar) htmlEnsenar = '<p class="nota">Aún no hay capturas de tareas.</p>';
+// Markdown mínimo: títulos, viñetas, tablas y párrafos
+function informeHtml(texto) {
+  const out = []; let lista = [], tabla = [];
+  const cierra = () => { if (lista.length) { out.push('<ul>' + lista.map(l => '<li>' + md(l) + '</li>').join('') + '</ul>'); lista = []; }
+    if (tabla.length) { out.push('<div class="rollo"><table>' + tabla.map((f, i) => '<tr>' + f.map(c => (i ? '<td>' : '<th>') + md(c) + (i ? '</td>' : '</th>')).join('') + '</tr>').join('') + '</table></div>'); tabla = []; } };
+  for (const l of texto.split('\n')) {
+    if (/^\s*\|/.test(l)) { if (lista.length) cierra(); if (!/^\s*\|[\s:|-]+\|\s*$/.test(l)) tabla.push(l.trim().replace(/^\||\|$/g, '').split('|').map(c => c.trim())); continue; }
+    if (/^\s*([-*]|\d+\.)\s+/.test(l)) { if (tabla.length) cierra(); lista.push(l.replace(/^\s*([-*]|\d+\.)\s+/, '')); continue; }
+    if (/^\s+\S/.test(l) && lista.length) { lista[lista.length - 1] += ' ' + l.trim(); continue; }
+    cierra();
+    const h = l.match(/^#+\s+(.*)/); if (h) out.push('<h3>' + md(h[1]) + '</h3>'); else if (l.trim() && !/^```/.test(l)) out.push('<p>' + md(l) + '</p>');
+  }
+  cierra(); return out.join('');
+}
+let htmlInformes = '';
+for (const inf of (config.informes || []).slice().reverse()) {
+  try { htmlInformes += '<details class="informe"><summary>' + esc(inf.titulo) + '</summary><div class="md">' + informeHtml(await readFile(join(RAIZ, inf.archivo), 'utf8')) + '</div></details>'; } catch (e) { }
+}
+
 /* ---------- lo ya hecho ---------- */
 const kHecho = Object.keys(tablero).find(k => /^Hecho/.test(k));
 const hechos = kHecho ? tablero[kHecho].join(' ').split('✅').map(s => s.replace(/·\s*$/, '').trim()).filter(Boolean) : [];
@@ -98,7 +125,7 @@ const datos = {
   FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase,
   ESPERA: htmlEspera, PROPUESTAS: htmlPropuestas, CARRILES: htmlCarriles,
   RESUMEN: total + ' tareas en ' + carriles.length + ' carriles: ' + hechas + ' hechas, ' + medias + ' a medias y ' + (total - hechas - medias) + ' por hacer.',
-  CAPTURAS: htmlCapturas, CAPTURAS_NOTA: esc(notaCapturas), HECHOS: hechos.map(h => '<li>' + md(h) + '</li>').join(''),
+  ENSENAR: htmlEnsenar, INFORMES: htmlInformes, CAPTURAS: htmlCapturas, CAPTURAS_NOTA: esc(notaCapturas), HECHOS: hechos.map(h => '<li>' + md(h) + '</li>').join(''),
 };
 const html = (await lee('cuadro.plantilla.html')).replace(/\{\{(\w+)\}\}/g, (_, k) => datos[k] ?? '');
 await writeFile(join(AQUI, 'cuadro.html'), html);

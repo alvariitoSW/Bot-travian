@@ -32,5 +32,10 @@ Una página para el móvil del usuario: enlace al juego, lo que espera algo suyo
 3. Si no hubiera dirección guardada (primera vez o se borró): publica sin `url`, con `capabilities: {"db": {}}`, y guarda la dirección nueva en `gobierno/cuadro.json`.
 4. Dale al usuario el enlace.
 
+## Lo que hay que enseñar al usuario
+En `gobierno/cuadro.json`: `capturas` (`{tarea, archivo, pie, ancha}`; `archivo` es un JPG subido a git, p. ej. en
+`gobierno/capturas-tarea/`; `ancha: true` si es horizontal; salen las 10 últimas) e `informes` (`{titulo, archivo}`,
+un `.md` que se lee entero en el cuadro). Cada sesión añade las suyas al final antes de generar la página.
+
 ## Cambiar la página
 El aspecto y los botones están en `gobierno/cuadro.plantilla.html`; los datos, en `gobierno/cuadro.mjs`. Todo en español, pensado para 390 px, botones que dicen lo que hacen. Cambios grandes de aspecto: decide el usuario.
