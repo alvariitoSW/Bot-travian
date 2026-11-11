@@ -56,6 +56,37 @@ for (const sd of [1, 2, 3]) {
 // 2e. Toda batalla termina antes del tope, incluso con muralla alta y fuerzas parejas
 for (let sd = 1; sd <= 5; sd++) { const q = fight({ principes: 150, triarii: 50 }, { hoplitas: 200 }, { seed: sd, wall: 10 }); assert(q.time < 1500 && q.winner !== null, 'termina (semilla ' + sd + ')'); }
 
+// 2f. Formación y marcha (A9)
+{
+  const mix = () => side({ hastati: 200, velites: 80, equites: 60 }), enemigo = () => side({ libios: 200, numidas: 60, honderos: 40, jinetes: 60 });
+  const bt = new Battle({ sides: [mix(), enemigo()], defender: 1, wall: 0, seed: 7 });
+  for (const sd of [0, 1]) {
+    const mine = bt.regs.filter(r => r.side === sd), f = sd === 0 ? 1 : -1; // f>0: más lejos del enemigo = y mayor
+    const inf = mine.filter(r => r.u.cls === 'inf' || r.u.cls === 'spear'), rng = mine.filter(r => r.u.cls === 'rng'), cav = mine.filter(r => r.u.cls === 'cav');
+    assert(inf.length && rng.length && cav.length, 'hay de todo (lado ' + sd + ')');
+    const front = Math.max(...inf.map(r => r.y * -f));
+    for (const t of rng) assert(t.y * -f < front, 'tirador detrás de la primera fila (lado ' + sd + ')');
+    const xmin = Math.min(...inf.map(r => r.x)), xmax = Math.max(...inf.map(r => r.x));
+    assert(cav.some(c => c.x < xmin) && cav.some(c => c.x > xmax), 'caballería en las dos alas (lado ' + sd + ')');
+    for (const r of mine) assert(r.x >= 20 && r.x <= 580, 'dentro del campo');
+  }
+  // lejos del enemigo: paso de marcha
+  const r0 = bt.regs.find(r => r.side === 0 && r.u.cls === 'inf'), y0 = r0.y;
+  bt.step(0.2);
+  assert(Math.abs(r0.y - y0) <= r0.u.spd * 0.5 * 0.2 + 1.5, 'de marcha no pasa de spd x 0.5');
+  // los tiradores con munición no pelean por iniciativa propia mientras quede infantería
+  const bt2 = new Battle({ sides: [mix(), enemigo()], defender: 1, wall: 0, seed: 7 });
+  while (bt2.t < 60 && !bt2.over) {
+    bt2.step(0.2);
+    for (const sd of [0, 1]) {
+      const inf = bt2.regs.filter(r => r.side === sd && r.st === 'ok' && (r.u.cls === 'inf' || r.u.cls === 'spear'));
+      if (!inf.length) continue;
+      const f = sd === 0 ? 1 : -1, front = Math.min(...inf.map(r => r.y * f));
+      for (const t of bt2.regs) if (t.side === sd && t.st === 'ok' && t.u.cls === 'rng' && t.ammo > 0) assert(t.y * f > front - 20, 'tirador no se adelanta a su infantería (t=' + bt2.t.toFixed(0) + ')');
+    }
+  }
+}
+
 // 3. Las lanzas frenan a la caballería; la muralla ayuda al defensor
 const cavVsSpear = fight({ equites: 120 }, { hoplitas: 120 }), cavVsInf = fight({ equites: 120 }, { milicia: 160 });
 assert(cavVsSpear.dead[0] > cavVsInf.dead[0], 'la caballería sufre más contra lanzas');

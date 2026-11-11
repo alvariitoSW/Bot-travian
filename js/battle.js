@@ -19,6 +19,13 @@
   const FAT_DESCANSO = 1.2;     // cansancio que se recupera por segundo estando quieto sin pelear
   const FAT_PEGA = 0.3;         // pérdida máxima de daño con cansancio 100 (30 %)
   const FAT_ANDA = 0.25;        // pérdida máxima de velocidad con cansancio 100 (25 %)
+  // --- Formación y paso de marcha (A9) ---
+  const PASO_MARCHA = 0.5;      // de marcha se anda a spd × 0.5
+  const DIST_CARGA_INF = 110;   // a menos de esto del objetivo la infantería corre (spd × 1)
+  const DIST_CARGA_CAB = 160;   // a menos de esto del objetivo la caballería y el general galopan (spd × 1.25)
+  const DIST_BLOQUE = 220;      // mientras ningún regimiento del bando esté a menos de esto de un enemigo, todos avanzan en bloque al paso del más lento de a pie
+  const DIST_TIRADOR = 55;      // los tiradores no pasan de esta distancia por detrás de su infantería más adelantada
+  const DIST_ENCIMA = 90;       // un enemigo a menos de esto obliga al tirador a pelear
 
   function mkRng(seed) { let a = seed >>> 0; return function () { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   function effN(m) { return m <= 24 ? m : 24 + (m - 24) * 0.3; }
@@ -51,7 +58,7 @@
     return {
       id: this.regs.length + 1, side: side, k: k, u: u, men: men, max: men, hp: men * hp, mor: mor, morMax: mor,
       x: 0, y: 0, ang: side === 0 ? -Math.PI / 2 : Math.PI / 2, st: 'ok', tgt: null, order: null,
-      think: this.rnd() * 0.5, cd: this.rnd() * 1.6, ammo: u.range ? 14 : 0, fight: 0, charge: 0, run: 0, flank: 0, fat: 0, mv: false,
+      think: this.rnd() * 0.5, cd: this.rnd() * 1.6, ammo: u.range ? 14 : 0, fight: 0, charge: 0, run: 0, flank: 0, fat: 0, mv: false, corre: false,
       atkMul: (a.atkMul || 1) * (0.92 + this.rnd() * 0.16), defMul: def // ±8 % de fortuna por regimiento
     };
   };
@@ -65,26 +72,44 @@
     }
     let gen = null;
     if (a.gen) { gen = this.mk(side, 'general', 20, a); gen.name = a.gen.n; this.regs.push(gen); }
-    const f = side === 0 ? -1 : 1, base = side === 0 ? this.H - 200 : 200, SP = 62, CAP = 7;
-    const place = (row, y) => row.forEach((r, i) => { r.x = FW / 2 + (i - (row.length - 1) / 2) * SP; r.y = y; });
-    let skirm = list.filter(r => r.u.cls === 'rng'), main = list.filter(r => r.u.cls === 'inf' || r.u.cls === 'spear' || r.u.cls === 'ele'), cav = list.filter(r => r.u.cls === 'cav');
-    // elefantes al centro-frente, lanzas en los extremos de la línea
-    main.sort((p, q) => (q.u.cls === 'ele') - (p.u.cls === 'ele'));
-    if (skirm.length > CAP) main = main.concat(skirm.splice(CAP));
-    place(skirm, base + f * 58);
-    const wings = cav.splice(0, 2), rows = [];
-    const first = main.splice(0, CAP - wings.length);
-    rows.push((wings[0] ? [wings[0]] : []).concat(first, wings[1] ? [wings[1]] : []));
-    while (main.length) rows.push(main.splice(0, CAP));
-    const rear = cav.concat(gen ? [gen] : []);
-    if (rear.length) { if (gen) { rear.splice(rear.indexOf(gen), 1); rear.splice(Math.floor(rear.length / 2), 0, gen); } rows.push(rear.splice(0, CAP)); }
-    while (rear.length) rows.push(rear.splice(0, CAP));
-    rows.forEach((row, i) => place(row, base - f * 60 * i));
+    const f = side === 0 ? -1 : 1, base = side === 0 ? this.H - 200 : 200, CAP = 7;
+    const main = list.filter(r => r.u.cls === 'inf' || r.u.cls === 'spear' || r.u.cls === 'ele'), cav = list.filter(r => r.u.cls === 'cav');
+    let skirm = list.filter(r => r.u.cls === 'rng');
+    // fila 1: infantería cuerpo a cuerpo con los elefantes al centro; luego tiradores; luego la reserva; el general, al final
+    const eles = main.filter(r => r.u.cls === 'ele'), foot = main.filter(r => r.u.cls !== 'ele'), rows = [];
+    const first = foot.splice(0, Math.max(0, CAP - eles.length)), mid = Math.floor(first.length / 2);
+    rows.push(first.slice(0, mid).concat(eles, first.slice(mid)));
+    while (skirm.length) rows.push(skirm.splice(0, CAP));
+    while (foot.length) rows.push(foot.splice(0, CAP));
+    if (gen) rows.push([gen]);
+    const maxN = Math.max(1, ...rows.map(r => r.length));
+    // separación: se estrecha si las alas no caben en el campo (x entre 20 y FW-20)
+    const SP = Math.min(62, (FW / 2 - 20) / ((maxN - 1) / 2 + (cav.length ? 1 : 0)));
+    rows.forEach((row, i) => row.forEach((r, j) => { r.x = FW / 2 + (j - (row.length - 1) / 2) * SP; r.y = base - f * 60 * i; }));
+    // caballería: repartida entre las dos alas, en columna hacia atrás
+    const wx = ((maxN - 1) / 2 + 1) * SP, cnt = [0, 0];
+    cav.forEach((r, i) => { const w = i % 2; r.x = FW / 2 + (w ? wx : -wx); r.y = base - f * 60 * cnt[w]++; });
     for (const r of this.regs) if (r.side === side) r.y = Math.max(24, Math.min(this.H - 24, r.y));
+  };
+
+  // regimiento de infantería cuerpo a cuerpo vivo más adelantado del bando (null si no queda ninguno)
+  Battle.prototype.pantalla = function (r) {
+    let best = null;
+    for (const o of this.regs) {
+      if (o.side !== r.side || o.st !== 'ok' || (o.u.cls !== 'inf' && o.u.cls !== 'spear')) continue;
+      if (!best || (r.side === 0 ? o.y < best.y : o.y > best.y)) best = o;
+    }
+    return best;
   };
 
   Battle.prototype.pick = function (r, hold) {
     let best = null, bs = 1e9;
+    if (r.u.cls === 'rng' && !hold && this.pantalla(r)) {
+      // el tirador con munición prefiere al enemigo más cercano a tiro; sin munición solo pelea si lo tiene encima
+      const lim = r.ammo > 0 ? r.u.range : DIST_ENCIMA;
+      for (const e of this.regs) { if (e.side === r.side || e.st !== 'ok') continue; const d = Math.hypot(e.x - r.x, e.y - r.y); if (d <= lim && d < bs) { bs = d; best = e; } }
+      if (best || r.ammo <= 0) return best;
+    }
     for (const e of this.regs) {
       if (e.side === r.side || e.st !== 'ok') continue;
       const d = Math.hypot(e.x - r.x, e.y - r.y);
@@ -106,7 +131,7 @@
     const dx = x - r.x, dy = y - r.y, d = Math.hypot(dx, dy);
     if (d < 1) return 0;
     this.turn(r, Math.atan2(dy, dx), dt);
-    const m = Math.min(r.u.spd * (mul || 1) * (1 - FAT_ANDA * r.fat / 100) * dt, d);
+    const m = Math.min(r.u.spd * (mul || PASO_MARCHA) * (1 - FAT_ANDA * r.fat / 100) * dt, d);
     r.mv = true; r.fat = Math.min(100, r.fat + FAT_MARCHA * dt * (mul > 1 ? 1.6 : 1));
     r.x += dx / d * m; r.y += dy / d * m; r.run += m;
     return d - m;
@@ -154,9 +179,25 @@
     if (this.over) return;
     this.t += dt;
     const regs = this.regs, cur = [this.men(0), this.men(1)];
+    // avance en bloque: ¿alguien del bando está ya cerca del enemigo? si no, todos al paso del más lento de a pie
+    const cerca = [false, false], lento = [1e9, 1e9];
+    for (const a of regs) {
+      if (a.st !== 'ok') continue;
+      if (a.u.cls !== 'cav' && a.u.cls !== 'gen') lento[a.side] = Math.min(lento[a.side], a.u.spd);
+      if (cerca[a.side]) continue;
+      for (const e of regs) if (e.side !== a.side && e.st === 'ok' && Math.hypot(e.x - a.x, e.y - a.y) < DIST_BLOQUE) { cerca[a.side] = true; break; }
+    }
+    const paso = (r, d) => {
+      let mul = PASO_MARCHA;
+      if (!r.order && !cerca[r.side] && lento[r.side] < 1e9) mul = lento[r.side] * PASO_MARCHA / r.u.spd;
+      r.corre = false;
+      if (r.u.cls === 'cav' || r.u.cls === 'gen') { if (d < DIST_CARGA_CAB) { mul = 1.25; r.corre = true; } }
+      else if (d < DIST_CARGA_INF) { mul = 1; r.corre = true; }
+      return mul;
+    };
     for (const r of regs) {
       if (r.st === 'rout') {
-        r.y += (r.side === 0 ? 1 : -1) * r.u.spd * 1.3 * dt; r.ang = r.side === 0 ? Math.PI / 2 : -Math.PI / 2;
+        r.corre = true; r.y += (r.side === 0 ? 1 : -1) * r.u.spd * 1.3 * dt; r.ang = r.side === 0 ? Math.PI / 2 : -Math.PI / 2;
         if (r.y < -30 || r.y > this.H + 30) r.st = 'fled';
         continue;
       }
@@ -164,7 +205,7 @@
       if (r.charge > 0) r.charge -= dt;
       const collapse = cur[r.side] < this.start[r.side] * 0.15;
       if (collapse) r.mor -= 1.5 * dt;
-      r.mv = false;
+      r.mv = false; r.corre = false;
       if (r.flank) r.mor -= MOR_FLANCO * dt;
       const mia = cur[r.side] / this.start[r.side], suya = cur[1 - r.side] / this.start[1 - r.side];
       if (mia < suya) r.mor -= MOR_PERDIENDO * Math.min(1, (suya - mia) * 8) * dt;
@@ -180,9 +221,15 @@
       r.tgt = tgt;
       let fighting = false;
       if (r.order && r.order.k === 'move') {
-        if (this.moveTo(r, r.order.x, r.order.y, dt) < 6) r.order = null;
+        if (this.moveTo(r, r.order.x, r.order.y, dt, PASO_MARCHA) < 6) r.order = null;
       } else if (tgt) {
         const d = Math.hypot(tgt.x - r.x, tgt.y - r.y);
+        // el tirador sin orden no pasa de unos 55 por detrás de su infantería más adelantada
+        let tx = tgt.x, ty = tgt.y, quieto = false;
+        if (r.u.cls === 'rng' && !r.order && d > DIST_ENCIMA) {
+          const sc = this.pantalla(r);
+          if (sc) { const lim = sc.y + (r.side === 0 ? DIST_TIRADOR : -DIST_TIRADOR); if (r.side === 0 ? r.y <= lim : r.y >= lim) quieto = true; else ty = r.side === 0 ? Math.max(ty, lim) : Math.min(ty, lim); }
+        }
         if (r.ammo > 0 && d > CONTACT + 6) {
           if (d <= r.u.range) {
             this.turn(r, Math.atan2(tgt.y - r.y, tgt.x - r.x), dt);
@@ -192,9 +239,10 @@
               this.hit(r, tgt, effN(r.men) * ratio(r.u.ratk * r.atkMul, tgt.u.def * tgt.defMul) * 0.03 * 1.6 * 0.6, true);
               this.fx.push({ x0: r.x, y0: r.y, x1: tgt.x, y1: tgt.y, t: 0, n: Math.min(6, 1 + (r.men >> 4)) });
             }
-          } else this.moveTo(r, tgt.x, tgt.y, dt);
+          } else if (!quieto) this.moveTo(r, tx, ty, dt, paso(r, d));
+          else this.turn(r, Math.atan2(tgt.y - r.y, tgt.x - r.x), dt);
         } else if (d > CONTACT) {
-          const left = this.moveTo(r, tgt.x, tgt.y, dt, (r.u.cls === 'cav' || r.u.cls === 'gen') && d < 160 ? 1.25 : 1);
+          const left = quieto ? 1e9 : this.moveTo(r, tx, ty, dt, paso(r, d));
           if (left <= CONTACT && (r.u.cls === 'cav' || r.u.cls === 'gen' || r.u.cls === 'ele') && r.run > 90) { r.charge = 2.5; r.fat = Math.min(100, r.fat + FAT_CARGA * (r.u.cls === 'cav' || r.u.cls === 'gen' ? 1.8 : r.u.cls === 'ele' ? 1.2 : 1)); }
         } else {
           fighting = true; r.run = 0; r.fat = Math.min(100, r.fat + FAT_PELEA * dt * (r.u.cls === 'cav' || r.u.cls === 'gen' ? 1.6 : 1 / Math.sqrt(r.u.mass || 1)));
