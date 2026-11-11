@@ -85,6 +85,17 @@
       "tarea": "E1b",
       "archivo": "gobierno/capturas-tarea/E1b-menu.jpg",
       "pie": "Letra Cinzel incluida: se ve igual sin conexión"
+    },
+    {
+      "tarea": "E2",
+      "archivo": "gobierno/capturas-tarea/E2-mapa.jpg",
+      "pie": "Mapa: cada ciudad con un edificio de su cultura"
+    },
+    {
+      "tarea": "E2",
+      "archivo": "gobierno/capturas-tarea/E2-culturas.jpg",
+      "pie": "De cerca: Cartago, Siracusa, galos, íberos y barcos cartaginés y griego",
+      "ancha": true
     }
   ],
   "informes": [
