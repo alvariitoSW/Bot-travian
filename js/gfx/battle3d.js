@@ -2,10 +2,13 @@
 import { THREE, uTime, unitGeometry, unitMaterial, portrait } from './models.js';
 import { applyGround } from './ground.js';
 import { getStatic, staticInstances, staticMesh } from './statics.js';
-import { getUnit, unitMaterialReal, instancedGeometry, frameOf, frameOnce, realPortrait, UNIT_SCALE } from './units.js';
+import { getUnit, unitMaterialReal, instancedGeometry, frameOf, frameOnce, realPortrait, UNIT_SCALE, lightGeometry, lightMaterial, LIGHT_TRIS } from './units.js';
 
 const BK = 1.65;                               // edificios y árboles de 0 A.D. agrandados para casar con el tamaño de las figuras
 const DEAD = 150;                             // caídos visibles por tipo de unidad
+/* Nivel de detalle por soldado: más allá de LOD_LEJOS metros de la cámara se pinta la figura ligera; vuelve a la real
+   por debajo de LOD_CERCA (la diferencia evita el parpadeo). REAL_FRAC: parte de soldados que se supone reales al repartir el tope. */
+const LOD_MAX = 150, LOD_HIST = 0.87, REAL_FRAC = 0.3;   // el radio real se ajusta solo: 150 m como mucho y menos si hay más figuras reales que el tope (las más cercanas a la cámara son las reales)
 const TRI_BUDGET = (navigator.maxTouchPoints > 0 ? 1.0e6 : 1.6e6);
 
 const S = 0.25, FW = 600;                     // escala simulación -> mundo
@@ -174,11 +177,12 @@ export class BattleView3D {
   buildArmies() {
     const b = this.b; this.R = []; this.meshes = new Map(); this.byReg = new Map();
     let total = 0; const want = b.regs.map(r => { const f = formation(r.u.cls, r.k), n = Math.min(r.max, f.max); total += n; return n; });
-    let tris = 0; b.regs.forEach((r, i) => { const u = getUnit(r.k); tris += want[i] * (u ? u.tris : 550); });
+    let tris = 0, nReal = 0, trisReal = 0; b.regs.forEach((r, i) => { const u = getUnit(r.k); if (u && r.u.cls !== 'ele') { tris += want[i] * (u.tris * REAL_FRAC + LIGHT_TRIS * (1 - REAL_FRAC)); nReal += want[i]; trisReal += want[i] * u.tris; } else tris += want[i] * (u ? u.tris : 550); });
+    this.lodL = LOD_MAX; this.realCap = nReal ? Math.floor(TRI_BUDGET / Math.max(1, trisReal / nReal)) : 0;     // tope de figuras reales a la vez
     const k = Math.min(1, TRI_BUDGET / Math.max(1, tris)), capBy = new Map();
     b.regs.forEach((r, i) => {
       const f = formation(r.u.cls, r.k), F = Math.max(1, Math.round(want[i] * (r.u.cls === 'ele' ? 1 : k))), key = r.k + '|' + r.side;
-      const R = { r: r, f: f, F: F, n: F, key: key, fx: new Float32Array(F), fz: new Float32Array(F), yaw: 0, el: null, card: null };
+      const R = { r: r, f: f, F: F, n: F, key: key, far: new Uint8Array(F), fx: new Float32Array(F), fz: new Float32Array(F), yaw: 0, el: null, card: null };
       const w = this.toW(r.x, r.y);
       for (let j = 0; j < F; j++) { const s = this.slot(R, j, w[0], w[1], r.ang); R.fx[j] = s[0]; R.fz[j] = s[1]; }
       this.R.push(R); this.byReg.set(r, R); capBy.set(key, (capBy.get(key) || 0) + F);
@@ -189,7 +193,9 @@ export class BattleView3D {
       if (real) { const geo = instancedGeometry(real, cap + DEAD); m = new THREE.InstancedMesh(geo, unitMaterialReal(real, col), cap + DEAD); a = geo.attributes.aFrame.array; }
       else { const geo = unitGeometry(uk, col).clone(), anim = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3); anim.setUsage(THREE.DynamicDrawUsage); geo.setAttribute('anim', anim); m = new THREE.InstancedMesh(geo, unitMaterial(), cap); a = anim.array; }
       m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.frustumCulled = false; this.scene.add(m);
-      this.meshes.set(key, { m: m, a: a, M: m.instanceMatrix.array, i: 0, real: real, dead: [] }); shCap += cap;
+      let lt = null;
+      if (real) { const lm = new THREE.InstancedMesh(lightGeometry(real, col), lightMaterial(), cap); lm.instanceMatrix.setUsage(THREE.DynamicDrawUsage); lm.frustumCulled = false; this.scene.add(lm); lt = { m: lm, M: lm.instanceMatrix.array, i: 0 }; }
+      this.meshes.set(key, { m: m, a: a, M: m.instanceMatrix.array, i: 0, real: real, lt: lt, dead: [] }); shCap += cap;
     }
     const sg = new THREE.CircleGeometry(1, 8); sg.rotateX(-Math.PI / 2);
     this.shadow = new THREE.InstancedMesh(sg, new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.26, depthWrite: false }), shCap); this.shadow.frustumCulled = false; this.shadow.instanceMatrix.setUsage(THREE.DynamicDrawUsage); this.scene.add(this.shadow);
@@ -211,7 +217,8 @@ export class BattleView3D {
 
   updateArmies(dt) {
     const b = this.b, t = this.t, SM = this.shadow.instanceMatrix.array; let si = 0;
-    for (const e of this.meshes.values()) e.i = 0;
+    const cp = this.cam.position; let realUsed = 0, quiere = 0; const L2 = this.lodL * this.lodL, C2 = L2 * LOD_HIST * LOD_HIST; this.nReales = 0; this.nLigeras = 0;
+    for (const e of this.meshes.values()) { e.i = 0; if (e.lt) e.lt.i = 0; }
     for (const R of this.R) {
       const r = R.r, e = this.meshes.get(R.key), rout = r.st === 'rout' || r.st === 'fled';
       let n = r.st === 'dead' ? 0 : Math.max(r.men > 0 ? 1 : 0, Math.ceil(R.F * r.men / r.max));
@@ -236,16 +243,24 @@ export class BattleView3D {
         const dx = tx - R.fx[j], dz = tz - R.fz[j], d = Math.hypot(dx, dz), mv = d > 0.12;
         if (mv) { const st = Math.min(d, vmax * (rout ? 0.7 : 1)); R.fx[j] += dx / d * st; R.fz[j] += dz / d * st; }
         const yaw = mv && d > 0.8 ? Math.atan2(dx, dz) : ryaw, x = R.fx[j], z = R.fz[j], y = this.h(x, z), c = Math.cos(yaw), s = Math.sin(yaw);
-        const M = e.M, o = e.i * 16, k = e.real ? UNIT_SCALE : 1;
+        let lt = null;
+        if (e.lt) {                                           // nivel de detalle con histéresis; si se agota el tope de reales, también ligera
+          const ex = x - cp.x, ey = y - cp.y, ez = z - cp.z, d2 = ex * ex + ey * ey + ez * ez, far = R.far[j];
+          if (far ? d2 < C2 : d2 > L2) R.far[j] = far ? 0 : 1;
+          if (!R.far[j]) quiere++;
+          if (R.far[j] || realUsed >= this.realCap) lt = e.lt; else realUsed++;
+        }
+        const M = lt ? lt.M : e.M, o = (lt ? lt.i : e.i) * 16, k = e.real ? UNIT_SCALE : 1;
         M[o] = c * k; M[o + 1] = 0; M[o + 2] = -s * k; M[o + 3] = 0; M[o + 4] = 0; M[o + 5] = k; M[o + 6] = 0; M[o + 7] = 0; M[o + 8] = s * k; M[o + 9] = 0; M[o + 10] = c * k; M[o + 11] = 0; M[o + 12] = x; M[o + 13] = y; M[o + 14] = z; M[o + 15] = 1;
-        if (e.real) {
+        if (lt) lt.i++;
+        else if (e.real) {
           const cl = e.real.clips, ph = hash(j * 3.1 + r.id) * 4; let clip;
           if (rout) clip = cl.run || cl.walk; else if (mv && d > 0.3) clip = (d > 2.5 || r.charge > 0) && cl.run ? cl.run : cl.walk;
           else if (fight && row < 2) clip = (j % 2 && cl.attack_melee2) || cl.attack_melee || cl.attack_ranged || cl.idle;
           else if (shooting && row < 3) clip = cl.attack_ranged || cl.idle; else clip = cl.idle;
           e.a[e.i] = frameOf(clip, t + ph);
         } else { const a = e.a, ao = e.i * 3; a[ao] = mv && d > 0.3 ? (rout ? 1.3 : 1) : 0; a[ao + 1] = fight && row < 2 ? 1 : shooting && row < 2 ? 0.7 : 0; a[ao + 2] = j * 1.7 + r.id * 0.9; }
-        e.i++;
+        if (!lt) e.i++;
         const so = si * 16, ss = R.f.sh, sl = ss * 2.4; SM[so] = 0.83 * sl; SM[so + 1] = 0; SM[so + 2] = -0.55 * sl; SM[so + 3] = 0; SM[so + 4] = 0; SM[so + 5] = 1; SM[so + 6] = 0; SM[so + 7] = 0; SM[so + 8] = 0.55 * ss; SM[so + 9] = 0; SM[so + 10] = 0.83 * ss; SM[so + 11] = 0; SM[so + 12] = x + 0.83 * sl * 0.75; SM[so + 13] = y + 0.06; SM[so + 14] = z - 0.55 * sl * 0.75; SM[so + 15] = 1; si++;
       }
     }
@@ -258,7 +273,10 @@ export class BattleView3D {
         e.m.geometry.attributes.aFrame.needsUpdate = true;
       } else e.m.geometry.attributes.anim.needsUpdate = true;
       e.m.count = e.i; e.m.instanceMatrix.needsUpdate = true;
+      if (e.lt) { e.lt.m.count = e.lt.i; e.lt.m.instanceMatrix.needsUpdate = true; this.nLigeras += e.lt.i; this.nReales += e.i; }
     }
+    const ahora = performance.now(), rdt = Math.min(0.1, (ahora - (this.lodT || ahora)) / 1000); this.lodT = ahora;      // el radio se ajusta con tiempo real, aunque la batalla esté en pausa
+    if (quiere > this.realCap) this.lodL = Math.max(30, this.lodL * Math.exp(-rdt * 4)); else if (quiere < this.realCap * 0.85) this.lodL = Math.min(LOD_MAX, this.lodL * Math.exp(rdt * 1.5));
     this.shadow.count = si; this.shadow.instanceMatrix.needsUpdate = true;
     // estandartes y polvo
     const BM = new THREE.Matrix4(), bc = new THREE.Color(); let bi = 0;

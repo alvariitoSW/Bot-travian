@@ -92,3 +92,55 @@ export function realPortrait(key, color) {
   } catch (e) { console.warn('retrato', key, e); url = ''; }
   portraits.set(id, url); return url;
 }
+
+/* ---------- Nivel de detalle: figura ligera para los soldados lejanos ----------
+   Mismas proporciones que la real (altura y anchura sacadas de su malla) y colores del equipo y de su textura,
+   en unos 40 triángulos y sin esqueleto. Se usa más allá de cierta distancia de la cámara (ver battle3d.js). */
+export const LIGHT_TRIS = 60;
+function colorMedio(unit) {                                    // color medio de la textura (solo píxeles opacos)
+  if (unit.avg) return unit.avg;
+  let c = new THREE.Color('#8a6a4a');
+  try {
+    const im = unit.tex.image, cv = document.createElement('canvas'); cv.width = cv.height = 16;
+    const cx = cv.getContext('2d', { willReadFrequently: true }); cx.drawImage(im, 0, 0, 16, 16);
+    const d = cx.getImageData(0, 0, 16, 16).data; let r = 0, g = 0, b = 0, n = 0;
+    for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 128) { r += d[i]; g += d[i + 1]; b += d[i + 2]; n++; }
+    if (n) c = new THREE.Color().setRGB(r / n / 255, g / n / 255, b / n / 255, THREE.SRGBColorSpace);
+  } catch (e) { /* sin lienzo: color por defecto */ }
+  unit.avg = c; return c;
+}
+function extension(unit) {                                     // semianchura robusta (percentiles 8–92) de la malla en x y z
+  if (unit.ext) return unit.ext;
+  const P = unit.geo.attributes.position.array, n = P.length / 3, st = Math.max(1, Math.floor(n / 600)), X = [], Z = [];
+  for (let i = 0; i < n; i += st) { X.push(P[i * 3]); Z.push(P[i * 3 + 2]); }
+  const q = a => { a.sort((p, r) => p - r); return Math.max(Math.abs(a[Math.floor(a.length * 0.08)]), Math.abs(a[Math.floor(a.length * 0.92)])); };
+  unit.ext = [Math.max(0.2, q(X)), Math.max(0.2, q(Z))]; return unit.ext;
+}
+function caja(pos, col, x0, x1, y0, y1, z0, z1, c) {           // caja con color; 12 triángulos
+  const V = [[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0], [x0, y0, z1], [x1, y0, z1], [x1, y1, z1], [x0, y1, z1]];
+  for (const f of [[0, 2, 1, 0, 3, 2], [4, 5, 6, 4, 6, 7], [0, 4, 7, 0, 7, 3], [1, 2, 6, 1, 6, 5], [0, 1, 5, 0, 5, 4], [3, 7, 6, 3, 6, 2]]) for (const i of f) { pos.push(V[i][0], V[i][1], V[i][2]); col.push(c.r, c.g, c.b); }
+}
+const ESCUDO = new Set(['hastati', 'principes', 'triarii', 'libios', 'iberos', 'galos', 'sagrada', 'hoplitas', 'falange', 'milicia', 'general']);
+export function lightGeometry(unit, color) {
+  const h = unit.height / UNIT_SCALE, avg = colorMedio(unit), team = new THREE.Color(color);
+  const pos = [], col = [], torso = avg.clone().lerp(team, 0.15), piel = new THREE.Color('#b98e6a'), cuerpo = avg.clone().multiplyScalar(0.75);
+  if (unit.wide) {                                              // caballo o elefante: cuerpo largo y cabeza arriba
+    const ex = extension(unit), ax = Math.min(ex[0], h * 0.3), az = Math.min(ex[1], h * 0.6);
+    caja(pos, col, -ax * 0.5, -ax * 0.1, 0, h * 0.4, -az * 0.8, az * 0.8, cuerpo); caja(pos, col, ax * 0.1, ax * 0.5, 0, h * 0.4, -az * 0.8, az * 0.8, cuerpo);
+    caja(pos, col, -ax * 0.6, ax * 0.6, h * 0.4, h * 0.72, -az, az, torso);
+    caja(pos, col, -ax * 0.25, ax * 0.25, h * 0.72, h, -az * 0.15, az * 0.55, piel);
+    caja(pos, col, ax * 0.55, ax * 0.62, h * 0.45, h * 0.7, -az * 0.4, az * 0.4, team);
+  } else {                                                      // soldado: dos piernas, torso, cabeza y, si lo lleva, escudo del bando
+    const ax = h * 0.1, az = h * 0.065, lg = h * 0.045;
+    caja(pos, col, -ax * 0.85, -ax * 0.85 + lg * 1.6, 0, h * 0.46, -lg, lg, piel); caja(pos, col, ax * 0.85 - lg * 1.6, ax * 0.85, 0, h * 0.46, -lg, lg, piel);
+    caja(pos, col, -ax, ax, h * 0.46, h * 0.8, -az, az, torso);
+    caja(pos, col, -h * 0.05, h * 0.05, h * 0.8, h * 0.95, -h * 0.05, h * 0.05, piel);
+    if (ESCUDO.has(unit.key)) caja(pos, col, ax * 0.5, ax * 1.7, h * 0.42, h * 0.78, az, az + h * 0.03, team);
+    else caja(pos, col, ax * 1.05, ax * 1.25, h * 0.4, h * 0.8, -az * 0.3, az * 0.3, cuerpo);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+  g.computeVertexNormals(); return g;
+}
+const lightMat = new THREE.MeshLambertMaterial({ vertexColors: true });
+export const lightMaterial = () => lightMat;
