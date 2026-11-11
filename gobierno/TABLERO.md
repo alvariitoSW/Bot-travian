@@ -75,7 +75,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 
 ## Carril C — Mapa y campaña
 - ⬜ C1 Zoom continuo mapa → ciudad; ejércitos de guarnición visibles junto a cada ciudad.
-- ⬜ C2 Costa y relieve del mapa con datos mejores; texturas de terreno en el mapa.
+- ✅ C2 Costa real (Natural Earth, 15 KB) y grano de hierba en el suelo del mapa. Queda ⬜ C2b: relieve con datos de altura reales (hoy son cordilleras a mano) y orillas con espuma.
 - ⬜ C3 Diplomacia sencilla (alianzas, tributos) e IA enemiga que también construye.
 
 ## Carril H — Historia (ministerio de Adecuación Histórica)

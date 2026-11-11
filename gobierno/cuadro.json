@@ -150,6 +150,24 @@
       "archivo": "gobierno/capturas-tarea/B2-mapa.jpg",
       "pie": "En el mapa: un mercante en la ruta por mar y un carro en la de tierra",
       "ancha": false
+    },
+    {
+      "tarea": "C2",
+      "archivo": "gobierno/capturas-tarea/C2-antes.jpg",
+      "pie": "Mapa antes: costa dibujada a mano, suelo liso",
+      "ancha": false
+    },
+    {
+      "tarea": "C2",
+      "archivo": "gobierno/capturas-tarea/C2-despues.jpg",
+      "pie": "Mapa después: costa real de Italia, suelo con grano de hierba",
+      "ancha": false
+    },
+    {
+      "tarea": "C2",
+      "archivo": "gobierno/capturas-tarea/C2-sicilia.jpg",
+      "pie": "Sicilia, Malta y el estrecho de Mesina",
+      "ancha": false
     }
   ],
   "informes": [
