@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 11/11/2026 — **Guerra a la vez, «da igual el gasto»**: P66 aprobada (carril L, en paralelo a J6; el usuario autoriza el gasto, tope aconsejado 1,5 M por tarea).
 - 11/11/2026 — **Aprobado «Vale, vamos»**: P63 y P64 pasan al tablero (J6 Ciudad como pantalla principal, J7 Parte densa); primero J6. P65 y P66 siguen por aprobar.
 - 11/11/2026 — **Elección de interfaz tras los dos concursos** (respuestas en el móvil): Gobierno: «A Ciudad le doy un 5,3, a Tabularium 4,8, pero la parte de lo denso me gusta»; extras: Foro con multitudes y efecto por clase en chips. Guerra: «Legado y Estandartes son las que se pueden fusionar y crear algo guapo»; extras: fantasmas en pausa, alas con corchete y cartas de táctica. (Lectura de Claude: Gobierno = Ciudad (ronda 2) como pantalla principal, con el Tabularium como parte densa (colas, listas, Imperio), más Foro y chips de efecto por clase. Guerra = fusión de Legado (cámara baja, trazo, orden recomendada) y Estandartes (cada regimiento un estandarte con la moral en la tela), más fantasmas, alas con corchete y cartas de táctica. Quedan por aprobar las tareas que lo construyen.)
 - 11/11/2026 — **Concurso K, segunda ronda** (pedido en el móvil): «El K arena, el trazo de órdenes dibujadas y el general rueda de órdenes me gustan. Hay que hacer un nuevo concurso con 5 modelos también totalmente diferentes y que compitan por el mejor proyecto artístico, escalable, e intuitivo. Las del gobierno no me gustan ninguna, deben repetirse de 0 todas con mejores instrucciones». (Lectura de Claude: dos concursos nuevos, Guerra 2 y Gobierno 2, cinco maquetas cada uno, con criterios arte/escalable/intuitivo; bases en `maquetas/concurso/BASES2.md`. Gustan de Guerra: Arena, Trazo y General; ninguna de Gobierno.)
@@ -73,11 +74,10 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-- **Aprobar P65 (Foro y chips) y P66 (Guerra Legado + Estandartes)**, cuando terminen J6 y J7.
+- **Aprobar P65 (Foro y chips)**, cuando terminen J6 y J7.
 
 ## Propuestas por aprobar
 - P65 **Gobierno: política con multitudes y chips** (discursos y revueltas que se ven en el Foro por clases sociales; chips verde/rojo con el efecto de cada decisión por clase); iría con J5. (decisión del 11/11)
-- P66 **Guerra: interfaz Legado + Estandartes** (cámara baja, dibujar la orden con el dedo, botón de orden recomendada, estandarte por regimiento con la moral en la tela; alas con corchete, fantasmas en pausa y cartas de táctica), tocando `js/ui.js` y `js/gfx/battle3d.js`; se parte en 3 o 4 tareas. (decisión del 11/11)
 Ninguna.
 
 ## Encargo en curso (11/11/2026, noche)
