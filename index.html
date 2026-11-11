@@ -20,27 +20,23 @@
     <header id="top">
       <div id="res"></div>
       <div id="bar2">
-        <span id="date"></span>
-        <div id="speed">
-          <button data-act="speed" data-v="0">II</button>
-          <button data-act="speed" data-v="1">▶</button>
-          <button data-act="speed" data-v="2">▶▶</button>
-          <button data-act="speed" data-v="4">▶▶▶</button>
-        </div>
+        <button id="citybtn" data-act="citymenu"></button>
+        <div id="datebox"><span id="date"></span><button id="speed" data-act="speed" data-v="next" title="Cambiar la velocidad"></button></div>
       </div>
+      <div id="citymenu" hidden></div>
     </header>
-    <div id="zoom"><button data-act="zoom" data-v="1.3">＋</button><button data-act="zoom" data-v="0.77">－</button><button data-act="home">🦅</button></div>
+    <div id="zoom"><button data-act="zoom" data-v="1.3" title="Acercar">＋</button><button data-act="zoom" data-v="0.77" title="Alejar">－</button><button data-act="home" title="Ir a mi general">🦅</button></div>
     <div id="sheet" hidden></div>
     <div id="ctop" hidden></div>
     <div id="csheet" hidden></div>
     <main id="view" hidden></main>
-    <nav id="tabs">
-      <button data-act="tab" data-v="map"><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg></i>Mapa</button>
-      <button data-act="tab" data-v="city"><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 20h18M5 20V9h14v11M3 9h18M9 20v-6h6v6M12 4v5"/></svg></i>Ciudad</button>
-      <button data-act="tab" data-v="army"><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19L17 7M14.5 5.5L18.5 9.5M3.5 17.5l3 3M7 17l-2.5 2.5"/><path d="M19 19L7 7M9.5 5.5L5.5 9.5M20.5 17.5l-3 3M17 17l2.5 2.5"/></svg></i>Ejército</button>
-      <button data-act="tab" data-v="hero"><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5.5" r="2"/><path d="M12 7.5V17M12 10C9 9 5 9.5 2.5 12c2 .3 3.5.2 5 0-1.5 1.5-2.5 2.500-3 4 3-.5 5.500-2.500 7.500-6M12 10c3-1 7-.5 9.500 2-2 .3-3.500.2-5 0 1.500 1.500 2.500 2.500 3 4-3-.5-5.500-2.500-7.500-6"/><path d="M10 20.500l2-3.500 2 3.500"/></svg></i>General</button>
-      <button data-act="tab" data-v="log"><i><svg class="ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4h11a2 2 0 012 2v12a2 2 0 01-2 2H8a2 2 0 01-2-2z"/><path d="M6 4a2 2 0 00-2 2v1h4M9 9h7M9 12.5h7M9 16h5"/></svg></i>Crónica</button>
-    </nav>
+    <div id="hoja" hidden></div>
+    <div id="popsheet" hidden></div>
+    <div id="dock">
+      <button id="bact" class="rd" data-act="accion"></button>
+      <button id="bpill" data-act="pill"></button>
+      <button id="bmodo" class="rd" data-act="menumodo"></button>
+    </div>
   </div>
 
   <div id="battle" hidden>

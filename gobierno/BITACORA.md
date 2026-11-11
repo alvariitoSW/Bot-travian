@@ -86,6 +86,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+0. Carril Interfaz: J2 Obras de un toque (J1 hecha; gastó 1,7 M sobre 0,65 presupuestados: cuenta al usuario antes de seguir).
 Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que lleva Campaña):
 1. I6 Región de Italia → I7 Regiones → I8 Partida corta (prioridad del usuario).
 2. Historia: H14 → H13 → H12 → H11.

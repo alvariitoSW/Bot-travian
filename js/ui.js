@@ -9,7 +9,7 @@ import { loadGroundTextures } from './gfx/ground.js';
 import { fijar as fijarFluidez, estaEncendido as fluidezOn } from './gfx/fluidez.js';
 
 const D = window.DATA, G = window.Game, $ = id => document.getElementById(id);
-const UI = { codice: null, tab: 'map', city: 'roma', sel: null, modalQ: [], modalOpen: false, battle: null, menu: true, last: 0, saveT: 0, map: null };
+const UI = { codice: null, modo: 'gobierno', tab: 'map', city: 'roma', sel: null, modalQ: [], modalOpen: false, battle: null, menu: true, last: 0, saveT: 0, map: null };
 const ROMA = D.FACTIONS.roma.col;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const fmt = n => { n = Math.floor(n); return n >= 10000 ? (n / 1000).toFixed(1) + 'k' : String(n); };
@@ -82,7 +82,7 @@ function showMenu() {
     '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><div class="spqr">S·P·Q·R</div>' +
     '<div class="credits">Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1<br>Termas y acueducto: dibujo propio del proyecto, CC BY-SA 3.0</div>';
 }
-function startGame() { UI.menu = false; $('menu').hidden = true; UI.city = 'roma'; UI.sel = null; if (UI.map) UI.map.center('roma'); setTab('map'); }
+function startGame() { UI.menu = false; $('menu').hidden = true; UI.city = 'roma'; UI.sel = null; if (UI.map) UI.map.center('roma'); UI.cityList = false; setModo('gobierno'); }
 function showOver() {
   const s = S(), o = s.over; if (!o || UI.overShown) return; UI.overShown = true;
   modal('<div class="yr">' + (o.win ? 'VICTORIA' : 'DERROTA') + '</div><h2>' + (o.win ? 'Roma Victrix' : 'Vae victis') + '</h2><p>' + esc(o.why) + '</p>' +
@@ -91,17 +91,37 @@ function showOver() {
 }
 
 /* ---------- HUD ---------- */
-function buildTop() { $('res').innerHTML = D.RES.map(r => '<div class="r" id="rb-' + r + '">' + D.RES_ICON[r] + '<b id="r-' + r + '"></b><small id="p-' + r + '"></small></div>').join(''); }
+function buildTop() {
+  $('res').innerHTML = D.RES.map(r => '<span class="r' + (r === 'oro' || r === 'grano' ? '' : ' g-only') + '" id="rb-' + r + '">' + D.RES_ICON[r] + '<b id="r-' + r + '"></b></span>').join('') +
+    '<span class="r w-only" id="rb-recl" title="Reclutas disponibles en la ciudad">' + D.GUERRA_ICON.casco + '<b id="r-recl"></b></span><span class="r w-only" id="rb-march" title="Marchas de tus ejércitos">' + D.GUERRA_ICON.espadas + '<b id="r-march"></b></span>';
+}
+const VEL = { 0: 'II', 1: '▶', 2: '▶▶', 4: '▶▶▶' };
+const ICO_GOB = svgIco('<path d="M3 20h18M5 20V9h14v11M3 9h18M9 20v-6h6v6M12 4v5"/>');
+function cityOk() { const my = G.myCities(); if (!my.includes(UI.city)) UI.city = my[0] || 'roma'; return UI.city; }
+function setTxt(id, v) { const e = $(id); if (e && e.dataset.k !== v) { e.dataset.k = v; e.innerHTML = v; } }
+function hudDock() {
+  const s = S(); if (!s) return; const g = UI.modo !== 'guerra', c = s.cities[cityOk()], open = !$('hoja').hidden;
+  const f = Math.round(G.felicidad(c)), cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠', nm = s.marches.filter(m => m.owner === 'roma').length;
+  $('app').dataset.modo = g ? 'gobierno' : 'guerra';
+  $('bact').className = 'rd ' + (g ? 'oro' : 'rojo'); $('bmodo').className = 'rd ' + (open ? 'cierra' : g ? 'oro' : 'rojo'); $('bpill').className = g ? '' : 'w';
+  setTxt('bact', g ? '<span class="em">🔨</span><small>Obras</small>' : D.GUERRA_ICON.casco + '<small>Tropas</small>');
+  setTxt('bmodo', open ? '<span class="em">✕</span><small>Cerrar</small>' : (g ? ICO_GOB : D.GUERRA_ICON.espadas) + '<small>' + (g ? 'Gobierno' : 'Guerra') + '</small>');
+  setTxt('bpill', g ? D.POP_ICON + ' ' + Math.floor(c.pop) + '/' + G.popCap(c) + ' · ' + cara + ' ' + f : '🚩 ' + (nm === 1 ? '1 marcha en curso' : nm + ' marchas en curso'));
+  setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
+}
 function tickUI() {
   const s = S(); if (!s) return;
   const p = G.prod(), cap = G.cap();
   for (const r of D.RES) {
     $('r-' + r).textContent = fmt(s.res[r]);
-    const e = $('p-' + r), v = Math.round(p[r]); e.textContent = (v >= 0 ? '+' : '') + v; e.className = v < 0 ? 'neg' : '';
+    const v = Math.round(p[r]); $('rb-' + r).title = (RES_NOM[r] || r) + ': ' + (v >= 0 ? '+' : '') + v + ' al mes' + (s.res[r] >= cap - 1 ? ' (almacén lleno)' : '');
     $('rb-' + r).classList.toggle('full', s.res[r] >= cap - 1);
   }
+  const c = s.cities[cityOk()]; $('r-recl').textContent = fmt(G.recruits(c));
+  const nm = s.marches.filter(m => m.owner === 'roma').length; $('r-march').textContent = nm + (nm === 1 ? ' marcha' : ' marchas');
+  hudDock();
   $('date').textContent = G.dateStr(s.t);
-  document.querySelectorAll('#speed button').forEach(b => b.classList.toggle('on', +b.dataset.v === s.speed));
+  $('speed').textContent = VEL[s.speed] || '▶'; $('speed').classList.toggle('on', s.speed === 0);
   document.querySelectorAll('[data-t1]').forEach(e => {
     const t0 = +e.dataset.t0, t1 = +e.dataset.t1, f = Math.max(0, Math.min(1, (s.t - t0) / (t1 - t0)));
     const bar = e.querySelector('i'); if (bar) bar.style.width = (f * 100).toFixed(1) + '%';
@@ -112,20 +132,28 @@ function tickUI() {
 
 /* ---------- paneles ---------- */
 function setTab(t) {
-  UI.tab = t;
-  document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === t));
+  UI.tab = t; if (t === 'map' || t === 'army') UI.modo = 'guerra'; else if (t === 'city') UI.modo = 'gobierno'; $('hoja').hidden = true; $('popsheet').hidden = true; $('citymenu').hidden = true;
   const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D (o en lista si se prefiere)
   $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3;
   if (c3) UI.cityV.resize();
   if (t === 'map') renderSheet(); else { $('sheet').hidden = true; $('view').scrollTop = 0; render(); }
+  hudDock();
 }
-function cityChips() {
-  const my = G.myCities(); if (!my.includes(UI.city)) UI.city = my[0] || 'roma';
-  return '<div class="chips">' + my.map(id => '<button class="chip ' + (id === UI.city ? 'on' : '') + '" data-act="city" data-v="' + id + '">' + D.CITIES[id].n + (S().hero.city === id ? ' ' + D.GUERRA_ICON.aguila : '') + '</button>').join('') + '</div>';
+function setModo(m) { UI.modo = m; UI.codice = null; setTab(m === 'guerra' ? 'map' : 'city'); }
+function cityChips() { cityOk(); return ''; }      // el selector de ciudad ya no son fichas fijas: es el desplegable de arriba
+function hojaHtml() {
+  const g = UI.modo !== 'guerra', on = (m, c) => (UI.tab === 'city' || UI.tab === 'map' || UI.tab === 'army') && (m === 'g' ? g : !g) ? ' ' + c : '';
+  return '<button class="oro' + on('g', 'on') + '" data-act="modo" data-v="gobierno">' + ICO_GOB + ' Gobierno</button><button class="rojo' + on('w', 'on') + '" data-act="modo" data-v="guerra">' + D.GUERRA_ICON.espadas + ' Guerra</button>' +
+    '<button data-act="tab" data-v="hero">' + D.GUERRA_ICON.aguila + ' General</button><button data-act="tab" data-v="log">📜 Crónica</button><div class="dos"><button data-act="ayuda">❓ Ayuda</button><button data-act="menu">⚙️ Menú</button></div>';
 }
+function cityMenuHtml() {
+  const s = S(); cityOk();
+  return G.myCities().map(id => '<button class="' + (id === UI.city ? 'on' : '') + '" data-act="city" data-v="' + id + '">' + D.CITIES[id].n + (s.hero.city === id ? ' ' + D.GUERRA_ICON.aguila : '') + '<small>' + Math.floor(s.cities[id].pop) + ' hab.</small></button>').join('');
+}
+function renderPop() { const ps = $('popsheet'); if (ps.hidden) return; ps.innerHTML = '<div class="tt">' + D.CITIES[cityOk()].n + '</div>' + popHtml(S().cities[UI.city]) + '<div class="acts"><button class="btn" data-act="popx">Cerrar</button></div>'; }
 function render() {
   UI.dirty = false;
-  if (!S()) return; if (UI.tab === 'map') { renderSheet(); return; }
+  if (!S()) return; renderPop(); if (UI.tab === 'map') { renderSheet(); return; }
   if (UI.tab === 'city' && UI.cityV && !UI.cityList) { renderCity3D(); tickUI(); return; }
   const v = $('view'), st = v.scrollTop;
   v.innerHTML = UI.tab === 'city' ? viewCity() : UI.tab === 'army' ? viewArmy() : UI.tab === 'hero' ? viewHero() : viewLog();
@@ -248,9 +276,9 @@ function viewCity() {
 }
 function renderCity3D() {
   const s = S(), c = s.cities[UI.city];
-  $('ctop').innerHTML = cityChips().replace('</div>', '<button class="chip" data-act="clist">☰ Lista</button></div>') + '<div class="chips views"><button class="chip" data-act="cview" data-v="ciudad">🏛️ Ciudad</button><button class="chip" data-act="cview" data-v="calle">🚶 Calles</button><button class="chip" data-act="cview" data-v="ejercito">' + D.GUERRA_ICON.espadas + ' Ejército</button><button class="chip" data-act="tab" data-v="map">🗺️ Mapa</button></div>';
-  $('csheet').innerHTML = '<div class="cpop">' + popHtml(c) + '</div>' + (UI.bsel ? buildCard(c, UI.bsel) + (UI.bsel === 'mercado' ? marketHtml() : '') + (UI.bsel === 'herreria' ? forjaHtml(c) : '') + '<div class="empty" style="background:var(--glass);border-radius:12px;margin-top:6px;padding:8px 12px">' + D.BUILD[UI.bsel].d + '</div>'
-    : '<div class="empty" style="background:var(--glass);border-radius:12px;padding:10px 12px;text-align:center">Toca un edificio para construirlo o mejorarlo · arrastra para girar la ciudad</div>');
+  $('ctop').innerHTML = '<button class="rd" data-act="cview" data-v="ciudad" title="Ver la ciudad entera">🏛️</button><button class="rd" data-act="cview" data-v="calle" title="Recorrer las calles">🚶</button><button class="rd" data-act="cview" data-v="ejercito" title="Ver las tropas">' + D.GUERRA_ICON.espadas + '</button><button class="rd" data-act="clist" title="Ver la ciudad en lista">☰</button><button class="rd" data-act="modo" data-v="guerra" title="Ir al mapa">🗺️</button>';
+  $('csheet').innerHTML = (UI.bsel ? buildCard(c, UI.bsel) + (UI.bsel === 'mercado' ? marketHtml() : '') + (UI.bsel === 'herreria' ? forjaHtml(c) : '') + '<div class="empty" style="background:var(--glass);border-radius:12px;margin-top:6px;padding:8px 12px">' + D.BUILD[UI.bsel].d + '</div>'
+    : '');
 }
 const bar = (label, v, max) => '<span>' + label + '</span><u><s style="width:' + Math.min(100, v / max * 100) + '%"></s></u>';
 const avisoMo = (c, n) => { const z = Math.round(G.manoObraDe(c, Math.max(0, (c.pop || 0) - n)) * 100); return z < 100 ? '<div class="ds" style="color:#e0a030">Los campos quedarán al ' + z + ' % (+' + n + ')</div>' : ''; };
@@ -387,8 +415,9 @@ function endBattle(res) {
 /* ---------- acciones ---------- */
 document.addEventListener('click', function (e) {
   const el = e.target.closest('[data-act]');
-  if (!el) { if (e.target.id === 'modal' && !UI.sticky) closeModal(); return; }
+  if (!el) { $('hoja').hidden = true; $('citymenu').hidden = true; $('popsheet').hidden = true; if (e.target.id === 'modal' && !UI.sticky) closeModal(); hudDock(); return; }
   const a = el.dataset.act, v = el.dataset.v, s = S(), B = UI.battle;
+  if (a !== 'menumodo') $('hoja').hidden = true; if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true;
   if (a !== 'derr') UI.derr = null;
   switch (a) {
     case 'fluidez': fijarFluidez(!fluidezOn()); showMenu(); break;
@@ -397,8 +426,16 @@ document.addEventListener('click', function (e) {
     case 'tomenu': G.save(); UI.modalQ = []; closeModal(); stopBattle(); showMenu(); break;
     case 'tab': UI.codice = null; setTab(v); break;
     case 'codice': UI.codice = v || null; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;
-    case 'speed': s.speed = +v; tickUI(); break;
-    case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; render(); break;
+    case 'speed': s.speed = v === 'next' ? ({ 1: 2, 2: 4, 4: 0, 0: 1 }[s.speed] || 1) : +v; tickUI(); break;
+    case 'modo': setModo(v); break;
+    case 'citymenu': { const m = $('citymenu'); m.hidden = !m.hidden; if (!m.hidden) m.innerHTML = cityMenuHtml(); break; }
+    case 'menumodo': { const h = $('hoja'); h.hidden = !h.hidden; if (!h.hidden) h.innerHTML = hojaHtml(); hudDock(); break; }
+    case 'accion': if (UI.modo === 'guerra') setTab('army'); else { UI.cityList = true; setTab('city'); } break;
+    case 'pill': if (UI.modo !== 'guerra') { const ps = $('popsheet'); ps.hidden = !ps.hidden; renderPop(); } break;
+    case 'popx': $('popsheet').hidden = true; break;
+    case 'ayuda': UI.codice = window.CODICE ? 'tropas' : null; setTab('log'); break;
+    case 'menu': G.save(); showMenu(); break;
+    case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; if (UI.tab === 'map' && UI.map) UI.map.center(v); render(); tickUI(); break;
     case 'rep': if (G.reparto(UI.city, el.dataset.r, +el.dataset.d)) render(); break;
     case 'imp': if (G.setImp(UI.city, el.dataset.v)) render(); break;
     case 'ruta': { const q = v.split('>'); if (G.rutaAbrir(q[0], q[1])) { toast('⚖️ Ruta abierta con ' + D.CITIES[q[1]].n + '.'); render(); } else toast(G.rutaPuede(q[0], q[1]) || 'No se puede abrir la ruta.', 'bad'); break; }
