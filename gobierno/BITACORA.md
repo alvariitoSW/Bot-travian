@@ -14,6 +14,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   `fiebres-neutropenias` (se puede ampliar o mejorar), más un cuadro de mando sencillo en un Artifact.
 
 - 11/11/2026 — **Gobierno montado** (G1): equipos, jueces, bitácora, ahorro, exteriores, arte y cuadro de mando. Ver `gobierno/LEEME.md`.
+- 11/11/2026 — **Red**: aprobó añadir al entorno penelope.uchicago.edu, www.perseus.tufts.edu y www.livius.org para cotejar las fuentes.
 - 11/11/2026 — **Historia aprobada**: H1, H2 y H3 (P14 a P16), «pueden abrirse en otros carriles». H1 y H2 en una sesión (`gob/historia`); H3 después, porque depende de H1 y toca el juego.
 - 11/11/2026 — **Repositorio modelo**: dio acceso («sí le doy acceso para comparar y traer lo que falte»). Ya se leyó y de ahí salió el plan socialista de AQVILA.
 - 11/11/2026 — **Ministerio de Adecuación Histórica**: «Lo ideal es montar el ministerio de adecuación histórica y que busque toda la información para las batallas, el lore, la vestimenta, etc., y que el juego sea también para aprender historia». Montado: skill `historia`.
@@ -39,10 +40,19 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 4. **Roma** (B9): ¿te vale con el Tíber y una colina, o quieres colinas dentro de la muralla y lo mismo en otras ciudades?
 
 ## Propuestas por aprobar
+Salen de la auditoría histórica (`gobierno/historia/H1-resumen.md`), que es **provisional**: sus citas aún no se han cotejado con los textos antiguos.
+- P17 **Cotejar la auditoría y las fichas de batalla con los textos antiguos** (H1b y H2b) · 0,1 M Fable + 0,8 M Sonnet · 20 min. Ya se pueden abrir Perseus, LacusCurtius y Livius.org. Sin esto nada de Historia pasa al juego.
+- P18 **Corregir los textos de los hechos** · 0,15 M. Pirro marcha sobre Roma en 280 (no 277); Cannas «según Polibio / según Livio»; el corvus sin atribuir a Duilio; las frases de Arquímedes y Catón, como tradición tardía.
+- P19 **Renombrar dos tropas fuera de época** · 0,1 M. «Vigiles» (son de Augusto) pasa a «Guardia urbana»; «Batallón Sagrado» (desaparece tras 310) pasa a «Ciudadanos de Cartago». No cambia reglas.
+- P20 **Cambiar el general de Cartago en 280** · 0,05 M. Hoy es Asdrúbal el Beotarca, que es de 149-146.
+- P21 **Mapa de 280 con sus dueños reales** · 0,5 M. Agrigento griega, Corinto macedonia, Capua aliada de Roma y «Mamertinos» en Messana. Cambia el equilibrio y las partidas guardadas. La alternativa barata es dejarlo y marcarlo «licencia de juego».
+- P22 **Carthago Nova** (se fundó hacia 228, no existía en 280) · 0,05 M si se deja y se marca «licencia de juego»; 0,6 M si empieza como poblado íbero y pasa a Cartago en 228.
+- P23 **Añadir hechos que faltan** · 0,3 M. Benevento 275, Trasimeno 217, Metauro 207, Ilipa 206, Magnesia 190, Corinto y Cartago 146.
+- P24 **Etiqueta visible «licencia de juego»** en lo inventado para poder jugar · 0,2 M.
 
 ## Encargo en curso (11/11/2026)
 - Las doce tareas del plan están unidas en `ccr-07cfa4be-35ag3l` con los jueces en APTO 12/12. Parte: `gobierno/partes/2026-11-11-union.md`.
-- **Historia** (`gob/historia`): H1 y H2 en marcha en su sesión. Al acabar se une y se abre H3 (Códice).
+- **Historia**: H1 y H2 escritas y unidas (`gobierno/historia/`), pero provisionales: falta cotejar las citas (P17). H3 (Códice) espera a ese cotejo.
 - Siguiente recomendada: **F1b**, partir y empezar la partida corta. Antes, que el usuario lo vea en su móvil.
 
 ## Notas para quien continúe

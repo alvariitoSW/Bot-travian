@@ -63,9 +63,8 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ C3 Diplomacia sencilla (alianzas, tributos) e IA enemiga que también construye.
 
 ## Carril H — Historia (ministerio de Adecuación Histórica)
-- 🔶 H1 Auditoría histórica de lo que ya hay: tropas (armas y vestimenta), las 18 ciudades y los hechos, con fuentes;
-  lista de anacronismos, licencias de juego y cambios propuestos. No cambia el juego.
-- 🔶 H2 Fichas con fuentes de las grandes batallas: Heraclea, Ásculo, Trebia, Trasimeno, Cannas, Zama y Pidna.
+- 🔶 H1 Auditoría histórica escrita (`gobierno/historia/H1-resumen.md`): 10 fallos y 8 cambios propuestos. Provisional: falta cotejar las citas con los textos antiguos.
+- 🔶 H2 Siete fichas de batalla escritas (`gobierno/historia/batallas/`). Provisional: falta el mismo cotejo. Cannas y Zama se podrían jugar con cambios medios; Trebia, Trasimeno y Pidna piden terreno y emboscadas.
 - ⬜ H3 Códice dentro del juego, simple: una pestaña para leer las fichas ya comprobadas. Después de H1.
 
 ## Carril D — Técnica
