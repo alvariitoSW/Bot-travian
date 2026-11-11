@@ -85,6 +85,9 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ L2 **Estandartes y alas** (11/11): moral y cansancio en la tela del estandarte; alas Línea, Reserva, Ligeros y Jinetes con corchete dorado; tocar un ala la elige y la orden va a todos sus regimientos. Pendiente: 20+ regimientos sin medir, estandartes en huida solo en tarjeta.
 - ⬜ L3 **Fantasmas en pausa y cartas de táctica**: deslizador de tiempo con sombras a 10/20/30 s; atajos de testudo, carga, retirada y refuerzo.
 
+## Carril N — Guerra nueva: «planeas y luego miras» (pedido 11/11/2026; diseño `gobierno/estudios/N1-guerra-nueva.md`)
+- 🟡 N1 **Diseño y maqueta jugable** de la guerra nueva: batalla por rondas (plan en pausa, ejecución para los dos), puntos de mando, enemigo con planes; y campaña militar con ejércitos, comida y asedios. Maqueta: `gobierno/maquetas/guerra-nueva.html`. Las tareas N2 a N10 esperan a que el usuario la pruebe; en pausa L3, A1, A2, A6 y A8b.
+
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
 - ✅ E4 Arte propio de termas, acueducto y anfiteatro (11/11/2026): termas y acueducto dibujados desde cero (`tools/propio_static.mjs`, CC BY-SA 3.0, sin texturas nuevas); anfiteatro de Pompeya de 0 A.D. aligerado a 8.483 triángulos y a escala de ciudad (`tools/aligerar_static.mjs`). El arte pasa a 34,0 MB de 35. Parte: `partes/2026-11-11-E4.md`.
