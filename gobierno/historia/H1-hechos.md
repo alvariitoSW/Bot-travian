@@ -130,3 +130,6 @@ Nada de lo siguiente se ha leído en el texto antiguo; se cita de memoria o por 
 - Richardson, artículo en *Classical Quarterly* sobre Carthago Nova (título arriba), visto solo por resumen.
 
 Resúmenes web usados solo como orientación (sin citarlos como fuente): resultados de búsqueda de livius.org, worldhistory.org, historyofwar.org, Perseus (índices).
+
+---
+**Revisión del director (11/11/2026)**: auditoría **provisional**. La red bloqueó los textos antiguos; he repasado 5 datos de memoria de las fuentes, no contra el texto. Coinciden con lo que recuerdo: 280 a.C. = año 474 de Roma; Pirro marcha hacia Roma en 280 y pasa 278-276 en Sicilia (Plutarco, *Pirro* 17 y 22-24); el corvus lo propone «alguien», sin nombre (Polibio 1.22); 2.200 + 1.000 talentos en 241 (Polibio 1.62-63); 50.000 infantes y 20.000 jinetes y carros en Telamón (Polibio 2.23). **Duda**: que el asalto a Carthago Nova durase «dos días». En Polibio 10.12-15, según recuerdo, la ciudad cae el mismo día del asalto, al día siguiente de llegar; queda sin comprobar y no se propone cambiar esa frase del juego.
