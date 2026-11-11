@@ -1,0 +1,111 @@
+@font-face{font-family:Cinzel;font-weight:700;src:url("/assets/fuentes/cinzel-700.woff2") format("woff2")}
+@font-face{font-family:Cinzel;font-weight:400;src:url("/assets/fuentes/cinzel-400.woff2") format("woff2")}
+/* se oculta la interfaz propia del juego */
+#top,#tabs3,#dock,#view,#hoja,#sheet,#ctop,#csheet,#zoom,#popsheet,#toasts,#modal,#citymenu,#citywrap .lbl,#citywrap [class*=label]{display:none!important}
+#mq{--noche:#0b1016;--bronce:#b8862b;--oro:#e9c063;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a;--rojo:#c0281f;
+ --piedra-t:rgba(16,19,24,.80);--fil:rgba(184,134,43,.75);
+ --greca:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><path d='M0 7.2h4.5V2.8h6.5v4.4h5' fill='none' stroke='%23b8862b' stroke-width='1.2'/></svg>");
+ position:fixed;inset:0;z-index:50;pointer-events:none;font:14px/1.25 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--marmol);overflow:clip;font-variant-numeric:tabular-nums}
+#mq *{box-sizing:border-box;margin:0}
+#mq .cz{font-family:Cinzel,"Trajan Pro",Georgia,serif;font-weight:700;letter-spacing:.07em}
+#mq svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#mq .vel{position:absolute;inset:0;background:radial-gradient(90% 60% at 50% 45%,rgba(8,10,14,.35),rgba(8,10,14,.62));opacity:0}
+#mq.s4 .vel{opacity:1}
+#mq.s2 .vel,#mq.s3 .vel{opacity:1;background:linear-gradient(transparent 28%,rgba(8,10,14,.45) 60%,rgba(8,10,14,.7))}
+/* franja superior */
+#mq .top{position:absolute;left:8px;right:8px;top:8px;padding:6px 8px 7px;border-radius:10px;background:linear-gradient(rgba(20,16,10,.84),rgba(14,13,12,.74));backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border:1px solid var(--fil);box-shadow:inset 0 0 0 3px rgba(11,16,22,.55),inset 0 0 0 4px rgba(184,134,43,.22),0 6px 16px rgba(0,0,0,.45)}
+#mq .top h1{font-size:14px;color:var(--oro);display:flex;justify-content:space-between;align-items:baseline;padding:0 2px 4px;border-bottom:8px solid transparent;border-image:var(--greca) 0 0 8 0 repeat;border-image-width:0 0 8px 0;height:25px}
+#mq .top h1 span{font:400 13px system-ui;letter-spacing:0;color:var(--piedra)}
+#mq .rec{display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin-top:2px}
+#mq .rec div{display:flex;flex-direction:column;align-items:center;gap:0;font-size:13px;font-weight:600}
+#mq .rec .r1{display:flex;flex-direction:row;align-items:center;gap:3px}
+#mq .rec svg{width:17px;height:17px;color:var(--bronce)}
+#mq .rec small{font-size:13px;font-weight:700;line-height:1.1}
+.pos{color:var(--oliva)}.neg{color:var(--terra)}
+/* medallas */
+#mq .med{position:absolute;width:40px;height:40px;margin:-20px 0 0 -20px;border-radius:50%;display:grid;place-items:center;color:#2a1a08;background:radial-gradient(circle at 35% 28%,#f3d98f,#b8862b 62%,#7c5518);border:2px solid #e9c063;box-shadow:0 3px 7px rgba(0,0,0,.6),inset 0 -2px 3px rgba(80,45,5,.45),inset 0 1px 1px rgba(255,255,255,.55)}
+#mq .med svg{width:22px;height:22px;stroke-width:1.9}
+#mq .med b{position:absolute;bottom:-9px;left:50%;transform:translateX(-50%);min-width:26px;height:18px;padding:0 5px;border-radius:9px;background:var(--noche);color:var(--oro);font:700 13px/16px Cinzel,Georgia,serif;text-align:center;border:1px solid var(--bronce)}
+#mq .med.alerta::after{content:"!";position:absolute;right:-7px;top:-7px;width:19px;height:19px;border-radius:50%;background:var(--rojo);border:1.5px solid #f1ead9;color:#fff;font:700 12px/16px system-ui;text-align:center}
+/* ficha */
+#mq .ficha{position:absolute;left:8px;right:8px;border-radius:12px;background:linear-gradient(rgba(26,21,15,.88),rgba(13,14,16,.88));backdrop-filter:blur(14px) saturate(1.1);-webkit-backdrop-filter:blur(14px) saturate(1.1);border:1px solid var(--fil);box-shadow:inset 0 0 0 3px rgba(11,16,22,.5),inset 0 0 0 4px rgba(184,134,43,.22),0 -8px 28px rgba(0,0,0,.5);padding:11px 12px 12px}
+#mq .ficha h2{font-size:15px;color:var(--oro);display:flex;align-items:center;justify-content:space-between;gap:8px;padding-bottom:7px;margin-bottom:7px;border-bottom:1px solid rgba(184,134,43,.4)}
+#mq .x{width:28px;height:28px;border-radius:50%;border:1px solid var(--fil);display:grid;place-items:center;color:var(--bronce);flex:none}
+#mq .x svg{width:14px;height:14px}
+#mq .sec{font:700 12px Cinzel,Georgia,serif;letter-spacing:.1em;color:var(--bronce);margin:8px 0 4px;display:flex;justify-content:space-between;align-items:center;text-transform:uppercase}
+/* barrio */
+#mq .barrio{bottom:86px}
+#mq .barrio .l1{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+#mq .barrio .l1 span{font:400 13px system-ui;color:var(--piedra);letter-spacing:0}
+#mq .serv{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+#mq .serv div{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:13px;color:var(--piedra)}
+#mq .serv i{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1.5px solid rgba(154,166,180,.35);background:rgba(154,166,180,.08);color:rgba(154,166,180,.55)}
+#mq .serv .si i{color:var(--oro);border-color:var(--bronce);background:radial-gradient(circle at 40% 30%,rgba(233,192,99,.28),rgba(184,134,43,.1))}
+#mq .serv .si{color:var(--marmol)}
+#mq .serv .no i{border-style:dashed}
+#mq .falta{margin-top:9px;padding:6px 9px;border-radius:7px;background:rgba(217,118,74,.12);border:1px solid rgba(217,118,74,.45);font-size:13px;color:#f0b497;display:flex;gap:7px;align-items:center}
+#mq .falta svg{color:var(--terra);width:18px;height:18px}
+#mq .falta b{color:var(--marmol)}
+/* botones redondos */
+#mq .btns{position:absolute;left:0;right:0;bottom:14px;display:flex;justify-content:center;gap:34px}
+#mq .btns div{display:flex;flex-direction:column;align-items:center;gap:4px;font:700 12px Cinzel,Georgia,serif;letter-spacing:.08em;color:var(--marmol);text-transform:uppercase;text-shadow:0 1px 3px #000}
+#mq .btns i{width:54px;height:54px;border-radius:50%;display:grid;place-items:center;color:var(--oro);background:radial-gradient(circle at 35% 28%,rgba(70,50,22,.95),rgba(20,15,10,.95));border:2px solid var(--bronce);box-shadow:0 4px 12px rgba(0,0,0,.6),inset 0 0 0 3px rgba(11,16,22,.6),inset 0 0 0 4px rgba(184,134,43,.3)}
+#mq .btns svg{width:26px;height:26px}
+#mq .btns .on i{background:radial-gradient(circle at 35% 28%,#d6a447,#8c6218);color:#1c1206;border-color:var(--oro)}
+/* barras */
+#mq .bar{height:9px;border-radius:5px;background:rgba(0,0,0,.5);border:1px solid rgba(184,134,43,.35);display:flex;overflow:clip}
+#mq .bar .c{background:linear-gradient(#a9772a,#7c5518)}#mq .bar .q{background:linear-gradient(#a2c068,#6f8c3a)}#mq .bar .p{background:linear-gradient(#e68a5c,#b4502a)}
+#mq .bar .v{background:linear-gradient(#e9c063,#b8862b)}
+/* cuentas */
+#mq .cuentas{bottom:8px}
+#mq .chip{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 9px;border-radius:13px;font:600 13px system-ui;letter-spacing:0;border:1px solid var(--fil);color:var(--marmol);background:rgba(184,134,43,.12)}
+#mq .chip.on{background:linear-gradient(#d6a447,#9a6c1d);color:#1c1206;border-color:var(--oro)}
+#mq .chip.v{color:#c4dd96;border-color:rgba(143,174,90,.7);background:rgba(143,174,90,.14)}
+#mq .chip.r{color:#f0b497;border-color:rgba(217,118,74,.75);background:rgba(217,118,74,.14)}
+#mq .tasa{display:flex;gap:5px;align-items:center}
+#mq .mrow{display:grid;grid-template-columns:22px 1fr 92px;gap:3px 8px;align-items:center;padding:4px 0;border-bottom:1px solid rgba(184,134,43,.15)}
+#mq .mrow>svg{color:var(--bronce);width:22px;height:22px}
+#mq .mrow .n{display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px}
+#mq .mrow .n b{font-weight:700}#mq .mrow .n span{color:var(--piedra)}
+#mq .mrow .a{text-align:right;font-size:13px;line-height:1.15}
+#mq .mrow .a b{display:block;font-size:15px}
+#mq .mrow .a small{display:block;color:var(--piedra);font-size:12px}
+#mq .mrow .w{grid-column:1/-1;font-size:13px;color:#f0b497;background:rgba(217,118,74,.12);border-radius:6px;padding:3px 8px;display:flex;gap:6px;align-items:center}
+#mq .mrow .w svg{width:15px;height:15px;color:var(--terra)}
+#mq .oro2{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
+#mq .ln{display:flex;justify-content:space-between;font-size:13px;padding:2px 0}
+#mq .ln span{color:var(--piedra)}
+#mq .tot{display:flex;justify-content:space-between;align-items:center;margin-top:7px;padding:7px 10px;border-radius:8px;background:rgba(233,192,99,.1);border:1px solid var(--fil);font-size:14px}
+#mq .tot b{font:700 18px Cinzel,Georgia,serif;color:var(--oro)}
+/* senado */
+#mq .senado{bottom:8px;overflow:clip}
+#mq .fav{display:grid;grid-template-columns:78px 1fr 34px;gap:8px;align-items:center;font-size:13px;margin:4px 0}
+#mq .fav b{text-align:right}
+#mq .clase{display:grid;grid-template-columns:30px 1fr auto;gap:2px 9px;align-items:center;padding:5px 0;border-bottom:1px solid rgba(184,134,43,.15)}
+#mq .clase>svg{color:var(--bronce);width:26px;height:26px}
+#mq .clase .n{font-size:14px}#mq .clase .n small{color:var(--piedra);font-size:13px;margin-left:4px}
+#mq .clase .pide{font-size:13px;color:var(--piedra);grid-column:2/4;display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+#mq .cara{font-size:13px;font-weight:700}
+#mq .mis{padding:8px 10px;border-radius:8px;background:linear-gradient(rgba(233,192,99,.13),rgba(233,192,99,.05));border:1px solid var(--fil);font-size:14px}
+#mq .mis .pl{display:flex;justify-content:space-between;margin-top:5px;font-size:13px;color:var(--piedra)}
+#mq .mis .pl b{color:var(--oro);font-weight:600}
+#mq .dec{padding:8px 10px;border-radius:8px;background:rgba(255,255,255,.04);border:1px solid rgba(184,134,43,.4)}
+#mq .dec .chips{display:flex;flex-wrap:wrap;gap:5px;margin:6px 0 8px}
+#mq .acc{display:flex;gap:8px}
+#mq .btn{flex:1;height:36px;border-radius:7px;display:grid;place-items:center;font:600 14px system-ui;border:1px solid var(--fil);color:var(--marmol)}
+#mq .btn.p{background:linear-gradient(#cf3a2c,#9c1f17);border-color:var(--oro);box-shadow:inset 0 1px 0 rgba(255,255,255,.25),0 2px 6px rgba(0,0,0,.5)}
+/* fin de mes */
+#mq .fin{left:14px;right:14px;top:84px;padding:13px 14px 14px}
+#mq .fin h2{justify-content:center;font-size:19px;border:0;padding-bottom:0;margin-bottom:0}
+#mq .fin .sub{text-align:center;color:var(--piedra);font-size:13px;margin:2px 0 9px;padding-bottom:9px;border-bottom:8px solid transparent;border-image:var(--greca) 0 0 8 0 repeat;border-image-width:0 0 8px 0}
+#mq .frow{display:grid;grid-template-columns:20px 54px 1fr 74px;gap:7px;align-items:center;padding:4px 0;font-size:13px}
+#mq .frow>svg{color:var(--bronce);width:20px;height:20px}
+#mq .frow .t{text-align:right;line-height:1.15}#mq .frow .t b{display:block;font-size:14px}
+#mq .tope{position:relative}
+#mq .tope::after{content:"";position:absolute;right:-1px;top:-3px;bottom:-3px;width:2px;background:var(--oro)}
+#mq .ev{margin-top:9px;padding:8px 10px;border-radius:8px;background:rgba(143,174,90,.1);border:1px solid rgba(143,174,90,.45);font-size:13px;display:flex;gap:8px;align-items:center}
+#mq .ev svg{color:var(--oliva);width:22px;height:22px}
+#mq .fin .btn{margin-top:12px;height:44px;font:700 14px Cinzel,Georgia,serif;letter-spacing:.08em;width:100%}
+
+/* la ciudad sube para quedar sobre la ficha */
+#citywrap{transition:none!important}

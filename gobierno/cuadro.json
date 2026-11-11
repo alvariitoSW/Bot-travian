@@ -459,6 +459,26 @@
    "archivo": "gobierno/capturas-tarea/N1b-informe.jpg",
    "pie": "Guerra nueva: lo que pasó en la ronda",
    "ancha": true
+  },
+  {
+   "tarea": "Q1",
+   "archivo": "gobierno/capturas-tarea/Q1-1-ciudad.jpg",
+   "pie": "Ciudad nueva: saldo del mes y nivel de barrio"
+  },
+  {
+   "tarea": "Q1",
+   "archivo": "gobierno/capturas-tarea/Q1-2-cuentas.jpg",
+   "pie": "Cuentas del mes: lo que entra, lo comprometido, lo que se pierde"
+  },
+  {
+   "tarea": "Q1",
+   "archivo": "gobierno/capturas-tarea/Q1-3-senado.jpg",
+   "pie": "Senado y pueblo: clases, misión y decisión con chips"
+  },
+  {
+   "tarea": "Q1",
+   "archivo": "gobierno/capturas-tarea/Q1-4-fin-de-mes.jpg",
+   "pie": "Cierre del mes: lo que sobra va al almacén hasta el tope"
   }
  ],
  "informes": [
@@ -533,6 +553,10 @@
   {
    "titulo": "N1b · Guerra ampliada",
    "archivo": "gobierno/estudios/N1b-guerra-ampliada.md"
+  },
+  {
+   "titulo": "Q1 · Ciudad, gobierno y economía",
+   "archivo": "gobierno/estudios/Q1-ciudad-gobierno-economia.md"
   }
  ]
 }
