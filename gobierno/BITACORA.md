@@ -1,7 +1,7 @@
 # Bitácora de AQVILA
 
 Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya definidas están en `TABLERO.md`.
-Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero.
+Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
 - 11/11/2026 — Dos sistemas separados: ciudad/economía propia (recursos, mercado, mar) y guerra tipo Rome 2 Total War.
@@ -13,6 +13,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero.
 - 11/11/2026 — **Cerrar la sesión larga** y trabajar por sesiones cortas con un gobierno reducido, adaptado de
   `fiebres-neutropenias` (se puede ampliar o mejorar), más un cuadro de mando sencillo en un Artifact.
 
+- 11/11/2026 — **Gobierno montado** (G1): equipos, jueces, bitácora, ahorro, exteriores, arte y cuadro de mando. Ver `gobierno/LEEME.md`.
 - 11/11/2026 — **GitHub Pages activado** por el usuario (rama de trabajo, raíz): https://alvariitosw.github.io/Bot-travian/
 - 11/11/2026 — **Permiso para instalar Godot**, dado por el usuario en el chat. (Si el sistema de permisos vuelve a
   bloquear la descarga, hace falta además una regla de permiso para Bash en la configuración.)
@@ -25,24 +26,20 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero.
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-1. Que diga si el enlace carga y cómo va de fluido en su móvil, y lo que quiera cambiar al probarlo.
+1. Que diga si el enlace del juego carga y cómo va de fluido en su móvil, y lo que quiera cambiar al probarlo.
+2. **Rama**: el gobierno (G1) se guardó en la rama `ccr-07cfa4be-35ag3l`, la que asignó la sesión. La página del juego
+   se publica desde `claude/roman-strategy-mobile-game-bx9oq2`. ¿Se unen las dos, o se cambia la rama de trabajo?
+3. **Repositorio modelo**: la sesión G1 no tuvo permiso para leer `alvariitoSW/fiebres-neutropenias`. El gobierno se
+   montó solo con el encargo escrito. ¿Quiere dar acceso para compararlo y traer lo que falte?
 
-## Encargo de la próxima sesión (G1): montar el gobierno
-Única tarea. No tocar el juego. Leer `CLAUDE.md`, este archivo y `TABLERO.md`; como modelo, el repositorio
-`alvariitoSW/fiebres-neutropenias` (`.claude/skills/`, `.claude/agents/`, `autonomo/REGLAS.md`, `autonomo/LEEME.md`).
-Traer **adaptado y reducido**, no copiado:
-- **Plan por equipos** (skill tipo `plan-socialista`): el director reparte una tarea del tablero a constructor,
-  verificador (capturas a 390 px) y revisor de código; rama y parte de sesión.
-- **Jueces**: un solo comando (`node gobierno/jueces.mjs`) que pase `test/sim.test.js`, el recorrido en navegador
-  (nueva partida, construir, reclutar, atacar, batalla, recarga sin red) y deje las capturas.
-- **Bitácora** (skill): apuntar lo que pide el usuario, aprobar al tablero, informe «¿a dónde vamos?».
-- **Ahorro**: revisar el gasto de cada tanda y proponer recortes.
-- **Exteriores**: `ingenieria-reversa` y `radar`, adaptadas a juegos (ideas sí, código y arte no).
-- **Arte** (ministerio nuevo): dueño de `tools/`, las licencias y el presupuesto de peso y triángulos.
-- **Cuadro de mando**: un Artifact sencillo para el móvil con el estado del juego (carriles y tareas del tablero, lo
-  que espera al usuario, últimas capturas, enlace al juego) y botones para aprobar, priorizar o pedir cambios; lo que
-  el usuario pulse se guarda y una sesión lo aplica al tablero y a la bitácora.
-Al terminar: reglas en `CLAUDE.md`, un parte breve, commit y push. Lo que el usuario deba decidir, a esta bitácora.
+## Propuestas por aprobar
+- P1 Presupuesto de arte hasta medir en un móvil real: 35 MB de descarga, 4.500 triángulos por soldado y 12.000 por
+  edificio. Hoy el juego usa 30,4 MB, 4.150 y 10.740. Está puesto como provisional en `gobierno/arte.json`.
+
+## Encargo de la próxima sesión
+Sin encargo fijado: lo elige el usuario con «Hacer la siguiente» en el cuadro de mando o en el chat.
+Recomendación: **F1** (propuesta de diseño de los modos de juego), porque condiciona los carriles B y F.
+Antes de empezar: skill `plan-equipos`, que primero aplica los pedidos del cuadro.
 
 ## Notas para quien continúe
 - El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.

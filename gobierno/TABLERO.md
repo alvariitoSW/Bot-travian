@@ -68,8 +68,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ D2 Niveles de detalle para soldados lejanos; comprimir animaciones.
 - ⬜ D3 Motor nativo (Godot): el usuario ha dado permiso para instalarlo (11/11/2026). Reaprovecha `assets/`.
 - ✅ D4 Publicado en GitHub Pages: https://alvariitosw.github.io/Bot-travian/ (falta confirmar en el móvil del usuario).
-- ⬜ D5 Jueces automáticos: un solo comando que pase pruebas de lógica + recorrido en navegador + capturas.
+- ✅ D5 Jueces automáticos: `node gobierno/jueces.mjs` (lógica + recorrido en navegador + capturas).
 
 ## Gobierno
-- ⬜ G1 **Siguiente sesión, única tarea**: montar el gobierno reducido y el cuadro de mando. Encargo completo en
-  `BITACORA.md`. Aprobado por el usuario el 11/11/2026.
+- ✅ G1 Gobierno reducido y cuadro de mando montados (11/11/2026). Guía: `gobierno/LEEME.md`.

@@ -1,0 +1,203 @@
+<title>AQVILA · Cuadro de mando</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+/* Disposición: una sola columna para el móvil; arriba lo que espera al usuario, luego carriles plegables y la tira de capturas. */
+:root {
+  --fondo: #f1eff3; --tabla: #fbfafc; --tinta: #231c28; --tenue: #6a6170; --raya: #d9d3de;
+  --purpura: #6d1f52; --sobre-purpura: #fdf7fb; --bronce: #7d5c1e; --bien: #2c6b45; --mal: #a1332b; --aviso: #8a5a00;
+  --rotulo: "Cinzel", "Trajan Pro", Georgia, serif; --texto: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --fondo: #17131a; --tabla: #221b26; --tinta: #ece6ef; --tenue: #a79cae; --raya: #3a3040;
+  --purpura: #e09cc6; --sobre-purpura: #2a0f20; --bronce: #d2ae68; --bien: #7fcf9d; --mal: #f0958c; --aviso: #e6b659; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --fondo: #17131a; --tabla: #221b26; --tinta: #ece6ef; --tenue: #a79cae; --raya: #3a3040;
+  --purpura: #e09cc6; --sobre-purpura: #2a0f20; --bronce: #d2ae68; --bien: #7fcf9d; --mal: #f0958c; --aviso: #e6b659; color-scheme: dark }
+
+body { background: var(--fondo); color: var(--tinta); font: 16px/1.5 var(--texto); }
+.hoja { max-width: 680px; margin: 0 auto; padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 28px; }
+h1, h2 { font-family: var(--rotulo); font-weight: 700; letter-spacing: .04em; margin: 0; text-wrap: balance; }
+h1 { font-size: 30px; line-height: 1.1; }
+h2 { font-size: 15px; color: var(--bronce); letter-spacing: .12em; text-transform: uppercase; }
+p { margin: 0; }
+b { font-weight: 600; }
+code { font-size: .88em; background: var(--raya); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+a { color: var(--purpura); }
+:focus-visible { outline: 2px solid var(--purpura); outline-offset: 2px; }
+
+.cabeza { display: flex; flex-direction: column; gap: 12px; border-bottom: 2px solid var(--tinta); padding-bottom: 18px; }
+.cabeza .sub { color: var(--tenue); font-size: 14px; }
+.fila { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.veredicto { font-weight: 600; font-size: 14px; padding: 5px 12px; border-radius: 999px; border: 1.5px solid currentColor; }
+.veredicto.ok { color: var(--bien); } .veredicto.no { color: var(--mal); } .veredicto.nada { color: var(--tenue); }
+
+.boton { font: 600 15px var(--texto); min-height: 44px; padding: 8px 16px; border-radius: 8px; border: 1.5px solid var(--purpura); background: transparent; color: var(--purpura); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+.boton.lleno { background: var(--purpura); color: var(--sobre-purpura); }
+.boton[disabled] { opacity: .45; cursor: default; }
+.boton.fino { min-height: 36px; padding: 4px 12px; font-size: 14px; border-color: var(--raya); color: var(--tenue); }
+
+section { display: flex; flex-direction: column; gap: 12px; }
+.nota { color: var(--tenue); font-size: 14px; }
+.lista { display: flex; flex-direction: column; gap: 10px; list-style: none; margin: 0; padding: 0; }
+.ficha { background: var(--tabla); border: 1px solid var(--raya); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.ficha .quien { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); }
+textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min-height: 76px; padding: 10px; border-radius: 8px; border: 1.5px solid var(--raya); background: var(--fondo); color: var(--tinta); resize: vertical; }
+
+.carril { border-top: 1px solid var(--raya); }
+.carril > summary, .tarea > summary { list-style: none; cursor: pointer; }
+.carril > summary::-webkit-details-marker, .tarea > summary::-webkit-details-marker { display: none; }
+.carril > summary { display: flex; align-items: baseline; gap: 10px; padding: 14px 0; }
+.carril > summary .letra { font: 700 22px var(--rotulo); color: var(--purpura); width: 26px; flex: none; }
+.carril > summary .nombre { font-weight: 600; flex: 1; min-width: 0; }
+.carril > summary .cuenta { font-size: 13px; color: var(--tenue); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.carril > summary::after { content: "＋"; color: var(--tenue); } .carril[open] > summary::after { content: "－"; }
+.carril .tareas { display: flex; flex-direction: column; padding: 0 0 14px 36px; }
+.tarea { border-top: 1px dashed var(--raya); }
+.tarea > summary { display: flex; gap: 10px; align-items: baseline; padding: 11px 0; }
+.tarea .id { font: 600 13px var(--texto); font-variant-numeric: tabular-nums; color: var(--tenue); width: 28px; flex: none; }
+.tarea .que { flex: 1; min-width: 0; }
+.estado { font-size: 12px; font-weight: 600; white-space: nowrap; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.estado.pend { color: var(--tenue); } .estado.medias { color: var(--aviso); } .estado.hecho { color: var(--bien); } .estado.pedido { color: var(--purpura); }
+.tarea.hecha .que { color: var(--tenue); }
+.tarea .cuerpo { display: flex; flex-direction: column; gap: 12px; padding: 0 0 16px 38px; font-size: 15px; }
+.cambio { display: flex; flex-direction: column; gap: 8px; }
+
+.tira { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; }
+.tira figure { margin: 0; flex: none; display: flex; flex-direction: column; gap: 6px; scroll-snap-align: start; max-width: 78vw; }
+.tira img { height: 340px; width: auto; max-width: none; border-radius: 8px; border: 1px solid var(--raya); display: block; }
+.tira figure.ancha img { height: 170px; }
+.tira figcaption { font-size: 13px; color: var(--tenue); max-width: 220px; }
+.tira figcaption b { color: var(--tinta); display: block; }
+.tira .mal b { color: var(--mal); }
+
+.hechos { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
+.hechos li { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--tabla); border: 1px solid var(--raya); }
+#aviso { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--tinta); color: var(--fondo); text-align: center; font-weight: 500; z-index: 5; }
+@media (prefers-reduced-motion: no-preference) { .boton { transition: background .15s, color .15s; } }
+</style>
+
+<div class="hoja">
+  <header class="cabeza">
+    <h1>AQVILA</h1>
+    <p class="sub">Cuadro de mando · actualizado el {{FECHA}}</p>
+    <div class="fila">
+      <a class="boton lleno" href="{{JUEGO}}" target="_blank" rel="noopener">Jugar ahora</a>
+      <span class="veredicto {{VEREDICTO_CLASE}}">{{VEREDICTO}}</span>
+    </div>
+  </header>
+
+  <section aria-labelledby="t-espera">
+    <h2 id="t-espera">Espera algo tuyo</h2>
+    <ul class="lista">{{ESPERA}}</ul>
+  </section>
+
+  <section aria-labelledby="t-prop">
+    <h2 id="t-prop">Propuestas por aprobar</h2>
+    <ul class="lista">{{PROPUESTAS}}</ul>
+  </section>
+
+  <section aria-labelledby="t-pedidos">
+    <h2 id="t-pedidos">Tus pedidos</h2>
+    <p class="nota" id="pedidos-nota">Lo que pulses aquí queda guardado. La siguiente sesión de trabajo lo pasa al tablero y a la bitácora.</p>
+    <ul class="lista" id="pedidos"><li class="nota" id="pedidos-vacio">Aún no has pedido nada. Abre una tarea y pulsa un botón, o escribe abajo.</li></ul>
+    <div class="ficha">
+      <label class="quien" for="nuevo-texto">Pedir algo nuevo</label>
+      <textarea id="nuevo-texto" placeholder="Por ejemplo: quiero que los barcos se vean en el puerto"></textarea>
+      <div class="fila"><button class="boton lleno" data-pedir="nuevo" data-texto="nuevo-texto">Enviar pedido</button></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="t-tablero">
+    <h2 id="t-tablero">Tablero</h2>
+    <p class="nota">{{RESUMEN}} Toca un carril para ver sus tareas, y una tarea para priorizarla o pedir un cambio.</p>
+    <div>{{CARRILES}}</div>
+  </section>
+
+  <section aria-labelledby="t-capturas">
+    <h2 id="t-capturas">Últimas capturas</h2>
+    <p class="nota">{{CAPTURAS_NOTA}}</p>
+    <div class="tira">{{CAPTURAS}}</div>
+  </section>
+
+  <section aria-labelledby="t-hecho">
+    <h2 id="t-hecho">Ya está hecho</h2>
+    <ul class="hechos">{{HECHOS}}</ul>
+  </section>
+</div>
+<div id="aviso" role="status" hidden></div>
+
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var db = null, avisoT = 0;
+  var ROTULO = { priorizar: 'Hacer la siguiente', cambio: 'Cambio pedido', aprobar: 'Aprobada', rechazar: 'Rechazada', nuevo: 'Pedido nuevo', respuesta: 'Tu respuesta' };
+
+  function aviso(txt) { var a = $('aviso'); a.textContent = txt; a.hidden = false; clearTimeout(avisoT); avisoT = setTimeout(function () { a.hidden = true; }, 3500); }
+  function apagar(motivo) {
+    document.querySelectorAll('[data-pedir]').forEach(function (b) { b.disabled = true; });
+    $('pedidos-nota').textContent = motivo;
+  }
+
+  function pintar(docs) {
+    var ul = $('pedidos'), vacio = $('pedidos-vacio');
+    ul.querySelectorAll('li.ficha').forEach(function (li) { li.remove(); });
+    document.querySelectorAll('.estado.pedido').forEach(function (e) { e.remove(); });
+    var filas = docs.map(function (d) { var x = d.data() || {}; x.id = d.id; return x; })
+      .sort(function (a, b) { return String(b.creado || '').localeCompare(String(a.creado || '')); });
+    var pendientes = filas.filter(function (x) { return x.estado !== 'aplicado'; });
+    var aplicados = filas.filter(function (x) { return x.estado === 'aplicado'; }).slice(0, 5);
+    vacio.hidden = pendientes.length + aplicados.length > 0;
+    pendientes.concat(aplicados).forEach(function (x) {
+      var li = document.createElement('li'); li.className = 'ficha';
+      var q = document.createElement('span'); q.className = 'quien';
+      q.textContent = (ROTULO[x.tipo] || 'Pedido') + (x.ref ? ' · ' + x.ref : '') + (x.estado === 'aplicado' ? ' · aplicado' : ' · pendiente');
+      li.appendChild(q);
+      if (x.texto) { var p = document.createElement('p'); p.textContent = x.texto; li.appendChild(p); }
+      if (x.nota) { var n = document.createElement('p'); n.className = 'nota'; n.textContent = x.nota; li.appendChild(n); }
+      if (x.estado !== 'aplicado') {
+        var f = document.createElement('div'); f.className = 'fila';
+        var b = document.createElement('button'); b.className = 'boton fino'; b.textContent = 'Deshacer'; b.dataset.deshacer = x.id;
+        f.appendChild(b); li.appendChild(f);
+        var s = x.ref && document.querySelector('[data-ref="' + x.ref + '"] > summary');
+        if (s && !s.querySelector('.estado.pedido')) { var e = document.createElement('span'); e.className = 'estado pedido'; e.textContent = 'pedido'; s.appendChild(e); }
+      }
+      ul.appendChild(li);
+    });
+  }
+
+  function pedir(b) {
+    var tipo = b.dataset.pedir, ref = b.dataset.ref || '', caja = b.dataset.texto ? $(b.dataset.texto) : null, texto = caja ? caja.value.trim() : '';
+    if (caja && !texto) { aviso('Escribe primero lo que quieres.'); caja.focus(); return; }
+    var doc = { tipo: tipo, ref: ref, texto: texto, titulo: b.dataset.titulo || '', creado: new Date().toISOString(), estado: 'pendiente' };
+    var col = db.collection('pedidos');
+    // priorizar, aprobar y rechazar son únicos por tarea: repetirlo no duplica
+    var unico = tipo === 'priorizar' || tipo === 'aprobar' || tipo === 'rechazar';
+    var destino = unico ? col.doc((tipo === 'priorizar' ? 'priorizar-' : 'decision-') + ref) : col.doc();
+    b.disabled = true;
+    destino.set(doc).then(function () { aviso('Apuntado. La próxima sesión lo aplica.'); if (caja) caja.value = ''; })
+      .catch(function (e) { aviso(e && e.code === 'invalid_argument' ? 'No tienes permiso para guardar aquí. Dilo en el chat.' : 'No se pudo guardar. Prueba otra vez.'); })
+      .then(function () { b.disabled = false; });
+  }
+
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('button'); if (!b) return;
+    if (b.dataset.abrir) { var c = $(b.dataset.abrir); c.hidden = !c.hidden; if (!c.hidden) c.querySelector('textarea').focus(); return; }
+    if (!db) return;
+    if (b.dataset.pedir) pedir(b);
+    else if (b.dataset.deshacer) { b.disabled = true; db.collection('pedidos').doc(b.dataset.deshacer).delete().then(function () { aviso('Pedido retirado.'); }, function () { b.disabled = false; aviso('No se pudo retirar.'); }); }
+  });
+
+  var sinUso = 'Aquí no se pueden guardar pedidos (hace falta abrir la página con tu sesión de Claude). Mientras tanto, dilo en el chat.';
+  if (!window.claude || !window.claude.use) { apagar(sinUso); return; }
+  window.claude.use('db').then(function (d) {
+    if (!d) { apagar(sinUso); return; }
+    db = d;
+    var reloj = setTimeout(function () { $('pedidos-nota').textContent = 'No se pueden leer tus pedidos ahora mismo; puede que la lista no esté al día.'; }, 10000);
+    db.collection('pedidos').onSnapshot(function (snap) {
+      if (!snap.metadata.fromCache) { clearTimeout(reloj); $('pedidos-nota').textContent = 'Lo que pulses aquí queda guardado. La siguiente sesión de trabajo lo pasa al tablero y a la bitácora.'; }
+      pintar(snap.docs);
+    }, function () { clearTimeout(reloj); apagar('Se ha perdido la conexión con tus pedidos. Dilo en el chat o vuelve a abrir la página.'); });
+  });
+})();
+</script>

@@ -6,6 +6,7 @@ mapa, más batallas tácticas en 3D que se pueden ver y dirigir. Es una PWA: HTM
 Este archivo son las reglas vigentes, cortas a propósito. Lo pendiente vive en `gobierno/TABLERO.md` (tareas
 aprobadas, por carriles) y `gobierno/BITACORA.md` (decisiones del usuario, lo que espera algo suyo y el encargo de la
 próxima sesión). **Una sesión, una tarea**: al terminar se apunta en el tablero y se cierra.
+Cómo se trabaja cada sesión: §7 (gobierno).
 
 ## 1. Cómo trabaja el usuario
 - Es médico, no programador: explícale en lenguaje llano y enséñale **capturas**; juzga por lo que ve.
@@ -39,8 +40,10 @@ próxima sesión). **Una sesión, una tarea**: al terminar se apunta en el table
 | `tools/` | Conversión de arte de 0 A.D. (ver README) |
 
 ## 4. Cómo probar (obligatorio antes de dar algo por hecho)
+- **Un solo comando: `node gobierno/jueces.mjs`** (unos 3 minutos). Pasa la lógica, recorre el juego en un navegador a
+  390×844 y deja capturas e informe en `gobierno/capturas/`. Debe decir APTO. `--rapido` pasa solo la lógica.
 - `node test/sim.test.js` — batallas, campaña completa con un bot, economía.
-- Servir con `python3 -m http.server` y conducir con Playwright a 390×844 (Chromium con
+- A mano, para lo que el recorrido no cubre: servir con `python3 -m http.server` y conducir con Playwright a 390×844 (Chromium con
   `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader`); esperar ~10 s a que carguen los modelos.
   Comprobar sin errores de consola: nueva partida, construir, reclutar, atacar una ciudad, dirigir la batalla, recargar
   sin red. **Mirar las capturas**: muchos fallos solo se ven (etiquetas, escala, colores).
@@ -49,8 +52,22 @@ próxima sesión). **Una sesión, una tarea**: al terminar se apunta en el table
 - El rendimiento en un móvil real **no está medido** (aquí solo hay render por software).
 
 ## 5. Git
-- Rama de trabajo `claude/roman-strategy-mobile-game-bx9oq2`; commit y push tras cada tanda verificada.
+- Rama de trabajo: la que asigne la sesión; si no asigna ninguna, `claude/roman-strategy-mobile-game-bx9oq2` (desde
+  ella se publica el juego). Commit y push tras cada tanda verificada.
 - No crear PR salvo que el usuario lo pida.
 
 ## 6. Redacción
 Todo en español (interfaz, comentarios, documentos). Frases cortas. Los botones dicen lo que hacen.
+
+## 7. Gobierno (cómo se trabaja cada sesión)
+Guía de una página: `gobierno/LEEME.md`. Lo esencial:
+- **Empezar**: skill `plan-equipos`. Aplica los pedidos del cuadro de mando, elige UNA tarea y la reparte según su
+  tamaño: pequeña, el director solo; media o grande, agentes `constructor`, `verificador` y `revisor`.
+- **Cerrar**: jueces APTO, mirar las capturas, tablero y bitácora al día, parte en `gobierno/partes/`, cuadro
+  publicado, commit y push.
+- **El usuario pide o decide algo**: skill `bitacora`. Nada entra al tablero sin su aprobación.
+- **Arte**: skill `arte` y `node gobierno/arte.mjs` (peso, triángulos, licencias). Presupuesto en `gobierno/arte.json`.
+- **Mirar fuera**: skills `ingenieria-reversa` (una mecánica de otro juego) y `radar` (arte libre, técnica, historia).
+  Ideas sí; código y arte de juegos comerciales, nunca.
+- **Gasto**: cada parte lleva su línea de gasto; la skill `ahorro` la revisa y propone recortes.
+- **Cuadro de mando** (Artifact para el móvil del usuario): dirección en `gobierno/cuadro.json`; skill `cuadro-de-mando`.
