@@ -31,32 +31,32 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 ## Carril B — Ciudad y economía (tipo Travian/Ikariam)
 - ⬜ B1 Recurso especial por ciudad (vino, mármol, plata, caballos…) necesario para niveles altos y tropas de élite.
 - ⬜ B2 Rutas comerciales entre ciudades propias y con aliados; barcos mercantes visibles.
-- ⬜ B3 Felicidad/orden público, impuestos regulables, eventos de ciudad.
-- ⬜ B4 Más edificios (anfiteatro, termas, acueducto, capitolio) y aspecto distinto por nivel.
+- 🔶 B3 Felicidad/orden público, impuestos regulables, eventos de ciudad.
+- 🔶 B4 Más edificios (anfiteatro, termas, acueducto, capitolio) y aspecto distinto por nivel.
 - ⬜ B5 Marina: flotas, batallas navales o bloqueo.
-- ⬜ B6 Ajuste de costes y tiempos con partidas reales (el bot no llega a tomar Cartago).
+- 🔶 B6 Ajuste de costes y tiempos con partidas reales (el bot no llega a tomar Cartago).
 
 - ⬜ B7 **Saqueo**: atacar una ciudad para robar recursos sin conquistarla (botín según almacén y muralla), y que los
   rivales te saqueen; escondite de recursos. Rivales con ciudades que crecen como la tuya («otros jugadores» de la IA).
-- ⬜ B8 Mejoras de materiales (herrería): niveles de armas y armaduras que suben el ataque/defensa de las tropas.
-- ⬜ B9 Ciudad fiel a cada lugar: Roma con sus colinas, el Tíber y la muralla serviana; cada cultura, su trazado.
+- 🔶 B8 Mejoras de materiales (herrería): niveles de armas y armaduras que suben el ataque/defensa de las tropas.
+- 🔶 B9 Ciudad fiel a cada lugar: Roma con sus colinas, el Tíber y la muralla serviana; cada cultura, su trazado.
   (Hoy todas usan el trazado de colonia romana: recinto rectangular, cardo y decumano, foro e ínsulas.)
 
 ## Carril F — Modos de juego (decisión del usuario, 11/11/2026)
-- ⬜ F1 **Propuesta de diseño** antes de construir (una página para el móvil): cómo se mezclan los tres juegos.
+- 🔶 F1 **Propuesta de diseño** antes de construir (una página para el móvil): cómo se mezclan los tres juegos.
   Partida que empieza de cero fundando una ciudad; aldeanos que recolectan y trabajan; edades que desbloquean
   edificios y tropas; un dios con poderes; y dos duraciones a elegir (horas, o semanas/meses) con final.
   Hay que decidir qué pasa con la campaña histórica actual (280–146 a.C.): ¿un modo más, o la base del modo largo?
 - ⬜ F2 Tiempo real que sigue corriendo con el juego cerrado (para la partida de semanas), con tope y resumen al volver.
-- ⬜ F3 Aldeanos: asignarlos a madera, piedra, hierro, grano u obras; verlos trabajar en la ciudad 3D.
+- 🔶 F3 Aldeanos: asignarlos a madera, piedra, hierro, grano u obras; verlos trabajar en la ciudad 3D.
 - ⬜ F4 Edades (p. ej. Monarquía → República temprana → media → tardía) que desbloquean edificios, tropas y mejoras.
 - ⬜ F5 Favor de un dios (Marte, Júpiter, Ceres, Neptuno…): un poder con recarga.
 
 ## Carril E — Arte (sistema coherente con la época)
-- ⬜ E1 Guía de arte: paleta, materiales, tipografía e iconos romanos; sustituir los emojis de la interfaz por iconos
+- 🔶 E1 Guía de arte: paleta, materiales, tipografía e iconos romanos; sustituir los emojis de la interfaz por iconos
   propios; retratos y marcos con estilo de mosaico/fresco.
 - ⬜ E2 Más piezas de 0 A.D. por cultura (edificios, barcos, máquinas de asedio, estandartes) con su crédito.
-- ⬜ E3 Presupuesto de peso y de triángulos por escena.
+- 🔶 E3 Presupuesto de peso y de triángulos por escena.
 
 ## Carril C — Mapa y campaña
 - ⬜ C1 Zoom continuo mapa → ciudad; ejércitos de guarnición visibles junto a cada ciudad.
@@ -64,9 +64,9 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ C3 Diplomacia sencilla (alianzas, tributos) e IA enemiga que también construye.
 
 ## Carril D — Técnica
-- ⬜ D1 Medir rendimiento en un móvil real y fijar presupuestos (triángulos, descarga: hoy ~32 MB de arte).
-- ⬜ D2 Niveles de detalle para soldados lejanos; comprimir animaciones.
-- ⬜ D3 Motor nativo (Godot): el usuario ha dado permiso para instalarlo (11/11/2026). Reaprovecha `assets/`.
+- 🔶 D1 Medir rendimiento en un móvil real y fijar presupuestos (triángulos, descarga: hoy ~32 MB de arte).
+- 🔶 D2 Niveles de detalle para soldados lejanos; comprimir animaciones.
+- 🔶 D3 Motor nativo (Godot): el usuario ha dado permiso para instalarlo (11/11/2026). Reaprovecha `assets/`.
 - ✅ D4 Publicado en GitHub Pages: https://alvariitosw.github.io/Bot-travian/ (falta confirmar en el móvil del usuario).
 - ✅ D5 Jueces automáticos: `node gobierno/jueces.mjs` (lógica + recorrido en navegador + capturas).
 
