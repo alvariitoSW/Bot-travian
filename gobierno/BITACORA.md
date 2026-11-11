@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 11/11/2026 — **Ideas de otros juegos de romanos**: «Quiero sacar ideas para implementar en el videojuego que estoy creando del siguiente vídeo» (Top 10 mejores juegos sobre romanos, El Escocés Gamer; el vídeo no se pudo abrir desde la sesión) y, vistas siete ideas de juegos conocidos: «Me parece bien, hay que sacar más jugo de esas ideas para hacer mejor la ingeniería reversa de esos videojuegos y aplicarlos a la app». (Lectura de Claude: aprueba que se estudien, no que se construyan. Siete estudios R1 a R7 en `gobierno/estudios/` y propuestas P67 a P73, por aprobar. Aprobó también añadir YouTube a la red del entorno.)
 - 11/11/2026 — **Guerra a la vez, «da igual el gasto»**: P66 aprobada (carril L, en paralelo a J6; el usuario autoriza el gasto, tope aconsejado 1,5 M por tarea).
 - 11/11/2026 — **Aprobado «Vale, vamos»**: P63 y P64 pasan al tablero (J6 Ciudad como pantalla principal, J7 Parte densa); primero J6. P65 y P66 siguen por aprobar.
 - 11/11/2026 — **Elección de interfaz tras los dos concursos** (respuestas en el móvil): Gobierno: «A Ciudad le doy un 5,3, a Tabularium 4,8, pero la parte de lo denso me gusta»; extras: Foro con multitudes y efecto por clase en chips. Guerra: «Legado y Estandartes son las que se pueden fusionar y crear algo guapo»; extras: fantasmas en pausa, alas con corchete y cartas de táctica. (Lectura de Claude: Gobierno = Ciudad (ronda 2) como pantalla principal, con el Tabularium como parte densa (colas, listas, Imperio), más Foro y chips de efecto por clase. Guerra = fusión de Legado (cámara baja, trazo, orden recomendada) y Estandartes (cada regimiento un estandarte con la moral en la tela), más fantasmas, alas con corchete y cartas de táctica. Quedan por aprobar las tareas que lo construyen.)
@@ -75,10 +76,17 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 
 ## Esperando algo del usuario
 - **Aprobar P65 (Foro y chips)**, cuando terminen J6 y J7.
+- **Aprobar o rechazar P67 a P73** (ideas de otros juegos de romanos) y decir por cuál empezar. Recomendación de Claude: P72 Emboscadas y P67 Barrios, que son pequeñas y se notan al jugar.
 
 ## Propuestas por aprobar
 - P65 **Gobierno: política con multitudes y chips** (discursos y revueltas que se ven en el Foro por clases sociales; chips verde/rojo con el efecto de cada decisión por clase); iría con J5. (decisión del 11/11)
-Ninguna.
+- P67 **Barrios con servicios** (idea de Caesar III): cada ciudad tiene un nivel de barrio de 1 a 4 según tenga agua, comida, ocio, templo y termas; más nivel, más gente e impuestos; si falta algo, baja con 2 o 3 meses de retraso. Mínima: tres niveles con agua, comida y templo. ≈1,0 M, una sesión. Estudio: `estudios/R1-barrios-con-servicios.md`.
+- P68 **Población por clases** (idea de Imperator: Rome): ciudadanos, plebeyos y esclavos en cada ciudad, con su felicidad; las conquistas traen esclavos y se puede dar ciudadanía por oro. Mínima: solo esclavos (más producción, menos felicidad). 1,5 a 2,5 M, dos sesiones; toca la mano de obra (I3). Va con P65. Estudio: `estudios/R2-poblacion-por-clases.md`.
+- P69 **Radio de efecto de los edificios** (idea de Grand Ages: Rome): templos y termas dan bono a los solares vecinos, los talleres lo quitan; al elegir solar se iluminan en verde o rojo. Mínima: el templo da felicidad a sus dos vecinos. 0,7 a 1,2 M; se nota poco con 7 a 10 solares: mejor después de P67 y J3. Estudio: `estudios/R3-radio-de-efecto.md`.
+- P70 **Misiones del Senado y familia** (idea de Rome: Total War): encargos del Senado con plazo y premio, barra de favor del Senado y del pueblo; después, 3 a 5 familiares con rasgos que gobiernan o mandan. Mínima: una misión a la vez y la barra de favor, sin familia. 2,2 a 3 M, tres sesiones; sería el primer contenido de J5 y pide I2. Estudio: `estudios/R4-senado-y-familia.md`.
+- P71 **Provincias con edictos** (idea de Total War: Rome II): las ciudades se agrupan en provincias con capital; si las tienes todas, eliges un decreto para la provincia; orden público por provincia. Mínima: agrupar las ciudades de hoy y un solo edicto. 2 a 2,8 M, dos sesiones; pide J4. Estudio: `estudios/R5-provincias-y-edictos.md`.
+- P72 **Emboscadas en el bosque** (idea de Praetorians): un regimiento ligero escondido en el bosque no se ve hasta que el enemigo se acerca o lo ataca; su primera descarga pega más y sacude la moral. Mínima: sin exploradores. 1,0 a 1,5 M, una sesión (más si hay que reajustar el bot). Histórico: Trebia y Trasimeno. Estudio: `estudios/R6-emboscadas-en-bosque.md`.
+- P73 **Campamento de legión** (idea de Expeditions: Rome): edificio «Castra» con mejoras; los ejércitos que salen de allí van con más moral y parte de los caídos vuelve como heridos curados. Mínima: tres niveles. 0,8 a 1,2 M, una sesión; mejor después de I5. Estudio: `estudios/R7-campamento-de-legion.md`.
 
 ## Encargo en curso (11/11/2026, noche)
 Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Cinco carriles a la vez, que no se pisan. Director y agentes en **Sonnet** (al usuario le queda poco Fable).
@@ -125,3 +133,4 @@ Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que 
 - 11/11/2026 — I1b hecha: fichas del registro con dictamen al día y Códice con una sola fuente (P55). Ver `partes/2026-11-11-I1b.md`.
 
 - J6 (11/11): consejo calculado en `js/ui.js` (no en game.js); medallas en `city3d.js`; pestañas `#tabs3`. En modo guerra no hay pestañas ni se ven los botones J1. Sin medir fluidez en móvil real.
+- Estudios R1 a R7 (11/11): los hechos salen de resúmenes de búsqueda, no de las páginas (la red no deja abrir wikis ni guías); lo dudoso va marcado «sin confirmar». Los números de las propuestas son nuestros, no de esos juegos. Las citas de Polibio, Livio y Cicerón van de memoria: pasarlas por la skill `historia` antes de construir.

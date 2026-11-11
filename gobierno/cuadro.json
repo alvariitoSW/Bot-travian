@@ -461,6 +461,34 @@
   {
    "titulo": "K2 · Segunda ronda: puntuaciones",
    "archivo": "gobierno/estudios/K2-concurso.md"
+  },
+  {
+   "titulo": "R1 · Barrios con servicios (idea de Caesar III)",
+   "archivo": "gobierno/estudios/R1-barrios-con-servicios.md"
+  },
+  {
+   "titulo": "R2 · Población por clases (idea de Imperator: Rome)",
+   "archivo": "gobierno/estudios/R2-poblacion-por-clases.md"
+  },
+  {
+   "titulo": "R3 · Radio de efecto de los edificios (idea de Grand Ages: Rome)",
+   "archivo": "gobierno/estudios/R3-radio-de-efecto.md"
+  },
+  {
+   "titulo": "R4 · Senado y familia (idea de Rome: Total War)",
+   "archivo": "gobierno/estudios/R4-senado-y-familia.md"
+  },
+  {
+   "titulo": "R5 · Provincias y edictos (idea de Total War: Rome II)",
+   "archivo": "gobierno/estudios/R5-provincias-y-edictos.md"
+  },
+  {
+   "titulo": "R6 · Emboscadas en el bosque (idea de Praetorians)",
+   "archivo": "gobierno/estudios/R6-emboscadas-en-bosque.md"
+  },
+  {
+   "titulo": "R7 · Campamento de legión (idea de Expeditions: Rome)",
+   "archivo": "gobierno/estudios/R7-campamento-de-legion.md"
   }
  ]
 }
