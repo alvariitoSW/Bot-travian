@@ -59,14 +59,15 @@ Cada una, al cerrar: tablero y bitácora al día, capturas e informes en el cuad
 
 ## Encargo de la próxima sesión
 Una tarea por sesión, en este orden (propuesto por Claude: primero lo que desbloquea a lo demás):
-1. **I1 Registro de piezas** (cimiento de I6 a I8).
+1. ✅ I1 Registro de piezas, hecha. Queda I1b al unir con Historia 2.
 2. **A8 Ritmo y moral** (lo que más se nota al jugar; no depende de nada).
 3. A5a Despliegue → A5b Terreno.
 4. I3 Mano de obra → I4 Tipos de ciudad → I5 Investigación → I2 Reloj por estaciones.
 5. I6 Región de Italia → I7 Regiones → I8 Partida corta.
-I1 y A8 pueden ir en dos sesiones a la vez: una toca `js/data.js` y los jueces; la otra, `js/battle.js`.
+Siguiente: **A8 Ritmo y moral** (toca `js/battle.js`; no pisa a Historia 2).
 
 ## Notas para quien continúe
+- La tarea I1 está en la rama `ccr-32a2b8f1-a411vx`, no en la que publica el juego: hay que unirla (toca `index.html` y `sw.js`, no `js/data.js`). Al unir, el juez de fichas dirá qué fichas faltan o sobran por los cambios de Historia 2.
 - El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.
 - Las batallas igualadas se deciden de forma brusca y el bot de pruebas no llega a tomar Cartago: falta equilibrar.
 - Para regenerar el arte hace falta un clon parcial de `0ad/0ad` y los cargadores de ejemplo de three.js (README).

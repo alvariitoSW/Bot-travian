@@ -30,6 +30,7 @@ Cómo se trabaja cada sesión: §7 (gobierno).
 | Archivo | Qué hace |
 |---|---|
 | `js/data.js` | Edificios, unidades, facciones, ciudades, rutas, hechos históricos |
+| `js/registro.js` | Una ficha por pieza de `data.js`: arte (modelo, licencia) y fuente histórica con su dictamen. Sin números; casa por id. Juez: `node gobierno/fichas.mjs` |
 | `js/game.js` | Economía, población, mercado, puerto, colas, marchas, IA enemiga, eventos, guardado |
 | `js/battle.js` | Simulación de batalla (regimientos, moral, flanqueo, carga) + vista 2D de reserva |
 | `js/gfx/units.js` | Unidades reales: animación horneada en textura de huesos, retratos |
