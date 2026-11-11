@@ -45,6 +45,19 @@ function htR(x, z) {
   const s = sstep(30, 48, riverD(x, z)); return -3 * (1 - s) + h * s;     // cauce: más hondo que el nivel del agua (-1,2)
 }
 
+/* Medalla de bronce sobre cada edificio: icono, nivel y, si toca, aviso de línea (obra o alerta). */
+const ICO_FL = {
+  obra: '<path d="M13.5 4.5l6 6-2.5 2.5-6-6zM12 8l-8 8.5 3 3L15.5 11"/>',
+  alerta: '<path d="M12 4l9.5 16h-19zM12 10v4.5M12 17.2v.3"/>',
+  mas: '<path d="M12 6v12M6 12h12"/>'
+};
+const svgM = d => '<svg viewBox="0 0 24 24" aria-hidden="true">' + d + '</svg>';
+function medallaHtml(b, L, fl, sel) {
+  const ico = (D.BUILD_ICON && D.BUILD_ICON[b]) || '';
+  const nom = sel ? '<u class="mt">' + D.BUILD[b].n + '</u>' : '';
+  if (L === 0) return nom + '<span class="mc">' + svgM(ICO_FL.mas) + '</span>';
+  return nom + '<span class="mc">' + ico + '</span><b class="mn">' + L + '</b>' + (fl ? '<i class="mf ' + fl + '">' + svgM(ICO_FL[fl]) + '</i>' : '');
+}
 export class CityView3D {
   constructor(host, opts) {
     this.host = host; this.opts = opts || {};
@@ -114,7 +127,7 @@ export class CityView3D {
     sc.add(this.dyn);
     this.ring = new THREE.Mesh(new THREE.RingGeometry(18, 20.5, 40), new THREE.MeshBasicMaterial({ color: '#ffe27a', transparent: true, opacity: 0.9, depthWrite: false })); this.ring.rotation.x = -Math.PI / 2; this.ring.position.y = 0.4; this.ring.visible = false; sc.add(this.ring);
     this.armyEl = document.createElement('button'); this.armyEl.className = 'mlabel cityb army2'; this.armyEl.addEventListener('click', ev => { ev.stopPropagation(); this.goal = { x: 60, z: WZ + 40 }; if (this.c.dist > 150) this.c.dist = 110; if (this.opts.onArmy) this.opts.onArmy(); }); this.labels.appendChild(this.armyEl);
-    for (const b in D.BUILD) { const el = document.createElement('button'); el.className = 'mlabel cityb'; el.addEventListener('click', ev => { ev.stopPropagation(); if (this.opts.onPick) this.opts.onPick(b); }); this.labels.appendChild(el); this.els[b] = el; }
+    for (const b in D.BUILD) { const el = document.createElement('button'); el.className = 'mlabel cityb medalla'; el.addEventListener('click', ev => { ev.stopPropagation(); if (this.opts.onPick) this.opts.onPick(b); }); this.labels.appendChild(el); this.els[b] = el; }
   }
   /* figuras reales (ciudadanos y guarnición): una malla instanciada por tipo */
   fig(key, cap) {
@@ -197,18 +210,25 @@ export class CityView3D {
     const c = this.c, cp = Math.cos(c.pitch), g = this.tg; g.x += (this.goal.x - g.x) * 0.12; g.z += (this.goal.z - g.z) * 0.12;
     this.cam.position.set(g.x + Math.sin(c.yaw) * cp * c.dist, Math.max(1.7, Math.sin(c.pitch) * c.dist), g.z + Math.cos(c.yaw) * cp * c.dist); this.cam.lookAt(g.x, 2.4, g.z); this.cam.updateMatrixWorld();
     const W = this.host.clientWidth, H = this.host.clientHeight, v = new THREE.Vector3();
+    if (!sel || !this.fichaTop) this.shiftT = 0;
+    this.shift = (this.shift || 0) + ((this.shiftT || 0) - (this.shift || 0)) * 0.15;
+    if (Math.abs(this.shift - (this._sa || 0)) > 0.4) { this._sa = this.shift; this.cam.setViewOffset(W, H, 0, this.shift, W, H); this.cam.updateProjectionMatrix(); }
     if (this.labels.scrollLeft || this.labels.scrollTop) { this.labels.scrollLeft = 0; this.labels.scrollTop = 0; }
     for (const b in this.els) {
       const el = this.els[b], B = D.BUILD[b], L = city.b[b] || 0, s = SLOTS[b] || [0, 0], isWall = b === 'muralla', q = city.queue && city.queue.b === b;
       if (b === 'puerto' && !this.coast) { el.style.display = 'none'; continue; }
-      const txt = B.i + ' ' + B.n + (L ? ' · ' + L : '') + (q ? ' 🏗' : ''); if (el._t !== txt) { el._t = txt; el.textContent = txt; }
-      el.classList.toggle('sel', sel === b); el.classList.toggle('off', L === 0);
+      const m = this.meta || {}, fl = (m.flags || {})[b] || (q ? 'obra' : ''), rec = m.rec === b, oc = L === 0 && (m.oculta || {})[b];
+      if (oc) { el.style.display = 'none'; continue; }
+      const key = L + '|' + fl + '|' + rec + '|' + (sel === b);
+      if (el._t !== key) { el._t = key; el.innerHTML = medallaHtml(b, L, fl, sel === b); }
+      el.classList.toggle('sel', sel === b); el.classList.toggle('off', L === 0); el.classList.toggle('rec', rec);
       if (isWall) v.set(-WX, 26, WZ); else v.set(s[0], b === 'templo' ? 34 : b === 'foro' ? 24 : 18, s[1]);
       v.project(this.cam);
-      if (v.z > 1 || (1 - v.y) / 2 * H < 205) { el.style.display = 'none'; continue; } el.style.display = ''; el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * H).toFixed(1) + 'px) translate(-50%,-100%)';
+      const sy = (1 - v.y) / 2 * H; if (sel === b && this.fichaTop) this.shiftT = Math.max(-60, Math.min(420, this.shift + sy - (this.fichaTop / 2 + 24)));
+      if (v.z > 1 || sy < 104 || sy > H - (sel ? 40 : 150)) { el.style.display = 'none'; continue; } el.style.display = ''; el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * H).toFixed(1) + 'px) translate(-50%,-100%)';
     }
     { const el = this.armyEl, txt = '⚔️ Guarnición · ' + (this.men || 0); if (el._t !== txt) { el._t = txt; el.textContent = txt; } v.set(60, 12, WZ + 30).project(this.cam);
-      if (v.z > 1 || !this.men || (1 - v.y) / 2 * H < 205) el.style.display = 'none'; else { el.style.display = ''; el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * H).toFixed(1) + 'px) translate(-50%,-100%)'; } }
+      if (v.z > 1 || !this.men || (1 - v.y) / 2 * H < 104 || (1 - v.y) / 2 * H > H - 150) el.style.display = 'none'; else { el.style.display = ''; el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * H).toFixed(1) + 'px) translate(-50%,-100%)'; } }
     const ss = sel && SLOTS[sel]; this.ring.visible = !!ss; if (ss) { this.ring.position.set(ss[0], 0.4, ss[1]); this.ring.rotation.z = t * 0.8; }
     this.r.render(this.scene, this.cam);
   }
@@ -230,7 +250,7 @@ export class CityView3D {
   }
   zoom(f) { this.c.dist /= f; this.clamp(); }
   /* vistas rápidas: ciudad entera, calles o ejército */
-  view(name) { const c = this.c; if (name === 'calle') { c.dist = 17; c.pitch = 0.14; c.yaw = 0.25; this.goal = { x: 0, z: 14 }; } else if (name === 'ejercito') { c.dist = 70; c.pitch = 0.3; c.yaw = 0.35; this.goal = { x: 60, z: WZ + 40 }; } else { c.dist = this.host.clientWidth < this.host.clientHeight ? 520 : 300; c.pitch = 0.72; this.goal = { x: 0, z: 10 }; } }
+  view(name) { const c = this.c; if (name === 'calle') { c.dist = 17; c.pitch = 0.14; c.yaw = 0.25; this.goal = { x: 0, z: 14 }; } else if (name === 'ejercito') { c.dist = 70; c.pitch = 0.3; c.yaw = 0.35; this.goal = { x: 60, z: WZ + 40 }; } else { c.dist = this.host.clientWidth < this.host.clientHeight ? 440 : 300; c.pitch = 0.72; this.goal = { x: 0, z: 10 }; } }
   clamp() { const c = this.c; c.dist = Math.max(10, Math.min(720, c.dist)); c.pitch = Math.max(0.08, Math.min(1.3, c.pitch)); if (c.dist > 380) this.goal = { x: 0, z: 10 }; }
-  resize() { const w = this.host.clientWidth || 1, h = this.host.clientHeight || 1; this.r.setSize(w, h, false); this.cam.aspect = w / h; this.cam.fov = w < h ? 54 : 38; this.cam.updateProjectionMatrix(); if (!this.framed && w > 10) { this.framed = true; this.c.dist = w < h ? 520 : 300; } }
+  resize() { const w = this.host.clientWidth || 1, h = this.host.clientHeight || 1; this.r.setSize(w, h, false); this.cam.clearViewOffset(); this._sa = 0; this.cam.aspect = w / h; this.cam.fov = w < h ? 54 : 38; this.cam.updateProjectionMatrix(); if (!this.framed && w > 10) { this.framed = true; this.c.dist = w < h ? 440 : 300; } }
 }

@@ -104,7 +104,7 @@ async function navegador() {
     });
 
     await paso('Construir un edificio', async () => {
-      await page.click('#ctop [data-act="clist"]'); await espera(400);
+      await page.click('#tabs3 [data-v="gobierno"]'); await espera(400);
       const b = page.locator('#view [data-act="up"]:not(.no)').first(); await b.scrollIntoViewIfNeeded(); await b.click(); await espera(500);
       const q = await estado(() => { const c = Game.state.cities.roma.queue; return c ? DATA.BUILD[c.b].n : ''; });
       const captura = await foto('construir');
@@ -113,7 +113,7 @@ async function navegador() {
     });
 
     await paso('Reclutar tropas', async () => {
-      await page.click('#bmodo'); await page.click('#hoja [data-act="modo"][data-v="guerra"]'); await page.click('#bact'); await espera(500);
+      await page.click('#tabs3 [data-v="imperio"]'); await page.click('#bact'); await espera(500);
       const b = page.locator('#view [data-act="train"]:not(.no)').first(); await b.scrollIntoViewIfNeeded(); await b.click(); await espera(500);
       const q = await estado(() => Game.state.cities.roma.train.map(t => t.n + ' ' + DATA.UNITS[t.u].n).join(', '));
       return { ok: !!q, detalle: q ? 'en instrucción: ' + q : 'no se reclutó nada', captura: await foto('reclutar') };
