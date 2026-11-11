@@ -39,7 +39,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ B7 **Saqueo**: atacar una ciudad para robar recursos sin conquistarla (botín según almacén y muralla), y que los
   rivales te saqueen; escondite de recursos. Rivales con ciudades que crecen como la tuya («otros jugadores» de la IA).
 - ✅ B8 Herrería: mejoras de armas y armaduras, +5 % por nivel (máx. +25 %).
-- ⬜ B10 Suavizar la ofensiva de Aníbal sobre Roma hacia el 215 a.C. (aprobado 11/11/2026): hoy causa 3 de cada 4 derrotas del bot.
+- ✅ B10 Aníbal suavizado: 20 % menos de tropas y dos meses más de marcha; el bot gana 8 de 10 y Roma ya no cae.
 - ✅ B9 Roma con el Tíber y una colina (versión simple; las demás ciudades, igual).
 
 ## Carril F — Modos de juego (decisión del usuario, 11/11/2026)
