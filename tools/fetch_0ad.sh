@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 # Trae de un clon parcial de 0 A.D. solo los archivos de arte que usan nuestras unidades.
-# Uso: tools/fetch_0ad.sh <clon de 0ad> <carpeta de salida>
+# Uso: tools/fetch_0ad.sh <clon de 0ad> <carpeta de salida> [resolve_units.py|resolve_static.py]
 # El clon se hace con: git clone --depth 1 --filter=blob:none --sparse https://github.com/0ad/0ad
 #   y: git sparse-checkout set <art>/actors/units <art>/actors/props/units <art>/meshes/skeletal <art>/skeletons <art>/variants
 set -euo pipefail
 REPO=$1; OUT=$2; A=binaries/data/mods/public/art; HERE=$(cd "$(dirname "$0")" && pwd)
-python3 -I "$HERE/resolve_units.py" "$REPO/$A" --files > "$OUT.files"
+python3 -I "$HERE/${3:-resolve_units.py}" "$REPO/$A" --files > "$OUT.files"
 : > "$OUT.oids"; : > "$OUT.map"
 while read -r f; do
   [ -e "$OUT/$f" ] && continue

@@ -3,6 +3,8 @@ import { MapView3D } from './gfx/map3d.js';
 import { BattleView3D } from './gfx/battle3d.js';
 import { portrait } from './gfx/models.js';
 import { preload, loadIndex, realPortrait } from './gfx/units.js';
+import { preloadStatic, loadStaticIndex } from './gfx/statics.js';
+import { CityView3D } from './gfx/city3d.js';
 
 const D = window.DATA, G = window.Game, $ = id => document.getElementById(id);
 const UI = { tab: 'map', city: 'roma', sel: null, modalQ: [], modalOpen: false, battle: null, menu: true, last: 0, saveT: 0, map: null };
@@ -81,7 +83,9 @@ function tickUI() {
 function setTab(t) {
   UI.tab = t;
   document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.v === t));
-  $('view').hidden = t === 'map'; $('zoom').hidden = t !== 'map';
+  const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D (o en lista si se prefiere)
+  $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3;
+  if (c3) UI.cityV.resize();
   if (t === 'map') renderSheet(); else { $('sheet').hidden = true; $('view').scrollTop = 0; render(); }
 }
 function cityChips() {
@@ -91,6 +95,7 @@ function cityChips() {
 function render() {
   UI.dirty = false;
   if (!S()) return; if (UI.tab === 'map') { renderSheet(); return; }
+  if (UI.tab === 'city' && UI.cityV && !UI.cityList) { renderCity3D(); tickUI(); return; }
   const v = $('view'), st = v.scrollTop;
   v.innerHTML = UI.tab === 'city' ? viewCity() : UI.tab === 'army' ? viewArmy() : UI.tab === 'hero' ? viewHero() : viewLog();
   v.scrollTop = st; tickUI();
@@ -103,17 +108,24 @@ function effect(b, L) {
   if (b === 'templo') return '+' + L * 10 + ' % exp.';
   return 'Nv ' + L;
 }
+function buildCard(c, b) {
+  const B = D.BUILD[b], L = c.b[b] || 0, q = c.queue && c.queue.b === b, max = L >= D.MAX_LVL, cost = G.cost(b, L);
+  return '<div class="card"><div class="ic">' + B.i + '</div><div class="bd"><div class="tt">' + B.n + '<span class="lv">Nv ' + L + '</span></div>' +
+    '<div class="ds">' + (max ? effect(b, L) + ' · nivel máximo' : effect(b, L) + ' → ' + effect(b, L + 1)) + '</div>' +
+    (q ? '<div class="prog" data-t0="' + c.queue.t0 + '" data-t1="' + c.queue.t1 + '"><i></i></div><span class="rem"></span>' : max ? '' : costHtml(cost)) + '</div>' +
+    (q || max ? '' : '<button class="btn ' + (c.queue ? 'no' : '') + '" data-act="up" data-v="' + b + '" ' + (c.queue ? '' : "data-need='" + JSON.stringify(cost) + "'") + '>' + (L ? 'Mejorar' : 'Construir') + '<small>' + months(G.buildTime(c, b)) + '</small></button>') + '</div>';
+}
 function viewCity() {
   const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city];
-  let h = cityChips() + '<div class="head"><h2>' + d.n + '</h2><p>' + esc(d.h) + '</p></div><div class="sec">Edificios</div>';
-  for (const b in D.BUILD) {
-    const B = D.BUILD[b], L = c.b[b] || 0, q = c.queue && c.queue.b === b, max = L >= D.MAX_LVL, cost = G.cost(b, L);
-    h += '<div class="card"><div class="ic">' + B.i + '</div><div class="bd"><div class="tt">' + B.n + '<span class="lv">Nv ' + L + '</span></div>' +
-      '<div class="ds">' + (max ? effect(b, L) + ' · nivel máximo' : effect(b, L) + ' → ' + effect(b, L + 1)) + '</div>' +
-      (q ? '<div class="prog" data-t0="' + c.queue.t0 + '" data-t1="' + c.queue.t1 + '"><i></i></div><span class="rem"></span>' : max ? '' : costHtml(cost)) + '</div>' +
-      (q || max ? '' : '<button class="btn ' + (c.queue ? 'no' : '') + '" data-act="up" data-v="' + b + '" ' + (c.queue ? '' : "data-need='" + JSON.stringify(cost) + "'") + '>Mejorar<small>' + months(G.buildTime(c, b)) + '</small></button>') + '</div>';
-  }
+  let h = cityChips() + '<div class="head"><h2>' + d.n + '</h2><p>' + esc(d.h) + '</p></div>' + (UI.cityV ? '<div class="acts" style="margin:0 0 6px"><button class="btn ghost" data-act="clist">Ver la ciudad en 3D</button></div>' : '') + '<div class="sec">Edificios</div>';
+  for (const b in D.BUILD) h += buildCard(c, b);
   return h + '<div class="empty">' + Object.keys(D.BUILD).map(b => D.BUILD[b].i + ' ' + D.BUILD[b].d).join('<br>') + '</div>';
+}
+function renderCity3D() {
+  const s = S(), c = s.cities[UI.city];
+  $('ctop').innerHTML = cityChips().replace('</div>', '<button class="chip" data-act="clist">☰ Lista</button></div>');
+  $('csheet').innerHTML = UI.bsel ? buildCard(c, UI.bsel) + '<div class="empty" style="background:var(--glass);border-radius:12px;margin-top:6px;padding:8px 12px">' + D.BUILD[UI.bsel].d + '</div>'
+    : '<div class="empty" style="background:var(--glass);border-radius:12px;padding:10px 12px;text-align:center">Toca un edificio para construirlo o mejorarlo · arrastra para girar la ciudad</div>';
 }
 const bar = (label, v, max) => '<span>' + label + '</span><u><s style="width:' + Math.min(100, v / max * 100) + '%"></s></u>';
 function viewArmy() {
@@ -237,7 +249,8 @@ document.addEventListener('click', function (e) {
     case 'tomenu': G.save(); UI.modalQ = []; closeModal(); stopBattle(); showMenu(); break;
     case 'tab': setTab(v); break;
     case 'speed': s.speed = +v; tickUI(); break;
-    case 'city': UI.city = v; $('view').scrollTop = 0; render(); break;
+    case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; render(); break;
+    case 'clist': UI.cityList = !UI.cityList; setTab('city'); break;
     case 'up': if (G.upgrade(UI.city, v)) render(); else toast(s.cities[UI.city].queue ? 'Ya hay una obra en curso en esta ciudad.' : 'Faltan recursos.', 'bad'); break;
     case 'train': if (G.train(UI.city, v, +el.dataset.n)) render(); else toast(s.cities[UI.city].train.length >= 5 ? 'La cola de instrucción está llena.' : 'Faltan recursos.', 'bad'); break;
     case 'skill': if (G.skill(v)) render(); break;
@@ -281,6 +294,7 @@ function frame(now) {
       else if (s.speed > 0) G.tick(dt * s.speed / 4);
     }
     if (UI.map && UI.tab === 'map') UI.map.update(s, UI.sel);
+    if (UI.cityV && UI.tab === 'city' && !UI.cityList) { if (s.cities[UI.city].owner !== 'roma') UI.city = G.myCities()[0] || 'roma'; UI.cityV.update(s.cities[UI.city], UI.city, UI.bsel, now / 1000); }
     if (UI.dirty) render();
     UI.acc = (UI.acc || 0) + dt; if (UI.acc > 0.25) { UI.acc = 0; tickUI(); if (UI.tab === 'map' && UI.sel && !UI.modalOpen) renderSheet(); }
     UI.saveT += dt; if (UI.saveT > 8) { UI.saveT = 0; G.save(); }
@@ -288,7 +302,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-window.addEventListener('resize', () => { if (UI.map) UI.map.resize(); if (UI.battle && UI.battle.view.resize) UI.battle.view.resize(); });
+window.addEventListener('resize', () => { if (UI.map) UI.map.resize(); if (UI.cityV && !$('citywrap').hidden) UI.cityV.resize(); if (UI.battle && UI.battle.view.resize) UI.battle.view.resize(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && S() && !UI.menu) G.save(); });
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
 
@@ -298,4 +312,8 @@ catch (e) { console.warn('WebGL no disponible para el mapa', e); $('mapwrap').in
 showMenu(); requestAnimationFrame(frame);
 // modelos reales (0 A.D.): se cargan en segundo plano; hasta entonces se usan los generados por código
 loadIndex().then(idx => preload(Object.keys(idx))).then(() => { UI.dirty = true; });
+loadStaticIndex().then(idx => preloadStatic(Object.keys(idx))).then(() => {
+  try { $('citywrap').hidden = false; UI.cityV = new CityView3D($('citywrap'), { onPick: b => { UI.bsel = b; renderCity3D(); tickUI(); } }); $('citywrap').hidden = true; if (UI.tab === 'city' && !UI.menu) setTab('city'); }
+  catch (e) { console.warn('Sin vista 3D de ciudad', e); $('citywrap').hidden = true; }
+});
 window.UI = UI;
