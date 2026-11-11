@@ -40,13 +40,31 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 
 ## Esperando algo del usuario
 1. **Medir fluidez**: menú → «Medir fluidez»; dime la cifra en el mapa, en la ciudad y en una batalla grande. (Dijo «ok» el 11/11; faltan las cifras.)
+2. **Turnos y tiempo real** (a): ¿mapa por estaciones, y ciudad y batalla en tiempo real? Recomiendo B. Informe «G3 · Gran diseño».
+3. **Economía real** (b): ¿mano de obra y mantenimiento, y después precios por ciudad y rutas? Recomiendo B. Mismo informe.
+4. **Investigación** (c): ¿árbol corto de unas 16 mejoras ligado a edificios y edades? Recomiendo B. Mismo informe.
+5. **Tipos de ciudad** (d): ¿eliges colonia, emporio o municipio al fundar o conquistar? Recomiendo A. Mismo informe.
+6. **Mar** (e): ¿transporte y bloqueo primero, y la batalla naval jugable al final? Recomiendo A. Mismo informe.
+7. **Cableado** (f): ¿registro único de piezas, poco a poco, sin rehacer el juego? Recomiendo B. Mismo informe.
 
 ## Propuestas por aprobar
+Batallas (informe «G3 · Batallas estratégicas»; coste a ojo, Fable + Sonnet):
+- P40 **Ritmo y moral**: batallas de 8 a 12 minutos, moral que baja poco a poco, cansancio. 0,15 + 0,4 M · 12 min.
+- P41 **Despliegue antes de la batalla**: colocas tus regimientos (tres plantillas de un toque) y pulsas «Empezar batalla». 0,2 + 0,7 M · 20 min.
+- P42 **Terreno con efecto: colina y bosque**, un campo tipo por ciudad. 0,25 + 0,9 M · 25 min. Mejor después de P41.
+
+Gran diseño, fase 1 (informe «G3 · Gran diseño»; dependen de las decisiones 2 a 7 de arriba):
+- P43 **Registro de piezas**: fichas con números, arte y fuente histórica, y un juez que las comprueba. 0,2 + 0,6 M · 20 min. Va sola y la primera.
+- P44 **Reloj por estaciones**: «consejo de estación» y botón «Pasar estación». 0,2 + 0,6 M · 20 min.
+- P45 **Mano de obra y mantenimiento**: reclutar vacía los campos; edificios y tropas cuestan. 0,15 + 0,5 M · 15 min.
+- P46 **Tipos de ciudad**: colonia, emporio o municipio. 0,15 + 0,5 M · 15 min.
+- P47 **Investigación y edades**: árbol corto; la herrería pasa a ser su rama de guerra (absorbe F4). 0,2 + 0,7 M · 20 min.
+- P48 **Región de Italia** montada solo con fichas (prueba del cableado). 0,2 + 0,6 M · 20 min. Después de P43.
+- P49 **Partida corta**: fundas de cero, un rival, un final (es F1b). 0,25 + 0,8 M · 25 min. Después de P44 a P48.
 
 ## Encargo en curso (11/11/2026)
-Rama única desde ahora: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Dos sesiones, que no se pisan:
+Rama única desde ahora: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Sesiones, que no se pisan (Diseño ya cerró: informes G3):
 - **Historia 2**: coteja las fuentes (H1b, H2b), aplica H4 a H10 y hace el Códice (H3). Toca `gobierno/historia/`, `js/data.js`, `js/game.js` y `js/ui.js`.
-- **Diseño**: dos informes con plan y presupuesto, sin tocar el juego: batallas estratégicas y «gran diseño». Solo `gobierno/estudios/`.
 Cada una, al cerrar: tablero y bitácora al día, capturas e informes en el cuadro, cuadro publicado, aviso a la sesión madre y se archiva sola.
 
 ## Notas para quien continúe
