@@ -75,6 +75,7 @@ Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego
 - **Campaña** (`js/game.js`, `js/data.js`, paneles de ciudad en `js/ui.js`, `js/gfx/city3d.js`): F5 Templos → B7 Saqueo → C3 Diplomacia → B5 Marina → I5 Investigación → I2 Mapa por turnos.
 - **Arte** (`css/`, `index.html`, `assets/`, `tools/`, `js/gfx/statics.js`): E4 Arte de termas, acueducto y anfiteatro → E1c Guía de arte, segunda parte → E2b Más piezas por cultura → A7 Ciudades enemigas con edificios de su cultura.
 - **Mapa** (`js/gfx/map3d.js`, `js/gfx/ground.js`): ✅ C2 Costa y relieve (hecha; queda C2b: alturas reales y espuma).
+- **Registro** (`js/registro.js`, `js/codice.js`): I1b Fichas al día y una sola fuente.
 Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bitácora al día (solo sus líneas), capturas en el cuadro, cuadro publicado y parte. Guion de capturas de batalla: `node gobierno/captura-batalla.mjs`. Al unir, mirar `git status` entero.
 
 ## Encargo de la próxima sesión
