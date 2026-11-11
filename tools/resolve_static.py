@@ -26,12 +26,21 @@ STATIC = {
     'cipres': 'flora/trees/mediterranean_cypress.xml', 'olivo': 'flora/trees/olive.xml',
     'pino': 'flora/trees/aleppo_pine.xml', 'algarrobo': 'flora/trees/carob.xml',
 }
+# texturas sueltas: terreno mediterráneo y normales de agua (nombre en el juego -> archivo de 0 A.D.)
+T_ = 'textures/terrain/types/aegean_anatolia/'
+EXTRA = {
+    'terr_grass': T_ + 'grass_01.png', 'terr_dry': T_ + 'grass_dirt_01.png', 'terr_dirt': T_ + 'dirt_01.png',
+    'terr_paving': T_ + 'paving_01.png', 'terr_sand': T_ + 'sand_01.png', 'terr_farm': T_ + 'farmland_01.png',
+    'terr_paving_norm': T_ + 'paving_01_norm.png', 'terr_dirt_norm': T_ + 'dirt_01_norm.png',
+    'water_norm': 'textures/animated/water/lake/normal0001.png', 'water_norm2': 'textures/animated/water/lake/normal0011.png',
+}
 SKIP = ('decals', 'garrison', 'particle', 'smoke', 'fire', 'flag_', 'blood', 'props/units/')
 
 
 def prune(n):
     n['props'] = [prune(p) for p in n['props'] if not any(s in p['actor'] for s in SKIP)]
     n['anims'] = {}
+    n['maps'] = True
     return n
 
 
@@ -42,8 +51,10 @@ def main():
         acc = set()
         for n in manifest.values():
             R.files(n, acc)
+        acc.update(EXTRA.values())
         print('\n'.join(sorted(acc)))
     else:
+        manifest['__extra'] = EXTRA
         json.dump(manifest, sys.stdout, indent=1)
 
 

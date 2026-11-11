@@ -70,6 +70,8 @@ def variant_content(art, v, out, take_all, seen=None):
     for t in v.findall('textures/texture'):
         if t.get('name') == 'baseTex':
             out['tex'] = t.get('file')
+        elif t.get('name') in ('aoTex', 'normTex', 'specTex') and not (t.get('file') or '').startswith('default'):
+            out[t.get('name')[:-3]] = t.get('file')   # ao, norm, spec (solo los usan los edificios)
     for p in v.findall('props/prop'):
         ap = p.get('attachpoint')
         if p.get('actor'):
@@ -112,6 +114,10 @@ def files(node, acc):
         acc.add('meshes/' + node['mesh'])
     if node.get('tex'):
         acc.add('textures/skins/' + node['tex'])
+    if node.get('maps'):
+        for k in ('ao', 'norm', 'spec'):
+            if node.get(k):
+                acc.add('textures/skins/' + node[k])
     for fs in node.get('anims', {}).values():
         for f in fs:
             acc.add('animation/' + f)

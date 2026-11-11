@@ -5,6 +5,7 @@ import { portrait } from './gfx/models.js';
 import { preload, loadIndex, realPortrait } from './gfx/units.js';
 import { preloadStatic, loadStaticIndex } from './gfx/statics.js';
 import { CityView3D } from './gfx/city3d.js';
+import { loadGroundTextures } from './gfx/ground.js';
 
 const D = window.DATA, G = window.Game, $ = id => document.getElementById(id);
 const UI = { tab: 'map', city: 'roma', sel: null, modalQ: [], modalOpen: false, battle: null, menu: true, last: 0, saveT: 0, map: null };
@@ -328,7 +329,7 @@ catch (e) { console.warn('WebGL no disponible para el mapa', e); $('mapwrap').in
 showMenu(); requestAnimationFrame(frame);
 // modelos reales (0 A.D.): se cargan en segundo plano; hasta entonces se usan los generados por código
 loadIndex().then(idx => preload(Object.keys(idx))).then(() => { UI.dirty = true; });
-loadStaticIndex().then(idx => preloadStatic(Object.keys(idx))).then(() => {
+loadStaticIndex().then(idx => Promise.all([preloadStatic(Object.keys(idx)), loadGroundTextures()])).then(() => {
   try { $('citywrap').hidden = false; UI.cityV = new CityView3D($('citywrap'), { onPick: b => { UI.bsel = b; renderCity3D(); tickUI(); } }); $('citywrap').hidden = true; if (UI.tab === 'city' && !UI.menu) setTab('city'); }
   catch (e) { console.warn('Sin vista 3D de ciudad', e); $('citywrap').hidden = true; }
 });

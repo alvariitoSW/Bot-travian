@@ -27,12 +27,12 @@ window.build = async function (key, node) {
     let sc = null, Ri = null;
     if (p.mesh) {
       const col = await dae('meshes/' + p.mesh); sc = col.scene; sc.updateMatrixWorld(true); Ri = rotInv(sc);
-      const gk = (p.tex || '') + '|' + MODE(p.material); if (!groups.has(gk)) groups.set(gk, { tex: p.tex, mode: MODE(p.material), P: [], N: [], UV: [] });
+      const gk = (p.tex || '') + '|' + MODE(p.material) + '|' + (p.ao || ''); if (!groups.has(gk)) groups.set(gk, { tex: p.tex, ao: p.ao || null, norm: p.norm || null, spec: p.spec || null, mode: MODE(p.material), P: [], N: [], UV: [], UV1: [] });
       const G = groups.get(gk);
       sc.traverse(o => { if (!o.isMesh) return; const T = new THREE.Matrix4().multiplyMatrices(L, new THREE.Matrix4().multiplyMatrices(Ri, o.matrixWorld)); if (o.isSkinnedMesh) T.multiply(o.bindMatrix);
         const nm = new THREE.Matrix3().getNormalMatrix(T), g = o.geometry;
         each(g, i => { v.fromBufferAttribute(g.attributes.position, i).applyMatrix4(T); if (g.attributes.normal) n.fromBufferAttribute(g.attributes.normal, i).applyMatrix3(nm).normalize(); else n.set(0, 0, 1);
-          G.P.push(v.x, v.z, -v.y); G.N.push(n.x, n.z, -n.y); G.UV.push(g.attributes.uv ? g.attributes.uv.getX(i) : 0, g.attributes.uv ? 1 - g.attributes.uv.getY(i) : 0); }); });
+          G.P.push(v.x, v.z, -v.y); G.N.push(n.x, n.z, -n.y); G.UV.push(g.attributes.uv ? g.attributes.uv.getX(i) : 0, g.attributes.uv ? 1 - g.attributes.uv.getY(i) : 0); const u1 = g.attributes.uv1 || g.attributes.uv; G.UV1.push(u1 ? u1.getX(i) : 0, u1 ? 1 - u1.getY(i) : 0); }); });
     }
     for (const ch of p.props || []) {
       let L2 = L;
@@ -41,10 +41,10 @@ window.build = async function (key, node) {
     }
   }
   await emit(node, new THREE.Matrix4());
-  const P = [], N = [], UV = [], gs = []; const bb = [1e9, 1e9, 1e9, -1e9, -1e9, -1e9];
-  for (const G of groups.values()) { if (!G.P.length) continue; gs.push({ tex: G.tex, mode: G.mode, start: P.length / 3, count: G.P.length / 3 }); for (const x of G.P) P.push(x); for (const x of G.N) N.push(x); for (const x of G.UV) UV.push(x); }
+  const P = [], N = [], UV = [], UV1 = [], gs = []; const bb = [1e9, 1e9, 1e9, -1e9, -1e9, -1e9];
+  for (const G of groups.values()) { if (!G.P.length) continue; gs.push({ tex: G.tex, ao: G.ao, norm: G.norm, spec: G.spec, mode: G.mode, start: P.length / 3, count: G.P.length / 3 }); for (const x of G.P) P.push(x); for (const x of G.N) N.push(x); for (const x of G.UV) UV.push(x); for (const x of G.UV1) UV1.push(x); }
   for (let i = 0; i < P.length; i += 3) for (let k = 0; k < 3; k++) { bb[k] = Math.min(bb[k], P[i + k]); bb[k + 3] = Math.max(bb[k + 3], P[i + k]); }
-  return { log, verts: P.length / 3, groups: gs, bb: bb.map(x => +x.toFixed(2)), P: b64(new Float32Array(P).buffer), N: b64(new Int8Array(N.map(x => Math.round(x * 127))).buffer), UV: b64(new Float32Array(UV).buffer) };
+  return { log, verts: P.length / 3, groups: gs, bb: bb.map(x => +x.toFixed(2)), P: b64(new Float32Array(P).buffer), N: b64(new Int8Array(N.map(x => Math.round(x * 127))).buffer), UV: b64(new Float32Array(UV).buffer), UV1: b64(new Float32Array(UV1).buffer) };
 };
 window.ready = true;
 </script>`;
@@ -64,9 +64,10 @@ await page.goto('http://localhost:' + server.address().port + '/'); await page.w
 fs.mkdirSync(out, { recursive: true });
 const index = {};
 for (const key of Object.keys(manifest)) {
+  if (key.startsWith('__')) continue;
   try {
     const r = await page.evaluate(([k, u]) => window.build(k, u), [key, manifest[key]]);
-    const parts = ['P', 'N', 'UV'].map(n => Buffer.from(r[n], 'base64')), off = []; let o = 0;
+    const parts = ['P', 'N', 'UV', 'UV1'].map(n => Buffer.from(r[n], 'base64')), off = []; let o = 0;
     for (const p of parts) { off.push(o); o += p.length; o += (4 - o % 4) % 4; }
     const bin = Buffer.alloc(o); parts.forEach((p, i) => p.copy(bin, off[i]));
     fs.writeFileSync(path.join(out, key + '.bin'), bin);
@@ -74,5 +75,6 @@ for (const key of Object.keys(manifest)) {
     console.log(key.padEnd(11), 'tris', String(r.verts / 3).padStart(6), 'texturas', r.groups.length, 'caja', r.bb.join(' '), (bin.length / 1024 | 0) + ' KB', r.log.slice(0, 3).join('; '));
   } catch (e) { console.error(key, 'ERROR', e.message.split('\n')[0]); }
 }
+index.__extra = manifest.__extra || {};
 fs.writeFileSync(path.join(out, 'static.json'), JSON.stringify(index));
 await browser.close(); server.close();

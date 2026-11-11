@@ -1,8 +1,10 @@
 /* AQVILA — vista 3D de la batalla: cada soldado es una figura animada sobre un terreno con relieve */
 import { THREE, uTime, unitGeometry, unitMaterial, portrait } from './models.js';
+import { applyGround } from './ground.js';
 import { getStatic, staticInstances, staticMesh } from './statics.js';
 import { getUnit, unitMaterialReal, instancedGeometry, frameOf, frameOnce, realPortrait, UNIT_SCALE } from './units.js';
 
+const BK = 1.65;                               // edificios y árboles de 0 A.D. agrandados para casar con el tamaño de las figuras
 const DEAD = 150;                             // caídos visibles por tipo de unidad
 const TRI_BUDGET = (navigator.maxTouchPoints > 0 ? 1.0e6 : 1.6e6);
 
@@ -52,19 +54,14 @@ export class BattleView3D {
     const sun = new THREE.DirectionalLight('#ffe6b8', 3.1); sun.position.set(-90, 95, 60); sc.add(sun);
     // suelo
     const W = 520, Dp = hd * 2 + 320, g = new THREE.PlaneGeometry(W, Dp, 110, 130); g.rotateX(-Math.PI / 2);
-    const pos = g.attributes.position, col = new Float32Array(pos.count * 3), c = new THREE.Color(), a = new THREE.Color('#6f8f3e'), b2 = new THREE.Color('#9aa055'), dirt = new THREE.Color('#b59a68'), rock = new THREE.Color('#8a8068');
+    const pos = g.attributes.position, wt = new Float32Array(pos.count * 3);
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i), z = pos.getZ(i), y = this.h(x, z); pos.setY(i, y);
-      const n = 0.5 + 0.5 * Math.sin(x * 0.07 + Math.sin(z * 0.05) * 2) * Math.cos(z * 0.09 + x * 0.03);
-      c.copy(a).lerp(b2, n); const road = Math.abs(x - 18 * Math.sin(z * 0.02)) ; if (road < 5) c.lerp(dirt, 1 - road / 5);
-      if (y > 7) c.lerp(rock, Math.min(1, (y - 7) / 6)); c.multiplyScalar(0.9 + hash(i) * 0.2);
-      col[i * 3] = c.r; col[i * 3 + 1] = c.g; col[i * 3 + 2] = c.b;
+      const n = 0.5 + 0.5 * Math.sin(x * 0.07 + Math.sin(z * 0.05) * 2) * Math.cos(z * 0.09 + x * 0.03), road = Math.abs(x - 18 * Math.sin(z * 0.02));
+      let gr = 1 - n * 0.4, di = 0; if (road < 6) { di = 1 - road / 6; gr *= 1 - di; } if (y > 7) { const k = Math.min(1, (y - 7) / 6); di = Math.max(di, k * 0.7); gr *= 1 - k * 0.7; }
+      wt[i * 3] = gr; wt[i * 3 + 1] = di; wt[i * 3 + 2] = 0;                       // pesos: hierba, tierra, (empedrado); el resto, hierba seca
     }
-    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
-    const tc = document.createElement('canvas'); tc.width = tc.height = 128; const tg = tc.getContext('2d'); tg.fillStyle = '#fff'; tg.fillRect(0, 0, 128, 128);
-    for (let i = 0; i < 1400; i++) { const v = 200 + Math.floor(hash(i * 3.1) * 55); tg.fillStyle = 'rgb(' + v + ',' + v + ',' + (v - 20) + ')'; tg.fillRect(hash(i) * 128, hash(i + 0.5) * 128, 2, 3); }
-    const tex = new THREE.CanvasTexture(tc); tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(70, 90); tex.colorSpace = THREE.SRGBColorSpace;
-    this.ground = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, map: tex })); sc.add(this.ground);
+    this.ground = new THREE.Mesh(g, applyGround(g, wt, 0.09)); sc.add(this.ground);
     // árboles en los márgenes: modelos reales si están cargados; si no, conos sencillos
     const att = this.b.cfg.defender === 0 ? -1 : 1;
     if (getStatic('cipres')) {
@@ -73,7 +70,7 @@ export class BattleView3D {
         let x, z; const r = hash(i * 7.3);
         if (r < 0.75) { x = (hash(i * 1.7) < 0.5 ? -1 : 1) * (84 + hash(i * 2.9) * 80); z = (hash(i * 4.1) - 0.5) * (hd * 2 + 140); }
         else { x = (hash(i * 1.7) - 0.5) * 320; z = att * (hd + 16 + hash(i * 2.9) * 100); }
-        const k = kinds[Math.floor(hash(i * 5.7) * kinds.length)], sc2 = UNIT_SCALE * (0.8 + hash(i * 9.9) * 0.7);
+        const k = kinds[Math.floor(hash(i * 5.7) * kinds.length)], sc2 = UNIT_SCALE * BK * (0.8 + hash(i * 9.9) * 0.6);
         (lists[k] = lists[k] || []).push(new THREE.Matrix4().compose(new THREE.Vector3(x, this.h(x, z) - 0.2, z), q.setFromAxisAngle(up, hash(i) * 6.283), new THREE.Vector3(sc2, sc2, sc2)));
       }
       for (const k in lists) { const t = staticInstances(k, lists[k]); if (t) sc.add(t); }
@@ -160,7 +157,7 @@ export class BattleView3D {
 
   /* ciudad del defensor con edificios y murallas reales */
   buildRealCity(zc, dir) {
-    const wall = this.b.cfg.wall || 0, sc = this.scene, K = UNIT_SCALE, col = this.b.cfg.sides[this.b.cfg.defender].col, q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
+    const wall = this.b.cfg.wall || 0, sc = this.scene, K = UNIT_SCALE * BK, col = this.b.cfg.sides[this.b.cfg.defender].col, q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
     const rot = q.setFromAxisAngle(up, dir > 0 ? Math.PI : 0).clone(), M = (x, y, z, r, sx, sy) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), r || rot, new THREE.Vector3(K * (sx || 1), K * (sy || 1), K));
     if (wall > 0) {
       const seg = 37.3 * K, hy = 0.8 + wall * 0.07, walls = [], towers = [];
@@ -168,9 +165,9 @@ export class BattleView3D {
       for (const g of [staticInstances('muro', walls, col), staticInstances('torre', towers, col)]) if (g) sc.add(g);
     }
     const houses = [];
-    for (let i = 0; i < 60; i++) { const x = (hash(i * 3.3) - 0.5) * 230, z = zc + dir * (12 + hash(i * 5.1) * 70); if (Math.abs(x) < 26 && Math.abs(z - zc) < 62) continue; houses.push(M(x, 0, z, q.setFromAxisAngle(up, Math.round(hash(i * 7.7) * 4) * Math.PI / 2).clone())); }
+    for (let i = 0; i < 50; i++) { const x = (hash(i * 3.3) - 0.5) * 300, z = zc + dir * (18 + hash(i * 5.1) * 110); if (Math.abs(x) < 36 && Math.abs(z - zc) < 100) continue; houses.push(M(x, 0, z, q.setFromAxisAngle(up, Math.round(hash(i * 7.7) * 4) * Math.PI / 2).clone())); }
     const hs = staticInstances('casa', houses, col); if (hs) sc.add(hs);
-    for (const [k, x, dz] of [['templo', 0, 46], ['foro', -52, 30], ['cuartel', 48, 26], ['almacen', 88, 44], ['vesta', -92, 50]]) { const g = staticMesh(k, col); if (g) { g.applyMatrix4(M(x, 0, zc + dir * dz)); sc.add(g); } }
+    for (const [k, x, dz] of [['templo', 0, 70], ['foro', -80, 46], ['cuartel', 72, 40], ['mercado', 130, 66], ['vesta', -140, 76]]) { const g = staticMesh(k, col); if (g) { g.applyMatrix4(M(x, 0, zc + dir * dz)); sc.add(g); } }
   }
 
   /* ---------- ejércitos ---------- */
