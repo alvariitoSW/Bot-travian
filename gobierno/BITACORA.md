@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 11/11/2026 — **Aprobado «Vale, vamos»**: P63 y P64 pasan al tablero (J6 Ciudad como pantalla principal, J7 Parte densa); primero J6. P65 y P66 siguen por aprobar.
 - 11/11/2026 — **Elección de interfaz tras los dos concursos** (respuestas en el móvil): Gobierno: «A Ciudad le doy un 5,3, a Tabularium 4,8, pero la parte de lo denso me gusta»; extras: Foro con multitudes y efecto por clase en chips. Guerra: «Legado y Estandartes son las que se pueden fusionar y crear algo guapo»; extras: fantasmas en pausa, alas con corchete y cartas de táctica. (Lectura de Claude: Gobierno = Ciudad (ronda 2) como pantalla principal, con el Tabularium como parte densa (colas, listas, Imperio), más Foro y chips de efecto por clase. Guerra = fusión de Legado (cámara baja, trazo, orden recomendada) y Estandartes (cada regimiento un estandarte con la moral en la tela), más fantasmas, alas con corchete y cartas de táctica. Quedan por aprobar las tareas que lo construyen.)
 - 11/11/2026 — **Concurso K, segunda ronda** (pedido en el móvil): «El K arena, el trazo de órdenes dibujadas y el general rueda de órdenes me gustan. Hay que hacer un nuevo concurso con 5 modelos también totalmente diferentes y que compitan por el mejor proyecto artístico, escalable, e intuitivo. Las del gobierno no me gustan ninguna, deben repetirse de 0 todas con mejores instrucciones». (Lectura de Claude: dos concursos nuevos, Guerra 2 y Gobierno 2, cinco maquetas cada uno, con criterios arte/escalable/intuitivo; bases en `maquetas/concurso/BASES2.md`. Gustan de Guerra: Arena, Trazo y General; ninguna de Gobierno.)
 - 11/11/2026 — **Concurso de diseño de interfaz** (pedido en el móvil): «quiero que abras una sesión nueva con unas instrucciones claras sobre un concurso de diseño elaborado por el gobierno para modelos de Claude para un videojuego de roma que se basa en 2 jugabilidades: 1) la del gobierno: política, intrigas, bienestar de la población, gestión de recursos, gestión de catástrofes, revueltas. 2) batallas de estrategia con tropas de roma tipo total war rome 2 […]. Tienen que presentarse como mínimo 5 modelos por cada concurso que sean modelos super alternativos y rompedores y quieran hacer un rediseño total de la interfaz de esas 2 partes del juego. A ver cómo en una nueva sesión hacen esas maquetas para ver quién gana el concurso». (Lectura de Claude: dos concursos, Gobierno y Guerra, con al menos cinco maquetas cada uno; el usuario elige los ganadores. Carril K; no se construye hasta que elija.)
@@ -72,11 +73,9 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-- **Aprobar las tareas de construcción de la interfaz** (P63 a P66, abajo): ¿en qué orden y con qué tope de gasto? Antes, otra ronda no hace falta.
+- **Aprobar P65 (Foro y chips) y P66 (Guerra Legado + Estandartes)**, cuando terminen J6 y J7.
 
 ## Propuestas por aprobar
-- P63 **Gobierno: ciudad como pantalla principal** (medallas de bronce sobre los edificios, una ficha inferior con la acción aconsejada, tres pestañas Ciudad, Gobierno, Imperio), sustituyendo el diseño de J1. Base: maqueta K2 Ciudad. (decisión del 11/11)
-- P64 **Gobierno: parte densa** (pestaña Imperio y Obras con colas, filtros, orden por urgencia y filas deslizables), de la maqueta Tabularium; incluye J2. (decisión del 11/11)
 - P65 **Gobierno: política con multitudes y chips** (discursos y revueltas que se ven en el Foro por clases sociales; chips verde/rojo con el efecto de cada decisión por clase); iría con J5. (decisión del 11/11)
 - P66 **Guerra: interfaz Legado + Estandartes** (cámara baja, dibujar la orden con el dedo, botón de orden recomendada, estandarte por regimiento con la moral en la tela; alas con corchete, fantasmas en pausa y cartas de táctica), tocando `js/ui.js` y `js/gfx/battle3d.js`; se parte en 3 o 4 tareas. (decisión del 11/11)
 Ninguna.
@@ -94,7 +93,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
-0. Carril Interfaz: J2 Obras de un toque (J1 hecha; gastó 1,7 M sobre 0,65 presupuestados: cuenta al usuario antes de seguir).
+0. Carril Interfaz: **J6 Ciudad como pantalla principal** (aprobada; sustituye a J1 en la pantalla de ciudad), luego J7 Parte densa (incluye J2). Presupuesto J6: tope 1,2 M, todo Sonnet. J1 gastó 1,7 M sobre 0,65: no repetir.
 Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que lleva Campaña):
 1. I6 Región de Italia → I7 Regiones → I8 Partida corta (prioridad del usuario).
 2. Historia: H14 → H13 → H12 → H11.
