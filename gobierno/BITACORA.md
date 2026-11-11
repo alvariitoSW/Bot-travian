@@ -93,6 +93,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+0b. Carril Guerra interfaz: L1 hecha (11/11). Siguiente posible: L1b (testudo si el usuario lo quiere como regla, trazo en vista 2D, HUD en vertical) y las tareas L de estandartes. Ojo: L1 gastó 1,5 M (tope aconsejado).
 0. Carril Interfaz: **J6 Ciudad como pantalla principal** (aprobada; sustituye a J1 en la pantalla de ciudad), luego J7 Parte densa (incluye J2). Presupuesto J6: tope 1,2 M, todo Sonnet. J1 gastó 1,7 M sobre 0,65: no repetir.
 Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que lleva Campaña):
 1. I6 Región de Italia → I7 Regiones → I8 Partida corta (prioridad del usuario).

@@ -24,6 +24,42 @@ function formation(cls, key) {
   return { cols: 10, sx: 1.15, sz: 1.25, max: 60, sh: 0.5 };
 }
 
+/* ---------- L1: órdenes dibujadas y orden recomendada (funciones puras, sin pantalla) ---------- */
+const ordenAtk = (r, e) => ({ k: 'atk', r: e });
+function enemigoCerca(b, side, x, y, rad) { let best = null, bd = rad; for (const e of b.regs) { if (e.side === side || e.st !== 'ok') continue; const d = Math.hypot(e.x - x, e.y - y); if (d < bd) { bd = d; best = e; } } return best; }
+// Orden recomendada para un regimiento propio: { txt, ic, order } (order null = mantener). Retirar si apenas le queda moral o gente.
+export function recomendada(r, b) {
+  if (!r || r.st !== 'ok') return null;
+  const lim = (v, a, z) => Math.max(a, Math.min(z, v));
+  if (r.mor / r.morMax < 0.22 || r.men / r.max < 0.28) return { txt: 'Retirar', ic: '↓', order: { k: 'move', x: lim(r.x, 20, FW - 20), y: Math.min(b.H - 20, r.y + 90) } };
+  const en = b.regs.filter(e => e.side !== r.side && e.st === 'ok'); if (!en.length) return { txt: 'Mantener', ic: '■', order: null };
+  const cerca = lista => { let best = null, bd = 1e9; for (const e of lista) { const d = Math.hypot(e.x - r.x, e.y - r.y); if (d < bd) { bd = d; best = e; } } return best; };
+  const cls = r.u.cls, ne = cerca(en);
+  if (cls === 'rng') return { txt: 'Disparar', ic: '➶', order: ordenAtk(r, ne) };
+  if (cls === 'cav' || cls === 'gen') {
+    const blando = cerca(en.filter(e => e.u.cls === 'rng' || (e.u.cls === 'inf' && e.papel === 'ligera')));
+    if (blando) return { txt: 'Cargar', ic: '⚔', order: ordenAtk(r, blando) };
+    return { txt: 'Flanquear', ic: '↷', order: { k: 'move', x: lim(ne.x + (ne.x < FW / 2 ? 70 : -70), 20, FW - 20), y: lim(ne.y + 14, 20, b.H - 20) } };
+  }
+  return { txt: 'Cargar', ic: '⚔', order: ordenAtk(r, ne) };
+}
+// Clasifica un trazo (puntos en coordenadas de simulación, el primero es el inicio). Devuelve { tipo, x, y, enemigo } o null.
+export function clasificarTrazo(pts, b) {
+  if (!pts || pts.length < 2) return null;
+  const a = pts[0], z = pts[pts.length - 1], len = Math.hypot(z[0] - a[0], z[1] - a[1]);
+  let ruta = 0; for (let i = 1; i < pts.length; i++) ruta += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]);
+  if (ruta < 24) return null;
+  if (len < ruta * 0.25 && ruta > 40) return { tipo: 'mantener', x: a[0], y: a[1], enemigo: null };   // círculo = testudo: no existe, se trata como mantener
+  let dev = 0; for (const p of pts) { dev = Math.max(dev, Math.abs((z[0] - a[0]) * (a[1] - p[1]) - (a[0] - p[0]) * (z[1] - a[1])) / Math.max(1, len)); }
+  const en = enemigoCerca(b, 0, z[0], z[1], 46);
+  let tipo = 'avanzar';
+  if ((z[1] - a[1]) > len * 0.6) tipo = 'retirar';
+  else if (dev > len * 0.22) tipo = 'flanquear';
+  else if (en) tipo = 'cargar';
+  if (tipo === 'retirar') return { tipo, x: z[0], y: z[1], enemigo: null };
+  return { tipo, x: z[0], y: z[1], enemigo: en };
+}
+
 export class BattleView3D {
   constructor(host, battle, opts) {
     this.b = battle; this.host = host; this.sel = new Set(); this.opts = opts || {};
@@ -34,7 +70,7 @@ export class BattleView3D {
     this.scene = new THREE.Scene(); this.cam = new THREE.PerspectiveCamera(52, 1, 0.5, 900);
     this.c = { x: 0, z: this.halfD * 0.3, dist: 100, yaw: 0, pitch: 0.5 }; this.intro = 0;
     if (battle.fase === 'despliegue') { this.c.z = this.halfD * 0.78; this.c.pitch = 0.8; this.c.dist = 95; this.intro = 1; } /* despliegue: la cámara mira tu zona, por encima de las cartas */
-    this.buildWorld(); this.buildArmies(); this.buildFlags(); this.buildCards(); this.bind(); this.resize();
+    this.buildWorld(); this.buildArmies(); this.buildFlags(); this.buildCards(); this.bind(); this.buildTrazo(); this.resize();
   }
 
   /* ---------- terreno ---------- */
@@ -348,7 +384,7 @@ export class BattleView3D {
       el.innerHTML = '<i>' + (r.u.cls === 'ele' ? '🐘' : r.u.g) + '</i><b><u></u></b>';
       el.addEventListener('click', ev => { ev.stopPropagation(); if (performance.now() - (this.tArr || 0) < 400) return; this.hitReg(r); });
       // despliegue: mantener el dedo sobre el estandarte y mover arrastra el regimiento (el resto lo sigue el lienzo)
-      el.addEventListener('pointerdown', ev => { if (this.b.fase === 'despliegue' && r.side === 0 && r.st === 'ok' && this.onDown) { this.dragReg = r; this.onDown(ev); } });
+      el.addEventListener('pointerdown', ev => { if (this.b.fase === 'despliegue' && r.side === 0 && r.st === 'ok' && this.onDown) { this.dragReg = r; this.onDown(ev); } else if (this.b.fase !== 'despliegue' && r.side === 0 && r.st === 'ok' && this.sel.has(r) && this.onDown) { this.trazoIni = true; this.onDown(ev); } });
       this.flags.appendChild(el); R.el = el; R.bar = el.querySelector('u');
     }
   }
@@ -408,6 +444,53 @@ export class BattleView3D {
     else { c.dist = 34; c.pitch = 0.22; let best = null; for (const r of this.b.regs) if (r.st === 'ok' && r.side === 0 && (r.fight > 0 || !best)) best = r; if (best) { const w = this.toW(best.x, best.y); c.x = w[0]; c.z = w[1]; c.yaw = 0.7; } }
   }
 
+  /* ---------- L1: trazo dibujado ---------- */
+  buildTrazo() {
+    const cv = document.createElement('canvas'); cv.className = 'btrazo'; this.host.appendChild(cv); this.tcv = cv;
+    const et = document.createElement('div'); et.className = 'btrazoet'; this.host.appendChild(et); this.tet = et;
+  }
+  dibujaTrazo(T) {
+    const cv = this.tcv, W = this.host.clientWidth || 1, H = this.host.clientHeight || 1; if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    const rc = this.cv.getBoundingClientRect(), x = cv.getContext('2d'); x.clearRect(0, 0, W, H); if (T.s.length < 2) return;
+    x.lineCap = 'round'; x.lineJoin = 'round';
+    const trazo = (w, c) => { x.beginPath(); T.s.forEach((p, i) => { const px = p[0] - rc.left, py = p[1] - rc.top; i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.lineWidth = w; x.strokeStyle = c; x.stroke(); };
+    trazo(9, 'rgba(120,16,12,.85)'); trazo(4, '#f2cf72');
+    const q = T.s[T.s.length - 1], px = q[0] - rc.left, py = q[1] - rc.top; x.beginPath(); x.arc(px, py, 7, 0, 7); x.fillStyle = '#f2cf72'; x.fill();
+    const c = clasificarTrazo(T.w, this.b); this.etiqueta(c ? this.nombreOrden(c.tipo) : '', px, py);
+  }
+  nombreOrden(t) { return { cargar: 'Cargar', avanzar: 'Avanzar', flanquear: 'Flanquear', retirar: 'Retirar', mantener: 'Mantener' }[t] || ''; }
+  etiqueta(txt, px, py) { const e = this.tet; e.textContent = txt; e.style.opacity = txt ? 1 : 0; if (txt) e.style.transform = 'translate(' + Math.round(Math.min(this.host.clientWidth - 70, Math.max(6, px + 12))) + 'px,' + Math.round(Math.max(6, py - 34)) + 'px)'; }
+  limpiaTrazo() { const cv = this.tcv; if (cv) cv.getContext('2d').clearRect(0, 0, cv.width, cv.height); if (this.tet) this.tet.style.opacity = 0; }
+  // da la orden reconocida a todos los seleccionados (conservando su disposición relativa)
+  ejecutarTrazo(T) {
+    const c = clasificarTrazo(T.w, this.b), last = T.s[T.s.length - 1], rc = this.cv.getBoundingClientRect();
+    this.limpiaTrazo(); if (!c || this.b.over) return;
+    const sel = [...this.sel].filter(r => r.st === 'ok'); if (!sel.length) return;
+    const b = this.b, lim = (v, a, z) => Math.max(a, Math.min(z, v)); let cx = 0, cy = 0; sel.forEach(r => { cx += r.x; cy += r.y; }); cx /= sel.length; cy /= sel.length;
+    for (const r of sel) {
+      if (c.tipo === 'mantener') { r.order = null; r.tgt = null; }
+      else if (c.enemigo && c.tipo !== 'retirar' && c.tipo !== 'flanquear') { r.order = { k: 'atk', r: c.enemigo }; }
+      else { r.order = { k: 'move', x: lim(c.x + (r.x - cx), 20, FW - 20), y: lim(c.y + (r.y - cy), 20, b.H - 20) }; r.tgt = null; }
+    }
+    this.ultimaOrden = { txt: this.nombreOrden(c.tipo), t: performance.now() };
+    this.etiqueta(this.nombreOrden(c.tipo), last[0] - rc.left, last[1] - rc.top); clearTimeout(this.tetT); this.tetT = setTimeout(() => { this.tet.style.opacity = 0; }, 1100);
+    if (c.tipo !== 'mantener') { const w = this.toW(c.x, c.y); this.marker.position.set(w[0], this.h(w[0], w[1]) + 0.15, w[1]); this.marker.visible = true; this.markT = this.t; }
+  }
+  // botón dorado: ejecuta la orden recomendada de cada regimiento seleccionado. Devuelve la de texto del primero.
+  ordenRecomendada() {
+    let primera = null;
+    for (const r of this.sel) { if (r.st !== 'ok') continue; const o = recomendada(r, this.b); if (!o) continue; if (!primera) primera = o; r.order = o.order ? Object.assign({}, o.order) : null; r.tgt = null; }
+    return primera;
+  }
+  selPorClase(clases) { this.sel.clear(); for (const r of this.b.regs) if (r.side === 0 && r.st === 'ok' && clases.includes(r.u.cls)) this.sel.add(r); }
+  // orden de mover a un punto de simulación (minimapa)
+  moverSel(x, y) {
+    const sel = [...this.sel].filter(r => r.st === 'ok'); if (!sel.length) return false; let cx = 0, cy = 0; sel.forEach(r => { cx += r.x; cy += r.y; }); cx /= sel.length; cy /= sel.length;
+    sel.forEach(r => { r.order = { k: 'move', x: Math.max(20, Math.min(FW - 20, x + (r.x - cx))), y: Math.max(20, Math.min(this.b.H - 20, y + (r.y - cy))) }; r.tgt = null; });
+    const w = this.toW(x, y); this.marker.position.set(w[0], this.h(w[0], w[1]) + 0.15, w[1]); this.marker.visible = true; this.markT = this.t; return true;
+  }
+  centrarEn(x, y) { const w = this.toW(x, y); this.c.x = w[0]; this.c.z = w[1]; this.intro = 1; this.clampCam(); }
+
   /* ---------- cámara y gestos ---------- */
   bind() {
     const P = new Map(); let st = null; const cv = this.cv;
@@ -420,6 +503,12 @@ export class BattleView3D {
           if (!dr) { let hd = 34; for (const r of this.b.regs) { if (r.st !== 'ok' || r.side !== 0) continue; const d = Math.hypot(r.x - fx, r.y - fy); if (d < hd) { hd = d; dr = r; } } }
           if (dr) st.drag = { r: dr, dx: dr.x - fx, dy: dr.y - fy, mv: false };
         }
+        // L1: con un regimiento propio seleccionado, el arrastre que empieza sobre él (o cerca) dibuja una orden
+        const ini = this.trazoIni; this.trazoIni = false;
+        if (this.b.fase !== 'despliegue' && !this.b.over && !st.drag && this.sel.size) {
+          let ok = ini; if (!ok && g) { const fx = g[0] / S + FW / 2, fy = g[1] / S + this.b.H / 2; for (const r of this.sel) if (r.st === 'ok' && Math.hypot(r.x - fx, r.y - fy) < 46) ok = true; }
+          if (ok) st.trazo = { s: [[e.clientX, e.clientY]], w: [] };
+        }
       }
     };
     this.onMove = e => {
@@ -430,9 +519,12 @@ export class BattleView3D {
           if (st.mv >= 10) st.drag.mv = true;
           const g = st.drag.mv && this.b.fase === 'despliegue' ? this.pick(e.clientX, e.clientY) : null;
           if (g) this.b.colocar(st.drag.r, g[0] / S + FW / 2 + st.drag.dx, g[1] / S + this.b.H / 2 + st.drag.dy);
+        } else if (st.trazo) {
+          const T = st.trazo; if (st.mv >= 10) { if (!T.w.length) { const g0 = this.pick(T.s[0][0], T.s[0][1]); if (g0) T.w.push([g0[0] / S + FW / 2, g0[1] / S + this.b.H / 2]); } T.s.push([e.clientX, e.clientY]); const g1 = this.pick(e.clientX, e.clientY); if (g1) T.w.push([g1[0] / S + FW / 2, g1[1] / S + this.b.H / 2]); this.dibujaTrazo(T); }
         } else if (st.rot) { c.yaw -= dx * 0.006; c.pitch += dy * 0.005; }
         else { const k = c.dist * 0.0021, cy = Math.cos(c.yaw), sy = Math.sin(c.yaw), mx = -(dx * cy + dy * sy) * k, mz = -(-dx * sy + dy * cy) * k; c.x += mx; c.z += mz; this.vel = [mx * 60, mz * 60]; }
       } else if (P.size === 2 && st) {
+        if (st.trazo) { st.trazo = null; this.limpiaTrazo(); }
         const v = [...P.values()], d = Math.hypot(v[0][0] - v[1][0], v[0][1] - v[1][1]), a = Math.atan2(v[1][1] - v[0][1], v[1][0] - v[0][0]);
         if (st.d) { c.dist *= st.d / d; c.yaw -= a - st.a; c.pitch += dy * 0.002; }
         st.d = d; st.a = a;
@@ -441,6 +533,8 @@ export class BattleView3D {
     };
     this.onUp = e => {
       if (!P.has(e.pointerId)) return; P.delete(e.pointerId); if (!P.size) this.dragging = false;
+      if (st && st.trazo && !P.size && st.mv < 10) this.tArr = performance.now();
+      if (st && st.trazo && !P.size && st.mv >= 10) { this.tArr = performance.now(); if (e.type === 'pointerup') this.ejecutarTrazo(st.trazo); else this.limpiaTrazo(); st = null; return; }
       if (st && st.drag && !P.size) { this.tArr = performance.now(); if (!st.drag.mv && e.type === 'pointerup') this.hitReg(st.drag.r); st = null; return; }
       if (st && st.mv < 10 && performance.now() - st.t < 500 && e.type === 'pointerup' && !P.size) { const g = this.pick(e.clientX, e.clientY); if (g) this.tapField(g[0] / S + FW / 2, g[1] / S + this.b.H / 2); }
       if (!P.size) st = null; else if (st) st.d = 0;
@@ -482,6 +576,6 @@ export class BattleView3D {
     const realMeshes = new Set([...this.meshes.values()].filter(e => e.real).map(e => e.m));
     this.scene.traverse(o => { if (realMeshes.has(o)) return; if (o.geometry) o.geometry.dispose(); if (o.material && o.material !== unitMaterial()) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } });
     if (this.scene.background && this.scene.background.dispose) this.scene.background.dispose();
-    cv.remove(); this.flags.remove(); if (this.opts.cards) this.opts.cards.innerHTML = '';
+    cv.remove(); if (this.tcv) this.tcv.remove(); if (this.tet) this.tet.remove(); this.flags.remove(); if (this.opts.cards) this.opts.cards.innerHTML = '';
   }
 }
