@@ -441,6 +441,24 @@
    "archivo": "gobierno/capturas-tarea/N1-resultado.jpg",
    "pie": "Guerra nueva, maqueta · resultado, con el plan que llevaba el enemigo",
    "ancha": true
+  },
+  {
+   "tarea": "N1b",
+   "archivo": "gobierno/capturas-tarea/N1b-plan.jpg",
+   "pie": "Guerra nueva: plan en pausa sobre el 3D real",
+   "ancha": true
+  },
+  {
+   "tarea": "N1b",
+   "archivo": "gobierno/capturas-tarea/N1b-ejecucion.jpg",
+   "pie": "Guerra nueva: 20 s de ejecución, cámara al choque",
+   "ancha": true
+  },
+  {
+   "tarea": "N1b",
+   "archivo": "gobierno/capturas-tarea/N1b-informe.jpg",
+   "pie": "Guerra nueva: lo que pasó en la ronda",
+   "ancha": true
   }
  ],
  "informes": [
@@ -511,6 +529,10 @@
   {
    "titulo": "N1 · Guerra nueva: «planeas y luego miras» (diseño)",
    "archivo": "gobierno/estudios/N1-guerra-nueva.md"
+  },
+  {
+   "titulo": "N1b · Guerra ampliada",
+   "archivo": "gobierno/estudios/N1b-guerra-ampliada.md"
   }
  ]
 }

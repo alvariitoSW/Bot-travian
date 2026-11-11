@@ -1,0 +1,51 @@
+/* Maqueta N1b: batalla 3D real + interfaz nueva (HUD) por rondas. Uso: node gobierno/maquetas/guerra-ampliada.mjs */
+import { createRequire } from 'node:module';
+import { createServer } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { join, extname, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '../..');
+const T0 = +(process.env.T0 || 11);
+const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream' };
+const srv = createServer(async (q, r) => { try { let p = decodeURIComponent(q.url.split('?')[0]); if (p === '/') p = '/index.html'; if (p.includes('..')) throw 0; const d = await readFile(join(RAIZ, p)); r.writeHead(200, { 'content-type': TIPOS[extname(p)] || 'application/octet-stream' }); r.end(d); } catch (e) { r.writeHead(404); r.end(); } });
+await new Promise(ok => srv.listen(0, '127.0.0.1', ok));
+const { chromium } = createRequire(import.meta.url)('playwright');
+const br = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+const page = await (await br.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true })).newPage();
+const errores = [];
+page.on('console', m => { if (m.type() === 'error') errores.push(m.text().slice(0, 200)); });
+page.on('pageerror', e => errores.push('EXCEPCIÓN: ' + String(e.message).slice(0, 200)));
+await page.goto('http://127.0.0.1:' + srv.address().port + '/'); await page.waitForTimeout(1500);
+await page.setViewportSize({ width: 390, height: 844 }); await page.click('#menu [data-act="new"]'); await page.waitForTimeout(2500);
+await page.evaluate(() => { const m = document.getElementById('modal'); if (m) m.hidden = true; }); await page.setViewportSize({ width: 844, height: 390 });
+await page.evaluate(() => {
+  const lado = (units, n, col, gen) => ({ units, name: n, col, gen: gen ? { n: gen } : null, atkMul: 1, defMul: 1, mor: 0 });
+  UI.binfo = { cfg: { sides: [lado({ hastati: 240, principes: 160, triarii: 80, velites: 120, equites: 80 }, 'Roma', '#b3261e', 'Cónsul'), lado({ libios: 240, iberos: 160, honderos: 120, numidas: 80, elefantes: 16 }, 'Cartago', '#5b3a8c', 'Sufete')], defender: 1, wall: 0, seed: 7 }, city: 'roma', kind: 'attack' };
+  const bt = document.createElement('button'); bt.dataset.act = 'bview'; document.body.appendChild(bt); bt.click(); bt.remove();
+});
+await page.waitForTimeout(11000);
+const cdir = join(RAIZ, 'gobierno/maquetas');
+await page.addStyleTag({ path: join(cdir, 'guerra-ampliada-hud.css') }); await page.addScriptTag({ path: join(cdir, 'guerra-ampliada-hud.js') });
+await page.evaluate(() => { UI.battle.view.intro = 1; });
+const salida = n => join(RAIZ, 'gobierno/capturas-tarea', n);
+async function foto(nombre, modo, ctx, pre) {
+  await page.evaluate(() => { const h = document.getElementById('bhint'); if (h) h.style.opacity = 0; });
+  await page.evaluate(([t]) => { const b = UI.battle.b; while (b.t < t - 1 && !b.over) b.step(0.1); }, [pre.t]);
+  if (pre.cam) await page.evaluate(pre.cam);
+  await page.waitForTimeout(8000);
+  await page.evaluate(() => { const p = document.getElementById('bpause'); if (p && UI.battle.opts && 0) p.click(); });
+  const info = await page.evaluate(([m, c]) => { const b = UI.battle.b; window.HUD.render(m, Object.assign({ ronda: 3, antes: window.ANTES, seg: Math.round(b.t - window.T0S) }, c)); return 't=' + b.t.toFixed(1) + ' ' + b.men(0) + '/' + b.men(1) + ' luchan=' + b.regs.filter(r => r.fight > 0).length; }, [modo, ctx]);
+  await page.waitForTimeout(400);
+  await page.screenshot({ path: salida(nombre), type: 'jpeg', quality: 75, timeout: 120000 });
+  console.log(nombre, info); if (modo === 'plan') await page.evaluate(() => { window.T0S = UI.battle.b.t; window.ANTES = [UI.battle.b.men(0), UI.battle.b.men(1)]; });
+}
+await page.evaluate(() => { const e = document.querySelector('#bctl [data-act="bstart"]'); if (e) e.click(); });
+await page.evaluate(t0 => { window.T0S = t0; }, T0);
+await page.evaluate(() => { const v = UI.battle.view, c = v.c; v.camMode = 1; c.dist = 215; c.pitch = 0.95; c.yaw = 0; c.x = 0; c.z = 12; v.intro = 1; });
+await page.evaluate(() => { window.ANTES = [UI.battle.b.men(0), UI.battle.b.men(1)]; });
+await foto('N1b-plan.jpg', 'plan', {}, { t: T0 });
+const cerca = () => { const v = UI.battle.view, b = UI.battle.b, f = b.regs.filter(r => r.st === 'ok' && r.fight > 0 && r.k !== 'general'); let x = 0, y = 0; (f.length ? f : b.regs).forEach(r => { x += r.x; y += r.y; }); const n = (f.length ? f : b.regs).length, w = v.toW(x / n, y / n), c = v.c; c.x = w[0]; c.z = w[1]; c.dist = 48; c.pitch = 0.36; c.yaw = 0.55; v.intro = 1; };
+await foto('N1b-ejecucion.jpg', 'ejec', {}, { t: T0 + 14, cam: cerca });
+await foto('N1b-informe.jpg', 'informe', {}, { t: T0 + 20, cam: cerca });
+console.log(errores.length ? 'ERRORES DE CONSOLA:\n' + errores.join('\n') : 'Sin errores de consola');
+await br.close(); srv.close();
