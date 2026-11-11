@@ -255,11 +255,11 @@ export class BattleView3D {
         if (lt) lt.i++;
         else if (e.real) {
           const cl = e.real.clips, ph = hash(j * 3.1 + r.id) * 4; let clip;
-          if (rout) clip = cl.run || cl.walk; else if (mv && d > 0.3) clip = (d > 2.5 || r.charge > 0) && cl.run ? cl.run : cl.walk;
+          if (rout) clip = cl.run || cl.walk; else if (mv && d > 0.3) clip = (r.corre || r.charge > 0) && cl.run ? cl.run : cl.walk;
           else if (fight && row < 2) clip = (j % 2 && cl.attack_melee2) || cl.attack_melee || cl.attack_ranged || cl.idle;
           else if (shooting && row < 3) clip = cl.attack_ranged || cl.idle; else clip = cl.idle;
           e.a[e.i] = frameOf(clip, t + ph);
-        } else { const a = e.a, ao = e.i * 3; a[ao] = mv && d > 0.3 ? (rout ? 1.3 : 1) : 0; a[ao + 1] = fight && row < 2 ? 1 : shooting && row < 2 ? 0.7 : 0; a[ao + 2] = j * 1.7 + r.id * 0.9; }
+        } else { const a = e.a, ao = e.i * 3; a[ao] = mv && d > 0.3 ? (rout || r.corre || r.charge > 0 ? 1.3 : 1) : 0; a[ao + 1] = fight && row < 2 ? 1 : shooting && row < 2 ? 0.7 : 0; a[ao + 2] = j * 1.7 + r.id * 0.9; }
         if (!lt) e.i++;
         const so = si * 16, ss = R.f.sh, sl = ss * 2.4; SM[so] = 0.83 * sl; SM[so + 1] = 0; SM[so + 2] = -0.55 * sl; SM[so + 3] = 0; SM[so + 4] = 0; SM[so + 5] = 1; SM[so + 6] = 0; SM[so + 7] = 0; SM[so + 8] = 0.55 * ss; SM[so + 9] = 0; SM[so + 10] = 0.83 * ss; SM[so + 11] = 0; SM[so + 12] = x + 0.83 * sl * 0.75; SM[so + 13] = y + 0.06; SM[so + 14] = z - 0.55 * sl * 0.75; SM[so + 15] = 1; si++;
       }

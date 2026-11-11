@@ -75,6 +75,28 @@
       "archivo": "gobierno/capturas-tarea/I3-mano-de-obra.jpg",
       "pie": "Mano de obra (gente que trabaja frente a puestos) y mantenimiento en oro: edificios y paga de las tropas",
       "ancha": false
+    },
+    {
+      "tarea": "E1b",
+      "archivo": "gobierno/capturas-tarea/E1b-ciudad.jpg",
+      "pie": "Iconos de línea en bronce y colores de la guía"
+    },
+    {
+      "tarea": "E1b",
+      "archivo": "gobierno/capturas-tarea/E1b-menu.jpg",
+      "pie": "Letra Cinzel incluida: se ve igual sin conexión"
+    },
+    {
+      "tarea": "A9",
+      "archivo": "gobierno/capturas-tarea/A9-cerca-2s.jpg",
+      "pie": "Salida: infantería delante y caballería en el ala",
+      "ancha": true
+    },
+    {
+      "tarea": "A9",
+      "archivo": "gobierno/capturas-tarea/A9-45s.jpg",
+      "pie": "El choque, desde arriba: los tiradores (flecha) quedan detrás de su línea",
+      "ancha": true
     }
   ],
   "informes": [

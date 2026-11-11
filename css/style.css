@@ -1,6 +1,9 @@
+/* Letra de títulos, incluida para que se vea igual sin conexión (Cinzel, SIL OFL 1.1; ver assets/fuentes/LICENSE.txt) */
+@font-face { font-family: 'Cinzel'; font-weight: 400; font-style: normal; font-display: swap; src: url('../assets/fuentes/cinzel-400.woff2') format('woff2'); }
+@font-face { font-family: 'Cinzel'; font-weight: 700; font-style: normal; font-display: swap; src: url('../assets/fuentes/cinzel-700.woff2') format('woff2'); }
 :root {
   --bg: #0b1016; --glass: rgba(14, 19, 27, .78); --glass2: rgba(26, 33, 44, .82); --line: rgba(255, 255, 255, .1); --line2: rgba(227, 181, 74, .45);
-  --gold: #e9c063; --gold2: #b8862b; --red: #c0281f; --red2: #7d1712; --ink: #eef1f5; --mute: #9aa6b4; --good: #7ddc5a; --bad: #ff7a66;
+  --gold: #e9c063; --gold2: #b8862b; --red: #c0281f; --red2: #7d1712; --ink: #f1ead9; --mute: #9aa6b4; --good: #8fae5a; --bad: #d9764a;
   --serif: 'Cinzel', 'Trajan Pro', 'Palatino Linotype', Georgia, serif; --r: 16px;
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -231,3 +234,9 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 .cdxn .lic, .cdx .lic { font-size: 11px; }
 .cdx .ds { font-size: 13px; line-height: 1.45; margin-top: 4px; }
 .cdxf { font-size: 11px; color: var(--mute); margin-top: 4px; overflow-wrap: anywhere; }
+
+/* Iconos de línea de la guía de arte (E1b): bronce en reposo, oro si está activo */
+.ico { display: inline-block; width: 1.25em; height: 1.25em; vertical-align: -.24em; fill: none; stroke: var(--gold2); stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.ico.oro, .chip.on .ico, .btn .ico { stroke: var(--gold); }
+.btn.gold .ico { stroke: #1c1206; }
+#res .r .ico { display: block; width: 21px; height: 21px; margin: 1px auto 2px; }
