@@ -73,6 +73,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 ## Carril K — Concurso de diseño de interfaz (pedido 11/11/2026)
 - ✅ K1 **Concurso Gobierno** (11/11): cinco maquetas verticales y jurado ciego. Ranking: Cartas 73, Tablero 70, Senado 65, Cursus 63, Crónica 61. Informe `estudios/K-concurso.md`.
 - ✅ K2 **Concurso Guerra** (11/11): cinco maquetas horizontales y jurado ciego. Ranking: General 72, Trazo 69, Partitura 60, Arena 60, Cartas 59.
+- ⬜ K4 **Concurso Guerra 2** y K5 **Concurso Gobierno 2** (11/11, pedidos del usuario): 5 + 5 maquetas, criterios artístico, escalable, intuitivo. Bases `maquetas/concurso/BASES2.md`.
 - ⬜ K3 **Construir los ganadores**: esperando que el usuario elija en cada concurso (decide él: cambio grande de aspecto). Lo que cambie en `js/ui.js` y `js/gfx/` lo estima cada nota de `maquetas/concurso/`. No empezar antes.
 
 ## Carril E — Arte (sistema coherente con la época)
