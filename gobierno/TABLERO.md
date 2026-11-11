@@ -65,6 +65,12 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ C2 Costa y relieve del mapa con datos mejores; texturas de terreno en el mapa.
 - ⬜ C3 Diplomacia sencilla (alianzas, tributos) e IA enemiga que también construye.
 
+## Carril H — Historia (ministerio de Adecuación Histórica)
+- 🔶 H1 Auditoría histórica de lo que ya hay: tropas (armas y vestimenta), las 18 ciudades y los hechos, con fuentes;
+  lista de anacronismos, licencias de juego y cambios propuestos. No cambia el juego.
+- 🔶 H2 Fichas con fuentes de las grandes batallas: Heraclea, Ásculo, Trebia, Trasimeno, Cannas, Zama y Pidna.
+- ⬜ H3 Códice dentro del juego, simple: una pestaña para leer las fichas ya comprobadas. Después de H1.
+
 ## Carril D — Técnica
 - 🔶 D1 Medir rendimiento en un móvil real y fijar presupuestos (triángulos, descarga: hoy ~32 MB de arte).
 - 🔶 D2 Niveles de detalle para soldados lejanos; comprimir animaciones.
