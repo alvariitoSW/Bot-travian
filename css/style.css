@@ -417,3 +417,39 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 .bflag.m1 i { clip-path: polygon(0 0, 100% 0, 86% 30%, 100% 50%, 76% 64%, 92% 100%, 50% 76%, 26% 100%, 0 82%); filter: saturate(.7); }
 .bflag.m2 i { transform: rotate(-32deg) translateY(4px); transform-origin: 0 100%; filter: saturate(.25) brightness(.65); }
 .bflag.can i { filter: saturate(.5) brightness(1.15); }
+
+/* ---------- Imperio (libro de cuentas) ---------- */
+.imp { padding: 10px 12px 0; }
+.imp-res { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; background: #17110d; border: 1px solid var(--line2); border-radius: 8px; padding: 8px 4px; }
+.imp-res div { text-align: center; min-width: 0; }
+.imp-res b { display: block; font: 700 17px var(--serif); color: var(--gold); white-space: nowrap; } .imp-res b small { font-size: 11px; color: var(--mute); }
+.imp-res span { font-size: 11px; color: var(--mute); }
+.imp-peor { margin: 6px 2px 0; font-size: 13px; color: var(--mute); } .imp-peor b { color: var(--bad); }
+.imp-chips { display: flex; gap: 6px; overflow-x: auto; margin: 10px -12px 8px; padding: 0 12px; scrollbar-width: none; }
+.imp-chips button { flex: none; min-height: 44px; padding: 0 12px; border-radius: 22px; border: 1px solid var(--line); background: var(--glass2); font-size: 14px; color: var(--ink); }
+.imp-chips button i { font-style: normal; color: var(--mute); font-size: 12px; }
+.imp-chips button.on { border-color: var(--gold); color: var(--gold); background: #2b1d16; }
+.imp-lista { display: flex; flex-direction: column; gap: 6px; }
+.imp-fila { display: block; width: 100%; min-height: 56px; text-align: left; padding: 8px 12px; background: var(--glass2); border: 1px solid var(--line); border-left: 4px solid var(--gold2); border-radius: 8px; }
+.imp-fila.urg { border-left-color: var(--bad); }
+.imp-l1, .imp-l2 { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.imp-l1 b { flex: 1; min-width: 0; font: 700 15px var(--serif); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.imp-pop, .imp-an { flex: none; font-size: 13px; color: var(--mute); }
+.imp-l2 { margin-top: 4px; min-height: 22px; }
+.imp-obra { flex: 1; min-width: 0; display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--mute); }
+.imp-obra .prog { flex: 1; min-width: 30px; margin: 0; } .imp-nb { flex: none; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .imp-obra .rem { flex: none; }
+.imp-sin { flex: 1; font-size: 13px; color: var(--mute); }
+.imp-tag { flex: none; font-style: normal; font-size: 11px; padding: 2px 7px; border-radius: 10px; background: #0007; color: var(--mute); }
+.imp-tag.mal { color: #fff; background: var(--red2); } .imp-tag.av { color: var(--gold); border: 1px solid var(--line2); } .imp-tag.ok { color: var(--good); }
+.imp-vacio { padding: 20px; text-align: center; color: var(--mute); }
+/* Imperio: filas deslizables y obras */
+.imp-sw { position: relative; border-radius: 8px; overflow: clip; }
+.imp-izq { position: absolute; inset: 0 0 0 auto; width: 110px; display: flex; }
+.imp-izq button { flex: 1; background: var(--gold2); color: #1a120c; font-weight: 700; font-size: 13px; padding: 4px 8px; }
+.imp-fila { position: relative; background: #1d1612; touch-action: pan-y; user-select: none; transition: transform .18s; cursor: pointer; }
+.imp-fila.arr { transition: none; }
+.imp-fl { flex: none; font-size: 12px; color: var(--mute); opacity: .35; letter-spacing: 2px; }
+.imp-obras { display: flex; flex-direction: column; gap: 6px; margin-bottom: 12px; }
+.imp-ob { display: flex; align-items: center; gap: 8px; min-height: 40px; padding: 6px 12px; background: var(--glass2); border: 1px solid var(--line); border-radius: 8px; font-size: 12px; color: var(--mute); }
+.imp-ob b { flex: none; max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink); font-size: 13px; }
+.imp-ob .prog { flex: 1; min-width: 30px; margin: 0; } .imp-ob .imp-nb { flex: none; max-width: 80px; } .imp-ob .rem { flex: none; }

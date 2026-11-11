@@ -115,7 +115,7 @@ En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Ma
 0000. **Carril N**: N1b hecha (11/11). Si el usuario aprueba P74, sigue **N2 Rondas y vista previa** en `js/battle.js` y la pantalla de batalla; luego N3 Interfaz nueva (llevar al juego lo de las capturas N1b, script `gobierno/maquetas/guerra-ampliada.mjs`). Si no contesta a los puntos de mando, la opción A.
 00. **Q1 hecha** (11/11; absorbe O1). Si el usuario aprueba P75, sigue **Q2 Caja del mes y cierre** en `js/game.js` y `js/data.js` (migrar en `G.load`); luego Q3 Cuentas en pantalla y Q4 Obras a plazos (después de J7). Presupuesto de referencia en el diseño §8.
 0b. Carril Guerra interfaz: L1 y L2 hechas (11/11). Siguiente: L3 (fantasmas en pausa y cartas de táctica) o L1b (testudo si el usuario lo quiere como regla, trazo en 2D, HUD vertical). L2 gastó 0,75 M.
-0. Carril Interfaz: J6 hecha (11/11). Sigue **J7 Parte densa** (incluye J2): pestañas también en el mapa, Imperio con filtros, cola de obras. Presupuestar con el dato: J6 gastó ~1,5 M sobre 0,65 presupuestado; encargar al constructor piezas más pequeñas.
+0. Carril Interfaz: J6 y J7 hechas (11/11; J7 gastó 0,78 M sobre 0,95 con dos piezas pequeñas). Queda J7b (pestañas en el mapa de guerra, tras I2) y luego J8 Foro y chips. Ojo: Imperio ya no abre el mapa; a la guerra se entra por ☰ → Guerra (el juez 2 se ajustó).
 Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que lleva Campaña):
 1. I6 Región de Italia → I7 Regiones → I8 Partida corta (prioridad del usuario).
 2. Historia: H14 → H13 → H12 → H11.

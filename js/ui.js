@@ -107,7 +107,7 @@ function hudDock() {
   setTxt('bact', g ? '<span class="em">🔨</span><small>Obras</small>' : D.GUERRA_ICON.casco + '<small>Tropas</small>');
   setTxt('bmodo', open ? '<span class="em">✕</span><small>Cerrar</small>' : (g ? ICO_GOB : D.GUERRA_ICON.espadas) + '<small>' + (g ? 'Gobierno' : 'Guerra') + '</small>');
   setTxt('bpill', g ? D.POP_ICON + ' ' + Math.floor(c.pop) + '/' + G.popCap(c) + ' · ' + cara + ' ' + f : '🚩 ' + (nm === 1 ? '1 marcha en curso' : nm + ' marchas en curso'));
-  const t3 = UI.tab === 'city' ? (UI.cityList || !UI.cityV ? 'gobierno' : 'ciudad') : '';
+  const t3 = UI.tab === 'imperio' ? 'imperio' : UI.tab === 'city' ? (UI.cityList || !UI.cityV ? 'gobierno' : 'ciudad') : '';
   document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3));
   setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
 }
@@ -136,7 +136,7 @@ function tickUI() {
 
 /* ---------- paneles ---------- */
 function setTab(t) {
-  UI.tab = t; if (t === 'map' || t === 'army') UI.modo = 'guerra'; else if (t === 'city') UI.modo = 'gobierno'; $('hoja').hidden = true; $('popsheet').hidden = true; $('citymenu').hidden = true;
+  UI.tab = t; if (t === 'map' || t === 'army') UI.modo = 'guerra'; else if (t === 'city' || t === 'imperio') UI.modo = 'gobierno'; $('hoja').hidden = true; $('popsheet').hidden = true; $('citymenu').hidden = true;
   const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D (o en lista si se prefiere)
   $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3;
   if (c3) UI.cityV.resize();
@@ -160,7 +160,7 @@ function render() {
   if (!S()) return; renderPop(); if (UI.tab === 'map') { renderSheet(); return; }
   if (UI.tab === 'city' && UI.cityV && !UI.cityList) { renderCity3D(); tickUI(); return; }
   const v = $('view'), st = v.scrollTop;
-  v.innerHTML = UI.tab === 'city' ? viewCity() : UI.tab === 'army' ? viewArmy() : UI.tab === 'hero' ? viewHero() : viewLog();
+  v.innerHTML = UI.tab === 'imperio' ? viewImperio() : UI.tab === 'city' ? viewCity() : UI.tab === 'army' ? viewArmy() : UI.tab === 'hero' ? viewHero() : viewLog();
   v.scrollTop = st; tickUI();
 }
 function effect(b, L) {
@@ -288,26 +288,108 @@ const ICO_ALERTA = svgIco('<path d="M12 4l9.5 16h-19zM12 10v4.5M12 17.2v.3"/>');
 const ICO_VER = svgIco('<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>');
 const ICO_MUNDO = svgIco('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>');
 const ICO_MAS = svgIco('<path d="M4 7h16M4 12h16M4 17h16"/>');
+/* ---------- Imperio: libro de cuentas de todas tus ciudades ---------- */
+const IMP_FILTROS = [['todas', 'Todas'], ['urgentes', 'Urgentes'], ['sinobra', 'Sin obra'], ['obras', 'En obras'], ['animo', 'Ánimo bajo']];
+function impFila(id) {
+  const s = S(), c = s.cities[id], f = Math.round(G.felicidad(c)), pc = G.popCap(c);
+  const con = consejo(c, id);
+  let pts = 0, causa = '', tono = '';
+  const pon = (p, t, k) => { if (p > pts) { pts = p; causa = t; tono = k; } };
+  if (c.inq > 0) pon(60 + c.inq, 'Inquietud', 'mal');
+  if (f < 40) pon(50 + (40 - f), 'Ánimo bajo', 'mal');
+  if (con.flags.almacen) pon(40, 'Almacén lleno', 'av');
+  if (con.flags.viviendas) pon(35, 'Población al tope', 'av');
+  if (!c.queue && con.rec) pon(20, 'Sin obra · hay recursos', 'av');
+  else if (!c.queue) pon(5, 'Sin obra', 'ok');
+  return { id, c, f, pc, pts, causa, tono, con, urg: pts >= 30 };
+}
+function viewImperio() {
+  const s = S(), filas = G.myCities().map(impFila), n = filas.length;
+  const pop = filas.reduce((a, r) => a + Math.floor(r.c.pop), 0), cap = filas.reduce((a, r) => a + r.pc, 0);
+  const fm = n ? Math.round(filas.reduce((a, r) => a + r.f, 0) / n) : 0, peor = filas.slice().sort((a, b) => a.f - b.f)[0];
+  const obras = filas.filter(r => r.c.queue).length, sin = n - obras;
+  const F = UI.impF || 'todas', cuenta = { todas: n, urgentes: filas.filter(r => r.urg).length, sinobra: sin, obras, animo: filas.filter(r => r.f < 40).length };
+  const ok = { todas: () => true, urgentes: r => r.urg, sinobra: r => !r.c.queue, obras: r => !!r.c.queue, animo: r => r.f < 40 }[F] || (() => true);
+  const lista = filas.filter(ok).sort((a, b) => b.pts - a.pts || b.c.pop - a.c.pop);
+  const cara = f => f >= 60 ? '😊' : f >= 40 ? '😐' : '😠';
+  let h = '<div class="imp"><div class="imp-res"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div>' +
+    (peor && n > 1 ? '<div class="imp-peor">Peor ánimo: <b>' + D.CITIES[peor.id].n + '</b> ' + cara(peor.f) + ' ' + peor.f + '</div>' : '') +
+    '<div class="imp-chips">' + IMP_FILTROS.map(x => '<button class="' + (F === x[0] ? 'on' : '') + '" data-act="impf" data-v="' + x[0] + '">' + x[1] + ' <i>' + cuenta[x[0]] + '</i></button>').join('') + '</div><div class="imp-lista">';
+  if (!lista.length) h += '<div class="imp-vacio">Ninguna ciudad cumple este filtro.</div>';
+  for (const r of lista) {
+    const c = r.c, q = c.queue;
+    h += '<div class="imp-sw"><div class="imp-izq"><button data-act="impmismo" data-v="' + r.id + '">Hacer lo mismo en…</button></div><div class="imp-fila' + (r.urg ? ' urg' : '') + '" role="button" tabindex="0" data-act="impc" data-v="' + r.id + '"><div class="imp-l1"><b>' + D.CITIES[r.id].n + '</b><span class="imp-pop">' + D.POP_ICON + ' ' + Math.floor(c.pop) + '/' + r.pc + '</span><span class="imp-an">' + cara(r.f) + ' ' + r.f + '</span><span class="imp-fl" aria-hidden="true">‹ ›</span></div>' +
+      '<div class="imp-l2">' + (q ? '<div class="imp-obra"><span class="imp-nb">' + D.BUILD[q.b].n + '</span><div class="prog" data-t0="' + q.t0 + '" data-t1="' + q.t1 + '"><i></i></div><span class="rem"></span></div>' : '<span class="imp-sin">sin obra</span>') +
+      (r.causa ? '<em class="imp-tag ' + r.tono + '">' + r.causa + '</em>' : '') + '</div></div></div>';
+  }
+  h += '</div><div class="sec">Obras</div><div class="imp-obras">';
+  const en = filas.filter(r => r.c.queue).sort((a, b) => a.c.queue.t1 - b.c.queue.t1);
+  if (!en.length) h += '<div class="imp-vacio">Ninguna ciudad tiene obras en curso.</div>';
+  for (const r of en) { const q = r.c.queue; h += '<div class="imp-ob"><b>' + D.CITIES[r.id].n + '</b><span class="imp-nb">' + D.BUILD[q.b].n + '</span><div class="prog" data-t0="' + q.t0 + '" data-t1="' + q.t1 + '"><i></i></div><span class="rem"></span></div>'; }
+  h += '</div>';
+  return h + '</div>';
+}
+/* Deslizar una fila: derecha = hacer la obra aconsejada; izquierda = «Hacer lo mismo en…» */
+function impHacer(id) {
+  const c = S().cities[id];
+  if (c.queue) return toast(D.CITIES[id].n + ' ya tiene una obra en curso.', 'bad');
+  const con = consejo(c, id);
+  if (!con.b) return toast(D.CITIES[id].n + ': ' + con.t, 'bad');
+  if (G.upgrade(id, con.b)) { toast('🔨 ' + D.CITIES[id].n + ': ' + D.BUILD[con.b].n + '.'); render(); mismoModal(id, con.b); }
+  else toast(D.CITIES[id].n + ': faltan recursos.', 'bad');
+}
+function mismoModal(id, b) {
+  const B = D.BUILD[b];
+  const otras = G.myCities().filter(x => { const c = S().cities[x]; return x !== id && !c.queue && puedeObra(c, b, x) && G.canAfford(G.cost(b, c.b[b] || 0)); });
+  let h = '<div class="yr">HACER LO MISMO</div><h2>' + bIco(b) + ' ' + B.n + '</h2>';
+  if (!otras.length) h += '<p>Ninguna otra ciudad puede hacer esta obra ahora: tienen obra en curso o faltan recursos.</p>';
+  for (const o of otras) { const c = S().cities[o], L = c.b[b] || 0, cost = G.cost(b, L); h += '<div class="card"><div class="bd"><div class="tt">' + D.CITIES[o].n + '<span class="lv">Nv ' + L + ' → ' + (L + 1) + '</span></div>' + costHtml(cost) + '</div><button class="btn" data-act="impmas" data-v="' + o + '>' + b + '">Construir</button></div>'; }
+  modal(h + '<div class="acts"><button class="btn ghost" data-act="close">Cerrar</button></div>');
+}
+(function () {
+  let sw = null;
+  document.addEventListener('pointerdown', e => {
+    const f = e.target.closest('.imp-fila'); if (!f || (e.pointerType === 'mouse' && e.button)) return;
+    const abierta = document.querySelector('.imp-fila.abre'); if (abierta && abierta !== f) { abierta.classList.remove('abre'); abierta.style.transform = ''; }
+    sw = { f, x: e.clientX, y: e.clientY, dx: 0, on: false, base: f.classList.contains('abre') ? -110 : 0 };
+  });
+  document.addEventListener('pointermove', e => {
+    if (!sw) return; const dx = e.clientX - sw.x, dy = e.clientY - sw.y;
+    if (!sw.on) { if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { sw = null; return; } if (Math.abs(dx) < 10) return; sw.on = true; sw.f.classList.add('arr'); try { sw.f.setPointerCapture(e.pointerId); } catch (x) {} }
+    sw.dx = dx; sw.f.style.transform = 'translateX(' + Math.max(-120, Math.min(90, sw.base + dx)) + 'px)';
+  });
+  const fin = () => {
+    if (!sw) return; const f = sw.f, d = sw.dx, on = sw.on, base = sw.base; sw = null; f.classList.remove('arr');
+    if (!on) return; UI.swipeT = Date.now();
+    if (base < 0 && d > 40) { f.classList.remove('abre'); f.style.transform = ''; return; }
+    if (d > 60 && base === 0) { f.classList.remove('abre'); f.style.transform = ''; impHacer(f.dataset.v); }
+    else if (d < -60 && base === 0) { f.classList.add('abre'); f.style.transform = 'translateX(-110px)'; }
+    else { f.style.transform = base < 0 ? 'translateX(-110px)' : ''; }
+  };
+  document.addEventListener('pointerup', fin); document.addEventListener('pointercancel', fin);
+  document.addEventListener('click', e => { if (UI.swipeT && Date.now() - UI.swipeT < 400 && e.target.closest('.imp-fila')) { e.stopPropagation(); e.preventDefault(); UI.swipeT = 0; } }, true);
+})();
 function buildTabs() {
   $('tabs3').innerHTML = [['ciudad', D.BUILD_ICON.viviendas, 'Ciudad'], ['gobierno', ICO_GOB, 'Gobierno'], ['imperio', ICO_MUNDO, 'Imperio']].map(t => '<button data-act="tab3" data-v="' + t[0] + '">' + t[1] + '<span>' + t[2] + '</span></button>').join('');
   $('bmas').innerHTML = ICO_MAS;
 }
-function puedeObra(c, b) {
+function puedeObra(c, b, id) {
+  id = id || UI.city;
   const B = D.BUILD[b], L = c.b[b] || 0;
-  if (L >= D.MAX_LVL || (B.sea && !D.CITIES[UI.city].sea)) return false;
-  if (B.solar && L < 1 && G.solaresUsados(c) >= G.solares(UI.city)) return false;
+  if (L >= D.MAX_LVL || (B.sea && !D.CITIES[id].sea)) return false;
+  if (B.solar && L < 1 && G.solaresUsados(c) >= G.solares(id)) return false;
   return !G.faltaEspecial('edificio', b, L);
 }
 /* La acción aconsejada: almacén lleno, población al tope, o la obra más barata que se puede pagar */
-function consejo(c) {
+function consejo(c, id) {
   const s = S(), cap = G.cap(), nm = b => D.BUILD[b].n;
   const lleno = D.RES.filter(r => r !== 'oro').map(r => [r, s.res[r] / cap]).filter(x => x[1] >= 0.9).sort((x, y) => y[1] - x[1])[0];
-  const alm = !!lleno && puedeObra(c, 'almacen'), pop = c.pop >= G.popCap(c) - 1 && puedeObra(c, 'viviendas');
+  const alm = !!lleno && puedeObra(c, 'almacen', id), pop = c.pop >= G.popCap(c) - 1 && puedeObra(c, 'viviendas', id);
   const flags = {}; if (alm) flags.almacen = 'alerta'; if (pop) flags.viviendas = 'alerta';
   if (c.queue) return { b: c.queue.b, rec: false, flags, t: 'En obras: ' + nm(c.queue.b) + '. Faltan ' + months(Math.max(0, c.queue.t1 - s.t)) + '.' };
   if (alm) return { b: 'almacen', rec: true, flags, t: 'Tu ' + RES_NOM[lleno[0]].toLowerCase() + ' llega al ' + Math.round(lleno[1] * 100) + ' %. Amplía el Almacén.' };
   if (pop) return { b: 'viviendas', rec: true, flags, t: 'La población está al tope. Construye Ínsulas.' };
-  const cand = ['granja', 'aserradero', 'cantera', 'mina', 'viviendas', 'foro', 'almacen'].filter(b => puedeObra(c, b) && G.canAfford(G.cost(b, c.b[b] || 0))).sort((x, y) => (c.b[x] || 0) - (c.b[y] || 0))[0];
+  const cand = ['granja', 'aserradero', 'cantera', 'mina', 'viviendas', 'foro', 'almacen'].filter(b => puedeObra(c, b, id) && G.canAfford(G.cost(b, c.b[b] || 0))).sort((x, y) => (c.b[x] || 0) - (c.b[y] || 0))[0];
   if (cand) return { b: cand, rec: true, flags, t: 'Mejora ' + nm(cand) + ' al nivel ' + ((c.b[cand] || 0) + 1) + '. Ya tienes los recursos.' };
   return { b: null, rec: false, flags, t: 'Faltan recursos para nuevas obras. Espera a que lleguen.' };
 }
@@ -539,6 +621,10 @@ document.addEventListener('click', function (e) {
     case 'popx': $('popsheet').hidden = true; break;
     case 'ayuda': UI.codice = window.CODICE ? 'tropas' : null; setTab('log'); break;
     case 'menu': G.save(); showMenu(); break;
+    case 'impf': UI.impF = v; render(); break;
+    case 'impmismo': { const c = s.cities[v]; const b = c.queue ? c.queue.b : consejo(c, v).b; if (b) mismoModal(v, b); else toast('Esa ciudad no tiene una obra de la que copiar.', 'bad'); break; }
+    case 'impmas': { const q = v.split('>'); if (G.upgrade(q[0], q[1])) { toast('🔨 ' + D.CITIES[q[0]].n + ': ' + D.BUILD[q[1]].n + '.'); closeModal(); render(); mismoModal(q[0], q[1]); } else toast('No se puede construir ahora.', 'bad'); break; }
+    case 'impc': UI.city = v; UI.bsel = null; UI.cityList = false; setTab('city'); break;
     case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; if (UI.tab === 'map' && UI.map) UI.map.center(v); render(); tickUI(); break;
     case 'rep': if (G.reparto(UI.city, el.dataset.r, +el.dataset.d)) render(); break;
     case 'imp': if (G.setImp(UI.city, el.dataset.v)) render(); break;
@@ -550,7 +636,7 @@ document.addEventListener('click', function (e) {
     case 'derr': { const k = UI.city + ':' + v; if (UI.derr !== k) { UI.derr = k; render(); } else { UI.derr = null; if (G.derribar(UI.city, v)) { toast('🧱 ' + D.BUILD[v].n + ' derribado: un solar libre.'); } else toast('No se puede derribar ahora.', 'bad'); render(); } break; }
     case 'clist': UI.cityList = !UI.cityList; setTab('city'); break;
     case 'cview': if (UI.cityV) { UI.bsel = null; UI.vistas = false; UI.cityV.view(v); renderCity3D(); } break;
-    case 'tab3': UI.codice = null; UI.vistas = false; UI.bsel = null; if (v === 'imperio') setModo('guerra'); else { UI.cityList = v === 'gobierno'; setTab('city'); } break;
+    case 'tab3': UI.codice = null; UI.vistas = false; UI.bsel = null; if (v === 'imperio') { UI.modo = 'gobierno'; setTab('imperio'); } else { UI.cityList = v === 'gobierno'; setTab('city'); } break;
     case 'cvistas': UI.vistas = !UI.vistas; renderCity3D(); break;
     case 'cclose': UI.bsel = null; renderCity3D(); tickUI(); break;
     case 'cver': UI.bsel = v; renderCity3D(); tickUI(); break;

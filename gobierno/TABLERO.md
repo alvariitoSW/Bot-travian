@@ -65,9 +65,10 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 
 ## Carril J — Interfaz y territorio (aprobado 11/11/2026, P58 a P62)
 - ✅ J1 **Pantalla limpia** (11/11): maqueta B elegida por el usuario; dos modos Gobierno/Guerra, fila fina de recursos, tira de vistas y tres botones redondos abajo; sin barra de pestañas. Parte: `partes/2026-11-11-J1.md`.
-- ⬜ J2 **Obras de un toque** (P59): panel «Obras» con todas tus ciudades y un botón por cada obra posible; «mejorar» directo al tocar un edificio. 0,15 + 0,5 M. Después de J1.
+- ✅ J2 **Obras de un toque** (11/11): hecha dentro de J7 (cola de obras y filas deslizables en Imperio).
 - ✅ J6 **Ciudad como pantalla principal** (11/11): ciudad 3D a pantalla completa, medallas de bronce con nivel, ficha única con consejo, pestañas Ciudad/Gobierno/Imperio. Parte `partes/2026-11-11-J6.md`.
-- ⬜ J7 **Parte densa: Imperio y Obras** (P64, aprobada 11/11; incluye J2): pestaña Imperio con lista de ciudades por urgencia y filtros, cola de obras con filas deslizables (maqueta `K2-gob-E-tabularium`). Después de J6. Incluye: poner las pestañas también en el mapa de guerra, «Hacer lo mismo en…», resumen de población y ánimo.
+- ✅ J7 **Parte densa: Imperio y Obras** (11/11): pestaña Imperio con ciudades por urgencia, filtros, resumen de población y ánimo, cola de obras, filas deslizables y «Hacer lo mismo en…». Parte `partes/2026-11-11-J7.md`.
+- ⬜ J7b **Pestañas también en el mapa de guerra** (sacada de J7; esperar a que I2 Mapa por turnos termine con `js/game.js` y el mapa).
 - ⬜ J3 **Capital y pueblos** (P60; incluye I7): cada territorio tiene una capital con los edificios de gobierno y pueblos de recursos, pescadores y agricultores-ganaderos. Los pueblos producen; la capital gobierna, recluta y comercia. 0,3 + 1,0 M, en dos tareas. Después de I6.
 - ⬜ J4 **Mapa más grande por regiones** (P62; amplía I6): más ciudades y territorios, cada región con su capital y sus núcleos pequeños; lista de ciudades con fuente histórica; vigilar la fluidez. 0,3 + 1,2 M, en dos o tres tareas. Después de J3.
 - ⬜ J5 **Política territorial** (P61): apartado «Senado» con planes de infraestructuras, ciudadanía, ejército, diplomacia y mercado. Primero informe corto de diseño con fuentes; se une con I5 y C3. 0,3 + 1,0 M, en dos tareas.
