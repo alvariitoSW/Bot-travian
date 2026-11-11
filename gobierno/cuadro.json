@@ -225,6 +225,16 @@
       "tarea": "E1c",
       "archivo": "gobierno/capturas-tarea/E1c-edificios.jpg",
       "pie": "Iconos de edificios en la lista de ciudad"
+    },
+    {
+      "tarea": "J1",
+      "archivo": "gobierno/capturas-tarea/J1-maqueta-A.jpg",
+      "pie": "Maqueta A «Barra fina»: ciudad, menú «Más» abierto y mapa"
+    },
+    {
+      "tarea": "J1",
+      "archivo": "gobierno/capturas-tarea/J1-maqueta-B.jpg",
+      "pie": "Maqueta B «Pantalla despejada»: ciudad, menú ☰ abierto y mapa"
     }
   ],
   "informes": [
