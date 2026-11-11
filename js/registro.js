@@ -10,6 +10,7 @@
   const R = {};
   const CC = 'CC BY-SA 3.0', WG = 'Wildfire Games (0 A.D.)';
   const est = (m, extra) => Object.assign({ modelo: 'assets/static/' + m + '.bin', licencia: CC, credito: WG }, extra || {});   // edificio real de 0 A.D.
+  const propio = (m, extra) => Object.assign({ modelo: 'assets/static/' + m + '.bin', licencia: CC, credito: 'AQVILA (hecho desde cero con tools/propio_static.mjs)' }, extra || {});   // pieza propia del proyecto
   const uni = (m, extra) => Object.assign({ modelo: 'assets/units/' + m + '.bin', licencia: CC, credito: WG }, extra || {});   // tropa real de 0 A.D.
   const h = (fuente, dictamen, nota, texto) => Object.assign({ fuente, dictamen: dictamen || 'por cotejar' }, nota ? { nota } : {}, texto ? { texto } : {});   // texto: lo que lee el jugador en el Códice
   const f = (arte, historia) => ({ arte, historia });
@@ -23,9 +24,9 @@
     cuartel: f(est('cuartel'), SIN_H), establo: f(est('establo'), SIN_H),
     muralla: f(est('muro', { nota: 'recinto con muro.bin, torre.bin y puerta.bin' }), SIN_H),
     herreria: f({ sin: 'la herrería no tiene modelo: no se dibuja en la ciudad', provisional: true }, SIN_H),
-    acueducto: f(est('arco', { provisional: true, nota: 'arco.bin prestado; falta un acueducto' }), SIN_H),
-    termas: f(est('vesta', { provisional: true, nota: 'vesta.bin (templo de Vesta) prestado; faltan unas termas' }), SIN_H),
-    anfiteatro: f(est('foro', { provisional: true, nota: 'foro.bin prestado; falta un anfiteatro' }), SIN_H),
+    acueducto: f(propio('acueducto', { nota: 'arcada de seis arcos de medio punto con canal; 0 A.D. no trae ninguna' }), SIN_H),
+    termas: f(propio('termas', { nota: 'sala con bóveda de cañón, pórtico, ábside y chimenea; 0 A.D. no trae ninguna. Las grandes termas imperiales son posteriores: es un balneum republicano idealizado' }), SIN_H),
+    anfiteatro: f(est('anfiteatro', { nota: 'anfiteatro de Pompeya (0 A.D., aligerado y a escala de ciudad); es de hacia 70 a.C., posterior a 146 a.C.: licencia de juego, en el 264 a.C. los combates de gladiadores se daban en el Foro Boario' }), SIN_H),
     templo: f(est('templo'), SIN_H)
   };
 
