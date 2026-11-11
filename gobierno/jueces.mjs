@@ -156,6 +156,11 @@ async function navegador() {
       await page.setViewportSize({ width: 844, height: 390 });
       await page.click('#mbox [data-act="bview"]'); await espera(7000);
       const en3d = await estado(() => !!UI.battle && !UI.battle.flat && !!document.querySelector('#bfield canvas'));
+      const hayDespliegue = await page.locator('#bctl [data-act="bstart"]').count();
+      if (!hayDespliegue) return { ok: false, detalle: 'no aparece el botón «Empezar batalla» del despliegue' };
+      await page.click('#bctl [data-act="bform"][data-v="ancha"]'); await espera(1500);
+      const capDespliegue = await foto('despliegue');
+      await page.click('#bctl [data-act="bstart"]'); await espera(500);
       const carta = page.locator('#bcards > *').first();
       if (await carta.count()) { await carta.click(); await espera(300); await page.mouse.click(520, 150); await espera(2500); }
       const captura = await foto('batalla');

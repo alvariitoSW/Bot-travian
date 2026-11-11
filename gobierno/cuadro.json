@@ -97,6 +97,12 @@
       "archivo": "gobierno/capturas-tarea/A9-45s.jpg",
       "pie": "El choque, desde arriba: los tiradores (flecha) quedan detrás de su línea",
       "ancha": true
+    },
+    {
+      "tarea": "A5a",
+      "archivo": "gobierno/capturas-tarea/A5a-cerca-0s.jpg",
+      "pie": "Despliegue: colocas tus tropas dentro de la línea roja y pulsas «Empezar batalla»",
+      "ancha": true
     }
   ],
   "informes": [

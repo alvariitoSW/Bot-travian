@@ -37,6 +37,7 @@
   function Battle(cfg) {
     this.cfg = cfg; this.t = 0; this.regs = []; this.fx = []; this.corpses = [];
     this.over = false; this.winner = null; this.auto = true;
+    this.fase = cfg.despliegue === true ? 'despliegue' : 'lucha'; // 'despliegue': el tiempo no corre hasta empezar()
     this.H = Math.max(800, Math.min(1300, Math.round(cfg.fh || 900))); // alto del campo (se adapta a la pantalla)
     this.rnd = mkRng(cfg.seed || 1);
     this.genDown = [false, false];
@@ -70,26 +71,70 @@
       const sz = D.UNITS[k].cls === 'ele' ? 8 : size, cnt = Math.max(1, Math.round(n / sz));
       for (let i = 0; i < cnt; i++) { const r = this.mk(side, k, Math.floor(n / cnt) + (i < n % cnt ? 1 : 0), a); this.regs.push(r); list.push(r); }
     }
-    let gen = null;
-    if (a.gen) { gen = this.mk(side, 'general', 20, a); gen.name = a.gen.n; this.regs.push(gen); }
+    if (a.gen) { const gen = this.mk(side, 'general', 20, a); gen.name = a.gen.n; this.regs.push(gen); }
+    this.formar(side, 'clasica');
+  };
+
+  Battle.PLANTILLAS = [['clasica', 'Clásica'], ['ancha', 'Línea ancha'], ['centro', 'Centro fuerte']];
+
+  // franja propia donde se puede colocar: desde la línea de salida hacia atrás, más 60 hacia delante; nunca pasa del 40 % del campo
+  Battle.prototype.zona = function (side) {
+    const H = this.H;
+    return side === 0 ? { x0: 20, x1: FW - 20, y0: Math.max(H - 260, H * 0.6), y1: H - 24 } : { x0: 20, x1: FW - 20, y0: 24, y1: Math.min(260, H * 0.4) };
+  };
+
+  // coloca un regimiento propio (solo en despliegue), recortado a la zona
+  Battle.prototype.colocar = function (r, x, y) {
+    if (this.fase !== 'despliegue' || !r || r.side !== 0 || r.st !== 'ok') return false;
+    const z = this.zona(0);
+    r.x = Math.max(z.x0, Math.min(z.x1, x)); r.y = Math.max(z.y0, Math.min(z.y1, y)); r.order = null; r.tgt = null;
+    return true;
+  };
+
+  Battle.prototype.empezar = function () { this.fase = 'lucha'; };
+
+  // recoloca los regimientos de un bando con una plantilla: 'clasica' (A9), 'ancha' o 'centro'
+  Battle.prototype.formar = function (side, nombre) {
+    const mine = this.regs.filter(r => r.side === side), gen = mine.find(r => r.u.cls === 'gen') || null, list = mine.filter(r => r !== gen);
     const f = side === 0 ? -1 : 1, base = side === 0 ? this.H - 200 : 200, CAP = 7;
     const main = list.filter(r => r.u.cls === 'inf' || r.u.cls === 'spear' || r.u.cls === 'ele'), cav = list.filter(r => r.u.cls === 'cav');
     let skirm = list.filter(r => r.u.cls === 'rng');
-    // fila 1: infantería cuerpo a cuerpo con los elefantes al centro; luego tiradores; luego la reserva; el general, al final
     const eles = main.filter(r => r.u.cls === 'ele'), foot = main.filter(r => r.u.cls !== 'ele'), rows = [];
-    const first = foot.splice(0, Math.max(0, CAP - eles.length)), mid = Math.floor(first.length / 2);
-    rows.push(first.slice(0, mid).concat(eles, first.slice(mid)));
-    while (skirm.length) rows.push(skirm.splice(0, CAP));
-    while (foot.length) rows.push(foot.splice(0, CAP));
-    if (gen) rows.push([gen]);
+    const centrar = (fila, eles) => { const m = Math.floor(fila.length / 2); return fila.slice(0, m).concat(eles, fila.slice(m)); };
+    let esp = 60, alas = true;
+    if (nombre === 'ancha') {
+      // toda la infantería en una línea; si no cabe ni apretada, segunda fila
+      const n = foot.length + eles.length, minSp = 34, sp = k => (FW / 2 - 20) / ((k - 1) / 2 + (cav.length ? 1 : 0));
+      const per = n > 1 && sp(n) < minSp ? Math.ceil(n / 2) : Math.max(1, n);
+      const todo = centrar(foot.splice(0, foot.length), eles);
+      while (todo.length) rows.push(todo.splice(0, per));
+      while (skirm.length) rows.push(skirm.splice(0, Math.max(per, 1)));
+    } else if (nombre === 'centro') {
+      // columna profunda de 4 de ancho; tiradores tras la primera fila; caballería y general en reserva al fondo
+      const todo = centrar(foot.splice(0, foot.length), eles);
+      rows.push(todo.splice(0, 4));
+      while (skirm.length) rows.push(skirm.splice(0, 4));
+      while (todo.length) rows.push(todo.splice(0, 4));
+      const res = cav.concat(gen ? [gen] : []);
+      while (res.length) rows.push(res.splice(0, 5));
+      alas = false;
+    } else {
+      // clásica (A9): fila 1 infantería con elefantes al centro; luego tiradores; luego la reserva; el general, al final
+      const first = foot.splice(0, Math.max(0, CAP - eles.length));
+      rows.push(centrar(first, eles));
+      while (skirm.length) rows.push(skirm.splice(0, CAP));
+      while (foot.length) rows.push(foot.splice(0, CAP));
+    }
+    if (gen && nombre !== 'centro') rows.push([gen]);
+    if (nombre !== 'clasica') { const z = this.zona(side); esp = Math.min(60, Math.abs((side === 0 ? z.y1 : z.y0) - base) / Math.max(1, rows.length - 1)); }
     const maxN = Math.max(1, ...rows.map(r => r.length));
     // separación: se estrecha si las alas no caben en el campo (x entre 20 y FW-20)
-    const SP = Math.min(62, (FW / 2 - 20) / ((maxN - 1) / 2 + (cav.length ? 1 : 0)));
-    rows.forEach((row, i) => row.forEach((r, j) => { r.x = FW / 2 + (j - (row.length - 1) / 2) * SP; r.y = base - f * 60 * i; }));
-    // caballería: repartida entre las dos alas, en columna hacia atrás
-    const wx = ((maxN - 1) / 2 + 1) * SP, cnt = [0, 0];
-    cav.forEach((r, i) => { const w = i % 2; r.x = FW / 2 + (w ? wx : -wx); r.y = base - f * 60 * cnt[w]++; });
-    for (const r of this.regs) if (r.side === side) r.y = Math.max(24, Math.min(this.H - 24, r.y));
+    const SP = Math.min(62, (FW / 2 - 20) / ((maxN - 1) / 2 + (cav.length && alas ? 1 : 0)));
+    rows.forEach((row, i) => row.forEach((r, j) => { r.x = FW / 2 + (j - (row.length - 1) / 2) * SP; r.y = base - f * esp * i; }));
+    // caballería: repartida entre las dos alas, en columna hacia atrás (en 'centro' ya va en reserva)
+    if (alas) { const wx = ((maxN - 1) / 2 + 1) * SP, cnt = [0, 0]; cav.forEach((r, i) => { const w = i % 2; r.x = FW / 2 + (w ? wx : -wx); r.y = base - f * esp * cnt[w]++; }); }
+    const z = nombre === 'clasica' ? { y0: 24, y1: this.H - 24 } : this.zona(side);
+    for (const r of mine) { r.y = Math.max(z.y0, Math.min(z.y1, r.y)); r.x = Math.max(20, Math.min(FW - 20, r.x)); }
   };
 
   // regimiento de infantería cuerpo a cuerpo vivo más adelantado del bando (null si no queda ninguno)
@@ -176,7 +221,7 @@
   };
 
   Battle.prototype.step = function (dt) {
-    if (this.over) return;
+    if (this.over || this.fase === 'despliegue') return;
     this.t += dt;
     const regs = this.regs, cur = [this.men(0), this.men(1)];
     // avance en bloque: ¿alguien del bando está ya cerca del enemigo? si no, todos al paso del más lento de a pie
@@ -271,7 +316,7 @@
     else if (this.t > TOPE_BATALLA) { this.over = true; this.winner = this.cfg.defender; }
   };
 
-  Battle.prototype.finish = function () { let i = 0; while (!this.over && i++ < 8000) this.step(0.2); };
+  Battle.prototype.finish = function () { this.empezar(); let i = 0; while (!this.over && i++ < 8000) this.step(0.2); };
 
   Battle.prototype.result = function () {
     const res = { winner: this.winner, surv: [{}, {}], lost: [{}, {}], dead: [0, 0], genDead: [false, false], time: this.t };
@@ -334,12 +379,13 @@
   BattleView.prototype.toField = function (cx, cy) { const r = this.cv.getBoundingClientRect(); return [(cx - r.left) / this.sc, (cy - r.top) / this.sc]; };
 
   BattleView.prototype.tap = function (cx, cy) {
-    const p = this.toField(cx, cy), b = this.b;
+    const p = this.toField(cx, cy), b = this.b, desp = b.fase === 'despliegue';
     let hit = null, hd = 40;
     for (const r of b.regs) { if (r.st !== 'ok') continue; const d = Math.hypot(r.x - p[0], r.y - p[1]); if (d < hd) { hd = d; hit = r; } }
     if (hit && hit.side === 0) { if (this.sel.has(hit)) this.sel.delete(hit); else this.sel.add(hit); return; }
     const sel = [...this.sel].filter(r => r.st === 'ok');
     if (!sel.length) return;
+    if (desp) { if (hit) return; let ax = 0, ay = 0; sel.forEach(r => { ax += r.x; ay += r.y; }); ax /= sel.length; ay /= sel.length; sel.forEach(r => b.colocar(r, p[0] + (r.x - ax), p[1] + (r.y - ay))); return; }
     if (hit) sel.forEach(r => { r.order = { k: 'atk', r: hit }; });
     else {
       let cx0 = 0, cy0 = 0; sel.forEach(r => { cx0 += r.x; cy0 += r.y; }); cx0 /= sel.length; cy0 /= sel.length;

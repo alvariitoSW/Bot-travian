@@ -33,6 +33,7 @@ export class BattleView3D {
     this.flags = document.createElement('div'); this.flags.className = 'bflags'; host.appendChild(this.flags);
     this.scene = new THREE.Scene(); this.cam = new THREE.PerspectiveCamera(52, 1, 0.5, 900);
     this.c = { x: 0, z: this.halfD * 0.3, dist: 100, yaw: 0, pitch: 0.5 }; this.intro = 0;
+    if (battle.fase === 'despliegue') { this.c.z = this.halfD * 0.78; this.c.pitch = 0.8; this.c.dist = 95; this.intro = 1; } /* despliegue: la cámara mira tu zona, por encima de las cartas */
     this.buildWorld(); this.buildArmies(); this.buildFlags(); this.buildCards(); this.bind(); this.resize();
   }
 
@@ -99,6 +100,11 @@ export class BattleView3D {
     this.corp = new THREE.InstancedMesh(cg, new THREE.MeshLambertMaterial({ flatShading: true }), 2600); this.corp.count = 0; this.corp.frustumCulled = false; this.nCorp = 0; sc.add(this.corp);
     const mg = new THREE.RingGeometry(1.2, 1.7, 20); mg.rotateX(-Math.PI / 2);
     this.marker = new THREE.Mesh(mg, new THREE.MeshBasicMaterial({ color: '#ffe27a', transparent: true, opacity: 0.9, depthWrite: false })); this.marker.visible = false; sc.add(this.marker);
+    // borde de la zona de despliegue: línea clara sobre el suelo, visible solo mientras se coloca
+    { const z = this.b.zona(0), pts = [[z.x0, z.y0], [z.x1, z.y0], [z.x1, z.y1], [z.x0, z.y1], [z.x0, z.y0]], v = [];
+      for (let i = 0; i < 4; i++) { const n = 24; for (let k = 0; k < n; k++) { const a = pts[i], c = pts[i + 1], w = this.toW(a[0] + (c[0] - a[0]) * k / n, a[1] + (c[1] - a[1]) * k / n), w2 = this.toW(a[0] + (c[0] - a[0]) * (k + 1) / n, a[1] + (c[1] - a[1]) * (k + 1) / n); v.push(w[0], this.h(w[0], w[1]) + 0.5, w[1], w2[0], this.h(w2[0], w2[1]) + 0.5, w2[1]); } }
+      const gz = new THREE.BufferGeometry(); gz.setAttribute('position', new THREE.Float32BufferAttribute(v, 3));
+      this.zonaLinea = new THREE.LineSegments(gz, new THREE.LineBasicMaterial({ color: this.b.cfg.sides[0].col, transparent: true, opacity: 0.95, depthTest: false })); this.zonaLinea.renderOrder = 5; sc.add(this.zonaLinea); }
     // horizonte de montañas
     const rg = new THREE.CylinderGeometry(560, 560, 1, 90, 1, true), rp = rg.attributes.position;
     for (let i = 0; i < rp.count; i++) { const a = Math.atan2(rp.getZ(i), rp.getX(i)); rp.setY(i, rp.getY(i) > 0 ? 28 + 34 * Math.abs(Math.sin(a * 3.1) * Math.cos(a * 7.3 + 1)) + 16 * Math.sin(a * 17) : -20); }
@@ -229,7 +235,7 @@ export class BattleView3D {
         R.fx[v] = R.fx[last]; R.fz[v] = R.fz[last]; R.n--;
       }
       if (!R.n) continue;
-      const w = this.toW(r.x, r.y), fight = r.fight > 0, vmax = r.u.spd * S * 2.2 * dt, ryaw = Math.PI / 2 - r.ang;
+      const w = this.toW(r.x, r.y), fight = r.fight > 0, vmax = this.b.fase === 'despliegue' ? 1e4 : r.u.spd * S * 2.2 * dt, ryaw = Math.PI / 2 - r.ang;
       // hueco hasta la línea enemiga: las primeras filas avanzan hasta chocar frente con frente
       let gap = 0; if (fight && r.tgt) { const E = this.byReg.get(r.tgt); if (E) gap = (Math.hypot(r.tgt.x - r.x, r.tgt.y - r.y) * S - (Math.ceil(R.n / R.f.cols) * R.f.sz + Math.ceil(E.n / E.f.cols) * E.f.sz) / 2 - 1.3) / 2; gap = Math.min(gap, 4); }
       const shooting = r.ammo > 0 && r.tgt && !fight && r.cd < 1.5 && Math.hypot(r.tgt.x - r.x, r.tgt.y - r.y) <= (r.u.range || 0);
@@ -348,14 +354,17 @@ export class BattleView3D {
   hitReg(r) {
     if (this.b.over || r.st !== 'ok') return;
     if (r.side === 0) { if (this.sel.has(r)) this.sel.delete(r); else this.sel.add(r); return; }
+    if (this.b.fase === 'despliegue') return;
     for (const s of this.sel) if (s.st === 'ok') s.order = { k: 'atk', r: r };
   }
   tapField(fx, fy) {
     const b = this.b; let hit = null, hd = 34;
     for (const r of b.regs) { if (r.st !== 'ok') continue; const d = Math.hypot(r.x - fx, r.y - fy); if (d < hd) { hd = d; hit = r; } }
-    if (hit) return this.hitReg(hit);
+    const desp = b.fase === 'despliegue';
+    if (hit) { if (desp && hit.side !== 0) return; return this.hitReg(hit); }
     const sel = [...this.sel].filter(r => r.st === 'ok'); if (!sel.length) return;
     let cx = 0, cy = 0; sel.forEach(r => { cx += r.x; cy += r.y; }); cx /= sel.length; cy /= sel.length;
+    if (desp) { sel.forEach(r => b.colocar(r, fx + (r.x - cx), fy + (r.y - cy))); return; } // despliegue: se coloca, no se ordena
     sel.forEach(r => { r.order = { k: 'move', x: Math.max(20, Math.min(FW - 20, fx + (r.x - cx))), y: Math.max(20, Math.min(b.H - 20, fy + (r.y - cy))) }; r.tgt = null; });
     const w = this.toW(fx, fy); this.marker.position.set(w[0], this.h(w[0], w[1]) + 0.15, w[1]); this.marker.visible = true; this.markT = this.t;
   }
@@ -418,6 +427,7 @@ export class BattleView3D {
     const k = this.opts.speed ? this.opts.speed() : 1; this.t += dt * k; uTime.value = this.t;
     this.updateArmies(dt * Math.max(k, 0.0001)); this.placeCam(dt); this.updateOverlay();
     if (this.marker.visible) { const a = (this.t - this.markT); this.marker.scale.setScalar(1 + a * 1.5); this.marker.material.opacity = Math.max(0, 0.9 - a * 1.2); if (a > 0.8) this.marker.visible = false; }
+    if (this.zonaLinea && this.b.fase !== 'despliegue') { this.scene.remove(this.zonaLinea); this.zonaLinea.geometry.dispose(); this.zonaLinea.material.dispose(); this.zonaLinea = null; }
     this.r.render(this.scene, this.cam);
   }
   dispose() {

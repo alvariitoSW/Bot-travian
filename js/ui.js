@@ -281,7 +281,7 @@ function battlePrompt() {
 function startBattle() {
   closeModal();
   $('battle').hidden = false;
-  const cfg = Object.assign({}, UI.binfo.cfg, { fh: 1000 }), b = new window.Battle(cfg), B = { b: b, speed: 1, paused: false, acc: 0, endT: 0 };
+  const cfg = Object.assign({}, UI.binfo.cfg, { fh: 1000, despliegue: true }), b = new window.Battle(cfg), B = { b: b, speed: 1, paused: false, acc: 0, endT: 0 };
   try { B.view = new BattleView3D($('bfield'), b, { cards: $('bcards'), speed: () => (B.paused || b.over ? 0 : B.speed) }); }
   catch (e) { // sin WebGL: vista 2D de reserva
     console.warn('WebGL no disponible, usando vista 2D', e);
@@ -290,9 +290,14 @@ function startBattle() {
   }
   UI.battle = B;
   $('bauto').classList.add('on'); $('bspeed').textContent = 'x1'; $('bpause').textContent = 'II';
-  $('bhint').style.opacity = 1; setTimeout(() => { $('bhint').style.opacity = 0; }, 7000);
+  // despliegue: la barra de mando cambia hasta pulsar «Empezar batalla»
+  B.barra = $('bctl').innerHTML; B.hint = $('bhint').innerHTML;
+  $('bctl').innerHTML = Battle.PLANTILLAS.map(p => '<button data-act="bform" data-v="' + p[0] + '"' + (p[0] === 'clasica' ? ' class="on"' : '') + '>' + p[1].replace('Línea ancha', 'Ancha').replace('Centro fuerte', 'Centro') + '</button>').join('') + '<button data-act="bstart" class="on">Empezar batalla</button>';
+  $('bhint').textContent = 'Coloca tus tropas: toca un regimiento y luego el campo. Después, Empezar batalla.'; $('bhint').style.opacity = 1;
 }
-function stopBattle() { const B = UI.battle; if (B) { if (B.view.dispose) B.view.dispose(); if (B.flat) B.flat.remove(); } $('battle').hidden = true; UI.battle = null; UI.binfo = null; if (UI.map) UI.map.resize(); }
+// repone la barra de mando y el texto de ayuda de antes del despliegue
+function reponerBarra(B) { if (!B || B.barra == null) return; $('bctl').innerHTML = B.barra; $('bhint').innerHTML = B.hint; B.barra = null; }
+function stopBattle() { const B = UI.battle; if (B) { reponerBarra(B); if (B.view.dispose) B.view.dispose(); if (B.flat) B.flat.remove(); } $('battle').hidden = true; UI.battle = null; UI.binfo = null; if (UI.map) UI.map.resize(); }
 function battleHud() {
   const b = UI.battle.b, s0 = b.cfg.sides[0], s1 = b.cfg.sides[1], n0 = b.men(0), n1 = b.men(1), key = n0 + '|' + n1; if (key === UI.hudKey) return; UI.hudKey = key;
   $('bhud').innerHTML = '<div class="nm"><span style="color:#ff9c8c">' + esc(s0.name) + ' · ' + n0 + '</span><span>' + n1 + ' · ' + esc(s1.name) + '</span></div><div class="bar"><i style="width:' + n0 / Math.max(1, n0 + n1) * 100 + '%;background:' + s0.col + '"></i><i style="flex:1;background:' + s1.col + '"></i></div>';
@@ -352,7 +357,9 @@ document.addEventListener('click', function (e) {
     case 'bauto': B.b.auto = !B.b.auto; el.classList.toggle('on', B.b.auto); toast(B.b.auto ? 'Tus tropas atacan por iniciativa propia.' : 'Tus tropas mantienen la posición hasta recibir órdenes.'); break;
     case 'ball': B.view.selectAll(); break;
     case 'bcam': if (B.view.cycleCam) B.view.cycleCam(); break;
-    case 'bskip': B.b.finish(); break;
+    case 'bform': B.b.formar(0, v); document.querySelectorAll('#bctl [data-act="bform"]').forEach(x => x.classList.toggle('on', x === el)); break;
+    case 'bstart': B.b.empezar(); reponerBarra(B); $('bauto').classList.add('on'); $('bspeed').textContent = 'x1'; $('bpause').textContent = 'II'; B.speed = 1; B.paused = false; $('bhint').style.opacity = 1; setTimeout(() => { $('bhint').style.opacity = 0; }, 7000); break;
+    case 'bskip': reponerBarra(B); B.b.finish(); break;
   }
 });
 
