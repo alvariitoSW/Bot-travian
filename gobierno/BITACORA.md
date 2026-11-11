@@ -13,12 +13,19 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero.
 - 11/11/2026 — **Cerrar la sesión larga** y trabajar por sesiones cortas con un gobierno reducido, adaptado de
   `fiebres-neutropenias` (se puede ampliar o mejorar), más un cuadro de mando sencillo en un Artifact.
 
+- 11/11/2026 — **GitHub Pages activado** por el usuario (rama de trabajo, raíz): https://alvariitosw.github.io/Bot-travian/
+- 11/11/2026 — **Permiso para instalar Godot**, dado por el usuario en el chat. (Si el sistema de permisos vuelve a
+  bloquear la descarga, hace falta además una regla de permiso para Bash en la configuración.)
+- 11/11/2026 — **La mezcla que quiere**, con sus palabras resumidas:
+  - De Age of Empires / Age of Mythology: empezar **de cero** fundando una ciudad en una partida; **aldeanos** que
+    recolectan y trabajan; hacer soldados; atacar otras ciudades; **edades** que desbloquean cosas; **algún dios con
+    poderes**.
+  - De Travian / Ikariam: la **continuidad** y la economía de recursos.
+  - De Rome 2 Total War: llevar ciudades y tropas, crearlas, mejorarlas, y las batallas.
+  - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
+
 ## Esperando algo del usuario
-1. **Activar GitHub Pages** (Settings → Pages → Deploy from a branch → rama de trabajo, carpeta raíz) para tener el
-   enlace https://alvariitosw.github.io/Bot-travian/ y decir si carga y cómo va de fluido en su móvil.
-2. **Qué quiere exactamente de Age of Empires / Age of Mythology** (¿edades?, ¿dioses con poderes?, ¿aldeanos?).
-3. **Permiso para instalar Godot** en la sesión (regla de permiso para Bash), si sigue queriendo el motor nativo.
-4. Lo que vaya viendo al probar el juego: se apunta aquí.
+1. Que diga si el enlace carga y cómo va de fluido en su móvil, y lo que quiera cambiar al probarlo.
 
 ## Encargo de la próxima sesión (G1): montar el gobierno
 Única tarea. No tocar el juego. Leer `CLAUDE.md`, este archivo y `TABLERO.md`; como modelo, el repositorio

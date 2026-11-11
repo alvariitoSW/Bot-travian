@@ -42,6 +42,16 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ B9 Ciudad fiel a cada lugar: Roma con sus colinas, el Tíber y la muralla serviana; cada cultura, su trazado.
   (Hoy todas usan el trazado de colonia romana: recinto rectangular, cardo y decumano, foro e ínsulas.)
 
+## Carril F — Modos de juego (decisión del usuario, 11/11/2026)
+- ⬜ F1 **Propuesta de diseño** antes de construir (una página para el móvil): cómo se mezclan los tres juegos.
+  Partida que empieza de cero fundando una ciudad; aldeanos que recolectan y trabajan; edades que desbloquean
+  edificios y tropas; un dios con poderes; y dos duraciones a elegir (horas, o semanas/meses) con final.
+  Hay que decidir qué pasa con la campaña histórica actual (280–146 a.C.): ¿un modo más, o la base del modo largo?
+- ⬜ F2 Tiempo real que sigue corriendo con el juego cerrado (para la partida de semanas), con tope y resumen al volver.
+- ⬜ F3 Aldeanos: asignarlos a madera, piedra, hierro, grano u obras; verlos trabajar en la ciudad 3D.
+- ⬜ F4 Edades (p. ej. Monarquía → República temprana → media → tardía) que desbloquean edificios, tropas y mejoras.
+- ⬜ F5 Favor de un dios (Marte, Júpiter, Ceres, Neptuno…): un poder con recarga.
+
 ## Carril E — Arte (sistema coherente con la época)
 - ⬜ E1 Guía de arte: paleta, materiales, tipografía e iconos romanos; sustituir los emojis de la interfaz por iconos
   propios; retratos y marcos con estilo de mosaico/fresco.
@@ -56,9 +66,8 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 ## Carril D — Técnica
 - ⬜ D1 Medir rendimiento en un móvil real y fijar presupuestos (triángulos, descarga: hoy ~32 MB de arte).
 - ⬜ D2 Niveles de detalle para soldados lejanos; comprimir animaciones.
-- ⬜ D3 Motor nativo (Godot): está parado porque instalarlo aquí requiere un permiso del usuario.
-- 🔶 D4 Publicar en GitHub Pages para instalar en el móvil: falta que el usuario active Pages en los ajustes del
-  repositorio (rama de trabajo, carpeta raíz). Dirección prevista: https://alvariitosw.github.io/Bot-travian/
+- ⬜ D3 Motor nativo (Godot): el usuario ha dado permiso para instalarlo (11/11/2026). Reaprovecha `assets/`.
+- ✅ D4 Publicado en GitHub Pages: https://alvariitosw.github.io/Bot-travian/ (falta confirmar en el móvil del usuario).
 - ⬜ D5 Jueces automáticos: un solo comando que pase pruebas de lógica + recorrido en navegador + capturas.
 
 ## Gobierno
