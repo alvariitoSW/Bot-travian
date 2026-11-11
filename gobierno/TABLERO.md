@@ -50,12 +50,12 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ✅ F1 Diseño de modos decidido: campaña histórica como base del modo largo, primero la partida corta, tres dioses (Marte, Ceres, Neptuno). `gobierno/estudios/F1-modos-de-juego.md`.
 - ✅ F2 Sustituida por I2 (mapa por turnos; decisión del 11/11).
 - ✅ F3 Aldeanos: reparto entre madera, piedra, hierro y grano (en la vista de lista).
-- ⬜ F5 **Templos a un dios** (aprobada 11/11, P56; antes «favor de un dios»): en cada ciudad puedes levantar un templo a Marte, Ceres o Neptuno; cada templo extiende cultura y religión y hace que una ciudad conquistada se rebele menos. Ocupa un solar (I4). ≈0,2 + 0,6 M, a ojo. Después de I4.
+- ✅ F5 Templos a un dios (11/11): un templo por ciudad, ocupa solar, y se dedica a Marte (moral al defender), Ceres (+8 % de grano por nivel) o Neptuno (mar más rápido, oro del puerto). Las ciudades conquistadas están inquietas 8 meses (producen menos) y se rebelan si la felicidad cae bajo 40; el templo las calma antes.
 
 ## Carril I — Gran diseño, fase 1 (aprobado 11/11/2026; informe `gobierno/estudios/G3-gran-diseno.md`)
 Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I6, I7; I8 al final.
 - ✅ I1 Registro de piezas: `js/registro.js` (84 fichas con arte y fuente) y juez `node gobierno/fichas.mjs`, dentro de los jueces.
-- 🔶 I1b Fichas del registro al día tras Historia 2 (el juez pasa; 10 fichas nuevas). Falta: pasar a «histórico» los dictámenes ya cotejados y que Códice y registro compartan una sola fuente (P55, aprobada 11/11). ≈0,3 M.
+- ✅ I1b Fichas del registro al día (11/11/2026): 54 históricas, 10 probables, 15 licencia de juego y 30 por cotejar (antes 0/0/16/93); el Códice lee sus textos del registro, sin duplicados (P55). Parte: `partes/2026-11-11-I1b.md`.
 - ⬜ I2 **Mapa por turnos** (P44 y P57, aprobadas 11/11): una estación = un turno, con «consejo de estación» y botón «Pasar turno»; los rivales mueven y atacan en los suyos y ves llegar sus tropas turno a turno; ciudad y batalla siguen en tiempo real. ≈0,25 + 0,8 M · 25 min.
 - ✅ I3 **Mano de obra y mantenimiento** (11/11): la producción depende de la gente que queda en la ciudad (reclutar vacía los campos); edificios y tropas cuestan oro cada mes; sin oro, las tropas desertan.
 - ✅ I4 **Tipos de ciudad con solares limitados** (11/11): 7 a 10 solares por ciudad para los edificios urbanos (campos y muralla no ocupan); seis tipos a elegir (municipio, colonia agraria, colonia militar, emporio, base naval, ciudad de artesanos); «Derribar» libera un solar.

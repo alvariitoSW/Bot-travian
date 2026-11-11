@@ -118,7 +118,7 @@ function effect(b, L) {
   if (B.prod) return '+' + Math.round(G.rate(L) * (b === 'foro' ? 0.5 : 1)) + '/mes';
   if (b === 'almacen') return 'Cap. ' + fmt(600 * Math.pow(1.45, L));
   if (b === 'muralla') return '+' + L * 10 + ' % def.';
-  if (b === 'templo') return '+' + L * 10 + ' % exp.';
+  if (b === 'templo') return '+' + L * 3 + ' felicidad · +' + L * 10 + ' % exp.';
   if (b === 'acueducto') return '+' + L * 40 + ' población máx.';
   if (b === 'termas') return '+' + L * 4 + ' felicidad · +' + L * 15 + ' pob.';
   if (b === 'anfiteatro') return '+' + L * 6 + ' felicidad';
@@ -135,7 +135,10 @@ function buildCard(c, b) {
   const B = D.BUILD[b], L = c.b[b] || 0, q = c.queue && c.queue.b === b, max = L >= D.MAX_LVL, cost = G.cost(b, L);
   const fe = c.owner === 'roma' && !max && !q ? G.faltaEspecial('edificio', b, L) : null, sinSol = B.solar && L < 1 && !q && G.solaresUsados(c) >= G.solares(UI.city), derr = B.solar && L >= 1 && !q && b !== 'foro' && c.owner === 'roma', dk = UI.city + ':' + b;
   if (sinSol) return '<div class="card locked"><div class="ic">' + B.i + '</div><div class="bd"><div class="tt">' + B.n + '<span class="lv">Nv 0</span></div><div class="ds">Derriba otro edificio urbano para liberar un solar.</div></div><button class="btn no" disabled>Sin solares</button></div>';
-  return '<div class="card"><div class="ic">' + B.i + '</div><div class="bd"><div class="tt">' + B.n + '<span class="lv">Nv ' + L + '</span></div>' +
+  const dg = b === 'templo' ? G.diosDe(c) : null, dsel = b === 'templo' && !dg && c.owner === 'roma' && !q ? D.DIOSES[c.dios] || null : null;
+  const diosHtml = b !== 'templo' || c.owner !== 'roma' ? '' : dg ? '<div class="ds">' + dg.i + ' <b>Templo de ' + dg.n + '</b> · ' + esc(dg.d) + '</div>' :
+    '<div class="ds">Elige el dios:</div><div class="chips" style="flex-wrap:wrap">' + Object.keys(D.DIOSES).map(k => { const d = D.DIOSES[k], no = d.sea && !D.CITIES[UI.city].sea; return '<button class="chip ' + ((c.dios || 'marte') === k && !no ? 'on' : '') + '" ' + (no ? 'disabled' : 'data-act="dios" data-v="' + k + '"') + ' title="' + esc(d.d) + '">' + d.i + ' ' + d.n + '</button>'; }).join('') + '</div><div class="ds">' + esc(D.DIOSES[c.dios && !(D.DIOSES[c.dios].sea && !D.CITIES[UI.city].sea) ? c.dios : 'marte'].d) + '</div>';
+  return '<div class="card"><div class="ic">' + B.i + '</div><div class="bd"><div class="tt">' + (dg ? 'Templo de ' + dg.n : B.n) + '<span class="lv">Nv ' + L + '</span></div>' + diosHtml +
     '<div class="ds">' + (max ? effect(b, L) + ' · nivel máximo' : effect(b, L) + ' → ' + effect(b, L + 1)) + '</div>' +
     (q ? '<div class="prog" data-t0="' + c.queue.t0 + '" data-t1="' + c.queue.t1 + '"><i></i></div><span class="rem"></span>' : max ? '' : costHtml(cost)) +
     (derr ? '<div><button class="chip" data-act="derr" data-v="' + b + '"' + (UI.derr === dk ? ' style="color:#e05050"' : '') + '>' + (UI.derr === dk ? '¿Seguro? Derribar' : 'Derribar') + '</button></div>' : '') + '</div>' +
@@ -165,7 +168,8 @@ function tiposModal() {
   }
   return h + '<div class="acts"><button class="btn ghost" data-act="close">Cerrar</button></div>';
 }
-const popHtml = c => '<span class="stat">' + D.POP_ICON + ' Población <b>' + Math.floor(c.pop) + '</b> / ' + G.popCap(c) + '</span><span class="stat">🪖 Reclutas disponibles <b>' + G.recruits(c) + '</b></span>' + manoHtml(c) + solHtml(c) + espLinea(c) + impHtml(c);
+const inqHtml = c => c.owner === 'roma' && c.inq > 0 ? '<span class="stat" style="color:#e0a030">🔥 Ciudad conquistada: inquieta unos ' + Math.ceil(c.inq / (1 + D.INQ_TEMPLO * G.diosNivel(c))) + ' meses · produce un ' + Math.round((1 - G.inqMul(c)) * 100) + ' % menos' + (G.felicidad(c) < D.INQ_REBELION ? ' · <b>con esta felicidad se rebelará</b>' : '') + '. Un templo la calma antes.</span>' : '';
+const popHtml = c => '<span class="stat">' + D.POP_ICON + ' Población <b>' + Math.floor(c.pop) + '</b> / ' + G.popCap(c) + '</span><span class="stat">🪖 Reclutas disponibles <b>' + G.recruits(c) + '</b></span>' + manoHtml(c) + inqHtml(c) + solHtml(c) + espLinea(c) + impHtml(c);
 function marketHtml() {
   const rate = G.tradeRate(); if (!rate) return '';
   UI.mf = UI.mf || 'madera'; UI.mt = UI.mt || 'hierro';
@@ -380,6 +384,7 @@ document.addEventListener('click', function (e) {
     case 'ruta': { const q = v.split('>'); if (G.rutaAbrir(q[0], q[1])) { toast('⚖️ Ruta abierta con ' + D.CITIES[q[1]].n + '.'); render(); } else toast(G.rutaPuede(q[0], q[1]) || 'No se puede abrir la ruta.', 'bad'); break; }
     case 'rutacerrar': { const q = v.split('>'); if (G.rutaCerrar(q[0], q[1])) { toast('Ruta cerrada.'); render(); } break; }
     case 'tipos': modal(tiposModal()); break;
+    case 'dios': if (G.elegirDios(UI.city, v)) render(); break;
     case 'tipo': if (G.setTipo(UI.city, v)) { closeModal(); toast(D.TIPOS[v].i + ' ' + D.CITIES[UI.city].n + ': ' + D.TIPOS[v].n + '.'); render(); } else toast('No se puede elegir ese tipo.', 'bad'); break;
     case 'derr': { const k = UI.city + ':' + v; if (UI.derr !== k) { UI.derr = k; render(); } else { UI.derr = null; if (G.derribar(UI.city, v)) { toast('🧱 ' + D.BUILD[v].n + ' derribado: un solar libre.'); } else toast('No se puede derribar ahora.', 'bad'); render(); } break; }
     case 'clist': UI.cityList = !UI.cityList; setTab('city'); break;

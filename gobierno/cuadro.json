@@ -162,6 +162,16 @@
       "archivo": "gobierno/capturas-tarea/a5c-alas-0s.jpg",
       "pie": "«Alas fuertes» y la barra con seis formaciones",
       "ancha": true
+    },
+    {
+      "tarea": "F5",
+      "archivo": "gobierno/capturas-tarea/F5-templo.jpg",
+      "pie": "Templo: elige Marte, Ceres o Neptuno"
+    },
+    {
+      "tarea": "I1b",
+      "archivo": "gobierno/capturas-tarea/I1b-codice.jpg",
+      "pie": "Códice igual que antes, ahora leído del registro (una sola fuente)"
     }
   ],
   "informes": [

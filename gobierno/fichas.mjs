@@ -10,8 +10,8 @@ import { createRequire } from 'node:module';
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const req = createRequire(import.meta.url);
 const D = req(join(RAIZ, 'js', 'data.js')), R = req(join(RAIZ, 'js', 'registro.js'));
-const DICT = ['historico', 'licencia de juego', 'por cotejar'];
-const fallos = [], cuenta = { cotejar: 0, licencia: 0, historico: 0, provisional: 0, localizar: 0, sinModelo: 0 };
+const DICT = ['historico', 'probable', 'licencia de juego', 'por cotejar'];
+const fallos = [], cuenta = { cotejar: 0, licencia: 0, historico: 0, probable: 0, provisional: 0, localizar: 0, sinModelo: 0 };
 const esNum = v => typeof v === 'number' && Number.isFinite(v);
 const esTxt = v => typeof v === 'string' && v.length > 0;
 
@@ -55,18 +55,23 @@ for (const tipo of Object.keys(R.tipos)) {
       if (esTxt(a.modelo) && !existsSync(join(RAIZ, a.modelo))) fallos.push(n + ' el archivo de arte.modelo no existe: ' + a.modelo);
       if (a.provisional) cuenta.provisional++;
     }
+    if (hi && hi.texto !== undefined) {   // texto del Códice (P55): vive aquí y solo aquí
+      if (!esTxt(hi.texto) || hi.texto.length < 40 || hi.texto.length > 420) fallos.push(n + ' historia.texto debe tener entre 40 y 420 letras');
+      if (!esTxt(hi.fuente)) fallos.push(n + ' historia.texto sin historia.fuente');
+      if (hi.dictamen === 'por cotejar') fallos.push(n + ' tiene texto en el Códice pero sigue «por cotejar»');
+    }
     if (!hi || typeof hi !== 'object') fallos.push(n + ' falta historia');
     else {
       if (typeof hi.fuente !== 'string') fallos.push(n + ' historia.fuente debe ser texto (puede ir vacío)');
       if (!DICT.includes(hi.dictamen)) fallos.push(n + ' historia.dictamen «' + hi.dictamen + '» no es ninguno de: ' + DICT.join(', '));
-      else if (hi.dictamen === 'por cotejar') cuenta.cotejar++; else if (hi.dictamen === 'historico') cuenta.historico++; else cuenta.licencia++;
+      else if (hi.dictamen === 'por cotejar') cuenta.cotejar++; else if (hi.dictamen === 'historico') cuenta.historico++; else if (hi.dictamen === 'probable') cuenta.probable++; else cuenta.licencia++;
     }
   }
   const nf = Object.keys(fichas).length, np = Object.keys(P).length;
   console.log((fallos.length === antes ? '  ✔ ' : '  ✘ ') + tipo.padEnd(9) + nf + ' fichas · ' + np + ' piezas en data.js');
 }
 
-console.log('Resumen: ' + cuenta.cotejar + ' por cotejar · ' + cuenta.licencia + ' licencia de juego · ' + cuenta.historico + ' históricas · '
+console.log('Resumen: ' + cuenta.cotejar + ' por cotejar · ' + cuenta.licencia + ' licencia de juego · ' + cuenta.historico + ' históricas · ' + cuenta.probable + ' probables · '
   + cuenta.provisional + ' con arte provisional · ' + cuenta.localizar + ' por localizar · ' + cuenta.sinModelo + ' sin modelo (ciudades, hechos, facciones, mejoras)');
 console.log(fallos.length ? 'FICHAS: NO APTO\n  ✘ ' + fallos.join('\n  ✘ ') : 'FICHAS: APTO');
 process.exit(fallos.length ? 1 : 0);

@@ -85,6 +85,7 @@ Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que 
 
 ## Notas para quien continúe
 - A5c (11/11): formaciones nuevas en `Battle.prototype.formarNueva` (+ `separar` para que no se solapen); arrastre con `BattleView.down/move/up` en 2D y `dragReg` en `battle3d.js`. La barra de despliegue va en una fila a 844 px; en vertical no cabe bien (la batalla es horizontal).
+- F5 (11/11): dioses en `D.DIOSES`, `c.dios` y `c.inq` por ciudad (migrados). Inquietud: `D.INQ_*`; `rebelion()` en `js/game.js` devuelve la ciudad a su dueño anterior (`c.prev`). Si no hay dios elegido, `upgrade` pone Marte (el bot no cambia: 10 de 10). Tributo y «afianzar cultura» entre ciudades vecinas no se hizo: solo la calma de la propia ciudad. Dones y dioses por ciudad son licencia de juego.
 - B2 (11/11): rutas en `s.rutas` (migrado), números `D.RUTA_*`. Roma empieza sin mercado: la primera ruta sale de Capua o tras construir uno. El «aliado» es por ahora un tratado de comercio con cualquier vecina con la que no haya marchas en curso; cuando llegue C3 (diplomacia) debería pedir alianza o paz. El bot no usa rutas (9 de 10).
 - **Carril Economía cerrado** (11/11): I3, I4, B1 y B2 hechas y publicadas. Gastó 3,3 M (1,6 de la sesión, 1,7 de Sonnet) sobre 3,3 M presupuestados.
 - B1 (11/11): bienes en `D.ESPECIAL` y `esp` en cada ciudad. `G.fuentesExtra` es el gancho para que B2 (rutas con aliados) aporte bienes. El bot agresivo bajó de 10 a 9 de 10. Seis de las nueve fichas llevan cita sin cotejar; mármol, madera naval y pieles no tienen fuente todavía (para H11).
@@ -99,3 +100,4 @@ Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que 
 - A8 (11/11): los números de ritmo, moral y cansancio son constantes al principio de `js/battle.js`. «Resolver» usa paso de 0,2 s. El bot agresivo gana 7 de 10 campañas; el pasivo, ninguna.
 - Gasto: A8 costó el doble de lo presupuestado (1,3 M frente a 0,55). Afinar números con pruebas cuesta más que una tarea media; presupuestar A5a y A5b con ese dato.
 - Para regenerar el arte hace falta un clon parcial de `0ad/0ad` y los cargadores de ejemplo de three.js (README).
+- 11/11/2026 — I1b hecha: fichas del registro con dictamen al día y Códice con una sola fuente (P55). Ver `partes/2026-11-11-I1b.md`.

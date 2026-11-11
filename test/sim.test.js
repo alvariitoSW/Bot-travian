@@ -471,4 +471,17 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   { const s = G.newGame('Vieja4'); for (const id in s.cities) { delete s.cities[id].tipo; delete s.cities[id].tipoElegido; } s.cities.roma.tipo = 'basura'; delete s.evN;
     localStorage.setItem('aqvila-save-v1', JSON.stringify(s)); assert(G.load()); const r = G.state.cities.roma; assert(r.tipo === 'municipio' && r.tipoElegido === false && G.state.cities.capua.tipo === 'municipio', 'la partida vieja carga con municipio');
     assert(G.setTipo('roma', 'militar') && G.state.res.oro === s.res.oro, 'y su primera elección es gratis'); } }
+// ---- F5 Templos a un dios ----
+{ const s = G.newGame('Templos'), c = s.cities.roma; s.res = { madera: 1e5, piedra: 1e5, hierro: 1e5, grano: 1e5, oro: 1e5 };
+  assert(D.BUILD.templo.solar === 1, 'el templo ocupa solar'); assert(!G.diosDe(c), 'sin templo no hay dios');
+  assert(!G.elegirDios('roma', 'zeus') && !G.elegirDios('roma', 'neptuno') === false, 'Roma tiene mar: Neptuno vale'); assert(G.elegirDios('roma', 'ceres') && c.dios === 'ceres');
+  const g0 = G.prod().grano; c.b.templo = 0; c.b.templo = 2; assert(G.prod().grano > g0 + 0.5, 'Ceres sube el grano'); const f2 = G.felicidad(c); c.b.templo = 0; assert(f2 - G.felicidad(c) === 6, 'templo +3 de felicidad por nivel');
+  c.b.templo = 1; assert(!G.elegirDios('roma', 'marte'), 'con templo levantado no se cambia de dios');
+  assert(!G.elegirDios('carthago', 'marte'), 'una ciudad ajena no elige dios'); }
+{ const s = G.newGame('Rebeldes'); const o = Object.keys(s.cities).find(i => s.cities[i].owner === 'cartago' && !D.CITIES[i].sea) || Object.keys(s.cities).find(i => s.cities[i].owner !== 'roma');
+  const c = s.cities[o]; c.owner = 'roma'; c.prev = 'cartago'; c.inq = D.INQ_MESES; c.units = { hastati: 10 }; c.pop = G.popCap(c);
+  const cc = G.felicidad(c); assert(cc >= D.INQ_REBELION, 'felicidad normal no rebela'); G.tick(0.5); assert(c.owner === 'roma' && c.inq < D.INQ_MESES, 'la inquietud baja con el tiempo');
+  const i1 = c.inq; c.b.templo = 3; c.dios = 'marte'; G.tick(0.5); assert(G.inqMul(c) < 1 && G.inqMul(c) >= 1 - D.INQ_PROD);
+  c.imp = 'alto'; c.b.templo = 0; assert(G.felicidad(c) < D.INQ_REBELION); c.inq = D.INQ_MESES; G.tick(0.25); assert(c.owner !== 'roma' && c.inq === 0, 'con felicidad baja la ciudad conquistada se rebela'); }
+{ const s = G.newGame('Vieja5'); s.cities.roma.b.templo = 2; delete s.cities.roma.dios; delete s.cities.roma.inq; delete s.evN; localStorage.setItem('aqvila-save-v1', JSON.stringify(s)); assert(G.load()); assert(G.state.cities.roma.dios === 'marte' && G.state.cities.roma.inq === 0, 'migración del templo antiguo'); }
 console.log('OK — todas las pruebas superadas');
