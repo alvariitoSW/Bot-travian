@@ -27,6 +27,10 @@
   };
   D.MAX_LVL = 10;
   // mejoras de la herrería: globales, nivel 0 a FORJA_MAX, +5 % por nivel. Coste y tiempo base (nivel 0), crecen x1.5 y x1.4 por nivel
+  /* Impuestos: oro x mult, felicidad +/- f. Edificios que suben la felicidad: puntos por nivel (aquí se añaden termas, anfiteatro…). */
+  D.IMPUESTOS = { bajo: { n: 'Impuestos bajos', mult: 0.7, f: 15 }, normal: { n: 'Impuestos normales', mult: 1, f: 0 }, alto: { n: 'Impuestos altos', mult: 1.4, f: -25 } };
+  D.FELICIDAD_BASE = 60; D.FELICIDAD_MIN_CRECER = 40;
+  D.FELICIDAD_EDIF = { templo: 3 };
   D.FORJA_MAX = 5; D.FORJA_BONO = 0.05;
   D.FORJA = {
     armas: { n: 'Armas', i: '🗡️', ef: 'ataque', cost: { hierro: 120, madera: 40, oro: 50 }, time: 3 },

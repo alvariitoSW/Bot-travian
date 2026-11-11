@@ -27,7 +27,7 @@
     for (const id of G.myCities()) {
       const c = s.cities[id];
       p.madera += 4 + G.rate(c.b.aserradero); p.piedra += 4 + G.rate(c.b.cantera); p.hierro += 4 + G.rate(c.b.mina); p.grano += 6 + G.rate(c.b.granja);
-      p.oro += G.rate(c.b.foro) * 0.5 + (c.pop || 0) * 0.03 + 5 * (c.b.puerto || 0);   // foro + impuestos de la población + comercio del puerto
+      p.oro += G.rate(c.b.foro) * 0.5 + (c.pop || 0) * 0.03 * G.impMult(c) + 5 * (c.b.puerto || 0);   // foro + impuestos de la población + comercio del puerto
       p.grano -= (c.pop || 0) * 0.02;
       for (const k in c.units) up += c.units[k] * D.UNITS[k].up;
     }
@@ -35,6 +35,15 @@
     p.grano -= up; p.upkeep = up;
     return p;
   };
+
+  /* ---------- felicidad e impuestos ---------- */
+  G.impMult = c => (D.IMPUESTOS[c.imp] || D.IMPUESTOS.normal).mult;
+  G.felicidad = function (c) {
+    let f = D.FELICIDAD_BASE + (D.IMPUESTOS[c.imp] || D.IMPUESTOS.normal).f;
+    for (const b in D.FELICIDAD_EDIF) f += D.FELICIDAD_EDIF[b] * ((c.b && c.b[b]) || 0);
+    return Math.max(0, Math.min(100, Math.round(f)));
+  };
+  G.setImp = function (cid, nivel) { const c = G.state.cities[cid]; if (!c || c.owner !== 'roma' || !D.IMPUESTOS[nivel]) return false; c.imp = nivel; return true; };
 
   /* ---------- población ---------- */
   G.popCap = c => Math.round(120 + 130 * (c.b.viviendas || 0) + 30 * (c.b.foro || 0));
@@ -218,7 +227,7 @@
     // economía
     const p = G.prod(), cap = G.cap();
     for (const r of D.RES) s.res[r] = Math.max(0, Math.min(cap, s.res[r] + p[r] * dm));
-    for (const id of G.myCities()) { const c = s.cities[id], pc = G.popCap(c); c.pop = s.res.grano > 0 ? Math.min(pc, c.pop + (1 + 0.03 * c.pop * Math.max(0, 1 - c.pop / pc)) * dm) : Math.max(20, c.pop * (1 - 0.02 * dm)); }
+    for (const id of G.myCities()) { const c = s.cities[id], pc = G.popCap(c); c.pop = s.res.grano > 0 ? (G.felicidad(c) < D.FELICIDAD_MIN_CRECER ? c.pop : Math.min(pc, c.pop + (1 + 0.03 * c.pop * Math.max(0, 1 - c.pop / pc)) * dm)) : Math.max(20, c.pop * (1 - 0.02 * dm)); }
     // herrería
     if (s.forja.cola && s.t >= s.forja.cola.t1) { const k = s.forja.cola.k; s.forja[k]++; s.forja.cola = null; G.log('🔨 Herrería: ' + D.FORJA[k].n + ' nivel ' + s.forja[k] + '.'); emit('dirty'); }
     // colas
@@ -284,7 +293,7 @@
     if (pb.kind === 'attack') {
       if (win) {
         const prev = D.FACTIONS[c.owner].n;
-        c.owner = 'roma'; c.units = keep(res.surv[0], res.lost[0], 1, 0.25); c.queue = null; c.train = []; c.pop = Math.round(G.popCap(c) * 0.5);
+        c.owner = 'roma'; c.imp = 'normal'; c.units = keep(res.surv[0], res.lost[0], 1, 0.25); c.queue = null; c.train = []; c.pop = Math.round(G.popCap(c) * 0.5);
         c.b.muralla = Math.max(0, (c.b.muralla || 0) - 1);
         if (m.hero) { h.city = cid; h.march = null; }
         const loot = Math.round(150 * d.w * (1 + 0.1 * h.sk.log)), cap = G.cap();
@@ -326,7 +335,7 @@
   /* ---------- guardado ---------- */
   G.save = function () { try { if (typeof localStorage !== 'undefined' && G.state) localStorage.setItem(SAVE_KEY, JSON.stringify(G.state)); } catch (e) { /* almacenamiento no disponible */ } };
   G.hasSave = function () { try { return typeof localStorage !== 'undefined' && !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } };
-  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; for (const id in s.cities) { const c = s.cities[id]; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); } return true; } } catch (e) { /* partida corrupta */ } return false; };
+  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; for (const id in s.cities) { const c = s.cities[id]; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; } return true; } } catch (e) { /* partida corrupta */ } return false; };
   G.wipe = function () { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* nada */ } };
 
   root.Game = G;

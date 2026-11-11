@@ -116,7 +116,13 @@ function buildCard(c, b) {
     (q ? '<div class="prog" data-t0="' + c.queue.t0 + '" data-t1="' + c.queue.t1 + '"><i></i></div><span class="rem"></span>' : max ? '' : costHtml(cost)) + '</div>' +
     (q || max ? '' : '<button class="btn ' + (c.queue ? 'no' : '') + '" data-act="up" data-v="' + b + '" ' + (c.queue ? '' : "data-need='" + JSON.stringify(cost) + "'") + '>' + (L ? 'Mejorar' : 'Construir') + '<small>' + months(G.buildTime(c, b)) + '</small></button>') + '</div>';
 }
-const popHtml = c => '<span class="stat">' + D.POP_ICON + ' Población <b>' + Math.floor(c.pop) + '</b> / ' + G.popCap(c) + '</span><span class="stat">🪖 Reclutas disponibles <b>' + G.recruits(c) + '</b></span>';
+const impHtml = c => {
+  if (c.owner !== 'roma') return '';
+  const f = G.felicidad(c), col = f >= 60 ? 'var(--good,#5c5)' : f >= 40 ? '#e0a030' : '#e05050', cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠';
+  return '<div class="imp"><span class="stat" style="color:' + col + '">' + cara + ' Felicidad <b>' + f + '</b>' + (f < D.FELICIDAD_MIN_CRECER ? ' · la población no crece' : '') + '</span><div class="impb">' +
+    Object.keys(D.IMPUESTOS).map(k => '<button class="chip ' + ((c.imp || 'normal') === k ? 'on' : '') + '" data-act="imp" data-v="' + k + '">' + D.IMPUESTOS[k].n + '</button>').join('') + '</div></div>';
+};
+const popHtml = c => '<span class="stat">' + D.POP_ICON + ' Población <b>' + Math.floor(c.pop) + '</b> / ' + G.popCap(c) + '</span><span class="stat">🪖 Reclutas disponibles <b>' + G.recruits(c) + '</b></span>' + impHtml(c);
 function marketHtml() {
   const rate = G.tradeRate(); if (!rate) return '';
   UI.mf = UI.mf || 'madera'; UI.mt = UI.mt || 'hierro';
@@ -273,6 +279,7 @@ document.addEventListener('click', function (e) {
     case 'tab': setTab(v); break;
     case 'speed': s.speed = +v; tickUI(); break;
     case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; render(); break;
+    case 'imp': if (G.setImp(UI.city, el.dataset.v)) render(); break;
     case 'clist': UI.cityList = !UI.cityList; setTab('city'); break;
     case 'cview': if (UI.cityV) { UI.bsel = null; UI.cityV.view(v); renderCity3D(); } break;
     case 'forja': if (G.forjaUp(UI.city, v)) render(); else toast(S().forja.cola ? 'Ya hay una mejora en curso.' : 'Faltan recursos.', 'bad'); break;

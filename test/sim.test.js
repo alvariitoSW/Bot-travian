@@ -103,4 +103,18 @@ assert(G.myCities().length >= 3, 'un bot agresivo debe poder conquistar ciudades
   const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, v) => { mem[k] = v; } };
   localStorage.setItem('aqvila-save-v1', JSON.stringify(Object.assign({}, s, { forja: undefined })));
   assert(G.load() && G.state.forja.armas === 0 && G.state.forja.cola === null, 'una partida vieja se migra'); }
+// Impuestos y felicidad
+{ const prodOro = k => { const s = G.newGame('Imp'); s.cities.roma.imp = k; return G.prod().oro; };
+  const bajo = prodOro('bajo'), normal = prodOro('normal'), alto = prodOro('alto');
+  assert(alto > normal && normal > bajo, 'oro: alto > normal > bajo');
+  const crece = k => { const s = G.newGame('Imp2'), c = s.cities.roma; G.setImp('roma', k); c.pop = 150; const p0 = c.pop; for (let i = 0; i < 40; i++) G.tick(0.25); return c.pop - p0; };
+  assert(G.felicidad(G.newGame('F').cities.roma) === 60, 'felicidad normal = 60');
+  assert(crece('alto') === 0, 'con impuestos altos la población no crece');
+  assert(crece('normal') > 0, 'con impuestos normales sí crece');
+  const s = G.newGame('Imp3'); const ene = Object.keys(s.cities).find(i => s.cities[i].owner !== 'roma'); assert(!G.setImp(ene, 'alto') && s.cities[ene].imp !== 'alto', 'no se tocan ciudades enemigas');
+  const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, v) => { mem[k] = v; } };
+  for (const id in s.cities) delete s.cities[id].imp;
+  localStorage.setItem('aqvila-save-v1', JSON.stringify(s));
+  assert(G.load() && G.state.cities.roma.imp === 'normal' && G.felicidad(G.state.cities.roma) === 60, 'partida vieja sin imp carga'); }
+
 console.log('OK — todas las pruebas superadas');

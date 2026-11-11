@@ -205,3 +205,7 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 #ctop .views { margin-top: 6px; }
 #ctop .views .chip { padding: 5px 10px; font-size: 12px; background: var(--glass); }
 .mlabel.army2 { background: #7d1712e6; border-color: var(--line2); color: #fff; }
+
+.imp { margin-top: 2px; }
+.impb { display: flex; gap: 4px; margin-top: 3px; }
+.impb .chip { flex: 1; padding: 5px 2px; font-size: 11px; white-space: nowrap; }
