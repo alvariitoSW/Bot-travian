@@ -24,6 +24,11 @@ function formation(cls, key) {
   return { cols: 10, sx: 1.15, sz: 1.25, max: 60, sh: 0.5 };
 }
 
+/* ---------- L2: alas (grupos de regimientos con corchete dorado) ---------- */
+export const ALAS = [['linea', 'Línea'], ['reserva', 'Reserva'], ['ligeros', 'Ligeros'], ['jinetes', 'Jinetes']];
+// ala por defecto de un regimiento según su tipo: pesada → Línea, triarios → Reserva, tiradores → Ligeros, caballería → Jinetes
+export function alaPorDefecto(r) { return r.k === 'triarii' ? 'reserva' : r.papel === 'tirador' || r.u.cls === 'rng' ? 'ligeros' : r.u.cls === 'cav' || r.u.cls === 'gen' ? 'jinetes' : 'linea'; }
+
 /* ---------- L1: órdenes dibujadas y orden recomendada (funciones puras, sin pantalla) ---------- */
 const ordenAtk = (r, e) => ({ k: 'atk', r: e });
 function enemigoCerca(b, side, x, y, rad) { let best = null, bd = rad; for (const e of b.regs) { if (e.side === side || e.st !== 'ok') continue; const d = Math.hypot(e.x - x, e.y - y); if (d < bd) { bd = d; best = e; } } return best; }
@@ -70,7 +75,7 @@ export class BattleView3D {
     this.scene = new THREE.Scene(); this.cam = new THREE.PerspectiveCamera(52, 1, 0.5, 900);
     this.c = { x: 0, z: this.halfD * 0.3, dist: 100, yaw: 0, pitch: 0.5 }; this.intro = 0;
     if (battle.fase === 'despliegue') { this.c.z = this.halfD * 0.78; this.c.pitch = 0.8; this.c.dist = 95; this.intro = 1; } /* despliegue: la cámara mira tu zona, por encima de las cartas */
-    this.buildWorld(); this.buildArmies(); this.buildFlags(); this.buildCards(); this.bind(); this.buildTrazo(); this.resize();
+    this.buildWorld(); this.buildArmies(); this.buildFlags(); this.buildCards(); this.bind(); this.buildTrazo(); this.buildAlas(); this.resize();
   }
 
   /* ---------- terreno ---------- */
@@ -190,9 +195,17 @@ export class BattleView3D {
     const fg = new THREE.PlaneGeometry(1.0, 0.8, 4, 1); fg.translate(0.53, 4.05, 0);
     const n = this.b.regs.length;
     this.poles = new THREE.InstancedMesh(pg, new THREE.MeshLambertMaterial({ color: '#4a3420' }), n); this.cloth = new THREE.InstancedMesh(fg, new THREE.MeshLambertMaterial({ side: THREE.DoubleSide }), n);
+    // L2: tela rota (jirones), águila, signo (disco) y vexillum (travesaño); la insignia depende del tipo
+    const sh = new THREE.Shape(); [[0, .8], [1, .8], [.92, .56], [1, .4], [.78, .3], [.9, 0], [.52, .2], [.28, 0], [0, .12]].forEach((p, i) => i ? sh.lineTo(p[0], p[1]) : sh.moveTo(p[0], p[1]));
+    const rgj = new THREE.ShapeGeometry(sh); rgj.translate(0.03, 3.65, 0);
+    this.clothR = new THREE.InstancedMesh(rgj, new THREE.MeshLambertMaterial({ side: THREE.DoubleSide }), n);
     const eg = new THREE.OctahedronGeometry(0.28, 0); eg.scale(1.6, 0.9, 0.5); eg.translate(0, 4.75, 0);
-    this.eagles = new THREE.InstancedMesh(eg, new THREE.MeshLambertMaterial({ color: '#f0c44a', emissive: '#5a4310' }), n);
-    for (const m of [this.poles, this.cloth, this.eagles]) { m.frustumCulled = false; m.count = 0; sc.add(m); }
+    const dg2 = new THREE.CylinderGeometry(0.22, 0.22, 0.07, 10); dg2.rotateX(Math.PI / 2); dg2.translate(0, 4.78, 0);
+    const bg = new THREE.BoxGeometry(1.1, 0.07, 0.07); bg.translate(0.55, 4.48, 0);
+    const mi = g => new THREE.InstancedMesh(g, new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#2a2008' }), n);
+    this.eagles = mi(eg); this.discos = mi(dg2); this.barras = mi(bg);
+    this.meshB = [this.poles, this.cloth, this.clothR, this.eagles, this.discos, this.barras];
+    for (const m of this.meshB) { m.frustumCulled = false; m.count = 0; sc.add(m); }
   }
 
   buildCity(zc, dir) {
@@ -350,18 +363,26 @@ export class BattleView3D {
     if (quiere > this.realCap) this.lodL = Math.max(30, this.lodL * Math.exp(-rdt * 4)); else if (quiere < this.realCap * 0.85) this.lodL = Math.min(LOD_MAX, this.lodL * Math.exp(rdt * 1.5));
     this.shadow.count = si; this.shadow.instanceMatrix.needsUpdate = true;
     // estandartes y polvo
-    const BM = new THREE.Matrix4(), bc = new THREE.Color(); let bi = 0;
+    const BM = new THREE.Matrix4(), RZ = new THREE.Matrix4(), SV = new THREE.Vector3(), bc = new THREE.Color(), gris = new THREE.Color('#8c8a84'); const cnt = { cl: 0, cr: 0, aq: 0, sg: 0, vx: 0 }; let bi = 0;
     for (const R of this.R) {
       const r = R.r; if (r.st !== 'ok' || !R.n) continue;
       const w = this.toW(r.x, r.y), x = w[0] + Math.cos(r.ang) * 0.8, z = w[1] + Math.sin(r.ang) * 0.8, sc2 = r.u.cls === 'ele' ? 2 : r.u.cls === 'cav' || r.u.cls === 'gen' ? 1.35 : 1;
-      BM.makeRotationY(0.5 + Math.sin(t * 2 + r.id) * 0.12); BM.scale(new THREE.Vector3(sc2, sc2, sc2)); BM.setPosition(x, this.h(x, z), z);
-      this.poles.setMatrixAt(bi, BM); this.cloth.setMatrixAt(bi, BM); this.cloth.setColorAt(bi, bc.set(this.sel.has(r) ? '#ffe27a' : b.cfg.sides[r.side].col));
-      if (r.side === 0) this.eagles.setMatrixAt(bi, BM); else { BM.makeScale(0, 0, 0); this.eagles.setMatrixAt(bi, BM); }
+      // L2: la tela dice la moral (entera, rota, caída) y el cansancio (más pálida y de ondeo lento)
+      const mo = r.mor / r.morMax, nivel = mo > 0.55 ? 0 : mo > 0.28 ? 1 : 2, can = Math.min(1, Math.max(0, (r.fat || 0) / 100));
+      BM.makeRotationY(0.5 + Math.sin(t * (2.2 - 1.5 * can) + r.id) * (0.12 - 0.05 * can));
+      if (nivel === 2) { RZ.makeRotationZ(-0.75 - 0.15 * Math.sin(t * 1.3 + r.id)); BM.multiply(RZ); }
+      SV.set(sc2, sc2 * (nivel === 2 ? 0.7 : 1), sc2); BM.scale(SV); BM.setPosition(x, this.h(x, z), z);
+      const sel = this.sel.has(r); bc.set(this.b.cfg.sides[r.side].col); bc.lerp(gris, Math.min(0.85, can * 0.55 + nivel * 0.2)); if (nivel) bc.multiplyScalar(1 - 0.25 * nivel); if (sel) bc.set('#ffe27a');
+      this.poles.setMatrixAt(bi, BM);
+      const tc = nivel === 1 ? this.clothR : this.cloth, ic = nivel === 1 ? cnt.cr++ : cnt.cl++; tc.setMatrixAt(ic, BM); tc.setColorAt(ic, bc);
+      const ins = r.u.cls === 'gen' ? 'aq' : r.u.cls === 'cav' ? 'vx' : 'sg', mI = ins === 'aq' ? this.eagles : ins === 'vx' ? this.barras : this.discos;
+      mI.setMatrixAt(cnt[ins], BM); mI.setColorAt(cnt[ins]++, r.side === 0 ? bc.set(sel ? '#ffe27a' : '#f0c44a') : bc.set(this.b.cfg.sides[1].col).lerp(new THREE.Color('#ffffff'), 0.3));
       bi++;
       if ((r.fight > 0 || R.moving) && hash(t * 31 + r.id) < 0.5 * dt * 60 * 0.25) { const j = Math.floor(hash(t * 17 + r.id) * R.n), o = (this.di++ % this.ND) * 3; this.dp[o] = R.fx[j]; this.dp[o + 1] = this.h(R.fx[j], R.fz[j]) + 0.5; this.dp[o + 2] = R.fz[j]; this.dl[o / 3] = 1; }
       R.moving = Math.hypot(r.x - (R.px || r.x), r.y - (R.py || r.y)) > 0.01; R.px = r.x; R.py = r.y;
     }
-    for (const m of [this.poles, this.cloth, this.eagles]) { m.count = bi; m.instanceMatrix.needsUpdate = true; } if (this.cloth.instanceColor) this.cloth.instanceColor.needsUpdate = true;
+    this.poles.count = bi; this.cloth.count = cnt.cl; this.clothR.count = cnt.cr; this.eagles.count = cnt.aq; this.discos.count = cnt.sg; this.barras.count = cnt.vx;
+    for (const m of this.meshB) { m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; }
     for (let i = 0; i < this.ND; i++) if (this.dl[i] > 0) { this.dl[i] -= dt * 0.28; this.dp[i * 3 + 1] += dt * 1.6; this.dp[i * 3] += dt * 0.8; if (this.dl[i] <= 0) this.dp[i * 3 + 1] = -999; }
     this.dust.geometry.attributes.position.needsUpdate = true;
     // proyectiles
@@ -413,7 +434,7 @@ export class BattleView3D {
       v.set(x, this.h(x, z) + (r.u.cls === 'ele' ? 8 : r.u.cls === 'cav' || r.u.cls === 'gen' ? 5 : 4), z).project(this.cam);
       if (v.z > 1 || v.x < -1.1 || v.x > 1.1 || v.y < -1.1 || v.y > 1.1) { R.el.style.display = 'none'; continue; }
       R.el.style.display = ''; R.el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * H).toFixed(1) + 'px) translate(-50%,-100%)';
-      R.el.classList.toggle('sel', this.sel.has(r)); R.el.classList.toggle('rout', !ok);
+      R.el.classList.toggle('sel', this.sel.has(r)); R.el.classList.toggle('rout', !ok); { const mo = r.mor / r.morMax; R.el.classList.toggle('m1', ok && mo <= 0.55 && mo > 0.28); R.el.classList.toggle('m2', ok && mo <= 0.28); R.el.classList.toggle('can', ok && r.fat >= 50); }
       R.bar.style.width = (r.men / r.max * 100) + '%'; R.bar.style.background = r.mor / r.morMax > 0.5 ? '#7ddc5a' : r.mor / r.morMax > 0.25 ? '#f0c040' : '#e8503a';
     }
   }
@@ -442,6 +463,44 @@ export class BattleView3D {
     if (this.camMode === 0) { c.dist = 120; c.pitch = 0.5; c.yaw = 0; }
     else if (this.camMode === 1) { c.dist = 230; c.pitch = 1.25; c.yaw = 0; c.x = 0; c.z = 0; }
     else { c.dist = 34; c.pitch = 0.22; let best = null; for (const r of this.b.regs) if (r.st === 'ok' && r.side === 0 && (r.fight > 0 || !best)) best = r; if (best) { const w = this.toW(best.x, best.y); c.x = w[0]; c.z = w[1]; c.yaw = 0.7; } }
+  }
+
+  /* ---------- L2: alas ---------- */
+  buildAlas() {
+    this.ala = new Map(); for (const r of this.b.regs) if (r.side === 0) this.ala.set(r, alaPorDefecto(r));
+    const cv = document.createElement('canvas'); cv.className = 'balas'; this.host.appendChild(cv); this.acv = cv;
+    this.alaEt = {}; ALAS.forEach(a => { const e = document.createElement('button'); e.className = 'balaet'; e.textContent = a[1]; e.style.display = 'none'; e.addEventListener('click', ev => { ev.stopPropagation(); this.selAla(a[0]); }); this.flags.appendChild(e); this.alaEt[a[0]] = e; });
+  }
+  miembros(id) { return this.b.regs.filter(r => r.side === 0 && r.st === 'ok' && this.ala.get(r) === id); }
+  selAla(id) { const m = this.miembros(id); if (!m.length) return 0; this.sel.clear(); m.forEach(r => this.sel.add(r)); return m.length; }
+  // mueve a un ala los regimientos seleccionados (propios); devuelve cuántos
+  moverAAla(id) { let n = 0; for (const r of this.sel) if (r.side === 0 && r.st === 'ok') { this.ala.set(r, id); n++; } return n; }
+  // ala elegida entera ahora mismo (todos sus regimientos en pie están seleccionados), o null
+  alaActiva() { for (const a of ALAS) { const m = this.miembros(a[0]); if (m.length && m.length === [...this.sel].filter(r => r.st === 'ok').length && m.every(r => this.sel.has(r))) return a[0]; } return null; }
+  // casco convexo de puntos de pantalla (cadena monótona); con 1 o 2 puntos devuelve los mismos
+  casco(P) {
+    const p = P.slice().sort((a, b) => a[0] - b[0] || a[1] - b[1]); if (p.length < 3) return p;
+    const cr = (o, a, b) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0]), lo = [], up = [];
+    for (const q of p) { while (lo.length > 1 && cr(lo[lo.length - 2], lo[lo.length - 1], q) <= 0) lo.pop(); lo.push(q); }
+    for (let i = p.length - 1; i >= 0; i--) { const q = p[i]; while (up.length > 1 && cr(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q); }
+    lo.pop(); up.pop(); return lo.concat(up);
+  }
+  dibujaAlas() {
+    const cv = this.acv, W = this.host.clientWidth, H = this.host.clientHeight; if (!cv) return;
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    const x = cv.getContext('2d'); x.clearRect(0, 0, W, H); const v = new THREE.Vector3(), act = this.alaActiva(), usados = [];
+    ALAS.forEach((a, ia) => {
+      const et = this.alaEt[a[0]], pts = [];
+      for (const r of this.miembros(a[0])) { const w = this.toW(r.x, r.y); v.set(w[0], this.h(w[0], w[1]) + (r.u.cls === 'ele' ? 8.6 : 5.6), w[1]).project(this.cam); if (v.z < 1) pts.push([(v.x + 1) / 2 * W, (1 - v.y) / 2 * H]); }
+      if (pts.length < 2) { et.style.display = 'none'; return; }
+      const hull = this.casco(pts), on = act === a[0], dy = -5;
+      const trazo = (w, c) => { x.beginPath(); hull.forEach((p, i) => i ? x.lineTo(p[0], p[1] + dy) : x.moveTo(p[0], p[1] + dy)); if (hull.length > 2) x.closePath(); x.lineWidth = w; x.strokeStyle = c; x.lineJoin = 'round'; x.lineCap = 'round'; x.stroke(); };
+      trazo(on ? 5 : 3, 'rgba(60,30,4,.7)'); trazo(on ? 2.5 : 1.4, on ? '#ffe27a' : '#d9ac3c');
+      for (const p of pts) { x.beginPath(); x.arc(p[0], p[1] + dy, on ? 3.2 : 2.4, 0, 7); x.fillStyle = on ? '#ffe27a' : '#d9ac3c'; x.fill(); }
+      let mx = (pts[0][0] + pts[pts.length - 1][0]) / 2, my = Math.min(...pts.map(p => p[1])) + dy - 12;
+      for (const u of usados) if (Math.abs(u[0] - mx) < 62 && Math.abs(u[1] - my) < 17) my = u[1] - 18; usados.push([mx, my]);
+      et.style.display = ''; et.classList.toggle('on', on); et.textContent = a[1] + ' ' + this.miembros(a[0]).length; et.style.transform = 'translate(' + mx.toFixed(1) + 'px,' + my.toFixed(1) + 'px) translate(-50%,-100%)';
+    });
   }
 
   /* ---------- L1: trazo dibujado ---------- */
@@ -566,7 +625,7 @@ export class BattleView3D {
   draw() {
     const now = performance.now(), dt = Math.min(0.1, (now - this.last) / 1000); this.last = now;
     const k = this.opts.speed ? this.opts.speed() : 1; this.t += dt * k; uTime.value = this.t;
-    this.updateArmies(dt * Math.max(k, 0.0001)); this.placeCam(dt); this.updateOverlay();
+    this.updateArmies(dt * Math.max(k, 0.0001)); this.placeCam(dt); this.updateOverlay(); this.dibujaAlas();
     if (this.marker.visible) { const a = (this.t - this.markT); this.marker.scale.setScalar(1 + a * 1.5); this.marker.material.opacity = Math.max(0, 0.9 - a * 1.2); if (a > 0.8) this.marker.visible = false; }
     if (this.zonaLinea && this.b.fase !== 'despliegue') { this.scene.remove(this.zonaLinea); this.zonaLinea.geometry.dispose(); this.zonaLinea.material.dispose(); this.zonaLinea = null; for (const l of this.terrenoLineas || []) { this.scene.remove(l); l.geometry.dispose(); l.material.dispose(); } this.terrenoLineas = null; }
     this.r.render(this.scene, this.cam);
@@ -576,6 +635,6 @@ export class BattleView3D {
     const realMeshes = new Set([...this.meshes.values()].filter(e => e.real).map(e => e.m));
     this.scene.traverse(o => { if (realMeshes.has(o)) return; if (o.geometry) o.geometry.dispose(); if (o.material && o.material !== unitMaterial()) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } });
     if (this.scene.background && this.scene.background.dispose) this.scene.background.dispose();
-    cv.remove(); if (this.tcv) this.tcv.remove(); if (this.tet) this.tet.remove(); this.flags.remove(); if (this.opts.cards) this.opts.cards.innerHTML = '';
+    cv.remove(); if (this.tcv) this.tcv.remove(); if (this.acv) this.acv.remove(); if (this.tet) this.tet.remove(); this.flags.remove(); if (this.opts.cards) this.opts.cards.innerHTML = '';
   }
 }

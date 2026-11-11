@@ -82,7 +82,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 ## Carril L — Interfaz de guerra: Legado + Estandartes (P66, aprobada 11/11/2026; en paralelo al carril J)
 Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandartes.html` (notas y capturas `K2-guerra-*`). Toca `js/ui.js` (solo lo de batalla), `js/gfx/battle3d.js`, `css/style.css`; no `js/battle.js` salvo leer.
 - ✅ L1 **Órdenes dibujadas y orden recomendada** (11/11): trazo con el dedo → cargar/avanzar/flanquear/retirar; botón dorado con la orden recomendada; HUD con moral, minimapa y grupos. Pendiente L1b: testudo (no existe en `battle.js`), vista 2D de reserva y vertical.
-- ⬜ L2 **Estandartes**: cada regimiento lleva un estandarte con su moral en la tela; alas con corchete dorado para agrupar.
+- ✅ L2 **Estandartes y alas** (11/11): moral y cansancio en la tela del estandarte; alas Línea, Reserva, Ligeros y Jinetes con corchete dorado; tocar un ala la elige y la orden va a todos sus regimientos. Pendiente: 20+ regimientos sin medir, estandartes en huida solo en tarjeta.
 - ⬜ L3 **Fantasmas en pausa y cartas de táctica**: deslizador de tiempo con sombras a 10/20/30 s; atajos de testudo, carga, retirada y refuerzo.
 
 ## Carril E — Arte (sistema coherente con la época)

@@ -93,7 +93,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
-0b. Carril Guerra interfaz: L1 hecha (11/11). Siguiente posible: L1b (testudo si el usuario lo quiere como regla, trazo en vista 2D, HUD en vertical) y las tareas L de estandartes. Ojo: L1 gastó 1,5 M (tope aconsejado).
+0b. Carril Guerra interfaz: L1 y L2 hechas (11/11). Siguiente: L3 (fantasmas en pausa y cartas de táctica) o L1b (testudo si el usuario lo quiere como regla, trazo en 2D, HUD vertical). L2 gastó 0,75 M.
 0. Carril Interfaz: J6 hecha (11/11). Sigue **J7 Parte densa** (incluye J2): pestañas también en el mapa, Imperio con filtros, cola de obras. Presupuestar con el dato: J6 gastó ~1,5 M sobre 0,65 presupuestado; encargar al constructor piezas más pequeñas.
 Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que lleva Campaña):
 1. I6 Región de Italia → I7 Regiones → I8 Partida corta (prioridad del usuario).

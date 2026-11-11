@@ -1,6 +1,6 @@
 /* AQVILA — interfaz: mapa 3D como pantalla principal, paneles, modales y pantalla de batalla */
 import { MapView3D } from './gfx/map3d.js';
-import { BattleView3D, recomendada } from './gfx/battle3d.js';
+import { BattleView3D, recomendada, ALAS } from './gfx/battle3d.js';
 import { portrait } from './gfx/models.js';
 import { preload, loadIndex, realPortrait } from './gfx/units.js';
 import { preloadStatic, loadStaticIndex } from './gfx/statics.js';
@@ -482,13 +482,23 @@ function montaMandoL1(B) {
     const rc = mini.getBoundingClientRect(), b = B.b, x = (ev.clientX - rc.left) / rc.width * 600, y = (ev.clientY - rc.top) / rc.height * b.H;
     if (b.fase !== 'despliegue' && B.view.moverSel(x, y)) toast('Tropas en marcha.'); else B.view.centrarEn(x, y); ev.stopPropagation();
   });
-  B.l1 = { oro: oro, mini: mini, grp: grp, txt: '' };
+  const alas = mk('div', 'balas', 'l1', ALAS.map(a => '<button data-act="bala" data-v="' + a[0] + '">' + a[1] + '<small></small></button>').join(''));
+  alas.querySelectorAll('button').forEach(bn => {   // toque corto: elige el ala; toque largo: mete en ella los regimientos elegidos (o los saca si ya están)
+    let tm = null, largo = false;
+    bn.addEventListener('pointerdown', () => { largo = false; clearTimeout(tm); tm = setTimeout(() => { largo = true; const id = bn.dataset.v, v = B.view; const n = v.moverAAla(id); toast(n ? n + (n === 1 ? ' regimiento pasa' : ' regimientos pasan') + ' al ala «' + bn.firstChild.textContent + '».' : 'Elige antes un regimiento y mantén pulsada el ala.'); }, 550); });
+    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) bn.addEventListener(ev, () => clearTimeout(tm));
+    bn.addEventListener('click', ev => { if (largo) { ev.stopPropagation(); ev.preventDefault(); largo = false; } });
+    bn.addEventListener('contextmenu', ev => ev.preventDefault());
+  });
+  B.l1 = { oro: oro, mini: mini, grp: grp, alas: alas, txt: '' };
 }
-function quitaMandoL1(B) { if (B.l1) { for (const k of ['oro', 'mini', 'grp']) B.l1[k].remove(); B.l1 = null; } }
+function quitaMandoL1(B) { if (B.l1) { for (const k of ['oro', 'mini', 'grp', 'alas']) B.l1[k].remove(); B.l1 = null; } }
 function actualizaL1(B) {
   const L = B.l1; if (!L) return; const v = B.view, b = B.b, desp = b.fase === 'despliegue';
   const sel = [...v.sel].filter(r => r.st === 'ok'), rec = !desp && sel.length ? recomendada(sel[0], b) : null;
   const txt = rec ? rec.ic + '|' + rec.txt : ''; if (txt !== L.txt) { L.txt = txt; L.oro.disabled = !rec; L.oro.classList.toggle('off', !rec); L.oro.innerHTML = '<i>' + (rec ? rec.ic : '⚔') + '</i><b>' + (rec ? rec.txt : 'Orden') + '</b>'; }
+  const act = v.alaActiva ? v.alaActiva() : null;
+  L.alas.querySelectorAll('button').forEach(bn => { const m = v.miembros(bn.dataset.v).length; bn.classList.toggle('on', act === bn.dataset.v); bn.classList.toggle('vacia', !m); const sm = bn.lastChild; if (sm.textContent !== String(m)) sm.textContent = m; });
   const x = L.mini.getContext('2d'), W = L.mini.width, H = L.mini.height; x.clearRect(0, 0, W, H); x.fillStyle = 'rgba(12,16,22,.7)'; x.fillRect(0, 0, W, H);
   const kx = W / 600, ky = H / b.H;
   for (const r of b.regs) { if (r.st !== 'ok') continue; const px = r.x * kx, py = r.y * ky; x.fillStyle = b.cfg.sides[r.side].col; x.beginPath(); x.arc(px, py, r.u.cls === 'gen' ? 5 : 4, 0, 7); x.fill(); if (v.sel.has(r)) { x.strokeStyle = '#f2cf72'; x.lineWidth = 2.5; x.beginPath(); x.arc(px, py, 8, 0, 7); x.stroke(); } }
@@ -574,6 +584,7 @@ document.addEventListener('click', function (e) {
     case 'bauto': B.b.auto = !B.b.auto; el.classList.toggle('on', B.b.auto); toast(B.b.auto ? 'Tus tropas atacan por iniciativa propia.' : 'Tus tropas mantienen la posición hasta recibir órdenes.'); break;
     case 'ball': B.view.selectAll(); break;
     case 'bgold': { const o = B.view.ordenRecomendada(); if (o) toast(o.txt + '.'); break; }
+    case 'bala': B.view.selAla(v); break;
     case 'bgrp': { const g = GRUPOS_L1.find(q => q[0] === v); if (g) B.view.selPorClase(g[2]); break; }
     case 'bcam': if (B.view.cycleCam) B.view.cycleCam(); break;
     case 'bform': B.b.formar(0, v); document.querySelectorAll('#bctl [data-act="bform"]').forEach(x => x.classList.toggle('on', x === el)); break;
