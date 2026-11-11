@@ -26,8 +26,17 @@
     acueducto: { modelo: 'arco', n: 'Acueducto', i: '🌉', solar: 1, cost: { madera: 90, piedra: 160, hierro: 50, grano: 50, oro: 60 }, time: 3.5, d: 'Trae agua a la ciudad: +40 de población máxima por nivel.' },
     termas: { modelo: 'vesta', n: 'Termas', i: '♨️', solar: 1, cost: { madera: 100, piedra: 140, hierro: 40, grano: 60, oro: 80 }, time: 3.5, d: 'Baños públicos: +4 de felicidad y +15 de población máxima por nivel.' },
     anfiteatro: { modelo: 'foro', n: 'Anfiteatro', i: '🏟️', solar: 1, cost: { madera: 130, piedra: 180, hierro: 60, grano: 80, oro: 100 }, time: 4, d: 'Juegos y espectáculos: +6 de felicidad por nivel.' },
-    templo: { n: 'Templo de Marte', i: '🔥', solar: 1, cost: { madera: 80, piedra: 100, hierro: 30, grano: 60, oro: 50 }, time: 3, d: '+10 % de experiencia del héroe y +3 de moral al defender, por nivel.' }
+    templo: { n: 'Templo', i: '🔥', solar: 1, cost: { madera: 80, piedra: 100, hierro: 30, grano: 60, oro: 50 }, time: 3, d: 'Un templo a un dios por ciudad (Marte, Ceres o Neptuno). Por nivel: +3 de felicidad, +10 % de experiencia del héroe, calma antes a una ciudad conquistada y el don de su dios.' }
   };
+  /* Templos (F5): cada ciudad puede dedicar su templo a un dios. Los dones son por nivel de templo. Licencia de juego:
+     los romanos no «elegían» un dios por ciudad, pero Marte, Ceres y Neptuno eran divinidades reales de Roma (Livio 2.41 para el templo de Ceres, 493 a.C.; Marte, Campo de Marte; Neptuno, Circo Flaminio). Dones inventados. */
+  D.DIOSES = {
+    marte: { n: 'Marte', i: '🔥', d: '+3 de moral de la guarnición al defender, por nivel.', mor: 3 },
+    ceres: { n: 'Ceres', i: '🌾', d: '+8 % de grano de esa ciudad, por nivel.', grano: 0.08 },
+    neptuno: { n: 'Neptuno', i: '🔱', d: 'Solo con mar: viajes por mar un 4 % más rápidos y +2 de oro por nivel de puerto.', sea: true, mar: 0.04, oroPuerto: 2 }
+  };
+  // ciudad conquistada: meses de inquietud (producción reducida; con felicidad baja se rebela). El templo la calma INQ_TEMPLO meses extra por nivel
+  D.INQ_MESES = 8; D.INQ_TEMPLO = 0.35; D.INQ_REBELION = 40; D.INQ_PROD = 0.4;
   D.MAX_LVL = 10;
   // mejoras de la herrería: globales, nivel 0 a FORJA_MAX, +5 % por nivel. Coste y tiempo base (nivel 0), crecen x1.5 y x1.4 por nivel
   /* Impuestos: oro x mult, felicidad +/- f. Edificios que suben la felicidad: puntos por nivel (aquí se añaden termas, anfiteatro…). */

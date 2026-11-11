@@ -50,7 +50,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ✅ F1 Diseño de modos decidido: campaña histórica como base del modo largo, primero la partida corta, tres dioses (Marte, Ceres, Neptuno). `gobierno/estudios/F1-modos-de-juego.md`.
 - ✅ F2 Sustituida por I2 (mapa por turnos; decisión del 11/11).
 - ✅ F3 Aldeanos: reparto entre madera, piedra, hierro y grano (en la vista de lista).
-- ⬜ F5 **Templos a un dios** (aprobada 11/11, P56; antes «favor de un dios»): en cada ciudad puedes levantar un templo a Marte, Ceres o Neptuno; cada templo extiende cultura y religión y hace que una ciudad conquistada se rebele menos. Ocupa un solar (I4). ≈0,2 + 0,6 M, a ojo. Después de I4.
+- ✅ F5 Templos a un dios (11/11): un templo por ciudad, ocupa solar, y se dedica a Marte (moral al defender), Ceres (+8 % de grano por nivel) o Neptuno (mar más rápido, oro del puerto). Las ciudades conquistadas están inquietas 8 meses (producen menos) y se rebelan si la felicidad cae bajo 40; el templo las calma antes.
 
 ## Carril I — Gran diseño, fase 1 (aprobado 11/11/2026; informe `gobierno/estudios/G3-gran-diseno.md`)
 Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I6, I7; I8 al final.

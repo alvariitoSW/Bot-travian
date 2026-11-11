@@ -84,6 +84,7 @@ Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que 
 3. A8b, A1, A2, A6, A7, C1.
 
 ## Notas para quien continúe
+- F5 (11/11): dioses en `D.DIOSES`, `c.dios` y `c.inq` por ciudad (migrados). Inquietud: `D.INQ_*`; `rebelion()` en `js/game.js` devuelve la ciudad a su dueño anterior (`c.prev`). Si no hay dios elegido, `upgrade` pone Marte (el bot no cambia: 10 de 10). Tributo y «afianzar cultura» entre ciudades vecinas no se hizo: solo la calma de la propia ciudad. Dones y dioses por ciudad son licencia de juego.
 - B2 (11/11): rutas en `s.rutas` (migrado), números `D.RUTA_*`. Roma empieza sin mercado: la primera ruta sale de Capua o tras construir uno. El «aliado» es por ahora un tratado de comercio con cualquier vecina con la que no haya marchas en curso; cuando llegue C3 (diplomacia) debería pedir alianza o paz. El bot no usa rutas (9 de 10).
 - **Carril Economía cerrado** (11/11): I3, I4, B1 y B2 hechas y publicadas. Gastó 3,3 M (1,6 de la sesión, 1,7 de Sonnet) sobre 3,3 M presupuestados.
 - B1 (11/11): bienes en `D.ESPECIAL` y `esp` en cada ciudad. `G.fuentesExtra` es el gancho para que B2 (rutas con aliados) aporte bienes. El bot agresivo bajó de 10 a 9 de 10. Seis de las nueve fichas llevan cita sin cotejar; mármol, madera naval y pieles no tienen fuente todavía (para H11).

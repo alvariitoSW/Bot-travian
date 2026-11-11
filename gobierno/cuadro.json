@@ -150,6 +150,11 @@
       "archivo": "gobierno/capturas-tarea/B2-mapa.jpg",
       "pie": "En el mapa: un mercante en la ruta por mar y un carro en la de tierra",
       "ancha": false
+    },
+    {
+      "tarea": "F5",
+      "archivo": "gobierno/capturas-tarea/F5-templo.jpg",
+      "pie": "Templo: elige Marte, Ceres o Neptuno"
     }
   ],
   "informes": [
