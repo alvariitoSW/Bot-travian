@@ -47,14 +47,14 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 
 ## Carril F — Modos de juego (decisión del usuario, 11/11/2026)
 - ✅ F1 Diseño de modos decidido: campaña histórica como base del modo largo, primero la partida corta, tres dioses (Marte, Ceres, Neptuno). `gobierno/estudios/F1-modos-de-juego.md`.
-- ⬜ F2 Tiempo real que sigue corriendo con el juego cerrado (para la partida de semanas), con tope y resumen al volver.
+- ⬜ F2 Tiempo real que sigue corriendo con el juego cerrado (para la partida de semanas), con tope y resumen al volver. (Cambio pedido 11/11: por turnos; ver P57 en la bitácora.)
 - ✅ F3 Aldeanos: reparto entre madera, piedra, hierro y grano (en la vista de lista).
-- ⬜ F5 Favor de un dios (Marte, Júpiter, Ceres, Neptuno…): un poder con recarga.
+- ⬜ F5 Favor de un dios (Marte, Júpiter, Ceres, Neptuno…): un poder con recarga. (Cambio pedido 11/11: templos; ver P56 en la bitácora.)
 
 ## Carril I — Gran diseño, fase 1 (aprobado 11/11/2026; informe `gobierno/estudios/G3-gran-diseno.md`)
 Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I6, I7; I8 al final.
 - ✅ I1 Registro de piezas: `js/registro.js` (84 fichas con arte y fuente) y juez `node gobierno/fichas.mjs`, dentro de los jueces.
-- 🔶 I1b Fichas del registro al día tras Historia 2 (el juez pasa; 10 fichas nuevas). Falta: pasar a «histórico» los dictámenes ya cotejados y que Códice y registro compartan una sola fuente (P55).
+- 🔶 I1b Fichas del registro al día tras Historia 2 (el juez pasa; 10 fichas nuevas). Falta: pasar a «histórico» los dictámenes ya cotejados y que Códice y registro compartan una sola fuente (P55, aprobada 11/11). ≈0,3 M.
 - ⬜ I2 **Reloj por estaciones** (P44): «consejo de estación» y botón «Pasar estación»; ciudad y batalla siguen en tiempo real. 0,2 + 0,6 M · 20 min.
 - ⬜ I3 **Mano de obra y mantenimiento** (P45): reclutar vacía los campos; edificios y tropas cuestan. 0,15 + 0,5 M · 15 min.
 - ⬜ I4 **Tipos de ciudad con solares limitados** (P46): cada ciudad tiene un número fijo de solares y se dedica a recursos, tropas, comercio, mar, investigación o una mezcla; caben templos y edificios de ocio. 0,2 + 0,7 M · 20 min.
@@ -87,9 +87,13 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ H9 Hechos nuevos: Benevento 275, Trasimeno 217, Metauro 207, Ilipa 206, Magnesia 190, Corinto y Cartago 146.
 - ✅ H10 Pastilla «licencia de juego» con su motivo en 15 hechos y en las tropas inventadas.
 - ✅ H3 Códice dentro del juego (11/11/2026): botón en «Crónica», 62 fichas de tropas, ciudades y hechos con etiqueta y fuente.
+- ⬜ H11 **Segunda pasada de cotejo** (aprobada 11/11, P51): los 60 datos «sin comprobar» y los pasajes dudosos en latín y griego. Hace falta abrir attalus.org o similar. ≈1,5 M Sonnet.
+- ⬜ H12 **Capua se rebela en 216** (aprobada 11/11, P52): tras Cannas se pasa a Aníbal si no la defiendes bien (Livio 23.2-7). Cambia reglas. ≈0,3 M.
+- ⬜ H13 **Pirro ataca en 280, no en 277** (aprobada 11/11, P53): obliga a reequilibrar el arranque. ≈0,3 M.
+- ⬜ H14 **«Poblado íbero» en el mapa** (aprobada 11/11, P54): Carthago Nova se llama así hasta 228. ≈0,15 M.
 
 ## Carril D — Técnica
-- 🔶 D1 Contador «Medir fluidez» hecho (menú principal). Falta que el usuario mida en su móvil: mapa, ciudad y batalla grande.
+- 🔶 D1 Contador «Medir fluidez» hecho. Medido en el móvil del usuario (11/11): menú, ciudad, calles y ejército a unas 60 imágenes por segundo (peor momento 22 a 28). Faltan mapa y batalla grande.
 - ✅ D2 Niveles de detalle en batalla: lejanos con figura ligera; se pintan ~1.395 soldados en vez de 494 con el mismo tope.
 - ✅ D3 Estudio de Godot: no pasar ahora; se revisa tras medir con D1. `gobierno/estudios/D3-godot.md`.
 - ✅ D4 Publicado en GitHub Pages: https://alvariitosw.github.io/Bot-travian/ (falta confirmar en el móvil del usuario).

@@ -4,6 +4,11 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 11/11/2026 — **Fluidez medida en su móvil** (capturas suyas, Brave en Android): menú 54 a 58 imágenes por segundo; ciudad desde arriba 61; calles 66; lista de ejército 64. El peor momento, 22 a 28. (Lectura de Claude: la ciudad va fluida; el bajón será la carga. Faltan el mapa y una batalla grande.)
+- 11/11/2026 — **Aprobadas P51 a P55** desde el cuadro: segunda pasada de cotejo, Capua se rebela en 216, Pirro ataca en 280, «Poblado íbero» en el mapa, y Códice y registro con una sola fuente. Al tablero como H11 a H14; P55 entra en I1b.
+- 11/11/2026 — **Prioridad** (desde el cuadro): B1, B2, B5, B7, C2, C3, E1b y E2.
+- 11/11/2026 — **Dioses** (cambio pedido sobre F5): «Más que favor, construir templos para un dios y que cada templo en esa ciudad ayude a expandir la cultura y la religión y ayude a afianzar territorios conquistados». (Lectura de Claude: cambia el alcance de F5; propuesta P56.)
+- 11/11/2026 — **Turnos** (cambio pedido sobre F2): «Esto mejor sería hacerlo por turnos, una mezcla en tiempo real pero por turnos para que el resto o los bots te ataquen en otros turnos mientras llegan con sus tropas». (Lectura de Claude: cambia el alcance de F2 y toca el reloj por estaciones, I2; propuesta P57.)
 - 11/11/2026 — Dos sistemas separados: ciudad/economía propia (recursos, mercado, mar) y guerra tipo Rome 2 Total War.
 - 11/11/2026 — Arte real conseguido por Claude (se eligió 0 A.D., CC BY-SA 3.0) y, además, motor nativo (opción 3).
 - 11/11/2026 — Vistas a varias escalas: mapa grande, ciudad, calles con ciudadanos, ejército con su tamaño.
@@ -48,30 +53,29 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-1. **Medir fluidez**: menú → «Medir fluidez»; dime la cifra en el mapa, en la ciudad y en una batalla grande. (Dijo «ok» el 11/11; faltan las cifras.)
+1. **Medir fluidez**: menú → «Medir fluidez»; dime la cifra en el mapa, en la ciudad y en una batalla grande. Ya medidos menú, ciudad, calles y ejército (unas 60). **Faltan el mapa y una batalla grande.**
 2. **Ritmo de batalla (A8)**: juega una batalla igualada y dime si 8 a 12 minutos a x1 te parece bien, largo o corto (hay x2 y x4). Y si te vale que la calidad de la tropa pese más que antes (hubo que subirlo para que la muralla siguiera ayudando).
 
 ## Propuestas por aprobar
-De Historia 2 (numeradas desde P51 porque P25 a P50 ya están usadas):
-- P51 **Segunda pasada de cotejo**: los 60 datos «sin comprobar» (Justino, Valerio Máximo, Eutropio, Orosio; hace falta abrir attalus.org o similar) y los pasajes dudosos en latín y griego. ≈1,5 M Sonnet (el primer cotejo costó 5,4 M; esta vez bajando los pasajes a archivo).
-- P52 **Capua se rebela en 216**: tras Cannas, Capua se pasa a Aníbal si no la defiendes bien (Livio 23.2-7). Cambia reglas: le quita una ciudad al jugador. ≈0,3 M.
-- P53 **Pirro ataca en 280, no en 277**: hoy el texto dice la verdad pero el ataque llega en 277 para dar tiempo. Adelantarlo obliga a reequilibrar el arranque. ≈0,3 M.
-- P54 **«Poblado íbero» en el mapa**: que Carthago Nova se llame así hasta 228. ≈0,15 M.
-- P55 **Códice y registro, una sola fuente**: el Códice (H3) y el registro de piezas (I1) guardan las fuentes por duplicado; unirlos y marcar «histórico» lo ya cotejado. ≈0,3 M.
+- P56 **Templos en vez de «favor de un dios»** (cambia F5; pedido del 11/11): en cada ciudad puedes levantar un templo a un dios (Marte, Ceres, Neptuno). Cada templo extiende cultura y religión y hace que una ciudad conquistada se rebele menos. Encaja con los solares de I4. ≈0,2 + 0,6 M, a ojo.
+- P57 **Turnos mezclados con tiempo real** (cambia F2; pedido del 11/11): el mapa avanza por turnos; los rivales mueven y atacan en los suyos, y ves llegar sus tropas turno a turno. Ciudad y batalla siguen en tiempo real. Sustituiría a «seguir corriendo con el juego cerrado» y habría que unirlo con el reloj por estaciones (I2): una estación = un turno. ≈0,25 + 0,8 M, a ojo.
 
 ## Encargo en curso (11/11/2026)
 Rama única desde ahora: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Sesiones, que no se pisan (Diseño ya cerró: informes G3):
-- Ninguna abierta. **Historia 2** cerró el 11/11/2026: cotejo, H4 a H10 y Códice hechos (partes `2026-11-11-H1b`, `-H4-H10`, `-H3`).
+- Ninguna abierta (11/11: cuadro aplicado, sin construir). **Historia 2** cerró el 11/11/2026: cotejo, H4 a H10 y Códice hechos (partes `2026-11-11-H1b`, `-H4-H10`, `-H3`).
 Cada una, al cerrar: tablero y bitácora al día, capturas e informes en el cuadro, cuadro publicado, aviso a la sesión madre y se archiva sola.
 
 ## Encargo de la próxima sesión
-Una tarea por sesión, en este orden (propuesto por Claude: primero lo que desbloquea a lo demás):
-1. ✅ I1 Registro de piezas, hecha. Queda I1b al unir con Historia 2.
-2. ✅ A8 Ritmo y moral, hecha.
-3. A5a Despliegue → A5b Terreno.
-4. I3 Mano de obra → I4 Tipos de ciudad → I5 Investigación → I2 Reloj por estaciones.
-5. I6 Región de Italia → I7 Regiones → I8 Partida corta.
-Siguiente: **A5a Despliegue** (toca `js/battle.js`, `js/gfx/battle3d.js` y la parte de batalla de `js/ui.js`; mejor cuando Historia 2 haya soltado `ui.js`).
+Una tarea por sesión. Orden propuesto por Claude con lo priorizado el 11/11 (primero lo que desbloquea a lo demás; **el usuario confirma**):
+1. A5a Despliegue → A5b Terreno (batallas, ya en cola).
+2. E1b Guía de arte: iconos y letra (pequeña, se ve enseguida, no pisa a nadie).
+3. I3 Mano de obra → I4 Tipos de ciudad → B1 Recurso especial (usa los tipos de ciudad) → B2 Rutas comerciales (usa B1).
+4. B7 Saqueo → C3 Diplomacia (usa B2) → B5 Marina (usa B2 y el puerto).
+5. I5 Investigación → I2 Reloj por estaciones (esperar a decidir P57).
+6. E2 Más piezas de 0 A.D. → C2 Costa y relieve.
+7. I6 Región de Italia → I7 Regiones → I8 Partida corta.
+Historia, en carril aparte (no pisa): H14 → H13 → H12 → I1b → H11.
+Hechas: I1, A8. Siguiente: **A5a Despliegue** (toca `js/battle.js` y la vista de batalla).
 
 ## Notas para quien continúe
 - I1 e Historia 2 ya están unidas en la rama que publica (11/11/2026). El jugador empieza ahora con dos ciudades (Roma y Capua): tenerlo en cuenta al equilibrar. Queda I1b (ver tablero).
