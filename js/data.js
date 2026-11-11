@@ -48,10 +48,10 @@
      forjaCoste / forjaTiempo = mejoras de la herrería encargadas desde la ciudad. */
   D.TIPO_CAMBIO = 250;
   D.TIPOS = {
-    municipio: { n: 'Municipio', i: '🏛️', d: 'Sin ventajas ni pegas: +5 de felicidad.', fel: 5 },
+    municipio: { n: 'Municipio', i: '🏛️', d: 'Hace de todo: +5 de felicidad.', fel: 5 },
     agraria: { n: 'Colonia agraria', i: '🌾', d: '+25 % de madera, piedra, hierro y grano.', rec: 1.25 },
     militar: { n: 'Colonia militar', i: '⚔️', d: 'Instrucción un 25 % más rápida y la paga de su guarnición cuesta un 25 % menos.', instr: 0.8, paga: 0.75 },
-    emporio: { n: 'Emporio', i: '⚖️', d: '+50 % del oro de foro y puerto. Con mercado, mejora 0,05 el cambio de recursos.', oroCom: 1.5, mercado: 0.05 },
+    emporio: { n: 'Emporio', i: '⚖️', d: '+50 % del oro de foro y puerto. Con mercado, cambias recursos a mejor precio.', oroCom: 1.5, mercado: 0.05 },
     naval: { n: 'Base naval', i: '⚓', d: 'Solo en ciudades con mar: viajes por mar un 25 % más rápidos y +3 de oro por nivel de puerto.', mar: true, viajeMar: 0.75, oroPuerto: 3 },
     saber: { n: 'Ciudad de artesanos', i: '🔨', d: 'Las mejoras de la herrería encargadas desde aquí cuestan y tardan un 25 % menos.', forjaCoste: 0.75, forjaTiempo: 0.75 }
   };
