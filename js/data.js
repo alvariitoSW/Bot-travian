@@ -51,7 +51,7 @@
     municipio: { n: 'Municipio', i: '🏛️', d: 'Hace de todo: +5 de felicidad.', fel: 5 },
     agraria: { n: 'Colonia agraria', i: '🌾', d: '+25 % de madera, piedra, hierro y grano.', rec: 1.25 },
     militar: { n: 'Colonia militar', i: '⚔️', d: 'Instrucción un 25 % más rápida y la paga de su guarnición cuesta un 25 % menos.', instr: 0.8, paga: 0.75 },
-    emporio: { n: 'Emporio', i: '⚖️', d: '+50 % del oro de foro y puerto. Con mercado, cambias recursos a mejor precio.', oroCom: 1.5, mercado: 0.05 },
+    emporio: { n: 'Emporio', i: '⚖️', d: '+50 % del oro de foro, puerto y rutas. Con mercado, cambias recursos a mejor precio. Una ruta comercial más.', oroCom: 1.5, mercado: 0.05, rutas: 1 },
     naval: { n: 'Base naval', i: '⚓', d: 'Solo en ciudades con mar: viajes por mar un 25 % más rápidos y +3 de oro por nivel de puerto.', mar: true, viajeMar: 0.75, oroPuerto: 3 },
     saber: { n: 'Ciudad de artesanos', i: '🔨', d: 'Las mejoras de la herrería encargadas desde aquí cuestan y tardan un 25 % menos.', forjaCoste: 0.75, forjaTiempo: 0.75 }
   };
@@ -60,6 +60,11 @@
      abre.edificios: pasar del nivel D.ESP_NIVEL en esos edificios pide el bien; abre.tropas: esas tropas piden el bien.
      bono: se aplica una vez al tener acceso (no se acumula por tener dos ciudades). Lo lee game.js con G.bonoMul y G.bonoSum. */
   D.ESP_NIVEL = 6;
+  /* Rutas comerciales (B2). Licencia de juego: el mecanismo es invención; el trasfondo (los tratados de Roma y Cartago
+     regulaban dónde comerciar, Polibio 3.22-25; Hierón II aliado de Roma desde 263, Polibio 1.16) es histórico.
+     Renta mensual = (RUTA_BASE + mercado de a + mercado de b si es propia, o RUTA_W por estrella de la ciudad ajena) × 1,5 por mar × oroCom del tipo.
+     Máximo de rutas por ciudad: 1 + mercado/3 (+ D.TIPOS[..].rutas). */
+  D.RUTA_COSTE = 100; D.RUTA_BASE = 4; D.RUTA_W = 1; D.RUTA_MAR = 1.5; D.RUTA_POR_MERCADO = 3;
   D.ESPECIAL = {
     sal: { n: 'Sal', i: '🧂', d: '+10 % de crecimiento de población.', abre: {}, bono: { crece: 1.1 } },
     vino: { n: 'Vino', i: '🍷', d: '+5 de felicidad en tus ciudades.', abre: {}, bono: { fel: 5 } },

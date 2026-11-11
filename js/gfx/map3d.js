@@ -188,6 +188,23 @@ export class MapView3D {
       const txt = (state.hero.city === id ? '🦅 ' : '') + G.men(st.units); if (c.txt !== txt) { c.txt = txt; c.em.textContent = txt; }
       c.el.classList.toggle('sel', sel === id); place(c.el, c.x, c.grp.position.y + c.top, c.z);
     }
+    // rutas comerciales: trazo dorado y un mercante que va y viene (una malla por ruta)
+    if (!this.rutaObj) { this.rutaObj = new Map(); this.rutaMat = { oro: new THREE.LineBasicMaterial({ color: '#f2c14e' }), casco: new THREE.MeshLambertMaterial({ color: '#7a4a22', flatShading: true }), vela: new THREE.MeshLambertMaterial({ color: '#f1e6c8', side: THREE.DoubleSide, flatShading: true }), carro: new THREE.MeshLambertMaterial({ color: '#b98a3c', flatShading: true }) }; }
+    const vistas = new Set();
+    for (const r of (state.rutas || [])) {
+      const k = r.a + '|' + r.b; vistas.add(k); let o = this.rutaObj.get(k);
+      if (!o) {
+        const mar = G.rutaMar(r), pa = G.pos(r.a), pb = G.pos(r.b), pts = [], n = 28;
+        for (let i = 0; i <= n; i++) { const x = (pa[0] + (pb[0] - pa[0]) * i / n) * K, z = (pa[1] + (pb[1] - pa[1]) * i / n) * K; pts.push(new THREE.Vector3(x, Math.max(0.03, this.hAt(x, z)) + 0.1, z)); }
+        const linea = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), this.rutaMat.oro), g = new THREE.Group();
+        if (mar) { const c = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.14, 0.9), this.rutaMat.casco); c.position.y = 0.1; const v = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.6), this.rutaMat.vela); v.position.y = 0.55; v.rotation.y = Math.PI / 2; g.add(c, v); }
+        else { const c = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.2, 0.55), this.rutaMat.carro); c.position.y = 0.2; const b = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.16, 0.3), this.rutaMat.vela); b.position.y = 0.38; g.add(c, b); }
+        this.scene.add(linea, g); o = { linea: linea, g: g, pa: pa, pb: pb, ph: (r.a.length + r.b.length) * 0.37 }; this.rutaObj.set(k, o);
+      }
+      const u = (this.t * 0.06 + o.ph) % 2, f = u < 1 ? u : 2 - u, x = (o.pa[0] + (o.pb[0] - o.pa[0]) * f) * K, z = (o.pa[1] + (o.pb[1] - o.pa[1]) * f) * K;
+      o.g.position.set(x, Math.max(0.04, this.hAt(x, z)) + 0.05, z); o.g.rotation.y = Math.atan2(o.pb[0] - o.pa[0], o.pb[1] - o.pa[1]) + (u < 1 ? 0 : Math.PI);
+    }
+    for (const [k, o] of this.rutaObj) if (!vistas.has(k)) { this.scene.remove(o.linea, o.g); o.linea.geometry.dispose(); o.g.traverse(m => { if (m.geometry) m.geometry.dispose(); }); this.rutaObj.delete(k); }
     const seen = new Set();
     for (const m of state.marches) {
       seen.add(m.id); let a = this.armies.get(m.id); if (!a) { a = this.armyModel(m); this.armies.set(m.id, a); }

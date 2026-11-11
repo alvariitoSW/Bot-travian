@@ -88,6 +88,8 @@
     }
     for (const m of s.marches) if (m.owner === 'roma') for (const k in m.units) up += m.units[k] * D.UNITS[k].up;
     p.grano -= up; p.upkeep = up;
+    p.rutas = 0; for (const r of G.rutasAbiertas()) p.rutas += G.rutaRenta(r);
+    p.oro += p.rutas;
     p.mant = G.mantenimiento(); p.oro -= p.mant.total;
     return p;
   };
@@ -107,6 +109,52 @@
       if (tipo === 'tropa' && a.tropas && a.tropas.indexOf(id) >= 0) return k; }
     return null;
   };
+  /* ---------- rutas comerciales (B2) ---------- */
+  G.rutasAbiertas = () => (G.state && G.state.rutas) || [];
+  G.rutaDe = (a, b) => G.rutasAbiertas().find(r => (r.a === a && r.b === b) || (r.a === b && r.b === a));
+  G.rutaMax = c => 1 + Math.floor((c.b.mercado || 0) / D.RUTA_POR_MERCADO) + (G.tipoDe(c).rutas || 0);
+  G.rutasDeCiudad = id => G.rutasAbiertas().filter(r => r.a === id).length;
+  // marcha en curso entre Roma y la facción f (en cualquier sentido)
+  G.hayGuerraCon = function (f) { const s = G.state; return s.marches.some(m => (m.owner === f && s.cities[m.to].owner === 'roma') || (m.owner === 'roma' && s.cities[m.to].owner === f)); };
+  G.rutaPuede = function (a, b) {
+    const s = G.state, ca = s.cities[a], cb = s.cities[b], e = G.edge(a, b);
+    if (!ca || !cb || ca.owner !== 'roma' || !e || a === b) return 'No hay camino';
+    if (G.rutaDe(a, b)) return 'Ya existe';
+    if (!(ca.b.mercado > 0)) return 'Hace falta un mercado';
+    if (e[2] && !(ca.b.puerto > 0)) return 'Hace falta un puerto';
+    if (G.rutasDeCiudad(a) >= G.rutaMax(ca)) return 'Sin hueco: mejora el mercado';
+    if (cb.owner !== 'roma' && G.hayGuerraCon(cb.owner)) return 'En guerra con ' + D.FACTIONS[cb.owner].n;
+    if (s.res.oro < D.RUTA_COSTE) return 'Faltan ' + D.RUTA_COSTE + ' de oro';
+    return null;
+  };
+  G.rutaAbrir = function (a, b) {
+    if (G.rutaPuede(a, b)) return false;
+    const s = G.state; s.res.oro -= D.RUTA_COSTE; s.rutas.push({ a: a, b: b, f: s.cities[b].owner });
+    G.log('⚖️ ' + (s.cities[b].owner === 'roma' ? 'Ruta comercial' : 'Tratado de comercio') + ': ' + D.CITIES[a].n + ' ↔ ' + D.CITIES[b].n + '.', 'good'); return true;
+  };
+  G.rutaCerrar = function (a, b, motivo) {
+    const s = G.state, i = s.rutas.findIndex(r => (r.a === a && r.b === b) || (r.a === b && r.b === a)); if (i < 0) return false;
+    const r = s.rutas.splice(i, 1)[0]; G.log('⚖️ Ruta cerrada: ' + D.CITIES[r.a].n + ' ↔ ' + D.CITIES[r.b].n + (motivo ? ' (' + motivo + ')' : '') + '.', motivo ? 'bad' : ''); return true;
+  };
+  G.rutaMar = r => { const e = G.edge(r.a, r.b); return !!(e && e[2]); };
+  G.rutaRenta = function (r) {
+    const s = G.state, ca = s.cities[r.a], cb = s.cities[r.b], mia = cb.owner === 'roma';
+    let v = D.RUTA_BASE + (ca.b.mercado || 0) + (mia ? (cb.b.mercado || 0) : D.RUTA_W * (cb.w || D.CITIES[r.b].w || 0));
+    if (G.rutaMar(r)) v *= D.RUTA_MAR;
+    return v * Math.max(G.tipoDe(ca).oroCom || 1, mia ? (G.tipoDe(cb).oroCom || 1) : 1);
+  };
+  // cierra solas las rutas que ya no valen: se llama en cada tick y al lanzar marchas
+  G.rutasRevisar = function () {
+    const s = G.state; if (!s || !s.rutas) return;
+    for (const r of s.rutas.slice()) {
+      const ca = s.cities[r.a], cb = s.cities[r.b];
+      if (ca.owner !== 'roma') { G.rutaCerrar(r.a, r.b, D.CITIES[r.a].n + ' ya no es tuya'); continue; }
+      if (cb.owner !== r.f) { if (cb.owner === 'roma') { r.f = 'roma'; G.log('⚖️ ' + D.CITIES[r.b].n + ' ya es tuya: la ruta pasa a ser interior.'); } else { G.rutaCerrar(r.a, r.b, D.CITIES[r.b].n + ' cambió de dueño'); } continue; }
+      if (r.f !== 'roma' && G.hayGuerraCon(r.f)) G.rutaCerrar(r.a, r.b, 'guerra con ' + D.FACTIONS[r.f].n);
+    }
+  };
+  // el bien especial de una ciudad ajena con tratado llega a Roma
+  G.fuentesExtra.push(function (k) { const l = []; for (const r of G.rutasAbiertas()) if (r.f !== 'roma' && D.CITIES[r.b].esp === k && G.state.cities[r.b].owner === r.f) l.push(r.b); return l; });
   /* ---------- felicidad e impuestos ---------- */
   G.impMult = c => (D.IMPUESTOS[c.imp] || D.IMPUESTOS.normal).mult;
   G.felicidad = function (c) {
@@ -155,7 +203,7 @@
   G.newGame = function (heroName) {
     const s = {
       v: 1, t: 0, speed: 1, res: { madera: 400, piedra: 400, hierro: 400, grano: 400, oro: 200 },
-      cities: {}, marches: [], log: [], ev: {}, pending: [], over: null, mid: 1,
+      cities: {}, rutas: [], marches: [], log: [], ev: {}, pending: [], over: null, mid: 1,
       mods: { sea: 1, flex: 0 }, forja: { armas: 0, armaduras: 0, cola: null }, stats: { battles: 0, wins: 0, kills: 0, lost: 0 },
       hero: { name: heroName || 'Lucio Cornelio Escipión', lvl: 1, xp: 0, pts: 1, sk: { mando: 0, disc: 0, log: 0 }, city: 'roma', march: null, wound: 0 }
     };
@@ -223,6 +271,7 @@
     const m = { id: s.mid++, owner: 'roma', from: from, to: to, units: u, hero: !!withHero, t0: s.t, t1: s.t + G.travel(from, to, withHero) };
     if (withHero) { s.hero.city = null; s.hero.march = m.id; }
     s.marches.push(m);
+    G.rutasRevisar();
     return true;
   };
 
@@ -239,6 +288,7 @@
   function spawn(owner, fromId, fromXY, to, units, gen, eta, label) {
     const s = G.state;
     s.marches.push({ id: s.mid++, owner: owner, from: fromId, fromXY: fromXY, to: to, units: units, gen: gen || null, t0: s.t, t1: s.t + eta, label: label || null });
+    G.rutasRevisar();
   }
   const firstMine = list => list.find(id => G.state.cities[id].owner === 'roma') || 'roma';
 
@@ -324,6 +374,7 @@
     const s = G.state; if (!s || s.over || s.pending.length) return;
     const y0 = G.yearOf(s.t), m0 = Math.floor(s.t);
     s.t += dm;
+    G.rutasRevisar();
     // economía
     const p = G.prod(), cap = G.cap();
     for (const r of D.RES) s.res[r] = Math.max(0, Math.min(cap, s.res[r] + p[r] * dm));
@@ -442,7 +493,7 @@
   /* ---------- guardado ---------- */
   G.save = function () { try { if (typeof localStorage !== 'undefined' && G.state) localStorage.setItem(SAVE_KEY, JSON.stringify(G.state)); } catch (e) { /* almacenamiento no disponible */ } };
   G.hasSave = function () { try { return typeof localStorage !== 'undefined' && !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } };
-  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria', 'acueducto', 'termas', 'anfiteatro']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } return true; } } catch (e) { /* partida corrupta */ } return false; };
+  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria', 'acueducto', 'termas', 'anfiteatro']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } return true; } } catch (e) { /* partida corrupta */ } return false; };
   G.wipe = function () { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* nada */ } };
 
   root.Game = G;

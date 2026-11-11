@@ -198,11 +198,30 @@ function repartoHtml(c) {
   };
   return '<div class="sec">Aldeanos</div><div class="empty">Mueve aldeanos de un recurso a otro. El total no cambia.</div>' + G.REPARTO_RES.map(fila).join('');
 }
+function rutasHtml(c, id) {
+  if (c.owner !== 'roma') return '';
+  const s = S(), cn = x => D.CITIES[x].n, abiertas = G.rutasAbiertas().filter(r => r.a === id || r.b === id);
+  let h = '<div class="sec">Rutas comerciales</div><div class="empty">Huecos: ' + G.rutasDeCiudad(id) + ' / ' + G.rutaMax(c) + '. Los tratados de Roma y Cartago ya repartían dónde comerciar (Polibio 3.22-25).</div>';
+  for (const r of abiertas) {
+    const o = r.a === id ? r.b : r.a;
+    h += '<div class="empty">⚖️ <b>' + cn(r.a) + ' ↔ ' + cn(r.b) + '</b> · +' + Math.round(G.rutaRenta(r)) + ' oro/mes · ' + (G.rutaMar(r) ? 'por mar' : 'por tierra') + (r.f !== 'roma' && D.ESPECIAL[D.CITIES[r.b].esp] ? ' · bien: ' + D.ESPECIAL[D.CITIES[r.b].esp].i + ' ' + D.ESPECIAL[D.CITIES[r.b].esp].n : '') +
+      (r.a === id ? '<div class="btns"><button class="btn ghost" data-act="rutacerrar" data-v="' + r.a + '>' + r.b + '">Cerrar ruta</button></div>' : '') + '</div>';
+  }
+  for (const o of G.neighbors(id)) {
+    if (G.rutaDe(id, o)) continue;
+    const mot = G.rutaPuede(id, o), ajena = s.cities[o].owner !== 'roma', e = D.ESPECIAL[D.CITIES[o].esp];
+    const verbo = ajena ? 'Firmar tratado con ' + cn(o) : 'Abrir ruta con ' + cn(o);
+    if (mot && !/^Faltan/.test(mot)) h += '<div class="empty" style="opacity:.6">' + verbo + ' · ' + esc(mot) + '</div>';
+    else h += '<div class="empty"><div class="btns"><button class="btn ' + (mot ? 'no' : '') + '" data-act="ruta" data-v="' + id + '>' + o + '" data-need=\'' + JSON.stringify({ oro: D.RUTA_COSTE }) + '\'>' + verbo + ' · ' + D.RUTA_COSTE + ' ' + D.RES_ICON.oro + '</button></div>' + (ajena && e ? '<div class="ds">Aporta el bien: ' + e.i + ' ' + e.n + '</div>' : '') + '</div>';
+  }
+  return h;
+}
 function viewCity() {
   const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city];
   let h = cityChips() + '<div class="head"><h2>' + d.n + '</h2><p>' + esc(d.h) + '</p></div>' + (UI.cityV ? '<div class="acts" style="margin:0 0 6px"><button class="btn ghost" data-act="clist">Ver la ciudad en 3D</button></div>' : '') + '<div class="sec">Edificios</div>';
   h = h.replace('<div class="sec">Edificios</div>', '<div class="empty">' + popHtml(c) + '</div>' + repartoHtml(c) + (c.owner === 'roma' ? '<div class="empty">' + espResumen() + '</div>' : '') + '<div class="sec">Edificios</div>');
   for (const b in D.BUILD) { if (D.BUILD[b].sea && !d.sea) continue; h += buildCard(c, b); if (b === 'mercado') h += marketHtml(); if (b === 'herreria') h += forjaHtml(c); }
+  h += rutasHtml(c, UI.city);
   return h + '<div class="empty">' + Object.keys(D.BUILD).map(b => D.BUILD[b].i + ' ' + D.BUILD[b].d).join('<br>') + '</div>';
 }
 function renderCity3D() {
@@ -217,7 +236,7 @@ function viewArmy() {
   const s = S(), c = s.cities[UI.city], p = G.prod();
   let h = cityChips() + '<div class="sec">Guarnición de ' + D.CITIES[UI.city].n + ' · ' + G.men(c.units) + ' hombres</div>' + troopsHtml(c.units);
   h += '<div class="empty">' + popHtml(c) + '</div>';
-  h += '<div class="empty">🌾 Consumo de todas tus tropas: ' + Math.round(p.upkeep) + ' grano/mes · 🪙 Mantenimiento: −' + Math.round(p.mant.total) + ' oro (edificios ' + Math.round(p.mant.edificios) + ', paga ' + Math.round(p.mant.tropas) + ') · 🧱 Guardia urbana al defender: ' + (20 + 20 * (c.b.muralla || 0)) + '<br>Para enviarlas a la guerra, toca una ciudad vecina en el mapa.</div>';
+  h += '<div class="empty">🌾 Consumo de todas tus tropas: ' + Math.round(p.upkeep) + ' grano/mes · 🪙 Mantenimiento: −' + Math.round(p.mant.total) + ' oro (edificios ' + Math.round(p.mant.edificios) + ', paga ' + Math.round(p.mant.tropas) + ') · ⚖️ Rutas: +' + Math.round(p.rutas) + ' oro · 🧱 Guardia urbana al defender: ' + (20 + 20 * (c.b.muralla || 0)) + '<br>Para enviarlas a la guerra, toca una ciudad vecina en el mapa.</div>';
   if (c.train.length) {
     h += '<div class="sec">En instrucción</div>';
     h += c.train.map(q => '<div class="row"><div style="display:flex;justify-content:space-between"><span>' + q.n + ' × ' + D.UNITS[q.u].n + '</span><span class="rem"></span></div><div class="prog" data-t0="' + q.t0 + '" data-t1="' + q.t1 + '"><i></i></div></div>').join('');
@@ -262,10 +281,11 @@ function renderSheet() {
   const s = S(), sh = $('sheet'); if (!s || !UI.sel || UI.tab !== 'map') { sh.hidden = true; UI.sheetKey = ''; return; }
   const id = UI.sel, c = s.cities[id], d = D.CITIES[id], f = D.FACTIONS[c.owner], mine = c.owner === 'roma';
   const src = G.neighbors(id).filter(n => s.cities[n].owner === 'roma'), inc = s.marches.filter(m => m.to === id);
-  const key = id + c.owner + JSON.stringify(c.units) + src.join() + inc.map(m => m.id + Math.round((m.t1 - s.t) * 2)).join();
+  const key = id + c.owner + G.rutasAbiertas().length + JSON.stringify(c.units) + src.join() + inc.map(m => m.id + Math.round((m.t1 - s.t) * 2)).join();
   if (key === UI.sheetKey && !sh.hidden) return; UI.sheetKey = key;
   let h = '<button class="x" data-act="unsel">✕</button><h3>' + d.n + '<span class="tagf" style="background:' + f.col + '">' + f.n + '</span></h3><p>' + esc(d.h) + '</p>';
   h += '<span class="stat">🧱 Muralla ' + (c.b.muralla || 0) + '</span><span class="stat">💰 ' + '★'.repeat(c.w || d.w) + '</span><span class="stat">⚔ Fuerza ' + G.power(c.units) + '</span>' + (D.ESPECIAL[d.esp] ? '<span class="stat">Bien: ' + D.ESPECIAL[d.esp].i + ' ' + D.ESPECIAL[d.esp].n + '</span>' : '');
+  { const tr = G.rutasAbiertas().find(r => r.b === id && r.f !== 'roma'); if (tr) h += '<span class="stat">⚖️ Tratado de comercio con Roma</span>'; }
   h += '<div class="units">' + (Object.keys(c.units).filter(k => c.units[k] > 0).map(k => '<span>' + D.UNITS[k].n + ' <b>' + c.units[k] + '</b></span>').join('') || '<span>Sin guarnición</span>') + '</div>';
   if (inc.length) h += inc.map(m => '<div class="stat" style="color:' + (m.owner === 'roma' ? 'var(--good)' : 'var(--bad)') + '">' + (m.owner === 'roma' ? '🚩 Tus tropas llegan' : '⚠️ ' + D.FACTIONS[m.owner].n + ' (' + G.men(m.units) + ') llega') + ' en ' + months(m.t1 - s.t) + '</div>').join('');
   h += '<div class="acts">';
@@ -354,6 +374,8 @@ document.addEventListener('click', function (e) {
     case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; render(); break;
     case 'rep': if (G.reparto(UI.city, el.dataset.r, +el.dataset.d)) render(); break;
     case 'imp': if (G.setImp(UI.city, el.dataset.v)) render(); break;
+    case 'ruta': { const q = v.split('>'); if (G.rutaAbrir(q[0], q[1])) { toast('⚖️ Ruta abierta con ' + D.CITIES[q[1]].n + '.'); render(); } else toast(G.rutaPuede(q[0], q[1]) || 'No se puede abrir la ruta.', 'bad'); break; }
+    case 'rutacerrar': { const q = v.split('>'); if (G.rutaCerrar(q[0], q[1])) { toast('Ruta cerrada.'); render(); } break; }
     case 'tipos': modal(tiposModal()); break;
     case 'tipo': if (G.setTipo(UI.city, v)) { closeModal(); toast(D.TIPOS[v].i + ' ' + D.CITIES[UI.city].n + ': ' + D.TIPOS[v].n + '.'); render(); } else toast('No se puede elegir ese tipo.', 'bad'); break;
     case 'derr': { const k = UI.city + ':' + v; if (UI.derr !== k) { UI.derr = k; render(); } else { UI.derr = null; if (G.derribar(UI.city, v)) { toast('🧱 ' + D.BUILD[v].n + ' derribado: un solar libre.'); } else toast('No se puede derribar ahora.', 'bad'); render(); } break; }

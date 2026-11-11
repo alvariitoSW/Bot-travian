@@ -118,6 +118,48 @@ assert(wins >= 7, 'la muralla debe inclinar la batalla (' + wins + '/10)');
 for (const e of D.EDGES) assert(D.CITIES[e[0]] && D.CITIES[e[1]], 'ruta inválida ' + e);
 for (const id in D.CITIES) { assert(D.FACTIONS[D.CITIES[id].f]); for (const k in D.CITIES[id].g) assert(D.UNITS[k], k); }
 
+// 4b. Rutas comerciales (B2)
+{
+  G.newGame('Test'); let s = G.state; assert(Array.isArray(s.rutas) && !s.rutas.length, 'newGame crea rutas');
+  s.res.oro = 1000;
+  assert(G.rutaPuede('roma', 'capua'), 'sin mercado no se abre');
+  s.cities.roma.b.mercado = 1; s.cities.capua.b.mercado = 1;
+  assert.strictEqual(G.rutaPuede('roma', 'mediolanum'), 'No hay camino', 'sin vecindad no se abre');
+  const oro0 = G.prod().oro;
+  assert.strictEqual(G.rutaPuede('roma', 'capua'), null); assert(G.rutaAbrir('roma', 'capua'));
+  assert.strictEqual(s.res.oro, 1000 - D.RUTA_COSTE, 'cuesta oro');
+  assert(!G.rutaAbrir('capua', 'roma') && G.rutaPuede('capua', 'roma'), 'sin duplicados a-b = b-a');
+  const renta = G.rutaRenta(s.rutas[0]); assert.strictEqual(renta, D.RUTA_BASE + 2, 'Roma-Capua con mercados 1: ' + renta);
+  assert(Math.abs(G.prod().oro - oro0 - renta) < 1e-9 && G.prod().rutas === renta, 'la renta entra en prod().oro');
+  assert(G.rutaPuede('roma', 'volsinii') === 'Sin hueco: mejora el mercado', 'máximo 1 ruta con mercado 1-2');
+  s.cities.roma.b.mercado = 3; assert.strictEqual(G.rutaPuede('roma', 'volsinii'), null, 'mercado 3 da un hueco más');
+  s.res.oro = 50; assert(/oro/.test(G.rutaPuede('roma', 'volsinii')), 'exige oro'); s.res.oro = 1000;
+  // por mar: puerto y más renta
+  s.cities.roma.b.mercado = 6;
+  assert.strictEqual(G.rutaPuede('roma', 'emporion'), 'Hace falta un puerto');
+  s.cities.roma.b.puerto = 1; assert(G.rutaAbrir('roma', 'emporion'));
+  const rm = s.rutas.find(r => r.b === 'emporion'), rr = G.rutaRenta(rm);
+  assert(G.rutaMar(rm) && Math.abs(rr - (D.RUTA_BASE + 6 + D.RUTA_W * (s.cities.emporion.w || D.CITIES.emporion.w)) * D.RUTA_MAR * (D.TIPOS[s.cities.roma.tipo].oroCom || 1)) < 1e-9, 'por mar rinde más');
+  // tratado: da acceso al bien del aliado
+  assert.strictEqual(D.CITIES.emporion.esp, 'vino'); assert(G.especiales().vino, 'el tratado con Emporion da su bien');
+  // se rompe al atacar a esa facción
+  s.cities.roma.units = { hastati: 50 }; assert(G.send('roma', 'emporion', { hastati: 20 }));
+  assert(!G.rutaDe('roma', 'emporion'), 'atacar a la facción cierra el tratado'); assert(!G.especiales().vino, 'sin tratado se pierde el bien');
+  assert(G.rutaPuede('roma', 'emporion') && /guerra/i.test(G.rutaPuede('roma', 'emporion')), 'no se firma en guerra');
+  // cambio de dueño de b ajena
+  G.newGame('Test'); s = G.state; s.res.oro = 1000; s.cities.roma.b.mercado = 3; s.cities.capua.b.mercado = 1;
+  assert(G.rutaAbrir('roma', 'volsinii')); s.cities.volsinii.owner = 'galos'; G.rutasRevisar(); assert(!G.rutaDe('roma', 'volsinii'), 'b cambia de dueño: se cierra');
+  assert(G.rutaAbrir('roma', 'capua')); s.cities.capua.owner = 'cartago'; G.rutasRevisar(); assert(!G.rutaDe('roma', 'capua'), 'b nuevo dueño enemigo cierra');
+  s.cities.capua.owner = 'roma'; assert(G.rutaAbrir('roma', 'capua')); s.cities.roma.owner = 'cartago'; G.rutasRevisar(); assert(!s.rutas.length, 'perder a cierra');
+  // b ajena que pasa a ser tuya: queda interior
+  G.newGame('Test'); s = G.state; s.res.oro = 1000; s.cities.roma.b.mercado = 3; assert(G.rutaAbrir('roma', 'volsinii')); s.cities.volsinii.owner = 'roma'; G.rutasRevisar(); assert(G.rutaDe('roma', 'volsinii') && s.rutas[0].f === 'roma', 'se queda como interior');
+  // cierre a mano
+  assert(G.rutaCerrar('volsinii', 'roma') && !s.rutas.length && !G.rutaCerrar('roma', 'volsinii'));
+  // migración de partida sin rutas
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  G.newGame('Test'); delete G.state.rutas; G.save(); assert(G.load() && Array.isArray(G.state.rutas), 'migra partidas sin rutas'); delete global.localStorage;
+}
+
 // 5. Campaña completa con un bot sencillo: no debe lanzar excepciones y debe terminar
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 function campaign(aggressive, seed) {
