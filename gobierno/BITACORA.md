@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 11/11/2026 — **Aprobadas P58 a P62** en el chat: «Las apruebo ahora en este mensaje: aprobadas». Al tablero como carril J (J1 a J5). J3 funde I7 y J4 amplía I6.
 - 11/11/2026 — **Cinco ideas** (propuestas, sin aprobar aún), literal: «1- mejora de la interfaz visual del juego en la pantalla, sin tantos botones que ocupen tanto la pantalla. 2- accesos directos mejorados para mejorar y creación de edificios tanto en la propia ciudad como en el resto. 3- rediseño de ciudades: cada ciudad debería tener una capital con los edificios de la capital, pueblos con recursos, pueblos pescadores o pueblos agricultores-ganaderos. 4- crear el apartado de política territorial para avanzar en mejoras de edificios, haciendo planes y ampliaciones de infraestructuras y tener más apartados políticos con los que interactuar sobre la ciudadanía, ejército, diplomacia, mercado. Separar 2 juegos diferentes, la guerra de las ciudades. 5- hacer el mapa más grande con más ciudades y más territorios en formato región, con su capital, sus pequeños núcleos de población, etc.». (Lectura de Claude: P58 a P62. La 3 y la 5 amplían las regiones ya aprobadas, I6 e I7. «Separar dos juegos»: lo leo como dos modos bien separados en pantalla, gobierno y guerra; por dentro ya lo están. Confirmar.)
 - 11/11/2026 — **Carril A entero**: «Haz todo lo del tablero en la parte A». (Lectura de Claude: aprobadas todas las tareas de Guerra que quedan. Van de una en una en el carril Batallas, porque tocan los mismos archivos; A7 va al carril Arte.)
 - 11/11/2026 — **Despliegue (A5a)**, desde el cuadro: «Se le añaden arrastre y formaciones». Al publicado se le suman arrastrar el regimiento con el dedo y las formaciones «Línea», «Tres líneas» y «Alas fuertes». Al tablero como A5c.
@@ -68,11 +69,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 1. **«Separar dos juegos»**: ¿quieres dos modos separados en pantalla (gobierno de ciudades por un lado, guerra por otro), o algo más?
 
 ## Propuestas por aprobar
-- P58 **Pantalla limpia** (pedido del 11/11): menos botones a la vista. Una barra fina de recursos arriba, la barra de abajo, y lo demás (impuestos, vistas, velocidad) recogido en un botón que se despliega. Cambia el aspecto: primero dos maquetas en el cuadro para que elijas, luego se construye. ≈0,15 + 0,5 M.
-- P59 **Obras de un toque** (pedido del 11/11): un panel «Obras» con todas tus ciudades: qué se puede construir o mejorar ahora, con un botón por obra, sin entrar ciudad por ciudad; y «mejorar» directo al tocar un edificio. ≈0,15 + 0,5 M. Mejor después de P58.
-- P60 **Capital y pueblos** (pedido del 11/11; amplía I7): cada territorio tiene una capital con los edificios de gobierno y pueblos alrededor: de recursos (madera, piedra, hierro), pescadores y agricultores-ganaderos. Los pueblos producen; la capital gobierna, recluta y comercia. Cambia reglas de economía. ≈0,3 + 1,0 M, en dos tareas.
-- P61 **Política territorial** (pedido del 11/11): un apartado «Senado» con planes que eliges y tardan en cumplirse: infraestructuras (calzadas, acueductos, ampliaciones), ciudadanía, ejército, diplomacia y mercado. Cada plan da ventajas y cuesta. Se une con la investigación (I5) y la diplomacia (C3). Primero un informe corto de diseño con fuentes (skill `historia`), luego ≈0,3 + 1,0 M en dos tareas.
-- P62 **Mapa más grande por regiones** (pedido del 11/11; amplía I6): más ciudades y territorios, cada región con su capital y sus núcleos pequeños. Hace falta lista de ciudades con fuente histórica y vigilar la fluidez del mapa. ≈0,3 + 1,2 M, en dos o tres tareas. Después de I6 y P60.
+Ninguna.
 
 ## Encargo en curso (11/11/2026, noche)
 Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Cinco carriles a la vez, que no se pisan. Director y agentes en **Sonnet** (al usuario le queda poco Fable).
@@ -82,6 +79,9 @@ Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego
 - **Mapa** (`js/gfx/map3d.js`, `js/gfx/ground.js`): ✅ C2 Costa y relieve (hecha; queda C2b: alturas reales y espuma).
 - **Registro** (`js/registro.js`, `js/codice.js`): I1b Fichas al día y una sola fuente.
 Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bitácora al día (solo sus líneas), capturas en el cuadro, cuadro publicado y parte. Guion de capturas de batalla: `node gobierno/captura-batalla.mjs`. Al unir, mirar `git status` entero.
+
+- **Interfaz** (maquetas en `gobierno/maquetas/`, sin tocar el juego hasta que el usuario elija): J1 Pantalla limpia → J2 Obras de un toque.
+En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
 Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que lleva Campaña):
