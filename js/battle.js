@@ -3,7 +3,7 @@
   const D = root.DATA;
   const FW = 600, CONTACT = 50;
   // --- Ritmo, moral y cansancio (A8) ---
-  const RITMO = 0.027;          // multiplica todo el daño: hace las batallas igualadas de 8 a 12 minutos
+  const RITMO = 0.028;          // multiplica todo el daño: hace las batallas igualadas de 8 a 12 minutos
   const TOPE_BATALLA = 1500;    // segundos: tope de seguridad (25 min); si se alcanza gana el defensor
   const MOR_BAJAS = 0.8;        // moral perdida por cada 1 % de la vida del regimiento arrancada de golpe
   const MOR_CONTAGIO = 1.5;     // moral que pierden los vecinos cuando un regimiento rompe (antes 5)
@@ -21,10 +21,22 @@
   const FAT_ANDA = 0.25;        // pérdida máxima de velocidad con cansancio 100 (25 %)
   // --- Formación y paso de marcha (A9) ---
   const PASO_MARCHA = 0.5;      // de marcha se anda a spd × 0.5
-  const DIST_CARGA_INF = 110;   // a menos de esto del objetivo la infantería corre (spd × 1)
+  const DIST_CARGA_INF = 60;    // a menos de esto del objetivo la infantería corre (spd × 1)
   const DIST_CARGA_CAB = 160;   // a menos de esto del objetivo la caballería y el general galopan (spd × 1.25)
   const DIST_BLOQUE = 220;      // mientras ningún regimiento del bando esté a menos de esto de un enemigo, todos avanzan en bloque al paso del más lento de a pie
   const DIST_TIRADOR = 55;      // los tiradores no pasan de esta distancia por detrás de su infantería más adelantada
+  const DIST_TIRO = 130;        // (A3) a menos de esto del objetivo (alcance de los tiradores de detrás) la infantería afloja el paso para dejar disparar a los tiradores
+  const PASO_TIRO = 0.12;       // (A3) paso en la fase de tiro: spd × 0.12 (los dos bandos; unos 6-8 s de tiro antes del choque)
+  const PROY_MUL = 20;          // (A3) multiplica el daño de cada descarga de proyectiles (antes casi no mataba)
+  const PESADA_DEF = 11;        // (A3) infantería con defensa >= esto, o lanceros: armadura pesada
+  const PROY_PESADA = 0.75;     // (A3) los proyectiles hacen este factor a la armadura pesada
+  const FRENTE_HOMBRES = 36;    // (A3) hombres de un regimiento que pelean a la vez (frente); si hay más, las filas de atrás no pegan
+  const DIST_PERSEGUIR = 170;   // (A3) la caballería persigue a un regimiento roto que esté a menos de esto
+  const PERSEGUIR_MUL = 40;     // (A3) bajas por segundo al que huye (como el golpe normal × esto, sin respuesta)
+  const LIGERA_DEF = 8;         // (A3) infantería con defensa <= esto, y los tiradores: «ligera» (la caballería la arrolla)
+  const CAB_ARROLLA = 1.35;     // (A3) bonificación de la caballería contra ligera y tiradores (además de la carga)
+  const CAB_FLANCO = 1.25;      // (A3) bonificación extra de la caballería al golpear de flanco o por la espalda
+  const EMPUJE_CAB = 22;        // (A3) empuje por segundo (unidades) a la ligera arrollada durante la carga
   const DIST_ENCIMA = 90;       // un enemigo a menos de esto obliga al tirador a pelear
 
   function mkRng(seed) { let a = seed >>> 0; return function () { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -237,6 +249,15 @@
     return d - m;
   };
 
+  Battle.prototype.ligera = function (b) { return b.u.cls === 'rng' || (b.u.cls === 'inf' && b.u.def <= LIGERA_DEF); };
+
+  // persecución: la caballería castiga al regimiento roto más cercano, que no responde
+  Battle.prototype.perseguido = function (r) {
+    let best = null, bs = DIST_PERSEGUIR;
+    for (const e of this.regs) { if (e.side === r.side || e.st !== 'rout') continue; const d = Math.hypot(e.x - r.x, e.y - r.y); if (d < bs) { bs = d; best = e; } }
+    return best;
+  };
+
   Battle.prototype.hit = function (a, b, amount, ranged) {
     const prev = b.men, hp = b.u.hp || 1;
     // flanqueo
@@ -250,8 +271,13 @@
       if (ac === 'spear' && (bc === 'cav' || bc === 'ele' || bc === 'gen')) m *= 1.7;
       if ((ac === 'cav' || ac === 'gen') && bc === 'spear' && fl === 1) m *= 0.6;
       if ((ac === 'cav' || ac === 'gen') && bc === 'rng') m *= 1.5;
+      if (ac === 'cav' && this.ligera(b)) m *= CAB_ARROLLA;
+      if (ac === 'cav' && fl > 1) m *= CAB_FLANCO;
       if (a.charge > 0) m *= 2.1;
-    } else if (bc === 'ele') m *= 1.5; // los proyectiles espantan a los elefantes
+    } else {
+      if (bc === 'ele') m *= 1.5; // los proyectiles espantan a los elefantes
+      if (bc === 'spear' || (bc === 'inf' && b.u.def >= PESADA_DEF)) m *= PROY_PESADA; // armadura pesada: menos daño de proyectil
+    }
     b.hp -= m;
     b.men = Math.max(0, Math.ceil(b.hp / hp));
     const killed = prev - b.men;
@@ -293,6 +319,7 @@
       r.corre = false;
       if (r.u.cls === 'cav' || r.u.cls === 'gen') { if (d < DIST_CARGA_CAB) { mul = 1.25; r.corre = true; } }
       else if (d < DIST_CARGA_INF) { mul = 1; r.corre = true; }
+      else if (d < DIST_TIRO && r.u.cls !== 'rng' && r.u.cls !== 'ele') mul = PASO_TIRO; // fase de tiro
       return mul;
     };
     for (const r of regs) {
@@ -319,8 +346,19 @@
       else if (!r.order) { r.think -= dt; if (r.think <= 0 || !tgt) { r.think = 0.5; tgt = this.pick(r, hold); } }
       else tgt = null;
       r.tgt = tgt;
-      let fighting = false;
-      if (r.order && r.order.k === 'move') {
+      let fighting = false, fug = null;
+      if (r.u.cls === 'cav' && !r.order && !(tgt && Math.hypot(tgt.x - r.x, tgt.y - r.y) <= CONTACT + 6)) fug = this.perseguido(r);
+      if (fug) {
+        const dd = Math.hypot(fug.x - r.x, fug.y - r.y);
+        if (dd > CONTACT) this.moveTo(r, fug.x, fug.y, dt, 1.25);
+        else {
+          fighting = true; r.fat = Math.min(100, r.fat + FAT_PELEA * dt * 1.6); this.turn(r, Math.atan2(fug.y - r.y, fug.x - r.x), dt);
+          fug.hp -= effN(r.men) * ratio(r.u.atk * r.atkMul, fug.u.def * fug.defMul) * 0.03 * dt * RITMO * PERSEGUIR_MUL * (1 - FAT_PEGA * r.fat / 100);
+          const pk = fug.men; fug.men = Math.max(0, Math.ceil(fug.hp / (fug.u.hp || 1)));
+          if (pk > fug.men && this.corpses.length < 700) this.corpses.push({ x: fug.x + (this.rnd() - 0.5) * 50, y: fug.y + (this.rnd() - 0.5) * 30, s: fug.side });
+          if (fug.men <= 0) fug.st = 'dead';
+        }
+      } else if (r.order && r.order.k === 'move') {
         if (this.moveTo(r, r.order.x, r.order.y, dt, PASO_MARCHA) < 6) r.order = null;
       } else if (tgt) {
         const d = Math.hypot(tgt.x - r.x, tgt.y - r.y);
@@ -336,7 +374,7 @@
             r.cd -= dt;
             if (r.cd <= 0) {
               r.cd = 1.6; r.ammo--;
-              this.hit(r, tgt, effN(r.men) * ratio(r.u.ratk * r.atkMul, tgt.u.def * tgt.defMul) * 0.03 * 1.6 * 0.6, true);
+              this.hit(r, tgt, effN(r.men) * ratio(r.u.ratk * r.atkMul, tgt.u.def * tgt.defMul) * 0.03 * 1.6 * 0.6 * PROY_MUL, true);
               this.fx.push({ x0: r.x, y0: r.y, x1: tgt.x, y1: tgt.y, t: 0, n: Math.min(6, 1 + (r.men >> 4)) });
             }
           } else if (!quieto) this.moveTo(r, tx, ty, dt, paso(r, d));
@@ -347,7 +385,10 @@
         } else {
           fighting = true; r.run = 0; r.fat = Math.min(100, r.fat + FAT_PELEA * dt * (r.u.cls === 'cav' || r.u.cls === 'gen' ? 1.6 : 1 / Math.sqrt(r.u.mass || 1)));
           this.turn(r, Math.atan2(tgt.y - r.y, tgt.x - r.x), dt);
-          this.hit(r, tgt, effN(r.men * (r.u.mass || 1)) * ratio(r.u.atk * r.atkMul, tgt.u.def * tgt.defMul) * 0.03 * dt, false);
+          // solo pelea el frente: las filas de atrás no pegan (el relevo es implícito al bajar el número)
+          const frente = Math.min(1, FRENTE_HOMBRES / Math.max(1, r.men));
+          this.hit(r, tgt, effN(r.men * (r.u.mass || 1)) * frente * ratio(r.u.atk * r.atkMul, tgt.u.def * tgt.defMul) * 0.03 * dt, false);
+          if (r.charge > 0 && r.u.cls === 'cav' && this.ligera(tgt)) { const dx = tgt.x - r.x, dy = tgt.y - r.y, dl = Math.hypot(dx, dy) || 1; tgt.x += dx / dl * EMPUJE_CAB * dt; tgt.y += dy / dl * EMPUJE_CAB * dt; }
         }
       }
       if (!fighting && !r.mv) r.fat = Math.max(0, r.fat - FAT_DESCANSO * dt);

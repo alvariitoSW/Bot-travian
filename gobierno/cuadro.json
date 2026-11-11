@@ -187,6 +187,12 @@
       "tarea": "E4",
       "archivo": "gobierno/capturas-tarea/E4-acueducto.jpg",
       "pie": "Acueducto: arcada propia de seis arcos"
+    },
+    {
+      "tarea": "A3",
+      "archivo": "gobierno/capturas-tarea/a3b-48s.jpg",
+      "pie": "Las dos líneas chocan tras la fase de tiro; solo pelea el frente",
+      "ancha": true
     }
   ],
   "informes": [

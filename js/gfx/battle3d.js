@@ -238,7 +238,7 @@ export class BattleView3D {
       const w = this.toW(r.x, r.y), fight = r.fight > 0, vmax = this.b.fase === 'despliegue' ? 1e4 : r.u.spd * S * 2.2 * dt, ryaw = Math.PI / 2 - r.ang;
       // hueco hasta la línea enemiga: las primeras filas avanzan hasta chocar frente con frente
       let gap = 0; if (fight && r.tgt) { const E = this.byReg.get(r.tgt); if (E) gap = (Math.hypot(r.tgt.x - r.x, r.tgt.y - r.y) * S - (Math.ceil(R.n / R.f.cols) * R.f.sz + Math.ceil(E.n / E.f.cols) * E.f.sz) / 2 - 1.3) / 2; gap = Math.min(gap, 4); }
-      const shooting = r.ammo > 0 && r.tgt && !fight && r.cd < 1.5 && Math.hypot(r.tgt.x - r.x, r.tgt.y - r.y) <= (r.u.range || 0);
+      const shooting = r.ammo > 0 && r.tgt && !fight && r.cd < 1.58 && Math.hypot(r.tgt.x - r.x, r.tgt.y - r.y) <= (r.u.range || 0);
       for (let j = 0; j < R.n; j++) {
         let tx, tz, row = 0;
         if (rout) { tx = R.fx[j] + (hash(j * 5.3 + r.id) - 0.5) * 3; tz = R.fz[j] + (r.side === 0 ? 1 : -1) * 30; }

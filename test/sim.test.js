@@ -129,6 +129,24 @@ for (let sd = 1; sd <= 5; sd++) { const q = fight({ principes: 150, triarii: 50 
   }
 }
 
+// 2i. Combate que se ve (A3): los tiradores causan bajas antes del cuerpo a cuerpo; la caballería persigue a un regimiento roto
+{
+  const bt = new Battle({ sides: [side({ hastati: 150, velites: 80 }), side({ libios: 150, honderos: 80 })], defender: 1, wall: 0, seed: 3 });
+  const bajas = () => bt.regs.reduce((n, g) => n + (g.max - g.men), 0);
+  let cuerpo = false, antes = 0, vistos = 0;
+  while (!bt.over && bt.t < 120 && !cuerpo) {
+    bt.step(0.2);
+    if (bt.regs.some(g => g.fight > 0)) cuerpo = true; else { antes = bajas(); if (bt.fx.length) vistos++; }
+  }
+  assert(cuerpo, 'llega el cuerpo a cuerpo'); assert(vistos > 0 && antes > 0, 'los tiradores causan bajas antes del choque: ' + antes);
+  const bp = new Battle({ sides: [side({ equites: 40 }), side({ libios: 90, hastati: 30 })], defender: 1, wall: 0, seed: 4 });
+  const cab = bp.regs.find(g => g.side === 0 && g.u.cls === 'cav'), huye = bp.regs.find(g => g.side === 1);
+  for (const g of bp.regs) { if (g === cab || g === huye) continue; if (g.side === 0) { g.x = 40; g.y = 880; } else { g.x = 560; g.y = 40; } }
+  cab.x = 300; cab.y = 400; huye.x = 300; huye.y = 330; huye.st = 'rout'; const h0 = huye.men, c0 = cab.men;
+  for (let i = 0; i < 40; i++) bp.step(0.2);
+  assert(huye.men < h0, 'la caballería causa bajas al que huye: ' + h0 + ' -> ' + huye.men); assert(cab.men === c0, 'el que huye no hace daño a la caballería');
+}
+
 // 3. Las lanzas frenan a la caballería; la muralla ayuda al defensor
 const cavVsSpear = fight({ equites: 120 }, { hoplitas: 120 }), cavVsInf = fight({ equites: 120 }, { milicia: 160 });
 assert(cavVsSpear.dead[0] > cavVsInf.dead[0], 'la caballería sufre más contra lanzas');
