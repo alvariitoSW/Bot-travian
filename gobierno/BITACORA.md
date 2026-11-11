@@ -67,7 +67,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-1. **Pantalla limpia (J1)**: ¿maqueta A o B? A = barra fina de recursos arriba, la barra de abajo más baja y todo lo demás (ciudad, vistas, impuestos, velocidad) recogido en un botón «Más»; B = sin barra de abajo: recursos arriba, tira de vistas a la derecha y tres botones redondos (Obras, población, menú). Capturas en el cuadro.
+1. **Pantalla limpia (J1)**: ¿maqueta A o B? Las dos separan «Gobierno» (ciudades, economía) y «Guerra» (ejércitos, marchas, batallas), cada modo solo con sus botones. A = interruptor Gobierno|Guerra arriba, barra de abajo fina que cambia con el modo y «Más»; B = sin barra de abajo, recursos arriba y un botón redondo abajo a la derecha que cambia de modo (oro/rojo).
 
 ## Propuestas por aprobar
 Ninguna.
