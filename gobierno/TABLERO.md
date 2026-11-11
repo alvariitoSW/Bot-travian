@@ -66,13 +66,13 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ✅ H1 Auditoría histórica cotejada con los textos (11/11/2026): `gobierno/historia/H1-resumen.md`. Los 10 fallos se confirman, con matices.
 - ✅ H2 Siete fichas de batalla cotejadas (`gobierno/historia/batallas/`). Cannas y Zama se podrían jugar con cambios medios; Trebia, Trasimeno y Pidna piden terreno y emboscadas.
 - ✅ H1b/H2b Cotejo hecho (11/11/2026): 227 datos cotejados, 43 corregidos, 60 sin comprobar. Costó 5,4 M (presupuesto 0,9 M).
-- 🔶 H4 Corregir los textos de los hechos: Pirro en 280, Cannas «según Polibio / según Livio», corvus, frases de Arquímedes y Catón.
-- 🔶 H5 Renombrar «Vigiles» → «Guardia urbana» y «Batallón Sagrado» → «Ciudadanos de Cartago».
-- 🔶 H6 Cambiar el general de Cartago en 280.
-- 🔶 H7 Mapa de 280 con sus dueños reales: Agrigento griega, Corinto macedonia, Capua aliada de Roma, Mamertinos en Messana.
-- 🔶 H8 Carthago Nova empieza como poblado íbero y pasa a Cartago hacia 228.
-- 🔶 H9 Añadir hechos que faltan: Benevento 275, Trasimeno 217, Metauro 207, Ilipa 206, Magnesia 190, Corinto y Cartago 146.
-- 🔶 H10 Etiqueta visible «licencia de juego» en lo inventado para poder jugar.
+- ✅ H4 Textos de los hechos corregidos con las fuentes cotejadas (11/11/2026).
+- ✅ H5 «Vigiles» es ahora «Guardia urbana» y «Batallón Sagrado», «Ciudadanos de Cartago».
+- ✅ H6 Cartago sin general con nombre hasta 149 a.C.; Asdrúbal el Beotarca, desde 149.
+- ✅ H7 Mapa de 280 real: Capua aliada de Roma, Agrigento griega (cartaginesa en 264), Corinto macedonia (aquea en 243), Mamertinos en Messana. Bot agresivo 8-9/10.
+- ✅ H8 Carthago Nova empieza como poblado íbero y pasa a Cartago hacia 228 con su hecho. El nombre en el mapa no cambia.
+- ✅ H9 Hechos nuevos: Benevento 275, Trasimeno 217, Metauro 207, Ilipa 206, Magnesia 190, Corinto y Cartago 146.
+- ✅ H10 Pastilla «licencia de juego» con su motivo en 15 hechos y en las tropas inventadas.
 - 🔶 H3 Códice dentro del juego, simple: una pestaña para leer las fichas ya comprobadas. Después de H1.
 
 ## Carril D — Técnica

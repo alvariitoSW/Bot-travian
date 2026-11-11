@@ -6,6 +6,8 @@
   const emit = (type, p) => { if (G.onEvent) G.onEvent(type, p); };
   const sum = o => { let n = 0; for (const k in o) n += o[k]; return n; };
 
+  // General con nombre que defiende una ciudad en un año (a.C., bajan): entre `from` (opcional) y `until`
+  G.cityGen = (id, year) => { const d = D.CITIES[id], g = d && d.gen; return g && year >= g.until && (!g.from || year <= g.from) ? g : null; };
   G.yearOf = t => D.START_YEAR - Math.floor(t / 12);
   G.dateStr = t => D.MONTHS[Math.floor(t) % 12] + ' · ' + G.yearOf(t) + ' a.C.';
   G.rate = L => L <= 0 ? 0 : Math.round(14 * L * Math.pow(1.15, L - 1));
@@ -85,6 +87,16 @@
 
   G.log = function (txt, kind) { const s = G.state; s.log.unshift({ t: s.t, x: txt, k: kind || '' }); if (s.log.length > 60) s.log.pop(); emit('log', { x: txt, k: kind }); };
 
+  /* deja una ciudad como romana recién incorporada: sin colas, impuesto normal, mitad de población */
+  function incorporar(c, units) { c.owner = 'roma'; c.imp = 'normal'; c.reparto = G.repartoBase(); c.units = units; c.queue = null; c.train = []; c.pop = Math.round(G.popCap(c) * 0.5); }
+
+  // edificios iniciales de una ciudad según su riqueza w y su muralla wl
+  G.edificiosBase = function (id, w, wl) {
+    const d = D.CITIES[id], h = Math.floor(w / 2);
+    return { aserradero: w, cantera: w, mina: w, granja: w, viviendas: id === 'roma' ? 2 : w, foro: Math.max(1, h), almacen: Math.max(1, h), mercado: id === 'roma' ? 0 : h, puerto: d.sea && id !== 'roma' ? Math.max(1, h) : 0, cuartel: id === 'roma' ? 1 : h, establo: id === 'roma' ? 0 : Math.max(0, h - 1), muralla: wl, templo: 0, herreria: 0, acueducto: 0, termas: 0, anfiteatro: 0 };
+  };
+  // guarnición de referencia (refuerzos anuales) de una ciudad según su dueño actual
+  G.guarnicionBase = (id, owner) => { const d = D.CITIES[id]; return owner === d.f ? d.g : (d.en228 && owner === 'cartago' ? d.en228.g : (d.post && d.post[owner]) || null); };
   G.newGame = function (heroName) {
     const s = {
       v: 1, t: 0, speed: 1, res: { madera: 400, piedra: 400, hierro: 400, grano: 400, oro: 200 },
@@ -93,14 +105,13 @@
       hero: { name: heroName || 'Lucio Cornelio Escipión', lvl: 1, xp: 0, pts: 1, sk: { mando: 0, disc: 0, log: 0 }, city: 'roma', march: null, wound: 0 }
     };
     for (const id in D.CITIES) {
-      const d = D.CITIES[id], w = d.w, h = Math.floor(w / 2);
-      s.cities[id] = {
-        owner: d.f, units: Object.assign({}, d.g), queue: null, train: [], reparto: G.repartoBase(),
-        b: { aserradero: w, cantera: w, mina: w, granja: w, viviendas: id === 'roma' ? 2 : w, foro: Math.max(1, h), almacen: Math.max(1, h), mercado: id === 'roma' ? 0 : h, puerto: d.sea && id !== 'roma' ? Math.max(1, h) : 0, cuartel: id === 'roma' ? 1 : h, establo: id === 'roma' ? 0 : Math.max(0, h - 1), muralla: d.wl, templo: 0, herreria: 0, acueducto: 0, termas: 0, anfiteatro: 0 }
-      };
+      const d = D.CITIES[id];
+      s.cities[id] = { owner: d.f, units: Object.assign({}, d.g), queue: null, train: [], reparto: G.repartoBase(), b: G.edificiosBase(id, d.w, d.wl) };
     }
     for (const id in s.cities) s.cities[id].pop = Math.round(G.popCap(s.cities[id]) * 0.7);
+    for (const id in D.CITIES) if (D.CITIES[id].f === 'roma' && id !== 'roma') incorporar(s.cities[id], D.CITIES[id].g);   // aliada de Roma (Capua): empieza como ciudad recién incorporada
     G.state = s;
+    s.evN = D.EVENTS.length;
     checkEvents(D.START_YEAR);
     return s;
   };
@@ -180,6 +191,23 @@
       spawn('epiro', 'tarentum', null, firstMine(['capua', 'roma']), { falange: 70, hoplitas: 50, peltastas: 30, tesalios: 20, elefantes: 3 }, { n: 'Pirro de Epiro', mando: 3, disc: 2 }, 20, 'Pirro');
     },
     pirroSeVa: function (s) { const c = s.cities.tarentum; if (c.owner === 'epiro') { delete c.units.elefantes; } },
+    // licencia de juego: en 264 Agrigentum pasa a Cartago (en realidad la usó de base en 262, Polibio 1.17-19)
+    agrigentoPunica: function (s) {
+      const c = s.cities.agrigentum; if (c.owner !== 'akragas') return;
+      c.owner = 'cartago'; c.units = Object.assign({}, D.CITIES.agrigentum.post.cartago);
+      G.log('⚔️ Cartago ocupa Agrigentum y la convierte en su base de Sicilia.', 'bad');
+    },
+    aratoCorinto: function (s) {
+      const c = s.cities.corinthus; if (c.owner !== 'macedonia') return;
+      c.owner = 'aquea'; c.units = Object.assign({}, D.CITIES.corinthus.post.aquea);
+      G.log('🏛️ Arato libera Corinto: la ciudad entra en la Liga Aquea.', 'hist');
+    },
+    // hacia 228 (fecha moderna; Polibio 2.13): el poblado íbero pasa a ser Carthago Nova cartaginesa, salvo que ya sea tuyo
+    fundaCarthagoNova: function (s) {
+      const c = s.cities.carthagonova, e = D.CITIES.carthagonova.en228; if (!c || c.owner === 'roma' || c.owner === 'cartago') return;
+      c.owner = 'cartago'; c.units = Object.assign({}, e.g); c.w = e.w; c.b = Object.assign(c.b, G.edificiosBase('carthagonova', e.w, e.wl)); c.queue = null; c.train = [];
+      G.log('🏛️ Asdrúbal funda Carthago Nova: el poblado íbero pasa a Cartago.', 'bad');
+    },
     corvus: function (s) { s.mods.sea = 0.7; },
     egadas: function (s) {
       const n = ['messana', 'syracusae', 'agrigentum', 'panormus', 'lilybaeum'].filter(id => s.cities[id].owner === 'roma').length;
@@ -217,7 +245,7 @@
       const c = s.cities[id]; if (c.owner === 'roma') continue;
       const d = D.CITIES[id], f = D.FACTIONS[c.owner];
       // refuerzos de la guarnición
-      const base = c.owner === d.f ? d.g : null;
+      const base = G.guarnicionBase(id, c.owner);
       if (base) for (const k in base) { const cap = Math.round(base[k] * mult), cur = c.units[k] || 0; if (cur < cap) c.units[k] = Math.min(cap, cur + Math.ceil(cap * 0.06)); }
       // incursiones
       if (!f.raid || year > f.from || year > 270) continue;
@@ -285,7 +313,7 @@
     if (pb.kind === 'attack') {
       heroIn = m.hero;
       me = Object.assign({ units: m.units, name: 'Roma', col: D.FACTIONS.roma.col, gen: heroIn ? { n: h.name } : null }, heroIn ? hm : noHero);
-      const year = G.yearOf(s.t), g = d.gen && c.owner === d.f && year >= d.gen.until ? d.gen : null;
+      const g = c.owner === d.f ? G.cityGen(cid, G.yearOf(s.t)) : null;
       foe = { units: c.units, name: D.FACTIONS[c.owner].n, col: D.FACTIONS[c.owner].col, gen: g, atkMul: g ? 1 + 0.04 * g.mando : 1, defMul: g ? 1 + 0.03 * g.disc : 1, mor: g ? 4 * g.disc : 0 };
     } else {
       heroIn = G.heroAvailable(cid);
@@ -308,10 +336,10 @@
     if (pb.kind === 'attack') {
       if (win) {
         const prev = D.FACTIONS[c.owner].n;
-        c.owner = 'roma'; c.imp = 'normal'; c.reparto = G.repartoBase(); c.units = keep(res.surv[0], res.lost[0], 1, 0.25); c.queue = null; c.train = []; c.pop = Math.round(G.popCap(c) * 0.5);
+        incorporar(c, keep(res.surv[0], res.lost[0], 1, 0.25));
         c.b.muralla = Math.max(0, (c.b.muralla || 0) - 1);
         if (m.hero) { h.city = cid; h.march = null; }
-        const loot = Math.round(150 * d.w * (1 + 0.1 * h.sk.log)), cap = G.cap();
+        const loot = Math.round(150 * (c.w || d.w) * (1 + 0.1 * h.sk.log)), cap = G.cap();
         for (const r of D.RES) s.res[r] = Math.min(cap, s.res[r] + (r === 'oro' ? loot : loot));
         out.lines.push('🏛️ ' + d.n + ' es ahora romana.', '💰 Botín: +' + loot + ' de cada recurso.');
         G.log('🏆 ¡' + d.n + ' conquistada a ' + prev + '!', 'good');
@@ -350,7 +378,7 @@
   /* ---------- guardado ---------- */
   G.save = function () { try { if (typeof localStorage !== 'undefined' && G.state) localStorage.setItem(SAVE_KEY, JSON.stringify(G.state)); } catch (e) { /* almacenamiento no disponible */ } };
   G.hasSave = function () { try { return typeof localStorage !== 'undefined' && !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } };
-  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; for (const id in s.cities) { const c = s.cities[id]; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria', 'acueducto', 'termas', 'anfiteatro']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); } return true; } } catch (e) { /* partida corrupta */ } return false; };
+  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } for (const id in s.cities) { const c = s.cities[id]; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria', 'acueducto', 'termas', 'anfiteatro']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } return true; } } catch (e) { /* partida corrupta */ } return false; };
   G.wipe = function () { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* nada */ } };
 
   root.Game = G;

@@ -79,7 +79,9 @@ assert(G.myCities().length >= 3, 'un bot agresivo debe poder conquistar ciudades
   assert(roma.pop > 100 && roma.pop <= G.popCap(roma), 'población inicial dentro del tope');
   const before = roma.pop; assert(G.train('roma', 'hastati', 20)); assert.strictEqual(Math.round(before - roma.pop), 20, 'los reclutas salen de la población');
   assert(!G.train('roma', 'hastati', 5000), 'no se recluta más gente de la que hay');
+  const mercCapua = s.cities.capua.b.mercado; s.cities.capua.b.mercado = 0;   // Capua (aliada romana) trae su propio mercado
   assert.strictEqual(G.trade('madera', 'hierro', 100), 0, 'sin mercado no hay comercio');
+  s.cities.capua.b.mercado = mercCapua;
   roma.b.mercado = 2; const got = G.trade('madera', 'hierro', 100); assert(got > 40 && got < 100, 'el mercado cambia con comisión: ' + got);
   assert(!G.send('roma', 'carales', { hastati: 10 }, false), 'sin puerto no se embarca');
   roma.b.puerto = 1; assert(G.send('roma', 'carales', { hastati: 10 }, false), 'con puerto sí');
@@ -145,4 +147,71 @@ assert(G.myCities().length >= 3, 'un bot agresivo debe poder conquistar ciudades
   assert(G.load() && G.state.cities.roma.reparto.grano === 5 && G.repartoValido(G.state.cities.roma.reparto), 'partida vieja sin reparto carga 5/5/5/5');
   const n = G.newGame('Ald2'); assert(Math.abs(G.prod().madera - p0.madera) < 1e-9, 'por defecto la producción es la de siempre'); }
 
+assert(!G.cityGen('carthago', 280) && !G.cityGen('carthago', 150), 'Cartago no tiene general con nombre antes de 149 a.C.');
+assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defiende Cartago desde 149 a.C.');
+
 console.log('OK — todas las pruebas superadas');
+
+// H7. Mapa de 280 a.C. con sus dueños reales
+{ const s = G.newGame('H7');
+  assert.strictEqual(s.cities.agrigentum.owner, 'akragas'); assert.strictEqual(s.cities.corinthus.owner, 'macedonia');
+  assert.strictEqual(s.cities.capua.owner, 'roma'); assert.strictEqual(s.cities.messana.owner, 'mamertinos');
+  for (const id in s.cities) assert(D.FACTIONS[s.cities[id].owner], 'dueño inexistente en ' + id);
+  s.t = (280 - 264) * 12 - 0.5; G.tick(1);
+  assert.strictEqual(s.cities.agrigentum.owner, 'cartago', 'en 264 Agrigentum pasa a Cartago'); assert.strictEqual(s.cities.agrigentum.units.libios, 140);
+  assert.strictEqual(s.cities.corinthus.owner, 'macedonia');
+  s.t = (280 - 243) * 12 - 0.5; s.pending = []; s.marches = []; G.tick(1);
+  assert.strictEqual(s.cities.corinthus.owner, 'aquea', 'en 243 Arato libera Corinto'); assert.strictEqual(s.cities.corinthus.units.hoplitas, 300);
+  // partida antigua con dueños de antes: carga sin error y conserva su mapa
+  const v = G.newGame('Vieja'); v.cities.messana.owner = 'campanos'; v.cities.capua.owner = 'campanos'; v.cities.agrigentum.owner = 'cartago'; delete v.evN;
+  const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, x) => { mem[k] = x; } };
+  localStorage.setItem('aqvila-save-v1', JSON.stringify(v));
+  assert(G.load()); assert.strictEqual(G.state.cities.messana.owner, 'mamertinos'); assert.strictEqual(G.state.cities.capua.owner, 'campanos'); assert.strictEqual(G.state.cities.agrigentum.owner, 'cartago'); }
+
+// H8. Carthago Nova: poblado íbero en 280, cartaginesa hacia 228
+{ const s = G.newGame('H8'); const c0 = s.cities.carthagonova;
+  assert.strictEqual(c0.owner, 'iberos', 'en 280 es poblado íbero'); assert(c0.units.iberos > 0 && !c0.units.libios && c0.b.muralla === 1);
+  s.t = (280 - 228) * 12 - 0.5; s.pending = []; s.marches = []; G.tick(1);
+  const c = s.cities.carthagonova;
+  assert.strictEqual(c.owner, 'cartago', 'hacia 228 pasa a Cartago'); assert.strictEqual(c.units.libios, 220); assert.strictEqual(c.b.muralla, 3); assert.strictEqual(c.w, 4);
+  const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, x) => { mem[k] = x; } };
+  G.save(); assert(G.load()); assert.strictEqual(G.state.cities.carthagonova.owner, 'cartago'); assert.strictEqual(G.state.cities.carthagonova.units.libios, 220);
+  // si ya era romana, no cambia
+  const r = G.newGame('H8b'); r.cities.carthagonova.owner = 'roma'; const u = JSON.stringify(r.cities.carthagonova.units);
+  r.t = (280 - 228) * 12 - 0.5; r.pending = []; r.marches = []; G.tick(1);
+  assert.strictEqual(r.cities.carthagonova.owner, 'roma'); assert.strictEqual(JSON.stringify(r.cities.carthagonova.units), u);
+  // partida antigua ya cartaginesa pasado 228: sigue igual al cargar
+  const v = G.newGame('Vieja2'); v.t = (280 - 200) * 12; v.cities.carthagonova.owner = 'cartago'; v.cities.carthagonova.units = { libios: 5 }; delete v.evN;
+  localStorage.setItem('aqvila-save-v1', JSON.stringify(v)); assert(G.load());
+  assert.strictEqual(G.state.cities.carthagonova.owner, 'cartago'); assert.strictEqual(G.state.cities.carthagonova.units.libios, 5); }
+
+// licencia de juego: lo inventado para poder jugar lleva su etiqueta
+{ const DD = require('../js/data.js');
+  DD.EVENTS.filter(e => e.fx).forEach(e => assert(e.lic, 'hecho con efecto sin lic: ' + e.t));
+  ['milicia', 'jinetes', 'vigiles'].forEach(k => assert(DD.UNITS[k].lic, 'unidad sin lic: ' + k));
+  assert(!DD.UNITS.hastati.lic, 'hastati no es licencia de juego'); }
+
+// refuerzos de guarnición posteriores a un cambio de manos (Agrigentum púnica) y riqueza de partida antigua
+{ const s = G.newGame('Post1'); s.t = (280 - 264) * 12 - 0.5; s.pending = []; s.marches = []; G.tick(1);
+  const a = s.cities.agrigentum; assert.strictEqual(a.owner, 'cartago');
+  assert(G.guarnicionBase('agrigentum', 'cartago') && G.guarnicionBase('corinthus', 'aquea'));
+  a.units = { libios: 10 }; for (let i = 0; i < 40; i++) { s.pending = []; s.marches = s.marches.filter(m => m.owner === 'roma'); G.tick(12 * 30); if (a.owner !== 'cartago') break; }
+  if (a.owner === 'cartago') assert((a.units.libios || 0) > 10, 'Agrigentum púnica debe recibir refuerzos');
+  const v = G.newGame('Vieja3'); v.cities.carthagonova.owner = 'cartago'; delete v.cities.carthagonova.w; delete v.evN;
+  localStorage.setItem('aqvila-save-v1', JSON.stringify(v)); assert(G.load());
+  assert.strictEqual(G.state.cities.carthagonova.w, 4); }
+
+// ---- H3 Códice: toda unidad, ciudad y hecho tiene ficha válida ----
+{ const CO = require('../js/codice.js'); const T = ['histórico', 'probable', 'licencia de juego'];
+  const ids = l => new Set(l.map(f => f.id));
+  const ut = ids(CO.tropas), ci = ids(CO.ciudades), he = ids(CO.hechos);
+  Object.keys(D.UNITS).forEach(k => assert(ut.has(k), 'Códice: falta tropa ' + k));
+  Object.keys(D.CITIES).forEach(k => assert(ci.has(k), 'Códice: falta ciudad ' + k));
+  D.EVENTS.forEach(e => assert(he.has(String(e.y)), 'Códice: falta hecho ' + e.y));
+  [].concat(CO.tropas, CO.ciudades, CO.hechos).forEach(f => {
+    assert(T.includes(f.tag), 'Códice: etiqueta no válida en ' + f.id);
+    assert(f.src && f.src.trim(), 'Códice: sin fuente en ' + f.id);
+    assert(f.t && f.x.length >= 40 && f.x.length <= 420, 'Códice: texto fuera de 40-420 en ' + f.id + ' (' + f.x.length + ')'); });
+  Object.keys(D.UNITS).forEach(k => assert.strictEqual(CO.tropas.find(f => f.id === k).t, D.UNITS[k].n, 'Códice: nombre de ' + k));
+  Object.keys(D.CITIES).forEach(k => assert.strictEqual(CO.ciudades.find(f => f.id === k).t, D.CITIES[k].n, 'Códice: nombre de ' + k));
+  D.EVENTS.forEach(e => assert.strictEqual(CO.hechos.find(f => f.id === String(e.y)).t, e.t, 'Códice: título de ' + e.y)); }
