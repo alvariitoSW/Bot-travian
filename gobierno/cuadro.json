@@ -423,6 +423,24 @@
    "tarea": "J6",
    "archivo": "gobierno/capturas-tarea/J6-ficha.jpg",
    "pie": "Ficha única del Foro con el botón Mejorar"
+  },
+  {
+   "tarea": "N1",
+   "archivo": "gobierno/capturas-tarea/N1-plan.jpg",
+   "pie": "Guerra nueva, maqueta · plan: todo parado, dibujas las órdenes y gastas puntos de mando",
+   "ancha": true
+  },
+  {
+   "tarea": "N1",
+   "archivo": "gobierno/capturas-tarea/N1-ejecucion.jpg",
+   "pie": "Guerra nueva, maqueta · ejecución: los dos bandos se mueven a la vez y tú miras",
+   "ancha": true
+  },
+  {
+   "tarea": "N1",
+   "archivo": "gobierno/capturas-tarea/N1-resultado.jpg",
+   "pie": "Guerra nueva, maqueta · resultado, con el plan que llevaba el enemigo",
+   "ancha": true
   }
  ],
  "informes": [
@@ -489,6 +507,10 @@
   {
    "titulo": "R7 · Campamento de legión (idea de Expeditions: Rome)",
    "archivo": "gobierno/estudios/R7-campamento-de-legion.md"
+  },
+  {
+   "titulo": "N1 · Guerra nueva: «planeas y luego miras» (diseño)",
+   "archivo": "gobierno/estudios/N1-guerra-nueva.md"
   }
  ]
 }

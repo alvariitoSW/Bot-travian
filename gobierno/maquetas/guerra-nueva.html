@@ -105,7 +105,7 @@ function newBattle(){
  mk(0,'pes','Triarii (reserva)',140,186,true);mk(0,'lig','Velites',172,128);
  mk(0,'cav','Equites I',165,72);mk(0,'cav','Equites II',165,300);
  mk(1,'pes','Infantería libia I',215,125);mk(1,'pes','Infantería libia II',215,186);mk(1,'pes','Veteranos africanos',215,247);
- mk(1,'pes','Guardia sagrada (reserva)',140,186,true);mk(1,'lig','Honderos baleares',172,128);mk(1,'lig','Lanzadores',172,244);
+ mk(1,'pes','Guardia sagrada (reserva)',140,186,true);mk(1,'lig','Honderos baleares',172,128);
  mk(1,'cav','Jinetes númidas I',165,72);
  mk(1,'cav','Jinetes númidas II',165,300);
  plan=PLANES[Math.floor(Math.random()*3)];
@@ -186,10 +186,10 @@ function fatf(u){return 1-.4*u.fat}
 function text(x,y,t,col){floats.push({x:x,y:y,t:t,c:col,age:0})}
 function apply(e,dmg,m,src){
  dmg=Math.min(dmg,e.men);e.men-=dmg;rloss[e.side]+=dmg;loss[e.side]+=dmg;e.hitT=0;
- e.moral-=dmg/e.max*1.7*(m>1?m:1);
+ e.moral-=dmg/e.max*1.25*(m>1?m:1);
  e.mk+=dmg;while(e.mk>=2.5){e.mk-=2.5;if(marks.length<500)marks.push({x:e.x+rnd(-16,16),y:e.y+rnd(-14,14),s:e.side})}
- if(m>=1.5&&e.flT<=0){
-  e.flT=1.8;text(e.x,e.y-26,m>=2?'¡Espalda!':'¡Flanco!','#ffe08a');flashes.push({x:e.x,y:e.y,age:0});
+ if(m>=1.6&&e.flT<=0){
+  e.flT=1.8;text(e.x,e.y-26,m>=2.2?'¡Espalda!':'¡Flanco!','#ffe08a');flashes.push({x:e.x,y:e.y,age:0});
   e.moral-=.05;
  }
  if(e.men<=2){e.gone=true;e.men=0;text(e.x,e.y-26,'Destruido','#ffb4a8');scare(e)}
@@ -244,6 +244,7 @@ function step(dt){
   u=U[i];if(!active(u))continue;
   for(var k=i+1;k<U.length;k++){
    e=U[k];if(!active(e))continue;
+   if((u.relevo&&u.partner===e)||(e.relevo&&e.partner===u))continue;
    var md=e.side===u.side?25:23,dd=dist(u,e);
    if(dd<md&&dd>.01){var p=(md-dd)/2,ux=(u.x-e.x)/dd,uy=(u.y-e.y)/dd;u.x+=ux*p;u.y+=uy*p;e.x-=ux*p;e.y-=uy*p}
   }
@@ -258,16 +259,16 @@ function step(dt){
     var mult=1;
     var vx=u.x-e.x,vy=u.y-e.y,vl=Math.hypot(vx,vy)||1;
     var cs=(vx*Math.cos(e.ang)+vy*Math.sin(e.ang))/vl;
-    var fm=cs>.45?1:cs>-.45?1.5:2;
+    var fm=cs>.45?1:cs>-.45?1.7:2.5;
     if(u.tipo==='cav'&&e.tipo==='lig')mult*=2.2;
     if(u.tipo==='cav'&&e.tipo==='pes')mult*=.7;
     if(u.tipo==='pes'&&e.tipo==='cav')mult*=1.25;
     if(u.tipo==='lig')mult*=.8;
-    if(oo==='charge'&&u.cT<3){mult*=(u.tipo==='cav'?2.4:1.6)}
+    if(oo==='charge'&&u.cT<3){mult*=(u.tipo==='cav'?2.2:1.4)}
     if(oo==='charge')u.cT+=dt;
     if(inEll(u.x,u.y,HILL))mult*=1.3;
     if(inEll(u.x,u.y,FOR)&&u.tipo==='cav')mult*=.7;
-    var dm=u.men*T.atk*.02*mult*fatf(u)*fm*dt/TIPOS[e.tipo].def;
+    var dm=u.men*T.atk*.015*mult*fatf(u)*fm*dt/TIPOS[e.tipo].def;
     apply(e,dm,fm,u);
    }else if(u.tipo==='lig'&&u.near&&u.nd<=T.rng&&(!u.mv||oo==='harass'||oo==='hold')){
     e=u.near;
@@ -314,10 +315,10 @@ function aiPlan(){
    var idx=pi++,x,y,o='advance';
    if(plan.id==='centro'){
     x=Math.max(cx+50,330);y=u.y;
-    if(nd<170)o='charge';
+    if(nd<110)o='charge';
    }else if(plan.id==='alas'){
     if(round<=2){o='hold';x=u.x;y=u.y}
-    else{x=Math.max(cx+50,330);y=u.y;if(nd<150)o='charge'}
+    else{x=Math.max(cx+50,330);y=u.y;if(nd<110)o='charge'}
    }else{
     var hx=[470,420,380];x=HILL.x+(idx-1)*48;y=HILL.y+(idx===1?24:6);
     if(Math.hypot(u.x-x,u.y-y)<12||nd<60)o='hold';
@@ -345,7 +346,7 @@ function aiPlan(){
  var n=0;
  U.forEach(function(u){u.taken=false});
  wants.forEach(function(w){
-  if(n>=PTS)return;
+  if(n>=3)return;
   var u=w.u,same=u.order===w.o&&(w.o==='hold'||w.o==='relevar'||Math.hypot(u.tx-w.x,u.ty-w.y)<40);
   if(same)return;
   var ok=setOrder(u,w.o,w.x,w.y,true);

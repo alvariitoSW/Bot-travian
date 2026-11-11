@@ -77,12 +77,13 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-- **Probar la maqueta de la guerra nueva** en el móvil, en horizontal, y decir si convence; después, aprobar el carril N entero o solo N2 a N6 (`estudios/N1-guerra-nueva.md`).
+- **Probar la maqueta de la guerra nueva** en el móvil, en horizontal (https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/guerra-nueva.html), y contestar: ¿convence?, ¿carril N entero (P74) o solo N2 a N6?, ¿puntos de mando sí o no?
 - **Aprobar P65 (Foro y chips)**, cuando terminen J6 y J7.
 - **Aprobar o rechazar P67 a P73** (ideas de otros juegos de romanos) y decir por cuál empezar. Recomendación de Claude: P72 Emboscadas y P67 Barrios, que son pequeñas y se notan al jugar.
 
 ## Propuestas por aprobar
 - P65 **Gobierno: política con multitudes y chips** (discursos y revueltas que se ven en el Foro por clases sociales; chips verde/rojo con el efecto de cada decisión por clase); iría con J5. (decisión del 11/11)
+- P74 **Carril N: construir la guerra nueva** (N2 a N10 del diseño `estudios/N1-guerra-nueva.md`): batalla por rondas con puntos de mando, enemigo con planes, relevos y formaciones, espectáculo; y campaña militar con ejércitos con general, comida, asedios y exploración. Unos 12 M, nueve o diez sesiones; recomendado empezar por N2, N4, N3 y N6. Absorbe L3, L1b, A1, A2, A6, A8b, P72 y P73.
 - P67 **Barrios con servicios** (idea de Caesar III): cada ciudad tiene un nivel de barrio de 1 a 4 según tenga agua, comida, ocio, templo y termas; más nivel, más gente e impuestos; si falta algo, baja con 2 o 3 meses de retraso. Mínima: tres niveles con agua, comida y templo. ≈1,0 M, una sesión. Estudio: `estudios/R1-barrios-con-servicios.md`.
 - P68 **Población por clases** (idea de Imperator: Rome): ciudadanos, plebeyos y esclavos en cada ciudad, con su felicidad; las conquistas traen esclavos y se puede dar ciudadanía por oro. Mínima: solo esclavos (más producción, menos felicidad). 1,5 a 2,5 M, dos sesiones; toca la mano de obra (I3). Va con P65. Estudio: `estudios/R2-poblacion-por-clases.md`.
 - P69 **Radio de efecto de los edificios** (idea de Grand Ages: Rome): templos y termas dan bono a los solares vecinos, los talleres lo quitan; al elegir solar se iluminan en verde o rojo. Mínima: el templo da felicidad a sus dos vecinos. 0,7 a 1,2 M; se nota poco con 7 a 10 solares: mejor después de P67 y J3. Estudio: `estudios/R3-radio-de-efecto.md`.
@@ -104,6 +105,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+000. Carril N: N1 hecha (11/11). Si el usuario aprueba P74, sigue **N2 Rondas** en `js/battle.js` y la pantalla de batalla. La maqueta expone `window.AQ` para pruebas. Sesión del 11/11 (cuadro, estudios R1 a R7, N1): 2,6 M, de ellos 1,35 de Fable.
 00. **O1 Economía nueva: diseño y pantalla de prueba** (pedido del usuario, 11/11). Presupuesto mensual de materiales con sobrante al almacén con tope; ingresos y gastos del mes a la vista; repasar comercio, impuestos, mano de obra y mantenimiento como un todo. Salida: `gobierno/estudios/O1-economia-nueva.md` y una maqueta en `gobierno/maquetas/`. Tener en cuenta P67 (barrios), P68 (clases) y las rutas (B2). Sin tocar el juego.
 0b. Carril Guerra interfaz: L1 y L2 hechas (11/11). Siguiente: L3 (fantasmas en pausa y cartas de táctica) o L1b (testudo si el usuario lo quiere como regla, trazo en 2D, HUD vertical). L2 gastó 0,75 M.
 0. Carril Interfaz: J6 hecha (11/11). Sigue **J7 Parte densa** (incluye J2): pestañas también en el mapa, Imperio con filtros, cola de obras. Presupuestar con el dato: J6 gastó ~1,5 M sobre 0,65 presupuestado; encargar al constructor piezas más pequeñas.

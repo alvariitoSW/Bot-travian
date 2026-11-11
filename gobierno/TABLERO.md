@@ -86,7 +86,8 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ⬜ L3 **Fantasmas en pausa y cartas de táctica**: deslizador de tiempo con sombras a 10/20/30 s; atajos de testudo, carga, retirada y refuerzo.
 
 ## Carril N — Guerra nueva: «planeas y luego miras» (pedido 11/11/2026; diseño `gobierno/estudios/N1-guerra-nueva.md`)
-- 🔶 N1 **Diseño y maqueta jugable** de la guerra nueva: batalla por rondas (plan en pausa, ejecución para los dos), puntos de mando, enemigo con planes; y campaña militar con ejércitos, comida y asedios. Maqueta: `gobierno/maquetas/guerra-nueva.html`. Las tareas N2 a N10 esperan a que el usuario la pruebe; en pausa L3, A1, A2, A6 y A8b.
+- ✅ N1 **Diseño y maqueta jugable de la guerra nueva** (11/11): batalla por rondas (plan en pausa, ejecución para los dos), 4 puntos de mando, sombras, relevo y enemigo con tres planes. Maqueta `gobierno/maquetas/guerra-nueva.html`; parte `partes/2026-11-11-N1.md`. En pausa hasta que el usuario decida: L3, A1, A2, A6 y A8b.
+- ⬜ N2 a N10 **por aprobar** (propuesta P74): rondas, mando y general, enemigo con planes, relevos y formaciones, espectáculo, ejércitos con general, comida, asedios, exploración. Unos 12 M en total; detalle en el diseño.
 
 ## Carril O — Economía nueva (pedido 11/11/2026)
 - ⬜ O1 **Diseño y pantalla de prueba de la economía nueva**: presupuesto mensual de materiales (gastas lo que entra en el mes; lo que sobra va al almacén hasta su tope), ingresos y gastos del mes a la vista, y repaso de comercio, impuestos y mantenimiento. Sin tocar el juego hasta que el usuario lo vea.
