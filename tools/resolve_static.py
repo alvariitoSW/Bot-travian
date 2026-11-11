@@ -24,7 +24,7 @@ STATIC = {
     'muro': R_ + 'wall_long.xml', 'torre': R_ + 'wall_tower.xml', 'puerta': R_ + 'wall_gate.xml',
     # piezas por cultura (cartagineses, griegos, galos, íberos): centro de ciudad en el mapa y barcos
     'cart_templo': 'structures/carthaginians/temple_big.xml', 'cart_trirreme': 'structures/carthaginians/trireme.xml',
-    'grie_templo': 'structures/hellenes/shrine_01.xml', 'grie_trirreme': 'structures/hellenes/trireme.xml',
+    'grie_templo': 'structures/athenians/temple.xml', 'grie_trirreme': 'structures/hellenes/trireme.xml',
     'galo_centro': 'structures/gauls/civic_centre.xml', 'iber_centro': 'structures/iberians/temple.xml',
     # anfiteatro (Pompeya, hacia 70 a.C.): lo aligera tools/aligerar_static.mjs; termas y acueducto son propios (tools/propio_static.mjs)
     'anfiteatro': R_ + 'amphitheater_pompeii.xml',

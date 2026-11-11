@@ -241,6 +241,24 @@
       "tarea": "J1",
       "archivo": "gobierno/capturas-tarea/J1-maqueta-B.jpg",
       "pie": "Maqueta B «Pantalla despejada»: ciudad, menú ☰ abierto y mapa"
+    },
+    {
+      "tarea": "A7",
+      "archivo": "gobierno/capturas-tarea/A7-cart-0s.jpg",
+      "pie": "Defensor cartaginés: su templo en la ciudad",
+      "ancha": true
+    },
+    {
+      "tarea": "A7",
+      "archivo": "gobierno/capturas-tarea/A7-iber-0s.jpg",
+      "pie": "Defensor íbero: su templo en la ciudad",
+      "ancha": true
+    },
+    {
+      "tarea": "A7",
+      "archivo": "gobierno/capturas-tarea/A7-grie-0s.jpg",
+      "pie": "Defensor griego: templo de columnas",
+      "ancha": true
     }
   ],
   "informes": [

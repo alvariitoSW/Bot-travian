@@ -1,7 +1,7 @@
 /* AQVILA — vista 3D de la batalla: cada soldado es una figura animada sobre un terreno con relieve */
 import { THREE, uTime, unitGeometry, unitMaterial, portrait } from './models.js';
 import { applyGround } from './ground.js';
-import { getStatic, staticInstances, staticMesh } from './statics.js';
+import { getStatic, staticInstances, staticMesh, piezaCultura } from './statics.js';
 import { getUnit, unitMaterialReal, instancedGeometry, frameOf, frameOnce, realPortrait, UNIT_SCALE, lightGeometry, lightMaterial, LIGHT_TRIS } from './units.js';
 
 const BK = 1.65;                               // edificios y árboles de 0 A.D. agrandados para casar con el tamaño de las figuras
@@ -176,7 +176,9 @@ export class BattleView3D {
     const houses = [];
     for (let i = 0; i < 50; i++) { const x = (hash(i * 3.3) - 0.5) * 300, z = zc + dir * (18 + hash(i * 5.1) * 110); if (Math.abs(x) < 36 && Math.abs(z - zc) < 100) continue; houses.push(M(x, 0, z, q.setFromAxisAngle(up, Math.round(hash(i * 7.7) * 4) * Math.PI / 2).clone())); }
     const hs = staticInstances('casa', houses, col); if (hs) sc.add(hs);
-    for (const [k, x, dz] of [['templo', 0, 70], ['foro', -80, 46], ['cuartel', 72, 40], ['mercado', 130, 66], ['vesta', -140, 76]]) { const g = staticMesh(k, col); if (g) { g.applyMatrix4(M(x, 0, zc + dir * dz)); sc.add(g); } }
+    const propia = piezaCultura(this.b.cfg.sides[this.b.cfg.defender].name);     // A7: ciudad de otra cultura = sus edificios de 0 A.D.
+    const piezas = propia && getStatic(propia) ? [[propia, 0, 70, 2.3], [propia, -90, 48, 1.7], [propia, 85, 44, 1.7], [propia, 140, 72, 1.3], [propia, -145, 80, 1.3]] : [['templo', 0, 70], ['foro', -80, 46], ['cuartel', 72, 40], ['mercado', 130, 66], ['vesta', -140, 76]];
+    for (const [k, x, dz, es] of piezas) { const g = staticMesh(k, col); if (g) { const m = M(x, 0, zc + dir * dz); if (es) m.scale(new THREE.Vector3(es, es, es)); g.applyMatrix4(m); sc.add(g); } }
   }
 
   /* ---------- ejércitos ---------- */
