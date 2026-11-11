@@ -23,10 +23,11 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ A2 Animaciones por fila: falange con lanzas bajadas, testudo, postura «listo» frente a «relajado».
 - ⬜ A3 Golpe sincronizado con la animación; combate solo de las primeras filas; persecución de los que huyen.
 - ⬜ A4 Daño por tipo (corte/punta/aplastamiento) y armadura; revisar equilibrio (hoy las batallas igualadas se
-  deciden de forma muy brusca).
+  deciden de forma muy brusca; A8 ya lo suavizó).
 - ⬜ A5a **Despliegue antes de la batalla** (aprobada 11/11, P41): colocas tus regimientos, tres plantillas de un toque, y pulsas «Empezar batalla». 0,2 + 0,7 M · 20 min.
 - ⬜ A5b **Terreno con efecto: colina y bosque** (aprobada 11/11, P42), un campo tipo por ciudad. 0,25 + 0,9 M · 25 min. Después de A5a.
-- ⬜ A8 **Ritmo y moral** (aprobada 11/11, P40): batallas de 8 a 12 minutos, moral que baja poco a poco, cansancio. 0,15 + 0,4 M · 12 min. La primera de batallas.
+- ✅ A8 **Ritmo y moral** (11/11): batallas igualadas de 8 a 12 minutos, sin corte a los 4; moral gradual; cansancio con marca «Cansado».
+- ⬜ A8b Ajuste fino del ritmo con partidas del usuario: las muy desiguales duran unos 2,5 min y las algo desiguales 7 a 8; revisar si la calidad de tropa pesa demasiado (exponente 0,85).
 - ⬜ A6 Cámara cinematográfica (seguir cargas), sonido, proyectiles con arco y polvo mejorados.
 - ⬜ A7 Ciudades enemigas con edificios de su cultura (cartaginesa, griega, gala, íbera).
 

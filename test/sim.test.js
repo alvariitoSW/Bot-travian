@@ -12,11 +12,49 @@ let r = fight({ hastati: 300, velites: 60, equites: 40 }, { milicia: 100 });
 assert.strictEqual(r.winner, 0, 'ejército superior debe ganar');
 r = fight({ hastati: 60 }, { falange: 300, tesalios: 80, elefantes: 10 });
 assert.strictEqual(r.winner, 1, 'ejército inferior debe perder');
-assert(r.time < 241);
+assert(r.time < 1500, 'toda batalla termina antes del tope de seguridad');
 
 // 2. Igualdad: resultado razonable y con bajas en ambos bandos
 r = fight({ hastati: 200 }, { libios: 200 });
 assert(r.dead[0] > 20 && r.dead[1] > 20, 'ambos bandos sufren bajas');
+
+// 2b. Ritmo (A8): una batalla igualada dura entre 8 y 12 minutos de juego
+for (const sd of [1, 2, 3, 4]) {
+  const q = fight({ hastati: 200 }, { libios: 200 }, { seed: sd });
+  assert(q.time >= 480 && q.time <= 720, 'igualada 200 vs 200 (semilla ' + sd + '): ' + Math.round(q.time) + ' s');
+  const m = fight({ hastati: 300, velites: 60, equites: 40 }, { libios: 265, numidas: 52, jinetes: 33 }, { seed: sd });
+  assert(m.time >= 480 && m.time <= 720, 'igualada mixta (semilla ' + sd + '): ' + Math.round(m.time) + ' s');
+  assert(fight({ hastati: 300, velites: 60, equites: 40 }, { milicia: 100 }, { seed: sd }).time > 90, 'la desigual no dura segundos');
+}
+
+// 2c. La moral no cae en cadena: nunca se rompe más de la mitad de un bando en 10 s
+for (const sd of [1, 2, 3]) {
+  const bt = new Battle({ sides: [side({ hastati: 300, velites: 60, equites: 40 }), side({ libios: 265, numidas: 52, jinetes: 33 })], defender: 1, wall: 0, seed: sd });
+  const tot = [0, 0]; for (const g of bt.regs) tot[g.side]++;
+  const hist = []; let worst = 0;
+  while (!bt.over) {
+    bt.step(0.1);
+    const n = [0, 0]; for (const g of bt.regs) if (g.st !== 'ok') n[g.side]++;
+    hist.push(n); if (hist.length > 101) hist.shift();
+    if (hist.length > 100) for (let k = 0; k < 2; k++) worst = Math.max(worst, (n[k] - hist[0][k]) / tot[k]);
+  }
+  assert(worst <= 0.5, 'cadena de huidas: ' + worst + ' (semilla ' + sd + ')');
+}
+
+// 2d. El cansancio sube peleando y baja descansando
+{
+  const bt = new Battle({ sides: [side({ hastati: 100 }), side({ libios: 100 })], defender: 1, wall: 0, seed: 5 });
+  for (let i = 0; i < 3000; i++) bt.step(0.1);
+  const g = bt.regs.filter(x => x.st === 'ok');
+  assert(g.length && g.every(x => x.fat >= 0 && x.fat <= 100) && Math.max.apply(null, g.map(x => x.fat)) > 20, 'peleando se cansan');
+  const x = g[0]; x.fat = 50; x.order = { k: 'move', x: x.x, y: x.y }; x.tgt = null; x.fight = 0;
+  for (const o of bt.regs) if (o.side !== x.side) o.st = 'fled'; // sin enemigos: descansa
+  bt.over = false; for (let i = 0; i < 100; i++) bt.step(0.1);
+  assert(x.fat < 50, 'descansando baja el cansancio');
+}
+
+// 2e. Toda batalla termina antes del tope, incluso con muralla alta y fuerzas parejas
+for (let sd = 1; sd <= 5; sd++) { const q = fight({ principes: 150, triarii: 50 }, { hoplitas: 200 }, { seed: sd, wall: 10 }); assert(q.time < 1500 && q.winner !== null, 'termina (semilla ' + sd + ')'); }
 
 // 3. Las lanzas frenan a la caballería; la muralla ayuda al defensor
 const cavVsSpear = fight({ equites: 120 }, { hoplitas: 120 }), cavVsInf = fight({ equites: 120 }, { milicia: 160 });
@@ -41,7 +79,7 @@ function campaign1(aggressive) {
   let guard = 0;
   while (!s.over && guard++ < 200000) {
     G.tick(0.25);
-    while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); G.applyBattle(b.result()); }
+    while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); if (process.env.DBG) console.log(G.yearOf(s.t), JSON.stringify(info.cfg.sides.map(x => x.units)), 'def', info.cfg.defender, 'wall', info.cfg.wall, '->', b.result().winner, Math.round(b.t)); G.applyBattle(b.result()); }
     if (guard % 8) continue;
     for (const id of G.myCities()) {
       const c = s.cities[id];

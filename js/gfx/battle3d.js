@@ -332,7 +332,7 @@ export class BattleView3D {
     if (this.flags.scrollLeft || this.flags.scrollTop) { this.flags.scrollLeft = 0; this.flags.scrollTop = 0; }
     for (const R of this.R) {
       const r = R.r, ok = r.st === 'ok';
-      if (R.card) { R.card.classList.toggle('sel', this.sel.has(r)); R.card.classList.toggle('out', !ok); R.cbar.style.width = (r.men / r.max * 100) + '%'; R.cbar.style.background = r.mor / r.morMax > 0.5 ? '#7ddc5a' : r.mor / r.morMax > 0.25 ? '#f0c040' : '#e8503a'; R.cnum.textContent = ok ? r.men : r.st === 'dead' ? '☠' : '🏳'; }
+      if (R.card) { R.card.classList.toggle('sel', this.sel.has(r)); R.card.classList.toggle('out', !ok); R.card.classList.toggle('cans', ok && r.fat >= 60); R.cbar.style.width = (r.men / r.max * 100) + '%'; R.cbar.style.background = r.mor / r.morMax > 0.5 ? '#7ddc5a' : r.mor / r.morMax > 0.25 ? '#f0c040' : '#e8503a'; R.cnum.textContent = ok ? r.men : r.st === 'dead' ? '☠' : '🏳'; }
       if (!ok && r.st !== 'rout') { R.el.style.display = 'none'; continue; }
       const w = this.toW(r.x, r.y); let x = w[0], z = w[1];
       if (!ok && R.n) { x = R.fx[0]; z = R.fz[0]; }

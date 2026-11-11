@@ -37,6 +37,18 @@
       "tarea": "B3",
       "archivo": "gobierno/capturas-tarea/B3.jpg",
       "pie": "Impuestos altos: la población no crece"
+    },
+    {
+      "tarea": "A8",
+      "archivo": "gobierno/capturas-tarea/A8-min4.jpg",
+      "pie": "Batalla igualada, minuto 4: sigue abierta y la moral baja poco a poco",
+      "ancha": true
+    },
+    {
+      "tarea": "A8",
+      "archivo": "gobierno/capturas-tarea/A8-min7.jpg",
+      "pie": "Minuto 7: regimientos «Cansado» (borde naranja); pegan menos y andan más lento",
+      "ancha": true
     }
   ],
   "informes": [

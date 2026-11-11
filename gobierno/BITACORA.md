@@ -49,6 +49,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 
 ## Esperando algo del usuario
 1. **Medir fluidez**: menú → «Medir fluidez»; dime la cifra en el mapa, en la ciudad y en una batalla grande. (Dijo «ok» el 11/11; faltan las cifras.)
+2. **Ritmo de batalla (A8)**: juega una batalla igualada y dime si 8 a 12 minutos a x1 te parece bien, largo o corto (hay x2 y x4). Y si te vale que la calidad de la tropa pese más que antes (hubo que subirlo para que la muralla siguiera ayudando).
 
 ## Propuestas por aprobar
 Ninguna ahora.
@@ -61,14 +62,15 @@ Cada una, al cerrar: tablero y bitácora al día, capturas e informes en el cuad
 ## Encargo de la próxima sesión
 Una tarea por sesión, en este orden (propuesto por Claude: primero lo que desbloquea a lo demás):
 1. ✅ I1 Registro de piezas, hecha. Queda I1b al unir con Historia 2.
-2. **A8 Ritmo y moral** (lo que más se nota al jugar; no depende de nada).
+2. ✅ A8 Ritmo y moral, hecha.
 3. A5a Despliegue → A5b Terreno.
 4. I3 Mano de obra → I4 Tipos de ciudad → I5 Investigación → I2 Reloj por estaciones.
 5. I6 Región de Italia → I7 Regiones → I8 Partida corta.
-Siguiente: **A8 Ritmo y moral** (toca `js/battle.js`; no pisa a Historia 2).
+Siguiente: **A5a Despliegue** (toca `js/battle.js`, `js/gfx/battle3d.js` y la parte de batalla de `js/ui.js`; mejor cuando Historia 2 haya soltado `ui.js`).
 
 ## Notas para quien continúe
 - I1 ya está unida a la rama que publica (11/11/2026, con permiso del usuario). El cotejo de Historia 2 ya está dentro; cuando acabe H4 a H10, hacer I1b.
 - El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.
-- Las batallas igualadas se deciden de forma brusca y el bot de pruebas no llega a tomar Cartago: falta equilibrar.
+- A8 (11/11): los números de ritmo, moral y cansancio son constantes al principio de `js/battle.js`. «Resolver» usa paso de 0,2 s. El bot agresivo gana 7 de 10 campañas; el pasivo, ninguna.
+- Gasto: A8 costó el doble de lo presupuestado (1,3 M frente a 0,55). Afinar números con pruebas cuesta más que una tarea media; presupuestar A5a y A5b con ese dato.
 - Para regenerar el arte hace falta un clon parcial de `0ad/0ad` y los cargadores de ejemplo de three.js (README).

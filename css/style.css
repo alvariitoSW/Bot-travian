@@ -154,6 +154,8 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 .ucard u { display: block; height: 100%; }
 .ucard.sel { border-color: var(--gold); box-shadow: 0 0 0 2px #e9c06355, 0 0 14px #e9c063aa; transform: translateY(-3px); }
 .ucard.out { filter: grayscale(1) brightness(.5); }
+.ucard.cans { border-color: #ff9a3c; }
+.ucard.cans::after { content: 'Cansado'; position: absolute; left: 0; right: 0; bottom: 10px; text-align: center; font-size: 9px; font-weight: 700; color: #1c1206; background: #ff9a3ce6; line-height: 12px; }
 #bctl { display: flex; gap: 5px; padding: 5px; background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line); border-radius: 18px; }
 #bctl button { flex: 1; height: 40px; border-radius: 13px; background: #fff1; font-size: 12px; font-weight: 600; }
 #bctl button.on { background: linear-gradient(var(--gold), var(--gold2)); color: #1c1206; }

@@ -2,10 +2,27 @@
 (function (root) {
   const D = root.DATA;
   const FW = 600, CONTACT = 50;
+  // --- Ritmo, moral y cansancio (A8) ---
+  const RITMO = 0.027;          // multiplica todo el daño: hace las batallas igualadas de 8 a 12 minutos
+  const TOPE_BATALLA = 1500;    // segundos: tope de seguridad (25 min); si se alcanza gana el defensor
+  const MOR_BAJAS = 0.8;        // moral perdida por cada 1 % de la vida del regimiento arrancada de golpe
+  const MOR_CONTAGIO = 1.5;     // moral que pierden los vecinos cuando un regimiento rompe (antes 5)
+  const MOR_GENERAL = 4;        // moral que pierde su bando al caer el general (antes 12)
+  const MOR_FLANCO = 0.02;      // moral por segundo perdida estando flanqueado
+  const MOR_PERDIENDO = 0.05;   // moral por segundo perdida (máx.) si su bando tiene menos hombres que el otro
+  const MOR_HERIDO = 0.3;       // moral por segundo perdida con el regimiento al 0 % de hombres (proporcional a sus bajas)
+  const MOR_CANSADO = 0.05;     // moral por segundo perdida con cansancio al máximo (empieza en FAT_UMBRAL)
+  const FAT_UMBRAL = 60;        // cansancio a partir del cual se pierde moral y se marca «Cansado»
+  const FAT_PELEA = 0.17;       // cansancio por segundo peleando cuerpo a cuerpo (se divide por la masa)
+  const FAT_CARGA = 6;          // cansancio de golpe al lanzar una carga (la caballería pesa más)
+  const FAT_MARCHA = 0.15;      // cansancio por segundo al marchar o correr
+  const FAT_DESCANSO = 1.2;     // cansancio que se recupera por segundo estando quieto sin pelear
+  const FAT_PEGA = 0.3;         // pérdida máxima de daño con cansancio 100 (30 %)
+  const FAT_ANDA = 0.25;        // pérdida máxima de velocidad con cansancio 100 (25 %)
 
   function mkRng(seed) { let a = seed >>> 0; return function () { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
   function effN(m) { return m <= 24 ? m : 24 + (m - 24) * 0.3; }
-  function ratio(atk, def) { return Math.pow(atk / def, 0.6); }
+  function ratio(atk, def) { return Math.pow(atk / def, 0.85); }
   function angDiff(a, b) { let d = a - b; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return d; }
 
   /* cfg: { sides:[{units,gen,name,col,atkMul,defMul,mor}, {...}], defender:0|1, wall:n, seed }
@@ -34,7 +51,7 @@
     return {
       id: this.regs.length + 1, side: side, k: k, u: u, men: men, max: men, hp: men * hp, mor: mor, morMax: mor,
       x: 0, y: 0, ang: side === 0 ? -Math.PI / 2 : Math.PI / 2, st: 'ok', tgt: null, order: null,
-      think: this.rnd() * 0.5, cd: this.rnd() * 1.6, ammo: u.range ? 14 : 0, fight: 0, charge: 0, run: 0, flank: 0,
+      think: this.rnd() * 0.5, cd: this.rnd() * 1.6, ammo: u.range ? 14 : 0, fight: 0, charge: 0, run: 0, flank: 0, fat: 0, mv: false,
       atkMul: (a.atkMul || 1) * (0.92 + this.rnd() * 0.16), defMul: def // ±8 % de fortuna por regimiento
     };
   };
@@ -89,7 +106,8 @@
     const dx = x - r.x, dy = y - r.y, d = Math.hypot(dx, dy);
     if (d < 1) return 0;
     this.turn(r, Math.atan2(dy, dx), dt);
-    const m = Math.min(r.u.spd * (mul || 1) * dt, d);
+    const m = Math.min(r.u.spd * (mul || 1) * (1 - FAT_ANDA * r.fat / 100) * dt, d);
+    r.mv = true; r.fat = Math.min(100, r.fat + FAT_MARCHA * dt * (mul > 1 ? 1.6 : 1));
     r.x += dx / d * m; r.y += dy / d * m; r.run += m;
     return d - m;
   };
@@ -101,7 +119,7 @@
     let fl = 1;
     if (da > 2.1) fl = 1.6; else if (da > 1.15) fl = 1.3;
     if (fl > 1) { b.flank = 1; if (b.k === 'falange') fl *= 1.35; } // la falange es muy vulnerable por los flancos
-    let m = amount * fl;
+    let m = amount * RITMO * fl * (1 - FAT_PEGA * a.fat / 100);
     const ac = a.u.cls, bc = b.u.cls;
     if (!ranged) {
       if (ac === 'spear' && (bc === 'cav' || bc === 'ele' || bc === 'gen')) m *= 1.7;
@@ -112,7 +130,7 @@
     b.hp -= m;
     b.men = Math.max(0, Math.ceil(b.hp / hp));
     const killed = prev - b.men;
-    b.mor -= (m / (b.max * hp)) * 100 * 0.8 * (fl > 1 ? 1.35 : 1) * (ac === 'ele' ? 1.25 : 1);
+    b.mor -= (m / (b.max * hp)) * 100 * MOR_BAJAS * (fl > 1 ? 1.35 : 1) * (ac === 'ele' ? 1.25 : 1);
     if (killed > 0 && this.corpses.length < 700) {
       const n = Math.min(killed, 3);
       for (let i = 0; i < n; i++) this.corpses.push({ x: b.x + (this.rnd() - 0.5) * 50, y: b.y + (this.rnd() - 0.5) * 30, s: b.side });
@@ -126,8 +144,8 @@
     for (const o of this.regs) {
       if (o.st !== 'ok') continue;
       const near = Math.hypot(o.x - b.x, o.y - b.y) < 120;
-      if (b.k === 'general' && o.side === b.side) o.mor -= 12;
-      else if (near) o.mor += o.side === b.side ? -5 : 4;
+      if (b.k === 'general' && o.side === b.side) o.mor -= MOR_GENERAL;
+      else if (near) o.mor = Math.min(o.morMax, o.mor + (o.side === b.side ? -MOR_CONTAGIO : 1.5));
     }
     if (b.k === 'general') this.genDown[b.side] = true;
   };
@@ -145,7 +163,14 @@
       if (r.st !== 'ok') continue;
       if (r.charge > 0) r.charge -= dt;
       const collapse = cur[r.side] < this.start[r.side] * 0.15;
-      if (collapse) r.mor -= 4 * dt;
+      if (collapse) r.mor -= 1.5 * dt;
+      r.mv = false;
+      if (r.flank) r.mor -= MOR_FLANCO * dt;
+      const mia = cur[r.side] / this.start[r.side], suya = cur[1 - r.side] / this.start[1 - r.side];
+      if (mia < suya) r.mor -= MOR_PERDIENDO * Math.min(1, (suya - mia) * 8) * dt;
+      if (r.men < r.max && r.fight > 0) r.mor -= MOR_HERIDO * (1 - r.men / r.max) * dt;
+      if (r.fat > FAT_UMBRAL) r.mor -= MOR_CANSADO * (r.fat - FAT_UMBRAL) / (100 - FAT_UMBRAL) * dt;
+      if (r.mor <= 0) { r.st = 'rout'; this.onBreak(r); continue; }
       // objetivo
       let tgt = r.tgt && r.tgt.st === 'ok' ? r.tgt : null;
       const hold = (r.side === 0 && !this.auto) || (r.u.cls === 'gen' && cur[r.side] > this.start[r.side] * 0.55);
@@ -170,13 +195,14 @@
           } else this.moveTo(r, tgt.x, tgt.y, dt);
         } else if (d > CONTACT) {
           const left = this.moveTo(r, tgt.x, tgt.y, dt, (r.u.cls === 'cav' || r.u.cls === 'gen') && d < 160 ? 1.25 : 1);
-          if (left <= CONTACT && (r.u.cls === 'cav' || r.u.cls === 'gen' || r.u.cls === 'ele') && r.run > 90) r.charge = 2.5;
+          if (left <= CONTACT && (r.u.cls === 'cav' || r.u.cls === 'gen' || r.u.cls === 'ele') && r.run > 90) { r.charge = 2.5; r.fat = Math.min(100, r.fat + FAT_CARGA * (r.u.cls === 'cav' || r.u.cls === 'gen' ? 1.8 : r.u.cls === 'ele' ? 1.2 : 1)); }
         } else {
-          fighting = true; r.run = 0;
+          fighting = true; r.run = 0; r.fat = Math.min(100, r.fat + FAT_PELEA * dt * (r.u.cls === 'cav' || r.u.cls === 'gen' ? 1.6 : 1 / Math.sqrt(r.u.mass || 1)));
           this.turn(r, Math.atan2(tgt.y - r.y, tgt.x - r.x), dt);
           this.hit(r, tgt, effN(r.men * (r.u.mass || 1)) * ratio(r.u.atk * r.atkMul, tgt.u.def * tgt.defMul) * 0.03 * dt, false);
         }
       }
+      if (!fighting && !r.mv) r.fat = Math.max(0, r.fat - FAT_DESCANSO * dt);
       r.fight = fighting ? 0.4 : Math.max(0, r.fight - dt);
       if (!fighting && r.fight <= 0) { r.mor = Math.min(r.morMax, r.mor + 1.5 * dt); r.flank = 0; }
       r.x = Math.max(20, Math.min(FW - 20, r.x)); r.y = Math.max(20, Math.min(this.H - 20, r.y));
@@ -194,10 +220,10 @@
     if (this.fx.length && this.fx[0].t > 0.5) this.fx = this.fx.filter(f => f.t <= 0.5);
     const n0 = this.men(0), n1 = this.men(1);
     if (n0 <= 0 || n1 <= 0) { this.over = true; this.winner = n0 > 0 ? 0 : 1; }
-    else if (this.t > 240) { this.over = true; this.winner = this.cfg.defender; }
+    else if (this.t > TOPE_BATALLA) { this.over = true; this.winner = this.cfg.defender; }
   };
 
-  Battle.prototype.finish = function () { let i = 0; while (!this.over && i++ < 6000) this.step(0.1); };
+  Battle.prototype.finish = function () { let i = 0; while (!this.over && i++ < 8000) this.step(0.2); };
 
   Battle.prototype.result = function () {
     const res = { winner: this.winner, surv: [{}, {}], lost: [{}, {}], dead: [0, 0], genDead: [false, false], time: this.t };
