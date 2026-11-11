@@ -92,7 +92,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ⬜ N2 a N15 **por aprobar** (P74, reescrita): rondas y vista previa, interfaz nueva, estados y contagio, general y mando, enemigo que piensa, relevos y formaciones, espectáculo; ejércitos con general, forraje, asedios, exploración, después de la batalla; campos amplios y relieve; equilibrio. Unos 18 M; primer bloque N2 a N5, unos 5 M. Detalle en `estudios/N1b-guerra-ampliada.md` §6.
 
 ## Carril O — Economía nueva (pedido 11/11/2026)
-- ⬜ O1 **Diseño y pantalla de prueba de la economía nueva**: presupuesto mensual de materiales (gastas lo que entra en el mes; lo que sobra va al almacén hasta su tope), ingresos y gastos del mes a la vista, y repaso de comercio, impuestos y mantenimiento. Sin tocar el juego hasta que el usuario lo vea.
+- ⬜ Q1 **Diseño de ciudad, gobierno y economía en un solo modelo** (pedido 11/11; absorbe O1): cómo crece la ciudad, cómo se gobierna, presupuesto mensual de materiales (lo que sobra va al almacén hasta su tope) y cómo debe verse. Con ingeniería reversa de juegos de ciudad, los estudios R1 a R5 y capturas sobre la ciudad 3D. Sin tocar el juego hasta que el usuario lo vea.
 
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
