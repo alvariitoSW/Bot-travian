@@ -254,3 +254,6 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 .head::before, #sheet::before, #mbox::before { content: ''; position: absolute; left: 8px; right: 8px; top: 7px; height: 6px; background: var(--greca) repeat-x; opacity: .75; pointer-events: none; }
 #sheet::before, #mbox::before { top: 6px; }
 #res .r { border-radius: 8px; }
+#tabs button i .ico { width: 23px; height: 23px; stroke: var(--mute); vertical-align: top; }
+#tabs button.on i .ico { stroke: #1c1206; }
+#tabs button i { filter: none; }

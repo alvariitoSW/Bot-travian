@@ -24,6 +24,24 @@ D.RES_ICON = {
   oro: svgIco('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6.3" stroke-dasharray="1.2 2.1"/><path d="M10 9.2l4 5.6M14 9.2l-4 5.6"/>', true)
 };
 D.POP_ICON = svgIco('<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.6 2.6-6 6-6s6 2.4 6 6"/><circle cx="16.8" cy="9" r="2.5"/><path d="M17.5 14.2c2.2.5 3.6 2.4 3.6 5"/>');
+/* Iconos de guerra y de edificios (E1c): dibujos de línea propios, como los de recursos */
+D.GUERRA_ICON = { espadas: svgIco('<path d="M5 19L17 7M14.5 5.5L18.5 9.5M3.5 17.5l3 3M7 17l-2.5 2.5"/><path d="M19 19L7 7M9.5 5.5L5.5 9.5M20.5 17.5l-3 3M17 17l2.5 2.5"/>'), escudo: svgIco('<path d="M12 3l7 2.5v6c0 4.5-3 7.8-7 9.5-4-1.7-7-5-7-9.5v-6z"/><path d="M12 3v18M5 11h14"/>'), aguila: svgIco('<circle cx="12" cy="5.5" r="2"/><path d="M12 7.5V17M12 10C9 9 5 9.5 2.5 12c2 .3 3.5.2 5 0-1.5 1.5-2.5 2.500-3 4 3-.5 5.500-2.500 7.500-6M12 10c3-1 7-.5 9.500 2-2 .3-3.500.2-5 0 1.500 1.500 2.500 2.500 3 4-3-.5-5.500-2.500-7.500-6"/><path d="M10 20.500l2-3.500 2 3.500"/>'), casco: svgIco('<path d="M4 15a8 8 0 0116 0v2H4z"/><path d="M12 7V4M8 17v3M16 17v3M4 17h16"/>') };
+D.BUILD_ICON = {
+  aserradero: D.RES_ICON.madera, cantera: D.RES_ICON.piedra, mina: D.RES_ICON.hierro, granja: D.RES_ICON.grano, cuartel: D.GUERRA_ICON.espadas,
+  viviendas: svgIco('<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10M10 20v-5h4v5"/>'),
+  foro: svgIco('<path d="M3 20h18M5 20V9h14v11M3 9h18M9 20v-6h6v6M12 4v5"/>'),
+  almacen: svgIco('<path d="M9 3h6M10 3v3c-3 1-4 4-4 7 0 4 2 7 6 7s6-3 6-7c0-3-1-6-4-7V3"/><path d="M6.5 11h-2M17.5 11h2"/>'),
+  mercado: svgIco('<path d="M12 4v16M6 20h12M4 8h16"/><path d="M4 8l-3 6h6zM20 8l-3 6h6z"/>'),
+  puerto: svgIco('<circle cx="12" cy="5" r="2"/><path d="M12 7v14M7 11h10M4 15c0 3.5 3.5 6 8 6s8-2.5 8-6"/>'),
+  establo: svgIco('<path d="M7 20c0-5 1-8 4-10l-1-4 3 1 4 3c2 2 3 4 3 6M11 10c-2 0-3-1-4-2"/>'),
+  muralla: svgIco('<path d="M3 20V8h3v2h3V8h3v2h3V8h3v12zM3 20h18M8 20v-5h8v5"/>'),
+  herreria: svgIco('<path d="M4 9h13c0 2.5-1.5 3.5-4 3.5v3H8v-3C5.5 12.5 4 11.5 4 9zM17 9l3-1.5M7 15.5h6M6 19h8"/>'),
+  acueducto: svgIco('<path d="M3 7h18M3 7v13M21 7v13M3 20h18"/><path d="M3 20v-5a3.5 3.5 0 017 0v5M10 20v-5a3.5 3.5 0 017 0v5"/>'),
+  termas: svgIco('<path d="M4 13h16c0 4-3 7-8 7s-8-3-8-7zM8 9c-1-1.5 1-2.5 0-4M12 9c-1-1.5 1-2.5 0-4M16 9c-1-1.5 1-2.5 0-4"/>'),
+  anfiteatro: svgIco('<ellipse cx="12" cy="12" rx="9.5" ry="6"/><ellipse cx="12" cy="12" rx="5" ry="2.8"/><path d="M12 6v3M12 15v3M2.5 12h4.5M17 12h4.5"/>'),
+  templo: svgIco('<path d="M3 10l9-6 9 6zM6 12v6M10 12v6M14 12v6M18 12v6M3 20h18"/>')
+};
+const bIco = b => D.BUILD_ICON[b] || D.BUILD[b].i;
 const costHtml = c => '<div class="cost">' + Object.keys(c).map(r => '<span>' + D.RES_ICON[r] + ' ' + fmt(c[r]) + '</span>').join('') + '</div>';
 const pt = (k, col) => { const u = realPortrait(k, col || ROMA) || portrait(k, col || ROMA); return u ? '<img src="' + u + '" alt="">' : '<span style="display:grid;place-items:center;height:100%;font-size:22px">' + D.UNITS[k].g + '</span>'; };
 const troopsHtml = (u, col) => { const k = Object.keys(u).filter(x => u[x] > 0); return k.length ? '<div class="troops">' + k.map(x => '<div class="troop">' + pt(x, col) + '<em>' + u[x] + '</em><b>' + D.UNITS[x].n + '</b></div>').join('') + '</div>' : '<div class="empty">Sin tropas.</div>'; };
@@ -103,7 +121,7 @@ function setTab(t) {
 }
 function cityChips() {
   const my = G.myCities(); if (!my.includes(UI.city)) UI.city = my[0] || 'roma';
-  return '<div class="chips">' + my.map(id => '<button class="chip ' + (id === UI.city ? 'on' : '') + '" data-act="city" data-v="' + id + '">' + D.CITIES[id].n + (S().hero.city === id ? ' 🦅' : '') + '</button>').join('') + '</div>';
+  return '<div class="chips">' + my.map(id => '<button class="chip ' + (id === UI.city ? 'on' : '') + '" data-act="city" data-v="' + id + '">' + D.CITIES[id].n + (S().hero.city === id ? ' ' + D.GUERRA_ICON.aguila : '') + '</button>').join('') + '</div>';
 }
 function render() {
   UI.dirty = false;
@@ -134,11 +152,11 @@ const espResumen = () => {
 function buildCard(c, b) {
   const B = D.BUILD[b], L = c.b[b] || 0, q = c.queue && c.queue.b === b, max = L >= D.MAX_LVL, cost = G.cost(b, L);
   const fe = c.owner === 'roma' && !max && !q ? G.faltaEspecial('edificio', b, L) : null, sinSol = B.solar && L < 1 && !q && G.solaresUsados(c) >= G.solares(UI.city), derr = B.solar && L >= 1 && !q && b !== 'foro' && c.owner === 'roma', dk = UI.city + ':' + b;
-  if (sinSol) return '<div class="card locked"><div class="ic">' + B.i + '</div><div class="bd"><div class="tt">' + B.n + '<span class="lv">Nv 0</span></div><div class="ds">Derriba otro edificio urbano para liberar un solar.</div></div><button class="btn no" disabled>Sin solares</button></div>';
+  if (sinSol) return '<div class="card locked"><div class="ic">' + bIco(b) + '</div><div class="bd"><div class="tt">' + B.n + '<span class="lv">Nv 0</span></div><div class="ds">Derriba otro edificio urbano para liberar un solar.</div></div><button class="btn no" disabled>Sin solares</button></div>';
   const dg = b === 'templo' ? G.diosDe(c) : null, dsel = b === 'templo' && !dg && c.owner === 'roma' && !q ? D.DIOSES[c.dios] || null : null;
   const diosHtml = b !== 'templo' || c.owner !== 'roma' ? '' : dg ? '<div class="ds">' + dg.i + ' <b>Templo de ' + dg.n + '</b> · ' + esc(dg.d) + '</div>' :
     '<div class="ds">Elige el dios:</div><div class="chips" style="flex-wrap:wrap">' + Object.keys(D.DIOSES).map(k => { const d = D.DIOSES[k], no = d.sea && !D.CITIES[UI.city].sea; return '<button class="chip ' + ((c.dios || 'marte') === k && !no ? 'on' : '') + '" ' + (no ? 'disabled' : 'data-act="dios" data-v="' + k + '"') + ' title="' + esc(d.d) + '">' + d.i + ' ' + d.n + '</button>'; }).join('') + '</div><div class="ds">' + esc(D.DIOSES[c.dios && !(D.DIOSES[c.dios].sea && !D.CITIES[UI.city].sea) ? c.dios : 'marte'].d) + '</div>';
-  return '<div class="card"><div class="ic">' + B.i + '</div><div class="bd"><div class="tt">' + (dg ? 'Templo de ' + dg.n : B.n) + '<span class="lv">Nv ' + L + '</span></div>' + diosHtml +
+  return '<div class="card"><div class="ic">' + bIco(b) + '</div><div class="bd"><div class="tt">' + (dg ? 'Templo de ' + dg.n : B.n) + '<span class="lv">Nv ' + L + '</span></div>' + diosHtml +
     '<div class="ds">' + (max ? effect(b, L) + ' · nivel máximo' : effect(b, L) + ' → ' + effect(b, L + 1)) + '</div>' +
     (q ? '<div class="prog" data-t0="' + c.queue.t0 + '" data-t1="' + c.queue.t1 + '"><i></i></div><span class="rem"></span>' : max ? '' : costHtml(cost)) +
     (derr ? '<div><button class="chip" data-act="derr" data-v="' + b + '"' + (UI.derr === dk ? ' style="color:#e05050"' : '') + '>' + (UI.derr === dk ? '¿Seguro? Derribar' : 'Derribar') + '</button></div>' : '') + '</div>' +
@@ -169,7 +187,7 @@ function tiposModal() {
   return h + '<div class="acts"><button class="btn ghost" data-act="close">Cerrar</button></div>';
 }
 const inqHtml = c => c.owner === 'roma' && c.inq > 0 ? '<span class="stat" style="color:#e0a030">🔥 Ciudad conquistada: inquieta unos ' + Math.ceil(c.inq / (1 + D.INQ_TEMPLO * G.diosNivel(c))) + ' meses · produce un ' + Math.round((1 - G.inqMul(c)) * 100) + ' % menos' + (G.felicidad(c) < D.INQ_REBELION ? ' · <b>con esta felicidad se rebelará</b>' : '') + '. Un templo la calma antes.</span>' : '';
-const popHtml = c => '<span class="stat">' + D.POP_ICON + ' Población <b>' + Math.floor(c.pop) + '</b> / ' + G.popCap(c) + '</span><span class="stat">🪖 Reclutas disponibles <b>' + G.recruits(c) + '</b></span>' + manoHtml(c) + inqHtml(c) + solHtml(c) + espLinea(c) + impHtml(c);
+const popHtml = c => '<span class="stat">' + D.POP_ICON + ' Población <b>' + Math.floor(c.pop) + '</b> / ' + G.popCap(c) + '</span><span class="stat">' + D.GUERRA_ICON.casco + ' Reclutas disponibles <b>' + G.recruits(c) + '</b></span>' + manoHtml(c) + inqHtml(c) + solHtml(c) + espLinea(c) + impHtml(c);
 function marketHtml() {
   const rate = G.tradeRate(); if (!rate) return '';
   UI.mf = UI.mf || 'madera'; UI.mt = UI.mt || 'hierro';
@@ -226,11 +244,11 @@ function viewCity() {
   h = h.replace('<div class="sec">Edificios</div>', '<div class="empty">' + popHtml(c) + '</div>' + repartoHtml(c) + (c.owner === 'roma' ? '<div class="empty">' + espResumen() + '</div>' : '') + '<div class="sec">Edificios</div>');
   for (const b in D.BUILD) { if (D.BUILD[b].sea && !d.sea) continue; h += buildCard(c, b); if (b === 'mercado') h += marketHtml(); if (b === 'herreria') h += forjaHtml(c); }
   h += rutasHtml(c, UI.city);
-  return h + '<div class="empty">' + Object.keys(D.BUILD).map(b => D.BUILD[b].i + ' ' + D.BUILD[b].d).join('<br>') + '</div>';
+  return h + '<div class="empty">' + Object.keys(D.BUILD).map(b => bIco(b) + ' ' + D.BUILD[b].d).join('<br>') + '</div>';
 }
 function renderCity3D() {
   const s = S(), c = s.cities[UI.city];
-  $('ctop').innerHTML = cityChips().replace('</div>', '<button class="chip" data-act="clist">☰ Lista</button></div>') + '<div class="chips views"><button class="chip" data-act="cview" data-v="ciudad">🏛️ Ciudad</button><button class="chip" data-act="cview" data-v="calle">🚶 Calles</button><button class="chip" data-act="cview" data-v="ejercito">⚔️ Ejército</button><button class="chip" data-act="tab" data-v="map">🗺️ Mapa</button></div>';
+  $('ctop').innerHTML = cityChips().replace('</div>', '<button class="chip" data-act="clist">☰ Lista</button></div>') + '<div class="chips views"><button class="chip" data-act="cview" data-v="ciudad">🏛️ Ciudad</button><button class="chip" data-act="cview" data-v="calle">🚶 Calles</button><button class="chip" data-act="cview" data-v="ejercito">' + D.GUERRA_ICON.espadas + ' Ejército</button><button class="chip" data-act="tab" data-v="map">🗺️ Mapa</button></div>';
   $('csheet').innerHTML = '<div class="cpop">' + popHtml(c) + '</div>' + (UI.bsel ? buildCard(c, UI.bsel) + (UI.bsel === 'mercado' ? marketHtml() : '') + (UI.bsel === 'herreria' ? forjaHtml(c) : '') + '<div class="empty" style="background:var(--glass);border-radius:12px;margin-top:6px;padding:8px 12px">' + D.BUILD[UI.bsel].d + '</div>'
     : '<div class="empty" style="background:var(--glass);border-radius:12px;padding:10px 12px;text-align:center">Toca un edificio para construirlo o mejorarlo · arrastra para girar la ciudad</div>');
 }
@@ -259,7 +277,7 @@ function viewArmy() {
 function viewHero() {
   const s = S(), h = s.hero, need = G.xpNeed(h.lvl);
   const where = h.wound > s.t ? '🩸 Herido — se recupera en ' + months(h.wound - s.t) : h.march ? '🚩 En marcha con el ejército' : '📍 En ' + D.CITIES[h.city].n;
-  const SK = { mando: ['⚔️ Mando', '+4 % de ataque de tu ejército por nivel'], disc: ['🛡️ Disciplina', '+3 % de defensa y +4 de moral por nivel'], log: ['🧭 Logística', '+8 % de velocidad de marcha y +10 % de botín por nivel'] };
+  const SK = { mando: [D.GUERRA_ICON.espadas + ' Mando', '+4 % de ataque de tu ejército por nivel'], disc: [D.GUERRA_ICON.escudo + ' Disciplina', '+3 % de defensa y +4 de moral por nivel'], log: ['🧭 Logística', '+8 % de velocidad de marcha y +10 % de botín por nivel'] };
   let o = '<div class="head"><div class="pt">' + pt('general') + '</div><h2>' + esc(h.name) + '</h2><p>General de la República · Nivel ' + h.lvl + '</p>' + '<div class="xp"><i style="width:' + Math.min(100, h.xp / need * 100) + '%"></i></div><p>Experiencia ' + h.xp + ' / ' + need + '<br>' + where + '</p></div>';
   o += '<div class="sec">Habilidades · ' + h.pts + ' punto' + (h.pts === 1 ? '' : 's') + '</div>';
   for (const k in SK) o += '<div class="card"><div class="bd"><div class="tt">' + SK[k][0] + '<span class="lv">Nv ' + h.sk[k] + '</span></div><div class="ds">' + SK[k][1] + '</div></div><button class="btn ' + (h.pts > 0 && h.sk[k] < 10 ? 'gold' : 'no') + '" data-act="skill" data-v="' + k + '">＋</button></div>';
@@ -274,7 +292,7 @@ function viewCodice() {
 function viewLog() {
   if (UI.codice && window.CODICE) return viewCodice();
   const s = S(), year = G.yearOf(s.t), left = year - D.END_YEAR + 1;
-  let o = (window.CODICE ? '<div class="acts"><button class="btn gold" style="width:100%" data-act="codice" data-v="tropas">📖 Abrir el Códice</button></div>' : '') + '<div class="head"><h2>Carthago delenda est</h2><p>Conquista <b>Carthago</b> antes de que termine el año 146 a.C. Si Roma cae, la campaña termina.</p><p>⏳ Quedan <b>' + left + '</b> años · 🏛️ ' + G.myCities().length + '/' + Object.keys(D.CITIES).length + ' ciudades · ⚔️ ' + s.stats.wins + '/' + s.stats.battles + ' batallas</p></div>';
+  let o = (window.CODICE ? '<div class="acts"><button class="btn gold" style="width:100%" data-act="codice" data-v="tropas">📖 Abrir el Códice</button></div>' : '') + '<div class="head"><h2>Carthago delenda est</h2><p>Conquista <b>Carthago</b> antes de que termine el año 146 a.C. Si Roma cae, la campaña termina.</p><p>⏳ Quedan <b>' + left + '</b> años · 🏛️ ' + G.myCities().length + '/' + Object.keys(D.CITIES).length + ' ciudades · ' + D.GUERRA_ICON.espadas + ' ' + s.stats.wins + '/' + s.stats.battles + ' batallas</p></div>';
   o += '<div class="sec">Línea del tiempo</div><div class="tl">' + D.EVENTS.map((e, i) => '<div class="' + (s.ev[i] ? 'done' : '') + '"' + (s.ev[i] ? ' data-act="ev" data-v="' + i + '"' : '') + '>' + e.y + ' a.C. — ' + (s.ev[i] ? esc(e.t) : '···') + '</div>').join('') + '</div>';
   o += '<div class="sec">Crónica</div>' + (s.log.length ? s.log.map(l => '<div class="logl ' + l.k + '"><small>' + G.yearOf(l.t) + ' a.C.</small>' + esc(l.x) + '</div>').join('') : '<div class="empty">Aún no ha ocurrido nada.</div>');
   return o + '<div class="acts" style="margin-top:16px"><button class="btn ghost" data-act="tomenu">Guardar y salir al menú</button></div>';
@@ -307,7 +325,7 @@ function showPicker(from, to) {
   let h = '<div class="yr">DESDE ' + D.CITIES[from].n.toUpperCase() + ' · ' + months(G.travel(from, to, false)).toUpperCase() + '</div><h2>' + (own ? 'Reforzar ' : 'Atacar ') + D.CITIES[to].n + '</h2>';
   if (!ks.length && !hero) h += '<p>No hay tropas en ' + D.CITIES[from].n + '. Recluta en la pestaña Ejército.</p>';
   h += ks.map(k => '<div class="pick"><div class="pt">' + pt(k) + '</div><div><label><span>' + D.UNITS[k].n + '</span><span><b id="pv-' + k + '">' + c.units[k] + '</b> / ' + c.units[k] + '</span></label><input type="range" min="0" max="' + c.units[k] + '" value="' + c.units[k] + '" data-k="' + k + '"></div></div>').join('');
-  if (hero) h += '<label class="chk"><input type="checkbox" id="pk-hero" checked> 🦅 El general acompaña al ejército</label>';
+  if (hero) h += '<label class="chk"><input type="checkbox" id="pk-hero" checked> ' + D.GUERRA_ICON.aguila + ' El general acompaña al ejército</label>';
   if (!own) h += '<div class="pw">Fuerza enemiga: ' + G.power(s.cities[to].units) + ' · muralla nivel ' + (s.cities[to].b.muralla || 0) + '<br>Tu fuerza: <b id="pk-pw"></b></div>';
   h += '<div class="acts"><button class="btn ghost" data-act="close">Cancelar</button>' + (ks.length || hero ? '<button class="btn" data-act="send" data-from="' + from + '" data-to="' + to + '">' + (own ? 'Enviar' : '¡A las armas!') + '</button>' : '') + '</div>';
   modal(h); pickUpdate();
@@ -327,7 +345,7 @@ function battlePrompt() {
   modal('<div class="yr">' + G.yearOf(S().t) + ' A.C.</div><h2>' + (info.kind === 'attack' ? 'Asalto a ' : 'Defensa de ') + d.n + '</h2>' +
     '<div class="vs">' + sideHtml(info.cfg.sides[0]) + sideHtml(info.cfg.sides[1]) + '</div>' +
     '<div class="pw">Fuerza: ' + G.power(info.cfg.sides[0].units) + ' contra ' + G.power(info.cfg.sides[1].units) + ' · Muralla del defensor: nivel ' + info.cfg.wall + '</div>' +
-    '<div class="acts"><button class="btn" data-act="bview">⚔️ Dirigir la batalla</button><button class="btn ghost" data-act="bquick">Resolver</button></div>', true);
+    '<div class="acts"><button class="btn" data-act="bview">' + D.GUERRA_ICON.espadas + ' Dirigir la batalla</button><button class="btn ghost" data-act="bquick">Resolver</button></div>', true);
 }
 function startBattle() {
   closeModal();

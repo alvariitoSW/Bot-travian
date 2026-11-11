@@ -210,6 +210,16 @@
       "tarea": "E1c",
       "archivo": "gobierno/capturas-tarea/E1c-marcos.jpg",
       "pie": "Marcos con doble filete, greca y esquinas de 8 px"
+    },
+    {
+      "tarea": "E1c",
+      "archivo": "gobierno/capturas-tarea/E1c-iconos.jpg",
+      "pie": "Iconos de línea: pestañas, espadas, escudo y águila"
+    },
+    {
+      "tarea": "E1c",
+      "archivo": "gobierno/capturas-tarea/E1c-edificios.jpg",
+      "pie": "Iconos de edificios en la lista de ciudad"
     }
   ],
   "informes": [
