@@ -107,6 +107,9 @@ function effect(b, L) {
   if (b === 'almacen') return 'Cap. ' + fmt(600 * Math.pow(1.45, L));
   if (b === 'muralla') return '+' + L * 10 + ' % def.';
   if (b === 'templo') return '+' + L * 10 + ' % exp.';
+  if (b === 'acueducto') return '+' + L * 40 + ' población máx.';
+  if (b === 'termas') return '+' + L * 4 + ' felicidad · +' + L * 15 + ' pob.';
+  if (b === 'anfiteatro') return '+' + L * 6 + ' felicidad';
   return 'Nv ' + L;
 }
 function buildCard(c, b) {

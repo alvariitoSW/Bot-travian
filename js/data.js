@@ -23,6 +23,9 @@
     establo: { n: 'Establo', i: '🐎', cost: { madera: 110, piedra: 60, hierro: 80, grano: 70 }, time: 3, d: 'Recluta caballería (Équites).' },
     muralla: { n: 'Muralla', i: '🧱', cost: { madera: 40, piedra: 120, hierro: 30, grano: 20 }, time: 3, d: '+10 % de defensa por nivel y más vigiles al defender.' },
     herreria: { n: 'Herrería', i: '🔨', cost: { madera: 70, piedra: 60, hierro: 90, grano: 30, oro: 30 }, time: 2.5, d: 'Forja mejoras de armas y armaduras para todo el ejército. Cada mejora no puede pasar del nivel de la herrería.' },
+    acueducto: { n: 'Acueducto', i: '🌉', cost: { madera: 90, piedra: 160, hierro: 50, grano: 50, oro: 60 }, time: 3.5, d: 'Trae agua a la ciudad: +40 de población máxima por nivel.' },
+    termas: { n: 'Termas', i: '♨️', cost: { madera: 100, piedra: 140, hierro: 40, grano: 60, oro: 80 }, time: 3.5, d: 'Baños públicos: +4 de felicidad y +15 de población máxima por nivel.' },
+    anfiteatro: { n: 'Anfiteatro', i: '🏟️', cost: { madera: 130, piedra: 180, hierro: 60, grano: 80, oro: 100 }, time: 4, d: 'Juegos y espectáculos: +6 de felicidad por nivel.' },
     templo: { n: 'Templo de Marte', i: '🔥', cost: { madera: 80, piedra: 100, hierro: 30, grano: 60, oro: 50 }, time: 3, d: '+10 % de experiencia del héroe y +3 de moral al defender, por nivel.' }
   };
   D.MAX_LVL = 10;
@@ -30,7 +33,8 @@
   /* Impuestos: oro x mult, felicidad +/- f. Edificios que suben la felicidad: puntos por nivel (aquí se añaden termas, anfiteatro…). */
   D.IMPUESTOS = { bajo: { n: 'Impuestos bajos', mult: 0.7, f: 15 }, normal: { n: 'Impuestos normales', mult: 1, f: 0 }, alto: { n: 'Impuestos altos', mult: 1.4, f: -25 } };
   D.FELICIDAD_BASE = 60; D.FELICIDAD_MIN_CRECER = 40;
-  D.FELICIDAD_EDIF = { templo: 3 };
+  D.FELICIDAD_EDIF = { templo: 3, termas: 4, anfiteatro: 6 };
+  D.POP_EDIF = { viviendas: 130, foro: 30, acueducto: 40, termas: 15 };   // población máxima por nivel de cada edificio
   D.FORJA_MAX = 5; D.FORJA_BONO = 0.05;
   D.FORJA = {
     armas: { n: 'Armas', i: '🗡️', ef: 'ataque', cost: { hierro: 120, madera: 40, oro: 50 }, time: 3 },
