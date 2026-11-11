@@ -1,14 +1,17 @@
 /* AQVILA — registro de piezas: una ficha por cada pieza de js/data.js, con su arte y su fuente histórica.
    Los NÚMEROS (costes, ataque, tiempos…) NO están aquí: siguen en data.js. La ficha se casa con la pieza por id.
    El juez (node gobierno/fichas.mjs) comprueba que no sobre ni falte ninguna ficha y que los archivos de arte existan.
-   La historia viene de gobierno/historia/ (auditoría H1, PROVISIONAL: nada está cotejado con el texto antiguo todavía).
-   dictamen: 'historico' (cotejado con el pasaje) | 'licencia de juego' (inventado o cambiado para poder jugar) | 'por cotejar'. */
+   La historia viene de gobierno/historia/ (auditoría H1, cotejada el 11/11/2026 con Perseus, LacusCurtius y Livius.org).
+   dictamen: 'historico' (cotejado con el pasaje) | 'probable' (reconstrucción razonada) | 'licencia de juego' (inventado o cambiado
+   para poder jugar) | 'por cotejar' (nadie lo ha cotejado todavía; nada inventado).
+   UNA SOLA FUENTE (P55): el texto que lee el jugador en el Códice vive aquí, en historia.texto (tropas, ciudades y hechos).
+   js/codice.js no guarda textos: los lee de este registro. Una ficha con texto no puede quedar «por cotejar» (lo vigila el juez). */
 (function (root) {
   const R = {};
   const CC = 'CC BY-SA 3.0', WG = 'Wildfire Games (0 A.D.)';
   const est = (m, extra) => Object.assign({ modelo: 'assets/static/' + m + '.bin', licencia: CC, credito: WG }, extra || {});   // edificio real de 0 A.D.
   const uni = (m, extra) => Object.assign({ modelo: 'assets/units/' + m + '.bin', licencia: CC, credito: WG }, extra || {});   // tropa real de 0 A.D.
-  const h = (fuente, dictamen, nota) => Object.assign({ fuente, dictamen: dictamen || 'por cotejar' }, nota ? { nota } : {});
+  const h = (fuente, dictamen, nota, texto) => Object.assign({ fuente, dictamen: dictamen || 'por cotejar' }, nota ? { nota } : {}, texto ? { texto } : {});   // texto: lo que lee el jugador en el Códice
   const f = (arte, historia) => ({ arte, historia });
   const SIN_H = h('', 'por cotejar');   // la auditoría H1 no dice nada de esta pieza
 
@@ -28,96 +31,96 @@
 
   // ---- Tropas (D.UNITS). Modelo: assets/units/<id>.bin (el índice es el id). Fuente: H1-tropas.md ----
   const tropa = {
-    hastati: f(uni('hastati'), h('Polibio 6.21 y 6.23; Livio 8.8; Connolly 1998; Goldsworthy 2000')),
-    velites: f(uni('velites'), h('Polibio 6.21.7 y 6.22; Livio 26.4; Keppie 1984', 'licencia de juego', 'Livio 26.4 los fecha en 211 a.C.; en 280 es dudoso')),
-    principes: f(uni('principes'), h('Polibio 6.21 y 6.23; Livio 8.8')),
-    triarii: f(uni('triarii'), h('Polibio 6.23; Livio 8.8')),
-    equites: f(uni('equites'), h('Polibio 6.20.9 y 6.25')),
-    vigiles: f(uni('vigiles', { provisional: true, nota: 'la tropa es un anacronismo; el modelo es un jabalinero romano' }), h('Suetonio, Augusto 25.2; Dion Casio 55.26', 'por cotejar', 'anacronismo: los vigiles son de Augusto (6 d.C.)')),
-    milicia: f(uni('milicia'), h('Sin fuente específica; Connolly 1998', 'licencia de juego', 'leva ciudadana genérica')),
-    hoplitas: f(uni('hoplitas'), h('Polibio 11.9; Plutarco, Filopemén 9; Sekunda 1996')),
-    falange: f(uni('falange'), h('Plutarco, Pirro 15-17; Polibio 18.28-32; Livio 38.4-9 y 44.41')),
-    peltastas: f(uni('peltastas'), h('Livio 44.41; Sekunda 1996', 'licencia de juego', 'infantería ligera griega genérica')),
-    honderos: f(uni('honderos'), h('Diodoro 5.18; Livio 28.37')),
-    libios: f(uni('libios'), h('Polibio 3.87.3, 3.114 y 6.52')),
-    iberos: f(uni('iberos'), h('Polibio 3.114; Quesada Sanz 1997')),
-    galos: f(uni('galos'), h('Polibio 2.28-30; Plutarco, Marcelo 6-7')),
-    sagrada: f(uni('sagrada'), h('Diodoro 16.80.4 y 20.12.3; Apiano, Libyca 93', 'por cotejar', 'anacronismo: el Batallón Sagrado desaparece de las fuentes tras 310 a.C.')),
-    jinetes: f(uni('jinetes'), h('Criterio general', 'licencia de juego', 'caballería local genérica')),
-    numidas: f(uni('numidas'), h('Livio 21.46 y 35.11.7; Polibio 3.65')),
-    tesalios: f(uni('tesalios'), h('Plutarco, Pirro 16; Livio 42.58', 'por cotejar', 'en Pidna (168) los tesalios luchaban del lado romano')),
-    elefantes: f(uni('elefantes', { provisional: true, nota: 'un solo modelo cartaginés; no encaja para los elefantes asiáticos de Pirro' }), h('Plutarco, Pirro 15-17; Polibio 1.40 y 5.84; Scullard 1974')),
-    general: f(uni('general', { provisional: true, nota: 'modelo único de Escipión para todos los generales' }), h('', 'licencia de juego', 'cada bando tuvo generales distintos'))
+    hastati: f(uni('hastati'), h('Polibio 6.21-23', 'historico', null, 'Era la primera línea de la legión. Según Polibio, llevaban escudo grande, espada corta de estilo hispano, dos jabalinas, casco de bronce con tres plumas y grebas. Los ricos vestían cota de malla.')),
+    velites: f(uni('velites'), h('Polibio 6.21-22; Livio 26.4; Livio 8.8', 'probable', 'Livio 26.4 ya los nombra en 211 a.C.; en 280 es probable, no seguro', 'Infantes ligeros: los más jóvenes y pobres, con espada, jabalinas y escudo redondo. Polibio los describe, y Livio ya los nombra en 211. En 340 todavía no existían, así que en 280 es probable, no seguro.')),
+    principes: f(uni('principes'), h('Polibio 6.21; Polibio 6.23', 'historico', null, 'Hombres en plena edad, segunda línea de la legión. Según Polibio llevaban el mismo equipo que los hastati. Solo los triarios cambiaban las jabalinas pesadas por lanzas largas.')),
+    triarii: f(uni('triarii'), h('Polibio 6.21-23; Livio 8.8', 'historico', null, 'Los veteranos, al fondo, con lanza larga en vez de jabalinas. Según Polibio eran 600 por legión. Livio cuenta que esperaban de rodillas; de ahí el dicho «la cosa ha llegado a los triarios».')),
+    equites: f(uni('equites'), h('Polibio 6.20; Polibio 6.25; Livio 8.8', 'historico', null, 'La caballería romana, formada por ciudadanos acomodados. Según Polibio, eran 300 por legión. Antes iban sin coraza y con escudo de cuero; luego adoptaron armas a la griega y una lanza con contera.')),
+    vigiles: f(uni('vigiles', { provisional: true, nota: 'la tropa es un anacronismo; el modelo es un jabalinero romano' }), h('Regla de juego: guardia genérica; los Vigiles son de Augusto (Dión Casio 55.26; Suetonio, Augusto 30; Livio 39.14)', 'licencia de juego', 'renombrada «Guardia urbana» (H5): los Vigiles de verdad son de Augusto (Dión 55.26; Suetonio, Augusto 30); aquí es una guardia genérica', 'En el juego es una tropa de vigilancia de la ciudad. Los Vigiles de verdad son de Augusto, siglos después. En la República, de noche vigilaban unos magistrados con ayudantes, según Livio.')),
+    milicia: f(uni('milicia'), h('Regla de juego: leva genérica, no es una tropa de las fuentes', 'licencia de juego', 'leva ciudadana genérica', 'Ciudadanos armados deprisa. Las fuentes cuentan que las ciudades armaban a su gente en apuros, pero no describen una tropa así. Es una pieza del juego para tener un soldado barato.')),
+    hoplitas: f(uni('hoplitas'), h('Las fuentes abiertas no la describen con detalle; ver Plutarco, Filopemén 9 (reforma aquea de las armas)', 'probable', 'las fuentes cotejadas no los detallan para esta época: reconstrucción razonada', 'El infante griego clásico, con lanza, escudo redondo y casco. Las fuentes que hemos cotejado no lo detallan para esta época, así que la ficha es una reconstrucción razonable, no un dato cerrado.')),
+    falange: f(uni('falange'), h('Polibio 18.29; Plutarco, Pirro 15.1', 'historico', null, 'Masa de infantes con lanza larguísima, la sarisa. Según Polibio, la sarisa se diseñaba de 16 codos y en la práctica medía 14. Pirro pasó a Italia con 20.000 infantes, según Plutarco.')),
+    peltastas: f(uni('peltastas'), h('Livio 44.41', 'probable', 'Livio no usa la palabra «peltastas» (caetrati y chalcaspides, 44.41); el nombre es del juego', 'Infantería ligera griega con escudo pequeño. Livio habla de «caetrati» y «chalcaspides» en la Macedonia de Pidna, pero no usa la palabra peltastas. El nombre del juego es una etiqueta cómoda.')),
+    honderos: f(uni('honderos'), h('Diodoro 5.18; Livio 28.37', 'historico', null, 'Famosos por la honda. Según Diodoro, llevaban tres: una en la cabeza, otra en el vientre y otra en la mano, y tiraban piedras grandes. Livio dice que la honda era su única arma.')),
+    libios: f(uni('libios'), h('Polibio 3.87; Polibio 3.114', 'historico', null, 'Tras Trasimeno, Aníbal cambió sus armas por las romanas capturadas, según Polibio. En Cannas formaban con armadura romana. Era la infantería pesada y de confianza de su ejército.')),
+    iberos: f(uni('iberos'), h('Polibio 3.114', 'historico', null, 'Según Polibio, en Cannas vestían túnicas de lino con borde púrpura, un color que se veía de lejos. Cartago los reclutaba como mercenarios en Hispania, y en el juego también defienden Sagunto.')),
+    galos: f(uni('galos'), h('Polibio 2.28-30', 'historico', null, 'Según Polibio, algunos luchaban con calzas y capa y los gesatos, desnudos, por bravura. Los romanos los temían desde el saqueo de Roma. Fueron aniquilados en Telamón en 225.')),
+    sagrada: f(uni('sagrada'), h('Polibio 1.73-75; Polibio 15.11; Polibio 6.52; Diodoro 20.10-12', 'historico', 'renombrada «Ciudadanos de Cartago» (H5): el Batallón Sagrado no aparece en las fuentes tras 310 a.C. (Diodoro 20.10-12)', 'Cartago solía confiar la infantería a mercenarios, pero en las crisis armaba a sus ciudadanos, según Polibio. El Batallón Sagrado, unidad de élite, no aparece después de 310 a.C., según Diodoro.')),
+    jinetes: f(uni('jinetes'), h('Regla de juego: caballería genérica, no es una tropa de las fuentes', 'licencia de juego', 'caballería local genérica', 'Una caballería genérica para que todas las facciones tengan jinetes. Las fuentes describen caballerías concretas, como los équites o los númidas, pero no esta pieza.')),
+    numidas: f(uni('numidas'), h('Livio 35.11; Polibio 3.65; Polibio 15.5', 'historico', null, 'Jinetes ligeros con jabalinas. Según Livio, montaban sin bridas. Aparecen en las alas del ejército de Aníbal, según Polibio. En Zama, Masinisa aportó unos 4.000, según Polibio.')),
+    tesalios: f(uni('tesalios'), h('Plutarco, Pirro 17.3; Livio 42.58', 'historico', 'en Pidna (168) no consta; sí con Pirro en Heraclea, 280 (Plutarco, Pirro 17.3). Livio 42.58 es de 171', 'Famosa en Grecia. Según Plutarco, los jinetes tesalios cargaron contra Levino en Heraclea (280). Livio da 400 tesalios con los romanos en 171, no en Pidna.')),
+    elefantes: f(uni('elefantes', { provisional: true, nota: 'un solo modelo cartaginés; no encaja para los elefantes asiáticos de Pirro' }), h('Plutarco, Pirro 15.1; Polibio 1.40; Polibio 5.84', 'historico', null, 'Pirro trajo 20 a Italia, según Plutarco. En Panormus los de Asdrúbal fueron derrotados, según Polibio. Asustaban al enemigo, pero también podían volverse contra los suyos.')),
+    general: f(uni('general', { provisional: true, nota: 'modelo único de Escipión para todos los generales' }), h('Regla de juego: el general es una pieza propia del juego', 'licencia de juego', 'cada bando tuvo generales distintos', 'El jefe del ejército, un personaje de juego que mejora tus tropas. Representa a los grandes mandos de la época, pero no es un cargo concreto de las fuentes.'))
   };
 
   // ---- Ciudades (D.CITIES). Sin modelo propio: todas usan la escena común de city3d.js. Fuente: H1-ciudades.md ----
   const SIN_C = { sin: 'sin modelo propio: usa la escena común de la ciudad (city3d.js)' };
   const ciudad = {
-    roma: f(SIN_C, h('Livio, Per. 12-13; Polibio 6.21-24')),
-    volsinii: f(SIN_C, h('Livio, Per. 16; Fasti Triumphales, año 280; Floro 1.21')),
-    capua: f(SIN_C, h('Livio 8.14 y 9.20; Livio 23.2-10 y 26.14-16', 'por cotejar', 'anacronismo: en 280 Capua era súbdita de Roma, no independiente')),
-    tarentum: f(SIN_C, h('Plutarco, Pirro 15; Estrabón 6.3.2-3; Livio, Per. 14', 'por cotejar', 'dueño Epiro desde 280 y general Pirro «hasta 272»: licencia de juego')),
-    mediolanum: f(SIN_C, h('Livio 5.34; Polibio 2.17 y 2.34; Livio, Per. 20; Plutarco, Marcelo 7')),
-    messana: f(SIN_C, h('Polibio 1.7-11; Diodoro 21.18; Tucídides 6.4')),
-    syracusae: f(SIN_C, h('Diodoro 22.7-8; Plutarco, Pirro 22-23; Polibio 1.8-9 y 8.3-7; Livio 24.34 y 25.23-31; Cicerón, Verr. 4.117', 'por cotejar', 'dueño «Siracusa» estable en 280: licencia de juego')),
-    agrigentum: f(SIN_C, h('Diodoro 22.2 y 23.8; Plutarco, Pirro 22-23; Polibio 1.17-19', 'por cotejar', 'anacronismo: en 280 era la griega Akragas, no cartaginesa')),
-    panormus: f(SIN_C, h('Polibio 1.38-40; Diodoro 22.10 y 23.18-21')),
-    lilybaeum: f(SIN_C, h('Diodoro 14.48 y 14.53; Plutarco, Pirro 22; Polibio 1.41-48 y 1.67')),
-    carales: f(SIN_C, h('Polibio 1.88 y 3.10; Livio, Per. 20')),
-    emporion: f(SIN_C, h('Estrabón 3.4.8; Livio 21.60 y 34.9; Polibio 3.76')),
-    saguntum: f(SIN_C, h('Livio 21.7 y 21.15; Polibio 3.15-17 y 3.30; Estrabón 3.4.6')),
-    carthagonova: f(SIN_C, h('Polibio 2.13 y 10.8-20; Diodoro 25.12; Livio 26.42-46', 'por cotejar', 'anacronismo: no existía en 280 a.C. (fundada hacia 228)')),
-    ambracia: f(SIN_C, h('Estrabón 7.7.6; Plutarco, Pirro 9; Polibio 21.26-30; Livio 38.4-9')),
-    pella: f(SIN_C, h('Justino 24.5 y 25.1-2; Pausanias 10.19.7; Livio 44.40-42 y 45.29')),
-    corinthus: f(SIN_C, h('Polibio 2.41 y 2.43; Plutarco, Arato 16-24; Livio, Per. 52; Estrabón 8.6.23', 'por cotejar', 'anacronismo: en 280 no era de la Liga Aquea')),
-    carthago: f(SIN_C, h('Diodoro 16.80 y 20.10; Polibio 3.25 y 36.9; Apiano, Lib. 93-135; Livio, Per. 13; Justino 18.2; Plutarco, Catón 27', 'por cotejar', 'el general «Asdrúbal el Beotarca» es de 149-146, no de 280'))
+    roma: f(SIN_C, h('Polibio 6.21-26; Plutarco, Pirro 15', 'historico', null, 'En 280 ya manda en Italia central. Su legión se organiza en manípulos por edad y riqueza, según Polibio. Ese año llega Pirro de Epiro, y empieza una guerra que cambiará su suerte.')),
+    volsinii: f(SIN_C, h('Las fuentes abiertas no la describen; Períocas de Livio 16 y Floro 1.21 sin cotejar', 'probable', 'Períocas 16 y Floro 1.21 sin cotejar', 'Ciudad etrusca. Las fuentes que hemos podido cotejar no la describen. Se sabe por tradición que Roma acabó tomándola en 264, pero ese dato no está comprobado aquí.')),
+    capua: f(SIN_C, h('Livio 8.14; Livio 23.2-7', 'historico', 'en 280 es aliada de Roma (derechos desde 338, Livio 8.14); pasa a Aníbal tras Cannas (Livio 23.7)', 'Recibió derechos de ciudadano romano en 338, según Livio. Tras Cannas se pasó a Aníbal, que le dejó sus magistrados y leyes. Roma la recuperó después.')),
+    tarentum: f(SIN_C, h('Livio, Períocas 14.9-10', 'historico', 'dueño Epiro desde 280 y general Pirro «hasta 272»: licencia de juego', 'Colonia griega del sur de Italia que llamó a Pirro. Según las Períocas de Livio, una flota cartaginesa la ayudó en 272, y ese año acabó sometida a Roma.')),
+    mediolanum: f(SIN_C, h('Polibio 2.17; Polibio 2.34', 'historico', null, 'Capital de los ínsubres, según Polibio la mayor tribu gala del valle del Po. Los cónsules Marco Claudio y Cneo Cornelio la tomaron, y el año 222 se deduce de los cónsules.')),
+    messana: f(SIN_C, h('Polibio 1.7-11; Diodoro 21.18', 'historico', null, 'Campanos al servicio de Agatocles la tomaron por traición, según Polibio, y se llamaron mamertinos. En 264 pidieron ayuda a Cartago y a Roma, y de ahí salió la Primera Guerra Púnica.')),
+    syracusae: f(SIN_C, h('Diodoro 22.2; Plutarco, Marcelo 15-19; Polibio 8.7-8', 'historico', 'dueño «Siracusa» estable en 280: licencia de juego (Diodoro 22.2 habla de tiranos rivales)', 'La gran ciudad griega de Sicilia. En 280 no había un estado único: según Diodoro, mandaban tiranos rivales. En 212 la tomó Marcelo, tras un largo asedio frenado por las máquinas de Arquímedes.')),
+    agrigentum: f(SIN_C, h('Diodoro 22.8; Diodoro 22.10; Polibio 1.17-19', 'historico', 'en 280 es la griega Akragas (corregido en H7); en el juego pasa a Cartago en 264 (Polibio 1.17 la da como base en 262): licencia de juego', 'Griega, no cartaginesa, en 280. Según Diodoro, la entregó a Pirro Sosístrato, que la dominaba. En 262 Cartago la hizo su base, según Polibio, y Roma la tomó.')),
+    panormus: f(SIN_C, h('Polibio 1.38; Polibio 1.40', 'historico', null, 'Ciudad cartaginesa de Sicilia. Roma la tomó en la Primera Guerra Púnica, y junto a ella Asdrúbal fue derrotado y perdió sus elefantes, según Polibio.')),
+    lilybaeum: f(SIN_C, h('Diodoro 22.10; Polibio 1.41-48', 'historico', 'la frase sobre el asedio romano (Polibio 1.41-48) está sin cotejar', 'Fortaleza cartaginesa en el extremo oeste de Sicilia. Según Diodoro, Pirro la asedió unos dos meses y desistió. Los romanos la sitiaron años más tarde.')),
+    carales: f(SIN_C, h('Polibio 1.88.12; Polibio 3.10.3', 'historico', null, 'Principal puerto púnico de Cerdeña. Según Polibio, Cartago cedió la isla a Roma, hacia 238, tras la guerra de los mercenarios. El año se saca del contexto, no del pasaje.')),
+    emporion: f(SIN_C, h('Livio 21.60 y Estrabón 3.4.8, sin cotejar', 'probable', 'Livio 21.60 y Estrabón 3.4.8 sin cotejar', 'Colonia griega en la costa de Hispania. Según la tradición, Cneo Escipión desembarcó allí en 218. Esos datos no se han podido cotejar con el texto antiguo, de modo que quedan como probables.')),
+    saguntum: f(SIN_C, h('Livio 21.7-15 y Polibio 3.15-17, sin cotejar', 'probable', 'Livio 21.7-15 y Polibio 3.15-17 sin cotejar', 'Ciudad de Hispania cuyo asedio por Aníbal desencadenó la Segunda Guerra Púnica, según la tradición. No hemos podido cotejar los pasajes, así que esta ficha es floja.')),
+    carthagonova: f(SIN_C, h('Polibio 2.13; Diodoro 25.12', 'probable', 'en 280 es un poblado íbero (probable); Asdrúbal la funda hacia 228, año moderno (Polibio 2.13, sin año)', 'No existía como ciudad cartaginesa en 280. Asdrúbal la fortificó y la llamó Ciudad Nueva, según Polibio. Las fuentes no dan el año; «hacia 228» es fecha moderna. Qué había antes, es probable, no seguro.')),
+    ambracia: f(SIN_C, h('Livio 38.4-5', 'historico', null, 'Fue sede real de Pirro, según la tradición. En 189, según Livio, la defendían los etolios, que enviaron 500 hombres en su ayuda, y no el ejército epirota.')),
+    pella: f(SIN_C, h('Las fuentes abiertas no la describen; Livio 45.29 sobre las cuatro repúblicas', 'probable', 'ninguna fuente cotejada la describe; Livio 45.29 sobre las cuatro repúblicas', 'Capital de Macedonia. Las fuentes que hemos podido cotejar no la describen. La tradición dice que el reino cayó tras Pidna, en 168, y que Macedonia se dividió en cuatro repúblicas.')),
+    corinthus: f(SIN_C, h('Polibio 2.41; Polibio 2.43; Plutarco, Arato 16-24; Livio, Períocas 52', 'probable', 'guarnición macedonia en 280: probable (consta solo cuando Arato la toma, 243)', 'Según Polibio, Corinto no era aquea al principio: Arato tomó la ciudadela a la guarnición macedonia y la incorporó a la Liga. Que ya hubiera guarnición en 280 es probable. Mumio la saqueó en 146.')),
+    carthago: f(SIN_C, h('Apiano, Libyca 127-132; Livio, Períocas 51', 'historico', 'sin general con nombre en 280 (H6); «Asdrúbal el Beotarca» es de 149-146', 'Gran potencia del mar. En 146 cayó ante Escipión Emiliano tras seis días de lucha en las calles, según Apiano. Éste cuenta que salieron 50.000 personas bajo garantía; la ciudad había durado unos 700 años.'))
   };
 
   // ---- Hechos (D.EVENTS). D.EVENTS es una lista sin id. El id de la ficha es «<año>-<clave>» y se casa por el AÑO (cada año sale una sola vez).
   //      Si data.js añade un hecho, hay que añadir su ficha con el mismo año; el juez dice cuál falta. R.de('hecho', 277) también vale. ----
   const SIN_E = { sin: 'un hecho no tiene modelo 3D' };
   const hecho = {
-    '280-fundacion': f(SIN_E, h('Plutarco, Pirro 15; Polibio 1.1-3 y 2.14-21')),
-    '277-pirro': f(SIN_E, h('Plutarco, Pirro 17 y 21; Plinio, Hist. Nat. 8.16; Varrón, De ling. lat. 7.39', 'por cotejar', 'fecha errónea: Pirro marcha sobre Roma en 280, no en 277')),
-    '272-tarento': f(SIN_E, h('Polibio 2.21-35')),
-    '264-primera-punica': f(SIN_E, h('Polibio 1.11 y 1.63.4', 'por cotejar', 'los ataques cartagineses a tus ciudades son licencia de juego')),
-    '260-milas': f(SIN_E, h('Polibio 1.22-23', 'por cotejar', 'Polibio no dice que Duilio inventara el corvus')),
-    '241-egadas': f(SIN_E, h('Polibio 1.62-63')),
-    '225-telamon': f(SIN_E, h('Polibio 2.23-24 y 2.27-31; Diodoro 25.13')),
-    '218-anibal': f(SIN_E, h('Polibio 3.64-65 y 3.70-74; Cicerón, Filípica 1.11', 'por cotejar', '«Aníbal ad portas» es una frase de época posterior')),
-    '216-cannas': f(SIN_E, h('Polibio 3.115-118; Livio 22.46-49, 22.54 y 23.2-10', 'por cotejar', 'bajas: Polibio y Livio no coinciden; decir «según»')),
-    '214-filipo': f(SIN_E, h('Polibio 7.9; Livio 23.33-39, 24.40 y 26.24', 'por cotejar', 'Filipo nunca llegó a Italia: su ataque a ciudades romanas es licencia de juego')),
-    '212-siracusa': f(SIN_E, h('Polibio 8.5-7; Plutarco, Marcelo 15-19; Livio 25.31; Valerio Máximo 8.7 ext. 7', 'por cotejar', 'la frase sobre los círculos es una paráfrasis tardía')),
-    '209-cartagonova': f(SIN_E, h('Livio 26.18-19 y 26.45; Polibio 10.8 y 10.14')),
-    '202-zama': f(SIN_E, h('Polibio 15.5-14; Livio 30.33')),
-    '197-cinoscefalas': f(SIN_E, h('Polibio 18.18-32; Livio 33.7-10')),
-    '168-pidna': f(SIN_E, h('Livio 45.29; Plutarco, Emilio Paulo 34')),
-    '149-delenda': f(SIN_E, h('Plinio, Hist. Nat. 15.74; Floro 1.31; Polibio 36.1-9; Apiano, Líbica 69 y 74-135', 'por cotejar', 'la frase literal «Carthago delenda est» es una redacción tardía')),
-    '275-benevento': f(SIN_E, h('Plutarco, Pirro 25-26; Livio, Períocas 14.3')),
-    '243-arato': f(SIN_E, h('Polibio 2.43; Plutarco, Arato 16-24', 'por cotejar', 'el año 243 se deduce de Polibio')),
-    '228-cartagonova': f(SIN_E, h('Polibio 2.13; Diodoro 25.12', 'por cotejar', 'probable: ninguna fuente da el año; 228 es la fecha de los historiadores modernos')),
-    '217-trasimeno': f(SIN_E, h('Polibio 3.83-85; Livio 22.4-7')),
-    '207-metauro': f(SIN_E, h('Polibio 11.1-3; Livio 27.47-49', 'por cotejar', 'cifras: Polibio y Livio no coinciden; decir «según»')),
-    '206-ilipa': f(SIN_E, h('Polibio 11.20-24; Livio 28.12-15', 'por cotejar', 'cifras: Polibio y Livio no coinciden; decir «según»')),
-    '190-magnesia': f(SIN_E, h('Livio 37.37-44; Apiano, Siria 30-36')),
-    '146-corinto-cartago': f(SIN_E, h('Pausanias 7.16; Livio, Períocas 51-52; Apiano, Libyca 127-132'))
+    '280-fundacion': f(SIN_E, h('Plutarco, Pirro 15', 'historico', null, 'El año 280 a.C. era el 474 de Roma contando desde su fundación. Pirro llegó con unos 25.500 hombres y 20 elefantes, según Plutarco; una tormenta dispersó parte de la flota.')),
+    '277-pirro': f(SIN_E, h('Plutarco, Pirro 17 y 21; Apiano, Samn. 10; Livio, Períocas 12-13', 'historico', 'la marcha sobre Roma fue en 280, tras Heraclea; en el juego el ataque llega en 277: licencia de juego', 'El avance fue en 280, tras Heraclea. Según Plutarco, Pirro llegó a unos 300 estadios de Roma, unos 55 km. Ásculo le costó tanto que habría dicho que otra victoria igual lo hundiría.')),
+    '272-tarento': f(SIN_E, h('Livio, Períocas 14.10 y 15.1; Plutarco, Pirro 34', 'historico', null, 'Una flota cartaginesa ayudó a Tarento en 272, según las Períocas de Livio, y luego la ciudad fue sometida. Pirro murió en Argos, según Plutarco.')),
+    '264-primera-punica': f(SIN_E, h('Polibio 1.10-11; Polibio 1.63', 'historico', 'los ataques cartagineses a tus ciudades son licencia de juego', 'Los mamertinos pidieron ayuda a Cartago y a Roma. Según Polibio, no decidió el Senado: votó el pueblo, y se envió al cónsul Apio Claudio. La guerra duró 24 años seguidos.')),
+    '260-milas': f(SIN_E, h('Polibio 1.20-23', 'historico', 'Polibio 1.22: «alguien les sugirió» el corvus; no nombra a Duilio', 'Roma copió una nave cartaginesa varada para hacer su flota, según Polibio. Alguien sugirió el corvus, una pasarela de abordaje, sin nombre. En Milas los cartagineses perdieron 50 de 130 naves.')),
+    '241-egadas': f(SIN_E, h('Polibio 1.61-63', 'historico', null, 'La flota romana hundió 50 naves cartaginesas y apresó 70, según Polibio. Cartago pagó 2.200 talentos, y Roma subió 1.000 y redujo el plazo, para un total de 3.200.')),
+    '225-telamon': f(SIN_E, h('Polibio 2.22-31', 'historico', null, 'Ínsubres, boyos y gesatos bajaron con unos 70.000 hombres, según Polibio. Roma movilizó a toda Italia. Murieron 40.000 galos y 10.000 fueron presos; cayó también el cónsul Régulo.')),
+    '218-anibal': f(SIN_E, h('Polibio 3.56; Polibio 3.74', 'historico', '«Aníbal ad portas» es una frase de época posterior', 'Según Polibio, Aníbal pasó con 20.000 infantes y 6.000 jinetes. Tras el Trebia, casi todos sus elefantes murieron por la nieve y la lluvia, salvo uno.')),
+    '216-cannas': f(SIN_E, h('Polibio 3.107-117; Livio 22.49; Livio 23.7', 'historico', 'bajas: Polibio y Livio no coinciden; se dice «según»', 'Aníbal envolvió a ocho legiones. Según Polibio murieron unos 70.000 romanos; según Livio, 48.200. Capua se pasó a Aníbal, pero Roma no negoció.')),
+    '214-filipo': f(SIN_E, h('Polibio 7.9; Livio 24.40', 'historico', 'Filipo nunca llegó a Italia: su ataque a ciudades romanas es licencia de juego', 'Filipo V pactó con Aníbal, y Polibio conserva el texto del tratado. Según Livio, atacó por Iliria en el verano de 214.')),
+    '212-siracusa': f(SIN_E, h('Plutarco, Marcelo 15 y 19; Livio 25.31; Polibio 8.7-8', 'historico', 'la frase sobre los círculos no está en Livio ni en Plutarco', 'Marcelo tomó Siracusa tras un asedio de más de dos años. Un soldado mató a Arquímedes. La frase «no molestes a mis círculos» no está ni en Livio ni en Plutarco.')),
+    '209-cartagonova': f(SIN_E, h('Polibio 10.8-14; Livio 26.44-46', 'historico', null, 'Escipión la tomó en un solo asalto, aprovechando el reflujo, según Polibio. El defensor Magón tenía 1.000 soldados y armó a unos 2.000 ciudadanos.')),
+    '202-zama': f(SIN_E, h('Polibio 15.5; Polibio 15.9-11; Livio 30.33', 'historico', null, 'Los cartagineses tenían más de 80 elefantes, según Polibio. Escipión dejó pasillos entre sus manípulos, y Masinisa aportó unos 4.000 jinetes númidas.')),
+    '197-cinoscefalas': f(SIN_E, h('Polibio 18.26; Livio 33.10', 'historico', null, 'En terreno quebrado, un tribuno con unos veinte manípulos atacó a la falange por detrás y decidió el combate. Es el ejemplo clásico de la flexibilidad romana.')),
+    '168-pidna': f(SIN_E, h('Livio 44.42; Plutarco, Emilio Paulo 23; Livio 45.29', 'historico', null, 'Emilio Paulo masacró a la infantería de Perseo, que huyó. Según Livio, Macedonia se dividió después en cuatro repúblicas con la mitad del tributo.')),
+    '149-delenda': f(SIN_E, h('Plutarco, Catón 27', 'historico', 'la frase corta «Carthago delenda est» es una síntesis posterior', 'Según Plutarco, Catón añadía a su voto sobre cualquier asunto que Cartago debía ser destruida. Nasica replicaba lo contrario. La frase latina corta es una síntesis posterior.')),
+    '275-benevento': f(SIN_E, h('Plutarco, Pirro 25-26; Livio, Períocas 14.3', 'historico', null, 'El cónsul Manio Curio Dentato derrotó a Pirro. Según Plutarco, los guardias lanzaron elefantes contra los suyos. Pirro volvió al Epiro con 8.000 infantes y 500 jinetes.')),
+    '243-arato': f(SIN_E, h('Polibio 2.43; Plutarco, Arato 16-24', 'historico', 'el año 243 se deduce de Polibio 2.43 («un año antes de la derrota cartaginesa»)', 'Arato de Sición tomó la ciudadela de Corinto a la guarnición macedonia y la unió a la Liga Aquea. Según Polibio, ocurrió un año antes de la derrota cartaginesa; el 243 se deduce.')),
+    '228-cartagonova': f(SIN_E, h('Polibio 2.13; Diodoro 25.12', 'probable', 'ninguna fuente da el año; 228 es la fecha de los historiadores modernos', 'Asdrúbal fundó la Ciudad Nueva en Iberia, según Polibio y Diodoro. Ninguno da el año: «hacia 228» es la fecha de los historiadores modernos, por eso es probable.')),
+    '217-trasimeno': f(SIN_E, h('Polibio 3.83-85; Livio 22.4-7', 'historico', null, 'Aníbal emboscó con niebla al cónsul Flaminio, que murió. Cayeron 15.000 romanos, según Polibio y Livio. Aníbal perdió 1.500 según Polibio y 2.500 según Livio.')),
+    '207-metauro': f(SIN_E, h('Polibio 11.1-3; Livio 27.47-49', 'historico', 'cifras: Polibio y Livio no coinciden; se dice «según»', 'Los cónsules Nerón y Salinátor vencieron a Asdrúbal, que murió. Las cifras difieren: unos 10.000 cartagineses muertos según Polibio, 56.000 según Livio.')),
+    '206-ilipa': f(SIN_E, h('Polibio 11.20-24; Livio 28.12-15', 'historico', 'cifras: Polibio y Livio no coinciden; se dice «según»', 'Escipión invirtió su orden de batalla: íberos al centro y legiones a las alas. Según Polibio, Asdrúbal tenía 70.000 infantes; según Livio, unos 50.000. Una tormenta salvó su campo.')),
+    '190-magnesia': f(SIN_E, h('Livio 37.37-44; Apiano, Siria 30-36', 'historico', null, 'El cónsul Lucio Escipión y Eumenes vencieron a Antíoco III. Según Livio, Antíoco perdió unos 50.000 infantes y los romanos 300; Apiano da cifras parecidas. Su hermano el Africano estaba enfermo.')),
+    '146-corinto-cartago': f(SIN_E, h('Pausanias 7.16; Livio, Períocas 51-52; Apiano, Libyca 127-132', 'historico', null, 'Mumio venció a la Liga Aquea en el Istmo y saqueó Corinto. Ese año Escipión Emiliano tomó Cartago, según Apiano tras seis días de lucha, y la ciudad ardió.'))
   };
 
   // ---- Facciones (D.FACTIONS). Sin modelo: solo un nombre y un color. Fuente: H1-ciudades.md y H1-hechos.md ----
   const SIN_F = { sin: 'sin modelo: la facción es un nombre y un color' };
   const faccion = {
     roma: f(SIN_F, SIN_H),
-    cartago: f(SIN_F, h('Polibio 1.10-11', 'por cotejar', 'sus ataques desde 264 son licencia de juego')),
-    epiro: f(SIN_F, h('Plutarco, Pirro 15')),
-    macedonia: f(SIN_F, h('Polibio 7.9', 'por cotejar', 'sus ataques desde 214 son licencia de juego')),
-    aquea: f(SIN_F, h('Polibio 2.41 y 2.43', 'por cotejar', 'anacronismo para 280; histórica hacia 243-146')),
+    cartago: f(SIN_F, h('Polibio 1.10-11', 'historico', 'sus ataques desde 264 son licencia de juego')),
+    epiro: f(SIN_F, h('Plutarco, Pirro 15', 'historico')),
+    macedonia: f(SIN_F, h('Polibio 7.9', 'historico', 'sus ataques desde 214 son licencia de juego')),
+    aquea: f(SIN_F, h('Polibio 2.41 y 2.43', 'historico', 'no existía con Corinto en 280: entra en 243 (hecho de Arato)')),
     siracusa: f(SIN_F, h('', 'licencia de juego', 'no estaba unificada en 280')),
-    galos: f(SIN_F, h('Polibio 2.17 y 2.22-23', 'por cotejar', 'el ataque desde 270 es licencia de juego')),
+    galos: f(SIN_F, h('Polibio 2.17 y 2.22-23', 'historico', 'el ataque desde 270 es licencia de juego')),
     etruscos: f(SIN_F, h('Livio 5.1', 'licencia de juego', 'eran ciudades-Estado federadas, no una nación')),
     campanos: f(SIN_F, h('Polibio 1.7; Livio 8.14', 'licencia de juego', 'Capua y Messana comparten facción por comodidad')),
     iberos: f(SIN_F, SIN_H),
     griegos: f(SIN_F, h('Estrabón 3.4.8', 'licencia de juego', 'colonos griegos de Emporion')),
-    mamertinos: f(SIN_F, h('Polibio 1.7-8', 'por cotejar', 'mercenarios campanos de Agatocles que tomaron Messana')),
+    mamertinos: f(SIN_F, h('Polibio 1.7-8; Diodoro 21.18', 'historico', 'mercenarios campanos de Agatocles que tomaron Messana')),
     akragas: f(SIN_F, h('Diodoro 22.8; Polibio 1.17-19', 'licencia de juego', 'una sola facción para una ciudad griega independiente'))
   };
 
