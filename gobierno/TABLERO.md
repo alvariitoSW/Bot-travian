@@ -53,7 +53,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 ## Carril I — Gran diseño, fase 1 (aprobado 11/11/2026; informe `gobierno/estudios/G3-gran-diseno.md`)
 Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I6, I7; I8 al final.
 - ✅ I1 Registro de piezas: `js/registro.js` (84 fichas con arte y fuente) y juez `node gobierno/fichas.mjs`, dentro de los jueces.
-- ⬜ I1b Al unir con la sesión Historia 2: pasar `node gobierno/fichas.mjs` y poner al día las fichas de lo que haya cambiado en `data.js` (tropas renombradas, hechos nuevos, dictámenes ya cotejados).
+- 🔶 I1b Fichas del registro al día tras Historia 2 (el juez pasa; 10 fichas nuevas). Falta: pasar a «histórico» los dictámenes ya cotejados y que Códice y registro compartan una sola fuente (P55).
 - ⬜ I2 **Reloj por estaciones** (P44): «consejo de estación» y botón «Pasar estación»; ciudad y batalla siguen en tiempo real. 0,2 + 0,6 M · 20 min.
 - ⬜ I3 **Mano de obra y mantenimiento** (P45): reclutar vacía los campos; edificios y tropas cuestan. 0,15 + 0,5 M · 15 min.
 - ⬜ I4 **Tipos de ciudad con solares limitados** (P46): cada ciudad tiene un número fijo de solares y se dedica a recursos, tropas, comercio, mar, investigación o una mezcla; caben templos y edificios de ocio. 0,2 + 0,7 M · 20 min.
@@ -85,7 +85,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ H8 Carthago Nova empieza como poblado íbero y pasa a Cartago hacia 228 con su hecho. El nombre en el mapa no cambia.
 - ✅ H9 Hechos nuevos: Benevento 275, Trasimeno 217, Metauro 207, Ilipa 206, Magnesia 190, Corinto y Cartago 146.
 - ✅ H10 Pastilla «licencia de juego» con su motivo en 15 hechos y en las tropas inventadas.
-- 🔶 H3 Códice dentro del juego, simple: una pestaña para leer las fichas ya comprobadas. Después de H1.
+- ✅ H3 Códice dentro del juego (11/11/2026): botón en «Crónica», 62 fichas de tropas, ciudades y hechos con etiqueta y fuente.
 
 ## Carril D — Técnica
 - 🔶 D1 Contador «Medir fluidez» hecho (menú principal). Falta que el usuario mida en su móvil: mapa, ciudad y batalla grande.

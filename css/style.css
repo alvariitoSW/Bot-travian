@@ -220,3 +220,12 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 
 .licl { margin-top: 5px; font-size: 10px; line-height: 1.35; color: var(--mute); opacity: .85; overflow-wrap: anywhere; }
 .lic { display: inline-block; padding: 0 5px; border: 1px solid var(--mute); border-radius: 99px; font-size: 9px; letter-spacing: .04em; text-transform: uppercase; margin-right: 3px; }
+
+.lic-h { color: #7fa37a; border-color: #7fa37a; }
+.lic-p { color: #c9a24f; border-color: #c9a24f; }
+.cdxs { display: flex; gap: 6px; margin: 8px 0; }
+.cdxs .btn { flex: 1; min-width: 0; padding-left: 4px; padding-right: 4px; }
+.cdxn { font-size: 13px; line-height: 1.6; }
+.cdxn .lic, .cdx .lic { font-size: 11px; }
+.cdx .ds { font-size: 13px; line-height: 1.45; margin-top: 4px; }
+.cdxf { font-size: 11px; color: var(--mute); margin-top: 4px; overflow-wrap: anywhere; }

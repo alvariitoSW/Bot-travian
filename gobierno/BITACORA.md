@@ -51,11 +51,16 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 1. **Medir fluidez**: menú → «Medir fluidez»; dime la cifra en el mapa, en la ciudad y en una batalla grande. (Dijo «ok» el 11/11; faltan las cifras.)
 
 ## Propuestas por aprobar
-Ninguna ahora.
+De Historia 2 (numeradas desde P51 porque P25 a P50 ya están usadas):
+- P51 **Segunda pasada de cotejo**: los 60 datos «sin comprobar» (Justino, Valerio Máximo, Eutropio, Orosio; hace falta abrir attalus.org o similar) y los pasajes dudosos en latín y griego. ≈1,5 M Sonnet (el primer cotejo costó 5,4 M; esta vez bajando los pasajes a archivo).
+- P52 **Capua se rebela en 216**: tras Cannas, Capua se pasa a Aníbal si no la defiendes bien (Livio 23.2-7). Cambia reglas: le quita una ciudad al jugador. ≈0,3 M.
+- P53 **Pirro ataca en 280, no en 277**: hoy el texto dice la verdad pero el ataque llega en 277 para dar tiempo. Adelantarlo obliga a reequilibrar el arranque. ≈0,3 M.
+- P54 **«Poblado íbero» en el mapa**: que Carthago Nova se llame así hasta 228. ≈0,15 M.
+- P55 **Códice y registro, una sola fuente**: el Códice (H3) y el registro de piezas (I1) guardan las fuentes por duplicado; unirlos y marcar «histórico» lo ya cotejado. ≈0,3 M.
 
 ## Encargo en curso (11/11/2026)
 Rama única desde ahora: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Sesiones, que no se pisan (Diseño ya cerró: informes G3):
-- **Historia 2**: coteja las fuentes (H1b, H2b), aplica H4 a H10 y hace el Códice (H3). Toca `gobierno/historia/`, `js/data.js`, `js/game.js` y `js/ui.js`.
+- Ninguna abierta. **Historia 2** cerró el 11/11/2026: cotejo, H4 a H10 y Códice hechos (partes `2026-11-11-H1b`, `-H4-H10`, `-H3`).
 Cada una, al cerrar: tablero y bitácora al día, capturas e informes en el cuadro, cuadro publicado, aviso a la sesión madre y se archiva sola.
 
 ## Encargo de la próxima sesión
@@ -68,7 +73,7 @@ Una tarea por sesión, en este orden (propuesto por Claude: primero lo que desbl
 Siguiente: **A8 Ritmo y moral** (toca `js/battle.js`; no pisa a Historia 2).
 
 ## Notas para quien continúe
-- I1 ya está unida a la rama que publica (11/11/2026, con permiso del usuario). El cotejo de Historia 2 ya está dentro; cuando acabe H4 a H10, hacer I1b.
+- I1 e Historia 2 ya están unidas en la rama que publica (11/11/2026). El jugador empieza ahora con dos ciudades (Roma y Capua): tenerlo en cuenta al equilibrar. Queda I1b (ver tablero).
 - El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.
 - Las batallas igualadas se deciden de forma brusca y el bot de pruebas no llega a tomar Cartago: falta equilibrar.
 - Para regenerar el arte hace falta un clon parcial de `0ad/0ad` y los cargadores de ejemplo de three.js (README).
