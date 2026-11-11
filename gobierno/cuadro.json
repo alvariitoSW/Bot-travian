@@ -87,6 +87,18 @@
       "pie": "Letra Cinzel incluida: se ve igual sin conexión"
     },
     {
+      "tarea": "A9",
+      "archivo": "gobierno/capturas-tarea/A9-cerca-2s.jpg",
+      "pie": "Salida: infantería delante y caballería en el ala",
+      "ancha": true
+    },
+    {
+      "tarea": "A9",
+      "archivo": "gobierno/capturas-tarea/A9-45s.jpg",
+      "pie": "El choque, desde arriba: los tiradores (flecha) quedan detrás de su línea",
+      "ancha": true
+    },
+    {
       "tarea": "E2",
       "archivo": "gobierno/capturas-tarea/E2-mapa.jpg",
       "pie": "Mapa: cada ciudad con un edificio de su cultura"
