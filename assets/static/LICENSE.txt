@@ -9,4 +9,9 @@ Puedes usarlos, modificarlos y redistribuirlos, también con fines comerciales, 
 cites a Wildfire Games como autor original, enlaces la licencia y distribuyas estos archivos
 (y cualquier modificación suya) bajo la misma licencia CC BY-SA 3.0.
 
+Excepción de origen: termas.bin y acueducto.bin NO son de 0 A.D. Los dibujó desde cero el proyecto AQVILA
+(tools/propio_static.mjs: cajas, columnas y arcos de medio punto) y pintan una zona de la textura de 0 A.D.
+(structural_rome_struct_2.webp). Se publican también bajo CC BY-SA 3.0, para que toda la carpeta tenga una sola licencia.
+anfiteatro.bin es el anfiteatro de Pompeya de 0 A.D., aligerado (tools/aligerar_static.mjs) y reducido a escala de ciudad.
+
 Esta licencia se aplica solo al contenido de assets/static/. El código del juego es independiente.

@@ -50,7 +50,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ✅ F1 Diseño de modos decidido: campaña histórica como base del modo largo, primero la partida corta, tres dioses (Marte, Ceres, Neptuno). `gobierno/estudios/F1-modos-de-juego.md`.
 - ✅ F2 Sustituida por I2 (mapa por turnos; decisión del 11/11).
 - ✅ F3 Aldeanos: reparto entre madera, piedra, hierro y grano (en la vista de lista).
-- ⬜ F5 **Templos a un dios** (aprobada 11/11, P56; antes «favor de un dios»): en cada ciudad puedes levantar un templo a Marte, Ceres o Neptuno; cada templo extiende cultura y religión y hace que una ciudad conquistada se rebele menos. Ocupa un solar (I4). ≈0,2 + 0,6 M, a ojo. Después de I4.
+- ✅ F5 Templos a un dios (11/11): un templo por ciudad, ocupa solar, y se dedica a Marte (moral al defender), Ceres (+8 % de grano por nivel) o Neptuno (mar más rápido, oro del puerto). Las ciudades conquistadas están inquietas 8 meses (producen menos) y se rebelan si la felicidad cae bajo 40; el templo las calma antes.
 
 ## Carril I — Gran diseño, fase 1 (aprobado 11/11/2026; informe `gobierno/estudios/G3-gran-diseno.md`)
 Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I6, I7; I8 al final.
@@ -66,7 +66,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
-- ⬜ E4 Arte propio para termas, acueducto y anfiteatro (pedido 11/11/2026): buscar piezas con licencia libre (skills `radar` y `arte`); mientras, llevan un modelo provisional.
+- ✅ E4 Arte propio de termas, acueducto y anfiteatro (11/11/2026): termas y acueducto dibujados desde cero (`tools/propio_static.mjs`, CC BY-SA 3.0, sin texturas nuevas); anfiteatro de Pompeya de 0 A.D. aligerado a 8.483 triángulos y a escala de ciudad (`tools/aligerar_static.mjs`). El arte pasa a 34,0 MB de 35. Parte: `partes/2026-11-11-E4.md`.
 - ✅ E1b Guía de arte, primera parte (11/11): iconos de línea para madera, piedra, hierro, grano, denarios y población; letra Cinzel incluida en el juego (SIL OFL 1.1, 29 KB); mármol, oliva y terracota en vez de blanco azulado, verde fosforito y rosa.
 - ⬜ E1c Guía de arte, segunda parte: iconos de guerra (⚔️ 🛡️ 🦅 🪖) y de edificios, marcos con doble filete y greca, esquinas de 6–8 px. Las barras de moral de la batalla siguen en el verde antiguo (`js/gfx/battle3d.js`, carril Batallas).
 - ✅ E2 Piezas de 0 A.D. por cultura (11/11): en el mapa cada ciudad lleva un edificio de su dueño (cartaginés, griego, galo, íbero; Roma, el templo redondo) y los ejércitos por mar van en barco cartaginés o griego. 6 piezas, +2,7 MB (total 33,1 de 35).
