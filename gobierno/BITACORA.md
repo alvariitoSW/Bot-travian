@@ -33,22 +33,17 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-1. Que diga si el enlace del juego carga y cómo va de fluido en su móvil, y lo que quiera cambiar al probarlo.
-2. **Rama**: el gobierno (G1) se guardó en la rama `ccr-07cfa4be-35ag3l`, la que asignó la sesión. La página del juego
-   se publica desde `claude/roman-strategy-mobile-game-bx9oq2`. ¿Se unen las dos, o se cambia la rama de trabajo?
+1. **Publicar lo nuevo**: ¿paso todo a la rama que publica el juego (`claude/roman-strategy-mobile-game-bx9oq2`) para que lo veas en tu móvil? Hasta entonces el enlace enseña la versión anterior.
+2. **Medir fluidez** (cuando esté publicado): menú → «Medir fluidez»; dime la cifra en el mapa, en la ciudad y en una batalla grande.
+3. **Batalla** (D2): ¿te vale el fondo con figuras sencillas que no mueven las piernas, o prefieres menos soldados pero todos reales?
+4. **Roma** (B9): ¿te vale con el Tíber y una colina, o quieres colinas dentro de la muralla y lo mismo en otras ciudades?
 
 ## Propuestas por aprobar
 
 ## Encargo en curso (11/11/2026)
-El usuario aprobó todo (P1 a P13) y pidió hacerlo ya, en varias sesiones que no se pisen. Plan: `gobierno/plan-12.md`.
-Tres sesiones, cada una en su rama, salidas de `ccr-07cfa4be-35ag3l`:
-- **Pensar** (`gob/pensar`): F1, E1, D3, E3. Solo documentos y `gobierno/arte.mjs`.
-- **Reglas** (`gob/reglas`): B6, B8, B3, F3, B4. `js/data.js`, `js/game.js`, paneles de `js/ui.js`, pruebas.
-- **Visual** (`gob/visual`): D1, D2, B9. `js/gfx/` y lo mínimo de `js/ui.js`.
-- **Historia** (`gob/historia`): H1 y H2. Solo `gobierno/historia/`.
-Ninguna toca tablero, bitácora ni cuadro: dejan un parte por tarea en `gobierno/partes/`. Al acabar, la sesión
-madre une las tres ramas, pasa los jueces, pone al día tablero y cuadro y lo cuenta al usuario.
-Después: unir con la rama que publica el juego (espera 2) para que el usuario lo vea en su móvil.
+- Las doce tareas del plan están unidas en `ccr-07cfa4be-35ag3l` con los jueces en APTO 12/12. Parte: `gobierno/partes/2026-11-11-union.md`.
+- **Historia** (`gob/historia`): H1 y H2 en marcha en su sesión. Al acabar se une y se abre H3 (Códice).
+- Siguiente recomendada: **F1b**, partir y empezar la partida corta. Antes, que el usuario lo vea en su móvil.
 
 ## Notas para quien continúe
 - El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.

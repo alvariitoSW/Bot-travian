@@ -161,7 +161,7 @@ export class CityView3D {
     const col = D.FACTIONS.roma.col, deg = Math.PI / 180;
     for (const b in SLOTS) {
       const [x, z, ry] = SLOTS[b], L = city.b[b] || 0; if (b === 'viviendas' || (b === 'puerto' && !coast)) continue;
-      if (L > 0) { const m = staticMesh(b, col); if (m) { const s = 0.82 + Math.min(L, 10) * 0.035; m.position.set(x, hf(x, z), z); m.rotation.y = ry * deg; m.scale.setScalar(s); this.dyn.add(m); } }
+      if (L > 0) { const m = staticMesh(D.BUILD[b].modelo || b, col); if (m) { const s = 0.82 + Math.min(L, 10) * 0.035; m.position.set(x, hf(x, z), z); m.rotation.y = ry * deg; m.scale.setScalar(s); this.dyn.add(m); } }
       else { const p = new THREE.Mesh(new THREE.PlaneGeometry(26, 26), new THREE.MeshLambertMaterial({ color: '#a88f62' })); p.rotation.x = -Math.PI / 2; p.position.set(x, 0.2, z); this.dyn.add(p);
         for (const [dx, dz] of [[-12, -12], [12, -12], [-12, 12], [12, 12]]) { const st = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.5, 6, 5), new THREE.MeshLambertMaterial({ color: '#5a4028' })); st.position.set(x + dx, 3, z + dz); this.dyn.add(st); } }
       if (city.queue && city.queue.b === b) { const sc = new THREE.Mesh(new THREE.BoxGeometry(30, 16, 30), new THREE.MeshBasicMaterial({ color: '#e9c063', wireframe: true, transparent: true, opacity: 0.55 })); sc.position.set(x, 8, z); this.dyn.add(sc); }
