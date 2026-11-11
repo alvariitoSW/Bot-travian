@@ -107,6 +107,9 @@ function effect(b, L) {
   if (b === 'almacen') return 'Cap. ' + fmt(600 * Math.pow(1.45, L));
   if (b === 'muralla') return '+' + L * 10 + ' % def.';
   if (b === 'templo') return '+' + L * 10 + ' % exp.';
+  if (b === 'acueducto') return '+' + L * 40 + ' población máx.';
+  if (b === 'termas') return '+' + L * 4 + ' felicidad · +' + L * 15 + ' pob.';
+  if (b === 'anfiteatro') return '+' + L * 6 + ' felicidad';
   return 'Nv ' + L;
 }
 function buildCard(c, b) {
@@ -116,7 +119,13 @@ function buildCard(c, b) {
     (q ? '<div class="prog" data-t0="' + c.queue.t0 + '" data-t1="' + c.queue.t1 + '"><i></i></div><span class="rem"></span>' : max ? '' : costHtml(cost)) + '</div>' +
     (q || max ? '' : '<button class="btn ' + (c.queue ? 'no' : '') + '" data-act="up" data-v="' + b + '" ' + (c.queue ? '' : "data-need='" + JSON.stringify(cost) + "'") + '>' + (L ? 'Mejorar' : 'Construir') + '<small>' + months(G.buildTime(c, b)) + '</small></button>') + '</div>';
 }
-const popHtml = c => '<span class="stat">' + D.POP_ICON + ' Población <b>' + Math.floor(c.pop) + '</b> / ' + G.popCap(c) + '</span><span class="stat">🪖 Reclutas disponibles <b>' + G.recruits(c) + '</b></span>';
+const impHtml = c => {
+  if (c.owner !== 'roma') return '';
+  const f = G.felicidad(c), col = f >= 60 ? 'var(--good,#5c5)' : f >= 40 ? '#e0a030' : '#e05050', cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠';
+  return '<div class="imp"><span class="stat" style="color:' + col + '">' + cara + ' Felicidad <b>' + f + '</b>' + (f < D.FELICIDAD_MIN_CRECER ? ' · la población no crece' : '') + '</span><div class="impb">' +
+    Object.keys(D.IMPUESTOS).map(k => '<button class="chip ' + ((c.imp || 'normal') === k ? 'on' : '') + '" data-act="imp" data-v="' + k + '">' + D.IMPUESTOS[k].n + '</button>').join('') + '</div></div>';
+};
+const popHtml = c => '<span class="stat">' + D.POP_ICON + ' Población <b>' + Math.floor(c.pop) + '</b> / ' + G.popCap(c) + '</span><span class="stat">🪖 Reclutas disponibles <b>' + G.recruits(c) + '</b></span>' + impHtml(c);
 function marketHtml() {
   const rate = G.tradeRate(); if (!rate) return '';
   UI.mf = UI.mf || 'madera'; UI.mt = UI.mt || 'hierro';
@@ -124,17 +133,42 @@ function marketHtml() {
   return '<div class="market"><div class="tt">⚖️ Mercado · cambio ' + Math.round(rate * 100) + ' %</div><div class="mrow"><span>Doy</span>' + chips('mfrom', UI.mf) + '</div><div class="mrow"><span>Recibo</span>' + chips('mto', UI.mt) + '</div>' +
     '<div class="btns" style="flex-direction:row">' + [100, 500, 2000].map(n => '<button class="btn" data-act="trade" data-n="' + n + '" data-need=\'' + JSON.stringify({ [UI.mf]: n }) + '\'>' + n + ' ' + D.RES_ICON[UI.mf] + ' → ' + Math.floor(n * rate) + ' ' + D.RES_ICON[UI.mt] + '</button>').join('') + '</div></div>';
 }
+function forjaHtml(c) {
+  if (!(c.b.herreria > 0)) return '';
+  const f = S().forja, hl = c.b.herreria;
+  return '<div class="sec">Herrería · mejoras del ejército</div>' + Object.keys(D.FORJA).map(k => {
+    const F = D.FORJA[k], L = f[k], max = L >= D.FORJA_MAX, topada = !max && L >= hl, en = f.cola && f.cola.k === k, cost = G.forjaCost(k, L);
+    const ef = (L * D.FORJA_BONO * 100).toFixed(0) + ' % ' + F.ef + (max ? ' · nivel máximo' : ' → +' + ((L + 1) * D.FORJA_BONO * 100).toFixed(0) + ' %');
+    return '<div class="card"><div class="ic">' + F.i + '</div><div class="bd"><div class="tt">' + F.n + '<span class="lv">Nv ' + L + '</span></div><div class="ds">+' + ef + '</div>' +
+      (en ? '<div class="prog" data-t0="' + f.cola.t0 + '" data-t1="' + f.cola.t1 + '"><i></i></div><span class="rem"></span>' : max ? '' : topada ? '<div class="ds">Mejora la herrería a nivel ' + (L + 1) + '.</div>' : costHtml(cost)) + '</div>' +
+      (en || max || topada ? '' : '<button class="btn ' + (f.cola ? 'no' : '') + '" data-act="forja" data-v="' + k + '" ' + (f.cola ? '' : "data-need='" + JSON.stringify(cost) + "'") + '>Mejorar ' + F.n.toLowerCase() + '<small>' + months(G.forjaTime(k, L)) + '</small></button>') + '</div>';
+  }).join('');
+}
+const RES_NOM = { madera: 'Madera', piedra: 'Piedra', hierro: 'Hierro', grano: 'Grano' };
+function repartoHtml(c) {
+  if (c.owner !== 'roma') return '';
+  const r = G.repartoDe(c), w = Math.max(0, (c.pop || 0) - G.MIN_POP), base = { madera: 4 + G.rate(c.b.aserradero), piedra: 4 + G.rate(c.b.cantera), hierro: 4 + G.rate(c.b.mina), grano: 6 + G.rate(c.b.granja) };
+  const fila = k => {
+    const mas = r[k] < 11 && G.REPARTO_RES.some(o => o !== k && r[o] > 1), menos = r[k] > 1 && G.REPARTO_RES.some(o => o !== k && r[o] < 11);
+    return '<div class="ald"><span class="aln">' + D.RES_ICON[k] + ' ' + RES_NOM[k] + '</span>' +
+      '<button class="albtn" data-act="rep" data-r="' + k + '" data-d="-1" aria-label="Menos aldeanos a ' + (k === 'madera' ? 'la ' : 'el ') + k + '"' + (menos ? '' : ' disabled') + '>−</button>' +
+      '<b class="alnum">' + Math.round(r[k] * w / 20) + '</b>' +
+      '<button class="albtn" data-act="rep" data-r="' + k + '" data-d="1" aria-label="Más aldeanos a ' + (k === 'madera' ? 'la ' : 'el ') + k + '"' + (mas ? '' : ' disabled') + '>+</button>' +
+      '<span class="alp">' + fmt(base[k] * r[k] / 5) + '/mes</span></div>';
+  };
+  return '<div class="sec">Aldeanos</div><div class="empty">Mueve aldeanos de un recurso a otro. El total no cambia.</div>' + G.REPARTO_RES.map(fila).join('');
+}
 function viewCity() {
   const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city];
   let h = cityChips() + '<div class="head"><h2>' + d.n + '</h2><p>' + esc(d.h) + '</p></div>' + (UI.cityV ? '<div class="acts" style="margin:0 0 6px"><button class="btn ghost" data-act="clist">Ver la ciudad en 3D</button></div>' : '') + '<div class="sec">Edificios</div>';
-  h = h.replace('<div class="sec">Edificios</div>', '<div class="empty">' + popHtml(c) + '</div><div class="sec">Edificios</div>');
-  for (const b in D.BUILD) { if (D.BUILD[b].sea && !d.sea) continue; h += buildCard(c, b); if (b === 'mercado') h += marketHtml(); }
+  h = h.replace('<div class="sec">Edificios</div>', '<div class="empty">' + popHtml(c) + '</div>' + repartoHtml(c) + '<div class="sec">Edificios</div>');
+  for (const b in D.BUILD) { if (D.BUILD[b].sea && !d.sea) continue; h += buildCard(c, b); if (b === 'mercado') h += marketHtml(); if (b === 'herreria') h += forjaHtml(c); }
   return h + '<div class="empty">' + Object.keys(D.BUILD).map(b => D.BUILD[b].i + ' ' + D.BUILD[b].d).join('<br>') + '</div>';
 }
 function renderCity3D() {
   const s = S(), c = s.cities[UI.city];
   $('ctop').innerHTML = cityChips().replace('</div>', '<button class="chip" data-act="clist">☰ Lista</button></div>') + '<div class="chips views"><button class="chip" data-act="cview" data-v="ciudad">🏛️ Ciudad</button><button class="chip" data-act="cview" data-v="calle">🚶 Calles</button><button class="chip" data-act="cview" data-v="ejercito">⚔️ Ejército</button><button class="chip" data-act="tab" data-v="map">🗺️ Mapa</button></div>';
-  $('csheet').innerHTML = '<div class="cpop">' + popHtml(c) + '</div>' + (UI.bsel ? buildCard(c, UI.bsel) + (UI.bsel === 'mercado' ? marketHtml() : '') + '<div class="empty" style="background:var(--glass);border-radius:12px;margin-top:6px;padding:8px 12px">' + D.BUILD[UI.bsel].d + '</div>'
+  $('csheet').innerHTML = '<div class="cpop">' + popHtml(c) + '</div>' + (UI.bsel ? buildCard(c, UI.bsel) + (UI.bsel === 'mercado' ? marketHtml() : '') + (UI.bsel === 'herreria' ? forjaHtml(c) : '') + '<div class="empty" style="background:var(--glass);border-radius:12px;margin-top:6px;padding:8px 12px">' + D.BUILD[UI.bsel].d + '</div>'
     : '<div class="empty" style="background:var(--glass);border-radius:12px;padding:10px 12px;text-align:center">Toca un edificio para construirlo o mejorarlo · arrastra para girar la ciudad</div>');
 }
 const bar = (label, v, max) => '<span>' + label + '</span><u><s style="width:' + Math.min(100, v / max * 100) + '%"></s></u>';
@@ -262,8 +296,11 @@ document.addEventListener('click', function (e) {
     case 'tab': setTab(v); break;
     case 'speed': s.speed = +v; tickUI(); break;
     case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; render(); break;
+    case 'rep': if (G.reparto(UI.city, el.dataset.r, +el.dataset.d)) render(); break;
+    case 'imp': if (G.setImp(UI.city, el.dataset.v)) render(); break;
     case 'clist': UI.cityList = !UI.cityList; setTab('city'); break;
     case 'cview': if (UI.cityV) { UI.bsel = null; UI.cityV.view(v); renderCity3D(); } break;
+    case 'forja': if (G.forjaUp(UI.city, v)) render(); else toast(S().forja.cola ? 'Ya hay una mejora en curso.' : 'Faltan recursos.', 'bad'); break;
     case 'up': if (G.upgrade(UI.city, v)) render(); else toast(s.cities[UI.city].queue ? 'Ya hay una obra en curso en esta ciudad.' : 'Faltan recursos.', 'bad'); break;
     case 'train': if (G.train(UI.city, v, +el.dataset.n)) render(); else toast(s.cities[UI.city].train.length >= 5 ? 'La cola de instrucción está llena.' : G.recruits(s.cities[UI.city]) < +el.dataset.n ? 'No hay población suficiente: construye Ínsulas o espera a que crezca.' : 'Faltan recursos.', 'bad'); break;
     case 'mfrom': UI.mf = v; if (UI.mt === v) UI.mt = v === 'oro' ? 'madera' : 'oro'; render(); break;

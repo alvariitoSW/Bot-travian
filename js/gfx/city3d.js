@@ -15,6 +15,7 @@ const D = window.DATA;
 const WX = 104, WZ = 84;                      // media anchura y medio fondo del recinto amurallado
 const SLOTS = {
   foro: [-34, -30, 0], templo: [-76, -34, 90], mercado: [36, -32, 0], almacen: [70, -58, 180], cuartel: [64, 40, 180], establo: [-68, 44, 90], viviendas: [26, 34, 0],
+  herreria: [86, -12, -90], termas: [-26, 52, 0], anfiteatro: [-80, 4, 90], acueducto: [-60, -106, 0],
   puerto: [0, -152, 180], aserradero: [-172, 20, 90], cantera: [176, -44, -90], mina: [182, 52, -90], granja: [-120, 150, 30]
 };
 const PK = 0.58;     // escala de las personas respecto a los edificios (en 0 A.D. los edificios son pequeños)
