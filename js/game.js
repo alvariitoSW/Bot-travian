@@ -190,10 +190,10 @@
       spawn('galos', 'mediolanum', null, firstMine(['volsinii', 'roma']), { galos: 480, jinetes: 80 }, { n: 'Concolitano', mando: 2, disc: 1 }, 14, 'Horda gala');
     },
     anibal1: function (s) {
-      spawn('cartago', null, D.proj(6.9, 45.1), firstMine(['mediolanum', 'volsinii', 'roma']), { libios: 300, iberos: 200, galos: 200, numidas: 150, elefantes: 15 }, { n: 'Aníbal Barca', mando: 6, disc: 5 }, 16, 'Aníbal');
+      spawn('cartago', null, D.proj(6.9, 45.1), firstMine(['mediolanum', 'volsinii', 'roma']), { libios: 240, iberos: 160, galos: 160, numidas: 120, elefantes: 12 }, { n: 'Aníbal Barca', mando: 6, disc: 4 }, 18, 'Aníbal');
     },
     anibal2: function (s) {
-      spawn('cartago', null, D.proj(16.1, 41.3), firstMine(['capua', 'tarentum', 'roma']), { libios: 350, iberos: 250, galos: 250, numidas: 200 }, { n: 'Aníbal Barca', mando: 6, disc: 5 }, 14, 'Aníbal');
+      spawn('cartago', null, D.proj(16.1, 41.3), firstMine(['capua', 'tarentum', 'roma']), { libios: 280, iberos: 200, galos: 200, numidas: 160 }, { n: 'Aníbal Barca', mando: 6, disc: 4 }, 16, 'Aníbal');
     },
     escipion: function (s) { s.hero.pts++; },
     masinisa: function (s) { const u = s.cities.roma.units; u.numidas = (u.numidas || 0) + 80; },
