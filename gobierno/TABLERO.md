@@ -40,8 +40,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ B5 Marina: flotas, batallas navales o bloqueo.
 - ✅ B6 Equilibrio: el bot de pruebas toma Cartago en 6 de 10 campañas; sin cambiar números del juego.
 
-- ⬜ B7 **Saqueo**: atacar una ciudad para robar recursos sin conquistarla (botín según almacén y muralla), y que los
-  rivales te saqueen; escondite de recursos. Rivales con ciudades que crecen como la tuya («otros jugadores» de la IA).
+- ✅ B7 Saqueo (11/11): al atacar eliges «Solo saquear»: botín según riqueza, almacén y muralla de la ciudad enemiga, sin conquistarla y con las tropas de vuelta; una ciudad saqueada hace poco da el 40 %. Los rivales también saquean: la mitad de sus incursiones no conquistan, te llevan el 20 % de lo que el almacén no esconde (120 por nivel de almacén y recurso).
 - ✅ B8 Herrería: mejoras de armas y armaduras, +5 % por nivel (máx. +25 %).
 - ✅ B10 Aníbal suavizado: 20 % menos de tropas y dos meses más de marcha; el bot gana 8 de 10 y Roma ya no cae.
 - ✅ B9 Roma con el Tíber y una colina (versión simple; las demás ciudades, igual).
