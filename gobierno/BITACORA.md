@@ -4,6 +4,10 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 11/11/2026 — **Despliegue (A5a)**, desde el cuadro: «Se le añaden arrastre y formaciones». Al publicado se le suman arrastrar el regimiento con el dedo y las formaciones «Línea», «Tres líneas» y «Alas fuertes». Al tablero como A5c.
+- 11/11/2026 — **Bienes de ciudad (B1)**, desde el cuadro: «Vale así y que solo esa ciudad pueda generar ese o esos recursos especiales para comerciar o para mejorar ciudad o para mejorar tropas». (Lectura de Claude: se queda como está, sin contador; el bien solo sale de su ciudad y llega a otras por conquista o por ruta. «Ese o esos»: una ciudad podría dar más de uno; hoy da uno.)
+- 11/11/2026 — **Cómo seguir**: «Aplica el cuadro en otras sesiones o en otros carriles para ir más rápido, cuidado con el uso de Fable que me queda poco». Las sesiones nuevas van con Sonnet de director y de agentes.
+- 11/11/2026 — **Prioridad** (desde el cuadro): B5, B7, C2, C3, E1c, E2b, E4, I1b, I2, I5, I6, I7 e I8.
 - 11/11/2026 — **Tipos de infantería**: «Y tener diferentes tipos de infantería, para hacer diferentes estrategias y que de esa manera las batallas duren más, no que sea un combate a lo loco rápido como es ahora». (Lectura de Claude: cada infantería con su papel; entra en A4, en el carril Batallas, después de A3.)
 - 11/11/2026 — **Velocidad y fases de la batalla**: «Van demasiado rápido, o sea, antes de una batalla les da tiempo a moverse, avanzar, esperar a que las tropas de distancia tiren algo de flechas o jabalinas o lo que sea, y que según su defensa les hace más o menos daño, y la caballería usarla para cargar y correr contra infantería ligera, cargar por detrás de tropas enemigas mientras luchas por delante de mi infantería, etc.». (Lectura de Claude: marcha más lenta con fase de aproximación; fase de tiro antes del choque con daño según la defensa; caballería que arrolla a la infantería ligera y carga por la espalda. Pasado al carril Batallas: A9 y A3.)
 - 11/11/2026 — **Batallas, tras jugarlas**: «Es una mierda, o sea, las batallas. Para empezar los soldados tienen una velocidad, tienen que tener una formación: los vélites o las tropas de ataque a distancia por detrás, la infantería delante, tiene que haber una lucha y mejorar el combate, y muchas cosas más en ese apartado, pero hay que trabajar ya sobre él». (Lectura de Claude: las batallas son lo primero; formación de salida con infantería delante y tiradores detrás, velocidades de marcha creíbles y combate cuerpo a cuerpo que se vea. Los vélites detrás es **licencia de juego**: en la historia abrían la batalla por delante.)
@@ -59,29 +63,25 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-1. **El despliegue se construyó dos veces** (A5a), por un cruce entre sesiones. El que está publicado: tocas un regimiento y luego el campo; formaciones «Clásica», «Ancha» y «Centro». La otra versión (sesión «A5a Despliegue», sin subir; su copia caduca pronto): arrastras el regimiento con el dedo; formaciones «Línea», «Tres líneas» y «Alas fuertes». ¿Se queda el publicado tal cual, o se le añaden el arrastre y esas formaciones?
-2. **Bienes de ciudad (B1)**: pediste no añadir más recursos, así que el bien especial no se almacena: lo tienes si posees una ciudad que lo da. ¿Vale así, o prefieres que se acumule y se gaste como la madera?
+Nada.
 
 ## Propuestas por aprobar
 Ninguna.
 
-## Encargo en curso (11/11/2026, tarde)
-Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Tres carriles a la vez, que no se pisan:
-- **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`): A9 Formación de salida y paso de marcha (✅) → A5a Despliegue (✅) → (sesión cerrada por gasto; sigue en sesión nueva) A3 Combate que se ve → A4 Papeles de la infantería → A5b Terreno.
-- **Arte** (estilos, iconos, `index.html`): E1b Iconos y letra (✅) → E2 Piezas por cultura (✅). Carril cerrado el 11/11; quedan E1c, E2b y E4 en el tablero.
-- **Economía**: terminado (I3, I4, B1 y B2 hechas el 11/11). `js/game.js`, `js/data.js` y los paneles de ciudad quedan libres para F5, B7, C3 y B5.
-Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bitácora al día, capturas en el cuadro, cuadro publicado y parte.
+## Encargo en curso (11/11/2026, noche)
+Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Cinco carriles a la vez, que no se pisan. Director y agentes en **Sonnet** (al usuario le queda poco Fable).
+- **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`, lo de batalla en `js/ui.js`): A5c Arrastre y formaciones → A3 Combate que se ve → A4 Papeles de la infantería → A5b Terreno.
+- **Campaña** (`js/game.js`, `js/data.js`, paneles de ciudad en `js/ui.js`, `js/gfx/city3d.js`): F5 Templos → B7 Saqueo → C3 Diplomacia → B5 Marina → I5 Investigación → I2 Mapa por turnos.
+- **Arte** (`css/`, `index.html`, `assets/`, `tools/`, `js/gfx/statics.js`): E4 Arte de termas, acueducto y anfiteatro → E1c Guía de arte, segunda parte → E2b Más piezas por cultura.
+- **Mapa** (`js/gfx/map3d.js`, `js/gfx/ground.js`): C2 Costa y relieve.
+- **Registro** (`js/registro.js`, `js/codice.js`): I1b Fichas al día y una sola fuente.
+Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bitácora al día (solo sus líneas), capturas en el cuadro, cuadro publicado y parte. Guion de capturas de batalla: `node gobierno/captura-batalla.mjs`. Al unir, mirar `git status` entero.
 
 ## Encargo de la próxima sesión
-**Carril Batallas, en sesión nueva** (la del 11/11 paró por gasto: 2,07 M en A9 y A5a, con alerta): A3 → A4 → A5b, una sesión por tarea.
-- **A3 Combate que se ve**, con lo que pidió el usuario: (1) fase de tiro antes del choque: la infantería se detiene a unos 150 del enemigo mientras sus tiradores tengan munición y blanco (tope de unos 20 s), con daño según la defensa del blanco; (2) luchan solo las primeras filas y el golpe coincide con la animación; (3) la caballería persigue a los que huyen y arrolla a los tiradores; su carga por la espalda a un enemigo ya trabado pesa mucho más. Ojo con las pruebas de duración de A8 (8 a 12 min): dar al constructor un guion de medida y tope de pasos.
-- Guion de capturas ya hecho: `node gobierno/captura-batalla.mjs <prefijo> <segundos> [cámara] [plantilla]` (0 = despliegue). No lanzarlo a la vez que los jueces.
-- Al unir: mirar `git status` entero (el 11/11 se coló un conflicto en `cuadro.json`). El cuadro lo publica una sola sesión cada vez.
-Lo que espera a que acaben los carriles (tocan los mismos archivos que Economía):
-1. F5 Templos (tras I4) → B7 Saqueo → C3 Diplomacia → B5 Marina.
-2. I5 Investigación → I2 Mapa por turnos.
-3. Historia: H14 → H13 → H12 → I1b → H11.
-4. C2 Costa y relieve → I6 Región de Italia → I7 Regiones → I8 Partida corta.
+Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que lleva Campaña):
+1. I6 Región de Italia → I7 Regiones → I8 Partida corta (prioridad del usuario).
+2. Historia: H14 → H13 → H12 → H11.
+3. A8b, A1, A2, A6, A7, C1.
 
 ## Notas para quien continúe
 - B2 (11/11): rutas en `s.rutas` (migrado), números `D.RUTA_*`. Roma empieza sin mercado: la primera ruta sale de Capua o tras construir uno. El «aliado» es por ahora un tratado de comercio con cualquier vecina con la que no haya marchas en curso; cuando llegue C3 (diplomacia) debería pedir alianza o paz. El bot no usa rutas (9 de 10).
