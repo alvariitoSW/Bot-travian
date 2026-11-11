@@ -86,7 +86,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ⬜ L3 **Fantasmas en pausa y cartas de táctica**: deslizador de tiempo con sombras a 10/20/30 s; atajos de testudo, carga, retirada y refuerzo.
 
 ## Carril N — Guerra nueva: «planeas y luego miras» (pedido 11/11/2026; diseño `gobierno/estudios/N1-guerra-nueva.md`)
-- 🟡 N1 **Diseño y maqueta jugable** de la guerra nueva: batalla por rondas (plan en pausa, ejecución para los dos), puntos de mando, enemigo con planes; y campaña militar con ejércitos, comida y asedios. Maqueta: `gobierno/maquetas/guerra-nueva.html`. Las tareas N2 a N10 esperan a que el usuario la pruebe; en pausa L3, A1, A2, A6 y A8b.
+- 🔶 N1 **Diseño y maqueta jugable** de la guerra nueva: batalla por rondas (plan en pausa, ejecución para los dos), puntos de mando, enemigo con planes; y campaña militar con ejércitos, comida y asedios. Maqueta: `gobierno/maquetas/guerra-nueva.html`. Las tareas N2 a N10 esperan a que el usuario la pruebe; en pausa L3, A1, A2, A6 y A8b.
 
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
