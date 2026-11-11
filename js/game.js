@@ -37,19 +37,39 @@
     if (r[res] <= 1) return false; let o = otros[0]; for (const k of otros) if (r[k] < r[o]) o = k; if (r[o] >= 11) return false; r[o]++; r[res]--; return true;
   };
 
+  /* ---------- mano de obra ---------- */
+  G.CAMPOS = ['aserradero', 'cantera', 'mina', 'granja'];
+  G.puestos = c => { let n = D.PUESTOS_BASE; for (const b of G.CAMPOS) n += D.PUESTOS_NIVEL * ((c.b && c.b[b]) || 0); return n; };
+  G.manoObraDe = (c, pop) => Math.max(D.MANO_MIN, Math.min(1, pop / G.puestos(c)));
+  G.manoObra = c => G.manoObraDe(c, c.pop || 0);
+
+  G.mantenimiento = function () {
+    const s = G.state; let ed = 0, up = 0;
+    for (const id of G.myCities()) {
+      const c = s.cities[id];
+      for (const b in c.b) if (G.CAMPOS.indexOf(b) < 0) ed += c.b[b] || 0;
+      for (const k in c.units) up += c.units[k] * D.UNITS[k].up;
+    }
+    for (const m of s.marches) if (m.owner === 'roma') for (const k in m.units) up += m.units[k] * D.UNITS[k].up;
+    const edificios = ed * D.MANT_EDIF, tropas = up * D.MANT_TROPA;
+    return { edificios: edificios, tropas: tropas, total: edificios + tropas };
+  };
+
   G.prod = function () {
     const s = G.state, p = { madera: 0, piedra: 0, hierro: 0, grano: 0, oro: 0 };
     let up = 0;
     for (const id of G.myCities()) {
       const c = s.cities[id];
       const rp = G.repartoDe(c);
-      p.madera += (4 + G.rate(c.b.aserradero)) * rp.madera / 5; p.piedra += (4 + G.rate(c.b.cantera)) * rp.piedra / 5; p.hierro += (4 + G.rate(c.b.mina)) * rp.hierro / 5; p.grano += (6 + G.rate(c.b.granja)) * rp.grano / 5;
+      const mo = G.manoObra(c);
+      p.madera += (4 + G.rate(c.b.aserradero)) * rp.madera / 5 * mo; p.piedra += (4 + G.rate(c.b.cantera)) * rp.piedra / 5 * mo; p.hierro += (4 + G.rate(c.b.mina)) * rp.hierro / 5 * mo; p.grano += (6 + G.rate(c.b.granja)) * rp.grano / 5 * mo;
       p.oro += G.rate(c.b.foro) * 0.5 + (c.pop || 0) * 0.03 * G.impMult(c) + 5 * (c.b.puerto || 0);   // foro + impuestos de la población + comercio del puerto
       p.grano -= (c.pop || 0) * 0.02;
       for (const k in c.units) up += c.units[k] * D.UNITS[k].up;
     }
     for (const m of s.marches) if (m.owner === 'roma') for (const k in m.units) up += m.units[k] * D.UNITS[k].up;
     p.grano -= up; p.upkeep = up;
+    p.mant = G.mantenimiento(); p.oro -= p.mant.total;
     return p;
   };
 
@@ -295,6 +315,12 @@
     if (Math.floor(s.t) > m0 && s.res.grano <= 0 && p.grano < 0) {
       for (const id of G.myCities()) { const u = s.cities[id].units; for (const k in u) u[k] = Math.floor(u[k] * 0.96); }
       if (Math.floor(s.t) % 6 === 0) G.log('🍞 ¡No hay grano! Las tropas desertan.', 'bad');
+      emit('dirty');
+    }
+    // sin paga: con el oro agotado y el balance negativo, las tropas desertan
+    if (Math.floor(s.t) > m0 && s.res.oro <= 0 && p.oro < 0) {
+      for (const id of G.myCities()) { const u = s.cities[id].units; for (const k in u) u[k] = Math.floor(u[k] * 0.98); }
+      if (Math.floor(s.t) % 6 === 0) G.log('🪙 No hay con qué pagar a las tropas. Desertan.', 'bad');
       emit('dirty');
     }
     const y1 = G.yearOf(s.t);

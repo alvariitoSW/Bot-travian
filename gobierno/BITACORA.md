@@ -4,6 +4,8 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 11/11/2026 — **Tipos de infantería**: «Y tener diferentes tipos de infantería, para hacer diferentes estrategias y que de esa manera las batallas duren más, no que sea un combate a lo loco rápido como es ahora». (Lectura de Claude: cada infantería con su papel; entra en A4, en el carril Batallas, después de A3.)
+- 11/11/2026 — **Velocidad y fases de la batalla**: «Van demasiado rápido, o sea, antes de una batalla les da tiempo a moverse, avanzar, esperar a que las tropas de distancia tiren algo de flechas o jabalinas o lo que sea, y que según su defensa les hace más o menos daño, y la caballería usarla para cargar y correr contra infantería ligera, cargar por detrás de tropas enemigas mientras luchas por delante de mi infantería, etc.». (Lectura de Claude: marcha más lenta con fase de aproximación; fase de tiro antes del choque con daño según la defensa; caballería que arrolla a la infantería ligera y carga por la espalda. Pasado al carril Batallas: A9 y A3.)
 - 11/11/2026 — **Batallas, tras jugarlas**: «Es una mierda, o sea, las batallas. Para empezar los soldados tienen una velocidad, tienen que tener una formación: los vélites o las tropas de ataque a distancia por detrás, la infantería delante, tiene que haber una lucha y mejorar el combate, y muchas cosas más en ese apartado, pero hay que trabajar ya sobre él». (Lectura de Claude: las batallas son lo primero; formación de salida con infantería delante y tiradores detrás, velocidades de marcha creíbles y combate cuerpo a cuerpo que se vea. Los vélites detrás es **licencia de juego**: en la historia abrían la batalla por delante.)
 - 11/11/2026 — **Orden de trabajo confirmado**, «pero hazlo en varios carriles que no se pisen para avanzar más rápido». Unir a la rama que publica: «haz lo que mejor veas» (unido).
 - 11/11/2026 — **Fluidez**: «No hace falta, solo con que sepas tú cuál es la fluidez va bien, no hace falta que aparezca todo el rato». (Lectura de Claude: no mide más; D1 se cierra con lo que hay. El contador se quita con «Dejar de medir fluidez».)
@@ -57,15 +59,15 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-1. **Velocidad de los soldados**: dijiste que «tienen una velocidad». ¿Van demasiado rápido, o todos al mismo paso? (Mientras, se ajusta a paso de marcha y carga creíbles.)
+Nada.
 
 ## Propuestas por aprobar
 Ninguna.
 
 ## Encargo en curso (11/11/2026, tarde)
 Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Tres carriles a la vez, que no se pisan:
-- **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`): A9 Formación de salida y paso de marcha → A5a Despliegue → A3 Combate que se ve → A5b Terreno.
-- **Arte** (estilos, iconos, `index.html`): E1b Iconos y letra → E2 Más piezas de 0 A.D.
+- **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`): A9 Formación de salida y paso de marcha → A5a Despliegue → A3 Combate que se ve → A4 Papeles de la infantería → A5b Terreno.
+- **Arte** (estilos, iconos, `index.html`): E1b Iconos y letra (✅ hecha y unida, caché v11) → E2 Más piezas de 0 A.D.
 - **Economía** (`js/game.js`, `js/data.js`, paneles de ciudad en `js/ui.js`): I3 Mano de obra → I4 Tipos de ciudad → B1 Recurso especial → B2 Rutas.
 Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bitácora al día, capturas en el cuadro, cuadro publicado y parte.
 
@@ -77,7 +79,9 @@ Lo que espera a que acaben los carriles (tocan los mismos archivos que Economía
 4. C2 Costa y relieve → I6 Región de Italia → I7 Regiones → I8 Partida corta.
 
 ## Notas para quien continúe
+- I3 (11/11): los números de mano de obra y mantenimiento son constantes en `js/data.js` (`PUESTOS_*`, `MANO_MIN`, `MANT_*`). Paga a 0,35 de oro por punto de consumo: con 0,5 el bot ya perdía una de diez. Roma pasa de +30 a +16 de oro al mes al empezar.
 - I1 e Historia 2 ya están unidas en la rama que publica (11/11/2026). El jugador empieza ahora con dos ciudades (Roma y Capua): tenerlo en cuenta al equilibrar. Queda I1b (ver tablero).
+- E1b (11/11): los iconos de recursos se dibujan en `js/ui.js` (sustituyen en pantalla a los emojis de `D.RES_ICON` y `D.POP_ICON`). Son HTML: sirven en paneles, no en avisos de texto (`toast`) ni en la crónica.
 - El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.
 - A8 (11/11): los números de ritmo, moral y cansancio son constantes al principio de `js/battle.js`. «Resolver» usa paso de 0,2 s. El bot agresivo gana 7 de 10 campañas; el pasivo, ninguna.
 - Gasto: A8 costó el doble de lo presupuestado (1,3 M frente a 0,55). Afinar números con pruebas cuesta más que una tarea media; presupuestar A5a y A5b con ese dato.

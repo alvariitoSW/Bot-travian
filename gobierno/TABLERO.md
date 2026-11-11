@@ -22,8 +22,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
   esperar a los rezagados, columna de marcha. (Ideas del estudio de 0 A.D. y TotalWarSimulator.)
 - ⬜ A2 Animaciones por fila: falange con lanzas bajadas, testudo, postura «listo» frente a «relajado».
 - ⬜ A3 Golpe sincronizado con la animación; combate solo de las primeras filas; persecución de los que huyen.
-- ⬜ A4 Daño por tipo (corte/punta/aplastamiento) y armadura; revisar equilibrio (hoy las batallas igualadas se
-  deciden de forma muy brusca; A8 ya lo suavizó).
+- ⬜ A4 **Papeles de la infantería** (pedido 11/11): ligera (rápida, floja en el choque), pesada (aguanta la línea) y lanceros (frenan a la caballería), con daño según arma y armadura, para que haya estrategias distintas y el combate no sea rápido y a lo loco. Con las tropas que ya hay antes de inventar nuevas. Después de A3.
 - ⬜ A9 **Formación de salida y paso de marcha** (pedido 11/11, lo primero): al empezar, infantería delante, tiradores (vélites, arqueros, honderos) detrás y caballería en las alas, en los dos bandos; velocidades de marcha y carga creíbles por tipo de tropa; los tiradores disparan por encima y no se meten en el cuerpo a cuerpo. Vélites detrás: licencia de juego.
 - ⬜ A5a **Despliegue antes de la batalla** (aprobada 11/11, P41): colocas tus regimientos, tres plantillas de un toque, y pulsas «Empezar batalla». 0,2 + 0,7 M · 20 min.
 - ⬜ A5b **Terreno con efecto: colina y bosque** (aprobada 11/11, P42), un campo tipo por ciudad. 0,25 + 0,9 M · 25 min. Después de A5a.
@@ -57,7 +56,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ I1 Registro de piezas: `js/registro.js` (84 fichas con arte y fuente) y juez `node gobierno/fichas.mjs`, dentro de los jueces.
 - 🔶 I1b Fichas del registro al día tras Historia 2 (el juez pasa; 10 fichas nuevas). Falta: pasar a «histórico» los dictámenes ya cotejados y que Códice y registro compartan una sola fuente (P55, aprobada 11/11). ≈0,3 M.
 - ⬜ I2 **Mapa por turnos** (P44 y P57, aprobadas 11/11): una estación = un turno, con «consejo de estación» y botón «Pasar turno»; los rivales mueven y atacan en los suyos y ves llegar sus tropas turno a turno; ciudad y batalla siguen en tiempo real. ≈0,25 + 0,8 M · 25 min.
-- ⬜ I3 **Mano de obra y mantenimiento** (P45): reclutar vacía los campos; edificios y tropas cuestan. 0,15 + 0,5 M · 15 min.
+- ✅ I3 **Mano de obra y mantenimiento** (11/11): la producción depende de la gente que queda en la ciudad (reclutar vacía los campos); edificios y tropas cuestan oro cada mes; sin oro, las tropas desertan.
 - ⬜ I4 **Tipos de ciudad con solares limitados** (P46): cada ciudad tiene un número fijo de solares y se dedica a recursos, tropas, comercio, mar, investigación o una mezcla; caben templos y edificios de ocio. 0,2 + 0,7 M · 20 min.
 - ⬜ I5 **Investigación y edades** (P47): árbol corto de unas 16 mejoras; la herrería pasa a ser su rama de guerra. Sustituye a F4. 0,2 + 0,7 M · 20 min.
 - ⬜ I6 **Región de Italia** montada solo con fichas (P48; prueba del cableado). 0,2 + 0,6 M · 20 min. Después de I1.
@@ -67,7 +66,8 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
 - ⬜ E4 Arte propio para termas, acueducto y anfiteatro (pedido 11/11/2026): buscar piezas con licencia libre (skills `radar` y `arte`); mientras, llevan un modelo provisional.
-- ⬜ E1b Aplicar la guía de arte al juego, empezando por los 6 iconos de recursos y la letra Cinzel incluida (aprobado 11/11/2026).
+- ✅ E1b Guía de arte, primera parte (11/11): iconos de línea para madera, piedra, hierro, grano, denarios y población; letra Cinzel incluida en el juego (SIL OFL 1.1, 29 KB); mármol, oliva y terracota en vez de blanco azulado, verde fosforito y rosa.
+- ⬜ E1c Guía de arte, segunda parte: iconos de guerra (⚔️ 🛡️ 🦅 🪖) y de edificios, marcos con doble filete y greca, esquinas de 6–8 px. Las barras de moral de la batalla siguen en el verde antiguo (`js/gfx/battle3d.js`, carril Batallas).
 - ⬜ E2 Más piezas de 0 A.D. por cultura (edificios, barcos, máquinas de asedio, estandartes) con su crédito.
 - ✅ E3 Presupuesto por escena en `node gobierno/arte.mjs` (batalla 1,1 millones, ciudad 300 mil; provisional hasta D1).
 
