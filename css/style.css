@@ -209,3 +209,11 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 .imp { margin-top: 2px; }
 .impb { display: flex; gap: 4px; margin-top: 3px; }
 .impb .chip { flex: 1; padding: 5px 2px; font-size: 11px; white-space: nowrap; }
+
+/* Aldeanos */
+.ald { display: flex; align-items: center; gap: 6px; padding: 3px 4px; font-size: 13px; }
+.ald .aln { flex: 1 1 auto; min-width: 0; white-space: nowrap; overflow: clip; text-overflow: ellipsis; }
+.ald .albtn { flex: none; width: 38px; height: 38px; border-radius: 8px; border: 1px solid var(--line, #555); background: transparent; color: inherit; font-size: 20px; line-height: 1; }
+.ald .albtn:disabled { opacity: .35; }
+.ald .alnum { flex: none; min-width: 34px; text-align: center; }
+.ald .alp { flex: none; width: 76px; text-align: right; color: var(--mute); font-size: 12px; }

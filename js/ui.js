@@ -141,10 +141,24 @@ function forjaHtml(c) {
       (en || max || topada ? '' : '<button class="btn ' + (f.cola ? 'no' : '') + '" data-act="forja" data-v="' + k + '" ' + (f.cola ? '' : "data-need='" + JSON.stringify(cost) + "'") + '>Mejorar ' + F.n.toLowerCase() + '<small>' + months(G.forjaTime(k, L)) + '</small></button>') + '</div>';
   }).join('');
 }
+const RES_NOM = { madera: 'Madera', piedra: 'Piedra', hierro: 'Hierro', grano: 'Grano' };
+function repartoHtml(c) {
+  if (c.owner !== 'roma') return '';
+  const r = G.repartoDe(c), w = Math.max(0, (c.pop || 0) - G.MIN_POP), base = { madera: 4 + G.rate(c.b.aserradero), piedra: 4 + G.rate(c.b.cantera), hierro: 4 + G.rate(c.b.mina), grano: 6 + G.rate(c.b.granja) };
+  const fila = k => {
+    const mas = r[k] < 11 && G.REPARTO_RES.some(o => o !== k && r[o] > 1), menos = r[k] > 1 && G.REPARTO_RES.some(o => o !== k && r[o] < 11);
+    return '<div class="ald"><span class="aln">' + D.RES_ICON[k] + ' ' + RES_NOM[k] + '</span>' +
+      '<button class="albtn" data-act="rep" data-r="' + k + '" data-d="-1" aria-label="Menos aldeanos a ' + (k === 'madera' ? 'la ' : 'el ') + k + '"' + (menos ? '' : ' disabled') + '>−</button>' +
+      '<b class="alnum">' + Math.round(r[k] * w / 20) + '</b>' +
+      '<button class="albtn" data-act="rep" data-r="' + k + '" data-d="1" aria-label="Más aldeanos a ' + (k === 'madera' ? 'la ' : 'el ') + k + '"' + (mas ? '' : ' disabled') + '>+</button>' +
+      '<span class="alp">' + fmt(base[k] * r[k] / 5) + '/mes</span></div>';
+  };
+  return '<div class="sec">Aldeanos</div><div class="empty">Mueve aldeanos de un recurso a otro. El total no cambia.</div>' + G.REPARTO_RES.map(fila).join('');
+}
 function viewCity() {
   const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city];
   let h = cityChips() + '<div class="head"><h2>' + d.n + '</h2><p>' + esc(d.h) + '</p></div>' + (UI.cityV ? '<div class="acts" style="margin:0 0 6px"><button class="btn ghost" data-act="clist">Ver la ciudad en 3D</button></div>' : '') + '<div class="sec">Edificios</div>';
-  h = h.replace('<div class="sec">Edificios</div>', '<div class="empty">' + popHtml(c) + '</div><div class="sec">Edificios</div>');
+  h = h.replace('<div class="sec">Edificios</div>', '<div class="empty">' + popHtml(c) + '</div>' + repartoHtml(c) + '<div class="sec">Edificios</div>');
   for (const b in D.BUILD) { if (D.BUILD[b].sea && !d.sea) continue; h += buildCard(c, b); if (b === 'mercado') h += marketHtml(); if (b === 'herreria') h += forjaHtml(c); }
   return h + '<div class="empty">' + Object.keys(D.BUILD).map(b => D.BUILD[b].i + ' ' + D.BUILD[b].d).join('<br>') + '</div>';
 }
@@ -279,6 +293,7 @@ document.addEventListener('click', function (e) {
     case 'tab': setTab(v); break;
     case 'speed': s.speed = +v; tickUI(); break;
     case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; render(); break;
+    case 'rep': if (G.reparto(UI.city, el.dataset.r, +el.dataset.d)) render(); break;
     case 'imp': if (G.setImp(UI.city, el.dataset.v)) render(); break;
     case 'clist': UI.cityList = !UI.cityList; setTab('city'); break;
     case 'cview': if (UI.cityV) { UI.bsel = null; UI.cityV.view(v); renderCity3D(); } break;

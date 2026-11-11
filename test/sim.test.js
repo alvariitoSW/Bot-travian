@@ -117,4 +117,22 @@ assert(G.myCities().length >= 3, 'un bot agresivo debe poder conquistar ciudades
   localStorage.setItem('aqvila-save-v1', JSON.stringify(s));
   assert(G.load() && G.state.cities.roma.imp === 'normal' && G.felicidad(G.state.cities.roma) === 60, 'partida vieja sin imp carga'); }
 
+// Aldeanos: reparto de la población trabajadora
+{ const s = G.newGame('Ald'), c = s.cities.roma; const p0 = G.prod();
+  assert(G.repartoValido(c.reparto) && c.reparto.madera === 5, 'reparto por defecto 5/5/5/5');
+  assert(G.reparto('roma', 'madera', 1) && G.reparto('roma', 'madera', 1), 'se puede subir la madera');
+  const p1 = G.prod(); const sum = () => G.REPARTO_RES.reduce((a, k) => a + c.reparto[k], 0);
+  assert(p1.madera > p0.madera && p1.piedra + p1.hierro + p1.grano - p0.piedra - p0.hierro - p0.grano < 0 || p1.piedra < p0.piedra || p1.hierro < p0.hierro || p1.grano < p0.grano, 'subir madera baja la de otro');
+  assert(sum() === 20 && c.reparto.madera === 7, 'la suma sigue en 20');
+  for (let i = 0; i < 30; i++) G.reparto('roma', 'madera', 1);
+  assert(c.reparto.madera === 11 && sum() === 20 && !G.reparto('roma', 'madera', 1), 'tope de 11 partes');
+  for (let i = 0; i < 40; i++) G.reparto('roma', 'madera', -1);
+  assert(c.reparto.madera === 1 && sum() === 20 && !G.reparto('roma', 'madera', -1), 'mínimo de 1 parte');
+  const ene = Object.keys(s.cities).find(i => s.cities[i].owner !== 'roma'); assert(!G.reparto(ene, 'madera', 1), 'no se toca el reparto enemigo');
+  const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, v) => { mem[k] = v; } };
+  for (const id in s.cities) delete s.cities[id].reparto;
+  localStorage.setItem('aqvila-save-v1', JSON.stringify(s));
+  assert(G.load() && G.state.cities.roma.reparto.grano === 5 && G.repartoValido(G.state.cities.roma.reparto), 'partida vieja sin reparto carga 5/5/5/5');
+  const n = G.newGame('Ald2'); assert(Math.abs(G.prod().madera - p0.madera) < 1e-9, 'por defecto la producción es la de siempre'); }
+
 console.log('OK — todas las pruebas superadas');

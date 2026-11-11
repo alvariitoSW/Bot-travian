@@ -21,12 +21,27 @@
   G.canAfford = c => { for (const r in c) if (G.state.res[r] < c[r]) return false; return true; };
   const pay = c => { for (const r in c) G.state.res[r] -= c[r]; };
 
+  /* ---------- aldeanos: reparto de la población trabajadora (20 partes) ---------- */
+  G.REPARTO_RES = ['madera', 'piedra', 'hierro', 'grano'];
+  G.repartoBase = () => ({ madera: 5, piedra: 5, hierro: 5, grano: 5 });
+  G.repartoValido = r => !!r && G.REPARTO_RES.every(k => Number.isInteger(r[k]) && r[k] >= 1 && r[k] <= 11) && G.REPARTO_RES.reduce((a, k) => a + r[k], 0) === 20;
+  G.repartoDe = c => G.repartoValido(c.reparto) ? c.reparto : G.repartoBase();
+  // dir +1: quita una parte al otro recurso con más partes; dir -1: la da al que menos tiene
+  G.reparto = function (cid, res, dir) {
+    const c = G.state.cities[cid]; if (!c || c.owner !== 'roma' || G.REPARTO_RES.indexOf(res) < 0 || (dir !== 1 && dir !== -1)) return false;
+    if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase();
+    const r = c.reparto, otros = G.REPARTO_RES.filter(k => k !== res);
+    if (dir > 0) { if (r[res] >= 11) return false; let o = otros[0]; for (const k of otros) if (r[k] > r[o]) o = k; if (r[o] <= 1) return false; r[o]--; r[res]++; return true; }
+    if (r[res] <= 1) return false; let o = otros[0]; for (const k of otros) if (r[k] < r[o]) o = k; if (r[o] >= 11) return false; r[o]++; r[res]--; return true;
+  };
+
   G.prod = function () {
     const s = G.state, p = { madera: 0, piedra: 0, hierro: 0, grano: 0, oro: 0 };
     let up = 0;
     for (const id of G.myCities()) {
       const c = s.cities[id];
-      p.madera += 4 + G.rate(c.b.aserradero); p.piedra += 4 + G.rate(c.b.cantera); p.hierro += 4 + G.rate(c.b.mina); p.grano += 6 + G.rate(c.b.granja);
+      const rp = G.repartoDe(c);
+      p.madera += (4 + G.rate(c.b.aserradero)) * rp.madera / 5; p.piedra += (4 + G.rate(c.b.cantera)) * rp.piedra / 5; p.hierro += (4 + G.rate(c.b.mina)) * rp.hierro / 5; p.grano += (6 + G.rate(c.b.granja)) * rp.grano / 5;
       p.oro += G.rate(c.b.foro) * 0.5 + (c.pop || 0) * 0.03 * G.impMult(c) + 5 * (c.b.puerto || 0);   // foro + impuestos de la población + comercio del puerto
       p.grano -= (c.pop || 0) * 0.02;
       for (const k in c.units) up += c.units[k] * D.UNITS[k].up;
@@ -80,7 +95,7 @@
     for (const id in D.CITIES) {
       const d = D.CITIES[id], w = d.w, h = Math.floor(w / 2);
       s.cities[id] = {
-        owner: d.f, units: Object.assign({}, d.g), queue: null, train: [],
+        owner: d.f, units: Object.assign({}, d.g), queue: null, train: [], reparto: G.repartoBase(),
         b: { aserradero: w, cantera: w, mina: w, granja: w, viviendas: id === 'roma' ? 2 : w, foro: Math.max(1, h), almacen: Math.max(1, h), mercado: id === 'roma' ? 0 : h, puerto: d.sea && id !== 'roma' ? Math.max(1, h) : 0, cuartel: id === 'roma' ? 1 : h, establo: id === 'roma' ? 0 : Math.max(0, h - 1), muralla: d.wl, templo: 0, herreria: 0 }
       };
     }
@@ -293,7 +308,7 @@
     if (pb.kind === 'attack') {
       if (win) {
         const prev = D.FACTIONS[c.owner].n;
-        c.owner = 'roma'; c.imp = 'normal'; c.units = keep(res.surv[0], res.lost[0], 1, 0.25); c.queue = null; c.train = []; c.pop = Math.round(G.popCap(c) * 0.5);
+        c.owner = 'roma'; c.imp = 'normal'; c.reparto = G.repartoBase(); c.units = keep(res.surv[0], res.lost[0], 1, 0.25); c.queue = null; c.train = []; c.pop = Math.round(G.popCap(c) * 0.5);
         c.b.muralla = Math.max(0, (c.b.muralla || 0) - 1);
         if (m.hero) { h.city = cid; h.march = null; }
         const loot = Math.round(150 * d.w * (1 + 0.1 * h.sk.log)), cap = G.cap();
@@ -335,7 +350,7 @@
   /* ---------- guardado ---------- */
   G.save = function () { try { if (typeof localStorage !== 'undefined' && G.state) localStorage.setItem(SAVE_KEY, JSON.stringify(G.state)); } catch (e) { /* almacenamiento no disponible */ } };
   G.hasSave = function () { try { return typeof localStorage !== 'undefined' && !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } };
-  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; for (const id in s.cities) { const c = s.cities[id]; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; } return true; } } catch (e) { /* partida corrupta */ } return false; };
+  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; for (const id in s.cities) { const c = s.cities[id]; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); } return true; } } catch (e) { /* partida corrupta */ } return false; };
   G.wipe = function () { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* nada */ } };
 
   root.Game = G;
