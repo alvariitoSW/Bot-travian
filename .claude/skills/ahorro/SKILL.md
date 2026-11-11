@@ -5,7 +5,7 @@ description: Revisa el gasto de una tanda de trabajo en AQVILA (agentes, ejecuci
 
 # Ahorro
 
-El gasto se mide con lo que hay: la línea **Gasto** de cada parte en `gobierno/partes/`.
+El gasto se mide: `node gobierno/gasto.mjs` (millones de tokens equivalentes, por modelo y agente) y la línea **Cuentas** de cada parte en `gobierno/partes/`.
 
 ## Revisión
 1. Lee los últimos cinco partes (o el de hoy). Suma: agentes lanzados, jueces completos, minutos.
@@ -14,7 +14,7 @@ El gasto se mide con lo que hay: la línea **Gasto** de cada parte en `gobierno/
 
 | Derroche | Recorte |
 |---|---|
-| Agentes para una tarea pequeña | El director solo (ver tamaños en `plan-equipos`) |
+| Agentes para una tarea pequeña | El director solo (ver tamaños en `plan-socialista`) |
 | Jueces completos (3 min) en cada cambio | `--rapido` mientras se trabaja; completos una vez, al cierre |
 | Leer archivos enteros de líneas larguísimas | Grep y `cut -c1-400`; leer solo el tramo |
 | Releer `CLAUDE.md`, tablero y bitácora dentro de cada agente | Pasar al agente el trozo que necesita |

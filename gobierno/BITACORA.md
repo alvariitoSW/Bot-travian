@@ -34,23 +34,24 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
    montó solo con el encargo escrito. ¿Quiere dar acceso para compararlo y traer lo que falte?
 
 ## Propuestas por aprobar
-Medida del gasto: **100 puntos = lo que costó montar el gobierno (sesión G1)**. Son estimaciones de Claude, sin medir.
-Las doce versiones simples suman unos 395 puntos, cuatro veces G1.
+Plan completo de las doce: `gobierno/plan-12.md`. Unidad: **M** = millones de tokens equivalentes (`node gobierno/gasto.mjs`).
+Medido: montar el gobierno costó **0,75 M de Fable**; toda la sesión hasta este plan, 1,3 M. Lo demás son estimaciones.
+Las doce, con plan socialista: **unos 2,1 M de Fable y 6,7 M de Sonnet**. Hechas solo con Fable serían unos 3 M de Fable.
 - P1 Presupuesto de arte hasta medir en un móvil real: 35 MB de descarga, 4.500 triángulos por soldado y 12.000 por
   edificio. Hoy el juego usa 30,4 MB, 4.150 y 10.740. Está puesto como provisional en `gobierno/arte.json`.
 
-- P2 **F1 Diseño de los modos, en corto** · 15 puntos · unos 5 min. Una página con tres preguntas para ti (qué pasa con la campaña histórica, partida corta o larga, qué dios) y mi recomendación en cada una. Sin construir nada.
-- P3 **E3 Presupuesto por escena, simple** · 10 puntos · 3 min. El comprobador de arte suma también los triángulos de una batalla y de una ciudad típicas y avisa si se pasan. Sin tocar el juego.
-- P4 **D1 Medir en tu móvil, simple** · 15 puntos · 5 min. Un contador de fluidez que se enciende desde el menú. Tú juegas dos minutos y me dices el número. Con eso se sabe si D2 hace falta.
-- P5 **B6 Costes y tiempos, simple** · 30 puntos · 10 min. Ajustar los números hasta que el bot de pruebas llegue a tomar Cartago. Solo reglas; no cambia nada a la vista.
-- P6 **B8 Herrería, simple** · 35 puntos · 10 min. La herrería gana dos mejoras por niveles, armas (+ataque) y armaduras (+defensa), con su coste y su tiempo. Una tarjeta más en la ciudad.
-- P7 **B3 Felicidad e impuestos, simple** · 40 puntos · 12 min. Impuestos bajo, normal o alto: más oro a cambio de menos felicidad. Con poca felicidad la población deja de crecer. Sin revueltas ni eventos nuevos.
-- P8 **F3 Aldeanos, simple** · 40 puntos · 12 min. Repartir la población entre madera, piedra, hierro y grano con cuatro botones de más y menos; la producción cambia según el reparto. Sin verlos trabajar en 3D.
-- P9 **B4 Más edificios, simple** · 35 puntos · 10 min. Termas, acueducto y anfiteatro con efecto en población y felicidad, usando modelos que ya están en el juego. Con modelos nuevos de 0 A.D. serían unos 90 puntos.
-- P10 **E1 Guía de arte, simple** · 25 puntos · 8 min. Una página con paleta, letra y estilo de iconos para que la apruebes. Sustituir los emojis del juego por iconos propios queda como tarea aparte (unos 80 puntos).
-- P11 **D2 Niveles de detalle, simple** · 60 puntos · 20 min. Los soldados lejanos se dibujan con una figura mucho más ligera. Solo merece la pena si D1 dice que tu móvil va justo.
-- P12 **B9 Ciudad fiel, simple** · 70 puntos · 20 min. Solo Roma: el Tíber y las colinas con el suelo y los edificios que ya hay. Las demás ciudades siguen como están.
-- P13 **D3 Godot, solo estudio** · 20 puntos · 6 min. Una página que diga qué se ganaría, qué se perdería y cuánto costaría pasar el juego a Godot. Pasarlo de verdad serían más de 500 puntos: no cabe esta semana.
+- P2 **F1 Diseño de los modos, en corto** · **0,25 M Fable** · 8 min. Quién: director solo (Fable): es diseño. Una página con tres preguntas para ti (qué pasa con la campaña histórica, partida corta o larga, qué dios) y mi recomendación en cada una. Sin construir nada.
+- P3 **E3 Presupuesto por escena, simple** · **0,12 M Fable** · 4 min. Quién: director solo. El comprobador de arte suma también los triángulos de una batalla y de una ciudad típicas y avisa si se pasan. Sin tocar el juego.
+- P4 **D1 Medir en tu móvil, simple** · **0,12 M Fable + 0,25 M Sonnet** · 8 min. Quién: constructor Sonnet 0,25 M + director 0,12 M. Un contador de fluidez que se enciende desde el menú. Tú juegas dos minutos y me dices el número. Con eso se sabe si D2 hace falta.
+- P5 **B6 Costes y tiempos, simple** · **0,12 M Fable + 0,5 M Sonnet** · 12 min. Quién: constructor Sonnet 0,5 M + director 0,12 M. Ajustar los números hasta que el bot de pruebas llegue a tomar Cartago. Solo reglas; no cambia nada a la vista.
+- P6 **B8 Herrería, simple** · **0,15 M Fable + 0,8 M Sonnet** · 15 min. Quién: constructor 0,6 M y revisor 0,2 M en Sonnet + director 0,15 M. La herrería gana dos mejoras por niveles, armas (+ataque) y armaduras (+defensa), con su coste y su tiempo. Una tarjeta más en la ciudad.
+- P7 **B3 Felicidad e impuestos, simple** · **0,15 M Fable + 0,9 M Sonnet** · 15 min. Quién: constructor 0,7 M y revisor 0,2 M en Sonnet + director 0,15 M. Impuestos bajo, normal o alto: más oro a cambio de menos felicidad. Con poca felicidad la población deja de crecer. Sin revueltas ni eventos nuevos.
+- P8 **F3 Aldeanos, simple** · **0,15 M Fable + 0,9 M Sonnet** · 15 min. Quién: constructor 0,7 M y revisor 0,2 M en Sonnet + director 0,15 M. Repartir la población entre madera, piedra, hierro y grano con cuatro botones de más y menos; la producción cambia según el reparto. Sin verlos trabajar en 3D.
+- P9 **B4 Más edificios, simple** · **0,15 M Fable + 0,6 M Sonnet** · 12 min. Quién: constructor Sonnet 0,6 M + director 0,15 M. Termas, acueducto y anfiteatro con efecto en población y felicidad, usando modelos que ya están en el juego. Con modelos nuevos de 0 A.D. serían unos 90 puntos.
+- P10 **E1 Guía de arte, simple** · **0,30 M Fable** · 8 min. Quién: director solo (Fable): es diseño. Una página con paleta, letra y estilo de iconos para que la apruebes. Sustituir los emojis del juego por iconos propios queda como tarea aparte (unos 80 puntos).
+- P11 **D2 Niveles de detalle, simple** · **0,20 M Fable + 1,1 M Sonnet** · 25 min. Quién: constructor Sonnet 1,1 M + director 0,20 M. Los soldados lejanos se dibujan con una figura mucho más ligera. Solo merece la pena si D1 dice que tu móvil va justo.
+- P12 **B9 Ciudad fiel, simple** · **0,25 M Fable + 1,3 M Sonnet** · 25 min. Quién: constructor Sonnet 1,3 M + director 0,25 M. Solo Roma: el Tíber y las colinas con el suelo y los edificios que ya hay. Las demás ciudades siguen como están.
+- P13 **D3 Godot, solo estudio** · **0,10 M Fable + 0,3 M Sonnet** · 8 min. Quién: estudio en Sonnet 0,3 M + director 0,10 M. Una página que diga qué se ganaría, qué se perdería y cuánto costaría pasar el juego a Godot. Pasarlo de verdad serían más de 500 puntos: no cabe esta semana.
 
 ## Encargo de la próxima sesión
 El usuario marcó «Hacer la siguiente» en 12 tareas del cuadro (11/11/2026). Es su cola de prioridad; el resto del
@@ -59,7 +60,7 @@ tablero espera. Las marcó de corrido, sin orden entre ellas. Orden propuesto po
 2. **D1** medir en su móvil real · 3. **E3** presupuesto por escena · 4. **D2** niveles de detalle.
 5. **B6** costes y tiempos · 6. **B8** herrería · 7. **B3** felicidad e impuestos · 8. **B4** más edificios ·
 9. **B9** ciudad fiel a cada lugar · 10. **F3** aldeanos · 11. **E1** guía de arte · 12. **D3** motor nativo (Godot).
-Una sesión, una tarea: se empieza por la primera con la skill `plan-equipos`.
+Una sesión, una tarea: se empieza por la primera con la skill `plan-socialista`.
 
 ## Notas para quien continúe
 - El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.

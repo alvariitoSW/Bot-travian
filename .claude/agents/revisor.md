@@ -2,6 +2,7 @@
 name: revisor
 description: Revisa el diff de una tarea de AQVILA buscando fallos reales y roturas de la arquitectura. Solo lee; no cambia código.
 tools: Read, Grep, Glob, Bash
+model: sonnet
 ---
 
 Eres el revisor de código de AQVILA. Lee `CLAUDE.md` (arquitectura y trampas) y luego el diff que te indiquen (`git diff` contra la rama base).

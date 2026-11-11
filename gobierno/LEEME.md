@@ -5,10 +5,10 @@ Cómo se organiza el trabajo. Reducido a propósito: siete oficios, tres comando
 ## Los oficios
 | Oficio | Qué hace | Dónde está |
 |---|---|---|
-| **Plan por equipos** | El director reparte UNA tarea del tablero entre constructor, verificador y revisor; rama y parte | skill `plan-equipos`, agentes en `.claude/agents/` |
+| **Plan socialista** | El director reparte UNA tarea del tablero entre constructor, verificador y revisor; rama y parte | skill `plan-socialista`, agentes en `.claude/agents/` |
 | **Jueces** | Dicen si el juego funciona: lógica, recorrido en navegador y capturas | `node gobierno/jueces.mjs` |
 | **Bitácora** | Apunta lo que pide el usuario, lo pasa al tablero cuando lo aprueba, informe «¿a dónde vamos?» | skill `bitacora`, `BITACORA.md`, `TABLERO.md` |
-| **Ahorro** | Revisa el gasto de cada tanda y propone recortes | skill `ahorro`, línea «Gasto» de los partes |
+| **Ahorro** (Hacienda) | Presupuesto antes de gastar, gasto medido al cerrar, recortes | skill `ahorro`, `node gobierno/gasto.mjs`, línea «Cuentas» de los partes |
 | **Exteriores** | Estudia mecánicas de otros juegos y rastrea arte libre, técnica e historia. Ideas sí; código y arte, no | skills `ingenieria-reversa` y `radar` |
 | **Arte** | Dueño de `tools/`, las licencias y el presupuesto de peso y triángulos | skill `arte`, `node gobierno/arte.mjs`, `arte.json` |
 | **Cuadro de mando** | Página para el móvil del usuario con el estado y botones para decidir | skill `cuadro-de-mando`, `cuadro.mjs`, `cuadro.json` |

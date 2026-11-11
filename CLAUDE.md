@@ -61,7 +61,7 @@ Todo en español (interfaz, comentarios, documentos). Frases cortas. Los botones
 
 ## 7. Gobierno (cómo se trabaja cada sesión)
 Guía de una página: `gobierno/LEEME.md`. Lo esencial:
-- **Empezar**: skill `plan-equipos`. Aplica los pedidos del cuadro de mando, elige UNA tarea y la reparte según su
+- **Empezar**: skill `plan-socialista`. Aplica los pedidos del cuadro de mando, elige UNA tarea y la reparte según su
   tamaño: pequeña, el director solo; media o grande, agentes `constructor`, `verificador` y `revisor`.
 - **Cerrar**: jueces APTO, mirar las capturas, tablero y bitácora al día, parte en `gobierno/partes/`, cuadro
   publicado, commit y push.
@@ -69,5 +69,6 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
 - **Arte**: skill `arte` y `node gobierno/arte.mjs` (peso, triángulos, licencias). Presupuesto en `gobierno/arte.json`.
 - **Mirar fuera**: skills `ingenieria-reversa` (una mecánica de otro juego) y `radar` (arte libre, técnica, historia).
   Ideas sí; código y arte de juegos comerciales, nunca.
-- **Gasto**: cada parte lleva su línea de gasto; la skill `ahorro` la revisa y propone recortes.
+- **Gasto**: presupuesto antes de empezar y `node gobierno/gasto.mjs` al cerrar. El director no construye; los
+  agentes van en Sonnet. La skill `ahorro` revisa los partes y propone recortes.
 - **Cuadro de mando** (Artifact para el móvil del usuario): dirección en `gobierno/cuadro.json`; skill `cuadro-de-mando`.
