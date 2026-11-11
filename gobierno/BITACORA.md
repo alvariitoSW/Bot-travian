@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 11/11/2026 — **Velocidad y fases de la batalla**: «Van demasiado rápido, o sea, antes de una batalla les da tiempo a moverse, avanzar, esperar a que las tropas de distancia tiren algo de flechas o jabalinas o lo que sea, y que según su defensa les hace más o menos daño, y la caballería usarla para cargar y correr contra infantería ligera, cargar por detrás de tropas enemigas mientras luchas por delante de mi infantería, etc.». (Lectura de Claude: marcha más lenta con fase de aproximación; fase de tiro antes del choque con daño según la defensa; caballería que arrolla a la infantería ligera y carga por la espalda. Pasado al carril Batallas: A9 y A3.)
 - 11/11/2026 — **Batallas, tras jugarlas**: «Es una mierda, o sea, las batallas. Para empezar los soldados tienen una velocidad, tienen que tener una formación: los vélites o las tropas de ataque a distancia por detrás, la infantería delante, tiene que haber una lucha y mejorar el combate, y muchas cosas más en ese apartado, pero hay que trabajar ya sobre él». (Lectura de Claude: las batallas son lo primero; formación de salida con infantería delante y tiradores detrás, velocidades de marcha creíbles y combate cuerpo a cuerpo que se vea. Los vélites detrás es **licencia de juego**: en la historia abrían la batalla por delante.)
 - 11/11/2026 — **Orden de trabajo confirmado**, «pero hazlo en varios carriles que no se pisen para avanzar más rápido». Unir a la rama que publica: «haz lo que mejor veas» (unido).
 - 11/11/2026 — **Fluidez**: «No hace falta, solo con que sepas tú cuál es la fluidez va bien, no hace falta que aparezca todo el rato». (Lectura de Claude: no mide más; D1 se cierra con lo que hay. El contador se quita con «Dejar de medir fluidez».)
@@ -57,7 +58,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-1. **Velocidad de los soldados**: dijiste que «tienen una velocidad». ¿Van demasiado rápido, o todos al mismo paso? (Mientras, se ajusta a paso de marcha y carga creíbles.)
+Nada.
 
 ## Propuestas por aprobar
 Ninguna.
