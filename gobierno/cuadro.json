@@ -150,6 +150,11 @@
       "archivo": "gobierno/capturas-tarea/B2-mapa.jpg",
       "pie": "En el mapa: un mercante en la ruta por mar y un carro en la de tierra",
       "ancha": false
+    },
+    {
+      "tarea": "I1b",
+      "archivo": "gobierno/capturas-tarea/I1b-codice.jpg",
+      "pie": "Códice igual que antes, ahora leído del registro (una sola fuente)"
     }
   ],
   "informes": [

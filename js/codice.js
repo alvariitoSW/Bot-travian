@@ -1,75 +1,33 @@
-/* AQVILA — Códice: fichas cortas de tropas, ciudades y hechos, con su etiqueta y su fuente */
+/* AQVILA — Códice: fichas cortas de tropas, ciudades y hechos, con su etiqueta y su fuente.
+   NO guarda textos. Una sola fuente (P55): lee js/registro.js (historia.texto, .fuente, .dictamen) y los nombres de js/data.js.
+   Muestra solo las fichas que traen texto y ya tienen dictamen (nunca «por cotejar»). Se arma la primera vez que se pide,
+   así que no importa el orden de los <script>. */
 (function (root) {
   const C = {};
   C.TAGS = ['histórico', 'probable', 'licencia de juego'];
-  C.tropas = [
-    { id: 'hastati', t: 'Hastati', tag: 'histórico', x: 'Era la primera línea de la legión. Según Polibio, llevaban escudo grande, espada corta de estilo hispano, dos jabalinas, casco de bronce con tres plumas y grebas. Los ricos vestían cota de malla.', src: 'Polibio 6.21-23' },
-    { id: 'velites', t: 'Vélites', tag: 'probable', x: 'Infantes ligeros: los más jóvenes y pobres, con espada, jabalinas y escudo redondo. Polibio los describe, y Livio ya los nombra en 211. En 340 todavía no existían, así que en 280 es probable, no seguro.', src: 'Polibio 6.21-22; Livio 26.4; Livio 8.8' },
-    { id: 'principes', t: 'Príncipes', tag: 'histórico', x: 'Hombres en plena edad, segunda línea de la legión. Según Polibio llevaban el mismo equipo que los hastati. Solo los triarios cambiaban las jabalinas pesadas por lanzas largas.', src: 'Polibio 6.21; Polibio 6.23' },
-    { id: 'triarii', t: 'Triarios', tag: 'histórico', x: 'Los veteranos, al fondo, con lanza larga en vez de jabalinas. Según Polibio eran 600 por legión. Livio cuenta que esperaban de rodillas; de ahí el dicho «la cosa ha llegado a los triarios».', src: 'Polibio 6.21-23; Livio 8.8' },
-    { id: 'equites', t: 'Équites', tag: 'histórico', x: 'La caballería romana, formada por ciudadanos acomodados. Según Polibio, eran 300 por legión. Antes iban sin coraza y con escudo de cuero; luego adoptaron armas a la griega y una lanza con contera.', src: 'Polibio 6.20; Polibio 6.25; Livio 8.8' },
-    { id: 'vigiles', t: 'Guardia urbana', tag: 'licencia de juego', x: 'En el juego es una tropa de vigilancia de la ciudad. Los Vigiles de verdad son de Augusto, siglos después. En la República, de noche vigilaban unos magistrados con ayudantes, según Livio.', src: 'Regla de juego: guardia genérica; los Vigiles son de Augusto (Dión Casio 55.26; Suetonio, Augusto 30; Livio 39.14)' },
-    { id: 'milicia', t: 'Milicia', tag: 'licencia de juego', x: 'Ciudadanos armados deprisa. Las fuentes cuentan que las ciudades armaban a su gente en apuros, pero no describen una tropa así. Es una pieza del juego para tener un soldado barato.', src: 'Regla de juego: leva genérica, no es una tropa de las fuentes' },
-    { id: 'hoplitas', t: 'Hoplitas', tag: 'probable', x: 'El infante griego clásico, con lanza, escudo redondo y casco. Las fuentes que hemos cotejado no lo detallan para esta época, así que la ficha es una reconstrucción razonable, no un dato cerrado.', src: 'Las fuentes abiertas no la describen con detalle; ver Plutarco, Filopemén 9 (reforma aquea de las armas)' },
-    { id: 'falange', t: 'Falange', tag: 'histórico', x: 'Masa de infantes con lanza larguísima, la sarisa. Según Polibio, la sarisa se diseñaba de 16 codos y en la práctica medía 14. Pirro pasó a Italia con 20.000 infantes, según Plutarco.', src: 'Polibio 18.29; Plutarco, Pirro 15.1' },
-    { id: 'peltastas', t: 'Peltastas', tag: 'probable', x: 'Infantería ligera griega con escudo pequeño. Livio habla de «caetrati» y «chalcaspides» en la Macedonia de Pidna, pero no usa la palabra peltastas. El nombre del juego es una etiqueta cómoda.', src: 'Livio 44.41' },
-    { id: 'honderos', t: 'Honderos baleares', tag: 'histórico', x: 'Famosos por la honda. Según Diodoro, llevaban tres: una en la cabeza, otra en el vientre y otra en la mano, y tiraban piedras grandes. Livio dice que la honda era su única arma.', src: 'Diodoro 5.18; Livio 28.37' },
-    { id: 'libios', t: 'Infantería libia', tag: 'histórico', x: 'Tras Trasimeno, Aníbal cambió sus armas por las romanas capturadas, según Polibio. En Cannas formaban con armadura romana. Era la infantería pesada y de confianza de su ejército.', src: 'Polibio 3.87; Polibio 3.114' },
-    { id: 'iberos', t: 'Guerreros íberos', tag: 'histórico', x: 'Según Polibio, en Cannas vestían túnicas de lino con borde púrpura, un color que se veía de lejos. Cartago los reclutaba como mercenarios en Hispania, y en el juego también defienden Sagunto.', src: 'Polibio 3.114' },
-    { id: 'galos', t: 'Guerreros galos', tag: 'histórico', x: 'Según Polibio, algunos luchaban con calzas y capa y los gesatos, desnudos, por bravura. Los romanos los temían desde el saqueo de Roma. Fueron aniquilados en Telamón en 225.', src: 'Polibio 2.28-30' },
-    { id: 'sagrada', t: 'Ciudadanos de Cartago', tag: 'histórico', x: 'Cartago solía confiar la infantería a mercenarios, pero en las crisis armaba a sus ciudadanos, según Polibio. El Batallón Sagrado, unidad de élite, no aparece después de 310 a.C., según Diodoro.', src: 'Polibio 1.73-75; Polibio 15.11; Polibio 6.52; Diodoro 20.10-12' },
-    { id: 'jinetes', t: 'Jinetes', tag: 'licencia de juego', x: 'Una caballería genérica para que todas las facciones tengan jinetes. Las fuentes describen caballerías concretas, como los équites o los númidas, pero no esta pieza.', src: 'Regla de juego: caballería genérica, no es una tropa de las fuentes' },
-    { id: 'numidas', t: 'Caballería númida', tag: 'histórico', x: 'Jinetes ligeros con jabalinas. Según Livio, montaban sin bridas. Aparecen en las alas del ejército de Aníbal, según Polibio. En Zama, Masinisa aportó unos 4.000, según Polibio.', src: 'Livio 35.11; Polibio 3.65; Polibio 15.5' },
-    { id: 'tesalios', t: 'Caballería tesalia', tag: 'histórico', x: 'Famosa en Grecia. Según Plutarco, los jinetes tesalios cargaron contra Levino en Heraclea (280). Livio da 400 tesalios con los romanos en 171, no en Pidna.', src: 'Plutarco, Pirro 17.3; Livio 42.58' },
-    { id: 'elefantes', t: 'Elefantes de guerra', tag: 'histórico', x: 'Pirro trajo 20 a Italia, según Plutarco. En Panormus los de Asdrúbal fueron derrotados, según Polibio. Asustaban al enemigo, pero también podían volverse contra los suyos.', src: 'Plutarco, Pirro 15.1; Polibio 1.40; Polibio 5.84' },
-    { id: 'general', t: 'General', tag: 'licencia de juego', x: 'El jefe del ejército, un personaje de juego que mejora tus tropas. Representa a los grandes mandos de la época, pero no es un cargo concreto de las fuentes.', src: 'Regla de juego: el general es una pieza propia del juego' }
-  ];
-  C.ciudades = [
-    { id: 'roma', t: 'Roma', tag: 'histórico', x: 'En 280 ya manda en Italia central. Su legión se organiza en manípulos por edad y riqueza, según Polibio. Ese año llega Pirro de Epiro, y empieza una guerra que cambiará su suerte.', src: 'Polibio 6.21-26; Plutarco, Pirro 15' },
-    { id: 'volsinii', t: 'Volsinii', tag: 'probable', x: 'Ciudad etrusca. Las fuentes que hemos podido cotejar no la describen. Se sabe por tradición que Roma acabó tomándola en 264, pero ese dato no está comprobado aquí.', src: 'Las fuentes abiertas no la describen; Períocas de Livio 16 y Floro 1.21 sin cotejar' },
-    { id: 'capua', t: 'Capua', tag: 'histórico', x: 'Recibió derechos de ciudadano romano en 338, según Livio. Tras Cannas se pasó a Aníbal, que le dejó sus magistrados y leyes. Roma la recuperó después.', src: 'Livio 8.14; Livio 23.2-7' },
-    { id: 'tarentum', t: 'Tarentum', tag: 'histórico', x: 'Colonia griega del sur de Italia que llamó a Pirro. Según las Períocas de Livio, una flota cartaginesa la ayudó en 272, y ese año acabó sometida a Roma.', src: 'Livio, Períocas 14.9-10' },
-    { id: 'mediolanum', t: 'Mediolanum', tag: 'histórico', x: 'Capital de los ínsubres, según Polibio la mayor tribu gala del valle del Po. Los cónsules Marco Claudio y Cneo Cornelio la tomaron, y el año 222 se deduce de los cónsules.', src: 'Polibio 2.17; Polibio 2.34' },
-    { id: 'messana', t: 'Messana', tag: 'histórico', x: 'Campanos al servicio de Agatocles la tomaron por traición, según Polibio, y se llamaron mamertinos. En 264 pidieron ayuda a Cartago y a Roma, y de ahí salió la Primera Guerra Púnica.', src: 'Polibio 1.7-11; Diodoro 21.18' },
-    { id: 'syracusae', t: 'Syracusae', tag: 'histórico', x: 'La gran ciudad griega de Sicilia. En 280 no había un estado único: según Diodoro, mandaban tiranos rivales. En 212 la tomó Marcelo, tras un largo asedio frenado por las máquinas de Arquímedes.', src: 'Diodoro 22.2; Plutarco, Marcelo 15-19; Polibio 8.7-8' },
-    { id: 'agrigentum', t: 'Agrigentum', tag: 'histórico', x: 'Griega, no cartaginesa, en 280. Según Diodoro, la entregó a Pirro Sosístrato, que la dominaba. En 262 Cartago la hizo su base, según Polibio, y Roma la tomó.', src: 'Diodoro 22.8; Diodoro 22.10; Polibio 1.17-19' },
-    { id: 'panormus', t: 'Panormus', tag: 'histórico', x: 'Ciudad cartaginesa de Sicilia. Roma la tomó en la Primera Guerra Púnica, y junto a ella Asdrúbal fue derrotado y perdió sus elefantes, según Polibio.', src: 'Polibio 1.38; Polibio 1.40' },
-    { id: 'lilybaeum', t: 'Lilybaeum', tag: 'histórico', x: 'Fortaleza cartaginesa en el extremo oeste de Sicilia. Según Diodoro, Pirro la asedió unos dos meses y desistió. Los romanos la sitiaron años más tarde.', src: 'Diodoro 22.10; Polibio 1.41-48' },
-    { id: 'carales', t: 'Carales', tag: 'histórico', x: 'Principal puerto púnico de Cerdeña. Según Polibio, Cartago cedió la isla a Roma, hacia 238, tras la guerra de los mercenarios. El año se saca del contexto, no del pasaje.', src: 'Polibio 1.88.12; Polibio 3.10.3' },
-    { id: 'emporion', t: 'Emporion', tag: 'probable', x: 'Colonia griega en la costa de Hispania. Según la tradición, Cneo Escipión desembarcó allí en 218. Esos datos no se han podido cotejar con el texto antiguo, de modo que quedan como probables.', src: 'Livio 21.60 y Estrabón 3.4.8, sin cotejar' },
-    { id: 'saguntum', t: 'Saguntum', tag: 'probable', x: 'Ciudad de Hispania cuyo asedio por Aníbal desencadenó la Segunda Guerra Púnica, según la tradición. No hemos podido cotejar los pasajes, así que esta ficha es floja.', src: 'Livio 21.7-15 y Polibio 3.15-17, sin cotejar' },
-    { id: 'carthagonova', t: 'Carthago Nova', tag: 'probable', x: 'No existía como ciudad cartaginesa en 280. Asdrúbal la fortificó y la llamó Ciudad Nueva, según Polibio. Las fuentes no dan el año; «hacia 228» es fecha moderna. Qué había antes, es probable, no seguro.', src: 'Polibio 2.13; Diodoro 25.12' },
-    { id: 'ambracia', t: 'Ambracia', tag: 'histórico', x: 'Fue sede real de Pirro, según la tradición. En 189, según Livio, la defendían los etolios, que enviaron 500 hombres en su ayuda, y no el ejército epirota.', src: 'Livio 38.4-5' },
-    { id: 'pella', t: 'Pella', tag: 'probable', x: 'Capital de Macedonia. Las fuentes que hemos podido cotejar no la describen. La tradición dice que el reino cayó tras Pidna, en 168, y que Macedonia se dividió en cuatro repúblicas.', src: 'Las fuentes abiertas no la describen; Livio 45.29 sobre las cuatro repúblicas' },
-    { id: 'corinthus', t: 'Corinthus', tag: 'probable', x: 'Según Polibio, Corinto no era aquea al principio: Arato tomó la ciudadela a la guarnición macedonia y la incorporó a la Liga. Que ya hubiera guarnición en 280 es probable. Mumio la saqueó en 146.', src: 'Polibio 2.41; Polibio 2.43; Plutarco, Arato 16-24; Livio, Períocas 52' },
-    { id: 'carthago', t: 'Carthago', tag: 'histórico', x: 'Gran potencia del mar. En 146 cayó ante Escipión Emiliano tras seis días de lucha en las calles, según Apiano. Éste cuenta que salieron 50.000 personas bajo garantía; la ciudad había durado unos 700 años.', src: 'Apiano, Libyca 127-132; Livio, Períocas 51' }
-  ];
-  C.hechos = [
-    { id: '280', t: 'Ab urbe condita CDLXXIV', tag: 'histórico', x: 'El año 280 a.C. era el 474 de Roma contando desde su fundación. Pirro llegó con unos 25.500 hombres y 20 elefantes, según Plutarco; una tormenta dispersó parte de la flota.', src: 'Plutarco, Pirro 15' },
-    { id: '277', t: 'Pirro marcha sobre Roma', tag: 'histórico', x: 'El avance fue en 280, tras Heraclea. Según Plutarco, Pirro llegó a unos 300 estadios de Roma, unos 55 km. Ásculo le costó tanto que habría dicho que otra victoria igual lo hundiría.', src: 'Plutarco, Pirro 17 y 21; Apiano, Samn. 10; Livio, Períocas 12-13' },
-    { id: '275', t: 'Benevento', tag: 'histórico', x: 'El cónsul Manio Curio Dentato derrotó a Pirro. Según Plutarco, los guardias lanzaron elefantes contra los suyos. Pirro volvió al Epiro con 8.000 infantes y 500 jinetes.', src: 'Plutarco, Pirro 25-26; Livio, Períocas 14.3' },
-    { id: '272', t: 'La caída de Tarento', tag: 'histórico', x: 'Una flota cartaginesa ayudó a Tarento en 272, según las Períocas de Livio, y luego la ciudad fue sometida. Pirro murió en Argos, según Plutarco.', src: 'Livio, Períocas 14.10 y 15.1; Plutarco, Pirro 34' },
-    { id: '264', t: 'Primera Guerra Púnica', tag: 'histórico', x: 'Los mamertinos pidieron ayuda a Cartago y a Roma. Según Polibio, no decidió el Senado: votó el pueblo, y se envió al cónsul Apio Claudio. La guerra duró 24 años seguidos.', src: 'Polibio 1.10-11; Polibio 1.63' },
-    { id: '260', t: 'La batalla de Milas', tag: 'histórico', x: 'Roma copió una nave cartaginesa varada para hacer su flota, según Polibio. Alguien sugirió el corvus, una pasarela de abordaje, sin nombre. En Milas los cartagineses perdieron 50 de 130 naves.', src: 'Polibio 1.20-23' },
-    { id: '243', t: 'Arato libera Corinto', tag: 'histórico', x: 'Arato de Sición tomó la ciudadela de Corinto a la guarnición macedonia y la unió a la Liga Aquea. Según Polibio, ocurrió un año antes de la derrota cartaginesa; el 243 se deduce.', src: 'Polibio 2.43; Plutarco, Arato 16-24' },
-    { id: '241', t: 'Las islas Egadas', tag: 'histórico', x: 'La flota romana hundió 50 naves cartaginesas y apresó 70, según Polibio. Cartago pagó 2.200 talentos, y Roma subió 1.000 y redujo el plazo, para un total de 3.200.', src: 'Polibio 1.61-63' },
-    { id: '228', t: 'Asdrúbal funda Carthago Nova', tag: 'probable', x: 'Asdrúbal fundó la Ciudad Nueva en Iberia, según Polibio y Diodoro. Ninguno da el año: «hacia 228» es la fecha de los historiadores modernos, por eso es probable.', src: 'Polibio 2.13; Diodoro 25.12' },
-    { id: '225', t: 'La invasión gala: Telamón', tag: 'histórico', x: 'Ínsubres, boyos y gesatos bajaron con unos 70.000 hombres, según Polibio. Roma movilizó a toda Italia. Murieron 40.000 galos y 10.000 fueron presos; cayó también el cónsul Régulo.', src: 'Polibio 2.22-31' },
-    { id: '218', t: 'Aníbal cruza los Alpes', tag: 'histórico', x: 'Según Polibio, Aníbal pasó con 20.000 infantes y 6.000 jinetes. Tras el Trebia, casi todos sus elefantes murieron por la nieve y la lluvia, salvo uno.', src: 'Polibio 3.56; Polibio 3.74' },
-    { id: '217', t: 'Trasimeno', tag: 'histórico', x: 'Aníbal emboscó con niebla al cónsul Flaminio, que murió. Cayeron 15.000 romanos, según Polibio y Livio. Aníbal perdió 1.500 según Polibio y 2.500 según Livio.', src: 'Polibio 3.83-85; Livio 22.4-7' },
-    { id: '216', t: 'El desastre de Cannas', tag: 'histórico', x: 'Aníbal envolvió a ocho legiones. Según Polibio murieron unos 70.000 romanos; según Livio, 48.200. Capua se pasó a Aníbal, pero Roma no negoció.', src: 'Polibio 3.107-117; Livio 22.49; Livio 23.7' },
-    { id: '214', t: 'Filipo V de Macedonia', tag: 'histórico', x: 'Filipo V pactó con Aníbal, y Polibio conserva el texto del tratado. Según Livio, atacó por Iliria en el verano de 214.', src: 'Polibio 7.9; Livio 24.40' },
-    { id: '212', t: 'Arquímedes y Siracusa', tag: 'histórico', x: 'Marcelo tomó Siracusa tras un asedio de más de dos años. Un soldado mató a Arquímedes. La frase «no molestes a mis círculos» no está ni en Livio ni en Plutarco.', src: 'Plutarco, Marcelo 15 y 19; Livio 25.31; Polibio 8.7-8' },
-    { id: '209', t: 'Escipión toma Carthago Nova', tag: 'histórico', x: 'Escipión la tomó en un solo asalto, aprovechando el reflujo, según Polibio. El defensor Magón tenía 1.000 soldados y armó a unos 2.000 ciudadanos.', src: 'Polibio 10.8-14; Livio 26.44-46' },
-    { id: '207', t: 'El Metauro', tag: 'histórico', x: 'Los cónsules Nerón y Salinátor vencieron a Asdrúbal, que murió. Las cifras difieren: unos 10.000 cartagineses muertos según Polibio, 56.000 según Livio.', src: 'Polibio 11.1-3; Livio 27.47-49' },
-    { id: '206', t: 'Ilipa', tag: 'histórico', x: 'Escipión invirtió su orden de batalla: íberos al centro y legiones a las alas. Según Polibio, Asdrúbal tenía 70.000 infantes; según Livio, unos 50.000. Una tormenta salvó su campo.', src: 'Polibio 11.20-24; Livio 28.12-15' },
-    { id: '202', t: 'Zama', tag: 'histórico', x: 'Los cartagineses tenían más de 80 elefantes, según Polibio. Escipión dejó pasillos entre sus manípulos, y Masinisa aportó unos 4.000 jinetes númidas.', src: 'Polibio 15.5; Polibio 15.9-11; Livio 30.33' },
-    { id: '197', t: 'Cinoscéfalas', tag: 'histórico', x: 'En terreno quebrado, un tribuno con unos veinte manípulos atacó a la falange por detrás y decidió el combate. Es el ejemplo clásico de la flexibilidad romana.', src: 'Polibio 18.26; Livio 33.10' },
-    { id: '190', t: 'Magnesia', tag: 'histórico', x: 'El cónsul Lucio Escipión y Eumenes vencieron a Antíoco III. Según Livio, Antíoco perdió unos 50.000 infantes y los romanos 300; Apiano da cifras parecidas. Su hermano el Africano estaba enfermo.', src: 'Livio 37.37-44; Apiano, Siria 30-36' },
-    { id: '168', t: 'Pidna', tag: 'histórico', x: 'Emilio Paulo masacró a la infantería de Perseo, que huyó. Según Livio, Macedonia se dividió después en cuatro repúblicas con la mitad del tributo.', src: 'Livio 44.42; Plutarco, Emilio Paulo 23; Livio 45.29' },
-    { id: '149', t: 'Carthago delenda est', tag: 'histórico', x: 'Según Plutarco, Catón añadía a su voto sobre cualquier asunto que Cartago debía ser destruida. Nasica replicaba lo contrario. La frase latina corta es una síntesis posterior.', src: 'Plutarco, Catón 27' },
-    { id: '146', t: 'Corinto y Cartago', tag: 'histórico', x: 'Mumio venció a la Liga Aquea en el Istmo y saqueó Corinto. Ese año Escipión Emiliano tomó Cartago, según Apiano tras seis días de lucha, y la ciudad ardió.', src: 'Pausanias 7.16; Livio, Períocas 51-52; Apiano, Libyca 127-132' }
-  ];
+  const TAG = { historico: 'histórico', probable: 'probable', 'licencia de juego': 'licencia de juego' };
+  const dep = (g, f) => root[g] || (typeof require !== 'undefined' ? require(f) : null);
+
+  // lista del Códice para un tipo de ficha; nombre(id) da el título que sale de data.js
+  function lista(tipo, nombre) {
+    const R = dep('REGISTRO', './registro.js'), F = (R && R.fichas[tipo]) || {}, o = [];
+    for (const k of Object.keys(F)) {
+      const hi = F[k].historia;
+      if (!hi || !hi.texto || !TAG[hi.dictamen]) continue;
+      const id = tipo === 'hecho' ? k.split('-')[0] : k;
+      o.push({ id, t: nombre(id), tag: TAG[hi.dictamen], x: hi.texto, src: hi.fuente });
+    }
+    return tipo === 'hecho' ? o.sort((a, b) => Number(b.id) - Number(a.id)) : o;   // hechos: del más antiguo al más reciente (años a.C.)
+  }
+  const memo = {};
+  function def(clave, tipo, nombre) {
+    Object.defineProperty(C, clave, { enumerable: true, get() { return memo[clave] || (memo[clave] = lista(tipo, nombre)); } });
+  }
+  const D = () => dep('DATA', './data.js');
+  def('tropas', 'tropa', id => D().UNITS[id].n);
+  def('ciudades', 'ciudad', id => D().CITIES[id].n);
+  def('hechos', 'hecho', id => D().EVENTS.find(e => String(e.y) === id).t);
+
   root.CODICE = C;
   if (typeof module !== 'undefined') module.exports = C;
 })(typeof window !== 'undefined' ? window : globalThis);
