@@ -317,7 +317,9 @@ export class BattleView3D {
     for (const R of this.R) {
       const r = R.r, el = document.createElement('button'); el.className = 'bflag s' + r.side; el.style.setProperty('--c', this.b.cfg.sides[r.side].col);
       el.innerHTML = '<i>' + (r.u.cls === 'ele' ? '🐘' : r.u.g) + '</i><b><u></u></b>';
-      el.addEventListener('click', ev => { ev.stopPropagation(); this.hitReg(r); });
+      el.addEventListener('click', ev => { ev.stopPropagation(); if (performance.now() - (this.tArr || 0) < 400) return; this.hitReg(r); });
+      // despliegue: mantener el dedo sobre el estandarte y mover arrastra el regimiento (el resto lo sigue el lienzo)
+      el.addEventListener('pointerdown', ev => { if (this.b.fase === 'despliegue' && r.side === 0 && r.st === 'ok' && this.onDown) { this.dragReg = r; this.onDown(ev); } });
       this.flags.appendChild(el); R.el = el; R.bar = el.querySelector('u');
     }
   }
@@ -379,12 +381,26 @@ export class BattleView3D {
   /* ---------- cámara y gestos ---------- */
   bind() {
     const P = new Map(); let st = null; const cv = this.cv;
-    this.onDown = e => { cv.setPointerCapture(e.pointerId); P.set(e.pointerId, [e.clientX, e.clientY]); this.dragging = true; this.vel = null; if (P.size === 1) st = { x: e.clientX, y: e.clientY, mv: 0, t: performance.now(), rot: e.button === 2 || e.shiftKey }; else if (st) { st.mv = 99; st.d = 0; } this.intro = 1; };
+    this.onDown = e => { cv.setPointerCapture(e.pointerId); P.set(e.pointerId, [e.clientX, e.clientY]); this.dragging = true; this.vel = null; if (P.size === 1) st = { x: e.clientX, y: e.clientY, mv: 0, t: performance.now(), rot: e.button === 2 || e.shiftKey }; else if (st) { st.mv = 99; st.d = 0; } this.intro = 1;
+      // despliegue: si el dedo cae sobre un regimiento propio, se arrastra él y no la cámara
+      if (st && P.size === 1) {
+        let dr = this.dragReg; this.dragReg = null; const g = this.pick(e.clientX, e.clientY);
+        if (this.b.fase === 'despliegue' && g) {
+          const fx = g[0] / S + FW / 2, fy = g[1] / S + this.b.H / 2;
+          if (!dr) { let hd = 34; for (const r of this.b.regs) { if (r.st !== 'ok' || r.side !== 0) continue; const d = Math.hypot(r.x - fx, r.y - fy); if (d < hd) { hd = d; dr = r; } } }
+          if (dr) st.drag = { r: dr, dx: dr.x - fx, dy: dr.y - fy, mv: false };
+        }
+      }
+    };
     this.onMove = e => {
       if (!P.has(e.pointerId)) return; const pr = P.get(e.pointerId), dx = e.clientX - pr[0], dy = e.clientY - pr[1]; P.set(e.pointerId, [e.clientX, e.clientY]); const c = this.c;
       if (P.size === 1 && st) {
         st.mv += Math.abs(dx) + Math.abs(dy);
-        if (st.rot) { c.yaw -= dx * 0.006; c.pitch += dy * 0.005; }
+        if (st.drag) {
+          if (st.mv >= 10) st.drag.mv = true;
+          const g = st.drag.mv && this.b.fase === 'despliegue' ? this.pick(e.clientX, e.clientY) : null;
+          if (g) this.b.colocar(st.drag.r, g[0] / S + FW / 2 + st.drag.dx, g[1] / S + this.b.H / 2 + st.drag.dy);
+        } else if (st.rot) { c.yaw -= dx * 0.006; c.pitch += dy * 0.005; }
         else { const k = c.dist * 0.0021, cy = Math.cos(c.yaw), sy = Math.sin(c.yaw), mx = -(dx * cy + dy * sy) * k, mz = -(-dx * sy + dy * cy) * k; c.x += mx; c.z += mz; this.vel = [mx * 60, mz * 60]; }
       } else if (P.size === 2 && st) {
         const v = [...P.values()], d = Math.hypot(v[0][0] - v[1][0], v[0][1] - v[1][1]), a = Math.atan2(v[1][1] - v[0][1], v[1][0] - v[0][0]);
@@ -395,6 +411,7 @@ export class BattleView3D {
     };
     this.onUp = e => {
       if (!P.has(e.pointerId)) return; P.delete(e.pointerId); if (!P.size) this.dragging = false;
+      if (st && st.drag && !P.size) { this.tArr = performance.now(); if (!st.drag.mv && e.type === 'pointerup') this.hitReg(st.drag.r); st = null; return; }
       if (st && st.mv < 10 && performance.now() - st.t < 500 && e.type === 'pointerup' && !P.size) { const g = this.pick(e.clientX, e.clientY); if (g) this.tapField(g[0] / S + FW / 2, g[1] / S + this.b.H / 2); }
       if (!P.size) st = null; else if (st) st.d = 0;
     };

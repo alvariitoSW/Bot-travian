@@ -75,7 +75,9 @@
     this.formar(side, 'clasica');
   };
 
-  Battle.PLANTILLAS = [['clasica', 'Clásica'], ['ancha', 'Línea ancha'], ['centro', 'Centro fuerte']];
+  Battle.PLANTILLAS = [['clasica', 'Clásica'], ['linea', 'Línea'], ['ancha', 'Línea ancha'], ['tres', 'Tres líneas'], ['centro', 'Centro fuerte'], ['alas', 'Alas fuertes']];
+  // nombre corto para los botones de la barra de despliegue
+  Battle.CORTOS = { clasica: 'Clásica', linea: 'Línea', ancha: 'Ancha', tres: 'Tres líneas', centro: 'Centro', alas: 'Alas' };
 
   // franja propia donde se puede colocar: desde la línea de salida hacia atrás, más 60 hacia delante; nunca pasa del 40 % del campo
   Battle.prototype.zona = function (side) {
@@ -97,6 +99,7 @@
   Battle.prototype.formar = function (side, nombre) {
     const mine = this.regs.filter(r => r.side === side), gen = mine.find(r => r.u.cls === 'gen') || null, list = mine.filter(r => r !== gen);
     const f = side === 0 ? -1 : 1, base = side === 0 ? this.H - 200 : 200, CAP = 7;
+    if (nombre === 'linea' || nombre === 'tres' || nombre === 'alas') return this.formarNueva(side, nombre, mine, gen, list, f, base);
     const main = list.filter(r => r.u.cls === 'inf' || r.u.cls === 'spear' || r.u.cls === 'ele'), cav = list.filter(r => r.u.cls === 'cav');
     let skirm = list.filter(r => r.u.cls === 'rng');
     const eles = main.filter(r => r.u.cls === 'ele'), foot = main.filter(r => r.u.cls !== 'ele'), rows = [];
@@ -135,6 +138,58 @@
     if (alas) { const wx = ((maxN - 1) / 2 + 1) * SP, cnt = [0, 0]; cav.forEach((r, i) => { const w = i % 2; r.x = FW / 2 + (w ? wx : -wx); r.y = base - f * esp * cnt[w]++; }); }
     const z = nombre === 'clasica' ? { y0: 24, y1: this.H - 24 } : this.zona(side);
     for (const r of mine) { r.y = Math.max(z.y0, Math.min(z.y1, r.y)); r.x = Math.max(20, Math.min(FW - 20, r.x)); }
+  };
+
+  // formaciones «linea», «tres» y «alas»: colocan por posiciones y al final separan lo que se solape, siempre dentro de la zona
+  Battle.prototype.formarNueva = function (side, nombre, mine, gen, list, f, base) {
+    const z = this.zona(side), back = d => base - f * d; // back(d): d unidades hacia atrás de la línea base
+    const rank = r => (r.k === 'hastati' ? 0 : r.k === 'triarii' ? 2 : 1);
+    const foot = list.filter(r => r.u.cls === 'inf' || r.u.cls === 'spear' || r.u.cls === 'ele'), cav = list.filter(r => r.u.cls === 'cav'), skirm = list.filter(r => r.u.cls === 'rng');
+    const centrar = (fila, eles) => { const m = Math.floor(fila.length / 2); return fila.slice(0, m).concat(eles, fila.slice(m)); };
+    // pone una fila centrada en x0 con separación sp (se estrecha si no cabe en el campo)
+    const fila = (rs, y, sp, x0, mx) => { const n = rs.length, s = n > 1 ? Math.min(sp, ((mx || FW - 40)) / (n - 1)) : 0; rs.forEach((r, j) => { r.x = (x0 == null ? FW / 2 : x0) + (j - (n - 1) / 2) * s; r.y = y; }); };
+    const eles = foot.filter(r => r.u.cls === 'ele'), pie = foot.filter(r => r.u.cls !== 'ele');
+    if (nombre === 'linea') {
+      // una sola fila fina de infantería (dos solo si no cabe), tiradores justo detrás, caballería en las alas, general en el centro atrás
+      const todo = centrar(pie.slice(), eles), per = Math.max(1, Math.min(todo.length, 12)), cn = cav.length ? 110 : 0;
+      let yy = 0; const sp = 46;
+      while (todo.length) { fila(todo.splice(0, per), back(yy), sp, null, FW - 40 - cn); yy += 44; }
+      const sk = skirm.slice(); while (sk.length) { fila(sk.splice(0, per), back(yy), 40); yy += 34; }
+      if (gen) { gen.x = FW / 2; gen.y = back(yy + 10); }
+      const wx = Math.min(FW / 2 - 25, (Math.min(per, pie.length + eles.length) - 1) / 2 * Math.min(sp, (FW - 40 - cn) / Math.max(1, per - 1)) + 55);
+      cav.forEach((r, i) => { r.x = FW / 2 + (i % 2 ? wx : -wx); r.y = back(Math.floor(i / 2) * 44); });
+    } else if (nombre === 'tres') {
+      // triplex acies: hastati, principes y triarii en tres filas con huecos; tiradores delante (vélites); caballería en las alas
+      const orden = pie.slice().sort((a, b) => rank(a) - rank(b)), tres = [[], [], []], q = Math.ceil(orden.length / 3);
+      orden.forEach((r, i) => tres[Math.min(2, Math.floor(i / q))].push(r));
+      tres[1] = centrar(tres[1], eles);
+      const cn = cav.length ? 100 : 0, esp = 56;
+      tres.forEach((fl, i) => fila(fl, back(i * esp), 78, FW / 2 + (i === 1 ? 39 * (fl.length > 1 ? 1 : 0) : 0), FW - 40 - cn)); // 2.ª fila a tresbolillo
+      fila(skirm.slice(), back(-50), 58, null, FW - 40 - cn);
+      if (gen) { gen.x = FW / 2; gen.y = back(3 * esp); }
+      const wx = FW / 2 - 28;
+      cav.forEach((r, i) => { r.x = FW / 2 + (i % 2 ? wx : -wx); r.y = back(Math.floor(i / 2) * 50); });
+    } else {
+      // alas fuertes: centro flojo y retrasado; infantería pesada y caballería en los dos flancos
+      const orden = pie.slice().sort((a, b) => b.hp - a.hp), nc = orden.length < 3 ? 0 : Math.ceil(orden.length / 3), pesada = orden.slice(0, orden.length - nc), centro = centrar(orden.slice(orden.length - nc), eles);
+      pesada.forEach((r, i) => { const lado = i % 2, k = Math.floor(i / 2); r.x = lado ? FW - 100 - (k % 2) * 50 : 100 + (k % 2) * 50; r.y = back(Math.floor(k / 2) * 50); });
+      while (centro.length) fila(centro.splice(0, 4), back(70 + 0), 52, null, 200);
+      fila(skirm.slice(), back(10), 40, null, 220);
+      if (gen) { gen.x = FW / 2; gen.y = back(125); }
+      cav.forEach((r, i) => { r.x = i % 2 ? FW - 36 : 36; r.y = back(Math.floor(i / 2) * 50); });
+    }
+    this.separar(mine, z, f);
+  };
+
+  // lo que quede solapado o fuera de la zona se mueve al hueco libre más cercano dentro de la zona
+  Battle.prototype.separar = function (mine, z, f) {
+    const MIN = 26, put = (r, x, y) => { r.x = Math.max(20, Math.min(FW - 20, x)); r.y = Math.max(z.y0, Math.min(z.y1, y)); }, done = [];
+    for (const r of mine) {
+      const x0 = r.x, y0 = r.y, cands = [[0, 0]];
+      for (let k = 1; k <= 10; k++) { const d = 28 * k; cands.push([0, -f * d], [d, 0], [-d, 0], [d, -f * d], [-d, -f * d], [0, f * d]); }
+      for (const [dx, dy] of cands) { put(r, x0 + dx, y0 + dy); if (done.every(o => Math.hypot(o.x - r.x, o.y - r.y) >= MIN)) break; }
+      done.push(r);
+    }
   };
 
   // regimiento de infantería cuerpo a cuerpo vivo más adelantado del bando (null si no queda ninguno)
@@ -392,6 +447,25 @@
       sel.forEach(r => { r.order = { k: 'move', x: p[0] + (r.x - cx0), y: p[1] + (r.y - cy0) }; r.tgt = null; });
       this.ping = { x: p[0], y: p[1], t: b.t };
     }
+  };
+
+  // arrastre en el despliegue (vista plana): down/move/up sustituyen a tap mientras se coloca
+  BattleView.prototype.down = function (ev) {
+    const b = this.b; if (b.fase !== 'despliegue') return this.tap(ev.clientX, ev.clientY);
+    const p = this.toField(ev.clientX, ev.clientY); let hit = null, hd = 40;
+    for (const r of b.regs) { if (r.st !== 'ok' || r.side !== 0) continue; const d = Math.hypot(r.x - p[0], r.y - p[1]); if (d < hd) { hd = d; hit = r; } }
+    this.drag = hit ? { r: hit, x: ev.clientX, y: ev.clientY, dx: hit.x - p[0], dy: hit.y - p[1], mv: false, id: ev.pointerId } : null;
+    if (!hit) return this.tap(ev.clientX, ev.clientY);
+    try { ev.target.setPointerCapture(ev.pointerId); } catch (e) { /* sin captura */ }
+  };
+  BattleView.prototype.move = function (ev) {
+    const d = this.drag; if (!d || ev.pointerId !== d.id || this.b.fase !== 'despliegue') return;
+    if (!d.mv && Math.hypot(ev.clientX - d.x, ev.clientY - d.y) < 8) return;
+    d.mv = true; const p = this.toField(ev.clientX, ev.clientY); this.b.colocar(d.r, p[0] + d.dx, p[1] + d.dy);
+  };
+  BattleView.prototype.up = function (ev) {
+    const d = this.drag; if (!d || ev.pointerId !== d.id) return; this.drag = null;
+    if (!d.mv) { if (this.sel.has(d.r)) this.sel.delete(d.r); else this.sel.add(d.r); }
   };
 
   BattleView.prototype.selectAll = function () {
