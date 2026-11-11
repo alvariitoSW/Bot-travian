@@ -24,6 +24,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ A3 Golpe sincronizado con la animación; combate solo de las primeras filas; persecución de los que huyen.
 - ⬜ A4 Daño por tipo (corte/punta/aplastamiento) y armadura; revisar equilibrio (hoy las batallas igualadas se
   deciden de forma muy brusca; A8 ya lo suavizó).
+- ⬜ A9 **Formación de salida y paso de marcha** (pedido 11/11, lo primero): al empezar, infantería delante, tiradores (vélites, arqueros, honderos) detrás y caballería en las alas, en los dos bandos; velocidades de marcha y carga creíbles por tipo de tropa; los tiradores disparan por encima y no se meten en el cuerpo a cuerpo. Vélites detrás: licencia de juego.
 - ⬜ A5a **Despliegue antes de la batalla** (aprobada 11/11, P41): colocas tus regimientos, tres plantillas de un toque, y pulsas «Empezar batalla». 0,2 + 0,7 M · 20 min.
 - ⬜ A5b **Terreno con efecto: colina y bosque** (aprobada 11/11, P42), un campo tipo por ciudad. 0,25 + 0,9 M · 25 min. Después de A5a.
 - ✅ A8 **Ritmo y moral** (11/11): batallas igualadas de 8 a 12 minutos, sin corte a los 4; moral gradual; cansancio con marca «Cansado».
@@ -47,15 +48,15 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 
 ## Carril F — Modos de juego (decisión del usuario, 11/11/2026)
 - ✅ F1 Diseño de modos decidido: campaña histórica como base del modo largo, primero la partida corta, tres dioses (Marte, Ceres, Neptuno). `gobierno/estudios/F1-modos-de-juego.md`.
-- ⬜ F2 Tiempo real que sigue corriendo con el juego cerrado (para la partida de semanas), con tope y resumen al volver. (Cambio pedido 11/11: por turnos; ver P57 en la bitácora.)
+- ✅ F2 Sustituida por I2 (mapa por turnos; decisión del 11/11).
 - ✅ F3 Aldeanos: reparto entre madera, piedra, hierro y grano (en la vista de lista).
-- ⬜ F5 Favor de un dios (Marte, Júpiter, Ceres, Neptuno…): un poder con recarga. (Cambio pedido 11/11: templos; ver P56 en la bitácora.)
+- ⬜ F5 **Templos a un dios** (aprobada 11/11, P56; antes «favor de un dios»): en cada ciudad puedes levantar un templo a Marte, Ceres o Neptuno; cada templo extiende cultura y religión y hace que una ciudad conquistada se rebele menos. Ocupa un solar (I4). ≈0,2 + 0,6 M, a ojo. Después de I4.
 
 ## Carril I — Gran diseño, fase 1 (aprobado 11/11/2026; informe `gobierno/estudios/G3-gran-diseno.md`)
 Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I6, I7; I8 al final.
 - ✅ I1 Registro de piezas: `js/registro.js` (84 fichas con arte y fuente) y juez `node gobierno/fichas.mjs`, dentro de los jueces.
 - 🔶 I1b Fichas del registro al día tras Historia 2 (el juez pasa; 10 fichas nuevas). Falta: pasar a «histórico» los dictámenes ya cotejados y que Códice y registro compartan una sola fuente (P55, aprobada 11/11). ≈0,3 M.
-- ⬜ I2 **Reloj por estaciones** (P44): «consejo de estación» y botón «Pasar estación»; ciudad y batalla siguen en tiempo real. 0,2 + 0,6 M · 20 min.
+- ⬜ I2 **Mapa por turnos** (P44 y P57, aprobadas 11/11): una estación = un turno, con «consejo de estación» y botón «Pasar turno»; los rivales mueven y atacan en los suyos y ves llegar sus tropas turno a turno; ciudad y batalla siguen en tiempo real. ≈0,25 + 0,8 M · 25 min.
 - ⬜ I3 **Mano de obra y mantenimiento** (P45): reclutar vacía los campos; edificios y tropas cuestan. 0,15 + 0,5 M · 15 min.
 - ⬜ I4 **Tipos de ciudad con solares limitados** (P46): cada ciudad tiene un número fijo de solares y se dedica a recursos, tropas, comercio, mar, investigación o una mezcla; caben templos y edificios de ocio. 0,2 + 0,7 M · 20 min.
 - ⬜ I5 **Investigación y edades** (P47): árbol corto de unas 16 mejoras; la herrería pasa a ser su rama de guerra. Sustituye a F4. 0,2 + 0,7 M · 20 min.
@@ -93,7 +94,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ⬜ H14 **«Poblado íbero» en el mapa** (aprobada 11/11, P54): Carthago Nova se llama así hasta 228. ≈0,15 M.
 
 ## Carril D — Técnica
-- 🔶 D1 Contador «Medir fluidez» hecho. Medido en el móvil del usuario (11/11): menú, ciudad, calles y ejército a unas 60 imágenes por segundo (peor momento 22 a 28). Faltan mapa y batalla grande.
+- ✅ D1 Fluidez medida en el móvil del usuario (11/11): menú, ciudad, calles y ejército a unas 60 imágenes por segundo (peor momento 22 a 28). Mapa y batalla grande, sin medir; el usuario no quiere medir más.
 - ✅ D2 Niveles de detalle en batalla: lejanos con figura ligera; se pintan ~1.395 soldados en vez de 494 con el mismo tope.
 - ✅ D3 Estudio de Godot: no pasar ahora; se revisa tras medir con D1. `gobierno/estudios/D3-godot.md`.
 - ✅ D4 Publicado en GitHub Pages: https://alvariitosw.github.io/Bot-travian/ (falta confirmar en el móvil del usuario).
