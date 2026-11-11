@@ -37,6 +37,10 @@
   };
   // ciudad conquistada: meses de inquietud (producción reducida; con felicidad baja se rebela). El templo la calma INQ_TEMPLO meses extra por nivel
   D.INQ_MESES = 8; D.INQ_TEMPLO = 0.35; D.INQ_REBELION = 40; D.INQ_PROD = 0.4;
+  /* Saqueo (B7): atacar sin conquistar. Botín = SAQUEO_BASE x riqueza de la ciudad, +5 % por nivel de almacén y -8 % por nivel de muralla;
+     una ciudad ya saqueada hace menos de SAQUEO_MESES da solo SAQUEO_REPETIDO. Licencia de juego en las cifras (la praeda era real: Polibio 10.17 y Livio 26.47 en Cartago Nova).
+     Si te saquean a ti, cada almacén esconde ESCONDITE de cada recurso y de lo demás se llevan SAQUEO_ROBO. */
+  D.SAQUEO_BASE = 90; D.SAQUEO_REPETIDO = 0.4; D.SAQUEO_MESES = 6; D.ESCONDITE = 120; D.SAQUEO_ROBO = 0.2; D.SAQUEO_IA = 0.5;
   D.MAX_LVL = 10;
   // mejoras de la herrería: globales, nivel 0 a FORJA_MAX, +5 % por nivel. Coste y tiempo base (nivel 0), crecen x1.5 y x1.4 por nivel
   /* Impuestos: oro x mult, felicidad +/- f. Edificios que suben la felicidad: puntos por nivel (aquí se añaden termas, anfiteatro…). */

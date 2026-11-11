@@ -308,6 +308,7 @@ function showPicker(from, to) {
   if (!ks.length && !hero) h += '<p>No hay tropas en ' + D.CITIES[from].n + '. Recluta en la pestaña Ejército.</p>';
   h += ks.map(k => '<div class="pick"><div class="pt">' + pt(k) + '</div><div><label><span>' + D.UNITS[k].n + '</span><span><b id="pv-' + k + '">' + c.units[k] + '</b> / ' + c.units[k] + '</span></label><input type="range" min="0" max="' + c.units[k] + '" value="' + c.units[k] + '" data-k="' + k + '"></div></div>').join('');
   if (hero) h += '<label class="chk"><input type="checkbox" id="pk-hero" checked> 🦅 El general acompaña al ejército</label>';
+  if (!own) { const bo = G.botin(to); h += '<label class="chk"><input type="checkbox" id="pk-saq"> 💰 Solo saquear, sin conquistar: las tropas vuelven</label><div class="pw">Botín: ' + D.RES.map(r => bo[r] + ' ' + D.RES_ICON[r]).join(' · ') + '</div>'; }
   if (!own) h += '<div class="pw">Fuerza enemiga: ' + G.power(s.cities[to].units) + ' · muralla nivel ' + (s.cities[to].b.muralla || 0) + '<br>Tu fuerza: <b id="pk-pw"></b></div>';
   h += '<div class="acts"><button class="btn ghost" data-act="close">Cancelar</button>' + (ks.length || hero ? '<button class="btn" data-act="send" data-from="' + from + '" data-to="' + to + '">' + (own ? 'Enviar' : '¡A las armas!') + '</button>' : '') + '</div>';
   modal(h); pickUpdate();
@@ -402,7 +403,8 @@ document.addEventListener('click', function (e) {
     case 'pick': showPicker(el.dataset.from, el.dataset.to); break;
     case 'send': {
       const hero = $('pk-hero') && $('pk-hero').checked;
-      if (G.send(el.dataset.from, el.dataset.to, pickUnits(), hero)) { closeModal(); toast('🚩 El ejército parte hacia ' + D.CITIES[el.dataset.to].n + '.'); UI.sheetKey = ''; renderSheet(); }
+      const saq = $('pk-saq') && $('pk-saq').checked;
+      if (G.send(el.dataset.from, el.dataset.to, pickUnits(), hero, saq ? 'saqueo' : null)) { closeModal(); toast((saq ? '💰 Partida de saqueo hacia ' : '🚩 El ejército parte hacia ') + D.CITIES[el.dataset.to].n + '.'); UI.sheetKey = ''; renderSheet(); }
       else toast('Selecciona al menos una unidad.', 'bad');
       break;
     }
