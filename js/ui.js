@@ -124,17 +124,28 @@ function marketHtml() {
   return '<div class="market"><div class="tt">⚖️ Mercado · cambio ' + Math.round(rate * 100) + ' %</div><div class="mrow"><span>Doy</span>' + chips('mfrom', UI.mf) + '</div><div class="mrow"><span>Recibo</span>' + chips('mto', UI.mt) + '</div>' +
     '<div class="btns" style="flex-direction:row">' + [100, 500, 2000].map(n => '<button class="btn" data-act="trade" data-n="' + n + '" data-need=\'' + JSON.stringify({ [UI.mf]: n }) + '\'>' + n + ' ' + D.RES_ICON[UI.mf] + ' → ' + Math.floor(n * rate) + ' ' + D.RES_ICON[UI.mt] + '</button>').join('') + '</div></div>';
 }
+function forjaHtml(c) {
+  if (!(c.b.herreria > 0)) return '';
+  const f = S().forja, hl = c.b.herreria;
+  return '<div class="sec">Herrería · mejoras del ejército</div>' + Object.keys(D.FORJA).map(k => {
+    const F = D.FORJA[k], L = f[k], max = L >= D.FORJA_MAX, topada = !max && L >= hl, en = f.cola && f.cola.k === k, cost = G.forjaCost(k, L);
+    const ef = (L * D.FORJA_BONO * 100).toFixed(0) + ' % ' + F.ef + (max ? ' · nivel máximo' : ' → +' + ((L + 1) * D.FORJA_BONO * 100).toFixed(0) + ' %');
+    return '<div class="card"><div class="ic">' + F.i + '</div><div class="bd"><div class="tt">' + F.n + '<span class="lv">Nv ' + L + '</span></div><div class="ds">+' + ef + '</div>' +
+      (en ? '<div class="prog" data-t0="' + f.cola.t0 + '" data-t1="' + f.cola.t1 + '"><i></i></div><span class="rem"></span>' : max ? '' : topada ? '<div class="ds">Mejora la herrería a nivel ' + (L + 1) + '.</div>' : costHtml(cost)) + '</div>' +
+      (en || max || topada ? '' : '<button class="btn ' + (f.cola ? 'no' : '') + '" data-act="forja" data-v="' + k + '" ' + (f.cola ? '' : "data-need='" + JSON.stringify(cost) + "'") + '>Mejorar ' + F.n.toLowerCase() + '<small>' + months(G.forjaTime(k, L)) + '</small></button>') + '</div>';
+  }).join('');
+}
 function viewCity() {
   const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city];
   let h = cityChips() + '<div class="head"><h2>' + d.n + '</h2><p>' + esc(d.h) + '</p></div>' + (UI.cityV ? '<div class="acts" style="margin:0 0 6px"><button class="btn ghost" data-act="clist">Ver la ciudad en 3D</button></div>' : '') + '<div class="sec">Edificios</div>';
   h = h.replace('<div class="sec">Edificios</div>', '<div class="empty">' + popHtml(c) + '</div><div class="sec">Edificios</div>');
-  for (const b in D.BUILD) { if (D.BUILD[b].sea && !d.sea) continue; h += buildCard(c, b); if (b === 'mercado') h += marketHtml(); }
+  for (const b in D.BUILD) { if (D.BUILD[b].sea && !d.sea) continue; h += buildCard(c, b); if (b === 'mercado') h += marketHtml(); if (b === 'herreria') h += forjaHtml(c); }
   return h + '<div class="empty">' + Object.keys(D.BUILD).map(b => D.BUILD[b].i + ' ' + D.BUILD[b].d).join('<br>') + '</div>';
 }
 function renderCity3D() {
   const s = S(), c = s.cities[UI.city];
   $('ctop').innerHTML = cityChips().replace('</div>', '<button class="chip" data-act="clist">☰ Lista</button></div>') + '<div class="chips views"><button class="chip" data-act="cview" data-v="ciudad">🏛️ Ciudad</button><button class="chip" data-act="cview" data-v="calle">🚶 Calles</button><button class="chip" data-act="cview" data-v="ejercito">⚔️ Ejército</button><button class="chip" data-act="tab" data-v="map">🗺️ Mapa</button></div>';
-  $('csheet').innerHTML = '<div class="cpop">' + popHtml(c) + '</div>' + (UI.bsel ? buildCard(c, UI.bsel) + (UI.bsel === 'mercado' ? marketHtml() : '') + '<div class="empty" style="background:var(--glass);border-radius:12px;margin-top:6px;padding:8px 12px">' + D.BUILD[UI.bsel].d + '</div>'
+  $('csheet').innerHTML = '<div class="cpop">' + popHtml(c) + '</div>' + (UI.bsel ? buildCard(c, UI.bsel) + (UI.bsel === 'mercado' ? marketHtml() : '') + (UI.bsel === 'herreria' ? forjaHtml(c) : '') + '<div class="empty" style="background:var(--glass);border-radius:12px;margin-top:6px;padding:8px 12px">' + D.BUILD[UI.bsel].d + '</div>'
     : '<div class="empty" style="background:var(--glass);border-radius:12px;padding:10px 12px;text-align:center">Toca un edificio para construirlo o mejorarlo · arrastra para girar la ciudad</div>');
 }
 const bar = (label, v, max) => '<span>' + label + '</span><u><s style="width:' + Math.min(100, v / max * 100) + '%"></s></u>';
@@ -264,6 +275,7 @@ document.addEventListener('click', function (e) {
     case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; render(); break;
     case 'clist': UI.cityList = !UI.cityList; setTab('city'); break;
     case 'cview': if (UI.cityV) { UI.bsel = null; UI.cityV.view(v); renderCity3D(); } break;
+    case 'forja': if (G.forjaUp(UI.city, v)) render(); else toast(S().forja.cola ? 'Ya hay una mejora en curso.' : 'Faltan recursos.', 'bad'); break;
     case 'up': if (G.upgrade(UI.city, v)) render(); else toast(s.cities[UI.city].queue ? 'Ya hay una obra en curso en esta ciudad.' : 'Faltan recursos.', 'bad'); break;
     case 'train': if (G.train(UI.city, v, +el.dataset.n)) render(); else toast(s.cities[UI.city].train.length >= 5 ? 'La cola de instrucción está llena.' : G.recruits(s.cities[UI.city]) < +el.dataset.n ? 'No hay población suficiente: construye Ínsulas o espera a que crezca.' : 'Faltan recursos.', 'bad'); break;
     case 'mfrom': UI.mf = v; if (UI.mt === v) UI.mt = v === 'oro' ? 'madera' : 'oro'; render(); break;

@@ -22,9 +22,16 @@
     cuartel: { n: 'Cuartel', i: '⚔️', cost: { madera: 90, piedra: 60, hierro: 70, grano: 40 }, time: 2.5, d: 'Recluta infantería. Nv 3: Príncipes. Nv 5: Triarios.' },
     establo: { n: 'Establo', i: '🐎', cost: { madera: 110, piedra: 60, hierro: 80, grano: 70 }, time: 3, d: 'Recluta caballería (Équites).' },
     muralla: { n: 'Muralla', i: '🧱', cost: { madera: 40, piedra: 120, hierro: 30, grano: 20 }, time: 3, d: '+10 % de defensa por nivel y más vigiles al defender.' },
+    herreria: { n: 'Herrería', i: '🔨', cost: { madera: 70, piedra: 60, hierro: 90, grano: 30, oro: 30 }, time: 2.5, d: 'Forja mejoras de armas y armaduras para todo el ejército. Cada mejora no puede pasar del nivel de la herrería.' },
     templo: { n: 'Templo de Marte', i: '🔥', cost: { madera: 80, piedra: 100, hierro: 30, grano: 60, oro: 50 }, time: 3, d: '+10 % de experiencia del héroe y +3 de moral al defender, por nivel.' }
   };
   D.MAX_LVL = 10;
+  // mejoras de la herrería: globales, nivel 0 a FORJA_MAX, +5 % por nivel. Coste y tiempo base (nivel 0), crecen x1.5 y x1.4 por nivel
+  D.FORJA_MAX = 5; D.FORJA_BONO = 0.05;
+  D.FORJA = {
+    armas: { n: 'Armas', i: '🗡️', ef: 'ataque', cost: { hierro: 120, madera: 40, oro: 50 }, time: 3 },
+    armaduras: { n: 'Armaduras', i: '🛡️', ef: 'defensa', cost: { hierro: 140, piedra: 40, oro: 50 }, time: 3 }
+  };
 
   // cls: inf, spear (anti-caballería), rng (a distancia), cav, ele, gen
   D.UNITS = {
