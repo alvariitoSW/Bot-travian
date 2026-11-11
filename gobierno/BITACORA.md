@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 11/11/2026 — **Pantalla limpia: maqueta B** (elegida por el usuario: «El B»): sin barra de abajo, recursos arriba, tira de vistas a la derecha, botón redondo abajo a la derecha que cambia entre Gobierno y Guerra. J1 se construye con ella; después J2.
 - 11/11/2026 — **Dos modos**: «Me refiero a que la parte de las batallas de los ejércitos de modo estrategia sea un modo de jugar separado al de gobernar pero dentro del mismo juego». (Lectura de Claude: dos modos en pantalla, «Gobierno» —ciudades, economía, política— y «Guerra» —ejércitos, marchas, batallas—, con un cambio claro entre los dos. Entra en J1: las maquetas ya lo enseñan.)
 - 11/11/2026 — **Aprobadas P58 a P62** en el chat: «Las apruebo ahora en este mensaje: aprobadas». Al tablero como carril J (J1 a J5). J3 funde I7 y J4 amplía I6.
 - 11/11/2026 — **Cinco ideas** (propuestas, sin aprobar aún), literal: «1- mejora de la interfaz visual del juego en la pantalla, sin tantos botones que ocupen tanto la pantalla. 2- accesos directos mejorados para mejorar y creación de edificios tanto en la propia ciudad como en el resto. 3- rediseño de ciudades: cada ciudad debería tener una capital con los edificios de la capital, pueblos con recursos, pueblos pescadores o pueblos agricultores-ganaderos. 4- crear el apartado de política territorial para avanzar en mejoras de edificios, haciendo planes y ampliaciones de infraestructuras y tener más apartados políticos con los que interactuar sobre la ciudadanía, ejército, diplomacia, mercado. Separar 2 juegos diferentes, la guerra de las ciudades. 5- hacer el mapa más grande con más ciudades y más territorios en formato región, con su capital, sus pequeños núcleos de población, etc.». (Lectura de Claude: P58 a P62. La 3 y la 5 amplían las regiones ya aprobadas, I6 e I7. «Separar dos juegos»: lo leo como dos modos bien separados en pantalla, gobierno y guerra; por dentro ya lo están. Confirmar.)
@@ -67,7 +68,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-1. **Pantalla limpia (J1)**: ¿maqueta A o B? Las dos separan «Gobierno» (ciudades, economía) y «Guerra» (ejércitos, marchas, batallas), cada modo solo con sus botones. A = interruptor Gobierno|Guerra arriba, barra de abajo fina que cambia con el modo y «Más»; B = sin barra de abajo, recursos arriba y un botón redondo abajo a la derecha que cambia de modo (oro/rojo).
+Nada.
 
 ## Propuestas por aprobar
 Ninguna.
