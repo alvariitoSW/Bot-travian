@@ -59,7 +59,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-Nada.
+1. **El despliegue se construyó dos veces** (A5a), por un cruce entre sesiones. El que está publicado: tocas un regimiento y luego el campo; formaciones «Clásica», «Ancha» y «Centro». La otra versión (sesión «A5a Despliegue», sin subir; su copia caduca pronto): arrastras el regimiento con el dedo; formaciones «Línea», «Tres líneas» y «Alas fuertes». ¿Se queda el publicado tal cual, o se le añaden el arrastre y esas formaciones?
 
 ## Propuestas por aprobar
 Ninguna.
