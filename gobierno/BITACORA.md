@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 11/11/2026 — **Rehacer la guerra**: «Vale, pero quiero rehacer toda la parte de guerra, es muy simplona y fea, tiene que ser un videojuego de estrategia». (Lectura de Claude: «Vale» = unir los estudios R1 a R7 a la rama que publica. Lo de la guerra es un cambio grande: antes de construir hay que saber qué abarca, qué falla más y cómo de a fondo; se le pregunta. Hasta que conteste, L3 y el resto del carril Guerra esperan.)
 - 11/11/2026 — **Ideas de otros juegos de romanos**: «Quiero sacar ideas para implementar en el videojuego que estoy creando del siguiente vídeo» (Top 10 mejores juegos sobre romanos, El Escocés Gamer; el vídeo no se pudo abrir desde la sesión) y, vistas siete ideas de juegos conocidos: «Me parece bien, hay que sacar más jugo de esas ideas para hacer mejor la ingeniería reversa de esos videojuegos y aplicarlos a la app». (Lectura de Claude: aprueba que se estudien, no que se construyan. Siete estudios R1 a R7 en `gobierno/estudios/` y propuestas P67 a P73, por aprobar. Aprobó también añadir YouTube a la red del entorno.)
 - 11/11/2026 — **Guerra a la vez, «da igual el gasto»**: P66 aprobada (carril L, en paralelo a J6; el usuario autoriza el gasto, tope aconsejado 1,5 M por tarea).
 - 11/11/2026 — **Aprobado «Vale, vamos»**: P63 y P64 pasan al tablero (J6 Ciudad como pantalla principal, J7 Parte densa); primero J6. P65 y P66 siguen por aprobar.
@@ -75,6 +76,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
+- **Rehacer la guerra**: decir qué abarca (solo batalla o también ejércitos en el mapa), qué falla más (aspecto, profundidad, manejo) y si se rehace de cero o por partes.
 - **Aprobar P65 (Foro y chips)**, cuando terminen J6 y J7.
 - **Aprobar o rechazar P67 a P73** (ideas de otros juegos de romanos) y decir por cuál empezar. Recomendación de Claude: P72 Emboscadas y P67 Barrios, que son pequeñas y se notan al jugar.
 
