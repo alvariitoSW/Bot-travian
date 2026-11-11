@@ -33,7 +33,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 
 ## Carril B — Ciudad y economía (tipo Travian/Ikariam)
 - ✅ B1 Recurso especial por ciudad (11/11): nueve bienes (sal, vino, caballos, hierro de calidad, plata, mármol, púrpura, madera naval, pieles), uno por ciudad y sin contador nuevo; tenerlo da una ventaja pequeña y cuatro de ellos abren triarios, équites y los niveles 7 a 10 de varios edificios.
-- ⬜ B2 Rutas comerciales entre ciudades propias y con aliados; barcos mercantes visibles.
+- ✅ B2 Rutas comerciales (11/11): desde una ciudad con mercado abres ruta con una vecina propia o firmas un tratado con una ajena (100 de oro); da oro cada mes y el tratado da acceso al bien de esa ciudad; se rompe si hay guerra. En el mapa, trazo dorado con un mercante (barco o carro).
 - ✅ B3 Felicidad e impuestos (bajo, normal, alto) por ciudad.
 - ✅ B4 Termas, acueducto y anfiteatro con sus reglas; en 3D llevan un modelo provisional hasta E4.
 - ⬜ B5 Marina: flotas, batallas navales o bloqueo.

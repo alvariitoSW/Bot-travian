@@ -138,6 +138,18 @@
       "archivo": "gobierno/capturas-tarea/B1-falta.jpg",
       "pie": "Los triarios piden hierro de calidad: hay que tomar Volsinii o Saguntum",
       "ancha": false
+    },
+    {
+      "tarea": "B2",
+      "archivo": "gobierno/capturas-tarea/B2-lista.jpg",
+      "pie": "Rutas comerciales en la ciudad: una abierta con Capua y tratados posibles, con el bien que aporta cada uno",
+      "ancha": false
+    },
+    {
+      "tarea": "B2",
+      "archivo": "gobierno/capturas-tarea/B2-mapa.jpg",
+      "pie": "En el mapa: un mercante en la ruta por mar y un carro en la de tierra",
+      "ancha": false
     }
   ],
   "informes": [

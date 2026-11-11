@@ -69,7 +69,7 @@ Ninguna.
 Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Tres carriles a la vez, que no se pisan:
 - **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`): A9 Formación de salida y paso de marcha (✅) → A5a Despliegue (✅) → (sesión cerrada por gasto; sigue en sesión nueva) A3 Combate que se ve → A4 Papeles de la infantería → A5b Terreno.
 - **Arte** (estilos, iconos, `index.html`): E1b Iconos y letra (✅) → E2 Piezas por cultura (✅). Carril cerrado el 11/11; quedan E1c, E2b y E4 en el tablero.
-- **Economía** (`js/game.js`, `js/data.js`, paneles de ciudad en `js/ui.js`): I3 Mano de obra → I4 Tipos de ciudad → B1 Recurso especial → B2 Rutas.
+- **Economía**: terminado (I3, I4, B1 y B2 hechas el 11/11). `js/game.js`, `js/data.js` y los paneles de ciudad quedan libres para F5, B7, C3 y B5.
 Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bitácora al día, capturas en el cuadro, cuadro publicado y parte.
 
 ## Encargo de la próxima sesión
@@ -84,6 +84,8 @@ Lo que espera a que acaben los carriles (tocan los mismos archivos que Economía
 4. C2 Costa y relieve → I6 Región de Italia → I7 Regiones → I8 Partida corta.
 
 ## Notas para quien continúe
+- B2 (11/11): rutas en `s.rutas` (migrado), números `D.RUTA_*`. Roma empieza sin mercado: la primera ruta sale de Capua o tras construir uno. El «aliado» es por ahora un tratado de comercio con cualquier vecina con la que no haya marchas en curso; cuando llegue C3 (diplomacia) debería pedir alianza o paz. El bot no usa rutas (9 de 10).
+- **Carril Economía cerrado** (11/11): I3, I4, B1 y B2 hechas y publicadas. Gastó 3,3 M (1,6 de la sesión, 1,7 de Sonnet) sobre 3,3 M presupuestados.
 - B1 (11/11): bienes en `D.ESPECIAL` y `esp` en cada ciudad. `G.fuentesExtra` es el gancho para que B2 (rutas con aliados) aporte bienes. El bot agresivo bajó de 10 a 9 de 10. Seis de las nueve fichas llevan cita sin cotejar; mármol, madera naval y pieles no tienen fuente todavía (para H11).
 - I4 (11/11): tipos en `D.TIPOS` (multiplicadores en la ficha) y solares con `solar: 1` en `D.BUILD`: un edificio nuevo (templos de F5, ocio) solo tiene que declararlo. La felicidad base bajó de 60 a 55 y el municipio da +5: especializar una ciudad cuesta 5 de felicidad. El tipo «ciudad de artesanos» solo abarata la herrería hasta que llegue I5.
 - I3 (11/11): los números de mano de obra y mantenimiento son constantes en `js/data.js` (`PUESTOS_*`, `MANO_MIN`, `MANT_*`). Paga a 0,35 de oro por punto de consumo: con 0,5 el bot ya perdía una de diez. Roma pasa de +30 a +16 de oro al mes al empezar.
