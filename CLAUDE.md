@@ -3,7 +3,9 @@
 Juego de estrategia para **móvil y offline** ambientado en Roma (280–146 a.C.): gestión de ciudades y campaña en un
 mapa, más batallas tácticas en 3D que se pueden ver y dirigir. Es una PWA: HTML, CSS y JavaScript sin compilación.
 
-Este archivo son las reglas vigentes, cortas a propósito. Lo pendiente vive en `gobierno/TABLERO.md`.
+Este archivo son las reglas vigentes, cortas a propósito. Lo pendiente vive en `gobierno/TABLERO.md` (tareas
+aprobadas, por carriles) y `gobierno/BITACORA.md` (decisiones del usuario, lo que espera algo suyo y el encargo de la
+próxima sesión). **Una sesión, una tarea**: al terminar se apunta en el tablero y se cierra.
 
 ## 1. Cómo trabaja el usuario
 - Es médico, no programador: explícale en lenguaje llano y enséñale **capturas**; juzga por lo que ve.

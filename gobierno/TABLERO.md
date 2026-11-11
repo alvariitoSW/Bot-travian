@@ -62,5 +62,5 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ D5 Jueces automáticos: un solo comando que pase pruebas de lógica + recorrido en navegador + capturas.
 
 ## Gobierno
-- ⬜ G1 Adaptar a este repositorio el sistema de `fiebres-neutropenias` (plan por equipos, bitácora, jueces,
-  ahorro), en versión reducida. Decisión del usuario pendiente: qué ministerios trae.
+- ⬜ G1 **Siguiente sesión, única tarea**: montar el gobierno reducido y el cuadro de mando. Encargo completo en
+  `BITACORA.md`. Aprobado por el usuario el 11/11/2026.
