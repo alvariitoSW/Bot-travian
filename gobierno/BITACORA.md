@@ -59,19 +59,24 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-1. **Bienes de ciudad (B1)**: pediste no añadir más recursos, así que el bien especial no se almacena: lo tienes si posees una ciudad que lo da. ¿Vale así, o prefieres que se acumule y se gaste como la madera?
+1. **El despliegue se construyó dos veces** (A5a), por un cruce entre sesiones. El que está publicado: tocas un regimiento y luego el campo; formaciones «Clásica», «Ancha» y «Centro». La otra versión (sesión «A5a Despliegue», sin subir; su copia caduca pronto): arrastras el regimiento con el dedo; formaciones «Línea», «Tres líneas» y «Alas fuertes». ¿Se queda el publicado tal cual, o se le añaden el arrastre y esas formaciones?
+2. **Bienes de ciudad (B1)**: pediste no añadir más recursos, así que el bien especial no se almacena: lo tienes si posees una ciudad que lo da. ¿Vale así, o prefieres que se acumule y se gaste como la madera?
 
 ## Propuestas por aprobar
 Ninguna.
 
 ## Encargo en curso (11/11/2026, tarde)
 Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Tres carriles a la vez, que no se pisan:
-- **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`): A9 Formación de salida y paso de marcha (✅) → A5a Despliegue (✅ hecha y unida) → A3 Combate que se ve → A4 Papeles de la infantería → A5b Terreno.
+- **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`): A9 Formación de salida y paso de marcha (✅) → A5a Despliegue (✅) → (sesión cerrada por gasto; sigue en sesión nueva) A3 Combate que se ve → A4 Papeles de la infantería → A5b Terreno.
 - **Arte** (estilos, iconos, `index.html`): E1b Iconos y letra (✅) → E2 Piezas por cultura (✅). Carril cerrado el 11/11; quedan E1c, E2b y E4 en el tablero.
 - **Economía** (`js/game.js`, `js/data.js`, paneles de ciudad en `js/ui.js`): I3 Mano de obra → I4 Tipos de ciudad → B1 Recurso especial → B2 Rutas.
 Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bitácora al día, capturas en el cuadro, cuadro publicado y parte.
 
 ## Encargo de la próxima sesión
+**Carril Batallas, en sesión nueva** (la del 11/11 paró por gasto: 2,07 M en A9 y A5a, con alerta): A3 → A4 → A5b, una sesión por tarea.
+- **A3 Combate que se ve**, con lo que pidió el usuario: (1) fase de tiro antes del choque: la infantería se detiene a unos 150 del enemigo mientras sus tiradores tengan munición y blanco (tope de unos 20 s), con daño según la defensa del blanco; (2) luchan solo las primeras filas y el golpe coincide con la animación; (3) la caballería persigue a los que huyen y arrolla a los tiradores; su carga por la espalda a un enemigo ya trabado pesa mucho más. Ojo con las pruebas de duración de A8 (8 a 12 min): dar al constructor un guion de medida y tope de pasos.
+- Guion de capturas ya hecho: `node gobierno/captura-batalla.mjs <prefijo> <segundos> [cámara] [plantilla]` (0 = despliegue). No lanzarlo a la vez que los jueces.
+- Al unir: mirar `git status` entero (el 11/11 se coló un conflicto en `cuadro.json`). El cuadro lo publica una sola sesión cada vez.
 Lo que espera a que acaben los carriles (tocan los mismos archivos que Economía):
 1. F5 Templos (tras I4) → B7 Saqueo → C3 Diplomacia → B5 Marina.
 2. I5 Investigación → I2 Mapa por turnos.
