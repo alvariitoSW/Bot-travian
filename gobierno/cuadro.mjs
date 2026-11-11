@@ -48,7 +48,7 @@ const htmlCarriles = carriles.map(c => {
       const [cls, rot] = ESTADO[t.est], hecha = t.est === '✅', titulo = corto(t.texto);
       return '<details class="tarea' + (hecha ? ' hecha' : '') + '" data-ref="' + esc(t.id) + '"><summary><span class="id">' + esc(t.id) + '</span><span class="que">' + esc(titulo) + '</span><span class="estado ' + cls + '">' + rot + '</span></summary>' +
         '<div class="cuerpo"><p>' + md(t.texto) + '</p>' +
-        '<div class="fila">' + (hecha ? '' : '<button class="boton lleno" data-pedir="priorizar" data-ref="' + esc(t.id) + '" data-titulo="' + esc(titulo) + '">Hacer la siguiente</button>') +
+        '<div class="fila">' + (hecha ? '' : '<button class="boton lleno" data-pedir="priorizar" data-ref="' + esc(t.id) + '" data-titulo="' + esc(titulo) + '">Dar prioridad</button>') +
         '<button class="boton" data-abrir="c-' + esc(t.id) + '">Pedir un cambio</button></div>' +
         '<div class="cambio" id="c-' + esc(t.id) + '" hidden><label class="quien" for="tx-' + esc(t.id) + '">Qué cambiarías en ' + esc(t.id) + '</label><textarea id="tx-' + esc(t.id) + '"></textarea>' +
         '<div class="fila"><button class="boton lleno" data-pedir="cambio" data-ref="' + esc(t.id) + '" data-titulo="' + esc(titulo) + '" data-texto="tx-' + esc(t.id) + '">Enviar cambio</button></div></div></div></details>';

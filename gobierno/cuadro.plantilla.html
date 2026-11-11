@@ -99,7 +99,7 @@ textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min
 
   <section aria-labelledby="t-pedidos">
     <h2 id="t-pedidos">Tus pedidos</h2>
-    <p class="nota" id="pedidos-nota">Lo que pulses aquí queda guardado. La siguiente sesión de trabajo lo pasa al tablero y a la bitácora.</p>
+    <p class="nota" id="pedidos-nota">Lo que pulses aquí queda guardado, pero la página no puede ponerse a trabajar sola. Para que se aplique ya, escribe en el chat de Claude: «aplica el cuadro».</p>
     <ul class="lista" id="pedidos"><li class="nota" id="pedidos-vacio">Aún no has pedido nada. Abre una tarea y pulsa un botón, o escribe abajo.</li></ul>
     <div class="ficha">
       <label class="quien" for="nuevo-texto">Pedir algo nuevo</label>
@@ -131,7 +131,7 @@ textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var db = null, avisoT = 0;
-  var ROTULO = { priorizar: 'Hacer la siguiente', cambio: 'Cambio pedido', aprobar: 'Aprobada', rechazar: 'Rechazada', nuevo: 'Pedido nuevo', respuesta: 'Tu respuesta' };
+  var ROTULO = { priorizar: 'Prioridad', cambio: 'Cambio pedido', aprobar: 'Aprobada', rechazar: 'Rechazada', nuevo: 'Pedido nuevo', respuesta: 'Tu respuesta' };
 
   function aviso(txt) { var a = $('aviso'); a.textContent = txt; a.hidden = false; clearTimeout(avisoT); avisoT = setTimeout(function () { a.hidden = true; }, 3500); }
   function apagar(motivo) {
@@ -175,7 +175,7 @@ textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min
     var unico = tipo === 'priorizar' || tipo === 'aprobar' || tipo === 'rechazar';
     var destino = unico ? col.doc((tipo === 'priorizar' ? 'priorizar-' : 'decision-') + ref) : col.doc();
     b.disabled = true;
-    destino.set(doc).then(function () { aviso('Apuntado. La próxima sesión lo aplica.'); if (caja) caja.value = ''; })
+    destino.set(doc).then(function () { aviso('Apuntado. Para aplicarlo ya, di en el chat: «aplica el cuadro».'); if (caja) caja.value = ''; })
       .catch(function (e) { aviso(e && e.code === 'invalid_argument' ? 'No tienes permiso para guardar aquí. Dilo en el chat.' : 'No se pudo guardar. Prueba otra vez.'); })
       .then(function () { b.disabled = false; });
   }
@@ -195,7 +195,7 @@ textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min
     db = d;
     var reloj = setTimeout(function () { $('pedidos-nota').textContent = 'No se pueden leer tus pedidos ahora mismo; puede que la lista no esté al día.'; }, 10000);
     db.collection('pedidos').onSnapshot(function (snap) {
-      if (!snap.metadata.fromCache) { clearTimeout(reloj); $('pedidos-nota').textContent = 'Lo que pulses aquí queda guardado. La siguiente sesión de trabajo lo pasa al tablero y a la bitácora.'; }
+      if (!snap.metadata.fromCache) { clearTimeout(reloj); $('pedidos-nota').textContent = 'Lo que pulses aquí queda guardado, pero la página no puede ponerse a trabajar sola. Para que se aplique ya, escribe en el chat de Claude: «aplica el cuadro».'; }
       pintar(snap.docs);
     }, function () { clearTimeout(reloj); apagar('Se ha perdido la conexión con tus pedidos. Dilo en el chat o vuelve a abrir la página.'); });
   });

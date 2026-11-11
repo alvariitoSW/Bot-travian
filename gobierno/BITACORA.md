@@ -14,6 +14,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   `fiebres-neutropenias` (se puede ampliar o mejorar), más un cuadro de mando sencillo en un Artifact.
 
 - 11/11/2026 — **Gobierno montado** (G1): equipos, jueces, bitácora, ahorro, exteriores, arte y cuadro de mando. Ver `gobierno/LEEME.md`.
+- 11/11/2026 — **Prioridad** (desde el cuadro): B3, B4, B6, B8, B9, D1, D2, D3, E1, E3, F1 y F3 antes que el resto.
 - 11/11/2026 — **GitHub Pages activado** por el usuario (rama de trabajo, raíz): https://alvariitosw.github.io/Bot-travian/
 - 11/11/2026 — **Permiso para instalar Godot**, dado por el usuario en el chat. (Si el sistema de permisos vuelve a
   bloquear la descarga, hace falta además una regla de permiso para Bash en la configuración.)
@@ -37,9 +38,13 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   edificio. Hoy el juego usa 30,4 MB, 4.150 y 10.740. Está puesto como provisional en `gobierno/arte.json`.
 
 ## Encargo de la próxima sesión
-Sin encargo fijado: lo elige el usuario con «Hacer la siguiente» en el cuadro de mando o en el chat.
-Recomendación: **F1** (propuesta de diseño de los modos de juego), porque condiciona los carriles B y F.
-Antes de empezar: skill `plan-equipos`, que primero aplica los pedidos del cuadro.
+El usuario marcó «Hacer la siguiente» en 12 tareas del cuadro (11/11/2026). Es su cola de prioridad; el resto del
+tablero espera. Las marcó de corrido, sin orden entre ellas. Orden propuesto por Claude (el usuario puede cambiarlo):
+1. **F1** propuesta de diseño de los modos de juego (condiciona B y F).
+2. **D1** medir en su móvil real · 3. **E3** presupuesto por escena · 4. **D2** niveles de detalle.
+5. **B6** costes y tiempos · 6. **B8** herrería · 7. **B3** felicidad e impuestos · 8. **B4** más edificios ·
+9. **B9** ciudad fiel a cada lugar · 10. **F3** aldeanos · 11. **E1** guía de arte · 12. **D3** motor nativo (Godot).
+Una sesión, una tarea: se empieza por la primera con la skill `plan-equipos`.
 
 ## Notas para quien continúe
 - El arte pesa ~31 MB y cada soldado tiene 2.000–4.000 triángulos: el rendimiento en móvil real no está medido.

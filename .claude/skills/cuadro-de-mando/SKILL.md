@@ -17,7 +17,7 @@ Una página para el móvil del usuario: enlace al juego, lo que espera algo suyo
 
 | `tipo` | Qué significa | Qué se hace |
 |---|---|---|
-| `priorizar` | «Hacer la siguiente» la tarea `ref` | Pasa a ser el «Encargo de la próxima sesión» de la bitácora. Si hay varias, la más reciente manda y el resto queda en cola, en orden. |
+| `priorizar` | «Dar prioridad» a la tarea `ref` | Entra en la cola del «Encargo de la próxima sesión» de la bitácora. Si hay varias, propón un orden (primero lo que desbloquea a lo demás) y que el usuario lo confirme. |
 | `cambio` | Cambio pedido sobre la tarea o propuesta `ref` | Si es pequeño y claro, se reescribe la tarea. Si cambia el alcance, va a la bitácora como propuesta. |
 | `aprobar` / `rechazar` | Decisión sobre la propuesta `ref` | Skill `bitacora`: al tablero, o fuera con nota. |
 | `nuevo` | Pedido libre | Skill `bitacora`: decisión literal con fecha y propuesta `P<n>`. |
