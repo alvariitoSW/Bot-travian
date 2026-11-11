@@ -1,0 +1,5 @@
+1. Mesa de arena cenital: el campo es una mesa en relieve (colinas, río, vado, bosque) y cada regimiento una ficha de madera con su letra tallada, hombres en puntos, moral en una barra y flecha de frente; casi no hay interfaz.
+2. Se arrastra la ficha para colocarla, la manija de giro la orienta, la de ensanche estira la línea; en combate se toca una ficha propia y luego la arena (marca de avance) o una ficha enemiga (carga), con tres órdenes en la esquina del pulgar.
+3. A la vista: un botón grande de avance de fase, tres puntos de fase arriba y, con una ficha elegida, 3 órdenes (Carga, Testudo, Retirar) y 2 manijas: unos 6 en total, y solo los dos últimos aparecen al elegir.
+4. Reescribir la vista cenital de js/gfx/battle3d.js (cámara ortográfica de arriba, fichas 3D bajas con el mismo modelo de regimiento), añadir gestos de arrastre, giro y ensanche, y el panel de órdenes en js/ui.js; el terreno en relieve sale de js/gfx/ground.js.
+5. Unas 4 a 5 sesiones: cámara y fichas (1), gestos de colocación (1), órdenes y flechas (1), terreno en relieve y pulido móvil (1 a 2).

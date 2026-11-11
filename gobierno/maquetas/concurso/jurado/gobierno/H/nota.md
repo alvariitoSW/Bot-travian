@@ -1,0 +1,5 @@
+1. La mesa de mármol del Senado es la pantalla: cada asunto (obras, grano, tropas, leyes, intrigas) es una tablilla de cera apilada que se sella con el anillo; las crisis rompen la mesa con una tablilla roja y fichas de emergencia.
+2. Con el pulgar: deslizar la tablilla a la derecha la sella, a la izquierda la aparta; se elige opción tocando; en una crisis se arrastran fichas (vigiles, agua, cortafuegos) a las casillas de la tablilla antes de que caiga la arena.
+3. Quedan a la vista 3 botones grandes abajo (Apartar, Sellar, Pasar el día); en crisis, 4 (Sellar y 3 fichas arrastrables); arriba solo lectura (recursos y dos medidores).
+4. Se sustituirían los paneles de js/ui.js (Obras, Gobierno, modales de eventos) por un mazo de tablillas generado desde los eventos de game.js, y la vista 3D de ciudad pasaría a ser una miniatura opcional; el resto de js/gfx/ no cambia.
+5. Coste estimado: 4 a 5 sesiones (mazo de tablillas y gestos, intrigas con votos del Senado, crisis con arrastre, pulido visual y pruebas a 390 px).

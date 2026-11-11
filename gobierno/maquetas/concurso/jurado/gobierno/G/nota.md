@@ -1,0 +1,5 @@
+1. La ciudad es la pantalla: sin paneles, los problemas (ratas, hambre, incendio, revuelta, crecida) brotan como avisos sobre sus edificios, con cuenta atrás, y las intrigas son hilos rojos entre palacios con un sello que se toca.
+2. El pulgar arrastra recursos y gente desde la bandeja inferior (agua, grano, obreros, cohorte, denarios, augur) hasta el aviso; el fantasma va 70 px por encima del dedo y el aviso correcto se ilumina; un sello abre una hoja inferior con tres decisiones.
+3. A la vista: 1 botón («Pasar el día») y 6 fichas arrastrables; los sellos de intriga y los avisos son parte de la ciudad, no botones fijos.
+4. Nueva capa de avisos y sellos en js/ui.js (posicionar sobre edificios con proyección de city3d.js), arrastrar-soltar en la bandeja, hoja de decisión; quitar los paneles actuales de Obras/Gobierno; en js/gfx/city3d.js proyectar edificios a pantalla y dibujar humo, fuego, agua e hilos.
+5. Unas 3 a 4 tareas: capa de avisos y arrastre (1-2), intrigas e hilos (1), crisis con cuenta atrás y lógica en game.js (1-2).

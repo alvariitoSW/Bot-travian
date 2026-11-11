@@ -1,0 +1,5 @@
+1. La batalla se dirige como una partitura: bajo el campo hay un pentagrama temporal de 2 minutos con una línea por regimiento; las órdenes son notas de colores (avanzar, cargar, flanquear, testudo, relevar, retirar) y el choque se pinta sobre la propia partitura mientras se reproduce.
+2. Con el pulgar: tocar un hueco de una línea abre una tira de siete órdenes; arrastrar una nota la mueve en el tiempo; arrastrar la regla rebobina o adelanta; pausa táctica y velocidad ×1/×2/×4 junto al pulgar, abajo a la derecha.
+3. A la vista quedan 2 botones fijos (reproducir/pausa y velocidad); en el despliegue, «Ordenar batalla» y 3 formaciones; el resto son notas que se tocan.
+4. Habría que crear una vista de partitura en js/ui.js (plan de órdenes por regimiento con hora) y hacer que js/battle.js lea ese plan en vez de órdenes en directo; en js/gfx/battle3d.js solo cambia el marcador de tiempo y las flechas de órdenes.
+5. Unas 4 a 5 tareas: modelo de plan y su simulación determinista (1-2), vista de partitura con arrastrar y soltar (2), flechas y avisos de refuerzos y resultado (1).

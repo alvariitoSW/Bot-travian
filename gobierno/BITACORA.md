@@ -70,7 +70,8 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-Nada.
+- **Concurso Gobierno: ¿cuál gana?** Cartas (73/90: decidir deslizando una carta, pantalla libre, pero sin ciudad a la vista) · Tablero (70: la ciudad es la interfaz y las crisis se atienden arrastrando fichas; más caro de construir) · Senado 65 · Cursus 63 · Crónica 61. Recomiendo Tablero como vista principal y Cartas para las decisiones e intrigas. Ver `estudios/K-concurso.md`.
+- **Concurso Guerra: ¿cuál gana?** General (72/90: cámara 3D baja con rueda de órdenes, la más fácil de construir y la menos atrevida) · Trazo (69: dibujar la línea y las flechas con el dedo; riesgo en los gestos) · Partitura 60 · Arena 60 · Cartas 59. Recomiendo General con el flanqueo dibujado de Trazo.
 
 ## Propuestas por aprobar
 Ninguna.

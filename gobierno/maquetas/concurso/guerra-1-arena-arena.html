@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>AQVILA · Mesa de arena</title>
+<style>
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--noche);overflow:hidden;font-family:Georgia,'Times New Roman',serif;color:var(--marmol);touch-action:none;user-select:none}
+#app{position:fixed;inset:0;display:grid;place-items:center}
+#mesa{width:100%;height:100%;display:block}
+text{font-family:Georgia,serif}
+.tok{cursor:grab}
+.chip{cursor:pointer}
+.chip rect{fill:#0b1016;fill-opacity:.88;stroke:var(--oro);stroke-width:1}
+.chip text{fill:var(--marmol);font-size:13px;text-anchor:middle;dominant-baseline:central}
+.chip:active rect{fill:var(--rojo)}
+#btn{position:fixed;right:18px;bottom:16px;min-height:44px;padding:0 20px;border-radius:22px;border:2px solid var(--oro);background:var(--rojo);color:var(--marmol);font:700 15px Georgia,serif;box-shadow:0 3px 10px #000a}
+#btn:active{transform:translateY(1px);filter:brightness(.9)}
+#pasos{position:fixed;left:50%;top:6px;transform:translateX(-50%);display:flex;gap:6px;align-items:center}
+#pasos i{width:34px;height:20px;display:grid;place-items:center}
+#pasos i b{width:10px;height:10px;border-radius:50%;background:#0b1016cc;border:1.5px solid var(--bronce)}
+#pasos i.on b{background:var(--oro);border-color:var(--oro);width:14px;height:14px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#0b1016e6;border:1px solid var(--oro);border-radius:14px;padding:6px 14px;font-size:13px;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap}
+#toast.v{opacity:1}
+</style></head><body>
+<div id="app">
+<svg id="mesa" viewBox="0 0 844 390" preserveAspectRatio="xMidYMid meet">
+<defs>
+ <linearGradient id="arena" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#d9bf8a"/><stop offset=".5" stop-color="#cdb078"/><stop offset="1" stop-color="#bf9f68"/></linearGradient>
+ <filter id="grano" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2" seed="4" result="n"/><feColorMatrix in="n" type="matrix" values="0 0 0 0 .35 0 0 0 0 .25 0 0 0 0 .1 0 0 0 .5 -.12"/></filter>
+ <radialGradient id="colina" cx=".42" cy=".38" r=".7"><stop offset="0" stop-color="#e8d3a0"/><stop offset=".6" stop-color="#cfb27a"/><stop offset="1" stop-color="#a98a55"/></radialGradient>
+ <linearGradient id="rio" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#5f8aa0"/><stop offset="1" stop-color="#7fa9b8"/></linearGradient>
+ <linearGradient id="madera" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#b98a52"/><stop offset=".5" stop-color="#9a6d3b"/><stop offset="1" stop-color="#7a5128"/></linearGradient>
+ <linearGradient id="maderaE" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a5f6e"/><stop offset=".5" stop-color="#454a58"/><stop offset="1" stop-color="#2f3340"/></linearGradient>
+ <linearGradient id="marco" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6a4524"/><stop offset="1" stop-color="#3d2713"/></linearGradient>
+ <filter id="sombra" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="2" dy="3" stdDeviation="2" flood-color="#2a1a08" flood-opacity=".55"/></filter>
+ <marker id="fOro" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#e9c063" stroke="#3a2a0a" stroke-width="1"/></marker>
+ <marker id="fRojo" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#c0281f" stroke="#3a0a08" stroke-width="1"/></marker>
+ <marker id="fHuida" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="#4a3a6a"/></marker>
+</defs>
+<g id="terreno"></g>
+<g id="marcas"></g>
+<g id="fichas"></g>
+<g id="capa"></g>
+<g id="hud"></g>
+</svg>
+</div>
+<div id="pasos"></div>
+<button id="btn">Comenzar batalla</button>
+<div id="toast"></div>
+<script>
+const NS='http://www.w3.org/2000/svg';
+const $=s=>document.querySelector(s);
+const el=(t,a={},p,txt)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(txt!=null)e.textContent=txt;p&&p.appendChild(e);return e};
+const svg=$('#mesa'),T=$('#terreno'),M=$('#marcas'),F=$('#fichas'),C=$('#capa'),H=$('#hud');
+
+/* ---------- Terreno en relieve (todo dibujado a mano) ---------- */
+function terreno(){
+  el('rect',{x:0,y:0,width:844,height:390,fill:'url(#marco)'},T);
+  el('rect',{x:16,y:16,width:812,height:358,rx:6,fill:'url(#arena)'},T);
+  el('rect',{x:16,y:16,width:812,height:358,rx:6,filter:'url(#grano)'},T);
+  // reglas de bronce en el borde
+  for(let x=16;x<=828;x+=20){el('path',{d:`M${x} 16v${x%100==16?8:4}M${x} 374v-${x%100==16?8:4}`,stroke:'#b8862b','stroke-width':1.2},T)}
+  for(let y=16;y<=374;y+=20){el('path',{d:`M16 ${y}h${y%100==16?8:4}M828 ${y}h-${y%100==16?8:4}`,stroke:'#b8862b','stroke-width':1.2},T)}
+  // colina izquierda (nuestra) y colina derecha (Aníbal)
+  colina(205,300,70,38,4);colina(640,95,80,40,5);
+  // río con vado
+  el('path',{d:'M470 16C440 80 520 120 480 190S430 300 470 374L520 374C490 300 540 230 548 180S500 80 520 16Z',fill:'url(#rio)',opacity:.92},T);
+  el('path',{d:'M470 16C440 80 520 120 480 190S430 300 470 374',fill:'none',stroke:'#3f6478','stroke-width':2},T);
+  el('path',{d:'M520 16C500 80 548 130 548 180',fill:'none',stroke:'#c8e0e6','stroke-width':1,'stroke-dasharray':'5 7'},T);
+  // vado: piedras
+  [[492,176],[503,181],[514,178],[525,183],[536,180]].forEach(p=>el('ellipse',{cx:p[0],cy:p[1],rx:5,ry:3.5,fill:'#b8a27a',stroke:'#6b5632','stroke-width':.8},T));
+  el('text',{x:512,y:200,'text-anchor':'middle','font-size':11,fill:'#2b4655','font-style':'italic'},T,'vado');
+  // bosquecillo
+  for(let i=0;i<22;i++){const x=690+((i*37)%110),y=250+((i*53)%90);arbol(x,y,7+(i%3))}
+  // aldea / campamento romano
+  el('path',{d:'M42 60l14-12 14 12v14h-28z',fill:'#8f6a3a',stroke:'#3d2713','stroke-width':1},T);
+  el('path',{d:'M32 60h48',stroke:'#6a4524','stroke-width':2},T);
+  // curvas de nivel suaves
+  el('path',{d:'M300 40C340 70 380 60 420 100',fill:'none',stroke:'#a98a55','stroke-width':1,opacity:.6},T);
+  el('path',{d:'M310 52C345 80 385 72 425 112',fill:'none',stroke:'#a98a55','stroke-width':1,opacity:.5},T);
+}
+function colina(cx,cy,rx,ry,n){
+  el('ellipse',{cx:cx+6,cy:cy+8,rx:rx+10,ry:ry+8,fill:'#6b5632',opacity:.28},T);
+  for(let i=0;i<n;i++){const k=1-i/n;el('ellipse',{cx:cx-i*2,cy:cy-i*3,rx:rx*k,ry:ry*k,fill:i==0?'url(#colina)':'none',stroke:i==0?'#8c6f3e':'#9c7e4c','stroke-width':i==0?1.5:1,opacity:i?.8:1},T)}
+  el('ellipse',{cx:cx-n*2,cy:cy-n*3,rx:6,ry:4,fill:'#f3e2b4',opacity:.7},T);
+}
+function arbol(x,y,r){el('circle',{cx:x+2,cy:y+3,r,fill:'#3a2a0a',opacity:.25},T);el('circle',{cx:x,cy:y,r,fill:'#6f8a3f',stroke:'#3e5224','stroke-width':1},T);el('circle',{cx:x-2,cy:y-2,r:r*.45,fill:'#9ab658',opacity:.8},T)}
+
+/* ---------- Fichas ---------- */
+const NOMBRE={V:'Velites',H:'Hastati',P:'Príncipes',T:'Triarios',E:'Équites',L:'Elefantes',G:'Galos',N:'Númidas',C:'Veteranos de Aníbal'};
+function fichas(modo){
+  const R=(id,k,n,x,y,a,w,h,m,e)=>({id,lado:'R',k,n,x,y,a,w,h,m,...e});
+  const E=(id,k,n,x,y,a,w,h,m,e)=>({id,lado:'E',k,n,x,y,a,w,h,m,...e});
+  if(modo==0) return [
+    R('v1','V',40,262,120,0,22,60,1),R('v2','V',40,262,260,0,22,60,1),
+    R('h1','H',60,214,110,0,28,64,1),R('h2','H',60,214,190,0,28,64,1),R('h3','H',60,214,270,0,28,64,1),
+    R('p1','P',60,170,115,0,28,64,1),R('p2','P',60,170,195,0,28,64,1),R('p3','P',60,170,275,0,28,64,1),
+    R('t1','T',40,126,150,0,26,52,1),R('t2','T',40,126,235,0,26,52,1),
+    R('e1','E',50,215,48,-90,24,66,1),R('e2','E',50,215,340,-90,24,66,1),
+    E('l1','L',12,640,115,180,28,60,1),E('l2','L',12,640,200,180,28,60,1),E('l3','L',12,640,285,180,28,60,1),
+    E('g1','G',70,700,150,180,30,70,1),E('g2','G',70,700,245,180,30,70,1),
+    E('c1','C',60,764,198,180,30,100,1),E('n1','N',50,690,56,180,24,66,1),E('n2','N',50,690,322,180,24,66,1)];
+  if(modo==1) return [
+    R('v1','V',22,372,142,0,20,54,.7),R('v2','V',24,372,262,0,20,54,.8),
+    R('h1','H',54,402,128,0,28,64,.9),R('h2','H',58,408,198,0,28,64,.95,{sel:1}),R('h3','H',50,402,268,0,28,64,.85),
+    R('p1','P',60,340,130,0,28,64,1),R('p2','P',60,340,200,0,28,64,1),R('p3','P',60,340,270,0,28,64,1),
+    R('t1','T',40,252,200,0,26,52,1,{refuerzo:1}),
+    R('e1','E',46,500,52,-20,24,66,.9),R('e2','E',46,380,340,-90,24,66,.9),
+    E('l1','L',6,478,118,180,28,60,.35),E('l2','L',9,478,205,180,28,60,.6),E('l3','L',4,478,288,180,28,60,.25),
+    E('g1','G',44,540,150,180,30,70,.7),E('g2','G',52,540,248,180,30,70,.8),
+    E('c1','C',60,640,198,180,30,100,1),E('n1','N',32,560,70,160,24,66,.5),E('n2','N',34,560,330,200,24,66,.55)];
+  return [
+    R('h1','H',38,420,130,0,28,64,.6),R('h2','H',46,426,200,0,28,64,.7),R('h3','H',34,420,270,0,28,64,.55),
+    R('p1','P',50,372,128,0,28,64,.8),R('p2','P',54,372,200,0,28,64,.85),R('p3','P',48,372,272,0,28,64,.8),
+    R('t1','T',40,306,200,0,26,52,1),R('e1','E',34,560,100,-20,24,66,.6),R('e2','E',30,540,300,20,24,66,.55),
+    E('g1','G',10,600,160,180,30,70,.1,{caida:1}),E('g2','G',8,610,248,180,30,70,.1,{caida:1}),
+    E('l1','L',0,520,118,180,28,60,0,{caida:1}),E('l2','L',3,548,205,180,28,60,.1,{caida:1}),
+    E('c1','C',22,740,198,180,30,100,.45,{huye:1}),E('n1','N',12,700,60,180,24,66,.2,{huye:1}),E('n2','N',14,710,330,180,24,66,.2,{huye:1})];
+}
+function pintaFicha(f){
+  const g=el('g',{class:'tok','data-id':f.id,transform:`translate(${f.x} ${f.y}) rotate(${f.a})`},F);
+  if(f.caida) g.setAttribute('opacity',.8);
+  const w=f.w,h=f.h,E=f.lado=='E';
+  // sombra y cuerpo: la ficha es un bloque alto (w frente × h ancho). Frente = +x
+  el('rect',{x:-w/2,y:-h/2,width:w,height:h,rx:4,fill:E?'url(#maderaE)':'url(#madera)',stroke:E?'#9aa6b4':'#e9c063','stroke-width':f.sel?3:1.6,filter:'url(#sombra)'},g);
+  el('rect',{x:-w/2+3,y:-h/2+3,width:w-6,height:h-6,rx:2,fill:'none',stroke:E?'#1a1d26':'#5a3a18','stroke-width':1,opacity:.7},g);
+  // franja de color de lado
+  el('rect',{x:-w/2,y:-h/2,width:5,height:h,rx:2,fill:E?'#6b3f8a':'#c0281f'},g);
+  // punta de frente
+  el('path',{d:`M${w/2} ${-8}l7 8l-7 8z`,fill:E?'#9aa6b4':'#e9c063',stroke:'#2a1a08','stroke-width':.8},g);
+  // puntos = hombres (talla en relieve)
+  const filas=Math.max(1,Math.round(h/9)),cols=Math.max(1,Math.round((w-10)/9));
+  const total=filas*cols,vivos=Math.min(total,Math.ceil(total*(f.n/({V:40,H:60,P:60,T:40,E:50,L:12,G:70,N:50,C:60}[f.k]))));
+  let c=0;for(let i=0;i<filas;i++)for(let j=0;j<cols;j++){const vivo=c++<vivos;el('circle',{cx:-w/2+11+j*9,cy:-h/2+6+i*(h-10)/Math.max(1,filas-1||1)*(filas>1?1:0)+(filas==1?h/2-6:0),r:2.1,fill:vivo?(E?'#d4d9e2':'#2a1a08'):'none',opacity:vivo?.85:.2,stroke:vivo?'none':'#2a1a08','stroke-width':.5},g)}
+  // glifo tallado (no rota con la ficha para poder leerse)
+  const t=el('text',{x:0,y:0,'font-size':f.k=='C'||w<27?16:18,'font-weight':700,'text-anchor':'middle','dominant-baseline':'central',fill:E?'#e8ecf2':'#f4d98a',stroke:'#1a1007','stroke-width':.6,transform:`rotate(${-f.a})`},g,f.k);
+  // barra de moral (se queda horizontal)
+  if(f.m!=null&&!f.caida){const bw=26,col=f.m>.6?'#8fae5a':f.m>.3?'#e9c063':'#c0281f';const b=el('g',{transform:`rotate(${-f.a}) translate(0 ${Math.abs(f.a)==90?w/2+8:h/2+8})`},g);el('rect',{x:-bw/2,y:-2,width:bw,height:4,rx:2,fill:'#0b1016',opacity:.8},b);el('rect',{x:-bw/2,y:-2,width:bw*f.m,height:4,rx:2,fill:col},b)}
+  if(f.caida){el('path',{d:`M${-w/2} ${-h/2}L${w/2} ${h/2}M${w/2} ${-h/2}L${-w/2} ${h/2}`,stroke:'#0b1016','stroke-width':1.5,opacity:.5},g)}
+  return g;
+}
+
+/* ---------- Estado ---------- */
+let modo=0,lista=[],sel=null,arrastre=null;
+function dibuja(){
+  F.innerHTML='';C.innerHTML='';M.innerHTML='';H.innerHTML='';
+  lista.forEach(pintaFicha);
+  hud();marcas();
+  if(sel)manijas();
+}
+function marcas(){
+  if(modo==0){
+    el('rect',{x:100,y:30,width:236,height:330,rx:10,fill:'#c0281f',opacity:.1,stroke:'#c0281f','stroke-width':2,'stroke-dasharray':'9 6'},M);
+    el('text',{x:218,y:366,'text-anchor':'middle','font-size':13,fill:'#8a1d16','font-weight':700},M,'zona de despliegue');
+  }
+  if(modo==1){
+    // flecha de flanqueo de la caballería
+    el('path',{d:'M500 52C560 30 620 40 640 80C650 100 640 120 628 132',fill:'none',stroke:'#e9c063','stroke-width':4,'stroke-dasharray':'10 6','stroke-linecap':'round','marker-end':'url(#fOro)'},M);
+    el('path',{d:'M380 340C440 372 540 368 590 330',fill:'none',stroke:'#e9c063','stroke-width':3,'stroke-dasharray':'8 6','stroke-linecap':'round',opacity:.7,'marker-end':'url(#fOro)'},M);
+    // carga de los hastati centrales
+    el('path',{d:'M436 198L500 198',stroke:'#c0281f','stroke-width':6,'stroke-linecap':'round','marker-end':'url(#fRojo)'},M);
+    // polvo y choques
+    [[462,130],[470,210],[470,292],[520,155],[524,252]].forEach((p,i)=>{for(let k=0;k<4;k++)el('circle',{cx:p[0]+k*5-6,cy:p[1]+(k%2?7:-6),r:9-k,fill:'#f0e0b8',opacity:.32-k*.05},M);el('path',{d:`M${p[0]-9} ${p[1]-9}l18 18M${p[0]+9} ${p[1]-9}l-18 18`,stroke:i%2?'#c0281f':'#e9c063','stroke-width':2.2,'stroke-linecap':'round'},M)});
+    // refuerzo
+    el('path',{d:'M196 200L236 200',stroke:'#9aa6b4','stroke-width':3,'stroke-dasharray':'3 5','marker-end':'url(#fOro)'},M);
+  }
+  if(modo==2){
+    // huida enemiga
+    [[640,100],[640,200],[640,300]].forEach(p=>el('path',{d:`M${p[0]} ${p[1]}C${p[0]+30} ${p[1]-10} ${p[0]+60} ${p[1]+8} ${p[0]+95} ${p[1]}`,fill:'none',stroke:'#4a3a6a','stroke-width':4,'stroke-dasharray':'8 6','stroke-linecap':'round','marker-end':'url(#fHuida)'},M));
+    // restos del campo
+    for(let i=0;i<26;i++){const x=440+((i*47)%190),y=90+((i*71)%220);el('path',{d:`M${x} ${y}l6 2`,stroke:i%3?'#5a3a18':'#2f3340','stroke-width':2.2,'stroke-linecap':'round'},M)}
+  }
+}
+function hud(){
+  // marcador mínimo arriba a la izquierda: dos barras, sin cajas
+  const nR=lista.filter(f=>f.lado=='R').reduce((s,f)=>s+f.n,0),nE=lista.filter(f=>f.lado=='E').reduce((s,f)=>s+f.n,0);
+  const g=el('g',{transform:'translate(30 38)'},H);
+  el('rect',{x:-8,y:-16,width:150,height:50,rx:10,fill:'#0b1016',opacity:.72},g);
+  el('text',{x:2,y:0,'font-size':13,fill:'#e9c063','font-weight':700},g,'Roma');el('text',{x:130,y:0,'font-size':13,fill:'#f1ead9','text-anchor':'end'},g,nR+'');
+  el('text',{x:2,y:22,'font-size':13,fill:'#9aa6b4','font-weight':700},g,'Cartago');el('text',{x:130,y:22,'font-size':13,fill:'#f1ead9','text-anchor':'end'},g,nE+'');
+  const titulo=['Despliegue · Zama','Choque · minuto 7','Resultado'][modo];
+  el('text',{x:814,y:40,'font-size':14,fill:'#2a1a08','text-anchor':'end','font-weight':700},H,titulo);
+  if(modo==1){
+    el('text',{x:814,y:56,'font-size':13,fill:'#5a3f1c','text-anchor':'end','font-style':'italic'},H,'Refuerzo: triarios en 0:20');
+    // Chips junto a la ficha elegida
+    const f=lista.find(f=>f.sel);if(f){
+      const b=el('g',{transform:'translate(34 340)'},H);
+      el('rect',{x:0,y:-18,width:262,height:36,rx:18,fill:'#0b1016',opacity:.82},b);
+      el('text',{x:12,y:1,'font-size':13,fill:'#e9c063','font-weight':700,'dominant-baseline':'central'},b,'Hastati II');
+      [['Carga',104],['Testudo',170],['Retirar',230]].forEach(([t,x])=>{
+        const g=el('g',{class:'chip',transform:`translate(${x} 0)`},b);
+        el('rect',{x:-30,y:-14,width:60,height:28,rx:14},g);el('text',{x:0,y:1},g,t);
+        g.addEventListener('pointerdown',e=>{e.stopPropagation();orden(t)});
+      });
+    }
+  }
+  if(modo==2){
+    const g=el('g',{transform:'translate(430 195)'},H);
+    el('ellipse',{cx:0,cy:0,rx:176,ry:84,fill:'#0b1016',opacity:.86,stroke:'#e9c063','stroke-width':2},g);
+    // sello de lacre
+    el('circle',{cx:-132,cy:-4,r:34,fill:'#c0281f',stroke:'#7d1812','stroke-width':3},g);el('circle',{cx:-132,cy:-4,r:25,fill:'none',stroke:'#e9a39e','stroke-width':1.5},g);
+    el('text',{x:-132,y:-3,'font-size':30,fill:'#f1ead9','text-anchor':'middle','dominant-baseline':'central','font-weight':700},g,'S');
+    el('text',{x:-84,y:-40,'font-size':22,fill:'#e9c063','font-weight':700},g,'Victoria romana');
+    el('text',{x:-84,y:-14,'font-size':13,fill:'#f1ead9'},g,'Aníbal se retira a Hadrumeto.');
+    el('text',{x:-84,y:10,'font-size':13,fill:'#8fae5a'},g,'Roma: 214 caídos de 520');
+    el('text',{x:-84,y:30,'font-size':13,fill:'#9aa6b4'},g,'Cartago: 258 caídos, 3 elefantes capturados');
+    el('text',{x:-84,y:52,'font-size':13,fill:'#e9c063','font-style':'italic'},g,'La caballería númida decidió el día.');
+  }
+}
+function manijas(){
+  const f=lista.find(f=>f.id==sel);if(!f||modo==2)return;
+  const r=f.a*Math.PI/180,c=Math.cos(r),s=Math.sin(r);
+  const frente=[f.x+c*(f.w/2+22),f.y+s*(f.w/2+22)],lado=[f.x-s*(f.h/2+16),f.y+c*(f.h/2+16)];
+  const a=el('g',{'data-man':'rot'},C);el('line',{x1:f.x+c*f.w/2,y1:f.y+s*f.w/2,x2:frente[0],y2:frente[1],stroke:'#e9c063','stroke-width':2},a);
+  el('circle',{cx:frente[0],cy:frente[1],r:10,fill:'#0b1016',stroke:'#e9c063','stroke-width':2.5},a);el('path',{d:`M${frente[0]-4} ${frente[1]-3}a5 5 0 1 1 0 6`,fill:'none',stroke:'#e9c063','stroke-width':1.8},a);
+  const b=el('g',{'data-man':'est'},C);
+  el('circle',{cx:lado[0],cy:lado[1],r:10,fill:'#0b1016',stroke:'#e9c063','stroke-width':2.5},b);el('path',{d:`M${lado[0]-5} ${lado[1]}h10M${lado[0]-5} ${lado[1]}l2-2M${lado[0]-5} ${lado[1]}l2 2M${lado[0]+5} ${lado[1]}l-2-2M${lado[0]+5} ${lado[1]}l-2 2`,fill:'none',stroke:'#e9c063','stroke-width':1.6,transform:`rotate(${f.a+90} ${lado[0]} ${lado[1]})`},b);
+}
+
+/* ---------- Gestos ---------- */
+function pt(e){const p=svg.createSVGPoint();p.x=e.clientX;p.y=e.clientY;return p.matrixTransform(svg.getScreenCTM().inverse())}
+svg.addEventListener('pointerdown',e=>{
+  const p=pt(e),man=e.target.closest('[data-man]'),tok=e.target.closest('.tok');
+  if(man){arrastre={t:man.dataset.man,id:sel};svg.setPointerCapture(e.pointerId);return}
+  if(tok){const f=lista.find(f=>f.id==tok.dataset.id);if(f.lado!='R'){if(modo==1&&sel)atacar(f);return}
+    sel=f.id;lista.forEach(x=>x.sel=x.id==sel);arrastre={t:'mover',id:sel,dx:f.x-p.x,dy:f.y-p.y,m:0};svg.setPointerCapture(e.pointerId);dibuja();return}
+  if(modo==1&&sel){const f=lista.find(f=>f.id==sel);toast(NOMBRE[f.k]+' avanzan a la marca');M.appendChild(el('circle',{cx:p.x,cy:p.y,r:8,fill:'none',stroke:'#e9c063','stroke-width':3}));return}
+  sel=null;lista.forEach(x=>x.sel=0);dibuja();
+});
+svg.addEventListener('pointermove',e=>{
+  if(!arrastre||modo==2)return;const p=pt(e),f=lista.find(f=>f.id==arrastre.id);if(!f)return;
+  if(arrastre.t=='mover'&&modo==0){f.x=Math.max(112,Math.min(326,p.x+arrastre.dx));f.y=Math.max(42,Math.min(348,p.y+arrastre.dy))}
+  else if(arrastre.t=='rot'){f.a=Math.round(Math.atan2(p.y-f.y,p.x-f.x)*180/Math.PI/5)*5}
+  else if(arrastre.t=='est'){const r=f.a*Math.PI/180,d=-(p.x-f.x)*Math.sin(r)+(p.y-f.y)*Math.cos(r);f.h=Math.max(36,Math.min(110,Math.round(Math.abs(d)*2-30)))}
+  else return;
+  dibuja();
+});
+svg.addEventListener('pointerup',()=>{arrastre=null});
+function orden(t){const f=lista.find(f=>f.id==sel);toast(t=='Carga'?'Los hastati cargan: lanzan los pila y entran a espada':t=='Testudo'?'Testudo: más defensa, más lentos':'Retirada ordenada: los príncipes cubren')}
+function atacar(en){const f=lista.find(f=>f.id==sel);toast(NOMBRE[f.k]+' cargan contra '+NOMBRE[en.k].toLowerCase())}
+let tt;function toast(s){const t=$('#toast');t.textContent=s;t.classList.add('v');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('v'),2200)}
+
+/* ---------- Pasos ---------- */
+function ir(m){
+  modo=m;lista=fichas(m);sel=null;
+  if(m==1){lista.find(f=>f.id=='h2').sel=1;sel='h2'}
+  $('#btn').textContent=['Comenzar batalla','Dar por terminada la batalla','Volver al despliegue'][m];
+  $('#pasos').innerHTML=[0,1,2].map(i=>`<i data-p="${i}" class="${i==m?'on':''}"><b></b></i>`).join('');
+  dibuja();
+}
+$('#pasos').addEventListener('click',e=>{const i=e.target.closest('i');if(i)ir(+i.dataset.p)});
+$('#btn').addEventListener('click',()=>ir((modo+1)%3));
+terreno();
+ir(+(location.hash.slice(1)||0));
+</script></body></html>

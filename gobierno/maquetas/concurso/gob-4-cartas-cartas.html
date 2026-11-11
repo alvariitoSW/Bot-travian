@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>AQVILA · Consejo en cartas</title>
+<style>
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a;--papel:#e8dcbc}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#05080c}
+body{font:15px/1.35 Georgia,'Times New Roman',serif;color:var(--marmol);display:flex;justify-content:center;overflow:hidden}
+#app{width:100%;max-width:390px;height:100dvh;max-height:844px;position:relative;overflow:hidden;background:radial-gradient(120% 60% at 50% 0,#1b2735 0,var(--noche) 70%);display:flex;flex-direction:column;transition:background .5s}
+#app.crisis{background:radial-gradient(120% 70% at 50% 0,#4a1410 0,#150808 75%)}
+header{padding:10px 16px 0;display:flex;justify-content:space-between;align-items:baseline;font-size:13px;color:var(--piedra);letter-spacing:.04em}
+header b{color:var(--oro);font-size:15px;font-weight:normal;letter-spacing:.12em}
+#meters{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:10px 16px 0}
+.m{text-align:center;position:relative}
+.m svg{width:52px;height:52px;display:block;margin:0 auto}
+.m .ring{fill:none;stroke:#263140;stroke-width:5}
+.m .val{fill:none;stroke:var(--oro);stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .5s,stroke .3s;transform:rotate(-90deg);transform-origin:26px 26px}
+.m.bajo .val{stroke:var(--rojo)}.m.alto .val{stroke:var(--oliva)}
+.m small{display:block;font-size:13px;color:var(--piedra);margin-top:2px}
+.m .dot{z-index:2;position:absolute;left:50%;top:-2px;margin-left:-5px;width:10px;height:10px;border-radius:50%;background:var(--marmol);opacity:0;transition:.15s}
+.m .dot.p{transform:scale(.6);opacity:1}.m .dot.g{transform:scale(1.2);opacity:1}
+.m .d{z-index:2;position:absolute;right:2px;top:0;font-size:13px;font-weight:bold;opacity:0}
+.m .d.on{animation:flota 1.1s forwards}
+@keyframes flota{0%{opacity:1;transform:translateY(6px)}100%{opacity:0;transform:translateY(-14px)}}
+#alerta{margin:10px 16px 0;height:34px;display:none;align-items:center;gap:10px;border:1px solid var(--rojo);border-radius:17px;padding:0 12px;background:#2a0d0b;font-size:14px;position:relative;overflow:hidden}
+#app.crisis #alerta{display:flex}
+#alerta i{position:absolute;left:0;bottom:0;height:3px;background:var(--rojo);width:100%;transform-origin:left;animation:cuenta linear forwards}
+@keyframes cuenta{to{transform:scaleX(0)}}
+#alerta b{color:var(--terra)}#alerta span{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--oro)}
+#stage{flex:1;position:relative;margin:10px 0 0;touch-action:none}
+.card{position:absolute;left:20px;right:20px;top:6px;bottom:8px;border-radius:20px;background:linear-gradient(160deg,#f4ecd6,var(--papel));color:#2a2218;box-shadow:0 14px 30px #000a,inset 0 0 0 2px #fff6,inset 0 0 0 5px var(--bronce);padding:20px 22px 18px;display:flex;flex-direction:column;align-items:center;text-align:center;cursor:grab;user-select:none;transform-origin:50% 120%;will-change:transform}
+.card.fondo{transform:scale(.94) translateY(12px);filter:brightness(.7);pointer-events:none}
+.card.crit{background:linear-gradient(160deg,#f1d9c4,#dcae8f);box-shadow:0 14px 30px #000a,inset 0 0 0 2px #fff6,inset 0 0 0 5px var(--rojo)}
+.rol{font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:#7a5a1c}
+.card.crit .rol{color:var(--rojo)}
+.retrato{width:132px;height:132px;margin:14px 0 8px;border-radius:50%;background:radial-gradient(circle at 50% 35%,#fff7,#0000 70%),var(--c,#b8862b);box-shadow:inset 0 0 0 3px #2a2218,0 0 0 3px #f4ecd6,0 0 0 5px var(--bronce);overflow:hidden}
+.retrato svg{width:100%;height:100%}
+.nombre{font-size:19px;font-weight:bold;color:#2a2218}
+.texto{font-size:19px;margin-top:6px;line-height:1.4;flex:1;display:flex;align-items:center;border-top:1px solid #b8862b88;border-bottom:1px solid #b8862b88;padding:0 4px;width:100%;justify-content:center}
+.sello{margin-top:12px;font-size:13px;color:#6b5a3a;font-style:italic}
+.etq{position:absolute;top:22px;padding:6px 12px;border:3px solid;border-radius:10px;font-weight:bold;font-size:15px;letter-spacing:.06em;opacity:0;text-transform:uppercase;background:#fffa}
+.etq.i{left:14px;color:var(--rojo);transform:rotate(-10deg)}
+.etq.d{right:14px;color:#3d6a1a;transform:rotate(10deg)}
+#mando{padding:8px 20px 18px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#mando button{font:inherit;font-size:14px;padding:12px 10px;border-radius:14px;border:1.5px solid var(--bronce);background:#141c26;color:var(--marmol);min-height:56px;line-height:1.2;cursor:pointer}
+#mando button:active{background:#1f2b3a}
+#mando button em{display:block;font-style:normal;font-size:13px;color:var(--oro);margin-bottom:2px}
+#mando button.i em{color:#e98a80}
+#app.crisis #mando button{border-color:var(--rojo);background:#2a1210}
+#fin{position:absolute;inset:0;background:#05080cdd;display:none;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:32px;gap:14px;z-index:9}
+#fin.on{display:flex}
+#fin h2{color:var(--oro);font-weight:normal;letter-spacing:.1em}
+#fin button{font:inherit;padding:14px 22px;border-radius:14px;border:1.5px solid var(--oro);background:#141c26;color:var(--oro);min-height:48px}
+#nav{position:absolute;right:10px;top:10px;display:none}
+</style></head><body>
+<div id="app">
+ <header><span>AÑO 264 a.C. · <b>MARZO</b></span><span id="turno">Consulado de Apio Claudio</span></header>
+ <div id="meters"></div>
+ <div id="alerta"><b id="aTit">INCENDIO EN EL VICUS</b><span id="aTiempo">0:12</span><i id="aBarra"></i></div>
+ <div id="stage"></div>
+ <div id="mando"><button class="i" id="bi"></button><button class="d" id="bd"></button></div>
+ <div id="fin"><h2 id="finT"></h2><p id="finP"></p><button id="finB">Convocar el consejo de nuevo</button></div>
+</div>
+<script>
+const MED=[['Pueblo','M4 20c0-5 3-8 8-8s8 3 8 8M12 12a4 4 0 100-8 4 4 0 000 8'],['Senado','M3 9l9-6 9 6v2H3zM5 12v7M10 12v7M14 12v7M19 12v7M3 20h18'],['Tesoro','M12 3a9 9 0 100 18 9 9 0 000-18zM12 7v10M9 9.5h4.5a1.7 1.7 0 010 3.4h-3a1.7 1.7 0 000 3.4H15'],['Legiones','M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6zM12 8v9M8 11h8']];
+let nivel=[62,48,55,70];
+const $=s=>document.querySelector(s);
+$('#meters').innerHTML=MED.map((m,i)=>`<div class="m" id="m${i}"><span class="dot"></span><span class="d"></span><svg viewBox="0 0 52 52"><circle class="ring" cx="26" cy="26" r="22"/><circle class="val" cx="26" cy="26" r="22" stroke-dasharray="138.2" stroke-dashoffset="138.2"/><path d="${m[1]}" transform="translate(14 14) scale(.98)" fill="none" stroke="#f1ead9" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg><small>${m[0]}</small></div>`).join('');
+function pinta(){nivel.forEach((v,i)=>{const e=$('#m'+i);e.querySelector('.val').style.strokeDashoffset=138.2*(1-v/100);e.classList.toggle('bajo',v<25);e.classList.toggle('alto',v>75)})}
+function cara(c,t){return `<svg viewBox="0 0 100 100"><path d="M10 100c0-26 18-36 40-36s40 10 40 36z" fill="${t}"/><path d="M50 64l-14 36h28z" fill="#f1ead9" opacity=".55"/><ellipse cx="50" cy="40" rx="18" ry="21" fill="${c}"/><path d="M31 36c2-16 36-16 38 0-6-6-32-6-38 0z" fill="#2a2218"/><circle cx="43" cy="42" r="2" fill="#2a2218"/><circle cx="57" cy="42" r="2" fill="#2a2218"/><path d="M44 52q6 4 12 0" stroke="#2a2218" stroke-width="2" fill="none"/></svg>`}
+const A={
+ cuestor:['Cuestor','Gneo Ofilio','#6a7f9c','#e0b98f','#7a4a2a'],
+ augur:['Augur','Tito Quincio','#c9b27a','#d8ae86','#5b3b6b'],
+ tribuno:['Tribuno de la plebe','Cayo Flaminio','#8fae5a','#dcb08a','#7a2a1a'],
+ general:['Legado','Marco Atilio Régulo','#c0281f','#d6a37c','#4a4f57'],
+ mercader:['Mercader','Hanón de Tarento','#d9764a','#c58e62','#2f5f6b'],
+ cliente:['Cliente','Lucio de Capua','#9aa6b4','#dcb08a','#6b5a3a'],
+ edil:['Edil','Publio Sempronio','#b8862b','#d8ae86','#7a4a2a']};
+// efectos [Pueblo,Senado,Tesoro,Legiones]; |n|=1 pequeño, 2 grande; null = oculto
+const MAZOS={
+ 1:[
+  {a:'cuestor',t:'El grano de Sicilia llega tarde. ¿Abrimos el granero público a precio bajo?',i:['Mantener precio',[-1,0,1,0]],d:['Vender barato',[2,0,-2,0]]},
+  {a:'general',t:'Cartago pisa Mesana. Pido otra legión para cruzar el estrecho.',i:['Esperar al Senado',[0,1,0,-1]],d:['Enviar la legión',[0,0,-1,2]]},
+  0],
+ 2:[
+  {a:'cliente',intriga:1,t:'Un liberto me entregó esta carta sellada. Flaminio pacta en secreto con Capua contra ti.',i:['Quemar la carta',[0,1,0,0]],d:['Denunciarlo al Senado',null],sello:'Sello falso o verdadero: no se sabe'},
+ ],
+ 3:[
+  {a:'edil',crisis:1,t:'¡Arde el Vicus Tuscus! El fuego salta a los graneros. ¿Quién acude?',i:['Cuadrillas de bomberos (vigiles)',[0,0,-1,0]],d:['Legionarios al fuego',[1,0,0,-2]],sello:'Carta 1 de 3'}]
+};
+MAZOS[1][2]={a:'augur',t:'Las aves vuelan a la izquierda. Los dioses dudan de la expedición.',i:['Ignorar el presagio',[-1,1,0,1]],d:['Sacrificar un buey',[1,0,-1,0]]};
+MAZOS[2].push({a:'tribuno',intriga:1,t:'Los plebeyos piden repartir tierras de Tarento. Los patricios se oponen.',i:['Vetar la ley',[-2,1,0,0]],d:['Aprobar el reparto',[2,-2,-1,0]]});
+MAZOS[3].push({a:'cuestor',crisis:1,t:'Los graneros están a medio llenar y el pueblo grita. ¿Racionamos?',i:['Racionar el pan',[-2,0,1,0]],d:['Comprar a Hanón a precio de oro',[1,0,-2,0]],sello:'Carta 2 de 3'},{a:'tribuno',crisis:1,t:'Una multitud marcha hacia el Senado. Piden a los culpables.',i:['Cerrar las puertas',[-2,1,0,1]],d:['Hablarles desde la tribuna',[1,-1,0,0]],sello:'Carta 3 de 3'});
+const q=new URLSearchParams(location.search);
+let mazo,pos,crisisT,fin=false;
+function inicia(s){
+ s=+s||1;fin=false;$('#fin').classList.remove('on');
+ nivel=s==3?[34,52,40,60]:s==2?[58,44,55,66]:[62,48,55,70];
+ mazo=MAZOS[s].map(x=>({...x}));pos=0;
+ const c=s==3;$('#app').classList.toggle('crisis',c);
+ $('#turno').textContent=c?'Emergencia en Roma':s==2?'Una intriga en la Curia':'Consulado de Apio Claudio';
+ clearInterval(crisisT);
+ if(c){let t=+q.get('t')||12;const tot=Math.max(t,12);$('#aBarra').style.animation='none';void $('#aBarra').offsetWidth;$('#aBarra').style.animation=`cuenta ${tot}s linear forwards`;$('#aBarra').style.animationDelay=`-${tot-t}s`;
+  const f=()=>{$('#aTiempo').textContent='0:'+String(Math.max(t,0)).padStart(2,'0')};f();
+  if(!q.has('quieto'))crisisT=setInterval(()=>{t--;f();if(t<0){clearInterval(crisisT);decide('i',true)}},1000)}
+ pinta();dibuja();
+}
+function tarjeta(c,fondo){
+ const [rol,nom,col,piel,toga]=A[c.a];const el=document.createElement('div');
+ el.className='card'+(fondo?' fondo':'')+(c.crisis?' crit':'');
+ el.innerHTML=`<div class="rol">${c.crisis?'Crisis · ':c.intriga?'Intriga · ':''}${rol}</div><div class="retrato" style="--c:${col}">${cara(piel,toga)}</div><div class="nombre">${nom}</div><div class="texto">${c.t}</div><div class="sello">${c.sello||'Desliza para decidir'}</div><div class="etq i"></div><div class="etq d"></div>`;
+ return el}
+function dibuja(){
+ const st=$('#stage');st.innerHTML='';
+ if(pos>=mazo.length){return final()}
+ if(mazo[pos+1])st.appendChild(tarjeta(mazo[pos+1],1));
+ const c=mazo[pos],el=tarjeta(c);st.appendChild(el);arrastra(el,c);
+ const bi=$('#bi'),bd=$('#bd');
+ bi.innerHTML=`<em>← ${c.i[1]?marca(c.i[1]):'?'}</em>${c.i[0]}`;bd.innerHTML=`<em>${c.d[1]?marca(c.d[1]):'?'} →</em>${c.d[0]}`;
+ bi.onclick=()=>decide('i');bd.onclick=()=>decide('d');
+}
+function marca(e){return e.map((v,i)=>v?(v>0?'▲':'▼').repeat(Math.abs(v))+MED[i][0].slice(0,3):'').filter(Boolean).join(' ')||'sin efecto'}
+function muestra(e,lado){document.querySelectorAll('.m .dot').forEach((d,i)=>{d.className='dot'+(e&&e[i]?(Math.abs(e[i])>1?' g':' p'):'')})}
+function arrastra(el,c){
+ let x0=null,dx=0;const ei=el.querySelector('.etq.i'),ed=el.querySelector('.etq.d');
+ ei.textContent=c.i[0].split(' ').slice(0,2).join(' ');ed.textContent=c.d[0].split(' ').slice(0,2).join(' ');
+ el.onpointerdown=e=>{x0=e.clientX;el.setPointerCapture(e.pointerId);el.style.transition='none'};
+ el.onpointermove=e=>{if(x0==null)return;dx=e.clientX-x0;el.style.transform=`translateX(${dx}px) rotate(${dx/18}deg)`;
+  const l=dx<0;ei.style.opacity=l?Math.min(1,-dx/50):0;ed.style.opacity=!l?Math.min(1,dx/50):0;muestra(Math.abs(dx)>20?(l?c.i[1]:c.d[1]):null)};
+ el.onpointerup=()=>{if(x0==null)return;x0=null;muestra(null);
+  if(Math.abs(dx)>90)decide(dx<0?'i':'d');else{el.style.transition='transform .25s';el.style.transform='';ei.style.opacity=ed.style.opacity=0}dx=0}}
+function decide(l,tarde){
+ if(fin)return;const c=mazo[pos];if(!c)return;
+ let e=l=='i'?c.i[1]:c.d[1];
+ if(!e){e=Math.random()<.5?[0,2,0,0]:[0,-2,0,-1]}
+ const el=$('#stage .card:last-child');
+ if(el&&!el.classList.contains('fondo')){el.style.transition='transform .3s,opacity .3s';el.style.transform=`translateX(${l=='i'?-420:420}px) rotate(${l=='i'?-24:24}deg)`;el.style.opacity=0}
+ e.forEach((v,i)=>{nivel[i]=Math.max(0,Math.min(100,nivel[i]+v*9));if(v){const d=$('#m'+i+' .d');d.textContent=(v>0?'+':'−')+Math.abs(v*9);d.style.color=v>0?'#8fae5a':'#e0605a';d.classList.remove('on');void d.offsetWidth;d.classList.add('on')}});
+ muestra(null);pinta();pos++;
+ if(nivel.some(v=>v<=0)){setTimeout(()=>final(nivel.findIndex(v=>v<=0)),400);return}
+ setTimeout(dibuja,300);
+}
+function final(k){
+ clearInterval(crisisT);fin=true;
+ const caida=['El pueblo se amotina y te expulsa de Roma.','El Senado te declara enemigo de la República.','El erario está vacío y no hay paga para nadie.','Las legiones se niegan a marchar.'];
+ $('#finT').textContent=k>=0?'Fin de tu consulado':'El consejo ha decidido';
+ $('#finP').textContent=k>=0?caida[k]:(q.get('s')==3?'El fuego queda sofocado. Mañana habrá que reconstruir el Vicus.':'Siguiente asesor en la antesala.');
+ $('#fin').classList.add('on')}
+$('#finB').onclick=()=>inicia(q.get('s'));
+inicia(q.get('s'));
+</script></body></html>

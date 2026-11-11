@@ -1,0 +1,137 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=390,initial-scale=1,user-scalable=no"><title>Crónica</title>
+<style>
+:root{--noche:#0b1016;--noche2:#141c26;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent;touch-action:none;user-select:none}
+html,body{background:#05080c;font-family:Georgia,'Times New Roman',serif;color:var(--marmol)}
+.app{position:relative;width:390px;height:844px;margin:0 auto;overflow:clip;background:radial-gradient(ellipse at 50% 28%,#1d2733 0,var(--noche) 70%)}
+.app.crisis{background:radial-gradient(ellipse at 50% 28%,#3a1512 0,#12090a 72%)}
+.top{position:absolute;left:0;right:0;top:0;height:64px;padding:10px 12px;display:flex;gap:6px;align-items:center}
+.chip{flex:1;background:#ffffff0f;border:1px solid #ffffff1c;border-radius:10px;padding:5px 6px;font:13px/1.1 system-ui,sans-serif}
+.chip b{display:block;font-size:13px;color:var(--oro)}
+.bar{height:4px;border-radius:2px;background:#ffffff22;margin-top:4px;overflow:clip}.bar i{display:block;height:100%;background:var(--oliva)}
+.chip.mal .bar i{background:var(--rojo)}.chip.mal b{color:var(--terra)}
+.rueda{position:absolute;left:0;top:64px;width:390px;height:300px}
+.rueda svg{width:390px;height:300px;overflow:visible}
+.mes{cursor:pointer}.mes path{stroke:#0b1016;stroke-width:2;transition:.2s}
+.mes text{font:600 13px system-ui,sans-serif;fill:#0b1016;pointer-events:none}
+.centro{position:absolute;left:105px;top:104px;width:180px;text-align:center;pointer-events:none}
+.centro h1{font:700 30px Georgia,serif;color:var(--oro);letter-spacing:2px}
+.centro p{font:13px system-ui,sans-serif;color:var(--piedra);margin-top:2px}
+.centro .hoy{color:var(--marmol);margin-top:6px}
+.pres{position:absolute;font-size:20px;filter:drop-shadow(0 0 6px #000);pointer-events:none}
+.franja{position:absolute;left:0;top:372px;width:390px;height:250px;padding:0 10px}
+.franja h2{font:700 13px system-ui,sans-serif;letter-spacing:2px;color:var(--bronce);text-transform:uppercase;margin:0 4px 6px;display:flex;justify-content:space-between}
+.slots{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.slot{min-height:104px;border:1.5px dashed #ffffff30;border-radius:14px;padding:8px;background:#ffffff08;position:relative;transition:.15s}
+.slot.sobre{border-color:var(--oro);background:#e9c06322;transform:scale(1.03)}
+.slot .f{font:700 15px Georgia,serif;color:var(--marmol)}.slot .f small{font:13px system-ui,sans-serif;color:var(--piedra);display:block}
+.slot .ev{margin-top:5px;font:13px/1.25 system-ui,sans-serif;display:flex;gap:5px;align-items:flex-start}
+.ev.pre{color:var(--terra)}.ev.fes{color:var(--oro)}.ev.plan{color:var(--oliva)}
+.slot.alerta{border:1.5px solid var(--rojo);background:#c0281f1f;animation:lat 1.2s infinite}
+@keyframes lat{50%{box-shadow:0 0 18px #c0281f88}}
+.bandeja{position:absolute;left:0;right:0;bottom:0;height:214px;padding:14px 10px 18px;background:linear-gradient(#0b101600,#0b1016 26%);}
+.bandeja h2{font:13px system-ui,sans-serif;color:var(--piedra);text-align:center;margin-bottom:8px}
+.cartas{display:flex;gap:8px;justify-content:center}
+.carta{width:90px;height:128px;border-radius:12px;background:linear-gradient(160deg,#efe4c6,#cdb98a);color:#2a1d0a;padding:8px 6px;text-align:center;box-shadow:0 6px 14px #000a;border:2px solid var(--bronce);font:13px/1.2 system-ui,sans-serif;position:relative;touch-action:none;cursor:grab}
+.carta .i{font-size:34px;display:block;margin:2px 0}.carta b{font:700 14px Georgia,serif;display:block}.carta em{font-style:normal;color:#6b4a12;font-size:13px;display:block;margin-top:3px}
+.carta.arr{position:fixed;z-index:50;transform:rotate(4deg) scale(1.08);pointer-events:none}
+.carta.rojo{background:linear-gradient(160deg,#f1d3c8,#d28d78);border-color:var(--rojo)}
+.sheet{position:absolute;left:0;right:0;bottom:0;top:96px;background:linear-gradient(#1b2430,#0e141c);border-radius:22px 22px 0 0;border-top:2px solid var(--bronce);padding:16px 14px;transform:translateY(110%);transition:.3s;z-index:20;box-shadow:0 -10px 30px #000c}
+.sheet.on{transform:none}
+.velo{position:absolute;inset:0;background:#000a;opacity:0;pointer-events:none;transition:.3s;z-index:19}.velo.on{opacity:1}
+.tab{background:linear-gradient(160deg,#efe4c6,#d8c595);color:#2a1d0a;border-radius:6px;padding:12px;border:3px solid #8a5a1c;font:15px/1.4 Georgia,serif}
+.tab b{display:block;font-size:17px;margin-bottom:4px}
+.opc{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.o{border:1.5px dashed #ffffff40;border-radius:14px;padding:10px 12px;font:14px/1.3 system-ui,sans-serif;background:#ffffff0a;transition:.15s}
+.o b{display:block;color:var(--oro);font:700 15px Georgia,serif}.o small{color:var(--piedra);font-size:13px}
+.o.sobre{border-color:var(--oro);background:#e9c06330;transform:scale(1.02)}
+.o.hecho{border:1.5px solid var(--oliva);background:#8fae5a26}
+.sello{position:absolute;left:50%;bottom:26px;margin-left:-44px;width:88px;height:88px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e0453a,var(--rojo) 55%,#7c130d);box-shadow:0 6px 16px #000b;display:flex;align-items:center;justify-content:center;font:700 30px Georgia,serif;color:#ffd9b0;border:3px solid #7c130d;touch-action:none;cursor:grab}
+.sello.arr{position:fixed;z-index:60;pointer-events:none;transform:scale(1.1)}
+.ayuda{position:absolute;bottom:122px;left:0;right:0;text-align:center;font:13px system-ui,sans-serif;color:var(--piedra)}
+.alarma{position:absolute;left:10px;right:10px;top:372px;z-index:5;background:linear-gradient(90deg,#7c130d,#c0281f);border-radius:14px;padding:9px 12px;font:14px/1.25 system-ui,sans-serif;display:flex;gap:10px;align-items:center;box-shadow:0 0 22px #c0281f88}
+.alarma .n{font:700 34px Georgia,serif;color:#fff;min-width:36px;text-align:center}
+.alarma b{display:block;font-size:15px}
+.medida{margin:0 4px 8px;height:10px;border-radius:5px;background:#ffffff1f;overflow:clip}.medida i{display:block;height:100%;width:80%;background:linear-gradient(90deg,var(--rojo),var(--terra));transition:.4s}
+.nota{position:absolute;left:12px;right:12px;top:100px;text-align:center;font:13px system-ui,sans-serif;color:var(--oliva);opacity:0;transition:.3s;z-index:30}
+.toast{position:fixed;left:50%;transform:translateX(-50%);top:420px;background:var(--noche);border:1px solid var(--oro);color:var(--oro);padding:8px 14px;border-radius:20px;font:13px system-ui,sans-serif;z-index:70;opacity:0;transition:.3s;white-space:nowrap}
+.toast.on{opacity:1}
+.crisis .slot{min-height:72px;padding:6px 8px}.crisis .slot .ev{margin-top:2px}.crisis .franja h2{margin-bottom:4px}
+</style></head><body>
+<div class="app" id="app">
+ <div class="top" id="top"></div>
+ <div class="rueda"><svg viewBox="0 0 390 300" id="rueda"></svg><div class="centro" id="centro"></div><div id="presagios"></div></div>
+ <div class="alarma" id="alarma" style="display:none"></div>
+ <div class="franja" id="franja"></div>
+ <div class="bandeja"><h2 id="bh"></h2><div class="cartas" id="cartas"></div></div>
+ <div class="velo" id="velo"></div>
+ <div class="sheet" id="sheet"></div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const $=id=>document.getElementById(id);
+const MESES=['Martius','Aprilis','Maius','Iunius','Quintilis','Sextilis','September','October','November','December','Ianuarius','Februarius'];
+const COL=['#c0281f','#8fae5a','#8fae5a','#e9c063','#e9c063','#d9764a','#d9764a','#b8862b','#9aa6b4','#9aa6b4','#9aa6b4','#9aa6b4'];
+// Presagios y fiestas por mes (históricos plausibles)
+const PRES={0:['🏛️','Elecciones: los cónsules toman el cargo'],1:['🌾','Cerealia: fiesta del grano'],3:['🔥','Presagio: calor, riesgo de incendio'],4:['☠️','Presagio: plaga en Tarento'],5:['🗡️','Conspiración en el Senado'],7:['⚔️','Cartago cruza el mar'],9:['🌊','Crecida del Tíber']};
+let S={mes:4,crisis:false,plan:{},hoy:'Idus',pueblo:62,senado:48,tesoro:34,grano:55,medida:80,tiempo:3,resuelta:false,intriga:null};
+const CARTAS=[{i:'🏗️',n:'Obra',e:'Acueducto'},{i:'🎭',n:'Juegos',e:'Ludi Romani'},{i:'📜',n:'Ley',e:'Ley frumentaria'},{i:'🛡️',n:'Levas',e:'2 legiones'}];
+const CRISIS=[{i:'⚕️',n:'Médicos',e:'+salud'},{i:'🐐',n:'Sacrificio',e:'placa a los dioses'},{i:'🚧',n:'Cuarentena',e:'cierra puertas'},{i:'🌾',n:'Grano',e:'reparto gratis'}];
+function cabecera(){const c=(n,v,m)=>`<div class="chip ${m?'mal':''}">${n}<b>${v}</b><div class="bar"><i style="width:${v}%"></i></div></div>`;
+ $('top').innerHTML=c('Pueblo',S.pueblo,S.pueblo<40)+c('Senado',S.senado,S.senado<40)+c('Tesoro',S.tesoro,S.tesoro<40)+c('Grano',S.grano,S.grano<40);}
+function rueda(){const R=140,r=82,cx=195,cy=150;let h='<g>';
+ for(let k=0;k<12;k++){const a0=(k-S.mes+0)*30-105,a1=a0+28,m=k;
+  const P=(rad,a)=>[cx+rad*Math.cos(a*Math.PI/180),cy+rad*Math.sin(a*Math.PI/180)];
+  const [x0,y0]=P(R,a0),[x1,y1]=P(R,a1),[x2,y2]=P(r,a1),[x3,y3]=P(r,a0),[tx,ty]=P((R+r)/2,(a0+a1)/2);
+  const sel=k==S.mes,col=S.crisis&&k==S.mes?'#c0281f':COL[k];
+  h+=`<g class="mes" data-m="${k}"><path d="M${x0} ${y0}A${R} ${R} 0 0 1 ${x1} ${y1}L${x2} ${y2}A${r} ${r} 0 0 0 ${x3} ${y3}Z" fill="${col}" opacity="${sel?1:.45}"/>`+
+  `<text x="${tx}" y="${ty+4}" text-anchor="middle" style="font-size:${sel?14:12}px">${MESES[k].slice(0,3)}</text></g>`;}
+ h+=`<circle cx="${cx}" cy="${cy}" r="${r-4}" fill="#0b1016" stroke="#b8862b" stroke-width="2"/><path d="M${cx-8} ${cy-R-12}L${cx+8} ${cy-R-12}L${cx} ${cy-R+2}Z" fill="#e9c063"/></g>`;
+ $('rueda').innerHTML=h;
+ document.querySelectorAll('.mes').forEach(g=>g.onclick=()=>{S.mes=+g.dataset.m;pinta()});
+ const p=PRES[S.mes];$('centro').innerHTML=`<h1>${MESES[S.mes].toUpperCase().slice(0,3)}</h1><p>265 a.C. · año 489</p><p class="hoy">Hoy: ${S.hoy} de ${MESES[4]}</p>`;
+ // iconos de presagio sobre el aro
+ $('presagios').innerHTML=Object.keys(PRES).map(k=>{const a=((k-S.mes)*30-91)*Math.PI/180,x=cx+R*1.0*Math.cos(a)-10+ (0),y=cy+(R+14)*Math.sin(a)-14+0;return `<div class="pres" style="left:${195+(R+16)*Math.cos(a)-10}px;top:${150+(R+16)*Math.sin(a)-12}px">${PRES[k][0]}</div>`}).join('');
+}
+function franja(){const m=S.mes,p=PRES[m],F=[['Calendas','1.º día'],['Nonas','5.º día'],['Idus','13.º día'],['Fin de mes','Terminalia']];
+ const ev=(k)=>{let o='';if(k==2&&p)o+=`<div class="ev pre" data-pres="1">${p[0]} ${p[1]}</div>`;if(k==0&&m==4)o+=`<div class="ev fes">🌿 Poplifugia</div>`;if(k==1&&m==4)o+=`<div class="ev fes">🔥 Lucaria</div>`;
+  if(S.plan[m+'-'+k])o+=S.plan[m+'-'+k].map(x=>`<div class="ev plan">✓ ${x}</div>`).join('');return o};
+ $('franja').innerHTML=`<h2><span>${MESES[m]}</span><span>${S.crisis?'Atiende la crisis':'Suelta una carta'}</span></h2><div class="slots">`+
+ F.map((f,k)=>`<div class="slot ${S.crisis&&k==2&&m==4&&!S.resuelta?'alerta':''}" data-k="${k}"><div class="f">${f[0]}<small>${f[1]}</small></div>${ev(k)}</div>`).join('')+'</div>';
+ const pe=document.querySelector('[data-pres]');if(pe)pe.onclick=()=>{if(m==5)abre('intriga');else if(m==4&&!S.crisis)toast('Pulsa la rueda: el presagio crece')} ;
+}
+function bandeja(){const L=S.crisis?CRISIS:CARTAS;$('bh').textContent=S.crisis?'Arrastra un remedio al día de la plaga':'Arrastra una carta a un día. Desliza la rueda para cambiar de mes.';
+ $('cartas').innerHTML=L.map((c,i)=>`<div class="carta ${S.crisis?'rojo':''}" data-i="${i}"><span class="i">${c.i}</span><b>${c.n}</b><em>${c.e}</em></div>`).join('');
+ document.querySelectorAll('.carta').forEach(el=>arrastra(el,drop));}
+function pinta(){$('app').classList.toggle('crisis',S.crisis);cabecera();rueda();franja();bandeja();
+ const al=$('alarma');if(S.crisis&&!S.resuelta){al.style.display='flex';al.innerHTML=`<div class="n">${S.tiempo}</div><div><b>Plaga en Tarento: llega en ${S.tiempo} días</b>Cada remedio frena el contagio</div>`}else al.style.display='none';
+ if(S.crisis)$('franja').style.top='442px';else $('franja').style.top='372px';}
+function toast(t){const e=$('toast');e.textContent=t;e.classList.add('on');setTimeout(()=>e.classList.remove('on'),1600)}
+// arrastrar genérico
+function arrastra(el,fin,sel){el.addEventListener('pointerdown',e=>{e.preventDefault();const r=el.getBoundingClientRect(),dx=e.clientX-r.left,dy=e.clientY-r.top,g=el.cloneNode(true);g.classList.add('arr');g.style.left=r.left+'px';g.style.top=r.top+'px';g.style.width=r.width+'px';g.style.height=r.height+'px';document.body.appendChild(g);el.style.opacity=.3;
+ const mv=ev=>{g.style.left=ev.clientX-dx+'px';g.style.top=ev.clientY-dy-40+'px';const t=at(ev,sel);document.querySelectorAll('.slot,.o').forEach(s=>s.classList.toggle('sobre',s===t))};
+ const up=ev=>{window.removeEventListener('pointermove',mv);window.removeEventListener('pointerup',up);const t=at(ev,sel);g.remove();el.style.opacity=1;document.querySelectorAll('.sobre').forEach(s=>s.classList.remove('sobre'));if(t)fin(el,t)};
+ window.addEventListener('pointermove',mv);window.addEventListener('pointerup',up);mv(e)});}
+function at(ev,sel){const els=document.elementsFromPoint(ev.clientX,ev.clientY-40);return els.find(x=>x.matches&&x.matches(sel||'.slot,.o'))}
+function drop(el,t){const i=+el.dataset.i,k=+t.dataset.k;
+ if(S.crisis){const c=CRISIS[i];if(S.mes!=4||k!=2){toast('Suelta el remedio sobre el día de la plaga');return}
+  S.medida=Math.max(0,S.medida-30);S.tiempo=Math.max(0,S.tiempo);S.plan['4-2']=(S.plan['4-2']||[]).concat(c.n);if(i==3)S.grano-=12;if(i==0)S.tesoro-=8;
+  toast(c.i+' '+c.n+': contagio '+(S.medida>0?'frenado':'contenido'));if(S.medida==0){S.resuelta=true;S.pueblo+=6;setTimeout(()=>{S.crisis=false;pinta();toast('La plaga ha pasado. El pueblo te lo agradece')},900)}pinta();return}
+ const c=CARTAS[i];S.plan[S.mes+'-'+k]=(S.plan[S.mes+'-'+k]||[]).concat(c.n+': '+c.e);S.tesoro=Math.max(5,S.tesoro-6);toast('Planificado: '+c.n+' en '+['las Calendas','las Nonas','los Idus','fin de mes'][k]);pinta();}
+function abre(v){const sh=$('sheet');$('velo').classList.add('on');sh.classList.add('on');
+ sh.innerHTML=`<div class="tab"><b>🗡️ Apio Claudio conspira</b>Un senador reúne clientes para frenar tu ley frumentaria y cargarte la hambruna. Un liberto te trae el aviso en secreto.<br>Idus de Iunius · Votación del Senado</div>
+ <div class="opc" id="opc">
+ <div class="o" data-k="0"><b>Denunciar en público</b><small>Pueblo +8 · Senado −12 · riesgo de venganza</small></div>
+ <div class="o" data-k="1"><b>Comprar sus votos</b><small>Tesoro −15 · Senado +10 · vuelve a pedir</small></div>
+ <div class="o" data-k="2"><b>Vigilarlo en silencio</b><small>Sin coste · en dos meses habrá pruebas</small></div></div>
+ <div class="ayuda">Arrastra tu sello a una decisión. Arrastra hacia abajo para cerrar.</div><div class="sello" id="sello">SPQR</div>`;
+ const s=$('sello');arrastra(s,(el,t)=>{const k=+t.dataset.k;const R=[()=>{S.pueblo+=8;S.senado-=12},()=>{S.tesoro-=15;S.senado+=10},()=>{}];R[k]();document.querySelectorAll('.o')[k].classList.add('hecho');S.plan['5-2']=['Intriga: '+['denunciada','comprada','vigilada'][k]];setTimeout(()=>{cierra();pinta();toast('Sello puesto. Queda anotado en la Crónica')},700)},'.o');
+ let y0=null;sh.onpointerdown=e=>{if(e.target.closest('.sello'))return;y0=e.clientY};sh.onpointerup=e=>{if(y0!=null&&e.clientY-y0>70)cierra();y0=null}}
+function cierra(){$('sheet').classList.remove('on');$('velo').classList.remove('on')}
+// gesto: deslizar la rueda cambia de mes
+(()=>{let x0=null;const r=document.querySelector('.rueda');r.addEventListener('pointerdown',e=>x0=e.clientX);window.addEventListener('pointerup',e=>{if(x0!=null&&Math.abs(e.clientX-x0)>50){S.mes=(S.mes+(e.clientX<x0?1:11))%12;pinta()}x0=null})})();
+const q=new URLSearchParams(location.search).get('v');
+if(q=='crisis'){S.crisis=true;S.mes=4;S.pueblo=36;S.grano=32;S.medida=80}
+if(q=='intriga'){S.mes=5}
+pinta();if(q=='intriga')abre('intriga');
+</script></body></html>

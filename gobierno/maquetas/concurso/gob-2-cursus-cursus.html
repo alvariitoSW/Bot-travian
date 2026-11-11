@@ -1,0 +1,153 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=390,initial-scale=1"><title>Cursus</title>
+<style>
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--oliva:#8fae5a;--terra:#d9764a;--tinta:#3a2a18;--perg:#ecdcb4;--perg2:#dcc795}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#1a1410;font:15px/1.35 Georgia,'Times New Roman',serif;color:var(--tinta);display:flex;justify-content:center}
+#app{width:390px;height:844px;position:relative;overflow:hidden;background:var(--perg);
+background-image:radial-gradient(ellipse at 50% 0,#f6ebc9,transparent 60%),repeating-linear-gradient(90deg,transparent 0 37px,rgba(120,80,30,.04) 37px 38px)}
+/* rodillos */
+.rod{position:absolute;left:0;right:0;height:22px;z-index:20;background:linear-gradient(#5b3a18,#a8742f 40%,#4a2e12);box-shadow:0 3px 8px #0008}
+.rod.t{top:0}.rod.b{bottom:0;box-shadow:0 -3px 8px #0008}
+.rod:before,.rod:after{content:"";position:absolute;top:-3px;width:14px;height:28px;background:var(--bronce);border-radius:4px}.rod:before{left:4px}.rod:after{right:4px}
+/* cabecera */
+#head{position:absolute;top:22px;left:0;right:0;z-index:15;padding:8px 14px 8px;background:linear-gradient(var(--perg),var(--perg) 85%,#ecdcb400);border-bottom:1px solid #a8742f55}
+#head .ttl{display:flex;justify-content:space-between;align-items:baseline}
+#head h1{font-size:17px;letter-spacing:.5px}#head .fecha{font-size:13px;color:#7a5a30;font-style:italic}
+.med{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.med div{font-size:13px}.med b{display:flex;justify-content:space-between;font-weight:normal}
+.bar{height:7px;border-radius:4px;background:#0002;margin-top:2px;overflow:hidden}.bar i{display:block;height:100%;border-radius:4px;transition:width .6s}
+.pop i{background:var(--oliva)}.cli i{background:var(--bronce)}.sen i{background:var(--rojo)}
+/* pergamino */
+#scroll{position:absolute;top:128px;bottom:22px;left:0;right:0;overflow-y:auto;padding:10px 14px 150px 64px;scrollbar-width:none}
+#scroll::-webkit-scrollbar{display:none}
+.spine{position:absolute;left:30px;top:0;bottom:0;width:4px;background:linear-gradient(var(--bronce),#7a5420);border-radius:2px;z-index:1}
+#sc{position:relative}
+.sp{position:absolute;left:-46px;top:0;bottom:0;width:4px;background:linear-gradient(#b8862b,#7a5420);border-radius:2px}
+.grado{position:relative;margin:4px 0 14px;font-size:13px;color:#7a5a30}
+.grado:before{content:"";position:absolute;left:-54px;top:-2px;width:20px;height:20px;border-radius:50%;background:var(--bronce);border:3px solid var(--perg)}
+.grado.on{color:var(--tinta);font-weight:bold}.grado.on:before{background:var(--oro);box-shadow:0 0 0 3px var(--rojo)}
+.grado.off:before{background:#cbb98a}
+.e{position:relative;background:#f6ecd0;border:1px solid #b8862b88;border-radius:6px;padding:10px 12px 10px;margin-bottom:14px;box-shadow:0 2px 0 #b8862b44,0 6px 10px #5b3a1822;cursor:pointer}
+.e:before{content:"";position:absolute;left:-30px;top:20px;width:30px;height:2px;background:#b8862b}
+.e h3{font-size:15px;margin-bottom:2px;padding-right:46px}.e p{font-size:13.5px;color:#5a4428}
+.e small{font-size:13px;color:#8a6a3a;display:block;margin-top:4px}
+.sello{position:absolute;right:8px;top:-8px;width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-size:18px;color:#fff;box-shadow:inset 0 -3px 5px #0005,0 2px 4px #0006;background:radial-gradient(circle at 35% 30%,#e24a3c,var(--rojo) 55%,#7a130d)}
+.sello.o{background:radial-gradient(circle at 35% 30%,#f3d98a,var(--bronce) 60%,#6d4c12);color:#3a2a18}
+.sello.v{background:radial-gradient(circle at 35% 30%,#b9d283,#5e7c33 60%,#33481a)}
+.sello.n{background:radial-gradient(circle at 35% 30%,#556070,#1e2733 60%,#0b1016)}
+.e.hecho{opacity:.55;background:#e6d6aa}.e.hecho h3:after{content:" · sellado";font-weight:normal;font-size:13px}
+.e.urg{border:2px solid var(--rojo);background:#f8e3d0}
+.e.urg h3{color:#8f1a12}
+.tag{display:inline-block;font-size:13px;padding:1px 8px;border-radius:10px;background:#0001;margin:4px 4px 0 0}
+.tag.r{background:#c0281f22;color:#8f1a12}
+/* hoja desplegada */
+#hoja{position:absolute;left:0;right:0;bottom:22px;z-index:18;background:var(--perg);border-top:3px solid var(--bronce);border-radius:18px 18px 0 0;padding:12px 16px 16px;transform:translateY(105%);transition:transform .35s;box-shadow:0 -10px 30px #000a;max-height:660px;overflow:auto}
+#hoja.abre{transform:none}
+#vel{position:absolute;inset:0;background:#0b1016aa;z-index:16;opacity:0;pointer-events:none;transition:opacity .3s}#vel.on{opacity:1;pointer-events:auto}
+.asa{width:46px;height:5px;border-radius:3px;background:#b8862b;margin:0 auto 10px}
+#hoja h2{font-size:18px;margin-bottom:4px}
+.carta{background:#f6ecd0;border-left:4px solid var(--bronce);padding:8px 10px;margin:8px 0;font-size:14px;border-radius:0 6px 6px 0;font-style:italic}
+.efe{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.op{display:flex;align-items:center;gap:12px;width:100%;text-align:left;border:1px solid #b8862b;background:#f6ecd0;border-radius:10px;padding:10px 12px;margin-top:10px;font:inherit;color:var(--tinta);min-height:64px;cursor:pointer}
+.op:active,.op.sel{background:#f0dba0;border-color:var(--rojo)}
+.op .sello{position:static;flex:none}
+.op b{display:block;font-size:15px}.op span{font-size:13px;color:#6a5030}
+.mas{margin-top:10px;font-size:13px;color:#7a5a30;text-align:center}
+/* arrastre de sello */
+.lacre{position:relative;height:64px;border-radius:32px;background:#0002;margin-top:12px;overflow:hidden;touch-action:none}
+.lacre span{position:absolute;inset:0;display:grid;place-items:center;font-size:14px;color:#6a5030;padding-left:50px}
+.lacre i{position:absolute;left:4px;top:4px;width:56px;height:56px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:24px;background:radial-gradient(circle at 35% 30%,#e24a3c,var(--rojo) 55%,#7a130d);box-shadow:inset 0 -3px 5px #0005,0 2px 5px #0007;cursor:grab}
+.lacre b{position:absolute;left:0;top:0;bottom:0;width:0;background:#8fae5a66}
+.crisis-bar{height:12px;border-radius:6px;background:#0002;overflow:hidden;margin:6px 0}.crisis-bar i{display:block;height:100%;background:linear-gradient(90deg,var(--terra),var(--rojo))}
+.fuego{position:absolute;inset:0;pointer-events:none;z-index:14;background:radial-gradient(ellipse at 50% 100%,#c0281f55,transparent 55%);animation:pulsa 1.6s infinite}
+@keyframes pulsa{50%{opacity:.4}}
+.tabs{position:absolute;bottom:22px;left:0;right:0;z-index:12;display:flex;justify-content:center;pointer-events:none}
+#pluma{position:absolute;right:16px;bottom:44px;z-index:12;width:60px;height:60px;border-radius:50%;border:0;font-size:26px;background:radial-gradient(circle at 35% 30%,#e24a3c,var(--rojo) 55%,#7a130d);color:#fff;box-shadow:inset 0 -4px 6px #0005,0 4px 10px #0008;cursor:pointer}
+#pluma em{position:absolute;top:-4px;right:-4px;background:var(--noche);color:var(--oro);font:bold 13px Georgia;border-radius:10px;padding:1px 7px;font-style:normal}
+#aviso{position:absolute;left:14px;bottom:50px;right:92px;z-index:12;font-size:13px;color:#fff;background:#0b1016dd;padding:8px 10px;border-radius:10px;display:none}
+.toast{position:absolute;top:140px;left:50%;transform:translateX(-50%);z-index:30;background:var(--noche);color:var(--oro);padding:8px 14px;border-radius:20px;font-size:14px;opacity:0;transition:opacity .3s;white-space:nowrap}
+</style></head><body><div id="app">
+<div class="rod t"></div>
+<div id="head"><div class="ttl"><h1>Cursus honorum</h1><span class="fecha">Idus de Marzo · 264 a.C.</span></div>
+<div class="med"><div class="pop"><b>Popularidad<span id="mp">62</span></b><div class="bar"><i id="bp" style="width:62%"></i></div></div>
+<div class="cli"><b>Clientela<span id="mc">38</span></b><div class="bar"><i id="bc" style="width:38%"></i></div></div>
+<div class="sen"><b>Senado<span id="ms">51</span></b><div class="bar"><i id="bs" style="width:51%"></i></div></div></div></div>
+<div id="scroll"><div id="sc"><div class="sp"></div></div></div>
+<div id="vel"></div><div class="fuego" id="fuego" style="display:none"></div>
+<div id="aviso"></div><button id="pluma" aria-label="Despachar asuntos">✒️<em id="cnt">3</em></button>
+<div id="hoja"></div><div class="toast" id="toast"></div>
+<div class="rod b"></div></div>
+<script>
+const $=s=>document.querySelector(s);
+const M={p:62,c:38,s:51};
+let estado={intriga:false,decreto:false,incendio:true,apagado:false};
+const entradas=[
+{id:'inc',cls:'urg',sello:'🔥',sc:'',t:'Incendio en el Aventino',d:'Arden tres manzanas de insulae. Quedan 2 jornadas.',tag:['Urgente','−8 popularidad'],f:'crisis'},
+{id:'int',sello:'🗝️',sc:'n',t:'Carta sin firma',d:'Un cliente te trae un aviso: Apio Claudio maquina contra ti.',tag:['Intriga','Decide hoy'],f:'intriga'},
+{id:'gra',sello:'🌾',sc:'o',t:'Grano de Sicilia',d:'Llegan 1.200 modios. El pueblo espera el reparto.',tag:['Obra','+6 popularidad'],f:'decreto'},
+{id:'aq',sello:'🏛️',sc:'v',t:'Acueducto: cimientos',d:'Faltan 3 jornadas. Tu nombre irá en la piedra.',tag:['Obra en curso'],f:'obra'},
+{id:'pir',sello:'🐘',sc:'',t:'Pirro sale de Italia',d:'El Senado pide un informe a su cuestor.',tag:['Noticia'],f:'nota'}];
+const grados=[['Cuestor','hecho'],['Edil','on'],['Pretor','off'],['Cónsul','off']];
+function pinta(){
+ let h='<div class="sp"></div>';
+ h+=`<div class="grado off">⚜️ Cónsul · 3 años de carrera</div><div class="grado off">⚖️ Pretor · 2 años</div>`;
+ h+=`<div class="grado on">🎭 EDIL CURUL · eres tú</div>`;
+ for(const e of entradas){
+  const hecho=(e.id=='inc'&&estado.apagado)||(e.id=='int'&&estado.intriga)||(e.id=='gra'&&estado.decreto);
+  if(e.id=='inc'&&estado.apagado)continue;
+  h+=`<div class="e ${e.cls||''} ${hecho?'hecho':''}" data-f="${e.f}"><span class="sello ${e.sc}">${hecho?'✔':e.sello}</span><h3>${e.t}</h3><p>${e.d}</p>${e.tag.map((x,i)=>`<span class="tag ${i==0&&e.cls?'r':''}">${x}</span>`).join('')}</div>`}
+ h+=`<div class="grado">🎖️ Cuestor · hecho (267 a.C.)</div><div class="e hecho"><span class="sello o">✔</span><h3>Tesoro de Saturno</h3><p>Cuentas limpias. El Senado te recuerda.</p></div>`;
+ h+=`<div class="mas">— Desenrolla hacia abajo: años pasados —</div>`;
+ $('#sc').innerHTML=h;
+ $('#cnt').textContent=[!estado.apagado,!estado.intriga,!estado.decreto].filter(Boolean).length;
+ $('#fuego').style.display=estado.apagado?'none':'block';
+ document.querySelectorAll('.e[data-f]').forEach(el=>el.onclick=()=>abre(el.dataset.f));
+}
+function med(){for(const k of['p','c','s']){M[k]=Math.max(0,Math.min(100,M[k]));$('#b'+k).style.width=M[k]+'%';$('#m'+k).textContent=M[k]}}
+function toast(t){const e=$('#toast');e.textContent=t;e.style.opacity=1;setTimeout(()=>e.style.opacity=0,1800)}
+function cierra(){$('#hoja').classList.remove('abre');$('#vel').classList.remove('on')}
+$('#vel').onclick=cierra;
+function abre(f){
+ const H=$('#hoja');let h='<div class="asa"></div>';
+ if(f=='intriga'){
+  h+=`<h2>🗝️ Carta sin firma</h2><div class="carta">«Apio Claudio reparte denarios en la Subura. Quiere tu edilidad y tu nombre. Puedes callar… o actuar.»</div>
+  <div class="efe"><span class="tag">Tu clientela: 38</span><span class="tag">Su favor en el Senado: 64</span></div>
+  <button class="op" data-r="a"><span class="sello n">⚖️</span><div><b>Denunciarlo ante el Senado</b><span>Senado +12 · Clientela −6 · puede fallar</span></div></button>
+  <button class="op" data-r="b"><span class="sello o">💰</span><div><b>Comprar a sus clientes</b><span>Clientela +14 · Tesoro −300 denarios</span></div></button>
+  <button class="op" data-r="c"><span class="sello v">🤝</span><div><b>Ofrecerle un pacto</b><span>Popularidad +4 · Senado −3 · sin riesgo</span></div></button>
+  <div class="mas">Elige una opción: se sella al tocarla.</div>`}
+ else if(f=='decreto'){
+  h+=`<h2>🌾 Reparto de grano</h2><div class="carta">«El pueblo te mira. Un reparto generoso gana corazones; uno medido guarda el tesoro.»</div>
+  <button class="op" data-r="g"><span class="sello o">🌾</span><div><b>Reparto completo</b><span>Popularidad +10 · Tesoro −400</span></div></button>
+  <button class="op" data-r="h"><span class="sello v">⚖️</span><div><b>Reparto medido</b><span>Popularidad +4 · Tesoro −150</span></div></button>`}
+ else if(f=='crisis'){
+  h+=`<h2>🔥 Incendio en el Aventino</h2><div class="carta">«Las llamas saltan de tejado en tejado. Cada hora cuesta vidas y casas.»</div>
+  <div class="efe"><span class="tag r">Fuego: 70%</span><span class="tag">Vigiles: 3 patrullas</span></div><div class="crisis-bar"><i id="cf" style="width:70%"></i></div>
+  <button class="op" data-r="v"><span class="sello">🪣</span><div><b>Enviar los vigiles</b><span>Apaga 40% · Tesoro −100</span></div></button>
+  <button class="op" data-r="d"><span class="sello o">🏚️</span><div><b>Derribar manzanas vecinas</b><span>Corta el fuego · Popularidad −8</span></div></button>
+  <div class="lacre" id="lacre"><b id="lb"></b><span>Arrastra el sello hasta el final para dar la orden</span><i id="li">🔥</i></div>`}
+ else{h+=`<h2>Sin asunto</h2><div class="carta">Nada urgente aquí.</div>`}
+ H.innerHTML=h;H.classList.add('abre');$('#vel').classList.add('on');
+ H.querySelectorAll('.op').forEach(b=>b.onclick=()=>resuelve(b.dataset.r));
+ const L=$('#lacre');if(L)lacre(L);
+}
+function lacre(L){
+ const i=$('#li'),b=$('#lb');let x0=null,d=0;const max=L.clientWidth-64;
+ i.onpointerdown=e=>{x0=e.clientX-d;i.setPointerCapture(e.pointerId)};
+ i.onpointermove=e=>{if(x0==null)return;d=Math.max(0,Math.min(max,e.clientX-x0));i.style.left=(4+d)+'px';b.style.width=(d+30)+'px'};
+ i.onpointerup=()=>{x0=null;if(d>max*.85)resuelve('v');else{d=0;i.style.left='4px';b.style.width='0'}};
+}
+function resuelve(r){
+ const m={a:[0,-6,12,'Denuncia presentada. Apio queda bajo sospecha.'],b:[0,14,0,'Clientes comprados. Tu atrio se llena.'],c:[4,0,-3,'Pacto sellado. Tregua en el Foro.'],g:[10,0,0,'El pueblo vitorea tu nombre.'],h:[4,0,0,'Reparto medido. Aprobación tibia.'],v:[2,0,3,'Los vigiles apagan el fuego. Aventino a salvo.'],d:[-8,0,0,'Manzanas derribadas. El fuego se corta.']}[r];
+ M.p+=m[0];M.c+=m[1];M.s+=m[2];med();toast(m[3]);
+ if('abc'.includes(r))estado.intriga=true;if('gh'.includes(r))estado.decreto=true;if('vd'.includes(r))estado.apagado=true;
+ const cf=$('#cf');if(cf)cf.style.width='0';
+ setTimeout(()=>{cierra();pinta()},600);
+}
+$('#pluma').onclick=()=>{ if(!estado.apagado)abre('crisis');else if(!estado.intriga)abre('intriga');else if(!estado.decreto)abre('decreto');else toast('Todo despachado hoy.')};
+$('#aviso').style.display='none';
+pinta();
+const h=location.hash.slice(1);
+if(h=='2'){estado.apagado=true;pinta();abre('intriga')}
+if(h=='3'){abre('crisis');$('#li').style.left='170px';$('#lb').style.width='200px'}
+</script></body></html>

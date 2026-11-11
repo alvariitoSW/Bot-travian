@@ -70,6 +70,11 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ⬜ J4 **Mapa más grande por regiones** (P62; amplía I6): más ciudades y territorios, cada región con su capital y sus núcleos pequeños; lista de ciudades con fuente histórica; vigilar la fluidez. 0,3 + 1,2 M, en dos o tres tareas. Después de J3.
 - ⬜ J5 **Política territorial** (P61): apartado «Senado» con planes de infraestructuras, ciudadanía, ejército, diplomacia y mercado. Primero informe corto de diseño con fuentes; se une con I5 y C3. 0,3 + 1,0 M, en dos tareas.
 
+## Carril K — Concurso de diseño de interfaz (pedido 11/11/2026)
+- ✅ K1 **Concurso Gobierno** (11/11): cinco maquetas verticales y jurado ciego. Ranking: Cartas 73, Tablero 70, Senado 65, Cursus 63, Crónica 61. Informe `estudios/K-concurso.md`.
+- ✅ K2 **Concurso Guerra** (11/11): cinco maquetas horizontales y jurado ciego. Ranking: General 72, Trazo 69, Partitura 60, Arena 60, Cartas 59.
+- ⬜ K3 **Construir los ganadores**: esperando que el usuario elija en cada concurso (decide él: cambio grande de aspecto). Lo que cambie en `js/ui.js` y `js/gfx/` lo estima cada nota de `maquetas/concurso/`. No empezar antes.
+
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
 - ✅ E4 Arte propio de termas, acueducto y anfiteatro (11/11/2026): termas y acueducto dibujados desde cero (`tools/propio_static.mjs`, CC BY-SA 3.0, sin texturas nuevas); anfiteatro de Pompeya de 0 A.D. aligerado a 8.483 triángulos y a escala de ciudad (`tools/aligerar_static.mjs`). El arte pasa a 34,0 MB de 35. Parte: `partes/2026-11-11-E4.md`.

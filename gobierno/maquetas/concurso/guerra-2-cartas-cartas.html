@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>AQVILA · Cartas de guerra</title>
+<style>
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:none}
+html,body{height:100%;background:#05080c;overflow:hidden;font-family:Georgia,'Times New Roman',serif;color:var(--marmol)}
+#app{position:absolute;left:0;top:0;width:844px;height:390px;transform-origin:0 0;overflow:hidden;background:var(--noche)}
+#campo{position:absolute;inset:0;width:844px;height:390px}
+.top{position:absolute;left:0;right:0;top:0;height:34px;display:flex;align-items:center;gap:10px;padding:0 10px;background:linear-gradient(#0b1016f2,#0b101600);z-index:5;font-size:13px}
+.tit{font-weight:bold;color:var(--oro);letter-spacing:.5px;white-space:nowrap}
+.med{display:flex;align-items:center;gap:5px;flex:1;min-width:0}
+.med span{font-size:13px;white-space:nowrap}
+.barra{flex:1;height:8px;background:#0b1016cc;border:1px solid #b8862b88;border-radius:4px;overflow:hidden;display:flex;max-width:180px}
+.barra i{display:block;height:100%;transition:width .3s}
+.ic{width:32px;height:28px;border:1px solid var(--bronce);background:#1a2230e6;color:var(--oro);border-radius:6px;font-size:15px;display:flex;align-items:center;justify-content:center;font-family:inherit}
+.pill{height:28px;padding:0 10px;border:1px solid var(--bronce);background:#1a2230e6;color:var(--oro);border-radius:14px;font-size:13px;font-family:inherit;white-space:nowrap}
+.go{position:absolute;right:10px;top:205px;z-index:6;height:44px;padding:0 16px;background:var(--rojo);border:2px solid var(--oro);color:var(--marmol);font-weight:bold;font-size:15px;border-radius:8px;font-family:inherit;box-shadow:0 3px 10px #000a}
+.go[disabled]{background:#4a2a28;color:#aaa;border-color:#6b5a30}
+.aviso{position:absolute;left:50%;top:44px;transform:translateX(-50%);background:#0b1016e8;border:1px solid var(--oro);padding:5px 14px;border-radius:14px;font-size:13px;z-index:7;white-space:nowrap;transition:opacity .4s}
+#mano{position:absolute;left:0;right:0;bottom:0;height:128px;z-index:4;display:flex;align-items:flex-end;justify-content:center;padding-bottom:4px;background:linear-gradient(#0b101600,#0b1016e0 55%)}
+.sep{width:14px}
+.carta{position:relative;width:74px;height:112px;margin:0 -3px;border-radius:8px;border:2px solid var(--bronce);background:linear-gradient(#2a3244,#141a26);box-shadow:0 4px 10px #000b;overflow:hidden;transition:transform .15s,opacity .2s;flex:none;font-size:13px}
+.carta.sel{transform:translateY(-14px);border-color:var(--oro)}
+.carta.puesta{opacity:.55}
+.carta.rota{filter:grayscale(1) brightness(.5)}
+.carta.tac{background:linear-gradient(#4a2420,#1f0f0e);border-color:var(--oro)}
+.carta.cd{filter:grayscale(.8) brightness(.6)}
+.carta .nom{position:absolute;left:0;right:0;top:0;padding:2px 3px;background:#0b1016cc;text-align:center;font-size:13px;line-height:15px;white-space:nowrap;overflow:hidden;text-overflow:clip;color:var(--oro)}
+.carta svg.ret{position:absolute;left:0;top:16px;width:100%;height:58px}
+.carta .pie{position:absolute;left:3px;right:3px;bottom:3px;font-size:13px}
+.carta .pie div{height:6px;background:#000a;border-radius:3px;margin-top:3px;overflow:hidden}
+.carta .pie b{display:block;height:100%}
+.carta .txt{position:absolute;left:3px;right:3px;bottom:3px;font-size:13px;line-height:14px;text-align:center;color:var(--marmol)}
+.fantasma{position:fixed;z-index:50;pointer-events:none;opacity:.92;transform-origin:50% 50%;margin:0}
+#res{position:absolute;inset:0;z-index:20;background:#0b1016d8;display:none;align-items:center;justify-content:center}
+.pergamino{width:560px;background:linear-gradient(#f1ead9,#d9cdae);color:#2a2014;border:3px solid var(--bronce);border-radius:10px;padding:14px 20px;box-shadow:0 8px 30px #000c;text-align:center}
+.pergamino h1{font-size:26px;color:var(--rojo);letter-spacing:1px}
+.pergamino p{font-size:14px;margin:4px 0}
+.cifras{display:flex;justify-content:space-around;margin:10px 0}
+.cifras div{font-size:13px}.cifras b{display:block;font-size:24px;color:#5a3c10}
+.pergamino button{height:44px;padding:0 22px;background:var(--rojo);color:var(--marmol);border:2px solid var(--bronce);border-radius:8px;font-size:15px;font-weight:bold;font-family:inherit;margin-top:4px}
+.mano-ayuda{position:absolute;left:12px;top:40px;font-size:13px;color:var(--marmol);z-index:5;background:#0b1016cc;padding:3px 9px;border-radius:10px;border:1px solid #b8862b66}
+</style></head><body>
+<div id="app">
+<svg id="campo" viewBox="0 0 844 390"></svg>
+<div class="top">
+  <span class="tit" id="tit">Zama, 202 a.C.</span>
+  <button class="pill" id="esc">Campo abierto ▸</button>
+  <div class="med" id="med"></div>
+  <button class="ic" id="pausa" title="Pausa táctica">❚❚</button>
+  <button class="ic" id="trom" title="Tocar retirada" style="color:var(--terra)">♪</button>
+</div>
+<button class="go" id="go" disabled>¡Al combate!</button>
+<div class="aviso" id="aviso" style="opacity:0"></div>
+<div class="mano-ayuda" id="ayuda"></div>
+<div id="mano"></div>
+<div id="res"><div class="pergamino" id="resbox"></div></div>
+</div>
+<script>
+const $=s=>document.querySelector(s), NS='http://www.w3.org/2000/svg';
+const app=$('#app'),campo=$('#campo');
+let esc=1;
+function fit(){esc=Math.min(innerWidth/844,innerHeight/390);app.style.transform='scale('+esc+')';app.style.left=(innerWidth-844*esc)/2+'px';app.style.top=(innerHeight-390*esc)/2+'px'}
+addEventListener('resize',fit);fit();
+
+/* ---------- Datos ---------- */
+const TIPOS={
+ velites:{nom:'Vélites',col:'#8fae5a',sig:'jav',atk:.7,vel:2.2,n:40},
+ hast1:{nom:'Hastati I',col:'#c0281f',sig:'scu',atk:1,vel:1.3,n:60},
+ hast2:{nom:'Hastati II',col:'#c0281f',sig:'scu',atk:1,vel:1.3,n:60},
+ princ:{nom:'Príncipes',col:'#e9c063',sig:'scu',atk:1.15,vel:1.2,n:60},
+ triar:{nom:'Triarios',col:'#9aa6b4',sig:'pil',atk:1.3,vel:1,n:40},
+ equit:{nom:'Equites',col:'#d9764a',sig:'cab',atk:1.2,vel:3.2,n:30}};
+const TACT=[{id:'testudo',nom:'Testudo',ic:'▦',txt:'Escudos juntos. Menos daño.'},
+ {id:'carga',nom:'Carga',ic:'➤',txt:'Golpe doble al chocar.'},
+ {id:'retirada',nom:'Retirada',ic:'↶',txt:'Repliega y recobra moral.'},
+ {id:'refuerzo',nom:'Refuerzo',ic:'✚',txt:'Auxiliares de Masinisa.'}];
+const ESCEN=[
+ {n:'Campo abierto',t:'Zama, 202 a.C.',b:'Escipión contra Aníbal. Llanura sin obstáculos.'},
+ {n:'Asedio',t:'Asedio de Siracusa, 212 a.C.',b:'Muralla enemiga. Ataca sus torres.'},
+ {n:'Emboscada',t:'Lago Trasimeno, 217 a.C.',b:'La niebla oculta al enemigo.'},
+ {n:'Defensa de la ciudad',t:'Defensa de Capua, 211 a.C.',b:'Aguanta tras las puertas.'}];
+const SLOTS={velites:[330,195],hast1:[272,140],hast2:[272,250],princ:[215,195],triar:[160,195],equit:[250,330]};
+const ENEM=[
+ {id:'e1',nom:'Baleares',x:520,y:100,n:40,atk:.6,vel:2},{id:'e2',nom:'Elefantes',x:520,y:195,n:10,atk:3,vel:1.6},
+ {id:'e3',nom:'Baleares',x:520,y:290,n:40,atk:.6,vel:2},{id:'e4',nom:'Galos',x:600,y:140,n:70,atk:1.1,vel:1.2},
+ {id:'e5',nom:'Libios',x:600,y:250,n:60,atk:1.1,vel:1.1},{id:'e6',nom:'Veteranos',x:690,y:195,n:50,atk:1.4,vel:1},
+ {id:'e7',nom:'Númidas',x:560,y:50,n:40,atk:1,vel:3}];
+
+let S;/* estado */
+function nuevo(){S={fase:'desp',u:[],e:[],t:0,pausa:false,sel:null,cd:{},flag:{},bajasR:0,bajasE:0,sal:0,ord:[]};
+ for(const k in TIPOS)S.u.push({id:k,side:'R',...TIPOS[k],n0:TIPOS[k].n,m:100,f:0,x:null,y:null,tx:null,ty:null,mode:'',mt:0,vivo:true});
+ ENEM.forEach(e=>S.e.push({...e,side:'E',n0:e.n,m:100,f:0,tx:null,ty:null,mode:'',mt:0,vivo:true,sig:'enem'}));}
+
+/* ---------- Dibujo ---------- */
+function el(t,a,p){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);(p||campo).appendChild(e);return e}
+function terreno(){campo.innerHTML='';
+ const d=el('defs',{});d.innerHTML='<linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c8a4a"/><stop offset="1" stop-color="#55662f"/></linearGradient><radialGradient id="co"><stop offset="0" stop-color="#9aa863"/><stop offset="1" stop-color="#9aa86300"/></radialGradient><filter id="sb"><feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-opacity=".6"/></filter>';
+ el('rect',{width:844,height:390,fill:'url(#gr)'});
+ for(let i=0;i<30;i++)el('path',{d:`M${(i*97)%844} ${(i*53)%390} q8 -6 16 0`,stroke:'#6a7a3a',fill:'none','stroke-width':2,opacity:.6});
+ el('ellipse',{cx:700,cy:90,rx:130,ry:42,fill:'url(#co)'});el('ellipse',{cx:120,cy:330,rx:150,ry:40,fill:'url(#co)'});
+ if(esc_i==0){/* río seco/camino */ el('path',{d:'M0 300 Q200 270 400 310 T844 290',stroke:'#b89a62',fill:'none','stroke-width':22,opacity:.45})}
+ if(esc_i==1){el('rect',{x:700,y:34,width:34,height:300,fill:'#8b8578',stroke:'#4a463c','stroke-width':3});
+  for(let y=44;y<330;y+=34)el('rect',{x:690,y,width:20,height:22,fill:'#a39c8b',stroke:'#4a463c','stroke-width':2});
+  [100,200,300].forEach(y=>{el('rect',{x:706,y:y-14,width:56,height:28,fill:'#b8862b',stroke:'#4a463c','stroke-width':2});});}
+ if(esc_i==2){for(let i=0;i<26;i++){const x=480+(i*37)%340,y=45+(i*61)%300;el('circle',{cx:x,cy:y,r:16,fill:'#2f4a28',stroke:'#1f3319','stroke-width':2});}
+  el('rect',{width:844,height:390,fill:'#cfd8e0',opacity:.22});}
+ if(esc_i==3){el('rect',{x:20,y:34,width:30,height:300,fill:'#8b8578',stroke:'#4a463c','stroke-width':3});
+  for(let y=44;y<330;y+=34)el('rect',{x:12,y,width:18,height:22,fill:'#a39c8b',stroke:'#4a463c','stroke-width':2});
+  el('rect',{x:14,y:160,width:44,height:70,fill:'#6b4a1e',stroke:'#e9c063','stroke-width':3});}
+ gcap=el('g',{});}
+let gcap,esc_i=0;const Yv=y=>y*.6+36,Yi=y=>(y-36)/.6;
+function figura(u){/* ficha de regimiento en el campo */
+ const g=el('g',{transform:`translate(${u.x},${Yv(u.y)})`,filter:'url(#sb)',opacity:u.vivo?1:.35},gcap);
+ const R=u.side=='R',col=R?u.col:'#5b3a7a',w=u.id=='e2'?50:48,h=u.id=='e2'?24:22;
+ el('rect',{x:-w/2,y:-h/2,width:w,height:h,rx:3,fill:col+'55',stroke:R?'#f1ead9':'#d9764a','stroke-width':u.id==S.sel?3.5:2},g);
+ const cols=Math.max(2,Math.ceil(u.n/6));
+ for(let i=0;i<Math.min(u.n,36);i++)el('circle',{cx:-w/2+5+(i%12)*((w-10)/11),cy:-h/2+5+Math.floor(i/12)*6.5,r:2,fill:R?'#f1ead9':'#d9764a'},g);
+ if(u.mode=='testudo')el('rect',{x:-w/2-2,y:-h/2-2,width:w+4,height:h+4,rx:3,fill:'none',stroke:'#e9c063','stroke-width':3,'stroke-dasharray':'6 3'},g);
+ if(u.mode=='carga'){el('path',{d:`M${w/2+4} 0 l-10 -8 v16z`,fill:'#e9c063'},g)}
+ el('rect',{x:-w/2,y:-h/2-9,width:w,height:5,fill:'#000a'},g);
+ el('rect',{x:-w/2,y:-h/2-9,width:w*Math.max(0,u.m)/100,height:5,fill:u.m>50?'#8fae5a':u.m>25?'#e9c063':'#c0281f'},g);
+ const t=el('text',{y:h/2+13,'text-anchor':'middle','font-size':13,fill:'#fff',stroke:'#0b1016','stroke-width':3,'paint-order':'stroke','font-family':'Georgia'},g);
+ t.textContent=u.nom;
+ return g}
+function dibujar(){gcap.innerHTML='';
+ /* zona de despliegue y plazas */
+ if(S.fase=='desp'){el('rect',{x:24,y:Yv(40),width:372,height:Yv(285)-Yv(40),rx:10,fill:'#e9c06318',stroke:'#e9c063','stroke-width':2,'stroke-dasharray':'8 6'},gcap);
+  for(const k in SLOTS){const u=S.u.find(q=>q.id==k);if(u.x!=null)continue;el('rect',{x:SLOTS[k][0]-24,y:Yv(SLOTS[k][1])-11,width:48,height:22,rx:3,fill:'none',stroke:'#f1ead9aa','stroke-width':1.5,'stroke-dasharray':'4 4'},gcap);
+   const t=el('text',{x:SLOTS[k][0],y:Yv(SLOTS[k][1])+4,'text-anchor':'middle','font-size':13,fill:'#f1ead9cc'},gcap);t.textContent=TIPOS[k].nom.replace('Hastati ','H. ').slice(0,8);}}
+ /* órdenes */
+ S.u.forEach(u=>{if(u.vivo&&u.tx!=null&&u.mode!='retirada'&&S.fase=='lucha'&&Math.hypot(u.tx-u.x,u.ty-u.y)>10){
+  el('line',{x1:u.x,y1:Yv(u.y),x2:u.tx,y2:Yv(u.ty),stroke:'#e9c063','stroke-width':3,'stroke-dasharray':'7 5',opacity:.85},gcap);
+  el('circle',{cx:u.tx,cy:Yv(u.ty),r:6,fill:'#e9c063'},gcap)}});
+ [...S.e,...S.u].filter(u=>u.x!=null&&u.vivo).sort((a,b)=>a.y-b.y).forEach(figura);
+ if(S.efec)S.efec.forEach(f=>{const t=el('text',{x:f.x,y:Yv(f.y)-f.a,'text-anchor':'middle','font-size':16,'font-weight':'bold',fill:f.c,stroke:'#0b1016','stroke-width':3,'paint-order':'stroke'},gcap);t.textContent=f.t});}
+function retrato(sig,col){/* retratos a mano */
+ let c='';
+ if(sig=='scu')c=`<circle cx="37" cy="38" r="20" fill="${col}" stroke="#f1ead9" stroke-width="3"/><path d="M37 20v36M19 38h36" stroke="#f1ead9" stroke-width="3"/><path d="M26 13q11-12 22 0v8H26z" fill="#b8862b"/>`;
+ if(sig=='jav')c=`<circle cx="30" cy="40" r="14" fill="${col}" stroke="#f1ead9" stroke-width="2"/><path d="M26 54L58 12" stroke="#d9cdae" stroke-width="3"/><path d="M58 12l-7 2 4 5z" fill="#9aa6b4"/>`;
+ if(sig=='pil')c=`<rect x="22" y="22" width="30" height="34" rx="6" fill="${col}" stroke="#f1ead9" stroke-width="3"/><path d="M37 8v18M31 14h12" stroke="#d9cdae" stroke-width="3"/><path d="M26 22q11-16 22 0" fill="#b8862b"/>`;
+ if(sig=='cab')c=`<path d="M14 50q6-26 28-26l12-10 4 10-8 6q6 14 2 22z" fill="${col}" stroke="#f1ead9" stroke-width="2"/><path d="M22 54v6M44 54v6" stroke="#f1ead9" stroke-width="3"/>`;
+ return `<svg class="ret" viewBox="0 0 74 58"><rect width="74" height="58" fill="#0b1016" opacity=".35"/>${c}</svg>`}
+function cartaUnidad(u){const d=document.createElement('div');d.className='carta';d.dataset.id=u.id;
+ d.innerHTML=`<div class="nom">${u.nom}</div>${retrato(u.sig,u.col)}<div class="pie"><span>${Math.round(u.n)} h.</span><div><b style="width:${Math.max(0,u.m)}%;background:${u.m>50?'#8fae5a':u.m>25?'#e9c063':'#c0281f'}"></b></div><div><b style="width:${100-u.f}%;background:#9aa6b4"></b></div></div>`;
+ if(!u.vivo)d.classList.add('rota');if(S.fase=='desp'&&u.x!=null)d.classList.add('puesta');if(S.sel==u.id)d.classList.add('sel');return d}
+function cartaTactica(t){const d=document.createElement('div');d.className='carta tac';d.dataset.tac=t.id;
+ d.innerHTML=`<div class="nom">${t.nom}</div><div style="position:absolute;left:0;right:0;top:20px;text-align:center;font-size:36px;color:#e9c063">${t.ic}</div><div class="txt" style="bottom:2px;font-size:13px">${t.txt.split('. ')[0]}</div>`;
+ if(S.cd[t.id]>0)d.classList.add('cd');return d}
+function mano(){const m=$('#mano');m.innerHTML='';S.u.forEach(u=>m.appendChild(cartaUnidad(u)));
+ if(S.fase=='lucha'){const s=document.createElement('div');s.className='sep';m.appendChild(s);TACT.forEach(t=>m.appendChild(cartaTactica(t)))}
+ const n=S.u.filter(u=>u.x!=null).length;
+ $('#go').style.display=S.fase=='desp'?'':'none';$('#go').disabled=n<4;
+ $('#ayuda').style.display=S.fase=='desp'?'':'none';$('#ayuda').textContent=S.fase=='desp'?(n<4?'Arrastra cada carta a su plaza. Faltan '+(4-n)+'.':'Lista la línea. Pulsa «¡Al combate!».'):'Arrastra una carta de unidad al mapa: marcha. Arrastra una táctica sobre un regimiento.';
+ medidores()}
+function medidores(){const R=S.u.filter(u=>u.vivo),E=S.e.filter(u=>u.vivo);
+ const mr=R.length?R.reduce((a,u)=>a+u.m,0)/R.length:0,me=E.length?E.reduce((a,u)=>a+u.m,0)/E.length:0;
+ $('#med').innerHTML=`<span>Roma</span><div class="barra"><i style="width:${mr}%;background:#c0281f"></i></div><span>Cartago</span><div class="barra"><i style="width:${me}%;background:#5b3a7a"></i></div><span>⏱ ${Math.max(0,Math.round(S.t/10))} s</span>`;
+ $('#esc').style.display=S.fase=='desp'?'':'none';$('#trom').style.display=S.fase=='lucha'?'':'none';$('#pausa').style.display=S.fase=='lucha'?'':'none'}
+function aviso(t,ms){const a=$('#aviso');a.textContent=t;a.style.opacity=1;clearTimeout(aviso.h);aviso.h=setTimeout(()=>a.style.opacity=0,ms||1800)}
+
+/* ---------- Arrastrar cartas ---------- */
+let arr=null;
+$('#mano').addEventListener('pointerdown',ev=>{const c=ev.target.closest('.carta');if(!c||S.fase=='res')return;
+ const u=c.dataset.id?S.u.find(q=>q.id==c.dataset.id):null;
+ if(u&&!u.vivo)return;if(c.dataset.tac&&S.cd[c.dataset.tac]>0){aviso('Esa carta se recarga.');return}
+ const g=c.cloneNode(true);g.classList.add('fantasma');g.style.width=74*esc*1.2+'px';g.style.height=112*esc*1.2+'px';document.body.appendChild(g);
+ arr={c,g,id:c.dataset.id,tac:c.dataset.tac};mover(ev);try{c.setPointerCapture(ev.pointerId)}catch(e){}
+ if(arr.id){S.sel=arr.id;}});
+function mover(ev){if(!arr)return;arr.g.style.left=ev.clientX-37*esc*1.2+'px';arr.g.style.top=ev.clientY-80*esc*1.2+'px';
+ arr.x=(ev.clientX-parseFloat(app.style.left))/esc;arr.sy=(ev.clientY-parseFloat(app.style.top))/esc;arr.y=Yi(arr.sy);}
+addEventListener('pointermove',mover);
+addEventListener('pointerup',ev=>{if(!arr)return;mover(ev);const a=arr;arr=null;a.g.remove();
+ if(a.sy<262){soltar(a)}else if(S.fase=='lucha')aviso('Suelta la carta sobre el campo.');
+ mano();dibujar()});
+function clampDesp(x,y){return[Math.min(380,Math.max(40,x)),Math.min(270,Math.max(56,y))]}
+function soltar(a){
+ if(a.id){const u=S.u.find(q=>q.id==a.id);
+  if(S.fase=='desp'){let[x,y]=clampDesp(a.x,a.y);const sl=SLOTS[u.id];
+   if(Math.hypot(sl[0]-x,sl[1]-y)<70){x=sl[0];y=sl[1];aviso(u.nom+': plaza de la triple línea.',1200)}else aviso(u.nom+' fuera de su plaza.',1200);
+   u.x=x;u.y=y;u.tx=x;u.ty=y}
+  else if(u.mode!='retirada'){u.tx=Math.min(830,Math.max(30,a.x));u.ty=Math.min(320,Math.max(50,a.y));u.mode=u.mode=='testudo'?'testudo':'';aviso(u.nom+' marcha.',900)}}
+ else if(a.tac&&S.fase=='lucha'){
+  if(a.tac=='refuerzo'){if(a.x>420){aviso('Los auxiliares entran por tu lado.');return}
+   const n={id:'aux'+S.t,side:'R',nom:'Númidas',col:'#d9764a',sig:'cab',atk:1,vel:3,n:30,n0:30,m:100,f:0,x:14,y:Math.min(320,a.y),tx:Math.max(40,a.x),ty:Math.min(320,a.y),mode:'',mt:0,vivo:true};
+   S.u.push(n);S.cd.refuerzo=300;aviso('¡Llegan auxiliares númidas!');return}
+  const u=S.u.filter(q=>q.vivo).map(q=>({q,d:Math.hypot(q.x-a.x,q.y-a.y)})).sort((p,r)=>p.d-r.d)[0];
+  if(!u||u.d>80){aviso('Suelta la táctica sobre un regimiento.');return}
+  aplicar(u.q,a.tac);S.cd[a.tac]=a.tac=='retirada'?150:200}}
+function aplicar(u,t){u.mode=t;u.mt=t=='testudo'?100:t=='carga'?50:80;
+ if(t=='carga'){const en=cercano(u,S.e);if(en){u.tx=en.x;u.ty=en.y}u.f=Math.min(100,u.f+20);aviso(u.nom+': ¡carga!')}
+ if(t=='testudo')aviso(u.nom+' forma la testudo.');
+ if(t=='retirada'){u.tx=60;u.ty=u.y;aviso(u.nom+' se repliega.')}}
+
+/* ---------- Simulación ---------- */
+function cercano(a,lista){let b=null,bd=1e9;lista.forEach(o=>{if(!o.vivo)return;const d=Math.hypot(o.x-a.x,o.y-a.y);if(d<bd){bd=d;b=o}});return b}
+function flanco(at,df){const f=df.side=='R'?1:-1,dx=(at.x-df.x)*f,dy=Math.abs(at.y-df.y);return dx<-8||(dy>24&&Math.abs(dx)<30)}
+function paso(){S.t++;S.efec=(S.efec||[]).filter(f=>(f.a+=.8)<24);
+ for(const k in S.cd)if(S.cd[k]>0)S.cd[k]--;
+ const todos=[...S.u,...S.e].filter(u=>u.vivo);
+ todos.forEach(u=>{u.fade=0;if(u.mt>0){u.mt--;if(!u.mt){if(u.mode=='retirada'){u.tx=u.x;u.ty=u.y}u.mode=''}}
+  const R=u.side=='R',foe=R?S.e:S.u;let en=cercano(u,foe),tx=u.tx,ty=u.ty;
+  if(!R&&en){tx=en.x;ty=en.y}
+  if(R&&u.mode=='carga'){const c=cercano(u,S.e);if(c){tx=c.x;ty=c.y}}
+  let v=u.vel*.18*(u.mode=='testudo'?.4:1)*(u.mode=='carga'?2:1)*(1-u.f/250);
+  if(R&&u.mode==''&&en&&Math.hypot(en.x-u.x,en.y-u.y)<70){tx=u.x;ty=u.y;} /* aguanta */
+  if(tx!=null){const dx=tx-u.x,dy=ty-u.y,d=Math.hypot(dx,dy);if(d>2){u.x+=dx/d*Math.min(v,d);u.y+=dy/d*Math.min(v,d)}}
+  if(u.mode=='retirada'){u.m=Math.min(100,u.m+.12);return}
+  if(en&&Math.hypot(en.x-u.x,en.y-u.y)<46){
+   let dmg=.55*u.atk*(.6+u.n/u.n0*.4)*(1-u.f/200);
+   if(u.mode=='carga'&&u.mt>25)dmg*=2.2;
+   const fl=flanco(u,en);if(fl){dmg*=1.8;if(R&&!S.flag.f){S.flag.f=1;aviso('¡Flanco! '+u.nom+' golpea de lado.');setTimeout(()=>S.flag.f=0,3500)}}
+   if(en.mode=='testudo')dmg*=.45;if(en.mode=='retirada')dmg*=1.4;
+   if(u.id=='e2'&&en.side=='R'&&Math.random()<.04&&S.efec)S.efec.push({x:en.x,y:en.y-10,a:0,t:'¡Pánico!',c:'#d9764a'});
+   en.n=Math.max(0,en.n-dmg*.5);en.m-=dmg*.7*(fl?1.5:1);u.f=Math.min(100,u.f+.07);
+   if(S.t%12==0)S.efec.push({x:en.x+Math.random()*16-8,y:en.y-12,a:0,t:'-'+Math.max(1,Math.round(dmg*3)),c:en.side=='R'?'#f4a09a':'#fff'});
+   /* moral por flanco o por compañeros caídos */
+  }else u.f=Math.max(0,u.f-.05);
+  if(u.n<=1||u.m<=0){u.vivo=false;u.fade=1;if(R)aviso(u.nom+' rompe filas.');}});
+ const R=S.u.filter(u=>u.vivo),E=S.e.filter(u=>u.vivo);
+ if(!E.length||E.reduce((a,u)=>a+u.n,0)<S.e.reduce((a,u)=>a+u.n0,0)*.25)fin('victoria');
+ else if(!R.length||R.reduce((a,u)=>a+u.n,0)<S.u.reduce((a,u)=>a+u.n0,0)*.2)fin('derrota')}
+function fin(r){if(S.fase=='res')return;S.fase='res';S.res=r;clearInterval(S.h);
+ const bR=Math.round(S.u.reduce((a,u)=>a+u.n0-u.n,0)),bE=Math.round(S.e.reduce((a,u)=>a+u.n0-u.n,0)),
+  sal=Math.round(S.u.reduce((a,u)=>a+u.n,0));
+ const T={victoria:['Victoria','Cartago rompe filas. Aníbal huye hacia Hadrumeto.'],derrota:['Derrota','La línea cede. Tus triarios cubren la huida.'],retirada:['Retirada ordenada','Salvas a tus hombres. El enemigo no os persigue.']}[r];
+ $('#resbox').innerHTML=`<h1>${T[0]}</h1><p>${ESCEN[esc_i].t}</p><p>${T[1]}</p><div class="cifras"><div><b>${bR}</b>bajas romanas</div><div><b>${bE}</b>bajas enemigas</div><div><b>${sal}</b>hombres a salvo</div><div><b>${r=='victoria'?'+1.800':r=='retirada'?'0':'−400'}</b>denarios</div></div><button id="otra">Nueva batalla</button>`;
+ $('#res').style.display='flex';$('#otra').onclick=()=>{$('#res').style.display='none';iniciar()};}
+function lucha(){S.fase='lucha';S.sel=null;S.t=0;
+ S.e.forEach(e=>{e.tx=e.x-20;e.ty=e.y});
+ mano();dibujar();aviso('¡Comienza la batalla!');
+ S.h=setInterval(()=>{if(!S.pausa&&S.fase=='lucha'){paso();dibujar();if(S.t%5==0)mano()}},100)}
+function iniciar(){clearInterval(S&&S.h);nuevo();terreno();$('#tit').textContent=ESCEN[esc_i].t;$('#esc').textContent=ESCEN[esc_i].n+' ▸';
+ $('#res').style.display='none';
+ /* ya hay tres plazas ocupadas para ver el despliegue a medias */
+ ['velites','hast1','princ'].forEach(k=>{const u=S.u.find(q=>q.id==k);u.x=SLOTS[k][0];u.y=SLOTS[k][1];u.tx=u.x;u.ty=u.y});
+ S.e.forEach(e=>{e.x=e.x});
+ mano();dibujar();aviso(ESCEN[esc_i].b,2600)}
+$('#esc').onclick=()=>{esc_i=(esc_i+1)%4;iniciar()};
+$('#go').onclick=()=>{S.u.forEach(u=>{if(u.x==null){u.x=SLOTS[u.id][0]-20;u.y=SLOTS[u.id][1];u.tx=u.x;u.ty=u.y}});lucha()};
+$('#pausa').onclick=()=>{S.pausa=!S.pausa;$('#pausa').textContent=S.pausa?'▶':'❚❚';aviso(S.pausa?'Pausa táctica. Da órdenes con calma.':'Sigue la batalla.')};
+$('#trom').onclick=()=>fin('retirada');
+
+/* ---------- Pantallas de muestra para las capturas ---------- */
+function choque(){/* #2: batalla en pleno choque */
+ ['velites','hast1','hast2','princ','triar','equit'].forEach(k=>{const u=S.u.find(q=>q.id==k);u.x=SLOTS[k][0];u.y=SLOTS[k][1];u.tx=u.x;u.ty=u.y});
+ const P={velites:[392,195],hast1:[405,120],hast2:[405,275],princ:[330,195],triar:[230,195],equit:[500,330]};
+ for(const k in P){const u=S.u.find(q=>q.id==k);u.x=P[k][0];u.y=P[k][1];u.tx=u.x;u.ty=u.y}
+ const Q={e1:[470,85],e2:[455,195],e3:[470,305],e4:[540,130],e5:[540,265],e6:[640,195],e7:[560,40]};
+ S.e.forEach(e=>{e.x=Q[e.id][0];e.y=Q[e.id][1];e.tx=e.x-20;e.ty=e.y});
+ lucha();for(let i=0;i<70;i++)paso();
+ const eq=S.u.find(q=>q.id=='equit');eq.tx=560;eq.ty=215;S.sel='equit';
+ const h2=S.u.find(q=>q.id=='hast2');aplicar(h2,'testudo');const hh=S.u.find(q=>q.id=='hast1');aplicar(hh,'carga');
+ for(let i=0;i<14;i++)paso();S.cd.retirada=90;
+ S.pausa=true;$('#pausa').textContent='▶';aviso('¡Flanco! Equites rodean a los libios.',1e8);mano();dibujar()}
+function resultado(){choque();S.pausa=false;S.e.forEach(e=>{if(e.id!='e6'){e.n=Math.max(2,e.n*.2);e.m=Math.min(e.m,18)}});S.u.forEach(u=>{u.n=Math.max(8,u.n*.7)});fin('victoria')}
+iniciar();
+const h=location.hash;if(h=='#2')choque();if(h=='#3')resultado();
+window.__aq={choque,resultado,iniciar,paso};
+</script></body></html>

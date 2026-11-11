@@ -1,0 +1,5 @@
+1. Idea: la línea de batalla se dibuja con el dedo; en el despliegue el trazo reparte velites, hastati, príncipes, triarios y jinetes en triplex acies, y en combate cada flecha trazada es una orden que el regimiento sigue.
+2. Pulgar: en el despliegue se arrastra una curva y se toca la línea para dar la señal; en combate se arrastra desde un regimiento: recto avanza o carga, curva flanquea, hacia atrás retira, círculo hace testudo; los refuerzos se arrastran desde el borde.
+3. A la vista: ningún botón de órdenes; solo la barra de moral arriba y, en el resultado, un único botón («Volver al mapa» o «Reagrupar en el campamento»); los tres puntos 1-2-3 son solo para la maqueta.
+4. Cambios: en js/ui.js un capturador de gestos sobre el lienzo de battle3d (trazo, clasificador recto/curva/atrás/círculo) y la proyección pantalla-suelo; en js/gfx/battle3d.js la colocación en filas sobre el trazo y flechas dibujadas en el suelo; battle.js ya acepta órdenes por regimiento.
+5. Coste: 3 sesiones (1 gestos y clasificador, 1 despliegue en triplex acies y flechas 3D, 1 resultado, refuerzos y pruebas).

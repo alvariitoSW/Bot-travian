@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>AQVILA · Mesa del Senado</title>
+<style>
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a;--cera:#2b1d16;--madera:#6b4526;--tinta:#e9d9ae}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+html,body{margin:0;height:100%;background:#1a1410;overflow:hidden;font-family:Georgia,"Times New Roman",serif;color:var(--marmol)}
+#app{position:relative;width:100%;max-width:390px;height:100vh;max-height:844px;margin:0 auto;overflow:clip;
+ background:
+  radial-gradient(120% 60% at 50% 38%,rgba(255,255,255,.55),transparent 70%),
+  url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='390' height='844'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.012 .02' numOctaves='4' seed='7'/><feColorMatrix values='0 0 0 0 .45  0 0 0 0 .45  0 0 0 0 .5  0 0 0 .55 -.18'/></filter><rect width='100%' height='100%' filter='url(%23n)'/><g fill='none' stroke='%237d8590' stroke-opacity='.35' stroke-width='1.2'><path d='M-10 120 C80 150 120 60 230 110 S350 190 400 140'/><path d='M-10 520 C60 470 150 560 240 500 S340 430 400 470'/><path d='M120 -10 C150 90 90 200 140 300 S200 420 170 520'/></g></svg>"),
+  #e4dccb;
+ transition:filter .6s}
+#app.fuego{background-color:#d9b9a2}
+.vig{position:absolute;inset:0;pointer-events:none;z-index:3;opacity:0;transition:opacity .6s;background:radial-gradient(90% 70% at 50% 45%,transparent 40%,rgba(192,40,31,.55) 100%);animation:flick 1.4s infinite alternate}
+#app.fuego .vig{opacity:1}
+@keyframes flick{from{filter:brightness(.85)}to{filter:brightness(1.2)}}
+/* borde de la mesa: bronce */
+.riel{position:absolute;left:0;right:0;top:0;height:112px;z-index:5;padding:10px 12px 0;background:linear-gradient(#3a2a1a,#5b3f22 80%,#7a5630);border-bottom:3px solid var(--bronce);box-shadow:0 6px 14px rgba(0,0,0,.35)}
+.fecha{display:flex;justify-content:space-between;align-items:baseline;color:var(--oro);font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+.fecha b{font-size:15px}
+.fichas{display:flex;gap:6px;margin-top:8px}
+.ficha{flex:1;height:44px;border-radius:22px;background:radial-gradient(circle at 35% 30%,#d8b45a,#9b6f22 70%);border:1px solid #5a3d12;box-shadow:inset 0 1px 0 rgba(255,255,255,.4),0 2px 3px rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;color:#2a1a05;font-size:13px;line-height:1.05;font-weight:700}
+.ficha span{font-size:13px;font-weight:400;opacity:.85}
+.ficha.mal{background:radial-gradient(circle at 35% 30%,#e0705f,#8e2018 70%);color:#fff}
+.medidor{display:flex;gap:10px;margin-top:7px;font-size:13px;color:var(--marmol)}
+.med{flex:1;display:flex;align-items:center;gap:6px}
+.barra{flex:1;height:8px;border-radius:4px;background:#1b130c;overflow:hidden;border:1px solid #8a6a36}
+.barra i{display:block;height:100%;background:var(--oliva);transition:width .5s,background .5s}
+/* escena de tablillas */
+.mesa{position:absolute;left:0;right:0;top:112px;bottom:232px}
+.tab{position:absolute;left:18px;right:18px;top:14px;bottom:6px;border-radius:14px;background:linear-gradient(135deg,#8a5c32,#5b3a1d 60%,#6f4624);border:2px solid #3d2410;box-shadow:0 10px 18px rgba(30,20,10,.45),inset 0 2px 0 rgba(255,255,255,.18);padding:12px;touch-action:none;transition:transform .35s,opacity .35s}
+.tab .cuerda{position:absolute;left:-6px;top:50%;width:12px;height:60px;margin-top:-30px;border-radius:6px;background:repeating-linear-gradient(#c9a66b 0 4px,#8d6b3a 4px 8px);box-shadow:0 2px 3px rgba(0,0,0,.4)}
+.cera{height:100%;border-radius:8px;background:linear-gradient(160deg,#35251c,var(--cera));box-shadow:inset 0 3px 8px rgba(0,0,0,.7);padding:14px 14px 10px;color:var(--tinta);position:relative;overflow:clip}
+.cat{position:absolute;top:-1px;left:22px;padding:4px 12px 5px;border-radius:0 0 10px 10px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;background:var(--bronce);color:#1c1204;font-weight:700;z-index:2}
+.cat.rojo{background:var(--rojo);color:#fff}
+.tab h2{margin:14px 0 6px;font-size:22px;line-height:1.15;font-weight:700;color:#f6e7b8;text-shadow:0 1px 0 #000}
+.tab p{margin:0 0 8px;font-size:15px;line-height:1.35}
+.efectos{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.ef{font-size:13px;padding:3px 9px;border-radius:12px;background:rgba(233,217,174,.12);border:1px solid rgba(233,217,174,.3)}
+.ef.bien{color:#bfe08a;border-color:#8fae5a}.ef.mal{color:#ff9a86;border-color:#c0281f}
+.opc{display:flex;flex-direction:column;gap:7px;margin-top:8px}
+.o{display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:10px;border:1.5px solid rgba(233,217,174,.28);background:rgba(0,0,0,.22);font-size:15px;line-height:1.2;min-height:50px}
+.o small{display:block;font-size:13px;opacity:.8;margin-top:2px}
+.o.sel{border-color:var(--oro);background:rgba(233,192,99,.16);box-shadow:0 0 0 1px var(--oro)}
+.o .lacre{flex:none;width:26px;height:26px;border-radius:50%;border:2px solid var(--tinta);display:grid;place-items:center;font-size:13px;color:#2b1d16}
+.o.sel .lacre{background:radial-gradient(circle at 35% 30%,#e0453a,#8e2018);border-color:#ffb3a8}
+/* pila detrás */
+.tab.atras1{transform:translate(0,12px) scale(.96) rotate(-1.6deg);opacity:1;filter:brightness(.82)}
+.tab.atras2{transform:translate(0,22px) scale(.92) rotate(1.8deg);filter:brightness(.66)}
+.tab.fuera{transform:translate(120%,-20px) rotate(18deg);opacity:0}
+.tab.fuera.izq{transform:translate(-120%,-20px) rotate(-18deg)}
+.sello{position:absolute;right:16px;bottom:16px;width:92px;height:92px;opacity:0;transform:scale(2) rotate(-14deg);transition:.25s cubic-bezier(.3,1.6,.5,1);z-index:6;pointer-events:none}
+.tab.sellado .sello{opacity:1;transform:scale(1) rotate(-14deg)}
+.pie{position:absolute;left:14px;right:14px;bottom:10px}.pista2{margin-top:8px;font-size:13px;font-style:italic;opacity:.75;text-align:center}.sen{width:25px!important;height:25px!important;border-width:1.5px!important}.senado{gap:3px!important}.pista{position:absolute;left:0;right:0;bottom:-20px;text-align:center;font-size:13px;color:#4a3a26;font-style:italic}
+/* sillones de senadores */
+.senado{display:flex;gap:4px;justify-content:center;margin:6px 0 0}
+.sen{width:30px;height:30px;border-radius:50%;background:var(--marmol);border:2px solid var(--bronce);display:grid;place-items:center;font-size:13px;color:#1b130c;font-weight:700}
+.sen.pro{background:var(--oliva)}.sen.con{background:var(--terra)}
+/* bandeja inferior */
+.bandeja{position:absolute;left:0;right:0;bottom:0;height:232px;z-index:5;background:linear-gradient(#5b3f22,#3a2a1a);border-top:3px solid var(--bronce);box-shadow:0 -6px 14px rgba(0,0,0,.35)}
+.piedra{position:absolute;bottom:34px;width:100px;height:100px;border-radius:50%;border:0;color:var(--marmol);font:700 14px Georgia,serif;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:radial-gradient(circle at 35% 30%,#7b8794,#454e59 75%);box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 4px 8px rgba(0,0,0,.5)}
+.piedra:active{transform:scale(.95)}
+.piedra small{font-size:13px;font-weight:400;opacity:.9}
+#bApartar{left:16px;bottom:50px;width:92px;height:92px}
+#bDia{right:16px;bottom:50px;width:92px;height:92px}
+#anillo{position:absolute;left:50%;bottom:30px;width:128px;height:128px;margin-left:-64px;border-radius:50%;border:0;padding:0;background:radial-gradient(circle at 35% 30%,#f5d98a,#b8862b 65%,#6e4c10);box-shadow:inset 0 3px 0 rgba(255,255,255,.55),0 6px 12px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;flex-direction:column;color:#2a1a05;font:700 15px Georgia,serif;letter-spacing:.06em}
+#anillo:active{transform:scale(.95)}
+#anillo svg{width:56px;height:56px;margin-bottom:1px}
+#anillo[disabled]{filter:grayscale(1) brightness(.6)}
+.cola{position:absolute;left:0;right:0;top:8px;text-align:center;font-size:13px;color:var(--oro);letter-spacing:.05em}
+.cola i{display:inline-block;width:10px;height:14px;margin:0 2px;border-radius:2px;background:#8a5c32;border:1px solid #3d2410;vertical-align:-2px}
+.cola i.on{background:var(--oro)}
+/* crisis */
+.crisis .cera{background:linear-gradient(160deg,#4a1712,#2c0d09)}
+.reloj{height:12px;border-radius:6px;background:#1b0806;border:1px solid #8a3a2a;overflow:hidden;margin:6px 0 2px}
+.reloj i{display:block;height:100%;background:linear-gradient(90deg,var(--terra),#f4c56a);transition:width .3s}
+.fuegobar i{background:linear-gradient(90deg,#c0281f,#f08a3a)}
+.casillas{display:grid;grid-template-columns:1fr 1fr 1fr;gap:7px;margin-top:10px}
+.cas{height:78px;border-radius:10px;border:2px dashed rgba(233,217,174,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;text-align:center;padding:3px;line-height:1.15}
+.cas.lleno{border-style:solid;border-color:var(--oliva);background:rgba(143,174,90,.18);color:#d6efae}
+.cas.sobre{border-color:var(--oro);background:rgba(233,192,99,.2)}
+.ficha-arr{position:absolute;bottom:50px;width:100px;height:100px;margin:0;border-radius:50%;border:0;touch-action:none;display:flex;flex-direction:column;align-items:center;justify-content:center;font:700 14px Georgia,serif;text-align:center;line-height:1.1;color:#fff;box-shadow:inset 0 2px 0 rgba(255,255,255,.35),0 4px 8px rgba(0,0,0,.55);z-index:20}
+.ficha-arr small{font-size:13px;font-weight:400}
+.ficha-arr svg{width:34px;height:34px;margin-bottom:2px}
+.ficha-arr.usada{opacity:.3;pointer-events:none}
+.t1{background:radial-gradient(circle at 35% 30%,#d9534a,#7d1a14 75%);left:10px}
+.t2{background:radial-gradient(circle at 35% 30%,#5aa7d6,#1f4d73 75%);left:145px}
+.t3{background:radial-gradient(circle at 35% 30%,#b88a5a,#5b3a1d 75%);right:10px;left:auto}
+.aviso{position:absolute;z-index:30;left:50%;top:150px;transform:translateX(-50%);padding:8px 14px;border-radius:14px;background:rgba(11,16,22,.92);color:var(--oro);font-size:14px;border:1px solid var(--bronce);opacity:0;transition:opacity .3s;pointer-events:none;white-space:nowrap}
+.aviso.v{opacity:1}
+.oculto{display:none!important}
+.humo{position:absolute;right:30px;top:60px;z-index:4;font-size:13px}
+</style></head><body>
+<div id="app">
+ <div class="riel">
+  <div class="fecha"><span>Roma</span><b id="fecha">Idus de Quintilis · 216 a.C.</b></div>
+  <div class="fichas" id="fichas"></div>
+  <div class="medidor">
+   <div class="med">Pueblo<div class="barra"><i id="mPueblo" style="width:64%"></i></div></div>
+   <div class="med">Senado<div class="barra"><i id="mSenado" style="width:48%;background:var(--oro)"></i></div></div>
+  </div>
+ </div>
+ <div class="mesa" id="mesa"></div>
+ <div class="vig"></div>
+ <div class="aviso" id="aviso"></div>
+ <div class="bandeja" id="bandeja">
+  <div class="cola" id="cola"></div>
+  <button class="piedra" id="bApartar">Apartar<small>deslizar ←</small></button>
+  <button id="anillo"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="28" fill="#7a1a14" stroke="#2a1a05" stroke-width="3"/><path d="M32 12 L40 22 L52 20 L44 30 L50 42 L38 38 L32 50 L26 38 L14 42 L20 30 L12 20 L24 22Z" fill="#e9c063" stroke="#2a1a05" stroke-width="1.5"/></svg>Sellar</button>
+  <button class="piedra" id="bDia">Pasar el día<small>Quinctilis</small></button>
+ </div>
+</div>
+<script>
+const $=s=>document.querySelector(s);
+const E={ob:'Obras',gr:'Grano',tr:'Tropas',ley:'Ley',int:'Intriga',cri:'Crisis'};
+let rec={Grano:340,Madera:210,Piedra:128,Denarios:520,Legión:'4 520'};
+const ico=(n)=>`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2a1a05" stroke-width="2">${n}</svg>`;
+function fichas(){ $('#fichas').innerHTML=Object.entries(rec).map(([k,v])=>`<div class="ficha ${k==='Grano'&&v<150?'mal':''}">${v}<span>${k}</span></div>`).join(''); }
+fichas();
+const mazo=[
+ {c:'ob',t:'Aqua Appia: ramal a la Subura',p:'El edil Apio Claudio propone ampliar el acueducto. El agua apaga fuegos y calma al pueblo.',ef:[['−120 Piedra','mal'],['−80 Denarios','mal'],['+4 Pueblo','bien'],['6 meses','']],
+  op:[['Sellar la obra completa','+4 Pueblo, −200 recursos'],['Solo el tramo corto','+2 Pueblo, −90 recursos']]},
+ {c:'gr',t:'Grano de Sicilia',p:'Siracusa ofrece 200 modios. Los graneros de la Urbe bajan de lo seguro.',ef:[['+200 Grano','bien'],['−90 Denarios','mal'],['Hambre −','bien']],
+  op:[['Comprar ahora','Precio justo'],['Esperar a la cosecha','Riesgo de hambruna']]},
+ {c:'int',t:'Una tablilla sin firma',p:'Un cliente te trae una tablilla lacrada: Apio Claudio y dos tribunos quieren quitarte el mando tras Cannas. Lleva su sello.',ef:[['Senado ±','']],int:true,
+  op:[['Denunciarlo en el Senado','Senado +, Pueblo −, enemigo jurado'],['Guardarla y callar','Tienes poder sobre Apio (cliente)'],['Quemar la tablilla','Nada cambia. Nadie lo sabe']]},
+ {c:'tr',t:'Reforzar Capua',p:'Los capuanos dudan. Fabio Máximo aconseja dos manípulos de triarios.',ef:[['−2 manípulos','mal'],['Capua leal','bien']],
+  op:[['Enviar los triarios','Capua se mantiene'],['Enviar solo velites','Barato, poco fiable']]},
+ {c:'ley',t:'Ley Oppia sobre el lujo',p:'Los tribunos piden mantener los límites de lujo en guerra. Las matronas protestan en el Foro.',ef:[['+3 Senado','bien'],['−2 Pueblo','mal']],
+  op:[['Mantener la ley','Austeridad'],['Derogarla','Matronas contentas']]}
+];
+const cris={c:'cri',t:'¡Incendio en la Subura!',p:'Las ínsulas arden. Mueve fichas a las casillas antes de que se acabe la arena.',crisis:true};
+let idx=0,sel={},cris_t=100,cris_f=100,tObj=null,usadas=0,fin=false;
+function cartaHTML(d,i){
+ if(d.crisis) return `<div class="tab crisis" data-i="${i}"><div class="cuerda"></div><div class="cera"><div class="cat rojo">Crisis</div>
+  <h2 style="color:#ffb59e">${d.t}</h2><div style="font-size:14px;line-height:1.3">Fuego (barrios ardiendo)</div><div class="reloj fuegobar"><i id="rFuego" style="width:100%"></i></div>
+  <div style="font-size:14px">Arena del reloj</div><div class="reloj"><i id="rTiempo" style="width:100%"></i></div>
+  <p style="margin-top:8px;margin-bottom:2px">Subura: 3 ínsulas arden, 1 200 vecinos huyen. Arrastra las fichas de abajo hasta una casilla.</p>
+  <div class="casillas"><div class="cas" data-k="vigiles">Casilla 1<br>Vigiles</div><div class="cas" data-k="agua">Casilla 2<br>Agua</div><div class="cas" data-k="derribo">Casilla 3<br>Cortafuegos</div></div>
+  <div class="pista" style="bottom:8px;color:#e9c0a8">Si el fuego llega a 0 %, el sello se activa.</div></div>
+  <svg class="sello" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#c0281f" opacity=".92"/><text x="50" y="56" text-anchor="middle" font-size="15" fill="#f1ead9" font-family="Georgia" font-weight="700">APAGADO</text></svg></div>`;
+ return `<div class="tab" data-i="${i}"><div class="cuerda"></div><div class="cera"><div class="cat ${d.c==='int'?'rojo':''}">${E[d.c]}</div>
+  <h2>${d.t}</h2><p>${d.p}</p>
+  ${d.int?'':`<div class="efectos">${d.ef.map(e=>`<span class="ef ${e[1]}">${e[0]}</span>`).join('')}</div>`}
+  <div class="opc">${d.op.map((o,j)=>`<div class="o" data-j="${j}"><span class="lacre">${j+1}</span><div>${o[0]}<small>${o[1]}</small></div></div>`).join('')}</div></div>
+  <div class="pie"><div style="font-size:13px;opacity:.85;margin-bottom:4px">${d.int?'Votos en el Senado':'Votan los padres conscriptos'}</div><div class="senado">${[1,1,0,1,2,1,0,2,1,0].map(v=>`<div class="sen ${v==1?'pro':v==2?'con':''}">${v==1?'Sí':v==2?'No':'?'}</div>`).join('')}</div><div class="pista2">Derecha: sellar. Izquierda: apartar.</div></div>
+  <svg class="sello" viewBox="0 0 100 100"><circle cx="50" cy="50" r="44" fill="#c0281f" opacity=".92"/><text x="50" y="56" text-anchor="middle" font-size="15" fill="#f1ead9" font-family="Georgia" font-weight="700">SELLADO</text></svg></div>`;
+}
+function pintar(){
+ const m=$('#mesa'); m.innerHTML='';
+ const vis=mazo.slice(idx,idx+3);
+ vis.reverse().forEach((d,k,a)=>{const real=a.length-1-k; m.insertAdjacentHTML('beforeend',cartaHTML(d,idx+real)); const t=m.lastElementChild; if(real===1)t.classList.add('atras1'); if(real===2)t.classList.add('atras2'); if(real>0)t.querySelector('.cera').style.pointerEvents='none';});
+ const top=m.lastElementChild; if(top) ligar(top);
+ $('#cola').innerHTML='Tablillas en la mesa: '+mazo.map((_,i)=>`<i class="${i>=idx?'on':''}"></i>`).join('');
+ $('#anillo').disabled=false;
+ const mal=mazo[idx]&&mazo[idx].crisis; $('#app').classList.toggle('fuego',!!mal);$('#cola').style.display=mal?'none':'';
+}
+function aviso(t){const a=$('#aviso');a.textContent=t;a.classList.add('v');clearTimeout(a._t);a._t=setTimeout(()=>a.classList.remove('v'),1800)}
+function ligar(t){
+ t.querySelectorAll('.o').forEach(o=>o.addEventListener('click',()=>{t.querySelectorAll('.o').forEach(x=>x.classList.remove('sel'));o.classList.add('sel');sel[idx]=+o.dataset.j;}));
+ let x0=null,dx=0;
+ t.addEventListener('pointerdown',e=>{if(e.target.closest('.o')&&false)return;x0=e.clientX;t.setPointerCapture(e.pointerId);t.style.transition='none'});
+ t.addEventListener('pointermove',e=>{if(x0==null)return;dx=e.clientX-x0;t.style.transform=`translateX(${dx}px) rotate(${dx/22}deg)`;});
+ const fin=()=>{if(x0==null)return;t.style.transition='';x0=null;if(dx>90)sellar();else if(dx<-90)apartar();else t.style.transform='';dx=0;};
+ t.addEventListener('pointerup',fin);t.addEventListener('pointercancel',fin);
+}
+function sacar(izq){
+ const t=$('#mesa').lastElementChild; if(!t)return;
+ t.classList.add('fuera'); if(izq)t.classList.add('izq'); t.style.transform='';
+ setTimeout(()=>{idx++; if(idx>=mazo.length){idx=0;} pintar();},330);
+}
+function sellar(){
+ const d=mazo[idx]; if(d.crisis){ if(cris_f>8){aviso('El fuego sigue. Usa las fichas.');return;} }
+ if(!d.crisis&&d.op&&sel[idx]==null){ sel[idx]=0; const o=$('#mesa').lastElementChild.querySelector('.o'); if(o)o.classList.add('sel'); }
+ const t=$('#mesa').lastElementChild; t.classList.add('sellado');
+ if(d.c==='ob'){rec.Piedra-=120;rec.Denarios-=80;}
+ if(d.c==='gr'){rec.Grano+=200;rec.Denarios-=90;}
+ fichas(); setTimeout(()=>sacar(false),550);
+}
+function apartar(){aviso('Tablilla apartada. Vuelve mañana.'); sacar(true);}
+$('#anillo').onclick=sellar; $('#bApartar').onclick=apartar;
+$('#bDia').onclick=()=>{aviso('Pasa el día. El pueblo espera.');irA(mazo.findIndex(d=>d.crisis));};
+/* CRISIS */
+mazo.splice(3,0,cris); // la crisis está en el mazo
+function irA(i){ if(i<0)return; idx=i; fin=false; if(mazo[i].crisis) iniciarCrisis(); pintar(); if(mazo[i].crisis) armarFichas(); else quitarFichas(); }
+function iniciarCrisis(){cris_t=100;cris_f=100;usadas=0;clearInterval(tObj);tObj=setInterval(()=>{ if(!mazo[idx]||!mazo[idx].crisis){clearInterval(tObj);return;} cris_t-=1.2;cris_f=Math.min(100,cris_f+.35); act(); if(cris_t<=0){clearInterval(tObj);aviso('Se acaba la arena: el fuego se extiende.');} },500);}
+function act(){const a=$('#rTiempo'),b=$('#rFuego'); if(a)a.style.width=Math.max(0,cris_t)+'%'; if(b)b.style.width=Math.max(0,cris_f)+'%'; const tx=$('#mesa .crisis .pista'); if(cris_f<=8&&tx){tx.textContent='Fuego controlado. Pulsa Sellar.';} }
+const F={vigiles:{n:'Vigiles',s:'3 cohortes',c:'t1',d:34,svg:'<path d="M12 3 L20 7 V13 C20 18 16 21 12 22 C8 21 4 18 4 13 V7Z" fill="#fff" fill-opacity=".9"/>'},agua:{n:'Agua del Tíber',s:'cubos',c:'t2',d:28,svg:'<path d="M12 3 C7 10 6 13 6 15 A6 6 0 0 0 18 15 C18 13 17 10 12 3Z" fill="#fff" fill-opacity=".9"/>'},derribo:{n:'Cortafuegos',s:'derribar 2 ínsulas',c:'t3',d:30,svg:'<path d="M4 20 L12 4 L20 20Z M9 20 V13 H15 V20" fill="#fff" fill-opacity=".9"/>'}};
+function armarFichas(){
+ quitarFichas(); $('#anillo').style.opacity=.9; $('#bApartar').classList.add('oculto'); $('#bDia').classList.add('oculto');
+ Object.entries(F).forEach(([k,f])=>{ $('#bandeja').insertAdjacentHTML('beforeend',`<div class="ficha-arr ${f.c}" data-k="${k}"><svg viewBox="0 0 24 24">${f.svg}</svg>${f.n}<small>${f.s}</small></div>`);});
+ $('#anillo').style.cssText='width:90px;height:90px;margin-left:-45px;bottom:150px;font-size:14px;opacity:.9';
+ $('#anillo svg').style.cssText='width:30px;height:30px';
+ document.querySelectorAll('.ficha-arr').forEach(f=>{let ox,oy,dx=0,dy=0,on=false;
+  f.addEventListener('pointerdown',e=>{on=true;ox=e.clientX;oy=e.clientY;f.setPointerCapture(e.pointerId);f.style.transition='none'});
+  f.addEventListener('pointermove',e=>{if(!on)return;dx=e.clientX-ox;dy=e.clientY-oy;f.style.transform=`translate(${dx}px,${dy}px) scale(1.12)`;
+   const c=casilla(e.clientX,e.clientY);document.querySelectorAll('.cas').forEach(x=>x.classList.toggle('sobre',x===c&&!x.classList.contains('lleno')));});
+  f.addEventListener('pointerup',e=>{on=false;const c=casilla(e.clientX,e.clientY);f.style.transition='';f.style.transform='';document.querySelectorAll('.cas').forEach(x=>x.classList.remove('sobre'));
+   if(c&&!c.classList.contains('lleno'))usar(f,c);});
+ });
+}
+function casilla(x,y){const l=document.elementsFromPoint(x,y);return l.find(e=>e.classList&&e.classList.contains('cas'))||null;}
+function usar(f,c){const k=f.dataset.k;c.classList.add('lleno');c.innerHTML='✔ '+F[k].n+'<br><small>−'+F[k].d+' % fuego</small>';f.classList.add('usada');cris_f=Math.max(0,cris_f-F[k].d);usadas++;act();aviso('−'+F[k].d+' % de fuego');}
+function quitarFichas(){document.querySelectorAll('.ficha-arr').forEach(x=>x.remove());$('#bApartar').classList.remove('oculto');$('#bDia').classList.remove('oculto');$('#anillo').style.cssText='';$('#anillo svg').style.cssText='';}
+/* senado: sillas en la intriga */
+const hash=location.hash.replace('#','');
+if(hash==='1'){idx=0;pintar();}
+else if(hash==='2'){idx=2;pintar();sel[2]=1;const t=$('#mesa').lastElementChild;t.querySelectorAll('.o')[1].classList.add('sel');}
+else if(hash==='3'){irA(3);cris_t=62;const c=document.querySelectorAll('.cas');usar(document.querySelector('[data-k=vigiles]'),c[0]);cris_f=34;clearInterval(tObj);act();$('#mesa .crisis .pista').textContent='Si el fuego llega a 0 %, el sello se activa.';$('#aviso').classList.remove('v');}
+else pintar();
+</script></body></html>

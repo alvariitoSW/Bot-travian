@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Cámara de general</title>
+<style>
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:none}
+html,body{height:100%;background:#000;font-family:Georgia,'Times New Roman',serif;color:var(--marmol);overflow:hidden}
+#w{position:relative;width:844px;height:390px;margin:0 auto;overflow:clip;background:var(--noche);font-size:13px}
+#cielo{position:absolute;inset:0 0 auto 0;height:150px;background:linear-gradient(#27415e,#c9b88f 92%,#e7cf9a)}
+#sol{position:absolute;left:560px;top:62px;width:70px;height:70px;border-radius:50%;background:radial-gradient(#fff3c4,#f3c969 45%,transparent 70%);opacity:.8}
+#monte{position:absolute;left:0;top:96px;width:844px;height:60px}
+#suelo{position:absolute;left:0;top:148px;width:844px;height:242px;background:linear-gradient(#7d8a4a,#5f6e36 40%,#3e4d27)}
+#suelo:after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.0) 0 18px,rgba(0,0,0,.07) 18px 20px)}
+#zona{position:absolute;left:40px;top:262px;width:690px;height:96px;border:2px dashed var(--oro);border-radius:6px;background:rgba(233,192,99,.12);display:none}
+.reg{position:absolute;transform:translate(-50%,-100%);transform-origin:50% 100%}
+.reg .tr{transform-origin:50% 100%}
+.reg .et{position:absolute;left:50%;transform:translate(-50%,0);white-space:nowrap;font-size:13px;padding:1px 6px;border-radius:9px;background:rgba(11,16,22,.82);border:1px solid var(--bronce);bottom:calc(100% + 2px);line-height:16px}
+.reg.en .et{border-color:var(--rojo)}
+.reg.sel .et{background:var(--oro);color:var(--noche);border-color:var(--marmol);font-weight:bold}
+.reg .mo{position:absolute;left:50%;transform:translateX(-50%);height:4px;width:46px;background:#000a;border-radius:2px;bottom:calc(100% + 21px)}
+.reg .mo i{display:block;height:100%;border-radius:2px;background:var(--oliva)}
+.reg.sel .tr{filter:drop-shadow(0 0 5px var(--oro))}
+.anillo{position:absolute;left:50%;bottom:-6px;width:110%;height:12px;transform:translateX(-50%);border:2px solid var(--oro);border-radius:50%;display:none}
+.reg.sel .anillo{display:block}
+.reg{transition:left .9s ease,top .9s ease}
+.drag{transition:none!important}
+#top{z-index:540;position:absolute;left:0;right:0;top:0;height:34px;display:flex;align-items:center;justify-content:space-between;padding:0 10px;background:linear-gradient(#0b1016e8,#0b101600)}
+.med{display:flex;align-items:center;gap:6px;width:250px}
+.med b{font-size:13px;white-space:nowrap}
+.bar{flex:1;height:9px;background:#0009;border:1px solid #fff4;border-radius:5px;overflow:clip}
+.bar i{display:block;height:100%;transition:width .6s}
+#crono{font-size:13px;padding:3px 10px;border:1px solid var(--bronce);border-radius:12px;background:#0b1016d0}
+#mini{z-index:540;position:absolute;left:8px;bottom:8px;width:132px;height:92px;border:2px solid var(--bronce);border-radius:6px;background:#1c2a1ad8;overflow:clip}
+#mini i{position:absolute;width:12px;height:6px;border-radius:2px;transform:translate(-50%,-50%);transition:left .9s,top .9s}
+#mini .a{background:var(--oro)}#mini .e{background:var(--rojo)}
+#mini u{position:absolute;inset:auto 0 0 0;height:2px}
+#ayuda{z-index:540;position:absolute;left:50%;transform:translateX(-50%);top:40px;padding:4px 12px;border-radius:12px;background:#0b1016d8;border:1px solid var(--oro);font-size:13px;max-width:500px;text-align:center;transition:opacity .4s}
+.btn{z-index:550;position:absolute;height:44px;padding:0 16px;border-radius:22px;border:2px solid var(--oro);background:linear-gradient(#d33a2f,#8f1d16);color:var(--marmol);font:bold 14px Georgia,serif;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 2px 8px #000a}
+.btn.sec{background:linear-gradient(#26313f,#121a24);border-color:var(--piedra);font-weight:normal}
+#rueda{z-index:500;position:absolute;inset:0;display:none;background:radial-gradient(circle at 675px 345px,rgba(11,16,22,.55),rgba(11,16,22,.15) 60%)}
+#rueda.on{display:block}
+.op{position:absolute;width:76px;height:36px;margin:-18px 0 0 -38px;border-radius:18px;border:2px solid var(--bronce);background:linear-gradient(#2a3442,#121a24);color:var(--marmol);font:13px Georgia,serif;display:flex;align-items:center;justify-content:center;gap:3px;box-shadow:0 2px 8px #000b;animation:sale .25s ease-out both}
+.op.rec{border-color:var(--oro);background:linear-gradient(#6b4d14,#2f2208)}
+.op svg{width:14px;height:14px;flex:none}
+@keyframes sale{from{transform:scale(.2);opacity:0}to{transform:scale(1);opacity:1}}
+#centro{position:absolute;left:675px;top:335px;width:92px;height:50px;margin:-25px 0 0 -46px;border-radius:50%;background:var(--noche);border:2px solid var(--oro);text-align:center;font-size:13px;line-height:15px;padding-top:8px}
+#info{z-index:540;position:absolute;left:8px;top:40px;width:196px;padding:6px 10px;border:1px solid var(--bronce);border-radius:8px;background:#0b1016e8;font-size:13px;line-height:17px;display:none}
+#info b{color:var(--oro)}
+.pill{position:absolute;padding:3px 10px;border-radius:12px;background:#0b1016e0;font-size:13px;border:1px solid var(--terra)}
+#toast{position:absolute;left:50%;bottom:62px;transform:translateX(-50%);padding:5px 14px;border-radius:14px;background:var(--oro);color:var(--noche);font-weight:bold;opacity:0;transition:opacity .3s;white-space:nowrap}
+.choque{position:absolute;width:60px;height:40px;margin:-20px 0 0 -30px;border-radius:50%;background:radial-gradient(#ffe9a8,#e0582a 50%,transparent 72%);opacity:0;mix-blend-mode:screen}
+.choque.on{opacity:.85;animation:pulso .5s infinite alternate}
+@keyframes pulso{to{transform:scale(1.35);opacity:.5}}
+#fin{z-index:600;position:absolute;inset:0;display:none;background:linear-gradient(#0b1016f2,#0b1016d0),var(--noche);}
+#fin h1{position:absolute;left:40px;top:28px;font-size:34px;color:var(--oro);letter-spacing:2px}
+#fin p.s{position:absolute;left:40px;top:76px;font-size:14px;color:var(--piedra);width:380px}
+.col{position:absolute;top:118px;width:200px;padding:8px 12px;border:1px solid var(--bronce);border-radius:8px;background:#161f2b;line-height:21px}
+.col h3{font-size:14px;color:var(--oro);margin-bottom:2px}
+.col .r{display:flex;justify-content:space-between}
+.col .r em{font-style:normal;color:var(--marmol)}
+.mal{color:var(--terra)!important}
+#ficha{position:absolute;left:40px;top:118px}
+</style></head><body>
+<div id="w">
+ <div id="cielo"></div><div id="sol"></div>
+ <svg id="monte" viewBox="0 0 844 60" preserveAspectRatio="none"><path d="M0 60V38L70 22 140 40 230 14 320 38 420 20 520 42 630 18 740 36 844 24V60Z" fill="#4c5f6f"/><path d="M0 60V48L100 36 200 50 320 34 450 52 560 38 700 50 844 40V60Z" fill="#3f5237"/></svg>
+ <div id="suelo"></div><div id="zona"></div>
+ <div id="campo"></div>
+ <div class="choque" id="ch1" style="left:480px;top:222px"></div>
+ <div id="top">
+  <div class="med"><b>Roma</b><div class="bar"><i id="mR" style="width:84%;background:var(--oliva)"></i></div><b id="nR">84</b></div>
+  <div id="crono">Despliegue</div>
+  <div class="med"><b id="nC">78</b><div class="bar"><i id="mC" style="width:78%;background:var(--rojo);float:right"></i></div><b>Cartago</b></div>
+ </div>
+ <div id="ayuda"></div>
+ <div id="mini"></div>
+ <div class="pill" id="refu" style="left:152px;bottom:12px;display:none">Refuerzo: Equites en 15 s</div>
+ <div id="info"></div>
+ <div id="rueda"><div id="centro"></div></div>
+ <div id="toast"></div>
+ <button class="btn sec" id="bAuto" style="left:152px;bottom:12px">Triplex acies</button>
+ <button class="btn" id="bGo" style="right:12px;bottom:12px;width:190px">Empezar batalla</button>
+ <button class="btn sec" id="bPausa" style="right:12px;top:40px;display:none;height:40px">Pausa</button>
+ <div id="fin">
+  <h1>VICTORIA PÍRRICA</h1>
+  <p class="s">Cannas está lejos: aquí Roma resiste. El flanco cartaginés cede y Aníbal ordena retirarse hacia el sur.</p>
+  <div class="col" style="left:40px"><h3>Bajas romanas</h3><div class="r"><span>Hastati</span><em class="mal">-96</em></div><div class="r"><span>Principes</span><em class="mal">-41</em></div><div class="r"><span>Equites</span><em class="mal">-28</em></div><div class="r"><span>Total</span><em class="mal">165</em></div></div>
+  <div class="col" style="left:262px"><h3>Bajas cartaginesas</h3><div class="r"><span>Líbicos</span><em>-210</em></div><div class="r"><span>Elefantes</span><em>-4</em></div><div class="r"><span>Númidas</span><em>-72</em></div><div class="r"><span>Total</span><em>286</em></div></div>
+  <div class="col" style="left:484px;width:180px"><h3>Botín</h3><div class="r"><span>Denarios</span><em>+420</em></div><div class="r"><span>Prisioneros</span><em>+60</em></div><div class="r"><span>Gloria</span><em>+12</em></div></div>
+  <button class="btn" style="left:40px;bottom:14px;width:230px">Volver al mapa</button>
+  <button class="btn sec" id="bRep" style="left:284px;bottom:14px;width:200px">Repetir batalla</button>
+ </div>
+</div>
+<script>
+const $=s=>document.querySelector(s),W=$('#w');
+// Soldado dibujado a mano
+const SV='<svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute"><defs>'+
+ '<g id="s-r"><rect x="1.5" y="5" width="5" height="7" rx="1" fill="#a8261c"/><circle cx="4" cy="3.2" r="2.2" fill="#d9a77a"/><path d="M1.6 3.4A2.4 2.4 0 0 1 6.4 3.4Z" fill="#b8862b"/><ellipse cx="6.8" cy="8" rx="2" ry="3.6" fill="#8a1a14" stroke="#e9c063" stroke-width=".5"/></g>'+
+ '<g id="s-t"><rect x="1.5" y="5" width="5" height="7" rx="1" fill="#7a2a22"/><circle cx="4" cy="3.2" r="2.2" fill="#d9a77a"/><path d="M1.6 3.4A2.4 2.4 0 0 1 6.4 3.4Z" fill="#8a6a22"/><rect x="7" y="0" width=".8" height="12" fill="#ddd"/></g>'+
+ '<g id="s-v"><rect x="2" y="5" width="4" height="7" rx="1" fill="#6b5a3a"/><circle cx="4" cy="3.2" r="2.1" fill="#d9a77a"/><circle cx="6.8" cy="8" r="1.8" fill="#5a3a1a"/></g>'+
+ '<g id="s-c"><rect x="1" y="6" width="5" height="6" rx="1" fill="#a8261c"/><circle cx="3.5" cy="3.5" r="2.1" fill="#d9a77a"/><path d="M0 12h10l-2-4z" fill="#7a4a22"/><path d="M7 1l1.5 9" stroke="#ddd" stroke-width=".8"/></g>'+
+ '<g id="s-e"><rect x="1.5" y="5" width="5" height="7" rx="1" fill="#2c3a63"/><circle cx="4" cy="3.2" r="2.2" fill="#a77a55"/><path d="M1.6 3.4A2.4 2.4 0 0 1 6.4 3.4Z" fill="#555"/><circle cx="6.8" cy="8" r="2.4" fill="#e9c063" stroke="#7a5a14" stroke-width=".5"/></g>'+
+ '<g id="s-n"><rect x="1" y="6" width="5" height="6" rx="1" fill="#e6dcc0"/><circle cx="3.5" cy="3.5" r="2.1" fill="#7a5238"/><path d="M0 12h10l-2-4z" fill="#8a6a3a"/></g>'+
+ '<g id="s-g"><rect x="1.5" y="5" width="5" height="7" rx="1" fill="#3a6a3a"/><circle cx="4" cy="3.2" r="2.2" fill="#e0b68a"/><path d="M1.5 2h5v1h-5z" fill="#c0a030"/><ellipse cx="6.8" cy="8" rx="2" ry="3.6" fill="#2a5a8a"/></g>'+
+ '<g id="s-el"><ellipse cx="14" cy="14" rx="12" ry="8" fill="#6c6c70"/><rect x="2" y="10" width="5" height="12" rx="2" fill="#6c6c70"/><path d="M2 14q-5 2-4 9" stroke="#6c6c70" stroke-width="3" fill="none"/><rect x="9" y="3" width="10" height="6" rx="2" fill="#7a2a22"/><circle cx="14" cy="2" r="2" fill="#a77a55"/><rect x="8" y="20" width="3" height="7" fill="#58585c"/><rect x="18" y="20" width="3" height="7" fill="#58585c"/></g>'+
+ '</defs></svg>';
+W.insertAdjacentHTML('afterbegin',SV);
+// Regimientos: x,d(0 lejos..1 cerca), filas, columnas, símbolo
+const A=[
+ {id:'h1',n:'Hastati I',x:250,d:.78,f:3,c:9,s:'r',m:88,f2:'Manípulos',fo:'Línea suelta'},
+ {id:'h2',n:'Hastati II',x:470,d:.78,f:3,c:9,s:'r',m:84,f2:'Manípulos',fo:'Línea suelta'},
+ {id:'pr',n:'Principes',x:360,d:.9,f:3,c:9,s:'r',m:90,f2:'Manípulos',fo:'Línea suelta'},
+ {id:'tr',n:'Triarii',x:360,d:1,f:2,c:9,s:'t',m:96,f2:'Reserva',fo:'Lanza erguida'},
+ {id:'ve',n:'Velites',x:360,d:.62,f:2,c:12,s:'v',m:70,f2:'Escaramuza',fo:'Dispersos'},
+ {id:'eq',n:'Equites',x:640,d:.84,f:2,c:6,s:'c',m:80,f2:'Caballería',fo:'Ala derecha'}];
+const E=[
+ {id:'l1',n:'Líbicos',x:300,d:.3,f:3,c:10,s:'e',m:80},
+ {id:'l2',n:'Íberos',x:480,d:.3,f:3,c:10,s:'e',m:76},
+ {id:'el',n:'Elefantes',x:400,d:.2,f:1,c:3,s:'el',m:72},
+ {id:'nu',n:'Númidas',x:210,d:.4,f:2,c:6,s:'n',m:78},
+ {id:'ga',n:'Galos',x:610,d:.32,f:3,c:8,s:'g',m:74}];
+const Y=d=>152+d*205, SC=d=>.75+d*.95;
+const campo=$('#campo');const R={};
+function mk(o,en){
+ const el=document.createElement('div');el.className='reg'+(en?' en':'');
+ const w=o.c*10,h=o.f*11+(o.s==='el'?14:3);let g='';
+ for(let i=0;i<o.f;i++)for(let j=0;j<o.c;j++){
+  if(o.s==='el'){g+=`<use href="#s-el" x="${j*30-30+30}" y="0" transform="scale(1)"/>`;continue}
+  g+=`<use href="#s-${o.s}" x="${j*10}" y="${i*11}"/>`}
+ const ww=o.s==='el'?o.c*30:w;
+ el.innerHTML=`<div class="et">${o.n}</div><div class="mo"><i style="width:${o.m}%"></i></div><div class="tr"><svg width="${ww}" height="${h}" viewBox="0 0 ${ww} ${h}" style="display:block;overflow:visible">${g}</svg></div><div class="anillo"></div>`;
+ o.el=el;o.bx=o.x;o.bd=o.d;place(o);campo.appendChild(el);R[o.id]=o;
+ if(!en)el.addEventListener('pointerdown',e=>ptr(e,o));
+}
+function place(o){o.el.style.left=o.x+'px';o.el.style.top=Y(o.d)+'px';o.el.querySelector('.tr').style.transform=`scale(${SC(o.d)})`;
+ const r=o.el.querySelector('.et');o.el.style.zIndex=Math.round(o.d*100);
+ const hh=o.el.querySelector('svg').getAttribute('height')*SC(o.d);o.el.style.height=hh+'px';o.el.style.width=o.el.querySelector('svg').getAttribute('width')*SC(o.d)+'px';
+ o.el.querySelector('.tr').style.position='absolute';o.el.querySelector('.tr').style.left='50%';o.el.querySelector('.tr').style.bottom='0';o.el.querySelector('.tr').style.marginLeft=-(o.el.querySelector('svg').getAttribute('width')/2)+'px';
+ o.el.querySelector('.et').style.bottom='calc(100% + 2px)';}
+A.forEach(o=>mk(o,0));E.forEach(o=>mk(o,1));
+// Minimapa
+const mini=$('#mini');
+mini.innerHTML='<u style="background:#8fae5a55;top:46px;height:2px;inset-inline:0"></u>'+[...A,...E].map(o=>`<i class="${A.includes(o)?'a':'e'}" id="m-${o.id}"></i>`).join('');
+function pm(){[...A,...E].forEach(o=>{const e=$('#m-'+o.id);e.style.left=(o.x/844*132)+'px';e.style.top=(6+(o.d-.1)/.95*78)+'px'})}pm();
+// Estados
+let fase=1,sel=null,pausa=false,t0=0,tick=null;
+const ay=$('#ayuda');
+function msg(t){ay.textContent=t}
+function toast(t){const e=$('#toast');e.textContent=t;e.style.opacity=1;clearTimeout(toast.h);toast.h=setTimeout(()=>e.style.opacity=0,1600)}
+function marcar(o){A.forEach(a=>a.el.classList.toggle('sel',a===o));sel=o}
+// Arrastre en despliegue; toque en batalla abre rueda
+function ptr(e,o){
+ e.stopPropagation();
+ if(fase===1){
+  marcar(o);const sx=e.clientX,sy=e.clientY,ox=o.x,od=o.d;o.el.classList.add('drag');
+  const mv=ev=>{o.x=Math.max(60,Math.min(780,ox+(ev.clientX-sx)));o.d=Math.max(.5,Math.min(1,od+(ev.clientY-sy)/205));place(o);pm()};
+  const up=()=>{o.el.classList.remove('drag');removeEventListener('pointermove',mv);removeEventListener('pointerup',up)};
+  addEventListener('pointermove',mv);addEventListener('pointerup',up);
+ }else if(fase===2){marcar(o);abrir(o)}
+}
+const OPS=[['Avanzar','M2 12V4l4 4 4-4v8','avanza'],['Mantener','M2 3h10v8H2z','mantiene'],['Cargar','M1 7h9M7 3l4 4-4 4','carga'],['Flanquear','M2 12C2 5 6 3 12 3M9 1l3 2-2 3','flanquea'],['Testudo','M1 10a6 6 0 0 1 12 0zM3 10v2M11 10v2','testudo'],['Retirar','M12 7H3M6 3L2 7l4 4','retira']];
+const REC={h1:2,h2:2,pr:0,tr:1,ve:5,eq:3};
+function abrir(o){
+ const r=$('#rueda');r.querySelectorAll('.op').forEach(x=>x.remove());r.classList.add('on');['#bGo','#bPausa','#refu'].forEach(s=>$(s).style.visibility='hidden');
+ $('#centro').innerHTML=`<b>${o.n}</b><br>${o.fo}`;
+ const cx=675,cy=335,rad=125;
+ OPS.forEach((p,i)=>{const a=Math.PI*(1+(i+.5)/6);const b=document.createElement('div');
+  b.className='op'+(i===REC[o.id]?' rec':'');b.style.left=cx+rad*Math.cos(a)+'px';b.style.top=cy+rad*Math.sin(a)+'px';b.style.animationDelay=i*.03+'s';
+  b.innerHTML=`<svg viewBox="0 0 14 14" fill="none" stroke="#e9c063" stroke-width="1.6" stroke-linecap="round"><path d="${p[1]}"/></svg>${p[0]}`;
+  b.addEventListener('pointerdown',ev=>{ev.stopPropagation();orden(o,p)});r.appendChild(b)});
+ info(o);msg(`${o.n}: elige una orden. La dorada es la recomendada.`);
+}
+function cerrar(){['#bGo','#bPausa','#refu'].forEach(s=>$(s).style.visibility='');$('#rueda').classList.remove('on');$('#info').style.display='none';A.forEach(a=>a.el.classList.remove('sel'));sel=null}
+function info(o){const i=$('#info');i.style.display='block';i.innerHTML=`<b>${o.n}</b><br>${o.f2} · ${o.f*o.c*8} hombres<br>Moral ${o.m}% · Cansancio ${100-o.m-6}%`}
+function mover(o,x,d){o.x=x;o.d=d;place(o);pm()}
+function orden(o,p){
+ cerrar();toast(`${o.n}: ${p[0]}`);const k=p[2];
+ if(k==='avanza')mover(o,o.x,Math.max(.5,o.d-.1));
+ if(k==='mantiene'){mover(o,o.x,o.d)}
+ if(k==='retira')mover(o,o.x,Math.min(1,o.d+.12));
+ if(k==='carga'){mover(o,o.x,.42);$('#ch1').classList.add('on');setTimeout(()=>{dano(.1)},900)}
+ if(k==='flanquea'){mover(o,o.x>420?780:60,.4);setTimeout(()=>{toast('Flanqueo: moral enemiga -12');dano(.12)},1000)}
+ if(k==='testudo'){o.el.querySelector('.tr').style.filter='sepia(.6) saturate(2)';o.m=Math.min(99,o.m+4);toast('Testudo: escudos al frente')}
+}
+function dano(v){const c=$('#mC'),n=$('#nC');const x=Math.max(8,parseInt(c.style.width)-v*100);c.style.width=x+'%';n.textContent=Math.round(x)}
+W.addEventListener('pointerdown',e=>{if(fase===2&&$('#rueda').classList.contains('on'))cerrar()});
+// Botones
+$('#bAuto').onclick=()=>{
+ const pos={h1:[200,.78],h2:[520,.78],pr:[360,.86],tr:[360,.97],ve:[360,.6],eq:[680,.82]};
+ A.forEach(o=>{const p=pos[o.id];o.el.classList.remove('drag');mover(o,p[0],p[1])});toast('Triplex acies trazada');
+};
+function ir(n){fase=n;cerrar();
+ $('#zona').style.display=n===1?'block':'none';$('#fin').style.display=n===3?'block':'none';$('#campo').style.display=n===3?'none':'block';$('#ch1').style.display=n===3?'none':'block';
+ $('#bAuto').style.display=n===1?'flex':'none';$('#bGo').style.display=n===3?'none':'flex';
+ $('#bPausa').style.display=n===2?'flex':'none';$('#refu').style.display=n===2?'block':'none';
+ $('#top').style.display=n===3?'none':'flex';$('#ayuda').style.display=n===3?'none':'block';
+ $('#mini').style.display=n===3?'none':'block';
+ if(n===1){msg('Arrastra cada regimiento a su sitio. Velites delante, triarios detrás.');$('#crono').textContent='Despliegue';$('#bGo').textContent='Empezar batalla'}
+ if(n===2){msg('Toca un regimiento para dar una orden.');$('#crono').textContent='Batalla 02:14';$('#bGo').textContent='Retirada general';$('#bGo').className='btn sec';$('#bGo').style.width='170px';
+  if(!E.chocado){E.chocado=1;$("#ch1").classList.add("on");A.forEach(o=>{if(o.id==='h1'||o.id==='h2'||o.id==='pr')mover(o,o.x,.56)});E.forEach(o=>{if(o.id!=='nu')mover(o,o.x,.4)});}}
+}
+$('#bGo').onclick=()=>{if(fase===1)ir(2);else if(fase===2)ir(3)};
+$('#bRep').onclick=()=>{location.hash='1';location.reload()};
+$('#bPausa').onclick=e=>{pausa=!pausa;e.target.textContent=pausa?'Seguir':'Pausa';toast(pausa?'Pausa táctica: ordena sin prisa':'La batalla sigue')};
+// Reloj
+setInterval(()=>{if(fase===2&&!pausa){t0++;const s=134+t0;$('#crono').textContent='Batalla '+String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0')}},1000);
+// Hash para capturas: #1, #2, #2r (rueda abierta), #3
+ir(1);
+const h=location.hash.slice(1);
+if(h.startsWith('2')){ir(2);if(h==='2r'){setTimeout(()=>{marcar(R.h1);abrir(R.h1)},50)}}
+if(h==='3')ir(3);
+if(h==='1'){$('#bAuto').click();$('#toast').style.opacity=0}
+</script></body></html>
