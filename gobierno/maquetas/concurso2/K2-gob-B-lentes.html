@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Lentes</title>
+<style>
+@font-face{font-family:Cinzel;font-weight:700;src:url(../../../assets/fuentes/cinzel-700.woff2) format('woff2')}
+@font-face{font-family:Cinzel;font-weight:400;src:url(../../../assets/fuentes/cinzel-400.woff2) format('woff2')}
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a;--dock:74px}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+body{background:#05080b;color:var(--marmol);font:400 14px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;justify-content:center;min-height:100vh}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.app{position:relative;width:390px;height:844px;overflow:hidden;overflow:clip;background:var(--noche);flex:none}
+.cinz{font-family:Cinzel,Palatino,Georgia,serif;letter-spacing:.08em}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.s{width:16px;height:16px}
+/* ciudad real de fondo */
+.city{position:absolute;inset:0;background:url(../fondo-ciudad.jpg) 0 0/390px 844px no-repeat;transition:filter .4s}
+.app[data-l=eco] .city{filter:sepia(.45) saturate(.9) brightness(.85)}
+.app[data-l=pol] .city{filter:saturate(.55) hue-rotate(-20deg) brightness(.8)}
+.app[data-l=pel] .city{filter:saturate(.6) brightness(.62) contrast(1.1)}
+.app[data-l=pue] .city{filter:saturate(.85) brightness(.9)}
+.scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(#0b1016f2 0,#0b1016c0 110px,#0b101622 190px,#0000 260px,#0000 560px,#0b1016d9 700px,#0b1016 844px)}
+.imp .city,.imp .scrim,.imp .heat,.imp .pins{display:none}
+.heat,.pins{position:absolute;inset:0;pointer-events:none}
+.blob{position:absolute;width:140px;height:104px;margin:-52px 0 0 -70px;border-radius:50%;filter:blur(5px);opacity:.9;transition:background .5s;mix-blend-mode:normal}
+.patch{position:absolute;height:24px;border-radius:12px;backdrop-filter:blur(9px);-webkit-backdrop-filter:blur(9px);background:#0b101655}
+/* pines */
+.pin{position:absolute;transform:translate(-50%,-50%);pointer-events:auto;display:flex;align-items:center;gap:6px;height:30px;padding:0 11px 0 8px;border-radius:15px;background:#0b1016ee;border:1px solid #b8862b;font-size:13px;font-weight:600;white-space:nowrap;color:var(--marmol);box-shadow:0 2px 6px #0008}
+.pin::before{content:"";position:absolute;inset:-8px -4px}
+.pin b{width:13px;height:13px;border-radius:50%;border:1.5px solid #f1ead9aa;flex:none;transition:background .5s}
+.pin em{font-style:normal;color:var(--oro);font-weight:700}
+.pin.on{border-color:var(--oro);box-shadow:0 0 0 2px #e9c06366,0 2px 8px #000a;background:#1a2330f5}
+.pin.pv{border-style:dashed}
+.alert{position:absolute;transform:translate(-50%,-50%);width:46px;height:46px;border-radius:50%;pointer-events:auto;background:radial-gradient(#c0281fee 55%,#c0281f00 72%);display:grid;place-items:center;animation:lat 1.6s ease-in-out infinite;color:#fff}
+.alert svg{width:26px;height:26px}
+@keyframes lat{50%{transform:translate(-50%,-50%) scale(1.14)}}
+/* fuego */
+.fl{position:absolute;width:34px;height:50px;margin:-50px 0 0 -17px;border-radius:50% 50% 45% 45%/70% 70% 30% 30%;background:radial-gradient(ellipse at 50% 80%,#ffe9a0 0,#f5a73b 38%,#d9461f 68%,#d9461f00 72%);filter:blur(1.5px);animation:fk .5s ease-in-out infinite alternate;transform-origin:50% 100%;pointer-events:none}
+@keyframes fk{to{transform:scale(.8,1.18) skewX(6deg);opacity:.85}}
+.hum{position:absolute;width:60px;height:60px;margin:-110px 0 0 -30px;border-radius:50%;background:radial-gradient(#0009,#0000 70%);animation:hu 3s linear infinite;pointer-events:none}
+@keyframes hu{to{transform:translateY(-26px) scale(1.4);opacity:0}}
+.out .fl,.out .hum{display:none}
+/* cabecera */
+.hud{position:absolute;left:0;right:0;top:0;padding:10px 12px 0}
+.row1{display:flex;align-items:center;justify-content:space-between;height:36px}
+.row1 h1{font-size:19px;font-weight:700;color:var(--oro);display:flex;align-items:center;gap:8px}
+.row1 small{font-size:13px;color:var(--piedra);text-align:right;line-height:1.2}
+.res{display:flex;gap:4px;margin-top:2px}
+.res div{flex:1;display:flex;align-items:center;gap:4px;height:30px;padding:0 7px;border-radius:6px;background:#0b1016d9;border:1px solid #b8862b88;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--marmol)}
+.res svg{color:var(--bronce)}
+.res .lo{color:var(--terra)}
+.cities{display:flex;gap:6px;margin-top:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.cities::-webkit-scrollbar{display:none}
+.chip{flex:none;position:relative;height:44px;padding:0 13px;border-radius:8px;border:1px solid #b8862b88;background:#0b1016d9;font-size:13px;font-weight:600;display:flex;align-items:center;gap:7px;color:var(--piedra)}
+.chip.on{border-color:var(--oro);color:var(--oro);background:#1a2330f5}
+.chip i{width:9px;height:9px;border-radius:50%;display:block}
+.chip.more{color:var(--oro)}
+/* hoja inferior */
+.sheet{position:absolute;left:8px;right:8px;bottom:calc(var(--dock) + 6px)}
+.panel{position:relative;background:linear-gradient(#131c27f7,#0b1016fa);border:1px solid var(--bronce);border-radius:8px;box-shadow:inset 0 0 0 3px #0b1016,inset 0 0 0 4px #b8862b44,0 6px 22px #000b;padding:12px 14px 14px}
+.panel .gr{position:absolute;left:12px;right:12px;top:5px;height:8px;opacity:.55;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8'%3E%3Cpath d='M0 7H12V1H4V5H8' fill='none' stroke='%23b8862b' stroke-width='1.2'/%3E%3C/svg%3E") repeat-x}
+.panel h2{font-size:15px;font-weight:700;color:var(--oro);margin-top:8px;display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.panel h2 span{font-family:system-ui,sans-serif;letter-spacing:0;font-size:13px;color:var(--piedra);font-weight:500;text-align:right}
+.panel p{font-size:13px;color:#d6d0c2;margin:5px 0 9px}
+.x{position:absolute;right:6px;top:14px;width:44px;height:44px;display:grid;place-items:center;color:var(--piedra)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;padding:6px 12px;border-radius:7px;font-weight:700;font-size:14px;text-align:center}
+.btn.red{background:var(--rojo);color:#fff;border:1px solid var(--oro)}
+.btn.line{border:1px solid var(--bronce);color:var(--marmol);background:#0b101699;justify-content:space-between;text-align:left;font-weight:600;margin-top:6px}
+.btn.line.on{border-color:var(--oro);background:#2a2210f0}
+.btn.line small{font-size:13px;font-weight:500;color:var(--piedra);display:block}
+.btn.line .c{color:var(--oro);font-size:13px;white-space:nowrap}
+.btn.dis{opacity:.45}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.cost{display:flex;gap:5px;margin:2px 0 10px}
+.cost div{flex:1;border:1px solid #b8862b66;border-radius:6px;padding:4px 2px;text-align:center;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;align-items:center;gap:1px}
+.cost svg{color:var(--bronce)}
+.cost .no{color:var(--terra);border-color:var(--terra)}
+.cost .no svg{color:var(--terra)}
+.leg{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--piedra);margin-top:8px}
+.leg i{flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,#8fae5a,#e9c063 45%,#d9764a 75%,#c0281f)}
+.tag{display:inline-flex;align-items:center;gap:4px;height:26px;padding:0 8px;border-radius:13px;font-size:13px;font-weight:600;border:1px solid #b8862b66;background:#0b1016cc}
+.up{color:var(--oliva)}.dn{color:var(--terra)}
+.bar{height:8px;border-radius:4px;background:#ffffff1c;overflow:hidden;margin:6px 0 4px}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--bronce),var(--oro))}
+.bar.fire i{background:linear-gradient(90deg,#d9764a,#c0281f)}
+.cola{display:flex;gap:5px;margin-top:8px}
+.cola div{flex:1;border:1px dashed #b8862b88;border-radius:6px;padding:5px 7px;font-size:13px;color:var(--piedra);line-height:1.25}
+.cola b{color:var(--marmol);display:block;font-weight:600}
+/* dock */
+.dock{position:absolute;left:0;right:0;bottom:0;height:var(--dock);display:flex;padding:4px 6px 10px;gap:3px;background:linear-gradient(#0b1016f0,#05080b);border-top:1px solid var(--bronce)}
+.dock button{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;border-radius:8px;font-size:13px;font-weight:600;color:var(--piedra);min-height:44px}
+.dock button.on{color:var(--oro);background:#e9c0631c;box-shadow:inset 0 0 0 1px #e9c06388}
+.dock svg{width:26px;height:26px}
+.dock .nb{position:absolute;top:2px;right:12px;min-width:18px;height:18px;border-radius:9px;background:var(--rojo);color:#fff;font-size:13px;line-height:18px;font-weight:700;padding:0 4px;text-align:center}
+.dock .sep{flex:none;width:1px;background:#b8862b66;margin:6px 2px}
+.toast{position:absolute;left:50%;top:150px;transform:translateX(-50%);background:#0b1016f5;border:1px solid var(--oro);border-radius:8px;padding:8px 14px;font-size:13px;font-weight:600;z-index:9;white-space:nowrap;animation:to 2.6s forwards}
+@keyframes to{0%{opacity:0}10%,80%{opacity:1}100%{opacity:0}}
+/* imperio */
+.imp{background:radial-gradient(#1b2028,#0b1016)}
+.impv{position:absolute;left:0;right:0;top:92px;bottom:var(--dock);display:none;overflow-y:auto;padding:0 10px 10px}
+.imp .impv{display:block}
+.carta{border:1px solid var(--bronce);border-radius:8px;background:#d8c79a;overflow:hidden;margin-bottom:8px}
+.carta svg{display:block;width:100%;height:auto}
+.crow{display:flex;align-items:center;gap:8px;min-height:46px;padding:4px 10px;border:1px solid #b8862b66;border-radius:7px;margin-bottom:5px;background:#101821;width:100%;text-align:left}
+.crow.hot{border-color:var(--terra);background:#2a1712}
+.crow .nm{flex:1;font-weight:600;font-size:14px}
+.crow .nm small{display:block;font-weight:400;font-size:13px;color:var(--piedra)}
+.sq{display:flex;gap:3px}
+.sq i{width:18px;height:18px;border-radius:4px;border:1px solid #0008}
+.sq i.of{opacity:.3}
+.regla{font-size:13px;color:var(--piedra);border-left:2px solid var(--bronce);padding:2px 10px;margin:8px 0}
+.colap{width:100%;min-height:44px;border:1px dashed #b8862b88;border-radius:7px;color:var(--oro);font-weight:600;font-size:13px}
+.lenstag{position:absolute;left:10px;top:2px;font-size:13px;color:var(--marmol);background:#0b1016d9;border:1px solid #b8862b66;border-radius:6px;padding:3px 9px;pointer-events:none}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="log" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="2"/><circle cx="18" cy="12" r="3"/><path d="M6 10h6M6 14h5"/></symbol>
+<symbol id="sto" viewBox="0 0 24 24"><path d="M3 18l3-9h12l3 9z"/><path d="M8 18l1.5-9M16 18l-1.5-9M3 13.5h18"/></symbol>
+<symbol id="irn" viewBox="0 0 24 24"><path d="M4 17l3-8h10l3 8z"/><path d="M8 13h8"/></symbol>
+<symbol id="gra" viewBox="0 0 24 24"><path d="M12 21V8M12 8c-3 0-4-2-4-4 3 0 4 2 4 4zM12 8c3 0 4-2 4-4-3 0-4 2-4 4zM12 14c-3 0-4-2-4-4 3 0 4 2 4 4zM12 14c3 0 4-2 4-4-3 0-4 2-4 4z"/></symbol>
+<symbol id="ora" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M9 9h5a2 2 0 010 3.5H9m0 0h5.5a2 2 0 010 3.5H9M9 7.5v9"/></symbol>
+<symbol id="pue" viewBox="0 0 24 24"><circle cx="8" cy="8" r="2.6"/><circle cx="16.5" cy="9" r="2.2"/><path d="M3 19c0-4 2.2-6 5-6s5 2 5 6M14 14c3-.6 6 1 6 5"/></symbol>
+<symbol id="eco" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="5"/><path d="M12 9v6M10 12h4"/></symbol>
+<symbol id="pol" viewBox="0 0 24 24"><path d="M3 9l9-5 9 5zM5 9v8M9.5 9v8M14.5 9v8M19 9v8M3 20h18"/></symbol>
+<symbol id="pel" viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 01-10 0c0-2 1-3 2-4 .3 1.2 1 2 2 2-1-3-.5-5 1-8z"/></symbol>
+<symbol id="imp" viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></symbol>
+<symbol id="cls" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+<symbol id="sel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v5M12 16h.01"/></symbol>
+<symbol id="car" viewBox="0 0 24 24"><path d="M4 7h16v10H4zM4 7l8 6 8-6"/></symbol>
+<symbol id="mar" viewBox="0 0 24 24"><path d="M4 18c3-4 3-8 8-12 0 6 4 8 8 12zM12 6v12"/></symbol>
+</defs></svg>
+<div class="app" id="app" data-l="pue"></div>
+<script>
+const $=s=>document.querySelector(s);
+const ic=(n,c='')=>`<svg class="i ${c}"><use href="#${n}"/></svg>`;
+/* ---- datos ---- */
+const LENTES={pue:'Pueblo',eco:'Economía',pol:'Política',pel:'Peligro'};
+const BAR={foro:{n:'Foro',x:178,y:333,nv:2},templo:{n:'Templo',x:127,y:300,nv:1},acueducto:{n:'Acueducto',x:199,y:276,nv:1},puerto:{n:'Puerto',x:299,y:268,nv:1},
+anfiteatro:{n:'Anfiteatro',x:84,y:348,nv:1,ox:91,oy:348},mercado:{n:'Mercado',x:262,y:376,nv:2,ox:276,oy:370},almacen:{n:'Almacén',x:326,y:340,nv:1,ox:341,oy:364},establo:{n:'Establo',x:72,y:388,nv:1},
+termas:{n:'Termas',x:121,y:416,nv:1},viviendas:{n:'Ínsulas',x:214,y:427,nv:2},herreria:{n:'Herrería',x:326,y:416,nv:1},cuartel:{n:'Cuartel',x:269,y:455,nv:1}};
+// severidad 0 (bien) a 1 (mal) y texto corto, por lente y barrio
+const V={
+pue:{foro:[.3,'70%'],templo:[.18,'82%'],acueducto:[.23,'77%'],puerto:[.39,'61%'],anfiteatro:[.34,'66%'],mercado:[.42,'58%'],almacen:[.36,'64%'],establo:[.4,'60%'],termas:[.26,'74%'],viviendas:[.84,'38%'],herreria:[.45,'55%'],cuartel:[.5,'50%']},
+eco:{foro:[.1,'+48'],templo:[.55,'−4'],acueducto:[.58,'−5'],puerto:[.2,'+26'],anfiteatro:[.75,'−12'],mercado:[.15,'+31'],almacen:[.3,'80%'],establo:[.66,'−9'],termas:[.62,'−7'],viviendas:[.35,'+12'],herreria:[.6,'−6'],cuartel:[.8,'−14']},
+pol:{foro:[.56,'44%'],templo:[.29,'71%'],acueducto:[.4,'60%'],puerto:[.45,'55%'],anfiteatro:[.48,'52%'],mercado:[.67,'33%'],almacen:[.5,'50%'],establo:[.3,'70%'],termas:[.35,'65%'],viviendas:[.72,'28%'],herreria:[.5,'50%'],cuartel:[.15,'85%']},
+pel:{foro:[.1,'bajo'],templo:[.1,'bajo'],acueducto:[.2,'bajo'],puerto:[.55,'marea'],anfiteatro:[.15,'bajo'],mercado:[.25,'bajo'],almacen:[.62,'plaga'],establo:[.2,'bajo'],termas:[.15,'bajo'],viviendas:[.95,'fuego'],herreria:[.3,'bajo'],cuartel:[.1,'bajo']}};
+const RECS=[['log','Madera',1240,'+38'],['sto','Piedra',860,'+22'],['irn','Hierro',310,'+9'],['gra','Grano',95,'−14'],['ora','Denarios',2470,'+96']];
+const CIUDADES=['Roma','Ostia','Capua','Neapolis','Tarento','Siracusa'];
+const IMPERIO=[ // nombre, x,y en el mapa, severidad por lente [pue,eco,pol,pel], nota
+['Roma',190,82,[.5,.15,.56,.95],'Incendio'],['Ostia',174,97,[.2,.2,.3,.55],'Marea'],['Capua',206,101,[.3,.3,.4,.2],''],['Neapolis',217,113,[.25,.25,.3,.25],''],
+['Beneventum',233,95,[.4,.5,.6,.2],''],['Tarento',262,112,[.7,.6,.8,.3],'Revuelta'],['Brundisium',286,98,[.3,.3,.3,.2],''],['Regium',246,139,[.5,.4,.5,.7],'Plaga'],
+['Mesana',254,151,[.35,.3,.4,.3],''],['Siracusa',262,168,[.6,.5,.7,.4],'Hambruna'],['Agrigentum',232,173,[.3,.35,.3,.2],''],['Lilybaeum',208,168,[.25,.2,.35,.2],''],
+['Ariminum',205,52,[.3,.3,.3,.15],''],['Pisae',158,58,[.2,.25,.25,.15],''],['Genua',150,40,[.3,.3,.45,.2],''],['Aleria',130,85,[.45,.4,.5,.25],''],
+['Caralis',135,135,[.4,.45,.35,.2],''],['Massalia',95,45,[.2,.2,.2,.1],'']];
+/* ---- estado ---- */
+const S={l:'pue',sel:null,imp:false,city:'Roma',obra:false,opt:null,intr:true,fuego:0,vigil:false,verTodas:false};
+const OPC=[
+{id:'sob',t:'Sobornar al tribuno',c:'−120 denarios',ef:['Foro ▲','Plebe ▼','Senado ▲'],d:{foro:.18,mercado:-.05,templo:-.08,viviendas:-.04}},
+{id:'den',t:'Denunciar a Apio en el Senado',c:'sin coste',ef:['Patricios ▼','Foro ▲','Templo ▼'],d:{foro:.1,templo:-.1,cuartel:.05,establo:-.1,mercado:.06}},
+{id:'gra',t:'Repartir grano a la plebe',c:'−90 grano',ef:['Plebe ▲▲','Foro ▲','Grano ▼'],d:{viviendas:.34,mercado:.24,foro:.1,almacen:.06,herreria:.12}}];
+/* ---- ayudas ---- */
+const mix=(a,b,t)=>a.map((v,i)=>Math.round(v+(b[i]-v)*t));
+const ST=[[0,[143,174,90]],[.45,[233,192,99]],[.75,[217,118,74]],[1,[192,40,31]]];
+function col(s,al=1){s=Math.max(0,Math.min(1,s));for(let i=1;i<ST.length;i++){if(s<=ST[i][0]){const a=ST[i-1],b=ST[i];return 'rgba('+mix(a[1],b[1],(s-a[0])/(b[0]-a[0]))+','+al+')'}}return 'rgba(192,40,31,'+al+')'}
+function val(id){ // lectura del barrio con la vista previa de la decisión
+ let [s,t]=V[S.l][id];
+ if(S.l==='pol'&&S.opt!==null&&S.opt!=='hecho'){const d=OPC[S.opt].d[id];if(d){s=Math.max(0,Math.min(1,s-d));t=Math.round((1-s)*100)+'%'}}
+ if(S.l==='pol'&&S.opt==='hecho'&&S.hecha){const d=OPC[S.hecha].d[id];if(d){s=Math.max(0,Math.min(1,s-d));t=Math.round((1-s)*100)+'%'}}
+ if(S.l==='pel'&&id==='viviendas'){if(S.fuego===1){s=.4;t='brasas'}if(S.fuego===2){s=.2;t='apagado'}}
+ if(S.l==='pue'&&id==='viviendas'&&S.fuego===0){s=.9;t='36%'}
+ if(S.l==='eco'&&id==='mercado'&&S.obra){s=.08;t='+40'}
+ return[s,t]}
+const prev=id=>S.l==='pol'&&typeof S.opt==='number'&&OPC[S.opt].d[id];
+const avisos=()=>({pue:0,eco:1,pol:S.intr?1:0,pel:S.fuego<2?2:1});
+function toast(t){const e=document.createElement('div');e.className='toast';e.textContent=t;$('#app').appendChild(e);setTimeout(()=>e.remove(),2700)}
+/* ---- piezas ---- */
+function hud(){
+ const rs=RECS.map(r=>`<div class="${r[0]==='gra'?'lo':''}">${ic(r[0],'s')}${r[2].toLocaleString('es')}</div>`).join('');
+ const cs=CIUDADES.map((c,i)=>`<button class="chip ${c===S.city&&!S.imp?'on':''}" data-city="${c}"><i style="background:${col([.5,.2,.3,.4,.7,.6][i])}"></i>${c}</button>`).join('')+`<button class="chip more" data-act="imp">+12 más</button>`;
+ return `<div class="hud"><div class="row1"><h1 class="cinz">${S.imp?'Imperio':S.city}</h1><small>Martius · 273 a. C.<br>Cónsul Cayo Fabricio</small></div><div class="res">${rs}</div>${S.imp?'':`<div class="cities">${cs}</div>`}</div>`}
+function dock(){const a=avisos();
+ return `<div class="dock">`+Object.keys(LENTES).map(k=>`<button class="${S.l===k?'on':''}" data-l="${k}">${ic(k)}${LENTES[k]}${a[k]?`<span class="nb">${a[k]}</span>`:''}</button>`).join('')+`<span class="sep"></span><button class="${S.imp?'on':''}" data-act="imp">${ic('imp')}Imperio</button></div>`}
+function mapa(){
+ let h='<div class="heat"><div class="patch" style="left:-20px;top:309px;width:64px"></div><div class="patch" style="left:-20px;top:384px;width:56px"></div><div class="patch" style="left:134px;top:538px;width:132px;height:26px"></div>',p='<div class="pins">';
+ Object.entries(BAR).forEach(([id,b])=>{const[s,t]=val(id);
+  h+=`<div class="patch" style="left:${(b.ox||b.x)-52}px;top:${(b.oy||b.y)-12}px;width:104px"></div><div class="blob" style="left:${b.x}px;top:${b.y+30}px;background:radial-gradient(${col(s)} 0,${col(s,.7)} 45%,#0000 72%)"></div>`;
+  p+=`<button class="pin ${S.sel===id?'on':''} ${prev(id)?'pv':''}" data-b="${id}" style="left:${b.x}px;top:${b.y}px"><b style="background:${col(s)}"></b>${b.n}${S.sel===id||(prev(id)&&OPC[S.opt].d[id]>.12)?` <em>${t}</em>`:''}</button>`});
+ h+='</div>';
+ const v=BAR.viviendas;
+ if(S.l==='pel'&&S.fuego<2)p+=`<div class="${S.fuego?'out':''}" style="position:absolute;left:${v.x-34}px;top:${v.y+58}px"><div class="fl" style="margin-left:-24px"></div><div class="fl" style="margin-left:6px;height:40px;animation-delay:.2s"></div><div class="fl" style="margin-left:26px;height:30px;animation-delay:.35s"></div><div class="hum"></div></div>`;
+ if(S.l==='pol'&&S.intr)p+=`<button class="alert" data-act="intr" style="left:${BAR.foro.x+78}px;top:${BAR.foro.y-8}px">${ic('car')}</button>`;
+ if(S.l==='eco'&&S.obra)p+=`<div style="position:absolute;left:${BAR.mercado.x}px;top:${BAR.mercado.y+34}px;transform:translateX(-50%);font-size:13px;font-weight:700;color:var(--oro);text-shadow:0 1px 4px #000">en obras</div>`;
+ return h+'</div>'+p+'</div>'}
+function costes(c,falta){return `<div class="cost">`+c.map(r=>`<div class="${r[3]?'no':''}">${ic(r[0],'s')}<span>${r[1]}</span></div>`).join('')+`</div>`}
+function hoja(){
+ const x=`<button class="x" data-act="cerrar">${ic('cls')}</button>`;
+ const sel=S.sel;
+ if(sel){const b=BAR[sel],[s,t]=val(sel);
+  const nivel=`Nivel ${['','I','II','III','IV'][b.nv]}`;
+  if(S.l==='eco'){
+   const ok=sel==='mercado'&&S.obra;
+   return `<div class="sheet"><div class="panel"><span class="gr"></span>${x}<h2 class="cinz">${b.n} <span style="margin-right:44px">${nivel}${ok?' → III':''}</span></h2>
+   <p>${sel==='mercado'?'Sube a nivel III: <b class="up">+9 denarios al mes</b> y mejor cambio de grano.':'Rinde '+t+' denarios al mes. Cuesta mantenerlo.'}</p>
+   ${costes([['log','90'],['sto','140'],['irn','40'],['gra','120',1],['ora','70']])}
+   <button class="btn red ${ok?'dis':''}" data-act="obra">${ok?'En obras · 2 meses':'Mejorar a nivel III · 2 meses'}</button>
+   <div class="cola"><div><b>Termas I</b>4 meses</div><div><b>Ínsulas III</b>6 meses</div><div><b>+3 obras</b>en cola</div></div></div></div>`}
+  const acc={pue:['Organizar juegos','−60 denarios · ánimo +6'],pol:['Recibir a los clientes','+4 apoyo en este barrio'],pel:['Reforzar vigiles','−40 denarios · riesgo −20']}[S.l];
+  if(S.l==='pel'&&sel==='viviendas')return fuegoHoja();
+  return `<div class="sheet"><div class="panel"><span class="gr"></span>${x}<h2 class="cinz">${b.n} <span style="margin-right:44px">${nivel}</span></h2><p>${LENTES[S.l]}: <b style="color:${col(s)}">${t}</b>. ${s>.6?'Está mal. Atiéndelo pronto.':s>.4?'Aguanta, pero vigílalo.':'Va bien.'}</p>
+  <button class="btn red">${acc[0]}</button><p style="margin:6px 0 0">${acc[1]}</p></div></div>`}
+ if(S.l==='pue')return `<div class="sheet"><div class="panel"><span class="gr"></span><h2 class="cinz">Ánimo del pueblo <span><b class="dn" style="font-size:17px">${S.fuego===0?'59':'61'}%</b></span></h2><p>Las ínsulas piden pan y juegos. Toca un barrio.</p>
+  <div class="chips"><button class="chip" data-b="viviendas"><i style="background:${col(.84)}"></i>Ínsulas 38%</button><button class="chip" data-b="cuartel"><i style="background:${col(.5)}"></i>Cuartel 50%</button><button class="chip" data-b="herreria"><i style="background:${col(.45)}"></i>Herrería 55%</button></div>
+  <div class="leg">Bien<i></i>Mal</div></div></div>`;
+ if(S.l==='eco')return `<div class="sheet"><div class="panel"><span class="gr"></span><h2 class="cinz">Denarios al mes <span><b class="up" style="font-size:17px">+${S.obra?105:96}</b></span></h2><p>Foro y mercado sostienen la caja. El cuartel cuesta más de lo que rinde.</p>
+  <div class="chips"><button class="chip" data-b="foro"><i style="background:${col(.1)}"></i>Foro +48</button><button class="chip" data-b="mercado"><i style="background:${col(.15)}"></i>Mercado +31</button><button class="chip" data-b="cuartel"><i style="background:${col(.8)}"></i>Cuartel −14</button></div>
+  <div class="cola"><div><b>Obras</b>3 en cola</div><div><b>Grano</b>se acaba en 7 meses</div></div></div></div>`;
+ if(S.l==='pol')return S.intr?intrHoja():`<div class="sheet"><div class="panel"><span class="gr"></span><h2 class="cinz">Apoyo al cónsul <span><b style="font-size:17px;color:var(--oro)">${S.hecha==='2'?'57':'58'}%</b></span></h2><p>Sin intrigas a la vista. La plebe del mercado sigue fría.</p>
+  <div class="chips"><button class="chip" data-b="mercado"><i style="background:${col(.5)}"></i>Mercado</button><button class="chip" data-b="viviendas"><i style="background:${col(.6)}"></i>Ínsulas</button></div></div></div>`;
+ return fuegoHoja()}
+function intrHoja(){
+ const o=S.opt;
+ const op=OPC.map((c,i)=>`<button class="btn line ${o===i?'on':''}" data-o="${i}"><span>${c.t}<small>${c.ef.join(' · ')}</small></span><span class="c">${c.c}</span></button>`).join('');
+ return `<div class="sheet"><div class="panel"><span class="gr"></span><h2 class="cinz">Intriga en el Foro <span style="margin-right:6px">Apio Claudio</span></h2>
+ <p>Compra los votos de la plebe contra tu ley agraria. Toca una respuesta y mira el mapa.</p>${op}
+ ${typeof o==='number'?`<button class="btn red" style="margin-top:8px" data-act="firmar">${['Pagar al tribuno','Denunciar a Apio','Repartir el grano'][o]}</button>`:''}</div></div>`}
+function fuegoHoja(){
+ const f=S.fuego;
+ if(f===2)return `<div class="sheet"><div class="panel"><span class="gr"></span><h2 class="cinz">Incendio apagado <span>Ínsulas</span></h2><p>Se perdieron 2 ínsulas. Quedan una plaga en el almacén y una marea en el puerto.</p><div class="chips"><button class="chip" data-b="almacen"><i style="background:${col(.62)}"></i>Almacén · plaga</button><button class="chip" data-b="puerto"><i style="background:${col(.55)}"></i>Puerto · marea</button></div></div></div>`;
+ const pct=f===1?'30':'70';
+ return `<div class="sheet"><div class="panel"><span class="gr"></span><h2 class="cinz">Incendio en las Ínsulas <span>día ${f?4:2} de 5</span></h2>
+ <p>${f?'Los vigiles lo contienen. Falta poco.':'Se extiende a las casas vecinas cada día.'}</p><div class="bar fire"><i style="width:${pct}%"></i></div>
+ ${f?`<button class="btn red" data-act="apagar">Seguir con los vigiles · apagar</button>`:`<button class="btn red" data-act="vigil">Mandar a los vigiles · −80 denarios</button>
+ <button class="btn line" data-act="vigil2"><span>Derribar las casas vecinas<small>Corta el fuego, pierdes 2 ínsulas</small></span></button>
+ <button class="btn line" data-act="vigil2"><span>Rezar a Vulcano<small>Templo · tarda, pero no cuesta</small></span></button>`}
+ </div></div>`}
+function imperio(){
+ const li=['pue','eco','pol','pel'].indexOf(S.l);
+ const pts=IMPERIO.map(c=>`<g><circle cx="${c[1]}" cy="${c[2]}" r="6.5" fill="${col(c[3][li])}" stroke="#0b1016" stroke-width="1.5"/>${c[4]?`<circle cx="${c[1]}" cy="${c[2]}" r="10" fill="none" stroke="#c0281f" stroke-width="1.5"/>`:''}</g>`).join('');
+ const tierra='fill="#c9b27a" stroke="#6b4a1c" stroke-width="1.2"';
+ const svg=`<svg viewBox="0 0 366 196" xmlns="http://www.w3.org/2000/svg"><rect width="366" height="196" fill="#9ec0bd"/><path d="M0 0H70L66 30 50 70 40 110 0 130z" ${tierra}/><path d="M110 28l30-6 30 8 20 14 28-6 8 12-14 14-4 20 16 18 20 24 24 6 12 14-10 16-18-8-20-14-20-10-12-26-22-20-8-26-12-16z" ${tierra}/><path d="M112 76l10-8 8 10-2 18-10 4z" ${tierra}/><path d="M122 120l10-6 8 8 2 24-8 8-10-8z" ${tierra}/><path d="M250 142l14-6 10 10-6 16-10 14-12 2-6-10 6-10z" ${tierra}/><path d="M198 168l22-6 14 4 4 12-24 4-14-4z" ${tierra}/><path d="M300 90l30-14 36-6v70l-40 10-30-24-8-20z" ${tierra}/><path d="M0 184Q60 168 130 186T250 190T366 180V196H0z" ${tierra}/>
+ <path d="M206 108C226 118 240 142 252 140" fill="none" stroke="#6b4a1c" stroke-width="1" stroke-dasharray="3 3" opacity=".6"/>${pts}</svg>`;
+ const ord=IMPERIO.map((c,i)=>({c,i,m:Math.max(...c[3]),s:c[3][li]})).sort((a,b)=>b.s-a.s);
+ const hot=ord.filter(o=>o.s>=.5),calm=ord.filter(o=>o.s<.5);
+ const fila=o=>`<button class="crow ${o.s>=.7?'hot':''}" data-city="${o.c[0]}"><span class="sq">${o.c[3].map((s,j)=>`<i class="${j===li?'':'of'}" style="background:${col(s)}"></i>`).join('')}</span><span class="nm">${o.c[0]}<small>${o.c[4]||'Sin avisos'}</small></span>${o.c[4]?`<span class="tag" style="color:var(--terra)">${ic('sel','s')}1</span>`:''}</button>`;
+ return `<div class="impv">${`<div class="lenstag">Lente: ${LENTES[S.l]}</div>`}<div class="carta" style="margin-top:40px">${svg}</div>
+ <div class="regla">Regla: un punto por ciudad, del color de la lente. Primero las urgentes; las tranquilas, plegadas.</div>
+ ${hot.map(fila).join('')}${S.verTodas?calm.map(fila).join(''):`<button class="colap" data-act="todas">Ver las ${calm.length} ciudades tranquilas</button>`}</div>`}
+function pintar(){
+ const a=$('#app');a.dataset.l=S.l;a.className='app'+(S.imp?' imp':'');
+ a.innerHTML=`<div class="city"></div>${mapa()}<div class="scrim"></div>${S.imp?'':hoja()}${hud()}${imperio()}${dock()}`}
+/* ---- toques ---- */
+$('#app').addEventListener('click',e=>{
+ const t=e.target.closest('[data-l],[data-b],[data-act],[data-o],[data-city]');
+ if(!t){if(S.sel){S.sel=null;pintar()}return}
+ const d=t.dataset;
+ if(d.l){S.l=d.l;S.sel=null;S.opt=null}
+ else if(d.b){S.sel=d.b===S.sel?null:d.b;if(d.b==='viviendas'&&S.l==='pue'&&false)0}
+ else if(d.o!==undefined){S.opt=S.opt===+d.o?null:+d.o}
+ else if(d.city){S.city=d.city;S.imp=false;S.sel=null;toast('Ciudad: '+d.city)}
+ else switch(d.act){
+  case'imp':S.imp=!S.imp;S.sel=null;break;
+  case'cerrar':S.sel=null;break;
+  case'todas':S.verTodas=true;break;
+  case'intr':S.opt=null;break;
+  case'obra':S.obra=true;toast('Obra en marcha: Mercado III');break;
+  case'firmar':S.hecha=S.opt;S.opt='hecho';S.hecha=S.hecha;S.intr=false;toast('Decisión tomada: '+OPC[S.hecha].t);break;
+  case'vigil':S.fuego=1;toast('Los vigiles llegan a las Ínsulas');break;
+  case'vigil2':S.fuego=1;toast('Fuego contenido');break;
+  case'apagar':S.fuego=2;S.sel=null;toast('Incendio apagado');break;}
+ pintar()});
+pintar();
+// estado inicial para capturas: #p=1..5
+const h=location.hash;
+if(h==='#p2'){S.l='eco';S.sel='mercado'}else if(h==='#p3'){S.l='pol';S.opt=2}else if(h==='#p4'){S.l='pel';S.sel='viviendas'}else if(h==='#p5'){S.imp=true;S.l='pel'}
+if(h)pintar();
+</script></body></html>

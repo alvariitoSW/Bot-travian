@@ -71,6 +71,8 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
+- **K2 Gobierno: ¿cuál gana?** Ciudad 61/75 (la ciudad 3D con medallas y una ficha; la más clara, menos política) · Tabularium 60 (listas deslizables, escala máxima, parece hoja de cálculo) · Lentes 56 · Domus 52 · Foro 44. Recomiendo Ciudad como principal y Tabularium como pestaña Imperio. Ver `estudios/K2-concurso.md`.
+- **K2 Guerra: ¿cuál gana?** Legado 60/75 (la mezcla de General y Trazo, con botón de orden recomendada) · Fantasmas 55 (pausa con sombras a 10/20/30 s, la más profunda y cara) · Estandartes 53 · Miniaturas 50 · Mosaico 46. Recomiendo Legado con el deslizador de fantasmas, las peanas de Miniaturas y los corchetes de ala.
 - **Concurso Gobierno: ¿cuál gana?** Cartas (73/90: decidir deslizando una carta, pantalla libre, pero sin ciudad a la vista) · Tablero (70: la ciudad es la interfaz y las crisis se atienden arrastrando fichas; más caro de construir) · Senado 65 · Cursus 63 · Crónica 61. Recomiendo Tablero como vista principal y Cartas para las decisiones e intrigas. Ver `estudios/K-concurso.md`.
 - **Concurso Guerra: ¿cuál gana?** General (72/90: cámara 3D baja con rueda de órdenes, la más fácil de construir y la menos atrevida) · Trazo (69: dibujar la línea y las flechas con el dedo; riesgo en los gestos) · Partitura 60 · Arena 60 · Cartas 59. Recomiendo General con el flanqueo dibujado de Trazo.
 

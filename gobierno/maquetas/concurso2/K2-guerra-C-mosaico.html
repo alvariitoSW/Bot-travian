@@ -1,0 +1,405 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Mosaico de guerra</title>
+<style>
+@font-face{font-family:Cinzel;font-weight:700;src:url(../../../assets/fuentes/cinzel-700.woff2) format("woff2")}
+@font-face{font-family:Cinzel;font-weight:400;src:url(../../../assets/fuentes/cinzel-400.woff2) format("woff2")}
+:root{--negro:#14100c;--tierra:#2a2118;--terra:#c2561f;--terra2:#e0702e;--crema:#ecdcb2;--ocre:#c9a45c;--oliva:#7d8a45;--azul:#3f6f8a;--oro:#e9c063;--rojo:#c0281f}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;user-select:none;touch-action:none}
+html,body{margin:0;height:100%;background:#0a0806;overflow:hidden;font-family:Cinzel,Palatino,Georgia,serif}
+#stage{position:absolute;left:0;top:0;width:844px;height:390px;transform-origin:0 0;background:var(--negro);overflow:clip}
+#campo{position:absolute;left:0;top:0;width:844px;height:390px}
+svg#tablero{position:absolute;left:0;top:0;width:844px;height:390px}
+text{font-family:Cinzel,Palatino,Georgia,serif;font-weight:700}
+.boton{cursor:pointer}
+.boton .fondo{fill:var(--negro);stroke:var(--oro);stroke-width:1.5}
+.boton.act .fondo{fill:var(--terra)}
+.boton text{fill:var(--crema);font-size:14px}
+.boton:active .fondo{fill:var(--tierra)}
+.chispa{animation:ch .5s steps(2) infinite}
+@keyframes ch{0%{opacity:1}50%{opacity:.25}100%{opacity:1}}
+.pulso{animation:pu 1.2s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes pu{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.aparece{animation:ap .35s ease-out both}
+@keyframes ap{from{opacity:0}to{opacity:1}}
+</style>
+</head>
+<body>
+<div id="stage">
+<canvas id="campo" width="1688" height="780"></canvas>
+<svg id="tablero" viewBox="0 0 844 390" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<!-- Glifos de figura roja: una pieza por arma -->
+<symbol id="g-inf" viewBox="0 0 24 24"><circle cx="12" cy="5" r="3"/><path d="M8 9.5h8l1.2 9H6.8z"/><path d="M7.5 19.5l-1 3M16.5 19.5l1 3" stroke="currentColor" stroke-width="2" fill="none"/><circle cx="6.5" cy="13.5" r="4.6" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.5 1.5v21" stroke="currentColor" stroke-width="1.6" fill="none"/></symbol>
+<symbol id="g-cav" viewBox="0 0 24 24"><ellipse cx="11" cy="14" rx="7.5" ry="3.8"/><path d="M16 12.5L20 6l2.6 1.8-2.2 5.7z"/><path d="M4 12.5C1.8 13 1 16 1.8 18.5" stroke="currentColor" stroke-width="1.6" fill="none"/><path d="M6 17l-1 5.5M9.5 17.5v5M14 17.5l1.2 5M17 16.5l2 5" stroke="currentColor" stroke-width="1.7" fill="none"/><circle cx="10.5" cy="6" r="2.4"/><path d="M10.5 8.5v4.5" stroke="currentColor" stroke-width="2.4" fill="none"/><path d="M13 1.5l5 7" stroke="currentColor" stroke-width="1.3" fill="none"/></symbol>
+<symbol id="g-skr" viewBox="0 0 24 24"><circle cx="11" cy="5" r="3"/><path d="M8.5 9h5l1.5 7h-8z"/><path d="M8 16l-2 6.5M13.5 16l3 6" stroke="currentColor" stroke-width="2" fill="none"/><path d="M13 10l5-6M3 3l19 10" stroke="currentColor" stroke-width="1.5" fill="none"/></symbol>
+<symbol id="g-ele" viewBox="0 0 24 24"><ellipse cx="12" cy="13" rx="8.5" ry="5.5"/><rect x="8.5" y="5" width="7" height="4" rx="1"/><path d="M3.5 12C1 13 .5 17 1.5 20" stroke="currentColor" stroke-width="2.4" fill="none"/><path d="M7 17.5v5M11 18v4.5M15.5 18v4.5M19 17v5" stroke="currentColor" stroke-width="2.6" fill="none"/></symbol>
+<!-- Iconos de las órdenes: grabado de línea -->
+<symbol id="o-carga" viewBox="0 0 24 24"><path d="M3 12h15M13 6l6 6-6 6" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<symbol id="o-aguantar" viewBox="0 0 24 24"><path d="M12 2.5l8 3v7c0 5-3.5 8-8 9.5-4.5-1.5-8-4.5-8-9.5v-7z" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linejoin="round"/></symbol>
+<symbol id="o-testudo" viewBox="0 0 24 24"><path d="M3 8h18v9H3zM9 8v9M15 8v9M3 12.5h18" stroke="currentColor" stroke-width="2" fill="none"/></symbol>
+<symbol id="o-retirada" viewBox="0 0 24 24"><path d="M21 12H6M11 6l-6 6 6 6" stroke="currentColor" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+<!-- Cenefa de moral: ola (perro corredor) -->
+<pattern id="ola-r" width="22" height="20" patternUnits="userSpaceOnUse"><rect width="22" height="20" fill="#14100c"/><path d="M0 12C4 0 10 0 11 8S17 18 22 6" stroke="#d4672b" stroke-width="3.6" fill="none"/><circle cx="11" cy="15" r="2" fill="#e9c063"/></pattern>
+<pattern id="ola-c" width="22" height="20" patternUnits="userSpaceOnUse"><rect width="22" height="20" fill="#14100c"/><path d="M0 12C4 0 10 0 11 8S17 18 22 6" stroke="#ecdcb2" stroke-width="3.6" fill="none"/><circle cx="11" cy="15" r="2" fill="#7d8a45"/></pattern>
+<!-- Greca (meandro) -->
+<pattern id="greca" width="24" height="10" patternUnits="userSpaceOnUse"><path d="M0 9V1h8v6H3V4h2M12 9V1h8v6h-5V4h2" stroke="#e9c063" stroke-width="1.6" fill="none" transform="translate(0,0)"/></pattern>
+<clipPath id="cl-r"><rect id="clr" x="72" y="9" width="190" height="26"/></clipPath>
+<clipPath id="cl-e"><rect id="cle" x="544" y="9" width="230" height="26"/></clipPath>
+</defs>
+<g id="mundo"></g>
+<g id="ordenes"></g>
+<g id="unidades"></g>
+<g id="efectos"></g>
+<g id="ui"></g>
+</svg>
+</div>
+<script>
+'use strict';
+const NS='http://www.w3.org/2000/svg';
+const C={negro:'#14100c',tierra:'#2a2118',terra:'#c2561f',terra2:'#e0702e',crema:'#ecdcb2',ocre:'#c9a45c',oliva:'#7d8a45',azul:'#3f6f8a',oro:'#e9c063'};
+const $=id=>document.getElementById(id);
+function el(tag,at,pad,txt){const e=document.createElementNS(NS,tag);for(const k in at)e.setAttribute(k,at[k]);if(txt!=null)e.textContent=txt;if(pad)pad.appendChild(e);return e}
+
+/* ---------- Ajuste de pantalla: la maqueta mide 844x390 y se escala sin deformar ---------- */
+function ajusta(){const s=Math.min(innerWidth/844,innerHeight/390);const st=$('stage');st.style.transform='scale('+s+')';st.style.left=((innerWidth-844*s)/2)+'px';st.style.top=((innerHeight-390*s)/2)+'px';st.dataset.s=s}
+addEventListener('resize',ajusta);ajusta();
+
+/* ---------- Teselas: el campo es un mosaico de cubos de 6 px, con contorno oscuro entre regiones ---------- */
+let sem=7;function rnd(){sem=(sem*16807)%2147483647;return sem/2147483647}
+function hsl(h,s,l){return 'hsl('+h+','+s+'%,'+l+'%)'}
+const BASES={ocre:[40,45,56],oliva:[75,32,40],azul:[200,35,38],marron:[28,38,32],bosque:[110,28,26],camino:[42,35,72],crema:[42,40,76],sombra:[30,25,16]};
+function regionCampo(esc,x,y){
+  if(esc==='valle'){
+    const arriba=96+34*Math.sin(x/70)+10*Math.sin(x/23),abajo=288-30*Math.sin(x/64+1)-8*Math.sin(x/19);
+    if(Math.abs(y-196)<18+4*Math.sin(x/40))return 'camino';
+    if(y<arriba-26||y>abajo+26)return 'bosque';
+    if(y<arriba||y>abajo)return 'marron';
+    return 'oliva';
+  }
+  const rio=392+22*Math.sin(y/34);
+  if(esc!=='flanco'&&Math.abs(x-rio)<13){return(y>170&&y<224)?'camino':'azul'}
+  if(Math.hypot((x-650)/78,(y-84)/40)<1)return 'marron';
+  if(Math.hypot((x-70)/50,(y-92)/34)<1||Math.hypot((x-96)/46,(y-306)/32)<1)return 'bosque';
+  if(esc==='flanco'&&Math.hypot((x-480)/90,(y-60)/22)<1)return 'bosque';
+  if(Math.hypot((x-420)/430,(y-200)/160)>1)return 'oliva';
+  return 'ocre';
+}
+function pintaMosaico(esc){
+  const cv=$('campo'),g=cv.getContext('2d');g.setTransform(2,0,0,2,0,0);g.fillStyle='#1b150f';g.fillRect(0,0,844,390);
+  const T=6,nx=Math.ceil(844/T),ny=Math.ceil(390/T);sem=11;const id=[];
+  for(let j=0;j<ny;j++){id[j]=[];for(let i=0;i<nx;i++)id[j][i]=regionCampo(esc,i*T+3,j*T+3)}
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
+    const r=id[j][i],b=BASES[r];let borde=false;
+    for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1]]){const q=(id[j+dj]||[])[i+di];if(q&&q!==r&&!(r==='camino'||q==='camino'))borde=true}
+    let col;if(borde)col=hsl(b[0],b[1]-10,b[2]-24+rnd()*6);else col=hsl(b[0]+(rnd()-.5)*8,b[1]+(rnd()-.5)*10,b[2]+(rnd()-.5)*12);
+    g.fillStyle=col;const o=(rnd()-.5)*.5;g.fillRect(i*T+.5+o,j*T+.5+o,T-1.1,T-1.1);
+  }
+  /* viñeta: oscurece los bordes como el marco de un mosaico */
+  const gr=g.createRadialGradient(422,195,150,422,195,470);gr.addColorStop(0,'rgba(10,6,2,0)');gr.addColorStop(1,'rgba(10,6,2,.55)');g.fillStyle=gr;g.fillRect(0,0,844,390);
+}
+
+/* ---------- Datos de regimientos ---------- */
+const NOMBRE={H:'Hastati',P:'Príncipes',T:'Triarios',V:'Vélites',E:'Jinetes',x:'Enemigo'};
+const GLIFO={H:'g-inf',P:'g-inf',T:'g-inf',V:'g-skr',E:'g-cav'};
+let U=[],ESC=0,SEL=new Set(),ENC=false,ETAPA=0,MOR={r:.8,e:.7},RES='victoria';
+let uid=0;
+function mk(lado,tipo,grp,x,y,n,mor,extra){const u={id:uid++,lado,tipo,grp,x,y,tx:x,ty:y,n:n||3,mor:mor==null?.8:mor,gl:tipo,oculto:false,dir:lado==='r'?1:-1};return Object.assign(u,extra||{})}
+function fila(lado,tipo,grp,x,y0,paso,cant,n,mor){for(let k=0;k<cant;k++)U.push(mk(lado,tipo,grp,x,y0+k*paso,n,mor==null?.6+rnd()*.35:mor))}
+const ESCENAS=[
+ {nom:'I · Despliegue',sub:'Campo abierto',mapa:'campo'},
+ {nom:'II · Choque',sub:'Línea contra línea',mapa:'campo'},
+ {nom:'III · Flanco',sub:'Carga de caballería',mapa:'flanco'},
+ {nom:'IV · Emboscada',sub:'Desfiladero',mapa:'valle'},
+ {nom:'V · Resultado',sub:'Fin de la batalla',mapa:'campo'}
+];
+function monta(i){
+  ESC=i;U=[];SEL.clear();ETAPA=0;uid=0;sem=3;$('ordenes').innerHTML='';$('efectos').innerHTML='';
+  const E=ESCENAS[i];pintaMosaico(E.mapa);
+  if(i===0){
+    fila('r','H','H',210,95,40,6,3);fila('r','P','P',160,115,40,6,3);fila('r','T','T',112,150,50,4,3);fila('r','V','V',260,110,60,4,2);
+    U.push(mk('r','E','E',215,322,3,.9),mk('r','E','E',160,322,3,.9));
+    if(ENC){fila('r','H','H',62,110,45,5,2);fila('r','P','P',300,70,60,1,2);}
+    fila('e','lib','x',520,95,40,6,3);fila('e','ibe','x',568,115,40,5,3);
+    U.push(mk('e','ele','x',470,160,3,.9),mk('e','ele','x',470,250,3,.9));fila('e','hon','x',430,110,70,3,2);
+    U.push(mk('e','num','x',520,70,3,.8),mk('e','num','x',520,322,3,.8),mk('e','num','x',590,322,3,.8),mk('e','num','x',590,70,3,.8));
+    if(ENC){fila('e','ibe','x',620,100,40,5,2);fila('e','lib','x',660,140,50,3,2)}
+    SEL.add(U.find(u=>u.grp==='H').id);
+  }else if(i===1){
+    fila('r','H','H',352,95,40,6,3,.55);fila('r','P','P',300,115,40,6,3,.8);fila('r','T','T',250,150,50,4,3,.95);
+    U.push(mk('r','V','V',372,70,2,.7),mk('r','V','V',372,320,2,.7),mk('r','V','V',336,70,2,.8),mk('r','V','V',336,320,2,.8));
+    U.push(mk('r','E','E',300,70,3,.9),mk('r','E','E',300,320,3,.9));
+    fila('e','lib','x',412,95,40,6,3,.5);fila('e','ibe','x',470,100,50,5,3,.7);
+    U.push(mk('e','ele','x',528,150,3,.9),mk('e','ele','x',528,250,3,.9));fila('e','hon','x',560,110,90,3,2,.85);
+    U.push(mk('e','num','x',420,70,3,.8),mk('e','num','x',420,320,3,.8),mk('e','num','x',480,320,3,.8));
+    SEL.add(U.filter(u=>u.grp==='H')[2].id);MOR={r:.72,e:.58};
+  }else if(i===2){
+    fila('r','H','H',352,95,40,6,3,.7);fila('r','P','P',300,115,40,6,3,.85);fila('r','T','T',250,150,50,4,3,.95);
+    fila('e','lib','x',412,95,40,6,3,.55);fila('e','ibe','x',470,100,50,5,3,.6);
+    U.push(mk('e','ele','x',528,150,3,.8),mk('e','ele','x',528,250,3,.7));
+    fila('e','hon','x',568,100,50,5,2,.6);
+    U.push(mk('r','E','E',330,70,3,1),mk('r','E','E',380,70,3,1),mk('r','E','E',430,70,3,1));
+    U.push(mk('e','num','x',420,320,3,.8),mk('e','num','x',480,320,3,.8));
+    SEL.add(U.filter(u=>u.grp==='E')[0].id);SEL.add(U.filter(u=>u.grp==='E')[1].id);SEL.add(U.filter(u=>u.grp==='E')[2].id);MOR={r:.8,e:.52};
+  }else if(i===3){
+    for(let k=0;k<11;k++)U.push(mk('e',k%4===0?'num':(k%3===0?'hon':'ibe'),'x',90+k*58,196,3,.75,{dir:1}));
+    for(let k=0;k<6;k++){U.push(mk('r','H','H',250+k*72,80+(k%2)*14,3,.95,{oculto:true}));U.push(mk('r','P','P',150+k*76,312-(k%2)*14,3,.95,{oculto:true}))}
+    U.push(mk('r','V','V',130,150,2,.9,{oculto:true}),mk('r','V','V',130,244,2,.9,{oculto:true}));
+    for(let k=0;k<3;k++)U.push(mk('r','T','T',650,150+k*45,3,.95,{oculto:true}));
+    U.push(mk('r','E','E',690,90,3,.95,{oculto:true}),mk('r','E','E',690,310,3,.95,{oculto:true}));
+    MOR={r:.9,e:.85};
+  }else{MOR={r:.66,e:.12}}
+  if(i<=1)MOR=i===0?{r:.8,e:.8}:MOR;
+  U.forEach(u=>{u.n=u.n||2});
+  dibujaTodo();
+}
+
+/* ---------- Dibujo ---------- */
+function dibujaTodo(){dibujaUI();dibujaUnidades();if(ESC===4)dibujaResultado()}
+function plaq(g,u,w,h,sel){
+  const roma=u.lado==='r';const fondo=roma?C.negro:C.crema,figura=roma?C.terra2:C.negro,borde=sel?C.oro:(roma?'#6b3a1e':'#7a6a40');
+  for(let k=u.n-1;k>=1;k--)el('rect',{x:-w/2+k*1.6,y:-h/2-k*1.6,width:w,height:h,rx:2,fill:fondo,stroke:borde,'stroke-width':1,opacity:.7},g);
+  const dash=u.oculto?'4 3':null;
+  const r=el('rect',{x:-w/2,y:-h/2,width:w,height:h,rx:2,fill:fondo,stroke:borde,'stroke-width':sel?3:1.6,opacity:u.oculto?.55:1},g);if(dash)r.setAttribute('stroke-dasharray',dash);
+  const gl={H:'g-inf',P:'g-inf',T:'g-inf',V:'g-skr',E:'g-cav',lib:'g-inf',ibe:'g-inf',ele:'g-ele',hon:'g-skr',num:'g-cav'}[u.tipo];
+  const s=h-7;const us=el('use',{href:'#'+gl,x:-s/2,y:-s/2-1.5,width:s,height:s,fill:figura,stroke:'none',style:'color:'+figura,opacity:u.oculto?.6:1},g);
+  if(!roma)us.setAttribute('transform','scale(-1,1)');
+  if(!roma)us.setAttribute('x',s/2);
+  /* cenefa de moral bajo la ficha: tres teselas que se apagan */
+  const m=u.mor,col=m>.66?C.oliva:(m>.33?C.ocre:'#c2461f');
+  for(let k=0;k<5;k++)el('rect',{x:-w/2+2+k*((w-4)/5),y:h/2-5,width:(w-4)/5-1,height:3,fill:(k+1)/5<=m+.1?col:'#3a2e22'},g);
+  /* flecha de frente */
+  el('path',{d:'M'+(u.dir*(w/2+1))+' -4l'+(u.dir*5)+' 4l'+(-u.dir*5)+' 4z',fill:sel?C.oro:(roma?C.terra2:C.crema),opacity:u.oculto?.0:.95},g);
+  if(u.oculto)el('path',{d:'M-6 -2q6-6 12 0q-6 6-12 0M-7 5l14-10',stroke:C.crema,'stroke-width':1.6,fill:'none',opacity:.9},g);
+}
+function tam(){const n=U.length;return n>34?[26,20]:(n>26?[30,22]:[34,26])}
+function dibujaUnidades(){
+  const L=$('unidades');L.innerHTML='';const [w,h]=tam();
+  U.slice().sort((a,b)=>a.y-b.y).forEach(u=>{
+    const g=el('g',{transform:'translate('+u.x+','+u.y+')','data-id':u.id},L);u.g=g;plaq(g,u,w,h,SEL.has(u.id));
+  });
+  if(ESC===1)choque();
+  if(ESC===2&&ETAPA===0){/* tarjeta pequeña de flanco */}
+  hint();
+}
+function choque(){
+  const F=$('efectos');F.querySelectorAll('.ch').forEach(e=>e.remove());
+  const rs=U.filter(u=>u.lado==='r'&&u.grp==='H'),es=U.filter(u=>u.lado==='e'&&u.tipo==='lib');
+  rs.forEach((r,i)=>{const e=es[i];if(!e)return;const x=(r.x+e.x)/2,y=(r.y+e.y)/2;const g=el('g',{class:'ch chispa',transform:'translate('+x+','+y+')',style:'animation-delay:'+(i*.13)+'s'},F);
+    el('path',{d:'M0-8V8M-8 0H8M-5.5-5.5l11 11M5.5-5.5l-11 11',stroke:C.oro,'stroke-width':2.2,'stroke-linecap':'square'},g);el('rect',{x:-2,y:-2,width:4,height:4,fill:C.crema},g)});
+}
+
+/* ---------- Interfaz: cenefas, escenas, grupos, órdenes, botón principal ---------- */
+const GR=[['H','Hastati'],['P','Príncipes'],['T','Triarios'],['V','Vélites'],['E','Jinetes']];
+function boton(pad,x,y,w,h,txt,fn,cls,icono,tam){
+  const g=el('g',{class:'boton '+(cls||''),transform:'translate('+x+','+y+')'},pad);
+  el('rect',{class:'fondo',width:w,height:h,rx:5},g);
+  if(icono)el('use',{href:'#'+icono,x:8,y:(h-22)/2,width:22,height:22,style:'color:'+C.terra2},g);
+  if(txt)el('text',{x:icono?w/2+11:w/2,y:h/2+5,'text-anchor':'middle'},g,txt).setAttribute('style','font-size:'+(tam||14)+'px');
+  g.addEventListener('pointerdown',e=>{e.stopPropagation();fn()});
+  return g;
+}
+const REC={H:'aguantar',P:'carga',T:'aguantar',V:'retirada',E:'carga'};
+function dibujaUI(){
+  const L=$('ui');L.innerHTML='';
+  /* barra superior */
+  el('rect',{x:0,y:0,width:844,height:44,fill:C.negro},L);el('rect',{x:0,y:44,width:844,height:10,fill:'url(#greca)'},L);
+  el('rect',{x:0,y:53,width:844,height:1.5,fill:C.oro,opacity:.6},L);
+  el('text',{x:12,y:27,fill:C.terra2,'font-size':14},L,'ROMA');el('text',{x:832,y:27,fill:C.crema,'font-size':14,'text-anchor':'end'},L,'CARTAGO');
+  el('rect',{x:72,y:9,width:190,height:26,fill:'#0c0a07',stroke:'#6b3a1e','stroke-width':1.5},L);
+  el('rect',{x:544,y:9,width:190,height:26,fill:'#0c0a07',stroke:'#7a6a40','stroke-width':1.5},L);
+  el('rect',{x:72,y:9,width:190*MOR.r,height:26,fill:'url(#ola-r)'},L);
+  el('rect',{x:734-190*MOR.e,y:9,width:190*MOR.e,height:26,fill:'url(#ola-c)'},L);
+  el('text',{x:167,y:27,'text-anchor':'middle',fill:C.crema,'font-size':13,style:'paint-order:stroke;stroke:#14100c;stroke-width:3px'},L,'ÁNIMO '+Math.round(MOR.r*100));
+  el('text',{x:639,y:27,'text-anchor':'middle',fill:C.crema,'font-size':13,style:'paint-order:stroke;stroke:#14100c;stroke-width:3px'},L,'ÁNIMO '+Math.round(MOR.e*100));
+  /* cinco teselas de escena */
+  ESCENAS.forEach((E,i)=>{const g=el('g',{class:'boton '+(i===ESC?'act':''),transform:'translate('+(312+i*44)+',0)'},L);
+    el('rect',{class:'fondo',x:2,y:0,width:40,height:44,rx:3},g);el('text',{x:22,y:29,'text-anchor':'middle',style:'font-size:16px;fill:'+(i===ESC?C.crema:C.oro)},g,['I','II','III','IV','V'][i]);
+    g.addEventListener('pointerdown',e=>{e.stopPropagation();monta(i)})});
+  /* título de la escena */
+  const tg=el('g',{transform:'translate(14,70)'},L);const tw=ESCENAS[ESC].nom.length*11+22;
+  if(ESC!==4)el('rect',{x:0,y:-12,width:tw,height:30,rx:3,fill:C.negro,opacity:.85,stroke:C.oro,'stroke-width':1},tg);
+  if(ESC!==4)el('text',{x:10,y:8,fill:C.oro,'font-size':15},tg,ESCENAS[ESC].nom.toUpperCase());
+  /* barra inferior */
+  el('rect',{x:0,y:336,width:844,height:54,fill:C.negro},L);el('rect',{x:0,y:334,width:844,height:1.5,fill:C.oro,opacity:.6},L);el('rect',{x:0,y:337,width:844,height:10,fill:'url(#greca)'},L);
+  if(ESC!==4){
+    GR.forEach(([k,n],i)=>{
+      const cant=U.filter(u=>u.lado==='r'&&u.grp===k).length;const g=boton(L,8+i*50,344,46,44,'',()=>selGrupo(k),'',null);
+      const act=U.some(u=>u.grp===k&&SEL.has(u.id));if(act)g.querySelector('.fondo').setAttribute('stroke-width',3.5);
+      el('use',{href:'#'+GLIFO[k],x:5,y:3,width:22,height:22,fill:cant?C.terra2:'#5a3a22',style:'color:'+(cant?C.terra2:'#5a3a22')},g);
+      el('text',{x:42,y:15,'text-anchor':'end',style:'font-size:13px;fill:'+(cant?C.oro:'#6a5a44')},g,String(cant));
+      el('text',{x:23,y:38,'text-anchor':'middle',style:'font-size:13px;font-weight:400;fill:'+(cant?C.crema:'#6a5a44')},g,{H:'Hast',P:'Prín',T:'Tria',V:'Vélit',E:'Jin'}[k]);
+    });
+    if(ESC===0)boton(L,262,344,50,44,'',()=>{ENC=!ENC;monta(0)},ENC?'act':'',null).append(...(()=>{const t=el('text',{x:25,y:20,'text-anchor':'middle',style:'font-size:15px;fill:'+C.oro},null,String(U.filter(u=>u.lado==='r').length)),t2=el('text',{x:25,y:37,'text-anchor':'middle',style:'font-size:13px;fill:'+C.crema+';font-weight:400'},null,'regim.');return[t,t2]})());
+  }
+  /* órdenes */
+  if(SEL.size&&ESC!==4&&!(ESC===3&&ETAPA===0)){
+    const grp=U.find(u=>SEL.has(u.id)).grp;const rec=REC[grp];
+    const OR=[['carga','Carga','o-carga'],['aguantar','Aguantar','o-aguantar'],['testudo','Tortuga','o-testudo'],['retirada','Retirada','o-retirada']];
+    OR.forEach(([k,n,ic],i)=>{
+      const g=boton(L,718,66+i*52,116,46,n,()=>orden(k),'',ic,14);g.classList.add('aparece');g.style.animationDelay=(i*.05)+'s';
+      if(k===rec){g.querySelector('.fondo').setAttribute('stroke',C.oro);g.querySelector('.fondo').setAttribute('stroke-width',3.5);g.querySelector('.fondo').setAttribute('fill','#3b2410');el('path',{d:'M104 4l2 4.5 4.5.5-3.3 3.1.9 4.6-4.1-2.4-4.1 2.4.9-4.6-3.3-3.1 4.5-.5z',fill:C.oro,transform:'translate(0,-2)'},g)}
+    });
+  }
+  /* botón principal */
+  const P=[['Empezar batalla','Seguir el choque','Lanzar la carga','Dar la señal','Volver al mapa']][0];
+  let txt=P[ESC];if(ESC===2&&ETAPA===1)txt='Ver la emboscada';if(ESC===3&&ETAPA===1)txt='Ver el resultado';if(ESC===1)txt='Ver el flanco';if(ESC===0)txt='Empezar batalla';
+  if(ESC===3&&ETAPA===0)txt='Tocar la corneta';
+  const pb=boton(L,672,344,162,44,txt,principal,'act',null,15);pb.querySelector('.fondo').setAttribute('stroke-width',2.5);
+  if(ESC===4)boton(L,512,344,150,44,RES==='victoria'?'Ver la retirada':'Ver la victoria',()=>{RES=RES==='victoria'?'retirada':'victoria';MOR=RES==='victoria'?{r:.66,e:.12}:{r:.22,e:.7};dibujaTodo()},'',null,14);
+}
+function selGrupo(k){const mios=U.filter(u=>u.lado==='r'&&u.grp===k);if(!mios.length)return;const todos=mios.every(u=>SEL.has(u.id));SEL.clear();if(!todos)mios.forEach(u=>SEL.add(u.id));dibujaTodo()}
+function hint(){
+  const L=$('ui');L.querySelectorAll('.hint').forEach(e=>e.remove());
+  let t;
+  if(!SEL.size)t=ESC===3?'Tus tropas esperan ocultas.':ESC===0?'Arrastra una ficha para colocarla.':'Toca una ficha o un grupo.';
+  else{const s=U.filter(u=>SEL.has(u.id));const g=s[0].grp;const mixto=s.some(u=>u.grp!==g);t=(s.length>1?s.length+' ':'')+(mixto?'regimientos':NOMBRE[g])+': '+(ESC===0?'arrastra para colocar.':'traza o elige orden.')}
+  if(ESC===4)t='La batalla ha terminado.';
+  const x=ESC===4?20:(ESC===0?322:262),w=ESC===4?480:(ESC===0?340:400);
+  const e=el('text',{class:'hint',x:x,y:371,fill:C.crema,'font-size':13,style:'font-weight:400'},L,t);
+  if(ESC===2&&ETAPA===0)e.textContent='Jinetes al flanco: traza o carga.';
+}
+
+/* ---------- Órdenes: pintan un trazo de teselas y mueven la ficha ---------- */
+function pintaTrazo(pts,color,ancho,dur){
+  const L=$('ordenes');let d='M'+pts[0][0]+' '+pts[0][1];for(let i=1;i<pts.length;i++){const p=pts[i-1],q=pts[i];d+=' Q'+((p[0]+q[0])/2+(p[1]-q[1])*.12)+' '+((p[1]+q[1])/2+(q[0]-p[0])*.12)+' '+q[0]+' '+q[1]}
+  const sombra=el('path',{d:d,stroke:C.negro,'stroke-width':ancho+4,fill:'none','stroke-linecap':'butt'},L);
+  const p=el('path',{d:d,stroke:color,'stroke-width':ancho,fill:'none','stroke-dasharray':'7 2','stroke-linecap':'butt'},L);
+  const len=p.getTotalLength();const total=len+4;
+  [sombra,p].forEach(e=>{e.style.strokeDasharray=e===p?'7 2':'none'});
+  /* se «pinta»: una máscara de longitud que crece */
+  const mid='m'+Math.random().toString(36).slice(2,7);const m=el('mask',{id:mid,maskUnits:'userSpaceOnUse',x:0,y:0,width:844,height:390},L);const mp=el('path',{d:d,stroke:'#fff','stroke-width':ancho+8,fill:'none','stroke-dasharray':total,'stroke-dashoffset':total},m);
+  sombra.setAttribute('mask','url(#'+mid+')');p.setAttribute('mask','url(#'+mid+')');
+  mp.getBoundingClientRect();mp.style.transition='stroke-dashoffset '+dur+'ms ease-out';mp.style.strokeDashoffset=0;
+  const fin=p.getPointAtLength(len),ant=p.getPointAtLength(Math.max(0,len-10));const ang=Math.atan2(fin.y-ant.y,fin.x-ant.x)*180/Math.PI;
+  const flecha=el('g',{transform:'translate('+fin.x+','+fin.y+') rotate('+ang+')',opacity:0},L);
+  el('path',{d:'M-2 -11L16 0L-2 11z',fill:C.negro,stroke:C.negro,'stroke-width':3},flecha);el('path',{d:'M-1 -8.5L12.5 0L-1 8.5z',fill:color},flecha);
+  setTimeout(()=>flecha.setAttribute('opacity',1),dur*.8);
+  return {x:fin.x,y:fin.y};
+}
+function objetivo(u,k){
+  const en=U.filter(e=>e.lado==='e'&&!e.muerto);let cerca=en[0],best=1e9;en.forEach(e=>{const d=Math.hypot(e.x-u.x,e.y-u.y);if(d<best){best=d;cerca=e}});return cerca;
+}
+function orden(k){
+  if(!SEL.size)return;const s=U.filter(u=>SEL.has(u.id));
+  s.forEach((u,i)=>{
+    if(k==='carga'){
+      const e=objetivo(u);const tx=e?e.x-(e.x>u.x?38:-38):u.x+80,ty=e?e.y:u.y;
+      pintaTrazo([[u.x,u.y],[(u.x+tx)/2,(u.y+ty)/2+(ESC===2?-26:0)],[tx,ty]],C.terra2,6,500+i*60);u.tx=tx;u.ty=ty;
+    }else if(k==='retirada'){
+      pintaTrazo([[u.x,u.y],[u.x-45,u.y+(u.y<195?-18:18)],[u.x-90,u.y+(u.y<195?-30:30)]],C.crema,6,500);u.tx=u.x-90;u.ty=u.y+(u.y<195?-30:30);
+    }else{
+      const g=el('circle',{cx:u.x,cy:u.y,r:26,fill:'none',stroke:k==='testudo'?C.oro:C.azul,'stroke-width':4,'stroke-dasharray':'6 3'},$('efectos'));g.setAttribute('class','pulso');
+      if(k==='testudo')u.testudo=true;
+    }
+  });
+  const rm={carga:[.04,-.08],aguantar:[.03,-.02],testudo:[.03,-.03],retirada:[-.1,0]}[k];
+  MOR.r=Math.max(.05,Math.min(1,MOR.r+rm[0]));MOR.e=Math.max(.03,Math.min(1,MOR.e+rm[1]));
+  mueve(k);flota(k);
+}
+function flota(k){
+  const s=U.filter(u=>SEL.has(u.id));if(!s.length)return;const F=$('efectos');
+  const t={carga:'¡Al ataque!',aguantar:'Mantienen la línea',testudo:'Tortuga formada',retirada:'Se repliegan'}[k];
+  const g=el('g',{class:'aparece',transform:'translate(360,318)'},F);el('rect',{x:-110,y:-18,width:220,height:30,rx:4,fill:C.negro,stroke:C.oro},g);el('text',{x:0,y:3,'text-anchor':'middle',fill:C.oro,'font-size':14},g,t);
+  setTimeout(()=>g.remove(),1500);
+}
+function mueve(k){
+  const ini=performance.now();const s=U.filter(u=>SEL.has(u.id)).map(u=>({u,x0:u.x,y0:u.y}));
+  function paso(t){const f=Math.min(1,(t-ini)/1100);s.forEach(({u,x0,y0})=>{u.x=x0+(u.tx-x0)*f;u.y=y0+(u.ty-y0)*f;if(u.g)u.g.setAttribute('transform','translate('+u.x+','+u.y+')')});
+    if(f<1)requestAnimationFrame(paso);else{dibujaUI();dibujaUnidades()}}
+  requestAnimationFrame(paso);
+}
+function principal(){
+  if(ESC===0)return monta(1);
+  if(ESC===1)return monta(2);
+  if(ESC===2){
+    if(ETAPA===0){/* la caballería carga sobre el flanco */
+      const ej=U.filter(u=>u.grp==='E');SEL.clear();ej.forEach(u=>SEL.add(u.id));const ene=U.filter(u=>u.lado==='e'&&u.tipo==='hon');
+      ej.forEach((u,i)=>{const t=ene[i];pintaTrazo([[u.x,u.y],[520,56+i*8],[t.x+24,t.y-18]],C.terra2,8,700);u.tx=t.x+26;u.ty=t.y-(i?0:6)-10+i*8});
+      ETAPA=1;MOR={r:.86,e:.2};mueve('carga');
+      setTimeout(()=>{const F=$('efectos');ene.forEach((t,i)=>{const g=el('g',{class:'chispa',transform:'translate('+(t.x+12)+','+(t.y+6)+')'},F);el('path',{d:'M0-10V10M-10 0H10M-7-7l14 14M7-7l-14 14',stroke:C.oro,'stroke-width':2.4},g)});
+        const b=el('g',{class:'aparece',transform:'translate(430,262)'},F);el('rect',{x:-10,y:-20,width:150,height:50,rx:4,fill:C.negro,stroke:C.oro,'stroke-width':1.5},b);el('text',{x:65,y:0,fill:C.oro,'font-size':15,'text-anchor':'middle'},b,'¡FLANCO!');el('text',{x:65,y:20,fill:C.crema,'font-size':13,'text-anchor':'middle',style:'font-weight:400'},b,'+50% de golpe');
+        U.filter(u=>u.lado==='e').forEach(u=>u.mor=Math.max(.1,u.mor-.4));dibujaUnidades();dibujaUI()},1000);
+      return dibujaUI();
+    }
+    return monta(3);
+  }
+  if(ESC===3){
+    if(ETAPA===0){/* corneta: salen de los bosques */
+      ETAPA=1;U.forEach(u=>{u.oculto=false});const col=U.filter(u=>u.lado==='e');
+      U.filter(u=>u.lado==='r'&&u.grp!=='T'&&u.grp!=='E').forEach((u,i)=>{const t=col[Math.min(col.length-1,Math.floor(i*col.length/14))];if(i%2===0)pintaTrazo([[u.x,u.y],[u.x+(t.x>u.x?8:-8),(u.y+t.y)/2],[t.x,t.y+(u.y<196?-26:26)]],C.terra2,5,600);u.tx=t.x;u.ty=t.y+(u.y<196?-30:30)});
+      MOR={r:.92,e:.3};U.filter(u=>u.lado==='e').forEach(u=>u.mor=.3);
+      SEL.clear();U.filter(u=>u.lado==='r'&&u.grp!=='T'&&u.grp!=='E').forEach(u=>SEL.add(u.id));
+      const sw=U.filter(u=>SEL.has(u.id));const ini=performance.now();const o=sw.map(u=>({u,x0:u.x,y0:u.y}));
+      (function p(t){const f=Math.min(1,(t-ini)/1300);o.forEach(({u,x0,y0})=>{u.x=x0+(u.tx-x0)*f;u.y=y0+(u.ty-y0)*f});dibujaUnidades();if(f<1)requestAnimationFrame(p)})(performance.now());
+      dibujaUI();return;
+    }
+    return monta(4);
+  }
+  if(ESC===4){const F=$('efectos');const g=el('g',{class:'aparece',transform:'translate(422,60)'},F);el('rect',{x:-150,y:-18,width:300,height:32,rx:4,fill:C.negro,stroke:C.oro},g);el('text',{x:0,y:4,'text-anchor':'middle',fill:C.oro,'font-size':14},g,'Aquí volverías al mapa de campaña');setTimeout(()=>g.remove(),1800)}
+}
+
+/* ---------- Resultado: panel de mosaico ---------- */
+function dibujaResultado(){
+  const L=$('ui');L.querySelectorAll('.res').forEach(e=>e.remove());$('unidades').innerHTML='';$('efectos').innerHTML='';
+  const g=el('g',{class:'res aparece'},L);const V=RES==='victoria';
+  el('rect',{x:0,y:54,width:844,height:280,fill:'#0c0a07',opacity:.55},g);
+  el('rect',{x:142,y:66,width:560,height:258,rx:6,fill:C.negro,stroke:C.oro,'stroke-width':3},g);el('rect',{x:150,y:74,width:544,height:242,rx:3,fill:'none',stroke:'#6b3a1e','stroke-width':1.5},g);
+  /* laureles */
+  for(let s=-1;s<=1;s+=2)for(let k=0;k<8;k++)for(let w=-1;w<=1;w+=2){const x=422+s*(128+k*15+(RES==='victoria'?0:12)),y=102-Math.sin(k/7*Math.PI*.8)*12+(k>5?6:0);el('ellipse',{cx:x,cy:y,rx:10,ry:3.6,fill:V?C.oliva:'#5a5040',transform:'rotate('+(s*w*-32-s*k*4)+' '+x+' '+y+') translate(0,'+(w*3)+')'},g)}
+  el('text',{x:422,y:113,'text-anchor':'middle',fill:V?C.oro:C.crema,'font-size':34},g,V?'VICTORIA':'RETIRADA');
+  el('text',{x:422,y:146,'text-anchor':'middle',fill:C.crema,'font-size':14,style:'font-weight:400'},g,V?'El enemigo huye. Tu ejército sigue en pie.':'Te replegaste en orden. Salvas a la legión.');
+  /* fila de regimientos: vivos y caídos */
+  const tot=22,vivos=V?19:13;for(let k=0;k<tot;k++){const gg=el('g',{transform:'translate('+(172+k*23.5)+',172)'},g);const ok=k<vivos;
+    el('rect',{x:-9.5,y:-10,width:19,height:24,rx:2,fill:C.negro,stroke:ok?'#6b3a1e':'#3a2e22','stroke-width':1.5},gg);
+    el('use',{href:'#g-inf',x:-8,y:-9,width:16,height:16,style:'color:'+(ok?C.terra2:'#4a3a2a'),fill:ok?C.terra2:'#4a3a2a'},gg)}
+  el('text',{x:172,y:208,fill:C.crema,'font-size':13,style:'font-weight:400'},g,vivos+' de '+tot+' regimientos siguen en pie');
+  /* tres medallas */
+  const data=V?[['Bajas propias','312','#c2461f'],['Bajas enemigas','1.480',C.oliva],['Botín','860 denarios',C.oro]]:[['Bajas propias','740','#c2461f'],['Bajas enemigas','520',C.ocre],['Legión salvada','13 de 22',C.oliva]];
+  data.forEach(([a,b,c],i)=>{const x=170+i*174;el('rect',{x:x,y:222,width:160,height:78,rx:4,fill:'#1d1710',stroke:c,'stroke-width':2},g);
+    el('text',{x:x+80,y:246,'text-anchor':'middle',fill:C.crema,'font-size':13,style:'font-weight:400'},g,a);el('text',{x:x+80,y:280,'text-anchor':'middle',fill:c,'font-size':b.length>8?17:24},g,b)});
+}
+
+/* ---------- Gestos: tocar selecciona; arrastrar traza la orden (o coloca en el despliegue) ---------- */
+let arr=null,traza=null;
+function aStage(e){const st=$('stage'),s=+st.dataset.s||1,r=st.getBoundingClientRect();return[(e.clientX-r.left)/s,(e.clientY-r.top)/s]}
+function cerca(x,y,lado){let b=null,d=30;U.forEach(u=>{if(lado&&u.lado!==lado)return;const q=Math.hypot(u.x-x,u.y-y);if(q<d){d=q;b=u}});return b}
+$('tablero').addEventListener('pointerdown',e=>{
+  if(ESC===4)return;const [x,y]=aStage(e);if(y<56||y>334)return;
+  const u=cerca(x,y,'r');
+  if(u&&!u.oculto){if(!e.shiftKey){SEL.clear()}SEL.add(u.id);dibujaTodo();arr={u,x0:x,y0:y,mov:false,pts:[[u.x,u.y]]};try{$('tablero').setPointerCapture(e.pointerId)}catch(_){}}
+  else if(SEL.size){const en=cerca(x,y,'e');arr={u:null,x0:x,y0:y,tap:true,en}}
+});
+$('tablero').addEventListener('pointermove',e=>{
+  if(!arr||!arr.u)return;const [x,y]=aStage(e);if(!arr.mov&&Math.hypot(x-arr.x0,y-arr.y0)<10)return;arr.mov=true;
+  if(ESC===0){arr.u.x=Math.max(40,Math.min(340,x));arr.u.y=Math.max(70,Math.min(322,y));arr.u.g.setAttribute('transform','translate('+arr.u.x+','+arr.u.y+')');return}
+  arr.pts.push([x,y]);
+  let t=$('efectos').querySelector('.traza');if(!t){t=el('path',{class:'traza',stroke:C.oro,'stroke-width':4,fill:'none','stroke-dasharray':'7 4'},$('efectos'))}
+  t.setAttribute('d','M'+arr.pts.map(p=>p.join(' ')).join('L'));
+});
+function suelta(e){
+  if(!arr)return;const a=arr;arr=null;const t=$('efectos').querySelector('.traza');if(t)t.remove();
+  if(a.u&&a.mov&&ESC!==0){
+    const p=a.pts,n=p.length,fin=p[n-1];const mid=p[n>>1];
+    SEL.forEach(id=>{const u=U.find(q=>q.id===id);pintaTrazo([[u.x,u.y],[(u.x+mid[0])/2,(u.y+mid[1])/2],fin],C.terra2,6,500);u.tx=fin[0];u.ty=fin[1]+(id-a.u.id)*16});
+    mueve('carga');MOR.r=Math.min(1,MOR.r+.02);flota('carga');
+  }else if(a.u&&a.mov&&ESC===0){dibujaTodo()}
+  else if(a.tap&&SEL.size){
+    if(a.en){SEL.forEach(id=>{const u=U.find(q=>q.id===id);pintaTrazo([[u.x,u.y],[(u.x+a.en.x)/2,(u.y+a.en.y)/2],[a.en.x-(a.en.x>u.x?36:-36),a.en.y]],C.terra2,6,500);u.tx=a.en.x-(a.en.x>u.x?36:-36);u.ty=a.en.y});mueve('carga');flota('carga')}
+    else if(ESC!==0){SEL.forEach(id=>{const u=U.find(q=>q.id===id);pintaTrazo([[u.x,u.y],[(u.x+a.x0)/2,(u.y+a.y0)/2],[a.x0,a.y0]],C.terra2,6,500);u.tx=a.x0;u.ty=a.y0});mueve('carga')}
+    else{SEL.clear();dibujaTodo()}
+  }
+}
+$('tablero').addEventListener('pointerup',suelta);$('tablero').addEventListener('pointercancel',suelta);
+
+/* ---------- Arranque; ?e=N abre la escena N y ?s=... deja preparado un estado para las capturas ---------- */
+const q=new URLSearchParams(location.search);
+monta(Math.max(0,Math.min(4,+(q.get('e')||0))));
+if(q.get('x')==='1')ENC=true,monta(0);
+window.K2={monta,orden,principal,sel:id=>{SEL.clear();id.forEach(i=>SEL.add(i));dibujaTodo()},U:()=>U};
+</script>
+</body>
+</html>

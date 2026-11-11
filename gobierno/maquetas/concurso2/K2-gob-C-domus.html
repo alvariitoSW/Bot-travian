@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Domus del magistrado</title>
+<style>
+@font-face{font-family:Cinzel;font-weight:400;src:url(../../../assets/fuentes/cinzel-400.woff2) format('woff2')}
+@font-face{font-family:Cinzel;font-weight:700;src:url(../../../assets/fuentes/cinzel-700.woff2) format('woff2')}
+:root{
+  --fresco:#6f241d;--fresco2:#8a3026;--negro:#16110e;--ocre:#c79a3b;--marmol:#f1ead9;--piedra:#b9ae9a;
+  --bronce:#b8862b;--oro:#e9c063;--oliva:#8fae5a;--terra:#e08a5c;--rojo:#c0281f;--noche:#0b1016;--papiro:#e8d9b0;
+  --tinta:#3a2a16;
+}
+*{box-sizing:border-box;margin:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#050403}
+body{font:14px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--marmol);display:flex;justify-content:center;overflow:hidden}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.cz{font-family:Cinzel,Palatino,Georgia,serif;letter-spacing:.06em}
+#app{width:390px;height:844px;max-height:100dvh;position:relative;display:flex;flex-direction:column;overflow:hidden;
+  background:var(--negro)}
+/* ---------- cabecera ---------- */
+.hud{height:46px;display:flex;align-items:center;gap:8px;padding:0 10px;background:linear-gradient(#1c1511,#120d0a);border-bottom:2px solid var(--bronce);position:relative;z-index:5}
+.ciudad{min-height:44px;padding:0 12px 0 8px;display:flex;align-items:center;gap:8px;border:1px solid var(--bronce);border-radius:6px;background:rgba(184,134,43,.12);color:var(--oro);font-size:15px;font-weight:700}
+.ciudad small{font-weight:400;color:var(--piedra);font-size:13px}
+.fecha{margin-left:auto;text-align:right;font-size:13px;color:var(--piedra);line-height:1.15}
+.fecha b{color:var(--oro);display:block;font-size:14px}
+.rec{height:36px;display:flex;justify-content:space-between;align-items:center;padding:0 12px;background:#0f0b09;border-bottom:1px solid #3a2c1a;font-size:13px;font-variant-numeric:tabular-nums;position:relative;z-index:5}
+.rec span{display:flex;align-items:center;gap:4px}
+.rec svg.i{width:17px;height:17px;color:var(--bronce)}
+.rec em{font-style:normal;font-size:13px;color:var(--oliva)}.rec em.m{color:var(--terra)}
+/* ---------- ventana a la ciudad ---------- */
+.parte{background:var(--fresco);position:relative;padding:9px 20px 0;flex:none;transition:height .55s cubic-bezier(.3,.7,.2,1);z-index:2}
+.parte::before{content:"";position:absolute;inset:0;background:
+  linear-gradient(#0000 0 88%,#0006),
+  repeating-linear-gradient(90deg,#0000 0 41px,#0003 41px 42px),
+  radial-gradient(120% 80% at 50% 0,#a0392d,#6f241d 70%);}
+.marco{position:relative;height:100%;border:3px solid var(--bronce);border-bottom:0;border-radius:150px 150px 0 0;background:var(--marmol);padding:6px 6px 0;transition:border-radius .55s;box-shadow:0 6px 18px #000a}
+.marco.baja{border-radius:60px 60px 0 0}
+.vista{position:relative;height:100%;overflow:clip;border-radius:inherit;border:2px solid #7c6a3a;border-bottom:0;background:#9bb8c4}
+.mundo{position:absolute;left:0;top:0;width:390px;height:844px;transform-origin:0 0;background:url(../fondo-ciudad.jpg) 0 0/390px 844px;transition:transform .8s cubic-bezier(.3,.7,.2,1)}
+.mundo.fuego::after{content:"";position:absolute;inset:0;background:radial-gradient(60px 50px at 213px 428px,#ff7a1a55,#0000 70%)}
+.luz{position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,#fff3c455 0,#0000 35%),linear-gradient(#0000 60%,#0007)}
+.pin{position:absolute;width:44px;height:44px;margin:-22px 0 0 -22px;border-radius:50%;display:grid;place-items:center;background:#1a120d;border:2px solid var(--oro);color:var(--oro);box-shadow:0 2px 8px #000a;transform:scale(calc(1/var(--s,1)))}
+.pin.u{border-color:var(--terra);color:var(--terra);animation:lat 1.3s infinite}
+.pin.ok{border-color:var(--oliva);color:var(--oliva)}
+@keyframes lat{0%,100%{box-shadow:0 0 0 0 #e08a5caa,0 2px 8px #000a}50%{box-shadow:0 0 0 12px #e08a5c00,0 2px 8px #000a}}
+.llama{position:absolute;width:30px;height:46px;margin:-40px 0 0 -15px;transform-origin:50% 100%;animation:fl .5s infinite alternate ease-in-out;filter:drop-shadow(0 0 6px #ff7a1a)}
+@keyframes fl{from{transform:scale(.85,1) skewX(-4deg)}to{transform:scale(1.1,.88) skewX(5deg)}}
+.humo{position:absolute;left:190px;top:300px;width:60px;height:120px;background:radial-gradient(ellipse at 50% 100%,#2a2420cc,#0000 70%);filter:blur(6px);animation:hu 3s infinite alternate}
+@keyframes hu{to{transform:translate(14px,-22px) scale(1.25)}}
+.dintel{position:absolute;left:50%;bottom:0;transform:translateX(-50%);padding:3px 14px;background:#1a120d;border:1px solid var(--bronce);border-bottom:0;border-radius:8px 8px 0 0;color:var(--oro);font-size:12px;font-family:Cinzel,serif;letter-spacing:.14em;z-index:3;white-space:nowrap;pointer-events:none}
+/* ---------- sala ---------- */
+.sala{flex:1;min-height:0;position:relative;background:var(--negro);display:flex;flex-direction:column}
+.sala::before{content:"";height:14px;flex:none;background:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14'%3E%3Cpath d='M0 13V1h10v8H4V5h2M14 13V1h10v8h-6V5h2' fill='none' stroke='%23b8862b' stroke-width='1.6'/%3E%3C/svg%3E") 0 0/28px 14px repeat-x,#1b140e;border-bottom:1px solid var(--bronce)}
+.cont{flex:1;overflow:auto;overscroll-behavior:contain;padding:10px 12px 14px;scrollbar-width:none}
+.cont::-webkit-scrollbar{display:none}
+.cont>section{display:none}.cont>section.on{display:block;animation:ent .3s}
+@keyframes ent{from{opacity:0;transform:translateY(8px)}}
+h2{font:700 14px Cinzel,Georgia,serif;letter-spacing:.12em;color:var(--oro);margin:12px 0 7px;display:flex;align-items:center;gap:8px;text-transform:uppercase}
+h2:first-child{margin-top:2px}
+h2::after{content:"";flex:1;height:7px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='7'%3E%3Cpath d='M0 6V1h6v3H3' fill='none' stroke='%23b8862b' stroke-width='1' opacity='.7'/%3E%3C/svg%3E") 0 0/14px 7px repeat-x}
+h2 .n{order:3;font:400 13px system-ui;color:var(--piedra);letter-spacing:0}
+.tabla{background:linear-gradient(#241a13,#1a130e);border:1px solid #5b4423;border-radius:7px;box-shadow:inset 0 0 0 3px #1a130e,inset 0 0 0 4px #4a3920}
+.fila{display:flex;align-items:center;gap:9px;min-height:56px;padding:6px 8px;border-bottom:1px solid #3a2c1a}
+.fila:last-child{border-bottom:0}
+.fila .tx{flex:1;min-width:0;font-size:13px;line-height:1.25}.fila .tx b{display:block;font-size:14px;color:var(--marmol);font-weight:600}
+.fila .tx span{color:var(--piedra)}
+.moneda{width:40px;height:40px;border-radius:50%;flex:none;display:grid;place-items:center;font:700 15px Cinzel,serif;color:#2a1c08;background:radial-gradient(circle at 35% 30%,#f2d98a,#b8862b 70%);box-shadow:inset 0 0 0 2px #7c5a16,0 1px 3px #000a}
+.btn{min-width:48px;min-height:46px;padding:0 10px;border-radius:6px;display:inline-flex;align-items:center;justify-content:center;gap:5px;font-weight:700;font-size:14px;border:1px solid var(--bronce);color:var(--oro);background:#1d1610}
+.btn.p{background:linear-gradient(#cf3326,#a21f17);color:#fff;border-color:var(--oro);box-shadow:0 2px 0 #5a0f0a}
+.btn.p[disabled]{filter:grayscale(.8) brightness(.6);box-shadow:none}
+.btn svg.i{width:20px;height:20px}
+.btn.g{width:100%;min-height:50px;font-size:15px}
+.btn:active{transform:translateY(1px)}
+.chips{display:flex;gap:7px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;min-height:44px;padding:0 12px;border-radius:22px;border:1px solid #5b4423;background:#1d1610;color:var(--piedra);display:flex;align-items:center;gap:6px;font-size:13px}
+.chip.on{border-color:var(--oro);color:var(--oro);background:#2a1f12}
+.pt{width:9px;height:9px;border-radius:50%;background:var(--oliva);flex:none}.pt.m{background:var(--terra)}.pt.r{background:var(--rojo)}.pt.a{background:var(--ocre)}
+.cost{display:inline-flex;align-items:center;gap:3px;font-size:13px;white-space:nowrap}.cost svg.i{width:15px;height:15px}
+.cost.no{color:var(--terra)}
+.fx{display:inline-flex;align-items:center;gap:2px;padding:1px 6px;border-radius:9px;font-size:13px;font-weight:700;background:#0003}
+.fx.up{color:var(--oliva)}.fx.dn{color:var(--terra)}
+.fxs{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+/* ---------- atrio: tejas de ánimo ---------- */
+.animo{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.tej{min-height:68px;border-radius:7px;border:1px solid #5b4423;background:#1d1610;padding:6px 4px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;position:relative;font-size:13px;color:var(--piedra)}
+.tej b{font:700 20px Cinzel,serif;color:var(--oliva)}
+.tej.m b{color:var(--ocre)}.tej.r b{color:var(--terra)}
+.tej.r{border-color:var(--terra);animation:lat 1.6s infinite}
+.tej i{position:absolute;left:8px;right:8px;bottom:5px;height:3px;border-radius:2px;background:#3a2c1a}
+.tej i s{display:block;height:100%;border-radius:2px;background:var(--oliva)}.tej.m i s{background:var(--ocre)}.tej.r i s{background:var(--terra)}
+.tej svg.i{width:18px;height:18px;position:absolute;left:5px;top:5px;opacity:.7}
+.resumen{display:flex;gap:7px;margin-top:9px}
+.resumen .btn{flex:1;font-size:13px;flex-direction:column;gap:1px;min-height:52px;font-weight:600}
+.resumen .btn b{font-size:15px;color:var(--marmol)}
+/* ---------- horreum ---------- */
+.estantes{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.am{text-align:center;font-size:13px;color:var(--piedra)}
+.am .jarra{height:44px;margin:0 auto 3px;width:36px;border:2px solid #8a6a28;border-radius:6px 6px 16px 16px/6px 6px 22px 22px;position:relative;overflow:hidden;background:#120d09}
+.am .jarra s{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(#e9c063,#b8862b)}
+.am.g s{background:linear-gradient(#a8c46a,#6f8d3a)}
+.am b{display:block;color:var(--marmol);font-weight:600;font-variant-numeric:tabular-nums}
+.am em{font-style:normal;color:var(--oliva)}.am em.m{color:var(--terra)}
+.obra{display:flex;align-items:center;gap:9px;min-height:50px;padding:5px 8px;border-bottom:1px solid #3a2c1a;font-size:13px}
+.obra:last-child{border-bottom:0}
+.obra .ic{width:38px;height:38px;border-radius:6px;border:1px solid var(--bronce);display:grid;place-items:center;color:var(--oro);background:#0003;flex:none}
+.obra .tx{flex:1;min-width:0}.obra .tx b{font-size:14px;font-weight:600;display:block}
+.barra{height:6px;border-radius:3px;background:#3a2c1a;margin-top:4px;overflow:hidden}.barra s{display:block;height:100%;background:var(--oro)}
+.obra .t{color:var(--piedra);font-variant-numeric:tabular-nums;width:50px;text-align:right}
+.cat{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.ed{min-height:76px;border-radius:7px;border:1px solid #5b4423;background:#1d1610;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:13px;color:var(--marmol);padding:4px 2px;position:relative}
+.ed svg.i{width:26px;height:26px;color:var(--bronce)}
+.ed small{position:absolute;right:5px;top:3px;font:700 12px Cinzel,serif;color:var(--oro)}
+.ed.on{border-color:var(--oro);background:#2e2314}.ed.on svg.i{color:var(--oro)}
+.ed.x{opacity:.45}
+.det{margin-top:9px;padding:10px}
+.det p{font-size:13px;color:var(--piedra);margin:3px 0 7px}
+.costes{display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:9px}
+/* ---------- tablinum ---------- */
+.sellos{display:flex;gap:8px;overflow-x:auto;padding:4px 0 6px;scrollbar-width:none}.sellos::-webkit-scrollbar{display:none}
+.sello{flex:none;width:62px;min-height:78px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:13px;color:var(--piedra)}
+.sello .cera{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;color:#fff;background:radial-gradient(circle at 35% 30%,var(--c2,#d44),var(--c,#a21f17) 70%);box-shadow:inset 0 0 0 3px #0003,0 2px 4px #000a;border:2px solid transparent}
+.sello.on .cera{border-color:var(--oro);box-shadow:0 0 0 3px #e9c06355}
+.sello.on{color:var(--oro)}
+.papiro{background:linear-gradient(#efe0b4,#dcc88f);color:var(--tinta);border-radius:4px;padding:12px 12px 12px;position:relative;box-shadow:0 3px 10px #000a;border-top:6px solid #a8863a;border-bottom:6px solid #a8863a}
+.papiro h3{font:700 16px Cinzel,serif;color:#5a1710;letter-spacing:.04em}
+.papiro p{font-size:14px;margin:4px 0 8px}
+.votos{display:grid;grid-template-columns:repeat(15,1fr);gap:3px;margin:6px 0 4px}
+.votos u{aspect-ratio:1;border-radius:3px;background:var(--oliva);box-shadow:inset 0 -2px #0003}.votos u.c{background:#c4532b}.votos u.d{background:#a69a7c}
+.leyenda{display:flex;justify-content:space-between;font-size:13px;color:#4a3a22}
+.leyenda span:nth-child(1){color:#3f5a17}.leyenda span:nth-child(3){color:#9a3a14}
+.opc{display:block;width:100%;text-align:left;border:1.5px solid #b79a55;border-radius:6px;padding:8px 10px;margin-top:7px;background:#f6ecc9;min-height:56px;color:var(--tinta)}
+.opc b{font-size:14px;display:flex;justify-content:space-between;gap:6px}
+.opc span.d{font-size:13px;color:#5c4a2a;display:block}
+.opc.on{border-color:#8f1d14;background:#fff6d6;box-shadow:0 0 0 2px #8f1d1455}
+.papiro .fx{background:#0001}.papiro .fx.up{color:#3f6a10}.papiro .fx.dn{color:#a2380e}
+.papiro .cost{color:#5a1710}
+.papiro .btn.p{margin-top:10px}
+/* ---------- peristilo ---------- */
+.imp{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.imp .btn{flex-direction:column;min-height:64px;font-size:13px;font-weight:600;gap:2px}
+.imp .btn.on{background:#2e2314;border-color:var(--oro);color:var(--oro)}
+.imp .btn small{font-weight:400;color:var(--piedra);font-size:13px}
+.fel{display:flex;align-items:center;gap:12px;padding:10px}
+.anillo{width:86px;height:86px;border-radius:50%;flex:none;display:grid;place-items:center;position:relative;background:conic-gradient(var(--oliva) calc(var(--v)*1%),#3a2c1a 0)}
+.anillo::before{content:"";position:absolute;inset:8px;border-radius:50%;background:#1a130e}
+.anillo b{position:relative;font:700 24px Cinzel,serif}
+.fel ul{list-style:none;padding:0;flex:1;font-size:13px}.fel li{display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px dotted #4a3920}
+/* ---------- torre ---------- */
+.alerta{display:flex;gap:10px;align-items:center;padding:10px;border-radius:7px;border:1px solid var(--terra);background:linear-gradient(#3a1a10,#2a130c)}
+.alerta .sev{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;background:#0005;color:var(--terra);flex:none}
+.alerta b{font-size:15px;display:block}.alerta span{font-size:13px;color:var(--piedra)}
+.gravedad{height:8px;border-radius:4px;background:#0006;margin-top:6px;overflow:hidden}.gravedad s{display:block;height:100%;background:linear-gradient(90deg,var(--ocre),var(--terra));transition:width .6s}
+.resp{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:8px}
+.rp{min-height:96px;border-radius:7px;border:1px solid #5b4423;background:#1d1610;padding:7px 4px;display:flex;flex-direction:column;align-items:center;gap:3px;font-size:13px;text-align:center}
+.rp svg.i{width:26px;height:26px;color:var(--bronce)}
+.rp b{font-size:13px;font-weight:600;line-height:1.15}
+.rp.on{border-color:var(--oro);background:#2e2314}.rp.on svg.i{color:var(--oro)}
+.rp .cost{font-size:13px}
+.rp .pc{color:var(--oliva);font-weight:700}
+.ok-msg{text-align:center;padding:18px 8px;color:var(--oliva);font-size:14px}
+.lat-tipo{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#0004;border:1.5px solid var(--terra);color:var(--terra);flex:none}
+.lat-tipo.a{border-color:var(--ocre);color:var(--ocre)}
+.fila.sel{background:#2a1f12}
+.mini{width:60px;height:8px;border-radius:4px;background:#3a2c1a;overflow:hidden;flex:none}.mini s{display:block;height:100%;background:var(--terra)}
+/* ---------- atlas ---------- */
+.atlas{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.dom{min-height:84px;border-radius:7px;background:#1d1610;border:1px solid #5b4423;position:relative;overflow:hidden;padding:9px 6px 5px 9px;text-align:left;display:flex;flex-direction:column;gap:3px}
+.dom::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--fc)}
+.dom b{font-size:13px;font-weight:600;line-height:1.15;color:var(--marmol)}
+.dom small{font-size:13px;color:var(--piedra);line-height:1.1}
+.dom .ico{display:flex;gap:4px;margin-top:auto;align-items:center;min-height:20px}
+.dom .ico svg.i{width:18px;height:18px;color:var(--terra)}.dom .ico svg.i.a{color:var(--ocre)}
+.dom .mo{margin-left:auto;font:700 14px Cinzel,serif;color:var(--oliva)}.dom .mo.m{color:var(--ocre)}.dom .mo.r{color:var(--terra)}
+.dom.ajena{opacity:.62}
+.dom.cur{border-color:var(--oro);box-shadow:0 0 0 1px var(--oro)}
+.nota{margin-top:10px;padding:9px 10px;font-size:13px;color:var(--piedra);border:1px dashed #5b4423;border-radius:7px}
+.nota b{color:var(--oro)}
+/* ---------- navegación: plano de la domus ---------- */
+nav{height:74px;flex:none;display:grid;grid-template-columns:repeat(5,1fr);background:linear-gradient(#2a1d12,#150e09);border-top:2px solid var(--bronce);padding:5px 4px 8px;gap:3px;position:relative;z-index:6}
+nav button{border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:13px;color:var(--piedra);position:relative;min-height:56px}
+nav button svg.i{width:26px;height:26px}
+nav button.on{color:var(--oro);background:linear-gradient(#3a2a14,#2a1d0e);box-shadow:inset 0 0 0 1px var(--bronce)}
+nav .bd{position:absolute;right:8px;top:2px;min-width:20px;height:20px;border-radius:10px;background:var(--rojo);color:#fff;font:700 13px/20px system-ui;text-align:center;padding:0 4px;border:1px solid var(--oro)}
+nav .bd.a{background:var(--ocre);color:#1a120d}
+.toast{position:absolute;left:12px;right:12px;bottom:84px;z-index:20;background:#1a120d;border:1px solid var(--oro);border-radius:8px;padding:10px 12px;font-size:14px;box-shadow:0 6px 18px #000c;transform:translateY(30px);opacity:0;pointer-events:none;transition:.35s}
+.toast.v{transform:none;opacity:1}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="madera" viewBox="0 0 24 24"><path d="M5 7h13a4 4 0 010 8H5"/><ellipse cx="5" cy="11" rx="2.2" ry="4"/><path d="M9 11h7M6 19h12"/></symbol>
+<symbol id="piedra" viewBox="0 0 24 24"><path d="M4 9l8-4 8 4v7l-8 4-8-4z"/><path d="M4 9l8 4 8-4M12 13v7"/></symbol>
+<symbol id="hierro" viewBox="0 0 24 24"><path d="M3 18l3-9h12l3 9z"/><path d="M8 13h8"/></symbol>
+<symbol id="grano" viewBox="0 0 24 24"><path d="M12 21V8M12 8c-3 0-4-2-4-5 3 0 4 2 4 5zm0 0c3 0 4-2 4-5-3 0-4 2-4 5zM12 14c-3 0-4-2-4-4M12 14c3 0 4-2 4-4M12 19c-3 0-4-2-4-4M12 19c3 0 4-2 4-4"/></symbol>
+<symbol id="oro" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8.5 8.5l7 7M15.5 8.5l-7 7"/></symbol>
+<symbol id="pueblo" viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M2.5 20c0-4 2.5-6 5.5-6s5.500 2 5.500 6M14.500 14.500c3-.5 6 1 6 5"/></symbol>
+<symbol id="fuego" viewBox="0 0 24 24"><path d="M12 3c1 4 5 5 5 10a5 5 0 01-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"/></symbol>
+<symbol id="plaga" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="10" cy="10" r="1"/><circle cx="14.500" cy="13" r="1.200"/><circle cx="10.500" cy="14.500" r=".8"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+<symbol id="agua" viewBox="0 0 24 24"><path d="M12 3c4 5 6 8 6 11a6 6 0 01-12 0c0-3 2-6 6-11z"/><path d="M9.500 15a3 3 0 002.500 2.500"/></symbol>
+<symbol id="hambre" viewBox="0 0 24 24"><path d="M3 11h18a9 9 0 01-18 0z"/><path d="M8 6l4 2.500L16 6M12 3v2"/></symbol>
+<symbol id="revuelta" viewBox="0 0 24 24"><path d="M4 20L18 6M20 20L6 6M15 5l4-1 1 4M9 5L5 4 4 8"/></symbol>
+<symbol id="senado" viewBox="0 0 24 24"><path d="M3 9l9-5 9 5zM5.500 9v9M10 9v9M14 9v9M18.500 9v9M3 20.500h18"/></symbol>
+<symbol id="carta" viewBox="0 0 24 24"><rect x="3.500" y="5.500" width="17" height="13" rx="2"/><path d="M4 7l8 6 8-6"/></symbol>
+<symbol id="espia" viewBox="0 0 24 24"><path d="M2 12s4-6 10-6 10 6 10 6-4 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.800"/></symbol>
+<symbol id="embajada" viewBox="0 0 24 24"><path d="M5 21V4M5 5h12l-3 4 3 4H5"/></symbol>
+<symbol id="ley" viewBox="0 0 24 24"><path d="M7 3h9l3 3v15H7zM16 3v3h3M10 11h6M10 15h6"/></symbol>
+<symbol id="anfora" viewBox="0 0 24 24"><path d="M9 3h6M10 3v3c-4 1-5 4-5 7a7 7 0 0014 0c0-3-1-6-5-7V3M5 10c-3 0-3 4 0 4M19 10c3 0 3 4 0 4"/></symbol>
+<symbol id="torre" viewBox="0 0 24 24"><path d="M7 21V9L6 4h12l-1 5v12zM7 9h10M10.500 13h3M10.500 17h3"/></symbol>
+<symbol id="atrio" viewBox="0 0 24 24"><path d="M5 21V10a7 7 0 0114 0v11M3 21h18M9 21v-6h6v6"/></symbol>
+<symbol id="peristilo" viewBox="0 0 24 24"><path d="M12 21V11M12 11C6 11 5 6 5 4c5 0 7 2 7 7zM12 15c5 0 7-2 7-6-5 0-7 2-7 6zM4 21h16"/></symbol>
+<symbol id="casa" viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v9H4zM10 20v-5h4v5"/></symbol>
+<symbol id="balanza" viewBox="0 0 24 24"><path d="M12 4v16M6 20h12M5 8h14M5 8l-3 6a3 3 0 006 0zM19 8l-3 6a3 3 0 006 0z"/></symbol>
+<symbol id="ancla" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7v14M7 12H4a8 8 0 0016 0h-3M8.500 11h7"/></symbol>
+<symbol id="escudo" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6zM12 8v9M8 12h8"/></symbol>
+<symbol id="herradura" viewBox="0 0 24 24"><path d="M6 20V10a6 6 0 0112 0v10M6 16h3M15 16h3"/></symbol>
+<symbol id="muralla" viewBox="0 0 24 24"><path d="M3 20V8h3v3h3V8h3v3h3V8h3v12zM3 20h18M8 20v-4h3v4"/></symbol>
+<symbol id="martillo" viewBox="0 0 24 24"><path d="M5 20l9-9M11 5l5-2 5 4-2 5-3-3-4-4z"/></symbol>
+<symbol id="arcos" viewBox="0 0 24 24"><path d="M3 7h18M3 7v13M9 7v13M15 7v13M21 7v13M3 14a3 3 0 016 0M9 14a3 3 0 016 0M15 14a3 3 0 016 0"/></symbol>
+<symbol id="termas" viewBox="0 0 24 24"><path d="M8 3c-2 3 2 4 0 7M12 3c-2 3 2 4 0 7M16 3c-2 3 2 4 0 7M4 14h16l-2 6H6z"/></symbol>
+<symbol id="arena" viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9.500" ry="6.500"/><ellipse cx="12" cy="12" rx="4.500" ry="2.800"/><path d="M12 5.500v3.500M12 15v3.500"/></symbol>
+<symbol id="vigil" viewBox="0 0 24 24"><path d="M8 3h8l-1 5H9zM12 8v13M8 21h8M6 12h12"/></symbol>
+<symbol id="derribo" viewBox="0 0 24 24"><path d="M4 20h16M6 20V10l6-5 6 5v10M3 3l4 4M21 3l-4 4"/></symbol>
+<symbol id="rezo" viewBox="0 0 24 24"><path d="M5 21h14M7 21v-9h10v9M12 12V4M9 6l3-3 3 3"/></symbol>
+<symbol id="puerta" viewBox="0 0 24 24"><path d="M6 21V4h12v17M3 21h18M15 12v.5"/></symbol>
+<symbol id="copa" viewBox="0 0 24 24"><path d="M6 4h12v4a6 6 0 01-12 0zM12 14v5M8 21h8M6 6H3v2a3 3 0 003 3M18 6h3v2a3 3 0 01-3 3"/></symbol>
+<symbol id="flecha" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+</defs></svg>
+
+<div id="app">
+  <header class="hud">
+    <button class="ciudad" id="bCiudad" aria-label="Elegir ciudad"><svg class="i" style="color:var(--bronce)"><use href="#casa"/></svg><span id="nCiudad">Capua</span> <small>· 18</small></button>
+    <div class="fecha"><b class="cz" id="fecha">Martius</b><span>274 a. C.</span></div>
+  </header>
+  <div class="rec" id="rec"></div>
+
+  <div class="parte" id="parte"><div class="marco" id="marco"><div class="vista" id="vista">
+    <div class="mundo" id="mundo"></div><div class="luz"></div><div class="dintel" id="dintel">ATRIO</div>
+  </div></div></div>
+
+  <div class="sala"><div class="cont" id="cont">
+    <section id="s-atrio"></section><section id="s-tablinum"></section><section id="s-peristilo"></section>
+    <section id="s-horreum"></section><section id="s-torre"></section><section id="s-atlas"></section>
+  </div></div>
+
+  <nav id="nav"></nav>
+  <div class="toast" id="toast"></div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s), ic=(n,c='')=>`<svg class="i ${c}"><use href="#${n}"/></svg>`;
+const fmt=n=>Math.round(n).toLocaleString('es-ES');
+/* ---------- datos plausibles (nombres reales de js/data.js) ---------- */
+const FAC={roma:['Roma','#b3261e'],cartago:['Cartago','#7b3fa8'],epiro:['Epiro','#1f8a9e'],macedonia:['Macedonia','#2a56b0'],galos:['Galos','#4f7a2a'],siracusa:['Siracusa','#d08a1c'],mamertinos:['Mamertinos','#c25e8a'],akragas:['Akragas','#d4c43a'],griegos:['Griegos','#3a8fb7'],iberos:['Íberos','#b0612f']};
+// id, nombre, bando, propia, ánimo, avisos
+let CIU=[['roma','Roma','roma',1,71,''],['capua','Capua','roma',1,58,'fuego'],['volsinii','Volsinii','roma',1,66,''],['tarentum','Tarentum','roma',1,31,'revuelta,agua'],
+['mediolanum','Mediolanum','roma',1,52,''],['messana','Messana','roma',1,44,'plaga'],['syracusae','Syracusae','roma',1,77,'agua'],['agrigentum','Agrigentum','roma',1,60,''],
+['emporion','Emporion','roma',1,69,''],['corinthus','Corinthus','roma',1,48,'hambre'],['saguntum','Saguntum','iberos',0,0,''],['carthagonova','Carthago Nova','iberos',0,0,''],
+['panormus','Panormus','cartago',0,0,''],['lilybaeum','Lilybaeum','cartago',0,0,''],['carales','Carales','cartago',0,0,''],['carthago','Carthago','cartago',0,0,''],
+['ambracia','Ambracia','epiro',0,0,''],['pella','Pella','macedonia',0,0,'']].map(c=>({id:c[0],n:c[1],f:c[2],mia:c[3],mo:c[4],av:c[5]?c[5].split(','):[]}));
+const TIPO={fuego:['Incendio','fuego'],plaga:['Plaga','plaga'],agua:['Inundación','agua'],hambre:['Hambruna','hambre'],revuelta:['Revuelta','revuelta']};
+let CRISIS=[ // ciudad, tipo, gravedad, texto
+ {c:'capua',t:'fuego',g:64,x:'Arden las ínsulas del barrio bajo. Si salta al foro, se pierde el mercado.'},
+ {c:'tarentum',t:'revuelta',g:71,x:'La plebe pide grano y baja las armas. Felicidad 31.'},
+ {c:'messana',t:'plaga',g:38,x:'La fiebre llega del puerto. Doce ínsulas cerradas.'},
+ {c:'corinthus',t:'hambre',g:27,x:'Quedan 9 días de grano. Cada mes se pierde población.'},
+ {c:'syracusae',t:'agua',g:15,x:'El río crece. Aviso: aún sin daños.',a:1}];
+const RESP={fuego:[['vigil','Vigiles','Cuerpo de bomberos',{oro:60,madera:30},38],['derribo','Cortafuegos','Derribar 2 ínsulas',{piedra:20},55],['rezo','Rogar a Vulcano','Barato, incierto',{oro:20},18]],
+ plaga:[['termas','Cuarentena','Cerrar el puerto',{oro:80},40],['rezo','Sacrificio','Pedir ayuda a los dioses',{oro:30},20],['anfora','Hierbas','Médicos griegos',{oro:120,grano:40},55]],
+ revuelta:[['grano','Repartir grano','Calma al pueblo',{grano:200},50],['escudo','Mandar legión','Aplasta, pero enfurece',{oro:50},45],['copa','Dar juegos','Pan y circo',{oro:150},40]],
+ hambre:[['grano','Comprar grano','Mercado exterior',{oro:180},55],['ancla','Convoy','Desde otra ciudad',{grano:120},40],['rezo','Rogar a Ceres','Barato, incierto',{oro:20},15]],
+ agua:[['arcos','Diques','Reforzar la ribera',{piedra:60,madera:40},60],['rezo','Rogar a Neptuno','Barato, incierto',{oro:20},20],['pueblo','Evacuar','Barrios bajos',{grano:30},35]]};
+const RES={madera:[1240,32],piedra:[860,18],hierro:[410,9],grano:[2150,-12],oro:[3480,64]};
+const CAP=3000;
+const EDIF=[ // id, nombre, icono, categoría, nivel, coste
+['aserradero','Aserradero','madera','campo',4,{madera:30,piedra:50,hierro:20,grano:20}],['cantera','Cantera','piedra','campo',3,{madera:50,piedra:20,hierro:30,grano:20}],
+['mina','Mina de hierro','hierro','campo',2,{madera:50,piedra:40,hierro:15,grano:25}],['granja','Granja','grano','campo',5,{madera:40,piedra:40,hierro:20,grano:10}],
+['viviendas','Ínsulas','casa','ciudad',6,{madera:60,piedra:50,hierro:10,grano:30}],['foro','Foro','senado','ciudad',3,{madera:80,piedra:90,hierro:40,grano:40}],
+['almacen','Almacén','anfora','ciudad',3,{madera:70,piedra:60,hierro:30,grano:20}],['mercado','Mercado','balanza','ciudad',2,{madera:80,piedra:70,hierro:30,grano:30,oro:40}],
+['puerto','Puerto','ancla','ciudad',0,{madera:140,piedra:80,hierro:50,grano:30,oro:60},1],['cuartel','Cuartel','escudo','guerra',2,{madera:90,piedra:60,hierro:70,grano:40}],
+['establo','Establo','herradura','guerra',1,{madera:110,piedra:60,hierro:80,grano:70}],['muralla','Muralla','muralla','guerra',2,{madera:40,piedra:120,hierro:30,grano:20}],
+['herreria','Herrería','martillo','guerra',1,{madera:70,piedra:60,hierro:90,grano:30,oro:30}],['acueducto','Acueducto','arcos','cultura',1,{madera:90,piedra:160,hierro:50,grano:50,oro:60}],
+['termas','Termas','termas','cultura',1,{madera:100,piedra:140,hierro:40,grano:60,oro:80}],['anfiteatro','Anfiteatro','arena','cultura',0,{madera:130,piedra:180,hierro:60,grano:80,oro:100}],
+['templo','Templo','fuego','cultura',1,{madera:80,piedra:100,hierro:30,grano:60,oro:50}]];
+const OBRAS=[['foro','Foro',3,70,'2 d'],['termas','Termas',2,35,'5 d'],['granja','Granja',6,12,'9 d']];
+const ASUNTOS=[
+ {id:'ley',i:'ley',n:'Ley agraria',c:['#c8502b','#e87a4a'],t:'Lex agraria del tribuno Flaminio',x:'Repartir tierras públicas a los plebeyos. Los patricios amenazan con bloquearla.',v:[7,5,3],
+  o:[['Apoyar la ley','Votas a favor y haces campaña',{oro:80},{pueblo:+12,senado:-9}],['Comprar votos','Denarios a senadores dudosos',{oro:220},{senado:+4,pueblo:+6,fama:-5}],['Aplazar con maniobras','Pides tiempo al Senado',{},{pueblo:-6,senado:+3}],['Vetar la ley','Con tu cargo de cónsul',{},{senado:+8,pueblo:-14}]]},
+ {id:'intriga',i:'espia',n:'Intriga',c:['#6b2a86','#9a52b8'],t:'Fabio conspira contra tu mando',x:'Un liberto jura haber visto cartas de Fabio Máximo a un enviado de Cartago.',v:[3,8,4],
+  o:[['Investigar en secreto','Envías a un cliente de confianza',{oro:60},{fama:+4}],['Denunciar en el Senado','Sin pruebas, arriesgado',{},{senado:-8,fama:+10}],['Ofrecerle un trato','Un cargo a cambio de silencio',{oro:150},{senado:+6,fama:-3}],['Quemar la carta','Olvidar el asunto',{},{fama:-6}]]},
+ {id:'emb',i:'embajada',n:'Embajada',c:['#2a56b0','#5882d8'],t:'Hierón pide ayuda contra Cartago',x:'Siracusa ofrece grano a cambio de una guarnición en Syracusae.',v:[9,2,4],
+  o:[['Enviar guarnición','80 hastati a Syracusae',{oro:90},{ejercito:-8,oro:+40}],['Aceptar solo el grano','Sin tropas',{},{grano:+200,senado:-3}],['Rechazar con cortesía','Mantienes tu neutralidad',{},{}]]},
+ {id:'cens',i:'carta',n:'Censo',c:['#8a6a1c','#c7a23c'],t:'Los censores revisan tu clientela',x:'Debes declarar fortuna y esclavos antes de las Idus.',v:[4,3,8],o:[['Declarar todo','Honesto y caro',{oro:120},{fama:+6}],['Declarar la mitad','Riesgo de multa',{},{fama:-4,oro:+60}]]},
+ {id:'sen',i:'senado',n:'Sesión',c:['#3f6a28','#6a9a48'],t:'Dotación de legiones para el año',x:'El Senado vota cuántas legiones se alistan.',v:[8,4,3],o:[['Dos legiones','Seguro y barato',{oro:100},{ejercito:+6}],['Cuatro legiones','Gloria y gasto',{oro:260},{ejercito:+14,pueblo:-4}]]},
+ {id:'p6',i:'carta',n:'Boda',c:['#8a3a50','#b85a78'],t:'Alianza matrimonial',x:'Una gens plebeya ofrece una hija.',v:[6,2,6],o:[['Aceptar','',{oro:80},{pueblo:+5}],['Declinar','',{},{}]]},
+ {id:'p7',i:'carta',n:'Deuda',c:['#4a5a6a','#7a8a9a'],t:'Deudores en el Foro',x:'Piden perdón de deudas.',v:[5,5,5],o:[['Perdonar','',{oro:200},{pueblo:+9}],['Exigir','',{},{pueblo:-7}]]},
+ {id:'p8',i:'carta',n:'Culto',c:['#7a4a1c','#aa7a3c'],t:'Fiestas de Ceres',x:'Los pontífices piden fondos.',v:[6,3,6],o:[['Pagar','',{oro:60},{pueblo:+4}],['Recortar','',{},{pueblo:-3}]]}];
+const CLIENTES=[
+ ['G','Gayo Fabricio','Veterano de Heraclea','Pide tierras en Capua',['grano','Dar 40',{grano:40}],{fama:3}],
+ ['L','Lucio Opimio','Mercader liberto','Pide un puesto en el puerto',['oro','Dar 50',{oro:50}],{fama:4}],
+ ['M','Marcia, viuda','Madre de un hastatus','Pide pan para el invierno',['grano','Dar 30',{grano:30}],{pueblo:3}],
+ ['T','Tito Sempronio','Cliente de tu padre','Pide tu voto en el Senado',['ley','Prometer',{}],{senado:2}],
+ ['P','Publio Claudio','Ingeniero','Ofrece reparar el acueducto',['martillo','Pagar 90',{oro:90}],{pueblo:2}]];
+const ST={ciudad:'capua',sala:'atrio',sel:{edif:'foro',asunto:'ley',opc:0,resp:0,imp:1,filtro:'todas'},pueblo:62,senado:48,ejercito:71,fama:55,crisisSel:0,atend:null,obras:OBRAS.slice(),clientes:CLIENTES.slice(),tuya:true};
+const SALAS=[['atrio','Atrio','atrio'],['tablinum','Tablinum','carta'],['peristilo','Peristilo','peristilo'],['horreum','Horreum','anfora'],['torre','Torre','torre']];
+/* ---------- cámara de la ventana: la misma ciudad real del juego ---------- */
+const CAM={atrio:{cx:195,cy:420,s:.88,h:268,t:'ATRIO'},tablinum:{cx:178,cy:350,s:1.2,h:150,t:'TABLINUM'},peristilo:{cx:152,cy:400,s:1.2,h:150,t:'PERISTILO'},
+ horreum:{cx:240,cy:372,s:1.2,h:150,t:'HORREUM'},torre:{cx:210,cy:420,s:1.45,h:300,t:'TORRE DE VIGÍA'},atlas:{cx:195,cy:420,s:.8,h:150,t:'DESDE LA TORRE'}};
+const PINS={ // posición en la ciudad (px de la imagen), a qué estancia llevan
+ foro:[180,350],ins:[213,430],alm:[330,365],puerto:[300,272],templo:[125,300],termas:[125,415],cuartel:[270,462],anf:[95,350]};
+function mundo(){
+  const crisisAqui=CRISIS.filter(c=>c.c===ST.ciudad);
+  const f=crisisAqui.find(c=>c.t==='fuego');
+  let h='';
+  const pin=(p,ic_,cls,go,sty='')=>`<button class="pin ${cls}" style="left:${PINS[p][0]}px;top:${PINS[p][1]}px;${sty}" data-go="${go}">${ic(ic_)}</button>`;
+  if(f)h+=`<div class="humo"></div>`+[0,1,2].map(i=>`<svg class="llama" style="left:${203+i*10}px;top:${436+(i%2)*4}px;animation-delay:-${i*.2}s" viewBox="0 0 30 46"><path d="M15 2c2 12 14 14 14 28a14 14 0 01-28 0c0-6 3-9 6-12 0 6 3 8 5 8-1-9-3-14 3-24z" fill="#ff8a1c"/><path d="M15 20c1 6 7 8 7 16a7 7 0 01-14 0c0-4 2-6 4-8 0 4 1 5 3 5-1-5-1-8 0-13z" fill="#ffd24a"/></svg>`).join('');
+  const c=crisisAqui.find(c=>c!==f);
+  h+=pin('ins',f?'fuego':c?TIPO[c.t][1]:'casa',f||c?'u':'ok','torre',f?'top:392px':'');
+  h+=pin('foro','senado',ST.sala==='atrio'||ST.sala==='tablinum'?'':'ok','tablinum');
+  h+=pin('alm','anfora','ok','horreum');
+  h+=pin('termas','peristilo','ok','peristilo');
+  return h;
+}
+function camara(sala){
+  const k=CAM[sala], v=$('#vista'); k.W=v.clientWidth||350;
+  $('#parte').style.height=(k.h+9)+'px'; $('#marco').classList.toggle('baja',k.h<200);
+  const H=k.h-8, tx=k.W/2-k.cx*k.s, ty=H/2-k.cy*k.s, m=$('#mundo');
+  m.style.setProperty('--s',k.s); m.style.transform=`translate(${tx}px,${ty}px) scale(${k.s})`;
+  m.querySelectorAll('.pin').forEach(p=>p.style.setProperty('--s',k.s));
+  $('#dintel').textContent=k.t;
+}
+/* ---------- piezas ---------- */
+const costeH=(c)=>Object.entries(c).map(([r,n])=>`<span class="cost ${RES[r]&&RES[r][0]<n?'no':''}">${ic(r)}${n}</span>`).join('');
+const fxH=(f)=>Object.entries(f).filter(e=>e[1]).map(([k,v])=>`<span class="fx ${v>0?'up':'dn'}">${ic({pueblo:'pueblo',senado:'senado',ejercito:'escudo',fama:'copa',oro:'oro',grano:'grano'}[k])}${v>0?'+':''}${v}</span>`).join('');
+const mood=v=>v>=60?'':v>=40?'m':'r';
+function toast(t){const e=$('#toast');e.innerHTML=t;e.classList.add('v');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('v'),2600)}
+function aplicaCoste(c){for(const r in c)RES[r][0]=Math.max(0,RES[r][0]-c[r])}
+function puede(c){return Object.entries(c).every(([r,n])=>RES[r][0]>=n)}
+/* ---------- cabecera y recursos ---------- */
+function pintaRec(){
+  $('#rec').innerHTML=Object.keys(RES).map(r=>`<span>${ic(r)}<b style="font-weight:600">${fmt(RES[r][0])}</b>${RES[r][1]<0?`<em class="m">${RES[r][1]}</em>`:''}</span>`).join('');
+  const c=CIU.find(x=>x.id===ST.ciudad);$('#nCiudad').textContent=c.n;
+}
+function pintaNav(){
+  const cr=CRISIS.filter(c=>!c.a).length;
+  const bd={atrio:ST.clientes.length,tablinum:ASUNTOS.length,horreum:'',peristilo:CIU.some(c=>c.mia&&c.mo<35)?'!':'',torre:cr};
+  $('#nav').innerHTML=SALAS.map(([id,n,i])=>`<button data-s="${id}" class="${ST.sala===id||(id==='torre'&&ST.sala==='atlas')?'on':''}">${ic(i)}${n}${bd[id]?`<span class="bd ${id==='torre'||id==='peristilo'?'':'a'}">${bd[id]}</span>`:''}</button>`).join('');
+}
+/* ---------- ATRIO ---------- */
+function sAtrio(){
+  const t=(k,n,v,i,go)=>`<button class="tej ${mood(v)}" data-go="${go}">${ic(i)}<b>${v}</b>${n}<i><s style="width:${v}%"></s></i></button>`;
+  const cr=CRISIS.filter(c=>!c.a).length;
+  $('#s-atrio').innerHTML=`<h2>Ánimo de Roma</h2><div class="animo">${t('p','Pueblo',ST.pueblo,'pueblo','peristilo')}${t('s','Senado',ST.senado,'senado','tablinum')}${t('e','Ejército',ST.ejercito,'escudo','torre')}${t('f','Fama',ST.fama,'copa','tablinum')}</div>
+  <div class="resumen"><button class="btn" data-go="tablinum">${ic('carta')}<b>${ASUNTOS.length}</b>cartas</button><button class="btn" data-go="horreum">${ic('martillo')}<b>${ST.obras.length}</b>obras</button><button class="btn" data-go="torre" style="${cr?'border-color:var(--terra);color:var(--terra)':''}">${ic('fuego')}<b>${cr}</b>crisis</button></div>
+  <h2>Hoy a la puerta <span class="n">${ST.clientes.length} clientes</span></h2>
+  <div class="tabla">${ST.clientes.length?ST.clientes.map((c,i)=>`<div class="fila"><div class="moneda">${c[0]}</div><div class="tx"><b>${c[1]}</b><span>${c[3]}</span></div>
+   <button class="btn" data-cli="${i}" aria-label="${c[4][1]}">${ic(c[4][0])}${c[4][1].split(' ')[1]||''}</button><button class="btn" style="color:var(--piedra);border-color:#4a3920" data-desp="${i}" aria-label="Despedir con cortesía">${ic('puerta')}</button></div>`).join(''):`<div class="ok-msg">El atrio está vacío. Tu clientela te respeta.</div>`}</div>`;
+}
+/* ---------- HORREUM ---------- */
+function sHorreum(){
+  const e=EDIF.find(x=>x[0]===ST.sel.edif), cat=ST.sel.filtroE||'todos';
+  const lst=EDIF.filter(x=>cat==='todos'||x[3]===cat);
+  const cats=[['todos','Todos'],['campo','Campos'],['ciudad','Ciudad'],['guerra','Guerra'],['cultura','Cultura']];
+  const ok=puede(e[5]);
+  $('#s-horreum').innerHTML=`<h2>Almacén <span class="n">de ${CIU.find(c=>c.id===ST.ciudad).n}</span></h2>
+  <div class="chips" id="chipsC">${CIU.filter(c=>c.mia).map(c=>`<button class="chip ${c.id===ST.ciudad?'on':''}" data-ciu="${c.id}"><span class="pt ${mood(c.mo)}"></span>${c.n}</button>`).join('')}<button class="chip" data-go="atlas">+8 ${ic('flecha')}</button></div>
+  <div class="estantes">${Object.keys(RES).filter(r=>r!=='oro').map(r=>`<div class="am ${r==='grano'?'g':''}"><div class="jarra"><s style="height:${Math.min(100,RES[r][0]/CAP*100)}%"></s></div>${ic(r)}<b>${fmt(RES[r][0])}</b><em class="${RES[r][1]<0?'m':''}">${RES[r][1]>0?'+':''}${RES[r][1]}</em></div>`).join('')}
+  <div class="am"><div class="jarra" style="border-color:var(--oro)"><s style="height:${Math.min(100,RES.oro[0]/5000*100)}%"></s></div>${ic('oro')}<b>${fmt(RES.oro[0])}</b><em>+${RES.oro[1]}</em></div></div>
+  <h2>Obras en curso <span class="n">${ST.obras.length} obras</span></h2>
+  <div class="tabla">${ST.obras.map(o=>{const d=EDIF.find(x=>x[0]===o[0]);return `<div class="obra"><div class="ic">${ic(d[2])}</div><div class="tx"><b>${o[1]} · nivel ${o[2]}</b><div class="barra"><s style="width:${o[3]}%"></s></div></div><span class="t">${o[4]}</span></div>`}).join('')}</div>
+  <h2>Construir</h2>
+  <div class="chips">${cats.map(c=>`<button class="chip ${cat===c[0]?'on':''}" data-cat="${c[0]}">${c[1]}</button>`).join('')}</div>
+  <div class="cat">${lst.map(x=>`<button class="ed ${x[0]===e[0]?'on':''} ${x[6]&&x[4]===0?'x':''}" data-ed="${x[0]}">${ic(x[2])}${x[1].split(' ')[0]}${x[4]?`<small>${['','I','II','III','IV','V','VI','VII'][x[4]]}</small>`:''}</button>`).join('')}</div>
+  <div class="tabla det"><b style="font-size:15px">${e[1]} <span class="cz" style="color:var(--oro)">${e[4]?'nivel '+e[4]+' → '+(e[4]+1):'nuevo'}</span></b>
+   <p>${{foro:'Recauda denarios, acelera las obras y permite más población.',termas:'Baños públicos: +4 de felicidad por nivel.',anfiteatro:'Juegos: +6 de felicidad por nivel.',granja:'Produce grano. Las tropas lo consumen.'}[e[0]]||'Mejora esta ciudad. Cuesta recursos y tiempo.'}</p>
+   <div class="costes">${costeH(e[5])}</div><button class="btn p g" data-build="${e[0]}" ${ok?'':'disabled'}>${ic('martillo')}${ok?'Construir '+e[1]:'Faltan recursos'}</button></div>
+  <div class="nota"><b>Escala:</b> 5 filtros y una rejilla de 4 columnas. Con 30 edificios, 8 filas; las ciudades, en el carril de arriba.</div>`;
+}
+/* ---------- TABLINUM ---------- */
+function sTablinum(){
+  const a=ASUNTOS.find(x=>x.id===ST.sel.asunto), o=a.o[ST.sel.opc];
+  const dots=a.v[0]+a.v[1]+a.v[2];const vs=[...Array(a.v[0])].map(()=>'<u></u>').concat([...Array(a.v[2])].map(()=>'<u class="d"></u>'),[...Array(a.v[1])].map(()=>'<u class="c"></u>')).join('');
+  $('#s-tablinum').innerHTML=`<h2>Cartas selladas <span class="n">${ASUNTOS.length}</span></h2>
+  <div class="sellos">${ASUNTOS.map(s=>`<button class="sello ${s.id===a.id?'on':''}" data-as="${s.id}"><span class="cera" style="--c:${s.c[0]};--c2:${s.c[1]}">${ic(s.i)}</span>${s.n}</button>`).join('')}</div>
+  <div class="papiro"><h3>${a.t}</h3><p>${a.x}</p>
+   <div class="leyenda"><span>A favor ${a.v[0]*20}</span><span>Dudan ${a.v[2]*20}</span><span>En contra ${a.v[1]*20}</span></div>
+   <div class="votos">${[...Array(a.v[0])].map(()=>'<u></u>').join('')}${[...Array(a.v[2])].map(()=>'<u class="d"></u>').join('')}${[...Array(a.v[1])].map(()=>'<u class="c"></u>').join('')}</div>
+   ${a.o.map((x,i)=>`<button class="opc ${i===ST.sel.opc?'on':''}" data-op="${i}"><b>${x[0]}<span class="cost">${Object.entries(x[2]).map(([r,n])=>`${ic(r)}${n}`).join('')||'gratis'}</span></b>${x[1]?`<span class="d">${x[1]}</span>`:''}<div class="fxs">${fxH(x[3])||'<span class="d">Sin efectos</span>'}</div></button>`).join('')}
+   <button class="btn p g" data-sellar="1" ${puede(o[2])?'':'disabled'}>${ic('carta')}Sellar decisión</button></div>`;
+  void dots;
+}
+/* ---------- PERISTILO ---------- */
+function sPeristilo(){
+  const im=[['bajo','Bajos','−30 % oro',+15],['normal','Normales','sin efecto',0],['alto','Altos','+40 % oro',-25]];
+  const f=Math.max(5,Math.min(95,ST.pueblo));
+  $('#s-peristilo').innerHTML=`<h2>Bienestar de ${CIU.find(c=>c.id===ST.ciudad).n}</h2>
+  <div class="tabla fel"><div class="anillo" style="--v:${f}"><b>${f}</b></div><ul><li><span>Base</span><b>+55</b></li><li><span>Termas</span><b style="color:var(--oliva)">+4</b></li><li><span>Templo</span><b style="color:var(--oliva)">+3</b></li><li><span>Impuestos</span><b class="${ST.sel.imp===2?'':'x'}" style="color:${ST.sel.imp===2?'var(--terra)':ST.sel.imp===0?'var(--oliva)':'var(--piedra)'}">${[+15,0,-25][ST.sel.imp]}</b></li></ul></div>
+  <h2>Impuestos</h2><div class="imp">${im.map((x,i)=>`<button class="btn ${ST.sel.imp===i?'on':''}" data-imp="${i}">${x[1]}<small>${x[2]}</small></button>`).join('')}</div>
+  <h2>Ciudades en riesgo <span class="n">3 de 10</span></h2>
+  <div class="tabla">${CIU.filter(c=>c.mia).sort((a,b)=>a.mo-b.mo).slice(0,4).map(c=>`<button class="fila" style="width:100%;text-align:left" data-ciu2="${c.id}"><span class="lat-tipo ${c.mo>=40?'a':''}">${ic('pueblo')}</span><div class="tx"><b>${c.n}</b><span>${c.mo<35?'A punto de rebelarse':c.mo<50?'Descontento':'Inquieta'}</span></div><b class="cz" style="color:${c.mo<40?'var(--terra)':'var(--ocre)'};font-size:18px">${c.mo}</b></button>`).join('')}</div>
+  <button class="btn g" style="margin-top:10px" data-juegos="1">${ic('arena')}Organizar juegos · 150 ${ic('oro')}</button>`;
+}
+/* ---------- TORRE ---------- */
+function sTorre(){
+  const lst=CRISIS.slice();
+  if(!lst.length){$('#s-torre').innerHTML=`<div class="ok-msg">${ic('torre')}<br>Sin peligros a la vista. La guardia descansa.</div><button class="btn g" data-go="atlas">${ic('casa')}Ver todas las ciudades</button>`;return}
+  const k=lst[Math.min(ST.crisisSel,lst.length-1)], T=TIPO[k.t], R=RESP[k.t], city=CIU.find(c=>c.id===k.c);
+  const r=R[ST.sel.resp]||R[0], ok=puede(r[3]);
+  $('#s-torre').innerHTML=`<div class="alerta"><div class="sev">${ic(T[1],'')}</div><div style="flex:1"><b>${T[0]} en ${city.n}</b><span>${k.x}</span><div class="gravedad"><s style="width:${k.g}%"></s></div></div></div>
+  <div class="resp">${R.map((x,i)=>`<button class="rp ${i===ST.sel.resp?'on':''}" data-rp="${i}">${ic(x[0])}<b>${x[1]}</b><span style="color:var(--piedra)">${x[2]}</span><span class="cost ${puede(x[3])?'':'no'}">${Object.entries(x[3]).map(([q,n])=>`${ic(q)}${n}`).join(' ')}</span><span class="pc">−${x[4]} %</span></button>`).join('')}</div>
+  <button class="btn p g" style="margin-top:9px" data-atender="1" ${ok?'':'disabled'}>${ic(r[0])}${ok?r[1]+' ahora':'Faltan recursos'}</button>
+  <h2>Todos los peligros <span class="n">${lst.length} activos</span></h2>
+  <div class="tabla">${lst.map((x,i)=>`<button class="fila ${i===ST.crisisSel?'sel':''}" style="width:100%;text-align:left" data-cr="${i}"><span class="lat-tipo ${x.a?'a':''}">${ic(TIPO[x.t][1])}</span><div class="tx"><b>${TIPO[x.t][0]} · ${CIU.find(c=>c.id===x.c).n}</b><span>${x.a?'Aviso':'En curso'}</span></div><div class="mini"><s style="width:${x.g}%"></s></div></button>`).join('')}
+  <button class="fila" style="width:100%;text-align:left;color:var(--oro)" data-go="atlas"><span class="lat-tipo a">${ic('casa')}</span><div class="tx"><b>Ver las 18 ciudades</b><span>Mapa de domus de toda la república</span></div>${ic('flecha')}</button></div>`;
+}
+/* ---------- ATLAS (escala) ---------- */
+function sAtlas(){
+  const f=ST.sel.filtro, vis=CIU.filter(c=>f==='todas'||(f==='propias'&&c.mia)||(f==='peligro'&&c.av.length));
+  $('#s-atlas').innerHTML=`<h2>Mi república <span class="n">${CIU.filter(c=>c.mia).length} propias · ${CIU.filter(c=>c.av.length).length} con avisos</span></h2>
+  <div class="chips">${[['todas','Todas 18'],['propias','Propias 10'],['peligro','En peligro']].map(x=>`<button class="chip ${f===x[0]?'on':''}" data-fil="${x[0]}">${x[1]}</button>`).join('')}</div>
+  <div class="atlas">${vis.map(c=>{const F=FAC[c.f];return `<button class="dom ${c.mia?'':'ajena'} ${c.id===ST.ciudad?'cur':''}" style="--fc:${F[1]}" data-ciu3="${c.id}"><b>${c.n}</b><small>${c.mia?'Tuya':F[0]}</small><div class="ico">${c.av.slice(0,2).map(a=>ic(TIPO[a][1],a==='agua'?'a':'')).join('')}${c.av.length>2?'<small>+'+(c.av.length-2)+'</small>':''}${c.mia?`<span class="mo ${mood(c.mo)}">${c.mo}</span>`:''}</div></button>`}).join('')}</div>
+  <div class="nota"><b>Regla de escala:</b> cada ciudad es una domus con las mismas 5 estancias. Una ficha por ciudad, tres por fila; con 40 ciudades, solo se alarga la lista. Los avisos se agrupan: máx. 2 iconos y «+n».</div>`;
+}
+/* ---------- control ---------- */
+function ir(s){
+  ST.sala=s; document.querySelectorAll('.cont>section').forEach(e=>e.classList.toggle('on',e.id==='s-'+s));
+  pinta(); camara(s); $('#cont').scrollTop=0;
+}
+function pinta(){
+  pintaRec();pintaNav();$('#mundo').innerHTML=mundo();$('#mundo').classList.toggle('fuego',CRISIS.some(c=>c.c===ST.ciudad&&c.t==='fuego'));
+  ({atrio:sAtrio,tablinum:sTablinum,peristilo:sPeristilo,horreum:sHorreum,torre:sTorre,atlas:sAtlas}[ST.sala])();
+  const k=CAM[ST.sala];$('#mundo').querySelectorAll('.pin').forEach(p=>p.style.setProperty('--s',k.s));
+}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-s],[data-go],[data-ciu],[data-ciu2],[data-ciu3],[data-cat],[data-ed],[data-build],[data-as],[data-op],[data-sellar],[data-imp],[data-juegos],[data-rp],[data-atender],[data-cr],[data-fil],[data-cli],[data-desp],#bCiudad');
+  if(!b)return; const d=b.dataset;
+  if(b.id==='bCiudad'){ir('atlas');return}
+  if(d.s){ir(d.s);return}
+  if(d.go){ir(d.go);return}
+  if(d.ciu||d.ciu2||d.ciu3){ST.ciudad=d.ciu||d.ciu2||d.ciu3;const c=CIU.find(x=>x.id===ST.ciudad);if(d.ciu3)ir('atrio');else pinta();if(d.ciu3)toast(`Ahora gobiernas <b>${c.n}</b>.`);return}
+  if(d.cat){ST.sel.filtroE=d.cat;pinta();return}
+  if(d.ed){ST.sel.edif=d.ed;pinta();return}
+  if(d.build){const x=EDIF.find(z=>z[0]===d.build);aplicaCoste(x[5]);ST.obras.push([x[0],x[1],x[4]+1,4,'3 d']);x[4]+=0;toast(`Obra empezada: <b>${x[1]}</b> nivel ${x[4]+1}.`);pinta();return}
+  if(d.as){ST.sel.asunto=d.as;ST.sel.opc=0;pinta();return}
+  if(d.op){ST.sel.opc=+d.op;pinta();return}
+  if(d.sellar){const a=ASUNTOS.find(x=>x.id===ST.sel.asunto),o=a.o[ST.sel.opc];aplicaCoste(o[2]);for(const k in o[3]){if(ST[k]!==undefined)ST[k]=Math.max(0,Math.min(100,ST[k]+o[3][k]));else if(RES[k])RES[k][0]+=o[3][k]}
+    ASUNTOS.splice(ASUNTOS.indexOf(a),1);ST.sel.asunto=(ASUNTOS[0]||{}).id;ST.sel.opc=0;toast(`Decisión sellada: <b>${o[0]}</b>.`);if(!ASUNTOS.length)$('#s-tablinum').innerHTML='';pinta();return}
+  if(d.imp){ST.sel.imp=+d.imp;pinta();return}
+  if(d.juegos){if(RES.oro[0]>=150){RES.oro[0]-=150;ST.pueblo=Math.min(100,ST.pueblo+10);toast('Los juegos alegran al pueblo: <b>+10</b> ánimo.')}else toast('No hay denarios para los juegos.');pinta();return}
+  if(d.rp){ST.sel.resp=+d.rp;pinta();return}
+  if(d.cr){ST.crisisSel=+d.cr;ST.sel.resp=0;const k=CRISIS[ST.crisisSel];ST.ciudad=k.c;pinta();return}
+  if(d.fil){ST.sel.filtro=d.fil;pinta();return}
+  if(d.atender){const k=CRISIS[ST.crisisSel],r=RESP[k.t][ST.sel.resp];aplicaCoste(r[3]);k.g-=r[4];k.a=0;
+    if(k.g<=0){CRISIS.splice(ST.crisisSel,1);ST.crisisSel=0;toast(`${TIPO[k.t][0]} en ${CIU.find(c=>c.id===k.c).n} <b>controlado</b>.`);const c=CIU.find(c=>c.id===k.c);c.av=c.av.filter(a=>a!==k.t)}
+    else toast(`<b>${r[1]}</b> reduce el peligro a ${k.g} %.`);pinta();return}
+  if(d.cli!==undefined){const c=ST.clientes[+d.cli];aplicaCoste(c[4][2]);ST.clientes.splice(+d.cli,1);toast(`${c[1]} te agradece. Tu clientela crece.`);pinta();return}
+  if(d.desp!==undefined){ST.clientes.splice(+d.desp,1);toast('Lo despides con cortesía. Fama −1.');pinta();return}
+});
+/* arranque: ?s=sala para las capturas */
+const q=new URLSearchParams(location.search);
+if(q.get('crisis'))ST.crisisSel=+q.get('crisis');
+if(q.get('ed'))ST.sel.edif=q.get('ed');
+if(q.get('as')){ST.sel.asunto=q.get('as')}
+if(q.get('op'))ST.sel.opc=+q.get('op');
+if(q.get('c')){ST.ciudad=q.get('c')}
+if(q.get('r'))ST.sel.resp=+q.get('r');
+document.fonts.ready.then(()=>ir(q.get('s')||'atrio'));
+ir(q.get('s')||'atrio');
+</script>
+</body>
+</html>

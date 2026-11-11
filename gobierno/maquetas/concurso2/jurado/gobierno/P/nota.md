@@ -1,0 +1,7 @@
+1. La ciudad real de 0 A.D. es el único mapa; cuatro lentes (Pueblo, Economía, Política, Peligro) la recolorean como mapa de calor y la crisis se ve, se toca y se resuelve en la propia lente.
+2. Pulgar: cuatro lentes y «Imperio» en una fila inferior de 74 px; la hoja de acción sube justo encima; tocar un barrio abre su ficha; en la intriga, tocar una respuesta enseña su efecto en el mapa antes de confirmar.
+3. Botones a la vista: 5 en la barra inferior, más 1 principal y 2 o 3 respuestas en la hoja (unos 8-9 con ciudades); la barra de ciudades se desliza.
+4. Arte: guía E1 (noche, bronce, oro, oliva, terracota), Cinzel en títulos, doble filete y greca de bronce, iconos de línea en SVG propio, render real de la ciudad y mapa de calor con llama y humo; el mapa del Imperio es una carta de pergamino.
+5. Escala: los barrios agrupan por tipo (14 puntos aunque haya 30+ edificios); el Imperio muestra 18 ciudades como puntos del color de la lente, ordena por urgencia y pliega las tranquilas; los avisos se cuentan en la insignia de cada lente.
+6. Cambios: ui.js (barra de lentes, hoja inferior, cabecera con ciudades, vista Imperio), city3d.js (etiquetas de barrio y mapa de calor como luces o decales de color) y map3d.js (puntos por ciudad con color de lente).
+7. Coste estimado: unas 5 tareas medianas (lentes y datos de severidad, hoja de acción, vista previa de decisiones, crisis animadas, vista Imperio).

@@ -346,6 +346,61 @@
    "archivo": "gobierno/capturas-tarea/guerra-2-cartas-2.jpg",
    "pie": "Guerra · Cartas",
    "ancha": true
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-gob-A-ciudad-1.jpg",
+   "pie": "Gobierno 2 · Ciudad (1.º)"
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-gob-A-ciudad-3.jpg",
+   "pie": "Gobierno 2 · Ciudad: intriga"
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-gob-A-ciudad-5.jpg",
+   "pie": "Gobierno 2 · Ciudad: escala"
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-gob-E-tabularium-1.jpg",
+   "pie": "Gobierno 2 · Tabularium (2.º)"
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-gob-B-lentes-3.jpg",
+   "pie": "Gobierno 2 · Lentes: vista previa"
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-guerra-B-legado-2.jpg",
+   "pie": "Guerra 2 · Legado (1.º)",
+   "ancha": true
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-guerra-B-legado-6.jpg",
+   "pie": "Guerra 2 · Legado: 24 regimientos",
+   "ancha": true
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-guerra-E-fantasmas-2.jpg",
+   "pie": "Guerra 2 · Fantasmas (2.º)",
+   "ancha": true
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-guerra-A-miniaturas-2.jpg",
+   "pie": "Guerra 2 · Miniaturas",
+   "ancha": true
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-guerra-D-estandartes-2.jpg",
+   "pie": "Guerra 2 · Estandartes",
+   "ancha": true
   }
  ],
  "informes": [
@@ -380,6 +435,10 @@
   {
    "titulo": "K · Concurso de interfaz: puntuaciones",
    "archivo": "gobierno/estudios/K-concurso.md"
+  },
+  {
+   "titulo": "K2 · Segunda ronda: puntuaciones",
+   "archivo": "gobierno/estudios/K2-concurso.md"
   }
  ]
 }

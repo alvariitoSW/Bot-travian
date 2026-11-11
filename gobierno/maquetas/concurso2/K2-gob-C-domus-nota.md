@@ -1,0 +1,7 @@
+1. La idea: gobernar es moverse por una domus romana; cada estancia (atrio, tablinum, peristilo, horreum, torre) es un tipo de asunto y la ciudad real del juego se ve siempre por una ventana en arco cuya cámara viaja con la estancia.
+2. Con el pulgar: la barra inferior es el plano de la casa (5 estancias de 56 px); todo lo frecuente está en la mitad baja, con una acción principal roja por pantalla y opciones con el coste y el efecto a la vista (no solo sí/no).
+3. Botones a la vista: 5 de navegación y de 3 a 4 acciones por estancia (unos 9 en total); los listados son filas de 56 px.
+4. Dirección de arte: fresco rojo pompeyano, greca de bronce, papiro, cera de sellos, ánforas de recursos y letra Cinzel (assets/fuentes); iconos de línea propios en SVG; la ciudad es el render real de 0 A.D. (fondo-ciudad.jpg), con llamas y humo animados en el incendio.
+5. Escala: el carril de ciudades y el atlas de 3 columnas aguantan 18 o 40 ciudades (solo se alarga la lista, con filtros); los avisos se agrupan (máx. 2 iconos y «+n»); cartas como fila de sellos con scroll, edificios en rejilla con filtros, peligros ordenados por gravedad.
+6. Cambios en el juego: nueva vista de «estancias» en js/ui.js (nav, paneles y la lista de peligros), cámara guiada y pines sobre la ventana en js/gfx/city3d.js, y el efecto de fuego/humo; la lógica de game.js ya da recursos, felicidad y obras.
+7. Coste estimado: 6 a 8 tareas (marco y navegación 1, atrio 1, horreum 1, tablinum con senado y decisiones 2, torre con crisis 1, atlas 1, arte e iconos 1).

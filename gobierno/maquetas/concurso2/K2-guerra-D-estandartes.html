@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>Estandartes</title>
+<style>
+@font-face{font-family:Cinzel;font-weight:700;src:url(../../../assets/fuentes/cinzel-700.woff2) format('woff2')}
+@font-face{font-family:Cinzel;font-weight:400;src:url(../../../assets/fuentes/cinzel-400.woff2) format('woff2')}
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#05080c;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+body{display:flex;align-items:center;justify-content:center}
+#stage{position:relative;width:844px;height:390px;flex:none;transform-origin:center;background:var(--noche);overflow:clip;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+#campo{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+button{font:inherit;color:var(--marmol);cursor:pointer}
+.rail{position:absolute;left:8px;top:34px;display:flex;flex-direction:column;gap:5px;z-index:5}
+.rail button{width:44px;height:44px;border-radius:50%;background:rgba(11,16,22,.72);border:1.5px solid var(--bronce);font:700 17px Cinzel,Georgia,serif;padding:0}
+.rail button.on{background:var(--oro);color:var(--noche);border-color:var(--marmol)}
+.cuernos{position:absolute;right:8px;top:34px;display:flex;flex-direction:column;gap:6px;z-index:5}
+.cuernos button{width:62px;height:62px;border-radius:10px;background:rgba(11,16,22,.78);border:1.5px solid var(--bronce);padding:3px 0 0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:13px;line-height:1.1}
+.cuernos button svg{width:32px;height:28px}
+.cuernos button:active,.cuernos button.pulsa{background:var(--rojo);border-color:var(--oro)}
+.fin{position:absolute;left:0;right:0;bottom:50px;display:none;justify-content:center;gap:14px;z-index:6}
+.fin button{min-height:48px;padding:0 20px;border-radius:8px;font:700 15px Cinzel,Georgia,serif;letter-spacing:.04em;background:rgba(11,16,22,.82);border:1.5px solid var(--bronce)}
+.fin button.p{background:var(--rojo);border-color:var(--oro)}
+.esc6 .cuernos,.esc5 .cuernos{}
+.esc5 .cuernos{display:none}
+.esc5 .fin{display:flex}
+.ola{position:absolute;pointer-events:none;border-radius:50%;border:3px solid var(--oro);opacity:0;z-index:4}
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg id="campo" viewBox="0 0 844 390" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9b98a"/><stop offset="1" stop-color="#efd9a8"/></linearGradient>
+      <linearGradient id="suelo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9a45e"/><stop offset=".45" stop-color="#8a8744"/><stop offset="1" stop-color="#5f5e2c"/></linearGradient>
+      <radialGradient id="vineta" cx=".5" cy=".5" r=".75"><stop offset=".55" stop-color="#0b1016" stop-opacity="0"/><stop offset="1" stop-color="#0b1016" stop-opacity=".62"/></radialGradient>
+      <linearGradient id="luz" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd98a" stop-opacity=".28"/><stop offset=".6" stop-color="#ffd98a" stop-opacity="0"/></linearGradient>
+      <radialGradient id="halo"><stop offset="0" stop-color="#ffd98a" stop-opacity=".75"/><stop offset="1" stop-color="#ffd98a" stop-opacity="0"/></radialGradient>
+      <pattern id="grabado" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(-35)"><path d="M0 1h6" stroke="#2a2410" stroke-width=".7" opacity=".5"/></pattern>
+      <pattern id="greca" width="14" height="14" patternUnits="userSpaceOnUse"><path d="M0 12V2h10v7H4V5h3" fill="none" stroke="#e9c063" stroke-width="1.3" opacity=".75"/></pattern>
+      <filter id="ruido" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" seed="4"/><feColorMatrix values="0 0 0 0 .1  0 0 0 0 .09  0 0 0 0 .04  0 0 0 .55 -.12"/></filter>
+      <filter id="desenfoque"><feGaussianBlur stdDeviation="6"/></filter>
+    </defs>
+    <g id="fondo"></g>
+    <g id="vivo"></g>
+    <g id="marco" pointer-events="none"></g>
+  </svg>
+  <div class="rail" id="rail"></div>
+  <div class="cuernos" id="cuernos">
+    <button data-h="av" aria-label="Avanzar"><svg viewBox="0 0 34 30"><path d="M4 22C0 11 9 4 18 7c6 2 5 11-1 10-3-1-3-5 0-5" fill="none" stroke="#e9c063" stroke-width="2.2" stroke-linecap="round"/><path d="M20 22l6-5 2 8z" fill="#e9c063"/><path d="M26 10q3 3 0 6M29 8q5 5 0 10" fill="none" stroke="#f1ead9" stroke-width="1.4" stroke-linecap="round"/></svg>Avanzar</button>
+    <button data-h="ca" aria-label="Cargar"><svg viewBox="0 0 34 30"><path d="M3 16h15l8-7v14l-8-7" fill="none" stroke="#e9c063" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><path d="M29 11q3 4 0 8" fill="none" stroke="#f1ead9" stroke-width="1.4" stroke-linecap="round"/><path d="M9 26l4-5 4 5" fill="none" stroke="#c0281f" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Cargar</button>
+    <button data-h="re" aria-label="Retirar"><svg viewBox="0 0 34 30"><circle cx="13" cy="13" r="8" fill="none" stroke="#e9c063" stroke-width="2.2"/><circle cx="13" cy="13" r="3.4" fill="none" stroke="#e9c063" stroke-width="2"/><path d="M20 15l9 5v-9z" fill="#e9c063"/><path d="M5 26l4-5 4 5" transform="rotate(180 9 23.5)" fill="none" stroke="#9aa6b4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>Retirar</button>
+  </div>
+  <div class="fin" id="fin"><button class="p" data-f="per">Perseguir al enemigo</button><button data-f="ret">Volver a Roma</button></div>
+</div>
+<script>
+const W=844,H=390,svg=document.getElementById('campo'),FON=document.getElementById('fondo'),VIVO=document.getElementById('vivo'),MARCO=document.getElementById('marco'),STAGE=document.getElementById('stage');
+function ajusta(){const k=Math.min(innerWidth/W,innerHeight/H);STAGE.style.transform='scale('+k+')'}
+addEventListener('resize',ajusta);ajusta();
+/* ---- datos: tipos de regimiento (nombres de js/data.js) ---- */
+const K={hastati:{n:'Hastati',g:'lanza',sp:3.9,c:12},principes:{n:'Príncipes',g:'escudo',sp:3.9,c:12},triarii:{n:'Triarios',g:'pilum',sp:3.9,c:12},velites:{n:'Vélites',g:'dardos',sp:6,c:9},
+equites:{n:'Équites',g:'caballo',sp:6.6,c:6,cav:1},general:{n:'Águila de la legión',g:'aguila',sp:5,c:5},
+libios:{n:'Libios',g:'lanza',sp:3.9,c:12},iberos:{n:'Íberos',g:'escudo',sp:3.9,c:12},honderos:{n:'Honderos',g:'arco',sp:6,c:9},numidas:{n:'Númidas',g:'caballo',sp:6.6,c:6,cav:1},
+elefantes:{n:'Elefantes',g:'elefante',sp:12,c:4},galos:{n:'Galos',g:'pilum',sp:4.6,c:10},gen_e:{n:'Estandarte púnico',g:'aguila',sp:5,c:5}};
+const GL={lanza:'M0-8L2.6-3 0-4.6-2.6-3ZM0-4V8',escudo:'M-4-7h8v14h-8zM0-7V7M-4 0H4',pilum:'M-5-7L5 7M5-7L-5 7M0-8V8',dardos:'M-5 7L-2-7M0 7L0-7M5 7L2-7',
+caballo:'M-4 8C-5 1-2-1-1-7L2-5 3-1C5 2 4 5 4 8Z',arco:'M-4-8Q7 0-4 8M-4-8V8M-4 0H6',elefante:'M-7 2C-7-5 3-6 5-1V5H3V2H-1V5H-3V3C-4 7-7 6-7 2ZM5-1C8-1 8 5 6 6',
+aguila:'M0-3Q-8-8-12-2Q-7-4-9 1Q-5-1-4 3L0 8 4 3Q5-1 9 1Q7-4 12-2Q8-8 0-3ZM0-3V-8M-2-8H2'};
+const SIDE={r:{c:'#c0281f',cl:'#e0372a',ac:'#e9c063',n:'Roma',sk:'#e8c9a0'},e:{c:'#5b3a8c',cl:'#7a52b0',ac:'#d7dde6',n:'Cartago',sk:'#c9a27a'}};
+const SC=y=>Math.max(.5,Math.min(1.18,.56+.6*(y-50)/340));
+let seed=7;const rnd=()=>{seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+/* ---- escenas ---- */
+let regs=[],ESC=null,sel=new Set(),hint=true,T=0,waves=[],D=null,idN=0;
+function R(s,k,x,y,n,m,o){return Object.assign({id:++idN,s,k,x,y,n,m,f:s==='r'?-90:90,raised:0,path:[],trail:null,ord:'',st:'ok',pulse:-9},o||{})}
+function fila(s,k,xs,y,n,m,o){return xs.map(x=>R(s,k,x,y+(rnd()*4-2),n,m,o))}
+const ESCENAS=[
+{id:1,tipo:'campo',cap:'Despliegue. Arrastra los estandartes. Alza uno para atacar.',rec:'h2',
+ mk(){const r=[];r.push(...fila('r','velites',[300,540],228,60,.9));const h=fila('r','hastati',[200,340,480,620],262,240,.9);h[1].tag='h2';r.push(...h);
+ r.push(...fila('r','principes',[200,340,480,620],298,160,.9),...fila('r','triarii',[270,420,570],334,80,.95));
+ r.push(...fila('r','equites',[104,742],284,80,.95),R('r','general',420,372,1,1));
+ r.push(...fila('e','honderos',[300,540],118,120,.9),...fila('e','libios',[180,330,480,630],104,240,.9),...fila('e','iberos',[250,410,570],86,160,.9),...fila('e','elefantes',[340,500],132,16,.95),...fila('e','numidas',[110,740],112,80,.95));return r}},
+{id:2,tipo:'campo',cap:'Choque. Un estandarte alzado ataca. Gíralo para cubrir el flanco.',rec:'h2',
+ mk(){const r=[];const h=fila('r','hastati',[200,340,480,620],212,214,.78);h[1].tag='h2';h[1].raised=1;h[1].ord='¡Ataque!';h[2].m=.4;h[2].n=130;r.push(...h);
+ r.push(...fila('r','principes',[200,340,480,620],258,160,.9),...fila('r','triarii',[270,420,570],300,80,.95),R('r','general',420,350,1,1),...fila('r','equites',[104,742],250,80,.9),...fila('r','velites',[300,540],190,40,.6));
+ const e=fila('e','libios',[200,340,480,620],166,200,.7);e[0].m=.28;e[0].n=90;e[3].m=.5;r.push(...e,...fila('e','iberos',[250,410,570],128,160,.9),...fila('e','elefantes',[340,500],104,12,.9),...fila('e','honderos',[300,540],90,80,.9),...fila('e','numidas',[110,740],146,60,.8));
+ r.filter(q=>q.s==='r').slice(0,4).forEach((q,i)=>q.vs=r.filter(z=>z.k==='libios')[i].id);r.filter(q=>q.s==='r'&&q.k==='hastati').forEach((q,i)=>q.vs=r.filter(z=>z.k==='libios')[i].id);return r}},
+{id:3,tipo:'campo',cap:'Flanqueo. La caballería rodea y rompe por la espalda.',rec:'eq',
+ mk(){const r=[];r.push(...fila('r','hastati',[200,340,480,620],226,214,.85),...fila('r','principes',[200,340,480,620],270,160,.9),R('r','general',420,350,1,1),...fila('r','velites',[300,540],196,40,.8));
+ const q=R('r','equites',742,300,80,.95,{raised:1,ord:'¡Carga!',tag:'eq',armed:[{x:764,y:236},{x:748,y:158},{x:676,y:112}],trail:[{x:742,y:300},{x:764,y:236},{x:748,y:158},{x:676,y:112}]});r.push(q,R('r','equites',104,300,80,.9));
+ const e=fila('e','libios',[200,340,480,620],176,200,.6);e[3].m=.22;e[3].flank=1;e[2].m=.4;r.push(...e,...fila('e','iberos',[250,410,570],130,160,.8),...fila('e','honderos',[330,520],104,60,.7),...fila('e','numidas',[110],150,60,.5),R('e','elefantes',700,170,10,.35));
+ r.filter(z=>z.s==='e').slice(0,4).forEach((z,i)=>{r.filter(a=>a.k==='hastati')[i].vs=z.id});sel.add(q.id);return r}},
+{id:4,tipo:'paso',cap:'¡Emboscada! Cuernos en ambos flancos. Cierra el cuadro.',rec:'gen',
+ mk(){const r=[];const ys=[352,320,288,256,226,198];ys.forEach((y,i)=>r.push(R('r',i%3===0?'principes':'hastati',420+(i%2?-22:22),y,i%3===0?160:240,.85)));
+ r.push(R('r','general',420,370,1,1,{tag:'gen'}),R('r','equites',360,236,80,.9),R('r','velites',480,184,60,.8),R('r','triarii',420,150,80,.9));
+ [[120,176],[160,238],[110,300],[170,130]].forEach(([x,y])=>r.push(R('e','galos',x,y,200,.9,{f:0,oculto:1})));
+ [[724,176],[690,238],[734,300],[680,130]].forEach(([x,y])=>r.push(R('e','galos',x,y,200,.9,{f:180,oculto:1})));
+ r.push(R('e','numidas',420,92,60,.9,{f:90}));return r}},
+{id:5,tipo:'ocaso',cap:'Victoria. Cartago huye. Tú decides qué sigue.',rec:'',
+ mk(){const r=[];const a=fila('r','hastati',[220,360,500,640],214,150,.8);a[1].st='dead';a[1].m=0;a[1].n=0;r.push(...a);
+ const b=fila('r','principes',[260,400,560],250,110,.75);b[2].st='dead';b[2].m=0;b[2].n=0;r.push(...b,...fila('r','triarii',[330,510],284,70,.95),R('r','general',420,226,1,1,{raised:1,ord:'Victoria'}),...fila('r','equites',[130,730],262,50,.8));
+ const e=[...fila('e','libios',[180,320,470,620],112,40,.12,{st:'rout'}),...fila('e','iberos',[260,430,590],86,30,.1,{st:'rout'})];e.forEach(q=>q.f=-90);r.push(...e,R('e','elefantes',700,98,3,.1,{st:'rout',f:-90}));
+ [[300,150],[480,164],[610,140],[150,160]].forEach(([x,y])=>r.push(R('e','libios',x,y,0,0,{st:'dead'})));return r}},
+{id:6,tipo:'campo',cap:'Escala. 36 estandartes: traza una línea o toca un ala.',rec:'',grupos:1,
+ mk(){const r=[];const G=[['Ala izquierda',[110,170,230,290]],['Centro',[340,400,460,520]],['Ala derecha',[600,660,720,780]]];
+ const kinds=['hastati','principes'];G.forEach((g,gi)=>{[246,298].forEach((y,ri)=>g[1].forEach((x,ci)=>{if(x>770)return;r.push(R('r',kinds[ri],x-(gi===2?34:0),y,ri?160:240,.8+rnd()*.15,{g:gi}))}))});
+ r.push(R('r','triarii',270,336,80,.9,{g:1}),R('r','triarii',420,336,80,.9,{g:1}),R('r','triarii',570,336,80,.9,{g:1}),R('r','general',420,372,1,1,{g:1}),R('r','equites',90,310,80,.9,{g:0}),R('r','equites',760,310,80,.9,{g:2}));
+ for(let i=0;i<14;i++)r.push(R('e',i%4===3?'elefantes':i%4===2?'honderos':i%2?'iberos':'libios',110+i*46,96+(i%3)*18,i%4===3?12:160,.6+rnd()*.35));
+ G.forEach((g,gi)=>g.name=g[0]);r.G=G.map(g=>g[0]);return r}}];
+/* ---- fondo pintado (grabado) ---- */
+function arbol(x,y,t){const s=SC(y)*1.05;if(t)return `<g transform="translate(${x},${y}) scale(${s})"><path d="M0 0V-18" stroke="#3a2a18" stroke-width="2.4"/><ellipse cx="0" cy="-24" rx="15" ry="6.5" fill="#34421f"/><ellipse cx="-3" cy="-26" rx="10" ry="3.6" fill="#4d6030"/></g>`;
+return `<g transform="translate(${x},${y}) scale(${s})"><path d="M0 0C-6-10-5-30 0-52 5-30 6-10 0 0Z" fill="#2f3d22"/><path d="M0 0C3-12 3-30 0-52 4-30 6-10 0 0Z" fill="#4b5d2e"/></g>`}
+function fondo(tipo){let s='';const ocaso=tipo==='ocaso';
+ s+=`<rect width="844" height="80" fill="${ocaso?'#d98a52':'url(#cielo)'}"/>`;
+ s+=`<path d="M0 74Q90 38 190 62T380 58T560 50T740 60T844 44V90H0Z" fill="#a39f84" opacity=".7"/><path d="M0 84Q120 58 250 76T520 70T844 68V96H0Z" fill="#7f8564" opacity=".85"/>`;
+ s+=`<rect y="70" width="844" height="320" fill="url(#suelo)"/>`;
+ if(tipo==='paso'){s+=`<path d="M0 60H150L206 210 60 390H0Z" fill="#4c4a3b"/><path d="M844 60H694L638 210 784 390H844Z" fill="#4c4a3b"/><path d="M0 60H150L206 210 60 390H0Z" fill="url(#grabado)"/><path d="M844 60H694L638 210 784 390H844Z" fill="url(#grabado)"/><path d="M360 70H480L640 390H200Z" fill="#cdb87c" opacity=".55"/>`}
+ else s+=`<ellipse cx="422" cy="230" rx="240" ry="150" fill="#d6c186" opacity=".22" filter="url(#desenfoque)"/>`;
+ s+=`<rect y="70" width="844" height="320" filter="url(#ruido)" opacity=".7"/><rect y="70" width="844" height="320" fill="url(#grabado)" opacity=".22"/>`;
+ let t='';for(let i=0;i<230;i++){const x=rnd()*844,y=80+rnd()*300,k=SC(y)*3.4;t+=`M${x|0} ${y|0}l${(-k*.5).toFixed(1)} ${-k}M${x|0} ${y|0}l${(k*.3).toFixed(1)} ${(-k*1.1).toFixed(1)}`}
+ s+=`<path d="${t}" stroke="${ocaso?'#6b5326':'#4a5a24'}" stroke-width="1" fill="none" opacity=".75"/>`;
+ let pb=[];const edge=tipo==='paso'?[[40,200],[95,160],[60,290],[180,120],[26,350],[800,200],[750,150],[790,300],[690,110],[820,360]]:[[34,150],[70,250],[28,340],[130,100],[810,140],[780,260],[826,350],[720,100],[250,86],[600,84]];
+ edge.forEach(([x,y],i)=>pb.push([x,y,i%3===0?1:0]));pb.sort((a,b)=>a[1]-b[1]).forEach(p=>s+=arbol(p[0],p[1],p[2]));
+ for(let i=0;i<14;i++){const x=rnd()*844,y=100+rnd()*270;if(tipo==='paso'&&x>150&&x<700&&y>100)continue;s+=`<ellipse cx="${x|0}" cy="${y|0}" rx="${(3+rnd()*4)*SC(y)}" ry="${(1.6+rnd()*2)*SC(y)}" fill="#7d7a66" opacity=".8"/>`}
+ if(ocaso){s+=`<rect width="844" height="390" fill="#e0752f" opacity=".22"/>`;[[150,70],[690,64]].forEach(([x,y])=>s+=`<path d="M${x} ${y}q-10-20 6-34t-4-30" stroke="#3b3028" stroke-width="6" fill="none" opacity=".4" stroke-linecap="round"/>`)}
+ s+=`<rect width="844" height="390" fill="url(#luz)"/><rect width="844" height="390" fill="url(#vineta)"/>`;FON.innerHTML=s}
+/* ---- dibujo de estandartes ---- */
+function tela(w,h,t,sd,rota,col){const P=[[-w/2,0],[w/2,0]];
+ for(let i=1;i<=3;i++)P.push([w/2+Math.sin(t*3+i*.9+sd+1)*1.8*i/4,h*i/4]);
+ if(rota)P.push([w/2,h],[w*.3,h-6],[w*.1,h+1],[-w*.12,h-8],[-w*.3,h+2],[-w/2,h-4]);
+ else P.push([w/2,h],[0,h-7+Math.sin(t*3+sd)*1.2],[-w/2,h]);
+ for(let i=3;i>=1;i--)P.push([-w/2+Math.sin(t*3+i*.9+sd)*.9*i/4,h*i/4]);
+ return `<polygon points="${P.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="${col}" stroke="#1b1408" stroke-width=".7"/>`}
+function dibujaReg(r,ghost){const k=K[r.k],sd=SIDE[r.s],sc=SC(r.y),X=r.x,Y=r.y,muerto=r.st==='dead',huye=r.st==='rout',baja=r.m<.33&&!muerto;
+ let o=`<g opacity="${ghost?.5:r.oculto&&!r.visto?.82:1}">`;
+ const gran=regs.length>30,cnt=muerto?0:Math.max(3,Math.round(r.n/(k.cav?9:r.k==='elefantes'?3:6)/(gran?1.6:1))),cols=k.c,pts=[];
+ const fr=r.f*Math.PI/180,dx=Math.cos(fr),dy=Math.sin(fr),px=-dy,py=dx;
+ for(let i=0;i<cnt;i++){const c=i%cols,w=Math.floor(i/cols),u=(c-(Math.min(cols,cnt)-1)/2)*k.sp,b=11+w*k.sp*.95;pts.push([X+(u*px-b*dx)*sc,Y+(u*py-b*dy)*sc*.5])}
+ pts.sort((a,b)=>a[1]-b[1]);const col=baja||huye?'#7e7466':(r.raised?sd.cl:sd.c);let body='',head='';
+ pts.forEach(([x,y])=>{const a=1.7*sc,h=4.4*sc;body+=`M${(x-a).toFixed(1)} ${y.toFixed(1)}h${(a*2).toFixed(1)}v${(-h).toFixed(1)}h${(-a*2).toFixed(1)}z`;head+=`M${(x-1.4*sc).toFixed(1)} ${(y-h-.8*sc).toFixed(1)}a${(1.4*sc).toFixed(1)} ${(1.5*sc).toFixed(1)} 0 1 0 ${(2.8*sc).toFixed(1)} 0a${(1.4*sc).toFixed(1)} ${(1.5*sc).toFixed(1)} 0 1 0 ${(-2.8*sc).toFixed(1)} 0z`});
+ if(r.k==='elefantes'||k.cav){o+=`<path d="${body}" fill="${k.cav?'#3a2a1c':'#6e6a66'}" opacity=".85"/>`}
+ o+=`<path d="${body}" fill="${col}" ${k.cav||r.k==='elefantes'?'transform="translate(0,-2.5)"':''}/><path d="${head}" fill="${sd.sk}" ${k.cav||r.k==='elefantes'?'transform="translate(0,-2.5)"':''}/>`;
+ if(r.vs){const v=regs.find(q=>q.id===r.vs);if(v&&r.st!=='dead'&&Math.sin(T*9+r.id*2)>-.2){const mx=(X+v.x)/2,my=(Y+v.y)/2+4;o+=`<path d="M${mx-8} ${my-6}L${mx+8} ${my+6}M${mx+8} ${my-6}L${mx-8} ${my+6}" stroke="#fff3c4" stroke-width="2" stroke-linecap="round"/><circle cx="${mx}" cy="${my}" r="${3+Math.sin(T*9+r.id)*1.5}" fill="#ffd98a" opacity=".8"/>`}}
+ /* estandarte */
+ const pu=46+(r.raised?8:0)+(r.k==='general'?8:0),sh=(r.pulse>T-.5)?Math.sin((T-r.pulse)*40)*2:0;
+ o+=`<path d="M${X} ${Y}L${X+38*sc} ${Y+9*sc}" stroke="rgba(0,0,0,.3)" stroke-width="${2.4*sc}" stroke-linecap="round"/>`;
+ const rot=muerto?78:huye?-18:baja?12:0,w=r.k==='general'?22:15,h=r.k==='general'?27:21;
+ o+=`<g transform="translate(${X+sh},${Y}) scale(${sc}) rotate(${rot})">`;
+ if(r.raised&&!muerto)o+=`<ellipse cx="0" cy="${-pu+h/2}" rx="${w+12}" ry="${h/2+14}" fill="url(#halo)"/>`;
+ o+=`<path d="M0 0V${-pu}" stroke="#7a5a1c" stroke-width="3"/><path d="M-.7 0V${-pu}" stroke="${muerto?'#8a8a80':'#e9c063'}" stroke-width="1.2"/>`;
+ o+=`<path d="M0 ${-pu-10}L3.4 ${-pu-2}L0 ${-pu-4.4}L-3.4 ${-pu-2}Z" fill="${muerto?'#8a8a80':'#e9c063'}"/><path d="M${-w/2-3} ${-pu+9}H${w/2+3}" stroke="${muerto?'#8a8a80':'#e9c063'}" stroke-width="2.2" stroke-linecap="round"/><circle cx="${-w/2-3}" cy="${-pu+9}" r="2" fill="#e9c063"/><circle cx="${w/2+3}" cy="${-pu+9}" r="2" fill="#e9c063"/>`;
+ const cc=muerto?'#6c6a62':baja||huye?'#6e6a72':(r.raised?sd.cl:sd.c);
+ o+=`<g transform="translate(0,${-pu+10})">${tela(w,h,T,r.id,baja||huye||muerto,cc)}<rect x="${-w/2+1.5}" y="1.5" width="${w-3}" height="${h-10}" fill="none" stroke="${sd.ac}" stroke-width=".8" opacity=".7"/><g transform="translate(0,${h*.42}) scale(${r.k==='general'?.95:.62})" fill="none" stroke="${muerto?'#aaa':sd.ac}" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${GL[k.g]}"/></g></g>`;
+ if(r.flank)o+=`<g transform="translate(0,${-pu-26})"><circle r="10" fill="#0b1016" stroke="#d9764a" stroke-width="2"/><path d="M-5 4L5-4M5 4L-5-4" stroke="#d9764a" stroke-width="2.2" stroke-linecap="round"/></g>`;
+ o+='</g></g>';return o}
+function ruta(tr,col,dash){if(!tr||tr.length<2)return '';let d=`M${tr[0].x} ${tr[0].y}`;for(let i=1;i<tr.length;i++){const a=tr[i-1],b=tr[i],mx=(a.x+b.x)/2,my=(a.y+b.y)/2;d+=i<tr.length-1?`Q${b.x} ${b.y} ${(b.x+tr[i+1].x)/2} ${(b.y+tr[i+1].y)/2}`:`L${b.x} ${b.y}`}
+ const a=tr[tr.length-2],b=tr[tr.length-1],an=Math.atan2(b.y-a.y,b.x-a.x),c=Math.cos(an),s=Math.sin(an);
+ return `<path d="${d}" fill="none" stroke="#1b1408" stroke-width="5.5" opacity=".35" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${col}" stroke-width="3" stroke-dasharray="${dash||'9 6'}" stroke-linecap="round"/><path d="M${b.x} ${b.y}L${b.x-15*c+7*s} ${b.y-15*s-7*c}L${b.x-15*c-7*s} ${b.y-15*s+7*c}Z" fill="${col}" stroke="#1b1408" stroke-width="1"/>`}
+const knob=r=>{const a=r.f*Math.PI/180,sc=SC(r.y);return{x:r.x+Math.cos(a)*36*sc*1.15,y:r.y+Math.sin(a)*36*sc*.5}};
+const alza=r=>({x:r.x,y:r.y-(60+(r.raised?8:0))*SC(r.y)-14});
+function chip(x,y,txt,col){const w=txt.length*7.6+16;return `<g><rect x="${x-w/2}" y="${y-11}" width="${w}" height="22" rx="5" fill="#0b1016" fill-opacity=".82" stroke="${col||'#b8862b'}" stroke-width="1.2"/><text x="${x}" y="${y+5}" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-size="13" font-weight="700" fill="#f1ead9">${txt}</text></g>`}
+/* ---- bucle ---- */
+function vista(){let o='';const lista=regs.slice().sort((a,b)=>a.y-b.y);
+ if(ESC.grupos)for(const g of gruposInfo()){o+=`<path d="M${g.x0} ${g.y+5}V${g.y}H${g.x1}V${g.y+5}" fill="none" stroke="#e9c063" stroke-width="2" opacity=".8"/>`+chip((g.x0+g.x1)/2,g.y-4,g.n+' · '+g.c,'#e9c063')}
+ regs.forEach(r=>{if(r.trail&&r.s==='r'&&r.st!=='dead')o+=ruta(r.trail,r.raised?'#ff9a6a':'#e9c063')});
+ lista.forEach(r=>{o+=dibujaReg(r)});
+ regs.forEach(r=>{if(sel.has(r.id)){const sc=SC(r.y);o+=`<ellipse cx="${r.x}" cy="${r.y}" rx="${36*sc*1.15}" ry="${36*sc*.5}" fill="rgba(233,192,99,.12)" stroke="#e9c063" stroke-width="2"/>`}});
+ if(D&&D.mode==='move'&&D.mov)D.ids.forEach(id=>{const r=regs.find(q=>q.id===id);o+=ruta([{x:r.x,y:r.y},D.g[id]],r.raised?'#ff9a6a':'#e9c063');o+=dibujaReg(Object.assign({},r,D.g[id],{path:[],trail:null,vs:0}),1)});
+ if(D&&D.mode==='lasso'&&D.pts.length>1)o+=`<path d="M${D.pts.map(p=>p.x.toFixed(0)+' '+p.y.toFixed(0)).join('L')}" fill="none" stroke="#1b1408" stroke-width="7" opacity=".3" stroke-linecap="round"/><path d="M${D.pts.map(p=>p.x.toFixed(0)+' '+p.y.toFixed(0)).join('L')}" fill="none" stroke="#e9c063" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>`;
+ const ult=[...sel].map(i=>regs.find(q=>q.id===i)).filter(q=>q&&q.s==='r').pop();
+ if(ult&&!(D&&D.mode==='move'&&D.mov)){const kb=knob(ult),al=alza(ult),k=K[ult.k];
+  o+=`<g><circle cx="${kb.x}" cy="${kb.y}" r="11" fill="#0b1016" stroke="#e9c063" stroke-width="2"/><path d="M${kb.x-5} ${kb.y+1}a5 5 0 1 1 3 4.5M${kb.x-5} ${kb.y+1}l-1-4M${kb.x-5} ${kb.y+1}l4 .5" fill="none" stroke="#e9c063" stroke-width="1.8" stroke-linecap="round"/></g>`;
+  o+=`<g><circle cx="${al.x}" cy="${al.y}" r="12" fill="${ult.raised?'#c0281f':'#0b1016'}" stroke="#e9c063" stroke-width="2"/><path d="M${al.x-5} ${al.y+3}L${al.x} ${al.y-3}L${al.x+5} ${al.y+3}" fill="none" stroke="#e9c063" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></g>`;
+  o+=chip(Math.min(ult.x,640),ult.y+26*SC(ult.y)+9,k.n+' '+ult.n+(ult.ord?' · '+ult.ord:''))}
+ if(hint&&ESC.rec){const r=regs.find(q=>q.tag===ESC.rec);if(r){const sc=SC(r.y),p=(T*1.2)%1;o+=`<circle cx="${r.x}" cy="${r.y-30*sc}" r="${16+p*26}" fill="none" stroke="#e9c063" stroke-width="3" opacity="${1-p}"/><circle cx="${r.x}" cy="${r.y-30*sc}" r="9" fill="#e9c063" opacity=".9"/><path d="M${r.x} ${r.y-42*sc}v-26m-6 8l6-8 6 8" fill="none" stroke="#e9c063" stroke-width="3" stroke-linecap="round" transform="translate(0,${Math.sin(T*4)*5})"/>`}}
+ if(ESC.id===4){[[100,150,1],[110,300,1],[744,170,-1],[740,310,-1]].forEach(([x,y,d],i)=>{const p=(T*1.4+i*.3)%1;o+=`<g transform="translate(${x},${y})"><circle r="${12+p*18}" fill="none" stroke="#d9764a" stroke-width="2.5" opacity="${1-p}"/><circle r="14" fill="#0b1016" fill-opacity=".85" stroke="#d9764a" stroke-width="2"/><g transform="scale(${-d},1) translate(-8,-8) scale(.5)"><path d="M3 16h15l8-7v14l-8-7" fill="none" stroke="#d9764a" stroke-width="3" stroke-linejoin="round"/></g></g>`})}
+ if(ESC.id===5){o+=chip(422,96,'En pie '+regs.filter(q=>q.s==='r'&&q.st!=='dead'&&q.k!=='general').length+' de '+regs.filter(q=>q.s==='r'&&q.k!=='general').length+' estandartes','#e9c063')+`<g><path d="M300 52Q422 30 544 52" fill="none" stroke="#e9c063" stroke-width="1.6"/><text x="422" y="76" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-size="34" font-weight="700" fill="#e9c063" stroke="#1b1408" stroke-width="3" paint-order="stroke" letter-spacing="5">${ESC.ret?'RETIRADA':'VICTORIA'}</text></g>`}
+ waves.forEach(w=>{const a=(T-w.t)/1.4;if(a>1)return;for(let i=0;i<3;i++){const q=Math.max(0,a-i*.12);if(q<=0)continue;o+=`<path d="M${790-q*700} ${60+(w.k==='ca'?60:w.k==='re'?150:100)-q*60}a${40+q*60} ${40+q*60} 0 0 0 0 ${80+q*120}" fill="none" stroke="${w.k==='ca'?'#ff9a6a':w.k==='re'?'#9aa6b4':'#e9c063'}" stroke-width="${3-q*2}" opacity="${(1-q)*.9}" stroke-linecap="round"/>`}});
+ VIVO.innerHTML=o;marco()}
+function gruposInfo(){const res=[];(regs.G||[]).forEach((n,gi)=>{const m=regs.filter(r=>r.s==='r'&&r.g===gi);if(!m.length)return;const x0=Math.min(...m.map(r=>r.x))-22,x1=Math.max(...m.map(r=>r.x))+22,y=Math.min(...m.map(r=>r.y))-66*SC(Math.min(...m.map(r=>r.y)));res.push({n,gi,x0,x1,y,c:m.length})});return res}
+function moral(s){const a=regs.filter(r=>r.s===s&&r.st!=='dead');return a.length?a.reduce((t,r)=>t+r.m,0)/a.length:0}
+function marco(){const mr=Math.max(.04,moral('r')),me=Math.max(.04,moral('e')),x0=74,x1=770,mid=(x0+x1)/2,wl=(mid-x0-6),en=SIDE.e.n;
+ const lw=wl*mr,rw=wl*me;let o=`<g><rect x="${x0}" y="6" width="${x1-x0}" height="22" rx="4" fill="#0b1016" fill-opacity=".78" stroke="#b8862b" stroke-width="1.5"/><rect x="${x0+3}" y="9" width="${lw}" height="16" rx="2" fill="#c0281f"/><rect x="${x1-3-rw}" y="9" width="${rw}" height="16" rx="2" fill="#5b3a8c"/><rect x="${x0+3}" y="9" width="${x1-x0-6}" height="16" fill="url(#greca)" opacity=".8"/><rect x="${mid-3}" y="6" width="6" height="22" fill="#e9c063"/>`;
+ o+=`<text x="${x0+12}" y="22" font-family="Cinzel,Georgia,serif" font-size="13" font-weight="700" fill="#f1ead9" stroke="#0b1016" stroke-width="3" paint-order="stroke">ROMA</text><text x="${x1-12}" y="22" text-anchor="end" font-family="Cinzel,Georgia,serif" font-size="13" font-weight="700" fill="#f1ead9" stroke="#0b1016" stroke-width="3" paint-order="stroke">${ESC.id===4?'GALOS':en.toUpperCase()}</text></g>`;
+ const w=ESC.cap.length*7.7+36;o+=`<g><rect x="${422-w/2}" y="354" width="${w}" height="26" rx="5" fill="#0b1016" fill-opacity=".82" stroke="#b8862b" stroke-width="1.5"/><rect x="${422-w/2+3}" y="357" width="${w-6}" height="20" rx="3" fill="none" stroke="#b8862b" stroke-width=".6" opacity=".6"/><text x="422" y="372" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-size="14" font-weight="700" fill="#f1ead9">${ESC.cap}</text></g>`;
+ o+=`<rect x="1.5" y="1.5" width="841" height="387" fill="none" stroke="#b8862b" stroke-width="3"/><rect x="6" y="6" width="832" height="378" fill="none" stroke="#e9c063" stroke-width=".6" opacity=".5"/>`;
+ MARCO.innerHTML=o}
+let last=0;function bucle(ms){const dt=Math.min(.05,(ms-last)/1000||.016);last=ms;T+=dt;mueve(dt);vista();requestAnimationFrame(bucle)}
+function mueve(dt){regs.forEach(r=>{if(r.st==='rout'&&r.s==='e'&&!ESC.ret){r.y-=dt*4}
+ if(r.path.length){const p=r.path[0],ex=p.x-r.x,ey=p.y-r.y,d=Math.hypot(ex,ey),v=(r.raised?110:62)*dt;if(r.sigue&&d>4)r.f=Math.atan2(ey,ex)*180/Math.PI;if(d<=v){r.x=p.x;r.y=p.y;r.path.shift();if(r.trail)r.trail.shift();if(!r.path.length){r.trail=null;r.sigue=0;if(!r.keep)r.ord=r.raised?'¡Ataque!':''}}else{r.x+=ex/d*v;r.y+=ey/d*v;if(r.trail&&r.trail.length)r.trail[0]={x:r.x,y:r.y}}}})}
+/* ---- entrada táctil ---- */
+const pt=e=>{const b=svg.getBoundingClientRect();return{x:(e.clientX-b.left)/b.width*W,y:(e.clientY-b.top)/b.height*H}};
+const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+function hit(p){let best=null;regs.forEach(r=>{if(r.s!=='r'||r.st==='dead')return;const sc=SC(r.y),k=K[r.k],wx=Math.max(20,Math.min(k.c,8)*k.sp*.5*sc+6);if(Math.abs(p.x-r.x)<wx&&p.y>r.y-64*sc&&p.y<r.y+34*sc){if(!best||r.y>best.y)best=r}});return best}
+svg.addEventListener('pointerdown',e=>{svg.setPointerCapture(e.pointerId);hint=false;const p=pt(e);D={p0:p,mode:null,mov:0,m:0};
+ if(ESC.grupos)for(const g of gruposInfo())if(Math.abs(p.x-(g.x0+g.x1)/2)<40&&Math.abs(p.y-(g.y-4))<16){sel.clear();regs.filter(r=>r.s==='r'&&r.g===g.gi).forEach(r=>sel.add(r.id));D=null;return}
+ const ult=[...sel].map(i=>regs.find(q=>q.id===i)).filter(q=>q&&q.s==='r').pop();
+ if(ult){if(dist(p,knob(ult))<26){D.mode='rot';return}if(dist(p,alza(ult))<26){D.mode='alza';return}}
+ const h=hit(p);if(h){if(!sel.has(h.id)){sel.clear();sel.add(h.id)}D.mode='move';D.ids=[...sel];D.g={};return}
+ D.mode='lasso';D.pts=[p]});
+svg.addEventListener('pointermove',e=>{if(!D)return;const p=pt(e);D.m=Math.max(D.m,dist(p,D.p0));
+ if(D.mode==='move'&&D.m>10){D.mov=1;D.ids.forEach(id=>{const r=regs.find(q=>q.id===id);D.g[id]={x:Math.max(80,Math.min(764,r.x+p.x-D.p0.x)),y:Math.max(76,Math.min(344,r.y+p.y-D.p0.y))}})}
+ else if(D.mode==='rot'){[...sel].forEach(i=>{const r=regs.find(q=>q.id===i);if(r)r.f=Math.atan2((p.y-r.y)/.5,p.x-r.x)*180/Math.PI})}
+ else if(D.mode==='lasso')D.pts.push(p)});
+function suelta(){if(!D)return;const d=D;D=null;
+ if(d.mode==='move'&&d.mov){d.ids.forEach(id=>{const r=regs.find(q=>q.id===id),g=d.g[id];r.path=[{x:g.x,y:g.y}];r.trail=[{x:r.x,y:r.y},{x:g.x,y:g.y}];r.ord='Marcha';r.keep=0})}
+ else if(d.mode==='alza'){[...sel].forEach(i=>{const r=regs.find(q=>q.id===i);if(r){r.raised=r.raised?0:1;r.ord=r.raised?'¡Ataque!':'';r.pulse=T}})}
+ else if(d.mode==='lasso'){if(d.m>24){sel.clear();regs.forEach(r=>{if(r.s==='r'&&r.st!=='dead'&&d.pts.some(q=>Math.abs(q.x-r.x)<24&&Math.abs(q.y-(r.y-14))<34))sel.add(r.id)})}else if(d.m<10)sel.clear()}}
+svg.addEventListener('pointerup',suelta);svg.addEventListener('pointercancel',()=>{D=null});
+/* ---- cuernos ---- */
+function cuerno(k){const ids=(sel.size?[...sel]:regs.filter(r=>r.s==='r').map(r=>r.id)).map(i=>regs.find(q=>q.id===i)).filter(r=>r&&r.s==='r'&&r.st!=='dead'&&r.k!=='general');waves.push({t:T,k});hint=false;
+ ids.forEach(r=>{r.pulse=T;const a=r.f*Math.PI/180,c=Math.cos(a),s=Math.sin(a);
+  if(k==='av'){r.path=[{x:r.x+c*52,y:r.y+s*34}];r.ord='Avance';r.trail=[{x:r.x,y:r.y},r.path[0]]}
+  if(k==='ca'){r.raised=1;r.sigue=1;if(r.armed){r.path=r.armed.slice();r.trail=[{x:r.x,y:r.y},...r.armed];r.armed=null}else{r.path=[{x:r.x+c*96,y:r.y+s*62}];r.trail=[{x:r.x,y:r.y},r.path[0]]}r.ord='¡Carga!';r.keep=1}
+  if(k==='re'){r.raised=0;r.path=[{x:r.x-c*64,y:Math.min(350,r.y-s*40)}];r.trail=[{x:r.x,y:r.y},r.path[0]];r.ord='Retirada';r.keep=1}})}
+document.getElementById('cuernos').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;b.classList.add('pulsa');setTimeout(()=>b.classList.remove('pulsa'),250);cuerno(b.dataset.h)});
+document.getElementById('fin').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;
+ if(b.dataset.f==='ret'){ESC.ret=1;ESC.cap='Retirada en orden. Los estandartes bajan, sin prisa.';regs.filter(r=>r.s==='r').forEach(r=>{r.raised=0;r.ord='';r.path=[{x:r.x,y:Math.min(382,r.y+120)}];r.trail=null;r.f=-90})}
+ else{ESC.cap='A la caza. Cartago ya no tiene moral para volver.';regs.filter(r=>r.s==='r'&&r.st!=='dead'&&r.k!=='general').forEach(r=>{r.raised=1;r.sigue=1;r.path=[{x:r.x,y:r.y-90}];r.trail=[{x:r.x,y:r.y},{x:r.x,y:r.y-90}]})}});
+/* ---- escenas ---- */
+function pon(i){ESC=ESCENAS[i];ESC.ret=0;ESC.cap=ESC.cap0||(ESC.cap0=ESC.cap);idN=0;sel.clear();seed=11+i*13;hint=true;waves=[];D=null;
+ regs=ESC.mk();if(ESC.id===6)ESC.cap='Escala. '+regs.length+' estandartes: traza una línea o toca un ala.';fondo(ESC.tipo);STAGE.className='esc'+ESC.id;
+ if(ESC.id===3)sel.add(regs.find(r=>r.tag==='eq').id);
+ [...document.querySelectorAll('#rail button')].forEach((b,j)=>b.classList.toggle('on',j===i))}
+const rail=document.getElementById('rail');ESCENAS.forEach((s,i)=>{const b=document.createElement('button');b.textContent=['I','II','III','IV','V','VI'][i];b.title='Escena '+(i+1);b.onclick=()=>pon(i);rail.appendChild(b)});
+const q=new URLSearchParams(location.search).get('e');pon(q?+q-1:0);requestAnimationFrame(bucle);
+</script>
+</body>
+</html>

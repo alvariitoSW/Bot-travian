@@ -1,0 +1,7 @@
+1. Toda la batalla es un mosaico romano: el campo son teselas de 6 px con contorno oscuro, las fichas son figuras rojas sobre negro (Roma) y negras sobre crema (Cartago), las órdenes se «pintan» como una hilera de teselas y la moral es una cenefa de olas que se vacía.
+2. Pulgar derecho: tocar una ficha o un grupo (rail inferior izquierdo), arrastrar para trazar la orden o elegir una de cuatro píldoras a la derecha (la recomendada, en oro con estrella); el botón de avance, abajo a la derecha.
+3. Botones a la vista: unos 12 como máximo (5 escenas, 5 grupos, 4 órdenes solo con selección, 1 principal); en reposo, 11.
+4. Estilo de mosaico opus tessellatum con contorno vermiculatum, figura roja sobre negro, greca dorada y letra Cinzel (assets/fuentes); todo dibujado en canvas, SVG y CSS, sin arte de terceros; paleta de la guía E1 (rojo terracota, oro, crema, oliva).
+5. Una ficha mide 34×26 px y baja a 26×20 con más de 34 regimientos; los grupos por arma seleccionan en bloque y el botón «22/28» de la maqueta enseña 28 fichas propias y 26 enemigas sin ensuciar; para 30 regimientos o más basta añadir agrupación por línea.
+6. Cambiar en js/gfx/battle3d.js la vista (cámara cenital con suelo de teselas y fichas planas) y en js/ui.js el HUD de batalla (cenefa de moral, rail de grupos, píldoras de órdenes, trazo de dedo); el cálculo de js/battle.js no cambia.
+7. Unas 4 a 5 tareas: suelo y fichas en mosaico (2), HUD y rail de grupos (1), trazo con el dedo y órdenes pintadas (1), resultado y pulido móvil (1).
