@@ -8,7 +8,7 @@ tácticas en tiempo real que puedes ver y dirigir, y una campaña con **principi
 
 - **Mapa de campaña en 3D** — el Mediterráneo con relieve (Alpes, Apeninos, Pirineos, Atlas), mar, bosques,
   18 ciudades reales modeladas y ejércitos que marchan por rutas de tierra y mar. Es la pantalla principal.
-- **Batallas en 3D** — cada soldado es una figura animada (marcha, ataque) en formación sobre un terreno con
+- **Batallas en 3D** — cada soldado es un modelo real animado (marcha, carrera, ataque, muerte) en formación sobre un terreno con
   colinas, árboles y la ciudad asediada al fondo. Moral, huidas, flanqueos, cargas, proyectiles, polvo,
   estandartes y caídos. Cámara libre (arrastrar, pellizcar, girar), tarjetas de unidad y órdenes táctiles.
 - **Ciudades y recursos** — madera, piedra, hierro, grano y denarios; diez edificios mejorables con colas.
@@ -36,14 +36,32 @@ Chrome o Safari y elige **«Añadir a pantalla de inicio»**. Las batallas se ve
 | `js/data.js` | Edificios, unidades, facciones, ciudades, mapa y hechos históricos |
 | `js/game.js` | Campaña: economía, colas, marchas, IA enemiga, eventos, guardado |
 | `js/battle.js` | Simulación de batalla (y vista 2D de reserva si no hay WebGL) |
-| `js/gfx/models.js` | Modelos 3D procedurales de las unidades, animación por shader y retratos |
+| `js/gfx/units.js` | Unidades reales: carga, animación horneada en textura y retratos |
+| `js/gfx/models.js` | Figuras de reserva generadas por código |
 | `js/gfx/battle3d.js` | Vista 3D de la batalla |
 | `js/gfx/map3d.js` | Mapa de campaña 3D |
 | `js/ui.js` | Interfaz: paneles, modales y pantalla de batalla |
 | `js/vendor/` | three.js (MIT), incluido para funcionar sin conexión |
 | `test/sim.test.js` | Pruebas sin navegador (`node test/sim.test.js`) |
 
-Sin paso de compilación. Todos los modelos se generan por código: no hay arte de terceros.
+Sin paso de compilación para jugar.
+
+## Arte de las unidades
+
+Los soldados, caballos y elefantes son modelos reales con esqueleto y animaciones (reposo, marcha, carrera,
+ataque, muerte) tomados del juego libre **[0 A.D.](https://play0ad.com)**, de **Wildfire Games**, con licencia
+**[CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)** (ver `assets/units/LICENSE.txt`).
+Esa licencia obliga a citar a Wildfire Games y a compartir este arte y sus modificaciones con la misma licencia.
+
+Para regenerarlos hace falta un clon parcial de `github.com/0ad/0ad` y los cargadores de ejemplo de three.js:
+
+```bash
+tools/build_all.sh <clon de 0ad> <three/examples/jsm> <carpeta temporal>
+```
+
+`tools/resolve_units.py` decide qué actor de 0 A.D. es cada unidad; `tools/build_units.mjs` hornea cuerpo, piezas
+y animaciones a `assets/units/*.bin`; `tools/build_atlas.py` compone las texturas. Si los modelos no cargan, el
+juego usa figuras sencillas generadas por código (`js/gfx/models.js`).
 
 ## Referencias consultadas
 

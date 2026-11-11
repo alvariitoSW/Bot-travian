@@ -1,0 +1,12 @@
+Los modelos, texturas y animaciones de esta carpeta proceden del juego 0 A.D.
+(https://play0ad.com), Copyright (C) Wildfire Games (https://www.wildfiregames.com/),
+y se han convertido a un formato propio con las herramientas de tools/.
+
+Se distribuyen bajo la licencia Creative Commons Attribution-Share Alike 3.0 (CC BY-SA 3.0):
+https://creativecommons.org/licenses/by-sa/3.0/
+
+Puedes usarlos, modificarlos y redistribuirlos, también con fines comerciales, siempre que
+cites a Wildfire Games como autor original, enlaces la licencia y distribuyas estos archivos
+(y cualquier modificación suya) bajo la misma licencia CC BY-SA 3.0.
+
+Esta licencia se aplica solo al contenido de assets/units/. El código del juego es independiente.

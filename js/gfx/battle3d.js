@@ -1,5 +1,9 @@
 /* AQVILA — vista 3D de la batalla: cada soldado es una figura animada sobre un terreno con relieve */
 import { THREE, uTime, unitGeometry, unitMaterial, portrait } from './models.js';
+import { getUnit, unitMaterialReal, instancedGeometry, frameOf, frameOnce, realPortrait, UNIT_SCALE } from './units.js';
+
+const DEAD = 150;                             // caídos visibles por tipo de unidad
+const TRI_BUDGET = (navigator.maxTouchPoints > 0 ? 1.0e6 : 1.6e6);
 
 const S = 0.25, FW = 600;                     // escala simulación -> mundo
 let renderer = null;                          // un único contexto WebGL para todas las batallas
@@ -144,7 +148,8 @@ export class BattleView3D {
   buildArmies() {
     const b = this.b; this.R = []; this.meshes = new Map();
     let total = 0; const want = b.regs.map(r => { const f = formation(r.u.cls, r.k), n = Math.min(r.max, f.max); total += n; return n; });
-    const k = total > 1300 ? 1300 / total : 1, capBy = new Map();
+    let tris = 0; b.regs.forEach((r, i) => { const u = getUnit(r.k); tris += want[i] * (u ? u.tris : 550); });
+    const k = Math.min(1, TRI_BUDGET / Math.max(1, tris)), capBy = new Map();
     b.regs.forEach((r, i) => {
       const f = formation(r.u.cls, r.k), F = Math.max(1, Math.round(want[i] * (r.u.cls === 'ele' ? 1 : k))), key = r.k + '|' + r.side;
       const R = { r: r, f: f, F: F, n: F, key: key, fx: new Float32Array(F), fz: new Float32Array(F), yaw: 0, el: null, card: null };
@@ -154,10 +159,11 @@ export class BattleView3D {
     });
     let shCap = 0;
     for (const [key, cap] of capBy) {
-      const [uk, side] = key.split('|'), geo = unitGeometry(uk, b.cfg.sides[+side].col).clone();
-      const anim = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3); anim.setUsage(THREE.DynamicDrawUsage); geo.setAttribute('anim', anim);
-      const m = new THREE.InstancedMesh(geo, unitMaterial(), cap); m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.frustumCulled = false; this.scene.add(m);
-      this.meshes.set(key, { m: m, a: anim.array, M: m.instanceMatrix.array, i: 0 }); shCap += cap;
+      const [uk, side] = key.split('|'), real = getUnit(uk), col = b.cfg.sides[+side].col; let m, a;
+      if (real) { const geo = instancedGeometry(real, cap + DEAD); m = new THREE.InstancedMesh(geo, unitMaterialReal(real, col), cap + DEAD); a = geo.attributes.aFrame.array; }
+      else { const geo = unitGeometry(uk, col).clone(), anim = new THREE.InstancedBufferAttribute(new Float32Array(cap * 3), 3); anim.setUsage(THREE.DynamicDrawUsage); geo.setAttribute('anim', anim); m = new THREE.InstancedMesh(geo, unitMaterial(), cap); a = anim.array; }
+      m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); m.frustumCulled = false; this.scene.add(m);
+      this.meshes.set(key, { m: m, a: a, M: m.instanceMatrix.array, i: 0, real: real, dead: [] }); shCap += cap;
     }
     const sg = new THREE.CircleGeometry(1, 8); sg.rotateX(-Math.PI / 2);
     this.shadow = new THREE.InstancedMesh(sg, new THREE.MeshBasicMaterial({ color: '#000', transparent: true, opacity: 0.26, depthWrite: false }), shCap); this.shadow.frustumCulled = false; this.shadow.instanceMatrix.setUsage(THREE.DynamicDrawUsage); this.scene.add(this.shadow);
@@ -185,7 +191,7 @@ export class BattleView3D {
       if (r.st === 'fled') n = 0;
       while (R.n > n) {                                       // bajas: cae alguien de las primeras filas
         const last = R.n - 1, v = Math.floor(hash(last * 3.7 + t) * Math.min(R.n, R.f.cols * 2));
-        if (r.st !== 'fled') this.addCorpse(R.fx[v], R.fz[v], r.side);
+        if (r.st !== 'fled') { if (e.real && e.real.clips.death) { e.dead.push({ x: R.fx[v], z: R.fz[v], yaw: Math.PI / 2 - r.ang + (hash(last + t) - 0.5), t0: t }); if (e.dead.length > DEAD) e.dead.shift(); } else this.addCorpse(R.fx[v], R.fz[v], r.side); }
         R.fx[v] = R.fx[last]; R.fz[v] = R.fz[last]; R.n--;
       }
       if (!R.n) continue;
@@ -201,14 +207,29 @@ export class BattleView3D {
         const dx = tx - R.fx[j], dz = tz - R.fz[j], d = Math.hypot(dx, dz), mv = d > 0.12;
         if (mv) { const st = Math.min(d, vmax * (rout ? 0.7 : 1)); R.fx[j] += dx / d * st; R.fz[j] += dz / d * st; }
         const yaw = mv && d > 0.8 ? Math.atan2(dx, dz) : ryaw, x = R.fx[j], z = R.fz[j], y = this.h(x, z), c = Math.cos(yaw), s = Math.sin(yaw);
-        const M = e.M, o = e.i * 16;
-        M[o] = c; M[o + 1] = 0; M[o + 2] = -s; M[o + 3] = 0; M[o + 4] = 0; M[o + 5] = 1; M[o + 6] = 0; M[o + 7] = 0; M[o + 8] = s; M[o + 9] = 0; M[o + 10] = c; M[o + 11] = 0; M[o + 12] = x; M[o + 13] = y; M[o + 14] = z; M[o + 15] = 1;
-        const a = e.a, ao = e.i * 3; a[ao] = mv && d > 0.3 ? (rout ? 1.3 : 1) : 0; a[ao + 1] = fight && row < 2 ? 1 : shooting && row < 2 ? 0.7 : 0; a[ao + 2] = j * 1.7 + r.id * 0.9;
+        const M = e.M, o = e.i * 16, k = e.real ? UNIT_SCALE : 1;
+        M[o] = c * k; M[o + 1] = 0; M[o + 2] = -s * k; M[o + 3] = 0; M[o + 4] = 0; M[o + 5] = k; M[o + 6] = 0; M[o + 7] = 0; M[o + 8] = s * k; M[o + 9] = 0; M[o + 10] = c * k; M[o + 11] = 0; M[o + 12] = x; M[o + 13] = y; M[o + 14] = z; M[o + 15] = 1;
+        if (e.real) {
+          const cl = e.real.clips, ph = hash(j * 3.1 + r.id) * 4; let clip;
+          if (rout) clip = cl.run || cl.walk; else if (mv && d > 0.3) clip = (d > 2.5 || r.charge > 0) && cl.run ? cl.run : cl.walk;
+          else if (fight && row < 2) clip = (j % 2 && cl.attack_melee2) || cl.attack_melee || cl.attack_ranged || cl.idle;
+          else if (shooting && row < 3) clip = cl.attack_ranged || cl.idle; else clip = cl.idle;
+          e.a[e.i] = frameOf(clip, t + ph);
+        } else { const a = e.a, ao = e.i * 3; a[ao] = mv && d > 0.3 ? (rout ? 1.3 : 1) : 0; a[ao + 1] = fight && row < 2 ? 1 : shooting && row < 2 ? 0.7 : 0; a[ao + 2] = j * 1.7 + r.id * 0.9; }
         e.i++;
         const so = si * 16, ss = R.f.sh, sl = ss * 2.4; SM[so] = 0.83 * sl; SM[so + 1] = 0; SM[so + 2] = -0.55 * sl; SM[so + 3] = 0; SM[so + 4] = 0; SM[so + 5] = 1; SM[so + 6] = 0; SM[so + 7] = 0; SM[so + 8] = 0.55 * ss; SM[so + 9] = 0; SM[so + 10] = 0.83 * ss; SM[so + 11] = 0; SM[so + 12] = x + 0.83 * sl * 0.75; SM[so + 13] = y + 0.06; SM[so + 14] = z - 0.55 * sl * 0.75; SM[so + 15] = 1; si++;
       }
     }
-    for (const e of this.meshes.values()) { e.m.count = e.i; e.m.instanceMatrix.needsUpdate = true; e.m.geometry.attributes.anim.needsUpdate = true; }
+    for (const e of this.meshes.values()) {
+      if (e.real) {                                             // caídos: la animación de muerte se queda en su último fotograma
+        const dc = e.real.clips.death, k = UNIT_SCALE;
+        for (const dd of e.dead) { const M = e.M, o = e.i * 16, c = Math.cos(dd.yaw) * k, s = Math.sin(dd.yaw) * k;
+          M[o] = c; M[o + 1] = 0; M[o + 2] = -s; M[o + 3] = 0; M[o + 4] = 0; M[o + 5] = k; M[o + 6] = 0; M[o + 7] = 0; M[o + 8] = s; M[o + 9] = 0; M[o + 10] = c; M[o + 11] = 0; M[o + 12] = dd.x; M[o + 13] = this.h(dd.x, dd.z); M[o + 14] = dd.z; M[o + 15] = 1;
+          e.a[e.i] = frameOnce(dc, t - dd.t0); e.i++; }
+        e.m.geometry.attributes.aFrame.needsUpdate = true;
+      } else e.m.geometry.attributes.anim.needsUpdate = true;
+      e.m.count = e.i; e.m.instanceMatrix.needsUpdate = true;
+    }
     this.shadow.count = si; this.shadow.instanceMatrix.needsUpdate = true;
     // estandartes y polvo
     const BM = new THREE.Matrix4(), bc = new THREE.Color(); let bi = 0;
@@ -252,7 +273,7 @@ export class BattleView3D {
     for (const R of this.R) {
       const r = R.r; if (r.side !== 0) continue;
       const el = document.createElement('button'); el.className = 'ucard';
-      const img = portrait(r.k, this.b.cfg.sides[0].col);
+      const img = realPortrait(r.k, this.b.cfg.sides[0].col) || portrait(r.k, this.b.cfg.sides[0].col);
       el.innerHTML = (img ? '<img src="' + img + '" alt="">' : '<span class="g">' + r.u.g + '</span>') + '<em></em><b><u></u></b>';
       el.title = r.name || r.u.n; el.addEventListener('click', () => { if (r.st === 'ok') { if (this.sel.has(r)) this.sel.delete(r); else this.sel.add(r); this.focus(r); } });
       host.appendChild(el); R.card = el; R.cbar = el.querySelector('u'); R.cnum = el.querySelector('em');
@@ -353,7 +374,8 @@ export class BattleView3D {
   }
   dispose() {
     const cv = this.cv; cv.removeEventListener('pointerdown', this.onDown); cv.removeEventListener('pointermove', this.onMove); cv.removeEventListener('pointerup', this.onUp); cv.removeEventListener('pointercancel', this.onUp); cv.removeEventListener('wheel', this.onWheel); cv.removeEventListener('contextmenu', this.onCtx);
-    this.scene.traverse(o => { if (o.geometry && !o.geometry.userData.keep) o.geometry.dispose(); if (o.material && o.material !== unitMaterial()) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } });
+    const realMeshes = new Set([...this.meshes.values()].filter(e => e.real).map(e => e.m));
+    this.scene.traverse(o => { if (realMeshes.has(o)) return; if (o.geometry) o.geometry.dispose(); if (o.material && o.material !== unitMaterial()) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } });
     if (this.scene.background && this.scene.background.dispose) this.scene.background.dispose();
     cv.remove(); this.flags.remove(); if (this.opts.cards) this.opts.cards.innerHTML = '';
   }

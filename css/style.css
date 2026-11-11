@@ -185,3 +185,4 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 #menu .spqr { margin-top: 14px; font-family: var(--serif); color: #ffffff40; letter-spacing: .5em; font-size: 12px; }
 
 @media (prefers-reduced-motion: reduce) { .toast { animation: none; } }
+#menu .credits { margin-top: 18px; font-size: 10.5px; color: #ffffff66; max-width: 320px; }

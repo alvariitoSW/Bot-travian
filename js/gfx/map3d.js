@@ -1,5 +1,6 @@
 /* AQVILA — mapa de campaña en 3D: relieve del Mediterráneo, ciudades, rutas y ejércitos en marcha */
 import { THREE, uTime, unitGeometry, unitMaterial } from './models.js';
+import { getUnit, unitMaterialReal, instancedGeometry, frameOf, UNIT_SCALE } from './units.js';
 
 const D = window.DATA, G = window.Game;
 const K = 0.1;                                   // mundo 2D (1600x800) -> unidades 3D
@@ -132,7 +133,13 @@ export class MapView3D {
   armyModel(m) {
     const grp = new THREE.Group(), mine = m.owner === 'roma', col = D.FACTIONS[m.owner].col;
     let main = mine ? 'hastati' : 'milicia', best = 0; for (const k in m.units) if (m.units[k] > best && D.UNITS[k].cls !== 'ele') { best = m.units[k]; main = k; }
-    const lead = m.hero || m.gen ? 'general' : (m.units.elefantes ? 'elefantes' : main), add = (key, x, z, s) => {
+    const anims = [], lead = m.hero || m.gen ? 'general' : (m.units.elefantes ? 'elefantes' : main), add = (key, x, z, s) => {
+      const real = getUnit(key);
+      if (real) {                                               // figura real, andando
+        const g = instancedGeometry(real, 1), im = new THREE.InstancedMesh(g, unitMaterialReal(real, col), 1), k = s * UNIT_SCALE * (key === 'elefantes' ? 1.6 : 1);
+        im.setMatrixAt(0, new THREE.Matrix4().makeScale(k, k, k)); im.position.set(x, 0, z); im.frustumCulled = false; im.userData.real = true; grp.add(im);
+        anims.push({ a: g.attributes.aFrame, clip: real.clips.walk || real.clips.idle, ph: hash(x * 9 + z) * 3 }); return;
+      }
       const g = unitGeometry(key, col).clone(); g.setAttribute('anim', new THREE.InstancedBufferAttribute(new Float32Array([1, 0, hash(x * 9 + z) * 6]), 3));
       const me = new THREE.Mesh(g, unitMaterial()); me.position.set(x, 0, z); me.scale.setScalar(s); me.frustumCulled = false; grp.add(me);
     };
@@ -141,7 +148,7 @@ export class MapView3D {
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.2, 5), new THREE.MeshLambertMaterial({ color: '#3a2a1a' })); pole.position.set(0, 1.1, -0.3); grp.add(pole);
     const fl = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.5), new THREE.MeshLambertMaterial({ color: col, side: THREE.DoubleSide })); fl.position.set(0.36, 1.95, -0.3); grp.add(fl);
     const el = document.createElement('div'); el.className = 'mlabel army ' + (mine ? 'mine' : 'foe'); this.labels.appendChild(el);
-    this.scene.add(grp); return { grp: grp, el: el };
+    this.scene.add(grp); return { grp: grp, el: el, anims: anims };
   }
 
   update(state, sel) {
@@ -160,10 +167,11 @@ export class MapView3D {
       seen.add(m.id); let a = this.armies.get(m.id); if (!a) { a = this.armyModel(m); this.armies.set(m.id, a); }
       const p0 = m.fromXY || G.pos(m.from), p1 = G.pos(m.to), f = Math.max(0, Math.min(1, (state.t - m.t0) / (m.t1 - m.t0))), x = (p0[0] + (p1[0] - p0[0]) * f) * K, z = (p0[1] + (p1[1] - p0[1]) * f) * K, y = Math.max(0.04, this.hAt(x, z));
       a.grp.position.set(x, y, z); a.grp.rotation.y = Math.atan2(p1[0] - p0[0], p1[1] - p0[1]);
+      for (const an of a.anims) { an.a.array[0] = frameOf(an.clip, this.t + an.ph); an.a.needsUpdate = true; }
       const txt = (m.owner === 'roma' ? '' : (m.label || D.FACTIONS[m.owner].n) + ' · ') + G.men(m.units); if (a.txt !== txt) { a.txt = txt; a.el.textContent = txt; }
       place(a.el, x, y + 2.7, z);
     }
-    for (const [id, a] of this.armies) if (!seen.has(id)) { this.scene.remove(a.grp); a.grp.traverse(o => { if (o.geometry) o.geometry.dispose(); }); a.el.remove(); this.armies.delete(id); }
+    for (const [id, a] of this.armies) if (!seen.has(id)) { this.scene.remove(a.grp); a.grp.traverse(o => { if (o.geometry && !o.userData.real) o.geometry.dispose(); }); a.el.remove(); this.armies.delete(id); }
     const c = this.c, cp = Math.cos(c.pitch);
     this.cam.position.set(c.x, Math.sin(c.pitch) * c.dist, c.z + cp * c.dist); this.cam.lookAt(c.x, 0, c.z);
     this.r.render(this.scene, this.cam);
