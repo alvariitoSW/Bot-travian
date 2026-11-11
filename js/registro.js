@@ -125,7 +125,12 @@
   const SIN_M = { sin: 'sin modelo: solo un icono' };
   const mejora = { armas: f(SIN_M, SIN_H), armaduras: f(SIN_M, SIN_H) };
 
-  R.fichas = { edificio, tropa, ciudad, hecho, faccion, mejora };
+  // ---- Tipos de ciudad (D.TIPOS). Licencia de juego: nadie «elegía» su oficio así. Sin modelo ----
+  const SIN_T = { sin: 'sin modelo: solo un icono' };
+  const T_H = h('Livio 27.9-10; Gelio 16.13', 'licencia de juego', 'colonia y municipium eran estatus jurídicos (Livio 27.9-10 sobre las colonias latinas; Gelio 16.13 sobre municipios y colonias); emporion es el término griego para puerto de comercio; el reparto de oficios es invención del juego');
+  const tipo = { municipio: f(SIN_T, T_H), agraria: f(SIN_T, T_H), militar: f(SIN_T, T_H), emporio: f(SIN_T, T_H), naval: f(SIN_T, T_H), saber: f(SIN_T, T_H) };
+
+  R.fichas = { edificio, tropa, ciudad, hecho, faccion, mejora, tipo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -135,7 +140,8 @@
     ciudad: { tabla: 'CITIES', numericos: ['lon', 'lat', 'w', 'wl'], mapas: ['g'], textos: ['n', 'f'] },
     hecho: { tabla: 'EVENTS', lista: true, numericos: ['y'], textos: ['t', 'x'] },
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },
-    mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] }
+    mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },
+    tipo: { tabla: 'TIPOS', numericos: [], textos: ['n', 'i', 'd'] }
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('277-pirro') o solo el año (277). */

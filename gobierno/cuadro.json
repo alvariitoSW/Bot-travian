@@ -99,9 +99,32 @@
       "ancha": true
     },
     {
+<<<<<<< HEAD
       "tarea": "A5a",
       "archivo": "gobierno/capturas-tarea/A5a-cerca-0s.jpg",
       "pie": "Despliegue: colocas tus tropas dentro de la línea roja y pulsas «Empezar batalla»",
+=======
+      "tarea": "I4",
+      "archivo": "gobierno/capturas-tarea/I4-solares.jpg",
+      "pie": "Cada ciudad tiene solares contados (Roma, 4 de 10 ocupados) y un tipo que eliges",
+      "ancha": false
+    },
+    {
+      "tarea": "I4",
+      "archivo": "gobierno/capturas-tarea/I4-tipos.jpg",
+      "pie": "Elegir tipo: municipio, colonia agraria, colonia militar, emporio, base naval o ciudad de artesanos",
+      "ancha": false
+    },
+    {
+      "tarea": "E2",
+      "archivo": "gobierno/capturas-tarea/E2-mapa.jpg",
+      "pie": "Mapa: cada ciudad con un edificio de su cultura"
+    },
+    {
+      "tarea": "E2",
+      "archivo": "gobierno/capturas-tarea/E2-culturas.jpg",
+      "pie": "De cerca: Cartago, Siracusa, galos, íberos y barcos cartaginés y griego",
+>>>>>>> 21b8a10ccebdee3319f620e1255ff707c378b3d7
       "ancha": true
     }
   ],

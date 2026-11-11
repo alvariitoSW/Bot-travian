@@ -1,6 +1,6 @@
 /* AQVILA — mapa de campaña en 3D: relieve del Mediterráneo, ciudades, rutas y ejércitos en marcha */
 import { THREE, uTime, unitGeometry, unitMaterial } from './models.js';
-import { staticMesh } from './statics.js';
+import { staticMesh, getStatic } from './statics.js';
 import { getUnit, unitMaterialReal, instancedGeometry, frameOf, UNIT_SCALE } from './units.js';
 
 const D = window.DATA, G = window.Game;
@@ -22,6 +22,12 @@ const RIDGES = [
 
 function inPoly(x, y, poly) { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; }
 function segDist(px, py, a, b) { const dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy, t = l ? Math.max(0, Math.min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / l)) : 0; return Math.hypot(px - a[0] - dx * t, py - a[1] - dy * t); }
+
+/* Cultura de cada bando -> prefijo de sus piezas de 0 A.D. (los que no figuran conservan las casitas) */
+const CULTURA = { cartago: 'cart', epiro: 'grie', macedonia: 'grie', aquea: 'grie', siracusa: 'grie', akragas: 'grie', griegos: 'grie', galos: 'galo', iberos: 'iber' };
+const CENTRO = { cart: 'cart_templo', grie: 'grie_templo', galo: 'galo_centro', iber: 'iber_centro', roma: 'vesta' };
+const claveCentro = dueno => CENTRO[dueno === 'roma' ? 'roma' : CULTURA[dueno]] || null;
+const claveBarco = dueno => (CULTURA[dueno] === 'cart' || CULTURA[dueno] === 'grie') ? CULTURA[dueno] + '_trirreme' : 'trirreme';
 
 export class MapView3D {
   constructor(host, opts) {
@@ -113,27 +119,43 @@ export class MapView3D {
       const stone = new THREE.MeshLambertMaterial({ color: '#cfc3a6', flatShading: true }), roof = new THREE.MeshLambertMaterial({ color: '#b5522f', flatShading: true }), plaster = new THREE.MeshLambertMaterial({ color: '#efe5cc', flatShading: true });
       const wall = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.1, 0.32, 14, 1, true), stone); wall.material.side = THREE.DoubleSide; wall.position.y = 0.16; grp.add(wall);
       for (let i = 0; i < 7; i++) { const a = i / 7 * 6.283, t = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.52, 0.24), stone); t.position.set(Math.cos(a) * 1.07, 0.26, Math.sin(a) * 1.07); grp.add(t); }
+      const casas = [];
       for (let i = 0; i < 5 + d.w * 2; i++) {
         const a = hash(i * 3.1 + d.lon) * 6.283, rr = hash(i * 7.7 + d.lat) * 0.78, w = 0.22 + hash(i * 1.3) * 0.2, hh = 0.2 + hash(i * 5.9) * 0.28;
-        const bx = new THREE.Mesh(new THREE.BoxGeometry(w, hh, w), plaster); bx.position.set(Math.cos(a) * rr, hh / 2, Math.sin(a) * rr); grp.add(bx);
-        const rf = new THREE.Mesh(new THREE.ConeGeometry(w * 0.8, 0.16, 4), roof); rf.rotation.y = Math.PI / 4; rf.position.set(Math.cos(a) * rr, hh + 0.08, Math.sin(a) * rr); grp.add(rf);
+        const bx = new THREE.Mesh(new THREE.BoxGeometry(w, hh, w), plaster); bx.position.set(Math.cos(a) * rr, hh / 2, Math.sin(a) * rr); grp.add(bx); casas.push(bx);
+        const rf = new THREE.Mesh(new THREE.ConeGeometry(w * 0.8, 0.16, 4), roof); rf.rotation.y = Math.PI / 4; rf.position.set(Math.cos(a) * rr, hh + 0.08, Math.sin(a) * rr); grp.add(rf); casas.push(rf);
       }
       const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 2.3, 5), new THREE.MeshLambertMaterial({ color: '#3a2a1a' })); pole.position.y = 1.15; grp.add(pole);
-      const fm = new THREE.MeshLambertMaterial({ color: '#fff', side: THREE.DoubleSide }), flag = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.6), fm); flag.position.set(0.5, 1.95, 0); grp.add(flag);
+      const fm = new THREE.MeshLambertMaterial({ color: '#fff', side: THREE.DoubleSide }), flag = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.6), fm); flag.position.set(0.5, 1.95, 0); grp.add(flag); grp.userData.pole = pole;
       const ring = new THREE.Mesh(new THREE.RingGeometry(1.35, 1.6, 28), new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, opacity: 0.85, depthWrite: false })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.05; ring.visible = false; grp.add(ring);
       grp.scale.setScalar(s); grp.position.set(x, Math.max(0.05, this.hAt(x, z)), z); sc.add(grp);
       const el = document.createElement('button'); el.className = 'mlabel'; el.innerHTML = '<i></i><span>' + d.n + '</span><em></em>';
       el.addEventListener('click', ev => { ev.stopPropagation(); if (this.opts.onSelect) this.opts.onSelect(id); });
       this.labels.appendChild(el);
-      this.cities[id] = { grp: grp, flag: fm, ring: ring, el: el, dot: el.querySelector('i'), em: el.querySelector('em'), owner: null, x: x, z: z, top: 2.6 * s };
+      this.cities[id] = { casas: casas, pole: pole, flag: fm, flagMesh: flag, centro: null, quiere: null, grp: grp, ring: ring, el: el, dot: el.querySelector('i'), em: el.querySelector('em'), owner: null, x: x, z: z, top: 2.6 * s };
     }
+  }
+
+  /* Edificio real de la cultura del dueño en el centro de la ciudad; si aún no cargó el modelo, quedan las casitas y se reintenta */
+  ponerCentro(c) {
+    const clave = c.quiere, st = clave && getStatic(clave);
+    if (clave && !st) return;
+    if (c.centro) { c.grp.remove(c.centro); c.centro = null; }
+    const m = clave && staticMesh(clave, D.FACTIONS[c.owner].col);
+    if (m) {
+      const b = st.bb, k = 1.5 / Math.max(b[3] - b[0], b[5] - b[2], 1), cx = (b[0] + b[3]) / 2, cz = (b[2] + b[5]) / 2;
+      m.scale.setScalar(k); m.position.set(-cx * k, Math.max(0, -b[1] * k), -cz * k); c.grp.add(m); c.centro = m;
+    }
+    for (const q of c.casas) q.visible = !m;
+    c.pole.position.set(m ? 0.8 : 0, 1.15, m ? 0.8 : 0); c.flagMesh.position.set(m ? 1.3 : 0.5, 1.95, m ? 0.8 : 0);
+    c.puesto = c.quiere;
   }
 
   hAt(x, z) { const i = Math.max(0, Math.min(NX, Math.round(x / CW))), j = Math.max(0, Math.min(NZ, Math.round(z / CH))); return this.H[j * (NX + 1) + i]; }
 
   armyModel(m) {
     const grp = new THREE.Group(), mine = m.owner === 'roma', col = D.FACTIONS[m.owner].col, e = m.from && G.edge(m.from, m.to);
-    const ship = e && e[2] ? staticMesh('trirreme', col) : null;                    // por mar, el ejército viaja embarcado
+    const ship = e && e[2] ? (staticMesh(claveBarco(m.owner), col) || staticMesh('trirreme', col)) : null;                    // por mar, el ejército viaja embarcado
     if (ship) { ship.scale.setScalar(0.07); ship.position.y = -0.06; grp.add(ship); const el2 = document.createElement('div'); el2.className = 'mlabel army ' + (mine ? 'mine' : 'foe'); this.labels.appendChild(el2); this.scene.add(grp); return { grp: grp, el: el2, anims: [] }; }
     let main = mine ? 'hastati' : 'milicia', best = 0; for (const k in m.units) if (m.units[k] > best && D.UNITS[k].cls !== 'ele') { best = m.units[k]; main = k; }
     const anims = [], lead = m.hero || m.gen ? 'general' : (m.units.elefantes ? 'elefantes' : main), add = (key, x, z, s) => {
@@ -160,7 +182,8 @@ export class MapView3D {
     if (this.labels.scrollLeft || this.labels.scrollTop) { this.labels.scrollLeft = 0; this.labels.scrollTop = 0; }
     for (const id in this.cities) {
       const c = this.cities[id], st = state.cities[id];
-      if (c.owner !== st.owner) { c.owner = st.owner; const col = D.FACTIONS[st.owner].col; c.flag.color.set(col); c.dot.style.background = col; c.el.classList.toggle('mine', st.owner === 'roma'); }
+      if (c.owner !== st.owner) { c.owner = st.owner; c.quiere = claveCentro(st.owner); const col = D.FACTIONS[st.owner].col; c.flag.color.set(col); c.dot.style.background = col; c.el.classList.toggle('mine', st.owner === 'roma'); }
+      if (c.quiere !== c.puesto) this.ponerCentro(c);
       c.ring.visible = sel === id; if (sel === id) c.ring.rotation.z = this.t * 0.8;
       const txt = (state.hero.city === id ? '🦅 ' : '') + G.men(st.units); if (c.txt !== txt) { c.txt = txt; c.em.textContent = txt; }
       c.el.classList.toggle('sel', sel === id); place(c.el, c.x, c.grp.position.y + c.top, c.z);

@@ -57,7 +57,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - 🔶 I1b Fichas del registro al día tras Historia 2 (el juez pasa; 10 fichas nuevas). Falta: pasar a «histórico» los dictámenes ya cotejados y que Códice y registro compartan una sola fuente (P55, aprobada 11/11). ≈0,3 M.
 - ⬜ I2 **Mapa por turnos** (P44 y P57, aprobadas 11/11): una estación = un turno, con «consejo de estación» y botón «Pasar turno»; los rivales mueven y atacan en los suyos y ves llegar sus tropas turno a turno; ciudad y batalla siguen en tiempo real. ≈0,25 + 0,8 M · 25 min.
 - ✅ I3 **Mano de obra y mantenimiento** (11/11): la producción depende de la gente que queda en la ciudad (reclutar vacía los campos); edificios y tropas cuestan oro cada mes; sin oro, las tropas desertan.
-- ⬜ I4 **Tipos de ciudad con solares limitados** (P46): cada ciudad tiene un número fijo de solares y se dedica a recursos, tropas, comercio, mar, investigación o una mezcla; caben templos y edificios de ocio. 0,2 + 0,7 M · 20 min.
+- ✅ I4 **Tipos de ciudad con solares limitados** (11/11): 7 a 10 solares por ciudad para los edificios urbanos (campos y muralla no ocupan); seis tipos a elegir (municipio, colonia agraria, colonia militar, emporio, base naval, ciudad de artesanos); «Derribar» libera un solar.
 - ⬜ I5 **Investigación y edades** (P47): árbol corto de unas 16 mejoras; la herrería pasa a ser su rama de guerra. Sustituye a F4. 0,2 + 0,7 M · 20 min.
 - ⬜ I6 **Región de Italia** montada solo con fichas (P48; prueba del cableado). 0,2 + 0,6 M · 20 min. Después de I1.
 - ⬜ I7 **Regiones** (P50): cada región tiene una ciudad principal y zonas de industria a su alrededor. 0,2 + 0,7 M · 20 min, a ojo. Después de I4 e I6.
@@ -68,7 +68,8 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ⬜ E4 Arte propio para termas, acueducto y anfiteatro (pedido 11/11/2026): buscar piezas con licencia libre (skills `radar` y `arte`); mientras, llevan un modelo provisional.
 - ✅ E1b Guía de arte, primera parte (11/11): iconos de línea para madera, piedra, hierro, grano, denarios y población; letra Cinzel incluida en el juego (SIL OFL 1.1, 29 KB); mármol, oliva y terracota en vez de blanco azulado, verde fosforito y rosa.
 - ⬜ E1c Guía de arte, segunda parte: iconos de guerra (⚔️ 🛡️ 🦅 🪖) y de edificios, marcos con doble filete y greca, esquinas de 6–8 px. Las barras de moral de la batalla siguen en el verde antiguo (`js/gfx/battle3d.js`, carril Batallas).
-- ⬜ E2 Más piezas de 0 A.D. por cultura (edificios, barcos, máquinas de asedio, estandartes) con su crédito.
+- ✅ E2 Piezas de 0 A.D. por cultura (11/11): en el mapa cada ciudad lleva un edificio de su dueño (cartaginés, griego, galo, íbero; Roma, el templo redondo) y los ejércitos por mar van en barco cartaginés o griego. 6 piezas, +2,7 MB (total 33,1 de 35).
+- ⬜ E2b Más piezas por cultura cuando haya sitio: máquinas de asedio y estandartes; templo griego de verdad (los de 0 A.D. no se convierten con la herramienta actual: salen vacíos). Quedan 1,9 MB hasta el tope: subirlo lo decide el usuario.
 - ✅ E3 Presupuesto por escena en `node gobierno/arte.mjs` (batalla 1,1 millones, ciudad 300 mil; provisional hasta D1).
 
 ## Carril C — Mapa y campaña
