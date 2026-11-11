@@ -67,6 +67,8 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
   publicado, commit y push.
 - **El usuario pide o decide algo**: skill `bitacora`. Nada entra al tablero sin su aprobación.
 - **Arte**: skill `arte` y `node gobierno/arte.mjs` (peso, triángulos, licencias). Presupuesto en `gobierno/arte.json`.
+- **Historia**: skill `historia`. Todo contenido de época lleva fuente y dictamen histórico; lo cambiado para poder
+  jugar se marca como licencia de juego.
 - **Mirar fuera**: skills `ingenieria-reversa` (una mecánica de otro juego) y `radar` (arte libre, técnica, historia).
   Ideas sí; código y arte de juegos comerciales, nunca.
 - **Gasto**: presupuesto antes de empezar y `node gobierno/gasto.mjs` al cerrar. El director no construye; los

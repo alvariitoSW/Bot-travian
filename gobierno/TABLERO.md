@@ -39,6 +39,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ B7 **Saqueo**: atacar una ciudad para robar recursos sin conquistarla (botín según almacén y muralla), y que los
   rivales te saqueen; escondite de recursos. Rivales con ciudades que crecen como la tuya («otros jugadores» de la IA).
 - 🔶 B8 Mejoras de materiales (herrería): niveles de armas y armaduras que suben el ataque/defensa de las tropas.
+- ⬜ B10 Suavizar la ofensiva de Aníbal sobre Roma hacia el 215 a.C. (aprobado 11/11/2026): hoy causa 3 de cada 4 derrotas del bot.
 - 🔶 B9 Ciudad fiel a cada lugar: Roma con sus colinas, el Tíber y la muralla serviana; cada cultura, su trazado.
   (Hoy todas usan el trazado de colonia romana: recinto rectangular, cardo y decumano, foro e ínsulas.)
 
@@ -55,6 +56,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 ## Carril E — Arte (sistema coherente con la época)
 - 🔶 E1 Guía de arte: paleta, materiales, tipografía e iconos romanos; sustituir los emojis de la interfaz por iconos
   propios; retratos y marcos con estilo de mosaico/fresco.
+- ⬜ E4 Arte propio para termas, acueducto y anfiteatro (pedido 11/11/2026): buscar piezas con licencia libre (skills `radar` y `arte`); mientras, llevan un modelo provisional.
 - ⬜ E2 Más piezas de 0 A.D. por cultura (edificios, barcos, máquinas de asedio, estandartes) con su crédito.
 - 🔶 E3 Presupuesto de peso y de triángulos por escena.
 
@@ -71,4 +73,5 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ✅ D5 Jueces automáticos: `node gobierno/jueces.mjs` (lógica + recorrido en navegador + capturas).
 
 ## Gobierno
+- ✅ G2 Ministerio de Adecuación Histórica montado (11/11/2026): skill `historia`. Sus tareas, cuando el usuario las apruebe, irán en un carril H.
 - ✅ G1 Gobierno reducido y cuadro de mando montados (11/11/2026). Guía: `gobierno/LEEME.md`.

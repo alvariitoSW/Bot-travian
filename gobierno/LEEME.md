@@ -1,6 +1,6 @@
 # Gobierno de AQVILA
 
-Cómo se organiza el trabajo. Reducido a propósito: siete oficios, tres comandos y un cuadro para el usuario.
+Cómo se organiza el trabajo. Reducido a propósito: ocho oficios, tres comandos y un cuadro para el usuario.
 
 ## Los oficios
 | Oficio | Qué hace | Dónde está |
@@ -11,6 +11,7 @@ Cómo se organiza el trabajo. Reducido a propósito: siete oficios, tres comando
 | **Ahorro** (Hacienda) | Presupuesto antes de gastar, gasto medido al cerrar, recortes | skill `ahorro`, `node gobierno/gasto.mjs`, línea «Cuentas» de los partes |
 | **Exteriores** | Estudia mecánicas de otros juegos y rastrea arte libre, técnica e historia. Ideas sí; código y arte, no | skills `ingenieria-reversa` y `radar` |
 | **Arte** | Dueño de `tools/`, las licencias y el presupuesto de peso y triángulos | skill `arte`, `node gobierno/arte.mjs`, `arte.json` |
+| **Historia** | Fidelidad a 280–146 a.C.: fichas con fuentes, dictamen histórico, lo que se aprende jugando | skill `historia`, `gobierno/historia/` |
 | **Cuadro de mando** | Página para el móvil del usuario con el estado y botones para decidir | skill `cuadro-de-mando`, `cuadro.mjs`, `cuadro.json` |
 
 ## Los comandos

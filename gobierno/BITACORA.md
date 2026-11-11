@@ -14,6 +14,9 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   `fiebres-neutropenias` (se puede ampliar o mejorar), más un cuadro de mando sencillo en un Artifact.
 
 - 11/11/2026 — **Gobierno montado** (G1): equipos, jueces, bitácora, ahorro, exteriores, arte y cuadro de mando. Ver `gobierno/LEEME.md`.
+- 11/11/2026 — **Ministerio de Adecuación Histórica**: «Lo ideal es montar el ministerio de adecuación histórica y que busque toda la información para las batallas, el lore, la vestimenta, etc., y que el juego sea también para aprender historia». Montado: skill `historia`.
+- 11/11/2026 — **Respuestas al carril Reglas**: (1) suavizar a Aníbal: sí. (2) herrería +5 % por nivel, máx. +25 %, y se conserva al perder la ciudad: escribió «pl»; Claude lo lee como «ok» (confirmar si no). (3) impuestos: ok. (4) aldeanos solo en la vista de lista: ok. (5) termas y anfiteatro: «mejor sería tener arte propio».
+- 11/11/2026 — **Respuestas al carril Pensar** (dadas en esa sesión, «por el momento, acepto todo»): F1 campaña histórica como base del modo largo, empezar por la partida corta, tres dioses (Marte, Ceres, Neptuno); E1 le gusta la guía de arte; D3 no pasar a Godot ahora; E3 topes provisionales hasta D1.
 - 11/11/2026 — **Aprobado todo**: presupuesto de arte (P1) y las doce versiones simples (P2 a P13), con plan socialista. «Que empiece todo en otra nueva sesión o en varias que no se pisen».
 - 11/11/2026 — **Prioridad** (desde el cuadro): B3, B4, B6, B8, B9, D1, D2, D3, E1, E3, F1 y F3 antes que el resto.
 - 11/11/2026 — **GitHub Pages activado** por el usuario (rama de trabajo, raíz): https://alvariitosw.github.io/Bot-travian/
@@ -35,6 +38,9 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
    montó solo con el encargo escrito. ¿Quiere dar acceso para compararlo y traer lo que falte?
 
 ## Propuestas por aprobar
+- P14 **H1 Auditoría histórica de lo que ya hay** · 0,15 M Fable + 0,9 M Sonnet · 20 min. Repasar con fuentes las tropas (armas y vestimenta), las 18 ciudades y los hechos de la campaña. Sale una lista de aciertos, anacronismos y licencias de juego, con los cambios propuestos. No cambia el juego.
+- P15 **H2 Fichas de las grandes batallas** · 0,15 M Fable + 1,0 M Sonnet · 25 min. Una ficha con fuentes para Heraclea, Ásculo, Trebia, Trasimeno, Cannas, Zama y Pidna: tropas, despliegue, terreno, qué pasó y qué se discute. Base para batallas históricas jugables más adelante.
+- P16 **H3 Códice dentro del juego, simple** · 0,2 M Fable + 0,8 M Sonnet · 20 min. Una pestaña para leer, con las fichas de tropas, ciudades y hechos ya comprobadas. Va después de H1.
 
 ## Encargo en curso (11/11/2026)
 El usuario aprobó todo (P1 a P13) y pidió hacerlo ya, en varias sesiones que no se pisen. Plan: `gobierno/plan-12.md`.
