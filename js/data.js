@@ -2,6 +2,8 @@
 (function (root) {
   const D = {};
   D.START_YEAR = 280; // a.C.
+  D.TURNO_MESES = 3; // una estación = un turno
+  D.ESTACIONES = ['Primavera', 'Verano', 'Otoño', 'Invierno']; // el año empieza en Ianuarius (invierno): ver G.estacion
   D.END_YEAR = 146;   // a.C. — destrucción histórica de Cartago
 
   D.RES = ['madera', 'piedra', 'hierro', 'grano', 'oro'];

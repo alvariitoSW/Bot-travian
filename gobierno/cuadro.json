@@ -479,6 +479,11 @@
    "tarea": "Q1",
    "archivo": "gobierno/capturas-tarea/Q1-4-fin-de-mes.jpg",
    "pie": "Cierre del mes: lo que sobra va al almacén hasta el tope"
+  },
+  {
+   "tarea": "I2",
+   "archivo": "gobierno/capturas-tarea/I2-mapa.jpg",
+   "pie": "Botón «Pasar turno» por estaciones"
   }
  ],
  "informes": [

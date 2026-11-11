@@ -569,4 +569,40 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   G.applyBattle({ winner: 1, dead: [10, 0], surv: [{}, { libios: 50 }], lost: [{ hastati: 10 }, {}], genDead: [false, false] });
   assert(c.owner === 'roma' && !s.over && s.res.madera === 800, 'te saquean el 20 % y Roma no cae');
   s.res.madera = 1000; c.b.almacen = 8; s.pending.push({ kind: 'defense', m }); G.applyBattle({ winner: 1, dead: [0, 0], surv: [{}, { libios: 50 }], lost: [{}, {}], genDead: [false, false] }); assert(s.res.madera === 1000 - Math.round(Math.min(200, 1000 - 960)), 'el almacén esconde recursos'); }
+// I2. Mapa por turnos: una estación = 3 meses; las marchas llegan al cambio de estación
+{ const s = G.newGame('Turnos'); G.turnos = true;
+  assert.strictEqual(G.finTurno(), 3, 'el primer turno acaba en el mes 3');
+  assert.strictEqual(G.estacion(0), 'Invierno'); assert.strictEqual(G.estacion(3), 'Primavera'); assert.strictEqual(G.estacion(11), 'Otoño');
+  // G.tick no pasa del final del turno
+  G.tick(10); assert(Math.abs(s.t - 3) < 1e-9, 'tick recortado al final del turno: ' + s.t); G.tick(1); assert(Math.abs(s.t - 4) < 1e-9);
+  assert(Math.abs(G.finTurno() - 6) < 1e-9);
+  // una marcha lanzada no llega antes del cambio de estación
+  const from = G.myCities().find(id => G.neighbors(id).some(n => s.cities[n].owner !== 'roma'));
+  const to = G.neighbors(from).find(n => s.cities[n].owner !== 'roma');
+  s.cities[from].units = { hastati: 50 };
+  assert(G.send(from, to, { hastati: 50 }), 'la marcha sale');
+  const m = s.marches[s.marches.length - 1];
+  assert(Math.abs(m.t1 / 3 - Math.round(m.t1 / 3)) < 1e-9 && m.t1 >= 6, 'llega en un múltiplo de 3: ' + m.t1);
+  assert(G.turnosFaltan(m) >= 1);
+  const antes = s.pending.length; G.tick(1.5); assert(s.pending.length === antes && s.marches.includes(m), 'no llega a mitad de estación');
+  while (s.t < m.t1 - 1e-9 && !s.pending.length) { if (!G.pasarTurno()) break; }
+  assert(s.pending.length && s.pending[0].kind === 'attack', 'llega al cambiar de estación');
+  // pasarTurno se detiene ante una batalla pendiente
+  const t0 = s.t; assert.strictEqual(G.pasarTurno(), false); assert.strictEqual(s.t, t0, 'con batalla pendiente no avanza');
+  G.turnos = false; }
+{ const s = G.newGame('PasarTurno'); G.turnos = false; s.t = 6;
+  assert.strictEqual(G.pasarTurno(), true); assert(Math.abs(s.t - 9) < 1e-6, 'pasarTurno avanza 3 meses exactos: ' + s.t);
+  s.t = 7.2; G.pasarTurno(); assert(Math.abs(s.t - 9) < 1e-6, 'desde mitad de estación llega al final: ' + s.t); }
+// I2. Consejo de estación y partidas antiguas
+{ const s = G.newGame('Consejo'); G.turnos = true; s.t = 3;
+  const antes = G.consejo(); assert(antes.length >= 2 && antes.length <= 5 && antes[0].x.includes('Primavera'), 'consejo corto con la estación');
+  const to = G.myCities()[0];
+  s.marches.push({ id: 900, owner: 'cartago', from: 'carthago', to, units: { libios: 80 }, t0: 0, t1: 6 });
+  const c = G.consejo(); assert(c.length <= 5 && c.some(l => l.k === 'bad' && l.x.includes('Cartago')), 'avisa de la marcha inminente');
+  G.turnos = false; }
+{ const s = G.newGame('Antigua'); s.marches.push({ id: 901, owner: 'roma', from: 'roma', to: 'capua', units: { hastati: 5 }, hero: false, t0: 0, t1: 4.4 }); delete s.turnos;
+  const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, v) => { mem[k] = v; } };
+  G.save(); G.turnos = false; assert(G.load(), 'carga'); assert.strictEqual(G.turnos, true, 'la partida antigua pasa a turnos');
+  const m = G.state.marches.find(x => x.id === 901); assert(Math.abs(m.t1 - 6) < 1e-9, 'la marcha se ajusta al siguiente múltiplo de 3: ' + m.t1);
+  delete global.localStorage; G.turnos = false; }
 console.log('OK — todas las pruebas superadas');

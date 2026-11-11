@@ -206,6 +206,7 @@
   // guarnición de referencia (refuerzos anuales) de una ciudad según su dueño actual
   G.guarnicionBase = (id, owner) => { const d = D.CITIES[id]; return owner === d.f ? d.g : (d.en228 && owner === 'cartago' ? d.en228.g : (d.post && d.post[owner]) || null); };
   G.newGame = function (heroName) {
+    G.turnos = false;   // la interfaz lo activa después; las pruebas y el bot siguen en tiempo continuo
     const s = {
       v: 1, t: 0, speed: 1, res: { madera: 400, piedra: 400, hierro: 400, grano: 400, oro: 200 },
       cities: {}, rutas: [], marches: [], log: [], ev: {}, pending: [], over: null, mid: 1,
@@ -281,7 +282,7 @@
     const own = s.cities[to].owner === 'roma';
     if (n === 0 && !(withHero && own)) return false;
     for (const k in u) { c.units[k] -= u[k]; if (c.units[k] <= 0) delete c.units[k]; }
-    const m = { id: s.mid++, owner: 'roma', from: from, to: to, units: u, hero: !!withHero, t0: s.t, t1: s.t + G.travel(from, to, withHero) };
+    const m = { id: s.mid++, owner: 'roma', from: from, to: to, units: u, hero: !!withHero, t0: s.t, t1: llegada(s.t + G.travel(from, to, withHero)) };
     if (mision === 'saqueo' && !own) m.mision = 'saqueo';
     if (withHero) { s.hero.city = null; s.hero.march = m.id; }
     s.marches.push(m);
@@ -299,9 +300,17 @@
   }
 
   /* ---------- IA enemiga y hechos históricos ---------- */
+  // modo turnos: las marchas llegan siempre al cambio de estación (mínimo la siguiente)
+  function llegada(t1) { return G.turnos ? Math.max(Math.ceil(t1 / D.TURNO_MESES - 1e-9) * D.TURNO_MESES, G.finTurno()) : t1; }
+  G.llegada = llegada;
+  G.turnos = false;
+  G.finTurno = () => (Math.floor(G.state.t / D.TURNO_MESES + 1e-9) + 1) * D.TURNO_MESES;
+  G.estacion = t => D.ESTACIONES[(Math.floor(Math.floor(t / D.TURNO_MESES + 1e-9) * D.TURNO_MESES % 12 / D.TURNO_MESES) + 3) % 4];
+  G.turnoN = t => Math.round(Math.floor(t / D.TURNO_MESES + 1e-9) + 1);
+  G.turnosFaltan = m => Math.max(0, Math.ceil((m.t1 - G.state.t) / D.TURNO_MESES - 1e-9));
   function spawn(owner, fromId, fromXY, to, units, gen, eta, label) {
     const s = G.state;
-    s.marches.push({ id: s.mid++, owner: owner, from: fromId, fromXY: fromXY, to: to, units: units, gen: gen || null, t0: s.t, t1: s.t + eta, label: label || null });
+    s.marches.push({ id: s.mid++, owner: owner, from: fromId, fromXY: fromXY, to: to, units: units, gen: gen || null, t0: s.t, t1: llegada(s.t + eta), label: label || null });
     G.rutasRevisar();
   }
   const firstMine = list => list.find(id => G.state.cities[id].owner === 'roma') || 'roma';
@@ -360,34 +369,42 @@
     });
   }
 
-  function newYear(year) {
+  function newYear(year, enTurnos) {
+    const s = G.state;
+    if (!enTurnos) turnoIA(year, 1);
+    checkEvents(year);
+    if (year < D.END_YEAR && !s.over) { s.over = { win: false, why: 'El año 146 a.C. ha terminado y Cartago sigue en pie. La historia recordará a otro.' }; emit('over'); }
+  }
+
+  // turno de los rivales: refuerzos de guarnición e incursiones. factor 1 = una vez al año; en turnos se llama 4 veces al año con 0.25
+  function turnoIA(year, factor) {
     const s = G.state, mult = 1 + (D.START_YEAR - year) / (D.START_YEAR - D.END_YEAR) * 0.8;
     for (const id in s.cities) {
       const c = s.cities[id]; if (c.owner === 'roma') continue;
       const d = D.CITIES[id], f = D.FACTIONS[c.owner];
       // refuerzos de la guarnición
       const base = G.guarnicionBase(id, c.owner);
-      if (base) for (const k in base) { const cap = Math.round(base[k] * mult), cur = c.units[k] || 0; if (cur < cap) c.units[k] = Math.min(cap, cur + Math.ceil(cap * 0.06)); }
+      if (base) for (const k in base) { const cap = Math.round(base[k] * mult), cur = c.units[k] || 0; if (cur < cap) c.units[k] = Math.min(cap, cur + Math.max(1, Math.ceil(cap * 0.06 * factor))); }
       // incursiones
       if (!f.raid || year > f.from || year > 270) continue;
       if (s.marches.some(m => m.from === id && m.owner !== 'roma')) continue;
       const tg = G.neighbors(id).filter(n => s.cities[n].owner === 'roma');
-      if (!tg.length || G.men(c.units) < 100 || Math.random() > 0.14) continue;
+      if (!tg.length || G.men(c.units) < 100 || Math.random() > 0.14 * factor) continue;
       const to = tg[Math.floor(Math.random() * tg.length)], u = {};
       for (const k in c.units) { const q = Math.floor(c.units[k] * 0.4); if (q > 0) { u[k] = q; c.units[k] -= q; } }
       const sq = Math.random() < D.SAQUEO_IA; spawn(c.owner, id, null, to, u, null, G.travel(id, to) * 2 + 4); if (sq) s.marches[s.marches.length - 1].mision = 'saqueo';
       G.log('⚠️ ' + f.n + ' envía ' + (sq ? 'una partida de saqueo' : 'un ejército') + ' desde ' + d.n + ' contra ' + D.CITIES[to].n + '.', 'bad');
       emit('alert', '¡' + f.n + ' marcha sobre ' + D.CITIES[to].n + '!');
     }
-    checkEvents(year);
-    if (year < D.END_YEAR && !s.over) { s.over = { win: false, why: 'El año 146 a.C. ha terminado y Cartago sigue en pie. La historia recordará a otro.' }; emit('over'); }
   }
 
   /* ---------- bucle ---------- */
   G.tick = function (dm) {
     const s = G.state; if (!s || s.over || s.pending.length) return;
     const y0 = G.yearOf(s.t), m0 = Math.floor(s.t);
-    s.t += dm;
+    let B = null;   // modo turnos: si llegamos al final de la estación, B es ese instante exacto
+    if (G.turnos) { const fin = G.finTurno(); if (s.t + dm >= fin - 1e-9) { B = fin; dm = Math.max(0, fin - s.t); } }
+    s.t += dm; if (B !== null) s.t = B;
     G.rutasRevisar();
     // economía
     const p = G.prod(), cap = G.cap();
@@ -406,9 +423,11 @@
       if (c.queue && s.t >= c.queue.t1) { const b = c.queue.b; c.b[b] = (c.b[b] || 0) + 1; c.queue = null; G.log('🏗️ ' + D.CITIES[id].n + ': ' + D.BUILD[b].n + ' nivel ' + c.b[b] + '.'); emit('dirty'); }
       while (c.train.length && s.t >= c.train[0].t1) { const q = c.train.shift(); c.units[q.u] = (c.units[q.u] || 0) + q.n; G.log('🛡️ ' + D.CITIES[id].n + ': ' + q.n + ' ' + D.UNITS[q.u].n + ' listos.'); emit('dirty'); }
     }
+    // modo turnos: al cerrar la estación se resuelve el mundo (año nuevo, rivales) antes de que lleguen las marchas
+    if (B !== null) { const yb = G.yearOf(s.t); if (yb < y0) newYear(yb, true); turnoIA(yb, 0.25); }
     // marchas
     for (let i = s.marches.length - 1; i >= 0; i--) {
-      const m = s.marches[i]; if (s.t < m.t1) continue;
+      const m = s.marches[i]; if (s.t < m.t1 - 1e-9 || (G.turnos && B === null)) continue;
       s.marches.splice(i, 1);
       const c = s.cities[m.to];
       if (m.owner === 'roma') {
@@ -417,6 +436,7 @@
       } else if (c.owner === 'roma') s.pending.push({ kind: 'defense', m: m });
       else if (c.owner === m.owner) merge(c.units, m.units);
     }
+    if (B !== null) emit('turno', { n: G.turnoN(s.t), estacion: G.estacion(s.t) });
     if (s.pending.length) { emit('battle'); return; }
     // hambre
     if (Math.floor(s.t) > m0 && s.res.grano <= 0 && p.grano < 0) {
@@ -431,7 +451,35 @@
       emit('dirty');
     }
     const y1 = G.yearOf(s.t);
-    if (y1 < y0) newYear(y1);
+    if (y1 < y0 && B === null) newYear(y1);
+  };
+
+  // avanza el resto de la estación de golpe; false si una batalla pendiente o el fin de la partida lo detienen
+  G.pasarTurno = function () {
+    const s = G.state; if (!s || s.over || s.pending.length) return false;
+    const fin = G.finTurno(); let n = 0;
+    while (s.t < fin - 1e-9 && !s.over && !s.pending.length && n++ < 100) G.tick(Math.min(0.25, fin - s.t));
+    return s.t >= fin - 1e-9;
+  };
+
+  // consejo de estación: lista corta de avisos para el jugador (sin pantalla)
+  G.consejo = function () {
+    const s = G.state, out = [], p = G.prod(), cap = G.cap(), mis = G.myCities();
+    const head = { k: '', x: G.estacion(s.t) + ' del ' + G.yearOf(s.t) + ' a.C. (turno ' + G.turnoN(s.t) + ').' };
+    let rec = null;
+    for (const m of s.marches) {
+      if (m.owner === 'roma' || G.turnosFaltan(m) > 1 || s.cities[m.to].owner !== 'roma') continue;
+      out.push({ k: 'bad', x: D.FACTIONS[m.owner].n + ' (' + G.men(m.units) + ' hombres) llega a ' + D.CITIES[m.to].n + ' al acabar este turno.' });
+      rec = rec || 'Refuerza ' + D.CITIES[m.to].n + ' antes de que acabe la estación.';
+    }
+    for (const r of ['grano', 'oro']) if (p[r] < 0 && s.res[r] / -p[r] < 3) out.push({ k: 'bad', x: (r === 'grano' ? 'El grano' : 'El oro') + ' se acaba en ' + Math.max(1, Math.ceil(s.res[r] / -p[r])) + ' mes(es).' });
+    const sin = mis.filter(id => !s.cities[id].queue).map(id => D.CITIES[id].n);
+    if (sin.length) { out.push({ k: '', x: 'Sin obras en cola: ' + sin.slice(0, 3).join(', ') + (sin.length > 3 ? '…' : '') + '.' }); rec = rec || 'Pon a trabajar a los constructores.'; }
+    const llenos = D.RES.filter(r => s.res[r] >= cap - 1);
+    if (llenos.length) out.push({ k: '', x: 'Almacén lleno: ' + llenos.join(', ') + '. Gasta o amplía.' });
+    const l = [head].concat(out.slice(0, 3));
+    l.push({ k: rec ? '' : 'good', x: rec || 'Estación tranquila: reúne tropas o amplía la ciudad.' });
+    return l.slice(0, 5);
   };
 
   function merge(a, b) { for (const k in b) if (b[k] > 0) a[k] = (a[k] || 0) + b[k]; }
@@ -530,7 +578,7 @@
   /* ---------- guardado ---------- */
   G.save = function () { try { if (typeof localStorage !== 'undefined' && G.state) localStorage.setItem(SAVE_KEY, JSON.stringify(G.state)); } catch (e) { /* almacenamiento no disponible */ } };
   G.hasSave = function () { try { return typeof localStorage !== 'undefined' && !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } };
-  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0;  if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria', 'acueducto', 'termas', 'anfiteatro']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } return true; } } catch (e) { /* partida corrupta */ } return false; };
+  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (s.turnos === undefined) s.turnos = true; G.turnos = !!s.turnos; if (G.turnos) { if (s.speed === undefined) s.speed = 0; for (const m of s.marches) { const a = Math.ceil(m.t1 / D.TURNO_MESES - 1e-9) * D.TURNO_MESES; if (a > m.t1) m.t1 = a; } } if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0;  if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria', 'acueducto', 'termas', 'anfiteatro']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } return true; } } catch (e) { /* partida corrupta */ } return false; };
   G.wipe = function () { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* nada */ } };
 
   root.Game = G;

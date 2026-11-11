@@ -68,6 +68,7 @@ G.onEvent = function (type, p) {
   else if (type === 'alert') toast(p, 'bad');
   else if (type === 'log') { if (p.k === 'good') toast(p.x); else if (p.k === 'bad') toast(p.x, 'bad'); UI.dirty = true; }
   else if (type === 'dirty') UI.dirty = true;
+  else if (type === 'turno') { const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.over) consejoModal(); UI.dirty = true; }
   else if (type === 'over') { if (!UI.battle && !UI.binfo) showOver(); }
 };
 
@@ -82,7 +83,7 @@ function showMenu() {
     '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><div class="spqr">S·P·Q·R</div>' +
     '<div class="credits">Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1<br>Termas y acueducto: dibujo propio del proyecto, CC BY-SA 3.0</div>';
 }
-function startGame() { UI.menu = false; $('menu').hidden = true; UI.city = 'roma'; UI.sel = null; if (UI.map) UI.map.center('roma'); UI.cityList = false; setModo('gobierno'); }
+function startGame() { if (G.turnos && S()) S().speed = 0; UI.menu = false; $('menu').hidden = true; UI.city = 'roma'; UI.sel = null; if (UI.map) UI.map.center('roma'); UI.cityList = false; setModo('gobierno'); }
 function showOver() {
   const s = S(), o = s.over; if (!o || UI.overShown) return; UI.overShown = true;
   modal('<div class="yr">' + (o.win ? 'VICTORIA' : 'DERROTA') + '</div><h2>' + (o.win ? 'Roma Victrix' : 'Vae victis') + '</h2><p>' + esc(o.why) + '</p>' +
@@ -94,6 +95,11 @@ function showOver() {
 function buildTop() {
   $('res').innerHTML = D.RES.map(r => '<span class="r' + (r === 'oro' || r === 'grano' ? '' : ' g-only') + '" id="rb-' + r + '">' + D.RES_ICON[r] + '<b id="r-' + r + '"></b></span>').join('') +
     '<span class="r w-only" id="rb-recl" title="Reclutas disponibles en la ciudad">' + D.GUERRA_ICON.casco + '<b id="r-recl"></b></span><span class="r w-only" id="rb-march" title="Marchas de tus ejércitos">' + D.GUERRA_ICON.espadas + '<b id="r-march"></b></span>';
+}
+const turnosTxt = n => 'en ' + n + (n === 1 ? ' turno' : ' turnos');
+function consejoModal() {
+  const l = G.consejo();
+  modal('<div class="yr">CONSEJO DE ESTACIÓN</div><h2>' + esc(l[0].x) + '</h2>' + l.slice(1).map(q => '<p style="' + (q.k === 'bad' ? 'color:var(--bad)' : q.k === 'good' ? 'color:var(--good)' : '') + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</p>').join('') + '<div class="acts"><button class="btn gold" data-act="close">Seguir</button></div>');
 }
 const VEL = { 0: 'II', 1: '▶', 2: '▶▶', 4: '▶▶▶' };
 const ICO_GOB = svgIco('<path d="M3 20h18M5 20V9h14v11M3 9h18M9 20v-6h6v6M12 4v5"/>');
@@ -123,7 +129,10 @@ function tickUI() {
   const nm = s.marches.filter(m => m.owner === 'roma').length; $('r-march').textContent = nm + (nm === 1 ? ' marcha' : ' marchas');
   hudDock();
   $('date').textContent = G.dateStr(s.t);
-  $('speed').textContent = VEL[s.speed] || '▶'; $('speed').classList.toggle('on', s.speed === 0);
+  if (G.turnos) {
+    $('speed').textContent = s.speed > 0 ? 'II' : '▶'; $('speed').title = s.speed > 0 ? 'Pausar el tiempo de la ciudad' : 'Dejar correr el tiempo de la ciudad'; $('speed').classList.remove('on');
+    $('turno').hidden = false; setTxt('turno', '<b>Pasar turno</b> · ' + G.estacion(s.t));
+  } else { $('turno').hidden = true; $('speed').textContent = VEL[s.speed] || '▶'; $('speed').classList.toggle('on', s.speed === 0); }
   document.querySelectorAll('[data-t1]').forEach(e => {
     const t0 = +e.dataset.t0, t1 = +e.dataset.t1, f = Math.max(0, Math.min(1, (s.t - t0) / (t1 - t0)));
     const bar = e.querySelector('i'); if (bar) bar.style.width = (f * 100).toFixed(1) + '%';
@@ -482,13 +491,13 @@ function renderSheet() {
   const s = S(), sh = $('sheet'); if (!s || !UI.sel || UI.tab !== 'map') { sh.hidden = true; UI.sheetKey = ''; return; }
   const id = UI.sel, c = s.cities[id], d = D.CITIES[id], f = D.FACTIONS[c.owner], mine = c.owner === 'roma';
   const src = G.neighbors(id).filter(n => s.cities[n].owner === 'roma'), inc = s.marches.filter(m => m.to === id);
-  const key = id + c.owner + G.rutasAbiertas().length + JSON.stringify(c.units) + src.join() + inc.map(m => m.id + Math.round((m.t1 - s.t) * 2)).join();
+  const key = id + c.owner + G.rutasAbiertas().length + JSON.stringify(c.units) + src.join() + inc.map(m => m.id + (G.turnos ? G.turnosFaltan(m) : Math.round((m.t1 - s.t) * 2))).join();
   if (key === UI.sheetKey && !sh.hidden) return; UI.sheetKey = key;
   let h = '<button class="x" data-act="unsel">✕</button><h3>' + d.n + '<span class="tagf" style="background:' + f.col + '">' + f.n + '</span></h3><p>' + esc(d.h) + '</p>';
   h += '<span class="stat">🧱 Muralla ' + (c.b.muralla || 0) + '</span><span class="stat">💰 ' + '★'.repeat(c.w || d.w) + '</span><span class="stat">⚔ Fuerza ' + G.power(c.units) + '</span>' + (D.ESPECIAL[d.esp] ? '<span class="stat">Bien: ' + D.ESPECIAL[d.esp].i + ' ' + D.ESPECIAL[d.esp].n + '</span>' : '');
   { const tr = G.rutasAbiertas().find(r => r.b === id && r.f !== 'roma'); if (tr) h += '<span class="stat">⚖️ Tratado de comercio con Roma</span>'; }
   h += '<div class="units">' + (Object.keys(c.units).filter(k => c.units[k] > 0).map(k => '<span>' + D.UNITS[k].n + ' <b>' + c.units[k] + '</b></span>').join('') || '<span>Sin guarnición</span>') + '</div>';
-  if (inc.length) h += inc.map(m => '<div class="stat" style="color:' + (m.owner === 'roma' ? 'var(--good)' : 'var(--bad)') + '">' + (m.owner === 'roma' ? '🚩 Tus tropas llegan' : '⚠️ ' + D.FACTIONS[m.owner].n + ' (' + G.men(m.units) + ') llega') + ' en ' + months(m.t1 - s.t) + '</div>').join('');
+  if (inc.length) h += inc.map(m => '<div class="stat" style="color:' + (m.owner === 'roma' ? 'var(--good)' : 'var(--bad)') + '">' + (m.owner === 'roma' ? '🚩 Tus tropas llegan' : '⚠️ ' + D.FACTIONS[m.owner].n + ' (' + G.men(m.units) + ') llega') + ' ' + (G.turnos ? turnosTxt(G.turnosFaltan(m)) : 'en ' + months(m.t1 - s.t)) + '</div>').join('');
   h += '<div class="acts">';
   if (mine) h += '<button class="btn gold" data-act="goto" data-v="' + id + '">Gestionar</button>';
   if (src.length) h += src.map(n => '<button class="btn" data-act="pick" data-from="' + n + '" data-to="' + id + '">' + (mine ? 'Reforzar' : 'Atacar') + ' desde ' + D.CITIES[n].n + (G.edge(n, id)[2] ? ' ⚓' : '') + '</button>').join('');
@@ -501,7 +510,7 @@ function showPicker(from, to) {
   const s = S(), c = s.cities[from], own = s.cities[to].owner === 'roma', hero = G.heroAvailable(from);
   if (G.edge(from, to)[2] && !(c.b.puerto > 0)) { modal('<div class="yr">RUTA MARÍTIMA</div><h2>Hace falta un puerto</h2><p>Para embarcar un ejército desde ' + D.CITIES[from].n + ' hacia ' + D.CITIES[to].n + ' necesitas construir antes un <b>Puerto</b> en ' + D.CITIES[from].n + '.</p><div class="acts"><button class="btn ghost" data-act="close">Cerrar</button><button class="btn gold" data-act="goport" data-v="' + from + '">Ir a la ciudad</button></div>'); return; }
   const ks = Object.keys(c.units).filter(k => c.units[k] > 0);
-  let h = '<div class="yr">DESDE ' + D.CITIES[from].n.toUpperCase() + ' · ' + months(G.travel(from, to, false)).toUpperCase() + '</div><h2>' + (own ? 'Reforzar ' : 'Atacar ') + D.CITIES[to].n + '</h2>';
+  let h = '<div class="yr">DESDE ' + D.CITIES[from].n.toUpperCase() + ' · ' + (G.turnos ? ('LLEGAN ' + turnosTxt(Math.max(1, Math.ceil((G.llegada(s.t + G.travel(from, to, false)) - s.t) / D.TURNO_MESES - 1e-9)))).toUpperCase() : months(G.travel(from, to, false)).toUpperCase()) + '</div><h2>' + (own ? 'Reforzar ' : 'Atacar ') + D.CITIES[to].n + '</h2>';
   if (!ks.length && !hero) h += '<p>No hay tropas en ' + D.CITIES[from].n + '. Recluta en la pestaña Ejército.</p>';
   h += ks.map(k => '<div class="pick"><div class="pt">' + pt(k) + '</div><div><label><span>' + D.UNITS[k].n + '</span><span><b id="pv-' + k + '">' + c.units[k] + '</b> / ' + c.units[k] + '</span></label><input type="range" min="0" max="' + c.units[k] + '" value="' + c.units[k] + '" data-k="' + k + '"></div></div>').join('');
   if (hero) h += '<label class="chk"><input type="checkbox" id="pk-hero" checked> ' + D.GUERRA_ICON.aguila + ' El general acompaña al ejército</label>';
@@ -607,12 +616,13 @@ document.addEventListener('click', function (e) {
   if (a !== 'derr') UI.derr = null;
   switch (a) {
     case 'fluidez': fijarFluidez(!fluidezOn()); showMenu(); break;
-    case 'new': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión'); UI.overShown = false; G.save(); startGame(); break;
+    case 'new': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión'); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'continue': if (G.load()) { UI.overShown = false; startGame(); if (S().over) showOver(); } break;
     case 'tomenu': G.save(); UI.modalQ = []; closeModal(); stopBattle(); showMenu(); break;
     case 'tab': UI.codice = null; setTab(v); break;
     case 'codice': UI.codice = v || null; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;
-    case 'speed': s.speed = v === 'next' ? ({ 1: 2, 2: 4, 4: 0, 0: 1 }[s.speed] || 1) : +v; tickUI(); break;
+    case 'turno': if (!G.turnos || s.over || s.pending.length || UI.modalOpen) break; G.pasarTurno(); UI.dirty = true; tickUI(); break;
+    case 'speed': if (G.turnos) { s.speed = s.speed ? 0 : 1; tickUI(); break; } s.speed = v === 'next' ? ({ 1: 2, 2: 4, 4: 0, 0: 1 }[s.speed] || 1) : +v; tickUI(); break;
     case 'modo': setModo(v); break;
     case 'citymenu': { const m = $('citymenu'); m.hidden = !m.hidden; if (!m.hidden) m.innerHTML = cityMenuHtml(); break; }
     case 'menumodo': { const h = $('hoja'); h.hidden = !h.hidden; if (!h.hidden) h.innerHTML = hojaHtml(); hudDock(); break; }
