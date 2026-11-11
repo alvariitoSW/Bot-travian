@@ -29,9 +29,15 @@ for (const e of D.EDGES) assert(D.CITIES[e[0]] && D.CITIES[e[1]], 'ruta inválid
 for (const id in D.CITIES) { assert(D.FACTIONS[D.CITIES[id].f]); for (const k in D.CITIES[id].g) assert(D.UNITS[k], k); }
 
 // 5. Campaña completa con un bot sencillo: no debe lanzar excepciones y debe terminar
-function campaign(aggressive) {
+function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function campaign(aggressive, seed) {
+  const rndOrig = Math.random; if (seed) Math.random = mulberry32(seed);
+  try { return campaign1(aggressive); } finally { Math.random = rndOrig; }
+}
+function campaign1(aggressive) {
   const s = G.newGame('Test'); const events = [];
   G.onEvent = (t, p) => { events.push(t); if (process.env.V && t === 'log' && /⚠|🔥|🏆|💀|rechaza|📜/.test(p.x)) console.log('  ', G.yearOf(s.t), p.x); };
+  const dist = { carthago: 0 }; for (let q = ['carthago'], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
   let guard = 0;
   while (!s.over && guard++ < 200000) {
     G.tick(0.25);
@@ -39,13 +45,17 @@ function campaign(aggressive) {
     if (guard % 8) continue;
     for (const id of G.myCities()) {
       const c = s.cities[id];
-      if (c.train.length < 2 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(40, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
-      if (!c.queue) { const bs = Object.keys(D.BUILD).filter(b => (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0)); for (const b of bs) if (G.upgrade(id, b)) break; }
+      if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
+      if (!c.queue) { const bs = Object.keys(D.BUILD).filter(b => (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); for (const b of bs) if (G.upgrade(id, b)) break; }
       if (!aggressive) continue;
+      const yr = G.yearOf(s.t); if (yr <= 230 && yr >= 209) continue;   // el bot se atrinchera ante la invasión de Aníbal
+      // concentración: las tropas avanzan por la ruta más corta hacia Carthago mientras la siguiente plaza sea romana
+      const sig = G.neighbors(id).sort((a, b) => dist[a] - dist[b])[0];
+      if (id !== 'carthago' && dist[sig] < dist[id] && s.cities[sig].owner === 'roma' && !s.marches.some(m => m.owner === 'roma' && m.from === id)) { const u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (id === "roma" ? 0.15 : 0.65)); if (G.men(u) >= 100 && G.send(id, sig, u, false)) continue; }
       for (const n of G.neighbors(id)) {
         const t = s.cities[n]; if (t.owner === 'roma') continue;
         const keepHome = id === 'roma' ? 0.35 : 0.2, u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (1 - keepHome));
-        if (G.power(u) > G.power(t.units) * (1.6 + 0.12 * t.b.muralla) && !s.marches.some(m => m.owner === 'roma')) { G.send(id, n, u, G.heroAvailable(id)); break; }
+        if (G.power(u) > G.power(t.units) * (1.6 + 0.12 * t.b.muralla) && !s.marches.some(m => m.owner === 'roma' && s.cities[m.to].owner !== 'roma')) { G.send(id, n, u, G.heroAvailable(id)); break; }
       }
     }
   }
@@ -53,10 +63,15 @@ function campaign(aggressive) {
   assert(events.includes('event'));
   return s;
 }
-const passive = campaign(false);
-console.log('Bot pasivo  →', passive.over.win ? 'VICTORIA' : 'derrota', '·', G.yearOf(passive.t), 'a.C. ·', passive.over.why);
-const active = campaign(true);
-console.log('Bot agresivo →', active.over.win ? 'VICTORIA' : 'derrota', '·', G.yearOf(active.t), 'a.C. · ciudades:', G.myCities().length, '· héroe nv', active.hero.lvl, '·', JSON.stringify(active.stats));
+// 10 semillas del azar de la IA: el agresivo debe tomar Carthago antes del 146 a.C. en la mayoría; el pasivo, nunca
+const res = { pas: [], agr: [] }; let activo = null;
+for (const ag of [false, true]) for (let sd = 1; sd <= 10; sd++) { const s = campaign(ag, sd); res[ag ? 'agr' : 'pas'].push(s); if (ag && sd === 1) activo = s; }
+const resumen = l => l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t)).join(' ');
+console.log('Bot pasivo   →', resumen(res.pas)); console.log('Bot agresivo →', resumen(res.agr));
+const ganaAgr = res.agr.filter(s => s.over.win).length, ganaPas = res.pas.filter(s => s.over.win).length;
+assert(ganaAgr >= 6, 'el bot agresivo debe tomar Carthago en al menos 6 de 10 semillas (' + ganaAgr + '/10)');
+assert.strictEqual(ganaPas, 0, 'un bot pasivo no debe ganar nunca (' + ganaPas + '/10)');
+const active = activo;
 assert(JSON.parse(JSON.stringify(active)).v === 1, 'el estado debe ser serializable');
 assert(G.myCities().length >= 3, 'un bot agresivo debe poder conquistar ciudades');
 // 6. Ciudad: población, mercado y puerto
