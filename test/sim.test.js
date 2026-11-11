@@ -502,4 +502,16 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   const i1 = c.inq; c.b.templo = 3; c.dios = 'marte'; G.tick(0.5); assert(G.inqMul(c) < 1 && G.inqMul(c) >= 1 - D.INQ_PROD);
   c.imp = 'alto'; c.b.templo = 0; assert(G.felicidad(c) < D.INQ_REBELION); c.inq = D.INQ_MESES; G.tick(0.25); assert(c.owner !== 'roma' && c.inq === 0, 'con felicidad baja la ciudad conquistada se rebela'); }
 { const s = G.newGame('Vieja5'); s.cities.roma.b.templo = 2; delete s.cities.roma.dios; delete s.cities.roma.inq; delete s.evN; localStorage.setItem('aqvila-save-v1', JSON.stringify(s)); assert(G.load()); assert(G.state.cities.roma.dios === 'marte' && G.state.cities.roma.inq === 0, 'migración del templo antiguo'); }
+// ---- B7 Saqueo ----
+{ const s = G.newGame('Saqueo'); const o = 'volsinii', c = s.cities[o]; s.res = { madera: 100, piedra: 100, hierro: 100, grano: 100, oro: 100 };
+  const b1 = G.botin(o); assert(b1.madera > 0 && b1.oro < b1.madera, 'botín con oro al 60 %'); c.b.muralla = 3; assert(G.botin(o).madera < b1.madera, 'la muralla recorta el botín'); c.b.muralla = 0; c.b.almacen += 2; assert(G.botin(o).madera > b1.madera, 'el almacén ajeno lo sube');
+  s.cities.roma.units = { hastati: 60 }; assert(G.send('roma', o, { hastati: 40 }, false, 'saqueo')); assert(s.marches[0].mision === 'saqueo'); const r = G.send('roma', 'capua', { hastati: 5 }, false, 'saqueo'); assert(r && !s.marches[1].mision, 'no se saquea una ciudad propia');
+  s.pending.push({ kind: 'attack', m: s.marches.shift() }); const res = { winner: 0, dead: [5, 20], surv: [{ hastati: 35 }, {}], lost: [{ hastati: 5 }, { hastati: 20 }], genDead: [false, false] };
+  const prev = c.owner, antes = s.res.madera, bo = G.botin(o), out = G.applyBattle(res);
+  assert(c.owner === prev && out.saqueo && s.res.madera === antes + bo.madera, 'el saqueo da botín y no conquista'); assert(s.cities.roma.units.hastati >= 15 + 35, 'las tropas vuelven a casa'); assert(G.botin(o).madera < bo.madera, 'una ciudad recién saqueada da menos'); }
+{ const s = G.newGame('Robo'); s.res = { madera: 1000, piedra: 1000, hierro: 1000, grano: 1000, oro: 1000 }; const c = s.cities.roma; c.b.almacen = 0; c.units = { hastati: 10 };
+  const m = { id: 99, owner: 'cartago', from: 'carthago', to: 'roma', units: { libios: 50 }, mision: 'saqueo', t0: 0, t1: 1 }; s.pending.push({ kind: 'defense', m });
+  G.applyBattle({ winner: 1, dead: [10, 0], surv: [{}, { libios: 50 }], lost: [{ hastati: 10 }, {}], genDead: [false, false] });
+  assert(c.owner === 'roma' && !s.over && s.res.madera === 800, 'te saquean el 20 % y Roma no cae');
+  s.res.madera = 1000; c.b.almacen = 8; s.pending.push({ kind: 'defense', m }); G.applyBattle({ winner: 1, dead: [0, 0], surv: [{}, { libios: 50 }], lost: [{}, {}], genDead: [false, false] }); assert(s.res.madera === 1000 - Math.round(Math.min(200, 1000 - 960)), 'el almacén esconde recursos'); }
 console.log('OK — todas las pruebas superadas');

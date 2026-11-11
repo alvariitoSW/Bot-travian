@@ -40,8 +40,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ⬜ B5 Marina: flotas, batallas navales o bloqueo.
 - ✅ B6 Equilibrio: el bot de pruebas toma Cartago en 6 de 10 campañas; sin cambiar números del juego.
 
-- ⬜ B7 **Saqueo**: atacar una ciudad para robar recursos sin conquistarla (botín según almacén y muralla), y que los
-  rivales te saqueen; escondite de recursos. Rivales con ciudades que crecen como la tuya («otros jugadores» de la IA).
+- ✅ B7 Saqueo (11/11): al atacar eliges «Solo saquear»: botín según riqueza, almacén y muralla de la ciudad enemiga, sin conquistarla y con las tropas de vuelta; una ciudad saqueada hace poco da el 40 %. Los rivales también saquean: la mitad de sus incursiones no conquistan, te llevan el 20 % de lo que el almacén no esconde (120 por nivel de almacén y recurso).
 - ✅ B8 Herrería: mejoras de armas y armaduras, +5 % por nivel (máx. +25 %).
 - ✅ B10 Aníbal suavizado: 20 % menos de tropas y dos meses más de marcha; el bot gana 8 de 10 y Roma ya no cae.
 - ✅ B9 Roma con el Tíber y una colina (versión simple; las demás ciudades, igual).
@@ -61,21 +60,28 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ I4 **Tipos de ciudad con solares limitados** (11/11): 7 a 10 solares por ciudad para los edificios urbanos (campos y muralla no ocupan); seis tipos a elegir (municipio, colonia agraria, colonia militar, emporio, base naval, ciudad de artesanos); «Derribar» libera un solar.
 - ⬜ I5 **Investigación y edades** (P47): árbol corto de unas 16 mejoras; la herrería pasa a ser su rama de guerra. Sustituye a F4. 0,2 + 0,7 M · 20 min.
 - ⬜ I6 **Región de Italia** montada solo con fichas (P48; prueba del cableado). 0,2 + 0,6 M · 20 min. Después de I1.
-- ⬜ I7 **Regiones** (P50): cada región tiene una ciudad principal y zonas de industria a su alrededor. 0,2 + 0,7 M · 20 min, a ojo. Después de I4 e I6.
+- ✅ I7 Fundida en J3 (capital y pueblos; decisión del 11/11).
 - ⬜ I8 **Partida corta** (P49): fundas de cero, un rival, un final. Sustituye a F1b. 0,25 + 0,8 M · 25 min. Después de I2 a I7.
+
+## Carril J — Interfaz y territorio (aprobado 11/11/2026, P58 a P62)
+- ⬜ J1 **Pantalla limpia** (P58): menos botones a la vista; barra fina de recursos, barra de abajo y lo demás recogido en un botón que se despliega. Con dos modos separados dentro del mismo juego (decisión 11/11): «Gobierno» (ciudades, economía, política) y «Guerra» (ejércitos, marchas, batallas), y un cambio claro entre los dos. Primero dos maquetas en el cuadro para que el usuario elija; luego se construye. 0,15 + 0,5 M.
+- ⬜ J2 **Obras de un toque** (P59): panel «Obras» con todas tus ciudades y un botón por cada obra posible; «mejorar» directo al tocar un edificio. 0,15 + 0,5 M. Después de J1.
+- ⬜ J3 **Capital y pueblos** (P60; incluye I7): cada territorio tiene una capital con los edificios de gobierno y pueblos de recursos, pescadores y agricultores-ganaderos. Los pueblos producen; la capital gobierna, recluta y comercia. 0,3 + 1,0 M, en dos tareas. Después de I6.
+- ⬜ J4 **Mapa más grande por regiones** (P62; amplía I6): más ciudades y territorios, cada región con su capital y sus núcleos pequeños; lista de ciudades con fuente histórica; vigilar la fluidez. 0,3 + 1,2 M, en dos o tres tareas. Después de J3.
+- ⬜ J5 **Política territorial** (P61): apartado «Senado» con planes de infraestructuras, ciudadanía, ejército, diplomacia y mercado. Primero informe corto de diseño con fuentes; se une con I5 y C3. 0,3 + 1,0 M, en dos tareas.
 
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
 - ✅ E4 Arte propio de termas, acueducto y anfiteatro (11/11/2026): termas y acueducto dibujados desde cero (`tools/propio_static.mjs`, CC BY-SA 3.0, sin texturas nuevas); anfiteatro de Pompeya de 0 A.D. aligerado a 8.483 triángulos y a escala de ciudad (`tools/aligerar_static.mjs`). El arte pasa a 34,0 MB de 35. Parte: `partes/2026-11-11-E4.md`.
 - ✅ E1b Guía de arte, primera parte (11/11): iconos de línea para madera, piedra, hierro, grano, denarios y población; letra Cinzel incluida en el juego (SIL OFL 1.1, 29 KB); mármol, oliva y terracota en vez de blanco azulado, verde fosforito y rosa.
-- ⬜ E1c Guía de arte, segunda parte: iconos de guerra (⚔️ 🛡️ 🦅 🪖) y de edificios, marcos con doble filete y greca, esquinas de 6–8 px. Las barras de moral de la batalla siguen en el verde antiguo (`js/gfx/battle3d.js`, carril Batallas).
+- ✅ E1c Guía de arte, segunda parte (11/11/2026): esquinas de 8 px, doble filete y greca (`css/style.css`); iconos de línea propios para guerra (espadas, escudo, águila, casco), las cinco pestañas y los edificios en tarjetas y listas (`D.GUERRA_ICON`, `D.BUILD_ICON`, `bIco()` en `js/ui.js`). Quedan con emoji la etiqueta flotante de la ciudad 3D (`city3d.js`, es texto), los avisos y el resto de emojis (bienes, dioses, tipos). Las barras de moral siguen en `battle3d.js` (Batallas). Parte: `partes/2026-11-11-E1c.md`.
 - ✅ E2 Piezas de 0 A.D. por cultura (11/11): en el mapa cada ciudad lleva un edificio de su dueño (cartaginés, griego, galo, íbero; Roma, el templo redondo) y los ejércitos por mar van en barco cartaginés o griego. 6 piezas, +2,7 MB (total 33,1 de 35).
 - ⬜ E2b Más piezas por cultura cuando haya sitio: máquinas de asedio y estandartes; templo griego de verdad (los de 0 A.D. no se convierten con la herramienta actual: salen vacíos). Quedan 1,9 MB hasta el tope: subirlo lo decide el usuario.
 - ✅ E3 Presupuesto por escena en `node gobierno/arte.mjs` (batalla 1,1 millones, ciudad 300 mil; provisional hasta D1).
 
 ## Carril C — Mapa y campaña
 - ⬜ C1 Zoom continuo mapa → ciudad; ejércitos de guarnición visibles junto a cada ciudad.
-- ⬜ C2 Costa y relieve del mapa con datos mejores; texturas de terreno en el mapa.
+- ✅ C2 Costa real (Natural Earth, 15 KB) y grano de hierba en el suelo del mapa. Queda ⬜ C2b: relieve con datos de altura reales (hoy son cordilleras a mano) y orillas con espuma.
 - ⬜ C3 Diplomacia sencilla (alianzas, tributos) e IA enemiga que también construye.
 
 ## Carril H — Historia (ministerio de Adecuación Histórica)

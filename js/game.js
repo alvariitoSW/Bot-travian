@@ -264,7 +264,14 @@
 
   G.heroAvailable = cid => { const h = G.state.hero; return h.city === cid && !h.march && h.wound <= G.state.t; };
 
-  G.send = function (from, to, units, withHero) {
+  // botín de un saqueo a una ciudad enemiga: por recurso; el oro, un 60 %
+  G.botin = function (cid) {
+    const s = G.state, c = s.cities[cid], d = D.CITIES[cid], h = s.hero; if (!c) return {};
+    let b = D.SAQUEO_BASE * (c.w || d.w) * (1 + 0.1 * h.sk.log) * (1 + 0.05 * (c.b.almacen || 0)) * (1 - 0.08 * (c.b.muralla || 0));
+    if (c.saqueada !== undefined && s.t - c.saqueada < D.SAQUEO_MESES) b *= D.SAQUEO_REPETIDO;
+    const o = {}; for (const r of D.RES) o[r] = Math.max(0, Math.round(b * (r === 'oro' ? 0.6 : 1))); return o;
+  };
+  G.send = function (from, to, units, withHero, mision) {
     const s = G.state, c = s.cities[from];
     if (!c || c.owner !== 'roma' || !G.edge(from, to)) return false;
     if (G.edge(from, to)[2] && !(c.b.puerto > 0)) return false;       // por mar hace falta un puerto
@@ -275,6 +282,7 @@
     if (n === 0 && !(withHero && own)) return false;
     for (const k in u) { c.units[k] -= u[k]; if (c.units[k] <= 0) delete c.units[k]; }
     const m = { id: s.mid++, owner: 'roma', from: from, to: to, units: u, hero: !!withHero, t0: s.t, t1: s.t + G.travel(from, to, withHero) };
+    if (mision === 'saqueo' && !own) m.mision = 'saqueo';
     if (withHero) { s.hero.city = null; s.hero.march = m.id; }
     s.marches.push(m);
     G.rutasRevisar();
@@ -367,8 +375,8 @@
       if (!tg.length || G.men(c.units) < 100 || Math.random() > 0.14) continue;
       const to = tg[Math.floor(Math.random() * tg.length)], u = {};
       for (const k in c.units) { const q = Math.floor(c.units[k] * 0.4); if (q > 0) { u[k] = q; c.units[k] -= q; } }
-      spawn(c.owner, id, null, to, u, null, G.travel(id, to) * 2 + 4);
-      G.log('⚠️ ' + f.n + ' envía un ejército desde ' + d.n + ' contra ' + D.CITIES[to].n + '.', 'bad');
+      const sq = Math.random() < D.SAQUEO_IA; spawn(c.owner, id, null, to, u, null, G.travel(id, to) * 2 + 4); if (sq) s.marches[s.marches.length - 1].mision = 'saqueo';
+      G.log('⚠️ ' + f.n + ' envía ' + (sq ? 'una partida de saqueo' : 'un ejército') + ' desde ' + d.n + ' contra ' + D.CITIES[to].n + '.', 'bad');
       emit('alert', '¡' + f.n + ' marcha sobre ' + D.CITIES[to].n + '!');
     }
     checkEvents(year);
@@ -465,7 +473,14 @@
     const win = res.winner === 0, out = { win: win, kind: pb.kind, city: cid, dead: res.dead, lines: [] };
     s.stats.battles++; if (win) s.stats.wins++; s.stats.kills += res.dead[1]; s.stats.lost += res.dead[0];
     if (pb.kind === 'attack') {
-      if (win) {
+      if (win && m.mision === 'saqueo') {
+        const loot = G.botin(cid), cap = G.cap(), home = s.cities[m.from].owner === 'roma' ? m.from : 'roma';
+        for (const r of D.RES) s.res[r] = Math.min(cap, s.res[r] + loot[r]);
+        merge(s.cities[home].units, keep(res.surv[0], res.lost[0], 1, 0.25)); c.units = keep(res.surv[1], res.lost[1], 1, 0.3); c.saqueada = s.t;
+        if (m.hero) { h.city = home; h.march = null; }
+        out.saqueo = true; out.lines.push('💰 Saqueo de ' + d.n + ': ' + D.RES.map(r => '+' + loot[r] + ' ' + D.RES_ICON[r]).join(' ') + '.', 'Tus tropas vuelven a ' + D.CITIES[home].n + '; la ciudad sigue siendo de ' + D.FACTIONS[c.owner].n + '.');
+        G.log('💰 Saqueada ' + d.n + ' sin conquistarla.', 'good');
+      } else if (win) {
         const prev = D.FACTIONS[c.owner].n;
         incorporar(c, keep(res.surv[0], res.lost[0], 1, 0.25), true);
         c.b.muralla = Math.max(0, (c.b.muralla || 0) - 1);
@@ -487,6 +502,12 @@
         c.units = keep(res.surv[0], res.lost[0], 1, 0.25);
         out.lines.push('🛡️ ' + d.n + ' resiste.');
         G.log('🛡️ ' + d.n + ' rechaza el ataque de ' + D.FACTIONS[m.owner].n + '.', 'good');
+      } else if (m.mision === 'saqueo') {
+        const esc = D.ESCONDITE * (c.b.almacen || 0), rob = {};
+        for (const r of D.RES) { rob[r] = Math.round(Math.max(0, Math.min(D.SAQUEO_ROBO * s.res[r], s.res[r] - esc))); s.res[r] -= rob[r]; }
+        c.units = keep(res.surv[0], res.lost[0], 1, 0.3);
+        out.saqueo = true; out.lines.push('🔥 ' + D.FACTIONS[m.owner].n + ' saquea ' + d.n + ' y se marcha: ' + D.RES.map(r => '-' + rob[r] + ' ' + D.RES_ICON[r]).join(' ') + '.', 'Cada almacén esconde ' + D.ESCONDITE + ' de cada recurso.');
+        G.log('🔥 ' + d.n + ' ha sido saqueada por ' + D.FACTIONS[m.owner].n + '.', 'bad');
       } else {
         c.owner = m.owner; c.units = keep(res.surv[1], res.lost[1], 1, 0.3); c.queue = null; c.train = [];
         out.lines.push('🔥 ' + d.n + ' ha caído en manos de ' + D.FACTIONS[m.owner].n + '.');
@@ -509,7 +530,7 @@
   /* ---------- guardado ---------- */
   G.save = function () { try { if (typeof localStorage !== 'undefined' && G.state) localStorage.setItem(SAVE_KEY, JSON.stringify(G.state)); } catch (e) { /* almacenamiento no disponible */ } };
   G.hasSave = function () { try { return typeof localStorage !== 'undefined' && !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } };
-  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0; if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria', 'acueducto', 'termas', 'anfiteatro']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } return true; } } catch (e) { /* partida corrupta */ } return false; };
+  G.load = function () { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0;  if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria', 'acueducto', 'termas', 'anfiteatro']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } return true; } } catch (e) { /* partida corrupta */ } return false; };
   G.wipe = function () { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* nada */ } };
 
   root.Game = G;

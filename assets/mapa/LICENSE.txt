@@ -1,0 +1,3 @@
+costa.js: contorno de costas derivado de Natural Earth (ne_50m_land, https://www.naturalearthdata.com),
+dominio público (Tom Patterson, Nathaniel Vaughn Kelso y colaboradores). Recortado, simplificado y con la orilla
+empujada junto a algunas ciudades del juego. Se genera con generar-costa.mjs.

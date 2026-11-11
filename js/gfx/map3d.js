@@ -1,6 +1,8 @@
 /* AQVILA — mapa de campaña en 3D: relieve del Mediterráneo, ciudades, rutas y ejércitos en marcha */
 import { THREE, uTime, unitGeometry, unitMaterial } from './models.js';
 import { staticMesh, getStatic } from './statics.js';
+import COSTA from '../../assets/mapa/costa.js';
+import { mapaMaterial, mapaTexturas } from './ground.js';
 import { getUnit, unitMaterialReal, instancedGeometry, frameOf, UNIT_SCALE } from './units.js';
 
 const D = window.DATA, G = window.Game;
@@ -17,7 +19,8 @@ const RIDGES = [
   [2.0, 0.5, [-5, 35.0], [-1, 34.9], [3, 36.1], [6, 36.2], [8.8, 36.0]],
   [2.2, 0.5, [14.6, 45.1], [16.5, 44.0], [18.6, 42.9], [20.1, 41.9], [20.9, 40.5], [21.4, 39.5], [21.9, 38.6]],
   [1.7, 0.5, [21, 42.3], [23, 42.0], [25, 42.1]], [1.3, 0.5, [2.4, 45.2], [3.4, 44.5]], [1.2, 0.35, [22.2, 37.6], [22.4, 37.0]],
-  [2.4, 0.16, [15.0, 37.75], [15.01, 37.76]], [1.7, 0.25, [9.1, 42.4], [9.1, 41.8]], [1.0, 0.25, [9.2, 40.3], [9.3, 39.6]], [0.9, 0.3, [13.6, 37.8], [14.6, 37.75]]
+  [2.4, 0.16, [15.0, 37.75], [15.01, 37.76]], [1.7, 0.25, [9.1, 42.4], [9.1, 41.8]], [1.0, 0.25, [9.2, 40.3], [9.3, 39.6]], [0.9, 0.3, [13.6, 37.8], [14.6, 37.75]],
+  [1.3, 0.22, [23.6, 35.3], [24.9, 35.25], [26.0, 35.2]], [0.7, 0.2, [2.4, 39.8], [3.2, 39.85]], [0.9, 0.2, [10.3, 42.8], [10.4, 42.75]]
 ];
 
 function inPoly(x, y, poly) { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; }
@@ -46,9 +49,15 @@ export class MapView3D {
     sc.add(new THREE.HemisphereLight('#eaf2ff', '#5a4a30', 1.2));
     const sun = new THREE.DirectionalLight('#fff1d6', 2.4); sun.position.set(-60, 90, 40); sc.add(sun);
     // --- máscara de tierra y distancia a la costa ---
-    const land = new Uint8Array((NX + 1) * (NZ + 1)), polys = D.LAND;
+    const land = new Uint8Array((NX + 1) * (NZ + 1)), polys = COSTA;          // costa: Natural Earth 50m, recortada y simplificada
     const lonOf = i => i * CW / K / 50 - 7, latOf = j => 47 - j * CH / K / 64;
-    for (let j = 0; j <= NZ; j++) for (let i = 0; i <= NX; i++) { const lo = lonOf(i), la = latOf(j); for (const p of polys) if (inPoly(lo, la, p)) { land[j * (NX + 1) + i] = 1; break; } }
+    // relleno por líneas: para cada fila, cruces con los lados de la costa y tramos de tierra entre pares
+    for (let j = 0; j <= NZ; j++) {
+      const la = latOf(j), xs = [];
+      for (const p of polys) for (let q = 0, n = p.length; q < n; q++) { const a = p[q], b = p[(q + 1) % n]; if ((a[1] > la) !== (b[1] > la)) xs.push((b[0] - a[0]) * (la - a[1]) / (b[1] - a[1]) + a[0]); }
+      xs.sort((u, v) => u - v);
+      for (let q = 0; q + 1 < xs.length; q += 2) { const i0 = Math.max(0, Math.ceil((xs[q] + 7) * 50 * K / CW)), i1 = Math.min(NX, Math.floor((xs[q + 1] + 7) * 50 * K / CW)); for (let i = i0; i <= i1; i++) land[j * (NX + 1) + i] = 1; }
+    }
     const dist = new Float32Array(land.length), W1 = NX + 1;
     for (let k = 0; k < land.length; k++) dist[k] = 99;
     for (let j = 0; j <= NZ; j++) for (let i = 0; i <= NX; i++) { const k = j * W1 + i, me = land[k]; if ((i > 0 && land[k - 1] !== me) || (i < NX && land[k + 1] !== me) || (j > 0 && land[k - W1] !== me) || (j < NZ && land[k + W1] !== me)) dist[k] = 0.5; }
@@ -59,7 +68,9 @@ export class MapView3D {
     // distancia exacta a la costa cerca del litoral (costa suave en vez de escalonada)
     const segs = []; for (const p of polys) for (let q = 0; q < p.length; q++) { const a = p[q], b = p[(q + 1) % p.length]; if ((a[0] === b[0] && (a[0] <= -7 || a[0] >= 25)) || (a[1] === b[1] && (a[1] >= 47 || a[1] <= 34.5))) continue; segs.push([a[0], a[1] * 1.28, b[0], b[1] * 1.28]); }
     const cellDeg = CW / K / 50;
-    for (let j = 0; j <= NZ; j++) for (let i = 0; i <= NX; i++) { const k = j * W1 + i; if (dist[k] > 3.2) continue; const lo = lonOf(i), la = latOf(j) * 1.28; let best = 9; for (const sgm of segs) { const dd = segDist(lo, la, [sgm[0], sgm[1]], [sgm[2], sgm[3]]); if (dd < best) best = dd; } dist[k] = Math.min(dist[k] + 0.5, best / cellDeg); }
+    const BK = 0.5, bucket = new Map(), bkey = (u, v) => u * 1000 + v;                 // segmentos en casillas de 0,5° para no recorrerlos todos
+    for (const sg of segs) { const u0 = Math.floor((Math.min(sg[0], sg[2]) - 0.3) / BK), u1 = Math.floor((Math.max(sg[0], sg[2]) + 0.3) / BK), v0 = Math.floor((Math.min(sg[1], sg[3]) - 0.3) / BK), v1 = Math.floor((Math.max(sg[1], sg[3]) + 0.3) / BK); for (let u = u0; u <= u1; u++) for (let v = v0; v <= v1; v++) { const kk = bkey(u, v); (bucket.get(kk) || bucket.set(kk, []).get(kk)).push(sg); } }
+    for (let j = 0; j <= NZ; j++) for (let i = 0; i <= NX; i++) { const k = j * W1 + i; if (dist[k] > 3.2) continue; const lo = lonOf(i), la = latOf(j) * 1.28, near = bucket.get(bkey(Math.floor(lo / BK), Math.floor(la / BK))); let best = 9; if (near) for (const sgm of near) { const dd = segDist(lo, la, [sgm[0], sgm[1]], [sgm[2], sgm[3]]); if (dd < best) best = dd; } dist[k] = Math.min(dist[k] + 0.5, best / cellDeg); }
     // --- alturas ---
     const H = this.H = new Float32Array(land.length), cities = Object.keys(D.CITIES).map(id => [D.CITIES[id].lon, D.CITIES[id].lat]);
     for (let j = 0; j <= NZ; j++) for (let i = 0; i <= NX; i++) {
@@ -75,7 +86,7 @@ export class MapView3D {
     }
     // --- malla del terreno ---
     const g = new THREE.PlaneGeometry(D.WORLD.w * K, D.WORLD.h * K, NX, NZ); g.rotateX(-Math.PI / 2); g.translate(D.WORLD.w * K / 2, 0, D.WORLD.h * K / 2);
-    const pos = g.attributes.position, col = new Float32Array(pos.count * 3), c = new THREE.Color();
+    const pos = g.attributes.position, col = new Float32Array(pos.count * 3), aT = new Float32Array(pos.count * 2), c = new THREE.Color();
     const cSand = new THREE.Color('#d9c48e'), cGrass = new THREE.Color('#7f9a4a'), cDry = new THREE.Color('#b3a25e'), cForest = new THREE.Color('#4f7438'), cRock = new THREE.Color('#8b7d66'), cSnow = new THREE.Color('#f4f4f0'), cBed = new THREE.Color('#c9b98a'), cDeep = new THREE.Color('#2b4a5e');
     for (let k = 0; k < pos.count; k++) {
       const i = k % W1, j = Math.floor(k / W1), h = H[k], la = latOf(j), lo = lonOf(i); pos.setY(k, h);
@@ -86,11 +97,12 @@ export class MapView3D {
         if (dist[k] < 1.6) c.lerp(cSand, 1 - dist[k] / 1.6);
         if (h > 0.9) c.lerp(cRock, Math.min(1, (h - 0.9) / 0.9)); if (h > 2.3) c.lerp(cSnow, Math.min(1, (h - 2.3) / 0.6));
         c.multiplyScalar(0.92 + hash(k) * 0.16);
+        aT[k * 2] = dry; aT[k * 2 + 1] = (1 - Math.min(1, Math.max(0, (h - 1.2) / 1.0))) * Math.min(1, dist[k] / 0.9);   // textura: más seca / fuerza (menos en roca, nieve y orilla)
       }
       col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b;
     }
-    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.computeVertexNormals();
-    sc.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({ vertexColors: true })));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('aT', new THREE.BufferAttribute(aT, 2)); g.computeVertexNormals();
+    this.terr = mapaMaterial(); sc.add(new THREE.Mesh(g, this.terr));
     // --- mar ---
     const sea = new THREE.Mesh(new THREE.PlaneGeometry(900, 700), new THREE.MeshPhongMaterial({ color: '#2f7fa6', transparent: true, opacity: 0.78, shininess: 90, specular: '#bfe6ff' }));
     sea.rotation.x = -Math.PI / 2; sea.position.set(80, 0, 40); sc.add(sea);
@@ -177,6 +189,7 @@ export class MapView3D {
   }
 
   update(state, sel) {
+    if (!this.terrOn && mapaTexturas(this.terr)) this.terrOn = true;           // las texturas llegan después de crear el mapa
     const W = this.host.clientWidth, Hh = this.host.clientHeight, v = new THREE.Vector3(), now = performance.now(), dt = Math.min(0.1, (now - this.last) / 1000); this.last = now; this.t += dt; uTime.value = this.t;
     const place = (el, x, y, z) => { v.set(x, y, z).project(this.cam); if (v.z > 1 || v.x < -1.2 || v.x > 1.2 || v.y < -1.2 || v.y > 1.2) { el.style.display = 'none'; return; } el.style.display = ''; el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * Hh).toFixed(1) + 'px) translate(-50%,-100%)'; };
     if (this.labels.scrollLeft || this.labels.scrollTop) { this.labels.scrollLeft = 0; this.labels.scrollTop = 0; }

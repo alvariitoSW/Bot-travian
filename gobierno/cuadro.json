@@ -152,6 +152,24 @@
       "ancha": false
     },
     {
+      "tarea": "C2",
+      "archivo": "gobierno/capturas-tarea/C2-antes.jpg",
+      "pie": "Mapa antes: costa dibujada a mano, suelo liso",
+      "ancha": false
+    },
+    {
+      "tarea": "C2",
+      "archivo": "gobierno/capturas-tarea/C2-despues.jpg",
+      "pie": "Mapa después: costa real de Italia, suelo con grano de hierba",
+      "ancha": false
+    },
+    {
+      "tarea": "C2",
+      "archivo": "gobierno/capturas-tarea/C2-sicilia.jpg",
+      "pie": "Sicilia, Malta y el estrecho de Mesina",
+      "ancha": false
+    },
+    {
       "tarea": "A5c",
       "archivo": "gobierno/capturas-tarea/a5c-tres-0s.jpg",
       "pie": "Despliegue en «Tres líneas»: hastati, principes y triarii",
@@ -174,6 +192,11 @@
       "pie": "Códice igual que antes, ahora leído del registro (una sola fuente)"
     },
     {
+      "tarea": "B7",
+      "archivo": "gobierno/capturas-tarea/B7-saqueo.jpg",
+      "pie": "Atacar con la opción «Solo saquear»"
+    },
+    {
       "tarea": "E4",
       "archivo": "gobierno/capturas-tarea/E4-termas.jpg",
       "pie": "Termas: modelo propio con bóveda, pórtico y chimenea"
@@ -193,6 +216,21 @@
       "archivo": "gobierno/capturas-tarea/a3b-48s.jpg",
       "pie": "Las dos líneas chocan tras la fase de tiro; solo pelea el frente",
       "ancha": true
+    },
+    {
+      "tarea": "E1c",
+      "archivo": "gobierno/capturas-tarea/E1c-marcos.jpg",
+      "pie": "Marcos con doble filete, greca y esquinas de 8 px"
+    },
+    {
+      "tarea": "E1c",
+      "archivo": "gobierno/capturas-tarea/E1c-iconos.jpg",
+      "pie": "Iconos de línea: pestañas, espadas, escudo y águila"
+    },
+    {
+      "tarea": "E1c",
+      "archivo": "gobierno/capturas-tarea/E1c-edificios.jpg",
+      "pie": "Iconos de edificios en la lista de ciudad"
     }
   ],
   "informes": [
