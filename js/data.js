@@ -35,6 +35,9 @@
   D.FELICIDAD_BASE = 60; D.FELICIDAD_MIN_CRECER = 40;
   D.FELICIDAD_EDIF = { templo: 3, termas: 4, anfiteatro: 6 };
   D.POP_EDIF = { viviendas: 130, foro: 30, acueducto: 40, termas: 15 };   // población máxima por nivel de cada edificio
+  // mano de obra y mantenimiento (I3): puestos = base + por nivel de aserradero/cantera/mina/granja; la producción de recursos se multiplica por pop/puestos (con suelo)
+  D.PUESTOS_BASE = 20; D.PUESTOS_NIVEL = 12; D.MANO_MIN = 0.25;
+  D.MANT_EDIF = 0.15; D.MANT_TROPA = 0.35;   // oro/mes por nivel de edificio no productivo y por punto de «up» de tropa (stipendium)
   D.FORJA_MAX = 5; D.FORJA_BONO = 0.05;
   D.FORJA = {
     armas: { n: 'Armas', i: '🗡️', ef: 'ataque', cost: { hierro: 120, madera: 40, oro: 50 }, time: 3 },

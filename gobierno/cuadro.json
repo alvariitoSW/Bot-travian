@@ -69,6 +69,12 @@
       "archivo": "gobierno/capturas-tarea/A8-min7.jpg",
       "pie": "Minuto 7: regimientos «Cansado» (borde naranja); pegan menos y andan más lento",
       "ancha": true
+    },
+    {
+      "tarea": "I3",
+      "archivo": "gobierno/capturas-tarea/I3-mano-de-obra.jpg",
+      "pie": "Mano de obra (gente que trabaja frente a puestos) y mantenimiento en oro: edificios y paga de las tropas",
+      "ancha": false
     }
   ],
   "informes": [
