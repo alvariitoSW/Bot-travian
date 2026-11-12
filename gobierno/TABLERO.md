@@ -59,6 +59,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ I3 **Mano de obra y mantenimiento** (11/11): la producción depende de la gente que queda en la ciudad (reclutar vacía los campos); edificios y tropas cuestan oro cada mes; sin oro, las tropas desertan.
 - ✅ I4 **Tipos de ciudad con solares limitados** (11/11): 7 a 10 solares por ciudad para los edificios urbanos (campos y muralla no ocupan); seis tipos a elegir (municipio, colonia agraria, colonia militar, emporio, base naval, ciudad de artesanos); «Derribar» libera un solar.
 - ⬜ I5 **Investigación y edades** (P47): árbol corto de unas 16 mejoras; la herrería pasa a ser su rama de guerra. Sustituye a F4. 0,2 + 0,7 M · 20 min.
+- ⬜ I5b **Ciencia: edificio de estudio, investigación elaborada y balanceada** (P93, aprobada 12/11, tamaño por fijar con el estudio `estudios/P93-ciencia.md`): un edificio especial que se abre al investigar y al que destinas ciudadanos (dejan de producir: el coste es real); lo que se investiga y sus mejoras se eligen y a veces se excluyen entre sí; todo equilibrado para que nadie lo tenga todo pronto, con ideas de la época (Mago, Arquímedes, el corvus…). Después de I5 y CN2. Pedido del usuario: «más elaborado… balanceado para no ser el jugador más chetado tan fácil pero que sean algo ingenioso».
 - ⬜ I6 **Región de Italia** montada solo con fichas (P48; prueba del cableado). 0,2 + 0,6 M · 20 min. Después de I1.
 - ✅ I7 Fundida en J3 (capital y pueblos; decisión del 11/11).
 - ⬜ I8 **Partida corta** (P49): fundas de cero, un rival, un final. Sustituye a F1b. 0,25 + 0,8 M · 25 min. Después de I2 a I7.
@@ -158,6 +159,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ✅ C2 Costa real (Natural Earth, 15 KB) y grano de hierba en el suelo del mapa. ✅ C2b Relieve con alturas reales (GMTED2010/ETOPO1, 116 KB) y orillas con espuma (12/11).
 - ⬜ C3 Diplomacia sencilla (alianzas, tributos) e IA enemiga que también construye.
 - ⬜ C4 **Ríos, lagos y relieve variado en el mapa** (P92, ≈1 M): Po, Tíber, Ebro, Ródano, delta del Nilo y Danubio como cintas de agua sobre el relieve real; lagos; más tipos de terreno (llanura, estepa, desierto del Atlas). Después de J4 (si no, se regenera el marco dos veces). Alturas: `assets/mapa/generar-alturas.py`.
+- ⬜ C5 **Botón de mapamundi** (P94, aprobada 12/11, ≈0,6 M): un botón más en el mapa para ver el mundo entero de un vistazo, con las ciudades y los frentes. Después de J4 (el mapa grande por regiones). Toca `js/gfx/map3d.js` y la parte del mapa de `js/ui.js`.
 
 ## Carril H — Historia (ministerio de Adecuación Histórica)
 - ✅ H1 Auditoría histórica cotejada con los textos (11/11/2026): `gobierno/historia/H1-resumen.md`. Los 10 fallos se confirman, con matices.

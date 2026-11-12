@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 12/11/2026 — **Aprueba P93 y P94** (en el chat, tras ver el cuadro): «Apruebo ambas y que lo de ciencia sea más elaborado como lo que se investigue y las mejoras y que esté todo balanceado para no ser el jugador más chetado tan fácil pero que sean algo ingenioso». (Lectura de Claude: P94 pasa al tablero como C5, el botón de mapamundi, después de J4. P93 pasa a I5b, el edificio de ciencia con ciudadanos trabajando, pero mucho más elaborado que la propuesta mínima: un sistema de investigación con mejoras que se eligen, equilibrado para que no se pueda acaparar todo (costes, ciudadanos que dejan de producir, elecciones que se excluyen), e ingenioso, con ideas de la época. Un estudio de diseño lo concreta antes de construir: `gobierno/estudios/P93-ciencia.md`.)
 - 12/11/2026 — **Lanzar todo lo pendiente**: «Aplica las 44 pendientes del cuadro de mando en diferentes carriles y lánzalas sin que se choquen». (Lectura de Claude: plan en `gobierno/olas-21.md`, sección «Ampliación del 12/11»: 31 tareas en tres vías a la vez, sin pisarse (Ciudad y campaña, en olas; Guerra, N15 → N7 → N8; Historia, H11). Las otras 13 están sustituidas, absorbidas o son solo papel. Con esto el usuario sigue la guerra: N15 se abre ya.)
 - 12/11/2026 — **P92 aprobada**: «P92 la apruebo también». Pasa al tablero como C4 (ríos, lagos y relieve variado), después de J4.
 - 12/11/2026 — **Dos pedidos durante CN2** (en el chat): «Añade ahora también un botón más para poder tener la visión de mapamundi. Añade también que los edificios los veas de otra manera que no sea una lista.» Lectura mía: lo segundo ya está aprobado como CN4 (bandeja, fantasma, fuera la lista); lo primero es nuevo → P94.
@@ -110,11 +111,8 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-- **P93, el edificio de ciencia**: ¿qué produce (más madera/hierro de ese bien, o un bien nuevo) y qué mejora lo abre? Respuesta en una línea; si no, propongo: el bien de la ciudad sube un nivel de producción y se abre con la mejora «Artesanos» de I5.
 
 ## Propuestas por aprobar
-- P94 **Botón de mapamundi** (pedido del 12/11): un botón más para ver el mundo entero en el mapa. Posible compañero de J4 (mapa más grande por regiones). Sin tamaño ni sesión hasta que el usuario apruebe.
-- P93 **Edificio de ciencia que se desbloquea** (pedido del 12/11): al investigar una mejora (I5 Investigación y edades) se abre un edificio especial; allí se pueden destinar ciudadanos a trabajar. Hay que fijar con el usuario qué ciencia lo abre y qué produce (ver pregunta abajo). Toca `js/game.js` y `js/data.js`: va con el carril Ciudad.
 
 
 ## Encargo en curso (11/11/2026, noche)
