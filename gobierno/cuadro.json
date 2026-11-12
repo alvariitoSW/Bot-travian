@@ -999,6 +999,12 @@
    "titulo": "Ciudad nueva · Q11 Luz y antorchas",
    "nota": "js/gfx/city3d.js, ground.js (ola 6, solo dibujo)",
    "url": "https://claude.ai/code/session_01QiKC36LNr8HcWzwCPQkJgL"
+  },
+  {
+   "tarea": "I5",
+   "titulo": "Gran diseño · I5 Saber",
+   "nota": "data.js, game.js, ui.js, registro.js (ciencia, precio fijo con tope)",
+   "url": "https://claude.ai/code/session_01QiKC39DAqh8NXKmAiiMjma"
   }
  ],
  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
