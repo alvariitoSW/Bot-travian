@@ -82,6 +82,9 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ K2 **Concurso Guerra** (11/11): cinco maquetas horizontales y jurado ciego. Ranking: General 72, Trazo 69, Partitura 60, Arena 60, Cartas 59.
 - ✅ K4 **Concurso Guerra 2** (11/11): Legado 60, Fantasmas 55, Estandartes 53, Miniaturas 50, Mosaico 46. Informe `estudios/K2-concurso.md`.
 - ✅ K5 **Concurso Gobierno 2** (11/11): Ciudad 61, Tabularium 60, Lentes 56, Domus 52, Foro 44.
+- ⬜ V1 **Informe en vídeo: menús del juego** (pedido 12/11): cómo hacer los menús legibles, que no ocupen toda la pantalla, que quepan en el móvil para usarlos con los pulgares y sin mil cosas a la vez. Sesión barata (Haiku) con la maquinaria de /moncloa del repositorio de fiebres. Solo informe; no toca el juego.
+- ⬜ K6 **Concurso de arte: batalla y manejo de tropas** (pedido 12/11): cinco maquetas en Haiku (esfuerzo alto) y jurado ciego, sobre cómo se ve y se manejan las tropas. Solo `gobierno/maquetas/`; no toca `js/`.
+- ⬜ K7 **Concurso: interfaz y jugabilidad de ciudades y fuera de ellas** (pedido 12/11; después de K6): rutas de comercio como parte del juego, diplomacia y movimiento de tropas. Solo `gobierno/maquetas/`.
 - ⬜ K3 **Construir los ganadores**: elegido el 11/11 (ver bitácora: Ciudad + Tabularium, Legado + Estandartes); falta aprobar las tareas P63 a P66 (decide él: cambio grande de aspecto). Lo que cambie en `js/ui.js` y `js/gfx/` lo estima cada nota de `maquetas/concurso/`. No empezar antes.
 
 ## Carril L — Interfaz de guerra: Legado + Estandartes (P66, aprobada 11/11/2026; en paralelo al carril J)
