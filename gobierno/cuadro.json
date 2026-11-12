@@ -993,6 +993,12 @@
    "titulo": "Concurso · K6 Arte de batalla y tropas",
    "nota": "solo maquetas",
    "url": "https://claude.ai/code/session_01QiKC37tiobNBApd9bhi8N3"
+  },
+  {
+   "tarea": "Q11",
+   "titulo": "Ciudad nueva · Q11 Luz y antorchas",
+   "nota": "js/gfx/city3d.js, ground.js (ola 6, solo dibujo)",
+   "url": "https://claude.ai/code/session_01QiKC36LNr8HcWzwCPQkJgL"
   }
  ],
  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
