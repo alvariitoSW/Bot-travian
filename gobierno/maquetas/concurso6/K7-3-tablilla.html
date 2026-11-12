@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=844,initial-scale=1">
+<title>Batalla · órdenes grabadas</title>
+<style>
+@font-face{font-family:Cinzel;src:url(../../../assets/fuentes/cinzel-700.woff2) format('woff2');font-weight:700}
+:root{--st:#f0e2b6;--cin:#d4513a;--azu:#7fa0c4;--oro:#d9b45a;--mut:#b9a67a}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:844px;height:390px;overflow:hidden;background:#1a130b}
+body{font-family:Cinzel,Georgia,serif;color:var(--st);font-size:10px;letter-spacing:.04em}
+#app{position:absolute;inset:0;background:repeating-linear-gradient(92deg,rgba(0,0,0,.2) 0 1px,transparent 1px 6px),repeating-linear-gradient(88deg,rgba(255,220,160,.06) 0 2px,transparent 2px 13px),linear-gradient(180deg,#94683b,#5d3e21 50%,#4a3019)}
+#app:before{content:"";position:absolute;left:3px;top:50%;width:6px;height:70px;margin-top:-35px;border-radius:3px;background:linear-gradient(#2a1b0c,#6b4a2b,#2a1b0c);box-shadow:0 0 0 1px #14100a}
+#tab{position:absolute;inset:7px;border-radius:7px;overflow:hidden;background:radial-gradient(120% 100% at 38% 28%,#4b3e29,#2e261a 62%,#1f190f);box-shadow:inset 0 0 0 2px #17110a,inset 0 4px 16px #000d,0 0 0 1px #b08a55,0 2px 0 2px #2b1b0c}
+#tab:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:50;background:radial-gradient(ellipse 80% 90% at 42% 40%,transparent 45%,rgba(0,0,0,.6)),linear-gradient(120deg,rgba(255,225,160,.12),transparent 40%)}
+#noise{position:absolute;inset:0;width:100%;height:100%;opacity:.16;pointer-events:none;z-index:49;mix-blend-mode:overlay}
+.st,.sc-t{text-shadow:0 1px 0 #000b,0 -1px 0 rgba(255,240,200,.18)}
+#hd{position:absolute;left:0;right:0;top:0;height:30px;display:flex;align-items:center;gap:6px;padding:0 10px;border-bottom:2px solid #15100a;box-shadow:0 1px 0 #5a4a30;z-index:10}
+#hd b{font-size:12px;letter-spacing:.12em;margin-right:auto;text-shadow:0 1px 0 #000b}
+#hd b i{font-style:normal;color:var(--oro)}
+.tab{background:none;border:1px solid transparent;color:var(--mut);font:inherit;padding:4px 9px;border-radius:4px 4px 0 0;cursor:pointer}
+.tab.on{color:var(--st);background:linear-gradient(#17110a,#2a2217);border-color:#15100a;box-shadow:inset 0 2px 4px #000c;text-shadow:0 1px 0 #000}
+.pips{margin-left:auto;display:flex;gap:3px;align-items:center;color:var(--mut)}
+.pips i{width:9px;height:9px;border-radius:50%;background:var(--cin);box-shadow:inset 0 -2px 0 #0005,0 1px 0 #000;border:1px solid var(--st)}
+.pips i.o{background:#17110a;border-color:#6d5a3a}
+.s{position:absolute;left:0;right:0;top:30px;bottom:0;display:none}.s.on{display:block}
+.map{position:absolute;left:0;top:0;bottom:0;width:618px}
+.map svg{position:absolute;inset:0;width:100%;height:100%}
+.side{position:absolute;right:0;top:0;bottom:0;width:212px;padding:8px 9px;border-left:2px solid #15100a;box-shadow:-1px 0 0 #5a4a30;display:flex;flex-direction:column;gap:6px;background:linear-gradient(90deg,rgba(0,0,0,.18),transparent)}
+.side h3{font-size:11px;letter-spacing:.14em;color:var(--oro);text-shadow:0 1px 0 #000;padding-bottom:3px;border-bottom:1px solid #6d5a3a}
+.bt{font:inherit;color:var(--st);background:linear-gradient(#5e4d33,#3b2f1d);border:1px solid #b08e58;border-radius:5px;padding:6px 8px;min-height:30px;box-shadow:0 2px 0 #0e0a05,inset 0 1px 0 rgba(255,240,200,.25);text-shadow:0 1px 0 #000;cursor:pointer;text-align:left}
+.bt.p{background:linear-gradient(#e0644a,#a3321e);border-color:#f0b08a;font-size:11px;text-align:center}
+.bt small{display:block;font-size:9px;color:var(--mut);letter-spacing:.02em;margin-top:2px}
+.ord{display:flex;gap:7px;align-items:center;padding:5px 6px;border-radius:5px;background:#17110a;box-shadow:inset 0 2px 5px #000c,0 1px 0 #5a4a30;min-height:38px;line-height:1.25}
+.ord em{flex:none;width:19px;height:19px;border-radius:50%;background:var(--cin);border:2px solid var(--st);font:normal 11px/15px Cinzel;text-align:center}
+.ord span{font-size:9.5px}.ord small{color:var(--mut);display:block;font-size:9px}
+.ov{position:absolute;z-index:5}
+.chips{display:flex;gap:4px;left:8px;bottom:8px}
+.chip{padding:5px 8px;border-radius:4px;background:rgba(23,17,10,.88);border:1px solid #6d5a3a;color:var(--mut);box-shadow:0 2px 0 #000a}
+.chip.on{color:var(--st);border-color:var(--oro);box-shadow:0 2px 0 #000a,0 0 8px rgba(217,180,90,.4)}
+.plate{background:rgba(23,17,10,.86);border:1px solid #6d5a3a;border-radius:5px;padding:5px 8px;box-shadow:0 3px 0 #000a,inset 0 1px 0 rgba(255,240,200,.1)}
+.bar{height:7px;border-radius:4px;background:#0c0905;box-shadow:inset 0 1px 2px #000,0 1px 0 #5a4a30;margin-top:3px;overflow:hidden}.bar i{display:block;height:100%}
+.sc{stroke:var(--st);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;opacity:.78}
+path.sc,ellipse.sc,polyline.sc{fill:none}
+.rgh{filter:url(#rough)}.u{filter:drop-shadow(0 4px 3px rgba(0,0,0,.75))}
+.ar{fill:none;stroke:var(--st);stroke-width:7;stroke-linecap:round;marker-end:url(#ah);stroke-dasharray:1;stroke-dashoffset:1;animation:wr 1.2s .2s ease-out forwards}
+.arS{fill:none;stroke:#000;stroke-opacity:.55;stroke-width:12;stroke-linecap:round;transform:translateY(5px)}
+@keyframes wr{to{stroke-dashoffset:0}}
+.lb{font:700 26px Cinzel;fill:var(--st);paint-order:stroke;stroke:#120d07;stroke-width:6;letter-spacing:.1em}
+.tr{font:700 24px Cinzel;fill:var(--mut);opacity:.55;letter-spacing:.3em}
+.pulse{animation:pu 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes pu{50%{transform:scale(1.35);opacity:.3}}
+/* escena */
+.fg{animation:bob .7s ease-in-out infinite alternate;animation-delay:var(--d,0s)}
+.arm{animation:hit .5s ease-in-out infinite alternate;animation-delay:var(--d,0s);transform-origin:5px -27px}
+@keyframes bob{from{transform:translateX(-2px)}to{transform:translateX(6px)}}
+@keyframes hit{from{transform:rotate(-30deg)}to{transform:rotate(28deg)}}
+.cav{animation:ch 5s cubic-bezier(.3,0,.7,1) infinite;animation-delay:-1.2s}
+@keyframes ch{from{transform:translateX(-420px)}to{transform:translateX(330px)}}
+.gl{animation:ga .3s ease-in-out infinite alternate}@keyframes ga{to{transform:translateY(-5px)}}
+.dust{animation:du 2s ease-out infinite;transform-box:fill-box;transform-origin:center;animation-delay:var(--d)}
+@keyframes du{from{transform:scale(.4);opacity:.7}to{transform:scale(1.8) translateY(-10px);opacity:0}}
+.card{display:flex;flex-direction:column;align-items:center;padding:6px 10px;min-width:92px;text-align:center}
+.card b{font-size:11px}.card small{font-size:8.5px;color:var(--mut)}
+.step{display:flex;justify-content:space-between;align-items:center;padding:3px 6px;background:#17110a;border-radius:5px;box-shadow:inset 0 2px 5px #000c;font-size:10px}
+.step button{width:24px;height:24px;border-radius:50%;border:1px solid #b08e58;background:#4a3b25;color:var(--st);font:700 13px Cinzel;cursor:pointer}
+.tl{left:8px;right:8px;bottom:8px;display:flex;align-items:center;gap:8px}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<filter id="rough" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".035" numOctaves="2" seed="4" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="4"/></filter>
+<radialGradient id="gW" cx="40%" cy="35%" r="85%"><stop offset="0" stop-color="#4f4129"/><stop offset=".6" stop-color="#352b1c"/><stop offset="1" stop-color="#231b10"/></radialGradient>
+<linearGradient id="gSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a4a30"/><stop offset="1" stop-color="#3a2f1e"/></linearGradient>
+<linearGradient id="gGr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a3020"/><stop offset="1" stop-color="#1b150c"/></linearGradient>
+<radialGradient id="gD"><stop offset="0" stop-color="#f0e2b6" stop-opacity=".6"/><stop offset="1" stop-color="#f0e2b6" stop-opacity="0"/></radialGradient>
+<marker id="ah" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="4" markerHeight="4" orient="auto"><path d="M0 0L10 5L0 10z" fill="#f0e2b6"/></marker>
+</defs></svg>
+<div id="app"><div id="tab">
+<svg id="noise"><filter id="nz"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="2"/><feColorMatrix values="0 0 0 0 .9 0 0 0 0 .8 0 0 0 0 .6 0 0 0 1.2 -.2"/></filter><rect width="100%" height="100%" filter="url(#nz)"/></svg>
+<div id="hd"><b>TURNO 3 <i>·</i> DÍA 2 DE 5</b>
+<button class="tab" data-n="1">1 PLANEAR</button><button class="tab" data-n="2">2 DIRECTO</button><button class="tab" data-n="3">3 LUCHA</button><button class="tab" data-n="4">4 RESULTADO</button>
+<span class="pips">MANDO <i></i><i></i><i></i><i></i><i class="o"></i></span></div>
+
+<section class="s" id="s1"><div class="map"><svg id="m1" viewBox="0 0 1500 830" preserveAspectRatio="xMidYMid slice"></svg>
+<div class="ov plate" style="left:8px;top:8px"><span class="st">SELECCIONADA</span> · ALA IZQUIERDA · 2 REG. <span style="color:var(--mut)">· HASTATI</span></div>
+<div class="ov chips"><span class="chip">LÍNEA</span><span class="chip on">TRES LÍNEAS</span><span class="chip">ALAS FUERTES</span><span class="chip">CUÑA</span><span class="chip">TESTUDO</span></div></div>
+<div class="side"><h3>ÓRDENES ESCRITAS</h3>
+<div class="ord"><em>1</em><span>FLANCO<small>Ala izq. rodea la colina · 2 pt</small></span></div>
+<div class="ord"><em>2</em><span>CABALLERÍA<small>Rodea el pantano y carga · 2 pt</small></span></div>
+<div class="ord"><em>3</em><span>EMBOSCADA<small>Velites ocultos en bosque · 1 pt</small></span></div>
+<button class="bt">ESCRIBIR ORDEN<small>Arrastra el dedo sobre el mapa</small></button>
+<button class="bt">BORRAR TODO</button>
+<button class="bt p" style="margin-top:auto" onclick="go(2)">EJECUTAR TURNO ▶</button></div></section>
+
+<section class="s" id="s2"><div class="map"><svg id="m2" viewBox="0 0 1500 830" preserveAspectRatio="xMidYMid slice"></svg>
+<div class="ov plate" style="left:8px;top:8px"><span class="st">00:31</span> · LA EMBOSCADA SE REVELA</div>
+<div class="ov plate tl"><button class="bt" style="min-height:26px;padding:3px 8px">⏭ POR TURNOS</button><button class="bt p" style="min-height:26px;padding:3px 8px">▶ EN DIRECTO</button>
+<svg width="360" height="34" viewBox="0 0 360 34"><rect x="2" y="15" width="356" height="6" rx="3" fill="#0c0905" stroke="#5a4a30"/><rect x="2" y="15" width="190" height="6" rx="3" fill="#d4513a"/>
+<g font-size="9" fill="#f0e2b6"><circle cx="126" cy="18" r="5" fill="#f0e2b6"/><text x="126" y="9" text-anchor="middle">FLANCO</text><circle cx="192" cy="18" r="7" fill="#d9b45a" stroke="#000"/><text x="192" y="32" text-anchor="middle">EMBOSCADA</text><circle cx="260" cy="18" r="5" fill="#6d5a3a"/><text x="260" y="9" text-anchor="middle">CARGA</text></g></svg><span style="color:var(--mut)">½× 1× 2×</span></div></div>
+<div class="side"><h3>CONSEJO DE TRIBUNOS</h3>
+<button class="bt">CERRAR EL FLANCO<small>La reserva tapa el hueco del centro</small></button>
+<button class="bt" style="border-color:var(--oro)">LANZAR LA CABALLERÍA<small>Carga ya sobre los arqueros</small></button>
+<button class="bt">RETIRAR AL CENTRO<small>Evita que te cerquen</small></button>
+<h3 style="margin-top:2px">LO QUE PASA</h3><div class="ord" style="min-height:0"><span>Los velites salen del bosque. <small>El flanco enemigo se vuelve.</small></span></div>
+<button class="bt p" style="margin-top:auto" onclick="go(3)">VER DE CERCA ▶</button></div></section>
+
+<section class="s" id="s3"><svg id="m3" viewBox="0 0 830 346" style="position:absolute;inset:0;width:100%;height:100%"></svg>
+<div class="ov plate" style="left:8px;top:8px;width:170px"><span class="st">3ª LEGIÓN · MORAL</span><div class="bar"><i style="width:72%;background:var(--cin)"></i></div></div>
+<div class="ov plate" style="right:8px;top:8px;width:170px"><span class="st">TARENTINOS · MORAL</span><div class="bar"><i style="width:34%;background:var(--azu)"></i></div></div>
+<div class="ov plate" style="left:50%;top:8px;margin-left:-70px;text-align:center;color:var(--oro)">¡LA CABALLERÍA ARROLLA!</div>
+<div class="ov" style="left:8px;bottom:8px"><button class="bt" onclick="go(1)">◀ AL MAPA</button></div>
+<div class="ov chips" style="left:50%;margin-left:-160px"><button class="bt card"><b>ARENGA</b><small>+moral</small></button><button class="bt card"><b>PASO DOBLE</b><small>+velocidad</small></button><button class="bt card" style="border-color:var(--oro)"><b>CERRADA</b><small>+escudos</small></button></div>
+<div class="ov plate" style="right:8px;bottom:8px;width:128px;padding:4px"><svg viewBox="0 0 150 83"><rect width="150" height="83" fill="#2a2218"/><path d="M38 0C60 12 50 40 60 83" class="sc" style="stroke-width:2"/><g fill="#d4513a"><rect x="14" y="30" width="14" height="8"/><rect x="14" y="44" width="14" height="8"/><rect x="26" y="68" width="10" height="6"/></g><g fill="#7fa0c4"><rect x="112" y="30" width="14" height="8"/><rect x="112" y="44" width="14" height="8"/></g><path d="M60 52L84 36L84 68Z" fill="#f0e2b6" fill-opacity=".35" stroke="#f0e2b6"/></svg></div></section>
+
+<section class="s" id="s4"><div class="map" style="padding:8px">
+<div class="plate" style="display:flex;gap:14px;align-items:center;height:62px"><div style="flex:1"><div class="st" style="font-size:15px;color:var(--oro);letter-spacing:.12em">TARENTO, TOMADA</div><div style="color:var(--mut);margin-top:2px">Los tarentinos huyen. Mantén la plaza 3 días.</div></div>
+<div style="width:200px"><span>ROMA · 312 CAÍDOS</span><div class="bar"><i style="width:22%;background:var(--cin)"></i></div><div style="margin-top:5px">ENEMIGO · 1.140 CAÍDOS</div><div class="bar"><i style="width:80%;background:var(--azu)"></i></div></div></div>
+<svg id="m4" viewBox="0 0 618 270" style="position:absolute;left:0;top:76px;width:618px;height:270px"></svg></div>
+<div class="side"><h3>GUARNICIÓN</h3><div class="ord"><em style="background:#6d5a3a">II</em><span>COHORTE II · 480 HOMBRES<small>Moral 80% · cansada</small></span></div>
+<h3>RECURSOS DE LA TROPA</h3>
+<div class="step">GRANO · 5 DÍAS<span><button>−</button> <button>+</button></span></div><div class="step">HIERRO · 2 DÍAS<span><button>−</button> <button>+</button></span></div>
+<button class="bt p" style="margin-top:auto">MANTENER 3 DÍAS ▶</button><button class="bt">PEDIR RELEVO</button><button class="bt">MARCHAR A BRUNDISIUM</button></div></section>
+</div></div>
+<script>
+const R='#d4513a',B='#7fa0c4',$=s=>document.querySelector(s);
+function terrain(){let s='<rect width="1500" height="830" fill="url(#gW)"/><g class="rgh">';
+for(let i=0;i<5;i++)s+=`<ellipse cx="1030" cy="190" rx="${170-i*32}" ry="${105-i*20}" class="sc"/>`;
+s+='<text x="960" y="64" class="tr">COLINA</text><path d="M670 -10C730 120 650 230 710 330S690 560 720 840" fill="none" stroke="#1d2c3a" stroke-width="58" opacity=".85"/><path d="M652 -10C712 120 632 230 692 330S672 560 702 840M690 -10C750 120 670 230 730 330S710 560 740 840" class="sc" style="stroke-width:2.5;opacity:.5;stroke-dasharray:14 12"/><text x="640" y="250" class="tr" style="font-size:20px" transform="rotate(88 640 250)">RÍO</text>';
+[90,430,580,740].forEach(y=>{const x=690+(y>400?18:0);s+=`<rect x="${x-38}" y="${y-18}" width="76" height="36" fill="#d9b45a" opacity=".22"/><path d="M${x-38} ${y-8}h76M${x-38} ${y+8}h76" class="sc" style="stroke-dasharray:9 7;stroke-width:3"/>`});
+for(let i=0;i<30;i++){const x=860+(i*53)%170,y=480+(i*97)%170;s+=`<path d="M${x} ${y-14}l8 16h-16zM${x} ${y+2}v8" class="sc" style="stroke-width:2.5"/>`}
+s+='<text x="855" y="465" class="tr">BOSQUE</text>';
+for(let i=0;i<22;i++){const x=1120+(i*61)%290,y=690+(i*43)%110;s+=`<path d="M${x} ${y}v-14M${x+6} ${y}v-10M${x-6} ${y}v-9" class="sc" style="stroke-width:2.5"/>`}
+s+='<text x="1130" y="662" class="tr">PANTANO</text>';
+s+='<path d="M0 812H1500" class="sc" style="stroke-width:2"/>';for(let i=0;i<=6;i++)s+=`<path d="M${i*250} 804v16" class="sc" style="stroke-width:2"/>`;
+s+='<text x="8" y="798" class="lb" style="font-size:19px;stroke-width:4">0 · 500 · 1.000 · 1.500 M</text></g>';return s}
+function reg(x,y,side,k,o={}){const c=side?R:B,w=64,h=30;let g=`<g transform="translate(${x} ${y})"><g class="u" ${o.fade?'opacity=".4"':''}>${o.anim||''}`;
+g+=`<rect x="-32" y="-15" width="64" height="30" rx="4" fill="${c}" fill-opacity=".42" stroke="${c}" stroke-width="3.5"/>`;
+g+=k=='L'?'<path d="M-14 -8v16M0 -8v16M14 -8v16" class="sc" style="stroke-width:3"/>':k=='C'?'<path d="M-16 8L0 -9L16 8" class="sc" style="stroke-width:3.5"/>':k=='T'?'<path d="M-16 5L16 -5M-16 -5L16 5" class="sc" style="stroke-width:3"/>':'<circle cx="-16" cy="0" r="3.5" fill="#f0e2b6"/><circle cx="-5" cy="0" r="3.5" fill="#f0e2b6"/><circle cx="6" cy="0" r="3.5" fill="#f0e2b6"/><circle cx="17" cy="0" r="3.5" fill="#f0e2b6"/>';
+return g+'</g></g>'}
+function A(d,n,bx,by,lx,ly,t){return `<path d="${d}" class="arS"/><path d="${d}" class="ar" pathLength="1"/><g transform="translate(${bx} ${by})"><circle r="19" fill="${R}" stroke="#f0e2b6" stroke-width="3.5"/><text y="9" text-anchor="middle" class="lb" style="font-size:25px;stroke:none">${n}</text></g><text x="${lx}" y="${ly}" text-anchor="middle" class="lb">${t}</text>`}
+const cen=[[250,330],[250,410],[250,490],[330,330],[330,410],[330,490]];
+const ene=(f)=>[[1170,330,'L'],[1170,410,'L'],[1170,490,'L'],[1250,330,'L'],[1250,410,'L'],[1250,490,'L'],[1330,410,'L'],[1330,490,'L'],[1040,170,'T'],[1120,230,'T'],[1350,250,'C'],[1350,580,'C']].map(e=>reg(e[0],e[1],0,e[2])).join('');
+const eye=(x,y)=>`<path d="M${x-26} ${y}Q${x} ${y-22} ${x+26} ${y}Q${x} ${y+22} ${x-26} ${y}" class="sc" style="stroke-width:4;opacity:1"/><circle cx="${x}" cy="${y}" r="7" fill="#f0e2b6"/>`;
+const FL='M300 170C600 40 1000 30 1190 250',CV='M300 650C600 760 1000 780 1290 560',AM='M470 550L880 590';
+$('#m1').innerHTML=terrain()+eye(940,560)+ene()+cen.map(p=>reg(p[0],p[1],1,'L')).join('')+
+`<rect x="262" y="118" width="86" height="164" rx="8" fill="none" stroke="#d9b45a" stroke-width="4" stroke-dasharray="10 8" class="pulse" style="animation-duration:2.4s"/>`+
+reg(300,170,1,'L')+reg(300,240,1,'L')+reg(300,650,1,'C')+reg(300,720,1,'C')+reg(470,470,1,'V')+reg(470,550,1,'V')+
+A(FL,1,786,79,740,128,'FLANCO')+A(CV,2,798,728,820,802,'CABALLERÍA')+A(AM,3,675,572,600,640,'EMBOSCADA');
+const mv=(p,b,d)=>`<animateMotion dur="${d||9}s" begin="${b}s" repeatCount="indefinite" path="${p}"/>`;
+const gh=(x,y,k)=>reg(x,y,1,k,{fade:1});
+$('#m2').innerHTML=terrain()+`<path d="${FL}" class="sc" style="stroke-dasharray:6 14;opacity:.4"/><path d="${CV}" class="sc" style="stroke-dasharray:6 14;opacity:.4"/>`+eye(940,560)+
+`<circle cx="940" cy="560" r="60" fill="none" stroke="#d9b45a" stroke-width="5" class="pulse"/><text x="940" y="650" text-anchor="middle" class="lb" style="fill:#d9b45a">¡EMBOSCADA!</text>`+
+ene()+`<g transform="translate(1075 120)"><circle r="20" fill="#7fa0c4" stroke="#f0e2b6" stroke-width="3"/><text y="9" text-anchor="middle" class="lb" style="stroke:none;font-size:26px">!</text></g>`+
+`<path d="M1250 330L1210 250M1170 330L1140 270" class="sc" style="stroke:#7fa0c4;stroke-width:5;opacity:1" marker-end="url(#ah)"/>`+
+cen.map(p=>reg(p[0],p[1],1,'L')).join('')+gh(300,170,'L')+gh(300,240,'L')+gh(300,650,'C')+gh(300,720,'C')+
+reg(300,170,1,'L',{anim:mv('M0 0C300 -130 700 -140 890 80',-3.4)})+reg(300,240,1,'L',{anim:mv('M0 0C300 -190 700 -200 890 10',-3)})+
+reg(300,650,1,'C',{anim:mv('M0 0C300 110 700 130 990 -90',-3.2)})+reg(300,720,1,'C',{anim:mv('M0 0C300 40 700 60 990 -160',-2.8)})+
+reg(880,540,1,'V',{anim:mv('M0 0L40 20',-1,2)})+reg(900,600,1,'V');
+// Escena
+const F=(c,rd)=>`<g class="fg"><path d="M-5 0L-3 -15M5 0L3 -15" class="sk"/><rect x="-7" y="-32" width="14" height="18" rx="3" fill="${c}" fill-opacity=".6" class="sk"/><circle cy="-38" r="5" fill="#2a2318" class="sk"/><path d="M-5 -41Q0 -52 5 -41" stroke="${c}" stroke-width="3" fill="none"/><g class="arm"><path d="M5 -27L24 -36" class="sk"/>${rd?'<path d="M24 -36l8-4" class="sk"/>':'<path d="M24 -36l4-9" class="sk"/>'}</g>${rd?`<circle cx="9" cy="-24" r="9" fill="${c}" fill-opacity=".8" class="sk"/>`:`<rect x="3" y="-34" width="11" height="22" rx="3" fill="${c}" class="sk"/>`}</g>`;
+const HS=c=>`<g class="gl"><path d="M-26 -22Q-26 -34 -8 -32L18 -32Q30 -40 34 -52L40 -50L38 -36Q30 -26 28 -22Z" fill="${c}" fill-opacity=".6" class="sk"/><path d="M-22 -22L-26 0M-12 -22L-10 0M16 -22L20 0M26 -22L34 -4" class="sk"/><rect x="-6" y="-58" width="12" height="24" rx="3" fill="${c}" class="sk"/><circle cx="0" cy="-64" r="5" fill="#2a2318" class="sk"/><path d="M6 -50L52 -64" class="sk"/></g>`;
+let sc='<style>.sk{stroke:#f0e2b6;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;opacity:.9}path.sk{fill:none}</style>';
+sc+='<rect width="830" height="118" fill="url(#gSky)"/><rect y="118" width="830" height="228" fill="url(#gGr)"/><g class="rgh"><path d="M0 118L90 70L170 104L270 52L380 108L520 60L640 100L740 66L830 112" class="sk" style="opacity:.55"/>';
+for(let x=-300;x<1100;x+=70)sc+=`<path d="M415 118L${x} 346" class="sk" style="opacity:.12"/>`;
+sc+='</g><g class="rgh"><path d="M330 200V120" class="sk"/><path d="M312 128Q330 112 348 128" class="sk"/><circle cx="330" cy="116" r="6" fill="#d9b45a" class="sk"/></g>';
+const row=[[190,.8],[240,.95],[290,1.1]];
+row.forEach((r,i)=>{for(let c=0;c<6;c++){const s=r[1],st=i%2*14,d=((c*7+i*3)%10)/10;
+sc+=`<g class="rgh" transform="translate(${395-c*36*s-st} ${r[0]}) scale(${s})" style="--d:${d}s">${F(R,0)}</g>`;
+if(!(i==1&&c==4)&&!(i==2&&c==2))sc+=`<g class="rgh" transform="translate(${435+c*36*s+st} ${r[0]}) scale(${-s} ${s})" style="--d:${(d+.3)%1}s">${F(B,1)}</g>`}
+sc+=`<ellipse cx="${415}" cy="${r[0]+3}" rx="30" ry="6" fill="url(#gD)" class="dust" style="--d:${i*.5}s"/>`});
+sc+='<ellipse cx="250" cy="262" rx="18" ry="5" fill="#d4513a" fill-opacity=".5"/><ellipse cx="560" cy="300" rx="18" ry="5" fill="#7fa0c4" fill-opacity=".5"/><ellipse cx="500" cy="244" rx="16" ry="4" fill="#7fa0c4" fill-opacity=".5"/>';
+sc+='<g class="cav">';[[170,312],[215,330],[260,306],[305,326]].forEach((p,i)=>sc+=`<g class="rgh" transform="translate(${p[0]} ${p[1]}) scale(1.15)" style="--d:${i*.1}s">${HS(R)}</g><ellipse cx="${p[0]-30}" cy="${p[1]}" rx="30" ry="8" fill="url(#gD)" class="dust" style="--d:${i*.4}s"/>`);sc+='</g>';
+$('#m3').innerHTML=sc;
+// Resultado
+let r='<g class="rgh"><path d="M60 120Q120 80 185 90T310 130T435 90T560 120" fill="none" stroke="#f0e2b6" stroke-width="3" stroke-dasharray="3 9" stroke-linecap="round"/></g>';
+const nd=[[60,120,'1','OCUPAR','Tarento','−120 víveres',1],[185,90,'2','MANTENER','+40 grano','−30 víveres',2],[310,130,'3','MANTENER','+40 grano','−30 víveres',0],[435,90,'4','RELEVO','llega Cohorte III','+60 hierro',0],[560,120,'5','MARCHAR','a Brundisium','2 días',0]];
+nd.forEach(n=>{const[x,y,d,t,a,b,st]=n,ty=y+(y<100?40:-34);
+r+=`<g><circle cx="${x}" cy="${y}" r="${st==2?24:19}" fill="${st==1?R:'#17110a'}" stroke="${st?'#f0e2b6':'#6d5a3a'}" stroke-width="3" ${st==2?'class="pulse" style="animation-duration:2.2s"':''}/><text x="${x}" y="${y+6}" text-anchor="middle" font-size="16" fill="#f0e2b6">${st==1?'✓':d}</text>
+<g transform="translate(0 ${y<100?44:-30})" text-anchor="middle"><text x="${x}" y="${y+4}" font-size="11" fill="${st==2?'#d9b45a':'#f0e2b6'}">${t}</text><text x="${x}" y="${y+18}" font-size="9.5" fill="#b9a67a">${a}</text><text x="${x}" y="${y+30}" font-size="9.5" fill="#b9a67a">${b}</text></g></g>`});
+r+=`<text x="309" y="22" text-anchor="middle" font-size="11" fill="#d9b45a">RUTA DE DÍAS</text><path d="M20 250H598" stroke="#6d5a3a"/><text x="309" y="266" text-anchor="middle" font-size="9.5" fill="#b9a67a">Si la plaza queda sin guarnición, la ciudad se rebela.</text>`;
+$('#m4').innerHTML=r;
+function go(n){document.querySelectorAll('.s').forEach((e,i)=>e.classList.toggle('on',i+1==n));document.querySelectorAll('.tab').forEach((e,i)=>e.classList.toggle('on',i+1==n))}
+document.querySelectorAll('.tab').forEach(e=>e.onclick=()=>go(+e.dataset.n));
+go(+location.hash.slice(1)||1);
+</script></body></html>
