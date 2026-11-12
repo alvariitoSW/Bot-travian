@@ -1,0 +1,696 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Libreta de campo · batalla del paso</title>
+<style>
+@font-face {
+  font-family: 'Cinzel';
+  src: url('../../../assets/fuentes/cinzel-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: block;
+}
+
+:root {
+  --papel: #f3e9d2;
+  --papel-2: #e8dbbb;
+  --tinta: #1c2b45;
+  --lapiz: #b8322a;
+  --grafito: #6f6c63;
+  --serif: "Palatino Linotype", "Book Antiqua", Palatino, "URW Palladio L", Georgia, serif;
+  --titulo: 'Cinzel', Georgia, serif;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #2d241c;
+  color: var(--tinta);
+  font-family: var(--serif);
+}
+
+[hidden] { display: none !important; }
+
+/* Cada pantalla es una página abierta del cuaderno. */
+.cuaderno {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  grid-template-rows: 1fr 56px;
+  background: var(--papel);
+  animation: pasa .28s ease;
+}
+
+@keyframes pasa {
+  from { opacity: .2; transform: translateX(8px); }
+  to { opacity: 1; transform: none; }
+}
+
+.hojas {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 0;
+}
+
+/* Lomo del cuaderno: sombra suave en el centro. */
+.hojas::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 22px;
+  margin-left: -11px;
+  background: linear-gradient(to right, transparent, rgba(60, 40, 20, .22) 50%, transparent);
+  pointer-events: none;
+}
+
+.pag {
+  position: relative;
+  min-height: 0;
+  overflow: hidden;
+  background-image: repeating-linear-gradient(to bottom, transparent 0 21px, rgba(79, 116, 166, .16) 21px 22px);
+}
+
+.pag-izq { display: flex; flex-direction: column; }
+
+.pag-der { padding: 0 16px 0 46px; }
+
+.pag-der::before {
+  content: "";
+  position: absolute;
+  left: 34px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(184, 50, 42, .5);
+}
+
+.cab {
+  height: 26px;
+  padding: 2px 10px 0;
+  font: 700 13px/22px var(--titulo);
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--tinta);
+  white-space: nowrap;
+}
+
+.mapa {
+  display: block;
+  width: 100%;
+  height: 308px;
+  color: var(--tinta);
+}
+
+.tit {
+  margin: 0;
+  font: 700 13px/22px var(--titulo);
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--tinta);
+}
+
+.p, .lista li, .lapiz-p {
+  margin: 0;
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.lista { margin: 0; padding: 0; }
+.lista li { list-style: none; }
+
+.lapiz-p {
+  font-style: italic;
+  font-weight: 700;
+  color: var(--lapiz);
+}
+
+.leyenda { font-size: 13px; }
+
+/* Barra de pulgar: botones de 44 px a la derecha. */
+.barra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px;
+  background: var(--papel-2);
+  border-top: 1px solid rgba(28, 43, 69, .35);
+}
+
+.barra .grupo { display: flex; gap: 8px; }
+
+.btn {
+  height: 44px;
+  min-width: 124px;
+  padding: 0 14px;
+  border: 1.5px solid var(--tinta);
+  border-radius: 8px;
+  background: var(--papel);
+  color: var(--tinta);
+  font: 700 14px var(--serif);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.btn.fuerte {
+  background: var(--tinta);
+  color: var(--papel);
+}
+
+/* Rejilla de los veinte regimientos en el margen. */
+.rejilla {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 3px 4px;
+  font-size: 13px;
+  line-height: 22px;
+}
+
+.c {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 22px;
+  white-space: nowrap;
+}
+
+.c.tarda { color: var(--grafito); text-decoration: underline dashed; }
+.c.peligro { color: var(--lapiz); font-weight: 700; }
+
+.mini {
+  width: 14px;
+  height: 14px;
+  flex: none;
+  color: inherit;
+}
+
+/* Barras de cansancio. */
+.fila-c {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  font-size: 13px;
+}
+
+.bc {
+  position: relative;
+  width: 120px;
+  height: 10px;
+  border: 1px solid var(--tinta);
+}
+
+.bc i {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--tinta);
+}
+
+.inset {
+  display: block;
+  width: 100%;
+  height: auto;
+  margin: 2px 0 0;
+  color: var(--tinta);
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+}
+
+.tabla th, .tabla td {
+  padding: 0 4px;
+  height: 24px;
+  text-align: left;
+  border-bottom: 1px solid rgba(28, 43, 69, .35);
+}
+
+.tabla th {
+  font: 700 13px var(--titulo);
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+
+/* Terreno y regimientos en tinta. */
+.zona { fill: none; stroke: var(--tinta); stroke-dasharray: 5 4; opacity: .6; }
+.rio-ancho { fill: none; stroke: #4f74a6; stroke-width: 12; opacity: .3; }
+.rio-linea { fill: none; stroke: var(--tinta); stroke-width: 1.2; opacity: .7; }
+.vado { fill: none; stroke: var(--tinta); stroke-dasharray: 2 2; }
+.colina ellipse { fill: none; stroke: var(--tinta); stroke-width: 1; opacity: .55; }
+.paso { fill: none; stroke: var(--tinta); stroke-width: 2.2; }
+.trazo { fill: none; stroke: var(--tinta); stroke-width: 1; }
+.huida { fill: none; stroke: var(--grafito); stroke-width: 1.6; stroke-dasharray: 4 3; }
+.anillo { fill: none; stroke: var(--tinta); stroke-width: 1; stroke-dasharray: 4 4; opacity: .7; }
+.gen { fill: var(--papel); stroke: var(--tinta); stroke-width: 1.6; }
+.gen-t { font: 700 13px var(--titulo); fill: var(--tinta); text-anchor: middle; }
+
+.etq {
+  font: italic 13px var(--serif);
+  fill: var(--tinta);
+  paint-order: stroke;
+  stroke: var(--papel);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.lapiz-txt {
+  font: italic 700 13px var(--serif);
+  fill: var(--lapiz);
+  paint-order: stroke;
+  stroke: var(--papel);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+/* Órdenes escritas con lápiz rojo. */
+.flecha { fill: none; stroke: var(--lapiz); stroke-width: 2; stroke-linecap: round; }
+.cruz { fill: none; stroke: var(--lapiz); stroke-width: 2.2; stroke-linecap: round; }
+
+/* Regimientos: tinta si obedece, gris si es enemigo. */
+.reg { color: var(--tinta); }
+.reg.enemigo { color: var(--grafito); }
+.reg.huye { opacity: .4; }
+
+.reg text {
+  font: 700 13px var(--serif);
+  fill: currentColor;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: var(--papel);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.aro-peligro { fill: none; stroke: var(--lapiz); stroke-width: 1.8; }
+.aro-tarde { fill: none; stroke: var(--grafito); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.aro-sel { fill: none; stroke: var(--lapiz); stroke-width: 1.6; stroke-dasharray: 6 3; display: none; }
+.reg.elegido .aro-sel { display: inline; }
+
+@media (max-width: 500px) {
+  /* La batalla es horizontal; en vertical se pide girar el móvil. */
+  .cuaderno { font-size: 13px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Dibujos comunes: un regimiento a tinta con su estandarte, un jinete, un árbol y las tramas. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="tropa" viewBox="0 0 26 26">
+      <path d="M3 10H23V23H3Z" fill="#f3e9d2" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M3 15H23M8 10V23M13 10V23M18 10V23" fill="none" stroke="currentColor" stroke-width=".8"/>
+      <path d="M13 10V2M13 2L19 4L13 6" fill="none" stroke="currentColor" stroke-width="1.2"/>
+    </symbol>
+    <symbol id="jinete" viewBox="0 0 26 26">
+      <path d="M3 12H19V23H3Z" fill="#f3e9d2" stroke="currentColor" stroke-width="1.3"/>
+      <path d="M3 17H19M8 12V23M13 12V23" fill="none" stroke="currentColor" stroke-width=".8"/>
+      <path d="M23 1L9 17" fill="none" stroke="currentColor" stroke-width="1.4"/>
+    </symbol>
+    <symbol id="arbol" viewBox="0 0 12 14">
+      <circle cx="6" cy="5" r="4.5" fill="none" stroke="currentColor" stroke-width="1"/>
+      <path d="M6 9.5V13" stroke="currentColor" stroke-width="1"/>
+    </symbol>
+    <pattern id="rayado" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <path d="M0 0V7" stroke="#6f6c63" stroke-width="1"/>
+    </pattern>
+    <pattern id="pantano" width="10" height="6" patternUnits="userSpaceOnUse">
+      <path d="M1 2H5M6 4.5H9" stroke="#1c2b45" stroke-width=".9"/>
+    </pattern>
+    <marker id="punta" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10Z" fill="#b8322a"/>
+    </marker>
+  </defs>
+</svg>
+
+<!-- PÁGINA 1 · despliegue -->
+<section class="cuaderno" data-n="1">
+  <div class="hojas">
+    <div class="pag pag-izq">
+      <div class="cab">Página 1 · despliegue, antes de la batalla</div>
+      <svg class="mapa" id="mapa-1" viewBox="0 0 422 308" aria-label="Mapa del despliegue"></svg>
+    </div>
+    <div class="pag pag-der">
+      <h2 class="tit" style="padding-top:0">Margen · cómo se despliega</h2>
+      <p class="p">Tu zona es la franja de abajo. El enemigo está arriba, en gris.</p>
+      <p class="p">Arrastra cada regimiento a su sitio. Toca uno para verlo.</p>
+      <ul class="lista">
+        <li><b>H</b> hastati · <b>P</b> principes · <b>T</b> triarii</li>
+        <li><b>V</b> velites · <b>L</b> lanceros · <b>E</b> caballería</li>
+        <li>Tinta: tuyo. Gris: enemigo.</li>
+      </ul>
+      <p class="p">Terreno: colina, bosque, río con tres vados, pantano y paso estrecho.</p>
+      <p class="p">Plan enemigo: elige uno de cinco. Oculto hasta la ronda 1.</p>
+      <p class="lapiz-p">Pasa la página para empezar.</p>
+    </div>
+  </div>
+  <div class="barra">
+    <button class="btn">Deshacer el despliegue</button>
+    <button class="btn fuerte" onclick="pasar()">Empezar: pasar página ▸</button>
+  </div>
+</section>
+
+<!-- PÁGINA 2 · órdenes en pleno choque -->
+<section class="cuaderno" data-n="2" hidden>
+  <div class="hojas">
+    <div class="pag pag-izq">
+      <div class="cab">Página 2 · ronda 4 de 6 · paso del río</div>
+      <svg class="mapa" id="mapa-2" viewBox="0 0 422 308" aria-label="Mapa en pleno choque"></svg>
+    </div>
+    <div class="pag pag-der">
+      <h2 class="tit" style="padding-top:0">Margen · órdenes de esta ronda</h2>
+      <p class="p" id="pista">Toca un regimiento y luego un punto del mapa.</p>
+      <div id="margen-ordenes">
+        <p class="lapiz-p">→ H2: avanzar hasta el vado II</p>
+        <p class="lapiz-p">→ P1: ¿a dónde? Toca un punto.</p>
+      </div>
+      <h2 class="tit">Nuestros 20 regimientos</h2>
+      <div class="rejilla" id="rejilla"></div>
+      <p class="p leyenda">Tinta: obedece. Raya: tarda. Rojo: peligro.</p>
+      <p class="p">Enemigo: 20. Gesto: «cuña al centro».</p>
+    </div>
+  </div>
+  <div class="barra">
+    <div class="grupo">
+      <button class="btn" id="btn-orden" onclick="cambiarOrden()">Orden: avanzar ▾</button>
+      <button class="btn" onclick="borrarNuevas()">Borrar mi flecha</button>
+    </div>
+    <button class="btn fuerte" onclick="pasar()">Pasar página: ejecutar ronda ▸</button>
+  </div>
+</section>
+
+<!-- PÁGINA 3 · carga por el flanco -->
+<section class="cuaderno" data-n="3" hidden>
+  <div class="hojas">
+    <div class="pag pag-izq">
+      <div class="cab">Página 3 · ronda 5 · carga por el flanco</div>
+      <svg class="mapa" id="mapa-3" viewBox="0 0 422 308" aria-label="Mapa de la carga"></svg>
+    </div>
+    <div class="pag pag-der">
+      <h2 class="tit" style="padding-top:0">Margen · la carga</h2>
+      <p class="lapiz-p">→ E1: carga por el flanco derecho.</p>
+      <p class="lapiz-p">Efecto: 2 velites enemigos, arrollados.</p>
+      <svg class="inset" viewBox="0 0 360 104" aria-label="Anillo de 200 metros del general">
+        <circle cx="70" cy="46" r="40" fill="none" stroke="#1c2b45" stroke-dasharray="4 4"/>
+        <circle cx="70" cy="46" r="10" class="gen"/>
+        <text x="70" y="51" class="gen-t">G</text>
+        <use href="#tropa" x="92" y="26" width="22" height="22"/>
+        <text x="103" y="62" class="etq" text-anchor="middle">P1</text>
+        <circle cx="262" cy="46" r="18" class="aro-tarde"/>
+        <use href="#tropa" x="249" y="33" width="26" height="26"/>
+        <text x="262" y="88" class="lapiz-txt" text-anchor="middle">P2 llega 6 s tarde</text>
+        <text x="70" y="102" class="etq" text-anchor="middle">200 m</text>
+      </svg>
+      <p class="p">Dentro del anillo: obedece al instante.</p>
+      <p class="p">Fuera: la orden llega 6 s tarde. Es P2.</p>
+      <div class="fila-c">E1 cansado <span class="bc"><i style="width:80%"></i></span></div>
+      <div class="fila-c">H2 firme <span class="bc"><i style="width:30%"></i></span></div>
+    </div>
+  </div>
+  <div class="barra">
+    <button class="btn">Cancelar la carga</button>
+    <button class="btn fuerte" onclick="pasar()">Pasar página: ver informe ▸</button>
+  </div>
+</section>
+
+<!-- PÁGINA 4 · resultado y retirada -->
+<section class="cuaderno" data-n="4" hidden>
+  <div class="hojas">
+    <div class="pag pag-izq">
+      <div class="cab">Página 4 · informe de la ronda 6</div>
+      <svg class="mapa" id="mapa-4" viewBox="0 0 422 308" aria-label="Mapa del resultado"></svg>
+    </div>
+    <div class="pag pag-der">
+      <h2 class="tit" style="padding-top:0">Margen · lo que pasó</h2>
+      <table class="tabla">
+        <tr><th>Regim.</th><th>Bajas</th><th>Moral</th></tr>
+        <tr><td>H2</td><td>40</td><td>firme</td></tr>
+        <tr><td>P1</td><td>60</td><td>vacila</td></tr>
+        <tr><td>E1</td><td>35</td><td>cansado</td></tr>
+        <tr><td>V1</td><td>120</td><td>arrollado</td></tr>
+      </table>
+      <p class="p" style="margin-top:6px">Enemigo: 9 de 20 en fuga.</p>
+      <p class="p">Objetivo «resistir»: cumplido.</p>
+      <p class="p">Cartas: 1 de 3 usadas.</p>
+      <p class="lapiz-p">Retirada en orden. Vale.</p>
+    </div>
+  </div>
+  <div class="barra">
+    <button class="btn">Retirarse con el general</button>
+    <button class="btn fuerte" onclick="irA(0)">Otra batalla: página 1</button>
+  </div>
+</section>
+
+<script>
+/* Pasar de página: cada pantalla es una hoja del cuaderno. */
+var pag = 0;
+var ORD = ['avanzar', 'cargar', 'flanquear', 'retirar', 'aguantar'];
+var ord = 0;
+var sel = null;
+var NS = 'http://www.w3.org/2000/svg';
+
+function irA(n) {
+  pag = Math.max(0, Math.min(3, n));
+  var hojas = document.querySelectorAll('.cuaderno');
+  for (var i = 0; i < hojas.length; i++) {
+    hojas[i].hidden = (i !== pag);
+  }
+  document.body.setAttribute('data-pag', String(pag + 1));
+}
+
+function pasar() {
+  irA(pag + 1);
+}
+
+function cambiarOrden() {
+  ord = (ord + 1) % ORD.length;
+  document.getElementById('btn-orden').textContent = 'Orden: ' + ORD[ord] + ' ▾';
+}
+
+function borrarNuevas() {
+  var nuevas = document.querySelectorAll('.nueva');
+  for (var i = 0; i < nuevas.length; i++) {
+    nuevas[i].parentNode.removeChild(nuevas[i]);
+  }
+}
+
+/* Terreno común: enemigo en gris, río con tres vados, colina, pantano, paso, bosque y zona nuestra. */
+var TERR =
+  '<rect x="0" y="0" width="422" height="120" fill="url(#rayado)" opacity=".35"/>' +
+  '<rect x="6" y="216" width="410" height="92" rx="6" class="zona"/>' +
+  '<text class="etq" x="410" y="212" text-anchor="end">nuestra zona</text>' +
+  '<rect x="8" y="198" width="66" height="18" fill="url(#pantano)"/>' +
+  '<path class="rio-ancho" d="M0 190Q105 178 211 190T422 190"/>' +
+  '<path class="rio-linea" d="M0 184Q105 172 211 184T422 184"/>' +
+  '<path class="rio-linea" d="M0 196Q105 184 211 196T422 196"/>' +
+  '<rect x="60" y="180" width="16" height="20" fill="#f3e9d2"/>' +
+  '<path class="vado" d="M60 190H76"/>' +
+  '<rect x="200" y="180" width="16" height="20" fill="#f3e9d2"/>' +
+  '<path class="vado" d="M200 190H216"/>' +
+  '<rect x="340" y="180" width="16" height="20" fill="#f3e9d2"/>' +
+  '<path class="vado" d="M340 190H356"/>' +
+  '<text class="etq" x="68" y="176" text-anchor="middle">vado I</text>' +
+  '<text class="etq" x="208" y="176" text-anchor="middle">vado II</text>' +
+  '<text class="etq" x="418" y="176" text-anchor="end">vado III</text>' +
+  '<g class="colina"><ellipse cx="120" cy="158" rx="40" ry="16"/><ellipse cx="120" cy="158" rx="24" ry="9"/><ellipse cx="120" cy="158" rx="9" ry="3"/></g>' +
+  '<path class="paso" d="M238 146L258 160M302 146L282 160"/>' +
+  '<text class="etq" x="270" y="142" text-anchor="middle">paso</text>' +
+  [[340,50],[358,40],[374,58],[392,44],[352,80],[380,84],[402,70]].map(function (p) {
+    return '<use href="#arbol" x="' + (p[0] - 6) + '" y="' + (p[1] - 7) + '" width="12" height="14"/>';
+  }).join('');
+
+/* Un regimiento: id, posición, bando ('n' nuestro, 'e' enemigo), estado y tipo. */
+function R(o) {
+  var e = o.e || '';
+  var cls = 'reg ' + (o.b === 'n' ? 'nuestro' : 'enemigo') + (e ? ' ' + e : '');
+  var aros = (/peligro/.test(e) ? '<circle class="aro-peligro" r="19"/>' : '') +
+    (/tarde/.test(e) ? '<circle class="aro-tarde" r="18"/>' : '') +
+    '<circle class="aro-sel" r="21"/>';
+  var cruz = /arrollado/.test(e) ? '<path class="cruz" d="M-8-8L8 8M8-8L-8 8"/>' : '';
+  return '<g class="' + cls + '" data-id="' + o.id + '" data-b="' + o.b + '" data-x="' + o.x +
+    '" data-y="' + o.y + '" transform="translate(' + o.x + ' ' + o.y + ')">' +
+    aros +
+    '<use href="#' + (o.t || 'tropa') + '" x="-13" y="-13" width="26" height="26"/>' +
+    cruz +
+    '<text y="25">' + o.label + '</text></g>';
+}
+
+function M(id, x, y, e, t) {
+  return { id: id, label: id, b: 'n', x: x, y: y, e: e, t: t || (id[0] === 'E' ? 'jinete' : 'tropa') };
+}
+
+function X(n, x, y, e) {
+  return { id: 'e' + n, label: String(n), b: 'e', x: x, y: y, e: e, t: 'tropa' };
+}
+
+function fila(ids, y) {
+  return ids.map(function (s, i) { return M(s, 24 + 42 * i, y); });
+}
+
+function mapa(id, pre, lista, post) {
+  document.getElementById(id).innerHTML = TERR + (pre || '') + lista.map(R).join('') + (post || '');
+}
+
+/* Anillo de 200 m del general: los regimientos dentro obedecen al instante. */
+function anillo(x, y) {
+  return '<circle class="anillo" cx="' + x + '" cy="' + y + '" r="56"/>' +
+    '<circle class="gen" cx="' + x + '" cy="' + y + '" r="10"/>' +
+    '<text class="gen-t" x="' + x + '" y="' + (y + 5) + '">G</text>';
+}
+
+/* PÁGINA 1: veinte regimientos en dos filas, sin enemigo a la vista. */
+mapa('mapa-1', '',
+  fila(['H1', 'H2', 'H3', 'P1', 'P2', 'P3', 'T1', 'T2', 'V1', 'V2'], 236)
+    .concat(fila(['E1', 'E2', 'V3', 'V4', 'L1', 'L2', 'L3', 'L4', 'H4', 'H5'], 278)),
+  '');
+
+/* PÁGINA 2: pleno choque. Nueve regimientos cerca en el mapa; la rejilla del margen lista los veinte. */
+mapa('mapa-2',
+  anillo(300, 262),
+  [
+    M('H1', 60, 236),
+    M('H2', 102, 236),
+    M('P1', 144, 236, 'elegido'),
+    M('P2', 186, 236, 'tarde'),
+    M('T1', 270, 236),
+    M('V1', 110, 278),
+    M('L1', 152, 278),
+    M('E2', 194, 278),
+    M('E1', 262, 278, 'peligro'),
+    X(1, 60, 62), X(2, 102, 62), X(3, 144, 62), X(4, 186, 62), X(5, 228, 62),
+    X(6, 81, 104), X(7, 123, 104), X(8, 165, 104), X(9, 207, 104)
+  ],
+  '<path class="flecha" d="M102 218Q150 192 200 184" marker-end="url(#punta)"/>' +
+    '<text class="lapiz-txt" x="160" y="212" text-anchor="middle">avanzar</text>');
+
+/* PÁGINA 3: la carga. Los velites enemigos del flanco están arrollados. */
+mapa('mapa-3',
+  anillo(150, 252),
+  [
+    M('H2', 102, 236),
+    M('P1', 186, 236),
+    M('P2', 228, 236, 'tarde'),
+    M('T1', 270, 236),
+    M('E1', 340, 236),
+    M('V1', 110, 280),
+    M('L1', 152, 280),
+    M('L2', 194, 280),
+    X(1, 60, 62), X(2, 102, 62), X(3, 144, 62), X(4, 186, 62), X(5, 228, 62),
+    X(6, 81, 104), X(7, 123, 104), X(8, 165, 104), X(9, 207, 104),
+    X(10, 270, 62, 'arrollado'), X(11, 312, 62, 'arrollado')
+  ],
+  '<path class="flecha" d="M340 222C338 190 322 140 302 104" marker-end="url(#punta)"/>' +
+    '<text class="lapiz-txt" x="352" y="146">carga</text>' +
+    '<path class="trazo" d="M314 232H330M310 240H328M314 248H330"/>' +
+    '<text class="lapiz-txt" x="228" y="212" text-anchor="middle">6 s</text>');
+
+/* PÁGINA 4: el informe. Enemigo en fuga y la caballería de vuelta. */
+mapa('mapa-4', '',
+  [
+    M('H2', 102, 236),
+    M('P1', 186, 236),
+    M('T1', 270, 236),
+    M('E1', 318, 150),
+    M('V1', 110, 280, 'arrollado'),
+    M('L1', 152, 280),
+    M('L2', 194, 280),
+    X(1, 60, 62, 'huye'), X(2, 102, 62, 'huye'), X(3, 144, 62, 'huye'), X(4, 186, 62, 'huye'), X(5, 228, 62, 'huye'),
+    X(6, 81, 104, 'huye'), X(7, 123, 104, 'huye'), X(8, 165, 104, 'huye'), X(9, 207, 104, 'huye')
+  ],
+  '<path class="huida" d="M118 44L112 14"/>' +
+    '<path class="huida" d="M200 44L206 14"/>' +
+    '<text class="lapiz-txt" x="130" y="12">huyen</text>' +
+    '<path class="huida" d="M340 222C336 200 326 180 320 164"/>' +
+    '<g transform="translate(340 268) rotate(-8)">' +
+      '<circle r="34" fill="none" stroke="#b8322a" stroke-width="2" stroke-dasharray="6 3"/>' +
+      '<text class="lapiz-txt" text-anchor="middle" y="-2">en orden</text>' +
+      '<text class="lapiz-txt" text-anchor="middle" y="16">ronda 6</text>' +
+    '</g>');
+
+/* Rejilla de veinte regimientos del margen (página 2). */
+var ROSTER = [
+  ['H1', ''], ['H2', ''], ['H3', ''], ['P1', ''], ['P2', 'tarda'],
+  ['P3', ''], ['T1', ''], ['T2', ''], ['V1', ''], ['V2', 'cansado'],
+  ['E1', 'peligro'], ['E2', ''], ['V3', ''], ['V4', ''], ['L1', ''],
+  ['L2', ''], ['L3', 'vacila'], ['L4', ''], ['H4', ''], ['H5', '']
+];
+
+document.getElementById('rejilla').innerHTML = ROSTER.map(function (r) {
+  var id = r[0];
+  var est = r[1];
+  var clase = 'c' + (est === 'tarda' ? ' tarda' : '') + (est === 'peligro' ? ' peligro' : '');
+  var texto = est === 'tarda' ? id + ' tarda'
+    : est === 'peligro' ? id + ' peligro'
+    : est ? id + ' ' + est
+    : id;
+  var use = id[0] === 'E' ? 'jinete' : 'tropa';
+  return '<div class="' + clase + '"><svg class="mini" viewBox="0 0 26 26"><use href="#' + use +
+    '"/></svg><span>' + texto + '</span></div>';
+}).join('');
+
+/* Pulsar en el mapa de la página 2: primero un regimiento, luego un punto. */
+document.getElementById('mapa-2').addEventListener('click', function (ev) {
+  var svg = ev.currentTarget;
+  var g = ev.target.closest ? ev.target.closest('.reg') : null;
+  if (g && g.getAttribute('data-b') === 'n') {
+    var viejos = svg.querySelectorAll('.elegido');
+    for (var i = 0; i < viejos.length; i++) { viejos[i].classList.remove('elegido'); }
+    g.classList.add('elegido');
+    sel = g;
+    document.getElementById('pista').textContent = 'Ahora toca un punto del mapa para ' + g.getAttribute('data-id') + '.';
+    return;
+  }
+  if (!sel) {
+    document.getElementById('pista').textContent = 'Primero toca un regimiento tuyo (en tinta).';
+    return;
+  }
+  var pt = svg.createSVGPoint();
+  pt.x = ev.clientX;
+  pt.y = ev.clientY;
+  var q = pt.matrixTransform(svg.getScreenCTM().inverse());
+  var x = +sel.getAttribute('data-x');
+  var y = +sel.getAttribute('data-y');
+  var ex = Math.round(q.x);
+  var ey = Math.round(q.y);
+  var mx = (x + ex) / 2;
+  var my = (y + ey) / 2;
+
+  var path = document.createElementNS(NS, 'path');
+  path.setAttribute('class', 'flecha nueva');
+  path.setAttribute('d', 'M' + x + ' ' + (y - 16) + ' Q' + mx + ' ' + (Math.min(y, ey) - 24) + ' ' + ex + ' ' + ey);
+  path.setAttribute('marker-end', 'url(#punta)');
+  svg.appendChild(path);
+
+  var txt = document.createElementNS(NS, 'text');
+  txt.setAttribute('class', 'lapiz-txt nueva');
+  txt.setAttribute('x', String(Math.round(mx)));
+  txt.setAttribute('y', String(Math.round(my) + 12));
+  txt.setAttribute('text-anchor', 'middle');
+  txt.textContent = ORD[ord];
+  svg.appendChild(txt);
+
+  var linea = document.createElement('p');
+  linea.className = 'lapiz-p nueva';
+  linea.textContent = '→ ' + sel.getAttribute('data-id') + ': ' + ORD[ord] + ' (nueva)';
+  document.getElementById('margen-ordenes').appendChild(linea);
+
+  sel.classList.remove('elegido');
+  sel = null;
+  document.getElementById('pista').textContent = 'Anotado. Toca otro regimiento, o pasa la página.';
+});
+
+irA(0);
+</script>
+</body>
+</html>
