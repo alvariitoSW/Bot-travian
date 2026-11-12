@@ -334,6 +334,9 @@ export class MapView3D {
     // los nombres no se pisan: si dos se solapan en pantalla, el de abajo baja lo justo
     const vis = Object.values(st.zEls).filter(e => e.style.display !== 'none').map(e => ({ e: e, r: e.getBoundingClientRect() })).sort((p, q) => p.r.top - q.r.top), hechos = [];
     for (const o of vis) { let dy = 0; for (const q of hechos) if (o.r.left < q.right && o.r.right > q.left && o.r.top + dy < q.bottom && o.r.bottom + dy > q.top) dy = q.bottom - o.r.top + 3; if (dy) o.e.style.transform += ' translateY(' + dy.toFixed(0) + 'px)'; hechos.push({ left: o.r.left, right: o.r.right, top: o.r.top + dy, bottom: o.r.bottom + dy }); }
+    // y no se salen por los lados ni quedan bajo los botones de zoom de la derecha
+    const caja = this.labels.getBoundingClientRect(), izq = caja.left + 6, der = caja.right - 62;
+    for (const o of vis) { const r = o.e.getBoundingClientRect(); let dx = 0; if (r.left < izq) dx = izq - r.left; else if (r.right > der) dx = der - r.right; if (dx) o.e.style.transform += ' translateX(' + dx.toFixed(0) + 'px)'; }
   }
 
   /* Centra y acerca la cámara según la ficha de la región (lon, lat, zoom) */
