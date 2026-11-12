@@ -119,6 +119,8 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 ## Propuestas por aprobar
 
 
+0. **C6 hecha (12/11)**, en la rama `claude/c6-mapa-escalones` unida a la rama del juego; `main` puesta al día. Siguiente del mapa: J4 (más ciudades), que ya puede usar `D.ZONAS`; C1 (bajar a la ciudad 3D) completa los escalones.
+
 ## Encargo en curso (11/11/2026, noche)
 Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Cinco carriles a la vez, que no se pisan. Director y agentes en **Sonnet** (al usuario le queda poco Fable).
 - **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`, lo de batalla en `js/ui.js`): A5c Arrastre y formaciones → A3 Combate que se ve → A4 Papeles de la infantería → A5b Terreno → A1 Formaciones de verdad → A2 Animaciones por fila → A6 Cámara, sonido y proyectiles → A8b Ajuste fino del ritmo.

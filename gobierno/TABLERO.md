@@ -167,7 +167,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ⬜ C3 Diplomacia sencilla (alianzas, tributos) e IA enemiga que también construye.
 - ⬜ C4 **Ríos, lagos y relieve variado en el mapa** (P92, ≈1 M): Po, Tíber, Ebro, Ródano, delta del Nilo y Danubio como cintas de agua sobre el relieve real; lagos; más tipos de terreno (llanura, estepa, desierto del Atlas). Después de J4 (si no, se regenera el marco dos veces). Alturas: `assets/mapa/generar-alturas.py`.
 - ⬜ C5 **Botón de mapamundi** (P94, aprobada 12/11, ≈0,6 M): un botón más en el mapa para ver el mundo entero de un vistazo, con las ciudades y los frentes. Después de J4 (el mapa grande por regiones). Toca `js/gfx/map3d.js` y la parte del mapa de `js/ui.js`.
-- ⬜ C6 **Mapa por escalones** (P95, aprobada 12/11; estudio `estudios/R20-niveles-de-mapa.md`): Mare Nostrum › región › ciudad. Tocar una región acerca la cámara a sus ciudades; migas arriba con «← volver» al encuadre exacto; el pellizco libre se queda. Versión mínima, sin bordes dibujados. Tras I6.
+- ✅ C6 **Mapa por escalones** (12/11, P95): seis zonas en latín en Mare Nostrum; tocar una acerca la cámara, migas y «← volver» al encuadre exacto. Parte `partes/2026-11-12-C6.md`.
 
 ## Carril H — Historia (ministerio de Adecuación Histórica)
 - ✅ H1 Auditoría histórica cotejada con los textos (11/11/2026): `gobierno/historia/H1-resumen.md`. Los 10 fallos se confirman, con matices.
