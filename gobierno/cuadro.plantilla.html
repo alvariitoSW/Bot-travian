@@ -127,13 +127,13 @@ section { scroll-margin-top: 12px; }
 
   <section aria-labelledby="t-siguiente">
     <h2 id="t-siguiente">Siguiente paso de cada carril</h2>
-    <p class="nota">Lo primero que queda por hacer en cada carril. «Abrir sesión» lo deja pedido; la sesión arranca cuando se aplica el cuadro.</p>
+    <p class="nota">Lo primero que queda por hacer en cada carril. «Abrir sesión» lo deja pedido; el vigía la arranca en su próxima pasada (cada tres horas).</p>
     <ul class="lista">{{SIGUIENTE}}</ul>
   </section>
 
   <section aria-labelledby="t-pedidos">
     <h2 id="t-pedidos">Tus pedidos</h2>
-    <p class="nota" id="pedidos-nota">Lo que pulses aquí queda guardado, pero la página no puede ponerse a trabajar sola. Para que se aplique ya, escribe en el chat de Claude: «aplica el cuadro».</p>
+    <p class="nota" id="pedidos-nota">Lo que pulses aquí queda guardado. Un vigía mira el cuadro cada tres horas y lo aplica (abre las sesiones que pidas). Si lo quieres ya, escribe en el chat de Claude: «aplica el cuadro».</p>
     <ul class="lista" id="pedidos"><li class="nota" id="pedidos-vacio">Aún no has pedido nada. Abre una tarea y pulsa un botón, o escribe abajo.</li></ul>
     <div class="ficha">
       <label class="quien" for="nuevo-texto">Pedir algo nuevo</label>
@@ -216,7 +216,7 @@ section { scroll-margin-top: 12px; }
     var unico = tipo === 'priorizar' || tipo === 'aprobar' || tipo === 'rechazar' || tipo === 'abrir';
     var destino = unico ? col.doc((tipo === 'priorizar' ? 'priorizar-' : tipo === 'abrir' ? 'abrir-' : 'decision-') + ref) : col.doc();
     b.disabled = true;
-    destino.set(doc).then(function () { aviso('Apuntado. Para aplicarlo ya, di en el chat: «aplica el cuadro».'); if (caja) caja.value = ''; })
+    destino.set(doc).then(function () { aviso('Apuntado. El vigía lo aplica en su próxima pasada.'); if (caja) caja.value = ''; })
       .catch(function (e) { aviso(e && e.code === 'invalid_argument' ? 'No tienes permiso para guardar aquí. Dilo en el chat.' : 'No se pudo guardar. Prueba otra vez.'); })
       .then(function () { b.disabled = false; });
   }
@@ -236,7 +236,7 @@ section { scroll-margin-top: 12px; }
     db = d;
     var reloj = setTimeout(function () { $('pedidos-nota').textContent = 'No se pueden leer tus pedidos ahora mismo; puede que la lista no esté al día.'; }, 10000);
     db.collection('pedidos').onSnapshot(function (snap) {
-      if (!snap.metadata.fromCache) { clearTimeout(reloj); $('pedidos-nota').textContent = 'Lo que pulses aquí queda guardado, pero la página no puede ponerse a trabajar sola. Para que se aplique ya, escribe en el chat de Claude: «aplica el cuadro».'; }
+      if (!snap.metadata.fromCache) { clearTimeout(reloj); $('pedidos-nota').textContent = 'Lo que pulses aquí queda guardado. Un vigía mira el cuadro cada tres horas y lo aplica (abre las sesiones que pidas). Si lo quieres ya, escribe en el chat de Claude: «aplica el cuadro».'; }
       pintar(snap.docs);
     }, function () { clearTimeout(reloj); apagar('Se ha perdido la conexión con tus pedidos. Dilo en el chat o vuelve a abrir la página.'); });
   });

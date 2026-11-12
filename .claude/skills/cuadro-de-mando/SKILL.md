@@ -33,6 +33,9 @@ Una página para el móvil del usuario: enlace al juego, lo que espera algo suyo
 3. Si no hubiera dirección guardada (primera vez o se borró): publica sin `url`, con `capabilities: {"db": {}}`, y guarda la dirección nueva en `gobierno/cuadro.json`.
 4. Dale al usuario el enlace.
 
+## Vigía
+Tarea programada «AQVILA · vigía del cuadro de mando» (cada tres horas, Sonnet, sesión nueva cada vez; pedida por el usuario el 12/11/2026): si hay pedidos pendientes los aplica como dice esta skill; si no, termina. Se para o se cambia desde las tareas programadas de Claude o pidiéndolo en el chat.
+
 ## Abrir sesiones
 - Con `create_session`, **siempre** con `source_url` (`repo` de `cuadro.json`), `source_revision` y `outcome_branch` (`rama` de `cuadro.json`). Sin eso la sesión nace sin repositorio y se queda parada (pasó con N5 y Q7 el 12/11).
 - Modelo: Sonnet para construir sobre un diseño hecho; Fable para diseño y dirección de arte (regla del usuario del 12/11).
