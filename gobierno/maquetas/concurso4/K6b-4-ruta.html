@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Ruta y relevo · K6b-4</title>
+<style>
+@font-face{font-family:"Cinzel";src:url("../../../assets/fuentes/cinzel-700.woff2") format("woff2");font-weight:700;font-display:swap}
+:root{--papel:#efe3c8;--tinta:#3a2a1e;--rojo:#9b3a2a;--oro:#e0b43c;--madera:#8a6a40}
+html,body{margin:0;height:100%;background:#2b2118;overflow:hidden;font-family:"Segoe UI",system-ui,Roboto,Arial,sans-serif;color:var(--tinta)}
+.app{width:100vw;height:100vh;display:flex;flex-direction:column;background:var(--papel)}
+.cab{height:40px;flex:none;display:flex;align-items:center;gap:12px;padding:0 12px;background:linear-gradient(#f4ead2,#e3d1a8);border-bottom:1px solid #b89a6a}
+.cab h1{margin:0;font:700 15px Cinzel,Georgia,serif;letter-spacing:.5px;white-space:nowrap}
+.turno{display:flex;align-items:center;gap:7px;font-size:12px;white-space:nowrap}
+.reloj{width:84px;height:7px;border-radius:4px;background:#d6c196;overflow:hidden}
+.reloj i{display:block;height:100%;background:var(--rojo);animation:cuenta 20s linear infinite;animation-delay:-8s;animation-play-state:paused}
+@keyframes cuenta{from{width:100%}to{width:0}}
+.pasos{margin-left:auto;display:flex;gap:6px}
+.pasos button{width:28px;height:28px;border-radius:50%;border:1px solid var(--madera);background:#fbf4e2;color:var(--tinta);font:700 12px system-ui;padding:0;cursor:pointer}
+.pasos button[aria-current="true"]{background:var(--tinta);color:#f7ecd2}
+.pant{flex:1;min-height:0;display:none;flex-direction:column}
+.pant.on{display:flex}
+.cuerpo{flex:1;min-height:0;display:flex;position:relative}
+.mapa{flex:1;min-width:0;min-height:0;width:100%;height:100%;display:block}
+.pie{height:54px;flex:none;display:flex;align-items:center;gap:8px;padding:0 12px;background:linear-gradient(#e7d6b0,#d6c196);border-top:1px solid #b89a6a}
+.info{flex:1;min-width:0;font-size:13px;line-height:1.3}
+.info b{font:700 14px Cinzel,Georgia,serif}
+.btn{min-height:40px;padding:0 14px;border-radius:10px;border:1px solid #6b5033;background:#fbf4e2;color:var(--tinta);font:700 13px system-ui;box-shadow:0 2px 0 var(--madera);cursor:pointer;white-space:nowrap}
+.btn.fuerte{background:#4e3f2f;color:#f7ecd2;font:700 14px Cinzel,Georgia,serif;letter-spacing:.4px}
+.lado{width:236px;flex:none;display:flex;flex-direction:column;gap:7px;padding:8px 10px;background:#eadbb9;border-right:1px solid #b89a6a;overflow:hidden}
+.tarjeta{background:#fbf4e2;border:1px solid #c9b082;border-radius:8px;padding:6px 8px;font-size:12px;line-height:1.3}
+.tarjeta h2{margin:0 0 3px;font:700 12px Cinzel,Georgia,serif}
+.tarjeta.alerta{border-color:var(--rojo);box-shadow:inset 3px 0 0 var(--rojo)}
+.resul{flex:1;min-height:0;display:grid;grid-template-columns:1fr 280px;gap:12px;padding:10px 12px}
+.resul svg{width:100%;height:100%;min-height:0;border:1px solid #c9b082;border-radius:8px}
+.resul .texto{display:flex;flex-direction:column;gap:8px;min-height:0}
+.resul h2{margin:0;font:700 18px Cinzel,Georgia,serif}
+.resul p{margin:0;font-size:13px;line-height:1.35}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.stat{background:#fbf4e2;border:1px solid #c9b082;border-radius:8px;padding:6px 8px;font-size:12px}
+.stat b{display:block;font:700 19px Cinzel,Georgia,serif}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="cab">
+    <h1 id="tit">Mapa en grande</h1>
+    <div class="turno" id="turno"><span id="tur">Turno 6 de 8</span><span class="reloj"><i></i></span><span id="rel">planea · 12 s</span></div>
+    <nav class="pasos" aria-label="Pantallas de la maqueta">
+      <button data-p="0" title="Mapa en grande" aria-label="Mapa en grande">1</button>
+      <button data-p="1" title="Escena del choque" aria-label="Escena del choque">2</button>
+      <button data-p="2" title="Riesgo en el puente" aria-label="Riesgo en el puente">3</button>
+      <button data-p="3" title="Resultado" aria-label="Resultado">4</button>
+    </nav>
+  </header>
+
+  <!-- 1 · Mapa en grande con el turno planeado -->
+  <section class="pant on" data-t="Mapa en grande" data-rel="planea · 12 s" data-tur="Turno 6 de 8">
+    <div class="cuerpo">
+      <svg class="mapa" id="mapa0" role="img" aria-label="Mapa del campo desde arriba"></svg>
+    </div>
+    <div class="pie">
+      <div class="info" id="info0"></div>
+      <button class="btn" id="quitar">Quitar la ruta</button>
+      <button class="btn fuerte" data-ir="2">Ejecutar el turno</button>
+    </div>
+  </section>
+
+  <!-- 2 · Escena del choque, 22 regimientos -->
+  <section class="pant" data-t="Escena del choque" data-rel="en el puente" data-tur="Turno 6 · choque" data-reloj="no">
+    <div class="cuerpo">
+      <svg class="mapa" id="escena" role="img" aria-label="Choque en el puente, 11 contra 11"></svg>
+    </div>
+    <div class="pie">
+      <button class="btn" data-ir="0">Volver al mapa</button>
+      <div class="info" id="info1">Toca un regimiento y luego da la orden. Son 11 contra 11 en el puente.</div>
+      <button class="btn" id="mantener">Mantener la línea</button>
+      <button class="btn fuerte" id="cargar">Cargar</button>
+    </div>
+  </section>
+
+  <!-- 3 · Dos turnos seguidos y un momento de riesgo -->
+  <section class="pant" data-t="Riesgo en el puente" data-rel="planea · 9 s" data-tur="Turno 6 de 8">
+    <div class="cuerpo">
+      <aside class="lado">
+        <div class="tarjeta"><h2>Turno 5 · hecho</h2>III bajó a los nudos del sur. E3 llegó tarde a la colina.</div>
+        <div class="tarjeta alerta" id="alerta"><h2>Turno 6 · riesgo</h2>IV queda sola en el nudo norte. E3 baja hacia el vado.</div>
+        <div class="tarjeta" id="relevoCard"><h2>Relevo</h2>VI está a dos caminos. Si la mandas, IV descansa.</div>
+      </aside>
+      <svg class="mapa" id="zoom" role="img" aria-label="Zoom al puente: turno 5 en claro, turno 6 en color"></svg>
+    </div>
+    <div class="pie">
+      <div class="info" id="info2">Las figuras claras son el turno 5. Tu orden decide el turno 6.</div>
+      <button class="btn" id="relevar">Relevar a IV con VI</button>
+      <button class="btn fuerte" data-ir="1">Ver el choque</button>
+    </div>
+  </section>
+
+  <!-- 4 · Resultado -->
+  <section class="pant" data-t="Resultado" data-rel="fin de la partida" data-tur="Fin · turno 8 de 8" data-reloj="no">
+    <div class="resul">
+      <svg id="final" role="img" aria-label="Posiciones finales"></svg>
+      <div class="texto">
+        <h2>Cruce ganado</h2>
+        <p>III tomó el puente en el turno 7. E3 se retiró por el vado. Las legiones frescas cubren la retirada.</p>
+        <div class="stats">
+          <div class="stat"><b>17 de 22</b>regimientos vivos</div>
+          <div class="stat"><b>3 de 5</b>caminos tomados</div>
+          <div class="stat"><b>8 turnos</b>de 8 jugados</div>
+          <div class="stat"><b>1 relevo</b>hecho a tiempo</div>
+        </div>
+      </div>
+    </div>
+    <div class="pie">
+      <div class="info">Puedes repetir el campo o retirarte con las legiones que quedan.</div>
+      <button class="btn" data-ir="0">Repetir el campo</button>
+      <button class="btn fuerte">Retirarse ordenadamente</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+(() => {
+  const NS = "http://www.w3.org/2000/svg";
+
+  // Campo: nudos (x, y) y caminos entre ellos
+  const NODOS = {
+    R: {x: 70,  y: 150, n: "Castra"},
+    a: {x: 190, y: 80,  n: "Cruce norte"},
+    b: {x: 190, y: 220, n: "Cruce sur"},
+    c: {x: 320, y: 70,  n: "Nudo norte"},
+    d: {x: 320, y: 230, n: "Nudo sur"},
+    g: {x: 420, y: 110, n: "Vado"},
+    h: {x: 420, y: 200, n: "Puente"},
+    e: {x: 530, y: 70,  n: "Colina"},
+    f: {x: 530, y: 230, n: "Pinar"},
+    k: {x: 650, y: 150, n: "Paso"},
+    E: {x: 790, y: 150, n: "Campo enemigo"}
+  };
+  const CAMINOS = [["R","a"],["R","b"],["a","c"],["b","d"],["c","d"],["c","g"],["d","h"],["g","e"],["h","f"],["e","f"],["e","k"],["f","k"],["k","E"]];
+  const ORIGEN = {I: "R", II: "a", III: "b", IV: "c", V: "d", VI: "R"};
+  const planes = {III: ["b", "d", "h"], VI: ["R", "a", "c"]};
+  const RIO = "M400 -20 C440 40 385 110 418 150 S452 250 420 320";
+  let sel = "III";
+  let relevado = false;
+  let uid = 0;
+
+  const xy = n => [NODOS[n].x, NODOS[n].y];
+  const nom = n => NODOS[n].n;
+  const vecino = (p, q) => CAMINOS.some(([x, y]) => (x === p && y === q) || (x === q && y === p));
+
+  function el(tag, attrs, padre) {
+    const e = document.createElementNS(NS, tag);
+    for (const k in attrs) e.setAttribute(k, attrs[k]);
+    if (padre) padre.appendChild(e);
+    return e;
+  }
+  function txt(x, y, texto, attrs, padre, anclaje = "middle") {
+    const t = el("text", Object.assign({x, y, "text-anchor": anclaje}, attrs), padre);
+    t.textContent = texto;
+    return t;
+  }
+  function fondo(svg, vb) {
+    svg.setAttribute("viewBox", vb);
+    svg.innerHTML = "";
+    el("rect", {x: -400, y: -400, width: 1700, height: 1100, fill: "#efe3c8"}, svg);
+  }
+
+  // Dibuja el mapa en cenital: caminos, río, nudos, fichas, rutas y marcas
+  function dibujaMapa(svg, cfg) {
+    fondo(svg, cfg.vb);
+    const mid = "fl" + (++uid);
+    const defs = el("defs", {}, svg);
+    const mk = el("marker", {id: mid, markerWidth: 12, markerHeight: 12, refX: 8, refY: 6, orient: "auto", markerUnits: "userSpaceOnUse"}, defs);
+    el("path", {d: "M0 0 L12 6 L0 12 z", fill: "#b8861f"}, mk);
+
+    el("path", {d: RIO, fill: "none", stroke: "#8fb0b3", "stroke-width": 34, "stroke-linecap": "round"}, svg);
+    el("path", {d: RIO, fill: "none", stroke: "#b7d0cf", "stroke-width": 6, "stroke-dasharray": "18 14"}, svg);
+    el("rect", {x: 402, y: 188, width: 36, height: 24, rx: 2, fill: "#8a6a40", stroke: "#4e3f2f", "stroke-width": 1.5}, svg);
+
+    CAMINOS.forEach(([p, q]) => {
+      const [x1, y1] = xy(p), [x2, y2] = xy(q);
+      el("line", {x1, y1, x2, y2, stroke: "#c49a5c", "stroke-width": 10, "stroke-linecap": "round"}, svg);
+      el("line", {x1, y1, x2, y2, stroke: "#f0dca8", "stroke-width": 3, "stroke-linecap": "round"}, svg);
+    });
+
+    Object.keys(NODOS).forEach(n => {
+      const [x, y] = xy(n);
+      el("circle", {cx: x, cy: y, r: 5, fill: "#6b5033"}, svg);
+      const toque = el("circle", {cx: x, cy: y, r: 18, fill: "transparent", cursor: "pointer"}, svg);
+      toque.addEventListener("click", () => cfg.alNodo && cfg.alNodo(n));
+      if (cfg.nombres !== false) {
+        txt(x, y + 26, nom(n), {"font-size": 11, "font-weight": 700, fill: "#3a2a1e", stroke: "#f5ecd6", "stroke-width": 3, "paint-order": "stroke"}, svg);
+      }
+    });
+
+    const estilo = {
+      plan: {stroke: "#c9a03a", "stroke-width": 5, "stroke-dasharray": "12 7"},
+      relevo: {stroke: "#5d7a4a", "stroke-width": 4, "stroke-dasharray": "6 6"},
+      fog: {stroke: "#3b3a46", "stroke-width": 3, "stroke-dasharray": "2 7", opacity: 0.5}
+    };
+    (cfg.rutas || []).forEach(r => {
+      const at = Object.assign({points: r.nodos.map(n => xy(n).join(",")).join(" "), fill: "none", "stroke-linecap": "round"}, estilo[r.cls]);
+      if (r.cls === "plan") at["marker-end"] = `url(#${mid})`;
+      el("polyline", at, svg);
+      if (r.cls === "plan") {
+        r.nodos.slice(1).forEach((n, i) => {
+          const [x, y] = xy(n);
+          el("circle", {cx: x + 18, cy: y - 18, r: 9, fill: "#e0b43c", stroke: "#3a2a1e", "stroke-width": 1}, svg);
+          txt(x + 18, y - 14, String(i + 1), {"font-size": 11, "font-weight": 700, fill: "#3a2a1e"}, svg);
+        });
+      }
+    });
+
+    (cfg.fichas || []).forEach(([id, n, dx = 0, dy = 0, lado, banderas = ""]) => {
+      const [x, y] = xy(n);
+      const g = el("g", {
+        transform: `translate(${x + dx} ${y + dy}) scale(${cfg.s || 1})`,
+        opacity: banderas.includes("fantasma") ? 0.3 : 1,
+        cursor: cfg.alFicha ? "pointer" : "default"
+      }, svg);
+      if (banderas.includes("peligro")) el("circle", {r: 27, fill: "none", stroke: "#c0392b", "stroke-width": 3, "stroke-dasharray": "5 4"}, g);
+      if (banderas.includes("sel")) el("circle", {r: 23, fill: "none", stroke: "#e0b43c", "stroke-width": 3}, g);
+      el("rect", {x: -18, y: -12, width: 36, height: 24, rx: 5, fill: lado === "r" ? "#9b3a2a" : "#3b3a46", stroke: "#2d2118", "stroke-width": 1.5, "stroke-dasharray": banderas.includes("res") ? "4 3" : "none"}, g);
+      txt(0, 5, id, {"font-size": 12, "font-weight": 700, fill: "#f7ecd2"}, g);
+      if (cfg.alFicha) g.addEventListener("click", () => cfg.alFicha(id));
+    });
+
+    (cfg.marcas || []).forEach(([n, dx, dy, texto]) => {
+      const [x, y] = xy(n);
+      const g = el("g", {cursor: "pointer"}, svg);
+      el("circle", {cx: x + dx, cy: y + dy, r: 12, fill: "#c0392b", stroke: "#f7ecd2", "stroke-width": 2}, g);
+      txt(x + dx, y + dy + 5, "!", {"font-size": 15, "font-weight": 700, fill: "#fff"}, g);
+      if (texto) txt(x + dx + 18, y + dy + 5, texto, {"font-size": 12, "font-weight": 700, fill: "#9b3a2a", stroke: "#f5ecd6", "stroke-width": 3, "paint-order": "stroke"}, g, "start");
+      g.addEventListener("click", () => cfg.alMarca && cfg.alMarca(n));
+    });
+  }
+
+  // Pantalla 1: mapa en grande
+  function infoSel() {
+    const r = planes[sel] || [ORIGEN[sel]];
+    const estado = sel === "VI" ? "de reserva, descansada" : "fresca";
+    document.getElementById("info0").innerHTML =
+      `<b>Legión ${sel}</b> · ${estado}<br>Ruta: ${r.map(nom).join(" → ")}. Toca otro nudo para seguir el camino.`;
+  }
+  function mapaPlan() {
+    const fichas = [
+      ["I", "R", -26, 0, "r", ""], ["VI", "R", 26, 0, "r", "res"],
+      ["II", "a", 0, 0, "r", ""], ["III", "b", 0, 0, "r", ""], ["IV", "c", 0, 0, "r", ""], ["V", "d", 0, 0, "r", ""],
+      ["E1", "E", 0, 0, "e", ""], ["E2", "k", 0, 0, "e", ""], ["E3", "e", 0, 0, "e", ""], ["E4", "f", 0, 0, "e", ""]
+    ].map(f => [f[0], f[1], f[2], f[3], f[4], f[5] + (f[0] === sel ? " sel" : "")]);
+    dibujaMapa(document.getElementById("mapa0"), {
+      vb: "0 0 844 296",
+      fichas,
+      rutas: [
+        ...Object.entries(planes).map(([id, nodos]) => ({nodos, cls: id === "VI" ? "relevo" : "plan"})),
+        {nodos: ["k", "f", "h"], cls: "fog"}
+      ],
+      marcas: [["h", 0, -30, "Ver el choque"]],
+      alNodo: tocaNodo,
+      alFicha: id => { if (ORIGEN[id]) { sel = id; mapaPlan(); infoSel(); } },
+      alMarca: () => ir(1)
+    });
+  }
+  function tocaNodo(n) {
+    if (!ORIGEN[sel]) return;
+    if (!planes[sel]) planes[sel] = [ORIGEN[sel]];
+    const r = planes[sel];
+    const i = r.indexOf(n);
+    if (i >= 0) r.length = i + 1;
+    else if (vecino(r[r.length - 1], n)) r.push(n);
+    mapaPlan();
+    infoSel();
+  }
+  document.getElementById("quitar").addEventListener("click", () => {
+    if (!ORIGEN[sel]) return;
+    planes[sel] = [ORIGEN[sel]];
+    mapaPlan();
+    infoSel();
+  });
+
+  // Pantalla 2: escena con 22 regimientos
+  function regi(svg, x, y, lado, t, banderas) {
+    const g = el("g", {}, svg);
+    const color = lado === "r" ? "#9b3a2a" : "#3b3a46";
+    if (banderas.includes("sel")) el("rect", {x: x - 5, y: y - 5, width: 54, height: 38, rx: 6, fill: "none", stroke: "#e0b43c", "stroke-width": 3}, g);
+    if (banderas.includes("contacto")) el("rect", {x: x - 5, y: y - 5, width: 54, height: 38, rx: 6, fill: "none", stroke: "#c0392b", "stroke-width": 2, "stroke-dasharray": "5 4"}, g);
+    for (let i = 0; i < 5; i++) el("line", {x1: x + 5 + i * 9, y1: y, x2: x + 5 + i * 9, y2: y - 13, stroke: "#4e3f2f", "stroke-width": 1.5}, g);
+    el("rect", {x: x + 10, y: y - 22, width: 24, height: 9, fill: color}, g);
+    el("rect", {x, y, width: 44, height: 28, rx: 3, fill: color, stroke: "#2d2118", "stroke-width": 1.5}, g);
+    txt(x + 22, y + 19, t, {"font-size": 11, "font-weight": 700, fill: "#f7ecd2"}, g);
+  }
+  function dibujaEscena() {
+    const svg = document.getElementById("escena");
+    fondo(svg, "0 0 844 296");
+    el("rect", {x: 0, y: 0, width: 844, height: 296, fill: "#e4d3ac"}, svg);
+    el("rect", {x: 378, y: 0, width: 94, height: 296, fill: "#8fb0b3"}, svg);
+    for (let y = 20; y < 296; y += 34) el("line", {x1: 386, y1: y, x2: 464, y2: y + 8, stroke: "#b7d0cf", "stroke-width": 3, "stroke-linecap": "round"}, svg);
+    el("rect", {x: 372, y: 138, width: 106, height: 26, rx: 2, fill: "#8a6a40", stroke: "#4e3f2f", "stroke-width": 1.5}, svg);
+    el("line", {x1: 300, y1: 70, x2: 370, y2: 146, stroke: "#c0392b", "stroke-width": 2, "stroke-dasharray": "6 5"}, svg);
+    el("line", {x1: 548, y1: 70, x2: 478, y2: 146, stroke: "#c0392b", "stroke-width": 2, "stroke-dasharray": "6 5"}, svg);
+    txt(425, 128, "!", {"font-size": 20, "font-weight": 700, fill: "#c0392b"}, svg);
+    const romanos = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI"];
+    romanos.forEach((t, i) => {
+      const col = i % 4, row = Math.floor(i / 4);
+      regi(svg, 40 + col * 72, 40 + row * 84, "r", t, i === 3 ? "sel" : "");
+    });
+    romanos.forEach((_, i) => {
+      const col = i % 4, row = Math.floor(i / 4);
+      regi(svg, 764 - col * 72, 40 + row * 84, "e", "E" + (i + 1), i === 3 ? "contacto" : "");
+    });
+  }
+  const infoEscena = document.getElementById("info1");
+  document.getElementById("mantener").addEventListener("click", () => {
+    infoEscena.textContent = "IV mantiene la línea en el puente. Ningún regimiento avanza este turno.";
+  });
+  document.getElementById("cargar").addEventListener("click", () => {
+    infoEscena.textContent = "IV carga sobre el puente. Pierde orden si el enemigo la rodea.";
+  });
+
+  // Pantalla 3: dos turnos y riesgo, con relevo opcional
+  function mapaRiesgo() {
+    const fichas = [
+      ["III", "d", 0, 22, "r", "fantasma"], ["E3", "e", 0, 0, "e", "fantasma"],
+      ["III", "h", 0, 0, "r", "sel"],
+      relevado ? ["IV", "a", 0, 0, "r", "res"] : ["IV", "c", 0, 0, "r", "peligro"],
+      ["V", "d", 0, -6, "r", ""],
+      relevado ? ["VI", "c", 0, 0, "r", "peligro"] : ["VI", "a", 0, 0, "r", "res"],
+      ["E3", "g", 0, 0, "e", ""], ["E2", "f", 0, 0, "e", ""]
+    ];
+    dibujaMapa(document.getElementById("zoom"), {
+      vb: "150 30 500 240",
+      s: 0.9,
+      fichas,
+      rutas: relevado
+        ? [{nodos: ["d", "h"], cls: "plan"}, {nodos: ["a", "c"], cls: "relevo"}, {nodos: ["e", "g"], cls: "fog"}]
+        : [{nodos: ["d", "h"], cls: "plan"}, {nodos: ["a", "c"], cls: "relevo"}, {nodos: ["e", "g"], cls: "fog"}]
+    });
+  }
+  document.getElementById("relevar").addEventListener("click", () => {
+    relevado = true;
+    mapaRiesgo();
+    document.getElementById("alerta").innerHTML = "<h2>Turno 6 · relevo</h2>VI entra en el nudo norte. IV se retira a descansar.";
+    document.getElementById("info2").textContent = "VI releva a IV. El turno 6 se ejecuta para los dos bandos.";
+    document.getElementById("relevoCard").style.display = "none";
+  });
+
+  // Pantalla 4: resultado
+  function mapaFinal() {
+    dibujaMapa(document.getElementById("final"), {
+      vb: "0 0 844 296",
+      s: 1.6,
+      nombres: false,
+      fichas: [
+        ["III", "h", 0, 0, "r", "sel"], ["VI", "c", 0, 0, "r", ""], ["V", "d", 0, 0, "r", ""],
+        ["IV", "a", 0, 0, "r", "res"], ["I", "R", 0, 0, "r", "res"], ["II", "b", 0, 0, "r", ""],
+        ["E1", "E", 0, 0, "e", "res"], ["E2", "f", 0, 0, "e", "res"]
+      ]
+    });
+  }
+
+  // Navegación entre pantallas
+  const pantallas = [...document.querySelectorAll(".pant")];
+  function ir(i) {
+    pantallas.forEach((p, j) => p.classList.toggle("on", j === i));
+    const p = pantallas[i];
+    document.getElementById("tit").textContent = p.dataset.t;
+    document.getElementById("rel").textContent = p.dataset.rel;
+    document.getElementById("tur").textContent = p.dataset.tur;
+    document.getElementById("turno").style.display = p.dataset.reloj === "no" ? "none" : "flex";
+    document.querySelectorAll(".pasos button").forEach((b, j) => b.setAttribute("aria-current", String(j === i)));
+  }
+  document.querySelectorAll("[data-ir]").forEach(b => b.addEventListener("click", () => ir(+b.dataset.ir)));
+  document.querySelectorAll(".pasos button").forEach(b => b.addEventListener("click", () => ir(+b.dataset.p)));
+
+  mapaPlan();
+  infoSel();
+  dibujaEscena();
+  mapaRiesgo();
+  mapaFinal();
+  ir(0);
+})();
+</script>
+</body>
+</html>

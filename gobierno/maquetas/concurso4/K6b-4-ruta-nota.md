@@ -1,0 +1,7 @@
+1. Las legiones avanzan por los caminos de un campo visto desde arriba, por turnos, y la batalla empieza cuando dos ejércitos llegan al mismo nudo o puente.
+2. Con el pulgar se toca una legión para elegirla y luego se tocan los nudos por donde debe pasar; abajo, «Ejecutar el turno» está al alcance del pulgar. Para ver el choque se toca la marca roja «!» del puente, y la escena tiene «Volver al mapa».
+3. Seis botones a la vista en la pantalla de mapa (cuatro pasos pequeños arriba, dos en el pie), tres en la escena y dos en el riesgo.
+4. Dirección de arte: pergamino, ocre, rojo romano y pizarra para el enemigo, figuras y caminos dibujados a mano en SVG, sin arte de 0 A.D.; la letra Cinzel viene de `assets/fuentes/`.
+5. A 20 y 30 regimientos el mapa sigue igual, porque cada legión es una sola ficha; la escena pasa de 11 contra 11 a 15 contra 15 en filas más estrechas. A 1.500 m el campo se recorre con más nudos, no con más zoom. El turno se vive con un reloj de cuenta atrás (20 s para planear) y con la marcha que se ve después de pulsar «Ejecutar».
+6. Cambios propuestos (solo proponer): en `js/ui.js`, un panel de turno con reloj, pasos y pulsación sobre caminos; en `js/gfx/battle3d.js`, la vista de escena con filas de regimientos y el modo de puente; en `js/battle.js`, resolver el turno en pasos (marcha, choque, retirada) en vez de una batalla continua.
+7. Coste estimado: unas 4 tareas medianas (mapa y turnos, paso al choque, escena con 30 regimientos, pruebas en el navegador).
