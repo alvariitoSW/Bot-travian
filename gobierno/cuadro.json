@@ -519,6 +519,18 @@
    "tarea": "Q2",
    "archivo": "gobierno/capturas-tarea/Q2-2-informe.jpg",
    "pie": "Informe de la estación: tres meses de caja"
+  },
+  {
+   "tarea": "N2",
+   "archivo": "gobierno/capturas-tarea/N2-plan.jpg",
+   "pie": "Batalla por rondas: plan en pausa con sombras de las órdenes",
+   "ancha": true
+  },
+  {
+   "tarea": "N2",
+   "archivo": "gobierno/capturas-tarea/N2-informe.jpg",
+   "pie": "Batalla por rondas: «Lo que pasó» y Ver otra vez",
+   "ancha": true
   }
  ],
  "informes": [
