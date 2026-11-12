@@ -171,7 +171,8 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ✅ H9 Hechos nuevos: Benevento 275, Trasimeno 217, Metauro 207, Ilipa 206, Magnesia 190, Corinto y Cartago 146.
 - ✅ H10 Pastilla «licencia de juego» con su motivo en 15 hechos y en las tropas inventadas.
 - ✅ H3 Códice dentro del juego (11/11/2026): botón en «Crónica», 62 fichas de tropas, ciudades y hechos con etiqueta y fuente.
-- ⬜ H11 (en dos partes, 12/11: H11a cotejo en `estudios/H11-cotejo.md`, abierta; H11b aplicar con la ola 3) **Segunda pasada de cotejo** (aprobada 11/11, P51): los 60 datos «sin comprobar» y los pasajes dudosos en latín y griego. Hace falta abrir attalus.org o similar. ≈1,5 M Sonnet.
+- ✅ H11a (12/11) cotejo hecho: `estudios/H11-cotejo.md` (65 fichas; 8 errores a corregir, el peor Ambracia: 1.000, no 500).
+- ⬜ H11b **Aplicar el cotejo** en `js/registro.js` (y `codice.js` si hace falta), en pareja con la ola 3 o en el primer hueco sin otra sesión sobre `registro.js`. Antes, abrir los pasajes de §5 del estudio (Plinio, Apiano, Polibio 2.23). Decide el usuario: madera naval (licencia o Etruria). ≈0,4 M Sonnet.
 - ⬜ H12 **Capua se rebela en 216** (aprobada 11/11, P52): tras Cannas se pasa a Aníbal si no la defiendes bien (Livio 23.2-7). Cambia reglas. ≈0,3 M.
 - ⬜ H13 **Pirro ataca en 280, no en 277** (aprobada 11/11, P53): obliga a reequilibrar el arranque. ≈0,3 M.
 - ⬜ H14 **«Poblado íbero» en el mapa** (aprobada 11/11, P54): Carthago Nova se llama así hasta 228. ≈0,15 M.

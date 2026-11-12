@@ -185,3 +185,5 @@ Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que 
 - Estudios R1 a R7 (11/11): los hechos salen de resúmenes de búsqueda, no de las páginas (la red no deja abrir wikis ni guías); lo dudoso va marcado «sin confirmar». Los números de las propuestas son nuestros, no de esos juegos. Las citas de Polibio, Livio y Cicerón van de memoria: pasarlas por la skill `historia` antes de construir.
 
 - 11/11/2026 — **I2 hecha** (sin decisión del usuario pendiente salvo): el año empieza en Ianuarius = Invierno (primer turno invierno de 280); los refuerzos de guarnición rivales por turno son algo más rápidos en guarniciones pequeñas; al ir a ×4 la estación puede cerrarse sola. Falta dibujar en el mapa la marca de la marcha rival que llega el próximo turno. Encargo recomendado: J7 (ciudad) o N1b/N2 sobre la pieza `G.pasarTurno`.
+
+- 12/11/2026 · H11a hecha (cotejo en `estudios/H11-cotejo.md`). Sigue **H11b** (aplicar en `js/registro.js`, con la ola 3). Pregunta para el usuario: la madera naval la dan Siracusa y Panormus sin fuente; ¿licencia de juego, o pasarla a ciudades etruscas (Livio 28.45)?
