@@ -109,6 +109,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ Q2 **Caja del mes y cierre** (12/11): la caja es lo gastable del mes; al cerrar el mes lo que sobra va al almacén hasta su tope y el resto se pierde (con aviso); del almacén solo se saca un cuarto al mes; informe de la estación al pasar turno. Migrado en `G.load`. Parte `partes/2026-11-12-Q2.md`.
 - ✅ Q3 **Cuentas del mes en pantalla** (12/11): ficha «Cuentas» (barras por material, oro con ingresos y gastos, aviso con «Vender en el mercado» y «Adelantar obra»), colchón inicial de 200 en el almacén, aviso de pérdida al empezar la estación. Parte `partes/2026-11-12-Q3.md`.
 - ✅ Q4 **Obras y reclutas a plazos** (12/11): una obra o recluta de varios meses paga una cuota por mes (la 1ª al empezar, el resto al cierre de mes, de la caja); si no alcanza, se detiene hasta que haya. Comprometido y fila «Obras y tropas» reflejan los plazos; «Adelantar cuotas» paga las que faltan. Parte `partes/2026-11-12-Q4.md`.
+- ⬜ Q4b **Varias obras según el nivel del foro** (pedido el 12/11): una obra a la vez al principio y más huecos al subir el foro. Cambia cómo se guardan las colas (migrar en `G.load`) y toca la ciudad 3D: después del carril Ciudad (Q1d a Q1f).
 - ⬜ Q5 en adelante **aprobadas enteras** (P75, 12/11): cuentas en pantalla, obras a plazos, barrios, clases, Senado y pueblo, provincias. Detalle en `estudios/Q1-ciudad-gobierno-economia.md` §8.
 
 ## Carril E — Arte (sistema coherente con la época)

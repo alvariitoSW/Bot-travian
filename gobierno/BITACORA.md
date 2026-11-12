@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 12/11/2026 — **Cuatro respuestas para desatascar los carriles** (preguntadas en el chat): Guerra tras N3: «Seguir sin tope». Economía: «Sí, seguir con Q5». Varias obras en una ciudad: «Sí, según el nivel del foro». Prueba de la ciudad en su móvil (Q1c): «Va fluida». Además pide cerrar las sesiones que ya acabaron. (Lectura de Claude: el carril Guerra sigue N4 → N5 y siguientes sin parar por gasto, contándolo en el parte; se abre Q5; tarea nueva Q4b, huecos de obra según el nivel del foro, para cuando acabe el carril Ciudad; Q1c queda validada a ojo, sin números, y se abre Q1d. Archivadas las sesiones Q2, Q3, Q4, N2, N3, N1b, Q1b, A5a y Q1c.)
 - 12/11/2026 — **Vista la segunda maqueta de la ciudad (Q1b2)** (preguntado en el chat, con las siete capturas delante): ¿ya convence? «Sí, adelante». Retoques: «Fondo soso», «Griega y púnica», «Ladera pelada». P78: «P78 entera». Peso y gasto: «Subir tope a 37 MB, gasto libre». (Lectura de Claude: P78 aprobada completa, Q1c a Q1j al tablero; los tres retoques entran en Q1c, Q1d y Q1h; el tope de descarga pasa de 35 a 37 MB en `gobierno/arte.json`; las maquetas de diseño con Fable no llevan tope fijo de gasto, pero se sigue presupuestando y contando lo gastado en el parte.)
 - 12/11/2026 — **Modelo para los diseños**: «Ayúdate de Fable 5.2 para los diseños». (Lectura de Claude: regla desde hoy: las sesiones y agentes de diseño y de arte van con Fable 5.2; las que construyen siguiendo un diseño ya hecho siguen en Sonnet. Cambia lo dicho el 11/11 de cuidar el uso de Fable solo para diseño. La sesión Q1b2 de la ciudad se rehace con Fable.)
 - 12/11/2026 — **Ocho respuestas para seguir** (preguntadas en el chat, con las capturas de Q1b delante):
@@ -96,9 +97,6 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-- **Prueba de la ciudad nueva en su móvil (Q1c)**: abrir https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/ciudad2/ , esperar 10 segundos y decir los tres números (Ahora, Media, Mínimo), quieta y con «Mover cámara», y si nota algo raro a la vista. Con eso se decide si Q1d sigue tal cual o hay que aligerar más. El rendimiento en móvil real sigue sin medir.
-- **Bloque Q2 a Q4 (caja del mes) hecho** (12/11). Q11 (se ve) y Q5 en adelante esperan su orden: no hay sesión abierta del carril Q.
-- **Guerra, N3 cerrada con gasto +30 %** (1,57 M frente a 1,2 M; hacienda dio ALERTA). Por regla no se ha abierto N4. Decide: ¿sigo con N4 (Estados, choque y contagio) con presupuesto 1,2 M, o prefieres otro tope? Responde y se abre.
 - **P69 Radio de efecto de los edificios**: aprobar o rechazar (las demás ideas sueltas ya están dentro de P74 y P75).
 
 ## Propuestas por aprobar
@@ -117,6 +115,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+000000000. **Abiertas el 12/11 (mediodía), tres carriles**: Guerra **N4** (Sonnet, sin tope de gasto, encadena N5 y siguientes) · Economía **Q5** (Sonnet, encadena el bloque) · Ciudad **Q1d** Suelo, relieve, luz y cielo en el juego (diseño ya hecho en `maquetas/ciudad2/`; toca `js/gfx/city3d.js` y `ground.js`). Antes de subir: `git pull --rebase` y solo las líneas propias.
 00000000. **Guerra N3 hecha (12/11)**. Sigue **N4 Estados, choque y contagio** en `js/battle.js` (las órdenes Aguantar/Avanzar/Cargar/Hostigar/Relevar/Retirarse llevan `r.order.tipo`, hoy ignorado por el motor: darles regla propia aquí) y luego N5 General y mando. Cuidado con el gasto: N3 pasó de 1,2 a 1,57 M; el constructor tarda mucho si relee todo, dar archivos concretos. Falta ver en las capturas el estado «huye».
 0000000. **En marcha desde el 12/11, tres carriles, cada uno en su sesión**: Guerra N2 → N3 → N4 → N5 (Sonnet) · Economía Q2 y Q3 hechas (12/11) → Q4 (Sonnet; almacén: un cuarto al mes; cuenta mensual e informe por estación) · Ciudad Q1b2, segunda vuelta al diseño (Fable 5.2). Cada sesión, al cerrar con jueces APTO, abre la siguiente de su carril; al acabar el bloque, para y lo deja en el cuadro. Después: N14, N6 a N13 y N15; Q5 en adelante.
 000000. **Carril Ciudad** (P78 aprobada entera el 12/11): **Q1c hecha** (12/11). **No abrir Q1d hasta que el usuario diga cómo va la prueba en su teléfono** (https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/ciudad2/). Si va fluida (≈30 o más con la cámara en marcha): Q1d → Q1e → Q1f → Q1g → Q1h → Q1i → Q1j. Si no: otra pasada de aligerar (cortes `?c0=`, `?c1=`, `?carb=`, sombras, resolución). Diseño con Fable; construir sobre diseño hecho, Sonnet. Ojo desde Q1d: toca `js/gfx/city3d.js`.
