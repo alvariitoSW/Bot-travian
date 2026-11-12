@@ -1,0 +1,447 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Dados y fortuna</title>
+<style>
+@font-face{font-family:'CinzelK';src:url('../../../assets/fuentes/cinzel-700.woff2') format('woff2');font-weight:700;font-display:block}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#1d1610;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:#2b1d12;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+
+/* Marco: cabecera, campo y pie */
+#app{position:fixed;inset:0;display:flex;flex-direction:column}
+header{height:34px;flex:none;display:flex;align-items:center;gap:12px;padding:0 10px;background:#3a2a1c;color:#f3e4c0;font-size:13px;font-weight:600}
+#cab-txt{font-family:'CinzelK',Georgia,serif;letter-spacing:.04em;white-space:nowrap}
+#cab-tiempo{flex:1;display:flex;align-items:center;gap:8px;min-width:0}
+#cab-tiempo .barra{flex:1;height:6px;background:rgba(243,228,192,.2);border-radius:3px;overflow:hidden}
+#barra{display:block;height:100%;width:100%;background:#c9962f}
+#resto{font-variant-numeric:tabular-nums;min-width:34px}
+#bEscena{margin-left:auto}
+#zona{flex:1;position:relative;overflow:hidden;background:#d8c59b;min-height:0}
+footer{height:56px;flex:none;display:flex;align-items:center;gap:12px;padding:0 12px;background:#3a2a1c;color:#f3e4c0}
+
+/* Botones: pocos, grandes, con el texto de lo que hacen */
+.btn{font:700 13px system-ui,sans-serif;color:#2b1d12;background:#f3e4c0;border:0;border-radius:10px;height:38px;padding:0 14px;box-shadow:0 3px 0 #6b4a2b;cursor:pointer;white-space:nowrap}
+.btn.sm{height:28px;font-size:12px;padding:0 12px;box-shadow:0 2px 0 #6b4a2b}
+.btn.grande{font:700 16px 'CinzelK',Georgia,serif;letter-spacing:.06em;background:#c9962f;color:#2b1d12;height:44px;min-width:210px;flex:none;box-shadow:0 3px 0 #7a5418}
+.btn.chip.on{background:#c9962f;box-shadow:0 3px 0 #7a5418}
+.ayuda{flex:1;font-size:12px;line-height:1.3;color:#e8d6ac}
+.ficha{flex:1;min-width:0;font-size:12px;line-height:1.35;color:#f3e4c0}
+.ficha b{display:block;font:700 14px 'CinzelK',Georgia,serif;color:#f6e7c2;letter-spacing:.03em;margin-bottom:1px}
+.chips{display:flex;gap:8px;flex:none}
+
+/* Campo visto desde arriba: 1.500 m = 100 % del ancho */
+.campo{position:absolute;inset:0;transition:transform .35s ease}
+.campo.zoom{transform:scale(1.3)}
+.campo.mini{position:relative;inset:auto;width:320px;height:160px;border:2px solid #5a3d24;border-radius:8px;overflow:hidden;flex:none;transition:none}
+.fondo{position:absolute;inset:0;width:100%;height:100%;display:block}
+.rej line{stroke:rgba(70,45,20,.14);stroke-width:1;vector-effect:non-scaling-stroke}
+.cota ellipse{fill:none;stroke:#7a5c33;stroke-opacity:.35;stroke-width:1.5;vector-effect:non-scaling-stroke}
+.rio{fill:none;stroke:#8aa6ad;stroke-width:34;stroke-linecap:round;opacity:.92}
+.escala{position:absolute;left:12px;bottom:8px;font-size:11px;font-weight:700;color:#3a2a1c;display:flex;align-items:center;gap:6px}
+.escala i{display:block;width:56px;height:3px;background:#3a2a1c}
+
+/* Legiones: fichas con su numeral, barra de fuerza y orden */
+.tk{position:absolute;width:var(--tk);height:var(--tk);transform:translate(-50%,-50%);border-radius:4px;border:2px solid #f3e4c0;box-shadow:0 2px 3px rgba(40,25,10,.4);display:flex;align-items:center;justify-content:center;font:700 10px/1 'CinzelK',Georgia,serif;color:#fbf1d8;cursor:pointer;z-index:2}
+.tk.R{background:linear-gradient(#a23b2b,#7a261b)}
+.tk.E{background:linear-gradient(#56656f,#33404b)}
+.tk span{pointer-events:none;letter-spacing:.02em}
+.tk i{position:absolute;left:-2px;bottom:-7px;height:3px;background:#7fb34a;border-radius:2px}
+.tk.E i{background:#c9962f}
+.tk.sel{outline:3px solid #f2c14e;outline-offset:2px}
+.tk em{position:absolute;right:-9px;top:-9px;width:15px;height:15px;border-radius:50%;background:#f3e4c0;color:#2b1d12;border:1px solid #5a3d24;font:700 9px/13px system-ui,sans-serif;font-style:normal;text-align:center}
+.campo.mini .tk{cursor:default}
+.campo.mini .tk span,.campo.mini .tk em{display:none}
+
+/* Probabilidad de cada duelo: barra roja = legión romana */
+.pill{position:absolute;width:78px;height:16px;transform:translate(-50%,-50%);border-radius:8px;background:#3d4a57;overflow:hidden;border:1px solid #f3e4c0;z-index:1}
+.pill i{position:absolute;left:0;top:0;bottom:0;background:#8c2f22}
+.pill span{position:relative;display:block;text-align:center;font:700 10px/14px system-ui,sans-serif;color:#fff}
+.pill.nul{width:auto;padding:0 8px;background:#8b7b5c}
+.pill.nul span{color:#fbf1d8;font-weight:600}
+
+/* Escena: tiradas del turno sobre cada duelo */
+.duelo{position:absolute;transform:translate(-50%,-50%);display:flex;gap:8px;align-items:center;background:rgba(246,231,194,.95);border:1px solid #5a3d24;border-radius:8px;padding:3px 6px;white-space:nowrap;z-index:3}
+.duelo>span{display:flex;align-items:center;gap:3px;color:#2b1d12;border-radius:5px;padding:1px 2px}
+.duelo>span.win{color:#8c2f22;box-shadow:0 0 0 2px #c9962f}
+.duelo strong{font:800 12px system-ui,sans-serif;margin:0 2px}
+
+/* Dados: dos caras de pintura, con puntos en su sitio */
+.d{display:inline-grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);width:16px;height:16px;padding:2px;background:#fbf3df;border:1px solid #5a3d24;border-radius:3px;vertical-align:middle;flex:none}
+.d.s{width:13px;height:13px;padding:1px}
+.d b{display:block;width:2.5px;height:2.5px;margin:auto;border-radius:50%}
+.d b.p{background:#2b1d12}
+.rodando .d{animation:sacudir .2s linear infinite alternate}
+@keyframes sacudir{from{transform:rotate(-14deg)}to{transform:rotate(14deg)}}
+
+/* Registro y fin */
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:18px;padding:10px 18px;height:100%}
+.dos h3{font:700 14px 'CinzelK',Georgia,serif;color:#5a2a1a;margin-bottom:4px;letter-spacing:.03em}
+.r{display:flex;align-items:center;gap:6px;font-size:12px;height:25px;border-bottom:1px dotted rgba(90,61,36,.35);white-space:nowrap;overflow:hidden}
+.r .f{font-weight:700;width:26px;flex:none;color:#5a3d24}
+.r i{font-style:normal;opacity:.75}
+.r b{font-weight:700}
+.r b.R{color:#8c2f22}
+.r b.E{color:#3d4a57}
+.r.peligro{color:#8c2f22;font-weight:700}
+.r .bp{width:64px;height:6px;background:#3d4a57;border-radius:3px;overflow:hidden;flex:none}
+.r .bp i{display:block;height:100%;background:#8c2f22;opacity:1}
+.fin{display:flex;align-items:center;gap:24px;height:100%;padding:0 22px}
+.fin h2{font:700 26px 'CinzelK',Georgia,serif;color:#5a2a1a;letter-spacing:.03em;margin-bottom:6px}
+.fin p{font-size:13px;line-height:1.35;margin-bottom:10px}
+.fin ul{list-style:none;font-size:13px;line-height:1.7}
+.fin li b{color:#5a2a1a;font-weight:700;margin-right:6px}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <span id="cab-txt"></span>
+    <div id="cab-tiempo">
+      <div class="barra"><i id="barra"></i></div>
+      <span id="resto"></span>
+    </div>
+    <button class="btn sm" id="bEscena" data-accion="escena">Escena</button>
+  </header>
+  <main id="zona"></main>
+  <footer id="pie"></footer>
+</div>
+
+<script>
+/* ---------- Datos fijos ---------- */
+const NUM = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
+const ROW_Y = [14,30,46,62,78];
+const GLIFO = {atacar:'→', aguantar:'■', retirar:'←', apoyar:'+'};
+const ETI = {atacar:'Atacar', aguantar:'Aguantar', retirar:'Retirar', apoyar:'Apoyar'};
+const PIPS = {1:[4],2:[0,8],3:[0,4,8],4:[0,2,6,8],5:[0,2,4,6,8],6:[0,2,3,5,6,8]};
+const DIST = {};
+for (let s = 2; s <= 12; s++) DIST[s] = 0;
+for (let a = 1; a <= 6; a++) for (let b = 1; b <= 6; b++) DIST[a + b] += 1 / 36;
+
+function mulberry32(a) {
+  return function () {
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* Fondo del campo: río con vado, bosques, colina y cuadrícula de 100 m */
+const FONDO = (() => {
+  let g = '';
+  for (let x = 100; x < 1500; x += 100) g += `<line x1="${x}" y1="0" x2="${x}" y2="600"/>`;
+  for (let y = 100; y < 600; y += 100) g += `<line x1="0" y1="${y}" x2="1500" y2="${y}"/>`;
+  return `<svg class="fondo" viewBox="0 0 1500 600" preserveAspectRatio="none" aria-hidden="true">
+<defs><linearGradient id="tierra" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9d8ae"/><stop offset="1" stop-color="#c7ad76"/></linearGradient></defs>
+<rect width="1500" height="600" fill="url(#tierra)"/>
+<g class="rej">${g}</g>
+<ellipse cx="150" cy="90" rx="170" ry="80" fill="#6d7d46" opacity=".35"/>
+<ellipse cx="1330" cy="520" rx="190" ry="90" fill="#6d7d46" opacity=".35"/>
+<g class="cota"><ellipse cx="1210" cy="150" rx="140" ry="70"/><ellipse cx="1210" cy="150" rx="80" ry="40"/><ellipse cx="1210" cy="150" rx="25" ry="12"/></g>
+<path class="rio" d="M735 -10 C775 130 700 260 748 380 S735 520 765 610"/>
+<rect x="722" y="262" width="56" height="12" fill="#b9a376"/>
+</svg>`;
+})();
+
+/* ---------- Estado ---------- */
+let S = null;
+
+function estadoInicial() {
+  const u = [];
+  for (let f = 0; f < 5; f++) for (let c = 0; c < 4; c++) {
+    const k = c * 5 + f;
+    u.push({id:'R'+c+f, lado:'R', nombre:NUM[k], fila:f, col:c, fuerza:100, orden:'aguantar', vivo:true});
+    u.push({id:'E'+c+f, lado:'E', nombre:'E'+(k+1), fila:f, col:c, fuerza:100, orden:'aguantar', vivo:true});
+  }
+  return {
+    rnd: mulberry32(2026), turno: 1, ultimoTurno: 0, unidades: u, sel: null,
+    zoom: false, vista: 'mapa', registro: [], ultimo: null, fin: false, res: '',
+    t1: 0, dur: 90000, rodando: false
+  };
+}
+
+const d6 = () => 1 + Math.floor(S.rnd() * 6);
+const vivos = l => S.unidades.filter(u => u.vivo && u.lado === l);
+const unidad = id => S.unidades.find(u => u.id === id);
+const pct = p => Math.round(p * 100) + ' %';
+
+function frente(l, f) {
+  return S.unidades.filter(u => u.vivo && u.lado === l && u.fila === f).sort((a, b) => a.col - b.col)[0];
+}
+function apoyoDe(l, f) {
+  const u = S.unidades.find(x => x.vivo && x.lado === l && x.fila === f && x.col === 1);
+  return !!u && u.orden === 'apoyar';
+}
+/* Fuerza de la legión (0 a 4) + orden (atacar +2, resto +1) + apoyo de la fila (+2) */
+const bono = (fz, o, ap) => Math.round(fz / 25) + (o === 'atacar' ? 2 : 1) + (ap ? 2 : 0);
+
+/* Probabilidad exacta de que R saque más que E (empate gana E) */
+function probGana(mR, mE) {
+  let p = 0;
+  for (let s = 2; s <= 12; s++) for (let t = 2; t <= 12; t++)
+    if (s + mR > t + mE) p += DIST[s] * DIST[t];
+  return p;
+}
+/* Probabilidad de ganar el duelo de la legión R con su orden dada (apR permite probar el apoyo) */
+function pDuelo(R, oR, apR) {
+  const E = frente('E', R.fila);
+  if (!E || oR === 'retirar' || E.orden === 'retirar') return null;
+  const ap = apR === undefined ? apoyoDe('R', R.fila) : apR;
+  return probGana(bono(R.fuerza, oR, ap), bono(E.fuerza, E.orden, apoyoDe('E', R.fila)));
+}
+
+/* ---------- Órdenes ---------- */
+function ordenesDefecto() {
+  S.unidades.forEach(u => {
+    if (u.lado !== 'R') return;
+    u.orden = u.col === 0 ? (u.fila % 2 === 0 ? 'atacar' : 'aguantar') : u.col === 1 ? 'apoyar' : 'aguantar';
+  });
+}
+function ordenIA(u) {
+  if (u.col === 1) return 'apoyar';
+  if (u.col > 1) return 'aguantar';
+  if (u.fuerza < 30) return 'retirar';
+  return (u.fuerza >= 55 && (u.fila + S.turno) % 2 === 0) ? 'atacar' : 'aguantar';
+}
+/* Empieza la planificación: el enemigo decide, el reloj corre */
+function nuevoPlan() {
+  S.unidades.forEach(u => { if (u.lado === 'E' && u.vivo) u.orden = ordenIA(u); });
+  S.t1 = Date.now() + S.dur;
+  S.vista = 'mapa';
+  S.sel = null;
+}
+
+/* ---------- Turno: se resuelven todas las filas ---------- */
+function resolverTurno() {
+  const n = S.turno, filas = [];
+  let bR = 0, bE = 0;
+  for (let f = 0; f < 5; f++) {
+    const retiros = [];
+    for (const l of ['R', 'E']) {
+      const u = frente(l, f);
+      if (u && u.orden === 'retirar') {
+        const atras = S.unidades.find(x => x.vivo && x.lado === l && x.fila === f && x.col === u.col + 1);
+        if (atras) { atras.col = u.col; u.col++; u.orden = 'aguantar'; retiros.push({n: u.nombre}); }
+      }
+    }
+    if (retiros.length) { filas.push({f, tipo:'retiro', retiros}); continue; }
+    const R = frente('R', f), E = frente('E', f);
+    if (!R || !E) { filas.push({f, tipo:'vacia'}); continue; }
+    const mR = bono(R.fuerza, R.orden, apoyoDe('R', f));
+    const mE = bono(E.fuerza, E.orden, apoyoDe('E', f));
+    const pR = probGana(mR, mE);
+    const dR = [d6(), d6()], dE = [d6(), d6()];
+    const tR = dR[0] + dR[1] + mR, tE = dE[0] + dE[1] + mE;
+    const gana = tR > tE ? 'R' : 'E';
+    const m = Math.abs(tR - tE);
+    const perd = gana === 'R' ? E : R, gan = gana === 'R' ? R : E;
+    perd.fuerza -= Math.min(45, 10 + 3 * m);
+    gan.fuerza -= 4;
+    filas.push({
+      f, tipo:'duelo',
+      R:{n:R.nombre, d:dR, t:tR, s:dR[0] + dR[1]},
+      E:{n:E.nombre, d:dE, t:tE, s:dE[0] + dE[1]},
+      gana, pR, m
+    });
+  }
+  /* Las legiones con menos de 25 de fuerza se deshacen; la fila se reagrupa */
+  S.unidades.forEach(u => { if (u.vivo && u.fuerza <= 25) { u.vivo = false; if (u.lado === 'R') bR++; else bE++; } });
+  for (const l of ['R', 'E']) for (let f = 0; f < 5; f++)
+    S.unidades.filter(x => x.vivo && x.lado === l && x.fila === f)
+      .sort((a, b) => a.col - b.col).forEach((x, i) => x.col = i);
+
+  S.registro.push({n, filas, bajasR: bR, bajasE: bE});
+  S.ultimo = filas;
+  S.ultimoTurno = n;
+  S.turno++;
+  const rA = vivos('R').length, eA = vivos('E').length;
+  if (eA <= 7 || rA <= 7 || S.turno > 6) {
+    S.fin = true;
+    S.res = rA === eA ? 'Los dos se retiran' : (eA <= 7 || rA > eA) ? 'El enemigo se retira' : 'Te retiras';
+  }
+}
+
+function tirar() {
+  if (S.fin) return;
+  resolverTurno();
+  S.vista = 'tirada'; S.sel = null; S.zoom = true; S.rodando = true;
+  render();
+  setTimeout(() => { S.rodando = false; if (S.vista === 'tirada') render(); }, 900);
+}
+
+/* ---------- Dibujo ---------- */
+function dado(v, s) {
+  let h = `<span class="d${s ? ' s' : ''}">`;
+  for (let i = 0; i < 9; i++) h += `<b${PIPS[v].includes(i) ? ' class="p"' : ''}></b>`;
+  return h + '</span>';
+}
+const dados = (d, s) => d.map(v => dado(v, s)).join('');
+
+function tokenHTML(u, mini) {
+  const x = u.lado === 'R' ? 40 - u.col * 5 : 60 + u.col * 5;
+  return `<div class="tk ${u.lado}${S.sel === u.id ? ' sel' : ''}" data-id="${u.id}" data-lado="${u.lado}" style="left:${x}%;top:${ROW_Y[u.fila]}%">`
+    + `<span>${u.nombre}</span><i style="width:${Math.max(0, u.fuerza)}%"></i>`
+    + (mini ? '' : `<em>${GLIFO[u.orden]}</em>`) + `</div>`;
+}
+function pillHTML(f) {
+  const R = frente('R', f), E = frente('E', f);
+  if (!R || !E) return '';
+  const p = pDuelo(R, R.orden);
+  const pos = `left:50%;top:${ROW_Y[f]}%`;
+  if (p == null) return `<div class="pill nul" style="${pos}"><span>sin duelo</span></div>`;
+  return `<div class="pill" style="${pos}"><i style="width:${p * 100}%"></i><span>${pct(p)}</span></div>`;
+}
+function badge(x) {
+  if (x.tipo !== 'duelo') return '';
+  return `<div class="duelo" style="left:50%;top:${ROW_Y[x.f]}%">`
+    + `<span class="${x.gana === 'R' ? 'win' : ''}">${dados(x.R.d, 1)}<strong>${x.R.t}</strong></span>`
+    + `<span class="${x.gana === 'E' ? 'win' : ''}"><strong>${x.E.t}</strong>${dados(x.E.d, 1)}</span></div>`;
+}
+function campo(mini) {
+  let h = `<div class="campo${mini ? ' mini' : ''}${S.zoom && !mini ? ' zoom' : ''}${S.rodando ? ' rodando' : ''}" style="--tk:${mini ? 12 : 26}px">${FONDO}`;
+  if (!mini && S.vista === 'mapa') for (let f = 0; f < 5; f++) h += pillHTML(f);
+  if (!mini && S.vista === 'tirada' && S.ultimo) for (const x of S.ultimo) h += badge(x);
+  for (const u of S.unidades) if (u.vivo) h += tokenHTML(u, mini);
+  return h + '</div>';
+}
+
+/* Ficha de la legión elegida: lo que pasa si le das cada orden */
+function ficha(u) {
+  const F = u.col === 0 ? u : frente('R', u.fila);
+  let txt;
+  if (u.col >= 2) txt = 'Reserva: entra si cae la legión de delante.';
+  else if (u.col === 0) {
+    const pa = pDuelo(u, 'atacar'), pg = pDuelo(u, 'aguantar');
+    txt = pa == null ? 'Sin enemigo delante.' : `Si atacas, gana ${pct(pa)}. Si aguantas, ${pct(pg)}. Si retiras, no hay duelo.`;
+  } else {
+    const ps = pDuelo(F, F.orden, true), pn = pDuelo(F, F.orden, false);
+    txt = ps == null ? 'Sin duelo en su fila.' : `Si apoyas, su frente gana ${pct(ps)}. Sin apoyo, ${pct(pn)}.`;
+  }
+  return `<div class="ficha"><b>${u.nombre} · fuerza ${Math.round(u.fuerza)} %</b>${txt}</div>`;
+}
+function chips(u) {
+  const o = u.col === 0 ? ['atacar', 'aguantar', 'retirar'] : u.col === 1 ? ['apoyar', 'aguantar', 'retirar'] : ['aguantar', 'retirar'];
+  return o.map(x => `<button class="btn chip${u.orden === x ? ' on' : ''}" data-ord="${x}">${ETI[x]}</button>`).join('');
+}
+function pie() {
+  if (S.vista === 'mapa') {
+    if (S.fin) return `<p class="ayuda">La batalla ya terminó. Este es el último mapa.</p><button class="btn grande" data-accion="fin">Ver el resultado</button>`;
+    if (S.sel) { const u = unidad(S.sel); return ficha(u) + `<div class="chips">${chips(u)}</div>`; }
+    return `<p class="ayuda">Toca una legión y elige su orden. La barra roja de cada fila es tu probabilidad de ganar su duelo.</p>`
+      + `<button class="btn grande" data-accion="tirar">Tirar los dados</button>`;
+  }
+  if (S.vista === 'tirada') return `<p class="ayuda">Cada duelo suma dos tiradas, la fuerza y la orden. Gana el que más suma.</p><button class="btn grande" data-accion="ver">Ver el resultado</button>`;
+  if (S.vista === 'registro') return `<p class="ayuda">Mira el riesgo antes de planear. Lo que sale rojo puede caer.</p><button class="btn grande" data-accion="planear">Planear el turno ${S.turno}</button>`;
+  return `<p class="ayuda">Cada cifra muestra cuánto pesó la suerte.</p><button class="btn" data-accion="mapa">Ver el mapa</button><button class="btn grande" data-accion="nueva">Jugar otra vez</button>`;
+}
+
+function filaTxt(x) {
+  const t = `<span class="f">F${x.f + 1}</span>`;
+  if (x.tipo === 'duelo') return `<div class="r">${t}<b class="R">${x.R.n}</b>${dados(x.R.d, 1)}<strong>${x.R.t}</strong><i>contra</i><b class="E">${x.E.n}</b>${dados(x.E.d, 1)}<strong>${x.E.t}</strong><b class="${x.gana}">gana ${x.gana === 'R' ? x.R.n : x.E.n}</b></div>`;
+  if (x.tipo === 'retiro') return `<div class="r">${t}<i>retira</i> ${x.retiros.map(r => r.n).join(', ')}</div>`;
+  return `<div class="r">${t}<i>sin combate</i></div>`;
+}
+function riesgoTxt(f) {
+  const R = frente('R', f), E = frente('E', f);
+  const t = `<span class="f">F${f + 1}</span>`;
+  if (!R || !E) return `<div class="r">${t}<i>sin duelo</i></div>`;
+  const p = pDuelo(R, R.orden);
+  if (p == null) return `<div class="r">${t}<i>${R.orden === 'retirar' ? 'se retira' : 'sin duelo'}</i></div>`;
+  const peligro = 1 - p > 0.6;
+  return `<div class="r${peligro ? ' peligro' : ''}">${t}<b class="R">${R.nombre}</b><i>contra</i><b class="E">${E.nombre}</b>`
+    + `<span class="bp"><i style="width:${p * 100}%"></i></span><strong>${pct(p)}</strong>${peligro ? '<i>en peligro</i>' : ''}</div>`;
+}
+function panelRegistro() {
+  const ult = S.registro[S.registro.length - 1];
+  const izq = ult.filas.map(filaTxt).join('');
+  const der = [0, 1, 2, 3, 4].map(riesgoTxt).join('');
+  return `<div class="dos"><section><h3>Turno ${ult.n}: lo que pasó</h3>${izq}</section>`
+    + `<section><h3>Turno ${S.turno}: riesgo de cada duelo</h3>${der}</section></div>`;
+}
+function panelFin() {
+  const todos = S.registro.flatMap(r => r.filas).filter(x => x.tipo === 'duelo');
+  const sorpresas = todos.filter(x => x.gana === 'R' ? x.pR < 0.5 : x.pR > 0.5).length;
+  const tir = todos.flatMap(x => [{s: x.R.s, n: x.R.n}, {s: x.E.s, n: x.E.n}]);
+  const max = tir.reduce((a, b) => b.s > a.s ? b : a), min = tir.reduce((a, b) => b.s < a.s ? b : a);
+  const rA = vivos('R').length, eA = vivos('E').length;
+  return `<div class="fin">${campo(true)}<div>`
+    + `<h2>${S.res}</h2>`
+    + `<p>Tras ${S.registro.length} turnos quedan ${rA} legiones romanas de 20 y ${eA} enemigas.</p>`
+    + `<ul><li><b>${sorpresas} de ${todos.length}</b>duelos los ganó el que tenía menos probabilidad.</li>`
+    + `<li><b>${max.s}</b>la tirada más alta, de ${max.n}.</li>`
+    + `<li><b>${min.s}</b>la más baja, de ${min.n}.</li></ul></div></div>`;
+}
+
+function render() {
+  const z = document.getElementById('zona');
+  if (S.vista === 'registro') z.innerHTML = panelRegistro();
+  else if (S.vista === 'fin') z.innerHTML = panelFin();
+  else z.innerHTML = campo(false) + (S.vista === 'mapa' || S.vista === 'tirada' ? '<div class="escala"><i></i>100 m</div>' : '');
+  const cab = {mapa: `Turno ${S.turno} de 6 · planea`, tirada: `Turno ${S.ultimoTurno} · tiradas`,
+               registro: `Turno ${S.ultimoTurno} · resultado`, fin: 'Fin de la batalla'};
+  document.getElementById('cab-txt').textContent = cab[S.vista];
+  document.getElementById('cab-tiempo').hidden = S.vista !== 'mapa';
+  const be = document.getElementById('bEscena');
+  be.hidden = S.vista === 'registro' || S.vista === 'fin';
+  be.textContent = S.zoom ? 'Ver todo' : 'Escena';
+  document.getElementById('pie').innerHTML = pie();
+  tick();
+}
+
+/* Reloj del turno: al llegar a cero, se tiran los dados solos */
+function tick() {
+  if (!S || S.vista !== 'mapa') return;
+  const r = Math.max(0, S.t1 - Date.now());
+  const s = Math.ceil(r / 1000);
+  document.getElementById('resto').textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  document.getElementById('barra').style.width = (r / S.dur * 100) + '%';
+  if (r === 0 && !S.fin) tirar();
+}
+
+/* ---------- Acciones ---------- */
+function accion(a) {
+  if (a === 'tirar') tirar();
+  else if (a === 'ver') { S.vista = S.fin ? 'fin' : 'registro'; render(); }
+  else if (a === 'planear') { nuevoPlan(); render(); }
+  else if (a === 'escena') { S.zoom = !S.zoom; render(); }
+  else if (a === 'nueva') ir(0);
+  else if (a === 'mapa') { S.vista = 'mapa'; render(); }
+  else if (a === 'fin') { S.vista = 'fin'; render(); }
+}
+
+document.addEventListener('click', e => {
+  const o = e.target.closest('[data-ord]');
+  if (o && S.sel) { unidad(S.sel).orden = o.dataset.ord; render(); return; }
+  const a = e.target.closest('[data-accion]');
+  if (a) { accion(a.dataset.accion); return; }
+  if (S.vista !== 'mapa') return;
+  const t = e.target.closest('.tk');
+  if (t) {
+    if (t.dataset.lado === 'R') S.sel = S.sel === t.dataset.id ? null : t.dataset.id;
+    render(); return;
+  }
+  if (e.target.closest('#zona')) { S.sel = null; render(); }
+});
+
+/* Estados de cada pantalla: se construyen desde cero y con la misma semilla */
+function ir(n) {
+  S = estadoInicial();
+  ordenesDefecto();
+  nuevoPlan();
+  if (n === 1) S.sel = 'R01';
+  if (n === 2) tirar();
+  if (n === 3) { resolverTurno(); nuevoPlan(); S.vista = 'registro'; }
+  if (n === 4) { while (!S.fin) { resolverTurno(); if (!S.fin) nuevoPlan(); } S.vista = 'fin'; }
+  render();
+}
+
+const nHash = () => parseInt(location.hash.slice(1), 10) || 0;
+addEventListener('hashchange', () => ir(nHash()));
+setInterval(tick, 250);
+ir(nHash());
+</script>
+</body>
+</html>

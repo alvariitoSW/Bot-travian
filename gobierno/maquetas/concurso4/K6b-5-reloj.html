@@ -188,7 +188,7 @@ function nuevaPartida(){
 function ordenesEnemigas(){
   for (const e of vivos('E')){
     const r = masCercano(e, vivos('R'));
-    e.orden = r ? { tipo: r.d < 300 ? 'carga' : 'avanza', dest: { x: r.u.x, y: r.u.y } } : null;
+    e.orden = r ? { tipo: r.d < 600 ? 'carga' : 'avanza', dest: { x: r.u.x, y: r.u.y } } : null;
   }
 }
 
@@ -434,7 +434,7 @@ function dibujarEscena(cv, t){
   g.fillStyle = suelo; g.fillRect(0, hz, W, H - hz);
 
   const sx = x => W / 2 + (x - 718) * 0.5;
-  const sy = y => hz - 60 + (y - 40) * 0.45;
+  const sy = y => hz - 90 + (y - 40) * 0.5;
 
   /* río al fondo */
   g.fillStyle = 'rgba(127,179,196,.6)';
@@ -448,7 +448,7 @@ function dibujarEscena(cv, t){
     if (u.n <= 0) return;
     const x = sx(u.x), y = sy(u.y) + bob(i);
     const roman = u.lado === 'R';
-    const w = 28, h = 18;
+    const w = 28, h = 13;
     g.fillStyle = 'rgba(58,42,28,.25)';
     g.fillRect(x - w / 2 + 3, y + h / 2, w, 4);
     g.fillStyle = roman ? '#9b3b25' : '#3b3d46';
@@ -460,10 +460,10 @@ function dibujarEscena(cv, t){
     g.fillStyle = roman ? '#f4e6c2' : '#cfc7b4';
     for (let k = 0; k < cnt; k++){
       const col = k % 6, fila = Math.floor(k / 6);
-      g.fillRect(x - w / 2 + 3 + col * 4.2, y - h / 2 + 3 + fila * 5, 2, 2.5);
+      g.fillRect(x - w / 2 + 3 + col * 4.2, y - h / 2 + 2 + fila * 3.5, 2, 2);
     }
     g.fillStyle = '#3a2a1c'; g.font = 'bold 10px Georgia,serif'; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
-    g.fillText(u.nombre, x, y - h / 2 - 3);
+    g.fillText(u.nombre, x, y - h / 2 - 2);
   });
 
   /* polvo donde se choca */
