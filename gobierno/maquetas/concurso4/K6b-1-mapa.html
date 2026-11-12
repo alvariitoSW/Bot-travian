@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Campo en cuadrícula</title>
+<style>
+@font-face{font-family:"Cinzel";src:url("../../../assets/fuentes/cinzel-700.woff2") format("woff2");font-weight:700;font-display:swap}
+[hidden]{display:none!important}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#1c150d;color:#efe2bf;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.app{position:fixed;inset:0;display:flex;flex-direction:column}
+
+/* barra superior */
+.barra{height:40px;flex:none;display:flex;align-items:center;gap:8px;padding:0 10px;background:#2a1d12;border-bottom:1px solid #5a4226}
+.turno{font:700 13px Cinzel,Georgia,serif;letter-spacing:.04em;white-space:nowrap}
+.reloj{flex:1;min-width:50px;height:8px;border-radius:4px;background:#4a3a28;overflow:hidden}
+.reloj i{display:block;width:100%;height:100%;background:linear-gradient(90deg,#c9892e,#f4d27a);transform-origin:left center;transition:transform .25s linear}
+.cuenta{font-size:12px;white-space:nowrap;min-width:70px;text-align:right}
+.btn{font:600 12px system-ui,sans-serif;height:28px;padding:0 10px;border-radius:8px;border:1px solid #c9a24a;background:transparent;color:#efe2bf;white-space:nowrap;cursor:pointer}
+.btn:disabled{opacity:.4}
+.btn.principal{background:#8e1f1f;border-color:#b84a4a;color:#fff}
+
+/* zona del mapa */
+.zona{position:relative;flex:1;min-height:0;overflow:hidden;background:#c9b47b}
+.tablero{position:absolute;inset:0;display:grid;grid-template-columns:repeat(16,1fr);grid-template-rows:repeat(9,1fr)}
+.c{position:relative;box-shadow:inset 0 0 0 1px rgba(90,65,35,.18)}
+.llano{background:#dcc996}
+.bosque{background:radial-gradient(circle,#4e6e34 38%,transparent 42%) 0 0/13px 13px,#c9b47b}
+.colina{background:repeating-radial-gradient(ellipse at 50% 55%,transparent 0 7px,rgba(110,80,35,.35) 8px 9px),#d3b77e}
+.rio{background:repeating-linear-gradient(95deg,#3d7aa6 0 9px,#4d8cb9 9px 17px)}
+.vado{background:radial-gradient(circle,#8d7b5c 30%,transparent 36%) 0 0/16px 12px,#a8d0e3}
+.c.ok::after,.c.mal::after{content:"";position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;box-shadow:0 0 0 2px #fff}
+.c.ok::after{background:#3f8f4f}
+.c.mal::after{background:#d6402b}
+
+.ordenes{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
+.ordenes line{stroke-width:2.5;stroke-dasharray:7 5;fill:none}
+.ordenes circle{stroke:none}
+.ordenes .o-r{stroke:#f4d27a;fill:#f4d27a}
+.ordenes .o-e{stroke:#c7d0da;fill:#c7d0da;opacity:.85}
+.ordenes .o-ataque{stroke:#ff6b4a;fill:#ff6b4a}
+
+.capa{position:absolute;inset:0;pointer-events:none;z-index:3}
+.f{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 35% 30%,#c25a5a,#8e1f1f 60%,#5a1111);border:2px solid #e0b04a;color:#fff;font:700 9px Cinzel,Georgia,serif;text-shadow:0 1px 1px rgba(0,0,0,.6);box-shadow:0 2px 4px rgba(0,0,0,.45);transition:left .7s ease,top .7s ease}
+.f.e{background:radial-gradient(circle at 35% 30%,#8a9bb0,#3e4f63 60%,#26313d);border-color:#d8dee6}
+.f.fuga{filter:grayscale(1);opacity:.55}
+.f.sel{box-shadow:0 0 0 3px #fff,0 0 0 5px #3f8f4f}
+.f.riesgo::after{content:"";position:absolute;inset:-7px;border-radius:50%;border:3px solid #d6402b;animation:pulso 1s ease-out infinite}
+@keyframes pulso{from{opacity:1;transform:scale(.9)}to{opacity:0;transform:scale(1.5)}}
+.vida{position:absolute;left:-3px;right:-3px;bottom:-7px;height:4px;border-radius:2px;background:#2a1d12;overflow:hidden}
+.vida i{display:block;height:100%;background:#8fd08a}
+
+.aviso{position:absolute;top:6px;left:50%;transform:translateX(-50%);z-index:4;max-width:90%;padding:5px 10px;border-radius:7px;background:rgba(42,29,18,.92);color:#fff;border-left:4px solid #d6402b;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* pie */
+.pie{height:30px;flex:none;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 10px;background:#2a1d12;border-top:1px solid #5a4226;font-size:12px}
+#pista{flex:1 1 auto;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+#registro{flex:none;max-width:42%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;color:#f4d27a}
+
+/* escena */
+.escena{position:fixed;inset:0;z-index:20;background:#1c150d}
+.etiqueta{position:absolute;left:12px;top:10px;z-index:2;font:700 13px Cinzel,Georgia,serif;letter-spacing:.05em;color:#f4d27a}
+.marco{position:absolute;inset:0;overflow:hidden}
+.plano{position:absolute;left:50%;top:50%;width:700px;height:330px;margin:-165px 0 0 -350px;display:grid;grid-template-columns:repeat(16,1fr);grid-template-rows:repeat(9,1fr);transform:perspective(760px) rotateX(34deg) translateY(10px);box-shadow:0 18px 40px rgba(0,0,0,.6);border:2px solid #5a4226}
+.bloque{position:absolute;width:38px;height:22px;margin:-11px 0 0 -19px;border-radius:2px;border:1.5px solid #e0b04a;background:radial-gradient(circle,#f4ead0 1.1px,transparent 1.6px) 0 0/6px 5px,#8e1f1f;box-shadow:0 3px 6px rgba(0,0,0,.45)}
+.bloque.e{border-color:#d8dee6;background:radial-gradient(circle,#dfe6ee 1.1px,transparent 1.6px) 0 0/6px 5px,#3e4f63}
+.bloque::before{content:"";position:absolute;left:50%;top:-16px;width:2px;height:18px;background:#5b4630}
+.bloque.fuga{opacity:.5;filter:grayscale(1)}
+.chispa{position:absolute;left:50%;top:50%;width:46px;height:46px;margin:-23px 0 0 -23px;border-radius:50%;background:radial-gradient(circle,rgba(255,220,120,.95),rgba(255,160,60,.35) 45%,transparent 70%);animation:brillo .7s ease-in-out infinite alternate}
+@keyframes brillo{from{transform:scale(.7);opacity:.6}to{transform:scale(1.2);opacity:1}}
+.leyenda{position:absolute;left:12px;bottom:10px;z-index:2;font-size:11px;color:#d9c9a3;max-width:62%}
+.pie-dcha{position:absolute;right:12px;bottom:8px;z-index:2}
+
+/* resultado */
+.resultado{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;background:rgba(20,14,8,.72);padding:12px}
+.tarjeta{width:min(420px,100%);padding:16px 18px;border-radius:12px;background:#efe2bf;color:#2a1d12;border:2px solid #c9a24a;box-shadow:0 12px 30px rgba(0,0,0,.5);text-align:center}
+.tarjeta h2{margin:0 0 8px;font:700 20px Cinzel,Georgia,serif;color:#8e1f1f}
+.tarjeta p{margin:0 0 14px;font-size:14px;line-height:1.5}
+.botones{display:flex;gap:10px;justify-content:center}
+.botones .btn{height:34px;font-size:13px;padding:0 14px;border-color:#8e6a2c;color:#2a1d12}
+.botones .btn.principal{background:#8e1f1f;border-color:#8e1f1f;color:#fff}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="barra">
+    <span class="turno" id="turno">Turno 1 de 8</span>
+    <div class="reloj" title="Tiempo para planear"><i id="reloj-barra"></i></div>
+    <span class="cuenta" id="cuenta">Faltan 20 s</span>
+    <button class="btn" id="b-escena" type="button">Ver el choque</button>
+    <button class="btn principal" id="b-ejecutar" type="button">Ejecutar turno</button>
+  </header>
+
+  <main class="zona">
+    <div class="tablero" id="tablero"></div>
+    <svg class="ordenes" id="ordenes" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div class="capa" id="capa"></div>
+    <div class="aviso" id="aviso" hidden></div>
+  </main>
+
+  <footer class="pie">
+    <span id="pista"></span>
+    <span id="registro"></span>
+  </footer>
+
+  <section class="escena" id="escena" hidden>
+    <div class="etiqueta">Escena · el vado del río</div>
+    <div class="marco"><div class="plano" id="plano"></div></div>
+    <div class="leyenda" id="leyenda"></div>
+    <button class="btn principal pie-dcha" id="esc-volver" type="button">Volver al mapa</button>
+  </section>
+
+  <section class="resultado" id="resultado" hidden>
+    <div class="tarjeta">
+      <h2 id="fin-titulo">Retirada</h2>
+      <p id="fin-datos"></p>
+      <div class="botones">
+        <button class="btn" id="fin-ver" type="button">Ver el mapa</button>
+        <button class="btn principal" id="fin-nueva" type="button">Jugar otra vez</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<script>
+(function(){
+'use strict';
+var COLS=16, FILAS=9, TURNOS=8, PLAN=20;
+var DIR=[[-1,-1],[0,-1],[1,-1],[-1,0],[1,0],[-1,1],[0,1],[1,1]];
+
+function $(s){return document.querySelector(s);}
+function mk(tag,cls,txt){var e=document.createElement(tag); if(cls)e.className=cls; if(txt!=null)e.textContent=txt; return e;}
+function romano(n){var v=[[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']],s='';v.forEach(function(p){while(n>=p[0]){s+=p[1];n-=p[0];}});return s;}
+function cheb(ax,ay,bx,by){return Math.max(Math.abs(ax-bx),Math.abs(ay-by));}
+function dentro(x,y){return x>=0&&y>=0&&x<COLS&&y<FILAS;}
+
+/* azar con semilla: la misma partida sale siempre igual */
+var rnd=null;
+function semilla(s){var a=s>>>0; rnd=function(){var t=a+=0x6D2B79F5; t=Math.imul(t^t>>>15,t|1); t^=t+Math.imul(t^t>>>7,t|61); return((t^t>>>14)>>>0)/4294967296;};}
+
+/* terreno: 16 x 9 casillas; río en la fila 4 con dos vados */
+var T=[];
+function terreno(){
+  T=[];
+  for(var y=0;y<FILAS;y++){var f=[];for(var x=0;x<COLS;x++)f.push('llano');T.push(f);}
+  for(var x2=0;x2<COLS;x2++)T[4][x2]='rio';
+  T[4][7]='vado'; T[4][8]='vado';
+  [[5,1],[6,1],[5,2],[6,2],[10,6],[11,6]].forEach(function(c){T[c[1]][c[0]]='colina';});
+  [[2,6],[3,6],[3,7],[12,2],[13,2],[13,3],[9,0],[10,0]].forEach(function(c){T[c[1]][c[0]]='bosque';});
+}
+
+/* estado */
+var U=[], turno=1, fase='plan', reloj=PLAN, fin=null, sel=null, instantaneo=false;
+var celdas=[], tab, capa, svg;
+var cw=1, ch=1;
+
+function nuevaUnidad(b,n,c){return {id:b.toLowerCase()+n,bando:b,n:n,x:c[0],y:c[1],f:100,m:100,orden:null,fuga:0,muerto:false,enFuga:false,el:null};}
+function crearUnidades(){
+  U=[];
+  var cR=[], cE=[];
+  for(var y=0;y<FILAS;y++) for(var x=0;x<COLS;x++){
+    if(T[y][x]==='rio') continue;
+    if(x<=2) cR.push([x,y]);
+    if(x>=13) cE.push([x,y]);
+  }
+  cR.slice(0,22).forEach(function(c,i){U.push(nuevaUnidad('R',i+1,c));});
+  cE.slice(0,22).forEach(function(c,i){U.push(nuevaUnidad('E',i+1,c));});
+}
+
+function unidadEn(x,y){for(var i=0;i<U.length;i++){var u=U[i]; if(!u.muerto&&u.x===x&&u.y===y) return u;} return null;}
+function porId(id){for(var i=0;i<U.length;i++){if(U[i].id===id&&!U[i].muerto) return U[i];} return null;}
+function libre(x,y){return dentro(x,y)&&T[y][x]!=='rio'&&!unidadEn(x,y);}
+function vivosDe(b){return U.filter(function(u){return !u.muerto&&!u.enFuga&&u.bando===b;});}
+function enPie(b){return U.filter(function(u){return !u.muerto&&u.bando===b;}).length;}
+function adyVivos(u){return U.filter(function(o){return !o.muerto&&!o.enFuga&&!u.enFuga&&o.bando!==u.bando&&cheb(o.x,o.y,u.x,u.y)<=1;});}
+function enemigosCerca(u){return U.filter(function(o){return !o.muerto&&!o.enFuga&&o.bando!==u.bando&&cheb(o.x,o.y,u.x,u.y)<=3;});}
+function celda(x,y){return celdas[y*COLS+x];}
+function log(t){$('#registro').textContent=t;}
+function espera(ms){return instantaneo?Promise.resolve():new Promise(function(r){setTimeout(r,ms);});}
+function sorteo(a){var b=a.slice(); for(var i=b.length-1;i>0;i--){var j=Math.floor(rnd()*(i+1)); var t=b[i]; b[i]=b[j]; b[j]=t;} return b;}
+
+/* casillas que una legión alcanza en su turno (hasta 2 pasos, sin cruzar el río) */
+function alcance(u){
+  var out=[], vis={}; vis[u.x+','+u.y]=1;
+  var cola=[[u.x,u.y,0]];
+  while(cola.length){
+    var p=cola.shift();
+    if(p[2]>=2) continue;
+    DIR.forEach(function(d){
+      var nx=p[0]+d[0], ny=p[1]+d[1], k=nx+','+ny;
+      if(vis[k]||!libre(nx,ny)) return;
+      vis[k]=1; out.push({x:nx,y:ny}); cola.push([nx,ny,p[2]+1]);
+    });
+  }
+  return out;
+}
+
+/* primer paso de la ruta más corta hacia el objetivo */
+function primerPaso(u,tx,ty,tid){
+  function meta(x,y){return tid!==null ? cheb(x,y,tx,ty)<=1 : (x===tx&&y===ty);}
+  if(meta(u.x,u.y)) return null;
+  var prev={}; prev[u.x+','+u.y]=null;
+  var cola=[[u.x,u.y]], llegada=null;
+  while(cola.length&&!llegada){
+    var p=cola.shift();
+    for(var i=0;i<DIR.length&&!llegada;i++){
+      var nx=p[0]+DIR[i][0], ny=p[1]+DIR[i][1], k=nx+','+ny;
+      if(prev[k]!==undefined||!libre(nx,ny)) continue;
+      prev[k]=p;
+      if(meta(nx,ny)) llegada=[nx,ny]; else cola.push([nx,ny]);
+    }
+  }
+  if(!llegada) return null;
+  var c=llegada, q=prev[c[0]+','+c[1]];
+  while(q&&!(q[0]===u.x&&q[1]===u.y)){ c=q; q=prev[c[0]+','+c[1]]; }
+  return {x:c[0],y:c[1]};
+}
+
+function objetivoDe(u){
+  if(!u.orden) return null;
+  if(u.orden.id){
+    var o=porId(u.orden.id);
+    if(!o){u.orden=null; return null;}
+    return {x:o.x,y:o.y,id:o.id};
+  }
+  return {x:u.orden.x,y:u.orden.y,id:null};
+}
+
+function ordenar(u,x,y){
+  var en=unidadEn(x,y);
+  if(en&&en.bando!==u.bando) u.orden={id:en.id,x:x,y:y};
+  else u.orden={id:null,x:x,y:y};
+}
+
+/* toque: primero la legión, luego la casilla */
+function alCelda(x,y){
+  if(fase!=='plan') return;
+  var u=unidadEn(x,y);
+  var s=sel?porId(sel):null;
+  if(s){
+    if(u&&u.id===s.id){
+      if(s.orden) log('Orden anulada para la legión '+romano(s.n)+'.');
+      s.orden=null; sel=null; pintar(); return;
+    }
+    if(u&&u.bando===s.bando&&!u.enFuga){ sel=u.id; pintar(); return; }
+    var enAlcance=alcance(s).some(function(c){return c.x===x&&c.y===y;});
+    var ataque=!!u&&u.bando!==s.bando&&!u.enFuga&&cheb(u.x,u.y,s.x,s.y)<=3;
+    if(enAlcance||ataque){
+      ordenar(s,x,y);
+      log(ataque?'Legión '+romano(s.n)+' atacará.':'Legión '+romano(s.n)+' se mueve.');
+    }
+    sel=null; pintar(); return;
+  }
+  if(u&&u.bando==='R'&&!u.enFuga) sel=u.id;
+  pintar();
+}
+
+/* riesgo: la legión romana más expuesta */
+function riesgo(){
+  var best=null, sc=-1;
+  U.forEach(function(u){
+    if(u.bando!=='R'||u.muerto||u.enFuga) return;
+    var n=adyVivos(u).length;
+    var s=n*100+(100-u.m)+(n>=2?50:0);
+    if((n>0||u.m<70)&&s>sc){sc=s; best=u;}
+  });
+  return best;
+}
+function textoRiesgo(u){
+  if(!u) return 'Aviso: el río corta el campo. Sólo los vados lo cruzan.';
+  var n=adyVivos(u).length;
+  if(n>0) return 'Riesgo: la legión '+romano(u.n)+' tiene '+n+(n>1?' enemigos':' enemigo')+' al lado. Moral '+Math.round(u.m)+'.';
+  return 'Aviso: la legión '+romano(u.n)+' tiene la moral baja ('+Math.round(u.m)+').';
+}
+function pista(s){
+  if(fase==='fin') return 'Fin de la partida.';
+  if(fase!=='plan') return 'Las legiones se mueven. Mira el choque.';
+  if(s) return 'Casilla verde: mover. Roja: atacar. Toca otra vez la legión para anularla.';
+  return 'Toca una legión romana (roja) y luego una casilla verde.';
+}
+
+function medir(){cw=tab.clientWidth/COLS; ch=tab.clientHeight/FILAS;}
+function actualizarReloj(){
+  $('#reloj-barra').style.transform='scaleX('+Math.max(0,reloj/PLAN)+')';
+  $('#cuenta').textContent = fase==='plan' ? 'Faltan '+Math.ceil(Math.max(0,reloj))+' s' : (fase==='ejec' ? 'Ejecutando' : 'Fin');
+}
+
+/* dibuja todo: casillas resaltadas, fichas, órdenes y marcador */
+function pintar(){
+  medir();
+  celdas.forEach(function(c){c.classList.remove('ok','mal');});
+  var s=sel?porId(sel):null;
+  if(s&&fase==='plan'){
+    alcance(s).forEach(function(c){celda(c.x,c.y).classList.add('ok');});
+    enemigosCerca(s).forEach(function(o){celda(o.x,o.y).classList.add('mal');});
+  }
+  var rg=riesgo();
+  U.forEach(function(u){
+    if(!u.el){
+      u.el=mk('div','f'+(u.bando==='E'?' e':''),romano(u.n));
+      var v=mk('span','vida'); v.appendChild(mk('i')); u.el.appendChild(v);
+      capa.appendChild(u.el);
+    }
+    var e=u.el;
+    e.style.display=u.muerto?'none':'flex';
+    e.style.left=((u.x+0.5)*cw)+'px';
+    e.style.top=((u.y+0.5)*ch)+'px';
+    e.classList.toggle('fuga',u.enFuga);
+    e.classList.toggle('sel',!!s&&s.id===u.id);
+    e.classList.toggle('riesgo',!!rg&&rg.id===u.id&&fase==='plan');
+    var b=e.querySelector('.vida i');
+    b.style.width=Math.max(0,u.f)+'%';
+    b.style.background=u.m<40?'#e08a3a':'#8fd08a';
+  });
+  svg.setAttribute('viewBox','0 0 '+tab.clientWidth+' '+tab.clientHeight);
+  var h='';
+  if(fase==='plan'){
+    U.forEach(function(u){
+      if(u.muerto||u.enFuga||!u.orden) return;
+      var t=objetivoDe(u); if(!t) return;
+      var x1=(u.x+0.5)*cw, y1=(u.y+0.5)*ch, x2=(t.x+0.5)*cw, y2=(t.y+0.5)*ch;
+      var cls=(u.bando==='R'?'o-r':'o-e')+(t.id?' o-ataque':'');
+      h+='<line class="'+cls+'" x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'"/>';
+      h+='<circle class="'+cls+'" cx="'+x2+'" cy="'+y2+'" r="4"/>';
+    });
+  }
+  svg.innerHTML=h;
+  $('#turno').textContent='Turno '+turno+' de '+TURNOS+(fase==='plan'?' · planea':fase==='ejec'?' · se ejecuta':' · fin');
+  $('#b-ejecutar').disabled=fase!=='plan';
+  actualizarReloj();
+  var av=$('#aviso');
+  if(fase==='plan'){av.hidden=false; av.textContent=textoRiesgo(rg);} else av.hidden=true;
+  $('#pista').textContent=pista(s);
+}
+
+/* el enemigo planea: cada tropa va a por la legión romana más cercana */
+function empezarPlan(){
+  fase='plan'; reloj=PLAN; sel=null;
+  U.forEach(function(e){
+    if(e.bando!=='E'||e.muerto||e.enFuga){e.orden=null; return;}
+    var mejor=null, d=99;
+    vivosDe('R').forEach(function(r){var k=cheb(e.x,e.y,r.x,r.y); if(k<d){d=k; mejor=r;}});
+    e.orden=mejor?{id:mejor.id,x:mejor.x,y:mejor.y,ataque:true}:null;
+  });
+  pintar();
+}
+
+/* el turno: dos pasos, con choque después de cada paso */
+async function ejecutar(){
+  if(fase!=='plan') return;
+  fase='ejec'; sel=null;
+  log('Turno '+turno+': se mueven las legiones.');
+  pintar();
+  for(var paso=0;paso<2;paso++){
+    var mueven=sorteo(U.filter(function(u){return !u.muerto&&!u.enFuga&&u.orden;}));
+    mueven.forEach(function(u){
+      var t=objetivoDe(u); if(!t) return;
+      var p=primerPaso(u,t.x,t.y,t.id);
+      if(p&&libre(p.x,p.y)){u.x=p.x; u.y=p.y;}
+      var t2=objetivoDe(u); if(!t2) return;
+      var llego=t2.id?cheb(u.x,u.y,t2.x,t2.y)<=1:(u.x===t2.x&&u.y===t2.y);
+      if(llego) u.orden=null;
+    });
+    pintar();
+    await espera(900);
+    combates();
+    pintar();
+    await espera(700);
+    huir();
+    pintar();
+    await espera(500);
+  }
+  U.forEach(function(u){u.orden=null;});
+  var vR=vivosDe('R').length, vE=vivosDe('E').length;
+  if(vE<=8) fin='E_huye';
+  else if(vR<=8) fin='R_huye';
+  else if(turno>=TURNOS) fin=vR>=vE?'dia_R':'dia_E';
+  if(fin){fase='fin'; pintar(); mostrarFin(); return;}
+  turno++;
+  empezarPlan();
+  log('Turno '+turno+': planea las órdenes. Las flechas grises son del enemigo.');
+}
+
+/* combate: cada par enfrentado se hiere a la vez; el flanco pesa más */
+function combates(){
+  var R=vivosDe('R'), E=vivosDe('E');
+  var pares=[];
+  R.forEach(function(r){E.forEach(function(e){ if(cheb(r.x,r.y,e.x,e.y)<=1) pares.push([r,e]); });});
+  if(!pares.length) return;
+  var dano=new Map();
+  function sumar(u,d){dano.set(u,(dano.get(u)||0)+d);}
+  function defensa(u){var t=T[u.y][u.x]; return t==='colina'?0.8:(t==='bosque'?0.9:1);}
+  function flanco(u){return adyVivos(u).length>=2?1.25:1;}
+  pares.forEach(function(p){
+    var r=p[0], e=p[1];
+    sumar(e,(7+rnd()*8)*(r.f/100)*defensa(e)*flanco(e));
+    sumar(r,(7+rnd()*8)*(e.f/100)*defensa(r)*flanco(r));
+  });
+  dano.forEach(function(d,u){u.f-=d; u.m-=d*0.6;});
+  var nuevos=[];
+  U.forEach(function(u){
+    if(u.muerto||u.enFuga||!dano.has(u)) return;
+    if(u.f<=0){u.f=0; u.muerto=true; log('Legión '+romano(u.n)+' queda deshecha.'); return;}
+    if(u.m<=25||u.f<=25){u.enFuga=true; nuevos.push(u);}
+  });
+  nuevos.forEach(function(u){
+    U.forEach(function(o){ if(!o.muerto&&!o.enFuga&&o.bando===u.bando&&cheb(o.x,o.y,u.x,u.y)<=1) o.m-=6; });
+    log('Legión '+romano(u.n)+(u.bando==='E'?' enemiga':'')+' huye. Sus vecinos pierden moral.');
+  });
+  log('Choque: '+pares.length+(pares.length>1?' combates':' combate')+' este paso.');
+}
+
+/* las legiones que huyen se alejan tres pasos y salen del campo */
+function huir(){
+  U.forEach(function(u){
+    if(u.muerto||!u.enFuga) return;
+    u.fuga++;
+    if(u.fuga>=3){u.muerto=true; log('Legión '+romano(u.n)+' sale del campo.'); return;}
+    var enem=vivosDe(u.bando==='R'?'E':'R');
+    var mejor=null, best=-1;
+    DIR.forEach(function(d){
+      var nx=u.x+d[0], ny=u.y+d[1];
+      if(!libre(nx,ny)) return;
+      var dm=99; enem.forEach(function(o){dm=Math.min(dm,cheb(nx,ny,o.x,o.y));});
+      if(dm>best){best=dm; mejor={x:nx,y:ny};}
+    });
+    if(mejor){u.x=mejor.x; u.y=mejor.y;}
+  });
+}
+
+function mostrarFin(){
+  var t={E_huye:'El enemigo se retira',R_huye:'Retirada romana',dia_R:'Se acaba el día: gana Roma',dia_E:'Se acaba el día: gana el enemigo'};
+  $('#fin-titulo').textContent=t[fin];
+  $('#fin-datos').innerHTML='Legiones romanas en pie: <b>'+enPie('R')+'</b> de 22.<br>Tropas enemigas en pie: <b>'+enPie('E')+'</b> de 22.<br>Turnos jugados: <b>'+turno+'</b>.';
+  $('#resultado').hidden=false;
+}
+
+/* escena: el mismo campo, visto de cerca y de lado */
+function abrirEscena(){
+  var p=$('#plano'); p.innerHTML='';
+  for(var y=0;y<FILAS;y++) for(var x=0;x<COLS;x++) p.appendChild(mk('div','c '+T[y][x]));
+  U.forEach(function(u){
+    if(u.muerto) return;
+    var b=mk('div','bloque'+(u.bando==='E'?' e':'')+(u.enFuga?' fuga':''));
+    b.style.left=((u.x+0.5)/COLS*100)+'%';
+    b.style.top=((u.y+0.5)/FILAS*100)+'%';
+    p.appendChild(b);
+  });
+  if(U.some(function(u){return u.bando==='R'&&!u.muerto&&adyVivos(u).length>0;})) p.appendChild(mk('div','chispa'));
+  $('#leyenda').textContent='Romanos en pie: '+enPie('R')+'. Enemigos en pie: '+enPie('E')+'. Cada bloque es un regimiento.';
+  $('#escena').hidden=false;
+}
+
+/* ordenes automáticas para la demostración */
+function ordenesAuto(limite){
+  var cuenta=0;
+  U.forEach(function(u){
+    if(u.bando!=='R'||u.muerto||u.enFuga) return;
+    u.orden=null;
+    if(limite&&cuenta>=limite) return;
+    var cerca=enemigosCerca(u);
+    if(cerca.length){ordenar(u,cerca[0].x,cerca[0].y); cuenta++; return;}
+    var c=alcance(u), enemigos=vivosDe('E'), mejor=null, bd=99;
+    c.forEach(function(p){
+      var dm=99; enemigos.forEach(function(o){dm=Math.min(dm,cheb(p.x,p.y,o.x,o.y));});
+      if(dm<bd){bd=dm; mejor=p;}
+    });
+    if(mejor){ordenar(u,mejor.x,mejor.y); cuenta++;}
+  });
+}
+
+function nueva(){
+  semilla(7);
+  crearUnidades();
+  turno=1; fin=null; sel=null; instantaneo=false;
+  capa.innerHTML='';
+  $('#resultado').hidden=true;
+  $('#escena').hidden=true;
+  empezarPlan();
+  log('Turno 1: planea las órdenes. Las flechas grises son del enemigo.');
+}
+
+async function turnoRapido(){
+  instantaneo=true;
+  try{ await ejecutar(); } finally{ instantaneo=false; }
+}
+
+/* recorridos para las capturas */
+async function demo(n){
+  nueva();
+  if(n===1){ ordenesAuto(8); sel='r9'; pintar(); return 'ok'; }
+  if(n===2){ ordenesAuto(); await turnoRapido(); ordenesAuto(); await turnoRapido(); abrirEscena(); return 'ok'; }
+  if(n===3){ ordenesAuto(); await turnoRapido(); ordenesAuto(); await turnoRapido(); $('#escena').hidden=true; ordenesAuto(); pintar(); return 'ok'; }
+  if(n===4){ var guardia=0; while(fase!=='fin'&&guardia<20){guardia++; ordenesAuto(); await turnoRapido();} return 'ok'; }
+  return 'sin escena';
+}
+
+function init(){
+  tab=$('#tablero'); capa=$('#capa'); svg=$('#ordenes');
+  terreno();
+  for(var y=0;y<FILAS;y++) for(var x=0;x<COLS;x++){
+    var c=mk('div','c '+T[y][x]); c.dataset.x=x; c.dataset.y=y;
+    tab.appendChild(c); celdas.push(c);
+  }
+  tab.addEventListener('click',function(ev){var c=ev.target.closest('.c'); if(c) alCelda(+c.dataset.x,+c.dataset.y);});
+  $('#b-ejecutar').addEventListener('click',function(){ejecutar();});
+  $('#b-escena').addEventListener('click',abrirEscena);
+  $('#esc-volver').addEventListener('click',function(){$('#escena').hidden=true;});
+  $('#fin-ver').addEventListener('click',function(){$('#resultado').hidden=true;});
+  $('#fin-nueva').addEventListener('click',function(){nueva();});
+  window.addEventListener('resize',pintar);
+  setInterval(function(){
+    if(fase!=='plan') return;
+    reloj-=0.25;
+    if(reloj<=0){ejecutar(); return;}
+    actualizarReloj();
+  },250);
+  nueva();
+}
+
+window.K6={demo:demo,estado:function(){return {fase:fase,turno:turno,fin:fin,romanos:enPie('R'),enemigos:enPie('E')};}};
+init();
+})();
+</script>
+</body>
+</html>
