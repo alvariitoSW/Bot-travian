@@ -1,10 +1,10 @@
 /* Maqueta Q1b2 — suelo, río, cielo y montes. El suelo MEZCLA texturas de 0 A.D. (terr_*) con máscaras pintadas en canvas.
    Dos juegos de máscaras: uno fino para la ciudad (±EC) y otro basto para el campo (±EP). Todo lo pintado es inventado. */
-import { THREE } from '/js/gfx/models.js';
+import { THREE } from '../../../js/gfx/models.js';
 import { altura, RIO, NIVEL_RIO, FORO, FORO_GIRO, FORO_M, ARX, fbm, azar, fracMuro } from './mundo.js';
 
 export const EC = 420, EP = 1700;
-const TC = 2048, TP = 2048;
+const TC = 1536, TP = 1536, MC = 1024, MP = 512;      // Q1c: lienzos más pequeños (antes cuatro de 2048): el tinte lleva el detalle; la máscara solo mezcla
 
 function lienzo(n, color) { const c = document.createElement('canvas'); c.width = c.height = n; const g = c.getContext('2d'); g.fillStyle = color; g.fillRect(0, 0, n, n); return g; }
 const camino = (g, p) => { g.beginPath(); p.forEach((q, i) => i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1])); };
@@ -50,17 +50,28 @@ function pintar(M, T, W, fino, rnd) {
   mancha(M, ARX[0], ARX[1], 46, 38, 0.25, '215,0,0', 1);
   /* suciedad: sombra de contacto de cada edificio, muralla y manchas */
   const huella = (c, m, a) => { T.save(); T.translate(c.x, c.z); T.rotate(c.ang); for (let k = 0; k < 3; k++) { const e = m * (1 - k / 3); T.fillStyle = `rgba(50,42,34,${a * [0.3, 0.45, 0.7][k]})`; T.beginPath(); T.roundRect(-c.w / 2 - e, -c.d / 2 - e, c.w + 2 * e, c.d + 2 * e, e + 0.5); T.fill(); } T.restore(); };
-  for (const c of W.casas) { mancha(M, c.x, c.z, c.w * (c.intramuros ? 1.0 : 1.3), c.w * (c.intramuros ? 1.0 : 1.3), 0, '225,0,0', 0.95); huella(c, 3, 0.6); }
+  for (const c of W.casas.concat(W.ladera, W.casasFondo)) { mancha(M, c.x, c.z, c.w * (c.intramuros ? 1.0 : 1.3), c.w * (c.intramuros ? 1.0 : 1.3), 0, '225,0,0', 0.95); huella(c, 3, 0.6); }
   for (const g of W.granjas) { mancha(M, g.x, g.z, 36, 36, 0, '215,0,0', 0.95); huella(g, 3, 0.5); }
   for (const u of W.unicos) huella({ x: u.x, z: u.z, ang: u.ang, w: 26, d: 30 }, 4, 0.5);
   trazo(T, W.contorno, 9, 5, '48,42,34', 0.55, true);
   if (!fino) for (const a of W.arboles) { if (fracMuro(a.x, a.z) < 1) continue; const r = (a.pieza === 'cipres' ? 3 : 8) * a.esc; mancha(T, a.x + r * 0.9, a.z + r * 0.55, r * 1.9, r * 1.1, 0.58, '40,40,30', 0.75); }
   if (fino) for (let i = 0; i < 2600; i++) mancha(T, R(-EC, EC), R(-EC, EC), R(1.5, 6), R(1, 4), R(0, 3), rnd() < 0.6 ? '60,50,40' : '190,176,150', R(0.1, 0.35));
+  /* Q1c (al final, para no mover el azar de lo anterior): barrio en cuesta y fondo */
+  M.globalCompositeOperation = 'source-over';
+  for (const c of W.escaleras) { trazo(M, c.p, 3.4, 1.2, '255,0,0'); trazo(T, c.p, 3, 1.4, '176,160,130', 0.85); }
+  for (const m of W.muretes) trazo(T, m, 1.2, 2.4, '52,44,34', 0.55);
+  for (const h of W.huertosL) { mancha(M, h.x, h.z, h.r * 1.3, h.r, R(0, 3), `60,0,${R(190, 245) | 0}`, 1); mancha(T, h.x, h.z, h.r * 1.2, h.r * 1.2, 0, `${R(96, 118) | 0},${R(116, 134) | 0},${R(64, 80) | 0}`, 0.6); }
+  if (!fino) {
+    for (const b of W.bosquetes) { for (let k = 0; k < 7; k++) { const a = R(0, 6.28), q = R(0, b.r * 0.7); mancha(T, b.x + Math.cos(a) * q, b.z + Math.sin(a) * q * 0.7, b.r * R(0.35, 0.7), b.r * R(0.25, 0.5), R(0, 3), `${R(44, 62) | 0},${R(58, 76) | 0},${R(34, 46) | 0}`, R(0.45, 0.8)); } mancha(M, b.x, b.z, b.r * 1.1, b.r * 0.8, 0, '0,0,200', 0.8); }
+    for (const p of W.patios) { mancha(M, p.x, p.z, 34, 34, 0, '215,0,0', 0.9); mancha(T, p.x, p.z, 30, 30, 0, '150,134,108', 0.5); }
+    for (const c of W.sendasF) { trazo(M, c.p, 5, 2, '255,0,0'); trazo(T, c.p, 4.4, 2, '172,154,120', 0.85); }
+    for (const pa of W.parcelas) if (pa.linde >= 0.4 && pa.linde <= 0.62) trazo(T, [pa.pol[1], pa.pol[2]], 3, 3, '46,56,32', 0.7);      // setos
+  }
 }
 
 function juego(W, fino, semilla) {
-  const n = fino ? TC : TP, E = fino ? EC : EP, M = lienzo(n, 'rgb(0,0,0)'), T = lienzo(n, 'rgb(128,128,128)');
-  for (const g of [M, T]) { g.setTransform(n / (2 * E), 0, 0, n / (2 * E), n / 2, n / 2); }
+  const n = fino ? TC : TP, nm = fino ? MC : MP, E = fino ? EC : EP, M = lienzo(nm, 'rgb(0,0,0)'), T = lienzo(n, 'rgb(128,128,128)');
+  for (const [g, k] of [[M, nm], [T, n]]) { g.setTransform(k / (2 * E), 0, 0, k / (2 * E), k / 2, k / 2); }
   pintar(M, T, W, fino, azar(semilla));
   const tex = c => { const t = new THREE.CanvasTexture(c.canvas); t.colorSpace = THREE.NoColorSpace; t.flipY = false; t.anisotropy = 8; t.generateMipmaps = true; t.minFilter = THREE.LinearMipmapLinearFilter; return t; };
   return { m: tex(M), t: tex(T) };
@@ -78,15 +89,15 @@ float nubes(vec3 p){ float n = texture2D(uRuido, p.xz*0.00042 + vec2(uTiempo*0.0
 export function crearSuelo(W, texs, U) {
   const C = juego(W, true, 11), P = juego(W, false, 23);
   /* malla: densa en el centro, se estira hacia fuera */
-  const N = 180, pos = new Float32Array((N + 1) * (N + 1) * 3), idx = [], f = u => Math.sign(u) * (Math.abs(u) * 520 + Math.pow(Math.abs(u), 3.2) * 3300);
+  const N = 112, pos = new Float32Array((N + 1) * (N + 1) * 3), idx = [], f = u => Math.sign(u) * (Math.abs(u) * 420 + Math.pow(Math.abs(u), 3.2) * 3400);
   for (let j = 0; j <= N; j++) for (let i = 0; i <= N; i++) { const x = f(i / N * 2 - 1), z = f(j / N * 2 - 1), o = (j * (N + 1) + i) * 3; pos[o] = x; pos[o + 1] = altura(x, z); pos[o + 2] = z; }
   for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) { const a = j * (N + 1) + i, b = a + 1, c = a + N + 1, d = c + 1; idx.push(a, c, b, b, c, d); }
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
   const mat = new THREE.MeshLambertMaterial({ color: '#ffffff' });
   mat.onBeforeCompile = sh => {
-    Object.assign(sh.uniforms, { uMC: { value: C.m }, uTC: { value: C.t }, uMP: { value: P.m }, uTP: { value: P.t }, tDry: { value: texs.terr_grass }, tGreen: { value: texs.terr_dry }, tDirt: { value: texs.terr_dirt }, tPav: { value: texs.terr_paving }, tFarm: { value: texs.terr_farm }, tSand: { value: texs.terr_sand }, uRuido: U.uRuido, uTiempo: U.uTiempo });
+    Object.assign(sh.uniforms, { uMC: { value: C.m }, uTC: { value: C.t }, uMP: { value: P.m }, uTP: { value: P.t }, tDry: { value: texs.terr_grass }, tGreen: { value: texs.terr_dry }, tDirt: { value: texs.terr_dirt }, tPav: { value: texs.terr_paving }, uRuido: U.uRuido, uTiempo: U.uTiempo });
     sh.vertexShader = 'varying vec3 vWP;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    sh.fragmentShader = `varying vec3 vWP; uniform sampler2D uMC, uTC, uMP, uTP, tDry, tGreen, tDirt, tPav, tFarm, tSand;\n${GLSL_NUBES}\n` + sh.fragmentShader.replace('#include <map_fragment>', `
+    sh.fragmentShader = `varying vec3 vWP; uniform sampler2D uMC, uTC, uMP, uTP, tDry, tGreen, tDirt, tPav;\n${GLSL_NUBES}\n` + sh.fragmentShader.replace('#include <map_fragment>', `
       vec2 uc = vWP.xz / ${(EC * 2).toFixed(1)} + 0.5, up = clamp(vWP.xz / ${(EP * 2).toFixed(1)} + 0.5, 0.002, 0.998);
       vec2 dc = abs(uc - 0.5); float kc = 1.0 - smoothstep(0.42, 0.495, max(dc.x, dc.y));
       vec3 mc = texture2D(uMC, uc).rgb, mp = texture2D(uMP, up).rgb, tc = texture2D(uTC, uc).rgb, tp = texture2D(uTP, up).rgb;
@@ -96,8 +107,8 @@ export function crearSuelo(W, texs, U) {
       vec2 q = vWP.xz;
       vec3 seco = mix(texture2D(tDry, q / 23.0).rgb, texture2D(tDry, q / 71.0 + 0.37).rgb, 0.45); seco = mix(seco, vec3(dot(seco, vec3(0.33))), 0.38) * vec3(0.98, 0.93, 0.80);
       vec3 hier = texture2D(tGreen, q / 19.0).rgb * vec3(0.80, 0.86, 0.62);
-      vec3 tie = mix(texture2D(tDirt, q / 17.0).rgb, texture2D(tDirt, q / 53.0 + 0.61).rgb, 0.4) * vec3(1.2, 1.02, 0.82);
-      vec3 lab = texture2D(tDirt, q / 29.0).rgb * vec3(1.05, 0.98, 0.86);
+      vec3 tie0 = texture2D(tDirt, q / 17.0).rgb * (0.92 + 0.16 * g3); vec3 tie = tie0 * vec3(1.2, 1.02, 0.82);
+      vec3 lab = tie0 * vec3(1.05, 0.98, 0.86);
       vec3 pav = texture2D(tPav, q / 11.0).rgb * vec3(0.98, 0.93, 0.84);
       vec3 col = seco * mix(0.86, 1.1, g2);
       col = mix(col, tie * 1.02, smoothstep(0.55, 0.8, g1 + g2 * 0.5) * 0.55);                 // calvas de tierra en el pasto
@@ -107,7 +118,9 @@ export function crearSuelo(W, texs, U) {
       col = mix(col, pav, smoothstep(0.4, 0.7, losa + (g3 - 0.5) * 0.3));
       col *= tinte;
       float lejos = smoothstep(500.0, 2200.0, length(vWP.xz)); col = mix(col, vec3(dot(col, vec3(0.3, 0.5, 0.2))) * vec3(0.92, 1.0, 1.1), lejos * 0.42);
-      float monte = smoothstep(0.36, 0.56, g2 * 0.55 + texture2D(uRuido, vWP.xz * 0.0019).g * 0.6) * smoothstep(1100.0, 1900.0, length(vWP.xz)) * (1.0 - smoothstep(0.1, 0.5, labor)); col = mix(col, vec3(0.16, 0.20, 0.12) * (0.7 + 0.6 * g3), monte * 0.8); col *= mix(1.0, 0.8, lejos); col = mix(col, vec3(0.17, 0.21, 0.14) * (0.75 + 0.5 * g1), smoothstep(30.0, 170.0, vWP.y) * smoothstep(800.0, 1300.0, length(vWP.xz)) * 0.75);
+      float monte = smoothstep(0.36, 0.56, g2 * 0.55 + g1 * 0.6) * smoothstep(1100.0, 1900.0, length(vWP.xz)) * (1.0 - smoothstep(0.1, 0.5, labor)); col = mix(col, vec3(0.16, 0.20, 0.12) * (0.7 + 0.6 * g3), monte * 0.8); col *= mix(1.0, 0.8, lejos); col = mix(col, vec3(0.17, 0.21, 0.14) * (0.75 + 0.5 * g1), smoothstep(30.0, 170.0, vWP.y) * smoothstep(800.0, 1300.0, length(vWP.xz)) * 0.75);
+      float lj = smoothstep(1500.0, 2300.0, length(vWP.xz)), g4 = texture2D(uRuido, vWP.xz * 0.0052 + 0.4).b;                       // Q1c: lomas lejanas con manchas de bosque, calveros y roca
+      col = mix(col, vec3(0.42, 0.40, 0.27) * (0.8 + 0.4 * g3), lj * smoothstep(0.45, 0.62, g4 + g2 * 0.3) * 0.7); col = mix(col, vec3(0.07, 0.10, 0.06), lj * smoothstep(0.40, 0.56, g1 * 0.75 + g4 * 0.4) * 0.8); col = mix(col, vec3(0.60, 0.57, 0.52), lj * smoothstep(0.62, 0.78, g3 * 0.55 + g4 * 0.6) * smoothstep(60.0, 220.0, vWP.y) * 0.7);
       diffuseColor.rgb = col * nubes(vWP);`);
   };
   const m = new THREE.Mesh(geo, mat); m.receiveShadow = true; return m;
@@ -124,7 +137,7 @@ export function crearRio(texs, U) {
 }
 
 /* cielo: degradado del horizonte cálido al azul frío, resplandor hacia el sol, y tres capas de montes en la bruma */
-export function crearCielo(dirSol, HORIZ) {
+export function crearCielo(dirSol, HORIZ, U) {
   const g = new THREE.Group();
   const cielo = new THREE.Mesh(new THREE.SphereGeometry(9000, 32, 16), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false, uniforms: { uSol: { value: dirSol.clone().normalize() }, uH: { value: new THREE.Color(HORIZ) } },
     vertexShader: 'varying vec3 vD; void main(){ vD = normalize(position); gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -138,9 +151,22 @@ export function crearCielo(dirSol, HORIZ) {
  }` }));
   cielo.renderOrder = -10; g.add(cielo);
   const H = new THREE.Color(HORIZ);
-  [[4300, 300, '#465c76', 0.3, 1.7], [5600, 480, '#587694', 0.42, 1.1], [7200, 720, '#6e8cae', 0.52, 0.7]].forEach(([r, alt, col, bruma, fq], k) => {
-    const n = 220, pos = [], idx = []; for (let i = 0; i <= n; i++) { const t = i / n * Math.PI * 2, x = Math.cos(t) * r, z = Math.sin(t) * r, h = alt * (0.25 + 0.95 * fbm(Math.cos(t) * 3 * fq + k * 9.1 + 20, Math.sin(t) * 3 * fq + k * 3.3 + 20, 4)); pos.push(x, -60, z, x, h, z); if (i < n) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }
-    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx);
-    const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ color: new THREE.Color(col).lerp(H, bruma), side: THREE.DoubleSide, fog: false })); m.renderOrder = -9 + (2 - k); g.add(m); });
+  /* Q1c: montes con pliegues, manchas de bosque, roca arriba y bruma al pie (un dibujo por capa, pintado en el sombreador) */
+  [[4300, 300, '#3f5468', 0.24, 1.7, 9], [5600, 480, '#54708c', 0.4, 1.1, 7], [7200, 720, '#6e8cae', 0.52, 0.7, 5]].forEach(([r, alt, col, bruma, fq, rep], k) => {
+    const n = 360, pos = [], uv = [], idx = []; for (let i = 0; i <= n; i++) { const t = i / n * Math.PI * 2, x = Math.cos(t) * r, z = Math.sin(t) * r, cx = Math.cos(t) * 3 * fq + k * 9.1 + 20, cz = Math.sin(t) * 3 * fq + k * 3.3 + 20, h = alt * (0.25 + 0.95 * fbm(cx, cz, 4) + 0.16 * (fbm(cx * 6, cz * 6, 3) - 0.5)); pos.push(x, -60, z, x, h, z); uv.push(i / n * rep, 0, i / n * rep, h / (alt * 1.05)); if (i < n) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx);
+    const m = new THREE.Mesh(geo, new THREE.ShaderMaterial({ side: THREE.DoubleSide, fog: false, uniforms: { uRuido: U.uRuido, uC: { value: new THREE.Color(col) }, uH: { value: H }, uBruma: { value: bruma } },
+      vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+      fragmentShader: `varying vec2 vUv; uniform sampler2D uRuido; uniform vec3 uC, uH; uniform float uBruma; void main(){
+        float n1 = texture2D(uRuido, vec2(vUv.x, vUv.y * 0.35)).r, n2 = texture2D(uRuido, vec2(vUv.x * 3.0, vUv.y * 0.9 + 0.3)).g, n3 = texture2D(uRuido, vec2(vUv.x * 7.0, vUv.y * 2.2)).b;
+        float pl = texture2D(uRuido, vec2(vUv.x * 2.0 + vUv.y * 0.22, 0.37 + vUv.y * 0.05)).g;                 // pliegues: franjas que bajan torcidas
+        vec3 c = uC * mix(0.66, 1.16, smoothstep(0.3, 0.7, pl + (n3 - 0.5) * 0.35));
+        c = mix(c, uC * vec3(0.5, 0.64, 0.5), smoothstep(0.42, 0.6, n2 + (0.45 - vUv.y) * 0.5) * 0.65);         // bosque en las faldas
+        c = mix(c, uC * vec3(1.45, 1.4, 1.34), smoothstep(0.5, 0.72, n1 * 0.45 + n3 * 0.4 + vUv.y * 0.4) * 0.6); // roca clara hacia la cumbre
+        c = mix(c, uH, uBruma); c = mix(c, uH, (1.0 - smoothstep(0.0, 0.55, vUv.y)) * 0.75);                    // bruma: más densa al pie
+        gl_FragColor = vec4(c, 1.0);
+ #include <tonemapping_fragment>
+ #include <colorspace_fragment>
+ }` })); m.renderOrder = -9 + (2 - k); g.add(m); });
   return g;
 }

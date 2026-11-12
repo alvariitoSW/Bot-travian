@@ -1,5 +1,5 @@
-// Maqueta Q1b2: saca las capturas de la segunda maqueta de la ciudad itálica. No toca el juego.
-// Uso:  node gobierno/maquetas/ciudad2/captura.mjs                 -> las 7 capturas de entrega (dpr 2) en gobierno/capturas-tarea/
+// Maqueta Q1b2 aligerada (Q1c): saca las capturas de la segunda maqueta de la ciudad itálica. No toca el juego.
+// Uso:  node gobierno/maquetas/ciudad2/captura.mjs                 -> las 5 capturas Q1c-* y las 2 comparaciones con las Q1b2-* (dpr 2) en gobierno/capturas-tarea/
 //       node gobierno/maquetas/ciudad2/captura.mjs --una vista=cerca cultura=roma [dpr=1] [salida=ruta.jpg] [d=..&el=..]   -> una sola, para iterar
 //       node gobierno/maquetas/ciudad2/captura.mjs --servir         -> solo sirve la página (http://127.0.0.1:8377/gobierno/maquetas/ciudad2/)
 import { createRequire } from 'module';
@@ -35,11 +35,11 @@ async function lado(nombre, antes, despues) {
   await page.setContent(`<body style="margin:0;display:flex;background:#000">${[['Antes', await img(antes)], ['Después', await img(despues)]].map(([r, s]) => `<div style="position:relative;width:390px;height:844px"><img src="${s}" style="width:390px;height:844px;display:block"><span style="position:absolute;left:8px;bottom:8px;font:600 12px system-ui,sans-serif;color:#fff;background:#000a;padding:3px 8px;border-radius:4px">${r}</span></div>`).join('')}</body>`);
   await page.waitForTimeout(300); await page.screenshot({ path: join(SALIDA, nombre), type: 'jpeg', quality: 86 }); await ctx.close(); console.log(nombre);
 }
-if (args.includes('--una')) { const { salida, dpr, ...resto } = op; await una(salida || 'Q1b2-prueba.jpg', new URLSearchParams(resto).toString(), +(dpr || 1)); }
+if (args.includes('--una')) { const { salida, dpr, ...resto } = op; await una(salida || 'Q1c-prueba.jpg', new URLSearchParams(resto).toString(), +(dpr || 1)); }
 else {
-  await una('Q1b2-1-romana-cerca.jpg', 'cultura=roma&vista=cerca'); await una('Q1b2-2-romana-lejos.jpg', 'cultura=roma&vista=lejos'); await una('Q1b2-3-romana-calle.jpg', 'cultura=roma&vista=calle');
-  await una('Q1b2-4-griega-cerca.jpg', 'cultura=grecia&vista=cerca'); await una('Q1b2-5-punica-cerca.jpg', 'cultura=punica&vista=cerca');
-  await lado('Q1b2-0-antes-despues-cerca.jpg', 'Q1b-1-romana-cerca.jpg', 'Q1b2-1-romana-cerca.jpg'); await lado('Q1b2-0-antes-despues-lejos.jpg', 'Q1b-2-romana-lejos.jpg', 'Q1b2-2-romana-lejos.jpg');
+  await una('Q1c-1-romana-cerca.jpg', 'cultura=roma&vista=cerca'); await una('Q1c-2-romana-lejos.jpg', 'cultura=roma&vista=lejos'); await una('Q1c-3-romana-calle.jpg', 'cultura=roma&vista=calle');
+  await una('Q1c-4-griega-cerca.jpg', 'cultura=grecia&vista=cerca'); await una('Q1c-5-punica-cerca.jpg', 'cultura=punica&vista=cerca');
+  await lado('Q1c-0-antes-despues-cerca.jpg', 'Q1b2-1-romana-cerca.jpg', 'Q1c-1-romana-cerca.jpg'); await lado('Q1c-0-antes-despues-lejos.jpg', 'Q1b2-2-romana-lejos.jpg', 'Q1c-2-romana-lejos.jpg');
   await writeFile(join(AQUI, 'medidas.json'), JSON.stringify(medidas, null, 1));
 }
 await br.close(); srv.close();

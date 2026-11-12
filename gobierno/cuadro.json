@@ -606,6 +606,36 @@
    "archivo": "gobierno/capturas-tarea/N3-informe.jpg",
    "pie": "Informe «Lo que pasó» plegable",
    "ancha": true
+  },
+  {
+   "tarea": "Q1c",
+   "archivo": "gobierno/capturas-tarea/Q1c-0-antes-despues-cerca.jpg",
+   "pie": "Ciudad ligera: antes (1,5 millones de triángulos) y después (270 000), con la ladera llena"
+  },
+  {
+   "tarea": "Q1c",
+   "archivo": "gobierno/capturas-tarea/Q1c-0-antes-despues-lejos.jpg",
+   "pie": "De lejos: antes y después, fondo con arboledas, caseríos y montes"
+  },
+  {
+   "tarea": "Q1c",
+   "archivo": "gobierno/capturas-tarea/Q1c-3-romana-calle.jpg",
+   "pie": "La ladera desde el foro: barrio en cuesta"
+  },
+  {
+   "tarea": "Q1c",
+   "archivo": "gobierno/capturas-tarea/Q1c-4-griega-cerca.jpg",
+   "pie": "Griega, versión ligera"
+  },
+  {
+   "tarea": "Q1c",
+   "archivo": "gobierno/capturas-tarea/Q1c-5-punica-cerca.jpg",
+   "pie": "Púnica, versión ligera"
+  },
+  {
+   "tarea": "Q1c",
+   "archivo": "gobierno/capturas-tarea/Q1c-6-pagina-prueba.jpg",
+   "pie": "Página de prueba para tu móvil: contador de fluidez y botones"
   }
  ],
  "informes": [

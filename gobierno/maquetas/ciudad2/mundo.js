@@ -27,7 +27,7 @@ const distRioFina = (x, z) => (z > 200 || z < -1100) ? 400 : distPoli(RIO, x, z)
 
 /* ---------- relieve ---------- */
 export const ARX = [-70, -118], FORO = [12, 52], FORO_GIRO = 0.12, FORO_M = [52, 36];      // foro: medias anchuras
-export function altura(x, z) {
+function alturaDe(x, z, pliegues) {
   const R = Math.hypot(x, z);
   let h = 7 * (fbm(x / 300 + 7.3, z / 300 + 2.1, 3) - 0.5) + 1.2 * (fbm(x / 40, z / 40, 2) - 0.5);
   const ga = Math.exp(-((x - ARX[0]) ** 2 / 115 ** 2 + (z - ARX[1]) ** 2 / 95 ** 2)); h += 50 * (1 - Math.exp(-3.2 * ga)) / (1 - Math.exp(-3.2));
@@ -35,9 +35,11 @@ export function altura(x, z) {
   h += 9 * Math.exp(-((x + 230) ** 2 / 120 ** 2 + (z - 120) ** 2 / 150 ** 2));
   const df = Math.hypot(x - FORO[0], z - FORO[1]); h = mix(3.2, h, ss(45, 115, df));                                     // el foro, en la vaguada, casi llano
   if (R > 900) h += (R - 900) * 0.085 * (0.25 + 1.5 * fbm(x / 700 + 3, z / 700 + 9, 3)) * ss(900, 1500, R);                // lomas lejanas
+  if (pliegues && R > 1250) { const pl = 1 - Math.abs(2 * fbm(x / 520 + 60, z / 520 + 13, 3) - 1); h += ss(1250, 2000, R) * (40 + (R - 1250) * 0.03) * (pl - 0.72); }   // Q1c: pliegues y barrancos en las lomas lejanas
   const d = distRioFina(x, z); if (d < 235) { h = mix(-1.6 + 1.2 * (fbm(x / 60, z / 60, 2) - 0.5), h, ss(60, 230, d)); h = mix(-8, h, ss(38, 70, d)); }
   return h;
 }
+export const altura = (x, z) => alturaDe(x, z, true);
 
 /* ---------- muralla ---------- */
 export function radioMuro(t) { const c = Math.cos(t), s = Math.sin(t); return (1 / Math.sqrt(c * c / (335 * 335) + s * s / (285 * 285))) * (1 + 0.085 * Math.sin(2 * t + 1.3) + 0.06 * Math.sin(3 * t + 4.1) + 0.035 * Math.sin(5 * t + 0.7) + 0.02 * Math.sin(9 * t + 2)); }
@@ -137,7 +139,7 @@ export function generar(semilla = 7) {
   /* parcelas: rejilla deformada de cuadriláteros que comparten lindes */
   const parcelas = [], PASO = 96, N = 34, nodo = (i, j) => { const x = (i - N / 2) * PASO, z = (j - N / 2) * PASO; return [x + (fbm(x / 420 + 11, z / 420 + 5, 2) - 0.5) * 150 + (h2(i * 7 + 3, j * 13 + 1) - 0.5) * 46, z + (fbm(x / 420 + 31, z / 420 + 17, 2) - 0.5) * 150 + (h2(i * 5 + 9, j * 3 + 7) - 0.5) * 46]; };
   for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) { const q = [nodo(i, j), nodo(i + 1, j), nodo(i + 1, j + 1), nodo(i, j + 1)], cx = (q[0][0] + q[1][0] + q[2][0] + q[3][0]) / 4, cz = (q[0][1] + q[1][1] + q[2][1] + q[3][1]) / 4, f = fracMuro(cx, cz), dr = distRio(cx, cz);
-    if (q.some(e => fracMuro(e[0], e[1]) < 1.07) || dr < 40 || altura(cx, cz) > 60) continue; const v = h2(i * 31 + 5, j * 17 + 11), lejos = ss(1.6, 4.5, f);
+    if (q.some(e => fracMuro(e[0], e[1]) < 1.07) || dr < 40 || alturaDe(cx, cz, false) > 60) continue; const v = h2(i * 31 + 5, j * 17 + 11), lejos = ss(1.6, 4.5, f);
     if (v < 0.1 + 0.45 * lejos) continue;                                                             // erial / pasto seco
     const u = h2(i * 3 + 77, j * 29 + 3); let clase = dr < 150 && u < 0.6 ? 'huerta' : u < 0.36 ? 'rastrojo' : u < 0.56 ? 'barbecho' : u < 0.74 ? 'vina' : u < 0.9 ? 'olivar' : 'pasto';
     /* se parte en 1-3 tiras para que no sean todas iguales */
@@ -160,5 +162,44 @@ export function generar(semilla = 7) {
   for (const t of tumbas) if (rnd() < 0.45) arbol('cipres', t.x + R(-5, 5), t.z + R(-5, 5), R(0.9, 1.3));
   for (let i = 0; i < 1500; i++) { const x = R(-2300, 2300), z = R(-2300, 1500), R0 = Math.hypot(x, z); if (R0 < 700 || distRio(x, z) < 30) continue; if (fbm(x / 500 + 40, z / 500 + 40, 2) < 0.5) continue; arbol(rnd() < 0.02 ? 'pino' : rnd() < 0.3 ? 'olivo' : 'algarrobo', x, z, R(0.9, 1.5)); }   // manchas de monte lejanas
 
-  return { muros, torres, puertas, calles, caminos, casas, nDentro, unicos, granjas, tumbas, parcelas, arboles, huertos, contorno: cont, PUENTE, enF, libre, libreDeCalle, puerta };
+
+  /* ---------- Q1c: barrio en cuesta entre el foro y la arx, y fondo con vida. Usa su propio azar y va al final:
+     no mueve nada de lo que ya estaba (casas, árboles, gente). Todo INVENTADO. ---------- */
+  const rl = azar(4242), RL = (a, b) => a + (b - a) * rl();
+  const elip = (ro, t) => [ARX[0] + Math.cos(t) * 115 * ro, ARX[1] + Math.sin(t) * 95 * ro];
+  const apuntaVia = c => { const ci = todas.length; todas.push(c); for (let i = 0; i < c.p.length - 1; i++) { const a = c.p[i], k = Math.floor(a[0] / CEL) + ',' + Math.floor(a[1] / CEL); let l = rej.get(k); if (!l) rej.set(k, l = []); l.push([ci, i]); } };
+  const apuntaC = (c, lista) => { const k = Math.floor(c.x / CC) + ',' + Math.floor(c.z / CC); let l = rejC.get(k); if (!l) rejC.set(k, l = []); l.push(c); lista.push(c); };
+  const hueco = (x, z, m) => !choca({ x, z, ang: 0, w: m, d: m }) && libreDeCalle(x, z, -1, 0.4) && fracMuro(x, z) < 0.96 && !enForo(x, z, 3);
+  /* sendas con escalones que suben del foro a la arx: se cortan donde ya había casa */
+  const escaleras = [];
+  for (const t of [0.3, 1.0, 1.62, 2.3, 2.95]) { let tr = []; const cierra = () => { if (tr.length > 3) { const c = { p: suavizar(tr, 2.5), w: 1.5, t: 'escalera' }; escaleras.push(c); apuntaVia(c); } tr = []; };
+    for (let ro = 1.6; ro >= 0.3; ro -= 0.05) { const p = elip(ro, t + 0.13 * Math.sin(ro * 9 + t * 3)); if (hueco(p[0], p[1], 4.5) && Math.hypot(p[0] - ARX[0], p[1] - ARX[1]) > 27) tr.push(p); else cierra(); } cierra(); }
+  /* bancales: filas de casas que siguen la curva de nivel, con su murete debajo; en los huecos, huerto y ciprés */
+  const ladera = [], muretes = [], huertosL = [];
+  for (const [r0, e0, e1] of [[0.37, 0.6, 0.84], [0.4275, 0.54, 0.68], [0.40, 0.5, 0.6]]) for (let ro = r0; ro < 1.62; ro += 0.115) { let t = -0.5 + RL(0, 0.06), tr = []; const cierra = () => { if (tr.length > 1) muretes.push(tr); tr = []; };
+    while (t < 3.45) { const esc = RL(e0, e1), ex = esc * RL(0.92, 1.1), ez = esc * RL(0.9, 1.04), w = 13.2 * ex, d = 13.8 * ez, dt = w / (105 * ro), tm = t + dt / 2, p = elip(ro, tm), ang = Math.atan2(Math.cos(tm) * 95, -Math.sin(tm) * 115);
+      const c = { x: p[0], z: p[1], ang: ang + RL(-0.05, 0.05), w, d, tipo: rl(), ex, ez, lado: 1, intramuros: true, tono: rl(), teja: rl(), ladera: true }, quiere = rl() < 0.84;
+      const ok = quiere && dentro(c, 0.965) && !enForo(c.x, c.z, Math.max(w, d) * 0.6) && Math.hypot(c.x - ARX[0], c.z - ARX[1]) > 34 && !reservas.slice(1).some(r => Math.hypot(c.x - r[0], c.z - r[1]) < r[2] + Math.max(w, d) * 0.55) && esquinas(c, 1.04).concat([[c.x, c.z]]).every(e => libreDeCalle(e[0], e[1], -1, 0.3)) && !choca(c);
+      const q = elip(ro + (d / 2 + 2.4) / 100, tm), libreQ = e0 > 0.5 && hueco(q[0], q[1], 2.5);
+      if (ok) apuntaC(c, ladera); else if (!quiere && hueco(p[0], p[1], 7) && Math.hypot(p[0] - ARX[0], p[1] - ARX[1]) > 30) { huertosL.push({ x: p[0], z: p[1], r: RL(5, 8) }); const v = rl(); if (v < 0.75) arbol(v < 0.4 ? 'cipres' : 'olivo', p[0] + RL(-2, 2), p[1] + RL(-2, 2), v < 0.4 ? RL(0.8, 1.2) : RL(0.5, 0.75)); }
+      if (libreQ && (ok || hueco(p[0], p[1], 7))) tr.push(q); else cierra();
+      t += ok ? dt * 1.03 : quiere ? dt * 0.3 : dt * 0.8; } cierra(); }
+  for (let i = arboles.length - 1; i >= 0; i--) { const a = arboles[i]; if (ladera.some(c => Math.hypot(c.x - a.x, c.z - a.z) < 8.5)) arboles.splice(i, 1); }
+  for (const h of huertos) for (const c of ladera) if (Math.hypot(c.x - h.x, c.z - h.z) < 9) { const ux = c.x - ARX[0], uz = c.z - ARX[1], l = Math.hypot(ux, uz) || 1; h.x = c.x + ux / l * 11; h.z = c.z + uz / l * 11; h.r = Math.min(h.r, 5); }
+
+  /* fondo: caseríos con su senda, bosquetes y setos arbolados entre parcelas */
+  const rf = azar(777), RF = (a, b) => a + (b - a) * rf();
+  const casasFondo = [], sendasF = [], bosquetes = [], patios = [];
+  for (let i = 0; i < 3000 && patios.length < 54; i++) { const t = RF(0, 6.283), r = RF(620, 2450), x = Math.cos(t) * r, z = Math.sin(t) * r;
+    if (z > 1350 || distRio(x, z) < 120 || altura(x, z) > 130 || !libreDeCalle(x, z, -1, 20) || patios.some(g => Math.hypot(g.x - x, g.z - z) < 230) || granjas.some(g => Math.hypot(g.x - x, g.z - z) < 170) || choca({ x, z, ang: 0, w: 60, d: 60 })) continue;
+    const a0 = RF(0, 6.28), k = 2 + Math.floor(RF(0, 3.6)); patios.push({ x, z, r: 30 });
+    for (let j = 0; j < k; j++) { const a = a0 + j * 6.283 / k + RF(-0.3, 0.3), rr = RF(15, 25), ex = RF(0.85, 1.15), ez = RF(0.85, 1.1), c = { x: x + Math.cos(a) * rr, z: z + Math.sin(a) * rr, ang: a + Math.PI / 2 + RF(-0.15, 0.15), w: 13.2 * ex, d: 13.8 * ez, tipo: rf(), ex, ez, lado: -1, intramuros: false, tono: rf(), teja: rf(), fondo: true }; if (!choca(c)) apuntaC(c, casasFondo); }
+    for (let j = 0; j < 5; j++) { const a = RF(0, 6.28), rr = RF(26, 40), v = rf(); if (libre(x + Math.cos(a) * rr, z + Math.sin(a) * rr, 3)) arbol(v < 0.45 ? 'cipres' : 'algarrobo', x + Math.cos(a) * rr, z + Math.sin(a) * rr, RF(0.8, 1.2)); }
+    let m = null, dm = 1e9; for (const c of caminos) for (let j = 0; j < c.p.length; j += 3) { const d = Math.hypot(c.p[j][0] - x, c.p[j][1] - z); if (d < dm) { dm = d; m = c.p[j]; } }
+    if (m && dm < 900) { const n = Math.max(2, Math.round(dm / 90)), o = [[x, z]]; for (let j = 1; j < n; j++) { const u = j / n, kk = RF(-1, 1) * dm * 0.07; o.push([x + (m[0] - x) * u - (m[1] - z) / dm * kk, z + (m[1] - z) * u + (m[0] - x) / dm * kk]); } o.push(m); sendasF.push({ p: suavizar(o, 8), w: 1.9, t: 'senda' }); } }
+  for (let i = 0; i < 110; i++) { const t = RF(0, 6.283), r = RF(640, 2500), x = Math.cos(t) * r, z = Math.sin(t) * r, rad = RF(35, 115), n = Math.floor(rad * rad / 200 * RF(0.5, 1)); if (z > 1500 || fracMuro(x, z) < 1.35 || distRio(x, z) < 60) continue; bosquetes.push({ x, z, r: rad, g: RF(0, 3) });
+    for (let j = 0; j < n; j++) { const a = RF(0, 6.283), q = Math.sqrt(rf()) * rad, px = x + Math.cos(a) * q, pz = z + Math.sin(a) * q * 0.7, v = rf(); if (distRio(px, pz) < 30 || !libre(px, pz, 3)) continue; arbol(v < 0.08 ? 'cipres' : v < 0.3 ? 'olivo' : 'algarrobo', px, pz, RF(0.75, 1.25), RF(0.15, 0.9)); } }
+  for (const pa of parcelas) { if (pa.linde < 0.4 || pa.linde > 0.62) continue; const [a, b, c] = pa.pol, n = 4 + Math.floor(rf() * 5); for (let i = 0; i < n; i++) { const u = (i + RF(0.2, 0.8)) / n, x = mix(b[0], c[0], u), z = mix(b[1], c[1], u); if (Math.hypot(x, z) < 2400 && Math.hypot(x, z) > 420 && libre(x, z, 3)) arbol(rf() < 0.55 ? 'algarrobo' : 'olivo', x, z, RF(0.55, 0.95), RF(0.2, 0.8)); } }
+
+  return { muros, torres, puertas, calles, caminos, casas, nDentro, unicos, granjas, tumbas, parcelas, arboles, huertos, contorno: cont, PUENTE, enF, libre, libreDeCalle, puerta, ladera, muretes, escaleras, huertosL, casasFondo, sendasF, bosquetes, patios };
 }
