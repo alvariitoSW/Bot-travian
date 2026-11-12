@@ -63,6 +63,15 @@ textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min
 .tarea .cuerpo { display: flex; flex-direction: column; gap: 12px; padding: 0 0 16px 38px; font-size: 15px; }
 .cambio { display: flex; flex-direction: column; gap: 8px; }
 
+.sig { display: flex; align-items: center; gap: 10px; background: var(--tabla); border: 1px solid var(--raya); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+.sig .letra { font: 700 20px var(--rotulo); color: var(--purpura); width: 22px; flex: none; text-align: center; }
+.sig .id { font: 600 13px var(--texto); color: var(--tenue); flex: none; }
+.sig .que { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 15px; }
+.sig .que .nota { font-size: 13px; }
+.sig .boton { flex: none; }
+.boton.fino.lleno { border-color: var(--purpura); color: var(--sobre-purpura); }
+.hechas > summary { cursor: pointer; padding: 10px 0; color: var(--tenue); font-size: 14px; border-top: 1px dashed var(--raya); }
+section { scroll-margin-top: 12px; }
 .tira { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; }
 .tira figure { margin: 0; flex: none; display: flex; flex-direction: column; gap: 6px; scroll-snap-align: start; max-width: 78vw; }
 .tira img { height: 340px; width: auto; max-width: none; border-radius: 8px; border: 1px solid var(--raya); display: block; }
@@ -93,6 +102,12 @@ textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min
       <a class="boton lleno" href="{{JUEGO}}" target="_blank" rel="noopener">Jugar ahora</a>
       <span class="veredicto {{VEREDICTO_CLASE}}">{{VEREDICTO}}</span>
     </div>
+    <nav class="fila" aria-label="Ir a">
+      <a class="boton fino" href="#t-espera">Te esperan {{N_ESPERA}}</a>
+      <a class="boton fino" href="#t-siguiente">Abrir sesiones</a>
+      <a class="boton fino" href="#t-pedidos">Tus pedidos</a>
+      <a class="boton fino" href="#t-ensenar">Capturas</a>
+    </nav>
   </header>
 
   <section aria-labelledby="t-espera">
@@ -103,6 +118,17 @@ textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min
   <section aria-labelledby="t-prop">
     <h2 id="t-prop">Propuestas por aprobar</h2>
     <ul class="lista">{{PROPUESTAS}}</ul>
+  </section>
+
+  <section aria-labelledby="t-marcha">
+    <h2 id="t-marcha">Trabajando ahora</h2>
+    <ul class="lista">{{MARCHA}}</ul>
+  </section>
+
+  <section aria-labelledby="t-siguiente">
+    <h2 id="t-siguiente">Siguiente paso de cada carril</h2>
+    <p class="nota">Lo primero que queda por hacer en cada carril. «Abrir sesión» lo deja pedido; la sesión arranca cuando se aplica el cuadro.</p>
+    <ul class="lista">{{SIGUIENTE}}</ul>
   </section>
 
   <section aria-labelledby="t-pedidos">
@@ -118,7 +144,7 @@ textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min
 
   <section aria-labelledby="t-tablero">
     <h2 id="t-tablero">Tablero</h2>
-    <p class="nota">{{RESUMEN}} Toca un carril para ver sus tareas, y una tarea para priorizarla o pedir un cambio.</p>
+    <p class="nota">{{RESUMEN}} Arriba, los carriles con trabajo pendiente; dentro de cada uno, primero lo que falta. Toca una tarea para abrirle sesión, priorizarla o pedir un cambio.</p>
     <div>{{CARRILES}}</div>
   </section>
 
@@ -146,7 +172,7 @@ textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var db = null, avisoT = 0;
-  var ROTULO = { priorizar: 'Prioridad', cambio: 'Cambio pedido', aprobar: 'Aprobada', rechazar: 'Rechazada', nuevo: 'Pedido nuevo', respuesta: 'Tu respuesta' };
+  var ROTULO = { priorizar: 'Prioridad', cambio: 'Cambio pedido', aprobar: 'Aprobada', rechazar: 'Rechazada', nuevo: 'Pedido nuevo', respuesta: 'Tu respuesta', abrir: 'Abrir sesión' };
 
   function aviso(txt) { var a = $('aviso'); a.textContent = txt; a.hidden = false; clearTimeout(avisoT); avisoT = setTimeout(function () { a.hidden = true; }, 3500); }
   function apagar(motivo) {
@@ -182,13 +208,13 @@ textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min
   }
 
   function pedir(b) {
-    var tipo = b.dataset.pedir, ref = b.dataset.ref || '', caja = b.dataset.texto ? $(b.dataset.texto) : null, texto = caja ? caja.value.trim() : '';
+    var tipo = b.dataset.pedir, ref = b.dataset.ref || '', caja = b.dataset.texto ? $(b.dataset.texto) : null, texto = caja ? caja.value.trim() : (b.dataset.valor || '');
     if (caja && !texto) { aviso('Escribe primero lo que quieres.'); caja.focus(); return; }
     var doc = { tipo: tipo, ref: ref, texto: texto, titulo: b.dataset.titulo || '', creado: new Date().toISOString(), estado: 'pendiente' };
     var col = db.collection('pedidos');
     // priorizar, aprobar y rechazar son únicos por tarea: repetirlo no duplica
-    var unico = tipo === 'priorizar' || tipo === 'aprobar' || tipo === 'rechazar';
-    var destino = unico ? col.doc((tipo === 'priorizar' ? 'priorizar-' : 'decision-') + ref) : col.doc();
+    var unico = tipo === 'priorizar' || tipo === 'aprobar' || tipo === 'rechazar' || tipo === 'abrir';
+    var destino = unico ? col.doc((tipo === 'priorizar' ? 'priorizar-' : tipo === 'abrir' ? 'abrir-' : 'decision-') + ref) : col.doc();
     b.disabled = true;
     destino.set(doc).then(function () { aviso('Apuntado. Para aplicarlo ya, di en el chat: «aplica el cuadro».'); if (caja) caja.value = ''; })
       .catch(function (e) { aviso(e && e.code === 'invalid_argument' ? 'No tienes permiso para guardar aquí. Dilo en el chat.' : 'No se pudo guardar. Prueba otra vez.'); })

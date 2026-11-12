@@ -41,24 +41,50 @@ const carriles = Object.keys(tablero).filter(k => /^Carril |^Gobierno/.test(k)).
   return { letra, nombre, tareas };
 }).filter(c => c.tareas.length);
 
+const enPausa = t => /^\(en pausa/.test(t.texto);
+const pendientes = c => c.tareas.filter(t => t.est !== '✅');
+carriles.sort((a, b) => (pendientes(b).length > 0) - (pendientes(a).length > 0));
 const htmlCarriles = carriles.map(c => {
   const ok = c.tareas.filter(t => t.est === '✅').length; total += c.tareas.length; hechas += ok; medias += c.tareas.filter(t => t.est === '🔶').length;
   return '<details class="carril"><summary><span class="letra">' + esc(c.letra) + '</span><span class="nombre">' + esc(c.nombre) + '</span><span class="cuenta">' + ok + ' de ' + c.tareas.length + '</span></summary><div class="tareas">' +
-    c.tareas.map(t => {
+    [...pendientes(c), ...c.tareas.filter(t => t.est === '✅')].map((t, i, lista) => {
+      const abreHechas = t.est === '✅' && (i === 0 || lista[i - 1].est !== '✅') ? '<details class="hechas"><summary>Hechas (' + ok + ')</summary>' : '', cierraHechas = t.est === '✅' && i === lista.length - 1 ? '</details>' : '';
+      return abreHechas + (() => {
       const [cls, rot] = ESTADO[t.est], hecha = t.est === '✅', titulo = corto(t.texto);
       return '<details class="tarea' + (hecha ? ' hecha' : '') + '" data-ref="' + esc(t.id) + '"><summary><span class="id">' + esc(t.id) + '</span><span class="que">' + esc(titulo) + '</span><span class="estado ' + cls + '">' + rot + '</span></summary>' +
         '<div class="cuerpo"><p>' + md(t.texto) + '</p>' +
-        '<div class="fila">' + (hecha ? '' : '<button class="boton lleno" data-pedir="priorizar" data-ref="' + esc(t.id) + '" data-titulo="' + esc(titulo) + '">Dar prioridad</button>') +
+        '<div class="fila">' + (hecha ? '' : '<button class="boton lleno" data-pedir="abrir" data-ref="' + esc(t.id) + '" data-titulo="' + esc(titulo) + '">Abrir sesión</button><button class="boton" data-pedir="priorizar" data-ref="' + esc(t.id) + '" data-titulo="' + esc(titulo) + '">Dar prioridad</button>') +
         '<button class="boton" data-abrir="c-' + esc(t.id) + '">Pedir un cambio</button></div>' +
         '<div class="cambio" id="c-' + esc(t.id) + '" hidden><label class="quien" for="tx-' + esc(t.id) + '">Qué cambiarías en ' + esc(t.id) + '</label><textarea id="tx-' + esc(t.id) + '"></textarea>' +
         '<div class="fila"><button class="boton lleno" data-pedir="cambio" data-ref="' + esc(t.id) + '" data-titulo="' + esc(titulo) + '" data-texto="tx-' + esc(t.id) + '">Enviar cambio</button></div></div></div></details>';
+      })() + cierraHechas;
     }).join('') + '</div></details>';
 }).join('');
 
+/* ---------- siguiente paso de cada carril y sesiones en marcha ---------- */
+const sesiones = config.sesiones || [], enMarcha = new Set(sesiones.map(x => x.tarea));
+const htmlMarcha = sesiones.length ? sesiones.map(x =>
+  '<li class="sig"><span class="id">' + esc(x.tarea || '') + '</span><span class="que"><b>' + esc(x.titulo || '') + '</b>' + (x.nota ? '<span class="nota">' + esc(x.nota) + '</span>' : '') + '</span>' +
+  (x.url ? '<a class="boton fino" href="' + esc(x.url) + '" target="_blank" rel="noopener">Ver</a>' : '') + '</li>').join('')
+  : '<li class="nota">No hay ninguna sesión trabajando. Abre una desde «Siguiente paso».</li>';
+const htmlSiguiente = carriles.map(c => {
+  const libres = pendientes(c).filter(t => !enPausa(t)), t = libres.find(x => !enMarcha.has(x.id));
+  if (!t) return '';
+  const titulo = corto(t.texto), pausadas = pendientes(c).length - libres.length;
+  return '<li class="sig"><span class="letra">' + esc(c.letra) + '</span><span class="que"><b>' + esc(t.id) + ' · ' + esc(titulo) + '</b><span class="nota">' + esc(c.nombre.replace(/\s*\(.*$/, '')) + ' · quedan ' + libres.length + (pausadas ? ' y ' + pausadas + ' en pausa' : '') + '</span></span>' +
+    '<button class="boton fino lleno" data-pedir="abrir" data-ref="' + esc(t.id) + '" data-titulo="' + esc(titulo) + '">Abrir sesión</button></li>';
+}).join('') || '<li class="nota">No queda nada por hacer en el tablero.</li>';
+
 /* ---------- lo que espera al usuario y propuestas ---------- */
+// botones de respuesta rápida: opciones (A), (B)… del texto, o Sí / No si es una pregunta de sí o no
+function rapidas(e, i) {
+  const letras = [...new Set((e.match(/\(([A-D])\)/g) || []).map(x => x[1]))];
+  const ops = letras.length > 1 ? letras.map(l => ['Opción ' + l, l]) : /sí o no|aprobar o rechazar|\?/i.test(e) ? [['Sí', 'Sí'], ['No', 'No']] : [];
+  return ops.map(([rot, v]) => '<button class="boton lleno" data-pedir="respuesta" data-ref="E' + (i + 1) + '" data-titulo="' + esc(corto(e)) + '" data-valor="' + esc(v) + '">' + esc(rot) + '</button>').join('');
+}
 const espera = vinetas(bitacora['Esperando algo del usuario'] || []);
 const htmlEspera = espera.length ? espera.map((e, i) =>
-  '<li class="ficha"><p>' + md(e) + '</p><div class="fila"><button class="boton" data-abrir="r-' + i + '">Responder</button></div>' +
+  '<li class="ficha"><p>' + md(e) + '</p><div class="fila">' + rapidas(e, i) + '<button class="boton" data-abrir="r-' + i + '">Escribir respuesta</button></div>' +
   '<div class="cambio" id="r-' + i + '" hidden><label class="quien" for="rx-' + i + '">Tu respuesta</label><textarea id="rx-' + i + '"></textarea>' +
   '<div class="fila"><button class="boton lleno" data-pedir="respuesta" data-ref="E' + (i + 1) + '" data-titulo="' + esc(corto(e)) + '" data-texto="rx-' + i + '">Enviar respuesta</button></div></div></li>').join('')
   : '<li class="nota">Nada pendiente de ti.</li>';
@@ -123,7 +149,7 @@ const hechos = kHecho ? tablero[kHecho].join(' ').split('✅').map(s => s.replac
 const fecha = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 const datos = {
   FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase,
-  ESPERA: htmlEspera, PROPUESTAS: htmlPropuestas, CARRILES: htmlCarriles,
+  ESPERA: htmlEspera, MARCHA: htmlMarcha, SIGUIENTE: htmlSiguiente, N_ESPERA: espera.length + propuestas.length, PROPUESTAS: htmlPropuestas, CARRILES: htmlCarriles,
   RESUMEN: total + ' tareas en ' + carriles.length + ' carriles: ' + hechas + ' hechas, ' + medias + ' a medias y ' + (total - hechas - medias) + ' por hacer.',
   ENSENAR: htmlEnsenar, INFORMES: htmlInformes, CAPTURAS: htmlCapturas, CAPTURAS_NOTA: esc(notaCapturas), HECHOS: hechos.map(h => '<li>' + md(h) + '</li>').join(''),
 };
