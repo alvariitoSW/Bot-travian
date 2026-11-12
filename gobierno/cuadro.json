@@ -918,6 +918,18 @@
    "titulo": "Ciudad nueva · CN3 Ciudad que nace",
    "nota": "js/gfx/city3d.js, ground.js, assets, tools (ola 2, solo dibujo)",
    "url": "https://claude.ai/code/session_01QiKC37KfDTBEePKgApdWzg"
+  },
+  {
+   "tarea": "I6",
+   "titulo": "Gran diseño · I6 Región de Italia",
+   "nota": "data.js, game.js, registro.js, map3d.js, menú",
+   "url": "https://claude.ai/code/session_01QiKC3AdGxZz5tg4QtPCk4Z"
+  },
+  {
+   "tarea": "N7",
+   "titulo": "Guerra · N7 Relevos y formaciones",
+   "nota": "battle.js, battle3d.js, batalla en ui.js (vía Guerra)",
+   "url": "https://claude.ai/code/session_01QiKC39Me635txQ7un1idUL"
   }
  ],
  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
