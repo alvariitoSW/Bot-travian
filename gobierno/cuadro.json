@@ -892,12 +892,6 @@
    "titulo": "Ciudad nueva · CN2 Guardado y economía",
    "nota": "js/game.js, js/data.js (ola 1)",
    "url": "https://claude.ai/code/session_01QiKC36zNMYSGs5BSJFX5Y9"
-  },
-  {
-   "tarea": "C2b",
-   "titulo": "Mapa · C2b Relieve real y espuma",
-   "nota": "js/gfx/map3d.js, assets/mapa (ola 1)",
-   "url": "https://claude.ai/code/session_01QiKC3AiykotV8X7zdNgX9c"
   }
  ],
  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
