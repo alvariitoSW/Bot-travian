@@ -838,6 +838,18 @@
    "archivo": "gobierno/capturas-tarea/N7-7-tiempo.jpg",
    "pie": "Ver futuro: sombras a 10, 20 y 30 s",
    "ancha": true
+  },
+  {
+   "tarea": "I6",
+   "archivo": "gobierno/capturas-tarea/I6-1-menu.jpg",
+   "pie": "Menú con el botón nuevo «Región de Italia»",
+   "ancha": false
+  },
+  {
+   "tarea": "I6",
+   "archivo": "gobierno/capturas-tarea/I6-2-italia.jpg",
+   "pie": "Mapa de Italia: solo 7 ciudades y las rutas entre ellas",
+   "ancha": false
   }
  ],
  "informes": [
