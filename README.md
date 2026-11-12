@@ -77,6 +77,13 @@ tools/build_static_all.sh <clon de 0ad> <three/examples/jsm> <carpeta temporal> 
 y animaciones a `assets/units/*.bin`; `tools/build_atlas.py` compone las texturas; `tools/aligerar_static.mjs` (necesita el paquete npm `meshoptimizer`) aligera piezas que pasan del tope de triángulos. Si los modelos no cargan, el
 juego usa figuras sencillas generadas por código (`js/gfx/models.js`).
 
+## Datos del mapa
+La costa viene de **Natural Earth** (dominio público; ver `assets/mapa/LICENSE.txt`). El relieve (`assets/mapa/alturas.js`) sale de
+las *Terrain Tiles* (Terrarium, nivel 6) de Mapzen/Tilezen alojadas en AWS Open Data. Según la cabecera `x-amz-meta-x-imagery-sources`
+de las 28 teselas usadas, solo contienen: **GMTED2010** (U.S. Geological Survey y NGA; *Global Multi-resolution Terrain Elevation Data 2010*,
+dominio público) y **ETOPO1** (NOAA National Centers for Environmental Information, *ETOPO1 1 Arc-Minute Global Relief Model*, dominio público).
+No aparecen SRTM ni EU-DEM. Se generan con `assets/mapa/generar-alturas.py`.
+
 ## Referencias consultadas
 
 Proyectos abiertos de género parecido, útiles como inspiración de diseño (no se ha copiado código;

@@ -48,6 +48,13 @@ console.log('Juez 1b · fichas (gobierno/fichas.mjs)');
   apunta('Fichas de las piezas', r.status === 0, (r.status === 0 ? lineas.filter(l => /^Resumen/.test(l)).join('') : lineas.filter(l => /✘ /.test(l) && !/^  ✘ (edificio|tropa|ciudad|hecho|faccion|mejora) /.test(l)).slice(0, 3).join(' | ')).slice(0, 400));
 }
 
+/* ---------- 1c. Alturas del mapa (C2b) ---------- */
+console.log('Juez 1c · alturas del mapa (test/mapa.test.mjs)');
+{
+  const r = spawnSync(process.execPath, ['test/mapa.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 60000 });
+  apunta('Alturas reales del mapa', r.status === 0, ((r.stdout || '').trim().split('\n').slice(-2).join(' | ') || (r.stderr || '').trim().split('\n').slice(-2).join(' | ')).slice(0, 400));
+}
+
 /* ---------- 2. Navegador ---------- */
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.txt': 'text/plain; charset=utf-8' };
 function servidor() {

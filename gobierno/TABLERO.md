@@ -147,7 +147,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 
 ## Carril C — Mapa y campaña
 - ⬜ C1 Zoom continuo mapa → ciudad; ejércitos de guarnición visibles junto a cada ciudad.
-- ✅ C2 Costa real (Natural Earth, 15 KB) y grano de hierba en el suelo del mapa. Queda ⬜ C2b: relieve con datos de altura reales (hoy son cordilleras a mano) y orillas con espuma.
+- ✅ C2 Costa real (Natural Earth, 15 KB) y grano de hierba en el suelo del mapa. ✅ C2b Relieve con alturas reales (GMTED2010/ETOPO1, 116 KB) y orillas con espuma (12/11).
 - ⬜ C3 Diplomacia sencilla (alianzas, tributos) e IA enemiga que también construye.
 
 ## Carril H — Historia (ministerio de Adecuación Histórica)

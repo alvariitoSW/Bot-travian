@@ -2,7 +2,8 @@
 import { THREE, uTime, unitGeometry, unitMaterial } from './models.js';
 import { staticMesh, getStatic } from './statics.js';
 import COSTA from '../../assets/mapa/costa.js';
-import { mapaMaterial, mapaTexturas } from './ground.js';
+import { mapaMaterial, mapaTexturas, texturaRuido } from './ground.js';
+import ALTURAS from '../../assets/mapa/alturas.js';
 import { getUnit, unitMaterialReal, instancedGeometry, frameOf, UNIT_SCALE } from './units.js';
 
 const D = window.DATA, G = window.Game;
@@ -10,18 +11,48 @@ const K = 0.1;                                   // mundo 2D (1600x800) -> unida
 const NX = 420, NZ = 210, CW = D.WORLD.w * K / NX, CH = D.WORLD.h * K / NZ;
 const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
-// cordilleras: [altura, anchura (grados), puntos lon/lat...]
-const RIDGES = [
-  [3.4, 0.55, [6.6, 44.1], [7.0, 45.4], [8.0, 46.1], [10, 46.5], [12, 46.6], [13.8, 46.4]],
-  [1.7, 0.38, [8.6, 44.5], [10.4, 44.25], [12.0, 43.4], [13.3, 42.5], [14.2, 41.7], [15.4, 40.9], [16.1, 39.7], [16.0, 38.5]],
-  [2.6, 0.42, [-1.8, 43.0], [0.5, 42.65], [2.6, 42.45]],
-  [1.5, 0.5, [-7, 43.0], [-3, 43.0]], [1.4, 0.5, [-5, 40.4], [-2.2, 41.3], [-1, 40.4]], [1.8, 0.4, [-4.6, 37.0], [-2.9, 37.2], [-1.6, 38.1]],
-  [2.0, 0.5, [-5, 35.0], [-1, 34.9], [3, 36.1], [6, 36.2], [8.8, 36.0]],
-  [2.2, 0.5, [14.6, 45.1], [16.5, 44.0], [18.6, 42.9], [20.1, 41.9], [20.9, 40.5], [21.4, 39.5], [21.9, 38.6]],
-  [1.7, 0.5, [21, 42.3], [23, 42.0], [25, 42.1]], [1.3, 0.5, [2.4, 45.2], [3.4, 44.5]], [1.2, 0.35, [22.2, 37.6], [22.4, 37.0]],
-  [2.4, 0.16, [15.0, 37.75], [15.01, 37.76]], [1.7, 0.25, [9.1, 42.4], [9.1, 41.8]], [1.0, 0.25, [9.2, 40.3], [9.3, 39.6]], [0.9, 0.3, [13.6, 37.8], [14.6, 37.75]],
-  [1.3, 0.22, [23.6, 35.3], [24.9, 35.25], [26.0, 35.2]], [0.7, 0.2, [2.4, 39.8], [3.2, 39.85]], [0.9, 0.2, [10.3, 42.8], [10.4, 42.75]]
-];
+/* relieve: alturas reales (assets/mapa/alturas.js, misma malla que el mapa) a ESCALA_V unidades por metro; sin árboles sobre ARBOL_MAX m */
+const ESCALA_V = 0.0008, ARBOL_MAX = 1800;
+/* Mar con orillas: la distancia firmada a la costa (casillas; negativa en tierra) se hornea en una textura de 8 bits a DOBLE resolución
+   (el campo se interpola entre nodos y el cruce por cero sigue la costa) y el sombreador del propio plano de mar dibuja con ella
+   franjas de espuma que suben y bajan (más ruido y tiempo) y agua clara en el bajío. Sin triángulos nuevos. */
+function mar(dist, land) {
+  const TW = 2 * NX + 1, TH = 2 * NZ + 1, W1 = NX + 1, data = new Uint8Array(TW * TH), sd = k => land[k] ? -dist[k] : dist[k];
+  for (let b = 0; b < TH; b++) for (let a = 0; a < TW; a++) {
+    const i = Math.min(NX - 1, a >> 1), j = Math.min(NZ - 1, b >> 1), u = (a - 2 * i) / 2, v = (b - 2 * j) / 2, k = j * W1 + i;
+    const q = (sd(k) * (1 - u) + sd(k + 1) * u) * (1 - v) + (sd(k + W1) * (1 - u) + sd(k + W1 + 1) * u) * v;
+    data[b * TW + a] = Math.round((Math.max(-2, Math.min(6, q)) + 2) / 8 * 255);
+  }
+  const tD = new THREE.DataTexture(data, TW, TH, THREE.RedFormat, THREE.UnsignedByteType); tD.magFilter = tD.minFilter = THREE.LinearFilter; tD.wrapS = tD.wrapT = THREE.ClampToEdgeWrapping; tD.generateMipmaps = false; tD.needsUpdate = true;
+  const m = new THREE.MeshPhongMaterial({ color: '#2f7fa6', transparent: true, opacity: 0.78, shininess: 90, specular: '#bfe6ff' }), tN = texturaRuido();
+  m.onBeforeCompile = sh => {
+    sh.uniforms.tD = { value: tD }; sh.uniforms.tN = { value: tN }; sh.uniforms.uTiempo = uTime;
+    sh.vertexShader = 'varying vec2 vXZ;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vXZ = (modelMatrix * vec4(position, 1.0)).xz;');
+    sh.fragmentShader = 'uniform sampler2D tD, tN; uniform float uTiempo; varying vec2 vXZ; float gEsp = 0.0;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+      {
+        vec2 uv = vec2((vXZ.x / ${CW.toFixed(5)} * 2.0 + 0.5) / ${TW}.0, (vXZ.y / ${CH.toFixed(5)} * 2.0 + 0.5) / ${TH}.0);
+        float dentro = step(0.0, uv.x) * step(uv.x, 1.0) * step(0.0, uv.y) * step(uv.y, 1.0);
+        float sd = mix(9.0, texture2D(tD, clamp(uv, 0.0, 1.0)).r * 8.0 - 2.0, dentro);
+        float n = texture2D(tN, vXZ * 0.23 + vec2(uTiempo * 0.012, -uTiempo * 0.008)).r, n2 = texture2D(tN, vXZ * 0.9 - vec2(uTiempo * 0.02, 0.0)).b;
+        float baj = 1.0 - smoothstep(0.0, 3.4, sd);
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.40, 0.80, 0.82), baj * 0.65);
+        diffuseColor.a = mix(diffuseColor.a, 0.5, baj * baj);
+        float borde = 0.4 + 0.5 * (0.5 + 0.5 * sin(uTiempo * 0.9 + n * 6.28));
+        float f0 = (1.0 - smoothstep(borde - 0.3, borde, sd)) * (0.6 + 0.4 * n2);
+        float p1 = 1.5 + 0.7 * sin(uTiempo * 0.6 + n * 5.0 + 1.7), f1 = (1.0 - smoothstep(0.05, 0.2, abs(sd - p1))) * smoothstep(0.3, 0.6, n2 + 0.25 * n);
+        float p2 = 2.8 + 0.8 * sin(uTiempo * 0.45 + n * 4.0 + 3.1), f2 = (1.0 - smoothstep(0.04, 0.15, abs(sd - p2))) * smoothstep(0.5, 0.75, n2) * 0.7;
+        gEsp = clamp(f0 + f1 + f2, 0.0, 1.0) * step(-0.15, sd) * dentro;
+        diffuseColor.a = mix(diffuseColor.a, 0.97, gEsp);
+      }`).replace('#include <opaque_fragment>', 'outgoingLight = mix(outgoingLight, vec3(1.0), gEsp * 0.9);\n#include <opaque_fragment>');
+  };
+  return m;
+}
+/* Línea sobre el relieve cada ~0,4 unidades (rutas de comercio, caminos y marchas): una sola función para todas */
+function trazo(vista, pa, pb, alto) {
+  const dx = (pb[0] - pa[0]) * K, dz = (pb[1] - pa[1]) * K, n = Math.max(2, Math.ceil(Math.hypot(dx, dz) / 0.4)), pts = [];
+  for (let i = 0; i <= n; i++) { const x = pa[0] * K + dx * i / n, z = pa[1] * K + dz * i / n; pts.push(new THREE.Vector3(x, Math.max(0.03, vista.hAt(x, z)) + alto, z)); }
+  return pts;
+}
 
 function inPoly(x, y, poly) { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; }
 function segDist(px, py, a, b) { const dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy, t = l ? Math.max(0, Math.min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / l)) : 0; return Math.hypot(px - a[0] - dx * t, py - a[1] - dy * t); }
@@ -72,18 +103,26 @@ export class MapView3D {
     for (const sg of segs) { const u0 = Math.floor((Math.min(sg[0], sg[2]) - 0.3) / BK), u1 = Math.floor((Math.max(sg[0], sg[2]) + 0.3) / BK), v0 = Math.floor((Math.min(sg[1], sg[3]) - 0.3) / BK), v1 = Math.floor((Math.max(sg[1], sg[3]) + 0.3) / BK); for (let u = u0; u <= u1; u++) for (let v = v0; v <= v1; v++) { const kk = bkey(u, v); (bucket.get(kk) || bucket.set(kk, []).get(kk)).push(sg); } }
     for (let j = 0; j <= NZ; j++) for (let i = 0; i <= NX; i++) { const k = j * W1 + i; if (dist[k] > 3.2) continue; const lo = lonOf(i), la = latOf(j) * 1.28, near = bucket.get(bkey(Math.floor(lo / BK), Math.floor(la / BK))); let best = 9; if (near) for (const sgm of near) { const dd = segDist(lo, la, [sgm[0], sgm[1]], [sgm[2], sgm[3]]); if (dd < best) best = dd; } dist[k] = Math.min(dist[k] + 0.5, best / cellDeg); }
     // --- alturas ---
-    const H = this.H = new Float32Array(land.length), cities = Object.keys(D.CITIES).map(id => [D.CITIES[id].lon, D.CITIES[id].lat]);
+    const H = this.H = new Float32Array(land.length), metros = ALTURAS.metros(), cities = Object.keys(D.CITIES).map(id => [D.CITIES[id].lon, D.CITIES[id].lat]);
+    const sua = t => t * t * (3 - 2 * t);
     for (let j = 0; j <= NZ; j++) for (let i = 0; i <= NX; i++) {
       const k = j * W1 + i, lo = lonOf(i), la = latOf(j), d = dist[k];
-      if (!land[k]) { H[k] = -Math.min(d, 10) * 0.085; continue; }
-      let m = 0;
-      for (const r of RIDGES) { let best = 9; for (let q = 2; q < r.length - 1; q++) best = Math.min(best, segDist(lo, la * 1.28, [r[q][0], r[q][1] * 1.28], [r[q + 1][0], r[q + 1][1] * 1.28])); m = Math.max(m, r[0] * Math.exp(-(best * best) / (2 * r[1] * r[1]))); }
-      const n = Math.sin(lo * 3.1 + Math.sin(la * 2.3) * 2) * Math.cos(la * 3.7 + lo * 1.1), n2 = Math.sin(lo * 9.7 + la * 4.1) * Math.cos(la * 11.3 - lo * 3.3);
-      let h = 0.1 + Math.min(d, 7) * 0.035 + m * (0.8 + 0.3 * n2) + Math.max(0, n) * 0.28 + n2 * 0.06 * Math.min(1, d / 3);
-      let cd = 9; for (const c of cities) cd = Math.min(cd, Math.hypot(lo - c[0], (la - c[1]) * 1.28));
-      if (cd < 0.5) h = 0.14 + (h - 0.14) * (cd / 0.5) * (cd / 0.5);
-      H[k] = Math.min(h, d * 0.16);
+      if (!land[k]) { H[k] = -Math.min(d, 10) * 0.085; continue; }                  // mar: fondo suave, nunca bajo -0,85
+      const n2 = Math.sin(lo * 9.7 + la * 4.1) * Math.cos(la * 11.3 - lo * 3.3), hm = Math.max(0, metros[k]) * ESCALA_V;
+      // tierra: suelo mínimo con playa suave (solo a menos de 2,5 casillas de la costa) y altura real por encima, que sube con la distancia a la orilla
+      H[k] = 0.05 + Math.min(d, 2.5) * 0.026 + hm * (0.4 + 0.6 * sua(Math.max(0, Math.min(1, (d - 0.5) / 2)))) + n2 * 0.035 * (0.3 + hm) * Math.min(1, d / 3);
     }
+    // aplanado bajo cada ciudad a su altura local (media de la tierra en torno a ella), no a una cota fija
+    for (const c of cities) {
+      const ci = Math.round((c[0] + 7) / (CW / K / 50)), cj = Math.round((47 - c[1]) / (CH / K / 64)); let s0 = 0, n0 = 0;
+      for (let b = -1; b <= 1; b++) for (let a = -1; a <= 1; a++) { const i = ci + a, j = cj + b; if (i >= 0 && i <= NX && j >= 0 && j <= NZ && land[j * W1 + i]) { s0 += H[j * W1 + i]; n0++; } }
+      const hc = Math.max(0.1, n0 ? s0 / n0 : 0.1);
+      for (let j = Math.max(0, cj - 8); j <= Math.min(NZ, cj + 8); j++) for (let i = Math.max(0, ci - 8); i <= Math.min(NX, ci + 8); i++) {
+        const k = j * W1 + i; if (!land[k]) continue; const cd = Math.hypot(lonOf(i) - c[0], (latOf(j) - c[1]) * 1.28);
+        if (cd < 0.5) { const t = (cd / 0.5) * (cd / 0.5); H[k] = hc + (H[k] - hc) * t; }
+      }
+    }
+    this.metros = metros;
     // --- malla del terreno ---
     const g = new THREE.PlaneGeometry(D.WORLD.w * K, D.WORLD.h * K, NX, NZ); g.rotateX(-Math.PI / 2); g.translate(D.WORLD.w * K / 2, 0, D.WORLD.h * K / 2);
     const pos = g.attributes.position, col = new Float32Array(pos.count * 3), aT = new Float32Array(pos.count * 2), c = new THREE.Color();
@@ -104,23 +143,22 @@ export class MapView3D {
     g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('aT', new THREE.BufferAttribute(aT, 2)); g.computeVertexNormals();
     this.terr = mapaMaterial(); sc.add(new THREE.Mesh(g, this.terr));
     // --- mar ---
-    const sea = new THREE.Mesh(new THREE.PlaneGeometry(900, 700), new THREE.MeshPhongMaterial({ color: '#2f7fa6', transparent: true, opacity: 0.78, shininess: 90, specular: '#bfe6ff' }));
+    const sea = new THREE.Mesh(new THREE.PlaneGeometry(900, 700), mar(dist, land));
     sea.rotation.x = -Math.PI / 2; sea.position.set(80, 0, 40); sc.add(sea);
     const out = new THREE.Mesh(new THREE.PlaneGeometry(900, 700), new THREE.MeshBasicMaterial({ color: '#1d4a66' })); out.rotation.x = -Math.PI / 2; out.position.set(80, -0.9, 40); sc.add(out);
     // --- bosques ---
     const tg = new THREE.ConeGeometry(0.16, 0.5, 5); tg.translate(0, 0.25, 0);
     const trees = new THREE.InstancedMesh(tg, new THREE.MeshLambertMaterial({ color: '#3f6a30', flatShading: true }), 2600), M = new THREE.Matrix4(); let tn = 0;
     for (let q = 0; q < 14000 && tn < 2600; q++) {
-      const i = Math.floor(hash(q * 1.3) * NX), j = Math.floor(hash(q * 2.7 + 5) * NZ), k = j * W1 + i, h = H[k];
-      if (!land[k] || dist[k] < 2 || h > 1.5 || latOf(j) < 37.5 - hash(q) * 2) continue;
+      const i = Math.floor(hash(q * 1.3) * NX), j = Math.floor(hash(q * 2.7 + 5) * NZ), k = j * W1 + i;
+      if (!land[k] || dist[k] < 2 || metros[k] > ARBOL_MAX || latOf(j) < 37.5 - hash(q) * 2) continue;
       if (Math.sin(lonOf(i) * 5.3 + latOf(j) * 7.1) < 0.1) continue;
-      const s = 0.7 + hash(q * 9.1) * 0.8; M.makeScale(s, s, s); M.setPosition(i * CW + (hash(q * 4.4) - 0.5) * CW, h - 0.02, j * CH + (hash(q * 6.6) - 0.5) * CH); trees.setMatrixAt(tn++, M);
+      const s = 0.7 + hash(q * 9.1) * 0.8; M.makeScale(s, s, s); { const tx = i * CW + (hash(q * 4.4) - 0.5) * CW, tz = j * CH + (hash(q * 6.6) - 0.5) * CH; M.setPosition(tx, this.hAt(tx, tz) - 0.02, tz); } trees.setMatrixAt(tn++, M);
     }
     trees.count = tn; sc.add(trees);
     // --- rutas ---
     for (const e of D.EDGES) {
-      const a = G.pos(e[0]), b = G.pos(e[1]), pts = [], n = 28;
-      for (let i = 0; i <= n; i++) { const x = (a[0] + (b[0] - a[0]) * i / n) * K, z = (a[1] + (b[1] - a[1]) * i / n) * K; pts.push(new THREE.Vector3(x, Math.max(0.03, this.hAt(x, z)) + 0.07, z)); }
+      const pts = trazo(this, G.pos(e[0]), G.pos(e[1]), 0.08);
       const geo = new THREE.BufferGeometry().setFromPoints(pts), line = new THREE.Line(geo, new THREE.LineDashedMaterial({ color: e[2] ? '#e8f6ff' : '#5a3418', dashSize: e[2] ? 0.35 : 0.6, gapSize: e[2] ? 0.5 : 0.3, transparent: true, opacity: e[2] ? 0.55 : 0.85 }));
       line.computeLineDistances(); sc.add(line);
     }
@@ -163,7 +201,11 @@ export class MapView3D {
     c.puesto = c.quiere;
   }
 
-  hAt(x, z) { const i = Math.max(0, Math.min(NX, Math.round(x / CW))), j = Math.max(0, Math.min(NZ, Math.round(z / CH))); return this.H[j * (NX + 1) + i]; }
+  /* altura bilineal del relieve en (x, z) del mundo 3D */
+  hAt(x, z) {
+    const fx = Math.max(0, Math.min(NX, x / CW)), fz = Math.max(0, Math.min(NZ, z / CH)), i = Math.min(NX - 1, Math.floor(fx)), j = Math.min(NZ - 1, Math.floor(fz)), u = fx - i, v = fz - j, W1 = NX + 1, H = this.H, k = j * W1 + i;
+    return (H[k] * (1 - u) + H[k + 1] * u) * (1 - v) + (H[k + W1] * (1 - u) + H[k + W1 + 1] * u) * v;
+  }
 
   armyModel(m) {
     const grp = new THREE.Group(), mine = m.owner === 'roma', col = D.FACTIONS[m.owner].col, e = m.from && G.edge(m.from, m.to);
@@ -207,8 +249,7 @@ export class MapView3D {
     for (const r of (state.rutas || [])) {
       const k = r.a + '|' + r.b; vistas.add(k); let o = this.rutaObj.get(k);
       if (!o) {
-        const mar = G.rutaMar(r), pa = G.pos(r.a), pb = G.pos(r.b), pts = [], n = 28;
-        for (let i = 0; i <= n; i++) { const x = (pa[0] + (pb[0] - pa[0]) * i / n) * K, z = (pa[1] + (pb[1] - pa[1]) * i / n) * K; pts.push(new THREE.Vector3(x, Math.max(0.03, this.hAt(x, z)) + 0.1, z)); }
+        const mar = G.rutaMar(r), pa = G.pos(r.a), pb = G.pos(r.b), pts = trazo(this, pa, pb, 0.11);
         const linea = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), this.rutaMat.oro), g = new THREE.Group();
         if (mar) { const c = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.14, 0.9), this.rutaMat.casco); c.position.y = 0.1; const v = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.6), this.rutaMat.vela); v.position.y = 0.55; v.rotation.y = Math.PI / 2; g.add(c, v); }
         else { const c = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.2, 0.55), this.rutaMat.carro); c.position.y = 0.2; const b = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.16, 0.3), this.rutaMat.vela); b.position.y = 0.38; g.add(c, b); }
