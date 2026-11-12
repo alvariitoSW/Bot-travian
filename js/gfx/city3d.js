@@ -10,6 +10,7 @@
 import { THREE } from './models.js';
 import { preloadStatic, getStatic } from './statics.js';
 import * as UN from './units.js';
+import * as vida from './vida.js';
 import { crearRio, crearCielo, texturaRuido, texturasMundo, loadGroundTextures, crearSuelo3, GLSL_NUBES } from './ground.js';
 import { altura, RIO, NIVEL_RIO, azar } from './mundo.js';
 import * as CI from '../ciudad.js';
@@ -159,6 +160,29 @@ export function aPantalla(x, z, dy = 0) { const r = host.getBoundingClientRect()
 
 /* ---------- luz: el sol bajo de ciudad2, con un solo mapa de sombras para todo el terreno jugable ---------- */
 const SOL = new THREE.Vector3(-0.84, 0.49, 0.26).normalize();
+/* Q11: luz por estación. Cuatro anclas (primavera, verano, otoño, invierno) que se mezclan sin saltos según Game.state.t; el verano es el aspecto de siempre.
+   La dirección del sol (y con ella las sombras) cambia solo al cambiar de estación; la tarde dorada solo tiñe y baja intensidad. */
+export const LUZ_ESTACIONAL = true;
+const ANCLAS = [
+  { dir: [-0.82, 0.45, 0.30], sol: '#ffe6b8', si: 3.2, hc: '#b2cade', hg: '#80904c', hi: 1.5, h: '#c3cdb0', fog: 0.00029 },     // primavera: verde y limpia
+  { dir: [-0.84, 0.52, 0.26], sol: '#ffdfb4', si: 3.3, hc: '#b6c6de', hg: '#927252', hi: 1.45, h: '#cdc3b2', fog: 0.00029 },     // verano: dorado (como siempre)
+  { dir: [-0.86, 0.36, 0.22], sol: '#ffbe80', si: 3.0, hc: '#c4b4b4', hg: '#8a5a38', hi: 1.3, h: '#cba98c', fog: 0.00034 },      // otoño: ocre
+  { dir: [-0.90, 0.24, 0.20], sol: '#d4e0f6', si: 2.5, hc: '#a4b6d6', hg: '#6a6866', hi: 1.4, h: '#b4bec8', fog: 0.00042 }];     // invierno: frío, sol bajo
+for (const a of ANCLAS) { a.dir = new THREE.Vector3(...a.dir).normalize(); for (const k of ['sol', 'hc', 'hg', 'h']) a[k] = new THREE.Color(a[k]); }
+const ORO = { sol: new THREE.Color('#ff8f3c'), h: new THREE.Color('#e2a574'), hc: new THREE.Color('#d8a888') };
+const _c1 = new THREE.Color(), _sm = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
+let estSol = -1, luzT = NaN, cieloU = null, noche = 0;
+function luz() {
+  const Gm = window.Game, t = Gm && Gm.state && typeof Gm.state.t === 'number' ? Gm.state.t : 7.5; if (t === luzT) return; luzT = t;
+  const u = t / 3, a = u - 0.5, i0 = Math.floor(a), f = _sm(a - i0), A = ANCLAS[((i0 + 3) % 4 + 4) % 4], B = ANCLAS[((i0 + 4) % 4 + 4) % 4], ks = ((Math.floor(u) + 3) % 4 + 4) % 4;
+  const fm = t - Math.floor(t), oro = Math.min(1, _sm((fm - 0.7) / 0.25) + 1 - _sm(fm / 0.12));          // tarde dorada: sube al final del mes y baja al empezar el siguiente
+  noche = Math.min(1, _sm((fm - 0.85) / 0.12) + 1 - _sm(fm / 0.08));
+  if (ks !== estSol) { estSol = ks; SOL.copy(ANCLAS[ks].dir); sol.position.set(0, 0, -70).addScaledVector(SOL, 1500); if (cieloU) cieloU.uSol.value.copy(SOL); sombraPend = true; }
+  sol.color.copy(A.sol).lerp(B.sol, f).lerp(ORO.sol, oro * 0.75); sol.intensity = (A.si + (B.si - A.si) * f) * (1 - 0.3 * oro);
+  hemi.color.copy(A.hc).lerp(B.hc, f).lerp(ORO.hc, oro * 0.45); hemi.groundColor.copy(A.hg).lerp(B.hg, f); hemi.intensity = (A.hi + (B.hi - A.hi) * f) * (1 - 0.18 * oro);
+  _c1.copy(A.h).lerp(B.h, f).lerp(ORO.h, oro * 0.5); scene.background.copy(_c1); scene.fog.color.copy(_c1); scene.fog.density = A.fog + (B.fog - A.fog) * f;
+  if (cieloU) for (const c of cieloU.uH) c.copy(_c1);
+}
 const sol = new THREE.DirectionalLight('#ffdfb4', 3.3), hemi = new THREE.HemisphereLight('#b6c6de', '#927252', 1.45);
 function ponerLuz() { const RS = 600; sol.position.set(0, 0, -70).addScaledVector(SOL, 1500); sol.target.position.set(0, 0, -70); sol.castShadow = true; const s = sol.shadow; s.mapSize.set(2048, 2048); s.camera.left = -RS; s.camera.right = RS; s.camera.top = RS; s.camera.bottom = -RS; s.camera.near = 500; s.camera.far = 2600; s.bias = -0.0006; s.normalBias = 0.5; s.radius = 2.2; s.camera.updateProjectionMatrix(); scene.add(sol, sol.target, hemi); }
 
@@ -175,10 +199,10 @@ const tNace = new Map(), firma = new Map();
 const ahora = () => performance.now() / 1000;
 
 export async function montar() {
-  const claves = ['casa', 'almacen', 'aserradero', 'mercado', 'foro', 'vesta', 'templo', 'granja', 'puerto', 'cantera', 'mina', 'cuartel', 'establo', 'muro', 'torre', 'puerta', 'cipres', 'olivo', 'pino', 'algarrobo', 'casa_b', 'casa_c', 'casa_d', 'prop_paja', 'prop_pozo'];
+  const claves = ['casa', 'almacen', 'aserradero', 'mercado', 'foro', 'vesta', 'templo', 'granja', 'puerto', 'cantera', 'mina', 'cuartel', 'establo', 'muro', 'torre', 'puerta', 'cipres', 'olivo', 'pino', 'algarrobo', 'casa_b', 'casa_c', 'casa_d', 'prop_paja', 'prop_pozo', 'prop_carreta'];
   await Promise.all([preloadStatic(claves), loadGroundTextures(), UN.preload(['ciudadana', 'sacerdote'])]);
   const T = texturasMundo();
-  U.uRuido.value = texturaRuido(); ponerCamara(); ponerLuz(); scene.add(crearCielo(SOL, HORIZ, U));
+  U.uRuido.value = texturaRuido(); ponerCamara(); ponerLuz(); { const cl = crearCielo(SOL, HORIZ, U); cieloU = cl.userData.luz; scene.add(cl); }
   G.T = T;
   /* casas: cuatro piezas reales, con versiones ligeras de lejos */
   for (const k of ['casa', 'casa_b', 'casa_c', 'casa_d']) L[k] = lote(k, 220, { ligeras: [[3, 0], [6, 0]], cortes: [0.09, 0.05] });
@@ -195,13 +219,14 @@ export async function montar() {
     chozaM = [new THREE.InstancedMesh(muro, mMuro, 220), new THREE.InstancedMesh(techo, mTecho, 220)];
     const t = new Bulto(); t.cono(5.2, 4.6, 4, 0, 2.3, 0, '#d8ccb0', 1, Math.PI / 4, 1.15, 0.8); t.caja(0.25, 5.6, 0.25, 0, 2.8, 0, '#5a4632'); t.caja(1.6, 0.7, 1.2, 4.6, 0.35, 1.5, '#8a6a48');
     tiendaM = new THREE.InstancedMesh(t.geo(), matBulto, 40); for (const m of [...chozaM, tiendaM]) { m.count = 0; m.castShadow = m.receiveShadow = true; m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(m); } }
-  L.paja = lote('prop_paja', 90, { sinTeja: true });
+  L.paja = lote('prop_paja', 90, { sinTeja: true }); L.carreta = lote('prop_carreta', 8, { sinTeja: true });
+  vida.iniciar({ scene, colorGuarn: D.FACTIONS.roma.col, U, HORIZ, altura, azar, carros: L.carreta, pedirReparto: () => { pedirReparto = true; } });
 }
 /* el terreno de una partida: suelo, río, bosque, puente */
 export function mundo(estado) {
-  E = estado; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1;
+  vida.reiniciar(); E = estado; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1;
   for (const m of [sueloJ && sueloJ.malla, rio, crecida, estM, dinM, andM, surcoM, aradoM]) if (m) { scene.remove(m); if (m.geometry) m.geometry.dispose(); }
-  dinM = andM = surcoM = aradoM = null; obrasF = []; firmaObras = '';
+  dinM = andM = surcoM = aradoM = null; if (antM) { scene.remove(antM); antM.geometry.dispose(); antM = null; } antFirma = ''; obrasF = []; firmaObras = '';
   sueloJ = crearSuelo3(G.T, U, E ? E.bosquetes : []); scene.add(sueloJ.malla); rio = crearRio(G.T, U); scene.add(rio);
   /* lámina de la crecida: una cinta más ancha que el río, escondida bajo el cauce hasta que toca */
   { const n = RIO.length, pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = []; let sl = 0; for (let i = 0; i < n; i++) { const a = RIO[Math.max(0, i - 1)], b = RIO[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]), nx = -(b[1] - a[1]) / l, nz = (b[0] - a[0]) / l, w = 124; if (i) sl += Math.hypot(RIO[i][0] - RIO[i - 1][0], RIO[i][1] - RIO[i - 1][1]); pos.set([RIO[i][0] + nx * w, 0, RIO[i][1] + nz * w, RIO[i][0] - nx * w, 0, RIO[i][1] - nz * w], i * 6); uv.set([0, sl / 60, 2.5, sl / 60], i * 4); if (i < n - 1) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }
@@ -351,11 +376,35 @@ export function miniaturas() {
   renderer.setClearColor(ca, 1); rt.dispose(); return out;
 }
 
+/* ---------- antorchas (Q11): una sola malla instanciada junto a las puertas y el foro; llama = sprite que mira a la cámara, sin luces reales ---------- */
+let antM = null, antFirma = '';
+function antorchas() {
+  if (!E || !E.fundada || !E.foro) { if (antM) antM.visible = false; return; }
+  const f = E.puertas.length + '|' + Math.round(E.foro.x) + '|' + Math.round(E.foro.z);
+  if (f !== antFirma) { antFirma = f; if (antM) { scene.remove(antM); antM.geometry.dispose(); antM = null; }
+    const P = []; for (const p of E.puertas) for (const sg of [1, -1]) { const x = p.x + Math.cos(p.ang) * 9.5 * sg, z = p.z + Math.sin(p.ang) * 9.5 * sg; P.push(x, altura(x, z), z, (x * 0.37 + z * 0.11) % 6.28); }
+    for (let i = 0; i < 6; i++) { const k = i / 6 * Math.PI * 2 + 0.4, x = E.foro.x + Math.cos(k) * 30, z = E.foro.z + Math.sin(k) * 30; P.push(x, altura(x, z), z, i * 1.9); }
+    const n = P.length / 4, g = new THREE.InstancedBufferGeometry(), pos = [], fl = [], idx = [];
+    /* poste: caja fina de 12 triángulos; llama: un cuadrado */
+    const bx = [[-1, 0, -1], [1, 0, -1], [1, 0, 1], [-1, 0, 1], [-1, 1, -1], [1, 1, -1], [1, 1, 1], [-1, 1, 1]]; for (const [x, y, z] of bx) { pos.push(x * 0.22, y * 3.5, z * 0.22); fl.push(0); }
+    idx.push(0, 2, 1, 0, 3, 2, 4, 5, 6, 4, 6, 7, 0, 1, 5, 0, 5, 4, 1, 2, 6, 1, 6, 5, 2, 3, 7, 2, 7, 6, 3, 0, 4, 3, 4, 7);
+    for (const [x, y] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) { pos.push(x, y, 0); fl.push(1); } idx.push(8, 9, 10, 8, 10, 11);
+    g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('aFl', new THREE.Float32BufferAttribute(fl, 1)); g.setIndex(idx); g.setAttribute('aP', new THREE.InstancedBufferAttribute(new Float32Array(P), 4)); g.instanceCount = n;
+    const m = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, fog: false, uniforms: { uTiempo: U.uTiempo, uNoche: { value: 0 } },
+      vertexShader: 'attribute vec4 aP; attribute float aFl; uniform float uTiempo, uNoche; varying vec2 vQ; varying float vF, vPh; void main(){ vF = aFl; vPh = aP.w; vQ = position.xy; vec4 mv;' +
+        ' if (aFl > 0.5) { float fl = 1.0 + 0.2 * sin(uTiempo * 13.0 + aP.w * 7.0) + 0.12 * sin(uTiempo * 29.0 + aP.w * 3.0); mv = modelViewMatrix * vec4(aP.xyz + vec3(0.0, 4.1, 0.0), 1.0); mv.xy += position.xy * 2.3 * fl * uNoche; }' +
+        ' else mv = modelViewMatrix * vec4(aP.xyz + position, 1.0); gl_Position = projectionMatrix * mv; }',
+      fragmentShader: 'varying vec2 vQ; varying float vF, vPh; uniform float uTiempo, uNoche; void main(){ if (vF < 0.5) { gl_FragColor = vec4(0.22, 0.15, 0.09, 1.0); } else { float r = length(vQ); float a = exp(-r * r * 3.2) * uNoche; if (a < 0.01) discard; vec3 c = mix(vec3(1.0, 0.45, 0.1), vec3(1.0, 0.9, 0.5), exp(-r * r * 9.0)); gl_FragColor = vec4(c, min(1.0, a * 1.25)); }\n #include <tonemapping_fragment>\n #include <colorspace_fragment>\n }' });
+    antM = new THREE.Mesh(g, m); antM.frustumCulled = false; antM.renderOrder = 5; scene.add(antM); }
+  antM.material.uniforms.uNoche.value = noche; antM.visible = LUZ_ESTACIONAL && E.fundada;
+}
+
 /* ---------- cuadro ---------- */
 const _fr = new THREE.Frustum(), _pm = new THREE.Matrix4(), _ult = new Float32Array(16);
 function repartir(todo) { camara.updateMatrixWorld(); _pm.multiplyMatrices(camara.projectionMatrix, camara.matrixWorldInverse); _fr.setFromProjectionMatrix(_pm); const kf = 1 / Math.tan(camara.fov * Math.PI / 360); for (const l of lotes) l.repartir(_fr, camara.position, kf, todo); }
 export const medidas = { triangulos: 0, llamadas: 0, sombras: 0, conSombra: 0 };
 function dibujar() {
+  if (LUZ_ESTACIONAL) luz(); antorchas();
   const t = ahora(), dtC = Math.min(0.25, t - (U.uTiempo.value || t)); U.uTiempo.value = t; if (pinM && pinM.visible) pinM.rotation.y = t * 2;
   if (E) { sincronizar(false); if (ahora() >= esperaSurco) obrasAlDia(); }
   /* arado y surco */
@@ -414,35 +463,12 @@ export class CityView3D {
     M[o] = c; M[o + 1] = 0; M[o + 2] = -s; M[o + 3] = 0; M[o + 4] = 0; M[o + 5] = k; M[o + 6] = 0; M[o + 7] = 0; M[o + 8] = s; M[o + 9] = 0; M[o + 10] = c; M[o + 11] = 0; M[o + 12] = x; M[o + 13] = altura(x, z) + 0.1; M[o + 14] = z; M[o + 15] = 1;
     e.a[e.i] = UN.frameOf(clip, t); e.i++;
   }
-  /* PROVISIONAL (CN11 lo sustituye por vida.js): unos 20 ciudadanos por las vías de la ciudad y la guarnición formada ante la puerta principal */
+  /* ciudadanos, humo y carros: vida.js (CN11-A). La guarnición formada ante la puerta principal es provisional (CN11-B) */
   people(city, t, dt) {
     for (const e of this.figs.values()) e.i = 0;
-    const ver = cam.d < 560;
-    if (E && E.vias && E.parcelas && ver) {
-      const ec = this.fig('ciudadana', 24);
-      if (ec && (this._rev !== E.rev || this._E !== E)) { this._rev = E.rev; this._E = E;
-        const nc = {}; for (const l of E.parcelas) if (l.casa && !l.fuera && !l.casa.ruina) nc[l.via] = (nc[l.via] || 0) + 1;
-        const vs = E.vias.filter(v => nc[v.id] >= 2 && v.largo > 30 && v.p && v.p.length > 1), rnd = azar(E.vias.length * 13 + 1), quiero = Math.min(20, Math.floor(CI.casas(E).length / 3));
-        this.cit = this.cit.filter(g => vs.includes(g.v)).slice(0, quiero); let guard = 0;
-        while (this.cit.length < quiero && vs.length && guard++ < 200) { const v = vs[Math.floor(rnd() * vs.length)]; this.cit.push({ v, s: rnd() * v.largo, vel: (rnd() < 0.5 ? 1 : -1) * (3.2 + rnd() * 1.6), lat: (rnd() - 0.5) * v.w * 1.1, fase: rnd() * 6, k: this.cit.length % 6 === 5 ? 'sacerdote' : 'ciudadana' }); } }
-      for (const g of this.cit) { const e = this.fig(g.k, 24); if (!e) continue; g.s += g.vel * dt; if (g.s < 1) { g.s = 1; g.vel = Math.abs(g.vel); } if (g.s > g.v.largo - 1) { g.s = g.v.largo - 1; g.vel = -Math.abs(g.vel); }
-        const p = g.v.p, f = g.s / g.v.largo * (p.length - 1), k = Math.min(p.length - 2, Math.floor(f)), u = f - k, a = p[k], b = p[k + 1], ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
-        this.put(e, a[0] + (b[0] - a[0]) * u - Math.sin(ang) * g.lat, a[1] + (b[1] - a[1]) * u + Math.cos(ang) * g.lat, -ang + Math.PI / 2 + (g.vel < 0 ? Math.PI : 0), e.u.clips.walk, t * 0.9 + g.fase, 0.75); }
-    }
-    /* guarnición */
-    let men = 0; for (const k in city.units) men += city.units[k]; this.men = men; this.guarn = null;
-    const f = E && E.foro;
-    if (f && men > 0) {
-      const pu = E.puertas && E.puertas[0]; let ox = 0, oz = 1, ax = f.x, az = f.z + 46;
-      if (pu) { const d = Math.hypot(pu.x - f.x, pu.z - f.z) || 1; ox = (pu.x - f.x) / d; oz = (pu.z - f.z) / d; ax = pu.x + ox * 26; az = pu.z + oz * 26; }
-      const lx = -oz, lz = ox, yaw = Math.atan2(ox, oz); this.guarn = { x: ax, z: az };
-      const ratio = Math.max(1, men / 420), blocks = []; let width = 0;
-      for (const k in city.units) { const cls = D.UNITS[k].cls, cnt = city.units[k]; if (cnt <= 0 || !UN.getUnit(k)) continue; const n = cls === 'ele' ? Math.min(cnt, 20) : Math.max(1, Math.round(cnt / ratio)), sp = (cls === 'ele' ? 11 : cls === 'cav' ? 5.6 : 2.9) * PK, cols = cls === 'ele' ? 5 : cls === 'cav' ? 8 : 10; blocks.push({ k, f: n, sp, cols, w: Math.min(cols, n) * sp }); width += Math.min(cols, n) * sp + 8; }
-      let x0 = -width / 2 + 4;
-      for (const B of blocks) { const e = this.fig(B.k, B.cols === 10 ? 430 : 120);
-        for (let j = 0; j < B.f; j++) { const cx = j % B.cols, cy = Math.floor(j / B.cols), u = x0 + cx * B.sp + (hash(j * 3.1) - 0.5) * 0.5, w = cy * B.sp * 1.1 + (hash(j * 7.7) - 0.5) * 0.5; this.put(e, ax + lx * u + ox * w, az + lz * u + oz * w, yaw, e && e.u.clips.idle, t + hash(j * 1.9 + B.cols) * 6); }
-        x0 += B.w + 8; }
-    }
+    vida.actualizar(E, cam.d, t, dt, ahora() >= esperaSurco);
+    /* guarnición: vida.js (CN11-B), real de cerca y cajas de lejos */
+    const g = vida.guarnicion(E, city.units, camara.position, t, { PK, D }); this.men = g.men; this.guarn = g.hay ? { x: g.x, z: g.z } : null;
     for (const e of this.figs.values()) { e.m.count = e.i; e.m.instanceMatrix.needsUpdate = true; e.m.geometry.attributes.aFrame.needsUpdate = true; }
   }
 

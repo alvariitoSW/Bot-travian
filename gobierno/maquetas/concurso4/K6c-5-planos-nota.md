@@ -1,0 +1,7 @@
+1. La idea: el campo se mira desde arriba para dar órdenes, y debajo se ve un corte por el vado II que enseña la línea de lado y el hueco que deja.
+2. Con el pulgar: se toca una tropa blanca y luego el punto a donde va; el río solo admite vados. «Ver la escena» pasa al choque a pantalla completa y «Volver al mapa» regresa.
+3. Botones a la vista: tres en el mapa (quitar la última orden, ver la escena, ejecutar turno). Uno o dos en las demás pantallas.
+4. Dirección de arte: papel azul oscuro de dibujo técnico, con líneas claras, cotas (escala 250 m, norte, corte A–A') y tipografía Cinzel. Tropas blancas, enemigos grises, órdenes amarillas y choques rojos. Hecho a mano en SVG y CSS; no usa arte de 0 A.D.
+5. Escala: el campo de 1.500 m cabe en pantalla horizontal. Con 20 regimientos por bando la rejilla se ve entera; con 30, cada fila pasa a tres y el corte sigue siendo una sola línea de lectura. Cada turno tiene 45 segundos para planear, con una barra que baja; al acabar se ejecuta solo y el corte muestra en metros cuánto queda abierta la línea.
+6. Cambios propuestos (solo proponer): `js/ui.js` para el reloj del turno, las pantallas y el corte; `js/battle.js` para que cada turno mueva los regimientos por tiempo y devuelva el hueco del vado; `js/gfx/battle3d.js` para la escena del choque con bloques de tropa.
+7. Coste estimado: tres tareas medianas, unas dos sesiones: turnos y reloj en la lógica; mapa y corte en la interfaz; escena y acta.

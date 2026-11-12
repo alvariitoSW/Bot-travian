@@ -72,6 +72,7 @@
      c.pop es el total; plebeyos = pop - ciu - esc. */
   D.CLASES = {
     escConquista: 0.25,        // parte de la población de una ciudad conquistada que pasa a esclavos
+    escRenta: 0,               // oro/mes por esclavo (0 hasta que Villa esclavista lo cambie)
     escTrabajo: 0.3,           // cada esclavo trabaja 1,3 veces
     impCiu: 2.5,               // impuestos por ciudadano (plebeyo 1, esclavo 0)
     escAnimo: 0.15, escAnimoTope: 15,   // ánimo que pierden los plebeyos por cada punto de % de esclavos (con tope)
@@ -94,11 +95,54 @@
   D.TIPO_CAMBIO = 250;
   D.TIPOS = {
     municipio: { n: 'Municipio', i: '🏛️', d: 'Hace de todo: +5 de felicidad.', fel: 5 },
-    agraria: { n: 'Colonia agraria', i: '🌾', d: '+25 % de madera, piedra, hierro y grano.', rec: 1.25 },
-    militar: { n: 'Colonia militar', i: '⚔️', d: 'Instrucción un 25 % más rápida y la paga de su guarnición cuesta un 25 % menos.', instr: 0.8, paga: 0.75 },
-    emporio: { n: 'Emporio', i: '⚖️', d: '+50 % del oro de foro, puerto y rutas. Con mercado, cambias recursos a mejor precio. Una ruta comercial más.', oroCom: 1.5, mercado: 0.05, rutas: 1 },
-    naval: { n: 'Base naval', i: '⚓', d: 'Solo en ciudades con mar: viajes por mar un 25 % más rápidos y +3 de oro por nivel de puerto.', mar: true, viajeMar: 0.75, oroPuerto: 3 },
-    saber: { n: 'Ciudad de artesanos', i: '🔨', d: 'Las mejoras de la herrería encargadas desde aquí cuestan y tardan un 25 % menos.', forjaCoste: 0.75, forjaTiempo: 0.75 }
+    agraria: { n: 'Colonia agraria', i: '🌾', d: '+25 % de madera, piedra, hierro y grano.', rec: 1.25, afin: 'ca' },
+    militar: { n: 'Colonia militar', i: '⚔️', d: 'Instrucción un 25 % más rápida y la paga de su guarnición cuesta un 25 % menos.', instr: 0.8, paga: 0.75, afin: 'gu' },
+    emporio: { n: 'Emporio', i: '⚖️', d: '+50 % del oro de foro, puerto y rutas. Con mercado, cambias recursos a mejor precio. Una ruta comercial más.', oroCom: 1.5, mercado: 0.05, rutas: 1, afin: 'of' },
+    naval: { n: 'Base naval', i: '⚓', d: 'Solo en ciudades con mar: viajes por mar un 25 % más rápidos y +3 de oro por nivel de puerto.', mar: true, viajeMar: 0.75, oroPuerto: 3, afin: 'ma' },
+    saber: { n: 'Ciudad de artesanos', i: '🔨', d: 'Las mejoras de la herrería y las investigaciones encargadas desde aquí cuestan y tardan un 25 % menos.', forjaCoste: 0.75, forjaTiempo: 0.75, invCoste: 0.75, invTiempo: 0.75 }
+  };
+  /* Investigación (I5). Licencia de juego: el árbol de «saberes» (4 ramas, 3 edades) es invención; las fuentes de cada saber son las de gobierno/estudios/P93-ciencia.md §3.
+     Los PRECIOS Y MESES SON FIJOS (nada depende de la producción); solo los recorta D.SABER.tope × G.cap(). Aquí solo hay datos: las reglas las lee game.js (G.inv*).
+     rama: ca campo, of oficios, gu guerra, ma mar. req: gramática de G.invReq. ef: datos que leen G.invMul/G.invSum y los ganchos de economía. eureka: ciudad que acelera ×4/3. */
+  D.SABER = {
+    tiempoMul: 1, tope: 0.8,
+    techos: { grano: 1.08, crece: 1.20, impuestos: 1.12, oroCom: 1.25, rutaRenta: 1.20, viajeTierra: 3, viajeMar: 6, obra: 0.85, paga: 0.85, instr: 0.90, mor: 4, atk: 1.10, defMuro: 0.15 },
+    final: { grano: 1.30, crece: 1.25, impuestos: 1.20, oroCom: 1.40, rutaRenta: 1.40, viajeMin: 3, obra: 0.75, paga: 0.70, instr: 0.78 },
+    edadNombres: ['Roma itálica', 'Roma sale al mar', 'Aníbal', 'Roma y los reinos griegos'],
+    copia: 0.5, copiaBatalla: 0.15, copiaBajasMin: 60
+  };
+  const invC = (madera, piedra, hierro, grano, oro) => ({ madera, piedra, hierro, grano, oro });
+  const inv = (id, n, i, rama, edad, req, excl, cost, time, ef, eureka, fuente, dictamen) => { const o = { id, n, i, rama, edad, req, excl, cost, time, ef, fuente, dictamen }; if (eureka) o.eureka = eureka; return o; };
+  const IV = [
+    inv('griego', 'Preceptores griegos', '📜', 'of', 1, [{ b: ['foro', 1] }], [], invC(40, 50, 10, 60, 50), 12, { abre: 'escuela' }, 0, 'Suetonio, De grammaticis 1; Cicerón, Bruto 72: Livio Andronico, griego de Tarento, enseña hacia 272 a.C. La Escuela como edificio es licencia de juego.', 'probable'),
+    inv('apio', 'Obras de Apio Claudio', '🛣️', 'of', 1, [{ b: ['foro', 1] }], [], invC(90, 140, 20, 40, 60), 20, { viajeTierra: { resta: 3, sobre: 3 }, popCap: 1.05 }, 0, 'Livio 9.29; Frontino, De aquaeductu 4-6: Vía Apia y Aqua Appia (312 a.C.). Cifras: licencia de juego.', 'probable'),
+    inv('castra', 'Campamento y disciplina', '⛺', 'gu', 1, [{ b: ['cuartel', 1] }], [], invC(60, 60, 110, 60, 50), 16, { mor: 3, paga: 0.95 }, 0, 'Polibio 6.27-39: campamento, castigos y premios.', 'probable'),
+    inv('quinque', 'Quinquerreme copiada', '⚓', 'ma', 2, [{ edad: 2 }, { b: ['puerto', 1] }], [], invC(280, 40, 90, 80, 110), 24, { viajeMar: { resta: 3, sobre: 3 } }, 'tarentum', 'Polibio 1.20: Roma copia una nave cartaginesa varada (260 a.C.); Tarento y otros aliados prestan naves (1.20.14). Cifra: licencia de juego.', 'historico'),
+    inv('corvus', 'Corvus', '🪝', 'ma', 2, [{ edad: 2 }, { inv: ['quinque'] }], ['remeros'], invC(220, 30, 200, 60, 130), 28, { atkMar: 1.07 }, 0, 'Polibio 1.22: pasarela de abordaje (cotejado en H1). Cifra: licencia de juego.', 'historico'),
+    inv('remeros', 'Remeros adiestrados en seco', '🚣', 'ma', 2, [{ edad: 2 }, { inv: ['quinque'] }], ['corvus'], invC(180, 40, 40, 120, 120), 28, { viajeMar: { resta: 3, sobre: 6 } }, 0, 'Polibio 1.21: remeros adiestrados en bancos sobre la arena. Cifra: licencia de juego.', 'historico'),
+    inv('fasti', 'Fasti y ley escrita', '⚖️', 'of', 2, [{ edad: 2 }, { b: ['escuela', 1] }], [], invC(50, 90, 10, 80, 130), 24, { inqMeses: 0.6, inqProd: 0.6 }, 0, 'Livio 9.46: Cneo Flavio publica el derecho y el calendario (304 a.C.).', 'probable'),
+    inv('vina', 'Viña y olivar', '🍇', 'ca', 2, [{ edad: 2 }, { b: ['granja', 3] }], ['trigo'], invC(140, 120, 20, 60, 130), 28, { oroCom: 1.25, impuestos: 1.08 }, 'agrigentum', 'Catón, De agri cultura 1.7: la viña, primera en rendimiento. Cifras: licencia de juego.', 'probable'),
+    inv('trigo', 'Trigo y diezmo de Sicilia', '🌾', 'ca', 2, [{ edad: 2 }, { b: ['granja', 3] }], ['vina'], invC(120, 60, 20, 140, 110), 28, { grano: 1.05, crece: 1.06 }, 0, 'Cicerón, Verrinas 3: lex Hieronica, el diezmo de Hierón que Roma conserva.', 'probable'),
+    inv('pilum', 'Pilum y manípulo', '🗡️', 'gu', 2, [{ edad: 2 }, { b: ['cuartel', 3] }], [], invC(80, 40, 200, 60, 140), 26, { atk: 1.03 }, 0, 'Polibio 6.23.9-11 (dentro del tramo 6.21-23 ya cotejado). Cifra: licencia de juego.', 'historico'),
+    inv('latif', 'Villa esclavista', '⛓️', 'ca', 3, [{ edad: 3 }, { b: ['granja', 6] }], ['colon'], invC(240, 100, 160, 200, 270), 44, { cl: { escConquista: 0.60, escRenta: 0.20, escAnimo: 0.25, escAnimoTope: 20, manumisionTasa: 0, inquietud: 35 } }, 0, 'Catón, De agri cultura 2.7 y 56-59; la crisis del pequeño campesino es tesis moderna (Toynbee). Cifras: licencia de juego.', 'probable'),
+    inv('colon', 'Colonos y asignaciones', '🏡', 'ca', 3, [{ edad: 3 }, { barrio: 2 }], ['latif'], invC(220, 160, 80, 240, 250), 44, { cl: { ciudadaniaCoste: 30, ciudadaniaMax: 0.55, impCiu: 2.9, escConquista: 0.10 }, instr: 0.94 }, 0, 'Polibio 2.21: ley de Flaminio, ager Gallicus (232 a.C.).', 'probable'),
+    inv('sambuca', 'Sambuca y arietes', '🪜', 'gu', 3, [{ edad: 3 }, { b: ['puerto', 1] }, { b: ['cuartel', 3] }], ['arquimedes'], invC(360, 60, 260, 100, 290), 44, { brecha: 1 }, 0, 'Polibio 8.4-6 (dentro del tramo 8.5-8 cotejado): Marcelo y las sambucas sobre barcos en Siracusa.', 'historico'),
+    inv('arquimedes', 'Máquinas de Arquímedes', '🔭', 'gu', 3, [{ edad: 3 }, { b: ['muralla', 3] }, { o: [{ tiene: ['syracusae'] }, { ciudades: 6 }] }], ['sambuca'], invC(160, 300, 300, 80, 320), 48, { defMuro: 0.025 }, 'syracusae', 'Polibio 8.5-8; Plutarco, Marcelo 15-17 (cotejados). Cifra: licencia de juego.', 'historico'),
+    inv('astilleros', 'Astilleros de ribera', '🏗️', 'ma', 3, [{ edad: 3 }, { b: ['puerto', 3] }], ['derrota'], invC(480, 140, 140, 100, 190), 40, { sinBien: 'puerto' }, ['panormus', 'lilybaeum'], 'Polibio 1.20-21: la flota se levanta desde cero. Que sustituya al bien especial: licencia de juego.', 'historico'),
+    inv('derrota', 'Derrota mercante', '🧭', 'ma', 3, [{ edad: 3 }, { b: ['mercado', 3] }, { b: ['puerto', 1] }], ['astilleros'], invC(480, 140, 140, 100, 190), 40, { rutas: 1, rutaRenta: 1.15 }, 0, 'Polibio 3.22-25: tratados de comercio Roma-Cartago (ya citado en D.RUTA). Cifras: licencia de juego.', 'historico'),
+    inv('medicina', 'Cirujanos griegos', '⚕️', 'of', 3, [{ edad: 3 }, { b: ['escuela', 1] }, { o: [{ y: 219 }, { ciudades: 5 }] }], [], invC(100, 60, 80, 260, 290), 38, { crece: 1.10, herida: -12, fel: -2, favor: { senado: -3, pueblo: 3 } }, 0, 'Plinio, NH 29.12-14: Arcágato, primer médico griego, 219 a.C.; apodado «verdugo»; Catón desconfiaba. Cifras: licencia de juego.', 'probable'),
+    inv('magon', 'Tratado de Magón', '📚', 'ca', 4, [{ edad: 4 }, { o: [{ fac: 'cartago' }, { ciudades: 7 }] }], [], invC(360, 140, 70, 360, 430), 68, { grano: 1.03, crece: 1.04, hambre: 0.5 }, 'carthago', 'Plinio, NH 18.22-23 (y Varrón, RR 1.1.10): el Senado manda traducir los 28 libros de Magón tras 146 a.C.', 'probable'),
+    inv('perseo', 'Biblioteca del rey Perseo', '🏛️', 'of', 4, [{ edad: 4 }, { b: ['escuela', 3] }, { o: [{ tiene: ['pella'] }, { ciudades: 7 }] }], [], invC(120, 160, 20, 300, 440), 58, { pts: 2, fel: 2 }, 'pella', 'Plutarco, Emilio Paulo 28; Polibio 31.23-25: los libros de Perseo pasan a los hijos de Paulo, entre ellos Escipión Emiliano (168 a.C.).', 'probable'),
+    inv('acoger', 'Acoger a los filósofos', '🤝', 'of', 4, [{ edad: 4 }, { b: ['escuela', 3] }], ['expulsar'], invC(40, 40, 10, 160, 360), 38, { impuestos: 1.08, crece: 1.04, pts: 1, fel: -2, favor: { senado: -4, pueblo: 3 } }, 0, 'Plutarco, Catón 22; Gelio 6.14: embajada de Carnéades (155 a.C.).', 'probable'),
+    inv('expulsar', 'Expulsar a los filósofos', '🚪', 'of', 4, [{ edad: 4 }, { b: ['escuela', 1] }], ['acoger'], invC(60, 60, 60, 160, 250), 28, { fel: 4, crece: 0.96, favor: { senado: 4, pueblo: -2 } }, 0, 'Suetonio, De rhetoribus 1; Gelio 15.11: expulsión de 161 a.C.', 'probable'),
+    inv('hormigon', 'Opus caementicium', '🧱', 'of', 4, [{ edad: 4 }, { b: ['escuela', 1] }], [], invC(200, 380, 60, 100, 300), 48, { obra: 0.88 }, 0, 'Livio 35.10: Pórtico Emilio (193 a.C.), primeros usos del hormigón. Cifra: licencia de juego.', 'probable')
+  ];
+  D.INVEST = {}; IV.forEach(x => { D.INVEST[x.id] = x; });
+  const edad = (id, n, e, req, cost, time, fuente) => ({ id, n, edad: e, req, cost, time, fuente, dictamen: 'licencia de juego' });
+  D.EDADES = {
+    E2: edad('E2', 'Roma sale al mar', 2, [{ saberes: 2 }, { b: ['foro', 2] }, { ciudades: 2 }], invC(150, 150, 60, 100, 100), 24, 'Polibio 1.5-6 (periodización de 264 a 219 a.C.). La división en edades es licencia de juego.'),
+    E3: edad('E3', 'Aníbal', 3, [{ edad: 2 }, { saberes: 5 }, { ramas: 3 }, { ciudades: 3 }, { b: ['mercado', 3] }, { barrio: 2 }], invC(300, 300, 150, 200, 240), 38, 'Hechos de D.EVENTS (218-201 a.C.). La división en edades es licencia de juego.'),
+    E4: edad('E4', 'Roma y los reinos griegos', 4, [{ edad: 3 }, { saberes: 9 }, { ramas: 4 }, { ciudades: 5 }, { b: ['templo', 3] }, { barrio: 2 }], invC(500, 500, 300, 350, 480), 58, 'Polibio 1.1-3 (200-146 a.C.). La división en edades es licencia de juego.')
   };
   /* Bien especial por ciudad (B1). Licencia de juego: el mecanismo «tener acceso abre niveles y tropas» es invención.
      No se almacena: Roma «tiene acceso» a un bien si posee alguna ciudad que lo da (D.CITIES[id].esp), vea G.especiales.
@@ -237,9 +281,11 @@
   D.LABELS = [['HISPANIA', -3.5, 40.5], ['GALLIA', 3, 45.5], ['ITALIA', 13.2, 42.9], ['AFRICA', 5, 35.6], ['GRAECIA', 21.6, 38.9], ['MACEDONIA', 22, 41.6], ['ILLYRICVM', 17.5, 44.2], ['MARE NOSTRVM', 6, 38.6], ['SICILIA', 14.2, 37.7]];
 
   // Hechos históricos. fx: clave interpretada por game.js (o varias separadas por comas, en ese orden). k: clave opcional para distinguir dos hechos del mismo año (id de ficha «<año>-<k>»)
+  // H13b, licencia de juego: Roma empieza con más tropas para la llegada temprana de Pirro (no es un dato histórico)
+  D.LEVA_INICIAL = { hastati: 30, velites: 20 };
   D.EVENTS = [
     { y: 280, k: 'fundacion', t: 'Ab urbe condita CDLXXIV', x: 'Año 280 a.C. Roma domina el Lacio, pero el Mediterráneo pertenece a otros: Cartago reina en el mar, los griegos en el sur y los galos acechan en el norte. El rey Pirro de Epiro acaba de desembarcar en Tarento con 25.000 hombres y veinte elefantes.\n\nTu misión: llevar las águilas hasta Cartago y destruirla antes de que termine el año 146 a.C. Si Roma cae, todo estará perdido.' },
-    { y: 280, k: 'pirro', t: 'Pirro marcha sobre Roma', x: 'En 280 a.C., tras vencer en Heraclea, Pirro avanzó hacia el norte hasta unos 300 estadios de Roma, unos 55 km según Plutarco (hasta Anagnia, según Apiano), y luego se retiró a Campania. Al año siguiente venció de nuevo en Ásculo, a gran coste: «otra victoria así y estaré perdido». Los romanos jamás habían visto elefantes: los llaman «bueyes lucanos».\n\nUn ejército epirota se dirige a tus tierras. ¡Prepara las defensas!', lic: 'Que el ejército de Pirro ataque tus ciudades y el plazo que tarda en llegar son regla de juego, no historia', fx: 'pirro' },
+    { y: 280, k: 'pirro', t: 'Pirro marcha sobre Roma', x: 'En 280 a.C., tras vencer en Heraclea, Pirro avanzó hacia el norte hasta unos 300 estadios de Roma, unos 55 km según Plutarco (hasta Anagnia, según Apiano), y luego se retiró a Campania. Al año siguiente venció de nuevo en Ásculo, a gran coste: «otra victoria así y estaré perdido». Los romanos jamás habían visto elefantes: los llaman «bueyes lucanos».\n\nUn ejército epirota se dirige a tus tierras, y tras él vienen refuerzos. ¡Prepara las defensas!', lic: 'Que el ejército de Pirro ataque tus ciudades, sus dos oleadas, sus tamaños, los plazos de llegada y las levas extra con que empiezas son regla de juego, no historia', fx: 'pirro' },
     { y: 275, t: 'Benevento', x: 'El cónsul Manio Curio Dentato vence a Pirro en Benevento. El rey renuncia a Italia y vuelve al Epiro con 8.000 infantes y 500 jinetes, según Plutarco.\n\nLa guerra contra Pirro ha terminado.' },
     { y: 272, t: 'La caída de Tarento', x: 'Tarento, la ciudad que había llamado a Pirro, se rinde a Roma este año. Con ello toda la Italia peninsular queda bajo control romano.' , lic: 'Que el ejército de Pirro se retire de tu mapa es regla de juego, no historia', fx: 'pirroSeVa'},
     { y: 264, t: 'Primera Guerra Púnica', x: 'Los mamertinos de Messana, amenazados por Siracusa y Cartago, piden ayuda a Roma. El Senado cruza el estrecho: comienza una guerra de 23 años por Sicilia.\n\nDesde ahora las guarniciones cartaginesas atacarán tus ciudades vecinas.', lic: 'Año aproximado: Agrigentum pasa a Cartago hacia 262; los ataques púnicos son regla de juego', fx: 'agrigentoPunica' },
@@ -303,6 +349,7 @@
      tratados con ciudades ajenas y la quinta leva en cola. Licencia de juego: las barras y todas las cifras (los hechos
      que inspiran las misiones están en sus fichas). Las condiciones son datos sobre piezas y niveles reales de D.BUILD
      (no sobre viviendas ni foro, que son derivados). tipo de cond: lo define G.MISION_TIPOS en game.js. */
+  D.DEUDA = { desBase: 0.02, desMes: 0.03, desMax: 0.12 };   // I3b: deserción mensual con paga atrasada = base + desMes por mes de paga debido, con tope
   D.SENADO = {
     favorIni: 50, min: 0, max: 100, bajo: 25,
     inercia: 0.12,         // el pueblo se acerca esa fracción al ánimo medio cada mes

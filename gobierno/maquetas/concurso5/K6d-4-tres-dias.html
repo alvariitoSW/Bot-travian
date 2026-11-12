@@ -1,0 +1,663 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=844, initial-scale=1">
+<title>Tres días · K6d-4</title>
+<style>
+@font-face {
+  font-family: "Cinzel";
+  src: url("../../../assets/fuentes/cinzel-700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: swap;
+}
+:root {
+  --tinta: #1b140d;
+  --tinta2: #2d2115;
+  --oro: #d7a744;
+  --rojo: #9a2b1e;
+  --rojo-claro: #c4503a;
+  --bajo: #d0462f;
+  --texto: #2a1d10;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--tinta);
+  color: #f5ead2;
+  font: 13px/1.35 system-ui, "Segoe UI", Roboto, sans-serif;
+}
+#app {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+button {
+  font: 600 12px system-ui, sans-serif;
+  color: #f5ead2;
+  background: #4a3822;
+  border: 1px solid #7a5c36;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+button small {
+  display: block;
+  font-weight: 400;
+  color: #6b5a3e;
+}
+button.principal { background: var(--rojo); border-color: var(--rojo-claro); }
+
+/* Barra superior */
+.barra {
+  position: absolute;
+  left: 0; right: 0; top: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 12px;
+  background: var(--tinta2);
+  border-bottom: 1px solid #4a3822;
+  z-index: 5;
+}
+.titulo {
+  font: 700 15px Cinzel, Georgia, serif;
+  color: var(--oro);
+  letter-spacing: .04em;
+  white-space: nowrap;
+}
+.dia { white-space: nowrap; }
+.dia b { color: var(--oro); }
+.totales {
+  display: flex;
+  gap: 12px;
+  margin-left: auto;
+  white-space: nowrap;
+  color: #cdbb93;
+}
+.totales b { color: #f5ead2; font-variant-numeric: tabular-nums; }
+.pasos { display: flex; gap: 6px; }
+.pasos button.on {
+  background: var(--oro);
+  color: var(--tinta);
+  border-color: var(--oro);
+}
+
+/* Pantallas */
+.pantalla {
+  position: absolute;
+  top: 40px; left: 0; right: 0; bottom: 0;
+  display: none;
+}
+.pantalla.on { display: grid; grid-template-rows: 100%; }
+.pantalla.lucha.on { display: block; background: #666640; overflow: hidden; }
+.p-dos { grid-template-columns: 1fr 292px; }
+.p-cuatro { grid-template-columns: 300px 1fr; }
+
+.mapa {
+  width: 100%;
+  height: 100%;
+  display: block;
+  min-height: 0;
+}
+
+/* Paneles de pergamino */
+.panel {
+  background: linear-gradient(#efe2c1, #e2cd9c);
+  color: var(--texto);
+  padding: 10px 12px;
+  overflow: hidden;
+  border-left: 2px solid #7a5c36;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+.panel h2 {
+  margin: 0;
+  font: 700 14px Cinzel, Georgia, serif;
+  color: #6b2014;
+}
+.panel p { margin: 0; }
+.panel button {
+  background: #f3e8cc;
+  color: var(--texto);
+  border-color: #a07a44;
+}
+.panel button.principal,
+.panel button.on {
+  background: #6b2014;
+  color: #f5ead2;
+  border-color: #6b2014;
+}
+.tribuno {
+  background: #f8efd8;
+  border: 1px solid #b89255;
+  border-radius: 8px;
+  padding: 8px;
+  font-style: italic;
+}
+.tribuno b { font-style: normal; color: #6b2014; }
+.chips, .cartas { display: flex; flex-wrap: wrap; gap: 5px; }
+.cartas { flex-direction: column; }
+.cartas button { text-align: left; width: 100%; }
+.etiqueta { font-weight: 700; color: #6b5a3e; font-size: 12px; }
+.fila-plan {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 8px;
+  padding: 5px 0;
+  border-bottom: 1px dashed #b89255;
+}
+.fila-plan b { color: #6b2014; font-weight: 700; }
+.estado { color: #6b5a3e; font-style: italic; }
+.mando { font-weight: 600; }
+.pie {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.aviso { color: #6b5a3e; font-size: 12px; }
+.informe {
+  background: #f8efd8;
+  border-left: 4px solid var(--rojo);
+  border-radius: 6px;
+  padding: 8px;
+}
+
+/* Barras de grano y madera */
+.tropa {
+  padding: 6px 0;
+  border-bottom: 1px dashed #b89255;
+}
+.tropa small { color: #6b5a3e; font-weight: 400; }
+.br {
+  display: grid;
+  grid-template-columns: 56px 1fr 60px;
+  align-items: center;
+  gap: 6px;
+  margin-top: 3px;
+}
+.br b { text-align: right; font-variant-numeric: tabular-nums; }
+.bar {
+  height: 9px;
+  background: #cdb88a;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.bar i { display: block; height: 100%; }
+.bar i.g { background: #b8862a; }
+.bar i.m { background: #6a4a2a; }
+.bar i.bajo { background: var(--bajo); }
+
+/* Días */
+.dias {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+}
+.dia-c {
+  border: 1px solid #a07a44;
+  border-radius: 8px;
+  padding: 6px 4px;
+  background: #f8efd8;
+  text-align: center;
+}
+.dia-c small { display: block; }
+.dia-c.hecho { opacity: .55; }
+.dia-c.hoy { background: #6b2014; color: #f5ead2; border-color: #6b2014; }
+
+/* Escena de lucha */
+.lienzo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.rotulo {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  max-width: 520px;
+  background: rgba(27, 20, 13, .8);
+  border: 1px solid #7a5c36;
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+.controles {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  gap: 6px;
+}
+.controles button.on {
+  background: var(--oro);
+  color: var(--tinta);
+  border-color: var(--oro);
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="barra">
+    <div class="titulo">Tres días</div>
+    <div class="dia">Día <b id="dia">2</b> de 3</div>
+    <div class="totales" id="totales"></div>
+    <nav class="pasos">
+      <button data-ir="1" class="on">1 Plan</button>
+      <button data-ir="2">2 Turno</button>
+      <button data-ir="3">3 Lucha</button>
+      <button data-ir="4">4 Días</button>
+    </nav>
+  </header>
+
+  <!-- Pantalla 1: planear la batalla con el mapa en grande -->
+  <section class="pantalla p-dos on" id="p1">
+    <svg class="mapa" viewBox="0 0 540 350" role="img" aria-label="Mapa del valle con el puesto y el enemigo">
+      <defs>
+        <linearGradient id="suelo1" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#a3ab78"/>
+          <stop offset="1" stop-color="#77854f"/>
+        </linearGradient>
+        <marker id="flecha" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="#f5ead2"/>
+        </marker>
+      </defs>
+      <rect width="540" height="350" fill="url(#suelo1)"/>
+      <ellipse cx="390" cy="160" rx="160" ry="110" fill="#c2b07a" opacity=".45"/>
+      <ellipse cx="390" cy="160" rx="95" ry="62" fill="#d1bf8c" opacity=".35"/>
+      <path d="M120 0 C160 80 90 150 130 230 S150 320 120 350" fill="none" stroke="#4f7d9a" stroke-width="16"/>
+      <path d="M112 180 L140 180" stroke="#c9b27a" stroke-width="9"/>
+      <g fill="#3f5a2c">
+        <circle cx="40" cy="60" r="22"/><circle cx="62" cy="48" r="16"/><circle cx="30" cy="92" r="14"/>
+        <circle cx="210" cy="300" r="24"/><circle cx="236" cy="290" r="18"/><circle cx="196" cy="276" r="14"/>
+        <circle cx="300" cy="50" r="20"/><circle cx="326" cy="40" r="14"/>
+      </g>
+      <path d="M0 268 C120 258 200 226 300 180" fill="none" stroke="#c7a96a" stroke-width="6" stroke-dasharray="14 6"/>
+
+      <rect x="352" y="132" width="66" height="50" fill="#7a5a34" stroke="#2e2014" stroke-width="3"/>
+      <rect x="346" y="126" width="10" height="12" fill="#5a4026"/>
+      <rect x="414" y="126" width="10" height="12" fill="#5a4026"/>
+      <rect x="346" y="176" width="10" height="12" fill="#5a4026"/>
+      <rect x="414" y="176" width="10" height="12" fill="#5a4026"/>
+      <rect x="376" y="176" width="14" height="6" fill="#2e2014"/>
+      <rect x="362" y="142" width="22" height="13" fill="#9a2b1e" stroke="#f5ead2" stroke-width="1"/>
+      <rect x="388" y="142" width="22" height="13" fill="#9a2b1e" stroke="#f5ead2" stroke-width="1"/>
+      <rect x="375" y="160" width="22" height="13" fill="#d7a744" stroke="#f5ead2" stroke-width="1"/>
+      <text x="373" y="152" text-anchor="middle" font-size="8" fill="#f5ead2">Leg</text>
+      <text x="399" y="152" text-anchor="middle" font-size="8" fill="#f5ead2">Aux</text>
+      <text x="386" y="170" text-anchor="middle" font-size="8" fill="#1b140d">Cab</text>
+      <text x="386" y="116" text-anchor="middle" font-family="Cinzel, Georgia, serif" font-size="13" fill="#f5ead2" stroke="#1b140d" stroke-width="3" paint-order="stroke">Puesto de Alba</text>
+
+      <path d="M520 40 C490 80 450 110 420 140" fill="none" stroke="#f5ead2" stroke-width="2.5" stroke-dasharray="7 6" marker-end="url(#flecha)"/>
+      <g fill="#3a3a40" stroke="#c9b27a" stroke-width="1">
+        <rect x="496" y="34" width="24" height="12" rx="2"/>
+        <rect x="480" y="50" width="24" height="12" rx="2"/>
+        <rect x="512" y="54" width="24" height="12" rx="2"/>
+        <rect x="466" y="70" width="24" height="12" rx="2"/>
+      </g>
+      <text x="532" y="24" text-anchor="end" font-size="12" fill="#f5ead2" stroke="#1b140d" stroke-width="3" paint-order="stroke">Enemigo · 20 regimientos</text>
+    </svg>
+
+    <aside class="panel">
+      <h2>Planear la batalla</h2>
+      <div class="tribuno"><b>Tribuno Cayo Varo:</b> «Llegan veinte regimientos al alba. Guarda la puerta con la Legión y pon los auxiliares en el flanco. Sin huecos.»</div>
+      <div class="etiqueta">Formación</div>
+      <div class="chips grupo">
+        <button class="on">Tres líneas</button>
+        <button>Alas fuertes</button>
+        <button>Testudo</button>
+        <button>Cuña</button>
+      </div>
+      <div id="lista-plan"></div>
+      <div class="pie">
+        <button>Volver al mapa</button>
+        <button class="principal" data-ir="2">Confirmar plan</button>
+      </div>
+    </aside>
+  </section>
+
+  <!-- Pantalla 2: turno en directo con flancos y emboscada -->
+  <section class="pantalla p-dos" id="p2">
+    <svg class="mapa" viewBox="0 0 540 350" role="img" aria-label="Campo de batalla en directo">
+      <defs>
+        <marker id="fl" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+          <path d="M0 0 L10 5 L0 10 z" fill="#f5ead2"/>
+        </marker>
+      </defs>
+      <rect width="540" height="350" fill="#8c9462"/>
+      <path d="M0 175 C120 160 220 190 340 170 S470 150 540 168" fill="none" stroke="#4f7d9a" stroke-width="18"/>
+      <path d="M236 170 L266 170" stroke="#c9b27a" stroke-width="10"/>
+      <g fill="#3f5a2c">
+        <circle cx="50" cy="150" r="34"/><circle cx="84" cy="130" r="24"/><circle cx="40" cy="196" r="20"/>
+      </g>
+      <g fill="none" stroke="#f5ead2" stroke-width="1.2" stroke-dasharray="3 3" opacity=".75">
+        <rect x="36" y="142" width="26" height="14"/>
+        <rect x="26" y="180" width="26" height="14"/>
+      </g>
+      <text x="36" y="136" font-size="8" fill="#f5ead2">emboscada</text>
+      <g fill="#3a3a40" stroke="#c9b27a" stroke-width="1">
+        <rect x="150" y="56" width="50" height="22" rx="3"/>
+        <rect x="210" y="56" width="50" height="22" rx="3"/>
+        <rect x="270" y="56" width="50" height="22" rx="3"/>
+        <rect x="330" y="56" width="50" height="22" rx="3"/>
+        <rect x="390" y="56" width="50" height="22" rx="3"/>
+      </g>
+      <g fill="#9a2b1e" stroke="#f5ead2" stroke-width="1">
+        <rect x="186" y="246" width="56" height="22" rx="3"/>
+        <rect x="246" y="246" width="56" height="22" rx="3"/>
+        <rect x="306" y="246" width="56" height="22" rx="3"/>
+        <rect x="96" y="232" width="40" height="22" rx="3"/>
+      </g>
+      <ellipse cx="470" cy="232" rx="26" ry="14" fill="#d7a744" stroke="#f5ead2" stroke-width="1"/>
+      <path d="M470 214 C500 150 460 110 404 82" fill="none" stroke="#f5ead2" stroke-width="2.5" stroke-dasharray="6 5" marker-end="url(#fl)"/>
+      <path d="M120 100 C150 120 170 90 190 74" fill="none" stroke="#c4503a" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#fl)"/>
+      <g font-size="9" fill="#f5ead2" text-anchor="middle">
+        <text x="175" y="70">Ene</text><text x="235" y="70">Ene</text><text x="295" y="70">Ene</text>
+        <text x="355" y="70">Ene</text><text x="415" y="70">Ene</text>
+        <text x="214" y="260">Leg</text><text x="274" y="260">Leg</text><text x="334" y="260">Leg</text>
+        <text x="116" y="246">Aux</text><text x="470" y="236">Cab</text>
+      </g>
+      <text x="16" y="24" font-size="12" fill="#f5ead2" stroke="#1b140d" stroke-width="3" paint-order="stroke">Enemigo · 20 regimientos</text>
+      <text x="16" y="330" font-size="12" fill="#f5ead2" stroke="#1b140d" stroke-width="3" paint-order="stroke">Nuestro frente</text>
+    </svg>
+
+    <aside class="panel">
+      <h2>Turno 3 de 5</h2>
+      <p class="estado" id="estado">En directo. Cada carta gasta puntos de mando.</p>
+      <div class="mando">Mando: <b>3</b> de 5</div>
+      <div class="bar"><i class="m" style="width:60%"></i></div>
+      <div class="cartas grupo">
+        <button class="on">Flanquear<small>Caballería al ala derecha · 2 puntos</small></button>
+        <button>Emboscada<small>Auxiliares tras el bosque · 1 punto</small></button>
+        <button>Carga<small>Caballería contra lanceros · 2 puntos</small></button>
+      </div>
+      <div class="pie">
+        <button id="pausa">Pausa</button>
+        <button class="principal" data-ir="3">Ejecutar turno</button>
+      </div>
+    </aside>
+  </section>
+
+  <!-- Pantalla 3: las tropas se mueven y luchan -->
+  <section class="pantalla lucha" id="p3">
+    <canvas id="lienzo" class="lienzo" aria-label="Tropas moviéndose y luchando"></canvas>
+    <div class="rotulo"><b>Turno 3 de 5.</b> La Legión aguanta el centro y la caballería sube por el flanco.</div>
+    <div class="controles">
+      <button data-vel="0.5">Lento</button>
+      <button data-vel="1" class="on">Normal</button>
+      <button data-vel="2.5">Rápido</button>
+      <button id="pausa3">Pausa</button>
+    </div>
+  </section>
+
+  <!-- Pantalla 4: ocupar y mantener el puesto unos días -->
+  <section class="pantalla p-cuatro" id="p4">
+    <aside class="panel">
+      <h2>Puesto de Alba</h2>
+      <p>Ocupado desde el día 1. El relevo llega al alba del día 3.</p>
+      <div class="dias">
+        <div class="dia-c" data-d="1"><b>Día 1</b><small>Aguantado</small></div>
+        <div class="dia-c" data-d="2"><b>Día 2</b><small>Hoy</small></div>
+        <div class="dia-c" data-d="3"><b>Día 3</b><small>Relevo</small></div>
+      </div>
+      <div class="informe" id="informe"><b>Anoche:</b> el ataque del amanecer fue rechazado. Bajas: 14 hombres.</div>
+    </aside>
+    <aside class="panel">
+      <h2>Grano y madera por tropa</h2>
+      <div id="lista-tropas"></div>
+      <p class="aviso">Auxiliares: madera para dos días. Pide leña antes del alba.</p>
+      <div class="pie">
+        <button id="retirar">Retirarse</button>
+        <button id="relevo">Pedir relevo</button>
+        <button class="principal" id="mantener">Mantener otro día</button>
+      </div>
+    </aside>
+  </section>
+
+</div>
+
+<script>
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+
+/* Datos de la guarnición: [actual, máximo] */
+const tropas = [
+  { nombre: "Legión I", regs: 6, papel: "al centro", grano: [14, 24], madera: [5, 12] },
+  { nombre: "Auxiliares", regs: 4, papel: "flanco izquierdo", grano: [9, 16], madera: [2, 10] },
+  { nombre: "Caballería", regs: 2, papel: "reserva", grano: [11, 16], madera: [1, 6] }
+];
+let dia = 2;
+
+const suma = (k, i) => tropas.reduce((a, t) => a + t[k][i], 0);
+
+function filaTropa(t) {
+  const pg = Math.round(100 * t.grano[0] / t.grano[1]);
+  const pm = Math.round(100 * t.madera[0] / t.madera[1]);
+  const cl = (p) => (p < 30 ? " bajo" : "");
+  return '<div class="tropa"><div><b>' + t.nombre + '</b> <small>' + t.regs + ' regimientos</small></div>' +
+    '<div class="br"><span>Grano</span><div class="bar"><i class="g' + cl(pg) + '" style="width:' + pg + '%"></i></div><b>' + t.grano[0] + '/' + t.grano[1] + '</b></div>' +
+    '<div class="br"><span>Madera</span><div class="bar"><i class="m' + cl(pm) + '" style="width:' + pm + '%"></i></div><b>' + t.madera[0] + '/' + t.madera[1] + '</b></div></div>';
+}
+
+function pintarTropas() { $("#lista-tropas").innerHTML = tropas.map(filaTropa).join(""); }
+function pintarPlan() {
+  $("#lista-plan").innerHTML = tropas.map((t) =>
+    '<div class="fila-plan"><span>' + t.nombre + '</span><span>' + t.regs + ' reg.</span><b>' + t.papel + '</b></div>'
+  ).join("");
+}
+function pintarTotales() {
+  $("#totales").innerHTML =
+    "<span>Grano <b>" + suma("grano", 0) + "/" + suma("grano", 1) + "</b></span>" +
+    "<span>Madera <b>" + suma("madera", 0) + "/" + suma("madera", 1) + "</b></span>";
+}
+function pintarDias() {
+  $("#dia").textContent = dia;
+  $$(".dia-c").forEach((c) => {
+    const d = Number(c.dataset.d);
+    c.classList.toggle("hecho", d < dia);
+    c.classList.toggle("hoy", d === dia);
+    c.querySelector("small").textContent = d < dia ? "Aguantado" : d === dia ? "Hoy" : "Relevo";
+  });
+  $("#mantener").textContent = dia < 3 ? "Mantener otro día" : "Recibir relevo";
+}
+
+/* Pantalla 4: cada día gasta raciones */
+$("#mantener").addEventListener("click", () => {
+  if (dia < 3) {
+    tropas.forEach((t) => {
+      t.grano[0] = Math.max(0, t.grano[0] - 4);
+      t.madera[0] = Math.max(0, t.madera[0] - 1);
+    });
+    dia++;
+    $("#informe").innerHTML = "<b>Anoche:</b> otro ataque rechazado. Cada tropa gastó grano y leña.";
+  } else {
+    $("#informe").innerHTML = "<b>Hoy:</b> llega el relevo. Las tropas bajan a la ciudad.";
+  }
+  pintarDias();
+  pintarTropas();
+  pintarTotales();
+});
+$("#relevo").addEventListener("click", () => {
+  $("#informe").innerHTML = "<b>Relevo pedido:</b> llega al alba del día 3.";
+});
+$("#retirar").addEventListener("click", () => {
+  $("#informe").innerHTML = "<b>Retirada:</b> el puesto queda libre. Las tropas bajan a la ciudad.";
+});
+
+/* Pantalla 2: pausa del turno */
+let enPausa = false;
+$("#pausa").addEventListener("click", () => {
+  enPausa = !enPausa;
+  $("#pausa").textContent = enPausa ? "Seguir" : "Pausa";
+  $("#estado").textContent = enPausa ? "En pausa. Puedes cambiar las cartas." : "En directo. Cada carta gasta puntos de mando.";
+});
+
+/* Pantalla 3: escena de lucha en canvas */
+const lienzo = $("#lienzo");
+const g = lienzo.getContext("2d");
+let W = 844, H = 350, dpr = 1, vel = 1, marcha = null, pausado = false;
+let soldados = [], chispas = [];
+
+function ajustar() {
+  const r = lienzo.getBoundingClientRect();
+  W = r.width || 844;
+  H = r.height || 350;
+  dpr = Math.min(2, window.devicePixelRatio || 1);
+  lienzo.width = Math.round(W * dpr);
+  lienzo.height = Math.round(H * dpr);
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function crearSoldados() {
+  soldados = [];
+  for (let f = 0; f < 6; f++) {
+    for (let c = 0; c < 6; c++) {
+      const y = H * 0.27 + f * 14;
+      soldados.push({ bando: 0, tipo: "i", x: W * 0.42 - c * 11, y, hp: 3, paso: Math.random() * 6 });
+      soldados.push({ bando: 1, tipo: "i", x: W * 0.58 + c * 11, y, hp: 3, paso: Math.random() * 6 });
+    }
+  }
+  soldados.push({ bando: 0, tipo: "c", x: W * 0.30, y: H * 0.86, vy: -0.3, hp: 4, paso: 0 });
+  soldados.push({ bando: 1, tipo: "c", x: W * 0.70, y: H * 0.14, vy: 0.3, hp: 4, paso: 0 });
+  chispas = [];
+}
+
+function chispa(x, y) {
+  for (let i = 0; i < 3; i++) {
+    chispas.push({ x, y, vx: (Math.random() - 0.5) * 2.4, vy: -Math.random() * 2.2, vida: 16 });
+  }
+}
+
+function mover() {
+  for (const u of soldados) {
+    if (u.hp <= 0) continue;
+    let cerca = null, dmin = 1e9;
+    for (const o of soldados) {
+      if (o.bando === u.bando || o.hp <= 0) continue;
+      const d = Math.hypot(o.x - u.x, o.y - u.y);
+      if (d < dmin) { dmin = d; cerca = o; }
+    }
+    if (cerca && dmin < 12) {
+      if (Math.random() < 0.06 * vel) {
+        cerca.hp -= u.tipo === "c" ? 2 : 1;
+        chispa((u.x + cerca.x) / 2, (u.y + cerca.y) / 2);
+      }
+    } else {
+      const dir = u.bando === 0 ? 1 : -1;
+      const v = u.tipo === "c" ? 1.5 : 0.9;
+      u.x += dir * v * vel;
+      if (u.tipo === "c") u.y += u.vy * vel;
+    }
+    u.paso += 0.25 * vel;
+  }
+}
+
+function dibujar(u) {
+  const color = u.bando === 0 ? "#9a2b1e" : "#3d3d46";
+  const escudo = u.bando === 0 ? "#d7a744" : "#9aa0a8";
+  if (u.tipo === "c") {
+    g.fillStyle = "#6b4a2a";
+    g.beginPath();
+    g.ellipse(u.x, u.y, 9, 5, 0, 0, 6.283);
+    g.fill();
+    g.fillStyle = color;
+    g.fillRect(u.x - 3, u.y - 7, 6, 8);
+    return;
+  }
+  const pierna = Math.sin(u.paso) * 2;
+  g.fillStyle = "#2a1d10";
+  g.fillRect(u.x - 2 + pierna, u.y + 3, 2, 5);
+  g.fillRect(u.x + 1 - pierna, u.y + 3, 2, 5);
+  g.fillStyle = color;
+  g.fillRect(u.x - 3, u.y - 6, 7, 10);
+  g.fillStyle = escudo;
+  g.fillRect(u.x - 5, u.y - 3, 3, 6);
+  g.fillStyle = "#d9c9a0";
+  g.beginPath();
+  g.arc(u.x + 0.5, u.y - 9, 2.6, 0, 6.283);
+  g.fill();
+}
+
+function cuadro() {
+  if (!pausado) mover();
+  g.clearRect(0, 0, W, H);
+  const suelo = g.createLinearGradient(0, 0, 0, H);
+  suelo.addColorStop(0, "#8f8c5c");
+  suelo.addColorStop(1, "#666640");
+  g.fillStyle = suelo;
+  g.fillRect(0, 0, W, H);
+  for (const u of soldados) if (u.hp > 0) dibujar(u);
+  chispas = chispas.filter((p) => p.vida > 0);
+  for (const p of chispas) {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.vy += 0.12;
+    p.vida--;
+    g.fillStyle = "#ffd98a";
+    g.fillRect(p.x, p.y, 2, 2);
+  }
+  marcha = requestAnimationFrame(cuadro);
+}
+
+function iniciarLucha() {
+  pararLucha();
+  ajustar();
+  crearSoldados();
+  marcha = requestAnimationFrame(cuadro);
+}
+function pararLucha() {
+  if (marcha) cancelAnimationFrame(marcha);
+  marcha = null;
+}
+
+$$("[data-vel]").forEach((b) => b.addEventListener("click", () => {
+  vel = Number(b.dataset.vel);
+  $$("[data-vel]").forEach((x) => x.classList.toggle("on", x === b));
+}));
+$("#pausa3").addEventListener("click", (e) => {
+  pausado = !pausado;
+  e.currentTarget.classList.toggle("on", pausado);
+  e.currentTarget.textContent = pausado ? "Seguir" : "Pausa";
+});
+window.addEventListener("resize", () => { if (marcha) ajustar(); });
+
+/* Chips y cartas: una sola opción activa por grupo */
+$$(".grupo").forEach((grupo) => grupo.addEventListener("click", (e) => {
+  const b = e.target.closest("button");
+  if (!b) return;
+  grupo.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+}));
+
+/* Navegación entre las cuatro pantallas */
+function ir(n) {
+  n = Math.min(4, Math.max(1, n));
+  ["p1", "p2", "p3", "p4"].forEach((id, i) => $("#" + id).classList.toggle("on", i === n - 1));
+  $$(".pasos button").forEach((b) => b.classList.toggle("on", Number(b.dataset.ir) === n));
+  history.replaceState(null, "", "#" + n);
+  if (n === 3) iniciarLucha(); else pararLucha();
+}
+document.addEventListener("click", (e) => {
+  const b = e.target.closest("[data-ir]");
+  if (b) ir(Number(b.dataset.ir));
+});
+window.addEventListener("hashchange", () => ir(Number(location.hash.slice(1)) || 1));
+
+pintarTropas();
+pintarPlan();
+pintarTotales();
+pintarDias();
+ir(Number(location.hash.slice(1)) || 1);
+</script>
+</body>
+</html>

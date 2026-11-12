@@ -1,0 +1,841 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Consejo de tribunos · K6b-3</title>
+<style>
+@font-face {
+  font-family: 'CinzelK';
+  src: url('../../../assets/fuentes/cinzel-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: block;
+}
+:root {
+  --papel: #efe3c4;
+  --papel2: #e3d2a6;
+  --tinta: #3b2a1c;
+  --terra: #9b3b26;
+  --ocre: #b07a22;
+  --oliva: #5f7a3a;
+  --pizarra: #3f5566;
+  --agua: #6f9aa3;
+  --borde: #b89c5e;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; background: #2a1f16; }
+body {
+  font-family: Georgia, 'Times New Roman', serif;
+  color: var(--tinta);
+  -webkit-user-select: none;
+  user-select: none;
+}
+button { font: inherit; color: inherit; cursor: pointer; touch-action: manipulation; }
+.titulo { font-family: CinzelK, Georgia, serif; letter-spacing: .04em; }
+
+.pantalla {
+  position: absolute;
+  inset: 0;
+  display: none;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 40%, #f5ecd4 0%, var(--papel) 60%, #d9c48f 100%);
+}
+.pantalla.on { display: block; }
+
+.principal {
+  background: #4f3f2c;
+  color: #f6ecd2;
+  border: 0;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: CinzelK, Georgia, serif;
+  font-size: 13px;
+  letter-spacing: .05em;
+  box-shadow: 0 3px 0 #2a1f16;
+}
+.sec {
+  background: #f7eed8;
+  color: var(--tinta);
+  border: 2px solid var(--borde);
+  border-radius: 8px;
+  padding: 7px 11px;
+  font-size: 13px;
+}
+.acc { display: flex; gap: 8px; margin-top: auto; }
+.acc button { white-space: nowrap; }
+.acc .principal { flex: 1.5; padding: 10px 6px; font-size: 12.5px; }
+.acc .sec { flex: 1; }
+
+.barra {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+  background: rgba(239, 227, 196, .94);
+  border-bottom: 2px solid var(--terra);
+  z-index: 3;
+}
+.barra .titulo { font-size: 13px; white-space: nowrap; }
+.barra .sec { padding: 4px 9px; font-size: 12px; }
+.tiempo {
+  flex: 1;
+  height: 8px;
+  min-width: 60px;
+  border: 1px solid var(--tinta);
+  border-radius: 4px;
+  overflow: hidden;
+  background: #e7d8b2;
+}
+.tiempo i {
+  display: block;
+  height: 100%;
+  width: 100%;
+  background: var(--ocre);
+  transition: width .9s linear;
+}
+.cuenta {
+  font-size: 13px;
+  min-width: 96px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* pantalla 1: mapa en grande y panel de orden */
+#p1 .barra { width: 560px; right: auto; }
+#p1 .mapa {
+  position: absolute;
+  left: 0;
+  top: 40px;
+  width: 560px;
+  bottom: 0;
+}
+#mapa { width: 100%; height: 100%; display: block; }
+#p1 .panel {
+  position: absolute;
+  left: 572px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background: var(--papel2);
+  border-left: 2px solid var(--terra);
+}
+#p1 .panel h2 { font-size: 17px; color: var(--terra); }
+#p1 .panel p { font-size: 12.5px; line-height: 1.3; }
+
+/* tarjetas de orden (las proponen los asesores) */
+.opciones { display: flex; flex-direction: column; gap: 6px; }
+.op {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 9px;
+  row-gap: 1px;
+  width: 100%;
+  text-align: left;
+  padding: 6px 9px;
+  background: #f7eed8;
+  border: 2px solid var(--borde);
+  border-radius: 8px;
+}
+.op.sel {
+  border-color: var(--terra);
+  background: #fbf3df;
+  box-shadow: inset 0 0 0 2px #e7b98e;
+}
+.op b { grid-column: 2; font-size: 13px; font-weight: 700; }
+.op .d { grid-column: 2; font-size: 11.5px; line-height: 1.25; }
+.op .d i { color: #6b5238; }
+.chip {
+  grid-row: 1 / 3;
+  align-self: center;
+  font-size: 10.5px;
+  padding: 3px 6px;
+  border-radius: 10px;
+  color: #fff;
+  white-space: nowrap;
+}
+.chip.fav { background: var(--oliva); }
+.chip.dud { background: var(--ocre); }
+.chip.ries { background: var(--terra); }
+
+/* pantalla 2: escena del choque */
+#p2 svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.flot {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+.etq {
+  background: rgba(239, 227, 196, .94);
+  border: 2px solid var(--borde);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 13px;
+}
+.pie {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 10px;
+  background: rgba(239, 227, 196, .95);
+  border: 2px solid var(--borde);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+/* pantalla 3: turno anterior y momento de riesgo */
+#p3 .cuerpo {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 40px;
+  bottom: 0;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+}
+#p3 .col1 {
+  padding: 12px 14px;
+  border-right: 2px solid var(--terra);
+  overflow: hidden;
+}
+#p3 .col2 {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+#p3 h3 {
+  font-family: CinzelK, Georgia, serif;
+  font-size: 15px;
+  color: var(--terra);
+  margin-bottom: 4px;
+}
+#p3 .col2 p { font-size: 12.5px; }
+#p3 li {
+  list-style: none;
+  font-size: 12.5px;
+  line-height: 1.3;
+  padding: 6px 0 6px 14px;
+  position: relative;
+  border-bottom: 1px dashed var(--borde);
+}
+#p3 li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 12px;
+  width: 6px;
+  height: 6px;
+  background: var(--terra);
+  transform: rotate(45deg);
+}
+#p3 .principal { align-self: flex-end; margin-top: auto; }
+
+/* pantalla 4: resultado o retirada */
+.fin {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 40px 24px;
+  text-align: center;
+}
+.fin::before,
+.fin::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 10px;
+  background: repeating-linear-gradient(90deg, var(--terra) 0 12px, transparent 12px 20px);
+}
+.fin::before { top: 12px; }
+.fin::after { bottom: 12px; }
+.fin .kick { font-size: 11px; letter-spacing: .2em; text-transform: uppercase; }
+.fin h1 { font-family: CinzelK, Georgia, serif; font-size: 30px; color: var(--terra); }
+.fin p { font-size: 14px; max-width: 560px; }
+.stats { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.st {
+  background: #f7eed8;
+  border: 2px solid var(--borde);
+  border-radius: 10px;
+  padding: 8px 14px;
+  min-width: 120px;
+}
+.st b { display: block; font-family: CinzelK, Georgia, serif; font-size: 22px; }
+.st span { font-size: 11px; }
+
+.rot {
+  font-family: CinzelK, Georgia, serif;
+  font-size: 36px;
+  fill: var(--tinta);
+  opacity: .6;
+}
+</style>
+</head>
+<body>
+
+<!-- Pantalla 1: mapa en grande con el turno planeado -->
+<section id="p1" class="pantalla on">
+  <div class="barra">
+    <span class="titulo" id="tit1">Turno 3 · planear</span>
+    <div class="tiempo"><i></i></div>
+    <span class="cuenta"></span>
+    <button class="sec" id="btnRet">Retirarse</button>
+  </div>
+  <div class="mapa">
+    <svg id="mapa" viewBox="0 0 1500 1050" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <marker id="flecha" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+          <path d="M0 0 L10 5 L0 10 z" fill="#3b2a1c"/>
+        </marker>
+      </defs>
+      <g id="fondo"></g>
+      <g id="ordenes"></g>
+      <g id="fichas"></g>
+    </svg>
+  </div>
+  <aside class="panel">
+    <h2 class="titulo" id="selTit"></h2>
+    <p id="selDesc"></p>
+    <div class="opciones" id="op1"></div>
+    <div class="acc">
+      <button class="principal" id="btnEjec">Ejecutar turno</button>
+      <button class="sec" id="btnEsc">Ver la escena</button>
+    </div>
+  </aside>
+</section>
+
+<!-- Pantalla 2: escena del choque con más de 20 regimientos -->
+<section id="p2" class="pantalla">
+  <svg id="escena" viewBox="0 0 844 390" preserveAspectRatio="xMidYMid slice"></svg>
+  <div class="flot">
+    <button class="sec" id="btnVolver">Volver al mapa</button>
+    <span class="etq titulo" id="escTit"></span>
+  </div>
+  <div class="pie" id="escPie"></div>
+</section>
+
+<!-- Pantalla 3: el turno anterior y un momento de riesgo -->
+<section id="p3" class="pantalla">
+  <div class="barra">
+    <span class="titulo">Turno <span id="tn3">3</span> · momento de riesgo</span>
+    <div class="tiempo"><i></i></div>
+    <span class="cuenta"></span>
+  </div>
+  <div class="cuerpo">
+    <div class="col1">
+      <h3>Lo ocurrido antes</h3>
+      <ul id="log"></ul>
+    </div>
+    <div class="col2">
+      <h3 id="riesgoTit"></h3>
+      <p id="riesgoDesc"></p>
+      <div class="opciones" id="op3"></div>
+      <button class="principal" id="btnEjec3">Ejecutar turno</button>
+    </div>
+  </div>
+</section>
+
+<!-- Pantalla 4: resultado o retirada -->
+<section id="p4" class="pantalla">
+  <div class="fin">
+    <span class="kick">Fin de la batalla</span>
+    <h1 id="finTit"></h1>
+    <p id="finDesc"></p>
+    <div class="stats" id="stats"></div>
+    <div class="acc">
+      <button class="principal" id="btnNueva">Nueva batalla</button>
+      <button class="sec" id="btnCampo">Ver el campo</button>
+    </div>
+  </div>
+</section>
+
+<script>
+const $ = s => document.querySelector(s);
+
+const NOMBRE = { legion: 'legión', caballo: 'caballería', velites: 'velites' };
+const BASE = { legion: 2, caballo: 2, velites: 1 };
+const H1 = { x: 420, y: 300, r: 130 };
+const H2 = { x: 1080, y: 640, r: 120 };
+const VADO = { x: 740, y: 520 };
+const RIO = 'M 740 0 C 690 200, 800 330, 740 470 S 690 720, 760 1050';
+
+const ORD = [
+  ['I', 'legion'], ['II', 'legion'], ['III', 'legion'], ['IV', 'legion'],
+  ['C1', 'caballo'], ['V', 'legion'], ['L1', 'velites'], ['VI', 'legion'],
+  ['C2', 'caballo'], ['VII', 'legion'], ['L2', 'velites'], ['VIII', 'legion']
+];
+const ENE = [
+  ['E1', 'legion'], ['E2', 'legion'], ['E3', 'caballo'], ['E4', 'legion'],
+  ['E5', 'legion'], ['E6', 'velites'], ['E7', 'legion'], ['E8', 'caballo'],
+  ['E9', 'legion'], ['E10', 'velites'], ['E11', 'legion'], ['E12', 'caballo']
+];
+
+let S = null;
+let pantalla = 1;
+let retirada = false;
+
+/* ---------- estado ---------- */
+
+function crearEstado() {
+  const crear = (lista, bando, xa, xb) => lista.map(([id, tipo], i) => ({
+    id,
+    tipo,
+    bando,
+    x: i % 2 ? xb : xa,
+    y: 150 + Math.floor(i / 2) * 150,
+    hombres: 100 - (i * 7) % 23,
+    orden: null,
+    caido: false
+  }));
+  return {
+    turno: 3,
+    tiempo: 60,
+    sel: 'II',
+    fin: false,
+    ours: crear(ORD, 0, 200, 340),
+    enemy: crear(ENE, 1, 1160, 1300),
+    logPrev: [
+      'II vence a E4 en la colina; E4 pierde 22 hombres',
+      'C1 cede ante E3 en el vado',
+      'L1 espera; el centro enemigo avanza',
+      'E6 se retira hacia el río'
+    ]
+  };
+}
+
+function nuevo() {
+  S = crearEstado();
+  retirada = false;
+}
+
+function preparar() {
+  nuevo();
+  // Foto de partida: un momento de riesgo cerca del vado y tres órdenes ya dadas
+  const c1 = buscar('C1');
+  c1.x = 560;
+  c1.y = 440;
+  c1.hombres = 38;
+  const e3 = buscar('E3');
+  e3.x = 800;
+  e3.y = 470;
+  for (const [id, k] of [['I', 'A'], ['II', 'B'], ['C1', 'C']]) {
+    const r = buscar(id);
+    r.orden = ordenDe(r, k);
+  }
+}
+
+/* ---------- ayudas ---------- */
+
+const todos = () => [...S.ours, ...S.enemy];
+const vivos = l => l.filter(r => r.hombres > 0);
+const buscar = id => todos().find(r => r.id === id);
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+
+function cerca(r, lista) {
+  let mejor = null;
+  let d = Infinity;
+  for (const e of lista) {
+    const k = dist(r, e);
+    if (k < d) { d = k; mejor = e; }
+  }
+  return mejor;
+}
+
+function lugarDe(p) {
+  if (dist(p, H1) < H1.r) return 'la colina';
+  if (dist(p, H2) < H2.r) return 'la colina enemiga';
+  if (Math.abs(p.y - VADO.y) < 100 && Math.abs(p.x - VADO.x) < 140) return 'el vado';
+  return 'campo abierto';
+}
+
+function mover(r, tx, ty, paso) {
+  const dx = tx - r.x;
+  const dy = ty - r.y;
+  const d = Math.hypot(dx, dy);
+  if (d <= paso) {
+    r.x = tx;
+    r.y = ty;
+  } else {
+    r.x += dx / d * paso;
+    r.y += dy / d * paso;
+  }
+  r.x = Math.min(1460, Math.max(40, r.x));
+  r.y = Math.min(1010, Math.max(40, r.y));
+}
+
+/* Valor de una orden: depende de la tropa, del terreno y del ánimo */
+function valorOpcion(r, k) {
+  const cab = r.tipo === 'caballo';
+  let v = BASE[r.tipo];
+  if (k === 'A' && cab) v += 1;          // la caballería carga
+  if (k === 'B' && !cab) v += 1;         // la infantería gana en la colina
+  if (k === 'C') v += 1 + (cab ? 0 : -1); // flanquear, pero el río frena a la infantería
+  if (r.hombres < 60) v -= 1;            // cansados
+  return v;
+}
+
+function etiqueta(v) {
+  if (v >= 3) return ['Favorable', 'fav'];
+  if (v === 2) return ['Dudoso', 'dud'];
+  return ['Arriesgado', 'ries'];
+}
+
+function opcionesDe(r) {
+  const rivales = vivos(r.bando === 0 ? S.enemy : S.ours);
+  const e = cerca(r, rivales) || { x: r.x + 200, y: r.y };
+  const cab = r.tipo === 'caballo';
+  const lista = [
+    {
+      k: 'A', tribuno: 'Cayo Lelio', nombre: 'Atacar de frente',
+      desc: 'Carga contra el enemigo más cercano.',
+      tx: e.x, ty: e.y,
+      terr: 'Campo abierto, sin ventaja.'
+    },
+    {
+      k: 'B', tribuno: 'Quinto Fabio', nombre: 'Ocupar la colina',
+      desc: 'Sube y espera el choque desde arriba.',
+      tx: H1.x, ty: H1.y,
+      terr: cab ? 'Colina: la caballería no gana nada.' : 'Colina: ventaja al defender.'
+    },
+    {
+      k: 'C', tribuno: 'Publio Cornelio', nombre: 'Cruzar el vado',
+      desc: 'Pasa el río y flanquea al enemigo.',
+      tx: 880, ty: e.y,
+      terr: cab ? 'Vado: la caballería lo cruza bien.' : 'Vado: el río resta fuerza.'
+    }
+  ];
+  return lista.map(o => ({ ...o, v: valorOpcion(r, o.k) }));
+}
+
+function ordenDe(r, k) {
+  const o = opcionesDe(r).find(x => x.k === k);
+  return { k, tx: o.tx, ty: o.ty, nombre: o.nombre, v: o.v };
+}
+
+function elegir(id, k) {
+  const r = buscar(id);
+  if (!r) return;
+  r.orden = (r.orden && r.orden.k === k) ? null : ordenDe(r, k);
+  S.sel = id;
+  pintarTodo();
+}
+
+function renderOpciones(cont, r) {
+  if (!r) { cont.innerHTML = ''; return; }
+  cont.innerHTML = opcionesDe(r).map(o => {
+    const [txt, c] = etiqueta(o.v);
+    const sel = r.orden && r.orden.k === o.k ? ' sel' : '';
+    return `<button class="op${sel}" data-id="${r.id}" data-k="${o.k}">` +
+      `<span class="chip ${c}">${txt}</span>` +
+      `<b>${o.tribuno}: ${o.nombre}</b>` +
+      `<span class="d">${o.desc}<br><i>${o.terr}</i></span>` +
+      `</button>`;
+  }).join('');
+}
+
+/* ---------- pantalla 1: mapa ---------- */
+
+function pintarFondo() {
+  $('#fondo').innerHTML = `
+    <rect x="0" y="0" width="1500" height="1050" fill="#e6d6a8"/>
+    <rect x="20" y="20" width="1460" height="1010" fill="none" stroke="#9b7d4a" stroke-width="4" stroke-dasharray="18 12"/>
+    <ellipse cx="${H1.x}" cy="${H1.y}" rx="${H1.r}" ry="${H1.r * 0.8}" fill="#b5b272" opacity=".8"/>
+    <ellipse cx="${H2.x}" cy="${H2.y}" rx="${H2.r}" ry="${H2.r * 0.8}" fill="#b5b272" opacity=".8"/>
+    <text x="${H1.x + 80}" y="${H1.y + 12}" text-anchor="middle" class="rot">Colina</text>
+    <text x="${H2.x - 40}" y="${H2.y - 14}" text-anchor="middle" class="rot">Colina</text>
+    <path d="${RIO}" fill="none" stroke="#6f9aa3" stroke-width="72" stroke-linecap="round"/>
+    <path d="${RIO}" fill="none" stroke="#9cc1c6" stroke-width="10" stroke-dasharray="40 30" opacity=".7"/>
+    <circle cx="${VADO.x}" cy="${VADO.y}" r="40" fill="none" stroke="#7a5a32" stroke-width="6" stroke-dasharray="10 8"/>
+    <text x="${VADO.x + 70}" y="${VADO.y + 110}" class="rot">Vado</text>
+    <text x="60" y="1000" class="rot" style="font-size:30px">Campo de 1.500 m</text>
+    <text x="1440" y="70" text-anchor="end" class="rot" style="font-size:30px">Enemigo</text>
+  `;
+}
+
+function pintarMapa() {
+  const capaOrd = $('#ordenes');
+  const capaFichas = $('#fichas');
+  capaOrd.innerHTML = '';
+  capaFichas.innerHTML = '';
+
+  for (const r of vivos(S.ours)) {
+    if (!r.orden) continue;
+    capaOrd.insertAdjacentHTML('beforeend',
+      `<line x1="${r.x}" y1="${r.y}" x2="${r.orden.tx}" y2="${r.orden.ty}" ` +
+      `stroke="#3b2a1c" stroke-width="12" stroke-dasharray="26 16" marker-end="url(#flecha)" opacity=".9"/>`);
+  }
+
+  for (const r of vivos(todos())) {
+    const col = r.bando === 0
+      ? (r.tipo === 'caballo' ? '#7a4a22' : r.tipo === 'velites' ? '#6d6f4e' : '#9b3b26')
+      : (r.tipo === 'velites' ? '#6b7480' : '#3f5566');
+    const sel = S.sel === r.id && r.bando === 0;
+    const ancho = Math.max(0, r.hombres) / 100 * 96;
+    capaFichas.insertAdjacentHTML('beforeend',
+      `<g class="ficha" data-id="${r.id}" transform="translate(${r.x},${r.y})">` +
+      `<rect x="-60" y="-48" width="120" height="96" rx="14" fill="${col}" ` +
+      `stroke="${sel ? '#e0b04a' : '#2a1f16'}" stroke-width="${sel ? 10 : 4}"/>` +
+      `<text y="8" text-anchor="middle" font-family="CinzelK, Georgia, serif" font-size="40" fill="#f6ecd2">${r.id}</text>` +
+      `<rect x="-48" y="26" width="96" height="10" rx="5" fill="#2a1f16" opacity=".5"/>` +
+      `<rect x="-48" y="26" width="${ancho}" height="10" rx="5" fill="#f6ecd2"/>` +
+      `</g>`);
+  }
+}
+
+function pintarPanel() {
+  const r = S.ours.find(x => x.id === S.sel && x.hombres > 0);
+  if (!r) {
+    $('#selTit').textContent = 'Elige un regimiento';
+    $('#selDesc').textContent = 'Toca una ficha tuya en el mapa. Sus tres órdenes aparecen aquí.';
+    $('#op1').innerHTML = '';
+    return;
+  }
+  $('#selTit').textContent = `${r.id} · ${NOMBRE[r.tipo]}`;
+  $('#selDesc').textContent = `${r.hombres} hombres, ${r.hombres < 60 ? 'cansados' : 'firmes'}. ` +
+    (r.orden ? `Orden: ${r.orden.nombre}.` : 'Sin orden todavía.');
+  renderOpciones($('#op1'), r);
+}
+
+/* ---------- pantalla 2: escena ---------- */
+
+function pintarEscena() {
+  let h = `
+    <defs>
+      <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#e9d7aa"/>
+        <stop offset="1" stop-color="#f7eedb"/>
+      </linearGradient>
+      <linearGradient id="suelo" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#d8c48f"/>
+        <stop offset="1" stop-color="#a98a55"/>
+      </linearGradient>
+    </defs>
+    <rect width="844" height="390" fill="url(#cielo)"/>
+    <path d="M0 150 Q120 80 240 130 T480 110 T720 120 T844 90 V160 H0Z" fill="#a3a46b"/>
+    <path d="M0 135 Q160 100 300 140 T600 130 T844 120 V170 H0Z" fill="#8a8d56"/>
+    <rect y="160" width="844" height="230" fill="url(#suelo)"/>
+    <path d="M0 232 C200 214 380 250 520 236 S760 222 844 240 V276 C760 262 620 290 470 276 S180 250 0 270Z" fill="#6f9aa3" opacity=".9"/>
+    <ellipse cx="430" cy="300" rx="70" ry="16" fill="#efe3c4" opacity=".55"/>
+    <ellipse cx="520" cy="290" rx="54" ry="12" fill="#efe3c4" opacity=".5"/>`;
+
+  const lista = todos().filter(r => r.hombres > 0).sort((a, b) => a.y - b.y);
+  for (const r of lista) {
+    const sx = 422 + (r.x - 750) * 0.7;
+    const sy = 170 + r.y * 0.17;
+    const s = 0.55 + r.y / 1050 * 0.6;
+    const n = Math.max(4, Math.round(r.hombres / 10));
+    const col = r.bando === 0
+      ? (r.tipo === 'caballo' ? '#7a4a22' : r.tipo === 'velites' ? '#6d6f4e' : '#9b3b26')
+      : (r.tipo === 'velites' ? '#6b7480' : '#3f5566');
+    h += `<g transform="translate(${sx.toFixed(1)},${sy.toFixed(1)}) scale(${s.toFixed(2)})">`;
+    for (let i = 0; i < n; i++) {
+      const x = (i % 5 - 2) * 12;
+      const y = Math.floor(i / 5) * 15;
+      if (r.tipo === 'caballo') {
+        h += `<ellipse cx="${x}" cy="${y - 2}" rx="6" ry="4" fill="${col}"/>` +
+             `<circle cx="${x + 5}" cy="${y - 7}" r="2.4" fill="#d9b48a"/>`;
+      } else {
+        h += `<circle cx="${x}" cy="${y - 9}" r="2.6" fill="#d9b48a"/>` +
+             `<rect x="${x - 3}" y="${y - 6}" width="6" height="10" rx="2" fill="${col}"/>` +
+             `<ellipse cx="${x - 3.4}" cy="${y - 1}" rx="2.2" ry="3.4" fill="#c9962e" stroke="#3b2a1c" stroke-width=".6"/>` +
+             `<line x1="${x + 3}" y1="${y - 14}" x2="${x + 3}" y2="${y + 6}" stroke="#5a4632" stroke-width="1"/>`;
+      }
+    }
+    h += `</g>`;
+    h += `<text x="${sx.toFixed(1)}" y="${(sy - 28 * s).toFixed(1)}" text-anchor="middle" ` +
+         `font-family="CinzelK, Georgia, serif" font-size="${Math.round(13 * s)}" fill="#2a1f16">${r.id}</text>`;
+  }
+  $('#escena').innerHTML = h;
+  $('#escTit').textContent = `Choque en el vado · turno ${S.turno}`;
+  $('#escPie').textContent = `Lo último: ${S.logPrev[0]}.`;
+}
+
+/* ---------- pantalla 3: turno anterior y riesgo ---------- */
+
+function riesgoDe() {
+  let mejor = null;
+  for (const r of vivos(S.ours)) {
+    const e = cerca(r, vivos(S.enemy));
+    if (!e) continue;
+    const d = dist(r, e);
+    if (d > 300) continue;
+    const puntos = r.hombres + d / 10;
+    if (!mejor || puntos < mejor.puntos) mejor = { r, e, d, puntos };
+  }
+  return mejor;
+}
+
+function pintarP3() {
+  $('#log').innerHTML = S.logPrev.map(t => `<li>${t}</li>`).join('');
+  const m = riesgoDe();
+  if (!m) {
+    $('#riesgoTit').textContent = 'Sin riesgo ahora';
+    $('#riesgoDesc').textContent = 'Ningún regimiento tuyo tiene un enemigo encima.';
+    renderOpciones($('#op3'), null);
+    return;
+  }
+  $('#riesgoTit').textContent = `${m.r.id} está en peligro`;
+  $('#riesgoDesc').textContent = `${m.r.hombres} hombres, con ${m.e.id} a ${Math.round(m.d)} m. ` +
+    'Elige su orden antes de ejecutar el turno.';
+  renderOpciones($('#op3'), m.r);
+}
+
+/* ---------- tiempo y turnos ---------- */
+
+function pintarTiempo() {
+  const pct = S.tiempo / 60 * 100;
+  document.querySelectorAll('.tiempo i').forEach(i => { i.style.width = pct + '%'; });
+  const t = `${Math.floor(S.tiempo / 60)}:${String(S.tiempo % 60).padStart(2, '0')}`;
+  document.querySelectorAll('.cuenta').forEach(c => { c.textContent = `quedan ${t}`; });
+  $('#tit1').textContent = `Turno ${S.turno} · planear`;
+  $('#tn3').textContent = S.turno;
+}
+
+function ejecutarTurno() {
+  if (!S || S.fin) return;
+  const L = [];
+
+  for (const r of vivos(S.ours)) {
+    if (r.orden) mover(r, r.orden.tx, r.orden.ty, 110);
+  }
+  for (const e of vivos(S.enemy)) {
+    const t = cerca(e, vivos(S.ours));
+    if (t && dist(e, t) > 130) mover(e, t.x, t.y, 80);
+  }
+
+  const usados = new Set();
+  for (const r of vivos(S.ours)) {
+    const e = cerca(r, vivos(S.enemy).filter(x => !usados.has(x.id)));
+    if (!e || dist(r, e) > 130) continue;
+    usados.add(e.id);
+    const vr = (r.orden ? r.orden.v : BASE[r.tipo]) + Math.random() * 1.5;
+    const ve = BASE[e.tipo] + (dist(e, H2) < H2.r ? 1 : 0) + Math.random() * 1.5;
+    const sitio = lugarDe(e);
+    if (vr >= ve) {
+      e.hombres -= 22;
+      r.hombres -= 8;
+      L.push(`${r.id} vence a ${e.id} en ${sitio}`);
+    } else {
+      r.hombres -= 22;
+      e.hombres -= 8;
+      L.push(`${r.id} cede ante ${e.id} en ${sitio}`);
+    }
+  }
+
+  for (const r of todos()) {
+    if (r.hombres <= 0 && !r.caido) {
+      r.caido = true;
+      L.push(`${r.id} queda deshecho`);
+    }
+    r.hombres = Math.max(0, r.hombres);
+  }
+  if (!L.length) L.push('Las filas se miran a distancia; nadie choca.');
+
+  for (const r of S.ours) r.orden = null;
+  S.logPrev = L.slice(0, 5);
+  S.turno++;
+  S.tiempo = 60;
+
+  if (!vivos(S.ours).length || !vivos(S.enemy).length || S.turno > 6) {
+    terminar(false);
+    return;
+  }
+  pintarTodo();
+}
+
+function terminar(ret) {
+  retirada = ret;
+  S.fin = true;
+  ir(4);
+}
+
+function pintarFin() {
+  const oa = vivos(S.ours);
+  const ea = vivos(S.enemy);
+  const hA = oa.reduce((s, r) => s + r.hombres, 0);
+  let titulo;
+  if (retirada) titulo = 'Retirada ordenada';
+  else if (!oa.length) titulo = 'Derrota en el río';
+  else if (!ea.length || oa.length > ea.length) titulo = 'El enemigo se retira';
+  else titulo = 'Empate tenso';
+  $('#finTit').textContent = titulo;
+  $('#finDesc').textContent = retirada
+    ? 'Las legiones vuelven al campamento con lo que queda.'
+    : `Tras ${S.turno - 3} turnos, el vado queda en manos de quien mejor eligió sus órdenes.`;
+  $('#stats').innerHTML = [
+    [`${oa.length} de ${S.ours.length}`, 'regimientos tuyos en pie'],
+    [`${ea.length} de ${S.enemy.length}`, 'regimientos enemigos en pie'],
+    [`${hA}`, 'hombres tuyos'],
+    [`${S.turno - 3}`, 'turnos jugados']
+  ].map(([a, b]) => `<div class="st"><b>${a}</b><span>${b}</span></div>`).join('');
+}
+
+/* ---------- navegación y bucle ---------- */
+
+function pintarTodo() {
+  if (!S) return;
+  pintarMapa();
+  pintarPanel();
+  pintarP3();
+  pintarTiempo();
+}
+
+function ir(n) {
+  pantalla = n;
+  document.querySelectorAll('.pantalla').forEach((s, i) => s.classList.toggle('on', i === n - 1));
+  if (n === 1 || n === 3) pintarTodo();
+  if (n === 2) pintarEscena();
+  if (n === 4) pintarFin();
+}
+
+document.addEventListener('click', e => {
+  const op = e.target.closest('.op');
+  if (op) { elegir(op.dataset.id, op.dataset.k); return; }
+  const f = e.target.closest('.ficha');
+  if (f) {
+    const r = buscar(f.dataset.id);
+    if (r && r.bando === 0) { S.sel = r.id; pintarTodo(); }
+  }
+});
+
+$('#btnEjec').onclick = ejecutarTurno;
+$('#btnEjec3').onclick = ejecutarTurno;
+$('#btnEsc').onclick = () => ir(2);
+$('#btnVolver').onclick = () => ir(1);
+$('#btnRet').onclick = () => terminar(true);
+$('#btnNueva').onclick = () => { nuevo(); ir(1); };
+$('#btnCampo').onclick = () => { S.fin = false; ir(1); };
+
+setInterval(() => {
+  if (!S || S.fin) return;
+  if (pantalla === 1 || pantalla === 3) {
+    S.tiempo--;
+    if (S.tiempo <= 0) { ejecutarTurno(); return; }
+  }
+  pintarTiempo();
+}, 1000);
+
+pintarFondo();
+preparar();
+ir(1);
+</script>
+</body>
+</html>

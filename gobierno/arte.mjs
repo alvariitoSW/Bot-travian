@@ -60,6 +60,19 @@ const vCasa = ['casa', 'casa_b', 'casa_c', 'casa_d'].filter(k => TRIS[k]), nCasa
 vCasa.forEach((k, i) => { piezas[k] = Math.floor(nCasa / vCasa.length) + (i < nCasa % vCasa.length ? 1 : 0); });
 let nPiezas = 0, trisCiudad = 0; for (const k in piezas) { nPiezas += piezas[k]; trisCiudad += piezas[k] * tri(k); }
 console.log('Ciudad típica (todos los edificios, nivel ' + nv + '): ' + nPiezas + ' piezas · ' + mil(trisCiudad) + ' triángulos (tope: ' + mil(E.triangulosPorCiudad) + ')');
+// Vida (CN11, js/gfx/vida.js): gente, carros, guarnición. Se cuenta el peor caso teórico con los topes del propio módulo.
+const vsrc = await readFile(join(RAIZ, 'js', 'gfx', 'vida.js'), 'utf8'), cte = n => +(vsrc.match(new RegExp(n + ' = (\\d+)')) || [0, 0])[1];
+const nGente = cte('N_GENTE'), nCarros = cte('N_CARROS'), gReal = cte('GUARN_REAL_MAX'), gTope = cte('GUARN_CAP'), LIGERA = 60;   // 60 = LIGHT_TRIS de units.js
+const rom = Object.entries(E.ejercitoRomano), trisSold = rom.reduce((a, [k, n]) => a + n * tri(k), 0) / rom.reduce((a, [, n]) => a + n, 0);   // media de la tropa romana de arte.json
+const trisGente = nGente * tri('ciudadana'), trisCarros = nCarros * tri('prop_carreta'), trisGuarn = gReal * trisSold + (gTope - gReal) * LIGERA;
+console.log('Vida de la ciudad (máximo teórico): gente ' + mil(trisGente) + ' (' + nGente + '), carros ' + mil(trisCarros) + ' (' + nCarros + '), guarnición ' + mil(trisGuarn) + ' (' + gReal + ' reales + ' + (gTope - gReal) + ' ligeras)');
+if (trisGente + trisCarros + trisGuarn > E.triangulosPorCiudad) fallos.push('la vida de la ciudad (gente, carros, guarnición) pide por sí sola ' + mil(trisGente + trisCarros + trisGuarn) + ' triángulos y el tope es ' + mil(E.triangulosPorCiudad));
+const sumaVida = trisCiudad + trisGente + trisCarros + trisGuarn;
+console.log('  suma teórica si TODO estuviera en pantalla a la vez: ' + mil(sumaVida) + ' triángulos (no es lo que se pinta: la cámara solo ve una parte)');
+// Lo que de verdad se pinta se mide con captura-ciudad.mjs y queda en gobierno/medidas-ciudad.json: ahí se vigila el tope.
+const MED = JSON.parse(await readFile(join(RAIZ, 'gobierno', 'medidas-ciudad.json'), 'utf8'));
+for (const c of ['roma', 'capua']) for (const [v, n] of Object.entries(MED[c] || {})) { if (n > E.triangulosPorCiudad) fallos.push(c + ' en la vista «' + v + '» pinta ' + mil(n) + ' triángulos y el tope es ' + mil(E.triangulosPorCiudad)); }
+console.log('Medido en pantalla (' + MED.tarea + '): Roma hasta ' + mil(Math.max(...Object.values(MED.roma))) + ', Capua hasta ' + mil(Math.max(...Object.values(MED.capua))) + ' (tope: ' + mil(E.triangulosPorCiudad) + ')');
 if (trisCiudad > E.triangulosPorCiudad) fallos.push('la ciudad típica pide ' + mil(trisCiudad) + ' triángulos y el tope es ' + mil(E.triangulosPorCiudad));
 
 console.log(fallos.length ? 'ARTE: NO APTO\n  ✘ ' + fallos.join('\n  ✘ ') : 'ARTE: APTO' + (P.provisional ? ' (presupuesto provisional, pendiente de que el usuario lo apruebe)' : ''));

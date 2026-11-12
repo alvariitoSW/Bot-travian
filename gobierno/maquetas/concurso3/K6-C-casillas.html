@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Batalla en hexágonos</title>
+<style>
+/* Letra de inscripción romana (Cinzel), la del resto del juego. */
+@font-face {
+  font-family: 'Cinzel';
+  src: url('../../../assets/fuentes/cinzel-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: block;
+}
+
+:root {
+  --papel: #efe2c0;
+  --papel-oscuro: #e2d0a0;
+  --tinta: #231a12;
+  --ocre: #a9742c;
+  --bermellon: #8a2a1c;
+  --fondo: #d8c394;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--fondo);
+  color: var(--tinta);
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+/* Cada pantalla ocupa el móvil en horizontal y no hace scroll. */
+.pantalla {
+  position: absolute;
+  inset: 0;
+  display: none;
+  flex-direction: column;
+  background: var(--papel);
+}
+
+.pantalla.on {
+  display: flex;
+}
+
+/* Cabecera: ronda, leyenda y aviso. */
+.cab {
+  height: 36px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 14px;
+  font-size: 13px;
+  border-bottom: 3px double var(--tinta);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.cab .izq {
+  font-family: Cinzel, Georgia, serif;
+  font-weight: 700;
+  letter-spacing: .03em;
+}
+
+.cab .med {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cab .der {
+  font-style: italic;
+}
+
+.it {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-left: 10px;
+}
+
+.it svg {
+  flex: none;
+}
+
+/* Campo: el mapa ocupa todo el alto que queda. */
+.mapa {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+  background: var(--papel);
+}
+
+.mapa svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: manipulation;
+}
+
+/* Pie: lo frecuente, al alcance del pulgar. */
+.pie {
+  height: 62px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border-top: 1px solid var(--tinta);
+}
+
+.pie .txt {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.pie .btns {
+  display: flex;
+  gap: 10px;
+  flex: none;
+}
+
+button {
+  min-height: 44px;
+  min-width: 112px;
+  padding: 0 14px;
+  font: 700 14px Cinzel, Georgia, serif;
+  letter-spacing: .04em;
+  color: var(--tinta);
+  background: var(--papel-oscuro);
+  border: 1.5px solid var(--tinta);
+  border-radius: 2px;
+  cursor: pointer;
+}
+
+button.fuerte {
+  min-height: 52px;
+  min-width: 184px;
+  background: var(--tinta);
+  color: var(--papel);
+}
+
+button:active {
+  transform: translateY(1px);
+}
+</style>
+</head>
+<body>
+
+<!-- Trama de grabado, marcas y flechas: una sola vez para todas las pantallas. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <pattern id="agua" width="5" height="5" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="2" x2="5" y2="2" stroke="#231a12" stroke-width="1.3" opacity=".75"/>
+    </pattern>
+    <pattern id="vado" width="8" height="8" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="4" x2="8" y2="4" stroke="#a9742c" stroke-width="2"/>
+    </pattern>
+    <pattern id="colina" width="12" height="12" patternUnits="userSpaceOnUse">
+      <circle cx="6" cy="6" r="2.5" fill="none" stroke="#7a4f22" stroke-width=".9"/>
+      <circle cx="6" cy="6" r="5.5" fill="none" stroke="#7a4f22" stroke-width=".7" opacity=".7"/>
+    </pattern>
+    <pattern id="bosque" width="11" height="11" patternUnits="userSpaceOnUse">
+      <path d="M2.5 8 L4.5 3.5 L6.5 8 Z M7.5 10.5 L9.5 6.5 L11.5 10.5 Z" fill="none" stroke="#231a12" stroke-width=".8"/>
+    </pattern>
+    <pattern id="zona" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(-30)">
+      <line x1="0" y1="0" x2="0" y2="8" stroke="#a9742c" stroke-width="1.6" opacity=".55"/>
+    </pattern>
+    <pattern id="oculto" width="6" height="6" patternUnits="userSpaceOnUse">
+      <circle cx="3" cy="3" r="1" fill="#231a12" opacity=".6"/>
+    </pattern>
+    <pattern id="peligro" width="5" height="5" patternUnits="userSpaceOnUse">
+      <path d="M0 0L5 5M5 0L0 5" stroke="#8a2a1c" stroke-width="1"/>
+    </pattern>
+    <marker id="flecha" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0L10 5L0 10z" fill="#231a12"/>
+    </marker>
+  </defs>
+</svg>
+
+<!-- PANTALLA 1 · despliegue -->
+<section class="pantalla on" data-p="1">
+  <div class="cab">
+    <span class="izq">Despliegue · antes de la ronda 1</span>
+    <span class="med">Toca un regimiento y luego su hexágono</span>
+    <span class="der">Río con 3 vados</span>
+  </div>
+  <div class="mapa" id="m1"></div>
+  <div class="pie">
+    <p class="txt" id="t1">P pesada · M media · L ligera · N lanceros · T tiro · C caballería · G general. Tu lado es el izquierdo.</p>
+    <div class="btns">
+      <button onclick="colocar()">Colocar solo</button>
+      <button class="fuerte" onclick="ir(2)">Empezar batalla</button>
+    </div>
+  </div>
+</section>
+
+<!-- PANTALLA 2 · órdenes en pleno choque (26 regimientos por bando) -->
+<section class="pantalla" data-p="2">
+  <div class="cab">
+    <span class="izq">Ronda 4 · en pausa</span>
+    <span class="med">
+      <span class="it"><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#231a12"/></svg>obedece</span>
+      <span class="it"><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="none" stroke="#231a12" stroke-width="1.4" stroke-dasharray="3 2"/></svg>tarda 6 s</span>
+      <span class="it"><svg width="16" height="16" aria-hidden="true"><circle cx="8" cy="8" r="6.5" fill="#efe2c0" stroke="#8a2a1c" stroke-width="2.5"/></svg>en peligro</span>
+      <span class="it"><svg width="16" height="16" aria-hidden="true"><rect x="2" y="2" width="12" height="12" fill="#a9742c" fill-opacity=".25" stroke="#231a12" stroke-width=".8" stroke-dasharray="2 1.5"/></svg>orden al instante</span>
+    </span>
+  </div>
+  <div class="mapa" id="m2"></div>
+  <div class="pie">
+    <p class="txt"><span id="i2a"></span><br><span id="i2b"></span></p>
+    <div class="btns">
+      <button onclick="deshacer()">Deshacer</button>
+      <button class="fuerte" onclick="ejecutar()">Ejecutar ronda</button>
+    </div>
+  </div>
+</section>
+
+<!-- PANTALLA 3 · carga por el flanco, paso a paso -->
+<section class="pantalla" data-p="3">
+  <div class="cab">
+    <span class="izq" id="h3">Ronda 4 · paso 4 de 4</span>
+    <span class="med">Caballería carga por el flanco</span>
+    <span class="der">arrolla a la media enemiga</span>
+  </div>
+  <div class="mapa" id="m3"></div>
+  <div class="pie">
+    <p class="txt">Los números son los pasos. Un paso = un hexágono, unos 60 m.</p>
+    <div class="btns">
+      <button onclick="ir(2)">Volver</button>
+      <button class="fuerte" onclick="ir(4)">Ver resultado</button>
+    </div>
+  </div>
+</section>
+
+<!-- PANTALLA 4 · resultado y retirada -->
+<section class="pantalla" data-p="4">
+  <div class="cab">
+    <span class="izq">Resultado · ronda 4</span>
+    <span class="med">Resistir 4 de 8 · zona 2 de 3 · general a salvo</span>
+    <span class="der">bajas: 3</span>
+  </div>
+  <div class="mapa" id="m4"></div>
+  <div class="pie">
+    <p class="txt">Una X es una baja. La flecha es la retirada del firme.</p>
+    <div class="btns">
+      <button onclick="ir(1)">Retirar al campamento</button>
+      <button class="fuerte" onclick="ir(2)">Otra ronda</button>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ------------------------------------------------------------------
+   Geometría: hexágonos de punta plana, columnas impares desplazadas.
+   25 columnas = 1.500 m (una columna, unos 60 m).
+   ------------------------------------------------------------------ */
+const COLS = 25;
+const FILAS = 7;
+const R = 21;
+const ALT = Math.sqrt(3) * R;
+const OY = 12;
+
+const X = c => 22 + R + c * 1.5 * R;
+const Y = (c, r) => OY + ALT / 2 + r * ALT + (c % 2 ? ALT / 2 : 0);
+
+/* ------------------------------------------------------------------
+   El campo. Letras mayúsculas: tus regimientos. Minúsculas: enemigo.
+   ~ río   = vado   ^ colina   f bosque   . llano
+   ------------------------------------------------------------------ */
+const MAPA = [
+  '    C.P.M.L.~.n.m.p.c^^^.',
+  '    ..P.M.T.=.n.t.m..^^..',
+  'ff..P.L.M.C.~.m.c.l.p....',
+  'ff..M.P.GN.T=t.n.p.m.^^..',
+  '....L.C.P.M.~.m.c.n.l....',
+  '....C.T.M..P=p.t.m.c.ffff',
+  '....' + '..L.C.P.' + '~' + '.n.c.l..' + '....'
+];
+
+const NOMBRE = {
+  P: 'pesada',
+  M: 'media',
+  L: 'ligera',
+  N: 'lanceros',
+  T: 'tiradores',
+  C: 'caballería',
+  G: 'general'
+};
+
+const celda = (c, r) => ((MAPA[r] || '').padEnd(COLS, '.')[c] || '.');
+const terr = (c, r) => ('~=^f'.includes(celda(c, r)) ? celda(c, r) : '.');
+
+const UNIDADES = [];
+for (let r = 0; r < FILAS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    const ch = celda(c, r);
+    if ('PMLTCNG'.includes(ch)) {
+      UNIDADES.push({ id: 'r' + c + '-' + r, lado: 'r', tipo: ch, c, r, gen: ch === 'G' });
+    } else if ('pmltcn'.includes(ch)) {
+      UNIDADES.push({ id: 'e' + c + '-' + r, lado: 'e', tipo: ch.toUpperCase(), c, r, gen: false });
+    }
+  }
+}
+
+const U = id => UNIDADES.find(u => u.id === id);
+const GEN = UNIDADES.find(u => u.gen);
+const enemigoEn = (c, r) => UNIDADES.find(u => u.c === c && u.r === r && u.lado === 'e');
+
+/* Distancia en casillas (cubo de coordenadas, columnas impares desplazadas). */
+function cubo(c, r) {
+  const x = c;
+  const z = r - (c - (c & 1)) / 2;
+  return [x, -x - z, z];
+}
+
+function dist(a, b) {
+  const A = cubo(a.c, a.r);
+  const B = cubo(b.c, b.r);
+  return Math.max(...A.map((v, i) => Math.abs(v - B[i])));
+}
+
+function vecinos(c, r) {
+  const d = c % 2
+    ? [[1, 0], [1, 1], [-1, 0], [-1, 1]]
+    : [[1, -1], [1, 0], [-1, -1], [-1, 0]];
+  const out = d.map(([dc, dr]) => [c + dc, r + dr]);
+  out.push([c, r - 1], [c, r + 1]);
+  return out.filter(([x, y]) => x >= 0 && x < COLS && y >= 0 && y < FILAS);
+}
+
+/* Camino más corto. Si el destino es enemigo, para junto a él.
+   El río bloquea salvo en los vados. */
+function camino(desde, destino) {
+  const enem = enemigoEn(destino.c, destino.r);
+  const meta = (c, r) => enem
+    ? vecinos(destino.c, destino.r).some(([x, y]) => x === c && y === r)
+    : (c === destino.c && r === destino.r);
+  const k = (c, r) => c + ',' + r;
+  const ini = [desde.c, desde.r];
+  const prev = new Map([[k(ini[0], ini[1]), null]]);
+  const cola = [ini];
+  let fin = null;
+  while (cola.length) {
+    const [c, r] = cola.shift();
+    if (meta(c, r)) { fin = [c, r]; break; }
+    for (const [x, y] of vecinos(c, r)) {
+      if (prev.has(k(x, y))) continue;
+      if (terr(x, y) === '~') continue;
+      if (enemigoEn(x, y)) continue;
+      prev.set(k(x, y), [c, r]);
+      cola.push([x, y]);
+    }
+  }
+  if (!fin) return [];
+  const out = [];
+  let p = fin;
+  while (p && !(p[0] === ini[0] && p[1] === ini[1])) {
+    out.unshift(p);
+    p = prev.get(k(p[0], p[1]));
+  }
+  return out;
+}
+
+/* Un regimiento tuyo está en peligro si un enemigo está a 2 casillas o menos.
+   Llega tarde si está a más de 3 casillas (unos 200 m) del general. */
+const peligroDe = u => u.lado === 'r' && !u.gen && UNIDADES.some(e => e.lado === 'e' && dist(e, u) <= 2);
+const tardeDe = u => u.lado === 'r' && !u.gen && dist(u, GEN) > 3;
+
+const pts = (x, y) => {
+  const s = [];
+  for (let i = 0; i < 6; i++) {
+    const a = Math.PI / 3 * i;
+    s.push((x + R * Math.cos(a)).toFixed(1) + ',' + (y + R * Math.sin(a)).toFixed(1));
+  }
+  return s.join(' ');
+};
+
+/* ------------------------------------------------------------------
+   Ficha: letra de tipo. Tuyas, tinta sólida. Enemigas, papel claro.
+   ------------------------------------------------------------------ */
+function ficha(u, q, f) {
+  const ro = u.lado === 'r';
+  let g = `<g transform="translate(${X(q.c)},${Y(q.c, q.r)})" data-c="${q.c}" data-r="${q.r}" style="cursor:pointer">`;
+  if (f.peli) g += `<circle r="16" fill="none" stroke="#8a2a1c" stroke-width="3"/>`;
+  if (f.tarde) g += `<circle r="16" fill="none" stroke="#231a12" stroke-width="1.4" stroke-dasharray="3 2.5"/>`;
+  if (f.sel) g += `<circle r="20" fill="none" stroke="#a9742c" stroke-width="2.5"/>`;
+  if (f.marca) g += `<circle r="20" fill="none" stroke="#8a2a1c" stroke-width="2" stroke-dasharray="2 3"/>`;
+  g += `<circle r="${u.gen ? 13 : 12}" fill="${ro ? '#231a12' : '#efe2c0'}" stroke="#231a12" stroke-width="1.6"/>`;
+  if (u.gen) g += `<circle r="15.5" fill="none" stroke="#231a12" stroke-width=".9"/>`;
+  g += `<text y="4.5" text-anchor="middle" font-size="13" font-weight="700" font-family="Cinzel,Georgia,serif" fill="${ro ? '#efe2c0' : '#231a12'}">${u.tipo}</text>`;
+  if (f.tarde) {
+    g += `<rect x="-14" y="-27" width="28" height="15" fill="#efe2c0" stroke="#231a12" stroke-width=".8"/>`;
+    g += `<text y="-15" text-anchor="middle" font-size="13" fill="#231a12">6 s</text>`;
+  }
+  if (f.peli) {
+    g += `<circle cx="13" cy="-13" r="7" fill="#8a2a1c"/>`;
+    g += `<text x="13" y="-9" text-anchor="middle" font-size="13" font-weight="700" fill="#efe2c0">!</text>`;
+  }
+  return g + '</g>';
+}
+
+/* ------------------------------------------------------------------
+   Dibujo del campo. cfg: fase, solo, ruta, origen, sel, mover,
+   muertos, marca, etiquetas, flechas, aria.
+   ------------------------------------------------------------------ */
+function dibujar(id, cfg) {
+  const el = document.getElementById(id);
+  const movs = cfg.mover || {};
+  const muertos = cfg.muertos || new Set();
+  const ord = cfg.fase === 'ordenes';
+  const peli = new Set();
+  const tard = new Set();
+
+  if (ord) {
+    UNIDADES.forEach(u => {
+      if (peligroDe(u)) peli.add(u.id);
+      if (tardeDe(u)) tard.add(u.id);
+    });
+  }
+
+  let s = `<svg viewBox="0 0 844 292" preserveAspectRatio="xMidYMid meet" role="img" aria-label="${cfg.aria}">`;
+
+  /* Hexágonos: fondo, terreno, zonas y, al final, la casilla que se pulsa. */
+  for (let r = 0; r < FILAS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      const x = X(c);
+      const y = Y(c, r);
+      const t = terr(c, r);
+      const p = pts(x, y);
+      s += `<polygon points="${p}" fill="${t === '~' ? '#d6c291' : '#efe2c0'}"/>`;
+      if (t === '~') s += `<polygon points="${p}" fill="url(#agua)"/>`;
+      if (t === '=') s += `<polygon points="${p}" fill="url(#vado)"/>`;
+      if (t === '^') s += `<polygon points="${p}" fill="url(#colina)"/>`;
+      if (t === 'f') s += `<polygon points="${p}" fill="url(#bosque)"/>`;
+      if (cfg.fase === 'despliegue') {
+        if (t !== '~' && c <= 11) s += `<polygon points="${p}" fill="url(#zona)"/>`;
+        if (c >= 13) s += `<polygon points="${p}" fill="url(#oculto)"/>`;
+      }
+      if (ord && dist({ c, r }, GEN) <= 3) {
+        s += `<polygon points="${p}" fill="#a9742c" fill-opacity=".18"/>`;
+      }
+      const hu = UNIDADES.find(u => u.c === c && u.r === r && !movs[u.id]);
+      if (hu && peli.has(hu.id)) s += `<polygon points="${p}" fill="url(#peligro)" fill-opacity=".55"/>`;
+      s += `<polygon points="${p}" fill="#000" fill-opacity="0" stroke="#231a12" stroke-opacity=".5" stroke-width=".8" data-c="${c}" data-r="${r}"/>`;
+    }
+  }
+
+  /* Camino: línea de puntos y un número por paso. */
+  if (cfg.ruta && cfg.ruta.length) {
+    const seq = [cfg.origen, ...cfg.ruta.map(([c, r]) => ({ c, r }))];
+    s += `<polyline points="${seq.map(q => X(q.c) + ',' + Y(q.c, q.r)).join(' ')}" fill="none" stroke="#231a12" stroke-width="2" stroke-dasharray="2 4" stroke-linecap="round"/>`;
+    cfg.ruta.forEach(([c, r], i) => {
+      s += `<g transform="translate(${X(c)},${Y(c, r) - ALT / 2})">`;
+      s += `<circle r="8" fill="#efe2c0" stroke="#231a12" stroke-width="1.2"/>`;
+      s += `<text y="4.5" text-anchor="middle" font-size="13" font-weight="700" font-family="Cinzel,Georgia,serif" fill="#231a12">${i + 1}</text>`;
+      s += `</g>`;
+    });
+  }
+
+  /* Regimientos. Caídos: una X en su sitio. */
+  for (const u of UNIDADES) {
+    if (cfg.solo && u.lado !== cfg.solo) continue;
+    if (muertos.has(u.id)) {
+      s += `<g transform="translate(${X(u.c)},${Y(u.c, u.r)})" stroke="#8a2a1c" stroke-width="3.2" stroke-linecap="round"><path d="M-9-9L9 9M9-9L-9 9"/></g>`;
+      continue;
+    }
+    const q = movs[u.id] || u;
+    const f = {
+      peli: peli.has(u.id),
+      tarde: tard.has(u.id),
+      sel: cfg.sel === u.id,
+      marca: (cfg.marca || []).includes(u.id)
+    };
+    s += ficha(u, q, f);
+  }
+
+  /* Rótulos y flechas, por encima de todo. */
+  (cfg.etiquetas || []).forEach(e => {
+    s += `<text x="${X(e.c)}" y="${Y(e.c, e.r) + 31}" text-anchor="middle" font-size="13" font-style="italic" fill="#8a2a1c" stroke="#efe2c0" stroke-width="4" paint-order="stroke">${e.t}</text>`;
+  });
+  (cfg.flechas || []).forEach(f => {
+    const x1 = X(f.a[0]);
+    const y1 = Y(f.a[0], f.a[1]);
+    const x2 = X(f.b[0]);
+    const y2 = Y(f.b[0], f.b[1]);
+    const L = Math.hypot(x2 - x1, y2 - y1);
+    const ux = (x2 - x1) / L;
+    const uy = (y2 - y1) / L;
+    s += `<line x1="${x1 + ux * 16}" y1="${y1 + uy * 16}" x2="${x2 - ux * 16}" y2="${y2 - uy * 16}" stroke="#231a12" stroke-width="2.5" marker-end="url(#flecha)"/>`;
+    s += `<text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 - 12}" text-anchor="middle" font-size="13" font-style="italic" fill="#231a12" stroke="#efe2c0" stroke-width="4" paint-order="stroke">${f.t}</text>`;
+  });
+
+  el.innerHTML = s + '</svg>';
+}
+
+/* ------------------------------------------------------------------
+   Estado de la pantalla 2 (planear) y de las pantallas 3 y 4.
+   ------------------------------------------------------------------ */
+const RUTA_DEF = camino(U('r6-4'), U('e14-2'));
+let sel = 'r6-4';
+let ruta = RUTA_DEF.slice();
+let destino = { c: 14, r: 2 };
+let rutaFinal = RUTA_DEF.slice();
+
+function ir(n) {
+  document.querySelectorAll('.pantalla').forEach(p => {
+    p.classList.toggle('on', Number(p.dataset.p) === n);
+  });
+  try { history.replaceState(null, '', '#' + n); } catch (e) { /* sin historial: no pasa nada */ }
+}
+
+function colocar() {
+  document.getElementById('t1').textContent = 'El ordenador coloca los 26 regimientos en tu zona. Puedes cambiarlos a mano.';
+}
+
+function pintar2() {
+  const u = U(sel);
+  const en = destino ? enemigoEn(destino.c, destino.r) : null;
+  dibujar('m2', { fase: 'ordenes', sel, ruta, origen: u, aria: 'Batalla en pleno choque, ronda 4' });
+  document.getElementById('i2a').textContent = 'Gesto enemigo: cubre el vado central.';
+  document.getElementById('i2b').textContent = ruta.length
+    ? `${NOMBRE[u.tipo]}: ${ruta.length} pasos${en ? ', carga contra ' + NOMBRE[en.tipo] + ' enemiga' : ''}. Toca otro hexágono para cambiar.`
+    : `${NOMBRE[u.tipo]} seleccionada. Toca un hexágono: avanza, carga o flanquea.`;
+}
+
+function pintarEjec() {
+  const u = U(sel);
+  const n = rutaFinal.length;
+  const ult = n ? rutaFinal[n - 1] : [u.c, u.r];
+  const fin = { c: ult[0], r: ult[1] };
+  document.getElementById('h3').textContent = `Ronda 4 · paso ${n} de ${n}`;
+  dibujar('m3', {
+    fase: 'carga',
+    origen: u,
+    ruta: rutaFinal,
+    mover: { [u.id]: fin },
+    marca: ['e14-2'],
+    etiquetas: [{ c: 14, r: 2, t: 'de lado' }],
+    aria: 'Caballería carga por el flanco'
+  });
+  dibujar('m4', {
+    fase: 'resultado',
+    mover: { [u.id]: fin, 'r11-5': { c: 9, r: 5 } },
+    muertos: new Set(['e14-2', 'e13-5', 'r11-3']),
+    flechas: [{ a: [11, 5], b: [9, 5], t: 'retira' }],
+    aria: 'Resultado de la ronda 4'
+  });
+}
+
+function deshacer() {
+  sel = 'r6-4';
+  ruta = RUTA_DEF.slice();
+  destino = { c: 14, r: 2 };
+  pintar2();
+}
+
+function ejecutar() {
+  rutaFinal = ruta.slice();
+  pintarEjec();
+  ir(3);
+}
+
+/* Tocar un hexágono: si es tuyo, lo eliges; si no, trazas el camino hasta él. */
+document.getElementById('m2').addEventListener('click', e => {
+  const g = e.target.closest('[data-c]');
+  if (!g) return;
+  const c = Number(g.dataset.c);
+  const r = Number(g.dataset.r);
+  const h = UNIDADES.find(v => v.c === c && v.r === r);
+  if (h && h.lado === 'r') {
+    sel = h.id;
+    ruta = [];
+    destino = null;
+  } else {
+    ruta = camino(U(sel), { c, r });
+    destino = { c, r };
+  }
+  pintar2();
+});
+
+/* Arranque: todas las pantallas se dibujan; la 1 se ve primero. */
+dibujar('m1', { fase: 'despliegue', solo: 'r', aria: 'Despliegue antes de la batalla' });
+pintar2();
+pintarEjec();
+ir(Number(location.hash.slice(1)) || 1);
+</script>
+</body>
+</html>

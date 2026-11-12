@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=844,initial-scale=1"><title>AQVILA · Batalla K7-1</title>
+<style>
+@font-face{font-family:Cinzel;src:url(../../../assets/fuentes/cinzel-700.woff2) format("woff2");font-weight:700}
+:root{--rojo:#9a2b1f;--oro:#e0b04a;--yeso:#ead7ae;--tinta:#2a140c}
+*{box-sizing:border-box}
+html,body{margin:0;width:844px;height:390px;overflow:hidden;background:#1a0d08}
+body{font-family:Georgia,"Liberation Serif","Times New Roman",serif;color:var(--tinta);-webkit-user-select:none;user-select:none}
+.cz,h3,.btn,.step,.hud b,.carta b,.dia b{font-family:Cinzel,Georgia,serif;font-weight:700;letter-spacing:.03em}
+#app{position:absolute;inset:0;overflow:hidden}
+#app::after{content:"";position:absolute;inset:0;z-index:20;pointer-events:none;mix-blend-mode:multiply;background:radial-gradient(ellipse at 50% 45%,transparent 55%,#2a0d0899 100%),url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' seed='7'/><feColorMatrix values='0 0 0 0 .35 0 0 0 0 .2 0 0 0 0 .1 0 0 0 .9 -.28'/></filter><rect width='220' height='220' filter='url(%23n)'/></svg>")}
+.scr{position:absolute;inset:0;display:none;overflow:clip}.scr.on{display:block}
+svg.map{position:absolute;left:0;top:0;width:844px;height:390px}
+.hud{position:absolute;left:0;right:0;top:0;height:28px;z-index:6;display:flex;align-items:center;gap:10px;padding:0 10px;background:linear-gradient(#1d0f0a,#34170e);border-bottom:2px solid var(--rojo);box-shadow:0 3px 8px #000a;color:var(--yeso)}
+.hud b{font-size:14px;color:#f0c860;letter-spacing:.12em}.hud nav{display:flex;gap:5px;flex:1}.hud .cz{font-size:10px;color:#f0c860}
+.step{font-size:10px;padding:3px 9px;border:1px solid #7a4a2a;border-radius:11px;color:#d9b98a;background:none;cursor:pointer}
+.step.on{background:var(--rojo);color:#fff;border-color:var(--oro)}
+.nicho{position:absolute;z-index:5;display:flex;flex-direction:column;overflow:hidden;background:linear-gradient(#ecd9ae,#d2b077);border:3px solid var(--rojo);border-radius:62px 62px 8px 8px;box-shadow:inset 0 0 16px #6b3a1a99,0 0 0 2px #1a0d08,6px 8px 14px #000a}
+.hor{height:74px;margin:5px 5px 0;border-radius:54px 54px 0 0;background:radial-gradient(ellipse at 50% 75%,#8a2a1c,#2a0e09);box-shadow:inset 0 6px 14px #000c;display:flex;align-items:flex-end;justify-content:center;flex:none}
+.hor svg{height:66px}
+.in{padding:5px 8px 7px;flex:1;min-height:0}
+h3{margin:0 0 3px;font-size:11px;color:#7a1e16;text-align:center;line-height:1.15}
+.in p{margin:2px 0;font-size:10px;line-height:1.25}.in small{display:block;font-size:10px;color:#5a3a22}
+.bar{height:7px;background:#2b1a12;border-radius:4px;overflow:hidden;border:1px solid #6b3a1a;margin:3px 0}.bar i{display:block;height:100%;background:linear-gradient(#e8603f,#9a2b1f)}
+.btn{display:block;width:100%;min-height:34px;margin:4px 0;font-size:11px;color:#fff3d6;background:linear-gradient(#b8342a,#7d1f17);border:2px solid var(--oro);border-radius:7px;box-shadow:0 3px 0 #3a0d08,0 5px 8px #0008;cursor:pointer;padding:4px 6px}
+.btn.neg{background:linear-gradient(#3a302a,#0e0a08)}.btn.peq{min-height:28px;font-size:10px;margin:2px 0}
+.og{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:4px 0}
+.ob{font:700 10px Cinzel,Georgia,serif;min-height:28px;border:2px solid #9a6a3a;border-radius:6px;background:#f1e0b8;color:#3a1a10;cursor:pointer}.ob.on{background:#9a2b1f;color:#fff3d6;border-color:var(--oro)}
+.op{display:flex;gap:6px;align-items:center;background:#f1e0b8;border:2px solid #9a6a3a;border-radius:8px;padding:4px 5px;margin:5px 0;min-height:50px;cursor:pointer}
+.op.on{border-color:#9a2b1f;background:#fff0c8;box-shadow:0 0 0 2px var(--oro)}.op svg{flex:none;width:28px;height:28px}.op b{display:block;font-size:11px;color:#7a1e16}.op span{font-size:10px;line-height:1.2;display:block}
+.pie{position:absolute;z-index:5;display:flex;gap:6px;align-items:center;padding:4px 8px;background:linear-gradient(#f0deb4,#d4b27a);border:2px solid var(--rojo);border-radius:8px;box-shadow:0 4px 10px #000a;font-size:10px}
+.pie .btn{width:auto;margin:0;min-height:28px;font-size:10px}
+.trk{position:relative;flex:1;height:14px;background:#2b1a12;border:2px solid #6b3a1a;border-radius:8px}.trk i{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(#e8603f,#9a2b1f);border-radius:6px}.trk u{position:absolute;top:-4px;width:2px;height:18px;background:#e0b04a}
+.log p{display:flex;gap:5px;margin:4px 0;opacity:.45}.log p.on{opacity:1}.log em{font:700 10px Cinzel,Georgia,serif;color:#9a2b1f;font-style:normal;flex:none}
+.carta{display:flex;align-items:center;gap:6px;width:100%;min-height:38px;margin:4px 0;background:#f1e0b8;border:2px solid #9a6a3a;border-radius:20px 20px 6px 6px;padding:3px 6px;text-align:left;cursor:pointer}
+.carta b{font-size:11px;color:#7a1e16;display:block}.carta span{font:10px Georgia,serif;color:#3a1a10;display:block}
+.dia{position:absolute;top:226px;width:100px;height:154px;z-index:5;background:linear-gradient(#ecd9ae,#cfa96f);border:2px solid #b8893a;border-radius:50px 50px 4px 4px;padding:6px 6px;text-align:center;box-shadow:inset 0 0 14px #6b3a1a88,3px 5px 9px #000a}
+.dia b{display:block;font-size:19px;color:#9a2b1f}.dia p{margin:3px 0;font-size:10px;line-height:1.2}.dia.pas{opacity:.7}.dia.act{border-color:#fff0a0;box-shadow:0 0 0 2px #e0b04a,0 0 16px #f0c860,3px 5px 9px #000a}
+.dia .tg{display:inline-block;margin-top:2px;padding:1px 6px;border-radius:8px;background:#17110f;color:#f0c860;font-size:9.5px}
+.march{animation:mr .8s linear infinite}@keyframes mr{to{stroke-dashoffset:-16}}
+.pulse{transform-box:fill-box;transform-origin:center;animation:pl .7s ease-in-out infinite alternate}@keyframes pl{from{transform:scale(.85)}to{transform:scale(1.18)}}
+.arm{transform-box:fill-box;transform-origin:0% 100%;animation:hit .65s ease-in-out infinite alternate}@keyframes hit{from{transform:rotate(-28deg)}to{transform:rotate(38deg)}}
+.gal{animation:gl 1.6s linear infinite}@keyframes gl{from{transform:translate(46px,10px)}to{transform:translate(-12px,-3px)}}
+.bob{animation:bb .3s ease-in-out infinite alternate}@keyframes bb{to{transform:translateY(-3px)}}
+.puff{animation:pf 1.8s ease-out infinite}@keyframes pf{from{opacity:.6;transform:translateY(0) scale(.8)}to{opacity:0;transform:translateY(-16px) scale(1.5)}}
+.vol{animation:vl 1.2s linear infinite}@keyframes vl{from{opacity:1;transform:translate(0,0)}to{opacity:0;transform:translate(-110px,70px)}}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<linearGradient id="gr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#dcae66"/><stop offset=".55" stop-color="#bd8e4e"/><stop offset="1" stop-color="#85602f"/></linearGradient>
+<radialGradient id="co" cx=".5" cy=".35" r=".7"><stop offset="0" stop-color="#ecc985"/><stop offset="1" stop-color="#a97a3c"/></radialGradient>
+<linearGradient id="ci" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e9c98c"/><stop offset="1" stop-color="#f4e2b6"/></linearGradient>
+<linearGradient id="pa" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a02a1d"/><stop offset="1" stop-color="#6e1810"/></linearGradient>
+<marker id="ar" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#f0c860" stroke="#1a0d08" stroke-width=".8"/></marker>
+<marker id="ar2" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#fff3d6" stroke="#1a0d08" stroke-width=".8"/></marker>
+<marker id="ar3" markerWidth="9" markerHeight="9" refX="6" refY="4.5" orient="auto"><path d="M0 0L9 4.5L0 9Z" fill="#17110f" stroke="#e0b04a" stroke-width=".8"/></marker>
+<filter id="sh" x="-30%" y="-60%" width="160%" height="220%"><feGaussianBlur stdDeviation="2"/></filter>
+</defs><path id="rt" fill="none" stroke="none"/></svg>
+<div id="app">
+<header class="hud"><b>AQVILA</b><nav id="nav"></nav><span id="ttl" class="cz"></span><span id="pm" class="cz"></span></header>
+<section class="scr" id="s1"></section><section class="scr" id="s2"></section><section class="scr" id="s3"></section><section class="scr" id="s4"></section>
+</div>
+<script>
+const $=s=>document.querySelector(s),ease=t=>t*t*(3-2*t),cl=(v,a=0,b=1)=>Math.min(b,Math.max(a,v)),lerp=(a,b,t)=>a+(b-a)*t;
+const ROUTE='M310 335 C360 335 400 318 445 314 S600 340 650 255 L660 190',RIVER='M385 28 C420 100 360 170 410 230 S450 340 420 392';
+const TT=['Ronda 3 · en pausa','Ronda 3 · en directo','Ronda 3 · el choque','Día 1 de 5 · el puesto'],PM=['Mando ●●●●○','Mando gastado','Cartas 3 de 3','Relevo el día III'];
+/* ---- figuras dibujadas a mano ---- */
+const RC={c:'#a3281d',k:'#c99a3a',e:'#e0b04a'},EC={c:'#17110f',k:'#2b2420',e:'#c49a58'};
+const fig=(p,d=0)=>`<g><ellipse cx="0" cy="1" rx="9" ry="3" fill="#000" opacity=".35"/><rect x="-5" y="-12" width="4" height="12" fill="#3a2a22"/><rect x="1" y="-12" width="4" height="12" fill="#3a2a22"/><path d="M-7-12L7-12L8-28L-8-28Z" fill="${p.c}" stroke="#0e0806" stroke-width=".8"/><rect x="-8" y="-16" width="16" height="3" fill="${p.e}"/><circle cx="0" cy="-33" r="5" fill="#e0b48a" stroke="#0e0806" stroke-width=".8"/><path d="M-6-34Q0-43 6-34Z" fill="${p.k}" stroke="#0e0806" stroke-width=".8"/><path d="M-1.5-41L1.5-41L2.5-47L-2.5-47Z" fill="${p.c}"/><g class="arm" style="animation-delay:-${d}s"><line x1="5" y1="-24" x2="18" y2="-37" stroke="#d6d9db" stroke-width="2"/><line x1="4" y1="-24" x2="9" y2="-22" stroke="#e0b48a" stroke-width="3"/></g><rect x="5" y="-30" width="9" height="20" rx="3" fill="${p.c}" stroke="${p.e}" stroke-width="1.4"/><circle cx="9.5" cy="-20" r="2" fill="${p.e}"/></g>`;
+const horse=(p,d=0)=>`<g><ellipse cx="0" cy="1" rx="23" ry="4" fill="#000" opacity=".35"/><g fill="${p.c==='#17110f'?'#2a2220':'#7a4a28'}" stroke="#0e0806" stroke-width=".8"><rect x="-15" y="-12" width="3.5" height="12"/><rect x="-9" y="-12" width="3.5" height="12"/><rect x="7" y="-12" width="3.5" height="12"/><rect x="13" y="-12" width="3.5" height="12"/><ellipse cx="0" cy="-18" rx="19" ry="8"/><path d="M13-22L22-35L29-32L27-24L19-15Z"/></g><path d="M-18-20Q-27-14-23-5" stroke="#1a0d08" fill="none" stroke-width="3"/><g transform="translate(-1 -22) scale(.78)">${fig(p,d)}</g></g>`;
+/* ---- mapa ---- */
+function trees(cx,cy,n,seed){let o='',s=seed;for(let i=0;i<n;i++){s=(s*9301+49297)%233280;const a=s/233280;s=(s*9301+49297)%233280;const b=s/233280;o+=`<g transform="translate(${(cx+(a-.5)*72).toFixed(1)} ${(cy+(b-.5)*34).toFixed(1)})"><ellipse cx="3" cy="9" rx="8" ry="3" fill="#000" opacity=".3"/><rect x="-1" y="2" width="2.4" height="7" fill="#3a2410"/><path d="M0-17C9-8 8 2 0 4C-8 2-9-8 0-17Z" fill="#2f4a28" stroke="#16260f" stroke-width=".8"/><path d="M0-17C5-9 4 0 0 3C-2-4-1-11 0-17Z" fill="#4f7038" opacity=".8"/></g>`}return o}
+const lab=(x,y,t)=>`<text x="${x}" y="${y}" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-size="9" fill="#4a2a12" opacity=".85" letter-spacing="1.5" style="paint-order:stroke" stroke="#ecd49a" stroke-width="2.4">${t}</text>`;
+const terrain=()=>`<rect width="844" height="390" fill="url(#gr)"/>
+<g fill="#f0cf8a" opacity=".22"><ellipse cx="250" cy="120" rx="110" ry="30"/><ellipse cx="560" cy="250" rx="120" ry="34"/><ellipse cx="260" cy="270" rx="90" ry="24"/></g>
+<g stroke="#7a5230" stroke-width="1" fill="none" opacity=".45"><path d="M150 40l14 30-6 22 18 26"/><path d="M700 330l-22-18 8-20-20-22"/><path d="M520 384l10-24-8-14"/></g>
+<path d="${RIVER}" fill="none" stroke="#24484f" stroke-width="36" transform="translate(3 4)" opacity=".5"/><path d="${RIVER}" fill="none" stroke="#2f5d66" stroke-width="34"/><path d="${RIVER}" fill="none" stroke="#6ea3a5" stroke-width="24" opacity=".9"/><path d="${RIVER}" fill="none" stroke="#cfe8de" stroke-width="2" stroke-dasharray="10 14" opacity=".6"/>
+<ellipse cx="390" cy="183" rx="26" ry="12" fill="#dcb976" stroke="#8a6234"/><ellipse cx="445" cy="314" rx="26" ry="12" fill="#dcb976" stroke="#8a6234"/>
+<ellipse cx="636" cy="112" rx="74" ry="44" fill="#4a2a10" opacity=".4" filter="url(#sh)"/><ellipse cx="630" cy="102" rx="70" ry="40" fill="url(#co)" stroke="#7a5428" stroke-width="1.5"/><ellipse cx="630" cy="100" rx="50" ry="27" fill="none" stroke="#9c7036" opacity=".7"/><ellipse cx="630" cy="98" rx="28" ry="14" fill="none" stroke="#9c7036" opacity=".7"/>
+${trees(455,62,9,11)}${trees(250,92,5,5)}
+<g><ellipse cx="205" cy="335" rx="48" ry="20" fill="#57775f" stroke="#2f4a3a" opacity=".9"/><ellipse cx="228" cy="330" rx="26" ry="10" fill="#6d9078" opacity=".8"/><path d="M175 332v-10M185 338v-12M200 340v-9M215 330v-11M232 336v-10M248 332v-9" stroke="#2f4a28" stroke-width="1.8"/></g>
+${lab(630,150,'COLINA')}${lab(432,205,'VADO')}${lab(480,100,'BOSQUE')}${lab(205,364,'PANTANO')}
+<rect width="844" height="390" fill="none"/>`;
+const frame=`<rect x="3" y="31" width="838" height="356" fill="none" stroke="#8e241a" stroke-width="5"/><rect x="9" y="37" width="826" height="344" fill="none" stroke="#16100c" stroke-width="1.5"/><rect x="12" y="40" width="820" height="338" fill="none" stroke="#e0b04a" stroke-width=".8" opacity=".7"/>`;
+/* ---- tropas ---- */
+const R=[['L1','M',345,110,420],['L2','M',345,150,400],['L3','M',345,190,420],['L4','M',345,230,400],['L5','M',345,270,420],['P1','P',300,130,300],['P2','P',300,190,300],['P3','P',300,250,300],['TR','P',255,190,200],['TI','T',375,150,160],['CV','C',310,335,120],['CA','C',310,62,100],['AM','L',455,66,80]];
+const E=[['e1','M',500,100,450],['e2','M',500,140,450],['e3','M',500,180,450],['e4','M',500,220,450],['e5','M',500,260,450],['e6','M',500,300,450],['f1','P',545,140,320],['f2','P',545,200,320],['f3','P',545,260,320],['h1','T',620,92,150],['h2','T',655,120,150],['ec','C',560,60,100],['ed','C',520,350,100]];
+const NOM={M:'Hastati',P:'Príncipes',L:'Velites',T:'Honderos',C:'Caballería'};
+const GL={M:'<path d="M-8-2V3M-4-2V3M0-2V3M4-2V3M8-2V3"/>',P:'<path d="M-8-1H8M-8 3H8"/>',L:'<circle cx="-6" cy="1" r="1.3"/><circle cx="0" cy="1" r="1.3"/><circle cx="6" cy="1" r="1.3"/>',T:'<path d="M-8 3Q0-6 8 3"/>',C:'<path d="M-7 3L0-3L7 3"/>'};
+function unit(u,side,x,y,o={}){const r=side==='r',c=r?'#a3281d':'#17110f',e=r?'#e0b04a':'#c49a58';
+return `<g data-id="${u[0]}" transform="translate(${x.toFixed(1)} ${y.toFixed(1)})" opacity="${o.ghost?.6:1}" style="cursor:pointer"><ellipse cx="3" cy="10" rx="19" ry="5" fill="#000" opacity=".38" filter="url(#sh)"/><path d="M-13-6V-18" stroke="#3a2410" stroke-width="1.5"/><path d="M-13-18h9l-2 3 2 3h-9Z" fill="${c}" stroke="${e}" stroke-width=".7"/><rect x="-15" y="-6.5" width="30" height="13" rx="2.5" fill="${c}" stroke="${e}" stroke-width="1.3" ${o.ghost?'stroke-dasharray="3 2"':''}/><g stroke="${e}" fill="${e}" stroke-width="1.6" stroke-linecap="round">${GL[u[1]]}</g><text y="19" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-size="8.5" fill="#fff3d6" stroke="#1a0d08" stroke-width="2.4" style="paint-order:stroke">${u[4]}</text>${o.sel?'<rect x="-19" y="-10" width="38" height="20" rx="4" fill="none" stroke="#ffe08a" stroke-width="2" stroke-dasharray="5 3" class="march"/>':''}</g>`}
+const bd=(x,y,n)=>`<g transform="translate(${x} ${y})"><circle r="8" fill="#f0c860" stroke="#1a0d08" stroke-width="1.2"/><text y="3.5" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-size="10" fill="#1a0d08">${n}</text></g>`;
+const arrow=(d,st,mk,w=3,da='')=>`<path d="${d}" fill="none" stroke="#1a0d08" stroke-width="${w+3}" opacity=".5" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${st}" stroke-width="${w}" stroke-linecap="round" stroke-dasharray="${da}" marker-end="url(#${mk})"/>`;
+const AMB='M455 78C480 92 500 102 510 124',ADV='M352 190L470 190';
+const GEN=g=>`<g transform="translate(${292+g} 190)"><circle r="101" fill="#f0c860" fill-opacity=".07" stroke="#f0c860" stroke-width="1.5" stroke-dasharray="6 5"/><path d="M0-9L7 0L0 9L-7 0Z" fill="#e0b04a" stroke="#1a0d08"/><text x="76" y="-80" font-family="Cinzel,Georgia,serif" font-size="9" fill="#fff3d6" stroke="#1a0d08" stroke-width="2.4" style="paint-order:stroke">200 m</text></g>`;
+const burst=(x,y,l)=>`<g transform="translate(${x} ${y})" onclick="show(3)" style="cursor:pointer"><g class="pulse"><path d="M0-17L4-6L16-9L8 0L16 9L4 6L0 17L-4 6L-16 9L-8 0L-16-9L-4-6Z" fill="#f0c860" stroke="#7d1f17" stroke-width="2"/></g><path d="M-8-8L8 8M8-8L-8 8" stroke="#7d1f17" stroke-width="3"/><text y="32" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-size="9.5" fill="#fff3d6" stroke="#1a0d08" stroke-width="2.6" style="paint-order:stroke">${l}</text></g>`;
+let RL=0,sel='CV',T=.7,paused=false,spd=1,cur=1;
+function pos(u,t){const id=u[0],e=ease(cl(t/.6));
+if(id==='CV'){const q=$('#rt').getPointAtLength(RL*ease(cl(t/.85)));return[q.x,q.y]}
+if(id==='AM'){const a=ease(cl((t-.45)/.35));return[lerp(455,512,a),lerp(66,118,a)]}
+if(id==='ec'){const a=ease(cl((t-.4)/.4));return[lerp(560,545,a),lerp(60,100,a)]}
+if(id==='ed'){const a=ease(cl(t/.7));return[lerp(520,562,a),lerp(350,338,a)]}
+if(id[0]==='L')return[u[2]+40*e,u[3]];if(id[0]==='P')return[u[2]+35*e,u[3]];if(id==='TR')return[u[2]+25*e,u[3]];if(id==='TI')return[u[2]+30*e,u[3]];
+if(id[0]==='e')return[u[2]-30*e,u[3]];if(id[0]==='f')return[u[2]-20*e,u[3]];return[u[2],u[3]]}
+function draw(m,t){let h='';const st=m==1;
+if(st)h+=arrow(ROUTE,'#f0c860','ar',3,'9 6')+arrow(ADV,'#fff3d6','ar2',3)+arrow(AMB,'#17110f','ar3',3,'5 4');
+else{const L=RL*ease(cl(t/.85));h+=`<path d="${ROUTE}" fill="none" stroke="#1a0d08" stroke-width="6" opacity=".4" stroke-dasharray="${L} ${RL*2}"/><path d="${ROUTE}" fill="none" stroke="#f0c860" stroke-width="3" stroke-dasharray="${L} ${RL*2}" stroke-linecap="round"/>`+arrow(ADV,'#fff3d6','ar2',2).replace('<path','<path opacity=".5"')+(t>.45?arrow(AMB,'#17110f','ar3',3):'')}
+h+=GEN(st?0:30*ease(cl(t/.6)));
+E.forEach(u=>{const[x,y]=st?[u[2],u[3]]:pos(u,t);h+=unit(u,'e',x,y)});
+R.forEach(u=>{const[x,y]=st?[u[2],u[3]]:pos(u,t);h+=unit(u,'r',x,y,{ghost:u[0]==='AM'&&(st||t<.45),sel:st&&u[0]===sel})});
+if(st)h+=bd(292,321,1)+bd(333,176,2)+bd(441,52,3)+bd(255,172,4)+`<path d="M247 205l8-4 8 4v8l-8 6-8-6z" fill="#e0b04a" stroke="#1a0d08"/>`;
+else{if(t>.68)h+=burst(582,330,'CABALLERÍA');if(t>.8)h+=burst(530,128,'EMBOSCADA')}
+return h}
+const scale=`<g transform="translate(440 374)"><path d="M0 0H253M0-4V4M126-3V3M253-4V4" stroke="#1a0d08" stroke-width="2"/><text x="126" y="-7" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-size="9" fill="#fff3d6" stroke="#1a0d08" stroke-width="2.4" style="paint-order:stroke">500 m · campo de 1.500 m</text></g>`;
+const ico={f:'<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="#9a2b1f"/><path d="M5 20C7 9 16 7 22 9M5 8C7 19 16 21 22 19" stroke="#f0c860" stroke-width="2.4" fill="none" marker-end="url(#ar)"/></svg>',c:'<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="#9a2b1f"/><ellipse cx="13" cy="15" rx="7" ry="3.5" fill="#f0c860"/><path d="M18 13L22 7L25 9L21 15Z" fill="#f0c860"/><path d="M8 17v5M12 18v5M16 18v5" stroke="#f0c860" stroke-width="1.6"/></svg>',e:'<svg viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="#17110f"/><path d="M14 4C19 9 18 15 14 17C10 15 9 9 14 4Z" fill="#4f7038"/><ellipse cx="14" cy="21" rx="7" ry="3" fill="#e0b04a"/><circle cx="14" cy="21" r="1.6" fill="#17110f"/></svg>'};
+const nicho=(st,fg,vb,html)=>`<aside class="nicho" style="${st}"><div class="hor"><svg viewBox="${vb}">${fg}</svg></div><div class="in">${html}</div></aside>`;
+/* ---- pantalla 1: planear ---- */
+$('#s1').innerHTML=`<svg class="map" viewBox="0 0 844 390">${terrain()}<g id="u1"></g>${scale}${frame}</svg>
+${nicho('left:8px;top:36px;width:134px;height:346px',horse(RC),'-32 -66 64 70',`<h3 id="cn">CABALLERÍA</h3><p id="cm">120 jinetes. Arrolla a los ligeros.</p><div class="bar"><i style="width:88%"></i></div><small>Moral 88</small><h3 style="margin-top:6px">ORDEN</h3><div class="og"><button class="ob">Avanzar</button><button class="ob on">Flanquear</button><button class="ob">Emboscar</button><button class="ob">Mantener</button></div><p>Cuesta 1 punto de mando.</p><button class="btn neg peq">Borrar orden</button>`)}
+<aside class="nicho" style="left:704px;top:36px;width:134px;height:346px;border-radius:50px 50px 8px 8px"><div class="in" style="padding-top:12px"><h3>CONSEJO DE TRIBUNOS</h3><p style="text-align:center">Elige una jugada.</p><div class="op"><div>${ico.f}</div><div><b>Flancos</b><span>Las alas aprietan.</span></div></div><div class="op on"><div>${ico.c}</div><div><b>Caballería</b><span>Por el vado, a la espalda.</span></div></div><div class="op"><div>${ico.e}</div><div><b>Emboscada</b><span>Velites en el bosque.</span></div></div><button class="btn" onclick="show(2)">EJECUTAR RONDA</button><p style="text-align:center">Nada se mueve hasta que lo ordenes.</p></div></aside>
+<div class="pie" style="left:150px;bottom:4px;width:280px;height:26px">Toca una tropa y luego un lugar del mapa.</div>`;
+$('#u1').innerHTML=draw(1,0);
+$('#u1').onclick=e=>{const g=e.target.closest('[data-id]');if(!g)return;sel=g.dataset.id;const u=R.find(a=>a[0]===sel)||E.find(a=>a[0]===sel);$('#cn').textContent=NOM[u[1]].toUpperCase();$('#cm').textContent=u[4]+' hombres.';$('#u1').innerHTML=draw(1,0)};
+document.querySelectorAll('.ob').forEach(b=>b.onclick=()=>{document.querySelectorAll('.ob').forEach(x=>x.classList.remove('on'));b.classList.add('on')});
+document.querySelectorAll('.op').forEach(b=>b.onclick=()=>{document.querySelectorAll('.op').forEach(x=>x.classList.remove('on'));b.classList.add('on')});
+/* ---- pantalla 2: en directo ---- */
+$('#s2').innerHTML=`<svg class="map" viewBox="0 0 844 390">${terrain()}<g id="u2"></g>${frame}</svg>
+<aside class="nicho" style="left:8px;top:36px;width:134px;height:250px;border-radius:50px 50px 8px 8px"><div class="in log" style="padding-top:12px"><h3>LO QUE PASA</h3><p data-at=".1"><em>0:04</em><span>Los jinetes van al vado.</span></p><p data-at=".45"><em>0:16</em><span>Salen los velites del bosque.</span></p><p data-at=".7"><em>0:25</em><span>Choque de jinetes en el flanco.</span></p><p data-at=".8"><em>0:29</em><span>La línea enemiga cede.</span></p></div></aside>
+<aside class="nicho" style="left:704px;top:36px;width:134px;height:300px;border-radius:50px 50px 8px 8px"><div class="in" style="padding-top:12px"><h3>CARTAS</h3><button class="carta"><svg width="24" height="24" viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="#9a2b1f"/><path d="M8 20L14 6L20 20" stroke="#f0c860" stroke-width="2.4" fill="none"/></svg><div><b>Arenga</b><span>+ moral</span></div></button><button class="carta"><svg width="24" height="24" viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="#9a2b1f"/><path d="M6 8l8 6-8 6M14 8l8 6-8 6" stroke="#f0c860" stroke-width="2.2" fill="none"/></svg><div><b>Paso doble</b><span>+ velocidad</span></div></button><button class="carta"><svg width="24" height="24" viewBox="0 0 28 28"><circle cx="14" cy="14" r="13" fill="#9a2b1f"/><rect x="7" y="8" width="14" height="12" fill="none" stroke="#f0c860" stroke-width="2.4"/></svg><div><b>Cerrada</b><span>+ defensa</span></div></button><p style="font-size:10px;margin-top:6px">Fuera de los 200 m, la orden llega 6 s tarde.</p></div></aside>
+<div class="pie" style="left:150px;right:150px;bottom:4px;height:34px"><button class="btn" id="bp" onclick="paused=!paused;this.textContent=paused?'Seguir':'Pausar'">Pausar</button><button class="btn" onclick="spd=1">×1</button><button class="btn" onclick="spd=3">×3</button><div class="trk"><i id="tf"></i><u style="left:45%"></u><u style="left:68%"></u><u style="left:80%"></u></div><span id="tt" class="cz" style="font-size:10px;min-width:54px">0:25</span><button class="btn" onclick="show(3)">Ver el choque</button></div>`;
+function drawLive(){$('#u2').innerHTML=draw(2,T);$('#tf').style.width=(T*100)+'%';$('#tt').textContent='0:'+String(Math.round(T*36)).padStart(2,'0');document.querySelectorAll('.log p').forEach(p=>p.classList.toggle('on',T>=+p.dataset.at))}
+function setT(v){T=v;drawLive()}
+setInterval(()=>{if(cur==2&&!paused){T+=.004*spd;if(T>1)T=0;drawLive()}},60);
+/* ---- pantalla 3: el choque ---- */
+function choque(){const fs=[];
+for(let k=0;k<3;k++)for(let i=0;i<6;i++){const y=210+i*27+k*3,s=.62+(y-190)/330;fs.push({y,x:372-k*30+(i%2)*4,s,r:1,d:i*.13+k*.07});fs.push({y,x:472+k*30-(i%2)*4,s,r:0,d:i*.11+k*.05+.3})}
+[[522,172],[546,184],[566,174]].forEach(([x,y],i)=>fs.push({y,x,s:.7,r:1,d:i*.2}));
+fs.sort((a,b)=>a.y-b.y);let o=fs.map(f=>`<g transform="translate(${f.x} ${f.y}) scale(${f.r?f.s:-f.s} ${f.s})">${fig(f.r?RC:EC,f.d)}</g>`).join('');
+o+=[[640,300,.2],[694,338,.7],[612,350,1.1]].map(([x,y,d])=>`<g transform="translate(${x} ${y}) scale(-1.05 1.05)"><g class="gal" style="animation-delay:-${d}s"><g class="bob">${horse(RC,d)}</g></g></g>`).join('');
+o+=[[420,200],[400,260],[330,330],[560,300]].map(([x,y],i)=>`<ellipse class="puff" style="animation-delay:-${i*.45}s" cx="${x}" cy="${y}" rx="22" ry="8" fill="#e8cc92"/>`).join('');
+o+=[[590,96],[570,118],[610,80],[550,140]].map(([x,y],i)=>`<line class="vol" style="animation-delay:-${i*.3}s" x1="${x}" y1="${y}" x2="${x-12}" y2="${y+8}" stroke="#1a0d08" stroke-width="2"/>`).join('');return o}
+$('#s3').innerHTML=`<svg class="map" viewBox="0 0 844 390"><rect width="844" height="390" fill="#2a0e09"/><rect x="134" y="30" width="576" height="354" fill="url(#ci)"/>
+<path d="M134 128Q200 96 270 120T400 112T520 126T640 100T710 118V140H134Z" fill="#c29a5c"/><path d="M134 140Q230 120 340 136T560 132T710 138V150H134Z" fill="#a9803f"/>
+<ellipse cx="640" cy="110" rx="60" ry="20" fill="#b98a4a"/>${[170,190,225,300,470,520,600].map(x=>`<ellipse cx="${x}" cy="${130}" rx="4" ry="13" fill="#3d5a30"/>`).join('')}
+<rect x="134" y="146" width="576" height="238" fill="url(#gr)"/><path d="M134 146H710V160Q600 172 480 160T134 166Z" fill="#6ea3a5" opacity=".85"/><ellipse cx="420" cy="160" rx="44" ry="8" fill="#dcb976"/>
+<g fill="#6b4420" opacity=".25"><ellipse cx="260" cy="300" rx="70" ry="6"/><ellipse cx="560" cy="330" rx="80" ry="6"/><ellipse cx="400" cy="250" rx="90" ry="5"/></g>${choque()}
+<rect x="134" y="30" width="576" height="354" fill="none" stroke="#16100c" stroke-width="6"/><rect x="138" y="34" width="568" height="346" fill="none" stroke="#e0b04a" stroke-width="1.5"/>
+<g transform="translate(422 46)"><path d="M-110 0H110L102 22H-102Z" fill="#17110f" stroke="#e0b04a" stroke-width="1.5"/><text y="16" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-size="12" fill="#f0c860" letter-spacing="2">CHOQUE EN EL VADO</text></g>
+<g transform="translate(655 250)"><path d="M-62 0H62L56 18H-56Z" fill="#17110f" stroke="#e0b04a"/><text y="13" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-size="9.5" fill="#f0c860">LA CABALLERÍA ARROLLA</text></g></svg>
+${nicho('left:6px;top:34px;width:124px;height:350px',`<g transform="scale(1.1)">${fig(RC,0)}</g>`,'-22 -54 44 58',`<h3>HASTATI III</h3><div class="bar"><i style="width:82%"></i></div><small>Moral 82 · 364 hombres</small><small>Tres líneas</small><button class="carta" style="min-height:34px;margin:3px 0"><div><b>Arenga</b></div></button><button class="carta" style="min-height:34px;margin:3px 0"><div><b>Paso doble</b></div></button><button class="carta" style="min-height:34px;margin:3px 0"><div><b>Cerrada</b></div></button><button class="btn peq neg">Pasar a testudo</button>`)}
+${nicho('left:714px;top:34px;width:124px;height:350px',`<g transform="translate(0 0) scale(-1.1 1.1)">${fig(EC,0)}</g>`,'-22 -54 44 58',`<h3>FALANGE ENEMIGA</h3><div class="bar"><i style="width:46%;background:linear-gradient(#555,#111)"></i></div><small>Moral 46 · 410 hombres</small><small>Flanco abierto</small><p>La caballería ataca por la espalda.</p><button class="btn" onclick="show(4)">TERMINAR BATALLA</button><button class="btn neg" onclick="show(1)">Volver al mapa</button>`)}`;
+/* ---- pantalla 4: resultado y relevo ---- */
+const town=`<g transform="translate(156 38)"><rect width="534" height="182" fill="url(#ci)" stroke="#e0b04a" stroke-width="2"/><path d="M0 120Q90 84 180 112T360 100T534 116V182H0Z" fill="#c29a5c"/><rect y="150" width="534" height="32" fill="url(#gr)"/>
+<rect x="150" y="96" width="240" height="58" fill="#dcc79e" stroke="#6b4a2a" stroke-width="2"/>${Array.from({length:12},(_,i)=>`<rect x="${152+i*20}" y="90" width="12" height="8" fill="#dcc79e" stroke="#6b4a2a"/>`).join('')}
+<rect x="232" y="52" width="76" height="102" fill="#e3cfa6" stroke="#6b4a2a" stroke-width="2"/><path d="M226 54L270 24L314 54Z" fill="#9a2b1f" stroke="#3a0d08" stroke-width="2"/><path d="M252 154V122Q270 100 288 122V154Z" fill="#17110f"/><rect x="258" y="68" width="24" height="22" rx="10" fill="#17110f"/>
+<path d="M270 24V4" stroke="#3a2410" stroke-width="2"/><path d="M270 5h28v18h-28Z" fill="#a3281d" stroke="#e0b04a"/><text x="284" y="18" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-size="7.5" fill="#f0c860">SPQR</text>
+<g transform="translate(205 178) scale(.9)">${fig(RC,0)}</g><g transform="translate(335 178) scale(-.9 .9)">${fig(EC,.2)}</g><g transform="translate(272 178) scale(.9)">${fig(RC,.3)}</g>
+${[0,1,2,3].map(i=>`<g transform="translate(${470+i*22} ${176-i*3}) scale(-.55 .55)">${fig(RC,i*.15)}</g>`).join('')}
+<g transform="translate(466 128)"><path d="M-6 0H100L94 18H-12Z" fill="#17110f" stroke="#e0b04a"/><text x="44" y="13" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-size="9" fill="#f0c860">RELEVO · DÍA III</text></g></g>`;
+const DIAS=[['I','pas act','Llega la guarnición','Grano 60 → 52','Hoy'],['II','','Se repara el muro','Grano 52 → 44',''],['III','','Llegan los triarios','Convoy: grano 56','Relevo'],['IV','','Patrulla al vado','Grano 56 → 48',''],['V','','El puesto es tuyo','Plata +30','Mío']];
+$('#s4').innerHTML=`<svg class="map" viewBox="0 0 844 390"><rect width="844" height="390" fill="url(#pa)"/><g stroke="#17110f" stroke-width="3" opacity=".7"><path d="M0 60H150M694 60H844M0 350H150M694 350H844"/></g><rect x="150" y="32" width="546" height="352" fill="#17110f" stroke="#e0b04a" stroke-width="2"/>${town}</svg>
+${nicho('left:6px;top:34px;width:138px;height:350px',`<circle cx="0" cy="-24" r="19" fill="none" stroke="#6b8a3c" stroke-width="6" stroke-dasharray="8 3"/><text y="-20" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-size="9" fill="#f0c860">ROMA</text>`,'-26 -54 52 58',`<h3 style="font-size:14px">VICTORIA</h3><p>Perdemos <b>214</b> hombres.</p><p>El enemigo, <b>1.031</b>.</p><p>120 prisioneros.</p><p>Botín: 60 grano, 20 hierro.</p><p style="margin-top:6px">Moral de la tropa: 71</p><div class="bar"><i style="width:71%"></i></div>`)}
+<aside class="nicho" style="left:700px;top:34px;width:138px;height:350px;border-radius:50px 50px 8px 8px"><div class="in" style="padding-top:12px"><h3>GUARNICIÓN</h3><p><b>Hastati II</b><small>380 · de guardia</small></p><p><b>Triarios</b><small>200 · relevo el día III</small></p><p>Grano para 5 días: 60.</p><button class="btn" style="margin-top:8px">OCUPAR 5 DÍAS</button><button class="btn peq">Pedir relevo antes</button><button class="btn neg" onclick="show(1)">Seguir la campaña</button></div></aside>
+${DIAS.map((d,i)=>`<div class="dia ${d[1]}" style="left:${158+i*107}px"><b>${d[0]}</b><p><strong>${d[2]}</strong></p><p>${d[3]}</p>${d[4]?`<span class="tg">${d[4]}</span>`:''}</div>`).join('')}`;
+/* ---- navegación ---- */
+$('#nav').innerHTML=['1 Planear','2 En directo','3 El choque','4 Resultado'].map((t,i)=>`<button class="step" onclick="show(${i+1})">${t}</button>`).join('');
+function show(n){cur=n;document.querySelectorAll('.scr').forEach((e,i)=>e.classList.toggle('on',i+1==n));document.querySelectorAll('.step').forEach((e,i)=>e.classList.toggle('on',i+1==n));$('#ttl').textContent=TT[n-1];$('#pm').textContent=PM[n-1];if(n==2)drawLive()}
+$('#rt').setAttribute('d',ROUTE);RL=$('#rt').getTotalLength();show(+location.hash.slice(1)||1);
+</script></body></html>

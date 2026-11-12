@@ -82,7 +82,7 @@
   const SIN_E = { sin: 'un hecho no tiene modelo 3D' };
   const hecho = {
     '280-fundacion': f(SIN_E, h('Plutarco, Pirro 15', 'historico', null, 'El año 280 a.C. era el 474 de Roma contando desde su fundación. Pirro llegó con unos 25.500 hombres y 20 elefantes, según Plutarco; una tormenta dispersó parte de la flota.')),
-    '280-pirro': f(SIN_E, h('Plutarco, Pirro 17 y 21; Apiano, Samn. 10; Livio, Períocas 12-13', 'historico', 'la marcha sobre Roma fue en 280, tras Heraclea; que su ejército ataque tus ciudades y el plazo de llegada son licencia de juego', 'El avance fue en 280, tras Heraclea. Según Plutarco, Pirro llegó a unos 300 estadios de Roma, unos 55 km. Ásculo le costó tanto que habría dicho que otra victoria igual lo hundiría.')),
+    '280-pirro': f(SIN_E, h('Plutarco, Pirro 17 y 21; Apiano, Samn. 10; Livio, Períocas 12-13', 'historico', 'la marcha sobre Roma fue en 280, tras Heraclea; que su ejército ataque tus ciudades, en dos oleadas pequeñas (a los 32 y 42 meses; Plutarco habla de unos 25.000 hombres y 20 elefantes, Pirro 15-17), y las levas extra de Roma son licencia de juego', 'El avance fue en 280, tras Heraclea. Según Plutarco, Pirro llegó a unos 300 estadios de Roma, unos 55 km. Ásculo le costó tanto que habría dicho que otra victoria igual lo hundiría.')),
     '272-tarento': f(SIN_E, h("Livio, Períocas 14.9-10 y 15.1; Plutarco, Pirro 34", "historico", "«murió en Argos» se quitó: no aparece en Pirro 34", "Según las Períocas de Livio, una flota cartaginesa acudió en ayuda de Tarento en 272, y después la ciudad fue sometida. Pirro murió en un combate callejero cuando una mujer le arrojó una teja, según Plutarco.")),
     '264-primera-punica': f(SIN_E, h('Polibio 1.10-11; Polibio 1.63', 'historico', 'los ataques cartagineses a tus ciudades son licencia de juego', 'Los mamertinos pidieron ayuda a Cartago y a Roma. Según Polibio, no decidió el Senado: votó el pueblo, y se envió al cónsul Apio Claudio. La guerra duró 24 años seguidos.')),
     '260-milas': f(SIN_E, h('Polibio 1.20-23', 'historico', 'Polibio 1.22: «alguien les sugirió» el corvus; no nombra a Duilio', 'Roma copió una nave cartaginesa varada para hacer su flota, según Polibio. Alguien sugirió el corvus, una pasarela de abordaje, sin nombre. En Milas los cartagineses perdieron 50 de 130 naves.')),
@@ -182,7 +182,39 @@
     africa: f(SIN_ZONA, h('Polibio 1.73 y 15.5-14; Estrabón 17.3', 'licencia de juego', 'Africa es la costa cartaginesa; la zona es agrupación de juego, licencia de juego'))
   };
 
-  R.fichas = { edificio, tropa, ciudad, hecho, mision, region, zona, faccion, mejora, tipo, especial };
+  // ---- Saberes y edades (D.INVEST y D.EDADES, I5). Fuente: gobierno/estudios/P93-ciencia.md §3. Las cifras, los nombres de edad y el árbol entero son licencia de juego. ----
+  const SIN_I = { sin: 'un saber es una ficha de datos; no tiene modelo 3D' };
+  const invest = {
+    griego: f(SIN_I, h("Suetonio, De grammaticis 1; Cicerón, Bruto 72: Livio Andronico, griego de Tarento, enseña hacia 272 a.C.", "probable", "La Escuela como edificio es licencia de juego.")),
+    apio: f(SIN_I, h("Livio 9.29; Frontino, De aquaeductu 4-6: Vía Apia y Aqua Appia (312 a.C.).", "probable", "Cifras: licencia de juego.")),
+    castra: f(SIN_I, h("Polibio 6.27-39: campamento, castigos y premios.", "probable")),
+    quinque: f(SIN_I, h("Polibio 1.20: Roma copia una nave cartaginesa varada (260 a.C.); Tarento y otros aliados prestan naves (1.20.14).", "historico", "Cifra: licencia de juego.")),
+    corvus: f(SIN_I, h("Polibio 1.22: pasarela de abordaje (cotejado en H1).", "historico", "Cifra: licencia de juego.")),
+    remeros: f(SIN_I, h("Polibio 1.21: remeros adiestrados en bancos sobre la arena.", "historico", "Cifra: licencia de juego.")),
+    fasti: f(SIN_I, h("Livio 9.46: Cneo Flavio publica el derecho y el calendario (304 a.C.).", "probable")),
+    vina: f(SIN_I, h("Catón, De agri cultura 1.7: la viña, primera en rendimiento.", "probable", "Cifras: licencia de juego.")),
+    trigo: f(SIN_I, h("Cicerón, Verrinas 3: lex Hieronica, el diezmo de Hierón que Roma conserva.", "probable")),
+    pilum: f(SIN_I, h("Polibio 6.23.9-11 (dentro del tramo 6.21-23 ya cotejado).", "historico", "Cifra: licencia de juego.")),
+    latif: f(SIN_I, h("Catón, De agri cultura 2.7 y 56-59; la crisis del pequeño campesino es tesis moderna (Toynbee).", "probable", "Cifras: licencia de juego.")),
+    colon: f(SIN_I, h("Polibio 2.21: ley de Flaminio, ager Gallicus (232 a.C.).", "probable")),
+    sambuca: f(SIN_I, h("Polibio 8.4-6 (dentro del tramo 8.5-8 cotejado): Marcelo y las sambucas sobre barcos en Siracusa.", "historico")),
+    arquimedes: f(SIN_I, h("Polibio 8.5-8; Plutarco, Marcelo 15-17 (cotejados).", "historico", "Cifra: licencia de juego.")),
+    astilleros: f(SIN_I, h("Polibio 1.20-21: la flota se levanta desde cero.", "historico", "Que sustituya al bien especial: licencia de juego.")),
+    derrota: f(SIN_I, h("Polibio 3.22-25: tratados de comercio Roma-Cartago (ya citado en D.RUTA).", "historico", "Cifras: licencia de juego.")),
+    medicina: f(SIN_I, h("Plinio, NH 29.12-14: Arcágato, primer médico griego, 219 a.C.; apodado «verdugo»; Catón desconfiaba.", "probable", "Cifras: licencia de juego.")),
+    magon: f(SIN_I, h("Plinio, NH 18.22-23 (y Varrón, RR 1.1.10): el Senado manda traducir los 28 libros de Magón tras 146 a.C.", "probable")),
+    perseo: f(SIN_I, h("Plutarco, Emilio Paulo 28; Polibio 31.23-25: los libros de Perseo pasan a los hijos de Paulo, entre ellos Escipión Emiliano (168 a.C.).", "probable")),
+    acoger: f(SIN_I, h("Plutarco, Catón 22; Gelio 6.14: embajada de Carnéades (155 a.C.).", "probable")),
+    expulsar: f(SIN_I, h("Suetonio, De rhetoribus 1; Gelio 15.11: expulsión de 161 a.C.", "probable")),
+    hormigon: f(SIN_I, h("Livio 35.10: Pórtico Emilio (193 a.C.), primeros usos del hormigón.", "probable", "Cifra: licencia de juego."))
+  };
+  const edades = {
+    E2: f(SIN_I, h("Polibio 1.5-6 (periodización de 264 a 219 a.C.).", "licencia de juego", "La división en edades es licencia de juego.")),
+    E3: f(SIN_I, h("Hechos de D.EVENTS (218-201 a.C.).", "licencia de juego", "La división en edades es licencia de juego.")),
+    E4: f(SIN_I, h("Polibio 1.1-3 (200-146 a.C.).", "licencia de juego", "La división en edades es licencia de juego."))
+  };
+
+  R.fichas = { edificio, tropa, ciudad, hecho, mision, region, zona, faccion, mejora, tipo, especial, invest, edad: edades };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -197,7 +229,9 @@
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },
     mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },
     tipo: { tabla: 'TIPOS', numericos: [], textos: ['n', 'i', 'd'] },
-    especial: { tabla: 'ESPECIAL', numericos: [], textos: ['n', 'i', 'd'] }
+    especial: { tabla: 'ESPECIAL', numericos: [], textos: ['n', 'i', 'd'] },
+    invest: { tabla: 'INVEST', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n', 'i', 'rama'] },
+    edad: { tabla: 'EDADES', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n'] }
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */

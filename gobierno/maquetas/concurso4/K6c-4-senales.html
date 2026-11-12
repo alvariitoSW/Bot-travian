@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>K6c-4 · Señales de campo</title>
+<style>
+@font-face{
+  font-family:"CinzelK";
+  src:url("../../../assets/fuentes/cinzel-700.woff2") format("woff2");
+  font-weight:700;
+  font-display:swap;
+}
+*{box-sizing:border-box}
+html,body{
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden;
+  background:#17120c;
+  color:#f1e6cb;
+  font:13px/1.3 system-ui,-apple-system,sans-serif;
+  -webkit-user-select:none;
+  user-select:none;
+  touch-action:manipulation;
+}
+#app{
+  position:absolute;
+  inset:0;
+  display:flex;
+  flex-direction:column;
+}
+.cab{
+  flex:none;
+  height:40px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:0 12px;
+  background:#2b2116;
+  border-bottom:1px solid #0e0a06;
+}
+.cab h1{
+  margin:0;
+  font:700 13px CinzelK,Cinzel,serif;
+  letter-spacing:.06em;
+  color:#d0a84f;
+  white-space:nowrap;
+}
+.turno{font-weight:700;white-space:nowrap}
+.barra{
+  flex:1;
+  min-width:50px;
+  height:6px;
+  border-radius:3px;
+  background:#0c0804;
+  overflow:hidden;
+}
+.barra i{
+  display:block;
+  height:100%;
+  width:100%;
+  background:#d0a84f;
+  transition:width .9s linear;
+}
+.cuenta{
+  min-width:150px;
+  text-align:right;
+  color:#b9a685;
+  white-space:nowrap;
+}
+.texto{
+  flex:none;
+  height:24px;
+  line-height:24px;
+  padding:0 12px;
+  background:#241b12;
+  border-bottom:1px solid #0e0a06;
+  white-space:nowrap;
+  overflow:hidden;
+  font-size:12.5px;
+}
+.area{
+  flex:1;
+  min-height:0;
+  position:relative;
+  overflow:hidden;
+  background:#17120c;
+}
+.area>*{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+}
+.escena{
+  perspective:900px;
+  overflow:hidden;
+}
+.escena svg{
+  position:absolute;
+  inset:0;
+  width:100%;
+  height:100%;
+  transform:rotateX(16deg) scale(.96);
+  transform-origin:50% 100%;
+}
+.fin{
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+  padding:12px 18px;
+}
+.fin-izq{flex:1;min-width:0}
+.fin-der{flex:1.2;min-width:0}
+.fin h2{
+  margin:0 0 6px;
+  font:700 22px CinzelK,Cinzel,serif;
+  color:#d0a84f;
+}
+.fin p{margin:4px 0}
+.botones{display:flex;gap:8px;margin-top:12px}
+.pie{
+  flex:none;
+  height:46px;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  padding:0 10px;
+  background:#2b2116;
+  border-top:1px solid #0e0a06;
+}
+.leyenda{
+  flex:1;
+  min-width:0;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  color:#b9a685;
+  font-size:11.5px;
+  white-space:nowrap;
+  overflow:hidden;
+}
+.chip{display:inline-flex;align-items:center;gap:4px}
+.chip b{
+  width:10px;
+  height:10px;
+  border-radius:2px;
+  display:inline-block;
+  border:1px solid #0e0a06;
+}
+button{
+  flex:none;
+  height:34px;
+  padding:0 12px;
+  border-radius:8px;
+  border:1px solid #6b5230;
+  background:#3a2c1b;
+  color:#f1e6cb;
+  font:700 12.5px system-ui,sans-serif;
+  white-space:nowrap;
+  cursor:pointer;
+}
+button.fuerte{background:#9b2226;border-color:#c94a4d}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.4}
+.tenue{color:#b9a685}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <header class="cab">
+    <h1>Señales de campo</h1>
+    <span class="turno" id="tTurno">Turno 1 de 12</span>
+    <span class="barra"><i id="tBarra"></i></span>
+    <span class="cuenta" id="tCuenta">Planear · quedan 20 s</span>
+  </header>
+
+  <div class="texto" id="tTexto"></div>
+
+  <main class="area" id="area">
+    <svg id="mapa" viewBox="0 0 1500 520" preserveAspectRatio="xMidYMid slice"></svg>
+
+    <div id="escena" class="escena" style="display:none">
+      <svg id="escenaSvg" viewBox="0 0 1500 520" preserveAspectRatio="xMidYMid slice"></svg>
+    </div>
+
+    <div id="fin" class="fin" style="display:none">
+      <div class="fin-izq">
+        <h2 id="finTitulo">Retirada</h2>
+        <p id="finResumen"></p>
+        <p id="finCausa" class="tenue"></p>
+        <div class="botones">
+          <button id="bOtra" class="fuerte">Otra batalla</button>
+          <button id="bVerMapa">Ver el mapa</button>
+        </div>
+      </div>
+      <div class="fin-der">
+        <p class="tenue">Señales que llegaron, por turno (%)</p>
+        <svg id="barras" viewBox="0 0 560 150" style="width:100%;height:auto"></svg>
+      </div>
+    </div>
+  </main>
+
+  <footer class="pie" id="pie">
+    <div class="leyenda">
+      <span class="chip"><b style="background:#4f7fa3"></b>avanzar</span>
+      <span class="chip"><b style="background:#f1e6cb"></b>aguantar</span>
+      <span class="chip"><b style="background:#e0524f"></b>cargar</span>
+      <span>Toca una legión para cambiar su bandera</span>
+    </div>
+    <button id="bEscena">Entrar a la escena</button>
+    <button id="bCuerno" class="fuerte">Tocar cuerno</button>
+  </footer>
+
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ---------- Datos fijos ---------- */
+  var $ = function (s) { return document.querySelector(s); };
+  var ROM = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+  var CORNETA = { r: { x: 750, y: 486 }, e: { x: 750, y: 34 } };
+  var SEN = {
+    avanzar:  { c: '#4f7fa3' },
+    aguantar: { c: '#f1e6cb' },
+    cargar:   { c: '#e0524f' }
+  };
+  var CICLO = ['aguantar', 'avanzar', 'cargar'];
+  var TURNOS = 12;
+  var PLAN = 20;   /* segundos para planear */
+  var CORRE = 4;   /* segundos que corren las órdenes */
+
+  var FONDO =
+    '<defs><linearGradient id="gFondo" x1="0" y1="0" x2="0" y2="1">' +
+    '<stop offset="0" stop-color="#8a7f4d"/><stop offset="1" stop-color="#6b6038"/>' +
+    '</linearGradient></defs>' +
+    '<rect width="1500" height="520" fill="url(#gFondo)"/>' +
+    '<path d="M0,250 C200,236 400,276 600,256 S1000,232 1200,262 S1450,246 1500,256' +
+    ' L1500,274 C1450,270 1200,287 1000,294 S600,278 400,292 S200,264 0,274Z"' +
+    ' fill="#4d6e7a" stroke="#2f4a54" stroke-width="3"/>' +
+    '<text x="40" y="276" font-size="22" fill="#dfeaea" opacity=".7" font-family="CinzelK,serif">Río</text>';
+
+  var ETIQ =
+    '<text x="18" y="34" font-size="24" fill="#f1e6cb" opacity=".8" font-family="CinzelK,serif" letter-spacing="3">ENEMIGOS</text>' +
+    '<text x="18" y="510" font-size="24" fill="#f1e6cb" opacity=".8" font-family="CinzelK,serif" letter-spacing="3">ROMANOS</text>' +
+    '<text x="1482" y="510" text-anchor="end" font-size="24" fill="#f1e6cb" opacity=".8" font-family="CinzelK,serif">1.500 m de campo</text>';
+
+  /* ---------- Estado ---------- */
+  var semilla = 20261112;
+  var azar = null;
+  var U = [];
+  var turno = 1;
+  var fase = 'planear';   /* planear | correr | fin */
+  var seg = PLAN;
+  var vista = 'mapa';     /* mapa | escena | fin */
+  var sel = null;
+  var fin = false;
+  var texto = '';
+  var historial = [];
+  var riesgoId = null;
+
+  function rng(s) {
+    return function () {
+      s |= 0;
+      s = s + 0x6D2B79F5 | 0;
+      var t = Math.imul(s ^ s >>> 15, 1 | s);
+      t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    };
+  }
+
+  /* ---------- Reglas ---------- */
+  function crear() {
+    azar = rng(semilla);
+    U = [];
+    turno = 1;
+    fase = 'planear';
+    seg = PLAN;
+    historial = [];
+    fin = false;
+    sel = null;
+    texto = '';
+    for (var i = 0; i < 12; i++) {
+      var xr = 110 + i * 120 + (azar() * 30 - 15);
+      var xe = 110 + i * 120 + (azar() * 30 - 15);
+      U.push({ id: 'r' + i, b: 'r', n: ROM[i], x: xr, y: 400, f: 100,
+               orden: 'aguantar', plan: 'aguantar', p: 0.8, oyo: true, contacto: false });
+      U.push({ id: 'e' + i, b: 'e', n: String(i + 1), x: xe, y: 120, f: 100,
+               orden: 'aguantar', plan: 'aguantar', p: 0.8, oyo: true, contacto: false });
+    }
+    probar();
+  }
+
+  /* Probabilidad de oír el cuerno: baja con la distancia al cornicen. */
+  function probar() {
+    U.forEach(function (u) {
+      var h = CORNETA[u.b];
+      var d = Math.hypot(u.x - h.x, u.y - h.y);
+      u.p = Math.max(0.2, Math.min(0.97, 1.05 - d / 900));
+    });
+  }
+
+  function cercano(u) {
+    var o = null, d = 1e9;
+    U.forEach(function (k) {
+      if (k.b !== u.b && k.f > 0) {
+        var q = Math.hypot(k.x - u.x, k.y - u.y);
+        if (q < d) { d = q; o = k; }
+      }
+    });
+    return { o: o, d: d };
+  }
+
+  /* Plan automático de las legiones romanas (para las capturas y la demo). */
+  function autoPlan() {
+    U.forEach(function (u) {
+      if (u.b !== 'r') return;
+      var r = azar();
+      u.plan = r < 0.45 ? 'avanzar' : (r < 0.7 ? 'cargar' : 'aguantar');
+    });
+  }
+
+  function ejecutar() {
+    if (fin) return;
+    var sinOir = [];
+
+    /* Plan del enemigo */
+    U.forEach(function (u) {
+      u.contacto = false;
+      if (u.b === 'e') {
+        var r = azar();
+        u.plan = r < 0.5 ? 'avanzar' : (r < 0.8 ? 'aguantar' : 'cargar');
+      }
+    });
+
+    /* Cada legión oye o no oye el cuerno. Si no oye, sigue su última orden. */
+    U.forEach(function (u) {
+      u.oyo = azar() < u.p;
+      if (u.oyo) u.orden = u.plan;
+      else if (u.b === 'r') sinOir.push(u.n);
+    });
+    var vivosR = U.filter(function (u) { return u.b === 'r'; }).length;
+    var oyeron = U.filter(function (u) { return u.b === 'r' && u.oyo; }).length;
+
+    /* Movimiento: sin contacto, cada legión avanza según su orden. */
+    U.forEach(function (u) {
+      if (cercano(u).d < 90) return;
+      var paso = u.orden === 'avanzar' ? 60 : (u.orden === 'cargar' ? 110 : 0);
+      var dir = u.b === 'r' ? -1 : 1;
+      u.y = Math.max(30, Math.min(490, u.y + dir * paso));
+    });
+
+    /* Choque: cada legión golpea a la más cercana en 90 m. */
+    U.forEach(function (u) {
+      if (u.f <= 0) return;
+      var c = cercano(u);
+      if (!c.o || c.d >= 90) return;
+      var k = u.orden === 'cargar' ? 1.5 : (u.orden === 'aguantar' ? 0.8 : 1);
+      var golpe = (5 + azar() * 7) * k;
+      c.o.f -= golpe;
+      u.f -= golpe * 0.35;
+      u.contacto = true;
+      c.o.contacto = true;
+    });
+    U = U.filter(function (u) { return u.f > 0; });
+
+    historial.push(Math.round(100 * oyeron / Math.max(1, vivosR)));
+    texto = 'Turno ' + turno + ': ' + oyeron + ' de ' + vivosR + ' oyeron.' +
+      (sinOir.length ? ' Sin señal: ' + sinOir.join(', ') + '; siguen su última orden.' : ' Todas oyeron.');
+
+    turno++;
+    var nR = U.filter(function (u) { return u.b === 'r'; }).length;
+    var nE = U.length - nR;
+    fin = turno > TURNOS || nR <= 4 || nE <= 4;
+    fase = fin ? 'fin' : 'correr';
+    seg = CORRE;
+  }
+
+  /* Legión romana sin señal en el último cuerno y cerca del enemigo. */
+  function riesgo() {
+    var m = null;
+    U.forEach(function (u) {
+      if (u.b !== 'r' || u.oyo) return;
+      var c = cercano(u);
+      if (c.o && c.d < 230 && (!m || c.d < m.d)) m = { u: u, d: Math.round(c.d) };
+    });
+    return m;
+  }
+
+  /* Tiempo: planear 20 s y luego correr 4 s. */
+  function tic() {
+    if (fin) { pintar(); return; }
+    seg--;
+    if (fase === 'planear' && seg <= 0) {
+      ejecutar();
+    } else if (fase === 'correr' && seg <= 0) {
+      fase = 'planear';
+      seg = PLAN;
+      probar();
+    }
+    pintar();
+  }
+
+  /* ---------- Dibujo ---------- */
+  function simbolo(u) {
+    var r = u.b === 'r';
+    var col = r ? '#9b2226' : '#3f4b5c';
+    var trim = r ? '#d0a84f' : '#9fb0c4';
+    var sen = SEN[r ? u.plan : u.orden];
+    var marca = u.id === sel
+      ? '<rect x="-38" y="-24" width="76" height="48" rx="6" fill="none" stroke="#f7d774" stroke-width="4"/>'
+      : '';
+    var riesgoM = u.id === riesgoId
+      ? '<circle r="52" fill="none" stroke="#ff6b6b" stroke-width="4" stroke-dasharray="10 8"/>'
+      : '';
+    var choque = u.contacto ? '<circle r="44" fill="#e0524f" opacity=".22"/>' : '';
+    return '<g class="u" data-id="' + u.id + '" transform="translate(' +
+      u.x.toFixed(0) + ',' + u.y.toFixed(0) + ')">' + riesgoM + choque + marca +
+      '<line x1="0" y1="-18" x2="0" y2="-54" stroke="#1b1510" stroke-width="4"/>' +
+      '<path d="M0,-54 L24,-47 L0,-40Z" fill="' + sen.c + '" stroke="#1b1510" stroke-width="2"/>' +
+      '<rect x="-32" y="-18" width="64" height="36" rx="4" fill="' + col + '" stroke="' + trim + '" stroke-width="3"/>' +
+      '<text y="8" text-anchor="middle" font-family="CinzelK,serif" font-weight="700" font-size="22" fill="#f7ecd0">' + u.n + '</text>' +
+      '<rect x="-32" y="24" width="' + (64 * u.f / 100).toFixed(1) + '" height="5" fill="' + (r ? '#7aa05a' : '#c9a24a') + '"/>' +
+      '</g>';
+  }
+
+  function formacion(u) {
+    var r = u.b === 'r';
+    var vivos = Math.max(1, Math.round(21 * u.f / 100));
+    var dot = r ? '#e0826e' : '#b7c4d6';
+    var d = '';
+    for (var i = 0; i < 3; i++) {
+      for (var c = 0; c < 7; c++) {
+        if (i * 7 + c >= vivos) continue;
+        d += '<rect x="' + (-39 + c * 12) + '" y="' + (-16 + i * 12) + '" width="9" height="9" fill="' + dot + '"/>';
+      }
+    }
+    var sen = SEN[r ? u.plan : u.orden];
+    var choque = u.contacto ? '<text y="-70" text-anchor="middle" font-size="30" fill="#ffb199">✕</text>' : '';
+    return '<g transform="translate(' + u.x.toFixed(0) + ',' + u.y.toFixed(0) + ')">' +
+      '<rect x="-46" y="-22" width="92" height="50" rx="5" fill="' + (r ? '#5a1d1f' : '#2a3340') + '" opacity=".6"/>' +
+      d +
+      '<line x1="0" y1="-22" x2="0" y2="-62" stroke="#1b1510" stroke-width="4"/>' +
+      '<path d="M0,-62 L26,-54 L0,-46Z" fill="' + sen.c + '" stroke="#1b1510" stroke-width="2"/>' +
+      choque + '</g>';
+  }
+
+  function dibujar() {
+    var lineas = U.filter(function (u) { return u.b === 'r'; }).map(function (u) {
+      var col = fase === 'planear' ? '#f1e6cb' : (u.oyo ? '#7aa05a' : '#e0524f');
+      var guion = (fase !== 'planear' && !u.oyo) ? ' stroke-dasharray="6 6"' : '';
+      return '<line x1="750" y1="486" x2="' + u.x.toFixed(0) + '" y2="' + u.y.toFixed(0) +
+        '" stroke="' + col + '" stroke-width="2" stroke-opacity="' + (0.2 + 0.6 * u.p).toFixed(2) + '"' + guion + '/>';
+    }).join('');
+    var cornetas =
+      '<circle cx="750" cy="486" r="11" fill="#d0a84f" stroke="#1b1510" stroke-width="2"/>' +
+      '<text x="770" y="492" font-size="20" fill="#f1e6cb" font-family="CinzelK,serif">cuerno</text>' +
+      '<circle cx="750" cy="34" r="11" fill="#d0a84f" stroke="#1b1510" stroke-width="2"/>';
+    $('#mapa').innerHTML = FONDO + ETIQ + lineas + cornetas + U.map(simbolo).join('');
+    $('#escenaSvg').innerHTML = FONDO + U.map(formacion).join('');
+  }
+
+  function fillFin() {
+    var nR = U.filter(function (u) { return u.b === 'r'; }).length;
+    var nE = U.length - nR;
+    $('#finTitulo').textContent = nR <= 4 ? 'Retirada' : (nE <= 4 ? 'Victoria' : 'Cae la tarde');
+    $('#finResumen').textContent = 'Romanos en pie: ' + nR + ' de 12. Enemigos en pie: ' + nE + ' de 12. Turnos: ' + (turno - 1) + '.';
+    $('#finCausa').textContent = texto + ' Las legiones sin señal siguen su última orden.';
+    var n = Math.max(TURNOS, historial.length);
+    var w = 560 / n;
+    var s = '';
+    historial.forEach(function (v, i) {
+      var h = v * 1.2;
+      var x = i * w + 6;
+      var bw = w - 12;
+      s += '<rect x="' + x.toFixed(1) + '" y="' + (130 - h).toFixed(1) + '" width="' + bw.toFixed(1) +
+        '" height="' + h.toFixed(1) + '" fill="' + (v >= 70 ? '#7aa05a' : '#e0524f') + '"/>' +
+        '<text x="' + (x + bw / 2).toFixed(1) + '" y="146" text-anchor="middle" font-size="13" fill="#b9a685">' + (i + 1) + '</text>';
+    });
+    s += '<line x1="0" y1="130" x2="560" y2="130" stroke="#6b5230" stroke-width="2"/>';
+    $('#barras').innerHTML = s;
+  }
+
+  function pintar() {
+    var r = riesgo();
+    riesgoId = (r && !fin) ? r.u.id : null;
+    dibujar();
+    $('#tTurno').textContent = fin ? 'Batalla terminada' : 'Turno ' + turno + ' de ' + TURNOS;
+    var tot = fase === 'planear' ? PLAN : CORRE;
+    $('#tBarra').style.width = fin ? '0%' : Math.max(0, Math.min(100, seg / tot * 100)) + '%';
+    $('#tCuenta').textContent = fin
+      ? 'Sin más cuernos'
+      : (fase === 'planear' ? 'Planear · quedan ' : 'Corren las órdenes · ') + Math.max(0, seg) + ' s';
+    $('#tTexto').textContent = (r && !fin)
+      ? 'Riesgo: legión ' + r.u.n + ' no oyó el cuerno y queda a ' + r.d + ' m del enemigo.'
+      : texto;
+    $('#bCuerno').disabled = fin;
+    if (fin) fillFin();
+  }
+
+  function ver() {
+    $('#mapa').style.display = vista === 'mapa' ? '' : 'none';
+    $('#escena').style.display = vista === 'escena' ? 'block' : 'none';
+    $('#fin').style.display = vista === 'fin' ? 'flex' : 'none';
+    $('#pie').style.display = vista === 'fin' ? 'none' : 'flex';
+    $('#bEscena').textContent = vista === 'escena' ? 'Volver al mapa' : 'Entrar a la escena';
+    pintar();
+  }
+
+  /* ---------- Presets por la dirección (#1 a #4) ---------- */
+  function hashNum() {
+    var h = (location.hash || '').replace('#', '');
+    return ['1', '2', '3', '4'].indexOf(h) >= 0 ? h : '1';
+  }
+
+  function preparar(h) {
+    crear();
+    var pasos = { '1': 2, '2': 2, '3': 4, '4': 99 }[h] || 0;
+    for (var k = 0; k < pasos && !fin; k++) {
+      autoPlan();
+      ejecutar();
+    }
+    if (!fin) {
+      autoPlan();
+      fase = 'planear';
+      seg = 14;
+      probar();
+    }
+    sel = h === '1' ? 'r3' : null;
+    vista = fin ? 'fin' : (h === '2' ? 'escena' : 'mapa');
+    ver();
+  }
+
+  /* ---------- Entrada ---------- */
+  $('#mapa').addEventListener('click', function (e) {
+    var g = e.target.closest ? e.target.closest('g.u') : null;
+    if (!g || fase !== 'planear' || fin) return;
+    var u = U.filter(function (k) { return k.id === g.getAttribute('data-id'); })[0];
+    if (!u || u.b !== 'r') return;
+    sel = u.id;
+    u.plan = CICLO[(CICLO.indexOf(u.plan) + 1) % 3];
+    pintar();
+  });
+
+  $('#bCuerno').addEventListener('click', function () {
+    if (fase === 'planear' && !fin) {
+      ejecutar();
+      pintar();
+    }
+  });
+
+  $('#bEscena').addEventListener('click', function () {
+    vista = vista === 'escena' ? 'mapa' : 'escena';
+    ver();
+  });
+
+  $('#bOtra').addEventListener('click', function () {
+    semilla += 77;
+    preparar('1');
+  });
+
+  $('#bVerMapa').addEventListener('click', function () {
+    vista = 'mapa';
+    ver();
+  });
+
+  window.addEventListener('hashchange', function () { preparar(hashNum()); });
+  preparar(hashNum());
+  setInterval(tic, 1000);
+})();
+</script>
+</body>
+</html>

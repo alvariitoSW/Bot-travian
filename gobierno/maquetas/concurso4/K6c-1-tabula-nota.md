@@ -1,0 +1,7 @@
+1. Un mapa de caminos dibujado en pergamino, con las legiones como fichas sobre tres vías y el campo entero a la vista; cada jornada se planea con cuenta atrás y luego todas las fichas marchan a la vez.
+2. Con el pulgar se toca una legión y después una estación de su vía, y la orden queda dibujada como flecha; para pasar del mapa a la escena se toca «Ver la escena» arriba, y «Volver al mapa» para regresar.
+3. Tres botones a la vista en el mapa (Deshacer, Marchar, Ver la escena) y dos o tres en las demás pantallas.
+4. Dirección de arte: pergamino, tinta y caminos rojizos, todo hecho a mano en SVG y CSS con la tipografía Cinzel del proyecto; no se usa arte de terceros.
+5. A 20 y 30 regimientos cada vía admite fichas por las dos orillas en dos filas, y el mapa sigue cabiendo en 844 px; 1.500 m de campo ocupan una sola banda con las distancias marcadas en cada estación; el turno dura una cuenta atrás de unos 38 s y luego una marcha corta de 1,6 s, con el choque anunciado al llegar.
+6. Cambios en el juego (solo proponer): `js/ui.js` para un mapa de caminos 2D con cola de órdenes y cuenta atrás de turno; `js/battle.js` para un paso de batalla que se pueda lanzar al llegar un choque; `js/gfx/battle3d.js` para una escena de entrada con las mismas tropas del mapa.
+7. Coste estimado: 3 tareas (dos medianas, una para el mapa y los turnos y otra para la escena y el paso de batalla, y una pequeña para textos y pruebas).

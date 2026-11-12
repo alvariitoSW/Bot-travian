@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=844,initial-scale=1">
+<title>Zama · Cerámica</title>
+<style>
+@font-face{font-family:Cinzel;src:url('../../../assets/fuentes/cinzel-700.woff2') format('woff2');font-weight:700}
+:root{--t:#c1622f;--t2:#a44d22;--t3:#7e3716;--n:#1b110c;--c:#f2dfb8;--o:#e0a23c}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:844px;height:390px;overflow:hidden;background:var(--n)}
+body{font-family:Palatino,"Book Antiqua",Georgia,serif;color:var(--c);display:grid;grid-template-rows:44px 262px 84px}
+button{font-family:inherit;cursor:pointer}
+/* franjas negras como el borde de un ánfora, con greca */
+#top,#tray{background:var(--n);position:relative;display:flex;align-items:center}
+#top{padding:0 10px 6px;gap:8px;justify-content:space-between}
+#tray{padding:12px 8px 4px;gap:6px}
+#top::after,#tray::before{content:"";position:absolute;left:0;right:0;height:8px;
+background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='8'%3E%3Cpath d='M0 7.5H15.5V.5H3.5V4.5H11.5V3' fill='none' stroke='%23e0a23c' stroke-width='1.2'/%3E%3C/svg%3E") repeat-x}
+#top::after{bottom:0}#tray::before{top:0}
+.tl{width:200px;line-height:1.1}
+.tl b{font:700 14px Cinzel,serif;letter-spacing:.5px;display:block}
+.tl span{font-size:10.5px;color:var(--o)}
+.st{display:flex;gap:4px}
+.step{width:96px;height:32px;background:transparent;border:1.5px solid var(--o);color:var(--c);font:700 11px Cinzel,serif;border-radius:3px}
+.step.on{background:var(--c);color:var(--n);border-color:var(--c)}
+.rs{width:196px;font-size:11px;display:flex;justify-content:flex-end;gap:8px;white-space:nowrap}
+.rs i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:3px;background:var(--o)}
+#field{background:var(--t);overflow:hidden}
+#field svg{display:block}
+.lb{font:700 11px Cinzel,serif;fill:var(--c)}
+.tx{font:11px Palatino,Georgia,serif;fill:var(--c)}
+.big{font:700 20px Cinzel,serif;fill:var(--o)}
+.b{flex:1;height:60px;background:var(--t);color:var(--n);border:2px solid var(--c);border-radius:4px;font:700 12px Cinzel,serif;
+display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;line-height:1.1;padding:0 4px;text-align:center}
+.b small{font:11px Palatino,Georgia,serif;font-weight:400;color:var(--n)}
+.b.p{background:var(--o)}.b.k{background:var(--c)}.b.n{flex:.55}
+.b:active{transform:translateY(1px);filter:brightness(.92)}
+.sw{animation:bob .6s ease-in-out infinite alternate}
+@keyframes bob{to{transform:translate(3px,-2px)}}
+.ride{animation:ride 3.2s linear infinite}
+@keyframes ride{from{transform:translateX(0)}to{transform:translateX(150px)}}
+.du{fill:var(--c);opacity:0;animation:du 1s ease-out infinite}
+@keyframes du{0%{opacity:.55;transform:scale(.5)}100%{opacity:0;transform:scale(1.5)}}
+.du,.sp{transform-box:fill-box;transform-origin:center}
+.sp{animation:du .7s ease-out infinite}
+</style></head><body>
+<div id="top"></div><div id="field"></div><div id="tray"></div>
+<script>
+const $=s=>document.querySelector(s);
+const NEG='#1b110c',CRE='#f2dfb8',OCH='#e0a23c';
+const esc=t=>t;
+/* pieza de la cerámica: Roma figuras negras, Cartago figuras de reserva (crema) */
+function R(x,y,k,s,sel,sc){
+  const f=s=='r'?NEG:CRE,st=s=='r'?CRE:NEG;let b;
+  if(k=='i')b=`<rect x="-8" y="-17" width="16" height="34" rx="2" fill="${f}" stroke="${st}" stroke-width="1.5"/><path d="M-4 -12v24M0 -12v24M4 -12v24" stroke="${st}" stroke-width="1.3"/>`;
+  else if(k=='c')b=`<rect x="-12" y="-11" width="24" height="22" rx="3" fill="${f}" stroke="${st}" stroke-width="1.5"/><path d="M-9 8L14 -9" stroke="${st}" stroke-width="2.4"/><circle cx="13" cy="-11" r="3.5" fill="${st}"/>`;
+  else if(k=='e')b=`<ellipse rx="16" ry="12" fill="${f}" stroke="${st}" stroke-width="1.5"/><path d="M15 0q9 2 7 11" fill="none" stroke="${st}" stroke-width="3"/><rect x="-7" y="-10" width="14" height="8" fill="${st}"/>`;
+  else b=`<rect x="-8" y="-17" width="16" height="34" rx="2" fill="none" stroke="${CRE}" stroke-width="1.6" stroke-dasharray="4 3"/>`;
+  const ring=sel?`<rect x="-19" y="-24" width="38" height="48" rx="6" fill="none" stroke="${OCH}" stroke-width="2.5" stroke-dasharray="5 3"/>`:'';
+  return `<g transform="translate(${x},${y}) scale(${sc||1})">${b}${ring}</g>`;
+}
+function P(x,y,t,c){const w=t.length*7+18;return `<g><rect x="${x-w/2}" y="${y-11}" width="${w}" height="22" rx="3" fill="${NEG}" stroke="${c||CRE}" stroke-width="1.5"/><text x="${x}" y="${y+4}" text-anchor="middle" class="lb" ${c?`style="fill:${c}"`:''}>${t}</text></g>`;}
+function A(d,col){return `<path d="${d}" fill="none" stroke="${NEG}" stroke-width="6" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${col||CRE}" stroke-width="3" stroke-dasharray="9 6" stroke-linecap="round" marker-end="url(#ah)"/>`;}
+function bar(x,y,w,lab,p){return `<text x="${x}" y="${y-5}" class="tx">${lab}</text><rect x="${x}" y="${y}" width="${w}" height="9" rx="2" fill="none" stroke="${CRE}" stroke-width="1.3"/><rect x="${x+2}" y="${y+2}" width="${(w-4)*p}" height="5" fill="${OCH}"/>`;}
+function base(extra){
+  let g=`<defs><radialGradient id="gr" cx=".5" cy=".5" r=".85"><stop offset="0" stop-color="#d4733c"/><stop offset="1" stop-color="#a24b1e"/></radialGradient>
+<marker id="ah" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0L10 5L0 10z" fill="${CRE}" stroke="${NEG}" stroke-width="1.5"/></marker></defs>
+<rect width="844" height="262" fill="url(#gr)"/>`;
+  for(let r=0;r<5;r++)g+=`<ellipse cx="422" cy="72" rx="${28+r*20}" ry="${12+r*8}" fill="none" stroke="${NEG}" stroke-opacity=".28" stroke-width="1.5"/>`;
+  for(let i=0;i<46;i++){const x=(i*173)%830+8,y=(i*97)%250+6;g+=`<path d="M${x} ${y}h7" stroke="${NEG}" stroke-opacity=".25" stroke-width="1.5"/>`;}
+  for(let i=0;i<7;i++){const x=388+i*11,y=222+(i%3)*5;g+=`<path d="M${x} ${y-16}l8 18h-16z" fill="${NEG}"/><path d="M${x} ${y+2}v5" stroke="${NEG}" stroke-width="2"/>`;}
+  g+=`<path d="M24 246h110M24 241v10M79 243v6M134 241v10" stroke="${NEG}" stroke-width="2"/><text x="24" y="236" class="lb" style="fill:${NEG}">200 m</text>`;
+  return `<svg viewBox="0 0 844 262" width="844" height="262">${g}${extra}</svg>`;
+}
+/* despliegue: f = avance de las líneas (0..1) */
+function army(f,cav){
+  let u='';
+  for(let c=0;c<3;c++)for(let r=0;r<4;r++){u+=R(70+c*40+170*f,54+r*52,'i','r',c==2&&r==1&&cav==0)+R(704+c*40-45*f,54+r*52,'i','k');}
+  for(let r=0;r<4;r++)u+=R(630-190*f,54+r*52,'e','k');
+  return u;
+}
+const TOP=['Planeando','En directo','En combate','Resultado'];
+function barra(n){
+  const st=['Planear','Turno','Combate','Resultado'].map((t,i)=>`<button class="step ${i+1==n?'on':''}" onclick="go(${i+1})">${i+1} ${t}</button>`).join('');
+  return `<div class="tl"><b>ZAMA · 202 a. C.</b><span>Día 2 · Turno ${n<3?3:4} · ${TOP[n-1]}</span></div><div class="st">${st}</div>
+<div class="rs"><span><i></i>Trigo 340</span><span><i style="background:${CRE}"></i>Hierro 90</span></div>`;
+}
+function btn(t,s,c,n){return `<button class="b ${c||''}" ${n?`onclick="go(${n})"`:''}>${t}<small>${s}</small></button>`;}
+/* 1 · planear */
+function s1(){
+  let u=army(0,0);
+  u+=R(205,28,'c','r',1)+R(245,28,'c','r',1)+R(205,234,'c','r',1)+R(245,234,'c','r',1);
+  u+=R(560,28,'c','k')+R(530,28,'c','k')+R(560,234,'c','k')+R(530,234,'c','k');
+  u+=A('M270 30C330 8 480 8 600 52')+A('M270 232C330 254 480 254 600 212')+A('M200 130H340');
+  u+=`<circle cx="424" cy="214" r="17" fill="${NEG}" stroke="${OCH}" stroke-width="2.5"/><path d="M412 214q12-11 24 0q-12 11-24 0z" fill="none" stroke="${CRE}" stroke-width="2"/><circle cx="424" cy="214" r="3.5" fill="${CRE}"/>`;
+  u+=A('M440 206C520 244 640 244 690 196',OCH);
+  u+=P(420,18,'Toca un regimiento y elige una orden')+P(424,190,'Emboscada',OCH)+P(445,248,'Flanco izquierdo')+P(330,72,'Flanco derecho');
+  u+=P(100,18,'ROMA 16')+P(750,18,'CARTAGO 16');
+  return {f:base(u),t:btn('Flanquear','Rodea por el lado')+btn('Caballería','Carga a la espalda')+btn('Emboscada','Velites en el bosque')+btn('Borrar órdenes','Empieza de nuevo','k')+btn('Empezar batalla','Plan de 3 órdenes','p',2)};
+}
+/* 2 · turno en directo */
+function s2(){
+  let u=army(.7,1);
+  u+=R(430,30,'c','r')+R(468,30,'c','r')+R(430,234,'c','r')+R(468,234,'c','r')+R(590,30,'c','k')+R(590,234,'c','k')+R(630,30,'c','k')+R(630,234,'c','k');
+  u+=A('M300 30C360 8 470 8 560 40')+A('M300 232C360 254 470 254 560 220')+A('M330 130H470');
+  for(let i=0;i<3;i++)u+=R(405+i*14,210,'x','r');
+  u+=A('M432 206C520 246 640 246 695 200',OCH)+P(424,188,'¡Emboscada lista!',OCH);
+  u+=`<rect x="322" y="38" width="200" height="12" rx="3" fill="${NEG}" stroke="${CRE}" stroke-width="1.5"/><rect x="325" y="41" width="118" height="6" fill="${OCH}"/>`;
+  u+=P(422,18,'Turno 3 · quedan 9 s')+P(120,18,'Tu orden: avanzar')+P(740,18,'Enemigo: elefantes')+P(250,92,'Ala de caballería').replace('M','M');
+  return {f:base(u),t:btn('Mantener la línea','Moral +1 · sin gasto','',3)+btn('Caballería al flanco','Cuesta 40 de trigo','',3)+btn('Soltar la emboscada','Velites salen del bosque','p',3)+btn('Pausa','Piensa','k n')};
+}
+/* 3 · tropas luchando */
+function S(x,y,k,s,d,att){
+  const f=s=='r'?NEG:CRE,st=s=='r'?CRE:NEG,sx=s=='r'?k:-k;
+  return `<g transform="translate(${x},${y}) scale(${sx},${k})"><g class="sw" style="animation-delay:${d}s"><path d="M-3 0V-8M3 0V-8" stroke="${f}" stroke-width="3"/><rect x="-5" y="-20" width="10" height="13" rx="3" fill="${f}" stroke="${st}"/><circle cy="-24" r="4.5" fill="${f}" stroke="${st}"/><path d="M-5 -26q5-8 10 0z" fill="${st}"/><ellipse cx="7" cy="-13" rx="4" ry="8" fill="${f}" stroke="${st}"/><path d="M4 -14L${att?24:20} -23" stroke="${st}" stroke-width="1.6"/></g></g>`;
+}
+function s3(){
+  let u=`<rect y="0" width="844" height="52" fill="${NEG}" fill-opacity=".35"/><path d="M0 52H844" stroke="${NEG}" stroke-width="2"/>`;
+  for(let i=0;i<14;i++)u+=`<path d="M${i*64} 52q30-34 60 0z" fill="${NEG}" fill-opacity=".45"/>`;
+  for(let r=0;r<7;r++){const y=82+r*22,k=.72+r*.1;
+    for(let c=0;c<9;c++){const d=((r*3+c*5)%7)/10;
+      u+=S(190+c*26+(r%2)*8,y,k,'r',d,c==8)+S(655-c*26-(r%2)*8,y+4,k,'k',d+.2,c==8);}
+    u+=`<circle cx="428" cy="${y-14}" r="9" class="du" style="animation-delay:${r*.13}s"/><path d="M420 ${y-24}l16 14M436 ${y-24}l-16 14" stroke="${OCH}" stroke-width="2.5" class="sp" style="animation-delay:${r*.1}s"/>`;}
+  u+=`<g class="ride">`+R(60,30,'c','r',0,1.2)+R(95,34,'c','r',0,1.2)+R(130,30,'c','r',0,1.2)+`</g>`;
+  u+=A('M60 60C150 78 240 70 300 62');
+  u+=`<rect x="12" y="8" width="214" height="30" rx="4" fill="${NEG}" stroke="${CRE}" stroke-width="1.5"/>`+bar(60,22,156,'',.7).replace('<text','<text style="display:none"')+`<text x="20" y="28" class="lb">ROMA</text>`;
+  u+=`<rect x="618" y="8" width="214" height="30" rx="4" fill="${NEG}" stroke="${CRE}" stroke-width="1.5"/>`+bar(678,22,146,'',.45).replace('<text','<text style="display:none"')+`<text x="626" y="28" class="lb">CARTAGO</text>`;
+  u+=P(422,24,'Cámara cerca · caballería ataca por el flanco')+P(120,248,'Bajas Roma 41')+P(724,248,'Bajas Cartago 118');
+  return {f:base('').replace('</svg>','')+u+'</svg>',t:btn('Pausa','Congela el combate')+btn('Ritmo ×1','Lento')+btn('Ritmo ×2','Rápido','k')+btn('Seguir a los triarios','La cámara los sigue')+btn('Ver resultado','Termina la batalla','p',4)};
+}
+/* 4 · ocupar y mantener */
+function s4(){
+  let u=`<rect x="290" y="112" width="264" height="90" fill="${NEG}" stroke="${CRE}" stroke-width="2"/>`;
+  for(let i=0;i<11;i++)u+=`<rect x="${290+i*24}" y="102" width="14" height="10" fill="${NEG}"/>`;
+  u+=`<rect x="276" y="92" width="30" height="110" fill="${NEG}" stroke="${CRE}" stroke-width="2"/><rect x="538" y="92" width="30" height="110" fill="${NEG}" stroke="${CRE}" stroke-width="2"/>`;
+  u+=`<path d="M404 202v-34a18 18 0 0 1 36 0v34z" fill="${CRE}"/><path d="M296 128h244M296 190h108M440 190h100" stroke="${CRE}" stroke-width="1.5" stroke-dasharray="3 5"/>`;
+  u+=`<path d="M422 112V50" stroke="${NEG}" stroke-width="3"/><path d="M422 52h50v26h-50z" fill="${NEG}" stroke="${CRE}" stroke-width="1.5"/><text x="447" y="70" text-anchor="middle" class="lb">SPQR</text>`;
+  for(let i=0;i<6;i++)u+=S(330+i*34,236,.9,'r',i*.1);
+  u+=`<rect x="12" y="12" width="236" height="104" rx="5" fill="${NEG}" stroke="${CRE}" stroke-width="1.5"/><text x="26" y="42" class="big">VICTORIA</text><text x="26" y="66" class="tx">Bajas: Roma 312 · Cartago 890</text><text x="26" y="86" class="tx">Botín: 220 de trigo, 40 de hierro</text><text x="26" y="106" class="tx">Zama se rinde al amanecer.</text>`;
+  u+=`<rect x="596" y="12" width="236" height="176" rx="5" fill="${NEG}" stroke="${CRE}" stroke-width="1.5"/><text x="610" y="36" class="lb" style="fill:${OCH}">MANTENER LA POSICIÓN</text><text x="610" y="82" class="tx">Día 2 de 5</text>`;
+  for(let i=0;i<5;i++)u+=`<circle cx="${700+i*24}" cy="76" r="9" fill="${i<2?OCH:'none'}" stroke="${CRE}" stroke-width="1.6"/>`;
+  u+=bar(610,112,208,'Trigo 340 (−18 al día)',.62)+bar(610,142,208,'Hierro 90 (−6 al día)',.4)+bar(610,172,208,'Moral de la guarnición',.8);
+  return {f:base(u),t:btn('Mantener un día','Gasta 18 de trigo','p',4)+btn('Reforzar la muralla','Cuesta 60 de hierro')+btn('Marchar a Cartago','Deja 2 regimientos','k')+btn('Guardar y salir','Sigues luego','k',1)};
+}
+const SC=[null,s1,s2,s3,s4];
+function go(n){const s=SC[n]();$("#top").innerHTML=barra(n);$('#field').innerHTML=s.f;$('#tray').innerHTML=s.t;}
+go(+(location.hash.slice(1))||1);
+</script></body></html>

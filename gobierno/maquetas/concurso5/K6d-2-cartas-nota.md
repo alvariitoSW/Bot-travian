@@ -1,0 +1,7 @@
+1. La idea: cada turno el jugador tiende cartas de maniobra (flanquear, emboscar, carga de caballería) sobre un mapa grande, y las tropas se ven moverse y luchar.
+2. Pulgar: se toca una carta para elegirla (los puntos de mando se gastan a la vista) y luego se toca «Lanzar el turno». Para pasar del mapa a la escena, se pulsa «Ver el combate»; la escena es el mismo mapa, con las tropas ya en marcha.
+3. Botones a la vista: «Lanzar el turno», «Ver el combate», «Pausa», «Ver el resultado», «Ocupar el vado y quedarnos 3 días», «Planear otra vez». Arriba, los cuatro pasos.
+4. Dirección de arte: mapa pintado a mano en SVG y CSS, con colores de tierra, río con vado, colina y bosque; cartas de pergamino y tropas como bloques de hombres. Sin tablero ni cuadrícula. No se usa arte de 0 A.D. en esta maqueta.
+5. Escala: con 20 o 30 regimientos, las cartas pasan a ser órdenes por grupo (un regimiento o una ala por carta) y el mapa se amplía con desplazamiento; con 1.500 m, el turno se vive en seis pasos de ida y vuelta, y cada carta se juega en un paso.
+6. Qué cambiar en el juego (solo proponer): añadir a las tropas una carta de emboscada oculta antes del turno, y mostrar el coste de cada carta en el propio mapa, no en una lista aparte.
+7. Coste estimado en tareas: unas 6 tareas (mapa y terreno, cartas y puntos de mando, turno con emboscada, animación de tropas y choques, pantalla de resultado y ocupación, ajuste a 390 px en horizontal).

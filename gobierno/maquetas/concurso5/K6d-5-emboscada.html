@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Emboscada oculta</title>
+<style>
+@font-face {
+  font-family: 'Cinzel';
+  src: url('../../../assets/fuentes/cinzel-700.woff2') format('woff2');
+  font-weight: 700;
+  font-display: swap;
+}
+:root {
+  --fondo: #1a1410;
+  --piedra: #2b2119;
+  --oro: #d9ad55;
+  --rojo: #a33a2c;
+  --texto: #f1e6cf;
+  --tenue: #bfae90;
+  --verde: #5d7a43;
+  --pergamino: #e8d7b0;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; overflow: hidden; }
+body {
+  position: relative;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: Georgia, 'Times New Roman', serif;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+button {
+  font-family: inherit;
+  font-size: 12.5px;
+  color: var(--texto);
+  background: #3a2c21;
+  border: 1px solid #6b5238;
+  border-radius: 8px;
+  padding: 6px 9px;
+  min-height: 30px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+button:disabled { opacity: .4; cursor: default; }
+button.primario { background: var(--oro); color: #1a1410; border-color: #f0cd7a; font-weight: 700; }
+button.activo { background: var(--rojo); border-color: #e0695a; }
+
+.pantalla { position: absolute; inset: 0; display: none; flex-direction: column; }
+.pantalla.on { display: flex; }
+.barra {
+  flex: 0 0 36px; height: 36px; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 0 10px; background: linear-gradient(#2f241b, #201913); border-bottom: 1px solid #000;
+}
+.titulo {
+  font-family: Cinzel, Georgia, serif; font-weight: 700; font-size: 14px; color: var(--oro);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.pills { display: flex; gap: 4px; flex: 0 0 auto; }
+.pill { font-size: 11.5px; padding: 3px 8px; min-height: 24px; border-radius: 12px; }
+.pill.on { background: var(--oro); color: #1a1410; border-color: var(--oro); }
+
+.escena { position: relative; flex: 1 1 auto; min-height: 0; overflow: hidden; }
+.escena > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.bandeja {
+  flex: 0 0 84px; height: 84px; display: flex; align-items: stretch; gap: 8px;
+  padding: 8px 10px; background: var(--piedra); border-top: 1px solid #000;
+}
+.bandeja.alta { flex-direction: column; justify-content: center; gap: 6px; }
+.bandeja.fina { flex: 0 0 50px; height: 50px; align-items: center; justify-content: center; padding: 6px 10px; }
+.cartas { display: flex; gap: 8px; flex: 1 1 auto; min-width: 0; }
+.carta {
+  flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 2px;
+  background: var(--pergamino); color: #2b2119; border: 2px solid #b08a4c; border-radius: 6px;
+  padding: 4px 8px; text-align: left; white-space: normal;
+}
+.carta b { font-family: Cinzel, Georgia, serif; font-size: 13px; }
+.carta span { font-size: 12px; }
+.carta i {
+  font-style: normal; font-size: 11px; background: #6b5238; color: var(--texto);
+  border-radius: 8px; padding: 0 6px;
+}
+.carta.sel { border-color: var(--oro); box-shadow: 0 0 0 2px var(--oro); }
+.carta.puesta i { background: var(--verde); }
+.carta.oculta i { background: #4b3d7a; }
+.info { font-size: 12px; color: var(--tenue); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.botones { display: flex; gap: 6px; }
+
+.tribuno {
+  position: absolute; left: 400px; top: 8px; transform: translateX(-50%); width: 240px;
+  background: rgba(26, 20, 16, .92); border: 1px solid var(--oro); border-radius: 10px; padding: 6px 10px;
+}
+.tribuno b { font-family: Cinzel, Georgia, serif; font-size: 12px; color: var(--oro); }
+.tribuno p { font-size: 12.5px; line-height: 1.35; font-style: italic; margin-top: 2px; }
+.pista {
+  position: absolute; left: 10px; bottom: 6px; font-size: 12px; color: var(--tenue);
+  background: rgba(20, 15, 11, .7); border-radius: 6px; padding: 2px 6px;
+}
+#aviso {
+  position: absolute; left: 10px; top: 44px; max-width: 260px; z-index: 9; pointer-events: none;
+  background: rgba(20, 15, 11, .92); border: 1px solid var(--oro); border-radius: 8px; padding: 5px 9px;
+  font-size: 12px; opacity: 0; transition: opacity .3s;
+}
+#aviso.on { opacity: 1; }
+.texto-escena {
+  position: absolute; left: 10px; top: 8px; max-width: 620px; font-size: 13px;
+  background: rgba(20, 15, 11, .75); border: 1px solid #5a4530; border-radius: 8px; padding: 5px 10px;
+}
+
+/* mapa y bloques de tropa */
+.zonas text {
+  font-family: Cinzel, Georgia, serif; font-size: 15px; fill: var(--texto); text-anchor: middle;
+  paint-order: stroke; stroke: #1a1410; stroke-width: 3; opacity: .85;
+}
+.bloque { transition: transform .7s ease, opacity .4s; }
+.bloque rect { fill: var(--c); stroke: #120c08; stroke-width: 2; }
+.bloque text {
+  font-family: Georgia, serif; fill: #fff; text-anchor: middle; paint-order: stroke;
+  stroke: #120c08; stroke-width: 3; stroke-linejoin: round;
+}
+.bloque .nom { font-size: 14px; }
+.bloque .num { font-size: 13px; }
+.bloque.oculto { opacity: .85; }
+.bloque.oculto rect { fill-opacity: .35; stroke: #fff; stroke-width: 2.5; stroke-dasharray: 7 5; }
+.bloque.muerto { opacity: .25; }
+#p2 .zona { display: none; }
+
+/* pantalla 4 */
+.cuerpo { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 14px; padding: 10px 14px; }
+.columna { display: flex; flex-direction: column; gap: 6px; min-height: 0; overflow: hidden; align-items: flex-start; }
+.columna h1 { font-family: Cinzel, Georgia, serif; font-size: 21px; color: var(--oro); }
+.columna ul { list-style: none; width: 100%; font-size: 13px; }
+.columna li { display: flex; justify-content: space-between; border-bottom: 1px dotted #4a3a2a; padding: 2px 0; }
+.tenue { color: var(--tenue); font-size: 12.5px; }
+.etiqueta { font-family: Cinzel, Georgia, serif; font-size: 12px; color: var(--oro); letter-spacing: 1px; }
+.tribunos { background: #241c15; border: 1px solid #4a3a2a; border-radius: 10px; padding: 10px; width: 100%; }
+.cita { font-size: 14px; font-style: italic; line-height: 1.4; }
+.opciones { display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.opciones button { text-align: left; }
+.guar { display: none; flex-direction: column; gap: 5px; width: 100%; }
+.guar.on { display: flex; }
+.recurso { display: grid; grid-template-columns: 50px 1fr 76px; align-items: center; gap: 6px; font-size: 12.5px; }
+.tubo { height: 10px; background: #120c08; border: 1px solid #5a4530; border-radius: 5px; overflow: hidden; }
+.relleno { height: 100%; background: var(--verde); width: 100%; transition: width .4s; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="soldado" viewBox="0 0 10 16">
+      <g fill="currentColor">
+        <circle cx="5" cy="3" r="2.4"/>
+        <rect x="3" y="6" width="4" height="6.5" rx="1"/>
+        <rect x="3.1" y="12" width="1.7" height="4"/>
+        <rect x="5.2" y="12" width="1.7" height="4"/>
+      </g>
+      <line x1="8.8" y1="1" x2="8.8" y2="15.5" stroke="#e8dcc0" stroke-width="0.7"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div id="aviso"></div>
+
+<!-- PANTALLA 1: planear la batalla -->
+<section class="pantalla on" id="p1">
+  <header class="barra">
+    <div class="titulo">1 · Planea la batalla</div>
+    <nav class="pills">
+      <button class="pill" data-p="1">1 Plan</button>
+      <button class="pill" data-p="2">2 Turno</button>
+      <button class="pill" data-p="3">3 De cerca</button>
+      <button class="pill" data-p="4">4 Resultado</button>
+    </nav>
+  </header>
+  <div class="escena">
+    <svg id="mapa1" viewBox="0 0 1000 320" preserveAspectRatio="xMidYMid slice"></svg>
+    <div class="tribuno">
+      <b>Tribuno Lucio Varo</b>
+      <p id="tribuno-texto"></p>
+    </div>
+    <div class="pista">Elige una tropa abajo y toca el mapa. En el bosque o en la cresta, se esconde.</div>
+  </div>
+  <div class="bandeja">
+    <div class="cartas" id="cartas"></div>
+    <button class="primario" id="btn-empezar">Empezar la batalla</button>
+  </div>
+</section>
+
+<!-- PANTALLA 2: turno en directo -->
+<section class="pantalla" id="p2">
+  <header class="barra">
+    <div class="titulo">2 · Turno en directo</div>
+    <nav class="pills">
+      <button class="pill" data-p="1">1 Plan</button>
+      <button class="pill" data-p="2">2 Turno</button>
+      <button class="pill" data-p="3">3 De cerca</button>
+      <button class="pill" data-p="4">4 Resultado</button>
+    </nav>
+  </header>
+  <div class="escena">
+    <svg id="mapa2" viewBox="0 0 1000 320" preserveAspectRatio="xMidYMid slice"></svg>
+  </div>
+  <div class="bandeja alta">
+    <div class="info" id="info"></div>
+    <div class="botones">
+      <button id="orden-salir">Salir de ocultos</button>
+      <button id="orden-cargar">Cargar con caballería</button>
+      <button id="orden-esperar">Mantener la línea</button>
+      <button class="primario" id="btn-ejecutar">Ejecutar turno</button>
+      <button id="btn-directo">En directo</button>
+      <button id="btn-escena">Ver de cerca</button>
+    </div>
+  </div>
+</section>
+
+<!-- PANTALLA 3: las tropas moviéndose y luchando -->
+<section class="pantalla" id="p3">
+  <header class="barra">
+    <div class="titulo">3 · De cerca: tropas en lucha</div>
+    <nav class="pills">
+      <button class="pill" data-p="1">1 Plan</button>
+      <button class="pill" data-p="2">2 Turno</button>
+      <button class="pill" data-p="3">3 De cerca</button>
+      <button class="pill" data-p="4">4 Resultado</button>
+    </nav>
+  </header>
+  <div class="escena">
+    <svg id="escena-svg" viewBox="0 0 844 304" preserveAspectRatio="xMidYMid slice"></svg>
+    <div class="texto-escena" id="txt-escena"></div>
+  </div>
+  <div class="bandeja fina">
+    <div class="botones">
+      <button id="btn-volver">Volver al mapa</button>
+      <button id="btn-repetir">Repetir la escena</button>
+      <button class="primario" id="btn-resultado">Ver el resultado</button>
+    </div>
+  </div>
+</section>
+
+<!-- PANTALLA 4: resultado y consejo -->
+<section class="pantalla" id="p4">
+  <header class="barra">
+    <div class="titulo">4 · Resultado</div>
+    <nav class="pills">
+      <button class="pill" data-p="1">1 Plan</button>
+      <button class="pill" data-p="2">2 Turno</button>
+      <button class="pill" data-p="3">3 De cerca</button>
+      <button class="pill" data-p="4">4 Resultado</button>
+    </nav>
+  </header>
+  <div class="cuerpo">
+    <div class="columna">
+      <h1 id="res-titulo"></h1>
+      <p class="tenue" id="res-sub"></p>
+      <ul id="res-lista"></ul>
+      <p class="tenue" id="res-msg"></p>
+      <button id="btn-plan">Volver a planear</button>
+    </div>
+    <div class="columna tribunos">
+      <div class="etiqueta">Consejo de tribunos</div>
+      <p class="cita" id="res-cita"></p>
+      <div class="opciones">
+        <button class="primario" id="op-ocupar">Ocupar el bosque y quedarte 3 días</button>
+        <button id="op-perseguir">Perseguir al enemigo</button>
+        <button id="op-retirar">Retirarse a la ciudad</button>
+      </div>
+      <div class="guar" id="guar">
+        <div class="etiqueta" id="guar-dia"></div>
+        <div class="recurso"><span>Grano</span><div class="tubo"><div class="relleno" id="r-grano"></div></div><b id="t-grano"></b></div>
+        <div class="recurso"><span>Madera</span><div class="tubo"><div class="relleno" id="r-madera"></div></div><b id="t-madera"></b></div>
+        <button id="btn-dia">Pasar un día</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+const NS = 'http://www.w3.org/2000/svg';
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const CICLO = 5200;
+
+// Datos: tropas propias, enemigas, zonas donde se esconde y filas de la escena
+const UNIDADES = {
+  legion:     { nombre: 'Legión',     n: 120, f: 1.0,  color: '#4f6f9a' },
+  lanceros:   { nombre: 'Lanceros',   n: 80,  f: 0.95, color: '#7d6234' },
+  caballeria: { nombre: 'Caballería', n: 60,  f: 1.35, color: '#a8862c' },
+  honderos:   { nombre: 'Honderos',   n: 60,  f: 0.75, color: '#4e7a4a' }
+};
+const ENEMIGOS = [
+  { id: 'e1', nombre: 'Infantería', n: 140, f: 1.0, color: '#8c3b2f', x: 840, y: 118 },
+  { id: 'e2', nombre: 'Arqueros',   n: 80,  f: 0.8, color: '#6e2d26', x: 900, y: 168 },
+  { id: 'e3', nombre: 'Jinetes',    n: 50,  f: 1.3, color: '#a8562c', x: 880, y: 78 }
+];
+const ZONAS = {
+  bosque: { cx: 640, cy: 220, rx: 100, ry: 52 },
+  cresta: { cx: 700, cy: 52, rx: 85, ry: 34 }
+};
+const LANES = { legion: 240, lanceros: 266, caballeria: 226, honderos: 282, e1: 240, e2: 266, e3: 226 };
+
+// Plan inicial de ejemplo; el jugador lo cambia en la pantalla 1
+let plan = {
+  legion:     { x: 210, y: 110, zona: 'lado' },
+  lanceros:   { x: 210, y: 190, zona: 'lado' },
+  honderos:   { x: 700, y: 52,  zona: 'cresta' },
+  caballeria: { x: 640, y: 222, zona: 'bosque' }
+};
+
+let seleccion = null, batalla = null, guar = null, directoId = 0;
+let sceneRaf = 0, tIni = 0, grupos = [], chispas = [], avisoT = 0;
+
+// Utilidades
+function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+function vivosDe(lista) { return lista.filter(u => u.n > 0); }
+function masCerca(u, lista) {
+  const v = vivosDe(lista);
+  if (!v.length) return null;
+  return v.reduce((m, e) => (dist(u, e) < dist(u, m) ? e : m));
+}
+function enContacto(u, lista) { return lista.some(e => e.n > 0 && dist(u, e) < 100); }
+function enZona(x, y, z) {
+  const Z = ZONAS[z];
+  return ((x - Z.cx) / Z.rx) ** 2 + ((y - Z.cy) / Z.ry) ** 2 <= 1;
+}
+function zonaDe(x, y) {
+  if (enZona(x, y, 'bosque')) return 'bosque';
+  if (enZona(x, y, 'cresta')) return 'cresta';
+  if (x >= 40 && x <= 340 && y >= 40 && y <= 300) return 'lado';
+  return null;
+}
+function aviso(t) {
+  const el = $('#aviso');
+  el.textContent = t;
+  el.classList.add('on');
+  clearTimeout(avisoT);
+  avisoT = setTimeout(() => el.classList.remove('on'), 2600);
+}
+
+// Mapa: terreno y bloques de tropa
+function arboles() {
+  let s = '';
+  for (let i = 0; i < 46; i++) {
+    const a = i * 2.399, r = Math.sqrt((i + 0.5) / 46);
+    const x = 640 + Math.cos(a) * r * 98, y = 220 + Math.sin(a) * r * 50;
+    s += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${7 + (i % 4) * 2}" fill="#2c4626" opacity=".9"/>`;
+  }
+  return s;
+}
+function montarMapa(svg) {
+  svg.innerHTML = `
+  <defs>
+    <linearGradient id="campo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6f7d4a"/><stop offset="1" stop-color="#8e7b4b"/>
+    </linearGradient>
+  </defs>
+  <rect width="1000" height="320" fill="url(#campo)"/>
+  <ellipse cx="200" cy="60" rx="230" ry="78" fill="#5a6a3c" opacity=".55"/>
+  <ellipse cx="700" cy="50" rx="150" ry="56" fill="#56663a" opacity=".85"/>
+  <path d="M520 30 Q700 0 880 34" fill="none" stroke="#d8c08a" stroke-opacity=".35" stroke-width="2" stroke-dasharray="6 7"/>
+  <path d="M0 262 C200 240 330 290 470 262 S760 236 1000 268" fill="none" stroke="#2f5d7a" stroke-width="20" stroke-linecap="round"/>
+  <path d="M0 262 C200 240 330 290 470 262 S760 236 1000 268" fill="none" stroke="#7fb0cc" stroke-width="4" stroke-opacity=".6"/>
+  <g class="arboles">${arboles()}</g>
+  <g class="zonas">
+    <rect class="zona" x="40" y="40" width="300" height="250" rx="16" fill="none" stroke="#f1e6cf" stroke-opacity=".4" stroke-width="2" stroke-dasharray="2 8"/>
+    <ellipse class="zona" cx="${ZONAS.cresta.cx}" cy="${ZONAS.cresta.cy}" rx="${ZONAS.cresta.rx}" ry="${ZONAS.cresta.ry}" fill="#fff" fill-opacity=".08" stroke="#f1e6cf" stroke-opacity=".7" stroke-width="2" stroke-dasharray="5 5"/>
+    <text class="zona" x="700" y="22">Cresta: se esconde</text>
+    <ellipse class="zona" cx="${ZONAS.bosque.cx}" cy="${ZONAS.bosque.cy}" rx="${ZONAS.bosque.rx}" ry="${ZONAS.bosque.ry}" fill="#000" fill-opacity=".12" stroke="#f1e6cf" stroke-opacity=".7" stroke-width="2" stroke-dasharray="5 5"/>
+    <text class="zona" x="640" y="282">Bosque: se esconde</text>
+  </g>
+  <g class="bloques"></g>`;
+}
+function pintarMapa(svg, items) {
+  const cont = svg.querySelector('.bloques');
+  const claves = new Set(items.map(it => it.key));
+  cont.querySelectorAll('g.bloque').forEach(g => { if (!claves.has(g.dataset.k)) g.remove(); });
+  items.forEach(it => {
+    let g = cont.querySelector(`g[data-k="${it.key}"]`);
+    if (!g) {
+      g = document.createElementNS(NS, 'g');
+      g.dataset.k = it.key;
+      g.innerHTML = '<rect x="-44" y="-19" width="88" height="38" rx="7"/><text class="nom" y="-3"></text><text class="num" y="13"></text>';
+      cont.appendChild(g);
+    }
+    g.setAttribute('class', 'bloque' + (it.oculto ? ' oculto' : '') + (it.n <= 0 ? ' muerto' : '') + (it.enemigo ? ' enemigo' : ''));
+    g.style.transform = `translate(${it.x}px, ${it.y}px)`;
+    g.style.setProperty('--c', it.color);
+    g.querySelector('.nom').textContent = it.nombre;
+    g.querySelector('.num').textContent = it.n <= 0 ? 'destruida' : (it.oculto ? '? ' : '') + it.n;
+  });
+}
+function itemsPlan() {
+  return Object.keys(plan).map(id => ({
+    key: 'p-' + id, nombre: UNIDADES[id].nombre, n: UNIDADES[id].n,
+    x: plan[id].x, y: plan[id].y, oculto: plan[id].zona !== 'lado',
+    color: UNIDADES[id].color, enemigo: false
+  }));
+}
+function itemsBatalla() {
+  const B = batalla;
+  return B.nuestros.map(u => ({
+    key: 'u-' + u.id, nombre: u.nombre, n: u.n, x: u.x, y: u.y,
+    oculto: u.oculto, color: u.color, enemigo: false
+  })).concat(B.enemigos.map(e => ({
+    key: 'e-' + e.id, nombre: e.nombre, n: e.n, x: e.x, y: e.y,
+    oculto: false, color: e.color, enemigo: true
+  })));
+}
+
+// Pantalla 1: cartas y consejo
+function pintarCartas() {
+  const cont = $('#cartas');
+  cont.innerHTML = '';
+  Object.keys(UNIDADES).forEach(id => {
+    const U = UNIDADES[id], P = plan[id];
+    const b = document.createElement('button');
+    let clase = 'carta';
+    if (seleccion === id) clase += ' sel';
+    let estado = 'sin poner';
+    if (P) {
+      clase += P.zona === 'lado' ? ' puesta' : ' oculta';
+      estado = P.zona === 'lado' ? 'al frente' : 'oculta · ' + (P.zona === 'bosque' ? 'bosque' : 'cresta');
+    }
+    b.className = clase;
+    b.innerHTML = `<b>${U.nombre}</b><span>${U.n} hombres</span><i>${estado}</i>`;
+    b.addEventListener('click', () => {
+      if (P) {
+        delete plan[id];
+        seleccion = null;
+        aviso(`${U.nombre} vuelve a la reserva.`);
+      } else {
+        seleccion = seleccion === id ? null : id;
+        if (seleccion) aviso(`Ahora toca el mapa para poner a ${U.nombre.toLowerCase()}.`);
+      }
+      pintarTodo();
+    });
+    cont.appendChild(b);
+  });
+}
+function alTocarMapa(e) {
+  if (!seleccion) { aviso('Primero toca una tropa de abajo.'); return; }
+  const svg = $('#mapa1');
+  const p = svg.createSVGPoint();
+  p.x = e.clientX; p.y = e.clientY;
+  const q = p.matrixTransform(svg.getScreenCTM().inverse());
+  const x = Math.round(q.x), y = Math.round(q.y);
+  const z = zonaDe(x, y);
+  if (!z) { aviso('Ahí no cabe. Usa tu lado, el bosque o la cresta.'); return; }
+  plan[seleccion] = { x, y, zona: z };
+  aviso(z === 'lado' ? 'Al frente: el enemigo la verá.' : 'Escondida: sale cuando des la orden.');
+  seleccion = null;
+  pintarTodo();
+}
+function textoTribuno() {
+  const total = Object.keys(plan).length;
+  const ocultos = Object.values(plan).filter(p => p.zona !== 'lado').length;
+  if (total === 0) return '«Sin tropas no hay batalla, general. ¿Dónde las ponemos?»';
+  if (ocultos === 0) return '«Todo al frente. Pelea de frente, sin sorpresa. ¿Es lo que quieres?»';
+  if (ocultos <= 2) return '«Bien. Lo que el enemigo no ve, no lo puede parar.»';
+  return '«Demasiado escondido. Si no salen a tiempo, el enemigo pasa de largo.»';
+}
+
+// Batalla: estado, órdenes y turno
+function iniciarBatalla() {
+  batalla = {
+    turno: 1,
+    fin: false,
+    orden: { salir: false, cargar: false, esperar: false },
+    ultimo: 'Turno 1: el enemigo avanza por el río.',
+    nuestros: Object.keys(plan).map(id => ({
+      id, nombre: UNIDADES[id].nombre, color: UNIDADES[id].color, f: UNIDADES[id].f,
+      n0: UNIDADES[id].n, n: UNIDADES[id].n,
+      x: plan[id].x, y: plan[id].y, zona: plan[id].zona, oculto: plan[id].zona !== 'lado',
+      flanco: false, sorpresa: false, carga: false
+    })),
+    enemigos: ENEMIGOS.map(e => ({ ...e, n0: e.n }))
+  };
+  guar = null;
+}
+function toggleOrden(k) {
+  const B = batalla;
+  if (!B || B.fin) return;
+  const usados = Object.values(B.orden).filter(Boolean).length;
+  if (!B.orden[k] && usados >= 3) { aviso('Solo tres órdenes por turno.'); return; }
+  B.orden[k] = !B.orden[k];
+  pintarTodo();
+}
+function ejecutarTurno() {
+  const B = batalla;
+  if (!B || B.fin) return;
+  const log = [];
+  const N = B.nuestros, E = B.enemigos;
+
+  // 1. Órdenes: los ocultos salen y caen sobre el enemigo más cercano por la retaguardia
+  if (B.orden.salir) {
+    N.forEach(u => {
+      if (u.oculto && u.n > 0) {
+        const e = masCerca(u, E);
+        if (e) {
+          u.x = Math.min(980, e.x + 50); u.y = e.y;
+          u.oculto = false; u.flanco = true; u.sorpresa = true;
+          log.push(`${u.nombre} salen de ${u.zona === 'bosque' ? 'el bosque' : 'la cresta'} y caen sobre ${e.nombre.toLowerCase()}.`);
+        }
+      }
+    });
+  }
+  if (B.orden.cargar) {
+    const c = N.find(u => u.id === 'caballeria' && u.n > 0);
+    const e = c && masCerca(c, E);
+    if (c && e) {
+      c.x = Math.min(980, e.x + 40); c.y = e.y;
+      c.oculto = false; c.flanco = true; c.carga = true;
+      log.push('La caballería carga por el flanco.');
+    }
+  }
+
+  // 2. Movimiento: el enemigo avanza si no lucha; tus tropas al frente avanzan salvo que mantengas la línea
+  E.forEach(e => { if (e.n > 0 && !enContacto(e, N)) e.x = Math.max(60, e.x - 90); });
+  N.forEach(u => {
+    if (u.n <= 0 || u.oculto || u.flanco || B.orden.esperar || enContacto(u, E)) return;
+    const e = masCerca(u, E);
+    if (!e) return;
+    const d = dist(u, e), paso = Math.min(60, d - 95);
+    if (paso > 0) { u.x += (e.x - u.x) / d * paso; u.y += (e.y - u.y) / d * paso; }
+  });
+
+  // 3. Si el enemigo pasa cerca de un escondido, lo ve y se acaba la sorpresa
+  N.forEach(u => {
+    if (u.n > 0 && u.oculto && E.some(e => e.n > 0 && dist(u, e) < 110)) {
+      u.oculto = false;
+      log.push(`Te han visto: ${u.nombre.toLowerCase()} sin sorpresa.`);
+    }
+  });
+
+  // 4. Combate: cada par de tropas cercanas lucha
+  N.forEach(u => E.forEach(e => {
+    if (u.n <= 0 || e.n <= 0 || dist(u, e) >= 100) return;
+    const fu = u.n * u.f * (u.sorpresa ? 1.4 : 1) * (u.carga ? 1.3 : 1);
+    const fe = e.n * e.f;
+    const r = fu / (fu + fe);
+    const bajasE = Math.min(e.n, Math.max(1, Math.round(e.n * 0.6 * r)));
+    const bajasU = Math.min(u.n, Math.max(1, Math.round(u.n * 0.6 * (1 - r))));
+    e.n -= bajasE; u.n -= bajasU;
+    log.push(`${u.nombre} contra ${e.nombre.toLowerCase()}: pierden ${bajasU} y ${bajasE}.`);
+  }));
+
+  N.forEach(u => { u.sorpresa = false; u.carga = false; });
+  B.orden = { salir: false, cargar: false, esperar: false };
+  B.turno++;
+  B.fin = B.turno > 4 || !vivosDe(E).length || !vivosDe(N).length;
+  if (B.fin) log.push('Batalla acabada.');
+  B.ultimo = log.length ? log.join(' ') : 'Nada cambia: los dos bandos se miran.';
+  pintarTodo();
+}
+function parar() {
+  if (directoId) { clearInterval(directoId); directoId = 0; }
+}
+function alternarDirecto() {
+  if (directoId) parar();
+  else {
+    directoId = setInterval(() => {
+      if (!batalla || batalla.fin) { parar(); pintarTodo(); return; }
+      ejecutarTurno();
+    }, 3000);
+  }
+  pintarTodo();
+}
+function pintarBatalla() {
+  const B = batalla;
+  const usados = Object.values(B.orden).filter(Boolean).length;
+  const hayOcultos = B.nuestros.some(u => u.oculto && u.n > 0);
+  const hayCaballeria = B.nuestros.some(u => u.id === 'caballeria' && u.n > 0);
+  $('#info').textContent = `Turno ${Math.min(B.turno, 4)} de 4 · Órdenes ${usados} de 3 · ${B.ultimo}`;
+  $('#orden-salir').classList.toggle('activo', B.orden.salir);
+  $('#orden-salir').disabled = !hayOcultos || B.fin;
+  $('#orden-cargar').classList.toggle('activo', B.orden.cargar);
+  $('#orden-cargar').disabled = !hayCaballeria || B.fin;
+  $('#orden-esperar').classList.toggle('activo', B.orden.esperar);
+  $('#orden-esperar').disabled = B.fin;
+  $('#btn-ejecutar').disabled = B.fin;
+  $('#btn-ejecutar').textContent = B.fin ? 'Batalla acabada' : 'Ejecutar turno';
+  $('#btn-directo').textContent = directoId ? 'Pausar' : 'En directo';
+  $('#btn-directo').disabled = B.fin;
+}
+
+// Pantalla 3: escena de cerca, con figuras SVG que avanzan y chocan
+function montarEscena() {
+  const svg = $('#escena-svg');
+  svg.innerHTML = `
+  <defs>
+    <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3b4658"/><stop offset="1" stop-color="#c49a62"/>
+    </linearGradient>
+  </defs>
+  <rect width="844" height="304" fill="url(#cielo)"/>
+  <path d="M0 176 Q150 110 300 162 T600 150 T844 128 V240 H0Z" fill="#5f6c46"/>
+  <rect y="236" width="844" height="68" fill="#7d6b43"/>
+  <path d="M0 236 Q420 226 844 236" stroke="#4a3d28" stroke-width="3" fill="none"/>
+  <path d="M770 236 Q790 170 844 150 V236Z" fill="#2c4527"/>
+  <g class="figuras"></g><g class="chispas"></g>`;
+  const capa = svg.querySelector('.figuras');
+  const capaCh = svg.querySelector('.chispas');
+  grupos = []; chispas = [];
+  const B = batalla;
+  const lista = B.nuestros.map(u => ({ ...u, lado: 'n' }))
+    .concat(B.enemigos.map(e => ({ ...e, lado: 'e' })))
+    .filter(u => u.n > 0 && !u.oculto);
+  lista.forEach(u => {
+    const g = document.createElementNS(NS, 'g');
+    g.style.color = u.color;
+    const figs = [];
+    const cuenta = Math.max(3, Math.min(12, Math.round(u.n / 10)));
+    const dir = (u.lado === 'e' || u.flanco) ? 1 : -1;
+    for (let i = 0; i < cuenta; i++) {
+      const fila = Math.floor(i / 3), col = i % 3;
+      const use = document.createElementNS(NS, 'use');
+      use.setAttribute('href', '#soldado');
+      use.setAttribute('x', '-5'); use.setAttribute('y', '-16');
+      use.setAttribute('width', '10'); use.setAttribute('height', '16');
+      use.fx = fila * 18 * dir;
+      use.fy = (col - 1) * 15;
+      g.appendChild(use); figs.push(use);
+    }
+    capa.appendChild(g);
+    const x0 = Math.max(40, Math.min(800, 422 + (u.x - 500) * 0.8));
+    const destino = u.lado === 'e' ? 440 : (u.flanco ? 490 : 400);
+    grupos.push({ g, figs, x0, destino, lane: LANES[u.id] });
+  });
+  for (let i = 0; i < 9; i++) {
+    const c = document.createElementNS(NS, 'circle');
+    c.setAttribute('cx', 404 + (i * 37) % 56);
+    c.setAttribute('cy', 214 + (i * 53) % 52);
+    c.setAttribute('r', 2 + (i % 3));
+    c.setAttribute('fill', '#ffd27a');
+    c.setAttribute('opacity', '0');
+    capaCh.appendChild(c); chispas.push(c);
+  }
+  tIni = performance.now();
+  $('#txt-escena').textContent = B.ultimo;
+}
+function cuadro(now) {
+  const t = Math.max(0, now - tIni) % CICLO;
+  const m = Math.min(1, t / 2200);
+  const ease = 1 - (1 - m) * (1 - m);
+  const choque = t >= 2200;
+  grupos.forEach(G => {
+    const x = G.x0 + (G.destino - G.x0) * ease;
+    G.g.setAttribute('transform', `translate(${x.toFixed(1)},${G.lane})`);
+    G.figs.forEach((f, i) => {
+      const bob = choque ? Math.sin(now / 70 + i * 1.7) * 2.2 : Math.sin(now / 160 + i) * 1.0;
+      f.setAttribute('transform', `translate(${f.fx},${(f.fy + bob).toFixed(1)}) scale(1.8)`);
+    });
+  });
+  chispas.forEach((c, i) => {
+    c.setAttribute('opacity', choque ? (0.35 + 0.65 * Math.abs(Math.sin(now / 55 + i * 2))).toFixed(2) : '0');
+  });
+  sceneRaf = requestAnimationFrame(cuadro);
+}
+
+// Pantalla 4: resultado, bajas y consejo de tribunos
+function pasarDia() {
+  if (!guar || !batalla) return;
+  const vivos = batalla.nuestros.reduce((s, u) => s + u.n, 0);
+  guar.dias++;
+  guar.grano = Math.max(0, guar.grano - Math.round(vivos * 0.25));
+  guar.madera = Math.max(0, guar.madera - 10);
+  $('#res-msg').textContent = guar.dias >= 3 ? 'Han aguantado los tres días.' : `Día ${guar.dias} pasado. Vigila el grano.`;
+  pintarGuar();
+}
+function pintarGuar() {
+  $('#guar').classList.toggle('on', !!guar);
+  if (!guar) return;
+  $('#guar-dia').textContent = `Guarnición · ${guar.dias} de 3 días`;
+  $('#r-grano').style.width = (guar.grano / 200 * 100) + '%';
+  $('#t-grano').textContent = guar.grano + ' de 200';
+  $('#r-madera').style.width = (guar.madera / 90 * 100) + '%';
+  $('#t-madera').textContent = guar.madera + ' de 90';
+  $('#btn-dia').disabled = guar.dias >= 3;
+}
+function pintarResultado() {
+  const B = batalla;
+  const e0 = B.enemigos.reduce((s, e) => s + e.n0, 0);
+  const u0 = B.nuestros.reduce((s, u) => s + u.n0, 0);
+  const perdE = B.enemigos.reduce((s, e) => s + (e.n0 - e.n), 0);
+  const perdU = B.nuestros.reduce((s, u) => s + (u.n0 - u.n), 0);
+  const fE = perdE / e0, fU = perdU / u0;
+  const v = fE > fU + 0.15 ? 'V' : (fU > fE + 0.15 ? 'D' : 'E');
+  $('#res-titulo').textContent = v === 'V' ? 'Victoria por sorpresa' : v === 'D' ? 'Derrota: te vieron a tiempo' : 'Empate: nadie cede';
+  $('#res-sub').textContent = `Turno ${Math.min(B.turno, 4)} de 4 · tus bajas ${perdU}, las suyas ${perdE}`;
+  $('#res-cita').textContent = v === 'V' ? '«Lo escondido ha vencido. ¿Dónde nos quedamos?»'
+    : v === 'D' ? '«Salieron tarde. La próxima, en el momento justo.»'
+    : '«Ni vencedores ni vencidos. Decide tú, general.»';
+  const filas = B.nuestros.map(u => ({ lado: 'Tuya', nombre: u.nombre, n0: u.n0, n: u.n }))
+    .concat(B.enemigos.map(e => ({ lado: 'Enemiga', nombre: e.nombre, n0: e.n0, n: e.n })));
+  $('#res-lista').innerHTML = filas.map(f => `<li><span>${f.lado}: ${f.nombre}</span><b>${f.n0} → ${f.n}</b></li>`).join('');
+  pintarGuar();
+}
+
+// Pantallas y bucle general
+function pintarTodo() {
+  pintarCartas();
+  pintarMapa($('#mapa1'), itemsPlan());
+  $('#tribuno-texto').textContent = textoTribuno();
+  $('#btn-empezar').disabled = Object.keys(plan).length === 0;
+  if (batalla) {
+    pintarMapa($('#mapa2'), itemsBatalla());
+    pintarBatalla();
+  }
+}
+function irA(n) {
+  parar();
+  cancelAnimationFrame(sceneRaf); sceneRaf = 0;
+  if (n === 1) batalla = null;
+  else if (!batalla) {
+    if (!Object.keys(plan).length) { aviso('Pon al menos una tropa antes de luchar.'); n = 1; batalla = null; }
+    else iniciarBatalla();
+  }
+  $$('.pantalla').forEach(s => s.classList.toggle('on', s.id === 'p' + n));
+  $$('.pill').forEach(b => b.classList.toggle('on', Number(b.dataset.p) === n));
+  if (n === 3) { montarEscena(); sceneRaf = requestAnimationFrame(cuadro); }
+  if (n === 4) pintarResultado();
+  pintarTodo();
+}
+
+// Arranque
+montarMapa($('#mapa1'));
+montarMapa($('#mapa2'));
+$('#mapa1').addEventListener('click', alTocarMapa);
+$$('.pill').forEach(b => b.addEventListener('click', () => irA(Number(b.dataset.p))));
+$('#btn-empezar').addEventListener('click', () => irA(2));
+$('#orden-salir').addEventListener('click', () => toggleOrden('salir'));
+$('#orden-cargar').addEventListener('click', () => toggleOrden('cargar'));
+$('#orden-esperar').addEventListener('click', () => toggleOrden('esperar'));
+$('#btn-ejecutar').addEventListener('click', () => ejecutarTurno());
+$('#btn-directo').addEventListener('click', alternarDirecto);
+$('#btn-escena').addEventListener('click', () => irA(3));
+$('#btn-volver').addEventListener('click', () => irA(2));
+$('#btn-repetir').addEventListener('click', () => { tIni = performance.now(); });
+$('#btn-resultado').addEventListener('click', () => irA(4));
+$('#btn-plan').addEventListener('click', () => irA(1));
+$('#op-ocupar').addEventListener('click', () => {
+  guar = { dias: 0, grano: 200, madera: 90 };
+  $('#res-msg').textContent = 'Te quedas en el bosque. Reparte el grano y la madera.';
+  pintarGuar();
+});
+$('#op-perseguir').addEventListener('click', () => {
+  guar = null;
+  $('#res-msg').textContent = 'Persigues al enemigo: ganas terreno, pero la tropa llega cansada.';
+  pintarGuar();
+});
+$('#op-retirar').addEventListener('click', () => {
+  guar = null;
+  $('#res-msg').textContent = 'Te retiras a la ciudad. Las bajas no vuelven.';
+  pintarGuar();
+});
+$('#btn-dia').addEventListener('click', pasarDia);
+irA(1);
+</script>
+</body>
+</html>

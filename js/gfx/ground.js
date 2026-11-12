@@ -135,6 +135,7 @@ export function crearCielo(dirSol, HORIZ, U) {
  }` }));
   cielo.renderOrder = -10; g.add(cielo);
   const H = new THREE.Color(HORIZ);
+  g.userData.luz = { uSol: cielo.material.uniforms.uSol, uH: [cielo.material.uniforms.uH.value, H] };      // Q11: la ciudad los cambia por estación
   /* montes con pliegues, manchas de bosque, roca arriba y bruma al pie (un dibujo por capa, pintado en el sombreador) */
   [[4300, 300, '#3f5468', 0.24, 1.7, 9], [5600, 480, '#54708c', 0.4, 1.1, 7], [7200, 720, '#6e8cae', 0.52, 0.7, 5]].forEach(([r, alt, col, bruma, fq, rep], k) => {
     const n = 360, pos = [], uv = [], idx = []; for (let i = 0; i <= n; i++) { const t = i / n * Math.PI * 2, x = Math.cos(t) * r, z = Math.sin(t) * r, cx = Math.cos(t) * 3 * fq + k * 9.1 + 20, cz = Math.sin(t) * 3 * fq + k * 3.3 + 20, h = alt * (0.25 + 0.95 * fbm(cx, cz, 4) + 0.16 * (fbm(cx * 6, cz * 6, 3) - 0.5)); pos.push(x, -60, z, x, h, z); uv.push(i / n * rep, 0, i / n * rep, h / (alt * 1.05)); if (i < n) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }

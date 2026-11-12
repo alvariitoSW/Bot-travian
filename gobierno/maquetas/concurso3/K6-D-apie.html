@@ -1,0 +1,765 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=844">
+<title>Batalla: mando de tropas</title>
+<style>
+/* Letra de títulos: Cinzel, del proyecto. Si no carga, sirve Georgia. */
+@font-face{
+  font-family:"CinzelL";
+  src:url("../../../assets/fuentes/cinzel-700.woff2") format("woff2");
+  font-weight:700;
+  font-display:block;
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+
+html,body{
+  width:844px;
+  height:390px;
+  overflow:hidden;
+  background:#1d1812;
+  color:#f3e9d2;
+  font:13px/1.35 system-ui,"Segoe UI",Roboto,sans-serif;
+  -webkit-user-select:none;
+  user-select:none;
+  touch-action:none;
+}
+
+#app{
+  position:relative;
+  width:844px;
+  height:390px;
+  overflow:hidden;
+}
+
+#mundo{
+  position:absolute;
+  left:0;
+  top:0;
+  width:844px;
+  height:390px;
+  display:block;
+}
+
+.h{
+  font-family:CinzelL,Cinzel,Georgia,serif;
+  font-weight:700;
+  letter-spacing:.02em;
+}
+
+.panel{
+  position:absolute;
+  background:rgba(34,25,15,.9);
+  border:1px solid #6b5230;
+  border-radius:10px;
+  padding:8px 10px;
+}
+
+.chip{
+  position:absolute;
+  background:rgba(34,25,15,.9);
+  border:1px solid #6b5230;
+  border-radius:999px;
+  padding:6px 12px;
+  white-space:nowrap;
+}
+
+/* Botón mínimo: 44 px de alto, texto de 13 px o más. */
+.btn{
+  position:absolute;
+  min-width:44px;
+  min-height:44px;
+  border:1px solid #c9a24a;
+  background:#2e2319;
+  color:#f3e9d2;
+  border-radius:10px;
+  font:700 13px system-ui,sans-serif;
+  padding:0 8px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  cursor:pointer;
+}
+
+.btn.prim{
+  background:#8e2c1f;
+  border-color:#e0b862;
+}
+
+.pill{
+  display:inline-block;
+  min-width:22px;
+  padding:1px 6px;
+  border-radius:999px;
+  font-weight:700;
+  text-align:center;
+}
+
+.hidden{display:none!important}
+
+/* En la pantalla de resultado se ocultan los mandos del campo. */
+.fin .hud{display:none!important}
+
+#sheet{
+  right:16px;
+  top:104px;
+  width:214px;
+}
+
+#sheet .grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin-top:8px;
+}
+
+#sheet .btn{
+  position:static;
+  min-height:56px;
+  width:100%;
+  font-size:14px;
+}
+
+/* Palanca para caminar: se mantiene a la izquierda, al alcance del pulgar. */
+#stick{
+  position:absolute;
+  left:14px;
+  top:290px;
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  background:rgba(34,25,15,.7);
+  border:2px solid #6b5230;
+}
+
+#knob{
+  position:absolute;
+  left:28px;
+  top:28px;
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  background:#c9a24a;
+}
+
+#toast{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:12px;
+  background:rgba(34,25,15,.95);
+  border:1px solid #c9a24a;
+  border-radius:10px;
+  padding:8px 14px;
+  opacity:0;
+  transition:opacity .2s;
+  white-space:nowrap;
+  pointer-events:none;
+}
+
+#toast.on{opacity:1}
+
+#resultado{
+  position:absolute;
+  inset:0;
+  background:rgba(20,15,10,.55);
+}
+
+#resultado .btn{
+  position:static;
+  flex:1;
+  min-height:56px;
+  font-size:14px;
+}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- Escena: cielo, campo, río, colina, regimientos y el general (todo se dibuja por código). -->
+  <svg id="mundo" viewBox="0 0 844 390" aria-label="Campo de batalla visto desde atrás del general"></svg>
+
+  <!-- Cabecera: qué pasa y cómo se lee. -->
+  <div id="titulo" class="panel hud" style="left:12px;top:10px;width:300px">
+    <div class="h" id="tit" style="font-size:17px"></div>
+    <div id="sub" style="margin-top:2px"></div>
+    <div id="cuenta" style="margin-top:6px;font-weight:700"></div>
+    <div style="margin-top:8px;display:flex;gap:10px;flex-wrap:wrap">
+      <span><span class="pill" style="background:#4f8a3c;color:#fff">✓</span> obedece ya</span>
+      <span><span class="pill" style="background:#d69a2d;color:#22190f">6 s</span> llega tarde</span>
+      <span><span class="pill" style="background:#c0392b;color:#fff">!</span> en peligro</span>
+    </div>
+  </div>
+
+  <!-- Aviso del enemigo: su gesto de la ronda. -->
+  <div id="aviso" class="chip hud" style="left:330px;top:14px"></div>
+
+  <!-- Dos botones a la vista: Pausa (arriba) y Cartas o Listo (abajo, al pulgar). -->
+  <button id="pausa" class="btn hud" style="left:780px;top:10px">Pausa</button>
+
+  <div id="stick" class="hud"><div id="knob"></div></div>
+
+  <button id="accion" class="btn prim hud" style="left:752px;top:320px;width:80px;height:56px"></button>
+
+  <!-- Hoja de orden: se abre al mantener pulsado un regimiento. -->
+  <div id="sheet" class="panel hud hidden">
+    <div class="h" id="shTit" style="font-size:15px"></div>
+    <div id="shSub" style="margin-top:2px"></div>
+    <div class="grid">
+      <button class="btn" data-ord="avanzar">Avanzar</button>
+      <button class="btn" data-ord="aguantar">Aguantar</button>
+      <button class="btn" data-ord="flanquear">Flanquear</button>
+      <button class="btn" data-ord="retirar">Retirar</button>
+    </div>
+  </div>
+
+  <div id="toast"></div>
+
+  <!-- Pantalla 4: resultado y retirada. -->
+  <div id="resultado" class="hidden">
+    <div class="panel" style="left:24px;top:24px;width:380px;height:342px;padding:14px 16px">
+      <div class="h" style="font-size:22px">Retirada</div>
+      <p id="resTxt" style="margin-top:8px;font-size:14px"></p>
+      <ul id="objs" style="list-style:none;margin-top:10px;font-size:14px;line-height:1.9"></ul>
+      <div style="display:flex;gap:10px;margin-top:14px">
+        <button class="btn prim" id="volver">Volver al campamento</button>
+        <button class="btn" id="repetir">Repetir la batalla</button>
+      </div>
+    </div>
+    <div class="panel" style="left:428px;top:24px;width:392px;height:342px;padding:12px">
+      <div class="h" style="font-size:15px">Así quedó el campo</div>
+      <svg id="mapa" viewBox="0 0 368 262" width="368" height="262" style="margin-top:6px"></svg>
+      <div id="mapLeg" style="margin-top:4px"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function () {
+  /* ---------- Constantes de la vista ---------- */
+  var SX = 300;        /* columna de pantalla donde está el general */
+  var NEAR = 392;      /* altura de sus pies */
+  var HZ = 118;        /* línea del horizonte */
+  var DD = 520;        /* distancia (m) a la que todo se encoge a la mitad */
+  var SPD = 70;        /* velocidad al caminar (m/s) */
+  var RADIO = 200;     /* círculo de obediencia inmediata (m) */
+  var ROM = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII',
+             'XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX','XXI','XXII','XXIII','XXIV'];
+  var ORD = {avanzar:'Avanzar', aguantar:'Aguantar', flanquear:'Flanquear', retirar:'Retirar'};
+  var NOM = {inf:'Hastati', tir:'Velites', cab:'Jinetes'};
+
+  var TXT = {
+    1: {t:'Despliegue', s:'Camina entre tus tropas. Lo que está en el círculo te obedece al instante.',
+        av:'El enemigo aún no ha elegido su plan', ac:'Listo', pips:5, rojo:false},
+    2: {t:'Ronda 4 de 9 · Resistir', s:'Mantén pulsado un regimiento para darle una orden.',
+        av:'Enemigo: gesto de carga por tu derecha', ac:'Cartas', pips:3, rojo:false},
+    3: {t:'Ronda 5 de 9 · Flanqueo', s:'La caballería carga 4 s después de tu orden.',
+        av:'¡Flanquean a tus tiradores!', ac:'Cartas', pips:2, rojo:true},
+    4: {t:'Fin de la batalla', s:'', av:'', ac:'', pips:0, rojo:false}
+  };
+
+  /* ---------- Estado ---------- */
+  var S = {scr:1, px:0, pz:0, us:[], en:[], held:null, sheet:false, vx:0, vy:0};
+  var seq = 0;
+
+  function $(s) { return document.querySelector(s); }
+
+  function U(bando, tipo, x, z, nombre) {
+    return {
+      id: (bando === 'us' ? 'u' : 'e') + (seq++),
+      bando: bando, tipo: tipo, x: x, z: z, nombre: nombre,
+      peligro: false, pend: 0, pendOrd: '', muerto: false,
+      carga: null, dest: null
+    };
+  }
+
+  /* Coloca una línea de regimientos a una distancia z con posiciones x. */
+  function fila(lista, bando, tipo, z, xs) {
+    xs.forEach(function (x) {
+      var n = lista.length;
+      var nombre = bando === 'us' ? NOM[tipo] + ' ' + ROM[n] : 'Enemigo ' + ROM[n];
+      lista.push(U(bando, tipo, x, z, nombre));
+    });
+  }
+
+  function pick(lista, tipo, x, z) {
+    return lista.find(function (u) { return u.tipo === tipo && u.x === x && u.z === z; });
+  }
+
+  /* Ejército base: 20 regimientos propios y 23 enemigos. */
+  function tropas() {
+    S.us = [];
+    S.en = [];
+    fila(S.us, 'us', 'inf', 230, [-420,-300,-180,-60,60,180,300,420]);
+    fila(S.us, 'us', 'tir', 150, [-375,-225,-75,75,225,375]);
+    fila(S.us, 'us', 'inf', 90, [-250,-100,50,200]);
+    fila(S.us, 'us', 'cab', 120, [-560,560]);
+    fila(S.en, 'en', 'inf', 270, [-420,-315,-210,-105,0,105,210,315,420]);
+    fila(S.en, 'en', 'inf', 330, [-300,-200,-100,0,100,200,300]);
+    fila(S.en, 'en', 'tir', 360, [-150,-50,50,150]);
+    fila(S.en, 'en', 'cab', 200, [330]);
+    fila(S.en, 'en', 'cab', 300, [-540,540]);
+  }
+
+  /* Cada pantalla fija posiciones, estados y hoja abierta. */
+  function escena(n) {
+    tropas();
+    S.sheet = false;
+    S.held = null;
+    S.px = -40;
+    S.pz = 40;
+
+    if (n === 1) {
+      /* Despliegue: el general en el centro, el enemigo lejos. */
+      S.px = 0;
+      S.pz = 0;
+      S.us = [];
+      fila(S.us, 'us', 'inf', 60, [-420,-300,-180,-60,60,180,300,420]);
+      fila(S.us, 'us', 'tir', 130, [-375,-225,-75,75,225,375]);
+      fila(S.us, 'us', 'cab', 90, [-600,600]);
+      fila(S.us, 'us', 'inf', 190, [-300,-180,-60,60,180,300]);
+      S.en.forEach(function (u) { u.z += 680; });
+      return;
+    }
+
+    var iF = pick(S.us, 'inf', 300, 230);
+    var tF = pick(S.us, 'tir', 375, 150);
+    var tI = pick(S.us, 'tir', 225, 150);
+    var ecav = pick(S.en, 'cab', 330, 200);
+    ecav.carga = {x: 375, z: 150};
+
+    if (n === 2) {
+      /* Órdenes en pleno choque: hay una hoja abierta sobre un regimiento. */
+      iF.peligro = true;
+      tF.peligro = true;
+      S.held = pick(S.us, 'inf', -60, 230).id;
+      S.sheet = true;
+    }
+
+    if (n >= 3) {
+      /* Carga o flanqueo: la caballería llega tarde por el flanco derecho. */
+      S.px = 0;
+      S.pz = 60;
+      tI.peligro = true;
+      tF.peligro = true;
+      var c = pick(S.us, 'cab', 560, 120);
+      c.x = 470;
+      c.pend = 4.2;
+      c.pendOrd = 'Cargar';
+      c.dest = {x: 330, z: 205};
+
+      if (n === 4) {
+        /* Resultado: caídos marcados, sin órdenes en curso. */
+        c.pend = 0;
+        c.dest = null;
+        S.us.forEach(function (u, i) {
+          u.muerto = [1,4,7,9,12,15,18].indexOf(i) >= 0;
+          u.peligro = false;
+        });
+        S.en.forEach(function (u, i) {
+          u.muerto = [0,2,3,5,6,8,10,11,13,14,16,17,19,21].indexOf(i) >= 0;
+          u.carga = null;
+        });
+      }
+    }
+  }
+
+  /* ---------- Proyección: de metros del campo a píxeles ---------- */
+  function P(x, z) {
+    var d = Math.max(1, z - S.pz);
+    var e = Math.exp(-d / DD);
+    var k = 0.9 * e + 0.12;
+    return {
+      x: SX + (x - S.px) * k,
+      y: HZ + (NEAR - HZ) * e,
+      k: k,
+      s: 0.45 + 0.9 * e
+    };
+  }
+
+  function dist(u) {
+    return Math.hypot(u.x - S.px, u.z - S.pz);
+  }
+
+  function poly(pts, fill, op) {
+    var txt = pts.map(function (q) {
+      var p = P(q[0], q[1]);
+      return p.x.toFixed(1) + ',' + p.y.toFixed(1);
+    }).join(' ');
+    return '<polygon points="' + txt + '" fill="' + fill + '" opacity="' + op + '"/>';
+  }
+
+  /* Estado que se lee de un vistazo: marca, color y número. */
+  function estado(u) {
+    if (u.peligro) return ['!', '#c0392b', '#ffffff'];
+    if (u.pend > 0) return [Math.ceil(u.pend) + ' s', '#f3e9d2', '#22190f'];
+    if (dist(u) <= RADIO) return ['✓', '#4f8a3c', '#ffffff'];
+    return ['6 s', '#d69a2d', '#22190f'];
+  }
+
+  function pastilla(x, y, t, bg, fg) {
+    return '<rect x="' + (x - 21) + '" y="' + (y - 10) + '" width="42" height="20" rx="10" ' +
+           'fill="' + bg + '" stroke="#22190f" stroke-width="1"/>' +
+           '<text x="' + x + '" y="' + (y + 5) + '" text-anchor="middle" font-size="13" ' +
+           'font-weight="700" fill="' + fg + '">' + t + '</text>';
+  }
+
+  /* ---------- Dibujo del campo ---------- */
+  function campo() {
+    var h = '<defs>' +
+      '<linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" stop-color="#cdb98a"/><stop offset="1" stop-color="#f1e6c8"/></linearGradient>' +
+      '<linearGradient id="suelo" x1="0" y1="0" x2="0" y2="1">' +
+        '<stop offset="0" stop-color="#a39560"/><stop offset="1" stop-color="#5f5732"/></linearGradient>' +
+      '<marker id="fl" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">' +
+        '<path d="M0 0L10 5L0 10z" fill="#f0c86a"/></marker>' +
+      '<marker id="fr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto">' +
+        '<path d="M0 0L10 5L0 10z" fill="#ff8a78"/></marker>' +
+      '</defs>';
+
+    h += '<rect width="844" height="' + HZ + '" fill="url(#cielo)"/>';
+    h += '<rect y="' + HZ + '" width="844" height="' + (390 - HZ) + '" fill="url(#suelo)"/>';
+
+    /* Franjas de campo: dan profundidad y ayudan a medir distancias. */
+    var z0 = Math.floor(S.pz / 120) * 120;
+    for (var z = z0; z < z0 + 1800; z += 120) {
+      var par = (z / 120) % 2 === 0;
+      h += poly([[-3000, z], [3000, z], [3000, z + 120], [-3000, z + 120]],
+                par ? '#c4b57f' : '#7d7040', par ? 0.12 : 0.16);
+    }
+
+    /* Río de 1.500 m de frente con tres vados. */
+    h += poly([[-3000, 340], [3000, 340], [3000, 372], [-3000, 372]], '#4f7f95', 0.9);
+    [-300, 0, 300].forEach(function (f) {
+      h += poly([[f - 50, 340], [f + 50, 340], [f + 50, 372], [f - 50, 372]], '#d8c89a', 0.9);
+      var q = P(f, 372);
+      h += '<text x="' + q.x + '" y="' + (q.y + 16) + '" text-anchor="middle" font-size="13" ' +
+           'fill="#f3e9d2" stroke="#22190f" stroke-width="3" paint-order="stroke">vado</text>';
+    });
+
+    /* Colina a la derecha y arboleda a la izquierda. */
+    var cl = P(520, 430);
+    h += '<ellipse cx="' + cl.x + '" cy="' + cl.y + '" rx="' + (170 * cl.k) + '" ry="' + (60 * cl.k) +
+         '" fill="#6f6a3c" opacity="0.85"/>';
+    for (var i = 0; i < 9; i++) {
+      var dx = (i % 3 - 1) * 55, dz = (Math.floor(i / 3) - 1) * 45;
+      var t = P(-620 + dx, 520 + dz);
+      h += '<circle cx="' + t.x + '" cy="' + t.y + '" r="' + (16 * t.s) + '" fill="#3f4b2b"/>';
+    }
+
+    /* Círculo de obediencia inmediata, centrado en los pies del general. */
+    var ry = NEAR - P(S.px, S.pz + RADIO).y;
+    var rx = 1.02 * RADIO;
+    h += '<ellipse cx="' + SX + '" cy="' + NEAR + '" rx="' + rx + '" ry="' + ry +
+         '" fill="rgba(240,200,106,0.08)" stroke="#f0c86a" stroke-width="2" stroke-dasharray="7 5"/>';
+    return h;
+  }
+
+  /* Un regimiento: bloque, estandarte y, si es nuestro, la marca de obediencia. */
+  function unidad(u) {
+    var p = P(u.x, u.z);
+    if (p.y < HZ + 8) return '';
+    var s = p.s, w = 46 * s, hh = 22 * s;
+    var x0 = p.x - w / 2, y0 = p.y - hh, cy = y0 + hh / 2;
+    var us = u.bando === 'us';
+    var relleno = u.muerto ? '#7a7268' : (us ? '#8e2c1f' : '#3d4150');
+    var borde = us ? '#e6c97a' : '#c9a24a';
+    var g = '';
+
+    if (u.peligro && !u.muerto) {
+      g += '<ellipse cx="' + p.x + '" cy="' + cy + '" rx="' + (w / 2 + 6) + '" ry="' + (hh / 2 + 6) +
+           '" fill="none" stroke="#e8483a" stroke-width="3" stroke-dasharray="4 3"/>';
+    }
+    if (S.held === u.id) {
+      g += '<ellipse cx="' + p.x + '" cy="' + cy + '" rx="' + (w / 2 + 5) + '" ry="' + (hh / 2 + 5) +
+           '" fill="none" stroke="#ffffff" stroke-width="3"/>';
+    }
+
+    if (u.tipo === 'cab') {
+      g += '<ellipse cx="' + p.x + '" cy="' + cy + '" rx="' + (w / 2) + '" ry="' + (hh / 2) +
+           '" fill="' + relleno + '" stroke="' + borde + '" stroke-width="1.5"/>';
+    } else {
+      g += '<rect x="' + x0 + '" y="' + y0 + '" width="' + w + '" height="' + hh + '" rx="2" fill="' + relleno +
+           '" stroke="' + borde + '" stroke-width="1.5"/>';
+    }
+    if (u.tipo === 'tir') {
+      for (var i = 1; i <= 4; i++) {
+        g += '<circle cx="' + (x0 + w * i / 5) + '" cy="' + cy + '" r="' + (1.8 * s) + '" fill="#f3e9d2"/>';
+      }
+    }
+    if (u.tipo === 'inf') {
+      g += '<line x1="' + (x0 + 4 * s) + '" y1="' + cy + '" x2="' + (x0 + w - 4 * s) + '" y2="' + cy +
+           '" stroke="' + borde + '" stroke-width="1"/>';
+    }
+
+    /* Estandarte: crema para los nuestros, azul apagado para el enemigo. */
+    var fx = x0 + w - 3 * s, fy = y0 - 16 * s;
+    g += '<line x1="' + fx + '" y1="' + y0 + '" x2="' + fx + '" y2="' + fy + '" stroke="#c9a24a" stroke-width="1.5"/>';
+    g += '<path d="M' + fx + ' ' + fy + ' L' + (fx + 9 * s) + ' ' + (fy + 3 * s) + ' L' + fx + ' ' +
+         (fy + 6 * s) + ' Z" fill="' + (us ? '#f0c86a' : '#8fa3b8') + '"/>';
+
+    if (us && !u.muerto) {
+      var e = estado(u);
+      g += pastilla(p.x, fy - 12, e[0], e[1], e[2]);
+    }
+    return '<g data-id="' + u.id + '">' + g + '</g>';
+  }
+
+  /* Órdenes en camino y caballería que carga. */
+  function flechas() {
+    var h = '';
+    S.us.concat(S.en).forEach(function (u) {
+      if (u.muerto) return;
+      if (u.carga) {
+        var a = P(u.x, u.z), b = P(u.carga.x, u.carga.z);
+        h += '<line x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y +
+             '" stroke="#ff8a78" stroke-width="2.5" stroke-dasharray="7 5" marker-end="url(#fr)"/>';
+      }
+      if (u.pend > 0 && u.dest) {
+        var a2 = P(u.x, u.z), g2 = P(u.dest.x, u.dest.z);
+        h += '<line x1="' + a2.x + '" y1="' + a2.y + '" x2="' + g2.x + '" y2="' + g2.y +
+             '" stroke="#f0c86a" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#fl)"/>';
+        h += '<ellipse cx="' + g2.x + '" cy="' + g2.y + '" rx="' + (26 * g2.s) + '" ry="' + (10 * g2.s) +
+             '" fill="none" stroke="#f0c86a" stroke-width="2" stroke-dasharray="4 4"/>';
+      }
+    });
+    return h;
+  }
+
+  /* El general, visto desde atrás. Dibujado a 0,78 de escala sobre sus pies. */
+  function general() {
+    return '<g transform="translate(' + SX + ' ' + NEAR + ') scale(0.78) translate(-' + SX + ' -' + NEAR + ')">' +
+      '<ellipse cx="300" cy="391" rx="30" ry="6" fill="#000" opacity=".35"/>' +
+      '<rect x="289" y="352" width="8" height="40" fill="#4a3a28"/>' +
+      '<rect x="303" y="352" width="8" height="40" fill="#4a3a28"/>' +
+      '<path d="M286 300 L266 392 L334 392 L314 300 Z" fill="#8e2c1f" stroke="#5a1a12"/>' +
+      '<path d="M289 258 Q300 250 311 258 L315 330 L285 330 Z" fill="#c9a24a" stroke="#7a5a1e"/>' +
+      '<path d="M285 328 H315 V340 H285 Z" fill="#3b2c1d"/>' +
+      '<rect x="276" y="262" width="9" height="52" rx="4" fill="#b98b5c"/>' +
+      '<rect x="315" y="262" width="9" height="52" rx="4" fill="#b98b5c"/>' +
+      '<circle cx="300" cy="242" r="11" fill="#b98b5c"/>' +
+      '<path d="M289 240 Q300 230 311 240 Z" fill="#3b2c1d"/>' +
+      '<path d="M296 232 Q300 200 306 230 Z" fill="#8e2c1f"/>' +
+      '</g>';
+  }
+
+  function render() {
+    var todos = S.us.concat(S.en).sort(function (a, b) { return b.z - a.z; });
+    var h = campo();
+    todos.forEach(function (u) { h += unidad(u); });
+    /* La etiqueta del círculo va encima de las tropas para que se lea. */
+    var ryA = NEAR - P(S.px, S.pz + RADIO).y, rxA = 1.02 * RADIO;
+    h += '<text x="' + (SX - rxA * 0.72) + '" y="' + (NEAR - ryA * 0.72) + '" font-size="13" font-weight="700" ' +
+         'fill="#f0c86a" stroke="#22190f" stroke-width="3" paint-order="stroke">200 m</text>';
+    h += flechas();
+    h += general();
+    $('#mundo').innerHTML = h;
+  }
+
+  /* ---------- Textos y mandos de la pantalla ---------- */
+  function vivos(a) { return a.filter(function (u) { return !u.muerto; }).length; }
+
+  function hud() {
+    var n = S.scr, T = TXT[n];
+    document.body.classList.toggle('fin', n === 4);
+    $('#resultado').classList.toggle('hidden', n !== 4);
+    if (n === 4) { fin(); return; }
+
+    $('#tit').textContent = T.t;
+    $('#sub').textContent = T.s;
+    $('#cuenta').textContent = 'Tú ' + vivos(S.us) + ' · Enemigo ' + vivos(S.en) + ' · Mando ' +
+                               '●'.repeat(T.pips) + '○'.repeat(5 - T.pips);
+
+    var av = $('#aviso');
+    av.textContent = T.av;
+    av.style.background = T.rojo ? 'rgba(128,32,22,.95)' : 'rgba(34,25,15,.9)';
+    av.style.borderColor = T.rojo ? '#e8483a' : '#6b5230';
+    $('#accion').textContent = T.ac;
+
+    var u = S.us.find(function (x) { return x.id === S.held; });
+    var abre = S.sheet && u && !u.muerto;
+    $('#sheet').classList.toggle('hidden', !abre);
+    if (abre) {
+      var d = Math.round(dist(u));
+      $('#shTit').textContent = u.nombre;
+      $('#shSub').textContent = (d <= RADIO ? 'Obedece ya' : 'Llega en 6 s') + ' · a ' + d + ' m';
+    }
+  }
+
+  /* Pantalla de resultado: texto, objetivos y mapa de un vistazo. */
+  function fin() {
+    var vu = vivos(S.us), ve = vivos(S.en);
+    $('#resTxt').textContent = 'Tu general sale por el paso estrecho con ' + vu + ' de ' + S.us.length +
+                               ' regimientos. Al enemigo le quedan ' + ve + ' de ' + S.en.length + '.';
+    var objs = [
+      ['✓', '#8fd06e', 'Resistir hasta la ronda 9: cumplido'],
+      ['✗', '#ff8a78', 'Tomar la zona: no cumplido'],
+      ['✓', '#8fd06e', 'Escapar con el general: cumplido']
+    ];
+    $('#objs').innerHTML = objs.map(function (o) {
+      return '<li><span style="color:' + o[1] + ';font-weight:700">' + o[0] + '</span> ' + o[2] + '</li>';
+    }).join('');
+    $('#mapLeg').textContent = 'Tus ' + vu + ' en pie · Enemigo ' + ve + ' en pie · Gris: caídos';
+    mapa();
+  }
+
+  function mapa() {
+    var mx = function (x) { return 10 + (x + 750) / 1500 * 348; };
+    var mz = function (z) { return 250 - (z / 420) * 236; };
+    var h = '<rect width="368" height="262" rx="6" fill="#d9c79c"/>';
+    h += '<rect x="0" y="' + mz(372) + '" width="368" height="' + (mz(340) - mz(372)) + '" fill="#4f7f95" opacity=".8"/>';
+    var g = [mx(S.px), mz(S.pz)];
+    h += '<path d="M' + g[0] + ' ' + g[1] + ' L16 240" stroke="#22190f" stroke-dasharray="4 3" fill="none" stroke-width="2"/>';
+    S.us.forEach(function (u) {
+      h += u.muerto
+        ? '<circle cx="' + mx(u.x) + '" cy="' + mz(u.z) + '" r="4" fill="#8a8074" opacity=".6"/>'
+        : '<circle cx="' + mx(u.x) + '" cy="' + mz(u.z) + '" r="5" fill="#8e2c1f" stroke="#f3e9d2" stroke-width="1"/>';
+    });
+    S.en.forEach(function (u) {
+      h += u.muerto
+        ? '<circle cx="' + mx(u.x) + '" cy="' + mz(u.z) + '" r="3" fill="#b3a88f"/>'
+        : '<circle cx="' + mx(u.x) + '" cy="' + mz(u.z) + '" r="5" fill="#3d4150"/>';
+    });
+    h += '<circle cx="' + g[0] + '" cy="' + g[1] + '" r="6" fill="#ffffff" stroke="#22190f" stroke-width="2"/>';
+    $('#mapa').innerHTML = h;
+  }
+
+  /* ---------- Mensajes y órdenes ---------- */
+  var tt = 0;
+  function toast(t) {
+    var el = $('#toast');
+    el.textContent = t;
+    el.classList.add('on');
+    clearTimeout(tt);
+    tt = setTimeout(function () { el.classList.remove('on'); }, 2200);
+  }
+
+  /* La orden se da al instante si el regimiento está dentro del círculo; si no, llega en 6 s. */
+  function ordenar(o) {
+    var u = S.us.find(function (x) { return x.id === S.held; });
+    if (!u) return;
+    S.sheet = false;
+    var nom = ORD[o];
+    if (dist(u) <= RADIO) {
+      u.pend = 0;
+      u.pendOrd = '';
+      toast('Obedece ya: ' + nom.toLowerCase() + '.');
+    } else {
+      u.pend = 6;
+      u.pendOrd = nom;
+      toast('La orden llega en 6 s: ' + nom.toLowerCase() + '.');
+    }
+    render();
+    hud();
+  }
+
+  /* ---------- Eventos ---------- */
+  var svg = $('#mundo');
+  var pt = 0;
+
+  /* Mantener pulsado un regimiento abre la hoja de orden. */
+  svg.addEventListener('pointerdown', function (e) {
+    var g = e.target.closest('[data-id]');
+    if (!g) return;
+    var id = g.getAttribute('data-id');
+    clearTimeout(pt);
+    pt = setTimeout(function () {
+      S.held = id;
+      S.sheet = true;
+      render();
+      hud();
+    }, 450);
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(function (ev) {
+    svg.addEventListener(ev, function () { clearTimeout(pt); });
+  });
+
+  /* Tocar fuera de la hoja la cierra. */
+  document.addEventListener('pointerdown', function (e) {
+    if (!S.sheet) return;
+    if (e.target.closest('#sheet') || e.target.closest('[data-id]')) return;
+    S.sheet = false;
+    render();
+    hud();
+  });
+
+  document.querySelectorAll('#sheet [data-ord]').forEach(function (b) {
+    b.addEventListener('click', function () { ordenar(b.getAttribute('data-ord')); });
+  });
+
+  $('#accion').addEventListener('click', function () {
+    if (S.scr === 1) { location.hash = '#2'; }
+    else { toast('Cartas: arenga, paso doble o cerrada.'); }
+  });
+  $('#pausa').addEventListener('click', function () { toast('En pausa: nada se mueve.'); });
+  $('#volver').addEventListener('click', function () { toast('Vuelves al campamento.'); });
+  $('#repetir').addEventListener('click', function () { location.hash = '#1'; });
+
+  /* Palanca: se arrastra con el pulgar izquierdo para caminar. */
+  var st = $('#stick'), kn = $('#knob'), sid = null;
+  function palo(e) {
+    var r = st.getBoundingClientRect();
+    var dx = e.clientX - (r.left + r.width / 2), dy = e.clientY - (r.top + r.height / 2);
+    var m = Math.hypot(dx, dy), R = 34;
+    if (m > R) { dx *= R / m; dy *= R / m; }
+    S.vx = dx / R;
+    S.vy = -dy / R;
+    kn.style.left = (28 + dx) + 'px';
+    kn.style.top = (28 + dy) + 'px';
+  }
+  st.addEventListener('pointerdown', function (e) {
+    sid = e.pointerId;
+    st.setPointerCapture(e.pointerId);
+    palo(e);
+  });
+  st.addEventListener('pointermove', function (e) { if (sid === e.pointerId) palo(e); });
+  ['pointerup', 'pointercancel'].forEach(function (ev) {
+    st.addEventListener(ev, function () {
+      sid = null;
+      S.vx = 0;
+      S.vy = 0;
+      kn.style.left = '28px';
+      kn.style.top = '28px';
+    });
+  });
+
+  /* Bucle: camina, cuenta las órdenes que viajan y redibuja si algo cambia. */
+  setInterval(function () {
+    var cambio = false;
+    if (S.vx || S.vy) {
+      S.px += S.vx * SPD * 0.05;
+      S.pz += S.vy * SPD * 0.05;
+      cambio = true;
+    }
+    S.us.forEach(function (u) {
+      if (u.pend > 0) {
+        cambio = true;
+        u.pend -= 0.05;
+        if (u.pend <= 0 || dist(u) <= RADIO) { u.pend = 0; u.pendOrd = ''; }
+      }
+    });
+    if (cambio && S.scr !== 4) { render(); hud(); }
+  }, 50);
+
+  function setScreen(n) {
+    S.scr = n;
+    escena(n);
+    hud();
+    render();
+    if (n === 4) fin();
+  }
+
+  function leerPantalla() {
+    var n = parseInt(location.hash.slice(1), 10);
+    return (n >= 1 && n <= 4) ? n : 1;
+  }
+
+  window.addEventListener('hashchange', function () { setScreen(leerPantalla()); });
+  setScreen(leerPantalla());
+})();
+</script>
+</body>
+</html>

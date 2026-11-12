@@ -272,7 +272,7 @@ function campaign1(aggressive, region) {
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
-      if (!c.queue) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'acueducto', 'termas', 'anfiteatro'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); for (const b of bs) if (G.upgrade(id, b)) break; }
+      if (!c.queue) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'acueducto', 'termas', 'anfiteatro', 'escuela'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); for (const b of bs) if (G.upgrade(id, b)) break; }
       if (!aggressive) continue;
       const yr = G.yearOf(s.t); if (yr <= 230 && yr >= 209) continue;   // el bot se atrinchera ante la invasión de Aníbal
       // concentración: las tropas avanzan por la ruta más corta hacia Carthago mientras la siguiente plaza sea romana
@@ -443,6 +443,14 @@ const CIMOD = require('../js/ciudad.js'); G.usarCiudad(null);
   const s3 = G.newGame('Paga'); s3.res.oro = 0; s3.cities.roma.units = { hastati: 5000 }; s3.cities.roma.b.foro = 0; const n0 = G.men(s3.cities.roma.units);
   assert(G.prod().oro < 0, 'con 5000 hastati el balance de oro es negativo'); for (let i = 0; i < 8; i++) G.tick(0.5);
   assert(G.men(s3.cities.roma.units) < n0, 'sin oro desertan tropas'); }
+/* I3b: la paga de las tropas se cobra de verdad */
+{ const s = G.newGame('Deuda'); assert.strictEqual(s.deudaPaga, 0, 'partida nueva sin deuda'); delete s.deudaPaga; G.migrarDeuda(s); assert.strictEqual(s.deudaPaga, 0, 'partida vieja carga sin deuda');
+  s.res.oro = 0; s.alm.oro = 0; s.cities.roma.units = { hastati: 5000 }; s.cities.roma.b.foro = 0; const n0 = G.men(s.cities.roma.units);
+  for (let i = 0; i < 4; i++) G.tick(0.5); assert(s.deudaPaga > 0, 'lo que no se paga se debe'); const d1 = s.deudaPaga;
+  for (let i = 0; i < 8; i++) G.tick(0.5); assert(s.deudaPaga > d1, 'la deuda crece mientras falta oro'); assert(G.men(s.cities.roma.units) < n0, 'la deuda hace desertar');
+  assert(G.cuentas().oro.deuda > 0, 'las cuentas muestran la deuda');
+  const f0 = s.favor.senado; G.cierreMes(); assert(s.favor.senado < f0, 'con deuda el Senado baja el favor');
+  s.cities.roma.units = {}; s.cities.roma.b.foro = 3; s.res.oro = 0; const dd = s.deudaPaga; G.tick(0.5); assert(s.deudaPaga <= dd, 'los ingresos pagan primero la deuda'); }
 assert(!G.cityGen('carthago', 280) && !G.cityGen('carthago', 150), 'Cartago no tiene general con nombre antes de 149 a.C.');
 assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defiende Cartago desde 149 a.C.');
 // Registro de piezas: carga en Node y toda tropa y edificio tiene ficha
@@ -1332,6 +1340,14 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   const v = G.newGame('Vieja'); v.marches = []; v.t = (280 - 278) * 12; v.ev = {}; D.EVENTS.forEach((e, i) => { if (278 <= e.y) v.ev[i] = 1; }); delete v.ev[D.EVENTS.indexOf(ev[0])]; delete v.evV;
   global.localStorage = { _: null, getItem() { return this._; }, setItem(k, x) { this._ = x; }, removeItem() {} }; localStorage.setItem('aqvila-save-v1', JSON.stringify(v));
   assert(G.load()); G.tick(0.25); assert(!G.state.marches.some(m => m.label === 'Pirro'), 'una partida vieja no lanza a Pirro de golpe'); delete global.localStorage; }
+
+// ---- H13b Pirro llega antes con tres vías: ejército menor, levas iniciales y dos oleadas (licencia de juego) ----
+{ for (const r of ['italia', 'mediterraneo']) { const s = G.newGame('Pirro', r); const ms = s.marches.filter(m => m.owner === 'epiro');
+    assert.strictEqual(ms.length, 2, 'dos oleadas (' + r + ')'); const [a, b] = ms.sort((x, y) => x.t1 - y.t1);
+    assert(a.t1 >= 30 && a.t1 <= 34 && b.t1 > a.t1 && b.t1 <= 44, 'oleadas a 30-44 meses: ' + a.t1 + ', ' + b.t1);
+    assert(G.men(a.units) + G.men(b.units) < 173, 'menos hombres que el ejército único de H13'); assert(G.men(a.units) < G.men(b.units) + 10);
+    assert(s.cities.roma.units.hastati === 80 + D.LEVA_INICIAL.hastati, 'levas iniciales en Roma'); }
+  const tex = D.EVENTS.find(e => e.k === 'pirro'); assert(/oleadas/.test(tex.lic)); }
 
 // ---- H12 Capua se pasa a Aníbal en 216 si no está guarnecida (Livio 23.2-7; el umbral es licencia de juego) ----
 { assert.strictEqual(D.CAPUA_LEALTAD.hombres, 150); const e216 = D.EVENTS.find(e => e.y === 216); assert(e216.fx.split(',')[0] === 'capuaSePasa' && e216.fx.split(',')[1] === 'anibal2' && e216.lic);

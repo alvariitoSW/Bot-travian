@@ -1,0 +1,6 @@
+{
+  "nota": "Triángulos medidos por node gobierno/captura-ciudad.mjs (CN11, 390x844, guarnición ligera encendida). 'grande' = todos los edificios a nivel 5 y 1.220 soldados en la guarnición. Se vuelven a medir cuando cambie la ciudad 3D.",
+  "tarea": "CN11",
+  "roma": { "ciudad": 62896, "media": 71593, "calle": 66082, "ejercito": 217975, "grande": 80896 },
+  "capua": { "ciudad": 70040, "grande": 91580 }
+}

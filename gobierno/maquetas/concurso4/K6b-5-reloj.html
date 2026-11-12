@@ -1,0 +1,687 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>K6b-5 · Reloj de agua</title>
+<style>
+@font-face{font-family:"CinzelAQ";src:url("../../../assets/fuentes/cinzel-700.woff2") format("woff2");font-weight:700;font-display:swap}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden}
+body{position:relative;background:#e8d8b0;color:#3a2a1c;font:13px Georgia,"Times New Roman",serif;-webkit-user-select:none;user-select:none}
+h1,h2,h3,button.principal{font-family:"CinzelAQ",Cinzel,Georgia,serif;font-weight:700}
+.pantalla{position:absolute;inset:0;display:none;flex-direction:column;background:#efe3c6}
+.pantalla.on{display:flex}
+.cab{flex:none;height:50px;display:flex;align-items:center;gap:8px;padding:0 10px;background:linear-gradient(#f7efd9,#e4d2a6);border-bottom:2px solid #c9ae78;position:relative;z-index:3}
+.tit{min-width:0;max-width:230px}
+.tit h1{font-size:15px;line-height:1.1;white-space:nowrap}
+.tit p{font-size:12px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vaso{display:flex;align-items:center;gap:3px;font-weight:bold;font-size:13px;white-space:nowrap}
+.vaso svg{width:20px;height:31px;display:block}
+.grow{flex:1}
+.area{position:relative;flex:1;min-height:0;min-width:0;overflow:hidden}
+.area canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+button{font:13px Georgia,serif;color:#3a2a1c;background:#f7efd9;border:1px solid #8a6c3c;border-radius:8px;padding:8px 11px;box-shadow:0 2px 0 #8a6c3c;cursor:pointer;white-space:nowrap}
+button:active{transform:translateY(1px);box-shadow:none}
+button:disabled{opacity:.45;cursor:default}
+button.principal{background:#4b3b2a;color:#f4e6c2;border-color:#2e2216;box-shadow:0 2px 0 #1e160d;letter-spacing:.04em}
+.aviso{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:#f7efd9;border:1px solid #8a6c3c;border-radius:8px;padding:5px 10px;font-size:12px;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;z-index:2}
+.aviso.on{opacity:1}
+.tarjeta{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);width:340px;max-width:calc(100% - 16px);background:rgba(247,239,217,.97);border:1px solid #8a6c3c;border-radius:10px;padding:7px 9px 8px;box-shadow:0 4px 12px rgba(58,42,28,.28);z-index:2}
+.tarjeta.oculta{display:none}
+.tf{font-size:13px;line-height:1.3}
+.tf b{font-family:"CinzelAQ",Cinzel,Georgia,serif}
+.tf2{font-size:12px;color:#6b5538;margin:2px 0 6px}
+.fila{display:flex;gap:6px}
+.fila button{flex:1;padding:7px 4px;font-size:12px}
+.leyenda,.pie{position:absolute;left:8px;bottom:6px;background:rgba(247,239,217,.9);border-radius:6px;padding:3px 7px;font-size:11px;z-index:2}
+.sw{display:inline-block;width:9px;height:9px;border-radius:2px;vertical-align:-1px;margin-right:2px}
+.sw.tu{background:#9b3b25}
+.sw.en{background:#3b3d46}
+.sw.or{background:#b98a2e}
+.sw.pe{background:transparent;border:2px solid #9b3b25;border-radius:50%;width:8px;height:8px}
+.dos{flex:1;display:flex;min-height:0}
+.lat{width:290px;flex:none;padding:8px;display:flex;flex-direction:column;gap:6px;border-left:1px solid #c9ae78;background:#e9dbb7;overflow:hidden}
+.carta{background:#f7efd9;border:1px solid #c9ae78;border-radius:8px;padding:6px 8px;font-size:12px;line-height:1.35}
+.carta h3{font-size:12px;margin-bottom:2px}
+.carta p.muy{color:#6b5538;font-size:11px}
+.carta.peligro{border-color:#9b3b25}
+.final{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:8px 14px;text-align:center}
+.final h2{font-size:26px;line-height:1.1}
+.final p{max-width:560px;font-size:13px;line-height:1.35}
+.vaso.grande svg{width:30px;height:46px}
+.stats{display:flex;gap:8px}
+.stat{background:#f7efd9;border:1px solid #c9ae78;border-radius:8px;padding:5px 10px;min-width:150px;font-size:12px}
+.stat b{display:block;font-size:17px;font-family:"CinzelAQ",Cinzel,Georgia,serif;margin-top:1px}
+.muy{color:#6b5538;font-size:12px}
+</style>
+</head>
+<body>
+
+<!-- Pantalla 1: mapa en grande con el turno planeado -->
+<section class="pantalla on" id="p1">
+  <header class="cab">
+    <div class="tit"><h1 id="t1">Turno 1</h1><p id="s1"></p></div>
+    <div class="vaso"><span data-vaso></span><span id="seg1">30 s</span></div>
+    <div class="grow"></div>
+    <button id="b-escena">Ver la escena</button>
+    <button id="b-ejec" class="principal">Ejecutar turno</button>
+  </header>
+  <div class="area">
+    <canvas id="cv1"></canvas>
+    <div class="aviso" id="aviso"></div>
+    <div class="tarjeta oculta" id="tarjeta"></div>
+    <div class="leyenda"><i class="sw tu"></i> tus legiones · <i class="sw en"></i> enemigo · <i class="sw or"></i> orden · <i class="sw pe"></i> en peligro</div>
+  </div>
+</section>
+
+<!-- Pantalla 2: escena del choque -->
+<section class="pantalla" id="p2">
+  <header class="cab">
+    <div class="tit"><h1 id="t2">Choque</h1><p>Mira la línea del frente</p></div>
+    <div class="vaso"><span data-vaso></span><span id="seg2">30 s</span></div>
+    <div class="grow"></div>
+    <button id="b-riesgo">Momento de riesgo</button>
+    <button id="b-volver2" class="principal">Volver al mapa</button>
+  </header>
+  <div class="area">
+    <canvas id="cv2"></canvas>
+    <div class="pie">Cada bloque es una legión. Los puntos son hombres.</div>
+  </div>
+</section>
+
+<!-- Pantalla 3: dos turnos seguidos y un momento de riesgo -->
+<section class="pantalla" id="p3">
+  <header class="cab">
+    <div class="tit"><h1>Momento de riesgo</h1><p>Los dos últimos turnos</p></div>
+    <div class="grow"></div>
+    <button id="b-retirar">Retirarse</button>
+    <button id="b-volver3" class="principal">Volver al mapa</button>
+  </header>
+  <div class="dos">
+    <div class="area"><canvas id="cv3"></canvas></div>
+    <div class="lat" id="lat"></div>
+  </div>
+</section>
+
+<!-- Pantalla 4: resultado o retirada -->
+<section class="pantalla" id="p4">
+  <header class="cab">
+    <div class="tit"><h1>Fin de la batalla</h1></div>
+    <div class="grow"></div>
+  </header>
+  <div class="final">
+    <div class="vaso grande"><span data-vaso></span></div>
+    <h2 id="f-titulo">Retirada</h2>
+    <p id="f-texto"></p>
+    <div class="stats" id="f-stats"></div>
+    <p class="muy" id="f-log"></p>
+    <div><button id="b-otra" class="principal">Jugar otra vez</button></div>
+  </div>
+</section>
+
+<script>
+(function(){
+'use strict';
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+
+/* Constantes del campo (metros) y de las órdenes */
+const CAMPO = { w: 1500, h: 540 };
+const CAMPO_VISTA = { x0: 0, x1: 1500, y0: 0, y1: 540 };
+const RIO = { x0: 700, x1: 736, vado0: 230, vado1: 300 };
+const TURNO_SEG = 30;
+const COSTE = { avanza: 3, carga: 6 };
+const AVANCE = { avanza: 60, carga: 120 };
+const MAX_TURNOS = 6;
+const NUM = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
+const VASO = 'M4 2H22V7C22 13 14 16 14 20C14 24 22 27 22 33V38H4V33C4 27 12 24 12 20C12 16 4 13 4 7Z';
+
+/* Azar con semilla: cada partida sale igual */
+function semilla(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+let azar = semilla(11);
+
+let E = {};
+let VISTA = null;
+let timerEscena = null;
+let rafId = 0;
+let avisoT = null;
+
+const vivos = lado => E.unidades.filter(u => u.lado === lado && u.n > 0);
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+function masCercano(u, lista){
+  let m = null, d = Infinity;
+  for (const v of lista){ const dd = dist(u, v); if (dd < d){ d = dd; m = v; } }
+  return m ? { u: m, d: d } : null;
+}
+const enRio = x => x >= RIO.x0 - 10 && x <= RIO.x1 + 10;
+const enVado = y => y >= RIO.vado0 && y <= RIO.vado1;
+const estaEnPeligro = u => u.lado === 'R' && u.n > 0 && u.n < 0.92 * u.n0 && vivos('E').some(e => dist(e, u) < 60);
+
+/* Partida */
+function nuevaPartida(){
+  azar = semilla(11);
+  E = { turno: 1, fase: 'plan', reloj: TURNO_SEG, congelado: false, sel: null, modo: null,
+        unidades: [], logs: [], fin: null, pantalla: 1, hombresIni: 0 };
+  for (let k = 0; k < 10; k++){
+    for (let c = 0; c < 2; c++){
+      const i = k * 2 + c;
+      const nR = 130 + Math.floor(azar() * 30);
+      const nE = 130 + Math.floor(azar() * 30);
+      E.unidades.push({ id: 'R' + i, nombre: NUM[i], lado: 'R', x: 500 - c * 70, y: 40 + k * 50, n: nR, n0: nR, orden: null, carga: false });
+      E.unidades.push({ id: 'E' + i, nombre: 'E' + (i + 1), lado: 'E', x: 1000 + c * 70, y: 40 + k * 50, n: nE, n0: nE, orden: null, carga: false });
+    }
+  }
+  E.hombresIni = vivos('R').reduce((s, u) => s + u.n, 0);
+  ordenesEnemigas();
+}
+
+/* El enemigo planea: avanza o carga contra la legión más cercana */
+function ordenesEnemigas(){
+  for (const e of vivos('E')){
+    const r = masCercano(e, vivos('R'));
+    e.orden = r ? { tipo: r.d < 600 ? 'carga' : 'avanza', dest: { x: r.u.x, y: r.u.y } } : null;
+  }
+}
+
+/* Órdenes del jugador: cada una gasta segundos de agua */
+function ponerOrden(u, tipo, dest){
+  const previo = u.orden ? COSTE[u.orden.tipo] : 0;
+  const coste = COSTE[tipo];
+  if (coste - previo > E.reloj + 0.01){ aviso('No queda agua para esa orden.'); return false; }
+  E.reloj = Math.max(0, E.reloj - (coste - previo));
+  u.orden = { tipo: tipo, dest: { x: dest.x, y: dest.y } };
+  return true;
+}
+function quitarOrden(u){
+  if (!u.orden) return;
+  E.reloj = Math.min(TURNO_SEG, E.reloj + COSTE[u.orden.tipo]);
+  u.orden = null;
+}
+
+/* Se ejecuta el turno para los dos bandos a la vez */
+function resolverTurno(){
+  const log = { turno: E.turno, lineas: [], choques: 0, bajas: 0 };
+  for (const u of E.unidades){
+    if (u.n <= 0 || !u.orden) continue;
+    const paso = AVANCE[u.orden.tipo] * (enRio(u.x) && !enVado(u.y) ? 0.5 : 1);
+    const d = dist(u, u.orden.dest);
+    if (d <= paso){ u.x = u.orden.dest.x; u.y = u.orden.dest.y; }
+    else { u.x += (u.orden.dest.x - u.x) * paso / d; u.y += (u.orden.dest.y - u.y) * paso / d; }
+    u.x = Math.min(CAMPO.w - 20, Math.max(20, u.x));
+    u.y = Math.min(CAMPO.h - 20, Math.max(20, u.y));
+    u.carga = u.orden.tipo === 'carga';
+    u.orden = null;
+  }
+  for (const a of vivos('R')){
+    for (const b of vivos('E')){
+      if (a.n <= 0 || b.n <= 0 || dist(a, b) > 42) continue;
+      const fa = a.carga ? 1.25 : 1;
+      const fb = b.carga ? 1.25 : 1;
+      const pa = Math.round(b.n * 0.05 * fb * (0.7 + azar() * 0.6));
+      const pb = Math.round(a.n * 0.05 * fa * (0.7 + azar() * 0.6));
+      a.n = Math.max(0, a.n - pa);
+      b.n = Math.max(0, b.n - pb);
+      log.choques++;
+      log.bajas += pa + pb;
+      if (log.lineas.length < 2) log.lineas.push('Legión ' + a.nombre + ' y ' + b.nombre + ' chocan: pierden ' + pa + ' y ' + pb + ' hombres.');
+    }
+  }
+  if (log.choques === 0) log.lineas.push('Sin choques. Las legiones avanzan.');
+  for (const u of E.unidades) u.carga = false;
+  E.logs.push(log);
+  if (E.logs.length > 8) E.logs.shift();
+  E.turno++;
+  E.reloj = TURNO_SEG;
+  E.sel = null;
+  E.modo = null;
+  if (!vivos('R').length || !vivos('E').length || E.turno > MAX_TURNOS){ terminar(null); }
+  else { ordenesEnemigas(); }
+}
+
+function demo(n){
+  for (let i = 0; i < n && E.fase === 'plan'; i++){
+    for (const u of vivos('R')){
+      const r = masCercano(u, vivos('E'));
+      if (r) u.orden = { tipo: 'carga', dest: { x: r.u.x, y: r.u.y } };
+    }
+    resolverTurno();
+  }
+}
+
+function terminar(motivo){
+  E.fase = 'fin';
+  E.fin = { motivo: motivo || 'fin' };
+  E.sel = null;
+  E.modo = null;
+}
+
+function ejecutar(){
+  if (E.fase !== 'plan') return;
+  resolverTurno();
+  if (E.fase === 'fin'){ ir(4); return; }
+  ir(2);
+  timerEscena = setTimeout(function(){ if (E.pantalla === 2) ir(1); }, 2600);
+}
+
+function aviso(t){
+  const el = $('#aviso');
+  el.textContent = t;
+  el.classList.add('on');
+  clearTimeout(avisoT);
+  avisoT = setTimeout(function(){ el.classList.remove('on'); }, 2200);
+}
+
+/* Reloj de agua: un vaso que se vacía */
+function vaso(id){
+  return '<svg viewBox="0 0 26 40" aria-hidden="true"><defs><clipPath id="c' + id + '"><path d="' + VASO + '"/></clipPath></defs>' +
+         '<rect data-reloj clip-path="url(#c' + id + ')" x="0" y="40" width="26" height="0" fill="#3f7f98"/>' +
+         '<path d="' + VASO + '" fill="none" stroke="#7a5d32" stroke-width="1.4"/></svg>';
+}
+
+function rr(g, x, y, w, h, r){
+  g.beginPath();
+  g.moveTo(x + r, y);
+  g.arcTo(x + w, y, x + w, y + h, r);
+  g.arcTo(x + w, y + h, x, y + h, r);
+  g.arcTo(x, y + h, x, y, r);
+  g.arcTo(x, y, x + w, y, r);
+  g.closePath();
+}
+
+/* Ficha de legión en el mapa */
+function ficha(g, x, y, u, vis, sel){
+  const txt = vis ? u.nombre : '?';
+  const w = Math.max(22, txt.length * 6.5 + 8), h = 16;
+  const roman = u.lado === 'R';
+  if (sel){
+    g.strokeStyle = '#b98a2e'; g.lineWidth = 3;
+    rr(g, x - w / 2 - 3, y - h / 2 - 3, w + 6, h + 6, 5); g.stroke();
+  }
+  if (estaEnPeligro(u)){
+    g.strokeStyle = 'rgba(155,59,37,.9)'; g.lineWidth = 2;
+    g.beginPath(); g.arc(x, y, w / 2 + 7, 0, Math.PI * 2); g.stroke();
+    g.fillStyle = '#9b3b25'; g.font = 'bold 12px Georgia,serif'; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+    g.fillText('!', x, y - h / 2 - 9);
+  }
+  g.fillStyle = roman ? '#9b3b25' : (vis ? '#3b3d46' : '#8d8a86');
+  g.strokeStyle = '#f4e6c2'; g.lineWidth = 1.5;
+  rr(g, x - w / 2, y - h / 2, w, h, 3); g.fill(); g.stroke();
+  g.fillStyle = '#f7efd9'; g.font = 'bold 10px Georgia,serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillText(txt, x, y + 0.5);
+  g.textBaseline = 'alphabetic';
+  g.fillStyle = 'rgba(58,42,28,.35)';
+  g.fillRect(x - w / 2, y + h / 2 + 2, w, 3);
+  g.fillStyle = roman ? '#b98a2e' : '#6b5538';
+  g.fillRect(x - w / 2, y + h / 2 + 2, w * Math.min(1, u.n / u.n0), 3);
+}
+
+function flecha(g, a, b, col, dash){
+  g.save();
+  g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 2;
+  g.setLineDash(dash || []);
+  g.beginPath(); g.moveTo(a[0], a[1]); g.lineTo(b[0], b[1]); g.stroke();
+  g.setLineDash([]);
+  const ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+  g.beginPath();
+  g.moveTo(b[0], b[1]);
+  g.lineTo(b[0] - 9 * Math.cos(ang - 0.4), b[1] - 9 * Math.sin(ang - 0.4));
+  g.lineTo(b[0] - 9 * Math.cos(ang + 0.4), b[1] - 9 * Math.sin(ang + 0.4));
+  g.closePath(); g.fill();
+  g.restore();
+}
+
+function prepararCanvas(cv){
+  const W = cv.clientWidth, H = cv.clientHeight;
+  if (!W || !H) return null;
+  const dpr = window.devicePixelRatio || 1;
+  cv.width = Math.round(W * dpr);
+  cv.height = Math.round(H * dpr);
+  const g = cv.getContext('2d');
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  return { g: g, W: W, H: H };
+}
+
+/* Mapa en cenital: campo, río, vado, fichas y órdenes */
+function dibujarMapa(cv, vista, modo){
+  const c = prepararCanvas(cv);
+  if (!c) return;
+  const g = c.g, W = c.W, H = c.H;
+  const vw = vista.x1 - vista.x0, vh = vista.y1 - vista.y0;
+  const S = Math.min(W / vw, H / vh);
+  const ox = (W - vw * S) / 2 - vista.x0 * S;
+  const oy = (H - vh * S) / 2 - vista.y0 * S;
+  const P = (x, y) => [x * S + ox, y * S + oy];
+  if (modo === 'mapa') VISTA = { S: S, ox: ox, oy: oy };
+
+  g.fillStyle = '#e8d8b0';
+  g.fillRect(0, 0, W, H);
+
+  /* cuadrícula de 100 m */
+  g.strokeStyle = 'rgba(107,85,56,.16)'; g.lineWidth = 1;
+  g.beginPath();
+  for (let x = 0; x <= vista.x1; x += 100){ if (x < vista.x0) continue; const px = P(x, 0)[0] + 0.5; g.moveTo(px, 0); g.lineTo(px, H); }
+  for (let y = 0; y <= vista.y1; y += 100){ if (y < vista.y0) continue; const py = P(0, y)[1] + 0.5; g.moveTo(0, py); g.lineTo(W, py); }
+  g.stroke();
+
+  /* río y vado */
+  const rx0 = P(RIO.x0, 0)[0], rx1 = P(RIO.x1, 0)[0];
+  g.fillStyle = '#a9d0dc'; g.fillRect(rx0, 0, rx1 - rx0, H);
+  g.fillStyle = 'rgba(63,127,152,.35)'; g.fillRect(rx0 + (rx1 - rx0) * 0.35, 0, (rx1 - rx0) * 0.3, H);
+  const vy0 = P(0, RIO.vado0)[1], vy1 = P(0, RIO.vado1)[1];
+  g.fillStyle = '#d6bd86'; g.fillRect(rx0, vy0, rx1 - rx0, vy1 - vy0);
+  g.fillStyle = '#6b5538'; g.font = '11px Georgia,serif'; g.textAlign = 'left'; g.textBaseline = 'alphabetic';
+  g.fillText('vado', rx1 + 4, vy0 + 12);
+
+  /* rótulos y escala */
+  const a = P(30, 22), b = P(1470, 22);
+  g.fillStyle = 'rgba(58,42,28,.6)'; g.font = 'bold 10px Georgia,serif';
+  g.fillText('CAMPAMENTO ROMANO', a[0], a[1]);
+  g.textAlign = 'right';
+  g.fillText('CAMPO ENEMIGO', b[0], b[1]);
+  const e0 = P(40, 515), e1 = P(140, 515);
+  g.strokeStyle = '#6b5538'; g.lineWidth = 2;
+  g.beginPath(); g.moveTo(e0[0], e0[1]); g.lineTo(e1[0], e1[1]); g.stroke();
+  g.textAlign = 'left'; g.font = '10px Georgia,serif';
+  g.fillText('100 m', e1[0] + 5, e1[1] + 3);
+
+  /* órdenes: líneas y fantasmas en el destino */
+  for (const u of E.unidades){
+    if (u.n <= 0 || !u.orden) continue;
+    const visible = u.lado === 'R' || vivos('R').some(r => dist(r, u) < 320);
+    if (!visible) continue;
+    const pa = P(u.x, u.y), pb = P(u.orden.dest.x, u.orden.dest.y);
+    if (u.lado === 'R'){
+      flecha(g, pa, pb, '#b98a2e', [6, 4]);
+      g.globalAlpha = 0.45;
+      ficha(g, pb[0], pb[1], u, true, false);
+      g.globalAlpha = 1;
+      g.fillStyle = '#6b3a1d'; g.font = 'bold 10px Georgia,serif'; g.textAlign = 'left';
+      g.fillText('-' + COSTE[u.orden.tipo] + ' s', pb[0] + 13, pb[1] + 4);
+    } else {
+      flecha(g, pa, pb, '#9b3b25', [3, 4]);
+    }
+  }
+
+  /* fichas */
+  for (const u of E.unidades){
+    if (u.n <= 0) continue;
+    const p = P(u.x, u.y);
+    const vis = u.lado === 'R' || vivos('R').some(r => dist(r, u) < 320);
+    ficha(g, p[0], p[1], u, vis, u.id === E.sel);
+  }
+}
+
+/* Escena: vista de lado del choque, con los mismos regimientos */
+function dibujarEscena(cv, t){
+  const c = prepararCanvas(cv);
+  if (!c) return;
+  const g = c.g, W = c.W, H = c.H;
+  const hz = H * 0.5;
+  const cielo = g.createLinearGradient(0, 0, 0, hz);
+  cielo.addColorStop(0, '#f1e7cc'); cielo.addColorStop(1, '#dcc692');
+  g.fillStyle = cielo; g.fillRect(0, 0, W, hz);
+  const suelo = g.createLinearGradient(0, hz, 0, H);
+  suelo.addColorStop(0, '#c9ad72'); suelo.addColorStop(1, '#9d8149');
+  g.fillStyle = suelo; g.fillRect(0, hz, W, H - hz);
+
+  const sx = x => W / 2 + (x - 718) * 0.5;
+  const sy = y => hz - 90 + (y - 40) * 0.5;
+
+  /* río al fondo */
+  g.fillStyle = 'rgba(127,179,196,.6)';
+  g.fillRect(sx(RIO.x0), 0, sx(RIO.x1) - sx(RIO.x0), hz + 10);
+  g.fillStyle = 'rgba(63,127,152,.4)';
+  g.fillRect(sx(RIO.x0) + 4, 0, 5, hz + 10);
+
+  /* regimientos: bloques con sus hombres */
+  const bob = i => Math.sin(t / 220 + i) * 1.2;
+  E.unidades.forEach(function(u, i){
+    if (u.n <= 0) return;
+    const x = sx(u.x), y = sy(u.y) + bob(i);
+    const roman = u.lado === 'R';
+    const w = 28, h = 13;
+    g.fillStyle = 'rgba(58,42,28,.25)';
+    g.fillRect(x - w / 2 + 3, y + h / 2, w, 4);
+    g.fillStyle = roman ? '#9b3b25' : '#3b3d46';
+    g.fillRect(x - w / 2, y - h / 2, w, h);
+    g.fillStyle = roman ? 'rgba(244,230,194,.35)' : 'rgba(207,199,180,.25)';
+    g.fillRect(x - w / 2, y - h / 2, w, 2);
+    const frac = Math.min(1, u.n / u.n0);
+    const cnt = Math.round(18 * frac);
+    g.fillStyle = roman ? '#f4e6c2' : '#cfc7b4';
+    for (let k = 0; k < cnt; k++){
+      const col = k % 6, fila = Math.floor(k / 6);
+      g.fillRect(x - w / 2 + 3 + col * 4.2, y - h / 2 + 2 + fila * 3.5, 2, 2);
+    }
+    g.fillStyle = '#3a2a1c'; g.font = 'bold 10px Georgia,serif'; g.textAlign = 'center'; g.textBaseline = 'alphabetic';
+    g.fillText(u.nombre, x, y - h / 2 - 2);
+  });
+
+  /* polvo donde se choca */
+  for (const a of vivos('R')){
+    for (const b of vivos('E')){
+      if (dist(a, b) > 60) continue;
+      const mx = (sx(a.x) + sx(b.x)) / 2, my = (sy(a.y) + sy(b.y)) / 2;
+      const rg = g.createRadialGradient(mx, my, 2, mx, my, 34);
+      rg.addColorStop(0, 'rgba(214,194,150,.85)');
+      rg.addColorStop(1, 'rgba(214,194,150,0)');
+      g.fillStyle = rg;
+      g.beginPath(); g.arc(mx, my, 34, 0, Math.PI * 2); g.fill();
+    }
+  }
+}
+
+function vistaZoom(){
+  const v = E.unidades.filter(u => u.n > 0);
+  const fx = v.length ? v.reduce((s, u) => s + u.x, 0) / v.length : 750;
+  return { x0: fx - 260, x1: fx + 260, y0: 120, y1: 420 };
+}
+
+function pintarP3(){
+  dibujarMapa($('#cv3'), vistaZoom(), 'zoom');
+  const ult = E.logs.slice(-2).reverse();
+  const peligro = E.unidades.filter(estaEnPeligro).map(u => u.nombre);
+  let html = '';
+  for (const l of ult){
+    html += '<div class="carta"><h3>Turno ' + l.turno + '</h3><p>' + l.lineas.join(' ') + '</p>' +
+            '<p class="muy">' + l.choques + ' choques · ' + l.bajas + ' bajas</p></div>';
+  }
+  html += '<div class="carta peligro"><h3>En peligro</h3><p>' +
+          (peligro.length ? 'Legiones ' + peligro.slice(0, 5).join(', ') + ': heridas y en el choque.' : 'Ninguna legión está en peligro.') +
+          '</p></div>';
+  $('#lat').innerHTML = html;
+}
+
+function pintarFin(){
+  const hR = vivos('R').reduce((s, u) => s + u.n, 0);
+  const hE = vivos('E').reduce((s, u) => s + u.n, 0);
+  const legR = vivos('R').length, legE = vivos('E').length;
+  let t, x;
+  if (E.fin && E.fin.motivo === 'retirada'){
+    t = 'Retirada ordenada';
+    x = 'Salvamos ' + legR + ' de ' + NUM.length + ' legiones. El campo queda para el enemigo.';
+  } else if (hR > hE * 1.1){
+    t = 'Victoria';
+    x = 'Quedan ' + legR + ' legiones, frente a ' + legE + ' enemigas.';
+  } else if (hE > hR * 1.1){
+    t = 'Derrota';
+    x = 'El enemigo conserva ' + legE + ' legiones.';
+  } else {
+    t = 'Empate';
+    x = 'Ninguno cede. Las dos líneas quedan rotas.';
+  }
+  $('#f-titulo').textContent = t;
+  $('#f-texto').textContent = x;
+  $('#f-stats').innerHTML =
+    '<div class="stat">Hombres nuestros<b>' + hR + ' de ' + E.hombresIni + '</b></div>' +
+    '<div class="stat">Turnos jugados<b>' + (E.turno - 1) + '</b></div>' +
+    '<div class="stat">Agua sobrante<b>' + Math.ceil(E.reloj) + ' s</b></div>';
+  const ult = E.logs.slice(-1)[0];
+  $('#f-log').textContent = ult ? 'Último turno: ' + ult.lineas.join(' ') : '';
+}
+
+/* Tarjeta de la legión elegida: tres órdenes, sin más menús */
+function pintarTarjeta(){
+  const t = $('#tarjeta');
+  const u = E.unidades.find(x => x.id === E.sel);
+  if (!u || u.n <= 0 || u.lado !== 'R' || E.fase !== 'plan'){ t.classList.add('oculta'); return; }
+  t.classList.remove('oculta');
+  if (E.modo){
+    t.innerHTML = '<div class="tf"><b>Legión ' + u.nombre + '</b> · toca en el mapa a dónde ' +
+                  (E.modo === 'carga' ? 'carga' : 'avanza') + '.</div>' +
+                  '<div class="fila"><button data-o="cancelar">Cancelar</button></div>';
+    return;
+  }
+  const estado = u.n < 0.92 * u.n0 ? 'herida' : 'firme';
+  const orden = u.orden ? 'Orden: ' + (u.orden.tipo === 'carga' ? 'cargar' : 'avanzar') + ' (' + COSTE[u.orden.tipo] + ' s)' : 'Sin orden: se queda quieta';
+  t.innerHTML = '<div class="tf"><b>Legión ' + u.nombre + '</b> · ' + u.n + ' hombres · ' + estado + '</div>' +
+                '<div class="tf2">' + orden + '</div>' +
+                '<div class="fila">' +
+                '<button data-o="avanza">Avanzar · 3 s</button>' +
+                '<button data-o="carga">Cargar · 6 s</button>' +
+                '<button data-o="quitar"' + (u.orden ? '' : ' disabled') + '>Quitar orden</button>' +
+                '</div>';
+}
+
+function pintarHUD(){
+  const f = Math.max(0, Math.min(1, E.reloj / TURNO_SEG));
+  $$('[data-reloj]').forEach(function(r){
+    r.setAttribute('y', (40 - 40 * f).toFixed(2));
+    r.setAttribute('height', (40 * f).toFixed(2));
+  });
+  const seg = Math.ceil(E.reloj) + ' s';
+  $('#seg1').textContent = seg;
+  $('#seg2').textContent = seg;
+  $('#t1').textContent = 'Turno ' + E.turno;
+  const conOrden = vivos('R').filter(u => u.orden);
+  const gasto = conOrden.reduce((s, u) => s + COSTE[u.orden.tipo], 0);
+  $('#s1').innerHTML = E.fase === 'plan'
+    ? 'Órdenes: <b>' + conOrden.length + '</b> · agua gastada: <b>' + gasto + ' s</b>'
+    : 'Turno en marcha';
+  $('#t2').textContent = 'Choque · turno ' + Math.max(1, E.turno - 1);
+}
+
+function pintarTodo(){
+  pintarHUD();
+  if (E.pantalla === 1){ dibujarMapa($('#cv1'), CAMPO_VISTA, 'mapa'); pintarTarjeta(); }
+  if (E.pantalla === 2) dibujarEscena($('#cv2'), performance.now());
+  if (E.pantalla === 3) pintarP3();
+  if (E.pantalla === 4) pintarFin();
+}
+
+function ir(n){
+  E.pantalla = n;
+  clearTimeout(timerEscena);
+  cancelAnimationFrame(rafId);
+  $$('.pantalla').forEach(s => s.classList.toggle('on', s.id === 'p' + n));
+  pintarTodo();
+  if (n === 2) bucleEscena();
+}
+
+function bucleEscena(){
+  if (E.pantalla !== 2) return;
+  dibujarEscena($('#cv2'), performance.now());
+  rafId = requestAnimationFrame(bucleEscena);
+}
+
+/* Toques en el mapa: elegir legión o poner el punto de la orden */
+const cv1 = $('#cv1');
+cv1.addEventListener('pointerdown', function(ev){
+  if (E.fase !== 'plan' || !VISTA) return;
+  const r = cv1.getBoundingClientRect();
+  const px = ev.clientX - r.left, py = ev.clientY - r.top;
+  const mx = (px - VISTA.ox) / VISTA.S, my = (py - VISTA.oy) / VISTA.S;
+  let mejor = null, dmin = Infinity;
+  for (const u of E.unidades){
+    if (u.n <= 0) continue;
+    const d = Math.hypot(u.x - mx, u.y - my) * VISTA.S;
+    if (d < dmin){ dmin = d; mejor = u; }
+  }
+  if (mejor && dmin < 16 && mejor.lado === 'R'){
+    E.sel = mejor.id; E.modo = null; pintarTarjeta(); return;
+  }
+  if (E.modo && E.sel){
+    const u = E.unidades.find(x => x.id === E.sel);
+    if (u && ponerOrden(u, E.modo, { x: Math.min(CAMPO.w, Math.max(0, mx)), y: Math.min(CAMPO.h, Math.max(0, my)) })){
+      E.modo = null;
+    }
+    pintarTarjeta();
+    return;
+  }
+  E.sel = null;
+  pintarTarjeta();
+});
+
+$('#tarjeta').addEventListener('click', function(ev){
+  const b = ev.target.closest('button');
+  if (!b || b.disabled) return;
+  const u = E.unidades.find(x => x.id === E.sel);
+  if (!u) return;
+  const o = b.getAttribute('data-o');
+  if (o === 'avanza' || o === 'carga'){
+    E.modo = o;
+    aviso('Toca en el mapa a dónde va la legión ' + u.nombre + '.');
+  } else if (o === 'quitar'){
+    quitarOrden(u); E.modo = null;
+  } else if (o === 'cancelar'){
+    E.modo = null;
+  }
+  pintarTarjeta();
+});
+
+function tick(){
+  if (E.fase === 'plan' && !E.congelado){
+    E.reloj = Math.max(0, E.reloj - 0.2);
+    if (E.reloj <= 0){ ejecutar(); return; }
+  }
+  pintarHUD();
+  if (E.pantalla === 1 && E.fase === 'plan') dibujarMapa($('#cv1'), CAMPO_VISTA, 'mapa');
+}
+
+/* Botones */
+$('#b-escena').onclick = () => ir(2);
+$('#b-ejec').onclick = ejecutar;
+$('#b-volver2').onclick = () => ir(1);
+$('#b-riesgo').onclick = () => ir(3);
+$('#b-volver3').onclick = () => ir(1);
+$('#b-retirar').onclick = () => { if (E.fase === 'plan') terminar('retirada'); ir(4); };
+$('#b-otra').onclick = () => { nuevaPartida(); ir(1); };
+window.addEventListener('resize', pintarTodo);
+
+/* Arranque */
+$$('[data-vaso]').forEach((el, i) => { el.innerHTML = vaso('v' + i); });
+nuevaPartida();
+ir(1);
+setInterval(tick, 200);
+
+/* Estados de muestra para revisar cada pantalla */
+window.K6 = {
+  ir: ir,
+  planEjemplo: function(){
+    nuevaPartida();
+    E.congelado = true;
+    const g = id => E.unidades.find(u => u.id === id);
+    ponerOrden(g('R4'), 'carga', { x: 930, y: 140 });
+    ponerOrden(g('R6'), 'avanza', { x: 600, y: 190 });
+    ponerOrden(g('R8'), 'avanza', { x: 620, y: 240 });
+    E.reloj = 14;
+    E.sel = 'R4';
+    ir(1);
+  },
+  escena: function(n){ nuevaPartida(); E.congelado = true; demo(n); ir(2); },
+  riesgo: function(){ ir(3); },
+  fin: function(){ if (E.fase === 'plan') terminar('retirada'); ir(4); }
+};
+})();
+</script>
+</body>
+</html>

@@ -4,3 +4,5 @@ casa_b
 casa_c
 casa_d
 prop_paja
+prop_pozo
+prop_carreta

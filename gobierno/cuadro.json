@@ -865,6 +865,51 @@
    "tarea": "C6",
    "archivo": "gobierno/capturas-tarea/C6-italia.jpg",
    "pie": "Tras tocar Italia: sus ciudades y «← volver»"
+  },
+  {
+   "tarea": "CN11",
+   "archivo": "gobierno/capturas-tarea/CN11-vida-a.png",
+   "pie": "Humo en las chozas, una carreta y gente por el camino"
+  },
+  {
+   "tarea": "CN11",
+   "archivo": "gobierno/capturas-tarea/CN11-ejercito.jpg",
+   "pie": "Guarnición a tamaño real (cajas de lejos)"
+  },
+  {
+   "tarea": "Q11",
+   "archivo": "gobierno/capturas-tarea/Q11-estaciones-primavera.jpg",
+   "pie": "Roma en primavera"
+  },
+  {
+   "tarea": "Q11",
+   "archivo": "gobierno/capturas-tarea/Q11-estaciones-otono.jpg",
+   "pie": "Roma en otoño"
+  },
+  {
+   "tarea": "Q11",
+   "archivo": "gobierno/capturas-tarea/Q11-estaciones-invierno.jpg",
+   "pie": "Roma en invierno"
+  },
+  {
+   "tarea": "Q11",
+   "archivo": "gobierno/capturas-tarea/Q11-atardecer.jpg",
+   "pie": "Atardecer con antorchas en el foro"
+  },
+  {
+   "tarea": "I5",
+   "archivo": "gobierno/capturas-tarea/I5/I5-1-vacia.jpg",
+   "pie": "Saber: primera vez, guía de 3 pasos y requisitos de la Edad II"
+  },
+  {
+   "tarea": "I5",
+   "archivo": "gobierno/capturas-tarea/I5/I5-2-en-curso.jpg",
+   "pie": "Saber: Fasti en curso con barra, Edad II abierta"
+  },
+  {
+   "tarea": "I5",
+   "archivo": "gobierno/capturas-tarea/I5/I5-3-par-bloqueado.jpg",
+   "pie": "Saber: Viña hecha, Trigo con candado («o tú o yo»)"
   }
  ],
  "informes": [
@@ -979,16 +1024,16 @@
    "url": "https://claude.ai/code/session_01QiKC37D2N4Qw3NvC9TcdmE"
   },
   {
-   "tarea": "CN11",
-   "titulo": "Ciudad nueva · CN11 Vida y peso",
-   "nota": "js/gfx/vida.js, city3d.js, units.js, assets (ola 4, solo dibujo)",
-   "url": "https://claude.ai/code/session_01QiKC36FcbtHLLBidokrqYr"
-  },
-  {
    "tarea": "K6",
    "titulo": "Concurso · K6 Arte de batalla y tropas",
    "nota": "solo maquetas",
    "url": "https://claude.ai/code/session_01QiKC37tiobNBApd9bhi8N3"
+  },
+  {
+   "tarea": "I5b",
+   "titulo": "Gran diseño · I5b Escuela y sabios",
+   "nota": "ciudad.js, game.js, data.js, ui.js, registro.js (ciencia)",
+   "url": "https://claude.ai/code/session_01QiKC37JH881YRjnibWoq8X"
   }
  ],
  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"

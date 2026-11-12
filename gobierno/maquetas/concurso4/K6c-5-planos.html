@@ -1,0 +1,488 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>K6c-5 · Planos de arquitecto</title>
+<style>
+@font-face{font-family:"CinzelL";src:url("../../../assets/fuentes/cinzel-700.woff2") format("woff2");font-weight:700;font-display:block}
+:root{--bg:#0d2444;--line:rgba(160,200,255,.16);--ink:#e6f0ff;--dim:#8fa9cc;--ours:#f2f7ff;--enm:#4a5b76;--ord:#ffd166;--risk:#ff6b5b;--navy:#0d2444}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--bg)}
+body{color:var(--ink);font:13px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+
+/* Pantallas y barras */
+.scr{position:fixed;inset:0;display:none;grid-template-rows:36px minmax(0,1fr) 58px;background:var(--bg)}
+.scr.on{display:grid}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 12px;border-bottom:1px solid var(--line);white-space:nowrap;overflow:hidden}
+.hd .t{font:700 13px CinzelL,Georgia,serif;letter-spacing:.04em}
+.hd .n{font-size:13px;color:var(--dim);font-variant-numeric:tabular-nums}
+.hd b{color:var(--ink);font-variant-numeric:tabular-nums}
+.risk{color:var(--risk)!important;font-weight:700}
+.ft{display:flex;gap:8px;align-items:center;justify-content:flex-end;padding:0 10px;border-top:1px solid var(--line)}
+.btn{height:42px;padding:0 14px;border-radius:10px;border:1.5px solid var(--dim);background:transparent;color:var(--ink);font:600 14px system-ui,sans-serif;white-space:nowrap;cursor:pointer}
+.btn.pri{background:var(--ink);color:var(--navy);border-color:var(--ink);font-weight:700}
+.btn:active{transform:scale(.97)}
+
+/* Pantalla 1: plano y corte */
+.m1{display:grid;grid-template-columns:minmax(0,1fr) 232px;min-height:0}
+.plan{position:relative;min-height:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:30px 30px}
+#plan{position:absolute;inset:4px;width:calc(100% - 8px);height:calc(100% - 8px);touch-action:manipulation}
+.side{border-left:1px solid var(--line);padding:8px 9px;display:flex;flex-direction:column;gap:6px;min-height:0;overflow:hidden}
+.cap{font:700 11px CinzelL,Georgia,serif;letter-spacing:.05em;color:var(--dim)}
+#corte{width:100%;height:auto;display:block}
+.hint{font-size:13px;min-height:46px}
+.leg{font-size:11px;color:var(--dim);line-height:1.4}
+.timer{height:8px;border:1px solid var(--dim);border-radius:4px;overflow:hidden}
+.timer i{display:block;height:100%;width:100%;background:var(--ord);transition:width 1s linear}
+
+/* Pantalla 2: escena */
+.m2{position:relative;min-height:0;overflow:hidden}
+#escena{position:absolute;inset:0;width:100%;height:100%}
+
+/* Pantalla 3: dos turnos */
+.m3{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) 220px;gap:12px;padding:10px 12px;align-items:center;min-height:0}
+.m3 figure{display:flex;flex-direction:column;gap:4px;min-width:0}
+.m3 figcaption{font:700 12px CinzelL,Georgia,serif;color:var(--dim)}
+.m3 svg,.m4 svg{width:100%;height:auto;display:block;border:1px solid var(--line)}
+.card{border:1.5px solid var(--risk);border-radius:12px;padding:10px 12px}
+.card h3{font:700 14px CinzelL,Georgia,serif;color:var(--risk);margin-bottom:6px}
+.card p{font-size:13px;line-height:1.35}
+
+/* Pantalla 4: acta en cajetín */
+.m4{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:14px;padding:10px 12px;min-height:0;align-items:center}
+.cajetin{border:1.5px solid var(--ink);display:flex;flex-direction:column;min-height:0}
+.ctit{padding:7px 10px;border-bottom:1px solid var(--ink)}
+.ctit b{display:block;font:700 15px CinzelL,Georgia,serif}
+.ctit span{color:var(--dim);font-size:12px}
+.cstat{display:flex;justify-content:space-between;gap:6px;padding:4px 10px;border-bottom:1px solid var(--ink);font-size:11px;color:var(--dim)}
+.cbody{padding:6px 10px;display:flex;flex-direction:column;gap:6px;flex:1}
+.stamp{align-self:flex-start;font:700 17px CinzelL,Georgia,serif;color:var(--ord);border:3px double var(--ord);padding:4px 10px;transform:rotate(-4deg);margin:4px 0 6px}
+.row{display:grid;grid-template-columns:1fr auto;gap:4px 8px;font-size:13px}
+.row b{font-variant-numeric:tabular-nums}
+.bar{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ink)}
+
+/* Plano (planta) */
+.gl{stroke:rgba(160,200,255,.10);stroke-width:2}
+.zone{fill:none;stroke:var(--dim);stroke-width:4;stroke-dasharray:18 12;opacity:.6}
+.river{fill:rgba(60,120,195,.45)}
+.ford{fill:#133056;stroke:#9dc0ee;stroke-width:3;stroke-dasharray:10 8}
+.hill{fill:none;stroke:var(--dim);stroke-width:3;opacity:.7}
+.cut{stroke:var(--ord);stroke-width:4;stroke-dasharray:24 14;opacity:.75}
+.lab{fill:var(--dim);font:600 30px system-ui,sans-serif}
+.cutlab{fill:var(--ord);font:700 34px system-ui,sans-serif}
+.sc{stroke:var(--ink);stroke-width:4}
+.nort{fill:var(--ink)}
+.ord{stroke:var(--ord);stroke-width:8;stroke-dasharray:22 14;fill:none}
+.tgt{fill:none;stroke:var(--ord);stroke-width:6}
+.hit{fill:none;stroke:var(--risk);stroke-width:7}
+.riskc{fill:none;stroke:var(--risk);stroke-width:8;stroke-dasharray:20 14}
+.u{cursor:pointer;transition:transform .9s ease-in-out}
+.u rect{fill:var(--ours);stroke:var(--navy);stroke-width:4}
+.u text{font:700 26px system-ui,sans-serif;fill:var(--navy);text-anchor:middle;dominant-baseline:central;pointer-events:none}
+.u.enm rect{fill:var(--enm);stroke:var(--dim);stroke-width:3}
+.u.hurt rect{stroke:var(--risk);stroke-width:6}
+.u.sel rect{stroke:var(--ord);stroke-width:9}
+.u.dead rect{fill:none;stroke:var(--dim);stroke-width:3;stroke-dasharray:8 6}
+.mini .u text{display:none}
+
+/* Corte */
+.gnd{fill:none;stroke:var(--dim);stroke-width:2}
+.wat{fill:#2d6aa8;opacity:.85}
+.cu{fill:var(--ours)}
+.ce{fill:var(--enm);stroke:var(--dim)}
+.gap{stroke:var(--risk);stroke-width:1.5;fill:none}
+.gaptx{fill:var(--risk);font:700 12px system-ui,sans-serif;text-anchor:middle}
+.cl{fill:var(--dim);font:600 11px system-ui,sans-serif}
+
+/* Escena */
+.earth{fill:#0f2b50}
+.hat{stroke:rgba(160,200,255,.22);stroke-width:1.2}
+.bl rect{fill:var(--ours);stroke:var(--navy);stroke-width:1.5}
+.bl line{stroke:var(--ours);stroke-width:1.5}
+.bl.enm rect{fill:var(--enm);stroke:var(--dim)}
+.bl.enm line{stroke:var(--dim)}
+.bl{transition:transform 1.4s cubic-bezier(.3,.7,.2,1)}
+#s2.go .bl.our{transform:translateX(90px)}
+#s2.go .bl.enm{transform:translateX(-90px)}
+.crash{fill:none;stroke:var(--risk);stroke-width:3;stroke-linejoin:round;stroke-linecap:round}
+.clash{opacity:0;transition:opacity .4s .9s}
+#s2.go .clash{opacity:1}
+.dust{fill:rgba(230,240,255,.16);opacity:0;transition:opacity 1s 1s}
+#s2.go .dust{opacity:1}
+.t1{fill:var(--dim);font:700 13px system-ui,sans-serif}
+.t2{fill:var(--ord);font:700 14px system-ui,sans-serif;text-anchor:middle}
+</style>
+</head>
+<body>
+
+<!-- Pantalla 1: mapa en grande con el turno planeado -->
+<section class="scr on" id="s1">
+  <header class="hd">
+    <span class="t">Plano del campo · turno <b id="tn">3</b> de 6</span>
+    <span class="n">Tiempo para planear: <b id="tm">0:45</b></span>
+  </header>
+  <main class="m1">
+    <div class="plan"><svg id="plan" viewBox="0 60 1500 740" preserveAspectRatio="xMidYMid meet"></svg></div>
+    <aside class="side">
+      <div class="cap">CORTE A–A' · POR EL VADO II</div>
+      <svg id="corte" viewBox="0 0 214 120"></svg>
+      <div class="hint" id="hint">Toca una tropa blanca. Luego toca dónde va.</div>
+      <div class="timer"><i id="tbar"></i></div>
+      <div class="leg">Blanco: nuestros · gris: enemigo<br>Amarillo: orden · rojo: choque</div>
+    </aside>
+  </main>
+  <footer class="ft">
+    <button class="btn" id="undo">Quitar la última orden</button>
+    <button class="btn" id="go">Ver la escena</button>
+    <button class="btn pri" id="run">Ejecutar turno</button>
+  </footer>
+</section>
+
+<!-- Pantalla 2: escena del choque con 20 contra 20 -->
+<section class="scr" id="s2">
+  <header class="hd">
+    <span class="t">Escena · vado II · 20 contra 20</span>
+    <span class="n">Choque en la línea</span>
+  </header>
+  <main class="m2"><svg id="escena" viewBox="0 0 844 296" preserveAspectRatio="xMidYMid meet"></svg></main>
+  <footer class="ft">
+    <button class="btn" id="back">Volver al plano</button>
+    <button class="btn pri" id="replay">Ver el choque otra vez</button>
+  </footer>
+</section>
+
+<!-- Pantalla 3: dos turnos seguidos y un riesgo -->
+<section class="scr" id="s3">
+  <header class="hd">
+    <span class="t">Dos turnos seguidos</span>
+    <span class="n risk">Riesgo: el vado II</span>
+  </header>
+  <main class="m3">
+    <figure><figcaption id="capA">Fin del turno</figcaption><svg class="mini" id="snapA" viewBox="0 60 1500 740"></svg></figure>
+    <figure><figcaption id="capB">Fin del turno</figcaption><svg class="mini" id="snapB" viewBox="0 60 1500 740"></svg></figure>
+    <div class="card"><h3 id="cardT">Turno 5: el hueco del vado II</h3><p id="cardP"></p></div>
+  </main>
+  <footer class="ft">
+    <button class="btn" id="back3">Volver al plano</button>
+    <button class="btn" id="cover">Cubrir el vado</button>
+    <button class="btn pri" id="toend">Ver el resultado</button>
+  </footer>
+</section>
+
+<!-- Pantalla 4: resultado en forma de cajetín de plano -->
+<section class="scr" id="s4">
+  <header class="hd">
+    <span class="t">Acta de la batalla</span>
+    <span class="n">Resultado final</span>
+  </header>
+  <main class="m4">
+    <svg class="mini" id="mini" viewBox="0 60 1500 740"></svg>
+    <div class="cajetin">
+      <div class="ctit"><b>Plano n.º 3 · Campo del vado II</b><span>Batalla de la línea</span></div>
+      <div class="cstat"><span>Escala 1 : 1500</span><span>Hoja 1 de 1</span><span>Campo de 1.500 m</span></div>
+      <div class="cbody">
+        <div class="stamp" id="stamp">Retirada ordenada</div>
+        <div class="row"><span>Nuestros regimientos en pie</span><b id="nOurs"></b><div class="bar"><i id="bOurs"></i></div></div>
+        <div class="row"><span>Enemigos en pie</span><b id="nEn"></b><div class="bar"><i id="bEn"></i></div></div>
+        <div class="row"><span>Turnos jugados</span><b id="nTurn"></b></div>
+      </div>
+    </div>
+  </main>
+  <footer class="ft">
+    <button class="btn" id="back4">Volver al plano</button>
+    <button class="btn pri" id="again">Nueva batalla</button>
+  </footer>
+</section>
+
+<script>
+(function(){
+'use strict';
+const NS='http://www.w3.org/2000/svg';
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const TURN_SEC=45, LAST=6;
+const FORDS=[{n:'I',x:300},{n:'II',x:750},{n:'III',x:1200}];
+const ROW1=['H1','H2','H3','P1','P2','P3','T1','T2','V1','V2'];
+const ROW2=['V3','V4','L1','L2','L3','H4','H5','P4','E1','E2'];
+const XS=[180,300,420,540,660,780,900,1020,1140,1260];
+const XS2=XS.map(v=>v+60);
+// Perfil del terreno en el corte: el río (450-520 m) hace un valle
+const GY=d=>96+(d>450&&d<520?14*Math.sin((d-450)/70*Math.PI):0);
+const SX=y=>8+(y-60)/740*198;
+const clone=L=>L.map(u=>({...u}));
+const fmt=s=>Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+const hint=m=>{$('hint').textContent=m;};
+
+let units=[],byId={},sel=null,lastOrder=null,turn=3,left=TURN_SEC,busy=false,cur=1,after=[],contacts=[];
+const uEls={};
+let PL=null;
+
+function startUnits(){
+  const L=[];
+  ROW1.forEach((id,i)=>L.push({id,side:'us',x:XS[i],y:690,tx:null,ty:null,str:3}));
+  ROW2.forEach((id,i)=>L.push({id,side:'us',x:XS2[i],y:775,tx:null,ty:null,str:3}));
+  for(let i=0;i<20;i++){
+    const x=i<10?XS[i]:XS2[i-10], y=i<10?300:205;
+    L.push({id:'x'+(i+1),side:'enm',x,y,tx:null,ty:null,str:3});
+  }
+  return L;
+}
+
+function reset(){
+  units=startUnits(); byId={};
+  units.forEach(u=>byId[u.id]=u);
+  sel=null; lastOrder=null; turn=3; left=TURN_SEC; busy=false; contacts=[];
+  after=[{t:2,list:clone(units)}];
+  hint('Toca una tropa blanca. Luego toca dónde va.');
+  paintAll();
+}
+
+function cls(u,plain){
+  return 'u '+(u.side==='us'?'ours':'enm')+(u.str<=0?' dead':(u.str<3?' hurt':''))+(!plain&&sel===u.id?' sel':'');
+}
+
+/* ---------- Plano ---------- */
+function baseSVG(){
+  let s='';
+  for(let x=0;x<=1500;x+=150) s+=`<line class="gl" x1="${x}" y1="60" x2="${x}" y2="800"/>`;
+  for(let y=60;y<=800;y+=148) s+=`<line class="gl" x1="0" y1="${y}" x2="1500" y2="${y}"/>`;
+  s+='<rect class="zone" x="110" y="150" width="1280" height="200"/><rect class="zone" x="110" y="630" width="1280" height="160"/>';
+  s+='<text class="lab" x="130" y="140">zona enemiga</text><text class="lab" x="130" y="622">nuestra zona</text>';
+  s+='<rect class="river" x="0" y="450" width="1500" height="70"/>';
+  FORDS.forEach(f=>{ s+=`<rect class="ford" x="${f.x-50}" y="450" width="100" height="70"/><text class="lab" x="${f.x}" y="438" text-anchor="middle">vado ${f.n}</text>`; });
+  s+='<circle class="hill" cx="1330" cy="380" r="45"/><circle class="hill" cx="1330" cy="380" r="85"/><circle class="hill" cx="1330" cy="380" r="125"/><text class="lab" x="1330" y="548" text-anchor="middle">colina</text>';
+  s+='<line class="cut" x1="750" y1="70" x2="750" y2="790"/><text class="cutlab" x="768" y="96">A</text><text class="cutlab" x="768" y="790">A\'</text>';
+  s+='<line class="sc" x1="1080" y1="110" x2="1330" y2="110"/><line class="sc" x1="1080" y1="100" x2="1080" y2="120"/><line class="sc" x1="1330" y1="100" x2="1330" y2="120"/><text class="lab" x="1205" y="96" text-anchor="middle">250 m</text>';
+  s+='<path class="nort" d="M90 150 L72 186 L90 178 L108 186 Z"/><text class="lab" x="90" y="136" text-anchor="middle">N</text>';
+  s+='<g class="olay"></g><g class="ulay"></g>';
+  return s;
+}
+function planBase(svg){
+  svg.innerHTML=baseSVG();
+  return {ol:svg.querySelector('.olay'),ul:svg.querySelector('.ulay')};
+}
+function mkUnit(u){
+  const g=document.createElementNS(NS,'g');
+  g.dataset.id=u.id;
+  g.setAttribute('class',cls(u));
+  g.innerHTML='<rect x="-30" y="-23" width="60" height="46" rx="5"/>'+(u.side==='us'?'<text>'+u.id+'</text>':'');
+  g.style.transform=`translate(${u.x}px,${u.y}px)`;
+  return g;
+}
+function initPlan(){
+  const svg=$('plan');
+  PL=planBase(svg);
+  units.forEach(u=>{ const g=mkUnit(u); PL.ul.appendChild(g); uEls[u.id]=g; });
+  svg.addEventListener('click',onTap);
+}
+function paintAll(){
+  if(!PL) return;
+  units.forEach(u=>{
+    const g=uEls[u.id];
+    g.setAttribute('class',cls(u));
+    g.style.transform=`translate(${u.x}px,${u.y}px)`;
+  });
+  paintOrders(); paintCorte(); paintInfo();
+}
+function paintOrders(){
+  let s='';
+  units.forEach(u=>{
+    if(u.side==='us'&&u.tx!=null) s+=`<line class="ord" x1="${u.x}" y1="${u.y}" x2="${u.tx}" y2="${u.ty}"/><circle class="tgt" cx="${u.tx}" cy="${u.ty}" r="22"/>`;
+  });
+  contacts.forEach(c=>{ s+=`<circle class="hit" cx="${c.x}" cy="${c.y}" r="40"/>`; });
+  PL.ol.innerHTML=s;
+}
+function paintInfo(){
+  $('tn').textContent=Math.min(turn,LAST);
+  $('tm').textContent=fmt(Math.max(0,left));
+  $('tbar').style.width=(Math.max(0,left)/TURN_SEC*100)+'%';
+}
+
+/* ---------- Corte A-A' por el vado II ---------- */
+function gapAt(list){
+  const band=list.filter(u=>Math.abs(u.x-750)<=110&&u.str>0);
+  const us=band.filter(u=>u.side==='us'), en=band.filter(u=>u.side==='enm');
+  if(!us.length||!en.length) return null;
+  const of=Math.min(...us.map(u=>u.y)), ef=Math.max(...en.map(u=>u.y));
+  return {of,ef,m:Math.max(0,Math.round(of-ef-46))};
+}
+function paintCorte(){
+  let h='';
+  const pts=[]; for(let d=60;d<=800;d+=10) pts.push(SX(d).toFixed(1)+','+GY(d).toFixed(1));
+  const wp=[]; for(let d=450;d<=520;d+=5) wp.push(SX(d).toFixed(1)+','+GY(d).toFixed(1));
+  for(let d=520;d>=450;d-=5) wp.push(SX(d).toFixed(1)+',120');
+  h+=`<polygon class="wat" points="${wp.join(' ')}"/><polyline class="gnd" points="${pts.join(' ')}"/>`;
+  units.forEach(u=>{
+    if(u.str<=0||Math.abs(u.x-750)>110) return;
+    const x=SX(u.y)-4, y=GY(u.y)-20;
+    h+=`<rect class="${u.side==='us'?'cu':'ce'}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="8" height="20" rx="1"/>`;
+  });
+  const g=gapAt(units);
+  if(g){
+    const a=SX(g.ef)+4, b=SX(g.of)-4;
+    h+=`<path class="gap" d="M${a.toFixed(1)} 30 H${b.toFixed(1)} M${a.toFixed(1)} 24 V36 M${b.toFixed(1)} 24 V36"/>`;
+    h+=`<text class="gaptx" x="${((a+b)/2).toFixed(1)}" y="20">${g.m>0?'hueco '+g.m+' m':'contacto'}</text>`;
+  } else {
+    h+='<text class="gaptx" x="107" y="20">sin enemigo en el corte</text>';
+  }
+  h+='<text class="cl" x="6" y="126">enemigo</text><text class="cl" x="208" y="126" text-anchor="end">nosotros</text>';
+  $('corte').innerHTML=h;
+}
+
+/* ---------- Toque: elegir tropa, luego destino ---------- */
+function onTap(e){
+  if(busy||cur!==1) return;
+  const g=e.target.closest?e.target.closest('g.u'):null;
+  if(g){
+    const u=byId[g.dataset.id];
+    if(u.side==='us'&&u.str>0){ sel=u.id; hint(`${u.id} elegida. Ahora toca el punto a donde va.`); }
+    else hint('Esa es del enemigo. Toca una de tus tropas blancas.');
+    paintAll(); return;
+  }
+  if(!sel){ hint('Primero toca una tropa blanca.'); return; }
+  const svg=$('plan');
+  const pt=svg.createSVGPoint(); pt.x=e.clientX; pt.y=e.clientY;
+  const p=pt.matrixTransform(svg.getScreenCTM().inverse());
+  if(p.y>445&&p.y<525&&!FORDS.some(f=>Math.abs(p.x-f.x)<=50)){ hint('Ahí no se cruza el río. Toca un vado.'); return; }
+  const u=byId[sel];
+  u.tx=clamp(p.x,30,1470); u.ty=clamp(p.y,70,790);
+  lastOrder=u.id; sel=null;
+  hint(`Orden dada a ${u.id}. Ejecuta el turno cuando quieras.`);
+  paintAll();
+}
+
+/* ---------- Turno: los dos bandos se mueven a la vez ---------- */
+function runTurn(){
+  if(busy||turn>LAST) return;
+  busy=true;
+  units.forEach(u=>{
+    if(u.side!=='us'||u.str<=0||u.tx==null) return;
+    const dx=u.tx-u.x, dy=u.ty-u.y, d=Math.hypot(dx,dy);
+    if(d<=140){ u.x=u.tx; u.y=u.ty; u.tx=null; u.ty=null; }
+    else { u.x+=dx/d*140; u.y+=dy/d*140; }
+  });
+  units.forEach(u=>{
+    if(u.side!=='enm'||u.str<=0) return;
+    let best=null,bd=1e9;
+    units.forEach(o=>{ if(o.side==='us'&&o.str>0){ const d=Math.hypot(o.x-u.x,o.y-u.y); if(d<bd){bd=d;best=o;} } });
+    if(best&&bd>110){ u.x+=(best.x-u.x)/bd*90; u.y+=(best.y-u.y)/bd*90; }
+  });
+  contacts=[];
+  units.forEach(a=>units.forEach(b=>{
+    if(a.side==='us'&&b.side==='enm'&&a.str>0&&b.str>0&&Math.hypot(a.x-b.x,a.y-b.y)<110){
+      a.str--; b.str--; contacts.push({x:(a.x+b.x)/2,y:(a.y+b.y)/2});
+    }
+  }));
+  after.push({t:turn,list:clone(units)});
+  const n=contacts.length;
+  turn++; left=TURN_SEC; sel=null; lastOrder=null; busy=false;
+  if(turn>LAST) hint('La batalla termina. Mira el resultado.');
+  else hint(n?`Choque en ${n} punto${n>1?'s':''}. Mira la escena o planea el turno ${turn}.`:`Turno ${turn-1} hecho. Planea el turno ${turn}.`);
+  paintAll();
+  setTimeout(()=>{ contacts=[]; paintOrders(); },1800);
+  if(turn>LAST) setTimeout(()=>show(4),2000);
+}
+
+/* ---------- Escena: 20 contra 20 en el vado II ---------- */
+function buildScene(){
+  const block=(x,y)=>`<rect x="${x}" y="${y}" width="40" height="20" rx="2"/><line x1="${x+4}" y1="${y}" x2="${x+4}" y2="${y-8}"/><line x1="${x+4}" y1="${y-8}" x2="${x+12}" y2="${y-5}"/>`;
+  let h='<defs><pattern id="hat" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(40)"><line class="hat" x1="0" y1="0" x2="0" y2="9"/></pattern></defs>';
+  h+='<rect class="earth" x="0" y="196" width="844" height="100"/><rect x="0" y="196" width="844" height="100" fill="url(#hat)"/>';
+  h+='<text class="t1" x="130" y="88">Nosotros · 20 regimientos</text><text class="t1" x="520" y="88">Enemigo · 20 regimientos</text>';
+  for(let r=0;r<4;r++) for(let c=0;c<5;c++){
+    const y=100+r*24;
+    h+=`<g class="bl our">${block(130+c*44,y)}</g><g class="bl enm">${block(520+c*44,y)}</g>`;
+  }
+  h+='<g class="clash"><path class="crash" d="M410 112 L426 132 L414 140 L438 166"/><path class="crash" d="M446 104 L456 124 L442 134 L462 156"/><path class="crash" d="M424 150 L440 158"/></g>';
+  h+='<circle class="dust" cx="432" cy="168" r="46"/><circle class="dust" cx="420" cy="184" r="28"/>';
+  h+='<rect class="wat" x="0" y="234" width="844" height="16"/>';
+  h+='<text class="t2" x="432" y="276">vado II · la línea choca aquí</text>';
+  $('escena').innerHTML=h;
+}
+function playScene(){
+  const s=$('s2');
+  s.classList.remove('go');
+  void s.offsetWidth;
+  setTimeout(()=>s.classList.add('go'),500);
+}
+
+/* ---------- Pantallas 3 y 4 ---------- */
+function staticPlan(svg,list,extra){
+  const L=planBase(svg);
+  L.ul.innerHTML=list.map(u=>`<g class="${cls(u,true)}" transform="translate(${u.x},${u.y})"><rect x="-30" y="-23" width="60" height="46" rx="5"/>${u.side==='us'?'<text>'+u.id+'</text>':''}</g>`).join('')+(extra||'');
+}
+function paintSnaps(){
+  const a=after.length>1?after[after.length-2]:after[0], b=after[after.length-1];
+  $('capA').textContent='Fin del turno '+a.t;
+  $('capB').textContent='Fin del turno '+b.t;
+  staticPlan($('snapA'),a.list);
+  staticPlan($('snapB'),b.list,'<circle class="riskc" cx="750" cy="470" r="150"/>');
+  const g=gapAt(b.list);
+  $('cardT').textContent='Turno '+Math.min(turn,LAST)+': el hueco del vado II';
+  $('cardP').textContent=g&&g.m>0
+    ?`Entre el enemigo y nuestra línea quedan ${g.m} m en el paso. Si el enemigo cruza, la línea se parte en dos.`
+    :'El enemigo ya toca nuestra línea en el paso. Hay que cubrir el vado ya.';
+}
+function paintEnd(){
+  const ours=units.filter(u=>u.side==='us'&&u.str>0).length;
+  const en=units.filter(u=>u.side==='enm'&&u.str>0).length;
+  $('stamp').textContent=ours>en?'Campo tomado':'Retirada ordenada';
+  $('nOurs').textContent=ours+' de 20'; $('bOurs').style.width=(ours/20*100)+'%';
+  $('nEn').textContent=en+' de 20'; $('bEn').style.width=(en/20*100)+'%';
+  $('nTurn').textContent=Math.max(0,Math.min(turn,LAST+1)-3)+' de 4';
+  staticPlan($('mini'),units);
+}
+
+/* ---------- Pantallas ---------- */
+function show(n){
+  cur=n;
+  [1,2,3,4].forEach(k=>$('s'+k).classList.toggle('on',k===n));
+  if(n===1) paintAll();
+  if(n===2) playScene();
+  if(n===3) paintSnaps();
+  if(n===4) paintEnd();
+  try{ history.replaceState(null,'','#'+n); }catch(e){}
+}
+
+/* ---------- Botones y reloj ---------- */
+$('undo').onclick=()=>{
+  const u=lastOrder&&byId[lastOrder];
+  if(!u||u.tx==null){ hint('No hay orden que quitar.'); return; }
+  u.tx=null; u.ty=null; lastOrder=null;
+  hint(`Quitada la orden de ${u.id}.`);
+  paintAll();
+};
+$('go').onclick=()=>show(2);
+$('run').onclick=()=>runTurn();
+$('back').onclick=()=>show(1);
+$('replay').onclick=()=>playScene();
+$('back3').onclick=()=>show(1);
+$('cover').onclick=()=>{
+  const c=units.filter(u=>u.side==='us'&&u.str>0&&u.tx==null)
+    .sort((a,b)=>Math.hypot(a.x-750,a.y-600)-Math.hypot(b.x-750,b.y-600))[0];
+  if(c){ c.tx=750; c.ty=560; lastOrder=c.id; }
+  hint(c?`${c.id} va al vado II. Llega en uno o dos turnos.`:'No queda nadie libre para cubrir el vado.');
+  show(1);
+};
+$('toend').onclick=()=>show(4);
+$('back4').onclick=()=>show(1);
+$('again').onclick=()=>{ reset(); show(1); };
+
+setInterval(()=>{
+  if(cur!==1||busy) return;
+  left--;
+  if(left<=0) runTurn(); else paintInfo();
+},1000);
+
+window.addEventListener('hashchange',()=>show(parseInt(location.hash.slice(1),10)||1));
+
+buildScene();
+reset();
+initPlan();
+show(parseInt(location.hash.slice(1),10)||1);
+})();
+</script>
+</body>
+</html>

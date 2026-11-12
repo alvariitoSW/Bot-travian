@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<title>AQVILA · Plano de batalla</title>
+<style>
+@font-face{font-family:Cinzel;font-weight:700;src:url(../../../assets/fuentes/cinzel-700.woff2) format("woff2")}
+:root{--az:#0e3a6e;--az2:#092a52;--az3:#06203f;--tiza:#e9f1ff;--cian:#8fd8ff;--minio:#ff7a45;--ocre:#f4c542;--sombra:rgba(4,18,40,.86)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--az3);color:var(--tiza);font-family:"Courier New",ui-monospace,monospace;font-size:11px;letter-spacing:.02em}
+#map{position:absolute;inset:0;width:100%;height:100%;display:block}
+#world{transform-origin:0 0;transition:transform .9s ease-in-out}
+.u{transition:transform 1s ease-in-out,opacity .8s}
+.hud{position:absolute;display:flex;flex-direction:column;gap:5px;z-index:5}
+#tl{left:8px;top:8px;align-items:flex-start}#tr{right:8px;top:8px;align-items:flex-end;width:206px}
+#bl{left:8px;bottom:8px;align-items:flex-start}#br{right:8px;bottom:8px;align-items:flex-end}
+.chip{background:var(--sombra);border:1px solid var(--cian);padding:4px 7px;border-radius:2px;line-height:1.35}
+.chip h3,.card h3{font:700 12px Cinzel,serif;letter-spacing:.1em;color:var(--ocre);margin-bottom:3px}
+.row{display:flex;gap:4px}
+.b{min-height:34px;padding:0 10px;background:var(--sombra);color:var(--tiza);border:1px solid var(--cian);border-radius:2px;font:inherit;font-size:11px;cursor:pointer;text-align:left}
+.b.on{background:var(--cian);color:var(--az3);font-weight:bold}
+.b.main{background:var(--ocre);border-color:#fff2b8;color:#2b1d00;font:700 13px Cinzel,serif;min-height:42px;padding:0 14px;letter-spacing:.05em}
+.b.sm{min-height:26px;padding:0 8px;text-align:center}
+.card{background:var(--sombra);border:1px solid var(--cian);padding:6px;width:206px;display:flex;flex-direction:column;gap:4px;border-radius:2px}
+.card .b{width:100%}
+.big{font:700 20px Cinzel,serif;color:var(--ocre);letter-spacing:.12em}
+.pips{display:flex;gap:4px}.pips i{width:26px;height:16px;border:1px solid var(--cian);font-style:normal;font-size:9px;text-align:center;line-height:14px}
+.pips i.on{background:var(--ocre);color:#2b1d00;border-color:var(--ocre)}
+.bar{height:6px;border:1px solid var(--cian);margin-top:3px}.bar i{display:block;height:100%;background:var(--minio)}
+.grid{stroke:var(--cian);stroke-opacity:.13}
+.ar{fill:none;stroke-width:2.2;stroke-linecap:round}.ar.r{stroke:var(--minio)}.ar.c{stroke:var(--ocre)}.ar.t{stroke:var(--tiza)}
+.ar.dash{stroke-dasharray:7 6}.ar.thin{stroke-width:1.3;opacity:.8}
+.lab{font:700 9px "Courier New",monospace;fill:var(--tiza);letter-spacing:.1em;paint-order:stroke;stroke:var(--az2);stroke-width:3px}
+.lab.r{fill:var(--minio)}.lab.c{fill:var(--ocre)}
+.amb{fill:rgba(255,122,69,.12);stroke:var(--minio);stroke-width:1.5;stroke-dasharray:3 4}
+#s2 .amb,.pulse{animation:pul 1.2s infinite}
+@keyframes pul{50%{fill:rgba(255,122,69,.4)}}
+.blk{transition:opacity .5s}.figs{opacity:0;transition:opacity .5s}
+.s3 .blk{opacity:0}.s3 .figs{opacity:1}
+.s3 .m{animation:lunge .7s ease-in-out infinite}
+@keyframes lunge{50%{transform:translateX(calc(var(--d)*2.6px))}}
+.spark{opacity:0}.s3 .spark{opacity:1;animation:sp .5s steps(2) infinite}
+@keyframes sp{50%{opacity:.2}}
+.broken{opacity:.4}
+.ov{transition:opacity .6s}
+.hid{opacity:0}
+</style>
+</head>
+<body>
+<svg id="map" viewBox="0 0 844 390" preserveAspectRatio="xMidYMid slice">
+<defs>
+ <pattern id="g" width="30" height="30" patternUnits="userSpaceOnUse"><path class="grid" d="M30 0H0V30" fill="none"/></pattern>
+ <radialGradient id="vg" cx=".5" cy=".5" r=".75"><stop offset=".55" stop-color="#0e3a6e" stop-opacity="0"/><stop offset="1" stop-color="#04162d" stop-opacity=".8"/></radialGradient>
+ <marker id="mr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#ff7a45"/></marker>
+ <marker id="mc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10z" fill="#f4c542"/></marker>
+</defs>
+<rect width="844" height="390" fill="#0e3a6e"/>
+<g id="world">
+ <rect x="-400" y="-300" width="1700" height="1000" fill="#0e3a6e"/>
+ <rect x="-400" y="-300" width="1700" height="1000" fill="url(#g)"/>
+ <g id="terrain" fill="none" stroke="#8fd8ff"></g>
+ <g id="ov" class="ov"></g>
+ <g id="units"></g>
+ <g id="sparks" class="spark"></g>
+</g>
+<rect width="844" height="390" fill="url(#vg)" pointer-events="none"/>
+<g id="fixed" fill="#e9f1ff" font-family="Courier New,monospace" font-size="9">
+ <path d="M520 372h84M520 368v8M604 368v8" stroke="#e9f1ff" stroke-width="1.5"/>
+ <text x="562" y="364" text-anchor="middle">150 m · campo de 1.500 m</text>
+ <g transform="translate(40,300)" stroke="#e9f1ff" fill="none"><circle r="13"/><path d="M0 -17V17M-17 0H17"/><path d="M0 -13L4 0L0 13L-4 0z" fill="#ff7a45" stroke="none"/><text x="0" y="-21" fill="#e9f1ff" stroke="none" text-anchor="middle">N</text></g>
+</g>
+</svg>
+<div class="hud" id="tl"></div><div class="hud" id="tr"></div><div class="hud" id="bl"></div><div class="hud" id="br"></div>
+<script>
+const NS='http://www.w3.org/2000/svg',$=id=>document.getElementById(id);
+let seed=11;const rnd=()=>(seed=seed*16807%2147483647)/2147483647;
+// Unidades: id, bando, tipo, nombre, posiciones por pantalla (plan, turno, lucha, final)
+const U=[
+['R1','R','inf','Hastati I',[[150,170],[262,172],[436,168],[474,184]]],
+['R2','R','inf','Hastati II',[[150,205],[262,205],[436,204],[478,210]]],
+['R3','R','inf','Hastati III',[[150,240],[262,240],[436,240],[474,236]]],
+['R4','R','inf','Principes',[[108,205],[210,205],[392,205],[440,206]]],
+['R5','R','cab','Caballería',[[132,322],[392,336],[500,272],[540,250]]],
+['R6','R','vel','Vélites',[[330,90],[330,90],[470,138],[512,164]]],
+['C1','C','inf','Poenos I',[[704,170],[648,174],[472,168],[590,176]]],
+['C2','C','inf','Poenos II',[[704,205],[648,205],[472,204],[596,210]]],
+['C3','C','inf','Poenos III',[[704,240],[648,240],[472,240],[592,240]]],
+['C4','C','ele','Elefantes',[[776,205],[708,205],[540,205],[672,205]]],
+['C5','C','cab','Jinetes I',[[738,118],[664,128],[500,148],[650,100]]],
+['C6','C','cab','Jinetes II',[[738,300],[646,296],[534,272],[660,300]]]];
+function man(t,d,col){
+ if(t==='ele')return `<ellipse rx="9" ry="5" fill="#9fb4cc"/><circle cx="${-d*7}" cy="-4" r="2" fill="#9fb4cc"/><path d="M${-d*9} -3q${-d*4} 4 0 7" stroke="#e9f1ff" fill="none"/><rect x="-3" y="-8" width="6" height="3" fill="${col}"/>`;
+ if(t==='cab')return `<ellipse rx="3.4" ry="1.7" fill="${col}"/><circle cx="${d*1.5}" cy="-3.2" r="1.2" fill="#e9f1ff"/><path d="M${d*3} -1l${d*3} -2" stroke="${col}" stroke-width=".8"/>`;
+ return `<circle cy="-2.6" r="1.3" fill="#e9f1ff"/><rect x="-1" y="-1.3" width="2" height="3.6" fill="${col}"/><ellipse cx="${d*1.7}" cy=".6" rx=".9" ry="2.1" fill="${col}" stroke="#e9f1ff" stroke-width=".3"/><path d="M${d} -.6L${d*5.5} -1.6" stroke="#e9f1ff" stroke-width=".5"/>`;}
+function unit(u){
+ const [id,s,t,n]=u,d=s==='R'?1:-1,col=s==='R'?'#ff7a45':'#f4c542';
+ const fill=s==='R'?col:'rgba(244,197,66,.12)',dash=s==='R'?'':'stroke-dasharray="3 2"';
+ let figs='';const cols=t==='cab'?4:t==='ele'?3:5,rows=t==='cab'?2:t==='ele'?2:3,sp=t==='cab'?7:t==='ele'?11:5.6;
+ for(let i=0;i<cols;i++)for(let j=0;j<rows;j++)figs+=`<g transform="translate(${(i-(cols-1)/2)*sp},${(j-(rows-1)/2)*(t==='ele'?10:sp)})"><g class="m" style="--d:${d};animation-delay:${(rnd()*.7).toFixed(2)}s">${man(t,d,col)}</g></g>`;
+ const sym=t==='cab'?'<path d="M-9 5L9 -5" stroke="#e9f1ff"/>':t==='vel'?'<circle r="2.5" fill="#e9f1ff"/>':t==='ele'?'<path d="M-6 3Q0 -7 6 3" stroke="#e9f1ff" fill="none"/>':'';
+ const w=t==='vel'?11:14;
+ return `<g class="u" id="u_${id}"><g class="blk"><rect x="-13" y="-${w/2}" width="26" height="${w}" fill="${fill}" stroke="${col}" stroke-width="1.6" ${dash}/>${sym}<text y="${w/2+9}" text-anchor="middle" class="lab ${s.toLowerCase()}" font-size="8">${n}</text></g><g class="figs">${figs}</g></g>`;}
+// terreno
+(function(){let h='';
+ [[100,80],[70,55],[40,30],[16,12]].forEach(([rx,ry],i)=>h+=`<ellipse cx="592" cy="200" rx="${rx}" ry="${ry}" stroke-opacity="${.35+i*.12}" stroke-width="${i==3?1.6:1}"/>`);
+ h+=`<text x="592" y="203" class="lab" text-anchor="middle" stroke="none" fill="#e9f1ff" font-size="8" font-family="Courier New" style="stroke:none">▲ COLINA 3</text>`;
+ h+=`<path d="M-50 352C150 328 300 376 520 346S780 336 900 362" stroke-width="14" stroke-opacity=".22"/><path d="M-50 345C150 321 300 369 520 339S780 329 900 355M-50 359C150 335 300 383 520 353S780 343 900 369" stroke-width="1" stroke-opacity=".8"/>`;
+ h+=`<text x="120" y="378" class="lab" fill="#8fd8ff" stroke="none" style="stroke:none" font-size="8">RÍO · VADO A 300 m</text>`;
+ h+=`<path d="M-30 210C200 190 420 225 900 205" stroke-dasharray="2 5" stroke-opacity=".5"/>`;
+ for(let i=0;i<46;i++){const a=rnd()*6.28,r=Math.sqrt(rnd());const x=330+Math.cos(a)*r*62,y=88+Math.sin(a)*r*34;h+=`<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="3.4" stroke-opacity=".85"/><path d="M${(x-2).toFixed(1)} ${(y+1).toFixed(1)}l2 -2l2 2" stroke-opacity=".6"/>`}
+ h+=`<text x="330" y="134" class="lab" text-anchor="middle" stroke="none" fill="#8fd8ff" style="stroke:none" font-size="8">BOSQUE</text>`;
+ $('terrain').innerHTML=h;$('units').innerHTML=U.map(unit).join('');})();
+const A={
+1:`<path class="ar r dash" d="M170 205H408" marker-end="url(#mr)"/>
+<path class="ar r dash" d="M146 322C290 384 470 366 536 290" marker-end="url(#mr)"/>
+<path class="ar r dash" d="M342 94C390 100 430 116 462 134" marker-end="url(#mr)"/>
+<circle class="amb" cx="330" cy="90" r="40"/>
+<path class="ar c thin" d="M690 205H610M690 118H560M690 300H560" marker-end="url(#mc)"/>
+<text class="lab r" x="250" y="196" text-anchor="middle">1 · FIJAR EL CENTRO</text>
+<text class="lab r" x="292" y="373" text-anchor="middle">2 · FLANCO: CABALLERÍA</text>
+<text class="lab r" x="330" y="40" text-anchor="middle">3 · EMBOSCADA</text>
+<text class="lab c" x="656" y="112" text-anchor="middle">AVANCE ENEMIGO</text>`,
+2:`<path class="ar r" d="M146 322C290 384 470 366 536 290" stroke-dasharray="1 0" opacity=".5"/>
+<path class="ar r" d="M146 322C250 364 330 350 392 336" marker-end="url(#mr)"/>
+<path class="ar r" d="M262 205H408" marker-end="url(#mr)"/>
+<path class="ar c" d="M648 205H520M648 130H520M646 296H540" marker-end="url(#mc)"/>
+<circle class="amb" cx="330" cy="90" r="40"/>
+<circle cx="330" cy="90" r="40" fill="none" stroke="#ff7a45" stroke-width="2.4"/>
+<path class="ar r dash" d="M342 94C390 100 430 116 462 134" marker-end="url(#mr)"/>
+<text class="lab r" x="330" y="40" text-anchor="middle">¡EMBOSCADA LISTA!</text>
+<text class="lab r" x="420" y="366" text-anchor="middle">CABALLERÍA RODEA</text>
+<text class="lab c" x="646" y="282" text-anchor="middle">▲ ALA SIN COBERTURA</text>
+<text class="lab c" x="520" y="116" text-anchor="middle">JINETES SUBEN</text>`,
+3:'',
+4:`<circle cx="592" cy="200" r="84" fill="rgba(244,197,66,.08)" stroke="#f4c542" stroke-width="1.6" stroke-dasharray="6 5"/>
+<path d="M592 200V170" stroke="#e9f1ff" stroke-width="2"/><path d="M592 170l22 6l-22 6z" fill="#ff7a45" stroke="#e9f1ff"/>
+<path class="ar c thin" d="M600 176H770M606 210H790M604 240H780" marker-end="url(#mc)"/>
+<path class="ar c thin" d="M656 104H800" marker-end="url(#mc)"/>
+<text class="lab" x="592" y="236" text-anchor="middle">PUESTO · RADIO 150 m</text>
+<text class="lab c" x="740" y="170" text-anchor="middle">CARTAGO SE RETIRA</text>`};
+const stepBtn=(n,c)=>[['Plan'],['Turno'],['Lucha'],['Fin']].map((x,i)=>`<button class="b sm ${i+1==n?'on':''}" onclick="go(${i+1})">${i+1} ${x}</button>`).join('');
+const H={
+1:{tl:(a,b)=>'',tr:`<div class="card"><h3>CONSEJO · ELIGE 1</h3><button class="b opt on">A · Envolver por la derecha</button><button class="b opt">B · Emboscada en el bosque</button><button class="b opt">C · Aguantar en la colina</button></div>`,
+ bl:`<div class="row"><button class="b opt on">Avanzar</button><button class="b opt">Flanquear</button><button class="b opt">Emboscar</button><button class="b opt">Formar</button></div><div class="chip">Toca un regimiento y arrastra su flecha. 6 de 12 con orden.</div>`,
+ br:`<button class="b main">Empezar batalla ▶</button>`},
+2:{tr:`<div class="card"><h3>CONSEJO · TURNO 3</h3><button class="b opt on">A · Lanzar la caballería</button><button class="b opt">B · Saltar la emboscada</button><button class="b opt">C · Retirar el ala izquierda</button></div>`,
+ bl:`<div class="row"><button class="b">Cambiar orden</button><button class="b">Ver al enemigo</button></div><div class="chip">Turno 3 de 8 · 20 s por turno<div class="bar"><i style="width:37%"></i></div></div>`,
+ br:`<button class="b main">Cerrar turno ▶</button>`},
+3:{tr:`<div class="card"><h3>LUCHA EN DIRECTO</h3><div class="row"><button class="b sm">❚❚ Pausa</button><button class="b sm on">×1</button><button class="b sm">×2</button></div><div>Bajas  Roma 41 · Cartago 87</div><div>Moral  Roma 78% · Cartago 52%</div></div>`,
+ bl:`<div class="row"><button class="b">◄ Girar</button><button class="b opt on">Cargar</button><button class="b">Retirar</button></div>`,
+ br:`<button class="b main">Ver el campo entero</button>`},
+4:{tr:`<div class="card"><div class="big">VICTORIA</div><div>Bajas: Roma 212 · Cartago 640</div><div>Botín: +320 grano · +40 hierro</div><div>Cartago pierde la colina 3.</div></div>`,
+ bl:`<div class="chip"><h3>MANTENER EL PUESTO</h3><div class="pips"><i class="on">D1</i><i>D2</i><i>D3</i><i>D4</i><i>D5</i></div>6 regimientos · −18 grano por día</div>`,
+ br:`<div class="row"><button class="b">Volver al mapa</button></div><button class="b main">Ocupar y mantener 5 días</button>`}};
+function go(n){
+ document.body.className='s'+n;$('map').setAttribute('class','s'+n);
+ U.forEach(u=>{const e=$('u_'+u[0]);const p=u[4][n===3?2:n-1];e.style.transform=`translate(${p[0]}px,${p[1]}px)`;e.classList.toggle('broken',n===4&&u[1]==='C')});
+ if(n===3){const sp=[[454,168],[454,204],[454,240],[516,272],[490,142]];
+  $('sparks').innerHTML=sp.map(p=>`<g transform="translate(${p[0]},${p[1]})" stroke="#fff" stroke-width=".8"><path d="M-4 0H4M0 -4V4M-3 -3L3 3M-3 3L3 -3"/></g>`).join('');}
+ $('world').style.transform=n===3?'translate(-546px,-245px) scale(2.2)':'none';
+ $('ov').innerHTML=A[n];$('ov').classList.toggle('hid',n===3);
+ $('tl').innerHTML=`<div class="row">${stepBtn(n)}</div><div class="chip">Día 2 · hora 3 · <b>Hastati vs Poenos</b><br>Grano 340 · Hierro 62 · Moral 78%</div>`;
+ ['tr','bl','br'].forEach(k=>$(k).innerHTML=H[n][k]);
+ document.querySelectorAll('.opt').forEach(b=>b.onclick=()=>{b.parentElement.querySelectorAll('.opt').forEach(x=>x.classList.remove('on'));b.classList.add('on')});
+}
+window.go=go;go(1);
+</script>
+</body>
+</html>

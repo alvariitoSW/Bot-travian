@@ -57,8 +57,8 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ I2 **Mapa por turnos** (11/11): una estación (3 meses) = un turno; botón «Pasar turno» y «Consejo de estación»; las marchas llegan al cambio de estación y los rivales mueven en cada turno; ciudad y batalla siguen en tiempo real. Pieza para otros: `G.pasarTurno`, `G.finTurno`, `G.consejo`, `G.turnosFaltan`, evento `turno`. Parte: `partes/2026-11-11-I2.md`.
 - ✅ I3 **Mano de obra y mantenimiento** (11/11): la producción depende de la gente que queda en la ciudad (reclutar vacía los campos); edificios y tropas cuestan oro cada mes; sin oro, las tropas desertan.
 - ✅ I4 **Tipos de ciudad con solares limitados** (11/11): 7 a 10 solares por ciudad para los edificios urbanos (campos y muralla no ocupan); seis tipos a elegir (municipio, colonia agraria, colonia militar, emporio, base naval, ciudad de artesanos); «Derribar» libera un solar.
-- ⬜ I3b **La paga de las tropas se cobra de verdad** (aprobada 12/11, ≈0,5 M; antes de I5b): hoy, con el oro a cero, la paga de las tropas se evapora (unos 252 oro/mes en una campaña del bot); pasa a cobrarse o a generar deuda con consecuencias (deserción, Senado). Cambia los resultados de los bots: reajustar (agresivo ≥6/10, pasivo 0/10). Toca `js/game.js` (G.tick y G.cierreMes).
-- ⬜ I5 **Saber: investigación y edades** (P47, rediseñada el 12/11 por `estudios/P93-ciencia.md`, decisiones del usuario en §11 del estudio; ≈2,2 M): 22 saberes en 4 ramas (Campo, Oficios, Guerra, Mar) y 4 edades, con 6 pares «o tú o yo»; una cola de estudio; **precio fijo con tope (decisión del usuario, 12/11)**; techos en cada bono; pantalla «Saber». Sustituye a F4. Va sola sobre `js/game.js` y `js/data.js`.
+- ✅ I3b **La paga de las tropas se cobra de verdad** (12/11): lo que no se paga se debe (`s.deudaPaga`), deserción y Senado en proporción.
+- ✅ I5 **Saber: investigación y edades** (12/11): 22 saberes, 3 edades, cola, techos, ganchos de economía y pestaña «Saber»; precio fijo con tope. Parte: `partes/2026-11-12-I5.md`.
 - ⬜ I5b **Escuela y sabios** (P93, aprobada 12/11; ≈1,8 M; tras I5): edificio que se abre al investigar «Preceptores griegos»; destinas gente a estudiar (más sabios, más rápido, pero cada uno rinde menos y cobra más: la paga sube con el total de sabios y se cobra cada mes). Cuesta oro, impuestos, un recluta y un solar. Calibración con `tools/calibra-saber.mjs`.
 - ⬜ I5c **Ciencia en combate y rival** (≈1,2 M; tras I5b): ganchos de batalla; el rival no investiga pero copia por bando la mitad de tu ventaja en armas, moral y murallas (Polibio 3.87). Toca `js/battle.js`.
 - ⬜ I5d **Reformar y afinado** (opcional, ≈1 M; tras jugar el sistema): cambiar de saber pagando el coste completo; afinado con medida real y cotejo de citas.
@@ -85,6 +85,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ⬜ V1 **Informe en vídeo: menús del juego** (pedido 12/11): cómo hacer los menús legibles, que no ocupen toda la pantalla, que quepan en el móvil para usarlos con los pulgares y sin mil cosas a la vez. Sesión barata (Haiku) con la maquinaria de /moncloa del repositorio de fiebres. Solo informe; no toca el juego.
 - ⬜ K6 **Concurso de arte: batalla y manejo de tropas** (pedido 12/11): cinco maquetas en Haiku (esfuerzo alto) y jurado ciego, sobre cómo se ve y se manejan las tropas. Solo `gobierno/maquetas/`; no toca `js/`.
 - ⬜ K7 **Concurso: interfaz y jugabilidad de ciudades y fuera de ellas** (pedido 12/11; después de K6): rutas de comercio como parte del juego, diplomacia y movimiento de tropas. Solo `gobierno/maquetas/`.
+- ⬜ K8 **Concurso: Senado, política y economía** (pedido 12/11, aprobado «igual que K6»; ≈2 a 3 M): ocho maquetas rivales en Haiku (esfuerzo alto) y jurado ciego, sobre el diseño y la jugabilidad del Senado, la política y la economía (incluye avisos de «Cierre de mes» e informe de estación que hoy tapan la pantalla, y construir y conseguir recursos, conservando lo que va bien). Solo `gobierno/maquetas/`; no toca `js/`. Después de K6 y K7.
 - ⬜ K3 **Construir los ganadores**: elegido el 11/11 (ver bitácora: Ciudad + Tabularium, Legado + Estandartes); falta aprobar las tareas P63 a P66 (decide él: cambio grande de aspecto). Lo que cambie en `js/ui.js` y `js/gfx/` lo estima cada nota de `maquetas/concurso/`. No empezar antes.
 
 ## Carril L — Interfaz de guerra: Legado + Estandartes (P66, aprobada 11/11/2026; en paralelo al carril J)
@@ -127,7 +128,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ Q4 **Obras y reclutas a plazos** (12/11): una obra o recluta de varios meses paga una cuota por mes (la 1ª al empezar, el resto al cierre de mes, de la caja); si no alcanza, se detiene hasta que haya. Comprometido y fila «Obras y tropas» reflejan los plazos; «Adelantar cuotas» paga las que faltan. Parte `partes/2026-11-12-Q4.md`.
 - ⬜ Q4b **Varias obras según el nivel del foro** (pedido el 12/11): una obra a la vez al principio y más huecos al subir el foro. Cambia cómo se guardan las colas (migrar en `G.load`) y toca la ciudad 3D: después del carril Ciudad (Q1d a Q1f).
 - ✅ Q5 **Barrios con servicios** (12/11): cada ciudad tiene nivel de barrio 1 a 4 (Aldea, Villa, Ciudad, Urbs) según grano, templo, agua, ocio, termas y lujo; sube un nivel al cerrar el mes y baja con 3 meses de retraso; da más población máxima (hasta ×1,8) y, en Urbs, +15 % de impuestos. Ficha «Barrio» con seis iconos y consejo («Para ser Villa falta un Templo»). Parte `partes/2026-11-12-Q5.md`.
-- ⬜ Q11 **Ciudad viva: luz y humo** espera al carril Ciudad (toca `js/gfx/city3d.js`).
+- ✅ Q11 **Ciudad viva: luz y antorchas** (12/11): luz, niebla y cielo por estación con transición suave, tarde dorada, sombras solo al cambiar de estación, antorchas en foro y puertas. Parte `2026-11-12-Q11.md`.
 - ✅ Q6 **Tres clases y lo que piden** (12/11): ciudadanos, plebeyos y esclavos por ciudad, cada clase con su ánimo; esclavos por conquista (trabajan más, no pagan) y manumisión mensual; «Dar ciudadanía» (60 denarios, +10). Bloque «Clases» en la ficha. Parte `partes/2026-11-12-Q6.md`.
 - ✅ Q7 **Senado y pueblo** (12/11): dos barras de favor, una misión del Senado a la vez (11 misiones con fuente), pantalla «Senado» en Imperio; con poco favor niega tratados ajenos y levas extra. `G.MISION_TIPOS` abierto para CN5.
 - ⬜ Q8 en adelante **aprobadas enteras** (P75, 12/11): Foro (decisiones al mes), provincias y edictos. Detalle en `estudios/Q1-ciudad-gobierno-economia.md` §8.
@@ -144,7 +145,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ⬜ CN8 **Sucesos** (0,8 M): crecida, incendio y hambre con su aviso y su remedio.
 - ⬜ CN9 **Roma, Capua, conquistadas y enemigas** (1,5 M): plantillas por cultura y tamaño; el enemigo coloca solo (funde Q1h).
 - ⬜ CN10 **Edificios de época y revisión** (1,2 M): fuera anfiteatro, termas y arcos; citas cotejadas (funde Q1g y Q1j).
-- ⬜ CN11 **Vida y peso** (1,0 M): gente, humo, carros; guarnición ligera con la figura de lejos (P79); medir triángulos (funde Q1i).
+- ✅ CN11 **Vida y peso** (12/11): gente, humo y fuego, carros, pozo, guarnición ligera (P79); Roma bajo 300 mil triángulos. Parte en `gobierno/partes/2026-11-12-CN11.md`.
 - ⬜ (en pausa: espera a CN8 y al carril Guerra) CN12 **Asedio en tu propia muralla** (P89, ≈3 M): el sitio y la muralla que colocaste son el campo de batalla. Une ciudad y batalla (CLAUDE.md §2): el usuario dijo «Sí» el 12/11. Toca `js/battle.js` y la ciudad. Alcance en `estudios/Q1l-competencia.md` (palanca 10) y `Q1l-lluvia-de-ideas.md` (paquete E).
 - ⬜ CN13 **Lo que sobra se gasta y sucesos que se juegan** (P83, ≈1,5 M): arca del foro, ofrendas y juegos, tejas, cubos contra el fuego, marca de la crecida y dique, hambre que se ve. Tras CN8.
 - ⬜ CN14 **Colocar con número vivo, asesor y dificultad** (P84, ≈1 M): «+14 casas con agua» que cambia al mover la pieza; asesor que enseña una cosa cada vez; sucesos apagables y tres dificultades. Tras CN4 y CN8.
@@ -190,6 +191,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ✅ H12 Capua se rebela en 216 si no tiene 150 hombres (Livio 23.2-7; la regla es licencia de juego).
 - ✅ H13 Pirro ataca en 280 (llega a los 56 meses; licencia de juego). Bot 10/10 y 0/10.
 - ✅ H14 «Poblado íbero» hasta 228 en el mapa y la Crónica; luego Carthago Nova.
+- ✅ H13b Pirro llega a los 32 y 42 meses en dos oleadas menores, y Roma empieza con +30 hastati y +20 velites (licencia de juego). Bot 10/10 y 0/10 en las dos regiones.
 
 ## Carril D — Técnica
 - ✅ D1 Fluidez medida en el móvil del usuario (11/11): menú, ciudad, calles y ejército a unas 60 imágenes por segundo (peor momento 22 a 28). Mapa y batalla grande, sin medir; el usuario no quiere medir más.
