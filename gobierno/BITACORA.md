@@ -109,8 +109,10 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
+- **P93, el edificio de ciencia**: ¿qué produce (más madera/hierro de ese bien, o un bien nuevo) y qué mejora lo abre? Respuesta en una línea; si no, propongo: el bien de la ciudad sube un nivel de producción y se abre con la mejora «Artesanos» de I5.
 
 ## Propuestas por aprobar
+- P93 **Edificio de ciencia que se desbloquea** (pedido del 12/11): al investigar una mejora (I5 Investigación y edades) se abre un edificio especial; allí se pueden destinar ciudadanos a trabajar. Hay que fijar con el usuario qué ciencia lo abre y qué produce (ver pregunta abajo). Toca `js/game.js` y `js/data.js`: va con el carril Ciudad.
 
 
 ## Encargo en curso (11/11/2026, noche)
@@ -187,3 +189,4 @@ Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que 
 - 11/11/2026 — **I2 hecha** (sin decisión del usuario pendiente salvo): el año empieza en Ianuarius = Invierno (primer turno invierno de 280); los refuerzos de guarnición rivales por turno son algo más rápidos en guarniciones pequeñas; al ir a ×4 la estación puede cerrarse sola. Falta dibujar en el mapa la marca de la marcha rival que llega el próximo turno. Encargo recomendado: J7 (ciudad) o N1b/N2 sobre la pieza `G.pasarTurno`.
 
 - 12/11/2026 · H11a hecha (cotejo en `estudios/H11-cotejo.md`). Sigue **H11b** (aplicar en `js/registro.js`, con la ola 3). Pregunta para el usuario: la madera naval la dan Siracusa y Panormus sin fuente; ¿licencia de juego, o pasarla a ciudades etruscas (Livio 28.45)?
+- 12/11/2026 — **Madera naval y ciencia** (respuesta a la pregunta de H11a): «Pasa a ciudades etruscas, pero también que puedas mejorar gracias a la ciencia, con un edificio especial que desbloqueas, con el que puedes mover a ciudadanos a trabajar ahí». (Lectura de Claude: la madera naval pasa a Perusia, Clusio y Rusellae, con Livio 28.45; va dentro de H11b. Lo del edificio especial es una idea nueva: P93, por aprobar.)
