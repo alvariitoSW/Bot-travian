@@ -16,6 +16,8 @@ import { fileURLToPath } from 'node:url';
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const [pref = 'ciudad', ...resto] = process.argv.slice(2), op = Object.fromEntries(resto.map(a => a.split('=')));
 const vistas = (op.vistas || 'bandeja,fantasma,rojo,ficha,obra').split(','), ciudad = op.ciudad || 'roma', dpr = +(op.dpr || 2);
+const LUZ_ESTACIONAL = true;          // Q11: false = sin mes= ni vistas de luz (la ciudad usa la luz de siempre)
+const ponerFecha = (mes, frac) => page.evaluate(([m, f]) => { Game.state.speed = 0; Game.state.t = 24 + (m - 1) + f; }, [mes, frac]);     // inversa de G.estacion: enero = invierno, 3 meses por turno
 const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream' };
 const srv = createServer(async (q, r) => { try { let p = decodeURIComponent(q.url.split('?')[0]); if (p === '/') p = '/index.html'; if (p.includes('..')) throw 0; const d = await readFile(join(RAIZ, p)); r.writeHead(200, { 'content-type': TIPOS[extname(p)] || 'application/octet-stream', 'cache-control': 'no-store' }); r.end(d); } catch (e) { r.writeHead(404); r.end(); } });
 await new Promise(ok => srv.listen(0, '127.0.0.1', ok));
@@ -42,6 +44,12 @@ const elegirFicha = async id => { await page.evaluate(() => { const n = document
 const sitioVerde = async pz => { const p = await page.evaluate(pz => { const id = UI.city, E = Game.ciudadE(id); let m = null; for (let x = E.foro.x - 250; x <= E.foro.x + 250; x += 10) for (let z = E.foro.z - 250; z <= E.foro.z + 250; z += 10) { const n = Game.notaSitio(id, pz, x, z); if (n && n.vale && (!m || n.nota > m.n)) m = { n: n.nota, x, z }; } if (!m) return null; UI.cityV.mirar(m.x, m.z, 300, 0); return { x: m.x, z: m.z }; }, pz); if (!p) return false; for (let k = 0; k < 4; k++) { await page.waitForTimeout(1500); const q = await page.evaluate(m => UI.cityV.aPantalla(m.x, m.z, 0), p); await page.touchscreen.tap(q.x, q.y); await page.waitForTimeout(900); if (await page.evaluate(() => !document.getElementById('b-si').disabled)) break; } return true; };
 const tocaPieza = async () => { for (let k = 0; k < 4; k++) { const e = await page.evaluate(() => { const E = Game.ciudadE(UI.city), e = E.edificios.find(q => !q.obra && !q.ruina && DATA.BUILD[q.tipo] && q.x !== undefined); if (!e) return null; UI.cityV.mirar(e.x, e.z, 260, 0); return { x: e.x, z: e.z, t: e.tipo }; }); if (!e) return ''; await page.waitForTimeout(2500); const p = await page.evaluate(e => UI.cityV.aPantalla(e.x, e.z, 4), e); await page.touchscreen.tap(p.x, p.y); await page.waitForTimeout(900); if (await page.evaluate(() => !!document.querySelector('#fichab .ficha'))) return e.t; } return ''; };
 const PASOS = {
+  // --- Q11: luz por estación y antorchas (reloj en pausa; t se fija a mano) ---
+  estaciones: async () => { await page.evaluate(() => { const E = Game.ciudadE(UI.city); UI.cityV.view('ciudad'); UI.cityV.mirar(E.foro.x, E.foro.z, 330, 0.5); }); const out = [], M = await page.evaluate(async () => await import('/js/gfx/city3d.js').then(m => m.medidas.sombras));
+    for (const [n, mes] of [['primavera', 5], ['verano', 8], ['otono', 11], ['invierno', 2]]) { await ponerFecha(mes, 0.3); await page.waitForTimeout(2500);
+      await page.screenshot({ path: join(RAIZ, 'gobierno/capturas-tarea', pref + '-estaciones-' + n + '.jpg'), type: 'jpeg', quality: 84, timeout: 180000 }); out.push(n + ' ' + await medir()); }
+    const M2 = await page.evaluate(async () => await import('/js/gfx/city3d.js').then(m => m.medidas.sombras)); return out.join(' | ') + ' · cálculos de sombra en las 4 estaciones: ' + (M2 - M); },
+  atardecer: async () => { await ponerFecha(8, 0.95); await page.evaluate(() => { const E = Game.ciudadE(UI.city); UI.cityV.view('ciudad'); UI.cityV.mirar(E.foro.x, E.foro.z, 150, 0.45); }); await page.waitForTimeout(1500); return 'verano, fracción 0,95 del mes'; },
   // --- CN4: bandeja, fantasma, ficha y obra (todo tocando la pantalla como un dedo) ---
   bandeja: async () => { await page.evaluate(() => { const s = Game.state; for (const r of DATA.RES) { s.res[r] = 1e4; s.alm[r] = Math.max(s.alm[r] || 0, 1e4); } UI.cityV.view('ciudad'); }); await page.waitForTimeout(1500); return 'bandeja: ' + await page.evaluate(() => document.querySelectorAll('.pza').length + ' fichas'); },
   fantasma: async () => { await elegirFicha('granja'); const ok = await sitioVerde('granja'); return 'ficha granja · ' + (ok ? 'fantasma en sitio verde' : 'sin sitio verde') + ' · ' + await lineaTxt(); },
@@ -91,6 +99,8 @@ if (op.medida) {
     console.log('Roma con ' + E + (guar ? ' CON guarnición: ' : ' SIN guarnición: ') + await medir()); }
   await page.evaluate(() => { const c = Game.state.cities.roma; for (const k in window.__u) c.units[k] = window.__u[k]; });
 }
+if (op.mes && LUZ_ESTACIONAL) await ponerFecha(+op.mes, +(op.frac || 0));
+if (op.sombras30) { const r = await page.evaluate(async () => { const M = await import('/js/gfx/city3d.js'), a = M.medidas.sombras; Game.state.speed = 1; await new Promise(r => setTimeout(r, 30000)); const b = M.medidas.sombras; Game.state.speed = 0; return { pedidas: b - a, t: Game.state.t }; }); console.log('Sombras pedidas en 30 s con el reloj en marcha: ' + r.pedidas + ' (t=' + r.t.toFixed(2) + ')'); }
 for (const v of vistas) {
   let nota = '';
   if (PASOS[v]) nota = (await PASOS[v]()) || '';
@@ -101,6 +111,7 @@ for (const v of vistas) {
     else if (v === 'lejos') { V.view('ciudad'); V.c.dist *= 2.2; }
     else if (v === 'toque' || v === 'ciudad' || v === 'meses24' || v === 'capua') V.view('ciudad');
     else if (v === 'calle' || v === 'ejercito') V.view(v); }, v);
+  if (v === 'estaciones') { console.log(nota); continue; }
   await page.waitForTimeout(v === 'grande' ? 9000 : 4500);
   if (v === 'toque') { const t = await tocaPieza(); if (t) nota = ' · ficha de ' + t; else { const g = await page.evaluate(() => { const E = Game.ciudadE(UI.city), V = UI.cityV; V.mirar(E.foro.x + 60, E.foro.z + 60, 260, 0); return 1; }); await page.waitForTimeout(2500); await page.touchscreen.tap(195, 420); await page.waitForTimeout(900); nota = ' · toque en el suelo: ' + await lineaTxt(); } }
   const f = join(RAIZ, 'gobierno/capturas-tarea', pref + '-' + v + '.jpg');

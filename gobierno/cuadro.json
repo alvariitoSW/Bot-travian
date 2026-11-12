@@ -875,6 +875,26 @@
    "tarea": "CN11",
    "archivo": "gobierno/capturas-tarea/CN11-ejercito.jpg",
    "pie": "Guarnición a tamaño real (cajas de lejos)"
+  },
+  {
+   "tarea": "Q11",
+   "archivo": "gobierno/capturas-tarea/Q11-estaciones-primavera.jpg",
+   "pie": "Roma en primavera"
+  },
+  {
+   "tarea": "Q11",
+   "archivo": "gobierno/capturas-tarea/Q11-estaciones-otono.jpg",
+   "pie": "Roma en otoño"
+  },
+  {
+   "tarea": "Q11",
+   "archivo": "gobierno/capturas-tarea/Q11-estaciones-invierno.jpg",
+   "pie": "Roma en invierno"
+  },
+  {
+   "tarea": "Q11",
+   "archivo": "gobierno/capturas-tarea/Q11-atardecer.jpg",
+   "pie": "Atardecer con antorchas en el foro"
   }
  ],
  "informes": [
@@ -993,12 +1013,6 @@
    "titulo": "Concurso · K6 Arte de batalla y tropas",
    "nota": "solo maquetas",
    "url": "https://claude.ai/code/session_01QiKC37tiobNBApd9bhi8N3"
-  },
-  {
-   "tarea": "Q11",
-   "titulo": "Ciudad nueva · Q11 Luz y antorchas",
-   "nota": "js/gfx/city3d.js, ground.js (ola 6, solo dibujo)",
-   "url": "https://claude.ai/code/session_01QiKC36LNr8HcWzwCPQkJgL"
   },
   {
    "tarea": "I5",
