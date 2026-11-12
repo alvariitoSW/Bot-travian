@@ -738,6 +738,12 @@
     anibal1: function (s) {
       spawn('cartago', null, D.proj(6.9, 45.1), firstMine(['mediolanum', 'volsinii', 'roma']), { libios: 240, iberos: 160, galos: 160, numidas: 120, elefantes: 12 }, { n: 'Aníbal Barca', mando: 6, disc: 4 }, 18, 'Aníbal');
     },
+    // 216 (Livio 23.2-7: Capua se pasa a Aníbal). Licencia de juego: si es tuya y tiene menos de D.CAPUA_LEALTAD.hombres, se pasa; si no, resiste
+    capuaSePasa: function (s) {
+      const c = s.cities.capua; if (!c || c.owner !== 'roma') return;
+      if (G.men(c.units) >= D.CAPUA_LEALTAD.hombres) { G.log('🛡️ Capua, bien guarnecida, resiste a Aníbal y sigue de tu lado.', 'good'); return; }
+      rebelion('capua', 'cartago', '🔥 Capua, mal guarnecida, se pasa a Aníbal. Con ' + D.CAPUA_LEALTAD.hombres + ' hombres de guarnición habría resistido.');
+    },
     anibal2: function (s) {
       spawn('cartago', null, D.proj(16.1, 41.3), firstMine(['capua', 'tarentum', 'roma']), { libios: 280, iberos: 200, galos: 200, numidas: 160 }, { n: 'Aníbal Barca', mando: 6, disc: 4 }, 16, 'Aníbal');
     },
@@ -753,7 +759,7 @@
       if (s.ev[i] || year > ev.y) return;
       s.ev[i] = 1;
       if (hechos && hechos.indexOf(ev.y) < 0) return;   // hecho de otra región: se marca y no ocurre
-      if (ev.fx && FX[ev.fx]) FX[ev.fx](s);
+      if (ev.fx) ev.fx.split(',').forEach(k => { if (FX[k]) FX[k](s); });   // fx puede ser una lista separada por comas; se aplican en orden
       G.log('📜 ' + ev.y + ' a.C. — ' + ev.t, 'hist');
       emit('event', ev);
     });
@@ -985,11 +991,12 @@
 
   const keep = (surv, lost, f, g) => { const o = {}; for (const k in surv) { if (k === 'vigiles') continue; const n = Math.floor(surv[k] * f + (lost[k] || 0) * g); if (n > 0) o[k] = n; } return o; };
 
-  function rebelion(id) {
-    const s = G.state, c = s.cities[id], f = c.prev && D.FACTIONS[c.prev] && c.prev !== 'roma' ? c.prev : D.CITIES[id].f;
+  // Una ciudad tuya pasa a otro dueño. Sin f: vuelve a su dueño anterior (inquietud). Con f y texto: rebelión de un hecho (Capua, 216)
+  function rebelion(id, fijo, texto) {
+    const s = G.state, c = s.cities[id], f = fijo || (c.prev && D.FACTIONS[c.prev] && c.prev !== 'roma' ? c.prev : D.CITIES[id].f);
     soltarCiudad(c); c.owner = f; c.inq = 0; c.queue = null; c.train = []; c.units = Object.assign({}, G.guarnicionBase(id, f) || {});
     if (s.hero.city === id) { s.hero.city = 'roma'; s.hero.march = null; }
-    G.log('🔥 ¡' + D.CITIES[id].n + ' se rebela y vuelve a ' + D.FACTIONS[f].n + '! Un templo y una felicidad alta habrían calmado la ciudad.', 'bad'); emit('dirty');
+    G.log(texto || '🔥 ¡' + D.CITIES[id].n + ' se rebela y vuelve a ' + D.FACTIONS[f].n + '! Un templo y una felicidad alta habrían calmado la ciudad.', 'bad'); G.rutasRevisar(); emit('dirty');
   }
   G.applyBattle = function (res) {
     const s = G.state, pb = s.pending.shift(), m = pb.m, cid = m.to, c = s.cities[cid], d = D.CITIES[cid], h = s.hero;

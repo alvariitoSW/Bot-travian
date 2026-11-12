@@ -1351,4 +1351,22 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   global.localStorage = { _: null, getItem() { return this._; }, setItem(k, x) { this._ = x; }, removeItem() {} }; localStorage.setItem('aqvila-save-v1', JSON.stringify(v));
   assert(G.load()); G.tick(0.25); assert(!G.state.marches.some(m => m.label === 'Pirro'), 'una partida vieja no lanza a Pirro de golpe'); delete global.localStorage; }
 
+// ---- H12 Capua se pasa a Aníbal en 216 si no está guarnecida (Livio 23.2-7; el umbral es licencia de juego) ----
+{ assert.strictEqual(D.CAPUA_LEALTAD.hombres, 150); const e216 = D.EVENTS.find(e => e.y === 216); assert(e216.fx.split(',')[0] === 'capuaSePasa' && e216.fx.split(',')[1] === 'anibal2' && e216.lic);
+  const a216 = (hombres, dueno, region) => { const s = G.newGame('C', region); s.marches = []; s.res.grano = 1e6; const c = s.cities.capua; if (dueno) c.owner = dueno; c.units = hombres ? { hastati: hombres } : {}; c.train = []; c.queue = null; s.hero.city = 'capua'; s.pending = []; s.t = (280 - 216) * 12 - 0.5; G.tick(1); return s; };
+  const mock = () => { global.localStorage = { _: null, getItem() { return this._; }, setItem(k, x) { this._ = x; }, removeItem() {} }; };
+  { const s = a216(0), c = s.cities.capua;   // (a) sin hombres: se pasa
+    assert.strictEqual(G.yearOf(s.t), 216); assert.strictEqual(c.owner, 'cartago'); assert.deepStrictEqual(c.units, D.CITIES.capua.post.cartago); assert(!c.queue && c.train.length === 0);
+    assert.strictEqual(G.ciudadE('capua'), null); assert(!G.myCities().includes('capua')); assert(!c.ciudad); assert.strictEqual(s.hero.city, 'roma');
+    assert(s.log.some(l => /Capua, mal guarnecida, se pasa a Aníbal/.test(l.x || l.t || JSON.stringify(l))));
+    assert(s.marches.some(m => m.label === 'Aníbal'), 'anibal2 sigue lanzándose');
+    mock(); G.save(); assert(G.load()); assert.strictEqual(G.state.cities.capua.owner, 'cartago'); assert.strictEqual(G.ciudadE('capua'), null); G.tick(1); delete global.localStorage; }   // (d)
+  { const s = a216(150), c = s.cities.capua;   // (b) con 150: resiste
+    assert.strictEqual(c.owner, 'roma'); assert(s.log.some(l => /bien guarnecida, resiste a Aníbal/.test(JSON.stringify(l)))); }
+  { const s = a216(149); assert.strictEqual(s.cities.capua.owner, 'cartago', '149 no basta'); }
+  { const s = a216(0, 'campanos'); assert.strictEqual(s.cities.capua.owner, 'campanos'); assert(!s.log.some(l => /Capua, mal guarnecida|bien guarnecida/.test(JSON.stringify(l)))); }   // (c) ajena
+  { assert(!D.REGIONES.italia.hechos.includes(216)); const s = G.newGame('I', 'italia'); s.marches = []; s.cities.capua.units = {}; s.t = (280 - 231) * 12 - 0.5; G.tick(1);   // (e) Italia no la toca
+    assert.strictEqual(s.cities.capua.owner, 'roma'); }
+}
+
 console.log('OK — todas las pruebas superadas');
