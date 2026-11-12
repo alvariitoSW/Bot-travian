@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 12/11/2026 — **Inicio de partida y mejoras de la ciudad nueva** (preguntado en el chat, con fotos de la maqueta): cómo empieza la partida, «A · Dos modos»; mejoras, marcó todas («P83 + P84», «P85 + P87», «P86 + P91», «P88 + P90»); cómo, «Juego, tras CN». (Lectura de Claude: al empezar se elige «Roma y Capua en pie» o «Fundar de la nada»; las plantillas de Roma y Capua las pone CN9. P83 a P88, P90 y P91 aprobadas: pasan al tablero como CN13 a CN20, detrás de CN2 a CN11, sin maqueta previa. P85 no repite lo que ya hacen CN11 y Q11.)
 - 12/11/2026 — **Plan de olas, cuatro preguntas** (respondidas en el chat, todas «Recomendado»): (1) arte: CN3 crea el paso fijo «piezas propias» en `tools/build_static_all.sh` con la lista `tools/piezas_maqueta.txt`; CN9 y CN11 solo añaden nombres; (2) cada cosa que se dibuja tiene un solo dueño, tal cual `gobierno/olas-21.md`; (3) CN2 y C2b corren a la vez con la regla de unión (g); (4) I5 no pide acueducto, termas, anfiteatro ni vigiles (CN10 los quita). Tiempo estimado: 10 a 16 horas de reloj, no hoy.
 - 12/11/2026 — **Aprobó 19 tareas a la vez y pidió hacerlas «con Sonnet 5.5 ultracode, bien y rápido»** (desde el cuadro: Abrir sesión en K3, I5, I6, I8, Q4b, Q7, Q11, C2b y CN2 a CN12; él decía «casi 21»). Pidió también refrescar «Sesiones abiertas» y cerrar las acabadas (hecho: CN1, N6 y N5), sin tocar sesiones de otros proyectos. (Lectura de Claude: no se abren a la vez porque chocan en `js/game.js`, `js/data.js`, `js/ui.js` y `js/gfx/city3d.js`; un reconocimiento de solo lectura las ordenó en 12 olas, en `gobierno/olas-21.md`. K3 no es obra: queda repartida. CN12 e I8 esperan respuestas suyas.)
 - 12/11/2026 — **Mapa más grande y completo** (mensaje durante C2b): «Haz más ciudades y mejoras del relieve, mapa más grande y completo, con partes de mar, río y montaña». (Lectura de Claude: «más ciudades y mapa más grande» ya es J4 (aprobada, tras J3). Lo nuevo, ríos principales, lagos y más variedad de relieve, queda como P92 por aprobar. No se hizo nada de esto en C2b.)
@@ -106,20 +107,9 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-- **Ciudad nueva: cómo empieza la partida** (dijiste «Ambas opciones»): ¿cómo se combinan? (A) las dos son modos de partida distintos: «Roma y Capua en pie» y «Fundar de la nada»; (B) solo Roma y Capua en pie; (C) solo fundar de la nada.
-- **P83 a P91 (mejoras)**: cuáles te gustan y si se prueban antes en la maqueta o se meten con P80.
 
 ## Propuestas por aprobar
 - P92 **Ríos, lagos y relieve variado en el mapa** (pedido del 12/11; ≈1 M): Po, Tíber, Ebro, Ródano, Nilo-delta, Danubio como cintas de agua sobre el relieve real; lagos; más tipos de terreno (llanura, estepa, desierto del Atlas). Va después de J4 (si no, se regenera el marco dos veces). Los datos de altura se rehacen con `assets/mapa/generar-alturas.py`.
-Mejoras de la ciudad nueva (Q1l, 12/11): detalle en `estudios/Q1l-lluvia-de-ideas.md` y `estudios/Q1l-competencia.md`. Cifras a ojo. Las pequeñas se pueden probar primero en la maqueta `ciudad3/`.
-- P83 **Lo que sobra se gasta y sucesos que se juegan** (paquetes A y B; ≈1,5 M): arca del foro, ofrendas y juegos, tejas, cubos contra el fuego, marca de la crecida y dique, hambre que se ve.
-- P84 **Colocar con número vivo, asesor y dificultad** (competencia 1, 3 y 4; ≈1 M): «+14 casas con agua» que cambia al mover la pieza; un asesor que enseña una cosa cada vez; sucesos apagables y tres dificultades.
-- P85 **Ciudad viva** (paquete C; funde Q1i y Q11; ≈1,5 M): estaciones y luz, andamios, fachadas ricas y pobres, carros y recuas, sonido.
-- P86 **El ejército vive en la ciudad** (paquete D; ≈1,5 M): campo de Marte, leva en el foro, guarnición en torres, cerrar puertas, veteranos que se asientan, triunfo.
-- P87 **Barrios con carácter, encargos e hitos** (paquete F y competencia 2 y 9; ≈1,5 M): barrios con nombre propio, plaza en los cruces, encargos cortos del Senado siempre activos, hitos que abren algo nuevo.
-- P88 **Hecho para el móvil** (paquete I y competencia 5, 6 y 7; ≈1,5 M): postal y crónica de la ciudad, modo contemplar, punto de parada, copia de la partida en un archivo, partida corta con nota (enlaza con I8).
-- P90 **Más terrenos donde fundar** (paquete G; grande, ≈2,5 M): costa con salinas, pantano, terrazas, llanura.
-- P91 **La historia llega a tu ciudad** (paquete H; ≈1,5 M más fichas): Pirro, Aníbal, la Gran Madre, auspicios, fiestas. Cada hecho con su ficha antes de entrar.
 
 
 ## Encargo en curso (11/11/2026, noche)
