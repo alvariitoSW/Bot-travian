@@ -226,10 +226,10 @@
   ];
   D.LABELS = [['HISPANIA', -3.5, 40.5], ['GALLIA', 3, 45.5], ['ITALIA', 13.2, 42.9], ['AFRICA', 5, 35.6], ['GRAECIA', 21.6, 38.9], ['MACEDONIA', 22, 41.6], ['ILLYRICVM', 17.5, 44.2], ['MARE NOSTRVM', 6, 38.6], ['SICILIA', 14.2, 37.7]];
 
-  // Hechos históricos. fx: clave interpretada por game.js
+  // Hechos históricos. fx: clave interpretada por game.js (o varias separadas por comas, en ese orden). k: clave opcional para distinguir dos hechos del mismo año (id de ficha «<año>-<k>»)
   D.EVENTS = [
-    { y: 280, t: 'Ab urbe condita CDLXXIV', x: 'Año 280 a.C. Roma domina el Lacio, pero el Mediterráneo pertenece a otros: Cartago reina en el mar, los griegos en el sur y los galos acechan en el norte. El rey Pirro de Epiro acaba de desembarcar en Tarento con 25.000 hombres y veinte elefantes.\n\nTu misión: llevar las águilas hasta Cartago y destruirla antes de que termine el año 146 a.C. Si Roma cae, todo estará perdido.' },
-    { y: 277, t: 'Pirro marcha sobre Roma', x: 'En 280 a.C., tras vencer en Heraclea, Pirro avanzó hacia el norte hasta unos 300 estadios de Roma, unos 55 km según Plutarco (hasta Anagnia, según Apiano), y luego se retiró a Campania. Al año siguiente venció de nuevo en Ásculo, a gran coste: «otra victoria así y estaré perdido». Los romanos jamás habían visto elefantes: los llaman «bueyes lucanos».\n\nUn ejército epirota se dirige a tus tierras. ¡Prepara las defensas!', lic: 'La marcha fue en 280; en el juego el ataque llega en 277 para dar tiempo a prepararse', fx: 'pirro' },
+    { y: 280, k: 'fundacion', t: 'Ab urbe condita CDLXXIV', x: 'Año 280 a.C. Roma domina el Lacio, pero el Mediterráneo pertenece a otros: Cartago reina en el mar, los griegos en el sur y los galos acechan en el norte. El rey Pirro de Epiro acaba de desembarcar en Tarento con 25.000 hombres y veinte elefantes.\n\nTu misión: llevar las águilas hasta Cartago y destruirla antes de que termine el año 146 a.C. Si Roma cae, todo estará perdido.' },
+    { y: 280, k: 'pirro', t: 'Pirro marcha sobre Roma', x: 'En 280 a.C., tras vencer en Heraclea, Pirro avanzó hacia el norte hasta unos 300 estadios de Roma, unos 55 km según Plutarco (hasta Anagnia, según Apiano), y luego se retiró a Campania. Al año siguiente venció de nuevo en Ásculo, a gran coste: «otra victoria así y estaré perdido». Los romanos jamás habían visto elefantes: los llaman «bueyes lucanos».\n\nUn ejército epirota se dirige a tus tierras. ¡Prepara las defensas!', lic: 'Que el ejército de Pirro ataque tus ciudades y el plazo que tarda en llegar son regla de juego, no historia', fx: 'pirro' },
     { y: 275, t: 'Benevento', x: 'El cónsul Manio Curio Dentato vence a Pirro en Benevento. El rey renuncia a Italia y vuelve al Epiro con 8.000 infantes y 500 jinetes, según Plutarco.\n\nLa guerra contra Pirro ha terminado.' },
     { y: 272, t: 'La caída de Tarento', x: 'Tarento, la ciudad que había llamado a Pirro, se rinde a Roma este año. Con ello toda la Italia peninsular queda bajo control romano.' , lic: 'Que el ejército de Pirro se retire de tu mapa es regla de juego, no historia', fx: 'pirroSeVa'},
     { y: 264, t: 'Primera Guerra Púnica', x: 'Los mamertinos de Messana, amenazados por Siracusa y Cartago, piden ayuda a Roma. El Senado cruza el estrecho: comienza una guerra de 23 años por Sicilia.\n\nDesde ahora las guarniciones cartaginesas atacarán tus ciudades vecinas.', lic: 'Año aproximado: Agrigentum pasa a Cartago hacia 262; los ataques púnicos son regla de juego', fx: 'agrigentoPunica' },
@@ -268,7 +268,7 @@
     },
     italia: {
       n: 'Italia', ciudades: ['roma', 'capua', 'volsinii', 'mediolanum', 'tarentum', 'messana', 'syracusae'],
-      hechos: [280, 277, 275, 272, 264, 225], capitalRival: 'tarentum', hasta: 230,
+      hechos: [280, 275, 272, 264, 225], capitalRival: 'tarentum', hasta: 230,
       final: { gana: 'Tarento ha caído en {anio} a.C. Toda la Italia peninsular reconoce a Roma: el Sur ya no tiene rey.', agota: 'Ha pasado el año 230 a.C. y Tarento sigue libre. Roma no domina la península.' },
       camara: { lon: 13.4, lat: 40.2, zoom: 3.2 }
     }

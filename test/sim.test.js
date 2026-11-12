@@ -313,7 +313,7 @@ assert(G.myCities().length >= 3, 'un bot agresivo debe poder conquistar ciudades
   assert(ri.agr.some(s => /Tarento/.test(s.over.why)) || gi === 0, 'el texto de victoria es el de la región');
   assert(ri.pas.every(s => /230/.test(s.over.why) || !s.over.win)); }
 // I6: una región inventada solo con datos se juega sin tocar código
-{ D.REGIONES.prueba = { n: 'Prueba', ciudades: ['roma', 'capua', 'tarentum', 'messana'], hechos: [280, 277], capitalRival: 'messana', hasta: 250, final: { gana: 'Messana cae en {anio}.', agota: 'Se acabó el plazo.' }, camara: { lon: 14, lat: 40, zoom: 2 } };
+{ D.REGIONES.prueba = { n: 'Prueba', ciudades: ['roma', 'capua', 'tarentum', 'messana'], hechos: [280, 275], capitalRival: 'messana', hasta: 250, final: { gana: 'Messana cae en {anio}.', agota: 'Se acabó el plazo.' }, camara: { lon: 14, lat: 40, zoom: 2 } };
   try {
     assert.deepStrictEqual(D.regionCiudades('prueba'), ['roma', 'capua', 'tarentum', 'messana']); assert(D.regionEdges('prueba').every(e => D.regionCiudades('prueba').includes(e[0]) && D.regionCiudades('prueba').includes(e[1])));
     const s0 = G.newGame('P', 'prueba'); assert.strictEqual(G.regionId(), 'prueba'); assert.deepStrictEqual(Object.keys(s0.cities).sort(), ['capua', 'messana', 'roma', 'tarentum']); assert(!G.edge('roma', 'volsinii'));
@@ -457,7 +457,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   assert.strictEqual(s.cities.agrigentum.owner, 'akragas'); assert.strictEqual(s.cities.corinthus.owner, 'macedonia');
   assert.strictEqual(s.cities.capua.owner, 'roma'); assert.strictEqual(s.cities.messana.owner, 'mamertinos');
   for (const id in s.cities) assert(D.FACTIONS[s.cities[id].owner], 'dueño inexistente en ' + id);
-  s.t = (280 - 264) * 12 - 0.5; G.tick(1);
+  s.t = (280 - 264) * 12 - 0.5; s.marches = []; G.tick(1);   // sin la marcha de Pirro, que llega antes y abriría una batalla
   assert.strictEqual(s.cities.agrigentum.owner, 'cartago', 'en 264 Agrigentum pasa a Cartago'); assert.strictEqual(s.cities.agrigentum.units.libios, 140);
   assert.strictEqual(s.cities.corinthus.owner, 'macedonia');
   s.t = (280 - 243) * 12 - 0.5; s.pending = []; s.marches = []; G.tick(1);
@@ -514,7 +514,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
     assert(f.t && f.x.length >= 40 && f.x.length <= 420, 'Códice: texto fuera de 40-420 en ' + f.id + ' (' + f.x.length + ')'); });
   Object.keys(D.UNITS).forEach(k => assert.strictEqual(CO.tropas.find(f => f.id === k).t, D.UNITS[k].n, 'Códice: nombre de ' + k));
   Object.keys(D.CITIES).forEach(k => assert.strictEqual(CO.ciudades.find(f => f.id === k).t, D.CITIES[k].n, 'Códice: nombre de ' + k));
-  D.EVENTS.forEach(e => assert.strictEqual(CO.hechos.find(f => f.id === String(e.y)).t, e.t, 'Códice: título de ' + e.y)); }
+  D.EVENTS.forEach(e => assert(CO.hechos.some(f => f.id === String(e.y) && f.t === e.t), 'Códice: título de ' + e.y)); }
 
 // ---- I4 Solares y tipos de ciudad ----
 { const urb = Object.keys(D.BUILD).filter(b => D.BUILD[b].solar);
@@ -583,7 +583,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   c.imp = 'alto'; c.b.templo = 0; assert(G.felicidad(c) < D.INQ_REBELION); c.inq = D.INQ_MESES; G.tick(0.25); assert(c.owner !== 'roma' && c.inq === 0, 'con felicidad baja la ciudad conquistada se rebela'); }
 { const s = G.newGame('Vieja5'); s.cities.roma.b.templo = 2; delete s.cities.roma.dios; delete s.cities.roma.inq; delete s.evN; localStorage.setItem('aqvila-save-v1', JSON.stringify(s)); assert(G.load()); assert(G.state.cities.roma.dios === 'marte' && G.state.cities.roma.inq === 0, 'migración del templo antiguo'); }
 // ---- B7 Saqueo ----
-{ const s = G.newGame('Saqueo'); const o = 'volsinii', c = s.cities[o]; s.res = { madera: 100, piedra: 100, hierro: 100, grano: 100, oro: 100 };
+{ const s = G.newGame('Saqueo'); s.marches = []; const o = 'volsinii', c = s.cities[o]; s.res = { madera: 100, piedra: 100, hierro: 100, grano: 100, oro: 100 };
   const b1 = G.botin(o); assert(b1.madera > 0 && b1.oro < b1.madera, 'botín con oro al 60 %'); c.b.muralla = 3; assert(G.botin(o).madera < b1.madera, 'la muralla recorta el botín'); c.b.muralla = 0; c.b.almacen += 2; assert(G.botin(o).madera > b1.madera, 'el almacén ajeno lo sube');
   s.cities.roma.units = { hastati: 60 }; assert(G.send('roma', o, { hastati: 40 }, false, 'saqueo')); assert(s.marches[0].mision === 'saqueo'); const r = G.send('roma', 'capua', { hastati: 5 }, false, 'saqueo'); assert(r && !s.marches[1].mision, 'no se saquea una ciudad propia');
   s.pending.push({ kind: 'attack', m: s.marches.shift() }); const res = { winner: 0, dead: [5, 20], surv: [{ hastati: 35 }, {}], lost: [{ hastati: 5 }, { hastati: 20 }], genDead: [false, false] };
@@ -1340,5 +1340,15 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   assert.strictEqual(So.etiqueta({ x: 100 }, 1000), 'ala izquierda'); assert.strictEqual(So.etiqueta({ x: 500 }, 1000), 'choque del centro'); assert.strictEqual(So.etiqueta({ x: 900 }, 1000), 'ala derecha');
   console.log('N8b: elegir choque OK');
 }
+
+// ---- H13 Pirro ataca en 280 (Plutarco, Pirro 17), no en 277 ----
+{ const ev = D.EVENTS.filter(e => e.k === 'pirro'); assert.strictEqual(ev.length, 1); assert.strictEqual(ev[0].y, 280); assert(ev[0].lic && ev[0].fx === 'pirro');
+  assert(!D.EVENTS.some(e => e.y === 277), 'ya no hay hecho de 277'); assert(!/277/.test(ev[0].lic + ev[0].x));
+  for (const r of ['italia', 'mediterraneo']) { const s = G.newGame('Pirro', r); assert(s.marches.some(m => m.owner === 'epiro' && m.label === 'Pirro'), 'Pirro marcha al empezar (' + r + ')'); assert(s.ev[D.EVENTS.indexOf(ev[0])]); }
+  assert(require('../js/registro.js').de('hecho', '280-pirro') && require('../js/registro.js').de('hecho', 280));
+  // partida vieja guardada en 278 (antes Pirro era 277): no lo lanza de golpe
+  const v = G.newGame('Vieja'); v.marches = []; v.t = (280 - 278) * 12; v.ev = {}; D.EVENTS.forEach((e, i) => { if (278 <= e.y) v.ev[i] = 1; }); delete v.ev[D.EVENTS.indexOf(ev[0])]; delete v.evV;
+  global.localStorage = { _: null, getItem() { return this._; }, setItem(k, x) { this._ = x; }, removeItem() {} }; localStorage.setItem('aqvila-save-v1', JSON.stringify(v));
+  assert(G.load()); G.tick(0.25); assert(!G.state.marches.some(m => m.label === 'Pirro'), 'una partida vieja no lanza a Pirro de golpe'); delete global.localStorage; }
 
 console.log('OK — todas las pruebas superadas');

@@ -21,7 +21,7 @@ function piezas(tipo) {
   if (!tabla) { fallos.push(tipo + ': data.js ya no tiene D.' + t.tabla); return {}; }
   if (!t.lista) return tabla;
   const o = {};
-  tabla.forEach(e => { if (o[e.y]) fallos.push('hecho: dos hechos del mismo año ' + e.y + ' en data.js; el registro casa por año'); o[e.y] = e; });
+  tabla.forEach(e => { const c = e.k ? e.y + '-' + e.k : String(e.y); if (o[c]) fallos.push('hecho: dos hechos con la misma clave ' + c + ' en data.js; añade `k` a uno (el registro casa por año y k)'); o[c] = e; });
   return o;
 }
 const etiqueta = (tipo, k, p) => tipo === 'hecho' ? 'hecho del año ' + k + (p && p.t ? ' («' + p.t + '»)' : '') : tipo + ' «' + k + '»';
@@ -29,7 +29,7 @@ const etiqueta = (tipo, k, p) => tipo === 'hecho' ? 'hecho del año ' + k + (p &
 for (const tipo of Object.keys(R.tipos)) {
   const t = R.tipos[tipo], P = piezas(tipo), fichas = R.fichas[tipo] || {}, antes = fallos.length;
   const porClave = {};   // clave de casado → id de ficha
-  for (const id of Object.keys(fichas)) porClave[tipo === 'hecho' ? id.split('-')[0] : id] = id;
+  for (const id of Object.keys(fichas)) porClave[tipo === 'hecho' ? (id in P ? id : id.split('-')[0]) : id] = id;   // hecho: «<año>-<k>» si data.js lleva k; si no, el año
 
   for (const k of Object.keys(P)) {
     const p = P[k];

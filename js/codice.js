@@ -15,7 +15,7 @@
       const hi = F[k].historia;
       if (!hi || !hi.texto || !TAG[hi.dictamen]) continue;
       const id = tipo === 'hecho' ? k.split('-')[0] : k;
-      o.push({ id, t: nombre(id), tag: TAG[hi.dictamen], x: hi.texto, src: hi.fuente });
+      o.push({ id, t: nombre(id, k), tag: TAG[hi.dictamen], x: hi.texto, src: hi.fuente });
     }
     return tipo === 'hecho' ? o.sort((a, b) => Number(b.id) - Number(a.id)) : o;   // hechos: del más antiguo al más reciente (años a.C.)
   }
@@ -26,7 +26,7 @@
   const D = () => dep('DATA', './data.js');
   def('tropas', 'tropa', id => D().UNITS[id].n);
   def('ciudades', 'ciudad', id => D().CITIES[id].n);
-  def('hechos', 'hecho', id => D().EVENTS.find(e => String(e.y) === id).t);
+  def('hechos', 'hecho', (id, k) => (D().EVENTS.find(e => (e.k ? e.y + '-' + e.k : String(e.y)) === k) || D().EVENTS.find(e => String(e.y) === id)).t);   // id = año (se muestra); dos hechos del mismo año se distinguen por la clave de ficha
 
   root.CODICE = C;
   if (typeof module !== 'undefined') module.exports = C;

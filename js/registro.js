@@ -78,11 +78,11 @@
   };
 
   // ---- Hechos (D.EVENTS). D.EVENTS es una lista sin id. El id de la ficha es «<año>-<clave>» y se casa por el AÑO (cada año sale una sola vez).
-  //      Si data.js añade un hecho, hay que añadir su ficha con el mismo año; el juez dice cuál falta. R.de('hecho', 277) también vale. ----
+  //      Si data.js añade un hecho, hay que añadir su ficha con el mismo año; el juez dice cuál falta. R.de('hecho', 280) devuelve el primero de ese año; el id completo ('280-pirro') elige. Dos hechos del mismo año llevan `k` en data.js. ----
   const SIN_E = { sin: 'un hecho no tiene modelo 3D' };
   const hecho = {
     '280-fundacion': f(SIN_E, h('Plutarco, Pirro 15', 'historico', null, 'El año 280 a.C. era el 474 de Roma contando desde su fundación. Pirro llegó con unos 25.500 hombres y 20 elefantes, según Plutarco; una tormenta dispersó parte de la flota.')),
-    '277-pirro': f(SIN_E, h('Plutarco, Pirro 17 y 21; Apiano, Samn. 10; Livio, Períocas 12-13', 'historico', 'la marcha sobre Roma fue en 280, tras Heraclea; en el juego el ataque llega en 277: licencia de juego', 'El avance fue en 280, tras Heraclea. Según Plutarco, Pirro llegó a unos 300 estadios de Roma, unos 55 km. Ásculo le costó tanto que habría dicho que otra victoria igual lo hundiría.')),
+    '280-pirro': f(SIN_E, h('Plutarco, Pirro 17 y 21; Apiano, Samn. 10; Livio, Períocas 12-13', 'historico', 'la marcha sobre Roma fue en 280, tras Heraclea; que su ejército ataque tus ciudades y el plazo de llegada son licencia de juego', 'El avance fue en 280, tras Heraclea. Según Plutarco, Pirro llegó a unos 300 estadios de Roma, unos 55 km. Ásculo le costó tanto que habría dicho que otra victoria igual lo hundiría.')),
     '272-tarento': f(SIN_E, h("Livio, Períocas 14.9-10 y 15.1; Plutarco, Pirro 34", "historico", "«murió en Argos» se quitó: no aparece en Pirro 34", "Según las Períocas de Livio, una flota cartaginesa acudió en ayuda de Tarento en 272, y después la ciudad fue sometida. Pirro murió en un combate callejero cuando una mujer le arrojó una teja, según Plutarco.")),
     '264-primera-punica': f(SIN_E, h('Polibio 1.10-11; Polibio 1.63', 'historico', 'los ataques cartagineses a tus ciudades son licencia de juego', 'Los mamertinos pidieron ayuda a Cartago y a Roma. Según Polibio, no decidió el Senado: votó el pueblo, y se envió al cónsul Apio Claudio. La guerra duró 24 años seguidos.')),
     '260-milas': f(SIN_E, h('Polibio 1.20-23', 'historico', 'Polibio 1.22: «alguien les sugirió» el corvus; no nombra a Duilio', 'Roma copió una nave cartaginesa varada para hacer su flota, según Polibio. Alguien sugirió el corvus, una pasarela de abordaje, sin nombre. En Milas los cartagineses perdieron 50 de 130 naves.')),
@@ -188,7 +188,7 @@
     especial: { tabla: 'ESPECIAL', numericos: [], textos: ['n', 'i', 'd'] }
   };
 
-  /* Ficha de una pieza. Para un hecho vale el id completo ('277-pirro') o solo el año (277). */
+  /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */
   R.de = function (tipo, id) {
     const t = R.fichas[tipo]; if (!t) return null;
     if (t[id]) return t[id];
