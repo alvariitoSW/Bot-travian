@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>K6-B · Friso (maqueta de batalla)</title>
+<style>
+@font-face{font-family:"Cinzel";src:url("../../../assets/fuentes/cinzel-700.woff2") format("woff2");font-weight:700;font-display:block}
+:root{--marfil:#efe8d4;--boton:#f5efdf;--tinta:#4f483d;--rojo:#9c3b24;--oro:#b8862b;--gris:#8e8778;--borde:#6f675a}
+html,body{margin:0;height:100%;overflow:hidden;background:#2a2620;font:14px system-ui,-apple-system,"Segoe UI",sans-serif;color:#2b2620}
+.stage{position:fixed;inset:0;overflow:hidden;background:#ddd4bd}
+svg#friso{position:absolute;inset:0;width:100%;height:100%;touch-action:none;user-select:none}
+.reg{transition:transform 1.2s ease}
+.body{filter:url(#rel)}
+.fig *{fill:#f3ecd9;stroke:#5d5444;stroke-width:1;stroke-linejoin:round}
+.fig.b *{fill:#d4cdba}
+.fig line{stroke-width:1.4;stroke-linecap:round;fill:none}
+.fig .l{fill:none}
+.fig .sh{fill:#e4d9bd}
+.fig.b .sh{fill:#c4bca6}
+.fig .cloak{fill:var(--rojo)}
+.hit{fill:transparent;cursor:grab}
+.reg.sel .hit{stroke:var(--oro);stroke-width:2;stroke-dasharray:5 4;fill:rgba(184,134,43,.12)}
+.pole{stroke:#3d3528;stroke-width:1.5}
+.lab{font:700 13px system-ui,sans-serif;fill:#fff;text-anchor:middle}
+.ok{fill:none;stroke:var(--oro);stroke-width:2.4}
+.tard{fill:none;stroke:var(--borde);stroke-width:1.6;stroke-dasharray:4 3}
+.tag{font:700 13px system-ui,sans-serif;fill:var(--tinta);paint-order:stroke;stroke:#f5efdf;stroke-width:3px}
+.peligro{fill:var(--rojo);stroke:#f5efdf;stroke-width:1.5}
+.bang{font:700 13px system-ui,sans-serif;fill:#fff;text-anchor:middle}
+.gh{fill:rgba(156,59,36,.08);stroke:var(--rojo);stroke-width:1.6;stroke-dasharray:5 4}
+.arr{stroke:var(--rojo);stroke-width:2}
+.gl{font:700 13px system-ui,sans-serif;fill:var(--rojo);text-anchor:middle;paint-order:stroke;stroke:#f5efdf;stroke-width:4px}
+.trail{stroke:var(--tinta);stroke-width:2;stroke-dasharray:2 5;opacity:.7}
+.ring{fill:none;stroke:var(--oro);stroke-width:1.6;stroke-dasharray:6 6}
+.hide{display:none!important}
+.top{position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:center;gap:8px;padding:0 8px;box-sizing:border-box;background:linear-gradient(#f5efdf,#e6dec8);border-bottom:2px solid var(--gris);z-index:2}
+.btn{min-height:44px;min-width:44px;padding:0 12px;border:1.5px solid var(--borde);border-radius:6px;background:var(--boton);color:#2b2620;font:600 14px system-ui,sans-serif;cursor:pointer;box-shadow:0 2px 0 var(--gris);white-space:nowrap}
+.btn.main{background:var(--tinta);color:var(--marfil);font:700 16px Cinzel,serif;letter-spacing:.03em;border-color:#2b2620}
+.btn:active{transform:translateY(1px);box-shadow:none}
+.obj{width:170px;min-width:0;line-height:1.2}
+.obj b{display:block;font:700 14px Cinzel,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.obj span{display:block;font-size:13px;color:var(--tinta);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.chip{flex:1;min-width:0;max-width:300px;background:#e6dec8;border:1.5px solid var(--gris);border-radius:6px;padding:3px 8px;line-height:1.2}
+.chip small{display:block;font-size:13px;color:var(--tinta)}
+.chip b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#mini{width:200px;height:24px;flex:none;background:#e6dec8;border:1.5px solid var(--gris);border-radius:4px;box-sizing:content-box;touch-action:none}
+.card{position:absolute;top:52px;right:8px;width:250px;box-sizing:border-box;background:var(--marfil);border:1.5px solid var(--borde);border-radius:8px;padding:8px 10px;z-index:2;box-shadow:0 3px 0 var(--gris)}
+.card h3{margin:0 0 4px;font:700 15px Cinzel,serif}
+.card p{margin:2px 0;font-size:13px;line-height:1.3}
+.card .btn{margin-top:6px;width:100%}
+.leg{position:absolute;left:8px;bottom:62px;z-index:1;display:flex;gap:10px;align-items:center;flex-wrap:nowrap;background:rgba(245,239,223,.93);border:1px solid var(--gris);border-radius:5px;padding:3px 8px;font-size:13px;white-space:nowrap}
+.k{display:inline-block;width:14px;height:14px;border-radius:50%;vertical-align:-2px;margin-right:3px;box-sizing:border-box}
+.k.ok{border:2.5px solid var(--oro)}
+.k.tard{border:1.6px dashed var(--borde)}
+.k.pel{background:var(--rojo);width:14px;height:14px}
+.k.ring{border:1.5px dashed var(--oro);width:22px;height:9px;border-radius:50%}
+.bot{position:absolute;left:0;right:0;bottom:0;height:54px;box-sizing:border-box;display:flex;align-items:center;gap:8px;padding:0 8px;background:linear-gradient(#e6dec8,#cfc6ad);border-top:2px solid var(--gris);z-index:2}
+.mando{font-size:13px;min-width:110px;line-height:1.2}
+.mando b{display:block;font-size:13px}
+#pips{letter-spacing:2px;font-size:14px;color:var(--tinta)}
+#btnEj{flex:1;max-width:330px;min-height:46px}
+#btnCar,#btnCen{min-height:46px}
+.cartas{position:absolute;right:8px;bottom:62px;width:260px;display:none;flex-direction:column;gap:6px;z-index:3}
+.cartas.on{display:flex}
+.cartas .btn{text-align:left;min-height:44px}
+.res{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(43,38,32,.35);z-index:4}
+.res.on{display:flex}
+.sheet{width:460px;max-width:92%;box-sizing:border-box;background:var(--marfil);border:2px solid var(--borde);border-radius:8px;padding:12px 18px;box-shadow:0 6px 0 var(--gris)}
+.sheet h2{font:700 22px Cinzel,serif;margin:0 0 4px}
+.sheet p,.sheet li{font-size:14px;margin:3px 0;line-height:1.3}
+.sheet ul{list-style:none;padding:0;margin:6px 0}
+.sheet .acc{display:flex;gap:10px;justify-content:flex-end;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="stage">
+  <svg id="friso" viewBox="0 0 844 390" aria-label="Friso de la batalla, en perfil">
+    <defs>
+      <linearGradient id="piedra" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#efe8d4"/><stop offset=".55" stop-color="#ddd4bd"/><stop offset="1" stop-color="#b9b09a"/>
+      </linearGradient>
+      <pattern id="greca" width="16" height="10" patternUnits="userSpaceOnUse">
+        <path d="M0 9V1H8V6H4V4H6" fill="none" stroke="#6f675a" stroke-width="1.2"/>
+      </pattern>
+      <marker id="ar" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+        <path d="M0 0L8 4L0 8Z" fill="#9c3b24"/>
+      </marker>
+      <filter id="rel" x="-10%" y="-10%" width="130%" height="130%">
+        <feDropShadow dx="1.2" dy="2.2" stdDeviation=".9" flood-color="#3d3528" flood-opacity=".5"/>
+      </filter>
+    </defs>
+    <g id="world"></g>
+  </svg>
+
+  <header class="top">
+    <button class="btn" id="pausa">Pausa</button>
+    <div class="obj"><b id="ronda"></b><span id="obj"></span></div>
+    <div class="chip"><small>El enemigo</small><b id="chip"></b></div>
+    <svg id="mini" viewBox="0 0 200 24" width="200" height="24" aria-label="Mapa del campo: pulsa para ir a una zona"></svg>
+  </header>
+
+  <div class="card hide" id="card"></div>
+
+  <div class="leg" id="leg">
+    <span><i class="k ok"></i>obedece</span>
+    <span><i class="k tard"></i>tarda 6 s</span>
+    <span><i class="k pel"></i>en peligro</span>
+    <span><i class="k ring"></i>alcance del general, 200 m</span>
+  </div>
+
+  <div class="cartas" id="cartas">
+    <button class="btn" data-c="Arenga: sube la moral">Arenga · sube la moral cerca del general</button>
+    <button class="btn" data-c="Paso doble: más velocidad">Paso doble · más velocidad un turno</button>
+    <button class="btn" data-c="Cerrada: escudos juntos">Cerrada · escudos juntos, sin flanqueo</button>
+  </div>
+
+  <footer class="bot">
+    <div class="mando" id="mando"><b>Mando libre</b><span id="pips"></span></div>
+    <button class="btn main" id="btnEj"></button>
+    <button class="btn" id="btnCar">Cartas</button>
+    <button class="btn" id="btnCen">Centrar</button>
+  </footer>
+
+  <div class="res" id="res">
+    <div class="sheet">
+      <h2>Zona tomada</h2>
+      <p>Tu caballería ha cruzado el flanco. El vado queda en tus manos.</p>
+      <ul>
+        <li>✓ Resistir hasta el final</li>
+        <li>✓ Tomar la zona</li>
+        <li>○ Escapar con el general (no era tu objetivo)</li>
+      </ul>
+      <p>Bajas: tú 9 %, enemigo 31 %.</p>
+      <div class="acc">
+        <button class="btn" id="repetir">Repetir la batalla</button>
+        <button class="btn main" id="volver">Volver al mapa</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const world = $('#world'), svg = $('#friso'), mini = $('#mini');
+const C = 1200, WORLD = 2400, VIEW = 844, RING = 320; // 200 m a 1,6 px por metro
+const ROM = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+const KIND = {
+  cav: {n:4, sp:26, top:-58, nm:'Caballería'},
+  inf: {n:5, sp:13, top:-52, nm:'Infantería'},
+  tir: {n:4, sp:12, top:-40, nm:'Tiradores'}
+};
+const LANE = {cav:124, inf1:186, inf2:232, tir:286};
+const put = (R, id, x) => { R.find(r => r.id === id).cur = x; };
+
+const SC = {
+  1: {gap:300, pan:430, sel:null, ronda:'Despliegue', obj:'Tomar la zona', chip:'elige su plan al empezar', btn:'Empezar la batalla', ord:{}},
+  2: {gap:90, pan:778, sel:'acav0', ronda:'Ronda 3 · 4:12', obj:'Tomar la zona', chip:'flanquea por tu izquierda', btn:'Ejecutar ronda',
+      ord:{acav0:170, ainf10:60, ainf13:-60}},
+  3: {gap:40, pan:928, sel:'acav0', ronda:'Ronda 4 · carga', obj:'Carga por el flanco', chip:'contracarga en el flanco', btn:'Ejecutar ronda',
+      ord:{ainf11:40, ainf20:40},
+      fx: R => { put(R, 'acav0', 1395); put(R, 'bcav0', 1340); }},
+  4: {gap:200, pan:828, sel:null, ronda:'Fin de la batalla', obj:'Zona tomada', chip:'retirada hacia el río', btn:'', ord:{},
+      fx: R => R.forEach(r => {
+        if (/^ainf1[012]$/.test(r.id)) r.cur = r.base + 110;
+        else if (r.side === 'b' && r.kind === 'inf' && r.lane === LANE.inf1) r.cur = r.base + 220;
+        else if (r.side === 'b' && r.kind === 'cav') r.cur = r.base + 300;
+        else if (r.id === 'acav0') r.cur = 1395;
+      })}
+};
+
+const S = {n:1, pan:0, regs:[], sel:null, drag:null, pausa:false, resOff:false, flash:null, ft:null};
+
+function build(n) {
+  const sc = SC[n], aF = C - sc.gap / 2, R = [];
+  const add = (id, side, kind, x, lane, label) => R.push({id, side, kind, lane, label, base:x, cur:x, dx:0});
+  for (let i = 0; i < 4; i++) add('acav' + i, 'a', 'cav', aF - 60 - i * 170, LANE.cav, 'E' + (i + 1));
+  for (let i = 0; i < 6; i++) add('ainf1' + i, 'a', 'inf', aF - i * 112, LANE.inf1, ROM[i]);
+  for (let i = 0; i < 6; i++) add('ainf2' + i, 'a', 'inf', aF - i * 112 - 56, LANE.inf2, ROM[6 + i]);
+  for (let i = 0; i < 4; i++) add('atir' + i, 'a', 'tir', aF - 20 - i * 130, LANE.tir, 'L' + (i + 1));
+  R.slice().forEach(r => add('b' + r.id.slice(1), 'b', r.kind, 2 * C - r.base, r.lane, r.label));
+  if (sc.fx) sc.fx(R);
+  R.forEach(r => { if (sc.ord[r.id]) r.dx = sc.ord[r.id]; });
+  return {R, gx: aF + 70};
+}
+
+function fig(kind, d, side) {
+  const c = `class="fig ${side}"`;
+  if (kind === 'cav') return `<g ${c}><ellipse cx="0" cy="-12" rx="9" ry="4.6"/><path d="M${8*d} -14 L${12*d} -20 L${14*d} -16 L${10*d} -11Z"/><line x1="-5" y1="-8" x2="-6" y2="0"/><line x1="-1" y1="-8" x2="-2" y2="0"/><line x1="4" y1="-8" x2="5" y2="0"/><line x1="7" y1="-8" x2="8" y2="0"/><rect x="-2.6" y="-27" width="5.2" height="8" rx="1.6"/><circle cx="0" cy="-31" r="2.8"/><line x1="${2*d}" y1="-26" x2="${7*d}" y2="-47"/></g>`;
+  if (kind === 'tir') return `<g ${c}><circle cx="0" cy="-27" r="3.2"/><rect x="-3" y="-23" width="6" height="14" rx="2"/><line x1="-3" y1="-9" x2="-5" y2="0"/><line x1="3" y1="-9" x2="5" y2="0"/><path class="l" d="M${4*d} -28 Q${10*d} -18 ${4*d} -8"/></g>`;
+  return `<g ${c}><circle cx="0" cy="-27" r="3.4"/><rect x="-3.2" y="-23" width="6.4" height="14" rx="2"/><line x1="-2.5" y1="-9" x2="-4.5" y2="0"/><line x1="2.5" y1="-9" x2="4.5" y2="0"/><ellipse class="sh" cx="${4*d}" cy="-16" rx="3.6" ry="5.4"/><line x1="${2*d}" y1="-22" x2="${3*d}" y2="-46"/></g>`;
+}
+
+function regHTML(r) {
+  const k = KIND[r.kind], w = (k.n - 1) * k.sp + 16, d = r.side === 'a' ? 1 : -1;
+  let blk = `<rect class="hit" x="${-w/2-4}" y="${k.top-6}" width="${w+8}" height="${-k.top+8}"/>`;
+  for (let i = 0; i < k.n; i++) blk += `<g transform="translate(${((i-(k.n-1)/2)*k.sp).toFixed(1)},0)">${fig(r.kind, d, r.side)}</g>`;
+  const bw = r.label.length * 8 + 10, col = r.side === 'a' ? '#9c3b24' : '#4f483d';
+  blk += `<g transform="translate(${(-w/2+4).toFixed(1)},0)"><line class="pole" x1="0" y1="0" x2="0" y2="${k.top}"/><rect x="0" y="${k.top}" width="${bw}" height="16" rx="2" fill="${col}"/><text class="lab" x="${bw/2}" y="${k.top+12}">${r.label}</text></g>`;
+  return `<g class="reg" data-id="${r.id}" style="transform:translateX(${r.cur}px)"><g transform="translate(0,${r.lane})"><g class="body">${blk}</g><g class="marks"></g><g class="ghost"></g></g></g>`;
+}
+
+function general(gx) {
+  return `<g class="body" transform="translate(${gx},${LANE.inf1}) scale(1.3)"><g class="fig a"><path class="cloak" d="M-9 0 L-6 -24 H6 L9 0Z"/><circle cx="0" cy="-27" r="3.4"/><line x1="6" y1="-20" x2="8" y2="-46"/></g></g>`;
+}
+
+function worldHTML(R, gx) {
+  let s = `<rect x="0" y="40" width="${WORLD}" height="264" fill="url(#piedra)"/>
+    <rect x="0" y="40" width="${WORLD}" height="10" fill="url(#greca)"/>
+    <rect x="0" y="50" width="${WORLD}" height="3" fill="#8e8778"/>
+    <line x1="0" x2="${WORLD}" y1="140" y2="140" stroke="#8e8778" stroke-width="2"/>
+    <line x1="0" x2="${WORLD}" y1="141.5" y2="141.5" stroke="#f7f2e3"/>
+    <line x1="0" x2="${WORLD}" y1="242" y2="242" stroke="#8e8778" stroke-width="2"/>
+    <line x1="0" x2="${WORLD}" y1="243.5" y2="243.5" stroke="#f7f2e3"/>
+    <rect x="0" y="304" width="${WORLD}" height="14" fill="#b9b09a"/>
+    <rect x="0" y="318" width="${WORLD}" height="60" fill="#8e8778"/>`;
+  for (let x = 0; x <= WORLD; x += 300) s += `<line x1="${x}" x2="${x}" y1="53" y2="304" stroke="#c3baa2"/>`;
+  s += `<ellipse class="ring" cx="${gx}" cy="306" rx="${RING}" ry="8"/>`;
+  s += general(gx);
+  s += R.map(regHTML).join('');
+  return s;
+}
+
+const inRing = x => Math.abs(x - SC_GX()) <= RING;
+let GX = 0;
+const SC_GX = () => GX;
+const danger = r => S.regs.some(q => q.side !== r.side && Math.abs(q.cur - r.cur) < 100);
+
+function marks(r) {
+  const k = KIND[r.kind], w = (k.n - 1) * k.sp + 16;
+  let s = '';
+  if (Math.abs(r.base - r.cur) > 2) s += `<line class="trail" x1="${r.base - r.cur}" y1="-16" x2="0" y2="-16"/>`;
+  if (r.side !== 'a') return s;
+  s += inRing(r.cur)
+    ? `<ellipse class="ok" cx="0" cy="3" rx="${w/2+4}" ry="4"/>`
+    : `<ellipse class="tard" cx="0" cy="3" rx="${w/2+4}" ry="4"/><text class="tag" x="${w/2+6}" y="-2">+6 s</text>`;
+  if (danger(r)) s += `<g transform="translate(${-w/2-8},${k.top+6})"><circle r="8" class="peligro"/><text class="bang" y="4">!</text></g>`;
+  return s;
+}
+
+function verbo(r) {
+  if (S.n === 1) return 'Mueve';
+  if (r.dx < 0) return 'Retira';
+  return r.kind === 'cav' && r.dx >= 120 ? 'Carga' : 'Avanza';
+}
+
+function ghost(r) {
+  if (r.side !== 'a' || !r.dx) return '';
+  const k = KIND[r.kind], w = (k.n - 1) * k.sp + 16, dist = Math.round(Math.abs(r.dx) / 1.6);
+  const yA = k.top - 8, late = inRing(r.cur + r.dx) ? '' : ' · +6 s';
+  return `<g transform="translate(${r.dx},0)"><rect class="gh" x="${-w/2-4}" y="${k.top-6}" width="${w+8}" height="${-k.top+8}"/></g>`
+    + `<line class="arr" x1="0" y1="${yA}" x2="${r.dx}" y2="${yA}" marker-end="url(#ar)"/>`
+    + `<text class="gl" x="${r.dx/2}" y="${yA-6}">${verbo(r)} ${dist} m${late}</text>`;
+}
+
+function paint(r) {
+  const el = svg.querySelector(`[data-id="${r.id}"]`);
+  el.style.transform = `translateX(${r.cur}px)`;
+  el.classList.toggle('sel', S.sel === r.id);
+  el.querySelector('.marks').innerHTML = marks(r);
+  el.querySelector('.ghost').innerHTML = ghost(r);
+}
+
+function card() {
+  const r = S.regs.find(q => q.id === S.sel), c = $('#card');
+  if (!r) { c.classList.add('hide'); c.innerHTML = ''; return; }
+  c.classList.remove('hide');
+  const k = KIND[r.kind], dist = Math.round(Math.abs(r.dx) / 1.6);
+  const orden = r.dx ? `${verbo(r)} ${dist} m` : 'sin orden';
+  const estado = inRing(r.cur) ? 'Obedece ya' : 'Tarda 6 s';
+  const peligro = danger(r) ? ' · <b style="color:#9c3b24">en peligro</b>' : '';
+  c.innerHTML = `<h3>${r.label} · ${k.nm}</h3><p>Moral: firme</p><p>Orden: ${orden}</p><p><b>${estado}</b>${peligro}</p>`
+    + (r.dx ? '<button class="btn" id="quitar">Quitar orden</button>' : '');
+  const q = $('#quitar');
+  if (q) q.onclick = () => { r.dx = 0; render(); };
+}
+
+function drawMini() {
+  const pick = r => r.kind === 'cav' ? 4 : r.kind === 'tir' ? 20 : (r.lane === LANE.inf1 ? 10 : 15);
+  let s = `<rect x="0" y="0" width="200" height="24" fill="#e6dec8"/><line x1="0" x2="200" y1="12" y2="12" stroke="#c3baa2"/>`;
+  S.regs.forEach(r => {
+    s += `<rect x="${(r.cur/WORLD*200-1.5).toFixed(1)}" y="${pick(r)-1.5}" width="3" height="3" fill="${r.side === 'a' ? '#9c3b24' : '#4f483d'}"/>`;
+  });
+  s += `<rect x="${(S.pan/WORLD*200).toFixed(1)}" y="1" width="${(VIEW/WORLD*200).toFixed(1)}" height="22" rx="2" fill="none" stroke="#b8862b" stroke-width="1.6"/>`;
+  mini.innerHTML = s;
+}
+
+function render() {
+  const sc = SC[S.n], fin = S.n === 4;
+  world.style.transform = `translateX(${-S.pan}px)`;
+  S.regs.forEach(paint);
+  $('#ronda').textContent = sc.ronda + (S.pausa ? ' · en pausa' : '');
+  $('#obj').textContent = S.flash || sc.obj;
+  $('#chip').textContent = sc.chip;
+  $('#pausa').textContent = S.pausa ? 'Seguir' : 'Pausa';
+  const libres = 5 - S.regs.filter(r => r.side === 'a' && r.dx).length;
+  $('#pips').textContent = '●'.repeat(libres) + '○'.repeat(5 - libres);
+  $('#mando').classList.toggle('hide', fin);
+  $('#btnEj').textContent = fin ? (S.resOff ? 'Ver el informe' : 'Cerrar el informe') : sc.btn;
+  ['#btnCar', '#btnCen'].forEach(id => $(id).classList.toggle('hide', fin));
+  $('#leg').classList.toggle('hide', fin);
+  $('#res').classList.toggle('on', fin && !S.resOff);
+  card();
+  drawMini();
+}
+
+function init() {
+  const n = parseInt(location.hash.slice(1), 10);
+  S.n = [1, 2, 3, 4].includes(n) ? n : 1;
+  const b = build(S.n);
+  S.regs = b.R; GX = b.gx;
+  S.pan = SC[S.n].pan; S.sel = SC[S.n].sel;
+  S.pausa = false; S.resOff = false; S.flash = null; S.drag = null;
+  world.innerHTML = worldHTML(b.R, b.gx);
+  render();
+}
+
+function ejecutar() {
+  if (S.n === 1) { location.hash = '#2'; return; }
+  if (S.n === 4) { S.resOff = !S.resOff; render(); return; }
+  S.regs.forEach(r => {
+    if (r.side !== 'a' || !r.dx) return;
+    const to = r.cur + r.dx;
+    const mover = () => { r.cur = to; r.base = to; r.dx = 0; render(); };
+    if (inRing(to)) mover(); else setTimeout(mover, 6000);
+  });
+  render();
+}
+
+function flash(msg) {
+  S.flash = msg; render();
+  clearTimeout(S.ft);
+  S.ft = setTimeout(() => { S.flash = null; render(); }, 2500);
+}
+
+const clampPan = p => Math.max(0, Math.min(WORLD - VIEW, p));
+const escala = () => { const r = svg.getBoundingClientRect(); return Math.min(r.width / VIEW, r.height / 390); };
+
+svg.addEventListener('pointerdown', e => {
+  const g = e.target.closest && e.target.closest('.reg');
+  if (g) {
+    const r = S.regs.find(q => q.id === g.dataset.id);
+    if (r.side !== 'a') return;
+    S.drag = {r, x0: e.clientX, moved: false};
+  } else {
+    S.drag = {pan0: S.pan, x0: e.clientX};
+  }
+  svg.setPointerCapture(e.pointerId);
+});
+svg.addEventListener('pointermove', e => {
+  const d = S.drag; if (!d) return;
+  const dx = (e.clientX - d.x0) / escala();
+  if (d.r) {
+    if (Math.abs(dx) > 6) d.moved = true;
+    if (d.moved) { d.r.dx = Math.round(Math.max(-600, Math.min(600, dx))); render(); }
+  } else {
+    S.pan = clampPan(d.pan0 - dx);
+    world.style.transform = `translateX(${-S.pan}px)`;
+  }
+});
+svg.addEventListener('pointerup', () => {
+  const d = S.drag; S.drag = null;
+  if (d && d.r) S.sel = d.r.id;
+  render();
+});
+
+let miniDrag = false;
+const panDesdeMini = e => {
+  const r = mini.getBoundingClientRect();
+  S.pan = clampPan((e.clientX - r.left) / r.width * WORLD - VIEW / 2);
+  render();
+};
+mini.addEventListener('pointerdown', e => { miniDrag = true; mini.setPointerCapture(e.pointerId); panDesdeMini(e); });
+mini.addEventListener('pointermove', e => { if (miniDrag) panDesdeMini(e); });
+mini.addEventListener('pointerup', () => { miniDrag = false; });
+
+$('#pausa').onclick = () => { S.pausa = !S.pausa; render(); };
+$('#btnEj').onclick = ejecutar;
+$('#btnCar').onclick = () => $('#cartas').classList.toggle('on');
+$('#btnCen').onclick = () => { S.pan = clampPan(C - VIEW / 2); render(); };
+document.querySelectorAll('#cartas .btn').forEach(b => b.onclick = () => { $('#cartas').classList.remove('on'); flash(b.dataset.c); });
+$('#repetir').onclick = () => { location.hash = '#1'; };
+$('#volver').onclick = () => { S.resOff = true; render(); };
+addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight') location.hash = '#' + Math.min(4, S.n + 1);
+  if (e.key === 'ArrowLeft') location.hash = '#' + Math.max(1, S.n - 1);
+});
+addEventListener('hashchange', init);
+init();
+</script>
+</body>
+</html>
