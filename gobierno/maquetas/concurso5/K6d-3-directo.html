@@ -1,0 +1,693 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Trebia · batalla en directo</title>
+<style>
+@font-face {
+  font-family: "Cinzel";
+  src: url("../../../assets/fuentes/cinzel-700.woff2") format("woff2");
+  font-weight: 700;
+  font-display: block;
+}
+:root {
+  --oro: #d8b25c;
+  --tinta: #1b1410;
+  --papel: #efe3c4;
+  --rojo: #9b2f25;
+  --pizarra: #3f4f6a;
+  --panel: rgba(27, 20, 16, 0.93);
+  --borde: #5a4630;
+}
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #120d0a;
+  color: var(--papel);
+  font-family: system-ui, sans-serif;
+  font-size: 12px;
+}
+#app { position: fixed; inset: 0; overflow: hidden; }
+#mapa { position: absolute; inset: 0; width: 100%; height: 100%; }
+body[data-s="3"] #mapa { display: none; }
+body[data-s="4"] #mapa { opacity: 0.35; }
+.lbl {
+  font: italic 10px system-ui, sans-serif;
+  fill: #3b2a14;
+  text-anchor: middle;
+}
+.top {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 34px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  background: rgba(18, 13, 10, 0.9);
+  border-bottom: 1px solid #4a3a26;
+}
+.top h1 {
+  font: 700 13px Cinzel, serif;
+  margin: 0 auto 0 0;
+  color: var(--oro);
+  white-space: nowrap;
+}
+.top button, .botones button, .chips button, .elige button, .res button {
+  font: inherit;
+  font-size: 11px;
+  color: var(--papel);
+  background: #2a2019;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  padding: 5px 7px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.top button { border-radius: 12px; }
+.top button.on, .chips button.on {
+  background: var(--oro);
+  color: var(--tinta);
+  border-color: var(--oro);
+}
+.primario {
+  background: var(--oro) !important;
+  color: var(--tinta) !important;
+  font-weight: 700 !important;
+  border-color: var(--oro) !important;
+}
+button:disabled { opacity: 0.4; }
+.sc { position: absolute; inset: 0; display: none; z-index: 2; }
+.sc.on { display: block; }
+.panel {
+  position: absolute;
+  right: 0;
+  top: 34px;
+  bottom: 0;
+  width: 230px;
+  background: var(--panel);
+  border-left: 1px solid #4a3a26;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow: hidden;
+}
+.trib { display: flex; gap: 6px; align-items: flex-start; }
+.tbusto { flex: 0 0 40px; }
+.tbusto svg { display: block; }
+.burbuja {
+  background: var(--papel);
+  color: var(--tinta);
+  border-radius: 8px;
+  padding: 5px 8px;
+  font-size: 11px;
+  line-height: 1.3;
+}
+.h {
+  font: 700 11px Cinzel, serif;
+  color: var(--oro);
+  letter-spacing: 0.04em;
+  margin: 2px 0 0;
+}
+.cartas { display: flex; flex-direction: column; gap: 4px; }
+.carta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: var(--papel);
+  background: #2a2019;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  padding: 4px 6px;
+  cursor: pointer;
+}
+.carta.on { border-color: var(--oro); box-shadow: inset 0 0 0 1px var(--oro); }
+.sw {
+  width: 9px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--rojo);
+  border: 1px solid var(--oro);
+  flex: 0 0 9px;
+}
+.carta .n { flex: 1; font-size: 11px; }
+.carta .o { font-size: 10px; color: #bfae8a; }
+.chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.chips button { flex: 1; }
+.pie {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+}
+.puntos { display: inline-flex; gap: 3px; vertical-align: middle; }
+.puntos i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--oro);
+  display: inline-block;
+}
+.puntos i.lleno { background: var(--oro); }
+.botones { display: flex; gap: 4px; }
+.botones button { flex: 1; }
+.elige { display: none; flex-direction: column; gap: 4px; }
+.elige.on { display: flex; }
+.log {
+  font-size: 10.5px;
+  color: #cdbf9e;
+  line-height: 1.35;
+  margin: 0;
+  height: 60px;
+  overflow: hidden;
+}
+.log div { margin-bottom: 2px; }
+.badge {
+  position: absolute;
+  left: 10px;
+  top: 44px;
+  z-index: 3;
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 3px 9px;
+  font-size: 11px;
+  color: var(--oro);
+}
+.u { transition: transform 1.2s ease-in-out, opacity 0.6s; }
+.u rect.cuerpo { stroke: var(--oro); stroke-width: 1; }
+.u text {
+  font: 700 9px system-ui, sans-serif;
+  fill: #fff;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  pointer-events: none;
+}
+.u.oculto { opacity: 0; }
+.alerta { animation: parpadeo 0.9s steps(2, start) infinite; }
+@keyframes parpadeo { to { opacity: 0.25; } }
+/* Pantalla 3: el choque de cerca */
+.campo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(#b99c62, #8e7444);
+  overflow: hidden;
+}
+.lado {
+  position: absolute;
+  top: 110px;
+  display: grid;
+  grid-template-columns: repeat(8, 18px);
+  gap: 6px 4px;
+}
+.lado.r { left: 110px; animation: avanza 2.6s ease-in-out infinite alternate; }
+.lado.c { right: 110px; animation: avanza2 2.6s ease-in-out infinite alternate; }
+@keyframes avanza { from { transform: translateX(0); } to { transform: translateX(120px); } }
+@keyframes avanza2 { from { transform: translateX(0); } to { transform: translateX(-120px); } }
+.s { animation: paso 0.5s ease-in-out infinite alternate; }
+.s svg { display: block; }
+@keyframes paso { to { transform: translateY(-2px); } }
+.chispa {
+  position: absolute;
+  left: 396px;
+  top: 150px;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: radial-gradient(#fff6c8, #f2b33a 40%, transparent 70%);
+  animation: destello 0.45s infinite alternate;
+}
+@keyframes destello {
+  from { opacity: 0.2; transform: scale(0.7); }
+  to { opacity: 1; transform: scale(1.15); }
+}
+.polvo {
+  position: absolute;
+  left: 300px;
+  right: 300px;
+  bottom: 60px;
+  height: 70px;
+  background: radial-gradient(ellipse, rgba(230, 210, 160, 0.55), transparent 70%);
+}
+.pie3 {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 46px;
+  background: rgba(18, 13, 10, 0.92);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 12px;
+}
+.pie3 p { margin: 0; flex: 1; font-size: 12px; }
+/* Pantalla 4: resultado */
+.res {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 34px;
+  bottom: 0;
+  display: flex;
+  gap: 24px;
+  padding: 16px 28px;
+  background: rgba(18, 13, 10, 0.7);
+}
+.res h2 {
+  font: 700 22px Cinzel, serif;
+  color: var(--oro);
+  margin: 0 0 6px;
+}
+.res p { margin: 0 0 8px; font-size: 12px; line-height: 1.4; }
+.res .fila-bajas { margin-bottom: 8px; }
+.res .fila-bajas span { font-size: 12px; }
+.barra {
+  height: 12px;
+  background: #2a2019;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  overflow: hidden;
+  margin-top: 3px;
+}
+.barra i { display: block; height: 100%; }
+</style>
+</head>
+<body data-s="1">
+<div id="app">
+
+  <svg id="mapa" viewBox="0 0 844 390" aria-label="Mapa de la llanura de Trebia">
+    <defs>
+      <linearGradient id="hierba" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#c7a767"/>
+        <stop offset="1" stop-color="#9c7d4a"/>
+      </linearGradient>
+      <marker id="flecha" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto">
+        <path d="M0 0 L10 5 L0 10 z" fill="#f2d27a"/>
+      </marker>
+    </defs>
+    <rect width="844" height="390" fill="url(#hierba)"/>
+
+    <path d="M300 0 L298 150 M302 210 L300 390" stroke="#5f8ea3" stroke-width="16" fill="none"/>
+    <g fill="#d9c9a0">
+      <circle cx="296" cy="168" r="5"/>
+      <circle cx="306" cy="180" r="5"/>
+      <circle cx="294" cy="192" r="5"/>
+      <circle cx="306" cy="202" r="5"/>
+    </g>
+    <text class="lbl" x="340" y="186">vado</text>
+
+    <ellipse cx="200" cy="140" rx="100" ry="72" fill="#a58c5a" stroke="#6f5e3a" stroke-width="2"/>
+    <ellipse cx="200" cy="140" rx="56" ry="40" fill="none" stroke="#6f5e3a" stroke-dasharray="3 4"/>
+    <text class="lbl" x="200" y="210">colina</text>
+
+    <g fill="#3d5a31">
+      <circle cx="392" cy="286" r="20"/>
+      <circle cx="412" cy="300" r="20"/>
+      <circle cx="430" cy="278" r="20"/>
+      <circle cx="452" cy="296" r="20"/>
+      <circle cx="470" cy="276" r="20"/>
+      <circle cx="440" cy="318" r="20"/>
+      <circle cx="398" cy="320" r="18"/>
+      <circle cx="468" cy="318" r="18"/>
+    </g>
+    <text class="lbl" x="430" y="250">bosque</text>
+
+    <ellipse cx="440" cy="60" rx="62" ry="26" fill="#6e7f5c" stroke="#4f6042" stroke-dasharray="4 3"/>
+    <text class="lbl" x="440" y="62">pantano</text>
+
+    <text class="lbl" x="110" y="384">ROMA</text>
+    <text class="lbl" x="500" y="384">CARTAGO</text>
+
+    <g id="rutas"></g>
+    <g id="unidades"></g>
+  </svg>
+
+  <div class="top">
+    <h1>Trebia · 218 a.C.</h1>
+    <button data-go="1">1 · Planear</button>
+    <button data-go="2">2 · En directo</button>
+    <button data-go="3">3 · Combate</button>
+    <button data-go="4">4 · Resultado</button>
+  </div>
+
+  <!-- Pantalla 1: planear con el mapa en grande -->
+  <section class="sc" id="s1">
+    <div class="panel">
+      <div class="trib">
+        <div class="tbusto"></div>
+        <div class="burbuja">Cinco puntos de mando. Avanzar cuesta 1; flanquear y emboscar, 2.</div>
+      </div>
+      <p class="h">Cartas de tropas</p>
+      <div class="cartas" id="cartas"></div>
+      <div class="chips-box" id="ordenes">
+        <p class="log" id="selTxt" style="height:auto;margin:0 0 4px">Toca un regimiento de la lista.</p>
+        <div class="chips">
+          <button data-o="av">Avanzar</button>
+          <button data-o="fl">Flanquear</button>
+          <button data-o="em">Emboscar</button>
+        </div>
+      </div>
+      <div class="pie">
+        <span>Puntos de mando</span>
+        <span class="puntos" id="pts"></span>
+      </div>
+      <div class="botones">
+        <button class="primario" data-go="2">Empezar la batalla</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pantalla 2: turno en directo con pausa -->
+  <section class="sc" id="s2">
+    <div class="badge" id="badge">Turno 1</div>
+    <div class="panel">
+      <div class="trib">
+        <div class="tbusto"></div>
+        <div class="burbuja" id="t2">Mira el campo.</div>
+      </div>
+      <p class="h">En directo</p>
+      <div class="log" id="log"></div>
+      <div class="botones">
+        <button class="primario" data-act="play" id="play">▶ Reproducir</button>
+        <button data-act="sig" id="sig">Siguiente turno</button>
+      </div>
+      <div class="elige" id="elige">
+        <p class="log" style="height:auto;margin:0">¿Qué ordenas?</p>
+        <button data-c="carga">Cargar al bosque</button>
+        <button data-c="retira">Retirar la caballería</button>
+        <button data-c="cierra">Cerrar filas</button>
+      </div>
+      <div class="botones" style="margin-top:auto">
+        <button data-go="1">Volver al plan</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pantalla 3: las tropas moviéndose y luchando -->
+  <section class="sc" id="s3">
+    <div class="campo">
+      <div class="lado r" id="ladoR"></div>
+      <div class="lado c" id="ladoC"></div>
+      <div class="polvo"></div>
+      <div class="chispa"></div>
+      <div class="pie3">
+        <p>Hastati contra iberos. El choque se decide en el centro.</p>
+        <button class="primario" data-go="4">Ver resultado</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Pantalla 4: resultado y posición -->
+  <section class="sc" id="s4">
+    <div class="res">
+      <div style="flex:1">
+        <h2>Victoria en el flanco</h2>
+        <p>El ala derecha rompe a los iberos. La caballería cierra el bosque.</p>
+        <div class="fila-bajas">
+          <span>Romanos · 14 % de bajas</span>
+          <div class="barra"><i style="width:14%;background:#c9a24a"></i></div>
+        </div>
+        <div class="fila-bajas">
+          <span>Cartagineses · 41 % de bajas</span>
+          <div class="barra"><i style="width:41%;background:#7a6fa0"></i></div>
+        </div>
+        <p class="log" style="height:auto">Velites 6 % · Hastati 12 % · Caballería 22 %. La emboscada queda deshecha.</p>
+      </div>
+      <div style="width:250px;display:flex;flex-direction:column;gap:8px;justify-content:center">
+        <button class="primario">Ocupar el vado y mantener · 3 días</button>
+        <button data-go="1">Volver a planear</button>
+        <button data-go="2">Repetir el directo</button>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const POS0 = {
+  r_vel: [110, 200], r_hast: [180, 80], r_prin: [180, 170], r_tri: [180, 260], r_cab: [120, 330],
+  c_iber: [470, 90], c_gal: [470, 180], c_afr: [470, 250], c_hond: [520, 140], c_numi: [530, 320],
+  c_emb: [445, 305]
+};
+const NOM = {
+  r_vel: 'Velites', r_hast: 'Hastati', r_prin: 'Príncipes', r_tri: 'Triarios', r_cab: 'Caballería',
+  c_iber: 'Iberos', c_gal: 'Galos', c_afr: 'Africanos', c_hond: 'Honderos', c_numi: 'Númidas',
+  c_emb: 'Emboscada'
+};
+const HOM = { r_vel: 300, r_hast: 120, r_prin: 120, r_tri: 100, r_cab: 80 };
+const CARTAS = ['r_hast', 'r_prin', 'r_tri', 'r_vel', 'r_cab'];
+const ORD = {
+  r_vel: { av: [250, 200], fl: [320, 60], em: [400, 300] },
+  r_hast: { av: [290, 80], fl: [300, 40], em: [380, 70] },
+  r_prin: { av: [280, 170], fl: [260, 250], em: [300, 170] },
+  r_tri: { av: [260, 260], fl: [350, 240], em: [390, 290] },
+  r_cab: { av: [300, 330], fl: [340, 320], em: [415, 320] }
+};
+const NOMORD = { av: 'Avanzar', fl: 'Flanquear', em: 'Emboscar' };
+const COSTE = { av: 1, fl: 2, em: 2 };
+const TURNOS = [
+  {
+    txt: 'Turno 1: la infantería avanza y los númidas bajan por el ala.',
+    mov: {
+      r_hast: [290, 80], r_prin: [280, 170], r_vel: [250, 200], r_tri: [260, 260], r_cab: [300, 330],
+      c_iber: [400, 100], c_gal: [400, 180], c_afr: [410, 250], c_hond: [460, 140], c_numi: [450, 320]
+    }
+  },
+  {
+    txt: 'Turno 2: la caballería entra en el bosque. ¡Emboscada!',
+    mov: { r_cab: [415, 320], c_numi: [435, 330] },
+    revela: true
+  }
+];
+const ELIGE = {
+  carga: { txt: 'Cargar al bosque: la caballería ataca a los emboscados.', mov: { r_cab: [440, 300] } },
+  retira: { txt: 'Retirar la caballería tras la colina.', mov: { r_cab: [190, 300] } },
+  cierra: { txt: 'Cerrar filas: los triarios sostienen el centro.', mov: { r_tri: [330, 240] } }
+};
+const TRIB2 = [
+  'Mira el campo. La caballería puede rodear por el bosque.',
+  'La caballería entra entre los árboles. Vigila el bosque.',
+  '¡Emboscada en el bosque! ¿Cargamos, nos retiramos o cerramos filas?'
+];
+const BUSTO = '<svg width="40" height="48" viewBox="0 0 40 48"><circle cx="20" cy="14" r="9" fill="#e2b98e"/>' +
+  '<path d="M9 9 Q20 -2 31 9 Z" fill="#8a6a3a"/>' +
+  '<path d="M3 48 C3 30 10 24 20 24 C30 24 37 30 37 48 Z" fill="#efe3c4" stroke="#8a6a3a"/>' +
+  '<path d="M9 30 L20 42 L31 30" fill="none" stroke="#9b2f25" stroke-width="3"/></svg>';
+
+let pedidos = {};
+let sel = null;
+let k = 0;
+let timer = null;
+const L = [];
+
+function mover(id, p) {
+  document.getElementById(id).style.transform = 'translate(' + p[0] + 'px,' + p[1] + 'px)';
+}
+
+function crearUnidades() {
+  let h = '';
+  for (const id in POS0) {
+    const ro = id[0] === 'r';
+    const oc = id === 'c_emb' ? ' oculto' : '';
+    h += '<g id="' + id + '" class="u' + oc + '"><rect class="cuerpo" x="-36" y="-11" width="72" height="22" rx="4" fill="' +
+      (ro ? '#9b2f25' : '#3f4f6a') + '"/><text>' + NOM[id] + '</text></g>';
+  }
+  document.getElementById('unidades').innerHTML = h;
+  for (const id in POS0) mover(id, POS0[id]);
+}
+
+function construir3() {
+  const fila = (id, col) => {
+    let h = '';
+    for (let i = 0; i < 24; i++) {
+      h += '<div class="s" style="animation-delay:' + ((i % 8) * 0.08) + 's">' + soldado(col) + '</div>';
+    }
+    document.getElementById(id).innerHTML = h;
+  };
+  fila('ladoR', '#9b2f25');
+  fila('ladoC', '#3f4f6a');
+}
+
+function soldado(c) {
+  return '<svg viewBox="0 0 16 22" width="16" height="22"><circle cx="8" cy="5" r="3.5" fill="#e6c49a"/>' +
+    '<rect x="4" y="9" width="8" height="9" rx="2" fill="' + c + '"/>' +
+    '<rect x="0.5" y="9" width="4" height="8" rx="1" fill="#d8b25c"/>' +
+    '<rect x="3" y="18" width="3" height="4" fill="#2a2018"/>' +
+    '<rect x="10" y="18" width="3" height="4" fill="#2a2018"/></svg>';
+}
+
+function gastado() {
+  return Object.values(pedidos).reduce((s, x) => s + COSTE[x], 0);
+}
+
+function rutas() {
+  let h = '';
+  for (const id in pedidos) {
+    const p = POS0[id];
+    const d = ORD[id][pedidos[id]];
+    const cx = (p[0] + d[0]) / 2;
+    const cy = Math.min(p[1], d[1]) - 28;
+    h += '<path d="M' + p[0] + ' ' + p[1] + ' Q' + cx + ' ' + cy + ' ' + d[0] + ' ' + d[1] +
+      '" fill="none" stroke="#f2d27a" stroke-width="2" stroke-dasharray="6 5" marker-end="url(#flecha)"/>';
+  }
+  document.getElementById('rutas').innerHTML = h;
+}
+
+function cartasYOrden() {
+  const usado = gastado();
+  document.getElementById('cartas').innerHTML = CARTAS.map(id => {
+    const o = pedidos[id] ? NOMORD[pedidos[id]] : 'sin orden';
+    return '<button class="carta' + (sel === id ? ' on' : '') + '" data-id="' + id + '">' +
+      '<span class="sw"></span><span class="n">' + NOM[id] + '</span>' +
+      '<span class="o">' + HOM[id] + ' h · ' + o + '</span></button>';
+  }).join('');
+  document.getElementById('selTxt').textContent = sel ? 'Orden para ' + NOM[sel] + ':' : 'Toca un regimiento de la lista.';
+  document.getElementById('pts').innerHTML = [0, 1, 2, 3, 4].map(i =>
+    '<i class="' + (i < 5 - usado ? 'lleno' : '') + '"></i>').join('');
+  document.querySelectorAll('#ordenes .chips button').forEach(b =>
+    b.classList.toggle('on', !!sel && pedidos[sel] === b.dataset.o));
+}
+
+function ordenar(o) {
+  if (!sel) {
+    document.getElementById('selTxt').textContent = 'Primero toca un regimiento.';
+    return;
+  }
+  const nuevo = gastado() - (pedidos[sel] ? COSTE[pedidos[sel]] : 0) + COSTE[o];
+  if (nuevo > 5) {
+    document.getElementById('selTxt').textContent = 'Sin puntos de mando. Quita otra orden.';
+    return;
+  }
+  pedidos[sel] = o;
+  rutas();
+  cartasYOrden();
+}
+
+function reiniciarUnidades() {
+  for (const id in POS0) mover(id, POS0[id]);
+  const e = document.getElementById('c_emb');
+  e.classList.add('oculto');
+  e.querySelector('rect').classList.remove('alerta');
+}
+
+function add(t) {
+  L.unshift(t);
+  L.length = Math.min(L.length, 3);
+  document.getElementById('log').innerHTML = L.map(x => '<div>· ' + x + '</div>').join('');
+}
+
+function actualizar() {
+  document.getElementById('badge').textContent = k < 2 ? 'Turno ' + (k + 1) : 'Turno 3 · pausa';
+  document.getElementById('play').textContent = timer ? '❚❚ Pausa' : '▶ Reproducir';
+  document.getElementById('sig').disabled = k >= 2 || !!timer;
+  document.getElementById('t2').textContent = TRIB2[Math.min(k, 2)];
+}
+
+function aplicar(i) {
+  const t = TURNOS[i];
+  for (const id in t.mov) mover(id, t.mov[id]);
+  if (t.revela) {
+    const e = document.getElementById('c_emb');
+    e.classList.remove('oculto');
+    e.querySelector('rect').classList.add('alerta');
+  }
+  add(t.txt);
+}
+
+function parar() {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+  actualizar();
+}
+
+function siguiente() {
+  if (k >= 2) return;
+  aplicar(k);
+  k++;
+  if (k === 2) {
+    parar();
+    document.getElementById('elige').classList.add('on');
+  }
+  actualizar();
+}
+
+function reproducir() {
+  if (timer) {
+    parar();
+    return;
+  }
+  if (k >= 2) return;
+  timer = setInterval(siguiente, 2200);
+  actualizar();
+}
+
+function elegir(c) {
+  const e = ELIGE[c];
+  for (const id in e.mov) mover(id, e.mov[id]);
+  add(e.txt);
+  document.getElementById('elige').classList.remove('on');
+  actualizar();
+}
+
+function reiniciarDirecto() {
+  if (timer) {
+    clearInterval(timer);
+    timer = null;
+  }
+  reiniciarUnidades();
+  k = 0;
+  L.length = 0;
+  document.getElementById('elige').classList.remove('on');
+  add('La batalla empieza. Pulsa Reproducir o Siguiente turno.');
+  actualizar();
+}
+
+function ir(n) {
+  document.body.dataset.s = n;
+  document.querySelectorAll('.sc').forEach(s => s.classList.toggle('on', s.id === 's' + n));
+  document.querySelectorAll('.top [data-go]').forEach(b => b.classList.toggle('on', +b.dataset.go === n));
+  if (n === 1) {
+    reiniciarUnidades();
+    cartasYOrden();
+    rutas();
+  }
+  if (n === 2) reiniciarDirecto();
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.go) return ir(+b.dataset.go);
+  if (b.dataset.id) {
+    sel = b.dataset.id;
+    return cartasYOrden();
+  }
+  if (b.dataset.o) return ordenar(b.dataset.o);
+  if (b.dataset.c) return elegir(b.dataset.c);
+  if (b.dataset.act === 'play') return reproducir();
+  if (b.dataset.act === 'sig') return siguiente();
+});
+
+document.querySelectorAll('.tbusto').forEach(e => { e.innerHTML = BUSTO; });
+crearUnidades();
+construir3();
+pedidos = { r_hast: 'av', r_cab: 'fl' };
+sel = 'r_tri';
+ir(1);
+</script>
+</body>
+</html>
