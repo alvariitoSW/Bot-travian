@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>K6c-1 · Tabula de caminos</title>
+<style>
+@font-face{font-family:"Cinzel";src:url("../../../assets/fuentes/cinzel-700.woff2") format("woff2");font-weight:700;font-display:swap}
+:root{--pergamino:#ecdcb3;--pergamino2:#dcc48f;--tinta:#3b2a1a;--romano:#8c2f1d;--enemigo:#2c4a6b;--oro:#c9962c;--alerta:#b3261e}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#241a12}
+body{display:flex;align-items:center;justify-content:center;font-family:Georgia,"Times New Roman",serif;color:var(--tinta)}
+#app{position:relative;width:844px;height:390px;flex:none;overflow:hidden;background:var(--pergamino)}
+.pant{position:absolute;inset:0;display:none}
+.pant.on{display:block}
+.barra{position:absolute;left:0;right:0;top:0;height:44px;display:flex;align-items:center;gap:8px;padding:0 10px;background:var(--tinta);color:var(--pergamino);z-index:5}
+.barra h1{font:700 14px Cinzel,Georgia,serif;letter-spacing:.04em;white-space:nowrap;margin-right:auto}
+.btn{font:700 12px Cinzel,Georgia,serif;height:32px;padding:0 12px;border-radius:6px;border:1.5px solid #1d140c;background:var(--pergamino2);color:var(--tinta);cursor:pointer;white-space:nowrap}
+.btn.fuerte{background:var(--romano);color:#fbf3dc;border-color:#5e1d11}
+.btn.peligro{background:var(--alerta);color:#fff;border-color:#6e140e}
+.btn:disabled{opacity:.45}
+.btn:active{transform:translateY(1px)}
+.plan{display:flex;align-items:center;gap:6px;font:700 12px Cinzel,Georgia,serif;color:#f3e3b8;white-space:nowrap}
+.plan .bar{width:110px;height:8px;background:#4a3a28;border-radius:4px;overflow:hidden}
+.plan .bar i{display:block;height:100%;width:100%;background:var(--oro);transition:width 1s linear}
+.plan.rojo .bar i{background:var(--alerta)}
+.mapa,.escena{position:absolute;left:0;top:44px;width:844px;height:300px}
+.pie{position:absolute;left:0;right:0;bottom:0;height:46px;display:flex;align-items:center;gap:12px;padding:0 12px;background:var(--pergamino2);border-top:1.5px solid var(--tinta);font-size:13px}
+.pie p{flex:1;line-height:1.25}
+.leyenda{display:flex;gap:10px;font-size:11px;white-space:nowrap;align-items:center}
+.sw{display:inline-block;width:12px;height:12px;border-radius:50%;border:1.5px solid var(--tinta);vertical-align:-2px;margin-right:4px}
+.tok{transition:transform 1.6s ease-in-out}
+.cuerpo rect{fill:var(--romano);stroke:var(--tinta);stroke-width:1.5}
+.cuerpo circle{fill:#f3e3b8}
+.cuerpo.h rect{fill:var(--enemigo)}
+.cuerpo.h circle{fill:#dfe8f0}
+.cuerpo.frente{animation:empuje 1.1s ease-in-out infinite alternate}
+.cuerpo.h.frente{animation-name:empujeH}
+@keyframes empuje{from{transform:translateX(0)}to{transform:translateX(7px)}}
+@keyframes empujeH{from{transform:translateX(0)}to{transform:translateX(-7px)}}
+.tiras{position:absolute;left:14px;top:52px;width:548px;display:flex;flex-direction:column;gap:10px}
+.tira{background:#e3cf9f;border:1.5px solid var(--tinta);border-radius:6px;padding:6px 10px}
+.tira small{display:block;font:700 11px Cinzel,Georgia,serif;letter-spacing:.06em;color:var(--romano)}
+.tira svg{width:100%;height:auto;display:block}
+.tira p{font-size:13px;margin-top:2px;line-height:1.25}
+.tira.hecha{opacity:.7}
+.consejo{position:absolute;right:12px;top:52px;width:250px;display:flex;flex-direction:column;gap:10px}
+.consejo h2{font:700 15px Cinzel,Georgia,serif;color:var(--romano)}
+.consejo p{font-size:13px;line-height:1.3}
+.consejo .btn{height:36px}
+.res{position:absolute;left:0;right:0;top:44px;bottom:0;display:flex;align-items:center;gap:28px;padding:0 36px}
+.sello{width:150px;flex:none}
+.res h2{font:700 20px Cinzel,Georgia,serif;color:var(--romano);margin-bottom:6px}
+.res p{font-size:14px;line-height:1.3;margin-bottom:12px}
+.cifras{display:grid;grid-template-columns:1fr 1fr;gap:8px 18px;font-size:13px}
+.cifras b{display:block;font:700 18px Cinzel,Georgia,serif;color:var(--tinta)}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- PANTALLA 1 · mapa en grande con el turno planeado -->
+  <section class="pant on" id="p1">
+    <header class="barra">
+      <h1>Jornada 4 de 8 · marcha</h1>
+      <div class="plan"><span>Planear</span><span id="seg">0:38</span><div class="bar"><i id="tiempo"></i></div></div>
+      <button class="btn" id="deshacer">Deshacer</button>
+      <button class="btn fuerte" id="marchar">Marchar</button>
+      <button class="btn" data-ir="2">Ver la escena</button>
+    </header>
+    <svg class="mapa" id="mapa" viewBox="0 0 1500 534" preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <marker id="fl" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+          <path d="M0 0L10 5L0 10z" fill="#3b2a1a"/>
+        </marker>
+      </defs>
+    </svg>
+    <div class="pie">
+      <p id="info">Toca una legión tuya y luego una estación de su vía.</p>
+      <div class="leyenda">
+        <span><i class="sw" style="background:var(--romano)"></i>Tus legiones</span>
+        <span><i class="sw" style="background:var(--enemigo)"></i>Enemigo</span>
+        <span>- - → orden</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PANTALLA 2 · escena del choque con 24 cuerpos de tropa -->
+  <section class="pant" id="p2">
+    <header class="barra">
+      <h1>Puente de IV · la escena</h1>
+      <button class="btn" data-ir="1">Volver al mapa</button>
+      <button class="btn fuerte" data-ir="3">Seguir el choque</button>
+    </header>
+    <svg class="escena" id="escena" viewBox="0 0 844 300"></svg>
+    <div class="pie">
+      <p id="info2">Toca un cuerpo de tropa para ver su estado.</p>
+      <div class="leyenda">
+        <span><i class="sw" style="background:var(--romano)"></i>Roma</span>
+        <span><i class="sw" style="background:var(--enemigo)"></i>Enemigo</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PANTALLA 3 · dos jornadas seguidas y un momento de riesgo -->
+  <section class="pant" id="p3">
+    <header class="barra">
+      <h1>Jornadas 6 y 7 · riesgo</h1>
+      <div class="plan rojo"><span>Planear</span><span>0:12</span><div class="bar"><i style="width:25%"></i></div></div>
+      <button class="btn" data-ir="1">Volver al mapa</button>
+    </header>
+    <div class="tiras">
+      <div class="tira hecha">
+        <small>JORNADA 6 · HECHA</small>
+        <svg viewBox="0 0 540 90" aria-hidden="true">
+          <line x1="20" y1="45" x2="520" y2="45" stroke="#b5462b" stroke-width="7" stroke-linecap="round" opacity=".6"/>
+          <rect x="326" y="27" width="48" height="36" fill="#8a6a40" stroke="#3b2a1a"/>
+          <g font-family="Cinzel, Georgia, serif" font-weight="700" font-size="13" fill="#3b2a1a" text-anchor="middle">
+            <text x="90" y="16">II</text><text x="220" y="16">III</text><text x="350" y="16">IV</text><text x="480" y="16">V</text>
+          </g>
+          <g fill="#ecdcb3" stroke="#3b2a1a" stroke-width="2">
+            <circle cx="90" cy="45" r="6"/><circle cx="220" cy="45" r="6"/><circle cx="350" cy="45" r="6"/><circle cx="480" cy="45" r="6"/>
+          </g>
+          <circle cx="336" cy="45" r="13" fill="#8c2f1d" stroke="#ecdcb3" stroke-width="2"/>
+          <text x="336" y="46" text-anchor="middle" dominant-baseline="central" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="11" fill="#fbf3dc">X</text>
+          <circle cx="366" cy="45" r="13" fill="#2c4a6b" stroke="#ecdcb3" stroke-width="2"/>
+          <text x="366" y="46" text-anchor="middle" dominant-baseline="central" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="9" fill="#fbf3dc">H6</text>
+        </svg>
+        <p>La legión X cruzó el puente de IV. Perdió 40 hombres.</p>
+      </div>
+      <div class="tira">
+        <small>JORNADA 7 · PLANEAR</small>
+        <svg viewBox="0 0 540 90" aria-hidden="true">
+          <defs>
+            <marker id="fr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+              <path d="M0 0L10 5L0 10z" fill="#b3261e"/>
+            </marker>
+          </defs>
+          <line x1="20" y1="45" x2="520" y2="45" stroke="#b5462b" stroke-width="7" stroke-linecap="round" opacity=".6"/>
+          <rect x="326" y="27" width="48" height="36" fill="#8a6a40" stroke="#3b2a1a"/>
+          <g font-family="Cinzel, Georgia, serif" font-weight="700" font-size="13" fill="#3b2a1a" text-anchor="middle">
+            <text x="90" y="16">II</text><text x="220" y="16">III</text><text x="350" y="16">IV</text><text x="480" y="16">V</text>
+          </g>
+          <g fill="#ecdcb3" stroke="#3b2a1a" stroke-width="2">
+            <circle cx="90" cy="45" r="6"/><circle cx="220" cy="45" r="6"/><circle cx="350" cy="45" r="6"/><circle cx="480" cy="45" r="6"/>
+          </g>
+          <circle cx="220" cy="45" r="22" fill="none" stroke="#b3261e" stroke-width="3" stroke-dasharray="5 4"/>
+          <path d="M360 30 Q 300 4 240 36" fill="none" stroke="#b3261e" stroke-width="3" stroke-dasharray="7 5" marker-end="url(#fr)"/>
+          <circle cx="90" cy="45" r="13" fill="none" stroke="#4f6b2a" stroke-width="2.5" stroke-dasharray="4 3"/>
+          <text x="90" y="46" text-anchor="middle" dominant-baseline="central" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="9" fill="#4f6b2a">IX</text>
+          <line x1="106" y1="45" x2="200" y2="45" stroke="#4f6b2a" stroke-width="3" stroke-dasharray="7 5"/>
+          <circle cx="336" cy="45" r="13" fill="#8c2f1d" stroke="#ecdcb3" stroke-width="2"/>
+          <text x="336" y="46" text-anchor="middle" dominant-baseline="central" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="11" fill="#fbf3dc">X</text>
+          <circle cx="366" cy="45" r="13" fill="#2c4a6b" stroke="#ecdcb3" stroke-width="2"/>
+          <text x="366" y="46" text-anchor="middle" dominant-baseline="central" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="9" fill="#fbf3dc">H6</text>
+        </svg>
+        <p>Si nadie cambia nada, la X queda aislada en IV.</p>
+      </div>
+    </div>
+    <aside class="consejo">
+      <h2>Riesgo en III</h2>
+      <p>H6 llega a III antes que la X y le corta el camino a II. La X tiene la mitad de sus hombres.</p>
+      <button class="btn fuerte" data-ir="4">Mandar refuerzo</button>
+      <button class="btn peligro" data-ir="4">Retirar la X</button>
+    </aside>
+  </section>
+
+  <!-- PANTALLA 4 · resultado -->
+  <section class="pant" id="p4">
+    <header class="barra">
+      <h1>Resultado · jornada 8</h1>
+      <button class="btn" data-ir="1">Volver al mapa</button>
+      <button class="btn fuerte" id="otra">Otra campaña</button>
+    </header>
+    <div class="res">
+      <svg class="sello" viewBox="0 0 160 160" aria-hidden="true">
+        <circle cx="80" cy="80" r="74" fill="#e3cf9f" stroke="#3b2a1a" stroke-width="5"/>
+        <circle cx="80" cy="80" r="62" fill="none" stroke="#8c2f1d" stroke-width="2" stroke-dasharray="5 4"/>
+        <text x="80" y="78" text-anchor="middle" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="17" fill="#8c2f1d">VICTORIA</text>
+        <text x="80" y="102" text-anchor="middle" font-family="Cinzel, Georgia, serif" font-size="12" fill="#3b2a1a">II</text>
+      </svg>
+      <div>
+        <h2>La columna X llega a II</h2>
+        <p>Cruzó el puente y pasó por III. H6 se retira por la vía del puente.</p>
+        <div class="cifras">
+          <div>Legiones que llegan<b>9 de 12</b></div>
+          <div>Bajas romanas<b>1.240</b></div>
+          <div>Bajas enemigas<b>2.080</b></div>
+          <div>Jornadas usadas<b>7 de 8</b></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const NS = 'http://www.w3.org/2000/svg';
+const ROAD = {A:110, B:265, C:420};
+const VIA = {A:'vía del norte', B:'vía del puente', C:'vía del sur'};
+const ST = {I:170, II:380, III:590, IV:750, V:910, VI:1120, VII:1330};
+const SLOT_R = [[-70,-30],[-70,30],[-30,-30],[-30,30]];
+const SLOT_H = [[30,-30],[30,30],[70,-30],[70,30]];
+const TROP = {
+  A:{r:['I','II','III','IV'],   h:['H1','H2','H3','H4']},
+  B:{r:['V','VI','VII','VIII'], h:['H5','H6','H7','H8']},
+  C:{r:['IX','X','XI','XII'],   h:['H9','H10','H11','H12']}
+};
+const POS_R = [[60,-30],[60,30],[110,-30],[110,30]];
+const POS_H = [[1390,-30],[1390,30],[1440,-30],[1440,30]];
+const ORD_R = {I:'III-A', II:'III-A', IX:'II-C', X:'II-C', V:'IV-B', VI:'IV-B', VII:'IV-B', VIII:'IV-B'};
+const ORD_H = {H1:'V-A',H2:'V-A',H3:'V-A',H4:'V-A',H5:'IV-B',H6:'IV-B',H7:'IV-B',H8:'IV-B',H9:'VI-C',H10:'VI-C',H11:'VI-C',H12:'VI-C'};
+const ROM = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+
+const say = m => { $('#info').textContent = m; };
+const nombre = t => (t.side === 'r' ? 'Legión ' : 'Enemigo ') + t.lab;
+function el(tag, attrs, parent){
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+}
+function txt(s, attrs, parent){
+  const e = el('text', Object.assign({'font-family':'Cinzel, Georgia, serif','font-weight':700}, attrs), parent);
+  e.textContent = s;
+  return e;
+}
+
+/* ---------- PANTALLA 1: mapa de caminos ---------- */
+const toks = [];
+for (const rd of ['A','B','C']) {
+  TROP[rd].r.forEach((lab, i) => toks.push({side:'r', lab, rd, x0:POS_R[i][0], y0:ROAD[rd]+POS_R[i][1], node:ORD_R[lab]||null, hombres:4200 + ((i*311 + rd.charCodeAt(0)*17) % 700)}));
+  TROP[rd].h.forEach((lab, i) => toks.push({side:'h', lab, rd, x0:POS_H[i][0], y0:ROAD[rd]+POS_H[i][1], node:ORD_H[lab]||null, hombres:3900 + ((i*263 + rd.charCodeAt(0)*29) % 800)}));
+}
+const hist = toks.filter(t => t.side === 'r' && t.node).map(t => ({t, prev:null}));
+let sel = null, marcha = false;
+
+function recalc(){
+  const cnt = {};
+  toks.forEach(t => {
+    t.tx = t.ty = null;
+    if (!t.node) return;
+    const key = t.node + t.side;
+    const k = (cnt[key] = (cnt[key] || 0) + 1) - 1;
+    const [nm, rd] = t.node.split('-');
+    const s = (t.side === 'r' ? SLOT_R : SLOT_H)[k % 4];
+    t.tx = ST[nm] + s[0];
+    t.ty = ROAD[rd] + s[1];
+  });
+}
+
+const mapa = $('#mapa');
+const fondo = el('g', {}, mapa);
+el('rect', {x:0, y:0, width:1500, height:534, fill:'#ecdcb3'}, fondo);
+el('rect', {x:14, y:14, width:1472, height:506, fill:'none', stroke:'#3b2a1a', 'stroke-width':4}, fondo);
+el('rect', {x:24, y:24, width:1452, height:486, fill:'none', stroke:'#3b2a1a', 'stroke-width':1.5, 'stroke-dasharray':'10 6'}, fondo);
+el('path', {d:'M750 0 C722 120 786 250 748 360 S716 470 752 534', fill:'none', stroke:'#9cc0cf', 'stroke-width':62, opacity:.85}, fondo);
+for (const rd in ROAD) {
+  const y = ROAD[rd];
+  el('line', {x1:30, y1:y, x2:1470, y2:y, stroke:'#b5462b', 'stroke-width':12, 'stroke-linecap':'round', opacity:.9}, fondo);
+  el('line', {x1:30, y1:y, x2:1470, y2:y, stroke:'#ecdcb3', 'stroke-width':2, 'stroke-dasharray':'14 8'}, fondo);
+  el('rect', {x:722, y:y-36, width:56, height:72, fill:'#8a6a40', stroke:'#3b2a1a', 'stroke-width':2}, fondo);
+}
+for (const nm in ST) {
+  const x = ST[nm];
+  const m = Math.round((x - 30) / 1440 * 1500);
+  txt(nm, {x, y:40, 'text-anchor':'middle', 'font-size':24, fill:'#3b2a1a'}, fondo);
+  txt(m + ' m', {x, y:514, 'text-anchor':'middle', 'font-size':16, 'font-weight':400, fill:'#6b4f2e'}, fondo);
+}
+
+const capaNodos = el('g', {}, mapa);
+for (const rd in ROAD) for (const nm in ST) {
+  const g = el('g', {'class':'nodo', 'data-nodo':nm + '-' + rd, style:'cursor:pointer'}, capaNodos);
+  el('circle', {cx:ST[nm], cy:ROAD[rd], r:26, fill:'transparent'}, g);
+  el('circle', {cx:ST[nm], cy:ROAD[rd], r:10, fill:'#ecdcb3', stroke:'#3b2a1a', 'stroke-width':3}, g);
+}
+const capaOrd = el('g', {}, mapa);
+const capaTok = el('g', {}, mapa);
+toks.forEach((t, i) => {
+  const base = el('g', {transform:`translate(${t.x0} ${t.y0})`}, capaTok);
+  const g = el('g', {'class':'tok', 'data-tok':i, style:'cursor:pointer'}, base);
+  t.g = g;
+  t.anillo = el('circle', {r:31, fill:'none', stroke:'#c9962c', 'stroke-width':5, opacity:0}, g);
+  el('circle', {r:40, fill:'transparent'}, g);
+  el('circle', {r:23, fill: t.side === 'r' ? '#8c2f1d' : '#2c4a6b', stroke:'#ecdcb3', 'stroke-width':3}, g);
+  txt(t.lab, {x:0, y:0, 'text-anchor':'middle', 'dominant-baseline':'central', 'font-size': t.lab.length >= 4 ? 11 : (t.lab.length === 3 ? 13 : 15), fill:'#fbf3dc'}, g);
+});
+const choque = el('g', {style:'pointer-events:none;opacity:0;transition:opacity .5s'}, mapa);
+el('polygon', {points:'750,229 760,248 782,244 770,260 790,274 766,278 758,300 750,282 740,300 734,278 710,274 730,260 718,244 740,248', fill:'#b3261e', stroke:'#3b2a1a', 'stroke-width':2}, choque);
+txt('Choque en IV', {x:750, y:334, 'text-anchor':'middle', 'font-size':20, fill:'#6e140e'}, choque);
+
+function marcar(){ toks.forEach(t => t.anillo.setAttribute('opacity', t === sel ? 1 : 0)); }
+function pintarOrdenes(){
+  capaOrd.innerHTML = '';
+  if (marcha) return;
+  toks.forEach(t => {
+    if (!t.node) return;
+    el('line', {x1:t.x0, y1:t.y0, x2:t.tx, y2:t.ty, stroke: t.side === 'r' ? '#8c2f1d' : '#2c4a6b', 'stroke-width':5, 'stroke-dasharray':'12 8', opacity: t.side === 'r' ? .95 : .4, 'marker-end':'url(#fl)'}, capaOrd);
+  });
+}
+
+mapa.addEventListener('click', e => {
+  if (marcha) return;
+  const tk = e.target.closest('[data-tok]');
+  const nd = e.target.closest('[data-nodo]');
+  if (tk) {
+    const t = toks[+tk.dataset.tok];
+    if (t.side === 'h') { sel = null; say(nombre(t) + ': es del enemigo. Solo das órdenes a tus legiones.'); }
+    else if (sel === t) { sel = null; say('Ninguna legión elegida.'); }
+    else { sel = t; say(nombre(t) + ', ' + t.hombres.toLocaleString('es-ES') + ' hombres. Ahora toca una estación.'); }
+  } else if (nd) {
+    if (!sel) { say('Primero toca una legión tuya.'); return; }
+    const [nm, rd] = nd.dataset.nodo.split('-');
+    hist.push({t:sel, prev:sel.node});
+    sel.node = nd.dataset.nodo;
+    say(nombre(sel) + ' irá a ' + nm + ', ' + VIA[rd] + '.');
+    sel = null;
+    recalc();
+  } else return;
+  marcar();
+  pintarOrdenes();
+});
+
+$('#deshacer').addEventListener('click', () => {
+  if (marcha) return;
+  const h = hist.pop();
+  if (!h) { say('No hay órdenes que deshacer.'); return; }
+  h.t.node = h.prev;
+  sel = null;
+  recalc(); marcar(); pintarOrdenes();
+  say('Orden deshecha: ' + nombre(h.t) + '.');
+});
+
+function marchar(){
+  if (marcha) return;
+  marcha = true; sel = null; marcar();
+  capaOrd.innerHTML = '';
+  toks.forEach(t => { if (t.node) t.g.style.transform = `translate(${t.tx - t.x0}px, ${t.ty - t.y0}px)`; });
+  $('#seg').textContent = 'En marcha';
+  $('#tiempo').style.width = '0%';
+  $('#marchar').disabled = true;
+  say('Las legiones marchan, todas a la vez.');
+  setTimeout(() => { choque.style.opacity = 1; say('Choque en el puente de IV. Ve a la escena o sigue la marcha.'); }, 1700);
+}
+$('#marchar').addEventListener('click', marchar);
+
+const TOTAL = 38;
+let seg = TOTAL;
+function pintarTiempo(){
+  $('#seg').textContent = '0:' + String(seg).padStart(2, '0');
+  $('#tiempo').style.width = (seg / TOTAL * 100) + '%';
+}
+setInterval(() => {
+  if (marcha) return;
+  seg--;
+  if (seg <= 0) { seg = 0; pintarTiempo(); marchar(); return; }
+  pintarTiempo();
+}, 1000);
+
+recalc(); marcar(); pintarOrdenes(); pintarTiempo();
+
+/* ---------- PANTALLA 2: escena con 24 cuerpos de tropa ---------- */
+function cuerpo(x, y, s, side, fila, id){
+  const w = 46*s, h = 26*s;
+  let pts = '';
+  for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) {
+    const px = -w/2 + (c + .5) * w / 4, py = -h/2 + (r + .5) * h / 3;
+    pts += `<circle cx="${px.toFixed(1)}" cy="${py.toFixed(1)}" r="${(2.2*s).toFixed(1)}"/>`;
+  }
+  return `<g transform="translate(${x} ${y})" data-bl="${id}" style="cursor:pointer"><g class="cuerpo ${side}${fila === 2 ? ' frente' : ''}"><rect x="${(-w/2-3).toFixed(1)}" y="${(-h/2-3).toFixed(1)}" width="${(w+6).toFixed(1)}" height="${(h+6).toFixed(1)}" rx="3"/>${pts}</g></g>`;
+}
+const filas = [{y:118, s:.72}, {y:178, s:.88}, {y:240, s:1}];
+const colR = [120, 200, 280, 360], colH = [484, 564, 644, 724];
+let bloques = '';
+filas.forEach((f, fi) => {
+  colR.forEach((x, ci) => { bloques += cuerpo(x, f.y, f.s, 'r', fi, 'R' + (fi*4 + ci + 1)); });
+  colH.forEach((x, ci) => { bloques += cuerpo(x, f.y, f.s, 'h', fi, 'H' + (fi*4 + ci + 1)); });
+});
+const esc = $('#escena');
+esc.innerHTML = `
+<defs><linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#efe0b8"/><stop offset="1" stop-color="#d9bb80"/></linearGradient></defs>
+<rect width="844" height="300" fill="url(#cielo)"/>
+<path d="M0 84 Q422 60 844 84 L844 300 L0 300Z" fill="#c4a064" opacity=".45"/>
+<rect x="404" y="84" width="36" height="216" fill="#7fa6b8"/>
+<rect x="394" y="172" width="56" height="16" fill="#6b4f2e" stroke="#3b2a1a"/>
+<text x="20" y="34" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="14" fill="#3b2a1a">Legiones de Roma · 12</text>
+<text x="824" y="34" text-anchor="end" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="14" fill="#2c4a6b">Enemigo · 12</text>
+<text x="422" y="34" text-anchor="middle" font-family="Cinzel, Georgia, serif" font-weight="700" font-size="14" fill="#6e140e">Puente de IV</text>
+${bloques}
+<g opacity=".75" fill="#e7d6b0"><circle cx="422" cy="250" r="18"/><circle cx="404" cy="262" r="12"/><circle cx="440" cy="262" r="12"/></g>`;
+esc.addEventListener('click', e => {
+  const b = e.target.closest('[data-bl]');
+  if (!b) return;
+  const id = b.dataset.bl, n = +id.slice(1);
+  const pct = 55 + (n * 23) % 40;
+  const nom = id[0] === 'R' ? 'Legión ' + ROM[n-1] : 'Enemigo H' + n;
+  $('#info2').textContent = nom + ' · fuerza ' + pct + ' %. ' + (pct < 70 ? 'Está cansada: retenla o retírala.' : 'Aguanta el empuje.');
+});
+
+/* ---------- navegación y escala ---------- */
+function ir(n){ document.querySelectorAll('.pant').forEach((s, i) => s.classList.toggle('on', i === n - 1)); }
+document.querySelectorAll('[data-ir]').forEach(b => b.addEventListener('click', () => ir(+b.dataset.ir)));
+$('#otra').addEventListener('click', () => { location.hash = '#1'; location.reload(); });
+function ajustar(){
+  const s = Math.min(innerWidth / 844, innerHeight / 390);
+  $('#app').style.transform = `scale(${s})`;
+}
+addEventListener('resize', ajustar);
+ajustar();
+if (/^#[1-4]$/.test(location.hash)) ir(+location.hash[1]);
+</script>
+</body>
+</html>

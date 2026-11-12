@@ -1,0 +1,7 @@
+1. La idea: cada turno se elige una maniobra de tres en la mano, y el mapa en grande dibuja su efecto antes de ejecutar el turno.
+2. Con el pulgar, se toca una maniobra y su flecha o zona aparece en el mapa; se toca un regimiento para elegir la punta; «Ejecutar turno» lanza la marcha. Del mapa a la escena se pasa solo: al acabar la marcha aparece el choque, y «Volver al mapa» regresa.
+3. Cuatro botones a la vista en el mapa (tres maniobras y ejecutar); dos en la escena, en el momento de riesgo y en el resultado.
+4. Dirección de arte: pergamino, tinta y rojo de legión, con un sello SPQR en el resultado. Todo hecho a mano en SVG y canvas; no usa arte de 0 A.D. ni de otros juegos.
+5. A 20 y 30 regimientos, el mapa solo añade símbolos (una fila más por bando) y la escena pinta cada bando en perspectiva. A 1.500 m el campo cabe entero en pantalla. El turno se vive con una barra de planear (20 s, con el tiempo que queda) y una marcha de 2 s.
+6. Cambios propuestos (solo proponer): en `js/ui.js`, la mano de tres maniobras, el reloj de planear y el toque de regimiento; en `js/battle.js`, cada maniobra como modificador de la tirada (flanco, carga, moral); en `js/gfx/battle3d.js`, la vista cenital y la escena con 20 regimientos por bando.
+7. Coste estimado: unas 4 tareas medianas (mapa de turnos con maniobras, escena con 20 por bando, momento de riesgo y resultado, reglas de maniobra en `js/battle.js`).
