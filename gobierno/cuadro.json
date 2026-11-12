@@ -973,6 +973,12 @@
    "titulo": "Ciudad nueva · CN11 Vida y peso",
    "nota": "js/gfx/vida.js, city3d.js, units.js, assets (ola 4, solo dibujo)",
    "url": "https://claude.ai/code/session_01QiKC36FcbtHLLBidokrqYr"
+  },
+  {
+   "tarea": "K6",
+   "titulo": "Concurso · K6 Arte de batalla y tropas",
+   "nota": "solo maquetas",
+   "url": "https://claude.ai/code/session_01QiKC37tiobNBApd9bhi8N3"
   }
  ],
  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
