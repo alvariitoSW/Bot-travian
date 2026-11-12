@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>AQVILA · Maniobras del turno</title>
+<style>
+@font-face{font-family:'Cinzel';src:url('../../../assets/fuentes/cinzel-700.woff2') format('woff2');font-weight:700;font-display:block}
+:root{--papel:#efe3c6;--papel2:#e2cfa6;--carta:#f7eed8;--tinta:#2e2116;--tinta2:#5b4a35;--rojo:#8e2a1f;--oro:#b7862a;--enemigo:#3b4550;--barra:#2e2116;--barra-txt:#f3e7c9}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#241a12;font-family:Georgia,'Times New Roman',serif;color:var(--tinta)}
+button{font-family:inherit;color:inherit;cursor:pointer}
+.pantalla{position:absolute;inset:0;display:none;overflow:hidden;background:var(--papel)}
+.pantalla.on{display:grid}
+.p1{grid-template-columns:1fr 262px;grid-template-rows:40px 1fr}
+.p3{grid-template-columns:250px 1fr 270px;grid-template-rows:40px 1fr}
+.p4{grid-template-columns:1fr;grid-template-rows:40px 1fr}
+.tit{font:700 15px Cinzel,Georgia,serif;letter-spacing:.04em}
+.barra{grid-column:1/-1;display:flex;align-items:center;gap:14px;padding:0 14px;background:var(--barra);color:var(--barra-txt);font-size:14px;white-space:nowrap;overflow:hidden}
+.barra .tit{font-size:15px}
+.gris{color:#cdbb97;font-size:13px}
+.temp{flex:0 0 180px;height:10px;background:#5a4630;border-radius:5px;overflow:hidden}
+.temp i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#c9962f,#f0c964);transition:width .9s linear}
+.mapa{position:relative;overflow:hidden;background:#e6d3a6;min-height:0}
+.mapa svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+.nota{position:absolute;left:8px;top:6px;font-size:12px;color:var(--tinta2);background:rgba(247,238,216,.92);padding:2px 7px;border-radius:4px}
+.marcha{position:absolute;inset:0;display:none;align-items:center;justify-content:center;background:rgba(46,33,22,.45);color:#f7eed8;font:700 22px Cinzel,Georgia,serif}
+.p1.marcha .marcha{display:flex}
+.reg rect{stroke:#2e2116;stroke-width:3}
+.reg.romano rect{fill:var(--rojo)}
+.reg.enemigo rect{fill:var(--enemigo)}
+.reg text{font:700 28px Georgia,serif;fill:#f7eed8;text-anchor:middle;dominant-baseline:central}
+.reg.romano{cursor:pointer}
+.reg.punta rect{stroke:#f0c964;stroke-width:9}
+.asta{stroke:#2e2116;stroke-width:3;fill:none}
+.pend{fill:#f0c964;stroke:#2e2116;stroke-width:2}
+.reg.enemigo .pend{fill:#c9c2b0}
+.flecha{fill:none;stroke-width:16;stroke-linecap:round}
+.flecha.oro{stroke:#b7862a}
+.flecha.rojo{stroke:#a3261b}
+.etiq{font:700 30px Georgia,serif;fill:var(--tinta);paint-order:stroke;stroke:#efe3c6;stroke-width:9px;stroke-linejoin:round}
+.ef{display:none}
+.ef.on{display:inline}
+.p1.marcha .ef.on .flecha{stroke-dasharray:18 12;animation:corre .5s linear infinite}
+@keyframes corre{to{stroke-dashoffset:-30}}
+.mano{display:flex;flex-direction:column;gap:7px;padding:9px;background:var(--papel2);border-left:2px solid var(--oro);min-height:0}
+.mano h2{margin:0 0 1px;font:700 12px Cinzel,Georgia,serif;letter-spacing:.08em;color:var(--tinta2);text-transform:uppercase}
+.carta{display:grid;grid-template-columns:34px 1fr;column-gap:8px;align-items:center;text-align:left;background:var(--carta);border:1.5px solid #8a7150;border-radius:8px;padding:6px 8px;color:var(--tinta);width:100%}
+.carta svg{width:34px;height:34px}
+.carta b{display:block;font:700 15px Cinzel,Georgia,serif}
+.carta span{display:block;font-size:12.5px;line-height:1.25;color:var(--tinta2)}
+.carta .r{color:var(--tinta);margin-top:2px}
+.carta.sel{border:2px solid var(--rojo);background:#fbf4e2}
+.carta.sel b::after{content:' · elegida';font:12px Georgia,serif;color:var(--rojo)}
+.btn-grande{height:46px;background:var(--rojo);color:#fbf0d8;border:0;border-radius:8px;font:700 16px Cinzel,Georgia,serif;letter-spacing:.04em;box-shadow:0 2px 0 #5a1a12;padding:0 14px}
+.mano .btn-grande{margin-top:auto}
+.btn-sec{height:44px;background:var(--carta);border:1.5px solid var(--tinta2);border-radius:8px;font:700 15px Cinzel,Georgia,serif;padding:0 14px}
+.p2 canvas{position:absolute;inset:0;width:844px;height:390px;display:block}
+.hud{position:absolute;left:0;right:0;top:0;height:40px;display:flex;align-items:center;gap:12px;padding:0 14px;background:rgba(46,33,22,.84);color:#f3e7c9;font-size:14px}
+.hud .sp{flex:1}
+.leyenda{position:absolute;left:12px;bottom:12px;background:rgba(247,238,216,.92);padding:4px 9px;border-radius:5px;font-size:13px}
+.abajo{position:absolute;right:12px;bottom:12px;display:flex;gap:8px}
+.abajo .btn-sec{height:40px;background:rgba(247,238,216,.95)}
+.col{padding:12px 14px;min-height:0;overflow:hidden}
+.izq{background:var(--papel2);border-right:2px solid var(--oro)}
+.der{background:var(--papel2);border-left:2px solid var(--oro);display:flex;flex-direction:column;justify-content:center;gap:8px;padding:12px}
+.centro{display:flex;flex-direction:column;justify-content:center}
+.linea{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dotted #8a7150}
+.linea.ahora{font-weight:700;color:var(--rojo)}
+.sub{font:700 12px Cinzel,Georgia,serif;letter-spacing:.06em;text-transform:uppercase;color:var(--tinta2);margin:14px 0 8px}
+.medidor{position:relative;height:16px;border-radius:8px;background:linear-gradient(90deg,#a3261b 0 40%,#c9962f 40% 70%,#4f7a4a 70%)}
+.medidor i{position:absolute;top:-5px;left:38%;width:4px;height:26px;background:var(--tinta);border-radius:2px}
+.escala{display:flex;justify-content:space-between;font-size:12px;color:var(--tinta2);margin-top:4px}
+.nota-s{font-size:12.5px;color:var(--tinta2);margin:0;line-height:1.3}
+.grande{font:700 64px/1 Cinzel,Georgia,serif;color:var(--rojo);margin:4px 0}
+.dados{display:grid;grid-template-columns:repeat(10,1fr);gap:4px;max-width:300px;margin:8px 0}
+.dados i{height:18px;border-radius:3px;background:#d8c7a0;border:1px solid #8a7150}
+.dados i.on{background:var(--rojo);border-color:var(--rojo)}
+.der .btn-grande,.der .btn-sec{width:100%}
+.cuerpo{display:grid;grid-template-columns:180px 1fr;gap:18px;padding:12px 22px;align-items:center;min-height:0}
+.sello{width:160px;height:160px}
+.titulo{font:700 30px/1.1 Cinzel,Georgia,serif;margin:0 0 6px;color:var(--rojo)}
+#res-sub{font-size:14px;margin:0;color:var(--tinta2)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0 10px}
+.stat{background:var(--carta);border:1.5px solid #8a7150;border-radius:8px;padding:8px 10px}
+.stat b{display:block;font:700 20px Cinzel,Georgia,serif}
+.stat span{font-size:12.5px;color:var(--tinta2)}
+.turnos{display:grid;grid-template-columns:repeat(12,1fr);gap:4px;margin-bottom:14px}
+.turnos i{height:12px;border-radius:2px;background:#d8c7a0}
+.turnos i.ok{background:var(--oro)}
+.acciones{display:flex;gap:10px}
+.acciones .btn-grande{height:44px}
+</style>
+</head>
+<body>
+
+<!-- PANTALLA 1: mapa en grande con el turno planeado -->
+<section class="pantalla p1 on" data-p="1" id="s1">
+  <div class="barra">
+    <span class="tit">Turno 3 de 12</span>
+    <span class="temp"><i id="temp"></i></span>
+    <span>Planear: quedan <b id="seg">0:20</b></span>
+    <span class="gris">luego marcha 2 s</span>
+  </div>
+  <div class="mapa">
+    <svg viewBox="0 0 1500 940" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Campo de batalla visto desde arriba">
+      <defs>
+        <pattern id="cuad" width="150" height="150" patternUnits="userSpaceOnUse"><path d="M150 0H0V150" fill="none" stroke="#b9a277" stroke-width="2" opacity=".35"/></pattern>
+        <marker id="pta" markerUnits="userSpaceOnUse" markerWidth="44" markerHeight="44" refX="7" refY="5" viewBox="0 0 10 10" orient="auto"><path d="M0 0L10 5L0 10z" fill="#b7862a"/></marker>
+        <marker id="ptr" markerUnits="userSpaceOnUse" markerWidth="44" markerHeight="44" refX="7" refY="5" viewBox="0 0 10 10" orient="auto"><path d="M0 0L10 5L0 10z" fill="#a3261b"/></marker>
+        <marker id="ptg" markerUnits="userSpaceOnUse" markerWidth="40" markerHeight="40" refX="7" refY="5" viewBox="0 0 10 10" orient="auto"><path d="M0 0L10 5L0 10z" fill="#3b4550"/></marker>
+      </defs>
+      <rect width="1500" height="940" fill="#e6d3a6"/>
+      <rect width="1500" height="940" fill="url(#cuad)"/>
+      <g fill="#d7c293" stroke="#a88f5f" stroke-width="3">
+        <ellipse cx="330" cy="330" rx="150" ry="70"/>
+        <ellipse cx="1180" cy="320" rx="170" ry="80"/>
+        <ellipse cx="760" cy="640" rx="130" ry="60"/>
+      </g>
+      <g fill="#6e7a4a" opacity=".85">
+        <circle cx="110" cy="600" r="26"/><circle cx="146" cy="586" r="22"/><circle cx="126" cy="624" r="20"/>
+        <circle cx="1360" cy="620" r="28"/><circle cx="1400" cy="606" r="22"/>
+      </g>
+      <path d="M0 500 C180 470 300 520 480 492 S760 440 900 470 S1200 520 1500 478" fill="none" stroke="#7f9ca1" stroke-width="46"/>
+      <path d="M0 500 C180 470 300 520 480 492 S760 440 900 470 S1200 520 1500 478" fill="none" stroke="#a9c0c2" stroke-width="12" opacity=".6"/>
+      <text x="640" y="560" class="etiq" style="font-size:22px">río</text>
+      <rect x="1010" y="462" width="62" height="26" rx="4" fill="#e6d3a6" stroke="#2e2116" stroke-width="2"/>
+      <text x="1041" y="476" class="etiq" style="font-size:20px;stroke-width:4" text-anchor="middle" dominant-baseline="middle">vado</text>
+
+      <g id="tropas"></g>
+
+      <g id="efectos">
+        <g class="ef on" id="ef-envolver">
+          <path id="fl-env" class="flecha oro" marker-end="url(#pta)" d=""/>
+          <text id="et-env" class="etiq" text-anchor="middle" x="700" y="600">rodea por el vado</text>
+        </g>
+        <g class="ef" id="ef-carga">
+          <rect id="zona-carga" x="820" y="196" width="660" height="150" fill="#a3261b" fill-opacity=".12" stroke="#a3261b" stroke-width="4" stroke-dasharray="18 12"/>
+          <path id="fl-carga" class="flecha rojo" marker-end="url(#ptr)" d=""/>
+          <text class="etiq" x="750" y="340" text-anchor="middle">riesgo alto: toda la línea</text>
+        </g>
+        <g class="ef" id="ef-cerrar">
+          <rect x="50" y="708" width="1400" height="110" rx="14" fill="#b7862a" fill-opacity=".18" stroke="#b7862a" stroke-width="5"/>
+          <text x="750" y="824" class="etiq" text-anchor="middle" style="font-size:28px">+ moral: la línea se junta</text>
+        </g>
+      </g>
+
+      <path d="M1300 240 V372" stroke="#3b4550" stroke-width="10" stroke-dasharray="22 16" fill="none" opacity=".6" marker-end="url(#ptg)"/>
+      <text x="1300" y="410" class="etiq" text-anchor="middle" style="font-size:24px">el enemigo avanza</text>
+    </svg>
+    <div class="nota">Vista desde arriba · 1.500 m · toca un regimiento para elegir su punta</div>
+    <div class="marcha">Marchan…</div>
+  </div>
+  <aside class="mano">
+    <h2>Maniobra de este turno</h2>
+    <button class="carta sel" data-c="envolver">
+      <svg viewBox="0 0 34 34" aria-hidden="true"><path d="M5 30 C7 14 20 14 27 6" fill="none" stroke="#b7862a" stroke-width="3" stroke-linecap="round"/><path d="M22 3 L30 6 L25 13z" fill="#8e2a1f"/></svg>
+      <div><b>Envolver</b><span>El ala rodea por el vado.</span><span class="r">Riesgo: ●●○</span></div>
+    </button>
+    <button class="carta" data-c="carga">
+      <svg viewBox="0 0 34 34" aria-hidden="true"><path d="M17 31 V8" stroke="#8e2a1f" stroke-width="3" stroke-linecap="round"/><path d="M10 14 L17 3 L24 14z" fill="#8e2a1f"/></svg>
+      <div><b>Carga</b><span>Toda la línea ataca de frente.</span><span class="r">Riesgo: ●●●</span></div>
+    </button>
+    <button class="carta" data-c="cerrar">
+      <svg viewBox="0 0 34 34" aria-hidden="true"><path d="M7 5 H27 V18 Q27 28 17 31 Q7 28 7 18z" fill="#b7862a" stroke="#2e2116" stroke-width="1.5"/></svg>
+      <div><b>Cerrar filas</b><span>La línea se junta y gana moral.</span><span class="r">Riesgo: ●○○</span></div>
+    </button>
+    <button class="btn-grande" id="ejecutar">Ejecutar turno</button>
+  </aside>
+</section>
+
+<!-- PANTALLA 2: escena del choque con 20 regimientos por bando -->
+<section class="pantalla p2" data-p="2" id="s2">
+  <canvas id="escena"></canvas>
+  <div class="hud"><span class="tit">Choque · turno 3</span><span class="sp"></span><span>Romanos 20 · Enemigo 20</span></div>
+  <div class="leyenda">El vado está a la derecha del centro.</div>
+  <div class="abajo">
+    <button class="btn-sec" onclick="ir(1)">Volver al mapa</button>
+    <button class="btn-sec" onclick="ir(3)">Siguiente turno</button>
+  </div>
+</section>
+
+<!-- PANTALLA 3: momento de riesgo, dos turnos seguidos -->
+<section class="pantalla p3" data-p="3" id="s3">
+  <div class="barra"><span class="tit">Momento de riesgo · turno 5 de 12</span></div>
+  <div class="col izq">
+    <div class="sub">Dos turnos seguidos</div>
+    <div class="linea"><span>Turno 3 · Envolver</span><span>ganado</span></div>
+    <div class="linea"><span>Turno 4 · Cerrar filas</span><span>ganado</span></div>
+    <div class="linea ahora"><span>Turno 5 · ahora</span><span>elige</span></div>
+    <div class="sub">Moral del ala derecha</div>
+    <div class="medidor"><i></i></div>
+    <div class="escala"><span>rompe</span><span>aguanta</span><span>firme</span></div>
+  </div>
+  <div class="col centro">
+    <p class="nota-s">Probabilidad de que el ala derecha se rompa si carga</p>
+    <div class="grande">46 %</div>
+    <div class="dados">
+      <i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i>
+      <i></i><i></i><i></i><i></i><i></i>
+    </div>
+    <p class="nota-s">Si se rompe: pierdes 4 regimientos y el vado.</p>
+  </div>
+  <div class="der">
+    <button class="btn-grande" onclick="decidir('carga')">Cargar ahora</button>
+    <p class="nota-s">Gana el vado o pierde 4 regimientos.</p>
+    <button class="btn-sec" onclick="decidir('cierra')">Cerrar filas</button>
+    <p class="nota-s">Pierde un turno. Sin riesgo.</p>
+  </div>
+</section>
+
+<!-- PANTALLA 4: resultado o retirada -->
+<section class="pantalla p4" data-p="4" id="s4">
+  <div class="barra"><span class="tit">Batalla terminada · turno 7 de 12</span></div>
+  <div class="cuerpo">
+    <svg class="sello" viewBox="0 0 200 200" aria-hidden="true">
+      <circle cx="100" cy="100" r="92" fill="#8e2a1f"/>
+      <circle cx="100" cy="100" r="80" fill="none" stroke="#e2c46e" stroke-width="4"/>
+      <circle cx="100" cy="100" r="62" fill="none" stroke="#e2c46e" stroke-width="2" stroke-dasharray="4 6"/>
+      <text x="100" y="108" text-anchor="middle" font-family="Cinzel,Georgia,serif" font-weight="700" font-size="34" fill="#f7e7b8">SPQR</text>
+    </svg>
+    <div>
+      <h1 class="titulo" id="res-titulo">Retirada ordenada</h1>
+      <p id="res-sub">Cerramos filas y volvemos al campamento. El vado queda en manos enemigas.</p>
+      <div class="stats">
+        <div class="stat"><b>14 de 20</b><span>regimientos en pie</span></div>
+        <div class="stat"><b>1.120 · 2.340</b><span>bajas romanas · enemigas</span></div>
+        <div class="stat"><b>7 de 12</b><span>turnos jugados</span></div>
+      </div>
+      <div class="turnos">
+        <i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="ok"></i><i class="ok"></i>
+        <i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <div class="acciones">
+        <button class="btn-grande" onclick="ir(1)">Otra batalla</button>
+        <button class="btn-sec" onclick="ir(1)">Ver el mapa</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+/* ---------- Mapa: regimientos y maniobra ---------- */
+var NUM=['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII','XIII','XIV','XV','XVI','XVII','XVIII','XIX','XX'];
+function reg(x,y,lado,txt){
+  var cl = lado==='r' ? 'romano' : 'enemigo';
+  return '<g class="reg '+cl+'" data-x="'+x+'" transform="translate('+x+' '+y+')">'
+    +'<path class="asta" d="M26 -26 V-48"/><path class="pend" d="M26 -48 l18 6 -18 6z"/>'
+    +'<rect x="-40" y="-26" width="80" height="52" rx="6"/>'
+    +'<text>'+txt+'</text></g>';
+}
+var tr='';
+for(var i=0;i<10;i++){
+  var x=75+i*150;
+  tr+=reg(x,760,'r',NUM[i]);
+  tr+=reg(x,862,'r',NUM[10+i]);
+  tr+=reg(x,190,'e',String(i+1));
+  tr+=reg(x,118,'e',String(11+i));
+}
+document.getElementById('tropas').innerHTML=tr;
+
+var punta=1425;
+function marcaPunta(){
+  document.querySelectorAll('.reg.romano').forEach(function(g){
+    g.classList.toggle('punta', +g.dataset.x===punta);
+  });
+}
+function dibujaEfectos(){
+  var x=punta;
+  document.getElementById('fl-env').setAttribute('d','M'+x+' 726 Q'+((x+1040)/2)+' 520 1040 478 Q700 330 240 212');
+  var et=document.getElementById('et-env');
+  et.setAttribute('x',(x+1040)/2); et.setAttribute('y',600);
+  document.getElementById('zona-carga').setAttribute('x',Math.max(20,Math.min(1500-680,x-330)));
+  document.getElementById('fl-carga').setAttribute('d','M'+x+' 716 L'+x+' 240');
+  marcaPunta();
+}
+document.getElementById('tropas').addEventListener('click',function(e){
+  var g=e.target.closest('.reg.romano');
+  if(!g) return;
+  punta=+g.dataset.x;
+  dibujaEfectos();
+});
+var EF={envolver:'ef-envolver',carga:'ef-carga',cerrar:'ef-cerrar'};
+function elige(c){
+  document.querySelectorAll('.carta').forEach(function(b){ b.classList.toggle('sel', b.dataset.c===c); });
+  Object.keys(EF).forEach(function(k){ document.getElementById(EF[k]).classList.toggle('on', k===c); });
+}
+document.querySelectorAll('.carta').forEach(function(b){
+  b.addEventListener('click',function(){ elige(b.dataset.c); });
+});
+
+/* ---------- Reloj de planear ---------- */
+var seg=20, reloj=0;
+function pinta(){
+  document.getElementById('seg').textContent='0:'+String(seg).padStart(2,'0');
+  document.getElementById('temp').style.width=(seg*5)+'%';
+}
+function arrancaReloj(){
+  clearInterval(reloj);
+  seg=20; pinta();
+  reloj=setInterval(function(){
+    seg--; pinta();
+    if(seg<=0) ejecutar();
+  },1000);
+}
+function ejecutar(){
+  clearInterval(reloj);
+  var s1=document.getElementById('s1');
+  s1.classList.add('marcha');
+  setTimeout(function(){
+    if(s1.classList.contains('marcha')) ir(2);
+  },2000);
+}
+document.getElementById('ejecutar').addEventListener('click',ejecutar);
+
+/* ---------- Escena en perspectiva ---------- */
+var W=844, H=390, HY=112, NY=386;
+function f(z){ return 1/(1+2.4*z); }
+function py(z){ return HY+(NY-HY)*f(z); }
+function px(x,z){ return W/2+x*520*f(z); }
+var cv=document.getElementById('escena');
+var cx=cv.getContext('2d');
+cv.width=W*2; cv.height=H*2; cx.setTransform(2,0,0,2,0,0);
+var unid=[], estand=[];
+(function prepara(){
+  for(var i=0;i<10;i++){
+    var x0=-1.125+i*0.25;
+    var filas=[[0.36,'#8e2a1f'],[0.24,'#8e2a1f'],[0.50,'#3b4550'],[0.62,'#3b4550']];
+    for(var k=0;k<filas.length;k++){
+      var z0=filas[k][0], c=filas[k][1];
+      for(var r=0;r<4;r++) for(var q=0;q<8;q++)
+        unid.push({x:x0+(q-3.5)*0.025, z:z0+r*0.02, c:c});
+      if(k===0||k===2) estand.push({x:x0, z:z0, c:c});
+    }
+  }
+  unid.sort(function(a,b){ return b.z-a.z; });
+})();
+function dibuja(t){
+  cx.clearRect(0,0,W,H);
+  var g=cx.createLinearGradient(0,0,0,HY);
+  g.addColorStop(0,'#e7d9b4'); g.addColorStop(1,'#f4e9cd');
+  cx.fillStyle=g; cx.fillRect(0,0,W,HY+1);
+  g=cx.createLinearGradient(0,HY,0,H);
+  g.addColorStop(0,'#d9c79c'); g.addColorStop(1,'#a88d5c');
+  cx.fillStyle=g; cx.fillRect(0,HY,W,H-HY);
+  cx.fillStyle='#c4aa78';
+  cx.beginPath(); cx.ellipse(160,HY,200,36,0,Math.PI,2*Math.PI); cx.fill();
+  cx.beginPath(); cx.ellipse(640,HY,240,44,0,Math.PI,2*Math.PI); cx.fill();
+  cx.beginPath(); cx.ellipse(800,HY,190,28,0,Math.PI,2*Math.PI); cx.fill();
+  var zA=0.445, zB=0.472, xx;
+  cx.beginPath();
+  for(xx=-2.4;xx<=2.41;xx+=0.1) cx.lineTo(px(xx,zA),py(zA));
+  for(xx=2.4;xx>=-2.41;xx-=0.1) cx.lineTo(px(xx,zB),py(zB));
+  cx.closePath(); cx.fillStyle='#7f9ca1'; cx.fill();
+  cx.beginPath();
+  for(xx=0.42;xx<=0.58;xx+=0.02) cx.lineTo(px(xx,zA),py(zA));
+  for(xx=0.58;xx>=0.42;xx-=0.02) cx.lineTo(px(xx,zB),py(zB));
+  cx.closePath(); cx.fillStyle='#d6bf86'; cx.fill();
+  var u, s, x, y, w, h;
+  for(var n=0;n<unid.length;n++){
+    u=unid[n]; s=f(u.z); x=px(u.x,u.z); y=py(u.z);
+    h=12*s+1.5; w=5*s+1.2;
+    cx.fillStyle=u.c; cx.fillRect(x-w/2,y-h,w,h);
+  }
+  for(var e=0;e<estand.length;e++){
+    var st=estand[e]; s=f(st.z);
+    x=px(st.x,st.z); y=py(st.z)-(12*s+1.5);
+    var hh=22*s+4;
+    cx.strokeStyle='#2e2116'; cx.lineWidth=1.6*s+0.5;
+    cx.beginPath(); cx.moveTo(x,y); cx.lineTo(x,y-hh); cx.stroke();
+    cx.fillStyle = st.c==='#3b4550' ? '#c9c2b0' : '#f0c964';
+    cx.beginPath(); cx.moveTo(x,y-hh); cx.lineTo(x+9*s+3,y-hh+3*s+2); cx.lineTo(x,y-hh+6*s+4);
+    cx.closePath(); cx.fill();
+  }
+  var k, r2;
+  for(k=0;k<7;k++){
+    x=Math.sin(t*1.3+k*1.9)*0.5; s=f(0.455);
+    r2=(9+5*Math.sin(t*2.2+k))*s+4;
+    cx.fillStyle='rgba(236,222,192,0.28)';
+    cx.beginPath(); cx.arc(px(x,0.455),py(0.455)-6*s,r2,0,Math.PI*2); cx.fill();
+  }
+  for(k=0;k<9;k++){
+    x=Math.sin(t*4.1+k*1.7)*0.35;
+    y=(Math.cos(t*3.3+k)*0.5+0.5)*10;
+    s=f(0.455);
+    cx.fillStyle='#f0c964';
+    cx.beginPath(); cx.arc(px(x,0.455),py(0.455)-y*s-8*s,1.6,0,Math.PI*2); cx.fill();
+  }
+}
+var raf=0;
+function bucle(ts){ dibuja(ts/1000); raf=requestAnimationFrame(bucle); }
+function iniciaEscena(){ cancelAnimationFrame(raf); raf=requestAnimationFrame(bucle); }
+function paraEscena(){ cancelAnimationFrame(raf); }
+
+/* ---------- Resultado ---------- */
+function decidir(v){
+  var gana = v==='carga';
+  document.getElementById('res-titulo').textContent = gana ? 'Victoria en el vado' : 'Retirada ordenada';
+  document.getElementById('res-sub').textContent = gana
+    ? 'El ala aguantó y el enemigo dejó el vado.'
+    : 'Cerramos filas y volvemos al campamento. El vado queda en manos enemigas.';
+  ir(4);
+}
+
+/* ---------- Pantallas ---------- */
+function ir(n){
+  document.querySelectorAll('.pantalla').forEach(function(p){
+    p.classList.toggle('on', p.dataset.p===String(n));
+  });
+  document.getElementById('s1').classList.remove('marcha');
+  clearInterval(reloj);
+  if(n===1) arrancaReloj();
+  if(n===2) iniciaEscena(); else paraEscena();
+}
+window.ir=ir;
+window.decidir=decidir;
+elige('envolver');
+dibujaEfectos();
+ir(1);
+</script>
+</body>
+</html>

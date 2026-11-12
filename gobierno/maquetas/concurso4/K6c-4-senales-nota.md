@@ -1,0 +1,7 @@
+1. La idea: el campo entero desde arriba, y cada legión recibe su orden por un cuerno que no siempre se oye; cuanto más lejos del cornicen, más fácil es que la orden no llegue.
+2. Pulgar: un toque en una legión cambia su bandera (avanzar, aguantar, cargar); «Tocar cuerno» cierra el turno y lo ejecuta para los dos bandos. «Entrar a la escena» pasa del mapa al choque con la misma tropa, y el mismo botón vuelve al mapa.
+3. Dos botones a la vista en cada pantalla, más una leyenda de tres banderas que no es botón.
+4. Dirección de arte: dibujo hecho a mano en SVG y CSS, sin texturas ni modelos de 0 A.D.; campo de tierra seca, río azul-gris, rojo y oro para los romanos y pizarra para el enemigo; titulares en Cinzel. La escena es la misma tropa vista en perspectiva suave.
+5. Escala: hoy hay 24 legiones (12 por bando) en 1.500 m, en una sola línea. A 20 o 30 por bando habría que pasar a dos filas; la escena admite más bloques con el mismo sistema. El turno dura 20 s para planear y 4 s para correr las órdenes; la cabecera muestra la cuenta atrás y una barra.
+6. Qué cambiar en el juego (solo proponer): `js/ui.js` para el mapa en grande, la cabecera de turno y la cuenta atrás; `js/battle.js` para el turno por órdenes, la probabilidad de oír el cuerno según la distancia y el arrastre de las órdenes no oídas; `js/gfx/battle3d.js` para pasar del mapa a la escena con el mismo estado.
+7. Coste estimado: unas 6 tareas. Dos para el mapa por turnos, dos para el cuerno y su probabilidad en la batalla, y dos para la entrada a la escena y el resultado.

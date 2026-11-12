@@ -491,7 +491,7 @@ button:disabled{opacity:.4}
     dibujar();
     $('#tTurno').textContent = fin ? 'Batalla terminada' : 'Turno ' + turno + ' de ' + TURNOS;
     var tot = fase === 'planear' ? PLAN : CORRE;
-    $('#tBarra i').style.width = fin ? '0%' : Math.max(0, Math.min(100, seg / tot * 100)) + '%';
+    $('#tBarra').style.width = fin ? '0%' : Math.max(0, Math.min(100, seg / tot * 100)) + '%';
     $('#tCuenta').textContent = fin
       ? 'Sin más cuernos'
       : (fase === 'planear' ? 'Planear · quedan ' : 'Corren las órdenes · ') + Math.max(0, seg) + ' s';
