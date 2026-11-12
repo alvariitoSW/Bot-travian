@@ -1,0 +1,17 @@
+Las casas, edificios pequeños y objetos de calle de esta carpeta proceden del juego 0 A.D.
+(https://play0ad.com), Copyright (C) Wildfire Games (https://www.wildfiregames.com/),
+y se han convertido a un formato propio con las herramientas de tools/.
+
+Se distribuyen bajo la licencia Creative Commons Attribution-Share Alike 3.0 (CC BY-SA 3.0):
+https://creativecommons.org/licenses/by-sa/3.0/
+
+Puedes usarlos, modificarlos y redistribuirlos, también con fines comerciales, siempre que
+cites a Wildfire Games como autor original, enlaces la licencia y distribuyas estos archivos
+(y cualquier modificación suya) bajo la misma licencia CC BY-SA 3.0.
+
+Modificaciones: las mallas de casa romana (casa_b, casa_c, casa_d) y griega (grie_casa*) se han aligerado
+(simplificación de malla con meshoptimizer, MIT); las casas griegas conservan solo el cuerpo y la estructura,
+sin escudos, plantas ni adornos. Las texturas nuevas se han reducido (sombreado a 256 px, color a 256-512 px).
+No incluye mapas de relieve ni de brillo propios: usa los de assets/static/ cuando existen.
+
+Esta licencia se aplica solo al contenido de gobierno/maquetas/piezas/. El código del juego es independiente.

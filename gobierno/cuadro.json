@@ -541,6 +541,43 @@
    "tarea": "Q3",
    "archivo": "gobierno/capturas-tarea/Q3-2-sin-mercado.jpg",
    "pie": "Sin mercado: Vender apagado"
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-0-antes-despues-cerca.jpg",
+   "pie": "Ciudad: antes (izquierda) y después (derecha), de cerca",
+   "ancha": true
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-0-antes-despues-lejos.jpg",
+   "pie": "Ciudad: antes y después, de lejos",
+   "ancha": true
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-1-romana-cerca.jpg",
+   "pie": "Maqueta nueva: ciudad romana, foro y arx"
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-2-romana-lejos.jpg",
+   "pie": "Maqueta nueva: de lejos, con arrabales, río y campos"
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-3-romana-calle.jpg",
+   "pie": "Maqueta nueva: a pie de foro, gente a escala"
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-4-griega-cerca.jpg",
+   "pie": "Maqueta nueva: ciudad griega"
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-5-punica-cerca.jpg",
+   "pie": "Maqueta nueva: ciudad púnica"
   }
  ],
  "informes": [
@@ -623,6 +660,10 @@
   {
    "titulo": "Q1b · Ciudad itálica (historia y aspecto)",
    "archivo": "gobierno/estudios/Q1b-ciudad-italica.md"
+  },
+  {
+   "titulo": "Q1b2 · Ciudad nueva, segunda vuelta",
+   "archivo": "gobierno/estudios/Q1b2-ciudad-segunda-vuelta.md"
   }
  ]
 }
