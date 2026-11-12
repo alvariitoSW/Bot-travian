@@ -320,7 +320,7 @@ function pintar(){
       if(u.muerto||u.enFuga||!u.orden) return;
       var t=objetivoDe(u); if(!t) return;
       var x1=(u.x+0.5)*cw, y1=(u.y+0.5)*ch, x2=(t.x+0.5)*cw, y2=(t.y+0.5)*ch;
-      var cls=(u.bando==='R'?'o-r':'o-e')+(t.id?' o-ataque':'');
+      var cls=u.bando==='R'?'o-r'+(t.id?' o-ataque':''):'o-e';
       h+='<line class="'+cls+'" x1="'+x1+'" y1="'+y1+'" x2="'+x2+'" y2="'+y2+'"/>';
       h+='<circle class="'+cls+'" cx="'+x2+'" cy="'+y2+'" r="4"/>';
     });
@@ -375,7 +375,7 @@ async function ejecutar(){
   var vR=vivosDe('R').length, vE=vivosDe('E').length;
   if(vE<=8) fin='E_huye';
   else if(vR<=8) fin='R_huye';
-  else if(turno>=TURNOS) fin=vR>=vE?'dia_R':'dia_E';
+  else if(turno>=TURNOS) fin=enPie('R')>=enPie('E')?'dia_R':'dia_E';
   if(fin){fase='fin'; pintar(); mostrarFin(); return;}
   turno++;
   empezarPlan();

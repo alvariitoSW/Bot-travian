@@ -1,0 +1,7 @@
+1. La idea: cada turno llega con un vaso de tiempo que se vacía; cada orden cuesta segundos de agua, y cuando el vaso queda vacío el turno se ejecuta para los dos bandos.
+2. Pulgar: tocar una legión, elegir «Avanzar» o «Cargar» en la tarjeta y tocar el punto del mapa; «Quitar orden» devuelve el agua. Del mapa a la escena: «Ver la escena»; de vuelta: «Volver al mapa». La escena se cierra sola a los 2,6 s.
+3. Botones a la vista: en el mapa, dos en la cabecera («Ver la escena», «Ejecutar turno») y tres en la tarjeta de la legión solo cuando se elige una; en la escena, dos.
+4. Dirección de arte: papel, tierra, terracota y el azul del río; fichas y bloques dibujados a mano en canvas, sin modelos ni texturas de terceros; títulos en Cinzel. Sale de la paleta de AQVILA, no de otro juego.
+5. Escala: 20 legiones por bando en un campo de 1.500 m; en la escena, 40 bloques. Con 30 por bando cambia solo el número de filas. El turno dura 30 s de agua: el jugador ve el vaso, los segundos y el coste de cada orden, y el enemigo queda en niebla más allá de 320 m.
+6. Cambios en el juego (solo proponer): `js/ui.js` para la vista cenital con toque sobre el campo y el vaso del turno; `js/battle.js` para resolver por turnos con coste de tiempo por orden; `js/gfx/battle3d.js` para enfocar la cámara en el choque al pasar a la escena.
+7. Coste estimado: 4 tareas (mapa cenital con tarjeta de orden; motor por turnos con agua; escena con bloques de regimiento; pantallas de riesgo y resultado).
