@@ -579,7 +579,7 @@
       const d = Math.hypot(tgt.x - r.x, tgt.y - r.y);
       if (d <= this.rango(r) && d > CONTACT + 6) {
         this.turn(r, Math.atan2(tgt.y - r.y, tgt.x - r.x), dt); r.cd -= dt;
-        if (r.cd <= 0) { r.cd = 1.6; r.ammo--; this.hit(r, tgt, effN(r.men) * ratio(r.u.ratk * r.atkMul, tgt.u.def * tgt.defMul) * 0.03 * 1.6 * 0.6 * PROY_MUL, true); this.fx.push({ x0: r.x, y0: r.y, x1: tgt.x, y1: tgt.y, t: 0, n: Math.min(6, 1 + (r.men >> 4)) }); }
+        if (r.cd <= 0) { r.cd = 1.6; r.ammo--; this.hit(r, tgt, effN(r.men) * ratio(r.u.ratk * r.atkMul, tgt.u.def * tgt.defMul) * 0.03 * 1.6 * 0.6 * PROY_MUL, true); this.fx.push({ x0: r.x, y0: r.y, x1: tgt.x, y1: tgt.y, t: 0, n: Math.min(6, 1 + (r.men >> 4)), k: r.k }); }
         return true;
       }
     }
@@ -711,7 +711,7 @@
             if (r.cd <= 0) {
               r.cd = 1.6; r.ammo--;
               this.hit(r, tgt, effN(r.men) * ratio(r.u.ratk * r.atkMul, tgt.u.def * tgt.defMul) * 0.03 * 1.6 * 0.6 * PROY_MUL, true);
-              this.fx.push({ x0: r.x, y0: r.y, x1: tgt.x, y1: tgt.y, t: 0, n: Math.min(6, 1 + (r.men >> 4)) });
+              this.fx.push({ x0: r.x, y0: r.y, x1: tgt.x, y1: tgt.y, t: 0, n: Math.min(6, 1 + (r.men >> 4)), k: r.k });
             }
           } else if (!quieto) this.moveTo(r, tx, ty, dt, paso(r, d));
           else this.turn(r, Math.atan2(tgt.y - r.y, tgt.x - r.x), dt);

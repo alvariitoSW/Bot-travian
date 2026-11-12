@@ -1330,4 +1330,15 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   console.log('N7: ' + Math.round((Date.now() - T7) / 1000) + ' s');
 }
 
+{ // N8b: elección del choque que sigue la cámara (lógica pura)
+  const So = require('../js/gfx/sonido.js'), R = (x, y, men, o) => Object.assign({ st: 'ok', x, y, men, fight: 0, charge: 0, u: { cls: 'inf' } }, o || {});
+  assert.strictEqual(So.elegirChoque([R(0, 0, 100)]), null, 'sin combate no hay choque');
+  const ch = So.elegirChoque([R(100, 100, 50, { fight: 1 }), R(120, 100, 50, { fight: 1 }), R(900, 300, 80, { fight: 1 }), R(0, 0, 500)]);
+  assert.ok(ch && ch.x < 200 && ch.regs.length === 2, 'elige el grupo cercano con más hombres');
+  const cg = So.elegirChoque([R(900, 300, 120, { fight: 1 }), R(100, 100, 100, { charge: 1, u: { cls: 'cav' } })]);
+  assert.ok(cg.cab && cg.x === 100, 'prioriza la carga'); assert.strictEqual(So.etiqueta(cg, 1000), 'carga de caballería');
+  assert.strictEqual(So.etiqueta({ x: 100 }, 1000), 'ala izquierda'); assert.strictEqual(So.etiqueta({ x: 500 }, 1000), 'choque del centro'); assert.strictEqual(So.etiqueta({ x: 900 }, 1000), 'ala derecha');
+  console.log('N8b: elegir choque OK');
+}
+
 console.log('OK — todas las pruebas superadas');

@@ -403,6 +403,8 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 #battle:not(.desp) #bctl { position: fixed; right: calc(8px + env(safe-area-inset-right)); top: calc(8px + env(safe-area-inset-top)); flex-direction: column; gap: 4px; padding: 4px; width: 44px; border-radius: 12px; z-index: 6; }
 #battle:not(.desp) #bctl button { flex: none; width: 36px; height: 34px; padding: 0; font-size: 9.5px; letter-spacing: -.02em; border-radius: 9px; }
 #battle:not(.desp) #bhud { max-width: 520px; padding: 5px 10px; }
+.bseguir { position: absolute; left: 50%; transform: translateX(-50%); top: calc(38px + env(safe-area-inset-top)); z-index: 5; max-width: 50%; white-space: nowrap; background: var(--glass); border: 1px solid var(--line2); border-radius: 99px; padding: 2px 12px; font-size: 11px; font-weight: 700; color: var(--gold); text-shadow: 0 1px 3px #000; pointer-events: none; }
+.bseguir[hidden] { display: none; }
 @media (max-height: 450px) { #bhint { top: calc(58px + env(safe-area-inset-top)); } }
 
 /* ===== L2: estandartes con moral y alas con corchete dorado (batalla 3D) ===== */
