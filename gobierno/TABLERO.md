@@ -19,7 +19,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 
 ## Carril A — Guerra (tipo Total War)
 - ✅ A1 Formaciones de verdad: absorbida por N7 (12/11).
-- ⬜ A2 Animaciones por fila: falange con lanzas bajadas, testudo, postura «listo» frente a «relajado».
+- ✅ A2 Absorbida por N8 (12/11): posturas «listo» y «relajado», falange inclinada, testudo bajo, por código.
 - ✅ A3 **Combate que se ve** (11/11): los tiradores descargan 6–8 s antes del choque; en el cuerpo a cuerpo solo pega el frente; la caballería persigue y mata a los que huyen, arrolla a ligeros y carga por flanco o espalda. Las batallas igualadas duran 8–9 min; el bot agresivo gana 7 de 10.
 - ✅ A4 **Papeles de la infantería** (11/11): ligera, media, pesada y lanceros por unidad, con daño por arma y armadura; los lanceros frenan la carga de caballería; la marca sale en la carta del regimiento. Bot agresivo 8 de 10.
 - ✅ A9 **Formación de salida y paso de marcha** (11/11): los dos bandos salen con infantería delante, tiradores detrás y caballería en las alas; avanzan juntos a paso de marcha (la mitad que antes) y solo corren o cargan cerca del enemigo; los tiradores disparan por encima y no entran al cuerpo a cuerpo mientras aguante su infantería. Vélites detrás: licencia de juego.
@@ -28,7 +28,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ✅ A5b **Terreno con efecto: colina y bosque** (11/11): cuatro campos (llano, colina, bosque, mixto), uno por ciudad; en lo alto se pega más y se dispara más lejos, el bosque frena, protege de flechas y quita fuerza a la carga. Contorno en tu zona durante el despliegue.
 - ✅ A8 **Ritmo y moral** (11/11): batallas igualadas de 8 a 12 minutos, sin corte a los 4; moral gradual; cansancio con marca «Cansado».
 - ⬜ A8b Ajuste fino del ritmo con partidas del usuario: las muy desiguales duran unos 2,5 min y las algo desiguales 7 a 8; revisar si la calidad de tropa pesa demasiado (exponente 0,85).
-- ⬜ A6 Cámara cinematográfica (seguir cargas), sonido, proyectiles con arco y polvo mejorados.
+- ✅ A6 Absorbida por N8 (12/11): cámara «Seguir», sonido por código, proyectiles con arco y polvo nuevo.
 - ✅ A7 Ciudades enemigas con edificios de su cultura (11/11/2026): en la batalla, si defiende Cartago, un pueblo griego, los galos o los íberos, su ciudad se pinta con sus propios templos o centros de 0 A.D. (`piezaCultura` en `js/gfx/statics.js`, 5 líneas en `buildRealCity` de `js/gfx/battle3d.js`). Etruscos, campanos y mamertinos siguen con lo romano. Las casas siguen siendo romanas. Parte: `partes/2026-11-11-A7.md`.
 
 ## Carril B — Ciudad y economía (tipo Travian/Ikariam)
@@ -102,7 +102,8 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ N15 **Equilibrio y objetivos** (12/11): ancho de frente (tope de 1,5 atacantes por regimiento), levas bisoñas (milicia siempre; empiezan Vacilantes y se curten en 60 s), tres objetivos (resistir, tomar la zona, escapar con el general), dificultad fija en Normal y calculada por contexto (rival, terreno, general, táctica, fuerza, contras) con sus causas a la vista, y `test/equilibrio.js` que mide cientos de batallas. Queda ⬜ N15b: afinar (0,67× nunca gana; muy desiguales duran 7-15 min).
 - ⬜ N15b **Segunda pasada de equilibrio**: con N7 y N8 hechas, repetir `node test/equilibrio.js`; que 0,67× gane algo con buen plan, acortar las muy desiguales, y que el campaña (game.js) rellene `sides[i].bis`, `gen.mando/disc` y `cfg.objetivo`.
 - ✅ N7 **Relevos y formaciones** (12/11): testudo, cuña, orbe y falange con su «gana/pierde»; ancho y frente que se arrastran; marchar juntos; tres líneas I/II/III que se relevan (también solas); sombras a 10/20/30 s; atajos Testudo, Carga, Retirada y Refuerzo. Equilibrio igual que N15.
-- ⬜ N8 a N13 **aprobadas enteras** (P74, 12/11; mando: puntos y radio del general): rondas y vista previa, interfaz nueva, estados y contagio, general y mando, enemigo que piensa, relevos y formaciones, espectáculo; ejércitos con general, forraje, asedios, exploración, después de la batalla; campos amplios y relieve. Unos 18 M; primer bloque N2 a N5 (hecho). Detalle en `estudios/N1b-guerra-ampliada.md` §6.
+- ✅ N8 **Espectáculo** (12/11): polvo de carga y choque, jabalinas y piedras con arco que se clavan, manchas bajo los caídos, luz que se vuelve ámbar y bruma o lluvia, posturas, cámara «Seguir» con cinta y sonido sintetizado (interruptor en «Más»). Absorbe A2 y A6. Parte `partes/2026-11-12-N8.md`.
+- ⬜ N9 a N13 **aprobadas enteras** (P74, 12/11; mando: puntos y radio del general): rondas y vista previa, interfaz nueva, estados y contagio, general y mando, enemigo que piensa, relevos y formaciones, espectáculo; ejércitos con general, forraje, asedios, exploración, después de la batalla; campos amplios y relieve. Unos 18 M; primer bloque N2 a N5 (hecho). Detalle en `estudios/N1b-guerra-ampliada.md` §6.
 
 ## Carril O — Economía nueva (pedido 11/11/2026)
 - ✅ Q1 **Diseño de ciudad, gobierno y economía** (11/11): un solo modelo (caja del mes, almacén con tope, barrios, tres clases, Senado, Foro, provincias, aspecto), estudios R15 a R19 y cuatro capturas sobre la ciudad 3D. Diseño `estudios/Q1-ciudad-gobierno-economia.md`; carril Q propuesto en P75.
