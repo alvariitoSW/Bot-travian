@@ -1103,6 +1103,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   // partida vieja sin favor
   const vieja = JSON.parse(JSON.stringify(s)); delete vieja.favor; delete vieja.mision; delete vieja.misionesHechas; delete vieja.proxMision; G.migrarSenado(vieja);
   assert(vieja.favor.senado === 50 && vieja.favor.pueblo === 50 && vieja.mision === null, 'partida vieja: favor 50 y sin misión');
+}
 
 // N15. Equilibrio y objetivos: ancho de frente, bisoñas, objetivos de batalla, curva de equilibrio y dificultad por contexto
 {
