@@ -114,6 +114,9 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
+- **P93 Ciencia, estudio terminado** (`gobierno/estudios/P93-ciencia.md`, 62 KB; ver cuadro): ¿te parece bien el precio de los saberes ligado a tu producción (≈39 meses de producción en total) o prefieres un precio fijo con tope? (A) Ligado a la producción; (B) Precio fijo con tope
+- **P93: dureza de la paga de los sabios** (sube con el total de sabios: 10 cuestan 2,7 oro/mes, 30 cuestan 10,5, 60 cuestan 28 en la Edad I): ¿es la dureza que quieres? (A) Sí, así; (B) Más suave; (C) Más dura
+- **P93: el agujero de la paga de tropas** (con el oro a cero, unas 252 oro/mes se evaporan en la campaña del bot; cambiaría los resultados de los bots): ¿lo arreglamos en una tarea aparte? (A) Sí, tarea aparte; (B) Lo dejamos como está
 
 ## Propuestas por aprobar
 
