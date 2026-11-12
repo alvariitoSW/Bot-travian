@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 12/11/2026 — **Modelo para los diseños**: «Ayúdate de Fable 5.2 para los diseños». (Lectura de Claude: regla desde hoy: las sesiones y agentes de diseño y de arte van con Fable 5.2; las que construyen siguiendo un diseño ya hecho siguen en Sonnet. Cambia lo dicho el 11/11 de cuidar el uso de Fable solo para diseño. La sesión Q1b2 de la ciudad se rehace con Fable.)
 - 12/11/2026 — **Ocho respuestas para seguir** (preguntadas en el chat, con las capturas de Q1b delante):
   - **Ciudad nueva (Q1b)**: «No, otra vuelta al diseño». Falla: «los edificios son pobres», «luz, colores y suelo» y «sigue pareciendo de juguete». P77 **no** se aprueba; tarea Q1b2.
   - **Guerra nueva**: «Entera». P74 aprobada completa (N2 a N15).
@@ -113,7 +114,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
-0000000. **En marcha desde el 12/11, tres carriles, cada uno en su sesión**: Guerra N2 → N3 → N4 → N5 (Sonnet) · Economía Q2 → Q3 → Q4 (Sonnet; almacén: un cuarto al mes; cuenta mensual e informe por estación) · Ciudad Q1b2, segunda vuelta al diseño (Opus). Cada sesión, al cerrar con jueces APTO, abre la siguiente de su carril; al acabar el bloque, para y lo deja en el cuadro. Después: N14, N6 a N13 y N15; Q5 en adelante.
+0000000. **En marcha desde el 12/11, tres carriles, cada uno en su sesión**: Guerra N2 → N3 → N4 → N5 (Sonnet) · Economía Q2 → Q3 → Q4 (Sonnet; almacén: un cuarto al mes; cuenta mensual e informe por estación) · Ciudad Q1b2, segunda vuelta al diseño (Fable 5.2). Cada sesión, al cerrar con jueces APTO, abre la siguiente de su carril; al acabar el bloque, para y lo deja en el cuadro. Después: N14, N6 a N13 y N15; Q5 en adelante.
 000000. **Q1b hecha** (11/11). Si el usuario aprueba P77, sigue **Q1c Suelo, cielo y horizonte** en `js/gfx/city3d.js` (y `ground.js` si hace falta), partiendo de `maquetas/ciudad-italica.mjs`. Ojo: toca lo mismo que el carril Campaña en `city3d.js`; no a la vez.
 00000. **En marcha desde el 11/11 por la noche, cada una en su sesión**: N1b Guerra ampliada (Opus) · Q1 hecha (11/11; espera P75) · J7 Parte densa (Sonnet) · I2 Mapa por turnos (Sonnet). Antes de subir: `git pull --rebase` de la rama que publica y tocar solo las líneas propias de tablero y bitácora.
 0000. **Carril N**: N1b hecha (11/11). Si el usuario aprueba P74, sigue **N2 Rondas y vista previa** en `js/battle.js` y la pantalla de batalla; luego N3 Interfaz nueva (llevar al juego lo de las capturas N1b, script `gobierno/maquetas/guerra-ampliada.mjs`). Si no contesta a los puntos de mando, la opción A.
