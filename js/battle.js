@@ -167,6 +167,7 @@
     this.size = Math.max(30, Math.ceil(big / 12));
     for (let s = 0; s < 2; s++) this.deploy(s, cfg.sides[s]);
     this.start = [this.men(0), this.men(1)];
+    this.ia = null; this.gesto = ''; if (this.rondas && cfg.ia !== false) this.iaInit();   // N6: plan del enemigo antes de la ronda 1
   }
 
   // terreno por defecto de una ciudad (id) o, si no está en la tabla, por semilla
@@ -718,7 +719,7 @@
   Battle.prototype.estado = function () {
     const idx = new Map(); this.regs.forEach(function (r, i) { idx.set(r, i); });
     const ref = function (o) { return o ? Object.assign({}, o, 'r' in o ? { r: idx.get(o.r) } : {}) : null; };
-    return { t: this.t, rnd: this.rnd.estado(), fase: this.fase, ronda: this.ronda, tRonda: this.tRonda, over: this.over, winner: this.winner, auto: this.auto, genDown: this.genDown.slice(), cartas: this.cartas.slice(), cartaPlan: this.cartaPlan, cartaRonda: this.cartaRonda, start: this.start.slice(),
+    return { t: this.t, rnd: this.rnd.estado(), fase: this.fase, ronda: this.ronda, tRonda: this.tRonda, over: this.over, winner: this.winner, auto: this.auto, genDown: this.genDown.slice(), cartas: this.cartas.slice(), cartaPlan: this.cartaPlan, cartaRonda: this.cartaRonda, start: this.start.slice(), ia: this.ia ? JSON.parse(JSON.stringify(this.ia)) : null, gesto: this.gesto,
       corpses: this.corpses.map(function (c) { return Object.assign({}, c); }), fx: this.fx.map(function (f) { return Object.assign({}, f); }),
       regs: this.regs.map(function (r) { const c = Object.assign({}, r); c.tgt = r.tgt ? idx.get(r.tgt) : null; c.order = ref(r.order); c.pend = ref(r.pend); return c; }) };
   };
@@ -727,7 +728,7 @@
     const regs = this.regs, ref = function (o) { return o ? Object.assign({}, o, 'r' in o ? { r: regs[o.r] } : {}) : null; };
     e.regs.forEach(function (c, i) { Object.assign(regs[i], c); regs[i].tgt = c.tgt == null ? null : regs[c.tgt]; regs[i].order = ref(c.order); regs[i].pend = ref(c.pend); });
     this.t = e.t; this.rnd.fija(e.rnd); this.fase = e.fase; this.ronda = e.ronda; this.tRonda = e.tRonda; this.over = e.over; this.winner = e.winner; this.auto = e.auto;
-    this.cartas = e.cartas.slice(); this.cartaPlan = e.cartaPlan; this.cartaRonda = e.cartaRonda; this.genDown = e.genDown.slice(); this.start = e.start.slice(); this.corpses = e.corpses.map(function (c) { return Object.assign({}, c); }); this.fx = e.fx.map(function (f) { return Object.assign({}, f); });
+    this.cartas = e.cartas.slice(); this.cartaPlan = e.cartaPlan; this.cartaRonda = e.cartaRonda; this.genDown = e.genDown.slice(); this.start = e.start.slice(); this.ia = e.ia ? JSON.parse(JSON.stringify(e.ia)) : null; this.gesto = e.gesto || ''; this.corpses = e.corpses.map(function (c) { return Object.assign({}, c); }); this.fx = e.fx.map(function (f) { return Object.assign({}, f); });
   };
   // copia independiente (comparte solo lo que no cambia: configuración, terreno, fichas de unidad)
   Battle.prototype.clona = function () {
@@ -757,6 +758,7 @@
       for (const r of this.regs) if (r.side === 0 && r.st === 'ok' && !this.fueraDeMando(r, g)) { r.cartaFx = this.cartaPlan; if (this.cartaPlan === 'arenga') r.mor = Math.min(r.morMax, r.mor + ARENGA_MORAL * r.morMax); }
     }
     this.cartaPlan = null;
+    if (this.ia && !this.sinIA) this.iaRonda(); else if (!this.ia) this.gesto = '';
     this.snapIni = this.estado(); this.notas = []; this.fase = 'ejecucion'; this.tRonda = 0; this.repite = false; return true;
   };
   Battle.prototype.generalVivo = function (side) { return this.regs.find(function (q) { return q.side === side && q.k === 'general' && q.st === 'ok'; }) || null; };
@@ -777,6 +779,7 @@
   Battle.prototype.finRonda = function () {
     if (this.repite) { this.aplicar(this.snapFin); this.repite = false; return; }
     for (const r of this.regs) { if (r.pend) { r.order = Object.assign({}, r.pend, { cond: null }); r.pend = null; } r.pendT = 0; r.cartaFx = null; }
+    if (this.ia) { this.ia.fotos.unshift(this.iaFoto()); this.ia.fotos.length = Math.min(2, this.ia.fotos.length); }
     this.hechos = this.cronica(); this.fase = 'plan'; this.ronda++; this.tRonda = 0; this.snapFin = this.estado();
   };
   // «Ver otra vez»: vuelve al inicio de la ronda terminada y la repite igual (la simulación es determinista)
@@ -805,7 +808,7 @@
   };
   // vista previa («sombra»): clona la batalla, deja al enemigo QUIETO y simula la ronda. No toca la batalla real.
   Battle.prototype.prevision = function () {
-    const c = this.clona(); c.rondas = true; c.fase = 'plan';
+    const c = this.clona(); c.rondas = true; c.fase = 'plan'; c.sinIA = true;
     for (const r of c.regs) if (r.side === 1 && r.st === 'ok') r.order = { k: 'quieto' };
     c.ejecutar(); let n = 0; while (c.fase === 'ejecucion' && !c.over && n++ < 400) c.step(0.1);
     return c.regs.filter(function (r) { return r.side === 0; }).map(function (r) { return { id: r.id, x: r.x, y: r.y, st: r.st, men: r.men }; });
@@ -817,6 +820,199 @@
     let n = 0; while (!c.over && n++ < 2000) c.step(0.2);
     const s0 = Math.max(1, this.men(0)), s1 = Math.max(1, this.men(1)), f0 = c.men(0) / s0, f1 = c.men(1) / s1;
     return { f0: f0, f1: f1, gana: f0 === f1 ? -1 : f0 > f1 ? 0 : 1, claro: Math.abs(f0 - f1) > 0.2 };
+  };
+
+  /* ---------- N6: el enemigo que piensa (solo modo por rondas) ---------- */
+  // Plan elegido antes de la ronda 1; un gesto visible al empezar cada ronda; órdenes reales con puntos, radio y cartas como el jugador.
+  // Sin trampas: decide con la FOTO de posiciones (la del final de la ronda anterior; dos rondas atrás en Fácil), nunca con las órdenes del jugador.
+  const PLANES = { centro: 'Centro fuerte', alas: 'Envolver por las alas', cerro: 'Defender el cerro', emboscar: 'Emboscar', hostigar: 'Hostigar y huir' };
+  const PLAN_ORDEN = ['centro', 'alas', 'cerro', 'emboscar', 'hostigar'];
+  // margen: pérdida relativa (frente al jugador) que lo hace replegarse; piso: fracción de hombres bajo la cual se repliega siempre
+  const CARACTER = {
+    equilibrado: { n: 'Equilibrado', bono: {}, margen: 0.15, piso: 0.45 },
+    astuto: { n: 'Astuto', bono: { emboscar: 2.6, alas: 1.2 }, margen: 0.08, piso: 0.4, finta: true },
+    impetuoso: { n: 'Impetuoso', bono: { centro: 2.4, alas: 0.4 }, margen: 9, piso: 0.3, carga: true },
+    prudente: { n: 'Prudente', bono: { centro: 2.2, cerro: 1.8 }, margen: 0.08, piso: 0.5, cerrada: true }
+  };
+  const DIFICULTADES = ['facil', 'normal', 'dificil'];
+  const CARTA_TXT = { arenga: 'la arenga', paso: 'el paso doble', cerrada: 'la formación cerrada' };
+  const ia_d = function (a, b) { return Math.hypot(a.x - b.x, a.y - b.y); };
+  const ia_cerca = function (lista, x, y) { let b = null, bd = 1e9; for (const e of lista) { const d = Math.hypot(e.x - x, e.y - y); if (d < bd) { bd = d; b = e; } } return b; };
+  // carácter del general enemigo: cfg.sides[1].car, o por el nombre del general y de la facción
+  Battle.caracterDe = function (cfg) {
+    const sd = cfg.sides[1] || {}; if (sd.car && CARACTER[sd.car]) return sd.car;
+    const g = String(sd.gen && sd.gen.n || '').toLowerCase(), f = String(sd.name || '').toLowerCase();
+    if (/an[ií]bal|asdr[uú]bal|am[ií]lcar|jant/.test(g)) return 'astuto';
+    if (/pirro|antioco|antíoco|filipo|perseo/.test(g)) return 'prudente';
+    if (/cartag|libi|n[uú]mid/.test(f)) return 'astuto';
+    if (/galo|ínsubre|insubre|boyo|senon|celta/.test(f)) return 'impetuoso';
+    if (/epiro|ambrac|macedon|aque|siracus|helen|seleuc|griego|pella|tarent/.test(f)) return 'prudente';
+    return 'equilibrado';
+  };
+  Battle.CARACTER = CARACTER; Battle.PLANES = PLANES; Battle.DIFICULTADES = DIFICULTADES;
+  // refugio de altura en la mitad enemiga y bosque cercano al centro (posiciones fijas del terreno)
+  Battle.prototype.iaTerreno = function () {
+    const T = this.tr, H = this.H, W = this.W; let cerro = null, bosque = null, bd = 1e9;
+    for (let r = 0; r < T.rows; r++) for (let c = 0; c < T.cols; c++) {
+      const i = r * T.cols + c, px = (c + 0.5) * CELDA, py = (r + 0.5) * CELDA;
+      if (T.ter[i] === T_AGUA || T.ter[i] === T_ROCA || T.ter[i] === T_VADO) continue;
+      if (T.alt[i] >= 1 && py < H * 0.6) { const dd = Math.abs(px - W / 2) + py * 0.3; if (!cerro || T.alt[i] > cerro.alt + 1e-9 || (T.alt[i] === cerro.alt && dd < cerro.dd)) cerro = { x: px, y: py, alt: T.alt[i], dd: dd }; }
+      if (T.bos[i] && py > H * 0.12 && py < H * 0.5) { const dd = Math.abs(px - W / 2) + Math.abs(py - H * 0.35); if (dd < bd) { bd = dd; bosque = { x: px, y: py }; } }
+    }
+    return { cerro: cerro ? { x: cerro.x, y: cerro.y } : null, bosque: bosque };
+  };
+  Battle.prototype.iaInit = function () {
+    const cf = this.cfg, car = Battle.caracterDe(cf), ca = CARACTER[car], dif = DIFICULTADES.indexOf(cf.dificultad) >= 0 ? cf.dificultad : 'normal', ter = this.iaTerreno();
+    const f = { inf: 0, spear: 0, cav: 0, rng: 0, ele: 0, lig: 0 }; let tot = 0, men0 = 0;
+    for (const k in cf.sides[1].units) { const u = D.UNITS[k]; if (!u) continue; const n = cf.sides[1].units[k]; f[u.cls] = (f[u.cls] || 0) + n; if (u.cls === 'rng' || papelDe(k, u) === 'ligera') f.lig += n; if (u.cls !== 'ele') tot += n; }
+    for (const k in cf.sides[0].units) { const u = D.UNITS[k]; if (u && u.cls !== 'ele') men0 += cf.sides[0].units[k]; }
+    const fr = x => x / Math.max(1, tot), sc = {
+      centro: 1 + 3 * fr(f.spear + f.ele) + fr(f.inf),
+      alas: 3.5 * fr(f.cav) + (tot > men0 * 1.15 ? 1.5 : 0),
+      cerro: (ter.cerro ? 2.2 : 0) + (tot < men0 * 0.85 ? 1.2 : 0),
+      emboscar: (ter.bosque ? 1.6 : 0) + 2 * fr(f.cav + f.lig),
+      hostigar: 3.2 * fr(f.lig) + (tot < men0 * 0.75 ? 1.2 : 0)
+    };
+    let plan = 'centro', best = -1e9;
+    for (const p of PLAN_ORDEN) { if (p === 'cerro' && !ter.cerro) continue; if (p === 'emboscar' && !ter.bosque) continue; const v = sc[p] + (ca.bono[p] || 0); if (v > best + 1e-9) { best = v; plan = p; } }
+    this.ia = { plan: plan, car: car, dif: dif, cerro: ter.cerro, bosque: ter.bosque, fotos: [], ult: '', finta: 0, emb: null, cartas: CARTAS.slice(), cartaRonda: 0, cartaTxt: '', gestos: 0 };
+    this.gesto = '';
+  };
+  Battle.prototype.iaFoto = function () { return { r: this.regs.map(function (r) { return [Math.round(r.x), Math.round(r.y), r.men, r.st === 'ok' ? 1 : 0]; }) }; };
+  // un gesto visible por ronda: decide con la foto, da órdenes (con límite de puntos y radio) y quizá juega una carta
+  Battle.prototype.iaRonda = function () {
+    const ia = this.ia, ca = CARACTER[ia.car], dif = ia.dif, ronda = this.ronda, W = this.W, H = this.H, T = this.tr, B = T.banda;
+    const g = this.generalVivo(1), pts = g ? MANDO_PUNTOS : MANDO_PUNTOS_SIN;
+    if (!ia.fotos.length) ia.fotos.push(this.iaFoto());
+    const F = ia.fotos[dif === 'facil' && ia.fotos.length > 1 ? 1 : 0].r;
+    ia.cartaTxt = '';
+    if (dif === 'facil' && ronda % 2 === 0) { this.gesto = 'El enemigo mantiene su línea'; return; }
+    // lo que se ve: los regimientos del jugador según la foto (la orden de ahora no se mira)
+    const vis = [], regs = this.regs; let h0 = 0, h1 = 0;
+    regs.forEach(function (r, i) { const f = F[i]; if (!f || !f[3]) return; if (r.side === 0) { h0 += f[2]; if (r.st === 'ok') vis.push({ r: r, x: f[0], y: f[1], men: f[2], cl: r.u.cls, id: i }); } else h1 += f[2]; });
+    const m0 = h0 / Math.max(1, this.start[0]), m1 = h1 / Math.max(1, this.start[1]);
+    const mios = regs.filter(r => r.side === 1 && r.st === 'ok' && r.k !== 'general');
+    if (!mios.length || !vis.length) { this.gesto = 'El enemigo espera'; return; }
+    const sede = (r) => (ia_cerca(vis, r.x, r.y) || vis[0]), dist = (r) => ia_d(r, sede(r));
+    const tipoA = ca.carga ? 'cargar' : 'avanzar';
+    const O = (extra) => Object.assign({ ia: true, hasta: ronda + 1 }, extra);
+    const atk = (r, v, tp) => [r, O({ k: 'atk', r: v.r, tipo: tp || tipoA })];
+    const mov = (r, x, y, tp) => [r, O({ k: 'move', x: Math.max(20, Math.min(W - 20, x)), y: Math.max(20, Math.min(H - 20, y)), tipo: tp || 'avanzar' })];
+    const quieto = (r) => [r, O({ k: 'quieto', tipo: 'aguantar', hasta: ronda + 3 })];
+    const porDist = (lista) => lista.slice().sort((a, b) => dist(a) - dist(b));
+    const pesados = mios.filter(r => r.u.cls !== 'cav' && r.u.cls !== 'rng' && r.papel !== 'ligera'), cavs = mios.filter(r => r.u.cls === 'cav');
+    const ligeros = mios.filter(r => r.u.cls === 'rng' || r.papel === 'ligera');
+    const xs = vis.map(v => v.x), gapIzq = Math.min.apply(null, xs), gapDer = W - Math.max.apply(null, xs), lado = gapDer >= gapIzq ? 1 : -1;
+    const ladoTxt = lado > 0 ? 'derecha' : 'izquierda';
+    const G = {};
+    G.ala = () => {   // los dos regimientos más cerca del borde se estiran hacia el lado abierto
+      if (mios.length < 2) return null;
+      const ext = mios.slice().sort((a, b) => (b.x - a.x) * lado).slice(0, 2);
+      return { t: 'El enemigo estira el ala ' + ladoTxt, o: ext.map(r => mov(r, r.x + lado * 150, r.y + 110)) };
+    };
+    G.flanco = () => {
+      if (!cavs.length) return null;
+      const obj = vis.slice().sort((a, b) => (b.x - a.x) * lado)[0];
+      return { t: 'La caballería enemiga busca tu flanco ' + (obj.x < W / 2 ? 'izquierdo' : 'derecho'), o: cavs.slice(0, 2).map(r => atk(r, obj, 'cargar')) };
+    };
+    G.reserva = () => {
+      let debil = null, dw = 1e9;
+      for (const r of mios) { const q = r.men / r.max + r.mor / r.morMax; if (dist(r) < 130 && (r.men / r.max < 0.7 || r.mor / r.morMax < 0.5) && q < dw) { dw = q; debil = r; } }
+      if (!debil) return null;
+      const res = ia_cerca(mios.filter(r => r !== debil && r.u.cls !== 'rng' && dist(r) > 200), debil.x, debil.y); if (!res) return null;
+      return { t: 'El enemigo manda la reserva al punto débil', o: [atk(res, sede(debil), res.u.cls === 'cav' ? 'cargar' : tipoA)] };
+    };
+    G.centro = () => {
+      const c = porDist(pesados).slice(0, pts); if (!c.length) return null;
+      if (ca.cerrada && ronda < 3) return { t: 'El enemigo cierra la falange en el centro', o: c.map(r => quieto(r)) };
+      return { t: 'El enemigo adelanta el centro', o: c.map(r => atk(r, sede(r))) };
+    };
+    G.carga = () => { const c = porDist(mios.filter(r => r.u.cls !== 'rng')).slice(0, pts); return c.length ? { t: 'El caudillo lanza a los suyos a la carga', o: c.map(r => atk(r, sede(r), 'cargar')) } : null; };
+    G.avanza = () => { const c = porDist(mios).slice(0, pts); return c.length ? { t: 'El enemigo aprieta el paso', o: c.map(r => atk(r, sede(r), r.u.cls === 'rng' ? 'avanzar' : tipoA)) } : null; };
+    G.cerro = () => {
+      const s = ia.cerro; if (!s) return null;
+      const sube = porDist(mios.filter(r => r.u.cls !== 'cav'), 0).sort((a, b) => ia_d(a, s) - ia_d(b, s)), o = []; let i = 0;
+      for (const r of sube) { if (ia_d(r, s) < 90) o.push(quieto(r)); else if (o.filter(q => q[1].k !== 'quieto').length < pts) o.push(mov(r, s.x + (i++ % 4 - 1.5) * 45, s.y + (i > 3 ? 40 : 0))); }
+      return o.length ? { t: 'El enemigo sube ' + (T.id === 'cerro' ? 'al cerro' : 'a la colina'), o: o } : null;
+    };
+    G.vado = () => {
+      if (!B || B.tipo !== 'rio' || dif === 'facil') return null;
+      const norte = mios.filter(r => r.y < B.y0 && r.u.cls !== 'rng'); if (!norte.length) return null;
+      let c = null, cq = 1e9; for (const q of B.cr) { const n = vis.filter(v => Math.abs(v.x - q.xc) < 220 && v.y >= B.y1).length * 40 + Math.abs(q.xc - ia_cerca(norte, W / 2, 0).x) * 0.1; if (n < cq) { cq = n; c = q; } }
+      const grupo = norte.slice().sort((a, b) => Math.abs(a.x - c.xc) - Math.abs(b.x - c.xc)).slice(0, Math.min(pts, 4));
+      return { t: 'El enemigo cruza el río por un vado', o: grupo.map((r, i) => mov(r, c.xc + (i - (grupo.length - 1) / 2) * 30, B.y1 + 70)) };
+    };
+    G.emboscada = () => {
+      const s = ia.bosque; if (!s || ia.emb) return null;
+      const gr = porDist(cavs.concat(ligeros)).sort((a, b) => ia_d(a, s) - ia_d(b, s)).slice(0, 2); if (!gr.length) return null;
+      ia.emb = { x: s.x, y: s.y, ids: gr.map(r => regs.indexOf(r)), t: ronda };
+      return { t: 'Parte del enemigo se pierde en el bosque', o: gr.map((r, i) => mov(r, s.x + (i - 0.5) * 40, s.y)) };
+    };
+    G.salen = () => {
+      const e = ia.emb; if (!e) return null;
+      const em = e.ids.map(i => regs[i]).filter(r => r.st === 'ok'); if (!em.length) { ia.emb = null; return null; }
+      if (!vis.some(v => Math.hypot(v.x - e.x, v.y - e.y) < 240) && ronda < e.t + 4) return null;
+      ia.emb = null; return { t: '¡Los emboscados salen del bosque!', o: em.map(r => atk(r, sede(r), 'cargar')) };
+    };
+    G.hostiga = () => {
+      const c = ligeros.filter(r => r.u.cls === 'rng' || r.papel === 'ligera').slice(0, pts); if (!c.length) return null;
+      return { t: 'El enemigo hostiga con sus tiradores', o: c.map(r => atk(r, sede(r), 'hostigar')) };
+    };
+    G.huida = () => {
+      const c = ligeros.filter(r => dist(r) < 160).slice(0, pts); if (!c.length) return null;
+      return { t: 'El enemigo rompe contacto y se aleja', o: c.map(r => mov(r, r.x, r.y - 170, 'retirarse')) };
+    };
+    G.contra = () => {
+      if (ia.finta !== ronda - 1) return null; ia.finta = 0;
+      const c = porDist(mios.filter(r => r.u.cls !== 'rng')).slice(0, pts); if (!c.length) return null;
+      return { t: '¡El enemigo da media vuelta y contraataca!', o: c.map(r => atk(r, sede(r), 'cargar')) };
+    };
+    G.repliegue = () => {
+      if (ronda < 2) return null;
+      const aprieta = m0 - m1 > ca.margen || m1 < ca.piso, finta = ca.finta && (m0 - m1 > ca.margen || (ia.plan === 'emboscar' && ronda === 2));
+      if (!aprieta && !finta) return null;
+      const c = porDist(mios).filter(r => dist(r) < 220).sort((a, b) => a.men / a.max - b.men / b.max).slice(0, Math.min(pts, 3)); if (!c.length) return null;
+      const ref = dif === 'dificil' && ia.cerro ? ia.cerro : null;
+      if (finta) ia.finta = ronda;
+      return { t: finta ? 'El enemigo finge retirarse' : 'El enemigo se repliega para rehacerse', o: c.map(r => ref ? mov(r, ref.x, ref.y, 'retirarse') : mov(r, r.x, r.y - 150, 'retirarse')) };
+    };
+    const apertura = { centro: 'centro', alas: 'ala', cerro: 'cerro', emboscar: 'emboscada', hostigar: 'hostiga' }[ia.plan];
+    const resto = { centro: ['flanco', 'ala'], alas: ['flanco', 'ala', 'centro'], cerro: ['cerro'], emboscar: ['salen', 'flanco', 'centro'], hostigar: ['huida', 'hostiga', 'flanco'] }[ia.plan];
+    let cola = ['contra', 'repliegue', 'salen'];
+    if (dif === 'dificil') cola.push('vado', 'reserva'); else cola.push('reserva', 'vado');
+    if (ia.plan === 'cerro' || ia.plan === 'emboscar') cola = cola.filter(k => k !== 'vado');
+    if (ca.n === 'Prudente') cola = cola.filter(k => k !== 'vado');
+    cola = cola.concat(ronda === 1 ? [apertura] : resto, [apertura], [ca.carga ? 'carga' : 'avanza']);
+    if (ronda === 1) cola = [apertura, 'avanza'];
+    let gest = null, clave = '';
+    for (const pasada of [0, 1]) { for (const k of cola) { if (pasada === 0 && k === ia.ult && ['ala', 'flanco', 'centro', 'hostiga', 'avanza', 'carga', 'huida', 'vado', 'reserva'].indexOf(k) >= 0) continue; const r = G[k](); if (r) { gest = r; clave = k; break; } } if (gest) break; }
+    if (!gest) { this.gesto = 'El enemigo mantiene su línea'; return; }
+    // órdenes: se conservan las vigentes que no se sustituyen, sin pasar de los puntos de mando
+    const nuevo = new Map(); for (const p of gest.o) if (!nuevo.has(p[0])) nuevo.set(p[0], p[1]);
+    if (dif === 'dificil') {   // difícil reparte los puntos que sobran: fuego concentrado sobre el más débil que ve
+      const debil = vis.slice().sort((a, b) => a.men - b.men)[0];
+      for (const r of porDist(mios)) { if (nuevo.size >= pts) break; if (!nuevo.has(r) && r.u.cls !== 'rng' && dist(r) < 260) nuevo.set(r, O({ k: 'atk', r: debil.r, tipo: tipoA })); }
+    }
+    const vig = []; for (const r of mios) if (!nuevo.has(r) && r.order && r.order.ia && r.order.hasta >= ronda) vig.push(r); else if (!nuevo.has(r) && r.order && (r.order.k !== 'quieto' || (r.order.ia && r.order.hasta < ronda))) { r.order = null; r.tgt = null; }
+    let usados = 0; for (const o of nuevo.values()) if (o.k !== 'quieto') usados++;
+    for (const r of vig) if (r.order.k !== 'quieto') { if (usados < pts) usados++; else { r.order = null; r.tgt = null; } }
+    let n = 0; for (const [r, o] of nuevo) { if (o.k !== 'quieto') { if (n >= pts) continue; n++; } r.order = o; r.tgt = null; r.pend = null; r.pendT = 0; }
+    if (g) for (const r of mios) {   // fuera del radio de su general la orden llega con retraso
+      if (r.order && r.order.k !== 'quieto' && !r.pend && this.fueraDeMando(r, g) && nuevo.has(r)) { r.pend = r.order; r.pendT = MANDO_RETRASO; r.order = { k: 'quieto' }; }
+    }
+    // carta (una por ronda, tres por batalla; solo con general vivo y no en Fácil)
+    let carta = null;
+    if (dif !== 'facil' && g && ia.cartas.length && ia.cartaRonda !== ronda) {
+      const aprieta = vis.some(v => ia_cerca(mios, v.x, v.y) && ia_d(v, ia_cerca(mios, v.x, v.y)) < 250), vacila = mios.some(r => estadoMoral(r) >= 1) || m1 < m0 - 0.05;
+      if (vacila && ia.cartas.indexOf('arenga') >= 0) carta = 'arenga';
+      else if ((ca.cerrada || dif === 'dificil') && aprieta && ia.cartas.indexOf('cerrada') >= 0 && ['ala', 'flanco', 'vado', 'contra', 'carga', 'salen'].indexOf(clave) < 0) carta = 'cerrada';
+      else if (dif === 'dificil' && ['ala', 'flanco', 'vado', 'contra', 'carga', 'salen'].indexOf(clave) >= 0 && ia.cartas.indexOf('paso') >= 0) carta = 'paso';
+    }
+    if (carta) {
+      ia.cartas.splice(ia.cartas.indexOf(carta), 1); ia.cartaRonda = ronda; ia.cartaTxt = carta;
+      for (const r of regs) if (r.side === 1 && r.st === 'ok' && !this.fueraDeMando(r, g)) { r.cartaFx = carta; if (carta === 'arenga') r.mor = Math.min(r.morMax, r.mor + ARENGA_MORAL * r.morMax); }
+    }
+    ia.ult = clave; ia.gestos++; this.gesto = gest.t + (carta ? ' y juega ' + CARTA_TXT[carta] : '');
   };
 
   Battle.prototype.finish = function () { this.rondas = false; this.fase = 'lucha'; let i = 0; while (!this.over && i++ < 8000) this.step(0.2); };

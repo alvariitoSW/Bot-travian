@@ -3,6 +3,18 @@
  "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
  "capturas": [
   {
+   "tarea": "N6",
+   "archivo": "gobierno/capturas-tarea/N6-gesto-5s.jpg",
+   "pie": "Batalla: el enemigo avisa su gesto de la ronda",
+   "ancha": true
+  },
+  {
+   "tarea": "N6",
+   "archivo": "gobierno/capturas-tarea/N6-dif-0s.jpg",
+   "pie": "Despliegue: rival con carácter y tres dificultades",
+   "ancha": true
+  },
+  {
    "tarea": "B8",
    "archivo": "gobierno/capturas-tarea/B8.jpg",
    "pie": "Herrería: mejoras de armas y armaduras"
@@ -866,12 +878,6 @@
  "rama": "claude/roman-strategy-mobile-game-bx9oq2",
  "sesiones": [
   {
-   "tarea": "N6",
-   "titulo": "Guerra · N6 Enemigo que piensa",
-   "nota": "js/battle.js",
-   "url": "https://claude.ai/code/session_01QiKC393L1x5nVP19dFpyBP"
-  },
-  {
    "tarea": "CN1",
    "titulo": "Ciudad nueva · CN1 Reglas sin pantalla",
    "nota": "js/ciudad.js, test/",
@@ -879,4 +885,5 @@
   }
  ],
  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
+
 }

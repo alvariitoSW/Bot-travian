@@ -947,4 +947,63 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
     assert(dentro < fuera * 0.7, 'el pantano frena (' + dentro.toFixed(2) + ' vs ' + fuera.toFixed(2) + ')'); assert(fatD > fatF, 'y cansa'); }
 }
 
+// N6. Enemigo que piensa (modo por rondas): planes, gestos, mando, carácter, dificultad
+{
+  const mkI = (u1, ter, ex, s1) => new Battle(Object.assign({ sides: [side({ hastati: 150, equites: 30 }, { gen: { n: 'Cónsul' } }), side(u1, Object.assign({ gen: { n: 'Rival' } }, s1 || {}))], defender: 1, wall: 0, seed: 5, rondas: true, terreno: ter }, ex || {}));
+  const jugar = (b, n) => { const gs = []; let g = 0, maxPts = 0; while (!b.over && g++ < n) { assert(b.ejecutar(), 'ejecuta'); gs.push(b.gesto); let k = 0; while (b.fase === 'ejecucion' && k++ < 400) { b.step(0.1); maxPts = Math.max(maxPts, b.regs.filter(r => r.side === 1 && r.st === 'ok' && ((r.order && r.order.k !== 'quieto') || r.pend)).length); } } return { gs, maxPts }; };
+  const libios = { libios: 150, iberos: 60, numidas: 60 }, falange = { falange: 200, hoplitas: 60, elefantes: 6 }, ligeros = { numidas: 150, honderos: 80 };
+  // plan según tropas y terreno
+  assert.strictEqual(mkI(falange, 'llano').ia.plan, 'centro', 'falange: centro fuerte');
+  assert.strictEqual(mkI(ligeros, 'llano').ia.plan, 'alas', 'jinetes ligeros en llano: alas');
+  assert.strictEqual(mkI(libios, 'bosque').ia.plan, 'emboscar', 'bosque: emboscar');
+  assert.strictEqual(mkI(libios, 'cerro', {}, { car: 'prudente' }).ia.plan, 'cerro', 'prudente con cerro: defender');
+  assert(Battle.PLANES[mkI(libios, 'mixto').ia.plan], 'el plan es uno de los cinco');
+  { const b = mkI(falange, 'llano'); assert.strictEqual(b.ia.dif, 'normal', 'dificultad por defecto'); }
+  // gesto no vacío cada ronda, puntos de mando respetados, mismo resultado al repetir
+  for (const [u, ter] of [[libios, 'llano'], [falange, 'cerro'], [ligeros, 'bosque'], [libios, 'mixto']]) {
+    const b = mkI(u, ter), { gs, maxPts } = jugar(b, 7);
+    assert(gs.length >= 3 && gs.every(x => x && x.length > 4 && x.length < 90), ter + ': gesto corto cada ronda: ' + gs.join(' | '));
+    assert(maxPts <= 5, 'el enemigo no pasa de 5 puntos de mando (' + maxPts + ')');
+  }
+  { const b = mkI(libios, 'llano'); b.regs.find(r => r.side === 1 && r.k === 'general').st = 'dead'; b.genDown[1] = true; const { maxPts } = jugar(b, 5); assert(maxPts <= 2, 'sin general solo 2 puntos (' + maxPts + ')'); }
+  // determinismo: dos batallas iguales, la repetición de ronda y un clon dan lo mismo
+  { const a = mkI(libios, 'mixto'), c = mkI(libios, 'mixto'); const ja = jugar(a, 5), jc = jugar(c, 5);
+    assert.deepStrictEqual(ja.gs, jc.gs, 'mismos gestos'); assert.strictEqual(a.men(0), c.men(0)); assert.strictEqual(a.men(1), c.men(1));
+    const d = mkI(libios, 'mixto'); jugar(d, 2); const e = d.clona(); assert.deepStrictEqual(e.ia, d.ia, 'el clon lleva el estado de la IA'); assert.strictEqual(e.gesto, d.gesto);
+    e.ejecutar(); d.ejecutar(); assert.strictEqual(e.gesto, d.gesto, 'el clon decide igual'); let k = 0; while ((e.fase === 'ejecucion' || d.fase === 'ejecucion') && k++ < 400) { e.step(0.1); d.step(0.1); }
+    assert.strictEqual(e.men(0), d.men(0)); assert.strictEqual(e.men(1), d.men(1));
+    // ver otra vez: la ronda se repite igual y no cambia el gesto ni el plan
+    const gest = d.gesto, pl = d.ia.plan, m1 = d.men(1), m0 = d.men(0); assert(d.repetir()); k = 0; while (d.fase === 'ejecucion' && k++ < 400) d.step(0.1);
+    assert.strictEqual(d.men(1), m1); assert.strictEqual(d.men(0), m0); assert.strictEqual(d.ia.plan, pl); assert.strictEqual(d.gesto, gest, 'ver otra vez conserva el gesto');
+    // la previsión no mueve al enemigo ni cambia su plan
+    const p = d.ia.gestos; d.prevision(); assert.strictEqual(d.ia.gestos, p, 'la previsión no hace pensar al enemigo'); }
+  // sin trampas: no mira las órdenes del jugador (mismo resultado con órdenes distintas en el plan antes de la foto)
+  { const a = mkI(libios, 'llano'), c = mkI(libios, 'llano'); c.regs.filter(r => r.side === 0 && r.k !== 'general').slice(0, 4).forEach(r => { r.order = { k: 'move', x: 100, y: 100 }; });
+    a.ejecutar(); c.ejecutar(); assert.strictEqual(a.gesto, c.gesto, 'el gesto no depende de las órdenes recién dadas'); }
+  // cruza un vado a propósito en terreno 'rio' (Normal y Difícil; Fácil no)
+  { for (const dif of ['normal', 'dificil', 'facil']) { const b = mkI(falange, 'rio', { dificultad: dif }); let vados = 0, g = 0, vg = 0;
+      while (!b.over && g++ < 6) { b.ejecutar(); if (/vado/.test(b.gesto)) vg++; let k = 0; while (b.fase === 'ejecucion' && k++ < 400) { b.step(0.1); for (const r of b.regs) if (r.side === 1 && r.st === 'ok' && b.terrenoEn(r.x, r.y).vado) vados++; } }
+      if (dif === 'facil') assert.strictEqual(vg, 0, 'Fácil no cruza a propósito'); else assert(vg > 0 && vados > 0, dif + ': cruza el vado (' + vg + ' gestos, ' + vados + ')'); } }
+  // caracteres con planes distintos sobre las mismas tropas y terreno
+  { const ps = ['astuto', 'impetuoso', 'prudente', 'equilibrado'].map(c => mkI(libios, 'mixto', {}, { car: c }).ia.plan); assert(new Set(ps).size >= 3, 'los caracteres dan planes distintos: ' + ps.join()); }
+  assert(Battle.CARACTER.astuto && Battle.CARACTER.impetuoso && Battle.CARACTER.prudente && Battle.CARACTER.equilibrado, 'tabla de caracteres');
+  assert.strictEqual(Battle.caracterDe({ sides: [{}, { name: 'Cartago', gen: { n: 'Aníbal Barca' } }] }), 'astuto'); assert.strictEqual(Battle.caracterDe({ sides: [{}, { name: 'Galos ínsubres' }] }), 'impetuoso');
+  assert.strictEqual(Battle.caracterDe({ sides: [{}, { name: 'Epiro', gen: { n: 'Pirro de Epiro' } }] }), 'prudente'); assert.strictEqual(Battle.caracterDe({ sides: [{}, { name: 'Íberos' }] }), 'equilibrado');
+  { const b = mkI(libios, 'llano', {}, { car: 'impetuoso' }); const { gs } = jugar(b, 4); assert(gs.some(x => /carga|adelanta|flanco|aprieta/.test(x)), 'el impetuoso ataca: ' + gs.join(' | ')); }
+  { const b = mkI(libios, 'llano', {}, { car: 'astuto', name: 'Cartago' }); b.ia.plan = 'centro'; b.regs.forEach(r => { if (r.side === 1 && r.k !== 'general') { r.men = Math.floor(r.men * 0.6); r.hp *= 0.6; } }); b.start[1] = b.men(1) / 0.6;
+    b.ejecutar(); let k = 0; while (b.fase === 'ejecucion' && k++ < 400) b.step(0.1); b.start[1] = Math.round(b.men(1) * 1.3); b.start[0] = b.men(0); b.ejecutar(); assert(/finge|repliega|cruza|adelanta|flanco|reserva|aprieta|bosque|emboscad/.test(b.gesto), 'astuto reacciona: ' + b.gesto); }
+  // tres dificultades: Fácil menos gestos y sin cartas; Difícil juega cartas
+  { const cuenta = (dif) => { const b = mkI(libios, 'mixto', { dificultad: dif }); const { gs } = jugar(b, 8); return { reales: gs.filter(x => !/mantiene/.test(x)).length, cartas: gs.filter(x => / juega /.test(x)).length, b: b, gs: gs }; };
+    const f = cuenta('facil'), n = cuenta('normal'), d = cuenta('dificil');
+    assert(f.reales < n.reales && f.cartas === 0, 'Fácil: gesto cada dos rondas y sin cartas'); assert(d.cartas >= 1 && d.cartas <= 3, 'Difícil juega cartas (' + d.cartas + ')'); assert(d.reales === n.reales, 'Difícil y Normal hacen un gesto cada ronda');
+    assert.strictEqual(f.b.men(1) > 0 && n.b.men(1) > 0, true); assert(d.b.ia.cartas.length >= 0 && n.b.ia.cartas.length <= 3);
+    assert.notStrictEqual(f.gs.join(), n.gs.join()); assert.notStrictEqual(n.gs.join(), d.gs.join(), 'Normal y Difícil se distinguen'); }
+  // el enemigo no recibe tropas de más: mismas unidades en las tres dificultades
+  { const t = d => mkI(libios, 'llano', { dificultad: d }).men(1); assert.strictEqual(t('facil'), t('dificil')); }
+  // modo antiguo (sin rondas): la IA no existe y nada cambia
+  { const a = new Battle({ sides: [side({ hastati: 150 }), side({ libios: 150 })], defender: 1, wall: 0, seed: 8 }); assert.strictEqual(a.ia, null); assert.strictEqual(a.gesto, '');
+    const c = new Battle({ sides: [side({ hastati: 150 }), side({ libios: 150 })], defender: 1, wall: 0, seed: 8, dificultad: 'dificil' }); a.finish(); c.finish(); assert.strictEqual(a.men(0), c.men(0)); assert.strictEqual(a.t, c.t); assert.strictEqual(c.ia, null);
+    const z = new Battle({ sides: [side({ hastati: 150 }), side({ libios: 150 })], defender: 1, wall: 0, seed: 8, rondas: true, ia: false }); assert.strictEqual(z.ia, null); z.ejecutar(); assert.strictEqual(z.gesto, ''); }
+}
+
 console.log('OK — todas las pruebas superadas');

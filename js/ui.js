@@ -603,10 +603,17 @@ function battlePrompt() {
     '<div class="pw">Fuerza: ' + G.power(info.cfg.sides[0].units) + ' contra ' + G.power(info.cfg.sides[1].units) + ' · Muralla del defensor: nivel ' + info.cfg.wall + '</div>' +
     '<div class="acts"><button class="btn" data-act="bview">' + D.GUERRA_ICON.espadas + ' Dirigir la batalla</button><button class="btn ghost" data-act="bquick">Resolver</button></div>', true);
 }
+// N6: dificultad del general enemigo (Fácil/Normal/Difícil), recordada entre batallas
+const DIF_NOM = { facil: 'Fácil', normal: 'Normal', dificil: 'Difícil' };
+function difGuardada() { try { const d = localStorage.getItem('aqvila-dif'); if (DIF_NOM[d]) return d; } catch (e) {} return 'normal'; }
+function rivalHtml(b) {
+  const s1 = b.cfg.sides[1], ca = window.Battle.CARACTER[b.ia ? b.ia.car : window.Battle.caracterDe(b.cfg)], dif = b.ia ? b.ia.dif : difGuardada();
+  return '<div class="rv">Rival: <b>' + esc(s1.gen && s1.gen.n || s1.name) + '</b> · ' + esc(ca.n.toLowerCase()) + '</div><div class="dif">' + Object.keys(DIF_NOM).map(k => '<button data-act="bdif" data-v="' + k + '"' + (k === dif ? ' class="on"' : '') + '>' + DIF_NOM[k] + '</button>').join('') + '</div>';
+}
 function startBattle() {
   closeModal();
   $('battle').hidden = false;
-  const cfg = Object.assign({}, UI.binfo.cfg, { fh: 1000, despliegue: true, rondas: true }), b = new window.Battle(cfg), B = { b: b, speed: 1, paused: false, acc: 0, endT: 0 };
+  const cfg = Object.assign({}, UI.binfo.cfg, { fh: 1000, despliegue: true, rondas: true, dificultad: difGuardada() }), b = new window.Battle(cfg), B = { b: b, speed: 1, paused: false, acc: 0, endT: 0 };
   try { B.view = new BattleView3D($('bfield'), b, { cards: $('bcards'), speed: () => (B.paused || b.over ? 0 : B.speed) }); }
   catch (e) { // sin WebGL: vista 2D de reserva
     console.warn('WebGL no disponible, usando vista 2D', e);
@@ -615,6 +622,7 @@ function startBattle() {
     cv.addEventListener('pointermove', ev => B.view.move(ev)); cv.addEventListener('pointerup', ev => B.view.up(ev)); cv.addEventListener('pointercancel', ev => B.view.up(ev));
   }
   UI.battle = B;
+  { const dv = document.createElement('div'); dv.id = 'bdif'; dv.innerHTML = rivalHtml(b); $('battle').appendChild(dv); }
   montaMandoL1(B);
   $('bauto').classList.add('on'); $('bspeed').textContent = 'x1'; $('bpause').textContent = 'II';
   // despliegue: la barra de mando cambia hasta pulsar «Empezar batalla»
@@ -625,8 +633,8 @@ function startBattle() {
   $('bhint').textContent = 'Coloca tus tropas: arrastra un regimiento por el campo, o toca uno y luego el campo. Después, Empezar batalla.' + (b.tr && !b.tr.plano ? ' Campo: ' + b.tr.nombre.toLowerCase() + ' (contorno en tu zona: ocre = colina, verde = bosque).' : ' Campo: llano.'); $('bhint').style.opacity = 1;
 }
 // repone la barra de mando y el texto de ayuda de antes del despliegue
-function reponerBarra(B) { if (!B || B.barra == null) return; $('bctl').style.flexWrap = ''; $('bctl').classList.remove('desp'); $('battle').classList.remove('desp'); $('bctl').innerHTML = B.barra; $('bhint').innerHTML = B.hint; B.barra = null; }
-function stopBattle() { const B = UI.battle; if (B) { $('battle').classList.remove('ronda'); const pn = $('bpanel'); if (pn) pn.remove(); quitaMandoL1(B); reponerBarra(B); if (B.view.dispose) B.view.dispose(); if (B.flat) B.flat.remove(); } $('battle').hidden = true; UI.battle = null; UI.binfo = null; if (UI.map) UI.map.resize(); }
+function reponerBarra(B) { if (!B || B.barra == null) return; const dv = $('bdif'); if (dv) dv.remove(); $('bctl').style.flexWrap = ''; $('bctl').classList.remove('desp'); $('battle').classList.remove('desp'); $('bctl').innerHTML = B.barra; $('bhint').innerHTML = B.hint; B.barra = null; }
+function stopBattle() { const B = UI.battle; if (B) { const dv = $('bdif'); if (dv) dv.remove(); const gs = $('bgesto'); if (gs) gs.remove(); $('battle').classList.remove('ronda'); const pn = $('bpanel'); if (pn) pn.remove(); quitaMandoL1(B); reponerBarra(B); if (B.view.dispose) B.view.dispose(); if (B.flat) B.flat.remove(); } $('battle').hidden = true; UI.battle = null; UI.binfo = null; if (UI.map) UI.map.resize(); }
 // L1: mando con el dedo: botón dorado de orden recomendada, minimapa táctil y grupos por clase
 const GRUPOS_L1 = [['inf', 'Infantería', ['inf', 'spear', 'ele']], ['rng', 'Tiradores', ['rng']], ['cav', 'Caballería', ['cav', 'gen']]];
 function montaMandoL1(B) {
@@ -729,6 +737,7 @@ function entraPlan(B) {
 function rondaHud() {
   const B = UI.battle, b = B.b; if (!b.rondas || !B.modo) return false;
   actualizaL1(B);
+  { let gs = $('bgesto'); if (!gs) { gs = document.createElement('div'); gs.id = 'bgesto'; $('battle').appendChild(gs); } const tg = B.modo === 'ejec' && b.gesto ? '⚑ ' + b.gesto : ''; if (gs.textContent !== tg) gs.textContent = tg; gs.style.display = tg ? '' : 'none'; }
   if (!b.over) {
     if (b.fase === 'ejecucion' && B.modo !== 'ejec') rondaModo(B, 'ejec');
     else if (b.fase === 'plan' && B.modo === 'ejec') rondaModo(B, 'informe');
@@ -847,6 +856,7 @@ document.addEventListener('click', function (e) {
     case 'bpmin': B.pmin = !B.pmin; break;
     case 'bsalto': B.view.saltoAla(+v); break;
     case 'bcam': if (B.view.cycleCam) B.view.cycleCam(); break;
+    case 'bdif': if (B.b.fase === 'despliegue' && B.b.ia) { B.b.ia.dif = v; B.b.cfg.dificultad = v; try { localStorage.setItem('aqvila-dif', v); } catch (e) {} document.querySelectorAll('#bdif [data-act="bdif"]').forEach(x => x.classList.toggle('on', x === el)); } break;
     case 'bform': B.b.formar(0, v); document.querySelectorAll('#bctl [data-act="bform"]').forEach(x => x.classList.toggle('on', x === el)); break;
     case 'bejec': if (B.b.ejecutar()) { B.view.sel.clear(); B.mas = false; B.speed = 1; rondaModo(B, 'ejec'); } else if (B.b.motivo) toast(B.b.motivo, 'bad'); break;
     case 'bcarta': if (B.b.jugarCarta(v)) { toast('Carta jugada: ' + CARTAS_TXT[v][0] + '. Vale para la ronda que viene.'); B.filaKey = ''; } else toast(B.b.generalVivo(0) ? 'Solo una carta por ronda.' : 'Sin general no hay cartas.', 'bad'); break;

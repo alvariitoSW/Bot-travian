@@ -576,3 +576,14 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 
 /* ===== N14: minimapa del campo ancho (en el modo por rondas, a la izquierda bajo la barra de arriba) ===== */
 #battle.ronda #bmini { display: block !important; left: calc(8px + env(safe-area-inset-left)); top: calc(40px + env(safe-area-inset-top)); height: 60px; border: 1px solid rgba(184, 134, 43, .8); border-radius: 6px; box-shadow: 0 2px 8px #0009; background: rgba(12, 16, 22, .7); }
+
+/* N6: rival, dificultad y aviso del gesto enemigo */
+#bdif { position: absolute; z-index: 6; right: calc(8px + env(safe-area-inset-right)); top: calc(82px + env(safe-area-inset-top)); display: flex; flex-direction: column; align-items: flex-end; gap: 3px; pointer-events: auto; }
+#bdif .rv { font-size: 11px; color: #fff; text-shadow: 0 1px 3px #000, 0 0 8px #000; }
+#bdif .rv b { font-family: var(--serif); color: var(--gold); }
+#bdif .dif { display: flex; gap: 3px; padding: 3px; border-radius: 9px; background: var(--glass); border: 1px solid var(--line2); }
+#bdif .dif button { height: 24px; padding: 0 8px; border-radius: 6px; font-size: 11px; font-weight: 700; color: var(--gold); background: #fff1; }
+#bdif .dif button.on { color: #2b1804; background: linear-gradient(#ffe27a, var(--gold)); }
+#bgesto { position: absolute; z-index: 7; left: calc(110px + env(safe-area-inset-left)); opacity: .88; top: calc(34px + env(safe-area-inset-top)); max-width: min(360px, 52vw); padding: 3px 12px; border-radius: 9px; font-size: 12px; font-weight: 700; font-family: var(--serif); color: var(--gold); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: linear-gradient(rgba(22, 27, 36, .86), rgba(10, 13, 19, .9)); border: 1px solid rgba(184, 134, 43, .7); pointer-events: none; }
+#bpanel li.gs { color: var(--gold); font-weight: 700; }
+#bpanel li.gs::before { content: ''; }
