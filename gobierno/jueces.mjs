@@ -170,7 +170,12 @@ async function navegador() {
     });
 
     await paso('La batalla termina y se aplica el resultado', async () => {
-      await page.click('#bctl [data-act="bskip"]');
+      // «Resolver» está en la fila durante la ejecución y, en el plan, dentro del panel «Más»
+      if (!(await page.locator('[data-act="bskip"]').count())) {
+        if (await page.locator('#bctl [data-act="bseguir"]').count()) { await page.click('#bctl [data-act="bseguir"]'); await espera(300); }
+        if (await page.locator('#bctl [data-act="bmas"]').count()) { await page.click('#bctl [data-act="bmas"]'); await espera(300); }
+      }
+      await page.click('[data-act="bskip"]');
       await page.waitForSelector('#mbox [data-act="bdone"]', { timeout: 20000 });
       const titulo = await estado(() => document.querySelector('#mbox h2').textContent);
       const captura = await foto('resultado');

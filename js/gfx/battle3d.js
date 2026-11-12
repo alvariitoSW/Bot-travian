@@ -29,6 +29,21 @@ export const ALAS = [['linea', 'Línea'], ['reserva', 'Reserva'], ['ligeros', 'L
 // ala por defecto de un regimiento según su tipo: pesada → Línea, triarios → Reserva, tiradores → Ligeros, caballería → Jinetes
 export function alaPorDefecto(r) { return r.k === 'triarii' ? 'reserva' : r.papel === 'tirador' || r.u.cls === 'rng' ? 'ligeros' : r.u.cls === 'cav' || r.u.cls === 'gen' ? 'jinetes' : 'linea'; }
 
+/* ---------- N3: estado dibujado de cada regimiento (derivado de mor, morMax y fat; sin reglas nuevas) ---------- */
+// moral: 0 firme, 1 vacilante, 2 desordenado, 3 huye. cansancio: 0 fresco, 1 cansado, 2 agotado
+export function estadoReg(r) {
+  const mo = r.mor / r.morMax;
+  return { moral: r.st !== 'ok' ? 3 : mo > 0.55 ? 0 : mo > 0.28 ? 1 : 2, cans: r.fat >= 70 ? 2 : r.fat >= 40 ? 1 : 0 };
+}
+export const TIPOS_ORDEN = [['aguantar', 'Aguantar'], ['avanzar', 'Avanzar'], ['cargar', 'Cargar'], ['hostigar', 'Hostigar'], ['relevar', 'Relevar'], ['retirarse', 'Retirarse']];
+const COL_ORDEN = { aguantar: '#7fb8ff', avanzar: '#f2cf72', cargar: '#ff5a43', hostigar: '#6fe0a4', relevar: '#4fd3dc', retirarse: '#c8a6ff' };
+// tipo de una orden: el que lleva marcado o, si viene de un trazo o un toque, el que se deduce de ella
+export function tipoOrden(r) {
+  const o = r.order; if (!o) return null; if (o.tipo) return o.tipo;
+  if (o.k === 'atk') return 'cargar'; if (o.k === 'quieto') return 'aguantar';
+  return o.y > r.y + 40 ? 'retirarse' : 'avanzar';
+}
+
 /* ---------- L1: órdenes dibujadas y orden recomendada (funciones puras, sin pantalla) ---------- */
 const ordenAtk = (r, e) => ({ k: 'atk', r: e });
 function enemigoCerca(b, side, x, y, rad) { let best = null, bd = rad; for (const e of b.regs) { if (e.side === side || e.st !== 'ok') continue; const d = Math.hypot(e.x - x, e.y - y); if (d < bd) { bd = d; best = e; } } return best; }
@@ -402,7 +417,7 @@ export class BattleView3D {
   buildFlags() {
     for (const R of this.R) {
       const r = R.r, el = document.createElement('button'); el.className = 'bflag s' + r.side; el.style.setProperty('--c', this.b.cfg.sides[r.side].col);
-      el.innerHTML = '<i>' + (r.u.cls === 'ele' ? '🐘' : r.u.g) + '</i><b><u></u></b>';
+      el.innerHTML = '<i>' + (r.u.cls === 'ele' ? '🐘' : r.u.g) + '</i><b><u></u></b><s><em></em><em></em><em></em></s>';
       el.addEventListener('click', ev => { ev.stopPropagation(); if (performance.now() - (this.tArr || 0) < 400) return; this.hitReg(r); });
       // despliegue: mantener el dedo sobre el estandarte y mover arrastra el regimiento (el resto lo sigue el lienzo)
       el.addEventListener('pointerdown', ev => { if (this.b.fase === 'despliegue' && r.side === 0 && r.st === 'ok' && this.onDown) { this.dragReg = r; this.onDown(ev); } else if (this.b.fase !== 'despliegue' && r.side === 0 && r.st === 'ok' && this.sel.has(r) && this.onDown) { this.trazoIni = true; this.onDown(ev); } });
@@ -434,7 +449,8 @@ export class BattleView3D {
       v.set(x, this.h(x, z) + (r.u.cls === 'ele' ? 8 : r.u.cls === 'cav' || r.u.cls === 'gen' ? 5 : 4), z).project(this.cam);
       if (v.z > 1 || v.x < -1.1 || v.x > 1.1 || v.y < -1.1 || v.y > 1.1) { R.el.style.display = 'none'; continue; }
       R.el.style.display = ''; R.el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * H).toFixed(1) + 'px) translate(-50%,-100%)';
-      R.el.classList.toggle('sel', this.sel.has(r)); R.el.classList.toggle('rout', !ok); { const mo = r.mor / r.morMax; R.el.classList.toggle('m1', ok && mo <= 0.55 && mo > 0.28); R.el.classList.toggle('m2', ok && mo <= 0.28); R.el.classList.toggle('can', ok && r.fat >= 50); }
+      R.el.classList.toggle('sel', this.sel.has(r)); R.el.classList.toggle('rout', !ok);
+      { const e = estadoReg(r), cl = R.el.classList; cl.toggle('m1', e.moral === 1); cl.toggle('m2', e.moral === 2); cl.toggle('f1', ok && e.cans === 1); cl.toggle('f2', ok && e.cans === 2); }
       R.bar.style.width = (r.men / r.max * 100) + '%'; R.bar.style.background = r.mor / r.morMax > 0.5 ? '#7ddc5a' : r.mor / r.morMax > 0.25 ? '#f0c040' : '#e8503a';
     }
   }
@@ -442,12 +458,12 @@ export class BattleView3D {
   /* ---------- órdenes ---------- */
   hitReg(r) {
     if (this.b.over || r.st !== 'ok') return;
-    if (r.side === 0) { if (this.sel.has(r)) this.sel.delete(r); else this.sel.add(r); return; }
+    if (r.side === 0) { if (this.b.fase === 'despliegue') { if (this.sel.has(r)) this.sel.delete(r); else this.sel.add(r); } else if (this.sel.has(r) && this.sel.size === 1) this.sel.delete(r); else { this.sel.clear(); this.sel.add(r); } return; }
     if (this.b.fase === 'despliegue' || this.b.fase === 'ejecucion') return;   // en la ejecución de una ronda no se dan órdenes
     for (const s of this.sel) if (s.st === 'ok') s.order = { k: 'atk', r: r };
   }
   tapField(fx, fy) {
-    const b = this.b; let hit = null, hd = 34;
+    const b = this.b; let hit = null, hd = 40;
     for (const r of b.regs) { if (r.st !== 'ok') continue; const d = Math.hypot(r.x - fx, r.y - fy); if (d < hd) { hd = d; hit = r; } }
     const desp = b.fase === 'despliegue';
     if (hit) { if (desp && hit.side !== 0) return; return this.hitReg(hit); }
@@ -517,27 +533,94 @@ export class BattleView3D {
     const cv = this.pcv, b = this.b; if (!cv) return; const W = this.host.clientWidth || 1, H = this.host.clientHeight || 1;
     if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
     const x = cv.getContext('2d'); x.clearRect(0, 0, W, H);
-    if (!b.rondas || b.fase !== 'plan' || b.over) { this.haySombras = false; return; }
+    const ver = b.rondas && b.fase === 'plan' && !b.over; if (cv.style.display !== (ver ? '' : 'none')) cv.style.display = ver ? '' : 'none';   // fuera del plan el lienzo se oculta: no queda ninguna flecha vieja
+    if (!ver) { this.haySombras = false; if (this.pSucio) { cv.width = W; this.pSucio = false; } return; }   // al vaciar el lienzo se reinicia: así el navegador no deja flechas viejas
     const now = performance.now(), sig = this.firmaPlan();
     if (sig !== this.sombraSig && now - this.sombraT > 220) { this.sombraSig = sig; this.sombraT = now; this.sombras = b.prevision(); }
-    const v = new THREE.Vector3(), pr = (px, py) => { const w = this.toW(px, py); v.set(w[0], this.h(w[0], w[1]) + 1, w[1]).project(this.cam); return v.z < 1 ? [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H] : null; };
-    let hay = 0;
+    const v = new THREE.Vector3(), pr = (px, py) => { const w = this.toW(px, py); v.set(w[0], this.h(w[0], w[1]) + 0.6, w[1]).project(this.cam); return v.z < 1 ? [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H] : null; };
+    const col = b.cfg.sides[0].col, usados = []; let hay = 0;
+    // anillo en el suelo bajo el regimiento elegido
+    for (const r of this.sel) { if (r.st !== 'ok') continue; const p = pr(r.x, r.y); if (!p) continue; x.save(); x.translate(p[0], p[1]); x.scale(1, 0.5); x.lineWidth = 5; x.strokeStyle = 'rgba(40,24,4,.8)'; x.beginPath(); x.arc(0, 0, 30, 0, 7); x.stroke(); x.lineWidth = 2.4; x.strokeStyle = '#ffe27a'; x.stroke(); x.restore(); }
+    // siluetas del final (sombra honesta: el enemigo quieto)
     for (const sh of this.sombras || []) {
-      const r = b.regs.find(q => q.id === sh.id); if (!r || r.st !== 'ok' || sh.st === 'dead') continue;
-      const p0 = pr(r.x, r.y), p1 = pr(sh.x, sh.y); if (!p0 || !p1) continue;
-      const mov = Math.hypot(sh.x - r.x, sh.y - r.y) > 14; if (!mov && !r.order) continue;
-      const sel = this.sel.has(r), col = b.cfg.sides[0].col;
-      if (r.order && r.order.k === 'atk' && r.order.r.st === 'ok') { const pe = pr(r.order.r.x, r.order.r.y); if (pe) { x.setLineDash([6, 5]); x.strokeStyle = 'rgba(255,110,90,.85)'; x.lineWidth = 1.6; x.beginPath(); x.moveTo(p1[0], p1[1]); x.lineTo(pe[0], pe[1]); x.stroke(); x.setLineDash([]); } }
-      if (mov) {
-        x.lineCap = 'round'; x.strokeStyle = 'rgba(40,24,4,.75)'; x.lineWidth = sel ? 5 : 3.6; x.beginPath(); x.moveTo(p0[0], p0[1]); x.lineTo(p1[0], p1[1]); x.stroke();
-        x.strokeStyle = sel ? '#ffe27a' : 'rgba(242,207,114,.8)'; x.lineWidth = sel ? 2.4 : 1.6; x.beginPath(); x.moveTo(p0[0], p0[1]); x.lineTo(p1[0], p1[1]); x.stroke();
-        const a = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]); x.fillStyle = sel ? '#ffe27a' : '#f2cf72'; x.beginPath(); x.moveTo(p1[0] + Math.cos(a) * 9, p1[1] + Math.sin(a) * 9); x.lineTo(p1[0] + Math.cos(a + 2.5) * 8, p1[1] + Math.sin(a + 2.5) * 8); x.lineTo(p1[0] + Math.cos(a - 2.5) * 8, p1[1] + Math.sin(a - 2.5) * 8); x.fill();
+      const r = b.regs.find(q => q.id === sh.id); if (!r || r.st !== 'ok' || sh.st === 'dead' || !r.order) continue;
+      if (Math.hypot(sh.x - r.x, sh.y - r.y) <= 14) continue; const p1 = pr(sh.x, sh.y); if (!p1) continue;
+      const w = Math.max(12, Math.min(28, 7 + Math.sqrt(sh.men) * 1.3)), h = w * 0.5, sel = this.sel.has(r);
+      x.save(); x.translate(p1[0], p1[1]); x.globalAlpha = sel ? 0.6 : 0.35; x.fillStyle = col; x.strokeStyle = COL_ORDEN[tipoOrden(r)] || '#ffe27a'; x.lineWidth = 1.4; x.setLineDash([4, 3]); x.beginPath(); x.rect(-w / 2, -h / 2, w, h); x.fill(); x.stroke(); x.restore(); hay++;
+    }
+    // flechas de orden pintadas en el suelo, una por regimiento propio con orden
+    for (const r of b.regs) {
+      if (r.side !== 0 || r.st !== 'ok' || !r.order) continue;
+      const tipo = tipoOrden(r), c = COL_ORDEN[tipo] || '#f2cf72', sel = this.sel.has(r), p0 = pr(r.x, r.y); if (!p0) continue;
+      let ex, ey; const o = r.order;
+      if (o.k === 'atk') { const dx = o.r.x - r.x, dy = o.r.y - r.y, d = Math.hypot(dx, dy) || 1, k = Math.max(0, d - 16) / d; ex = r.x + dx * k; ey = r.y + dy * k; } else if (o.k === 'move') { ex = o.x; ey = o.y; } else { ex = r.x; ey = r.y; }
+      const dist = Math.hypot(ex - r.x, ey - r.y); let mid = p0;
+      if (tipo === 'aguantar' || dist < 8) {
+        // aguantar: un escudo (arco) delante del regimiento, mirando al frente
+        x.save(); x.translate(p0[0], p0[1] - 2); x.lineCap = 'round'; for (const [lw, st] of [[7, 'rgba(20,14,6,.85)'], [3.6, c]]) { x.lineWidth = lw; x.strokeStyle = st; x.beginPath(); x.arc(0, 4, 19, Math.PI * 1.15, Math.PI * 1.85); x.stroke(); }
+        x.restore(); mid = [p0[0], p0[1] - 24];
+      } else {
+        const lx = -(ey - r.y) / dist, ly = (ex - r.x) / dist, bow = tipo === 'hostigar' ? 0.3 : tipo === 'retirarse' ? -0.16 : tipo === 'relevar' ? 0.22 : 0.07, cx = (r.x + ex) / 2 + lx * dist * bow, cy = (r.y + ey) / 2 + ly * dist * bow;
+        const pts = []; for (let i = 0; i <= 16; i++) { const t = i / 16, a = (1 - t) * (1 - t), bb = 2 * t * (1 - t), cc = t * t; const q = pr(a * r.x + bb * cx + cc * ex, a * r.y + bb * cy + cc * ey); if (q) pts.push(q); }
+        if (pts.length < 3) continue; const n = pts.length, pe = pts[n - 1], pa = pts[Math.max(0, n - 4)], ang = Math.atan2(pe[1] - pa[1], pe[0] - pa[0]);
+        const wl = (tipo === 'cargar' ? 7 : tipo === 'avanzar' ? 5.5 : 4.4) + (sel ? 1.5 : 0), fin = pts.slice(0, n - 1);
+        x.lineCap = 'round'; x.lineJoin = 'round';
+        const traza = (lw, st, dash) => { x.setLineDash(dash || []); x.lineWidth = lw; x.strokeStyle = st; x.beginPath(); fin.forEach((q, i) => i ? x.lineTo(q[0], q[1]) : x.moveTo(q[0], q[1])); x.lineTo(pe[0] - Math.cos(ang) * 6, pe[1] - Math.sin(ang) * 6); x.stroke(); x.setLineDash([]); };
+        const dash = tipo === 'hostigar' ? [9, 6] : tipo === 'retirarse' ? [1, 9] : null;
+        traza(wl + 3.4, 'rgba(20,14,6,.82)', dash); traza(wl, c, dash);
+        if (tipo === 'relevar') traza(1.6, '#0c2a2d', null);
+        const hs = tipo === 'cargar' ? 14 : 11, cabeza = (off, fill) => { const bx = pe[0] - Math.cos(ang) * off, by = pe[1] - Math.sin(ang) * off; x.beginPath(); x.moveTo(bx + Math.cos(ang) * hs, by + Math.sin(ang) * hs); x.lineTo(bx + Math.cos(ang + 2.45) * hs * 0.95, by + Math.sin(ang + 2.45) * hs * 0.95); x.lineTo(bx + Math.cos(ang - 2.45) * hs * 0.95, by + Math.sin(ang - 2.45) * hs * 0.95); x.closePath(); x.lineWidth = 2.6; x.strokeStyle = 'rgba(20,14,6,.85)'; x.stroke(); x.fillStyle = fill; x.fill(); };
+        cabeza(0, tipo === 'retirarse' ? '#2a1a40' : c); if (tipo === 'retirarse') { x.lineWidth = 2; x.strokeStyle = c; x.stroke(); } if (tipo === 'cargar') cabeza(11, c);
+        mid = pts[Math.floor(n / 2)];
       }
-      const w = Math.max(14, Math.min(34, 8 + Math.sqrt(sh.men) * 1.6)), h = w * 0.55;
-      x.save(); x.translate(p1[0], p1[1]); x.globalAlpha = sel ? 0.8 : 0.55; x.fillStyle = col; x.strokeStyle = '#ffe27a'; x.lineWidth = 1.6; x.setLineDash([4, 3]);
-      x.beginPath(); x.rect(-w / 2, -h / 2, w, h); x.fill(); x.stroke(); x.setLineDash([]); x.globalAlpha = 1; x.fillStyle = '#fff'; x.font = '700 10px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(r.u.g || '', 0, 0.5); x.restore(); hay++;
+      // etiqueta pequeña con el nombre de la orden (sin solaparse con otra)
+      let ly2 = mid[1] - 11; const txt = (TIPOS_ORDEN.find(q => q[0] === tipo) || [0, ''])[1]; if (!txt) continue;
+      let colision = false; for (const u of usados) if (Math.abs(u[0] - mid[0]) < 56 && Math.abs(u[1] - ly2) < 13) colision = true; if (colision && !sel) { hay++; continue; } usados.push([mid[0], ly2]);
+      x.font = '700 10px Cinzel, Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; const tw = x.measureText(txt).width + 10;
+      x.fillStyle = 'rgba(12,16,22,.88)'; x.strokeStyle = c; x.lineWidth = 1; x.beginPath(); x.roundRect ? x.roundRect(mid[0] - tw / 2, ly2 - 7, tw, 14, 5) : x.rect(mid[0] - tw / 2, ly2 - 7, tw, 14); x.fill(); x.stroke(); x.fillStyle = c; x.fillText(txt, mid[0], ly2 + 0.5); hay++;
     }
     this.haySombras = hay > 0;
+    if (hay > 0 || this.sel.size) this.pSucio = true; else if (this.pSucio) { cv.width = W; this.pSucio = false; }
+  }
+  /* ---------- N3: órdenes por tipo (solo escriben r.order, que ya conoce el motor; N4 dará reglas propias a hostigar y relevar) ---------- */
+  propios() { return [...this.sel].filter(r => r.st === 'ok' && r.side === 0); }
+  enemigosVivos() { return this.b.regs.filter(e => e.side === 1 && e.st === 'ok'); }
+  // da la orden del tipo dado a los regimientos elegidos; devuelve un texto breve para avisar, o null si no hay a quién dársela
+  darOrden(tipo) {
+    const b = this.b, sel = this.propios(); if (b.over || b.fase === 'ejecucion' || b.fase === 'despliegue' || !sel.length) return null;
+    const lim = (v, a, z) => Math.max(a, Math.min(z, v)), en = this.enemigosVivos(), cerca = (r, l) => { let m = null, bd = 1e9; for (const e of l) { const d = Math.hypot(e.x - r.x, e.y - r.y); if (d < bd) { bd = d; m = e; } } return m; };
+    const aHacia = (r, e, d) => { const dx = e.x - r.x, dy = e.y - r.y, L = Math.hypot(dx, dy) || 1, k = Math.min(d, Math.max(0, L - 40)) / L; return { x: lim(r.x + dx * k, 20, FW - 20), y: lim(r.y + dy * k, 20, b.H - 20) }; };
+    let n = 0;
+    for (const r of sel) {
+      const ne = cerca(r, en); r.tgt = null;
+      if (tipo === 'aguantar') r.order = { k: 'quieto', tipo };
+      else if (tipo === 'retirarse') r.order = { k: 'move', x: lim(r.x, 20, FW - 20), y: Math.min(b.H - 20, r.y + 90), tipo };
+      else if (!ne) continue;
+      else if (tipo === 'avanzar') r.order = Object.assign({ k: 'move', tipo }, aHacia(r, ne, 70));
+      else if (tipo === 'cargar') { const blando = r.u.cls === 'cav' || r.u.cls === 'gen' ? cerca(r, en.filter(e => e.u.cls === 'rng' || (e.u.cls === 'inf' && e.papel === 'ligera'))) : null; r.order = { k: 'atk', r: blando || ne, tipo }; }
+      else if (tipo === 'hostigar') {
+        if (r.u.cls === 'rng') { const dx = r.x - ne.x, dy = r.y - ne.y, L = Math.hypot(dx, dy) || 1, d = 105; r.order = { k: 'move', x: lim(ne.x + dx / L * d, 20, FW - 20), y: lim(ne.y + dy / L * d, 20, b.H - 20), tipo }; }
+        else r.order = { k: 'move', x: lim(ne.x + (ne.x < FW / 2 ? 70 : -70), 20, FW - 20), y: lim(ne.y + 16, 20, b.H - 20), tipo };
+      } else if (tipo === 'relevar') {
+        // la reserva (regimiento propio sin elegir, el más cercano por detrás) ocupa su sitio y él pasa atrás
+        let res = null, bd = 1e9; for (const q of b.regs) { if (q.side !== 0 || q.st !== 'ok' || q === r || this.sel.has(q) || q.y < r.y + 15) continue; const d = Math.hypot(q.x - r.x, q.y - r.y); if (d < bd) { bd = d; res = q; } }
+        if (res) { r.order = { k: 'move', x: res.x, y: res.y, tipo }; res.order = { k: 'move', x: r.x, y: r.y, tipo }; res.tgt = null; } else r.order = { k: 'move', x: r.x, y: Math.min(b.H - 20, r.y + 45), tipo };
+      }
+      n++;
+    }
+    if (!n) return null; const nom = (TIPOS_ORDEN.find(q => q[0] === tipo) || [0, tipo])[1]; this.ultimaOrden = { txt: nom, t: performance.now() }; return nom;
+  }
+  // elige el siguiente regimiento propio (de izquierda a derecha); devuelve el elegido
+  siguienteReg(paso) {
+    const l = this.b.regs.filter(r => r.side === 0 && r.st === 'ok').sort((p, q) => p.x - q.x || p.y - q.y); if (!l.length) return null;
+    const cur = this.propios()[0], i = cur ? l.indexOf(cur) : -1, nx = l[(i + (paso || 1) + l.length) % l.length]; this.sel.clear(); this.sel.add(nx); return nx;
+  }
+  // salto de cámara a un ala (-1 izquierda, 0 centro, 1 derecha) de tu ejército, sin cambiar la altura de la cámara
+  saltoAla(lado) {
+    const own = this.b.regs.filter(r => r.side === 0 && r.st === 'ok'); if (!own.length) return;
+    let xs = own.map(r => r.x).sort((a, b2) => a - b2), cut = lado < 0 ? xs.slice(0, Math.ceil(xs.length / 3)) : lado > 0 ? xs.slice(-Math.ceil(xs.length / 3)) : xs.slice(Math.floor(xs.length / 3), Math.ceil(xs.length * 2 / 3));
+    const gx = cut.reduce((s, v) => s + v, 0) / (cut.length || 1), sub = own.filter(r => cut.includes(r.x)), gy = sub.reduce((s, r) => s + r.y, 0) / (sub.length || 1) - 40;
+    const w = this.toW(gx, gy); this.c.x = w[0]; this.c.z = w[1]; this.clampCam();
   }
   // «Ver otra vez»: devuelve todas las figuras a sus puestos y borra los caídos para repetir la ronda desde el principio
   reiniciaFiguras() {

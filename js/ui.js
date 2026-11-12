@@ -1,6 +1,6 @@
 /* AQVILA — interfaz: mapa 3D como pantalla principal, paneles, modales y pantalla de batalla */
 import { MapView3D } from './gfx/map3d.js';
-import { BattleView3D, recomendada, ALAS } from './gfx/battle3d.js';
+import { BattleView3D, recomendada, ALAS, TIPOS_ORDEN, tipoOrden } from './gfx/battle3d.js';
 import { portrait } from './gfx/models.js';
 import { preload, loadIndex, realPortrait } from './gfx/units.js';
 import { preloadStatic, loadStaticIndex } from './gfx/statics.js';
@@ -632,6 +632,18 @@ function battleHud() {
   $('bhud').innerHTML = '<div class="nm"><span style="color:#ff9c8c">' + esc(s0.name) + ' · ' + n0 + ' <small>moral ' + m0 + '%</small></span><span><small>moral ' + m1 + '%</small> ' + n1 + ' · ' + esc(s1.name) + '</span></div><div class="bar"><i style="width:' + n0 / Math.max(1, n0 + n1) * 100 + '%;background:' + s0.col + '"></i><i style="flex:1;background:' + s1.col + '"></i></div>';
 }
 /* ---------- rondas (N2): plan, ejecución e informe ---------- */
+// iconos de línea de las órdenes (trazo, sin relleno)
+const ICO_ORD = {
+  aguantar: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 7.8 7.5 9.5 4.3-1.7 7.5-4.9 7.5-9.5V6z"/>',
+  avanzar: '<path d="m6 12 6-6 6 6M6 19l6-6 6 6"/>',
+  cargar: '<path d="M5 19 19 5M10 5h9v9"/><path d="M5 14l5 5"/>',
+  hostigar: '<path d="M4 17c3-9 8-9 14-6M14 6l5 5-6 3"/><path d="M4 21h4"/>',
+  relevar: '<path d="M4 8h14m-4-4 4 4-4 4M20 16H6m4-4-4 4 4 4"/>',
+  retirarse: '<path d="M9 7 4 12l5 5M4 12h10a6 6 0 0 1 0 8h-3"/>',
+  sig: '<path d="m9 5 7 7-7 7"/>',
+  mas: '<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>'
+};
+const icoOrd = k => '<svg class="io" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICO_ORD[k] + '</svg>';
 // fila única de botones de abajo, según el momento de la ronda
 function filaRonda(B) {
   const C = window.Battle.CONDICIONES, sel = condSel(B), act = c => sel.length && sel.every(r => (r.order.cond || '') === c);
@@ -639,27 +651,33 @@ function filaRonda(B) {
     case 'ejec': return '<button data-act="bpause" id="bpause">' + (B.paused ? '▶' : 'II') + '</button><button data-act="bspeed" id="bspeed">x' + B.speed + '</button><button data-act="bcam">Cámara</button><button data-act="bskip">Resolver</button>';
     case 'informe': return '<button data-act="brepetir">Ver otra vez</button><button class="go on" data-act="bseguir">Seguir planeando</button>';
     case 'cond': return Object.keys(C).map(k => '<button data-act="bcnd" data-v="' + k + '"' + (act(k) ? ' class="on"' : '') + '>' + C[k] + '</button>').join('') + '<button data-act="bcnd" data-v="">Sin condición</button><button class="on" data-act="bcondok">Listo</button>';
-    default: return '<button class="go on" data-act="bejec">Ejecutar ronda</button><button data-act="bchoque">Prever choque</button><button data-act="bcond" id="bcond">Condición</button><button data-act="ball">Todas</button><button data-act="bskip">Resolver</button>';
+    default: {
+      const ps = B.view && B.view.propios ? B.view.propios() : [], tp = ps.length && ps.every(r => tipoOrden(r) === tipoOrden(ps[0])) ? tipoOrden(ps[0]) : null;
+      return '<div class="ord' + (ps.length ? '' : ' sinsel') + '">' + TIPOS_ORDEN.map(t => '<button class="ob o-' + t[0] + (tp === t[0] ? ' on' : '') + '" data-act="bord" data-v="' + t[0] + '">' + icoOrd(t[0]) + '<span>' + t[1] + '</span></button>').join('') + '</div>' +
+        '<button class="mini" data-act="bsig" aria-label="Siguiente regimiento">' + icoOrd('sig') + '<span>Siguiente</span></button><button class="mini' + (B.mas ? ' on' : '') + '" data-act="bmas" aria-label="Más opciones">' + icoOrd('mas') + '<span>Más</span></button><button class="go on" data-act="bejec">Ver la ronda</button>';
+    }
   }
 }
 function condSel(B) { return B.view && B.view.sel ? [...B.view.sel].filter(r => r.st === 'ok' && r.side === 0 && r.order && r.order.k !== 'quieto') : []; }
 function rondaModo(B, m) {
-  B.modo = m; B.filaKey = ''; if (m === 'plan' || m === 'informe') B.paused = false;
+  B.modo = m; B.filaKey = ''; B.mas = false; B.pmin = false; B.panelTx = null; if (m === 'plan' || m === 'informe') B.paused = false;
   if (m !== 'plan') B.choque = null;
 }
 function textoRonda(B) {
   const b = B.b, v = B.view, C = window.Battle.CONDICIONES;
   if (B.modo === 'ejec') return '';
-  if (B.modo === 'informe') return '<b>Lo que pasó</b> · ronda ' + (b.ronda - 1) + '<ul>' + b.hechos.map(h => '<li>' + esc(h) + '</li>').join('') + '</ul>';
-  if (B.modo === 'cond') { const sel = condSel(B); if (!sel.length) return 'Elige un regimiento con orden y vuelve a pulsar «Condición».'; const r = sel[0], c = r.order.cond; return '<b>' + esc(r.name || r.u.n) + (sel.length > 1 ? ' y ' + (sel.length - 1) + ' más' : '') + '</b>: ' + (c ? esc(C[c]) + '.' : 'sin condición. Elige una (solo una por orden).'); }
+  if (B.modo === 'informe') return '<div class="pt" data-act="bpmin">Lo que pasó · ronda ' + (b.ronda - 1) + '<i></i></div><ul>' + b.hechos.map(h => '<li>' + esc(h) + '</li>').join('') + '</ul>';
+  if (B.modo === 'cond') { const sel = condSel(B); if (!sel.length) return 'Elige un regimiento con orden y vuelve a pulsar «Más» y «Condición».'; const r = sel[0], c = r.order.cond; return '<b>' + esc(r.name || r.u.n) + (sel.length > 1 ? ' y ' + (sel.length - 1) + ' más' : '') + '</b>: ' + (c ? esc(C[c]) + '.' : 'sin condición. Elige una (solo una por orden).'); }
+  if (B.mas) return '<div class="pt" data-act="bmas">Más<i></i></div><div class="pbt"><button data-act="bcond">Condición</button><button data-act="bchoque">Prever choque</button><button data-act="ball">Todas</button><button data-act="bskip">Resolver</button></div>';
   if (B.choque && performance.now() < B.choqueT) return B.choque;
-  if (condSel(B).length) return 'Orden dada. «Condición» le añade una regla, como aguantar si lo cargan.';
-  if (v && v.haySombras) return 'La silueta marca dónde acabarían tus tropas si el enemigo se queda quieto. <b>El enemigo puede moverse.</b>';
-  return 'Toca un regimiento y dibuja adónde va. Después, «Ejecutar ronda».';
+  if (condSel(B).length) return 'Orden dada. En «Más» puedes añadirle una condición.';
+  if (v && v.propios && v.propios().length) return 'Elige una orden abajo o dibuja el recorrido sobre el campo. Toca otro estandarte para cambiar de regimiento.';
+  if (v && v.haySombras) return 'Las siluetas marcan dónde acabarían tus tropas si el enemigo se queda quieto. <b>El enemigo puede moverse.</b>';
+  return 'Toca un estandarte (o los soldados) para elegir un regimiento.';
 }
 function entraPlan(B) {
   const bt = $('battle'); bt.classList.add('ronda');
-  if (!$('bpanel')) { const pn = document.createElement('div'); pn.id = 'bpanel'; $('bbottom').insertBefore(pn, $('bctl')); }
+  if (!$('bpanel')) { const pn = document.createElement('div'); pn.id = 'bpanel'; bt.appendChild(pn); }
   if (B.view && B.view.cycleCam && !B.camPlan) { B.camPlan = true; B.view.cycleCam(); const c = B.view.c; if (c) { c.dist = 270; c.z = B.view.halfD * 0.1; } }   // vista alta para planear
   rondaModo(B, 'plan');
 }
@@ -674,11 +692,14 @@ function rondaHud() {
   const s0 = b.cfg.sides[0], s1 = b.cfg.sides[1], n0 = b.men(0), n1 = b.men(1), ej = b.fase === 'ejecucion';
   const seg = Math.max(0, Math.ceil(window.Battle.RONDA_SEG - b.tRonda)), tit = ej ? (b.repite ? 'Repetición' : 'Ronda ' + b.ronda) + ' · ' + seg + ' s' : 'Ronda ' + b.ronda + ' · Plan';
   const key = tit + '|' + n0 + '|' + n1; if (key !== UI.hudKey) { UI.hudKey = key;
-    $('bhud').innerHTML = '<div class="r1"><b class="rt">' + tit + '</b><span class="n0" style="color:#ff9c8c">' + esc(s0.name) + ' ' + n0 + '</span><div class="bar"><i style="width:' + n0 / Math.max(1, n0 + n1) * 100 + '%;background:' + s0.col + '"></i><i style="flex:1;background:' + s1.col + '"></i></div><span class="n1">' + n1 + ' ' + esc(s1.name) + '</span></div>'; }
-  const fk = B.modo + '|' + B.speed + '|' + B.paused + '|' + (B.modo === 'cond' ? condSel(B).map(r => r.id + (r.order.cond || '')).join() : '');
+    $('bhud').innerHTML = '<div class="r1"><b class="rt">' + tit + '</b><span class="n0" style="color:#ff9c8c">' + esc(s0.name) + ' ' + n0 + '</span><div class="bar"><i style="width:' + n0 / Math.max(1, n0 + n1) * 100 + '%;background:' + s0.col + '"></i><i style="flex:1;background:' + s1.col + '"></i></div><span class="n1">' + n1 + ' ' + esc(s1.name) + '</span><span class="alj"><button data-act="bsalto" data-v="-1">Ala izq.</button><button data-act="bsalto" data-v="0">Centro</button><button data-act="bsalto" data-v="1">Ala der.</button></span></div>'; }
+  const fk = B.modo + '|' + B.speed + '|' + B.paused + '|' + (B.mas ? 'm' : '') + '|' + (B.modo === 'cond' ? condSel(B).map(r => r.id + (r.order.cond || '')).join() : B.modo === 'plan' && B.view && B.view.propios ? B.view.propios().map(r => r.id + (tipoOrden(r) || '-')).join() : '');
   if (fk !== B.filaKey) { B.filaKey = fk; $('bctl').innerHTML = filaRonda(B); }
-  const bc = $('bcond'); if (bc) bc.classList.toggle('off', !condSel(B).length);
-  const pn = $('bpanel'), tx = textoRonda(B); if (pn && tx !== B.panelTx) { B.panelTx = tx; pn.innerHTML = tx; pn.style.display = tx ? '' : 'none'; }
+  const pn = $('bpanel'), tx = textoRonda(B); if (pn) {
+    if (tx !== B.panelTx) { B.panelTx = tx; B.panelT = performance.now(); pn.innerHTML = tx; }
+    pn.className = (B.modo === 'informe' || B.mas || B.modo === 'cond' ? 'act' : '') + (B.pmin ? ' min' : '');
+    // los consejos de plan se apagan solos a los 7 s para no tapar el campo; el informe y «Más» se quedan hasta cerrarlos
+    pn.style.display = tx && (B.modo !== 'plan' || B.mas || performance.now() - B.panelT < 7000 || (B.choque && performance.now() < B.choqueT)) ? '' : 'none'; }
   return true;
 }
 function endBattle(res) {
@@ -768,15 +789,20 @@ document.addEventListener('click', function (e) {
     case 'bpause': B.paused = !B.paused; el.textContent = B.paused ? '▶' : 'II'; break;
     case 'bspeed': B.speed = B.speed === 1 ? 2 : B.speed === 2 ? 4 : 1; el.textContent = 'x' + B.speed; break;
     case 'bauto': B.b.auto = !B.b.auto; el.classList.toggle('on', B.b.auto); toast(B.b.auto ? 'Tus tropas atacan por iniciativa propia.' : 'Tus tropas mantienen la posición hasta recibir órdenes.'); break;
-    case 'ball': B.view.selectAll(); break;
+    case 'ball': B.view.selectAll(); B.mas = false; B.panelTx = null; B.filaKey = ''; break;
     case 'bgold': { const o = B.view.ordenRecomendada(); if (o) toast(o.txt + '.'); break; }
     case 'bala': B.view.selAla(v); break;
     case 'bgrp': { const g = GRUPOS_L1.find(q => q[0] === v); if (g) B.view.selPorClase(g[2]); break; }
+    case 'bord': { const t = B.view.darOrden(v); if (t) { B.filaKey = ''; B.panelTx = null; } else toast(B.view.propios().length ? 'Ese regimiento no puede recibir esa orden ahora.' : 'Elige antes un regimiento: toca su estandarte.'); break; }
+    case 'bsig': { const r = B.view.siguienteReg(1); if (r) { B.view.centrarEn(r.x, r.y); B.filaKey = ''; B.panelTx = null; } break; }
+    case 'bmas': B.mas = !B.mas; B.choque = null; B.panelTx = null; B.filaKey = ''; break;
+    case 'bpmin': B.pmin = !B.pmin; break;
+    case 'bsalto': B.view.saltoAla(+v); break;
     case 'bcam': if (B.view.cycleCam) B.view.cycleCam(); break;
     case 'bform': B.b.formar(0, v); document.querySelectorAll('#bctl [data-act="bform"]').forEach(x => x.classList.toggle('on', x === el)); break;
-    case 'bejec': if (B.b.ejecutar()) { B.view.sel.clear(); B.speed = 1; rondaModo(B, 'ejec'); } break;
-    case 'bchoque': { const q = B.b.preverChoque(), n = B.b.cfg.sides, p = x => Math.round(x * 100) + ' %'; B.choque = 'Si chocan ya (aproximado): ' + (q.gana < 0 ? 'empate.' : q.claro ? 'ventaja de <b>' + esc(n[q.gana].name) + '</b>.' : 'muy igualado, algo mejor para <b>' + esc(n[q.gana].name) + '</b>.') + ' Conservarían ' + esc(n[0].name) + ' ' + p(q.f0) + ' y ' + esc(n[1].name) + ' ' + p(q.f1) + '.'; B.choqueT = performance.now() + 9000; break; }
-    case 'bcond': if (condSel(B).length) rondaModo(B, 'cond'); else toast('Elige un regimiento con orden: toca su estandarte y dibuja adónde va.'); break;
+    case 'bejec': if (B.b.ejecutar()) { B.view.sel.clear(); B.mas = false; B.speed = 1; rondaModo(B, 'ejec'); } break;
+    case 'bchoque': { const q = B.b.preverChoque(), n = B.b.cfg.sides, p = x => Math.round(x * 100) + ' %'; B.choque = 'Si chocan ya (aproximado): ' + (q.gana < 0 ? 'empate.' : q.claro ? 'ventaja de <b>' + esc(n[q.gana].name) + '</b>.' : 'muy igualado, algo mejor para <b>' + esc(n[q.gana].name) + '</b>.') + ' Conservarían ' + esc(n[0].name) + ' ' + p(q.f0) + ' y ' + esc(n[1].name) + ' ' + p(q.f1) + '.'; B.choqueT = performance.now() + 9000; B.mas = false; B.panelTx = null; B.filaKey = ''; break; }
+    case 'bcond': if (condSel(B).length) rondaModo(B, 'cond'); else toast('Elige un regimiento con orden: toca su estandarte y dale una orden.'); break;
     case 'bcnd': for (const r of condSel(B)) B.b.condicion(r, v || null); B.filaKey = ''; break;
     case 'bcondok': rondaModo(B, 'plan'); break;
     case 'bseguir': rondaModo(B, 'plan'); break;

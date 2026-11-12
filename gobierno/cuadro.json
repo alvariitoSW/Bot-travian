@@ -588,6 +588,24 @@
    "tarea": "Q4",
    "archivo": "gobierno/capturas-tarea/Q4-1b-cuentas-oro.jpg",
    "pie": "Cuentas: plazos, aviso y adelantar cuotas"
+  },
+  {
+   "tarea": "N3",
+   "archivo": "gobierno/capturas-tarea/N3-plan.jpg",
+   "pie": "Batalla: estandartes, flechas por orden y fila de botones",
+   "ancha": true
+  },
+  {
+   "tarea": "N3",
+   "archivo": "gobierno/capturas-tarea/N3-ordenes.jpg",
+   "pie": "Los seis tipos de orden en el suelo",
+   "ancha": true
+  },
+  {
+   "tarea": "N3",
+   "archivo": "gobierno/capturas-tarea/N3-informe.jpg",
+   "pie": "Informe «Lo que pasó» plegable",
+   "ancha": true
   }
  ],
  "informes": [

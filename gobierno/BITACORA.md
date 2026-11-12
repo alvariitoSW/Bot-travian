@@ -97,6 +97,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 
 ## Esperando algo del usuario
 - **Bloque Q2 a Q4 (caja del mes) hecho** (12/11). Q11 (se ve) y Q5 en adelante esperan su orden: no hay sesión abierta del carril Q.
+- **Guerra, N3 cerrada con gasto +30 %** (1,57 M frente a 1,2 M; hacienda dio ALERTA). Por regla no se ha abierto N4. Decide: ¿sigo con N4 (Estados, choque y contagio) con presupuesto 1,2 M, o prefieres otro tope? Responde y se abre.
 - **P69 Radio de efecto de los edificios**: aprobar o rechazar (las demás ideas sueltas ya están dentro de P74 y P75).
 
 ## Propuestas por aprobar
@@ -115,6 +116,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+00000000. **Guerra N3 hecha (12/11)**. Sigue **N4 Estados, choque y contagio** en `js/battle.js` (las órdenes Aguantar/Avanzar/Cargar/Hostigar/Relevar/Retirarse llevan `r.order.tipo`, hoy ignorado por el motor: darles regla propia aquí) y luego N5 General y mando. Cuidado con el gasto: N3 pasó de 1,2 a 1,57 M; el constructor tarda mucho si relee todo, dar archivos concretos. Falta ver en las capturas el estado «huye».
 0000000. **En marcha desde el 12/11, tres carriles, cada uno en su sesión**: Guerra N2 → N3 → N4 → N5 (Sonnet) · Economía Q2 y Q3 hechas (12/11) → Q4 (Sonnet; almacén: un cuarto al mes; cuenta mensual e informe por estación) · Ciudad Q1b2, segunda vuelta al diseño (Fable 5.2). Cada sesión, al cerrar con jueces APTO, abre la siguiente de su carril; al acabar el bloque, para y lo deja en el cuadro. Después: N14, N6 a N13 y N15; Q5 en adelante.
 000000. **Carril Ciudad** (P78 aprobada entera el 12/11): sigue **Q1c Ciudad ligera y prueba en el teléfono**, partiendo de `maquetas/ciudad2/` (no toca el juego), con los retoques de ladera y fondo. Luego Q1d → Q1e → Q1f → Q1g → Q1h → Q1i → Q1j. Diseño con Fable; construir sobre diseño hecho, Sonnet. Ojo desde Q1d: toca `js/gfx/city3d.js`.
 00000. **En marcha desde el 11/11 por la noche, cada una en su sesión**: N1b Guerra ampliada (Opus) · Q1 hecha (11/11; espera P75) · J7 Parte densa (Sonnet) · I2 Mapa por turnos (Sonnet). Antes de subir: `git pull --rebase` de la rama que publica y tocar solo las líneas propias de tablero y bitácora.
