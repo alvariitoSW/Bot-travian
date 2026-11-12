@@ -53,6 +53,7 @@
   D.FELICIDAD_BASE = 55;   // + 5 del municipio (tipo por defecto) = 60, como antes de I4
   D.FELICIDAD_MIN_CRECER = 40;
   D.FELICIDAD_EDIF = { templo: 3, termas: 4, anfiteatro: 6 };
+  D.FORO_CASAS = 25;   // CN2b: el foro de una ciudad con ciudad nueva sube 1 nivel por cada 25 casas (más 1 por barrio extra)
   D.POP_EDIF = { viviendas: 130, foro: 30, acueducto: 40, termas: 15 };   // población máxima por nivel de cada edificio
   /* Barrios (P67). Licencia de juego: la idea de que un barrio crece al cubrir servicios viene de Caesar III (estudio R1); los niveles,
      los servicios y todos los números son nuestros. Aldea no pide nada. D.LUJO: claves de D.ESPECIAL que cuentan como bien de lujo. */

@@ -300,6 +300,8 @@ assert.strictEqual(ganaPas, 0, 'un bot pasivo no debe ganar nunca (' + ganaPas +
 const active = activo;
 assert(JSON.parse(JSON.stringify(active)).v === 1, 'el estado debe ser serializable');
 assert(G.myCities().length >= 3, 'un bot agresivo debe poder conquistar ciudades');
+// CN2b: las pruebas de economía que siguen miden los números de c.b (sin ciudad nueva); la ciudad nueva se prueba al final del archivo
+const CIMOD = require('../js/ciudad.js'); G.usarCiudad(null);
 // 7. Bien especial por ciudad (B1): abre niveles altos y tropas de élite; los bonos cambian números
 { const s = G.newGame('Esp'), roma = s.cities.roma;
   for (const id in D.CITIES) assert(D.ESPECIAL[D.CITIES[id].esp], 'la ciudad ' + id + ' debe tener un bien válido');
@@ -1005,5 +1007,72 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
     const c = new Battle({ sides: [side({ hastati: 150 }), side({ libios: 150 })], defender: 1, wall: 0, seed: 8, dificultad: 'dificil' }); a.finish(); c.finish(); assert.strictEqual(a.men(0), c.men(0)); assert.strictEqual(a.t, c.t); assert.strictEqual(c.ia, null);
     const z = new Battle({ sides: [side({ hastati: 150 }), side({ libios: 150 })], defender: 1, wall: 0, seed: 8, rondas: true, ia: false }); assert.strictEqual(z.ia, null); z.ejecutar(); assert.strictEqual(z.gesto, ''); }
 }
+
+// ---------- CN2b: la ciudad nueva conectada con la economía ----------
+G.usarCiudad(CIMOD);
+const ticks = (m) => { for (let i = 0; i < Math.round(m * 4); i++) G.tick(0.25); };
+const hasta = (c, ped) => { let n = 0; while (c.queue && n++ < 400) { ped(); G.state.pending.length = 0; G.state.marches.length = 0; G.tick(1); } ped(); };   // deja pasar los meses (con caja siempre llena) hasta que acabe la obra
+const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o === 'object') for (const k in o) if (tipado(o[k])) return true; return false; };
+{ // (a) una partida vieja real (guardada antes de este cambio) carga convertida y sigue jugando
+  const fs = require('fs'), raw = fs.readFileSync(__dirname + '/partida-vieja.json', 'utf8'), vieja = JSON.parse(raw);
+  global.localStorage = { getItem: () => raw, setItem: () => {}, removeItem: () => {} };
+  assert(G.load(), 'la partida vieja carga'); const s = G.state, c = s.cities.roma, v = vieja.cities.roma;
+  assert.strictEqual(c.pop, v.pop, 'misma población'); assert.deepStrictEqual(s.res, vieja.res); assert.deepStrictEqual(s.alm, vieja.alm);
+  assert(c.ciudad && G.ciudadE('roma') && G.ciudadE('capua'), 'Roma y Capua tienen ciudad nueva');
+  for (const b of ['aserradero', 'cantera', 'mina', 'granja', 'almacen', 'mercado', 'cuartel', 'templo']) assert(c.b[b] >= v.b[b], b + ' no baja: ' + c.b[b] + ' >= ' + v.b[b]);
+  assert.strictEqual(c.b.muralla, v.b.muralla, 'la muralla sigue siendo un número'); assert.strictEqual(c.b.viviendas, 0); assert(c.b.foro >= 1);
+  assert(c.queue && c.queue.b === 'almacen' && c.queue.t1 === v.queue.t1 && c.queue.pieza === 'almacen' && c.queue.nc === 3 && c.queue.pag === 1, 'su obra de almacén sigue en curso');
+  assert(G.popCap(c) >= c.pop - 1, 'el cupo de casas alcanza la población'); const a0 = c.b.almacen;
+  ticks(24); assert(!c.queue && c.b.almacen > a0, 'la obra se completa y sube el almacén'); assert(s.cities.capua.b.cantera >= vieja.cities.capua.b.cantera);
+  assert(!tipado(s), 'el estado no lleva arrays tipados'); }
+{ // (c) Roma y Capua nuevas: población y producción como las de siempre
+  G.usarCiudad(null); G.newGame('CN2b-viejo'); const pv = G.prod(); G.usarCiudad(CIMOD);   // referencia: la economía de números de hoy, en este mismo proceso
+  const s = G.newGame('CN2b'), p = G.prod(), cerca = (x, ref) => Math.abs(x / ref - 1) <= 0.10;
+  assert.strictEqual(Math.round(s.cities.roma.pop), 287); assert.strictEqual(Math.round(s.cities.capua.pop), 270);
+  assert(['madera', 'piedra', 'hierro', 'grano', 'oro'].every(r => cerca(p[r], pv[r])), 'producción ±10 % de la de números: ' + ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => p[r].toFixed(1) + ' (antes ' + pv[r].toFixed(1) + ')').join(' · '));
+  console.log('Roma+Capua nuevas, madera/piedra/hierro/grano/oro:', ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => p[r].toFixed(1)).join('/'), 'antes', ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => pv[r].toFixed(1)).join('/'));
+  for (const id of ['roma', 'capua']) { const c = s.cities[id], E = G.ciudadE(id); assert(E && E.modoJuego && c.ciudad, id); assert(CIMOD.poblacion(E) >= c.pop, 'casas para ' + id); assert(c.b.foro >= 1 && c.b.viviendas === 0); }
+  assert.strictEqual(G.ciudadE('roma').mesN, 9, 'enero en t = 0: mesN = floor(t) + 9'); ticks(5); assert.strictEqual(G.ciudadE('roma').mesN, Math.floor(s.t) + 9, 'el calendario sigue alineado');
+  assert(CIMOD.fecha(G.ciudadE('roma')).mes === Math.floor(s.t) % 12);
+  // (b) guardar -> cargar: misma ciudad, misma población, mismas casas
+  const sa = JSON.parse(JSON.stringify(s)), E1 = G.ciudadE('roma'), casas1 = CIMOD.casas(E1).length, pob1 = CIMOD.poblacion(E1), cj = JSON.stringify(sa.cities.roma.ciudad), pop1 = s.cities.roma.pop;
+  global.localStorage = { getItem: () => JSON.stringify(sa), setItem: () => {}, removeItem: () => {} }; assert(G.load());
+  const E2 = G.ciudadE('roma'); assert.strictEqual(CIMOD.casas(E2).length, casas1); assert.strictEqual(CIMOD.poblacion(E2), pob1); assert.strictEqual(G.state.cities.roma.pop, pop1);
+  assert.strictEqual(JSON.stringify(G.state.cities.roma.ciudad), cj, 'mismo c.ciudad');
+  assert.strictEqual(JSON.stringify(Object.assign(CIMOD.aDatos(E2), { n0: E2.n0 })), cj, 'ida y vuelta exacta'); }
+{ // (d) G.upgrade coloca, completa y mejora hasta III
+  const s = G.newGame('CN2b-up'), c = s.cities.roma, ped = () => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; } };
+  ped(); assert.strictEqual(c.b.mercado, 0); assert(G.upgrade('roma', 'mercado'), 'coloca el mercado'); let q = c.queue;
+  assert(q.pieza === 'mercado' && q.nuevo === true && q.mejora === 0 && typeof q.x === 'number' && q.t1 > q.t0 && q.nc >= 1, 'formato de la obra'); assert(c.obras.length === 1 && G.huecos(c) === 1 && !G.upgrade('roma', 'granja'));
+  assert(!Object.keys(c).includes('queue') && !JSON.stringify(c).includes('"queue"'), 'queue es un alias que no se guarda');
+  hasta(c, ped); assert(!c.queue && c.b.mercado === 1 && G.ciudadE('roma').edificios.some(e => e.tipo === 'mercado' && !e.obra), 'el mercado se levanta y sube c.b');
+  for (const [m, niv] of [[1, 3], [2, 6], [3, 10]]) { ped(); assert(G.upgrade('roma', 'mercado'), 'mejora ' + m); assert(c.queue.nuevo === false && c.queue.mejora === m && c.queue.eid); hasta(c, ped); assert.strictEqual(c.b.mercado, niv, 'mercado nivel ' + niv); }
+  assert(!G.upgrade('roma', 'mercado'), 'tope'); assert(!G.upgrade('roma', 'viviendas') && !G.upgrade('roma', 'foro'), 'viviendas y foro salen de las casas'); }
+{ // CN2c: duración de las mejoras acotada, viviendas/foro no se ofrecen y el foro no baja de lo que había
+  const s = G.newGame('CN2c'), c = s.cities.roma, ped = () => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; } };
+  ped(); G.upgrade('roma', 'mercado'); hasta(c, ped); let mx = 0;
+  for (let m = 1; m <= 3; m++) { ped(); assert(G.upgrade('roma', 'mercado')); const q = c.queue; mx = Math.max(mx, q.t1 - q.t0); assert(q.t1 - q.t0 <= 30, 'mejora ' + m + ' dura ' + (q.t1 - q.t0).toFixed(1) + ' meses'); hasta(c, ped); }
+  assert(mx > 0 && mx <= 30, 'la mejora III dura ' + mx.toFixed(1) + ' meses');
+  assert(G.derivado(c, 'viviendas') && G.derivado(c, 'foro') && !G.derivado(c, 'granja'), 'viviendas y foro son derivados con ciudad nueva');
+  c.foroMin = 3; G.sincronizar('roma'); assert(c.b.foro >= 3, 'el foro no baja del nivel previo'); }
+{ // (f) API de colocar
+  const s = G.newGame('CN2b-api'), c = s.cities.roma, ped = () => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; } }; ped(); const E = G.ciudadE('roma');
+  const sitio = CIMOD.mejorSitio(E, 'fuente'), nota = G.notaSitio('roma', 'fuente', sitio[0], sitio[1]); assert(nota && nota.vale); assert(G.mapaCalor('roma', 'fuente').length > 1000);
+  assert(!G.colocar('roma', 'fuente', E.foro.x, E.foro.z).ok, 'sobre el foro no'); let r = G.colocar('roma', 'fuente', sitio[0], sitio[1]); assert(r.ok, r.motivo); assert(!G.colocar('roma', 'granero', sitio[0], sitio[1]).ok, 'un solo hueco');
+  hasta(c, ped); const f = E.edificios.find(e => e.tipo === 'fuente'); assert(f && !c.queue); ped();
+  r = G.mejorarPieza('roma', f.id); assert(r.ok, r.motivo); hasta(c, ped); assert.strictEqual(f.mejora, 1); ped();
+  const nE = E.edificios.length; assert(G.derribarPieza('roma', f.id).ok && E.edificios.length === nE - 1 && c.pop <= G.popCap(c)); assert(!G.derribarPieza('roma', f.id).ok);
+  const m0 = c.b.muralla, ro = G.levantarMuralla('roma'); assert(ro.ok && c.b.muralla === m0 && E.muralla.obra > 0, 'la muralla de ciudad.js no cambia c.b.muralla');
+  const E3 = G.ciudadE('roma'); ticks(3); assert.strictEqual(JSON.stringify(Object.assign(CIMOD.aDatos(E3), { n0: E3.n0 })), JSON.stringify(c.ciudad), 'c.ciudad siempre al día');
+  const sa = JSON.parse(JSON.stringify(s)); global.localStorage = { getItem: () => JSON.stringify(sa), setItem: () => {}, removeItem: () => {} }; assert(G.load());
+  assert.strictEqual(CIMOD.poblacion(G.ciudadE('roma')), CIMOD.poblacion(E3), 'el derribo se repite al cargar'); assert.strictEqual(G.ciudadE('roma').edificios.length, E3.edificios.length); }
+{ // (g) una ciudad conquistada se convierte; (e) 18 ciudades propias: estado pequeño y sin arrays tipados
+  const s = G.newGame('CN2b-conq'); const v = s.cities.volsinii; assert(!G.ciudadE('volsinii'), 'ajena: solo números');
+  G.incorporar(v, { hastati: 20 }, true); const E = G.ciudadE('volsinii'); assert(E && v.ciudad && v.owner === 'roma' && v.queue === null && v.obras.length === 0, 'conquistada: ciudad nueva');
+  assert(CIMOD.poblacion(E) >= v.pop || v.pop <= G.popCap(v) + 1, 'población respetada'); assert(v.b.viviendas === 0 && v.b.foro >= 1);
+  const t = Date.now(); let n = 0; for (const id of Object.keys(D.CITIES)) { if (n >= 18) break; const c = s.cities[id]; if (c.owner !== 'roma') { c.owner = 'roma'; c.pop = 300; c.units = {}; c.reparto = G.repartoBase(); } if (G.ciudadE(id)) n++; }
+  assert.strictEqual(G.myCities().length, 18); const tam = JSON.stringify(s).length; console.log('18 ciudades propias: estado de', Math.round(tam / 1024), 'KB; conversión', Math.round((Date.now() - t) / 18), 'ms por ciudad');
+  assert(tam < 300000, 'estado < 300 KB (' + tam + ')'); assert(!tipado(s), 'sin arrays tipados');
+  const t2 = Date.now(); ticks(12); console.log('12 meses con 18 ciudades:', Date.now() - t2, 'ms'); assert(!tipado(s)); G.usarCiudad(null); }
 
 console.log('OK — todas las pruebas superadas');

@@ -122,7 +122,7 @@ async function navegador() {
     await paso('Construir un edificio', async () => {
       await page.click('#tabs3 [data-v="gobierno"]'); await espera(400);
       const b = page.locator('#view [data-act="up"]:not(.no)').first(); await b.scrollIntoViewIfNeeded(); await b.click(); await espera(500);
-      const q = await estado(() => { const c = Game.state.cities.roma.queue; return c ? DATA.BUILD[c.b].n : ''; });
+      const q = await estado(() => { const c = Game.state.cities.roma.obras[0]; if (!c) return ''; const pz = c.pieza && Game.ciudadE('roma') ? (c.nuevo ? 'levantar ' : 'mejorar ') + c.pieza : ''; return (c.b ? DATA.BUILD[c.b].n : c.pieza) + (pz ? ' (' + pz + ')' : ''); });
       const captura = await foto('construir');
       await page.evaluate(() => { document.getElementById('view').scrollTop = 0; }); await page.click('#view [data-act="clist"]'); await espera(300);
       return { ok: !!q, detalle: q ? 'en obras: ' + q : 'la obra no entró en la cola', captura };

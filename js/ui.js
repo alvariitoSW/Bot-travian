@@ -7,8 +7,10 @@ import { preloadStatic, loadStaticIndex } from './gfx/statics.js';
 import { CityView3D } from './gfx/city3d.js';
 import { loadGroundTextures } from './gfx/ground.js';
 import { fijar as fijarFluidez, estaEncendido as fluidezOn } from './gfx/fluidez.js';
+import * as Ciudad from './ciudad.js';
 
 const D = window.DATA, G = window.Game, $ = id => document.getElementById(id);
+G.usarCiudad(Ciudad);   // CN2b: game.js (script clásico) recibe la ciudad nueva antes de cargar o crear partida
 const UI = { codice: null, modo: 'gobierno', tab: 'map', city: 'roma', sel: null, modalQ: [], modalOpen: false, battle: null, menu: true, last: 0, saveT: 0, map: null };
 const ROMA = D.FACTIONS.roma.col;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -349,7 +351,7 @@ function viewCity() {
   const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city];
   let h = cityChips() + '<div class="head"><h2>' + d.n + '</h2><p>' + esc(d.h) + '</p></div>' + (UI.cityV ? '<div class="acts" style="margin:0 0 6px"><button class="btn ghost" data-act="clist">Ver la ciudad en 3D</button></div>' : '') + '<div class="sec">Edificios</div>';
   h = h.replace('<div class="sec">Edificios</div>', '<div class="empty">' + popHtml(c) + '</div>' + repartoHtml(c) + (c.owner === 'roma' ? '<div class="empty">' + espResumen() + '</div>' : '') + '<div class="sec">Edificios</div>');
-  for (const b in D.BUILD) { if (D.BUILD[b].sea && !d.sea) continue; h += buildCard(c, b); if (b === 'mercado') h += marketHtml(); if (b === 'herreria') h += forjaHtml(c); }
+  for (const b in D.BUILD) { if ((D.BUILD[b].sea && !d.sea) || G.derivado(c, b)) continue; h += buildCard(c, b); if (b === 'mercado') h += marketHtml(); if (b === 'herreria') h += forjaHtml(c); }
   h += rutasHtml(c, UI.city);
   return h + '<div class="empty">' + Object.keys(D.BUILD).map(b => bIco(b) + ' ' + D.BUILD[b].d).join('<br>') + '</div>';
 }
@@ -450,16 +452,17 @@ function puedeObra(c, b, id) {
   const B = D.BUILD[b], L = c.b[b] || 0;
   if (L >= D.MAX_LVL || (B.sea && !D.CITIES[id].sea)) return false;
   if (B.solar && L < 1 && G.solaresUsados(c) >= G.solares(id)) return false;
-  return !G.faltaEspecial('edificio', b, L);
+  return !G.derivado(c, b) && !G.faltaEspecial('edificio', b, L);
 }
 /* La acción aconsejada: almacén lleno, población al tope, o la obra más barata que se puede pagar */
 function consejo(c, id) {
   const s = S(), cap = G.cap(), nm = b => D.BUILD[b].n;
   const lleno = D.RES.filter(r => r !== 'oro').map(r => [r, s.res[r] / cap]).filter(x => x[1] >= 0.9).sort((x, y) => y[1] - x[1])[0];
-  const alm = !!lleno && puedeObra(c, 'almacen', id), pop = c.pop >= G.popCap(c) - 1 && puedeObra(c, 'viviendas', id);
+  const alm = !!lleno && puedeObra(c, 'almacen', id), pop = c.pop >= G.popCap(c) - 1 && puedeObra(c, 'viviendas', id), faltaCasas = c.pop >= G.popCap(c) - 1 && G.derivado(c, 'viviendas');
   const flags = {}; if (alm) flags.almacen = 'alerta'; if (pop) flags.viviendas = 'alerta';
   if (c.queue) return { b: c.queue.b, rec: false, flags, t: 'En obras: ' + nm(c.queue.b) + '. Faltan ' + months(Math.max(0, c.queue.t1 - s.t)) + '.' };
   if (alm) return { b: 'almacen', rec: true, flags, t: 'Tu ' + RES_NOM[lleno[0]].toLowerCase() + ' llega al ' + Math.round(lleno[1] * 100) + ' %. Amplía el Almacén.' };
+  if (faltaCasas) return { b: null, rec: false, flags, t: 'Faltan casas: la población está al tope. Revisa el granero y los campos de grano para que la ciudad crezca.' };
   if (pop) return { b: 'viviendas', rec: true, flags, t: 'La población está al tope. Construye Ínsulas.' };
   if (c.owner === 'roma') { const bi = G.barrioInfo(c), baja = bi.objetivo < bi.nivel, fl = baja ? D.BARRIO[bi.nivel].pide.filter(k => !bi.serv[k]) : bi.falta;
     const sv = fl.filter(k => k !== 'grano' && k !== 'lujo').map(k => ({ templo: 'templo', agua: 'acueducto', ocio: 'anfiteatro', termas: 'termas' })[k]).find(b => puedeObra(c, b, id) && G.canAfford(G.cost(b, c.b[b] || 0)));
