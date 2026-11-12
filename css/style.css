@@ -325,34 +325,11 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 #ctop .vb { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(184, 134, 43, .6); }
 #ctop .vb .ico { width: 22px; height: 22px; stroke: var(--gold); }
 #ctop .vo { height: 40px; padding: 0 14px; border-radius: 20px; background: var(--glass); border: 1px solid rgba(184, 134, 43, .6); color: var(--gold); font-size: 14px; font-weight: 600; white-space: nowrap; }
-/* medallas */
-.mlabel.medalla { width: 40px; height: 40px; padding: 0; gap: 0; border-radius: 50%; justify-content: center; background: radial-gradient(circle at 35% 28%, #fbf3da, #d9c38c 80%); border: 2px solid var(--bronce); color: var(--tinta); font-size: 0; box-shadow: 0 3px 6px rgba(0, 0, 0, .5), inset 0 -2px 0 rgba(120, 80, 20, .25); overflow: visible; }
-.mlabel.medalla::after { content: ''; position: absolute; inset: -5px; border-radius: 50%; }
-.medalla .mc { display: grid; place-items: center; width: 100%; height: 100%; }
-.medalla .mc svg { width: 22px; height: 22px; fill: none; stroke: #3a2a1a; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; vertical-align: 0; }
-.medalla .mn { position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%); min-width: 24px; height: 17px; padding: 0 4px; border-radius: 9px; background: var(--noche); color: var(--gold); font: 700 13px/15px system-ui, sans-serif; text-align: center; border: 1px solid var(--bronce); }
-.medalla .mf { position: absolute; right: -6px; top: -8px; width: 21px; height: 21px; border-radius: 50%; display: grid; place-items: center; color: #fff; border: 1.5px solid #fff3; background: var(--terra); }
-.medalla .mf svg { width: 13px; height: 13px; fill: none; stroke: #fff; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
-.medalla .mf.obra { background: var(--oliva); }
-.medalla .mf.alerta { background: var(--rojo3); animation: medpulso .9s infinite alternate; }
-.mlabel.medalla.off { width: 34px; height: 34px; background: rgba(20, 13, 8, .5); border: 2px dashed var(--gold); color: var(--gold); box-shadow: none; opacity: .95; }
-.medalla.off .mc svg { stroke: var(--gold); width: 20px; height: 20px; }
-.mlabel.medalla.sel { background: radial-gradient(circle at 35% 28%, #fff6dc, #e4cd8e 80%); color: var(--tinta); border-color: var(--gold); box-shadow: 0 0 0 3px rgba(233, 192, 99, .65), 0 4px 10px rgba(0, 0, 0, .6); }
-.mlabel.medalla.rec { box-shadow: 0 0 0 3px var(--gold), 0 0 14px 4px rgba(233, 192, 99, .75); animation: medrec 1.4s infinite alternate; }
-.medalla .mt { position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%); padding: 3px 10px; border-radius: 12px; background: var(--noche); color: var(--gold); font: 700 13px var(--serif); letter-spacing: .06em; text-transform: uppercase; text-decoration: none; white-space: nowrap; pointer-events: none; border: 1px solid var(--bronce); }
-@keyframes medpulso { to { filter: brightness(1.3); } }
-@keyframes medrec { to { box-shadow: 0 0 0 3px var(--gold), 0 0 4px 1px rgba(233, 192, 99, .35); } }
 /* consejo y ficha */
-.consejo { display: flex; align-items: center; gap: 10px; min-height: 60px; padding: 6px 8px 6px 12px; border-radius: 14px; color: var(--tinta); background: linear-gradient(#f4ecd3, #e3d3a8); border: 1.5px solid var(--bronce); box-shadow: 0 6px 14px rgba(0, 0, 0, .45); }
-.consejo.rec { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold), 0 6px 14px rgba(0, 0, 0, .45); }
-.consejo .ci .ico { width: 26px; height: 26px; stroke: var(--bronce); vertical-align: 0; }
-.consejo .ct { flex: 1; font-size: 14px; line-height: 1.25; }
-.consejo .ct b { display: block; font: 700 13px var(--serif); letter-spacing: .06em; text-transform: uppercase; color: #a8321f; }
 .bmain { display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 0 16px; border-radius: 12px; font-size: 15px; font-weight: 700; background: linear-gradient(#c13c27, #8f2415); color: #fff4e0; border: 1px solid #5a130a; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .3), 0 2px 4px rgba(0, 0, 0, .35); }
 .bmain .ico { width: 20px; height: 20px; stroke: #fff4e0; vertical-align: 0; }
 .bmain.rec { box-shadow: 0 0 0 2px var(--gold), 0 2px 6px rgba(0, 0, 0, .4); }
 .bmain.no { filter: grayscale(.7); opacity: .6; }
-.consejo .bmain { flex: none; min-width: 92px; font-size: 14px; padding: 0 12px; }
 .ficha { max-height: 64vh; overflow-y: auto; scrollbar-width: none; border-radius: 16px 16px 12px 12px; color: var(--tinta); background: linear-gradient(#f6eed6, #e9dab0); border: 2px solid var(--bronce); box-shadow: 0 -4px 22px rgba(0, 0, 0, .55); }
 .ficha::-webkit-scrollbar { display: none; }
 .ficha .greca { height: 8px; margin: 6px 14px 0; background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='8'><path d='M0 7.2h4.5V2.8h6.5v4.4h5' fill='none' stroke='%23b8862b' stroke-width='1.4'/></svg>") repeat-x; }
@@ -385,8 +362,6 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 .ficha .obra .rem { display: block; margin-top: 4px; font-size: 13px; color: var(--tinta2); }
 .ficha .fxd { margin-top: 10px; padding: 8px; border-radius: 12px; background: rgba(14, 19, 27, .94); color: var(--ink); }
 .ficha .fxd .market { margin: 0 0 6px; }
-.mlabel.medalla.off { width: 30px; height: 30px; opacity: .8; }
-.medalla.off .mc svg { width: 18px; height: 18px; }
 /* ===== L1: órdenes dibujadas, botón dorado, minimapa y grupos (batalla 3D) ===== */
 .btrazo { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
 .btrazoet { position: absolute; left: 0; top: 0; z-index: 4; pointer-events: none; opacity: 0; transition: opacity .25s; padding: 3px 11px; border-radius: 6px; font-family: var(--serif); font-weight: 700; font-size: 15px; letter-spacing: .06em; color: #fbe7a8; background: linear-gradient(#8e1a14, #5c0f0b); border: 1.5px solid var(--gold); box-shadow: 0 2px 8px #000a; white-space: nowrap; }
@@ -614,3 +589,43 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 .bflag[data-l]::after { right: -3px; top: -3px; }
 .ucard[data-l]::after { right: 1px; bottom: 11px; }
 .bflag[data-l=""]::after, .ucard[data-l=""]::after { display: none; }
+
+/* CN4 bandeja: una línea de contexto arriba y una bandeja de fichas abajo (ciudad 3D) */
+#linea { position: absolute; left: 8px; right: 58px; top: calc(138px + env(safe-area-inset-top)); max-width: 560px; margin: 0 auto; z-index: 4; padding: 7px 12px; border-radius: 10px; background: var(--glass); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--line); border-left: 4px solid var(--mute); font-size: 13.5px; line-height: 1.3; box-shadow: 0 4px 14px rgba(0, 0, 0, .35); overflow: clip; pointer-events: none; }
+#l-nota { font-weight: 750; margin-right: 7px; }
+#linea.verde { border-left-color: #7fd060; } #linea.verde #l-nota { color: #9be07a; }
+#linea.ocre { border-left-color: #f2c45a; } #linea.ocre #l-nota { color: #f2c45a; }
+#linea.rojo { border-left-color: #f07a5a; } #linea.rojo #l-nota { color: #f58a6a; }
+#linea.aviso, #linea.consejo { border-left-color: var(--gold); } #linea.malo { border-left-color: #f07a5a; }
+#app #ctop { top: calc(192px + env(safe-area-inset-top)); }
+#csheet { overflow: clip; pointer-events: none; }
+#csheet > * { pointer-events: auto; }
+#csheet[data-m="ficha"] #bandeja, #csheet[data-m="ficha"] #acciones, #csheet[data-m="colocar"] #bandeja, #csheet[data-m="muralla"] #bandeja, #csheet[data-m="mirar"] #acciones, #csheet[data-m="colocar"] #fichab, #csheet[data-m="muralla"] #fichab { display: none; }
+#csheet:not([data-m]) #acciones, #csheet[data-m=""] #acciones { display: none; }
+#bandeja { display: flex; gap: 8px; padding: 6px 2px 4px; overflow-x: auto; overflow-y: hidden; touch-action: pan-x; scrollbar-width: none; overscroll-behavior: contain; }
+#bandeja::-webkit-scrollbar { display: none; }
+.pza { flex: none; width: 77px; height: 88px; padding: 3px 3px 5px; border-radius: 12px; background: linear-gradient(rgba(44, 36, 26, .94), rgba(22, 19, 15, .94)); border: 1px solid var(--line2); box-shadow: 0 4px 12px rgba(0, 0, 0, .45); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px; touch-action: pan-x; overflow: clip; }
+.pza img, .pza i { width: 56px; height: 50px; object-fit: contain; pointer-events: none; display: block; }
+.pza b { font-size: 12px; font-weight: 650; line-height: 1.1; text-align: center; white-space: nowrap; max-width: 100%; }
+.pza span { font-size: 12px; color: var(--gold); font-weight: 650; display: flex; align-items: center; gap: 3px; min-height: 14px; }
+.pza span:not(:empty)::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--gold); box-shadow: inset 0 0 0 1.5px #8a6418; }
+.pza.cara { filter: saturate(.5); } .pza.cara span { color: var(--bad); } .pza.cara span::before { background: var(--bad); box-shadow: none; }
+.pza.nueva { border-color: #9be07a; box-shadow: 0 0 0 2px rgba(155, 224, 122, .35), 0 4px 12px rgba(0, 0, 0, .45); }
+.pza:active { transform: translateY(1px); filter: brightness(1.15); }
+#acciones { gap: 8px; padding: 0; }
+#acciones button { height: 54px; border-radius: 12px; font-size: 15px; font-weight: 700; }
+#acciones { display: flex; }
+#b-no { flex: 0 0 104px; background: var(--glass); border: 1px solid rgba(255, 255, 255, .18); }
+#b-si { flex: 1; min-width: 0; padding: 0 8px; background: linear-gradient(#c9992f, #9a6f1c); color: #1a1408; box-shadow: 0 4px 14px rgba(0, 0, 0, .45); overflow: clip; }
+#b-si:disabled { background: rgba(60, 56, 50, .92); color: #b9b2a4; }
+#b-si { display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15; }
+#b-si small { display: flex; flex-wrap: nowrap; justify-content: center; align-items: center; gap: 3px; font-size: 12.5px; font-weight: 600; white-space: nowrap; }
+#b-si .ico { width: 14px; height: 14px; stroke: currentColor; vertical-align: -2px; margin-left: 4px; }
+
+/* CN4 ficha: ficha del edificio colocado (usa el pergamino .ficha de J6) y línea legible */
+#linea { color: var(--ink); text-shadow: 0 1px 2px rgba(0, 0, 0, .6); }
+#linea.barrio { border-left-color: #8fb8e8; }
+.ficha .fila .bsec { flex: 1; }
+.ficha .fila2 { margin-top: 8px; }
+.ficha .bsec.sure { background: linear-gradient(#c13c27, #8f2415); color: #fff4e0; border-color: #5a1209; }
+.ficha .costes + .fila, .ficha .plz + .fila { margin-top: 4px; }

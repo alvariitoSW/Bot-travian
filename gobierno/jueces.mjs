@@ -120,12 +120,42 @@ async function navegador() {
     });
 
     await paso('Construir un edificio', async () => {
-      await page.click('#tabs3 [data-v="gobierno"]'); await espera(400);
-      const b = page.locator('#view [data-act="up"]:not(.no)').first(); await b.scrollIntoViewIfNeeded(); await b.click(); await espera(500);
-      const q = await estado(() => { const c = Game.state.cities.roma.obras[0]; if (!c) return ''; const pz = c.pieza && Game.ciudadE('roma') ? (c.nuevo ? 'levantar ' : 'mejorar ') + c.pieza : ''; return (c.b ? DATA.BUILD[c.b].n : c.pieza) + (pz ? ' (' + pz + ')' : ''); });
+      // Ciudad: se elige una ficha de la bandeja, se ve el fantasma, se pulsa «Construir aquí»; luego ficha de pieza y Gobierno limpio
+      const fallos = [];
+      await page.click('#tabs3 [data-v="ciudad"]'); await espera(1500); await cierraAvisos();
+      await page.waitForSelector('.pza', { timeout: 10000 }).catch(() => fallos.push('no hay bandeja de fichas'));
+      const sel = (await page.locator('.pza[data-id="granja"]:not(.cara)').count()) ? '.pza[data-id="granja"]' : '.pza:not(.cara)';
+      await page.locator(sel).first().scrollIntoViewIfNeeded(); await page.locator(sel).first().tap(); await espera(1200);
+      const linea = () => estado(() => { const l = document.getElementById('linea'); return l.hidden ? '' : l.textContent.trim(); });
+      const lin = await linea(); if (!lin) fallos.push('al elegir la ficha no aparece el fantasma ni la línea');
       const captura = await foto('construir');
-      await page.evaluate(() => { document.getElementById('view').scrollTop = 0; }); await page.click('#view [data-act="clist"]'); await espera(300);
-      return { ok: !!q, detalle: q ? 'en obras: ' + q : 'la obra no entró en la cola', captura };
+      // si el sitio no vale, se toca el suelo en el mejor sitio verde
+      if (await estado(() => document.getElementById('b-si').disabled)) {
+        const pt = await estado(() => { const E = Game.ciudadE('roma'), pz = UI.bsel && UI.bsel.id || 'granja'; let m = null; for (let x = E.foro.x - 250; x <= E.foro.x + 250; x += 10) for (let z = E.foro.z - 250; z <= E.foro.z + 250; z += 10) { const n = Game.notaSitio('roma', pz, x, z); if (n && n.vale && (!m || n.nota > m.n)) m = { n: n.nota, x, z }; } if (!m) return null; UI.cityV.mirar(m.x, m.z, 300, 0); return UI.cityV.aPantalla(m.x, m.z, 0); });
+        if (pt) { await espera(800); await page.touchscreen.tap(pt.x, pt.y); await espera(700); } else fallos.push('no hay ningún sitio verde');
+      }
+      await page.click('#b-si', { timeout: 5000 }).catch(() => fallos.push('«Construir aquí» no se puede pulsar')); await espera(1500);
+      const obra = await estado(() => { const c = Game.state.cities.roma.obras[0]; return c ? { n: Game.state.cities.roma.obras.length, t: c.b ? DATA.BUILD[c.b].n : c.pieza } : null; });
+      if (!obra || obra.n !== 1) fallos.push('la obra no entró en la cola (' + (obra ? obra.n : 0) + ' obras)');
+      // ficha de una pieza ya colocada
+      let fichaOk = false;
+      for (let k = 0; k < 4 && !fichaOk; k++) {
+        const e = await estado(() => { const E = Game.ciudadE('roma'), e = E.edificios.find(q => !q.obra && !q.ruina && DATA.BUILD[q.tipo] && q.x !== undefined); if (!e) return null; UI.cityV.mirar(e.x, e.z, 260, 0); return { x: e.x, z: e.z }; });
+        if (!e) break; await espera(2500);
+        const p = await page.evaluate(e => UI.cityV.aPantalla(e.x, e.z, 4), e); await page.touchscreen.tap(p.x, p.y); await espera(700);
+        fichaOk = await estado(() => !!document.querySelector('#fichab .ficha [data-act="mejpz"]'));
+      }
+      if (!fichaOk) fallos.push('la ficha de una pieza no enseña «mejorar»');
+      const captura2 = await foto('construir-ficha');
+      await estado(() => { const c = document.querySelector('#fichab [data-act="cclose"]'); if (c) c.click(); });
+      await page.click('#tabs3 [data-v="gobierno"]'); await espera(1200);
+      const gob = await estado(() => ({ up: document.querySelectorAll('#view [data-act="up"]').length, solar: /solar/i.test(document.getElementById('view').innerText) }));
+      if (gob.up) fallos.push('Gobierno aún tiene botones de subir edificio'); if (gob.solar) fallos.push('Gobierno aún dice «solar»');
+      const enObras = await estado(() => /obra|construy|hasta|⏳|🔨/i.test(document.getElementById('view').innerText));
+      await page.click('#tabs3 [data-v="imperio"]'); await espera(1000);
+      const imp = await estado(() => document.getElementById('view').innerText.length > 40); if (!imp) fallos.push('Imperio no abre');
+      await page.click('#tabs3 [data-v="ciudad"]'); await espera(500);
+      return { ok: !fallos.length, detalle: fallos.length ? fallos.join('; ') : 'en obras: ' + obra.t + ' · fantasma «' + lin.slice(0, 50) + '» · ficha con mejorar · Gobierno limpio' + (enObras ? '' : ' (sin texto de obra en Gobierno)'), captura };
     });
 
     await paso('Reclutar tropas', async () => {

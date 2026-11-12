@@ -467,25 +467,28 @@ export class CityView3D {
     if (this.guarn && this.men && cam.d < 700) { const p = aPantalla(this.guarn.x, this.guarn.z, 14), r = host.getBoundingClientRect(), y = p.y - r.top; if (p.ok && y > 104 && y < H - 150) { el.style.display = ''; el.style.transform = 'translate(' + (p.x - r.left).toFixed(1) + 'px,' + y.toFixed(1) + 'px) translate(-50%,-100%)'; } else el.style.display = 'none'; } else el.style.display = 'none';
   }
   /* dónde está el edificio de D.BUILD b en la ciudad */
-  posDe(b) { if (!E) return null; if (b === 'foro') return E.foro ? { x: E.foro.x, z: E.foro.z } : null; const pz = CI.PIEZA_DE[b], e = pz && E.edificios.find(q => q.tipo === pz); return e ? { x: e.x, z: e.z } : null; }
+  posDe(b) { if (!E) return null; if (b && typeof b === 'object') return { x: b.x, z: b.z }; if (b === 'foro') return E.foro ? { x: E.foro.x, z: E.foro.z } : null; const pz = CI.PIEZA_DE[b], e = pz && E.edificios.find(q => q.tipo === pz); return e ? { x: e.x, z: e.z } : null; }
   /* qué se ha tocado: id D.BUILD o null */
   tocar(x, y) {
-    const g = sueloEn(x, y); let b = null;
+    if (this.opts.onSuelo && this.opts.onSuelo(x, y)) return;      // CN4: en modo colocar el toque mueve el fantasma
+    const g = sueloEn(x, y); let b = null, ed = null;
     if (g && E) { if (E.foro && Math.hypot(g[0] - E.foro.x, g[1] - E.foro.z) < 26) b = 'foro';
-      else { const ed = E.edificios.find(q => Math.hypot(q.x - g[0], q.z - g[1]) < Math.max(q.w, q.d) * 0.6), bid = ed && CI.EDIF[ed.tipo] && CI.EDIF[ed.tipo].bid; if (bid && D.BUILD[bid]) b = bid; } }
-    if (this.opts.onPick) this.opts.onPick(b);
+      else { ed = E.edificios.find(q => Math.hypot(q.x - g[0], q.z - g[1]) < Math.max(q.w, q.d) * 0.6) || null; const bid = ed && CI.EDIF[ed.tipo] && CI.EDIF[ed.tipo].bid; if (bid && D.BUILD[bid]) b = bid; } }
+    if (this.opts.onPick) this.opts.onPick(b, ed, g);      // CN4: id D.BUILD (o null), la pieza tocada de E.edificios (o null) y el punto del suelo
   }
   /* dedos y ratón: un dedo arrastra el suelo; dos dedos acercan, giran y arrastran; la rueda acerca; el botón derecho o Mayús gira */
   bind() {
     const cv = this.cv, dedos = new Map(); let gesto = null;
     cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); dedos.set(e.pointerId, { x: e.clientX, y: e.clientY }); this.camA = null;
       if (dedos.size === 1) gesto = { tipo: e.button === 2 || e.shiftKey ? 'giro' : 'mover', x0: e.clientX, y0: e.clientY, t0: performance.now(), movido: 0, g: sueloEn(e.clientX, e.clientY) };
+      if (dedos.size === 1 && this.opts.agarra) { const o = this.opts.agarra(e.clientX, e.clientY); if (o) Object.assign(gesto, { tipo: 'ficha', dx: o.dx, dy: o.dy }); }      // CN4: un dedo cerca del fantasma lo arrastra
       if (dedos.size === 2) { const [a, b] = [...dedos.values()]; gesto = { tipo: 'dos', d: Math.hypot(a.x - b.x, a.y - b.y), ang: Math.atan2(b.y - a.y, b.x - a.x), cd: cam.d, az: cam.az, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, movido: 99 }; } });
     cv.addEventListener('pointermove', e => { const p = dedos.get(e.pointerId); if (!p || !gesto) return; const ax = p.x; p.x = e.clientX; p.y = e.clientY;
       if (gesto.tipo === 'dos' && dedos.size >= 2) { const [a, b] = [...dedos.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2; let da = ang - gesto.ang; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
         cam.d = gesto.cd * gesto.d / Math.max(20, d); if (Math.abs(da) > 0.12 || gesto.gira) { gesto.gira = true; cam.az = gesto.az - da; } const k = cam.d / vista.h * 0.9, c = Math.cos(cam.az), s = Math.sin(cam.az), ux = -(mx - gesto.mx) * k, uy = -(my - gesto.my) * k * 1.6; cam.tx += ux * c + uy * s; cam.tz += -ux * s + uy * c; gesto.mx = mx; gesto.my = my; ponerCamara(); return; }
       if (dedos.size !== 1) return; gesto.movido = Math.max(gesto.movido, Math.hypot(e.clientX - gesto.x0, e.clientY - gesto.y0));
-      if (gesto.tipo === 'giro') { cam.az -= (e.clientX - ax) * 0.008; ponerCamara(); }
+      if (gesto.tipo === 'ficha') { if (this.opts.onFicha) this.opts.onFicha(e.clientX + gesto.dx, e.clientY + gesto.dy); }
+      else if (gesto.tipo === 'giro') { cam.az -= (e.clientX - ax) * 0.008; ponerCamara(); }
       else if (gesto.movido > 6 && gesto.g) { const g = sueloEn(e.clientX, e.clientY); if (g) { cam.tx += gesto.g[0] - g[0]; cam.tz += gesto.g[1] - g[1]; ponerCamara(); } } });
     const soltar = e => { if (!dedos.has(e.pointerId)) return; dedos.delete(e.pointerId);
       if (gesto && gesto.tipo !== 'dos' && dedos.size === 0 && gesto.movido < 9 && performance.now() - gesto.t0 < 600 && e.type === 'pointerup') this.tocar(e.clientX, e.clientY);

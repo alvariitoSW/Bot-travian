@@ -516,25 +516,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   Object.keys(D.CITIES).forEach(k => assert.strictEqual(CO.ciudades.find(f => f.id === k).t, D.CITIES[k].n, 'Códice: nombre de ' + k));
   D.EVENTS.forEach(e => assert(CO.hechos.some(f => f.id === String(e.y) && f.t === e.t), 'Códice: título de ' + e.y)); }
 
-// ---- I4 Solares y tipos de ciudad ----
-{ const urb = Object.keys(D.BUILD).filter(b => D.BUILD[b].solar);
-  assert.strictEqual(urb.length, 12, '12 edificios urbanos'); ['aserradero', 'cantera', 'mina', 'granja', 'muralla'].forEach(b => assert(!D.BUILD[b].solar, b + ' no ocupa solar'));
-  const s = G.newGame('Solares'), c = s.cities.roma; s.res = { madera: 1e5, piedra: 1e5, hierro: 1e5, grano: 1e5, oro: 1e5 };
-  assert.strictEqual(G.solares('roma'), 10); assert.strictEqual(G.solares('carales'), 8); for (const id in D.CITIES) assert(G.solares(id) < 12, 'ninguna ciudad tiene los 12 solares');
-  const libres = G.solaresLibres('roma'); assert(libres > 0 && G.solaresUsados(c) === 10 - libres);
-  // llenar todos los solares: ya no se levanta un edificio urbano nuevo, pero sí se mejora uno existente y se levantan campos
-  for (const b of urb) { if (G.solaresUsados(c) >= 10) break; c.b[b] = Math.max(c.b[b] || 0, 1); }
-  const sin = urb.find(b => !(c.b[b] > 0)); assert.strictEqual(G.solaresUsados(c), 10); assert(sin, 'queda un edificio sin levantar');
-  assert(!G.upgrade('roma', sin) && !c.queue, 'sin solares no se levanta ' + sin);
-  assert(G.upgrade('roma', 'viviendas'), 'mejorar uno levantado no gasta solar'); c.queue = null;
-  assert(G.upgrade('roma', 'granja'), 'los campos no ocupan solar'); c.queue = null;
-  // derribar libera el solar; el foro no se derriba; lo que se está mejorando tampoco
-  c.b.almacen = 2; const antes = G.solaresUsados(c); assert(G.derribar('roma', 'almacen') && c.b.almacen === 0 && G.solaresUsados(c) === antes - 1, 'derribar libera el solar');
-  assert(!G.derribar('roma', 'foro') && !G.derribar('roma', 'granja') && !G.derribar('roma', 'almacen'), 'no se derriba foro, campos ni lo que no existe');
-  assert(G.upgrade('roma', sin) && c.b[sin] === 0, 'con el solar libre se levanta el nuevo'); assert(!G.derribar('roma', sin), 'no se derriba en obras');
-  c.queue = null; c.b.viviendas = 6; c.pop = G.popCap(c); G.derribar('roma', 'viviendas'); assert(c.pop <= G.popCap(c), 'la población se recorta al tope');
-  // una ciudad con más edificios que solares no pierde nada
-  const cap = s.cities.capua; for (const b of urb) cap.b[b] = 1; assert.strictEqual(G.solaresUsados(cap), 12); assert(!G.upgrade('capua', 'foro') === false, 'mejorar sigue valiendo'); }
+// ---- I4 Tipos de ciudad (los solares ya no se ofrecen en pantalla) ----
 { const tasa = tipo => { const s = G.newGame('Tipos'); s.res.oro = 1000; const c = s.cities.roma; if (tipo) c.tipo = tipo; return { s, c, p: G.prod() }; };
   const base = tasa('municipio'), ag = tasa('agraria');
   ['madera', 'piedra', 'hierro'].forEach(r => assert(Math.abs(ag.p[r] / base.p[r] - 1.25) < 0.02 || ag.p[r] > base.p[r] * 1.1, 'agraria sube ' + r));
