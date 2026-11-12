@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AQVILA · Fichas de marfil</title>
+<style>
+@font-face{font-family:"Cinzel";src:url("../../../assets/fuentes/cinzel-700.woff2") format("woff2");font-weight:700;font-display:swap}
+:root{
+  --marfil:#f6edd6; --marfil-2:#e4d2a4;
+  --madera:#6b4526; --madera-osc:#2a1a0e; --fondo:#1c110a;
+  --tinta:#1f1a14; --oro:#d6a944; --rojo:#b5382c;
+  --tablero-1:#d2b27c; --tablero-2:#b38b55;
+  --f-titulo:"Cinzel",Georgia,serif;
+  --f-texto:"Trebuchet MS","Segoe UI",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{background:radial-gradient(ellipse at 50% 35%,#4a2e18,var(--fondo) 75%);color:var(--marfil);font:13px/1.3 var(--f-texto);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+.app{width:100vw;height:100vh;min-width:844px;min-height:390px;display:grid;grid-template-rows:40px 1fr 60px;overflow:hidden}
+
+/* cabecera */
+.cab{display:flex;align-items:center;gap:14px;padding:0 14px;background:linear-gradient(#35200f,#22140a);border-bottom:2px solid var(--oro)}
+.cab h1{font:700 13px var(--f-titulo);letter-spacing:.08em;color:var(--marfil-2)}
+#turno{font:700 14px var(--f-titulo);white-space:nowrap}
+.reloj{flex:1;display:flex;align-items:center;gap:8px;min-width:0}
+.barra{flex:1;height:10px;border-radius:5px;background:#120a04;border:1px solid #5a3d22;overflow:hidden}
+#relleno{height:100%;width:100%;background:linear-gradient(90deg,#b8862c,#f0cf78);transition:width 1s linear}
+.reloj.urgente #relleno{background:linear-gradient(90deg,#8a2a22,var(--rojo))}
+#seg{min-width:92px;font-variant-numeric:tabular-nums;color:var(--marfil-2);white-space:nowrap}
+.ordenes{display:flex;align-items:center;gap:6px;white-space:nowrap;color:var(--marfil-2);font-size:12px}
+.moneda{display:inline-block;width:15px;height:15px;margin-left:4px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fffaea,#d9bf85);border:1.5px solid var(--madera);vertical-align:-3px}
+.moneda.gastada{background:none;border:1.5px dashed #b9a57a}
+
+/* zona de juego */
+.zona{position:relative;display:grid;grid-template-columns:1fr 226px;align-items:center;gap:12px;padding:8px 10px 8px 12px;min-height:0}
+.mesa{position:relative;justify-self:center;width:570px;height:272px;perspective:820px}
+.tablero{position:absolute;inset:0;border-radius:8px;transition:transform .8s ease;
+  background:repeating-linear-gradient(90deg,rgba(60,35,15,.28) 0 1px,transparent 1px 38px),repeating-linear-gradient(0deg,rgba(60,35,15,.28) 0 1px,transparent 1px 34px),linear-gradient(135deg,var(--tablero-1),var(--tablero-2));
+  box-shadow:0 0 0 5px var(--madera),0 0 0 7px var(--oro),0 10px 24px rgba(0,0,0,.55)}
+.tablero.escena{transform:rotateX(50deg) translateY(-8px) scale(.92);transform-style:preserve-3d}
+
+/* terreno */
+.t{position:absolute;width:38px;height:34px;pointer-events:none}
+.rio{width:570px;height:34px;background:repeating-linear-gradient(100deg,#3f7088 0 14px,#33607a 14px 28px);box-shadow:inset 0 3px 0 rgba(255,255,255,.12),inset 0 -3px 0 rgba(0,0,0,.2)}
+.vado{background:repeating-linear-gradient(90deg,#dcbb80 0 5px,#c29d62 5px 10px);border-left:1px dashed var(--madera);border-right:1px dashed var(--madera)}
+.vado span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:700 10px var(--f-titulo);color:#3b2a12}
+.colina{background:radial-gradient(ellipse at 50% 62%,rgba(90,55,25,.55) 0 30%,rgba(90,55,25,.12) 31% 62%,transparent 63%)}
+.bosque{background:radial-gradient(circle at 30% 40%,#3f5b2c 0 4px,transparent 5px),radial-gradient(circle at 68% 62%,#3f5b2c 0 4px,transparent 5px),rgba(70,100,40,.25)}
+.pantano{background:repeating-linear-gradient(45deg,rgba(80,110,70,.45) 0 3px,transparent 3px 8px)}
+.polvo{position:absolute;width:70px;height:56px;border-radius:50%;pointer-events:none;background:radial-gradient(ellipse at center,rgba(245,230,195,.9) 0,rgba(245,230,195,.5) 38%,rgba(245,230,195,0) 70%)}
+.dado{position:absolute;min-width:26px;height:18px;padding:0 4px;border-radius:4px;background:#fffaea;border:2px solid var(--madera-osc);box-shadow:0 2px 0 var(--madera-osc);font:700 11px/14px var(--f-texto);color:var(--madera-osc);text-align:center;pointer-events:none;z-index:6}
+
+/* capa de mapa: puntos de alcance y flechas */
+.capa{position:absolute;inset:0;pointer-events:none;z-index:2}
+.alc{position:absolute;width:38px;height:34px;display:flex;align-items:center;justify-content:center}
+.alc::after{content:"";width:11px;height:11px;border-radius:50%;background:var(--marfil);box-shadow:0 0 0 2px rgba(42,26,14,.7)}
+.alc.ataque::after{background:var(--rojo)}
+
+/* fichas */
+.ficha{position:absolute;width:30px;height:26px;display:flex;align-items:center;justify-content:center;font:700 10px/1 var(--f-titulo);letter-spacing:.02em;border-radius:5px;z-index:3;pointer-events:none;transition:left .6s ease,top .6s ease,transform .8s ease;box-shadow:0 2px 0 rgba(20,10,4,.6),inset 0 0 0 1.5px rgba(255,255,255,.25)}
+.ficha.n{background:linear-gradient(160deg,#fffaea,#dcc68f);color:#3b2a12;border:1.5px solid var(--madera)}
+.ficha.e{background:linear-gradient(160deg,#5a3820,#241509);color:#eadbb4;border:1.5px solid #120a04;font-size:9px}
+.ficha.circulo{border-radius:50%}
+.ficha.rombo{border-radius:3px 13px}
+.ficha.herido{border-style:dashed}
+.ficha.sel{box-shadow:0 0 0 3px var(--oro),0 0 12px rgba(240,207,120,.9)}
+.ficha.riesgo{animation:riesgo 1s ease-in-out infinite alternate}
+@keyframes riesgo{from{box-shadow:0 0 0 2px var(--rojo),0 0 6px var(--rojo)}to{box-shadow:0 0 0 4px var(--rojo),0 0 16px var(--rojo)}}
+.tablero.escena .ficha{transform:rotateX(-50deg) translateY(-6px);transform-origin:50% 100%}
+.tablero.escena .capa{display:none}
+
+/* lateral */
+.lat{display:flex;flex-direction:column;gap:7px;min-height:0}
+.tarjeta{background:linear-gradient(#f6edd6,#e6d3a5);color:var(--tinta);border:2px solid var(--madera);border-radius:8px;padding:7px 9px;box-shadow:0 3px 0 var(--madera-osc)}
+.tarjeta h2{font:700 12px var(--f-titulo);letter-spacing:.03em;color:var(--madera-osc);margin-bottom:3px}
+.tarjeta p{font-size:12px;line-height:1.3}
+.tarjeta.alerta{border-color:var(--rojo);background:linear-gradient(#f9e2d6,#efc6b4)}
+.tarjeta.alerta h2{color:var(--rojo)}
+.registro{font-size:11px}
+.registro p{margin-top:2px}
+.leyenda{display:flex;flex-wrap:wrap;gap:3px 9px;font-size:10.5px;color:var(--marfil-2)}
+.leyenda span{white-space:nowrap}
+.muestra{display:inline-block;width:11px;height:10px;margin-right:4px;vertical-align:-1px;border:1.5px solid var(--madera);border-radius:3px;background:linear-gradient(#fffaea,#dcc68f)}
+.muestra.circulo{border-radius:50%}
+.muestra.rombo{border-radius:2px 7px}
+.muestra.e{background:linear-gradient(#5a3820,#241509);border-color:#120a04}
+
+/* pie con botones */
+.pie{display:flex;align-items:center;gap:10px;padding:0 12px;background:linear-gradient(#e2cd9a,#c9ad73);border-top:2px solid var(--oro)}
+.boton{font:700 13px var(--f-texto);color:var(--madera-osc);background:linear-gradient(#f6edd6,#e2cd9a);border:2px solid var(--madera-osc);border-radius:9px;min-height:44px;padding:0 14px;box-shadow:0 3px 0 var(--madera-osc);cursor:pointer;white-space:nowrap}
+.boton:active{transform:translateY(2px);box-shadow:0 1px 0 var(--madera-osc)}
+.boton:disabled{opacity:.45;cursor:default;transform:none}
+.boton.principal{margin-left:auto;color:var(--marfil);background:linear-gradient(#3a2412,#241509);border-color:#120a04;box-shadow:0 3px 0 #120a04}
+
+/* resultado */
+.fin{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(20,10,4,.6);z-index:10}
+.fin[hidden]{display:none}
+.papel{width:430px;background:linear-gradient(#f6edd6,#e6d3a5);color:var(--tinta);border:3px double var(--madera);border-radius:10px;padding:14px 20px;text-align:center;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.papel h2{font:700 19px var(--f-titulo);color:var(--madera-osc);letter-spacing:.03em}
+.papel p{margin:5px 0 8px;font-size:13px}
+.cifras{display:flex;justify-content:space-around;margin:6px 0 12px}
+.cifras b{display:block;font:700 20px var(--f-titulo);color:var(--madera-osc)}
+.cifras span{font-size:11px}
+.acciones{display:flex;gap:10px;justify-content:center}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="cab">
+    <h1>AQVILA</h1>
+    <div id="turno">Turno 1 de 6</div>
+    <div class="reloj" id="reloj">
+      <div class="barra"><div id="relleno"></div></div>
+      <span id="seg">Quedan 1:00</span>
+    </div>
+    <div class="ordenes"><span id="monedas"></span></div>
+  </header>
+
+  <main class="zona">
+    <div class="mesa">
+      <div class="tablero" id="tablero"><div class="capa" id="capa"></div></div>
+    </div>
+    <aside class="lat">
+      <section class="tarjeta" id="tarjeta"></section>
+      <section class="tarjeta registro" id="registro"></section>
+      <div class="leyenda">
+        <span><i class="muestra"></i>legión</span>
+        <span><i class="muestra circulo"></i>ligeros</span>
+        <span><i class="muestra rombo"></i>caballos</span>
+        <span><i class="muestra e"></i>enemigo</span>
+      </div>
+    </aside>
+    <div class="fin" id="fin" hidden>
+      <div class="papel">
+        <h2 id="fin-titulo"></h2>
+        <p id="fin-texto"></p>
+        <div class="cifras">
+          <div><b id="fin-n"></b><span>nuestros</span></div>
+          <div><b id="fin-e"></b><span>suyos</span></div>
+          <div><b id="fin-t"></b><span>turnos</span></div>
+        </div>
+        <div class="acciones">
+          <button class="boton" id="b-otra">Jugar otra vez</button>
+          <button class="boton" id="b-mapa">Ver el mapa</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="pie">
+    <button class="boton" id="b-deshacer">Quitar la última orden</button>
+    <button class="boton" id="b-vista">Ver el choque</button>
+    <button class="boton principal" id="b-ejecutar">Ejecutar el turno</button>
+  </footer>
+</div>
+
+<script>
+(() => {
+'use strict';
+const COLS = 15, ROWS = 8, CW = 38, CH = 34, TURNOS = 6, MAX_ORDENES = 3, DURACION = 60;
+const VADOS = [4, 7, 11], NUM_VADO = ['I', 'II', 'III'], RIO = 3;
+const COLINAS = ['3,2', '10,2', '6,4', '12,4'];
+const BOSQUES = ['1,4', '2,4', '13,5'];
+const PANTANOS = ['8,1', '5,6'];
+const TIPOS = {
+  H: { nombre: 'hastato', fuerza: 3, mov: 2, forma: '', vida: 2 },
+  P: { nombre: 'príncipe', fuerza: 3, mov: 2, forma: '', vida: 2 },
+  T: { nombre: 'triario', fuerza: 4, mov: 1, forma: '', vida: 3 },
+  V: { nombre: 'velite', fuerza: 2, mov: 3, forma: 'circulo', vida: 2 },
+  L: { nombre: 'lancero', fuerza: 2, mov: 3, forma: '', vida: 2 },
+  E: { nombre: 'caballero', fuerza: 3, mov: 4, forma: 'rombo', vida: 2 }
+};
+// nuestras: id, tipo, columna, fila (20 piezas)
+const FILA_NUESTRA = [
+  ['H1','H',0,7],['H2','H',1,7],['P1','P',2,7],['P2','P',3,7],['T1','T',4,7],['V1','V',5,7],['H3','H',6,7],['H4','H',7,7],['P3','P',8,7],['L1','L',9,7],['E1','E',10,7],['V2','V',11,7],['H5','H',12,7],['T2','T',13,7],['P4','P',14,7],
+  ['V3','V',2,6],['E2','E',4,6],['L2','L',6,6],['V4','V',8,6],['E3','E',10,6]
+];
+// enemigos: tipo, columna, fila (20 piezas; el tipo no se ve de lejos)
+const ENEMIGOS = [
+  ['H',0,0],['H',1,0],['P',2,0],['L',3,0],['V',4,0],['H',5,0],['P',6,0],['T',7,0],['L',8,0],['V',9,0],['E',10,0],['H',11,0],['P',12,0],['L',13,0],['V',14,0],
+  ['E',1,1],['T',3,1],['V',5,1],['E',8,1],['H',10,1]
+];
+const AVANCE_IDS = ['H1','H2','P1','P2','T1','V1','H3','H4','P3','L1','E1','V2','H5','T2','P4'];
+const AVANCE_IDS_4 = ['V3','E2','L2','V4','E3'], AVANCE_COLS_4 = [3,6,9,11,13];
+const AVANCE_COLS_1 = [1,3,5,8,10];
+
+const $ = id => document.getElementById(id);
+const tab = $('tablero'), capa = $('capa');
+let piezas = [], ordenes = {}, dados = [], seleccion = null, turno = 1, vista = 'mapa';
+let riesgo = null, finPartida = false, animando = false, pausado = false, segundos = DURACION, registro = [];
+
+const esperar = ms => new Promise(r => setTimeout(r, ms));
+const pieza = id => piezas.find(p => p.id === id);
+const piezaEn = (c, r) => piezas.find(p => p.c === c && p.r === r);
+const dist = (a, b) => Math.max(Math.abs(a.c - b.c), Math.abs(a.r - b.r));
+const nombre = p => p.bando === 'n' ? p.id : 'enemigo ' + p.num;
+const mover = (id, c, r) => { const p = pieza(id); if (p) { p.c = c; p.r = r; } };
+const destino = o => terreno(o.c, o.r) === 'vado' ? 'el vado ' + NUM_VADO[VADOS.indexOf(o.c)] : 'ese punto';
+
+function terreno(c, r) {
+  const k = c + ',' + r;
+  if (r === RIO) return VADOS.includes(c) ? 'vado' : 'rio';
+  if (COLINAS.includes(k)) return 'colina';
+  if (BOSQUES.includes(k)) return 'bosque';
+  if (PANTANOS.includes(k)) return 'pantano';
+  return 'llano';
+}
+
+// casillas a las que puede ir una pieza, y enemigos a su lado que puede atacar
+function alcance(s) {
+  const mov = TIPOS[s.tipo].mov, out = [];
+  for (let dr = -mov; dr <= mov; dr++) for (let dc = -mov; dc <= mov; dc++) {
+    const c = s.c + dc, r = s.r + dr;
+    if (c < 0 || r < 0 || c >= COLS || r >= ROWS || (dc === 0 && dr === 0)) continue;
+    const d = Math.max(Math.abs(dc), Math.abs(dr));
+    const o = piezaEn(c, r);
+    if (o) { if (o.bando === 'e' && d === 1) out.push({ c, r, ataque: true }); continue; }
+    const t = terreno(c, r);
+    if (d > mov || t === 'rio') continue;
+    if (s.tipo === 'E' && (t === 'bosque' || t === 'pantano')) continue;
+    out.push({ c, r, ataque: false });
+  }
+  return out;
+}
+
+// probabilidad, de cada 100, de que gane el atacante
+function ventaja(a, d) {
+  const pa = TIPOS[a.tipo].fuerza * a.vida;
+  const pd = TIPOS[d.tipo].fuerza * d.vida * (terreno(d.c, d.r) === 'colina' ? 1.25 : 1);
+  return Math.round(pa / (pa + pd) * 100);
+}
+
+function combatir(a, d) {
+  const prob = ventaja(a, d);
+  const tirada = 1 + Math.floor(Math.random() * 100);
+  const gana = tirada <= prob ? a : d, pierde = gana === a ? d : a;
+  pierde.vida -= 1;
+  dados.push({ c: d.c, r: d.r, t: tirada }, { c: d.c, r: d.r, polvo: true });
+  registro.push(`${nombre(a)} contra ${nombre(d)}: sale ${tirada}, y ${nombre(a)} tenía ${prob}. Gana ${nombre(gana)}.`);
+  if (pierde.vida <= 0) {
+    piezas = piezas.filter(p => p !== pierde);
+    registro.push(`${nombre(pierde)} cae.`);
+  }
+}
+
+function avance() {
+  AVANCE_IDS.forEach((id, c) => mover(id, c, 5));
+  AVANCE_IDS_4.forEach((id, i) => mover(id, AVANCE_COLS_4[i], 4));
+  ENEMIGOS.forEach((_, i) => {
+    if (i < 15) mover('x' + (i + 1), i, 2);
+    else mover('x' + (i + 1), AVANCE_COLS_1[i - 15], 1);
+  });
+}
+
+function construirTerreno() {
+  const poner = (cls, c, r, html = '') => {
+    const d = document.createElement('div');
+    d.className = 't ' + cls;
+    d.style.left = (c * CW) + 'px'; d.style.top = (r * CH) + 'px';
+    d.innerHTML = html;
+    tab.insertBefore(d, capa);
+  };
+  poner('rio', 0, RIO);
+  VADOS.forEach((c, i) => poner('vado', c, RIO, `<span>${NUM_VADO[i]}</span>`));
+  COLINAS.forEach(k => { const [c, r] = k.split(',').map(Number); poner('colina', c, r); });
+  BOSQUES.forEach(k => { const [c, r] = k.split(',').map(Number); poner('bosque', c, r); });
+  PANTANOS.forEach(k => { const [c, r] = k.split(',').map(Number); poner('pantano', c, r); });
+}
+
+function nuevaPartida() {
+  piezas = FILA_NUESTRA.map(([id, t, c, r]) => ({ id, bando: 'n', tipo: t, c, r, vida: TIPOS[t].vida, max: TIPOS[t].vida }));
+  piezas.push(...ENEMIGOS.map(([t, c, r], i) => ({ id: 'x' + (i + 1), bando: 'e', tipo: t, c, r, vida: TIPOS[t].vida, max: TIPOS[t].vida, num: i + 1 })));
+  ordenes = {}; dados = []; seleccion = null; turno = 1; vista = 'mapa';
+  riesgo = null; finPartida = false; animando = false; pausado = false; segundos = DURACION;
+  registro = ['Turno 1. Toca una pieza y luego un punto azul.'];
+  $('fin').hidden = true;
+  pintar();
+}
+
+function terminar() {
+  finPartida = true;
+  const n = piezas.filter(p => p.bando === 'n').length, e = piezas.filter(p => p.bando === 'e').length;
+  let t, txt;
+  if (n >= e * 2) { t = 'Victoria en el vado'; txt = 'Cruzamos el río y el enemigo se retira.'; }
+  else if (n > e) { t = 'Victoria con pérdidas'; txt = 'Ganamos, pero el campo queda lleno de nuestros muertos.'; }
+  else { t = 'Retirada en orden'; txt = 'No cruzamos el río. Volvemos al campamento con lo que queda.'; }
+  $('fin-titulo').textContent = t;
+  $('fin-texto').textContent = txt;
+  $('fin-n').textContent = n + ' de 20';
+  $('fin-e').textContent = e + ' de 20';
+  $('fin-t').textContent = Math.min(turno, TURNOS) + ' de ' + TURNOS;
+  $('fin').hidden = false;
+}
+
+function aviso(t) { registro.push(t); pintar(); }
+
+// un toque: pieza propia = seleccionar; punto azul o rojo = dar orden
+function toque(c, r) {
+  const p = piezaEn(c, r);
+  if (p && p.bando === 'n') { seleccion = seleccion === p.id ? null : p.id; pintar(); return; }
+  const s = seleccion && pieza(seleccion);
+  if (!s) { aviso('Primero toca una de tus piezas.'); return; }
+  const op = alcance(s).find(a => a.c === c && a.r === r);
+  if (!op) { aviso('Ese punto no llega. Mira los puntos azules y rojos.'); return; }
+  if (!ordenes[s.id] && Object.keys(ordenes).length >= MAX_ORDENES) { aviso('No quedan órdenes. Quita una antes.'); return; }
+  ordenes[s.id] = { id: s.id, tipo: op.ataque ? 'atacar' : 'mover', c, r };
+  if (riesgo === s.id) riesgo = null;
+  seleccion = null;
+  pintar();
+}
+
+async function ejecutar() {
+  if (animando || finPartida) return;
+  vista = 'mapa'; animando = true; pausado = true; seleccion = null; riesgo = null; dados = [];
+  const lista = Object.values(ordenes); ordenes = {};
+  registro.push(`Turno ${turno}: se cumplen ${lista.length} órdenes.`);
+  pintar();
+  for (const o of lista) {
+    const p = pieza(o.id);
+    if (!p || !piezas.includes(p)) continue;
+    const d = piezaEn(o.c, o.r);
+    if (d && d.bando === 'e' && dist(p, d) <= 1) combatir(p, d);
+    else if (!d && o.tipo === 'mover') { p.c = o.c; p.r = o.r; }
+    pintar();
+    await esperar(500);
+  }
+  // el enemigo mueve y ataca a la vez que nosotros, sin verlo antes
+  for (const e of piezas.filter(x => x.bando === 'e')) {
+    if (!piezas.includes(e)) continue;
+    const nuestras = piezas.filter(x => x.bando === 'n');
+    if (!nuestras.length) break;
+    const cerca = nuestras.filter(n => dist(e, n) <= 1);
+    if (cerca.length && Math.random() < 0.6) {
+      combatir(e, cerca[Math.floor(Math.random() * cerca.length)]);
+    } else {
+      const obj = nuestras.reduce((m, n) => dist(e, n) < dist(e, m) ? n : m);
+      const cand = alcance(e).filter(a => !a.ataque)
+        .map(a => ({ a, d: Math.max(Math.abs(a.c - obj.c), Math.abs(a.r - obj.r)) }))
+        .sort((x, y) => x.d - y.d || Math.random() - 0.5);
+      if (cand.length && cand[0].d < dist(e, obj)) { e.c = cand[0].a.c; e.r = cand[0].a.r; }
+    }
+    pintar();
+    await esperar(160);
+  }
+  for (const n of piezas.filter(x => x.bando === 'n')) {
+    if (piezas.filter(x => x.bando === 'e' && dist(x, n) <= 1).length >= 2) {
+      riesgo = n.id; registro.push(`¡Riesgo! ${n.id} tiene dos enemigos al lado.`); break;
+    }
+  }
+  animando = false; pausado = false; turno++; segundos = DURACION;
+  if (turno > TURNOS || !piezas.some(p => p.bando === 'n') || !piezas.some(p => p.bando === 'e')) terminar();
+  else registro.push(`Turno ${turno}: planea tus órdenes.`);
+  pintar();
+}
+
+function actualizarReloj() {
+  const s = Math.max(0, segundos);
+  $('seg').textContent = `Quedan ${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+  $('relleno').style.width = (s / DURACION * 100) + '%';
+  $('reloj').classList.toggle('urgente', s <= 10);
+}
+
+function pintarLateral() {
+  const T = $('tarjeta'), R = $('registro');
+  if (finPartida) {
+    T.className = 'tarjeta'; T.innerHTML = '<h2>Fin de la batalla</h2><p>Mira el resultado en el papel.</p>';
+  } else if (vista === 'escena') {
+    T.className = 'tarjeta'; T.innerHTML = '<h2>Escena del choque</h2><p>Se ve el campo de lado. Vuelve al mapa para dar órdenes.</p>';
+  } else if (riesgo && pieza(riesgo)) {
+    const p = pieza(riesgo), n = piezas.filter(x => x.bando === 'e' && dist(x, p) <= 1).length;
+    T.className = 'tarjeta alerta';
+    T.innerHTML = `<h2>¡Riesgo! ${p.id}</h2><p>Tiene ${n} enemigos al lado. Si se queda, pierde vida.</p><p>Toca ${p.id} y luego un punto azul de atrás para retirarla.</p>`;
+  } else if (seleccion && pieza(seleccion)) {
+    const s = pieza(seleccion), t = TIPOS[s.tipo], o = ordenes[s.id];
+    const hayAtaque = alcance(s).some(a => a.ataque);
+    let extra = '';
+    if (o && o.tipo === 'atacar') extra = `<p><b>Orden:</b> atacar a ${nombre(piezaEn(o.c, o.r))}. Gana ${ventaja(s, piezaEn(o.c, o.r))} de cada 100.</p>`;
+    else if (o) extra = `<p><b>Orden:</b> ir a ${destino(o)}.</p>`;
+    else if (hayAtaque) extra = '<p>Punto rojo: atacar al enemigo de al lado.</p>';
+    T.className = 'tarjeta';
+    T.innerHTML = `<h2>${s.id} · ${t.nombre}</h2><p>Fuerza ${t.fuerza} · vida ${s.vida} de ${s.max} · llega ${t.mov} casillas.</p>${extra}`;
+  } else {
+    T.className = 'tarjeta';
+    T.innerHTML = '<h2>Así se da una orden</h2><p>1 · Toca una pieza tuya.</p><p>2 · Toca un punto azul: ahí va.</p><p>Todas las órdenes se cumplen al ejecutar.</p>';
+  }
+  R.innerHTML = '<h2>Lo que pasa</h2>' + registro.slice(-3).map(x => `<p>${x}</p>`).join('');
+}
+
+function pintar() {
+  tab.classList.toggle('escena', vista === 'escena');
+  const s = seleccion && pieza(seleccion);
+
+  // flechas de las órdenes
+  let flechas = '';
+  for (const o of Object.values(ordenes)) {
+    const p = pieza(o.id); if (!p) continue;
+    const roja = o.tipo === 'atacar';
+    flechas += `<line x1="${p.c * CW + CW / 2}" y1="${p.r * CH + CH / 2}" x2="${o.c * CW + CW / 2}" y2="${o.r * CH + CH / 2}" stroke="${roja ? '#b5382c' : '#2a1a0e'}" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6 4" marker-end="url(#${roja ? 'fr' : 'fl'})"/>`;
+  }
+  capa.innerHTML = `<svg width="${COLS * CW}" height="${ROWS * CH}" viewBox="0 0 ${COLS * CW} ${ROWS * CH}" style="position:absolute;left:0;top:0;overflow:visible">
+    <defs>
+      <marker id="fl" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#2a1a0e"/></marker>
+      <marker id="fr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="9" markerHeight="9" markerUnits="userSpaceOnUse" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#b5382c"/></marker>
+    </defs>${flechas}</svg>`;
+
+  // puntos de alcance de la pieza seleccionada
+  if (s && vista === 'mapa' && !finPartida) {
+    alcance(s).forEach(a => {
+      const d = document.createElement('div');
+      d.className = 'alc' + (a.ataque ? ' ataque' : '');
+      d.style.left = (a.c * CW) + 'px'; d.style.top = (a.r * CH) + 'px';
+      capa.appendChild(d);
+    });
+  }
+
+  // polvo y dados de los choques
+  tab.querySelectorAll('.dado,.polvo').forEach(e => e.remove());
+  dados.forEach(d => {
+    const e = document.createElement('div');
+    if (d.polvo) { e.className = 'polvo'; e.style.left = (d.c * CW - 16) + 'px'; e.style.top = (d.r * CH - 11) + 'px'; }
+    else { e.className = 'dado'; e.textContent = d.t; e.style.left = (d.c * CW + CW - 14) + 'px'; e.style.top = (d.r * CH - 9) + 'px'; }
+    tab.appendChild(e);
+  });
+
+  // fichas
+  tab.querySelectorAll('.ficha').forEach(f => { if (!piezas.some(p => p.id === f.dataset.id)) f.remove(); });
+  piezas.forEach(p => {
+    let f = tab.querySelector(`.ficha[data-id="${p.id}"]`);
+    if (!f) { f = document.createElement('div'); f.dataset.id = p.id; tab.appendChild(f); }
+    f.className = ['ficha', p.bando === 'n' ? 'n' : 'e', TIPOS[p.tipo].forma,
+      seleccion === p.id ? 'sel' : '', riesgo === p.id ? 'riesgo' : '', p.vida < p.max ? 'herido' : '']
+      .filter(Boolean).join(' ');
+    f.textContent = p.bando === 'n' ? p.id : p.num;
+    f.style.left = (p.c * CW + 4) + 'px'; f.style.top = (p.r * CH + 4) + 'px';
+  });
+
+  pintarLateral();
+  $('turno').textContent = `Turno ${Math.min(turno, TURNOS)} de ${TURNOS}`;
+  const usadas = Object.keys(ordenes).length;
+  $('monedas').innerHTML = 'Órdenes' + Array.from({ length: MAX_ORDENES }, (_, i) =>
+    `<i class="moneda${i < usadas ? ' gastada' : ''}"></i>`).join('');
+  $('b-deshacer').disabled = !usadas || animando || finPartida;
+  $('b-vista').textContent = vista === 'mapa' ? 'Ver el choque' : 'Volver al mapa';
+  $('b-vista').disabled = animando || finPartida;
+  $('b-ejecutar').disabled = animando || finPartida;
+  $('b-ejecutar').textContent = animando ? 'Se ejecuta…' : 'Ejecutar el turno';
+  actualizarReloj();
+}
+
+// eventos
+tab.addEventListener('click', e => {
+  if (vista !== 'mapa' || animando || finPartida) return;
+  const b = tab.getBoundingClientRect();
+  const c = Math.floor((e.clientX - b.left) / CW), r = Math.floor((e.clientY - b.top) / CH);
+  if (c < 0 || r < 0 || c >= COLS || r >= ROWS) return;
+  toque(c, r);
+});
+$('b-deshacer').onclick = () => { const k = Object.keys(ordenes).pop(); if (k) { delete ordenes[k]; pintar(); } };
+$('b-vista').onclick = () => { vista = vista === 'mapa' ? 'escena' : 'mapa'; seleccion = null; pintar(); };
+$('b-ejecutar').onclick = () => ejecutar();
+$('b-otra').onclick = () => nuevaPartida();
+$('b-mapa').onclick = () => { $('fin').hidden = true; pintar(); };
+
+setInterval(() => {
+  if (pausado || animando || finPartida) return;
+  segundos--;
+  if (segundos <= 0) { ejecutar(); return; }
+  actualizarReloj();
+}, 1000);
+
+// estados de muestra para revisar las pantallas (no los usa el juego)
+function estado(n) {
+  nuevaPartida();
+  pausado = true;
+  if (n === 1) {
+    turno = 2; segundos = 38;
+    ordenes = { E2: { id: 'E2', tipo: 'mover', c: 4, r: 3 }, P2: { id: 'P2', tipo: 'mover', c: 3, r: 5 } };
+    seleccion = 'H1';
+    registro = ['Turno 1: nadie llegó al río.', 'Turno 2: planea tus órdenes.'];
+  }
+  if (n === 2 || n === 3 || n === 4) { avance(); turno = n === 2 ? 3 : n === 3 ? 4 : 7; }
+  if (n === 2) {
+    mover('x8', 7, 3); mover('H3', 7, 4);
+    dados = [{ c: 7, r: 3, t: 25 }, { c: 7, r: 3, polvo: true }];
+    vista = 'escena';
+    registro = ['Turno 2: choque en el vado II.', 'Tirada 25 de 100: gana H3, que tenía 33.'];
+  }
+  if (n === 3) {
+    mover('E1', 8, 4); mover('x8', 7, 3); mover('x9', 7, 4);
+    riesgo = 'E1';
+    registro = ['Turno 2: choque en el vado II. Gana H3.', 'Turno 3: E1 avanza sin cubrirse.', '¡Riesgo! E1 tiene dos enemigos al lado.'];
+  }
+  if (n === 4) {
+    const nuestras = piezas.filter(p => p.bando === 'n').slice(0, 6);
+    const enemigas = piezas.filter(p => p.bando === 'e').slice(0, 9);
+    piezas = [...nuestras, ...enemigas];
+    registro = ['Turno 6: se acaba el plazo.'];
+    terminar();
+  }
+  pintar();
+}
+
+construirTerreno();
+nuevaPartida();
+window.K6c2 = { estado };
+})();
+</script>
+</body>
+</html>
