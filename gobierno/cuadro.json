@@ -958,12 +958,6 @@
  "rama": "claude/roman-strategy-mobile-game-bx9oq2",
  "sesiones": [
   {
-   "tarea": "I6",
-   "titulo": "Gran diseño · I6 Región de Italia",
-   "nota": "data.js, game.js, registro.js, map3d.js, menú",
-   "url": "https://claude.ai/code/session_01QiKC3AdGxZz5tg4QtPCk4Z"
-  },
-  {
    "tarea": "CN4",
    "titulo": "Ciudad nueva · CN4 Colocar con el dedo",
    "nota": "js/ui.js (ciudad), css, index.html, city3d.js (ola 3)",
