@@ -184,9 +184,9 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ✅ H11a (12/11) cotejo hecho: `estudios/H11-cotejo.md` (65 fichas; 8 errores a corregir, el peor Ambracia: 1.000, no 500).
 - ✅ H11b Cotejo aplicado en `js/registro.js` (38 fichas; Plinio y Apiano siguen «por cotejar»). Parte: `gobierno/partes/2026-11-12-H11b.md`.
 - ⬜ (decidido 12/11: va dentro de J4) H11c **Madera naval a Perusia, Clusio y Rusellae** (Livio 28.45): J4 (mapa más grande por regiones) crea esas tres ciudades con su fuente; entonces se mueve el bien en `data.js` y la ficha de Siracusa y Panormus. Mientras, la madera naval sigue donde estaba. Plinio NH 9.127/14.62/31.89 y Apiano Líbica por otra edición.
-- ⬜ H12 **Capua se rebela en 216** (aprobada 11/11, P52): tras Cannas se pasa a Aníbal si no la defiendes bien (Livio 23.2-7). Cambia reglas. ≈0,3 M.
-- ⬜ H13 **Pirro ataca en 280, no en 277** (aprobada 11/11, P53): obliga a reequilibrar el arranque. ≈0,3 M.
-- ⬜ H14 **«Poblado íbero» en el mapa** (aprobada 11/11, P54): Carthago Nova se llama así hasta 228. ≈0,15 M.
+- ✅ H12 Capua se rebela en 216 si no tiene 150 hombres (Livio 23.2-7; la regla es licencia de juego).
+- ✅ H13 Pirro ataca en 280 (llega a los 56 meses; licencia de juego). Bot 10/10 y 0/10.
+- ✅ H14 «Poblado íbero» hasta 228 en el mapa y la Crónica; luego Carthago Nova.
 
 ## Carril D — Técnica
 - ✅ D1 Fluidez medida en el móvil del usuario (11/11): menú, ciudad, calles y ejército a unas 60 imágenes por segundo (peor momento 22 a 28). Mapa y batalla grande, sin medir; el usuario no quiere medir más.
