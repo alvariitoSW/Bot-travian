@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 12/11/2026 — **P95 aprobada**: «Vale pues añade esa mejora ya en otra rama y cuando termines súbela a main y cierra sesion». Pasa al tablero como C6. (Lectura de Claude: se construye en la rama `claude/c6-mapa-escalones` después de I6, se une a la rama del juego con los jueces en APTO y `main` se pone al día con ella.)
 - 12/11/2026 — **Kit de mapas three-scope-map**: «Instala este repositorio para que nos sirva para las regiones» (github.com/songsummer920-dazzle/three-scope-map-skill). Explicado que la licencia no es libre, que es Vue o React compilado y que trae mapas de China; eligió «A, b y C». (Lectura de Claude: A, la idea de bajar de nivel apuntada en J4 y C1; B, estudio `estudios/R20-niveles-de-mapa.md` y propuesta P95; C, copia de consulta en `.claude/skills/three-scope-map/`, sin plantillas, mapas ni scripts, con su licencia y avisos, y sin entrar en el juego.)
 - 12/11/2026 — **Madera naval: «Crearlas con J4»** (respuesta en el chat a la pregunta de H11b): Perusia, Clusio y Rusellae no existen en el mapa; se crean dentro de J4 (mapa más grande por regiones) y entonces la madera naval pasa a ellas. Mientras, queda en Siracusa y Panormus. H11b hecha (cotejo aplicado en 38 fichas, `6b24358`).
 - 12/11/2026 — **Aprueba P93 y P94** (en el chat, tras ver el cuadro): «Apruebo ambas y que lo de ciencia sea más elaborado como lo que se investigue y las mejoras y que esté todo balanceado para no ser el jugador más chetado tan fácil pero que sean algo ingenioso». (Lectura de Claude: P94 pasa al tablero como C5, el botón de mapamundi, después de J4. P93 pasa a I5b, el edificio de ciencia con ciudadanos trabajando, pero mucho más elaborado que la propuesta mínima: un sistema de investigación con mejoras que se eligen, equilibrado para que no se pueda acaparar todo (costes, ciudadanos que dejan de producir, elecciones que se excluyen), e ingenioso, con ideas de la época. Un estudio de diseño lo concreta antes de construir: `gobierno/estudios/P93-ciencia.md`.)
@@ -115,7 +116,6 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 ## Esperando algo del usuario
 
 ## Propuestas por aprobar
-- P95 **Mapa por escalones: Mare Nostrum › región › ciudad** (estudio R20, 12/11; ≈0,8 M la versión mínima): tocar una región acerca la cámara y enseña sus ciudades, con migas «Mare Nostrum › Italia › Roma» y «← volver» al encuadre exacto; el pellizco libre se queda. Va después de I6 y dentro de J4; la bajada a la ciudad 3D es C1.
 
 
 ## Encargo en curso (11/11/2026, noche)
