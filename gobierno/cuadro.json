@@ -892,12 +892,6 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "CN2",
-      "titulo": "Ciudad nueva · CN2 Guardado y economía",
-      "nota": "js/game.js, js/data.js (ola 1)",
-      "url": "https://claude.ai/code/session_01QiKC36zNMYSGs5BSJFX5Y9"
-    },
-    {
       "tarea": "N15",
       "titulo": "Guerra · N15 Equilibrio y objetivos",
       "nota": "js/battle.js, battle3d.js, batalla en ui.js (vía Guerra)",
