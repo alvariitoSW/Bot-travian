@@ -49,7 +49,7 @@
   const cuartoDisp = r => { const s = G.state; return Math.max(0, Math.min((s.cuarto && s.cuarto[r]) || 0, (s.alm && s.alm[r]) || 0)); };
   G.disponible = r => Math.max(0, G.state.res[r] || 0) + cuartoDisp(r);
   // gasta n de r: primero la caja, luego el cuarto del almacén
-  function gasta(r, n) { const s = G.state, de = Math.min(n, Math.max(0, s.res[r])); s.res[r] -= de; const resto = n - de; if (resto > 0) { s.alm[r] = Math.max(0, s.alm[r] - resto); s.cuarto[r] = Math.max(0, (s.cuarto[r] || 0) - resto); } }
+  function gasta(r, n, sinCuenta) { const s = G.state, de = Math.min(n, Math.max(0, s.res[r])); if (!sinCuenta && s.gastoMes) s.gastoMes[r] = (s.gastoMes[r] || 0) + de; /* solo cuenta lo salido de la caja */ s.res[r] -= de; const resto = n - de; if (resto > 0) { s.alm[r] = Math.max(0, s.alm[r] - resto); s.cuarto[r] = Math.max(0, (s.cuarto[r] || 0) - resto); } }
   G.gasta = gasta;
   G.canAfford = c => { for (const r in c) if (G.disponible(r) < c[r]) return false; return true; };
   const pay = c => { for (const r in c) gasta(r, c[r]); };
@@ -88,20 +88,21 @@
 
   G.prod = function () {
     const s = G.state, p = { madera: 0, piedra: 0, hierro: 0, grano: 0, oro: 0 };
-    let up = 0; const ocm = G.bonoMul('oroCom'), imm = G.bonoMul('impuestos');
+    let up = 0, comPop = 0; const det = { impuestos: 0, foro: 0 }; const ocm = G.bonoMul('oroCom'), imm = G.bonoMul('impuestos');
     for (const id of G.myCities()) {
       const c = s.cities[id];
       const rp = G.repartoDe(c);
       const mo = G.manoObra(c) * G.inqMul(c), tp = G.tipoDe(c), rm = tp.rec || 1, dg = G.diosDe(c), cer = dg && dg.grano ? 1 + dg.grano * G.diosNivel(c) : 1;
       p.madera += (4 + G.rate(c.b.aserradero)) * rp.madera / 5 * mo * rm; p.piedra += (4 + G.rate(c.b.cantera)) * rp.piedra / 5 * mo * rm; p.hierro += (4 + G.rate(c.b.mina)) * rp.hierro / 5 * mo * rm; p.grano += (6 + G.rate(c.b.granja)) * rp.grano / 5 * mo * rm * cer;
-      p.oro += (G.rate(c.b.foro) * 0.5 + 5 * (c.b.puerto || 0)) * (tp.oroCom || 1) * ocm + (c.pop || 0) * 0.03 * G.impMult(c) * imm + ((tp.oroPuerto || 0) + (dg && dg.oroPuerto ? dg.oroPuerto * G.diosNivel(c) : 0)) * (c.b.puerto || 0);   // foro + impuestos de la población + comercio del puerto
-      p.grano -= (c.pop || 0) * 0.02;
+      const oF = (G.rate(c.b.foro) * 0.5 + 5 * (c.b.puerto || 0)) * (tp.oroCom || 1) * ocm, oI = (c.pop || 0) * 0.03 * G.impMult(c) * imm, oP = ((tp.oroPuerto || 0) + (dg && dg.oroPuerto ? dg.oroPuerto * G.diosNivel(c) : 0)) * (c.b.puerto || 0);
+      p.oro += oF + oI + oP; det.foro += oF + oP; det.impuestos += oI;   // foro + impuestos de la población + comercio del puerto
+      p.grano -= (c.pop || 0) * 0.02; comPop += (c.pop || 0) * 0.02;
       for (const k in c.units) up += c.units[k] * D.UNITS[k].up;
     }
     for (const m of s.marches) if (m.owner === 'roma') for (const k in m.units) up += m.units[k] * D.UNITS[k].up;
-    p.grano -= up; p.upkeep = up;
+    p.grano -= up; p.upkeep = up; p.comida = comPop + up; p.det = det;
     p.rutas = 0; for (const r of G.rutasAbiertas()) p.rutas += G.rutaRenta(r);
-    p.oro += p.rutas;
+    p.oro += p.rutas; det.rutas = p.rutas;
     p.mant = G.mantenimiento(); p.oro -= p.mant.total;
     return p;
   };
@@ -189,7 +190,7 @@
     const s = G.state, rate = G.tradeRate(); amount = Math.floor(Math.min(amount, from in s.res ? G.disponible(from) : 0));
     if (!rate || from === to || amount <= 0 || !(from in s.res) || !(to in s.res)) return 0;
     const got = Math.min(Math.floor(amount * rate), Math.max(0, G.cap() - s.res[to])); if (got <= 0) return 0;
-    gasta(from, Math.ceil(got / rate)); s.res[to] += got; return got;
+    gasta(from, Math.ceil(got / rate), true); s.res[to] += got; return got;   // vender no cuenta como gasto del mes
   };
 
   G.travel = function (a, b, withHero) {
@@ -216,7 +217,7 @@
     G.turnos = false;   // la interfaz lo activa después; las pruebas y el bot siguen en tiempo continuo
     const s = {
       v: 1, t: 0, speed: 1, res: { madera: 400, piedra: 400, hierro: 400, grano: 400, oro: 200 },
-      alm: { madera: 0, piedra: 0, hierro: 0, grano: 0, oro: 0 }, cuarto: { madera: 0, piedra: 0, hierro: 0, grano: 0, oro: 0 }, gan: { madera: 0, piedra: 0, hierro: 0, grano: 0, oro: 0 }, informe: [],
+      alm: { madera: 200, piedra: 200, hierro: 200, grano: 200, oro: 0 }, cuarto: { madera: 50, piedra: 50, hierro: 50, grano: 50, oro: 0 }, gastoMes: { madera: 0, piedra: 0, hierro: 0, grano: 0, oro: 0 }, gan: { madera: 0, piedra: 0, hierro: 0, grano: 0, oro: 0 }, informe: [],
       cities: {}, rutas: [], marches: [], log: [], ev: {}, pending: [], over: null, mid: 1,
       mods: { sea: 1, flex: 0 }, forja: { armas: 0, armaduras: 0, cola: null }, stats: { battles: 0, wins: 0, kills: 0, lost: 0 },
       hero: { name: heroName || 'Lucio Cornelio Escipión', lvl: 1, xp: 0, pts: 1, sk: { mando: 0, disc: 0, log: 0 }, city: 'roma', march: null, wound: 0 }
@@ -481,19 +482,44 @@
     for (const r of D.RES) { const sobra = Math.max(0, s.res[r] + p[r] * rem), cabe = Math.max(0, cap - s.alm[r]); out[r] = { sobra: Math.floor(sobra), cabe: Math.floor(cabe), perdera: Math.max(0, Math.floor(sobra - cabe)) }; }
     return out;
   };
-  // avisos de lo que se va a perder (solo con el mes avanzado)
-  G.avisoCierre = function () {
-    const s = G.state, out = []; if (!s || G.fraccionMes() < D.AVISO_CIERRE) return out;
+  // avisos de lo que se va a perder (solo con el mes avanzado; con completo=true, también al inicio: previsión del mes entero)
+  G.avisoCierre = function (completo) {
+    const s = G.state, out = []; if (!s || (!completo && G.fraccionMes() < D.AVISO_CIERRE)) return out;
     const NOM = { madera: 'Madera', piedra: 'Piedra', hierro: 'Hierro', grano: 'Grano', oro: 'Oro' }, pr = G.previsionCierre();
-    for (const r of D.RES) if (pr[r].perdera >= 1) out.push(NOM[r] + ': sobran ' + pr[r].sobra + ', caben ' + pr[r].cabe + ', se perderán ' + pr[r].perdera + '.');
+    for (const r of D.RES) if (pr[r].perdera >= 1) out.push(NOM[r] + ': sobran ' + pr[r].sobra + ', caben ' + pr[r].cabe + ', se perderán ' + pr[r].perdera + (completo ? ' si no lo gastas.' : '.'));
     return out;
+  };
+  /* ---------- cuentas del mes (Q3) ---------- */
+  G.cuentas = function () {
+    const s = G.state, p = G.prod(), pr = G.previsionCierre(), out = { mat: {}, oro: {} };
+    for (const r of D.RES) { if (r === 'oro') continue;
+      const comp = r === 'grano' ? p.comida : (s.gastoMes && s.gastoMes[r]) || 0,   /* gasto de la caja del mes; queda es la previsión de cierre (incluye caja inicial y ventas), no entra-comprometido */
+         entra = r === 'grano' ? p.grano + p.comida : p[r], x = pr[r];
+      out.mat[r] = { entra: entra, comprometido: comp, queda: x.sobra, alAlmacen: Math.max(0, x.sobra - x.perdera), caben: x.cabe, perdera: x.perdera };
+    }
+    const m = G.mantenimiento(), ob = (s.gastoMes && s.gastoMes.oro) || 0, d = p.det, ing = d.impuestos + d.foro + d.rutas, gas = m.edificios + m.tropas + ob;
+    out.oro = { impuestos: d.impuestos, foro: d.foro, rutas: d.rutas, ingresos: ing, edificios: m.edificios, legiones: m.tropas, obras: ob, gastos: gas, saldo: ing - gas, neto: p.oro };
+    return out;
+  };
+  // vende en el mercado lo que se perdería de r; devuelve el oro recibido (0 si no se puede)
+  G.ultimaVenta = { got: 0, vendido: 0, quedara: 0, motivo: '' };
+  G.venderSobrante = function (r) {
+    const U = G.ultimaVenta = { got: 0, vendido: 0, quedara: 0, motivo: '' }, s = G.state;
+    if (!s || r === 'oro' || !(r in s.res)) { U.motivo = 'invalido'; return 0; }
+    const rate = G.tradeRate(); if (!rate) { U.motivo = 'sinmercado'; return 0; }
+    const per = G.previsionCierre()[r].perdera; if (per < 1) { U.motivo = 'sinsobrante'; return 0; }
+    const hueco = Math.max(0, G.cap() - s.alm.oro - s.res.oro); if (hueco < 1) { U.motivo = 'orolleno'; U.quedara = per; return 0; }
+    const dar = Math.min(per, Math.floor(s.res[r]), Math.floor(hueco / rate)); if (dar < 1) { U.motivo = s.res[r] < 1 ? 'sincaja' : 'orolleno'; U.quedara = per; return 0; }
+    const got = G.trade(r, 'oro', dar); U.got = got; U.vendido = dar; U.quedara = G.previsionCierre()[r].perdera;
+    U.motivo = !got ? 'orolleno' : U.quedara >= 1 ? 'parcial' : 'ok';
+    return got;
   };
   // cierra el mes: lo que sobra de la caja pasa al almacén hasta su tope; el resto se pierde
   G.cierreMes = function () {
     const s = G.state, cap = G.cap(), reg = { mes: Math.floor(s.t + 1e-9), tn: Math.floor((Math.floor(s.t + 1e-9) - 1) / D.TURNO_MESES), r: {} }; let pierde = [];
     for (const r of D.RES) {
       const sobra = Math.max(0, s.res[r]), cabe = Math.max(0, cap - s.alm[r]), guarda = Math.min(sobra, cabe), per = sobra - guarda;
-      s.alm[r] += guarda; s.res[r] = 0; s.cuarto[r] = Math.floor(s.alm[r] * D.CUARTO_ALMACEN);
+      s.alm[r] += guarda; s.res[r] = 0; s.gastoMes[r] = 0; s.cuarto[r] = Math.floor(s.alm[r] * D.CUARTO_ALMACEN);
       reg.r[r] = { gan: Math.round(s.gan[r]), sob: Math.round(sobra), gua: Math.round(guarda), per: Math.round(per) }; s.gan[r] = 0;
       if (per >= 1) pierde.push(Math.round(per) + ' de ' + r);
     }
@@ -521,7 +547,7 @@
     for (const r of ['grano', 'oro']) if (p[r] < 0 && (s.res[r] + s.alm[r]) / -p[r] < 3) out.push({ k: 'bad', x: (r === 'grano' ? 'El grano' : 'El oro') + ' se acaba en ' + Math.max(1, Math.ceil((s.res[r] + s.alm[r]) / -p[r])) + ' mes(es).' });
     const sin = mis.filter(id => !s.cities[id].queue).map(id => D.CITIES[id].n);
     if (sin.length) { out.push({ k: '', x: 'Sin obras en cola: ' + sin.slice(0, 3).join(', ') + (sin.length > 3 ? '…' : '') + '.' }); rec = rec || 'Pon a trabajar a los constructores.'; }
-    for (const x of G.avisoCierre()) out.push({ k: 'bad', x: x });
+    for (const x of G.avisoCierre(G.turnos)) out.push({ k: 'bad', x: x });
     const llenos = D.RES.filter(r => s.alm[r] >= cap - 1);
     if (llenos.length) out.push({ k: '', x: 'Almacén lleno: ' + llenos.join(', ') + '. Gasta o amplía.' });
     const l = [head].concat(out.slice(0, 3));
@@ -629,7 +655,7 @@
   // partida vieja sin caja: los recursos pasan al almacén hasta el tope y el resto queda en la caja (no se pierde nada)
   G.migrarCaja = function (s) {
     const cero = () => { const o = {}; for (const r of D.RES) o[r] = 0; return o; };
-    if (!s.gan) s.gan = cero(); if (!s.informe) s.informe = [];
+    if (!s.gastoMes) s.gastoMes = cero(); if (!s.gan) s.gan = cero(); if (!s.informe) s.informe = [];
     if (!s.alm || !s.cuarto) {
       s.alm = cero(); s.cuarto = cero(); const antes = G.state; G.state = s; const cap = G.cap(); G.state = antes;
       for (const r of D.RES) { const v = Math.max(0, s.res[r] || 0), g = Math.min(v, cap); s.alm[r] = g; s.res[r] = v - g; s.cuarto[r] = Math.floor(g * D.CUARTO_ALMACEN); }

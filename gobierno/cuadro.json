@@ -531,6 +531,16 @@
    "archivo": "gobierno/capturas-tarea/N2-informe.jpg",
    "pie": "Batalla por rondas: «Lo que pasó» y Ver otra vez",
    "ancha": true
+  },
+  {
+   "tarea": "Q3",
+   "archivo": "gobierno/capturas-tarea/Q3-1-cuentas.jpg",
+   "pie": "Ficha Cuentas con aviso, Vender y Adelantar obra"
+  },
+  {
+   "tarea": "Q3",
+   "archivo": "gobierno/capturas-tarea/Q3-2-sin-mercado.jpg",
+   "pie": "Sin mercado: Vender apagado"
   }
  ],
  "informes": [

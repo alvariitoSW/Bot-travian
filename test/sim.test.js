@@ -564,7 +564,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   s.pending.push({ kind: 'attack', m: s.marches.shift() }); const res = { winner: 0, dead: [5, 20], surv: [{ hastati: 35 }, {}], lost: [{ hastati: 5 }, { hastati: 20 }], genDead: [false, false] };
   const prev = c.owner, antes = s.res.madera, bo = G.botin(o), out = G.applyBattle(res);
   assert(c.owner === prev && out.saqueo && s.res.madera === antes + bo.madera, 'el saqueo da botín y no conquista'); assert(s.cities.roma.units.hastati >= 15 + 35, 'las tropas vuelven a casa'); assert(G.botin(o).madera < bo.madera, 'una ciudad recién saqueada da menos'); }
-{ const s = G.newGame('Robo'); s.res = { madera: 1000, piedra: 1000, hierro: 1000, grano: 1000, oro: 1000 }; const c = s.cities.roma; c.b.almacen = 0; c.units = { hastati: 10 };
+{ const s = G.newGame('Robo'); s.res = { madera: 1000, piedra: 1000, hierro: 1000, grano: 1000, oro: 1000 }; for (const r of D.RES) { s.alm[r] = 0; s.cuarto[r] = 0; } const c = s.cities.roma; c.b.almacen = 0; c.units = { hastati: 10 };
   const m = { id: 99, owner: 'cartago', from: 'carthago', to: 'roma', units: { libios: 50 }, mision: 'saqueo', t0: 0, t1: 1 }; s.pending.push({ kind: 'defense', m });
   G.applyBattle({ winner: 1, dead: [10, 0], surv: [{}, { libios: 50 }], lost: [{ hastati: 10 }, {}], genDead: [false, false] });
   assert(c.owner === 'roma' && !s.over && s.res.madera === 800, 'te saquean el 20 % y Roma no cae');
@@ -679,4 +679,37 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
     g.ejecutar(); g.step(0.05); assert(gq.order && gq.order.k === 'quieto', 'si lo cargan, aguanta y deja de avanzar');
     const h = mk2([{ hastati: 60 }, { libios: 60 }]), hq = h.regs.find(x => x.side === 0), y0 = hq.y; hq.order = { k: 'move', x: hq.x, y: hq.y - 200 }; assert(h.condicion(hq, 'espera') && hq.order.cond === 'espera'); h.ejecutar(); for (let i = 0; i < 190; i++) h.step(0.05); assert(Math.abs(hq.y - y0) < 1, 'espera: no se mueve en los primeros 9,5 s'); for (let i = 0; i < 100; i++) h.step(0.05); assert(hq.y < y0 - 20, 'y después avanza'); }
 }
+/* Cuentas del mes (Q3) */
+{ const s = G.newGame('Cuentas'); G.turnos = false;
+  // colchón inicial
+  for (const r of ['madera', 'piedra', 'hierro', 'grano']) { assert.strictEqual(s.alm[r], 200, 'colchón de almacén ' + r); assert.strictEqual(s.cuarto[r], 50, 'cuarto inicial ' + r); }
+  assert.strictEqual(G.disponible('madera'), s.res.madera + 50, 'el primer mes ya hay cuarto que sacar');
+  // las cuentas cuadran con G.prod
+  const p = G.prod(), c = G.cuentas(), o = c.oro, m = G.mantenimiento();
+  assert(Math.abs(o.impuestos + o.foro + o.rutas - o.edificios - o.legiones - p.oro) < 1e-9, 'ingresos menos mantenimiento = G.prod().oro');
+  assert(Math.abs(o.saldo - (p.oro - 0)) < 1e-9, 'sin obras gastadas el saldo es el neto');
+  for (const r of ['madera', 'piedra', 'hierro']) assert(Math.abs(c.mat[r].entra - p[r]) < 1e-9);
+  assert(Math.abs(c.mat.grano.entra - c.mat.grano.comprometido - p.grano) < 1e-9, 'grano: entra menos comida = producción neta');
+  // gastar apunta en gastoMes; vender no; el cierre lo pone a 0
+  const g0 = s.gastoMes.madera; G.gasta('madera', 30); assert.strictEqual(s.gastoMes.madera, g0 + 30); assert.strictEqual(G.cuentas().mat.madera.comprometido, g0 + 30);
+  G.gasta('oro', 12); assert.strictEqual(G.cuentas().oro.obras, 12); assert(Math.abs(G.cuentas().oro.saldo - (p.oro - 12)) < 1e-9, 'las obras restan del saldo');
+  // venta del sobrante
+  s.res.madera = 1e4; s.alm.madera = G.cap() - 100; const per = G.previsionCierre().madera.perdera; assert(per > 0);
+  s.cities.roma.b.mercado = 0; for (const id of G.myCities()) s.cities[id].b.mercado = 0; assert.strictEqual(G.venderSobrante('madera'), 0, 'sin mercado no se vende');
+  s.cities.roma.b.mercado = 2; const gm = s.gastoMes.madera, oro0 = s.res.oro, got = G.venderSobrante('madera');
+  assert(got > 0 && s.res.oro === oro0 + got, 'se cobra en oro'); assert(G.previsionCierre().madera.perdera < per, 'se pierde menos'); assert.strictEqual(s.gastoMes.madera, gm, 'vender no es gastar');
+  assert.strictEqual(G.venderSobrante('oro'), 0);
+  G.cierreMes(); assert.strictEqual(s.gastoMes.madera, 0, 'el cierre pone el gasto a cero'); }
+{ // migración: partida sin gastoMes
+  const s = G.newGame('Mig'); delete s.gastoMes; G.state = s; G.migrarCaja(s); assert.strictEqual(s.gastoMes.madera, 0); assert.strictEqual(s.gastoMes.oro, 0); G.cuentas(); }
+{ // consejo en turnos avisa de la pérdida del mes entero
+  const s = G.newGame('Consejo'); G.turnos = true; s.t = 3; s.res.madera = 0; s.alm.madera = G.cap() - 10; s.cities.roma.b.almacen = 0;
+  assert(G.consejo().concat(G.avisoCierre(true).map(x => ({ x }))).some(q => /Madera: sobran/.test(q.x)), 'avisa con el mes completo'); G.turnos = false; }
+{ // Q3 arreglos: gasto solo de caja, venta limitada por el hueco de oro y venta parcial
+  const s = G.newGame('Q3b'); G.turnos = false; for (const id of G.myCities()) s.cities[id].b.mercado = 3;
+  s.res.madera = 10; s.alm.madera = 1000; s.cuarto.madera = 250; G.gasta('madera', 100); assert.strictEqual(s.gastoMes.madera, 10, 'el cuarto del almacén no cuenta como gasto del mes');
+  s.res.madera = 1e4; s.alm.madera = G.cap() - 100; s.res.oro = G.cap(); s.alm.oro = 0; assert.strictEqual(G.venderSobrante('madera'), 0); assert.strictEqual(G.ultimaVenta.motivo, 'orolleno', 'oro lleno: causa real');
+  s.res.oro = G.cap() - 40; const got = G.venderSobrante('madera'); assert(got > 0 && got <= 40 && s.res.oro <= G.cap(), 'el cobro no crea pérdida de oro'); assert.strictEqual(G.ultimaVenta.motivo, 'parcial', 'venta parcial con aviso');
+  s.res.oro = 0; s.res.madera = 5; s.alm.madera = G.cap() - 100; s.t = 0.1; const sp = G.prod().madera; // la pérdida depende de producción futura
+  const g2 = G.venderSobrante('madera'); assert(G.ultimaVenta.vendido <= 5, 'solo vende lo que hay en caja'); if (G.previsionCierre().madera.perdera >= 1) assert.strictEqual(G.ultimaVenta.motivo, 'parcial'); }
 console.log('OK — todas las pruebas superadas');
