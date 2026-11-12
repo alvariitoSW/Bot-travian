@@ -230,6 +230,18 @@ async function navegador() {
       const ok = await estado(() => !!Game.state && Game.state.stats.battles >= 1 && !UI.menu);
       return { ok: ok && modelos, detalle: !ok ? 'la partida guardada no se recuperó' : modelos ? 'partida y modelos disponibles sin conexión' : 'la partida vuelve, pero los modelos 3D no cargan sin red', captura: await foto('sin-red') };
     });
+
+    await paso('Región de Italia: mapa con 7 ciudades', async () => {
+      await page.evaluate(() => Game.save());
+      await page.reload({ waitUntil: 'load' });
+      await page.waitForSelector('#menu [data-act="newregion"]', { timeout: 30000 });
+      await page.waitForFunction(() => window.UI && window.UI.map, null, { timeout: 60000 }).catch(() => { });
+      await page.click('#menu [data-act="newregion"]'); await espera(3500); await cierraAvisos();
+      await page.evaluate(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('[data-act="menumodo"]').click(); document.querySelector('[data-act="menumodo"]').click(); document.querySelector('[data-act="modo"][data-v="guerra"]').click(); }); await espera(2500);
+      const r = await estado(() => ({ reg: Game.regionId(), vis: UI.map ? Object.keys(UI.map.cities).filter(i => UI.map.cities[i].grp.visible && Game.state.cities[i]).length : -1, fantasmas: UI.map ? Object.keys(UI.map.cities).filter(i => UI.map.cities[i].grp.visible && !Game.state.cities[i]).length : 0, rutas: UI.map ? UI.map.aristas.filter(e => e.line.visible).length : -1 }));
+      const ok = r.reg === 'italia' && r.vis === 7 && r.fantasmas === 0;
+      return { ok, detalle: ok ? '7 ciudades visibles, ' + r.rutas + ' rutas' : 'región ' + r.reg + ', visibles ' + r.vis + ', fantasmas ' + r.fantasmas, captura: await foto('italia') };
+    });
   } finally {
     await br.close().catch(() => { }); srv.close();
   }

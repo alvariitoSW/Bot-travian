@@ -71,6 +71,21 @@ for (const tipo of Object.keys(R.tipos)) {
   console.log((fallos.length === antes ? '  ✔ ' : '  ✘ ') + tipo.padEnd(9) + nf + ' fichas · ' + np + ' piezas en data.js');
 }
 
+// Regiones (I6): ciudades y rutas existen, Roma está, la capital rival está dentro y los hechos existen en D.EVENTS
+for (const id of Object.keys(D.REGIONES || {})) {
+  const r = D.REGIONES[id], antes = fallos.length, ciu = r.ciudades || Object.keys(D.CITIES);
+  for (const c of ciu) if (!D.CITIES[c]) fallos.push('región «' + id + '»: la ciudad «' + c + '» no existe en D.CITIES');
+  if (!ciu.includes('roma')) fallos.push('región «' + id + '»: falta Roma');
+  if (!ciu.includes(r.capitalRival) || r.capitalRival === 'roma') fallos.push('región «' + id + '»: capitalRival «' + r.capitalRival + '» debe estar dentro de la región y no ser Roma');
+  if (r.hechos) for (const y of r.hechos) if (!D.EVENTS.some(e => e.y === y)) fallos.push('región «' + id + '»: el hecho del año ' + y + ' no existe en D.EVENTS');
+  if (!r.final || !esTxt(r.final.gana) || !esTxt(r.final.agota)) fallos.push('región «' + id + '»: faltan los textos final.gana / final.agota');
+  if (!(r.hasta < D.START_YEAR)) fallos.push('región «' + id + '»: hasta debe ser un año posterior a ' + D.START_YEAR + ' a.C.');
+  const ar = D.regionEdges(id); if (!ar.length) fallos.push('región «' + id + '»: sin rutas');
+  const vistos = new Set(['roma']); for (let ch = true; ch;) { ch = false; for (const e of ar) { if (vistos.has(e[0]) !== vistos.has(e[1])) { vistos.add(e[0]); vistos.add(e[1]); ch = true; } } }
+  for (const c of ciu) if (!vistos.has(c)) fallos.push('región «' + id + '»: la ciudad «' + c + '» no se alcanza desde Roma por sus rutas');
+  console.log((fallos.length === antes ? '  ✔ ' : '  ✘ ') + 'región ' + id + ': ' + ciu.length + ' ciudades · ' + ar.length + ' rutas');
+}
+
 console.log('Resumen: ' + cuenta.cotejar + ' por cotejar · ' + cuenta.licencia + ' licencia de juego · ' + cuenta.historico + ' históricas · ' + cuenta.probable + ' probables · '
   + cuenta.provisional + ' con arte provisional · ' + cuenta.localizar + ' por localizar · ' + cuenta.sinModelo + ' sin modelo (ciudades, hechos, facciones, mejoras)');
 console.log(fallos.length ? 'FICHAS: NO APTO\n  ✘ ' + fallos.join('\n  ✘ ') : 'FICHAS: APTO');

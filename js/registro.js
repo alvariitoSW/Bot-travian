@@ -164,7 +164,14 @@
     pieles: f(SIN_T, h("Estrabón 5.1.8; Estrabón 5.1.12", "licencia de juego", "Estrabón cuenta que en Aquileya se comerciaban esclavos, ganado y pieles (5.1.8) y que la llanura del Po era rica en ganado (5.1.12). No nombra pieles de Mediolanum ni de Ambracia" + MEC))
   };
 
-  R.fichas = { edificio, tropa, ciudad, hecho, mision, faccion, mejora, tipo, especial };
+  // ---- Regiones (D.REGIONES, I6). Se casan por id. Qué ciudades entran y el corte de fechas son licencia de juego. ----
+  const SIN_REG = { sin: 'una región es una ficha de datos; no tiene modelo 3D' };
+  const region = {
+    mediterraneo: f(SIN_REG, h('Polibio 1.1-3 (de 264 a 146 a.C.); Livio, Períocas 51', 'historico', 'la campaña entera de 280 a 146 a.C. con todas las ciudades del mapa; la caída de Cartago en 146 a.C. es el cierre histórico', 'Roma contra Cartago por el dominio del Mediterráneo, de Pirro a la destrucción de Cartago.')),
+    italia: f(SIN_REG, h('Plutarco, Pirro 13-25; Polibio 1.6-7 y 2.14-35', 'licencia de juego', 'campaña corta en la península y Sicilia oriental contra Tarento (cayó en 272); Tarentum sigue de Epiro, Volsinii etrusca y Mediolanum gala, y la fecha de corte es de jugabilidad', 'La Italia de Pirro: Roma contra Tarento, la ciudad que llamó al rey del Epiro.'))
+  };
+
+  R.fichas = { edificio, tropa, ciudad, hecho, mision, region, faccion, mejora, tipo, especial };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -173,6 +180,7 @@
     tropa: { tabla: 'UNITS', numericos: ['atk', 'def', 'spd', 'mor', 'up'], textos: ['n', 'cls'], segunClase: { rng: ['ratk', 'range'] } },
     ciudad: { tabla: 'CITIES', numericos: ['lon', 'lat', 'w', 'wl'], mapas: ['g'], textos: ['n', 'f'] },
     hecho: { tabla: 'EVENTS', lista: true, numericos: ['y'], textos: ['t', 'x'] },
+    region: { tabla: 'REGIONES', numericos: ['hasta'], textos: ['n', 'capitalRival'] },
     mision: { tabla: 'MISIONES', numericos: ['desde', 'plazo'], textos: ['n', 'texto'] },
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },
     mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },
@@ -194,6 +202,7 @@
     ciudad: { arte: { sin: 'sin modelo propio: usa la escena común de la ciudad (city3d.js)' }, historia: { fuente: '<autor antiguo y pasaje, p. ej. Polibio 1.7-11>', dictamen: 'por cotejar' } },
     tropa: { arte: ARTE_TROPA, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } },
     edificio: { arte: { modelo: 'assets/static/<id>.bin', licencia: 'CC BY-SA 3.0', credito: 'Wildfire Games (0 A.D.)' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } },
+    region: { arte: { sin: 'una región es una ficha de datos; no tiene modelo 3D' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } },   // el id es el de D.REGIONES
     hecho: { arte: { sin: 'un hecho no tiene modelo 3D' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } }   // el id es «<año>-<clave>»; el año casa con D.EVENTS
   };
 

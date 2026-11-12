@@ -160,10 +160,11 @@ export class MapView3D {
     }
     trees.count = tn; sc.add(trees);
     // --- rutas ---
+    this.aristas = [];
     for (const e of D.EDGES) {
       const pts = trazo(this, G.pos(e[0]), G.pos(e[1]), 0.08);
       const geo = new THREE.BufferGeometry().setFromPoints(pts), line = new THREE.Line(geo, new THREE.LineDashedMaterial({ color: e[2] ? '#e8f6ff' : '#5a3418', dashSize: e[2] ? 0.35 : 0.6, gapSize: e[2] ? 0.5 : 0.3, transparent: true, opacity: e[2] ? 0.55 : 0.85 }));
-      line.computeLineDistances(); sc.add(line);
+      line.computeLineDistances(); sc.add(line); this.aristas.push({ a: e[0], b: e[1], line: line });
     }
     // --- ciudades ---
     this.cities = {};
@@ -240,16 +241,21 @@ export class MapView3D {
     if (this.labels.scrollLeft || this.labels.scrollTop) { this.labels.scrollLeft = 0; this.labels.scrollTop = 0; }
     for (const id in this.cities) {
       const c = this.cities[id], st = state.cities[id];
+      if (!st) { c.grp.visible = false; c.el.style.display = 'none'; continue; }   // ciudad que no es de esta región: ni modelo ni etiqueta
+      c.grp.visible = true;
       if (c.owner !== st.owner) { c.owner = st.owner; c.quiere = claveCentro(st.owner); const col = D.FACTIONS[st.owner].col; c.flag.color.set(col); c.dot.style.background = col; c.el.classList.toggle('mine', st.owner === 'roma'); }
       if (c.quiere !== c.puesto) this.ponerCentro(c);
       c.ring.visible = sel === id; if (sel === id) c.ring.rotation.z = this.t * 0.8;
       const txt = (state.hero.city === id ? '🦅 ' : '') + G.men(st.units); if (c.txt !== txt) { c.txt = txt; c.em.textContent = txt; }
       c.el.classList.toggle('sel', sel === id); place(c.el, c.x, c.grp.position.y + c.top, c.z);
     }
+    const ar = new Set(G.aristas().map(e => e[0] + '|' + e[1]));
+    for (const e of this.aristas) e.line.visible = ar.has(e.a + '|' + e.b) && !!state.cities[e.a] && !!state.cities[e.b];
     // rutas comerciales: trazo dorado y un mercante que va y viene (una malla por ruta)
     if (!this.rutaObj) { this.rutaObj = new Map(); this.rutaMat = { oro: new THREE.LineBasicMaterial({ color: '#f2c14e' }), casco: new THREE.MeshLambertMaterial({ color: '#7a4a22', flatShading: true }), vela: new THREE.MeshLambertMaterial({ color: '#f1e6c8', side: THREE.DoubleSide, flatShading: true }), carro: new THREE.MeshLambertMaterial({ color: '#b98a3c', flatShading: true }) }; }
     const vistas = new Set();
     for (const r of (state.rutas || [])) {
+      if (!state.cities[r.a] || !state.cities[r.b]) continue;
       const k = r.a + '|' + r.b; vistas.add(k); let o = this.rutaObj.get(k);
       if (!o) {
         const mar = G.rutaMar(r), pa = G.pos(r.a), pb = G.pos(r.b), pts = trazo(this, pa, pb, 0.11);
@@ -264,6 +270,7 @@ export class MapView3D {
     for (const [k, o] of this.rutaObj) if (!vistas.has(k)) { this.scene.remove(o.linea, o.g); o.linea.geometry.dispose(); o.g.traverse(m => { if (m.geometry) m.geometry.dispose(); }); this.rutaObj.delete(k); }
     const seen = new Set();
     for (const m of state.marches) {
+      if (!state.cities[m.to] || (m.from && !state.cities[m.from])) continue;
       seen.add(m.id); let a = this.armies.get(m.id); if (!a) { a = this.armyModel(m); this.armies.set(m.id, a); }
       const p0 = m.fromXY || G.pos(m.from), p1 = G.pos(m.to), f = Math.max(0, Math.min(1, (state.t - m.t0) / (m.t1 - m.t0))), x = (p0[0] + (p1[0] - p0[0]) * f) * K, z = (p0[1] + (p1[1] - p0[1]) * f) * K, y = Math.max(0.04, this.hAt(x, z));
       a.grp.position.set(x, y, z); a.grp.rotation.y = Math.atan2(p1[0] - p0[0], p1[1] - p0[1]);
@@ -277,6 +284,8 @@ export class MapView3D {
     this.r.render(this.scene, this.cam);
   }
 
+  /* Centra y acerca la cámara según la ficha de la región (lon, lat, zoom) */
+  encuadre() { const r = G.region(), cm = r && r.camara; if (!cm) return; const p = D.proj(cm.lon, cm.lat); this.c.x = p[0] * K; this.c.z = p[1] * K; this.c.dist = 46 * (cm.zoom || 1); this.clamp(); }
   center(id) { const p = G.pos(id); this.c.x = p[0] * K; this.c.z = p[1] * K; this.clamp(); }
   zoom(f) { this.c.dist /= f; this.clamp(); }
   clamp() { const c = this.c; c.dist = Math.max(14, Math.min(150, c.dist)); c.pitch = 0.62 + Math.min(1, (c.dist - 14) / 110) * 0.6; c.x = Math.max(4, Math.min(156, c.x)); c.z = Math.max(4, Math.min(80, c.z)); }

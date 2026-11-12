@@ -59,7 +59,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ I4 **Tipos de ciudad con solares limitados** (11/11): 7 a 10 solares por ciudad para los edificios urbanos (campos y muralla no ocupan); seis tipos a elegir (municipio, colonia agraria, colonia militar, emporio, base naval, ciudad de artesanos); «Derribar» libera un solar.
 - ⬜ I5 **Investigación y edades** (P47): árbol corto de unas 16 mejoras; la herrería pasa a ser su rama de guerra. Sustituye a F4. 0,2 + 0,7 M · 20 min.
 - ⬜ I5b **Ciencia: edificio de estudio, investigación elaborada y balanceada** (P93, aprobada 12/11, tamaño por fijar con el estudio `estudios/P93-ciencia.md`): un edificio especial que se abre al investigar y al que destinas ciudadanos (dejan de producir: el coste es real); lo que se investiga y sus mejoras se eligen y a veces se excluyen entre sí; todo equilibrado para que nadie lo tenga todo pronto, con ideas de la época (Mago, Arquímedes, el corvus…). Después de I5 y CN2. Pedido del usuario: «más elaborado… balanceado para no ser el jugador más chetado tan fácil pero que sean algo ingenioso».
-- ⬜ I6 **Región de Italia** montada solo con fichas (P48; prueba del cableado). 0,2 + 0,6 M · 20 min. Después de I1.
+- ✅ I6 **Región de Italia** montada solo con fichas (12/11): `D.REGIONES`, `G.newGame(nombre, región)`, mapa que oculta lo de fuera, botón «Región de Italia». Cómo definir una región: parte I6.
 - ✅ I7 Fundida en J3 (capital y pueblos; decisión del 11/11).
 - ⬜ I8 **Partida corta** (P49): fundas de cero, un rival, un final. Sustituye a F1b. 0,25 + 0,8 M · 25 min. Después de I2 a I7.
 

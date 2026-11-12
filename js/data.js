@@ -254,6 +254,28 @@
     { y: 146, t: 'Corinto y Cartago', x: 'El cónsul Lucio Mumio vence a la Liga Aquea en el Istmo, y Corinto es saqueada y quemada. Ese mismo año Escipión Emiliano toma Cartago tras seis días de lucha hasta la Birsa; 50.000 personas se rinden, según Apiano.\n\nLa ciudad había durado 700 años, según Apiano.' },
   ];
 
+  /* Regiones (I6). Una región es una ficha de datos: nombra ciudades de D.CITIES por id (no las duplica) y los hechos de D.EVENTS
+     por año (`hechos`: lista de años; null = todos). ciudades null = todas. Roma está siempre en toda región. La partida se monta
+     solo con esas ciudades y las rutas de D.EDGES con ambos extremos dentro. `final.gana` / `final.agota` son los textos de fin
+     de partida ({anio} = año de la caída). `hasta`: al pasar ese año a.C. sin ganar, se pierde. `camara`: encuadre inicial del mapa (zoom: 1 = distancia base de cámara, mayor = más lejos).
+     Licencia de juego en Italia: Tarentum sigue de Epiro en 280 (cayó en 272), Volsinii cae en 264 (aquí sigue etrusca), Mediolanum
+     es gala (Roma la tomó en 222) y Messana/Syracusae entran como vecinas del sur; la fecha de corte es de jugabilidad. */
+  D.REGIONES = {
+    mediterraneo: {
+      n: 'Mediterráneo', ciudades: null, hechos: null, capitalRival: 'carthago', hasta: D.END_YEAR,
+      final: { gana: 'Cartago ha caído en {anio} a.C. Sus muros son arrasados y Roma es dueña del Mediterráneo: Mare Nostrum.', agota: 'El año 146 a.C. ha terminado y Cartago sigue en pie. La historia recordará a otro.' },
+      camara: { lon: 12.5, lat: 41.9, zoom: 1 }
+    },
+    italia: {
+      n: 'Italia', ciudades: ['roma', 'capua', 'volsinii', 'mediolanum', 'tarentum', 'messana', 'syracusae'],
+      hechos: [280, 277, 275, 272, 264, 225], capitalRival: 'tarentum', hasta: 230,
+      final: { gana: 'Tarento ha caído en {anio} a.C. Toda la Italia peninsular reconoce a Roma: el Sur ya no tiene rey.', agota: 'Ha pasado el año 230 a.C. y Tarento sigue libre. Roma no domina la península.' },
+      camara: { lon: 13.4, lat: 40.2, zoom: 3.2 }
+    }
+  };
+  D.regionCiudades = id => { const r = D.REGIONES[id]; return r && r.ciudades ? r.ciudades.filter(c => D.CITIES[c]) : Object.keys(D.CITIES); };
+  D.regionEdges = id => { const l = D.regionCiudades(id); return D.EDGES.filter(e => l.indexOf(e[0]) >= 0 && l.indexOf(e[1]) >= 0); };
+
   /* Senado (Q7). Dos barras de favor, de 0 a 100: la del Senado se mueve con las misiones y con cerrar el mes en rojo;
      la del pueblo tiende al ánimo medio de tus ciudades (inercia por mes). Con el Senado por debajo de «bajo» se niegan
      tratados con ciudades ajenas y la quinta leva en cola. Licencia de juego: las barras y todas las cifras (los hechos

@@ -256,14 +256,14 @@ for (const id in D.CITIES) { assert(D.FACTIONS[D.CITIES[id].f]); for (const k in
 
 // 5. Campaña completa con un bot sencillo: no debe lanzar excepciones y debe terminar
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-function campaign(aggressive, seed) {
+function campaign(aggressive, seed, region) {
   const rndOrig = Math.random; if (seed) Math.random = mulberry32(seed);
-  try { return campaign1(aggressive); } finally { Math.random = rndOrig; }
+  try { return campaign1(aggressive, region); } finally { Math.random = rndOrig; }
 }
-function campaign1(aggressive) {
-  const s = G.newGame('Test'); const events = [];
+function campaign1(aggressive, region) {
+  const s = G.newGame('Test', region); const meta = G.region().capitalRival; const events = [];
   G.onEvent = (t, p) => { events.push(t); if (process.env.V && t === 'log' && /⚠|🔥|🏆|💀|rechaza|📜/.test(p.x)) console.log('  ', G.yearOf(s.t), p.x); };
-  const dist = { carthago: 0 }; for (let q = ['carthago'], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
+  const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
   let guard = 0;
   while (!s.over && guard++ < 200000) {
     G.tick(0.25);
@@ -277,7 +277,7 @@ function campaign1(aggressive) {
       const yr = G.yearOf(s.t); if (yr <= 230 && yr >= 209) continue;   // el bot se atrinchera ante la invasión de Aníbal
       // concentración: las tropas avanzan por la ruta más corta hacia Carthago mientras la siguiente plaza sea romana
       const sig = G.neighbors(id).sort((a, b) => dist[a] - dist[b])[0];
-      if (id !== 'carthago' && dist[sig] < dist[id] && s.cities[sig].owner === 'roma' && !s.marches.some(m => m.owner === 'roma' && m.from === id)) { const u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (id === "roma" ? 0.15 : 0.65)); if (G.men(u) >= 100 && G.send(id, sig, u, false)) continue; }
+      if (id !== meta && dist[sig] < dist[id] && s.cities[sig].owner === 'roma' && !s.marches.some(m => m.owner === 'roma' && m.from === id)) { const u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (id === "roma" ? 0.15 : 0.65)); if (G.men(u) >= 100 && G.send(id, sig, u, false)) continue; }
       for (const n of G.neighbors(id)) {
         const t = s.cities[n]; if (t.owner === 'roma') continue;
         const keepHome = id === 'roma' ? 0.35 : 0.2, u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (1 - keepHome));
@@ -300,6 +300,29 @@ assert.strictEqual(ganaPas, 0, 'un bot pasivo no debe ganar nunca (' + ganaPas +
 const active = activo;
 assert(JSON.parse(JSON.stringify(active)).v === 1, 'el estado debe ser serializable');
 assert(G.myCities().length >= 3, 'un bot agresivo debe poder conquistar ciudades');
+// I6: regiones. Italia es jugable (el agresivo gana alguna vez, el pasivo nunca) y se juega solo con sus ciudades
+{ const ri = { pas: [], agr: [] };
+  for (const ag of [false, true]) for (let sd = 1; sd <= 10; sd++) { const s = campaign(ag, sd, 'italia'); ri[ag ? 'agr' : 'pas'].push(s);
+    assert.strictEqual(s.region, 'italia'); const dentro = new Set(D.regionCiudades('italia'));
+    for (const id in s.cities) assert(dentro.has(id), 'ciudad fuera de Italia: ' + id);
+    for (const r of s.rutas) assert(dentro.has(r.a) && dentro.has(r.b), 'ruta fuera de Italia');
+    for (const m of s.marches) assert((!m.from || dentro.has(m.from)) && dentro.has(m.to), 'marcha fuera de Italia'); }
+  console.log('Italia pasivo  →', resumen(ri.pas)); console.log('Italia agresivo →', resumen(ri.agr));
+  const gi = ri.agr.filter(s => s.over.win).length, pi = ri.pas.filter(s => s.over.win).length;
+  assert(gi >= 5, 'Italia: el bot agresivo debe ganar en la mayoría (' + gi + '/10)'); assert.strictEqual(pi, 0, 'Italia: el pasivo no gana (' + pi + '/10)');
+  assert(ri.agr.some(s => /Tarento/.test(s.over.why)) || gi === 0, 'el texto de victoria es el de la región');
+  assert(ri.pas.every(s => /230/.test(s.over.why) || !s.over.win)); }
+// I6: una región inventada solo con datos se juega sin tocar código
+{ D.REGIONES.prueba = { n: 'Prueba', ciudades: ['roma', 'capua', 'tarentum', 'messana'], hechos: [280, 277], capitalRival: 'messana', hasta: 250, final: { gana: 'Messana cae en {anio}.', agota: 'Se acabó el plazo.' }, camara: { lon: 14, lat: 40, zoom: 2 } };
+  try {
+    assert.deepStrictEqual(D.regionCiudades('prueba'), ['roma', 'capua', 'tarentum', 'messana']); assert(D.regionEdges('prueba').every(e => D.regionCiudades('prueba').includes(e[0]) && D.regionCiudades('prueba').includes(e[1])));
+    const s0 = G.newGame('P', 'prueba'); assert.strictEqual(G.regionId(), 'prueba'); assert.deepStrictEqual(Object.keys(s0.cities).sort(), ['capua', 'messana', 'roma', 'tarentum']); assert(!G.edge('roma', 'volsinii'));
+    for (const ag of [false, true]) for (let sd = 1; sd <= 3; sd++) { const s = campaign(ag, sd, 'prueba'); assert(s.over); assert(!ag ? !s.over.win : true); }
+  } finally { delete D.REGIONES.prueba; } }
+// I6: una partida vieja (sin región) carga como Mediterráneo; una región desconocida también
+{ const raw = require('fs').readFileSync(__dirname + '/partida-vieja.json', 'utf8'); assert(!JSON.parse(raw).region);
+  global.localStorage = { getItem: () => raw, setItem: () => {}, removeItem: () => {} }; assert(G.load()); assert.strictEqual(G.state.region, 'mediterraneo'); assert.strictEqual(G.regionId(), 'mediterraneo');
+  const med = G.newGame('M'); assert.strictEqual(med.region, 'mediterraneo'); assert.strictEqual(Object.keys(med.cities).length, Object.keys(D.CITIES).length); assert.strictEqual(G.newGame('X', 'noexiste').region, 'mediterraneo'); }
 // CN2b: las pruebas de economía que siguen miden los números de c.b (sin ciudad nueva); la ciudad nueva se prueba al final del archivo
 const CIMOD = require('../js/ciudad.js'); G.usarCiudad(null);
 // 7. Bien especial por ciudad (B1): abre niveles altos y tropas de élite; los bonos cambian números

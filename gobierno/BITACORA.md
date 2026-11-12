@@ -158,7 +158,7 @@ En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Ma
 0b. Carril Guerra interfaz: L1 y L2 hechas (11/11). Siguiente: L3 (fantasmas en pausa y cartas de táctica) o L1b (testudo si el usuario lo quiere como regla, trazo en 2D, HUD vertical). L2 gastó 0,75 M.
 0. Carril Interfaz: J6 y J7 hechas (11/11; J7 gastó 0,78 M sobre 0,95 con dos piezas pequeñas). Queda J7b (pestañas en el mapa de guerra, tras I2) y luego J8 Foro y chips. Ojo: Imperio ya no abre el mapa; a la guerra se entra por ☰ → Guerra (el juez 2 se ajustó).
 Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que lleva Campaña):
-1. I6 Región de Italia → I7 Regiones → I8 Partida corta (prioridad del usuario).
+1. I6 Región de Italia (hecha 12/11) → I7 Regiones → I8 Partida corta (prioridad del usuario). Siguiente de este hilo: I8 (bloqueada por I5, CN2 a CN5 y la decisión del usuario sobre cómo empieza la partida).
 2. Historia: H14 → H13 → H12 → H11.
 3. A8b, A1, A2, A6, A7, C1.
 

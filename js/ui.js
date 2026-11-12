@@ -85,18 +85,18 @@ function showMenu() {
     '<p>280 a.C. Gobierna tus ciudades, levanta legiones, dirige las batallas sobre el terreno y lleva las águilas hasta Cartago antes del 146 a.C.</p>' +
     (G.hasSave() ? '<button class="btn gold" data-act="continue">Continuar campaña</button>' : '') +
     '<input id="hname" maxlength="28" placeholder="Nombre de tu general" value="Lucio Cornelio Escipión">' +
-    '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><div class="spqr">S·P·Q·R</div>' +
+    '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="newregion" data-v="italia">Región de Italia</button><button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><div class="spqr">S·P·Q·R</div>' +
     '<div class="credits">Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1<br>Termas y acueducto: dibujo propio del proyecto, CC BY-SA 3.0</div>';
 }
 { const cu = () => $('cuentas'); let tm = 0;   // no repintar la hoja entre pulsar y soltar: se perderían los toques
   const fin = () => { clearTimeout(tm); tm = setTimeout(() => { UI.cuDown = false; }, 120); };
   document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('#cuentas')) { UI.cuDown = true; clearTimeout(tm); tm = setTimeout(() => { UI.cuDown = false; }, 1500); } }, true);
   document.addEventListener('pointerup', fin, true); document.addEventListener('pointercancel', fin, true); }
-function startGame() { if (G.turnos && S()) S().speed = 0; UI.menu = false; $('menu').hidden = true; UI.city = 'roma'; UI.sel = null; if (UI.map) UI.map.center('roma'); UI.cityList = false; setModo('gobierno'); }
+function startGame() { if (G.turnos && S()) S().speed = 0; UI.menu = false; $('menu').hidden = true; UI.city = 'roma'; UI.sel = null; if (UI.map) UI.map.encuadre(); UI.cityList = false; setModo('gobierno'); }
 function showOver() {
   const s = S(), o = s.over; if (!o || UI.overShown) return; UI.overShown = true;
   modal('<div class="yr">' + (o.win ? 'VICTORIA' : 'DERROTA') + '</div><h2>' + (o.win ? 'Roma Victrix' : 'Vae victis') + '</h2><p>' + esc(o.why) + '</p>' +
-    '<p>Ciudades: <b>' + G.myCities().length + '</b> de ' + Object.keys(D.CITIES).length + ' · Batallas: <b>' + s.stats.wins + '/' + s.stats.battles + '</b> ganadas\nEnemigos abatidos: <b>' + s.stats.kills + '</b> · Bajas propias: <b>' + s.stats.lost + '</b>\n' + esc(s.hero.name) + ', nivel <b>' + s.hero.lvl + '</b></p>' +
+    '<p>Ciudades: <b>' + G.myCities().length + '</b> de ' + G.ciudadesRegion().length + ' · Batallas: <b>' + s.stats.wins + '/' + s.stats.battles + '</b> ganadas\nEnemigos abatidos: <b>' + s.stats.kills + '</b> · Bajas propias: <b>' + s.stats.lost + '</b>\n' + esc(s.hero.name) + ', nivel <b>' + s.hero.lvl + '</b></p>' +
     '<div class="acts"><button class="btn" data-act="tomenu">Volver al menú</button></div>', true);
 }
 
@@ -564,7 +564,7 @@ function viewCodice() {
 function viewLog() {
   if (UI.codice && window.CODICE) return viewCodice();
   const s = S(), year = G.yearOf(s.t), left = year - D.END_YEAR + 1;
-  let o = (window.CODICE ? '<div class="acts"><button class="btn gold" style="width:100%" data-act="codice" data-v="tropas">📖 Abrir el Códice</button></div>' : '') + '<div class="head"><h2>Carthago delenda est</h2><p>Conquista <b>Carthago</b> antes de que termine el año 146 a.C. Si Roma cae, la campaña termina.</p><p>⏳ Quedan <b>' + left + '</b> años · 🏛️ ' + G.myCities().length + '/' + Object.keys(D.CITIES).length + ' ciudades · ' + D.GUERRA_ICON.espadas + ' ' + s.stats.wins + '/' + s.stats.battles + ' batallas</p></div>';
+  let o = (window.CODICE ? '<div class="acts"><button class="btn gold" style="width:100%" data-act="codice" data-v="tropas">📖 Abrir el Códice</button></div>' : '') + '<div class="head"><h2>' + (G.regionId() === 'mediterraneo' ? 'Carthago delenda est' : 'Dominar ' + esc(G.region().n)) + '</h2><p>Conquista <b>' + D.CITIES[G.region().capitalRival].n + '</b> antes de que termine el año ' + G.region().hasta + ' a.C. Si Roma cae, la campaña termina.</p><p>⏳ Quedan <b>' + left + '</b> años · 🏛️ ' + G.myCities().length + '/' + G.ciudadesRegion().length + ' ciudades · ' + D.GUERRA_ICON.espadas + ' ' + s.stats.wins + '/' + s.stats.battles + ' batallas</p></div>';
   o += '<div class="sec">Línea del tiempo</div><div class="tl">' + D.EVENTS.map((e, i) => '<div class="' + (s.ev[i] ? 'done' : '') + '"' + (s.ev[i] ? ' data-act="ev" data-v="' + i + '"' : '') + '>' + e.y + ' a.C. — ' + (s.ev[i] ? esc(e.t) : '···') + '</div>').join('') + '</div>';
   o += '<div class="sec">Crónica</div>' + (s.log.length ? s.log.map(l => '<div class="logl ' + l.k + '"><small>' + G.yearOf(l.t) + ' a.C.</small>' + esc(l.x) + '</div>').join('') : '<div class="empty">Aún no ha ocurrido nada.</div>');
   return o + '<div class="acts" style="margin-top:16px"><button class="btn ghost" data-act="tomenu">Guardar y salir al menú</button></div>';
@@ -815,7 +815,7 @@ document.addEventListener('click', function (e) {
   if (a !== 'derr') UI.derr = null;
   switch (a) {
     case 'fluidez': fijarFluidez(!fluidezOn()); showMenu(); break;
-    case 'new': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión'); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
+    case 'new': case 'newregion': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo'); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'continue': if (G.load()) { UI.overShown = false; startGame(); if (S().over) showOver(); } break;
     case 'tomenu': G.save(); UI.modalQ = []; closeModal(); stopBattle(); showMenu(); break;
     case 'tab': UI.codice = null; setTab(v); break;
