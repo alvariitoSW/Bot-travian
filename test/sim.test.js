@@ -737,6 +737,14 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   s.t = Math.floor(s.t) + 0.9999; const t1a = q2.t1; G.tick(0.0002 + 0.001);
   assert(q2.pausa, 'sin fondos la obra se pausa'); assert(q2.pag === 1); const t1b = q2.t1; G.tick(0.25); assert(Math.abs(q2.t1 - t1b - 0.25) < 1e-9, 'en pausa el plazo corre');
   for (const r of D.RES) { s.res[r] = 5000; } G.tick(0.01); assert(!q2.pausa && q2.pag === 2, 'con fondos se reanuda y paga');
+  // sin fondos: la previsión no resta un plazo que el cierre no cobrará (la obra se pausa)
+  { c.queue = null; c.b[b] = L0; for (const r of D.RES) { s.res[r] = 5000; s.alm[r] = 5000; s.cuarto[r] = 1250; } s.t = Math.floor(s.t) + 0.1; G.upgrade('roma', b); const q3 = c.queue;
+    for (const r of D.RES) { s.res[r] = 0; s.alm[r] = 0; s.cuarto[r] = 0; } s.res.madera = 1; s.t = Math.floor(s.t) + 1 - 1e-6;
+    const sob3 = G.previsionCierre(); G.tick(2e-6); assert(q3.pausa, 'pausada por falta de fondos');
+    for (const r of ['madera', 'piedra', 'hierro']) { const reg = s.informe[s.informe.length - 1].r[r]; assert(Math.abs(reg.sob - sob3[r].sobra) <= 1.5, 'previsión sin fondos cuadra ' + r + ' ' + reg.sob + ' vs ' + sob3[r].sobra); }
+    c.queue = null; }
+  // el tope de reclutas por ciudad usa la primera cuota
+  { for (const r of D.RES) { s.res[r] = 3000; s.alm[r] = 0; s.cuarto[r] = 0; } c.pop = 5000; assert(G.maxTrain('hastati', 'roma') >= G.maxTrain('hastati'), 'tope por cuotas no menor que por total'); }
   // reclutas por lote
   c.queue = null; s.t = Math.floor(s.t) + 0.1; c.train = []; c.pop = 5000; const antes = s.res.oro + s.alm.oro; assert(G.train('roma', 'hastati', 200));
   const l = c.train[0]; assert(l.nc >= 1 && l.pag === 1 && l.n === 200, 'lote con cuotas'); if (l.nc > 1) { assert(G.plazos().madera + G.plazos().hierro + G.plazos().oro + G.plazos().grano > 0, 'el lote cuenta como plazo'); }
