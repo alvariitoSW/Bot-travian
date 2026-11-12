@@ -994,6 +994,24 @@
   function merge(a, b) { for (const k in b) if (b[k] > 0) a[k] = (a[k] || 0) + b[k]; }
 
   /* ---------- batallas ---------- */
+  // I5c-A: la ventaja de guerra del jugador (forja x ciencia) y si la ruta es de mar
+  G.esMar = (from, to) => { const e = G.edge(from, to); return !!(e && e[2]); };
+  G.cienciaGuerra = function (wall, mar) {
+    const s = G.state, cienAtk = Math.min(D.SABER.techos.atk, G.invMul('atk') * (mar ? G.invMul('atkMar') : 1));
+    return { atk: G.forjaMul(s, 'armas') * cienAtk, def: G.forjaMul(s, 'armaduras') * (1 + G.invSum('defMuro') * Math.min(6, wall)), mor: G.invSum('mor') };
+  };
+  // I5c-B: cada bando enemigo aprende parte de tu ventaja de guerra con cada batalla seria
+  G.copiaBando = f => !!(D.FACTIONS[f] && f !== 'roma' && f !== 'campanos');
+  G.copiaDe = f => { const s = G.state; return (s && s.inv && s.inv.copia && s.inv.copia[f]) || 0; };
+  G.copiaActualiza = function (pb, m, res, facc) {
+    const s = G.state, out = [];
+    if (!G.copiaBando(facc) || res.dead[0] + res.dead[1] < D.SABER.copiaBajasMin) return out;
+    if (!s.inv.copia) s.inv.copia = {};
+    const k = G.copiaDe(facc), n = k + (1 - k) * D.SABER.copiaBatalla; s.inv.copia[facc] = n;
+    const V = G.cienciaGuerra(s.cities[m.to].b.muralla || 0, false);
+    if (V.atk > 1 || V.def > 1 || V.mor > 0) out.push(D.FACTIONS[facc].n + ' ya copia el ' + Math.round(n * D.SABER.copia * 100) + ' % de tu ventaja.');
+    return out;
+  };
   G.battleInfo = function (pb) {
     const s = G.state, m = pb.m, cid = m.to, c = s.cities[cid], d = D.CITIES[cid], h = s.hero;
     const fa = G.forjaMul(s, 'armas'), fd = G.forjaMul(s, 'armaduras');
@@ -1013,6 +1031,19 @@
       const g = m.gen;
       foe = { units: m.units, name: D.FACTIONS[m.owner].n, col: D.FACTIONS[m.owner].col, gen: g, atkMul: g ? 1 + 0.04 * g.mando : 1, defMul: g ? 1 + 0.03 * g.disc : 1, mor: g ? 4 * g.disc : 0 };
     }
+    {   // I5c-A: ciencia de guerra del jugador
+      const wall = c.b.muralla || 0, mar = pb.kind === 'attack' && G.esMar(m.from, m.to);
+      me.atkMul *= Math.min(D.SABER.techos.atk, G.invMul('atk') * (mar ? G.invMul('atkMar') : 1)); me.mor += G.invSum('mor');
+      if (pb.kind === 'defend') me.defMul *= 1 + G.invSum('defMuro') * Math.min(6, wall);
+      else if (wall > 0 && G.invSum('brecha') > 0) foe.defMul /= (1 + 0.1 * wall) / (1 + 0.1 * Math.max(0, wall - G.invSum('brecha')));
+    }
+    {   // I5c-B: copia del rival
+      const ff = pb.kind === 'attack' ? c.owner : m.owner, k = G.copiaDe(ff);
+      if (G.copiaBando(ff) && k > 0) {
+        const V = G.cienciaGuerra(c.b.muralla || 0, pb.kind === 'defend' && G.esMar(m.from, m.to)), q = k * D.SABER.copia;
+        foe.atkMul *= 1 + q * (V.atk - 1); foe.defMul *= 1 + q * (V.def - 1); foe.mor += q * V.mor;
+      }
+    }
     return { cfg: { sides: [me, foe], defender: pb.kind === 'attack' ? 1 : 0, wall: c.b.muralla || 0, seed: Math.floor(s.t * 1000) + m.id }, city: cid, heroIn: heroIn, kind: pb.kind };
   };
 
@@ -1029,6 +1060,7 @@
     const s = G.state, pb = s.pending.shift(), m = pb.m, cid = m.to, c = s.cities[cid], d = D.CITIES[cid], h = s.hero;
     const heroIn = pb.kind === 'attack' ? m.hero : G.heroAvailable(cid);
     const win = res.winner === 0, out = { win: win, kind: pb.kind, city: cid, dead: res.dead, lines: [] };
+    const copL = G.copiaActualiza(pb, m, res, pb.kind === 'attack' ? c.owner : m.owner); for (const x of copL) out.lines.push(x);
     s.stats.battles++; if (win) s.stats.wins++; s.stats.kills += res.dead[1]; s.stats.lost += res.dead[0];
     if (pb.kind === 'attack') {
       if (win && m.mision === 'saqueo') {
@@ -1078,7 +1110,7 @@
     if (heroIn) {
       const before = h.lvl; addXp(res.dead[1] / 4 * (win ? 1.5 : 0.7) + 10);
       out.lines.push('🦅 ' + h.name + ' gana experiencia' + (h.lvl > before ? ' y sube al nivel ' + h.lvl + '.' : '.'));
-      if (res.genDead[0]) { h.wound = s.t + 24; out.lines.push('🩸 ' + h.name + ' ha sido herido: dos años de convalecencia.'); G.log('🩸 ' + h.name + ' cae herido en combate.', 'bad'); }
+      if (res.genDead[0]) { const mw = Math.max(6, 24 + G.invSum('herida')); h.wound = s.t + mw; out.lines.push('🩸 ' + h.name + ' ha sido herido: ' + mw + ' meses de convalecencia.'); G.log('🩸 ' + h.name + ' cae herido en combate.', 'bad'); }
     }
     G.save();
     if (s.over) emit('over');

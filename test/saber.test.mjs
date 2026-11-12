@@ -354,5 +354,90 @@ t('sabios: soltarCiudad y rebelión limpian el campo', () => {
   assert.notStrictEqual(k.owner, 'roma', 'se rebeló'); assert.ok(!k.sabios, 'sin campo: ' + JSON.stringify(k.sabios)); assert.strictEqual(G.sabiosDe(k).n, 0);
 });
 
+// ---- I5c-A: ganchos de guerra ----
+const ALL = () => Object.keys(D.INVEST);
+const mar = () => { const e = G.aristas().find(x => x[2]); return e; };
+function bi(s, kind, from, to, wallN) {
+  const c = s.cities[to]; if (wallN !== undefined) c.b.muralla = wallN;
+  const own = kind === 'attack' ? { from, to, id: 7, hero: false, units: { hastati: 100 } } : { from, to, id: 7, owner: 'cartago', units: { poeni: 100 } };
+  if (kind === 'attack') c.owner = 'cartago'; else c.owner = 'roma';
+  return G.battleInfo({ kind, m: own });
+}
+const tierra = () => G.aristas().find(x => !x[2]);
+
+t('I5c-A: sin ciencia battleInfo no cambia (hechas vacías)', () => {
+  const s = nueva(), e = tierra(); for (const k of ['attack', 'defend']) { const a = JSON.stringify(bi(s, k, e[0], e[1], 2).cfg); s.inv.hechas = {}; s.inv.rev++; assert.strictEqual(JSON.stringify(bi(s, k, e[0], e[1], 2).cfg), a); }
+  const v = G.cienciaGuerra(2, true); near(v.atk, 1); near(v.def, 1); near(v.mor, 0);
+});
+
+t('I5c-A: cada efecto cambia solo su campo', () => {
+  const base = nueva(), e = tierra(), b0 = bi(base, 'defend', e[0], e[1], 3).cfg;
+  const r = (id, k) => con(base, [id], s => { s.cities[e[1]].b.muralla = 3; return bi(s, k, e[0], e[1], 3).cfg; });
+  const m = r('castra', 'defend'); near(m.sides[0].mor - b0.sides[0].mor, 3); near(m.sides[0].atkMul, b0.sides[0].atkMul); near(m.sides[0].defMul, b0.sides[0].defMul);
+  const p = r('pilum', 'defend'); near(p.sides[0].atkMul / b0.sides[0].atkMul, 1.03); near(p.sides[0].mor, b0.sides[0].mor); near(p.sides[0].defMul, b0.sides[0].defMul);
+  const q = r('arquimedes', 'defend'); near(q.sides[0].defMul / b0.sides[0].defMul, 1 + 0.025 * 3); near(q.sides[0].atkMul, b0.sides[0].atkMul);
+  const a0 = bi(base, 'attack', e[0], e[1], 3).cfg, qa = r('arquimedes', 'attack'); near(qa.sides[0].defMul, a0.sides[0].defMul, 'defMuro solo defendiendo');
+});
+
+t('I5c-A: techos con los 22 saberes forzados', () => {
+  const base = nueva(); con(base, ALL(), s => { const v = G.cienciaGuerra(10, true); assert.ok(v.atk <= D.SABER.techos.atk + 1e-9); assert.ok(v.mor <= D.SABER.techos.mor + 1e-9); near(v.def, 1 + G.invSum('defMuro') * 6); assert.ok(G.invSum('defMuro') <= D.SABER.techos.defMuro + 1e-9); });
+});
+
+t('I5c-A: brecha con muralla 0, 1, 2 y 10', () => {
+  const base = nueva(), e = tierra(), df = (id, w) => con(base, id ? [id] : [], s => bi(s, 'attack', e[0], e[1], w).cfg.sides[1].defMul);
+  for (const w of [0, 1, 2, 10]) { const k = df('sambuca', w) / df(null, w); const esp = w === 0 ? 1 : (1 + 0.1 * Math.max(0, w - 1)) / (1 + 0.1 * w); near(k, esp, 'muralla ' + w); }
+  const ef = (id, w) => df(id, w) * (1 + 0.1 * w); near(ef('sambuca', 1), ef(null, 0), 'muralla efectiva 1 = 0'); near(ef('sambuca', 2), ef(null, 1), 'efectiva 2 = 1'); near(ef('sambuca', 10), ef(null, 9));
+  assert.strictEqual(bi(base, 'attack', e[0], e[1], 5).cfg.wall, 5);
+});
+
+t('I5c-A: atkMar solo con ruta de mar', () => {
+  const base = nueva(), em = mar(), et = tierra(); assert.ok(em && et);
+  const f = (e) => con(base, ['corvus'], s => bi(s, 'attack', e[0], e[1], 1).cfg.sides[0].atkMul), g = (e) => bi(base, 'attack', e[0], e[1], 1).cfg.sides[0].atkMul;
+  near(f(em) / g(em), 1.05); near(f(et), g(et)); assert.ok(G.esMar(em[0], em[1]) && !G.esMar(et[0], et[1]));
+});
+
+t('I5c-A: herida con y sin Medicina', () => {
+  const base = nueva(), e = tierra();
+  const go = (ids) => con(base, ids, s => { s.hero.wound = 0; s.t = 10; s.pending = [{ kind: 'attack', m: { from: e[0], to: e[1], id: 1, hero: true, units: { hastati: 10 } } }]; s.cities[e[1]].owner = 'cartago';
+    const res = { winner: 1, dead: [10, 0], genDead: [true, false], surv: [{}, { x: 1 }], lost: [{}, {}] }; G.applyBattle(res); return s.hero.wound - 10; });
+  assert.strictEqual(go([]), 24); assert.strictEqual(go(['medicina']), 12);
+});
+
+// ---- I5c-B: copia del rival ----
+const bd = (s, kind, e, f, cop) => { s.inv.copia = cop || {}; const c = s.cities[e[1]]; c.b.muralla = 3; c.owner = kind === 'attack' ? f : 'roma';
+  return G.battleInfo({ kind, m: kind === 'attack' ? { from: e[0], to: e[1], id: 7, hero: false, units: { hastati: 100 } } : { from: e[0], to: e[1], id: 7, owner: f, units: { poeni: 100 } } }).cfg.sides[1]; };
+const res = (a, b) => ({ winner: 0, dead: [a, b], genDead: [false, false], surv: [{}, {}], lost: [{}, {}] });
+const bat = (s, e, f, a, b) => { const c = s.cities[e[1]]; c.owner = f; s.pending = [{ kind: 'attack', m: { from: e[0], to: e[1], id: 1, hero: false, units: { hastati: 10 } } }]; return G.applyBattle(res(a, b)); };
+t('I5c-B: sin ciencia ni copia, battleInfo no cambia; copia sin forja no mueve nada', () => {
+  const base = nueva(), e = tierra(), a = JSON.stringify(bd(base, 'attack', e, 'cartago')); assert.strictEqual(JSON.stringify(bd(base, 'attack', e, 'cartago', { cartago: 1 })), a);
+});
+t('I5c-B: copiaBando excluye aliados, rebeldes y campanos', () => {
+  assert.ok(G.copiaBando('cartago') && !G.copiaBando('roma') && !G.copiaBando('campanos') && !G.copiaBando('rebeldes') && !G.copiaBando(undefined));
+});
+t('I5c-B: solo sube con >= bajas mínimas y por bando', () => {
+  const base = nueva(), e = tierra(); G.state = base; base.inv.copia = undefined;
+  bat(base, e, 'cartago', 20, 30); assert.strictEqual(G.copiaDe('cartago'), 0);
+  bat(base, e, 'cartago', 30, 30); near(G.copiaDe('cartago'), D.SABER.copiaBatalla); assert.strictEqual(G.copiaDe('siracusa'), 0);
+  bat(base, e, 'cartago', 30, 30); near(G.copiaDe('cartago'), 0.15 + 0.85 * 0.15);
+  base.cities[e[1]].owner = 'roma'; const antes = JSON.stringify(base.inv.copia); G.copiaActualiza(null, { to: e[1] }, res(50, 50), 'campanos'); G.copiaActualiza(null, { to: e[1] }, res(50, 50), 'roma'); assert.strictEqual(JSON.stringify(base.inv.copia), antes);
+});
+t('I5c-B: el rival copia moral, defensa de muro y desembarco', () => {
+  const base = nueva(), e = tierra(), em = mar();
+  con(base, ['castra', 'pilum', 'arquimedes', 'corvus'], s => {
+    const c0 = bd(clon(base), 'defend', e, 'cartago', {}), c1 = bd(s, 'defend', e, 'cartago', { cartago: 1 }); G.state = s;
+    near(c1.mor - c0.mor, 0.5 * 3); near(c1.atkMul / c0.atkMul, 1 + 0.5 * 0.03); near(c1.defMul / c0.defMul, 1 + 0.5 * 0.025 * 3);
+    const m0 = bd(s, 'defend', em, 'cartago', {}), m1 = bd(s, 'defend', em, 'cartago', { cartago: 1 }); near(m1.atkMul / m0.atkMul, 1 + 0.5 * (D.SABER.techos.atk - 1), 'atkMar en desembarco');
+    const t1 = bd(s, 'defend', e, 'roma', { roma: 1 }), t0 = bd(s, 'defend', e, 'roma', {}); near(t1.mor, t0.mor);
+  });
+});
+t('I5c-B: forja 5/5 y Pilum tras 5 batallas, rival ≈ x1,08', () => {
+  const base = nueva(), e = tierra(); G.state = base; base.forja = base.forja || {}; 
+  con(base, ['pilum'], s => { for (let i = 0; i < 5; i++) bat(s, e, 'cartago', 40, 40); const k = G.copiaDe('cartago'); assert.ok(k > 0.55 && k < 0.6, 'k ' + k);
+    const V = G.cienciaGuerra(3, false); const x = 1 + k * 0.5 * (V.atk - 1); assert.ok(x > 1.0 && x < 1.1, 'x ' + x); if (V.atk > 1.03) assert.ok(x <= 1 + 0.5 * (V.atk - 1)); });
+});
+t('I5c-B: partida vieja sin s.inv.copia funciona', () => {
+  const base = nueva(), e = tierra(); delete base.inv.copia; G.state = base; assert.strictEqual(G.copiaDe('cartago'), 0); assert.ok(G.battleInfo({ kind: 'attack', m: { from: e[0], to: e[1], id: 1, hero: false, units: { hastati: 5 } } }).cfg);
+});
+
 console.log('\n' + (n - fallos.length) + '/' + n + ' pruebas del Saber' + (fallos.length ? ' — FALLAN: ' + fallos.join(', ') : ' — APTO'));
 process.exit(fallos.length ? 1 : 0);

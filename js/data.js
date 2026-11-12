@@ -107,7 +107,7 @@
      rama: ca campo, of oficios, gu guerra, ma mar. req: gramática de G.invReq. ef: datos que leen G.invMul/G.invSum y los ganchos de economía. eureka: ciudad que acelera ×4/3. */
   D.SABER = {
     tiempoMul: 1, tope: 0.8,
-    techos: { grano: 1.08, crece: 1.20, impuestos: 1.12, oroCom: 1.25, rutaRenta: 1.20, viajeTierra: 3, viajeMar: 6, obra: 0.85, paga: 0.85, instr: 0.90, mor: 4, atk: 1.10, defMuro: 0.15 },
+    techos: { grano: 1.08, crece: 1.20, impuestos: 1.12, oroCom: 1.25, rutaRenta: 1.20, viajeTierra: 3, viajeMar: 6, obra: 0.85, paga: 0.85, instr: 0.90, mor: 3, atk: 1.05, defMuro: 0.15 },
     final: { grano: 1.30, crece: 1.25, impuestos: 1.20, oroCom: 1.40, rutaRenta: 1.40, viajeMin: 3, obra: 0.75, paga: 0.70, instr: 0.78 },
     edadNombres: ['Roma itálica', 'Roma sale al mar', 'Aníbal', 'Roma y los reinos griegos'],
     copia: 0.5, copiaBatalla: 0.15, copiaBajasMin: 60,
@@ -123,7 +123,7 @@
     inv('apio', 'Obras de Apio Claudio', '🛣️', 'of', 1, [{ b: ['foro', 1] }], [], invC(90, 140, 20, 40, 60), 20, { viajeTierra: { resta: 3, sobre: 3 }, popCap: 1.05 }, 0, 'Livio 9.29; Frontino, De aquaeductu 4-6: Vía Apia y Aqua Appia (312 a.C.). Cifras: licencia de juego.', 'probable'),
     inv('castra', 'Campamento y disciplina', '⛺', 'gu', 1, [{ b: ['cuartel', 1] }], [], invC(60, 60, 110, 60, 50), 16, { mor: 3, paga: 0.95 }, 0, 'Polibio 6.27-39: campamento, castigos y premios.', 'probable'),
     inv('quinque', 'Quinquerreme copiada', '⚓', 'ma', 2, [{ edad: 2 }, { b: ['puerto', 1] }], [], invC(280, 40, 90, 80, 110), 24, { viajeMar: { resta: 3, sobre: 3 } }, 'tarentum', 'Polibio 1.20: Roma copia una nave cartaginesa varada (260 a.C.); Tarento y otros aliados prestan naves (1.20.14). Cifra: licencia de juego.', 'historico'),
-    inv('corvus', 'Corvus', '🪝', 'ma', 2, [{ edad: 2 }, { inv: ['quinque'] }], ['remeros'], invC(220, 30, 200, 60, 130), 28, { atkMar: 1.07 }, 0, 'Polibio 1.22: pasarela de abordaje (cotejado en H1). Cifra: licencia de juego.', 'historico'),
+    inv('corvus', 'Corvus', '🪝', 'ma', 2, [{ edad: 2 }, { inv: ['quinque'] }], ['remeros'], invC(220, 30, 200, 60, 130), 28, { atkMar: 1.05 }, 0, 'Polibio 1.22: pasarela de abordaje (cotejado en H1). Cifra: licencia de juego.', 'historico'),
     inv('remeros', 'Remeros adiestrados en seco', '🚣', 'ma', 2, [{ edad: 2 }, { inv: ['quinque'] }], ['corvus'], invC(180, 40, 40, 120, 120), 28, { viajeMar: { resta: 3, sobre: 6 } }, 0, 'Polibio 1.21: remeros adiestrados en bancos sobre la arena. Cifra: licencia de juego.', 'historico'),
     inv('fasti', 'Fasti y ley escrita', '⚖️', 'of', 2, [{ edad: 2 }, { b: ['escuela', 1] }], [], invC(50, 90, 10, 80, 130), 24, { inqMeses: 0.6, inqProd: 0.6 }, 0, 'Livio 9.46: Cneo Flavio publica el derecho y el calendario (304 a.C.).', 'probable'),
     inv('vina', 'Viña y olivar', '🍇', 'ca', 2, [{ edad: 2 }, { b: ['granja', 3] }], ['trigo'], invC(140, 120, 20, 60, 130), 28, { oroCom: 1.25, impuestos: 1.08 }, 'agrigentum', 'Catón, De agri cultura 1.7: la viña, primera en rendimiento. Cifras: licencia de juego.', 'probable'),
