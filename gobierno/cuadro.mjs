@@ -7,6 +7,16 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const AQUI = dirname(fileURLToPath(import.meta.url));
+/* Seguro: no generar el cuadro desde una copia atrasada (el 12/11 una sesión publicó un cuadro viejo y al usuario le salió lo ya contestado como pendiente). */
+try {
+  const { execSync } = await import('node:child_process');
+  const rama = JSON.parse(await readFile(join(AQUI, 'cuadro.json'), 'utf8')).rama, o = { cwd: AQUI, stdio: ['ignore', 'pipe', 'ignore'], timeout: 20000 };
+  if (rama && !process.argv.includes('--sin-comprobar')) {
+    execSync('git fetch -q origin ' + rama, o);
+    const atras = Number(execSync('git rev-list --count HEAD..origin/' + rama, o).toString().trim());
+    if (atras > 0) { console.error('CUADRO NO GENERADO: tu copia va ' + atras + ' cambios por detrás de la rama. Haz antes: git pull --rebase origin ' + rama); process.exit(1); }
+  }
+} catch (e) { /* sin red o sin git: se genera igual */ }
 const lee = f => readFile(join(AQUI, f), 'utf8');
 const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const md = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<b>$1</b>').replace(/`([^`]+)`/g, '<code>$1</code>').replace(/(https?:\/\/[^\s<)]+[^\s<).,])/g, '<a href="$1" target="_blank" rel="noopener">$1</a>');

@@ -29,7 +29,7 @@ Una página para el móvil del usuario: enlace al juego, lo que espera algo suyo
 4. Lo que no se entienda no se inventa: queda pendiente y se pregunta en el chat.
 
 ## Al cerrar la sesión: publicar
-1. Con el tablero y la bitácora ya al día y los jueces recién pasados: `node gobierno/cuadro.mjs`.
+1. Con el tablero y la bitácora ya al día y los jueces recién pasados: **`git pull --rebase` primero** y luego `node gobierno/cuadro.mjs` (se niega a generar si tu copia va por detrás de la rama: el 12/11 una sesión publicó un cuadro atrasado y al usuario le volvió a salir como pendiente lo que ya había contestado).
 2. Lee el Artifact (`Artifact`, `action: "read"`, con su dirección) y publícalo con esa misma dirección en `url` y `file_path: gobierno/cuadro.html`. No pases `capabilities`: así conserva las suyas (`db`).
 3. Si no hubiera dirección guardada (primera vez o se borró): publica sin `url`, con `capabilities: {"db": {}}`, y guarda la dirección nueva en `gobierno/cuadro.json`.
 4. Dale al usuario el enlace.
