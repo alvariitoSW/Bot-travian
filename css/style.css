@@ -587,3 +587,9 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 #bgesto { position: absolute; z-index: 7; left: calc(110px + env(safe-area-inset-left)); opacity: .88; top: calc(34px + env(safe-area-inset-top)); max-width: min(360px, 52vw); padding: 3px 12px; border-radius: 9px; font-size: 12px; font-weight: 700; font-family: var(--serif); color: var(--gold); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: linear-gradient(rgba(22, 27, 36, .86), rgba(10, 13, 19, .9)); border: 1px solid rgba(184, 134, 43, .7); pointer-events: none; }
 #bpanel li.gs { color: var(--gold); font-weight: 700; }
 #bpanel li.gs::before { content: ''; }
+
+/* ===== Senado (Q7) ===== */
+.sn h2 { margin: 6px 0 10px; } .sn-b { display: flex; align-items: center; gap: 8px; margin: 6px 0; } .sn-b > span { width: 56px; font-weight: 700; } .sn-b > b { width: 30px; text-align: right; }
+.sn-bar { flex: 1; height: 12px; border-radius: 6px; background: #0004; overflow: clip; } .sn-bar i { display: block; height: 100%; } .sn-bar .sen { background: var(--gold); } .sn-bar .pue { background: #5aa469; } .sn-bar .pla { background: #c98a3a; }
+.sn-ex { font-size: 12px; opacity: .75; margin: 8px 0; } .sn-av { margin: 8px 0; padding: 8px 10px; border-radius: 8px; background: #7a1d1d55; color: #ff8a80; font-weight: 700; font-size: 13px; }
+.sn-pz { margin: 8px 0; font-size: 13px; } .sn-pz .sn-bar { margin-top: 4px; flex: none; } .sn-fa, .sn-pr, .sn-ca { margin-top: 6px; font-size: 13px; } .sn-pr b { color: #7bd88f; } .sn-ca b { color: #ff8a80; } .sn-mi { display: block; }

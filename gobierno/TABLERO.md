@@ -120,7 +120,8 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ Q5 **Barrios con servicios** (12/11): cada ciudad tiene nivel de barrio 1 a 4 (Aldea, Villa, Ciudad, Urbs) según grano, templo, agua, ocio, termas y lujo; sube un nivel al cerrar el mes y baja con 3 meses de retraso; da más población máxima (hasta ×1,8) y, en Urbs, +15 % de impuestos. Ficha «Barrio» con seis iconos y consejo («Para ser Villa falta un Templo»). Parte `partes/2026-11-12-Q5.md`.
 - ⬜ Q11 **Ciudad viva: luz y humo** espera al carril Ciudad (toca `js/gfx/city3d.js`).
 - ✅ Q6 **Tres clases y lo que piden** (12/11): ciudadanos, plebeyos y esclavos por ciudad, cada clase con su ánimo; esclavos por conquista (trabajan más, no pagan) y manumisión mensual; «Dar ciudadanía» (60 denarios, +10). Bloque «Clases» en la ficha. Parte `partes/2026-11-12-Q6.md`.
-- ⬜ Q7 en adelante **aprobadas enteras** (P75, 12/11): Senado y pueblo, provincias. Detalle en `estudios/Q1-ciudad-gobierno-economia.md` §8. Toca `js/game.js` y `js/data.js` como CN1 a CN4: va después de CN2 (decidido P80, 12/11).
+- ✅ Q7 **Senado y pueblo** (12/11): dos barras de favor, una misión del Senado a la vez (11 misiones con fuente), pantalla «Senado» en Imperio; con poco favor niega tratados ajenos y levas extra. `G.MISION_TIPOS` abierto para CN5.
+- ⬜ Q8 en adelante **aprobadas enteras** (P75, 12/11): Foro (decisiones al mes), provincias y edictos. Detalle en `estudios/Q1-ciudad-gobierno-economia.md` §8.
 
 ## Carril CN — Ciudad nueva: colocar y crecer (P80 a P82 y P89, aprobadas 12/11/2026; diseño `gobierno/estudios/Q1k-ciudad-de-cero.md` §9, donde se llaman C1 a C11)
 Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van de una en una con Economía. Empieza la partida con «ambas opciones» (pregunta abierta en la bitácora).

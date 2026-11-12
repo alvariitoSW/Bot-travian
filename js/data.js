@@ -254,6 +254,69 @@
     { y: 146, t: 'Corinto y Cartago', x: 'El cónsul Lucio Mumio vence a la Liga Aquea en el Istmo, y Corinto es saqueada y quemada. Ese mismo año Escipión Emiliano toma Cartago tras seis días de lucha hasta la Birsa; 50.000 personas se rinden, según Apiano.\n\nLa ciudad había durado 700 años, según Apiano.' },
   ];
 
+  /* Senado (Q7). Dos barras de favor, de 0 a 100: la del Senado se mueve con las misiones y con cerrar el mes en rojo;
+     la del pueblo tiende al ánimo medio de tus ciudades (inercia por mes). Con el Senado por debajo de «bajo» se niegan
+     tratados con ciudades ajenas y la quinta leva en cola. Licencia de juego: las barras y todas las cifras (los hechos
+     que inspiran las misiones están en sus fichas). Las condiciones son datos sobre piezas y niveles reales de D.BUILD
+     (no sobre viviendas ni foro, que son derivados). tipo de cond: lo define G.MISION_TIPOS en game.js. */
+  D.SENADO = {
+    favorIni: 50, min: 0, max: 100, bajo: 25,
+    inercia: 0.12,         // el pueblo se acerca esa fracción al ánimo medio cada mes
+    oroRojo: -2,           // favor del Senado por cada mes que cierra con obras o levas detenidas por falta de oro
+    premio: 12, castigo: -10,   // favor del Senado por defecto al cumplir o fallar una misión
+    pausa: 3,              // meses entre una misión y la siguiente
+    ventana: 20,           // años que una misión sigue disponible desde su fecha
+    levaMax: 4             // con poco favor no se admite una leva más si ya hay tantas en cola
+  };
+  // desde: año (a.C.) en que el Senado puede encargarla; plazo en meses; las cifras son licencia de juego
+  D.MISIONES = {};   // por id (el registro casa por id); el orden de las claves es el orden del Senado
+  [
+    { id: 'levas-heraclea', n: 'Nuevas levas tras Heraclea', desde: 280, plazo: 12, cond: { tipo: 'tropas', n: 300 },
+      texto: 'Pirro ha vencido en Heraclea. El Senado manda alistar nuevas legiones: reúne 300 hombres en armas.',
+      premio: { oro: 80, favorSenado: 12, favorPueblo: -3 }, castigo: { favorSenado: -10, favorPueblo: 3 },
+      fuente: 'Plutarco, Pirro 17; Eutropio 2.11', dictamen: 'historico' },
+    { id: 'presidio-regio', n: 'Presidio de la costa', desde: 279, plazo: 18, cond: { tipo: 'tropas_en', ciudad: 'capua', n: 100 },
+      texto: 'Una guarnición romana ha de sostener la Campania. Mantén 100 hombres en Capua.',
+      premio: { oro: 60, favorSenado: 10 }, castigo: { favorSenado: -10 },
+      fuente: 'Polibio 1.7; Livio, Períocas 12', dictamen: 'probable' },
+    { id: 'colonias-latinas', n: 'Colonias latinas', desde: 273, plazo: 30, cond: { tipo: 'ciudades', n: 3 },
+      texto: 'Roma asienta colonos en tierras conquistadas (Paestum, Cosa, Ariminum). Ten 3 ciudades propias.',
+      premio: { oro: 120, favorSenado: 15, favorPueblo: 8 }, castigo: { favorSenado: -8, favorPueblo: -5 },
+      fuente: 'Livio, Períocas 14 y 15; Veleyo Patérculo 1.14', dictamen: 'historico' },
+    { id: 'flota-260', n: 'Una flota para Roma', desde: 262, plazo: 14, cond: { tipo: 'edificio', b: 'puerto', n: 3 },
+      texto: 'Roma no tiene flota contra Cartago. Levanta un puerto de nivel 3 (la flota de Mylae se botó en 260).',
+      premio: { oro: 150, favorSenado: 15, favorPueblo: 5 }, castigo: { favorSenado: -12, favorPueblo: -4 },
+      fuente: 'Polibio 1.20 y 1.23', dictamen: 'historico' },
+    { id: 'grano-sicilia', n: 'Grano de Sicilia', desde: 241, plazo: 24, cond: { tipo: 'rutas', n: 2 },
+      texto: 'Sicilia alimenta a Roma con su diezmo de grano. Abre 2 rutas comerciales.',
+      premio: { oro: 100, favorSenado: 10, favorPueblo: 8 }, castigo: { favorSenado: -6, favorPueblo: -6 },
+      fuente: 'Cicerón, Verrinas 3.12 (ley de Hierón); Polibio 1.16', dictamen: 'historico' },
+    { id: 'templo-ver-sacrum', n: 'Voto de templos', desde: 217, plazo: 14, cond: { tipo: 'edificio', b: 'templo', n: 2, ciudad: 'roma' },
+      texto: 'Tras el desastre del Trasimeno el Senado vota templos y ofrendas. Templo de nivel 2 en Roma.',
+      premio: { favorSenado: 10, favorPueblo: 12 }, castigo: { favorSenado: -8, favorPueblo: -8 },
+      fuente: 'Livio 22.9 y 22.10', dictamen: 'historico' },
+    { id: 'almacen-grano', n: 'Graneros para la guerra', desde: 217, plazo: 16, cond: { tipo: 'edificio', b: 'almacen', n: 4, ciudad: 'roma' },
+      texto: 'Hierón de Siracusa envía trigo y cebada. Almacén de nivel 4 en Roma para guardarlos.',
+      premio: { oro: 90, favorSenado: 10 }, castigo: { favorSenado: -8 },
+      fuente: 'Livio 22.37', dictamen: 'historico' },
+    { id: 'muralla-roma', n: 'Defensas de Roma', desde: 216, plazo: 12, cond: { tipo: 'edificio', b: 'muralla', n: 4, ciudad: 'roma' },
+      texto: 'Aníbal está en Italia. Muralla de nivel 4 en Roma.',
+      premio: { favorSenado: 12, favorPueblo: 6 }, castigo: { favorSenado: -12, favorPueblo: -6 },
+      fuente: 'Livio 22.8 y 22.55', dictamen: 'probable' },
+    { id: 'armas-canas', n: 'Armas tras Cannas', desde: 216, plazo: 14, cond: { tipo: 'edificio', b: 'herreria', n: 3 },
+      texto: 'Tras Cannas faltan armas. Levanta una herrería de nivel 3 en cualquiera de tus ciudades.',
+      premio: { oro: 100, favorSenado: 12 }, castigo: { favorSenado: -10 },
+      fuente: 'Livio 22.57 y 23.14', dictamen: 'probable' },
+    { id: 'tributo-zama', n: 'Tributo de Cartago', desde: 202, plazo: 18, cond: { tipo: 'oro', n: 600 },
+      texto: 'Cartago pagará una indemnización tras Zama. Ten 600 de oro en las arcas.',
+      premio: { oro: 150, favorSenado: 12, favorPueblo: 5 }, castigo: { favorSenado: -6 },
+      fuente: 'Polibio 15.18; Livio 30.37', dictamen: 'historico' },
+    { id: 'levas-macedonia', n: 'Legiones para Macedonia', desde: 200, plazo: 20, cond: { tipo: 'edificio', b: 'cuartel', n: 5, ciudad: 'roma' },
+      texto: 'El Senado declara la guerra a Filipo V. Cuartel de nivel 5 en Roma para instruir legiones.',
+      premio: { oro: 120, favorSenado: 12, favorPueblo: -4 }, castigo: { favorSenado: -8, favorPueblo: 3 },
+      fuente: 'Livio 31.6 a 31.8; Polibio 6.19 a 6.21', dictamen: 'historico' }
+  ].forEach(m => { D.MISIONES[m.id] = m; });
+
   root.DATA = D;
   if (typeof module !== 'undefined') module.exports = D;
 })(typeof window !== 'undefined' ? window : globalThis);

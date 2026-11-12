@@ -107,6 +107,22 @@
     '146-corinto-cartago': f(SIN_E, h('Pausanias 7.16; Livio, Períocas 51-52; Apiano, Libyca 127-132', 'historico', null, 'Mumio venció a la Liga Aquea en el Istmo y saqueó Corinto. Ese año Escipión Emiliano tomó Cartago, según Apiano tras seis días de lucha, y la ciudad ardió.'))
   };
 
+  // ---- Misiones del Senado (D.MISIONES, Q7). Se casan por id. Las condiciones y cifras son licencia de juego. ----
+  const SIN_MIS = { sin: 'una misión no tiene modelo 3D' };
+  const mision = {
+    'levas-heraclea': f(SIN_MIS, h('Plutarco, Pirro 17; Eutropio 2.11', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Pirro ha vencido en Heraclea. El Senado manda alistar nuevas legiones: reúne 300 hombres en armas.')),
+    'presidio-regio': f(SIN_MIS, h('Polibio 1.7; Livio, Períocas 12', 'probable', 'plazos, premios, castigos y cifras: licencia de juego', 'Una guarnición romana ha de sostener la Campania. Mantén 100 hombres en Capua.')),
+    'colonias-latinas': f(SIN_MIS, h('Livio, Períocas 14 y 15; Veleyo Patérculo 1.14', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Roma asienta colonos en tierras conquistadas (Paestum, Cosa, Ariminum). Ten 3 ciudades propias.')),
+    'flota-260': f(SIN_MIS, h('Polibio 1.20 y 1.23', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Roma no tiene flota contra Cartago. Levanta un puerto de nivel 3 (la flota de Mylae se botó en 260).')),
+    'grano-sicilia': f(SIN_MIS, h('Cicerón, Verrinas 3.12 (ley de Hierón); Polibio 1.16', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Sicilia alimenta a Roma con su diezmo de grano. Abre 2 rutas comerciales.')),
+    'templo-ver-sacrum': f(SIN_MIS, h('Livio 22.9 y 22.10', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Tras el desastre del Trasimeno el Senado vota templos y ofrendas. Templo de nivel 2 en Roma.')),
+    'almacen-grano': f(SIN_MIS, h('Livio 22.37', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Hierón de Siracusa envía trigo y cebada. Almacén de nivel 4 en Roma para guardarlos.')),
+    'muralla-roma': f(SIN_MIS, h('Livio 22.8 y 22.55', 'probable', 'plazos, premios, castigos y cifras: licencia de juego', 'Aníbal está en Italia. Muralla de nivel 4 en Roma.')),
+    'armas-canas': f(SIN_MIS, h('Livio 22.57 y 23.14', 'probable', 'plazos, premios, castigos y cifras: licencia de juego', 'Tras Cannas faltan armas. Levanta una herrería de nivel 3 en cualquiera de tus ciudades.')),
+    'tributo-zama': f(SIN_MIS, h('Polibio 15.18; Livio 30.37', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Cartago pagará una indemnización tras Zama. Ten 600 de oro en las arcas.')),
+    'levas-macedonia': f(SIN_MIS, h('Livio 31.6 a 31.8; Polibio 6.19 a 6.21', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'El Senado declara la guerra a Filipo V. Cuartel de nivel 5 en Roma para instruir legiones.')),
+  };
+
   // ---- Facciones (D.FACTIONS). Sin modelo: solo un nombre y un color. Fuente: H1-ciudades.md y H1-hechos.md ----
   const SIN_F = { sin: 'sin modelo: la facción es un nombre y un color' };
   const faccion = {
@@ -148,7 +164,7 @@
     pieles: f(SIN_T, h('', 'por cotejar', 'Mediolanum y Ambracia sin cotejar' + MEC))
   };
 
-  R.fichas = { edificio, tropa, ciudad, hecho, faccion, mejora, tipo, especial };
+  R.fichas = { edificio, tropa, ciudad, hecho, mision, faccion, mejora, tipo, especial };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -157,6 +173,7 @@
     tropa: { tabla: 'UNITS', numericos: ['atk', 'def', 'spd', 'mor', 'up'], textos: ['n', 'cls'], segunClase: { rng: ['ratk', 'range'] } },
     ciudad: { tabla: 'CITIES', numericos: ['lon', 'lat', 'w', 'wl'], mapas: ['g'], textos: ['n', 'f'] },
     hecho: { tabla: 'EVENTS', lista: true, numericos: ['y'], textos: ['t', 'x'] },
+    mision: { tabla: 'MISIONES', numericos: ['desde', 'plazo'], textos: ['n', 'texto'] },
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },
     mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },
     tipo: { tabla: 'TIPOS', numericos: [], textos: ['n', 'i', 'd'] },

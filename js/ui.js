@@ -125,7 +125,7 @@ function hudDock() {
   setTxt('bact', g ? '<span class="em">🔨</span><small>Obras</small>' : D.GUERRA_ICON.casco + '<small>Tropas</small>');
   setTxt('bmodo', open ? '<span class="em">✕</span><small>Cerrar</small>' : (g ? ICO_GOB : D.GUERRA_ICON.espadas) + '<small>' + (g ? 'Gobierno' : 'Guerra') + '</small>');
   setTxt('bpill', g ? D.POP_ICON + ' ' + Math.floor(c.pop) + '/' + G.popCap(c) + ' · ' + cara + ' ' + f : '🚩 ' + (nm === 1 ? '1 marcha en curso' : nm + ' marchas en curso'));
-  const t3 = UI.tab === 'imperio' ? 'imperio' : UI.tab === 'city' ? (UI.cityList || !UI.cityV ? 'gobierno' : 'ciudad') : '';
+  const t3 = UI.tab === 'imperio' || UI.tab === 'senado' ? 'imperio' : UI.tab === 'city' ? (UI.cityList || !UI.cityV ? 'gobierno' : 'ciudad') : '';
   document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3));
   setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
 }
@@ -162,7 +162,7 @@ function tickUI() {
 
 /* ---------- paneles ---------- */
 function setTab(t) {
-  UI.tab = t; if (t === 'map' || t === 'army') UI.modo = 'guerra'; else if (t === 'city' || t === 'imperio') UI.modo = 'gobierno'; $('hoja').hidden = true; $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
+  UI.tab = t; if (t === 'map' || t === 'army') UI.modo = 'guerra'; else if (t === 'city' || t === 'imperio' || t === 'senado') UI.modo = 'gobierno'; $('hoja').hidden = true; $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
   const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D (o en lista si se prefiere)
   $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3;
   if (c3) UI.cityV.resize();
@@ -202,7 +202,7 @@ function render() {
   if (!S()) return; renderPop(); if (UI.tab === 'map') { renderSheet(); return; }
   if (UI.tab === 'city' && UI.cityV && !UI.cityList) { renderCity3D(); tickUI(); return; }
   const v = $('view'), st = v.scrollTop;
-  v.innerHTML = UI.tab === 'imperio' ? viewImperio() : UI.tab === 'city' ? viewCity() : UI.tab === 'army' ? viewArmy() : UI.tab === 'hero' ? viewHero() : viewLog();
+  v.innerHTML = UI.tab === 'imperio' ? viewImperio() : UI.tab === 'city' ? viewCity() : UI.tab === 'army' ? viewArmy() : UI.tab === 'hero' ? viewHero() : UI.tab === 'senado' ? viewSenado() : viewLog();
   v.scrollTop = st; tickUI();
 }
 function effect(b, L) {
@@ -386,7 +386,7 @@ function viewImperio() {
   const ok = { todas: () => true, urgentes: r => r.urg, sinobra: r => !r.c.queue, obras: r => !!r.c.queue, animo: r => r.f < 40 }[F] || (() => true);
   const lista = filas.filter(ok).sort((a, b) => b.pts - a.pts || b.c.pop - a.c.pop);
   const cara = f => f >= 60 ? '😊' : f >= 40 ? '😐' : '😠';
-  let h = '<div class="imp"><div class="imp-res"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div><button class="btn cu-go" data-act="cuentas">📊 Cuentas del mes<small>materiales y oro</small></button>' +
+  let h = '<div class="imp"><div class="imp-res"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div><button class="btn cu-go" data-act="cuentas">📊 Cuentas del mes<small>materiales y oro</small></button><button class="btn cu-go" data-act="tab" data-v="senado">🏛️ Senado<small>favor y misión</small></button>' +
     (peor && n > 1 ? '<div class="imp-peor">Peor ánimo: <b>' + D.CITIES[peor.id].n + '</b> ' + cara(peor.f) + ' ' + peor.f + '</div>' : '') +
     '<div class="imp-chips">' + IMP_FILTROS.map(x => '<button class="' + (F === x[0] ? 'on' : '') + '" data-act="impf" data-v="' + x[0] + '">' + x[1] + ' <i>' + cuenta[x[0]] + '</i></button>').join('') + '</div><div class="imp-lista">';
   if (!lista.length) h += '<div class="imp-vacio">Ninguna ciudad cumple este filtro.</div>';
@@ -530,6 +530,21 @@ function viewArmy() {
         : fe ? faltaBtn(fe) : '<button class="btn no">' + D.BUILD[rb].n + '<small>nivel ' + u.req[rb] + '</small></button>') + '</div>';
   }
   return h;
+}
+/* Senado (Q7) */
+function viewSenado() {
+  const f = G.favor(), mi = G.misionActual(), mot = G.senadoMotivo();
+  const barra = (n, v, c) => '<div class="sn-b"><span>' + n + '</span><div class="sn-bar"><i class="' + c + '" style="width:' + v + '%"></i></div><b>' + v + '</b></div>';
+  const efecto = e => { const a = []; if (e.oro) a.push((e.oro > 0 ? '+' : '') + e.oro + ' de oro'); if (e.favorSenado) a.push((e.favorSenado > 0 ? '+' : '') + e.favorSenado + ' favor del Senado'); if (e.favorPueblo) a.push((e.favorPueblo > 0 ? '+' : '') + e.favorPueblo + ' favor del pueblo'); return a.join(', ') || 'nada'; };
+  let o = '<div class="acts"><button class="btn ghost" data-act="tab" data-v="imperio">← Volver al Imperio</button></div><div class="sn"><h2>🏛️ El Senado</h2>' + barra('Senado', f.senado, 'sen') + barra('Pueblo', f.pueblo, 'pue') +
+    '<p class="sn-ex">El pueblo sigue el ánimo de tus ciudades. El Senado sube con las misiones cumplidas y baja con las falladas o con el oro en rojo a fin de mes.</p>';
+  if (mot) o += '<div class="sn-av">' + esc(mot) + '</div>';
+  if (!mi) return o + '<div class="empty">El Senado no te pide nada por ahora.</div></div>';
+  const m = mi.m, tot = Math.max(1, mi.t1 - mi.t0);
+  o += '<div class="sec">Misión en curso</div><div class="card sn-mi"><div class="tt">' + esc(m.n) + '</div><div class="ds">' + esc(m.texto) + '</div>' +
+    '<div class="sn-pz"><span>Plazo: quedan ' + mi.quedan + (mi.quedan === 1 ? ' mes' : ' meses') + '</span><div class="sn-bar"><i class="pla" style="width:' + Math.max(0, Math.min(100, mi.quedan / tot * 100)) + '%"></i></div></div>' +
+    '<div class="sn-fa"><b>Qué falta</b> ' + esc(String(mi.falta)) + '</div><div class="sn-pr"><b>Premio</b> ' + efecto(m.premio || {}) + '</div><div class="sn-ca"><b>Si fallas</b> ' + efecto(m.castigo || {}) + '</div></div></div>';
+  return o;
 }
 function viewHero() {
   const s = S(), h = s.hero, need = G.xpNeed(h.lvl);

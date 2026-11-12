@@ -1075,4 +1075,34 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   assert(tam < 300000, 'estado < 300 KB (' + tam + ')'); assert(!tipado(s), 'sin arrays tipados');
   const t2 = Date.now(); ticks(12); console.log('12 meses con 18 ciudades:', Date.now() - t2, 'ms'); assert(!tipado(s)); G.usarCiudad(null); }
 
+// 8. Senado (Q7): favor, misiones, partida vieja, favor bajo
+{
+  const s = G.newGame('Test'); G.turnos = false;
+  assert(s.favor.senado === 50 && s.favor.pueblo === 50, 'favor inicial 50/50');
+  let ma = G.misionActual(); assert(ma && ma.m.id === 'levas-heraclea' && ma.t1 === ma.t0 + ma.m.plazo && typeof ma.falta === 'string', 'misión nueva al empezar');
+  assert.deepStrictEqual(G.favor(), { senado: 50, pueblo: 50 }); assert(!G.favorBajo() && G.senadoMotivo() === '');
+  for (const m of Object.values(D.MISIONES)) { assert(G.MISION_TIPOS[m.cond.tipo], 'tipo de condición registrado: ' + m.cond.tipo); assert(!/termas|anfiteatro|acueducto|vigiles/i.test(m.texto + m.n + JSON.stringify(m.cond)), 'misión sin piezas retiradas'); assert(!m.cond.b || D.BUILD[m.cond.b], 'pieza real'); }
+  // cumplida: premio y siguiente misión tras la pausa
+  s.cities.roma.units.hastati += 400; const o0 = s.res.oro;
+  s.t = 1; G.cierreMes(); assert(s.misionesHechas['levas-heraclea'] === 'ok' && s.favor.senado > 50 && s.res.oro + s.alm.oro >= o0 + 80, 'misión cumplida da premio');
+  assert(G.misionActual() === null, 'pausa tras la misión'); s.t = 13; G.cierreMes(); assert(G.misionActual() && G.misionActual().m.id === 'presidio-regio', 'sigue la siguiente por orden');
+  // vencida: castigo
+  const x = s.mision, antes = s.favor.senado; s.cities.capua.units = {}; s.t = x.t1 + 0.01; s.mision.id = 'presidio-regio'; G.cierreMes();
+  assert(s.misionesHechas['presidio-regio'] === 'fallo' && s.favor.senado < antes && !s.mision, 'misión vencida castiga');
+  // topes
+  s.favor.senado = 99; s.favor.pueblo = 99; s.mision = { id: 'levas-heraclea', t0: 0, t1: 1 }; s.misionesHechas = {}; s.cities.roma.units.hastati += 400; G.cierreMes(); assert(s.favor.senado <= 100 && s.favor.pueblo <= 100, 'tope 100');
+  s.favor.senado = 1; s.mision = { id: 'presidio-regio', t0: 0, t1: 1 }; s.cities.capua.units = {}; s.res.oro = -50; s.t += 5; G.cierreMes(); assert(s.favor.senado >= 0 && s.favor.senado < 1, 'tope 0 y oro en rojo baja el favor'); s.res.oro = 100;
+  // el pueblo tiende al ánimo medio
+  s.favor.pueblo = 0; s.t += 1; G.cierreMes(); assert(s.favor.pueblo > 0 && s.favor.pueblo < 30, 'pueblo sube con inercia');
+  // favor bajo: niega tratado ajeno y quinta leva; lo propio sigue
+  s.favor.senado = 10; assert(G.favorBajo() && /malos ojos/.test(G.senadoMotivo()));
+  const c = s.cities.roma; c.b.mercado = 3; c.b.puerto = 3; const aj = G.neighbors('roma').find(i => s.cities[i].owner !== 'roma');
+  if (aj) { s.rutas = []; assert(/Senado/.test(G.rutaPuede('roma', aj) || ''), 'favor bajo niega tratado ajeno'); s.favor.senado = 60; assert(!/Senado/.test(G.rutaPuede('roma', aj) || ''), 'con favor normal no lo niega'); s.favor.senado = 10; }
+  assert(G.rutaPuede('roma', 'capua') === null || !/Senado/.test(G.rutaPuede('roma', 'capua')), 'rutas propias no se niegan');
+  c.train = [1, 2, 3, 4].map(() => ({ u: 'hastati', n: 1, t0: 0, t1: 9 })); c.pop = 5000; const nl = c.train.length; assert.strictEqual(G.train('roma', 'hastati', 10), false, 'favor bajo niega leva extra'); assert.strictEqual(c.train.length, nl);
+  // partida vieja sin favor
+  const vieja = JSON.parse(JSON.stringify(s)); delete vieja.favor; delete vieja.mision; delete vieja.misionesHechas; delete vieja.proxMision; G.migrarSenado(vieja);
+  assert(vieja.favor.senado === 50 && vieja.favor.pueblo === 50 && vieja.mision === null, 'partida vieja: favor 50 y sin misión');
+}
+
 console.log('OK — todas las pruebas superadas');
