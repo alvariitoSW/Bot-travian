@@ -37,28 +37,42 @@ const ESTADO = { '⬜': ['pend', 'por hacer'], '🔶': ['medias', 'a medias'], '
 let total = 0, hechas = 0, medias = 0;
 const carriles = Object.keys(tablero).filter(k => /^Carril |^Gobierno/.test(k)).map(k => {
   const m = k.match(/^Carril (\w+) — (.+)/), letra = m ? m[1] : 'G', nombre = m ? m[2] : 'Gobierno';
-  const tareas = vinetas(tablero[k]).map(v => { const t = v.match(/^(⬜|🔶|✅)\s+(\w+)\s+(.*)$/u); return t && { est: t[1], id: t[2], texto: t[3] }; }).filter(Boolean);
-  return { letra, nombre, tareas };
+  const tareas = vinetas(tablero[k]).flatMap(v => {
+    const t = v.match(/^(⬜|🔶|✅)\s+(?:\((en pausa[^)]*)\)\s+)?(\w+)\s+(.*)$/u); if (!t) return [];
+    const fila = [{ est: t[1], id: t[3], texto: t[4], pausa: t[2] || '' }];
+    const q = t[1] === '✅' && t[4].match(/Queda ⬜ (\w+):?\s*(.*)$/u);   // una hecha que deja una parte pendiente (p. ej. C2 → C2b)
+    if (q) fila.push({ est: '⬜', id: q[1], texto: q[2], pausa: '' });
+    return fila;
+  });
+  return { letra, nombre, corto: ({ A: 'Guerra', B: 'Ciudad', C: 'Mapa', D: 'Técnica', E: 'Arte', F: 'Modos', H: 'Historia', I: 'Gran diseño', J: 'Interfaz', K: 'Concurso', L: 'Interfaz guerra', N: 'Guerra nueva', O: 'Economía' })[letra] || nombre.replace(/\s*[\(—].*$/, ''), tareas };
 }).filter(c => c.tareas.length);
 
-const enPausa = t => /^\(en pausa/.test(t.texto);
 const pendientes = c => c.tareas.filter(t => t.est !== '✅');
 carriles.sort((a, b) => (pendientes(b).length > 0) - (pendientes(a).length > 0));
+
+function tareaHtml(t, c) {
+  const [cls, rot] = ESTADO[t.est], hecha = t.est === '✅', titulo = corto(t.texto), id = esc(t.id), tit = esc(titulo);
+  return '<details class="tarea' + (hecha ? ' hecha' : '') + '" data-ref="' + id + '"' + (hecha ? '' : ' data-carril="' + esc(c.letra) + '" data-pausa="' + (t.pausa ? 1 : 0) + '" data-busca="' + esc((t.id + ' ' + plano(t.texto) + ' ' + c.corto).toLowerCase()) + '"') + '><summary>' +
+    (hecha ? '' : '<input type="checkbox" class="sel" data-sel="' + id + '" data-titulo="' + tit + '" aria-label="Elegir ' + id + '">') +
+    '<span class="id">' + id + '</span><span class="que">' + esc(titulo) + (hecha ? '' : '<small>' + esc(c.letra) + ' · ' + esc(c.corto) + (t.pausa ? ' · ' + esc(t.pausa) : '') + '</small>') + '</span>' +
+    '<span class="estado ' + (t.pausa ? 'pausa' : cls) + '">' + (t.pausa ? 'en pausa' : rot) + '</span></summary>' +
+    '<div class="cuerpo"><p>' + md(t.texto) + '</p>' +
+    '<div class="fila">' + (hecha ? '' : '<button class="boton lleno" data-pedir="abrir" data-ref="' + id + '" data-titulo="' + tit + '">Abrir sesión</button><button class="boton" data-pedir="priorizar" data-ref="' + id + '" data-titulo="' + tit + '">Dar prioridad</button>') +
+    '<button class="boton" data-abrir="c-' + id + '">Pedir un cambio</button></div>' +
+    '<div class="cambio" id="c-' + id + '" hidden><label class="quien" for="tx-' + id + '">Qué cambiarías en ' + id + '</label><textarea id="tx-' + id + '"></textarea>' +
+    '<div class="fila"><button class="boton lleno" data-pedir="cambio" data-ref="' + id + '" data-titulo="' + tit + '" data-texto="tx-' + id + '">Enviar cambio</button></div></div></div></details>';
+}
+// todo lo pendiente en una sola lista: lo activo primero (por carril), lo que está en pausa al final
+const listaPend = [];
+for (const c of carriles) for (const t of pendientes(c)) listaPend.push({ t, c });
+listaPend.sort((a, b) => (!!a.t.pausa) - (!!b.t.pausa));
+const nPausa = listaPend.filter(x => x.t.pausa).length, nActivas = listaPend.length - nPausa;
+const htmlPendiente = listaPend.map(x => tareaHtml(x.t, x.c)).join('') || '<p class="nota">No queda nada por hacer en el tablero.</p>';
+const htmlChips = carriles.filter(c => pendientes(c).length).map(c => '<button class="chip" data-filtro="carril:' + esc(c.letra) + '">' + esc(c.letra) + ' · ' + esc(c.corto) + ' <b>' + pendientes(c).length + '</b></button>').join('');
+// el historial: solo lo hecho, plegado por carril
 const htmlCarriles = carriles.map(c => {
-  const ok = c.tareas.filter(t => t.est === '✅').length; total += c.tareas.length; hechas += ok; medias += c.tareas.filter(t => t.est === '🔶').length;
-  return '<details class="carril"><summary><span class="letra">' + esc(c.letra) + '</span><span class="nombre">' + esc(c.nombre) + '</span><span class="cuenta">' + ok + ' de ' + c.tareas.length + '</span></summary><div class="tareas">' +
-    [...pendientes(c), ...c.tareas.filter(t => t.est === '✅')].map((t, i, lista) => {
-      const abreHechas = t.est === '✅' && (i === 0 || lista[i - 1].est !== '✅') ? '<details class="hechas"><summary>Hechas (' + ok + ')</summary>' : '', cierraHechas = t.est === '✅' && i === lista.length - 1 ? '</details>' : '';
-      return abreHechas + (() => {
-      const [cls, rot] = ESTADO[t.est], hecha = t.est === '✅', titulo = corto(t.texto);
-      return '<details class="tarea' + (hecha ? ' hecha' : '') + '" data-ref="' + esc(t.id) + '"><summary><span class="id">' + esc(t.id) + '</span><span class="que">' + esc(titulo) + '</span><span class="estado ' + cls + '">' + rot + '</span></summary>' +
-        '<div class="cuerpo"><p>' + md(t.texto) + '</p>' +
-        '<div class="fila">' + (hecha ? '' : '<button class="boton lleno" data-pedir="abrir" data-ref="' + esc(t.id) + '" data-titulo="' + esc(titulo) + '">Abrir sesión</button><button class="boton" data-pedir="priorizar" data-ref="' + esc(t.id) + '" data-titulo="' + esc(titulo) + '">Dar prioridad</button>') +
-        '<button class="boton" data-abrir="c-' + esc(t.id) + '">Pedir un cambio</button></div>' +
-        '<div class="cambio" id="c-' + esc(t.id) + '" hidden><label class="quien" for="tx-' + esc(t.id) + '">Qué cambiarías en ' + esc(t.id) + '</label><textarea id="tx-' + esc(t.id) + '"></textarea>' +
-        '<div class="fila"><button class="boton lleno" data-pedir="cambio" data-ref="' + esc(t.id) + '" data-titulo="' + esc(titulo) + '" data-texto="tx-' + esc(t.id) + '">Enviar cambio</button></div></div></div></details>';
-      })() + cierraHechas;
-    }).join('') + '</div></details>';
+  const ok = c.tareas.filter(t => t.est === '✅'); total += c.tareas.length; hechas += ok.length; medias += c.tareas.filter(t => t.est === '🔶').length;
+  return ok.length ? '<details class="carril"><summary><span class="letra">' + esc(c.letra) + '</span><span class="nombre">' + esc(c.nombre) + '</span><span class="cuenta">' + ok.length + ' hechas</span></summary><div class="tareas">' + ok.map(t => tareaHtml(t, c)).join('') + '</div></details>' : '';
 }).join('');
 
 /* ---------- siguiente paso de cada carril y sesiones en marcha ---------- */
@@ -66,9 +80,9 @@ const sesiones = config.sesiones || [], enMarcha = new Set(sesiones.map(x => x.t
 const htmlMarcha = sesiones.length ? sesiones.map(x =>
   '<li class="sig"><span class="id">' + esc(x.tarea || '') + '</span><span class="que"><b>' + esc(x.titulo || '') + '</b>' + (x.nota ? '<span class="nota">' + esc(x.nota) + '</span>' : '') + '</span>' +
   (x.url ? '<a class="boton fino" href="' + esc(x.url) + '" target="_blank" rel="noopener">Ver</a>' : '') + '</li>').join('')
-  : '<li class="nota">No hay ninguna sesión trabajando. Abre una desde «Siguiente paso».</li>';
+  : '<li class="nota">No hay ninguna sesión trabajando. Abre una desde «Todo lo pendiente».</li>';
 const htmlSiguiente = carriles.map(c => {
-  const libres = pendientes(c).filter(t => !enPausa(t)), t = libres.find(x => !enMarcha.has(x.id));
+  const libres = pendientes(c).filter(t => !t.pausa), t = libres.find(x => !enMarcha.has(x.id));
   if (!t) return '';
   const titulo = corto(t.texto), pausadas = pendientes(c).length - libres.length;
   return '<li class="sig"><span class="letra">' + esc(c.letra) + '</span><span class="que"><b>' + esc(t.id) + ' · ' + esc(titulo) + '</b><span class="nota">' + esc(c.nombre.replace(/\s*\(.*$/, '')) + ' · quedan ' + libres.length + (pausadas ? ' y ' + pausadas + ' en pausa' : '') + '</span></span>' +
@@ -149,8 +163,8 @@ const hechos = kHecho ? tablero[kHecho].join(' ').split('✅').map(s => s.replac
 const fecha = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 const datos = {
   FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase,
-  ESPERA: htmlEspera, MARCHA: htmlMarcha, SIGUIENTE: htmlSiguiente, N_ESPERA: espera.length + propuestas.length, PROPUESTAS: htmlPropuestas, CARRILES: htmlCarriles,
-  RESUMEN: total + ' tareas en ' + carriles.length + ' carriles: ' + hechas + ' hechas, ' + medias + ' a medias y ' + (total - hechas - medias) + ' por hacer.',
+  PENDIENTE: htmlPendiente, CHIPS: htmlChips, N_ACTIVAS: nActivas, N_TODAS: listaPend.length, N_PAUSA: nPausa, N_MARCHA: sesiones.length, N_HECHAS: hechas, N_PROP: propuestas.length, N_ESP: espera.length, ESPERA: htmlEspera, MARCHA: htmlMarcha, SIGUIENTE: htmlSiguiente, N_ESPERA: espera.length + propuestas.length, PROPUESTAS: htmlPropuestas, CARRILES: htmlCarriles,
+  RESUMEN: hechas + ' tareas hechas en ' + carriles.length + ' carriles.',
   ENSENAR: htmlEnsenar, INFORMES: htmlInformes, CAPTURAS: htmlCapturas, CAPTURAS_NOTA: esc(notaCapturas), HECHOS: hechos.map(h => '<li>' + md(h) + '</li>').join(''),
 };
 const html = (await lee('cuadro.plantilla.html')).replace(/\{\{(\w+)\}\}/g, (_, k) => datos[k] ?? '');

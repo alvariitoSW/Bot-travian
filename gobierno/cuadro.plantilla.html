@@ -90,7 +90,31 @@ section { scroll-margin-top: 12px; }
 .informe .md td, .informe .md th { border: 1px solid var(--raya); padding: 4px 8px; text-align: left; vertical-align: top; min-width: 90px; }
 .hechos { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
 .hechos li { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--tabla); border: 1px solid var(--raya); }
-#aviso { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--tinta); color: var(--fondo); text-align: center; font-weight: 500; z-index: 5; }
+
+/* resumen, filtros y selección en lote */
+.fichas { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
+.ficha-num { background: var(--tabla); border: 1px solid var(--raya); border-radius: 10px; padding: 10px 8px; text-align: center; text-decoration: none; color: var(--tinta); display: flex; flex-direction: column; gap: 2px; }
+.ficha-num b { font: 700 26px var(--rotulo); color: var(--purpura); line-height: 1; font-variant-numeric: tabular-nums; }
+.ficha-num span { font-size: 12px; color: var(--tenue); }
+.ficha-num.alerta b { color: var(--mal); }
+.filtros { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 13px var(--texto); min-height: 36px; padding: 4px 11px; border-radius: 999px; border: 1.5px solid var(--raya); background: var(--tabla); color: var(--tinta); cursor: pointer; }
+.chip b { color: var(--tenue); font-weight: 600; margin-left: 3px; }
+.chip[aria-pressed="true"] { background: var(--purpura); border-color: var(--purpura); color: var(--sobre-purpura); }
+.chip[aria-pressed="true"] b { color: inherit; }
+#buscar { font: 16px var(--texto); width: 100%; box-sizing: border-box; min-height: 44px; padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--raya); background: var(--fondo); color: var(--tinta); }
+#pendiente > .tarea { border: 1px solid var(--raya); border-radius: 10px; background: var(--tabla); margin-bottom: 8px; padding: 0 12px; }
+#pendiente > .tarea > summary { align-items: center; }
+#pendiente .cuerpo { padding-left: 0; }
+.tarea .que small { display: block; font-size: 12px; color: var(--tenue); }
+.tarea .sel { width: 22px; height: 22px; flex: none; accent-color: var(--purpura); margin: 0; }
+.tarea .id { width: auto; min-width: 28px; }
+.estado.pausa { color: var(--tenue); border-style: dashed; }
+.tarea:has(.sel:checked) { border-color: var(--purpura); }
+#lote { position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--tabla); border-top: 2px solid var(--purpura); }
+#lote .cuenta { font-weight: 600; font-variant-numeric: tabular-nums; }
+.plegable > summary { cursor: pointer; font: 700 15px var(--rotulo); letter-spacing: .12em; text-transform: uppercase; color: var(--bronce); padding: 4px 0; }
+#aviso { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--tinta); color: var(--fondo); text-align: center; font-weight: 500; z-index: 6; }
 @media (prefers-reduced-motion: no-preference) { .boton { transition: background .15s, color .15s; } }
 </style>
 
@@ -103,12 +127,20 @@ section { scroll-margin-top: 12px; }
       <span class="veredicto {{VEREDICTO_CLASE}}">{{VEREDICTO}}</span>
     </div>
     <nav class="fila" aria-label="Ir a">
-      <a class="boton fino" href="#t-espera">Te esperan {{N_ESPERA}}</a>
-      <a class="boton fino" href="#t-siguiente">Abrir sesiones</a>
+      <a class="boton fino" href="#t-espera">Decides tú {{N_ESPERA}}</a>
+      <a class="boton fino" href="#t-pend">Pendiente {{N_ACTIVAS}}</a>
       <a class="boton fino" href="#t-pedidos">Tus pedidos</a>
       <a class="boton fino" href="#t-ensenar">Capturas</a>
     </nav>
   </header>
+
+  <section aria-label="Resumen" class="fichas">
+    <a class="ficha-num alerta" href="#t-espera"><b>{{N_ESPERA}}</b><span>decides tú</span></a>
+    <a class="ficha-num" href="#t-pend"><b>{{N_ACTIVAS}}</b><span>por hacer</span></a>
+    <a class="ficha-num" href="#t-pend"><b>{{N_PAUSA}}</b><span>en pausa</span></a>
+    <a class="ficha-num" href="#t-marcha"><b>{{N_MARCHA}}</b><span>trabajando</span></a>
+    <a class="ficha-num" href="#t-tablero"><b>{{N_HECHAS}}</b><span>hechas</span></a>
+  </section>
 
   <section aria-labelledby="t-espera">
     <h2 id="t-espera">Espera algo tuyo</h2>
@@ -125,10 +157,13 @@ section { scroll-margin-top: 12px; }
     <ul class="lista">{{MARCHA}}</ul>
   </section>
 
-  <section aria-labelledby="t-siguiente">
-    <h2 id="t-siguiente">Siguiente paso de cada carril</h2>
-    <p class="nota">Lo primero que queda por hacer en cada carril. «Abrir sesión» lo deja pedido; el vigía la arranca en su próxima pasada (cada tres horas).</p>
-    <ul class="lista">{{SIGUIENTE}}</ul>
+  <section aria-labelledby="t-pend">
+    <h2 id="t-pend">Todo lo pendiente</h2>
+    <p class="nota">Toca una tarea para leerla. Marca varias con la casilla y usa la barra de abajo para abrir sesión o dar prioridad de una vez. El vigía lo aplica en su próxima pasada (cada tres horas).</p>
+    <input id="buscar" type="search" placeholder="Buscar: «general», «Q7», «arte»…" aria-label="Buscar tareas">
+    <div class="filtros" id="filtros"><button class="chip" data-filtro="todas" aria-pressed="true">Todas <b>{{N_TODAS}}</b></button><button class="chip" data-filtro="activas" aria-pressed="false">Por hacer <b>{{N_ACTIVAS}}</b></button><button class="chip" data-filtro="pausa" aria-pressed="false">En pausa <b>{{N_PAUSA}}</b></button>{{CHIPS}}</div>
+    <div class="fila"><span class="nota" id="vistas"></span><button class="boton fino" id="selvis">Marcar las visibles</button></div>
+    <div id="pendiente">{{PENDIENTE}}</div>
   </section>
 
   <section aria-labelledby="t-pedidos">
@@ -143,8 +178,8 @@ section { scroll-margin-top: 12px; }
   </section>
 
   <section aria-labelledby="t-tablero">
-    <h2 id="t-tablero">Tablero</h2>
-    <p class="nota">{{RESUMEN}} Arriba, los carriles con trabajo pendiente; dentro de cada uno, primero lo que falta. Toca una tarea para abrirle sesión, priorizarla o pedir un cambio.</p>
+    <h2 id="t-tablero">Historial: lo ya hecho</h2>
+    <p class="nota">{{RESUMEN}} Por carril; toca uno para abrirlo.</p>
     <div>{{CARRILES}}</div>
   </section>
 
@@ -166,6 +201,7 @@ section { scroll-margin-top: 12px; }
     <ul class="hechos">{{HECHOS}}</ul>
   </section>
 </div>
+<div id="lote" hidden><span class="cuenta" id="lote-n"></span><button class="boton lleno fino" data-lote="abrir">Abrir sesión</button><button class="boton fino" data-lote="priorizar">Dar prioridad</button><button class="boton fino" data-lote="quitar">Quitar marcas</button></div>
 <div id="aviso" role="status" hidden></div>
 
 <script>
@@ -176,7 +212,7 @@ section { scroll-margin-top: 12px; }
 
   function aviso(txt) { var a = $('aviso'); a.textContent = txt; a.hidden = false; clearTimeout(avisoT); avisoT = setTimeout(function () { a.hidden = true; }, 3500); }
   function apagar(motivo) {
-    document.querySelectorAll('[data-pedir]').forEach(function (b) { b.disabled = true; });
+    document.querySelectorAll('[data-pedir],[data-lote="abrir"],[data-lote="priorizar"]').forEach(function (b) { b.disabled = true; });
     $('pedidos-nota').textContent = motivo;
   }
 
@@ -200,12 +236,38 @@ section { scroll-margin-top: 12px; }
         var f = document.createElement('div'); f.className = 'fila';
         var b = document.createElement('button'); b.className = 'boton fino'; b.textContent = 'Deshacer'; b.dataset.deshacer = x.id;
         f.appendChild(b); li.appendChild(f);
-        var s = x.ref && document.querySelector('[data-ref="' + x.ref + '"] > summary');
-        if (s && !s.querySelector('.estado.pedido')) { var e = document.createElement('span'); e.className = 'estado pedido'; e.textContent = 'pedido'; s.appendChild(e); }
+        if (x.ref) document.querySelectorAll('[data-ref="' + x.ref + '"] > summary').forEach(function (s) { if (!s.querySelector('.estado.pedido')) { var e = document.createElement('span'); e.className = 'estado pedido'; e.textContent = 'pedido'; s.appendChild(e); } });
       }
       ul.appendChild(li);
     });
   }
+
+
+  // filtros y búsqueda de la lista de pendientes (no necesitan la base de datos)
+  var filtro = 'todas', tareas = Array.prototype.slice.call(document.querySelectorAll('#pendiente > .tarea'));
+  function aplicar() {
+    var q = ($('buscar').value || '').trim().toLowerCase(), n = 0;
+    tareas.forEach(function (t) {
+      var ok = filtro === 'todas' || (filtro === 'activas' && t.dataset.pausa === '0') || (filtro === 'pausa' && t.dataset.pausa === '1') || (filtro.indexOf('carril:') === 0 && t.dataset.carril === filtro.slice(7));
+      if (ok && q) ok = q.split(/\s+/).every(function (w) { return t.dataset.busca.indexOf(w) >= 0; });
+      t.hidden = !ok; if (ok) n++;
+    });
+    $('vistas').textContent = 'Se ven ' + n + ' de ' + tareas.length;
+  }
+  function marcadas() { return Array.prototype.slice.call(document.querySelectorAll('.sel:checked')); }
+  function lote() { var n = marcadas().length; $('lote').hidden = !n; $('lote-n').textContent = n + (n === 1 ? ' elegida' : ' elegidas'); }
+  $('buscar').addEventListener('input', aplicar);
+  $('filtros').addEventListener('click', function (ev) {
+    var b = ev.target.closest('.chip'); if (!b) return; filtro = b.dataset.filtro;
+    document.querySelectorAll('#filtros .chip').forEach(function (c) { c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); }); aplicar();
+  });
+  $('selvis').addEventListener('click', function () {
+    var vis = tareas.filter(function (t) { return !t.hidden; }).map(function (t) { return t.querySelector('.sel'); });
+    var todas = vis.length && vis.every(function (c) { return c.checked; });
+    vis.forEach(function (c) { c.checked = !todas; }); lote();
+  });
+  document.addEventListener('change', function (ev) { if (ev.target.classList && ev.target.classList.contains('sel')) lote(); });
+  aplicar();
 
   function pedir(b) {
     var tipo = b.dataset.pedir, ref = b.dataset.ref || '', caja = b.dataset.texto ? $(b.dataset.texto) : null, texto = caja ? caja.value.trim() : (b.dataset.valor || '');
@@ -223,6 +285,15 @@ section { scroll-margin-top: 12px; }
 
   document.addEventListener('click', function (ev) {
     var b = ev.target.closest('button'); if (!b) return;
+    if (b.dataset.lote) {
+      if (b.dataset.lote === 'quitar') { marcadas().forEach(function (c) { c.checked = false; }); lote(); return; }
+      if (!db) { aviso('Aquí no se pueden guardar pedidos. Dilo en el chat.'); return; }
+      var tipo = b.dataset.lote, sel = marcadas(), col = db.collection('pedidos'), pre = tipo === 'priorizar' ? 'priorizar-' : 'abrir-'; b.disabled = true;
+      Promise.all(sel.map(function (c) { return col.doc(pre + c.dataset.sel).set({ tipo: tipo, ref: c.dataset.sel, texto: '', titulo: c.dataset.titulo || '', creado: new Date().toISOString(), estado: 'pendiente' }); }))
+        .then(function () { aviso('Apuntadas ' + sel.length + '. El vigía las aplica en su próxima pasada.'); sel.forEach(function (c) { c.checked = false; }); lote(); })
+        .catch(function () { aviso('No se pudo guardar todo. Prueba otra vez.'); }).then(function () { b.disabled = false; });
+      return;
+    }
     if (b.dataset.abrir) { var c = $(b.dataset.abrir); c.hidden = !c.hidden; if (!c.hidden) c.querySelector('textarea').focus(); return; }
     if (!db) return;
     if (b.dataset.pedir) pedir(b);
