@@ -633,12 +633,13 @@ function montaMandoL1(B) {
   if (!B.view || !B.view.ordenRecomendada) return; // vista 2D de reserva: sin esto
   const bt = $('battle'), mk = (tag, id, cls, html) => { const e = document.createElement(tag); e.id = id; e.className = cls; e.innerHTML = html || ''; bt.appendChild(e); return e; };
   const oro = mk('button', 'bgold', 'l1 off', '<i>⚔</i><b>Orden</b>'); oro.dataset.act = 'bgold'; oro.disabled = true;
-  const mini = mk('canvas', 'bmini', 'l1'); mini.width = 220; mini.height = 120;
+  const mini = mk('canvas', 'bmini', 'l1'), anch = Math.max(66, Math.min(120, Math.round(60 * B.b.W / B.b.H))); mini.width = anch * 2; mini.height = 120; mini.style.width = anch + 'px';   // el recuadro sigue la proporción del campo (N14)
   const grp = mk('div', 'bgrp', 'l1', GRUPOS_L1.map(g => '<button data-act="bgrp" data-v="' + g[0] + '">' + g[1] + '</button>').join(''));
   mini.addEventListener('pointerdown', ev => {
-    const rc = mini.getBoundingClientRect(), b = B.b, x = (ev.clientX - rc.left) / rc.width * 600, y = (ev.clientY - rc.top) / rc.height * b.H;
+    const rc = mini.getBoundingClientRect(), b = B.b, x = (ev.clientX - rc.left) / rc.width * b.W, y = (ev.clientY - rc.top) / rc.height * b.H;
     if (b.fase !== 'despliegue' && B.view.moverSel(x, y)) toast('Tropas en marcha.'); else B.view.centrarEn(x, y); ev.stopPropagation();
   });
+  mini.addEventListener('pointermove', ev => { if (ev.buttons !== 1 || B.view.sel.size && B.b.fase !== 'despliegue') return; const rc = mini.getBoundingClientRect(); B.view.centrarEn((ev.clientX - rc.left) / rc.width * B.b.W, (ev.clientY - rc.top) / rc.height * B.b.H); ev.stopPropagation(); });
   const alas = mk('div', 'balas', 'l1', ALAS.map(a => '<button data-act="bala" data-v="' + a[0] + '">' + a[1] + '<small></small></button>').join(''));
   alas.querySelectorAll('button').forEach(bn => {   // toque corto: elige el ala; toque largo: mete en ella los regimientos elegidos (o los saca si ya están)
     let tm = null, largo = false;
@@ -657,8 +658,9 @@ function actualizaL1(B) {
   const act = v.alaActiva ? v.alaActiva() : null;
   L.alas.querySelectorAll('button').forEach(bn => { const m = v.miembros(bn.dataset.v).length; bn.classList.toggle('on', act === bn.dataset.v); bn.classList.toggle('vacia', !m); const sm = bn.lastChild; if (sm.textContent !== String(m)) sm.textContent = m; });
   const x = L.mini.getContext('2d'), W = L.mini.width, H = L.mini.height; x.clearRect(0, 0, W, H); x.fillStyle = 'rgba(12,16,22,.7)'; x.fillRect(0, 0, W, H);
-  const kx = W / 600, ky = H / b.H;
+  const kx = W / b.W, ky = H / b.H; window.Battle.pintaTerreno(x, b, kx, ky);
   for (const r of b.regs) { if (r.st !== 'ok') continue; const px = r.x * kx, py = r.y * ky; x.fillStyle = b.cfg.sides[r.side].col; x.beginPath(); x.arc(px, py, r.u.cls === 'gen' ? 5 : 4, 0, 7); x.fill(); if (v.sel.has(r)) { x.strokeStyle = '#f2cf72'; x.lineWidth = 2.5; x.beginPath(); x.arc(px, py, 8, 0, 7); x.stroke(); } }
+  if (v.vista) { const p = v.vista(); x.strokeStyle = '#fff'; x.lineWidth = 2; x.beginPath(); p.forEach((q, i) => i ? x.lineTo(q[0] * kx, q[1] * ky) : x.moveTo(q[0] * kx, q[1] * ky)); x.closePath(); x.stroke(); }   // lo que ve la cámara
   x.strokeStyle = '#e3b54a99'; x.lineWidth = 2; x.strokeRect(1, 1, W - 2, H - 2);
 }
 function battleHud() {

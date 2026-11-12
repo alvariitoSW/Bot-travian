@@ -11,7 +11,7 @@ const DEAD = 150;                             // caídos visibles por tipo de un
 const LOD_MAX = 150, LOD_HIST = 0.87, REAL_FRAC = 0.3;   // el radio real se ajusta solo: 150 m como mucho y menos si hay más figuras reales que el tope (las más cercanas a la cámara son las reales)
 const TRI_BUDGET = (navigator.maxTouchPoints > 0 ? 1.0e6 : 1.6e6);
 
-const S = 0.25, FW = 600, HILL_H = 6, MAX_ARBOLES_BOSQUE = 40;                     // escala simulación -> mundo
+const S = 0.25, HILL_H = 6, MAX_ARBOLES_BOSQUE = 40, ROCA_H = 6, AGUA_Y = -0.55, LECHO_Y = -2.3, VADO_PROF = 0.4;                     // escala simulación -> mundo
 let renderer = null;                          // un único contexto WebGL para todas las batallas
 
 function hash(n) { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); }
@@ -50,7 +50,7 @@ function enemigoCerca(b, side, x, y, rad) { let best = null, bd = rad; for (cons
 export function recomendada(r, b) {
   if (!r || r.st !== 'ok') return null;
   const lim = (v, a, z) => Math.max(a, Math.min(z, v));
-  if (r.mor / r.morMax < 0.22 || r.men / r.max < 0.28) return { txt: 'Retirar', ic: '↓', order: { k: 'move', x: lim(r.x, 20, FW - 20), y: Math.min(b.H - 20, r.y + 90) } };
+  if (r.mor / r.morMax < 0.22 || r.men / r.max < 0.28) return { txt: 'Retirar', ic: '↓', order: { k: 'move', x: lim(r.x, 20, b.W - 20), y: Math.min(b.H - 20, r.y + 90) } };
   const en = b.regs.filter(e => e.side !== r.side && e.st === 'ok'); if (!en.length) return { txt: 'Mantener', ic: '■', order: null };
   const cerca = lista => { let best = null, bd = 1e9; for (const e of lista) { const d = Math.hypot(e.x - r.x, e.y - r.y); if (d < bd) { bd = d; best = e; } } return best; };
   const cls = r.u.cls, ne = cerca(en);
@@ -58,7 +58,7 @@ export function recomendada(r, b) {
   if (cls === 'cav' || cls === 'gen') {
     const blando = cerca(en.filter(e => e.u.cls === 'rng' || (e.u.cls === 'inf' && e.papel === 'ligera')));
     if (blando) return { txt: 'Cargar', ic: '⚔', order: ordenAtk(r, blando) };
-    return { txt: 'Flanquear', ic: '↷', order: { k: 'move', x: lim(ne.x + (ne.x < FW / 2 ? 70 : -70), 20, FW - 20), y: lim(ne.y + 14, 20, b.H - 20) } };
+    return { txt: 'Flanquear', ic: '↷', order: { k: 'move', x: lim(ne.x + (ne.x < b.W / 2 ? 70 : -70), 20, b.W - 20), y: lim(ne.y + 14, 20, b.H - 20) } };
   }
   return { txt: 'Cargar', ic: '⚔', order: ordenAtk(r, ne) };
 }
@@ -82,7 +82,7 @@ export function clasificarTrazo(pts, b) {
 export class BattleView3D {
   constructor(host, battle, opts) {
     this.b = battle; this.host = host; this.sel = new Set(); this.opts = opts || {};
-    this.halfD = battle.H * S / 2; this.t = 0; this.last = performance.now();
+    this.halfD = battle.H * S / 2; this.hw = battle.W * S / 2; this.t = 0; this.last = performance.now();
     if (!renderer) { renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75)); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.12; }
     this.r = renderer; this.cv = renderer.domElement; this.cv.className = 'gl'; host.appendChild(this.cv);
     this.flags = document.createElement('div'); this.flags.className = 'bflags'; host.appendChild(this.flags);
@@ -95,21 +95,31 @@ export class BattleView3D {
   /* ---------- terreno ---------- */
   h(x, z) {
     let y = 1.3 * Math.sin(x * 0.045 + 1.3) * Math.cos(z * 0.038) + 0.6 * Math.sin(x * 0.09 + z * 0.06 + 2);
-    const mx = Math.abs(x) - 84; if (mx > 0) y += Math.min(16, mx * mx * 0.02);
+    const mx = Math.abs(x) - (this.hw + 9); if (mx > 0) y += Math.min(16, mx * mx * 0.02);
     const att = this.b.cfg.defender === 0 ? -1 : 1, mz = z * att - this.halfD - 6; if (mz > 0) y += Math.min(18, mz * mz * 0.02);   // colinas tras el atacante
-    y += this.colina(x, z);                                                                                                         // colinas del campo (misma cuadrícula que el motor)
+    y += this.colina(x, z); y = this.cauce(x, z, y);                                                                                                         // colinas del campo (misma cuadrícula que el motor)
     const dz = -z * att - this.halfD + 14; if (dz > 0) y *= Math.max(0, 1 - dz / 14);                                                  // explanada ante la ciudad
     return y;
   }
   // altura de la colina en el punto del mundo (x,z): interpolación suave de las celdas de altura del motor
   colina(x, z) {
     const T = this.b.tr; if (!T || T.plano) return 0;
-    const fx = x / S + FW / 2, fy = z / S + this.b.H / 2, C = this.b.constructor.CELDA || 40;
-    const u = Math.max(0, Math.min(T.cols - 1, fx / C - 0.5)), v = Math.max(0, Math.min(T.rows - 1, fy / C - 0.5)), c0 = Math.floor(u), r0 = Math.floor(v), c1 = Math.min(T.cols - 1, c0 + 1), r1 = Math.min(T.rows - 1, r0 + 1), a = u - c0, b = v - r0;
-    const g = (c, r) => T.alt[r * T.cols + c];
-    return HILL_H * ((g(c0, r0) * (1 - a) + g(c1, r0) * a) * (1 - b) + (g(c0, r1) * (1 - a) + g(c1, r1) * a) * b);
+    return HILL_H * this.celdasEn(x, z, i => T.alt[i]) + ROCA_H * this.celdasEn(x, z, i => T.ter[i] === 4 ? 1 : 0);   // la roca del paso estrecho se alza aún más
   }
-  toW(x, y) { return [(x - FW / 2) * S, (y - this.b.H / 2) * S]; }
+  // interpolación suave de un valor por celda del motor en el punto del mundo (x,z)
+  celdasEn(x, z, f) {
+    const T = this.b.tr, fx = x / S + this.b.W / 2, fy = z / S + this.b.H / 2, C = this.b.constructor.CELDA || 40;
+    const u = Math.max(0, Math.min(T.cols - 1, fx / C - 0.5)), v = Math.max(0, Math.min(T.rows - 1, fy / C - 0.5)), c0 = Math.floor(u), r0 = Math.floor(v), c1 = Math.min(T.cols - 1, c0 + 1), r1 = Math.min(T.rows - 1, r0 + 1), a = u - c0, b = v - r0;
+    const g = (c, r) => f(r * T.cols + c);
+    return (g(c0, r0) * (1 - a) + g(c1, r0) * a) * (1 - b) + (g(c0, r1) * (1 - a) + g(c1, r1) * a) * b;
+  }
+  // el lecho del río (y del pantano, algo hundido) baja el suelo; el vado es poco profundo
+  cauce(x, z, y) {
+    const T = this.b.tr; if (!T || T.plano || !T.banda && !this.hayPantano) return y;
+    const d = Math.min(1, this.celdasEn(x, z, i => { const t = T.ter[i]; return t === 1 ? 1 : t === 2 ? VADO_PROF : t === 3 ? 0.12 : 0; }));
+    return d > 0 ? y * (1 - Math.min(1, d * 2.5)) + LECHO_Y * d : y;   // el suelo se allana junto al agua para que ningún bulto asome en el vado
+  }
+  toW(x, y) { return [(x - this.b.W / 2) * S, (y - this.b.H / 2) * S]; }
 
   buildWorld() {
     const sc = this.scene, hd = this.halfD;
@@ -121,7 +131,8 @@ export class BattleView3D {
     sc.add(new THREE.HemisphereLight('#cfe2ff', '#7a6238', 1.25));
     const sun = new THREE.DirectionalLight('#ffe6b8', 3.1); sun.position.set(-90, 95, 60); sc.add(sun);
     // suelo
-    const W = 520, Dp = hd * 2 + 320, g = new THREE.PlaneGeometry(W, Dp, 110, 130); g.rotateX(-Math.PI / 2);
+    this.hayPantano = !!(this.b.tr && this.b.tr.ter.includes(3));
+    const W = this.hw * 2 + 370, Dp = hd * 2 + 320, g = new THREE.PlaneGeometry(W, Dp, Math.round(W / 4.7), 130); g.rotateX(-Math.PI / 2);
     const pos = g.attributes.position, wt = new Float32Array(pos.count * 3);
     for (let i = 0; i < pos.count; i++) {
       const x = pos.getX(i), z = pos.getZ(i), y = this.h(x, z); pos.setY(i, y);
@@ -130,14 +141,15 @@ export class BattleView3D {
       wt[i * 3] = gr; wt[i * 3 + 1] = di; wt[i * 3 + 2] = 0;                       // pesos: hierba, tierra, (empedrado); el resto, hierba seca
     }
     this.ground = new THREE.Mesh(g, applyGround(g, wt, 0.09)); sc.add(this.ground);
+    this.buildAgua();
     // árboles en los márgenes: modelos reales si están cargados; si no, conos sencillos
     const att = this.b.cfg.defender === 0 ? -1 : 1;
     if (getStatic('cipres')) {
       const kinds = ['cipres', 'olivo', 'pino', 'algarrobo', 'cipres', 'olivo'], lists = {}, q = new THREE.Quaternion(), up = new THREE.Vector3(0, 1, 0);
       for (let i = 0; i < 300; i++) {
         let x, z; const r = hash(i * 7.3);
-        if (r < 0.75) { x = (hash(i * 1.7) < 0.5 ? -1 : 1) * (84 + hash(i * 2.9) * 80); z = (hash(i * 4.1) - 0.5) * (hd * 2 + 140); }
-        else { x = (hash(i * 1.7) - 0.5) * 320; z = att * (hd + 16 + hash(i * 2.9) * 100); }
+        if (r < 0.75) { x = (hash(i * 1.7) < 0.5 ? -1 : 1) * (this.hw + 9 + hash(i * 2.9) * 80); z = (hash(i * 4.1) - 0.5) * (hd * 2 + 140); }
+        else { x = (hash(i * 1.7) - 0.5) * (this.hw * 2 + 170); z = att * (hd + 16 + hash(i * 2.9) * 100); }
         const k = kinds[Math.floor(hash(i * 5.7) * kinds.length)], sc2 = UNIT_SCALE * BK * (0.8 + hash(i * 9.9) * 0.6);
         (lists[k] = lists[k] || []).push(new THREE.Matrix4().compose(new THREE.Vector3(x, this.h(x, z) - 0.2, z), q.setFromAxisAngle(up, hash(i) * 6.283), new THREE.Vector3(sc2, sc2, sc2)));
       }
@@ -150,8 +162,8 @@ export class BattleView3D {
     const N = 170, t1 = mk(cy, '#2f5a2c', N), t2 = mk(ol, '#58793a', N), t3 = mk(tk, '#5a4028', N * 2), M = new THREE.Matrix4(), q = new THREE.Quaternion(), sv = new THREE.Vector3(), pv = new THREE.Vector3();
     for (let i = 0; i < N * 2; i++) {
       let x, z; const r = hash(i * 7.3);
-      if (r < 0.75) { x = (hash(i * 1.7) < 0.5 ? -1 : 1) * (82 + hash(i * 2.9) * 70); z = (hash(i * 4.1) - 0.5) * (hd * 2 + 120); }
-      else { x = (hash(i * 1.7) - 0.5) * 300; z = att * (hd + 14 + hash(i * 2.9) * 90); }
+      if (r < 0.75) { x = (hash(i * 1.7) < 0.5 ? -1 : 1) * (this.hw + 7 + hash(i * 2.9) * 70); z = (hash(i * 4.1) - 0.5) * (hd * 2 + 120); }
+      else { x = (hash(i * 1.7) - 0.5) * (this.hw * 2 + 150); z = att * (hd + 14 + hash(i * 2.9) * 90); }
       const s = 0.7 + hash(i * 9.9) * 0.8; pv.set(x, this.h(x, z) - 0.2, z); sv.set(s, s, s); M.compose(pv, q, sv);
       (i < N ? t1 : t2).setMatrixAt(i % N, M); t3.setMatrixAt(i, M);
     }
@@ -194,10 +206,10 @@ export class BattleView3D {
     // hierba y piedras cerca del campo
     const gg = new THREE.ConeGeometry(0.1, 0.34, 3); gg.translate(0, 0.17, 0);
     const grass = new THREE.InstancedMesh(gg, new THREE.MeshLambertMaterial({ color: '#6b8f3a' }), 5200), gm = new THREE.Matrix4();
-    for (let i = 0; i < 5200; i++) { const x = (hash(i * 1.37) - 0.5) * 190, z = (hash(i * 2.11 + 9) - 0.5) * (hd * 2 + 30), s2 = 0.6 + hash(i * 3.3) * 1.3; gm.makeScale(s2, s2 * (0.7 + hash(i * 5.1)), s2); gm.setPosition(x, this.h(x, z) - 0.03, z); grass.setMatrixAt(i, gm); grass.setColorAt(i, new THREE.Color().setHSL(0.19 + hash(i * 7.7) * 0.08, 0.42, 0.36 + hash(i * 9.1) * 0.12)); }
+    for (let i = 0; i < 5200; i++) { const x = (hash(i * 1.37) - 0.5) * (this.hw * 2 + 40), z = (hash(i * 2.11 + 9) - 0.5) * (hd * 2 + 30), s2 = 0.6 + hash(i * 3.3) * 1.3; gm.makeScale(s2, s2 * (0.7 + hash(i * 5.1)), s2); gm.setPosition(x, this.h(x, z) - 0.03, z); grass.setMatrixAt(i, gm); grass.setColorAt(i, new THREE.Color().setHSL(0.19 + hash(i * 7.7) * 0.08, 0.42, 0.36 + hash(i * 9.1) * 0.12)); }
     sc.add(grass);
     const rkg = new THREE.DodecahedronGeometry(0.6, 0), rocks = new THREE.InstancedMesh(rkg, new THREE.MeshLambertMaterial({ color: '#9a9484', flatShading: true }), 160);
-    for (let i = 0; i < 160; i++) { const x = (hash(i * 4.7) - 0.5) * 210, z = (hash(i * 8.3 + 2) - 0.5) * (hd * 2 + 60), s2 = 0.4 + hash(i * 2.9) * 1.6; gm.makeScale(s2, s2 * 0.6, s2); gm.setPosition(x, this.h(x, z) + 0.05, z); rocks.setMatrixAt(i, gm); }
+    for (let i = 0; i < 160; i++) { const x = (hash(i * 4.7) - 0.5) * (this.hw * 2 + 60), z = (hash(i * 8.3 + 2) - 0.5) * (hd * 2 + 60), s2 = 0.4 + hash(i * 2.9) * 1.6; gm.makeScale(s2, s2 * 0.6, s2); gm.setPosition(x, this.h(x, z) + 0.05, z); rocks.setMatrixAt(i, gm); }
     sc.add(rocks);
     // polvo
     const dc = document.createElement('canvas'); dc.width = dc.height = 64; const dg = dc.getContext('2d'), rgd = dg.createRadialGradient(32, 32, 2, 32, 32, 32); rgd.addColorStop(0, 'rgba(255,255,255,0.9)'); rgd.addColorStop(1, 'rgba(255,255,255,0)'); dg.fillStyle = rgd; dg.fillRect(0, 0, 64, 64);
@@ -222,6 +234,39 @@ export class BattleView3D {
     for (const m of this.meshB) { m.frustumCulled = false; m.count = 0; sc.add(m); }
   }
 
+  // agua (río y vados) y pantano: planos sobre las celdas del motor, sin arte nuevo
+  buildAgua() {
+    const T = this.b.tr, sc = this.scene; if (!T || T.plano) return;
+    const C = this.b.constructor.CELDA || 40, vA = [], vV = [], vP = [];
+    const quad = (arr, c, r, fy) => {
+      const x0 = c * C, y0 = r * C, P = [this.toW(x0, y0), this.toW(x0 + C, y0), this.toW(x0 + C, y0 + C), this.toW(x0, y0 + C)], Y = P.map(w => fy(w[0], w[1]));
+      for (const k of [0, 3, 1, 1, 3, 2]) arr.push(P[k][0], Y[k], P[k][1]);
+    };
+    for (let r = 0; r < T.rows; r++) for (let c = 0; c < T.cols; c++) {
+      const t = T.ter[r * T.cols + c];
+      if (t === 1 || t === 2) quad(vA, c, r, () => AGUA_Y); if (t === 2) quad(vV, c, r, () => AGUA_Y + 0.07);
+    }
+    const mk = (v, color, op, ro) => { if (!v.length) return; const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); gg.computeVertexNormals(); const m = new THREE.Mesh(gg, new THREE.MeshLambertMaterial({ color: color, transparent: true, opacity: op, depthWrite: false, side: THREE.DoubleSide })); m.renderOrder = ro; sc.add(m); return m; };
+    this.agua = mk(vA, '#3b7fa8', 0.84, 1); mk(vV, '#9ccdd0', 0.5, 2);
+    if (this.hayPantano) {   // pantano: una capa de textura suave (barro verdoso con charcas) pegada al suelo
+      const cw = 512, ch = Math.round(512 * this.b.H / this.b.W), cv = document.createElement('canvas'); cv.width = cw; cv.height = ch; const g = cv.getContext('2d'), kx = cw / this.b.W, ky = ch / this.b.H;
+      for (let r = 0; r < T.rows; r++) for (let c = 0; c < T.cols; c++) if (T.ter[r * T.cols + c] === 3) {
+        const x = (c + 0.5) * C * kx, y = (r + 0.5) * C * ky, R = C * 1.05 * kx, gr = g.createRadialGradient(x, y, 0, x, y, R);
+        gr.addColorStop(0, 'rgba(66,86,40,0.92)'); gr.addColorStop(0.6, 'rgba(74,92,44,0.8)'); gr.addColorStop(1, 'rgba(80,98,48,0)'); g.fillStyle = gr; g.beginPath(); g.arc(x, y, R, 0, 7); g.fill();
+      }
+      for (let i = 0; i < 70; i++) { const c = Math.floor(hash(i * 3.1) * T.cols), r = Math.floor(hash(i * 5.3) * T.rows); if (T.ter[r * T.cols + c] !== 3) continue; g.fillStyle = 'rgba(52,86,92,0.75)'; g.beginPath(); g.ellipse((c + hash(i)) * C * kx, (r + hash(i * 2)) * C * ky, 5 + hash(i * 7) * 6, 2.5 + hash(i * 9) * 3, 0, 0, 7); g.fill(); }
+      const tx = new THREE.CanvasTexture(cv); tx.colorSpace = THREE.SRGBColorSpace; const pg = new THREE.PlaneGeometry(this.hw * 2, this.halfD * 2, 100, 80); pg.rotateX(-Math.PI / 2);
+      const pp = pg.attributes.position; for (let i = 0; i < pp.count; i++) pp.setY(i, this.h(pp.getX(i), pp.getZ(i)) + 0.12);
+      const pm = new THREE.Mesh(pg, new THREE.MeshBasicMaterial({ map: tx, transparent: true, depthWrite: false })); pm.renderOrder = 1; sc.add(pm);
+    }
+    const roca = []; for (let i = 0; i < T.ter.length; i++) if (T.ter[i] === 4) roca.push(i);
+    if (roca.length) {   // peñas sobre la muralla de roca del paso estrecho
+      const rk = new THREE.InstancedMesh(new THREE.DodecahedronGeometry(1.7, 0), new THREE.MeshLambertMaterial({ color: '#8f897b', flatShading: true }), roca.length * 2), gm = new THREE.Matrix4();
+      roca.forEach((i, j) => { for (let k = 0; k < 2; k++) { const c = i % T.cols, r = Math.floor(i / T.cols), w = this.toW((c + 0.15 + hash(i * 1.7 + k) * 0.7) * C, (r + 0.15 + hash(i * 2.9 + k) * 0.7) * C), s2 = 0.7 + hash(i * 4.1 + k) * 1.2; gm.makeScale(s2, s2 * 0.8, s2); gm.setPosition(w[0], this.h(w[0], w[1]) + 0.4, w[1]); rk.setMatrixAt(j * 2 + k, gm); } });
+      sc.add(rk);
+    }
+  }
+
   buildCity(zc, dir) {
     if (getStatic('muro') && getStatic('casa')) return this.buildRealCity(zc, dir);
     const wall = this.b.cfg.wall || 0, sc = this.scene, y0 = 0, parts = [], cols = [];
@@ -229,14 +274,14 @@ export class BattleView3D {
     const box = (w, h, d, x, y, z, color) => { const g = new THREE.BoxGeometry(w, h, d); g.translate(x, y, z); add(g, color); };
     const hW = wall > 0 ? 3 + wall * 0.7 : 0;
     if (wall > 0) {
-      box(230, hW, 2.4, 0, y0 + hW / 2, zc, '#b9ad94'); box(230, 0.5, 3, 0, y0 + hW, zc, '#a59a82');
-      for (let x = -112; x <= 112; x += 2.4) box(1.2, 0.9, 0.7, x, y0 + hW + 0.7, zc - dir * 1.1, '#b9ad94');
-      for (let x = -105; x <= 105; x += 30) { box(6, hW + 3, 6, x, y0 + (hW + 3) / 2, zc, '#a89c84'); box(6.8, 0.6, 6.8, x, y0 + hW + 3, zc, '#8f846e'); for (const dx of [-2.6, 0, 2.6]) box(1.2, 1, 6.8, x + dx, y0 + hW + 3.7, zc, '#a89c84'); }
+      box(this.hw * 2 + 80, hW, 2.4, 0, y0 + hW / 2, zc, '#b9ad94'); box(this.hw * 2 + 80, 0.5, 3, 0, y0 + hW, zc, '#a59a82');
+      for (let x = -(this.hw + 37); x <= this.hw + 37; x += 2.4) box(1.2, 0.9, 0.7, x, y0 + hW + 0.7, zc - dir * 1.1, '#b9ad94');
+      for (let x = -(this.hw + 30); x <= this.hw + 30; x += 30) { box(6, hW + 3, 6, x, y0 + (hW + 3) / 2, zc, '#a89c84'); box(6.8, 0.6, 6.8, x, y0 + hW + 3, zc, '#8f846e'); for (const dx of [-2.6, 0, 2.6]) box(1.2, 1, 6.8, x + dx, y0 + hW + 3.7, zc, '#a89c84'); }
       box(11, hW + 4.5, 5, 0, y0 + (hW + 4.5) / 2, zc, '#a89c84'); box(5, hW * 0.85, 5.4, 0, y0 + hW * 0.42, zc, '#3a2a1a');
       const rf = new THREE.ConeGeometry(8.5, 3, 4); rf.rotateY(Math.PI / 4); rf.translate(0, y0 + hW + 6, zc); add(rf, '#a8492e');
     }
-    for (let i = 0; i < 70; i++) {
-      const x = (hash(i * 3.3) - 0.5) * 210, z = zc + dir * (7 + hash(i * 5.1) * 60), w = 5 + hash(i * 1.9) * 6, d = 5 + hash(i * 2.3) * 6, h = 3 + hash(i * 6.7) * 4;
+    for (let i = 0; i < Math.round(70 * this.hw / 75); i++) {
+      const x = (hash(i * 3.3) - 0.5) * (this.hw * 2 + 60), z = zc + dir * (7 + hash(i * 5.1) * 60), w = 5 + hash(i * 1.9) * 6, d = 5 + hash(i * 2.3) * 6, h = 3 + hash(i * 6.7) * 4;
       if (Math.abs(x) < 9 && Math.abs(z - zc) < 40) continue;
       box(w, h, d, x, y0 + h / 2, z, ['#e6d9bd', '#d9c9a6', '#efe6d2', '#cdb992'][i % 4]);
       const rf = new THREE.ConeGeometry(Math.max(w, d) * 0.78, 2.2, 4); rf.rotateY(Math.PI / 4); rf.scale(w / Math.max(w, d), 1, d / Math.max(w, d)); rf.translate(x, y0 + h + 1.1, z); add(rf, i % 3 ? '#b3532f' : '#9c452a');
@@ -260,11 +305,11 @@ export class BattleView3D {
     const rot = q.setFromAxisAngle(up, dir > 0 ? Math.PI : 0).clone(), M = (x, y, z, r, sx, sy) => new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), r || rot, new THREE.Vector3(K * (sx || 1), K * (sy || 1), K));
     if (wall > 0) {
       const seg = 37.3 * K, hy = 0.8 + wall * 0.07, walls = [], towers = [];
-      for (let i = -7; i <= 7; i++) { const x = i * seg; if (i === 0) { const g = staticMesh('puerta', col); if (g) { g.applyMatrix4(M(0, 0, zc, rot, 1, hy)); sc.add(g); } } else walls.push(M(x, 0, zc, rot, 1, hy)); towers.push(M(x + seg / 2, 0, zc - dir * 0.5, rot, 1, hy)); }
+      const nw = Math.ceil((this.hw + 8) / seg); for (let i = -nw; i <= nw; i++) { const x = i * seg; if (i === 0) { const g = staticMesh('puerta', col); if (g) { g.applyMatrix4(M(0, 0, zc, rot, 1, hy)); sc.add(g); } } else walls.push(M(x, 0, zc, rot, 1, hy)); towers.push(M(x + seg / 2, 0, zc - dir * 0.5, rot, 1, hy)); }
       for (const g of [staticInstances('muro', walls, col), staticInstances('torre', towers, col)]) if (g) sc.add(g);
     }
     const houses = [];
-    for (let i = 0; i < 50; i++) { const x = (hash(i * 3.3) - 0.5) * 300, z = zc + dir * (18 + hash(i * 5.1) * 110); if (Math.abs(x) < 36 && Math.abs(z - zc) < 100) continue; houses.push(M(x, 0, z, q.setFromAxisAngle(up, Math.round(hash(i * 7.7) * 4) * Math.PI / 2).clone())); }
+    for (let i = 0; i < Math.round(50 * this.hw / 75); i++) { const x = (hash(i * 3.3) - 0.5) * (this.hw * 2 + 150), z = zc + dir * (18 + hash(i * 5.1) * 110); if (Math.abs(x) < 36 && Math.abs(z - zc) < 100) continue; houses.push(M(x, 0, z, q.setFromAxisAngle(up, Math.round(hash(i * 7.7) * 4) * Math.PI / 2).clone())); }
     const hs = staticInstances('casa', houses, col); if (hs) sc.add(hs);
     const propia = piezaCultura(this.b.cfg.sides[this.b.cfg.defender].name);     // A7: ciudad de otra cultura = sus edificios de 0 A.D.
     const piezas = propia && getStatic(propia) ? [[propia, 0, 70, 2.3], [propia, -90, 48, 1.7], [propia, 85, 44, 1.7], [propia, 140, 72, 1.3], [propia, -145, 80, 1.3]] : [['templo', 0, 70], ['foro', -80, 46], ['cuartel', 72, 40], ['mercado', 130, 66], ['vesta', -140, 76]];
@@ -435,6 +480,16 @@ export class BattleView3D {
       host.appendChild(el); R.card = el; R.cbar = el.querySelector('u'); R.cnum = el.querySelector('em');
     }
   }
+  // lo que ve la cámara en el campo (para el minimapa): 4 puntos en coordenadas de simulación
+  vista() {
+    const out = [], W = this.b.W, H = this.b.H, ray = new THREE.Raycaster(), cam = this.cam; cam.updateMatrixWorld();
+    for (const [nx, ny] of [[-1, 1], [1, 1], [1, -1], [-1, -1]]) {
+      ray.setFromCamera(new THREE.Vector2(nx, ny), cam); const o = ray.ray.origin, d = ray.ray.direction;
+      const k = d.y < -0.02 ? Math.min(-o.y / d.y, 600) : 600, x = o.x + d.x * k, z = o.z + d.z * k;
+      out.push([Math.max(0, Math.min(W, x / S + W / 2)), Math.max(0, Math.min(H, z / S + H / 2))]);
+    }
+    return out;
+  }
   focus(r) { const w = this.toW(r.x, r.y); this.c.x = w[0]; this.c.z = w[1]; this.intro = 1; }
   updateOverlay() {
     const v = new THREE.Vector3(), W = this.host.clientWidth, H = this.host.clientHeight;
@@ -470,14 +525,14 @@ export class BattleView3D {
     let cx = 0, cy = 0; sel.forEach(r => { cx += r.x; cy += r.y; }); cx /= sel.length; cy /= sel.length;
     if (desp) { sel.forEach(r => b.colocar(r, fx + (r.x - cx), fy + (r.y - cy))); return; } // despliegue: se coloca, no se ordena
     if (b.fase === 'ejecucion') return;
-    sel.forEach(r => { r.order = { k: 'move', x: Math.max(20, Math.min(FW - 20, fx + (r.x - cx))), y: Math.max(20, Math.min(b.H - 20, fy + (r.y - cy))) }; r.tgt = null; });
+    sel.forEach(r => { r.order = { k: 'move', x: Math.max(20, Math.min(b.W - 20, fx + (r.x - cx))), y: Math.max(20, Math.min(b.H - 20, fy + (r.y - cy))) }; r.tgt = null; });
     const w = this.toW(fx, fy); this.marker.position.set(w[0], this.h(w[0], w[1]) + 0.15, w[1]); this.marker.visible = true; this.markT = this.t;
   }
   selectAll() { const all = this.b.regs.filter(r => r.side === 0 && r.st === 'ok'); if (this.sel.size >= all.length) this.sel.clear(); else all.forEach(r => this.sel.add(r)); }
   cycleCam() {
     this.camMode = ((this.camMode || 0) + 1) % 3; this.intro = 1; const c = this.c;
     if (this.camMode === 0) { c.dist = 120; c.pitch = 0.5; c.yaw = 0; }
-    else if (this.camMode === 1) { c.dist = 230; c.pitch = 1.25; c.yaw = 0; c.x = 0; c.z = 0; }
+    else if (this.camMode === 1) { c.dist = Math.min(330, 230 + Math.max(0, this.hw - 75) * 0.5); c.pitch = 1.25; c.yaw = 0; c.x = 0; c.z = 0; }
     else { c.dist = 34; c.pitch = 0.22; let best = null; for (const r of this.b.regs) if (r.st === 'ok' && r.side === 0 && (r.fight > 0 || !best)) best = r; if (best) { const w = this.toW(best.x, best.y); c.x = w[0]; c.z = w[1]; c.yaw = 0.7; } }
   }
 
@@ -593,18 +648,18 @@ export class BattleView3D {
   darOrden(tipo) {
     const b = this.b, sel = this.propios(); if (b.over || b.fase === 'ejecucion' || b.fase === 'despliegue' || !sel.length) return null;
     const lim = (v, a, z) => Math.max(a, Math.min(z, v)), en = this.enemigosVivos(), cerca = (r, l) => { let m = null, bd = 1e9; for (const e of l) { const d = Math.hypot(e.x - r.x, e.y - r.y); if (d < bd) { bd = d; m = e; } } return m; };
-    const aHacia = (r, e, d) => { const dx = e.x - r.x, dy = e.y - r.y, L = Math.hypot(dx, dy) || 1, k = Math.min(d, Math.max(0, L - 40)) / L; return { x: lim(r.x + dx * k, 20, FW - 20), y: lim(r.y + dy * k, 20, b.H - 20) }; };
+    const aHacia = (r, e, d) => { const dx = e.x - r.x, dy = e.y - r.y, L = Math.hypot(dx, dy) || 1, k = Math.min(d, Math.max(0, L - 40)) / L; return { x: lim(r.x + dx * k, 20, b.W - 20), y: lim(r.y + dy * k, 20, b.H - 20) }; };
     let n = 0;
     for (const r of sel) {
       const ne = cerca(r, en); r.tgt = null;
       if (tipo === 'aguantar') r.order = { k: 'quieto', tipo };
-      else if (tipo === 'retirarse') r.order = { k: 'move', x: lim(r.x, 20, FW - 20), y: Math.min(b.H - 20, r.y + 90), tipo };
+      else if (tipo === 'retirarse') r.order = { k: 'move', x: lim(r.x, 20, b.W - 20), y: Math.min(b.H - 20, r.y + 90), tipo };
       else if (!ne) continue;
       else if (tipo === 'avanzar') r.order = Object.assign({ k: 'move', tipo }, aHacia(r, ne, 70));
       else if (tipo === 'cargar') { const blando = r.u.cls === 'cav' || r.u.cls === 'gen' ? cerca(r, en.filter(e => e.u.cls === 'rng' || (e.u.cls === 'inf' && e.papel === 'ligera'))) : null; r.order = { k: 'atk', r: blando || ne, tipo }; }
       else if (tipo === 'hostigar') {
-        if (r.u.cls === 'rng') { const dx = r.x - ne.x, dy = r.y - ne.y, L = Math.hypot(dx, dy) || 1, d = 105; r.order = { k: 'move', x: lim(ne.x + dx / L * d, 20, FW - 20), y: lim(ne.y + dy / L * d, 20, b.H - 20), tipo }; }
-        else r.order = { k: 'move', x: lim(ne.x + (ne.x < FW / 2 ? 70 : -70), 20, FW - 20), y: lim(ne.y + 16, 20, b.H - 20), tipo };
+        if (r.u.cls === 'rng') { const dx = r.x - ne.x, dy = r.y - ne.y, L = Math.hypot(dx, dy) || 1, d = 105; r.order = { k: 'move', x: lim(ne.x + dx / L * d, 20, b.W - 20), y: lim(ne.y + dy / L * d, 20, b.H - 20), tipo }; }
+        else r.order = { k: 'move', x: lim(ne.x + (ne.x < b.W / 2 ? 70 : -70), 20, b.W - 20), y: lim(ne.y + 16, 20, b.H - 20), tipo };
       } else if (tipo === 'relevar') {
         // la reserva (regimiento propio sin elegir, el más cercano por detrás) ocupa su sitio y él pasa atrás
         let res = null, bd = 1e9; for (const q of b.regs) { if (q.side !== 0 || q.st !== 'ok' || q === r || this.sel.has(q) || q.y < r.y + 15) continue; const d = Math.hypot(q.x - r.x, q.y - r.y); if (d < bd) { bd = d; res = q; } }
@@ -653,7 +708,7 @@ export class BattleView3D {
     for (const r of sel) {
       if (c.tipo === 'mantener') { r.order = null; r.tgt = null; }
       else if (c.enemigo && c.tipo !== 'retirar' && c.tipo !== 'flanquear') { r.order = { k: 'atk', r: c.enemigo }; }
-      else { r.order = { k: 'move', x: lim(c.x + (r.x - cx), 20, FW - 20), y: lim(c.y + (r.y - cy), 20, b.H - 20) }; r.tgt = null; }
+      else { r.order = { k: 'move', x: lim(c.x + (r.x - cx), 20, b.W - 20), y: lim(c.y + (r.y - cy), 20, b.H - 20) }; r.tgt = null; }
     }
     this.ultimaOrden = { txt: this.nombreOrden(c.tipo), t: performance.now() };
     this.etiqueta(this.nombreOrden(c.tipo), last[0] - rc.left, last[1] - rc.top); clearTimeout(this.tetT); this.tetT = setTimeout(() => { this.tet.style.opacity = 0; }, 1100);
@@ -670,7 +725,7 @@ export class BattleView3D {
   moverSel(x, y) {
     if (this.b.fase === 'ejecucion') return false;
     const sel = [...this.sel].filter(r => r.st === 'ok'); if (!sel.length) return false; let cx = 0, cy = 0; sel.forEach(r => { cx += r.x; cy += r.y; }); cx /= sel.length; cy /= sel.length;
-    sel.forEach(r => { r.order = { k: 'move', x: Math.max(20, Math.min(FW - 20, x + (r.x - cx))), y: Math.max(20, Math.min(this.b.H - 20, y + (r.y - cy))) }; r.tgt = null; });
+    sel.forEach(r => { r.order = { k: 'move', x: Math.max(20, Math.min(this.b.W - 20, x + (r.x - cx))), y: Math.max(20, Math.min(this.b.H - 20, y + (r.y - cy))) }; r.tgt = null; });
     const w = this.toW(x, y); this.marker.position.set(w[0], this.h(w[0], w[1]) + 0.15, w[1]); this.marker.visible = true; this.markT = this.t; return true;
   }
   centrarEn(x, y) { const w = this.toW(x, y); this.c.x = w[0]; this.c.z = w[1]; this.intro = 1; this.clampCam(); }
@@ -683,14 +738,14 @@ export class BattleView3D {
       if (st && P.size === 1) {
         let dr = this.dragReg; this.dragReg = null; const g = this.pick(e.clientX, e.clientY);
         if (this.b.fase === 'despliegue' && g) {
-          const fx = g[0] / S + FW / 2, fy = g[1] / S + this.b.H / 2;
+          const fx = g[0] / S + this.b.W / 2, fy = g[1] / S + this.b.H / 2;
           if (!dr) { let hd = 34; for (const r of this.b.regs) { if (r.st !== 'ok' || r.side !== 0) continue; const d = Math.hypot(r.x - fx, r.y - fy); if (d < hd) { hd = d; dr = r; } } }
           if (dr) st.drag = { r: dr, dx: dr.x - fx, dy: dr.y - fy, mv: false };
         }
         // L1: con un regimiento propio seleccionado, el arrastre que empieza sobre él (o cerca) dibuja una orden
         const ini = this.trazoIni; this.trazoIni = false;
         if (this.b.fase !== 'despliegue' && this.b.fase !== 'ejecucion' && !this.b.over && !st.drag && this.sel.size) {
-          let ok = ini; if (!ok && g) { const fx = g[0] / S + FW / 2, fy = g[1] / S + this.b.H / 2; for (const r of this.sel) if (r.st === 'ok' && Math.hypot(r.x - fx, r.y - fy) < 46) ok = true; }
+          let ok = ini; if (!ok && g) { const fx = g[0] / S + this.b.W / 2, fy = g[1] / S + this.b.H / 2; for (const r of this.sel) if (r.st === 'ok' && Math.hypot(r.x - fx, r.y - fy) < 46) ok = true; }
           if (ok) st.trazo = { s: [[e.clientX, e.clientY]], w: [] };
         }
       }
@@ -702,9 +757,9 @@ export class BattleView3D {
         if (st.drag) {
           if (st.mv >= 10) st.drag.mv = true;
           const g = st.drag.mv && this.b.fase === 'despliegue' ? this.pick(e.clientX, e.clientY) : null;
-          if (g) this.b.colocar(st.drag.r, g[0] / S + FW / 2 + st.drag.dx, g[1] / S + this.b.H / 2 + st.drag.dy);
+          if (g) this.b.colocar(st.drag.r, g[0] / S + this.b.W / 2 + st.drag.dx, g[1] / S + this.b.H / 2 + st.drag.dy);
         } else if (st.trazo) {
-          const T = st.trazo; if (st.mv >= 10) { if (!T.w.length) { const g0 = this.pick(T.s[0][0], T.s[0][1]); if (g0) T.w.push([g0[0] / S + FW / 2, g0[1] / S + this.b.H / 2]); } T.s.push([e.clientX, e.clientY]); const g1 = this.pick(e.clientX, e.clientY); if (g1) T.w.push([g1[0] / S + FW / 2, g1[1] / S + this.b.H / 2]); this.dibujaTrazo(T); }
+          const T = st.trazo; if (st.mv >= 10) { if (!T.w.length) { const g0 = this.pick(T.s[0][0], T.s[0][1]); if (g0) T.w.push([g0[0] / S + this.b.W / 2, g0[1] / S + this.b.H / 2]); } T.s.push([e.clientX, e.clientY]); const g1 = this.pick(e.clientX, e.clientY); if (g1) T.w.push([g1[0] / S + this.b.W / 2, g1[1] / S + this.b.H / 2]); this.dibujaTrazo(T); }
         } else if (st.rot) { c.yaw -= dx * 0.006; c.pitch += dy * 0.005; }
         else { const k = c.dist * 0.0021, cy = Math.cos(c.yaw), sy = Math.sin(c.yaw), mx = -(dx * cy + dy * sy) * k, mz = -(-dx * sy + dy * cy) * k; c.x += mx; c.z += mz; this.vel = [mx * 60, mz * 60]; }
       } else if (P.size === 2 && st) {
@@ -720,7 +775,7 @@ export class BattleView3D {
       if (st && st.trazo && !P.size && st.mv < 10) this.tArr = performance.now();
       if (st && st.trazo && !P.size && st.mv >= 10) { this.tArr = performance.now(); if (e.type === 'pointerup') this.ejecutarTrazo(st.trazo); else this.limpiaTrazo(); st = null; return; }
       if (st && st.drag && !P.size) { this.tArr = performance.now(); if (!st.drag.mv && e.type === 'pointerup') this.hitReg(st.drag.r); st = null; return; }
-      if (st && st.mv < 10 && performance.now() - st.t < 500 && e.type === 'pointerup' && !P.size) { const g = this.pick(e.clientX, e.clientY); if (g) this.tapField(g[0] / S + FW / 2, g[1] / S + this.b.H / 2); }
+      if (st && st.mv < 10 && performance.now() - st.t < 500 && e.type === 'pointerup' && !P.size) { const g = this.pick(e.clientX, e.clientY); if (g) this.tapField(g[0] / S + this.b.W / 2, g[1] / S + this.b.H / 2); }
       if (!P.size) st = null; else if (st) st.d = 0;
     };
     this.onWheel = e => { this.c.dist *= e.deltaY > 0 ? 1.1 : 0.9; this.intro = 1; this.clampCam(); e.preventDefault(); };
@@ -728,7 +783,7 @@ export class BattleView3D {
     cv.addEventListener('pointerdown', this.onDown); cv.addEventListener('pointermove', this.onMove); cv.addEventListener('pointerup', this.onUp); cv.addEventListener('pointercancel', this.onUp);
     cv.addEventListener('wheel', this.onWheel, { passive: false }); cv.addEventListener('contextmenu', this.onCtx);
   }
-  clampCam() { const c = this.c; c.x = Math.max(-90, Math.min(90, c.x)); c.z = Math.max(-this.halfD - 10, Math.min(this.halfD + 10, c.z)); c.dist = Math.max(12, Math.min(330, c.dist)); c.pitch = Math.max(0.12, Math.min(1.45, c.pitch)); }
+  clampCam() { const c = this.c; c.x = Math.max(-this.hw - 15, Math.min(this.hw + 15, c.x)); c.z = Math.max(-this.halfD - 10, Math.min(this.halfD + 10, c.z)); c.dist = Math.max(12, Math.min(330, c.dist)); c.pitch = Math.max(0.12, Math.min(1.45, c.pitch)); }
   pick(cx, cy) {
     const rc = this.cv.getBoundingClientRect(), ray = new THREE.Raycaster();
     ray.setFromCamera(new THREE.Vector2((cx - rc.left) / rc.width * 2 - 1, -((cy - rc.top) / rc.height) * 2 + 1), this.cam);

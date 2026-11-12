@@ -68,7 +68,7 @@ for (let sd = 1; sd <= 5; sd++) { const q = fight({ principes: 150, triarii: 50 
   const w = {};
   for (const [nom] of Battle.PLANTILLAS) {
     bd.formar(0, nom); w[nom] = anchoFila1();
-    for (const r of bd.regs.filter(r => r.side === 0)) assert(r.x >= z.x0 && r.x <= z.x1 && r.y >= z.y0 - 0.01 && r.y <= z.y1 + 0.01 || nom === 'clasica' && r.x >= 20 && r.x <= 580, 'plantilla ' + nom + ' dentro del campo y la zona');
+    for (const r of bd.regs.filter(r => r.side === 0)) assert(r.x >= z.x0 && r.x <= z.x1 && r.y >= z.y0 - 0.01 && r.y <= z.y1 + 0.01 || nom === 'clasica' && r.x >= 20 && r.x <= bd.W - 20, 'plantilla ' + nom + ' dentro del campo y la zona');
   }
   assert(w.ancha > w.clasica && w.centro < w.clasica, 'anchuras de primera fila: ' + JSON.stringify(w));
   bd.empezar(); bd.step(1); assert(bd.t > 0, 'tras empezar el tiempo corre');
@@ -110,7 +110,7 @@ for (let sd = 1; sd <= 5; sd++) { const q = fight({ principes: 150, triarii: 50 
     for (const t of rng) assert(t.y * -f < front, 'tirador detrás de la primera fila (lado ' + sd + ')');
     const xmin = Math.min(...inf.map(r => r.x)), xmax = Math.max(...inf.map(r => r.x));
     assert(cav.some(c => c.x < xmin) && cav.some(c => c.x > xmax), 'caballería en las dos alas (lado ' + sd + ')');
-    for (const r of mine) assert(r.x >= 20 && r.x <= 580, 'dentro del campo');
+    for (const r of mine) assert(r.x >= 20 && r.x <= bt.W - 20, 'dentro del campo');
   }
   // lejos del enemigo: paso de marcha
   const r0 = bt.regs.find(r => r.side === 0 && r.u.cls === 'inf'), y0 = r0.y;
@@ -232,7 +232,7 @@ for (const id in D.CITIES) { assert(D.FACTIONS[D.CITIES[id].f]); for (const k in
 
 // 2k. Terreno (A5b): quien ocupa la colina gana más y pierde menos; el bosque frena, reduce los proyectiles y quita la carga
 {
-  assert(Battle.terrenoDe('roma', 1) === 'colina' && Battle.terrenoDe('zzz', 6) === 'bosque', 'terreno por ciudad o por semilla');
+  assert(Battle.terrenoDe('agrigentum', 1) === 'colina' && Battle.terrenoDe('roma', 1) === 'cerro' && Battle.terrenoDe('zzz', 6) === 'bosque', 'terreno por ciudad o por semilla');
   for (const id of ['colina', 'bosque', 'mixto']) { // cada bando tiene colina/bosque en su zona de despliegue
     const bt = new Battle({ sides: [side({ hastati: 100 }), side({ libios: 100 })], defender: 1, wall: 0, seed: 1, terreno: id });
     for (const sd of [0, 1]) { const z = bt.zona(sd); let n = 0; for (let y = z.y0; y <= z.y1; y += 20) for (let x = z.x0; x <= z.x1; x += 20) { const t = bt.terrenoEn(x, y); if (t.alt > 0 || t.bosque) n++; } assert(n > 5, id + ': el bando ' + sd + ' tiene terreno en su zona'); }
@@ -782,7 +782,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
 
 // N4. Estados, contagio con tope, reagrupar, agotado y determinismo
 {
-  const mkN = (ex) => new Battle(Object.assign({ sides: [side({ hastati: 120 }, { gen: { n: 'Cónsul' } }), side({ libios: 120 })], defender: 1, wall: 0, seed: 5, rondas: true }, ex || {}));
+  const mkN = (ex) => new Battle(Object.assign({ sides: [side({ hastati: 120 }, { gen: { n: 'Cónsul' } }), side({ libios: 120 })], defender: 1, wall: 0, seed: 5, rondas: true, fw: 600 }, ex || {}));
   const pon = (r, x, y) => { r.x = x; r.y = y; };
   // estadoMoral: umbrales fijos y única fuente
   { const c = mkN(), r = c.regs[0]; r.mor = r.morMax; assert.strictEqual(Battle.estadoMoral(r), 0); r.mor = r.morMax * 0.4; assert.strictEqual(Battle.estadoMoral(r), 1); r.mor = r.morMax * 0.2; assert.strictEqual(Battle.estadoMoral(r), 2); r.st = 'rout'; assert.strictEqual(Battle.estadoMoral(r), 3); }
@@ -894,6 +894,57 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
     P[0].order = { k: 'move', x: 300, y: 450 }; P[1].order = { k: 'move', x: 300, y: 400 }; c.jugarCarta('paso'); c.ejecutar(); while (c.fase === 'ejecucion') c.step(0.2);
     const fin = JSON.stringify(c.snapFin.regs.map(r => [r.x, r.y, r.men, r.mor])); assert(c.repetir()); while (c.fase === 'ejecucion') c.step(0.2);
     assert.strictEqual(JSON.stringify(c.regs.map(r => [r.x, r.y, r.men, r.mor])), fin, 'la repetición es idéntica'); assert.strictEqual(c.cartas.length, 2, 'la repetición no devuelve ni gasta cartas'); }
+}
+
+
+// N14. Campos amplios y relieve nuevo
+{
+  const mk = (ter, ex) => new Battle(Object.assign({ sides: [side({ hastati: 200, velites: 80, equites: 60 }, { gen: { n: 'C' } }), side({ libios: 200, numidas: 60, honderos: 40, jinetes: 60 }, { gen: { n: 'S' } })], defender: 1, wall: 0, seed: 3, terreno: ter }, ex || {}));
+  // ancho variable: por defecto 1200; 1500 con más de 700 hombres; cfg.fw manda; mínimo 600
+  assert.strictEqual(mk('llano').W, 1200, 'ancho por defecto');
+  assert.strictEqual(new Battle({ sides: [side({ hastati: 500 }), side({ libios: 400 })], defender: 1, wall: 0, seed: 1 }).W, 1500, 'ejército grande: campo de 1500');
+  assert.strictEqual(mk('llano', { fw: 600 }).W, 600); assert.strictEqual(mk('llano', { fw: 300 }).W, 600, 'mínimo 600'); assert.strictEqual(mk('llano', { fw: 900 }).W, 900);
+  for (const fw of [600, 1200, 1500]) for (const tpl of ['clasica', 'linea', 'ancha', 'tres', 'centro', 'alas']) {
+    const b = mk('llano', { fw }); b.formar(0, tpl); b.formar(1, tpl);
+    for (const r of b.regs) assert(r.x >= 20 && r.x <= b.W - 20, 'nadie fuera de 20..W-20 (' + tpl + ' fw ' + fw + ' x=' + r.x + ')');
+  }
+  // terrenos nuevos: ids, ciudades y simetría entre bandos
+  for (const id of ['cerro', 'rio', 'pantano', 'paso']) assert(Battle.TERRENOS[id], 'existe el terreno ' + id);
+  assert.strictEqual(Battle.terrenoDe('capua', 1), 'rio'); assert.strictEqual(Battle.terrenoDe('carales', 1), 'pantano'); assert.strictEqual(Battle.terrenoDe('ambracia', 1), 'paso'); assert.strictEqual(Battle.terrenoDe('messana', 1), 'cerro');
+  for (const id of ['cerro', 'rio', 'pantano', 'paso']) for (const fw of [600, 1200, 1500]) {
+    const b = mk(id, { fw }), cnt = [0, 0], z = [b.zona(0), b.zona(1)];
+    for (const sd of [0, 1]) for (let y = z[sd].y0; y <= z[sd].y1; y += 20) for (let x = z[sd].x0; x <= z[sd].x1; x += 20) { const t = b.terrenoEn(x, y); cnt[sd] += (t.alt > 0 ? 1 : 0) + (t.bosque ? 1 : 0) + (t.pantano ? 3 : 0) + (t.bloq ? 7 : 0); }
+    assert(Math.abs(cnt[0] - cnt[1]) <= 0.5 * Math.max(cnt[0], cnt[1], 1) + 4, id + ' fw ' + fw + ': terreno parecido en las dos zonas ' + cnt);
+    const T = b.tr; for (const sd of [0, 1]) for (const r of b.regs.filter(q => q.side === sd)) assert(!b.terrenoEn(r.x, r.y).bloq, id + ': nadie empieza en el agua ni en la roca');
+    if (T.banda) { assert(Math.abs(T.banda.y0 + T.banda.y1 - b.H) <= 40, id + ': franja centrada'); const cs = T.banda.cr.map(c => c.xc); assert(cs.every(x => cs.some(y => Math.abs((x + y) - b.W) <= 40)), id + ': pasos simétricos ' + cs + ' W=' + b.W); }
+  }
+  assert(mk('cerro').tr.alt.some(a => a > 1), 'el cerro es más alto que la colina');
+  // el agua no se cruza salvo por los vados; cruzar un vado desordena; todo termina sin colgarse
+  for (const id of ['rio', 'paso']) for (const sd of [1, 2, 3]) {
+    const b = mk(id, { seed: sd, fw: sd === 3 ? 600 : 1200 }); let malos = 0, crucesVado = 0, t = 0;
+    const B = b.tr.banda;
+    while (!b.over && b.t < 1500) {
+      b.step(0.2); t++;
+      for (const r of b.regs) if (r.st === 'ok') { if (b.terrenoEn(r.x, r.y).bloq) malos++; if (b.terrenoEn(r.x, r.y).vado) crucesVado++; }
+    }
+    assert.strictEqual(malos, 0, id + ' seed ' + sd + ': nadie entra en el agua ni en la roca'); assert(b.over, id + ': la batalla termina (' + b.t.toFixed(0) + ' s)');
+    if (id === 'rio') assert(crucesVado > 0, 'cruzan por los vados');
+  }
+  // un regimiento al otro lado del río llega a su destino por un vado; no se queda en la orilla
+  { const b = mk('rio', { fw: 1200 }), r = b.regs.find(q => q.side === 0 && q.k === 'hastati'); r.x = 100; r.y = b.H - 200;
+    let n = 0, rest = 1e9; while (rest >= 6 && n++ < 4000) { rest = b.moveTo(r, 130, 150, 0.2, 1); assert(!b.terrenoEn(r.x, r.y).bloq, 'nunca en el agua'); } assert(rest < 6 && r.y < 200 && Math.abs(r.x - 130) < 10, 'cruza el río por un vado hasta el destino (' + r.x.toFixed(0) + ',' + r.y.toFixed(0) + ')'); }
+  // vado: baja la moral y frena
+  { const b = mk('rio', { fw: 1200 }), c = b.tr.banda.cr[1], r = b.regs.find(q => q.side === 0 && q.k === 'hastati'); const m0 = r.mor; r.x = c.xc; r.y = b.tr.banda.y1 + 4; r.enVado = false;
+    b.moveTo(r, c.xc, 100, 0.2, 1); assert(b.terrenoEn(r.x, r.y).vado && r.mor < m0, 'entrar en el vado quita moral'); r.enVado = true; r.mor = r.morMax; const y0 = r.y; b.moveTo(r, c.xc, 100, 1, 1); const dv = y0 - r.y;
+    const l = b.regs.find(q => q.side === 0 && q.k === 'hastati' && q !== r); l.x = 100; l.y = b.H - 200; const y1 = l.y; b.moveTo(l, 100, 100, 1, 1); assert(dv < (y1 - l.y) * 0.8, 'el vado frena'); }
+  // el pantano frena a todos y cansa
+  { const b = mk('pantano', { fw: 1200 }), T = b.tr, i = T.ter.indexOf(3); assert(i >= 0, 'hay pantano'); const cx = (i % T.cols + 0.5) * 40, cy = (Math.floor(i / T.cols) + 0.5) * 40;
+    const r = b.regs.find(q => q.side === 0 && q.k === 'hastati'), l = b.regs.find(q => q.side === 0 && q.k === 'velites');
+    r.x = cx; r.y = cy; r.fat = 0; l.x = 20; l.y = 20; l.fat = 0; T.bos.fill(0); T.alt.fill(0); b.celdas = {};
+    // mismo regimiento, mismo paso, dentro y fuera del pantano
+    const mov = (x, y) => { r.x = x; r.y = y; r.fat = 0; b.moveTo(r, x, y - 500, 1, 1); return y - r.y; };
+    const dentro = mov(cx, cy), fatD = r.fat; let fx = 20, fy = 880; while (b.terrenoEn(fx, fy).pantano || b.terrenoEn(fx, fy - 40).pantano) fy -= 40; const fuera = mov(fx, fy), fatF = r.fat;
+    assert(dentro < fuera * 0.7, 'el pantano frena (' + dentro.toFixed(2) + ' vs ' + fuera.toFixed(2) + ')'); assert(fatD > fatF, 'y cansa'); }
 }
 
 console.log('OK — todas las pruebas superadas');

@@ -738,6 +738,30 @@
    "archivo": "gobierno/capturas-tarea/N5-p3.jpg",
    "pie": "Carta de arenga jugada; el resto se apaga",
    "ancha": true
+  },
+  {
+   "tarea": "N14",
+   "archivo": "gobierno/capturas-tarea/N14-ancho-0s.jpg",
+   "pie": "Campo ancho en el despliegue, con minimapa",
+   "ancha": true
+  },
+  {
+   "tarea": "N14",
+   "archivo": "gobierno/capturas-tarea/N14-rio-p4.jpg",
+   "pie": "Río con tres vados y minimapa",
+   "ancha": true
+  },
+  {
+   "tarea": "N14",
+   "archivo": "gobierno/capturas-tarea/N14-pantano-p4.jpg",
+   "pie": "Pantano",
+   "ancha": true
+  },
+  {
+   "tarea": "N14",
+   "archivo": "gobierno/capturas-tarea/N14-cerro-p4.jpg",
+   "pie": "Cerro",
+   "ancha": true
   }
  ],
  "informes": [

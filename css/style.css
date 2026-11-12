@@ -573,3 +573,6 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 #bcartas .carta { height: 26px; padding: 0 10px; border-radius: 8px; font-size: 11px; font-weight: 700; color: var(--gold); background: rgba(12, 16, 22, .82); border: 1px solid rgba(184, 134, 43, .6); }
 #bcartas .carta.on { background: rgba(233, 192, 99, .3); border-color: var(--gold); box-shadow: 0 0 8px rgba(233, 192, 99, .5); }
 #bcartas .carta.off { opacity: .4; }
+
+/* ===== N14: minimapa del campo ancho (en el modo por rondas, a la izquierda bajo la barra de arriba) ===== */
+#battle.ronda #bmini { display: block !important; left: calc(8px + env(safe-area-inset-left)); top: calc(40px + env(safe-area-inset-top)); height: 60px; border: 1px solid rgba(184, 134, 43, .8); border-radius: 6px; box-shadow: 0 2px 8px #0009; background: rgba(12, 16, 22, .7); }

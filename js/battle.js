@@ -1,7 +1,7 @@
 /* AQVILA — motor de batalla táctica en tiempo real (simulación + vista) */
 (function (root) {
   const D = root.DATA;
-  const FW = 600, CONTACT = 50;
+  const CONTACT = 50;
   // --- Ritmo, moral y cansancio (A8) ---
   const RITMO = 0.028;          // multiplica todo el daño: hace las batallas igualadas de 8 a 12 minutos
   const TOPE_BATALLA = 1500;    // segundos: tope de seguridad (25 min); si se alcanza gana el defensor
@@ -107,13 +107,35 @@
   const FAT_CUESTA = 0.5;       // cansancio por segundo peleando cuesta arriba (diferencia de altura 1)
   const BOSQUE_VEL = 0.78;       // velocidad dentro del bosque
   const BOSQUE_PROY = 0.7;      // el daño de proyectiles que recibe un regimiento dentro del bosque
+  // --- N14: campos amplios y relieve nuevo ---
+  const ANCHO_BASE = 1200;      // ancho del campo por defecto (unidades del campo; cfg.fw lo cambia, mínimo 600)
+  const ANCHO_GRANDE = 1500;    // ancho si entre los dos bandos hay más de HOMBRES_GRANDE hombres
+  const HOMBRES_GRANDE = 700;
+  const VADO_VEL = 0.6;         // velocidad dentro de un vado
+  const VADO_MOR = 0.15;        // moral (fracción de la máxima) que pierde un regimiento al entrar en un vado: cruzar desordena
+  const PANTANO_VEL = 0.6;      // el pantano frena a todos a este factor
+  const PANTANO_FAT = 1.5;      // cansancio por segundo marchando por el pantano
+  const CERRO_ALT = 1.6;        // altura del núcleo del cerro (la colina llega a 1): domina más
+  const RIO_GROSOR = 80;        // ancho del río (2 celdas)
+  const RIO_VADOS = [0.2, 0.5, 0.8];   // posición (fracción del ancho) de los vados, simétricos
+  const VADO_ANCHO = 80;        // ancho de cada vado
+  const PASO_GROSOR = 120;      // grosor de la muralla de roca del paso estrecho (3 celdas)
+  const PASO_ANCHO = 200;       // ancho del paso por el centro: solo caben unos pocos regimientos en línea
+  const ORILLA = 8;             // margen con el que se rodea el río o la roca hasta el vado
+  // códigos de celda: 0 normal, 1 agua, 2 vado, 3 pantano, 4 roca, 5 paso
+  const T_AGUA = 1, T_VADO = 2, T_PANTANO = 3, T_ROCA = 4, T_PASO = 5;
   // campo tipo por ciudad (lo que no está aquí sale de la semilla); las manchas se repiten giradas 180° para el otro bando
-  const TERRENO_CIUDAD = { roma: 'colina', volsinii: 'bosque', capua: 'llano', tarentum: 'llano', mediolanum: 'bosque', messana: 'colina', syracusae: 'mixto', agrigentum: 'colina',
-    panormus: 'llano', lilybaeum: 'llano', carales: 'bosque', emporion: 'mixto', saguntum: 'colina', carthagonova: 'mixto', ambracia: 'bosque', pella: 'colina', corinthus: 'mixto', carthago: 'llano' };
-  const TERRENOS = { llano: { n: 'Llano', f: [] },
-    colina: { n: 'Colina', f: [['h', 0.25, 0.86, 100], ['h', 0.72, 0.62, 90]] },
-    bosque: { n: 'Bosque', f: [['b', 0.2, 0.85, 75], ['b', 0.78, 0.74, 65], ['b', 0.62, 0.56, 60]] },
-    mixto: { n: 'Mixto', f: [['h', 0.28, 0.88, 90], ['b', 0.75, 0.8, 65], ['h', 0.5, 0.5, 80], ['b', 0.2, 0.62, 55]] } };
+  const TERRENO_CIUDAD = { roma: 'cerro', volsinii: 'bosque', capua: 'rio', tarentum: 'rio', mediolanum: 'pantano', messana: 'cerro', syracusae: 'mixto', agrigentum: 'colina',
+    panormus: 'llano', lilybaeum: 'llano', carales: 'pantano', emporion: 'mixto', saguntum: 'paso', carthagonova: 'mixto', ambracia: 'paso', pella: 'colina', corinthus: 'mixto', carthago: 'rio' };
+  // f: manchas ['h' colina, 'b' bosque, 'c' cerro, 'p' pantano, 'k' cresta (cx, cy, mitad largo, mitad grueso)]; fa: manchas extra si el campo es ancho
+  const TERRENOS = { llano: { n: 'Llano', f: [], fa: [] },
+    colina: { n: 'Colina', f: [['h', 0.25, 0.86, 100], ['h', 0.72, 0.62, 90]], fa: [['h', 0.5, 0.9, 90], ['h', 0.1, 0.6, 80]] },
+    bosque: { n: 'Bosque', f: [['b', 0.2, 0.85, 75], ['b', 0.78, 0.74, 65], ['b', 0.62, 0.56, 60]], fa: [['b', 0.45, 0.9, 70], ['b', 0.08, 0.6, 60]] },
+    mixto: { n: 'Mixto', f: [['h', 0.28, 0.88, 90], ['b', 0.75, 0.8, 65], ['h', 0.5, 0.5, 80], ['b', 0.2, 0.62, 55]], fa: [['b', 0.5, 0.9, 60], ['h', 0.08, 0.7, 70]] },
+    cerro: { n: 'Cerro', f: [['c', 0.5, 0.5, 150], ['h', 0.15, 0.84, 80], ['k', 0.32, 0.68, 100, 28]], fa: [['b', 0.5, 0.9, 60]] },
+    rio: { n: 'Río con vados', f: [['b', 0.12, 0.84, 60], ['b', 0.88, 0.7, 55]], fa: [['b', 0.5, 0.9, 60]], banda: { tipo: 'rio' } },
+    pantano: { n: 'Pantano', f: [['p', 0.3, 0.5, 90], ['p', 0.72, 0.42, 80], ['b', 0.12, 0.84, 55]], fa: [['p', 0.5, 0.72, 70], ['p', 0.9, 0.5, 60]] },
+    paso: { n: 'Paso estrecho', f: [['b', 0.14, 0.86, 60], ['h', 0.86, 0.8, 70]], fa: [], banda: { tipo: 'paso' } } };
   const TERRENO_IDS = ['llano', 'colina', 'bosque', 'mixto'];
   // --- Rondas (N2): plan en pausa y ejecución de unos segundos para los dos bandos ---
   const RONDA_SEG = 20;         // segundos de simulación de cada ronda de ejecución
@@ -134,6 +156,8 @@
     this.rondas = cfg.rondas === true; this.ronda = 1; this.tRonda = 0; this.hechos = []; this.notas = []; this.snapIni = null; this.snapFin = null; this.repite = false;
     this.fase = cfg.despliegue === true ? 'despliegue' : (this.rondas ? 'plan' : 'lucha'); // 'despliegue' y 'plan': el tiempo no corre; 'ejecucion': una ronda
     this.H = Math.max(800, Math.min(1300, Math.round(cfg.fh || 900))); // alto del campo (se adapta a la pantalla)
+    let tot = 0; for (const sd of cfg.sides) for (const k in sd.units) if (D.UNITS[k].cls !== 'ele') tot += sd.units[k];
+    this.W = Math.max(600, Math.min(2000, Math.round(cfg.fw || (tot > HOMBRES_GRANDE ? ANCHO_GRANDE : ANCHO_BASE)))); // ancho del campo (N14)
     this.rnd = mkRng(cfg.seed || 1);
     this.mkTerreno(cfg.terreno);
     this.genDown = [false, false]; this.cartas = CARTAS.slice(); this.cartaPlan = null; this.cartaRonda = 0;
@@ -147,27 +171,60 @@
 
   // terreno por defecto de una ciudad (id) o, si no está en la tabla, por semilla
   Battle.terrenoDe = function (city, seed) { return TERRENO_CIUDAD[city] || TERRENO_IDS[Math.abs(Math.floor(seed || 0)) % TERRENO_IDS.length]; };
-  Battle.TERRENOS = TERRENOS; Battle.TERRENO_CIUDAD = TERRENO_CIUDAD; Battle.CELDA = CELDA;
+  Battle.TERRENOS = TERRENOS; Battle.TERRENO_CIUDAD = TERRENO_CIUDAD; Battle.CELDA = CELDA; Battle.VADO_VEL = VADO_VEL; Battle.PANTANO_VEL = PANTANO_VEL; Battle.VADO_MOR = VADO_MOR;
 
-  // cuadrícula de terreno: alt (0, 0,5 o 1) y bosque (0/1) por celda; ambos bandos tienen manchas equivalentes en su zona
+  // cuadrícula de terreno: alt (0, 0,5 o 1), bosque (0/1) y ter (código de celda) por celda; ambos bandos tienen manchas equivalentes en su zona
   Battle.prototype.mkTerreno = function (id) {
-    const def = TERRENOS[id] || TERRENOS.llano, H = this.H, cols = Math.ceil(FW / CELDA), rows = Math.ceil(H / CELDA);
-    const T = { id: TERRENOS[id] ? id : 'llano', nombre: def.n, cols: cols, rows: rows, alt: new Array(cols * rows).fill(0), bos: new Array(cols * rows).fill(0), plano: !def.f.length };
-    for (const f of def.f) for (const m of [1, -1]) {
-      const cx = m > 0 ? f[1] * FW : FW - f[1] * FW, cy = m > 0 ? f[2] * H : H - f[2] * H, R = f[3];
+    const def = TERRENOS[id] || TERRENOS.llano, H = this.H, W = this.W, cols = Math.ceil(W / CELDA), rows = Math.ceil(H / CELDA), n = cols * rows;
+    const T = { id: TERRENOS[id] ? id : 'llano', nombre: def.n, cols: cols, rows: rows, alt: new Array(n).fill(0), bos: new Array(n).fill(0), ter: new Array(n).fill(0), banda: null, plano: !def.f.length && !def.banda };
+    const fs = def.f.concat(W > 800 ? (def.fa || []) : []);
+    for (const f of fs) for (const m of [1, -1]) {
+      const cx = m > 0 ? f[1] * W : W - f[1] * W, cy = m > 0 ? f[2] * H : H - f[2] * H, R = f[3];
       for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-        const d = Math.hypot((c + 0.5) * CELDA - cx, (r + 0.5) * CELDA - cy), i = r * cols + c;
-        if (f[0] === 'b') { if (d < R) T.bos[i] = 1; } else { const v = 1 - d / R, a = v >= 0.66 ? 1 : v >= 0.33 ? 0.5 : 0; if (a > T.alt[i]) T.alt[i] = a; }
+        const px = (c + 0.5) * CELDA, py = (r + 0.5) * CELDA, d = Math.hypot(px - cx, py - cy), i = r * cols + c;
+        if (f[0] === 'b') { if (d < R) T.bos[i] = 1; }
+        else if (f[0] === 'p') { if (d < R) T.ter[i] = T_PANTANO; }
+        else if (f[0] === 'k') { if (Math.abs(px - cx) <= f[3] && Math.abs(py - cy) <= f[4] && T.alt[i] < 1) T.alt[i] = 1; }   // cresta: altura en línea
+        else if (f[0] === 'c') { const v = 1 - d / R, a = v >= 0.55 ? CERRO_ALT : v >= 0.25 ? 1 : v >= 0.1 ? 0.5 : 0; if (a > T.alt[i]) T.alt[i] = a; }   // cerro: núcleo que domina, con laderas
+        else { const v = 1 - d / R, a = v >= 0.66 ? 1 : v >= 0.33 ? 0.5 : 0; if (a > T.alt[i]) T.alt[i] = a; }
       }
+    }
+    if (def.banda) {   // franja horizontal en mitad del campo con pasos: vados del río o hueco del paso estrecho
+      const rio = def.banda.tipo === 'rio', th = rio ? RIO_GROSOR : PASO_GROSOR, nf = Math.round(th / CELDA), rLo = Math.round((H / 2 - th / 2) / CELDA), cr = [];
+      if (rio) for (const fx of RIO_VADOS) { const c0 = Math.round(fx * W / CELDA) - Math.round(VADO_ANCHO / 2 / CELDA); cr.push({ c0: c0, c1: c0 + Math.round(VADO_ANCHO / CELDA) - 1 }); }
+      else { let c0 = -1, c1 = -1; for (let c = 0; c < cols; c++) if (Math.abs((c + 0.5) * CELDA - W / 2) <= PASO_ANCHO / 2) { if (c0 < 0) c0 = c; c1 = c; } cr.push({ c0: c0, c1: c1 }); }
+      for (let r = rLo; r < rLo + nf && r < rows; r++) for (let c = 0; c < cols; c++) {
+        const i = r * cols + c, g = cr.some(q => c >= q.c0 && c <= q.c1);
+        T.ter[i] = rio ? (g ? T_VADO : T_AGUA) : (g ? T_PASO : T_ROCA); T.bos[i] = 0; T.alt[i] = !rio && !g ? 1 : 0;
+      }
+      T.banda = { tipo: def.banda.tipo, y0: rLo * CELDA, y1: (rLo + nf) * CELDA, cr: cr.map(q => ({ x0: q.c0 * CELDA, x1: (q.c1 + 1) * CELDA, xc: (q.c0 + q.c1 + 1) * CELDA / 2 })) };
     }
     this.tr = T; this.celdas = {};
   };
-  // {alt, bosque} en el punto (x,y) del campo; objetos compartidos (no se modifican)
-  const LLANO = { alt: 0, bosque: 0 };
+  // {alt, bosque, ter, bloq, vado, pantano} en el punto (x,y) del campo; objetos compartidos (no se modifican)
+  const LLANO = { alt: 0, bosque: 0, ter: 0, bloq: false, vado: false, pantano: false };
   Battle.prototype.terrenoEn = function (x, y) {
     const T = this.tr; if (T.plano) return LLANO;
     const c = Math.max(0, Math.min(T.cols - 1, Math.floor(x / CELDA))), r = Math.max(0, Math.min(T.rows - 1, Math.floor(y / CELDA))), i = r * T.cols + c;
-    return this.celdas[i] || (this.celdas[i] = { alt: T.alt[i], bosque: T.bos[i] });
+    if (this.celdas[i]) return this.celdas[i];
+    const t = T.ter[i] || 0;
+    return this.celdas[i] = { alt: T.alt[i], bosque: T.bos[i], ter: t, bloq: t === T_AGUA || t === T_ROCA, vado: t === T_VADO, pantano: t === T_PANTANO };
+  };
+  // adónde apuntar para ir de r a (x,y) sin cruzar la franja de agua o roca más que por un paso: [x, y] directo o un punto intermedio
+  Battle.prototype.rumbo = function (r, x, y) {
+    const B = this.tr.banda; if (!B) return [x, y];
+    const lado = v => v < B.y0 ? -1 : v >= B.y1 ? 1 : 0, sr = lado(r.y), st = lado(y);
+    if (sr === st && sr !== 0) return [x, y];
+    const cerca = (px, ax) => { let b = null, bd = 1e9; for (const c of B.cr) { const d = Math.abs(ax - c.xc) + Math.abs(px - c.xc); if (d < bd) { bd = d; b = c; } } return b; };
+    const sal = sg => sg < 0 ? B.y0 - ORILLA : B.y1 + ORILLA;
+    if (sr === 0) {
+      const c = cerca(r.x, r.x);
+      if (st === 0) { if (x >= c.x0 && x <= c.x1) return [x, y]; return [c.xc, sal(r.y < (B.y0 + B.y1) / 2 ? -1 : 1)]; }
+      return [c.xc, sal(st)];
+    }
+    const c = cerca(x, r.x);
+    if (Math.abs(r.x - c.xc) > ORILLA) return [c.xc, sal(sr)];
+    return st === 0 ? [x, y] : [c.xc, sal(st)];
   };
   Battle.prototype.rango = function (r) { return r.u.range * (1 + COLINA_ALCANCE * this.terrenoEn(r.x, r.y).alt); };
 
@@ -206,7 +263,7 @@
   // franja propia donde se puede colocar: desde la línea de salida hacia atrás, más 60 hacia delante; nunca pasa del 40 % del campo
   Battle.prototype.zona = function (side) {
     const H = this.H;
-    return side === 0 ? { x0: 20, x1: FW - 20, y0: Math.max(H - 260, H * 0.6), y1: H - 24 } : { x0: 20, x1: FW - 20, y0: 24, y1: Math.min(260, H * 0.4) };
+    return side === 0 ? { x0: 20, x1: this.W - 20, y0: Math.max(H - 260, H * 0.6), y1: H - 24 } : { x0: 20, x1: this.W - 20, y0: 24, y1: Math.min(260, H * 0.4) };
   };
 
   // coloca un regimiento propio (solo en despliegue), recortado a la zona
@@ -231,7 +288,7 @@
     let esp = 60, alas = true;
     if (nombre === 'ancha') {
       // toda la infantería en una línea; si no cabe ni apretada, segunda fila
-      const n = foot.length + eles.length, minSp = 34, sp = k => (FW / 2 - 20) / ((k - 1) / 2 + (cav.length ? 1 : 0));
+      const n = foot.length + eles.length, minSp = 34, sp = k => (this.W / 2 - 20) / ((k - 1) / 2 + (cav.length ? 1 : 0));
       const per = n > 1 && sp(n) < minSp ? Math.ceil(n / 2) : Math.max(1, n);
       const todo = centrar(foot.splice(0, foot.length), eles);
       while (todo.length) rows.push(todo.splice(0, per));
@@ -255,13 +312,13 @@
     if (gen && nombre !== 'centro') rows.push([gen]);
     if (nombre !== 'clasica') { const z = this.zona(side); esp = Math.min(60, Math.abs((side === 0 ? z.y1 : z.y0) - base) / Math.max(1, rows.length - 1)); }
     const maxN = Math.max(1, ...rows.map(r => r.length));
-    // separación: se estrecha si las alas no caben en el campo (x entre 20 y FW-20)
-    const SP = Math.min(62, (FW / 2 - 20) / ((maxN - 1) / 2 + (cav.length && alas ? 1 : 0)));
-    rows.forEach((row, i) => row.forEach((r, j) => { r.x = FW / 2 + (j - (row.length - 1) / 2) * SP; r.y = base - f * esp * i; }));
+    // separación: se estrecha si las alas no caben en el campo (x entre 20 y this.W-20)
+    const SP = Math.min(62, (this.W / 2 - 20) / ((maxN - 1) / 2 + (cav.length && alas ? 1 : 0)));
+    rows.forEach((row, i) => row.forEach((r, j) => { r.x = this.W / 2 + (j - (row.length - 1) / 2) * SP; r.y = base - f * esp * i; }));
     // caballería: repartida entre las dos alas, en columna hacia atrás (en 'centro' ya va en reserva)
-    if (alas) { const wx = ((maxN - 1) / 2 + 1) * SP, cnt = [0, 0]; cav.forEach((r, i) => { const w = i % 2; r.x = FW / 2 + (w ? wx : -wx); r.y = base - f * esp * cnt[w]++; }); }
+    if (alas) { const wx = ((maxN - 1) / 2 + 1) * SP, cnt = [0, 0]; cav.forEach((r, i) => { const w = i % 2; r.x = this.W / 2 + (w ? wx : -wx); r.y = base - f * esp * cnt[w]++; }); }
     const z = nombre === 'clasica' ? { y0: 24, y1: this.H - 24 } : this.zona(side);
-    for (const r of mine) { r.y = Math.max(z.y0, Math.min(z.y1, r.y)); r.x = Math.max(20, Math.min(FW - 20, r.x)); }
+    for (const r of mine) { r.y = Math.max(z.y0, Math.min(z.y1, r.y)); r.x = Math.max(20, Math.min(this.W - 20, r.x)); }
   };
 
   // formaciones «linea», «tres» y «alas»: colocan por posiciones y al final separan lo que se solape, siempre dentro de la zona
@@ -271,43 +328,43 @@
     const foot = list.filter(r => r.u.cls === 'inf' || r.u.cls === 'spear' || r.u.cls === 'ele'), cav = list.filter(r => r.u.cls === 'cav'), skirm = list.filter(r => r.u.cls === 'rng');
     const centrar = (fila, eles) => { const m = Math.floor(fila.length / 2); return fila.slice(0, m).concat(eles, fila.slice(m)); };
     // pone una fila centrada en x0 con separación sp (se estrecha si no cabe en el campo)
-    const fila = (rs, y, sp, x0, mx) => { const n = rs.length, s = n > 1 ? Math.min(sp, ((mx || FW - 40)) / (n - 1)) : 0; rs.forEach((r, j) => { r.x = (x0 == null ? FW / 2 : x0) + (j - (n - 1) / 2) * s; r.y = y; }); };
+    const fila = (rs, y, sp, x0, mx) => { const n = rs.length, s = n > 1 ? Math.min(sp, ((mx || this.W - 40)) / (n - 1)) : 0; rs.forEach((r, j) => { r.x = (x0 == null ? this.W / 2 : x0) + (j - (n - 1) / 2) * s; r.y = y; }); };
     const eles = foot.filter(r => r.u.cls === 'ele'), pie = foot.filter(r => r.u.cls !== 'ele');
     if (nombre === 'linea') {
       // una sola fila fina de infantería (dos solo si no cabe), tiradores justo detrás, caballería en las alas, general en el centro atrás
       const todo = centrar(pie.slice(), eles), per = Math.max(1, Math.min(todo.length, 12)), cn = cav.length ? 110 : 0;
       let yy = 0; const sp = 46;
-      while (todo.length) { fila(todo.splice(0, per), back(yy), sp, null, FW - 40 - cn); yy += 44; }
+      while (todo.length) { fila(todo.splice(0, per), back(yy), sp, null, this.W - 40 - cn); yy += 44; }
       const sk = skirm.slice(); while (sk.length) { fila(sk.splice(0, per), back(yy), 40); yy += 34; }
-      if (gen) { gen.x = FW / 2; gen.y = back(yy + 10); }
-      const wx = Math.min(FW / 2 - 25, (Math.min(per, pie.length + eles.length) - 1) / 2 * Math.min(sp, (FW - 40 - cn) / Math.max(1, per - 1)) + 55);
-      cav.forEach((r, i) => { r.x = FW / 2 + (i % 2 ? wx : -wx); r.y = back(Math.floor(i / 2) * 44); });
+      if (gen) { gen.x = this.W / 2; gen.y = back(yy + 10); }
+      const wx = Math.min(this.W / 2 - 25, (Math.min(per, pie.length + eles.length) - 1) / 2 * Math.min(sp, (this.W - 40 - cn) / Math.max(1, per - 1)) + 55);
+      cav.forEach((r, i) => { r.x = this.W / 2 + (i % 2 ? wx : -wx); r.y = back(Math.floor(i / 2) * 44); });
     } else if (nombre === 'tres') {
       // triplex acies: hastati, principes y triarii en tres filas con huecos; tiradores delante (vélites); caballería en las alas
       const orden = pie.slice().sort((a, b) => rank(a) - rank(b)), tres = [[], [], []], q = Math.ceil(orden.length / 3);
       orden.forEach((r, i) => tres[Math.min(2, Math.floor(i / q))].push(r));
       tres[1] = centrar(tres[1], eles);
       const cn = cav.length ? 100 : 0, esp = 56;
-      tres.forEach((fl, i) => fila(fl, back(i * esp), 78, FW / 2 + (i === 1 ? 39 * (fl.length > 1 ? 1 : 0) : 0), FW - 40 - cn)); // 2.ª fila a tresbolillo
-      fila(skirm.slice(), back(-50), 58, null, FW - 40 - cn);
-      if (gen) { gen.x = FW / 2; gen.y = back(3 * esp); }
-      const wx = FW / 2 - 28;
-      cav.forEach((r, i) => { r.x = FW / 2 + (i % 2 ? wx : -wx); r.y = back(Math.floor(i / 2) * 50); });
+      tres.forEach((fl, i) => fila(fl, back(i * esp), 78, this.W / 2 + (i === 1 ? 39 * (fl.length > 1 ? 1 : 0) : 0), this.W - 40 - cn)); // 2.ª fila a tresbolillo
+      fila(skirm.slice(), back(-50), 58, null, this.W - 40 - cn);
+      if (gen) { gen.x = this.W / 2; gen.y = back(3 * esp); }
+      const wx = Math.min(this.W / 2 - 28, 272);
+      cav.forEach((r, i) => { r.x = this.W / 2 + (i % 2 ? wx : -wx); r.y = back(Math.floor(i / 2) * 50); });
     } else {
       // alas fuertes: centro flojo y retrasado; infantería pesada y caballería en los dos flancos
       const orden = pie.slice().sort((a, b) => b.hp - a.hp), nc = orden.length < 3 ? 0 : Math.ceil(orden.length / 3), pesada = orden.slice(0, orden.length - nc), centro = centrar(orden.slice(orden.length - nc), eles);
-      pesada.forEach((r, i) => { const lado = i % 2, k = Math.floor(i / 2); r.x = lado ? FW - 100 - (k % 2) * 50 : 100 + (k % 2) * 50; r.y = back(Math.floor(k / 2) * 50); });
+      pesada.forEach((r, i) => { const lado = i % 2, k = Math.floor(i / 2); r.x = this.W / 2 + (lado ? 200 - (k % 2) * 50 : -200 + (k % 2) * 50); r.y = back(Math.floor(k / 2) * 50); });
       while (centro.length) fila(centro.splice(0, 4), back(70 + 0), 52, null, 200);
       fila(skirm.slice(), back(10), 40, null, 220);
-      if (gen) { gen.x = FW / 2; gen.y = back(125); }
-      cav.forEach((r, i) => { r.x = i % 2 ? FW - 36 : 36; r.y = back(Math.floor(i / 2) * 50); });
+      if (gen) { gen.x = this.W / 2; gen.y = back(125); }
+      cav.forEach((r, i) => { r.x = this.W / 2 + (i % 2 ? 264 : -264); r.y = back(Math.floor(i / 2) * 50); });
     }
     this.separar(mine, z, f);
   };
 
   // lo que quede solapado o fuera de la zona se mueve al hueco libre más cercano dentro de la zona
   Battle.prototype.separar = function (mine, z, f) {
-    const MIN = 26, put = (r, x, y) => { r.x = Math.max(20, Math.min(FW - 20, x)); r.y = Math.max(z.y0, Math.min(z.y1, y)); }, done = [];
+    const MIN = 26, put = (r, x, y) => { r.x = Math.max(20, Math.min(this.W - 20, x)); r.y = Math.max(z.y0, Math.min(z.y1, y)); }, done = [];
     for (const r of mine) {
       const x0 = r.x, y0 = r.y, cands = [[0, 0]];
       for (let k = 1; k <= 10; k++) { const d = 28 * k; cands.push([0, -f * d], [d, 0], [-d, 0], [d, -f * d], [-d, -f * d], [0, f * d]); }
@@ -352,15 +409,25 @@
   };
 
   Battle.prototype.moveTo = function (r, x, y, dt, mul) {
+    const B = this.tr.banda;
+    if (B && this.terrenoEn(x, y).bloq) { if (r.y < B.y0) y = B.y0 - ORILLA; else if (r.y >= B.y1) y = B.y1 + ORILLA; }   // destino en el agua o la roca: se queda en la orilla
+    const fx = x, fy = y;
+    if (B) { const w = this.rumbo(r, x, y); x = w[0]; y = w[1]; }
     const dx = x - r.x, dy = y - r.y, d = Math.hypot(dx, dy);
-    if (d < 1) return 0;
+    if (d < 1) return Math.hypot(fx - r.x, fy - r.y);
     this.turn(r, Math.atan2(dy, dx), dt);
     const t0 = this.terrenoEn(r.x, r.y);
-    const m = Math.min(r.vel * (r.cartaFx === 'paso' ? PASO_DOBLE : 1) * (mul || PASO_MARCHA) * (1 - FAT_ANDA * r.fat / 100) * (t0.bosque ? BOSQUE_VEL : 1) * dt, d);
-    r.mv = true; r.fat = Math.min(100, r.fat + FAT_MARCHA * dt * (mul > 1 ? 1.6 : 1) * (PAPEL_FAT[r.papel] || 1) * (tipoDe(r) === 'hostigar' ? HOSTIGAR_FAT : 1));
-    r.x += dx / d * m; r.y += dy / d * m; r.run += m;
+    const m = Math.min(r.vel * (r.cartaFx === 'paso' ? PASO_DOBLE : 1) * (mul || PASO_MARCHA) * (1 - FAT_ANDA * r.fat / 100) * (t0.bosque ? BOSQUE_VEL : 1) * (t0.vado ? VADO_VEL : 1) * (t0.pantano ? PANTANO_VEL : 1) * dt, d);
+    r.mv = true; r.fat = Math.min(100, r.fat + FAT_MARCHA * dt * (mul > 1 ? 1.6 : 1) * (PAPEL_FAT[r.papel] || 1) * (tipoDe(r) === 'hostigar' ? HOSTIGAR_FAT : 1) + (t0.pantano ? PANTANO_FAT * dt : 0));
+    let nx = r.x + dx / d * m, ny = r.y + dy / d * m;
+    if (this.terrenoEn(nx, ny).bloq && !t0.bloq) {   // nunca se entra en el agua ni en la roca: se desliza por la orilla o espera
+      if (!this.terrenoEn(nx, r.y).bloq) ny = r.y; else if (!this.terrenoEn(r.x, ny).bloq) nx = r.x; else { nx = r.x; ny = r.y; }
+    }
+    const mm = Math.hypot(nx - r.x, ny - r.y); r.x = nx; r.y = ny; r.run += mm;
     const t1 = this.terrenoEn(r.x, r.y); if (t1.alt > t0.alt) r.fat = Math.min(100, r.fat + FAT_SUBIDA * (t1.alt - t0.alt));   // cuesta arriba
-    return d - m;
+    if (t1.vado && !r.enVado) r.mor = Math.max(1, r.mor - VADO_MOR * r.morMax);   // cruzar un vado desordena
+    r.enVado = t1.vado;
+    return Math.hypot(fx - r.x, fy - r.y);
   };
 
   Battle.prototype.ligera = function (b) { return b.u.cls === 'rng' || (b.u.cls === 'inf' && b.u.def <= LIGERA_DEF); };
@@ -513,6 +580,7 @@
     this.t += dt;
     const regs = this.regs, cur = [this.men(0), this.men(1)];
     if (this.rondas) for (const r of regs) if (r.pend && this.tRonda >= (r.pendT || ESPERA_SEG) - 1e-6) { r.order = Object.assign({}, r.pend, { cond: null }); r.pend = null; r.pendT = 0; }   // «espera 10 s» o retraso de mando: ya toca avanzar
+    if (this.tr.banda) for (const r of regs) if (r.st === 'ok' && !this.terrenoEn(r.x, r.y).bloq) { r.sx = r.x; r.sy = r.y; }   // última posición en suelo transitable
     // avance en bloque: ¿alguien del bando está ya cerca del enemigo? si no, todos al paso del más lento de a pie
     const cerca = [false, false], lento = [1e9, 1e9];
     for (const a of regs) {
@@ -619,7 +687,7 @@
       if (!fighting && !r.mv) r.fat = Math.max(0, r.fat - FAT_DESCANSO * dt);
       r.fight = fighting ? 0.4 : Math.max(0, r.fight - dt);
       if (!fighting && r.fight <= 0) { r.mor = Math.min(r.morMax, r.mor + 1.5 * dt); r.flank = 0; r.cont = 0; }
-      r.x = Math.max(20, Math.min(FW - 20, r.x)); r.y = Math.max(20, Math.min(this.H - 20, r.y));
+      r.x = Math.max(20, Math.min(this.W - 20, r.x)); r.y = Math.max(20, Math.min(this.H - 20, r.y));
     }
     // separación entre regimientos amigos
     for (let i = 0; i < regs.length; i++) {
@@ -630,6 +698,7 @@
         if (d < 56) { const p = (56 - d) * 0.5 * Math.min(1, dt * 6), nx = d > 0.01 ? dx / d : 1, ny = d > 0.01 ? dy / d : 0; a.x -= nx * p; a.y -= ny * p; b.x += nx * p; b.y += ny * p; }
       }
     }
+    if (this.tr.banda) for (const r of regs) if (r.st === 'ok' && r.sx != null && this.terrenoEn(r.x, r.y).bloq) { r.x = r.sx; r.y = r.sy; }   // empujones: nadie acaba en el agua ni en la roca
     for (const f of this.fx) f.t += dt;
     if (this.fx.length && this.fx[0].t > 0.5) this.fx = this.fx.filter(f => f.t <= 0.5);
     const n0 = this.men(0), n1 = this.men(1);
@@ -773,26 +842,37 @@
 
   BattleView.prototype.resize = function () {
     const p = this.cv.parentElement, w = p.clientWidth, h = p.clientHeight, dpr = Math.min(2, window.devicePixelRatio || 1);
-    const sc = Math.min(w / FW, h / this.b.H);
-    this.cv.style.width = FW * sc + 'px'; this.cv.style.height = this.b.H * sc + 'px';
-    this.cv.width = Math.round(FW * sc * dpr); this.cv.height = Math.round(this.b.H * sc * dpr);
+    const sc = Math.min(w / this.b.W, h / this.b.H);
+    this.cv.style.width = this.b.W * sc + 'px'; this.cv.style.height = this.b.H * sc + 'px';
+    this.cv.width = Math.round(this.b.W * sc * dpr); this.cv.height = Math.round(this.b.H * sc * dpr);
     this.k = sc * dpr; this.sc = sc;
   };
 
+  // pinta las celdas de terreno (colina, bosque, agua, vado, pantano, roca) en un contexto 2D con escala kx, ky; sirve para el minimapa y la vista de reserva
+  Battle.pintaTerreno = function (g, b, kx, ky, fuerte) {
+    const T = b.tr; if (!T || T.plano) return;
+    const col = { 1: '#3b7fa8', 2: '#8fc4cc', 3: '#5b6e35', 4: '#7a746a' }, C = CELDA;
+    for (let r = 0; r < T.rows; r++) for (let c = 0; c < T.cols; c++) {
+      const i = r * T.cols + c, t = T.ter[i];
+      const f = t && col[t] ? col[t] : T.bos[i] ? '#3f6a2e' : T.alt[i] >= 1 ? '#b79b62' : T.alt[i] > 0 ? '#a8a068' : null;
+      if (f) { g.fillStyle = f; g.fillRect(c * C * kx, r * C * ky, Math.ceil(C * kx), Math.ceil(C * ky)); }
+    }
+  };
   BattleView.prototype.makeBg = function () {
-    const c = document.createElement('canvas'); c.width = FW; c.height = this.b.H;
+    const c = document.createElement('canvas'); c.width = this.b.W; c.height = this.b.H;
     const g = c.getContext('2d'), rnd = mkRng(this.b.cfg.seed || 7);
     const gr = g.createLinearGradient(0, 0, 0, this.b.H); gr.addColorStop(0, '#7d9150'); gr.addColorStop(0.5, '#93a35c'); gr.addColorStop(1, '#84964f');
-    g.fillStyle = gr; g.fillRect(0, 0, FW, this.b.H);
+    g.fillStyle = gr; g.fillRect(0, 0, this.b.W, this.b.H);
     for (let i = 0; i < 260; i++) {
       g.fillStyle = rnd() < 0.5 ? 'rgba(60,80,30,0.10)' : 'rgba(200,190,120,0.10)';
-      g.beginPath(); g.ellipse(rnd() * FW, rnd() * this.b.H, 10 + rnd() * 46, 6 + rnd() * 20, rnd() * 3, 0, 7); g.fill();
+      g.beginPath(); g.ellipse(rnd() * this.b.W, rnd() * this.b.H, 10 + rnd() * 46, 6 + rnd() * 20, rnd() * 3, 0, 7); g.fill();
     }
+    Battle.pintaTerreno(g, this.b, 1, 1);
     // camino
-    g.strokeStyle = 'rgba(190,165,110,0.55)'; g.lineWidth = 26; g.beginPath(); g.moveTo(FW * 0.42, 0); g.bezierCurveTo(FW * 0.7, this.b.H * 0.3, FW * 0.3, this.b.H * 0.6, FW * 0.55, this.b.H); g.stroke();
+    g.strokeStyle = 'rgba(190,165,110,0.55)'; g.lineWidth = 26; g.beginPath(); g.moveTo(this.b.W * 0.42, 0); g.bezierCurveTo(this.b.W * 0.7, this.b.H * 0.3, this.b.W * 0.3, this.b.H * 0.6, this.b.W * 0.55, this.b.H); g.stroke();
     // árboles en los bordes
     for (let i = 0; i < 46; i++) {
-      const left = rnd() < 0.5, x = left ? rnd() * 34 : FW - rnd() * 34, y = rnd() * this.b.H, r = 8 + rnd() * 9;
+      const left = rnd() < 0.5, x = left ? rnd() * 34 : this.b.W - rnd() * 34, y = rnd() * this.b.H, r = 8 + rnd() * 9;
       g.fillStyle = 'rgba(0,0,0,0.18)'; g.beginPath(); g.arc(x + 3, y + 4, r, 0, 7); g.fill();
       g.fillStyle = rnd() < 0.5 ? '#3f6a2c' : '#4d7a33'; g.beginPath(); g.arc(x, y, r, 0, 7); g.fill();
       g.fillStyle = 'rgba(255,255,255,0.08)'; g.beginPath(); g.arc(x - r * 0.3, y - r * 0.3, r * 0.5, 0, 7); g.fill();
@@ -801,11 +881,11 @@
     const wall = this.b.cfg.wall || 0;
     if (wall > 0) {
       const y = this.b.cfg.defender === 0 ? this.b.H - 46 : 14;
-      g.fillStyle = '#8d8676'; g.fillRect(0, y, FW, 32); g.fillStyle = '#6f695b'; g.fillRect(0, y + 26, FW, 6);
+      g.fillStyle = '#8d8676'; g.fillRect(0, y, this.b.W, 32); g.fillStyle = '#6f695b'; g.fillRect(0, y + 26, this.b.W, 6);
       g.fillStyle = '#a39b88';
-      for (let x = 4; x < FW; x += 18) g.fillRect(x, y - 5, 10, 7);
-      for (let x = 60; x < FW; x += 160) { g.fillStyle = '#7b7566'; g.fillRect(x - 20, y - 12, 40, 50); g.fillStyle = '#a39b88'; g.fillRect(x - 20, y - 16, 10, 6); g.fillRect(x - 5, y - 16, 10, 6); g.fillRect(x + 10, y - 16, 10, 6); }
-      g.fillStyle = '#4a3a22'; g.fillRect(FW / 2 - 16, y + 4, 32, 28);
+      for (let x = 4; x < this.b.W; x += 18) g.fillRect(x, y - 5, 10, 7);
+      for (let x = 60; x < this.b.W; x += 160) { g.fillStyle = '#7b7566'; g.fillRect(x - 20, y - 12, 40, 50); g.fillStyle = '#a39b88'; g.fillRect(x - 20, y - 16, 10, 6); g.fillRect(x - 5, y - 16, 10, 6); g.fillRect(x + 10, y - 16, 10, 6); }
+      g.fillStyle = '#4a3a22'; g.fillRect(this.b.W / 2 - 16, y + 4, 32, 28);
     }
     return c;
   };
