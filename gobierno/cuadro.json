@@ -967,6 +967,12 @@
    "titulo": "Ciudad nueva · CN4 Colocar con el dedo",
    "nota": "js/ui.js (ciudad), css, index.html, city3d.js (ola 3)",
    "url": "https://claude.ai/code/session_01QiKC39e92asGxUDm87XGSv"
+  },
+  {
+   "tarea": "I3b",
+   "titulo": "Gran diseño · I3b Paga de tropas",
+   "nota": "js/game.js, data.js, tests (paga y deuda)",
+   "url": "https://claude.ai/code/session_01QiKC37D2N4Qw3NvC9TcdmE"
   }
  ],
  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
