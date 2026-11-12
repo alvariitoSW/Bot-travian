@@ -878,12 +878,17 @@
  "rama": "claude/roman-strategy-mobile-game-bx9oq2",
  "sesiones": [
   {
-   "tarea": "CN1",
-   "titulo": "Ciudad nueva · CN1 Reglas sin pantalla",
-   "nota": "js/ciudad.js, test/",
-   "url": "https://claude.ai/code/session_01QiKC38Hw4tqSxyvyTU8J9U"
+   "tarea": "CN2",
+   "titulo": "Ciudad nueva · CN2 Guardado y economía",
+   "nota": "js/game.js, js/data.js (ola 1)",
+   "url": "https://claude.ai/code/session_01QiKC36zNMYSGs5BSJFX5Y9"
+  },
+  {
+   "tarea": "C2b",
+   "titulo": "Mapa · C2b Relieve real y espuma",
+   "nota": "js/gfx/map3d.js, assets/mapa (ola 1)",
+   "url": "https://claude.ai/code/session_01QiKC3AiykotV8X7zdNgX9c"
   }
  ],
  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
-
 }
