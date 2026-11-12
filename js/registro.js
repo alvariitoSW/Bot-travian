@@ -171,7 +171,18 @@
     italia: f(SIN_REG, h('Plutarco, Pirro 13-25; Polibio 1.6-7 y 2.14-35', 'licencia de juego', 'campaña corta en la península y Sicilia oriental contra Tarento (cayó en 272); Tarentum sigue de Epiro, Volsinii etrusca y Mediolanum gala, y la fecha de corte es de jugabilidad', 'La Italia de Pirro: Roma contra Tarento, la ciudad que llamó al rey del Epiro.'))
   };
 
-  R.fichas = { edificio, tropa, ciudad, hecho, mision, region, faccion, mejora, tipo, especial };
+  // ---- Zonas del mapa (D.ZONAS, C6). Se casan por id. Los límites son agrupación de juego. ----
+  const SIN_ZONA = { sin: 'una zona es una ficha de datos; no tiene modelo 3D' };
+  const zona = {
+    italia: f(SIN_ZONA, h('Polibio 2.14-35 (descripción de Italia); Estrabón 5', 'licencia de juego', 'Italia es el nombre romano de la península; los límites de la zona son agrupación de juego, licencia de juego (Mediolanum, gala en la época, entra por cercanía)')),
+    sicilia: f(SIN_ZONA, h('Polibio 1.8-11 y 1.38-44; Estrabón 6.2', 'licencia de juego', 'Sicilia es el nombre antiguo de la isla; sus ciudades se agrupan por geografía y los límites de la zona son licencia de juego')),
+    sardinia: f(SIN_ZONA, h('Estrabón 5.2; Polibio 1.79', 'licencia de juego', 'Sardinia es el nombre latino de Cerdeña; la zona es agrupación de juego, licencia de juego')),
+    hispania: f(SIN_ZONA, h('Polibio 3.13-15; Estrabón 3', 'licencia de juego', 'Hispania es el nombre romano de la península Ibérica; solo entran las ciudades de la costa del juego, licencia de juego')),
+    graecia: f(SIN_ZONA, h('Polibio 2 y 18; Estrabón 8', 'licencia de juego', 'Graecia agrupa Epiro, Macedonia y Grecia propia; la unidad es agrupación de juego, licencia de juego')),
+    africa: f(SIN_ZONA, h('Polibio 1.73 y 15.5-14; Estrabón 17.3', 'licencia de juego', 'Africa es la costa cartaginesa; la zona es agrupación de juego, licencia de juego'))
+  };
+
+  R.fichas = { edificio, tropa, ciudad, hecho, mision, region, zona, faccion, mejora, tipo, especial };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -180,6 +191,7 @@
     tropa: { tabla: 'UNITS', numericos: ['atk', 'def', 'spd', 'mor', 'up'], textos: ['n', 'cls'], segunClase: { rng: ['ratk', 'range'] } },
     ciudad: { tabla: 'CITIES', numericos: ['lon', 'lat', 'w', 'wl'], mapas: ['g'], textos: ['n', 'f'] },
     hecho: { tabla: 'EVENTS', lista: true, numericos: ['y'], textos: ['t', 'x'] },
+    zona: { tabla: 'ZONAS', numericos: [], textos: ['n'] },
     region: { tabla: 'REGIONES', numericos: ['hasta'], textos: ['n', 'capitalRival'] },
     mision: { tabla: 'MISIONES', numericos: ['desde', 'plazo'], textos: ['n', 'texto'] },
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },

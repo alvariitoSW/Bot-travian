@@ -286,6 +286,18 @@
   D.regionCiudades = id => { const r = D.REGIONES[id]; return r && r.ciudades ? r.ciudades.filter(c => D.CITIES[c]) : Object.keys(D.CITIES); };
   D.regionEdges = id => { const l = D.regionCiudades(id); return D.EDGES.filter(e => l.indexOf(e[0]) >= 0 && l.indexOf(e[1]) >= 0); };
 
+  /* Zonas del mapa (C6, escalones). Agrupan las ciudades de D.CITIES por id para los nombres grandes de Mare Nostrum.
+     Cada ciudad está en una sola zona. Los límites son agrupación de juego, no fronteras de la época. */
+  D.ZONAS = {
+    italia: { n: 'Italia', ciudades: ['roma', 'volsinii', 'capua', 'tarentum', 'mediolanum'] },
+    sicilia: { n: 'Sicilia', ciudades: ['messana', 'syracusae', 'agrigentum', 'panormus', 'lilybaeum'] },
+    sardinia: { n: 'Sardinia', ciudades: ['carales'] },
+    hispania: { n: 'Hispania', ciudades: ['emporion', 'saguntum', 'carthagonova'] },
+    graecia: { n: 'Graecia', ciudades: ['ambracia', 'pella', 'corinthus'] },
+    africa: { n: 'Africa', ciudades: ['carthago'] }
+  };
+  D.zonaDe = id => Object.keys(D.ZONAS).find(z => D.ZONAS[z].ciudades.indexOf(id) >= 0) || null;
+
   /* Senado (Q7). Dos barras de favor, de 0 a 100: la del Senado se mueve con las misiones y con cerrar el mes en rojo;
      la del pueblo tiende al ánimo medio de tus ciudades (inercia por mes). Con el Senado por debajo de «bajo» se niegan
      tratados con ciudades ajenas y la quinta leva en cola. Licencia de juego: las barras y todas las cifras (los hechos

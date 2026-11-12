@@ -7,6 +7,7 @@ import ALTURAS from '../../assets/mapa/alturas.js';
 import { getUnit, unitMaterialReal, instancedGeometry, frameOf, UNIT_SCALE } from './units.js';
 
 const D = window.DATA, G = window.Game;
+const MARE_DIST = 130;   // C6: desde esta distancia de cámara el mapa está en el escalón Mare Nostrum
 const K = 0.1;                                   // mundo 2D (1600x800) -> unidades 3D
 const NX = 420, NZ = 210, CW = D.WORLD.w * K / NX, CH = D.WORLD.h * K / NZ;
 const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -74,6 +75,9 @@ export class MapView3D {
     this.labels = document.createElement('div'); this.labels.className = 'mlabels'; host.insertBefore(this.labels, this.cv.nextSibling);
     this.scene = new THREE.Scene(); this.cam = new THREE.PerspectiveCamera(40, 1, 0.5, 600);
     const p = G.pos('roma'); this.c = { x: p[0] * K, z: p[1] * K, dist: 46, pitch: 0.95 };
+    this.esc = { zona: null, pila: [], anim: null, zEls: {}, clave: '' };   // C6: escalón actual, pila de «volver» y animación de cámara
+    this.migas = document.createElement('div'); this.migas.className = 'mmigas'; host.insertBefore(this.migas, this.labels.nextSibling);
+    this.migas.addEventListener('click', ev => { if (ev.target.closest('[data-volver]')) { ev.stopPropagation(); this.volver(); } });
     this.build(); this.bind(); this.resize(); this.armies = new Map(); this.t = 0; this.last = performance.now();
   }
 
@@ -239,6 +243,8 @@ export class MapView3D {
     const W = this.host.clientWidth, Hh = this.host.clientHeight, v = new THREE.Vector3(), now = performance.now(), dt = Math.min(0.1, (now - this.last) / 1000); this.last = now; this.t += dt; uTime.value = this.t;
     const place = (el, x, y, z) => { v.set(x, y, z).project(this.cam); if (v.z > 1 || v.x < -1.2 || v.x > 1.2 || v.y < -1.2 || v.y > 1.2) { el.style.display = 'none'; return; } el.style.display = ''; el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * Hh).toFixed(1) + 'px) translate(-50%,-100%)'; };
     if (this.labels.scrollLeft || this.labels.scrollTop) { this.labels.scrollLeft = 0; this.labels.scrollTop = 0; }
+    this.escalon(state, dt, place);
+    const mare = this.esc.mare;
     for (const id in this.cities) {
       const c = this.cities[id], st = state.cities[id];
       if (!st) { c.grp.visible = false; c.el.style.display = 'none'; continue; }   // ciudad que no es de esta región: ni modelo ni etiqueta
@@ -248,6 +254,7 @@ export class MapView3D {
       c.ring.visible = sel === id; if (sel === id) c.ring.rotation.z = this.t * 0.8;
       const txt = (state.hero.city === id ? '🦅 ' : '') + G.men(st.units); if (c.txt !== txt) { c.txt = txt; c.em.textContent = txt; }
       c.el.classList.toggle('sel', sel === id); place(c.el, c.x, c.grp.position.y + c.top, c.z);
+      if (mare) c.el.style.display = 'none';   // C6: de lejos solo se leen los nombres de zona
     }
     const ar = new Set(G.aristas().map(e => e[0] + '|' + e[1]));
     for (const e of this.aristas) e.line.visible = ar.has(e.a + '|' + e.b) && !!state.cities[e.a] && !!state.cities[e.b];
@@ -280,18 +287,63 @@ export class MapView3D {
     }
     for (const [id, a] of this.armies) if (!seen.has(id)) { this.scene.remove(a.grp); a.grp.traverse(o => { if (o.geometry && !o.userData.real) o.geometry.dispose(); }); a.el.remove(); this.armies.delete(id); }
     const c = this.c, cp = Math.cos(c.pitch);
+    this.scene.fog.near = Math.max(90, c.dist * 0.6); this.scene.fog.far = Math.max(260, c.dist * 1.75);   // C6: a más distancia, más bruma lejana
     this.cam.position.set(c.x, Math.sin(c.pitch) * c.dist, c.z + cp * c.dist); this.cam.lookAt(c.x, 0, c.z);
     this.r.render(this.scene, this.cam);
+  }
+
+  /* C6 · Escalones del mapa. Mare Nostrum (cámara lejos): solo nombres de zona. Zona: la cámara se acerca a sus ciudades y salen
+     las etiquetas normales. «volver» restaura el encuadre guardado en la pila. Solo en la campaña del Mediterráneo (I6 no se toca). */
+  zonaCiudades(z, state) { return D.ZONAS[z].ciudades.filter(id => state.cities[id] && this.cities[id]); }
+  entrarZona(z) {
+    const st = this.esc; if (!G.state || !D.ZONAS[z]) return;
+    const ids = this.zonaCiudades(z, G.state); if (!ids.length) return;
+    let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const id of ids) { const c = this.cities[id]; x0 = Math.min(x0, c.x); x1 = Math.max(x1, c.x); z0 = Math.min(z0, c.z); z1 = Math.max(z1, c.z); }
+    const c = this.c, dist = Math.max(24, Math.min(MARE_DIST - 8, Math.max((x1 - x0) * 3.3 + 12, (z1 - z0) * 2 + 12)));
+    st.pila.push({ x: c.x, z: c.z, dist: c.dist, pitch: c.pitch, zona: st.zona }); st.zona = z;
+    st.anim = { d: 0.6, de: { x: c.x, z: c.z, dist: c.dist }, a: { x: (x0 + x1) / 2, z: (z0 + z1) / 2, dist: dist } };
+  }
+  volver() {
+    const st = this.esc, g = st.pila.pop(); if (!g) return; const c = this.c;
+    st.zona = g.zona; st.anim = { d: 0.6, de: { x: c.x, z: c.z, dist: c.dist }, a: { x: g.x, z: g.z, dist: g.dist } };
+  }
+  escalon(state, dt, place) {
+    const st = this.esc, c = this.c, med = G.regionId() === 'mediterraneo';
+    if (st.anim) {
+      const a = st.anim; if (a.t0 === undefined) a.t0 = performance.now(); const u = Math.min(1, (performance.now() - a.t0) / 1000 / a.d), e = u * u * (3 - 2 * u);
+      c.x = a.de.x + (a.a.x - a.de.x) * e; c.z = a.de.z + (a.a.z - a.de.z) * e; c.dist = a.de.dist + (a.a.dist - a.de.dist) * e; this.clamp();
+      if (u >= 1) st.anim = null;
+    } else if (st.zona && c.dist >= MARE_DIST) { st.zona = null; st.pila = []; }   // se aleja a mano: vuelve a Mare Nostrum
+    st.mare = med && !st.zona && c.dist >= MARE_DIST && !st.anim;
+    const clave = med ? (st.zona || '') + '|' + st.pila.length : '-';
+    if (clave !== st.clave) {
+      st.clave = clave;
+      this.migas.style.display = med ? '' : 'none';
+      this.migas.innerHTML = '<span class="mm-t">Mare Nostrum</span>' + (st.zona ? '<span class="mm-s">›</span><span class="mm-t">' + D.ZONAS[st.zona].n + '</span><button type="button" data-volver>← volver</button>' : '');
+    }
+    for (const z in D.ZONAS) {
+      let el = st.zEls[z];
+      if (!el) { el = st.zEls[z] = document.createElement('button'); el.type = 'button'; el.className = 'mlabel zona'; el.textContent = D.ZONAS[z].n; el.addEventListener('click', ev => { ev.stopPropagation(); this.entrarZona(z); }); this.labels.appendChild(el); }
+      const ids = med && st.mare ? this.zonaCiudades(z, state) : [];
+      if (!ids.length) { el.style.display = 'none'; continue; }
+      let x = 0, zz = 0; for (const id of ids) { x += this.cities[id].x; zz += this.cities[id].z; }
+      place(el, x / ids.length, 0.3, zz / ids.length);
+      const y = zz / ids.length, ancla = y < 62 ? '-100%' : '0%';   // las del norte cuelgan hacia arriba y las del sur hacia abajo, para no pisarse
+      el.style.transform = el.style.transform.replace('translate(-50%,-100%)', 'translate(-50%,' + ancla + ')');
+    }
+    // los nombres no se pisan: si dos se solapan en pantalla, el de abajo baja lo justo
+    const vis = Object.values(st.zEls).filter(e => e.style.display !== 'none').map(e => ({ e: e, r: e.getBoundingClientRect() })).sort((p, q) => p.r.top - q.r.top), hechos = [];
+    for (const o of vis) { let dy = 0; for (const q of hechos) if (o.r.left < q.right && o.r.right > q.left && o.r.top + dy < q.bottom && o.r.bottom + dy > q.top) dy = q.bottom - o.r.top + 3; if (dy) o.e.style.transform += ' translateY(' + dy.toFixed(0) + 'px)'; hechos.push({ left: o.r.left, right: o.r.right, top: o.r.top + dy, bottom: o.r.bottom + dy }); }
   }
 
   /* Centra y acerca la cámara según la ficha de la región (lon, lat, zoom) */
   encuadre() { const r = G.region(), cm = r && r.camara; if (!cm) return; const p = D.proj(cm.lon, cm.lat); this.c.x = p[0] * K; this.c.z = p[1] * K; this.c.dist = 46 * (cm.zoom || 1); this.clamp(); }
   center(id) { const p = G.pos(id); this.c.x = p[0] * K; this.c.z = p[1] * K; this.clamp(); }
   zoom(f) { this.c.dist /= f; this.clamp(); }
-  clamp() { const c = this.c; c.dist = Math.max(14, Math.min(150, c.dist)); c.pitch = 0.62 + Math.min(1, (c.dist - 14) / 110) * 0.6; c.x = Math.max(4, Math.min(156, c.x)); c.z = Math.max(4, Math.min(80, c.z)); }
+  clamp() { const c = this.c; c.dist = Math.max(14, Math.min(330, c.dist)); c.pitch = 0.62 + Math.min(1, (c.dist - 14) / 110) * 0.6; c.x = Math.max(4, Math.min(156, c.x)); c.z = Math.max(4, Math.min(80, c.z)); }
   bind() {
     const P = new Map(), cv = this.cv; let st = null;
-    cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); P.set(e.pointerId, [e.clientX, e.clientY]); if (P.size === 1) st = { mv: 0, d: 0 }; else if (st) { st.mv = 99; st.d = 0; } });
+    cv.addEventListener('pointerdown', e => { this.esc.anim = null; cv.setPointerCapture(e.pointerId); P.set(e.pointerId, [e.clientX, e.clientY]); if (P.size === 1) st = { mv: 0, d: 0 }; else if (st) { st.mv = 99; st.d = 0; } });
     cv.addEventListener('pointermove', e => {
       if (!P.has(e.pointerId)) return; const pr = P.get(e.pointerId), dx = e.clientX - pr[0], dy = e.clientY - pr[1]; P.set(e.pointerId, [e.clientX, e.clientY]);
       if (P.size === 1 && st) { st.mv += Math.abs(dx) + Math.abs(dy); const k = this.c.dist * 0.0019; this.c.x -= dx * k; this.c.z -= dy * k * 1.25; }
