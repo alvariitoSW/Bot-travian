@@ -779,4 +779,40 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   for (const id in G.state.cities) assert(G.state.cities[id].barrio >= 1);
   delete global.localStorage; }
 
+
+// N4. Estados, contagio con tope, reagrupar, agotado y determinismo
+{
+  const mkN = (ex) => new Battle(Object.assign({ sides: [side({ hastati: 120 }, { gen: { n: 'Cónsul' } }), side({ libios: 120 })], defender: 1, wall: 0, seed: 5, rondas: true }, ex || {}));
+  const pon = (r, x, y) => { r.x = x; r.y = y; };
+  // estadoMoral: umbrales fijos y única fuente
+  { const c = mkN(), r = c.regs[0]; r.mor = r.morMax; assert.strictEqual(Battle.estadoMoral(r), 0); r.mor = r.morMax * 0.4; assert.strictEqual(Battle.estadoMoral(r), 1); r.mor = r.morMax * 0.2; assert.strictEqual(Battle.estadoMoral(r), 2); r.st = 'rout'; assert.strictEqual(Battle.estadoMoral(r), 3); }
+  // contagio con tope: un escalón, una vez por ronda, y nada si hay reserva detrás
+  { const c = mkN(), A = c.regs.filter(r => r.side === 0 && r.k === 'hastati'); const [b, v1, v2] = A;
+    pon(b, 300, 500); pon(v1, 300, 440); pon(v2, 360, 500); for (const r of A.slice(3)) pon(r, 20, 700);
+    v1.mor = v1.morMax * 0.57; v2.mor = v2.morMax * 0.57;
+    b.st = 'rout'; c.onBreak(b);
+    assert.strictEqual(Battle.estadoMoral(v1), 1, 'el vecino baja un escalón (Firme a Vacilante)'); assert(v1.mor >= v1.morMax * 0.5, 'baja poco, no se hunde');
+    const m1 = v1.mor, b2 = A[3]; pon(b2, 310, 450); b2.st = 'rout'; c.onBreak(b2);
+    assert.strictEqual(v1.mor, m1, 'como mucho un contagio por regimiento y ronda'); assert(c.notas.some(n => /se contagia del miedo de/.test(n)), 'la crónica lo anota');
+    const d = mkN(), B = d.regs.filter(r => r.side === 0 && r.k === 'hastati'), rb = B[0], rv = B[1], res = B[2];
+    pon(rb, 300, 500); pon(rv, 300, 440); pon(res, 300, 500); res.ala = 'reserva'; for (const r of B.slice(3)) pon(r, 20, 700);
+    rv.mor = rv.morMax * 0.57; rb.st = 'rout'; d.onBreak(rb); assert.strictEqual(Battle.estadoMoral(rv), 0, 'con reserva detrás no hay contagio'); }
+  // reagrupar: general vivo y cerca vuelve Desordenado; lejos sigue huyendo
+  for (const cerca of [true, false]) {
+    const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), h = c.regs.find(r => r.k === 'hastati' && r.side === 0);
+    c.ejecutar(); pon(g, 300, 600); pon(h, 300, cerca ? 520 : 300); h.st = 'rout'; c.finRonda();
+    if (cerca) { assert.strictEqual(h.st, 'ok'); assert.strictEqual(Battle.estadoMoral(h), 2, 'vuelve Desordenado'); assert(c.hechos.some(x => /se reagrupa/.test(x)), 'sale en «Lo que pasó»'); }
+    else assert.strictEqual(h.st, 'rout', 'lejos del general sigue huyendo');
+  }
+  { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), h = c.regs.find(r => r.k === 'hastati' && r.side === 0);
+    c.ejecutar(); g.st = 'dead'; pon(h, 300, 520); h.st = 'rout'; c.finRonda(); assert.strictEqual(h.st, 'rout', 'sin general vivo no se reagrupa'); }
+  // agotado no carga (la orden se degrada y se anota); parar descansa
+  { const c = mkN(), e = c.regs.find(r => r.side === 1), q = c.regs.find(r => r.side === 0 && r.k === 'hastati');
+    pon(q, 300, 600); pon(e, 300, 300); q.fat = 80; q.order = { k: 'atk', r: e, tipo: 'cargar' }; c.ejecutar(); c.step(0.1);
+    assert.strictEqual(q.order.tipo, 'avanzar'); assert(c.notas.some(n => /no puede cargar/.test(n))); assert.strictEqual(q.charge, 0);
+    const d = mkN(), p = d.regs.find(r => r.side === 0 && r.k === 'hastati'); pon(p, 300, 700); p.fat = 50; p.order = { k: 'quieto', tipo: 'aguantar' }; d.ejecutar(); for (let i = 0; i < 50; i++) d.step(0.1); assert(p.fat < 50, 'parar descansa solo sin pelear'); }
+  // determinismo: misma semilla, mismo resultado y misma crónica
+  { const run = () => { const c = mkN({ seed: 11 }); let g = 0; while (!c.over && g++ < 60) { c.ejecutar(); let k = 0; while (c.fase === 'ejecucion' && !c.over && k++ < 1000) c.step(0.05); } return JSON.stringify([c.t, c.men(0), c.men(1), c.hechos, c.regs.map(r => [r.st, r.men, Math.round(r.mor * 1000)])]); };
+    assert.strictEqual(run(), run(), 'misma semilla = mismo resultado'); }
+}
 console.log('OK — todas las pruebas superadas');

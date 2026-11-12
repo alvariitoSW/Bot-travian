@@ -32,8 +32,7 @@ export function alaPorDefecto(r) { return r.k === 'triarii' ? 'reserva' : r.pape
 /* ---------- N3: estado dibujado de cada regimiento (derivado de mor, morMax y fat; sin reglas nuevas) ---------- */
 // moral: 0 firme, 1 vacilante, 2 desordenado, 3 huye. cansancio: 0 fresco, 1 cansado, 2 agotado
 export function estadoReg(r) {
-  const mo = r.mor / r.morMax;
-  return { moral: r.st !== 'ok' ? 3 : mo > 0.55 ? 0 : mo > 0.28 ? 1 : 2, cans: r.fat >= 70 ? 2 : r.fat >= 40 ? 1 : 0 };
+  return { moral: Battle.estadoMoral(r), cans: r.fat >= 70 ? 2 : r.fat >= 40 ? 1 : 0 };
 }
 export const TIPOS_ORDEN = [['aguantar', 'Aguantar'], ['avanzar', 'Avanzar'], ['cargar', 'Cargar'], ['hostigar', 'Hostigar'], ['relevar', 'Relevar'], ['retirarse', 'Retirarse']];
 const COL_ORDEN = { aguantar: '#7fb8ff', avanzar: '#f2cf72', cargar: '#ff5a43', hostigar: '#6fe0a4', relevar: '#4fd3dc', retirarse: '#c8a6ff' };
@@ -450,7 +449,7 @@ export class BattleView3D {
       if (v.z > 1 || v.x < -1.1 || v.x > 1.1 || v.y < -1.1 || v.y > 1.1) { R.el.style.display = 'none'; continue; }
       R.el.style.display = ''; R.el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * H).toFixed(1) + 'px) translate(-50%,-100%)';
       R.el.classList.toggle('sel', this.sel.has(r)); R.el.classList.toggle('rout', !ok);
-      { const e = estadoReg(r), cl = R.el.classList; cl.toggle('m1', e.moral === 1); cl.toggle('m2', e.moral === 2); cl.toggle('f1', ok && e.cans === 1); cl.toggle('f2', ok && e.cans === 2); }
+      { const e = estadoReg(r), cl = R.el.classList; cl.toggle('m1', e.moral === 1); cl.toggle('m2', e.moral === 2); cl.toggle('m3', e.moral === 3); cl.toggle('f1', ok && e.cans === 1); cl.toggle('f2', ok && e.cans === 2); }
       R.bar.style.width = (r.men / r.max * 100) + '%'; R.bar.style.background = r.mor / r.morMax > 0.5 ? '#7ddc5a' : r.mor / r.morMax > 0.25 ? '#f0c040' : '#e8503a';
     }
   }

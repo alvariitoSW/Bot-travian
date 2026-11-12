@@ -33,7 +33,7 @@ for (const t of tiempos.split(',').map(Number)) {
   if (t === 0 && plantilla) { await page.click('#bctl [data-act="bform"][data-v="' + plantilla + '"]'); await page.waitForTimeout(1500); }
   if (t > 0 && !empezada) { empezada = true; if (await page.locator('#bctl [data-act="bstart"]').count()) await page.click('#bctl [data-act="bstart"]'); await page.evaluate(() => { const h = document.getElementById('bhint'); if (h) h.style.opacity = 0; }); }
   // adelanta la simulación hasta el segundo t y deja 2,5 s reales para que los muñecos lleguen a su sitio
-  await page.evaluate(t => { const b = UI.battle.b; while (b.t < t - 2.5 && !b.over) b.step(0.1); }, t);
+  await page.evaluate(t => { const b = UI.battle.b; while (b.t < t - 2.5 && !b.over) { if (b.fase === "plan") b.ejecutar(); b.step(0.1); } }, t);
   await page.waitForTimeout(2600);
   const f = join(RAIZ, 'gobierno/capturas-tarea', pref + '-' + t + 's.jpg');
   await page.screenshot({ path: f, type: 'jpeg', quality: 70, timeout: 120000 });

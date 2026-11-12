@@ -5,8 +5,35 @@
   // --- Ritmo, moral y cansancio (A8) ---
   const RITMO = 0.028;          // multiplica todo el daño: hace las batallas igualadas de 8 a 12 minutos
   const TOPE_BATALLA = 1500;    // segundos: tope de seguridad (25 min); si se alcanza gana el defensor
-  const MOR_BAJAS = 0.8;        // moral perdida por cada 1 % de la vida del regimiento arrancada de golpe
+  const MOR_BAJAS = 0.62;        // moral perdida por cada 1 % de la vida del regimiento arrancada de golpe
   const MOR_CONTAGIO = 1.5;     // moral que pierden los vecinos cuando un regimiento rompe (antes 5)
+  // --- N4: estados, choque y contagio ---
+  const UMBRAL_FIRME = 0.55;    // moral por encima de esto (fracción de la máxima): Firme
+  const UMBRAL_VACILA = 0.28;   // por encima de esto: Vacilante; por debajo: Desordenado (y a 0 huye)
+  const VACILANTE_PEGA = 0.92;  // el Vacilante pega un poco menos
+  const DESORDEN_PEGA = 0.8;    // el Desordenado pega peor...
+  const DESORDEN_RECIBE = 1.1;   // ...y aguanta peor (recibe más daño)
+  const FAT_AGOTADO = 70;       // cansancio desde el que no se puede cargar
+  const CONTAGIO_DIST = 120;    // vecinos que pueden contagiarse del miedo de un regimiento que rompe
+  const CONTAGIO_MAX = 0.04;     // el contagio quita como mucho esta fracción de la moral máxima de golpe
+  const RESERVA_DIST = 90;      // un aliado de reserva a esta distancia detrás protege del contagio
+  const REAGRUPA_DIST = 200;    // el general vivo debe estar a menos de esto para reagrupar a quien huye
+  const REAGRUPA_MOR = 0.2;     // moral (fracción) con la que vuelve un regimiento reagrupado: Desordenado
+  const CHOQUE_SEG = 4;         // segundos de choque tras el contacto de una carga
+  const CHOQUE_RECIENTE = 1;    // segundos: si corría hasta hace esto al tocar al enemigo, el contacto es una carga
+  const CHOQUE_DANO = 1.2;     // daño de choque (durante CHOQUE_SEG)
+  const CHOQUE_MORAL = 1;           // moral perdida de golpe por el choque (% de la máxima del que lo recibe)
+  const CHOQUE_PILUM = 1.25;    // la infantería pesada romana lanza el pilum al contacto: más daño en el choque
+  const CHOQUE_FRENTE_LANZA = 0.5;  // lanceros de frente reciben la mitad de la moral del choque
+  const CAV_MELE_SEG = 8;       // la caballería pasa a melé larga tras este tiempo de contacto seguido
+  const CAV_MELE_MUL = 0.8;     // y pega menos
+  const AGUANTAR_DEF = 1.15;    // quien aguanta quieto recibe 1/1,15 del daño
+  const HOSTIGAR_DIST = 40;     // el hostigador se aparta si un enemigo cuerpo a cuerpo está a menos
+  const HOSTIGAR_FAT = 0.5;     // el hostigador se cansa la mitad al moverse
+  const RELEVO_ATRAS = 60;      // lo que retrocede el cansado en un relevo
+  const RELEVO_CANSADO = 40;    // cansancio desde el que quien recibe 'relevar' es el que se retira
+  const RETIRADA_CASTIGO = 0.7; // castigo (× golpe normal) a quien se retira sin que otro regimiento lo cubra
+  const RETIRADA_DIST = 60;     // un enemigo a menos de esto castiga la retirada
   const MOR_GENERAL = 4;        // moral que pierde su bando al caer el general (antes 12)
   const MOR_FLANCO = 0.02;      // moral por segundo perdida estando flanqueado
   const MOR_PERDIENDO = 0.05;   // moral por segundo perdida (máx.) si su bando tiene menos hombres que el otro
@@ -95,7 +122,7 @@
   function Battle(cfg) {
     this.cfg = cfg; this.t = 0; this.regs = []; this.fx = []; this.corpses = [];
     this.over = false; this.winner = null; this.auto = true;
-    this.rondas = cfg.rondas === true; this.ronda = 1; this.tRonda = 0; this.hechos = []; this.snapIni = null; this.snapFin = null; this.repite = false;
+    this.rondas = cfg.rondas === true; this.ronda = 1; this.tRonda = 0; this.hechos = []; this.notas = []; this.snapIni = null; this.snapFin = null; this.repite = false;
     this.fase = cfg.despliegue === true ? 'despliegue' : (this.rondas ? 'plan' : 'lucha'); // 'despliegue' y 'plan': el tiempo no corre; 'ejecucion': una ronda
     this.H = Math.max(800, Math.min(1300, Math.round(cfg.fh || 900))); // alto del campo (se adapta a la pantalla)
     this.rnd = mkRng(cfg.seed || 1);
@@ -146,7 +173,7 @@
     return {
       id: this.regs.length + 1, side: side, k: k, u: u, men: men, max: men, hp: men * hp, mor: mor, morMax: mor,
       x: 0, y: 0, ang: side === 0 ? -Math.PI / 2 : Math.PI / 2, st: 'ok', tgt: null, order: null,
-      think: this.rnd() * 0.5, cd: this.rnd() * 1.6, ammo: u.range ? 14 : 0, fight: 0, charge: 0, run: 0, flank: 0, fat: 0, mv: false, corre: false,
+      think: this.rnd() * 0.5, cd: this.rnd() * 1.6, ammo: u.range ? 14 : 0, fight: 0, charge: 0, run: 0, flank: 0, fat: 0, mv: false, corre: false, choque: 0, choqueMor: 0, tCorre: -99, cont: 0, contagiado: 0, reagrupado: 0,
       papel: papelDe(k, u), vel: u.spd * (PAPEL_VEL[papelDe(k, u)] || 1),
       atkMul: (a.atkMul || 1) * (0.92 + this.rnd() * 0.16), defMul: def // ±8 % de fortuna por regimiento
     };
@@ -321,7 +348,7 @@
     this.turn(r, Math.atan2(dy, dx), dt);
     const t0 = this.terrenoEn(r.x, r.y);
     const m = Math.min(r.vel * (mul || PASO_MARCHA) * (1 - FAT_ANDA * r.fat / 100) * (t0.bosque ? BOSQUE_VEL : 1) * dt, d);
-    r.mv = true; r.fat = Math.min(100, r.fat + FAT_MARCHA * dt * (mul > 1 ? 1.6 : 1) * (PAPEL_FAT[r.papel] || 1));
+    r.mv = true; r.fat = Math.min(100, r.fat + FAT_MARCHA * dt * (mul > 1 ? 1.6 : 1) * (PAPEL_FAT[r.papel] || 1) * (tipoDe(r) === 'hostigar' ? HOSTIGAR_FAT : 1));
     r.x += dx / d * m; r.y += dy / d * m; r.run += m;
     const t1 = this.terrenoEn(r.x, r.y); if (t1.alt > t0.alt) r.fat = Math.min(100, r.fat + FAT_SUBIDA * (t1.alt - t0.alt));   // cuesta arriba
     return d - m;
@@ -336,6 +363,21 @@
     return best;
   };
 
+  // estado de moral: 0 Firme, 1 Vacilante, 2 Desordenado, 3 Huye (única fuente; la vista la usa)
+  function estadoMoral(r) { const mo = r.mor / r.morMax; return r.st !== 'ok' ? 3 : mo > UMBRAL_FIRME ? 0 : mo > UMBRAL_VACILA ? 1 : 2; }
+  Battle.estadoMoral = estadoMoral; Battle.prototype.estadoMoral = estadoMoral;
+  const nombreReg = function (r) { return r.name || r.u.n; };
+  Battle.prototype.nota = function (t) { if (this.notas.length < 40 && this.notas.indexOf(t) < 0) this.notas.push(t); };
+  // ¿es de reserva? (ala marcada por la vista, o triarios por defecto)
+  function esReserva(r) { return r.ala ? r.ala === 'reserva' : r.k === 'triarii'; }
+  // ¿tiene un aliado de reserva en pie detrás (a ~RESERVA_DIST)?
+  Battle.prototype.tieneReserva = function (o) {
+    const dir = o.side === 0 ? 1 : -1;
+    for (const q of this.regs) if (q !== o && q.side === o.side && q.st === 'ok' && esReserva(q) && (q.y - o.y) * dir > 8 && Math.hypot(q.x - o.x, q.y - o.y) <= RESERVA_DIST) return true;
+    return false;
+  };
+  const tipoDe = function (r) { return r.order && r.order.tipo ? r.order.tipo : null; };
+
   Battle.prototype.hit = function (a, b, amount, ranged) {
     const prev = b.men, hp = b.u.hp || 1;
     // flanqueo
@@ -344,6 +386,8 @@
     if (da > 2.1) fl = 1.6; else if (da > 1.15) fl = 1.3;
     if (fl > 1) { b.flank = 1; if (b.k === 'falange') fl *= 1.35; else if (b.papel === 'lanceros') fl *= LANCEROS_FLANCO; } // la falange es muy vulnerable por los flancos
     let m = amount * RITMO * fl * (1 - FAT_PEGA * a.fat / 100);
+    { const ea = estadoMoral(a), eb = estadoMoral(b); m *= ea === 2 ? DESORDEN_PEGA : ea === 1 ? VACILANTE_PEGA : 1; if (eb === 2) m *= DESORDEN_RECIBE; }
+    if (tipoDe(b) === 'aguantar' && !b.mv) m /= AGUANTAR_DEF;
     const ta = this.terrenoEn(a.x, a.y), tb = this.terrenoEn(b.x, b.y);
     m *= 1 + COLINA_PEGA * (ta.alt - tb.alt);   // arriba se pega más; el que sube pega menos
     const ac = a.u.cls, bc = b.u.cls;
@@ -351,7 +395,16 @@
     if (!ranged) {
       m *= (PAPEL_ATK[a.papel] || 1) * ((DANO_MUL[DANO_TIPO[a.papel]] || {})[ARMA_TIPO[b.papel]] || 1);
     }
+    let choqueMor = 0;
+    if (!ranged && a.choque > 0) {
+      const bosq = ta.bosque || tb.bosque, pesadoOCab = ac === 'cav' || ac === 'gen' || a.papel === 'pesada';
+      if (!(bosq && pesadoOCab)) {   // el bosque quita el choque a la caballería y los pesados
+        if (!(a.charge > 0)) m *= CHOQUE_DANO * (a.papel === 'pesada' && a.k === 'principes' ? CHOQUE_PILUM : 1);   // la carga montada ya tiene su ×2,1: no se suma
+        if (!a.choqueMor) { a.choqueMor = 1; choqueMor = CHOQUE_MORAL * (ac === 'cav' || ac === 'ele' ? 1.5 : 1) * (b.papel === 'lanceros' && fl === 1 ? CHOQUE_FRENTE_LANZA : 1) * b.morMax / 100; }
+      }
+    }
     if (!ranged) {
+      if ((ac === 'cav' || ac === 'gen') && a.cont > CAV_MELE_SEG && !(a.choque > 0)) m *= CAV_MELE_MUL;
       if (fl === 1) m *= PAPEL_CHOQUE[b.papel] || 1;
       if (ac === 'spear' && (bc === 'cav' || bc === 'ele' || bc === 'gen')) m *= 1.7 * (a.papel === 'lanceros' && bc === 'cav' ? LANCEROS_VS_CAB : 1);
       if ((ac === 'cav' || ac === 'gen') && bc === 'spear' && fl === 1) m *= 0.6;
@@ -369,6 +422,7 @@
     b.men = Math.max(0, Math.ceil(b.hp / hp));
     const killed = prev - b.men;
     b.mor -= (m / (b.max * hp)) * 100 * MOR_BAJAS * (PAPEL_MORAL[b.papel] || 1) * (fl > 1 ? 1.35 : 1) * (ac === 'ele' ? 1.25 : 1);
+    b.mor -= choqueMor;
     if (killed > 0 && this.corpses.length < 700) {
       const n = Math.min(killed, 3);
       for (let i = 0; i < n; i++) this.corpses.push({ x: b.x + (this.rnd() - 0.5) * 50, y: b.y + (this.rnd() - 0.5) * 30, s: b.side });
@@ -379,13 +433,70 @@
 
   Battle.prototype.onBreak = function (b) {
     b.order = null;
+    const clave = this.rondas ? this.ronda : 1 + Math.floor(this.t / RONDA_SEG);   // «ronda» también fuera del modo por rondas
     for (const o of this.regs) {
       if (o.st !== 'ok') continue;
-      const near = Math.hypot(o.x - b.x, o.y - b.y) < 120;
-      if (b.k === 'general' && o.side === b.side) o.mor -= MOR_GENERAL;
-      else if (near) o.mor = Math.min(o.morMax, o.mor + (o.side === b.side ? -MOR_CONTAGIO : 1.5));
+      if (b.k === 'general' && o.side === b.side) { o.mor -= MOR_GENERAL; continue; }
+      if (Math.hypot(o.x - b.x, o.y - b.y) >= CONTAGIO_DIST) continue;
+      if (o.side !== b.side) { o.mor = Math.min(o.morMax, o.mor + 1.5); continue; }
+      // contagio con tope: sin reserva detrás, baja UN escalón, y como mucho una vez por ronda
+      if (o.contagiado === clave || this.tieneReserva(o)) continue;
+      o.contagiado = clave;
+      const e = estadoMoral(o);
+      const piso = e === 0 ? UMBRAL_FIRME * o.morMax - 0.01 : e === 1 ? UMBRAL_VACILA * o.morMax - 0.01 : 1;   // el escalón siguiente, sin llegar a huir
+      o.mor = Math.max(1, Math.min(o.mor, Math.max(piso, o.mor - CONTAGIO_MAX * o.morMax)));   // baja hasta el siguiente escalón, pero nunca más de CONTAGIO_MAX de golpe
+      this.nota(nombreReg(o) + ' se contagia del miedo de ' + nombreReg(b));
     }
     if (b.k === 'general') this.genDown[b.side] = true;
+  };
+
+  // hostigar (ligeros y tiradores): se aparta si un enemigo cuerpo a cuerpo se acerca; si no, dispara; sin blanco, va a su sitio. Devuelve true si lo gestiona.
+  Battle.prototype.hostiga = function (r, dt) {
+    let cerca = null, dm = HOSTIGAR_DIST;
+    for (const e of this.regs) { if (e.side === r.side || e.st !== 'ok' || e.u.cls === 'rng') continue; const d = Math.hypot(e.x - r.x, e.y - r.y); if (d < dm) { dm = d; cerca = e; } }
+    if (cerca) { const dx = r.x - cerca.x, dy = r.y - cerca.y, L = Math.hypot(dx, dy) || 1; this.moveTo(r, r.x + dx / L * 30, r.y + dy / L * 30, dt, 1); return true; }
+    const tgt = r.ammo > 0 ? this.pick(r, true) : null;
+    if (tgt) {
+      const d = Math.hypot(tgt.x - r.x, tgt.y - r.y);
+      if (d <= this.rango(r) && d > CONTACT + 6) {
+        this.turn(r, Math.atan2(tgt.y - r.y, tgt.x - r.x), dt); r.cd -= dt;
+        if (r.cd <= 0) { r.cd = 1.6; r.ammo--; this.hit(r, tgt, effN(r.men) * ratio(r.u.ratk * r.atkMul, tgt.u.def * tgt.defMul) * 0.03 * 1.6 * 0.6 * PROY_MUL, true); this.fx.push({ x0: r.x, y0: r.y, x1: tgt.x, y1: tgt.y, t: 0, n: Math.min(6, 1 + (r.men >> 4)) }); }
+        return true;
+      }
+    }
+    if (r.order.k === 'move') this.moveTo(r, r.order.x, r.order.y, dt, PASO_MARCHA);
+    return true;
+  };
+  // ¿otro regimiento cubre la retirada de r? (un aliado que no se retira, delante de él y cerca)
+  Battle.prototype.cubierto = function (r) {
+    const dir = r.side === 0 ? 1 : -1;
+    for (const q of this.regs) if (q !== r && q.side === r.side && q.st === 'ok' && q.k !== 'general' && tipoDe(q) !== 'retirarse' && (q.y - r.y) * dir < -5 && Math.hypot(q.x - r.x, q.y - r.y) <= RESERVA_DIST) return true;
+    return false;
+  };
+  // relevar: el cansado retrocede y un aliado cercano ocupa su sitio; sin aliado, solo retrocede y queda pendiente
+  Battle.prototype.relevo = function (r) {
+    const o = r.order; o.hecho = true;
+    if (r.fat < RELEVO_CANSADO) return;   // es quien releva (la vista ya le dio su orden)
+    let par = null, pd = 150;
+    for (const q of this.regs) {
+      if (q === r || q.side !== r.side || q.st !== 'ok' || q.k === 'general') continue;
+      if (!((q.order && q.order.tipo === 'relevar') || (!q.order && esReserva(q) && q.fat < r.fat - 10))) continue;
+      const d = Math.hypot(q.x - r.x, q.y - r.y); if (d < pd) { pd = d; par = q; }
+    }
+    if (!par) { r.order = { k: 'move', x: r.x, y: Math.max(20, Math.min(this.H - 20, r.y + (r.side === 0 ? 1 : -1) * RELEVO_ATRAS)), tipo: 'relevar', hecho: true }; r.tgt = null; this.nota(nombreReg(r) + ' se retira a descansar; relevo pendiente: no hay reserva cerca'); return; }
+    if (!(par.order && par.order.tipo === 'relevar')) { par.order = { k: 'move', x: r.x, y: r.y, tipo: 'relevar', hecho: true }; par.tgt = null; r.order = { k: 'move', x: r.x, y: Math.max(20, Math.min(this.H - 20, r.y + (r.side === 0 ? 1 : -1) * RELEVO_ATRAS)), tipo: 'relevar', hecho: true }; r.tgt = null; }
+    else par.order.hecho = true;
+    this.nota(nombreReg(par) + ' releva a ' + nombreReg(r));
+  };
+  // reagrupar (al acabar la ronda): quien huye y sigue en el campo vuelve Desordenado si su general vive y está a menos de REAGRUPA_DIST. Regla fija, sin dados.
+  Battle.prototype.reagrupa = function () {
+    for (const r of this.regs) {
+      if (r.st !== 'rout') continue;
+      const g = this.regs.find(function (q) { return q.side === r.side && q.k === 'general' && q.st === 'ok'; });
+      if (!g || Math.hypot(g.x - r.x, g.y - r.y) >= REAGRUPA_DIST) continue;
+      r.st = 'ok'; r.mor = Math.max(1, r.morMax * REAGRUPA_MOR); r.order = null; r.tgt = null; r.charge = 0; r.choque = 0; r.reagrupado = (r.reagrupado || 0) + 1;
+      this.nota(nombreReg(r) + ' se reagrupa junto a su general');
+    }
   };
 
   Battle.prototype.step = function (dt) {
@@ -408,6 +519,8 @@
       if (r.u.cls === 'cav' || r.u.cls === 'gen') { if (d < DIST_CARGA_CAB) { mul = 1.25; r.corre = true; } }
       else if (d < DIST_CARGA_INF) { mul = 1; r.corre = true; }
       else if (d < DIST_TIRO && r.u.cls !== 'rng' && r.u.cls !== 'ele') mul = PASO_TIRO; // fase de tiro
+      if (r.fat >= FAT_AGOTADO && r.corre) { r.corre = false; mul = Math.min(mul, 1); }   // el agotado no corre ni carga
+      if (r.corre) r.tCorre = this.t;
       return mul;
     };
     for (const r of regs) {
@@ -418,6 +531,7 @@
       }
       if (r.st !== 'ok') continue;
       if (r.charge > 0) r.charge -= dt;
+      if (r.choque > 0) r.choque -= dt;
       const collapse = cur[r.side] < this.start[r.side] * 0.15;
       if (collapse) r.mor -= 1.5 * dt;
       r.mv = false; r.corre = false;
@@ -428,6 +542,12 @@
       if (r.fat > FAT_UMBRAL) r.mor -= MOR_CANSADO * (r.fat - FAT_UMBRAL) / (100 - FAT_UMBRAL) * dt;
       if (r.mor <= 0) { r.st = 'rout'; this.onBreak(r); continue; }
       if (r.order && r.order.cond === 'aguanta' && this.cargan(r)) { r.order = { k: 'quieto' }; r.tgt = null; }   // condición: te cargan, aguanta
+      { // reglas propias por tipo de orden (N4)
+        const tp = tipoDe(r);
+        if (tp === 'cargar' && r.fat >= FAT_AGOTADO) { r.order.tipo = 'avanzar'; this.nota(nombreReg(r) + ' está agotado y no puede cargar: avanza al paso'); }
+        else if (tp === 'hostigar' && !(r.u.cls === 'rng' || (r.u.cls === 'inf' && r.u.def <= LIGERA_DEF))) { r.order.tipo = 'avanzar'; this.nota(nombreReg(r) + ' no sabe hostigar: avanza'); }
+        else if (tp === 'relevar' && !r.order.hecho) this.relevo(r);
+      }
       // objetivo
       let tgt = r.tgt && r.tgt.st === 'ok' ? r.tgt : null;
       const hold = (r.side === 0 && !this.auto) || (r.u.cls === 'gen' && cur[r.side] > this.start[r.side] * 0.55) || !!(r.order && r.order.k === 'quieto');
@@ -447,8 +567,12 @@
           if (pk > fug.men && this.corpses.length < 700) this.corpses.push({ x: fug.x + (this.rnd() - 0.5) * 50, y: fug.y + (this.rnd() - 0.5) * 30, s: fug.side });
           if (fug.men <= 0) fug.st = 'dead';
         }
+      } else if (tipoDe(r) === 'hostigar' && this.hostiga(r, dt)) {
+        // dispara y se aparta (ver hostiga)
       } else if (r.order && r.order.k === 'move') {
-        if (this.moveTo(r, r.order.x, r.order.y, dt, PASO_MARCHA) < 6) r.order = r.order.cond === 'nopersigue' ? { k: 'quieto' } : null;
+        const ret = tipoDe(r) === 'retirarse';
+        if (ret && !this.cubierto(r)) for (const e of regs) if (e.side !== r.side && e.st === 'ok' && e.u.cls !== 'rng' && Math.hypot(e.x - r.x, e.y - r.y) < RETIRADA_DIST) { this.hit(e, r, effN(e.men * (e.u.mass || 1)) * ratio(e.u.atk * e.atkMul, r.u.def * r.defMul) * 0.03 * dt * RETIRADA_CASTIGO, false); break; }
+        if (this.moveTo(r, r.order.x, r.order.y, dt, ret ? 1 : PASO_MARCHA) < 6) r.order = r.order.cond === 'nopersigue' ? { k: 'quieto' } : null;
       } else if (tgt) {
         const d = Math.hypot(tgt.x - r.x, tgt.y - r.y);
         // el tirador sin orden no pasa de unos 55 por detrás de su infantería más adelantada
@@ -470,8 +594,10 @@
           else this.turn(r, Math.atan2(tgt.y - r.y, tgt.x - r.x), dt);
         } else if (d > CONTACT) {
           const left = quieto ? 1e9 : this.moveTo(r, tx, ty, dt, paso(r, d));
-          if (left <= CONTACT && (r.u.cls === 'cav' || r.u.cls === 'gen' || r.u.cls === 'ele') && r.run > 90) { r.charge = 2.5; r.fat = Math.min(100, r.fat + FAT_CARGA * (r.u.cls === 'cav' || r.u.cls === 'gen' ? 1.8 : r.u.cls === 'ele' ? 1.2 : 1)); }
+          if (left <= CONTACT && (r.u.cls === 'cav' || r.u.cls === 'gen' || r.u.cls === 'ele') && r.run > 90 && r.fat < FAT_AGOTADO) { r.charge = 2.5; r.fat = Math.min(100, r.fat + FAT_CARGA * (r.u.cls === 'cav' || r.u.cls === 'gen' ? 1.8 : r.u.cls === 'ele' ? 1.2 : 1)); }
         } else {
+          if (r.fight <= 0) { r.cont = 0; r.choqueMor = 0; if (r.charge > 0 || (this.t - r.tCorre < CHOQUE_RECIENTE && (r.u.cls !== 'inf' && r.u.cls !== 'spear' || tipoDe(r) === 'cargar'))) r.choque = CHOQUE_SEG; }   // contacto nuevo: ¿es un choque?
+          r.cont += dt;
           fighting = true; r.run = 0; r.fat = Math.min(100, r.fat + FAT_PELEA * dt * (r.u.cls === 'cav' || r.u.cls === 'gen' ? 1.6 : 1 / Math.sqrt(r.u.mass || 1)));
           { const dh = this.terrenoEn(tgt.x, tgt.y).alt - this.terrenoEn(r.x, r.y).alt; if (dh > 0) r.fat = Math.min(100, r.fat + FAT_CUESTA * dh * dt); }   // ataca cuesta arriba
           this.turn(r, Math.atan2(tgt.y - r.y, tgt.x - r.x), dt);
@@ -483,7 +609,7 @@
       }
       if (!fighting && !r.mv) r.fat = Math.max(0, r.fat - FAT_DESCANSO * dt);
       r.fight = fighting ? 0.4 : Math.max(0, r.fight - dt);
-      if (!fighting && r.fight <= 0) { r.mor = Math.min(r.morMax, r.mor + 1.5 * dt); r.flank = 0; }
+      if (!fighting && r.fight <= 0) { r.mor = Math.min(r.morMax, r.mor + 1.5 * dt); r.flank = 0; r.cont = 0; }
       r.x = Math.max(20, Math.min(FW - 20, r.x)); r.y = Math.max(20, Math.min(this.H - 20, r.y));
     }
     // separación entre regimientos amigos
@@ -528,7 +654,7 @@
   // copia independiente (comparte solo lo que no cambia: configuración, terreno, fichas de unidad)
   Battle.prototype.clona = function () {
     const c = Object.create(Battle.prototype); Object.assign(c, this);
-    c.regs = this.regs.map(function (r) { return Object.assign({}, r); }); c.rnd = mkRng(1); c.snapIni = null; c.snapFin = null; c.repite = false; c.hechos = [];
+    c.regs = this.regs.map(function (r) { return Object.assign({}, r); }); c.rnd = mkRng(1); c.snapIni = null; c.snapFin = null; c.repite = false; c.hechos = []; c.notas = [];
     c.aplicar(this.estado()); return c;
   };
   // da (o quita) la condición de la orden de un regimiento propio: 'aguanta' | 'nopersigue' | 'espera' | null
@@ -541,7 +667,7 @@
   Battle.prototype.ejecutar = function () {
     if (!this.rondas || this.fase !== 'plan' || this.over) return false;
     for (const r of this.regs) { r.pend = null; if (r.st === 'ok' && r.order && r.order.cond === 'espera') { r.pend = r.order; r.order = { k: 'quieto' }; } }
-    this.snapIni = this.estado(); this.fase = 'ejecucion'; this.tRonda = 0; this.repite = false; return true;
+    this.snapIni = this.estado(); this.notas = []; this.fase = 'ejecucion'; this.tRonda = 0; this.repite = false; return true;
   };
   // acaba la ronda: vuelve el plan y se apuntan los hechos. Si era una repetición, se restablece el final guardado.
   Battle.prototype.finRonda = function () {
@@ -567,6 +693,9 @@
     if (caidos.length) h.push('Cae el general de ' + nom[caidos[0].side] + '.');
     else if (rotos.length) h.push(rotos.slice(0, 2).map(n).join(' y ') + (rotos.length > 1 ? ' rompen filas' : ' rompe filas') + (rotos.length > 2 ? ' (y ' + (rotos.length - 2) + ' más)' : '') + '.');
     else h.push('Ningún regimiento cede: las líneas aguantan.');
+    this.reagrupa();
+    for (const t of this.notas.slice(0, 4)) h.push(t);
+    this.notas = [];
     h.push('Quedan ' + this.men(0) + ' hombres contra ' + this.men(1) + '.');
     return h;
   };

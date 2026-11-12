@@ -646,6 +646,12 @@
    "tarea": "Q5",
    "archivo": "gobierno/capturas-tarea/Q5-3-baja.jpg",
    "pie": "Aviso: baja a Villa en 2 meses si falta el agua"
+  },
+  {
+   "tarea": "N4",
+   "archivo": "gobierno/capturas-tarea/N4e-90s.jpg",
+   "pie": "Batalla con estados: huye (gris), cansancio rojo y ámbar",
+   "ancha": true
   }
  ],
  "informes": [
