@@ -35,7 +35,7 @@ Una página para el móvil del usuario: enlace al juego, lo que espera algo suyo
 4. Dale al usuario el enlace.
 
 ## Vigía
-Tarea programada «AQVILA · vigía del cuadro de mando» (cada tres horas, Sonnet, sesión nueva cada vez; pedida por el usuario el 12/11/2026): si hay pedidos pendientes los aplica como dice esta skill; si no, termina. Se para o se cambia desde las tareas programadas de Claude o pidiéndolo en el chat.
+Es una **sesión fija**, «AQVILA · vigía del cuadro (sesión fija)», con el repositorio y las herramientas de sesiones; no se archiva. La despierta la tarea programada del mismo nombre (cada tres horas; su id está en `vigia` de `cuadro.json`) y el botón «Llamar al vigía ahora». Sus instrucciones están en su primer mensaje. Lección del 12/11/2026: una tarea programada que crea una sesión nueva en cada pasada arranca sin repositorio autorizado (el `git push` da 403) y sin `list_sessions` ni `create_session`: no sirve para esto. Si la sesión fija se pierde, se crea otra con `create_session` (con `source_url`) y una tarea programada nueva con `persistent_session_id`.
 
 ## Órdenes de un toque (`tipo: "orden"`)
 | `ref` | Qué se hace |
