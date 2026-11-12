@@ -752,4 +752,31 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   const v = G.newGame('Vieja'); v.cities.roma.queue = { b: 'granja', t0: 0, t1: 1 }; v.cities.roma.train = [{ u: 'hastati', n: 5, t0: 0, t1: 1 }]; delete v.obrasMes; G.migrarCaja(v);
   assert.strictEqual(v.cities.roma.queue.nc, 1); assert.strictEqual(v.cities.roma.queue.pag, 1); assert.strictEqual(v.cities.roma.train[0].pag, 1); assert.strictEqual(v.obrasMes, 0); G.state = v; G.plazos(); G.cuentas();
 }
+// Barrios (P67)
+{ const s = G.newGame('Barrio'), c = s.cities.roma; G.state = s;
+  const cierra = () => { s.t = Math.floor(s.t) + 1; G.cierreMes(); };
+  assert.strictEqual(c.barrio, 1); assert.strictEqual(c.bdef, 0); assert.strictEqual(G.barrioInfo(c).nivel, 1);
+  s.cities.capua && assert.strictEqual(s.cities.capua.barrio, 1, 'ciudad incorporada empieza en 1');
+  const cap1 = G.popCap(c); const pr = () => G.prod().oro;
+  c.b.templo = 1; assert(G.prod().grano >= 0, 'grano neto >= 0'); assert.deepStrictEqual(G.barrioInfo(c).falta, []); assert.strictEqual(G.barrioInfo(c).objetivo, 2);
+  const oro1 = pr(); cierra(); assert.strictEqual(c.barrio, 2, 'sube a Villa'); assert.strictEqual(G.popCap(c), Math.round(cap1 * 1.25), 'popCap x1,25');
+  assert(G.popCap(c) > cap1, 'popCap sube'); assert.strictEqual(G.barrioInfo(c).objetivo, 2);
+  assert.deepStrictEqual(G.barrioInfo(c).falta.sort(), ['agua', 'ocio']);
+  c.b.acueducto = 1; assert.strictEqual(G.barrioInfo(c).objetivo, 2, 'sin ocio no hay Ciudad'); c.b.anfiteatro = 1; assert.strictEqual(G.barrioInfo(c).objetivo, 3);
+  cierra(); assert.strictEqual(c.barrio, 3);
+  assert.deepStrictEqual(G.barrioInfo(c).falta.sort(), ['lujo', 'termas']); c.b.termas = 1; assert.deepStrictEqual(G.barrioInfo(c).falta, ['lujo']);
+  assert.strictEqual(G.barrioInfo(c).objetivo, 3, 'Urbs pide lujo');
+  // impuestos: factor del nivel (Urbs x1,15)
+  c.barrio = 3; const o3 = pr(); c.barrio = 4; const o4 = pr(); assert(o4 > o3, 'impuestos suben en Urbs'); c.barrio = 3;
+  // bajar: tarda BARRIO_RETRASO meses; recuperar reinicia
+  c.b.anfiteatro = 0; assert.strictEqual(G.barrioInfo(c).objetivo, 2); assert.strictEqual(G.barrioInfo(c).meses, D.BARRIO_RETRASO);
+  cierra(); cierra(); assert.strictEqual(c.barrio, 3); assert.strictEqual(c.bdef, 2); c.b.anfiteatro = 1; cierra(); assert.strictEqual(c.bdef, 0); assert.strictEqual(c.barrio, 3, 'recuperar no baja');
+  c.b.anfiteatro = 0; for (let i = 0; i < D.BARRIO_RETRASO; i++) cierra(); assert.strictEqual(c.barrio, 2, 'baja tras el retraso'); assert.strictEqual(c.bdef, 0);
+  // migración de partida vieja
+  const st = {}; global.localStorage = { getItem: () => JSON.stringify(st.s), setItem() {} };
+  const v = JSON.parse(JSON.stringify(s)); for (const id in v.cities) { delete v.cities[id].barrio; delete v.cities[id].bdef; } v.cities.roma.b.templo = 1; v.cities.roma.b.acueducto = 0; v.cities.roma.b.anfiteatro = 0;
+  st.s = v; assert(G.load(), 'carga'); assert.strictEqual(G.state.cities.roma.barrio, 2, 'migra al objetivo'); assert.strictEqual(G.state.cities.roma.bdef, 0);
+  for (const id in G.state.cities) assert(G.state.cities[id].barrio >= 1);
+  delete global.localStorage; }
+
 console.log('OK — todas las pruebas superadas');

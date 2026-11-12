@@ -54,6 +54,18 @@
   D.FELICIDAD_MIN_CRECER = 40;
   D.FELICIDAD_EDIF = { templo: 3, termas: 4, anfiteatro: 6 };
   D.POP_EDIF = { viviendas: 130, foro: 30, acueducto: 40, termas: 15 };   // población máxima por nivel de cada edificio
+  /* Barrios (P67). Licencia de juego: la idea de que un barrio crece al cubrir servicios viene de Caesar III (estudio R1); los niveles,
+     los servicios y todos los números son nuestros. Aldea no pide nada. D.LUJO: claves de D.ESPECIAL que cuentan como bien de lujo. */
+  D.BARRIO = [
+    null,
+    { n: 'Aldea', pop: 1, imp: 1, pide: [] },
+    { n: 'Villa', pop: 1.25, imp: 1, pide: ['grano', 'templo'] },
+    { n: 'Ciudad', pop: 1.5, imp: 1, pide: ['grano', 'templo', 'agua', 'ocio'] },
+    { n: 'Urbs', pop: 1.8, imp: 1.15, pide: ['grano', 'templo', 'agua', 'ocio', 'termas', 'lujo'] }
+  ];
+  D.BARRIO_RETRASO = 3;   // meses con déficit antes de bajar un nivel
+  D.LUJO = ['vino', 'purpura', 'plata'];
+  D.BARRIO_SERV = { grano: 'Grano', templo: 'Templo', agua: 'Agua', ocio: 'Ocio', termas: 'Termas', lujo: 'Lujo' };
   // mano de obra y mantenimiento (I3): puestos = base + por nivel de aserradero/cantera/mina/granja; la producción de recursos se multiplica por pop/puestos (con suelo)
   D.PUESTOS_BASE = 20; D.PUESTOS_NIVEL = 12; D.MANO_MIN = 0.25;
   D.MANT_EDIF = 0.15; D.MANT_TROPA = 0.35;   // oro/mes por nivel de edificio no productivo y por punto de «up» de tropa (stipendium)

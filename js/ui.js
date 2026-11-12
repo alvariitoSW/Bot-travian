@@ -237,6 +237,21 @@ function buildCard(c, b) {
     (derr ? '<div><button class="chip" data-act="derr" data-v="' + b + '"' + (UI.derr === dk ? ' style="color:#e05050"' : '') + '>' + (UI.derr === dk ? '¿Seguro? Derribar' : 'Derribar') + '</button></div>' : '') + '</div>' +
     (q || max ? '' : fe ? faltaBtn(fe) : '<button class="btn ' + (c.queue ? 'no' : '') + '" data-act="up" data-v="' + b + '" ' + (c.queue ? '' : "data-need='" + JSON.stringify(need1) + "'") + '>' + (L ? 'Mejorar' : 'Construir') + '<small>' + months(G.buildTime(c, b)) + '</small></button>') + '</div>';
 }
+/* Barrio (P67): seis servicios, llenos o grises, y una frase */
+const BARRIO_ICO = { grano: () => D.RES_ICON.grano, templo: () => bIco('templo'), agua: () => bIco('acueducto'), ocio: () => bIco('anfiteatro'), termas: () => bIco('termas'), lujo: () => svgIco('<path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l-2 5 5 11 5-11-2-5"/>') };
+const barrioFrase = bi => {
+  const nom = k => D.BARRIO_SERV[k].toLowerCase(), lst = a => a.map(nom).join(' y ');
+  if (bi.objetivo < bi.nivel) { const f = D.BARRIO[bi.nivel].pide.filter(k => !bi.serv[k]); return 'Baja a ' + D.BARRIO[bi.nivel - 1].n + ' en ' + bi.meses + (bi.meses === 1 ? ' mes' : ' meses') + ' si no recuperas ' + (f.length > 1 ? 'estos servicios: ' : 'el ') + lst(f) + '.'; }
+  if (bi.nivel >= D.BARRIO.length - 1) return 'Barrio al máximo.';
+  return 'Para ' + D.BARRIO[bi.nivel + 1].n + ' falta ' + lst(bi.falta) + '.';
+};
+const barrioHtml = c => {
+  if (c.owner !== 'roma') return '';
+  const bi = G.barrioInfo(c), top = D.BARRIO.length - 1;
+  return '<div class="barrio"><div class="bn"><b>' + D.BARRIO[bi.nivel].n + '</b> · nivel ' + bi.nivel + ' de ' + top + '</div><div class="bsv">' +
+    Object.keys(D.BARRIO_SERV).map(k => '<span class="bs' + (bi.serv[k] ? ' on' : '') + '" title="' + D.BARRIO_SERV[k] + '">' + BARRIO_ICO[k]() + '</span>').join('') +
+    '</div><div class="bf' + (bi.objetivo < bi.nivel ? ' mal' : '') + '">' + barrioFrase(bi) + '</div></div>';
+};
 const impHtml = c => {
   if (c.owner !== 'roma') return '';
   const f = G.felicidad(c), col = f >= 60 ? 'var(--good,#5c5)' : f >= 40 ? '#e0a030' : '#e05050', cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠';
@@ -262,7 +277,7 @@ function tiposModal() {
   return h + '<div class="acts"><button class="btn ghost" data-act="close">Cerrar</button></div>';
 }
 const inqHtml = c => c.owner === 'roma' && c.inq > 0 ? '<span class="stat" style="color:#e0a030">🔥 Ciudad conquistada: inquieta unos ' + Math.ceil(c.inq / (1 + D.INQ_TEMPLO * G.diosNivel(c))) + ' meses · produce un ' + Math.round((1 - G.inqMul(c)) * 100) + ' % menos' + (G.felicidad(c) < D.INQ_REBELION ? ' · <b>con esta felicidad se rebelará</b>' : '') + '. Un templo la calma antes.</span>' : '';
-const popHtml = c => '<span class="stat">' + D.POP_ICON + ' Población <b>' + Math.floor(c.pop) + '</b> / ' + G.popCap(c) + '</span><span class="stat">' + D.GUERRA_ICON.casco + ' Reclutas disponibles <b>' + G.recruits(c) + '</b></span>' + manoHtml(c) + inqHtml(c) + solHtml(c) + espLinea(c) + impHtml(c);
+const popHtml = c => '<span class="stat">' + D.POP_ICON + ' Población <b>' + Math.floor(c.pop) + '</b> / ' + G.popCap(c) + '</span><span class="stat">' + D.GUERRA_ICON.casco + ' Reclutas disponibles <b>' + G.recruits(c) + '</b></span>' + manoHtml(c) + inqHtml(c) + solHtml(c) + espLinea(c) + barrioHtml(c) + impHtml(c);
 function marketHtml() {
   const rate = G.tradeRate(); if (!rate) return '';
   UI.mf = UI.mf || 'madera'; UI.mt = UI.mt || 'hierro';
@@ -429,6 +444,9 @@ function consejo(c, id) {
   if (c.queue) return { b: c.queue.b, rec: false, flags, t: 'En obras: ' + nm(c.queue.b) + '. Faltan ' + months(Math.max(0, c.queue.t1 - s.t)) + '.' };
   if (alm) return { b: 'almacen', rec: true, flags, t: 'Tu ' + RES_NOM[lleno[0]].toLowerCase() + ' llega al ' + Math.round(lleno[1] * 100) + ' %. Amplía el Almacén.' };
   if (pop) return { b: 'viviendas', rec: true, flags, t: 'La población está al tope. Construye Ínsulas.' };
+  if (c.owner === 'roma') { const bi = G.barrioInfo(c), baja = bi.objetivo < bi.nivel, fl = baja ? D.BARRIO[bi.nivel].pide.filter(k => !bi.serv[k]) : bi.falta;
+    const sv = fl.filter(k => k !== 'grano' && k !== 'lujo').map(k => ({ templo: 'templo', agua: 'acueducto', ocio: 'anfiteatro', termas: 'termas' })[k]).find(b => puedeObra(c, b, id) && G.canAfford(G.cost(b, c.b[b] || 0)));
+    if (sv) return { b: sv, rec: true, flags, t: (baja ? 'Para seguir siendo ' + D.BARRIO[bi.nivel].n : 'Para ser ' + D.BARRIO[bi.nivel + 1].n) + ' falta ' + (sv === 'termas' ? 'unas Termas' : (sv === 'templo' ? 'un ' : 'un ') + nm(sv)) + '.' }; }
   const cand = ['granja', 'aserradero', 'cantera', 'mina', 'viviendas', 'foro', 'almacen'].filter(b => puedeObra(c, b, id) && G.canAfford(G.cost(b, c.b[b] || 0))).sort((x, y) => (c.b[x] || 0) - (c.b[y] || 0))[0];
   if (cand) return { b: cand, rec: true, flags, t: 'Mejora ' + nm(cand) + ' al nivel ' + ((c.b[cand] || 0) + 1) + '. Ya tienes los recursos.' };
   return { b: null, rec: false, flags, t: 'Faltan recursos para nuevas obras. Espera a que lleguen.' };
