@@ -88,6 +88,9 @@ function showMenu() {
     '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="newregion" data-v="italia">Región de Italia</button><button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><div class="spqr">S·P·Q·R</div>' +
     '<div class="credits">Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1<br>Termas y acueducto: dibujo propio del proyecto, CC BY-SA 3.0</div>';
 }
+{ let tv = 0; const sf = () => { clearTimeout(tv); tv = setTimeout(() => { UI.svDown = false; }, 150); };   // Saber: no repintar entre pulsar y soltar
+  document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('.sv')) { UI.svDown = true; clearTimeout(tv); tv = setTimeout(() => { UI.svDown = false; }, 1500); } }, true);
+  document.addEventListener('pointerup', sf, true); document.addEventListener('pointercancel', sf, true); }
 { const cu = () => $('cuentas'); let tm = 0;   // no repintar la hoja entre pulsar y soltar: se perderían los toques
   const fin = () => { clearTimeout(tm); tm = setTimeout(() => { UI.cuDown = false; }, 120); };
   document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('#cuentas')) { UI.cuDown = true; clearTimeout(tm); tm = setTimeout(() => { UI.cuDown = false; }, 1500); } }, true);
@@ -125,7 +128,7 @@ function hudDock() {
   setTxt('bact', g ? '<span class="em">🔨</span><small>Obras</small>' : D.GUERRA_ICON.casco + '<small>Tropas</small>');
   setTxt('bmodo', open ? '<span class="em">✕</span><small>Cerrar</small>' : (g ? ICO_GOB : D.GUERRA_ICON.espadas) + '<small>' + (g ? 'Gobierno' : 'Guerra') + '</small>');
   setTxt('bpill', g ? D.POP_ICON + ' ' + Math.floor(c.pop) + '/' + G.popCap(c) + ' · ' + cara + ' ' + f : '🚩 ' + (nm === 1 ? '1 marcha en curso' : nm + ' marchas en curso'));
-  const t3 = UI.tab === 'imperio' || UI.tab === 'senado' ? 'imperio' : UI.tab === 'city' ? (UI.cityList || !UI.cityV ? 'gobierno' : 'ciudad') : '';
+  const t3 = UI.tab === 'imperio' || UI.tab === 'senado' || UI.tab === 'saber' ? 'imperio' : UI.tab === 'city' ? (UI.cityList || !UI.cityV ? 'gobierno' : 'ciudad') : '';
   document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3));
   setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
 }
@@ -163,7 +166,7 @@ function tickUI() {
 
 /* ---------- paneles ---------- */
 function setTab(t) {
-  UI.tab = t; if (t === 'map' || t === 'army') UI.modo = 'guerra'; else if (t === 'city' || t === 'imperio' || t === 'senado') UI.modo = 'gobierno'; $('hoja').hidden = true; $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
+  UI.tab = t; if (t === 'map' || t === 'army') UI.modo = 'guerra'; else if (t === 'city' || t === 'imperio' || t === 'senado' || t === 'saber') UI.modo = 'gobierno'; $('hoja').hidden = true; $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
   const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D (o en lista si se prefiere)
   $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3; UI.linK = null; if (!c3) $('linea').hidden = true;
   if (c3) { UI.cityV.resize(); renderCity3D(); }
@@ -202,8 +205,9 @@ function render() {
   UI.dirty = false;
   if (!S()) return; renderPop(); if (UI.tab === 'map') { renderSheet(); return; }
   if (UI.tab === 'city' && UI.cityV && !UI.cityList) { renderCity3D(); tickUI(); return; }
+  if (UI.tab === 'saber' && UI.svDown) { UI.dirty = true; return; }   // no repintar entre pulsar y soltar: se perderían los toques
   const v = $('view'), st = v.scrollTop;
-  v.innerHTML = UI.tab === 'imperio' ? viewImperio() : UI.tab === 'city' ? viewCity() : UI.tab === 'army' ? viewArmy() : UI.tab === 'hero' ? viewHero() : UI.tab === 'senado' ? viewSenado() : viewLog();
+  v.innerHTML = UI.tab === 'imperio' ? viewImperio() : UI.tab === 'city' ? viewCity() : UI.tab === 'army' ? viewArmy() : UI.tab === 'hero' ? viewHero() : UI.tab === 'senado' ? viewSenado() : UI.tab === 'saber' ? viewSaber() : viewLog();
   v.scrollTop = st; tickUI();
 }
 const dondeEsp = k => G.dondeEspecial(k).slice(0, 3).map(i => D.CITIES[i].n).join(', ');
@@ -235,7 +239,7 @@ const barrioHtml = c => {
 };
 /* Clases (Q6): ciudadanos, plebeyos, esclavos; cifra, barra de parte y cara de ánimo, y lo que piden */
 const clasesFrase = (c, cl, an) => {
-  const sv = G.servicios(c, G.prod().grano >= 0), K = D.CLASES, pide = [];
+  const sv = G.servicios(c, G.prod().grano >= 0), K = G.K(), pide = [];
   if (an.ciu < K.caraBuena && cl.ciu > 0) { const f = []; if (!sv.lujo) f.push('vino o lujo'); if (!sv.ocio) f.push('ocio'); if (!sv.termas) f.push('termas'); if (f.length) pide.push('Los ciudadanos piden ' + f.join(', ') + '.'); }
   if (an.ple < K.caraBuena) { const f = []; if (!sv.grano) f.push('grano'); if (!sv.templo) f.push('un templo'); if (f.length) pide.push('Los plebeyos piden ' + f.join(' y ') + '.'); else if (cl.esc > 0) pide.push('Los esclavos pesan en el ánimo de los plebeyos.'); }
   if (cl.esc > 0 && an.esc < K.inquietud) pide.push('Los esclavos están inquietos: -' + K.inquietudFel + ' de felicidad.');
@@ -244,7 +248,7 @@ const clasesFrase = (c, cl, an) => {
 };
 const clasesHtml = c => {
   if (c.owner !== 'roma') return '';
-  const cl = G.clases(c), an = G.animoClases(c), mot = G.motivoCiudadania(c), K = D.CLASES;
+  const cl = G.clases(c), an = G.animoClases(c), mot = G.motivoCiudadania(c), K = G.K();
   const fila = (n, k, v) => { const pc = cl.pop > 0 ? Math.round(v / cl.pop * 100) : 0; return '<div class="cl"><span class="cn">' + n + '</span><b class="cv">' + Math.floor(v) + '</b><span class="cb"><i style="width:' + pc + '%"></i></span><span class="ca' + (an[k] < K.bajo ? ' mal' : '') + '" title="Ánimo ' + an[k] + '">' + G.cara(an[k]) + ' ' + an[k] + '</span></div>'; };
   return '<div class="clases"><div class="bn"><b>Clases</b></div>' + fila('Ciudadanos', 'ciu', cl.ciu) + fila('Plebeyos', 'ple', cl.ple) + fila('Esclavos', 'esc', cl.esc) +
     '<div class="bf' + (an.esc < K.inquietud && cl.esc > 0 ? ' mal' : '') + '">' + clasesFrase(c, cl, an) + '</div>' +
@@ -366,7 +370,7 @@ function viewImperio() {
   const ok = { todas: () => true, urgentes: r => r.urg, sinobra: r => !r.ob.length, obras: r => !!r.ob.length, animo: r => r.f < 40 }[F] || (() => true);
   const lista = filas.filter(ok).sort((a, b) => b.pts - a.pts || b.c.pop - a.c.pop);
   const cara = f => f >= 60 ? '😊' : f >= 40 ? '😐' : '😠';
-  let h = '<div class="imp"><div class="imp-res"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div><button class="btn cu-go" data-act="cuentas">📊 Cuentas del mes<small>materiales y oro</small></button><button class="btn cu-go" data-act="tab" data-v="senado">🏛️ Senado<small>favor y misión</small></button>' +
+  let h = '<div class="imp"><div class="imp-res"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div><button class="btn cu-go" data-act="cuentas">📊 Cuentas del mes<small>materiales y oro</small></button><button class="btn cu-go" data-act="tab" data-v="senado">🏛️ Senado<small>favor y misión</small></button><button class="btn cu-go" data-act="tab" data-v="saber">📚 Saber<small>edades e investigación</small></button>' +
     (peor && n > 1 ? '<div class="imp-peor">Peor ánimo: <b>' + D.CITIES[peor.id].n + '</b> ' + cara(peor.f) + ' ' + peor.f + '</div>' : '') +
     '<div class="imp-chips">' + IMP_FILTROS.map(x => '<button class="' + (F === x[0] ? 'on' : '') + '" data-act="impf" data-v="' + x[0] + '">' + x[1] + ' <i>' + cuenta[x[0]] + '</i></button>').join('') + '</div><div class="imp-lista">';
   if (!lista.length) h += '<div class="imp-vacio">Ninguna ciudad cumple este filtro.</div>';
@@ -655,6 +659,80 @@ function viewArmy() {
   return h;
 }
 /* Senado (Q7) */
+/* Saber (I5-C): edades e investigación. Solo pinta; las reglas están en G.inv* */
+const SV_RAMAS = { ca: ['🌾', 'Campo'], of: ['⚒️', 'Oficios'], gu: ['⚔️', 'Guerra'], ma: ['⚓', 'Mar'] };
+const pct = x => (x >= 1 ? '+' : '−') + Math.round(Math.abs(x - 1) * 100) + ' %';
+function efTxt(ef) {
+  const a = [], k = n => ef[n] !== undefined, r = n => Math.round(Math.abs(1 - ef[n]) * 100);
+  if (k('abre')) a.push('abre la Escuela');
+  if (k('obra')) a.push('obras ' + r('obra') + ' % más cortas');
+  if (k('grano')) a.push('grano ' + r('grano') + ' % más');
+  if (k('crece')) a.push(ef.crece >= 1 ? 'población crece ' + r('crece') + ' % más rápido' : 'población crece ' + r('crece') + ' % más despacio');
+  if (k('impuestos')) a.push('impuestos ' + r('impuestos') + ' % más');
+  if (k('oroCom')) a.push('comercio ' + r('oroCom') + ' % más oro');
+  if (k('rutaRenta')) a.push('rutas ' + r('rutaRenta') + ' % más rentables');
+  if (k('rutas')) a.push('+' + ef.rutas + ' ruta comercial');
+  if (k('paga')) a.push('paga de tropas ' + r('paga') + ' % menor');
+  if (k('instr')) a.push('instrucción ' + r('instr') + ' % más corta');
+  if (k('popCap')) a.push('cabe ' + r('popCap') + ' % más gente');
+  if (k('viajeTierra')) a.push('marchas por tierra ' + ef.viajeTierra.resta + ' meses menos en trayectos largos');
+  if (k('viajeMar')) a.push('viajes por mar ' + ef.viajeMar.resta + ' meses menos en trayectos largos');
+  if (k('inqMeses')) a.push('tierras conquistadas se calman ' + r('inqMeses') + ' % antes');
+  if (k('hambre')) a.push('el hambre cuesta ' + r('hambre') + ' % menos');
+  if (k('fel')) a.push('ánimo ' + (ef.fel > 0 ? '+' : '−') + Math.abs(ef.fel));
+  if (k('pts')) a.push('+' + ef.pts + ' puntos de gloria');
+  if (k('sinBien')) a.push('el puerto ya no pide su bien especial');
+  if (k('cl')) a.push(ef.cl.escRenta ? 'esclavos rinden más, pero inquietan' : 'más ciudadanos, menos esclavos');
+  if (k('favor')) a.push((ef.favor.senado > 0 ? '+' : '') + ef.favor.senado + ' Senado, ' + (ef.favor.pueblo > 0 ? '+' : '') + ef.favor.pueblo + ' pueblo');
+  if (k('mor') || k('atk') || k('atkMar') || k('defMuro') || k('brecha') || k('herida')) {
+    const g = []; if (k('atk')) g.push('ataque ' + pct(ef.atk)); if (k('atkMar')) g.push('ataque naval ' + pct(ef.atkMar)); if (k('mor')) g.push('moral +' + ef.mor);
+    if (k('defMuro')) g.push('muros ' + Math.round(ef.defMuro * 100) + ' % más fuertes'); if (k('brecha')) g.push('abren brecha en muros'); if (k('herida')) g.push('menos heridos');
+    a.push(g.join(', ') + ' (se aplica en la guerra más adelante)');
+  }
+  return a.join(' · ') || 'sin efecto directo';
+}
+function svChips(lista) { return '<div class="sv-chips">' + lista.map(q => '<span class="sv-ch ' + (q.ok ? 'ok' : 'no') + '">' + (q.ok ? '✔ ' : '✖ ') + esc(q.txt) + '</span>').join('') + '</div>'; }
+function svCoste(id) { const c = G.invCoste(id); return '<div class="sv-chips">' + Object.keys(c).filter(r => c[r] > 0).map(r => '<span class="sv-ch ' + (G.disponible(r) >= c[r] ? 'ok' : 'no') + '">' + D.RES_ICON[r] + ' ' + fmt(c[r]) + '</span>').join('') + '</div>'; }
+function svEureka(id) { const d = D.INVEST[id]; if (!d || !d.eureka || G.eurekaMul(id) <= 1) return ''; const ids = [].concat(d.eureka), mia = ids.find(c => G.myCities().includes(c)); return '<div class="sv-eu">💡 Eureka: posees ' + esc(D.CITIES[mia || ids[0]].n) + ', ritmo ×1,33</div>'; }
+function svDetalle(id) {
+  const d = D.INVEST[id], st = G.invEstado(id); let h = '<div class="sv-det"><p>' + esc(efTxt(d.ef)) + '</p>';
+  if (st.e === 'hecha') return h + '<div class="sv-ok">✔ Ya lo sabes.</div></div>';
+  h += svCoste(id) + '<div class="sv-m">' + months(G.invTiempo(id)) + ' de estudio</div>' + svEureka(id);
+  if (st.e === 'ok') h += '<button class="btn" data-act="saber" data-v="' + id + '">Estudiar</button>';
+  else h += '<div class="sv-no">' + esc(st.motivo) + '</div>';
+  return h + '</div>';
+}
+function svTarjeta(id) {
+  const d = D.INVEST[id], st = G.invEstado(id), ex = st.e === 'excl', hecha = st.e === 'hecha';
+  const sub = hecha ? '✔ hecho' : st.e === 'curso' ? 'estudiando…' : st.e === 'ok' ? 'disponible' : ex ? '🔒 Excluida por ' + esc(D.INVEST[st.excl].n) : esc(st.motivo);
+  return '<button class="sv-t ' + st.e + (UI.svSel === id ? ' sel' : '') + '" data-act="sabersel" data-v="' + id + '"><span class="sv-i">' + d.i + '</span><b>' + esc(d.n) + '</b><small>' + sub + '</small></button>';
+}
+function viewSaber() {
+  const s = S(), V = G.invVista();
+  let h = '<div class="acts"><button class="btn ghost" data-act="tab" data-v="imperio">← Volver al Imperio</button></div><div class="sv"><h2>📚 Saber</h2>';
+  if (!V.nHechas && !V.cola) h += '<div class="sv-guia"><b>Primera vez</b><ol><li>Investiga Preceptores griegos.</li><li>Construye la Escuela y pon gente a estudiar (próximamente).</li><li>En cada par elige uno: el otro se cierra.</li></ol></div>';
+  h += '<div class="sv-ed"><b>Edad ' + ['I', 'II', 'III', 'IV'][V.edad - 1] + ' · ' + esc(V.edadNombre) + '</b>';
+  if (V.sig) { h += '<small>Para la edad ' + ['II', 'III', 'IV'][V.edad - 1] + ' (' + esc(V.sig.n) + '):</small>' + svChips(V.sig.req) + svCoste(V.sig.id) + '<div class="sv-m">' + months(V.sig.tiempo) + '</div>';
+    h += V.sig.estado.e === 'ok' ? '<button class="btn" data-act="saberedad">Subir de edad</button>' : V.sig.estado.e === 'curso' || V.sig.estado.e === 'cola' || V.sig.estado.e === 'req' ? '' : '<div class="sv-no">' + esc(V.sig.estado.motivo) + '</div>'; }
+  else h += '<small>Has llegado a la última edad.</small>';
+  h += '</div>';
+  if (V.cola) { const vel = V.cola.vel || 1, t0 = s.t - V.cola.p / vel, t1 = s.t + (V.cola.P - V.cola.p) / vel;
+    h += '<div class="sv-cola"><b>Estudiando: ' + esc(V.cola.n) + '</b><div class="prog" data-t0="' + t0 + '" data-t1="' + t1 + '"><i></i></div><span class="rem"></span>' + (V.cola.eureka ? '<div class="sv-eu">💡 Eureka: ritmo ×1,33</div>' : '') + '</div>'; }
+  h += '<div class="sv-ramas">' + Object.keys(SV_RAMAS).map(k => '<span class="sv-r">' + SV_RAMAS[k][0] + ' ' + SV_RAMAS[k][1] + '<b>' + V.ramas[k] + '</b></span>').join('') + '</div>';
+  h += '<div class="sv-forja">⚔️ Guerra: forja, armas nivel ' + s.forja.armas + ', armaduras nivel ' + s.forja.armaduras + ' (se dirige desde la herrería de la ciudad).</div>';
+  for (let e = 1; e <= 4; e++) {
+    const ids = Object.keys(D.INVEST).filter(k => D.INVEST[k].edad === e); if (!ids.length) continue;
+    h += '<div class="sv-fila' + (e > V.edad ? ' lejos' : '') + '"><div class="sv-eh">Edad ' + ['I', 'II', 'III', 'IV'][e - 1] + ' · ' + esc(D.SABER.edadNombres[e - 1]) + '</div>';
+    const hecho = {}, bloques = [];
+    for (const id of ids) { if (hecho[id]) continue; hecho[id] = 1; const g = D.INVEST[id].excl[0]; if (g && D.INVEST[g] && !hecho[g]) { hecho[g] = 1; bloques.push([id, g]); } else bloques.push([id]); }
+    for (const b of bloques) {
+      h += '<div class="sv-par' + (b.length > 1 ? ' dos' : '') + '">' + svTarjeta(b[0]) + (b.length > 1 ? '<i class="sv-o">o</i>' + svTarjeta(b[1]) : '') + '</div>';
+      const sel = b.find(x => x === UI.svSel); if (sel) h += svDetalle(sel);
+    }
+    h += '</div>';
+  }
+  return h + '</div>';
+}
 function viewSenado() {
   const f = G.favor(), mi = G.misionActual(), mot = G.senadoMotivo();
   const barra = (n, v, c) => '<div class="sn-b"><span>' + n + '</span><div class="sn-bar"><i class="' + c + '" style="width:' + v + '%"></i></div><b>' + v + '</b></div>';
@@ -981,6 +1059,9 @@ document.addEventListener('click', function (e) {
     case 'cbuild': construir3(); break;
     case 'ccancel': salir3(); break;
     case 'cclose': UI.bsel = null; renderCity3D(); tickUI(); break;
+    case 'saber': { const r = G.invUp(v); if (r.ok) { toast('Empiezas a estudiar: ' + D.INVEST[v].n); UI.svSel = null; UI.svDown = false; render(); } else toast(r.motivo, 'bad'); break; }
+    case 'saberedad': { const r = G.edadUp(); if (r.ok) { toast('Empiezas a subir de edad'); UI.svDown = false; render(); } else toast(r.motivo, 'bad'); break; }
+    case 'sabersel': UI.svSel = UI.svSel === v ? null : v; UI.svDown = false; render(); break;
     case 'forja': if (G.forjaUp(UI.city, v)) render(); else toast(S().forja.cola ? 'Ya hay una mejora en curso.' : 'Faltan recursos.', 'bad'); break;
     case 'mejpz': { const r = G.mejorarPieza(UI.city, +v); if (r.ok) toast('🔨 ' + obraNom(r.obra) + ': obra en marcha.', 'good'); else toast(r.motivo + '.', 'bad'); renderCity3D(); tickUI(); break; }
     case 'train': if (G.train(UI.city, v, +el.dataset.n)) render(); else toast(s.cities[UI.city].train.length >= 5 ? 'La cola de instrucción está llena.' : G.recruits(s.cities[UI.city]) < +el.dataset.n ? 'No hay población suficiente: construye Ínsulas o espera a que crezca.' : 'Faltan recursos.', 'bad'); break;

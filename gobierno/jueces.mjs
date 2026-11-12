@@ -55,6 +55,14 @@ console.log('Juez 1c · alturas del mapa (test/mapa.test.mjs)');
   apunta('Alturas reales del mapa', r.status === 0, ((r.stdout || '').trim().split('\n').slice(-2).join(' | ') || (r.stderr || '').trim().split('\n').slice(-2).join(' | ')).slice(0, 400));
 }
 
+/* ---------- 1c. Saber (I5: investigación y edades, reglas sin pantalla) ---------- */
+console.log('Juez 1c · saber (test/saber.test.mjs)');
+{
+  const r = spawnSync(process.execPath, ['test/saber.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 120000 });
+  const ult = ((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean).slice(-1)[0] || '';
+  apunta('Reglas del Saber', r.status === 0, ult.slice(0, 200));
+}
+
 /* ---------- 2. Navegador ---------- */
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.txt': 'text/plain; charset=utf-8' };
 function servidor() {
