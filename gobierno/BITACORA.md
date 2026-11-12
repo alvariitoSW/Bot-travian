@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 12/11/2026 — **Vista la segunda maqueta de la ciudad (Q1b2)** (preguntado en el chat, con las siete capturas delante): ¿ya convence? «Sí, adelante». Retoques: «Fondo soso», «Griega y púnica», «Ladera pelada». P78: «P78 entera». Peso y gasto: «Subir tope a 37 MB, gasto libre». (Lectura de Claude: P78 aprobada completa, Q1c a Q1j al tablero; los tres retoques entran en Q1c, Q1d y Q1h; el tope de descarga pasa de 35 a 37 MB en `gobierno/arte.json`; las maquetas de diseño con Fable no llevan tope fijo de gasto, pero se sigue presupuestando y contando lo gastado en el parte.)
 - 12/11/2026 — **Modelo para los diseños**: «Ayúdate de Fable 5.2 para los diseños». (Lectura de Claude: regla desde hoy: las sesiones y agentes de diseño y de arte van con Fable 5.2; las que construyen siguiendo un diseño ya hecho siguen en Sonnet. Cambia lo dicho el 11/11 de cuidar el uso de Fable solo para diseño. La sesión Q1b2 de la ciudad se rehace con Fable.)
 - 12/11/2026 — **Ocho respuestas para seguir** (preguntadas en el chat, con las capturas de Q1b delante):
   - **Ciudad nueva (Q1b)**: «No, otra vuelta al diseño». Falla: «los edificios son pobres», «luz, colores y suelo» y «sigue pareciendo de juguete». P77 **no** se aprueba; tarea Q1b2.
@@ -95,22 +96,10 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-- **Ciudad nueva (P78)**: mirar las capturas `Q1b2` (antes y después) y decir si ya convence. Si convence, aprobar P78 o al menos Q1c, la prueba en su teléfono. Si tiene capturas o enlaces de juegos cuya ciudad le guste, pasarlos.
-- **Peso del arte**: las casas nuevas dejarían la descarga en 34,9 MB sobre 35. Decir si se sube el tope (a 37) o se aligera otra cosa.
-- **Gasto de Q1b2**: 3,3 M sobre 1,35 presupuestados (la maqueta sola, 2 M). Decir si las maquetas de diseño con Fable siguen así o con tope más bajo.
 - **Bloque Q2 a Q4 (caja del mes) hecho** (12/11). Q11 (se ve) y Q5 en adelante esperan su orden: no hay sesión abierta del carril Q.
 - **P69 Radio de efecto de los edificios**: aprobar o rechazar (las demás ideas sueltas ya están dentro de P74 y P75).
 
 ## Propuestas por aprobar
-- P78 **Ciudad nueva, según la maqueta Q1b2** (sustituye a P77). Estudio: `estudios/Q1b2-ciudad-segunda-vuelta.md`; maqueta: `maquetas/ciudad2/`. La maqueta tiene 1 a 1,5 millones de triángulos y el tope es 300 000: por eso se empieza por la prueba. Tareas y coste aproximado (unos 11 M en total; se puede aprobar solo Q1c):
-  - **Q1c Ciudad ligera y prueba en el teléfono** (1,5 M): la misma imagen con 300 000 triángulos (dibujar solo lo que se ve, casas y árboles lejanos ligeros, sombras calculadas una vez, suelo con menos capas) en una página que el usuario abre en su móvil y dice si va fluida. Sin esto no se construye lo demás.
-  - **Q1d Suelo, relieve, luz y cielo en el juego** (2 M): colinas, río, texturas mezcladas, sol bajo con sombras, bruma y montes. En `js/gfx/city3d.js` y `ground.js`.
-  - **Q1e Casco denso con casas reales y muralla irregular** (2,5 M): las 11 casas nuevas pasan a `assets/` (843 KB), manzanas pegadas a las calles, arrabales, tumbas y granjas.
-  - **Q1f Los solares del juego dentro de la ciudad nueva** (1,5 M): dónde se construye, cómo se toca un edificio, etiquetas. La maqueta no lo resuelve.
-  - **Q1g Edificios de época** (1,2 M): fuera anfiteatro, termas y acueducto de arcos; sus sustitutos y sus fichas.
-  - **Q1h Culturas** (1 M): griega y púnica con sus casas; muralla y mercado propios si caben en el peso.
-  - **Q1i Vida** (0,8 M): gente, humo, toldos, carros, ganado, pájaros, sombra de nubes.
-  - **Q1j Revisión histórica** (0,6 M): cotejar las citas pendientes.
 - P69 **Radio de efecto de los edificios** (idea de Grand Ages: Rome): templos y termas dan bono a los solares vecinos, los talleres lo quitan; al elegir solar se iluminan en verde o rojo. Mínima: el templo da felicidad a sus dos vecinos. 0,7 a 1,2 M; se nota poco con 7 a 10 solares: mejor después de P67 y J3. Estudio: `estudios/R3-radio-de-efecto.md`.
 
 ## Encargo en curso (11/11/2026, noche)
@@ -127,7 +116,7 @@ En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Ma
 
 ## Encargo de la próxima sesión
 0000000. **En marcha desde el 12/11, tres carriles, cada uno en su sesión**: Guerra N2 → N3 → N4 → N5 (Sonnet) · Economía Q2 y Q3 hechas (12/11) → Q4 (Sonnet; almacén: un cuarto al mes; cuenta mensual e informe por estación) · Ciudad Q1b2, segunda vuelta al diseño (Fable 5.2). Cada sesión, al cerrar con jueces APTO, abre la siguiente de su carril; al acabar el bloque, para y lo deja en el cuadro. Después: N14, N6 a N13 y N15; Q5 en adelante.
-000000. **Q1b2 hecha** (12/11; gastó 3,3 M sobre 1,35). El carril Ciudad **para aquí**: el usuario tiene que ver las capturas `Q1b2`. Si aprueba P78, sigue **Q1c Ciudad ligera y prueba en el teléfono**, partiendo de `maquetas/ciudad2/` (no toca el juego). Presupuesto con tope firme y una sola vuelta de capturas por agente.
+000000. **Carril Ciudad** (P78 aprobada entera el 12/11): sigue **Q1c Ciudad ligera y prueba en el teléfono**, partiendo de `maquetas/ciudad2/` (no toca el juego), con los retoques de ladera y fondo. Luego Q1d → Q1e → Q1f → Q1g → Q1h → Q1i → Q1j. Diseño con Fable; construir sobre diseño hecho, Sonnet. Ojo desde Q1d: toca `js/gfx/city3d.js`.
 00000. **En marcha desde el 11/11 por la noche, cada una en su sesión**: N1b Guerra ampliada (Opus) · Q1 hecha (11/11; espera P75) · J7 Parte densa (Sonnet) · I2 Mapa por turnos (Sonnet). Antes de subir: `git pull --rebase` de la rama que publica y tocar solo las líneas propias de tablero y bitácora.
 0000. **Carril N**: N1b hecha (11/11). Si el usuario aprueba P74, sigue **N2 Rondas y vista previa** en `js/battle.js` y la pantalla de batalla; luego N3 Interfaz nueva (llevar al juego lo de las capturas N1b, script `gobierno/maquetas/guerra-ampliada.mjs`). Si no contesta a los puntos de mando, la opción A.
 00. **Q1 hecha** (11/11; absorbe O1). Si el usuario aprueba P75, sigue **Q2 Caja del mes y cierre** en `js/game.js` y `js/data.js` (migrar en `G.load`); luego Q3 Cuentas en pantalla y Q4 Obras a plazos (después de J7). Presupuesto de referencia en el diseño §8.
