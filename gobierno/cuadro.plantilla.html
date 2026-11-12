@@ -350,8 +350,8 @@ section { scroll-margin-top: 12px; }
     if (!mcp || !VIGIA) { e.textContent = 'Desde aquí no se puede llamar al vigía.' + chat; return; }
     b.disabled = true; e.textContent = 'Llamando al vigía…';
     mcp.callTool('Claude Code Remote', 'fire_trigger', { trigger_id: VIGIA }).then(function () {
-      e.textContent = 'Vigía en marcha. Tarda unos minutos: verás cómo tus pedidos pasan a «aplicado» y aparecen las sesiones nuevas.';
-      setTimeout(function () { b.disabled = false; }, 300000);
+      e.textContent = 'Vigía llamado. Tarda de 5 a 10 minutos: verás cómo tus pedidos pasan a «aplicado» y aparecen las sesiones nuevas. No hace falta pulsar otra vez.';
+      if (db) { var ahora = new Date().toISOString(), dv = db.collection('estado').doc('vigia'); dv.update({ llamado: ahora, trabajando: true }).catch(function () { return dv.set({ llamado: ahora, trabajando: true }); }).catch(function () { }); }
     }, function (err) {
       var c = err && err.code; b.disabled = false;
       e.textContent = c === 'approval_required' || c === 'not_in_manifest' || c === 'not_granted' || c === 'consent_required' ? 'Para llamar al vigía tienes que permitir a esta página usar «Claude Code Remote». Pulsa otra vez y acepta cuando te lo pregunte.'
@@ -360,6 +360,13 @@ section { scroll-margin-top: 12px; }
         : c === 'server_unavailable' || c === 'upstream_error' ? 'No se sabe si el vigía ha arrancado. Mira «Sesiones abiertas» dentro de un minuto antes de volver a pulsar.'
         : 'No se pudo llamar al vigía' + (err && err.message ? ' (' + err.message + ').' : '.') + chat;
     });
+  }
+  function pintarVigia(v) {
+    var b = $('llamar'), e = $('llamar-estado'); if (!v) return;
+    var ll = new Date(v.llamado || v.empezado || 0).getTime(), fin = new Date(v.terminado || 0).getTime() || 0;
+    var enCurso = (v.trabajando || ll > fin) && Date.now() - ll < 20 * 60000 && ll > fin;
+    if (enCurso) { b.disabled = true; b.textContent = 'El vigía está trabajando…'; e.textContent = 'Lo llamaste ' + hace(v.llamado || v.empezado) + '. Tarda de 5 a 10 minutos; esta página se pone al día sola cuando acabe.'; }
+    else { b.disabled = false; b.textContent = 'Llamar al vigía ahora'; if (fin) e.textContent = 'Última pasada del vigía: ' + hace(v.terminado) + '.' + (v.resumen ? ' ' + v.resumen : ''); }
   }
   function pedir(b) {
     var tipo = b.dataset.pedir, ref = b.dataset.ref || '', caja = b.dataset.texto ? $(b.dataset.texto) : null, texto = caja ? caja.value.trim() : (b.dataset.valor || '');
@@ -404,6 +411,7 @@ section { scroll-margin-top: 12px; }
       if (!snap.metadata.fromCache) { clearTimeout(reloj); $('pedidos-nota').textContent = 'Lo que pulses aquí queda guardado. Un vigía mira el cuadro cada tres horas y lo aplica (abre las sesiones que pidas). Si lo quieres ya, escribe en el chat de Claude: «aplica el cuadro».'; }
       pintar(snap.docs);
     }, function () { clearTimeout(reloj); apagar('Se ha perdido la conexión con tus pedidos. Dilo en el chat o vuelve a abrir la página.'); });
+    try { db.collection('estado').onSnapshot(function (snap) { snap.docs.forEach(function (d) { if (d.id === 'vigia') pintarVigia(d.data()); }); }, function () { }); } catch (e) { }
     try { db.collection('sesiones').onSnapshot(function (snap) { pintarSesiones(snap.docs); }, function () { }); } catch (e) { }
   });
 })();
