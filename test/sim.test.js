@@ -815,4 +815,35 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   { const run = () => { const c = mkN({ seed: 11 }); let g = 0; while (!c.over && g++ < 60) { c.ejecutar(); let k = 0; while (c.fase === 'ejecucion' && !c.over && k++ < 1000) c.step(0.05); } return JSON.stringify([c.t, c.men(0), c.men(1), c.hechos, c.regs.map(r => [r.st, r.men, Math.round(r.mor * 1000)])]); };
     assert.strictEqual(run(), run(), 'misma semilla = mismo resultado'); }
 }
+// Clases (Q6)
+{ const s = G.newGame('Clases'), c = s.cities.roma; G.state = s; const K = D.CLASES;
+  assert.strictEqual(c.esc, 0); assert.strictEqual(c.ciu, 0);
+  // conquista: el 25 % pasa a esclavos
+  { const id = Object.keys(D.CITIES).find(i => D.CITIES[i].f !== 'roma' && i !== 'roma'), q = s.cities[id]; G.incorporar(q, { hastati: 5 }, true);
+    assert.strictEqual(q.owner, 'roma'); assert.strictEqual(q.esc, Math.round(q.pop * K.escConquista)); assert(q.esc > 0 && q.ciu === 0, 'la conquista crea esclavos');
+    const t = s.cities.capua; G.incorporar(t, {}, false); assert.strictEqual(t.esc, 0, 'la aliada no'); }
+  // dar ciudadanía: barrio, plebeyos, oro
+  c.barrio = 1; c.pop = 300; assert(G.motivoCiudadania(c), 'barrio 1 no puede'); assert(!G.darCiudadania('roma'));
+  c.barrio = 2; s.res.oro = 500; s.alm.oro = 0; const oro0 = G.disponible('oro'); assert.strictEqual(G.motivoCiudadania(c), null); assert(G.darCiudadania('roma'));
+  assert.strictEqual(c.ciu, K.ciudadaniaLote); assert.strictEqual(oro0 - G.disponible('oro'), K.ciudadaniaCoste, 'cobra 60');
+  s.res.oro = 0; s.alm.oro = 0; assert(!G.darCiudadania('roma'), 'sin oro no'); assert.strictEqual(G.motivoCiudadania(c), 'Faltan denarios');
+  s.res.oro = 5000; c.ciu = 118; c.pop = 300; assert(!G.darCiudadania('roma'), 'tope 40 %');
+  // ciudadanos pagan más
+  c.ciu = 0; const o0 = G.prod().oro; c.ciu = 60; const o1 = G.prod().oro; assert(o1 > o0, 'ciudadanos pagan x2,5');
+  // ánimo cae sin templo y sin grano; esclavos inquietos bajan la felicidad
+  c.ciu = 0; c.esc = 0; c.b.templo = 1; const a1 = G.animoClases(c, true).ple; c.b.templo = 0; const a2 = G.animoClases(c, true).ple; assert(a2 < a1, 'sin templo cae el ánimo');
+  assert(G.animoClases(c, false).esc < G.animoClases(c, true).esc, 'sin grano caen los esclavos');
+  for (const k of ['ciu', 'ple', 'esc']) { const a = G.animoClases(c, true)[k]; assert(a >= 0 && a <= 100); }
+  c.pop = 200; c.esc = 100; const sinEsc = G.manoObra(Object.assign({}, c, { esc: 0 })); assert(G.manoObra(c) >= sinEsc, 'esclavos trabajan más');
+  // plebeyos nunca negativos: reclutar o perder población recorta
+  c.ciu = 80; c.esc = 100; c.pop = 120; const cl = G.clases(c); assert(cl.ple >= 0 && cl.ciu + cl.esc <= 120, 'recorta'); c.pop = 0; const c0 = G.clases(c); assert(c0.ple >= 0 && c0.ciu >= 0 && c0.esc >= 0);
+  // manumisión mensual
+  c.pop = 300; c.ciu = 0; c.esc = 40; c.b.templo = 1; s.res.grano = 5000; s.alm.grano = 5000; c.imp = 'normal';
+  for (const b in D.FELICIDAD_EDIF) c.b[b] = 3; assert(G.animoClases(c, true).esc >= K.manumision, 'esclavos contentos'); const e0 = c.esc; s.t = Math.floor(s.t) + 1; G.cierreMes(); assert(c.esc < e0 && c.esc >= 0, 'manumisión');
+  // migración
+  const st = {}; global.localStorage = { getItem: () => JSON.stringify(st.s), setItem() {} };
+  const v = JSON.parse(JSON.stringify(s)); for (const id in v.cities) { delete v.cities[id].ciu; delete v.cities[id].esc; } v.cities.roma.pop = 300; v.cities.roma.barrio = 3; v.cities.roma.owner = 'roma';
+  st.s = v; assert(G.load()); for (const id in G.state.cities) { const q = G.state.cities[id]; assert.strictEqual(q.esc, 0); assert(q.ciu >= 0); } assert.strictEqual(G.state.cities.roma.ciu, 30);
+  delete global.localStorage; }
+
 console.log('OK — todas las pruebas superadas');

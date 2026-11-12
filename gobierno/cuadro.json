@@ -652,6 +652,16 @@
    "archivo": "gobierno/capturas-tarea/N4e-90s.jpg",
    "pie": "Batalla con estados: huye (gris), cansancio rojo y ámbar",
    "ancha": true
+  },
+  {
+   "tarea": "Q6",
+   "archivo": "gobierno/capturas-tarea/Q6-1-clases.jpg",
+   "pie": "Ciudadanos, plebeyos y esclavos con su ánimo; «Dar ciudadanía»"
+  },
+  {
+   "tarea": "Q6",
+   "archivo": "gobierno/capturas-tarea/Q6-2-conquistada.jpg",
+   "pie": "Ciudad conquistada con esclavos"
   }
  ],
  "informes": [

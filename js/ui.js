@@ -252,6 +252,23 @@ const barrioHtml = c => {
     Object.keys(D.BARRIO_SERV).map(k => '<span class="bs' + (bi.serv[k] ? ' on' : '') + '" title="' + D.BARRIO_SERV[k] + '">' + BARRIO_ICO[k]() + '</span>').join('') +
     '</div><div class="bf' + (bi.objetivo < bi.nivel ? ' mal' : '') + '">' + barrioFrase(bi) + '</div></div>';
 };
+/* Clases (Q6): ciudadanos, plebeyos, esclavos; cifra, barra de parte y cara de ánimo, y lo que piden */
+const clasesFrase = (c, cl, an) => {
+  const sv = G.servicios(c, G.prod().grano >= 0), K = D.CLASES, pide = [];
+  if (an.ciu < K.caraBuena && cl.ciu > 0) { const f = []; if (!sv.lujo) f.push('vino o lujo'); if (!sv.ocio) f.push('ocio'); if (!sv.termas) f.push('termas'); if (f.length) pide.push('Los ciudadanos piden ' + f.join(', ') + '.'); }
+  if (an.ple < K.caraBuena) { const f = []; if (!sv.grano) f.push('grano'); if (!sv.templo) f.push('un templo'); if (f.length) pide.push('Los plebeyos piden ' + f.join(' y ') + '.'); else if (cl.esc > 0) pide.push('Los esclavos pesan en el ánimo de los plebeyos.'); }
+  if (cl.esc > 0 && an.esc < K.inquietud) pide.push('Los esclavos están inquietos: -' + K.inquietudFel + ' de felicidad.');
+  else if (cl.esc > 0 && an.esc >= K.manumision) pide.push('Los esclavos contentos se liberan poco a poco.');
+  return pide.length ? pide.slice(0, 2).join(' ') : 'Las clases están conformes.';
+};
+const clasesHtml = c => {
+  if (c.owner !== 'roma') return '';
+  const cl = G.clases(c), an = G.animoClases(c), mot = G.motivoCiudadania(c), K = D.CLASES;
+  const fila = (n, k, v) => { const pc = cl.pop > 0 ? Math.round(v / cl.pop * 100) : 0; return '<div class="cl"><span class="cn">' + n + '</span><b class="cv">' + Math.floor(v) + '</b><span class="cb"><i style="width:' + pc + '%"></i></span><span class="ca' + (an[k] < K.bajo ? ' mal' : '') + '" title="Ánimo ' + an[k] + '">' + G.cara(an[k]) + ' ' + an[k] + '</span></div>'; };
+  return '<div class="clases"><div class="bn"><b>Clases</b></div>' + fila('Ciudadanos', 'ciu', cl.ciu) + fila('Plebeyos', 'ple', cl.ple) + fila('Esclavos', 'esc', cl.esc) +
+    '<div class="bf' + (an.esc < K.inquietud && cl.esc > 0 ? ' mal' : '') + '">' + clasesFrase(c, cl, an) + '</div>' +
+    '<button class="btn ' + (mot ? 'no' : '') + '" data-act="ciud"' + (mot ? ' disabled' : '') + '>Dar ciudadanía (' + K.ciudadaniaCoste + ' 🪙)<small>' + (mot || '+' + K.ciudadaniaLote + ' ciudadanos') + '</small></button></div>';
+};
 const impHtml = c => {
   if (c.owner !== 'roma') return '';
   const f = G.felicidad(c), col = f >= 60 ? 'var(--good,#5c5)' : f >= 40 ? '#e0a030' : '#e05050', cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠';
@@ -277,7 +294,7 @@ function tiposModal() {
   return h + '<div class="acts"><button class="btn ghost" data-act="close">Cerrar</button></div>';
 }
 const inqHtml = c => c.owner === 'roma' && c.inq > 0 ? '<span class="stat" style="color:#e0a030">🔥 Ciudad conquistada: inquieta unos ' + Math.ceil(c.inq / (1 + D.INQ_TEMPLO * G.diosNivel(c))) + ' meses · produce un ' + Math.round((1 - G.inqMul(c)) * 100) + ' % menos' + (G.felicidad(c) < D.INQ_REBELION ? ' · <b>con esta felicidad se rebelará</b>' : '') + '. Un templo la calma antes.</span>' : '';
-const popHtml = c => '<span class="stat">' + D.POP_ICON + ' Población <b>' + Math.floor(c.pop) + '</b> / ' + G.popCap(c) + '</span><span class="stat">' + D.GUERRA_ICON.casco + ' Reclutas disponibles <b>' + G.recruits(c) + '</b></span>' + manoHtml(c) + inqHtml(c) + solHtml(c) + espLinea(c) + barrioHtml(c) + impHtml(c);
+const popHtml = c => '<span class="stat">' + D.POP_ICON + ' Población <b>' + Math.floor(c.pop) + '</b> / ' + G.popCap(c) + '</span><span class="stat">' + D.GUERRA_ICON.casco + ' Reclutas disponibles <b>' + G.recruits(c) + '</b></span>' + manoHtml(c) + inqHtml(c) + solHtml(c) + espLinea(c) + barrioHtml(c) + clasesHtml(c) + impHtml(c);
 function marketHtml() {
   const rate = G.tradeRate(); if (!rate) return '';
   UI.mf = UI.mf || 'madera'; UI.mt = UI.mt || 'hierro';
@@ -767,6 +784,7 @@ document.addEventListener('click', function (e) {
     case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; if (UI.tab === 'map' && UI.map) UI.map.center(v); render(); tickUI(); break;
     case 'rep': if (G.reparto(UI.city, el.dataset.r, +el.dataset.d)) render(); break;
     case 'imp': if (G.setImp(UI.city, el.dataset.v)) render(); break;
+    case 'ciud': if (G.darCiudadania(UI.city)) render(); break;
     case 'ruta': { const q = v.split('>'); if (G.rutaAbrir(q[0], q[1])) { toast('⚖️ Ruta abierta con ' + D.CITIES[q[1]].n + '.'); render(); } else toast(G.rutaPuede(q[0], q[1]) || 'No se puede abrir la ruta.', 'bad'); break; }
     case 'rutacerrar': { const q = v.split('>'); if (G.rutaCerrar(q[0], q[1])) { toast('Ruta cerrada.'); render(); } break; }
     case 'tipos': modal(tiposModal()); break;

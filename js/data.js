@@ -65,6 +65,18 @@
   ];
   D.BARRIO_RETRASO = 3;   // meses con déficit antes de bajar un nivel
   D.LUJO = ['vino', 'purpura', 'plata'];
+  /* Clases (Q6). Licencia de juego: tres clases por ciudad (ciudadanos, plebeyos, esclavos) con su ánimo; todos los números son nuestros.
+     c.pop es el total; plebeyos = pop - ciu - esc. */
+  D.CLASES = {
+    escConquista: 0.25,        // parte de la población de una ciudad conquistada que pasa a esclavos
+    escTrabajo: 0.3,           // cada esclavo trabaja 1,3 veces
+    impCiu: 2.5,               // impuestos por ciudadano (plebeyo 1, esclavo 0)
+    escAnimo: 0.15, escAnimoTope: 15,   // ánimo que pierden los plebeyos por cada punto de % de esclavos (con tope)
+    bajo: 30, inquietud: 25, inquietudFel: 8,   // por debajo de 'bajo' la clase rinde la mitad; esclavos por debajo de 'inquietud': -8 de felicidad
+    manumision: 55, manumisionTasa: 0.05,       // con este ánimo de esclavos, esta parte se libera cada mes
+    ciudadaniaLote: 10, ciudadaniaCoste: 60, ciudadaniaBarrio: 2, ciudadaniaMax: 0.4,
+    caraBuena: 60, caraMedia: 35
+  };
   D.BARRIO_SERV = { grano: 'Grano', templo: 'Templo', agua: 'Agua', ocio: 'Ocio', termas: 'Termas', lujo: 'Lujo' };
   // mano de obra y mantenimiento (I3): puestos = base + por nivel de aserradero/cantera/mina/granja; la producción de recursos se multiplica por pop/puestos (con suelo)
   D.PUESTOS_BASE = 20; D.PUESTOS_NIVEL = 12; D.MANO_MIN = 0.25;
