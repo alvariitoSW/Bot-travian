@@ -653,3 +653,11 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 .sv-i { float: right; font-size: 16px; margin-left: 4px; } .sv-t.sel { border-color: var(--gold); } .sv-t.hecha { border-color: #3f7a4d; background: #1f3a2644; } .sv-t.ok { border-color: var(--gold); }
 .sv-t.excl { opacity: .5; } .sv-t.req, .sv-t.edad, .sv-t.falta { opacity: .75; } .sv-o { font: 700 13px var(--serif); color: var(--mute); flex: none; }
 .sv-det { margin: 0 0 8px; padding: 9px 11px; border-radius: 8px; background: #17110d; border: 1px solid var(--gold); font-size: 12.5px; } .sv-det p { margin: 0 0 4px; } .sv-det .btn { margin-top: 8px; width: 100%; }
+/* Escuela: tarjeta de sabios (I5b) */
+.esc { display: flex; flex-direction: column; gap: 6px; }
+.esc-h { font-size: 12px; letter-spacing: .06em; color: var(--gold2, var(--gold)); margin-top: 2px; } .esc-h small { margin-left: 6px; color: var(--mute); letter-spacing: 0; }
+.esc-g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .esc-g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.esc-b { min-height: 48px; padding: 6px 7px; border-radius: 8px; border: 1px solid var(--line, #555); background: transparent; color: inherit; text-align: left; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.esc-b b { font-size: 13px; } .esc-b small { font-size: 11px; color: var(--mute); line-height: 1.25; overflow-wrap: anywhere; }
+.esc-b.on { border-color: var(--gold); background: rgba(201, 162, 77, .16); } .esc-b.off { opacity: .4; }
+.esc-v { font-size: 12.5px; line-height: 1.35; } .esc-av { font-size: 12px; color: var(--gold); line-height: 1.3; }

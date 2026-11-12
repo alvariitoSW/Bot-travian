@@ -910,6 +910,21 @@
    "tarea": "I5",
    "archivo": "gobierno/capturas-tarea/I5/I5-3-par-bloqueado.jpg",
    "pie": "Saber: Viña hecha, Trigo con candado («o tú o yo»)"
+  },
+  {
+   "tarea": "I5b",
+   "archivo": "gobierno/capturas-tarea/I5b/I5b-0b-bandeja-abierta.jpg",
+   "pie": "Escuela en la bandeja de la ciudad"
+  },
+  {
+   "tarea": "I5b",
+   "archivo": "gobierno/capturas-tarea/I5b/I5b-2-dotacion-puesta.jpg",
+   "pie": "Escuela: tarjeta de dotación y quién estudia"
+  },
+  {
+   "tarea": "I5b",
+   "archivo": "gobierno/capturas-tarea/I5b/I5b-3-saber-ritmo.jpg",
+   "pie": "Saber: «Ritmo ×1,3 con tus 10 sabios»"
   }
  ],
  "informes": [

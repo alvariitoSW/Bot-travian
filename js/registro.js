@@ -24,6 +24,7 @@
     cuartel: f(est('cuartel'), SIN_H), establo: f(est('establo'), SIN_H),
     muralla: f(est('muro', { nota: 'recinto con muro.bin, torre.bin y puerta.bin' }), SIN_H),
     herreria: f({ sin: 'la herrería no tiene modelo: no se dibuja en la ciudad', provisional: true }, SIN_H),
+    escuela: f({ sin: 'la escuela no tiene modelo propio: de momento no se dibuja en la ciudad', provisional: true }, SIN_H),
     acueducto: f(propio('acueducto', { nota: 'arcada de seis arcos de medio punto con canal; 0 A.D. no trae ninguna' }), SIN_H),
     termas: f(propio('termas', { nota: 'sala con bóveda de cañón, pórtico, ábside y chimenea; 0 A.D. no trae ninguna. Las grandes termas imperiales son posteriores: es un balneum republicano idealizado' }), SIN_H),
     anfiteatro: f(est('anfiteatro', { nota: 'anfiteatro de Pompeya (0 A.D., aligerado y a escala de ciudad); es de hacia 70 a.C., posterior a 146 a.C.: licencia de juego, en el 264 a.C. los combates de gladiadores se daban en el Foro Boario' }), SIN_H),

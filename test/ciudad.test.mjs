@@ -44,10 +44,10 @@ prueba('60 meses tardan menos de 8 s', () => { const t = Date.now(); const F = R
 
 /* ---------- CN2a: catálogo único, costes en 5 recursos, mejoras, siembra y fundación automática ---------- */
 const RES = ['madera', 'piedra', 'hierro', 'grano', 'oro'], suma = c => RES.reduce((t, r) => t + c[r], 0);
-prueba('cada pieza tiene coste de 5 claves y 3 mejoras crecientes', () => { assert.equal(Object.keys(R.EDIF).length, 16); assert.deepEqual([...R.ORDEN].sort(), Object.keys(R.EDIF).sort());
+prueba('cada pieza tiene coste de 5 claves y 3 mejoras crecientes', () => { assert.equal(Object.keys(R.EDIF).length, 17); assert.deepEqual([...R.ORDEN].sort(), Object.keys(R.EDIF).sort());
   for (const [k, D] of Object.entries(R.EDIF)) { assert.deepEqual(Object.keys(D.coste), RES, k); assert.equal(D.mejoras.length, 3, k); let ant = suma(D.coste); assert.ok(ant > 0, k);
     for (const m of D.mejoras) { assert.deepEqual(Object.keys(m.coste), RES, k); assert.ok(suma(m.coste) > ant, k + ' mejora creciente'); ant = suma(m.coste); } } });
-prueba('PIEZA_DE es biyectiva con los bid; niveles de mejora', () => { const bids = Object.values(R.EDIF).map(D => D.bid).filter(Boolean); assert.equal(bids.length, 12); assert.equal(Object.keys(R.PIEZA_DE).length, 12);
+prueba('PIEZA_DE es biyectiva con los bid; niveles de mejora', () => { const bids = Object.values(R.EDIF).map(D => D.bid).filter(Boolean); assert.equal(bids.length, 13); assert.equal(Object.keys(R.PIEZA_DE).length, 13);
   for (const [k, D] of Object.entries(R.EDIF)) if (D.bid) assert.equal(R.PIEZA_DE[D.bid], k); else assert.ok(['fuente', 'granero', 'taller', 'compitum'].includes(k));
   assert.equal(R.PIEZA_DE.puerto, 'muelle'); assert.deepEqual(R.NIVEL_MEJORA, [1, 3, 6, 10]);
   assert.deepEqual([0, 1, 2, 3, 4, 6, 7, 10].map(R.MEJORA_DE_NIVEL), [-1, 0, 1, 1, 2, 2, 3, 3]); });

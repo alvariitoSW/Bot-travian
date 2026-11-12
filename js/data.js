@@ -25,6 +25,7 @@
     establo: { n: 'Establo', i: '🐎', solar: 1, cost: { madera: 110, piedra: 60, hierro: 80, grano: 70 }, time: 3, d: 'Recluta caballería (Équites).' },
     muralla: { n: 'Muralla', i: '🧱', cost: { madera: 40, piedra: 120, hierro: 30, grano: 20 }, time: 3, d: '+10 % de defensa por nivel y más guardia urbana al defender.' },
     herreria: { n: 'Herrería', i: '🔨', solar: 1, cost: { madera: 70, piedra: 60, hierro: 90, grano: 30, oro: 30 }, time: 2.5, d: 'Forja mejoras de armas y armaduras para todo el ejército. Cada mejora no puede pasar del nivel de la herrería.' },
+    escuela: { n: 'Escuela', i: '📜', solar: 1, cost: { madera: 70, piedra: 90, hierro: 10, grano: 40, oro: 60 }, time: 3, d: 'Aquí estudian los sabios: aceleran las investigaciones y cobran paga.' },
     acueducto: { n: 'Acueducto', i: '🌉', solar: 1, cost: { madera: 90, piedra: 160, hierro: 50, grano: 50, oro: 60 }, time: 3.5, d: 'Trae agua a la ciudad: +40 de población máxima por nivel.' },
     termas: { n: 'Termas', i: '♨️', solar: 1, cost: { madera: 100, piedra: 140, hierro: 40, grano: 60, oro: 80 }, time: 3.5, d: 'Baños públicos: +4 de felicidad y +15 de población máxima por nivel.' },
     anfiteatro: { n: 'Anfiteatro', i: '🏟️', solar: 1, cost: { madera: 130, piedra: 180, hierro: 60, grano: 80, oro: 100 }, time: 4, d: 'Juegos y espectáculos: +6 de felicidad por nivel.' },
@@ -109,7 +110,11 @@
     techos: { grano: 1.08, crece: 1.20, impuestos: 1.12, oroCom: 1.25, rutaRenta: 1.20, viajeTierra: 3, viajeMar: 6, obra: 0.85, paga: 0.85, instr: 0.90, mor: 4, atk: 1.10, defMuro: 0.15 },
     final: { grano: 1.30, crece: 1.25, impuestos: 1.20, oroCom: 1.40, rutaRenta: 1.40, viajeMin: 3, obra: 0.75, paga: 0.70, instr: 0.78 },
     edadNombres: ['Roma itálica', 'Roma sale al mar', 'Aníbal', 'Roma y los reinos griegos'],
-    copia: 0.5, copiaBatalla: 0.15, copiaBajasMin: 60
+    copia: 0.5, copiaBatalla: 0.15, copiaBajasMin: 60,
+    /* Sabios de la Escuela (I5b). Todo número de las reglas está aquí. dotFrac: fracción del aforo; aforo = aforoNivel × nivel de la Escuela;
+       calNivel: calidad por nivel; rinde/pagaBase por clase (ple plebeyo, ciu ciudadano, esc maestro esclavo); pagaEdad por edad; paga = base × edad × (1 + S/pagaDiv). */
+    dotFrac: [0, 1 / 3, 2 / 3, 1], aforoNivel: 10, calNivel: { 1: 1, 3: 1, 6: 1.1, 10: 1.2 }, rinde: { ple: 1, ciu: 1.6, esc: 1.3 }, pagaBase: { ple: 0.20, ciu: 0.45, esc: 0.10 },
+    pagaEdad: [1, 1.25, 1.5, 1.75], pagaDiv: 50, alta: 6, topePob: 0.15, animoMin: 30, velK: 2.4, velR0: 60, velMax: 3, afinMul: 1.25, artesanosMul: 1.12
   };
   const invC = (madera, piedra, hierro, grano, oro) => ({ madera, piedra, hierro, grano, oro });
   const inv = (id, n, i, rama, edad, req, excl, cost, time, ef, eureka, fuente, dictamen) => { const o = { id, n, i, rama, edad, req, excl, cost, time, ef, fuente, dictamen }; if (eureka) o.eureka = eureka; return o; };

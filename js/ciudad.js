@@ -52,6 +52,7 @@ export const EDIF = {
   taller: { nombre: 'Taller', bid: null, coste: R5(50, 40, 40, 15, 20), obra: 2, w: 17, d: 17, radio: 75, desde: 700, que: 'Da monedas; su humo molesta' },
   muelle: { nombre: 'Muelle', bid: 'puerto', coste: R5(140, 80, 50, 30, 60), obra: 2, w: 20, d: 30, radio: 0, desde: 700, que: 'Solo en la orilla; da comercio' },
   herreria: { nombre: 'Herrería', bid: 'herreria', coste: R5(70, 60, 90, 30, 30), obra: 2, w: 18, d: 16, radio: 0, desde: 600, que: 'Forja armas; cerca del foro y lejos de las casas (humo)' },
+  escuela: { nombre: 'Escuela', bid: 'escuela', coste: R5(70, 90, 10, 40, 60), obra: 2, w: 22, d: 20, radio: 0, desde: 300, que: 'Los sabios estudian aquí; cerca del foro y lejos del humo' },
   cuartel: { nombre: 'Cuartel', bid: 'cuartel', coste: R5(90, 60, 70, 40, 0), obra: 2, w: 24, d: 20, radio: 0, desde: 300, que: 'Recluta infantería; junto a una puerta del surco' },
   establo: { nombre: 'Establo', bid: 'establo', coste: R5(110, 60, 80, 70, 0), obra: 2, w: 26, d: 20, radio: 0, desde: 500, que: 'Recluta caballería; en llano y junto a una puerta' },
   muralla: { nombre: 'Muralla', bid: 'muralla', coste: R5(40, 120, 30, 20, 0), obra: 3, radio: 0, desde: 1000, accion: true, que: 'Sigue el surco' },
@@ -65,7 +66,7 @@ export const MEJORA_DE_NIVEL = n => n < 1 ? -1 : n === 1 ? 0 : n <= 3 ? 1 : n <=
    Sin bid: coste base × 1.5 por mejora. radioMul = cuánto crece su radio; rinde = multiplicador de lo que da (provisional). */
 const SALTA = [[1, 2], [3, 4, 5], [6, 7, 8, 9]], MEJ = [[1.15, 1.2], [1.3, 1.5], [1.5, 2]];
 for (const D of Object.values(EDIF)) D.mejoras = MEJ.map(([radioMul, rinde], k) => ({ coste: D.bid ? sumaCostes(SALTA[k].map(L => costeNivel(D.coste, L))) : costeNivel(D.coste, k + 1), radioMul, rinde }));
-export const ORDEN = ['fuente', 'granero', 'granja', 'aserradero', 'cantera', 'mina', 'almacen', 'templo', 'mercado', 'taller', 'muelle', 'herreria', 'cuartel', 'establo', 'muralla', 'compitum'];
+export const ORDEN = ['fuente', 'granero', 'granja', 'aserradero', 'cantera', 'mina', 'almacen', 'templo', 'mercado', 'taller', 'muelle', 'herreria', 'escuela', 'cuartel', 'establo', 'muralla', 'compitum'];
 /* Monedero interno E.monedas: solo para pruebas y modo normal sin juego. Un coste en 5 recursos vale la suma de sus números. */
 const valor = c => RECURSOS.reduce((s, r) => s + (c[r] || 0), 0);
 /* Cobro: pago(coste)->bool lo decide el juego; sin pago se descuenta del monedero interno. */
@@ -295,6 +296,9 @@ export function notaSitio(E, id, x, z, cx) {
     n += dp < 70 ? 3 : 1; raz.push(dp < 70 ? 'Junto a una puerta: la tropa sale +3' : 'No lejos de una puerta +1'); if (id === 'establo') { n += 1; raz.push('Llano +1'); } const c = cuantas(40); if (c) { n -= 1; raz.push('Ruido para ' + c + ' casas −1'); } }
   else if (id === 'herreria') { if (dF > 150) return mal('La herrería va cerca del foro');
     const c = cuantas(45); n += 1; raz.push('Cerca del foro +1'); if (c) { const p = Math.min(3, 1 + Math.ceil(c / 6)); n -= p; raz.push('Su humo molestaría a ' + c + ' casas −' + p); } else { n += 2; raz.push('Lejos de las casas +2'); } }
+  else if (id === 'escuela') { if (dF > 170) return mal('La escuela va cerca del foro');
+    const c = cuantas(45), t = E.edificios.some(q => q.tipo === 'taller' || q.tipo === 'herreria') && E.edificios.some(q => (q.tipo === 'taller' || q.tipo === 'herreria') && Math.hypot(q.x - x, q.z - z) < 70);
+    n += 1; raz.push('Cerca del foro +1'); if (t) { n -= 2; raz.push('El humo del taller molesta al estudio −2'); } else { n += 2; raz.push('Lejos del humo +2'); } if (c) { n += 1; raz.push('Entre casas: llegan alumnos +1'); } }
   else if (id === 'compitum') { const db = Math.min(...E.barrios.map(b => Math.hypot(b.x - x, b.z - z)));
     if (den) return mal('El barrio nuevo se abre fuera del surco'); if (db < 215) return mal('Demasiado cerca de otro barrio'); if (E.dVia[k] > 22) return mal('Tiene que estar junto a un camino'); if (cuantas(45)) return mal('Aquí ya hay casas');
     n += 2; raz.push('Junto al camino +2'); if (PEND[k] < 0.06) { n += 1; raz.push('Llano para crecer +1'); } if (d < 230 && !inu) { n += 1; raz.push('Agua cerca +1'); } }

@@ -153,6 +153,7 @@
     p.rutas = 0; for (const r of G.rutasAbiertas()) p.rutas += G.rutaRenta(r);
     p.oro += p.rutas; det.rutas = p.rutas;
     p.mant = G.mantenimiento(); p.oro -= p.mant.total;
+    p.sabios = G.pagaSabios(gOk);   // solo dato: se cobra al cerrar el mes (G.cierreMes), no entra en p.oro
     return p;
   };
 
@@ -278,12 +279,14 @@
   G.popEfectiva = function (c, granoOk) {
     const cl = G.clases(c); if (c.owner !== 'roma') return cl.pop;
     const K = G.K(), a = G.animoClases(c, granoOk);
-    return cl.ciu + cl.ple * (a.ple < K.bajo ? 0.5 : 1) + cl.esc * (1 + (a.esc < K.bajo ? 0 : K.escTrabajo));
+    const sb = G.sabiosDe(c, granoOk).porClase;   // un sabio no produce
+    return (cl.ciu - sb.ciu) + (cl.ple - sb.ple) * (a.ple < K.bajo ? 0.5 : 1) + (cl.esc - sb.esc) * (1 + (a.esc < K.bajo ? 0 : K.escTrabajo));
   };
   // impuestos por cabeza: ciudadano x2,5, plebeyo x1, esclavo 0 (ciudadanos con ánimo bajo pagan la mitad)
   G.cabezasImp = function (c, granoOk) {
     const cl = G.clases(c), a = G.animoClases(c, granoOk);
-    return cl.ple + cl.ciu * G.K().impCiu * (a.ciu < G.K().bajo ? 0.5 : 1);
+    const sb = G.sabiosDe(c, granoOk).porClase;   // un sabio no paga impuesto
+    return (cl.ple - sb.ple) + (cl.ciu - sb.ciu) * G.K().impCiu * (a.ciu < G.K().bajo ? 0.5 : 1);
   };
   G.darCiudadania = function (cid) {
     const c = G.state.cities[cid]; if (!c || c.owner !== 'roma' || G.motivoCiudadania(c)) return false;
@@ -300,7 +303,7 @@
   };
 
   G.MIN_POP = 50;                                   // civiles que nunca se reclutan
-  G.recruits = c => Math.max(0, Math.floor((c.pop || 0) - G.MIN_POP));
+  G.recruits = c => Math.max(0, Math.floor((c.pop || 0) - G.MIN_POP) - G.sabiosDe(c).n);   // los sabios no son reclutas
 
   /* ---------- mercado ---------- */
   G.marketLevel = () => { let l = 0; for (const id of G.myCities()) l = Math.max(l, G.state.cities[id].b.mercado || 0); return l; };
@@ -468,7 +471,7 @@
   G.ciudadE = function (id) { const c = G.state && G.state.cities[id]; if (!c || c.owner !== 'roma') return null; const r = infoC(c); return r ? r.E : null; };
   G.convertir = id => { const c = G.state.cities[id]; if (!c || !CI) return null; regE.delete(c); delete c.ciudad; return abrir(c) ? G.ciudadE(id) : null; };
   // una ciudad que deja de ser nuestra pierde su ciudad nueva y se queda con los números
-  function soltarCiudad(c) { regE.delete(c); delete c.ciudad; delete c.heredado; if (!c.b.viviendas) c.b.viviendas = 2; }   // sin ciudad nueva, c.b.viviendas (vista derivada = 0) vuelve a un mínimo para que la reconquista no hunda la población
+  function soltarCiudad(c) { delete c.sabios; regE.delete(c); delete c.ciudad; delete c.heredado; if (!c.b.viviendas) c.b.viviendas = 2; }   // sin ciudad nueva, c.b.viviendas (vista derivada = 0) vuelve a un mínimo para que la reconquista no hunda la población
   // una obra de partida vieja (sin pieza) se liga a la pieza que ahora existe si no pasa por encima de lo ya convertido
   function migrarObra(c, antes) {
     const q = c.queue; if (!q || 'nuevo' in q) return; q.pieza = null; q.nuevo = false; q.mejora = null;
@@ -532,6 +535,7 @@
     if (c.obras.length >= G.huecos(c)) return { ok: false, motivo: 'Ya hay una obra en curso en esta ciudad' };
     const b = CI.EDIF[pz].bid; if (b && (D.BUILD[b].sea && !D.CITIES[cid].sea)) return { ok: false, motivo: 'Aquí no hay mar' };
     if (b && G.faltaInv(b)) return { ok: false, motivo: G.faltaInv(b) }; if (b && G.faltaEspecial('edificio', b, c.b[b] || 0)) return { ok: false, motivo: 'Falta un bien especial' };
+    if (pz === 'escuela') { if (!E.abiertas.includes('escuela')) return { ok: false, motivo: 'La Escuela se abre con ' + CI.EDIF.escuela.desde + ' habitantes' }; if ((c.b.escuela || 0) >= 1 || E.edificios.some(q => q.tipo === 'escuela') || c.obras.some(o => o.pieza === 'escuela')) return { ok: false, motivo: 'Ya hay una Escuela en esta ciudad' }; }
     const n = CI.notaSitio(E, pz, x, z); if (!n.vale) return { ok: false, motivo: n.razones[0] };
     if (b === 'templo' && !G.diosDe(c)) c.dios = D.DIOSES[c.dios] && !(D.DIOSES[c.dios].sea && !D.CITIES[cid].sea) ? c.dios : 'marte';
     if (!empezar(c, especNueva(c, E, pz, x, z))) return { ok: false, motivo: 'Faltan recursos' };
@@ -907,8 +911,8 @@
          entra = r === 'grano' ? p.grano + p.comida : p[r], x = pr[r];
       out.mat[r] = { entra: entra, comprometido: comp, plazos: pl[r], queda: x.sobra, alAlmacen: Math.max(0, x.sobra - x.perdera), caben: x.cabe, perdera: x.perdera };
     }
-    const m = G.mantenimiento(), gm = (s.gastoMes && s.gastoMes.oro) || 0, ob = Math.min(gm, s.obrasMes || 0) + pl.oro, otros = Math.max(0, gm - (s.obrasMes || 0)), d = p.det, ing = d.impuestos + d.foro + d.rutas, gas = m.edificios + m.tropas + ob + otros;
-    out.oro = { impuestos: d.impuestos, foro: d.foro, rutas: d.rutas, ingresos: ing, edificios: m.edificios, legiones: m.tropas, obras: ob, otros: otros, deuda: Math.round(s.deudaPaga || 0), plazosOro: pl.oro, gastos: gas, saldo: ing - gas, neto: p.oro };
+    const m = G.mantenimiento(), gm = (s.gastoMes && s.gastoMes.oro) || 0, ob = Math.min(gm, s.obrasMes || 0) + pl.oro, otros = Math.max(0, gm - (s.obrasMes || 0)), d = p.det, ing = d.impuestos + d.foro + d.rutas, sab = p.sabios || 0, gas = m.edificios + m.tropas + ob + otros + sab;
+    out.oro = { impuestos: d.impuestos, foro: d.foro, rutas: d.rutas, ingresos: ing, edificios: m.edificios, legiones: m.tropas, obras: ob, otros: otros, deuda: Math.round(s.deudaPaga || 0), sabios: sab, plazosOro: pl.oro, gastos: gas, saldo: ing - gas, neto: p.oro };
     return out;
   };
   // vende en el mercado lo que se perdería de r; devuelve el oro recibido (0 si no se puede)
@@ -929,6 +933,11 @@
     const s = G.state, cap = G.cap(), reg = { mes: Math.floor(s.t + 1e-9), tn: Math.floor((Math.floor(s.t + 1e-9) - 1) / D.TURNO_MESES), r: {} }; let pierde = [], rojo = false;
     for (const v of vencen(Math.floor(s.t + 1e-9))) {   // plazos de obras y reclutas, de la caja antes de guardar
       if (!pagaCuota(v.q)) { v.q.pausa = true; rojo = true; G.log('⏸️ ' + D.CITIES[v.id].n + ': ' + (v.q.u ? 'instrucción' : 'obra') + ' detenida por falta de fondos.', 'bad'); } }
+    const paga = G.pagaSabios();   // paga de los sabios (I5b): se cobra con los plazos; sin oro, las escuelas cierran
+    if (paga > 0) {
+      if (G.canAfford({ oro: paga })) gasta('oro', paga, true);
+      else { for (const id of G.myCities()) { const sb = s.cities[id].sabios; if (sb) sb.dot = 0; } rojo = true; G.log('🎓 Sin oro para pagar a los sabios: las escuelas cierran.', 'bad'); }
+    }
     s.obrasMes = 0;
     mesCiudades();
     G.senadoMes(rojo || s.deudaPaga > 0);
@@ -1137,14 +1146,69 @@
   /* ---------- Saber (I5-B): requisitos, precio fijo con tope, cola, efectos y techos ---------- */
   const INV_LOW = { obra: 1, paga: 1, instr: 1 };   // campos donde la ciencia BAJA el multiplicador (el techo es un mínimo)
   const ROMANO = ['', 'I', 'II', 'III', 'IV'];
-  G.saberVel = () => 1;   // provisional: la Escuela (I5b) lo hará depender de los sabios
+  /* Sabios (I5b). c.sabios = { dot 0..3, clase 'ple'|'ciu'|'esc' } solo existe si el jugador la usa (el bot nunca lo crea). Constantes: D.SABER. */
+  const SB0 = () => ({ n: 0, porClase: { ple: 0, ciu: 0, esc: 0 }, R: 0, ociosos: 0, aforo: 0, disp: { ple: 0, ciu: 0, esc: 0 }, dot: 0, clase: 'ple' });
+  G.sabiosDe = function (c, gOk) {
+    if (!c || !c.sabios || !c.b || !c.b.escuela) return SB0();   // salida inmediata: el bot y las ciudades sin Escuela no gastan nada
+    const SD = D.SABER, sb = c.sabios, dot = Math.max(0, Math.min(3, Math.floor(sb.dot || 0))), clase = SD.rinde[sb.clase] ? sb.clase : 'ple', cl = G.clases(c), r = SB0();
+    const niv = c.b.escuela; r.dot = dot; r.clase = clase; r.aforo = SD.aforoNivel * niv; r.disp = { ple: cl.ple, ciu: cl.ciu, esc: cl.esc };
+    let n = 0;
+    if (dot > 0) {
+      let f = G.felicidadBase(c), ok = true;
+      if (clase === 'esc') { const a = G.animoClases(c, gOk).esc; ok = a >= SD.animoMin; if (cl.esc > 0 && a < G.K().inquietud) f = Math.max(0, f - G.K().inquietudFel); }   // solo los esclavos miran el ánimo
+      if (ok && f >= D.FELICIDAD_MIN_CRECER) n = Math.max(0, Math.min(Math.round(SD.dotFrac[dot] * r.aforo), Math.floor(r.disp[clase]), Math.floor(SD.topePob * Math.max(0, cl.pop - G.MIN_POP))));
+    }
+    r.n = n; r.porClase[clase] = n;
+    let cal = 1; for (const k of [1, 3, 6, 10]) if (niv >= k) cal = SD.calNivel[k];
+    const q = G.state.inv && G.state.inv.cola, rama = q && D.INVEST[q.id] ? D.INVEST[q.id].rama : null, tp = G.tipoDe(c);
+    r.R = n * SD.rinde[clase] * cal * (tp.afin && tp.afin === rama ? SD.afinMul : 1) * (c.tipo === 'saber' ? SD.artesanosMul : 1);
+    r.ociosos = Math.max(0, Math.floor(cl.pop - n - G.puestos(c)));
+    return r;
+  };
+  const sabiosSuma = (gOk, f) => { let t = 0; for (const id of G.myCities()) t += f(G.sabiosDe(G.state.cities[id], gOk)); return t; };
+  G.sabiosTotal = gOk => sabiosSuma(gOk, x => x.n);
+  G.sabiosR = gOk => sabiosSuma(gOk, x => x.R);
+  G.saberVel = function (gOk) { const R = G.sabiosR(gOk), SD = D.SABER; return R > 0 ? Math.min(SD.velMax, 1 + SD.velK * R / (R + SD.velR0)) : 1; };
+  // oro al mes: Σ sabios de cada clase × paga base × factor de edad × (1 + S/pagaDiv), S = total del imperio. Sin caché: se recalcula (es barato y depende de la población).
+  G.pagaSabios = function (gOk) {
+    const SD = D.SABER, cl = { ple: 0, ciu: 0, esc: 0 }; let S = 0;
+    for (const id of G.myCities()) { const x = G.sabiosDe(G.state.cities[id], gOk); if (x.n) { for (const k in cl) cl[k] += x.porClase[k]; S += x.n; } }
+    if (!S) return 0;
+    const ed = SD.pagaEdad[Math.max(0, Math.min(SD.pagaEdad.length, (G.state.inv && G.state.inv.edad) || 1) - 1)];
+    return (cl.ple * SD.pagaBase.ple + cl.ciu * SD.pagaBase.ciu + cl.esc * SD.pagaBase.esc) * ed * (1 + S / SD.pagaDiv);
+  };
+  // cambia dotación y/o clase; cobra el alta (6 oro por sabio nuevo; una clase nueva cuenta entera). Bajar es gratis.
+  G.setSabios = function (cid, dot, clase) {
+    const s = G.state, c = s.cities[cid]; clase = clase || (c && c.sabios && c.sabios.clase) || 'ple';
+    if (!c || c.owner !== 'roma') return { ok: false, motivo: 'No es una ciudad tuya' };
+    if (!c.b.escuela) return { ok: false, motivo: 'Esta ciudad no tiene Escuela' };
+    if (!D.SABER.rinde[clase] || !(dot >= 0 && dot <= 3)) return { ok: false, motivo: 'Dotación no válida' };
+    if (clase === 'esc' && dot > 0 && !((c.esc || 0) >= 1)) return { ok: false, motivo: 'No hay esclavos en esta ciudad' };
+    if (!c.sabios && dot === 0 && clase === 'ple') return { ok: true, motivo: '' };   // cerrada y plebeyos = estado por defecto; otra clase sí se guarda
+    const antes = c.sabios ? G.sabiosDe(c) : null, mismaClase = !c.sabios || c.sabios.clase === clase, previo = c.sabios ? { dot: c.sabios.dot, clase: c.sabios.clase } : null;
+    c.sabios = { dot: Math.floor(dot), clase: clase };
+    const alta = D.SABER.alta * Math.max(0, G.sabiosDe(c).n - (antes && mismaClase ? antes.n : 0));
+    if (alta > 0 && !G.canAfford({ oro: alta })) { if (previo) c.sabios = previo; else delete c.sabios; return { ok: false, motivo: 'Faltan ' + Math.ceil(alta - G.disponible('oro')) + ' denarios' }; }
+    if (alta > 0) gasta('oro', alta);
+    emit('dirty'); return { ok: true, motivo: '' };
+  };
+  // previsión para los botones, sin cambiar nada
+  G.sabiosVista = function (cid, dot, clase) {
+    const c = G.state.cities[cid]; if (!c) return null; const viejo = c.sabios, cl0 = clase || (viejo && viejo.clase) || 'ple';
+    const R0 = G.sabiosR(), v0 = G.saberVel(), p0 = G.pagaSabios(), a0 = G.sabiosDe(c);
+    c.sabios = { dot: dot, clase: cl0 };
+    try {
+      const x = G.sabiosDe(c), v = G.saberVel(), mismaClase = !viejo || viejo.clase === cl0;
+      return { n: x.n, dR: G.sabiosR() - R0, vel: v, dVel: v - v0, dPaga: G.pagaSabios() - p0, alta: D.SABER.alta * Math.max(0, x.n - (mismaClase ? a0.n : 0)), ociosos: x.ociosos, rec: G.recruits(c) };
+    } finally { if (viejo) c.sabios = viejo; else delete c.sabios; }
+  };
   const invDe = id => D.INVEST[id] || D.EDADES[id] || null;
   const nInv = () => { const h = G.state.inv.hechas; return Object.keys(h).filter(k => D.INVEST[k]).length; };
   // ¿se cumple este requisito? (único lector de la gramática de requisitos; _c se ignora: todo sale de G.state)
   G.invReq = function (_c, req) {
     const s = G.state, mis = G.myCities(), h = s.inv.hechas;
     if (req.edad !== undefined) return s.inv.edad >= req.edad;
-    if (req.b) { if (req.b[0] === 'escuela' && !D.BUILD.escuela) return true; /* I5b: quitar este atajo */ return mis.some(id => (s.cities[id].b[req.b[0]] || 0) >= req.b[1]); }
+    if (req.b) { return mis.some(id => (s.cities[id].b[req.b[0]] || 0) >= req.b[1]); }
     if (req.barrio !== undefined) return mis.some(id => G.barrioInfo(s.cities[id]).nivel >= req.barrio);
     if (req.ciudades !== undefined) return mis.length >= Math.max(1, Math.min(req.ciudades, G.ciudadesRegion().length - 1));
     if (req.tiene) return req.tiene.every(id => s.cities[id] && s.cities[id].owner === 'roma');
@@ -1258,7 +1322,7 @@
     return {
       edad: i.edad, edadNombre: D.SABER.edadNombres[i.edad - 1], hechas: Object.keys(i.hechas).filter(k => D.INVEST[k]), nHechas: nInv(), ramas: ramas,
       sig: sig ? { id: sig, n: D.EDADES[sig].n, estado: G.invEstado(sig), req: G.invReqLista(sig), coste: G.invCoste(sig), tiempo: G.invTiempo(sig) } : null,
-      cola: q ? { id: q.id, n: invDe(q.id).n, p: q.p, P: q.P, t0: q.t0, frac: Math.min(1, q.p / q.P), eureka: G.eurekaMul(q.id) > 1, vel: G.saberVel() * G.eurekaMul(q.id) } : null,
+      cola: q ? { id: q.id, n: invDe(q.id).n, p: q.p, P: q.P, t0: q.t0, frac: Math.min(1, q.p / q.P), eureka: G.eurekaMul(q.id) > 1, vel: G.saberVel() * G.eurekaMul(q.id), sabios: { n: G.sabiosTotal(), R: G.sabiosR(), paga: G.pagaSabios(), vel: G.saberVel() } } : null,
       techos: techos
     };
   };
