@@ -157,6 +157,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ⬜ C1 Zoom continuo mapa → ciudad; ejércitos de guarnición visibles junto a cada ciudad.
 - ✅ C2 Costa real (Natural Earth, 15 KB) y grano de hierba en el suelo del mapa. ✅ C2b Relieve con alturas reales (GMTED2010/ETOPO1, 116 KB) y orillas con espuma (12/11).
 - ⬜ C3 Diplomacia sencilla (alianzas, tributos) e IA enemiga que también construye.
+- ⬜ C4 **Ríos, lagos y relieve variado en el mapa** (P92, ≈1 M): Po, Tíber, Ebro, Ródano, delta del Nilo y Danubio como cintas de agua sobre el relieve real; lagos; más tipos de terreno (llanura, estepa, desierto del Atlas). Después de J4 (si no, se regenera el marco dos veces). Alturas: `assets/mapa/generar-alturas.py`.
 
 ## Carril H — Historia (ministerio de Adecuación Histórica)
 - ✅ H1 Auditoría histórica cotejada con los textos (11/11/2026): `gobierno/historia/H1-resumen.md`. Los 10 fallos se confirman, con matices.

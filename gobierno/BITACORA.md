@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 12/11/2026 — **P92 aprobada**: «P92 la apruebo también». Pasa al tablero como C4 (ríos, lagos y relieve variado), después de J4.
 - 12/11/2026 — **Inicio de partida y mejoras de la ciudad nueva** (preguntado en el chat, con fotos de la maqueta): cómo empieza la partida, «A · Dos modos»; mejoras, marcó todas («P83 + P84», «P85 + P87», «P86 + P91», «P88 + P90»); cómo, «Juego, tras CN». (Lectura de Claude: al empezar se elige «Roma y Capua en pie» o «Fundar de la nada»; las plantillas de Roma y Capua las pone CN9. P83 a P88, P90 y P91 aprobadas: pasan al tablero como CN13 a CN20, detrás de CN2 a CN11, sin maqueta previa. P85 no repite lo que ya hacen CN11 y Q11.)
 - 12/11/2026 — **Plan de olas, cuatro preguntas** (respondidas en el chat, todas «Recomendado»): (1) arte: CN3 crea el paso fijo «piezas propias» en `tools/build_static_all.sh` con la lista `tools/piezas_maqueta.txt`; CN9 y CN11 solo añaden nombres; (2) cada cosa que se dibuja tiene un solo dueño, tal cual `gobierno/olas-21.md`; (3) CN2 y C2b corren a la vez con la regla de unión (g); (4) I5 no pide acueducto, termas, anfiteatro ni vigiles (CN10 los quita). Tiempo estimado: 10 a 16 horas de reloj, no hoy.
 - 12/11/2026 — **Aprobó 19 tareas a la vez y pidió hacerlas «con Sonnet 5.5 ultracode, bien y rápido»** (desde el cuadro: Abrir sesión en K3, I5, I6, I8, Q4b, Q7, Q11, C2b y CN2 a CN12; él decía «casi 21»). Pidió también refrescar «Sesiones abiertas» y cerrar las acabadas (hecho: CN1, N6 y N5), sin tocar sesiones de otros proyectos. (Lectura de Claude: no se abren a la vez porque chocan en `js/game.js`, `js/data.js`, `js/ui.js` y `js/gfx/city3d.js`; un reconocimiento de solo lectura las ordenó en 12 olas, en `gobierno/olas-21.md`. K3 no es obra: queda repartida. CN12 e I8 esperan respuestas suyas.)
@@ -109,7 +110,6 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 ## Esperando algo del usuario
 
 ## Propuestas por aprobar
-- P92 **Ríos, lagos y relieve variado en el mapa** (pedido del 12/11; ≈1 M): Po, Tíber, Ebro, Ródano, Nilo-delta, Danubio como cintas de agua sobre el relieve real; lagos; más tipos de terreno (llanura, estepa, desierto del Atlas). Va después de J4 (si no, se regenera el marco dos veces). Los datos de altura se rehacen con `assets/mapa/generar-alturas.py`.
 
 
 ## Encargo en curso (11/11/2026, noche)
@@ -117,7 +117,7 @@ Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego
 - **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`, lo de batalla en `js/ui.js`): A5c Arrastre y formaciones → A3 Combate que se ve → A4 Papeles de la infantería → A5b Terreno → A1 Formaciones de verdad → A2 Animaciones por fila → A6 Cámara, sonido y proyectiles → A8b Ajuste fino del ritmo.
 - **Campaña** (`js/game.js`, `js/data.js`, paneles de ciudad en `js/ui.js`, `js/gfx/city3d.js`): F5 Templos → B7 Saqueo → C3 Diplomacia → B5 Marina → I5 Investigación → I2 Mapa por turnos.
 - **Arte** (`css/`, `index.html`, `assets/`, `tools/`, `js/gfx/statics.js`): E4 Arte de termas, acueducto y anfiteatro → E1c Guía de arte, segunda parte → E2b Más piezas por cultura → A7 Ciudades enemigas con edificios de su cultura.
-- **Mapa** (`js/gfx/map3d.js`, `js/gfx/ground.js`): ✅ C2 Costa y ✅ C2b relieve con alturas reales y espuma (12/11). Siguiente del mapa: J4 (más ciudades y mapa mayor) y P92.
+- **Mapa** (`js/gfx/map3d.js`, `js/gfx/ground.js`): ✅ C2 Costa y ✅ C2b relieve con alturas reales y espuma (12/11). Siguiente del mapa: J4 (más ciudades y mapa mayor) y C4 (ríos y lagos).
 - **Registro** (`js/registro.js`, `js/codice.js`): I1b Fichas al día y una sola fuente.
 Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bitácora al día (solo sus líneas), capturas en el cuadro, cuadro publicado y parte. Guion de capturas de batalla: `node gobierno/captura-batalla.mjs`. Al unir, mirar `git status` entero.
 
