@@ -855,6 +855,16 @@
    "archivo": "gobierno/capturas-tarea/I6-2-italia.jpg",
    "pie": "Mapa de Italia: solo 7 ciudades y las rutas entre ellas",
    "ancha": false
+  },
+  {
+   "tarea": "C6",
+   "archivo": "gobierno/capturas-tarea/C6-mare.jpg",
+   "pie": "Mare Nostrum: seis zonas para tocar"
+  },
+  {
+   "tarea": "C6",
+   "archivo": "gobierno/capturas-tarea/C6-italia.jpg",
+   "pie": "Tras tocar Italia: sus ciudades y «← volver»"
   }
  ],
  "informes": [

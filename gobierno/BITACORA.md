@@ -122,6 +122,8 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - P96 **Mover un edificio** (propuesta de CN4, 12/11; ≈0,4 M): `G.moverPieza` en `js/game.js` y su botón «Mover» en la ficha del edificio. Hoy no hay forma de moverlo: derribar y volver a colocar borra las mejoras. Toca `game.js` y `ui.js`; iría con la vía Ciudad después de I3b.
 
 
+0. **C6 hecha (12/11)**, en la rama `claude/c6-mapa-escalones` unida a la rama del juego; `main` puesta al día. Siguiente del mapa: J4 (más ciudades), que ya puede usar `D.ZONAS`; C1 (bajar a la ciudad 3D) completa los escalones.
+
 ## Encargo en curso (11/11/2026, noche)
 Rama única: `claude/roman-strategy-mobile-game-bx9oq2` (la que publica el juego). Cinco carriles a la vez, que no se pisan. Director y agentes en **Sonnet** (al usuario le queda poco Fable).
 - **Batallas** (`js/battle.js`, `js/gfx/battle3d.js`, lo de batalla en `js/ui.js`): A5c Arrastre y formaciones → A3 Combate que se ve → A4 Papeles de la infantería → A5b Terreno → A1 Formaciones de verdad → A2 Animaciones por fila → A6 Cámara, sonido y proyectiles → A8b Ajuste fino del ritmo.
