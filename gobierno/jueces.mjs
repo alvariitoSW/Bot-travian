@@ -31,6 +31,15 @@ console.log('Juez 1 · lógica (test/sim.test.js)');
   apunta('Pruebas de lógica', r.status === 0, ultima.slice(0, 400));
 }
 
+/* ---------- 1a. Ciudad nueva (reglas sin pantalla) ---------- */
+console.log('Juez 1a · ciudad nueva (test/ciudad.test.mjs)');
+{
+  const r = spawnSync(process.execPath, ['test/ciudad.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 120000 });
+  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l));
+  const mal = lineas.filter(l => /^MAL/.test(l));
+  apunta('Reglas de la ciudad nueva', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, 400));
+}
+
 /* ---------- 1b. Fichas (registro de piezas) ---------- */
 console.log('Juez 1b · fichas (gobierno/fichas.mjs)');
 {

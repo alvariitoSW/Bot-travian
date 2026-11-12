@@ -122,7 +122,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 
 ## Carril CN — Ciudad nueva: colocar y crecer (P80 a P82 y P89, aprobadas 12/11/2026; diseño `gobierno/estudios/Q1k-ciudad-de-cero.md` §9, donde se llaman C1 a C11)
 Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van de una en una con Economía. Empieza la partida con «ambas opciones» (pregunta abierta en la bitácora).
-- ⬜ CN1 **Reglas sin pantalla** (1,5 M, Sonnet): terreno, nota de sitio, calles, parcelas, casas y barrios como números, con pruebas; parte de `maquetas/ciudad3/reglas.js`. Dentro: P69 radio de efecto de los edificios. Toca `js/ciudad.js` nuevo y `test/`.
+- ✅ CN1 **Reglas sin pantalla** (12/11): `js/ciudad.js` (módulo sin pantalla: terreno, nota de sitio, calles, parcelas, casas, barrios, sucesos; radio de efecto P69; mejoras I a III como datos; guardar y cargar con `aDatos`/`deDatos`) y `test/ciudad.test.mjs` (23 comprobaciones, dentro de los jueces). Parte `partes/2026-11-12-CN1.md`.
 - ⬜ CN2 **Guardado y economía** (1,8 M): las partidas viejas cargan convertidas; producción y población salen de piezas y casas; edificios con tres mejoras (I, II, III). Toca `js/game.js`, `js/data.js`.
 - ⬜ CN3 **Ciudad que nace** (2,5 M): terreno vacío, calles pintadas al jugar, casas reales por nivel (pasan a `assets/`, tope 37 MB). Toca `js/gfx/city3d.js`, `ground.js`, `assets/`.
 - ⬜ CN4 **Colocar con el dedo** (1,5 M): bandeja, fantasma, verde y rojo con su razón; fuera solares, medallas y lista. Toca `js/ui.js`, `css/`.
