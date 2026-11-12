@@ -105,11 +105,11 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ Q1d **Suelo, relieve, luz y cielo en el juego** (12/11): la ciudad del juego se asienta en el relieve de la maqueta (dos lomas, vaguada, río con puente), con suelo de texturas mezcladas, sol bajo con sombras calculadas una vez, bruma, cielo y montes con detalle. Edificios, solares, medallas y guarnición siguen funcionando. Capturas `Q1d-1` a `Q1d-3`. Roma pinta 435 000 triángulos (antes 496 000; tope 300 000): pesa la guarnición.
 - ✅ Q1k **Ciudad nueva de cero: diseño y maqueta jugable** (12/11): diseño `estudios/Q1k-ciudad-de-cero.md` (tú colocas lo público; casas y calles nacen solas; barrios por radio; crecidas e incendios), ficha `historia/fundacion-de-colonias.md` (APTO CON NOTAS) y maqueta que se toca en el móvil `maquetas/ciudad3/` (fundar con el surco, nueve fichas con mapa de sitio en verde y rojo, casas de cuatro niveles, muralla, barrios). Capturas `Q1k-1` a `Q1k-6b`. 48 000 a 137 000 triángulos (282 000 en el cuadro que recalcula la sombra). No toca el juego. Prueba: https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/ciudad3/ · **falta que el usuario la pruebe y decida** (P80 a P82).
 - ✅ Q1l **Lluvia de ideas e informe de competencia para la ciudad nueva** (12/11): 84 ideas de seis modelos baratos, ordenadas en nueve paquetes (`estudios/Q1l-lluvia-de-ideas.md`), e informe de competencia con diez palancas (`estudios/Q1l-competencia.md`). Salen como P83 a P91, por aprobar. El usuario aprobó la manera de jugar de la maqueta Q1k.
-- ⬜ (en pausa desde el 12/11) Q1e **Casco denso con casas reales y muralla irregular** (2,5 M): las casas nuevas pasan a `assets/` (tope de descarga 37 MB), manzanas pegadas a las calles, arrabales, tumbas y granjas.
-- ⬜ (en pausa desde el 12/11) Q1f **Los solares del juego dentro de la ciudad nueva** (1,5 M): dónde se construye, cómo se toca un edificio, etiquetas.
+- ⬜ (sustituida por CN3/CN4, 12/11) Q1e **Casco denso con casas reales y muralla irregular** (2,5 M): las casas nuevas pasan a `assets/` (tope de descarga 37 MB), manzanas pegadas a las calles, arrabales, tumbas y granjas.
+- ⬜ (sustituida por CN4, 12/11) Q1f **Los solares del juego dentro de la ciudad nueva** (1,5 M): dónde se construye, cómo se toca un edificio, etiquetas.
 - ⬜ (en pausa desde el 12/11) Q1g **Edificios de época** (1,2 M): fuera anfiteatro, termas y acueducto de arcos; sus sustitutos y sus fichas.
 - ⬜ (en pausa desde el 12/11) Q1h **Culturas** (1 M): griega y púnica con sus casas sin pisarse, y muralla, mercado y stoa propios (retoque pedido).
-- ⬜ (en pausa desde el 12/11) Q1i **Vida** (0,8 M): gente, humo, toldos, carros, ganado, pájaros, sombra de nubes.
+- ⬜ (sustituida por CN11, 12/11) Q1i **Vida** (0,8 M): gente, humo, toldos, carros, ganado, pájaros, sombra de nubes.
 - ⬜ (en pausa desde el 12/11) Q1j **Revisión histórica** (0,6 M): cotejar las citas pendientes.
 - ✅ Q2 **Caja del mes y cierre** (12/11): la caja es lo gastable del mes; al cerrar el mes lo que sobra va al almacén hasta su tope y el resto se pierde (con aviso); del almacén solo se saca un cuarto al mes; informe de la estación al pasar turno. Migrado en `G.load`. Parte `partes/2026-11-12-Q2.md`.
 - ✅ Q3 **Cuentas del mes en pantalla** (12/11): ficha «Cuentas» (barras por material, oro con ingresos y gastos, aviso con «Vender en el mercado» y «Adelantar obra»), colchón inicial de 200 en el almacén, aviso de pérdida al empezar la estación. Parte `partes/2026-11-12-Q3.md`.
@@ -118,7 +118,22 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ Q5 **Barrios con servicios** (12/11): cada ciudad tiene nivel de barrio 1 a 4 (Aldea, Villa, Ciudad, Urbs) según grano, templo, agua, ocio, termas y lujo; sube un nivel al cerrar el mes y baja con 3 meses de retraso; da más población máxima (hasta ×1,8) y, en Urbs, +15 % de impuestos. Ficha «Barrio» con seis iconos y consejo («Para ser Villa falta un Templo»). Parte `partes/2026-11-12-Q5.md`.
 - ⬜ Q11 **Ciudad viva: luz y humo** espera al carril Ciudad (toca `js/gfx/city3d.js`).
 - ✅ Q6 **Tres clases y lo que piden** (12/11): ciudadanos, plebeyos y esclavos por ciudad, cada clase con su ánimo; esclavos por conquista (trabajan más, no pagan) y manumisión mensual; «Dar ciudadanía» (60 denarios, +10). Bloque «Clases» en la ficha. Parte `partes/2026-11-12-Q6.md`.
-- ⬜ (en pausa desde el 12/11, hasta decidir P80) Q7 en adelante **aprobadas enteras** (P75, 12/11): Senado y pueblo, provincias. Detalle en `estudios/Q1-ciudad-gobierno-economia.md` §8.
+- ⬜ Q7 en adelante **aprobadas enteras** (P75, 12/11): Senado y pueblo, provincias. Detalle en `estudios/Q1-ciudad-gobierno-economia.md` §8. Toca `js/game.js` y `js/data.js` como CN1 a CN4: va después de CN2 (decidido P80, 12/11).
+
+## Carril CN — Ciudad nueva: colocar y crecer (P80 a P82 y P89, aprobadas 12/11/2026; diseño `gobierno/estudios/Q1k-ciudad-de-cero.md` §9, donde se llaman C1 a C11)
+Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van de una en una con Economía. Empieza la partida con «ambas opciones» (pregunta abierta en la bitácora).
+- ⬜ CN1 **Reglas sin pantalla** (1,5 M, Sonnet): terreno, nota de sitio, calles, parcelas, casas y barrios como números, con pruebas; parte de `maquetas/ciudad3/reglas.js`. Dentro: P69 radio de efecto de los edificios. Toca `js/ciudad.js` nuevo y `test/`.
+- ⬜ CN2 **Guardado y economía** (1,8 M): las partidas viejas cargan convertidas; producción y población salen de piezas y casas; edificios con tres mejoras (I, II, III). Toca `js/game.js`, `js/data.js`.
+- ⬜ CN3 **Ciudad que nace** (2,5 M): terreno vacío, calles pintadas al jugar, casas reales por nivel (pasan a `assets/`, tope 37 MB). Toca `js/gfx/city3d.js`, `ground.js`, `assets/`.
+- ⬜ CN4 **Colocar con el dedo** (1,5 M): bandeja, fantasma, verde y rojo con su razón; fuera solares, medallas y lista. Toca `js/ui.js`, `css/`.
+- ⬜ CN5 **Fundar colonias** (1,5 M): sitios en el mapa, colonos que viajan, pantalla de fundar con el arado; misión del Senado.
+- ⬜ CN6 **Barrios** (1,2 M): capilla de cruce, nivel por barrio (mueve Q5), casas y calles que cambian, etiquetas.
+- ⬜ CN7 **Muralla y arrabal** (1,2 M): empalizada y piedra sobre el surco, puertas, saqueo de lo de fuera.
+- ⬜ CN8 **Sucesos** (0,8 M): crecida, incendio y hambre con su aviso y su remedio.
+- ⬜ CN9 **Roma, Capua, conquistadas y enemigas** (1,5 M): plantillas por cultura y tamaño; el enemigo coloca solo (funde Q1h).
+- ⬜ CN10 **Edificios de época y revisión** (1,2 M): fuera anfiteatro, termas y arcos; citas cotejadas (funde Q1g y Q1j).
+- ⬜ CN11 **Vida y peso** (1,0 M): gente, humo, carros; guarnición ligera con la figura de lejos (P79); medir triángulos (funde Q1i).
+- ⬜ (en pausa: espera a CN8 y al carril Guerra) CN12 **Asedio en tu propia muralla** (P89, ≈3 M): el sitio y la muralla que colocaste son el campo de batalla. Une ciudad y batalla (CLAUDE.md §2): el usuario dijo «Sí» el 12/11. Toca `js/battle.js` y la ciudad. Alcance en `estudios/Q1l-competencia.md` (palanca 10) y `Q1l-lluvia-de-ideas.md` (paquete E).
 
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
