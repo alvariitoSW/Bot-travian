@@ -71,7 +71,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ J7 **Parte densa: Imperio y Obras** (11/11): pestaña Imperio con ciudades por urgencia, filtros, resumen de población y ánimo, cola de obras, filas deslizables y «Hacer lo mismo en…». Parte `partes/2026-11-11-J7.md`.
 - ⬜ J7b **Pestañas también en el mapa de guerra** (sacada de J7; esperar a que I2 Mapa por turnos termine con `js/game.js` y el mapa).
 - ⬜ J3 **Capital y pueblos** (P60; incluye I7): cada territorio tiene una capital con los edificios de gobierno y pueblos de recursos, pescadores y agricultores-ganaderos. Los pueblos producen; la capital gobierna, recluta y comercia. 0,3 + 1,0 M, en dos tareas. Después de I6.
-- ⬜ J4 **Mapa más grande por regiones** (P62; amplía I6): más ciudades y territorios, cada región con su capital y sus núcleos pequeños; lista de ciudades con fuente histórica; vigilar la fluidez. 0,3 + 1,2 M, en dos o tres tareas. Después de J3.
+- ⬜ J4 **Mapa más grande por regiones** (P62; amplía I6): más ciudades y territorios, cada región con su capital y sus núcleos pequeños; lista de ciudades con fuente histórica; vigilar la fluidez. 0,3 + 1,2 M, en dos o tres tareas. Después de J3. **Incluye** crear Perusia, Clusio y Rusellae (H11c, madera naval, Livio 28.45).
 - ⬜ J5 **Política territorial** (P61): apartado «Senado» con planes de infraestructuras, ciudadanía, ejército, diplomacia y mercado. Primero informe corto de diseño con fuentes; se une con I5 y C3. 0,3 + 1,0 M, en dos tareas.
 - ⬜ J8 **Foro y chips** (P65, aprobada 11/11 desde el cuadro): discursos y revueltas en el Foro por clases sociales; chips verde/rojo con el efecto de cada decisión por clase. Va con J5, después de J6 y J7.
 
@@ -176,7 +176,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ✅ H3 Códice dentro del juego (11/11/2026): botón en «Crónica», 62 fichas de tropas, ciudades y hechos con etiqueta y fuente.
 - ✅ H11a (12/11) cotejo hecho: `estudios/H11-cotejo.md` (65 fichas; 8 errores a corregir, el peor Ambracia: 1.000, no 500).
 - ✅ H11b Cotejo aplicado en `js/registro.js` (38 fichas; Plinio y Apiano siguen «por cotejar»). Parte: `gobierno/partes/2026-11-12-H11b.md`.
-- ⬜ H11c **Madera naval a Perusia, Clusio y Rusellae** (Livio 28.45): primero crear esas tres ciudades en `D.CITIES` (hoy no existen; el usuario decidió el cambio el 12/11), luego mover el bien en `data.js` y la ficha. Plinio NH 9.127/14.62/31.89 y Apiano Líbica por otra edición. ≈0,3 M Sonnet.
+- ⬜ (decidido 12/11: va dentro de J4) H11c **Madera naval a Perusia, Clusio y Rusellae** (Livio 28.45): J4 (mapa más grande por regiones) crea esas tres ciudades con su fuente; entonces se mueve el bien en `data.js` y la ficha de Siracusa y Panormus. Mientras, la madera naval sigue donde estaba. Plinio NH 9.127/14.62/31.89 y Apiano Líbica por otra edición.
 - ⬜ H12 **Capua se rebela en 216** (aprobada 11/11, P52): tras Cannas se pasa a Aníbal si no la defiendes bien (Livio 23.2-7). Cambia reglas. ≈0,3 M.
 - ⬜ H13 **Pirro ataca en 280, no en 277** (aprobada 11/11, P53): obliga a reequilibrar el arranque. ≈0,3 M.
 - ⬜ H14 **«Poblado íbero» en el mapa** (aprobada 11/11, P54): Carthago Nova se llama así hasta 228. ≈0,15 M.
