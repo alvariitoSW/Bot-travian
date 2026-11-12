@@ -864,6 +864,19 @@
  ],
  "repo": "https://github.com/alvariitosw/bot-travian",
  "rama": "claude/roman-strategy-mobile-game-bx9oq2",
- "sesiones": [],
+ "sesiones": [
+  {
+   "tarea": "N6",
+   "titulo": "Guerra · N6 Enemigo que piensa",
+   "nota": "js/battle.js",
+   "url": "https://claude.ai/code/session_01QiKC393L1x5nVP19dFpyBP"
+  },
+  {
+   "tarea": "CN1",
+   "titulo": "Ciudad nueva · CN1 Reglas sin pantalla",
+   "nota": "js/ciudad.js, test/",
+   "url": "https://claude.ai/code/session_01QiKC38Hw4tqSxyvyTU8J9U"
+  }
+ ],
  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
 }

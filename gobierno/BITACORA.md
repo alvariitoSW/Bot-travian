@@ -107,15 +107,15 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - **P83 a P91 (mejoras)**: cuáles te gustan y si se prueban antes en la maqueta o se meten con P80.
 
 ## Propuestas por aprobar
-- **Mejoras de la ciudad nueva (Q1l, 12/11)**: detalle en `estudios/Q1l-lluvia-de-ideas.md` y `estudios/Q1l-competencia.md`. Cifras a ojo. Las pequeñas se pueden probar primero en la maqueta `ciudad3/`.
-  - P83 **Lo que sobra se gasta y sucesos que se juegan** (paquetes A y B; ≈1,5 M): arca del foro, ofrendas y juegos, tejas, cubos contra el fuego, marca de la crecida y dique, hambre que se ve.
-  - P84 **Colocar con número vivo, asesor y dificultad** (competencia 1, 3 y 4; ≈1 M): «+14 casas con agua» que cambia al mover la pieza; un asesor que enseña una cosa cada vez; sucesos apagables y tres dificultades.
-  - P85 **Ciudad viva** (paquete C; funde Q1i y Q11; ≈1,5 M): estaciones y luz, andamios, fachadas ricas y pobres, carros y recuas, sonido.
-  - P86 **El ejército vive en la ciudad** (paquete D; ≈1,5 M): campo de Marte, leva en el foro, guarnición en torres, cerrar puertas, veteranos que se asientan, triunfo.
-  - P87 **Barrios con carácter, encargos e hitos** (paquete F y competencia 2 y 9; ≈1,5 M): barrios con nombre propio, plaza en los cruces, encargos cortos del Senado siempre activos, hitos que abren algo nuevo.
-  - P88 **Hecho para el móvil** (paquete I y competencia 5, 6 y 7; ≈1,5 M): postal y crónica de la ciudad, modo contemplar, punto de parada, copia de la partida en un archivo, partida corta con nota (enlaza con I8).
-  - P90 **Más terrenos donde fundar** (paquete G; grande, ≈2,5 M): costa con salinas, pantano, terrazas, llanura.
-  - P91 **La historia llega a tu ciudad** (paquete H; ≈1,5 M más fichas): Pirro, Aníbal, la Gran Madre, auspicios, fiestas. Cada hecho con su ficha antes de entrar.
+Mejoras de la ciudad nueva (Q1l, 12/11): detalle en `estudios/Q1l-lluvia-de-ideas.md` y `estudios/Q1l-competencia.md`. Cifras a ojo. Las pequeñas se pueden probar primero en la maqueta `ciudad3/`.
+- P83 **Lo que sobra se gasta y sucesos que se juegan** (paquetes A y B; ≈1,5 M): arca del foro, ofrendas y juegos, tejas, cubos contra el fuego, marca de la crecida y dique, hambre que se ve.
+- P84 **Colocar con número vivo, asesor y dificultad** (competencia 1, 3 y 4; ≈1 M): «+14 casas con agua» que cambia al mover la pieza; un asesor que enseña una cosa cada vez; sucesos apagables y tres dificultades.
+- P85 **Ciudad viva** (paquete C; funde Q1i y Q11; ≈1,5 M): estaciones y luz, andamios, fachadas ricas y pobres, carros y recuas, sonido.
+- P86 **El ejército vive en la ciudad** (paquete D; ≈1,5 M): campo de Marte, leva en el foro, guarnición en torres, cerrar puertas, veteranos que se asientan, triunfo.
+- P87 **Barrios con carácter, encargos e hitos** (paquete F y competencia 2 y 9; ≈1,5 M): barrios con nombre propio, plaza en los cruces, encargos cortos del Senado siempre activos, hitos que abren algo nuevo.
+- P88 **Hecho para el móvil** (paquete I y competencia 5, 6 y 7; ≈1,5 M): postal y crónica de la ciudad, modo contemplar, punto de parada, copia de la partida en un archivo, partida corta con nota (enlaza con I8).
+- P90 **Más terrenos donde fundar** (paquete G; grande, ≈2,5 M): costa con salinas, pantano, terrazas, llanura.
+- P91 **La historia llega a tu ciudad** (paquete H; ≈1,5 M más fichas): Pirro, Aníbal, la Gran Madre, auspicios, fiestas. Cada hecho con su ficha antes de entrar.
 
 
 ## Encargo en curso (11/11/2026, noche)
