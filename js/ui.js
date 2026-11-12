@@ -624,7 +624,7 @@ function battlePrompt() {
 // N15: la dificultad ya no se elige; el motor la explica por contexto (b.dif = { nivel, texto, factores:[{n,txt,v}] })
 function rivalHtml(b) {
   const s1 = b.cfg.sides[1], ca = window.Battle.CARACTER[b.ia ? b.ia.car : window.Battle.caracterDe(b.cfg)], d = b.dif, pr = b.progresoObjetivo ? b.progresoObjetivo() : null;
-  const fac = d && d.factores && d.factores.length ? '<div class="fac" hidden>' + d.factores.map(f => '<div><i class="' + (f.v > 0 ? 'up' : 'dn') + '">' + (f.v > 0 ? '▲' : '▼') + '</i> ' + esc(f.txt) + '</div>').join('') + '</div>' : '';
+  const fac = d && d.factores && d.factores.length ? '<div class="fac" hidden>' + d.factores.map(f => '<div><i class="' + (f.v > 0 ? 'up' : f.v < 0 ? 'dn' : '') + '">' + (f.v > 0 ? '▲' : f.v < 0 ? '▼' : '•') + '</i> ' + esc(f.txt) + '</div>').join('') + '</div>' : '';
   return '<div class="rv"' + (fac ? ' data-act="bfac" role="button"' : '') + '>Rival: <b>' + esc(s1.gen && s1.gen.n || s1.name) + '</b> · ' + esc(ca.n.toLowerCase()) + (d && d.texto ? ' · ' + esc(d.texto.replace(/^Rival:\s*/, '')) : '') + (fac ? ' ▾' : '') + '</div>' + fac +
     (pr && pr.texto ? '<div class="ob">Objetivo: ' + esc(pr.texto) + '</div>' : '');
 }

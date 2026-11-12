@@ -1,918 +1,924 @@
 {
-  "juego": "https://alvariitosw.github.io/Bot-travian/",
-  "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
-  "capturas": [
-    {
-      "tarea": "N6",
-      "archivo": "gobierno/capturas-tarea/N6-gesto-5s.jpg",
-      "pie": "Batalla: el enemigo avisa su gesto de la ronda",
-      "ancha": true
-    },
-    {
-      "tarea": "N6",
-      "archivo": "gobierno/capturas-tarea/N6-dif-0s.jpg",
-      "pie": "Despliegue: rival con carácter y tres dificultades",
-      "ancha": true
-    },
-    {
-      "tarea": "B8",
-      "archivo": "gobierno/capturas-tarea/B8.jpg",
-      "pie": "Herrería: mejoras de armas y armaduras"
-    },
-    {
-      "tarea": "B4",
-      "archivo": "gobierno/capturas-tarea/B4.jpg",
-      "pie": "Termas, acueducto y anfiteatro"
-    },
-    {
-      "tarea": "D1",
-      "archivo": "gobierno/capturas-tarea/D1-menu.jpg",
-      "pie": "Botón «Medir fluidez» en el menú"
-    },
-    {
-      "tarea": "B9",
-      "archivo": "gobierno/capturas-tarea/B9-despues.jpg",
-      "pie": "Roma con el Tíber y la colina"
-    },
-    {
-      "tarea": "D2",
-      "archivo": "gobierno/capturas-tarea/D2-cerca.jpg",
-      "pie": "Batalla: figuras ligeras al fondo",
-      "ancha": true
-    },
-    {
-      "tarea": "F3",
-      "archivo": "gobierno/capturas-tarea/F3.jpg",
-      "pie": "Reparto de aldeanos"
-    },
-    {
-      "tarea": "B3",
-      "archivo": "gobierno/capturas-tarea/B3.jpg",
-      "pie": "Impuestos altos: la población no crece"
-    },
-    {
-      "tarea": "H7",
-      "archivo": "gobierno/capturas-tarea/H7-mapa-280.jpg",
-      "pie": "Mapa de 280: Capua es tuya, Agrigento griega, Messana mamertina"
-    },
-    {
-      "tarea": "H8",
-      "archivo": "gobierno/capturas-tarea/H8-carthagonova.jpg",
-      "pie": "Carthago Nova empieza como poblado íbero"
-    },
-    {
-      "tarea": "H10",
-      "archivo": "gobierno/capturas-tarea/H10-licencia-hecho.jpg",
-      "pie": "Pirro: texto corregido y etiqueta «licencia de juego»"
-    },
-    {
-      "tarea": "H3",
-      "archivo": "gobierno/capturas-tarea/H3-codice.jpg",
-      "pie": "El Códice, dentro de «Crónica»"
-    },
-    {
-      "tarea": "A8",
-      "archivo": "gobierno/capturas-tarea/A8-min4.jpg",
-      "pie": "Batalla igualada, minuto 4: sigue abierta y la moral baja poco a poco",
-      "ancha": true
-    },
-    {
-      "tarea": "A8",
-      "archivo": "gobierno/capturas-tarea/A8-min7.jpg",
-      "pie": "Minuto 7: regimientos «Cansado» (borde naranja); pegan menos y andan más lento",
-      "ancha": true
-    },
-    {
-      "tarea": "I3",
-      "archivo": "gobierno/capturas-tarea/I3-mano-de-obra.jpg",
-      "pie": "Mano de obra (gente que trabaja frente a puestos) y mantenimiento en oro: edificios y paga de las tropas",
-      "ancha": false
-    },
-    {
-      "tarea": "E1b",
-      "archivo": "gobierno/capturas-tarea/E1b-ciudad.jpg",
-      "pie": "Iconos de línea en bronce y colores de la guía"
-    },
-    {
-      "tarea": "E1b",
-      "archivo": "gobierno/capturas-tarea/E1b-menu.jpg",
-      "pie": "Letra Cinzel incluida: se ve igual sin conexión"
-    },
-    {
-      "tarea": "A9",
-      "archivo": "gobierno/capturas-tarea/A9-cerca-2s.jpg",
-      "pie": "Salida: infantería delante y caballería en el ala",
-      "ancha": true
-    },
-    {
-      "tarea": "A9",
-      "archivo": "gobierno/capturas-tarea/A9-45s.jpg",
-      "pie": "El choque, desde arriba: los tiradores (flecha) quedan detrás de su línea",
-      "ancha": true
-    },
-    {
-      "tarea": "I4",
-      "archivo": "gobierno/capturas-tarea/I4-solares.jpg",
-      "pie": "Cada ciudad tiene solares contados (Roma, 4 de 10 ocupados) y un tipo que eliges",
-      "ancha": false
-    },
-    {
-      "tarea": "I4",
-      "archivo": "gobierno/capturas-tarea/I4-tipos.jpg",
-      "pie": "Elegir tipo: municipio, colonia agraria, colonia militar, emporio, base naval o ciudad de artesanos",
-      "ancha": false
-    },
-    {
-      "tarea": "E2",
-      "archivo": "gobierno/capturas-tarea/E2-mapa.jpg",
-      "pie": "Mapa: cada ciudad con un edificio de su cultura"
-    },
-    {
-      "tarea": "E2",
-      "archivo": "gobierno/capturas-tarea/E2-culturas.jpg",
-      "pie": "De cerca: Cartago, Siracusa, galos, íberos y barcos cartaginés y griego",
-      "ancha": true
-    },
-    {
-      "tarea": "A5a",
-      "archivo": "gobierno/capturas-tarea/A5a-cerca-0s.jpg",
-      "pie": "Despliegue: colocas tus tropas dentro de la línea roja y pulsas «Empezar batalla»",
-      "ancha": true
-    },
-    {
-      "tarea": "B1",
-      "archivo": "gobierno/capturas-tarea/B1-bien.jpg",
-      "pie": "Cada ciudad da un bien (Roma, sal) y abajo ves cuáles tienes y cuáles te faltan",
-      "ancha": false
-    },
-    {
-      "tarea": "B1",
-      "archivo": "gobierno/capturas-tarea/B1-falta.jpg",
-      "pie": "Los triarios piden hierro de calidad: hay que tomar Volsinii o Saguntum",
-      "ancha": false
-    },
-    {
-      "tarea": "B2",
-      "archivo": "gobierno/capturas-tarea/B2-lista.jpg",
-      "pie": "Rutas comerciales en la ciudad: una abierta con Capua y tratados posibles, con el bien que aporta cada uno",
-      "ancha": false
-    },
-    {
-      "tarea": "B2",
-      "archivo": "gobierno/capturas-tarea/B2-mapa.jpg",
-      "pie": "En el mapa: un mercante en la ruta por mar y un carro en la de tierra",
-      "ancha": false
-    },
-    {
-      "tarea": "C2",
-      "archivo": "gobierno/capturas-tarea/C2-antes.jpg",
-      "pie": "Mapa antes: costa dibujada a mano, suelo liso",
-      "ancha": false
-    },
-    {
-      "tarea": "C2",
-      "archivo": "gobierno/capturas-tarea/C2-despues.jpg",
-      "pie": "Mapa después: costa real de Italia, suelo con grano de hierba",
-      "ancha": false
-    },
-    {
-      "tarea": "C2",
-      "archivo": "gobierno/capturas-tarea/C2-sicilia.jpg",
-      "pie": "Sicilia, Malta y el estrecho de Mesina",
-      "ancha": false
-    },
-    {
-      "tarea": "A5c",
-      "archivo": "gobierno/capturas-tarea/a5c-tres-0s.jpg",
-      "pie": "Despliegue en «Tres líneas»: hastati, principes y triarii",
-      "ancha": true
-    },
-    {
-      "tarea": "A5c",
-      "archivo": "gobierno/capturas-tarea/a5c-alas-0s.jpg",
-      "pie": "«Alas fuertes» y la barra con seis formaciones",
-      "ancha": true
-    },
-    {
-      "tarea": "F5",
-      "archivo": "gobierno/capturas-tarea/F5-templo.jpg",
-      "pie": "Templo: elige Marte, Ceres o Neptuno"
-    },
-    {
-      "tarea": "I1b",
-      "archivo": "gobierno/capturas-tarea/I1b-codice.jpg",
-      "pie": "Códice igual que antes, ahora leído del registro (una sola fuente)"
-    },
-    {
-      "tarea": "B7",
-      "archivo": "gobierno/capturas-tarea/B7-saqueo.jpg",
-      "pie": "Atacar con la opción «Solo saquear»"
-    },
-    {
-      "tarea": "E4",
-      "archivo": "gobierno/capturas-tarea/E4-termas.jpg",
-      "pie": "Termas: modelo propio con bóveda, pórtico y chimenea"
-    },
-    {
-      "tarea": "E4",
-      "archivo": "gobierno/capturas-tarea/E4-anfiteatro.jpg",
-      "pie": "Anfiteatro: el de Pompeya de 0 A.D., a escala de ciudad"
-    },
-    {
-      "tarea": "E4",
-      "archivo": "gobierno/capturas-tarea/E4-acueducto.jpg",
-      "pie": "Acueducto: arcada propia de seis arcos"
-    },
-    {
-      "tarea": "A3",
-      "archivo": "gobierno/capturas-tarea/a3b-48s.jpg",
-      "pie": "Las dos líneas chocan tras la fase de tiro; solo pelea el frente",
-      "ancha": true
-    },
-    {
-      "tarea": "E1c",
-      "archivo": "gobierno/capturas-tarea/E1c-marcos.jpg",
-      "pie": "Marcos con doble filete, greca y esquinas de 8 px"
-    },
-    {
-      "tarea": "E1c",
-      "archivo": "gobierno/capturas-tarea/E1c-iconos.jpg",
-      "pie": "Iconos de línea: pestañas, espadas, escudo y águila"
-    },
-    {
-      "tarea": "E1c",
-      "archivo": "gobierno/capturas-tarea/E1c-edificios.jpg",
-      "pie": "Iconos de edificios en la lista de ciudad"
-    },
-    {
-      "tarea": "J1",
-      "archivo": "gobierno/capturas-tarea/J1-maqueta-A.jpg",
-      "pie": "Maqueta A «Barra fina»: ciudad, menú «Más» abierto y mapa"
-    },
-    {
-      "tarea": "J1",
-      "archivo": "gobierno/capturas-tarea/J1-maqueta-B.jpg",
-      "pie": "Maqueta B «Pantalla despejada»: ciudad, menú ☰ abierto y mapa"
-    },
-    {
-      "tarea": "A7",
-      "archivo": "gobierno/capturas-tarea/A7-cart-0s.jpg",
-      "pie": "Defensor cartaginés: su templo en la ciudad",
-      "ancha": true
-    },
-    {
-      "tarea": "A7",
-      "archivo": "gobierno/capturas-tarea/A7-iber-0s.jpg",
-      "pie": "Defensor íbero: su templo en la ciudad",
-      "ancha": true
-    },
-    {
-      "tarea": "A7",
-      "archivo": "gobierno/capturas-tarea/A7-grie-0s.jpg",
-      "pie": "Defensor griego: templo de columnas",
-      "ancha": true
-    },
-    {
-      "tarea": "A4",
-      "archivo": "gobierno/capturas-tarea/a4-0s.jpg",
-      "pie": "Cada regimiento lleva su papel: «Pesada», «Lanceros»…",
-      "ancha": true
-    },
-    {
-      "tarea": "A5b",
-      "archivo": "gobierno/capturas-tarea/a5b-0s.jpg",
-      "pie": "Campo mixto: árboles del bosque y aviso del terreno en el despliegue",
-      "ancha": true
-    },
-    {
-      "tarea": "J1",
-      "archivo": "gobierno/capturas-tarea/J1-ciudad.jpg",
-      "pie": "Pantalla limpia: Gobierno (ciudad)"
-    },
-    {
-      "tarea": "J1",
-      "archivo": "gobierno/capturas-tarea/J1-guerra.jpg",
-      "pie": "Pantalla limpia: Guerra (mapa)"
-    },
-    {
-      "tarea": "J1",
-      "archivo": "gobierno/capturas-tarea/J1-menu.jpg",
-      "pie": "Botón de modo abierto"
-    },
-    {
-      "tarea": "J1",
-      "archivo": "gobierno/capturas-tarea/J1-ciudades.jpg",
-      "pie": "Selector de ciudad"
-    },
-    {
-      "tarea": "K",
-      "archivo": "gobierno/capturas-tarea/gob-4-cartas-1.jpg",
-      "pie": "Gobierno · Cartas (1.º)"
-    },
-    {
-      "tarea": "K",
-      "archivo": "gobierno/capturas-tarea/gob-4-cartas-3.jpg",
-      "pie": "Gobierno · Cartas: crisis"
-    },
-    {
-      "tarea": "K",
-      "archivo": "gobierno/capturas-tarea/gob-3-tablero-1.jpg",
-      "pie": "Gobierno · Tablero (2.º)"
-    },
-    {
-      "tarea": "K",
-      "archivo": "gobierno/capturas-tarea/gob-3-tablero-3.jpg",
-      "pie": "Gobierno · Tablero: tres crisis"
-    },
-    {
-      "tarea": "K",
-      "archivo": "gobierno/capturas-tarea/gob-1-senado-1.jpg",
-      "pie": "Gobierno · Senado"
-    },
-    {
-      "tarea": "K",
-      "archivo": "gobierno/capturas-tarea/guerra-4-general-2.jpg",
-      "pie": "Guerra · General: rueda de órdenes (1.º)",
-      "ancha": true
-    },
-    {
-      "tarea": "K",
-      "archivo": "gobierno/capturas-tarea/guerra-3-trazo-2.jpg",
-      "pie": "Guerra · Trazo: órdenes dibujadas (2.º)",
-      "ancha": true
-    },
-    {
-      "tarea": "K",
-      "archivo": "gobierno/capturas-tarea/guerra-5-partitura-2.jpg",
-      "pie": "Guerra · Partitura",
-      "ancha": true
-    },
-    {
-      "tarea": "K",
-      "archivo": "gobierno/capturas-tarea/guerra-1-arena-2.jpg",
-      "pie": "Guerra · Arena",
-      "ancha": true
-    },
-    {
-      "tarea": "K",
-      "archivo": "gobierno/capturas-tarea/guerra-2-cartas-2.jpg",
-      "pie": "Guerra · Cartas",
-      "ancha": true
-    },
-    {
-      "tarea": "K2",
-      "archivo": "gobierno/capturas-tarea/K2-gob-A-ciudad-1.jpg",
-      "pie": "Gobierno 2 · Ciudad (1.º)"
-    },
-    {
-      "tarea": "K2",
-      "archivo": "gobierno/capturas-tarea/K2-gob-A-ciudad-3.jpg",
-      "pie": "Gobierno 2 · Ciudad: intriga"
-    },
-    {
-      "tarea": "K2",
-      "archivo": "gobierno/capturas-tarea/K2-gob-A-ciudad-5.jpg",
-      "pie": "Gobierno 2 · Ciudad: escala"
-    },
-    {
-      "tarea": "K2",
-      "archivo": "gobierno/capturas-tarea/K2-gob-E-tabularium-1.jpg",
-      "pie": "Gobierno 2 · Tabularium (2.º)"
-    },
-    {
-      "tarea": "K2",
-      "archivo": "gobierno/capturas-tarea/K2-gob-B-lentes-3.jpg",
-      "pie": "Gobierno 2 · Lentes: vista previa"
-    },
-    {
-      "tarea": "K2",
-      "archivo": "gobierno/capturas-tarea/K2-guerra-B-legado-2.jpg",
-      "pie": "Guerra 2 · Legado (1.º)",
-      "ancha": true
-    },
-    {
-      "tarea": "K2",
-      "archivo": "gobierno/capturas-tarea/K2-guerra-B-legado-6.jpg",
-      "pie": "Guerra 2 · Legado: 24 regimientos",
-      "ancha": true
-    },
-    {
-      "tarea": "K2",
-      "archivo": "gobierno/capturas-tarea/K2-guerra-E-fantasmas-2.jpg",
-      "pie": "Guerra 2 · Fantasmas (2.º)",
-      "ancha": true
-    },
-    {
-      "tarea": "K2",
-      "archivo": "gobierno/capturas-tarea/K2-guerra-A-miniaturas-2.jpg",
-      "pie": "Guerra 2 · Miniaturas",
-      "ancha": true
-    },
-    {
-      "tarea": "K2",
-      "archivo": "gobierno/capturas-tarea/K2-guerra-D-estandartes-2.jpg",
-      "pie": "Guerra 2 · Estandartes",
-      "ancha": true
-    },
-    {
-      "tarea": "L1",
-      "archivo": "gobierno/capturas-tarea/L1-trazo-etiqueta.jpg",
-      "pie": "Dibujas el trazo con el dedo: «Avanzar»",
-      "ancha": true
-    },
-    {
-      "tarea": "L1",
-      "archivo": "gobierno/capturas-tarea/L1-boton-dorado.jpg",
-      "pie": "Botón dorado «Cargar» y HUD limpio",
-      "ancha": true
-    },
-    {
-      "tarea": "J6",
-      "archivo": "gobierno/capturas-tarea/J6-ciudad.jpg",
-      "pie": "Ciudad a pantalla completa: medallas con nivel, consejo y tres pestañas"
-    },
-    {
-      "tarea": "J6",
-      "archivo": "gobierno/capturas-tarea/J6-ficha.jpg",
-      "pie": "Ficha única del Foro con el botón Mejorar"
-    },
-    {
-      "tarea": "N1",
-      "archivo": "gobierno/capturas-tarea/N1-plan.jpg",
-      "pie": "Guerra nueva, maqueta · plan: todo parado, dibujas las órdenes y gastas puntos de mando",
-      "ancha": true
-    },
-    {
-      "tarea": "N1",
-      "archivo": "gobierno/capturas-tarea/N1-ejecucion.jpg",
-      "pie": "Guerra nueva, maqueta · ejecución: los dos bandos se mueven a la vez y tú miras",
-      "ancha": true
-    },
-    {
-      "tarea": "N1",
-      "archivo": "gobierno/capturas-tarea/N1-resultado.jpg",
-      "pie": "Guerra nueva, maqueta · resultado, con el plan que llevaba el enemigo",
-      "ancha": true
-    },
-    {
-      "tarea": "N1b",
-      "archivo": "gobierno/capturas-tarea/N1b-plan.jpg",
-      "pie": "Guerra nueva: plan en pausa sobre el 3D real",
-      "ancha": true
-    },
-    {
-      "tarea": "N1b",
-      "archivo": "gobierno/capturas-tarea/N1b-ejecucion.jpg",
-      "pie": "Guerra nueva: 20 s de ejecución, cámara al choque",
-      "ancha": true
-    },
-    {
-      "tarea": "N1b",
-      "archivo": "gobierno/capturas-tarea/N1b-informe.jpg",
-      "pie": "Guerra nueva: lo que pasó en la ronda",
-      "ancha": true
-    },
-    {
-      "tarea": "Q1",
-      "archivo": "gobierno/capturas-tarea/Q1-1-ciudad.jpg",
-      "pie": "Ciudad nueva: saldo del mes y nivel de barrio"
-    },
-    {
-      "tarea": "Q1",
-      "archivo": "gobierno/capturas-tarea/Q1-2-cuentas.jpg",
-      "pie": "Cuentas del mes: lo que entra, lo comprometido, lo que se pierde"
-    },
-    {
-      "tarea": "Q1",
-      "archivo": "gobierno/capturas-tarea/Q1-3-senado.jpg",
-      "pie": "Senado y pueblo: clases, misión y decisión con chips"
-    },
-    {
-      "tarea": "Q1",
-      "archivo": "gobierno/capturas-tarea/Q1-4-fin-de-mes.jpg",
-      "pie": "Cierre del mes: lo que sobra va al almacén hasta el tope"
-    },
-    {
-      "tarea": "I2",
-      "archivo": "gobierno/capturas-tarea/I2-mapa.jpg",
-      "pie": "Botón «Pasar turno» por estaciones"
-    },
-    {
-      "tarea": "Q1b",
-      "archivo": "gobierno/capturas-tarea/Q1b-0-antes-cerca.jpg",
-      "pie": "Ciudad de hoy: muralla cuadrada, solares de arena"
-    },
-    {
-      "tarea": "Q1b",
-      "archivo": "gobierno/capturas-tarea/Q1b-1-romana-cerca.jpg",
-      "pie": "Maqueta: ciudad romana densa, templo en la colina"
-    },
-    {
-      "tarea": "Q1b",
-      "archivo": "gobierno/capturas-tarea/Q1b-2-romana-lejos.jpg",
-      "pie": "Maqueta de lejos: arrabales, campos y horizonte"
-    },
-    {
-      "tarea": "Q1b",
-      "archivo": "gobierno/capturas-tarea/Q1b-3-griega.jpg",
-      "pie": "Maqueta: versión griega, estuco blanco"
-    },
-    {
-      "tarea": "Q1b",
-      "archivo": "gobierno/capturas-tarea/Q1b-4-punica.jpg",
-      "pie": "Maqueta: versión púnica, ocre y tejado plano"
-    },
-    {
-      "tarea": "Q2",
-      "archivo": "gobierno/capturas-tarea/Q2-1-barra.jpg",
-      "pie": "Caja y almacén en la barra, con el aviso de lo que se perderá"
-    },
-    {
-      "tarea": "Q2",
-      "archivo": "gobierno/capturas-tarea/Q2-2-informe.jpg",
-      "pie": "Informe de la estación: tres meses de caja"
-    },
-    {
-      "tarea": "N2",
-      "archivo": "gobierno/capturas-tarea/N2-plan.jpg",
-      "pie": "Batalla por rondas: plan en pausa con sombras de las órdenes",
-      "ancha": true
-    },
-    {
-      "tarea": "N2",
-      "archivo": "gobierno/capturas-tarea/N2-informe.jpg",
-      "pie": "Batalla por rondas: «Lo que pasó» y Ver otra vez",
-      "ancha": true
-    },
-    {
-      "tarea": "Q3",
-      "archivo": "gobierno/capturas-tarea/Q3-1-cuentas.jpg",
-      "pie": "Ficha Cuentas con aviso, Vender y Adelantar obra"
-    },
-    {
-      "tarea": "Q3",
-      "archivo": "gobierno/capturas-tarea/Q3-2-sin-mercado.jpg",
-      "pie": "Sin mercado: Vender apagado"
-    },
-    {
-      "tarea": "Q1b2",
-      "archivo": "gobierno/capturas-tarea/Q1b2-0-antes-despues-cerca.jpg",
-      "pie": "Ciudad: antes (izquierda) y después (derecha), de cerca",
-      "ancha": true
-    },
-    {
-      "tarea": "Q1b2",
-      "archivo": "gobierno/capturas-tarea/Q1b2-0-antes-despues-lejos.jpg",
-      "pie": "Ciudad: antes y después, de lejos",
-      "ancha": true
-    },
-    {
-      "tarea": "Q1b2",
-      "archivo": "gobierno/capturas-tarea/Q1b2-1-romana-cerca.jpg",
-      "pie": "Maqueta nueva: ciudad romana, foro y arx"
-    },
-    {
-      "tarea": "Q1b2",
-      "archivo": "gobierno/capturas-tarea/Q1b2-2-romana-lejos.jpg",
-      "pie": "Maqueta nueva: de lejos, con arrabales, río y campos"
-    },
-    {
-      "tarea": "Q1b2",
-      "archivo": "gobierno/capturas-tarea/Q1b2-3-romana-calle.jpg",
-      "pie": "Maqueta nueva: a pie de foro, gente a escala"
-    },
-    {
-      "tarea": "Q1b2",
-      "archivo": "gobierno/capturas-tarea/Q1b2-4-griega-cerca.jpg",
-      "pie": "Maqueta nueva: ciudad griega"
-    },
-    {
-      "tarea": "Q1b2",
-      "archivo": "gobierno/capturas-tarea/Q1b2-5-punica-cerca.jpg",
-      "pie": "Maqueta nueva: ciudad púnica"
-    },
-    {
-      "tarea": "Q4",
-      "archivo": "gobierno/capturas-tarea/Q4-2-cola-obras.jpg",
-      "pie": "Cola de obras con cuotas (1/3)"
-    },
-    {
-      "tarea": "Q4",
-      "archivo": "gobierno/capturas-tarea/Q4-1b-cuentas-oro.jpg",
-      "pie": "Cuentas: plazos, aviso y adelantar cuotas"
-    },
-    {
-      "tarea": "N3",
-      "archivo": "gobierno/capturas-tarea/N3-plan.jpg",
-      "pie": "Batalla: estandartes, flechas por orden y fila de botones",
-      "ancha": true
-    },
-    {
-      "tarea": "N3",
-      "archivo": "gobierno/capturas-tarea/N3-ordenes.jpg",
-      "pie": "Los seis tipos de orden en el suelo",
-      "ancha": true
-    },
-    {
-      "tarea": "N3",
-      "archivo": "gobierno/capturas-tarea/N3-informe.jpg",
-      "pie": "Informe «Lo que pasó» plegable",
-      "ancha": true
-    },
-    {
-      "tarea": "Q1c",
-      "archivo": "gobierno/capturas-tarea/Q1c-0-antes-despues-cerca.jpg",
-      "pie": "Ciudad ligera: antes (1,5 millones de triángulos) y después (270 000), con la ladera llena"
-    },
-    {
-      "tarea": "Q1c",
-      "archivo": "gobierno/capturas-tarea/Q1c-0-antes-despues-lejos.jpg",
-      "pie": "De lejos: antes y después, fondo con arboledas, caseríos y montes"
-    },
-    {
-      "tarea": "Q1c",
-      "archivo": "gobierno/capturas-tarea/Q1c-3-romana-calle.jpg",
-      "pie": "La ladera desde el foro: barrio en cuesta"
-    },
-    {
-      "tarea": "Q1c",
-      "archivo": "gobierno/capturas-tarea/Q1c-4-griega-cerca.jpg",
-      "pie": "Griega, versión ligera"
-    },
-    {
-      "tarea": "Q1c",
-      "archivo": "gobierno/capturas-tarea/Q1c-5-punica-cerca.jpg",
-      "pie": "Púnica, versión ligera"
-    },
-    {
-      "tarea": "Q1c",
-      "archivo": "gobierno/capturas-tarea/Q1c-6-pagina-prueba.jpg",
-      "pie": "Página de prueba para tu móvil: contador de fluidez y botones"
-    },
-    {
-      "tarea": "Q5",
-      "archivo": "gobierno/capturas-tarea/Q5-2-ciudad.jpg",
-      "pie": "Barrio de nivel 3 con sus servicios"
-    },
-    {
-      "tarea": "Q5",
-      "archivo": "gobierno/capturas-tarea/Q5-3-baja.jpg",
-      "pie": "Aviso: baja a Villa en 2 meses si falta el agua"
-    },
-    {
-      "tarea": "N4",
-      "archivo": "gobierno/capturas-tarea/N4e-90s.jpg",
-      "pie": "Batalla con estados: huye (gris), cansancio rojo y ámbar",
-      "ancha": true
-    },
-    {
-      "tarea": "Q6",
-      "archivo": "gobierno/capturas-tarea/Q6-1-clases.jpg",
-      "pie": "Ciudadanos, plebeyos y esclavos con su ánimo; «Dar ciudadanía»"
-    },
-    {
-      "tarea": "Q6",
-      "archivo": "gobierno/capturas-tarea/Q6-2-conquistada.jpg",
-      "pie": "Ciudad conquistada con esclavos"
-    },
-    {
-      "tarea": "Q1d",
-      "archivo": "gobierno/capturas-tarea/Q1d-3-antes-despues-ciudad.jpg",
-      "pie": "La ciudad del juego, antes y después: relieve, río, parcelas, sombras y bruma",
-      "ancha": true
-    },
-    {
-      "tarea": "Q1d",
-      "archivo": "gobierno/capturas-tarea/Q1d-3-antes-despues-media.jpg",
-      "pie": "Más cerca, antes y después: suelo de tierra, losas solo en el foro, sombras largas",
-      "ancha": true
-    },
-    {
-      "tarea": "Q1d",
-      "archivo": "gobierno/capturas-tarea/Q1d-3-antes-despues-calle.jpg",
-      "pie": "A pie de calle, antes y después",
-      "ancha": true
-    },
-    {
-      "tarea": "Q1d",
-      "archivo": "gobierno/capturas-tarea/Q1d-1-toque.jpg",
-      "pie": "Tocar un edificio sigue funcionando: medalla, anillo y ficha del foro"
-    },
-    {
-      "tarea": "Q1d",
-      "archivo": "gobierno/capturas-tarea/Q1d-1-grande.jpg",
-      "pie": "Roma con todos los edificios a nivel 5; el puerto, en la orilla del río"
-    },
-    {
-      "tarea": "Q1k",
-      "archivo": "gobierno/capturas-tarea/Q1k-1-terreno.jpg",
-      "pie": "Ciudad nueva: eliges dónde fundar; verde es buen sitio y arriba dice por qué"
-    },
-    {
-      "tarea": "Q1k",
-      "archivo": "gobierno/capturas-tarea/Q1k-3-colocar.jpg",
-      "pie": "Colocas la fuente con el dedo: «daría agua a 9 casas»"
-    },
-    {
-      "tarea": "Q1k",
-      "archivo": "gobierno/capturas-tarea/Q1k-4-crece.jpg",
-      "pie": "Dos años después: calles y casas han nacido solas"
-    },
-    {
-      "tarea": "Q1k",
-      "archivo": "gobierno/capturas-tarea/Q1k-5-barrios.jpg",
-      "pie": "Muralla sobre el surco y un barrio nuevo en la loma"
-    },
-    {
-      "tarea": "Q1k",
-      "archivo": "gobierno/capturas-tarea/Q1k-5b-cerca.jpg",
-      "pie": "De cerca: casas reales, fuente y calle empedrada"
-    },
-    {
-      "tarea": "Q1k",
-      "archivo": "gobierno/capturas-tarea/Q1k-6-crecida.jpg",
-      "pie": "Crecida de primavera: se moja la granja de la ribera"
-    },
-    {
-      "tarea": "N5",
-      "archivo": "gobierno/capturas-tarea/N5-p1.jpg",
-      "pie": "Plan: círculo de mando y contador 3/5",
-      "ancha": true
-    },
-    {
-      "tarea": "N5",
-      "archivo": "gobierno/capturas-tarea/N5-p2.jpg",
-      "pie": "Orden fuera del radio: llega 6 s tarde",
-      "ancha": true
-    },
-    {
-      "tarea": "N5",
-      "archivo": "gobierno/capturas-tarea/N5-p3.jpg",
-      "pie": "Carta de arenga jugada; el resto se apaga",
-      "ancha": true
-    },
-    {
-      "tarea": "N14",
-      "archivo": "gobierno/capturas-tarea/N14-ancho-0s.jpg",
-      "pie": "Campo ancho en el despliegue, con minimapa",
-      "ancha": true
-    },
-    {
-      "tarea": "N14",
-      "archivo": "gobierno/capturas-tarea/N14-rio-p4.jpg",
-      "pie": "Río con tres vados y minimapa",
-      "ancha": true
-    },
-    {
-      "tarea": "N14",
-      "archivo": "gobierno/capturas-tarea/N14-pantano-p4.jpg",
-      "pie": "Pantano",
-      "ancha": true
-    },
-    {
-      "tarea": "N14",
-      "archivo": "gobierno/capturas-tarea/N14-cerro-p4.jpg",
-      "pie": "Cerro",
-      "ancha": true
-    },
-    {
-      "tarea": "C2c",
-      "archivo": "gobierno/capturas-tarea/C2c-sicilia.jpg",
-      "pie": "El Etna ahora se lee como monte con cumbre clara"
-    },
-    {
-      "tarea": "C2c",
-      "archivo": "gobierno/capturas-tarea/C2c-grecia.jpg",
-      "pie": "El Olimpo, cerca de Pella, con su cumbre"
-    },
-    {
-      "tarea": "Q7",
-      "archivo": "gobierno/capturas-tarea/Q7-1-mision.jpg",
-      "pie": "Senado: dos barras y misión en curso"
-    },
-    {
-      "tarea": "Q7",
-      "archivo": "gobierno/capturas-tarea/Q7-2-favor-bajo.jpg",
-      "pie": "Senado con favor bajo y aviso"
-    }
-  ],
-  "informes": [
-    {
-      "titulo": "D3 · ¿Pasar el juego a Godot?",
-      "archivo": "gobierno/estudios/D3-godot.md"
-    },
-    {
-      "titulo": "E1 · Guía de arte",
-      "archivo": "gobierno/estudios/E1-guia-de-arte.md"
-    },
-    {
-      "titulo": "F1 · Modos de juego",
-      "archivo": "gobierno/estudios/F1-modos-de-juego.md"
-    },
-    {
-      "titulo": "H1 · Auditoría histórica (cotejada con las fuentes)",
-      "archivo": "gobierno/historia/H1-resumen.md"
-    },
-    {
-      "titulo": "G3 · Batallas estratégicas",
-      "archivo": "gobierno/estudios/G3-batallas-estrategicas.md"
-    },
-    {
-      "titulo": "G3 · Gran diseño",
-      "archivo": "gobierno/estudios/G3-gran-diseno.md"
-    },
-    {
-      "titulo": "Historia 2 · Qué ha cambiado en el juego",
-      "archivo": "gobierno/partes/2026-11-11-H4-H10.md"
-    },
-    {
-      "titulo": "K · Concurso de interfaz: puntuaciones",
-      "archivo": "gobierno/estudios/K-concurso.md"
-    },
-    {
-      "titulo": "K2 · Segunda ronda: puntuaciones",
-      "archivo": "gobierno/estudios/K2-concurso.md"
-    },
-    {
-      "titulo": "R1 · Barrios con servicios (idea de Caesar III)",
-      "archivo": "gobierno/estudios/R1-barrios-con-servicios.md"
-    },
-    {
-      "titulo": "R2 · Población por clases (idea de Imperator: Rome)",
-      "archivo": "gobierno/estudios/R2-poblacion-por-clases.md"
-    },
-    {
-      "titulo": "R3 · Radio de efecto de los edificios (idea de Grand Ages: Rome)",
-      "archivo": "gobierno/estudios/R3-radio-de-efecto.md"
-    },
-    {
-      "titulo": "R4 · Senado y familia (idea de Rome: Total War)",
-      "archivo": "gobierno/estudios/R4-senado-y-familia.md"
-    },
-    {
-      "titulo": "R5 · Provincias y edictos (idea de Total War: Rome II)",
-      "archivo": "gobierno/estudios/R5-provincias-y-edictos.md"
-    },
-    {
-      "titulo": "R6 · Emboscadas en el bosque (idea de Praetorians)",
-      "archivo": "gobierno/estudios/R6-emboscadas-en-bosque.md"
-    },
-    {
-      "titulo": "R7 · Campamento de legión (idea de Expeditions: Rome)",
-      "archivo": "gobierno/estudios/R7-campamento-de-legion.md"
-    },
-    {
-      "titulo": "N1 · Guerra nueva: «planeas y luego miras» (diseño)",
-      "archivo": "gobierno/estudios/N1-guerra-nueva.md"
-    },
-    {
-      "titulo": "N1b · Guerra ampliada",
-      "archivo": "gobierno/estudios/N1b-guerra-ampliada.md"
-    },
-    {
-      "titulo": "Q1 · Ciudad, gobierno y economía",
-      "archivo": "gobierno/estudios/Q1-ciudad-gobierno-economia.md"
-    },
-    {
-      "titulo": "Q1b · Ciudad itálica (historia y aspecto)",
-      "archivo": "gobierno/estudios/Q1b-ciudad-italica.md"
-    },
-    {
-      "titulo": "Q1b2 · Ciudad nueva, segunda vuelta",
-      "archivo": "gobierno/estudios/Q1b2-ciudad-segunda-vuelta.md"
-    },
-    {
-      "titulo": "Q1k · Ciudad nueva de cero: fundar, colocar, crecer",
-      "archivo": "gobierno/estudios/Q1k-ciudad-de-cero.md"
-    },
-    {
-      "titulo": "Q1l · Lluvia de ideas para la ciudad nueva",
-      "archivo": "gobierno/estudios/Q1l-lluvia-de-ideas.md"
-    },
-    {
-      "titulo": "Q1l · Informe de competencia",
-      "archivo": "gobierno/estudios/Q1l-competencia.md"
-    },
-    {
-      "titulo": "H11a · Cotejo de fichas con las fuentes",
-      "archivo": "gobierno/estudios/H11-cotejo.md"
-    }
-  ],
-  "repo": "https://github.com/alvariitosw/bot-travian",
-  "rama": "claude/roman-strategy-mobile-game-bx9oq2",
-  "sesiones": [
-    {
-      "tarea": "N15",
-      "titulo": "Guerra · N15 Equilibrio y objetivos",
-      "nota": "js/battle.js, battle3d.js, batalla en ui.js (vía Guerra)",
-      "url": "https://claude.ai/code/session_01QiKC39dqRMZ1nacniBmXG6"
-    },
-    {
-      "tarea": "CN3",
-      "titulo": "Ciudad nueva · CN3 Ciudad que nace",
-      "nota": "js/gfx/city3d.js, ground.js, assets, tools (ola 2, solo dibujo)",
-      "url": "https://claude.ai/code/session_01QiKC37KfDTBEePKgApdWzg"
-    }
-  ],
-  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
+ "juego": "https://alvariitosw.github.io/Bot-travian/",
+ "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
+ "capturas": [
+  {
+   "tarea": "N15",
+   "archivo": "gobierno/capturas-tarea/N15-real.jpg",
+   "pie": "Despliegue: dificultad explicada por contexto (rival, terreno, contras)",
+   "ancha": true
+  },
+  {
+   "tarea": "N15",
+   "archivo": "gobierno/capturas-tarea/N15-hud.jpg",
+   "pie": "Batalla con objetivo: «Aguantad 4 rondas más»",
+   "ancha": true
+  },
+  {
+   "tarea": "N6",
+   "archivo": "gobierno/capturas-tarea/N6-gesto-5s.jpg",
+   "pie": "Batalla: el enemigo avisa su gesto de la ronda",
+   "ancha": true
+  },
+  {
+   "tarea": "N6",
+   "archivo": "gobierno/capturas-tarea/N6-dif-0s.jpg",
+   "pie": "Despliegue: rival con carácter y tres dificultades",
+   "ancha": true
+  },
+  {
+   "tarea": "B8",
+   "archivo": "gobierno/capturas-tarea/B8.jpg",
+   "pie": "Herrería: mejoras de armas y armaduras"
+  },
+  {
+   "tarea": "B4",
+   "archivo": "gobierno/capturas-tarea/B4.jpg",
+   "pie": "Termas, acueducto y anfiteatro"
+  },
+  {
+   "tarea": "D1",
+   "archivo": "gobierno/capturas-tarea/D1-menu.jpg",
+   "pie": "Botón «Medir fluidez» en el menú"
+  },
+  {
+   "tarea": "B9",
+   "archivo": "gobierno/capturas-tarea/B9-despues.jpg",
+   "pie": "Roma con el Tíber y la colina"
+  },
+  {
+   "tarea": "D2",
+   "archivo": "gobierno/capturas-tarea/D2-cerca.jpg",
+   "pie": "Batalla: figuras ligeras al fondo",
+   "ancha": true
+  },
+  {
+   "tarea": "F3",
+   "archivo": "gobierno/capturas-tarea/F3.jpg",
+   "pie": "Reparto de aldeanos"
+  },
+  {
+   "tarea": "B3",
+   "archivo": "gobierno/capturas-tarea/B3.jpg",
+   "pie": "Impuestos altos: la población no crece"
+  },
+  {
+   "tarea": "H7",
+   "archivo": "gobierno/capturas-tarea/H7-mapa-280.jpg",
+   "pie": "Mapa de 280: Capua es tuya, Agrigento griega, Messana mamertina"
+  },
+  {
+   "tarea": "H8",
+   "archivo": "gobierno/capturas-tarea/H8-carthagonova.jpg",
+   "pie": "Carthago Nova empieza como poblado íbero"
+  },
+  {
+   "tarea": "H10",
+   "archivo": "gobierno/capturas-tarea/H10-licencia-hecho.jpg",
+   "pie": "Pirro: texto corregido y etiqueta «licencia de juego»"
+  },
+  {
+   "tarea": "H3",
+   "archivo": "gobierno/capturas-tarea/H3-codice.jpg",
+   "pie": "El Códice, dentro de «Crónica»"
+  },
+  {
+   "tarea": "A8",
+   "archivo": "gobierno/capturas-tarea/A8-min4.jpg",
+   "pie": "Batalla igualada, minuto 4: sigue abierta y la moral baja poco a poco",
+   "ancha": true
+  },
+  {
+   "tarea": "A8",
+   "archivo": "gobierno/capturas-tarea/A8-min7.jpg",
+   "pie": "Minuto 7: regimientos «Cansado» (borde naranja); pegan menos y andan más lento",
+   "ancha": true
+  },
+  {
+   "tarea": "I3",
+   "archivo": "gobierno/capturas-tarea/I3-mano-de-obra.jpg",
+   "pie": "Mano de obra (gente que trabaja frente a puestos) y mantenimiento en oro: edificios y paga de las tropas",
+   "ancha": false
+  },
+  {
+   "tarea": "E1b",
+   "archivo": "gobierno/capturas-tarea/E1b-ciudad.jpg",
+   "pie": "Iconos de línea en bronce y colores de la guía"
+  },
+  {
+   "tarea": "E1b",
+   "archivo": "gobierno/capturas-tarea/E1b-menu.jpg",
+   "pie": "Letra Cinzel incluida: se ve igual sin conexión"
+  },
+  {
+   "tarea": "A9",
+   "archivo": "gobierno/capturas-tarea/A9-cerca-2s.jpg",
+   "pie": "Salida: infantería delante y caballería en el ala",
+   "ancha": true
+  },
+  {
+   "tarea": "A9",
+   "archivo": "gobierno/capturas-tarea/A9-45s.jpg",
+   "pie": "El choque, desde arriba: los tiradores (flecha) quedan detrás de su línea",
+   "ancha": true
+  },
+  {
+   "tarea": "I4",
+   "archivo": "gobierno/capturas-tarea/I4-solares.jpg",
+   "pie": "Cada ciudad tiene solares contados (Roma, 4 de 10 ocupados) y un tipo que eliges",
+   "ancha": false
+  },
+  {
+   "tarea": "I4",
+   "archivo": "gobierno/capturas-tarea/I4-tipos.jpg",
+   "pie": "Elegir tipo: municipio, colonia agraria, colonia militar, emporio, base naval o ciudad de artesanos",
+   "ancha": false
+  },
+  {
+   "tarea": "E2",
+   "archivo": "gobierno/capturas-tarea/E2-mapa.jpg",
+   "pie": "Mapa: cada ciudad con un edificio de su cultura"
+  },
+  {
+   "tarea": "E2",
+   "archivo": "gobierno/capturas-tarea/E2-culturas.jpg",
+   "pie": "De cerca: Cartago, Siracusa, galos, íberos y barcos cartaginés y griego",
+   "ancha": true
+  },
+  {
+   "tarea": "A5a",
+   "archivo": "gobierno/capturas-tarea/A5a-cerca-0s.jpg",
+   "pie": "Despliegue: colocas tus tropas dentro de la línea roja y pulsas «Empezar batalla»",
+   "ancha": true
+  },
+  {
+   "tarea": "B1",
+   "archivo": "gobierno/capturas-tarea/B1-bien.jpg",
+   "pie": "Cada ciudad da un bien (Roma, sal) y abajo ves cuáles tienes y cuáles te faltan",
+   "ancha": false
+  },
+  {
+   "tarea": "B1",
+   "archivo": "gobierno/capturas-tarea/B1-falta.jpg",
+   "pie": "Los triarios piden hierro de calidad: hay que tomar Volsinii o Saguntum",
+   "ancha": false
+  },
+  {
+   "tarea": "B2",
+   "archivo": "gobierno/capturas-tarea/B2-lista.jpg",
+   "pie": "Rutas comerciales en la ciudad: una abierta con Capua y tratados posibles, con el bien que aporta cada uno",
+   "ancha": false
+  },
+  {
+   "tarea": "B2",
+   "archivo": "gobierno/capturas-tarea/B2-mapa.jpg",
+   "pie": "En el mapa: un mercante en la ruta por mar y un carro en la de tierra",
+   "ancha": false
+  },
+  {
+   "tarea": "C2",
+   "archivo": "gobierno/capturas-tarea/C2-antes.jpg",
+   "pie": "Mapa antes: costa dibujada a mano, suelo liso",
+   "ancha": false
+  },
+  {
+   "tarea": "C2",
+   "archivo": "gobierno/capturas-tarea/C2-despues.jpg",
+   "pie": "Mapa después: costa real de Italia, suelo con grano de hierba",
+   "ancha": false
+  },
+  {
+   "tarea": "C2",
+   "archivo": "gobierno/capturas-tarea/C2-sicilia.jpg",
+   "pie": "Sicilia, Malta y el estrecho de Mesina",
+   "ancha": false
+  },
+  {
+   "tarea": "A5c",
+   "archivo": "gobierno/capturas-tarea/a5c-tres-0s.jpg",
+   "pie": "Despliegue en «Tres líneas»: hastati, principes y triarii",
+   "ancha": true
+  },
+  {
+   "tarea": "A5c",
+   "archivo": "gobierno/capturas-tarea/a5c-alas-0s.jpg",
+   "pie": "«Alas fuertes» y la barra con seis formaciones",
+   "ancha": true
+  },
+  {
+   "tarea": "F5",
+   "archivo": "gobierno/capturas-tarea/F5-templo.jpg",
+   "pie": "Templo: elige Marte, Ceres o Neptuno"
+  },
+  {
+   "tarea": "I1b",
+   "archivo": "gobierno/capturas-tarea/I1b-codice.jpg",
+   "pie": "Códice igual que antes, ahora leído del registro (una sola fuente)"
+  },
+  {
+   "tarea": "B7",
+   "archivo": "gobierno/capturas-tarea/B7-saqueo.jpg",
+   "pie": "Atacar con la opción «Solo saquear»"
+  },
+  {
+   "tarea": "E4",
+   "archivo": "gobierno/capturas-tarea/E4-termas.jpg",
+   "pie": "Termas: modelo propio con bóveda, pórtico y chimenea"
+  },
+  {
+   "tarea": "E4",
+   "archivo": "gobierno/capturas-tarea/E4-anfiteatro.jpg",
+   "pie": "Anfiteatro: el de Pompeya de 0 A.D., a escala de ciudad"
+  },
+  {
+   "tarea": "E4",
+   "archivo": "gobierno/capturas-tarea/E4-acueducto.jpg",
+   "pie": "Acueducto: arcada propia de seis arcos"
+  },
+  {
+   "tarea": "A3",
+   "archivo": "gobierno/capturas-tarea/a3b-48s.jpg",
+   "pie": "Las dos líneas chocan tras la fase de tiro; solo pelea el frente",
+   "ancha": true
+  },
+  {
+   "tarea": "E1c",
+   "archivo": "gobierno/capturas-tarea/E1c-marcos.jpg",
+   "pie": "Marcos con doble filete, greca y esquinas de 8 px"
+  },
+  {
+   "tarea": "E1c",
+   "archivo": "gobierno/capturas-tarea/E1c-iconos.jpg",
+   "pie": "Iconos de línea: pestañas, espadas, escudo y águila"
+  },
+  {
+   "tarea": "E1c",
+   "archivo": "gobierno/capturas-tarea/E1c-edificios.jpg",
+   "pie": "Iconos de edificios en la lista de ciudad"
+  },
+  {
+   "tarea": "J1",
+   "archivo": "gobierno/capturas-tarea/J1-maqueta-A.jpg",
+   "pie": "Maqueta A «Barra fina»: ciudad, menú «Más» abierto y mapa"
+  },
+  {
+   "tarea": "J1",
+   "archivo": "gobierno/capturas-tarea/J1-maqueta-B.jpg",
+   "pie": "Maqueta B «Pantalla despejada»: ciudad, menú ☰ abierto y mapa"
+  },
+  {
+   "tarea": "A7",
+   "archivo": "gobierno/capturas-tarea/A7-cart-0s.jpg",
+   "pie": "Defensor cartaginés: su templo en la ciudad",
+   "ancha": true
+  },
+  {
+   "tarea": "A7",
+   "archivo": "gobierno/capturas-tarea/A7-iber-0s.jpg",
+   "pie": "Defensor íbero: su templo en la ciudad",
+   "ancha": true
+  },
+  {
+   "tarea": "A7",
+   "archivo": "gobierno/capturas-tarea/A7-grie-0s.jpg",
+   "pie": "Defensor griego: templo de columnas",
+   "ancha": true
+  },
+  {
+   "tarea": "A4",
+   "archivo": "gobierno/capturas-tarea/a4-0s.jpg",
+   "pie": "Cada regimiento lleva su papel: «Pesada», «Lanceros»…",
+   "ancha": true
+  },
+  {
+   "tarea": "A5b",
+   "archivo": "gobierno/capturas-tarea/a5b-0s.jpg",
+   "pie": "Campo mixto: árboles del bosque y aviso del terreno en el despliegue",
+   "ancha": true
+  },
+  {
+   "tarea": "J1",
+   "archivo": "gobierno/capturas-tarea/J1-ciudad.jpg",
+   "pie": "Pantalla limpia: Gobierno (ciudad)"
+  },
+  {
+   "tarea": "J1",
+   "archivo": "gobierno/capturas-tarea/J1-guerra.jpg",
+   "pie": "Pantalla limpia: Guerra (mapa)"
+  },
+  {
+   "tarea": "J1",
+   "archivo": "gobierno/capturas-tarea/J1-menu.jpg",
+   "pie": "Botón de modo abierto"
+  },
+  {
+   "tarea": "J1",
+   "archivo": "gobierno/capturas-tarea/J1-ciudades.jpg",
+   "pie": "Selector de ciudad"
+  },
+  {
+   "tarea": "K",
+   "archivo": "gobierno/capturas-tarea/gob-4-cartas-1.jpg",
+   "pie": "Gobierno · Cartas (1.º)"
+  },
+  {
+   "tarea": "K",
+   "archivo": "gobierno/capturas-tarea/gob-4-cartas-3.jpg",
+   "pie": "Gobierno · Cartas: crisis"
+  },
+  {
+   "tarea": "K",
+   "archivo": "gobierno/capturas-tarea/gob-3-tablero-1.jpg",
+   "pie": "Gobierno · Tablero (2.º)"
+  },
+  {
+   "tarea": "K",
+   "archivo": "gobierno/capturas-tarea/gob-3-tablero-3.jpg",
+   "pie": "Gobierno · Tablero: tres crisis"
+  },
+  {
+   "tarea": "K",
+   "archivo": "gobierno/capturas-tarea/gob-1-senado-1.jpg",
+   "pie": "Gobierno · Senado"
+  },
+  {
+   "tarea": "K",
+   "archivo": "gobierno/capturas-tarea/guerra-4-general-2.jpg",
+   "pie": "Guerra · General: rueda de órdenes (1.º)",
+   "ancha": true
+  },
+  {
+   "tarea": "K",
+   "archivo": "gobierno/capturas-tarea/guerra-3-trazo-2.jpg",
+   "pie": "Guerra · Trazo: órdenes dibujadas (2.º)",
+   "ancha": true
+  },
+  {
+   "tarea": "K",
+   "archivo": "gobierno/capturas-tarea/guerra-5-partitura-2.jpg",
+   "pie": "Guerra · Partitura",
+   "ancha": true
+  },
+  {
+   "tarea": "K",
+   "archivo": "gobierno/capturas-tarea/guerra-1-arena-2.jpg",
+   "pie": "Guerra · Arena",
+   "ancha": true
+  },
+  {
+   "tarea": "K",
+   "archivo": "gobierno/capturas-tarea/guerra-2-cartas-2.jpg",
+   "pie": "Guerra · Cartas",
+   "ancha": true
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-gob-A-ciudad-1.jpg",
+   "pie": "Gobierno 2 · Ciudad (1.º)"
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-gob-A-ciudad-3.jpg",
+   "pie": "Gobierno 2 · Ciudad: intriga"
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-gob-A-ciudad-5.jpg",
+   "pie": "Gobierno 2 · Ciudad: escala"
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-gob-E-tabularium-1.jpg",
+   "pie": "Gobierno 2 · Tabularium (2.º)"
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-gob-B-lentes-3.jpg",
+   "pie": "Gobierno 2 · Lentes: vista previa"
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-guerra-B-legado-2.jpg",
+   "pie": "Guerra 2 · Legado (1.º)",
+   "ancha": true
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-guerra-B-legado-6.jpg",
+   "pie": "Guerra 2 · Legado: 24 regimientos",
+   "ancha": true
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-guerra-E-fantasmas-2.jpg",
+   "pie": "Guerra 2 · Fantasmas (2.º)",
+   "ancha": true
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-guerra-A-miniaturas-2.jpg",
+   "pie": "Guerra 2 · Miniaturas",
+   "ancha": true
+  },
+  {
+   "tarea": "K2",
+   "archivo": "gobierno/capturas-tarea/K2-guerra-D-estandartes-2.jpg",
+   "pie": "Guerra 2 · Estandartes",
+   "ancha": true
+  },
+  {
+   "tarea": "L1",
+   "archivo": "gobierno/capturas-tarea/L1-trazo-etiqueta.jpg",
+   "pie": "Dibujas el trazo con el dedo: «Avanzar»",
+   "ancha": true
+  },
+  {
+   "tarea": "L1",
+   "archivo": "gobierno/capturas-tarea/L1-boton-dorado.jpg",
+   "pie": "Botón dorado «Cargar» y HUD limpio",
+   "ancha": true
+  },
+  {
+   "tarea": "J6",
+   "archivo": "gobierno/capturas-tarea/J6-ciudad.jpg",
+   "pie": "Ciudad a pantalla completa: medallas con nivel, consejo y tres pestañas"
+  },
+  {
+   "tarea": "J6",
+   "archivo": "gobierno/capturas-tarea/J6-ficha.jpg",
+   "pie": "Ficha única del Foro con el botón Mejorar"
+  },
+  {
+   "tarea": "N1",
+   "archivo": "gobierno/capturas-tarea/N1-plan.jpg",
+   "pie": "Guerra nueva, maqueta · plan: todo parado, dibujas las órdenes y gastas puntos de mando",
+   "ancha": true
+  },
+  {
+   "tarea": "N1",
+   "archivo": "gobierno/capturas-tarea/N1-ejecucion.jpg",
+   "pie": "Guerra nueva, maqueta · ejecución: los dos bandos se mueven a la vez y tú miras",
+   "ancha": true
+  },
+  {
+   "tarea": "N1",
+   "archivo": "gobierno/capturas-tarea/N1-resultado.jpg",
+   "pie": "Guerra nueva, maqueta · resultado, con el plan que llevaba el enemigo",
+   "ancha": true
+  },
+  {
+   "tarea": "N1b",
+   "archivo": "gobierno/capturas-tarea/N1b-plan.jpg",
+   "pie": "Guerra nueva: plan en pausa sobre el 3D real",
+   "ancha": true
+  },
+  {
+   "tarea": "N1b",
+   "archivo": "gobierno/capturas-tarea/N1b-ejecucion.jpg",
+   "pie": "Guerra nueva: 20 s de ejecución, cámara al choque",
+   "ancha": true
+  },
+  {
+   "tarea": "N1b",
+   "archivo": "gobierno/capturas-tarea/N1b-informe.jpg",
+   "pie": "Guerra nueva: lo que pasó en la ronda",
+   "ancha": true
+  },
+  {
+   "tarea": "Q1",
+   "archivo": "gobierno/capturas-tarea/Q1-1-ciudad.jpg",
+   "pie": "Ciudad nueva: saldo del mes y nivel de barrio"
+  },
+  {
+   "tarea": "Q1",
+   "archivo": "gobierno/capturas-tarea/Q1-2-cuentas.jpg",
+   "pie": "Cuentas del mes: lo que entra, lo comprometido, lo que se pierde"
+  },
+  {
+   "tarea": "Q1",
+   "archivo": "gobierno/capturas-tarea/Q1-3-senado.jpg",
+   "pie": "Senado y pueblo: clases, misión y decisión con chips"
+  },
+  {
+   "tarea": "Q1",
+   "archivo": "gobierno/capturas-tarea/Q1-4-fin-de-mes.jpg",
+   "pie": "Cierre del mes: lo que sobra va al almacén hasta el tope"
+  },
+  {
+   "tarea": "I2",
+   "archivo": "gobierno/capturas-tarea/I2-mapa.jpg",
+   "pie": "Botón «Pasar turno» por estaciones"
+  },
+  {
+   "tarea": "Q1b",
+   "archivo": "gobierno/capturas-tarea/Q1b-0-antes-cerca.jpg",
+   "pie": "Ciudad de hoy: muralla cuadrada, solares de arena"
+  },
+  {
+   "tarea": "Q1b",
+   "archivo": "gobierno/capturas-tarea/Q1b-1-romana-cerca.jpg",
+   "pie": "Maqueta: ciudad romana densa, templo en la colina"
+  },
+  {
+   "tarea": "Q1b",
+   "archivo": "gobierno/capturas-tarea/Q1b-2-romana-lejos.jpg",
+   "pie": "Maqueta de lejos: arrabales, campos y horizonte"
+  },
+  {
+   "tarea": "Q1b",
+   "archivo": "gobierno/capturas-tarea/Q1b-3-griega.jpg",
+   "pie": "Maqueta: versión griega, estuco blanco"
+  },
+  {
+   "tarea": "Q1b",
+   "archivo": "gobierno/capturas-tarea/Q1b-4-punica.jpg",
+   "pie": "Maqueta: versión púnica, ocre y tejado plano"
+  },
+  {
+   "tarea": "Q2",
+   "archivo": "gobierno/capturas-tarea/Q2-1-barra.jpg",
+   "pie": "Caja y almacén en la barra, con el aviso de lo que se perderá"
+  },
+  {
+   "tarea": "Q2",
+   "archivo": "gobierno/capturas-tarea/Q2-2-informe.jpg",
+   "pie": "Informe de la estación: tres meses de caja"
+  },
+  {
+   "tarea": "N2",
+   "archivo": "gobierno/capturas-tarea/N2-plan.jpg",
+   "pie": "Batalla por rondas: plan en pausa con sombras de las órdenes",
+   "ancha": true
+  },
+  {
+   "tarea": "N2",
+   "archivo": "gobierno/capturas-tarea/N2-informe.jpg",
+   "pie": "Batalla por rondas: «Lo que pasó» y Ver otra vez",
+   "ancha": true
+  },
+  {
+   "tarea": "Q3",
+   "archivo": "gobierno/capturas-tarea/Q3-1-cuentas.jpg",
+   "pie": "Ficha Cuentas con aviso, Vender y Adelantar obra"
+  },
+  {
+   "tarea": "Q3",
+   "archivo": "gobierno/capturas-tarea/Q3-2-sin-mercado.jpg",
+   "pie": "Sin mercado: Vender apagado"
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-0-antes-despues-cerca.jpg",
+   "pie": "Ciudad: antes (izquierda) y después (derecha), de cerca",
+   "ancha": true
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-0-antes-despues-lejos.jpg",
+   "pie": "Ciudad: antes y después, de lejos",
+   "ancha": true
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-1-romana-cerca.jpg",
+   "pie": "Maqueta nueva: ciudad romana, foro y arx"
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-2-romana-lejos.jpg",
+   "pie": "Maqueta nueva: de lejos, con arrabales, río y campos"
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-3-romana-calle.jpg",
+   "pie": "Maqueta nueva: a pie de foro, gente a escala"
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-4-griega-cerca.jpg",
+   "pie": "Maqueta nueva: ciudad griega"
+  },
+  {
+   "tarea": "Q1b2",
+   "archivo": "gobierno/capturas-tarea/Q1b2-5-punica-cerca.jpg",
+   "pie": "Maqueta nueva: ciudad púnica"
+  },
+  {
+   "tarea": "Q4",
+   "archivo": "gobierno/capturas-tarea/Q4-2-cola-obras.jpg",
+   "pie": "Cola de obras con cuotas (1/3)"
+  },
+  {
+   "tarea": "Q4",
+   "archivo": "gobierno/capturas-tarea/Q4-1b-cuentas-oro.jpg",
+   "pie": "Cuentas: plazos, aviso y adelantar cuotas"
+  },
+  {
+   "tarea": "N3",
+   "archivo": "gobierno/capturas-tarea/N3-plan.jpg",
+   "pie": "Batalla: estandartes, flechas por orden y fila de botones",
+   "ancha": true
+  },
+  {
+   "tarea": "N3",
+   "archivo": "gobierno/capturas-tarea/N3-ordenes.jpg",
+   "pie": "Los seis tipos de orden en el suelo",
+   "ancha": true
+  },
+  {
+   "tarea": "N3",
+   "archivo": "gobierno/capturas-tarea/N3-informe.jpg",
+   "pie": "Informe «Lo que pasó» plegable",
+   "ancha": true
+  },
+  {
+   "tarea": "Q1c",
+   "archivo": "gobierno/capturas-tarea/Q1c-0-antes-despues-cerca.jpg",
+   "pie": "Ciudad ligera: antes (1,5 millones de triángulos) y después (270 000), con la ladera llena"
+  },
+  {
+   "tarea": "Q1c",
+   "archivo": "gobierno/capturas-tarea/Q1c-0-antes-despues-lejos.jpg",
+   "pie": "De lejos: antes y después, fondo con arboledas, caseríos y montes"
+  },
+  {
+   "tarea": "Q1c",
+   "archivo": "gobierno/capturas-tarea/Q1c-3-romana-calle.jpg",
+   "pie": "La ladera desde el foro: barrio en cuesta"
+  },
+  {
+   "tarea": "Q1c",
+   "archivo": "gobierno/capturas-tarea/Q1c-4-griega-cerca.jpg",
+   "pie": "Griega, versión ligera"
+  },
+  {
+   "tarea": "Q1c",
+   "archivo": "gobierno/capturas-tarea/Q1c-5-punica-cerca.jpg",
+   "pie": "Púnica, versión ligera"
+  },
+  {
+   "tarea": "Q1c",
+   "archivo": "gobierno/capturas-tarea/Q1c-6-pagina-prueba.jpg",
+   "pie": "Página de prueba para tu móvil: contador de fluidez y botones"
+  },
+  {
+   "tarea": "Q5",
+   "archivo": "gobierno/capturas-tarea/Q5-2-ciudad.jpg",
+   "pie": "Barrio de nivel 3 con sus servicios"
+  },
+  {
+   "tarea": "Q5",
+   "archivo": "gobierno/capturas-tarea/Q5-3-baja.jpg",
+   "pie": "Aviso: baja a Villa en 2 meses si falta el agua"
+  },
+  {
+   "tarea": "N4",
+   "archivo": "gobierno/capturas-tarea/N4e-90s.jpg",
+   "pie": "Batalla con estados: huye (gris), cansancio rojo y ámbar",
+   "ancha": true
+  },
+  {
+   "tarea": "Q6",
+   "archivo": "gobierno/capturas-tarea/Q6-1-clases.jpg",
+   "pie": "Ciudadanos, plebeyos y esclavos con su ánimo; «Dar ciudadanía»"
+  },
+  {
+   "tarea": "Q6",
+   "archivo": "gobierno/capturas-tarea/Q6-2-conquistada.jpg",
+   "pie": "Ciudad conquistada con esclavos"
+  },
+  {
+   "tarea": "Q1d",
+   "archivo": "gobierno/capturas-tarea/Q1d-3-antes-despues-ciudad.jpg",
+   "pie": "La ciudad del juego, antes y después: relieve, río, parcelas, sombras y bruma",
+   "ancha": true
+  },
+  {
+   "tarea": "Q1d",
+   "archivo": "gobierno/capturas-tarea/Q1d-3-antes-despues-media.jpg",
+   "pie": "Más cerca, antes y después: suelo de tierra, losas solo en el foro, sombras largas",
+   "ancha": true
+  },
+  {
+   "tarea": "Q1d",
+   "archivo": "gobierno/capturas-tarea/Q1d-3-antes-despues-calle.jpg",
+   "pie": "A pie de calle, antes y después",
+   "ancha": true
+  },
+  {
+   "tarea": "Q1d",
+   "archivo": "gobierno/capturas-tarea/Q1d-1-toque.jpg",
+   "pie": "Tocar un edificio sigue funcionando: medalla, anillo y ficha del foro"
+  },
+  {
+   "tarea": "Q1d",
+   "archivo": "gobierno/capturas-tarea/Q1d-1-grande.jpg",
+   "pie": "Roma con todos los edificios a nivel 5; el puerto, en la orilla del río"
+  },
+  {
+   "tarea": "Q1k",
+   "archivo": "gobierno/capturas-tarea/Q1k-1-terreno.jpg",
+   "pie": "Ciudad nueva: eliges dónde fundar; verde es buen sitio y arriba dice por qué"
+  },
+  {
+   "tarea": "Q1k",
+   "archivo": "gobierno/capturas-tarea/Q1k-3-colocar.jpg",
+   "pie": "Colocas la fuente con el dedo: «daría agua a 9 casas»"
+  },
+  {
+   "tarea": "Q1k",
+   "archivo": "gobierno/capturas-tarea/Q1k-4-crece.jpg",
+   "pie": "Dos años después: calles y casas han nacido solas"
+  },
+  {
+   "tarea": "Q1k",
+   "archivo": "gobierno/capturas-tarea/Q1k-5-barrios.jpg",
+   "pie": "Muralla sobre el surco y un barrio nuevo en la loma"
+  },
+  {
+   "tarea": "Q1k",
+   "archivo": "gobierno/capturas-tarea/Q1k-5b-cerca.jpg",
+   "pie": "De cerca: casas reales, fuente y calle empedrada"
+  },
+  {
+   "tarea": "Q1k",
+   "archivo": "gobierno/capturas-tarea/Q1k-6-crecida.jpg",
+   "pie": "Crecida de primavera: se moja la granja de la ribera"
+  },
+  {
+   "tarea": "N5",
+   "archivo": "gobierno/capturas-tarea/N5-p1.jpg",
+   "pie": "Plan: círculo de mando y contador 3/5",
+   "ancha": true
+  },
+  {
+   "tarea": "N5",
+   "archivo": "gobierno/capturas-tarea/N5-p2.jpg",
+   "pie": "Orden fuera del radio: llega 6 s tarde",
+   "ancha": true
+  },
+  {
+   "tarea": "N5",
+   "archivo": "gobierno/capturas-tarea/N5-p3.jpg",
+   "pie": "Carta de arenga jugada; el resto se apaga",
+   "ancha": true
+  },
+  {
+   "tarea": "N14",
+   "archivo": "gobierno/capturas-tarea/N14-ancho-0s.jpg",
+   "pie": "Campo ancho en el despliegue, con minimapa",
+   "ancha": true
+  },
+  {
+   "tarea": "N14",
+   "archivo": "gobierno/capturas-tarea/N14-rio-p4.jpg",
+   "pie": "Río con tres vados y minimapa",
+   "ancha": true
+  },
+  {
+   "tarea": "N14",
+   "archivo": "gobierno/capturas-tarea/N14-pantano-p4.jpg",
+   "pie": "Pantano",
+   "ancha": true
+  },
+  {
+   "tarea": "N14",
+   "archivo": "gobierno/capturas-tarea/N14-cerro-p4.jpg",
+   "pie": "Cerro",
+   "ancha": true
+  },
+  {
+   "tarea": "C2c",
+   "archivo": "gobierno/capturas-tarea/C2c-sicilia.jpg",
+   "pie": "El Etna ahora se lee como monte con cumbre clara"
+  },
+  {
+   "tarea": "C2c",
+   "archivo": "gobierno/capturas-tarea/C2c-grecia.jpg",
+   "pie": "El Olimpo, cerca de Pella, con su cumbre"
+  },
+  {
+   "tarea": "Q7",
+   "archivo": "gobierno/capturas-tarea/Q7-1-mision.jpg",
+   "pie": "Senado: dos barras y misión en curso"
+  },
+  {
+   "tarea": "Q7",
+   "archivo": "gobierno/capturas-tarea/Q7-2-favor-bajo.jpg",
+   "pie": "Senado con favor bajo y aviso"
+  }
+ ],
+ "informes": [
+  {
+   "titulo": "D3 · ¿Pasar el juego a Godot?",
+   "archivo": "gobierno/estudios/D3-godot.md"
+  },
+  {
+   "titulo": "E1 · Guía de arte",
+   "archivo": "gobierno/estudios/E1-guia-de-arte.md"
+  },
+  {
+   "titulo": "F1 · Modos de juego",
+   "archivo": "gobierno/estudios/F1-modos-de-juego.md"
+  },
+  {
+   "titulo": "H1 · Auditoría histórica (cotejada con las fuentes)",
+   "archivo": "gobierno/historia/H1-resumen.md"
+  },
+  {
+   "titulo": "G3 · Batallas estratégicas",
+   "archivo": "gobierno/estudios/G3-batallas-estrategicas.md"
+  },
+  {
+   "titulo": "G3 · Gran diseño",
+   "archivo": "gobierno/estudios/G3-gran-diseno.md"
+  },
+  {
+   "titulo": "Historia 2 · Qué ha cambiado en el juego",
+   "archivo": "gobierno/partes/2026-11-11-H4-H10.md"
+  },
+  {
+   "titulo": "K · Concurso de interfaz: puntuaciones",
+   "archivo": "gobierno/estudios/K-concurso.md"
+  },
+  {
+   "titulo": "K2 · Segunda ronda: puntuaciones",
+   "archivo": "gobierno/estudios/K2-concurso.md"
+  },
+  {
+   "titulo": "R1 · Barrios con servicios (idea de Caesar III)",
+   "archivo": "gobierno/estudios/R1-barrios-con-servicios.md"
+  },
+  {
+   "titulo": "R2 · Población por clases (idea de Imperator: Rome)",
+   "archivo": "gobierno/estudios/R2-poblacion-por-clases.md"
+  },
+  {
+   "titulo": "R3 · Radio de efecto de los edificios (idea de Grand Ages: Rome)",
+   "archivo": "gobierno/estudios/R3-radio-de-efecto.md"
+  },
+  {
+   "titulo": "R4 · Senado y familia (idea de Rome: Total War)",
+   "archivo": "gobierno/estudios/R4-senado-y-familia.md"
+  },
+  {
+   "titulo": "R5 · Provincias y edictos (idea de Total War: Rome II)",
+   "archivo": "gobierno/estudios/R5-provincias-y-edictos.md"
+  },
+  {
+   "titulo": "R6 · Emboscadas en el bosque (idea de Praetorians)",
+   "archivo": "gobierno/estudios/R6-emboscadas-en-bosque.md"
+  },
+  {
+   "titulo": "R7 · Campamento de legión (idea de Expeditions: Rome)",
+   "archivo": "gobierno/estudios/R7-campamento-de-legion.md"
+  },
+  {
+   "titulo": "N1 · Guerra nueva: «planeas y luego miras» (diseño)",
+   "archivo": "gobierno/estudios/N1-guerra-nueva.md"
+  },
+  {
+   "titulo": "N1b · Guerra ampliada",
+   "archivo": "gobierno/estudios/N1b-guerra-ampliada.md"
+  },
+  {
+   "titulo": "Q1 · Ciudad, gobierno y economía",
+   "archivo": "gobierno/estudios/Q1-ciudad-gobierno-economia.md"
+  },
+  {
+   "titulo": "Q1b · Ciudad itálica (historia y aspecto)",
+   "archivo": "gobierno/estudios/Q1b-ciudad-italica.md"
+  },
+  {
+   "titulo": "Q1b2 · Ciudad nueva, segunda vuelta",
+   "archivo": "gobierno/estudios/Q1b2-ciudad-segunda-vuelta.md"
+  },
+  {
+   "titulo": "Q1k · Ciudad nueva de cero: fundar, colocar, crecer",
+   "archivo": "gobierno/estudios/Q1k-ciudad-de-cero.md"
+  },
+  {
+   "titulo": "Q1l · Lluvia de ideas para la ciudad nueva",
+   "archivo": "gobierno/estudios/Q1l-lluvia-de-ideas.md"
+  },
+  {
+   "titulo": "Q1l · Informe de competencia",
+   "archivo": "gobierno/estudios/Q1l-competencia.md"
+  },
+  {
+   "titulo": "H11a · Cotejo de fichas con las fuentes",
+   "archivo": "gobierno/estudios/H11-cotejo.md"
+  }
+ ],
+ "repo": "https://github.com/alvariitosw/bot-travian",
+ "rama": "claude/roman-strategy-mobile-game-bx9oq2",
+ "sesiones": [
+  {
+   "tarea": "CN3",
+   "titulo": "Ciudad nueva · CN3 Ciudad que nace",
+   "nota": "js/gfx/city3d.js, ground.js, assets, tools (ola 2, solo dibujo)",
+   "url": "https://claude.ai/code/session_01QiKC37KfDTBEePKgApdWzg"
+  }
+ ],
+ "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
 }

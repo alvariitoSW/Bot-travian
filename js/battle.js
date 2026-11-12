@@ -589,7 +589,7 @@
       if (r.st !== 'rout') continue;
       const g = this.regs.find(function (q) { return q.side === r.side && q.k === 'general' && q.st === 'ok'; });
       if (!g || Math.hypot(g.x - r.x, g.y - r.y) >= REAGRUPA_DIST) continue;
-      r.st = 'ok'; r.mor = Math.max(1, r.morMax * REAGRUPA_MOR); r.order = null; r.tgt = null; r.charge = 0; r.choque = 0; r.reagrupado = (r.reagrupado || 0) + 1;
+      r.st = 'ok'; r.mor = Math.max(1, Math.min(topeMor(r), r.morMax * REAGRUPA_MOR)); r.order = null; r.tgt = null; r.charge = 0; r.choque = 0; r.reagrupado = (r.reagrupado || 0) + 1;
       this.nota(nombreReg(r) + ' se reagrupa junto a su general');
     }
   };
@@ -1144,7 +1144,7 @@
       res.lost[r.side][r.k] = (res.lost[r.side][r.k] || 0) + (r.max - alive);
       res.dead[r.side] += r.max - alive;
     }
-    if (this.obj) { const p = this.progresoObjetivo(); res.objetivo = { tipo: this.obj.tipo, cumplido: !!this.obj.cumplido, texto: this.obj.fin ? p.texto : (this.over ? 'Objetivo no cumplido' : p.texto) }; }
+    if (this.obj) { const p = this.progresoObjetivo() || { texto: '' }, aniq = this.over && !this.obj.fin && this.winner === this.obj.lado; res.objetivo = { tipo: this.obj.tipo, cumplido: !!this.obj.cumplido || aniq, texto: this.obj.fin ? p.texto : aniq ? 'Ganasteis destruyendo al rival' : (this.over ? 'Objetivo no cumplido' : p.texto) }; }
     return res;
   };
 
