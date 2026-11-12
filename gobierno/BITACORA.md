@@ -98,6 +98,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - **Ciudad nueva (P78)**: mirar las capturas `Q1b2` (antes y después) y decir si ya convence. Si convence, aprobar P78 o al menos Q1c, la prueba en su teléfono. Si tiene capturas o enlaces de juegos cuya ciudad le guste, pasarlos.
 - **Peso del arte**: las casas nuevas dejarían la descarga en 34,9 MB sobre 35. Decir si se sube el tope (a 37) o se aligera otra cosa.
 - **Gasto de Q1b2**: 3,3 M sobre 1,35 presupuestados (la maqueta sola, 2 M). Decir si las maquetas de diseño con Fable siguen así o con tope más bajo.
+- **Bloque Q2 a Q4 (caja del mes) hecho** (12/11). Q11 (se ve) y Q5 en adelante esperan su orden: no hay sesión abierta del carril Q.
 - **P69 Radio de efecto de los edificios**: aprobar o rechazar (las demás ideas sueltas ya están dentro de P74 y P75).
 
 ## Propuestas por aprobar
