@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=844,height=390">
+<title>AQVILA · Cianotipo de campaña</title>
+<style>
+@font-face{font-family:Cinzel;src:url(../../../assets/fuentes/cinzel-700.woff2) format("woff2");font-weight:700}
+:root{--az:#0d3560;--az2:#14497d;--lin:#d4e8ff;--tiza:#ffe08a;--ene:#ff8a65;--ok:#8be3b0;--sombra:#06203d}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:844px;height:390px;overflow:hidden;background:var(--az);color:var(--lin);font:12px/1.25 "Courier New",ui-monospace,monospace}
+h1,h2,.t{font-family:Cinzel,serif;font-weight:700;letter-spacing:.06em}
+#mapa{position:absolute;inset:0;width:844px;height:390px}
+#mapa .u{transition:transform 1.2s ease,opacity .8s}
+button{font:inherit;color:inherit;background:none;border:1px solid var(--lin);padding:0 9px;height:30px;cursor:pointer;letter-spacing:.03em}
+button.p{background:var(--tiza);color:var(--sombra);border-color:var(--tiza);font-weight:700}
+button:active{transform:translateY(1px)}
+/* HUD superior */
+#hud{position:absolute;top:6px;left:8px;right:8px;display:flex;gap:6px;align-items:center;height:30px}
+#hud .marca{font-size:15px;color:var(--tiza);margin-right:4px;text-shadow:0 0 6px var(--sombra)}
+#hud nav{display:flex;gap:4px}
+#hud nav button{height:26px;padding:0 8px;background:rgba(6,32,61,.75);font-size:11px}
+#hud nav button.on{background:var(--lin);color:var(--sombra);border-color:var(--lin)}
+#hud .rec{margin-left:auto;display:flex;gap:6px}
+#hud .rec span{background:rgba(6,32,61,.8);border:1px solid var(--lin);padding:4px 7px;font-size:11px}
+#info{position:absolute;right:10px;top:46px;width:178px;background:rgba(6,32,61,.78);border:1px solid var(--lin);padding:6px 8px;font-size:11px}
+#info b{color:var(--tiza)}
+#info .barra{height:5px;border:1px solid var(--lin);margin:3px 0 5px}
+#info .barra i{display:block;height:100%;background:var(--lin)}
+/* ventana flotante */
+#vent{position:absolute;left:10px;bottom:8px;width:640px;height:176px;background:rgba(7,38,70,.94);border:2px solid var(--lin);outline:1px solid var(--lin);outline-offset:3px;box-shadow:0 10px 24px rgba(0,0,0,.55);display:flex;flex-direction:column;transition:transform .35s ease,opacity .35s,height .35s}
+#vent.cerrada{transform:translateY(230px);opacity:0;pointer-events:none}
+#vent.alta{height:218px}
+#vent header{display:flex;align-items:center;gap:8px;height:28px;padding:0 6px 0 10px;border-bottom:1px solid var(--lin);background:var(--az2)}
+#vent header h2{font-size:13px;color:var(--tiza)}
+#vent header .sub{opacity:.8;font-size:11px}
+#vent header .x{margin-left:auto;width:36px;height:24px;padding:0;font-size:15px}
+#cuerpo{flex:1;display:flex;min-height:0}
+#escena{width:300px;border-right:1px solid var(--lin);position:relative;background:#0a2c52}
+#escena svg{position:absolute;inset:0;width:100%;height:100%}
+#ordenes{flex:1;padding:6px 8px;display:flex;flex-direction:column;gap:5px;min-width:0}
+.op{display:flex;align-items:center;gap:7px;border:1px solid var(--lin);padding:3px 7px;height:36px;cursor:pointer;background:rgba(212,232,255,.06)}
+.op.sel{background:var(--lin);color:var(--sombra)}
+.op .n{font-family:Cinzel,serif;font-size:18px;width:18px;text-align:center}
+.op small{display:block;font-size:10px;opacity:.85}
+#ordenes .fila{display:flex;gap:6px;margin-top:auto}
+#ordenes .fila button{flex:1}
+.reg{font-size:11px;opacity:.9}
+.log p{font-size:11px;border-bottom:1px dotted rgba(212,232,255,.4);padding:2px 0}
+.log p b{color:var(--tiza)}
+#abrir{position:absolute;left:10px;bottom:8px;height:32px;background:var(--tiza);color:var(--sombra);border-color:var(--tiza);font-weight:700;display:none}
+#abrir.ver{display:block}
+@keyframes bob{50%{transform:translateY(-2px)}}
+@keyframes golpe{0%,100%{transform:rotate(0)}50%{transform:rotate(-22deg)}}
+.fig{animation:bob .5s infinite}
+.lanza{transform-box:fill-box;transform-origin:50% 100%;animation:golpe .6s infinite}
+</style>
+</head>
+<body>
+<svg id="mapa" viewBox="0 0 844 390" aria-label="Mapa de la batalla"></svg>
+
+<div id="hud">
+  <span class="marca t">AQVILA</span>
+  <nav id="nav">
+    <button data-s="1">1 Plan</button><button data-s="2">2 Turno</button><button data-s="3">3 Lucha</button><button data-s="4">4 Puesto</button>
+  </nav>
+  <div class="rec"><span>Trigo 340</span><span>Hierro 120</span><span>Moral 82%</span></div>
+</div>
+<div id="info"></div>
+
+<section id="vent" aria-label="Escena de la batalla">
+  <header><h2 id="vt"></h2><span class="sub" id="vs"></span><button class="x" id="cerrar" aria-label="Cerrar escena">✕</button></header>
+  <div id="cuerpo"><div id="escena"><svg id="esc" viewBox="0 0 300 150" preserveAspectRatio="xMidYMid slice"></svg></div><div id="ordenes"></div></div>
+</section>
+<button id="abrir">▲ Ver la escena</button>
+
+<script>
+const $=s=>document.querySelector(s), NS="http://www.w3.org/2000/svg";
+const E=(t,a={},p)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(p)p.appendChild(e);return e};
+const L="#d4e8ff",T="#ffe08a",R="#ff8a65";
+/* ---------- MAPA (fondo cianotipo, 1.500 m de ancho) ---------- */
+const m=$("#mapa");
+const defs=E("defs",{},m);
+const pat=E("pattern",{id:"cuad",width:42,height:42,patternUnits:"userSpaceOnUse"},defs);
+E("path",{d:"M42 0H0V42",fill:"none",stroke:L,"stroke-opacity":.13,"stroke-width":1},pat);
+const bos=E("pattern",{id:"bos",width:8,height:8,patternUnits:"userSpaceOnUse"},defs);
+E("path",{d:"M0 8L8 0M-2 2L2 -2M6 10L10 6",stroke:L,"stroke-opacity":.5,"stroke-width":1},bos);
+E("rect",{width:844,height:390,fill:"var(--az)"},m);
+E("rect",{width:844,height:390,fill:"url(#cuad)"},m);
+[[420,190,330,120],[420,190,270,92],[420,190,210,66]].forEach(([x,y,a,b],i)=>E("ellipse",{cx:660,cy:150,rx:a/2.6,ry:b/2.6,fill:"none",stroke:L,"stroke-opacity":.35+i*.1},m));
+E("text",{x:632,y:152,fill:L,"font-size":9,"fill-opacity":.7},m).textContent="Colina 112";
+E("path",{d:"M-10 230 C150 190 260 280 420 240 S700 190 860 250",fill:"none",stroke:L,"stroke-width":14,"stroke-opacity":.18},m);
+E("path",{d:"M-10 230 C150 190 260 280 420 240 S700 190 860 250",fill:"none",stroke:L,"stroke-width":1.2,"stroke-dasharray":"2 5"},m);
+E("text",{x:60,y:262,fill:L,"font-size":9,"fill-opacity":.7},m).textContent="Río Trebia";
+E("path",{d:"M280 80 q40 -22 90 -4 q30 26 -10 50 q-60 12 -86 -10z",fill:"url(#bos)",stroke:L,"stroke-opacity":.6},m);
+E("text",{x:300,y:70,fill:L,"font-size":9,"fill-opacity":.7},m).textContent="Bosque (emboscada)";
+E("path",{d:"M0 320 L300 300 L560 330 L844 300",fill:"none",stroke:L,"stroke-opacity":.5,"stroke-dasharray":"10 4"},m);
+E("path",{d:"M600 372 H844",stroke:L,"stroke-width":2},m); E("path",{d:"M600 368v8M722 368v8M844 368v8",stroke:L},m);
+E("text",{x:742,y:364,fill:L,"font-size":9},m).textContent="1.500 m";
+/* ejércitos: 20 regimientos (2 filas de 8 + 4 de caballería) */
+const gR=E("g",{class:"u",id:"gR"},m), gE=E("g",{class:"u",id:"gE"},m), flechas=E("g",{id:"flechas"},m), mar=E("g",{id:"marc"},m);
+function ejercito(g,x0,dir,col){
+  for(let f=0;f<2;f++)for(let i=0;i<8;i++)E("rect",{x:x0+dir*(i*21),y:96+f*14,width:17,height:9,fill:"none",stroke:col,"stroke-width":1.5},g),E("path",{d:`M${x0+dir*(i*21)+2} ${100+f*14}h13`,stroke:col,"stroke-opacity":.6},g);
+  [[x0-dir*14,86],[x0+dir*(7*21+4),86],[x0-dir*14,118],[x0+dir*(7*21+4),118]].forEach(([x,y])=>E("path",{d:`M${x} ${y}l7 6l-7 6l-7 -6z`,fill:col,"fill-opacity":.35,stroke:col,"stroke-width":1.5},g));
+}
+ejercito(gR,36,1,T); ejercito(gE,806,-1,R);
+E("text",{x:36,y:78,fill:T,"font-size":10},m).textContent="LEGIÓN I-XX";
+E("text",{x:640,y:78,fill:R,"font-size":10},m).textContent="CARTAGINESES";
+E("path",{d:"M664 118l10 -16l10 16z",fill:T,stroke:T},m).setAttribute("id","puesto");
+/* flechas de orden */
+function flecha(d,col,dash){E("path",{d,fill:"none",stroke:col,"stroke-width":2.2,"stroke-dasharray":dash||"","marker-end":"url(#pt)"},flechas)}
+const mk=E("marker",{id:"pt",markerWidth:8,markerHeight:8,refX:6,refY:4,orient:"auto"},defs);E("path",{d:"M0 0L8 4L0 8z",fill:"context-stroke"},mk);
+/* ---------- ESCENA (SVG a mano) ---------- */
+const esc=$("#esc");
+function figura(g,x,y,col,dir,esLucha){
+  const f=E("g",{class:"fig",style:`animation-delay:${(x*7%5)/10}s`,transform:`translate(${x} ${y}) scale(${dir} 1)`},g);
+  E("circle",{cx:0,cy:-14,r:3,fill:col},f);E("rect",{x:-3,y:-11,width:6,height:11,fill:col},f);
+  E("path",{d:"M-2 0v5M2 0v5",stroke:col},f);E("rect",{x:3,y:-11,width:3.5,height:9,fill:"none",stroke:col},f);
+  E("path",{d:"M-3 -8L-8 -20",stroke:col,"stroke-width":1,class:esLucha?"lanza":""},f);
+}
+function caballo(g,x,y,col){
+  const f=E("g",{class:"fig",transform:`translate(${x} ${y})`},g);
+  E("ellipse",{cx:0,cy:-8,rx:9,ry:4.5,fill:col},f);E("path",{d:"M8 -10l5 -6M-6 -4v8M5 -4v8",stroke:col,"stroke-width":1.6},f);
+  E("circle",{cx:0,cy:-17,r:3,fill:col},f);E("path",{d:"M-1 -14l-6 -2",stroke:col},f);
+}
+function dibujaEscena(n){
+  esc.innerHTML="";
+  E("rect",{width:300,height:150,fill:"#0a2c52"},esc);
+  E("path",{d:"M0 70 q40 -26 80 -6 t90 -8 t130 6V100H0z",fill:"none",stroke:L,"stroke-opacity":.4},esc);
+  E("path",{d:"M0 112H300",stroke:L,"stroke-opacity":.6},esc);
+  for(let i=0;i<10;i++)E("path",{d:`M${i*32} 150L${i*32+20} 112`,stroke:L,"stroke-opacity":.15},esc);
+  const g=E("g",{},esc);
+  if(n==1){ // formación en reposo + sombras de orden
+    for(let i=0;i<7;i++){figura(g,28+i*13,128,T,1);figura(g,28+i*13,140,T,1)}
+    for(let i=0;i<6;i++){figura(g,200+i*14,128,R,-1);figura(g,200+i*14,140,R,-1)}
+    E("path",{d:"M30 100H100",stroke:T,"stroke-dasharray":"3 3",marker:""},esc);
+    E("text",{x:6,y:14,fill:L,"font-size":9},esc).textContent="Vista del campo · 1:200";
+  }
+  if(n==2){
+    for(let i=0;i<6;i++){figura(g,40+i*14,130,T,1);}
+    for(let i=0;i<5;i++)caballo(g,25+i*14,100,T);
+    for(let i=0;i<6;i++){figura(g,190+i*14,130,R,-1)}
+    E("path",{d:"M140 70H270",stroke:T,"stroke-dasharray":"3 3"},esc);
+    E("text",{x:6,y:14,fill:L,"font-size":9},esc).textContent="Ala derecha · caballería lista";
+  }
+  if(n==3){
+    for(let i=0;i<6;i++){figura(g,120+i*12,128,T,1,1);figura(g,120+i*12,141,T,1,1);figura(g,160+i*12,128,R,-1,1);figura(g,160+i*12,141,R,-1,1)}
+    for(let i=0;i<4;i++)caballo(g,210+i*14,104,T);
+    E("text",{x:6,y:14,fill:L,"font-size":9},esc).textContent="Choque · ola 2 de 4";
+    E("path",{d:"M150 90l6 -8l4 8l6 -8l4 8",stroke:T,fill:"none"},esc);
+  }
+  if(n==4){
+    for(let i=0;i<8;i++){figura(g,40+i*14,130,T,1);figura(g,40+i*14,142,T,1)}
+    E("path",{d:"M238 112V60",stroke:T,"stroke-width":2},esc);E("path",{d:"M238 62h30v16h-30z",fill:T},esc);
+    E("text",{x:243,y:74,fill:"#06203d","font-size":9},esc).textContent="SPQR";
+    for(let i=0;i<3;i++)figura(g,196+i*10,141,R,-1);
+    E("text",{x:6,y:14,fill:L,"font-size":9},esc).textContent="Puesto tomado · estandarte";
+  }
+}
+/* ---------- PANTALLAS ---------- */
+let sel={1:0,2:0},dia=1;
+const P={
+1:{t:"Plan de batalla",s:"Antes del choque",alta:0,
+ info:()=>`<b>Terreno</b> colina y río<br>Tropas: 20 reg.<br>Enemigo: ~24 reg.<div class="barra"><i style="width:62%"></i></div>Entrada: 3 órdenes máx.`,
+ ops:[["I","Centro firme","Infantería pesada sostiene"],["II","Caballería al flanco izq.","Rodea por el río"],["III","Emboscada en el bosque","2 reg. ocultos"]],
+ btn:["Fijar plan","Pasar al turno 1"],sig:2},
+2:{t:"Consejo · turno 3 de 8",s:"Elige una opción",alta:0,
+ info:()=>`<b>Turno 3</b> · día ${dia}<br>Moral propia 82%<br><div class="barra"><i style="width:82%"></i></div>Moral enemiga 64%<div class="barra"><i style="width:64%"></i></div>`,
+ ops:[["I","Cargar el flanco derecho","+30% choque · cansa"],["II","Esperar la emboscada","Aguanta 1 turno"],["III","Retirar el ala izquierda","Salva bajas"]],
+ btn:["Ejecutar turno","Ver a las tropas"],sig:3},
+3:{t:"Escena en directo",s:"Ola 2 de 4",alta:1,
+ info:()=>`<b>Choque</b> en la colina<br>Bajas propias: 410<br>Bajas enemigas: 780<br><div class="barra"><i style="width:68%"></i></div>La caballería ya rodea.`,
+ log:[["Turno 3","la caballería carga por el flanco."],["Turno 3","el centro aguanta la línea."],["Turno 4","emboscada: 2 reg. salen del bosque."]],
+ btn:["Acelerar x2","Ir al resultado"],sig:4},
+4:{t:"Victoria en el paso",s:"Ocupar y mantener",alta:0,
+ info:()=>`<b>Puesto</b> Colina 112<br>Guarnición: 9 reg.<br>Raciones: ${6-dia} días<div class="barra"><i style="width:${(6-dia)*16}%"></i></div>Día ${dia} de 3 de asedio.`,
+ ops:[["I","Mantener un día más","Gasta 40 trigo"],["II","Fortificar la colina","+20% defensa · 30 hierro"],["III","Volver al mapa","Deja 3 reg. de guarnición"]],
+ btn:["Mantener un día","Volver al mapa"],sig:1}
+};
+function pinta(n){
+  const p=P[n]; $("#vt").textContent=p.t; $("#vs").textContent=p.s;
+  $("#vent").classList.toggle("alta",!!p.alta);
+  document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.s==n));
+  $("#info").innerHTML=p.info();
+  const o=$("#ordenes"); o.innerHTML="";
+  if(p.ops)p.ops.forEach((x,i)=>{const d=document.createElement("div");d.className="op"+((sel[n]||0)===i?" sel":"");d.innerHTML=`<span class="n">${x[0]}</span><div>${x[1]}<small>${x[2]}</small></div>`;d.onclick=()=>{sel[n]=i;pinta(n)};o.appendChild(d)});
+  if(p.log){const l=document.createElement("div");l.className="log";l.innerHTML=p.log.map(x=>`<p><b>${x[0]}</b> · ${x[1]}</p>`).join("")+`<p class="reg">20 regimientos · 1.500 m de frente · 3 olas</p>`;o.appendChild(l)}
+  const f=document.createElement("div");f.className="fila";
+  f.innerHTML=`<button>${p.btn[0]}</button><button class="p">${p.btn[1]}</button>`;
+  f.children[1].onclick=()=>ir(p.sig); f.children[0].onclick=()=>{if(n==4){dia=Math.min(3,dia+1);pinta(4)}};
+  o.appendChild(f);
+  dibujaEscena(n); mapa(n);
+}
+function mapa(n){
+  flechas.innerHTML=""; mar.innerHTML="";
+  gR.style.transform=n==3?"translateX(110px)":n==4?"translateX(250px)":"";
+  gE.style.transform=n==3?"translateX(-70px)":"";
+  gE.style.opacity=n==4?.15:1; $("#puesto").style.opacity=n==4?1:.4;
+  if(n==1){flecha("M110 84C170 40 250 40 330 70",T,"5 4");flecha("M200 150C320 200 440 190 520 140",T,"5 4");E("circle",{cx:325,cy:100,r:22,fill:"none",stroke:T,"stroke-dasharray":"3 3"},mar)}
+  if(n==2){flecha("M150 140C300 215 500 230 630 160",T);flecha("M180 112H470",T);flecha("M740 84C700 50 620 56 560 82",R)}
+  if(n==3){for(let i=0;i<5;i++)E("path",{d:`M${430+i*14} ${90+i%2*20}l6 -8l3 8l6 -8`,stroke:T,fill:"none","stroke-width":2},mar);flecha("M300 150C420 210 560 200 640 130",T)}
+  if(n==4){E("circle",{cx:674,cy:112,r:30,fill:"none",stroke:T,"stroke-dasharray":"4 3"},mar);E("text",{x:622,y:170,fill:T,"font-size":10},mar).textContent="Guarnición · día "+dia}
+}
+function ir(n){pinta(n);$("#vent").classList.remove("cerrada");$("#abrir").classList.remove("ver")}
+document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>ir(+b.dataset.s));
+$("#cerrar").onclick=()=>{$("#vent").classList.add("cerrada");$("#abrir").classList.add("ver")};
+$("#abrir").onclick=()=>{$("#vent").classList.remove("cerrada");$("#abrir").classList.remove("ver")};
+ir(1);
+</script>
+</body>
+</html>

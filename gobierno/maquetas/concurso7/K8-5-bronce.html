@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=844, initial-scale=1">
+<title>Zama en bronce</title>
+<style>
+@font-face{font-family:Cinzel;font-weight:700;src:url(../../../assets/fuentes/cinzel-700.woff2) format("woff2")}
+:root{--pat:#183630;--pat2:#244a42;--pat3:#2f5d52;--oro:#e6c36a;--oro2:#a98a3c;--cobre:#e0735a;--verd:#8fd0b8;--tinta:#f1e6c4;--ox:#0e211d}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{width:844px;height:390px;overflow:hidden;background:var(--ox);color:var(--tinta);font:11px/1.25 Georgia,serif}
+body{display:grid;grid-template-columns:232px 612px}
+h1,h2,.cz{font-family:Cinzel,Georgia,serif;font-weight:700;letter-spacing:.04em}
+aside{background:linear-gradient(180deg,#1d403a,#14302b);border-right:3px double var(--oro2);padding:6px 8px 6px 8px;display:flex;flex-direction:column;gap:5px;height:390px;overflow:hidden;position:relative}
+aside:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 4px);pointer-events:none}
+.plate{border:1px solid var(--oro2);border-radius:3px;padding:3px 7px;background:rgba(0,0,0,.25);display:flex;justify-content:space-between;align-items:center}
+.plate h1{font-size:13px;color:var(--oro)}
+.plate span{font-size:10.5px;color:var(--verd)}
+.res{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.res div{border:1px solid var(--pat3);border-radius:3px;padding:2px 4px;background:var(--pat);text-align:center}
+.res b{display:block;font-size:12px;color:var(--oro)}
+.res i{font-style:normal;font-size:10px;color:var(--verd)}
+h2{font-size:10.5px;color:var(--oro);border-bottom:1px solid var(--oro2);padding-bottom:1px}
+.tr{display:grid;grid-template-columns:64px 1fr 30px;align-items:center;gap:5px;height:19px}
+.tr em{font-style:normal;font-size:10.5px}
+.tr .bar{height:7px;border:1px solid var(--oro2);border-radius:2px;background:var(--ox);overflow:hidden}
+.tr .bar u{display:block;height:100%;background:repeating-linear-gradient(90deg,var(--oro) 0 3px,var(--oro2) 3px 4px)}
+.tr .bar u.c{background:repeating-linear-gradient(90deg,var(--cobre) 0 3px,#a24a37 3px 4px)}
+.tr b{font-size:10.5px;text-align:right;color:var(--tinta)}
+.cons{margin-top:auto;display:flex;flex-direction:column;gap:3px}
+button{font:700 10.5px Cinzel,Georgia,serif;letter-spacing:.02em;color:var(--oro);background:linear-gradient(180deg,#2a554b,#1b3c35);border:1px solid var(--oro2);border-radius:3px;padding:0 7px;height:30px;text-align:left;cursor:pointer;position:relative}
+button small{display:block;font:10px Georgia,serif;color:var(--verd);letter-spacing:0}
+button.on{background:linear-gradient(180deg,#6b5a26,#4a3d19);color:#fff3cf;border-color:var(--oro)}
+.cons button{height:34px;padding:2px 7px}
+main{position:relative;width:612px;height:390px;overflow:hidden}
+main svg.mapa{position:absolute;inset:0}
+.tabs{position:absolute;top:5px;left:50%;transform:translateX(-50%);display:flex;gap:3px;z-index:3}
+.tabs button{height:24px;text-align:center;padding:0 9px;background:rgba(14,33,29,.85)}
+.info{position:absolute;top:34px;left:8px;z-index:3;background:rgba(14,33,29,.82);border:1px solid var(--oro2);border-radius:3px;padding:3px 8px;max-width:210px}
+.info b{font-family:Cinzel,Georgia,serif;color:var(--oro);font-size:11px;display:block}
+.acc{position:absolute;right:8px;bottom:8px;display:flex;gap:5px;z-index:3}
+.acc button{height:32px;text-align:center;padding:0 11px;background:linear-gradient(180deg,#2a554b,#14302b)}
+.acc button.go{background:linear-gradient(180deg,#a8452f,#6e2a1d);color:#ffe9c9;border-color:#f0a58e}
+.regla{position:absolute;left:8px;bottom:8px;z-index:3;font-size:10px;color:var(--oro);display:flex;align-items:center;gap:5px}
+.regla i{display:block;width:90px;height:5px;border:1px solid var(--oro);border-top:0}
+.tok text{font:700 9px Cinzel,serif;fill:var(--tinta)}
+@keyframes lucha{0%,100%{transform:translateX(-3px)}50%{transform:translateX(5px)}}
+@keyframes lucha2{0%,100%{transform:translateX(3px)}50%{transform:translateX(-5px)}}
+@keyframes polvo{0%{opacity:.7;transform:scale(.6)}100%{opacity:0;transform:scale(1.7)}}
+@keyframes marcha{to{stroke-dashoffset:-24}}
+@keyframes carga{0%{transform:translate(0,0)}100%{transform:translate(34px,6px)}}
+.r{animation:lucha .7s ease-in-out infinite}.c{animation:lucha2 .7s ease-in-out infinite}
+.polvo{transform-box:fill-box;transform-origin:center;animation:polvo 1.4s ease-out infinite}
+.flecha{stroke-dasharray:8 4;animation:marcha .9s linear infinite}
+.carga{animation:carga 1.6s ease-in-out infinite alternate}
+.ban{position:absolute;left:50%;top:44px;transform:translateX(-50%);z-index:3;text-align:center;background:linear-gradient(180deg,#7a2f20,#511d13);border:2px solid var(--oro);padding:3px 26px;border-radius:2px;clip-path:polygon(0 0,100% 0,96% 50%,100% 100%,0 100%,4% 50%)}
+.ban h1{font-size:17px;color:#ffe9c9}
+</style>
+</head>
+<body>
+<aside id="col"></aside>
+<main>
+<div class="tabs" id="tabs"></div>
+<svg class="mapa" id="mapa" viewBox="0 0 612 390" width="612" height="390"></svg>
+<div id="ov"></div>
+</main>
+<script>
+// ---- Datos de las cuatro pantallas ---------------------------------------
+var P=[
+{t:"Planear",tur:"Despliegue",res:[["Trigo","420"],["Plata","180"],["Moral","78%"]],
+ tropas:[["Triarios",3,40,0],["Príncipes",4,70,0],["Hastati",5,100,0],["Velites",3,100,0],["Caballería",4,100,0]],
+ enemigo:[["Elefantes",6,100,1],["Libios",5,100,1]],
+ ct:"Consejo de Escipión",
+ cons:[["Abrir pasillos","Los velites dejan paso a los elefantes"],["Ala numida al flanco","Masinisa rodea y ataca por detrás"],["Triarios de reserva","Guardan la última línea"]],
+ info:["Plan sobre el terreno","Toca un regimiento y arrástralo a su sitio."],
+ acc:[["Deshacer"],["Trazar flanco"],["Empezar batalla","go"]]},
+{t:"Turno",tur:"Turno 3 de 8",res:[["Trigo","410"],["Plata","180"],["Moral","71%"]],
+ tropas:[["Triarios",3,40,0],["Príncipes",4,64,0],["Hastati",5,82,0],["Velites",3,35,0],["Caballería",4,90,0]],
+ enemigo:[["Elefantes",6,40,1],["Libios",5,85,1]],
+ ct:"Elige una orden",
+ cons:[["Cargar el flanco izquierdo","La caballería rompe su ala"],["Mantener la línea","Los hastati aguantan un turno"],["Descubrir la emboscada","Hay tropa oculta en el bosque"]],
+ info:["Directo · en pausa","Las flechas son las órdenes ya dadas."],
+ acc:[["Pausa"],["Velocidad x2"],["Acabar turno","go"]]},
+{t:"Combate",tur:"Choque · 120 m",res:[["Trigo","405"],["Plata","180"],["Moral","66%"]],
+ tropas:[["Hastati 2",1,58,0],["Hastati 3",1,71,0],["Príncipes 1",1,90,0],["Libios 4",1,47,1],["Libios 5",1,62,1]],
+ ct:"Mientras luchan",
+ cons:[["Retirar al herido","Hastati 2 sale de la primera fila"],["Meter reserva","Los príncipes relevan la línea"],["Dar ánimo","Sube la moral, gasta plata"]],
+ info:["Vista de cerca","Cada regimiento son soldados que avanzan y golpean."],
+ acc:[["Volver al mapa"],["Seguir a la caballería","go"]]},
+{t:"Posición",tur:"Día 1 de 3",res:[["Trigo","-120/día"],["Plata","+30/día"],["Moral","81%"]],
+ tropas:[["Guarnición",4,100,0],["Heridos",2,30,0],["Víveres",1,66,0],["Refuerzo púnico",3,40,1]],
+ ct:"Mantener la colina",
+ cons:[["Construir empalizada","Gasta madera, frena la carga"],["Enviar forrajeros","Más trigo, menos defensa"],["Descansar la tropa","Cura heridos, come más"]],
+ info:["Victoria en Zama","Ocupa la colina y resiste 3 días."],
+ acc:[["Ocupar 3 días","go"],["Seguir la marcha"]]}
+];
+var S=0;
+// ---- Columna lateral -------------------------------------------------------
+function columna(p){
+ var h='<div class="plate"><h1>Zama</h1><span>202 a.C. · '+p.tur+'</span></div>';
+ h+='<div class="res">'+p.res.map(function(r){return '<div><b>'+r[1]+'</b><i>'+r[0]+'</i></div>'}).join('')+'</div>';
+ h+='<h2>Tus tropas</h2>';
+ h+=p.tropas.map(fila).join('');
+ if(p.enemigo){h+='<h2>El enemigo</h2>'+p.enemigo.map(fila).join('');}
+ h+='<div class="cons"><h2>'+p.ct+'</h2>'+p.cons.map(function(c,i){return '<button class="'+(i==1&&S==1?'on':'')+'">'+c[0]+'<small>'+c[1]+'</small></button>'}).join('')+'</div>';
+ return h;
+}
+function fila(t){return '<div class="tr"><em>'+t[0]+'</em><div class="bar"><u class="'+(t[3]?'c':'')+'" style="width:'+t[2]+'%"></u></div><b>'+t[1]+(t[1]>1?' reg.':'')+'</b></div>'}
+// ---- Piezas del mapa -------------------------------------------------------
+function tok(x,y,s,l,w,h,sel){
+ var f=s=='r'?'#10261f':'#3a1a14',k=s=='r'?'#e6c36a':'#e0735a';
+ return '<g class="tok" transform="translate('+x+','+y+')"><rect width="'+w+'" height="'+h+'" rx="2" fill="'+f+'" stroke="'+k+'" stroke-width="'+(sel?2.4:1.3)+'"'+(sel?' stroke-dasharray="3 2"':'')+'/>'
+ +'<path d="M2 '+(h-3)+'L'+(w-2)+' 3" stroke="'+k+'" stroke-width=".7" opacity=".6"/><text x="'+w/2+'" y="'+(h/2+3)+'" text-anchor="middle">'+l+'</text></g>';
+}
+function col(x,n,l,s,y0,y1,sel){var o='',w=15,h=30;for(var i=0;i<n;i++){var y=n==1?(y0+y1)/2:y0+(y1-y0)*i/(n-1);o+=tok(x,y-h/2,s,l,w,h,sel&&i==sel-1)}return o}
+function fondo(){
+ var o='<defs><pattern id="ha" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="5" stroke="#8fd0b8" stroke-opacity=".10" stroke-width="1"/></pattern>'
+ +'<linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b5a4f"/><stop offset="1" stop-color="#1b3f37"/></linearGradient>'
+ +'<marker id="pt" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#e6c36a"/></marker>'
+ +'<marker id="pc" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0 0L8 4L0 8z" fill="#e0735a"/></marker></defs>';
+ o+='<rect width="612" height="390" fill="url(#g)"/><rect width="612" height="390" fill="url(#ha)"/>';
+ o+='<rect x="6" y="6" width="600" height="378" fill="none" stroke="#a98a3c" stroke-width="1.5"/><rect x="10" y="10" width="592" height="370" fill="none" stroke="#a98a3c" stroke-width=".6"/>';
+ // colina con curvas de nivel
+ for(var i=0;i<5;i++)o+='<ellipse cx="525" cy="95" rx="'+(70-i*13)+'" ry="'+(44-i*8)+'" fill="none" stroke="#8fd0b8" stroke-opacity="'+(.55-i*.07)+'"/>';
+ // rio
+ o+='<path d="M270 12C250 80 300 110 280 170S250 250 290 300 280 360 292 380" fill="none" stroke="#6fb7c9" stroke-width="9" stroke-opacity=".35"/><path d="M270 12C250 80 300 110 280 170S250 250 290 300 280 360 292 380" fill="none" stroke="#b8e6ee" stroke-width="1" stroke-dasharray="6 5"/>';
+ // bosque
+ for(var j=0;j<14;j++){var bx=430+(j%5)*17+(j>4?8:0),by=300+Math.floor(j/5)*15;o+='<path d="M'+bx+' '+(by+11)+'L'+(bx+7)+' '+by+'L'+(bx+14)+' '+(by+11)+'z" fill="#14302b" stroke="#8fd0b8" stroke-width=".8"/>'}
+ return o;
+}
+function regla(){return '<div class="regla"><i></i>500 m · frente de 1.500 m</div>'}
+function flecha(d,s,cl){return '<path class="flecha" d="'+d+'" fill="none" stroke="'+(s=='r'?'#e6c36a':'#e0735a')+'" stroke-width="2.4" marker-end="url(#'+(s=='r'?'pt':'pc')+')"/>'}
+// ---- Pantallas -------------------------------------------------------------
+function ejercitos(dx,dc){
+ var o='';
+ o+=col(120+dx,3,'T','r',90,300)+col(140+dx,4,'P','r',70,320)+col(160+dx,5,'H','r',60,330,S==0?3:0)+col(182+dx,3,'V','r',110,280);
+ o+=tok(150+dx,24,'r','E',36,15)+tok(150+dx,350,'r','E',36,15)+tok(190+dx,24,'r','N',36,15)+tok(190+dx,350,'r','N',36,15);
+ o+=col(360+dc,5,'Lb','c',60,330)+col(380+dc,5,'M','c',60,330)+col(400+dc,3,'C','c',110,280);
+ for(var i=0;i<6;i++){var y=50+i*58;o+='<g transform="translate('+(335+dc)+','+y+')"><circle r="10" fill="#3a1a14" stroke="#e0735a" stroke-width="1.5"/><path d="M-6 -2Q0 -9 6 -2" stroke="#e0735a" fill="none"/><text y="3" text-anchor="middle" font-size="8" fill="#f1e6c4" font-family="Cinzel">El</text></g>'}
+ o+=tok(350+dc,24,'c','Cb',36,15)+tok(350+dc,350,'c','Cb',36,15);
+ return o;
+}
+function pant0(){
+ var o=fondo()+ejercitos(0,0);
+ o+='<g opacity=".5">'+tok(240,176,'r','H',15,30,1)+'</g>';
+ o+='<path d="M175 80L240 150" stroke="#e6c36a" stroke-dasharray="3 3"/>';
+ o+=flecha('M228 36C300 4 420 6 470 60','r');
+ o+='<text x="300" y="22" font-size="10" fill="#e6c36a" font-family="Cinzel">1 · Ala numida rodea</text>';
+ o+='<circle cx="468" cy="324" r="13" fill="#10261f" stroke="#8fd0b8" stroke-dasharray="3 2"/><text x="468" y="328" text-anchor="middle" font-size="12" fill="#8fd0b8">?</text><text x="486" y="342" font-size="10" fill="#8fd0b8" font-family="Cinzel">Emboscada</text>';
+ o+='<text x="535" y="165" font-size="10" fill="#a8d9c8" font-family="Cinzel" text-anchor="middle">Colina</text>';
+ return o;
+}
+function pant1(){
+ var o=fondo()+ejercitos(70,-30);
+ o+=flecha('M260 38C340 0 440 20 500 118','r');
+ o+=flecha('M345 350C400 372 470 360 480 322','c');
+ o+=flecha('M250 190L330 190','r');
+ for(var i=0;i<6;i++)o+='<path d="M'+(321+i*0)+' '+(50+i*58-12)+'l4 -5m-2 0l4 3" stroke="#e0735a" opacity="0"/>';
+ // emboscada descubierta
+ o+='<g transform="translate(470,322)"><polygon points="0,-17 5,-6 17,-8 9,1 16,12 3,8 -4,17 -6,5 -17,2 -7,-4" fill="#e0735a" stroke="#ffe9c9"/><text y="4" text-anchor="middle" font-size="12" fill="#10261f" font-family="Cinzel">!</text></g>';
+ o+='<text x="425" y="378" font-size="10" fill="#ffd0c0" font-family="Cinzel">Emboscada púnica</text>';
+ o+='<g transform="translate(305,200)"><circle r="14" class="polvo" fill="#e6c36a" opacity=".5"/></g>';
+ o+='<text x="330" y="26" font-size="10" fill="#e6c36a" font-family="Cinzel">Caballería: flanco izquierdo</text>';
+ return o;
+}
+function soldado(x,y,s,i){
+ var k=s=='r'?'#e6c36a':'#e0735a',f=s=='r'?'#10261f':'#3a1a14',d=s=='r'?1:-1;
+ return '<g transform="translate('+x+','+y+')"><g class="'+(s=='r'?'r':'c')+'" style="animation-delay:-'+((i*0.17)%0.7).toFixed(2)+'s">'
+ +'<line x1="'+(d*3)+'" y1="-2" x2="'+(d*21)+'" y2="-12" stroke="'+k+'" stroke-width="1.3"/>'
+ +'<rect x="-4" y="-2" width="8" height="12" rx="3" fill="'+f+'" stroke="'+k+'" stroke-width="1.2"/>'
+ +'<circle cy="-7" r="4" fill="'+f+'" stroke="'+k+'" stroke-width="1.2"/>'
+ +'<ellipse cx="'+(d*6)+'" cy="3" rx="3.2" ry="7" fill="'+k+'" opacity=".85"/></g></g>';
+}
+function pant2(){
+ var o='<rect width="612" height="390" fill="#27503f"/><rect width="612" height="390" fill="url(#ha)"/><defs><pattern id="ha" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(35)"><line x1="0" y1="0" x2="0" y2="5" stroke="#8fd0b8" stroke-opacity=".12" stroke-width="1"/></pattern></defs>';
+ o+='<rect width="612" height="390" fill="url(#ha)"/><rect x="6" y="6" width="600" height="378" fill="none" stroke="#a98a3c" stroke-width="1.5"/>';
+ for(var r=0;r<7;r++)o+='<path d="M12 '+(70+r*44)+'Q150 '+(60+r*44)+' 300 '+(72+r*44)+'T600 '+(68+r*44)+'" fill="none" stroke="#8fd0b8" stroke-opacity=".12"/>';
+ var n=0;
+ for(var c=0;c<4;c++)for(var f=0;f<7;f++){o+=soldado(150+c*28-(f%2)*5,62+f*42,'r',n++);o+=soldado(380-c*28+(f%2)*5,62+f*42,'c',n++)}
+ // caidos
+ [[290,100],[300,226],[318,300],[282,182]].forEach(function(p,i){o+='<g transform="translate('+p[0]+','+p[1]+') rotate('+(80+i*30)+')"><rect x="-4" y="-2" width="8" height="12" rx="3" fill="#10261f" stroke="#6f8f86"/><circle cy="-7" r="4" fill="#10261f" stroke="#6f8f86"/></g>'});
+ [[326,128],[336,250],[312,330]].forEach(function(p,i){o+='<g transform="translate('+p[0]+','+p[1]+') rotate('+(-80-i*25)+')"><rect x="-4" y="-2" width="8" height="12" rx="3" fill="#3a1a14" stroke="#9a5a4c"/><circle cy="-7" r="4" fill="#3a1a14" stroke="#9a5a4c"/></g>'});
+ // polvo y caballeria
+ [[306,110],[310,206],[300,290],[322,160]].forEach(function(p,i){o+='<circle class="polvo" cx="'+p[0]+'" cy="'+p[1]+'" r="13" fill="#e6c36a" opacity=".5" style="animation-delay:-'+(i*.35)+'s"/>'});
+ for(var h=0;h<3;h++)o+='<g class="carga" style="animation-delay:-'+(h*.3)+'s" transform="translate('+(440+h*30)+','+(20+h*10)+')"><ellipse rx="13" ry="6" fill="#10261f" stroke="#e6c36a" stroke-width="1.3"/><circle cx="-14" cy="-4" r="4" fill="#10261f" stroke="#e6c36a"/><circle cx="2" cy="-9" r="4" fill="#e6c36a"/></g>';
+ o+=flecha('M520 20C560 16 580 60 560 110','r');
+ o+='<text x="190" y="372" font-size="10" fill="#e6c36a" font-family="Cinzel">Hastati 2-3</text><text x="372" y="372" font-size="10" fill="#e0735a" font-family="Cinzel">Libios 4-5</text>';
+ return o;
+}
+function pant3(){
+ var o=fondo();
+ o+='<path d="M180 250L180 180L205 180L205 195L235 195L235 180L260 180L260 250z" fill="#14302b" stroke="#e6c36a" stroke-width="1.6"/><path d="M165 250L275 250" stroke="#e6c36a" stroke-width="2"/>';
+ o+='<rect x="212" y="218" width="16" height="32" fill="#0e211d" stroke="#e6c36a"/><path d="M220 180L220 150L242 158L220 166" fill="#e6c36a" stroke="#e6c36a"/>';
+ o+='<ellipse cx="525" cy="95" rx="12" ry="8" fill="#14302b" stroke="#e6c36a"/>';
+ o+='<g stroke="#e6c36a" stroke-width="2" stroke-linecap="round">'+[0,1,2,3,4,5,6].map(function(i){return '<path d="M'+(152+i*18)+' 262l0 -16M'+(152+i*18)+' 246l-3 4M'+(152+i*18)+' 246l3 4"/>'}).join('')+'</g>';
+ o+=col(300,4,'G','r',200,320)+tok(120,262,'r','H',24,12);
+ o+='<g transform="translate(212,300)"><circle r="26" fill="none" stroke="#e6c36a" stroke-dasharray="4 3"/><text y="4" text-anchor="middle" font-size="11" fill="#e6c36a" font-family="Cinzel">1/3</text></g>';
+ o+=flecha('M540 320C480 300 420 270 340 250','c');
+ o+='<text x="470" y="340" font-size="10" fill="#e0735a" font-family="Cinzel">Refuerzo púnico: día 2</text>';
+ o+=col(520,3,'P','c',210,300);
+ o+='<text x="222" y="272" font-size="10" fill="#e6c36a" font-family="Cinzel" text-anchor="middle">Colina de Naraggara</text>';
+ for(var d=0;d<3;d++)o+='<g transform="translate('+(250+d*34)+',330)"><circle r="11" fill="'+(d==0?'#6b5a26':'#10261f')+'" stroke="#e6c36a" stroke-width="1.5"/><text y="4" text-anchor="middle" font-size="11" fill="#f1e6c4" font-family="Cinzel">'+(d+1)+'</text></g>';
+ o+='<text x="300" y="356" font-size="10" fill="#8fd0b8" text-anchor="middle" font-family="Cinzel">Días de resistencia</text>';
+ return o;
+}
+// ---- Pintar ----------------------------------------------------------------
+var PINT=[pant0,pant1,pant2,pant3];
+function pintar(){
+ var p=P[S];
+ document.getElementById('col').innerHTML=columna(p);
+ document.getElementById('mapa').innerHTML=PINT[S]();
+ document.getElementById('tabs').innerHTML=P.map(function(q,i){return '<button class="'+(i==S?'on':'')+'" data-i="'+i+'">'+(i+1)+' '+q.t+'</button>'}).join('');
+ var h=(S==2?'':'')+'<div class="info"><b>'+p.info[0]+'</b>'+p.info[1]+'</div>';
+ if(S==3)h+='<div class="ban"><h1>VICTORIA</h1></div>';
+ h+=(S<2||S==3?regla():'')+'<div class="acc">'+p.acc.map(function(a){return '<button class="'+(a[1]||'')+'">'+a[0]+'</button>'}).join('')+'</div>';
+ document.getElementById('ov').innerHTML=h;
+}
+document.getElementById('tabs').addEventListener('click',function(e){var b=e.target.closest('button');if(b){S=+b.dataset.i;location.hash=S+1;pintar()}});
+S=Math.max(0,Math.min(3,(parseInt(location.hash.slice(1))||1)-1));
+pintar();
+</script>
+</body>
+</html>
