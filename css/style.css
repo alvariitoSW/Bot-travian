@@ -22,6 +22,8 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 #res .r { background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--line); border-radius: 12px; padding: 4px 2px 3px; text-align: center; line-height: 1.12; font-size: 13px; }
 #res .r b { display: block; font-size: 14px; font-variant-numeric: tabular-nums; font-weight: 700; }
 #res .r small { font-size: 10px; color: var(--good); }
+#res .r.rb-alm, #res .r:has(.alm) { display: grid; grid-template-columns: auto auto; column-gap: 3px; align-items: center; line-height: 1.05; }
+#res .r small.alm { grid-column: 1/-1; font-size: 9px; color: var(--ink, #ddd); opacity: .7; text-align: center; }
 #res .r small.neg { color: var(--bad); }
 #res .r.full b { color: var(--gold); }
 #bar2 { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
@@ -264,7 +266,7 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 #res .r b { display: inline; font-size: 14px; }
 #res .r .ico { display: inline-block; width: 18px; height: 18px; margin: 0; }
 #res .r.full b { color: var(--gold); }
-#app[data-modo="gobierno"] .w-only, #app[data-modo="guerra"] .g-only { display: none; }
+#app[data-modo="gobierno"] .w-only, #app[data-modo="guerra"] .g-only, #app[data-modo="guerra"] #res .r.g-only { display: none !important; }
 #app[data-modo="guerra"] #rb-oro { order: -1; }
 #bar2 { margin-top: 5px; align-items: flex-start; }
 #citybtn, #datebox { height: 38px; display: flex; align-items: center; gap: 6px; padding: 0 12px; background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--line2); border-radius: 8px; pointer-events: auto; font-size: 13px; }

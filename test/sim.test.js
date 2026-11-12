@@ -605,4 +605,43 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   G.save(); G.turnos = false; assert(G.load(), 'carga'); assert.strictEqual(G.turnos, true, 'la partida antigua pasa a turnos');
   const m = G.state.marches.find(x => x.id === 901); assert(Math.abs(m.t1 - 6) < 1e-9, 'la marcha se ajusta al siguiente múltiplo de 3: ' + m.t1);
   delete global.localStorage; G.turnos = false; }
+
+/* Caja del mes y almacén (Q2) */
+{ const s = G.newGame('Caja'), cap = G.cap(); G.turnos = false;
+  assert(s.alm && s.cuarto && Array.isArray(s.informe), 'la partida nueva trae almacén, cuarto e informe');
+  // cierre: guarda hasta el tope y pierde el resto
+  s.res = { madera: 100, piedra: 5000, hierro: 0, grano: 50, oro: 10 }; s.alm = { madera: 0, piedra: cap - 300, hierro: 0, grano: 0, oro: 0 };
+  G.cierreMes();
+  assert.strictEqual(s.alm.madera, 100); assert.strictEqual(s.alm.piedra, cap, 'el almacén no pasa del tope');
+  const inf = s.informe[s.informe.length - 1]; assert.strictEqual(inf.r.piedra.gua, 300); assert.strictEqual(inf.r.piedra.per, 4700, 'lo que no cabe se pierde');
+  assert.strictEqual(s.res.piedra, 0, 'la caja queda a cero'); assert.strictEqual(s.cuarto.madera, 25, 'el cuarto se fija al cerrar');
+  // el cuarto limita lo que se saca; gastar usa caja y luego cuarto
+  s.res = { madera: 10, piedra: 0, hierro: 0, grano: 0, oro: 0 }; s.alm.madera = 1000; s.cuarto.madera = 250;
+  assert.strictEqual(G.disponible('madera'), 260); assert(G.canAfford({ madera: 260 })); assert(!G.canAfford({ madera: 261 }), 'no se puede sacar más de un cuarto');
+  assert(G.setTipo && G.maxTrain('hastati') >= 0);
+  const r0 = G.rutaPuede; s.res.madera = 10; G.gasta('madera', 100);
+  assert.strictEqual(s.res.madera, 0); assert.strictEqual(s.alm.madera, 910); assert.strictEqual(s.cuarto.madera, 160, 'primero la caja, luego el almacén y el cuarto');
+  // déficit de grano: sale de la caja y, si no alcanza, del almacén (sin tocar el cuarto)
+  const sd = G.newGame('Deficit'); sd.res.grano = 0; sd.alm.grano = 500; sd.cuarto.grano = 125; sd.cities.roma.pop = 50;
+  const p = G.prod(); const antes = sd.alm.grano; sd.res.grano = 0; sd.res.grano += 0;
+  for (const id in sd.cities) if (id !== 'roma') sd.cities[id].owner = 'cartago';
+  sd.cities.roma.units = { hastati: 2000 }; const pd = G.prod(); assert(pd.grano < 0, 'hay déficit de grano con 2000 hombres');
+  G.tick(0.1); assert(sd.alm.grano < antes && sd.res.grano === 0, 'el déficit sale del almacén'); assert.strictEqual(sd.cuarto.grano, 125, 'el déficit no gasta el cuarto');
+  // el cierre ocurre solo al cruzar el mes y deja el informe
+  const sm = G.newGame('Mes'); sm.res.madera = 50; for (let i = 0; i < 4; i++) G.tick(0.25);
+  assert(sm.informe.length === 1 && sm.alm.madera > 0 && sm.res.madera < 400, 'al pasar el mes la caja se cierra sola');
+}
+{ // el informe de la estación suma tres meses
+  const s = G.newGame('Informe'); G.turnos = true; s.speed = 0; let turno = 0; G.onEvent = t => { if (t === 'turno') turno++; };
+  s.cities.roma.b.almacen = 0; for (let i = 0; i < 12; i++) G.tick(0.25);
+  assert.strictEqual(s.informe.length, 3, 'tres cierres en la estación'); const inf = G.informeEstacion();
+  assert.strictEqual(inf.r.madera.gua, s.informe.reduce((a, e) => a + e.r.madera.gua, 0)); assert(inf.r.oro.gan !== undefined);
+  G.onEvent = null; G.turnos = false; }
+{ // aviso de pérdida con el mes avanzado
+  const s = G.newGame('Aviso'); G.turnos = false; s.t = 0.8; s.res.madera = 1e5; assert(G.avisoCierre().some(x => /Madera: sobran/.test(x) && /se perderán/.test(x)), 'avisa de lo que se perderá');
+  s.t = 0.2; assert.strictEqual(G.avisoCierre().length, 0, 'sin aviso al principio del mes'); }
+{ // migración de una partida vieja: nada se pierde
+  const s = G.newGame('Vieja'); delete s.alm; delete s.cuarto; delete s.informe; delete s.gan; G.state = s; const cap = G.cap(); s.res = { madera: cap + 500, piedra: 100, hierro: 0, grano: 20, oro: 7 };
+  G.migrarCaja(s); assert.strictEqual(s.alm.madera, cap); assert.strictEqual(s.res.madera, 500, 'lo que no cabe se queda en la caja'); assert.strictEqual(s.alm.piedra, 100);
+  assert.strictEqual(s.cuarto.piedra, 25); assert.deepStrictEqual(s.informe, []); }
 console.log('OK — todas las pruebas superadas');

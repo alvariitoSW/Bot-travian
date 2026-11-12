@@ -43,6 +43,9 @@
      una ciudad ya saqueada hace menos de SAQUEO_MESES da solo SAQUEO_REPETIDO. Licencia de juego en las cifras (la praeda era real: Polibio 10.17 y Livio 26.47 en Cartago Nova).
      Si te saquean a ti, cada almacén esconde ESCONDITE de cada recurso y de lo demás se llevan SAQUEO_ROBO. */
   D.SAQUEO_BASE = 90; D.SAQUEO_REPETIDO = 0.4; D.SAQUEO_MESES = 6; D.ESCONDITE = 120; D.SAQUEO_ROBO = 0.2; D.SAQUEO_IA = 0.5;
+  /* Caja del mes (Q2): lo que se gasta en el mes es lo que se gana en el mes. Al cerrar el mes lo que sobra va al almacén hasta su tope (lo que no cabe se pierde)
+     y de él solo se puede sacar un cuarto cada mes. */
+  D.CUARTO_ALMACEN = 0.25; D.AVISO_CIERRE = 0.75;
   D.MAX_LVL = 10;
   // mejoras de la herrería: globales, nivel 0 a FORJA_MAX, +5 % por nivel. Coste y tiempo base (nivel 0), crecen x1.5 y x1.4 por nivel
   /* Impuestos: oro x mult, felicidad +/- f. Edificios que suben la felicidad: puntos por nivel (aquí se añaden termas, anfiteatro…). */

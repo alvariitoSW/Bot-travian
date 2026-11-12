@@ -96,7 +96,8 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ Q1 **Diseño de ciudad, gobierno y economía** (11/11): un solo modelo (caja del mes, almacén con tope, barrios, tres clases, Senado, Foro, provincias, aspecto), estudios R15 a R19 y cuatro capturas sobre la ciudad 3D. Diseño `estudios/Q1-ciudad-gobierno-economia.md`; carril Q propuesto en P75.
 - ✅ Q1b **Ciudad nueva: plano itálico común** (11/11): estudio `estudios/Q1b-ciudad-italica.md` (dictamen: muralla cuadrada, anfiteatro, termas y acueducto de arcos fuera de época) y maqueta 3D `maquetas/ciudad-italica.mjs` con capturas `Q1b-0` a `Q1b-4` (antes, romana cerca y lejos, griega, púnica). Construirla en el juego: Q1c a Q1i, propuestas en P77.
 - ⬜ Q1b2 **Ciudad nueva, segunda vuelta al diseño** (12/11: la maqueta Q1b no convence: edificios pobres; luz, colores y suelo; sigue pareciendo de juguete). Maqueta nueva con los modelos detallados de 0 A.D., luz y suelo trabajados, y referencias de otros juegos. P77 no aprobada.
-- ⬜ Q2 en adelante **aprobadas enteras** (P75, 12/11): caja del mes (almacén: solo un cuarto al mes), cuentas en pantalla, obras a plazos, barrios, clases, Senado y pueblo, provincias. Detalle en `estudios/Q1-ciudad-gobierno-economia.md` §8.
+- ✅ Q2 **Caja del mes y cierre** (12/11): la caja es lo gastable del mes; al cerrar el mes lo que sobra va al almacén hasta su tope y el resto se pierde (con aviso); del almacén solo se saca un cuarto al mes; informe de la estación al pasar turno. Migrado en `G.load`. Parte `partes/2026-11-12-Q2.md`.
+- ⬜ Q3 en adelante **aprobadas enteras** (P75, 12/11): cuentas en pantalla, obras a plazos, barrios, clases, Senado y pueblo, provincias. Detalle en `estudios/Q1-ciudad-gobierno-economia.md` §8.
 
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
