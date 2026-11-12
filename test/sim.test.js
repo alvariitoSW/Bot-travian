@@ -1342,3 +1342,12 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
 }
 
 console.log('OK — todas las pruebas superadas');
+
+// C6: zonas del mapa. Cada ciudad está en una sola zona y D.zonaDe la encuentra
+{
+  const cuenta = {}; for (const z in D.ZONAS) for (const id of D.ZONAS[z].ciudades) { assert(D.CITIES[id], 'zona ' + z + ': la ciudad ' + id + ' no existe'); cuenta[id] = (cuenta[id] || 0) + 1; }
+  for (const id in D.CITIES) assert.strictEqual(cuenta[id], 1, id + ' debe estar en una sola zona');
+  assert.strictEqual(D.zonaDe('roma'), 'italia'); assert.strictEqual(D.zonaDe('carthago'), 'africa'); assert.strictEqual(D.zonaDe('nada'), null);
+  assert.strictEqual(Object.keys(D.ZONAS).length, 6, 'seis zonas');
+  console.log('C6: zonas OK');
+}
