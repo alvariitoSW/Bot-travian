@@ -120,6 +120,8 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - **Tiempos del juego** (pediste mejorarlos, «no está bien planteado»): ¿qué falla? (A) los meses/turnos duran demasiado o pasan sin que hagas nada; (B) las obras y reclutas tardan demasiado; (C) las batallas y marchas tardan demasiado; (D) no se entiende cuánto falta para cada cosa. Puedes marcar varias o escribir qué ves.
 
 ## Propuestas por aprobar
+- P97 **Avisos que tapan la pantalla** (pedido del usuario con 2 capturas del móvil, 12/11): los «Cierre de mes» se apilan y tapan la ciudad, y el informe de estación ocupa todo; no deja jugar. Pide: avisos pequeños, que se vayan solos o se agrupen, y mejor la parte de construir y de conseguir recursos, sin tirar lo que hay («va mejor lo que tenemos»). Toca `js/ui.js` y `css/`; por aprobar.
+- P98 **Concurso de arte de 8 modelos** (pedido del usuario, 12/11): ocho propuestas rivales para mejorar el diseño y la jugabilidad del Senado, la política y la economía; el usuario elige. Parecido a la ronda de K6 (jurado ciego). Coste alto (ocho agentes): hay que fijar antes tamaño, modelo y quién decide. Por aprobar.
 - P96 **Mover un edificio** (propuesta de CN4, 12/11; ≈0,4 M): `G.moverPieza` en `js/game.js` y su botón «Mover» en la ficha del edificio. Hoy no hay forma de moverlo: derribar y volver a colocar borra las mejoras. Toca `game.js` y `ui.js`; iría con la vía Ciudad después de I3b.
 
 
