@@ -621,17 +621,24 @@ function battlePrompt() {
     '<div class="pw">Fuerza: ' + G.power(info.cfg.sides[0].units) + ' contra ' + G.power(info.cfg.sides[1].units) + ' · Muralla del defensor: nivel ' + info.cfg.wall + '</div>' +
     '<div class="acts"><button class="btn" data-act="bview">' + D.GUERRA_ICON.espadas + ' Dirigir la batalla</button><button class="btn ghost" data-act="bquick">Resolver</button></div>', true);
 }
-// N6: dificultad del general enemigo (Fácil/Normal/Difícil), recordada entre batallas
-const DIF_NOM = { facil: 'Fácil', normal: 'Normal', dificil: 'Difícil' };
-function difGuardada() { try { const d = localStorage.getItem('aqvila-dif'); if (DIF_NOM[d]) return d; } catch (e) {} return 'normal'; }
+// N15: la dificultad ya no se elige; el motor la explica por contexto (b.dif = { nivel, texto, factores:[{n,txt,v}] })
 function rivalHtml(b) {
-  const s1 = b.cfg.sides[1], ca = window.Battle.CARACTER[b.ia ? b.ia.car : window.Battle.caracterDe(b.cfg)], dif = b.ia ? b.ia.dif : difGuardada();
-  return '<div class="rv">Rival: <b>' + esc(s1.gen && s1.gen.n || s1.name) + '</b> · ' + esc(ca.n.toLowerCase()) + '</div><div class="dif">' + Object.keys(DIF_NOM).map(k => '<button data-act="bdif" data-v="' + k + '"' + (k === dif ? ' class="on"' : '') + '>' + DIF_NOM[k] + '</button>').join('') + '</div>';
+  const s1 = b.cfg.sides[1], ca = window.Battle.CARACTER[b.ia ? b.ia.car : window.Battle.caracterDe(b.cfg)], d = b.dif, pr = b.progresoObjetivo ? b.progresoObjetivo() : null;
+  const fac = d && d.factores && d.factores.length ? '<div class="fac" hidden>' + d.factores.map(f => '<div><i class="' + (f.v > 0 ? 'up' : 'dn') + '">' + (f.v > 0 ? '▲' : '▼') + '</i> ' + esc(f.txt) + '</div>').join('') + '</div>' : '';
+  return '<div class="rv"' + (fac ? ' data-act="bfac" role="button"' : '') + '>Rival: <b>' + esc(s1.gen && s1.gen.n || s1.name) + '</b> · ' + esc(ca.n.toLowerCase()) + (d && d.texto ? ' · ' + esc(d.texto.replace(/^Rival:\s*/, '')) : '') + (fac ? ' ▾' : '') + '</div>' + fac +
+    (pr && pr.texto ? '<div class="ob">Objetivo: ' + esc(pr.texto) + '</div>' : '');
+}
+// objetivo de la batalla: una línea fina bajo el cabezal con barra mínima
+function objetivoHud(B) {
+  const b = B.b, pr = b.cfg.objetivo && b.progresoObjetivo ? b.progresoObjetivo() : null; let el = $('bobj');
+  if (!pr || !pr.texto || b.fase === 'despliegue') { if (el) el.remove(); return; }
+  if (!el) { el = document.createElement('div'); el.id = 'bobj'; $('battle').appendChild(el); }
+  const k = pr.texto + '|' + Math.round((pr.frac || 0) * 50); if (el.dataset.k !== k) { el.dataset.k = k; el.innerHTML = '<span>' + esc(pr.texto) + '</span><i><u style="width:' + Math.round(Math.max(0, Math.min(1, pr.frac || 0)) * 100) + '%"></u></i>'; }
 }
 function startBattle() {
   closeModal();
   $('battle').hidden = false;
-  const cfg = Object.assign({}, UI.binfo.cfg, { fh: 1000, despliegue: true, rondas: true, dificultad: difGuardada() }), b = new window.Battle(cfg), B = { b: b, speed: 1, paused: false, acc: 0, endT: 0 };
+  const cfg = Object.assign({}, UI.binfo.cfg, { fh: 1000, despliegue: true, rondas: true, dificultad: 'normal' }), b = new window.Battle(cfg), B = { b: b, speed: 1, paused: false, acc: 0, endT: 0 };
   try { B.view = new BattleView3D($('bfield'), b, { cards: $('bcards'), speed: () => (B.paused || b.over ? 0 : B.speed) }); }
   catch (e) { // sin WebGL: vista 2D de reserva
     console.warn('WebGL no disponible, usando vista 2D', e);
@@ -652,7 +659,7 @@ function startBattle() {
 }
 // repone la barra de mando y el texto de ayuda de antes del despliegue
 function reponerBarra(B) { if (!B || B.barra == null) return; const dv = $('bdif'); if (dv) dv.remove(); $('bctl').style.flexWrap = ''; $('bctl').classList.remove('desp'); $('battle').classList.remove('desp'); $('bctl').innerHTML = B.barra; $('bhint').innerHTML = B.hint; B.barra = null; }
-function stopBattle() { const B = UI.battle; if (B) { const dv = $('bdif'); if (dv) dv.remove(); const gs = $('bgesto'); if (gs) gs.remove(); $('battle').classList.remove('ronda'); const pn = $('bpanel'); if (pn) pn.remove(); quitaMandoL1(B); reponerBarra(B); if (B.view.dispose) B.view.dispose(); if (B.flat) B.flat.remove(); } $('battle').hidden = true; UI.battle = null; UI.binfo = null; if (UI.map) UI.map.resize(); }
+function stopBattle() { const B = UI.battle; if (B) { const dv = $('bdif'); if (dv) dv.remove(); const ob = $('bobj'); if (ob) ob.remove(); const gs = $('bgesto'); if (gs) gs.remove(); $('battle').classList.remove('ronda'); const pn = $('bpanel'); if (pn) pn.remove(); quitaMandoL1(B); reponerBarra(B); if (B.view.dispose) B.view.dispose(); if (B.flat) B.flat.remove(); } $('battle').hidden = true; UI.battle = null; UI.binfo = null; if (UI.map) UI.map.resize(); }
 // L1: mando con el dedo: botón dorado de orden recomendada, minimapa táctil y grupos por clase
 const GRUPOS_L1 = [['inf', 'Infantería', ['inf', 'spear', 'ele']], ['rng', 'Tiradores', ['rng']], ['cav', 'Caballería', ['cav', 'gen']]];
 function montaMandoL1(B) {
@@ -781,7 +788,7 @@ function endBattle(res) {
   const loss = side => Object.keys(res.lost[side]).filter(k => res.lost[side][k] > 0).map(k => '<div><span>' + D.UNITS[k].n + '</span><b>−' + res.lost[side][k] + '</b></div>').join('') || '<div><span>Sin bajas</span></div>';
   modal('<div class="yr">' + (out.kind === 'attack' ? 'ASALTO A ' : 'DEFENSA DE ') + d.n.toUpperCase() + '</div><h2>' + (out.win ? '¡Victoria!' : 'Derrota') + '</h2>' +
     '<div class="vs"><div class="side"><h4 style="color:#ff9c8c">Bajas romanas</h4>' + loss(0) + '</div><div class="side"><h4>Bajas enemigas</h4>' + loss(1) + '</div></div>' +
-    '<p>' + out.lines.map(esc).join('\n') + '</p><div class="acts"><button class="btn" data-act="bdone">Continuar</button></div>', true);
+    (res.objetivo ? '<p><b>' + (res.objetivo.cumplido || res.objetivo.ok ? 'Objetivo cumplido' : 'Objetivo no cumplido') + ':</b> ' + esc(res.objetivo.texto || '') + '</p>' : '') + '<p>' + out.lines.map(esc).join('\n') + '</p><div class="acts"><button class="btn" data-act="bdone">Continuar</button></div>', true);
 }
 
 /* ---------- acciones ---------- */
@@ -874,7 +881,7 @@ document.addEventListener('click', function (e) {
     case 'bpmin': B.pmin = !B.pmin; break;
     case 'bsalto': B.view.saltoAla(+v); break;
     case 'bcam': if (B.view.cycleCam) B.view.cycleCam(); break;
-    case 'bdif': if (B.b.fase === 'despliegue' && B.b.ia) { B.b.ia.dif = v; B.b.cfg.dificultad = v; try { localStorage.setItem('aqvila-dif', v); } catch (e) {} document.querySelectorAll('#bdif [data-act="bdif"]').forEach(x => x.classList.toggle('on', x === el)); } break;
+    case 'bfac': { const f = document.querySelector('#bdif .fac'); if (f) f.hidden = !f.hidden; break; }
     case 'bform': B.b.formar(0, v); document.querySelectorAll('#bctl [data-act="bform"]').forEach(x => x.classList.toggle('on', x === el)); break;
     case 'bejec': if (B.b.ejecutar()) { B.view.sel.clear(); B.mas = false; B.speed = 1; rondaModo(B, 'ejec'); } else if (B.b.motivo) toast(B.b.motivo, 'bad'); break;
     case 'bcarta': if (B.b.jugarCarta(v)) { toast('Carta jugada: ' + CARTAS_TXT[v][0] + '. Vale para la ronda que viene.'); B.filaKey = ''; } else toast(B.b.generalVivo(0) ? 'Solo una carta por ronda.' : 'Sin general no hay cartas.', 'bad'); break;
@@ -896,7 +903,7 @@ function frame(now) {
   if (UI.battle) {
     const B = UI.battle, b = B.b;
     if (!B.paused && !b.over) { B.acc += dt * B.speed; let n = 0; while (B.acc >= 0.05 && n++ < 12) { b.step(0.05); B.acc -= 0.05; } }
-    battleHud(); B.view.draw();
+    battleHud(); objetivoHud(B); B.view.draw();
     if (b.over && !B.done) { B.endT += dt; if (B.endT > 2.2) { B.done = true; endBattle(b.result()); } }
   } else if (s && !UI.menu) {
     if (!UI.modalOpen && !s.over) {

@@ -475,8 +475,8 @@ export class BattleView3D {
       const r = R.r; if (r.side !== 0) continue;
       const el = document.createElement('button'); el.className = 'ucard';
       const img = realPortrait(r.k, this.b.cfg.sides[0].col) || portrait(r.k, this.b.cfg.sides[0].col);
-      el.innerHTML = (img ? '<img src="' + img + '" alt="">' : '<span class="g">' + r.u.g + '</span>') + '<em></em><b><u></u></b>' + (PN[r.papel] ? '<s style="position:absolute;left:0;right:0;bottom:9px;text-align:center;font-size:8px;font-weight:700;line-height:1;text-decoration:none;color:#fff;text-shadow:0 1px 2px #000,0 0 3px #000">' + PN[r.papel] + '</s>' : '');
-      el.title = (r.name || r.u.n) + (PN[r.papel] ? ' · ' + PN[r.papel] : ''); el.addEventListener('click', () => { if (r.st === 'ok') { if (this.sel.has(r)) this.sel.delete(r); else this.sel.add(r); this.focus(r); } });
+      el.innerHTML = (img ? '<img src="' + img + '" alt="">' : '<span class="g">' + r.u.g + '</span>') + '<em></em><b><u></u></b>' + (r.bis ? '<s style="position:absolute;left:0;right:0;bottom:9px;text-align:center;font-size:8px;font-weight:700;line-height:1;text-decoration:none;color:#ffd27a;text-shadow:0 1px 2px #000,0 0 3px #000">Bisoño</s>' : PN[r.papel] ? '<s style="position:absolute;left:0;right:0;bottom:9px;text-align:center;font-size:8px;font-weight:700;line-height:1;text-decoration:none;color:#fff;text-shadow:0 1px 2px #000,0 0 3px #000">' + PN[r.papel] + '</s>' : '');
+      el.title = (r.name || r.u.n) + (PN[r.papel] ? ' · ' + PN[r.papel] : '') + (r.bis ? ' · Bisoño' : ''); el.addEventListener('click', () => { if (r.st === 'ok') { if (this.sel.has(r)) this.sel.delete(r); else this.sel.add(r); this.focus(r); } });
       host.appendChild(el); R.card = el; R.cbar = el.querySelector('u'); R.cnum = el.querySelector('em');
     }
   }

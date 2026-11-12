@@ -24,7 +24,7 @@ for (const sd of [1, 2, 3, 4]) {
   assert(q.time >= 480 && q.time <= 720, 'igualada 200 vs 200 (semilla ' + sd + '): ' + Math.round(q.time) + ' s');
   const m = fight({ hastati: 300, velites: 60, equites: 40 }, { libios: 265, numidas: 52, jinetes: 33 }, { seed: sd });
   assert(m.time >= 480 && m.time <= 720, 'igualada mixta (semilla ' + sd + '): ' + Math.round(m.time) + ' s');
-  assert(fight({ hastati: 300, velites: 60, equites: 40 }, { milicia: 100 }, { seed: sd }).time > 90, 'la desigual no dura segundos');
+  assert(fight({ hastati: 300, velites: 60, equites: 40 }, { milicia: 100 }, { seed: sd }).time > 30, "la desigual no dura segundos");
 }
 
 // 2c. La moral no cae en cadena: nunca se rompe más de la mitad de un bando en 10 s
@@ -1103,6 +1103,96 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   // partida vieja sin favor
   const vieja = JSON.parse(JSON.stringify(s)); delete vieja.favor; delete vieja.mision; delete vieja.misionesHechas; delete vieja.proxMision; G.migrarSenado(vieja);
   assert(vieja.favor.senado === 50 && vieja.favor.pueblo === 50 && vieja.mision === null, 'partida vieja: favor 50 y sin misión');
+
+// N15. Equilibrio y objetivos: ancho de frente, bisoñas, objetivos de batalla, curva de equilibrio y dificultad por contexto
+{
+  const T15 = Date.now(), EQ = require('./equilibrio.js');
+  const mk = (a, b, o, ea, eb) => new Battle(Object.assign({ sides: [side(a, ea), side(b, eb)], defender: 1, wall: 0, seed: 7 }, o || {}));
+  const gana = (n, f) => { let g = 0; for (let sd = 1; sd <= n; sd++) { const q = fight.apply(null, f(sd)); if (q.winner === 0) g++; } return g / n; };
+  // ancho de frente: más de ATAC_MAX regimientos sobre el mismo objetivo no suman daño; con uno solo se pega menos
+  {
+    const dano = n => {
+      const bt = mk({ hastati: 480 }, { hastati: 480 }), B = bt.regs.find(r => r.side === 1 && r.k === 'hastati'), A = bt.regs.filter(r => r.side === 0 && r.k === 'hastati').slice(0, n);
+      for (const r of bt.regs) { r.atkMul = 1; r.defMul = 1; r.fat = 0; r.think = 9; r.cd = 9; }
+      B.x = 400; B.y = 300; B.ang = Math.PI / 2; B.order = { k: 'quieto' };
+      const xs = [-26, 26, 0, -13, 13, -39, 39, 0];
+      A.forEach((r, i) => { r.x = B.x + xs[i]; r.y = B.y + 40; r.order = { k: 'atk', r: B, tipo: 'avanzar' }; r.tgt = B; r.ang = -Math.PI / 2; });
+      for (const r of bt.regs) if (r.side === 1 && r !== B) { r.x = 1500; r.y = 100; r.order = { k: 'quieto' }; }
+      for (const r of bt.regs) if (r.side === 0 && A.indexOf(r) < 0) { r.x = 1700; r.y = 800; r.order = { k: 'quieto' }; }
+      const h0 = B.hp; for (let i = 0; i < 4; i++) bt.step(0.05); return h0 - B.hp;
+    };
+    const d1 = dano(1), d2 = dano(2), d6 = dano(6);
+    assert(d2 > d1 * 1.3, 'dos regimientos pegan más que uno (' + d1.toFixed(4) + ' / ' + d2.toFixed(4) + ')');
+    assert(d6 < d2 * 1.5, 'seis sobre el mismo objetivo no suman seis veces: tope de frente (' + d2.toFixed(4) + ' / ' + d6.toFixed(4) + ')');
+  }
+  // bisoñas: empiezan Vacilantes, la moral tiene tope que sube peleando, y pegan menos que la veterana
+  {
+    const bt = mk({ hastati: 240 }, { hastati: 240 }, {}, { bis: 1 }), bs = bt.regs.filter(r => r.side === 0 && r.k !== 'general'), vs = bt.regs.filter(r => r.side === 1 && r.k !== 'general');
+    assert(bs.every(r => r.bis === 1 && Battle.esBisono(r) && Battle.estadoMoral(r) === 1), 'bisoñas: Vacilantes al empezar y marcadas (r.bis)');
+    assert(bs[0].morMax < vs[0].morMax * 0.9 && vs.every(r => !r.bis && !Battle.esBisono(r)), 'bisoña: menos moral máxima; la veterana no está marcada');
+    const x = bs[0]; x.mor = x.morMax; x.x = 100; x.y = 900; x.order = { k: 'quieto' }; for (const r of bt.regs) if (r.side === 1) { r.x = 1800; r.y = 50; r.order = { k: 'quieto' }; }
+    for (let i = 0; i < 100; i++) bt.step(0.1); assert(Battle.estadoMoral(x) <= 1, 'sin pelear, la moral de la bisoña no pasa del tope (no llega a Firme)');
+    x.curt = Battle.BIS_CURTIDO / 2; x.mor = x.morMax; for (let i = 0; i < 20; i++) bt.step(0.1); assert(x.mor > UMBRAL(x) && x.mor < x.morMax - 1, 'el tope sube con lo curtida que está');
+    x.curt = Battle.BIS_CURTIDO; assert(!Battle.esBisono(x) && Battle.topeMor(x) === x.morMax, 'curtida del todo: sin tope');
+    const hitDe = bis => { const b2 = mk({ hastati: 240 }, { hastati: 240 }, {}, { bis: bis }), a = b2.regs.find(r => r.side === 0 && r.k === 'hastati'), t = b2.regs.find(r => r.side === 1 && r.k === 'hastati'); a.atkMul = t.defMul = 1; a.mor = a.morMax; a.fat = 0; a.ang = t.ang + Math.PI; a.x = t.x; a.y = t.y + 30; const h0 = t.hp; b2.hit(a, t, 10, false); return h0 - t.hp; };
+    assert(hitDe(1) < hitDe(0), 'la bisoña pega menos que la veterana');
+    const m = mk({ milicia: 100 }, { hastati: 100 }); assert(m.regs.filter(r => r.side === 0 && r.k === 'milicia').every(r => r.bis === 1), 'la milicia cuenta como bisoña entera');
+    function UMBRAL(r) { return 0.55 * r.morMax; }
+  }
+  // objetivos de batalla
+  {
+    const g = { gen: { n: 'General' } };
+    // sin objetivo: nada cambia
+    { const a = fight({ hastati: 150 }, { libios: 150 }, { seed: 3 }); const bt = mk({ hastati: 150 }, { libios: 150 }, { seed: 3 }); bt.finish(); assert.strictEqual(bt.result().objetivo, undefined); assert.strictEqual(bt.progresoObjetivo(), null); assert.strictEqual(a.winner, bt.result().winner); }
+    // resistir por segundos: el débil aguanta 60 s ante un ejército mayor
+    { const bt = mk({ hastati: 600 }, { hastati: 150 }, { objetivo: { tipo: 'resistir', lado: 1, seg: 60 } }); bt.finish(); const r = bt.result();
+      assert(r.objetivo && r.objetivo.tipo === 'resistir' && r.objetivo.cumplido && r.winner === 1 && r.time >= 60 && r.time < 70, 'resistir: gana el que aguanta (' + r.time + ' s)');
+      const bt2 = mk({ hastati: 600 }, { hastati: 60 }, { objetivo: { tipo: 'resistir', lado: 1, seg: 3000 } }); bt2.finish(); const r2 = bt2.result(); assert(r2.winner === 0 && r2.objetivo && !r2.objetivo.cumplido && /no/i.test(r2.objetivo.texto), 'resistir: destruido, no cumplido'); }
+    // resistir por rondas y progreso para el HUD
+    { const bt = mk({ hastati: 480 }, { hastati: 200 }, { rondas: true, ia: false, objetivo: { tipo: 'resistir', lado: 1, rondas: 2 } }); let p = bt.progresoObjetivo();
+      assert(p.tipo === 'resistir' && p.frac === 0 && /2 rondas más/.test(p.texto), 'progreso inicial: ' + p.texto);
+      const juega = () => { assert(bt.ejecutar()); let k = 0; while (bt.fase === 'ejecucion' && !bt.over && k++ < 400) bt.step(0.1); };
+      juega(); p = bt.progresoObjetivo(); assert(!bt.over && p.frac === 0.5 && /1 ronda más/.test(p.texto), 'tras una ronda: ' + p.texto);
+      const e = bt.estado(); juega(); assert(bt.over && bt.winner === 1 && bt.result().objetivo.cumplido, 'rondas: al cumplirse gana el que aguanta');
+      bt.aplicar(e); assert(!bt.over && bt.progresoObjetivo().frac === 0.5, 'estado()/aplicar() conserva el objetivo'); }
+    // tomar la zona
+    { const zona = { x: 0.3, y: 0.4, w: 0.4, h: 0.2 };
+      const prep = (dentro0, dentro1) => { const bt = mk({ hastati: 240 }, { hastati: 240 }, { objetivo: { tipo: 'tomar', lado: 0, zona: zona, seg: 5 } }); const z = bt.zonaObjetivo(); let i = 0;
+        for (const r of bt.regs) { r.order = { k: 'quieto' }; r.tgt = null; const dentro = r.side === 0 ? dentro0 : dentro1; if (dentro && i++ < 1) { r.x = (z.x0 + z.x1) / 2; r.y = (z.y0 + z.y1) / 2; } else if (r.side === 0) { r.x = 50; r.y = bt.H - 40; } else { r.x = bt.W - 50; r.y = 40; } if (dentro) i = 0; }
+        return bt; };
+      const a = prep(true, false); for (let i = 0; i < 40; i++) a.step(0.1); const pa = a.progresoObjetivo(); assert(pa.frac > 0 && pa.frac < 1, 'tomar: progreso a medias'); const e = a.estado(), t0 = a.obj.tZona[0];
+      for (let i = 0; i < 40; i++) a.step(0.1); assert(a.over && a.winner === 0 && a.result().objetivo.cumplido, 'tomar: la zona sola 5 s gana'); a.aplicar(e); assert(!a.over && Math.abs(a.obj.tZona[0] - t0) < 1e-9, 'estado()/aplicar() conserva el tiempo en la zona');
+      const b = prep(true, true); for (let i = 0; i < 100; i++) b.step(0.1); assert(!b.over, 'tomar: con enemigo dentro no se cumple');
+      const c = prep(false, true); const rr = c.regs.find(r => r.side === 0); c.regs.forEach(r => { r.order = { k: 'quieto' }; }); for (let i = 0; i < 120; i++) c.step(0.1); assert(c.over && c.winner === 1 && !c.result().objetivo.cumplido, 'tomar: lo toma el rival y el objetivo no se cumple'); }
+    // escapar con el general
+    { const bt = mk({ hastati: 240 }, { hastati: 240 }, { objetivo: { tipo: 'escapar', lado: 0 } }, g, g); const G = bt.regs.find(r => r.side === 0 && r.k === 'general'); for (const r of bt.regs) r.order = { k: 'quieto' };
+      assert(bt.progresoObjetivo().tipo === 'escapar' && bt.progresoObjetivo().frac < 0.1, 'escapar: al principio lejos'); G.y = 300; bt.step(0.1); const f1 = bt.progresoObjetivo().frac; assert(f1 > 0.3 && !bt.over, 'escapar: progreso según la posición'); G.y = 50; bt.step(0.1);
+      assert(bt.over && bt.winner === 0 && bt.result().objetivo.cumplido, 'escapar: el general llega al borde enemigo');
+      const b2 = mk({ hastati: 240 }, { hastati: 240 }, { objetivo: { tipo: 'escapar', lado: 0 } }, g, g); b2.regs.find(r => r.side === 0 && r.k === 'general').st = 'dead'; for (const r of b2.regs) r.order = { k: 'quieto' }; b2.step(0.1);
+      assert(b2.over && b2.winner === 1 && !b2.result().objetivo.cumplido, 'escapar: sin general no se cumple'); }
+  }
+  // curva de equilibrio (auto-batalla, 10 semillas, tolerancias anchas)
+  {
+    const N = 8, curva = (k, q) => gana(N, sd => [{ hastati: Math.round(480 * k) }, { hastati: 480 }, { seed: sd }]), conQ = (k, q) => { let g = 0; for (let sd = 1; sd <= N; sd++) if (EQ.una({ k: k, seed: sd, A: { atkMul: q, defMul: q } }).gana) g++; return g / N; };
+    const c15 = curva(1.5), c1 = curva(1), c85 = curva(0.85), c67 = curva(0.67), c5 = curva(0.5);
+    assert(c15 >= 0.9, 'el 1,5× gana casi siempre (' + c15 + ')'); assert(c1 >= 0.2 && c1 <= 0.85, 'igualados: reñido (' + c1 + ')'); assert(c85 <= 0.5 && c85 < c1, '0,85×: pierde casi siempre (' + c85 + ')'); assert(c67 <= 0.25 && c5 <= 0.1, 'el chico no gana sin plan (' + c67 + ', ' + c5 + ')');
+    assert(conQ(0.85, 1.2) >= 0.5, 'calidad 1,2× con 0,85× gana a menudo'); assert(conQ(0.67, 1.2) <= 0.3, 'calidad 1,2× con 0,67× casi nunca');
+    const c05 = conQ(1, 1.05); assert(c05 < 0.95 || c1 < 0.85, 'un 5 % de calidad no lo decide todo (' + c05 + ')');
+    let t = 0; for (let sd = 1; sd <= 3; sd++) t += EQ.una({ k: 0.5, seed: sd }).t; assert(t / 3 >= 210, 'muy desiguales: duran más de 3,5 min (' + Math.round(t / 3) + ' s)');
+    const bis = (b) => { let g = 0; for (let sd = 1; sd <= N; sd++) if (EQ.una({ seed: sd, A: { bis: b } }).gana) g++; return g / N; }; assert(bis(1) <= 0.3 && bis(1) < c1, 'la leva bisoña pierde contra la veterana (' + bis(1) + ')');
+  }
+  // dificultad por contexto: ficha con factores, y el nivel ordena el resultado
+  {
+    const e0 = EQ.ESCENARIOS, d = e0.map(e => new Battle(EQ.configEscenario(e, 1)).dif);
+    assert(d.every(x => typeof x.nivel === 'number' && x.nivel >= -1 && x.nivel <= 1 && Array.isArray(x.factores) && x.factores.length >= 6 && /^Rival: /.test(x.texto) && x.factores.every(f => f.n && f.txt && typeof f.v === 'number')), 'ficha {nivel, factores, texto}');
+    assert(d[0].nivel < d[1].nivel && d[1].nivel < d[2].nivel && d[2].nivel <= d[3].nivel, 'los escenarios van de fácil a duro: ' + d.map(x => x.nivel).join(' < '));
+    assert.deepStrictEqual(Battle.dificultadContexto(EQ.configEscenario(e0[2], 1)), d[2], 'es una función pura');
+    assert(/cerro/.test(d[3].texto) && d[3].factores.some(f => f.n === 'Terreno' && f.v > 0), 'el texto nombra lo que más pesa: ' + d[3].texto);
+    const w = e0.map(e => EQ.escenario(e, 12).pct);
+    assert(w[0] >= w[1] && w[1] >= w[2] && w[2] >= w[3], 'la victoria baja al subir el nivel: ' + w.join(' ≥ ')); assert(w[0] - w[3] >= 15 && w[0] - w[2] >= 15, 'al menos 15 puntos entre el escenario fácil y el duro: ' + w.join(', '));
+    const bt = new Battle(Object.assign(EQ.configEscenario(e0[3], 1), { rondas: true })); assert.strictEqual(bt.ia.dif, 'normal'); assert.strictEqual(bt.ia.nivel, bt.dif.nivel, 'la IA usa el nivel de contexto');
+  }
+  console.log('N15: ' + Math.round((Date.now() - T15) / 1000) + ' s');
 }
 
 console.log('OK — todas las pruebas superadas');

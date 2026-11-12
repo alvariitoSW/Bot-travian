@@ -581,9 +581,13 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 #bdif { position: absolute; z-index: 6; right: calc(8px + env(safe-area-inset-right)); top: calc(82px + env(safe-area-inset-top)); display: flex; flex-direction: column; align-items: flex-end; gap: 3px; pointer-events: auto; }
 #bdif .rv { font-size: 11px; color: #fff; text-shadow: 0 1px 3px #000, 0 0 8px #000; }
 #bdif .rv b { font-family: var(--serif); color: var(--gold); }
-#bdif .dif { display: flex; gap: 3px; padding: 3px; border-radius: 9px; background: var(--glass); border: 1px solid var(--line2); }
-#bdif .dif button { height: 24px; padding: 0 8px; border-radius: 6px; font-size: 11px; font-weight: 700; color: var(--gold); background: #fff1; }
-#bdif .dif button.on { color: #2b1804; background: linear-gradient(#ffe27a, var(--gold)); }
+#bdif .rv[data-act] { cursor: pointer; padding: 3px 6px; border-radius: 7px; background: var(--glass); }
+#bdif .fac { max-width: 250px; padding: 5px 8px; border-radius: 9px; background: var(--glass); border: 1px solid var(--line2); font-size: 11px; color: #fff; text-align: left; }
+#bdif .fac[hidden] { display: none; }
+#bdif .fac i { font-style: normal; font-weight: 700; } #bdif .fac i.up { color: #ff9c8c; } #bdif .fac i.dn { color: #8fd18f; }
+#bdif .ob { max-width: 250px; font-size: 11px; color: var(--gold); text-shadow: 0 1px 3px #000, 0 0 8px #000; text-align: right; }
+#bobj { position: absolute; z-index: 6; left: 50%; transform: translateX(-50%); top: calc(34px + env(safe-area-inset-top)); display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; color: var(--gold); text-shadow: 0 1px 3px #000, 0 0 8px #000; pointer-events: none; white-space: nowrap; }
+#bobj i { display: block; width: 120px; height: 3px; border-radius: 2px; background: #0008; overflow: hidden; } #bobj u { display: block; height: 100%; background: var(--gold); text-decoration: none; }
 #bgesto { position: absolute; z-index: 7; left: calc(110px + env(safe-area-inset-left)); opacity: .88; top: calc(34px + env(safe-area-inset-top)); max-width: min(360px, 52vw); padding: 3px 12px; border-radius: 9px; font-size: 12px; font-weight: 700; font-family: var(--serif); color: var(--gold); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: linear-gradient(rgba(22, 27, 36, .86), rgba(10, 13, 19, .9)); border: 1px solid rgba(184, 134, 43, .7); pointer-events: none; }
 #bpanel li.gs { color: var(--gold); font-weight: 700; }
 #bpanel li.gs::before { content: ''; }
