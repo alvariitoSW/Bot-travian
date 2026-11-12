@@ -176,7 +176,7 @@ const hechos = kHecho ? tablero[kHecho].join(' ').split('✅').map(s => s.replac
 const fecha = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 const datos = {
   FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase,
-  PENDIENTE: htmlPendiente, CHIPS: htmlChips, N_ACTIVAS: nActivas, N_TODAS: listaPend.length, N_PAUSA: nPausa, N_MARCHA: sesiones.length, N_HECHAS: hechas, N_PROP: propuestas.length, N_ESP: espera.length, ESPERA: htmlEspera, PROGRESO: htmlProgreso, MARCHA: htmlMarcha, SIGUIENTE: htmlSiguiente, N_ESPERA: espera.length + propuestas.length, PROPUESTAS: htmlPropuestas, CARRILES: htmlCarriles,
+  PENDIENTE: htmlPendiente, CHIPS: htmlChips, N_ACTIVAS: nActivas, N_TODAS: listaPend.length, N_PAUSA: nPausa, N_MARCHA: sesiones.length, N_HECHAS: hechas, N_PROP: propuestas.length, N_ESP: espera.length, ESPERA: htmlEspera, VIGIA: esc(config.vigia || ''), PROGRESO: htmlProgreso, MARCHA: htmlMarcha, SIGUIENTE: htmlSiguiente, N_ESPERA: espera.length + propuestas.length, PROPUESTAS: htmlPropuestas, CARRILES: htmlCarriles,
   RESUMEN: hechas + ' tareas hechas en ' + carriles.length + ' carriles.',
   ENSENAR: htmlEnsenar, INFORMES: htmlInformes, CAPTURAS: htmlCapturas, CAPTURAS_NOTA: esc(notaCapturas), HECHOS: hechos.map(h => '<li>' + md(h) + '</li>').join(''),
 };

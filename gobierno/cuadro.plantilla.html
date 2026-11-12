@@ -104,6 +104,9 @@ section { scroll-margin-top: 12px; }
 .porcarril ul { list-style: none; margin: 0; padding: 4px 0 0; display: flex; flex-direction: column; gap: 8px; }
 .porcarril li { display: grid; grid-template-columns: 116px 1fr 44px; align-items: center; gap: 8px; font-size: 13px; }
 .porcarril .cn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .porcarril .cp { text-align: right; font-variant-numeric: tabular-nums; color: var(--tenue); }
+.mini { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.mini li { display: flex; gap: 8px; } .mini li b { flex: none; color: var(--purpura); font-weight: 600; }
+.mini:empty { display: none; }
 .ficha.toca { border-left: 4px solid var(--purpura); }
 .asunto { display: flex; gap: 10px; align-items: baseline; font-size: 17px; line-height: 1.3; }
 .asunto .num { flex: none; font: 700 13px var(--texto); color: var(--sobre-purpura); background: var(--purpura); border-radius: 999px; padding: 2px 8px; }
@@ -159,6 +162,13 @@ section { scroll-margin-top: 12px; }
     <a class="ficha-num" href="#t-pend"><b>{{N_PAUSA}}</b><span>en pausa</span></a>
     <a class="ficha-num" href="#t-marcha"><b>{{N_MARCHA}}</b><span>trabajando</span></a>
     <a class="ficha-num" href="#t-tablero"><b>{{N_HECHAS}}</b><span>hechas</span></a>
+  </section>
+
+  <section id="porap" class="ficha toca" aria-live="polite">
+    <p class="asunto"><b id="porap-t">Lo que pulses en esta página lo aplica el vigía</b></p>
+    <ul id="porap-l" class="mini"></ul>
+    <div class="fila"><button class="boton lleno" id="llamar">Llamar al vigía ahora</button><a class="boton fino" href="#t-pedidos">Ver mis pedidos</a></div>
+    <p class="nota" id="llamar-estado">El vigía pasa solo cada tres horas. Con el botón arranca ya; tarda unos minutos en aplicar lo pulsado y abrir las sesiones.</p>
   </section>
 
   <section aria-labelledby="t-avance" class="progreso">
@@ -285,6 +295,10 @@ section { scroll-margin-top: 12px; }
       .sort(function (a, b) { return String(b.creado || '').localeCompare(String(a.creado || '')); });
     var pendientes = filas.filter(function (x) { return x.estado !== 'aplicado'; });
     var aplicados = filas.filter(function (x) { return x.estado === 'aplicado'; }).slice(0, 5);
+    var np = pendientes.length, lista = $('porap-l'); lista.textContent = '';
+    $('porap-t').textContent = np ? 'Has pulsado ' + np + (np === 1 ? ' cosa que aún no se ha aplicado' : ' cosas que aún no se han aplicado') : 'Todo lo que has pulsado está aplicado';
+    pendientes.slice(0, 8).forEach(function (x) { var li = document.createElement('li'), k = document.createElement('b'), t = document.createElement('span'); k.textContent = (ROTULO[x.tipo] || 'Pedido') + (x.ref && x.tipo !== 'respuesta' ? ' · ' + x.ref : ''); t.textContent = (x.titulo || '') + (x.tipo === 'respuesta' && x.texto ? ': ' + x.texto : ''); li.appendChild(k); li.appendChild(t); lista.appendChild(li); });
+    if (np > 8) { var mas = document.createElement('li'); mas.textContent = 'y ' + (np - 8) + ' más, abajo en «Tus pedidos».'; lista.appendChild(mas); }
     vacio.hidden = pendientes.length + aplicados.length > 0;
     pendientes.concat(aplicados).forEach(function (x) {
       var li = document.createElement('li'); li.className = 'ficha';
@@ -330,6 +344,23 @@ section { scroll-margin-top: 12px; }
   document.addEventListener('change', function (ev) { if (ev.target.classList && ev.target.classList.contains('sel')) lote(); });
   aplicar();
 
+  var mcp = null, VIGIA = '{{VIGIA}}';
+  function llamar(b) {
+    var e = $('llamar-estado'), chat = ' Mientras tanto, escribe «aplica el cuadro» en el chat de Claude.';
+    if (!mcp || !VIGIA) { e.textContent = 'Desde aquí no se puede llamar al vigía.' + chat; return; }
+    b.disabled = true; e.textContent = 'Llamando al vigía…';
+    mcp.callTool('Claude Code Remote', 'fire_trigger', { trigger_id: VIGIA }).then(function () {
+      e.textContent = 'Vigía en marcha. Tarda unos minutos: verás cómo tus pedidos pasan a «aplicado» y aparecen las sesiones nuevas.';
+      setTimeout(function () { b.disabled = false; }, 300000);
+    }, function (err) {
+      var c = err && err.code; b.disabled = false;
+      e.textContent = c === 'approval_required' || c === 'not_in_manifest' || c === 'not_granted' || c === 'consent_required' ? 'Para llamar al vigía tienes que permitir a esta página usar «Claude Code Remote». Pulsa otra vez y acepta cuando te lo pregunte.'
+        : c === 'server_not_connected' || c === 'needs_reauth' || c === 'selection_required' ? 'Tu cuenta no tiene «Claude Code Remote» disponible en esta pantalla.' + chat
+        : c === 'blocked_by_policy' || c === 'capability_disabled' || c === 'capability_removed' ? 'Aquí no está permitido llamar al vigía desde una página.' + chat
+        : c === 'server_unavailable' || c === 'upstream_error' ? 'No se sabe si el vigía ha arrancado. Mira «Sesiones abiertas» dentro de un minuto antes de volver a pulsar.'
+        : 'No se pudo llamar al vigía' + (err && err.message ? ' (' + err.message + ').' : '.') + chat;
+    });
+  }
   function pedir(b) {
     var tipo = b.dataset.pedir, ref = b.dataset.ref || '', caja = b.dataset.texto ? $(b.dataset.texto) : null, texto = caja ? caja.value.trim() : (b.dataset.valor || '');
     if (caja && !texto) { aviso('Escribe primero lo que quieres.'); caja.focus(); return; }
@@ -346,6 +377,7 @@ section { scroll-margin-top: 12px; }
 
   document.addEventListener('click', function (ev) {
     var b = ev.target.closest('button'); if (!b) return;
+    if (b.id === 'llamar') { llamar(b); return; }
     if (b.dataset.lote) {
       if (b.dataset.lote === 'quitar') { marcadas().forEach(function (c) { c.checked = false; }); lote(); return; }
       if (!db) { aviso('Aquí no se pueden guardar pedidos. Dilo en el chat.'); return; }
@@ -363,6 +395,7 @@ section { scroll-margin-top: 12px; }
 
   var sinUso = 'Aquí no se pueden guardar pedidos (hace falta abrir la página con tu sesión de Claude). Mientras tanto, dilo en el chat.';
   if (!window.claude || !window.claude.use) { apagar(sinUso); return; }
+  window.claude.use('mcp').then(function (m) { mcp = m; if (!m) $('llamar-estado').textContent = 'En esta pantalla no se puede llamar al vigía con el botón. Pasa solo cada tres horas, o escribe «aplica el cuadro» en el chat.'; });
   window.claude.use('db').then(function (d) {
     if (!d) { apagar(sinUso); return; }
     db = d;

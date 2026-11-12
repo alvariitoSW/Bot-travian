@@ -54,6 +54,9 @@ La página pinta en vivo la colección `sesiones`: un documento por sesión de A
 ## Avance en %
 `cuadro.mjs` lo calcula del tablero: hechas / total, contando una línea «N6 a N15» por diez tareas. Cuenta tareas, no esfuerzo. Para que no engañe: una tarea por línea y, si se agrupan, con la forma «<ID> a <ID>».
 
+## Botón «Llamar al vigía ahora»
+Arriba del cuadro hay un aviso con lo pulsado y sin aplicar y un botón que dispara el vigía al momento (`fire_trigger` con el id de `vigia` en `cuadro.json`, por el conector «Claude Code Remote»). Por eso el cuadro se publica con `capabilities: {"db": {}, "mcp": {"servers": [{"server": "Claude Code Remote", "tools": ["fire_trigger"]}]}}`. Publicar sin `capabilities` las conserva; no pases `{}`.
+
 ## Abrir sesiones
 - Con `create_session`, **siempre** con `source_url` (`repo` de `cuadro.json`), `source_revision` y `outcome_branch` (`rama` de `cuadro.json`). Sin eso la sesión nace sin repositorio y se queda parada (pasó con N5 y Q7 el 12/11).
 - Modelo: Sonnet para construir sobre un diseño hecho; Fable para diseño y dirección de arte (regla del usuario del 12/11).
