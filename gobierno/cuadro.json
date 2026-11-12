@@ -895,6 +895,21 @@
    "tarea": "Q11",
    "archivo": "gobierno/capturas-tarea/Q11-atardecer.jpg",
    "pie": "Atardecer con antorchas en el foro"
+  },
+  {
+   "tarea": "I5",
+   "archivo": "gobierno/capturas-tarea/I5/I5-1-vacia.jpg",
+   "pie": "Saber: primera vez, guía de 3 pasos y requisitos de la Edad II"
+  },
+  {
+   "tarea": "I5",
+   "archivo": "gobierno/capturas-tarea/I5/I5-2-en-curso.jpg",
+   "pie": "Saber: Fasti en curso con barra, Edad II abierta"
+  },
+  {
+   "tarea": "I5",
+   "archivo": "gobierno/capturas-tarea/I5/I5-3-par-bloqueado.jpg",
+   "pie": "Saber: Viña hecha, Trigo con candado («o tú o yo»)"
   }
  ],
  "informes": [
