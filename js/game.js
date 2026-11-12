@@ -583,6 +583,7 @@
     G.state = s;
     if (CI) for (const id of G.myCities()) abrir(s.cities[id]);   // Roma y Capua: ciudad nueva con la población de siempre (287 y 270)
     s.evN = D.EVENTS.length; s.evV = EV_VERSION; D.anio = D.START_YEAR;
+    if (s.cities.roma) for (const k in D.LEVA_INICIAL) s.cities.roma.units[k] = (s.cities.roma.units[k] || 0) + D.LEVA_INICIAL[k];   // H13b: preparación inicial (licencia de juego)
     checkEvents(D.START_YEAR);
     G.migrarSenado(s); G.migrarDeuda(s); G.senadoAsignar();
     return s;
@@ -706,7 +707,10 @@
   const FX = {
     pirro: function (s) {
       if (!s.cities.tarentum || s.cities.tarentum.owner !== 'epiro') return;
-      spawn('epiro', 'tarentum', null, firstMine(['capua', 'roma']), { falange: 70, hoplitas: 50, peltastas: 30, tesalios: 20, elefantes: 3 }, { n: 'Pirro de Epiro', mando: 3, disc: 2 }, 56, 'Pirro');
+      // H13b, licencia de juego: dos oleadas más pequeñas (la primera a los 32 meses, la segunda a los 42) y Roma empieza con levas extra (D.LEVA_INICIAL)
+      const dest = firstMine(['capua', 'roma']), gen = { n: 'Pirro de Epiro', mando: 3, disc: 2 };
+      spawn('epiro', 'tarentum', null, dest, { falange: 30, hoplitas: 20, peltastas: 15, tesalios: 10, elefantes: 1 }, gen, 32, 'Pirro');
+      spawn('epiro', 'tarentum', null, dest, { falange: 30, hoplitas: 20, peltastas: 10, tesalios: 10, elefantes: 2 }, gen, 42, 'Pirro (refuerzos)');
     },
     pirroSeVa: function (s) { const c = s.cities.tarentum; if (c && c.owner === 'epiro') { delete c.units.elefantes; } },
     // licencia de juego: en 264 Agrigentum pasa a Cartago (en realidad la usó de base en 262, Polibio 1.17-19)

@@ -1341,6 +1341,14 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   global.localStorage = { _: null, getItem() { return this._; }, setItem(k, x) { this._ = x; }, removeItem() {} }; localStorage.setItem('aqvila-save-v1', JSON.stringify(v));
   assert(G.load()); G.tick(0.25); assert(!G.state.marches.some(m => m.label === 'Pirro'), 'una partida vieja no lanza a Pirro de golpe'); delete global.localStorage; }
 
+// ---- H13b Pirro llega antes con tres vías: ejército menor, levas iniciales y dos oleadas (licencia de juego) ----
+{ for (const r of ['italia', 'mediterraneo']) { const s = G.newGame('Pirro', r); const ms = s.marches.filter(m => m.owner === 'epiro');
+    assert.strictEqual(ms.length, 2, 'dos oleadas (' + r + ')'); const [a, b] = ms.sort((x, y) => x.t1 - y.t1);
+    assert(a.t1 >= 30 && a.t1 <= 34 && b.t1 > a.t1 && b.t1 <= 44, 'oleadas a 30-44 meses: ' + a.t1 + ', ' + b.t1);
+    assert(G.men(a.units) + G.men(b.units) < 173, 'menos hombres que el ejército único de H13'); assert(G.men(a.units) < G.men(b.units) + 10);
+    assert(s.cities.roma.units.hastati === 80 + D.LEVA_INICIAL.hastati, 'levas iniciales en Roma'); }
+  const tex = D.EVENTS.find(e => e.k === 'pirro'); assert(/oleadas/.test(tex.lic)); }
+
 // ---- H12 Capua se pasa a Aníbal en 216 si no está guarnecida (Livio 23.2-7; el umbral es licencia de juego) ----
 { assert.strictEqual(D.CAPUA_LEALTAD.hombres, 150); const e216 = D.EVENTS.find(e => e.y === 216); assert(e216.fx.split(',')[0] === 'capuaSePasa' && e216.fx.split(',')[1] === 'anibal2' && e216.lic);
   const a216 = (hombres, dueno, region) => { const s = G.newGame('C', region); s.marches = []; s.res.grano = 1e6; const c = s.cities.capua; if (dueno) c.owner = dueno; c.units = hombres ? { hastati: hombres } : {}; c.train = []; c.queue = null; s.hero.city = 'capua'; s.pending = []; s.t = (280 - 216) * 12 - 0.5; G.tick(1); return s; };
