@@ -1,0 +1,6 @@
+# Piezas propias de gobierno/maquetas/piezas/ que build_static_all.sh vuelve a poner en assets/static tras regenerar.
+# Un nombre por línea. Otras tareas añaden aquí las suyas.
+casa_b
+casa_c
+casa_d
+prop_paja

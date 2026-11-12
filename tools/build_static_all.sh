@@ -10,5 +10,7 @@ rm -rf "$TMP/static"; NODE_PATH=$(npm root -g) node "$HERE/build_static.mjs" "$T
 node "$HERE/aligerar_static.mjs" "$TMP/static" anfiteatro 8500 0.45
 node "$HERE/propio_static.mjs" "$TMP/static"
 python3 -I "$HERE/build_static_tex.py" "$TMP/art" "$TMP/static"
+# piezas propias (gobierno/maquetas/piezas, lista en tools/piezas_maqueta.txt): se ponen en $TMP/static ANTES del rm para que no se pierdan
+node "$HERE/piezas_propias.mjs" "$TMP/static" "$HERE/../gobierno/maquetas/piezas" "$HERE/piezas_maqueta.txt"
 cp "$HERE/../assets/static/LICENSE.txt" "$TMP/static/"; rm -rf "$HERE/../assets/static"; mkdir -p "$HERE/../assets/static"; cp "$TMP/static"/* "$HERE/../assets/static/"
 du -sh "$HERE/../assets/static"

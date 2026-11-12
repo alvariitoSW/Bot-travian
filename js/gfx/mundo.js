@@ -65,39 +65,3 @@ export const alt = (x, z) => alturaRejilla(x + OX, z + OZ);       // punto local
 /* ---------- muralla de la maqueta (solo para no poner parcelas dentro de lo que será la ciudad densa) ---------- */
 function radioMuro(t) { const c = Math.cos(t), s = Math.sin(t); return (1 / Math.sqrt(c * c / (335 * 335) + s * s / (285 * 285))) * (1 + 0.085 * Math.sin(2 * t + 1.3) + 0.06 * Math.sin(3 * t + 4.1) + 0.035 * Math.sin(5 * t + 0.7) + 0.02 * Math.sin(9 * t + 2)); }
 export const fracMuro = (x, z) => Math.hypot(x, z) / radioMuro(Math.atan2(z, x));     // <1 dentro
-
-/* ---------- puerto: orilla sur del río, cerca del punto del mundo x ≈ 150 ---------- */
-export function puertoMundo() {
-  let m = -1; RIO.forEach((p, i) => { if (i > 0 && i < RIO.length - 1 && p[1] > -600 && p[1] < -300 && (m < 0 || Math.abs(p[0] - 150) < Math.abs(RIO[m][0] - 150))) m = i; });
-  const p = RIO[m], a = RIO[m - 1], b = RIO[m + 1], L = Math.hypot(b[0] - a[0], b[1] - a[1]), tx = (b[0] - a[0]) / L, tz = (b[1] - a[1]) / L;
-  let nx = -tz, nz = tx; if (nz < 0) { nx = -nx; nz = -nz; }                                  // la normal hacia el sur
-  return { rx: p[0], rz: p[1], tx, tz, nx, nz, x: p[0] + nx * 78, z: p[1] + nz * 78, giro: Math.atan2(-nx, -nz) * 180 / Math.PI };       // el edificio a 78 del eje, de cara al agua (giro en grados)
-}
-
-/* ---------- campo: lo que se pinta en el suelo y el puente ----------
-   (WX, WZ) = media anchura y medio fondo del recinto del juego. Devuelve coordenadas del MUNDO. */
-export function generarCampo(WX, WZ) {
-  const puertas = { sur: [OX, OZ + WZ], norte: [OX, OZ - WZ], este: [OX + WX, OZ], oeste: [OX - WX, OZ] };
-  const contorno = [[OX - WX, OZ - WZ], [OX + WX, OZ - WZ], [OX + WX, OZ + WZ], [OX - WX, OZ + WZ]];
-  /* calles del interior: cardo y decumano, de puerta a puerta */
-  const calles = [{ p: suavizar([puertas.norte, [OX, OZ], puertas.sur], 3), w: 4.6, t: 'via' }, { p: suavizar([puertas.oeste, [OX, OZ], puertas.este], 3), w: 4.6, t: 'via' }];
-  /* caminos de fuera: salen de las cuatro puertas; el del norte rodea la arx por el este y cruza el río por el puente */
-  const iPuente = RIO.reduce((m, p, i) => Math.hypot(p[0] - 82, p[1] + 450) < Math.hypot(RIO[m][0] - 82, RIO[m][1] + 450) ? i : m, 0), PUENTE = { x: RIO[iPuente][0], z: RIO[iPuente][1], ang: Math.atan2(RIO[iPuente + 1][1] - RIO[iPuente - 1][1], RIO[iPuente + 1][0] - RIO[iPuente - 1][0]) + Math.PI / 2 };
-  const fuera = { sur: [puertas.sur, [-10, 420], [30, 620], [-40, 900], [60, 1500], [0, 2600]], norte: [puertas.norte, [50, -80], [78, -150], [60, -215], [70, -350], [PUENTE.x - Math.cos(PUENTE.ang) * 45, PUENTE.z - Math.sin(PUENTE.ang) * 45], [PUENTE.x + Math.cos(PUENTE.ang) * 45, PUENTE.z + Math.sin(PUENTE.ang) * 45], [60, -640], [140, -900], [60, -1300], [200, -2400]], este: [puertas.este, [470, 60], [640, 10], [900, 90], [1500, 40], [2600, 200]], oeste: [puertas.oeste, [-470, 110], [-640, 60], [-900, 150], [-1600, 80], [-2600, 200]] };
-  const caminos = Object.entries(fuera).map(([k, p]) => ({ p: suavizar(p, 5), w: 4.2, t: 'camino', k }));
-  caminos.push({ p: suavizar([[-10, 420], [-160, 470], [-330, 560], [-520, 610], [-900, 760]], 5), w: 2.6, t: 'senda' }, { p: suavizar([[70, -350], [-80, -330], [-260, -330], [-420, -300], [-640, 60]], 5), w: 2.4, t: 'senda' }, { p: suavizar([[470, 60], [430, 240], [300, 420], [30, 620]], 5), w: 2.4, t: 'senda' }, { p: suavizar([[60, -640], [-200, -700], [-520, -820], [-1000, -900]], 5), w: 2.4, t: 'senda' }, { p: suavizar([[140, -900], [420, -820], [760, -900]], 5), w: 2.2, t: 'senda' });
-  const pu = puertoMundo(); caminos.push({ p: suavizar([[pu.x, pu.z], [(pu.x + 70) / 2 + 8, (pu.z - 350) / 2], [70, -350]], 5), w: 2.4, t: 'senda' });      // del puerto al camino del norte
-
-  /* parcelas: rejilla deformada de cuadriláteros que comparten lindes (las de la maqueta; sin las que caerían a menos de 30 del recinto) */
-  const parcelas = [], PASO = 96, N = 34, nodo = (i, j) => { const x = (i - N / 2) * PASO, z = (j - N / 2) * PASO; return [x + (fbm(x / 420 + 11, z / 420 + 5, 2) - 0.5) * 150 + (h2(i * 7 + 3, j * 13 + 1) - 0.5) * 46, z + (fbm(x / 420 + 31, z / 420 + 17, 2) - 0.5) * 150 + (h2(i * 5 + 9, j * 3 + 7) - 0.5) * 46]; };
-  const cercaRecinto = e => e[0] > OX - WX - 30 && e[0] < OX + WX + 30 && e[1] > OZ - WZ - 30 && e[1] < OZ + WZ + 30;
-  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) { const q = [nodo(i, j), nodo(i + 1, j), nodo(i + 1, j + 1), nodo(i, j + 1)], cx = (q[0][0] + q[1][0] + q[2][0] + q[3][0]) / 4, cz = (q[0][1] + q[1][1] + q[2][1] + q[3][1]) / 4, f = fracMuro(cx, cz), dr = distRio(cx, cz);
-    if (q.some(e => fracMuro(e[0], e[1]) < 1.07 || cercaRecinto(e)) || dr < 40 || alturaDe(cx, cz, false) > 60) continue; const v = h2(i * 31 + 5, j * 17 + 11), lejos = ss(1.6, 4.5, f);
-    if (v < 0.1 + 0.45 * lejos) continue;                                                             // erial / pasto seco
-    const u = h2(i * 3 + 77, j * 29 + 3); let clase = dr < 150 && u < 0.6 ? 'huerta' : u < 0.36 ? 'rastrojo' : u < 0.56 ? 'barbecho' : u < 0.74 ? 'vina' : u < 0.9 ? 'olivar' : 'pasto';
-    /* se parte en 1-3 tiras para que no sean todas iguales */
-    const tiras = 1 + Math.floor(h2(i + 100, j + 50) * 3), dir = h2(i + 9, j + 77) < 0.5;
-    for (let k = 0; k < tiras; k++) { const a = k / tiras, b = (k + 1) / tiras, L = (p, r, t) => [p[0] + (r[0] - p[0]) * t, p[1] + (r[1] - p[1]) * t]; const pol = dir ? [L(q[0], q[1], a), L(q[0], q[1], b), L(q[3], q[2], b), L(q[3], q[2], a)] : [L(q[0], q[3], a), L(q[1], q[2], a), L(q[1], q[2], b), L(q[0], q[3], b)];
-      const cl = k === 0 ? clase : ['rastrojo', 'barbecho', 'vina', 'pasto', clase][Math.floor(h2(i * 9 + k, j * 5 + k) * 5)]; parcelas.push({ pol, clase: cl, ang: Math.atan2(pol[1][1] - pol[0][1], pol[1][0] - pol[0][0]) + (dir ? Math.PI / 2 : 0), v: h2(i + k * 13, j + k * 7), linde: h2(i * 2 + k, j * 11) }); } }
-  return { puertas, contorno, calles, caminos, parcelas, PUENTE };
-}

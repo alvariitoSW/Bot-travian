@@ -14,4 +14,8 @@ Excepción de origen: termas.bin y acueducto.bin NO son de 0 A.D. Los dibujó de
 (structural_rome_struct_2.webp). Se publican también bajo CC BY-SA 3.0, para que toda la carpeta tenga una sola licencia.
 anfiteatro.bin es el anfiteatro de Pompeya de 0 A.D., aligerado (tools/aligerar_static.mjs) y reducido a escala de ciudad.
 
+Casas romanas casa_b, casa_c y casa_d y la pila de paja prop_paja: proceden de 0 A.D. (Wildfire Games, CC BY-SA 3.0, actor structures/romans/house.xml
+(variantes b, c y d) y props/special/eyecandy/hay_a.xml). Se han aligerado con meshoptimizer (MIT) y sus texturas reducido
+(ver gobierno/maquetas/piezas/LICENSE.txt); se regeneran con tools/piezas_propias.mjs.
+
 Esta licencia se aplica solo al contenido de assets/static/. El código del juego es independiente.

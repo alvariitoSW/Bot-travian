@@ -55,6 +55,9 @@ if (pintados > E.triangulosPorBatalla) fallos.push('la batalla típica pinta ' +
 // Ciudad: todos los edificios de data.js a un nivel medio, con sus casas, muralla, barcos y arbolado.
 const nv = E.nivelCiudad, piezas = { casa: 2 + nv * 3, muro: 16, puerta: 4, torre: 21, barco: Math.min(5, nv) - Math.floor(Math.min(5, nv) / 3), trirreme: Math.floor(Math.min(5, nv) / 3), vesta: 1, arco: 1, ...E.arboles };
 for (const b in D.BUILD) if (TRIS[b]) piezas[b] = 1;
+// Las casas se reparten a partes iguales entre las variantes que existan (casa, casa_b, casa_c, casa_d). Cuenta aproximada: cuando js/gfx/city3d.js elija variantes, hay que ajustarla aquí.
+const vCasa = ['casa', 'casa_b', 'casa_c', 'casa_d'].filter(k => TRIS[k]), nCasa = piezas.casa; delete piezas.casa;
+vCasa.forEach((k, i) => { piezas[k] = Math.floor(nCasa / vCasa.length) + (i < nCasa % vCasa.length ? 1 : 0); });
 let nPiezas = 0, trisCiudad = 0; for (const k in piezas) { nPiezas += piezas[k]; trisCiudad += piezas[k] * tri(k); }
 console.log('Ciudad típica (todos los edificios, nivel ' + nv + '): ' + nPiezas + ' piezas · ' + mil(trisCiudad) + ' triángulos (tope: ' + mil(E.triangulosPorCiudad) + ')');
 if (trisCiudad > E.triangulosPorCiudad) fallos.push('la ciudad típica pide ' + mil(trisCiudad) + ' triángulos y el tope es ' + mil(E.triangulosPorCiudad));
