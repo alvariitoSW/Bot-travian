@@ -101,13 +101,25 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 ## Esperando algo del usuario
 - **Ciudad nueva: cómo empieza la partida**: (A) Roma y Capua ya en pie y la primera misión es fundar una colonia (recomendada); (B) empezar fundando tu ciudad de la nada.
 - **Ciudad nueva: edificios con tres mejoras** (I, II, III) en vez de muchos niveles: sí o no.
-- **P80, P81, P82**: aprobar el primer tramo (P80, ≈7,3 M) o esperar.
+- **P80, P81, P82**: aprobar el primer tramo (P80, ≈7,3 M) o esperar. Dijiste «tiene que ser el nuevo formato»: ¿lo construyo ya en el juego?
+- **P83 a P91 (mejoras)**: cuáles te gustan y si se prueban antes en la maqueta o se meten con P80.
+- **P89 Asedio en tu muralla**: une ciudad y batalla, que hoy van separadas a propósito. ¿Lo quieres así?
 - **Economía mientras se rediseña la ciudad**: dijiste «hoja en blanco». ¿Sigue el carril Economía (Q7 Senado en adelante) o se para también hasta ver el diseño de la ciudad nueva?
 - **P69 Radio de efecto de los edificios**: aprobar o rechazar (las demás ideas sueltas ya están dentro de P74 y P75).
 - **Ciudad sin mar ni Tíber propio (Q1d)**: al llevar la maqueta al juego, las ciudades costeras ya no enseñan el mar y Roma pierde su Tíber con siete colinas; todas usan el plano común con río, y el puerto está en la orilla. ¿Vale así, o se quiere mar en las costeras más adelante?
 - **P79 Guarnición ligera**: aprobar o rechazar.
 
 ## Propuestas por aprobar
+- **Mejoras de la ciudad nueva (Q1l, 12/11)**: detalle en `estudios/Q1l-lluvia-de-ideas.md` y `estudios/Q1l-competencia.md`. Cifras a ojo. Las pequeñas se pueden probar primero en la maqueta `ciudad3/`.
+  - P83 **Lo que sobra se gasta y sucesos que se juegan** (paquetes A y B; ≈1,5 M): arca del foro, ofrendas y juegos, tejas, cubos contra el fuego, marca de la crecida y dique, hambre que se ve.
+  - P84 **Colocar con número vivo, asesor y dificultad** (competencia 1, 3 y 4; ≈1 M): «+14 casas con agua» que cambia al mover la pieza; un asesor que enseña una cosa cada vez; sucesos apagables y tres dificultades.
+  - P85 **Ciudad viva** (paquete C; funde Q1i y Q11; ≈1,5 M): estaciones y luz, andamios, fachadas ricas y pobres, carros y recuas, sonido.
+  - P86 **El ejército vive en la ciudad** (paquete D; ≈1,5 M): campo de Marte, leva en el foro, guarnición en torres, cerrar puertas, veteranos que se asientan, triunfo.
+  - P87 **Barrios con carácter, encargos e hitos** (paquete F y competencia 2 y 9; ≈1,5 M): barrios con nombre propio, plaza en los cruces, encargos cortos del Senado siempre activos, hitos que abren algo nuevo.
+  - P88 **Hecho para el móvil** (paquete I y competencia 5, 6 y 7; ≈1,5 M): postal y crónica de la ciudad, modo contemplar, punto de parada, copia de la partida en un archivo, partida corta con nota (enlaza con I8).
+  - P89 **Asedio en tu propia muralla** (paquete E y competencia 10; grande, ≈3 M, con el carril Guerra): el sitio y la muralla que colocaste son el campo de batalla. Ojo: une ciudad y batalla, hoy separadas a propósito (CLAUDE.md §2): lo decide el usuario.
+  - P90 **Más terrenos donde fundar** (paquete G; grande, ≈2,5 M): costa con salinas, pantano, terrazas, llanura.
+  - P91 **La historia llega a tu ciudad** (paquete H; ≈1,5 M más fichas): Pirro, Aníbal, la Gran Madre, auspicios, fiestas. Cada hecho con su ficha antes de entrar.
 - P80 **Ciudad nueva, primer tramo: colocar y crecer en el juego** (≈7,3 M, cuatro sesiones): C1 reglas sin pantalla (`js/ciudad.js`), C2 guardado y economía (las partidas viejas se convierten solas), C3 ciudad que nace (calles pintadas al jugar, casas reales por nivel), C4 colocar con el dedo (bandeja, verde y rojo con su razón; fuera solares y medallas). Diseño: `estudios/Q1k-ciudad-de-cero.md` §9.
 - P81 **Ciudad nueva, segundo tramo** (≈4,7 M): C5 fundar colonias desde el mapa, C6 barrios con capilla de cruce (mueve Q5 a nivel por barrio), C7 muralla sobre el surco y arrabal, C8 crecida, incendio y hambre.
 - P82 **Ciudad nueva, tercer tramo** (≈3,7 M): C9 Roma, Capua, conquistadas y enemigas con plantillas por cultura (funde Q1h), C10 edificios de época y cotejo (funde Q1g y Q1j), C11 vida y peso (funde Q1i y P79). P69 queda dentro de P80.
