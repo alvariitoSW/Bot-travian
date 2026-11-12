@@ -190,6 +190,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ✅ H12 Capua se rebela en 216 si no tiene 150 hombres (Livio 23.2-7; la regla es licencia de juego).
 - ✅ H13 Pirro ataca en 280 (llega a los 56 meses; licencia de juego). Bot 10/10 y 0/10.
 - ✅ H14 «Poblado íbero» hasta 228 en el mapa y la Crónica; luego Carthago Nova.
+- ⬜ H13b **Pirro llega antes, con las tres vías** (aprobada 12/11: «1 2 y 3»; ≈0,5 M): hoy llega a los 56 meses para no hundir al bot. Hay que adelantarlo a unos 30 o 40 meses combinando (1) un ejército de Pirro más pequeño, (2) más preparación inicial para el jugador y (3) dos oleadas, sin que el bot agresivo baje de 6 de 10 ni el pasivo suba de 0. Toca `js/data.js` y `js/game.js`.
 
 ## Carril D — Técnica
 - ✅ D1 Fluidez medida en el móvil del usuario (11/11): menú, ciudad, calles y ejército a unas 60 imágenes por segundo (peor momento 22 a 28). Mapa y batalla grande, sin medir; el usuario no quiere medir más.
