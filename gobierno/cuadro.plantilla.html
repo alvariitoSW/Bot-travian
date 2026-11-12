@@ -92,6 +92,25 @@ section { scroll-margin-top: 12px; }
 .hechos li { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--tabla); border: 1px solid var(--raya); }
 
 /* resumen, filtros y selección en lote */
+.progreso .pct { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.progreso .pct b { font: 700 40px var(--rotulo); color: var(--purpura); line-height: 1; font-variant-numeric: tabular-nums; }
+.progreso .pct span { color: var(--tenue); font-size: 14px; }
+.barra { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--raya); gap: 2px; min-width: 60px; }
+.barra i { display: block; min-width: 3px; }
+.b-hecho { background: var(--bien); } .b-marcha { background: var(--purpura); } .b-falta { background: var(--bronce); opacity: .55; } .b-pausa { background: var(--tenue); opacity: .4; }
+.leyenda { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--tenue); }
+.leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; }
+.porcarril > summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 6px 0; }
+.porcarril ul { list-style: none; margin: 0; padding: 4px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.porcarril li { display: grid; grid-template-columns: 116px 1fr 44px; align-items: center; gap: 8px; font-size: 13px; }
+.porcarril .cn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .porcarril .cp { text-align: right; font-variant-numeric: tabular-nums; color: var(--tenue); }
+.ficha.toca { border-left: 4px solid var(--purpura); }
+.asunto { display: flex; gap: 10px; align-items: baseline; font-size: 17px; line-height: 1.3; }
+.asunto .num { flex: none; font: 700 13px var(--texto); color: var(--sobre-purpura); background: var(--purpura); border-radius: 999px; padding: 2px 8px; }
+.detalle > summary { cursor: pointer; list-style: none; color: var(--tenue); font-size: 15px; } .detalle > summary::-webkit-details-marker { display: none; }
+.detalle[open] > summary { display: none; }
+.ses { flex-wrap: wrap; } .ses .que { flex-basis: 60%; }
+.estado.trabaja { color: var(--purpura); } .estado.espera { color: var(--mal); } .estado.acabada { color: var(--bien); }
 .fichas { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
 .ficha-num { background: var(--tabla); border: 1px solid var(--raya); border-radius: 10px; padding: 10px 8px; text-align: center; text-decoration: none; color: var(--tinta); display: flex; flex-direction: column; gap: 2px; }
 .ficha-num b { font: 700 26px var(--rotulo); color: var(--purpura); line-height: 1; font-variant-numeric: tabular-nums; }
@@ -142,19 +161,27 @@ section { scroll-margin-top: 12px; }
     <a class="ficha-num" href="#t-tablero"><b>{{N_HECHAS}}</b><span>hechas</span></a>
   </section>
 
+  <section aria-labelledby="t-avance" class="progreso">
+    <h2 id="t-avance">Cómo va el proyecto</h2>
+    {{PROGRESO}}
+  </section>
+
   <section aria-labelledby="t-espera">
-    <h2 id="t-espera">Espera algo tuyo</h2>
+    <h2 id="t-espera">Decides tú · {{N_ESP}} preguntas</h2>
+    <p class="nota">Lo que está parado hasta que contestes. Un toque basta; el detalle se despliega.</p>
     <ul class="lista">{{ESPERA}}</ul>
   </section>
 
   <section aria-labelledby="t-prop">
-    <h2 id="t-prop">Propuestas por aprobar</h2>
+    <h2 id="t-prop">Decides tú · {{N_PROP}} propuestas</h2>
     <ul class="lista">{{PROPUESTAS}}</ul>
   </section>
 
   <section aria-labelledby="t-marcha">
-    <h2 id="t-marcha">Trabajando ahora</h2>
-    <ul class="lista">{{MARCHA}}</ul>
+    <h2 id="t-marcha">Sesiones abiertas</h2>
+    <p class="nota" id="ses-nota">Qué sesiones de Claude hay abiertas para el juego y qué hace cada una. La lista la refresca el vigía en cada pasada.</p>
+    <ul class="lista" id="sesiones">{{MARCHA}}</ul>
+    <div class="fila"><button class="boton" data-pedir="orden" data-ref="limpiar" data-titulo="Cerrar las sesiones que ya han acabado" id="ses-limpiar">Cerrar las que ya han acabado</button><button class="boton" data-pedir="orden" data-ref="refrescar" data-titulo="Refrescar la lista de sesiones">Refrescar la lista</button></div>
   </section>
 
   <section aria-labelledby="t-pend">
@@ -170,6 +197,16 @@ section { scroll-margin-top: 12px; }
     <h2 id="t-pedidos">Tus pedidos</h2>
     <p class="nota" id="pedidos-nota">Lo que pulses aquí queda guardado. Un vigía mira el cuadro cada tres horas y lo aplica (abre las sesiones que pidas). Si lo quieres ya, escribe en el chat de Claude: «aplica el cuadro».</p>
     <ul class="lista" id="pedidos"><li class="nota" id="pedidos-vacio">Aún no has pedido nada. Abre una tarea y pulsa un botón, o escribe abajo.</li></ul>
+    <div class="ficha">
+      <span class="quien">Órdenes de un toque</span>
+      <div class="fila">
+        <button class="boton" data-pedir="orden" data-ref="limpiar" data-titulo="Cerrar las sesiones que ya han acabado">Cerrar sesiones acabadas</button>
+        <button class="boton" data-pedir="orden" data-ref="seguir" data-titulo="Que cada carril siga con su siguiente tarea">Que sigan los carriles</button>
+        <button class="boton" data-pedir="orden" data-ref="parar" data-titulo="Parar todas las sesiones al acabar su tarea">Parar al acabar la tarea</button>
+        <button class="boton" data-pedir="orden" data-ref="capturas" data-titulo="Pasar los jueces y enseñarme capturas nuevas">Enséñame capturas nuevas</button>
+        <button class="boton" data-pedir="orden" data-ref="informe" data-titulo="Informe: a dónde vamos y qué queda">Informe: ¿a dónde vamos?</button>
+      </div>
+    </div>
     <div class="ficha">
       <label class="quien" for="nuevo-texto">Pedir algo nuevo</label>
       <textarea id="nuevo-texto" placeholder="Por ejemplo: quiero que los barcos se vean en el puerto"></textarea>
@@ -208,7 +245,31 @@ section { scroll-margin-top: 12px; }
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var db = null, avisoT = 0;
-  var ROTULO = { priorizar: 'Prioridad', cambio: 'Cambio pedido', aprobar: 'Aprobada', rechazar: 'Rechazada', nuevo: 'Pedido nuevo', respuesta: 'Tu respuesta', abrir: 'Abrir sesión' };
+  var ROTULO = { priorizar: 'Prioridad', cambio: 'Cambio pedido', aprobar: 'Aprobada', rechazar: 'Rechazada', nuevo: 'Pedido nuevo', respuesta: 'Tu respuesta', abrir: 'Abrir sesión', orden: 'Orden' };
+  var EST = { trabajando: ['trabaja', 'trabajando'], esperando: ['espera', 'te espera'], terminada: ['acabada', 'ha acabado'] };
+  function hace(iso) { var m = Math.round((Date.now() - new Date(iso).getTime()) / 60000); return isNaN(m) ? '' : m < 2 ? 'ahora mismo' : m < 90 ? 'hace ' + m + ' min' : 'hace ' + Math.round(m / 60) + ' h'; }
+  function pintarSesiones(docs) {
+    var filas = docs.map(function (d) { var x = d.data() || {}; x.id = d.id; return x; });
+    if (!filas.length) return;
+    var orden = { esperando: 0, trabajando: 1, terminada: 2 }, ul = $('sesiones'), ult = '';
+    filas.sort(function (a, b) { return (orden[a.estado] || 0) - (orden[b.estado] || 0); });
+    ul.textContent = '';
+    filas.forEach(function (x) {
+      if (String(x.actualizado || '') > ult) ult = x.actualizado;
+      var e = EST[x.estado] || EST.trabajando, li = document.createElement('li'); li.className = 'sig ses';
+      var q = document.createElement('span'); q.className = 'que';
+      var b = document.createElement('b'); b.textContent = x.titulo || x.id; q.appendChild(b);
+      if (x.hace) { var n = document.createElement('span'); n.className = 'nota'; n.textContent = x.hace; q.appendChild(n); }
+      var s = document.createElement('span'); s.className = 'estado ' + e[0]; s.textContent = e[1];
+      li.appendChild(q); li.appendChild(s);
+      if (x.url) { var a = document.createElement('a'); a.className = 'boton fino'; a.href = x.url; a.target = '_blank'; a.rel = 'noopener'; a.textContent = 'Abrir'; li.appendChild(a); }
+      if (x.estado !== 'terminada') { var p = document.createElement('button'); p.className = 'boton fino'; p.textContent = 'Parar'; p.dataset.pedir = 'orden'; p.dataset.ref = 'parar:' + x.id; p.dataset.titulo = 'Parar la sesión ' + (x.titulo || x.id); li.appendChild(p); }
+      ul.appendChild(li);
+    });
+    var ac = filas.filter(function (x) { return x.estado === 'terminada'; }).length;
+    $('ses-limpiar').textContent = ac ? 'Cerrar las ' + ac + ' que ya han acabado' : 'No hay sesiones acabadas'; $('ses-limpiar').disabled = !ac;
+    $('ses-nota').textContent = filas.length + ' sesiones abiertas: ' + filas.filter(function (x) { return x.estado === 'esperando'; }).length + ' te esperan, ' + filas.filter(function (x) { return x.estado === 'trabajando'; }).length + ' trabajan y ' + ac + ' han acabado. Lista de ' + hace(ult) + '; la refresca el vigía.';
+  }
 
   function aviso(txt) { var a = $('aviso'); a.textContent = txt; a.hidden = false; clearTimeout(avisoT); avisoT = setTimeout(function () { a.hidden = true; }, 3500); }
   function apagar(motivo) {
@@ -275,8 +336,8 @@ section { scroll-margin-top: 12px; }
     var doc = { tipo: tipo, ref: ref, texto: texto, titulo: b.dataset.titulo || '', creado: new Date().toISOString(), estado: 'pendiente' };
     var col = db.collection('pedidos');
     // priorizar, aprobar y rechazar son únicos por tarea: repetirlo no duplica
-    var unico = tipo === 'priorizar' || tipo === 'aprobar' || tipo === 'rechazar' || tipo === 'abrir';
-    var destino = unico ? col.doc((tipo === 'priorizar' ? 'priorizar-' : tipo === 'abrir' ? 'abrir-' : 'decision-') + ref) : col.doc();
+    var unico = tipo === 'priorizar' || tipo === 'aprobar' || tipo === 'rechazar' || tipo === 'abrir' || tipo === 'orden';
+    var destino = unico ? col.doc((tipo === 'priorizar' ? 'priorizar-' : tipo === 'abrir' ? 'abrir-' : tipo === 'orden' ? 'orden-' : 'decision-') + ref.replace(/[^A-Za-z0-9_-]/g, '-')) : col.doc();
     b.disabled = true;
     destino.set(doc).then(function () { aviso('Apuntado. El vigía lo aplica en su próxima pasada.'); if (caja) caja.value = ''; })
       .catch(function (e) { aviso(e && e.code === 'invalid_argument' ? 'No tienes permiso para guardar aquí. Dilo en el chat.' : 'No se pudo guardar. Prueba otra vez.'); })
@@ -310,6 +371,7 @@ section { scroll-margin-top: 12px; }
       if (!snap.metadata.fromCache) { clearTimeout(reloj); $('pedidos-nota').textContent = 'Lo que pulses aquí queda guardado. Un vigía mira el cuadro cada tres horas y lo aplica (abre las sesiones que pidas). Si lo quieres ya, escribe en el chat de Claude: «aplica el cuadro».'; }
       pintar(snap.docs);
     }, function () { clearTimeout(reloj); apagar('Se ha perdido la conexión con tus pedidos. Dilo en el chat o vuelve a abrir la página.'); });
+    try { db.collection('sesiones').onSnapshot(function (snap) { pintarSesiones(snap.docs); }, function () { }); } catch (e) { }
   });
 })();
 </script>

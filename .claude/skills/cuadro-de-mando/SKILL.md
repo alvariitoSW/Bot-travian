@@ -22,6 +22,7 @@ Una página para el móvil del usuario: enlace al juego, lo que espera algo suyo
 | `aprobar` / `rechazar` | Decisión sobre la propuesta `ref` | Skill `bitacora`: al tablero, o fuera con nota. |
 | `nuevo` | Pedido libre | Skill `bitacora`: decisión literal con fecha y propuesta `P<n>`. |
 | `abrir` | «Abrir sesión» para la tarea `ref` | Abrir una sesión nueva para esa tarea (ver «Abrir sesiones»). Si la tarea ya tiene sesión en `sesiones`, depende de otra sin hacer o choca en archivos con una sesión en marcha, no se abre: se dice por qué en la `nota`. |
+| `orden` | Orden de un toque; `ref` dice cuál | Ver «Órdenes de un toque». |
 | `respuesta` | Contesta al asunto `ref` (`E1` es el primero de «Esperando algo del usuario»; como el orden cambia, casa por `titulo`). El `texto` puede ser una respuesta rápida: «Sí», «No», «A», «B»… | A «Decisiones del usuario», y se quita de la lista de espera. |
 
 3. Marca cada pedido aplicado: `action: "update"` con `{ "estado": "aplicado", "nota": "<qué se hizo, en una línea>" }` y `if_version` con la versión leída. No se borran: el usuario ve que se le hizo caso. Cuando haya más de veinte aplicados, borra los más antiguos.
@@ -35,6 +36,23 @@ Una página para el móvil del usuario: enlace al juego, lo que espera algo suyo
 
 ## Vigía
 Tarea programada «AQVILA · vigía del cuadro de mando» (cada tres horas, Sonnet, sesión nueva cada vez; pedida por el usuario el 12/11/2026): si hay pedidos pendientes los aplica como dice esta skill; si no, termina. Se para o se cambia desde las tareas programadas de Claude o pidiéndolo en el chat.
+
+## Órdenes de un toque (`tipo: "orden"`)
+| `ref` | Qué se hace |
+|---|---|
+| `limpiar` | Archivar (`archive_session`) las sesiones de AQVILA que ya acabaron y tienen su trabajo subido. Si el resumen de una dice que queda algo sin subir, no se cierra y se dice en la `nota`. Nunca las que abrió el usuario a mano ni las de otros proyectos. |
+| `refrescar` | Solo volver a escribir la colección `sesiones`. |
+| `parar` / `parar:<id de sesión>` | `send_message` a todas las que trabajan, o a esa: «El usuario pide desde el cuadro que pares al acabar el paso actual, subas lo terminado y cierres». |
+| `seguir` | Abrir la siguiente tarea aprobada de cada carril libre (reglas de «Abrir sesiones»). |
+| `pausar:<ID>` / `reanudar:<ID>` | Poner o quitar `(en pausa desde <fecha>)` al principio de esa tarea en el tablero. |
+| `capturas` | Abrir una sesión Sonnet que pase los jueces completos, mire las capturas y publique el cuadro. |
+| `informe` | Informe «¿a dónde vamos?» (skill `bitacora`) en `gobierno/estudios/`, añadido a `informes` de `cuadro.json`. |
+
+## Sesiones abiertas (colección `sesiones` del Artifact)
+La página pinta en vivo la colección `sesiones`: un documento por sesión de AQVILA sin archivar, con id = id de la sesión y `{titulo, estado, hace, url, actualizado}`; `estado` es `trabajando`, `esperando` (pide algo al usuario) o `terminada`; `hace` es una frase llana. La escribe el vigía en cada pasada y cualquier sesión que abra o cierre otra. Si la colección está vacía, la página enseña `sesiones` de `cuadro.json`.
+
+## Avance en %
+`cuadro.mjs` lo calcula del tablero: hechas / total, contando una línea «N6 a N15» por diez tareas. Cuenta tareas, no esfuerzo. Para que no engañe: una tarea por línea y, si se agrupan, con la forma «<ID> a <ID>».
 
 ## Abrir sesiones
 - Con `create_session`, **siempre** con `source_url` (`repo` de `cuadro.json`), `source_revision` y `outcome_branch` (`rama` de `cuadro.json`). Sin eso la sesión nace sin repositorio y se queda parada (pasó con N5 y Q7 el 12/11).
