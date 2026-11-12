@@ -662,6 +662,34 @@
    "tarea": "Q6",
    "archivo": "gobierno/capturas-tarea/Q6-2-conquistada.jpg",
    "pie": "Ciudad conquistada con esclavos"
+  },
+  {
+   "tarea": "Q1d",
+   "archivo": "gobierno/capturas-tarea/Q1d-3-antes-despues-ciudad.jpg",
+   "pie": "La ciudad del juego, antes y después: relieve, río, parcelas, sombras y bruma",
+   "ancha": true
+  },
+  {
+   "tarea": "Q1d",
+   "archivo": "gobierno/capturas-tarea/Q1d-3-antes-despues-media.jpg",
+   "pie": "Más cerca, antes y después: suelo de tierra, losas solo en el foro, sombras largas",
+   "ancha": true
+  },
+  {
+   "tarea": "Q1d",
+   "archivo": "gobierno/capturas-tarea/Q1d-3-antes-despues-calle.jpg",
+   "pie": "A pie de calle, antes y después",
+   "ancha": true
+  },
+  {
+   "tarea": "Q1d",
+   "archivo": "gobierno/capturas-tarea/Q1d-1-toque.jpg",
+   "pie": "Tocar un edificio sigue funcionando: medalla, anillo y ficha del foro"
+  },
+  {
+   "tarea": "Q1d",
+   "archivo": "gobierno/capturas-tarea/Q1d-1-grande.jpg",
+   "pie": "Roma con todos los edificios a nivel 5; el puerto, en la orilla del río"
   }
  ],
  "informes": [

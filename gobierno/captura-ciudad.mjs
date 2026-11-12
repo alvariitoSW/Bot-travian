@@ -26,7 +26,7 @@ await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 
 await page.click('#menu [data-act="new"]'); await page.waitForTimeout(2500);
 const cierra = () => page.evaluate(() => { const m = document.getElementById('modal'); if (m) m.hidden = true; });
 await cierra();
-await page.evaluate(c => { const b = document.createElement('button'); b.dataset.act = 'impc'; b.dataset.v = c; document.body.appendChild(b); b.click(); b.remove(); }, ciudad);
+await page.evaluate(c => { const b = document.createElement('button'); b.dataset.act = 'impc'; b.dataset.v = c; UI.city = c; document.body.appendChild(b); b.click(); b.remove(); }, ciudad);
 await page.waitForTimeout(12000); await cierra();
 await mkdir(join(RAIZ, 'gobierno/capturas-tarea'), { recursive: true });
 const medir = () => page.evaluate(() => { const i = UI.cityV.r.info.render; return i.triangles + ' triángulos, ' + i.calls + ' llamadas'; });
