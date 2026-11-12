@@ -95,7 +95,7 @@ for (const v of vistas) {
   let nota = '';
   if (PASOS[v]) nota = (await PASOS[v]()) || '';
   await page.evaluate(v => { const V = UI.cityV; if (!/^(bandeja|fantasma|rojo|ficha|obra)$/.test(v)) UI.bsel = null;
-    if (v === 'grande') { const c = Game.state.cities[UI.city]; for (const b in DATA.BUILD) c.b[b] = Math.max(c.b[b] || 0, 5); V.view('ciudad'); }
+    if (v === 'grande') { const c = Game.state.cities[UI.city]; for (const b in DATA.BUILD) c.b[b] = Math.max(c.b[b] || 0, 5); Object.assign(c.units, { hastati: 400, principes: 300, triarii: 150, velites: 250, equites: 120 }); V.view('ciudad'); }
     else if (v === 'media') { V.view('ciudad'); V.c.dist = 250; }
     else if (v === 'ruina' || v === 'obras' || v === 'muralla' || v === 'piedra') { }
     else if (v === 'lejos') { V.view('ciudad'); V.c.dist *= 2.2; }

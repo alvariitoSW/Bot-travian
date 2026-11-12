@@ -18,4 +18,8 @@ Casas romanas casa_b, casa_c y casa_d y la pila de paja prop_paja: proceden de 0
 (variantes b, c y d) y props/special/eyecandy/hay_a.xml). Se han aligerado con meshoptimizer (MIT) y sus texturas reducido
 (ver gobierno/maquetas/piezas/LICENSE.txt); se regeneran con tools/piezas_propias.mjs.
 
+Carreta prop_carreta y pozo prop_pozo (con sus texturas props_wood_a, props_wrld_well_a_1 y props_wrld_wood_2): proceden de 0 A.D.
+(Wildfire Games, CC BY-SA 3.0, actores props/special/eyecandy: carreta de carga y pozo). Aligerados con meshoptimizer (MIT); se regeneran
+con tools/piezas_propias.mjs (lista tools/piezas_maqueta.txt).
+
 Esta licencia se aplica solo al contenido de assets/static/. El código del juego es independiente.

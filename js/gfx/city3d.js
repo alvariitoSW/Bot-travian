@@ -10,6 +10,7 @@
 import { THREE } from './models.js';
 import { preloadStatic, getStatic } from './statics.js';
 import * as UN from './units.js';
+import * as vida from './vida.js';
 import { crearRio, crearCielo, texturaRuido, texturasMundo, loadGroundTextures, crearSuelo3, GLSL_NUBES } from './ground.js';
 import { altura, RIO, NIVEL_RIO, azar } from './mundo.js';
 import * as CI from '../ciudad.js';
@@ -175,7 +176,7 @@ const tNace = new Map(), firma = new Map();
 const ahora = () => performance.now() / 1000;
 
 export async function montar() {
-  const claves = ['casa', 'almacen', 'aserradero', 'mercado', 'foro', 'vesta', 'templo', 'granja', 'puerto', 'cantera', 'mina', 'cuartel', 'establo', 'muro', 'torre', 'puerta', 'cipres', 'olivo', 'pino', 'algarrobo', 'casa_b', 'casa_c', 'casa_d', 'prop_paja', 'prop_pozo'];
+  const claves = ['casa', 'almacen', 'aserradero', 'mercado', 'foro', 'vesta', 'templo', 'granja', 'puerto', 'cantera', 'mina', 'cuartel', 'establo', 'muro', 'torre', 'puerta', 'cipres', 'olivo', 'pino', 'algarrobo', 'casa_b', 'casa_c', 'casa_d', 'prop_paja', 'prop_pozo', 'prop_carreta'];
   await Promise.all([preloadStatic(claves), loadGroundTextures(), UN.preload(['ciudadana', 'sacerdote'])]);
   const T = texturasMundo();
   U.uRuido.value = texturaRuido(); ponerCamara(); ponerLuz(); scene.add(crearCielo(SOL, HORIZ, U));
@@ -195,11 +196,12 @@ export async function montar() {
     chozaM = [new THREE.InstancedMesh(muro, mMuro, 220), new THREE.InstancedMesh(techo, mTecho, 220)];
     const t = new Bulto(); t.cono(5.2, 4.6, 4, 0, 2.3, 0, '#d8ccb0', 1, Math.PI / 4, 1.15, 0.8); t.caja(0.25, 5.6, 0.25, 0, 2.8, 0, '#5a4632'); t.caja(1.6, 0.7, 1.2, 4.6, 0.35, 1.5, '#8a6a48');
     tiendaM = new THREE.InstancedMesh(t.geo(), matBulto, 40); for (const m of [...chozaM, tiendaM]) { m.count = 0; m.castShadow = m.receiveShadow = true; m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(m); } }
-  L.paja = lote('prop_paja', 90, { sinTeja: true });
+  L.paja = lote('prop_paja', 90, { sinTeja: true }); L.carreta = lote('prop_carreta', 8, { sinTeja: true });
+  vida.iniciar({ scene, colorGuarn: D.FACTIONS.roma.col, U, HORIZ, altura, azar, carros: L.carreta, pedirReparto: () => { pedirReparto = true; } });
 }
 /* el terreno de una partida: suelo, río, bosque, puente */
 export function mundo(estado) {
-  E = estado; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1;
+  vida.reiniciar(); E = estado; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1;
   for (const m of [sueloJ && sueloJ.malla, rio, crecida, estM, dinM, andM, surcoM, aradoM]) if (m) { scene.remove(m); if (m.geometry) m.geometry.dispose(); }
   dinM = andM = surcoM = aradoM = null; obrasF = []; firmaObras = '';
   sueloJ = crearSuelo3(G.T, U, E ? E.bosquetes : []); scene.add(sueloJ.malla); rio = crearRio(G.T, U); scene.add(rio);
@@ -414,35 +416,12 @@ export class CityView3D {
     M[o] = c; M[o + 1] = 0; M[o + 2] = -s; M[o + 3] = 0; M[o + 4] = 0; M[o + 5] = k; M[o + 6] = 0; M[o + 7] = 0; M[o + 8] = s; M[o + 9] = 0; M[o + 10] = c; M[o + 11] = 0; M[o + 12] = x; M[o + 13] = altura(x, z) + 0.1; M[o + 14] = z; M[o + 15] = 1;
     e.a[e.i] = UN.frameOf(clip, t); e.i++;
   }
-  /* PROVISIONAL (CN11 lo sustituye por vida.js): unos 20 ciudadanos por las vías de la ciudad y la guarnición formada ante la puerta principal */
+  /* ciudadanos, humo y carros: vida.js (CN11-A). La guarnición formada ante la puerta principal es provisional (CN11-B) */
   people(city, t, dt) {
     for (const e of this.figs.values()) e.i = 0;
-    const ver = cam.d < 560;
-    if (E && E.vias && E.parcelas && ver) {
-      const ec = this.fig('ciudadana', 24);
-      if (ec && (this._rev !== E.rev || this._E !== E)) { this._rev = E.rev; this._E = E;
-        const nc = {}; for (const l of E.parcelas) if (l.casa && !l.fuera && !l.casa.ruina) nc[l.via] = (nc[l.via] || 0) + 1;
-        const vs = E.vias.filter(v => nc[v.id] >= 2 && v.largo > 30 && v.p && v.p.length > 1), rnd = azar(E.vias.length * 13 + 1), quiero = Math.min(20, Math.floor(CI.casas(E).length / 3));
-        this.cit = this.cit.filter(g => vs.includes(g.v)).slice(0, quiero); let guard = 0;
-        while (this.cit.length < quiero && vs.length && guard++ < 200) { const v = vs[Math.floor(rnd() * vs.length)]; this.cit.push({ v, s: rnd() * v.largo, vel: (rnd() < 0.5 ? 1 : -1) * (3.2 + rnd() * 1.6), lat: (rnd() - 0.5) * v.w * 1.1, fase: rnd() * 6, k: this.cit.length % 6 === 5 ? 'sacerdote' : 'ciudadana' }); } }
-      for (const g of this.cit) { const e = this.fig(g.k, 24); if (!e) continue; g.s += g.vel * dt; if (g.s < 1) { g.s = 1; g.vel = Math.abs(g.vel); } if (g.s > g.v.largo - 1) { g.s = g.v.largo - 1; g.vel = -Math.abs(g.vel); }
-        const p = g.v.p, f = g.s / g.v.largo * (p.length - 1), k = Math.min(p.length - 2, Math.floor(f)), u = f - k, a = p[k], b = p[k + 1], ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
-        this.put(e, a[0] + (b[0] - a[0]) * u - Math.sin(ang) * g.lat, a[1] + (b[1] - a[1]) * u + Math.cos(ang) * g.lat, -ang + Math.PI / 2 + (g.vel < 0 ? Math.PI : 0), e.u.clips.walk, t * 0.9 + g.fase, 0.75); }
-    }
-    /* guarnición */
-    let men = 0; for (const k in city.units) men += city.units[k]; this.men = men; this.guarn = null;
-    const f = E && E.foro;
-    if (f && men > 0) {
-      const pu = E.puertas && E.puertas[0]; let ox = 0, oz = 1, ax = f.x, az = f.z + 46;
-      if (pu) { const d = Math.hypot(pu.x - f.x, pu.z - f.z) || 1; ox = (pu.x - f.x) / d; oz = (pu.z - f.z) / d; ax = pu.x + ox * 26; az = pu.z + oz * 26; }
-      const lx = -oz, lz = ox, yaw = Math.atan2(ox, oz); this.guarn = { x: ax, z: az };
-      const ratio = Math.max(1, men / 420), blocks = []; let width = 0;
-      for (const k in city.units) { const cls = D.UNITS[k].cls, cnt = city.units[k]; if (cnt <= 0 || !UN.getUnit(k)) continue; const n = cls === 'ele' ? Math.min(cnt, 20) : Math.max(1, Math.round(cnt / ratio)), sp = (cls === 'ele' ? 11 : cls === 'cav' ? 5.6 : 2.9) * PK, cols = cls === 'ele' ? 5 : cls === 'cav' ? 8 : 10; blocks.push({ k, f: n, sp, cols, w: Math.min(cols, n) * sp }); width += Math.min(cols, n) * sp + 8; }
-      let x0 = -width / 2 + 4;
-      for (const B of blocks) { const e = this.fig(B.k, B.cols === 10 ? 430 : 120);
-        for (let j = 0; j < B.f; j++) { const cx = j % B.cols, cy = Math.floor(j / B.cols), u = x0 + cx * B.sp + (hash(j * 3.1) - 0.5) * 0.5, w = cy * B.sp * 1.1 + (hash(j * 7.7) - 0.5) * 0.5; this.put(e, ax + lx * u + ox * w, az + lz * u + oz * w, yaw, e && e.u.clips.idle, t + hash(j * 1.9 + B.cols) * 6); }
-        x0 += B.w + 8; }
-    }
+    vida.actualizar(E, cam.d, t, dt, ahora() >= esperaSurco);
+    /* guarnición: vida.js (CN11-B), real de cerca y cajas de lejos */
+    const g = vida.guarnicion(E, city.units, camara.position, t, { PK, D }); this.men = g.men; this.guarn = g.hay ? { x: g.x, z: g.z } : null;
     for (const e of this.figs.values()) { e.m.count = e.i; e.m.instanceMatrix.needsUpdate = true; e.m.geometry.attributes.aFrame.needsUpdate = true; }
   }
 

@@ -144,7 +144,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ⬜ CN8 **Sucesos** (0,8 M): crecida, incendio y hambre con su aviso y su remedio.
 - ⬜ CN9 **Roma, Capua, conquistadas y enemigas** (1,5 M): plantillas por cultura y tamaño; el enemigo coloca solo (funde Q1h).
 - ⬜ CN10 **Edificios de época y revisión** (1,2 M): fuera anfiteatro, termas y arcos; citas cotejadas (funde Q1g y Q1j).
-- ⬜ CN11 **Vida y peso** (1,0 M): gente, humo, carros; guarnición ligera con la figura de lejos (P79); medir triángulos (funde Q1i).
+- ✅ CN11 **Vida y peso** (12/11): gente, humo y fuego, carros, pozo, guarnición ligera (P79); Roma bajo 300 mil triángulos. Parte en `gobierno/partes/2026-11-12-CN11.md`.
 - ⬜ (en pausa: espera a CN8 y al carril Guerra) CN12 **Asedio en tu propia muralla** (P89, ≈3 M): el sitio y la muralla que colocaste son el campo de batalla. Une ciudad y batalla (CLAUDE.md §2): el usuario dijo «Sí» el 12/11. Toca `js/battle.js` y la ciudad. Alcance en `estudios/Q1l-competencia.md` (palanca 10) y `Q1l-lluvia-de-ideas.md` (paquete E).
 - ⬜ CN13 **Lo que sobra se gasta y sucesos que se juegan** (P83, ≈1,5 M): arca del foro, ofrendas y juegos, tejas, cubos contra el fuego, marca de la crecida y dique, hambre que se ve. Tras CN8.
 - ⬜ CN14 **Colocar con número vivo, asesor y dificultad** (P84, ≈1 M): «+14 casas con agua» que cambia al mover la pieza; asesor que enseña una cosa cada vez; sucesos apagables y tres dificultades. Tras CN4 y CN8.

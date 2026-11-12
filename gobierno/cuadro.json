@@ -865,6 +865,16 @@
    "tarea": "C6",
    "archivo": "gobierno/capturas-tarea/C6-italia.jpg",
    "pie": "Tras tocar Italia: sus ciudades y «← volver»"
+  },
+  {
+   "tarea": "CN11",
+   "archivo": "gobierno/capturas-tarea/CN11-vida-a.png",
+   "pie": "Humo en las chozas, una carreta y gente por el camino"
+  },
+  {
+   "tarea": "CN11",
+   "archivo": "gobierno/capturas-tarea/CN11-ejercito.jpg",
+   "pie": "Guarnición a tamaño real (cajas de lejos)"
   }
  ],
  "informes": [
@@ -977,12 +987,6 @@
    "titulo": "Gran diseño · I3b Paga de tropas",
    "nota": "js/game.js, data.js, tests (paga y deuda)",
    "url": "https://claude.ai/code/session_01QiKC37D2N4Qw3NvC9TcdmE"
-  },
-  {
-   "tarea": "CN11",
-   "titulo": "Ciudad nueva · CN11 Vida y peso",
-   "nota": "js/gfx/vida.js, city3d.js, units.js, assets (ola 4, solo dibujo)",
-   "url": "https://claude.ai/code/session_01QiKC36FcbtHLLBidokrqYr"
   },
   {
    "tarea": "K6",
