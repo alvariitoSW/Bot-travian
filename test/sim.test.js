@@ -1369,4 +1369,14 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
     assert.strictEqual(s.cities.capua.owner, 'roma'); }
 }
 
+// ---- H14 Poblado íbero: el nombre de Carthago Nova depende de la fecha ----
+{ const ci = D.CITIES.carthagonova; assert.deepStrictEqual(ci.antes, { n: 'Poblado íbero', hasta: 228 });
+  assert.strictEqual(D.nombreCiudad('carthagonova', 280), 'Poblado íbero'); assert.strictEqual(D.nombreCiudad('carthagonova', 229), 'Poblado íbero'); assert.strictEqual(D.nombreCiudad('carthagonova', 228), 'Carthago Nova'); assert.strictEqual(D.nombreCiudad('roma', 280), 'Roma');
+  const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, x) => { mem[k] = x; } };
+  const s = G.newGame('H14'); assert.strictEqual(ci.n, 'Poblado íbero', 'en 280'); assert.strictEqual(typeof ci.n, 'string');
+  s.t = (280 - 228) * 12 - 0.5; s.pending = []; s.marches = []; G.tick(1); assert.strictEqual(G.yearOf(s.t), 228); assert.strictEqual(ci.n, 'Carthago Nova', 'tras pasar 228'); assert(s.ev[D.EVENTS.findIndex(e => e.y === 228)]);
+  G.save(); G.newGame('H14b'); assert.strictEqual(ci.n, 'Poblado íbero', 'una partida nueva vuelve a 280'); assert(G.load()); assert.strictEqual(ci.n, 'Carthago Nova', 'cargar una partida de 228'); assert.strictEqual(D.EVENTS.find(e => e.y === 228).t, 'Asdrúbal funda Carthago Nova');
+  const v = G.newGame('H14c'); v.t = 10 * 12; G.save(); assert(G.load()); assert.strictEqual(ci.n, 'Poblado íbero', 'cargar una de 270'); assert.strictEqual(JSON.parse(JSON.stringify(ci)).n, 'Poblado íbero');
+  G.newGame('H14d'); delete global.localStorage; }
+
 console.log('OK — todas las pruebas superadas');

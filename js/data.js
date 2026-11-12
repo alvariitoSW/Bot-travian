@@ -184,12 +184,20 @@
     carales: { n: 'Carales', lon: 9.1, lat: 39.25, f: 'cartago', esp: 'sal', w: 2, wl: 1, g: { libios: 100, honderos: 40, milicia: 40 }, h: 'Puerto púnico de Cerdeña. Roma se anexionó la isla en 238 a.C.' },
     emporion: { n: 'Emporion', lon: 3.1, lat: 42.15, f: 'griegos', esp: 'vino', tipo: 'emporio', w: 2, wl: 1, g: { hoplitas: 70, peltastas: 30, milicia: 30 }, h: 'Colonia focense. Aquí desembarcó Cneo Escipión en 218 a.C. para iniciar la conquista de Hispania.' },
     saguntum: { n: 'Saguntum', lon: -0.3, lat: 39.7, f: 'iberos', esp: 'hierro', tipo: 'militar', w: 2, wl: 2, g: { iberos: 180, honderos: 40, jinetes: 20 }, h: 'Su asedio por Aníbal en 219 a.C. fue el casus belli de la Segunda Guerra Púnica.' },
-    carthagonova: { n: 'Carthago Nova', lon: -1.0, lat: 37.6, f: 'iberos', esp: 'plata', w: 1, wl: 1, g: { iberos: 60, honderos: 20, jinetes: 8 }, en228: { w: 4, wl: 3, g: { libios: 220, iberos: 160, honderos: 60, numidas: 60, elefantes: 8 } }, h: 'En 280 a.C. era un poblado íbero junto a la bahía (probable; su tamaño es licencia de juego). Hacia 228 a.C. Asdrúbal fundó aquí Carthago Nova, capital bárcida de Hispania y sus minas de plata. Escipión la tomó por sorpresa en 209 a.C.' },
+    carthagonova: { n: 'Carthago Nova', antes: { n: 'Poblado íbero', hasta: 228 }, lon: -1.0, lat: 37.6, f: 'iberos', esp: 'plata', w: 1, wl: 1, g: { iberos: 60, honderos: 20, jinetes: 8 }, en228: { w: 4, wl: 3, g: { libios: 220, iberos: 160, honderos: 60, numidas: 60, elefantes: 8 } }, h: 'En 280 a.C. era un poblado íbero junto a la bahía (probable; su tamaño es licencia de juego). Hacia 228 a.C. Asdrúbal fundó aquí Carthago Nova, capital bárcida de Hispania y sus minas de plata. Escipión la tomó por sorpresa en 209 a.C.' },
     ambracia: { n: 'Ambracia', lon: 20.9, lat: 39.2, f: 'epiro', esp: 'pieles', w: 2, wl: 2, g: { falange: 140, peltastas: 60, tesalios: 40 }, h: 'Capital del rey Pirro de Epiro. Saqueada por Roma en 189 a.C.' },
     pella: { n: 'Pella', lon: 22.5, lat: 40.8, f: 'macedonia', esp: 'marmol', tipo: 'militar', w: 4, wl: 3, g: { falange: 320, peltastas: 100, tesalios: 100 }, h: 'Capital de Macedonia, cuna de Alejandro. El reino cayó tras Pidna (168 a.C.).' },
     corinthus: { n: 'Corinthus', lon: 22.9, lat: 37.9, f: 'macedonia', esp: 'marmol', tipo: 'emporio', w: 4, wl: 3, g: { falange: 200, peltastas: 100, tesalios: 50 }, post: { aquea: { hoplitas: 300, peltastas: 100, jinetes: 50 } }, h: 'Con guarnición macedonia (probable ya en 280 a.C.). Arato la liberó hacia 243 a.C. y entró en la Liga Aquea (Polibio 2.43). Arrasada por Lucio Mumio en 146 a.C., el mismo año que Cartago.' },
     carthago: { n: 'Carthago', lon: 10.3, lat: 36.85, f: 'cartago', esp: 'purpura', tipo: 'emporio', w: 5, wl: 6, g: { sagrada: 300, libios: 400, iberos: 150, honderos: 120, numidas: 120, elefantes: 20 }, gen: { n: 'Asdrúbal el Beotarca', mando: 3, disc: 4, from: 149, until: 0 }, h: 'La gran rival de Roma. Escipión Emiliano la destruyó en 146 a.C.' }
   };
+
+  /* Nombre según la fecha. `n` es el NOMBRE ACTUAL de la ciudad: en las ciudades con `antes` es un getter que mira D.anio
+     (año a.C. en curso; game.js lo fija en newGame, cargar y tick). En 280 a.C. Carthago Nova se llama «Poblado íbero»:
+     nombre genérico y licencia de juego (las fuentes no dan ninguno). Pasado el año `hasta` (al llegar a él ya cuenta) se ve el nombre final. */
+  D.anio = D.START_YEAR;
+  const NOMBRE_FINAL = {};
+  D.nombreCiudad = (id, anio) => { const c = D.CITIES[id]; return c.antes && anio > c.antes.hasta ? c.antes.n : (NOMBRE_FINAL[id] !== undefined ? NOMBRE_FINAL[id] : c.n); };
+  Object.keys(D.CITIES).forEach(id => { const c = D.CITIES[id]; if (!c.antes) return; NOMBRE_FINAL[id] = c.n; Object.defineProperty(c, 'n', { enumerable: true, configurable: true, get() { return D.nombreCiudad(id, D.anio); } }); });
 
   // [a, b, marítima]
   D.EDGES = [
