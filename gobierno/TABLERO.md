@@ -18,8 +18,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - Los edificios de materiales van **junto a su recurso natural**; la ciudad amurallada, **históricamente fiel**.
 
 ## Carril A — Guerra (tipo Total War)
-- ⬜ A1 Formaciones de verdad: tabla por unidad (ancho/fondo, separación), arrastrar para dar ancho y frente,
-  esperar a los rezagados, columna de marcha. (Ideas del estudio de 0 A.D. y TotalWarSimulator.)
+- ✅ A1 Formaciones de verdad: absorbida por N7 (12/11).
 - ⬜ A2 Animaciones por fila: falange con lanzas bajadas, testudo, postura «listo» frente a «relajado».
 - ✅ A3 **Combate que se ve** (11/11): los tiradores descargan 6–8 s antes del choque; en el cuerpo a cuerpo solo pega el frente; la caballería persigue y mata a los que huyen, arrolla a ligeros y carga por flanco o espalda. Las batallas igualadas duran 8–9 min; el bot agresivo gana 7 de 10.
 - ✅ A4 **Papeles de la infantería** (11/11): ligera, media, pesada y lanceros por unidad, con daño por arma y armadura; los lanceros frenan la carga de caballería; la marca sale en la carta del regimiento. Bot agresivo 8 de 10.
@@ -86,7 +85,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandartes.html` (notas y capturas `K2-guerra-*`). Toca `js/ui.js` (solo lo de batalla), `js/gfx/battle3d.js`, `css/style.css`; no `js/battle.js` salvo leer.
 - ✅ L1 **Órdenes dibujadas y orden recomendada** (11/11): trazo con el dedo → cargar/avanzar/flanquear/retirar; botón dorado con la orden recomendada; HUD con moral, minimapa y grupos. Pendiente L1b: testudo (no existe en `battle.js`), vista 2D de reserva y vertical.
 - ✅ L2 **Estandartes y alas** (11/11): moral y cansancio en la tela del estandarte; alas Línea, Reserva, Ligeros y Jinetes con corchete dorado; tocar un ala la elige y la orden va a todos sus regimientos. Pendiente: 20+ regimientos sin medir, estandartes en huida solo en tarjeta.
-- ⬜ L3 **Fantasmas en pausa y cartas de táctica**: deslizador de tiempo con sombras a 10/20/30 s; atajos de testudo, carga, retirada y refuerzo.
+- ✅ L3 Fantasmas en pausa y atajos: absorbida por N7 (12/11).
 
 ## Carril N — Guerra nueva: «planeas y luego miras» (pedido 11/11/2026; diseño `gobierno/estudios/N1-guerra-nueva.md`)
 - ✅ N1 **Diseño y maqueta jugable de la guerra nueva** (11/11): batalla por rondas (plan en pausa, ejecución para los dos), 4 puntos de mando, sombras, relevo y enemigo con tres planes. Maqueta `gobierno/maquetas/guerra-nueva.html`; parte `partes/2026-11-11-N1.md`. En pausa hasta que el usuario decida: L3, A1, A2, A6 y A8b.
@@ -99,7 +98,8 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ N6 **Enemigo que piensa** (12/11): el enemigo elige uno de cinco planes, hace un gesto visible por ronda con su línea de aviso, usa puntos de mando, radio, cartas y vados, reacciona con una ronda de retraso y no hace trampas; generales con carácter (astuto, impetuoso, prudente) y tres dificultades (Fácil, Normal, Difícil) que se eligen en el despliegue. Parte `partes/2026-11-12-N6.md`.
 - ✅ N15 **Equilibrio y objetivos** (12/11): ancho de frente (tope de 1,5 atacantes por regimiento), levas bisoñas (milicia siempre; empiezan Vacilantes y se curten en 60 s), tres objetivos (resistir, tomar la zona, escapar con el general), dificultad fija en Normal y calculada por contexto (rival, terreno, general, táctica, fuerza, contras) con sus causas a la vista, y `test/equilibrio.js` que mide cientos de batallas. Queda ⬜ N15b: afinar (0,67× nunca gana; muy desiguales duran 7-15 min).
 - ⬜ N15b **Segunda pasada de equilibrio**: con N7 y N8 hechas, repetir `node test/equilibrio.js`; que 0,67× gane algo con buen plan, acortar las muy desiguales, y que el campaña (game.js) rellene `sides[i].bis`, `gen.mando/disc` y `cfg.objetivo`.
-- ⬜ N7 a N13 **aprobadas enteras** (P74, 12/11; mando: puntos y radio del general): rondas y vista previa, interfaz nueva, estados y contagio, general y mando, enemigo que piensa, relevos y formaciones, espectáculo; ejércitos con general, forraje, asedios, exploración, después de la batalla; campos amplios y relieve. Unos 18 M; primer bloque N2 a N5 (hecho). Detalle en `estudios/N1b-guerra-ampliada.md` §6.
+- ✅ N7 **Relevos y formaciones** (12/11): testudo, cuña, orbe y falange con su «gana/pierde»; ancho y frente que se arrastran; marchar juntos; tres líneas I/II/III que se relevan (también solas); sombras a 10/20/30 s; atajos Testudo, Carga, Retirada y Refuerzo. Equilibrio igual que N15.
+- ⬜ N8 a N13 **aprobadas enteras** (P74, 12/11; mando: puntos y radio del general): rondas y vista previa, interfaz nueva, estados y contagio, general y mando, enemigo que piensa, relevos y formaciones, espectáculo; ejércitos con general, forraje, asedios, exploración, después de la batalla; campos amplios y relieve. Unos 18 M; primer bloque N2 a N5 (hecho). Detalle en `estudios/N1b-guerra-ampliada.md` §6.
 
 ## Carril O — Economía nueva (pedido 11/11/2026)
 - ✅ Q1 **Diseño de ciudad, gobierno y economía** (11/11): un solo modelo (caja del mes, almacén con tope, barrios, tres clases, Senado, Foro, provincias, aspecto), estudios R15 a R19 y cuatro capturas sobre la ciudad 3D. Diseño `estudios/Q1-ciudad-gobierno-economia.md`; carril Q propuesto en P75.

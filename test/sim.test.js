@@ -1196,4 +1196,115 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   console.log('N15: ' + Math.round((Date.now() - T15) / 1000) + ' s');
 }
 
+// N7. Relevos y formaciones: formaciones por regimiento, ancho de frente, columna, marcha agrupada, tres líneas, atajos y previsión por tiempos
+{
+  const T7 = Date.now();
+  const mk = (a, b, o) => new Battle(Object.assign({ sides: [side(a), side(b)], defender: 1, wall: 0, seed: 7, rondas: true }, o || {}));
+  const R = (bt, s, k) => bt.regs.filter(r => r.side === s && r.k === k);
+  // tabla y reglas de quién puede qué
+  {
+    const bt = mk({ hastati: 240, principes: 120, triarii: 80, velites: 60, equites: 40 }, { falange: 200, hoplitas: 80, galos: 100 });
+    for (const k of ['normal', 'testudo', 'cuna', 'orbe', 'falange']) { const f = Battle.FORM[k]; assert(f && f.n && f.gana && f.pierde && f.t >= 0 && f.vel > 0, 'ficha de ' + k); }
+    const pos = (s, k) => bt.formacionesPosibles(R(bt, s, k)[0]);
+    assert(pos(0, 'hastati').indexOf('testudo') >= 0 && pos(0, 'principes').indexOf('cuna') >= 0 && pos(0, 'equites').indexOf('cuna') >= 0 && pos(0, 'velites').indexOf('orbe') >= 0, 'cada papel tiene las suyas');
+    assert(pos(0, 'triarii').indexOf('testudo') < 0 && pos(0, 'triarii').indexOf('falange') >= 0 && pos(0, 'equites').indexOf('testudo') < 0 && pos(1, 'galos').indexOf('testudo') < 0, 'los lanceros y la ligera no forman testudo');
+    assert.strictEqual(R(bt, 1, 'falange')[0].form, 'falange', 'la falange parte cerrada (regla unificada)'); assert.strictEqual(R(bt, 0, 'hastati')[0].form, 'normal');
+  }
+  // orden de formación: gasta punto de mando, se aplica al ejecutar
+  {
+    const bt = mk({ hastati: 240, velites: 120 }, { hastati: 240 }); bt.empezar();
+    const h = R(bt, 0, 'hastati'), v = R(bt, 0, 'velites')[0], mp0 = bt.mandoPuntos().usados;
+    assert.strictEqual(bt.ponerFormacion(v, 'testudo'), false); assert(/no es para/.test(bt.motivo), 'rechaza con motivo: ' + bt.motivo);
+    assert.strictEqual(bt.ponerFormacion(h[0], 'testudo'), true); assert.strictEqual(bt.mandoPuntos().usados, mp0 + 1, 'gasta un punto de mando');
+    assert.strictEqual(h[0].form, 'normal', 'en el plan aún no cambia'); assert.strictEqual(h[0].order.form, 'testudo');
+    assert(bt.prevision().length > 0, 'la previsión sigue funcionando');
+    assert(bt.ejecutar()); assert.strictEqual(h[0].form, 'testudo'); assert(h[0].trans > 0, 'transición en marcha'); assert(!('form' in (h[0].order || {})), 'la orden se consume'); assert.strictEqual(h[0].order, null, 'la orden formar se libera'); assert.strictEqual(bt.mandoPuntos().usados, 0, 'los puntos vuelven a 0');
+  }
+  // efectos
+  {
+    const bt = mk({ hastati: 240, velites: 120 }, { hastati: 240, velites: 120 });
+    const A = R(bt, 0, 'velites')[0], B = R(bt, 1, 'hastati')[0];
+    const dano = (form, trans, ang, ranged) => { const q = bt.clona(); const a = q.regs[bt.regs.indexOf(A)], b = q.regs[bt.regs.indexOf(B)]; for (const r of q.regs) { r.atkMul = 1; r.defMul = 1; r.fat = 0; r.mor = r.morMax; } a.x = 300; a.y = 300; b.x = 300; b.y = 280; b.form = form; b.trans = trans; b.ang = ang; const h0 = b.hp; q.hit(a, b, 10, ranged); return h0 - b.hp; };
+    const f0 = dano('normal', 0, Math.PI / 2, true), ft = dano('testudo', 0, Math.PI / 2, true);
+    assert(ft < f0 * 0.5, 'la testudo aguanta proyectiles: ' + ft + ' vs ' + f0);
+    assert(dano('normal', 4, Math.PI / 2, true) > f0 * 1.15, 'cambiando de formación está más vulnerable');
+    const lado0 = dano('normal', 0, 0, false), ladoT = dano('testudo', 0, 0, false), ladoO = dano('orbe', 0, 0, false), ladoF = dano('falange', 0, 0, false);
+    assert(ladoT > lado0 * 1.1, 'testudo floja por el flanco'); assert(ladoO < lado0 * 0.9, 'el orbe no tiene flancos débiles'); assert(ladoF > lado0 * 1.2, 'la falange es frágil de lado');
+    assert(dano('falange', 0, Math.PI / 2, false) < dano('normal', 0, Math.PI / 2, false), 'la falange aguanta de frente');
+  }
+  // dimensiones
+  {
+    const bt = mk({ hastati: 480 }, { hastati: 480 }), r = R(bt, 0, 'hastati')[0], f0 = Battle.forma(r);
+    assert(f0.ancho > 0 && f0.fondo > 0 && f0.sep > 0 && Math.abs(f0.files * f0.fondo - r.men) < f0.files, 'forma normal coherente: ' + JSON.stringify(f0));
+    const fh0 = Battle.frenteHombres(r);
+    assert(bt.fijarFrente(r, { x: 300, y: 500, ang: -Math.PI / 2, ancho: f0.ancho * 2 })); const f1 = Battle.forma(r);
+    assert(f1.ancho > f0.ancho * 1.6 && f1.fondo < f0.fondo, 'más ancho, menos fondo: ' + f0.ancho + '/' + f0.fondo + ' -> ' + f1.ancho + '/' + f1.fondo);
+    assert(Battle.frenteHombres(r) > fh0 * 1.6, 'el frente efectivo sigue al ancho');
+    bt.fijarFrente(r, { ancho: 1 }); assert(r.frente.ancho >= f0.sep, 'recorta por abajo'); bt.fijarFrente(r, { ancho: 99999 }); const fm = Battle.forma(r); assert(fm.fondo >= 1 && fm.files <= r.men, 'recorta por arriba');
+    bt.fijarFrente(r, { x: 300, y: 500, ang: 0, ancho: f0.ancho }); assert(r.order.k === 'move' && r.order.ang === 0);
+    r.form = 'testudo'; assert(Battle.forma(r).sep < f0.sep, 'la testudo se aprieta'); r.form = 'orbe'; const fo = Battle.forma(r); assert(Math.abs(fo.files - fo.fondo) <= 1, 'el orbe es un cuadro'); r.form = 'normal';
+  }
+  // columna y marcha agrupada
+  {
+    const bt = mk({ hastati: 240, equites: 60, velites: 100 }, { hastati: 240 }); bt.empezar();
+    const hs = R(bt, 0, 'hastati')[0], eq = R(bt, 0, 'equites')[0], ve = R(bt, 0, 'velites')[0];
+    const antes = Battle.forma(hs); hs.columna = true; const col = Battle.forma(hs); hs.columna = false;
+    assert(col.ancho < antes.ancho && col.fondo > antes.fondo, 'la columna es larga y estrecha');
+    for (const r of [hs, eq]) { r.x = 100 + r.id * 30; r.y = 780; r.order = { k: 'move', x: r.x, y: 700, tipo: 'avanzar' }; }
+    for (const r of bt.regs) if (r.side === 1) { r.x = 700; r.y = 60; }
+    ve.order = null; const n = bt.agrupar([hs, eq]); assert.strictEqual(n, 2); assert(hs.agrupado && eq.order.vmax && eq.order.vmax < eq.vel, 'la caballería baja a su ritmo');
+    for (const r of bt.regs) if (![hs, eq].includes(r) && r.side === 0) r.order = { k: 'quieto' };
+    assert(bt.ejecutar()); let marcho = false; const tiempos = {};
+    for (let i = 0; i < 190; i++) { bt.step(0.1); if (hs.columna) marcho = true; for (const r of [hs, eq]) if (!r.order && !tiempos[r.id]) tiempos[r.id] = bt.tRonda; if (bt.fase !== 'ejecucion') break; }
+    assert(marcho, 'marchando lejos del enemigo va en columna');
+    const ts = Object.values(tiempos); assert.strictEqual(ts.length, 2, 'los dos llegan'); assert(Math.max.apply(null, ts) - Math.min.apply(null, ts) < 4, 'llegan juntos: ' + ts.join(', '));
+  }
+  // tres líneas y relevos
+  {
+    const bt = new Battle({ sides: [side({ hastati: 360, principes: 240, triarii: 120, velites: 60 }), side({ galos: 400 })], defender: 1, wall: 0, seed: 7, rondas: true, despliegue: true });
+    bt.formar(0, 'tres');
+    const li = n => bt.regs.filter(r => r.side === 0 && r.linea === n);
+    assert(li(1).length && li(2).length && li(3).length, 'tres líneas: ' + [1, 2, 3].map(n => li(n).length));
+    assert(li(1).every(r => r.k === 'hastati') && li(3).every(r => r.k === 'triarii'), 'hastati delante, triarii detrás');
+    bt.empezar();
+    for (const r of li(1)) r.fat = 60;
+    const n = bt.relevarLinea(0, 1); assert(n >= 1, 'relevo: ' + n + ' ' + bt.motivo);
+    assert(bt.relevarLinea(0, 3) === 0 && bt.motivo, 'sin línea 4 no hay relevo');
+    assert(bt.notas.some(t => /releva a/.test(t)), 'avisa del relevo'); assert(li(1).some(r => r.k === 'principes'), 'las líneas se intercambian');
+    const ib = new Battle({ sides: [side({ hastati: 200 }), side({ hastati: 360, principes: 240 })], defender: 0, wall: 0, seed: 7, rondas: true, despliegue: true });
+    ib.formar(1, 'tres'); ib.empezar();
+    const e1 = ib.regs.filter(r => r.side === 1 && r.linea === 1), e2 = ib.regs.filter(r => r.side === 1 && r.linea === 2); assert(e1.length && e2.length);
+    for (const r of e1) r.fat = 70; assert(ib.autoRelevo(1) >= 1, 'la IA releva a los cansados'); assert(e1.some(r => r.order && r.order.tipo === 'relevar'));
+    const ib2 = new Battle({ sides: [side({ hastati: 200 }), side({ hastati: 360, principes: 240 })], defender: 0, wall: 0, seed: 7, rondas: true, despliegue: true, relevoAuto: false });
+    ib2.formar(1, 'tres'); ib2.empezar(); for (const r of ib2.regs.filter(r => r.side === 1 && r.linea === 1)) r.fat = 70; ib2.iaRonda(); assert(!ib2.regs.some(r => r.order && r.order.tipo === 'relevar'), 'relevoAuto false lo apaga');
+  }
+  // previsión por tiempos
+  {
+    const bt = mk({ hastati: 240 }, { hastati: 240 }); bt.empezar(); const h = R(bt, 0, 'hastati')[0]; h.order = { k: 'move', x: h.x, y: h.y - 200, tipo: 'avanzar' };
+    const pr = bt.prevision([5, 10, 30]); assert(Array.isArray(pr) && pr.length === 3 && pr[0].t === 5 && pr[2].t <= 20, 'tiempos recortados a la ronda');
+    const yy = i => pr[i].sombras.find(s => s.id === h.id).y; assert(yy(0) > yy(1) && yy(1) >= yy(2), 'la sombra avanza con el tiempo');
+    const fin = bt.prevision(); assert(Array.isArray(fin) && fin[0].id !== undefined && Math.abs(fin.find(s => s.id === h.id).y - yy(2)) < 1e-6, 'sin argumento = lo de siempre');
+    assert.strictEqual(bt.fase, 'plan', 'prever no toca la batalla real');
+  }
+  // atajos
+  {
+    const bt = new Battle({ sides: [side({ hastati: 240, principes: 120, equites: 60, triarii: 100 }, { gen: { n: 'Cónsul' } }), side({ galos: 200, velites: 100 })], defender: 1, wall: 0, seed: 7, rondas: true }); bt.empezar(); assert(bt.mandoPuntos().max >= 4, 'con general hay puntos');
+    const h = R(bt, 0, 'hastati')[0], p = R(bt, 0, 'principes')[0], e = R(bt, 0, 'equites')[0], t = R(bt, 0, 'triarii')[0];
+    let a = bt.atajo('testudo', [h, p, e]); assert(a && a.n === 2 && /testudo/.test(a.txt) && h.order.form === 'testudo' && !e.order, 'testudo solo a quien puede');
+    a = bt.atajo('carga', [e]); assert(a && a.n === 1 && e.order.k === 'atk' && e.order.tipo === 'cargar', 'la caballería carga');
+    a = bt.atajo('retirada', [p]); assert(a && p.order.tipo === 'retirarse' && p.order.y > p.y, 'retirada hacia atrás');
+    h.men = Math.round(h.max * 0.4); h.fat = 70; t.y = h.y + 80; t.x = h.x; t.order = null;
+    a = bt.atajo('refuerzo', [h]); assert(a && /releva a/.test(a.txt) && t.order.tipo === 'relevar', 'el reserva releva al más castigado');
+    assert.strictEqual(bt.atajo('nada', [h]), null); assert.strictEqual(bt.atajo('carga', []), null);
+    const b2 = mk({ hastati: 800 }, { galos: 100 }); b2.empezar(); const mias = b2.regs.filter(r => r.side === 0 && r.k !== 'general');
+    const a2 = b2.atajo('retirada', mias); assert(a2 && b2.mandoPuntos().usados <= b2.mandoPuntos().max, 'no pasa de los puntos de mando');
+  }
+  // la formación persiste
+  {
+    const bt = mk({ hastati: 240 }, { hastati: 240 }); bt.empezar(); const h = R(bt, 0, 'hastati')[0]; bt.ponerFormacion(h, 'testudo'); bt.ejecutar();
+    const c = bt.clona(); assert.strictEqual(c.regs[bt.regs.indexOf(h)].form, 'testudo'); for (let i = 0; i < 200 && bt.fase === 'ejecucion'; i++) bt.step(0.1); assert.strictEqual(h.form, 'testudo', 'la formación persiste entre rondas');
+  }
+  console.log('N7: ' + Math.round((Date.now() - T7) / 1000) + ' s');
+}
+
 console.log('OK — todas las pruebas superadas');

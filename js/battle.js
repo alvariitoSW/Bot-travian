@@ -91,6 +91,22 @@
   const PAPEL_PROY = { ligera: 0.85, media: 1, pesada: 0.75, lanceros: 0.75 };        // multiplica el daño de proyectiles recibido
   const PAPEL_VEL = { ligera: 1.1, media: 1, pesada: 0.92, lanceros: 1 };             // multiplica la velocidad
   const PAPEL_FAT = { ligera: 0.85, media: 1, pesada: 1.3, lanceros: 1 };             // multiplica el cansancio de marchar y correr
+  // --- N7: formaciones de combate ---
+  // vel/proy/melee/flanco/choque/fat/pega: multiplicadores (proy, melee y flanco = daño RECIBIDO; pega = daño que hace; fat = cansancio); t = segundos de transición;
+  // sep/fondo/frente: cómo se coloca la gente (fondo × y tope de atacantes ×); cuad: orbe en cuadro; larga: la cuña pega menos en melé larga
+  const FORM = {
+    normal: { n: 'Normal', gana: 'Se mueve y pelea sin ataduras', pierde: 'Sin ventajas especiales', papeles: null, vel: 1, proy: 1, melee: 1, flanco: 1, choque: 1, fat: 1, pega: 1, t: 3, sep: 1, fondo: 1, frente: 1 },
+    testudo: { n: 'Testudo', gana: 'Aguanta flechas y jabalinas (recibe un tercio)', pierde: 'Lenta, pega menos y floja contra caballería por el flanco', papeles: ['pesada', 'media'], vel: 0.6, proy: 0.35, melee: 0.95, flanco: 1.25, choque: 0.7, fat: 1.15, pega: 0.8, t: 4, sep: 0.6, fondo: 1.3, frente: 0.8 },
+    cuna: { n: 'Cuña', gana: 'Rompe la línea enemiga en el choque', pierde: 'En melé larga se desgasta y recibe más daño', papeles: ['jinete', 'pesada'], vel: 1.05, proy: 1.1, melee: 1.15, flanco: 1.15, choque: 1.5, fat: 1.2, pega: 1, larga: 0.85, t: 5, sep: 0.9, fondo: 2.5, frente: 0.6 },
+    orbe: { n: 'Orbe', gana: 'Sin flancos débiles: aguanta rodeada y recibe menos proyectiles', pierde: 'Muy lenta, pega menos y no carga', papeles: ['ligera', 'media', 'pesada', 'lanceros', 'tirador'], vel: 0.55, proy: 0.85, melee: 1, flanco: 1, choque: 0, fat: 0.9, pega: 0.85, t: 5, sep: 1, fondo: 1, frente: 0.7, cuad: true, sinFlanco: true },
+    falange: { n: 'Falange', gana: 'Aguanta mejor de frente, sobre todo contra la caballería', pierde: 'Muy frágil por los flancos y la espalda; algo más lenta', papeles: ['lanceros'], vel: 0.95, proy: 1, melee: 0.95, flanco: 1.35, choque: 1, fat: 1, pega: 1, t: 4, sep: 1, fondo: 2, frente: 1 }
+  };
+  const TRANS_RECIBE = 1.25;    // (N7) mientras cambia de formación recibe esto más de daño
+  const TRANS_VEL = 0.8;        // (N7) y va a esto de su velocidad
+  const COL_DIST = 150;         // (N7) marchando sin enemigo a menos de esto, el regimiento va en columna
+  const LARGA_SEG = 12;         // (N7) segundos de melé tras los que la cuña se desgasta
+  const FORMA_BASE = { ligera: { sep: 2.4, fondo: 3 }, media: { sep: 1.5, fondo: 4 }, pesada: { sep: 1.2, fondo: 4 }, lanceros: { sep: 1, fondo: 8 }, tirador: { sep: 2.2, fondo: 2 }, jinete: { sep: 2.4, fondo: 3 }, elefante: { sep: 7, fondo: 1 } };
+  const LINEA_CLASE = { hastati: 1, principes: 2, triarii: 3 };   // (N7) triplex acies
   const LANCEROS_VS_CAB = 1.3;  // bajas extra que los lanceros causan a la caballería (además del ×1,7 de las lanzas)
   const LANCEROS_FLANCO = 1.2;  // los lanceros son débiles de flanco: más daño por flanco o espalda
   const FAT_FRENADA = 12;       // cansancio de golpe que sufre la caballería al estrellarse contra lanceros de frente
@@ -256,7 +272,7 @@
       id: this.regs.length + 1, side: side, k: k, u: u, men: men, max: men, hp: men * hp, mor: bis ? mor * 0.5 : mor, morMax: mor, bis: bis ? 1 : 0, curt: 0,
       x: 0, y: 0, ang: side === 0 ? -Math.PI / 2 : Math.PI / 2, st: 'ok', tgt: null, order: null,
       think: this.rnd() * 0.5, cd: this.rnd() * 1.6, ammo: u.range ? 14 : 0, fight: 0, charge: 0, run: 0, flank: 0, fat: 0, mv: false, corre: false, choque: 0, choqueMor: 0, tCorre: -99, cont: 0, contagiado: 0, reagrupado: 0,
-      papel: papelDe(k, u), vel: u.spd * (PAPEL_VEL[papelDe(k, u)] || 1),
+      papel: papelDe(k, u), vel: u.spd * (PAPEL_VEL[papelDe(k, u)] || 1), form: k === 'falange' ? 'falange' : 'normal', trans: 0, columna: false, agrupado: false, frente: null, linea: LINEA_CLASE[k] || 0, angObj: null,
       atkMul: (a.atkMul || 1) * this.suerte[side] * (0.92 + this.rnd() * 0.16), defMul: def * this.suerte[side] // ±8 % de fortuna por regimiento
     };
   };
@@ -362,6 +378,7 @@
       const orden = pie.slice().sort((a, b) => rank(a) - rank(b)), tres = [[], [], []], q = Math.ceil(orden.length / 3);
       orden.forEach((r, i) => tres[Math.min(2, Math.floor(i / q))].push(r));
       tres[1] = centrar(tres[1], eles);
+      tres.forEach((fl, i) => fl.forEach(r => { r.linea = LINEA_CLASE[r.k] || i + 1; }));   // (N7) las tres líneas que se relevan: hastati, principes y triarii por clase; el resto, por su posición
       const cn = cav.length ? 100 : 0, esp = 56;
       tres.forEach((fl, i) => fila(fl, back(i * esp), 78, this.W / 2 + (i === 1 ? 39 * (fl.length > 1 ? 1 : 0) : 0), this.W - 40 - cn)); // 2.ª fila a tresbolillo
       fila(skirm.slice(), back(-50), 58, null, this.W - 40 - cn);
@@ -435,8 +452,10 @@
     if (d < 1) return Math.hypot(fx - r.x, fy - r.y);
     this.turn(r, Math.atan2(dy, dx), dt);
     const t0 = this.terrenoEn(r.x, r.y);
-    const m = Math.min(r.vel * (r.cartaFx === 'paso' ? PASO_DOBLE : 1) * (mul || PASO_MARCHA) * (1 - FAT_ANDA * r.fat / 100) * (t0.bosque ? BOSQUE_VEL : 1) * (t0.vado ? VADO_VEL : 1) * (t0.pantano ? PANTANO_VEL : 1) * dt, d);
-    r.mv = true; r.fat = Math.min(100, r.fat + FAT_MARCHA * dt * (mul > 1 ? 1.6 : 1) * (PAPEL_FAT[r.papel] || 1) * (tipoDe(r) === 'hostigar' ? HOSTIGAR_FAT : 1) + (t0.pantano ? PANTANO_FAT * dt : 0));
+    let vv = r.vel * FM(r).vel * (r.trans > 0 ? TRANS_VEL : 1) * (r.cartaFx === 'paso' ? PASO_DOBLE : 1) * (mul || PASO_MARCHA) * (1 - FAT_ANDA * r.fat / 100) * (t0.bosque ? BOSQUE_VEL : 1) * (t0.vado ? VADO_VEL : 1) * (t0.pantano ? PANTANO_VEL : 1);
+    if (r.order && r.order.vmax && !r.corre) vv = Math.min(vv, r.order.vmax);   // (N7) marcha agrupada: nadie pasa del ritmo común
+    const m = Math.min(vv * dt, d);
+    r.mv = true; r.fat = Math.min(100, r.fat + FAT_MARCHA * dt * FM(r).fat * (mul > 1 ? 1.6 : 1) * (PAPEL_FAT[r.papel] || 1) * (tipoDe(r) === 'hostigar' ? HOSTIGAR_FAT : 1) + (t0.pantano ? PANTANO_FAT * dt : 0));
     let nx = r.x + dx / d * m, ny = r.y + dy / d * m;
     if (this.terrenoEn(nx, ny).bloq && !t0.bloq) {   // nunca se entra en el agua ni en la roca: se desliza por la orilla o espera
       if (!this.terrenoEn(nx, r.y).bloq) ny = r.y; else if (!this.terrenoEn(r.x, ny).bloq) nx = r.x; else { nx = r.x; ny = r.y; }
@@ -471,6 +490,7 @@
     return false;
   };
   const tipoDe = function (r) { return r.order && r.order.tipo ? r.order.tipo : null; };
+  const FM = function (r) { return FORM[r.form] || FORM.normal; };
 
   Battle.prototype.hit = function (a, b, amount, ranged) {
     const prev = b.men, hp = b.u.hp || 1;
@@ -478,11 +498,14 @@
     const da = Math.abs(angDiff(Math.atan2(a.y - b.y, a.x - b.x), b.ang));
     let fl = 1;
     if (da > 2.1) fl = 1.6; else if (da > 1.15) fl = 1.3;
-    if (fl > 1) { b.flank = 1; if (b.k === 'falange') fl *= 1.35; else if (b.papel === 'lanceros') fl *= LANCEROS_FLANCO; } // la falange es muy vulnerable por los flancos
+    const FA = FM(a), FB = FM(b);
+    if (fl > 1 && FB.sinFlanco) fl = 1;   // el orbe no tiene flancos
+    if (fl > 1) { b.flank = 1; fl *= FB.flanco; if (b.form !== 'falange' && b.papel === 'lanceros') fl *= LANCEROS_FLANCO; } // la falange es muy vulnerable por los flancos (una sola regla: la formación)
     let m = amount * RITMO * fl * (1 - FAT_PEGA * a.fat / 100);
     if (esBisono(a)) m *= 1 - (1 - BIS_PEGA) * (1 - (a.curt || 0) / BIS_CURTIDO);
     { const ea = estadoMoral(a), eb = estadoMoral(b); m *= ea === 2 ? DESORDEN_PEGA : ea === 1 ? VACILANTE_PEGA : 1; if (eb === 2) m *= DESORDEN_RECIBE; if (b.cartaFx === 'cerrada') m *= CERRADA_RECIBE; }
     if (tipoDe(b) === 'aguantar' && !b.mv) m /= AGUANTAR_DEF;
+    m *= FA.pega * (ranged ? FB.proy : fl > 1 ? 1 : FB.melee) * (b.trans > 0 ? TRANS_RECIBE : 1); if (!ranged && FA.larga && a.cont > LARGA_SEG) m *= FA.larga;
     const ta = this.terrenoEn(a.x, a.y), tb = this.terrenoEn(b.x, b.y);
     m *= 1 + COLINA_PEGA * (ta.alt - tb.alt);   // arriba se pega más; el que sube pega menos
     const ac = a.u.cls, bc = b.u.cls;
@@ -494,6 +517,7 @@
     if (!ranged && a.choque > 0) {
       const bosq = ta.bosque || tb.bosque, pesadoOCab = ac === 'cav' || ac === 'gen' || a.papel === 'pesada';
       if (!(bosq && pesadoOCab)) {   // el bosque quita el choque a la caballería y los pesados
+        m *= FA.choque;
         if (!(a.charge > 0)) m *= CHOQUE_DANO * (a.papel === 'pesada' && a.k === 'principes' ? CHOQUE_PILUM : 1);   // la carga montada ya tiene su ×2,1: no se suma
         if (!a.choqueMor) { a.choqueMor = 1; choqueMor = CHOQUE_MORAL * (ac === 'cav' || ac === 'ele' ? 1.5 : 1) * (b.papel === 'lanceros' && fl === 1 ? CHOQUE_FRENTE_LANZA : 1) * b.morMax / 100; }
       }
@@ -600,7 +624,7 @@
     const regs = this.regs, cur = [this.men(0), this.men(1)];
     const nAtac = {};   // (N15) cuántos regimientos cuerpo a cuerpo atacan a cada objetivo
     for (const q of regs) if (q.st === 'ok' && q.u.cls !== 'rng' && q.tgt && q.tgt.st === 'ok' && Math.hypot(q.tgt.x - q.x, q.tgt.y - q.y) <= CONTACT) nAtac[q.tgt.id] = (nAtac[q.tgt.id] || 0) + 1;
-    if (this.rondas) for (const r of regs) if (r.pend && this.tRonda >= (r.pendT || ESPERA_SEG) - 1e-6) { r.order = Object.assign({}, r.pend, { cond: null }); r.pend = null; r.pendT = 0; }   // «espera 10 s» o retraso de mando: ya toca avanzar
+    if (this.rondas) for (const r of regs) if (r.pend && this.tRonda >= (r.pendT || ESPERA_SEG) - 1e-6) { r.order = Object.assign({}, r.pend, { cond: null }); r.pend = null; r.pendT = 0; this.aplicaForm(r); }   // «espera 10 s» o retraso de mando: ya toca avanzar
     if (this.tr.banda) for (const r of regs) if (r.st === 'ok' && !this.terrenoEn(r.x, r.y).bloq) { r.sx = r.x; r.sy = r.y; }   // última posición en suelo transitable
     // avance en bloque: ¿alguien del bando está ya cerca del enemigo? si no, todos al paso del más lento de a pie
     const cerca = [false, false], lento = [1e9, 1e9];
@@ -629,6 +653,7 @@
       }
       if (r.st !== 'ok') continue;
       if (r.charge > 0) r.charge -= dt;
+      if (r.trans > 0) r.trans = Math.max(0, r.trans - dt);
       if (r.choque > 0) r.choque -= dt;
       const collapse = cur[r.side] < this.start[r.side] * 0.15;
       if (collapse) r.mor -= 1.5 * dt;
@@ -670,7 +695,7 @@
       } else if (r.order && r.order.k === 'move') {
         const ret = tipoDe(r) === 'retirarse';
         if (ret && !this.cubierto(r)) for (const e of regs) if (e.side !== r.side && e.st === 'ok' && e.u.cls !== 'rng' && Math.hypot(e.x - r.x, e.y - r.y) < RETIRADA_DIST) { this.hit(e, r, effN(e.men * (e.u.mass || 1)) * ratio(e.u.atk * e.atkMul, r.u.def * r.defMul) * 0.03 * dt * RETIRADA_CASTIGO, false); break; }
-        if (this.moveTo(r, r.order.x, r.order.y, dt, ret ? 1 : PASO_MARCHA) < 6) r.order = r.order.cond === 'nopersigue' ? { k: 'quieto' } : null;
+        if (this.moveTo(r, r.order.x, r.order.y, dt, ret ? 1 : PASO_MARCHA) < 6) { if (r.order.ang != null) r.angObj = r.order.ang; r.order = r.order.cond === 'nopersigue' ? { k: 'quieto' } : null; }
       } else if (tgt) {
         const d = Math.hypot(tgt.x - r.x, tgt.y - r.y);
         // el tirador sin orden no pasa de unos 55 por detrás de su infantería más adelantada
@@ -696,14 +721,20 @@
         } else {
           if (r.fight <= 0) { r.cont = 0; r.choqueMor = 0; if (r.charge > 0 || (this.t - r.tCorre < CHOQUE_RECIENTE && (r.u.cls !== 'inf' && r.u.cls !== 'spear' || tipoDe(r) === 'cargar'))) r.choque = CHOQUE_SEG; }   // contacto nuevo: ¿es un choque?
           r.cont += dt; if (r.bis && r.u.cls !== 'rng') r.curt = Math.min(BIS_CURTIDO, (r.curt || 0) + dt);
-          fighting = true; r.run = 0; r.fat = Math.min(100, r.fat + FAT_PELEA * dt * (r.u.cls === 'cav' || r.u.cls === 'gen' ? 1.6 : 1 / Math.sqrt(r.u.mass || 1)));
+          fighting = true; r.run = 0; r.fat = Math.min(100, r.fat + FAT_PELEA * dt * FM(r).fat * (r.u.cls === 'cav' || r.u.cls === 'gen' ? 1.6 : 1 / Math.sqrt(r.u.mass || 1)));
           { const dh = this.terrenoEn(tgt.x, tgt.y).alt - this.terrenoEn(r.x, r.y).alt; if (dh > 0) r.fat = Math.min(100, r.fat + FAT_CUESTA * dh * dt); }   // ataca cuesta arriba
           this.turn(r, Math.atan2(tgt.y - r.y, tgt.x - r.x), dt);
           // solo pelea el frente: las filas de atrás no pegan (el relevo es implícito al bajar el número)
-          const frente = Math.min(1, FRENTE_HOMBRES / Math.max(1, r.men)) * Math.min(1, ATAC_MAX / Math.max(1, nAtac[tgt.id] || 1));
+          const frente = Math.min(1, frenteHombres(r) / Math.max(1, r.men)) * Math.min(1, ATAC_MAX / Math.max(1, nAtac[tgt.id] || 1));
           this.hit(r, tgt, effN(r.men * (r.u.mass || 1)) * frente * ratio(r.u.atk * r.atkMul, tgt.u.def * tgt.defMul) * 0.03 * dt, false);
           if (r.charge > 0 && r.u.cls === 'cav' && this.ligera(tgt)) { const dx = tgt.x - r.x, dy = tgt.y - r.y, dl = Math.hypot(dx, dy) || 1; tgt.x += dx / dl * EMPUJE_CAB * dt; tgt.y += dy / dl * EMPUJE_CAB * dt; }
         }
+      }
+      { // (N7) columna de marcha, ángulo de frente pedido y fin de la marcha agrupada
+        const col = r.mv && !fighting && r.form === 'normal' && !this.enemigoCerca(r, COL_DIST);
+        r.columna = col;
+        if (r.angObj != null) { if (r.mv || fighting) r.angObj = null; else { this.turn(r, r.angObj, dt); if (Math.abs(angDiff(r.angObj, r.ang)) < 0.02) r.angObj = null; } }
+        if (r.agrupado && !(r.order && r.order.vmax)) r.agrupado = false;
       }
       if (!fighting && !r.mv) r.fat = Math.max(0, r.fat - FAT_DESCANSO * dt);
       r.fight = fighting ? 0.4 : Math.max(0, r.fight - dt);
@@ -766,6 +797,7 @@
   // empieza la ronda de ejecución (desde el plan)
   Battle.prototype.ejecutar = function () {
     if (!this.rondas || this.fase !== 'plan' || this.over) return false;
+    if (this.cfg.relevoAuto === true) this.autoRelevo(0);   // (N7) relevo automático del jugador (opcional)
     const mp = this.mandoPuntos();
     if (mp.usados > mp.max) { this.motivo = 'Tienes ' + mp.usados + ' órdenes y solo ' + mp.max + ' puntos de mando'; return false; }
     const g = this.generalVivo(0);
@@ -773,13 +805,14 @@
       r.pend = null; r.pendT = 0; r.cartaFx = null;
       if (r.st !== 'ok' || !r.order) continue;
       if (r.order.cond === 'espera') { r.pend = r.order; r.pendT = ESPERA_SEG; r.order = { k: 'quieto' }; }
-      if (g && r.side === 0 && r !== g && r.order.k !== 'quieto' && this.fueraDeMando(r, g)) { if (!r.pend) r.pend = r.order; r.pendT = Math.max(r.pendT, MANDO_RETRASO); r.order = { k: 'quieto' }; }
+      if (g && r.side === 0 && r !== g && (r.order.k !== 'quieto' || r.order.tipo === 'formar') && this.fueraDeMando(r, g)) { if (!r.pend) r.pend = r.order; r.pendT = Math.max(r.pendT, MANDO_RETRASO); r.order = { k: 'quieto' }; }
     }
     if (this.cartaPlan && g) {   // la carta jugada en el plan se aplica a los propios dentro del radio
       for (const r of this.regs) if (r.side === 0 && r.st === 'ok' && !this.fueraDeMando(r, g)) { r.cartaFx = this.cartaPlan; if (this.cartaPlan === 'arenga') r.mor = Math.min(topeMor(r), r.mor + ARENGA_MORAL * r.morMax); }
     }
     this.cartaPlan = null;
     if (this.ia && !this.sinIA) this.iaRonda(); else if (!this.ia) this.gesto = '';
+    for (const r of this.regs) if (r.st === 'ok' && r.order && r.order.form) this.aplicaForm(r);
     this.snapIni = this.estado(); this.notas = []; this.fase = 'ejecucion'; this.tRonda = 0; this.repite = false; return true;
   };
   Battle.prototype.generalVivo = function (side) { return this.regs.find(function (q) { return q.side === side && q.k === 'general' && q.st === 'ok'; }) || null; };
@@ -787,7 +820,7 @@
   // puntos de mando del bando 0: cada regimiento vivo con orden activa (no «Aguantar») gasta uno
   Battle.prototype.mandoPuntos = function () {
     const max = this.generalVivo(0) ? MANDO_PUNTOS : MANDO_PUNTOS_SIN;
-    let usados = 0; for (const r of this.regs) if (r.side === 0 && r.st === 'ok' && r.order && r.order.k !== 'quieto') usados++;
+    let usados = 0; for (const r of this.regs) if (r.side === 0 && r.st === 'ok' && r.order && (r.order.k !== 'quieto' || r.order.tipo === 'formar')) usados++;
     return { usados: usados, max: max, libres: max - usados };
   };
   // carta de táctica en el plan: se aplica en la ronda que sigue. Una por ronda, solo con el general vivo.
@@ -830,11 +863,19 @@
     return h;
   };
   // vista previa («sombra»): clona la batalla, deja al enemigo QUIETO y simula la ronda. No toca la batalla real.
-  Battle.prototype.prevision = function () {
+  // Con un array de segundos ([10,20,30]) devuelve [{t, sombras}] con UNA sola simulación; sin argumento, las sombras del final de la ronda.
+  Battle.prototype.prevision = function (tiempos) {
     const c = this.clona(); c.rondas = true; c.fase = 'plan'; c.sinIA = true;
     for (const r of c.regs) if (r.side === 1 && r.st === 'ok') r.order = { k: 'quieto' };
-    c.ejecutar(); let n = 0; while (c.fase === 'ejecucion' && !c.over && n++ < 400) c.step(0.1);
-    return c.regs.filter(function (r) { return r.side === 0; }).map(function (r) { return { id: r.id, x: r.x, y: r.y, st: r.st, men: r.men }; });
+    const foto = function () { return c.regs.filter(function (r) { return r.side === 0; }).map(function (r) { return { id: r.id, x: r.x, y: r.y, st: r.st, men: r.men }; }); };
+    const ts = Array.isArray(tiempos) ? tiempos.map(function (t) { return Math.max(0, Math.min(RONDA_SEG, +t || 0)); }).sort(function (a, b) { return a - b; }) : null, out = [];
+    c.ejecutar(); let n = 0, i = 0;
+    while (c.fase === 'ejecucion' && !c.over && n++ < 400) {
+      c.step(0.1);
+      if (ts) while (i < ts.length && c.tRonda >= ts[i] - 1e-6) out.push({ t: ts[i++], sombras: foto() });
+    }
+    if (ts) { while (i < ts.length) out.push({ t: ts[i++], sombras: foto() }); return out; }
+    return foto();
   };
   // «prever choque»: si los dos ejércitos chocaran ya (sin órdenes), ¿quién gana? Devuelve fracciones de hombres que conserva cada bando.
   Battle.prototype.preverChoque = function () {
@@ -843,6 +884,202 @@
     let n = 0; while (!c.over && n++ < 2000) c.step(0.2);
     const s0 = Math.max(1, this.men(0)), s1 = Math.max(1, this.men(1)), f0 = c.men(0) / s0, f1 = c.men(1) / s1;
     return { f0: f0, f1: f1, gana: f0 === f1 ? -1 : f0 > f1 ? 0 : 1, claro: Math.abs(f0 - f1) > 0.2 };
+  };
+
+
+  /* ---------- N7: formaciones, anchos de frente, columnas, tres líneas y atajos (solo lógica) ---------- */
+  Battle.FORM = FORM; Battle.FORMA_BASE = FORMA_BASE;
+  const redond = function (x) { return Math.round(x * 10) / 10; };
+  // ¿hay un enemigo en pie a menos de d?
+  Battle.prototype.enemigoCerca = function (r, d) { for (const e of this.regs) if (e.side !== r.side && e.st === 'ok' && Math.hypot(e.x - r.x, e.y - r.y) < d) return true; return false; };
+  // anchos válidos (en columnas de hombres) de un regimiento de n hombres
+  function limitesFiles(r, n) {
+    const B = FORMA_BASE[r.papel] || FORMA_BASE.media, maxFondo = r.papel === 'elefante' ? 2 : B.fondo * 4, minFondo = (r.papel === 'ligera' || r.papel === 'tirador' || r.papel === 'jinete' || r.papel === 'elefante') ? 1 : 2;
+    const lo = Math.max(1, Math.ceil(n / maxFondo)); return [lo, Math.max(lo, Math.min(n, Math.floor(n / minFondo)))];
+  }
+  // dimensiones en metros de un regimiento: {ancho, fondo, sep, files, col}. El 3D coloca las figuras con esto.
+  Battle.forma = function (r, men) {
+    const F = FORM[r.form] || FORM.normal, B = FORMA_BASE[r.papel] || FORMA_BASE.media, n = Math.max(1, men || r.men), col = !!r.columna;
+    const sep = B.sep * (col ? 1.2 : F.sep);
+    let files;
+    if (col) files = Math.max(2, Math.min(n, Math.round(Math.sqrt(n) * 0.5)));
+    else if (F.cuad) files = Math.max(1, Math.ceil(Math.sqrt(n)));
+    else if (r.frente && r.frente.ancho > 0) { const lim = limitesFiles(r, n); files = Math.max(lim[0], Math.min(lim[1], Math.round(r.frente.ancho / sep))); }
+    else files = Math.max(1, Math.ceil(n / Math.max(1, Math.round(B.fondo * F.fondo))));
+    return { ancho: redond(files * sep), fondo: Math.ceil(n / files), sep: redond(sep), files: files, col: col };
+  };
+  // ancho (m) que tendría en formación normal sin frente fijado, con el efectivo inicial: referencia del tope de atacantes
+  function anchoRef(r) { const B = FORMA_BASE[r.papel] || FORMA_BASE.media, n = Math.max(1, r.max || r.men); return Math.ceil(n / Math.max(1, B.fondo)) * B.sep; }
+  // hombres que pelean a la vez (N15 + N7): sigue a la formación y al ancho fijado por el jugador
+  function frenteHombres(r) {
+    let k = FM(r).frente;
+    if (r.frente && r.frente.ancho > 0 && !r.columna) { const f = Battle.forma(r, r.max || r.men); k *= (f.ancho / anchoRef(r)); }
+    return FRENTE_HOMBRES * k;
+  }
+  Battle.frenteHombres = frenteHombres;
+  // recorta un ancho pedido a lo que admite el regimiento (con su formación actual)
+  Battle.prototype.anchoValido = function (r, ancho) {
+    const B = FORMA_BASE[r.papel] || FORMA_BASE.media, F = FM(r), sep = B.sep * F.sep, lim = limitesFiles(r, Math.max(1, r.max || r.men));
+    return redond(Math.max(lim[0], Math.min(lim[1], Math.round(ancho / sep))) * sep);
+  };
+
+  // ¿puede el jugador (o la IA) dar una orden más a r? Los puntos de mando se gastan como en cualquier orden (ver mandoPuntos)
+  Battle.prototype.cupo = function (r) {
+    if (r.order && (r.order.k !== 'quieto' || r.order.tipo === 'formar')) return true;   // ya gasta su punto: se sustituye
+    let libres;
+    if (r.side === 0) libres = this.mandoPuntos().libres;
+    else { let u = 0; for (const q of this.regs) if (q.side === r.side && q.st === 'ok' && q.order && (q.order.k !== 'quieto' || q.order.tipo === 'formar')) u++; libres = (this.generalVivo(r.side) ? MANDO_PUNTOS : MANDO_PUNTOS_SIN) - u; }
+    if (libres < 1) { this.motivo = 'No quedan puntos de mando'; return false; }
+    return true;
+  };
+  Battle.prototype.puedeOrdenar = function (r) {
+    this.motivo = '';
+    if (!r || r.st !== 'ok' || this.over) { this.motivo = 'Ese regimiento ya no puede recibir órdenes'; return false; }
+    if (this.rondas && this.fase === 'ejecucion') { this.motivo = 'Las órdenes se dan en el plan, no durante la ronda'; return false; }
+    return true;
+  };
+  // formaciones que admite un regimiento (siempre 'normal')
+  Battle.prototype.formacionesPosibles = function (r) {
+    const out = ['normal']; if (!r || r.st !== 'ok' || r.k === 'general' || r.u.cls === 'gen') return out;
+    for (const k of Object.keys(FORM)) if (k !== 'normal' && FORM[k].papeles.indexOf(r.papel) >= 0) out.push(k);
+    return out;
+  };
+  // pone la formación vigente (con el cambio de ritmo y vulnerabilidad de la transición)
+  Battle.prototype.aplicaForm = function (r) {
+    const o = r.order || null, f = o && o.form; if (!f || !FORM[f]) return;
+    delete o.form; if (o.tipo === 'formar') r.order = null;   // la orden «formar» no tiene más propósito: libera su punto de mando
+    if (r.form === f) return;
+    r.form = f; r.trans = FORM[f].t; r.columna = false;
+  };
+  // orden «adoptar formación»: es una orden normal del plan (gasta un punto de mando si el regimiento no tenía otra)
+  Battle.prototype.ponerFormacion = function (r, clave) {
+    if (!this.puedeOrdenar(r)) return false;
+    if (!FORM[clave] || this.formacionesPosibles(r).indexOf(clave) < 0) { this.motivo = (FORM[clave] ? FORM[clave].n : 'Esa formación') + ' no es para ' + nombreReg(r); return false; }
+    if (this.fase === 'despliegue' || (!this.rondas && this.fase !== 'plan')) { if (r.form !== clave) { r.form = clave; r.trans = this.fase === 'despliegue' ? 0 : FORM[clave].t; } return true; }
+    if (!r.order && r.form === clave) return true;
+    if (!this.cupo(r)) return false;
+    if (r.order) { if (r.order.form === clave) return true; r.order = Object.assign({}, r.order, { form: clave }); }
+    else r.order = { k: 'quieto', tipo: 'formar', form: clave };
+    return true;
+  };
+  // orden de mover que además fija el ancho y el ángulo del frente
+  Battle.prototype.fijarFrente = function (r, o) {
+    if (!this.puedeOrdenar(r)) return false;
+    o = o || {}; const W = this.W, H = this.H;
+    const x = Math.max(20, Math.min(W - 20, o.x == null ? r.x : o.x)), y = Math.max(20, Math.min(H - 20, o.y == null ? r.y : o.y));
+    const ang = o.ang == null ? null : o.ang, ancho = o.ancho > 0 ? this.anchoValido(r, o.ancho) : (r.frente ? r.frente.ancho : null);
+    if (this.fase === 'despliegue') { if (r.side === 0 && this.colocar) this.colocar(r, x, y); if (ang != null) r.ang = ang; if (ancho) r.frente = { ancho: ancho }; return true; }
+    if (!this.cupo(r)) return false;
+    if (ancho) r.frente = { ancho: ancho };
+    r.order = { k: 'move', x: x, y: y, tipo: 'frente', ang: ang, ancho: ancho }; r.tgt = null;
+    return true;
+  };
+
+  // marcha agrupada: todos llegan juntos al ritmo del más lento (esperan a los rezagados)
+  Battle.prototype.agrupar = function (regs) {
+    this.motivo = '';
+    const lista = (regs || []).filter(r => r && r.st === 'ok' && r.k !== 'general'); if (lista.length < 2) { this.motivo = 'Hacen falta al menos dos regimientos'; return 0; }
+    if (!this.puedeOrdenar(lista[0])) return 0;
+    const enem = this.regs.filter(e => e.side !== lista[0].side && e.st === 'ok'), plan = [];
+    for (const r of lista) {
+      let x, y, o = r.order;
+      if (o && o.k === 'move') { x = o.x; y = o.y; }
+      else if (o && o.k === 'atk' && o.r.st === 'ok') { x = o.r.x; y = o.r.y; }
+      else { const ne = ia_cerca(enem, r.x, r.y); if (!ne) continue; const d = Math.hypot(ne.x - r.x, ne.y - r.y) || 1, avance = Math.max(0, d - 100); x = r.x + (ne.x - r.x) / d * avance; y = r.y + (ne.y - r.y) / d * avance; }
+      if (!(o && o.k !== 'quieto') && !this.cupo(r)) continue;
+      const v = r.vel * FM(r).vel * PASO_MARCHA;
+      plan.push({ r: r, x: Math.max(20, Math.min(this.W - 20, x)), y: Math.max(20, Math.min(this.H - 20, y)), d: Math.hypot(x - r.x, y - r.y), v: v });
+    }
+    if (plan.length < 2) return 0;
+    let T = 0; for (const p of plan) T = Math.max(T, p.d / p.v);
+    const id = (this.grupoN = (this.grupoN || 0) + 1);
+    for (const p of plan) {
+      const vmax = T > 0 ? Math.max(1, p.d / T) : p.v, r = p.r;
+      r.order = r.order && r.order.k === 'atk' ? Object.assign({}, r.order, { vmax: vmax, grupo: id }) : Object.assign({}, r.order && r.order.k === 'move' ? r.order : { tipo: 'avanzar' }, { k: 'move', x: p.x, y: p.y, vmax: vmax, grupo: id });
+      r.tgt = null; r.agrupado = true;
+    }
+    return plan.length;
+  };
+
+  // relevo entre dos regimientos: el cansado (r) retrocede y el fresco (par) ocupa su sitio; intercambian línea
+  Battle.prototype.relevarPar = function (r, par) {
+    if (!this.cupo(r)) return false;
+    if (!(par.order && (par.order.k !== 'quieto' || par.order.tipo === 'formar')) && !this.cupo(par)) return false;
+    const atras = Math.max(20, Math.min(this.H - 20, r.y + (r.side === 0 ? 1 : -1) * RELEVO_ATRAS));
+    par.order = { k: 'move', x: r.x, y: r.y, tipo: 'relevar', hecho: true }; par.tgt = null;
+    r.order = { k: 'move', x: r.x, y: atras, tipo: 'relevar', hecho: true }; r.tgt = null;
+    const l = r.linea; r.linea = par.linea; par.linea = l;
+    this.nota(nombreReg(par) + ' releva a ' + nombreReg(r));
+    return true;
+  };
+  // manda a la línea n a ceder el frente por los huecos a la línea n+1; devuelve cuántos regimientos de la línea n se relevan
+  Battle.prototype.relevarLinea = function (side, n) {
+    this.motivo = '';
+    if (this.rondas && this.fase === 'ejecucion') { this.motivo = 'Las órdenes se dan en el plan'; return 0; }
+    const A = this.regs.filter(q => q.side === side && q.st === 'ok' && q.linea === n).sort((a, b) => b.fat - a.fat), usados = new Set(); let hechos = 0;
+    const B = this.regs.filter(q => q.side === side && q.st === 'ok' && q.linea === n + 1);
+    if (!A.length || !B.length) { this.motivo = 'No hay línea ' + (n + 1) + ' que releve a la ' + n; return 0; }
+    for (const r of A) {
+      let par = null, pd = 1e9; for (const q of B) { if (usados.has(q)) continue; const d = Math.hypot(q.x - r.x, q.y - r.y); if (d < pd) { pd = d; par = q; } }
+      if (!par) break; if (!this.relevarPar(r, par)) break; usados.add(par); hechos++;
+    }
+    return hechos;
+  };
+  // relevo automático: la línea 1 Cansada o Vacilante cede a la línea 2 Fresca
+  Battle.prototype.autoRelevo = function (side) {
+    if (this.over) return 0;
+    const cans = this.regs.filter(q => q.side === side && q.st === 'ok' && q.linea === 1 && (q.fat >= RELEVO_CANSADO || estadoMoral(q) >= 1) && !(q.order && q.order.tipo === 'relevar'));
+    const frescos = this.regs.filter(q => q.side === side && q.st === 'ok' && q.linea === 2 && q.fat < 30 && estadoMoral(q) === 0 && !(q.order && q.order.tipo === 'relevar'));
+    let n = 0; const usados = new Set();
+    for (const r of cans.sort((a, b) => b.fat - a.fat)) {
+      let par = null, pd = 1e9; for (const q of frescos) { if (usados.has(q)) continue; const d = Math.hypot(q.x - r.x, q.y - r.y); if (d < pd) { pd = d; par = q; } }
+      if (!par || !this.relevarPar(r, par)) break; usados.add(par); n++;
+    }
+    return n;
+  };
+
+  // atajos de un toque: 'testudo' | 'carga' | 'retirada' | 'refuerzo' → {n, txt} o null
+  Battle.prototype.atajo = function (tipo, regs) {
+    this.motivo = '';
+    const lista = (regs || []).filter(r => r && r.st === 'ok' && r.k !== 'general'); if (!lista.length) { this.motivo = 'Elige algún regimiento'; return null; }
+    const lado = lista[0].side, enem = this.regs.filter(e => e.side !== lado && e.st === 'ok');
+    let n = 0, txt = '';
+    if (tipo === 'testudo') {
+      for (const r of lista) if (this.formacionesPosibles(r).indexOf('testudo') >= 0 && this.ponerFormacion(r, 'testudo')) n++;
+      if (!n) { if (!this.motivo) this.motivo = 'Ninguno puede formar testudo'; return null; }
+      txt = n === 1 ? 'Un regimiento cierra la testudo' : n + ' regimientos cierran la testudo';
+    } else if (tipo === 'carga') {
+      if (!enem.length) { this.motivo = 'No hay enemigo'; return null; }
+      if (!this.puedeOrdenar(lista[0])) return null;
+      for (const r of lista) {
+        if (r.u.cls === 'rng' || !this.cupo(r)) continue;
+        const ne = ia_cerca(enem, r.x, r.y), blandos = r.u.cls === 'cav' || r.u.cls === 'gen' ? enem.filter(e => e.u.cls === 'rng' || (e.u.cls === 'inf' && e.papel === 'ligera')) : [];
+        r.order = { k: 'atk', r: ia_cerca(blandos, r.x, r.y) || ne, tipo: 'cargar' }; r.tgt = null; n++;
+      }
+      if (!n) { if (!this.motivo) this.motivo = 'Nadie puede cargar'; return null; }
+      txt = n === 1 ? 'Un regimiento carga' : n + ' regimientos cargan';
+    } else if (tipo === 'retirada') {
+      if (!this.puedeOrdenar(lista[0])) return null;
+      for (const r of lista) {
+        if (!this.cupo(r)) continue;
+        r.order = { k: 'move', x: Math.max(20, Math.min(this.W - 20, r.x)), y: Math.max(20, Math.min(this.H - 20, r.y + (r.side === 0 ? 90 : -90))), tipo: 'retirarse' }; r.tgt = null; n++;
+      }
+      if (!n) { if (!this.motivo) this.motivo = 'Nadie puede retirarse'; return null; }
+      txt = n === 1 ? 'Un regimiento se retira' : n + ' regimientos se retiran';
+    } else if (tipo === 'refuerzo') {
+      if (!this.puedeOrdenar(lista[0])) return null;
+      const peor = lista.slice().sort((a, b) => (a.men / a.max + a.mor / a.morMax) - (b.men / b.max + b.mor / b.morMax))[0], dir = lado === 0 ? 1 : -1;
+      let par = null, pd = 1e9;
+      for (const q of this.regs) {
+        if (q === peor || q.side !== lado || q.st !== 'ok' || q.k === 'general' || q.u.cls === 'rng' || lista.indexOf(q) >= 0) continue;
+        if ((q.y - peor.y) * dir <= 8 || (q.order && q.order.k !== 'quieto') || q.fat >= peor.fat) continue;
+        const d = Math.hypot(q.x - peor.x, q.y - peor.y); if (d < pd) { pd = d; par = q; }
+      }
+      if (!par) { this.motivo = 'No hay reserva detrás'; return null; }
+      if (!this.relevarPar(peor, par)) return null;
+      n = 1; txt = nombreReg(par) + ' releva a ' + nombreReg(peor);
+    } else { this.motivo = 'Atajo desconocido'; return null; }
+    return { n: n, txt: txt };
   };
 
   /* ---------- N6: el enemigo que piensa (solo modo por rondas) ---------- */
@@ -947,7 +1184,8 @@
   };
   Battle.prototype.iaFoto = function () { return { r: this.regs.map(function (r) { return [Math.round(r.x), Math.round(r.y), r.men, r.st === 'ok' ? 1 : 0]; }) }; };
   // un gesto visible por ronda: decide con la foto, da órdenes (con límite de puntos y radio) y quizá juega una carta
-  Battle.prototype.iaRonda = function () {
+  Battle.prototype.iaRonda = function () { this.iaRonda0(); if (this.cfg.relevoAuto !== false) this.autoRelevo(1); };
+  Battle.prototype.iaRonda0 = function () {
     const ia = this.ia, ca = CARACTER[ia.car], dif = ia.dif, nv = ia.nivel || 0, dur = dif === 'dificil' || nv >= NIVEL_DURO,
       margen = ca.margen < 5 ? ca.margen * (1 - 0.5 * nv) : ca.margen, piso = ca.piso * (1 + 0.2 * nv), ronda = this.ronda, W = this.W, H = this.H, T = this.tr, B = T.banda;
     const g = this.generalVivo(1), pts = g ? MANDO_PUNTOS : MANDO_PUNTOS_SIN;
@@ -966,7 +1204,9 @@
     const O = (extra) => Object.assign({ ia: true, hasta: ronda + 1 }, extra);
     const atk = (r, v, tp) => [r, O({ k: 'atk', r: v.r, tipo: tp || tipoA })];
     const mov = (r, x, y, tp) => [r, O({ k: 'move', x: Math.max(20, Math.min(W - 20, x)), y: Math.max(20, Math.min(H - 20, y)), tipo: tp || 'avanzar' })];
-    const quieto = (r) => [r, O({ k: 'quieto', tipo: 'aguantar', hasta: ronda + 3 })];
+    const hayTiro = vis.some(v => v.cl === 'rng');
+    const formIA = (r) => r.papel === 'lanceros' && r.u.cls !== 'cav' ? 'falange' : (hayTiro && (r.papel === 'pesada' || r.papel === 'media') && ca.cerrada) ? 'testudo' : r.papel === 'tirador' ? 'orbe' : null;   // (N7) el prudente cierra falange o testudo al aguantar
+    const quieto = (r) => [r, O(Object.assign({ k: 'quieto', tipo: 'aguantar', hasta: ronda + 3 }, ca.cerrada && formIA(r) && r.form !== formIA(r) && this.formacionesPosibles(r).indexOf(formIA(r)) >= 0 ? { form: formIA(r) } : {}))];
     const porDist = (lista) => lista.slice().sort((a, b) => dist(a) - dist(b));
     const pesados = mios.filter(r => r.u.cls !== 'cav' && r.u.cls !== 'rng' && r.papel !== 'ligera'), cavs = mios.filter(r => r.u.cls === 'cav');
     const ligeros = mios.filter(r => r.u.cls === 'rng' || r.papel === 'ligera');
@@ -1064,6 +1304,7 @@
     const vig = []; for (const r of mios) if (!nuevo.has(r) && r.order && r.order.ia && r.order.hasta >= ronda) vig.push(r); else if (!nuevo.has(r) && r.order && (r.order.k !== 'quieto' || (r.order.ia && r.order.hasta < ronda))) { r.order = null; r.tgt = null; }
     let usados = 0; for (const o of nuevo.values()) if (o.k !== 'quieto') usados++;
     for (const r of vig) if (r.order.k !== 'quieto') { if (usados < pts) usados++; else { r.order = null; r.tgt = null; } }
+    for (const [r, o] of nuevo) if (o.k !== 'quieto' && !o.form && r.form !== 'normal' && r.k !== 'falange') o.form = 'normal';   // (N7) al avanzar deja la formación cerrada
     let n = 0; for (const [r, o] of nuevo) { if (o.k !== 'quieto') { if (n >= pts) continue; n++; } r.order = o; r.tgt = null; r.pend = null; r.pendT = 0; }
     if (g) for (const r of mios) {   // fuera del radio de su general la orden llega con retraso
       if (r.order && r.order.k !== 'quieto' && !r.pend && this.fueraDeMando(r, g) && nuevo.has(r)) { r.pend = r.order; r.pendT = MANDO_RETRASO; r.order = { k: 'quieto' }; }

@@ -597,3 +597,18 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 .sn-bar { flex: 1; height: 12px; border-radius: 6px; background: #0004; overflow: clip; } .sn-bar i { display: block; height: 100%; } .sn-bar .sen { background: var(--gold); } .sn-bar .pue { background: #5aa469; } .sn-bar .pla { background: #c98a3a; }
 .sn-ex { font-size: 12px; opacity: .75; margin: 8px 0; } .sn-av { margin: 8px 0; padding: 8px 10px; border-radius: 8px; background: #7a1d1d55; color: #ff8a80; font-weight: 700; font-size: 13px; }
 .sn-pz { margin: 8px 0; font-size: 13px; } .sn-pz .sn-bar { margin-top: 4px; flex: none; } .sn-fa, .sn-pr, .sn-ca { margin-top: 6px; font-size: 13px; } .sn-pr b { color: #7bd88f; } .sn-ca b { color: #ff8a80; } .sn-mi { display: block; }
+
+/* N7: relevos y formaciones */
+#bpanel .pbt.p3 { grid-template-columns: 1fr 1fr 1fr; }
+#bpanel .pbt.p3 button { font-size: 10.5px; padding: 0 2px; }
+#bpanel .pbt.p4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+#bpanel .pbt.pf { display: flex; flex-wrap: wrap; }
+#bpanel .pbt.pf button { flex: 1 1 auto; padding: 0 8px; }
+#bpanel .pbt button.on { background: rgba(233, 192, 99, .3); border-color: var(--gold); color: var(--gold); }
+#bpanel .fi { margin-top: 4px; font-size: 11.5px; line-height: 1.3; }
+#bpanel input[type=range] { width: 100%; margin: 6px 0 0; accent-color: #e9c063; height: 28px; }
+#bpanel .tk { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--gold); }
+.bflag[data-l]::after, .ucard[data-l]::after { content: attr(data-l); position: absolute; font-size: 8.5px; font-weight: 700; line-height: 1; color: #e9c063; background: rgba(10, 13, 19, .8); padding: 1px 3px; border-radius: 3px; pointer-events: none; }
+.bflag[data-l]::after { right: -3px; top: -3px; }
+.ucard[data-l]::after { right: 1px; bottom: 11px; }
+.bflag[data-l=""]::after, .ucard[data-l=""]::after { display: none; }

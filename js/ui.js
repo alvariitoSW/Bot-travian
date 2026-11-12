@@ -639,7 +639,7 @@ function startBattle() {
   closeModal();
   $('battle').hidden = false;
   const cfg = Object.assign({}, UI.binfo.cfg, { fh: 1000, despliegue: true, rondas: true, dificultad: 'normal' }), b = new window.Battle(cfg), B = { b: b, speed: 1, paused: false, acc: 0, endT: 0 };
-  try { B.view = new BattleView3D($('bfield'), b, { cards: $('bcards'), speed: () => (B.paused || b.over ? 0 : B.speed) }); }
+  try { B.view = new BattleView3D($('bfield'), b, { aviso: (t, k) => toast(t, k), cards: $('bcards'), speed: () => (B.paused || b.over ? 0 : B.speed) }); }
   catch (e) { // sin WebGL: vista 2D de reserva
     console.warn('WebGL no disponible, usando vista 2D', e);
     const cv = document.createElement('canvas'); cv.className = 'c2d'; $('bfield').appendChild(cv); B.view = new window.BattleView(cv, b); B.flat = cv;
@@ -737,7 +737,7 @@ function filaCartas(B) {
 }
 function condSel(B) { return B.view && B.view.sel ? [...B.view.sel].filter(r => r.st === 'ok' && r.side === 0 && r.order && r.order.k !== 'quieto') : []; }
 function rondaModo(B, m) {
-  B.modo = m; B.filaKey = ''; B.mas = false; B.pmin = false; B.panelTx = null; if (m === 'plan' || m === 'informe') B.paused = false;
+  B.modo = m; B.filaKey = ''; B.mas = false; B.atajoTx = null; B.formVer = null; if (B.view && B.view.ponTPrev) { B.view.ponTPrev(0); B.view.activaFrente && B.view.activaFrente(false); } B.pmin = false; B.panelTx = null; if (m === 'plan' || m === 'informe') B.paused = false;
   if (m !== 'plan') B.choque = null;
 }
 function textoRonda(B) {
@@ -745,12 +745,26 @@ function textoRonda(B) {
   if (B.modo === 'ejec') return '';
   if (B.modo === 'informe') return '<div class="pt" data-act="bpmin">Lo que pasó · ronda ' + (b.ronda - 1) + '<i></i></div><ul>' + b.hechos.map(h => '<li>' + esc(h) + '</li>').join('') + '</ul>';
   if (B.modo === 'cond') { const sel = condSel(B); if (!sel.length) return 'Elige un regimiento con orden y vuelve a pulsar «Más» y «Condición».'; const r = sel[0], c = r.order.cond; return '<b>' + esc(r.name || r.u.n) + (sel.length > 1 ? ' y ' + (sel.length - 1) + ' más' : '') + '</b>: ' + (c ? esc(C[c]) + '.' : 'sin condición. Elige una (solo una por orden).'); }
-  if (B.mas) return '<div class="pt" data-act="bmas">Más<i></i></div><div class="pbt"><button data-act="bcond">Condición</button><button data-act="bchoque">Prever choque</button><button data-act="ball">Todas</button><button data-act="bskip">Resolver</button></div>';
+  if (v && v.modoFrente) return '<div class="pt" data-act="bfrente">Frente<i></i></div>Arrastra el dedo sobre el campo, de un extremo a otro del frente. Pulsa aquí para cancelar.';
+  if (B.mas === 'form' || B.mas === 'atajos' || B.mas === 'tiempo') return panelN7(B);
+  if (B.mas) { const w = B.b, ex = (c, a, t) => c ? '<button data-act="' + a + '">' + t + '</button>' : ''; return '<div class="pt" data-act="bmas">Más<i></i></div><div class="pbt p3"><button data-act="bcond">Condición</button><button data-act="bchoque">Prever choque</button><button data-act="ball">Todas</button><button data-act="bskip">Resolver</button>' + ex(w.formacionesPosibles, 'bformas', 'Formación') + ex(w.fijarFrente && B.view.activaFrente, 'bfrente', 'Frente') + ex(w.agrupar, 'bjuntos', 'Marchar juntos') + ex(w.relevarLinea, 'brelevar', 'Relevar línea') + ex(w.atajo, 'batajos', 'Atajos') + ex(w.prevision && B.view.ponTPrev, 'btiempo', 'Ver futuro') + '</div>'; }
   if (B.choque && performance.now() < B.choqueT) return B.choque;
   if (condSel(B).length) return 'Orden dada. En «Más» puedes añadirle una condición.';
   if (v && v.propios && v.propios().length) return 'Elige una orden abajo o dibuja el recorrido sobre el campo. Toca otro estandarte para cambiar de regimiento.';
   if (v && v.haySombras) return 'Las siluetas marcan dónde acabarían tus tropas si el enemigo se queda quieto. <b>El enemigo puede moverse.</b>';
   return 'Toca un estandarte (o los soldados) para elegir un regimiento.';
+}
+/* ---------- N7: formaciones, atajos y fantasmas con tiempo (paneles de «Más») ---------- */
+const ATAJOS = [['testudo', 'Testudo'], ['carga', 'Carga'], ['retirada', 'Retirada'], ['refuerzo', 'Refuerzo']];
+function panelN7(B) {
+  const b = B.b, v = B.view, F = window.Battle.FORM || {}, sel = v && v.propios ? v.propios() : [], volver = '<div class="pt" data-act="bmas">';
+  if (B.mas === 'atajos') return volver + 'Atajos<i></i></div><div class="pbt p4">' + ATAJOS.map(a => '<button data-act="bataj" data-v="' + a[0] + '">' + a[1] + '</button>').join('') + '</div>' + (B.atajoTx ? '<div class="fi">' + esc(B.atajoTx) + '</div>' : '<div class="fi">Actúan sobre lo elegido (o todo tu ejército si no hay nada elegido).</div>');
+  if (B.mas === 'tiempo') { const i = [0, 10, 20, 30].indexOf(v && v.tPrev || 0); return volver + 'Ver futuro<i></i></div><input id="btslider" type="range" min="0" max="3" step="1" value="' + Math.max(0, i) + '"><div class="tk"><span>Final</span><span>10 s</span><span>20 s</span><span>30 s</span></div><div class="fi">Dónde estarían tus tropas pasado ese tiempo, si el enemigo se queda quieto.</div>'; }
+  if (!sel.length) return volver + 'Formación<i></i></div>Elige antes un regimiento: toca su estandarte.';
+  let ks = null; for (const r of sel) { const k = b.formacionesPosibles ? (b.formacionesPosibles(r) || []) : []; ks = ks ? ks.filter(x => k.indexOf(x) >= 0) : k.slice(); }
+  ks = ks || []; const act = k => sel.every(r => (r.form || 'normal') === k), cur = ks.find(act) || B.formVer, d = cur && F[cur];
+  return volver + 'Formación · ' + esc(sel[0].name || sel[0].u.n) + (sel.length > 1 ? ' +' + (sel.length - 1) : '') + '<i></i></div><div class="pbt pf">' + ks.map(k => '<button data-act="bformsel" data-v="' + k + '"' + (act(k) ? ' class="on"' : '') + '>' + esc(F[k] ? F[k].n : k) + '</button>').join('') + '</div>' +
+    (d ? '<div class="fi"><b>' + esc(d.n) + '</b>: gana ' + esc(d.gana || '—') + ' · pierde ' + esc(d.pierde || '—') + '</div>' : '<div class="fi">Pulsa una formación para ver lo que da y lo que quita.</div>');
 }
 function entraPlan(B) {
   const bt = $('battle'); bt.classList.add('ronda');
@@ -774,7 +788,7 @@ function rondaHud() {
   { let cr = $('bcartas'); if (!cr) { cr = document.createElement('div'); cr.id = 'bcartas'; $('bctl').parentNode.insertBefore(cr, $('bctl')); }
     const ver = B.modo === 'plan' && !b.over, ck = ver ? filaCartas(B) : ''; if (cr.dataset.k !== ck) { cr.dataset.k = ck; cr.innerHTML = ck; } cr.style.display = ver ? '' : 'none';
     if (ver && B.avisoGen !== b.ronda && b.genDown[0]) { B.avisoGen = b.ronda; toast('Cayó tu general: solo ' + b.mandoPuntos().max + ' órdenes por ronda.', 'bad'); } }
-  const mp = b.mandoPuntos(), fk = mp.usados + '/' + mp.max + b.cartas.join() + b.cartaPlan + b.cartaRonda + '|' + B.modo + '|' + B.speed + '|' + B.paused + '|' + (B.mas ? 'm' : '') + '|' + (B.modo === 'cond' ? condSel(B).map(r => r.id + (r.order.cond || '')).join() : B.modo === 'plan' && B.view && B.view.propios ? B.view.propios().map(r => r.id + (tipoOrden(r) || '-')).join() : '');
+  const mp = b.mandoPuntos(), fk = mp.usados + '/' + mp.max + b.cartas.join() + b.cartaPlan + b.cartaRonda + '|' + B.modo + '|' + B.speed + '|' + B.paused + '|' + (B.mas ? 'm' + B.mas : '') + '|' + (B.modo === 'cond' ? condSel(B).map(r => r.id + (r.order.cond || '')).join() : B.modo === 'plan' && B.view && B.view.propios ? B.view.propios().map(r => r.id + (tipoOrden(r) || '-')).join() : '');
   if (fk !== B.filaKey) { B.filaKey = fk; $('bctl').innerHTML = filaRonda(B); }
   const pn = $('bpanel'), tx = textoRonda(B); if (pn) {
     if (tx !== B.panelTx) { B.panelTx = tx; B.panelT = performance.now(); pn.innerHTML = tx; }
@@ -877,6 +891,14 @@ document.addEventListener('click', function (e) {
     case 'bgrp': { const g = GRUPOS_L1.find(q => q[0] === v); if (g) B.view.selPorClase(g[2]); break; }
     case 'bord': { const t = B.view.darOrden(v); if (t) { B.filaKey = ''; B.panelTx = null; } else toast(B.view.propios().length ? 'Ese regimiento no puede recibir esa orden ahora.' : 'Elige antes un regimiento: toca su estandarte.'); break; }
     case 'bsig': { const r = B.view.siguienteReg(1); if (r) { B.view.centrarEn(r.x, r.y); B.filaKey = ''; B.panelTx = null; } break; }
+    case 'bformas': B.mas = 'form'; B.panelTx = null; break;
+    case 'btiempo': B.mas = 'tiempo'; B.panelTx = null; break;
+    case 'batajos': B.mas = 'atajos'; B.atajoTx = null; B.panelTx = null; break;
+    case 'bformsel': { const sel = B.view.propios(); B.formVer = v; let fallo = null; for (const r of sel) if (!B.b.ponerFormacion(r, v)) fallo = fallo || B.b.motivo || 'No se puede ahora.'; if (fallo) toast(fallo, 'bad'); B.panelTx = null; B.filaKey = ''; break; }
+    case 'bfrente': { const on = B.view.activaFrente(); B.mas = false; B.panelTx = null; if (on && !B.view.propios().length) { B.view.activaFrente(false); toast('Elige antes un regimiento: toca su estandarte.'); } else if (on) toast('Arrastra el dedo sobre el campo, de un extremo a otro del frente.'); break; }
+    case 'bjuntos': { const sel = B.view.propios(); if (sel.length < 2) { toast('Elige varios regimientos (botón «Todas») para que marchen juntos.'); break; } const n = B.b.agrupar(sel); toast(n === false || n === 0 ? (B.b.motivo || 'No pueden marchar juntos ahora.') : 'Marchan juntos, a la velocidad del más lento.', n === false || n === 0 ? 'bad' : undefined); B.mas = false; B.panelTx = null; break; }
+    case 'brelevar': { const r = B.view.propios().find(q => q.linea); if (!r) { toast('Elige un regimiento romano con su línea (I, II o III).'); break; } const n = B.b.relevarLinea(0, r.linea); toast(n ? 'Relevo: ' + n + (n === 1 ? ' regimiento cambia' : ' regimientos cambian') + ' de línea.' : 'No hay relevo posible ahora.', n ? undefined : 'bad'); B.mas = false; B.panelTx = null; break; }
+    case 'bataj': { const sel = B.view.propios(), regs = sel.length ? sel : B.b.regs.filter(q => q.side === 0 && q.st === 'ok'), q = B.b.atajo(v, regs); B.atajoTx = q ? q.txt : (B.b.motivo || 'Ahora no sirve.'); if (q) toast(q.txt); B.panelTx = null; B.filaKey = ''; break; }
     case 'bmas': B.mas = !B.mas; B.choque = null; B.panelTx = null; B.filaKey = ''; break;
     case 'bpmin': B.pmin = !B.pmin; break;
     case 'bsalto': B.view.saltoAla(+v); break;
@@ -934,3 +956,6 @@ loadStaticIndex().then(idx => Promise.all([preloadStatic(Object.keys(idx)), load
   catch (e) { console.warn('Sin vista 3D de ciudad', e); $('citywrap').hidden = true; }
 });
 window.UI = UI;
+
+// N7: el deslizador de tiempo de «Ver futuro» (4 posiciones: final, 10, 20, 30 s)
+document.addEventListener('input', ev => { const t = ev.target; if (!t || t.id !== 'btslider' || !UI.battle || !UI.battle.view || !UI.battle.view.ponTPrev) return; UI.battle.view.ponTPrev([0, 10, 20, 30][+t.value] || 0); });

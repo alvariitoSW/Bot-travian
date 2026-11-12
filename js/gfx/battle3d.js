@@ -345,7 +345,10 @@ export class BattleView3D {
   }
 
   slot(R, j, cx, cz, ang) {
-    const f = R.f, cols = Math.min(f.cols, R.F), c = j % cols, row = Math.floor(j / cols), rows = Math.ceil(R.n / cols);
+    let f = R.f;
+    const B = typeof Battle !== 'undefined' ? Battle : null, r0 = R.r;   // N7: forma del motor (metros de simulación, hombres reales) pasada a las pocas figuras dibujadas
+    if (B && B.forma) { try { const n = Math.max(R.F, r0.men || R.F), m = B.forma(r0, n); if (m && m.sep > 0 && m.files > 0) { const k = Math.sqrt(n / R.F), cl = Math.max(1, Math.round(m.files / k)), sp = m.sep * S * k; f = { cols: cl, sx: Math.max(sp, f.sx * 0.85), sz: Math.max(sp, f.sz * 0.85) }; } } catch (e) { /* sin forma: se queda lo de hoy */ } }
+    const cols = Math.min(f.cols, R.F), c = j % cols, row = Math.floor(j / cols), rows = Math.ceil(R.n / cols);
     const inRow = row === rows - 1 ? R.n - row * cols : cols;                                  // la última fila, incompleta, va centrada
     const lx = (c - (inRow - 1) / 2) * f.sx + (hash(j * 7.3 + R.r.id) - 0.5) * 0.3, lf = ((rows - 1) / 2 - row) * f.sz + (hash(j * 3.9 + R.r.id) - 0.5) * 0.3, ca = Math.cos(ang), sa = Math.sin(ang);
     return [cx + ca * lf - sa * lx, cz + sa * lf + ca * lx, row];
@@ -496,6 +499,7 @@ export class BattleView3D {
     if (this.flags.scrollLeft || this.flags.scrollTop) { this.flags.scrollLeft = 0; this.flags.scrollTop = 0; }
     for (const R of this.R) {
       const r = R.r, ok = r.st === 'ok';
+      if (r.linea && r.side === 0) { const ln = ['', 'I', 'II', 'III'][r.linea] || ''; if (R.lnTxt !== ln) { R.lnTxt = ln; R.el.dataset.l = ln; if (R.card) R.card.dataset.l = ln; } }
       if (R.card) { R.card.classList.toggle('sel', this.sel.has(r)); R.card.classList.toggle('out', !ok); R.card.classList.toggle('cans', ok && r.fat >= 60); R.cbar.style.width = (r.men / r.max * 100) + '%'; R.cbar.style.background = r.mor / r.morMax > 0.5 ? '#7ddc5a' : r.mor / r.morMax > 0.25 ? '#f0c040' : '#e8503a'; R.cnum.textContent = ok ? r.men : r.st === 'dead' ? '☠' : '🏳'; }
       if (!ok && r.st !== 'rout') { R.el.style.display = 'none'; continue; }
       const w = this.toW(r.x, r.y); let x = w[0], z = w[1];
@@ -582,15 +586,20 @@ export class BattleView3D {
   }
   /* ---------- N2: vista previa («sombra») de la ronda ---------- */
   // firma de lo que decide la sombra: posición y orden de cada regimiento propio
-  firmaPlan() { let f = ''; for (const r of this.b.regs) if (r.side === 0 && r.st === 'ok') { const o = r.order; f += r.id + ':' + (r.x | 0) + ',' + (r.y | 0) + (o ? o.k + (o.k === 'atk' ? o.r.id : (o.x | 0) + ',' + (o.y | 0)) + (o.cond || '') : '-') + ';'; } return f + (this.b.cartaPlan || ''); }
+  firmaPlan() { let f = ''; for (const r of this.b.regs) if (r.side === 0 && r.st === 'ok') { const o = r.order; f += r.id + ':' + (r.x | 0) + ',' + (r.y | 0) + (o ? o.k + (o.k === 'atk' ? o.r.id : (o.x | 0) + ',' + (o.y | 0)) + (o.cond || '') + (o.form || '') : '-') + (r.form || '') + ';'; } return f + (this.b.cartaPlan || ''); }
   dibujaPlan() {
     const cv = this.pcv, b = this.b; if (!cv) return; const W = this.host.clientWidth || 1, H = this.host.clientHeight || 1;
     if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
     const x = cv.getContext('2d'); x.clearRect(0, 0, W, H);
     const ver = b.rondas && b.fase === 'plan' && !b.over; if (cv.style.display !== (ver ? '' : 'none')) cv.style.display = ver ? '' : 'none';   // fuera del plan el lienzo se oculta: no queda ninguna flecha vieja
     if (!ver) { this.haySombras = false; if (this.pSucio) { cv.width = W; this.pSucio = false; } return; }   // al vaciar el lienzo se reinicia: así el navegador no deja flechas viejas
-    const now = performance.now(), sig = this.firmaPlan();
-    if (sig !== this.sombraSig && now - this.sombraT > 220) { this.sombraSig = sig; this.sombraT = now; this.sombras = b.prevision(); }
+    const now = performance.now(), sig = this.firmaPlan(), tp = this.tPrev || 0;
+    if ((sig !== this.sombraSig || tp !== this.sombraTp) && now - this.sombraT > 220) {
+      this.sombraSig = sig; this.sombraTp = tp; this.sombraT = now;
+      if (tp && this.prevFirma !== sig) { this.prevFirma = sig; try { this.prevRes = b.prevision([10, 20, 30]); } catch (e) { this.prevRes = null; } }   // una sola previsión por plan; el deslizador la reutiliza
+      const rs = tp ? this.prevRes : null;
+      this.sombras = rs && rs[0] && rs[0].sombras ? (rs.find(q => q.t === tp) || rs[0]).sombras : b.prevision();
+    }
     const v = new THREE.Vector3(), pr = (px, py) => { const w = this.toW(px, py); v.set(w[0], this.h(w[0], w[1]) + 0.6, w[1]).project(this.cam); return v.z < 1 ? [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H] : null; };
     const col = b.cfg.sides[0].col, usados = []; let hay = 0;
     // N5: círculo dorado tenue del radio de mando alrededor del general propio
@@ -691,16 +700,34 @@ export class BattleView3D {
     const cv = this.tcv, W = this.host.clientWidth || 1, H = this.host.clientHeight || 1; if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
     const rc = this.cv.getBoundingClientRect(), x = cv.getContext('2d'); x.clearRect(0, 0, W, H); if (T.s.length < 2) return;
     x.lineCap = 'round'; x.lineJoin = 'round';
-    const trazo = (w, c) => { x.beginPath(); T.s.forEach((p, i) => { const px = p[0] - rc.left, py = p[1] - rc.top; i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.lineWidth = w; x.strokeStyle = c; x.stroke(); };
+    const trazo = (w, c) => { x.beginPath(); (T.frente ? [T.s[0], T.s[T.s.length - 1]] : T.s).forEach((p, i) => { const px = p[0] - rc.left, py = p[1] - rc.top; i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.lineWidth = w; x.strokeStyle = c; x.stroke(); };
     trazo(9, 'rgba(120,16,12,.85)'); trazo(4, '#f2cf72');
     const q = T.s[T.s.length - 1], px = q[0] - rc.left, py = q[1] - rc.top; x.beginPath(); x.arc(px, py, 7, 0, 7); x.fillStyle = '#f2cf72'; x.fill();
+    if (T.frente) { this.etiqueta('Frente', px, py); return; }
     const c = clasificarTrazo(T.w, this.b); this.etiqueta(c ? this.nombreOrden(c.tipo) : '', px, py);
   }
+  /* ---------- N7: frente con ancho y ángulo (arrastrar de un extremo a otro) ---------- */
+  activaFrente(on) { this.modoFrente = on == null ? !this.modoFrente : !!on; if (!this.modoFrente) this.limpiaTrazo(); return this.modoFrente; }
+  // reparte la línea trazada entre los regimientos elegidos (de izquierda a derecha del trazo); cada uno mira hacia el enemigo
+  ejecutarFrente(T) {
+    const b = this.b; if (!T.w || T.w.length < 2 || !b.fijarFrente) { if (this.opts.aviso) this.opts.aviso('Trazo muy corto: arrastra más largo.'); return 0; }
+    const A = T.w[0], Z = T.w[T.w.length - 1], L = Math.hypot(Z[0] - A[0], Z[1] - A[1]); if (L < 14) { if (this.opts.aviso) this.opts.aviso('Trazo muy corto: arrastra más largo.'); return 0; }
+    const dx = (Z[0] - A[0]) / L, dy = (Z[1] - A[1]) / L, sel = this.propios().filter(r => r.st === 'ok').sort((p, q) => ((p.x - A[0]) * dx + (p.y - A[1]) * dy) - ((q.x - A[0]) * dx + (q.y - A[1]) * dy));
+    if (!sel.length) return 0; const en = b.regs.filter(r => r.side === 1 && r.st === 'ok'); let ex = b.W / 2, ey = b.H / 2; if (en.length) { ex = en.reduce((s, r) => s + r.x, 0) / en.length; ey = en.reduce((s, r) => s + r.y, 0) / en.length; }
+    let nx = -dy, ny = dx; if ((ex - (A[0] + Z[0]) / 2) * nx + (ey - (A[1] + Z[1]) / 2) * ny < 0) { nx = -nx; ny = -ny; }
+    const ang = Math.atan2(ny, nx), seg = L / sel.length, lim = (v, a, z) => Math.max(a, Math.min(z, v)); let n = 0;
+    sel.forEach((r, i) => { const t = seg * (i + 0.5); if (b.fijarFrente(r, { x: lim(A[0] + dx * t, 20, b.W - 20), y: lim(A[1] + dy * t, 20, b.H - 20), ang, ancho: seg })) n++; r.tgt = null; });
+    if (n < sel.length && this.opts.aviso) this.opts.aviso(b.motivo || 'Ese frente no se puede formar ahora.', 'bad'); else if (this.opts.aviso) this.opts.aviso('Frente fijado.');
+    this.avisoFrente = null; this.ultimaOrden = { txt: 'Frente', t: performance.now() }; return n;
+  }
+  // N7: instante de la sombra en pausa (null = la final de hoy)
+  ponTPrev(t) { this.tPrev = t || null; this.sombraT = 0; }
   nombreOrden(t) { return { cargar: 'Cargar', avanzar: 'Avanzar', flanquear: 'Flanquear', retirar: 'Retirar', mantener: 'Mantener' }[t] || ''; }
   etiqueta(txt, px, py) { const e = this.tet; e.textContent = txt; e.style.opacity = txt ? 1 : 0; if (txt) e.style.transform = 'translate(' + Math.round(Math.min(this.host.clientWidth - 70, Math.max(6, px + 12))) + 'px,' + Math.round(Math.max(6, py - 34)) + 'px)'; }
   limpiaTrazo() { const cv = this.tcv; if (cv) cv.getContext('2d').clearRect(0, 0, cv.width, cv.height); if (this.tet) this.tet.style.opacity = 0; }
   // da la orden reconocida a todos los seleccionados (conservando su disposición relativa)
   ejecutarTrazo(T) {
+    if (T.frente) { this.limpiaTrazo(); this.modoFrente = false; return this.ejecutarFrente(T); }
     const c = clasificarTrazo(T.w, this.b), last = T.s[T.s.length - 1], rc = this.cv.getBoundingClientRect();
     this.limpiaTrazo(); if (!c || this.b.over || this.b.fase === 'ejecucion') return;
     const sel = [...this.sel].filter(r => r.st === 'ok'); if (!sel.length) return;
@@ -744,6 +771,7 @@ export class BattleView3D {
         }
         // L1: con un regimiento propio seleccionado, el arrastre que empieza sobre él (o cerca) dibuja una orden
         const ini = this.trazoIni; this.trazoIni = false;
+        if (this.modoFrente && this.b.fase === 'plan' && !this.b.over && this.sel.size && !st.drag) st.trazo = { s: [[e.clientX, e.clientY]], w: [], frente: true }; else
         if (this.b.fase !== 'despliegue' && this.b.fase !== 'ejecucion' && !this.b.over && !st.drag && this.sel.size) {
           let ok = ini; if (!ok && g) { const fx = g[0] / S + this.b.W / 2, fy = g[1] / S + this.b.H / 2; for (const r of this.sel) if (r.st === 'ok' && Math.hypot(r.x - fx, r.y - fy) < 46) ok = true; }
           if (ok) st.trazo = { s: [[e.clientX, e.clientY]], w: [] };

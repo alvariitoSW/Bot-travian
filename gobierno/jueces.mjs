@@ -185,6 +185,21 @@ async function navegador() {
       return { ok: en3d, detalle: en3d ? vivos : 'la batalla no se ve en 3D (vista de reserva)', captura };
     });
 
+    // N7: formaciones, tres líneas y sombras por tiempos (se prueba sobre la batalla en curso)
+    await paso('N7: formaciones, líneas y sombras a 10/20/30 s', async () => {
+      const r = await estado(() => {
+        const b = UI.battle && UI.battle.b; if (!b || !window.Battle && !b.formacionesPosibles) return { ok: false, t: 'sin batalla' };
+        const mios = b.regs.filter(q => q.side === 0 && q.st === 'ok');
+        const conForma = mios.filter(q => b.formacionesPosibles(q).length > 1).length;
+        const lineas = mios.filter(q => q.linea).length;
+        const pv = b.prevision([10, 20, 30]);
+        const okPv = Array.isArray(pv) && pv.length === 3 && pv.every(x => x.sombras && x.sombras.length);
+        const dim = mios.every(q => { const f = b.constructor.forma(q); return f && f.ancho > 0 && f.fondo > 0; });
+        return { ok: conForma > 0 && okPv && dim, t: conForma + ' regimientos con formaciones · ' + lineas + ' con línea · sombras ' + (okPv ? 'a 3 tiempos' : 'mal') };
+      });
+      return { ok: !!(r && r.ok), detalle: r && r.t };
+    });
+
     await paso('La batalla termina y se aplica el resultado', async () => {
       // «Resolver» está en la fila durante la ejecución y, en el plan, dentro del panel «Más»
       if (!(await page.locator('[data-act="bskip"]').count())) {
