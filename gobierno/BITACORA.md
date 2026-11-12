@@ -117,6 +117,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 ## Esperando algo del usuario
 
 ## Propuestas por aprobar
+- P96 **Mover un edificio** (propuesta de CN4, 12/11; ≈0,4 M): `G.moverPieza` en `js/game.js` y su botón «Mover» en la ficha del edificio. Hoy no hay forma de moverlo: derribar y volver a colocar borra las mejoras. Toca `game.js` y `ui.js`; iría con la vía Ciudad después de I3b.
 
 
 ## Encargo en curso (11/11/2026, noche)
