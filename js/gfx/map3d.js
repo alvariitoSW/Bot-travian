@@ -13,6 +13,9 @@ const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s
 
 /* relieve: alturas reales (assets/mapa/alturas.js, misma malla que el mapa) a ESCALA_V unidades por metro; sin árboles sobre ARBOL_MAX m */
 const ESCALA_V = 0.0008, ARBOL_MAX = 1800;
+/* realce local de dos cumbres que la malla de alturas aplana (Etna 3330 m reales frente a 2630 en los datos; Olimpo 2917 frente a 2305): factor f en el pico, que baja hasta 1 a r grados. Licencia de juego para que se lean con roca y nieve */
+const PICOS_REALCE = [{ lo: 15.0, la: 37.75, r: 0.55, f: 1.4 }, { lo: 22.35, la: 40.09, r: 0.55, f: 1.4 }];
+const realce = (lo, la) => { let f = 1; for (const p of PICOS_REALCE) { const t = 1 - Math.hypot(lo - p.lo, la - p.la) / p.r; if (t > 0) f = Math.max(f, 1 + (p.f - 1) * t * t * (3 - 2 * t)); } return f; };
 /* Mar con orillas: la distancia firmada a la costa (casillas; negativa en tierra) se hornea en una textura de 8 bits a DOBLE resolución
    (el campo se interpola entre nodos y el cruce por cero sigue la costa) y el sombreador del propio plano de mar dibuja con ella
    franjas de espuma que suben y bajan (más ruido y tiempo) y agua clara en el bajío. Sin triángulos nuevos. */
@@ -108,7 +111,7 @@ export class MapView3D {
     for (let j = 0; j <= NZ; j++) for (let i = 0; i <= NX; i++) {
       const k = j * W1 + i, lo = lonOf(i), la = latOf(j), d = dist[k];
       if (!land[k]) { H[k] = -Math.min(d, 10) * 0.085; continue; }                  // mar: fondo suave, nunca bajo -0,85
-      const n2 = Math.sin(lo * 9.7 + la * 4.1) * Math.cos(la * 11.3 - lo * 3.3), hm = Math.max(0, metros[k]) * ESCALA_V;
+      const n2 = Math.sin(lo * 9.7 + la * 4.1) * Math.cos(la * 11.3 - lo * 3.3), hm = Math.max(0, metros[k]) * ESCALA_V * realce(lo, la);
       // tierra: suelo mínimo con playa suave (solo a menos de 2,5 casillas de la costa) y altura real por encima, que sube con la distancia a la orilla
       H[k] = 0.05 + Math.min(d, 2.5) * 0.026 + hm * (0.4 + 0.6 * sua(Math.max(0, Math.min(1, (d - 0.5) / 2)))) + n2 * 0.035 * (0.3 + hm) * Math.min(1, d / 3);
     }

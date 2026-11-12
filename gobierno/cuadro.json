@@ -774,6 +774,16 @@
    "archivo": "gobierno/capturas-tarea/N14-cerro-p4.jpg",
    "pie": "Cerro",
    "ancha": true
+  },
+  {
+   "tarea": "C2c",
+   "archivo": "gobierno/capturas-tarea/C2c-sicilia.jpg",
+   "pie": "El Etna ahora se lee como monte con cumbre clara"
+  },
+  {
+   "tarea": "C2c",
+   "archivo": "gobierno/capturas-tarea/C2c-grecia.jpg",
+   "pie": "El Olimpo, cerca de Pella, con su cumbre"
   }
  ],
  "informes": [
