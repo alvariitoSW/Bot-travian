@@ -826,6 +826,18 @@
    "tarea": "CN3",
    "archivo": "gobierno/capturas-tarea/CN3-ruina.jpg",
    "pie": "Casas en ruina"
+  },
+  {
+   "tarea": "N7",
+   "archivo": "gobierno/capturas-tarea/N7-3-formacion.jpg",
+   "pie": "Formación: testudo, con lo que gana y lo que pierde",
+   "ancha": true
+  },
+  {
+   "tarea": "N7",
+   "archivo": "gobierno/capturas-tarea/N7-7-tiempo.jpg",
+   "pie": "Ver futuro: sombras a 10, 20 y 30 s",
+   "ancha": true
   }
  ],
  "informes": [
