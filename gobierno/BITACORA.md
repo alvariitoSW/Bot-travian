@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 12/11/2026 — **P93 Ciencia, respuestas** (desde el chat): precio de los saberes **fijo con tope** (no ligado a la producción); paga de sabios «Sí, así»; arreglar la paga de tropas con el oro a cero en tarea aparte (I3b); Medicina con el año o con 5 ciudades. Escuela sin modelo nuevo y Reformar opcional, por defecto. Recogido en §11 de `estudios/P93-ciencia.md`; I5 se reparte en I5, I5b, I5c e I5d (tablero).
 - 12/11/2026 — **P95 aprobada**: «Vale pues añade esa mejora ya en otra rama y cuando termines súbela a main y cierra sesion». Pasa al tablero como C6. (Lectura de Claude: se construye en la rama `claude/c6-mapa-escalones` después de I6, se une a la rama del juego con los jueces en APTO y `main` se pone al día con ella.)
 - 12/11/2026 — **Kit de mapas three-scope-map**: «Instala este repositorio para que nos sirva para las regiones» (github.com/songsummer920-dazzle/three-scope-map-skill). Explicado que la licencia no es libre, que es Vue o React compilado y que trae mapas de China; eligió «A, b y C». (Lectura de Claude: A, la idea de bajar de nivel apuntada en J4 y C1; B, estudio `estudios/R20-niveles-de-mapa.md` y propuesta P95; C, copia de consulta en `.claude/skills/three-scope-map/`, sin plantillas, mapas ni scripts, con su licencia y avisos, y sin entrar en el juego.)
 - 12/11/2026 — **Madera naval: «Crearlas con J4»** (respuesta en el chat a la pregunta de H11b): Perusia, Clusio y Rusellae no existen en el mapa; se crean dentro de J4 (mapa más grande por regiones) y entonces la madera naval pasa a ellas. Mientras, queda en Siracusa y Panormus. H11b hecha (cotejo aplicado en 38 fichas, `6b24358`).
@@ -114,9 +115,6 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
 ## Esperando algo del usuario
-- **P93 Ciencia, estudio terminado** (`gobierno/estudios/P93-ciencia.md`, 62 KB; ver cuadro): ¿te parece bien el precio de los saberes ligado a tu producción (≈39 meses de producción en total) o prefieres un precio fijo con tope? (A) Ligado a la producción; (B) Precio fijo con tope
-- **P93: dureza de la paga de los sabios** (sube con el total de sabios: 10 cuestan 2,7 oro/mes, 30 cuestan 10,5, 60 cuestan 28 en la Edad I): ¿es la dureza que quieres? (A) Sí, así; (B) Más suave; (C) Más dura
-- **P93: el agujero de la paga de tropas** (con el oro a cero, unas 252 oro/mes se evaporan en la campaña del bot; cambiaría los resultados de los bots): ¿lo arreglamos en una tarea aparte? (A) Sí, tarea aparte; (B) Lo dejamos como está
 
 ## Propuestas por aprobar
 

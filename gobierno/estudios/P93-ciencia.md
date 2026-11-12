@@ -446,3 +446,12 @@ Resumen: la revisión encontró 13 trampas. Se cierran todas. Los cambios están
 - Ajustes de coherencia por mi cuenta: Corvus pasa a ×1,07 para que con Pilum quepa justo en el techo ×1,10; Magón baja de precio y gana `hambre`; el techo de impuestos de la ciencia sube a ×1,12 para no anular a Acoger cuando se combina con Viña.
 
 **Fuera de este estudio**: la paga de las tropas tiene el mismo agujero (con oro y almacén a cero, 252 oro/mes se evaporan en la campaña del bot). No se toca aquí porque cambiaría los resultados de los bots; queda como pregunta al usuario.
+
+## 11. Decisiones del usuario (12/11/2026, tras leer el resumen)
+Estas decisiones **mandan sobre el resto del estudio**:
+1. **Precio de los saberes: FIJO CON TOPE** (no ligado a la producción, §4.6 queda sin efecto). Cada saber tiene un precio fijo por edad con un tope de costes por saber y por turno. El freno contra el jugador que lo compra todo enseguida pasa a ser: la paga creciente de los sabios (§2.4), el solar y los reclutas que cuesta la Escuela, los seis pares «o tú o yo», los techos duros por campo (también sobre el resultado final con bienes y tipos de ciudad), que subir de edad pida mundo (ciudades), y que nada de lo que investigas acelere el investigar (salvo Eureka). El constructor de I5 recalibra con `tools/calibra-saber.mjs`: ningún camino debe cerrar el árbol de 16 antes del mes 300 ni un imperio grande comprarlo todo con la producción de dos años; si con precio fijo no se consigue, lo dice en el parte y propone un precio fijo más alto en Edad III y IV (decide el usuario).
+2. **Paga de los sabios: como está** (sube con el total de sabios del imperio).
+3. **Paga de las tropas con el oro a cero:** se arregla en una tarea aparte (I3b en el tablero), antes de I5b.
+4. **Medicina:** se abre con el año (219 a.C.) o con 5 ciudades, lo que llegue antes.
+5. (Por defecto, sin pregunta) La Escuela no lleva modelo 3D nuevo: reutiliza una pieza que ya exista en la ciudad (CN3 ya dibuja piezas; no hay arte nuevo). I5b lo concreta.
+6. (Por defecto) «Reformar» queda como I5d opcional, después de jugar el sistema.
