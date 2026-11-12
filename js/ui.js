@@ -546,7 +546,7 @@ function battlePrompt() {
 function startBattle() {
   closeModal();
   $('battle').hidden = false;
-  const cfg = Object.assign({}, UI.binfo.cfg, { fh: 1000, despliegue: true }), b = new window.Battle(cfg), B = { b: b, speed: 1, paused: false, acc: 0, endT: 0 };
+  const cfg = Object.assign({}, UI.binfo.cfg, { fh: 1000, despliegue: true, rondas: true }), b = new window.Battle(cfg), B = { b: b, speed: 1, paused: false, acc: 0, endT: 0 };
   try { B.view = new BattleView3D($('bfield'), b, { cards: $('bcards'), speed: () => (B.paused || b.over ? 0 : B.speed) }); }
   catch (e) { // sin WebGL: vista 2D de reserva
     console.warn('WebGL no disponible, usando vista 2D', e);
@@ -566,7 +566,7 @@ function startBattle() {
 }
 // repone la barra de mando y el texto de ayuda de antes del despliegue
 function reponerBarra(B) { if (!B || B.barra == null) return; $('bctl').style.flexWrap = ''; $('bctl').classList.remove('desp'); $('battle').classList.remove('desp'); $('bctl').innerHTML = B.barra; $('bhint').innerHTML = B.hint; B.barra = null; }
-function stopBattle() { const B = UI.battle; if (B) { quitaMandoL1(B); reponerBarra(B); if (B.view.dispose) B.view.dispose(); if (B.flat) B.flat.remove(); } $('battle').hidden = true; UI.battle = null; UI.binfo = null; if (UI.map) UI.map.resize(); }
+function stopBattle() { const B = UI.battle; if (B) { $('battle').classList.remove('ronda'); const pn = $('bpanel'); if (pn) pn.remove(); quitaMandoL1(B); reponerBarra(B); if (B.view.dispose) B.view.dispose(); if (B.flat) B.flat.remove(); } $('battle').hidden = true; UI.battle = null; UI.binfo = null; if (UI.map) UI.map.resize(); }
 // L1: mando con el dedo: botón dorado de orden recomendada, minimapa táctil y grupos por clase
 const GRUPOS_L1 = [['inf', 'Infantería', ['inf', 'spear', 'ele']], ['rng', 'Tiradores', ['rng']], ['cav', 'Caballería', ['cav', 'gen']]];
 function montaMandoL1(B) {
@@ -602,8 +602,59 @@ function actualizaL1(B) {
   x.strokeStyle = '#e3b54a99'; x.lineWidth = 2; x.strokeRect(1, 1, W - 2, H - 2);
 }
 function battleHud() {
+  if (rondaHud()) return;
   const b = UI.battle.b, s0 = b.cfg.sides[0], s1 = b.cfg.sides[1], n0 = b.men(0), n1 = b.men(1), mo = sd => { let a = 0, t = 0; for (const r of b.regs) if (r.side === sd && r.st === 'ok') { a += r.mor / r.morMax * r.men; t += r.men; } return t ? Math.round(a / t * 100) : 0; }, m0 = mo(0), m1 = mo(1), key = n0 + '|' + n1 + '|' + m0 + '|' + m1; actualizaL1(UI.battle); if (key === UI.hudKey) return; UI.hudKey = key;
   $('bhud').innerHTML = '<div class="nm"><span style="color:#ff9c8c">' + esc(s0.name) + ' · ' + n0 + ' <small>moral ' + m0 + '%</small></span><span><small>moral ' + m1 + '%</small> ' + n1 + ' · ' + esc(s1.name) + '</span></div><div class="bar"><i style="width:' + n0 / Math.max(1, n0 + n1) * 100 + '%;background:' + s0.col + '"></i><i style="flex:1;background:' + s1.col + '"></i></div>';
+}
+/* ---------- rondas (N2): plan, ejecución e informe ---------- */
+// fila única de botones de abajo, según el momento de la ronda
+function filaRonda(B) {
+  const C = window.Battle.CONDICIONES, sel = condSel(B), act = c => sel.length && sel.every(r => (r.order.cond || '') === c);
+  switch (B.modo) {
+    case 'ejec': return '<button data-act="bpause" id="bpause">' + (B.paused ? '▶' : 'II') + '</button><button data-act="bspeed" id="bspeed">x' + B.speed + '</button><button data-act="bcam">Cámara</button><button data-act="bskip">Resolver</button>';
+    case 'informe': return '<button data-act="brepetir">Ver otra vez</button><button class="go on" data-act="bseguir">Seguir planeando</button>';
+    case 'cond': return Object.keys(C).map(k => '<button data-act="bcnd" data-v="' + k + '"' + (act(k) ? ' class="on"' : '') + '>' + C[k] + '</button>').join('') + '<button data-act="bcnd" data-v="">Sin condición</button><button class="on" data-act="bcondok">Listo</button>';
+    default: return '<button class="go on" data-act="bejec">Ejecutar ronda</button><button data-act="bchoque">Prever choque</button><button data-act="bcond" id="bcond">Condición</button><button data-act="ball">Todas</button><button data-act="bskip">Resolver</button>';
+  }
+}
+function condSel(B) { return B.view && B.view.sel ? [...B.view.sel].filter(r => r.st === 'ok' && r.side === 0 && r.order && r.order.k !== 'quieto') : []; }
+function rondaModo(B, m) {
+  B.modo = m; B.filaKey = ''; if (m === 'plan' || m === 'informe') B.paused = false;
+  if (m !== 'plan') B.choque = null;
+}
+function textoRonda(B) {
+  const b = B.b, v = B.view, C = window.Battle.CONDICIONES;
+  if (B.modo === 'ejec') return '';
+  if (B.modo === 'informe') return '<b>Lo que pasó</b> · ronda ' + (b.ronda - 1) + '<ul>' + b.hechos.map(h => '<li>' + esc(h) + '</li>').join('') + '</ul>';
+  if (B.modo === 'cond') { const sel = condSel(B); if (!sel.length) return 'Elige un regimiento con orden y vuelve a pulsar «Condición».'; const r = sel[0], c = r.order.cond; return '<b>' + esc(r.name || r.u.n) + (sel.length > 1 ? ' y ' + (sel.length - 1) + ' más' : '') + '</b>: ' + (c ? esc(C[c]) + '.' : 'sin condición. Elige una (solo una por orden).'); }
+  if (B.choque && performance.now() < B.choqueT) return B.choque;
+  if (condSel(B).length) return 'Orden dada. «Condición» le añade una regla, como aguantar si lo cargan.';
+  if (v && v.haySombras) return 'La silueta marca dónde acabarían tus tropas si el enemigo se queda quieto. <b>El enemigo puede moverse.</b>';
+  return 'Toca un regimiento y dibuja adónde va. Después, «Ejecutar ronda».';
+}
+function entraPlan(B) {
+  const bt = $('battle'); bt.classList.add('ronda');
+  if (!$('bpanel')) { const pn = document.createElement('div'); pn.id = 'bpanel'; $('bbottom').insertBefore(pn, $('bctl')); }
+  if (B.view && B.view.cycleCam && !B.camPlan) { B.camPlan = true; B.view.cycleCam(); const c = B.view.c; if (c) { c.dist = 270; c.z = B.view.halfD * 0.1; } }   // vista alta para planear
+  rondaModo(B, 'plan');
+}
+// una sola línea arriba: ronda y momento, fuerzas de los dos bandos. Devuelve true si pintó la del modo rondas.
+function rondaHud() {
+  const B = UI.battle, b = B.b; if (!b.rondas || !B.modo) return false;
+  actualizaL1(B);
+  if (!b.over) {
+    if (b.fase === 'ejecucion' && B.modo !== 'ejec') rondaModo(B, 'ejec');
+    else if (b.fase === 'plan' && B.modo === 'ejec') rondaModo(B, 'informe');
+  }
+  const s0 = b.cfg.sides[0], s1 = b.cfg.sides[1], n0 = b.men(0), n1 = b.men(1), ej = b.fase === 'ejecucion';
+  const seg = Math.max(0, Math.ceil(window.Battle.RONDA_SEG - b.tRonda)), tit = ej ? (b.repite ? 'Repetición' : 'Ronda ' + b.ronda) + ' · ' + seg + ' s' : 'Ronda ' + b.ronda + ' · Plan';
+  const key = tit + '|' + n0 + '|' + n1; if (key !== UI.hudKey) { UI.hudKey = key;
+    $('bhud').innerHTML = '<div class="r1"><b class="rt">' + tit + '</b><span class="n0" style="color:#ff9c8c">' + esc(s0.name) + ' ' + n0 + '</span><div class="bar"><i style="width:' + n0 / Math.max(1, n0 + n1) * 100 + '%;background:' + s0.col + '"></i><i style="flex:1;background:' + s1.col + '"></i></div><span class="n1">' + n1 + ' ' + esc(s1.name) + '</span></div>'; }
+  const fk = B.modo + '|' + B.speed + '|' + B.paused + '|' + (B.modo === 'cond' ? condSel(B).map(r => r.id + (r.order.cond || '')).join() : '');
+  if (fk !== B.filaKey) { B.filaKey = fk; $('bctl').innerHTML = filaRonda(B); }
+  const bc = $('bcond'); if (bc) bc.classList.toggle('off', !condSel(B).length);
+  const pn = $('bpanel'), tx = textoRonda(B); if (pn && tx !== B.panelTx) { B.panelTx = tx; pn.innerHTML = tx; pn.style.display = tx ? '' : 'none'; }
+  return true;
 }
 function endBattle(res) {
   const info = UI.binfo, out = G.applyBattle(res), d = D.CITIES[info.city];
@@ -690,7 +741,14 @@ document.addEventListener('click', function (e) {
     case 'bgrp': { const g = GRUPOS_L1.find(q => q[0] === v); if (g) B.view.selPorClase(g[2]); break; }
     case 'bcam': if (B.view.cycleCam) B.view.cycleCam(); break;
     case 'bform': B.b.formar(0, v); document.querySelectorAll('#bctl [data-act="bform"]').forEach(x => x.classList.toggle('on', x === el)); break;
-    case 'bstart': B.b.empezar(); reponerBarra(B); $('bauto').classList.add('on'); $('bspeed').textContent = 'x1'; $('bpause').textContent = 'II'; B.speed = 1; B.paused = false; $('bhint').style.opacity = 1; setTimeout(() => { $('bhint').style.opacity = 0; }, 7000); break;
+    case 'bejec': if (B.b.ejecutar()) { B.view.sel.clear(); B.speed = 1; rondaModo(B, 'ejec'); } break;
+    case 'bchoque': { const q = B.b.preverChoque(), n = B.b.cfg.sides, p = x => Math.round(x * 100) + ' %'; B.choque = 'Si chocan ya (aproximado): ' + (q.gana < 0 ? 'empate.' : q.claro ? 'ventaja de <b>' + esc(n[q.gana].name) + '</b>.' : 'muy igualado, algo mejor para <b>' + esc(n[q.gana].name) + '</b>.') + ' Conservarían ' + esc(n[0].name) + ' ' + p(q.f0) + ' y ' + esc(n[1].name) + ' ' + p(q.f1) + '.'; B.choqueT = performance.now() + 9000; break; }
+    case 'bcond': if (condSel(B).length) rondaModo(B, 'cond'); else toast('Elige un regimiento con orden: toca su estandarte y dibuja adónde va.'); break;
+    case 'bcnd': for (const r of condSel(B)) B.b.condicion(r, v || null); B.filaKey = ''; break;
+    case 'bcondok': rondaModo(B, 'plan'); break;
+    case 'bseguir': rondaModo(B, 'plan'); break;
+    case 'brepetir': if (B.b.repetir()) { if (B.view.reiniciaFiguras) B.view.reiniciaFiguras(); B.speed = 1; rondaModo(B, 'ejec'); } break;
+    case 'bstart': B.b.empezar(); reponerBarra(B); if (B.b.rondas) { B.speed = 1; B.paused = false; entraPlan(B); break; } $('bauto').classList.add('on'); $('bspeed').textContent = 'x1'; $('bpause').textContent = 'II'; B.speed = 1; B.paused = false; $('bhint').style.opacity = 1; setTimeout(() => { $('bhint').style.opacity = 0; }, 7000); break;
     case 'bskip': reponerBarra(B); B.b.finish(); break;
   }
 });

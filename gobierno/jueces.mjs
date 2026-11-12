@@ -162,7 +162,8 @@ async function navegador() {
       const capDespliegue = await foto('despliegue');
       await page.click('#bctl [data-act="bstart"]'); await espera(500);
       const carta = page.locator('#bcards > *').first();
-      if (await carta.count()) { await carta.click(); await espera(300); await page.mouse.click(520, 150); await espera(2500); }
+      if (await carta.count() && await carta.isVisible()) { await carta.click(); await espera(300); await page.mouse.click(520, 150); await espera(2500); }
+      if (await page.locator('#bctl [data-act="bejec"]').count()) { await page.click('#bctl [data-act="bejec"]'); await espera(3000); }
       const captura = await foto('batalla');
       const vivos = await estado(() => UI.battle ? UI.battle.b.men(0) + ' contra ' + UI.battle.b.men(1) : '');
       return { ok: en3d, detalle: en3d ? vivos : 'la batalla no se ve en 3D (vista de reserva)', captura };

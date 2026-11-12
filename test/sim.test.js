@@ -644,4 +644,39 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   const s = G.newGame('Vieja'); delete s.alm; delete s.cuarto; delete s.informe; delete s.gan; G.state = s; const cap = G.cap(); s.res = { madera: cap + 500, piedra: 100, hierro: 0, grano: 20, oro: 7 };
   G.migrarCaja(s); assert.strictEqual(s.alm.madera, cap); assert.strictEqual(s.res.madera, 500, 'lo que no cabe se queda en la caja'); assert.strictEqual(s.alm.piedra, 100);
   assert.strictEqual(s.cuarto.piedra, 25); assert.deepStrictEqual(s.informe, []); }
+// ---- N2 Rondas, vista previa, condiciones y «ver otra vez» ----
+{ const mkR = (seed, ex) => new Battle(Object.assign({ sides: [side({ hastati: 150, equites: 40 }), side({ libios: 150, numidas: 40 })], defender: 1, wall: 0, seed: seed || 8, rondas: true }, ex || {}));
+  const huella = b => JSON.stringify(b.estado());
+  // rondas: el plan está parado; ejecutar corre 20 s y vuelve al plan con la ronda siguiente
+  let b = mkR(); assert.strictEqual(b.fase, 'plan'); assert.strictEqual(b.ronda, 1);
+  const f0 = huella(b); for (let i = 0; i < 100; i++) b.step(0.05); assert.strictEqual(huella(b), f0, 'en el plan no pasa el tiempo');
+  assert(b.ejecutar() && b.fase === 'ejecucion'); assert(!b.ejecutar(), 'no se ejecuta dos veces');
+  let n = 0; while (b.fase === 'ejecucion' && n++ < 1000) b.step(0.05);
+  assert.strictEqual(b.fase, 'plan'); assert.strictEqual(b.ronda, 2); assert(Math.abs(b.t - 20) < 0.1, 'la ronda dura unos 20 s de simulación'); assert(b.hechos.length >= 2 && b.hechos.length <= 3, 'informe de 2 o 3 hechos');
+  b.ejecutar(); n = 0; while (b.fase === 'ejecucion' && n++ < 1000) b.step(0.05); assert.strictEqual(b.ronda, 3, 'las rondas alternan');
+  // sin rondas todo sigue igual: finish() resuelve sola y da el mismo resultado que sin la opción
+  { const a = new Battle({ sides: [side({ hastati: 150 }), side({ libios: 150 })], defender: 1, wall: 0, seed: 8 }), c = new Battle({ sides: [side({ hastati: 150 }), side({ libios: 150 })], defender: 1, wall: 0, seed: 8, rondas: true });
+    a.finish(); c.finish(); assert.deepStrictEqual(c.result(), a.result(), 'finish() ignora las rondas'); assert(c.over); }
+  // la batalla puede acabar a mitad de ronda y entonces no hay más plan
+  { const c = new Battle({ sides: [side({ hastati: 300, equites: 40 }), side({ milicia: 30 })], defender: 1, wall: 0, seed: 3, rondas: true }); let g = 0; while (!c.over && g++ < 60) { c.ejecutar(); let k = 0; while (c.fase === 'ejecucion' && !c.over && k++ < 1000) c.step(0.05); } assert(c.over && c.winner === 0, 'la batalla termina por rondas'); }
+  // vista previa: no toca la batalla real y mueve a los propios hacia donde se les ordena
+  b = mkR(9); const reg = b.regs.find(r => r.side === 0 && r.k === 'hastati'); reg.order = { k: 'move', x: reg.x + 120, y: reg.y - 150 };
+  const antes = huella(b), px = reg.x, py = reg.y, pr = b.prevision(); assert.strictEqual(huella(b), antes, 'la previsión no modifica la batalla'); assert.strictEqual(b.fase, 'plan');
+  const sombra = pr.find(q => q.id === reg.id); assert(sombra && Math.hypot(sombra.x - px, sombra.y - py) > 20, 'la sombra se aleja del punto de partida'); assert(Math.abs(sombra.y - (py - 150)) < 120 && sombra.x > px, 'y va hacia el destino');
+  const pc = b.preverChoque(); assert(pc.f0 >= 0 && pc.f0 <= 1 && pc.f1 >= 0 && pc.f1 <= 1 && huella(b) === antes, 'prever el choque tampoco toca la batalla');
+  { const fuerte = new Battle({ sides: [side({ hastati: 300, principes: 200 }), side({ milicia: 60 })], defender: 1, wall: 0, seed: 2, rondas: true }).preverChoque(); assert(fuerte.gana === 0 && fuerte.claro, 'el choque desigual lo gana el fuerte'); }
+  // «ver otra vez»: la repetición sale idéntica y vuelve al final guardado
+  b = mkR(11); b.regs.filter(r => r.side === 0 && r.u.cls === 'cav').forEach(r => { r.order = { k: 'atk', r: b.regs.find(e => e.side === 1 && e.u.cls === 'inf') }; });
+  b.ejecutar(); n = 0; while (b.fase === 'ejecucion' && n++ < 1000) b.step(0.05);
+  const fin = huella(b), ronda = b.ronda; assert(b.repetir() && b.fase === 'ejecucion' && b.t < 1, 'repetir vuelve al inicio de la ronda');
+  n = 0; while (b.fase === 'ejecucion' && n++ < 1000) b.step(0.05); assert.strictEqual(huella(b), fin, 'la repetición acaba idéntica'); assert.strictEqual(b.ronda, ronda); assert.strictEqual(b.fase, 'plan');
+  // condiciones: «si huyen, no persigas», «si te cargan, aguanta» y «espera 10 s y avanza»
+  { const mk2 = (o, ex) => new Battle(Object.assign({ sides: [side(o[0]), side(o[1])], defender: 1, wall: 0, seed: 5, rondas: true }, ex || {}));
+    const c = mk2([{ hastati: 60 }, { libios: 60 }]), r = c.regs.find(q => q.side === 0), e = c.regs.find(q => q.side === 1);
+    r.order = { k: 'atk', r: e }; assert(c.condicion(r, 'nopersigue') && r.order.cond === 'nopersigue'); assert(!c.condicion(e, 'aguanta'), 'solo se da condición a los propios'); assert(!c.condicion(r, 'basura'));
+    e.st = 'rout'; c.ejecutar(); c.step(0.05); assert(r.order && r.order.k === 'quieto', 'el objetivo huye y no lo persigue');
+    const g = mk2([{ equites: 20 }, { libios: 60 }]), gq = g.regs.find(x => x.side === 0), gw = g.regs.find(x => x.side === 1); gq.order = { k: 'move', x: gq.x, y: gq.y - 200 }; g.condicion(gq, 'aguanta'); gw.x = gq.x; gw.y = gq.y - 80; gw.corre = true; gw.charge = 2;
+    g.ejecutar(); g.step(0.05); assert(gq.order && gq.order.k === 'quieto', 'si lo cargan, aguanta y deja de avanzar');
+    const h = mk2([{ hastati: 60 }, { libios: 60 }]), hq = h.regs.find(x => x.side === 0), y0 = hq.y; hq.order = { k: 'move', x: hq.x, y: hq.y - 200 }; assert(h.condicion(hq, 'espera') && hq.order.cond === 'espera'); h.ejecutar(); for (let i = 0; i < 190; i++) h.step(0.05); assert(Math.abs(hq.y - y0) < 1, 'espera: no se mueve en los primeros 9,5 s'); for (let i = 0; i < 100; i++) h.step(0.05); assert(hq.y < y0 - 20, 'y después avanza'); }
+}
 console.log('OK — todas las pruebas superadas');

@@ -79,8 +79,13 @@
     bosque: { n: 'Bosque', f: [['b', 0.2, 0.85, 75], ['b', 0.78, 0.74, 65], ['b', 0.62, 0.56, 60]] },
     mixto: { n: 'Mixto', f: [['h', 0.28, 0.88, 90], ['b', 0.75, 0.8, 65], ['h', 0.5, 0.5, 80], ['b', 0.2, 0.62, 55]] } };
   const TERRENO_IDS = ['llano', 'colina', 'bosque', 'mixto'];
+  // --- Rondas (N2): plan en pausa y ejecución de unos segundos para los dos bandos ---
+  const RONDA_SEG = 20;         // segundos de simulación de cada ronda de ejecución
+  const ESPERA_SEG = 10;        // «espera 10 s y avanza»: la orden empieza a los 10 s de la ronda
+  const DIST_CARGAN = 120;      // «si te cargan»: un enemigo que corre o carga a menos de esto
+  const CONDICIONES = { aguanta: 'Si te cargan, aguanta', nopersigue: 'Si huyen, no persigas', espera: 'Espera 10 s y avanza' };
 
-  function mkRng(seed) { let a = seed >>> 0; return function () { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+  function mkRng(seed) { let a = seed >>> 0; const f = function () { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; f.estado = function () { return a; }; f.fija = function (v) { a = v; }; return f; }
   function effN(m) { return m <= 24 ? m : 24 + (m - 24) * 0.3; }
   function ratio(atk, def) { return Math.pow(atk / def, 0.85); }
   function angDiff(a, b) { let d = a - b; while (d > Math.PI) d -= 2 * Math.PI; while (d < -Math.PI) d += 2 * Math.PI; return d; }
@@ -90,7 +95,8 @@
   function Battle(cfg) {
     this.cfg = cfg; this.t = 0; this.regs = []; this.fx = []; this.corpses = [];
     this.over = false; this.winner = null; this.auto = true;
-    this.fase = cfg.despliegue === true ? 'despliegue' : 'lucha'; // 'despliegue': el tiempo no corre hasta empezar()
+    this.rondas = cfg.rondas === true; this.ronda = 1; this.tRonda = 0; this.hechos = []; this.snapIni = null; this.snapFin = null; this.repite = false;
+    this.fase = cfg.despliegue === true ? 'despliegue' : (this.rondas ? 'plan' : 'lucha'); // 'despliegue' y 'plan': el tiempo no corre; 'ejecucion': una ronda
     this.H = Math.max(800, Math.min(1300, Math.round(cfg.fh || 900))); // alto del campo (se adapta a la pantalla)
     this.rnd = mkRng(cfg.seed || 1);
     this.mkTerreno(cfg.terreno);
@@ -175,7 +181,7 @@
     return true;
   };
 
-  Battle.prototype.empezar = function () { this.fase = 'lucha'; };
+  Battle.prototype.empezar = function () { this.fase = this.rondas ? 'plan' : 'lucha'; };
 
   // recoloca los regimientos de un bando con una plantilla: 'clasica' (A9), 'ancha' o 'centro'
   Battle.prototype.formar = function (side, nombre) {
@@ -383,9 +389,10 @@
   };
 
   Battle.prototype.step = function (dt) {
-    if (this.over || this.fase === 'despliegue') return;
+    if (this.over || this.fase === 'despliegue' || this.fase === 'plan') return;
     this.t += dt;
     const regs = this.regs, cur = [this.men(0), this.men(1)];
+    if (this.rondas) for (const r of regs) if (r.pend && this.tRonda >= ESPERA_SEG - 1e-6) { r.order = Object.assign({}, r.pend, { cond: null }); r.pend = null; }   // «espera 10 s»: ya toca avanzar
     // avance en bloque: ¿alguien del bando está ya cerca del enemigo? si no, todos al paso del más lento de a pie
     const cerca = [false, false], lento = [1e9, 1e9];
     for (const a of regs) {
@@ -420,11 +427,12 @@
       if (r.men < r.max && r.fight > 0) r.mor -= MOR_HERIDO * (1 - r.men / r.max) * dt;
       if (r.fat > FAT_UMBRAL) r.mor -= MOR_CANSADO * (r.fat - FAT_UMBRAL) / (100 - FAT_UMBRAL) * dt;
       if (r.mor <= 0) { r.st = 'rout'; this.onBreak(r); continue; }
+      if (r.order && r.order.cond === 'aguanta' && this.cargan(r)) { r.order = { k: 'quieto' }; r.tgt = null; }   // condición: te cargan, aguanta
       // objetivo
       let tgt = r.tgt && r.tgt.st === 'ok' ? r.tgt : null;
-      const hold = (r.side === 0 && !this.auto) || (r.u.cls === 'gen' && cur[r.side] > this.start[r.side] * 0.55);
-      if (r.order && r.order.k === 'atk') { if (r.order.r.st === 'ok') tgt = r.order.r; else { r.order = null; tgt = null; } }
-      else if (!r.order) { r.think -= dt; if (r.think <= 0 || !tgt) { r.think = 0.5; tgt = this.pick(r, hold); } }
+      const hold = (r.side === 0 && !this.auto) || (r.u.cls === 'gen' && cur[r.side] > this.start[r.side] * 0.55) || !!(r.order && r.order.k === 'quieto');
+      if (r.order && r.order.k === 'atk') { if (r.order.r.st === 'ok') tgt = r.order.r; else { r.order = r.order.cond === 'nopersigue' ? { k: 'quieto' } : null; tgt = null; } }
+      else if (!r.order || r.order.k === 'quieto') { r.think -= dt; if (r.think <= 0 || !tgt) { r.think = 0.5; tgt = this.pick(r, hold); } }
       else tgt = null;
       r.tgt = tgt;
       let fighting = false, fug = null;
@@ -440,11 +448,11 @@
           if (fug.men <= 0) fug.st = 'dead';
         }
       } else if (r.order && r.order.k === 'move') {
-        if (this.moveTo(r, r.order.x, r.order.y, dt, PASO_MARCHA) < 6) r.order = null;
+        if (this.moveTo(r, r.order.x, r.order.y, dt, PASO_MARCHA) < 6) r.order = r.order.cond === 'nopersigue' ? { k: 'quieto' } : null;
       } else if (tgt) {
         const d = Math.hypot(tgt.x - r.x, tgt.y - r.y);
         // el tirador sin orden no pasa de unos 55 por detrás de su infantería más adelantada
-        let tx = tgt.x, ty = tgt.y, quieto = false;
+        let tx = tgt.x, ty = tgt.y, quieto = !!(r.order && r.order.k === 'quieto');
         if (r.u.cls === 'rng' && !r.order && d > DIST_ENCIMA) {
           const sc = this.pantalla(r);
           if (sc) { const lim = sc.y + (r.side === 0 ? DIST_TIRADOR : -DIST_TIRADOR); if (r.side === 0 ? r.y <= lim : r.y >= lim) quieto = true; else ty = r.side === 0 ? Math.max(ty, lim) : Math.min(ty, lim); }
@@ -492,9 +500,93 @@
     const n0 = this.men(0), n1 = this.men(1);
     if (n0 <= 0 || n1 <= 0) { this.over = true; this.winner = n0 > 0 ? 0 : 1; }
     else if (this.t > TOPE_BATALLA) { this.over = true; this.winner = this.cfg.defender; }
+    if (this.rondas && this.fase === 'ejecucion') { this.tRonda += dt; if (!this.over && this.tRonda >= RONDA_SEG - 1e-6) this.finRonda(); }
   };
 
-  Battle.prototype.finish = function () { this.empezar(); let i = 0; while (!this.over && i++ < 8000) this.step(0.2); };
+  /* ---------- Rondas (N2) ---------- */
+  Battle.CONDICIONES = CONDICIONES; Battle.RONDA_SEG = RONDA_SEG;
+  // ¿lo cargan? un enemigo que corre o carga, cerca
+  Battle.prototype.cargan = function (r) {
+    for (const e of this.regs) if (e.side !== r.side && e.st === 'ok' && (e.charge > 0 || e.corre) && Math.hypot(e.x - r.x, e.y - r.y) < DIST_CARGAN) return true;
+    return false;
+  };
+  // foto completa del estado (orden y objetivo por índice): sirve para clonar, prever y repetir la ronda
+  Battle.prototype.estado = function () {
+    const idx = new Map(); this.regs.forEach(function (r, i) { idx.set(r, i); });
+    const ref = function (o) { return o ? Object.assign({}, o, 'r' in o ? { r: idx.get(o.r) } : {}) : null; };
+    return { t: this.t, rnd: this.rnd.estado(), fase: this.fase, ronda: this.ronda, tRonda: this.tRonda, over: this.over, winner: this.winner, auto: this.auto, genDown: this.genDown.slice(), start: this.start.slice(),
+      corpses: this.corpses.map(function (c) { return Object.assign({}, c); }), fx: this.fx.map(function (f) { return Object.assign({}, f); }),
+      regs: this.regs.map(function (r) { const c = Object.assign({}, r); c.tgt = r.tgt ? idx.get(r.tgt) : null; c.order = ref(r.order); c.pend = ref(r.pend); return c; }) };
+  };
+  // vuelve a un estado guardado SIN cambiar la identidad de los regimientos (la vista 3D los tiene agarrados)
+  Battle.prototype.aplicar = function (e) {
+    const regs = this.regs, ref = function (o) { return o ? Object.assign({}, o, 'r' in o ? { r: regs[o.r] } : {}) : null; };
+    e.regs.forEach(function (c, i) { Object.assign(regs[i], c); regs[i].tgt = c.tgt == null ? null : regs[c.tgt]; regs[i].order = ref(c.order); regs[i].pend = ref(c.pend); });
+    this.t = e.t; this.rnd.fija(e.rnd); this.fase = e.fase; this.ronda = e.ronda; this.tRonda = e.tRonda; this.over = e.over; this.winner = e.winner; this.auto = e.auto;
+    this.genDown = e.genDown.slice(); this.start = e.start.slice(); this.corpses = e.corpses.map(function (c) { return Object.assign({}, c); }); this.fx = e.fx.map(function (f) { return Object.assign({}, f); });
+  };
+  // copia independiente (comparte solo lo que no cambia: configuración, terreno, fichas de unidad)
+  Battle.prototype.clona = function () {
+    const c = Object.create(Battle.prototype); Object.assign(c, this);
+    c.regs = this.regs.map(function (r) { return Object.assign({}, r); }); c.rnd = mkRng(1); c.snapIni = null; c.snapFin = null; c.repite = false; c.hechos = [];
+    c.aplicar(this.estado()); return c;
+  };
+  // da (o quita) la condición de la orden de un regimiento propio: 'aguanta' | 'nopersigue' | 'espera' | null
+  Battle.prototype.condicion = function (r, c) {
+    if (!r || r.side !== 0 || r.st !== 'ok' || this.fase === 'ejecucion' || !r.order || r.order.k === 'quieto') return false;
+    if (c && !CONDICIONES[c]) return false;
+    r.order.cond = c || null; return true;
+  };
+  // empieza la ronda de ejecución (desde el plan)
+  Battle.prototype.ejecutar = function () {
+    if (!this.rondas || this.fase !== 'plan' || this.over) return false;
+    for (const r of this.regs) { r.pend = null; if (r.st === 'ok' && r.order && r.order.cond === 'espera') { r.pend = r.order; r.order = { k: 'quieto' }; } }
+    this.snapIni = this.estado(); this.fase = 'ejecucion'; this.tRonda = 0; this.repite = false; return true;
+  };
+  // acaba la ronda: vuelve el plan y se apuntan los hechos. Si era una repetición, se restablece el final guardado.
+  Battle.prototype.finRonda = function () {
+    if (this.repite) { this.aplicar(this.snapFin); this.repite = false; return; }
+    for (const r of this.regs) if (r.pend) { r.order = Object.assign({}, r.pend, { cond: null }); r.pend = null; }
+    this.hechos = this.cronica(); this.fase = 'plan'; this.ronda++; this.tRonda = 0; this.snapFin = this.estado();
+  };
+  // «Ver otra vez»: vuelve al inicio de la ronda terminada y la repite igual (la simulación es determinista)
+  Battle.prototype.repetir = function () {
+    if (!this.rondas || this.fase !== 'plan' || !this.snapIni || !this.snapFin || this.over) return false;
+    this.aplicar(this.snapIni); this.fase = 'ejecucion'; this.repite = true; return true;
+  };
+  // dos o tres hechos de la ronda que acaba de pasar
+  Battle.prototype.cronica = function () {
+    const ini = this.snapIni, nom = [this.cfg.sides[0].name, this.cfg.sides[1].name], baj = [0, 0], rotos = [], caidos = [];
+    this.regs.forEach(function (r, i) {
+      const a = ini.regs[i]; if (r.k === 'general') { if (a.st === 'ok' && r.st === 'dead') caidos.push(r); return; }
+      baj[r.side] += a.men - r.men;
+      if (a.st === 'ok' && (r.st === 'rout' || r.st === 'fled' || r.st === 'dead')) rotos.push(r);
+    });
+    const h = [], n = function (r) { return (r.name || r.u.n) + ' (' + nom[r.side] + ')'; };
+    h.push('Bajas: ' + nom[0] + ' ' + baj[0] + ', ' + nom[1] + ' ' + baj[1] + '.');
+    if (caidos.length) h.push('Cae el general de ' + nom[caidos[0].side] + '.');
+    else if (rotos.length) h.push(rotos.slice(0, 2).map(n).join(' y ') + (rotos.length > 1 ? ' rompen filas' : ' rompe filas') + (rotos.length > 2 ? ' (y ' + (rotos.length - 2) + ' más)' : '') + '.');
+    else h.push('Ningún regimiento cede: las líneas aguantan.');
+    h.push('Quedan ' + this.men(0) + ' hombres contra ' + this.men(1) + '.');
+    return h;
+  };
+  // vista previa («sombra»): clona la batalla, deja al enemigo QUIETO y simula la ronda. No toca la batalla real.
+  Battle.prototype.prevision = function () {
+    const c = this.clona(); c.rondas = true; c.fase = 'plan';
+    for (const r of c.regs) if (r.side === 1 && r.st === 'ok') r.order = { k: 'quieto' };
+    c.ejecutar(); let n = 0; while (c.fase === 'ejecucion' && !c.over && n++ < 400) c.step(0.1);
+    return c.regs.filter(function (r) { return r.side === 0; }).map(function (r) { return { id: r.id, x: r.x, y: r.y, st: r.st, men: r.men }; });
+  };
+  // «prever choque»: si los dos ejércitos chocaran ya (sin órdenes), ¿quién gana? Devuelve fracciones de hombres que conserva cada bando.
+  Battle.prototype.preverChoque = function () {
+    const c = this.clona(); c.rondas = false; c.fase = 'lucha'; c.auto = true;
+    for (const r of c.regs) { r.order = null; r.pend = null; r.tgt = null; }
+    let n = 0; while (!c.over && n++ < 2000) c.step(0.2);
+    const s0 = Math.max(1, this.men(0)), s1 = Math.max(1, this.men(1)), f0 = c.men(0) / s0, f1 = c.men(1) / s1;
+    return { f0: f0, f1: f1, gana: f0 === f1 ? -1 : f0 > f1 ? 0 : 1, claro: Math.abs(f0 - f1) > 0.2 };
+  };
+
+  Battle.prototype.finish = function () { this.rondas = false; this.fase = 'lucha'; let i = 0; while (!this.over && i++ < 8000) this.step(0.2); };
 
   Battle.prototype.result = function () {
     const res = { winner: this.winner, surv: [{}, {}], lost: [{}, {}], dead: [0, 0], genDead: [false, false], time: this.t };

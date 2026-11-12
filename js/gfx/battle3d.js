@@ -443,7 +443,7 @@ export class BattleView3D {
   hitReg(r) {
     if (this.b.over || r.st !== 'ok') return;
     if (r.side === 0) { if (this.sel.has(r)) this.sel.delete(r); else this.sel.add(r); return; }
-    if (this.b.fase === 'despliegue') return;
+    if (this.b.fase === 'despliegue' || this.b.fase === 'ejecucion') return;   // en la ejecución de una ronda no se dan órdenes
     for (const s of this.sel) if (s.st === 'ok') s.order = { k: 'atk', r: r };
   }
   tapField(fx, fy) {
@@ -454,6 +454,7 @@ export class BattleView3D {
     const sel = [...this.sel].filter(r => r.st === 'ok'); if (!sel.length) return;
     let cx = 0, cy = 0; sel.forEach(r => { cx += r.x; cy += r.y; }); cx /= sel.length; cy /= sel.length;
     if (desp) { sel.forEach(r => b.colocar(r, fx + (r.x - cx), fy + (r.y - cy))); return; } // despliegue: se coloca, no se ordena
+    if (b.fase === 'ejecucion') return;
     sel.forEach(r => { r.order = { k: 'move', x: Math.max(20, Math.min(FW - 20, fx + (r.x - cx))), y: Math.max(20, Math.min(b.H - 20, fy + (r.y - cy))) }; r.tgt = null; });
     const w = this.toW(fx, fy); this.marker.position.set(w[0], this.h(w[0], w[1]) + 0.15, w[1]); this.marker.visible = true; this.markT = this.t;
   }
@@ -507,6 +508,42 @@ export class BattleView3D {
   buildTrazo() {
     const cv = document.createElement('canvas'); cv.className = 'btrazo'; this.host.appendChild(cv); this.tcv = cv;
     const et = document.createElement('div'); et.className = 'btrazoet'; this.host.appendChild(et); this.tet = et;
+    const pv = document.createElement('canvas'); pv.className = 'bplan'; this.host.appendChild(pv); this.pcv = pv; this.sombras = null; this.sombraSig = ''; this.sombraT = 0;
+  }
+  /* ---------- N2: vista previa («sombra») de la ronda ---------- */
+  // firma de lo que decide la sombra: posición y orden de cada regimiento propio
+  firmaPlan() { let f = ''; for (const r of this.b.regs) if (r.side === 0 && r.st === 'ok') { const o = r.order; f += r.id + ':' + (r.x | 0) + ',' + (r.y | 0) + (o ? o.k + (o.k === 'atk' ? o.r.id : (o.x | 0) + ',' + (o.y | 0)) + (o.cond || '') : '-') + ';'; } return f; }
+  dibujaPlan() {
+    const cv = this.pcv, b = this.b; if (!cv) return; const W = this.host.clientWidth || 1, H = this.host.clientHeight || 1;
+    if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
+    const x = cv.getContext('2d'); x.clearRect(0, 0, W, H);
+    if (!b.rondas || b.fase !== 'plan' || b.over) { this.haySombras = false; return; }
+    const now = performance.now(), sig = this.firmaPlan();
+    if (sig !== this.sombraSig && now - this.sombraT > 220) { this.sombraSig = sig; this.sombraT = now; this.sombras = b.prevision(); }
+    const v = new THREE.Vector3(), pr = (px, py) => { const w = this.toW(px, py); v.set(w[0], this.h(w[0], w[1]) + 1, w[1]).project(this.cam); return v.z < 1 ? [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H] : null; };
+    let hay = 0;
+    for (const sh of this.sombras || []) {
+      const r = b.regs.find(q => q.id === sh.id); if (!r || r.st !== 'ok' || sh.st === 'dead') continue;
+      const p0 = pr(r.x, r.y), p1 = pr(sh.x, sh.y); if (!p0 || !p1) continue;
+      const mov = Math.hypot(sh.x - r.x, sh.y - r.y) > 14; if (!mov && !r.order) continue;
+      const sel = this.sel.has(r), col = b.cfg.sides[0].col;
+      if (r.order && r.order.k === 'atk' && r.order.r.st === 'ok') { const pe = pr(r.order.r.x, r.order.r.y); if (pe) { x.setLineDash([6, 5]); x.strokeStyle = 'rgba(255,110,90,.85)'; x.lineWidth = 1.6; x.beginPath(); x.moveTo(p1[0], p1[1]); x.lineTo(pe[0], pe[1]); x.stroke(); x.setLineDash([]); } }
+      if (mov) {
+        x.lineCap = 'round'; x.strokeStyle = 'rgba(40,24,4,.75)'; x.lineWidth = sel ? 5 : 3.6; x.beginPath(); x.moveTo(p0[0], p0[1]); x.lineTo(p1[0], p1[1]); x.stroke();
+        x.strokeStyle = sel ? '#ffe27a' : 'rgba(242,207,114,.8)'; x.lineWidth = sel ? 2.4 : 1.6; x.beginPath(); x.moveTo(p0[0], p0[1]); x.lineTo(p1[0], p1[1]); x.stroke();
+        const a = Math.atan2(p1[1] - p0[1], p1[0] - p0[0]); x.fillStyle = sel ? '#ffe27a' : '#f2cf72'; x.beginPath(); x.moveTo(p1[0] + Math.cos(a) * 9, p1[1] + Math.sin(a) * 9); x.lineTo(p1[0] + Math.cos(a + 2.5) * 8, p1[1] + Math.sin(a + 2.5) * 8); x.lineTo(p1[0] + Math.cos(a - 2.5) * 8, p1[1] + Math.sin(a - 2.5) * 8); x.fill();
+      }
+      const w = Math.max(14, Math.min(34, 8 + Math.sqrt(sh.men) * 1.6)), h = w * 0.55;
+      x.save(); x.translate(p1[0], p1[1]); x.globalAlpha = sel ? 0.8 : 0.55; x.fillStyle = col; x.strokeStyle = '#ffe27a'; x.lineWidth = 1.6; x.setLineDash([4, 3]);
+      x.beginPath(); x.rect(-w / 2, -h / 2, w, h); x.fill(); x.stroke(); x.setLineDash([]); x.globalAlpha = 1; x.fillStyle = '#fff'; x.font = '700 10px sans-serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(r.u.g || '', 0, 0.5); x.restore(); hay++;
+    }
+    this.haySombras = hay > 0;
+  }
+  // «Ver otra vez»: devuelve todas las figuras a sus puestos y borra los caídos para repetir la ronda desde el principio
+  reiniciaFiguras() {
+    for (const R of this.R) { const w = this.toW(R.r.x, R.r.y); R.n = R.F; for (let j = 0; j < R.F; j++) { const q = this.slot(R, j, w[0], w[1], R.r.ang); R.fx[j] = q[0]; R.fz[j] = q[1]; } }
+    for (const e of this.meshes.values()) if (e.dead) e.dead.length = 0;
+    this.nCorp = 0; if (this.corp) { this.corp.count = 0; this.corp.instanceMatrix.needsUpdate = true; }
   }
   dibujaTrazo(T) {
     const cv = this.tcv, W = this.host.clientWidth || 1, H = this.host.clientHeight || 1; if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
@@ -523,7 +560,7 @@ export class BattleView3D {
   // da la orden reconocida a todos los seleccionados (conservando su disposición relativa)
   ejecutarTrazo(T) {
     const c = clasificarTrazo(T.w, this.b), last = T.s[T.s.length - 1], rc = this.cv.getBoundingClientRect();
-    this.limpiaTrazo(); if (!c || this.b.over) return;
+    this.limpiaTrazo(); if (!c || this.b.over || this.b.fase === 'ejecucion') return;
     const sel = [...this.sel].filter(r => r.st === 'ok'); if (!sel.length) return;
     const b = this.b, lim = (v, a, z) => Math.max(a, Math.min(z, v)); let cx = 0, cy = 0; sel.forEach(r => { cx += r.x; cy += r.y; }); cx /= sel.length; cy /= sel.length;
     for (const r of sel) {
@@ -537,13 +574,14 @@ export class BattleView3D {
   }
   // botón dorado: ejecuta la orden recomendada de cada regimiento seleccionado. Devuelve la de texto del primero.
   ordenRecomendada() {
-    let primera = null;
+    let primera = null; if (this.b.fase === 'ejecucion') return null;
     for (const r of this.sel) { if (r.st !== 'ok') continue; const o = recomendada(r, this.b); if (!o) continue; if (!primera) primera = o; r.order = o.order ? Object.assign({}, o.order) : null; r.tgt = null; }
     return primera;
   }
   selPorClase(clases) { this.sel.clear(); for (const r of this.b.regs) if (r.side === 0 && r.st === 'ok' && clases.includes(r.u.cls)) this.sel.add(r); }
   // orden de mover a un punto de simulación (minimapa)
   moverSel(x, y) {
+    if (this.b.fase === 'ejecucion') return false;
     const sel = [...this.sel].filter(r => r.st === 'ok'); if (!sel.length) return false; let cx = 0, cy = 0; sel.forEach(r => { cx += r.x; cy += r.y; }); cx /= sel.length; cy /= sel.length;
     sel.forEach(r => { r.order = { k: 'move', x: Math.max(20, Math.min(FW - 20, x + (r.x - cx))), y: Math.max(20, Math.min(this.b.H - 20, y + (r.y - cy))) }; r.tgt = null; });
     const w = this.toW(x, y); this.marker.position.set(w[0], this.h(w[0], w[1]) + 0.15, w[1]); this.marker.visible = true; this.markT = this.t; return true;
@@ -564,7 +602,7 @@ export class BattleView3D {
         }
         // L1: con un regimiento propio seleccionado, el arrastre que empieza sobre él (o cerca) dibuja una orden
         const ini = this.trazoIni; this.trazoIni = false;
-        if (this.b.fase !== 'despliegue' && !this.b.over && !st.drag && this.sel.size) {
+        if (this.b.fase !== 'despliegue' && this.b.fase !== 'ejecucion' && !this.b.over && !st.drag && this.sel.size) {
           let ok = ini; if (!ok && g) { const fx = g[0] / S + FW / 2, fy = g[1] / S + this.b.H / 2; for (const r of this.sel) if (r.st === 'ok' && Math.hypot(r.x - fx, r.y - fy) < 46) ok = true; }
           if (ok) st.trazo = { s: [[e.clientX, e.clientY]], w: [] };
         }
@@ -625,7 +663,7 @@ export class BattleView3D {
   draw() {
     const now = performance.now(), dt = Math.min(0.1, (now - this.last) / 1000); this.last = now;
     const k = this.opts.speed ? this.opts.speed() : 1; this.t += dt * k; uTime.value = this.t;
-    this.updateArmies(dt * Math.max(k, 0.0001)); this.placeCam(dt); this.updateOverlay(); this.dibujaAlas();
+    this.updateArmies(dt * Math.max(k, 0.0001)); this.placeCam(dt); this.updateOverlay(); this.dibujaAlas(); this.dibujaPlan();
     if (this.marker.visible) { const a = (this.t - this.markT); this.marker.scale.setScalar(1 + a * 1.5); this.marker.material.opacity = Math.max(0, 0.9 - a * 1.2); if (a > 0.8) this.marker.visible = false; }
     if (this.zonaLinea && this.b.fase !== 'despliegue') { this.scene.remove(this.zonaLinea); this.zonaLinea.geometry.dispose(); this.zonaLinea.material.dispose(); this.zonaLinea = null; for (const l of this.terrenoLineas || []) { this.scene.remove(l); l.geometry.dispose(); l.material.dispose(); } this.terrenoLineas = null; }
     this.r.render(this.scene, this.cam);
@@ -635,6 +673,6 @@ export class BattleView3D {
     const realMeshes = new Set([...this.meshes.values()].filter(e => e.real).map(e => e.m));
     this.scene.traverse(o => { if (realMeshes.has(o)) return; if (o.geometry) o.geometry.dispose(); if (o.material && o.material !== unitMaterial()) { if (o.material.map) o.material.map.dispose(); o.material.dispose(); } });
     if (this.scene.background && this.scene.background.dispose) this.scene.background.dispose();
-    cv.remove(); if (this.tcv) this.tcv.remove(); if (this.acv) this.acv.remove(); if (this.tet) this.tet.remove(); this.flags.remove(); if (this.opts.cards) this.opts.cards.innerHTML = '';
+    cv.remove(); if (this.tcv) this.tcv.remove(); if (this.pcv) this.pcv.remove(); if (this.acv) this.acv.remove(); if (this.tet) this.tet.remove(); this.flags.remove(); if (this.opts.cards) this.opts.cards.innerHTML = '';
   }
 }
