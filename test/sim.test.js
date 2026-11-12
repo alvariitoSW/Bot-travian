@@ -443,6 +443,14 @@ const CIMOD = require('../js/ciudad.js'); G.usarCiudad(null);
   const s3 = G.newGame('Paga'); s3.res.oro = 0; s3.cities.roma.units = { hastati: 5000 }; s3.cities.roma.b.foro = 0; const n0 = G.men(s3.cities.roma.units);
   assert(G.prod().oro < 0, 'con 5000 hastati el balance de oro es negativo'); for (let i = 0; i < 8; i++) G.tick(0.5);
   assert(G.men(s3.cities.roma.units) < n0, 'sin oro desertan tropas'); }
+/* I3b: la paga de las tropas se cobra de verdad */
+{ const s = G.newGame('Deuda'); assert.strictEqual(s.deudaPaga, 0, 'partida nueva sin deuda'); delete s.deudaPaga; G.migrarDeuda(s); assert.strictEqual(s.deudaPaga, 0, 'partida vieja carga sin deuda');
+  s.res.oro = 0; s.alm.oro = 0; s.cities.roma.units = { hastati: 5000 }; s.cities.roma.b.foro = 0; const n0 = G.men(s.cities.roma.units);
+  for (let i = 0; i < 4; i++) G.tick(0.5); assert(s.deudaPaga > 0, 'lo que no se paga se debe'); const d1 = s.deudaPaga;
+  for (let i = 0; i < 8; i++) G.tick(0.5); assert(s.deudaPaga > d1, 'la deuda crece mientras falta oro'); assert(G.men(s.cities.roma.units) < n0, 'la deuda hace desertar');
+  assert(G.cuentas().oro.deuda > 0, 'las cuentas muestran la deuda');
+  const f0 = s.favor.senado; G.cierreMes(); assert(s.favor.senado < f0, 'con deuda el Senado baja el favor');
+  s.cities.roma.units = {}; s.cities.roma.b.foro = 3; s.res.oro = 0; const dd = s.deudaPaga; G.tick(0.5); assert(s.deudaPaga <= dd, 'los ingresos pagan primero la deuda'); }
 assert(!G.cityGen('carthago', 280) && !G.cityGen('carthago', 150), 'Cartago no tiene general con nombre antes de 149 a.C.');
 assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defiende Cartago desde 149 a.C.');
 // Registro de piezas: carga en Node y toda tropa y edificio tiene ficha

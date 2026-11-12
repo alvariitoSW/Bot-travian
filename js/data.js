@@ -303,6 +303,7 @@
      tratados con ciudades ajenas y la quinta leva en cola. Licencia de juego: las barras y todas las cifras (los hechos
      que inspiran las misiones están en sus fichas). Las condiciones son datos sobre piezas y niveles reales de D.BUILD
      (no sobre viviendas ni foro, que son derivados). tipo de cond: lo define G.MISION_TIPOS en game.js. */
+  D.DEUDA = { desBase: 0.02, desMes: 0.03, desMax: 0.12 };   // I3b: deserción mensual con paga atrasada = base + desMes por mes de paga debido, con tope
   D.SENADO = {
     favorIni: 50, min: 0, max: 100, bajo: 25,
     inercia: 0.12,         // el pueblo se acerca esa fracción al ánimo medio cada mes
