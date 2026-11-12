@@ -591,3 +591,34 @@ ESPUMA: en el plano de mar (107-109, un solo cuadrado) con onBeforeCompile, como
 sw.js: añade 'assets/mapa/alturas.js' a FILES y sube CACHE (si choca, el número mayor +1). Créditos en assets/mapa/LICENSE.txt y README.md con las fuentes reales: lee la cabecera x-amz-meta-x-imagery-sources de las 28 teselas (suelen ser GMTED2010/SRTM de USGS y ETOPO1 de NOAA; EU-DEM exige su frase; ver github.com/tilezen/joerd, docs/attribution.md). Sin crédito no se cierra.
 PRUEBAS: test/mapa.test.mjs (Node) enganchada en gobierno/jueces.mjs: Mont Blanc (6,87; 45,83), Etna (15,0; 37,75), Gran Sasso (13,57; 42,47) y Olimpo (22,35; 40,09) altos y en su sitio, Roma baja, mar negativo, archivo ≤250 KB. Capturas a 390 px con gobierno/captura-mapa.mjs copiado de captura-ciudad.mjs (crea un botón data-act="modo" data-v="guerra" y púlsalo para ver el mapa; mueve UI.map.c y UI.map.center('id')): Italia entera, Alpes con Mediolanum, Sicilia con el Etna, Grecia, costa de cerca con espuma, y una con cámara baja (pitch 0,62); antes y después en gobierno/capturas-tarea/C2b-*.jpg. Triángulos con UI.map.r.info.render.triangles (igual que antes ±3 mil).
 CIERRE: node gobierno/jueces.mjs y node gobierno/arte.mjs en APTO, mirar las capturas, TABLERO (C2b ✅ en una línea) y BITACORA (línea «Mapa» de las notas), parte gobierno/partes/2026-11-12-C2b.md con gasto y dictamen histórico (relieve de hoy; deltas del Po, Tíber y Aqueloo no son los de 280 a.C. = licencia de juego), node gobierno/cuadro.mjs, git pull --rebase, commit y push a claude/roman-strategy-mobile-game-bx9oq2.
+
+## Ampliación del 12/11 (tarde): las 44 pendientes
+
+Pedido del usuario: «Aplica las 44 pendientes del cuadro de mando en diferentes carriles y lánzalas sin que se choquen». Hecho por la sesión del cuadro, leyendo el tablero y este plan; **sin reconocimiento del código**: antes de abrir cada ola nueva (13 en adelante) se comprueba qué archivos toca de verdad, como en las olas 1 a 12.
+
+### Qué son las 44
+- **Se hacen**: 31 tareas (abajo, por vías).
+- **Ya sustituidas por otras, no se abren**: Q1e y Q1f (CN3 y CN4), Q1i (CN11), Q1g y Q1j (CN10), Q1h (CN9).
+- **Absorbidas por la guerra nueva** (`estudios/N1b-guerra-ampliada.md` §6): A1 y L3 van dentro de N7; A2 y A6 dentro de N8; A8b dentro de N15.
+- **Solo papel**: K3 (ola 1).
+
+### Tres vías a la vez, que no se pisan
+Como mucho cuatro sesiones abiertas a la vez: una o dos de la vía Ciudad, una de Guerra y una de Historia.
+
+**Vía Ciudad y campaña** (`js/game.js`, `js/data.js`, `js/ciudad.js`, `js/registro.js`, `js/gfx/city3d.js`, `js/gfx/map3d.js`, la ciudad y el mapa en `js/ui.js`): las olas 1 a 12 de arriba y, detrás, de una en una (o en pareja solo si una es solo dibujo y la otra solo lógica, comprobado antes):
+13 CN14 · 14 CN13 + CN15 (CN13 sin tocar `js/gfx/`; CN15 solo dibujo y sonido) · 15 CN16 · 16 CN17 · 17 CN18 · 18 CN19 (en dos sesiones) · 19 CN20 · 20 H13 + H14 · 21 H12 · 22 J3 · 23 J4 · 24 C4 (solo mapa: `map3d.js`, `ground.js`, `assets/mapa`) + J5 (solo lógica) · 25 J8 · 26 C3 · 27 B5 · 28 J7b · 29 C1 · 30 N9 · 31 N10 · 32 N11 · 33 N12 · 34 N13 · 35 CN12 (pide CN7, CN8 y N11) · 36 I8 (inicio: dos modos, decidido el 12/11; pide CN5) · 37 N15, segunda pasada de equilibrio.
+
+**Vía Guerra** (ya se puede abrir; el usuario la desbloqueó el 12/11 con este pedido): N15 → N7 → N8, de una en una.
+- Archivos: `js/battle.js`, `js/gfx/battle3d.js`, la parte de batalla de `js/ui.js` y de `css/style.css`, la sección de batallas de `test/sim.test.js`, un bloque propio al final de `gobierno/jueces.mjs`, y `sw.js` con la regla (a).
+- No toca `js/game.js`, `js/data.js`, `js/ciudad.js`, `js/registro.js`, `city3d.js`, `map3d.js` ni lo de ciudad de `js/ui.js`. Si necesita algo de ahí, para y lo dice en su parte.
+- **N8 no coincide con la ola 4** (CN11 también toca `js/gfx/units.js`). Si N8 llega antes, deja `units.js` sin tocar o espera a que CN11 esté subida.
+- Arte de N8 (sonido, polvo): comparte el tope de 37 MB con la vía Ciudad; mide con `node gobierno/arte.mjs` antes de subir.
+- Al subir, regla (c): `git pull --rebase`, jueces otra vez en APTO.
+
+**Vía Historia**: H11 en dos partes.
+- **H11a, ya**: cotejo con Perseus, LacusCurtius y Livius (la red los permite). Solo escribe `gobierno/estudios/H11-cotejo.md`, una tabla por ficha con el texto actual, la fuente, el dictamen y el cambio propuesto. No toca `js/`.
+- **H11b**: aplica esa tabla en `js/registro.js` y `js/codice.js` **en pareja con la ola 3** (CN4 no toca esos archivos), o en el primer hueco en que ninguna sesión abierta toque `registro.js`.
+
+### Quién lleva qué
+- La sesión «AQVILA · cuadro de mando y gobierno» sigue llevando la vía Ciudad: abre la ola siguiente cuando la anterior está subida y en APTO.
+- Las vías Guerra e Historia se encadenan solas: cada sesión, al cerrar, deja escrito en la bitácora cuál sigue, y el vigía la abre.
