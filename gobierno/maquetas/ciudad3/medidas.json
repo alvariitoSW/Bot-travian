@@ -1,0 +1,160 @@
+{
+ "tope": 300000,
+ "nota": "Triángulos por cuadro (renderer.info.render.triangles) a 390×844, render por software. El pase de sombra solo se hace al cambiar la ciudad.",
+ "fases": [
+  {
+   "captura": "Q1k-1-terreno",
+   "triangulos": 48017,
+   "llamadas": 19,
+   "conPaseDeSombra": 144638,
+   "sombrasCalculadas": 1,
+   "casas": 0,
+   "niveles": [
+    0,
+    0,
+    0,
+    0
+   ],
+   "vias": 1,
+   "edificios": 0,
+   "fecha": "Abril de 273 a. C."
+  },
+  {
+   "captura": "Q1k-2-fundada",
+   "triangulos": 59380,
+   "llamadas": 22,
+   "conPaseDeSombra": 155738,
+   "sombrasCalculadas": 2,
+   "casas": 20,
+   "niveles": [
+    20,
+    0,
+    0,
+    0
+   ],
+   "vias": 3,
+   "edificios": 0,
+   "fecha": "Abril de 273 a. C."
+  },
+  {
+   "captura": "Q1k-3-colocar",
+   "triangulos": 59858,
+   "llamadas": 27,
+   "conPaseDeSombra": 155738,
+   "sombrasCalculadas": 2,
+   "casas": 20,
+   "niveles": [
+    20,
+    0,
+    0,
+    0
+   ],
+   "vias": 3,
+   "edificios": 0,
+   "fecha": "Abril de 273 a. C."
+  },
+  {
+   "captura": "Q1k-3b-obra",
+   "triangulos": 69236,
+   "llamadas": 25,
+   "conPaseDeSombra": 165461,
+   "sombrasCalculadas": 4,
+   "casas": 20,
+   "niveles": [
+    20,
+    0,
+    0,
+    0
+   ],
+   "vias": 6,
+   "edificios": 3,
+   "fecha": "Abril de 273 a. C."
+  },
+  {
+   "captura": "Q1k-4-crece",
+   "triangulos": 122052,
+   "llamadas": 38,
+   "conPaseDeSombra": 220004,
+   "sombrasCalculadas": 5,
+   "casas": 71,
+   "niveles": [
+    24,
+    5,
+    23,
+    16
+   ],
+   "vias": 30,
+   "edificios": 9,
+   "fecha": "Abril de 271 a. C."
+  },
+  {
+   "captura": "Q1k-5-barrios",
+   "triangulos": 101844,
+   "llamadas": 40,
+   "conPaseDeSombra": 239898,
+   "sombrasCalculadas": 6,
+   "casas": 102,
+   "niveles": [
+    34,
+    6,
+    40,
+    22
+   ],
+   "vias": 40,
+   "edificios": 12,
+   "fecha": "Agosto de 269 a. C."
+  },
+  {
+   "captura": "Q1k-5b-cerca",
+   "triangulos": 137093,
+   "llamadas": 34,
+   "conPaseDeSombra": 239898,
+   "sombrasCalculadas": 6,
+   "casas": 102,
+   "niveles": [
+    34,
+    6,
+    40,
+    22
+   ],
+   "vias": 40,
+   "edificios": 12,
+   "fecha": "Agosto de 269 a. C."
+  },
+  {
+   "captura": "Q1k-6-crecida",
+   "triangulos": 90594,
+   "llamadas": 22,
+   "conPaseDeSombra": 282537,
+   "sombrasCalculadas": 8,
+   "casas": 102,
+   "niveles": [
+    32,
+    5,
+    40,
+    22
+   ],
+   "vias": 41,
+   "edificios": 13,
+   "fecha": "Marzo de 268 a. C."
+  },
+  {
+   "captura": "Q1k-6b-incendio",
+   "triangulos": 108199,
+   "llamadas": 24,
+   "conPaseDeSombra": 281087,
+   "sombrasCalculadas": 9,
+   "casas": 102,
+   "niveles": [
+    32,
+    3,
+    40,
+    22
+   ],
+   "vias": 41,
+   "edificios": 13,
+   "fecha": "Abril de 268 a. C."
+  }
+ ],
+ "errores": []
+}

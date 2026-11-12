@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Maqueta Q1k — fundar, colocar, crecer</title>
+<base href="../../../">
+<style>
+@font-face{font-family:Cinzel;font-weight:700;src:url("assets/fuentes/cinzel-700.woff2") format("woff2")}
+:root{--noche:#0b1016;--bronce:#b8862b;--oro:#e9c063;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a;--vidrio:rgba(16,15,13,.78);--fil:rgba(184,134,43,.6)}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#1b1a17;overflow:clip;overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font:14px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--marmol)}
+[hidden]{display:none!important}
+canvas#lienzo{position:fixed;inset:0;display:block;width:100vw;height:100vh;height:100dvh;touch-action:none}
+#hud{position:fixed;inset:0;pointer-events:none;overflow:clip;font-variant-numeric:tabular-nums}
+#hud button{font:inherit;color:inherit;border:0;cursor:pointer;pointer-events:auto;touch-action:manipulation}
+/* una línea arriba: fecha, gente, monedas */
+#barra{position:absolute;left:8px;right:8px;top:calc(env(safe-area-inset-top) + 8px);height:38px;padding:0 12px;display:flex;align-items:center;gap:12px;border-radius:10px;background:linear-gradient(rgba(22,18,12,.86),rgba(14,13,12,.78));backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid var(--fil);box-shadow:0 4px 14px rgba(0,0,0,.4);overflow:clip;white-space:nowrap}
+#h-fecha{font:700 13px Cinzel,Georgia,serif;letter-spacing:.04em;color:var(--oro);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
+#barra .dato{display:flex;align-items:center;gap:4px;font-weight:650;font-size:14px}
+#barra svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--oro);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+#h-ing{font-weight:500;font-size:12px;color:var(--oliva);margin-left:2px}
+#progreso{position:absolute;left:0;right:0;bottom:0;height:2px;background:var(--oro);opacity:.7;transform-origin:0 50%;transform:scaleX(0)}
+/* una línea de contexto: razones del sitio, avisos, barrio */
+#linea{position:absolute;left:8px;right:8px;top:calc(env(safe-area-inset-top) + 52px);padding:8px 12px;border-radius:10px;background:var(--vidrio);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-left:4px solid var(--piedra);font-size:13.5px;line-height:1.32;box-shadow:0 4px 14px rgba(0,0,0,.35)}
+#linea.frase{font-size:14.5px;border-left-color:var(--oro)}
+#l-nota{font-weight:750;margin-right:7px}
+#linea.verde{border-left-color:#7fd060}#linea.verde #l-nota{color:#9be07a}
+#linea.ocre{border-left-color:#f2c45a}#linea.ocre #l-nota{color:#f2c45a}
+#linea.rojo{border-left-color:#f07a5a}#linea.rojo #l-nota{color:#f58a6a}
+#linea.aviso{border-left-color:var(--oro)}#linea.crecida{border-left-color:#6aa8d8}#linea.fuego,#linea.hambre,#linea.malo{border-left-color:#f07a5a}#linea.ficha{border-left-color:#9be07a}
+/* etiquetas de barrio (solo de lejos) */
+#etiquetas{position:absolute;inset:0;overflow:clip}
+#etiquetas div{position:absolute;left:0;top:0;padding:2px 8px 3px;border-radius:999px;background:rgba(16,15,13,.72);border:1px solid var(--fil);font:700 11px Cinzel,Georgia,serif;letter-spacing:.06em;color:var(--oro);white-space:nowrap;will-change:transform}
+/* abajo: mandos pequeños y la bandeja */
+#pie{position:absolute;left:0;right:0;bottom:0;padding:0 0 calc(env(safe-area-inset-bottom) + 8px);display:flex;flex-direction:column;gap:8px}
+#mandos{display:flex;gap:6px;padding:0 8px}
+#mandos button{height:34px;padding:0 12px;border-radius:999px;background:var(--vidrio);border:1px solid rgba(255,255,255,.14);font-size:12.5px;font-weight:600;color:var(--marmol)}
+#mandos button.on{border-color:var(--oro);color:var(--oro)}
+#mandos #b-nuevo{margin-left:auto;color:var(--piedra)}
+#bandeja{display:flex;gap:8px;padding:10px 8px 8px;overflow-x:auto;overflow-y:hidden;touch-action:pan-x;scrollbar-width:none;background:linear-gradient(transparent,rgba(10,9,8,.72) 38%);pointer-events:auto;overscroll-behavior:contain}
+#bandeja::-webkit-scrollbar{display:none}
+.ficha{flex:none;width:77px;height:104px;padding:4px 4px 6px;border-radius:12px;background:linear-gradient(rgba(44,36,26,.94),rgba(22,19,15,.94));border:1px solid var(--fil);box-shadow:0 4px 12px rgba(0,0,0,.45);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:1px;touch-action:pan-x}
+.ficha img,.ficha i{width:60px;height:58px;object-fit:contain;pointer-events:none;display:block}
+.ficha b{font-size:12px;font-weight:650;line-height:1.1;text-align:center;white-space:nowrap}
+.ficha span{font-size:12px;color:var(--oro);font-weight:650;display:flex;align-items:center;gap:3px}
+.ficha span::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--oro);box-shadow:inset 0 0 0 1.5px #8a6418}
+.ficha.cara{filter:saturate(.5)}.ficha.cara span{color:var(--terra)}.ficha.cara span::before{background:var(--terra);box-shadow:none}
+.ficha.nueva{border-color:#9be07a;box-shadow:0 0 0 2px rgba(155,224,122,.35),0 4px 12px rgba(0,0,0,.45)}
+.ficha:active{transform:translateY(1px);filter:brightness(1.15)}
+#acciones{display:none;gap:8px;padding:0 8px}
+#acciones button{height:54px;border-radius:12px;font-size:16px;font-weight:700}
+#b-no{flex:0 0 112px;background:var(--vidrio);border:1px solid rgba(255,255,255,.18)!important}
+#b-si{flex:1;background:linear-gradient(#c9992f,#9a6f1c);color:#1a1408!important;box-shadow:0 4px 14px rgba(0,0,0,.45)}
+#b-si:disabled{background:rgba(60,56,50,.9);color:#b9b2a4!important}
+body[data-modo="fundar"] #acciones,body[data-modo="colocar"] #acciones,body[data-modo="muralla"] #acciones{display:flex}
+body[data-modo="fundar"] #bandeja,body[data-modo="colocar"] #bandeja,body[data-modo="muralla"] #bandeja,body[data-modo="fundar"] #mandos,body[data-modo="colocar"] #mandos,body[data-modo="muralla"] #mandos{display:none}
+#carga{position:fixed;inset:0;display:grid;place-items:center;background:#1b1a17;font:700 16px Cinzel,Georgia,serif;letter-spacing:.08em;color:var(--oro)}
+</style>
+</head>
+<body data-modo="fundar">
+<canvas id="lienzo"></canvas>
+<div id="hud">
+  <div id="etiquetas" hidden></div>
+  <div id="barra">
+    <span id="h-fecha">Abril 273 a. C.</span>
+    <span class="dato" title="Habitantes"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.6 2.7-6 6-6s6 2.4 6 6"/><circle cx="17.5" cy="9.5" r="2.4"/><path d="M17 14.2c2.4.2 4 2.2 4 4.8"/></svg><span id="h-pob">300</span></span>
+    <span class="dato" title="Monedas"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.2"/><circle cx="12" cy="12" r="4.2" stroke-width="1.3"/></svg><span id="h-mon">300</span><span id="h-ing"></span></span>
+    <div id="progreso"></div>
+  </div>
+  <div id="linea" hidden><span id="l-nota" hidden></span><span id="l-texto"></span></div>
+  <div id="pie">
+    <div id="mandos"><button id="b-pausa">Pausa</button><button id="b-rapido">Rápido</button><button id="b-nuevo">Empezar de nuevo</button></div>
+    <div id="bandeja"></div>
+    <div id="acciones"><button id="b-no">Cancelar</button><button id="b-si">Fundar aquí</button></div>
+  </div>
+</div>
+<div id="carga">Cargando la colonia…</div>
+<script>
+/* El juego publicado guarda en su caché todo lo que pasa por él. Aquí se borra solo lo de las maquetas, en cada visita (con una sola recarga por sesión), para ver siempre la versión nueva. */
+(function () { try {
+  if (!window.caches) return;
+  var primera = !sessionStorage.getItem('q1k-limpio'); sessionStorage.setItem('q1k-limpio', '1');
+  caches.keys().then(function (ks) { return Promise.all(ks.map(function (k) { return caches.open(k).then(function (c) { return c.keys().then(function (rs) {
+    var mias = rs.filter(function (r) { return r.url.indexOf('/gobierno/maquetas/') >= 0; });
+    return Promise.all(mias.map(function (r) { return c.delete(r); })).then(function (b) { return b.length; }); }); }); })); })
+  .then(function (n) { if (primera && n.reduce(function (a, b) { return a + b; }, 0) > 0) location.reload(); }).catch(function () {});
+} catch (e) {} })();
+</script>
+<script type="module" src="gobierno/maquetas/ciudad3/juego.js"></script>
+</body>
+</html>

@@ -690,6 +690,36 @@
    "tarea": "Q1d",
    "archivo": "gobierno/capturas-tarea/Q1d-1-grande.jpg",
    "pie": "Roma con todos los edificios a nivel 5; el puerto, en la orilla del río"
+  },
+  {
+   "tarea": "Q1k",
+   "archivo": "gobierno/capturas-tarea/Q1k-1-terreno.jpg",
+   "pie": "Ciudad nueva: eliges dónde fundar; verde es buen sitio y arriba dice por qué"
+  },
+  {
+   "tarea": "Q1k",
+   "archivo": "gobierno/capturas-tarea/Q1k-3-colocar.jpg",
+   "pie": "Colocas la fuente con el dedo: «daría agua a 9 casas»"
+  },
+  {
+   "tarea": "Q1k",
+   "archivo": "gobierno/capturas-tarea/Q1k-4-crece.jpg",
+   "pie": "Dos años después: calles y casas han nacido solas"
+  },
+  {
+   "tarea": "Q1k",
+   "archivo": "gobierno/capturas-tarea/Q1k-5-barrios.jpg",
+   "pie": "Muralla sobre el surco y un barrio nuevo en la loma"
+  },
+  {
+   "tarea": "Q1k",
+   "archivo": "gobierno/capturas-tarea/Q1k-5b-cerca.jpg",
+   "pie": "De cerca: casas reales, fuente y calle empedrada"
+  },
+  {
+   "tarea": "Q1k",
+   "archivo": "gobierno/capturas-tarea/Q1k-6-crecida.jpg",
+   "pie": "Crecida de primavera: se moja la granja de la ribera"
   }
  ],
  "informes": [
@@ -776,6 +806,10 @@
   {
    "titulo": "Q1b2 · Ciudad nueva, segunda vuelta",
    "archivo": "gobierno/estudios/Q1b2-ciudad-segunda-vuelta.md"
+  },
+  {
+   "titulo": "Q1k · Ciudad nueva de cero: fundar, colocar, crecer",
+   "archivo": "gobierno/estudios/Q1k-ciudad-de-cero.md"
   }
  ]
 }
