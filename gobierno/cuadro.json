@@ -892,6 +892,18 @@
    "titulo": "Ciudad nueva · CN2 Guardado y economía",
    "nota": "js/game.js, js/data.js (ola 1)",
    "url": "https://claude.ai/code/session_01QiKC36zNMYSGs5BSJFX5Y9"
+  },
+  {
+   "tarea": "N15",
+   "titulo": "Guerra · N15 Equilibrio y objetivos",
+   "nota": "js/battle.js, battle3d.js, batalla en ui.js (vía Guerra)",
+   "url": "https://claude.ai/code/session_01QiKC39dqRMZ1nacniBmXG6"
+  },
+  {
+   "tarea": "H11",
+   "titulo": "Historia · H11a Cotejo de fuentes",
+   "nota": "solo gobierno/estudios/H11-cotejo.md (vía Historia)",
+   "url": "https://claude.ai/code/session_01QiKC37vwWHqqBVzSMQMf79"
   }
  ],
  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
