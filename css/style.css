@@ -564,3 +564,12 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 .clases .bf { font-size: 12px; margin: 4px 0 6px; } .clases .bf.mal { color: #e05050; }
 .clases .btn { width: 100%; }
 .barrio .bf { font-size: 12px; } .barrio .bf.mal { color: #e05050; }
+
+/* N5: mando y cartas de táctica */
+#battle.ronda #bctl .mando { flex: 0 0 46px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 9.5px; font-weight: 600; color: var(--gold); border: 1px solid rgba(184, 134, 43, .45); border-radius: 9px; background: rgba(233, 192, 99, .1); }
+#battle.ronda #bctl .mando b { font-size: 14px; font-family: var(--serif); }
+#battle.ronda #bctl .mando.mal { color: #ff8a78; border-color: #ff6f58; background: rgba(255, 90, 67, .18); }
+#bcartas { display: flex; gap: 4px; justify-content: flex-end; }
+#bcartas .carta { height: 26px; padding: 0 10px; border-radius: 8px; font-size: 11px; font-weight: 700; color: var(--gold); background: rgba(12, 16, 22, .82); border: 1px solid rgba(184, 134, 43, .6); }
+#bcartas .carta.on { background: rgba(233, 192, 99, .3); border-color: var(--gold); box-shadow: 0 0 8px rgba(233, 192, 99, .5); }
+#bcartas .carta.off { opacity: .4; }

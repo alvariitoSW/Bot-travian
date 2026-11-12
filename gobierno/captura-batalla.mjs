@@ -29,7 +29,24 @@ await page.evaluate(() => {
 await page.waitForTimeout(11000);
 await page.evaluate(c => { const B = UI.battle; B.view.intro = 1; for (let i = 0; i < +c; i++) B.view.cycleCam(); }, cam);
 let empezada = false;
-for (const t of tiempos.split(',').map(Number)) {
+// Escenas del plan (N5): «p1» órdenes cerca del general (círculo y contador), «p2» una orden fuera del radio (punteada),
+// «p3» una carta jugada. Son acumulativas: usar «p1,p2,p3». La batalla queda en la fase de plan de la ronda 1.
+async function escenaPlan(n) {
+  if (!empezada) { empezada = true; if (await page.locator('#bctl [data-act="bstart"]').count()) await page.click('#bctl [data-act="bstart"]'); await page.waitForTimeout(1500); }
+  await page.evaluate(n => {
+    const B = UI.battle, b = B.b, g = b.regs.find(r => r.side === 0 && r.k === 'general'), v = B.view, prop = b.regs.filter(r => r.side === 0 && r.k !== 'general' && r.st === 'ok');
+    const cerca = prop.slice().sort((p, q) => Math.hypot(p.x - g.x, p.y - g.y) - Math.hypot(q.x - g.x, q.y - g.y));
+    const dar = (rs, tipo) => { v.sel.clear(); rs.forEach(r => v.sel.add(r)); v.darOrden(tipo); v.sel.clear(); };
+    if (n === 1) { dar(cerca.slice(0, 3), 'avanzar'); v.centrarEn(g.x, g.y - 120); }
+    if (n === 2) { const lej = cerca[cerca.length - 1]; if (Math.hypot(lej.x - g.x, lej.y - g.y) < 260) { lej.x = Math.min(560, g.x + 320); } dar([lej], 'avanzar'); v.centrarEn(g.x + 120, g.y - 120); }
+    if (n === 3) { b.jugarCarta('arenga'); }
+    B.filaKey = ''; B.panelTx = null; B.panelT = performance.now();
+  }, n);
+  await page.waitForTimeout(2600);
+}
+for (const tt of tiempos.split(',')) {
+  if (/^p\d$/.test(tt)) { await escenaPlan(+tt.slice(1)); const f = join(RAIZ, 'gobierno/capturas-tarea', pref + '-' + tt + '.jpg'); await page.screenshot({ path: f, type: 'jpeg', quality: 70, timeout: 120000 }); console.log(f); continue; }
+  const t = Number(tt);
   if (t === 0 && plantilla) { await page.click('#bctl [data-act="bform"][data-v="' + plantilla + '"]'); await page.waitForTimeout(1500); }
   if (t > 0 && !empezada) { empezada = true; if (await page.locator('#bctl [data-act="bstart"]').count()) await page.click('#bctl [data-act="bstart"]'); await page.evaluate(() => { const h = document.getElementById('bhint'); if (h) h.style.opacity = 0; }); }
   // adelanta la simulación hasta el segundo t y deja 2,5 s reales para que los muñecos lleguen a su sitio

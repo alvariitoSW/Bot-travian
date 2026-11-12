@@ -846,4 +846,54 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   st.s = v; assert(G.load()); for (const id in G.state.cities) { const q = G.state.cities[id]; assert.strictEqual(q.esc, 0); assert(q.ciu >= 0); } assert.strictEqual(G.state.cities.roma.ciu, 30);
   delete global.localStorage; }
 
+// N5. General y mando: puntos, radio, retraso y cartas de táctica
+{
+  const mkN = (ex) => new Battle(Object.assign({ sides: [side({ hastati: 240 }, { gen: { n: 'Cónsul' } }), side({ libios: 120 })], defender: 1, wall: 0, seed: 5, rondas: true }, ex || {}));
+  const pon = (r, x, y) => { r.x = x; r.y = y; };
+  const propios = (c) => c.regs.filter(r => r.side === 0 && r.k !== 'general');
+  const ordena = (rs, n) => rs.forEach((r, i) => { r.order = i < n ? { k: 'move', x: r.x, y: r.y - 100 } : null; });
+  // puntos: 5 con general; «Aguantar» no gasta; ejecutar rechaza si te pasas
+  { const c = mkN(), P = propios(c); assert(P.length >= 6, 'hay regimientos de sobra');
+    ordena(P, 5); let m = c.mandoPuntos(); assert.deepStrictEqual([m.usados, m.max, m.libres], [5, 5, 0]);
+    P[5].order = { k: 'quieto' }; assert.strictEqual(c.mandoPuntos().usados, 5, 'Aguantar no gasta');
+    P[5].order = { k: 'move', x: P[5].x, y: P[5].y - 50 }; assert.strictEqual(c.ejecutar(), false); assert.strictEqual(c.motivo, 'Tienes 6 órdenes y solo 5 puntos de mando'); assert.strictEqual(c.fase, 'plan');
+    P[5].order = null; assert.strictEqual(c.ejecutar(), true); }
+  // sin rondas nada cambia
+  { const c = mkN({ rondas: false }); ordena(propios(c), 9); assert.strictEqual(c.fase, 'lucha'); assert.strictEqual(c.ejecutar(), false); c.step(0.1); }
+  // general muerto: 2 puntos y la crónica lo anota
+  { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), P = propios(c);
+    g.st = 'dead'; ordena(P, 3); assert.strictEqual(c.mandoPuntos().max, 2); assert.strictEqual(c.ejecutar(), false); assert(/solo 2 puntos/.test(c.motivo)); ordena(P, 2); assert.strictEqual(c.ejecutar(), true);
+    const d = mkN(), g2 = d.regs.find(r => r.k === 'general' && r.side === 0), a = d.regs.find(r => r.side === 1); d.ejecutar(); g2.men = 1; d.hit(a, g2, 1e6, false); assert(d.genDown[0]); assert(d.notas.some(n => /Sin general: solo 2 órdenes por ronda/.test(n))); }
+  // radio: fuera llega con 6 s de retraso; dentro, al momento; sin general no hay radio
+  for (const modo of ['dentro', 'fuera', 'sin']) {
+    const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), P = propios(c), r = P[0];
+    pon(g, 300, 600); pon(r, modo === 'fuera' ? 300 : 300, modo === 'fuera' ? 300 : 500); if (modo === 'sin') { pon(r, 300, 300); g.st = 'dead'; }
+    r.order = { k: 'move', x: 300, y: 250 }; c.ejecutar();
+    if (modo === 'fuera') { assert.strictEqual(r.order.k, 'quieto'); assert(r.pend && r.pendT === 6); for (let i = 0; i < 55; i++) c.step(0.1); assert.strictEqual(r.order.k, 'quieto', 'aún no (5,5 s)'); for (let i = 0; i < 10; i++) c.step(0.1); assert.strictEqual(r.order.k, 'move', 'a los 6 s la orden llega'); assert.strictEqual(r.pend, null); }
+    else { assert.strictEqual(r.order.k, 'move', 'obedece al momento'); assert(!r.pend); }
+  }
+  // «espera» y retraso a la vez: vale la mayor
+  { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), r = propios(c)[0]; pon(g, 300, 600); pon(r, 300, 300); r.order = { k: 'move', x: 300, y: 250, cond: 'espera' }; c.ejecutar(); assert.strictEqual(r.pendT, 10); }
+  // cartas: se gastan, una por ronda, solo en el plan y con general vivo
+  { const c = mkN(); assert.strictEqual(c.cartas.length, 3);
+    assert(c.jugarCarta('arenga')); assert(!c.jugarCarta('paso'), 'una por ronda'); assert(!c.jugarCarta('arenga'), 'ya gastada'); assert.strictEqual(c.cartas.length, 2);
+    c.ejecutar(); assert(!c.jugarCarta('paso'), 'no en ejecución'); while (c.fase === 'ejecucion') c.step(0.2);
+    assert(c.jugarCarta('paso'), 'otra ronda, otra carta'); assert(!c.jugarCarta('inventada'));
+    const d = mkN(); d.regs.find(r => r.k === 'general' && r.side === 0).st = 'dead'; assert(!d.jugarCarta('arenga'), 'sin general no hay cartas'); }
+  // efectos: arenga sube moral dentro del radio; paso doble acelera; cerrada reduce el daño; se limpia al acabar
+  { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), P = propios(c), a = P[0], lejos = P[1];
+    pon(g, 300, 600); pon(a, 300, 560); pon(lejos, 300, 200); a.mor = a.morMax * 0.5; lejos.mor = lejos.morMax * 0.5; const m0 = a.mor;
+    assert(c.jugarCarta('arenga')); c.ejecutar(); assert(Math.abs(a.mor - (m0 + 0.15 * a.morMax)) < 1e-6 && lejos.mor === lejos.morMax * 0.5, 'solo dentro del radio');
+    while (c.fase === 'ejecucion') c.step(0.2); assert.strictEqual(a.cartaFx, null, 'se limpia al acabar la ronda'); }
+  { const dist = (carta) => { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), r = propios(c)[0]; pon(g, 300, 600); pon(r, 300, 580); r.order = { k: 'move', x: 300, y: 400 }; if (carta) c.jugarCarta(carta); c.ejecutar(); for (let i = 0; i < 3; i++) c.step(0.1); const y0 = r.y; for (let i = 0; i < 6; i++) c.step(0.1); return y0 - r.y; };
+    const n = dist(null), p = dist('paso'); assert(p > n * 1.2 && p < n * 1.3, 'paso doble ~x1,25: ' + p / n); }
+  { const daño = (carta) => { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), r = propios(c)[0], e = c.regs.find(q => q.side === 1); pon(g, 300, 600); pon(r, 300, 580); if (carta) c.jugarCarta(carta); c.ejecutar(); const m = r.men; c.hit(e, r, 600, false); return m - r.men; };
+    const n = daño(null), k = daño('cerrada'); assert(k < n && Math.abs(k / n - 0.85) < 0.1, 'cerrada recibe ~x0,85: ' + k / n); }
+  // «Ver otra vez» sigue siendo idéntico con carta y retraso
+  { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), P = propios(c); pon(g, 300, 600); pon(P[0], 300, 560); pon(P[1], 300, 250);
+    P[0].order = { k: 'move', x: 300, y: 450 }; P[1].order = { k: 'move', x: 300, y: 400 }; c.jugarCarta('paso'); c.ejecutar(); while (c.fase === 'ejecucion') c.step(0.2);
+    const fin = JSON.stringify(c.snapFin.regs.map(r => [r.x, r.y, r.men, r.mor])); assert(c.repetir()); while (c.fase === 'ejecucion') c.step(0.2);
+    assert.strictEqual(JSON.stringify(c.regs.map(r => [r.x, r.y, r.men, r.mor])), fin, 'la repetición es idéntica'); assert.strictEqual(c.cartas.length, 2, 'la repetición no devuelve ni gasta cartas'); }
+}
+
 console.log('OK — todas las pruebas superadas');

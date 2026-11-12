@@ -527,7 +527,7 @@ export class BattleView3D {
   }
   /* ---------- N2: vista previa («sombra») de la ronda ---------- */
   // firma de lo que decide la sombra: posición y orden de cada regimiento propio
-  firmaPlan() { let f = ''; for (const r of this.b.regs) if (r.side === 0 && r.st === 'ok') { const o = r.order; f += r.id + ':' + (r.x | 0) + ',' + (r.y | 0) + (o ? o.k + (o.k === 'atk' ? o.r.id : (o.x | 0) + ',' + (o.y | 0)) + (o.cond || '') : '-') + ';'; } return f; }
+  firmaPlan() { let f = ''; for (const r of this.b.regs) if (r.side === 0 && r.st === 'ok') { const o = r.order; f += r.id + ':' + (r.x | 0) + ',' + (r.y | 0) + (o ? o.k + (o.k === 'atk' ? o.r.id : (o.x | 0) + ',' + (o.y | 0)) + (o.cond || '') : '-') + ';'; } return f + (this.b.cartaPlan || ''); }
   dibujaPlan() {
     const cv = this.pcv, b = this.b; if (!cv) return; const W = this.host.clientWidth || 1, H = this.host.clientHeight || 1;
     if (cv.width !== W || cv.height !== H) { cv.width = W; cv.height = H; }
@@ -538,6 +538,10 @@ export class BattleView3D {
     if (sig !== this.sombraSig && now - this.sombraT > 220) { this.sombraSig = sig; this.sombraT = now; this.sombras = b.prevision(); }
     const v = new THREE.Vector3(), pr = (px, py) => { const w = this.toW(px, py); v.set(w[0], this.h(w[0], w[1]) + 0.6, w[1]).project(this.cam); return v.z < 1 ? [(v.x + 1) / 2 * W, (1 - v.y) / 2 * H] : null; };
     const col = b.cfg.sides[0].col, usados = []; let hay = 0;
+    // N5: círculo dorado tenue del radio de mando alrededor del general propio
+    const gen = b.generalVivo(0), MR = window.Battle.MANDO_RADIO, MD = window.Battle.MANDO_RETRASO;
+    if (gen) { const pts = []; for (let i = 0; i <= 48; i++) { const a = i / 48 * Math.PI * 2, q = pr(gen.x + Math.cos(a) * MR, gen.y + Math.sin(a) * MR); if (q) pts.push(q); }
+      if (pts.length > 8) { x.save(); x.beginPath(); pts.forEach((q, i) => i ? x.lineTo(q[0], q[1]) : x.moveTo(q[0], q[1])); x.closePath(); x.fillStyle = 'rgba(233,192,99,.07)'; x.fill(); x.lineWidth = 4; x.strokeStyle = 'rgba(40,24,4,.35)'; x.stroke(); x.lineWidth = 1.8; x.strokeStyle = 'rgba(244,208,110,.6)'; x.stroke(); x.restore(); } }
     // anillo en el suelo bajo el regimiento elegido
     for (const r of this.sel) { if (r.st !== 'ok') continue; const p = pr(r.x, r.y); if (!p) continue; x.save(); x.translate(p[0], p[1]); x.scale(1, 0.5); x.lineWidth = 5; x.strokeStyle = 'rgba(40,24,4,.8)'; x.beginPath(); x.arc(0, 0, 30, 0, 7); x.stroke(); x.lineWidth = 2.4; x.strokeStyle = '#ffe27a'; x.stroke(); x.restore(); }
     // siluetas del final (sombra honesta: el enemigo quieto)
@@ -551,7 +555,7 @@ export class BattleView3D {
     for (const r of b.regs) {
       if (r.side !== 0 || r.st !== 'ok' || !r.order) continue;
       const tipo = tipoOrden(r), c = COL_ORDEN[tipo] || '#f2cf72', sel = this.sel.has(r), p0 = pr(r.x, r.y); if (!p0) continue;
-      let ex, ey; const o = r.order;
+      let ex, ey, mandoFuera = false; const o = r.order;
       if (o.k === 'atk') { const dx = o.r.x - r.x, dy = o.r.y - r.y, d = Math.hypot(dx, dy) || 1, k = Math.max(0, d - 16) / d; ex = r.x + dx * k; ey = r.y + dy * k; } else if (o.k === 'move') { ex = o.x; ey = o.y; } else { ex = r.x; ey = r.y; }
       const dist = Math.hypot(ex - r.x, ey - r.y); let mid = p0;
       if (tipo === 'aguantar' || dist < 8) {
@@ -565,7 +569,8 @@ export class BattleView3D {
         const wl = (tipo === 'cargar' ? 7 : tipo === 'avanzar' ? 5.5 : 4.4) + (sel ? 1.5 : 0), fin = pts.slice(0, n - 1);
         x.lineCap = 'round'; x.lineJoin = 'round';
         const traza = (lw, st, dash) => { x.setLineDash(dash || []); x.lineWidth = lw; x.strokeStyle = st; x.beginPath(); fin.forEach((q, i) => i ? x.lineTo(q[0], q[1]) : x.moveTo(q[0], q[1])); x.lineTo(pe[0] - Math.cos(ang) * 6, pe[1] - Math.sin(ang) * 6); x.stroke(); x.setLineDash([]); };
-        const dash = tipo === 'hostigar' ? [9, 6] : tipo === 'retirarse' ? [1, 9] : null;
+        const fuera = !!gen && r !== gen && b.fueraDeMando(r, gen) && o.k !== 'quieto', dash = fuera ? [3, 9] : tipo === 'hostigar' ? [9, 6] : tipo === 'retirarse' ? [1, 9] : null;
+        if (fuera) mandoFuera = true;
         traza(wl + 3.4, 'rgba(20,14,6,.82)', dash); traza(wl, c, dash);
         if (tipo === 'relevar') traza(1.6, '#0c2a2d', null);
         const hs = tipo === 'cargar' ? 14 : 11, cabeza = (off, fill) => { const bx = pe[0] - Math.cos(ang) * off, by = pe[1] - Math.sin(ang) * off; x.beginPath(); x.moveTo(bx + Math.cos(ang) * hs, by + Math.sin(ang) * hs); x.lineTo(bx + Math.cos(ang + 2.45) * hs * 0.95, by + Math.sin(ang + 2.45) * hs * 0.95); x.lineTo(bx + Math.cos(ang - 2.45) * hs * 0.95, by + Math.sin(ang - 2.45) * hs * 0.95); x.closePath(); x.lineWidth = 2.6; x.strokeStyle = 'rgba(20,14,6,.85)'; x.stroke(); x.fillStyle = fill; x.fill(); };
@@ -573,7 +578,7 @@ export class BattleView3D {
         mid = pts[Math.floor(n / 2)];
       }
       // etiqueta pequeña con el nombre de la orden (sin solaparse con otra)
-      let ly2 = mid[1] - 11; const txt = (TIPOS_ORDEN.find(q => q[0] === tipo) || [0, ''])[1]; if (!txt) continue;
+      let ly2 = mid[1] - 11; let txt = (TIPOS_ORDEN.find(q => q[0] === tipo) || [0, ''])[1]; if (!txt) continue; if (mandoFuera) txt += ' +' + MD + ' s';
       let colision = false; for (const u of usados) if (Math.abs(u[0] - mid[0]) < 56 && Math.abs(u[1] - ly2) < 13) colision = true; if (colision && !sel) { hay++; continue; } usados.push([mid[0], ly2]);
       x.font = '700 10px Cinzel, Georgia, serif'; x.textAlign = 'center'; x.textBaseline = 'middle'; const tw = x.measureText(txt).width + 10;
       x.fillStyle = 'rgba(12,16,22,.88)'; x.strokeStyle = c; x.lineWidth = 1; x.beginPath(); x.roundRect ? x.roundRect(mid[0] - tw / 2, ly2 - 7, tw, 14, 5) : x.rect(mid[0] - tw / 2, ly2 - 7, tw, 14); x.fill(); x.stroke(); x.fillStyle = c; x.fillText(txt, mid[0], ly2 + 0.5); hay++;

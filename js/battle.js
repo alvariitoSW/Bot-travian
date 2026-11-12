@@ -19,6 +19,15 @@
   const RESERVA_DIST = 90;      // un aliado de reserva a esta distancia detrás protege del contagio
   const REAGRUPA_DIST = 200;    // el general vivo debe estar a menos de esto para reagrupar a quien huye
   const REAGRUPA_MOR = 0.2;     // moral (fracción) con la que vuelve un regimiento reagrupado: Desordenado
+  // --- N5: general y mando (solo el bando 0; el enemigo sigue libre hasta N6) ---
+  const MANDO_PUNTOS = 5;       // órdenes activas por ronda con el general vivo
+  const MANDO_PUNTOS_SIN = 2;   // ...y con el general muerto
+  const MANDO_RADIO = REAGRUPA_DIST;   // más lejos del general que esto, la orden llega con retraso
+  const MANDO_RETRASO = 6;      // segundos de ronda que tarda en llegar una orden fuera del radio
+  const CARTAS = ['arenga', 'paso', 'cerrada'];   // cartas de táctica por batalla (una por ronda)
+  const ARENGA_MORAL = 0.15;    // la arenga sube la moral esta fracción de la máxima
+  const PASO_DOBLE = 1.25;      // paso doble: velocidad x1,25 la ronda
+  const CERRADA_RECIBE = 0.85;  // formación cerrada: recibe x0,85 de daño
   const CHOQUE_SEG = 4;         // segundos de choque tras el contacto de una carga
   const CHOQUE_RECIENTE = 1;    // segundos: si corría hasta hace esto al tocar al enemigo, el contacto es una carga
   const CHOQUE_DANO = 1.2;     // daño de choque (durante CHOQUE_SEG)
@@ -127,7 +136,7 @@
     this.H = Math.max(800, Math.min(1300, Math.round(cfg.fh || 900))); // alto del campo (se adapta a la pantalla)
     this.rnd = mkRng(cfg.seed || 1);
     this.mkTerreno(cfg.terreno);
-    this.genDown = [false, false];
+    this.genDown = [false, false]; this.cartas = CARTAS.slice(); this.cartaPlan = null; this.cartaRonda = 0;
     // mismo tamaño de regimiento para ambos bandos (máx. ~12 regimientos por ejército)
     let big = 0;
     for (const sd of cfg.sides) { let t = 0; for (const k in sd.units) if (D.UNITS[k].cls !== 'ele') t += sd.units[k]; big = Math.max(big, t); }
@@ -347,7 +356,7 @@
     if (d < 1) return 0;
     this.turn(r, Math.atan2(dy, dx), dt);
     const t0 = this.terrenoEn(r.x, r.y);
-    const m = Math.min(r.vel * (mul || PASO_MARCHA) * (1 - FAT_ANDA * r.fat / 100) * (t0.bosque ? BOSQUE_VEL : 1) * dt, d);
+    const m = Math.min(r.vel * (r.cartaFx === 'paso' ? PASO_DOBLE : 1) * (mul || PASO_MARCHA) * (1 - FAT_ANDA * r.fat / 100) * (t0.bosque ? BOSQUE_VEL : 1) * dt, d);
     r.mv = true; r.fat = Math.min(100, r.fat + FAT_MARCHA * dt * (mul > 1 ? 1.6 : 1) * (PAPEL_FAT[r.papel] || 1) * (tipoDe(r) === 'hostigar' ? HOSTIGAR_FAT : 1));
     r.x += dx / d * m; r.y += dy / d * m; r.run += m;
     const t1 = this.terrenoEn(r.x, r.y); if (t1.alt > t0.alt) r.fat = Math.min(100, r.fat + FAT_SUBIDA * (t1.alt - t0.alt));   // cuesta arriba
@@ -386,7 +395,7 @@
     if (da > 2.1) fl = 1.6; else if (da > 1.15) fl = 1.3;
     if (fl > 1) { b.flank = 1; if (b.k === 'falange') fl *= 1.35; else if (b.papel === 'lanceros') fl *= LANCEROS_FLANCO; } // la falange es muy vulnerable por los flancos
     let m = amount * RITMO * fl * (1 - FAT_PEGA * a.fat / 100);
-    { const ea = estadoMoral(a), eb = estadoMoral(b); m *= ea === 2 ? DESORDEN_PEGA : ea === 1 ? VACILANTE_PEGA : 1; if (eb === 2) m *= DESORDEN_RECIBE; }
+    { const ea = estadoMoral(a), eb = estadoMoral(b); m *= ea === 2 ? DESORDEN_PEGA : ea === 1 ? VACILANTE_PEGA : 1; if (eb === 2) m *= DESORDEN_RECIBE; if (b.cartaFx === 'cerrada') m *= CERRADA_RECIBE; }
     if (tipoDe(b) === 'aguantar' && !b.mv) m /= AGUANTAR_DEF;
     const ta = this.terrenoEn(a.x, a.y), tb = this.terrenoEn(b.x, b.y);
     m *= 1 + COLINA_PEGA * (ta.alt - tb.alt);   // arriba se pega más; el que sube pega menos
@@ -447,7 +456,7 @@
       o.mor = Math.max(1, Math.min(o.mor, Math.max(piso, o.mor - CONTAGIO_MAX * o.morMax)));   // baja hasta el siguiente escalón, pero nunca más de CONTAGIO_MAX de golpe
       this.nota(nombreReg(o) + ' se contagia del miedo de ' + nombreReg(b));
     }
-    if (b.k === 'general') this.genDown[b.side] = true;
+    if (b.k === 'general') { if (!this.genDown[b.side] && b.side === 0 && this.rondas) this.nota('Sin general: solo ' + MANDO_PUNTOS_SIN + ' órdenes por ronda'); this.genDown[b.side] = true; }
   };
 
   // hostigar (ligeros y tiradores): se aparta si un enemigo cuerpo a cuerpo se acerca; si no, dispara; sin blanco, va a su sitio. Devuelve true si lo gestiona.
@@ -503,7 +512,7 @@
     if (this.over || this.fase === 'despliegue' || this.fase === 'plan') return;
     this.t += dt;
     const regs = this.regs, cur = [this.men(0), this.men(1)];
-    if (this.rondas) for (const r of regs) if (r.pend && this.tRonda >= ESPERA_SEG - 1e-6) { r.order = Object.assign({}, r.pend, { cond: null }); r.pend = null; }   // «espera 10 s»: ya toca avanzar
+    if (this.rondas) for (const r of regs) if (r.pend && this.tRonda >= (r.pendT || ESPERA_SEG) - 1e-6) { r.order = Object.assign({}, r.pend, { cond: null }); r.pend = null; r.pendT = 0; }   // «espera 10 s» o retraso de mando: ya toca avanzar
     // avance en bloque: ¿alguien del bando está ya cerca del enemigo? si no, todos al paso del más lento de a pie
     const cerca = [false, false], lento = [1e9, 1e9];
     for (const a of regs) {
@@ -630,7 +639,7 @@
   };
 
   /* ---------- Rondas (N2) ---------- */
-  Battle.CONDICIONES = CONDICIONES; Battle.RONDA_SEG = RONDA_SEG;
+  Battle.CONDICIONES = CONDICIONES; Battle.MANDO_RADIO = MANDO_RADIO; Battle.MANDO_RETRASO = MANDO_RETRASO; Battle.CARTAS = CARTAS; Battle.RONDA_SEG = RONDA_SEG;
   // ¿lo cargan? un enemigo que corre o carga, cerca
   Battle.prototype.cargan = function (r) {
     for (const e of this.regs) if (e.side !== r.side && e.st === 'ok' && (e.charge > 0 || e.corre) && Math.hypot(e.x - r.x, e.y - r.y) < DIST_CARGAN) return true;
@@ -640,7 +649,7 @@
   Battle.prototype.estado = function () {
     const idx = new Map(); this.regs.forEach(function (r, i) { idx.set(r, i); });
     const ref = function (o) { return o ? Object.assign({}, o, 'r' in o ? { r: idx.get(o.r) } : {}) : null; };
-    return { t: this.t, rnd: this.rnd.estado(), fase: this.fase, ronda: this.ronda, tRonda: this.tRonda, over: this.over, winner: this.winner, auto: this.auto, genDown: this.genDown.slice(), start: this.start.slice(),
+    return { t: this.t, rnd: this.rnd.estado(), fase: this.fase, ronda: this.ronda, tRonda: this.tRonda, over: this.over, winner: this.winner, auto: this.auto, genDown: this.genDown.slice(), cartas: this.cartas.slice(), cartaPlan: this.cartaPlan, cartaRonda: this.cartaRonda, start: this.start.slice(),
       corpses: this.corpses.map(function (c) { return Object.assign({}, c); }), fx: this.fx.map(function (f) { return Object.assign({}, f); }),
       regs: this.regs.map(function (r) { const c = Object.assign({}, r); c.tgt = r.tgt ? idx.get(r.tgt) : null; c.order = ref(r.order); c.pend = ref(r.pend); return c; }) };
   };
@@ -649,7 +658,7 @@
     const regs = this.regs, ref = function (o) { return o ? Object.assign({}, o, 'r' in o ? { r: regs[o.r] } : {}) : null; };
     e.regs.forEach(function (c, i) { Object.assign(regs[i], c); regs[i].tgt = c.tgt == null ? null : regs[c.tgt]; regs[i].order = ref(c.order); regs[i].pend = ref(c.pend); });
     this.t = e.t; this.rnd.fija(e.rnd); this.fase = e.fase; this.ronda = e.ronda; this.tRonda = e.tRonda; this.over = e.over; this.winner = e.winner; this.auto = e.auto;
-    this.genDown = e.genDown.slice(); this.start = e.start.slice(); this.corpses = e.corpses.map(function (c) { return Object.assign({}, c); }); this.fx = e.fx.map(function (f) { return Object.assign({}, f); });
+    this.cartas = e.cartas.slice(); this.cartaPlan = e.cartaPlan; this.cartaRonda = e.cartaRonda; this.genDown = e.genDown.slice(); this.start = e.start.slice(); this.corpses = e.corpses.map(function (c) { return Object.assign({}, c); }); this.fx = e.fx.map(function (f) { return Object.assign({}, f); });
   };
   // copia independiente (comparte solo lo que no cambia: configuración, terreno, fichas de unidad)
   Battle.prototype.clona = function () {
@@ -666,13 +675,39 @@
   // empieza la ronda de ejecución (desde el plan)
   Battle.prototype.ejecutar = function () {
     if (!this.rondas || this.fase !== 'plan' || this.over) return false;
-    for (const r of this.regs) { r.pend = null; if (r.st === 'ok' && r.order && r.order.cond === 'espera') { r.pend = r.order; r.order = { k: 'quieto' }; } }
+    const mp = this.mandoPuntos();
+    if (mp.usados > mp.max) { this.motivo = 'Tienes ' + mp.usados + ' órdenes y solo ' + mp.max + ' puntos de mando'; return false; }
+    const g = this.generalVivo(0);
+    for (const r of this.regs) {
+      r.pend = null; r.pendT = 0; r.cartaFx = null;
+      if (r.st !== 'ok' || !r.order) continue;
+      if (r.order.cond === 'espera') { r.pend = r.order; r.pendT = ESPERA_SEG; r.order = { k: 'quieto' }; }
+      if (g && r.side === 0 && r !== g && r.order.k !== 'quieto' && this.fueraDeMando(r, g)) { if (!r.pend) r.pend = r.order; r.pendT = Math.max(r.pendT, MANDO_RETRASO); r.order = { k: 'quieto' }; }
+    }
+    if (this.cartaPlan && g) {   // la carta jugada en el plan se aplica a los propios dentro del radio
+      for (const r of this.regs) if (r.side === 0 && r.st === 'ok' && !this.fueraDeMando(r, g)) { r.cartaFx = this.cartaPlan; if (this.cartaPlan === 'arenga') r.mor = Math.min(r.morMax, r.mor + ARENGA_MORAL * r.morMax); }
+    }
+    this.cartaPlan = null;
     this.snapIni = this.estado(); this.notas = []; this.fase = 'ejecucion'; this.tRonda = 0; this.repite = false; return true;
+  };
+  Battle.prototype.generalVivo = function (side) { return this.regs.find(function (q) { return q.side === side && q.k === 'general' && q.st === 'ok'; }) || null; };
+  Battle.prototype.fueraDeMando = function (r, g) { return Math.hypot(g.x - r.x, g.y - r.y) > MANDO_RADIO; };
+  // puntos de mando del bando 0: cada regimiento vivo con orden activa (no «Aguantar») gasta uno
+  Battle.prototype.mandoPuntos = function () {
+    const max = this.generalVivo(0) ? MANDO_PUNTOS : MANDO_PUNTOS_SIN;
+    let usados = 0; for (const r of this.regs) if (r.side === 0 && r.st === 'ok' && r.order && r.order.k !== 'quieto') usados++;
+    return { usados: usados, max: max, libres: max - usados };
+  };
+  // carta de táctica en el plan: se aplica en la ronda que sigue. Una por ronda, solo con el general vivo.
+  Battle.prototype.jugarCarta = function (id) {
+    if (!this.rondas || this.fase !== 'plan' || this.over || !this.generalVivo(0)) return false;
+    const i = this.cartas.indexOf(id); if (i < 0 || this.cartaRonda === this.ronda) return false;
+    this.cartas.splice(i, 1); this.cartaPlan = id; this.cartaRonda = this.ronda; return true;
   };
   // acaba la ronda: vuelve el plan y se apuntan los hechos. Si era una repetición, se restablece el final guardado.
   Battle.prototype.finRonda = function () {
     if (this.repite) { this.aplicar(this.snapFin); this.repite = false; return; }
-    for (const r of this.regs) if (r.pend) { r.order = Object.assign({}, r.pend, { cond: null }); r.pend = null; }
+    for (const r of this.regs) { if (r.pend) { r.order = Object.assign({}, r.pend, { cond: null }); r.pend = null; } r.pendT = 0; r.cartaFx = null; }
     this.hechos = this.cronica(); this.fase = 'plan'; this.ronda++; this.tRonda = 0; this.snapFin = this.estado();
   };
   // «Ver otra vez»: vuelve al inicio de la ronda terminada y la repite igual (la simulación es determinista)

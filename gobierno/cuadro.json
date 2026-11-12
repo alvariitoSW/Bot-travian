@@ -720,6 +720,24 @@
    "tarea": "Q1k",
    "archivo": "gobierno/capturas-tarea/Q1k-6-crecida.jpg",
    "pie": "Crecida de primavera: se moja la granja de la ribera"
+  },
+  {
+   "tarea": "N5",
+   "archivo": "gobierno/capturas-tarea/N5-p1.jpg",
+   "pie": "Plan: círculo de mando y contador 3/5",
+   "ancha": true
+  },
+  {
+   "tarea": "N5",
+   "archivo": "gobierno/capturas-tarea/N5-p2.jpg",
+   "pie": "Orden fuera del radio: llega 6 s tarde",
+   "ancha": true
+  },
+  {
+   "tarea": "N5",
+   "archivo": "gobierno/capturas-tarea/N5-p3.jpg",
+   "pie": "Carta de arenga jugada; el resto se apaga",
+   "ancha": true
   }
  ],
  "informes": [
