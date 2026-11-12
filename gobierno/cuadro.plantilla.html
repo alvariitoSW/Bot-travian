@@ -160,7 +160,7 @@ section { scroll-margin-top: 12px; }
     <a class="ficha-num alerta" href="#t-espera"><b>{{N_ESPERA}}</b><span>decides tú</span></a>
     <a class="ficha-num" href="#t-pend"><b>{{N_ACTIVAS}}</b><span>por hacer</span></a>
     <a class="ficha-num" href="#t-pend"><b>{{N_PAUSA}}</b><span>en pausa</span></a>
-    <a class="ficha-num" href="#t-marcha"><b>{{N_MARCHA}}</b><span>trabajando</span></a>
+    <a class="ficha-num" href="#t-marcha"><b id="n-marcha">{{N_MARCHA}}</b><span>sesiones abiertas</span></a>
     <a class="ficha-num" href="#t-tablero"><b>{{N_HECHAS}}</b><span>hechas</span></a>
   </section>
 
@@ -276,6 +276,7 @@ section { scroll-margin-top: 12px; }
       if (x.estado !== 'terminada') { var p = document.createElement('button'); p.className = 'boton fino'; p.textContent = 'Parar'; p.dataset.pedir = 'orden'; p.dataset.ref = 'parar:' + x.id; p.dataset.titulo = 'Parar la sesión ' + (x.titulo || x.id); li.appendChild(p); }
       ul.appendChild(li);
     });
+    $('n-marcha').textContent = filas.length;
     var ac = filas.filter(function (x) { return x.estado === 'terminada'; }).length;
     $('ses-limpiar').textContent = ac ? 'Cerrar las ' + ac + ' que ya han acabado' : 'No hay sesiones acabadas'; $('ses-limpiar').disabled = !ac;
     $('ses-nota').textContent = filas.length + ' sesiones abiertas: ' + filas.filter(function (x) { return x.estado === 'esperando'; }).length + ' te esperan, ' + filas.filter(function (x) { return x.estado === 'trabajando'; }).length + ' trabajan y ' + ac + ' han acabado. Lista de ' + hace(ult) + '; la refresca el vigía.';
