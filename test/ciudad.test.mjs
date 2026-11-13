@@ -86,4 +86,14 @@ prueba('CN5: una colonia se funda desde el juego, guarda y recarga la misma ciud
     G.save(); assert.ok(G.load()); assert.equal(JSON.stringify(R.aDatos(G.ciudadE('cosa'))), a, 'misma ciudad tras cargar');
     assert.equal(R.estado(G.ciudadE('cosa')).casas, 20); G.newGame('x'); assert.ok(!D.CITIES.cosa);
   } finally { delete globalThis.localStorage; G.usarCiudad(null); } });
+prueba('CN6: el barrio sube de uno en uno, baja tras el retraso y se rehace igual', () => {
+  assert.equal(R.RETRASO_BARRIO, 3); const F = R.crear(3); R.fundar(F, 172, -196);
+  const pon2 = id => { const q = R.mejorSitio(F, id), r = q && R.colocar(F, id, q[0], q[1], true); assert.ok(r && r.ok, id); r.e.obra = 0; };
+  assert.equal(F.barrios[0].nivel, 1); pon2('fuente'); pon2('templo'); pon2('mercado'); assert.equal(R.nivelBarrio(F, 0).nivel, 4);
+  const niv = []; for (let i = 0; i < 4; i++) { R.mes(F); niv.push(F.barrios[0].nivel); } assert.deepEqual(niv.slice(0, 2), [2, 3], 'un nivel por mes: ' + niv);
+  F.edificios = F.edificios.filter(e => e.tipo !== 'templo' && e.tipo !== 'mercado'); F.barrios[0].nivel = 4; F.barrios[0].bdef = 0; F.rev++; assert.ok(R.nivelBarrio(F, 0).nivel < 4);
+  R.mes(F); R.mes(F); assert.equal(F.barrios[0].nivel, 4); assert.match(R.textoBarrio(F, 0), /nivel IV.*bajará en 1 mes/); assert.equal(R.mesesParaBajar(F, 0), 1);
+  R.mes(F); assert.equal(F.barrios[0].nivel, 3, 'baja un nivel tras 3 meses: ' + JSON.stringify(F.barrios[0]) + R.nivelBarrio(F, 0).nivel); assert.equal(F.barrios[0].bdef, 0);
+  const H = R.crear(3); R.fundar(H, 172, -196); for (const id of ['fuente', 'templo']) { const q = R.mejorSitio(H, id); assert.ok(R.colocar(H, id, q[0], q[1], true).ok); } for (let i = 0; i < 7; i++) R.mes(H);
+  const B = R.deDatos(JSON.parse(JSON.stringify(R.aDatos(H)))); assert.deepEqual(B.barrios.map(b => [b.nivel, b.bdef]), H.barrios.map(b => [b.nivel, b.bdef]), 'rehecha da los mismos niveles'); assert.ok(H.barrios[0].nivel >= 2); });
 process.exit(fallos.length ? 1 : 0);

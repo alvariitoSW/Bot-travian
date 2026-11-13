@@ -489,8 +489,21 @@ export class CityView3D {
     ponerCamara();
     this.people(city, t, dt);
     dibujar();
+    this.etiquetasBarrio(H);
     const el = this.armyEl, txt = '⚔️ Guarnición · ' + this.men; if (el._t !== txt) { el._t = txt; el.textContent = txt; }
     if (this.guarn && this.men && cam.d < 700) { const p = aPantalla(this.guarn.x, this.guarn.z, 14), r = host.getBoundingClientRect(), y = p.y - r.top; if (p.ok && y > 104 && y < H - 150) { el.style.display = ''; el.style.transform = 'translate(' + (p.x - r.left).toFixed(1) + 'px,' + y.toFixed(1) + 'px) translate(-50%,-100%)'; } else el.style.display = 'none'; } else el.style.display = 'none';
+  }
+  /* CN6: una etiqueta pequeña por barrio («Foro · II»), solo con la cámara lejos y lejos de la línea de arriba y de la bandeja de abajo */
+  etiquetasBarrio(H) {
+    const bs = E && E.barrios || [], lejos = cam.d >= 380 && bs.length > 0; this.bel = this.bel || [];
+    while (this.bel.length < bs.length) { const el = document.createElement('div'); el.className = 'mlabel barrio'; el.style.display = 'none'; this.labels.appendChild(el); this.bel.push(el); }
+    const r = host.getBoundingClientRect();
+    this.bel.forEach((el, i) => {
+      const b = bs[i]; if (!b || !lejos) { el.style.display = 'none'; return; }
+      const txt = (b.corto || b.nombre) + ' · ' + (CI.ROMANOS[b.nivel || 1] || 'I'); if (el._t !== txt) { el._t = txt; el.textContent = txt; }
+      const p = aPantalla(b.x, b.z, 6), y = p.y - r.top;
+      if (p.ok && y > 200 && y < H - 240) { el.style.display = ''; el.style.transform = 'translate(' + Math.max((el.offsetWidth || 96) / 2 + 6, Math.min(r.width - (el.offsetWidth || 96) / 2 - 6, p.x - r.left)).toFixed(1) + 'px,' + y.toFixed(1) + 'px) translate(-50%,-50%)'; } else el.style.display = 'none';
+    });
   }
   /* dónde está el edificio de D.BUILD b en la ciudad */
   posDe(b) { if (!E) return null; if (b && typeof b === 'object') return { x: b.x, z: b.z }; if (b === 'foro') return E.foro ? { x: E.foro.x, z: E.foro.z } : null; const pz = CI.PIEZA_DE[b], e = pz && E.edificios.find(q => q.tipo === pz); return e ? { x: e.x, z: e.z } : null; }

@@ -51,6 +51,12 @@ const PASOS = {
     const M2 = await page.evaluate(async () => await import('/js/gfx/city3d.js').then(m => m.medidas.sombras)); return out.join(' | ') + ' · cálculos de sombra en las 4 estaciones: ' + (M2 - M); },
   atardecer: async () => { await ponerFecha(8, 0.95); await page.evaluate(() => { const E = Game.ciudadE(UI.city); UI.cityV.view('ciudad'); UI.cityV.mirar(E.foro.x, E.foro.z, 150, 0.45); }); await page.waitForTimeout(1500); return 'verano, fracción 0,95 del mes'; },
   // --- CN4: bandeja, fantasma, ficha y obra (todo tocando la pantalla como un dedo) ---
+  // --- CN6: barrios (etiquetas con la cámara lejos, capilla de cruce, ficha de la ciudad) ---
+  barrios: async () => { await elegir(ciudad); await page.waitForTimeout(3000); await cierra(); return page.evaluate(() => { const s = Game.state, id = UI.city, E = Game.ciudadE(id); for (const r of DATA.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; }
+    let ok = 'sin 2.º barrio'; for (let rad = 120; rad <= 260 && E.barrios.length < 2; rad += 20) for (let a = 0; a < 12 && E.barrios.length < 2; a++) { const x = E.foro.x + Math.cos(a / 12 * 6.283) * rad, z = E.foro.z + Math.sin(a / 12 * 6.283) * rad, r = Game.colocar(id, 'compitum', x, z); if (r && r.ok) ok = 'capilla en ' + Math.round(x) + ',' + Math.round(z); }
+    s.pending.length = 0; for (let i = 0; i < 24; i++) Game.tick(0.25); s.pending.length = 0; E.barrios.forEach((b, i) => { b.nivel = i ? 1 : 3; }); E.rev++; UI.cityV.view('ciudad'); const m = E.barrios.reduce((a, b) => [a[0] + b.x / E.barrios.length, a[1] + b.z / E.barrios.length], [0, 0]); UI.cityV.mirar(m[0], m[1] + 40, 600, 0.3); return ok + ' · barrios: ' + E.barrios.map(b => b.corto + ' ' + b.nivel).join(', '); }); },
+  capilla: async () => page.evaluate(() => { const E = Game.ciudadE(UI.city), b = E.barrios[1] || E.barrios[0]; UI.cityV.mirar(b.x, b.z, 120, 0.5); return 'capilla de cruce de ' + b.nombre; }),
+  fichabarrios: async () => { await page.evaluate(() => { UI.cityV.mirar(Game.ciudadE(UI.city).foro.x, Game.ciudadE(UI.city).foro.z, 560, 0.3); document.getElementById('popsheet').hidden = false; }); await page.evaluate(() => { const b = document.createElement('button'); b.dataset.act = 'pill'; document.body.appendChild(b); b.click(); b.remove(); document.getElementById('popsheet').hidden = false; UI.dirty = true; }); await page.waitForTimeout(1500); return page.evaluate(() => (document.querySelector('.barrio') || {}).textContent || 'sin bloque barrio'); },
   bandeja: async () => { await page.evaluate(() => { const s = Game.state; for (const r of DATA.RES) { s.res[r] = 1e4; s.alm[r] = Math.max(s.alm[r] || 0, 1e4); } UI.cityV.view('ciudad'); }); await page.waitForTimeout(1500); return 'bandeja: ' + await page.evaluate(() => document.querySelectorAll('.pza').length + ' fichas'); },
   fantasma: async () => { await elegirFicha('granja'); const ok = await sitioVerde('granja'); return 'ficha granja · ' + (ok ? 'fantasma en sitio verde' : 'sin sitio verde') + ' · ' + await lineaTxt(); },
   rojo: async () => { await elegirFicha('granja'); await page.evaluate(() => { const E = Game.ciudadE(UI.city); UI.cityV.mirar(E.foro.x, E.foro.z, 700, 0); }); await page.waitForTimeout(800); await page.touchscreen.tap(30, 250); await page.waitForTimeout(900); return 'fantasma en el borde · ' + await lineaTxt(); },
@@ -150,6 +156,7 @@ for (const v of vistas) {
     else if (v === 'media') { V.view('ciudad'); V.c.dist = 250; }
     else if (v === 'ruina' || v === 'obras' || v === 'muralla' || v === 'piedra') { }
     else if (v === 'lejos') { V.view('ciudad'); V.c.dist *= 2.2; }
+    else if (v === 'barrios' || v === 'capilla' || v === 'fichabarrios') { }
     else if (v === 'toque' || v === 'ciudad' || v === 'meses24' || v === 'capua') V.view('ciudad');
     else if (v === 'calle' || v === 'ejercito') V.view(v); }, v);
   if (v === 'estaciones') { console.log(nota); continue; }

@@ -140,6 +140,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+**CN6 hecha (13/11).** Sigue **CN7 Muralla y arrabal** (ola 9). `c.barrio` = media por casas de `E.barrios[i].nivel`; `G.barrioInfo(c).barrios` lista cada barrio. Ocio y termas siguen solo para el ánimo de clases hasta CN10. Detalle en `partes/2026-11-13-CN6.md`.
 **CN5 hecha (13/11).** Sigue **CN6 Barrios**. Ojo: la colonia es una ciudad tuya con `c.colonia`; `G.fundarColonia`, `UI.abrirFundar(sitio, alFundar)` y `G.ciudadPendiente` los reutiliza I8. Sin medir en móvil (el arado apenas se ve con render por software). Detalle en `partes/2026-11-13-CN5.md`.
 **N15b hecha (13/11).** La campaña ya pasa bisoñas, general y objetivo a la batalla. Queda N15c (0,67× con buen plan, frente de 60 figuras, igualadas largas) si el usuario quiere más afinado. I5d opcional, tras jugar el sistema. Detalle en `partes/2026-11-13-N15b.md`.
 0000000000000000000. **CN11 hecha (12/11)**. `js/gfx/vida.js` es el único módulo de gente, humo, fuego, carros y guarnición ligera: CN8 usa `pedirHumo`/`pedirFuego`; Q11 no rehace humo. Ojo: `gobierno/medidas-ciudad.json` se escribe a mano tras `captura-ciudad.mjs`; repetirlo si cambia la ciudad 3D. Sin medir en móvil real.

@@ -686,3 +686,12 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 #csheet[data-m="fundar"] #bandeja, #csheet[data-m="fundar"] #fichab { display: none; }
 #csheet[data-m="fundar"] #acciones { display: flex; }
 #app #csheet[data-m="fundar"] { bottom: calc(92px + env(safe-area-inset-bottom)); }
+
+/* CN6: lista de barrios en la ficha de la ciudad y etiqueta de barrio en el mapa */
+.barrio .bn { display: flex; align-items: center; gap: 6px; } .barrio .bsv { display: inline-flex; gap: 4px; margin: 0 0 0 auto; }
+.barrio .bs { flex: none; width: 28px; max-width: none; height: 24px; opacity: 1; filter: none; border-color: #e05050; }
+.blis { margin-top: 5px; display: flex; flex-direction: column; gap: 3px; }
+.bfila { display: flex; align-items: baseline; gap: 6px; font-size: 12px; line-height: 1.3; }
+.bfila .bniv { flex: none; min-width: 26px; text-align: center; font-family: var(--serif); font-weight: 700; color: var(--bronce); border: 1px solid var(--bronce); border-radius: 6px; padding: 0 3px; }
+.bfila .bnom { flex: none; font-weight: 600; } .bfila .bfalta { opacity: .8; min-width: 0; } .bfila.mal .bfalta { color: #e05050; }
+.mlabel.barrio { pointer-events: none; font-size: 11px; padding: 2px 8px; background: rgba(10, 14, 20, .62); border-color: rgba(233, 192, 99, .5); color: #f4e6bd; font-family: var(--serif); letter-spacing: .02em; }

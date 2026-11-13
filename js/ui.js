@@ -228,25 +228,26 @@ function diosBloque(c, b) {
   return b !== 'templo' || c.owner !== 'roma' ? '' : dg ? '<div class="ds">' + dg.i + ' <b>Templo de ' + dg.n + '</b> · ' + esc(dg.d) + '</div>' :
     '<div class="ds">Elige el dios:</div><div class="chips" style="flex-wrap:wrap">' + Object.keys(D.DIOSES).map(k => { const d = D.DIOSES[k], no = d.sea && !D.CITIES[UI.city].sea; return '<button class="chip ' + ((c.dios || 'marte') === k && !no ? 'on' : '') + '" ' + (no ? 'disabled' : 'data-act="dios" data-v="' + k + '"') + ' title="' + esc(d.d) + '">' + d.i + ' ' + d.n + '</button>'; }).join('') + '</div><div class="ds">' + esc(D.DIOSES[c.dios && !(D.DIOSES[c.dios].sea && !D.CITIES[UI.city].sea) ? c.dios : 'marte'].d) + '</div>';
 }
-/* Barrio (P67): seis servicios, llenos o grises, y una frase */
-const BARRIO_ICO = { grano: () => D.RES_ICON.grano, templo: () => bIco('templo'), agua: () => bIco('acueducto'), ocio: () => bIco('anfiteatro'), termas: () => bIco('termas'), lujo: () => svgIco('<path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l-2 5 5 11 5-11-2-5"/>') };
+/* Barrios (CN6): la ciudad (Aldea, Villa, Ciudad, Urbs) con lo que le falta, y una fila por barrio con su nivel y su «para subir falta…» */
+const BARRIO_ICO = { grano: () => D.RES_ICON.grano, lujo: () => svgIco('<path d="M6 4h12l3 5-9 11L3 9z"/><path d="M3 9h18M9 4l-2 5 5 11 5-11-2-5"/>') };
+const ROMS = ['', 'I', 'II', 'III', 'IV'];
 const barrioFrase = bi => {
-  const nom = k => D.BARRIO_SERV[k].toLowerCase(), lst = a => a.map(nom).join(' y ');
-  if (bi.objetivo < bi.nivel) { const f = D.BARRIO[bi.nivel].pide.filter(k => !bi.serv[k]); return 'Baja a ' + D.BARRIO[bi.nivel - 1].n + ' en ' + bi.meses + (bi.meses === 1 ? ' mes' : ' meses') + ' si no recuperas ' + (f.length > 1 ? 'estos servicios: ' : 'el ') + lst(f) + '.'; }
-  if (bi.nivel >= D.BARRIO.length - 1) return 'Barrio al máximo.';
-  return 'Para ' + D.BARRIO[bi.nivel + 1].n + ' falta ' + lst(bi.falta) + '.';
+  const nom = k => (D.BARRIO_SERV[k] || k).toLowerCase(), lst = a => a.map(nom).join(' y ');
+  if (bi.objetivo < bi.nivel) { const f = (D.BARRIO[bi.nivel].pide || []).filter(k => !bi.serv[k]); if (!f.length) return 'Algún barrio se queda sin servicios y la ciudad puede bajar de nivel: mira la lista.'; return 'Baja a ' + D.BARRIO[bi.nivel - 1].n + ' en ' + bi.meses + (bi.meses === 1 ? ' mes' : ' meses') + ' si no recuperas ' + (f.length > 1 ? 'estos servicios: ' : 'el ') + lst(f) + '.'; }
+  if (bi.nivel >= D.BARRIO.length - 1) return 'La ciudad está al máximo.';
+  return 'Para ser ' + D.BARRIO[bi.nivel + 1].n + ' falta ' + (bi.falta.length ? lst(bi.falta) : 'esperar unos meses') + '.';
 };
 const barrioHtml = c => {
   if (c.owner !== 'roma') return '';
-  const bi = G.barrioInfo(c), top = D.BARRIO.length - 1;
-  return '<div class="barrio"><div class="bn"><b>' + D.BARRIO[bi.nivel].n + '</b> · nivel ' + bi.nivel + ' de ' + top + '</div><div class="bsv">' +
-    Object.keys(D.BARRIO_SERV).map(k => '<span class="bs' + (bi.serv[k] ? ' on' : '') + '" title="' + D.BARRIO_SERV[k] + '">' + BARRIO_ICO[k]() + '</span>').join('') +
-    '</div><div class="bf' + (bi.objetivo < bi.nivel ? ' mal' : '') + '">' + barrioFrase(bi) + '</div></div>';
+  const bi = G.barrioInfo(c), bs = bi.barrios || [], ver = k => BARRIO_ICO[k] && !bi.serv[k] ? '<span class="bs" title="Falta ' + D.BARRIO_SERV[k].toLowerCase() + '">' + BARRIO_ICO[k]() + '</span>' : '';
+  return '<div class="barrio"><div class="bn"><b>' + D.BARRIO[bi.nivel].n + '</b> · nivel ' + bi.nivel + ' de ' + (D.BARRIO.length - 1) + '<span class="bsv">' + ver('grano') + ver('lujo') + '</span></div>' +
+    '<div class="bf' + (bi.objetivo < bi.nivel ? ' mal' : '') + '">' + barrioFrase(bi) + '</div>' +
+    (bs.length ? '<div class="blis">' + bs.map(b => '<div class="bfila' + (b.objetivo < b.nivel ? ' mal' : '') + '"><span class="bniv">' + ROMS[b.nivel] + '</span><span class="bnom">' + esc(b.corto || b.nombre) + '</span><span class="bfalta">' + (b.falta ? 'para subir falta ' + esc(b.falta.replace(/^para subir falta /, '')) : 'lo tiene todo') + '</span></div>').join('') + '</div>' : '') + '</div>';
 };
 /* Clases (Q6): ciudadanos, plebeyos, esclavos; cifra, barra de parte y cara de ánimo, y lo que piden */
 const clasesFrase = (c, cl, an) => {
   const sv = G.servicios(c, G.prod().grano >= 0), K = G.K(), pide = [];
-  if (an.ciu < K.caraBuena && cl.ciu > 0) { const f = []; if (!sv.lujo) f.push('vino o lujo'); if (!sv.ocio) f.push('ocio'); if (!sv.termas) f.push('termas'); if (f.length) pide.push('Los ciudadanos piden ' + f.join(', ') + '.'); }
+  if (an.ciu < K.caraBuena && cl.ciu > 0) { const f = []; if (!sv.lujo) f.push('vino o lujo'); if (sv.mercado === false) f.push('mercado'); if (f.length) pide.push('Los ciudadanos piden ' + f.join(', ') + '.'); }
   if (an.ple < K.caraBuena) { const f = []; if (!sv.grano) f.push('grano'); if (!sv.templo) f.push('un templo'); if (f.length) pide.push('Los plebeyos piden ' + f.join(' y ') + '.'); else if (cl.esc > 0) pide.push('Los esclavos pesan en el ánimo de los plebeyos.'); }
   if (cl.esc > 0 && an.esc < K.inquietud) pide.push('Los esclavos están inquietos: -' + K.inquietudFel + ' de felicidad.');
   else if (cl.esc > 0 && an.esc >= K.manumision) pide.push('Los esclavos contentos se liberan poco a poco.');
@@ -503,9 +504,9 @@ function consejo(c, id) {
   if (flags.almacen) return mk('Tu ' + RES_NOM[lleno[0]].toLowerCase() + ' llega al ' + Math.min(100, Math.round(lleno[1] * 100)) + ' %: ' + (E.edificios.some(q => q.tipo === 'almacen') ? 'coloca otro almacén.' : 'coloca un almacén.'), opcionPieza(id, 'almacen', true));
   if (E.abiertas.includes('granero') && !E.edificios.some(q => q.tipo === 'granero')) return mk('Falta un granero: sin él hay hambre en invierno.', opcionPieza(id, 'granero', true));
   if (tope) return mk('La población está al tope: faltan casas. Las casas nacen solas junto a las calles; coloca una obra que traiga una calle.', null);
-  const bi = G.barrioInfo(c), baja = bi.objetivo < bi.nivel, fl = baja ? D.BARRIO[bi.nivel].pide.filter(k => !bi.serv[k]) : bi.falta;
-  const sv = fl.map(k => ({ templo: 'templo', agua: 'fuente' })[k]).filter(Boolean).map(p => opcionPieza(id, p, true)).find(o => o && G.canAfford(o.ini));
-  if (sv) return mk((baja ? 'Para seguir siendo ' + D.BARRIO[bi.nivel].n : 'Para ser ' + D.BARRIO[bi.nivel + 1].n) + ' falta ' + (sv.pieza === 'templo' ? 'un templo' : 'una fuente') + '.', sv);
+  const bi = G.barrioInfo(c), baja = bi.objetivo < bi.nivel, fl = baja ? (D.BARRIO[bi.nivel].pide || []).filter(k => !bi.serv[k]) : bi.falta;
+  const sv = fl.map(k => ({ templo: 'templo', agua: 'fuente', mercado: 'mercado', grano: 'granja' })[k]).filter(Boolean).map(p => opcionPieza(id, p, true)).find(o => o && G.canAfford(o.ini));
+  if (sv) return mk((baja ? 'Para seguir siendo ' + D.BARRIO[bi.nivel].n : 'Para ser ' + D.BARRIO[bi.nivel + 1].n) + ' falta ' + ({ templo: 'un templo', fuente: 'una fuente', mercado: 'un mercado', granja: 'más grano: una granja' })[sv.pieza] + '.', sv);
   const cand = ['granja', 'aserradero', 'cantera', 'mina', 'almacen'].map(p => opcionPieza(id, p, false)).filter(o => o && G.canAfford(o.ini)).sort((x, y) => x.lvl - y.lvl)[0];
   if (cand) return mk((cand.mej ? 'Mejora a ' : 'Coloca: ') + cand.nombre + '. Ya tienes los recursos.', cand);
   return mk('Faltan recursos para nuevas obras. Espera a que lleguen.', null);

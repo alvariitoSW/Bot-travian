@@ -64,9 +64,9 @@
   D.BARRIO = [
     null,
     { n: 'Aldea', pop: 1, imp: 1, pide: [] },
-    { n: 'Villa', pop: 1.25, imp: 1, pide: ['grano', 'templo'] },
-    { n: 'Ciudad', pop: 1.5, imp: 1, pide: ['grano', 'templo', 'agua', 'ocio'] },
-    { n: 'Urbs', pop: 1.8, imp: 1.15, pide: ['grano', 'templo', 'agua', 'ocio', 'termas', 'lujo'] }
+    { n: 'Villa', pop: 1.25, imp: 1, pide: ['grano', 'agua'] },
+    { n: 'Ciudad', pop: 1.5, imp: 1, pide: ['grano', 'agua', 'templo'] },
+    { n: 'Urbs', pop: 1.8, imp: 1.15, pide: ['grano', 'agua', 'templo', 'mercado', 'lujo'] }
   ];
   D.BARRIO_RETRASO = 3;   // meses con déficit antes de bajar un nivel
   D.LUJO = ['vino', 'purpura', 'plata'];
@@ -83,7 +83,7 @@
     ciudadaniaLote: 10, ciudadaniaCoste: 60, ciudadaniaBarrio: 2, ciudadaniaMax: 0.4,
     caraBuena: 60, caraMedia: 35
   };
-  D.BARRIO_SERV = { grano: 'Grano', templo: 'Templo', agua: 'Agua', ocio: 'Ocio', termas: 'Termas', lujo: 'Lujo' };
+  D.BARRIO_SERV = { grano: 'Grano', agua: 'Agua', templo: 'Templo', mercado: 'Mercado', lujo: 'Lujo' };
   // mano de obra y mantenimiento (I3): puestos = base + por nivel de aserradero/cantera/mina/granja; la producción de recursos se multiplica por pop/puestos (con suelo)
   D.PUESTOS_BASE = 20; D.PUESTOS_NIVEL = 12; D.MANO_MIN = 0.25;
   D.MANT_EDIF = 0.15; D.MANT_TROPA = 0.35;   // oro/mes por nivel de edificio no productivo y por punto de «up» de tropa (stipendium)

@@ -141,7 +141,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ✅ CN3 **Ciudad que nace** (hecha 12/11): terreno vacío, calles pintadas al jugar, casas romanas por nivel, andamio, ruinas y muralla sobre el surco. Parte `gobierno/partes/2026-11-12-CN3.md`.
 - ✅ CN4 **Colocar con el dedo** (hecha 12/11): bandeja de fichas abajo, fantasma con mapa verde/ocre/rojo y una línea de motivo, «Construir aquí»/«Cancelar», ficha del edificio colocado (Mejorar I a III, Derribar), ficha «Muralla» (`G.levantarMuralla`); fuera solares, medallas y lista. Parte `gobierno/partes/2026-11-12-CN4.md`.
 - ✅ CN5 **Fundar colonias** (13/11): 8 sitios históricos en el mapa, colonos que marchan sin batalla, pantalla de fundar con arado; misión «Una colonia para Roma».
-- ⬜ CN6 **Barrios** (1,2 M): capilla de cruce, nivel por barrio (mueve Q5), casas y calles que cambian, etiquetas.
+- ✅ CN6 **Barrios** (13/11): cada barrio sube de uno en uno y baja tras 3 meses sin servicio; la ciudad es la media; lista de barrios en la ficha y etiqueta por barrio con la cámara lejos. Mercado sustituye a ocio y termas.
 - ⬜ CN7 **Muralla y arrabal** (1,2 M): empalizada y piedra sobre el surco, puertas, saqueo de lo de fuera.
 - ⬜ CN8 **Sucesos** (0,8 M): crecida, incendio y hambre con su aviso y su remedio.
 - ⬜ CN9 **Roma, Capua, conquistadas y enemigas** (1,5 M): plantillas por cultura y tamaño; el enemigo coloca solo (funde Q1h).

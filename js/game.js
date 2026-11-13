@@ -252,13 +252,30 @@
   /* Con ciudad nueva: capacidad de sus casas (ciudad.poblacion) x multiplicador de barrio + acueducto y termas heredados. Ya no cuentan viviendas ni foro. */
   G.popCap = c => { const r = infoC(c); if (!r) return Math.round(G.popCapViejo(c) * G.invMul('popCap')); let n = r.cap; for (const b in D.POP_EDIF) if (b !== 'viviendas' && b !== 'foro') n += D.POP_EDIF[b] * (c.b[b] || 0); return Math.round(n * D.BARRIO[c.barrio || 1].pop * G.invMul('popCap')); };
   G.rateCampo = (c, b) => { const r = infoC(c); return r ? r.campo[b] : G.rate(c.b[b]); };
-  // Barrio (P67): servicios cumplidos, nivel objetivo y meses de retraso. popCap usa c.barrio, no el objetivo.
+  // Barrio (P67, CN6): sin ciudad nueva sale de los servicios de la ciudad (camino Q5, con c.bdef). Con ciudad nueva sale de sus barrios:
+  // cada uno tiene nivel efectivo (sube un nivel por mes y baja tras BARRIO_RETRASO meses de déficit) y la ciudad es la media por casas.
+  const ELBAR = c => { if (!CI || cargando || !c || c.owner !== 'roma') return null; const r = infoC(c); return r && r.E.barrios && r.E.barrios.length ? r.E : null; };
+  // nivelBarrio de todos los barrios, guardado mientras E no cambie (E.rev): servicios() se llama mucho
+  const memoNB = new WeakMap();
+  const nbs = E => { let m = memoNB.get(E); if (!m || m.rev !== E.rev || m.mes !== E.mesN) { m = { rev: E.rev, mes: E.mesN, l: E.barrios.map((b, i) => CI.nivelBarrio(E, i)) }; memoNB.set(E, m); } return m.l; };
+  // topes que ponen los servicios de la ciudad entera: sin grano no pasa de 1; para Urbs hace falta además lujo
+  const topeServ = serv => !serv.grano ? 1 : !serv.lujo ? 3 : 4;
+  // media de los niveles por casas, redondeada (0,5 sube); campo = 'nivel' (efectivo) u 'obj' (objetivo por servicios)
+  const mediaBarrios = (lista, campo) => { let t = 0, w = 0; for (const b of lista) { const k = Math.max(1, b.casas); t += b[campo] * k; w += k; } return w ? Math.max(1, Math.min(D.BARRIO.length - 1, Math.round(t / w + 1e-9))) : 1; };
   G.barrioInfo = function (c) {
-    const serv = G.servicios(c, G.prod().grano >= 0);
-    let obj = 1; for (let n = 2; n < D.BARRIO.length; n++) { if (D.BARRIO[n].pide.every(k => serv[k])) obj = n; else break; }
-    const nivel = c.barrio || 1, sig = D.BARRIO[nivel + 1];
-    return { nivel, objetivo: obj, serv, falta: sig ? sig.pide.filter(k => !serv[k]) : [], meses: obj < nivel ? Math.max(0, D.BARRIO_RETRASO - (c.bdef || 0)) : 0 };
+    const serv = G.servicios(c, G.prod().grano >= 0), E = ELBAR(c);
+    if (!E) {
+      let obj = 1; for (let n = 2; n < D.BARRIO.length; n++) { if (D.BARRIO[n].pide.every(k => serv[k])) obj = n; else break; }
+      const nivel = c.barrio || 1, sig = D.BARRIO[nivel + 1];
+      return { nivel, objetivo: obj, serv, falta: sig ? sig.pide.filter(k => !serv[k]) : [], meses: obj < nivel ? Math.max(0, D.BARRIO_RETRASO - (c.bdef || 0)) : 0, barrios: [] };
+    }
+    const nb = nbs(E), barrios = E.barrios.map((b, i) => { const n = nb[i], niv = b.nivel || 1, meses = CI.mesesParaBajar(E, i);
+      return { i, nombre: b.nombre, corto: b.corto, nivel: niv, objetivo: n.nivel, casas: n.casas, falta: niv >= n.nivel ? n.falta : '', meses, texto: CI.textoBarrio(E, i) }; });
+    const tope = topeServ(serv), nivel = c.barrio || 1, sig = D.BARRIO[nivel + 1], bajan = barrios.filter(b => b.meses > 0).map(b => b.meses);
+    return { nivel, objetivo: Math.min(tope, mediaBarrios(barrios, 'objetivo')), serv, falta: sig ? sig.pide.filter(k => !serv[k]) : [], meses: bajan.length ? Math.min.apply(null, bajan) : 0, barrios };
   };
+  // nivel de ciudad que sale de los barrios: media de los efectivos por casas, recortada por grano y lujo
+  G.nivelDeBarrios = function (c) { const bi = G.barrioInfo(c); return bi.barrios.length ? Math.min(topeServ(bi.serv), mediaBarrios(bi.barrios, 'nivel')) : null; };
   /* ---------- clases (Q6) ---------- */
   // ajusta ciu/esc al total (nunca negativos; los reclutas salen primero de plebeyos, luego de ciudadanos y de esclavos) y devuelve las tres cifras
   G.clases = function (c) {
@@ -269,7 +286,11 @@
   };
   G.servicios = function (c, granoOk) {
     const e = G.especiales();
-    return { grano: granoOk, templo: (c.b.templo || 0) >= 1, agua: (c.b.acueducto || 0) >= 1, ocio: (c.b.anfiteatro || 0) >= 1, termas: (c.b.termas || 0) >= 1, lujo: D.LUJO.some(k => e[k]) };
+    // con ciudad nueva, agua, templo y mercado cuentan si cubren al menos la mitad de las casas (o si hay el edificio heredado)
+    const E = ELBAR(c); let cv = null;
+    if (E) { let ag = 0, te = 0, me = 0, n = 0; nbs(E).forEach(q => { ag += q.ag; te += q.te; me += q.me; n += q.casas; }); if (n > 0) cv = { ag: ag / n >= 0.5, te: te / n >= 0.5, me: me / n >= 0.5 }; }
+    return { grano: granoOk, templo: (c.b.templo || 0) >= 1 || !!(cv && cv.te), agua: (c.b.acueducto || 0) >= 1 || !!(cv && cv.ag), mercado: (c.b.mercado || 0) >= 1 || !!(cv && cv.me),
+      ocio: (c.b.anfiteatro || 0) >= 1, termas: (c.b.termas || 0) >= 1, lujo: D.LUJO.some(k => e[k]) };   // ocio y termas: heredados, solo para el ánimo de los ciudadanos (CN10 los retira)
   };
   // ánimo 0-100 por clase. granoOk: si se omite, sale de la producción de grano (G.prod lo pasa para no dar vueltas)
   G.animoClases = function (c, granoOk) {
@@ -1044,7 +1065,10 @@
     G.senadoMes(rojo || s.deudaPaga > 0);
     for (const id of G.myCities()) {   // barrios: sube un nivel si cumple más; baja tras BARRIO_RETRASO meses de déficit
       const c = s.cities[id], bi = G.barrioInfo(c), nom = D.CITIES[id].n;
-      if (bi.objetivo > bi.nivel) { c.barrio = bi.nivel + 1; c.bdef = 0; G.log('🏛️ ' + nom + ' sube a ' + D.BARRIO[c.barrio].n + '.'); }
+      if (bi.barrios.length) {   // ciudad nueva: los barrios ya subieron o bajaron solos en su mes; la ciudad es su media
+        const n = G.nivelDeBarrios(c), antes = c.barrio || 1; c.barrio = n; c.bdef = 0;
+        if (n > antes) G.log('🏛️ ' + nom + ' sube a ' + D.BARRIO[n].n + '.'); else if (n < antes) G.log('🏛️ ' + nom + ' baja a ' + D.BARRIO[n].n + '.', 'bad');
+      } else if (bi.objetivo > bi.nivel) { c.barrio = bi.nivel + 1; c.bdef = 0; G.log('🏛️ ' + nom + ' sube a ' + D.BARRIO[c.barrio].n + '.'); }
       else if (bi.objetivo < bi.nivel) {
         c.bdef = (c.bdef || 0) + 1;
         if (c.bdef >= D.BARRIO_RETRASO) { const sg = D.BARRIO[bi.nivel].pide.filter(k => !bi.serv[k]).map(k => D.BARRIO_SERV[k].toLowerCase()); c.barrio = bi.nivel - 1; c.bdef = 0; G.log('🏛️ ' + nom + ' baja a ' + D.BARRIO[c.barrio].n + ': falta ' + sg.join(' y ') + '.', 'bad'); }
@@ -1252,7 +1276,8 @@
   // tras cargar: cada ciudad propia recupera (o estrena) su ciudad nueva; la obra en curso de una partida vieja se liga a su pieza
   function alCargar() {
     for (const id of G.myCities()) { const c = G.state.cities[id], antes = Object.assign({}, c.b), tenia = !!c.ciudad; regE.delete(c);
-      try { if (abrir(c) && !tenia) migrarObra(c, antes); } catch (e) { regE.set(c, false); } }
+      try { if (abrir(c) && !tenia) migrarObra(c, antes); } catch (e) { regE.set(c, false); }
+      try { const n = G.nivelDeBarrios(c); if (n) { c.barrio = n; c.bdef = 0; } } catch (e) { /* sin barrios: se queda el de la partida */ } }   // el nivel de ciudad sale de los barrios rehechos
   }
   // partida vieja sin caja: los recursos pasan al almacén hasta el tope y el resto queda en la caja (no se pierde nada)
   G.migrarDeuda = function (s) { if (!(s.deudaPaga > 0)) s.deudaPaga = 0; };   // I3b: partida vieja, sin deuda

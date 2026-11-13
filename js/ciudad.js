@@ -11,6 +11,7 @@ export { altura, RIO, NIVEL_RIO, distRio, azar };
 export const X0 = -480, Z0 = -520, LADO = 960, C = 4, N = LADO / C;
 export const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
 export const ROMANOS = ['', 'I', 'II', 'III', 'IV'];
+export const RETRASO_BARRIO = 3;   // meses seguidos de déficit antes de que un barrio baje un nivel (igual que D.BARRIO_RETRASO; una prueba lo vigila)
 const ALT = new Float32Array(N * N), DRIO = new Float32Array(N * N), PEND = new Float32Array(N * N);
 let terrenoHecho = false;
 function terreno() { if (terrenoHecho) return; terrenoHecho = true;
@@ -196,9 +197,12 @@ function atractivo(E, S, l) { const s = sirve(S, l.x, l.z), b = E.barrios[l.barr
 export function nivelBarrio(E, i) { const S = servicios(E), cs = E.parcelas.filter(l => l.casa && !l.fuera && l.barrio === i), n = cs.length || 1; let ag = 0, te = 0, me = 0, hu = 0;
   for (const l of cs) { const s = sirve(S, l.x, l.z); ag += s.agua; te += s.templo; me += s.mercado; hu += s.humo; }
   const nivel = !cs.length || ag / n < 0.5 ? 1 : te / n < 0.5 ? 2 : me / n < 0.5 ? 3 : 4, falta = nivel === 4 ? '' : nivel === 1 ? 'agua (una fuente)' : nivel === 2 ? 'templo' : 'mercado';
-  return { nivel, falta, casas: cs.length, humo: hu, arrabal: cs.filter(l => l.arrabal).length }; }
-export function textoBarrio(E, i) { const b = E.barrios[i], n = nivelBarrio(E, i);
-  return b.nombre + ' · nivel ' + ROMANOS[n.nivel] + ' · ' + n.casas + ' casas' + (n.falta ? ' · para subir falta ' + n.falta : ' · lo tiene todo') + (n.humo > n.casas / 3 ? ' · le molesta el humo' : '') + (n.arrabal > 2 && E.muralla.fase ? ' · ' + n.arrabal + ' fuera de la muralla' : ''); }
+  return { nivel, falta, casas: cs.length, humo: hu, arrabal: cs.filter(l => l.arrabal).length, ag, te, me }; }
+/* El nivel de nivelBarrio es el OBJETIVO (por servicios). El EFECTIVO es b.nivel (1-4): sube uno por mes y baja tras RETRASO_BARRIO meses de déficit (b.bdef). */
+export function mesesParaBajar(E, i) { const b = E.barrios[i], o = nivelBarrio(E, i).nivel; return o < (b.nivel || 1) ? Math.max(0, RETRASO_BARRIO - (b.bdef || 0)) : 0; }
+export function textoBarrio(E, i) { const b = E.barrios[i], n = nivelBarrio(E, i), niv = b.nivel || 1, baja = mesesParaBajar(E, i);
+  return b.nombre + ' · nivel ' + ROMANOS[niv] + ' · ' + n.casas + ' casas' + (n.nivel > niv ? ' · subirá pronto' : n.falta ? ' · para subir falta ' + n.falta : ' · lo tiene todo') + (baja ? ' · bajará en ' + baja + (baja === 1 ? ' mes' : ' meses') : '') + (n.humo > n.casas / 3 ? ' · le molesta el humo' : '') + (n.arrabal > 2 && E.muralla.fase ? ' · ' + n.arrabal + ' fuera de la muralla' : ''); }
+
 
 /* ---------- fundar ---------- */
 export function notaFundar(E, x, z) {
@@ -226,7 +230,7 @@ export function fundar(E, x, z) {
   const p1 = ruta(E, x, z, k => E.ocup[k] === 1, 30); let ang = 0;
   if (p1) { const q = p1[Math.min(p1.length - 1, 3)]; ang = Math.atan2(q[1] - z, q[0] - x); }
   E.foro = { x, z, ang, w: 46, d: 34 }; E.fundada = true;
-  E.barrios.push({ nombre: 'Barrio del Foro', corto: 'Foro', x, z, tipo: 'foro' });
+  E.barrios.push({ nombre: 'Barrio del Foro', corto: 'Foro', x, z, tipo: 'foro', nivel: 1, bdef: 0 });
   let mh = -1e9, mk = -1; for (let j = 0; j < N; j += 2) for (let i = 0; i < N; i += 2) { const k = j * N + i, qx = X0 + (i + 0.5) * C, qz = Z0 + (j + 0.5) * C, d = Math.hypot(qx - x, qz - z); if (d < 120 || d > 215 || DRIO[k] < 90 || PEND[k] > 0.3) continue; const cosA = p1 ? ((qx - x) * Math.cos(ang) + (qz - z) * Math.sin(ang)) / d : 0; const v = ALT[k] - cosA * 6 - (cosA > 0.3 ? 100 : 0); if (v > mh) { mh = v; mk = k; } }
   const corta = pts => { const o = pts.filter(q => { const u = (q[0] - x) * Math.cos(ang) + (q[1] - z) * Math.sin(ang), t = -(q[0] - x) * Math.sin(ang) + (q[1] - z) * Math.cos(ang); return Math.abs(u) > 23 || Math.abs(t) > 17; }); return o; };
   sello(E, x, z, ang, 46, 34, 4);
@@ -327,7 +331,7 @@ export function colocar(E, id, x, z, gratis, pago) {
     if (pts.length > 1) nuevaVia(E, alisar(engancha(E, pts)), sendas ? 1.8 : 2.4, sendas ? 'senda' : 'calle'); }
   if (id === 'granja') { const c = Math.cos(rot), sn = Math.sin(rot); e.campo = [[-36, 11], [36, 11], [36, 62], [-36, 62]].map(([u, t]) => [x + u * c - t * sn, z + u * sn + t * c]); e.vega = vega(x, z); for (const a of E.arboles) { const u = (a.x - x) * c + (a.z - z) * sn, t = -(a.x - x) * sn + (a.z - z) * c; if (Math.abs(u) < 39 && t > 8 && t < 65) a.talado = true; } }
   if (id === 'compitum') { const n = E.barrios.length, nombre = drio(x, z) < 200 ? 'del Vado' : alt(x, z) > 8 ? 'de la Loma' : ['del Olivar', 'de los Pastores', 'de la Vía'][n % 3];
-    E.barrios.push({ nombre: 'Barrio ' + nombre, corto: nombre.replace(/^(del|de la|de los) /, ''), x, z, tipo: 'compitum' });
+    E.barrios.push({ nombre: 'Barrio ' + nombre, corto: nombre.replace(/^(del|de la|de los) /, ''), x, z, tipo: 'compitum', nivel: 1, bdef: 0 });
     const a = s.ang, dv = E.dVia[k]; for (const sg of [-1, 1]) { const o = sg < 0 ? 7 : dv + 9, b = { x: x + Math.cos(a) * o * sg, z: z + Math.sin(a) * o * sg, dx: Math.cos(a) * sg, dz: Math.sin(a) * sg, hecha: false }; const v = callejon(E, b, 96); if (v) { v.t = 'via'; v.w = 3; v.punta = null; } } }
   E.edificios.push(e); E.diario.push({ a: 'c', n: E.mesN, tipo: id, x, z }); puertas(E); reparcelar(E); return { ok: true, e };
 }
@@ -401,7 +405,10 @@ export function mes(E) {
   if (nuevos) reparcelar(E);
   if (libresT < 3 && !nuevos && !E.avisado.lleno) { E.avisado.lleno = true; di(E.abiertas.includes('compitum') ? 'No queda sitio junto a las calles: abre un barrio nuevo.' : 'Las calles están llenas: cada obra nueva trae su calle y sus solares.', 2); }
   /* barrios: nivel y empedrado */
-  E.barrios.forEach((b, i) => { const n = nivelBarrio(E, i).nivel; if (n > (b.nivel || 1)) di(b.nombre + ' sube a nivel ' + ROMANOS[n] + (n >= 3 ? ': se empiedran sus calles' : ''), 2); b.nivel = n; });
+  E.barrios.forEach((b, i) => { const o = nivelBarrio(E, i).nivel, a = b.nivel || 1;
+    if (o > a) { b.nivel = a + 1; b.bdef = 0; di(b.nombre + ' sube a nivel ' + ROMANOS[b.nivel] + (b.nivel >= 3 ? ': se empiedran sus calles' : ''), 2); }
+    else if (o < a) { b.bdef = (b.bdef || 0) + 1; if (b.bdef >= RETRASO_BARRIO) { b.nivel = a - 1; b.bdef = 0; di(b.nombre + ' baja a nivel ' + ROMANOS[b.nivel], 3); } }
+    else { b.bdef = 0; b.nivel = a; } });
   for (const v of E.vias) { if (v.t === 'camino' || v.t === 'senda' || v.emp) continue; const q = v.p[v.p.length >> 1], b = barrioDe(E, q[0], q[1]); if (b >= 0 && (E.barrios[b].nivel || 1) >= (v.t === 'callejon' ? 4 : 3)) v.emp = true; }
   /* fichas nuevas al crecer */
   const pob = poblacion(E); for (const id of ORDEN) if (!E.abiertas.includes(id) && pob >= EDIF[id].desde) { E.abiertas.push(id); di('Nueva obra en la bandeja: ' + EDIF[id].nombre + ' — ' + EDIF[id].que.toLowerCase(), 3, 'ficha'); }
