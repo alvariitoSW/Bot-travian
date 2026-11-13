@@ -144,7 +144,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ✅ CN6 **Barrios** (13/11): cada barrio sube de uno en uno y baja tras 3 meses sin servicio; la ciudad es la media; lista de barrios en la ficha y etiqueta por barrio con la cámara lejos. Mercado sustituye a ocio y termas.
 - ✅ CN7 **Muralla y arrabal** (13/11): la defensa en guerra sale de la fase de la muralla (sin 0, empalizada 3, piedra 6); los ataques que ganan saquean casas del arrabal (menos con piedra) con aviso; consejo «Tu arrabal tiene N casas sin muralla»; partida vieja migrada.
 - ✅ CN8 **Sucesos** (0,8 M, gastó 1,24 M): crecida, incendio y hambre con su aviso y su remedio. Parte `gobierno/partes/2026-11-13-CN8.md`.
-- ⬜ CN9 **Roma, Capua, conquistadas y enemigas** (**CN9b hecha (arte); falta CN9a (lógica)**) (1,5 M): plantillas por cultura y tamaño; el enemigo coloca solo (funde Q1h).
+- ✅ CN9 **Roma, Capua, conquistadas y enemigas** (1,5 M): plantillas por cultura y tamaño; el enemigo coloca solo (funde Q1h). **CN9a (lógica) y CN9b (arte) hechas** — ver `partes/2026-11-13-CN9a.md` y el de CN9b.
 - ✅ CN10 **Edificios de época y revisión** (1,2 M): fuera anfiteatro, termas y arcos; citas cotejadas (funde Q1g y Q1j).
 - ✅ CN11 **Vida y peso** (12/11): gente, humo y fuego, carros, pozo, guarnición ligera (P79); Roma bajo 300 mil triángulos. Parte en `gobierno/partes/2026-11-12-CN11.md`.
 - ⬜ (en pausa: espera a CN8 y al carril Guerra) CN12 **Asedio en tu propia muralla** (P89, ≈3 M): el sitio y la muralla que colocaste son el campo de batalla. Une ciudad y batalla (CLAUDE.md §2): el usuario dijo «Sí» el 12/11. Toca `js/battle.js` y la ciudad. Alcance en `estudios/Q1l-competencia.md` (palanca 10) y `Q1l-lluvia-de-ideas.md` (paquete E).

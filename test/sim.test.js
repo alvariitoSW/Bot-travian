@@ -1061,8 +1061,8 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
 { // (c) Roma y Capua nuevas: población y producción como las de siempre
   G.usarCiudad(null); G.newGame('CN2b-viejo'); const pv = G.prod(); G.usarCiudad(CIMOD);   // referencia: la economía de números de hoy, en este mismo proceso
   const s = G.newGame('CN2b'), p = G.prod(), cerca = (x, ref) => Math.abs(x / ref - 1) <= 0.10;
-  assert.strictEqual(Math.round(s.cities.roma.pop), 287); assert.strictEqual(Math.round(s.cities.capua.pop), 280)   // CN10: el mercado de Capua suma población máxima;
-  assert(['madera', 'piedra', 'hierro', 'grano', 'oro'].every(r => cerca(p[r], pv[r])), 'producción ±10 % de la de números: ' + ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => p[r].toFixed(1) + ' (antes ' + pv[r].toFixed(1) + ')').join(' · '));
+  assert(Math.abs(s.cities.roma.pop / 287 - 1) <= 0.10 && Math.abs(s.cities.capua.pop / 280 - 1) <= 0.45, 'CN9a: la plantilla manda la población de arranque (Roma ' + s.cities.roma.pop + ', Capua ' + s.cities.capua.pop + ')')   // CN10: el mercado de Capua suma población máxima;
+  assert(['madera', 'piedra', 'hierro', 'grano'].every(r => cerca(p[r], pv[r])) && p.oro / pv.oro <= 1.75 && p.oro >= pv.oro * 0.9, 'producción ±10 % (el oro hasta +75 %: la plantilla trae más población y renta, CN9a) de la de números: ' + ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => p[r].toFixed(1) + ' (antes ' + pv[r].toFixed(1) + ')').join(' · '));
   console.log('Roma+Capua nuevas, madera/piedra/hierro/grano/oro:', ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => p[r].toFixed(1)).join('/'), 'antes', ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => pv[r].toFixed(1)).join('/'));
   for (const id of ['roma', 'capua']) { const c = s.cities[id], E = G.ciudadE(id); assert(E && E.modoJuego && c.ciudad, id); assert(CIMOD.poblacion(E) >= c.pop, 'casas para ' + id); assert(c.b.foro >= 1 && c.b.viviendas === 0); }
   assert.strictEqual(G.ciudadE('roma').mesN, 9, 'enero en t = 0: mesN = floor(t) + 9'); ticks(5); assert.strictEqual(G.ciudadE('roma').mesN, Math.floor(s.t) + 9, 'el calendario sigue alineado');
@@ -1551,7 +1551,7 @@ console.log('OK — todas las pruebas superadas');
 // ---------- CN6: el nivel de la ciudad sale de sus barrios ----------
 { G.usarCiudad(CIMOD);
   assert.strictEqual(CIMOD.RETRASO_BARRIO, D.BARRIO_RETRASO, 'una sola cifra de retraso');
-  const s = G.newGame('CN6'), c = s.cities.roma; G.state = s; const E = G.ciudadE('roma'), cierra = () => { s.t = Math.floor(s.t) + 1; G.cierreMes(); };
+  const s = G.newGame('CN6'), c = s.cities.roma; G.state = s; G.convertir('roma'); const E = G.ciudadE('roma'),   /* Roma sin plantilla: la prueba parte de una ciudad pelada */ cierra = () => { s.t = Math.floor(s.t) + 1; G.cierreMes(); };
   const pon = id => { const q = CIMOD.mejorSitio(E, id); const r = q && CIMOD.colocar(E, id, q[0], q[1], true); if (r && r.ok) r.e.obra = 0; E.rev++; return !!(r && r.ok); };
   let bi = G.barrioInfo(c); assert(bi.barrios.length === 1 && bi.barrios[0].nivel === 1 && bi.nivel === 1 && bi.barrios[0].falta === 'agua (una fuente)', 'empieza con un barrio de nivel I');
   assert(/^Barrio del Foro · nivel I/.test(bi.barrios[0].texto) && bi.barrios[0].texto === CIMOD.textoBarrio(E, 0));
@@ -1605,3 +1605,34 @@ console.log('OK — todas las pruebas superadas');
   assert(G.load()); const E2 = G.ciudadE('roma'); assert(E2.muralla.fase === 2 && E2.muralla.nivel === 5 && G.nivelMuralla(G.state.cities.roma) === 5, 'partida vieja con muralla 5 conserva su defensa');
   G.save(); assert(G.load() && G.nivelMuralla(G.state.cities.roma) === 5, 'y sigue igual tras guardar y cargar'); delete global.localStorage;
   console.log('CN7: muralla por fases OK (tabla, botín, wall, partida vieja)'); G.usarCiudad(null); }
+
+// CN9a: Roma y Capua en pie con plantilla; conquistada conserva cultura; enemiga bajo demanda fuera del guardado
+{
+  G.usarCiudad(CIMOD);
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  const t0 = Date.now(); const s = G.newGame('CN9a'); const tN = Date.now() - t0;
+  const Er = G.ciudadE('roma'), Ec = G.ciudadE('capua');
+  assert(Er && Ec && Er.cultura === 'roma' && Er.tinte === 'roma' && Ec.cultura === 'roma' && Ec.tinte === 'campanos', 'Roma y Capua nacen con plantilla (cultura y tinte)');
+  assert(CIMOD.poblacion(Er) > 0 && CIMOD.poblacion(Ec) > 0 && s.cities.roma.plantilla && s.cities.capua.plantilla, 'nacen con población');
+  assert(Er.mesN === Math.floor(s.t + 1e-9) + 9, 'el calendario de la plantilla alinea con la partida');
+  for (const id of ['roma', 'capua']) { const c = s.cities[id], b = G.edificiosBase(id, D.CITIES[id].w, D.CITIES[id].wl);
+    for (const k of ['granja', 'aserradero', 'cantera', 'mina', 'almacen', 'cuartel', 'muralla']) assert.strictEqual(c.b[k], b[k], id + ' ' + k + ': ' + c.b[k] + ' vs ' + b[k]);
+    assert(c.pop > 0 && c.pop <= G.popCap(c), id + ' población ' + c.pop + ' dentro del tope'); }
+  const huella = id => JSON.stringify([G.ciudadE(id).edificios.map(e => [e.tipo, e.mejora || 0, Math.round(e.x), Math.round(e.z)]), CIMOD.poblacion(G.ciudadE(id)), G.state.cities[id].pop]);
+  const h1 = huella('roma') + huella('capua'), t1 = Date.now(); G.newGame('CN9a'); const tM = Date.now() - t1;
+  assert.strictEqual(huella('roma') + huella('capua'), h1, 'newGame dos veces: misma ciudad'); console.log('CN9a newGame: 1ª ' + tN + ' ms, 2ª ' + tM + ' ms');
+  // conquistadas: griega y púnica conservan cultura tras guardar y cargar
+  G.newGame('CN9a'); G.state.t = 3;
+  for (const [id, cu] of [['tarentum', 'grie'], ['carthago', 'cart']]) { const c = G.state.cities[id]; c.owner = D.CITIES[id].f; G.incorporar(c, {}, true); const E = G.ciudadE(id); assert(E && E.cultura === cu && c.ciudad && c.ciudad.cultura === cu, id + ' conquistada con cultura ' + cu); }
+  const antes = ['tarentum', 'carthago'].map(id => G.ciudadE(id).edificios.length + '|' + CIMOD.poblacion(G.ciudadE(id)));
+  G.save(); assert(G.load()); ['tarentum', 'carthago'].forEach((id, i) => { const E = G.ciudadE(id); assert(E.cultura === (i ? 'cart' : 'grie') && E.edificios.length + '|' + CIMOD.poblacion(E) === antes[i], id + ' conserva cultura y piezas tras cargar'); });
+  { const c = G.state.cities.volsinii; c.owner = D.CITIES.volsinii.f; c.b.templo = 2; c.b.herreria = 2; c.b.puerto = 1; G.incorporar(c, {}, true); G.ciudadE('volsinii');
+    assert(c.b.templo >= 2 && c.b.herreria >= 2, 'la conquistada conserva los niveles de edificio que traía (templo ' + c.b.templo + ', herrería ' + c.b.herreria + ')'); }
+  // enemiga bajo demanda: idéntica y fuera del guardado
+  const tam0 = JSON.stringify(G.state).length, e1 = G.ciudadEnemiga('syracusae'), e2 = G.ciudadEnemiga('syracusae');
+  assert(e1 && e1 === e2 && e1.cultura === 'grie' && e1.edificios.length > 0, 'ciudadEnemiga idéntica dos veces');
+  assert.strictEqual(JSON.stringify(G.state).length, tam0, 'la enemiga no crece el guardado'); assert.strictEqual(G.ciudadEnemiga('roma'), null); assert.strictEqual(G.ciudadEnemiga('nada'), null);
+  assert.strictEqual(CIMOD.nivelMuralla(e1), G.nivelMuralla(G.state.cities.syracusae), 'muralla enemiga coincide con la de la batalla');
+  const vj = require('fs').readFileSync(__dirname + '/partida-vieja.json', 'utf8'); store['aqvila-save-v1'] = vj; assert(G.load() && G.ciudadE('roma'), 'partida vieja carga y convierte');
+  delete global.localStorage; G.usarCiudad(null); console.log('CN9a: plantillas, conquistada, enemiga y partida vieja OK');
+}

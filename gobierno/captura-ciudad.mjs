@@ -15,7 +15,7 @@ import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const [pref = 'ciudad', ...resto] = process.argv.slice(2), op = Object.fromEntries(resto.map(a => a.split('=')));
-const vistas = (op.vistas || (pref === 'CN8' ? 'c8-aviso,c8-crecida,c8-fuego,c8-ruina' : pref === 'CN7' ? 'c7-surco,c7-empalizada-obra,c7-empalizada,c7-piedra,c7-ruina' : 'bandeja,fantasma,rojo,ficha,obra')).split(','), ciudad = op.ciudad || 'roma', dpr = +(op.dpr || 2);
+const vistas = (op.vistas || (pref === 'CN9a' ? 'c9-ciudad' : pref === 'CN8' ? 'c8-aviso,c8-crecida,c8-fuego,c8-ruina' : pref === 'CN7' ? 'c7-surco,c7-empalizada-obra,c7-empalizada,c7-piedra,c7-ruina' : 'bandeja,fantasma,rojo,ficha,obra')).split(','), ciudad = op.ciudad || 'roma', dpr = +(op.dpr || 2);
 const LUZ_ESTACIONAL = true;          // Q11: false = sin mes= ni vistas de luz (la ciudad usa la luz de siempre)
 const ponerFecha = (mes, frac) => page.evaluate(([m, f]) => { Game.state.speed = 0; Game.state.t = 24 + (m - 1) + f; }, [mes, frac]);     // inversa de G.estacion: enero = invierno, 3 meses por turno
 const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream' };
@@ -44,6 +44,10 @@ const elegirFicha = async id => { await page.evaluate(() => { const n = document
 const sitioVerde = async pz => { const p = await page.evaluate(pz => { const id = UI.city, E = Game.ciudadE(id); let m = null; for (let x = E.foro.x - 250; x <= E.foro.x + 250; x += 10) for (let z = E.foro.z - 250; z <= E.foro.z + 250; z += 10) { const n = Game.notaSitio(id, pz, x, z); if (n && n.vale && (!m || n.nota > m.n)) m = { n: n.nota, x, z }; } if (!m) return null; UI.cityV.mirar(m.x, m.z, 300, 0); return { x: m.x, z: m.z }; }, pz); if (!p) return false; for (let k = 0; k < 4; k++) { await page.waitForTimeout(1500); const q = await page.evaluate(m => UI.cityV.aPantalla(m.x, m.z, 0), p); await page.touchscreen.tap(q.x, q.y); await page.waitForTimeout(900); if (await page.evaluate(() => !document.getElementById('b-si').disabled)) break; } return true; };
 const tocaPieza = async () => { for (let k = 0; k < 4; k++) { const e = await page.evaluate(() => { const E = Game.ciudadE(UI.city), e = E.edificios.find(q => !q.obra && !q.ruina && DATA.BUILD[q.tipo] && q.x !== undefined); if (!e) return null; UI.cityV.mirar(e.x, e.z, 260, 0); return { x: e.x, z: e.z, t: e.tipo }; }); if (!e) return ''; await page.waitForTimeout(2500); const p = await page.evaluate(e => UI.cityV.aPantalla(e.x, e.z, 4), e); await page.touchscreen.tap(p.x, p.y); await page.waitForTimeout(900); if (await page.evaluate(() => !!document.querySelector('#fichab .ficha'))) return e.t; } return ''; };
 const PASOS = {
+  // --- CN9a: la ciudad de plantilla (Roma, Capua) o una conquistada (ciudad=tarentum, carthago...) ---
+  'c9-ciudad': async () => page.evaluate(async cid => { UI.city = cid; const id = cid, c = Game.state.cities[id]; if (c.owner !== 'roma') { Game.incorporar(c, {}, true); c.pop = Math.max(c.pop, 200); }
+    const E = Game.ciudadE(id); if (!E) return 'sin ciudad nueva'; UI.cityV.view('ciudad'); UI.cityV.mirar(E.foro.x, E.foro.z, 300, 0.6); UI.dirty = true; await new Promise(q => setTimeout(q, 3000));
+    const cs = E.parcelas.filter(l => l.casa && !l.fuera); return id + ': cultura=' + E.cultura + ' tinte=' + E.tinte + ' casas=' + cs.length + ' piezas=' + E.edificios.length + ' población=' + Game.state.cities[id].pop; }, ciudad),
   // --- Q11: luz por estación y antorchas (reloj en pausa; t se fija a mano) ---
   estaciones: async () => { await page.evaluate(() => { const E = Game.ciudadE(UI.city); UI.cityV.view('ciudad'); UI.cityV.mirar(E.foro.x, E.foro.z, 330, 0.5); }); const out = [], M = await page.evaluate(async () => await import('/js/gfx/city3d.js').then(m => m.medidas.sombras));
     for (const [n, mes] of [['primavera', 5], ['verano', 8], ['otono', 11], ['invierno', 2]]) { await ponerFecha(mes, 0.3); await page.waitForTimeout(2500);
@@ -176,7 +180,7 @@ for (const v of vistas) {
   await page.evaluate(v => { const V = UI.cityV; if (!/^(bandeja|fantasma|rojo|ficha|obra)$/.test(v)) UI.bsel = null;
     if (v === 'grande') { const c = Game.state.cities[UI.city]; for (const b in DATA.BUILD) c.b[b] = Math.max(c.b[b] || 0, 5); Object.assign(c.units, { hastati: 400, principes: 300, triarii: 150, velites: 250, equites: 120 }); V.view('ciudad'); }
     else if (v === 'media') { V.view('ciudad'); V.c.dist = 250; }
-    else if (/^c[78]-/.test(v) || v === 'ruina' || v === 'obras' || v === 'muralla' || v === 'piedra') { }
+    else if (/^c[789]-/.test(v) || v === 'ruina' || v === 'obras' || v === 'muralla' || v === 'piedra') { }
     else if (v === 'lejos') { V.view('ciudad'); V.c.dist *= 2.2; }
     else if (v === 'barrios' || v === 'capilla' || v === 'fichabarrios') { }
     else if (v === 'toque' || v === 'ciudad' || v === 'meses24' || v === 'capua') V.view('ciudad');

@@ -135,4 +135,47 @@ prueba('CN8: el mismo mes llega en modo turnos, con un solo aviso por mes aunque
     const s = G.state; s.res.grano = 900; s.res.oro = 900; s.cities.roma.pop = 500; assert.ok(G.enviarColonos('roma', 'cosa').ok); let n = 0; while (G.state.colonias.cosa.estado === 'camino' && n++ < 80) G.tick(1);
     assert.ok(G.fundarColonia('cosa', 172, -196).ok); assert.ok(Array.isArray(G.riesgos('cosa')) && G.ciudadE('cosa').fundada, 'la colonia tiene riesgos igual');
   } finally { delete globalThis.localStorage; G.onEvent = null; G.usarCiudad(null); } });
+
+/* ---------- CN9a: ciudades por cultura y plantillas ---------- */
+{
+  const rq = createRequire(import.meta.url), D9 = rq('../js/data.js'), G9 = rq('../js/game.js'), ids = Object.keys(D9.CITIES);
+  const objetivo = id => { const d = D9.CITIES[id]; return Math.round(G9.popCapViejo({ b: G9.edificiosBase(id, d.w, d.wl), barrio: 1 }) * 0.7); };
+  const firma = E => JSON.stringify([E.edificios.map(e => [e.tipo, e.x, e.z, e.mejora]), R.poblacion(E), R.casas(E).map(l => [l.x, l.z, l.casa.nivel]), E.mesN, E.n0]);
+  const tiempos = {};
+  prueba('CN9a culturaDe: todas las facciones', () => {
+    const t = (f, c, ti, id) => assert.deepEqual(R.culturaDe(f, id), { cultura: c, tinte: ti }, f);
+    t('roma', 'roma', 'roma', 'roma'); t('cartago', 'cart', 'cart', 'carthago'); for (const f of ['epiro', 'siracusa', 'akragas', 'griegos', 'macedonia']) t(f, 'grie', 'grie', 'x');
+    for (const f of ['etruscos', 'galos', 'mamertinos', 'iberos']) t(f, 'roma', f, 'x'); t('roma', 'roma', 'campanos', 'capua');
+    for (const id of ids) { const c = R.culturaDe(D9.CITIES[id].f, id); assert.ok(['roma', 'grie', 'cart'].includes(c.cultura) && c.tinte, id); } });
+  prueba('CN9a tamano', () => { assert.deepEqual([1, 2, 3, 4, 5].map(R.tamano), ['peq', 'peq', 'med', 'gra', 'gra']); });
+  prueba('CN9a plantillas: piezas existentes, sin acueducto/termas/anfiteatro, mejora 0..3', () => {
+    for (const [c, ts] of Object.entries(R.PLANTILLAS)) for (const [t, P] of Object.entries(ts)) { assert.ok(P.pob > 0 && P.meses >= 0, c + t);
+      for (const [pz, m] of P.piezas) { assert.ok(R.EDIF[pz] && !R.EDIF[pz].accion, c + t + pz); assert.ok(!['acueducto', 'termas', 'anfiteatro'].includes(pz)); assert.ok(m >= 0 && m <= 3); } } });
+  prueba('CN9a economía: Roma y Capua dan los mismos niveles que edificiosBase', () => {
+    for (const id of ['roma', 'capua']) { const d = D9.CITIES[id], base = G9.edificiosBase(id, d.w, d.wl), E = R.desdePlantilla(id, d.f, d.w, { rapido: true }), suma = {};
+      for (const e of E.edificios) { const b = R.EDIF[e.tipo].bid; if (b) suma[b] = (suma[b] || 0) + R.NIVEL_MEJORA[e.mejora || 0]; }
+      for (const b of ['almacen', 'templo', 'mercado', 'cuartel', 'establo', 'herreria', 'puerto', 'granja', 'aserradero', 'cantera', 'mina']) { const L = base[b] || 0, esp = L < 1 ? 0 : R.NIVEL_MEJORA[R.MEJORA_DE_NIVEL(L)]; assert.equal(suma[b] || 0, esp, id + ' ' + b); }
+      assert.ok(E.edificios.some(e => e.tipo === 'granero'), id + ' granero'); } });
+  prueba('CN9a determinismo: la misma id da la misma ciudad (normal y rápida)', () => {
+    for (const rap of [false, true]) { const d = D9.CITIES.tarentum, a = R.desdePlantilla('tarentum', d.f, d.w, { rapido: rap }), b = R.desdePlantilla('tarentum', d.f, d.w, { rapido: rap }); assert.equal(firma(a), firma(b)); } });
+  prueba('CN9a cabe en el terreno: dentro de la rejilla, sin agua, casas sin solaparse', () => {
+    for (const id of ['roma', 'tarentum', 'carthago', 'syracusae', 'volsinii']) { const d = D9.CITIES[id], E = R.desdePlantilla(id, d.f, d.w, { rapido: true }), lim = (x, z) => x > R.X0 && x < R.X0 + R.LADO && z > R.Z0 && z < R.Z0 + R.LADO;
+      for (const e of E.edificios) { assert.ok(lim(e.x, e.z), id + ' ' + e.tipo + ' fuera'); if (e.tipo !== 'muelle') assert.ok(!R.esAgua(e.x, e.z), id + ' ' + e.tipo + ' en agua'); }
+      const cs = R.casas(E).filter(l => !l.fuera); for (const l of cs) { assert.ok(lim(l.x, l.z), id + ' casa fuera'); assert.ok(!R.esAgua(l.x, l.z), id + ' casa en agua'); }
+      let m = 1e9; for (let i = 0; i < cs.length; i++) for (let j = i + 1; j < cs.length; j++) m = Math.min(m, Math.hypot(cs[i].x - cs[j].x, cs[i].z - cs[j].z)); assert.ok(m > 6, id + ' casas a ' + m.toFixed(1)); } });
+  prueba('CN9a población dentro de ±15 % de popCapViejo*0.7 (18 ciudades; w=1 queda aparte)', () => {
+    for (const id of ids) { const d = D9.CITIES[id]; if (d.w < 2) continue; const t = Date.now(), E = R.desdePlantilla(id, d.f, d.w, { rapido: true }); tiempos['rap ' + id] = Date.now() - t; assert.ok(E, id);
+      const o = id === 'roma' ? 287 : objetivo(id), p = R.poblacion(E); assert.ok(p >= o * 0.85 && p <= o * 1.15, `${id}: ${p} vs ${o}`); } });
+  prueba('CN9a población en modo normal: Roma, Tarento, Cartago; y tiempos', () => {
+    for (const id of ['roma', 'tarentum', 'carthago']) { const d = D9.CITIES[id], t = Date.now(), E = R.desdePlantilla(id, d.f, d.w, { finEn: 9 }); const dt = Date.now() - t; assert.ok(E && E.mesN === 9, id);
+      const o = objetivo(id), p = R.poblacion(E); assert.ok(p >= o * 0.85 && p <= o * 1.15, `${id}: ${p} vs ${o}`);
+      const t2 = Date.now(), B = R.deDatos(JSON.parse(JSON.stringify(R.aDatos(E)))), dr = Date.now() - t2; console.log(`      ${id}: normal ${dt} ms · reconstruir ${dr} ms`);
+      assert.equal(firma(B), firma(E), id + ' ida y vuelta'); assert.ok(dt < 2500 && dr < 1000, `${id} ${dt}/${dr} ms`); } });
+  prueba('CN9a aDatos/deDatos conservan cultura y tinte; datos viejos → romana', () => {
+    const d = D9.CITIES.syracusae, E = R.desdePlantilla('syracusae', d.f, d.w, { rapido: true }), J = JSON.parse(JSON.stringify(R.aDatos(E)));
+    assert.deepEqual([J.cultura, J.tinte, J.tam], ['grie', 'grie', 'gra']); const B = R.deDatos(J); assert.deepEqual([B.cultura, B.tinte, B.tam], ['grie', 'grie', 'gra']);
+    const G2 = R.desdePlantilla('volsinii', 'etruscos', 2, { rapido: true }); assert.equal(R.deDatos(JSON.parse(JSON.stringify(R.aDatos(G2)))).tinte, 'etruscos');
+    const V = R.aDatos(R.crear(1)); delete V.cultura; delete V.tinte; delete V.tam; const O = R.deDatos(V); assert.deepEqual([O.cultura, O.tinte], ['roma', 'roma']); });
+  prueba('CN9a finEn: E.mesN coincide y n0 = finEn - meses', () => { const d = D9.CITIES.tarentum, E = R.desdePlantilla('tarentum', d.f, d.w, { finEn: 20, rapido: true }); assert.equal(E.mesN, 20); const E2 = R.desdePlantilla('tarentum', d.f, d.w, { finEn: 20 }); assert.equal(E2.mesN, 20); assert.equal(E2.n0, 20 - R.PLANTILLAS.grie.med.meses); });
+}
 process.exit(fallos.length ? 1 : 0);

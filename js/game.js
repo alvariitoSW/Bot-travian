@@ -426,7 +426,7 @@
   }
   /* Rehace E desde sus datos guardados. Igual que ciudad.deDatos pero desde n0 y con la acción 'd' (derribo). */
   function reconstruir(d) {
-    const E = crearE(d.semilla); E.modoJuego = true; E.n0 = d.n0 || 0; E.mesN = E.n0; if (d.sitio) CI.fundar(E, d.sitio.x, d.sitio.z); aplicarMur0(E, d.mur0 || 0);
+    const E = crearE(d.semilla); E.modoJuego = true; E.cultura = d.cultura || 'roma'; E.tinte = d.tinte || E.cultura; E.tam = d.tam || null; E.n0 = d.n0 || 0; E.mesN = E.n0; if (d.sitio) CI.fundar(E, d.sitio.x, d.sitio.z); aplicarMur0(E, d.mur0 || 0);
     const ac = d.acciones || [];
     for (let n = E.n0; n <= d.mesN; n++) {
       for (const a of ac) { if (a.n !== n) continue;
@@ -490,22 +490,43 @@
     return E;
   }
   const MEJORA = n => CI.MEJORA_DE_NIVEL(n);
+  /* Ciudad de plantilla (CN9a): los DATOS de cada plantilla se generan una vez por proceso (id|facción|w) y se desplazan al mes de la partida. */
+  const memoPl = {}, BASE_PL = 1000;
+  function desdeP(c, id) {
+    const d = D.CITIES[id]; if (!d) return null; const clave = id + '|' + d.f + '|' + d.w; let h = memoPl[clave];
+    if (!h) { const E0 = CI.desdePlantilla(id, d.f, d.w, { finEn: BASE_PL }); if (!E0) return null; h = memoPl[clave] = CI.aDatos(E0); }
+    const dl = mesAlin() - BASE_PL, dd = Object.assign({}, h, { n0: h.n0 + dl, mesN: h.mesN + dl, acciones: h.acciones.map(a => Object.assign({}, a, { n: a.n + dl })) });
+    // viejo es una copia: el primer sinc sobrescribe c.b
+    const E = reconstruir(dd), viejo = Object.assign({}, c.b || {}); aplicarMur0(E, viejo.muralla || 0);
+    const r = { E, id, rev: -1 }; regE.set(c, r); c.heredado = {}; sinc(c, r);
+    const her = {}; for (const b of COMPAT) { const f = (viejo[b] || 0) - (c.b[b] || 0); if (f > 0) her[b] = f; }   // lo que la plantilla no trae se conserva como nivel heredado
+    c.heredado = her; c.foroMin = Math.max(1, viejo.foro || 0); sinc(c, r); ponerDatos(c, r);
+    return E;
+  }
   function abrir(c) {                    // reconstruye (si hay datos) o convierte
     const id = idDe(c); if (!id) return null; let E = null;
     try {
       if (c.ciudad) { if (c.ciudad.mur0 === undefined && c.b.muralla > 0) c.ciudad.mur0 = c.b.muralla; E = reconstruir(c.ciudad); regE.set(c, { E, id, rev: -1 }); const r = regE.get(c); sinc(c, r);
         const alin = mesAlin(); let n = 0; while (E.mesN < alin && n++ < 36) CI.mes(E);       // se pone al día (tope de meses)
         if (n) { sinc(c, r); ponerDatos(c, r); } }
-      else E = convertir(c, id);
+      else { E = c.plantilla ? desdeP(c, id) : null; if (!E) { delete c.plantilla; E = convertir(c, id); } }
     } catch (e) { E = null; }
-    if (!E) { try { if (c.ciudad) { delete c.ciudad; E = convertir(c, id); } } catch (e2) { E = null; } }
+    if (!E) { try { if (c.ciudad) { delete c.ciudad; delete c.plantilla; E = convertir(c, id); } } catch (e2) { E = null; } }
     if (!E) regE.set(c, false);
     return E;
   }
+  /* Ciudad nueva de una ciudad NO propia, bajo demanda: se rehace de la semilla (rápido) y vive solo en esta caché, nunca en G.state ni en el guardado. */
+  const cacheEnemiga = new WeakMap();
+  G.ciudadEnemiga = function (id) {
+    const c = G.state && G.state.cities[id], d = D.CITIES[id]; if (!CI || !c || !d || c.owner === 'roma') return null;
+    const wl = c.b.muralla || 0, k = d.f + '|' + d.w + '|' + wl, h = cacheEnemiga.get(c); if (h && h.k === k) return h.E;
+    let E = null; try { E = CI.desdePlantilla(id, d.f, d.w, { rapido: true }); } catch (e) { E = null; }
+    if (!E) return null; aplicarMur0(E, wl); cacheEnemiga.set(c, { k, E }); return E;
+  };
   G.ciudadE = function (id) { const c = G.state && G.state.cities[id]; if (!c || c.owner !== 'roma') return null; const r = infoC(c); return r ? r.E : null; };
-  G.convertir = id => { const c = G.state.cities[id]; if (!c || !CI) return null; regE.delete(c); delete c.ciudad; return abrir(c) ? G.ciudadE(id) : null; };
+  G.convertir = id => { const c = G.state.cities[id]; if (!c || !CI) return null; regE.delete(c); delete c.ciudad; delete c.plantilla; return abrir(c) ? G.ciudadE(id) : null; };
   // una ciudad que deja de ser nuestra pierde su ciudad nueva y se queda con los números
-  function soltarCiudad(c) { delete c.sabios; regE.delete(c); delete c.ciudad; delete c.heredado; if (!c.b.viviendas) c.b.viviendas = 2; }   // sin ciudad nueva, c.b.viviendas (vista derivada = 0) vuelve a un mínimo para que la reconquista no hunda la población
+  function soltarCiudad(c) { delete c.sabios; regE.delete(c); delete c.ciudad; delete c.plantilla; delete c.heredado; if (!c.b.viviendas) c.b.viviendas = 2; }   // sin ciudad nueva, c.b.viviendas (vista derivada = 0) vuelve a un mínimo para que la reconquista no hunda la población
   // una obra de partida vieja (sin pieza) se liga a la pieza que ahora existe si no pasa por encima de lo ya convertido
   function migrarObra(c, antes) {
     for (const q of c.obras) migrarUna(c, antes, q);
@@ -612,7 +633,7 @@
   };
 
   /* deja una ciudad como romana recién incorporada: sin colas, impuesto normal, mitad de población */
-  function incorporar(c, units, conquista) { c.prev = c.owner; c.inq = conquista ? D.INQ_MESES * G.invMul('inqMeses') : 0; c.owner = 'roma'; c.tipo = 'municipio'; c.tipoElegido = false; c.imp = 'normal'; c.reparto = G.repartoBase(); c.units = units; G.ligarObras(c); c.obras.length = 0; c.train = []; c.levas = []; c.barrio = 1; c.bdef = 0; soltarCiudad(c); c.pop = Math.round(G.popCapViejo(c) * 0.5); c.ciu = 0; c.esc = conquista ? Math.round(c.pop * G.K().escConquista) : 0; if (CI && !cargando) abrir(c); }   // la ciudad nueva nace con la población que ya tenía
+  function incorporar(c, units, conquista) { c.prev = c.owner; c.inq = conquista ? D.INQ_MESES * G.invMul('inqMeses') : 0; c.owner = 'roma'; c.tipo = 'municipio'; c.tipoElegido = false; c.imp = 'normal'; c.reparto = G.repartoBase(); c.units = units; G.ligarObras(c); c.obras.length = 0; c.train = []; c.levas = []; c.barrio = 1; c.bdef = 0; soltarCiudad(c); { const idc = idDe(c); if (!(idc && G.state.colonias && G.state.colonias[idc])) c.plantilla = true; }   /* nace con la plantilla de su facción de origen (las colonias, no) */ c.pop = Math.round(G.popCapViejo(c) * 0.5); c.ciu = 0; c.esc = conquista ? Math.round(c.pop * G.K().escConquista) : 0; if (CI && !cargando) abrir(c); }   // la ciudad nueva nace con la población que ya tenía
   G.incorporar = incorporar;   // para las pruebas
 
   // edificios iniciales de una ciudad según su riqueza w y su muralla wl
@@ -641,7 +662,9 @@
     for (const id in s.cities) { const c = s.cities[id]; c.pop = Math.round(G.popCapViejo(c) * 0.7); c.ciu = 0; c.esc = 0; G.ligarObras(c); }
     for (const id of ciudades) if (D.CITIES[id].f === 'roma' && id !== 'roma') incorporar(s.cities[id], D.CITIES[id].g);   // aliada de Roma (Capua): empieza como ciudad recién incorporada
     G.state = s;
-    if (CI) for (const id of G.myCities()) abrir(s.cities[id]);   // Roma y Capua: ciudad nueva con la población de siempre (287 y 270)
+    if (CI) for (const id of G.myCities()) {   // Roma y Capua: en pie desde la plantilla, con su población
+      const c = s.cities[id]; c.plantilla = true; const E = abrir(c); if (E && c.plantilla) c.pop = Math.min(G.popCap(c), Math.round(poblacionE(E)));
+    }
     s.evN = D.EVENTS.length; s.evV = EV_VERSION; D.anio = D.START_YEAR;
     if (s.cities.roma) for (const k in D.LEVA_INICIAL) s.cities.roma.units[k] = (s.cities.roma.units[k] || 0) + D.LEVA_INICIAL[k];   // H13b: preparación inicial (licencia de juego)
     checkEvents(D.START_YEAR);

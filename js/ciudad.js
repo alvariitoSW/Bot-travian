@@ -369,14 +369,18 @@ export function mejorar(E, id, gratis, pago) { const s = mejoraSiguiente(E, id);
 export function aDatos(E) {
   return { v: 1, semilla: E.semilla, sitio: E.sitio ? { x: E.sitio.x, z: E.sitio.z } : null, mesN: E.mesN, monedas: Math.round(E.monedas * 100) / 100,
     piezas: E.edificios.map(e => { const o = { id: e.id, tipo: e.tipo, x: Math.round(e.x * 10) / 10, z: Math.round(e.z * 10) / 10, mejora: e.mejora || 0, mesN: e.desde }; if (e.ang) o.ang = Math.round(e.ang * 1000) / 1000; return o; }), muralla: E.diario.filter(d => d.a === 'm').map(d => d.n),
-    barrios: E.barrios.map(b => ({ nombre: b.nombre, corto: b.corto })), acciones: E.diario.map(d => Object.assign({}, d)) };
+    barrios: E.barrios.map(b => ({ nombre: b.nombre, corto: b.corto })), acciones: E.diario.map(d => Object.assign({}, d)),
+    ...(E.n0 === undefined ? {} : { n0: E.n0 }),      // solo una ciudad de plantilla (o de partida) lo trae: el diario arranca en ese mes y las piezas nacen terminadas
+    cultura: E.cultura || 'roma', tinte: E.tinte || E.cultura || 'roma', tam: E.tam || null };   // cultura/tinte/tam (CN9a)
 }
 /* Rehace la misma ciudad: funda, y repite cada obra en su mes con los meses entre medias (la semilla manda el azar). */
 export function deDatos(datos) {
-  const E = crear(datos.semilla); if (datos.sitio) fundar(E, datos.sitio.x, datos.sitio.z);
+  const E = crear(datos.semilla); E.modoJuego = datos.n0 !== undefined; if (E.modoJuego) E.n0 = datos.n0; E.mesN = datos.n0 || 0;
+  E.cultura = datos.cultura || 'roma'; E.tinte = datos.tinte || E.cultura; E.tam = datos.tam || null;      // datos viejos sin cultura: romana
+  if (datos.sitio) fundar(E, datos.sitio.x, datos.sitio.z);
   const ac = datos.acciones || [];
-  for (let n = 0; n <= datos.mesN; n++) {
-    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') colocar(E, a.tipo, a.x, a.z, true); else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); else if (a.a === 'q') saquearArrabal(E, a.fz); }
+  for (let n = datos.n0 || 0; n <= datos.mesN; n++) {
+    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') { const r = colocar(E, a.tipo, a.x, a.z, true); if (r.ok && E.modoJuego) r.e.obra = 0; } else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); else if (a.a === 'q') saquearArrabal(E, a.fz); }
     if (n < datos.mesN) mes(E);
   }
   E.monedas = datos.monedas; (datos.barrios || []).forEach((b, i) => { if (E.barrios[i]) { E.barrios[i].nombre = b.nombre; E.barrios[i].corto = b.corto; } }); E.rev++;
@@ -473,4 +477,60 @@ export function fundarAuto(E, semilla) {
   /* ensayo en una ciudad desechable: vale si sale la calle del foro al camino y las 20 chozas (si no, se prueba el siguiente) */
   let n = 0; for (const c of top) { if (n++ >= 10) break; const P = crear(E.semilla); topeRuta = 1200; let ok; try { ok = fundar(P, c.x, c.z) && P.vias.length >= 2 && poblacion(P) >= 250; } finally { topeRuta = Infinity; } if (ok && fundar(E, c.x, c.z)) return [c.x, c.z]; }
   for (const c of top) if (fundar(E, c.x, c.z)) return [c.x, c.z]; return null;
+}
+
+/* ---------- ciudades por cultura (CN9a) ---------- */
+/* Facción de D.CITIES -> cultura de arte ('roma','grie','cart') y tinte. Las que no tienen arte propio usan la romana con su tinte. */
+export function culturaDe(faccion, id) {
+  if (id === 'capua') return { cultura: 'roma', tinte: 'campanos' };
+  const m = { roma: 'roma', cartago: 'cart', epiro: 'grie', siracusa: 'grie', akragas: 'grie', griegos: 'grie', macedonia: 'grie' };
+  if (m[faccion]) return { cultura: m[faccion], tinte: m[faccion] };
+  return { cultura: 'roma', tinte: faccion || 'roma' };      // etruscos, galos, mamertinos, iberos
+}
+export const tamano = w => w <= 2 ? 'peq' : w === 3 ? 'med' : 'gra';
+/* Piezas [tipo, mejora]. Nivel de D.BUILD = NIVEL_MEJORA[mejora]. 'med' romana = edificiosBase('capua',3,1): producción I (nivel 3), almacén, mercado y cuartel nivel 1. */
+const PROD = m => [['granja', m], ['aserradero', m], ['cantera', m], ['mina', m]];
+export const PLANTILLAS = {
+  roma: {
+    peq: { pob: 301, meses: 0, piezas: [['fuente', 0], ['granero', 0], ...PROD(0), ['granja', 1], ['almacen', 0], ['mercado', 0], ['cuartel', 0]] },
+    med: { pob: 392, meses: 1, piezas: [['fuente', 0], ['granero', 0], ...PROD(1), ['almacen', 0], ['mercado', 0], ['cuartel', 0]] },
+    gra: { pob: 518, meses: 1, piezas: [['fuente', 1], ['granero', 0], ...PROD(2), ['almacen', 1], ['mercado', 1], ['cuartel', 1], ['establo', 0]] } },
+  grie: {
+    peq: { pob: 301, meses: 0, piezas: [['fuente', 0], ['granero', 0], ...PROD(0), ['granja', 1], ['almacen', 0], ['mercado', 0], ['cuartel', 0]] },
+    med: { pob: 392, meses: 1, piezas: [['fuente', 1], ['granero', 0], ...PROD(1), ['almacen', 0], ['mercado', 1], ['cuartel', 0]] },
+    gra: { pob: 518, meses: 1, piezas: [['fuente', 1], ['granero', 0], ...PROD(2), ['almacen', 1], ['mercado', 1], ['cuartel', 1], ['establo', 0]] } },
+  cart: {
+    peq: { pob: 301, meses: 0, piezas: [['fuente', 0], ['granero', 0], ...PROD(0), ['granja', 1], ['almacen', 0], ['mercado', 0], ['cuartel', 0], ['muelle', 0]] },
+    med: { pob: 392, meses: 1, piezas: [['fuente', 0], ['granero', 0], ...PROD(1), ['almacen', 1], ['mercado', 0], ['cuartel', 0], ['muelle', 0]] },
+    gra: { pob: 609, meses: 1, piezas: [['fuente', 0], ['granero', 0], ...PROD(2), ['almacen', 1], ['mercado', 1], ['cuartel', 1], ['establo', 0], ['muelle', 1]] } }
+};
+/* La plantilla que toca (Roma, sin mercado ni más población que su base, es un caso aparte; los muelles solo si hay río: si no hay sitio, se omiten). */
+export function plantillaDe(id, faccion, w) {
+  const c = culturaDe(faccion, id), t = PLANTILLAS[c.cultura][tamano(w)];
+  if (id === 'roma') return { pob: 287, meses: 0, piezas: t.piezas.filter(p => p[0] !== 'mercado') };
+  return t;
+}
+export const semillaDe = id => { let h = 7; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 100003; return h + 1; };
+/* El muelle mide contra todo el río (~5 s con mejorSitio): solo se prueban las celdas de la orilla válida (50 a 76 del río), cada 16 unidades. */
+let candMuelle = null;
+function sitioMuelle(E) {
+  if (!candMuelle) { candMuelle = []; for (let j = 0; j < N_CALOR; j += 2) for (let i = 0; i < N_CALOR; i += 2) { const x = X0 + (i + 0.5) * PASO_CALOR, z = Z0 + (j + 0.5) * PASO_CALOR, d = distRio(x, z); if (d >= 49 && d <= 77) candMuelle.push([x, z]); } }
+  let b = -1e9, r = null; for (const [x, z] of candMuelle) { const nt = notaSitio(E, 'muelle', x, z); if (!nt.vale) continue; const v = nt.nota - Math.hypot(x - E.foro.x, z - E.foro.z) / 2000; if (v > b) { b = v; r = [x, z]; } } return r;
+}
+/* Ciudad completa y determinista desde una plantilla. opt.finEn: mes con el que termina E (n0 = finEn - meses); opt.rapido: sin simular meses. */
+export function desdePlantilla(id, faccion, w, opt = {}) {
+  const P = plantillaDe(id, faccion, w), cu = culturaDe(faccion, id), sem = semillaDe(id), E = crear(sem);
+  const meses = opt.rapido ? 0 : P.meses, fin = opt.finEn === undefined ? P.meses : opt.finEn;
+  E.modoJuego = true; E.cultura = cu.cultura; E.tinte = cu.tinte; E.tam = tamano(w); E.n0 = fin - meses; E.mesN = E.n0;
+  if (!fundarAuto(E, sem)) return null;
+  const pon = (tipo, mejora) => { const s = tipo === 'muelle' ? sitioMuelle(E) : mejorSitio(E, tipo); if (!s) return false; const r = colocar(E, tipo, s[0], s[1], true); if (!r.ok) return false; r.e.obra = 0; for (let k = 0; k < mejora; k++) mejorar(E, r.e.id, true); return true; };
+  /* Primero lo que produce; las casas crecen unos meses sin fuente ni mercado (así no se disparan de nivel); al final los servicios y la siembra hasta la población. */
+  const serv = p => p[0] === 'fuente' || p[0] === 'mercado' || p[0] === 'templo', pob = opt.pob || P.pob;
+  for (const [t, m] of P.piezas) if (!serv([t])) pon(t, m);
+  if (!E.edificios.some(e => e.tipo === 'granero')) pon('granero', 0);
+  for (let i = 0; i < meses; i++) mes(E);
+  for (const [t, m] of P.piezas) if (serv([t])) pon(t, m);
+  if (poblacion(E) < pob) sembrarCasas(E, pob);
+  E.mesN = fin;
+  return E;
 }
