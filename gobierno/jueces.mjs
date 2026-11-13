@@ -371,7 +371,7 @@ async function navegador() {
       const salio = await page.waitForFunction(() => !document.getElementById('pausa').hidden, null, { timeout: 20000 }).then(() => true, () => false);
       await espera(400);
       const m = await estado(() => { const e = document.getElementById('pausa'), r = e.getBoundingClientRect(), b = e.querySelector('button').getBoundingClientRect(), tb = document.getElementById('tabs3'), tr = tb ? tb.getBoundingClientRect() : null; return { speed: Game.state.speed, txt: document.getElementById('p-txt').innerText, l: r.left, r: r.right, t: r.top, b: r.bottom, alto: r.height, bt: b.height, abajo: tr ? tr.top : 844, modal: !document.getElementById('modal').hidden }; });
-      const f1 = await tarea('R3-pausa.jpg');
+      const f1 = await tarea('R3-pausa.jpg'); await tarea('R4-aviso-pausa.jpg');
       await page.click('#pausa button'); await espera(400);
       const sigue = await estado(() => ({ speed: Game.state.speed, oculto: document.getElementById('pausa').hidden }));
       const ok1 = emp && salio && m.speed === 0 && /Obra terminada/.test(m.txt) && m.l >= 0 && m.r <= 390 && m.alto <= 70 && m.bt >= 32 && m.b < m.abajo && !m.modal && sigue.speed > 0 && sigue.oculto;
@@ -394,6 +394,19 @@ async function navegador() {
       await estado(() => document.querySelector('#tabs3 [data-v="ciudad"]').click()); await espera(500);
       const ok = ok1 && hay && cambia && norm && alto >= 40;
       return { ok, detalle: ok ? 'la obra para el reloj («' + m.txt.slice(0, 60) + '»); «Continuar» lo reanuda; el ajuste cambia a «graves» y vuelve a «todas»' : JSON.stringify({ emp, salio, m, sigue, hay, cambia, norm, alto }), captura: f1 };
+    });
+
+    await paso('R4 aviso del asesor: una frase corta que se lee entera', async () => {
+      const tarea = async nombre => { await page.screenshot({ path: join(RAIZ, 'gobierno', 'capturas-tarea', nombre), type: 'jpeg', quality: 80 }); return nombre; };
+      await cierraAvisos(); await estado(() => { UI.modalQ = []; UI.modalOpen = false; document.getElementById('modal').hidden = true; const inf = document.getElementById('inf'); if (inf) inf.remove(); const s = Game.state; s.speed = 0; UI.pausa = null; if (s.ajustes) { s.ajustes.asesor = true; s.ajustes.vistos = []; delete s.ajustes.asesorMes; delete s.ajustes.asesorMs; } UI.modo3 = 'mirar'; UI.linK = null; });
+      await estado(() => document.querySelector('#tabs3 [data-v="ciudad"]').click()); await espera(800);
+      const salio = await page.waitForFunction(() => { const l = document.getElementById('linea'); return l && !l.hidden && /leccion/.test(l.className); }, null, { timeout: 20000 }).then(() => true, () => false);
+      await espera(300);
+      const m = await estado(() => { const l = document.getElementById('linea'), r = l.getBoundingClientRect(), t = document.getElementById('l-texto'); return { txt: t.innerText, n: t.innerText.length, l: r.left, r: r.right, alto: r.height, rotoH: t.scrollWidth > t.clientWidth + 1 }; });
+      const f = await tarea('R4-aviso-asesor.jpg');
+      await estado(() => { const s = Game.state; if (s.ajustes) s.ajustes.asesor = false; UI.linK = null; });
+      const ok = salio && m.n <= 80 && m.l >= 0 && m.r <= 390 && m.alto <= 90 && !m.rotoH;
+      return { ok, detalle: ok ? '«' + m.txt + '» (' + m.n + ' caracteres, ' + Math.round(m.alto) + ' px de alto)' : JSON.stringify({ salio, m }), captura: f };
     });
 
     await paso('Región de Italia: mapa con 7 ciudades', async () => {

@@ -26,15 +26,15 @@ t('una leva lista para con motivo', () => {
 t('misión cumplida (suave) y misión fallida (grave)', () => {
   let s = nueva(); let v = oyente(); const m = Object.values(D.MISIONES)[0]; const ct = G.MISION_TIPOS[m.cond.tipo], antes = ct.cumple;
   s.mision = { id: m.id, t0: 0, t1: 99 }; ct.cumple = () => true; try { G.senadoMes(false); } finally { ct.cumple = antes; }
-  assert.ok(v.length === 1 && /cumplido la misión/.test(v[0].motivo) && !v[0].grave, JSON.stringify(v));
+  assert.ok(v.length === 1 && /^Misión cumplida/.test(v[0].motivo) && !v[0].grave, JSON.stringify(v));
   s = nueva(); v = oyente(); s.t = 20; s.mision = { id: m.id, t0: 0, t1: 5 }; ct.cumple = () => false; try { G.senadoMes(false); } finally { ct.cumple = antes; }
-  assert.ok(v.some(p => /fallado la misión/.test(p.motivo) && p.grave), JSON.stringify(v));
+  assert.ok(v.some(p => /^Misión fallida/.test(p.motivo) && p.grave), JSON.stringify(v));
 });
 
 t('ataque en camino (grave)', () => {
   const s = nueva(); const v = oyente(), rnd = Math.random; Math.random = () => 0;
-  try { for (let a = 0; a < 40 && !v.some(p => /^Ataque en camino/.test(p.motivo)); a++) { correr(s, 12); } } finally { Math.random = rnd; }
-  const p = v.find(x => /^Ataque en camino/.test(x.motivo)); assert.ok(p && p.grave, 'no salió ataque: ' + v.length);
+  try { for (let a = 0; a < 40 && !v.some(p => /^Ataque:/.test(p.motivo)); a++) { correr(s, 12); } } finally { Math.random = rnd; }
+  const p = v.find(x => /^Ataque:/.test(x.motivo)); assert.ok(p && p.grave, 'no salió ataque: ' + v.length);
 });
 
 t('«ninguna» no para; «solo graves» solo ataque y misión fallida', () => {

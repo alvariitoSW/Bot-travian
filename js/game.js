@@ -1,6 +1,7 @@
 /* AQVILA — lógica de campaña: economía, ciudades, marchas, IA enemiga, hechos históricos */
 (function (root) {
   const D = root.DATA;
+  const T = (root.ASESOR || (typeof require !== 'undefined' ? require('./asesor.js') : null)).TEXTOS;   // R4: avisos de una frase
   const G = { state: null, onEvent: null };
   const SAVE_KEY = 'aqvila-save-v1';
   const emit = (type, p) => { if (G.onEvent) G.onEvent(type, p); };
@@ -592,7 +593,7 @@
       if (r && piezaDe(b)) { c.heredado = c.heredado || {}; c.heredado[b] = (c.heredado[b] || 0) + 1; sinc(c, r); ponerDatos(c, r); } else c.b[b] = (c.b[b] || 0) + 1;
       txt = D.BUILD[b].n + ' nivel ' + c.b[b];
     }
-    G.log('🏗️ ' + nom + ': ' + txt + '.'); emit('dirty'); G.parar('Obra terminada en ' + nom + ': ' + txt + '.');
+    G.log('🏗️ ' + nom + ': ' + txt + '.'); emit('dirty'); G.parar(T.obraHecha(nom, txt));
   }
   // cada mes entero: la ciudad nueva vive un mes y sus avisos importantes pasan al diario del juego (máx. 2 líneas por ciudad)
   function mesCiudades() {
@@ -607,7 +608,7 @@
   }
   // riesgos que se ven venir: de una ciudad propia, y agrupados por tipo para el consejo del imperio
   G.riesgos = function (cid) { const E = G.ciudadE(cid); if (!E || !CI) return []; const k = E.rev + '|' + E.mesN + '|' + ((G.state && G.state.ajustes && G.state.ajustes.v) || 0); if (!E._rg || E._rg.k !== k) E._rg = { k, v: CI.riesgos(E) }; return E._rg.v; };   // en caché por revisión y mes: la pantalla lo pide a cada cuadro
-  G.riesgosImperio = function () { const m = {}; for (const id of G.myCities()) { for (const r of G.riesgos(id)) { const g = m[r.c] = m[r.c] || { c: r.c, p: r.p, ciudades: [], t: r.t, remedio: r.remedio, pieza: r.pieza, cid: id, _n: -1 }; g.ciudades.push(D.CITIES[id].n); g.meses = Math.min(g.meses === undefined ? 99 : g.meses, r.meses); if (r.n > g._n) { g._n = r.n; g.cid = id; g.t = r.t; g.remedio = r.remedio; } } } return Object.values(m).map(g => { delete g._n; return g; }).sort((a, b) => b.p - a.p); };
+  G.riesgosImperio = function () { const m = {}; for (const id of G.myCities()) { for (const r of G.riesgos(id)) { const g = m[r.c] = m[r.c] || { c: r.c, p: r.p, ciudades: [], t: r.t, a: r.a, remedio: r.remedio, pieza: r.pieza, cid: id, _n: -1 }; g.ciudades.push(D.CITIES[id].n); g.meses = Math.min(g.meses === undefined ? 99 : g.meses, r.meses); if (r.n > g._n) { g._n = r.n; g.cid = id; g.t = r.t; g.remedio = r.remedio; } } } return Object.values(m).map(g => { delete g._n; return g; }).sort((a, b) => b.p - a.p); };
 
   /* ---------- API para el modo «colocar» (CN4) ----------  tipo = id de pieza (EDIF de ciudad.js) o id de D.BUILD */
   const tipoPz = t => piezaDe(t) || (CI && CI.EDIF[t] ? t : null);
@@ -1045,7 +1046,7 @@
       for (const k in c.units) { const q = Math.floor(c.units[k] * 0.4); if (q > 0) { u[k] = q; c.units[k] -= q; } }
       const sq = Math.random() < D.SAQUEO_IA; spawn(c.owner, id, null, to, u, null, G.travel(id, to) * 2 + 4); if (sq) s.marches[s.marches.length - 1].mision = 'saqueo';
       G.log('⚠️ ' + f.n + ' envía ' + (sq ? 'una partida de saqueo' : 'un ejército') + ' desde ' + d.n + ' contra ' + D.CITIES[to].n + '.', 'bad');
-      emit('alert', '¡' + f.n + ' marcha sobre ' + D.CITIES[to].n + '!'); G.parar('Ataque en camino: ' + f.n + ' marcha sobre ' + D.CITIES[to].n + '.', true);
+      emit('alert', '¡' + f.n + ' marcha sobre ' + D.CITIES[to].n + '!'); G.parar(T.ataque(f.n, D.CITIES[to].n), true);
     }
   }
 
@@ -1082,7 +1083,7 @@
     for (const id of G.myCities()) {
       const c = s.cities[id];
       for (const q of c.obras.filter(o => s.t >= o.t1)) terminarObra(id, c, q);
-      while (c.train.length && s.t >= c.train[0].t1) { const q = c.train.shift(); c.units[q.u] = (c.units[q.u] || 0) + q.n; if (q.u !== 'milicia') { if (!c.levas) c.levas = []; c.levas.push({ u: q.u, n: q.n, t: s.t }); } G.log('🛡️ ' + D.CITIES[id].n + ': ' + q.n + ' ' + D.UNITS[q.u].n + ' listos.'); emit('dirty'); G.parar('Tropa lista en ' + D.CITIES[id].n + ': ' + q.n + ' ' + D.UNITS[q.u].n + '.'); }
+      while (c.train.length && s.t >= c.train[0].t1) { const q = c.train.shift(); c.units[q.u] = (c.units[q.u] || 0) + q.n; if (q.u !== 'milicia') { if (!c.levas) c.levas = []; c.levas.push({ u: q.u, n: q.n, t: s.t }); } G.log('🛡️ ' + D.CITIES[id].n + ': ' + q.n + ' ' + D.UNITS[q.u].n + ' listos.'); emit('dirty'); G.parar(T.tropaLista(D.CITIES[id].n, q.n, D.UNITS[q.u].n)); }
     }
     // modo turnos: al cerrar la estación se resuelve el mundo (año nuevo, rivales) antes de que lleguen las marchas
     if (B !== null) { const yb = G.yearOf(s.t); if (yb < y0) newYear(yb, true); turnoIA(yb, 0.25); }
@@ -1142,7 +1143,7 @@
   G.avisoCierre = function (completo) {
     const s = G.state, out = []; if (!s || (!completo && G.fraccionMes() < D.AVISO_CIERRE)) return out;
     const NOM = { madera: 'Madera', piedra: 'Piedra', hierro: 'Hierro', grano: 'Grano', oro: 'Oro' }, pr = G.previsionCierre();
-    for (const r of D.RES) if (pr[r].perdera >= 1) out.push(NOM[r] + ': sobran ' + pr[r].sobra + ', caben ' + pr[r].cabe + ', se perderán ' + pr[r].perdera + (completo ? ' si no lo gastas.' : '.'));
+    for (const r of D.RES) if (pr[r].perdera >= 1) out.push(T.cierre(NOM[r], pr[r].sobra, pr[r].cabe, pr[r].perdera, completo));
     return out;
   };
   /* ---------- cuentas del mes (Q3) ---------- */
@@ -1221,21 +1222,21 @@
     let rec = null;
     for (const m of s.marches) {
       if (m.owner === 'roma' || G.turnosFaltan(m) > 1 || s.cities[m.to].owner !== 'roma') continue;
-      out.push({ k: 'bad', x: D.FACTIONS[m.owner].n + ' (' + G.men(m.units) + ' hombres) llega a ' + D.CITIES[m.to].n + ' al acabar este turno.' });
-      rec = rec || 'Refuerza ' + D.CITIES[m.to].n + ' antes de que acabe la estación.';
+      out.push({ k: 'bad', x: T.llega(D.FACTIONS[m.owner].n, G.men(m.units), D.CITIES[m.to].n) });
+      rec = rec || T.refuerza(D.CITIES[m.to].n);
     }
-    for (const id of G.coloniasPendientes()) out.push({ k: '', x: 'Los colonos han llegado a ' + G.lugar(id).n + ': funda la colonia.' });
-    for (const r of ['grano', 'oro']) if (p[r] < 0 && (s.res[r] + s.alm[r]) / -p[r] < 3) out.push({ k: 'bad', x: (r === 'grano' ? 'El grano' : 'El oro') + ' se acaba en ' + Math.max(1, Math.ceil((s.res[r] + s.alm[r]) / -p[r])) + ' mes(es).' });
+    for (const id of G.coloniasPendientes()) out.push({ k: '', x: T.colonos(G.lugar(id).n) });
+    for (const r of ['grano', 'oro']) if (p[r] < 0 && (s.res[r] + s.alm[r]) / -p[r] < 3) out.push({ k: 'bad', x: T.seAcaba(r === 'grano', Math.max(1, Math.ceil((s.res[r] + s.alm[r]) / -p[r]))) });
     const sin = mis.filter(id => G.huecosLibres(s.cities[id]) > 0).map(id => D.CITIES[id].n);
-    if (sin.length) { out.push({ k: '', x: 'Sin obras en cola: ' + sin.slice(0, 3).join(', ') + (sin.length > 3 ? '…' : '') + '.' }); rec = rec || 'Pon a trabajar a los constructores.'; }
+    if (sin.length) { out.push({ k: '', x: T.sinObras(sin.slice(0, 3).join(', '), sin.length > 3) }); rec = rec || T.constructores(); }
     for (const x of G.avisoCierre(G.turnos)) out.push({ k: 'bad', x: x });
     const rs = typeof G.riesgosImperio === 'function' ? (G.riesgosImperio() || []).filter(r => r.meses <= G.avisoMeses()).sort((a, b) => b.p - a.p) : [];
-    if (rs.length) { const r = rs[0]; out.unshift({ k: 'bad', x: r.t + (r.remedio ? ' ' + r.remedio : '') }); rec = rec || r.remedio || null; }
+    if (rs.length) { const r = rs[0]; out.unshift({ k: 'bad', x: r.a || r.t }); rec = rec || r.remedio || null; }
     const llenos = D.RES.filter(r => s.alm[r] >= cap - 1);
-    if (llenos.length) out.push({ k: '', x: 'Almacén lleno: ' + llenos.join(', ') + '. Gasta o amplía.' });
-    const mi = G.misionActual(), sen = G.favorBajo() ? { k: 'bad', x: 'Senado: favor bajo; sin tratados ajenos ni levas extra.' } : mi ? { k: '', x: 'Senado: ' + mi.m.n + ', quedan ' + mi.quedan + ' meses. ' + mi.falta } : null;   // sustituye al tercer aviso
+    if (llenos.length) out.push({ k: '', x: T.llenoAlm(llenos.join(', ')) });
+    const mi = G.misionActual(), sen = G.favorBajo() ? { k: 'bad', x: T.favor() } : mi ? { k: '', x: T.mision(mi.m.n, mi.quedan, mi.falta) } : null;   // sustituye al tercer aviso
     const l = [head].concat(out.slice(0, sen ? 2 : 3)); if (sen) l.push(sen);
-    l.push({ k: rec ? '' : 'good', x: rec || 'Estación tranquila: reúne tropas o amplía la ciudad.' });
+    l.push({ k: rec ? '' : 'good', x: rec || T.tranquila() });
     return l.slice(0, 5);
   };
 
@@ -1716,10 +1717,10 @@
     if (x && !m) s.mision = null;
     else if (x && G.MISION_TIPOS[m.cond.tipo].cumple(s, m.cond)) {
       aplicaMision(Object.assign({ favorSenado: S.premio }, m.premio)); s.misionesHechas[m.id] = 'ok'; s.mision = null; s.proxMision = mes + S.pausa;
-      G.log('🏛️ Misión cumplida: ' + m.n + '. El Senado lo agradece.', 'good'); G.parar('Has cumplido la misión del Senado: ' + m.n + '.');
+      G.log('🏛️ Misión cumplida: ' + m.n + '. El Senado lo agradece.', 'good'); G.parar(T.misionOk(m.n));
     } else if (x && mes >= x.t1) {
       aplicaMision(Object.assign({ favorSenado: S.castigo }, m.castigo)); s.misionesHechas[m.id] = 'fallo'; s.mision = null; s.proxMision = mes + S.pausa;
-      G.log('🏛️ Misión fallida: ' + m.n + '. El Senado se queja.', 'bad'); G.parar('Has fallado la misión del Senado: ' + m.n + '.', true);
+      G.log('🏛️ Misión fallida: ' + m.n + '. El Senado se queja.', 'bad'); G.parar(T.misionMal(m.n), true);
     }
     s.favor.senado = topeFavor(s.favor.senado); s.favor.pueblo = topeFavor(s.favor.pueblo);
     if (!s.mision && mes >= s.proxMision) G.senadoAsignar();

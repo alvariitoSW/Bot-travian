@@ -94,7 +94,7 @@ function toastResumen(lista) {
   const graves = gr.length, obras = lista.filter(x => /^🔨/.test(x.txt)).length;
   const p = []; if (obras) p.push(obras + (obras === 1 ? ' obra' : ' obras')); if (graves) p.push(graves + (graves === 1 ? ' aviso grave' : ' avisos graves'));
   const otros = lista.length - obras - graves; if (otros > 0 || !p.length) p.push(Math.max(otros, 0) + (otros === 1 ? ' aviso' : ' avisos'));
-  toast('Turno: ' + p.join(', ') + '. Detalle en la Crónica.', graves ? 'bad' : '', 'turno');
+  toast(ASESOR.TEXTOS.turno(p.join(', ')), graves ? 'bad' : '', 'turno');
 }
 function modal(html, sticky) { UI.modalQ.push({ html: html, sticky: sticky }); pump(); }
 function pump() {
@@ -234,7 +234,7 @@ function consejoModal() {
   const detalle = '<div class="yr">INFORME Y CONSEJO DE ESTACIÓN</div><h2>' + esc(l[0].x) + '</h2>' + informe + l.slice(1).map(q => '<p style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</p>').join('');
   // tarjeta: lo grave siempre; lo demás solo si cambió desde el trimestre anterior
   const perd = D.RES.filter(r => inf.meses && inf.r[r].per > 0).map(r => D.RES_ICON[r] + ' -' + fmt(inf.r[r].per));
-  const todo = l.slice(1, -1).concat(perd.length ? [{ k: 'bad', x: 'Perdido por almacén lleno: ' + perd.join(' ') }] : []);
+  const todo = l.slice(1, -1).concat(perd.length ? [{ k: 'bad', x: ASESOR.TEXTOS.perdido(perd.join(' ')) }] : []);
   const mostrar = todo.filter(q => q.k === 'bad' || ant.indexOf(q.x) < 0).slice(0, 3);
   UI.infoPrev = todo.map(q => q.x);
   const rec = l[l.length - 1];
@@ -623,7 +623,7 @@ const FASE_MURALLA = ['Sin muralla', 'Empalizada', 'Muralla de piedra'];
 /* CN7: aviso del arrabal (3 o más casas fuera del surco y sin muralla de piedra); '' si no toca */
 function avisoArrabal(E) {
   if (!E || !Ciudad.casasArrabal) return ''; const n = Ciudad.casasArrabal(E), f = Ciudad.faseDeNivel ? (E.muralla.fase || 0) : 0;
-  return n >= 3 && f < 2 ? ' Tu arrabal tiene ' + n + ' casas ' + (f === 1 ? 'sin muralla de piedra.' : 'sin muralla.') : '';
+  return n >= 3 && f < 2 ? ASESOR.TEXTOS.arrabal(n, f === 1) : '';
 }
 function consejo(c, id) {
   id = id || UI.city; const s = S(), cap = G.cap(), E = c.owner === 'roma' ? G.ciudadE(id) : null, flags = {};
@@ -634,20 +634,20 @@ function consejo(c, id) {
   const rg = E && typeof G.riesgos === 'function' ? (G.riesgos(id) || []).filter(r => r.meses <= G.avisoMeses()) : [];
   const rgP = rg.find(r => r.pieza && !E.edificios.some(q => q.tipo === r.pieza) && opcionPieza(id, r.pieza, true));
   if (rgP) flags[rgP.pieza] = 'alerta';
-  const rgT = !rgP && rg[0] ? ' ' + rg[0].t + (rg[0].remedio ? ' ' + rg[0].remedio : '') : '';
-  const mk = (t, op) => ({ t: t + rgT, rec: !!op && G.canAfford(op.ini), b: op ? Ciudad.EDIF[op.pieza].bid || null : null, pieza: op ? op.pieza : null, mej: op ? op.mej : null, flags });
-  if (c.obras.length >= G.huecos(c)) { const o = c.obras[0]; return { t: 'En obras: ' + obraNom(o) + (c.obras.length > 1 ? ' y ' + (c.obras.length - 1) + ' más' : '') + '. Faltan ' + months(Math.max(0, o.t1 - s.t)) + '.', rec: false, b: o.b || null, pieza: o.pieza || null, mej: null, flags }; }
-  if (!E) return mk('Faltan recursos para nuevas obras. Espera a que lleguen.', null);
-  if (flags.almacen) return mk('Tu ' + RES_NOM[lleno[0]].toLowerCase() + ' llega al ' + Math.min(100, Math.round(lleno[1] * 100)) + ' %: ' + (E.edificios.some(q => q.tipo === 'almacen') ? 'coloca otro almacén.' : 'coloca un almacén.'), opcionPieza(id, 'almacen', true));
-  if (rgP) { const op = opcionPieza(id, rgP.pieza, true); if (op && G.canAfford(op.ini)) return mk(rgP.t + ' ' + rgP.remedio, op); }
-  if (E.abiertas.includes('granero') && !E.edificios.some(q => q.tipo === 'granero') && (sc => sc.on.hambre && ((D.DIFICULTAD[sc.dif] || {}).hambre || {}).meses > 0)(G.sucesosEn(E.mesN + 1))) return mk('Falta un granero: sin él hay hambre en invierno.', opcionPieza(id, 'granero', true));
-  if (tope) return mk('La población está al tope: faltan casas. Las casas nacen solas junto a las calles; coloca una obra que traiga una calle.', null);
+  const rgT = !rgP && rg[0] ? (rg[0].a || rg[0].t) : '';   // R4: el riesgo (más urgente) sustituye al consejo corriente
+  const mk = (t, op) => ({ t: rgT || t, rec: !!op && G.canAfford(op.ini), b: op ? Ciudad.EDIF[op.pieza].bid || null : null, pieza: op ? op.pieza : null, mej: op ? op.mej : null, flags });
+  if (c.obras.length >= G.huecos(c)) { const o = c.obras[0]; return { t: ASESOR.TEXTOS.obras(obraNom(o), c.obras.length - 1, months(Math.max(0, o.t1 - s.t))), rec: false, b: o.b || null, pieza: o.pieza || null, mej: null, flags }; }
+  if (!E) return mk(ASESOR.TEXTOS.sinRecursos(), null);
+  if (flags.almacen) return mk(ASESOR.TEXTOS.almacen(RES_NOM[lleno[0]].toLowerCase(), Math.min(100, Math.round(lleno[1] * 100)), E.edificios.some(q => q.tipo === 'almacen')), opcionPieza(id, 'almacen', true));
+  if (rgP) { const op = opcionPieza(id, rgP.pieza, true); if (op && G.canAfford(op.ini)) return mk(rgP.a || rgP.t, op); }
+  if (E.abiertas.includes('granero') && !E.edificios.some(q => q.tipo === 'granero') && (sc => sc.on.hambre && ((D.DIFICULTAD[sc.dif] || {}).hambre || {}).meses > 0)(G.sucesosEn(E.mesN + 1))) return mk(ASESOR.TEXTOS.granero(), opcionPieza(id, 'granero', true));
+  if (tope) return mk(ASESOR.TEXTOS.tope(), null);
   const bi = G.barrioInfo(c), baja = bi.objetivo < bi.nivel, fl = baja ? (D.BARRIO[bi.nivel].pide || []).filter(k => !bi.serv[k]) : bi.falta;
   const sv = fl.map(k => ({ templo: 'templo', agua: 'fuente', mercado: 'mercado', grano: 'granja' })[k]).filter(Boolean).map(p => opcionPieza(id, p, true)).find(o => o && G.canAfford(o.ini));
-  if (sv) return mk((baja ? 'Para seguir siendo ' + D.BARRIO[bi.nivel].n : 'Para ser ' + D.BARRIO[bi.nivel + 1].n) + ' falta ' + ({ templo: 'un templo', fuente: 'una fuente', mercado: 'un mercado', granja: 'más grano: una granja' })[sv.pieza] + '.', sv);
+  if (sv) return mk(ASESOR.TEXTOS.barrio(baja, baja ? D.BARRIO[bi.nivel].n : D.BARRIO[bi.nivel + 1].n, ({ templo: 'un templo', fuente: 'una fuente', mercado: 'un mercado', granja: 'más grano (una granja)' })[sv.pieza]), sv);
   const cand = ['granja', 'aserradero', 'cantera', 'mina', 'almacen'].map(p => opcionPieza(id, p, false)).filter(o => o && G.canAfford(o.ini)).sort((x, y) => x.lvl - y.lvl)[0];
-  if (cand) return mk((cand.mej ? 'Mejora a ' : 'Coloca: ') + cand.nombre + '. Ya tienes los recursos.' + avisoArrabal(E), cand);
-  return mk('Faltan recursos para nuevas obras. Espera a que lleguen.' + avisoArrabal(E), null);
+  if (cand) return mk(avisoArrabal(E) || ASESOR.TEXTOS.mejora(cand.mej, cand.nombre), cand);
+  return mk(avisoArrabal(E) || ASESOR.TEXTOS.sinRecursos(), null);
 }
 /* la pieza (o el foro, o la obra) que enseña la ficha, a partir de UI.bsel = {k:'pieza'|'foro'|'obra', id, pieza, x, z} */
 function selDe(c) {
