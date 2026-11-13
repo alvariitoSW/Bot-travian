@@ -1102,10 +1102,10 @@
       "url": "https://claude.ai/code/session_01QiKC391yuLKSqC83j1RNEy"
     },
     {
-      "tarea": "R2",
-      "titulo": "Consejo de tribunos · R2",
-      "nota": "tres tarjetas por ronda (battle.js, filaRonda de ui.js)",
-      "url": "https://claude.ai/code/session_01QiKC36BmBtUHwEcrAq48ky"
+      "tarea": "R5",
+      "titulo": "Batalla más cerca · R5",
+      "nota": "cámara y estandartes (js/gfx/battle3d.js)",
+      "url": "https://claude.ai/code/session_01QiKC3A6VndptHJHXu3AVKf"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
