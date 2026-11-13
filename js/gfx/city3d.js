@@ -11,6 +11,7 @@ import { THREE } from './models.js';
 import { preloadStatic, getStatic, CULTURA } from './statics.js';
 import * as UN from './units.js';
 import * as vida from './vida.js';
+import * as Civicas from './civicas.js';          // CN15d: dique, arca del foro y (con tinteC) tejado por barrio
 import * as trajin from './trajin.js';              // CN15b: cuadrilla de obra y recuas (lo escribe otro encargo)
 import * as Fachadas from './fachadas.js';           // CN15a: puestos, toldos y ropa de la plaza y los barrios (lo escribe otro encargo)
 import { crearRio, crearCielo, texturaRuido, texturasMundo, loadGroundTextures, crearSuelo3, GLSL_NUBES, tintesEstacion } from './ground.js';
@@ -145,7 +146,10 @@ function tinteBase(a, b) {                               // muro y teja por cult
 /* CN15a: tono por barrio. nb = nivel del barrio (1..4), arr = parcela de arrabal. Solo cambia el color (cero triángulos); sin nb o con el interruptor apagado, igual que antes.
    Rico: más encalado y teja roja. Pobre y arrabal: más toba y teja vieja. Se aplica sobre el tinte de cultura, sin romperlo. */
 const MURO_RICO = [0.98, 0.95, 0.88], TEJA_RICA = [1.12, 0.92, 0.84], MURO_POBRE = [0.84, 0.76, 0.62], TEJA_VIEJA = [0.8, 0.76, 0.72];
-function tinteC(a, b, nb, arr) {
+/* CN15d: barrio con tejas (E.barrios[i].tejas): el tejado se pasa a teja roja y nueva. Sin ese dato no cambia nada. */
+const TEJA_NUEVA = [1.2, 0.74, 0.58, 0.95];
+function tinteC(a, b, nb, arr, tej) { const r = tinteC0(a, b, nb, arr); return tej && Civicas.CIVICAS_TEJADO ? { muro: r.muro, teja: r.teja.map((x, i) => x + (TEJA_NUEVA[i] - x) * 0.85) } : r; }
+function tinteC0(a, b, nb, arr) {
   const r = tinteBase(a, b); if (!Fachadas.FACHADAS_BARRIO || (nb === undefined && !arr)) return r;
   const k = arr ? -0.22 : nb >= 3 ? (nb - 2) * 0.14 : nb <= 1 ? -0.14 : 0; if (!k) return r;
   const mc = k > 0 ? MURO_RICO : MURO_POBRE, tc = k > 0 ? TEJA_RICA : TEJA_VIEJA, w = Math.abs(k);
@@ -256,11 +260,12 @@ export async function montar() {
   L.paja = lote('prop_paja', 90, { sinTeja: true }); L.carreta = lote('prop_carreta', 8, { sinTeja: true });
   vida.iniciar({ scene, colorGuarn: D.FACTIONS.roma.col, U, HORIZ, altura, azar, carros: L.carreta, pedirReparto: () => { pedirReparto = true; } });
   trajin.iniciar({ scene, colorGuarn: D.FACTIONS.roma.col, U, HORIZ, altura, azar, pieza, lote, matriz, Bulto, matBulto, pedirReparto: () => { pedirReparto = true; } });
+  Civicas.iniciar({ scene, altura, azar, pieza, lote, matriz, Bulto, matBulto, pedirReparto: () => { pedirReparto = true; } });
   Fachadas.iniciar({ scene, altura, azar, pieza, lote, matriz, Bulto, matBulto, pedirReparto: () => { pedirReparto = true; } });
 }
 /* el terreno de una partida: suelo, río, bosque, puente */
 export function mundo(estado) {
-  vida.reiniciar(); E = estado; cul = CASAS_C[estado.cultura] ? estado.cultura : 'roma'; tinteO = cul === 'roma' && estado.tinte ? TINTE_O[estado.tinte] || null : null; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1; estClave = -1; firmaArb = ''; Fachadas.reiniciar(); trajin.reiniciar();
+  vida.reiniciar(); E = estado; cul = CASAS_C[estado.cultura] ? estado.cultura : 'roma'; tinteO = cul === 'roma' && estado.tinte ? TINTE_O[estado.tinte] || null : null; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1; estClave = -1; firmaArb = ''; Fachadas.reiniciar(); Civicas.reiniciar(); trajin.reiniciar();
   for (const m of [sueloJ && sueloJ.malla, rio, crecida, estM, dinM, andM, andL, surcoM, aradoM]) if (m) { scene.remove(m); if (m.geometry) m.geometry.dispose(); }
   dinM = andM = andL = surcoM = aradoM = null; if (antM) { scene.remove(antM); antM.geometry.dispose(); antM = null; } antFirma = ''; obrasF = []; firmaObras = '';
   sueloJ = crearSuelo3(G.T, U, E ? E.bosquetes : []); scene.add(sueloJ.malla); rio = crearRio(G.T, U); scene.add(rio);
@@ -310,7 +315,7 @@ function casas(t) {
     let k; if (fam === CASAS_C.roma) k = c.nivel === 2 ? (l.tipo < 0.5 ? 'casa_c' : 'casa_d') : c.nivel === 3 ? ['casa_b', 'casa_c', 'casa_d'][Math.floor(l.tipo * 3) % 3] : (l.tipo < 0.55 ? 'casa' : 'casa_b');
     else { const n = fam.length, lo = Math.max(1, Math.round(n * 0.4)), a = c.nivel === 2 ? 0 : c.nivel === 3 ? Math.floor(n * 0.25) : n - Math.max(2, Math.round(n * 0.5)), b = c.nivel === 2 ? lo : c.nivel === 3 ? Math.min(n, a + Math.max(2, Math.round(n * 0.6))) : n; k = fam[a + Math.floor(l.tipo * (b - a)) % (b - a)]; }
     const e = c.nivel === 2 ? 0.64 : c.nivel === 3 ? 0.84 : 0.97, alto = c.nivel === 4 ? 1.3 : c.nivel === 3 ? 1 : 0.9, tn = c.nivel === 2 ? l.tono * 0.42 : c.nivel === 3 ? 0.3 + l.tono * 0.45 : 0.62 + l.tono * 0.38, tj = c.nivel === 2 ? 0.6 + l.teja * 0.4 : c.nivel === 4 ? l.teja * 0.6 : l.teja;
-    por[k].push({ m: matriz(l.x, suelo(l.x, l.z, 6 * e) - 0.25, l.z, giro, e * EC * sx, e * EC * alto * sy, e * EC * sx), ...tinteC(tn, tj, E.barrios && E.barrios[l.barrio] ? E.barrios[l.barrio].nivel : undefined, l.arrabal) }); }
+    por[k].push({ m: matriz(l.x, suelo(l.x, l.z, 6 * e) - 0.25, l.z, giro, e * EC * sx, e * EC * alto * sy, e * EC * sx), ...tinteC(tn, tj, E.barrios && E.barrios[l.barrio] ? E.barrios[l.barrio].nivel : undefined, l.arrabal, E.barrios && E.barrios[l.barrio] && E.barrios[l.barrio].tejas) }); }
   for (const k in por) L[k].poner(por[k]);
   tiendaM.count = nt; for (const m of [...chozaM, tiendaM]) { if (m !== tiendaM) m.count = nc; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; }
   return anim;
@@ -537,7 +542,7 @@ export class CityView3D {
   /* ciudadanos, humo y carros: vida.js (CN11-A). La guarnición formada ante la puerta principal es provisional (CN11-B) */
   people(city, t, dt) {
     for (const e of this.figs.values()) e.i = 0;
-    vida.actualizar(E, cam.d, t, dt, ahora() >= esperaSurco); Fachadas.actualizar(E, cam.d); trajin.actualizar(E, city, cam.d, t, dt, ahora() >= esperaSurco);
+    vida.actualizar(E, cam.d, t, dt, ahora() >= esperaSurco); Fachadas.actualizar(E, cam.d); Civicas.actualizar(E, cam.d); trajin.actualizar(E, city, cam.d, t, dt, ahora() >= esperaSurco);
     /* guarnición: vida.js (CN11-B), real de cerca y cajas de lejos */
     const g = vida.guarnicion(E, city.units, camara.position, t, { PK, D }); this.men = g.men; this.guarn = g.hay ? { x: g.x, z: g.z } : null;
     for (const e of this.figs.values()) { e.m.count = e.i; e.m.instanceMatrix.needsUpdate = true; e.m.geometry.attributes.aFrame.needsUpdate = true; }

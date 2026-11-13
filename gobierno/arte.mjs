@@ -75,6 +75,11 @@ const trisPuesto = 96 + tri('prop_mesa') + Math.max(tri('prop_cesto'), tri('prop
 const trisFach = (fint('FACHADAS_PUESTOS') ? nPuestos * trisPuesto : 0) + (fint('FACHADAS_TOLDOS') ? nToldos * 36 : 0) + (fint('FACHADAS_ROPA') ? nRopa * 48 : 0) + (fint('FACHADAS_BARRIO') ? nMacetas * tri('prop_vaso') : 0);
 console.log('Fachadas (máximo teórico): ' + mil(trisFach) + ' (' + nPuestos + ' puestos, ' + nToldos + ' toldos, ' + nRopa + ' tendederos, ' + nMacetas + ' macetas)');
 if (trisFach > 15000) fallos.push('las fachadas piden ' + mil(trisFach) + ' triángulos y el presupuesto de CN15a es 15 mil');
+// Cívicas (CN15d, js/gfx/civicas.js): dique (2 cajas + 9 estacas por tramo, 12 tris cada una) y arca (sacos y cajas del montón + tarima).
+const csrc = await readFile(join(RAIZ, 'js', 'gfx', 'civicas.js'), 'utf8'), ccte = n => +(csrc.match(new RegExp(n + ' = (\\d+)')) || [0, 0])[1];
+const trisCiv = ccte('N_DIQUE_MAX') * 11 * 12 + ccte('N_ARCA_MAX') * Math.max(tri('prop_sacos'), tri('prop_caja')) + 12;
+console.log('Cívicas (máximo teórico): ' + mil(trisCiv) + ' (' + ccte('N_DIQUE_MAX') + ' tramos de dique, ' + ccte('N_ARCA_MAX') + ' bultos del arca)');
+if (trisCiv > 6000) fallos.push('las cívicas piden ' + mil(trisCiv) + ' triángulos y el presupuesto de CN15d es 6 mil');
 // Trajín (CN15b, js/gfx/trajin.js): cuadrilla de obra y recuas. Peor caso: obreros reales + 15 figuras ligeras, montones y mulas (170 tris cada una con carga).
 const tsrc = await readFile(join(RAIZ, 'js', 'gfx', 'trajin.js'), 'utf8'), tcte = n => +(tsrc.match(new RegExp(n + ' = (\\d+)')) || [0, 0])[1], tint = n => new RegExp('export const ' + n + ' = true').test(tsrc);
 const nObr = tcte('N_OBREROS_MAX'), nRec = tcte('N_RECUAS'), nMul = tcte('MULAS_POR_RECUA');
