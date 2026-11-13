@@ -22,17 +22,18 @@ const foto = async n => { const f = join(RAIZ, 'gobierno/capturas-tarea', 'CN15c
 await page.goto('http://127.0.0.1:' + srv.address().port + '/', { waitUntil: 'load' });
 await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
 await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 120000 });
+await page.click('#menu [data-act="hoja"][data-v="sonmenu"]'); await page.waitForTimeout(400);   // K12a-B: el sonido vive en la hoja «Sonido y fluidez»
 /* 1. menú: el botón dice «Sonido: sí» y alterna */
 const txt = () => page.evaluate(() => (document.querySelector('[data-act="sonido"]') || {}).textContent || '');
 ok(await txt() === 'Sonido: sí', 'menú: botón «Sonido: sí» (' + await txt() + ')');
-await page.evaluate(() => document.querySelector('#menu [data-act="sonido"]').scrollIntoView({ block: 'center' })); await page.waitForTimeout(300);
+await page.evaluate(() => document.querySelector('#hoja [data-act="sonido"]').scrollIntoView({ block: 'center' })); await page.waitForTimeout(300);
 await foto('menu');
-await page.tap('#menu [data-act="sonido"]'); await page.waitForTimeout(300);
+await page.tap('#hoja [data-act="sonido"]'); await page.waitForTimeout(300);
 ok(await txt() === 'Sonido: no' && await page.evaluate(() => Sonido.activo === false), 'menú: un toque lo apaga (' + await txt() + ')');
-await page.tap('#menu [data-act="sonido"]'); await page.waitForTimeout(300);
+await page.tap('#hoja [data-act="sonido"]'); await page.waitForTimeout(300);
 ok(await txt() === 'Sonido: sí' && await page.evaluate(() => Sonido.activo === true), 'menú: otro toque lo enciende');
 /* 2. partida nueva, ciudad, Gobierno → Ajustes */
-await page.click('#menu [data-act="new"]'); await page.waitForTimeout(2500);
+await page.click('#hoja [data-act="hojax"]'); await page.waitForTimeout(300); await page.click('#menu [data-act="new"]'); await page.waitForTimeout(2500);
 await page.evaluate(() => { const m = document.getElementById('modal'); if (m) m.hidden = true; });
 await page.evaluate(() => { Game.state.speed = 0; }); await page.waitForTimeout(500);
 /* 3. audio: un toque, el contexto arranca; verano, de día, cámara junto a una obra */

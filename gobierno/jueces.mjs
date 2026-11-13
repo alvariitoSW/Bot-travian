@@ -160,6 +160,7 @@ async function navegador() {
 
     await paso('Ajustes y asesor: dificultad en Gobierno', async () => {
       await page.click('#tabs3 [data-v="gobierno"]'); await espera(500);
+      await page.click('#view [data-act="hoja"][data-v="ajustes"]'); await espera(400);   // K12a: Ajustes es una hoja inferior
       const hay = await estado(() => !!document.getElementById('ajustes') && !!document.getElementById('dif-g') && !!document.getElementById('ase-g'));
       let dura = false, sigue = false, alto = 0;
       if (hay) {
@@ -170,6 +171,7 @@ async function navegador() {
         await page.click('#ajustes [data-act="dif"][data-v="normal"]'); await espera(300);
       }
       const normal = await estado(() => Game.ajustes().dif === 'normal');
+      await page.click('#hoja [data-act="hojax"]'); await espera(300);
       await page.click('#tabs3 [data-v="ciudad"]'); await espera(500);
       const ok = hay && dura && sigue && normal && alto >= 40;
       return { ok, detalle: ok ? 'bloque Ajustes presente; «Dura» se guarda; vuelve a Normal' : 'ajustes=' + hay + ' dura=' + dura + ' guardada=' + sigue + ' normal=' + normal + ' botón=' + alto + ' px' };
@@ -211,8 +213,9 @@ async function navegador() {
       const captura2 = await foto('construir-ficha');
       await estado(() => { const c = document.querySelector('#fichab [data-act="cclose"]'); if (c) c.click(); });
       await page.click('#tabs3 [data-v="gobierno"]'); await espera(1200);
-      const gob = await estado(() => ({ up: document.querySelectorAll('#view [data-act="up"]').length, solar: /solar/i.test(document.getElementById('view').innerText) }));
+      const gob = await estado(() => ({ up: document.querySelectorAll('#view [data-act="up"]').length, solar: /solar/i.test(document.getElementById('view').innerText), anillo: !!document.querySelector('#view .gani'), atajos: document.querySelectorAll('#view .gatajos .gat').length, scroll: document.getElementById('view').scrollHeight - document.getElementById('view').clientHeight }));
       if (gob.up) fallos.push('Gobierno aún tiene botones de subir edificio'); if (gob.solar) fallos.push('Gobierno aún dice «solar»');
+      if (!gob.anillo || gob.atajos < 4) fallos.push('Gobierno (K12a) sin anillo de felicidad o sin atajos'); if (gob.scroll > 2) fallos.push('Gobierno hace scroll de página (' + gob.scroll + ' px)');
       const enObras = await estado(() => /obra|construy|hasta|⏳|🔨/i.test(document.getElementById('view').innerText));
       await page.click('#tabs3 [data-v="imperio"]'); await espera(1000);
       const imp = await estado(() => document.getElementById('view').innerText.length > 40); if (!imp) fallos.push('Imperio no abre');
@@ -378,6 +381,7 @@ async function navegador() {
       // el ajuste
       await estado(() => { Game.state.speed = 0; });
       await estado(() => document.querySelector('#tabs3 [data-v="gobierno"]').click()); await espera(600);
+      await page.click('#view [data-act="hoja"][data-v="ajustes"]'); await espera(400);   // K12a: Ajustes es una hoja inferior
       await estado(() => { const e = document.getElementById('aj-pausas'); if (e) e.scrollIntoView({ block: 'center' }); });
       await espera(300);
       const hay = await estado(() => !!document.getElementById('aj-pausas'));
@@ -391,6 +395,7 @@ async function navegador() {
         await page.click('#aj-pausas [data-act="pausas"][data-v="todas"]'); await espera(300);
         norm = await estado(() => Game.ajustes().pausas === 'todas');
       }
+      await estado(() => { const x = document.querySelector('#hoja [data-act="hojax"]'); if (x) x.click(); }); await espera(300);
       await estado(() => document.querySelector('#tabs3 [data-v="ciudad"]').click()); await espera(500);
       const ok = ok1 && hay && cambia && norm && alto >= 40;
       return { ok, detalle: ok ? 'la obra para el reloj («' + m.txt.slice(0, 60) + '»); «Continuar» lo reanuda; el ajuste cambia a «graves» y vuelve a «todas»' : JSON.stringify({ emp, salio, m, sigue, hay, cambia, norm, alto }), captura: f1 };
@@ -422,16 +427,18 @@ async function navegador() {
     });
 
     await paso('I8 partida corta: menú, en pie, fundar, continuar y final con resumen', async () => {
-      const recarga = async () => { await page.evaluate(() => Game.save()); await page.reload({ waitUntil: 'load' }); await page.waitForSelector('#menu [data-act="cortaen"]', { timeout: 30000 }); await page.waitForFunction(() => window.UI && window.UI.cityV && window.UI.cityV.listo, null, { timeout: 90000 }).catch(() => { }); };
+      const recarga = async () => { await page.evaluate(() => Game.save()); await page.reload({ waitUntil: 'load' }); await page.waitForSelector('#menu [data-act="hoja"][data-v="corta"]', { timeout: 30000 }); await page.waitForFunction(() => window.UI && window.UI.cityV && window.UI.cityV.listo, null, { timeout: 90000 }).catch(() => { }); };
       await recarga();   // el menú vuelve a estar a la vista (la partida de Italia seguía abierta)
-      const menu = await estado(() => { const m = document.getElementById('menu'), r = m.getBoundingClientRect(), b = [...m.querySelectorAll('[data-act="cortaen"],[data-act="cortafun"]')]; return { n: b.length, fuera: b.some(e => e.getBoundingClientRect().right > 390 || e.getBoundingClientRect().left < 0), sw: m.scrollWidth }; });
+      const abreCorta = async () => { await page.click('#menu [data-act="hoja"][data-v="corta"]'); await espera(400); };
+      await abreCorta();   // K12a-B: «Partida corta» vive en una hoja inferior (#hoja), no en #menu
+      const menu = await estado(() => { const m = document.getElementById('menu'), h = document.getElementById('hoja'), b = [...h.querySelectorAll('[data-act="cortaen"],[data-act="cortafun"]')]; return { n: b.length, fuera: b.some(e => e.getBoundingClientRect().right > 390 || e.getBoundingClientRect().left < 0), sw: Math.max(m.scrollWidth, h.scrollWidth) }; });
       const fm = await foto('i8-menu');
       // 1) en pie: región de Italia con el modo
-      await page.click('#menu [data-act="cortaen"]'); await espera(3000); await cierraAvisos();
+      await page.click('#hoja [data-act="cortaen"]'); await espera(3000); await cierraAvisos();
       const pie = await estado(() => ({ modo: Game.modo() && Game.modo().id, fase: Game.modoFase(), reg: Game.regionId(), mias: Game.myCities().length, vis: UI.map ? Object.keys(UI.map.cities).filter(i => UI.map.cities[i].grp.visible && Game.state.cities[i]).length : -1, city: UI.city }));
       // 2) fundar de la nada: abre la pantalla de fundar con el reloj parado
-      await recarga();
-      await page.click('#menu [data-act="cortafun"]'); await espera(1500); await cierraAvisos();
+      await recarga(); await abreCorta();
+      await page.click('#hoja [data-act="cortafun"]'); await espera(1500); await cierraAvisos();
       await page.waitForFunction(() => window.UI.fundar && window.UI.fundar.vale, null, { timeout: 60000 });
       const t0 = await estado(() => { Game.state.speed = 1; return Game.state.t; }); await espera(1500);
       const fun = await estado(() => ({ fundando: Game.fundando(), t: Game.state.t, mias: Game.myCities().length, linea: (document.getElementById('linea').innerText || '') }));
