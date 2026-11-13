@@ -182,7 +182,7 @@ async function navegador() {
 
     await paso('Nueva partida: se ve el mapa', async () => {
       await page.click('#menu [data-act="new"]'); await espera(2500); await cierraAvisos();
-      await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; });      // CN14-C: el asesor de serie no cambia el recorrido
+      await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; Game.autoVivo = true; });      // CN14-C: el asesor de serie no cambia el recorrido
       const ok = await estado(() => !!Game.state && !UI.menu && Game.myCities().includes('roma'));
       return { ok, detalle: ok ? await estado(() => Game.dateStr(Game.state.t)) : 'no hay partida', captura: await foto('mapa') };
     });

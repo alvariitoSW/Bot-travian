@@ -68,7 +68,8 @@
   /* Remedios contra los sucesos de la ciudad (CN13b): solo nombre y texto. Reglas y cifras viven en ciudad.js (EDIF.dique, techarBarrio); aquí van para que tengan ficha histórica. */
   D.REMEDIOS = {
     dique: { n: 'Dique contra la crecida', i: '🌊', d: 'Un dique en la orilla guarda de la crecida las casas de su alrededor.' },
-    tejas: { n: 'Techos de teja', i: '🏠', d: 'Un barrio techado con tejas no se incendia de casa en casa.' }
+    tejas: { n: 'Techos de teja', i: '🏠', d: 'Un barrio techado con tejas no se incendia de casa en casa.' },
+    cubos: { n: 'Cubos contra el fuego', i: '🪣', d: 'Cuando prende un incendio, mandas cubos: cada casa en llamas se salva según lo cerca que esté el agua (fuente o río).' }
   };
   /* Racionar el grano (CN13a): gasta menos y el pueblo lo nota. Es la ración de la ciudad (c.rac); no es el «hambre» del invierno (E.hambre) ni la de G.tick (grano agotado). */
   D.RACION = { normal: { n: 'Ración normal', grano: 1, f: 0, d: 'Come todo el mundo.' }, escasa: { n: 'Ración escasa', grano: 0.7, f: -8, d: 'Un 30 % menos de grano; el pueblo se queja.' } };

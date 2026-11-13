@@ -545,7 +545,7 @@
       for (const a of ac) { if (a.n !== n) continue;
         if (a.a === 'c') { const r = CI.colocar(E, a.tipo, a.x, a.z, true); if (r.ok) r.e.obra = 0; }
         else if (a.a === 'u') CI.mejorar(E, a.id, true); else if (a.a === 'v') CI.mover(E, a.id, a.x, a.z); else if (a.a === 'm') CI.levantarMuralla(E, true); else if (a.a === 'a') CI.ampliarMuralla(E, true);
-        else if (a.a === 's') CI.sembrarCasas(E, a.pob); else if (a.a === 'd') quitar(E, a.id); else if (a.a === 'q') CI.saquearArrabal(E, a.fz); else if (a.a === 'j') CI.techarBarrio(E, a.i, true); }
+        else if (a.a === 's') CI.sembrarCasas(E, a.pob); else if (a.a === 'd') quitar(E, a.id); else if (a.a === 'q') CI.saquearArrabal(E, a.fz); else if (a.a === 'j') CI.techarBarrio(E, a.i, true); else if (a.a === 'f') CI.apagarFuego(E, a.ids); }
       if (n < d.mesN) CI.mes(E);
     }
     E.monedas = d.monedas; (d.barrios || []).forEach((b, i) => { if (E.barrios[i]) { E.barrios[i].nombre = b.nombre; E.barrios[i].corto = b.corto; } }); E.rev++;
@@ -693,11 +693,31 @@
     for (const id of G.myCities()) { const c = G.state.cities[id], r = infoC(c); if (!r) continue;
       const alin = mesAlin(); let av = [], k = 0; while (r.E.mesN < alin && k++ < 36) av = av.concat(CI.mes(r.E)); if (!k) continue;
       sinc(c, r); ponerDatos(c, r);
+      if (k === 1 && !G.state.vivo && !G.autoVivoOn() && r.E.fuego && r.E.fuego.mes === r.E.mesN && av.some(a => a.c === 'fuego' && a.cg && a.cg[0])) { const pl = CI.cubosPlan(r.E); if (pl) G.state.vivo = { tipo: 'fuego', cid: id, ids: pl.casas.map(q => q.id), t0: G.state.t }; }   // CN13c: solo en juego vivo y con un solo mes puesto al día; la batalla pendiente va primero (la interfaz la muestra antes)
       for (const a of av) { if (a.c !== 'crecida' && a.c !== 'fuego' && a.c !== 'hambre') continue; if (a.c === 'fuego' && !(a.cg && a.cg[0])) continue; const g = grupo[a.c] = grupo[a.c] || {}, e = g[id] = g[id] || [0, 0]; if (a.cg) { e[0] += a.cg[0]; e[1] += a.cg[1]; } } }
     const cuenta = (e, u1, uN, o1, oN) => { const p = []; if (e[0]) p.push(e[0] + ' ' + (e[0] === 1 ? u1 : uN)); if (e[1]) p.push(e[1] + ' ' + (e[1] === 1 ? o1 : oN)); return p.join(' y '); };
     const lineas = [['crecida', '🌊 Crecida: ', e => cuenta(e, 'casa', 'casas', 'obra', 'obras')], ['fuego', '🔥 Incendio: ', e => cuenta([e[0], 0], 'casa ardió', 'casas ardieron', '', '')], ['hambre', '🥖 Hambre de invierno (sin granero): ', () => '']];
-    for (const [k, pre, f] of lineas) { const g = grupo[k]; if (!g) continue; const txt = pre + Object.keys(g).map(id => { const x = f(g[id]); return D.CITIES[id].n + (x ? ' (' + x + ')' : ''); }).join(', '); G.log(txt, 'bad'); emit('alert', txt); }
+    for (const [k, pre, f] of lineas) { const g = grupo[k]; if (!g) continue; const txt = pre + Object.keys(g).map(id => { const x = f(g[id]); return D.CITIES[id].n + (x ? ' (' + x + ')' : ''); }).join(', '); if (k === 'fuego' && G.state.vivo) { G.log(txt, '', true); continue; }   /* CN13c: la tarjeta de los cubos ya lo cuenta: ni toast ni alerta */ G.log(txt, 'bad'); emit('alert', txt); }
   }
+
+  /* ---------- cubos contra el fuego (CN13c): el reloj se para con s.vivo hasta que el jugador decide ---------- */
+  G.autoVivo = typeof window === 'undefined';   // true en Node (pruebas, bot): el fuego se deja arder solo. En el navegador, false; sin turnos (G.turnos=false) también se deja arder
+  G.autoVivoOn = () => !!G.autoVivo || !G.turnos;
+  G.vivo = () => { const v = G.state && G.state.vivo; return v && v.tipo === 'fuego' ? v : null; };
+  G.vivoInfo = function () { const v = G.vivo(); if (!v) return null; const E = G.ciudadE(v.cid), pl = E && CI.cubosPlan(E); if (!pl) return null; return { cid: v.cid, nombre: D.CITIES[v.cid].n, x: E.fuego.x, z: E.fuego.z, plan: pl, puede: G.canAfford({ oro: pl.coste }) }; };
+  function cierraFuego(v, txt) { const s = G.state; s.vivo = null; s.ultFuego = { t: s.t, cid: v.cid, x: txt }; G.log('🔥 ' + txt, '', true); emit('dirty'); }
+  G.apagarFuego = function (cid) {
+    const s = G.state, v = G.vivo(); if (!v || (cid && cid !== v.cid)) return null; const c = s.cities[v.cid], r = infoC(c), pl = r && CI.cubosPlan(r.E);
+    if (!pl) { s.vivo = null; return { ok: true, salvadas: 0, perdidas: 0 }; }
+    if (!G.canAfford({ oro: pl.coste })) return { ok: false, salvadas: 0, perdidas: 0, motivo: 'Faltan ' + pl.coste + ' de oro para los cubos' };
+    gasta('oro', pl.coste); const res = CI.apagarFuego(r.E); sinc(c, r); ponerDatos(c, r);
+    cierraFuego(v, 'Cubos en ' + D.CITIES[v.cid].n + ': ' + (res.salvadas.length ? res.salvadas.length + (res.salvadas.length === 1 ? ' casa salvada' : ' casas salvadas') : 'ninguna casa salvada') + (res.perdidas.length ? ', ' + res.perdidas.length + (res.perdidas.length === 1 ? ' perdida.' : ' perdidas.') : '.'));
+    return { ok: true, salvadas: res.salvadas.length, perdidas: res.perdidas.length };
+  };
+  G.dejarArder = function (cid) {
+    const s = G.state, v = G.vivo(); if (!v || (cid && cid !== v.cid)) return null; const r = infoC(s.cities[v.cid]), n = r && r.E.fuego && !r.E.fuego.apagado ? r.E.fuego.ids.length : 0;
+    cierraFuego(v, 'Dejaste arder ' + (n === 1 ? 'una casa' : n + ' casas') + ' en ' + D.CITIES[v.cid].n + '.'); return { ok: true, salvadas: 0, perdidas: n };
+  };
   // riesgos que se ven venir: de una ciudad propia, y agrupados por tipo para el consejo del imperio
   G.riesgos = function (cid) { const E = G.ciudadE(cid); if (!E || !CI) return []; const k = E.rev + '|' + E.mesN + '|' + ((G.state && G.state.ajustes && G.state.ajustes.v) || 0); if (!E._rg || E._rg.k !== k) E._rg = { k, v: CI.riesgos(E) }; return E._rg.v; };   // en caché por revisión y mes: la pantalla lo pide a cada cuadro
   G.riesgosImperio = function () { const m = {}; for (const id of G.myCities()) { for (const r of G.riesgos(id)) { const g = m[r.c] = m[r.c] || { c: r.c, p: r.p, ciudades: [], t: r.t, a: r.a, remedio: r.remedio, pieza: r.pieza, cid: id, _n: -1 }; g.ciudades.push(D.CITIES[id].n); g.meses = Math.min(g.meses === undefined ? 99 : g.meses, r.meses); if (r.n > g._n) { g._n = r.n; g.cid = id; g.t = r.t; g.remedio = r.remedio; } } } return Object.values(m).map(g => { delete g._n; return g; }).sort((a, b) => b.p - a.p); };
@@ -784,7 +804,7 @@
       v: 1, region: region, modo: modoId ? { id: modoId, inicio: inicioId, fase: inicioId === 'fundar' ? 'fundando' : 'jugando' } : null, t: 0, speed: 1, res: { madera: 400, piedra: 400, hierro: 400, grano: 400, oro: 200 },
       alm: { madera: 200, piedra: 200, hierro: 200, grano: 200, oro: 0 }, cuarto: { madera: 50, piedra: 50, hierro: 50, grano: 50, oro: 0 }, gastoMes: { madera: 0, piedra: 0, hierro: 0, grano: 0, oro: 0 }, obrasMes: 0, gan: { madera: 0, piedra: 0, hierro: 0, grano: 0, oro: 0 }, informe: [],
       ajustes: { dif: dif0, suc: { crecida: true, fuego: true, hambre: true }, asesor: opciones.asesor !== false, vistos: [], hist: [], v: 0 },   // CN14-B: la dificultad elegida vale desde el mes siguiente (se apunta tras abrir Roma y Capua)
-      cities: {}, colonias: {}, rutas: [], marches: [], log: [], ev: {}, pending: [], over: null, mid: 1,
+      cities: {}, colonias: {}, rutas: [], marches: [], log: [], ev: {}, pending: [], vivo: null, over: null, mid: 1,
       mods: { sea: 1, flex: 0 }, forja: { armas: 0, armaduras: 0, cola: null }, stats: { battles: 0, wins: 0, kills: 0, lost: 0 },
       hero: { name: heroName || 'Lucio Cornelio Escipión', lvl: 1, xp: 0, pts: 1, sk: { mando: 0, disc: 0, log: 0 }, city: 'roma', march: null, wound: 0 }
     };
@@ -1216,8 +1236,8 @@
   /* ---------- bucle ---------- */
   G.tick = function (dm) {
     const s = G.state; if (s) D.anio = G.yearOf(s.t);   // nombres según la fecha (D.nombreCiudad)
-    if (!s || s.over || s.pending.length || G.fundando()) return;   // I8: sin ciudad (fase 'fundando') el tiempo no corre
-    if (dm > 1 && !G.turnos) { let n = 0; while (dm > 1e-9 && n++ < 400 && !s.over && !s.pending.length) { const d = Math.min(1, dm); G.tick(d); dm -= d; } return; }   // un salto largo se trocea mes a mes para cerrar cada cuenta
+    if (!s || s.over || s.pending.length || s.vivo || G.fundando()) return;   // I8: sin ciudad (fase 'fundando') el tiempo no corre
+    if (dm > 1 && !G.turnos) { let n = 0; while (dm > 1e-9 && n++ < 400 && !s.over && !s.pending.length && !s.vivo) { const d = Math.min(1, dm); G.tick(d); dm -= d; } return; }   // un salto largo se trocea mes a mes para cerrar cada cuenta
     const y0 = G.yearOf(s.t), m0 = Math.floor(s.t);
     let B = null;   // modo turnos: si llegamos al final de la estación, B es ese instante exacto
     if (G.turnos) { const fin = G.finTurno(); if (s.t + dm >= fin - 1e-9) { B = fin; dm = Math.max(0, fin - s.t); } }
@@ -1285,10 +1305,10 @@
 
   // avanza el resto de la estación de golpe; false si una batalla pendiente o el fin de la partida lo detienen
   G.pasarTurno = function () {
-    const s = G.state; if (!s || s.over || s.pending.length) return false;
+    const s = G.state; if (!s || s.over || s.pending.length || s.vivo) return false;   // CN13c: un fuego por decidir también para el reloj
     if (D.SENADO.sala && s.senado && s.senado.votacion) G.dejarPasar();   // SN1: la votación que quedó abierta se hace sola
     const fin = G.finTurno(); let n = 0;
-    while (s.t < fin - 1e-9 && !s.over && !s.pending.length && n++ < 100) G.tick(Math.min(0.25, fin - s.t));
+    while (s.t < fin - 1e-9 && !s.over && !s.pending.length && !s.vivo && n++ < 100) G.tick(Math.min(0.25, fin - s.t));
     if (D.SENADO.sala && !s.over) G.senadoEstacion();
     return s.t >= fin - 1e-9;
   };
@@ -1399,6 +1419,7 @@
     for (const x of G.avisoCierre(G.turnos)) out.push({ k: 'bad', x: x });
     const rs = typeof G.riesgosImperio === 'function' ? (G.riesgosImperio() || []).filter(r => r.meses <= G.avisoMeses()).sort((a, b) => b.p - a.p) : [];
     if (rs.length) { const r = rs[0]; out.unshift({ k: 'bad', x: r.a || r.t }); rec = rec || r.remedio || null; }
+    if (s.ultFuego && s.t - s.ultFuego.t < 3) out.unshift({ k: '', x: s.ultFuego.x });   // CN13c: una línea con el resultado de los cubos
     const llenos = D.RES.filter(r => s.alm[r] >= cap - 1);
     if (llenos.length) out.push({ k: '', x: T.llenoAlm(llenos.join(', ')) });
     for (const id of mis) { const pd = G.arca(id).pide; if (pd) { out.push({ k: '', x: pd }); break; } }   // CN13a: el arca pide una ofrenda
@@ -1711,7 +1732,7 @@
   G.save = function () { try { if (typeof localStorage !== 'undefined' && G.state) { for (const id of G.myCities()) { const c = G.state.cities[id], r = CI && regE.get(c); if (r) ponerDatos(c, r); } localStorage.setItem(SAVE_KEY, JSON.stringify(G.state)); } } catch (e) { /* almacenamiento no disponible */ } };
   G.hasSave = function () { try { return typeof localStorage !== 'undefined' && !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } };
   G.load = function () { let ok = false; cargando = true; try { ok = cargar(); } finally { cargando = false; } if (ok) { G.migrarAjustes(G.state); G.migrarTribunos(G.state); } if (ok && CI) alCargar(); return ok; };
-  function cargar() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; for (const id in s.cities) G.ligarObras(s.cities[id]); if (s.turnos === undefined) s.turnos = true; G.turnos = !!s.turnos; if (G.turnos) { if (s.speed === undefined) s.speed = 0; for (const m of s.marches) { const a = Math.ceil(m.t1 / D.TURNO_MESES - 1e-9) * D.TURNO_MESES; if (a > m.t1) m.t1 = a; } } if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length || s.evV !== EV_VERSION) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } s.evV = EV_VERSION; D.anio = G.yearOf(s.t); for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0; if (c.bdef === undefined) c.bdef = 0;  if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!D.RACION[c.rac]) c.rac = 'normal'; G.fiestaDe(c); if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } G.state = s; for (const id in s.cities) if (s.cities[id].barrio === undefined) { const c = s.cities[id]; c.barrio = 1; c.barrio = G.barrioInfo(c).objetivo; } for (const id in s.cities) { const c = s.cities[id]; if (!c.levas) c.levas = []; if (c.esc === undefined) c.esc = 0; if (c.ciu === undefined) c.ciu = (c.barrio || 1) >= 2 ? Math.round((c.pop || 0) * 0.1) : 0; } G.migrarRegion(s); G.migrarCaja(s); G.migrarPueblos(s); G.migrarRetirados(s); G.migrarSenado(s); G.migrarInv(s); G.migrarDeuda(s); G.migrarColonias(s); G.migrarAjustes(s); G.migrarModo(s); return true; } } catch (e) { /* partida corrupta */ } return false; }
+  function cargar() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; for (const id in s.cities) G.ligarObras(s.cities[id]); if (s.turnos === undefined) s.turnos = true; G.turnos = !!s.turnos; if (G.turnos) { if (s.speed === undefined) s.speed = 0; for (const m of s.marches) { const a = Math.ceil(m.t1 / D.TURNO_MESES - 1e-9) * D.TURNO_MESES; if (a > m.t1) m.t1 = a; } } if (s.vivo === undefined) s.vivo = null; if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length || s.evV !== EV_VERSION) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } s.evV = EV_VERSION; D.anio = G.yearOf(s.t); for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0; if (c.bdef === undefined) c.bdef = 0;  if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!D.RACION[c.rac]) c.rac = 'normal'; G.fiestaDe(c); if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } G.state = s; for (const id in s.cities) if (s.cities[id].barrio === undefined) { const c = s.cities[id]; c.barrio = 1; c.barrio = G.barrioInfo(c).objetivo; } for (const id in s.cities) { const c = s.cities[id]; if (!c.levas) c.levas = []; if (c.esc === undefined) c.esc = 0; if (c.ciu === undefined) c.ciu = (c.barrio || 1) >= 2 ? Math.round((c.pop || 0) * 0.1) : 0; } G.migrarRegion(s); G.migrarCaja(s); G.migrarPueblos(s); G.migrarRetirados(s); G.migrarSenado(s); G.migrarInv(s); G.migrarDeuda(s); G.migrarColonias(s); G.migrarAjustes(s); G.migrarModo(s); return true; } } catch (e) { /* partida corrupta */ } return false; }
   // tras cargar: cada ciudad propia recupera (o estrena) su ciudad nueva; la obra en curso de una partida vieja se liga a su pieza
   function alCargar() {
     for (const id of G.myCities()) { const c = G.state.cities[id], antes = Object.assign({}, c.b), tenia = !!c.ciudad; regE.delete(c); if (c.ciudad && !c.ciudad.terreno) c.ciudad.terreno = 'rio';      // CN19-A: partida vieja sin terreno = valle del río

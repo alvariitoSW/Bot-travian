@@ -450,6 +450,28 @@ export function techarBarrio(E, i, gratis, pago) {
   if (!gratis) { const mo = cobrar(E, o.coste, pago); if (mo) return { ok: false, motivo: mo }; }
   E.barrios[i].tejas = E.mesN + TECHO_MESES; E.diario.push({ a: 'j', n: E.mesN, i }); E.rev++; return { ok: true, listo: E.barrios[i].tejas };
 }
+/* ---------- cubos contra el fuego (CN13c): el jugador decide, el resultado sale de una semilla del propio suceso (sin E.rnd). ---------- */
+export const CUBOS = { oroPorCasa: 6, base: 0.9, porMetro: 1 / 260, techo: 0.1, min: 0.2, max: 0.85 };
+function azarFuego(E, f, id) { let h = ((E.semilla | 0) * 73856093) ^ ((f.mes | 0) * 19349663) ^ ((id | 0) * 83492791); h = Math.imul(h ^ (h >>> 13), 1274126177); h ^= h >>> 16; return (h >>> 0) / 4294967296; }
+/* Plan de los cubos: las casas en llamas del fuego aún por decidir, con la distancia al agua (fuente o río), la probabilidad y su coste. */
+export function cubosPlan(E) {
+  const f = E && E.fuego; if (!f || f.apagado || !f.ids || f.mes !== E.mesN) return null;
+  const fu = E.edificios.filter(e => e.tipo === 'fuente' && !e.obra && !e.ruina), casas = [];
+  for (const id of f.ids) { const l = E.parcelas[id]; if (!l || !l.casa || !l.casa.arde) continue;
+    const agua = Math.round(Math.min(drio(l.x, l.z), ...fu.map(e => Math.hypot(e.x - l.x, e.z - l.z)))), tej = tejada(E, l);
+    const p = Math.max(CUBOS.min, Math.min(CUBOS.max, CUBOS.base - agua * CUBOS.porMetro + (tej ? CUBOS.techo : 0)));
+    casas.push({ id, agua, tejada: tej, p: Math.round(p * 100) / 100, salva: azarFuego(E, f, id) < p }); }
+  if (!casas.length) return null;
+  return { casas, coste: casas.length * CUBOS.oroPorCasa, esperadas: Math.round(casas.reduce((t, c) => t + c.p, 0) * 10) / 10 };
+}
+/* apagarFuego(E, ids): deja arde=false y ruina=0 en las casas salvadas (conservan nivel). Sin ids, las que el plan salva. Anota {a:'f'} y E.rev++. */
+export function apagarFuego(E, ids) {
+  const pl = cubosPlan(E); if (!pl) return { ok: false, salvadas: [], perdidas: [] };
+  const sal = (ids || pl.casas.filter(c => c.salva).map(c => c.id)).filter(id => pl.casas.some(c => c.id === id)), per = pl.casas.map(c => c.id).filter(id => !sal.includes(id));
+  for (const id of sal) { const c = E.parcelas[id].casa; c.arde = false; c.ruina = 0; }
+  E.fuego.apagado = true; E.fuego.salvadas = sal.length; E.diario.push({ a: 'f', n: E.mesN, ids: sal.slice() }); E.rev++;
+  return { ok: true, salvadas: sal, perdidas: per };
+}
 /* ---------- muralla y guerra (CN7): una tabla sencilla de fase a nivel de guerra ---------- */
 export const NIVEL_FASE = [0, 3, 6];
 export function nivelMuralla(E) { const m = E && E.muralla; if (!m) return 0; return typeof m.nivel === 'number' ? m.nivel : (NIVEL_FASE[m.fase] || 0); }
@@ -515,7 +537,7 @@ export function deDatos(datos) {
   if (datos.sitio) fundar(E, datos.sitio.x, datos.sitio.z);
   const ac = datos.acciones || [];
   for (let n = datos.n0 || 0; n <= datos.mesN; n++) {
-    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') { const r = colocar(E, a.tipo, a.x, a.z, true); if (r.ok && E.modoJuego) r.e.obra = 0; } else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 'a') ampliarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); else if (a.a === 'q') saquearArrabal(E, a.fz); else if (a.a === 'j') techarBarrio(E, a.i, true); }
+    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') { const r = colocar(E, a.tipo, a.x, a.z, true); if (r.ok && E.modoJuego) r.e.obra = 0; } else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 'a') ampliarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); else if (a.a === 'q') saquearArrabal(E, a.fz); else if (a.a === 'j') techarBarrio(E, a.i, true); else if (a.a === 'f') apagarFuego(E, a.ids); }
     if (n < datos.mesN) mes(E);
   }
   E.monedas = datos.monedas; (datos.barrios || []).forEach((b, i) => { if (E.barrios[i]) { E.barrios[i].nombre = b.nombre; E.barrios[i].corto = b.corto; } }); E.rev++;

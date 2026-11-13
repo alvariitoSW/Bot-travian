@@ -1901,3 +1901,32 @@ console.log('OK — todas las pruebas superadas');
     for (let i = 0; i < 6; i++) CT.mes(E); assert(Number.isFinite(CT.ingreso(E)) && Number.isFinite(CT.oroTerreno(E)) && Number.isFinite(CT.poblacion(E)), 'sin NaN en ' + t); for (const e of E.edificios.filter(q => q.tipo === 'granja')) assert(Object.values(CT.rindeGranja(E, e)).every(Number.isFinite)); }
   console.log('CN19-A: terrenos (río, costa, pantano, terrazas, llanura), salinas, zanja, guardado y migración OK');
 }
+{ // CN13c: el fuego para el reloj (s.vivo) en juego por turnos; en Node/bot y sin turnos se deja arder solo
+  const CIM = require('../js/ciudad.js'); G.usarCiudad(CIM);
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  const rico = s => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto && (s.cuarto[r] = 1e5); } };
+  const nuevo = (turnos, auto) => { const s = G.newGame('Fa', 'mediterraneo', {}); G.turnos = turnos; G.autoVivo = !!auto; s.speed = 0; s.ajustes.dif = 'dura'; rico(s); CIM.sembrarCasas(G.ciudadE('roma'), 400); return s; };
+  const hastaFuego = s => { let n = 0; while (!s.vivo && n++ < 120) { G.pasarTurno(); s.pending.length = 0; rico(s); if (s.t >= G.finTurno() - 1e-9) G.tick(0.01); s.pending.length = 0; } return !!s.vivo; };
+  // (a) sin turnos: G.tick nunca queda parado y los fuegos se dejan arder (como antes)
+  { const s = nuevo(false, false); let n = 0; while (s.t < 30 && n++ < 400) { G.tick(0.25); s.pending.length = 0; rico(s); } assert(s.t >= 30 && !s.vivo && G.autoVivoOn(), 'con G.turnos=false el reloj corre y no hay s.vivo'); }
+  // (b) con turnos: pasarTurno se detiene en el fuego y sigue tras apagar
+  { const s = nuevo(true, false); assert(hastaFuego(s), 'prende un fuego en juego vivo'); const v = s.vivo, t0 = s.t, pl = CIM.cubosPlan(G.ciudadE('roma'));
+    assert(v.tipo === 'fuego' && v.cid === 'roma' && v.ids.length >= 1 && v.ids.every(k => G.ciudadE('roma').parcelas[k].casa.arde) && pl, 'la ficha del fuego: ' + JSON.stringify(v));
+    assert(G.vivo() === v && G.pasarTurno() === false && s.t === t0, 'pasarTurno no avanza con fuego'); G.tick(0.5); assert(s.t === t0, 'G.tick tampoco');
+    const oro = s.res.oro; s.res.oro = 0; s.alm.oro = 0; const mal = G.apagarFuego(); assert(mal.ok === false && s.vivo, 'sin oro no se mandan cubos: ' + JSON.stringify(mal)); s.res.oro = oro; s.alm.oro = oro;
+    const r = G.apagarFuego('roma'); assert(r.ok && r.salvadas + r.perdidas === v.ids.length && !s.vivo, 'cubos: ' + JSON.stringify(r)); assert(s.res.oro < oro, 'cobra oro');
+    const E = G.ciudadE('roma'); assert(E.fuego.apagado && E.diario.some(d => d.a === 'f') && G.consejo().some(q => /Cubos en Roma/.test(q.x)), 'diario y línea del consejo');
+    assert(v.ids.filter(k => E.parcelas[k].casa.arde).length === r.perdidas, 'solo arden las perdidas'); assert(G.pasarTurno() && s.t > t0, 'sigue tras los cubos');
+    // guardar con el fuego ya apagado y cargar por G.load: misma ciudad
+    const antes = JSON.stringify(CIM.aDatos(G.ciudadE('roma'))); G.save(); assert(G.load(), 'carga'); assert(JSON.stringify(CIM.aDatos(G.ciudadE('roma'))) === antes && G.state.vivo === null, 'misma ciudad con el fuego apagado'); }
+  { const s = nuevo(true, false); assert(hastaFuego(s)); const n = s.vivo.ids.length, t0 = s.t, d = G.dejarArder(); assert(d.ok && d.perdidas === n && !s.vivo, 'dejar arder');
+    assert(G.consejo().some(q => /Dejaste arder/.test(q.x)), 'línea del consejo'); s.pending.length = 0; assert(G.pasarTurno() && s.t > t0 - 1e-9, 'sigue tras dejar arder'); }
+  // (c) guardar a mitad de fuego: s.vivo se recupera con los mismos ids y sigue pendiente
+  { const s = nuevo(true, false); assert(hastaFuego(s)); const ids = s.vivo.ids.slice(), t0 = s.t; G.save(); assert(G.load()); const s2 = G.state; assert(s2.vivo && JSON.stringify(s2.vivo.ids) === JSON.stringify(ids) && s2.t === t0, 's.vivo sobrevive a guardar y cargar');
+    assert(JSON.stringify(G.vivoInfo().plan.casas.map(q => q.id)) === JSON.stringify(ids), 'mismos ids de casas'); assert(G.pasarTurno() === false, 'cargado sigue parado'); assert(G.apagarFuego().ok && !s2.vivo, 'se resuelve tras cargar');
+    const v = JSON.parse(store['aqvila-save-v1']); delete v.vivo; store['aqvila-save-v1'] = JSON.stringify(v); assert(G.load() && G.state.vivo === null, 'partida vieja sin s.vivo: valor por defecto'); }
+  // (d) batalla y fuego a la vez: manda la batalla, s.vivo espera
+  { const s = nuevo(true, false); assert(hastaFuego(s)); const t0 = s.t; s.pending.push({ kind: 'defense', m: { to: 'roma', owner: 'campanos', units: {} } });
+    assert(G.pasarTurno() === false && s.t === t0 && s.vivo, 'con batalla y fuego no avanza'); s.pending.shift(); assert(s.vivo && G.pasarTurno() === false, 'resuelta la batalla, el fuego sigue esperando'); assert(G.dejarArder().ok && !s.vivo); }
+  G.turnos = false; G.autoVivo = true; delete global.localStorage; G.usarCiudad(null); console.log('CN13c: fuego, reloj parado, cubos, guardar y batalla OK');
+}

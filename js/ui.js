@@ -129,7 +129,7 @@ G.onEvent = function (type, p) {
   else if (type === 'log') { if (!p.mudo) { if (p.k === 'good') toast(p.x, '', null, true); else if (p.k === 'bad') toast(p.x, 'bad', null, true); } UI.dirty = true; }
   else if (type === 'dirty') UI.dirty = true;
   else if (type === 'colonos') { const d = D.COLONIAS[p.sitio]; if (d) modal('<div class="yr">COLONOS</div><h2>Han llegado a ' + esc(d.n) + '</h2><p>Los colonos esperan tu orden. Elige el lugar del foro y el arado trazará el surco sagrado.</p><div class="acts"><button class="btn ghost" data-act="close">Más tarde</button><button class="btn gold" data-act="fundar" data-v="' + p.sitio + '">Fundar ' + esc(d.n) + '</button></div>'); }
-  else if (type === 'turno') { const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.over) consejoModal(); UI.dirty = true; }
+  else if (type === 'turno') { const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.vivo && !s.over) consejoModal(); UI.dirty = true; }
   else if (type === 'over') { if (!UI.battle && !UI.binfo) showOver(); }
 };
 
@@ -817,6 +817,19 @@ function leccionHoy() {
   const r = ASESOR.siguiente(s.ajustes, ctx); return r || null;
 }
 const conSigno = n => (n < 0 ? '\u2212' : '+') + Math.abs(n);
+/* CN13c: fuego por decidir. El reloj está parado (s.vivo); la tarjeta dice cuántas casas arden, el coste y la suerte esperada. Solo la muestra si no hay batalla pendiente. */
+function vivoPinta() {
+  const el = $('cubos'), s = S(), v = s && !s.over && !s.pending.length && !UI.battle ? G.vivo() : null, inf = v && G.vivoInfo();
+  if (!inf) { if (!el.hidden) el.hidden = true; UI.vivoK = ''; return; }
+  const pl = inf.plan, n = pl.casas.length, k = v.cid + '|' + v.t0 + '|' + (inf.puede ? 1 : 0);
+  if (UI.vivoK === k && !el.hidden) return;
+  if ((UI.vivoK || '').split('|').slice(0, 2).join('|') !== k.split('|').slice(0, 2).join('|')) { UI.city = v.cid; if (UI.tab !== 'city') setTab('city'); if (UI.cityV && UI.cityV.listo) UI.cityV.mirar(inf.x, inf.z, 300, 0); }
+  UI.vivoK = k; el.hidden = false;
+  $('cu-t').textContent = '🔥 ' + (n === 1 ? 'Arde una casa' : 'Arden ' + n + ' casas') + ' en ' + inf.nombre;
+  const cer = Math.min(...pl.casas.map(q => q.agua));
+  $('cu-x').textContent = 'Cubos: ' + pl.coste + ' de oro, salvarías unas ' + String(pl.esperadas).replace('.', ',') + (pl.casas.some(q => q.tejada) ? ' (el techo de teja ayuda)' : '') + '. Agua más cercana: ' + cer + ' pasos. El reloj está parado.';
+  const b = $('cu-si'); b.disabled = !inf.puede; b.textContent = inf.puede ? 'Mandar cubos' : 'Sin oro para cubos';
+}
 function pintaLinea() {
   const l = $('linea'), m3 = UI.modo3 || 'mirar'; let x = UI.lin;
   if (x && x.hasta && performance.now() > x.hasta) x = UI.lin = null;
@@ -1438,6 +1451,7 @@ document.addEventListener('click', function (e) {
     case 'pausas': { const r = G.ponerAjustes({ pausas: v }); if (!r.ok) toast(r.motivo, 'bad'); else G.save(); render(); break; }
     case 'suceso': { const a = G.ajustes(), r = G.ponerAjustes({ suc: { [v]: !a.suc[v] } }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); toast('Vale desde el mes siguiente.'); } render(); break; }
     case 'repetirasesor': if (typeof ASESOR !== 'undefined') { ASESOR.repetir(S().ajustes); G.save(); UI.linK = null; pintaLinea(); toast('Los consejos volverán a salir.'); } break;
+    case 'cubos': case 'arder': { if (!G.vivo()) break; const r = a === 'cubos' ? G.apagarFuego() : G.dejarArder(); if (r && r.ok === false) { toast(r.motivo || 'No se pudo'); break; } UI.vivoK = ''; vivoPinta(); G.save(); UI.dirty = true; break; }
     case 'entendido': if (typeof ASESOR !== 'undefined' && UI.lesId) { ASESOR.marcar(S().ajustes, UI.lesId, { mes: Math.floor(S().t + 1e-9), ahora: Date.now() }); G.save(); } UI.linK = null; pintaLinea(); break;
     case 'ambiente': { const nv = el.type === 'checkbox' ? el.checked : !G.ambiente(), r = G.ponerAjustes({ ambiente: nv }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); if (UI.cityV && UI.cityV.ponerAmbiente) UI.cityV.ponerAmbiente(nv); } render(); break; }
     case 'sonido': { const so = window.Sonido; if (so) { if (sonidoOn()) so.off(); else so.on(); } if (UI.menu) hojaPinta(true); else render(); break; }
@@ -1449,7 +1463,7 @@ document.addEventListener('click', function (e) {
     case 'tomenu': G.save(); UI.modalQ = []; closeModal(); stopBattle(); showMenu(); break;
     case 'tab': UI.codice = null; setTab(v); break;
     case 'codice': UI.codice = v || null; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;
-    case 'turno': if (!G.turnos || s.over || s.pending.length || UI.modalOpen) break; AV.acum = []; try { G.pasarTurno(); } finally { const l = AV.acum; AV.acum = null; toastResumen(l); } UI.dirty = true; tickUI(); break;
+    case 'turno': if (!G.turnos || s.over || s.pending.length || s.vivo || UI.modalOpen) break; AV.acum = []; try { G.pasarTurno(); } finally { const l = AV.acum; AV.acum = null; toastResumen(l); } UI.dirty = true; tickUI(); break;
     case 'seguir': seguirPausa(); break;
     case 'speed': if (UI.pausa) { seguirPausa(); break; } if (G.turnos) { s.speed = s.speed ? 0 : 1; tickUI(); break; } s.speed = v === 'next' ? ({ 1: 2, 2: 4, 4: 0, 0: 1 }[s.speed] || 1) : +v; tickUI(); break;
     case 'modo': setModo(v); break;
@@ -1583,14 +1597,14 @@ function frame(now) {
   } else if (s && !UI.menu) {
     if (!UI.modalOpen && !s.over && !UI.nueva) {
       if (s.pending.length) battlePrompt();
-      else if (s.speed > 0) G.tick(dt * s.speed / 4);
+      else if (s.speed > 0 && !s.vivo) G.tick(dt * s.speed / 4);
     }
     if (UI.fundar) fundarCuadro(now);
     else if (UI.map && UI.tab === 'map') UI.map.update(s, UI.sel);
     if (UI.cityV && UI.tab === 'city' && !UI.cityList && !UI.fundar && !G.fundando()) { if (s.cities[UI.city].owner !== 'roma') UI.city = G.myCities()[0] || 'roma'; if (UI.cityV.listo && !UI.minis) { try { UI.minis = UI.cityV.miniaturas(); } catch (e) { UI.minis = {}; } UI.bandK = ''; cityPantalla(); } UI.cityV.update(s.cities[UI.city], UI.city, UI.bsel, now / 1000); }
     if (UI.modo3 && UI.modo3 !== 'mirar' && UI.modo3 !== 'fundar' && (UI.tab !== 'city' || UI.cityList || UI.city !== UI.col3City)) salir3();
     if (UI.dirty) render();
-    UI.acc = (UI.acc || 0) + dt; if (UI.acc > 0.25) { UI.acc = 0; tickUI(); if (UI.tab === 'map' && UI.sel && !UI.modalOpen) renderSheet(); }
+    UI.acc = (UI.acc || 0) + dt; if (UI.acc > 0.25) { UI.acc = 0; tickUI(); vivoPinta(); if (UI.tab === 'map' && UI.sel && !UI.modalOpen) renderSheet(); }
     UI.saveT += dt; if (UI.saveT > 8) { UI.saveT = 0; G.save(); }
   }
   requestAnimationFrame(frame);

@@ -25,3 +25,11 @@ Licencia de juego: no es un hecho de la época, solo una palanca para el jugador
 ## Techos de teja (`D.REMEDIOS.tejas`, acción «techar barrio»)
 - **Por cotejar, sin darlo por bueno**: Plinio, *Historia natural* 16.36 (Roma habría estado cubierta con tablillas de madera hasta la guerra de Pirro). La ficha queda en «por cotejar» y no tiene texto en el Códice.
 - **Licencia de juego**: techado por barrio (no por pieza con radio), tres meses de plazo, coste en madera y piedra según las casas; un barrio techado no se prende y no hay salto de fuego entre sus casas (el fuego que habría empezado se «frena»). Es una palanca, no un hecho.
+
+# CN13c · Cotejo histórico: cubos contra el fuego
+
+## Cubos y guardia urbana (`D.REMEDIOS.cubos`, botón «Mandar cubos»)
+- **Por cotejar, sin darlo por bueno**: Livio 5.7 (pista sobre apagar fuegos con gente del barrio, sin abrir aquí) y los triunviros nocturnos (*tresviri nocturni*, esclavos públicos), de los que no se ha comprobado la fecha exacta.
+- **Dictamen honesto**: es plausible que se apagaran incendios con cubos y vecinos; no consta cómo. Los **vigiles** (guardia urbana de Augusto) son posteriores a 146 a.C. y no existen en el juego: la ficha los nombra solo para avisar de que llegarían después.
+- **Licencia de juego**: el coste (6 de oro por casa en llamas), la probabilidad de salvar cada casa según la distancia al agua (fuente o río; el techo de teja ayuda) y el reloj parado mientras se decide. El resultado sale de una semilla del propio suceso, no de la ciudad.
+- **Decisión de la sesión**: si hay batalla pendiente y fuego a la vez, manda la batalla; el fuego espera con el reloj parado.

@@ -305,4 +305,23 @@ prueba('CN23: ampliar la muralla deja los barrios nuevos dentro; guardar y carga
   prueba('CN13b partida vieja sin tejas ni marcas: valores por defecto', () => {
     const F = R.crear(1); R.fundar(F, 172, -196); const d = JSON.parse(JSON.stringify(R.aDatos(F))); const H = R.deDatos(d); assert.deepEqual(H.marcas, []); assert.equal(H.barrios[0].tejas, undefined); assert.ok(!R.tejado(H, 0)); assert.ok(!R.protegida(H, 0, 0)); });
 }
+/* ---------- CN13c: cubos contra el fuego ---------- */
+{
+  const prueba = (t, f) => { try { f(); ok(true, t); } catch (x) { ok(false, t + ' → ' + x.message); } };
+  const fuego = sem => { const F = R.crear(sem); R.fundar(F, 172, -196); for (let i = 0; i < 80; i++) { R.mes(F); if (F.fuego && F.fuego.mes === F.mesN && F.fuego.ids && F.fuego.ids.some(k => F.parcelas[k].casa.arde)) return F; } return null; };
+  prueba('CN13c apagarFuego deja casas vivas (arde=false, ruina=0) conservando el nivel y anota la acción f', () => {
+    const F = fuego(1); assert.ok(F, 'hay un fuego con semilla 1'); const pl = R.cubosPlan(F); assert.ok(pl && pl.casas.length >= 1 && pl.coste === pl.casas.length * R.CUBOS.oroPorCasa);
+    const niv = pl.casas.map(c => F.parcelas[c.id].casa.nivel), r = R.apagarFuego(F, pl.casas.map(c => c.id)); assert.ok(r.ok && r.salvadas.length === pl.casas.length);
+    pl.casas.forEach((c, i) => { const k = F.parcelas[c.id].casa; assert.ok(!k.arde && k.ruina === 0 && k.nivel === niv[i]); }); assert.ok(F.fuego.apagado); assert.ok(F.diario.some(d => d.a === 'f' && d.n === F.mesN));
+    assert.equal(R.cubosPlan(F), null, 'no se apaga dos veces'); assert.equal(R.apagarFuego(F).ok, false); });
+  prueba('CN13c el resultado de los cubos es el mismo cada vez (semilla del suceso, no E.rnd)', () => {
+    const A = fuego(1), B = fuego(1), a = R.apagarFuego(A), b = R.apagarFuego(B); assert.deepEqual(a, b); const C = fuego(1), r0 = C.rnd(); const D2 = fuego(1); R.cubosPlan(D2); R.apagarFuego(D2); assert.equal(D2.rnd(), r0, 'no consume E.rnd'); });
+  prueba('CN13c guardar y cargar con el fuego apagado da la misma ciudad (y con el fuego sin decidir también)', () => {
+    const F = fuego(1), G0 = R.deDatos(JSON.parse(JSON.stringify(R.aDatos(F)))); assert.equal(JSON.stringify(R.aDatos(G0)), JSON.stringify(R.aDatos(F))); assert.ok(R.cubosPlan(G0), 'aún pendiente tras cargar, mismos ids');
+    assert.deepEqual(R.cubosPlan(G0).casas.map(c => c.id), R.cubosPlan(F).casas.map(c => c.id));
+    R.apagarFuego(F); const H = R.deDatos(JSON.parse(JSON.stringify(R.aDatos(F)))); assert.equal(JSON.stringify(R.aDatos(H)), JSON.stringify(R.aDatos(F)));
+    const estado = E2 => E2.parcelas.map(l => l.casa ? l.casa.nivel + '.' + l.casa.ruina + '.' + (l.casa.arde ? 1 : 0) : '-').join(); assert.equal(estado(H), estado(F)); for (let i = 0; i < 8; i++) { R.mes(F); R.mes(H); } assert.equal(estado(H), estado(F), 'siguen igual 8 meses después'); });
+  prueba('CN13c una casa salvada no vuelve a nivel 1 tras los meses de ruina', () => {
+    const F = fuego(1), pl = R.cubosPlan(F), id = pl.casas[0].id, niv = F.parcelas[id].casa.nivel; R.apagarFuego(F, [id]); for (let i = 0; i < 6; i++) R.mes(F); assert.ok(F.parcelas[id].casa.nivel >= niv); });
+}
 process.exit(fallos.length ? 1 : 0);

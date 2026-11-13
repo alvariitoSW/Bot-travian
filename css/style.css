@@ -984,3 +984,8 @@ body.conhoja #pausa { display: none; }
 #inf .inf-d h2 { font-size: 15px; padding: 0 40px 0 0; }
 /* K12b: «Pasar turno» no se queda flotando sobre la ciudad ni sobre la Crónica (vive en Gobierno e Imperio, abajo) */
 #app[data-tab="ciudad"] #turno, #app[data-vista="log"] #turno { display: none; }
+/* CN13c: el fuego para el reloj; una tarjeta corta con dos botones (no tapa la bandeja ni el menú) */
+#cubos { position: absolute; left: 8px; right: 58px; top: calc(138px + env(safe-area-inset-top)); max-width: 560px; margin: 0 auto; z-index: 6; padding: 8px 12px 10px; border-radius: 10px; background: var(--glass); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--line); border-left: 4px solid #f07a5a; font-size: 13.5px; line-height: 1.3; box-shadow: 0 4px 14px rgba(0, 0, 0, .35); overflow: clip; color: var(--ink); }
+#cubos[hidden] { display: none; } #cubos:not([hidden]) ~ #linea { display: none; }
+#cu-t { display: block; font-size: 15px; } #cu-x { display: block; color: var(--mute); margin: 2px 0 7px; }
+#cubos .cu-b { display: flex; gap: 8px; } #cubos .cu-b .btn { flex: 1 1 0; min-width: 0; padding: 8px 6px; font-size: 14px; } #cubos .btn[disabled] { opacity: .5; }
