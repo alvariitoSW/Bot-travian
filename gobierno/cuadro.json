@@ -1066,10 +1066,10 @@
    "url": "https://claude.ai/code/session_01QiKC37tiobNBApd9bhi8N3"
   },
   {
-   "tarea": "Q4b",
-   "titulo": "Economía · Q4b Varias obras",
-   "nota": "game.js, data.js, ui.js (varias obras según el foro)",
-   "url": "https://claude.ai/code/session_01QiKC36AQ59PLEuQDnpXmaM"
+   "tarea": "CN5",
+   "titulo": "Ciudad nueva · CN5 Fundar colonias",
+   "nota": "data.js, game.js, map3d.js, ui.js, registro.js (colonias)",
+   "url": "https://claude.ai/code/session_01QiKC37pDgsJjsNbqKB5nNt"
   }
  ],
  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
