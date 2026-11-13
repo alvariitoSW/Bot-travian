@@ -205,7 +205,7 @@ Una tarea por sesión, constructor en Sonnet. SN2 después de SN1. No tocar `js/
 - ✅ E3 Presupuesto por escena en `node gobierno/arte.mjs` (batalla 1,1 millones, ciudad 300 mil; provisional hasta D1).
 
 ## Carril C — Mapa y campaña
-- ⬜ C1 Zoom continuo mapa → ciudad; ejércitos de guarnición visibles junto a cada ciudad. Idea para bajar de nivel (Mare Nostrum › región › ciudad, con «volver»): `estudios/R20-niveles-de-mapa.md` (solo la idea, sin código del kit; 12/11).
+- ✅ C1 **Zoom a la ciudad y guarnición en el mapa** (13/11): 1 a 4 figuras de guarnición junto a cada ciudad con la cámara cerca; acercar sobre una ciudad propia (o tocarla dos veces) abre la ciudad con transición y «← Mapa» vuelve al encuadre exacto. Parte `partes/2026-11-13-C1.md`.
 - ✅ C2 Costa real (Natural Earth, 15 KB) y grano de hierba en el suelo del mapa. ✅ C2b Relieve con alturas reales (GMTED2010/ETOPO1, 116 KB) y orillas con espuma (12/11).
 - ⬜ C3 Diplomacia sencilla (alianzas, tributos) e IA enemiga que también construye.
 - ⬜ C4 **Ríos, lagos y relieve variado en el mapa** (P92, ≈1 M): Po, Tíber, Ebro, Ródano, delta del Nilo y Danubio como cintas de agua sobre el relieve real; lagos; más tipos de terreno (llanura, estepa, desierto del Atlas). Después de J4 (si no, se regenera el marco dos veces). Alturas: `assets/mapa/generar-alturas.py`.
