@@ -229,3 +229,5 @@ Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que 
 
 - 13/11/2026 — **CN9a hecha (lógica)**: Roma y Capua nacen en pie con plantilla por cultura y tamaño; la conquistada conserva su ciudad y cultura; `Game.ciudadEnemiga(id)` genera la enemiga bajo demanda (sin guardarla), expuesta pero aún sin engancharla a muralla/botín. Falta CN9b (arte por cultura). **Decide el usuario**: Capua arranca con +45 % de población y el oro mensual inicial sube ≈ +66 %; ¿lo dejamos o se afina la plantilla? Ver `partes/2026-11-13-CN9a.md`.
 - 13/11/2026 — **CN15a hecha (dibujo)**: puestos con toldo en la plaza, acabados de fachada por barrio, suelo y árboles por estación; jueces APTO; faltan CN15b y CN15c. Parte: gobierno/partes/2026-11-13-CN15a.md
+
+- 13/11/2026 — **CN14-B hecha (lógica; faltan A y C)**: tres dificultades (Tranquila·Normal·Dura) y sucesos apagables en la lógica y el guardado, sin pantalla todavía; «Normal» = hoy (cifras guardadas en test/ref-normal.json); jueces APTO con el juez nuevo 1e. **Decide el usuario**: Dura apenas se nota (bot 5/5, ≈1 % de población); ¿más dura? Parte: gobierno/partes/2026-11-13-CN14B.md

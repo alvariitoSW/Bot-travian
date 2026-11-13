@@ -178,4 +178,47 @@ prueba('CN8: el mismo mes llega en modo turnos, con un solo aviso por mes aunque
     const V = R.aDatos(R.crear(1)); delete V.cultura; delete V.tinte; delete V.tam; const O = R.deDatos(V); assert.deepEqual([O.cultura, O.tinte], ['roma', 'roma']); });
   prueba('CN9a finEn: E.mesN coincide y n0 = finEn - meses', () => { const d = D9.CITIES.tarentum, E = R.desdePlantilla('tarentum', d.f, d.w, { finEn: 20, rapido: true }); assert.equal(E.mesN, 20); const E2 = R.desdePlantilla('tarentum', d.f, d.w, { finEn: 20 }); assert.equal(E2.mesN, 20); assert.equal(E2.n0, 20 - R.PLANTILLAS.grie.med.meses); });
 }
+/* ---------- CN14-B: sucesos apagables y dificultad ---------- */
+{
+  const rq14 = createRequire(import.meta.url), D14 = rq14('../js/data.js');
+  const nueva14 = (sem, suc) => { const E = R.crear(sem); R.fundar(E, 172, -196); if (suc) E.suc = suc; return E; };
+  const corre14 = (E, n) => { const cnt = {}, rc = {}; for (let i = 0; i < n; i++) { for (const r of R.riesgos(E)) rc[r.c] = (rc[r.c] || 0) + 1; for (const a of R.mes(E)) { const k = a.c || 'otro'; cnt[k] = (cnt[k] || 0) + 1; if (/apagó/.test(a.t)) cnt.apagó = (cnt.apagó || 0) + 1; } } return { cnt, rc }; };
+  const todo = (dif, on = {}) => m => ({ dif, on: { crecida: true, fuego: true, hambre: true, ...on } });
+  prueba('CN14-B (a) sin E.suc = Normal con todo encendido', () => { const E = nueva14(1);
+    for (const t of ['crecida', 'incendio', 'hambre']) { const a = R.suceso(E, t), b = R.suceso(nueva14(1, todo('normal')), t); assert.deepEqual(a, b); assert.equal(a.activo, true); assert.equal(a.dif, 'normal'); }
+    E.suc = () => null; assert.equal(R.suceso(E, 'crecida').dif, 'normal'); assert.deepEqual(R.suceso(E, 'incendio'), { activo: true, dif: 'normal', aviso: 5, prob: 0.09, max: 3 }); });
+  prueba('CN14-B (b) suceso devuelve los parámetros de D.DIFICULTAD y se apaga', () => { const E = nueva14(1);
+    for (const dif of ['tranquila', 'normal', 'dura']) { const N = D14.DIFICULTAD[dif]; E.suc = todo(dif);
+      assert.equal(R.suceso(E, 'crecida').ruina, N.crecida.ruina); assert.deepEqual([R.suceso(E, 'incendio').prob, R.suceso(E, 'incendio').max], [N.incendio.prob, N.incendio.max]);
+      assert.equal(R.suceso(E, 'hambre').meses, N.hambre.meses); assert.equal(R.suceso(E, 'crecida').aviso, N.aviso); assert.equal(R.suceso(E, 'hambre').dif, dif); }
+    assert.deepEqual([D14.DIFICULTAD.normal.crecida.ruina, D14.DIFICULTAD.normal.incendio.prob, D14.DIFICULTAD.normal.incendio.max, D14.DIFICULTAD.normal.hambre.meses], [5, 0.09, 3, 3]);
+    E.suc = todo('dura', { crecida: false, fuego: false, hambre: false }); assert.deepEqual(['crecida', 'incendio', 'hambre'].map(t => R.suceso(E, t).activo), [false, false, false]);
+    E.suc = m => ({ dif: 'normal', on: { crecida: m < 5, fuego: true, hambre: true } }); assert.equal(R.suceso(E, 'crecida', 4).activo, true); assert.equal(R.suceso(E, 'crecida', 5).activo, false); });
+  prueba('CN14-B (c) crecida apagada: sin aviso, sin E.crecida, sin «se inunda»', () => {
+    for (const sem of [1, 2]) { const E = nueva14(sem, todo('normal', { crecida: false })), v = E.crecida; const { cnt, rc } = corre14(E, 60);
+      assert.ok(!cnt.crecida && !rc.crecida, 'avisos'); assert.equal(E.crecida, v); assert.ok(!E.parcelas.some(l => l.casa && l.casa.ruina && R.inundable(l.x, l.z) && !l.casa.arde)); }
+    const E = nueva14(1); let bajo = null; for (let x = -240; x <= 240 && !bajo; x += 10) for (let z = -400; z <= 0 && !bajo; z += 10) if (R.inundable(x, z) && !R.esAgua(x, z)) bajo = [x, z];
+    const txt = n => n.razones.join('|'); assert.ok(/se inunda/i.test(txt(R.notaSitio(E, 'granja', bajo[0], bajo[1], R.contexto ? R.contexto(E) : undefined)) + txt(R.notaFundar(E, bajo[0], bajo[1]))), 'encendida sí lo dice');
+    E.suc = todo('normal', { crecida: false }); assert.ok(!/se inunda/i.test(txt(R.notaSitio(E, 'granja', bajo[0], bajo[1], R.contexto ? R.contexto(E) : undefined)) + txt(R.notaFundar(E, bajo[0], bajo[1])))); });
+  prueba('CN14-B (d) fuego y hambre apagados', () => { for (const sem of [1, 2]) { const E = nueva14(sem, todo('normal', { fuego: false, hambre: false })); const { cnt, rc } = corre14(E, 60);
+      assert.ok(!cnt.fuego && !cnt.apagó && !rc.fuego, 'sin incendio'); assert.ok(!cnt.hambre && !rc.hambre && !E.hambre, 'sin hambre'); } });
+  prueba('CN14-B (e) 3 dificultades × 8 interruptores sin excepción', () => { for (const dif of ['tranquila', 'normal', 'dura']) for (let k = 0; k < 8; k++) { const E = nueva14(1 + (k % 3), todo(dif, { crecida: !!(k & 1), fuego: !!(k & 2), hambre: !!(k & 4) })); corre14(E, 24); } });
+  prueba('CN14-B (f) Tranquila deja menos avisos de daño que Normal y Dura más', () => { const suma = dif => { let t = 0; for (const sem of [1, 2, 3]) { const E = nueva14(sem, todo(dif)); const { cnt } = corre14(E, 60); t += (cnt.crecida || 0) + (cnt.fuego || 0) - (cnt.apagó || 0) + 0; } return t; };
+    const a = suma('tranquila'), b = suma('normal'), c = suma('dura'); assert.ok(a <= b && b <= c, a + ' ' + b + ' ' + c);
+    const ruinas = dif => { let t = 0; for (const sem of [1, 2, 3]) { const E = nueva14(sem, todo(dif)); for (let i = 0; i < 60; i++) { R.mes(E); t += E.parcelas.filter(l => l.casa && l.casa.ruina).length + E.edificios.filter(e => e.ruina).length; } } return t; };
+    const ra = ruinas('tranquila'), rb = ruinas('normal'), rc2 = ruinas('dura'); assert.ok(ra < rb && rb < rc2, ra + ' ' + rb + ' ' + rc2); });
+  prueba('CN14-B (g) calendario: apagada desde febrero, riesgos no anuncia y mes() de marzo no inunda', () => {
+    const E = nueva14(1); while (E.mesN % 12 !== 10) R.mes(E);
+    while (!R.riesgos(E).some(r => r.c === 'crecida')) { for (let i = 0; i < 12; i++) R.mes(E); if (E.mesN > 200) break; }
+    assert.ok(R.riesgos(E).some(r => r.c === 'crecida'), 'encendida: anuncia en febrero'); const v = E.crecida;
+    E.suc = m => ({ dif: 'normal', on: { crecida: m % 12 < 10, fuego: true, hambre: true } });
+    assert.ok(!R.riesgos(E).some(r => r.c === 'crecida'), 'febrero ya no anuncia'); const av = R.mes(E);
+    assert.ok(!av.some(a => a.c === 'crecida')); assert.equal(E.crecida, v); assert.ok(!E.parcelas.some(l => l.casa && l.casa.ruina === 5 - 0 && R.inundable(l.x, l.z) && !l.casa.arde)); });
+  prueba('CN14-B (h) Tranquila: el hambre de invierno es solo diciembre', () => { const E = nueva14(1); E.suc = todo('tranquila'); while ((3 + E.mesN + 1) % 12 !== 0) R.mes(E); R.mes(E); assert.equal(E.hambre, false, 'enero sin hambre'); });
+}
+
+/* ---------- CN14-B (i): el pasado no cambia al apagar un suceso más tarde (revisor) ---------- */
+prueba('CN14-B (i): sembrar y mes() miran el mismo mes que al repetirlos al cargar (ajuste desde el mes 20)', () => {
+  const corre = conSuc => { const F = R.crear(2); R.fundar(F, 172, -196); if (conSuc) F.suc = m => ({ dif: 'normal', on: { crecida: m < 20, fuego: true, hambre: true } }); for (let i = 1; i <= 19; i++) R.mes(F); return JSON.stringify(R.aDatos(F)) + R.estado(F).casas; };
+  assert.equal(corre(true), corre(false)); });
 process.exit(fallos.length ? 1 : 0);

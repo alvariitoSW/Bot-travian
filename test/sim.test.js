@@ -1636,3 +1636,23 @@ console.log('OK — todas las pruebas superadas');
   const vj = require('fs').readFileSync(__dirname + '/partida-vieja.json', 'utf8'); store['aqvila-save-v1'] = vj; assert(G.load() && G.ciudadE('roma'), 'partida vieja carga y convierte');
   delete global.localStorage; G.usarCiudad(null); console.log('CN9a: plantillas, conquistada, enemiga y partida vieja OK');
 }
+{ // CN14-B: ajustes de partida (dificultad, sucesos, asesor)
+  const fs = require('fs'), CIM = require('../js/ciudad.js'); G.usarCiudad(CIM);
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  const snap = () => JSON.stringify(G.myCities().map(id => [id, G.state.cities[id].pop, G.state.cities[id].ciudad]));
+  const vj = JSON.parse(fs.readFileSync(__dirname + '/partida-vieja.json', 'utf8')); delete vj.ajustes; store['aqvila-save-v1'] = JSON.stringify(vj);
+  assert(G.load()); let a = G.ajustes(); assert(a.dif === 'normal' && a.asesor === false && a.suc.crecida && a.suc.fuego && a.suc.hambre && a.hist.length === 0 && a.v === 0, 'partida vieja migra a Normal sin asesor');
+  G.migrarAjustes(G.state); assert.deepStrictEqual(G.ajustes(), a, 'migrar es idempotente');
+  const sN = G.newGame('Test', 'mediterraneo'); const nor = snap(); assert(G.avisoMeses() === 3 && G.ajustes().asesor === true, 'Normal avisa a 3 meses; asesor por defecto');
+  const sD = G.newGame('Test', 'mediterraneo', { dificultad: 'dura' }); assert(sD.ajustes.dif === 'dura' && G.avisoMeses() === 2); assert(snap() === nor, 'Roma y Capua nacen igual con dificultad dura');
+  assert(G.sucesosEn(0).dif === 'normal' && G.sucesosEn(9999).dif === 'dura'); assert(G.newGame('T', 'mediterraneo', { dificultad: 'rara' }).ajustes.dif === 'normal');
+  const v0 = G.ajustes().v, h0 = G.ajustes().hist.length;
+  for (const mal of [{ dif: 'x' }, { suc: { crecida: 1 } }, { suc: { lluvia: true } }, { asesor: 'si' }]) assert(!G.ponerAjustes(mal).ok, 'rechaza ' + JSON.stringify(mal));
+  assert.deepStrictEqual([G.ajustes().v, G.ajustes().hist.length], [v0, h0], 'lo rechazado no cambia nada');
+  assert(G.ponerAjustes({ asesor: false }).ok && G.ajustes().hist.length === h0 && G.ajustes().asesor === false);
+  // guardar/cargar con crecida apagada y un cambio a mitad: la ciudad no cambia
+  G.ponerAjustes({ suc: { crecida: false } }); for (let i = 0; i < 30; i++) G.tick(0.25); G.ponerAjustes({ dif: 'tranquila' }); for (let i = 0; i < 30; i++) G.tick(0.25);
+  const antes = snap(), hist = JSON.stringify(G.ajustes().hist); G.save(); assert(G.load()); assert.strictEqual(snap(), antes, 'cargar da la misma ciudad'); assert.strictEqual(JSON.stringify(G.ajustes().hist), hist);
+  assert(G.sucesosEn(G.state.ajustes.hist[G.state.ajustes.hist.length - 1][0]).on.crecida === false);
+  delete global.localStorage; G.usarCiudad(null); console.log('CN14-B: ajustes, migración y reproducibilidad OK (consejo del granero: solo en ui.js, para la captura)');
+}

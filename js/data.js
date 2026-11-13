@@ -359,6 +359,13 @@
      tratados con ciudades ajenas y la quinta leva en cola. Licencia de juego: las barras y todas las cifras (los hechos
      que inspiran las misiones están en sus fichas). Las condiciones son datos sobre piezas y niveles reales de D.BUILD
      (no sobre viviendas ni foro, que son derivados). tipo de cond: lo define G.MISION_TIPOS en game.js. */
+  /* CN14-B: dificultad de la CIUDAD (sucesos). No es Fácil/Normal/Difícil, que son del enemigo en la batalla. «Normal» = las cifras de siempre.
+     crecida.ruina = meses que tarda en rehacerse lo anegado · incendio = prob. mensual por barrio y máx. casas que arden ·
+     hambre.meses = meses de invierno con hambre (3: dic-feb · 1: solo diciembre) · aviso = meses de antelación con que se anuncia el riesgo. */
+  D.DIFICULTAD = {
+    tranquila: { nombre: 'Tranquila', crecida: { ruina: 3 }, incendio: { prob: 0.045, max: 2 }, hambre: { meses: 1 }, aviso: 6, consejo: 4 },
+    normal: { nombre: 'Normal', crecida: { ruina: 5 }, incendio: { prob: 0.09, max: 3 }, hambre: { meses: 3 }, aviso: 5, consejo: 3 },
+    dura: { nombre: 'Dura', crecida: { ruina: 7 }, incendio: { prob: 0.13, max: 4 }, hambre: { meses: 3 }, aviso: 3, consejo: 2 } };
   D.DEUDA = { desBase: 0.02, desMes: 0.03, desMax: 0.12 };   // I3b: deserción mensual con paga atrasada = base + desMes por mes de paga debido, con tope
   D.SENADO = {
     favorIni: 50, min: 0, max: 100, bajo: 25,

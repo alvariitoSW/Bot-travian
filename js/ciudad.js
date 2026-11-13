@@ -23,6 +23,20 @@ const drio = (x, z) => { const k = ci(x, z); return k < 0 ? 400 : DRIO[k]; };
 const pend = (x, z) => { const k = ci(x, z); return k < 0 ? 0 : PEND[k]; };
 export const esAgua = (x, z) => drio(x, z) < 52 || alt(x, z) < NIVEL_RIO + 0.5;
 export const inundable = (x, z) => drio(x, z) < 120 && alt(x, z) < 1.2;
+/* CN14-B: sucesos apagables y dificultad de la ciudad (no confundir con Fácil/Normal/Difícil, que son del enemigo en la batalla).
+   Los números viven en DATA.DIFICULTAD (js/data.js); esta copia solo vale si data.js no está cargado (una prueba vigila que coincidan). */
+const DIF_RESERVA = { tranquila: { nombre: 'Tranquila', crecida: { ruina: 3 }, incendio: { prob: 0.045, max: 2 }, hambre: { meses: 1 }, aviso: 6 },
+  normal: { nombre: 'Normal', crecida: { ruina: 5 }, incendio: { prob: 0.09, max: 3 }, hambre: { meses: 3 }, aviso: 5 },
+  dura: { nombre: 'Dura', crecida: { ruina: 7 }, incendio: { prob: 0.13, max: 4 }, hambre: { meses: 3 }, aviso: 3 } };
+const ON_TIPO = { crecida: 'crecida', incendio: 'fuego', hambre: 'hambre' };
+/* suceso(E, tipo, mesN): tipo 'crecida' | 'incendio' | 'hambre' -> { activo, dif, aviso, ...parámetros del tipo }. E.suc(mesN) -> { dif, on: { crecida, fuego, hambre } }; sin E.suc = Normal con todo encendido. */
+export function suceso(E, tipo, mesN) {
+  const T = (typeof globalThis !== 'undefined' && globalThis.DATA && globalThis.DATA.DIFICULTAD) || DIF_RESERVA;
+  const c = E && E.suc ? E.suc(mesN ?? E.mesN) : null, dif = c && T[c.dif] ? c.dif : 'normal', on = (c && c.on) || {}, N = T[dif];
+  return { activo: on[ON_TIPO[tipo]] !== false, dif, aviso: N.aviso, ...N[tipo] };
+}
+/* ribera: ¿es ribera baja Y la crecida está encendida? Único sitio donde se decide (CN13b añadirá aquí la protección). */
+export const ribera = (E, x, z, mesN) => inundable(x, z) && suceso(E, 'crecida', mesN).activo;
 const vega = (x, z) => { const d = drio(x, z); return d >= 120 && d < 330 && alt(x, z) < 6; };
 
 /* puente y camino que ya estaban antes de la colonia */
@@ -191,8 +205,8 @@ function servicios(E) { return { fu: hechos(E, 'fuente'), te: hechos(E, 'templo'
 const cerca = (l, x, z, r) => l.some(e => Math.hypot(e.x - x, e.z - z) < (r || e.radio));
 function sirve(S, x, z) { return { agua: drio(x, z) < R_AGUA_RIO || cerca(S.fu, x, z), fuente: cerca(S.fu, x, z), templo: cerca(S.te, x, z), mercado: cerca(S.me, x, z), humo: cerca(S.ta, x, z) }; }
 const topeNivel = s => s.humo ? 1 : !s.agua ? 1 : !s.templo ? 2 : !s.mercado ? 3 : 4;
-function atractivo(E, S, l) { const s = sirve(S, l.x, l.z), b = E.barrios[l.barrio], d = Math.hypot(l.x - b.x, l.z - b.z);
-  return (s.agua ? 2 : 0) + (s.templo ? 1.2 : 0) + (s.mercado ? 1.2 : 0) - (s.humo ? 3 : 0) - (inundable(l.x, l.z) ? 4 : 0) - pend(l.x, l.z) * 8 - d / 45 - (l.arrabal ? 1.2 : 0) + (b.tipo === 'foro' ? 0.6 : 0); }
+function atractivo(E, S, l, mn) { const s = sirve(S, l.x, l.z), b = E.barrios[l.barrio], d = Math.hypot(l.x - b.x, l.z - b.z);
+  return (s.agua ? 2 : 0) + (s.templo ? 1.2 : 0) + (s.mercado ? 1.2 : 0) - (s.humo ? 3 : 0) - (ribera(E, l.x, l.z, mn) ? 4 : 0) - pend(l.x, l.z) * 8 - d / 45 - (l.arrabal ? 1.2 : 0) + (b.tipo === 'foro' ? 0.6 : 0); }
 
 export function nivelBarrio(E, i) { const S = servicios(E), cs = E.parcelas.filter(l => l.casa && !l.fuera && l.barrio === i), n = cs.length || 1; let ag = 0, te = 0, me = 0, hu = 0;
   for (const l of cs) { const s = sirve(S, l.x, l.z); ag += s.agua; te += s.templo; me += s.mercado; hu += s.humo; }
@@ -211,7 +225,7 @@ export function notaFundar(E, x, z) {
   let des = 0; for (const r of [45, 100]) for (let a = 0; a < 8; a++) des = Math.max(des, Math.abs(alt(x + Math.cos(a * 0.785) * r, z + Math.sin(a * 0.785) * r) - alt(x, z)));
   if (pend(x, z) > 0.22) return { nota: -9, vale: false, razones: ['Ladera demasiado empinada para un foro'] };
   const d = drio(x, z), h = alt(x, z), k = ci(x, z), dc = k < 0 ? 999 : E.dVia[k], raz = []; let n = 0;
-  if (inundable(x, z)) { n -= 3; raz.push('Se inunda en primavera −3'); }
+  if (ribera(E, x, z, E.mesN + 1)) { n -= 3; raz.push('Se inunda en primavera −3'); }
   if (d < 230) { n += 2; raz.push('Agua cerca +2'); } else if (d > 360) { n -= 1; raz.push('Lejos del agua −1'); }
   if (h >= 6) { n += 2; raz.push('En la loma: se defiende mejor +2'); }
   if (des < 9) { n += 1; raz.push('Llano para crecer +1'); } else if (des > 22) { n -= 2; raz.push('Muy empinado alrededor −2'); }
@@ -264,7 +278,7 @@ export function notaSitio(E, id, x, z, cx) {
   else if (esAgua(x, z)) return mal('En el agua no');
   if (id !== 'muelle' && PEND[k] > (id === 'granja' ? 0.12 : id === 'cantera' || id === 'mina' ? 0.5 : 0.24)) return mal(id === 'granja' ? 'En cuesta no se labra' : 'Demasiado empinado');
   let choque = ''; if (!huella(E, x, z, ang + Math.PI / 2, D.w, D.d, (o, q) => { if (o === 1) choque = 'Encima de una calle no'; else if (o === 2 || o === 4) choque = 'Ya hay un edificio'; else if (o === 5) choque = 'Sobre el surco sagrado no'; else if (o === 3) { const l = E.parcelas[E.lote[q] - 1]; if (l && l.casa) choque = 'Hay casas: busca un solar libre'; } return !!choque; })) return mal(choque || 'Fuera del territorio');
-  const raz = [], inu = id !== 'muelle' && inundable(x, z), den = dentro(E, x, z), dF = Math.hypot(x - E.foro.x, z - E.foro.z); let n = 0, radio = D.radio || 0;
+  const raz = [], inu = id !== 'muelle' && ribera(E, x, z, E.mesN + 1), den = dentro(E, x, z), dF = Math.hypot(x - E.foro.x, z - E.foro.z); let n = 0, radio = D.radio || 0;
   const cuantas = (r, f) => cx.casas.reduce((s, c) => s + (Math.hypot(c.x - x, c.z - z) < r && (!f || f(c)) ? 1 : 0), 0);
   if (id === 'fuente') { const c = cuantas(radio, c => !c.s.agua), ya = cuantas(radio, c => c.s.fuente);
     if (d < R_AGUA_RIO) { n -= 2; raz.push('Aquí ya beben del río −2'); }
@@ -395,15 +409,16 @@ export function ingreso(E) { const S = servicios(E); let t = 0;
 
 /* ---------- un mes ---------- */
 /* Riesgos que se ven venir (pura: no muta E ni gasta E.rnd). meses = ticks de mes() que faltan SIN contar el que lo trae: 0 = ocurre en el próximo mes() */
+const enInvierno = (m, n) => m === 11 || m < n - 1;      // n = meses de hambre (3: dic-feb · 1: solo dic)
 const mesesHasta = (E, m) => { for (let k = 1; k <= 12; k++) if (fecha({ mesN: E.mesN + k }).mes === m) return k - 1; return 12; };
 export function riesgos(E) {
   if (!E || !E.fundada) return []; const r = [], S = servicios(E);
-  const mC = mesesHasta(E, 2), mH = fecha(E).mes === 11 || fecha(E).mes <= 1 ? 0 : mesesHasta(E, 11);
-  let c = 0, g = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && inundable(l.x, l.z)) c++; for (const e of E.edificios) if (e.tipo !== 'muelle' && !e.ruina && inundable(e.x, e.z)) g++;
-  if (c + g && mC <= 5) r.push({ c: 'crecida', p: 5, meses: mC, n: c + g, t: 'Crecida de primavera: el río puede llevarse ' + (c ? c + (c === 1 ? ' casa' : ' casas') : '') + (c && g ? ' y ' : '') + (g ? g + (g === 1 ? ' obra' : ' obras') : '') + ' de la ribera baja.', remedio: 'No pongas más obras en la ribera baja (zona azul del mapa de calor)', pieza: null });
+  const sC = suceso(E, 'crecida', E.mesN + 1), sF = suceso(E, 'incendio', E.mesN + 1), sH = suceso(E, 'hambre', E.mesN + 1), mC = mesesHasta(E, 2), mH = enInvierno(fecha(E).mes, sH.meses) ? 0 : mesesHasta(E, 11);
+  let c = 0, g = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && ribera(E, l.x, l.z, E.mesN + 1)) c++; for (const e of E.edificios) if (e.tipo !== 'muelle' && !e.ruina && ribera(E, e.x, e.z, E.mesN + 1)) g++;
+  if (c + g && mC <= sC.aviso) r.push({ c: 'crecida', p: 5, meses: mC, n: c + g, t: 'Crecida de primavera: el río puede llevarse ' + (c ? c + (c === 1 ? ' casa' : ' casas') : '') + (c && g ? ' y ' : '') + (g ? g + (g === 1 ? ' obra' : ' obras') : '') + ' de la ribera baja.', remedio: 'No pongas más obras en la ribera baja (zona azul del mapa de calor)', pieza: null });
   let peor = -1, nPeor = 0, nTot = 0; E.barrios.forEach((b, i) => { const cs = E.parcelas.filter(l => l.casa && !l.casa.ruina && l.barrio === i && !l.fuera); if (cs.length <= 10 || E.mesN - (b.fuego || -9) < 8) return; const sin = cs.filter(l => !cerca(S.fu, l.x, l.z)).length; if (!sin) return; nTot += sin; if (sin > nPeor) { nPeor = sin; peor = i; } });
-  if (peor >= 0) { const nb = E.barrios[peor].nombre; r.push({ c: 'fuego', p: 5, meses: 0, n: nTot, t: 'Riesgo de incendio: ' + nTot + (nTot === 1 ? ' casa' : ' casas') + ' sin fuente cerca.', remedio: 'Pon una fuente cerca del ' + nb, pieza: 'fuente' }); }
-  if (!hechos(E, 'granero').length && mH <= 5) { const ya = mH === 0 && (fecha(E).mes === 11 || fecha(E).mes <= 1); const n = E.parcelas.filter(l => l.casa && !l.casa.ruina).length; r.push({ c: 'hambre', p: 4, meses: mH, n, t: 'Hambre de invierno (sin granero): las casas no ' + (ya ? 'crecen' : 'crecerán') + ' hasta la primavera.', remedio: ya ? 'Coloca un granero para el próximo invierno' : 'Coloca un granero antes de diciembre', pieza: 'granero' }); }
+  if (peor >= 0 && sF.activo) { const nb = E.barrios[peor].nombre; r.push({ c: 'fuego', p: 5, meses: 0, n: nTot, t: 'Riesgo de incendio: ' + nTot + (nTot === 1 ? ' casa' : ' casas') + ' sin fuente cerca.', remedio: 'Pon una fuente cerca del ' + nb, pieza: 'fuente' }); }
+  if (sH.activo && !hechos(E, 'granero').length && mH <= sH.aviso) { const ya = mH === 0 && enInvierno(fecha(E).mes, sH.meses); const n = E.parcelas.filter(l => l.casa && !l.casa.ruina).length; r.push({ c: 'hambre', p: 4, meses: mH, n, t: 'Hambre de invierno (sin granero): las casas no ' + (ya ? 'crecen' : 'crecerán') + ' hasta la primavera.', remedio: ya ? 'Coloca un granero para el próximo invierno' : 'Coloca un granero antes de diciembre', pieza: 'granero' }); }
   return r.sort((a, b) => b.p - a.p);
 }
 export function mes(E) {
@@ -415,20 +430,21 @@ export function mes(E) {
   for (const l of E.parcelas) if (l.casa && l.casa.ruina && --l.casa.ruina === 0) { l.casa.nivel = 1; l.casa.nace = E.mesN; l.casa.arde = false; }
   if (!E.modoJuego) E.monedas += ingreso(E);      // en modo juego, la renta la cobra game.js
   /* crecida de primavera: se lleva lo que esté en la ribera baja */
-  if (f.mes === 2) { let c = 0, g = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && inundable(l.x, l.z)) { l.casa.ruina = 5; c++; } for (const e of E.edificios) if (e.tipo !== 'muelle' && !e.ruina && inundable(e.x, e.z)) { e.ruina = 5; g++; }
+  const scr = suceso(E, 'crecida'), sin = suceso(E, 'incendio'), sha = suceso(E, 'hambre');
+  if (f.mes === 2 && scr.activo) { let c = 0, g = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && ribera(E, l.x, l.z)) { l.casa.ruina = scr.ruina; c++; } for (const e of E.edificios) if (e.tipo !== 'muelle' && !e.ruina && ribera(E, e.x, e.z)) { e.ruina = scr.ruina; g++; }
     E.crecida = E.mesN; di(c + g ? 'Crecida de primavera: el río anegó ' + (c ? c + (c === 1 ? ' casa' : ' casas') : '') + (c && g ? ' y ' : '') + (g ? g + (g === 1 ? ' obra' : ' obras') : '') + ' de la ribera baja. Lo alto se salvó.' : 'Crecida de primavera: el río se salió, pero nada tuyo estaba en la ribera baja.', c + g ? 5 : 2, 'crecida'); if (c + g) av[av.length - 1].cg = [c, g]; }
   /* incendio: en barrios de más de 10 casas, una casa sin fuente cerca */
-  E.barrios.forEach((b, i) => { const cs = E.parcelas.filter(l => l.casa && !l.casa.ruina && l.barrio === i && !l.fuera); if (cs.length <= 10 || rnd() > 0.09 || E.mesN - (b.fuego || -9) < 8) return; const l = cs[Math.floor(rnd() * cs.length)];
+  E.barrios.forEach((b, i) => { const cs = E.parcelas.filter(l => l.casa && !l.casa.ruina && l.barrio === i && !l.fuera); if (!sin.activo || cs.length <= 10 || rnd() > sin.prob || E.mesN - (b.fuego || -9) < 8) return; const l = cs[Math.floor(rnd() * cs.length)];
     if (cerca(S0.fu, l.x, l.z)) { b.fuego = E.mesN; di('Fuego en el ' + b.nombre + ': la fuente estaba cerca y se apagó a tiempo.', 3, 'fuego'); return; }
-    let n = 1; l.casa.ruina = 5; l.casa.arde = true; for (const o of cs) if (o !== l && n < 3 && Math.hypot(o.x - l.x, o.z - l.z) < 24 && !cerca(S0.fu, o.x, o.z) && rnd() < 0.7) { o.casa.ruina = 5; o.casa.arde = true; n++; }
+    let n = 1; l.casa.ruina = 5; l.casa.arde = true; for (const o of cs) if (o !== l && n < sin.max && Math.hypot(o.x - l.x, o.z - l.z) < 24 && !cerca(S0.fu, o.x, o.z) && rnd() < 0.7) { o.casa.ruina = 5; o.casa.arde = true; n++; }
     b.fuego = E.mesN; E.fuego = { mes: E.mesN, x: l.x, z: l.z }; di('Incendio en el ' + b.nombre + ': ' + (n === 1 ? 'ardió una casa' : 'ardieron ' + n + ' casas') + '. No había fuente cerca para apagarlo.', 5, 'fuego'); av[av.length - 1].cg = [n, 0]; });
   /* hambre de invierno */
-  const invierno = f.mes === 11 || f.mes <= 1; E.hambre = invierno && !hechos(E, 'granero').length;
+  const invierno = enInvierno(f.mes, sha.meses); E.hambre = sha.activo && invierno && !hechos(E, 'granero').length;
   if (E.hambre && f.mes === 11) di('Invierno sin granero: hay hambre. Las casas no crecen hasta la primavera.', 4, 'hambre');
   /* llegan familias: casas nuevas en las mejores parcelas libres */
   const S = servicios(E), nCasas = E.parcelas.filter(l => l.casa).length;
   if (!E.hambre && nCasas < MAX_CASAS) { const libres = E.parcelas.filter(l => !l.casa && !l.fuera), llegan = Math.min(libres.length, 3 + Math.min(3, hechos(E, 'granja').length) + (S.me.length ? 1 : 0), MAX_CASAS - nCasas);
-    libres.forEach(l => { l._a = atractivo(E, S, l) + rnd() * 1.6; }); libres.sort((a, b) => b._a - a._a);
+    libres.forEach(l => { l._a = atractivo(E, S, l, E.mesN) + rnd() * 1.6; }); libres.sort((a, b) => b._a - a._a);
     for (let i = 0; i < llegan; i++) if (libres[i]._a > -3.5) libres[i].casa = { nivel: 1, desde: E.mesN, nace: E.mesN, ruina: 0 }; }
   /* las casas suben cuando su sitio tiene los servicios */
   if (!E.hambre) { let sub = 0; for (const l of E.parcelas) { const c = l.casa; if (!c || c.ruina || l.fuera || sub >= 10) continue; const tope = topeNivel(sirve(S, l.x, l.z)); if (c.nivel < tope && E.mesN - c.desde >= 3 && rnd() < 0.4) { c.nivel++; c.desde = E.mesN; c.nace = E.mesN; sub++; } else if (c.nivel > Math.max(1, tope) && rnd() < 0.3) { c.nivel--; c.desde = E.mesN; c.nace = E.mesN; } } }
@@ -461,7 +477,7 @@ export function sembrarCasas(E, poblacion_) {
   if (!E.fundada) return 0; E.diario.push({ a: 's', n: E.mesN, pob: poblacion_ });
   for (let ronda = 0; ronda < 60 && poblacion(E) < poblacion_ && casas(E).length < MAX_CASAS; ronda++) {
     const S = servicios(E), libres = E.parcelas.filter(l => !l.casa && !l.fuera);
-    libres.forEach(l => { l._a = atractivo(E, S, l) + E.rnd() * 1.6; }); libres.sort((a, b) => b._a - a._a);
+    libres.forEach(l => { l._a = atractivo(E, S, l, E.mesN + 1) + E.rnd() * 1.6; }); libres.sort((a, b) => b._a - a._a);
     let puso = 0; for (const l of libres.slice(0, 6)) { if (poblacion(E) >= poblacion_ || l._a <= -3.5) break; l.casa = { nivel: 1, desde: E.mesN, nace: E.mesN, ruina: 0 }; puso++; }
     if (poblacion(E) >= poblacion_) break;
     if (!puso) { let nuevos = 0; for (const b of E.bocas) { if (!b.hecha && nuevos < 2 && callejon(E, b)) nuevos++; } for (let i = 0; i < 2; i++) if (unirPuntas(E)) nuevos++; if (!nuevos) break; reparcelar(E); } }
