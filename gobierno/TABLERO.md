@@ -174,7 +174,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ⬜ CN18 **Hecho para el móvil** (P88, ≈1,5 M): postal y crónica de la ciudad, modo contemplar, punto de parada, copia de la partida en un archivo, partida corta con nota (enlaza con I8).
 - ✅ CN19 **Más terrenos donde fundar** (13/11): costa (salinas), pantano (zanja), terrazas y llanura; cada colonia trae su terreno, reglas en `D.TERRENO_REGLAS`, tinte del suelo por terreno.
 - ⬜ CN19c **Fundar donde el jugador elige**: `G.fundarColonia` ignora el punto elegido (`convertir` funda con `fundarAuto`); arreglarlo obliga a reequilibrar «partida corta · fundar».
-- ⬜ CN20 **La historia llega a tu ciudad** (P91, ≈1,5 M más fichas): Pirro, Aníbal, la Gran Madre, auspicios, fiestas; cada hecho con su ficha antes de entrar (skill `historia`).
+- ⛔ CN20 (recortada por el usuario el 13/11) **La historia llega a tu ciudad** (P91, ≈1,5 M más fichas): Pirro, Aníbal, la Gran Madre, auspicios, fiestas; cada hecho con su ficha antes de entrar (skill `historia`).
 - ✅ CN21 **Mover un edificio** (13/11): botón «Mover» en la ficha; `CI.mover` + `G.moverPieza`, conserva mejoras, gratis.
 - ✅ CN22 **Avisos pequeños que no tapan la pantalla** (P97): los «Cierre de mes» se apilan y tapan la ciudad y el informe de estación ocupa todo. Avisos pequeños que se van solos o se agrupan, y mejor la parte de construir y conseguir recursos, sin tirar lo que hay. Toca `js/ui.js` y `css/`.
 - ✅ CN23 **Ampliar la muralla: segundo recinto** (13/11): `ampliarMuralla` (2× coste, 4 meses, solo con muralla de piedra); `E.muralla.rec`, `cercado()`, `geo.surco` = anillo activo.
