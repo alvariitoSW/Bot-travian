@@ -25,7 +25,7 @@ export const esAgua = (x, z) => drio(x, z) < 52 || alt(x, z) < NIVEL_RIO + 0.5;
 export const inundable = (x, z) => drio(x, z) < 120 && alt(x, z) < 1.2;
 /* CN14-B: sucesos apagables y dificultad de la ciudad (no confundir con Fácil/Normal/Difícil, que son del enemigo en la batalla).
    Los números viven en DATA.DIFICULTAD (js/data.js); esta copia solo vale si data.js no está cargado (una prueba vigila que coincidan). */
-export const DIF_RESERVA = { tranquila: { nombre: 'Tranquila', crecida: { ruina: 1 }, incendio: { prob: 0.01, max: 1 }, hambre: { meses: 1 }, aviso: 8 },
+export const DIF_RESERVA = { tranquila: { nombre: 'Tranquila', crecida: { ruina: 1 }, incendio: { prob: 0.01, max: 1 }, hambre: { meses: 0 }, aviso: 8 },
   normal: { nombre: 'Normal', crecida: { ruina: 5 }, incendio: { prob: 0.09, max: 3 }, hambre: { meses: 3 }, aviso: 5 },
   dura: { nombre: 'Dura', crecida: { ruina: 9 }, incendio: { prob: 0.19, max: 5 }, hambre: { meses: 6 }, aviso: 3 } };
 const ON_TIPO = { crecida: 'crecida', incendio: 'fuego', hambre: 'hambre' };
@@ -418,7 +418,7 @@ export function ingreso(E) { const S = servicios(E); let t = 0;
 
 /* ---------- un mes ---------- */
 /* Riesgos que se ven venir (pura: no muta E ni gasta E.rnd). meses = ticks de mes() que faltan SIN contar el que lo trae: 0 = ocurre en el próximo mes() */
-const enInvierno = (m, n) => m === 11 || m < n - 1;      // n = meses de hambre (3: dic-feb · 1: solo dic)
+export const enInvierno = (m, n) => n > 0 && (m === 11 || m < n - 1);      // n = meses de hambre (0: ninguno · 1: solo dic · 3: dic-feb)
 const mesesHasta = (E, m) => { for (let k = 1; k <= 12; k++) if (fecha({ mesN: E.mesN + k }).mes === m) return k - 1; return 12; };
 export function riesgos(E) {
   if (!E || !E.fundada) return []; const r = [], S = servicios(E);
@@ -427,7 +427,7 @@ export function riesgos(E) {
   if (c + g && mC <= sC.aviso) r.push({ c: 'crecida', p: 5, meses: mC, n: c + g, t: 'Crecida de primavera: el río puede llevarse ' + (c ? c + (c === 1 ? ' casa' : ' casas') : '') + (c && g ? ' y ' : '') + (g ? g + (g === 1 ? ' obra' : ' obras') : '') + ' de la ribera baja.', remedio: 'No pongas más obras en la ribera baja (zona azul del mapa de calor)', pieza: null });
   let peor = -1, nPeor = 0, nTot = 0; E.barrios.forEach((b, i) => { const cs = E.parcelas.filter(l => l.casa && !l.casa.ruina && l.barrio === i && !l.fuera); if (cs.length <= 10 || E.mesN - (b.fuego || -9) < 8) return; const sin = cs.filter(l => !cerca(S.fu, l.x, l.z)).length; if (!sin) return; nTot += sin; if (sin > nPeor) { nPeor = sin; peor = i; } });
   if (peor >= 0 && sF.activo) { const nb = E.barrios[peor].nombre; r.push({ c: 'fuego', p: 5, meses: 0, n: nTot, t: 'Riesgo de incendio: ' + nTot + (nTot === 1 ? ' casa' : ' casas') + ' sin fuente cerca.', remedio: 'Pon una fuente cerca del ' + nb, pieza: 'fuente' }); }
-  if (sH.activo && !hechos(E, 'granero').length && mH <= sH.aviso) { const ya = mH === 0 && enInvierno(fecha(E).mes, sH.meses); const n = E.parcelas.filter(l => l.casa && !l.casa.ruina).length; r.push({ c: 'hambre', p: 4, meses: mH, n, t: 'Hambre de invierno (sin granero): las casas no ' + (ya ? 'crecen' : 'crecerán') + ' hasta la primavera.', remedio: ya ? 'Coloca un granero para el próximo invierno' : 'Coloca un granero antes de diciembre', pieza: 'granero' }); }
+  if (sH.activo && sH.meses > 0 && !hechos(E, 'granero').length && mH <= sH.aviso) { const ya = mH === 0 && enInvierno(fecha(E).mes, sH.meses); const n = E.parcelas.filter(l => l.casa && !l.casa.ruina).length; r.push({ c: 'hambre', p: 4, meses: mH, n, t: 'Hambre de invierno (sin granero): las casas no ' + (ya ? 'crecen' : 'crecerán') + ' hasta la primavera.', remedio: ya ? 'Coloca un granero para el próximo invierno' : 'Coloca un granero antes de diciembre', pieza: 'granero' }); }
   return r.sort((a, b) => b.p - a.p);
 }
 export function mes(E) {
@@ -533,6 +533,8 @@ export const PLANTILLAS = {
 export function plantillaDe(id, faccion, w) {
   const c = culturaDe(faccion, id), t = PLANTILLAS[c.cultura][tamano(w)];
   if (id === 'roma') return { pob: 287, meses: 0, piezas: t.piezas.filter(p => p[0] !== 'mercado') };
+  /* Capua (CN9c): arranca con las 20 chozas de la fundación y sin meses de crecimiento (si no, +45 % de población y foro de nivel 2); conserva su mercado. */
+  if (id === 'capua') return { pob: 280, meses: 0, piezas: t.piezas };
   return t;
 }
 export const semillaDe = id => { let h = 7; for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) % 100003; return h + 1; };

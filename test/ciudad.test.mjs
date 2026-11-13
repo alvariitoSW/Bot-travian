@@ -165,7 +165,7 @@ prueba('CN8: el mismo mes llega en modo turnos, con un solo aviso por mes aunque
       let m = 1e9; for (let i = 0; i < cs.length; i++) for (let j = i + 1; j < cs.length; j++) m = Math.min(m, Math.hypot(cs[i].x - cs[j].x, cs[i].z - cs[j].z)); assert.ok(m > 6, id + ' casas a ' + m.toFixed(1)); } });
   prueba('CN9a población dentro de ±15 % de popCapViejo*0.7 (18 ciudades; w=1 queda aparte)', () => {
     for (const id of ids) { const d = D9.CITIES[id]; if (d.w < 2) continue; const t = Date.now(), E = R.desdePlantilla(id, d.f, d.w, { rapido: true }); tiempos['rap ' + id] = Date.now() - t; assert.ok(E, id);
-      const o = id === 'roma' ? 287 : objetivo(id), p = R.poblacion(E); assert.ok(p >= o * 0.85 && p <= o * 1.15, `${id}: ${p} vs ${o}`); } });
+      const o = id === 'roma' ? 287 : id === 'capua' ? 280 : objetivo(id), p = R.poblacion(E); assert.ok(p >= o * 0.85 && p <= o * 1.15, `${id}: ${p} vs ${o}`); } });
   prueba('CN9a población en modo normal: Roma, Tarento, Cartago; y tiempos', () => {
     for (const id of ['roma', 'tarentum', 'carthago']) { const d = D9.CITIES[id], t = Date.now(), E = R.desdePlantilla(id, d.f, d.w, { finEn: 9 }); const dt = Date.now() - t; assert.ok(E && E.mesN === 9, id);
       const o = objetivo(id), p = R.poblacion(E); assert.ok(p >= o * 0.85 && p <= o * 1.15, `${id}: ${p} vs ${o}`);
@@ -214,7 +214,8 @@ prueba('CN8: el mismo mes llega en modo turnos, con un solo aviso por mes aunque
     E.suc = m => ({ dif: 'normal', on: { crecida: m % 12 < 10, fuego: true, hambre: true } });
     assert.ok(!R.riesgos(E).some(r => r.c === 'crecida'), 'febrero ya no anuncia'); const av = R.mes(E);
     assert.ok(!av.some(a => a.c === 'crecida')); assert.equal(E.crecida, v); assert.ok(!E.parcelas.some(l => l.casa && l.casa.ruina === 5 - 0 && R.inundable(l.x, l.z) && !l.casa.arde)); });
-  prueba('CN14-B (h) Tranquila: el hambre de invierno es solo diciembre', () => { const E = nueva14(1); E.suc = todo('tranquila'); while ((3 + E.mesN + 1) % 12 !== 0) R.mes(E); R.mes(E); assert.equal(E.hambre, false, 'enero sin hambre'); });
+  prueba('CN9c-B enInvierno: n=0 sin hambre, n=1 solo dic, n=3 dic-feb; Tranquila sin aviso', () => { const a = n => [...Array(12).keys()].filter(m => R.enInvierno(m, n)); assert.deepEqual(a(0), []); assert.deepEqual(a(1), [11]); assert.deepEqual(a(3), [0, 1, 11]); const E = nueva14(1); E.suc = todo('tranquila'); for (let i = 0; i < 30; i++) { R.mes(E); assert.ok(!E.hambre && !R.riesgos(E).some(x => x.c === 'hambre')); } });
+  prueba('CN14-B (h) Tranquila: sin hambre de invierno (CN9c: 0 meses)', () => { const E = nueva14(1); E.suc = todo('tranquila'); while ((3 + E.mesN + 1) % 12 !== 0) R.mes(E); R.mes(E); assert.equal(E.hambre, false, 'enero sin hambre'); });
 }
 
 /* ---------- CN14-B (i): el pasado no cambia al apagar un suceso más tarde (revisor) ---------- */
