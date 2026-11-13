@@ -3,6 +3,7 @@ const assert = require('assert');
 const D = require('../js/data.js');
 const { Battle } = require('../js/battle.js');
 const G = require('../js/game.js');
+const CIUDADES_0 = JSON.stringify(D.CITIES);   // I8-a: pruebas anteriores retocan guarniciones de D.CITIES y no las devuelven; el bloque de la partida corta las restaura
 
 const side = (units, extra) => Object.assign({ units, name: 'x', col: '#000', atkMul: 1, defMul: 1, mor: 0 }, extra || {});
 function fight(a, b, opt) { const bt = new Battle(Object.assign({ sides: [side(a), side(b)], defender: 1, wall: 0, seed: 42 }, opt || {})); bt.finish(); return bt.result(); }
@@ -18,13 +19,13 @@ assert(r.time < 1500, 'toda batalla termina antes del tope de seguridad');
 r = fight({ hastati: 200 }, { libios: 200 });
 assert(r.dead[0] > 20 && r.dead[1] > 20, 'ambos bandos sufren bajas');
 
-// 2b. Ritmo (A8): una batalla igualada dura entre 8 y 12 minutos de juego
+// 2b. Ritmo (A8): una batalla igualada dura entre 3,5 y 7 minutos (R1; antes 5 a 12) de juego
 for (const sd of [1, 2, 3, 4]) {
   const q = fight({ hastati: 200 }, { libios: 200 }, { seed: sd });
-  assert(q.time >= 480 && q.time <= 720, 'igualada 200 vs 200 (semilla ' + sd + '): ' + Math.round(q.time) + ' s');
+  assert(q.time >= 150 && q.time <= 420, 'igualada 200 vs 200 (semilla ' + sd + '): ' + Math.round(q.time) + ' s');
   const m = fight({ hastati: 300, velites: 60, equites: 40 }, { libios: 265, numidas: 52, jinetes: 33 }, { seed: sd });
-  assert(m.time >= 480 && m.time <= 720, 'igualada mixta (semilla ' + sd + '): ' + Math.round(m.time) + ' s');
-  assert(fight({ hastati: 300, velites: 60, equites: 40 }, { milicia: 100 }, { seed: sd }).time > 30, "la desigual no dura segundos");
+  assert(m.time >= 150 && m.time <= 420, 'igualada mixta (semilla ' + sd + '): ' + Math.round(m.time) + ' s');
+  assert(fight({ hastati: 300, velites: 60, equites: 40 }, { milicia: 100 }, { seed: sd }).time > 20, "la desigual no dura segundos");
 }
 
 // 2c. La moral no cae en cadena: nunca se rompe más de la mitad de un bando en 10 s
@@ -256,19 +257,21 @@ for (const id in D.CITIES) { assert(D.FACTIONS[D.CITIES[id].f]); for (const k in
 
 // 5. Campaña completa con un bot sencillo: no debe lanzar excepciones y debe terminar
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-function campaign(aggressive, seed, region) {
+function campaign(aggressive, seed, region, opciones) {
   const rndOrig = Math.random; if (seed) Math.random = mulberry32(seed);
-  try { return campaign1(aggressive, region); } finally { Math.random = rndOrig; }
+  try { return campaign1(aggressive, region, opciones); } finally { Math.random = rndOrig; }
 }
-function campaign1(aggressive, region) {
-  const s = G.newGame('Test', region); const meta = G.region().capitalRival; const events = [];
+function campaign1(aggressive, region, opciones) {
+  const s = G.newGame('Test', region, opciones); const meta = G.capitalRival(); const events = [];
   G.onEvent = (t, p) => { events.push(t); if (process.env.V && t === 'log' && /⚠|🔥|🏆|💀|rechaza|📜/.test(p.x)) console.log('  ', G.yearOf(s.t), p.x); };
+  if (G.fundando()) { const sitio = G.modo().inicio.fundar.sitio; let pt = G.notaFundar(sitio, 172, -196).vale ? [172, -196] : null; for (let x = -300; x <= 300 && !pt; x += 20) for (let z = -300; z <= 300 && !pt; z += 20) if (G.notaFundar(sitio, x, z).vale) pt = [x, z]; assert(pt, 'hay un punto válido para fundar'); assert(G.fundarColonia(sitio, pt[0], pt[1]).ok); }   // I8: el bot funda su primera ciudad
   const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
   let guard = 0;
   while (!s.over && guard++ < 200000) {
     G.tick(0.25);
     while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); if (process.env.DBG) console.log(G.yearOf(s.t), JSON.stringify(info.cfg.sides.map(x => x.units)), 'def', info.cfg.defender, 'wall', info.cfg.wall, '->', b.result().winner, Math.round(b.t)); G.applyBattle(b.result()); }
     if (guard % 8) continue;
+    if (D.SENADO.sala && s.senado && s.senado.votacion) G.votar(G.tratos(s.senado.votacion.id).filter(t => t.etiqueta === 'Favorable'));   // SN1: el bot vota con la tarjeta Favorable (o deja pasar)
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
@@ -278,11 +281,11 @@ function campaign1(aggressive, region) {
       const yr = G.yearOf(s.t); if (yr <= 230 && yr >= 209) continue;   // el bot se atrinchera ante la invasión de Aníbal
       // concentración: las tropas avanzan por la ruta más corta hacia Carthago mientras la siguiente plaza sea romana
       const sig = G.neighbors(id).sort((a, b) => dist[a] - dist[b])[0];
-      if (id !== meta && dist[sig] < dist[id] && s.cities[sig].owner === 'roma' && !s.marches.some(m => m.owner === 'roma' && m.from === id)) { const u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (id === "roma" ? 0.15 : 0.65)); if (G.men(u) >= 100 && G.send(id, sig, u, false)) continue; }
+      if (id !== meta && dist[sig] < dist[id] && s.cities[sig].owner === 'roma' && !s.marches.some(m => m.owner === 'roma' && m.from === id)) { const u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (id === G.capital() ? 0.15 : 0.65)); if (G.men(u) >= 100 && G.send(id, sig, u, false)) continue; }
       for (const n of G.neighbors(id)) {
         const t = s.cities[n]; if (t.owner === 'roma') continue;
-        const keepHome = id === 'roma' ? 0.35 : 0.2, u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (1 - keepHome));
-        if (G.power(u) > G.power(t.units) * (1.6 + 0.12 * t.b.muralla) && !s.marches.some(m => m.owner === 'roma' && s.cities[m.to].owner !== 'roma')) { G.send(id, n, u, G.heroAvailable(id)); break; }
+        const keepHome = id === G.capital() ? 0.35 : 0.2, u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (1 - keepHome));
+        if (G.power(u) > G.power(t.units) * (1.6 + 0.12 * t.b.muralla) && !s.marches.some(m => m.owner === 'roma' && s.cities[m.to].owner !== 'roma')) { if (s.senado) s.senado.permisos[t.owner] = 99999; G.send(id, n, u, G.heroAvailable(id)); break; }   // SN1: el bot declara la guerra por su cuenta
       }
     }
   }
@@ -922,7 +925,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
     while (c.fase === 'ejecucion') c.step(0.2); assert.strictEqual(a.cartaFx, null, 'se limpia al acabar la ronda'); }
   { const dist = (carta) => { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), r = propios(c)[0]; pon(g, 300, 600); pon(r, 300, 580); r.order = { k: 'move', x: 300, y: 400 }; if (carta) c.jugarCarta(carta); c.ejecutar(); for (let i = 0; i < 3; i++) c.step(0.1); const y0 = r.y; for (let i = 0; i < 6; i++) c.step(0.1); return y0 - r.y; };
     const n = dist(null), p = dist('paso'); assert(p > n * 1.2 && p < n * 1.3, 'paso doble ~x1,25: ' + p / n); }
-  { const daño = (carta) => { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), r = propios(c)[0], e = c.regs.find(q => q.side === 1); pon(g, 300, 600); pon(r, 300, 580); if (carta) c.jugarCarta(carta); c.ejecutar(); const m = r.men; c.hit(e, r, 600, false); return m - r.men; };
+  { const daño = (carta) => { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), r = propios(c)[0], e = c.regs.find(q => q.side === 1); pon(g, 300, 600); pon(r, 300, 580); if (carta) c.jugarCarta(carta); c.ejecutar(); const m = r.men; c.hit(e, r, 200, false); return m - r.men; };
     const n = daño(null), k = daño('cerrada'); assert(k < n && Math.abs(k / n - 0.85) < 0.1, 'cerrada recibe ~x0,85: ' + k / n); }
   // «Ver otra vez» sigue siendo idéntico con carta y retraso
   { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), P = propios(c); pon(g, 300, 600); pon(P[0], 300, 560); pon(P[1], 300, 250);
@@ -935,9 +938,9 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
 // N14. Campos amplios y relieve nuevo
 {
   const mk = (ter, ex) => new Battle(Object.assign({ sides: [side({ hastati: 200, velites: 80, equites: 60 }, { gen: { n: 'C' } }), side({ libios: 200, numidas: 60, honderos: 40, jinetes: 60 }, { gen: { n: 'S' } })], defender: 1, wall: 0, seed: 3, terreno: ter }, ex || {}));
-  // ancho variable: por defecto 1200; 1500 con más de 700 hombres; cfg.fw manda; mínimo 600
-  assert.strictEqual(mk('llano').W, 1200, 'ancho por defecto');
-  assert.strictEqual(new Battle({ sides: [side({ hastati: 500 }), side({ libios: 400 })], defender: 1, wall: 0, seed: 1 }).W, 1500, 'ejército grande: campo de 1500');
+  // ancho variable: por defecto 800 (R1); 1000 con más de 700 hombres; cfg.fw manda; mínimo 600
+  assert.strictEqual(mk('llano').W, 800, 'ancho por defecto');
+  assert.strictEqual(new Battle({ sides: [side({ hastati: 500 }), side({ libios: 400 })], defender: 1, wall: 0, seed: 1 }).W, 1000, 'ejército grande: campo de 1000');
   assert.strictEqual(mk('llano', { fw: 600 }).W, 600); assert.strictEqual(mk('llano', { fw: 300 }).W, 600, 'mínimo 600'); assert.strictEqual(mk('llano', { fw: 900 }).W, 900);
   for (const fw of [600, 1200, 1500]) for (const tpl of ['clasica', 'linea', 'ancha', 'tres', 'centro', 'alas']) {
     const b = mk('llano', { fw }); b.formar(0, tpl); b.formar(1, tpl);
@@ -1110,6 +1113,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
 
 // 8. Senado (Q7): favor, misiones, partida vieja, favor bajo
 {
+  D.SENADO.sala = false;   // SN1: este bloque prueba el Senado de Q7 (la sala nueva se prueba en test/senado.test.js)
   const s = G.newGame('Test'); G.turnos = false;
   assert(s.favor.senado === 50 && s.favor.pueblo === 50, 'favor inicial 50/50');
   let ma = G.misionActual(); assert(ma && ma.m.id === 'levas-heraclea' && ma.t1 === ma.t0 + ma.m.plazo && typeof ma.falta === 'string', 'misión nueva al empezar');
@@ -1136,6 +1140,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   // partida vieja sin favor
   const vieja = JSON.parse(JSON.stringify(s)); delete vieja.favor; delete vieja.mision; delete vieja.misionesHechas; delete vieja.proxMision; G.migrarSenado(vieja);
   assert(vieja.favor.senado === 50 && vieja.favor.pueblo === 50 && vieja.mision === null, 'partida vieja: favor 50 y sin misión');
+  D.SENADO.sala = true;
 }
 
 // N15. Equilibrio y objetivos: ancho de frente, bisoñas, objetivos de batalla, curva de equilibrio y dificultad por contexto
@@ -1212,7 +1217,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
     assert(c15 >= 0.9, 'el 1,5× gana casi siempre (' + c15 + ')'); assert(c1 >= 0.2 && c1 <= 0.85, 'igualados: reñido (' + c1 + ')'); assert(c85 <= 0.5 && c85 < c1, '0,85×: pierde casi siempre (' + c85 + ')'); assert(c67 <= 0.25 && c5 <= 0.1, 'el chico no gana sin plan (' + c67 + ', ' + c5 + ')');
     assert(conQ(0.85, 1.2) >= 0.5, 'calidad 1,2× con 0,85× gana a menudo'); assert(conQ(0.67, 1.2) <= 0.3, 'calidad 1,2× con 0,67× casi nunca');
     const c05 = conQ(1, 1.05); assert(c05 < 0.95 || c1 < 0.85, 'un 5 % de calidad no lo decide todo (' + c05 + ')');
-    let t = 0; for (let sd = 1; sd <= 3; sd++) t += EQ.una({ k: 0.5, seed: sd }).t; assert(t / 3 >= 120, 'muy desiguales: duran más de 2 min (' + Math.round(t / 3) + ' s)');
+    let t = 0; for (let sd = 1; sd <= 3; sd++) t += EQ.una({ k: 0.5, seed: sd }).t; assert(t / 3 >= 70, 'muy desiguales: duran más de 70 s (R1) (' + Math.round(t / 3) + ' s)');
     const bis = (b) => { let g = 0; for (let sd = 1; sd <= N; sd++) if (EQ.una({ seed: sd, A: { bis: b } }).gana) g++; return g / N; }; assert(bis(1) <= 0.3 && bis(1) < c1, 'la leva bisoña pierde contra la veterana (' + bis(1) + ')');
   }
   // dificultad por contexto: ficha con factores, y el nivel ordena el resultado
@@ -1279,7 +1284,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   }
   // columna y marcha agrupada
   {
-    const bt = mk({ hastati: 240, equites: 60, velites: 100 }, { hastati: 240 }); bt.empezar();
+    const bt = mk({ hastati: 240, equites: 60, velites: 100 }, { hastati: 240 }, { fw: 1200 }); bt.empezar();
     const hs = R(bt, 0, 'hastati')[0], eq = R(bt, 0, 'equites')[0], ve = R(bt, 0, 'velites')[0];
     const antes = Battle.forma(hs); hs.columna = true; const col = Battle.forma(hs); hs.columna = false;
     assert(col.ancho < antes.ancho && col.fondo > antes.fondo, 'la columna es larga y estrecha');
@@ -1469,7 +1474,7 @@ console.log('OK — todas las pruebas superadas');
   { const bi = mk('attack', { hastati: 10 }, { falange: 300 }, 0, true); assert.deepStrictEqual(bi.cfg.objetivo, { tipo: 'escapar', lado: 0 }); }
   { const bi = mk('attack', { hastati: 10 }, { falange: 300 }, 0, false); assert.strictEqual(bi.cfg.objetivo, undefined, 'sin héroe no se escapa'); }
   { const bi = mk('attack', { hastati: 300 }, { falange: 100 }, 3, true); assert.strictEqual(bi.cfg.objetivo.tipo, 'tomar'); assert.strictEqual(bi.cfg.objetivo.seg, 40); }
-  { const bi = mk('defend', { hastati: 100 }, { falange: 300 }, 0, false); assert.deepStrictEqual(bi.cfg.objetivo, { tipo: 'resistir', lado: 0, rondas: 12 }); }
+  { const bi = mk('defend', { hastati: 100 }, { falange: 300 }, 0, false); assert.deepStrictEqual(bi.cfg.objetivo, { tipo: 'resistir', lado: 0, rondas: 7 }); }
   { const bi = mk('defend', { hastati: 300 }, { falange: 100 }, 0, false); assert.strictEqual(bi.cfg.objetivo, undefined); }
   // bis del jugador entra en cfg
   c.units = { hastati: 100 }; c.levas = [{ u: 'hastati', n: 50, t: s.t }]; { const bi = G.battleInfo({ kind: 'defend', m: { id: 2, from: 'tarentum', to: 'roma', units: { falange: 10 }, owner: 'epiro', gen: null } }); assert.strictEqual(bi.cfg.sides[0].bis, 0.5); }
@@ -1635,4 +1640,264 @@ console.log('OK — todas las pruebas superadas');
   assert.strictEqual(CIMOD.nivelMuralla(e1), G.nivelMuralla(G.state.cities.syracusae), 'muralla enemiga coincide con la de la batalla');
   const vj = require('fs').readFileSync(__dirname + '/partida-vieja.json', 'utf8'); store['aqvila-save-v1'] = vj; assert(G.load() && G.ciudadE('roma'), 'partida vieja carga y convierte');
   delete global.localStorage; G.usarCiudad(null); console.log('CN9a: plantillas, conquistada, enemiga y partida vieja OK');
+}
+{ // CN14-B: ajustes de partida (dificultad, sucesos, asesor)
+  const fs = require('fs'), CIM = require('../js/ciudad.js'); G.usarCiudad(CIM);
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  const snap = () => JSON.stringify(G.myCities().map(id => [id, G.state.cities[id].pop, G.state.cities[id].ciudad]));
+  const vj = JSON.parse(fs.readFileSync(__dirname + '/partida-vieja.json', 'utf8')); delete vj.ajustes; store['aqvila-save-v1'] = JSON.stringify(vj);
+  assert(G.load()); let a = G.ajustes(); assert(a.dif === 'normal' && a.asesor === false && a.suc.crecida && a.suc.fuego && a.suc.hambre && a.hist.length === 0 && a.v === 0, 'partida vieja migra a Normal sin asesor');
+  G.migrarAjustes(G.state); assert.deepStrictEqual(G.ajustes(), a, 'migrar es idempotente');
+  const sN = G.newGame('Test', 'mediterraneo'); const nor = snap(); assert(G.avisoMeses() === 3 && G.ajustes().asesor === true, 'Normal avisa a 3 meses; asesor por defecto');
+  const sD = G.newGame('Test', 'mediterraneo', { dificultad: 'dura' }); assert(sD.ajustes.dif === 'dura' && G.avisoMeses() === 2); assert(snap() === nor, 'Roma y Capua nacen igual con dificultad dura');
+  assert(G.sucesosEn(0).dif === 'normal' && G.sucesosEn(9999).dif === 'dura'); assert(G.newGame('T', 'mediterraneo', { dificultad: 'rara' }).ajustes.dif === 'normal');
+  const v0 = G.ajustes().v, h0 = G.ajustes().hist.length;
+  for (const mal of [{ dif: 'x' }, { suc: { crecida: 1 } }, { suc: { lluvia: true } }, { asesor: 'si' }]) assert(!G.ponerAjustes(mal).ok, 'rechaza ' + JSON.stringify(mal));
+  assert.deepStrictEqual([G.ajustes().v, G.ajustes().hist.length], [v0, h0], 'lo rechazado no cambia nada');
+  assert(G.ponerAjustes({ asesor: false }).ok && G.ajustes().hist.length === h0 && G.ajustes().asesor === false);
+  // guardar/cargar con crecida apagada y un cambio a mitad: la ciudad no cambia
+  G.ponerAjustes({ suc: { crecida: false } }); for (let i = 0; i < 30; i++) G.tick(0.25); G.ponerAjustes({ dif: 'tranquila' }); for (let i = 0; i < 30; i++) G.tick(0.25);
+  const antes = snap(), hist = JSON.stringify(G.ajustes().hist); G.save(); assert(G.load()); assert.strictEqual(snap(), antes, 'cargar da la misma ciudad'); assert.strictEqual(JSON.stringify(G.ajustes().hist), hist);
+  assert(G.sucesosEn(G.state.ajustes.hist[G.state.ajustes.hist.length - 1][0]).on.crecida === false);
+  delete global.localStorage; G.usarCiudad(null); console.log('CN14-B: ajustes, migración y reproducibilidad OK (consejo del granero: solo en ui.js, para la captura)');
+}
+{ // I8-a: «Partida corta» (D.MODOS.corta): datos, fundar de la nada, equilibrio del bot, duración, final, campaña intacta y migración
+  const fs = require('fs'); G.usarCiudad(CIMOD); { const c0 = JSON.parse(CIUDADES_0); for (const id in c0) if (D.CITIES[id]) for (const k of ['g', 'w', 'wl', 'f', 'post', 'en228']) if (c0[id][k] !== undefined) D.CITIES[id][k] = c0[id][k]; }
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  const M = D.MODOS.corta, du = M.duracion, sitio = M.inicio.fundar.sitio;
+  assert(D.MODOS.campana && M.id === 'corta' && M.region === 'italia' && M.edades === 3 && D.REGIONES[M.region], 'D.MODOS: campaña y corta');
+  assert(D.COLONIAS[sitio] && D.CITIES[M.capitalRival] && D.FACTIONS[M.rival] && D.CITIES[M.capitalRival].f === M.rival, 'el sitio, la capital rival y el rival existen');
+  assert.strictEqual(du.segPorTurno, du.segReloj + du.segDecision, 'segPorTurno = reloj + decisión'); assert.strictEqual(du.segReloj, 3 * 4, 'el reloj de un turno: 3 meses a 4 s/mes');
+  assert(M.hasta < D.START_YEAR && /\{anio\}/.test(M.final.gana) && /\{anio\}/.test(M.final.pierde) && /\{hasta\}/.test(M.final.agota), 'textos finales con sus huecos');
+
+  // (c) campaña histórica intacta: sin modo (o con 'campana') la partida es la de siempre
+  { const a = JSON.stringify(G.newGame('Igual', 'italia')), sa = G.state, b = JSON.stringify(G.newGame('Igual', 'italia', { modo: 'campana' }));
+    assert.strictEqual(a, b, "modo 'campana' = sin modo, bit a bit"); assert.strictEqual(sa.modo, null); assert.strictEqual(sa.capital, undefined);
+    assert(G.modo() === null && G.modoFase() === null && !G.fundando() && G.factor('instr') === 1 && G.factor('guarnicion') === 1 && G.hasta() === 230 && G.capital() === 'roma' && G.edadMax() === 4 && G.capitalRival() === 'tarentum', 'sin modo todo vale como antes');
+    G.newGame('M'); assert(G.hasta() === D.END_YEAR && G.capitalRival() === 'carthago', 'Mediterráneo intacto'); }
+
+  // arranque «en pie»
+  { const s = G.newGame('Pie', null, { modo: 'corta', inicio: 'enPie' });
+    assert.deepStrictEqual(s.modo, { id: 'corta', inicio: 'enPie', fase: 'jugando' }); assert.strictEqual(s.region, 'italia'); assert.strictEqual(s.capital, 'roma'); assert.deepStrictEqual(G.myCities().sort(), ['capua', 'roma']);
+    assert(G.modo() === M && G.hasta() === 232 && G.factor('instr') === 1.6 && G.factor('saber') === 1 && G.edadMax() === 3 && !G.fundando());
+    assert(G.bonoMul('instr') > 0 && G.factor('guarnicion') === 3 && s.cities.tarentum.units.falange === Math.round(D.CITIES.tarentum.g.falange * 3), 'el rival parte con la guarnición del modo'); }
+  // arranque «fundar de la nada»
+  { const s = G.newGame('Nada', null, { modo: 'corta', inicio: 'fundar' });
+    assert.deepStrictEqual(s.modo, { id: 'corta', inicio: 'fundar', fase: 'fundando' }); assert(G.fundando() && G.modoFase() === 'fundando');
+    assert.deepStrictEqual(G.myCities(), [], 'sin ciudad'); assert(!s.cities.roma && !s.cities.capua && s.cities.tarentum && s.cities.volsinii, 'ni Roma ni Capua; el resto de Italia sí');
+    assert.strictEqual(s.colonias[sitio].estado, 'pendiente'); assert.deepStrictEqual(G.coloniasPendientes(), [sitio]); assert.strictEqual(s.hero.city, null); assert.strictEqual(s.capital, undefined);
+    const t0 = s.t; G.tick(1); G.tick(0.25); assert.strictEqual(s.t, t0, 'el tiempo no corre hasta fundar'); assert(!s.over && !s.pending.length && G.pasarTurno() === false);
+    assert(G.prod() && G.cap() === 0 && G.consejo() !== undefined, 'nada se rompe sin ciudades');   // G.consejo lee la partida
+    G.save(); assert(G.load()); assert(G.fundando() && G.state.colonias[sitio].estado === 'pendiente' && G.myCities().length === 0, 'guardar y cargar antes de fundar');
+    assert.strictEqual(G.fundarColonia(sitio, 0, -430).ok, false); assert(G.fundando(), 'un intento fallido no arranca la partida');
+    let pt = null; for (let x = -300; x <= 300 && !pt; x += 20) for (let z = -300; z <= 300 && !pt; z += 20) if (G.notaFundar(sitio, x, z).vale) pt = [x, z];
+    const f = G.fundarColonia(sitio, pt[0], pt[1]); assert(f.ok, f.motivo); const s2 = G.state;
+    assert(!G.fundando() && s2.modo.fase === 'jugando' && s2.capital === sitio && s2.hero.city === sitio && G.capital() === sitio && G.myCities().join() === sitio, 'fundada: capital, héroe y fase jugando');
+    assert(G.neighbors(sitio).includes(M.capitalRival) && !G.neighbors(sitio).some(n => !s2.cities[n]), 'la colonia llega a Tarento y a ningún lugar ausente');
+    const t1 = s2.t; for (let i = 0; i < 8; i++) G.tick(0.25); assert(s2.t > t1 && !s2.over, 'ya corre el tiempo');
+    G.save(); assert(G.load()); assert(G.state.modo.fase === 'jugando' && G.state.capital === sitio && G.myCities().join() === sitio, 'guardar y cargar tras fundar'); }
+  // sin la ciudad nueva no se puede fundar: cae a «en pie» (la interfaz siempre la tiene)
+  { G.usarCiudad(null); assert.strictEqual(G.newGame('S', null, { modo: 'corta', inicio: 'fundar' }).modo.inicio, 'enPie'); G.usarCiudad(CIMOD); }
+
+  // edades: el tope del modo
+  { const s = G.newGame('Ed', null, { modo: 'corta' }); s.inv.edad = 3; const r = G.edadUp(); assert(!r.ok && /última edad/.test(r.motivo), 'tope de 3 edades en la corta'); assert(G.invEstado('E4').e === 'edad');
+    const c = G.newGame('Ed2', 'italia'); c.inv.edad = 3; assert(G.edadMax() === 4 && G.invEstado('E4').e !== 'edad', 'la campaña sigue llegando a la edad IV'); }
+
+  // (a)+(b) el bot agresivo y el pasivo juegan la corta, en 10 semillas y en los dos inicios; se mide la duración
+  const horas = s => s.over.resumen.turnos * du.segPorTurno / 3600, tabla = [], todas = { agr: [], pas: [] };
+  for (const ini of ['enPie', 'fundar']) for (const ag of [true, false]) {
+    const l = []; for (let sd = 1; sd <= 10; sd++) {
+      const s = campaign(ag, sd, null, { modo: 'corta', inicio: ini }); l.push(s); todas[ag ? 'agr' : 'pas'].push(s);
+      assert(s.over && s.over.resumen && s.over.resumen.modo === 'corta' && s.over.resumen.inicio === ini && s.over.resumen.turnos > 0 && Math.abs(s.over.resumen.horas - horas(s)) < 0.01, 'resumen del final');
+      assert(['ciudades', 'fundadas', 'batallas', 'bajasEnemigas', 'bajasPropias', 'edad', 'anio', 'victorias'].every(k => typeof s.over.resumen[k] === 'number'), 'el resumen trae los datos de la pantalla final');
+      const dentro = new Set(D.regionCiudades('italia', true)); for (const id in s.cities) assert(dentro.has(id), 'ciudad fuera de la región: ' + id);
+      assert(s.region === 'italia' && s.inv.edad <= 3, 'región e edades de la corta');
+      if (ini === 'fundar') assert(!('roma' in s.cities) && !('capua' in s.cities) && s.capital === sitio, 'fundar: sin Roma ni Capua y capital = primera colonia');
+      assert(!/\{/.test(s.over.why), 'el texto final no deja huecos sin rellenar: ' + s.over.why);
+      if (s.over.win) assert(/Tarento ha caído en \d+ a\.C\./.test(s.over.why) && s.over.resumen.ciudades >= 2, 'victoria = capital rival tomada'); else assert(/capital ha caído|Tarento sigue libre/.test(s.over.why), 'derrota: capital perdida o año tope');
+    }
+    const w = l.filter(s => s.over.win), hs = l.map(horas), hw = w.map(horas);
+    tabla.push([ini, ag ? 'agresivo' : 'pasivo', w.length + '/10', hw.length ? Math.min(...hw).toFixed(2) + '-' + Math.max(...hw).toFixed(2) + ' h' : '-', (hs.reduce((a, b) => a + b, 0) / 10).toFixed(2) + ' h', l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t)).join(' ')]);
+    if (ag) assert(w.length >= 6, 'partida corta ' + ini + ': el agresivo gana la mayoría (' + w.length + '/10)'); else assert.strictEqual(w.length, 0, 'partida corta ' + ini + ': el pasivo no gana nunca');
+    for (const x of hw) assert(x >= du.horasMin && x <= du.horasMax, 'una victoria en ' + ini + ' dura ' + x.toFixed(2) + ' h, fuera de ' + du.horasMin + '-' + du.horasMax + ' h');
+    for (const x of hs) assert(x <= du.horasMax, 'ninguna partida pasa de ' + du.horasMax + ' h (' + x.toFixed(2) + ' h)');
+  }
+  console.log('Partida corta (' + du.segPorTurno + ' s por turno):'); for (const f of tabla) console.log('  ' + f[0].padEnd(7) + f[1].padEnd(9) + 'gana ' + f[2].padEnd(6) + 'victorias ' + f[3].padEnd(15) + 'media ' + f[4] + '  ' + f[5]);
+  assert(todas.agr.some(s => !s.over.win), 'el agresivo debe poder perder alguna'); assert(todas.agr.some(s => s.over.win && s.over.resumen.edad >= 1));
+
+  // (d) migración: partida vieja = campaña; una corta guarda y carga igual
+  { const raw = fs.readFileSync(__dirname + '/partida-vieja.json', 'utf8'); assert(JSON.parse(raw).modo === undefined); store['aqvila-save-v1'] = raw;
+    assert(G.load()); assert.strictEqual(G.state.modo, null); assert(G.modo() === null && G.capital() === 'roma' && G.edadMax() === 4 && !G.fundando(), 'partida vieja = campaña');
+    const m = G.migrarModo; const raro = { modo: { id: 'inventada' }, cities: {}, colonias: {} }; m(raro); assert.strictEqual(raro.modo, null, 'modo desconocido = campaña');
+    const s = G.newGame('Guarda', null, { modo: 'corta', inicio: 'enPie' }); for (let i = 0; i < 12; i++) G.tick(0.25); const antes = JSON.stringify({ m: s.modo, c: s.capital, t: s.t, ci: G.myCities() });
+    G.save(); assert(G.load()); assert.strictEqual(JSON.stringify({ m: G.state.modo, c: G.state.capital, t: G.state.t, ci: G.myCities() }), antes, 'la corta guarda y carga igual'); assert(G.modo() === M);
+    delete G.state.modo.fase; G.state.modo.inicio = 'rara'; G.migrarModo(G.state); assert(G.state.modo.inicio === 'enPie' && G.state.modo.fase === 'jugando', 'migrarModo repara un modo estropeado'); }
+  delete global.localStorage; G.onEvent = null; G.usarCiudad(null);
+  console.log('I8-a: partida corta OK (datos, fundar, equilibrio del bot, duración 2-4 h, final, campaña intacta, migración)');
+}
+{ // CN13a: arca del foro, ofrenda, juegos, ración y granero (bucles cortos)
+  const CIM = require('../js/ciudad.js'); G.usarCiudad(CIM);
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  const s = G.newGame('Fiestas', 'mediterraneo'), c = s.cities.roma;
+  assert(c.fiesta && c.fiesta.ofrenda === -99 && c.rac === 'normal', 'newGame trae c.fiesta y c.rac');
+  // coste = múltiplo del ingreso bruto mensual (foro + impuestos), con mínimo fijo; baja con menos ingreso
+  c.pop = 4000; c.imp = 'alto'; const pa = G.prod(), ia = pa.det.foro + pa.det.impuestos, ca = G.fiestaCoste('juegos');
+  assert.strictEqual(ca, Math.max(D.FIESTAS.juegos.min, Math.round(D.FIESTAS.juegos.mult * ia)), 'coste = múltiplo del ingreso');
+  c.imp = 'bajo'; const pb = G.prod(), cb = G.fiestaCoste('juegos'); assert(pb.det.impuestos < pa.det.impuestos && cb < ca, 'con menos ingreso, la fiesta cuesta menos (' + cb + ' < ' + ca + ')');
+  c.pop = 0; c.imp = 'normal'; assert(G.fiestaCoste('ofrenda') >= D.FIESTAS.ofrenda.min && G.fiestaCoste('juegos') >= D.FIESTAS.juegos.min, 'mínimo fijo');
+  // sin templo y sin oro no se puede
+  assert(G.fiestaInfo('roma', 'ofrenda').motivo, 'ofrenda sin templo: no se puede'); assert(!G.hacerFiesta('roma', 'ofrenda'));
+  s.res.oro = 0; s.alm.oro = 0; s.cuarto.oro = 0; assert(/oro/i.test(G.fiestaInfo('roma', 'juegos').motivo) && !G.hacerFiesta('roma', 'juegos'), 'juegos sin oro');
+  assert.strictEqual(G.fiestaInfo('capua', 'juegos').motivo !== null || s.cities.capua.owner === 'roma', true);
+  // juegos: efecto en favor, inquietud, felicidad y reposo
+  s.res.oro = 900; c.inq = 8; const f0 = G.favor().pueblo, fel0 = G.felicidadBase(c), oro0 = s.res.oro, co = G.fiestaInfo('roma', 'juegos').coste;
+  assert(G.hacerFiesta('roma', 'juegos'), 'hace los juegos'); assert.strictEqual(oro0 - s.res.oro, co, 'cobra su coste en oro');
+  assert(G.favor().pueblo > f0 && c.inq === 8 - D.FIESTAS.juegos.inq && G.felicidadBase(c) === fel0 + D.FIESTAS.juegos.fel, 'favor, inquietud y felicidad');
+  let fi = G.fiestaInfo('roma', 'juegos'); assert(fi.activa && fi.quedan >= 1 && fi.reposo > 0 && fi.motivo, 'activa y en reposo'); assert(!G.hacerFiesta('roma', 'juegos'), 'no se repite en reposo');
+  s.t += D.FIESTAS.juegos.dura + 0.1; assert(!G.fiestaInfo('roma', 'juegos').activa && G.felicidadBase(c) === fel0, 'el efecto acaba'); s.t += D.FIESTAS.juegos.reposo; assert(!G.fiestaInfo('roma', 'juegos').motivo, 'tras el reposo se puede');
+  // ofrenda: con templo; duplica el don de Ceres un mes; se paga con grano / lo que sobra
+  c.b.templo = 2; c.dios = 'ceres'; s.res.grano = 800; const g0 = G.prod().grano, gr0 = s.res.grano;
+  fi = G.fiestaInfo('roma', 'ofrenda'); assert(!fi.motivo && fi.pago && fi.pago.grano > 0, 'ofrenda pagable con grano: ' + JSON.stringify(fi));
+  assert(G.hacerFiesta('roma', 'ofrenda') && s.res.grano < gr0, 'la ofrenda gasta'); assert(G.diosNivel(c) === 4 && G.prod().grano > g0 - D.FIESTAS.ofrenda.min, 'duplica el nivel del dios'); assert(G.prod().grano > g0 - 100);
+  assert.strictEqual(G.ciudadE('roma').fiesta, 'ofrenda', 'E.fiesta marca la ofrenda'); assert(!G.hacerFiesta('roma', 'ofrenda'), 'una al mes');
+  s.t += 1.1; assert.strictEqual(G.diosNivel(c), 2, 'tras un mes el don vuelve a su nivel');
+  // el arca y los campos de pantalla
+  s.res.madera = G.cap() * 2; const ar = G.arca('roma'); assert(ar.nivel >= 1 && ar.nivel <= 4 && ar.sobra.madera > 0 && ar.oro > 0 && ar.cap === G.cap() && ar.pct >= 0, 'arca ve lo que se perderá'); assert.strictEqual(G.ciudadE('roma').arca, ar.nivel);
+  const pagoArca = G.fiestaPago('ofrenda', 100); assert(pagoArca && pagoArca.madera > 0, 'la ofrenda se paga con lo que sobra');
+  const E = G.ciudadE('roma'); assert(E.mendigos >= 0 && E.mendigos <= 8 && E.arca >= 0 && E.arca <= 4);
+  // ración: baja el consumo de grano
+  s.res.madera = 0; c.pop = 400; const cm = G.prod().comida; assert(G.setRacion('roma', 'escasa') && !G.setRacion('roma', 'x')); const cm2 = G.prod().comida; assert(cm2 < cm, 'ración escasa gasta menos'); c.rac = 'normal';
+  // granero
+  const gi = G.graneroInfo('roma'); assert(gi.pct >= 0 && gi.pct <= 100 && typeof gi.invierno === 'boolean' && typeof gi.hambre === 'boolean' && (gi.meses === null || gi.meses >= 0), 'graneroInfo');
+  s.res.grano = 0; s.alm.grano = 0; assert.strictEqual(G.graneroInfo('roma').hambre, G.prod().grano < 0, 'hambre = sin grano y consumo mayor que producción');
+  // guardar y cargar con fiesta y ración
+  s.res.oro = 900; s.t += 6; G.hacerFiesta('roma', 'juegos'); c.rac = 'escasa'; G.save(); assert(G.load()); const c2 = G.state.cities.roma;
+  assert(c2.fiesta.juegos === c.fiesta.juegos && c2.rac === 'escasa' && G.fiestaActiva(c2, 'juegos'), 'c.fiesta y c.rac sobreviven a guardar y cargar');
+  delete c2.fiesta; delete c2.rac; store['aqvila-save-v1'] = JSON.stringify(G.state); assert(G.load() && G.state.cities.roma.fiesta.juegos === -99 && G.state.cities.roma.rac === 'normal', 'partida vieja sin c.fiesta/c.rac migra');
+  delete global.localStorage; G.usarCiudad(null); console.log('CN13a: arca, ofrenda, juegos, ración y granero OK');
+}
+{   // NB7: batalla nueva conectada con la campaña, tribunos-generales e interruptor (test/nb7.test.mjs)
+  const r = require('child_process').spawnSync(process.execPath, [__dirname + '/nb7.test.mjs'], { encoding: 'utf8', timeout: 120000 });
+  assert(r.status === 0, 'NB7: ' + String(r.stdout).split('\n').filter(l => /^MAL/.test(l)).join(' | ') + String(r.stderr).slice(0, 300)); console.log('NB7: batalla nueva, tribunos e interruptor OK');
+}
+{ // CN13b: dique y techado de barrio por la API del juego, y guardar/cargar por G.load
+  const CIM = require('../js/ciudad.js'); G.usarCiudad(CIM);
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  const s = G.newGame('Tejas', 'mediterraneo'), c = s.cities.roma; for (const r of ['madera', 'piedra', 'hierro', 'grano', 'oro']) { s.res[r] = 5000; s.alm[r] = 0; }
+  let E = G.ciudadE('roma'), t = G.techoInfo('roma', 0); assert(E.abiertas.includes('dique'), 'Roma tiene el dique en la bandeja');
+  assert(t.coste && t.coste.madera > 0 && t.plazo === CIM.TECHO_MESES && !t.motivo && t.casas > 0, 'techoInfo trae coste y plazo: ' + JSON.stringify(t));
+  assert(!G.techoInfo('no', 0).coste === true || G.techoInfo('no', 0).motivo, 'solo en tus ciudades'); assert(G.techoInfo('roma', 99).motivo, 'barrio inexistente');
+  const m0 = s.res.madera; assert(G.techarBarrio('roma', 0), 'techar el barrio'); assert(s.res.madera < m0, 'cobra'); E = G.ciudadE('roma');
+  assert(typeof E.barrios[0].tejas === 'number' && E.barrios[0].tejas === E.mesN + CIM.TECHO_MESES, 'plazo en meses'); assert(!G.techarBarrio('roma', 0) && /marcha/.test(G.techoInfo('roma', 0).motivo), 'no se repite');
+  assert(c.ciudad.acciones.some(a => a.a === 'j' && a.i === 0), 'la acción va al diario guardado');
+  // dique por la cola de obras del juego
+  let sitio = null; for (const e of [E]) sitio = CIM.mejorSitio(e, 'dique'); assert(sitio, 'hay sitio para el dique'); const rd = G.colocar('roma', 'dique', sitio[0], sitio[1]); assert(rd.ok, 'dique encargado: ' + JSON.stringify(rd));
+  const ped = () => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; } };
+  assert(c.obras.some(o => o.pieza === 'dique'), 'el dique está en la cola de obras'); hasta(c, ped); G.state.pending.length = 0; E = G.ciudadE('roma'); assert(E.edificios.some(e => e.tipo === 'dique' && !e.obra) || c.obras.length === 0, 'el dique se termina');
+  const tej = E.barrios[0].tejas, nE = E.edificios.length, ark = JSON.stringify(c.ciudad.acciones);
+  G.save(); assert(G.load(), 'carga'); const c2 = G.state.cities.roma, E2 = G.ciudadE('roma');
+  assert(E2.barrios[0].tejas === tej, 'el techado sobrevive a G.load'); assert(E2.edificios.some(e => e.tipo === 'dique') && E2.edificios.length === nE, 'el dique sobrevive a G.load'); assert(JSON.stringify(c2.ciudad.acciones) === ark, 'mismo diario');
+  // partida vieja: sin tejas ni marcas
+  const F = JSON.parse(JSON.stringify(G.state)); F.cities.roma.ciudad.acciones = F.cities.roma.ciudad.acciones.filter(a => a.a !== 'j' && !(a.a === 'c' && a.tipo === 'dique')); store['aqvila-save-v1'] = JSON.stringify(F); assert(G.load(), 'carga vieja');
+  const E3 = G.ciudadE('roma'); assert(E3.barrios[0].tejas === undefined && Array.isArray(E3.marcas), 'sin tejas ni marcas: valores por defecto');
+  delete global.localStorage; G.usarCiudad(null); console.log('CN13b: techado, dique, guardar y cargar OK');
+}
+{ // J3: pueblos satélite de cada capital
+  const s = G.newGame('Pueblos'); G.turnos = false; G.state = s; const c = s.cities.roma;
+  assert(G.esCapital('roma') && c.pueblos.length === D.CITIES.roma.pueblos.length && c.pueblos.every(n => n === 0) && c.pobra === null, 'estado inicial: todo a 0');
+  for (const id in D.CITIES) { const n = D.CITIES[id].pueblos.length; assert(n >= 2 && n <= 4, id + ': 2 a 4 huecos'); assert(s.cities[id].pueblos.length === n); }
+  const ag = D.CITIES.roma.pueblos.indexOf('agricolas'), p0 = G.prod(), cap0 = G.popCap(c), m0 = G.mantenimiento().total;
+  assert(G.puebloOk('roma', ag), 'se puede fundar'); s.res.madera = s.res.piedra = s.res.grano = s.res.oro = 1000; s.alm.madera = s.alm.piedra = s.alm.grano = 1000;
+  const c1 = G.puebloCoste('roma', ag), r0 = s.res.madera + s.alm.madera; assert(G.puebloMejorar('roma', ag), 'se funda'); assert(s.res.madera + s.alm.madera < r0, 'cuesta');
+  assert(!G.puebloMejorar('roma', ag) && !G.puebloOk('roma', ag), 'una obra de pueblo a la vez'); assert(G.pueblosDe('roma')[ag].obra, 'obra en curso');
+  s.pending.length = 0; G.tick(0.01); assert.strictEqual(c.pueblos[ag], 0, 'tarda');
+  s.t = c.pobra.t1; G.tick(0.01); assert.strictEqual(c.pueblos[ag], 1, 'termina en el tick'); assert(c.pobra === null);
+  const c2 = G.puebloCoste('roma', ag), t1 = G.puebloTiempo('roma', ag); assert(c2.madera > c1.madera && t1 > D.PUEBLO_TIPOS.agricolas.time, 'el siguiente nivel cuesta y tarda más');
+  const pp = G.puebloProd('roma'); assert(pp.grano > 0 && pp.madera === 0, 'produce grano'); assert(G.prod().grano > p0.grano, 'G.prod lo suma');
+  assert(G.puebloPop('roma') === D.PUEBLO_TIPOS.agricolas.pop && G.popCap(c) === cap0 + D.PUEBLO_TIPOS.agricolas.pop, 'sube la población máxima');
+  assert(Math.abs(G.mantenimiento().total - m0 - D.MANT_EDIF * 0.5) < 1e-9, 'mantenimiento por nivel');
+  assert(G.pueblosResumen().n === 1 && G.pueblosResumen().niveles === 1);
+  c.pueblos[ag] = D.PUEBLO_MAX; assert(!G.puebloOk('roma', ag) && !G.puebloMejorar('roma', ag), 'no pasa del nivel máximo');
+  // pescadores solo con mar
+  const sinMar = Object.keys(D.CITIES).filter(id => !D.CITIES[id].sea), conMar = Object.keys(D.CITIES).filter(id => D.CITIES[id].sea);
+  assert(sinMar.every(id => D.CITIES[id].pueblos.indexOf('pescadores') < 0), 'ciudades sin costa no tienen pescadores'); assert(conMar.some(id => D.CITIES[id].pueblos.indexOf('pescadores') >= 0));
+  const f0 = D.CITIES.volsinii.pueblos.slice(); D.CITIES.volsinii.pueblos[0] = 'pescadores'; s.cities.volsinii.owner = 'roma'; assert(!G.puebloOk('volsinii', 0), 'pescadores sin mar: no'); D.CITIES.volsinii.pueblos = f0;
+  assert(!G.puebloOk('syracusae', 0), 'ciudad ajena no se funda');
+  const pes = D.CITIES.tarentum.pueblos.indexOf('pescadores'); s.cities.tarentum.owner = 'roma'; s.cities.tarentum.pueblos[pes] = 2; const pt = G.puebloProd('tarentum'); assert(pt.grano > 0 && pt.oro > 0, 'pescadores dan grano y oro');
+  // partida vieja
+  const v = JSON.parse(JSON.stringify(s)); for (const id in v.cities) { delete v.cities[id].pueblos; delete v.cities[id].pobra; } G.migrarPueblos(v);
+  assert(v.cities.roma.pueblos.length === D.CITIES.roma.pueblos.length && v.cities.roma.pueblos.every(n => n === 0) && v.cities.roma.pobra === null, 'migración de partida vieja'); G.state = s; }
+
+{ // CN19-A: terrenos de colonia (costa, pantano, terrazas, llanura) como reglas sobre el mismo relieve
+  const CT = require('../js/ciudad.js'); G.usarCiudad(null);
+  const mk = t => { const E = CT.crear(1); CT.fijarTerreno(E, t); return E; };
+  const NT = ['rio', 'costa', 'pantano', 'terrazas', 'llanura'];
+  // datos: terrenos, reglas y copia de reserva
+  assert.deepStrictEqual(Object.keys(D.TERRENOS), NT, 'cinco terrenos, el río primero');
+  for (const t of NT) assert(D.TERRENOS[t].n && D.TERRENOS[t].d && D.TERRENO_REGLAS[t], 'terreno completo: ' + t);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(CT.TERRENO_RESERVA)), JSON.parse(JSON.stringify(D.TERRENO_REGLAS)), 'la copia de reserva de ciudad.js coincide con D.TERRENO_REGLAS');
+  assert.deepStrictEqual(Object.keys(D.PIEZAS_TERRENO).sort(), ['salinas', 'zanja']);
+  assert(CT.EDIF.salinas.radio === D.TERRENO_REGLAS.costa.salinasRadio && CT.EDIF.zanja.radio === D.TERRENO_REGLAS.pantano.zanjaRadio, 'los radios de las piezas son los de la tabla');
+  const esperado = { cosa: 'costa', brundisium: 'costa', ariminum: 'costa', cremona: 'pantano', placentia: 'llanura', bononia: 'llanura', beneventum: 'terrazas', aesernia: 'terrazas' };
+  for (const id in D.COLONIAS) assert.strictEqual(D.COLONIAS[id].terreno, esperado[id], 'terreno de ' + id); assert.strictEqual(D.terrenoDe('roma'), 'rio'); assert.strictEqual(D.terrenoDe('capua'), 'rio');
+  const R = mk('rio'), K = mk('costa'), P = mk('pantano'), T = mk('terrazas'), L = mk('llanura');
+  assert.strictEqual(CT.crear(1).terreno, undefined); assert(CT.aDatos(CT.crear(1)).terreno === 'rio', 'sin terreno = río'); assert.strictEqual(mk('inventado').terreno, 'rio');
+  // piezas abiertas solo donde toca
+  assert(K.abiertas.includes('salinas') && !K.abiertas.includes('zanja') && P.abiertas.includes('zanja') && !P.abiertas.includes('salinas') && !R.abiertas.includes('salinas') && !R.abiertas.includes('zanja') && !T.abiertas.includes('salinas'), 'salinas solo en la costa, zanja solo en el pantano');
+  // llanura: sin bono de loma, sin defensa natural, sitios más anchos, muralla más barata
+  const nR = CT.notaFundar(R, 160, 20), nL = CT.notaFundar(L, 160, 20);
+  assert(nR.razones.some(t => /loma/.test(t)) && !nL.razones.some(t => /loma/.test(t)) && nL.razones.some(t => /Sin defensa natural/.test(t)) && nL.nota < nR.nota, 'llanura: ' + nL.razones.join(' · '));
+  let ll = null; for (let x = -240; x <= 240 && !ll; x += 8) for (let z = -400; z <= 220 && !ll; z += 8) { const q = CT.notaFundar(L, x, z); if (q.vale && q.razones.some(t => /Llanura abierta/.test(t))) ll = [x, z]; } assert(ll && CT.notaFundar(L, ll[0], ll[1]).nota - CT.notaFundar(R, ll[0], ll[1]).nota !== 0, 'llanura: +1 llano y \u22122 sin defensa');
+  for (const E of [R, L]) assert(CT.fundar(E, 172, -196)); assert(L.parcelas.length > R.parcelas.length, 'llanura: más parcelas (' + L.parcelas.length + ' > ' + R.parcelas.length + ')');
+  const mR = CT.murallaSiguiente(R).coste, mL = CT.murallaSiguiente(L).coste; assert(CT.RECURSOS.every(r => mL[r] <= mR[r]) && mL.piedra < mR.piedra, 'llanura: muralla más barata');
+  // terrazas: tolera más pendiente y da +1
+  let tz = null; for (let x = -240; x <= 240 && !tz; x += 8) for (let z = -400; z <= 220 && !tz; z += 8) if (!CT.notaFundar(R, x, z).vale && CT.notaFundar(T, x, z).vale) tz = [x, z];
+  assert(tz, 'hay una ladera que solo vale en terrazas'); assert(CT.notaFundar(T, tz[0], tz[1]).razones.some(t => /Terrazas en la ladera/.test(t)));
+  assert.strictEqual(CT.notaFundar(R, 172, -196).razones.some(t => /Terrazas/.test(t)), false);
+  // pantano: ribera más ancha, suelo encharcado
+  let pz = null; for (let x = -240; x <= 240 && !pz; x += 8) for (let z = -400; z <= 220 && !pz; z += 8) if (CT.inundable(x, z, 'pantano') && !CT.inundable(x, z) && CT.notaFundar(P, x, z).vale) pz = [x, z];
+  assert(pz, 'hay ribera que solo se inunda en el pantano'); assert(CT.ribera(P, pz[0], pz[1], 5) && !CT.ribera(R, pz[0], pz[1], 5), 'ribera ancha en el pantano');
+  assert(CT.notaFundar(P, pz[0], pz[1]).razones.some(t => /Suelo encharcado/.test(t)) && !CT.notaFundar(R, pz[0], pz[1]).razones.some(t => /encharcado/.test(t)));
+  for (let x = -240; x <= 240; x += 16) for (let z = -400; z <= 220; z += 16) if (CT.inundable(x, z)) assert(CT.inundable(x, z, 'pantano'), 'la ribera del río siempre es ribera del pantano');
+  // costa: salinas dan oro y restan a las granjas
+  { const E = K; assert(CT.fundar(E, 172, -196)); const g = CT.colocar(E, 'granja', 316, -148, true); assert(g.ok); g.e.obra = 0; E.mesN++;
+    const i0 = CT.ingreso(E), r0 = CT.rindeGranja(E, g.e), vale = CT.notaSitio(E, 'salinas', 288, -200); assert(vale.vale && vale.efecto.n === -1 && vale.razones.some(t => /estropear/.test(t)), vale.razones.join(' · '));
+    const s = CT.colocar(E, 'salinas', 288, -200, true); assert(s.ok); assert.strictEqual(CT.ingreso(E), i0, 'una obra sin terminar no rinde'); s.e.obra = 0;
+    const r1 = CT.rindeGranja(E, g.e); assert(r1.prod === r0.prod - 1 && r1.fam === r0.fam - 0.5 && r1.mul < 1, 'la granja rinde menos junto a las salinas');
+    assert.strictEqual(CT.oroTerreno(E), D.TERRENO_REGLAS.costa.salinasOro); assert.strictEqual(CT.ingreso(E), i0 + D.TERRENO_REGLAS.costa.salinasOro - 1, 'salinas: +' + D.TERRENO_REGLAS.costa.salinasOro + ' oro y -1 de la granja');
+    let sec = null; for (let x = -240; x <= 240 && !sec; x += 16) for (let z = -400; z <= 220 && !sec; z += 16) { const q = CT.notaSitio(E, 'salinas', x, z); if (!q.vale && /junto al agua/.test(q.razones[0])) sec = [x, z]; } assert(sec, 'las salinas piden agua cerca (drio < ' + D.TERRENO_REGLAS.costa.salinasDrio + ')'); }
+  { const E = R; const g = CT.colocar(E, 'granja', 316, -148, true); assert(g.ok); g.e.obra = 0; assert(!CT.notaSitio(E, 'salinas', 288, -200).vale, 'sin costa no hay salinas'); }
+  // pantano: la zanja baja la ruina de la crecida de las casas cercanas
+  { const crecida = zanja => { const E = mk('pantano'); assert(CT.fundar(E, pz[0], pz[1])); CT.sembrarCasas(E, 400); const bajas = CT.casas(E).filter(c => CT.ribera(E, c.x, c.z, 3));
+      assert(bajas.length >= 3, 'casas en la ribera ancha: ' + bajas.length); const cx = bajas.reduce((a, c) => a + c.x, 0) / bajas.length, cz = bajas.reduce((a, c) => a + c.z, 0) / bajas.length;
+      let z = null; if (zanja) { let m = -1e9; for (let dx = -50; dx <= 50; dx += 6) for (let dz = -50; dz <= 50; dz += 6) { const q = CT.notaSitio(E, 'zanja', cx + dx, cz + dz); if (q.vale && q.nota > m) { m = q.nota; z = [cx + dx, cz + dz]; } } assert(z, 'sitio para la zanja'); const r = CT.colocar(E, 'zanja', z[0], z[1], true); assert(r.ok); r.e.obra = 0; }
+      let n = 0; while (CT.fecha(E).mes !== 1 && n++ < 24) CT.mes(E); CT.mes(E); assert.strictEqual(CT.fecha(E).mes, 2); // el mes de la crecida
+      const zz = z; const cerca = c => zz && Math.hypot(c.x - zz[0], c.z - zz[1]) < CT.EDIF.zanja.radio;
+      const l = E.parcelas.filter(q => q.casa && q.casa.ruina && CT.ribera(E, q.x, q.z) && (!zanja || cerca(q))).map(q => q.casa.ruina); return { l, E, z }; };
+    const a = crecida(false), b = crecida(true);
+    assert(a.l.length && a.l.every(v => v === 5), 'sin zanja la crecida deja 5 meses de ruina: ' + a.l.join());
+    assert(b.l.length && b.l.every(v => v < 5), 'con zanja, las casas protegidas sufren menos: ' + b.l.join()); assert(b.l.every(v => v === Math.round(5 * D.TERRENO_REGLAS.pantano.zanjaRuina)), 'ruina = 5 x ' + D.TERRENO_REGLAS.pantano.zanjaRuina);
+    const ca = { x: 0, z: 0 }; const hecha = CT.casas(b.E)[0]; assert(CT.ruinaCasa(R, hecha, 5, true) === 5, 'en el río no cambia'); }
+  // terrazas: las casas en pendiente cuestan más obra; las granjas rinden más en ladera
+  { const E = mk('terrazas'); assert(CT.fundar(E, 172, -196)); let l = null; for (let x = -240; x <= 240 && !l; x += 6) for (let z = -400; z <= 220 && !l; z += 6) { const k = { x, z }; if (CT.ruinaCasa(E, k, 5) > 5) l = k; }
+    assert(l && CT.ruinaCasa(E, l, 5) === 5 + D.TERRENO_REGLAS.terrazas.casaRuina, 'casa en pendiente: obra más larga'); assert.strictEqual(CT.ruinaCasa(E, { x: 160, z: 20 }, 5), 5, 'en llano igual');
+    let gp = null, gl = null; for (let x = -240; x <= 240; x += 8) for (let z = -400; z <= 220; z += 8) { const q = CT.notaSitio(E, 'granja', x, z); if (!q.vale) continue; const r = CT.rindeGranja(E, { x, z, vega: false }), r0 = CT.rindeGranja(R, { x, z, vega: false }); if (r.prod > r0.prod && !gp) gp = r; if (r.prod === r0.prod) gl = r; }
+    assert(gp && gp.prod === 3 + D.TERRENO_REGLAS.terrazas.granjaProd && gp.mul > 1, 'granja en pendiente rinde más'); assert(gl && gl.prod === 3); }
+  // guardar -> cargar conserva el terreno y la ciudad; datos viejos = río
+  for (const t of NT) { const E = mk(t); assert(CT.fundar(E, 172, -196)); const pz2 = t === 'costa' ? CT.colocar(E, 'salinas', 288, -200, true) : t === 'pantano' ? CT.colocar(E, 'zanja', 140, -230, true) : { ok: true }; if (t === 'costa') assert(pz2.ok);
+    for (let i = 0; i < 14; i++) CT.mes(E); const d = JSON.parse(JSON.stringify(CT.aDatos(E))); assert.strictEqual(d.terreno, t); const F = CT.deDatos(d);
+    assert.strictEqual(F.terreno, t); assert.strictEqual(F.edificios.length, E.edificios.length); assert.strictEqual(CT.poblacion(F), CT.poblacion(E), 'la ciudad rehecha es la misma (' + t + ')'); assert.strictEqual(JSON.stringify(F.abiertas), JSON.stringify(E.abiertas));
+    delete d.terreno; const V = CT.deDatos(d); assert.strictEqual(V.terreno, 'rio', 'datos viejos sin terreno = río'); assert(!V.abiertas.includes('salinas') && !V.abiertas.includes('zanja')); }
+  // la partida: el sitio da el terreno, la ciudad fundada lo conserva y guarda/carga
+  { const store = {}; global.localStorage = { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } }; G.usarCiudad(CT);
+    const s = G.newGame('Terreno', null, { modo: 'corta', inicio: 'fundar' }); const sitio = G.modo().inicio.fundar.sitio, E = G.ciudadPendiente(sitio); assert(E, 'ciudad pendiente'); assert.strictEqual(E.terreno, D.terrenoDe(sitio)); assert.strictEqual(s.colonias[sitio].E.terreno, D.terrenoDe(sitio), 'k.E guarda el terreno');
+    let pt = null; for (let x = -240; x <= 240 && !pt; x += 20) for (let z = -300; z <= 200 && !pt; z += 20) if (G.notaFundar(sitio, x, z).vale && Math.hypot(x - 172, z + 196) < 400) pt = [x, z]; const f = G.fundarColonia(sitio, pt[0], pt[1]); assert(f.ok, f.motivo);
+    assert.strictEqual(s.cities[sitio].ciudad.terreno, D.terrenoDe(sitio), 'la ciudad fundada conserva el terreno'); assert(G.ciudadE(sitio).terreno === D.terrenoDe(sitio));
+    G.save(); assert(G.load()); assert.strictEqual(G.state.cities[sitio].ciudad.terreno, D.terrenoDe(sitio)); assert.strictEqual(G.ciudadE(sitio).terreno, D.terrenoDe(sitio), 'guardar y cargar conserva el terreno');
+    G.save(); { const j = JSON.parse(store['aqvila-save-v1']); delete j.cities[sitio].ciudad.terreno; store['aqvila-save-v1'] = JSON.stringify(j); } assert(G.load()); assert.strictEqual(G.ciudadE(sitio).terreno, 'rio', 'partida vieja sin terreno = río');
+    delete global.localStorage; G.usarCiudad(null); }
+  // nada de NaN en ninguna cifra
+  for (const t of NT) { const E = mk(t); assert(CT.fundar(E, 172, -196)); for (let x = -240; x <= 240; x += 40) for (let z = -400; z <= 220; z += 40) { const q = CT.notaFundar(E, x, z); assert(Number.isFinite(q.nota), 'nota finita ' + t); }
+    for (let i = 0; i < 6; i++) CT.mes(E); assert(Number.isFinite(CT.ingreso(E)) && Number.isFinite(CT.oroTerreno(E)) && Number.isFinite(CT.poblacion(E)), 'sin NaN en ' + t); for (const e of E.edificios.filter(q => q.tipo === 'granja')) assert(Object.values(CT.rindeGranja(E, e)).every(Number.isFinite)); }
+  console.log('CN19-A: terrenos (río, costa, pantano, terrazas, llanura), salinas, zanja, guardado y migración OK');
 }

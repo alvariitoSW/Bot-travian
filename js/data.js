@@ -56,6 +56,24 @@
   // mejoras de la herrería: globales, nivel 0 a FORJA_MAX, +5 % por nivel. Coste y tiempo base (nivel 0), crecen x1.5 y x1.4 por nivel
   /* Impuestos: oro x mult, felicidad +/- f. Edificios que suben la felicidad: puntos por nivel (D.FELICIDAD_EDIF). */
   D.IMPUESTOS = { bajo: { n: 'Impuestos bajos', mult: 0.7, f: 15 }, normal: { n: 'Impuestos normales', mult: 1, f: 0 }, alto: { n: 'Impuestos altos', mult: 1.4, f: -25 } };
+  /* CN13a: fiestas del Foro y del Templo. Licencia de juego en todas las cifras y en el reparto «una ofrenda al mes»; lo real: los ludi eran fiestas públicas pagadas
+     por magistrados y las ofrendas a los dioses (supplicationes, ver sacrum) las ordenaba el Senado (Livio 22.9-10; fichas 'ofrenda' y 'juegos' de registro.js).
+     coste = max(min, mult x ingreso bruto mensual del foro y los impuestos): sigue a la economía. dura = meses de efecto; reposo = meses hasta repetir; fel = felicidad mientras dura;
+     pueblo = favor del pueblo al celebrarla; inq = meses de inquietud que calma en una ciudad conquistada; dios = multiplica el don del dios del templo mientras dura.
+     La ofrenda se paga con lo que el arca iba a perder por el tope (o con grano); los juegos, con oro. */
+  D.FIESTAS = {
+    ofrenda: { n: 'Ofrenda al templo', i: '🏺', mult: 2, min: 60, dura: 1, reposo: 1, fel: 4, pueblo: 2, inq: 0, dios: 2, pago: 'arca', templo: true, d: 'Duplica un mes el don del dios del templo.' },
+    juegos: { n: 'Juegos públicos', i: '🎭', mult: 4, min: 150, dura: 3, reposo: 6, fel: 10, pueblo: 5, inq: 4, dios: 1, pago: 'oro', templo: false, d: 'Calman al pueblo y a una ciudad conquistada.' }
+  };
+  /* Remedios contra los sucesos de la ciudad (CN13b): solo nombre y texto. Reglas y cifras viven en ciudad.js (EDIF.dique, techarBarrio); aquí van para que tengan ficha histórica. */
+  D.REMEDIOS = {
+    dique: { n: 'Dique contra la crecida', i: '🌊', d: 'Un dique en la orilla guarda de la crecida las casas de su alrededor.' },
+    tejas: { n: 'Techos de teja', i: '🏠', d: 'Un barrio techado con tejas no se incendia de casa en casa.' }
+  };
+  /* Racionar el grano (CN13a): gasta menos y el pueblo lo nota. Es la ración de la ciudad (c.rac); no es el «hambre» del invierno (E.hambre) ni la de G.tick (grano agotado). */
+  D.RACION = { normal: { n: 'Ración normal', grano: 1, f: 0, d: 'Come todo el mundo.' }, escasa: { n: 'Ración escasa', grano: 0.7, f: -8, d: 'Un 30 % menos de grano; el pueblo se queja.' } };
+  /* El arca del foro cuenta lo que el tope del almacén va a hacer perder. valor = oro que vale cada unidad (mercado); umbrales = fracción del tope (en oro) para los niveles 1 a 4. */
+  D.ARCA = { valor: { madera: 0.5, piedra: 0.6, hierro: 0.8, grano: 0.5, oro: 1 }, umbrales: [0.02, 0.1, 0.25, 0.5], pide: 3 };
   D.FELICIDAD_BASE = 55;   // + 5 del municipio (tipo por defecto) = 60, como antes de I4
   D.FELICIDAD_MIN_CRECER = 40;
   D.FELICIDAD_EDIF = { templo: 4, mercado: 2 };   // CN10: sin termas ni anfiteatro (no existían antes del 146 a.C.), su felicidad pasa al templo y al mercado
@@ -265,6 +283,32 @@
 
   for (const e of D.EDGES) if (e[2]) { D.CITIES[e[0]].sea = true; D.CITIES[e[1]].sea = true; }   // ciudades con salida al mar
 
+  /* ---------- Pueblos (J3): satélites productivos de cada capital. Cifras = licencia de juego ----------
+     Cada ciudad de D.CITIES es la capital de su territorio (gobierna, recluta y comercia). Sus pueblos PRODUCEN.
+     prod: factor sobre G.rate(nivel) por recurso · pop: población máxima extra por nivel · cost: coste base del nivel 1 · time: meses del nivel 1.
+     D.CITIES[id].pueblos = tipos de sus huecos (el índice es el hueco). Los niveles nunca se guardan aquí: viven en la partida (c.pueblos). */
+  D.PUEBLO_MAX = 5; D.PUEBLO_COSTE_NIVEL = 1.5; D.PUEBLO_TIEMPO_NIVEL = 1.35;
+  D.PUEBLO_TIPOS = {
+    lenadores: { n: 'Leñadores', i: '🪓', d: 'Aldea de leñadores: aporta madera.', cat: 'recursos', prod: { madera: 0.5 }, pop: 0, cost: { madera: 60, piedra: 40, grano: 40 }, time: 2, mar: false },
+    canteros: { n: 'Canteros', i: '⛏️', d: 'Aldea de canteros: aporta piedra.', cat: 'recursos', prod: { piedra: 0.5 }, pop: 0, cost: { madera: 60, piedra: 40, grano: 40 }, time: 2, mar: false },
+    mineros: { n: 'Mineros', i: '⚒️', d: 'Aldea minera: aporta hierro.', cat: 'recursos', prod: { hierro: 0.5 }, pop: 0, cost: { madera: 60, piedra: 40, grano: 40 }, time: 2, mar: false },
+    pescadores: { n: 'Pescadores', i: '🐟', d: 'Puerto pesquero: aporta grano y algo de oro. Solo en ciudades de costa.', cat: 'pesca', prod: { grano: 0.4, oro: 0.15 }, pop: 0, cost: { madera: 70, piedra: 30, grano: 30, oro: 20 }, time: 2, mar: true },
+    agricolas: { n: 'Agrícolas', i: '🌾', d: 'Villas y aldeas de labradores: dan más grano y alojan más gente.', cat: 'agro', prod: { grano: 0.5 }, pop: 12, cost: { madera: 50, piedra: 30, grano: 60 }, time: 2, mar: false }
+  };
+  // Huecos por sitio: explícitos en Italia y Sicilia; el resto, por riqueza (w) y mar. Todas las ciudades tienen entre 2 y 4.
+  const PUEBLOS_FIJOS = {
+    roma: ['agricolas', 'agricolas', 'lenadores'], volsinii: ['mineros', 'agricolas'], capua: ['agricolas', 'agricolas', 'lenadores'],
+    tarentum: ['pescadores', 'agricolas', 'pescadores'], mediolanum: ['agricolas', 'lenadores', 'agricolas'], messana: ['pescadores', 'agricolas'],
+    syracusae: ['agricolas', 'canteros', 'agricolas', 'lenadores']
+  };
+  const PUEBLOS_CICLO = ['agricolas', 'lenadores', 'canteros', 'mineros'];
+  for (const id in D.CITIES) {
+    const c = D.CITIES[id]; if (PUEBLOS_FIJOS[id]) { c.pueblos = PUEBLOS_FIJOS[id]; continue; }
+    const n = Math.max(2, Math.min(4, c.w <= 2 ? 2 : c.w === 3 ? 3 : 4)), l = [];
+    for (let i = 0; i < n; i++) l.push(c.sea && i % 2 === 0 ? 'pescadores' : PUEBLOS_CICLO[(i + id.length) % PUEBLOS_CICLO.length]);
+    c.pueblos = l;
+  }
+
   // Proyección lon/lat -> mundo
   D.WORLD = { w: 1600, h: 800 };
   D.proj = function (lon, lat) { return [(lon + 7) * 50, (47 - lat) * 64]; };
@@ -339,8 +383,32 @@
       camara: { lon: 13.4, lat: 40.2, zoom: 3.2 }
     }
   };
-  D.regionCiudades = id => { const r = D.REGIONES[id]; return r && r.ciudades ? r.ciudades.filter(c => D.CITIES[c]) : Object.keys(D.CITIES); };
-  D.regionEdges = id => { const l = D.regionCiudades(id); return D.EDGES.filter(e => l.indexOf(e[0]) >= 0 && l.indexOf(e[1]) >= 0); };
+  /* Modos de partida (I8). Un modo es una ficha de datos: TODO número suyo vive aquí y es licencia de juego (se lee solo con G.modo()).
+     campana = la campaña histórica de siempre (sin factores; la partida guarda modo null). corta = «Partida corta»: una sola región, un solo rival,
+     tres edades y 2-4 horas de juego. `factores` (1 = como la campaña): obra y instr multiplican el tiempo de obras y de instrucción, costes el de
+     edificios, tropas y piezas, saber el del estudio, refuerzos el ritmo con que el rival repone su guarnición y guarnicion el tope de esa guarnición.
+     `inicio.<variante>.factores` pisa los de arriba. rival: solo esa facción refuerza y ataca (turnoIA). hasta: año a.C. tope (se pierde al pasarlo).
+     duracion: la partida se mide en turnos (3 meses). segReloj = 3 meses a 4 s/mes en x1 = 12 s; segDecision = estimación de lo que tarda el jugador en
+     decidir cada turno (licencia de juego, sin medir en móvil); segPorTurno = suma. Objetivo: de horasMin a horasMax. `inicio.fundar.sitio` es un id de D.COLONIAS. */
+  D.MODOS = {
+    campana: { id: 'campana', n: 'Campaña histórica', resumen: 'Roma contra el mundo, de 280 a 146 a.C., sin límite de horas.' },
+    corta: {
+      id: 'corta', n: 'Partida corta', region: 'italia', edades: 3, rival: 'epiro', capitalRival: 'tarentum', hasta: 232,
+      factores: { obra: 1, instr: 1, costes: 1, saber: 1, refuerzos: 1, guarnicion: 2 },
+      duracion: { horasMin: 2, horasMax: 4, segReloj: 12, segDecision: 60, segPorTurno: 72 },
+      inicio: {
+        enPie: { n: 'Roma y Capua en pie', d: 'Empiezas con Roma y Capua ya construidas, como en la campaña de Italia.', factores: { obra: 1.3, instr: 1.6, guarnicion: 3 } },   // con dos ciudades hechas el bot llega antes: se compensa con tropas más lentas y un Tarento más fuerte
+        fundar: { n: 'Fundar de la nada', d: 'Empiezas sin ciudad: funda tu primera colonia y de ella saldrá todo.', sitio: 'beneventum' }
+      },
+      final: {
+        gana: 'Tarento ha caído en {anio} a.C. Toda la Italia peninsular reconoce tu poder: el Sur ya no tiene rey.',
+        pierde: 'Tu capital ha caído en {anio} a.C. ante {rival}. Vae victis.',
+        agota: 'Ha pasado el año {hasta} a.C. y Tarento sigue libre. No has dominado la península a tiempo.'
+      }
+    }
+  };
+  D.regionCiudades = (id, conColonias) => { const r = D.REGIONES[id]; return r && r.ciudades ? r.ciudades.filter(c => D.CITIES[c]).concat(conColonias ? Object.keys(D.CITIES).filter(c => D.CITIES[c].colonia) : []) : Object.keys(D.CITIES); };   // las colonias fundadas (D.CITIES[c].colonia) cuentan solo si conColonias (partida corta); la campaña de Italia queda como antes
+  D.regionEdges = (id, conColonias) => { const l = D.regionCiudades(id, conColonias); return D.EDGES.filter(e => l.indexOf(e[0]) >= 0 && l.indexOf(e[1]) >= 0); };
 
   /* Zonas del mapa (C6, escalones). Agrupan las ciudades de D.CITIES por id para los nombres grandes de Mare Nostrum.
      Cada ciudad está en una sola zona. Los límites son agrupación de juego, no fronteras de la época. */
@@ -359,6 +427,13 @@
      tratados con ciudades ajenas y la quinta leva en cola. Licencia de juego: las barras y todas las cifras (los hechos
      que inspiran las misiones están en sus fichas). Las condiciones son datos sobre piezas y niveles reales de D.BUILD
      (no sobre viviendas ni foro, que son derivados). tipo de cond: lo define G.MISION_TIPOS en game.js. */
+  /* CN14-B: dificultad de la CIUDAD (sucesos). No es Fácil/Normal/Difícil, que son del enemigo en la batalla. «Normal» = las cifras de siempre.
+     crecida.ruina = meses que tarda en rehacerse lo anegado · incendio = prob. mensual por barrio y máx. casas que arden ·
+     hambre.meses = meses de invierno con hambre (0: ninguno · 3: dic-feb · 1: solo diciembre) · aviso = meses de antelación con que se anuncia el riesgo. */
+  D.DIFICULTAD = {
+    tranquila: { nombre: 'Tranquila', crecida: { ruina: 1 }, incendio: { prob: 0.01, max: 1 }, hambre: { meses: 0 }, aviso: 8, consejo: 4 },
+    normal: { nombre: 'Normal', crecida: { ruina: 5 }, incendio: { prob: 0.09, max: 3 }, hambre: { meses: 3 }, aviso: 5, consejo: 3 },
+    dura: { nombre: 'Dura', crecida: { ruina: 9 }, incendio: { prob: 0.19, max: 5 }, hambre: { meses: 6 }, aviso: 3, consejo: 2 } };
   D.DEUDA = { desBase: 0.02, desMes: 0.03, desMax: 0.12 };   // I3b: deserción mensual con paga atrasada = base + desMes por mes de paga debido, con tope
   D.SENADO = {
     favorIni: 50, min: 0, max: 100, bajo: 25,
@@ -367,22 +442,53 @@
     premio: 12, castigo: -10,   // favor del Senado por defecto al cumplir o fallar una misión
     pausa: 3,              // meses entre una misión y la siguiente
     ventana: 20,           // años que una misión sigue disponible desde su fecha
-    levaMax: 4             // con poco favor no se admite una leva más si ya hay tantas en cola
+    levaMax: 4,            // con poco favor no se admite una leva más si ya hay tantas en cola
+    // Senado nuevo (SN1): sala de votos con tres bandos. sala:false = comportamiento idéntico a Q7. Cifras: licencia de juego (gobierno/estudios/senado-nuevo.md)
+    sala: true, escanos: 30, mayoria: 16, minimo: 4, vetoPueblo: 35, juegos: { oro: 120, pueblo: 8 }, pagoVoto: 30,
+    romper: -15, cumplir: 5, pagar: 2, cambiar: -3, sinPermiso: -10, postura: 4, duracion: 4   // duracion = estaciones que dura un permiso, una promesa o un efecto
+  };
+  D.BANDOS = {
+    ter: { n: 'Terratenientes', col: '#8FAE5A', peso: 'grano al mes / 10 + niveles de granja' },
+    mer: { n: 'Mercaderes', col: '#5AA6C4', peso: 'mercado y puerto x 3 + rutas x 5 + oro de rutas / 20' },
+    mil: { n: 'Militares', col: '#D0443A', peso: 'hombres en armas / 100 + cuartel x 2 + victorias del año x 3' }
   };
   // desde: año (a.C.) en que el Senado puede encargarla; plazo en meses; las cifras son licencia de juego
   /* Sitios de colonias (CN5-A). Aún no son ciudades: el jugador manda colonos y funda. Mismo sistema lon/lat que D.CITIES.
      anio = a.C. positivo; tipo: 'latina' | 'ciudadanos' | 'maritima'; colonos = cifra histórica (cotejo en registro.js y en gobierno/historia/fundacion-de-colonias.md).
      Posiciones aproximadas: las de Beneventum, Cremona y Aesernia se desplazan unas décimas de grado para no pisar Capua, Placentia ni el camino (licencia de juego). */
   D.COLONIAS = {
-    cosa: { id: 'cosa', n: 'Cosa', lon: 11.3, lat: 42.4, anio: 273, tipo: 'latina', colonos: 4000, h: 'Colonia latina sobre una loma junto a la costa etrusca: recinto de piedra, foro abajo y templos arriba.' },
-    ariminum: { id: 'ariminum', n: 'Ariminum', lon: 12.6, lat: 44.05, anio: 268, tipo: 'latina', colonos: 6000, h: 'Colonia latina en el Adriático, puerta de la llanura del Po.' },
-    beneventum: { id: 'beneventum', n: 'Beneventum', lon: 14.95, lat: 41.2, anio: 268, tipo: 'latina', colonos: 2500, h: 'Colonia latina en el Samnio, donde Pirro fue vencido en 275. Vigila los pasos del interior.' },
-    brundisium: { id: 'brundisium', n: 'Brundisium', lon: 17.9, lat: 40.65, anio: 244, tipo: 'latina', colonos: 6000, h: 'Colonia latina en el talón de Italia, el mejor puerto hacia Grecia.' },
-    placentia: { id: 'placentia', n: 'Placentia', lon: 9.7, lat: 45.0, anio: 218, tipo: 'latina', colonos: 6000, h: 'Colonia latina junto al Po, frente a los galos, fundada al empezar la guerra con Aníbal.' },
-    cremona: { id: 'cremona', n: 'Cremona', lon: 10.25, lat: 45.1, anio: 218, tipo: 'latina', colonos: 6000, h: 'Colonia latina en la orilla norte del Po, gemela de Placentia.' },
-    bononia: { id: 'bononia', n: 'Bononia', lon: 11.35, lat: 44.5, anio: 189, tipo: 'latina', colonos: 3000, h: 'Colonia latina en la vía hacia Mutina, sobre una antigua ciudad de los galos boyos.' },
-    aesernia: { id: 'aesernia', n: 'Aesernia', lon: 14.2, lat: 41.6, anio: 263, tipo: 'latina', colonos: 2500, h: 'Colonia latina en las montañas del Samnio, pensada para sujetar a los samnitas.' }
+    cosa: { id: 'cosa', terreno: 'costa', n: 'Cosa', lon: 11.3, lat: 42.4, anio: 273, tipo: 'latina', colonos: 4000, h: 'Colonia latina sobre una loma junto a la costa etrusca: recinto de piedra, foro abajo y templos arriba.' },
+    ariminum: { id: 'ariminum', terreno: 'costa', n: 'Ariminum', lon: 12.6, lat: 44.05, anio: 268, tipo: 'latina', colonos: 6000, h: 'Colonia latina en el Adriático, puerta de la llanura del Po.' },
+    beneventum: { id: 'beneventum', terreno: 'terrazas', n: 'Beneventum', lon: 14.95, lat: 41.2, anio: 268, tipo: 'latina', colonos: 2500, h: 'Colonia latina en el Samnio, donde Pirro fue vencido en 275. Vigila los pasos del interior.' },
+    brundisium: { id: 'brundisium', terreno: 'costa', n: 'Brundisium', lon: 17.9, lat: 40.65, anio: 244, tipo: 'latina', colonos: 6000, h: 'Colonia latina en el talón de Italia, el mejor puerto hacia Grecia.' },
+    placentia: { id: 'placentia', terreno: 'llanura', n: 'Placentia', lon: 9.7, lat: 45.0, anio: 218, tipo: 'latina', colonos: 6000, h: 'Colonia latina junto al Po, frente a los galos, fundada al empezar la guerra con Aníbal.' },
+    cremona: { id: 'cremona', terreno: 'pantano', n: 'Cremona', lon: 10.25, lat: 45.1, anio: 218, tipo: 'latina', colonos: 6000, h: 'Colonia latina en la orilla norte del Po, gemela de Placentia.' },
+    bononia: { id: 'bononia', terreno: 'llanura', n: 'Bononia', lon: 11.35, lat: 44.5, anio: 189, tipo: 'latina', colonos: 3000, h: 'Colonia latina en la vía hacia Mutina, sobre una antigua ciudad de los galos boyos.' },
+    aesernia: { id: 'aesernia', terreno: 'terrazas', n: 'Aesernia', lon: 14.2, lat: 41.6, anio: 263, tipo: 'latina', colonos: 2500, h: 'Colonia latina en las montañas del Samnio, pensada para sujetar a los samnitas.' }
   };
+
+  /* Terrenos de colonia (CN19-A). Cada uno es un conjunto de reglas sobre el mismo relieve de la ciudad (js/ciudad.js, E.terreno). 'rio' es el de siempre.
+     La geografía real de cada sitio es histórica (costa tirrena y adriática, marisma del Po, llanura emiliana, Samnio); las cifras de D.TERRENO_REGLAS son licencia de juego.
+     Las dos piezas nuevas (salinas, zanja) tienen su ficha en D.PIEZAS_TERRENO. */
+  D.TERRENOS = {
+    rio: { n: 'Valle del río', d: 'El sitio de siempre: un río con vega fértil y lomas. La crecida de primavera se lleva la ribera baja.' },
+    costa: { n: 'Costa', d: 'Mar a la vista. Se abren las salinas: dan oro, pero la sal estropea las granjas vecinas.' },
+    pantano: { n: 'Pantano', d: 'Tierra baja y encharcada: la crecida llega más lejos. Una zanja de desagüe protege las casas cercanas. Drenar o convivir.' },
+    terrazas: { n: 'Terrazas de ladera', d: 'Se puede fundar en pendientes más fuertes, y las granjas rinden más en la ladera; las casas cuestan más obra.' },
+    llanura: { n: 'Llanura abierta', d: 'Mucho sitio para crecer, pero sin defensa natural: la muralla sale más barata.' }
+  };
+  D.TERRENO_REGLAS = {
+    rio: {},
+    costa: { salinasDrio: 200, salinasRadio: 70, salinasOro: 4, granjaProd: -1, granjaFam: -0.5 },
+    pantano: { inundDrio: 200, inundAlt: 3, notaFundar: -2, bajaAlt: 4, zanjaRadio: 60, zanjaRuina: 0.4 },
+    terrazas: { pendMax: 0.34, notaFundar: 1, pendNota: 0.08, granjaPendMin: 0.06, granjaProd: 1, casaPend: 0.1, casaRuina: 1 },
+    llanura: { notaLlano: 1, desLlano: 14, notaDefensa: -2, murallaCoste: 0.75, surcoMul: 1.25 }
+  };
+  D.PIEZAS_TERRENO = {
+    salinas: { n: 'Salinas', d: 'Estanques para sacar sal del mar. Solo en la costa. Dan algo de oro; la sal estropea las granjas cercanas.' },
+    zanja: { n: 'Zanja de desagüe', d: 'Canal para sacar el agua del pantano. Solo en el pantano. Las casas cercanas sufren menos con la crecida.' }
+  };
+  D.terrenoDe = id => (D.COLONIAS[id] && D.COLONIAS[id].terreno) || 'rio';
 
   D.MISIONES = {};   // por id (el registro casa por id); el orden de las claves es el orden del Senado
   [
@@ -435,6 +541,61 @@
       premio: { oro: 120, favorSenado: 12, favorPueblo: -4 }, castigo: { favorSenado: -8, favorPueblo: 3 },
       fuente: 'Livio 31.6 a 31.8; Polibio 6.19 a 6.21', dictamen: 'historico' }
   ].forEach(m => { D.MISIONES[m.id] = m; });
+  /* Leyes del Senado nuevo (SN1). Texto y fuente: gobierno/estudios/senado-leyes.md. postura = {ter,mer,mil} de -2 a +2; chips = efecto en el pueblo por clase;
+     efecto = lo que ocurre si sale (lo lee G.senadoEfecto). Las 11 misiones de Q7 son además propuestas de tipo «obra» (las arma G.leyDe). */
+  D.LEYES = {}; D.LEYES_ORDEN = [];
+  [
+    { id: 'guerra-cartago', tipo: 'guerra', n: 'Guerra a Cartago', texto: 'Roma entra en guerra con Cartago por Sicilia. Tus legiones cruzan al mar.', h: 'En 264 a.C. los mamertinos de Mesina piden ayuda a Roma; el Senado la acepta y empieza la primera guerra púnica.', fuente: 'Polibio, Historias 1.10–11', dictamen: 'historico', postura: { ter: -1, mer: -1, mil: 2 }, efecto: { permiso: 'cartago' }, chips: { ple: -3 } },
+    { id: 'guerra-tarento', tipo: 'guerra', n: 'Guerra a Tarento', texto: 'Tarento ataca naves romanas. Roma declara la guerra y reúne a sus aliados.', h: 'En 282–281 a.C. Tarento ataca a la flota romana en su bahía; la guerra atrae a Pirro, que llega en 280.', fuente: 'Livio, Periocha 12', dictamen: 'probable', postura: { ter: -1, mer: 0, mil: 2 }, efecto: { permiso: 'epiro' }, chips: { ple: -3 } },
+    { id: 'paz-pirro', tipo: 'paz', n: 'Paz con Pirro', texto: 'Pirro ofrece la paz si Roma le deja lo conquistado. Tú decides si aceptas.', h: 'Hacia 279 a.C. Cineas, enviado de Pirro, propone la paz en Roma; el anciano Apio Claudio Ceco hace rechazarla.', fuente: 'Plutarco, Vida de Pirro 18–19', dictamen: 'historico', postura: { ter: 1, mer: 2, mil: -2 }, efecto: { tregua: 'epiro' }, chips: { ple: 3 } },
+    { id: 'paz-cartago', tipo: 'paz', n: 'Paz con Cartago', texto: 'Cartago pide la paz tras perder su flota. Firmar exige pagar y dejar Sicilia.', h: 'En 241 a.C., tras la batalla de las Égadas, Cartago firma con Lutacio Catulo el tratado que pone fin a la primera guerra púnica.', fuente: 'Polibio, Historias 1.62', dictamen: 'historico', postura: { ter: 1, mer: 1, mil: -2 }, efecto: { tregua: 'cartago' }, chips: { ple: 3 } },
+    { id: 'leva-volones', tipo: 'leva', n: 'Leva extraordinaria', texto: 'Tras Cannas faltan hombres. Esclavos voluntarios se alistan con promesa de libertad.', h: 'En 216 a.C., tras Cannas, Roma arma a esclavos voluntarios, los volones, y les promete la libertad al acabar la guerra.', fuente: 'Livio, 22.57', dictamen: 'historico', postura: { ter: -2, mer: 0, mil: 2 }, efecto: { leva: 1 }, chips: { ple: -5 } },
+    { id: 'leva-sin-bienes', tipo: 'leva', n: 'Leva de los sin propiedad', texto: 'Roma arma a los ciudadanos sin bienes. Ganas hombres ya; luego pesarán en la política.', h: 'Hacia 214 a.C., con Aníbal en Italia, el Senado arma a ciudadanos de la clase más baja del censo.', fuente: 'Livio, 24.11', dictamen: 'probable', postura: { ter: -2, mer: -1, mil: 1 }, efecto: { leva: 1 }, chips: { ple: -2 } },
+    { id: 'ley-grano-barato', tipo: 'ley', n: 'Grano barato en Roma', texto: 'Una ley reparte grano barato en Roma. La plebe te lo agradece.', h: 'El reparto de grano llega después: la ley de Cayo Graco es de 123 a.C. Esta ley es licencia de juego.', fuente: 'Plutarco, Vida de Cayo Graco (referencia posterior)', dictamen: 'licencia de juego', postura: { ter: -1, mer: 1, mil: 0 }, efecto: { oroEstacion: -60 }, chips: { ple: 8, ciu: -2 } },
+    { id: 'ley-claudia', tipo: 'ley', n: 'Ley Claudia', texto: 'Los senadores no pueden tener barcos grandes de comercio. El dinero queda en tierra.', h: 'En 218 a.C., la ley Claudia prohíbe a los senadores naves de más de 300 ánforas de carga.', fuente: 'Livio, 21.63', dictamen: 'historico', postura: { ter: 2, mer: -2, mil: 0 }, efecto: {}, chips: { ple: 2 } },
+    { id: 'obra-anio-vetus', tipo: 'obra', n: 'Acueducto Anio Vetus', texto: 'Un acueducto trae agua fresca a Roma. Más agua, más población y más baños.', h: 'Hacia 272 a.C. se construye el Anio Vetus, segundo acueducto de Roma, pagado con botín de la guerra de Pirro.', fuente: 'Frontino, Sobre los acueductos de Roma, 6', dictamen: 'historico', postura: { ter: 1, mer: 1, mil: 0 }, efecto: { oro: -80 }, chips: { ple: 4 } },
+    { id: 'obra-via-flaminia', tipo: 'obra', n: 'Vía Flaminia', texto: 'Una calzada nueva une Roma con el norte. Tus ejércitos llegan antes a la frontera.', h: 'En 220 a.C. el censor Cayo Flaminio abre la calzada que lleva su nombre hacia el norte de Italia.', fuente: 'Livio, Periocha 20', dictamen: 'probable', postura: { ter: 0, mer: 2, mil: 1 }, efecto: { oro: -100 }, chips: { ple: 1 } },
+    { id: 'ciudadania-sabinos', tipo: 'ciudadania', n: 'Ciudadanía a los sabinos', texto: 'Los sabinos reciben la ciudadanía romana. Más votantes y más soldados para ti.', h: 'En 268 a.C. Roma concede la ciudadanía a los sabinos, que pasan a votar y a servir en las legiones.', fuente: 'Veleyo Patérculo, Historia romana, 1.14', dictamen: 'probable', postura: { ter: -1, mer: 0, mil: 1 }, efecto: { ciudadania: 'roma' }, chips: { ciu: 4, ple: -2 } },
+    { id: 'ciudadania-capua', tipo: 'ciudadania', n: 'Ciudadanía a Capua', texto: 'Capua recibe la ciudadanía sin voto. Paga y sirve en tus legiones; no vota.', h: 'En 338 a.C. Roma da a Capua la ciudadanía sin voto (civitas sine suffragio): cargas romanas sin voto en Roma.', fuente: 'Livio, 8.14', dictamen: 'historico', postura: { ter: -1, mer: 1, mil: -1 }, efecto: { ciudadania: 'capua' }, chips: { ciu: 4, ple: -2 } }
+  ].forEach(l => { D.LEYES[l.id] = l; D.LEYES_ORDEN.push(l.id); });
+
+  /* NB5 — plantillas de zona para la maniobra previa (js/maniobra.js). Cada una: 9 a 10 puntos (x, y de 0 a 100; Roma entra por la izquierda)
+     con tipo Castra / Cerro / Vado / Puente / Pinar / Cruce / Llano, y caminos entre ellos. ini = [punto del bando 0, punto del bando 1]; centro = punto central.
+     Licencia de juego: las plantillas son esquemas genéricos de terreno, no reproducen un campo de batalla concreto. */
+  D.ZONAS_MANIOBRA = {
+    rio: { n: 'Río con vados', ini: ['a', 'b'], centro: 'm1', puntos: [
+      { id: 'a', n: 'Campamento de la orilla oeste', tipo: 'Castra', x: 8, y: 50 }, { id: 'n1', n: 'Prado norte', tipo: 'Llano', x: 28, y: 22 },
+      { id: 's1', n: 'Prado sur', tipo: 'Llano', x: 28, y: 78 }, { id: 'm1', n: 'Loma de la orilla', tipo: 'Cerro', x: 32, y: 50 },
+      { id: 'vd', n: 'Vado', tipo: 'Vado', x: 50, y: 22 }, { id: 'pt', n: 'Puente', tipo: 'Puente', x: 50, y: 78 },
+      { id: 'rn', n: 'Orilla norte', tipo: 'Llano', x: 72, y: 22 }, { id: 'rs', n: 'Orilla sur', tipo: 'Llano', x: 72, y: 78 },
+      { id: 'm2', n: 'Sauceda', tipo: 'Pinar', x: 70, y: 50 }, { id: 'b', n: 'Campamento de la orilla este', tipo: 'Castra', x: 92, y: 50 }],
+      caminos: [['a', 'n1'], ['a', 's1'], ['a', 'm1'], ['m1', 'n1'], ['m1', 's1'], ['n1', 'vd'], ['vd', 'rn'], ['s1', 'pt'], ['pt', 'rs'], ['rn', 'm2'], ['rs', 'm2'], ['rn', 'b'], ['rs', 'b'], ['m2', 'b']] },
+    cerro: { n: 'Cerro dominante', ini: ['a', 'b'], centro: 'c', puntos: [
+      { id: 'a', n: 'Campamento del valle', tipo: 'Castra', x: 8, y: 50 }, { id: 'l1', n: 'Pradera alta', tipo: 'Llano', x: 26, y: 24 },
+      { id: 'l2', n: 'Pradera baja', tipo: 'Llano', x: 26, y: 76 }, { id: 'o', n: 'Otero del valle', tipo: 'Cerro', x: 24, y: 50 }, { id: 'c', n: 'Cerro mayor', tipo: 'Cerro', x: 50, y: 50 },
+      { id: 'p', n: 'Encinar', tipo: 'Pinar', x: 50, y: 12 }, { id: 'x', n: 'Cruce de caminos', tipo: 'Cruce', x: 50, y: 88 },
+      { id: 'l3', n: 'Ladera norte', tipo: 'Llano', x: 74, y: 24 }, { id: 'l4', n: 'Ladera sur', tipo: 'Llano', x: 74, y: 76 },
+      { id: 'b', n: 'Campamento de la altura', tipo: 'Castra', x: 92, y: 50 }],
+      caminos: [['a', 'o'], ['o', 'c'], ['a', 'l1'], ['a', 'l2'], ['l1', 'c'], ['l2', 'c'], ['l1', 'p'], ['l2', 'x'], ['c', 'l3'], ['c', 'l4'], ['p', 'l3'], ['x', 'l4'], ['l3', 'b'], ['l4', 'b']] },
+    bosque: { n: 'Bosque cerrado', ini: ['a', 'b'], centro: 'cl', puntos: [
+      { id: 'a', n: 'Campamento del camino', tipo: 'Castra', x: 8, y: 50 }, { id: 'p1', n: 'Pinar norte', tipo: 'Pinar', x: 28, y: 22 },
+      { id: 'p2', n: 'Pinar sur', tipo: 'Pinar', x: 28, y: 78 }, { id: 'cl', n: 'Claro', tipo: 'Cruce', x: 46, y: 50 },
+      { id: 'ot', n: 'Otero', tipo: 'Cerro', x: 16, y: 12 }, { id: 'p3', n: 'Robledal', tipo: 'Pinar', x: 68, y: 26 },
+      { id: 'vd', n: 'Arroyo', tipo: 'Vado', x: 68, y: 76 }, { id: 'lc', n: 'Calvero', tipo: 'Llano', x: 80, y: 50 },
+      { id: 'b', n: 'Campamento del bosque', tipo: 'Castra', x: 94, y: 50 }],
+      caminos: [['a', 'p1'], ['a', 'p2'], ['a', 'cl'], ['p1', 'cl'], ['p2', 'cl'], ['a', 'ot'], ['p1', 'ot'], ['cl', 'p3'], ['cl', 'vd'], ['p2', 'vd'], ['p3', 'lc'], ['vd', 'lc'], ['lc', 'b'], ['p3', 'b'], ['vd', 'b']] },
+    paso: { n: 'Paso de montaña', ini: ['a', 'b'], centro: 'g', puntos: [
+      { id: 'a', n: 'Campamento de la entrada', tipo: 'Castra', x: 6, y: 50 }, { id: 'l1', n: 'Antepuerto', tipo: 'Llano', x: 22, y: 50 },
+      { id: 'rn', n: 'Risco norte', tipo: 'Cerro', x: 36, y: 18 }, { id: 'rs', n: 'Hayedo sur', tipo: 'Pinar', x: 36, y: 82 },
+      { id: 'g', n: 'Garganta', tipo: 'Puente', x: 50, y: 50 }, { id: 'x', n: 'Collado', tipo: 'Llano', x: 66, y: 18 },
+      { id: 'y', n: 'Torrente', tipo: 'Vado', x: 66, y: 82 }, { id: 'l2', n: 'Explanada', tipo: 'Llano', x: 78, y: 50 },
+      { id: 'b', n: 'Campamento de la salida', tipo: 'Castra', x: 94, y: 50 }],
+      caminos: [['a', 'l1'], ['a', 'rn'], ['a', 'rs'], ['l1', 'g'], ['l1', 'rn'], ['l1', 'rs'], ['rn', 'x'], ['rs', 'y'], ['g', 'l2'], ['x', 'l2'], ['y', 'l2'], ['x', 'b'], ['y', 'b'], ['l2', 'b']] }
+  };
+  // zona de cada ciudad, según su terreno de batalla (Battle.TERRENO_CIUDAD): río→río, cerro/colina/mixto→cerro, bosque/pantano→bosque, paso→paso, llano→río o paso
+  D.ZONA_MANIOBRA_CIUDAD = { roma: 'cerro', volsinii: 'bosque', capua: 'rio', tarentum: 'rio', mediolanum: 'bosque', messana: 'cerro', syracusae: 'cerro', agrigentum: 'cerro', panormus: 'rio',
+    lilybaeum: 'paso', carales: 'bosque', emporion: 'bosque', saguntum: 'paso', carthagonova: 'cerro', ambracia: 'paso', pella: 'cerro', corinthus: 'paso', carthago: 'rio' };
+  D.zonaManiobra = function (ciudad, semilla) { const ids = Object.keys(D.ZONAS_MANIOBRA); return D.ZONA_MANIOBRA_CIUDAD[ciudad] || ids[Math.abs(Math.floor(semilla || 0)) % ids.length]; };
 
   root.DATA = D;
   if (typeof module !== 'undefined') module.exports = D;

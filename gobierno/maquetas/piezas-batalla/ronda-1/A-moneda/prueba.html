@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estandarte · moneda</title>
+<style>
+  body { margin: 0; background: #0b1016; color: #f1ead9; font: 13px/1.3 system-ui, sans-serif; }
+  h1 { font-size: 16px; margin: 12px; }
+  h2 { font-size: 14px; margin: 16px 12px 6px; color: #e9c063; }
+  .panel { padding: 10px 12px; overflow-x: auto; }
+  .campo { background: #8c8a62; color: #0b1016; }
+  .noche { background: #0b1016; color: #f1ead9; }
+  table { border-collapse: collapse; }
+  td, th { padding: 3px 4px; text-align: center; font-size: 11px; font-weight: 600; vertical-align: middle; }
+  th.fila { text-align: right; white-space: nowrap; }
+  .x3 svg { width: 108px; height: 180px; }
+  .x05 svg { width: 18px; height: 30px; }
+  .solape { position: relative; height: 70px; width: 160px; }
+  .solape span { position: absolute; top: 4px; }
+</style>
+</head>
+<body>
+<h1>P1 «Estandarte» · voz: grabado de moneda romana</h1>
+<div id="todo"></div>
+<script src="estandarte.svg.js"></script>
+<script>
+var TIPOS = ['hastati','principes','triarios','velites','equites','general','elefantes','falange'];
+var ANIMOS = [['F','firme'],['V','vacila'],['D','desorden'],['H','huye']];
+var todo = document.getElementById('todo');
+
+function rejilla(escala) {
+  var h = '<table><tr><th></th>';
+  ['Roma','Cartago'].forEach(function (b) { ANIMOS.forEach(function (a) { h += '<th>' + b + '<br>' + a[1] + '</th>'; }); });
+  h += '</tr>';
+  TIPOS.forEach(function (t) {
+    h += '<tr><th class="fila">' + t + '</th>';
+    [0,1].forEach(function (b) { ANIMOS.forEach(function (a) {
+      h += '<td>' + estandarte({ bando: b, tipo: t, animo: a[0], cansancio: 0, vet: 1, sel: false }) + '</td>';
+    }); });
+    h += '</tr>';
+  });
+  return h + '</table>';
+}
+function tira(tipo, bando) {
+  var h = '<table><tr><th></th>';
+  [0,1,2,3].forEach(function (c) { h += '<th>cansancio ' + c + '</th>'; });
+  h += '</tr>';
+  [0,1,2].forEach(function (v) {
+    h += '<tr><th class="fila">vet ' + v + '</th>';
+    [0,1,2,3].forEach(function (c) { h += '<td>' + estandarte({ bando: bando, tipo: tipo, animo: 'F', cansancio: c, vet: v, sel: false }) + '</td>'; });
+    h += '</tr>';
+  });
+  return h + '</table>';
+}
+function tiraSel() {
+  var h = '<table><tr><th></th>';
+  ANIMOS.forEach(function (a) { h += '<th>' + a[1] + '</th>'; });
+  h += '</tr>';
+  [[0,'equites'],[1,'elefantes'],[0,'hastati']].forEach(function (p) {
+    [false,true].forEach(function (s) {
+      h += '<tr><th class="fila">' + p[1] + (s ? ' · elegido' : ' · normal') + '</th>';
+      ANIMOS.forEach(function (a, i) { h += '<td>' + estandarte({ bando: p[0], tipo: p[1], animo: a[0], cansancio: i % 4, vet: i % 3, sel: s }) + '</td>'; });
+      h += '</tr>';
+    });
+  });
+  return h + '</table>';
+}
+function solape() {
+  var h = '<div class="solape">';
+  [[0,'hastati','F',0,1,false],[1,'elefantes','V',1,0,true],[0,'equites','D',2,2,false],[1,'falange','H',3,1,false]].forEach(function (p, i) {
+    h += '<span style="left:' + (i * 24) + 'px">' + estandarte({ bando: p[0], tipo: p[1], animo: p[2], cansancio: p[3], vet: p[4], sel: p[5] }) + '</span>';
+  });
+  return h + '</div>';
+}
+function seccion(titulo, fondo, clase, html) {
+  todo.insertAdjacentHTML('beforeend', '<h2>' + titulo + '</h2><div class="panel ' + fondo + ' ' + (clase || '') + '">' + html + '</div>');
+}
+['campo','noche'].forEach(function (f) {
+  var nf = f === 'campo' ? 'sobre campo' : 'sobre noche';
+  seccion('8 tipos × 4 ánimos × 2 bandos · escala 1 · ' + nf + ' (cansancio 0, vet 1)', f, '', rejilla());
+  seccion('Cansancio 0–3 × veteranía 0–2 · hastati Roma · escala 1 · ' + nf, f, '', tira('hastati', 0));
+  seccion('Cansancio 0–3 × veteranía 0–2 · elefantes Cartago · escala 1 · ' + nf, f, '', tira('elefantes', 1));
+  seccion('Elegido (oro) frente a normal · escala 1 · ' + nf, f, '', tiraSel());
+  seccion('Solapadas · escala 1 · ' + nf, f, '', solape());
+  seccion('Mitad de tamaño · ' + nf, f, 'x05', rejilla());
+});
+['campo','noche'].forEach(function (f) {
+  var nf = f === 'campo' ? 'sobre campo' : 'sobre noche';
+  seccion('8 tipos × 4 ánimos × 2 bandos · escala 3 · ' + nf, f, 'x3', rejilla());
+  seccion('Cansancio × veteranía · escala 3 · ' + nf, f, 'x3', tira('triarios', 0));
+  seccion('Elegido · escala 3 · ' + nf, f, 'x3', tiraSel());
+});
+</script>
+</body>
+</html>

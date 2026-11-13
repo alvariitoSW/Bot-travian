@@ -121,6 +121,23 @@
     'levas-macedonia': f(SIN_MIS, h('Livio 31.6 a 31.8; Polibio 6.19 a 6.21', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'El Senado declara la guerra a Filipo V. Cuartel de nivel 5 en Roma para instruir legiones.')),
   };
 
+  // ---- Leyes del Senado nuevo (D.LEYES, SN1). Se casan por id. Las posturas de los bandos, los efectos y los chips son licencia de juego. ----
+  const SIN_LEY = { sin: 'una ley no tiene modelo 3D' };
+  const ley = {
+    "guerra-cartago": f(SIN_LEY, h("Polibio, Historias 1.10–11", "historico", "cifras y efectos: licencia de juego", "En 264 a.C. los mamertinos de Mesina piden ayuda a Roma; el Senado la acepta y empieza la primera guerra púnica.")),
+    "guerra-tarento": f(SIN_LEY, h("Livio, Periocha 12", "probable", "cifras y efectos: licencia de juego", "En 282–281 a.C. Tarento ataca a la flota romana en su bahía; la guerra atrae a Pirro, que llega en 280.")),
+    "paz-pirro": f(SIN_LEY, h("Plutarco, Vida de Pirro 18–19", "historico", "cifras y efectos: licencia de juego", "Hacia 279 a.C. Cineas, enviado de Pirro, propone la paz en Roma; el anciano Apio Claudio Ceco hace rechazarla.")),
+    "paz-cartago": f(SIN_LEY, h("Polibio, Historias 1.62", "historico", "cifras y efectos: licencia de juego", "En 241 a.C., tras la batalla de las Égadas, Cartago firma con Lutacio Catulo el tratado que pone fin a la primera guerra púnica.")),
+    "leva-volones": f(SIN_LEY, h("Livio, 22.57", "historico", "cifras y efectos: licencia de juego", "En 216 a.C., tras Cannas, Roma arma a esclavos voluntarios, los volones, y les promete la libertad al acabar la guerra.")),
+    "leva-sin-bienes": f(SIN_LEY, h("Livio, 24.11", "probable", "cifras y efectos: licencia de juego", "Hacia 214 a.C., con Aníbal en Italia, el Senado arma a ciudadanos de la clase más baja del censo.")),
+    "ley-grano-barato": f(SIN_LEY, h("Plutarco, Vida de Cayo Graco (referencia posterior)", "licencia de juego", "ley inventada para el juego: la de Cayo Graco es de 123 a.C.", "El reparto de grano llega después: la ley de Cayo Graco es de 123 a.C. Esta ley es licencia de juego.")),
+    "ley-claudia": f(SIN_LEY, h("Livio, 21.63", "historico", "cifras y efectos: licencia de juego", "En 218 a.C., la ley Claudia prohíbe a los senadores naves de más de 300 ánforas de carga.")),
+    "obra-anio-vetus": f(SIN_LEY, h("Frontino, Sobre los acueductos de Roma, 6", "historico", "cifras y efectos: licencia de juego", "Hacia 272 a.C. se construye el Anio Vetus, segundo acueducto de Roma, pagado con botín de la guerra de Pirro.")),
+    "obra-via-flaminia": f(SIN_LEY, h("Livio, Periocha 20", "probable", "cifras y efectos: licencia de juego", "En 220 a.C. el censor Cayo Flaminio abre la calzada que lleva su nombre hacia el norte de Italia.")),
+    "ciudadania-sabinos": f(SIN_LEY, h("Veleyo Patérculo, Historia romana, 1.14", "probable", "cifras y efectos: licencia de juego", "En 268 a.C. Roma concede la ciudadanía a los sabinos, que pasan a votar y a servir en las legiones.")),
+    "ciudadania-capua": f(SIN_LEY, h("Livio, 8.14", "historico", "cifras y efectos: licencia de juego", "En 338 a.C. Roma da a Capua la ciudadanía sin voto (civitas sine suffragio): cargas romanas sin voto en Roma."))
+  };
+
   // ---- Facciones (D.FACTIONS). Sin modelo: solo un nombre y un color. Fuente: H1-ciudades.md y H1-hechos.md ----
   const SIN_F = { sin: 'sin modelo: la facción es un nombre y un color' };
   const faccion = {
@@ -167,6 +184,13 @@
   const region = {
     mediterraneo: f(SIN_REG, h('Polibio 1.1-3 (de 264 a 146 a.C.); Livio, Períocas 51', 'historico', 'la campaña entera de 280 a 146 a.C. con todas las ciudades del mapa; la caída de Cartago en 146 a.C. es el cierre histórico', 'Roma contra Cartago por el dominio del Mediterráneo, de Pirro a la destrucción de Cartago.')),
     italia: f(SIN_REG, h('Plutarco, Pirro 13-25; Polibio 1.6-7 y 2.14-35', 'licencia de juego', 'campaña corta en la península y Sicilia oriental contra Tarento (cayó en 272); Tarentum sigue de Epiro, Volsinii etrusca y Mediolanum gala, y la fecha de corte es de jugabilidad', 'La Italia de Pirro: Roma contra Tarento, la ciudad que llamó al rey del Epiro.'))
+  };
+
+  // ---- Modos de partida (D.MODOS, I8). Se casan por id. Los factores, el año tope y la duración son licencia de juego (nota en gobierno/historia/I8-partida-corta.md). ----
+  const SIN_MODO = { sin: 'un modo de partida es una ficha de datos; no tiene modelo 3D' };
+  const modo = {
+    campana: f(SIN_MODO, h('Polibio 1.1-3; Livio, Períocas 51', 'historico', 'la campaña de 280 a 146 a.C.: es la de siempre, sin factores ni tope de horas')),
+    corta: f(SIN_MODO, h('Plutarco, Pirro 13-25; Polibio 1.6-7 y 2.14-35; Eutropio 2.11-14', 'licencia de juego', 'Roma contra Tarento (Epiro) en Italia es histórico; fundar de la nada, el rival único, las tres edades, el año tope y la duración de 2 a 4 horas son licencia de juego. Sin Roma ni Capua, la primera colonia hace de capital (las colonias latinas de Beneventum, 268 a.C., y Cosa, 273 a.C., son históricas)', 'Una partida de unas horas: conquista Tarento antes de que se acabe el plazo, con Roma y Capua en pie o fundando tu primera ciudad.'))
   };
 
   // ---- Zonas del mapa (D.ZONAS, C6). Se casan por id. Los límites son agrupación de juego. ----
@@ -226,7 +250,47 @@
     aesernia: f(SIN_COL, h('Veleyo Patérculo 1.14.7', 'por cotejar', '263 a.C., latina: fecha y colonos (2.500, sin fuente, licencia de juego) por cotejar' + LJ))
   };
 
-  R.fichas = { edificio, tropa, ciudad, hecho, mision, colonia, region, zona, faccion, mejora, tipo, especial, invest, edad: edades };
+  // ---- Fiestas del Foro y del Templo (D.FIESTAS, CN13a). Se casan por id. Cotejo: gobierno/historia/CN13-cotejo.md ----
+  const SIN_FIESTA = { sin: 'una fiesta no tiene modelo 3D propio; la ciudad solo cambia el aspecto del arca (CN15)' };
+  const fiesta = {
+    ofrenda: f(SIN_FIESTA, h('Livio 22.9-10 (cotejado); pistas por comprobar: Livio 25.12 y 29.14, Ovidio, Fastos 4', 'licencia de juego', 'El Senado votó ofrendas y ritos tras el Trasimeno (Livio 22.9-10): eso es histórico. Pagarlas con lo que sobra, una al mes, y duplicar el don de un dios son reglas de juego.', 'Tras el desastre del Trasimeno, el Senado votó ofrendas y ritos a los dioses (Livio 22.9-10). Aquí puedes hacer una al mes, y el templo de tu ciudad favorece más a su dios.')),
+    juegos: f(SIN_FIESTA, h('Livio 22.9-10 (los ludi magni votados en 217); pistas por comprobar: Livio 25.12 (ludi Apollinares), Livio 29.14, Ovidio, Fastos 4', 'licencia de juego', 'Los ludi eran fiestas públicas reales; su precio ligado al ingreso, el reposo de seis meses y el calmar a una ciudad conquistada son reglas de juego. Los pasajes marcados como pista no se han comprobado.', 'Los ludi eran juegos públicos que pagaban los magistrados o el erario por voto del Senado (Livio 22.9-10). Aquí calman al pueblo y a una ciudad conquistada.'))
+  };
+
+  const SIN_REM = { sin: 'un remedio no tiene modelo 3D propio: el dique usa el muro de 0 A.D. como figura provisional (js/gfx/city3d.js, CN13b) y el tejado lo pintará CN15' };
+  const remedio = {
+    dique: f(SIN_REM, h('Livio 24.9; Livio 30.38 (crecidas del Tíber, por cotejar); sin fuente abierta de diques en 280-146', 'licencia de juego', 'Las crecidas del Tíber están en Livio, pero no se ha comprobado que Roma levantara diques o malecones en esta época: los grandes muros de contención son posteriores. Es una regla de juego para dar remedio a la ribera baja.', 'El Tíber se desbordaba a menudo y anegaba la parte baja de Roma; Livio lo cuenta varias veces. Aquí puedes levantar un dique en la orilla para guardar las casas, aunque no consta que se hiciera así entonces.')),
+    tejas: f(SIN_REM, h('Plinio, Historia natural 16.36 (por cotejar: Roma cubierta con tablillas de madera hasta la guerra de Pirro)', 'por cotejar', 'Se cita la pista de Plinio, sin abrir aquí: según ella Roma se cubrió con tablillas de madera hasta la guerra de Pirro (280-275) y después vendrían las tejas. Techar por barrios, su coste y su plazo son reglas de juego.'))
+  };
+
+  // ---- Pueblos (D.PUEBLO_TIPOS, J3). Sin modelo. La vida rural (aldeas, villas, pesca) existió; el pueblo como hueco que se funda y sube de nivel es invención del juego ----
+  const PU = 'el pueblo como hueco que se funda y mejora es invención del juego';
+  const pueblo = {
+    lenadores: f(SIN_T, h('Catón, De agri cultura 1', 'licencia de juego', 'la villa rural aprovecha el bosque y la leña; ' + PU)),
+    canteros: f(SIN_T, h('Catón, De agri cultura 14', 'licencia de juego', 'la villa rústica se construía con piedra y cal; ' + PU)),
+    mineros: f(SIN_T, h('Livio 34.21', 'licencia de juego', 'las minas de hierro y su arriendo en Roma; ' + PU)),
+    pescadores: f(SIN_T, h('Varrón, Res rusticae 3.17', 'licencia de juego', 'la pesca y los viveros de peces como negocio de villa costera; ' + PU)),
+    agricolas: f(SIN_T, h('Livio 9.13; Varrón, Res rusticae 1', 'licencia de juego', 'vici y pagi como aldeas de labradores; la villa como explotación agraria; ' + PU))
+  };
+
+  // ---- Terrenos de colonia (D.TERRENOS, CN19-A). Las reglas y cifras son licencia de juego; la geografía de cada sitio, histórica (pasajes por cotejar) ----
+  const SIN_TER = { sin: 'un terreno es un conjunto de reglas sobre el relieve de la ciudad; no tiene modelo 3D propio' };
+  const LJ_TER = ' · las cifras de D.TERRENO_REGLAS son inventadas para poder jugar: licencia de juego';
+  const terreno = {
+    rio: f(SIN_TER, h('Regla de juego: el valle del río de la ciudad común; no es un sitio histórico concreto', 'licencia de juego', 'es el terreno de todas las ciudades que no son colonias y de las partidas antiguas' + LJ_TER)),
+    costa: f(SIN_TER, h('Livio 1.33.9; Plinio, NH 31.73-89; Veleyo Patérculo 1.14.7-8', 'licencia de juego', 'Cosa, Brundisium y Ariminum eran colonias de costa (pasajes de Veleyo por cotejar); la sal de las costas: ver salinas' + LJ_TER)),
+    pantano: f(SIN_TER, h('Polibio 2.15-17; Livio 21.25', 'licencia de juego', 'Cremona, junto al Po, en tierra baja y húmeda: Polibio describe la llanura del Po y Livio la fundación de 218 a.C. (pasajes por cotejar)' + LJ_TER)),
+    terrazas: f(SIN_TER, h('Veleyo Patérculo 1.14.6-7; Livio, Períocas 15', 'licencia de juego', 'Beneventum y Aesernia, colonias en el Samnio montañoso (pasajes por cotejar); las terrazas de cultivo en ladera son una licencia de juego, no un dato de las fuentes' + LJ_TER)),
+    llanura: f(SIN_TER, h('Polibio 2.14-17; Livio 21.25; Livio 37.57', 'licencia de juego', 'Placentia y Bononia, en la llanura emiliana y padana, sin defensa natural (pasajes por cotejar)' + LJ_TER))
+  };
+  // ---- Piezas de ciudad que solo existen en un terreno (D.PIEZAS_TERRENO). Sin modelo: de momento se dibujan con una pieza genérica ----
+  const SIN_PZ = { sin: 'sin modelo propio: de momento no se dibuja en la ciudad', provisional: true };
+  const piezaTerreno = {
+    salinas: f(SIN_PZ, h('Livio 1.33.9; Plinio, NH 31.73-89', 'probable', 'Livio cuenta que Anco Marcio estableció salinas junto a Ostia (tradición del rey, pero las salinas de Ostia son bien conocidas); Plinio habla de la sal marina y de cómo se obtiene. Que estropeen las granjas vecinas y su renta en oro son licencia de juego')),
+    zanja: f(SIN_PZ, h('Livio 1.38.6; Livio 1.56.2; Vitruvio 1.4.11-12', 'probable', 'Livio atribuye a Tarquinio Prisco el desagüe del Foro con cloacas; Vitruvio recomienda sanear los sitios encharcados. Que reduzca la ruina de la crecida es licencia de juego'))
+  };
+
+  R.fichas = { terreno, piezaTerreno, edificio, tropa, fiesta, remedio, ciudad, hecho, mision, ley, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -237,14 +301,21 @@
     hecho: { tabla: 'EVENTS', lista: true, numericos: ['y'], textos: ['t', 'x'] },
     zona: { tabla: 'ZONAS', numericos: [], textos: ['n'] },
     region: { tabla: 'REGIONES', numericos: ['hasta'], textos: ['n', 'capitalRival'] },
+    modo: { tabla: 'MODOS', numericos: [], textos: ['n'] },
+    terreno: { tabla: 'TERRENOS', numericos: [], textos: ['n', 'd'] },
+    piezaTerreno: { tabla: 'PIEZAS_TERRENO', numericos: [], textos: ['n', 'd'] },
     colonia: { tabla: 'COLONIAS', numericos: ['lon', 'lat', 'anio', 'colonos'], textos: ['n', 'h', 'tipo'] },
     mision: { tabla: 'MISIONES', numericos: ['desde', 'plazo'], textos: ['n', 'texto'] },
+    ley: { tabla: 'LEYES', numericos: [], textos: ['n', 'texto'] },
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },
     mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },
     tipo: { tabla: 'TIPOS', numericos: [], textos: ['n', 'i', 'd'] },
     especial: { tabla: 'ESPECIAL', numericos: [], textos: ['n', 'i', 'd'] },
+    pueblo: { tabla: 'PUEBLO_TIPOS', numericos: [], textos: ['n', 'i', 'd'] },
     invest: { tabla: 'INVEST', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n', 'i', 'rama'] },
-    edad: { tabla: 'EDADES', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n'] }
+    edad: { tabla: 'EDADES', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n'] },
+    fiesta: { tabla: 'FIESTAS', numericos: ['mult', 'min', 'dura', 'reposo'], textos: ['n', 'i', 'd'] },
+    remedio: { tabla: 'REMEDIOS', numericos: [], textos: ['n', 'i', 'd'] }
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */
@@ -262,6 +333,8 @@
     tropa: { arte: ARTE_TROPA, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } },
     edificio: { arte: { modelo: 'assets/static/<id>.bin', licencia: 'CC BY-SA 3.0', credito: 'Wildfire Games (0 A.D.)' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } },
     region: { arte: { sin: 'una región es una ficha de datos; no tiene modelo 3D' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } },   // el id es el de D.REGIONES
+    modo: { arte: { sin: 'un modo de partida es una ficha de datos; no tiene modelo 3D' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'licencia de juego' } },   // el id es el de D.MODOS
+    pueblo: { arte: { sin: 'sin modelo: solo un icono' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'licencia de juego' } },
     hecho: { arte: { sin: 'un hecho no tiene modelo 3D' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } }   // el id es «<año>-<clave>»; el año casa con D.EVENTS
   };
 

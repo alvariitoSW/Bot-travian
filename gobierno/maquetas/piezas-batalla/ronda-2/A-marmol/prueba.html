@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prueba · Mármol</title>
+<link rel="stylesheet" href="tarjeta.css">
+<link rel="stylesheet" href="hud.css">
+<style>
+  body { margin: 0; background: #0b1016; color: #f1ead9; font: 12px/16px system-ui, sans-serif; }
+  h1, h2 { font-family: 'Cinzel', 'Palatino Linotype', Palatino, Georgia, serif; letter-spacing: .08em;
+           text-transform: uppercase; font-size: 14px; margin: 14px 12px 6px; color: #e9c063; }
+  .campo { background-color: #8c8a62;
+    background-image:
+      repeating-linear-gradient(17deg, rgba(0,0,0,.06) 0 3px, transparent 3px 9px),
+      repeating-linear-gradient(-71deg, rgba(255,255,255,.05) 0 2px, transparent 2px 13px); }
+  .noche { background: #0b1016; border: 1px solid rgba(154,166,180,.3); }
+  .muestras { padding: 10px 12px; display: grid; gap: 10px; }
+  .fila { display: flex; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
+  .celda { display: flex; flex-direction: column; gap: 4px; }
+  .rotulo { font-size: 11px; color: #f1ead9; }
+  .campo .rotulo { color: #0b1016; font-weight: 700; }
+  .w1 { width: 205px; }
+  .w2 { width: 205px; zoom: 2; }
+  .pantalla { position: relative; width: 844px; height: 390px; overflow: hidden; }
+</style>
+</head>
+<body>
+<template id="molde"><button class="tarjeta tarjeta--dud" type="button" data-caracter="{{caracter}}">
+  <span class="tarjeta__nombre">{{nombre}}</span>
+  <span class="tarjeta__titulo">{{titulo}}</span>
+  <span class="tarjeta__motivo">{{motivo}}</span>
+  <span class="tarjeta__pie">
+    <span class="tarjeta__caracter">{{caracter}}</span>
+    <span class="tarjeta__etiqueta">{{etiqueta}}</span>
+  </span>
+</button></template>
+
+<h1>b) Pantalla de batalla 844 × 390</h1>
+<div class="pantalla campo">
+  <div class="hud">
+   <div class="hud-barra"><span class="hud-ronda">Ronda 1 · Plan</span><span class="hud-roma">Roma 700</span><div class="hud-fuerza"><i style="width:52%"></i></div><span class="hud-cart">636 Cartago</span><button class="hud-ala">Ala izq.</button><button class="hud-ala">Centro</button><button class="hud-ala">Ala der.</button></div>
+   <div class="hud-objetivo">Cayo Flaminio: Adelantad el centro. Mira el plan sobre el campo y pulsa «Ver la ronda».</div>
+   <div class="hud-gesto">La caballería enemiga busca tu flanco izquierdo…</div>
+   <button class="hud-seguir">Seguir</button>
+   <div class="hud-ordenes"><div class="hud-tarjetas" id="hudTarjetas"></div><button class="hud-btn">A mano</button><button class="hud-btn hud-principal">Ver la ronda</button></div>
+  </div>
+</div>
+
+<h1>a) Tarjetas sueltas</h1>
+<div id="muestras"></div>
+
+<script>
+  const molde = document.getElementById('molde').innerHTML;
+  const ejemplos = [
+    { nombre: 'Quinto Fabio', caracter: 'Prudente', titulo: 'Cerrad filas y aguantad el choque', motivo: 'Que se estrellen contra los escudos.', etiqueta: 'Dudoso', mod: 'dud' },
+    { nombre: 'Cayo Flaminio', caracter: 'Agresivo', titulo: 'Adelantad el centro', motivo: 'Su centro es lo más cercano.', etiqueta: 'Arriesgado', mod: 'arr' },
+    { nombre: 'Publio Cornelio', caracter: 'Astuto', titulo: 'La caballería rodea su flanco derecho', motivo: 'Los jinetes pueden rodearles.', etiqueta: 'Arriesgado', mod: 'arr' },
+  ];
+  const etiq = { fav: 'Favorable', dud: 'Dudoso', arr: 'Arriesgado' };
+  function hacer(d, mod, sel) {
+    const t = document.createElement('div');
+    t.innerHTML = molde.replace(/\{\{(\w+)\}\}/g, (_, k) => d[k]);
+    const b = t.firstElementChild;
+    b.classList.replace('tarjeta--dud', 'tarjeta--' + mod);
+    if (sel) b.classList.add('sel');
+    return b;
+  }
+  ejemplos.forEach((d, i) => document.getElementById('hudTarjetas').appendChild(hacer(d, d.mod, i === 1)));
+
+  const cont = document.getElementById('muestras');
+  for (const fondo of ['campo', 'noche']) for (const esc of [1, 2]) {
+    const h = document.createElement('h2');
+    h.textContent = 'Sobre ' + fondo + ' · ×' + esc;
+    cont.appendChild(h);
+    const caja = document.createElement('div');
+    caja.className = 'muestras ' + fondo;
+    for (const sel of [false, true]) {
+      const fila = document.createElement('div');
+      fila.className = 'fila';
+      ['fav', 'dud', 'arr'].forEach((mod, i) => {
+        const d = Object.assign({}, ejemplos[i], { etiqueta: etiq[mod] });
+        const c = document.createElement('div');
+        c.className = 'celda';
+        const r = document.createElement('span');
+        r.className = 'rotulo';
+        r.textContent = d.caracter + ' · tarjeta--' + mod + (sel ? ' · elegida' : ' · normal');
+        const w = document.createElement('div');
+        w.className = 'w' + esc;
+        w.appendChild(hacer(d, mod, sel));
+        c.append(r, w);
+        fila.appendChild(c);
+      });
+      caja.appendChild(fila);
+    }
+    cont.appendChild(caja);
+  }
+</script>
+</body>
+</html>

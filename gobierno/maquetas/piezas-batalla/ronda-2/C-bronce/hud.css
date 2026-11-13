@@ -1,0 +1,30 @@
+/* P4 HUD de batalla 844x390 — bronce repujado */
+.hud{position:absolute;inset:0;pointer-events:none;font:12px/16px system-ui,sans-serif;color:#f1ead9;overflow:hidden}
+.hud>*{pointer-events:auto;position:absolute;box-sizing:border-box}
+.hud button{font-family:inherit;cursor:pointer}
+.hud-barra{top:0;left:0;right:0;height:44px;display:flex;align-items:center;gap:8px;padding:0 6px 0 10px;
+ background:#0b1016;border-bottom:1px solid #b8862b;box-shadow:inset 0 -3px 0 #0b1016,inset 0 -4px 0 rgba(184,134,43,.7)}
+.hud-ronda{font:700 12px/14px 'Cinzel','Palatino Linotype',Palatino,Georgia,serif;letter-spacing:.1em;text-transform:uppercase;color:#e9c063;white-space:nowrap}
+.hud-roma,.hud-cart{font-weight:700;font-size:12px;white-space:nowrap}
+.hud-roma{color:#f1ead9}.hud-cart{color:#f1ead9}
+.hud-roma::before,.hud-cart::before{content:"";display:inline-block;width:8px;height:8px;margin-right:5px;border:1px solid #b8862b;vertical-align:0}
+.hud-roma::before{background:#c0281f}.hud-cart::before{background:#5b3a8c}
+.hud-fuerza{flex:1;min-width:60px;height:12px;background:#5b3a8c;border:1px solid #b8862b;border-radius:3px;box-shadow:0 0 0 2px #0b1016;overflow:hidden}
+.hud-fuerza i{display:block;height:100%;background:#c0281f;border-right:2px solid #e9c063}
+.hud-ala{min-height:44px;min-width:56px;padding:0 8px;margin:0;font-size:12px;font-weight:600;color:#f1ead9;background:rgba(184,134,43,.2);
+ border:1px solid #b8862b;border-radius:6px;box-shadow:inset 0 0 0 2px #0b1016,inset 0 0 0 3px rgba(184,134,43,.7)}
+.hud-ala:active{background:#b8862b;color:#0b1016}
+.hud-objetivo{top:52px;right:8px;width:220px;max-width:220px;padding:6px 10px;font-size:12px;line-height:16px;color:#f1ead9;
+ background:rgba(11,16,22,.92);border:1px solid #b8862b;border-radius:6px;box-shadow:inset 0 0 0 2px #0b1016,inset 0 0 0 3px rgba(184,134,43,.6)}
+.hud-gesto{top:52px;left:50%;transform:translateX(-50%);max-width:340px;width:max-content;padding:5px 14px;text-align:center;font-size:12px;line-height:16px;font-style:italic;color:#e9c063;
+ background:rgba(11,16,22,.85);border-top:1px solid #b8862b;border-bottom:1px solid #b8862b}
+.hud-seguir{left:calc(50% + 140px);top:236px;min-height:44px;min-width:72px;padding:0 14px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#f1ead9;
+ background:rgba(11,16,22,.8);border:1px solid #b8862b;border-radius:6px}
+.hud-ordenes{left:8px;right:8px;bottom:8px;height:78px;display:flex;gap:6px;align-items:stretch}
+.hud-tarjetas{flex:1;min-width:0;display:flex;gap:6px}
+.hud-tarjetas>.tarjeta{flex:1}
+.hud-btn{flex:0 0 64px;height:78px;padding:0 4px;font-size:12px;font-weight:700;letter-spacing:.04em;color:#f1ead9;background:#0b1016;
+ border:1px solid #b8862b;border-radius:7px;box-shadow:inset 0 0 0 2px #0b1016,inset 0 0 0 3px rgba(184,134,43,.7)}
+.hud-btn.hud-principal{flex:0 0 150px;font:700 13px/16px 'Cinzel','Palatino Linotype',Palatino,Georgia,serif;letter-spacing:.12em;text-transform:uppercase;color:#f1ead9;
+ background:#c0281f;border:2px solid #e9c063;box-shadow:inset 0 0 0 2px #0b1016,inset 0 0 0 3px rgba(233,192,99,.6)}
+.hud-btn:active{filter:brightness(.85)}

@@ -1,6 +1,24 @@
 {
-  "nota": "Triángulos medidos por node gobierno/captura-ciudad.mjs (CN11, 390x844, guarnición ligera encendida). 'grande' = todos los edificios a nivel 5 y 1.220 soldados en la guarnición. Se vuelven a medir cuando cambie la ciudad 3D.",
-  "tarea": "CN11",
-  "roma": { "ciudad": 62896, "media": 71593, "calle": 66082, "ejercito": 217975, "grande": 80896 },
-  "capua": { "ciudad": 70040, "grande": 91580 }
+  "nota": "Triángulos medidos por node gobierno/captura-ciudad.mjs (CN15a, 390x844, fachadas encendidas). 'grande' = todos los edificios a nivel 5 y 1.220 soldados en la guarnición. Con FACHADAS_* en false dan lo que da la base (roma ciudad 72554, grande 87554) porque desde CN11 la ciudad creció con CN9 y CN10; CN15a suma 0,4 a 1,4 mil. 'griega_cerca' = ciudad griega, todo a nivel 4, cámara a 150 (captura-viva.mjs).",
+  "tarea": "CN15b",
+  "roma": {
+    "ciudad": 73424,
+    "media": 80243,
+    "calle": 72327,
+    "ejercito": 232403,
+    "grande": 88184
+  },
+  "capua": {
+    "ciudad": 78502,
+    "grande": 99738
+  },
+  "griega_cerca": 189463,
+  "trajin_roma": {
+    "nota": "captura-trajin.mjs, 390x844. 'base' = HEAD sin CN15b; con TRAJIN_* y ANDAMIO_NUEVO en false da EXACTAMENTE la base (83817 y 80475). pausa = 1 obra parada, 1 recua; activa = 2 obras con 3 obreros reales cada una; andamio = primer plano.",
+    "base_recua": 83817,
+    "base_pausa": 80475,
+    "pausa": 82326,
+    "activa": 89740,
+    "andamio_cerca": 159075
+  }
 }

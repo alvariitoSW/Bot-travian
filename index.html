@@ -12,6 +12,8 @@
   <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icons/icon-192.png">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/maniobra.css">
+  <link rel="stylesheet" href="css/batalla2.css">
 </head>
 <body>
   <div id="app">
@@ -29,9 +31,10 @@
     <div id="zoom"><button data-act="zoom" data-v="1.3" title="Acercar">＋</button><button data-act="zoom" data-v="0.77" title="Alejar">－</button><button data-act="home" title="Ir a mi general">🦅</button></div>
     <div id="sheet" hidden></div>
     <div id="ctop" hidden></div>
-    <div id="linea" hidden><span id="l-nota" hidden></span><span id="l-texto"></span></div>
+    <div id="linea" hidden><span id="l-cifra"></span><span id="l-nota" hidden></span><span id="l-texto"></span><button id="l-ok" data-act="entendido" hidden>Entendido</button></div>
     <div id="csheet" hidden><div id="fichab" hidden></div><div id="acciones"><button id="b-no" data-act="ccancel">Cancelar</button><button id="b-si" data-act="cbuild">Construir aquí</button></div><div id="bandeja"></div></div>
     <main id="view" hidden></main>
+    <div id="hscrim" data-act="hojax" hidden></div>
     <div id="hoja" hidden></div>
     <div id="popsheet" hidden></div>
     <div id="cuentas" hidden></div>
@@ -62,14 +65,21 @@
   </div>
 
   <div id="modal" hidden><div id="mbox"></div></div>
+  <div id="pausa" hidden><span id="p-txt"></span><button data-act="seguir">Continuar</button></div>
   <div id="toasts"></div>
   <div id="menu"></div>
 
   <script src="js/data.js"></script>
+  <script src="js/asesor.js"></script>
   <script src="js/codice.js"></script>
   <script src="js/registro.js"></script>
   <script src="js/battle.js"></script>
   <script src="js/game.js"></script>
+  <script src="js/maniobra.js"></script>
+  <script src="js/ui-maniobra.js"></script>
+  <script src="js/batalla2.js"></script>
+  <script src="js/ui-batalla2.js"></script>
+  <script src="js/gfx/sonido-ciudad.js"></script>
   <script type="module" src="js/ui.js"></script>
 </body>
 </html>

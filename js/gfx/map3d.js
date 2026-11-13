@@ -66,6 +66,7 @@ const CENTRO = { cart: 'cart_templo', grie: 'grie_templo', galo: 'galo_centro', 
 const claveCentro = dueno => CENTRO[dueno === 'roma' ? 'roma' : CULTURA[dueno]] || null;
 const claveBarco = dueno => (CULTURA[dueno] === 'cart' || CULTURA[dueno] === 'grie') ? CULTURA[dueno] + '_trirreme' : 'trirreme';
 
+const ZOOM_CIUDAD = 19;   // C1: por debajo de esta distancia de cámara, sobre una ciudad propia, se abre la ciudad
 export class MapView3D {
   constructor(host, opts) {
     this.host = host; this.opts = opts || {};
@@ -266,21 +267,43 @@ export class MapView3D {
     return (H[k] * (1 - u) + H[k + 1] * u) * (1 - v) + (H[k + W1] * (1 - u) + H[k + W1 + 1] * u) * v;
   }
 
+  /* una figura (real si ya cargó, si no la sencilla) puesta en el grupo; reutilizada por los ejércitos y las guarniciones */
+  figura(grp, anims, key, col, x, z, s, clip) {
+    const real = getUnit(key);
+    if (real) {                                               // figura real
+      const g = instancedGeometry(real, 1), im = new THREE.InstancedMesh(g, unitMaterialReal(real, col), 1), k = s * UNIT_SCALE * (key === 'elefantes' ? 1.6 : 1);
+      im.setMatrixAt(0, new THREE.Matrix4().makeScale(k, k, k)); im.position.set(x, 0, z); im.frustumCulled = false; im.userData.real = true; grp.add(im);
+      anims.push({ a: g.attributes.aFrame, clip: real.clips[clip] || real.clips.idle, ph: hash(x * 9 + z) * 3 }); return;
+    }
+    const g = unitGeometry(key, col).clone(); g.setAttribute('anim', new THREE.InstancedBufferAttribute(new Float32Array([1, 0, hash(x * 9 + z) * 6]), 3));
+    const me = new THREE.Mesh(g, unitMaterial()); me.position.set(x, 0, z); me.scale.setScalar(s); me.frustumCulled = false; grp.add(me);
+  }
+  /* C1 · guarnición: 1 a 4 figuras junto a la ciudad (según los hombres que hay), con su disco y estandarte del dueño. Solo con la cámara a media distancia o cerca. */
+  guarnicion(c, st, ver) {
+    const hombres = G.men(st.units), n = !hombres ? 0 : hombres < 25 ? 1 : hombres < 120 ? 2 : hombres < 450 ? 3 : 4;
+    let main = null, best = 0; for (const k in st.units) if (st.units[k] > best && D.UNITS[k] && D.UNITS[k].cls !== 'ele') { best = st.units[k]; main = k; }
+    const clave = ver && main ? st.owner + '|' + main + '|' + n : '';
+    if (clave !== c.gClave) {
+      c.gClave = clave;
+      if (c.gar) { c.grp.parent.remove(c.gar.grp); c.gar.grp.traverse(o => { if (o.geometry && !o.userData.real) o.geometry.dispose(); }); c.gar = null; }
+      if (clave) {
+        const grp = new THREE.Group(), anims = [], col = D.FACTIONS[st.owner].col, mine = st.owner === 'roma';
+        for (let i = 0; i < n; i++) { const a = 2.55 + (i - (n - 1) / 2) * 0.5; this.figura(grp, anims, main, col, Math.cos(a) * 1.9, Math.sin(a) * 1.9, 0.4, 'idle'); }
+        const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.02, 1.0, 4), new THREE.MeshLambertMaterial({ color: '#3a2a1a' })); pole.position.set(Math.cos(2.55) * 1.9 - 0.6, 0.5, Math.sin(2.55) * 1.9); grp.add(pole);
+        const fl = new THREE.Mesh(new THREE.PlaneGeometry(0.36, 0.26), new THREE.MeshLambertMaterial({ color: col, side: THREE.DoubleSide })); fl.position.set(pole.position.x + 0.18, 0.88, pole.position.z); grp.add(fl);
+        const base = new THREE.Mesh(new THREE.CylinderGeometry(0.2 + n * 0.14, 0.2 + n * 0.14, 0.03, 14), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.35 })); base.position.set(Math.cos(2.55) * 1.9, 0.02, Math.sin(2.55) * 1.9); grp.add(base);
+        c.grp.add(grp); c.gar = { grp: grp, anims: anims };
+      }
+    }
+    if (c.gar) for (const an of c.gar.anims) { an.a.array[0] = frameOf(an.clip, this.t + an.ph); an.a.needsUpdate = true; }
+  }
+
   armyModel(m) {
     const grp = new THREE.Group(), mine = m.owner === 'roma', col = D.FACTIONS[m.owner].col, e = m.from && G.edge(m.from, m.to);
     const ship = e && e[2] ? (staticMesh(claveBarco(m.owner), col) || staticMesh('trirreme', col)) : null;                    // por mar, el ejército viaja embarcado
     if (ship) { ship.scale.setScalar(0.07); ship.position.y = -0.06; grp.add(ship); const el2 = document.createElement('div'); el2.className = 'mlabel army ' + (mine ? 'mine' : 'foe'); this.labels.appendChild(el2); this.scene.add(grp); return { grp: grp, el: el2, anims: [] }; }
     let main = mine ? 'hastati' : 'milicia', best = 0; for (const k in m.units) if (m.units[k] > best && D.UNITS[k].cls !== 'ele') { best = m.units[k]; main = k; }
-    const anims = [], lead = m.hero || m.gen ? 'general' : (m.units.elefantes ? 'elefantes' : main), add = (key, x, z, s) => {
-      const real = getUnit(key);
-      if (real) {                                               // figura real, andando
-        const g = instancedGeometry(real, 1), im = new THREE.InstancedMesh(g, unitMaterialReal(real, col), 1), k = s * UNIT_SCALE * (key === 'elefantes' ? 1.6 : 1);
-        im.setMatrixAt(0, new THREE.Matrix4().makeScale(k, k, k)); im.position.set(x, 0, z); im.frustumCulled = false; im.userData.real = true; grp.add(im);
-        anims.push({ a: g.attributes.aFrame, clip: real.clips.walk || real.clips.idle, ph: hash(x * 9 + z) * 3 }); return;
-      }
-      const g = unitGeometry(key, col).clone(); g.setAttribute('anim', new THREE.InstancedBufferAttribute(new Float32Array([1, 0, hash(x * 9 + z) * 6]), 3));
-      const me = new THREE.Mesh(g, unitMaterial()); me.position.set(x, 0, z); me.scale.setScalar(s); me.frustumCulled = false; grp.add(me);
-    };
+    const anims = [], lead = m.hero || m.gen ? 'general' : (m.units.elefantes ? 'elefantes' : main), add = (key, x, z, s) => this.figura(grp, anims, key, col, x, z, s, 'walk');
     add(lead, 0, 0.35, lead === 'elefantes' ? 0.3 : 0.62); add(main, -0.5, -0.25, 0.6); add(main, 0.5, -0.25, 0.6); add(main, 0, -0.7, 0.6);
     const base = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.06, 18), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.55 })); base.position.y = 0.03; grp.add(base);
     const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.2, 5), new THREE.MeshLambertMaterial({ color: '#3a2a1a' })); pole.position.set(0, 1.1, -0.3); grp.add(pole);
@@ -313,6 +336,7 @@ export class MapView3D {
       c.grp.visible = true;
       if (c.owner !== st.owner) { c.owner = st.owner; c.quiere = claveCentro(st.owner); const col = D.FACTIONS[st.owner].col; c.flag.color.set(col); c.dot.style.background = col; c.el.classList.toggle('mine', st.owner === 'roma'); }
       if (c.quiere !== c.puesto) this.ponerCentro(c);
+      this.guarnicion(c, st, !mare && this.c.dist < 95 && !(this.opts.ocupado && this.opts.ocupado()) && Math.hypot(c.x - this.c.x, c.z - this.c.z) < this.c.dist * 1.3);   // C1: guarnición visible solo de media distancia a cerca
       c.ring.visible = sel === id; if (sel === id) c.ring.rotation.z = this.t * 0.8;
       const txt = (state.hero.city === id ? '🦅 ' : '') + G.men(st.units); if (c.txt !== txt) { c.txt = txt; c.em.textContent = txt; }
       c.el.classList.toggle('sel', sel === id); place(c.el, c.x, c.grp.position.y + c.top, c.z);
@@ -365,16 +389,31 @@ export class MapView3D {
     st.pila.push({ x: c.x, z: c.z, dist: c.dist, pitch: c.pitch, zona: st.zona }); st.zona = z;
     st.anim = { d: 0.6, de: { x: c.x, z: c.z, dist: c.dist }, a: { x: (x0 + x1) / 2, z: (z0 + z1) / 2, dist: dist } };
   }
+  /* C1 · zoom continuo a la ciudad: guarda el encuadre exacto, acerca la cámara hasta ella y abre la vista de ciudad (opts.onEntrar). */
+  entrarCiudad(id) {
+    const st = this.esc, k = this.cities[id]; if (!k || !this.opts.onEntrar || st.entrando) return;
+    const c = this.c; this.vuelta = { x: c.x, z: c.z, dist: c.dist, pitch: c.pitch, zona: st.zona, pila: st.pila.slice() }; st.entrando = true; st.dentro = true;
+    st.anim = { d: 0.7, de: { x: c.x, z: c.z, dist: c.dist }, a: { x: k.x, z: k.z, dist: ZOOM_CIUDAD - 3 }, fin: () => { st.entrando = false; this.opts.onEntrar(id); } };
+  }
+  /* «volver» desde la ciudad: el mapa queda en el encuadre exacto de antes */
+  restaurar() { const v = this.vuelta, st = this.esc; st.entrando = false; if (!v) return; this.c.x = v.x; this.c.z = v.z; this.c.dist = v.dist; st.zona = v.zona; st.pila = v.pila; this.vuelta = null; st.dentro = true; this.clamp(); }
+  /* al acercar a mano sobre una ciudad propia (pellizco libre) se entra sola; se rearma al alejarse */
+  autoEntrada() {
+    const st = this.esc, c = this.c; if (st.anim || st.entrando || !this.opts.puedeEntrar) return;
+    if (c.dist > ZOOM_CIUDAD * 1.3) { st.dentro = false; return; }
+    if (st.dentro || c.dist >= ZOOM_CIUDAD) return;
+    for (const id in this.cities) { const k = this.cities[id]; if (k.grp.visible && Math.hypot(k.x - c.x, k.z - c.z) < 5 && this.opts.puedeEntrar(id)) { this.entrarCiudad(id); return; } }
+  }
   volver() {
     const st = this.esc, g = st.pila.pop(); if (!g) return; const c = this.c;
     st.zona = g.zona; st.anim = { d: 0.6, de: { x: c.x, z: c.z, dist: c.dist }, a: { x: g.x, z: g.z, dist: g.dist } };
   }
   escalon(state, dt, place) {
-    const st = this.esc, c = this.c, med = G.regionId() === 'mediterraneo';
+    const st = this.esc, c = this.c, med = G.regionId() === 'mediterraneo'; this.autoEntrada();
     if (st.anim) {
       const a = st.anim; if (a.t0 === undefined) a.t0 = performance.now(); const u = Math.min(1, (performance.now() - a.t0) / 1000 / a.d), e = u * u * (3 - 2 * u);
       c.x = a.de.x + (a.a.x - a.de.x) * e; c.z = a.de.z + (a.a.z - a.de.z) * e; c.dist = a.de.dist + (a.a.dist - a.de.dist) * e; this.clamp();
-      if (u >= 1) st.anim = null;
+      if (u >= 1) { st.anim = null; if (a.fin) a.fin(); }
     } else if (st.zona && c.dist >= MARE_DIST) { st.zona = null; st.pila = []; }   // se aleja a mano: vuelve a Mare Nostrum
     st.mare = med && !st.zona && c.dist >= MARE_DIST && !st.anim;
     const clave = med ? (st.zona || '') + '|' + st.pila.length : '-';

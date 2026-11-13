@@ -50,7 +50,7 @@ Cómo se trabaja cada sesión: §7 (gobierno).
   sin red. **Mirar las capturas**: muchos fallos solo se ven (etiquetas, escala, colores).
 - Trampas conocidas: un comentario `//` en una línea larga anula el resto; en plantillas de texto, `\/` se pierde;
   los contenedores de etiquetas usan `overflow: clip` (si no, el navegador los desplaza al tocar).
-- El rendimiento en un móvil real **no está medido** (aquí solo hay render por software).
+- Rendimiento en móvil real: el usuario lo probó el 13/11 y va fluido (aquí solo hay render por software; no está medido en cifras).
 
 ## 5. Git
 - Rama de trabajo: `claude/roman-strategy-mobile-game-bx9oq2` (desde ella se publica el juego), salvo que la sesión

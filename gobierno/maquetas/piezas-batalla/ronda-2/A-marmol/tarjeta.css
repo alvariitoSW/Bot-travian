@@ -1,0 +1,155 @@
+/* P2 · Tarjeta de tribuno — voz «Inscripción epigráfica en mármol».
+   Lápida de mármol con doble filete de bronce. El nombre va en rojo, como las
+   letras pintadas de las inscripciones; el carácter, como símbolo esculpido. */
+
+.tarjeta {
+  --filo: #b8862b;
+  --simbolo: none;
+  position: relative;
+  display: grid;
+  grid-template-rows: 13px 26px 13px 16px;
+  width: 100%;
+  min-width: 0;
+  height: 78px;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 4px 7px;
+  border: 1px solid var(--filo);
+  border-radius: 6px;
+  background: #f1ead9;
+  /* doble filete: borde exterior + filete interior a 2 px */
+  box-shadow:
+    inset 0 0 0 2px #f1ead9,
+    inset 0 0 0 3px var(--filo),
+    0 2px 5px rgba(0, 0, 0, .4);
+  color: #0b1016;
+  font: 11px/13px system-ui, sans-serif;
+  text-align: left;
+  cursor: pointer;
+  overflow: clip;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Símbolo grande en relieve, al fondo a la derecha */
+.tarjeta::before {
+  content: "";
+  position: absolute;
+  top: 5px;
+  right: 6px;
+  width: 38px;
+  height: 38px;
+  background: var(--simbolo-relieve, none) center / contain no-repeat;
+  opacity: .2;
+  pointer-events: none;
+}
+
+.tarjeta > * { position: relative; min-width: 0; }
+
+.tarjeta__nombre {
+  font: 700 11px/13px 'Cinzel', 'Palatino Linotype', Palatino, Georgia, serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: #c0281f;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 30px;
+}
+
+.tarjeta__titulo {
+  font-weight: 700;
+  font-size: 12px;
+  line-height: 13px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
+
+.tarjeta__motivo {
+  font-style: italic;
+  color: rgba(11, 16, 22, .74);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Pie: basa de la lápida, separada por un filete de bronce */
+.tarjeta__pie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-top: 1px;
+  border-top: 1px solid rgba(184, 134, 43, .65);
+}
+
+.tarjeta__caracter {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font: 700 11px/14px 'Cinzel', 'Palatino Linotype', Palatino, Georgia, serif;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.tarjeta__caracter::before {
+  content: "";
+  flex: none;
+  width: 14px;
+  height: 14px;
+  background: var(--simbolo) center / contain no-repeat;
+}
+
+.tarjeta__etiqueta {
+  flex: none;
+  height: 14px;
+  padding: 0 6px;
+  border-radius: 2px;
+  font: 700 11px/14px 'Cinzel', 'Palatino Linotype', Palatino, Georgia, serif;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: #0b1016;
+  background: #e9c063;
+  box-shadow: inset 0 0 0 1px rgba(11, 16, 22, .45);
+  white-space: nowrap;
+}
+.tarjeta--fav .tarjeta__etiqueta { background: #8fae5a; }
+.tarjeta--dud .tarjeta__etiqueta { background: #e9c063; }
+.tarjeta--arr .tarjeta__etiqueta { background: #d9764a; }
+
+/* Símbolos del carácter (SVG en línea): escudo, pilum, yelmo */
+.tarjeta[data-caracter="Prudente"] {
+  --simbolo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='6' y='2' width='12' height='20' rx='3' fill='none' stroke='%230b1016' stroke-width='2.2'/%3E%3Cpath d='M12 3v18' stroke='%230b1016' stroke-width='1.4'/%3E%3Ccircle cx='12' cy='12' r='2.8' fill='%230b1016'/%3E%3C/svg%3E");
+  --simbolo-relieve: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='6' y='2' width='12' height='20' rx='3' fill='none' stroke='%23b8862b' stroke-width='2.2'/%3E%3Cpath d='M12 3v18' stroke='%23b8862b' stroke-width='1.4'/%3E%3Ccircle cx='12' cy='12' r='2.8' fill='%23b8862b'/%3E%3C/svg%3E");
+}
+.tarjeta[data-caracter="Agresivo"] {
+  --simbolo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 21L15 9' stroke='%230b1016' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M14 6l2-2 4 4-2 2z' fill='%230b1016'/%3E%3Cpath d='M17 7l5-5' stroke='%230b1016' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+  --simbolo-relieve: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 21L15 9' stroke='%23b8862b' stroke-width='2.4' stroke-linecap='round'/%3E%3Cpath d='M14 6l2-2 4 4-2 2z' fill='%23b8862b'/%3E%3Cpath d='M17 7l5-5' stroke='%23b8862b' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+}
+.tarjeta[data-caracter="Astuto"] {
+  --simbolo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='3.5' r='1.8' fill='%230b1016'/%3E%3Cpath d='M4 15C4 8.5 7.5 5 12 5s8 3.5 8 10z' fill='%230b1016'/%3E%3Cpath d='M2 15.5h20' stroke='%230b1016' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M6.5 16v5h4l-1-5' fill='none' stroke='%230b1016' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E");
+  --simbolo-relieve: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='3.5' r='1.8' fill='%23b8862b'/%3E%3Cpath d='M4 15C4 8.5 7.5 5 12 5s8 3.5 8 10z' fill='%23b8862b'/%3E%3Cpath d='M2 15.5h20' stroke='%23b8862b' stroke-width='2' stroke-linecap='round'/%3E%3Cpath d='M6.5 16v5h4l-1-5' fill='none' stroke='%23b8862b' stroke-width='1.6' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+/* Elegida: filetes de oro, anillo de oro por fuera y mármol dorado */
+.tarjeta.sel {
+  --filo: #e9c063;
+  border-color: #e9c063;
+  background:
+    linear-gradient(rgba(233, 192, 99, .3), rgba(233, 192, 99, .3)),
+    #f1ead9;
+  box-shadow:
+    inset 0 0 0 1px #0b1016,
+    inset 0 0 0 3px #e9c063,
+    0 0 0 1px #0b1016,
+    0 0 0 3px #e9c063,
+    0 2px 6px 3px rgba(0, 0, 0, .45);
+}
+.tarjeta.sel::before { opacity: .32; }
+.tarjeta.sel .tarjeta__pie { border-top-color: #b8862b; }
+
+.tarjeta:active { transform: translateY(1px); }
+.tarjeta:focus-visible { outline: 2px solid #0b1016; outline-offset: 2px; }

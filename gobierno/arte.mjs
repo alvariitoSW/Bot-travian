@@ -67,7 +67,26 @@ const rom = Object.entries(E.ejercitoRomano), trisSold = rom.reduce((a, [k, n]) 
 const trisGente = nGente * tri('ciudadana'), trisCarros = nCarros * tri('prop_carreta'), trisGuarn = gReal * trisSold + (gTope - gReal) * LIGERA;
 console.log('Vida de la ciudad (máximo teórico): gente ' + mil(trisGente) + ' (' + nGente + '), carros ' + mil(trisCarros) + ' (' + nCarros + '), guarnición ' + mil(trisGuarn) + ' (' + gReal + ' reales + ' + (gTope - gReal) + ' ligeras)');
 if (trisGente + trisCarros + trisGuarn > E.triangulosPorCiudad) fallos.push('la vida de la ciudad (gente, carros, guarnición) pide por sí sola ' + mil(trisGente + trisCarros + trisGuarn) + ' triángulos y el tope es ' + mil(E.triangulosPorCiudad));
-const sumaVida = trisCiudad + trisGente + trisCarros + trisGuarn;
+// Fachadas (CN15a, js/gfx/fachadas.js): puestos de la plaza, toldos, ropa tendida y macetas. Peor caso con los topes del propio módulo.
+const fsrc = await readFile(join(RAIZ, 'js', 'gfx', 'fachadas.js'), 'utf8'), fcte = n => +(fsrc.match(new RegExp(n + ' = (\\d+)')) || [0, 0])[1], fint = n => new RegExp('export const ' + n + ' = true').test(fsrc);
+const nPuestos = fcte('N_PUESTOS_MAX'), nToldos = fcte('N_TOLDOS_MAX'), nRopa = fcte('N_ROPA_MAX'), nMacetas = fcte('N_MACETAS_MAX');
+// puesto = 4 postes y 4 tiras de toldo (8 cajas, 12 triángulos cada una) + mesa + la mayor de cesto o sacos + vaso o caja; toldo pequeño = 3 cajas; tendero = cuerda y 3 paños (4 cajas)
+const trisPuesto = 96 + tri('prop_mesa') + Math.max(tri('prop_cesto'), tri('prop_sacos')) + Math.max(tri('prop_vaso'), tri('prop_caja'));
+const trisFach = (fint('FACHADAS_PUESTOS') ? nPuestos * trisPuesto : 0) + (fint('FACHADAS_TOLDOS') ? nToldos * 36 : 0) + (fint('FACHADAS_ROPA') ? nRopa * 48 : 0) + (fint('FACHADAS_BARRIO') ? nMacetas * tri('prop_vaso') : 0);
+console.log('Fachadas (máximo teórico): ' + mil(trisFach) + ' (' + nPuestos + ' puestos, ' + nToldos + ' toldos, ' + nRopa + ' tendederos, ' + nMacetas + ' macetas)');
+if (trisFach > 15000) fallos.push('las fachadas piden ' + mil(trisFach) + ' triángulos y el presupuesto de CN15a es 15 mil');
+// Cívicas (CN15d, js/gfx/civicas.js): dique (2 cajas + 9 estacas por tramo, 12 tris cada una) y arca (sacos y cajas del montón + tarima).
+const csrc = await readFile(join(RAIZ, 'js', 'gfx', 'civicas.js'), 'utf8'), ccte = n => +(csrc.match(new RegExp(n + ' = (\\d+)')) || [0, 0])[1];
+const trisCiv = ccte('N_DIQUE_MAX') * 11 * 12 + ccte('N_ARCA_MAX') * Math.max(tri('prop_sacos'), tri('prop_caja')) + 12;
+console.log('Cívicas (máximo teórico): ' + mil(trisCiv) + ' (' + ccte('N_DIQUE_MAX') + ' tramos de dique, ' + ccte('N_ARCA_MAX') + ' bultos del arca)');
+if (trisCiv > 6000) fallos.push('las cívicas piden ' + mil(trisCiv) + ' triángulos y el presupuesto de CN15d es 6 mil');
+// Trajín (CN15b, js/gfx/trajin.js): cuadrilla de obra y recuas. Peor caso: obreros reales + 15 figuras ligeras, montones y mulas (170 tris cada una con carga).
+const tsrc = await readFile(join(RAIZ, 'js', 'gfx', 'trajin.js'), 'utf8'), tcte = n => +(tsrc.match(new RegExp(n + ' = (\\d+)')) || [0, 0])[1], tint = n => new RegExp('export const ' + n + ' = true').test(tsrc);
+const nObr = tcte('N_OBREROS_MAX'), nRec = tcte('N_RECUAS'), nMul = tcte('MULAS_POR_RECUA');
+const trisTraj = (tint('TRAJIN_CUADRILLAS') ? nObr * tri('ciudadana') + 144 : 0) + (tint('TRAJIN_RECUAS') ? nRec * (nMul * 170 + tri('ciudadana')) : 0);
+console.log('Trajín (máximo teórico): ' + mil(trisTraj) + ' (' + nObr + ' obreros, ' + nRec + ' recuas de ' + nMul + ' mulas)');
+if (trisTraj > 22000) fallos.push('el trajín pide ' + mil(trisTraj) + ' triángulos y el techo teórico de CN15b es 22 mil (lo real medido va en medidas-ciudad.json)');
+const sumaVida = trisCiudad + trisGente + trisCarros + trisGuarn + trisFach + trisTraj;
 console.log('  suma teórica si TODO estuviera en pantalla a la vez: ' + mil(sumaVida) + ' triángulos (no es lo que se pinta: la cámara solo ve una parte)');
 // Lo que de verdad se pinta se mide con captura-ciudad.mjs y queda en gobierno/medidas-ciudad.json: ahí se vigila el tope.
 const MED = JSON.parse(await readFile(join(RAIZ, 'gobierno', 'medidas-ciudad.json'), 'utf8'));

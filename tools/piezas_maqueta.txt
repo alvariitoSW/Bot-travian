@@ -15,3 +15,10 @@ cart_casa
 cart_casa_b
 cart_casa_c
 prop_puesto_cart
+prop_mesa
+prop_cesto
+prop_sacos
+prop_vaso
+prop_caja
+prop_cajas
+prop_paja_grande

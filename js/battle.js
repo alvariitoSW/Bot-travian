@@ -3,8 +3,8 @@
   const D = root.DATA;
   const CONTACT = 50;
   // --- Ritmo, moral y cansancio (A8) ---
-  const RITMO = 0.0215;          // multiplica todo el daño: hace las batallas igualadas de 8 a 12 minutos
-  const TOPE_BATALLA = 1500;    // segundos: tope de seguridad (25 min); si se alcanza gana el defensor
+  const RITMO = 0.11;             // multiplica todo el daño: hace las batallas igualadas de 4 a 6 minutos (R1)
+  const TOPE_BATALLA = 1500;    // segundos: tope de seguridad (25 min); si se alcanza gana quien conserve más hombres (empate: el atacante)
   const MOR_BAJAS = 0.62;        // moral perdida por cada 1 % de la vida del regimiento arrancada de golpe
   const MOR_CONTAGIO = 1.5;     // moral que pierden los vecinos cuando un regimiento rompe (antes 5)
   // --- N4: estados, choque y contagio ---
@@ -36,7 +36,12 @@
   const CHOQUE_FRENTE_LANZA = 0.5;  // lanceros de frente reciben la mitad de la moral del choque
   const CAV_MELE_SEG = 8;       // la caballería pasa a melé larga tras este tiempo de contacto seguido
   const CAV_MELE_MUL = 0.8;     // y pega menos
-  const AGUANTAR_DEF = 1.15;    // quien aguanta quieto recibe 1/1,15 del daño
+  const IA_BAJA_RONDA = 10;     // (N15c) y no antes de esta ronda
+  const IA_BAJA_FUERZA = 1.25;  // (N15c) la IA en el cerro baja a atacar si es 1,25 veces mayor que el jugador y este no sube
+  const AGUANTAR_SEG = 60;      // (N15d) segundos quieto con «Aguantar» antes de que el rival le tome la medida
+  const AGUANTAR_FIN = 40;      // y segundos en que el bono se apaga del todo
+  const AGUANTAR_ATK = 0.6;
+  const AGUANTAR_DEF = 1.5;     // quien aguanta quieto recibe 1/1,5 del daño (N15c: antes 1,15)
   const HOSTIGAR_DIST = 40;     // el hostigador se aparta si un enemigo cuerpo a cuerpo está a menos
   const HOSTIGAR_FAT = 0.5;     // el hostigador se cansa la mitad al moverse
   const RELEVO_ATRAS = 60;      // lo que retrocede el cansado en un relevo
@@ -45,11 +50,11 @@
   const RETIRADA_DIST = 60;     // un enemigo a menos de esto castiga la retirada
   const MOR_GENERAL = 4;        // moral que pierde su bando al caer el general (antes 12)
   const MOR_FLANCO = 0.02;      // moral por segundo perdida estando flanqueado
-  const MOR_PERDIENDO = 0.05;   // moral por segundo perdida (máx.) si su bando tiene menos hombres que el otro
+  const MOR_PERDIENDO = 0.115;   // moral por segundo perdida (máx.) si su bando tiene menos hombres que el otro
   const DESIGUAL_REL = 0.75;    // (N15b) si tiene menos que esta fracción de los hombres del rival, pelea con moral que se gasta más deprisa
   const DESIGUAL_ACEL = 1.0;    // (N15b) moral por segundo perdida cuando la diferencia es total; crece con ella (batallas muy desiguales más cortas)
   const MOR_HERIDO = 0.3;       // moral por segundo perdida con el regimiento al 0 % de hombres (proporcional a sus bajas)
-  const MOR_CANSADO = 0.05;     // moral por segundo perdida con cansancio al máximo (empieza en FAT_UMBRAL)
+  const MOR_CANSADO = 0.10;     // moral por segundo perdida con cansancio al máximo (empieza en FAT_UMBRAL)
   const FAT_UMBRAL = 60;        // cansancio a partir del cual se pierde moral y se marca «Cansado»
   const FAT_PELEA = 0.17;       // cansancio por segundo peleando cuerpo a cuerpo (se divide por la masa)
   const FAT_CARGA = 6;          // cansancio de golpe al lanzar una carga (la caballería pesa más)
@@ -107,7 +112,7 @@
   const TRANS_VEL = 0.8;        // (N7) y va a esto de su velocidad
   const COL_DIST = 150;         // (N7) marchando sin enemigo a menos de esto, el regimiento va en columna
   const LARGA_SEG = 12;         // (N7) segundos de melé tras los que la cuña se desgasta
-  const FORMA_BASE = { ligera: { sep: 2.4, fondo: 3 }, media: { sep: 1.5, fondo: 4 }, pesada: { sep: 1.2, fondo: 4 }, lanceros: { sep: 1, fondo: 8 }, tirador: { sep: 2.2, fondo: 2 }, jinete: { sep: 2.4, fondo: 3 }, elefante: { sep: 7, fondo: 1 } };
+  const FORMA_BASE = { ligera: { sep: 2.4, fondo: 3 }, media: { sep: 1.5, fondo: 8 }, pesada: { sep: 1.2, fondo: 8 }, lanceros: { sep: 1, fondo: 8 }, tirador: { sep: 2.2, fondo: 2 }, jinete: { sep: 2.4, fondo: 3 }, elefante: { sep: 7, fondo: 1 } };
   const LINEA_CLASE = { hastati: 1, principes: 2, triarii: 3 };   // (N7) triplex acies
   const LANCEROS_VS_CAB = 1.3;  // bajas extra que los lanceros causan a la caballería (además del ×1,7 de las lanzas)
   const LANCEROS_FLANCO = 1.2;  // los lanceros son débiles de flanco: más daño por flanco o espalda
@@ -125,15 +130,15 @@
 
   // --- Terreno (A5b): cuadrícula gruesa compartida con la vista 3D ---
   const CELDA = 40;             // lado de cada celda de terreno (unidades del campo)
-  const COLINA_PEGA = 0.15;     // el regimiento en alto pega (y el de abajo pega menos) hasta ±15 % según la diferencia de altura
+  const COLINA_PEGA = 0.13;     // el regimiento en alto pega (y el de abajo pega menos) hasta ±15 % según la diferencia de altura
   const COLINA_ALCANCE = 0.15;  // los tiradores en lo alto de la colina tienen +15 % de alcance
   const FAT_SUBIDA = 4;         // cansancio al subir de una celda llana a una de colina (proporcional a la altura que se gana)
   const FAT_CUESTA = 0.5;       // cansancio por segundo peleando cuesta arriba (diferencia de altura 1)
   const BOSQUE_VEL = 0.78;       // velocidad dentro del bosque
   const BOSQUE_PROY = 0.7;      // el daño de proyectiles que recibe un regimiento dentro del bosque
   // --- N14: campos amplios y relieve nuevo ---
-  const ANCHO_BASE = 1200;      // ancho del campo por defecto (unidades del campo; cfg.fw lo cambia, mínimo 600)
-  const ANCHO_GRANDE = 1500;    // ancho si entre los dos bandos hay más de HOMBRES_GRANDE hombres
+  const ANCHO_BASE = 800;       // ancho del campo por defecto (unidades del campo; cfg.fw lo cambia, mínimo 600)
+  const ANCHO_GRANDE = 1000;    // ancho si entre los dos bandos hay más de HOMBRES_GRANDE hombres
   const HOMBRES_GRANDE = 700;
   const VADO_VEL = 0.6;         // velocidad dentro de un vado
   const VADO_MOR = 0.15;        // moral (fracción de la máxima) que pierde un regimiento al entrar en un vado: cruzar desordena
@@ -506,7 +511,8 @@
     let m = amount * RITMO * fl * (1 - FAT_PEGA * a.fat / 100);
     if (esBisono(a)) m *= 1 - (1 - BIS_PEGA) * (1 - (a.curt || 0) / BIS_CURTIDO);
     { const ea = estadoMoral(a), eb = estadoMoral(b); m *= ea === 2 ? DESORDEN_PEGA : ea === 1 ? VACILANTE_PEGA : 1; if (eb === 2) m *= DESORDEN_RECIBE; if (b.cartaFx === 'cerrada') m *= CERRADA_RECIBE; }
-    if (tipoDe(b) === 'aguantar' && !b.mv) m /= AGUANTAR_DEF;
+    if (tipoDe(a) === 'aguantar' && !a.mv) m *= 1 - (1 - AGUANTAR_ATK) * Math.min(1, Math.max(0, ((a.agu || 0) - AGUANTAR_SEG) / AGUANTAR_FIN));   // (N15d) quieto de más, sin iniciativa: pega menos
+    if (tipoDe(b) === 'aguantar' && !b.mv) m /= 1 + (AGUANTAR_DEF - 1) * Math.max(0, Math.min(1, 1 - ((b.agu || 0) - AGUANTAR_SEG) / AGUANTAR_FIN));
     m *= FA.pega * (ranged ? FB.proy : fl > 1 ? 1 : FB.melee) * (b.trans > 0 ? TRANS_RECIBE : 1); if (!ranged && FA.larga && a.cont > LARGA_SEG) m *= FA.larga;
     const ta = this.terrenoEn(a.x, a.y), tb = this.terrenoEn(b.x, b.y);
     m *= 1 + COLINA_PEGA * (ta.alt - tb.alt);   // arriba se pega más; el que sube pega menos
@@ -660,11 +666,12 @@
       const collapse = cur[r.side] < this.start[r.side] * 0.15;
       if (collapse) r.mor -= 1.5 * dt;
       r.mv = false; r.corre = false;
+      r.agu = tipoDe(r) === 'aguantar' ? (r.agu || 0) + dt : 0;
       if (r.flank) r.mor -= MOR_FLANCO * dt;
       const mia = cur[r.side] / this.start[r.side], suya = cur[1 - r.side] / this.start[1 - r.side];
       if (mia < suya) r.mor -= MOR_PERDIENDO * Math.min(1, (suya - mia) * 8) * dt;
       const rel = cur[r.side] / Math.max(1, cur[1 - r.side]);
-      if (rel < DESIGUAL_REL && r.fight > 0 && this.start[r.side] < this.start[1 - r.side] * 0.8) r.mor -= DESIGUAL_ACEL * (DESIGUAL_REL - rel) / DESIGUAL_REL * dt;   // (N15b) con muchos menos hombres que el rival, se hunde antes
+      if (rel < DESIGUAL_REL && r.fight > 0 && !(tipoDe(r) === 'aguantar' && !r.mv) && this.start[r.side] < this.start[1 - r.side] * 0.8) r.mor -= DESIGUAL_ACEL * (DESIGUAL_REL - rel) / DESIGUAL_REL * dt;   // (N15b) con muchos menos hombres que el rival, se hunde antes
       if (r.men < r.max && r.fight > 0) r.mor -= MOR_HERIDO * (1 - r.men / r.max) * dt;
       if (r.fat > FAT_UMBRAL) r.mor -= MOR_CANSADO * (r.fat - FAT_UMBRAL) / (100 - FAT_UMBRAL) * dt;
       if (r.mor <= 0) { r.st = 'rout'; this.onBreak(r); continue; }
@@ -699,7 +706,7 @@
       } else if (r.order && r.order.k === 'move') {
         const ret = tipoDe(r) === 'retirarse';
         if (ret && !this.cubierto(r)) for (const e of regs) if (e.side !== r.side && e.st === 'ok' && e.u.cls !== 'rng' && Math.hypot(e.x - r.x, e.y - r.y) < RETIRADA_DIST) { this.hit(e, r, effN(e.men * (e.u.mass || 1)) * ratio(e.u.atk * e.atkMul, r.u.def * r.defMul) * 0.03 * dt * RETIRADA_CASTIGO, false); break; }
-        if (this.moveTo(r, r.order.x, r.order.y, dt, ret ? 1 : PASO_MARCHA) < 6) { if (r.order.ang != null) r.angObj = r.order.ang; r.order = r.order.cond === 'nopersigue' ? { k: 'quieto' } : null; }
+        if (r.order && this.moveTo(r, r.order.x, r.order.y, dt, ret ? 1 : PASO_MARCHA) < 6 && r.order) { if (r.order.ang != null) r.angObj = r.order.ang; r.order = r.order.cond === 'nopersigue' ? { k: 'quieto' } : null; }
       } else if (tgt) {
         const d = Math.hypot(tgt.x - r.x, tgt.y - r.y);
         // el tirador sin orden no pasa de unos 55 por detrás de su infantería más adelantada
@@ -760,7 +767,11 @@
     const n0 = this.men(0), n1 = this.men(1);
     if (n0 <= 0 || n1 <= 0) { this.over = true; this.winner = n0 > 0 ? 0 : 1; }
     else if (this.obj) this.chequeaObjetivo(dt);
-    if (!this.over && this.t > TOPE_BATALLA) { this.over = true; this.winner = this.cfg.defender; }
+    if (!this.over && this.t > TOPE_BATALLA) {
+      // (N15d) al tope gana quien conserva mayor proporción de hombres; si empatan (nadie peleó), no premia al que se quedó esperando: gana el atacante
+      const p0 = n0 / Math.max(1, this.start[0]), p1 = n1 / Math.max(1, this.start[1]);
+      this.over = true; this.winner = Math.abs(p0 - p1) < 0.02 ? 1 - this.cfg.defender : p0 > p1 ? 0 : 1;
+    }
     if (this.rondas && this.fase === 'ejecucion') { this.tRonda += dt; if (!this.over && this.tRonda >= RONDA_SEG - 1e-6) this.finRonda(); }
   };
 
@@ -801,7 +812,7 @@
   // empieza la ronda de ejecución (desde el plan)
   Battle.prototype.ejecutar = function () {
     if (!this.rondas || this.fase !== 'plan' || this.over) return false;
-    if (this.cfg.relevoAuto === true || (this.cfg.relevoAuto !== false && this.auto && !this.regs.some(q => q.side === 0 && q.order))) this.autoRelevo(0);   // (N7) relevo automático del jugador (opcional)
+    if (this.cfg.relevoAuto === true || (this.cfg.relevoAuto !== false && this.auto && !this.manual && !this.regs.some(q => q.side === 0 && q.order))) this.autoRelevo(0);   // (N7) relevo automático del jugador (opcional)
     const mp = this.mandoPuntos();
     if (mp.usados > mp.max) { this.motivo = 'Tienes ' + mp.usados + ' órdenes y solo ' + mp.max + ' puntos de mando'; return false; }
     const g = this.generalVivo(0);
@@ -1190,20 +1201,18 @@
   Battle.prototype.iaFoto = function () { return { r: this.regs.map(function (r) { return [Math.round(r.x), Math.round(r.y), r.men, r.st === 'ok' ? 1 : 0]; }) }; };
   // un gesto visible por ronda: decide con la foto, da órdenes (con límite de puntos y radio) y quizá juega una carta
   Battle.prototype.iaRonda = function () { this.iaRonda0(); if (this.cfg.relevoAuto !== false) this.autoRelevo(1); };
-  Battle.prototype.iaRonda0 = function () {
-    const ia = this.ia, ca = CARACTER[ia.car], dif = ia.dif, nv = ia.nivel || 0, dur = dif === 'dificil' || nv >= NIVEL_DURO,
+  // Tabla de gestos: la usa el enemigo (bando 1: su carácter, su foto y su estado ia) y los tribunos del jugador (bando 0: estado de usar y tirar).
+  // Devuelve null si no hay a quién mandar o a quién mirar. Las órdenes llevan ia:true; el consejo se las quita.
+  Battle.prototype.gestosTabla = function (bando, ia, F, ca) {
+    const dif = ia.dif, nv = ia.nivel || 0, dur = dif === 'dificil' || nv >= NIVEL_DURO,
       margen = ca.margen < 5 ? ca.margen * (1 - 0.5 * nv) : ca.margen, piso = ca.piso * (1 + 0.2 * nv), ronda = this.ronda, W = this.W, H = this.H, T = this.tr, B = T.banda;
-    const g = this.generalVivo(1), pts = g ? MANDO_PUNTOS : MANDO_PUNTOS_SIN;
-    if (!ia.fotos.length) ia.fotos.push(this.iaFoto());
-    const F = ia.fotos[(dif === 'facil' || nv <= -NIVEL_DURO) && ia.fotos.length > 1 ? 1 : 0].r;
-    ia.cartaTxt = '';
-    if (dif === 'facil' && ronda % 2 === 0) { this.gesto = 'El enemigo mantiene su línea'; return; }
-    // lo que se ve: los regimientos del jugador según la foto (la orden de ahora no se mira)
+    const op = 1 - bando, av = bando === 1 ? 1 : -1, g = this.generalVivo(bando), pts = g ? MANDO_PUNTOS : MANDO_PUNTOS_SIN;
+    // lo que se ve: los regimientos del otro bando según la foto (la orden de ahora no se mira)
     const vis = [], regs = this.regs; let h0 = 0, h1 = 0;
-    regs.forEach(function (r, i) { const f = F[i]; if (!f || !f[3]) return; if (r.side === 0) { h0 += f[2]; if (r.st === 'ok') vis.push({ r: r, x: f[0], y: f[1], men: f[2], cl: r.u.cls, id: i }); } else h1 += f[2]; });
-    const m0 = h0 / Math.max(1, this.start[0]), m1 = h1 / Math.max(1, this.start[1]);
-    const mios = regs.filter(r => r.side === 1 && r.st === 'ok' && r.k !== 'general');
-    if (!mios.length || !vis.length) { this.gesto = 'El enemigo espera'; return; }
+    regs.forEach(function (r, i) { const f = F[i]; if (!f || !f[3]) return; if (r.side === op) { h0 += f[2]; if (r.st === 'ok') vis.push({ r: r, x: f[0], y: f[1], men: f[2], cl: r.u.cls, id: i }); } else h1 += f[2]; });
+    const m0 = h0 / Math.max(1, this.start[op]), m1 = h1 / Math.max(1, this.start[bando]);
+    const mios = regs.filter(r => r.side === bando && r.st === 'ok' && r.k !== 'general');
+    if (!mios.length || !vis.length) return null;
     const sede = (r) => (ia_cerca(vis, r.x, r.y) || vis[0]), dist = (r) => ia_d(r, sede(r));
     const tipoA = ca.carga ? 'cargar' : 'avanzar';
     const O = (extra) => Object.assign({ ia: true, hasta: ronda + 1 }, extra);
@@ -1221,30 +1230,33 @@
     G.ala = () => {   // los dos regimientos más cerca del borde se estiran hacia el lado abierto
       if (mios.length < 2) return null;
       const ext = mios.slice().sort((a, b) => (b.x - a.x) * lado).slice(0, 2);
-      return { t: 'El enemigo estira el ala ' + ladoTxt, o: ext.map(r => mov(r, r.x + lado * 150, r.y + 110)) };
+      return { t: 'El enemigo estira el ala ' + ladoTxt, y: 'Estirad el ala ' + ladoTxt + ' hacia el hueco', o: ext.map(r => mov(r, r.x + lado * 150, r.y + av * 110)) };
     };
     G.flanco = () => {
       if (!cavs.length) return null;
       const obj = vis.slice().sort((a, b) => (b.x - a.x) * lado)[0];
-      return { t: 'La caballería enemiga busca tu flanco ' + (obj.x < W / 2 ? 'izquierdo' : 'derecho'), o: cavs.slice(0, 2).map(r => atk(r, obj, 'cargar')) };
+      return { t: 'La caballería enemiga busca tu flanco ' + (obj.x < W / 2 ? 'izquierdo' : 'derecho'), y: 'La caballería rodea su flanco ' + (obj.x < W / 2 ? 'izquierdo' : 'derecho'), o: cavs.slice(0, 2).map(r => atk(r, obj, 'cargar')) };
     };
     G.reserva = () => {
       let debil = null, dw = 1e9;
       for (const r of mios) { const q = r.men / r.max + r.mor / r.morMax; if (dist(r) < 130 && (r.men / r.max < 0.7 || r.mor / r.morMax < 0.5) && q < dw) { dw = q; debil = r; } }
       if (!debil) return null;
       const res = ia_cerca(mios.filter(r => r !== debil && r.u.cls !== 'rng' && dist(r) > 200), debil.x, debil.y); if (!res) return null;
-      return { t: 'El enemigo manda la reserva al punto débil', o: [atk(res, sede(debil), res.u.cls === 'cav' ? 'cargar' : tipoA)] };
+      return { t: 'El enemigo manda la reserva al punto débil', y: 'La reserva acude al punto débil', o: [atk(res, sede(debil), res.u.cls === 'cav' ? 'cargar' : tipoA)] };
     };
     G.centro = () => {
       const c = porDist(pesados).slice(0, pts); if (!c.length) return null;
-      if (ca.cerrada && ronda < 3) return { t: 'El enemigo cierra la falange en el centro', o: c.map(r => quieto(r)) };
-      return { t: 'El enemigo adelanta el centro', o: c.map(r => atk(r, sede(r))) };
+      if (ca.cerrada && ronda < 3) return { t: 'El enemigo cierra la falange en el centro', y: 'Cerrad el centro y esperad', o: c.map(r => quieto(r)) };
+      return { t: 'El enemigo adelanta el centro', y: 'Adelantad el centro', o: c.map(r => atk(r, sede(r))) };
     };
-    G.carga = () => { const c = porDist(mios.filter(r => r.u.cls !== 'rng')).slice(0, pts); return c.length ? { t: 'El caudillo lanza a los suyos a la carga', o: c.map(r => atk(r, sede(r), 'cargar')) } : null; };
-    G.avanza = () => { const c = porDist(mios).slice(0, pts); return c.length ? { t: 'El enemigo aprieta el paso', o: c.map(r => atk(r, sede(r), r.u.cls === 'rng' ? 'avanzar' : tipoA)) } : null; };
+    G.carga = () => { const c = porDist(mios.filter(r => r.u.cls !== 'rng')).slice(0, pts); return c.length ? { t: 'El caudillo lanza a los suyos a la carga', y: 'Lanzad la carga', o: c.map(r => atk(r, sede(r), 'cargar')) } : null; };
+    G.avanza = () => { const c = porDist(mios).slice(0, pts); return c.length ? { t: 'El enemigo aprieta el paso', y: 'Apretad el paso sobre todo el frente', o: c.map(r => atk(r, sede(r), r.u.cls === 'rng' ? 'avanzar' : tipoA)) } : null; };
     G.cerro = () => {
       const s = ia.cerro; if (!s) return null;
       const sube = porDist(mios.filter(r => r.u.cls !== 'cav'), 0).sort((a, b) => ia_d(a, s) - ia_d(b, s)), o = []; let i = 0;
+      // (N15c) si ya está arriba, es mayor y nadie ha peleado aún (el jugador no sube a por él), baja a atacar en vez de esperar para siempre
+      if (ia.baja) return null;
+      if (ronda >= IA_BAJA_RONDA && h1 > h0 * IA_BAJA_FUERZA && sube.every(r => ia_d(r, s) < 130) && m0 > 0.92 && m1 > 0.92) { ia.baja = true; return null; }
       for (const r of sube) { if (ia_d(r, s) < 90) o.push(quieto(r)); else if (o.filter(q => q[1].k !== 'quieto').length < pts) o.push(mov(r, s.x + (i++ % 4 - 1.5) * 45, s.y + (i > 3 ? 40 : 0))); }
       return o.length ? { t: 'El enemigo sube ' + (T.id === 'cerro' ? 'al cerro' : 'a la colina'), o: o } : null;
     };
@@ -1269,11 +1281,11 @@
     };
     G.hostiga = () => {
       const c = ligeros.filter(r => r.u.cls === 'rng' || r.papel === 'ligera').slice(0, pts); if (!c.length) return null;
-      return { t: 'El enemigo hostiga con sus tiradores', o: c.map(r => atk(r, sede(r), 'hostigar')) };
+      return { t: 'El enemigo hostiga con sus tiradores', y: 'Hostigad con los tiradores', o: c.map(r => atk(r, sede(r), 'hostigar')) };
     };
     G.huida = () => {
       const c = ligeros.filter(r => dist(r) < 160).slice(0, pts); if (!c.length) return null;
-      return { t: 'El enemigo rompe contacto y se aleja', o: c.map(r => mov(r, r.x, r.y - 170, 'retirarse')) };
+      return { t: 'El enemigo rompe contacto y se aleja', o: c.map(r => mov(r, r.x, r.y - av * 170, 'retirarse')) };
     };
     G.contra = () => {
       if (ia.finta !== ronda - 1) return null; ia.finta = 0;
@@ -1287,8 +1299,23 @@
       const c = porDist(mios).filter(r => dist(r) < 220).sort((a, b) => a.men / a.max - b.men / b.max).slice(0, Math.min(pts, 3)); if (!c.length) return null;
       const ref = dur && ia.cerro ? ia.cerro : null;
       if (finta) ia.finta = ronda;
-      return { t: finta ? 'El enemigo finge retirarse' : 'El enemigo se repliega para rehacerse', o: c.map(r => ref ? mov(r, ref.x, ref.y, 'retirarse') : mov(r, r.x, r.y - 150, 'retirarse')) };
+      return { t: finta ? 'El enemigo finge retirarse' : 'El enemigo se repliega para rehacerse', y: finta ? 'Fingid una retirada' : 'Replegaos para rehaceros', o: c.map(r => ref ? mov(r, ref.x, ref.y, 'retirarse') : mov(r, r.x, r.y - av * 150, 'retirarse')) };
     };
+    G.firmes = () => {   // (solo consejo) la línea pesada cierra filas y aguanta
+      const c = porDist(pesados).slice(0, pts); if (!c.length) return null;
+      return { t: 'El enemigo cierra filas', y: 'Cerrad filas y aguantad el choque', o: c.map(r => quieto(r)) };
+    };
+    return { G: G, vis: vis, mios: mios, m0: m0, m1: m1, h0: h0, h1: h1, g: g, pts: pts, dist: dist, sede: sede, porDist: porDist, O: O, tipoA: tipoA, dur: dur, dif: dif, nv: nv, margen: margen, piso: piso };
+  };
+  Battle.prototype.iaRonda0 = function () {
+    const ia = this.ia, ca = CARACTER[ia.car], ronda = this.ronda, regs = this.regs;
+    if (!ia.fotos.length) ia.fotos.push(this.iaFoto());
+    const F = ia.fotos[(ia.dif === 'facil' || (ia.nivel || 0) <= -NIVEL_DURO) && ia.fotos.length > 1 ? 1 : 0].r;
+    ia.cartaTxt = '';
+    if (ia.dif === 'facil' && ronda % 2 === 0) { this.gesto = 'El enemigo mantiene su línea'; return; }
+    const tb = this.gestosTabla(1, ia, F, ca);
+    if (!tb) { this.gesto = 'El enemigo espera'; return; }
+    const G = tb.G, vis = tb.vis, mios = tb.mios, m0 = tb.m0, m1 = tb.m1, h0 = tb.h0, h1 = tb.h1, g = tb.g, pts = tb.pts, dist = tb.dist, porDist = tb.porDist, O = tb.O, tipoA = tb.tipoA, dur = tb.dur, dif = tb.dif, nv = tb.nv, margen = tb.margen, piso = tb.piso;
     const apertura = { centro: 'centro', alas: 'ala', cerro: 'cerro', emboscar: 'emboscada', hostigar: 'hostiga' }[ia.plan];
     const resto = { centro: ['flanco', 'ala'], alas: ['flanco', 'ala', 'centro'], cerro: ['cerro'], emboscar: ['salen', 'flanco', 'centro'], hostigar: ['huida', 'hostiga', 'flanco'] }[ia.plan];
     let cola = ['contra', 'repliegue', 'salen'];
@@ -1327,6 +1354,70 @@
       for (const r of regs) if (r.side === 1 && r.st === 'ok' && !this.fueraDeMando(r, g)) { r.cartaFx = carta; if (carta === 'arenga') r.mor = Math.min(topeMor(r), r.mor + ARENGA_MORAL * r.morMax); }
     }
     ia.ult = clave; ia.gestos++; this.gesto = gest.t + (carta ? ' y juega ' + CARTA_TXT[carta] : '');
+  };
+
+
+  /* ---------- R2: consejo de tribunos (los gestos del enemigo, al servicio del jugador) ---------- */
+  // Tres tribunos con carácter fijo: cada uno propone, por orden, el primer gesto de su lista que sea posible y que no haya propuesto otro.
+  const TRIBUNOS = [
+    { n: 'Quinto Fabio', rasgo: 'prudente', car: 'prudente', gestos: ['firmes', 'repliegue', 'centro', 'avanza'] },
+    { n: 'Cayo Flaminio', rasgo: 'agresivo', car: 'impetuoso', gestos: ['centro', 'carga', 'avanza'] },
+    { n: 'Publio Cornelio', rasgo: 'astuto', car: 'astuto', gestos: ['flanco', 'ala', 'hostiga', 'reserva', 'carga'] }
+  ];
+  const MOTIVO_CONSEJO = { firmes: 'Que se estrellen contra los escudos.', repliegue: 'Rehaced la línea antes de seguir.', centro: 'Su centro es lo más cercano.', avanza: 'Presionad ya, sin darles respiro.', carga: 'Un golpe fuerte antes de que se ordenen.', flanco: 'Los jinetes pueden rodearles.', ala: 'Hay hueco por ese lado.', hostiga: 'Los tiradores desgastan sin riesgo.', reserva: 'Reforzad donde más sufrimos.' };
+  const CONSEJO_RADIO = 260;
+  // etiqueta del plan según la zona donde actúa: fuerza propia (los que obedecen y los cercanos) frente a la enemiga
+  Battle.prototype.consejoEtiqueta = function (clave, ordenes, vis) {
+    if (!ordenes.length) return 'Dudoso';
+    let cx = 0, cy = 0; const pr = new Set();
+    for (const p of ordenes) { const r = p[0], o = p[1]; pr.add(r); const t = o.k === 'atk' ? o.r : o.k === 'move' ? o : r; cx += t.x; cy += t.y; }
+    cx /= ordenes.length; cy /= ordenes.length;
+    let propia = 0, enemiga = 0, cercanos = 0;
+    for (const r of this.regs) {
+      if (r.st !== 'ok' || r.k === 'general') continue;
+      if (r.side === 0 && (pr.has(r) || Math.hypot(r.x - cx, r.y - cy) <= CONSEJO_RADIO)) propia += r.men;
+      else if (r.side === 1 && Math.hypot(r.x - cx, r.y - cy) <= CONSEJO_RADIO) { enemiga += r.men; if (Math.hypot(r.x - cx, r.y - cy) <= 200) cercanos++; }
+    }
+    const libre = (clave === 'ala' || clave === 'flanco') && cercanos <= 1;
+    if (clave === 'firmes' && !enemiga) return 'Dudoso';   // esperar sin nadie cerca no es ventaja
+    if (libre || propia > enemiga * 1.15) return 'Favorable';
+    if (propia < enemiga * 0.85) return 'Arriesgado';
+    return 'Dudoso';
+  };
+  // hasta tres planes completos para el bando 0. No cambia nada en la batalla.
+  Battle.prototype.consejo = function () {
+    if (!this.rondas || this.fase !== 'plan' || this.over) return [];
+    const F = this.iaFoto().r, usados = {}, res = [], g0 = this.generalVivo(0);
+    for (const tr of TRIBUNOS) {
+      const ia = { car: tr.car, dif: 'normal', nivel: 0, cerro: null, bosque: null, emb: null, finta: 0, baja: false, ult: '', plan: 'centro', fotos: [] };
+      const tb = this.gestosTabla(0, ia, F, CARACTER[tr.car]); if (!tb) break;
+      for (const k of tr.gestos) {
+        if (usados[k]) continue; const ge = tb.G[k] && tb.G[k](); if (!ge) continue;
+        usados[k] = 1;
+        const nuevo = new Map(); for (const p of ge.o) if (!nuevo.has(p[0])) nuevo.set(p[0], p[1]);
+        if (g0) for (const r of Array.from(nuevo.keys())) if (this.fueraDeMando(r, g0) && nuevo.size > 1) nuevo.delete(r);   // dentro del radio del general (si queda alguien)
+        if (k !== 'firmes' && k !== 'repliegue' && k !== 'hostiga' && nuevo.size < tb.pts) {   // plan completo: los pesados libres más cercanos avanzan
+          for (const r of tb.porDist(tb.mios.filter(q => q.u.cls !== 'rng' && q.u.cls !== 'cav'))) { if (nuevo.size >= tb.pts) break; if (!nuevo.has(r) && !(g0 && this.fueraDeMando(r, g0))) nuevo.set(r, tb.O({ k: 'atk', r: tb.sede(r).r, tipo: 'avanzar' })); }
+        }
+        const ord = [];
+        for (const [r, o] of nuevo) {
+          const c = Object.assign({}, o); delete c.ia; delete c.hasta;
+          if (c.k !== 'quieto' && !c.form && r.form !== 'normal' && r.k !== 'falange') c.form = 'normal';
+          ord.push([r, c]);
+        }
+        let act = 0; const lim = ord.filter(p => p[1].k !== 'quieto' && (act++) < tb.pts || p[1].k === 'quieto');
+        res.push({ tribuno: tr.n, rasgo: tr.rasgo, clave: k, titulo: ge.y || ge.t, motivo: MOTIVO_CONSEJO[k] || '', etiqueta: this.consejoEtiqueta(k, lim, tb.vis), ordenes: lim });
+        break;
+      }
+    }
+    return res;
+  };
+  // pone el plan elegido como si lo hubieras dado tú: quita las órdenes anteriores y escribe estas. Devuelve el consejo aplicado o null.
+  Battle.prototype.aplicarConsejo = function (i) {
+    const c = this.consejo()[i]; if (!c) return null;
+    for (const r of this.regs) if (r.side === 0 && r.st === 'ok' && r.k !== 'general') { r.order = null; r.tgt = null; r.pend = null; r.pendT = 0; }
+    for (const p of c.ordenes) { p[0].order = Object.assign({}, p[1]); p[0].tgt = null; p[0].pend = null; p[0].pendT = 0; }
+    return c;
   };
 
   /* ---------- N15: objetivos de batalla ---------- */

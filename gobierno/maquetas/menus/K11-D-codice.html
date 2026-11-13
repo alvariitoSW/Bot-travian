@@ -1,0 +1,452 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AQVILA · Códice</title>
+<style>
+@font-face{font-family:Cinzel;font-weight:400;src:url(../../../assets/fuentes/cinzel-400.woff2) format("woff2")}
+@font-face{font-family:Cinzel;font-weight:700;src:url(../../../assets/fuentes/cinzel-700.woff2) format("woff2")}
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a;
+--perg1:#2d2315;--perg2:#1b140b;--tinta:#120d07;--serif:Georgia,"Times New Roman",serif;--disp:Cinzel,Georgia,serif}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;overflow:hidden;background:#05080c;color:var(--marmol);font:15px/1.3 var(--serif)}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+#app{position:relative;width:100%;max-width:430px;height:100vh;margin:0 auto;display:flex;flex-direction:column;overflow:hidden;
+background:linear-gradient(#0b1016,#101a24 55%,#0b1016)}
+#bgcity{position:absolute;inset:0;width:100%;height:100%;opacity:.5;pointer-events:none}
+#app>*:not(#bgcity):not(.ov):not(#toast){position:relative}
+.ov,#toast{position:absolute}
+/* HUD */
+#hud{flex:none;padding:6px 8px 4px;background:linear-gradient(#0b1016,rgba(11,16,22,.85));border-bottom:1px solid var(--bronce)}
+.res{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.res div{text-align:center;line-height:1.1;padding:2px 0}
+.res b{font:700 15px var(--disp);display:flex;align-items:center;justify-content:center;gap:3px;color:var(--marmol)}
+.res small{font-size:13px;color:var(--piedra)}
+.res svg{width:16px;height:16px}
+.info{display:flex;align-items:center;gap:8px;margin-top:4px;height:44px}
+.city{height:44px;padding:0 12px;border:1px solid var(--bronce);border-radius:6px;font:700 15px var(--disp);color:var(--oro);background:#1a1409;display:flex;align-items:center;gap:6px}
+.date{flex:1;font-size:13px;color:var(--piedra);line-height:1.25}
+.date b{display:block;color:var(--marmol);font:700 14px var(--disp)}
+.speed{height:44px;min-width:60px;border:1px solid var(--bronce);border-radius:6px;font-size:14px;color:var(--oro);background:#1a1409}
+main{flex:1;min-height:0;position:relative}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;padding:0 8px}
+.screen.on{display:flex}
+/* barra marcapaginas */
+#bar{flex:none;height:76px;display:flex;align-items:flex-start;gap:4px;padding:0 8px 6px;background:linear-gradient(rgba(11,16,22,.2),#0b1016 40%);border-top:1px solid var(--bronce);z-index:2}
+.rib{width:68px;letter-spacing:-.01em;height:70px;margin-top:-1px;padding:8px 2px 18px;font:700 13px/1.1 var(--disp);color:var(--marmol);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:3px;
+background:linear-gradient(#5a1612,#7d1f18);clip-path:polygon(0 0,100% 0,100% 100%,50% 84%,0 100%);transition:.15s}
+.rib svg{width:20px;height:20px;stroke:var(--oro);fill:none;stroke-width:1.6}
+.rib.on{background:linear-gradient(#c0281f,#e0382c);color:#fff;padding-top:12px}
+.rib.dim{background:linear-gradient(#3b3224,#2a2216);color:var(--piedra)}
+#turn{flex:1;justify-content:center;line-height:1.1;align-self:center;height:56px;margin-top:4px;padding:0 8px;border-radius:30px;border:2px solid var(--oro);background:radial-gradient(circle at 30% 25%,#e0382c,#8c1710);font:700 14px var(--disp);color:#fff3d6;display:flex;align-items:center;gap:6px;box-shadow:0 2px 8px #000a}
+#turn svg{width:18px;height:18px;fill:var(--oro)}
+/* tabs del codice */
+.tabs{flex:none;display:flex;gap:3px;padding:6px 4px 0;height:56px;align-items:flex-start}
+.tab{flex:1;height:52px;padding:6px 1px 14px;font:700 13px/1.1 var(--disp);color:var(--piedra);background:linear-gradient(#3b3224,#2a2216);clip-path:polygon(0 0,100% 0,100% 100%,50% 84%,0 100%);display:flex;align-items:flex-start;justify-content:center;text-align:center}
+.tab.on{background:linear-gradient(#e9c063,#b8862b);color:var(--tinta)}
+.book{flex:1;min-height:0;display:flex;flex-direction:column;margin-bottom:6px;border:1px solid var(--bronce);border-radius:8px;background:linear-gradient(135deg,var(--perg1),var(--perg2));box-shadow:inset 0 0 0 4px #1a1209,inset 0 0 0 5px rgba(233,192,99,.55),0 4px 14px #000a;overflow:hidden}
+.track{flex:1;min-height:0;display:flex;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;scrollbar-width:none;overscroll-behavior-x:contain}
+.track::-webkit-scrollbar{display:none}
+.page{flex:0 0 100%;scroll-snap-align:start;scroll-snap-stop:always;padding:14px 16px 4px;overflow:hidden;display:flex;flex-direction:column;gap:8px;position:relative}
+.foot{flex:none;height:26px;display:flex;justify-content:center;align-items:center;gap:8px;font-size:13px;color:var(--bronce);font-style:italic}
+.dots i{display:inline-block;width:8px;height:8px;border-radius:50%;background:#4a3a20;margin:0 3px}
+.dots i.on{background:var(--oro)}
+h2{margin:0;display:flex;align-items:center;gap:10px;font:700 19px/1.1 var(--disp);color:var(--oro)}
+h2 small{display:block;font:italic 400 13px var(--serif);color:var(--piedra);margin-top:3px}
+.cap{flex:none;width:44px;height:44px;display:grid;place-items:center;font:700 30px var(--disp);color:var(--tinta);background:linear-gradient(135deg,#f3d88a,#b8862b);border:2px solid #5a3f0f;border-radius:4px;box-shadow:0 0 0 2px var(--oro) inset}
+.rule{height:12px;position:relative;margin:0 0 2px;flex:none}
+.rule:before{content:"";position:absolute;left:0;right:0;top:5px;height:1px;background:linear-gradient(90deg,transparent,var(--bronce) 15%,var(--bronce) 85%,transparent)}
+.rule:after{content:"";position:absolute;left:50%;top:1px;width:9px;height:9px;margin-left:-5px;background:var(--oro);transform:rotate(45deg)}
+h3{margin:2px 0 0;font:700 14px var(--disp);color:var(--bronce);letter-spacing:.06em;text-transform:uppercase}
+.btn{min-height:44px;padding:0 14px;border-radius:6px;border:1px solid var(--bronce);background:linear-gradient(#3a2d19,#261d0f);color:var(--marmol);font:700 14px var(--disp);display:flex;align-items:center;justify-content:center;gap:8px;text-align:center}
+.btn.pri{background:linear-gradient(#d83a2d,#9a1d15);border-color:var(--oro);color:#fff3d6;min-height:52px;font-size:16px}
+.btn.sel,.seg button.sel{background:linear-gradient(#e9c063,#b8862b);color:var(--tinta);border-color:#f3d88a}
+.btn[disabled]{opacity:.4}
+.btn svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;flex:none}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card{border:1px solid rgba(184,134,43,.6);border-radius:6px;background:rgba(0,0,0,.28);padding:8px 10px}
+.row{text-align:left;display:flex;align-items:center;gap:10px;min-height:44px}
+.row>span{flex:1}
+.row em{font-style:normal;font-size:13px;color:var(--piedra);display:block}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px}
+.seg button{min-height:44px;border:1px solid var(--bronce);border-radius:5px;background:#1a1409;font:700 13px var(--disp);padding:0 2px}
+.sw{flex:none;display:flex;align-items:center;gap:8px;min-height:44px;font:700 13px var(--disp);color:var(--piedra)}
+.sw i{width:50px;height:28px;border-radius:14px;background:#3a2d19;border:1px solid var(--bronce);position:relative;transition:.15s}
+.sw i:after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:var(--marmol);transition:.15s}
+.sw[aria-checked=true]{color:var(--oliva)}
+.sw[aria-checked=true] i{background:#4d6a28}
+.sw[aria-checked=true] i:after{left:25px;background:var(--oro)}
+.bar{height:12px;border-radius:6px;background:#0007;border:1px solid var(--bronce);overflow:hidden}
+.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--oliva),#c7d77a)}
+.bar.warn i{background:linear-gradient(90deg,var(--terra),var(--oro))}
+.face{flex:none}
+.pill{font:700 13px var(--disp);padding:3px 8px;border-radius:10px;background:#0006;border:1px solid var(--bronce);color:var(--oro);white-space:nowrap}
+.pill.bad{color:#fff;background:var(--rojo);border-color:var(--rojo)}
+.pill.ok{color:var(--tinta);background:var(--oliva);border-color:var(--oliva)}
+.pill.mid{color:var(--tinta);background:var(--terra);border-color:var(--terra)}
+.rbtn{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+.rbtn button{min-height:44px;border:1px solid var(--bronce);border-radius:5px;background:#1a1409;font:700 13px var(--disp);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.rbtn svg{width:18px;height:18px}
+.rbtn button.sel{background:linear-gradient(#e9c063,#b8862b);color:var(--tinta)}
+.rbtn button[disabled]{opacity:.35}
+.sw2{align-self:center;width:44px;height:36px;border-radius:18px;border:1px solid var(--bronce);color:var(--oro);font-size:20px;background:#1a1409}
+.big{font:700 22px var(--disp);color:var(--oro);text-align:center}
+.slots{display:flex;gap:8px;align-items:center}
+.slots i{width:38px;height:38px;border-radius:50%;border:2px solid var(--bronce);display:grid;place-items:center;background:#0006}
+.slots i.f{background:radial-gradient(#e9c063,#b8862b);border-color:#f3d88a}
+.slots svg{width:22px;height:22px;stroke:var(--tinta);fill:none;stroke-width:1.8}
+.ruta{display:flex;align-items:center;gap:10px;padding:8px 10px;min-height:64px}
+.ruta b{font:700 15px var(--disp);color:var(--marmol);display:block}
+.ruta span{flex:1}
+.ruta em{font-style:normal;font-size:13px;color:var(--piedra)}
+.plus{font:700 17px var(--disp);color:var(--oliva);white-space:nowrap}
+.tl{position:relative;margin:0;padding:0 0 0 22px;list-style:none}
+.tl:before{content:"";position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:var(--bronce)}
+.tl li{position:relative;padding:5px 0 7px;min-height:44px}
+.tl li:before{content:"";position:absolute;left:-21px;top:11px;width:12px;height:12px;border-radius:50%;background:var(--perg2);border:2px solid var(--bronce)}
+.tl li.past:before{background:var(--bronce)}
+.tl li.now:before{background:var(--rojo);border-color:var(--oro);box-shadow:0 0 0 3px #c0281f55}
+.tl b{font:700 14px var(--disp);color:var(--oro)}
+.tl li.fut b{color:var(--piedra)}
+.tl span{display:block;font-size:14px}
+.scroll{overflow-y:auto;scrollbar-width:thin}
+/* imperio */
+.imp{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px;padding:6px 0 6px}
+.sum{flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;text-align:center;padding:4px;border:1px solid var(--bronce);border-radius:8px;background:linear-gradient(135deg,var(--perg1),var(--perg2))}
+.sum b{display:block;font:700 19px var(--disp);color:var(--oro)}
+.sum small{font-size:13px;color:var(--piedra)}
+.chips{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;flex:none}.chips button:nth-child(-n+3){grid-column:span 2}.chips button:nth-child(n+4){grid-column:span 3}
+.chips button{flex:1 1 auto;min-height:44px;padding:0 10px;border:1px solid var(--bronce);border-radius:22px;background:#1a1409;font:700 13px var(--disp)}
+.chips button.sel{background:linear-gradient(#e9c063,#b8862b);color:var(--tinta)}
+.libro{flex:1;min-height:0;display:flex;flex-direction:column;gap:6px;border:1px solid var(--bronce);border-radius:8px;background:linear-gradient(135deg,var(--perg1),var(--perg2));padding:8px;box-shadow:inset 0 0 0 3px #1a1209,inset 0 0 0 4px rgba(233,192,99,.5)}
+.cc{flex:none;padding:6px 10px;border:1px solid rgba(184,134,43,.6);border-radius:6px;background:rgba(0,0,0,.3);display:grid;grid-template-columns:1fr auto;gap:2px 8px;text-align:left;width:100%}
+.cc h4{margin:0;font:700 17px var(--disp);color:var(--oro);display:flex;align-items:center;gap:8px}
+.cc .pop{font-size:14px;text-align:right}
+.cc .ob{grid-column:1/3;display:flex;align-items:center;gap:8px;font-size:14px}
+.cc .ob .bar{flex:1}
+.cc .av{grid-column:1/3;display:flex;gap:5px;flex-wrap:wrap}
+.acc{flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.acc .btn{flex-direction:column;gap:2px;padding:6px 2px;min-height:56px;font-size:13px}
+/* menu */
+.menu{flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:6px 0 4px}
+.titulo{flex:none;text-align:center;padding:4px 0 0}
+.titulo h1{margin:0;font:700 44px/1 var(--disp);letter-spacing:.16em;color:var(--oro);text-shadow:0 2px 0 #5a3f0f,0 0 18px #e9c06355;padding-left:.16em}
+.titulo p{margin:4px 0 0;font:italic 14px var(--serif);color:var(--piedra)}
+.titulo svg{width:74px;height:50px}
+.cred{flex:none;font-size:13px;color:var(--piedra);text-align:center;line-height:1.3}
+.field{width:100%;min-height:44px;border:1px solid var(--bronce);border-radius:5px;background:#120d07;color:var(--marmol);font:16px var(--serif);padding:0 10px}
+.lbl{font:700 13px var(--disp);color:var(--bronce);letter-spacing:.05em;text-transform:uppercase;display:block;margin-bottom:3px}
+/* overlays */
+.ov{position:absolute;inset:0;z-index:10;display:none;flex-direction:column;justify-content:flex-end;background:rgba(3,6,10,.72);backdrop-filter:blur(2px)}
+.ov.on{display:flex}
+.letter{position:relative;margin:0 6px 6px;padding:40px 16px 12px;border-radius:10px 10px 8px 8px;background:linear-gradient(160deg,#efe3c3,#d8c797);color:var(--tinta);border:1px solid #8a6a2a;box-shadow:0 -6px 30px #000b;animation:up .22s ease-out}
+@keyframes up{from{transform:translateY(60px);opacity:0}}
+.letter h2{color:#6e1410;font-size:18px}
+.letter h2 small{color:#4a3a20}
+.seal{position:absolute;left:50%;top:-24px;margin-left:-30px;width:60px;height:60px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#e0382c,#8c1710 70%);display:grid;place-items:center;font:700 26px var(--disp);color:#f3c4b8;box-shadow:0 3px 8px #0009,inset 0 0 0 4px #a51f16,inset 0 0 0 6px #ffffff22}
+.seal.rot{animation:rot .35s forwards}
+@keyframes rot{to{transform:scale(.4) rotate(40deg);opacity:0}}
+.letter .rule:after{background:#6e1410}.letter .rule:before{background:linear-gradient(90deg,transparent,#8a6a2a 15%,#8a6a2a 85%,transparent)}
+.it{display:flex;gap:10px;padding:7px 0;border-bottom:1px dashed #8a6a2a88;font-size:15px;align-items:flex-start}
+.it svg{flex:none;width:22px;height:22px;stroke:#6e1410;fill:none;stroke-width:1.7;margin-top:1px}
+.it b{font:700 14px var(--disp);color:#6e1410;display:block}
+.it.mas{display:none}.letter.ext .it.mas{display:flex}
+.letter .btn{border-color:#6e1410;background:linear-gradient(#f3e8c8,#dccb9b);color:#6e1410}
+.letter .btn.pri{background:linear-gradient(#d83a2d,#9a1d15);color:#fff3d6;border-color:#6e1410}
+.hoja{margin:0 6px 6px;padding:12px 14px;border-radius:10px;background:linear-gradient(135deg,var(--perg1),var(--perg2));border:1px solid var(--bronce);box-shadow:inset 0 0 0 4px #1a1209,inset 0 0 0 5px rgba(233,192,99,.55);display:flex;flex-direction:column;gap:8px;animation:up .2s ease-out}
+.hoja .grab{width:44px;height:4px;border-radius:2px;background:var(--bronce);margin:-4px auto 0}
+.modo{flex-direction:column;align-items:flex-start;text-align:left;padding:10px 12px;gap:2px;font-size:16px}
+.modo small{font:14px var(--serif);color:var(--piedra)}
+#toast{position:absolute;left:12px;right:12px;bottom:90px;z-index:20;padding:10px 12px;border-radius:8px;background:#1a1409;border:1px solid var(--oro);font-size:14px;text-align:center;opacity:0;pointer-events:none;transition:.2s}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div id="app">
+<svg id="bgcity" viewBox="0 0 390 844" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+ <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b1016"/><stop offset=".7" stop-color="#2a1d12"/><stop offset="1" stop-color="#0b1016"/></linearGradient></defs>
+ <rect width="390" height="844" fill="url(#sky)"/>
+ <g fill="#0d1319"><path d="M0 700h390v144H0z"/><path d="M10 700v-60h30v-20h20v20h30v60zM110 700v-90l30-24 30 24v90zM190 700v-70h40v-30h26v30h34v70zM300 700v-50h22l12-20 12 20h30v50z"/><rect x="60" y="560" width="8" height="60"/><path d="M200 600l20-18 20 18z"/></g>
+ <circle cx="300" cy="140" r="26" fill="#e9c063" opacity=".25"/>
+</svg>
+
+<header id="hud">
+ <div class="res" id="res"></div>
+ <div class="info">
+  <button class="city" id="cityBtn" aria-label="Cambiar de ciudad">Roma <span aria-hidden="true">▾</span></button>
+  <div class="date"><b>Invierno</b>280 a.C. · turno 1</div>
+  <button class="speed" id="speedBtn" aria-label="Velocidad del reloj">▶ ×1</button>
+ </div>
+</header>
+
+<main>
+ <!-- GOBIERNO -->
+ <section class="screen" id="s-gobierno">
+  <nav class="tabs" id="tabs" aria-label="Capítulos del Gobierno">
+   <button class="tab" data-p="0">Estado</button>
+   <button class="tab" data-p="1">Mercado</button>
+   <button class="tab" data-p="2">Rutas</button>
+   <button class="tab" data-p="3">Ajustes</button>
+   <button class="tab" data-p="4">Crónica</button>
+  </nav>
+  <div class="book">
+   <div class="track" id="track">
+    <!-- I Estado -->
+    <article class="page">
+     <h2><span class="cap">R</span><span>Roma<small>Ciudad latina · capital</small></span></h2>
+     <div class="rule"></div>
+     <div class="card row" style="gap:12px;min-height:76px">
+      <span id="faceBig" style="flex:none"></span>
+      <span style="flex:1"><b class="big" style="text-align:left;font-size:20px">Felicidad 72 %</b><div class="bar" style="margin-top:6px"><i style="width:72%"></i></div><em>Contenta, pero con dos faltas.</em></span>
+     </div>
+     <h3>Lo que falta</h3>
+     <button class="card row" data-go="1"><span><b style="font:700 16px var(--disp)">Sal</b><em>No llega. Resta felicidad.</em></span><span class="pill bad" style="flex:none">Falta</span></button>
+     <button class="card row" data-go="1"><span><b style="font:700 16px var(--disp)">Caballos</b><em>Faltan 12 para la caballería.</em></span><span class="pill mid" style="flex:none">Pocos</span></button>
+     <button class="card row" data-go="1"><span><b style="font:700 16px var(--disp)">Vino</b><em>Hay para dos estaciones.</em></span><span class="pill ok" style="flex:none">Al día</span></button>
+     <div style="flex:1"></div>
+     <h3>Ir a</h3>
+     <div class="grid2">
+      <button class="btn" data-go="1">Mercado</button><button class="btn" data-go="2">Rutas comerciales</button>
+      <button class="btn" data-go="3">Ajustes</button><button class="btn" data-go="4">Crónica</button>
+     </div>
+    </article>
+    <!-- II Mercado -->
+    <article class="page">
+     <h2><span class="cap">M</span><span>Mercado<small>Cambio fijo al 50 %</small></span></h2>
+     <div class="rule"></div>
+     <h3>Doy</h3><div class="rbtn" id="doy"></div>
+     <div style="display:flex;align-items:center;justify-content:space-between"><h3>Recibo</h3><button class="sw2" id="swap" aria-label="Intercambiar doy y recibo" style="width:64px;height:44px">⇅</button></div><div class="rbtn" id="reci"></div>
+          <div class="seg" id="cant" style="grid-auto-flow:row;grid-template-columns:1fr;gap:5px"></div>
+     <div style="flex:1"></div>
+     <div class="card" id="resumen" style="text-align:center;font-size:16px;padding:5px 10px"></div>
+     <button class="btn pri" id="cambiar">Cambiar</button>
+    </article>
+    <!-- III Rutas -->
+    <article class="page">
+     <h2><span class="cap">R</span><span>Rutas comerciales<small>Mercancía que viaja y da oro</small></span></h2>
+     <div class="rule"></div>
+     <div class="card row"><div class="slots" id="slots"></div><span style="text-align:right"><b class="big" id="slotTxt" style="font-size:20px"></b><em>huecos usados</em></span></div>
+     <h3>Tus rutas</h3>
+     <div id="rutas" style="display:flex;flex-direction:column;gap:8px"></div>
+     <div style="flex:1"></div>
+     <em style="color:var(--piedra);font-size:13px;font-style:italic">Cada ruta usa un hueco. Cierra una para abrir otra.</em>
+    </article>
+    <!-- IV Ajustes -->
+    <article class="page" style="gap:6px">
+     <h2><span class="cap">A</span><span>Ajustes<small>Cómo quieres jugar</small></span></h2>
+     <div class="rule"></div>
+     <div><span class="lbl">Dificultad</span><div class="seg" data-seg><button>Tranquila</button><button class="sel">Normal</button><button>Dura</button></div></div>
+     <div class="row"><span>Consejos del asesor</span><button class="sw" role="switch" aria-checked="true"><b>Sí</b><i></i></button></div>
+     <div class="row"><span>Repetir los consejos</span><button class="btn" id="repetir" style="min-height:44px">Repetir</button></div>
+     <span class="lbl" style="margin:2px 0 -4px">Sucesos</span>
+     <div class="row"><span>Crecida del río</span><button class="sw" role="switch" aria-checked="true"><b>Sí</b><i></i></button></div>
+     <div class="row"><span>Incendios</span><button class="sw" role="switch" aria-checked="true"><b>Sí</b><i></i></button></div>
+     <div class="row"><span>Hambre de invierno</span><button class="sw" role="switch" aria-checked="false"><b>No</b><i></i></button></div>
+     <div class="row"><span>Sonido</span><button class="sw" role="switch" aria-checked="true"><b>Sí</b><i></i></button></div>
+     <div><span class="lbl">Pausas del reloj</span><div class="seg" data-seg><button>Todas</button><button class="sel">Solo graves</button><button>Ninguna</button></div></div>
+    </article>
+    <!-- V Cronica -->
+    <article class="page">
+     <h2><span class="cap">C</span><span>Crónica<small>Lo que fue y lo que viene</small></span></h2>
+     <div class="rule"></div>
+     <h3>Hechos</h3>
+     <ul class="tl">
+      <li class="past"><b>281 a.C.</b><span>Tarento pide ayuda a Pirro.</span></li>
+      <li class="now"><b>280 a.C. · ahora</b><span>Pirro desembarca en Italia.</span></li>
+      <li class="fut"><b>279 a.C.</b><span>Batalla de Ásculo.</span></li>
+      <li class="fut"><b>275 a.C.</b><span>Roma vence en Benevento.</span></li>
+      <li class="fut"><b>264 a.C.</b><span>Empieza la guerra contra Cartago.</span></li>
+     </ul>
+     <h3>Sucesos del año</h3>
+     <div class="card" style="padding:2px 10px">
+      <div class="row" style="min-height:44px"><span>Crecida del Tíber<em>Primavera · avisada</em></span><b class="pill mid">Próxima</b></div>
+      <div class="row" style="min-height:44px;border-top:1px dashed #b8862b66"><span>Hambre de invierno<em>Granero lleno</em></span><b class="pill ok">Evitada</b></div>
+      <div class="row" style="min-height:44px;border-top:1px dashed #b8862b66"><span>Incendios<em>Ninguno este año</em></span><b class="pill">Calma</b></div>
+     </div>
+    </article>
+   </div>
+   <div class="foot"><span id="folio">Folio I de V</span><span class="dots" id="dots"></span><span>↔ desliza</span></div>
+  </div>
+ </section>
+
+ <!-- IMPERIO -->
+ <section class="screen" id="s-imperio">
+  <div class="imp">
+   <div class="sum">
+    <div><b>4</b><small>ciudades</small></div><div><b>22 210</b><small>habitantes</small></div><div><b>3</b><small>obras</small></div><div><b>4</b><small>avisos</small></div>
+   </div>
+   <div class="chips" id="chips"></div>
+   <div class="libro scroll" id="libro"></div>
+   <div class="acc">
+    <button class="btn" data-t="Senado"><svg viewBox="0 0 24 24"><path d="M3 9l9-5 9 5zM5 11v7M10 11v7M14 11v7M19 11v7M3 20h18"/></svg>Senado</button>
+    <button class="btn" data-t="Saber"><svg viewBox="0 0 24 24"><path d="M12 6c-2-1.5-5-2-8-1v13c3-1 6-.5 8 1 2-1.5 5-2 8-1V5c-3-1-6-.5-8 1zM12 6v13"/></svg>Saber</button>
+    <button class="btn" data-t="General"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/><path d="M12 8v8M9 11h6"/></svg>General</button>
+    <button class="btn" data-h="gobierno-cronica"><svg viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 012 2v12a2 2 0 01-2 2H7a2 2 0 01-2-2V5M9 9h7M9 13h7"/></svg>Crónica</button>
+   </div>
+  </div>
+ </section>
+
+ <!-- MENU -->
+ <section class="screen" id="s-menu">
+  <div class="menu">
+   <div class="titulo">
+    <svg viewBox="0 0 74 50" aria-hidden="true"><g fill="none" stroke="#e9c063" stroke-width="2"><path d="M37 6c-4 0-7 3-7 6 0 2 2 4 4 4M37 6c4 0 7 3 7 6 0 2-2 4-4 4"/><path d="M37 16v20M37 22c-10-2-20-8-26-16 2 12 10 20 26 22M37 22c10-2 20-8 26-16-2 12-10 20-26 22"/><path d="M30 38l7 8 7-8"/></g></svg>
+    <h1>AQVILA</h1><p>Roma contra Pirro, Cartago y el mundo · 280–146 a.C.</p>
+   </div>
+   <button class="btn pri" style="min-height:64px;flex-direction:column;gap:0" data-t="Campaña reanudada"><span>Continuar campaña</span><span style="font:13px var(--serif);color:#f3d4b8">Roma · invierno del 280 a.C. · turno 1</span></button>
+   <div class="card" style="display:flex;flex-direction:column;gap:8px">
+    <b style="font:700 16px var(--disp);color:var(--oro)">Nueva campaña</b>
+    <div><span class="lbl">General</span><input class="field" value="Lucio Cornelio Escipión" aria-label="Nombre del general"></div>
+    <div><span class="lbl">Dificultad</span><div class="seg" data-seg><button>Tranquila</button><button class="sel">Normal</button><button>Dura</button></div></div>
+    <div class="row" style="min-height:44px"><span>Consejos del asesor</span><button class="sw" role="switch" aria-checked="true"><b>Sí</b><i></i></button></div>
+    <button class="btn pri" data-t="Nueva campaña empezada">Empezar campaña</button>
+   </div>
+   <div class="grid2">
+    <button class="btn" data-sheet="italia">Región de Italia</button><button class="btn" data-sheet="corta">Partida corta</button>
+    <button class="btn" data-sheet="sonido">Sonido y fluidez</button><button class="btn" data-sheet="creditos">Créditos</button>
+   </div>
+   <p class="cred">Arte: 0 A.D. © Wildfire Games, CC BY-SA 3.0 · Letra Cinzel, SIL OFL 1.1</p>
+  </div>
+ </section>
+</main>
+
+<nav id="bar" aria-label="Secciones">
+ <button class="rib dim" data-t="Ciudad: vista 3D, fuera de esta maqueta"><svg viewBox="0 0 24 24"><path d="M3 20V10l5-3v13M8 20V8l6-3v15M14 20v-8l7 2v6zM2 20h20"/></svg>Ciudad</button>
+ <button class="rib" data-h="gobierno" data-s="gobierno"><svg viewBox="0 0 24 24"><path d="M4 8l8-4 8 4zM6 10v8M10 10v8M14 10v8M18 10v8M3 20h18"/></svg>Gobierno</button>
+ <button class="rib" data-h="imperio" data-s="imperio"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>Imperio</button>
+ <button class="rib" data-h="menu" data-s="menu"><svg viewBox="0 0 24 24"><path d="M5 7h14M5 12h14M5 17h14"/></svg>Menú</button>
+ <button id="turn" data-h="modal">Pasar<br>turno</button>
+</nav>
+
+<!-- MODAL: carta lacrada -->
+<div class="ov" id="modal" aria-modal="true" role="dialog" aria-label="Informe de estación">
+ <div class="letter" id="letter">
+  <div class="seal" id="seal">A</div>
+  <h2><span>Invierno del 280 a.C.<small>Turno 1 · informe y consejo</small></span></h2>
+  <div class="rule"></div>
+  <div class="it"><svg viewBox="0 0 24 24"><path d="M12 3c4 5 6 8 6 11a6 6 0 01-12 0c0-3 2-6 6-11z"/></svg><span><b>Consejo</b>Pon una obra en cola antes de pasar turno.</span></div>
+  <div class="it"><svg viewBox="0 0 24 24"><path d="M3 9c3-3 6 3 9 0s6 3 9 0M3 15c3-3 6 3 9 0s6 3 9 0"/></svg><span><b>Crecida</b>El Tíber subirá en primavera. Aleja el grano.</span></div>
+  <div class="it"><svg viewBox="0 0 24 24"><path d="M4 20h16M6 20V9l6-5 6 5v11"/></svg><span><b>Obras</b>No hay cola de obras. Los albañiles esperan.</span></div>
+  <div class="it mas"><svg viewBox="0 0 24 24"><path d="M4 8l8-4 8 4zM6 10v8M10 10v8M14 10v8M18 10v8M3 20h18"/></svg><span><b>Senado</b>Pide tu voto sobre la paz con Pirro.</span></div>
+  <div class="it mas"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4-3 7-7 9-4-2-7-5-7-9V6z"/></svg><span><b>Hombres en armas</b>120 hombres. Ninguno en marcha.</span></div>
+  <div class="it mas"><svg viewBox="0 0 24 24"><path d="M5 12l4 4 10-10"/></svg><span><b>Tareas</b>3 pendientes: obra, reclutar, mercado.</span></div>
+  <div class="grid2" style="margin-top:10px;grid-template-columns:1fr 1.5fr">
+   <button class="btn" id="mas">Ver más</button><button class="btn pri" id="seguir">Seguir</button>
+  </div>
+ </div>
+</div>
+
+<!-- HOJA generica (menu) -->
+<div class="ov" id="sheetOv"><div class="hoja" id="sheet"></div></div>
+<div id="toast" role="status"></div>
+</div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s),$$=(s,r=document)=>[...r.querySelectorAll(s)];
+const ICON={mad:'<svg viewBox="0 0 16 16"><rect x="1" y="4" width="14" height="8" rx="3" fill="#8a5a2b"/><circle cx="12" cy="8" r="2.6" fill="#d9a066"/></svg>',
+pie:'<svg viewBox="0 0 16 16"><path d="M2 12l2-7 5-2 5 4-1 5z" fill="#9aa6b4"/></svg>',
+hie:'<svg viewBox="0 0 16 16"><path d="M2 12l2-6h8l2 6z" fill="#6f8aa6"/></svg>',
+gra:'<svg viewBox="0 0 16 16"><path d="M8 15V4M8 5L5 3M8 5l3-2M8 9L5 7M8 9l3-2M8 13l-3-2M8 13l3-2" stroke="#e9c063" stroke-width="1.6" fill="none"/></svg>',
+oro:'<svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="#e9c063" stroke="#b8862b" stroke-width="1.5"/></svg>'};
+const R=[{k:'mad',n:'Madera',v:2450,a:3000},{k:'pie',n:'Piedra',v:1260,a:3000},{k:'hie',n:'Hierro',v:720,a:3000},{k:'gra',n:'Grano',v:2310,a:4000},{k:'oro',n:'Oro',v:540,a:2000}];
+const fmt=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+function hud(){$('#res').innerHTML=R.map(r=>`<div title="${r.n}">${'<b>'+ICON[r.k]+fmt(r.v)+'</b>'}<small>alm ${fmt(r.a)}</small></div>`).join('')}
+function face(m,s=26){const c={s:'#8fae5a',n:'#e9c063',a:'#c0281f'}[m],mo={s:'M7 14q5 5 10 0',n:'M8 15h8',a:'M7 17q5-5 10 0'}[m];
+ return `<svg class="face" width="${s}" height="${s}" viewBox="0 0 24 24" aria-label="${{s:'Contento',n:'Normal',a:'Enfadado'}[m]}"><circle cx="12" cy="12" r="10.5" fill="${c}" stroke="#120d07" stroke-width="1.2"/><circle cx="8.5" cy="9.5" r="1.4" fill="#120d07"/><circle cx="15.5" cy="9.5" r="1.4" fill="#120d07"/><path d="${mo}" fill="none" stroke="#120d07" stroke-width="1.6" stroke-linecap="round"/></svg>`}
+function toast(t){const e=$('#toast');e.textContent=t;e.classList.add('on');clearTimeout(toast.t);toast.t=setTimeout(()=>e.classList.remove('on'),1800)}
+
+/* navegacion */
+const PAGES=['estado','mercado','rutas','ajustes','cronica'],ROM=['I','II','III','IV','V'];
+const track=$('#track');let cur=0;
+function setTab(i){cur=i;$$('.tab').forEach((t,j)=>t.classList.toggle('on',j===i));$('#folio').textContent='Folio '+ROM[i]+' de V';$$('#dots i').forEach((d,j)=>d.classList.toggle('on',j===i))}
+function goPage(i,smooth=true,hash=true){track.scrollTo({left:i*track.clientWidth,behavior:smooth?'smooth':'instant'});setTab(i);
+ if(hash)history.replaceState(null,'','#gobierno'+(i?'-'+PAGES[i]:''))}
+$('#dots').innerHTML=PAGES.map(()=>'<i></i>').join('');
+let raf;track.addEventListener('scroll',()=>{cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>{const i=Math.round(track.scrollLeft/track.clientWidth);if(i!==cur){setTab(i);history.replaceState(null,'','#gobierno'+(i?'-'+PAGES[i]:''))}})});
+$$('.tab').forEach(t=>t.onclick=()=>goPage(+t.dataset.p));
+$$('[data-go]').forEach(b=>b.onclick=()=>goPage(+b.dataset.go));
+function route(){const h=(location.hash||'#gobierno').slice(1);const [s,sub]=h.split('-');
+ const scr=['gobierno','imperio','menu'].includes(s)?s:(s==='modal'?'gobierno':'gobierno');
+ $$('.screen').forEach(e=>e.classList.toggle('on',e.id==='s-'+scr));
+ $('#hud').style.display=scr==='menu'?'none':'';
+ $$('.rib[data-s]').forEach(b=>{b.classList.toggle('on',b.dataset.s===scr)});
+ $('#modal').classList.toggle('on',s==='modal');closeSheet();
+ if(s==='modal'){$('#letter').classList.remove('ext');$('#seal').classList.remove('rot');$('#mas').textContent='Ver más'}
+ if(scr==='gobierno'){const i=Math.max(0,PAGES.indexOf(sub));goPage(i,false,false)}
+}
+addEventListener('hashchange',route);
+$$('[data-h]').forEach(b=>b.onclick=()=>{const h='#'+b.dataset.h;if(location.hash===h)route();else location.hash=h});
+$$('[data-t]').forEach(b=>b.onclick=()=>toast(b.dataset.t));
+$('#cityBtn').onclick=()=>toast('Elegir ciudad: Roma, Capua, Tarento, Siracusa');
+let sp=1;$('#speedBtn').onclick=e=>{sp=sp===1?2:sp===2?4:1;e.currentTarget.textContent='▶ ×'+sp};
+
+/* interruptores y segmentos */
+document.addEventListener('click',e=>{const sw=e.target.closest('.sw');if(sw){const on=sw.getAttribute('aria-checked')!=='true';sw.setAttribute('aria-checked',on);sw.firstChild.textContent=on?'Sí':'No'}
+ const sg=e.target.closest('[data-seg] button');if(sg){$$('button',sg.parentNode).forEach(b=>b.classList.toggle('sel',b===sg))}});
+$('#repetir').onclick=()=>toast('El asesor repetirá sus consejos.');
+$('#faceBig').innerHTML=face('s',48);
+
+/* mercado */
+let doy=0,rec=1,qi=0;const Q=[[100,50],[500,250],[2000,1000]];
+function mercado(){
+ $('#doy').innerHTML=R.map((r,i)=>`<button data-i="${i}" class="${i===doy?'sel':''}" ${i===rec?'disabled':''}>${ICON[r.k]}${r.n}</button>`).join('');
+ $('#reci').innerHTML=R.map((r,i)=>`<button data-i="${i}" class="${i===rec?'sel':''}" ${i===doy?'disabled':''}>${ICON[r.k]}${r.n}</button>`).join('');
+ $('#cant').innerHTML=Q.map((q,i)=>`<button class="btn ${i===qi?'sel':''}" data-q="${i}" style="min-height:44px"><span style="font-size:17px">${fmt(q[0])} → ${fmt(q[1])}</span></button>`).join('');
+ $('#resumen').innerHTML=`Das <b>${fmt(Q[qi][0])} ${R[doy].n.toLowerCase()}</b><br>y recibes <b style="color:var(--oro)">${fmt(Q[qi][1])} ${R[rec].n.toLowerCase()}</b>`;
+ hud()}
+$('#doy').onclick=e=>{const b=e.target.closest('button');if(b&&!b.disabled){doy=+b.dataset.i;mercado()}};
+$('#reci').onclick=e=>{const b=e.target.closest('button');if(b&&!b.disabled){rec=+b.dataset.i;mercado()}};
+$('#cant').onclick=e=>{const b=e.target.closest('button');if(b){qi=+b.dataset.q;mercado()}};
+$('#swap').onclick=()=>{[doy,rec]=[rec,doy];mercado()};
+$('#cambiar').onclick=()=>{const [d,g]=Q[qi];if(R[doy].v<d)return toast('No tienes tanta '+R[doy].n.toLowerCase()+'.');
+ if(R[rec].v+g>R[rec].a)return toast('No cabe en el almacén de '+R[rec].n.toLowerCase()+'.');
+ R[doy].v-=d;R[rec].v+=g;mercado();toast('Hecho: '+fmt(d)+' '+R[doy].n.toLowerCase()+' por '+fmt(g)+' '+R[rec].n.toLowerCase()+'.')};
+
+/* rutas */
+const RT=[{a:'Capua',m:'Grano',p:38,on:1},{a:'Tarento',m:'Madera',p:52,on:1},{a:'Cartago',m:'Hierro',p:90,on:0}];
+function rutas(){const n=RT.filter(r=>r.on).length;
+ $('#slots').innerHTML=[0,1,2,3].map(i=>`<i class="${i<n?'f':''}">${i<n?'<svg viewBox="0 0 24 24"><path d="M3 15h18l-3 5H6zM12 4v11M12 5l6 8h-6"/></svg>':''}</i>`).join('');
+ $('#slotTxt').textContent=n+' de 4';
+ $('#rutas').innerHTML=RT.map((r,i)=>`<div class="card ruta"><span><b>Roma → ${r.a}</b><em>${r.m}${r.on?' · activa':' · propuesta'}</em></span><span class="plus" style="flex:none">+${r.p} oro</span><button class="btn ${r.on?'':'pri'}" data-r="${i}" style="min-height:44px;min-width:76px;font-size:13px;flex:none;${r.on?'':'min-height:44px'}">${r.on?'Cerrar':'Abrir'}</button></div>`).join('')}
+$('#rutas').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;const r=RT[+b.dataset.r];
+ if(!r.on&&RT.filter(x=>x.on).length>=4)return toast('No quedan huecos.');r.on=r.on?0:1;rutas();toast(r.on?'Ruta abierta a '+r.a+'.':'Ruta cerrada.')};
+
+/* imperio */
+const C=[{n:'Roma',p:8420,t:9000,m:'s',o:['Foro · nivel 3',62],av:[]},{n:'Capua',p:5130,t:6000,m:'n',o:['Muralla · nivel 2',35],av:['Inquietud']},
+{n:'Tarento',p:3900,t:4000,m:'a',o:null,av:['Inquietud','Sin obra · hay recursos']},{n:'Siracusa',p:4760,t:8000,m:'s',o:['Puerto · nivel 4',80],av:['Almacén lleno']}];
+const F=['Todas','Urgentes','Sin obra','En obras','Ánimo bajo'];let fi=0;
+const test=[()=>1,c=>c.av.length,c=>!c.o,c=>!!c.o,c=>c.m!=='s'];
+function imperio(){
+ $('#chips').innerHTML=F.map((f,i)=>`<button class="${i===fi?'sel':''}" data-f="${i}">${f}</button>`).join('');
+ const l=C.filter(test[fi]);
+ $('#libro').innerHTML=l.length?l.map(c=>`<button class="cc" data-c="${c.n}"><h4>${face(c.m,24)}${c.n}</h4><span class="pop">${fmt(c.p)} / ${fmt(c.t)}</span>
+  <div class="ob">${c.o?`<span>${c.o[0]}</span><div class="bar"><i style="width:${c.o[1]}%"></i></div><b>${c.o[1]} %</b>`:'<span style="color:var(--piedra)">Sin obra en curso</span>'}</div>
+  ${c.av.length?`<div class="av">${c.av.map(a=>`<span class="pill ${a==='Inquietud'?'bad':a==='Almacén lleno'?'mid':''}">${a}</span>`).join('')}</div>`:''}</button>`).join(''):'<p style="text-align:center;color:var(--piedra)">Ninguna ciudad así.</p>'}
+$('#chips').onclick=e=>{const b=e.target.closest('[data-f]');if(b){fi=+b.dataset.f;imperio()}};
+$('#libro').onclick=e=>{const b=e.target.closest('[data-c]');if(b)toast('Abrir '+b.dataset.c+': vista de ciudad')};
+
+/* hojas del menu */
+const SH={
+italia:`<h2><span class="cap">I</span><span>Región de Italia<small>Una campaña en la península</small></span></h2><p style="margin:0">Roma, Capua, Tarento y sus vecinos. Pirro desembarca en el 280 a.C.</p><button class="btn pri" data-t="Región de Italia cargada">Jugar en Italia</button>`,
+corta:`<h2><span class="cap">P</span><span>Partida corta<small>Elige cómo empezar</small></span></h2><button class="btn modo" data-t="Partida corta: Roma y Capua"><b>Roma y Capua en pie</b><small>Dos ciudades hechas. Vas directo a la guerra.</small></button><button class="btn modo" data-t="Partida corta: fundar de la nada"><b>Fundar de la nada</b><small>Una aldea vacía. Todo por construir.</small></button>`,
+sonido:`<h2><span class="cap">S</span><span>Sonido y fluidez<small>Para tu móvil</small></span></h2><div class="row"><span>Sonido</span><button class="sw" role="switch" aria-checked="true"><b>Sí</b><i></i></button></div><div><span class="lbl">Fluidez</span><div class="seg" data-seg><button>Ahorro</button><button class="sel">Normal</button><button>Máxima</button></div></div>`,
+creditos:`<h2><span class="cap">C</span><span>Créditos<small>Quién hizo el arte</small></span></h2><p style="margin:0">Modelos y texturas: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0.</p><p style="margin:0">Letra Cinzel, licencia SIL OFL 1.1.</p>`};
+function openSheet(k){$('#sheet').innerHTML='<div class="grab"></div>'+SH[k]+'<button class="btn" id="cerrar">Cerrar</button>';$('#sheetOv').classList.add('on');
+ $('#cerrar').onclick=closeSheet;$$('#sheet [data-t]').forEach(b=>b.onclick=()=>{closeSheet();toast(b.dataset.t)})}
+function closeSheet(){$('#sheetOv').classList.remove('on')}
+$$('[data-sheet]').forEach(b=>b.onclick=()=>openSheet(b.dataset.sheet));
+$('#sheetOv').onclick=e=>{if(e.target.id==='sheetOv')closeSheet()};
+
+/* modal */
+$('#mas').onclick=()=>{const l=$('#letter');l.classList.toggle('ext');$('#mas').textContent=l.classList.contains('ext')?'Ver menos':'Ver más'};
+function cerrarModal(){$('#seal').classList.add('rot');setTimeout(()=>{location.hash='gobierno'},220)}
+$('#seguir').onclick=cerrarModal;
+$('#modal').onclick=e=>{if(e.target.id==='modal')cerrarModal()};
+let ty;$('#letter').addEventListener('touchstart',e=>ty=e.touches[0].clientY,{passive:true});
+$('#letter').addEventListener('touchend',e=>{if(e.changedTouches[0].clientY-ty>70)cerrarModal()});
+
+hud();mercado();rutas();imperio();route();
+</script>
+</body>
+</html>

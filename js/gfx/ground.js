@@ -205,6 +205,13 @@ function pintarCiudad3(M, T, E, fino) {
   if (E.muralla.fase && E.surco) trazo(T, E.surco, 8, 5, '48,42,34', 0.5, true);
 }
 
+/* CN15a: tintes por estación (primavera, verano, otoño, invierno). MULTIPLICADORES, no repintan texturas: así el terreno futuro (CN19) también los recibe.
+   Suaves: primavera verde fresco, verano dorado y seco, otoño ocre, invierno apagado y frío. Mezcla de la estación k hacia la siguiente con f (0..1). */
+const EST_SUELO = [[0.94, 1.06, 0.92], [1.03, 1.0, 0.93], [1.10, 0.95, 0.80], [0.91, 0.96, 1.03]];
+const EST_ARBOL = [[0.95, 1.08, 0.90], [1.02, 1.0, 0.92], [1.22, 0.92, 0.70], [0.88, 0.94, 1.0]];
+/* Multiplicador del suelo por terreno de colonia: costa arena clara, pantano verde oscuro húmedo, terrazas ocre, llanura verde claro. */
+const TINTE_TERRENO = { costa: [1.18, 1.12, 0.92], pantano: [0.74, 0.88, 0.7], terrazas: [1.12, 1.0, 0.78], llanura: [0.94, 1.1, 0.9] };
+export function tintesEstacion(k, f) { const a = ((k % 4) + 4) % 4, b = (a + 1) % 4, m = (T) => T[a].map((x, i) => x + (T[b][i] - x) * f); return { suelo: m(EST_SUELO), arbol: m(EST_ARBOL) }; }
 export function crearSuelo3(texs, U, bosquetes) {
   const juego = (fino, semilla) => { const n = fino ? TC3 : TP3, nm = fino ? MC3 : MP3, Ex = fino ? EC : EP, oz = fino ? CZ : 0;
     const M = lienzo(nm, 'rgb(0,0,0)'), T = lienzo(n, 'rgb(128,128,128)'), pon = (g, k) => g.setTransform(k / (2 * Ex), 0, 0, k / (2 * Ex), k / 2, k / 2 - oz * k / (2 * Ex)); pon(M, nm); pon(T, n);
@@ -215,7 +222,7 @@ export function crearSuelo3(texs, U, bosquetes) {
   const Cj = juego(true, 11), Pj = juego(false, 23);
   /* mapa de calor */
   const cc = document.createElement('canvas'); cc.width = cc.height = N_CALOR; const cg = cc.getContext('2d'), tCal = new THREE.CanvasTexture(cc); tCal.colorSpace = THREE.NoColorSpace; tCal.flipY = false; tCal.magFilter = tCal.minFilter = THREE.LinearFilter; tCal.generateMipmaps = false;
-  const uCal = { value: 0 };
+  const uCal = { value: 0 }, uEst = { value: new THREE.Vector3(1, 1, 1) }, uTer = { value: new THREE.Vector3(1, 1, 1) };
   /* malla: densa en el centro, se estira hacia fuera (igual que ciudad2, algo más densa cerca) */
   const NN = 128, pos = new Float32Array((NN + 1) * (NN + 1) * 3), idx = [], f = u => Math.sign(u) * (Math.abs(u) * 520 + Math.pow(Math.abs(u), 3.2) * 3300);
   for (let j = 0; j <= NN; j++) for (let i = 0; i <= NN; i++) { const x = f(i / NN * 2 - 1), z = f(j / NN * 2 - 1) + CZ, o = (j * (NN + 1) + i) * 3; pos[o] = x; pos[o + 1] = altura(x, z); pos[o + 2] = z; }
@@ -223,9 +230,9 @@ export function crearSuelo3(texs, U, bosquetes) {
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
   const mat = new THREE.MeshLambertMaterial({ color: '#ffffff' });
   mat.onBeforeCompile = sh => {
-    Object.assign(sh.uniforms, { uMC: { value: Cj.m }, uTC: { value: Cj.t }, uMP: { value: Pj.m }, uTP: { value: Pj.t }, uCalor: { value: tCal }, uCal, tDry: { value: texs.terr_grass }, tGreen: { value: texs.terr_dry }, tDirt: { value: texs.terr_dirt }, tPav: { value: texs.terr_paving }, uRuido: U.uRuido, uTiempo: U.uTiempo });
+    Object.assign(sh.uniforms, { uMC: { value: Cj.m }, uTC: { value: Cj.t }, uMP: { value: Pj.m }, uTP: { value: Pj.t }, uCalor: { value: tCal }, uCal, tDry: { value: texs.terr_grass }, tGreen: { value: texs.terr_dry }, tDirt: { value: texs.terr_dirt }, tPav: { value: texs.terr_paving }, uRuido: U.uRuido, uTiempo: U.uTiempo, uEst, uTer });
     sh.vertexShader = 'varying vec3 vWP;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    sh.fragmentShader = `varying vec3 vWP; uniform sampler2D uMC, uTC, uMP, uTP, uCalor, tDry, tGreen, tDirt, tPav; uniform float uCal;\n${GLSL_NUBES}\n` + sh.fragmentShader.replace('#include <map_fragment>', `
+    sh.fragmentShader = `varying vec3 vWP; uniform sampler2D uMC, uTC, uMP, uTP, uCalor, tDry, tGreen, tDirt, tPav; uniform float uCal; uniform vec3 uEst, uTer;\n${GLSL_NUBES}\n` + sh.fragmentShader.replace('#include <map_fragment>', `
       vec2 uc = (vWP.xz - vec2(0.0, ${CZ.toFixed(1)})) / ${(EC * 2).toFixed(1)} + 0.5, up = clamp(vWP.xz / ${(EP * 2).toFixed(1)} + 0.5, 0.002, 0.998);
       vec2 dc = abs(uc - 0.5); float kc = 1.0 - smoothstep(0.42, 0.495, max(dc.x, dc.y));
       vec3 mc = texture2D(uMC, uc).rgb, mp = texture2D(uMP, up).rgb, tc = texture2D(uTC, uc).rgb, tp = texture2D(uTP, up).rgb;
@@ -251,11 +258,15 @@ export function crearSuelo3(texs, U, bosquetes) {
       col = mix(col, vec3(0.42, 0.40, 0.27) * (0.8 + 0.4 * g3), lj * smoothstep(0.45, 0.62, g4 + g2 * 0.3) * 0.7); col = mix(col, vec3(0.07, 0.10, 0.06), lj * smoothstep(0.40, 0.56, g1 * 0.75 + g4 * 0.4) * 0.8); col = mix(col, vec3(0.60, 0.57, 0.52), lj * smoothstep(0.62, 0.78, g3 * 0.55 + g4 * 0.6) * smoothstep(60.0, 220.0, vWP.y) * 0.7);
       vec2 uh = (vWP.xz - vec2(${X0.toFixed(1)}, ${Z0.toFixed(1)})) / ${LADO.toFixed(1)}; vec4 ca = texture2D(uCalor, clamp(uh, 0.0, 1.0));
       float lum = dot(col, vec3(0.3, 0.5, 0.2)); col = mix(col, ca.rgb * (0.55 + 0.9 * lum), ca.a * uCal * step(0.0, uh.x) * step(uh.x, 1.0) * step(0.0, uh.y) * step(uh.y, 1.0));
-      diffuseColor.rgb = col * nubes(vWP);`);
+      diffuseColor.rgb = col * uEst * uTer * nubes(vWP);`);
   };
   mat.customProgramCacheKey = () => 'q1k-suelo';
   const malla = new THREE.Mesh(geo, mat); malla.receiveShadow = true;
   return { malla,
+    /* tinte de la estación k (0..3) mezclado con la siguiente según f (0..1) */
+    /* CN19-B: tinte por terreno de colonia, como multiplicador (no repinta texturas) */
+    terreno(t) { uTer.value.set(...(TINTE_TERRENO[t] || [1, 1, 1])); },
+    estacion(k, f) { uEst.value.set(...tintesEstacion(k, f).suelo); },
     /* repinta lo construido sobre el terreno base */
     pintar(E) { const fb = E.edificios.map(e => e.tipo === 'granja' ? (e.obra ? 'o' : e.ruina ? 'r' : 'g') : '').join('') + '|' + E.vias.length + '|' + E.vias.filter(v => v.emp).length + '|' + E.muralla.fase + '|' + !!E.foro, basto = fb !== this.fb; this.fb = fb;
       for (const J of basto ? [Cj, Pj] : [Cj]) { for (const [g, b] of [[J.M, J.bM], [J.T, J.bT]]) { g.setTransform(1, 0, 0, 1, 0, 0); g.globalCompositeOperation = 'copy'; g.drawImage(b, 0, 0); g.globalCompositeOperation = 'source-over'; } J.pon(); pintarCiudad3(J.M, J.T, E, J.fino); J.m.needsUpdate = J.t.needsUpdate = true; } },

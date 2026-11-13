@@ -1,0 +1,189 @@
+/* P4 · Barra y botones del campo de batalla — «Tablilla de cera y pergamino de mando».
+   El HUD ocupa toda la pantalla sin recibir toques; solo sus piezas los reciben. */
+
+.hud {
+  --h-noche: #0b1016;
+  --h-rojo: #c0281f;
+  --h-oro: #e9c063;
+  --h-bronce: #b8862b;
+  --h-marmol: #f1ead9;
+  --h-piedra: #9aa6b4;
+  --h-cartago: #5b3a8c;
+  --h-titulo: 'Cinzel', 'Palatino Linotype', Palatino, Georgia, serif;
+
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font: 12px/1.3 system-ui, sans-serif;
+  color: var(--h-marmol);
+}
+.hud > * { pointer-events: auto; position: absolute; box-sizing: border-box; }
+.hud button { font-family: inherit; cursor: pointer; margin: 0; -webkit-tap-highlight-color: transparent; }
+
+/* Tablilla común: cera oscura, banda de madera y filete de bronce */
+.hud-barra, .hud-objetivo, .hud-ordenes {
+  background:
+    repeating-linear-gradient(0deg, rgba(241, 234, 217, .02) 0 1px, transparent 1px 5px),
+    linear-gradient(rgba(184, 134, 43, .09), rgba(184, 134, 43, .09)),
+    rgba(11, 16, 22, .9);
+}
+
+/* ── Barra superior ── */
+.hud-barra {
+  top: 0; left: 0; right: 0;
+  height: 47px;
+  padding: 0 0 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 3px double var(--h-bronce);
+}
+.hud-ronda {
+  flex: 0 0 auto;
+  font: 600 12px/1 var(--h-titulo);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--h-oro);
+  padding-right: 10px;
+  border-right: 1px solid rgba(184, 134, 43, .5);
+}
+.hud-roma, .hud-cart {
+  flex: 0 0 auto;
+  font-weight: 700;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+.hud-roma::before, .hud-cart::after {
+  content: "";
+  width: 10px; height: 10px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px var(--h-bronce);
+}
+.hud-roma::before { background: var(--h-rojo); }
+.hud-cart::after { background: var(--h-cartago); }
+.hud-fuerza {
+  flex: 1 1 auto;
+  min-width: 80px;
+  height: 12px;
+  border-radius: 2px;
+  background: var(--h-cartago);
+  box-shadow: 0 0 0 1px var(--h-bronce), 0 0 0 2px var(--h-noche), 0 0 0 3px rgba(184, 134, 43, .5);
+  overflow: hidden;
+  display: flex;
+}
+.hud-fuerza i {
+  display: block;
+  height: 100%;
+  background: var(--h-rojo);
+  border-right: 2px solid var(--h-marmol);
+}
+.hud-ala {
+  flex: 0 0 auto;
+  min-width: 74px;
+  height: 44px;
+  padding: 0 8px;
+  color: var(--h-marmol);
+  font-size: 12px;
+  font-weight: 600;
+  background: rgba(184, 134, 43, .12);
+  border: 0;
+  border-left: 1px solid rgba(184, 134, 43, .6);
+  border-radius: 0;
+}
+.hud-ala:first-of-type { margin-left: 2px; }
+.hud-ala:active { background: rgba(233, 192, 99, .25); color: var(--h-oro); }
+
+/* ── Objetivo: despacho arriba a la derecha ── */
+.hud-objetivo {
+  top: 55px; right: 8px;
+  width: 220px;
+  padding: 7px 10px 7px 12px;
+  font-size: 12px;
+  line-height: 16px;
+  border: 1px solid var(--h-bronce);
+  border-left: 4px solid var(--h-rojo);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px rgba(11, 16, 22, .9), inset 0 0 0 3px rgba(184, 134, 43, .45);
+}
+
+/* ── Gesto del enemigo: cinta centrada ── */
+.hud-gesto {
+  top: 57px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: 360px;
+  padding: 6px 22px;
+  font-size: 12px;
+  font-style: italic;
+  line-height: 16px;
+  text-align: center;
+  color: var(--h-marmol);
+  background: rgba(11, 16, 22, .86);
+  border-top: 1px solid var(--h-bronce);
+  border-bottom: 1px solid var(--h-bronce);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 10px) 50%, 100% 100%, 0 100%, 10px 50%);
+  pointer-events: none;
+}
+
+/* ── Seguir: discreto, a la derecha, sobre la franja de órdenes ── */
+.hud-seguir {
+  right: 8px;
+  bottom: 104px;
+  min-width: 96px;
+  height: 44px;
+  padding: 0 16px;
+  font: 600 12px/1 var(--h-titulo) !important;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--h-oro);
+  background: rgba(11, 16, 22, .82);
+  border: 1px solid var(--h-bronce);
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 2px rgba(11, 16, 22, .9), inset 0 0 0 3px rgba(184, 134, 43, .5);
+}
+
+/* ── Franja de órdenes ── */
+.hud-ordenes {
+  left: 0; right: 0; bottom: 0;
+  height: 97px;
+  padding: 8px 6px;
+  display: flex;
+  gap: 4px;
+  align-items: stretch;
+  border-top: 3px double var(--h-bronce);
+}
+.hud-tarjetas {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  gap: 4px;
+}
+.hud-tarjetas > .tarjeta { flex: 1 1 0; }
+
+.hud-btn {
+  flex: 0 0 64px;
+  height: 78px;
+  padding: 0 4px;
+  font: 600 12px/1.2 var(--h-titulo) !important;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--h-marmol);
+  background: rgba(184, 134, 43, .14);
+  border: 1px solid var(--h-bronce);
+  border-radius: 7px;
+  box-shadow: inset 0 0 0 2px rgba(11, 16, 22, .9), inset 0 0 0 3px rgba(184, 134, 43, .55);
+}
+.hud-btn.hud-principal {
+  flex-basis: 150px;
+  font-size: 14px !important;
+  letter-spacing: .08em;
+  color: var(--h-marmol);
+  background: var(--h-rojo);
+  border: 2px solid var(--h-oro);
+  box-shadow: inset 0 0 0 2px var(--h-rojo), inset 0 0 0 3px rgba(233, 192, 99, .8), inset 0 -3px 0 3px rgba(11, 16, 22, .25);
+}
+.hud-btn:active { transform: translateY(1px); }

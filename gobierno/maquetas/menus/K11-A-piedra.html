@@ -1,0 +1,541 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AQVILA · Mármol y bronce</title>
+<style>
+@font-face{font-family:Cinzel;font-weight:400;src:url(../../../assets/fuentes/cinzel-400.woff2) format("woff2")}
+@font-face{font-family:Cinzel;font-weight:700;src:url(../../../assets/fuentes/cinzel-700.woff2) format("woff2")}
+:root{
+  --noche:#0b1016;--panel:#141b24;--rojo:#c0281f;--rojo2:#8f1c15;--oro:#e9c063;--bronce:#b8862b;--bronce2:#7d5a1c;
+  --marmol:#f1ead9;--marmol2:#e3d8bd;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a;--tinta:#2b2418;--tinta2:#5b4d36;
+  --cera:#3a3125;--cera2:#2b241a;--madera:#6b4a2a;
+  --greca:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='10'><path d='M0 9V1h12v6H4V4h4' fill='none' stroke='%23b8862b' stroke-width='1.6'/></svg>");
+  --serif:Cinzel,'Trajan Pro',Georgia,serif;--sans:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:#000;overflow:hidden}
+body{font:14px/1.3 var(--sans);color:var(--marmol);display:flex;justify-content:center}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;touch-action:manipulation}
+svg{display:block}
+#app{position:relative;width:min(100vw,390px);height:min(100dvh,844px);background:var(--noche);overflow:hidden;display:flex;flex-direction:column}
+#bg{position:absolute;inset:0;width:100%;height:100%}
+#veil{position:absolute;inset:0;background:linear-gradient(#0b1016e8,#0b1016f2);transition:opacity .3s}
+#app.ver-ciudad #veil{opacity:.05}
+#app.ver-modal #veil{opacity:.2}
+#app.ver-modal #s-ciudad .placa{display:none}
+#app>*:not(#bg):not(#veil){position:relative}
+
+/* cabecera */
+header{height:100px;flex:none;padding:6px 8px 0;background:linear-gradient(#0b1016f5,#0b1016cc);border-bottom:2px solid var(--bronce);z-index:3}
+header::after{content:"";position:absolute;left:0;right:0;bottom:-12px;height:10px;background:var(--greca) repeat-x;opacity:.7;pointer-events:none}
+.res{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;height:44px}
+.res div{background:linear-gradient(#1c2430,#121923);border:1px solid var(--bronce2);border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+.res b{font-size:15px;display:flex;gap:3px;align-items:center;color:var(--marmol)}
+.res small{font-size:13px;color:var(--piedra)}
+.res svg{width:15px;height:15px}
+.fila2{display:flex;gap:6px;margin-top:6px;height:44px}
+.ciudad-sel{flex:none;width:110px;border:1px solid var(--bronce);border-radius:6px;background:linear-gradient(#2a2216,#1a150d);font:700 15px var(--serif);color:var(--oro);letter-spacing:.04em}
+.fecha{flex:1;display:flex;align-items:center;justify-content:space-between;padding:0 4px 0 10px;border:1px solid var(--bronce2);border-radius:6px;background:#10161e;font:400 13px var(--serif);color:var(--marmol)}
+.fecha button{width:44px;height:44px;color:var(--oro);font-size:15px}
+.menu-btn{flex:none;width:44px;border:1px solid var(--bronce);border-radius:6px;background:linear-gradient(#2a2216,#1a150d);color:var(--oro);font-size:20px}
+
+/* pantallas */
+main{flex:1;min-height:0;z-index:2}
+.screen{position:absolute;inset:0;display:none;flex-direction:column;padding:12px 10px 8px;gap:8px}
+.screen.on{display:flex}
+/* navegación inferior */
+nav{flex:none;height:64px;display:flex;background:linear-gradient(#171209,#0d0a05);border-top:2px solid var(--bronce);z-index:6}
+nav .tab{flex:none;width:80px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font:700 13px var(--serif);color:var(--piedra)}
+nav .tab svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.6}
+nav .tab.on{color:var(--oro);box-shadow:inset 0 3px 0 var(--oro)}
+.pasar{flex:1;margin:8px 8px 8px 4px;border-radius:8px;background:linear-gradient(#d9a741,#9c7220);border:1px solid #f0cf86;color:#2a1c05;font:700 15px var(--serif);box-shadow:0 2px 0 #5a4010;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.1}
+.pasar small{font:400 13px var(--sans);color:#4a3508}
+.pasar:active{transform:translateY(1px)}
+
+/* pestañas de bronce */
+.tabs{display:flex;gap:3px;flex:none}
+.tabs button{flex:1;min-height:46px;padding:0 2px;border-radius:7px 7px 2px 2px;background:linear-gradient(#c79a3b,#8a6420);border:1px solid #e0b858;border-bottom:3px solid #5a4010;color:#2a1c05;font:700 13px var(--serif);display:flex;align-items:center;justify-content:center;text-align:center;line-height:1.05}
+.tabs button.on{background:linear-gradient(#f4dc8f,#e9c063);border-bottom-color:var(--rojo);color:#3b0d09;box-shadow:0 -2px 0 #fff3 inset}
+.tabs.sans button{font:700 13px var(--sans)}
+.pane{display:none;flex:1;min-height:0;flex-direction:column;gap:8px}
+.pane.on{display:flex}
+
+/* placas de mármol */
+.placa{position:relative;border-radius:8px;border:2px solid var(--bronce);color:var(--tinta);
+  background:radial-gradient(120% 80% at 15% 0,#fffaf0 0,#f1ead9 45%,#e6dcc3 100%),#f1ead9;
+  box-shadow:0 0 0 1px #5a4010,0 4px 10px #0009,inset 0 0 0 3px #f1ead9,inset 0 0 0 4px #b8862b66;padding:10px 12px}
+.placa::before{content:"";position:absolute;inset:0;border-radius:6px;pointer-events:none;
+  background:linear-gradient(115deg,transparent 30%,#9aa6b422 31%,transparent 33%,transparent 60%,#9aa6b41a 61%,transparent 63%)}
+.placa h2,.placa h3{font-family:var(--serif);color:var(--tinta)}
+.greca{height:10px;background:var(--greca) repeat-x;margin:-2px -2px 4px}
+/* tablillas de cera */
+.cera{border-radius:8px;border:3px solid var(--madera);background:linear-gradient(var(--cera),var(--cera2));box-shadow:0 0 0 1px #20150a,0 4px 10px #0009,inset 0 0 12px #0008;padding:8px 10px;position:relative;color:#efe5cc}
+.cera::before,.cera::after{content:"";position:absolute;top:50%;width:6px;height:6px;border-radius:50%;background:var(--bronce);box-shadow:0 0 0 1px #20150a}
+.cera::before{left:-5px}.cera::after{right:-5px}
+.cera h3{font:700 14px var(--serif);color:var(--oro);letter-spacing:.06em;margin-bottom:6px;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.cera h3 small{font:400 13px var(--sans);color:var(--piedra);text-transform:none;letter-spacing:0}
+
+/* controles */
+.seg{display:flex;gap:4px}
+.seg button{flex:1;min-height:44px;border-radius:6px;border:1px solid #6f5217;background:#241d12;color:#d9ceb2;font-weight:600}
+.seg button.on{background:linear-gradient(var(--rojo),var(--rojo2));border-color:var(--oro);color:#fff;box-shadow:0 0 0 1px #0006 inset}
+.fila{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px}
+.fila>span{font-size:15px}
+.fila small{display:block;font-size:13px;color:var(--piedra)}
+.tg{flex:none;width:76px;height:44px;border-radius:22px;border:1px solid #6f5217;background:#241d12;position:relative;font-weight:700;font-size:13px;color:#d9ceb2;text-align:right;padding:0 12px}
+.tg::before{content:"";position:absolute;left:5px;top:5px;width:32px;height:32px;border-radius:50%;background:var(--piedra);transition:left .15s}
+.tg.on{background:#2c3a17;border-color:var(--oliva);color:#dff0b8;text-align:left}
+.tg.on::before{left:39px;background:var(--oliva)}
+.btn{min-height:48px;padding:0 16px;border-radius:8px;font:700 15px var(--serif);display:inline-flex;align-items:center;justify-content:center;text-align:center;line-height:1.1}
+.btn.rojo{background:linear-gradient(var(--rojo),var(--rojo2));border:1px solid var(--oro);color:#fff;box-shadow:0 2px 0 #4a0d09}
+.btn.bronce{background:linear-gradient(#d9a741,#9c7220);border:1px solid #f0cf86;color:#2a1c05;box-shadow:0 2px 0 #5a4010}
+.btn.lino{background:linear-gradient(#f6efdc,#e0d4b6);border:1px solid var(--bronce);color:var(--tinta);box-shadow:0 2px 0 #7d5a1c}
+.btn.hueso{background:#241d12;border:1px solid #6f5217;color:#e6dcc0}
+.btn[disabled]{opacity:.45}
+.btn:active{transform:translateY(1px)}
+.chip{display:inline-flex;align-items:center;gap:5px;min-height:32px;padding:0 10px;border-radius:16px;font-size:13px;font-weight:600;border:1px solid}
+.chip.no{background:#d9764a26;border-color:var(--terra);color:#f3b392}
+.chip.si{background:#8fae5a26;border-color:var(--oliva);color:#c5dd97}
+.chip svg{width:16px;height:16px}
+input[type=text]{width:100%;height:44px;border-radius:6px;border:1px solid #6f5217;background:#1b160e;color:var(--marmol);font:700 16px var(--serif);padding:0 12px}
+
+/* gobierno: estado */
+.ciudadhead{display:flex;gap:12px;align-items:center}
+.escudo{flex:none;width:64px;height:64px}
+.ciudadhead h2{font-size:26px;letter-spacing:.08em;line-height:1}
+.ciudadhead p{font-size:14px;color:var(--tinta2);margin-top:3px}
+.felic{margin-left:auto;text-align:center}
+.felic b{font:700 30px var(--serif);color:var(--tinta);display:block;line-height:1}
+.felic small{font-size:13px;color:var(--tinta2)}
+.barra{height:12px;border-radius:6px;background:#2b2418;border:1px solid #5a4010;overflow:hidden;margin-top:8px}
+.barra i{display:block;height:100%;background:linear-gradient(90deg,#7d9d46,#a8c46a)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.lbl{font-size:13px;color:var(--piedra);margin:2px 0 5px}
+.accesos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:auto}
+.acc{min-height:84px;text-align:left;display:flex;flex-direction:column;justify-content:center;gap:2px;padding:8px 12px}
+.acc svg{width:28px;height:28px;position:absolute;right:10px;top:10px;opacity:.85}
+.acc b{font:700 16px var(--serif);color:var(--tinta)}
+.acc span{font-size:14px;color:var(--tinta2)}
+
+/* mercado */
+.tri{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+.tri button{min-height:62px;border-radius:8px;border:1px solid #6f5217;background:#241d12;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:13px;color:#d9ceb2}
+.tri button svg{width:26px;height:26px}
+.tri button.on{background:linear-gradient(var(--rojo),var(--rojo2));border-color:var(--oro);color:#fff}
+.tri button.val{outline:2px solid var(--oliva)}
+.tri button em{font-style:normal;font-size:13px;color:var(--piedra)}
+.tri button.on em{color:#ffe3c8}
+.cant{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.cant button{min-height:56px;border-radius:8px;border:1px solid #6f5217;background:#241d12;color:#d9ceb2;font:700 15px var(--sans)}
+.cant button.on{background:linear-gradient(#d9a741,#9c7220);color:#2a1c05;border-color:#f0cf86}
+.resumen{font:700 17px var(--serif);text-align:center;padding:6px 0}
+.resumen small{display:block;font:400 14px var(--sans);color:var(--tinta2);margin-top:3px}
+
+/* rutas */
+.huecos{display:flex;gap:6px;align-items:center}
+.hueco{flex:1;height:52px;border-radius:8px;border:2px dashed #6f5217;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--piedra)}
+.hueco.lleno{border-style:solid;border-color:var(--bronce);background:#3a2d1c;color:var(--oro)}
+.hueco svg{width:30px;height:30px}
+.ruta{display:flex;align-items:center;gap:10px;padding:8px 12px}
+.ruta .info{flex:1;min-width:0}
+.ruta b{font:700 16px var(--serif);color:var(--tinta);display:block}
+.ruta span{font-size:14px;color:var(--tinta2)}
+.ruta .gana{font:700 15px var(--sans);color:#3d5a14;display:block;margin-top:1px}
+.ruta .btn{min-height:44px;padding:0 12px;font-size:13px}
+
+/* ajustes */
+.cera .seg{margin-top:2px}
+
+/* crónica */
+.linea{overflow-x:auto;display:flex;gap:0;padding:8px 4px 4px;scrollbar-width:none;position:relative}
+.linea::-webkit-scrollbar{display:none}
+.hito{flex:none;width:76px;min-height:64px;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;padding-top:2px}
+.hito::before{content:"";position:absolute;top:14px;left:0;right:0;height:3px;background:var(--bronce)}
+.hito i{position:relative;z-index:1;width:22px;height:22px;border-radius:50%;background:#2b2418;border:3px solid var(--bronce)}
+.hito.on i{background:var(--rojo);border-color:var(--oro);box-shadow:0 0 0 4px #e9c06355}
+.hito b{font:700 13px var(--serif);color:var(--oro)}
+.hito.futuro i{border-style:dashed}
+.hecho h3{font-size:17px;margin-bottom:3px}
+.hecho p{font-size:14px;line-height:1.35;color:var(--tinta2)}
+.lista{display:flex;flex-direction:column;overflow-y:auto;min-height:0}
+.lista li{list-style:none;display:flex;gap:10px;align-items:center;min-height:44px;border-bottom:1px solid #ffffff1a;font-size:14px}
+.lista li:last-child{border:0}
+.lista li b{flex:none;width:76px;font:700 13px var(--serif);color:var(--oro)}
+.lista li span{flex:1}
+.pun{flex:none;width:10px;height:10px;border-radius:50%}
+
+/* imperio */
+.resimp{display:grid;grid-template-columns:repeat(4,1fr);text-align:center;gap:4px}
+.resimp b{display:block;font:700 19px var(--serif);color:var(--tinta)}
+.resimp small{font-size:13px;color:var(--tinta2)}
+.ciudades{display:flex;flex-direction:column;gap:7px;flex:1;min-height:0;overflow-y:auto}
+.cc{display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:8px 12px;min-height:84px}
+.cc h3{font-size:18px;letter-spacing:.05em}
+.cc .pob{font-size:14px;color:var(--tinta2);text-align:right}
+.cc .pob b{color:var(--tinta);font-size:15px}
+.cc .animo{font-size:20px;margin-right:6px}
+.cc .obra{grid-column:1/-1;font-size:13px;color:var(--tinta2);display:flex;justify-content:space-between;gap:6px}
+.cc .bar{grid-column:1/-1;height:10px;border-radius:5px;background:#cfc3a4;border:1px solid #8a6420;overflow:hidden}
+.cc .bar i{display:block;height:100%;background:linear-gradient(90deg,#b8862b,#e9c063)}
+.aviso{display:inline-block;font-size:13px;font-weight:700;border-radius:10px;padding:1px 8px;margin-left:6px;vertical-align:2px}
+.aviso.rojo{background:#c0281f;color:#fff}.aviso.ocre{background:#e9c063;color:#3b2a05}.aviso.verde{background:#6d8b3b;color:#fff}
+.vacio{padding:20px;text-align:center;color:var(--piedra);font-size:15px}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;flex:none}
+.grid4 .btn{flex-direction:column;gap:2px;min-height:56px;padding:0 2px;font-size:13px}
+.grid4 svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7}
+
+/* menú */
+#s-menu{padding:10px 12px;gap:8px;background:radial-gradient(90% 40% at 50% 0,#2a2216,transparent),var(--noche);z-index:8}
+.titulo{display:flex;align-items:center;gap:12px;height:76px}
+.titulo svg{flex:none;width:56px;height:56px}
+.titulo h1{font:700 40px var(--serif);letter-spacing:.14em;color:var(--oro);line-height:1;text-shadow:0 2px 0 #5a4010}
+.titulo p{font-size:13px;color:var(--piedra);letter-spacing:.05em}
+.titulo button{margin-left:auto;width:44px;height:44px;border-radius:6px;border:1px solid var(--bronce);color:var(--oro);font-size:20px;background:#1a150d}
+.cont{display:flex;align-items:center;gap:12px;width:100%;text-align:left;min-height:68px}
+.cont h2{font-size:18px;letter-spacing:.04em}
+.cont p{font-size:13px;color:var(--tinta2);margin-top:2px}
+.cont svg{margin-left:auto;width:26px;height:26px;stroke:var(--rojo);stroke-width:3;fill:none;flex:none}
+.cols2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.modo{min-height:78px;text-align:left;padding:8px 10px;border-radius:8px;border:1px solid #6f5217;background:#241d12;display:flex;flex-direction:column;justify-content:center;gap:2px}
+.modo b{font:700 14px var(--serif);color:var(--oro)}
+.modo span{font-size:13px;color:#cfc4a8}
+.modo.on{border-color:var(--oro);background:#3a2d1c}
+.cred{font-size:13px;text-align:center;color:var(--piedra);line-height:1.35;padding:2px 6px}
+
+/* modal */
+#scrim{position:absolute;inset:0;z-index:20;background:#05080cb8;display:none;align-items:flex-end;padding:0 8px 10px}
+#app.ver-modal #scrim{display:flex}
+.hoja{width:100%;max-height:94%;display:flex;flex-direction:column;animation:sube .25s ease-out}
+@keyframes sube{from{transform:translateY(40px);opacity:0}}
+.hoja h2{font-size:24px;letter-spacing:.04em;line-height:1.1}
+.hoja .sub{font-size:14px;color:var(--tinta2);margin:2px 0 8px}
+.alerta{display:flex;gap:10px;background:#c0281f14;border-left:5px solid var(--rojo);border-radius:4px;padding:8px 10px;margin-bottom:6px}
+.alerta svg{flex:none;width:34px;height:34px}
+.alerta b{font:700 16px var(--serif);display:block;color:#7c150f}
+.alerta span{font-size:14px;color:var(--tinta)}
+.items{list-style:none;border-top:1px solid #b8862b66}
+.items li{display:flex;justify-content:space-between;align-items:center;gap:8px;min-height:44px;border-bottom:1px solid #b8862b44;font-size:15px}
+.items li span{font-weight:700;font-family:var(--serif);font-size:14px}
+.items li em{font-style:normal;color:var(--tinta2);font-size:14px;text-align:right}
+.mas{display:none;font-size:14px;line-height:1.4;padding:8px 2px;color:var(--tinta);overflow-y:auto;max-height:190px}
+.hoja.abierta .mas{display:block}
+.mas p+p{margin-top:6px}
+.botones{display:flex;gap:8px;margin-top:10px}
+.botones .btn{min-height:56px}
+#toast{position:absolute;left:50%;bottom:78px;transform:translateX(-50%);background:var(--marmol);color:var(--tinta);border:2px solid var(--bronce);border-radius:8px;padding:10px 14px;font-size:14px;font-weight:600;z-index:40;display:none;max-width:90%;text-align:center}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+ <defs>
+  <symbol id="i-madera" viewBox="0 0 24 24"><rect x="2" y="13" width="20" height="8" rx="4" fill="#9a6a34"/><rect x="2" y="4" width="20" height="8" rx="4" fill="#b07c3e"/><circle cx="18" cy="8" r="2.6" fill="#e6c48a"/><circle cx="18" cy="17" r="2.6" fill="#d9b374"/></symbol>
+  <symbol id="i-piedra" viewBox="0 0 24 24"><path d="M2 19l3-9h14l3 9z" fill="#9aa6b4"/><path d="M5 10l5-5h6l3 5z" fill="#c4ccd6"/><path d="M12 10v9" stroke="#6b7684" stroke-width="1.2"/></symbol>
+  <symbol id="i-hierro" viewBox="0 0 24 24"><path d="M2 18l4-9h12l4 9z" fill="#6f84a0"/><path d="M6 9h12l-1.5 3h-9z" fill="#a9bad2"/></symbol>
+  <symbol id="i-grano" viewBox="0 0 24 24"><path d="M12 22V6" stroke="#c99a2e" stroke-width="2"/><g fill="#e9c063"><ellipse cx="9" cy="8" rx="2" ry="3.2" transform="rotate(-25 9 8)"/><ellipse cx="15" cy="8" rx="2" ry="3.2" transform="rotate(25 15 8)"/><ellipse cx="9" cy="14" rx="2" ry="3.2" transform="rotate(-25 9 14)"/><ellipse cx="15" cy="14" rx="2" ry="3.2" transform="rotate(25 15 14)"/><ellipse cx="12" cy="4" rx="2" ry="3"/></g></symbol>
+  <symbol id="i-oro" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="#e9c063" stroke="#8a6420" stroke-width="1.5"/><circle cx="12" cy="12" r="6.5" fill="none" stroke="#8a6420" stroke-width="1.5"/><path d="M12 8v8M9 12h6" stroke="#8a6420" stroke-width="1.5"/></symbol>
+  <symbol id="i-vino" viewBox="0 0 24 24"><path d="M7 3h10c0 5-1 8-5 8S7 8 7 3z" fill="#8f1c15"/><path d="M12 11v9M8 21h8" stroke="#6b7684" stroke-width="2" fill="none"/></symbol>
+  <symbol id="i-sal" viewBox="0 0 24 24"><path d="M5 9l7-5 7 5v10H5z" fill="#e8e8ee" stroke="#9aa6b4" stroke-width="1.5"/></symbol>
+  <symbol id="i-caballo" viewBox="0 0 24 24"><path d="M5 20c0-6 2-9 6-11l-1-4 4 2 4 5v8h-3v-5l-3 1v4z" fill="#8a5a2c"/></symbol>
+  <symbol id="i-marmol" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2" fill="#f1ead9" stroke="#9aa6b4"/><path d="M6 15l5-6 3 3 4-5" stroke="#9aa6b4" fill="none"/></symbol>
+  <symbol id="i-purpura" viewBox="0 0 24 24"><path d="M12 3c5 4 7 8 5 12a6 6 0 01-10 0C5 11 7 7 12 3z" fill="#7a2e8a"/></symbol>
+  <symbol id="i-plata" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#cfd6df" stroke="#7b8795" stroke-width="1.5"/><circle cx="12" cy="12" r="5" fill="none" stroke="#7b8795"/></symbol>
+  <symbol id="i-naval" viewBox="0 0 24 24"><path d="M3 15h18l-3 5H6zM12 3v12M12 4l7 8h-7z" fill="#6b9f6a" stroke="#3d5a14" stroke-width="1"/></symbol>
+  <symbol id="i-pieles" viewBox="0 0 24 24"><path d="M4 6l4-2 4 2 4-2 4 2-2 6 2 8h-5l-3-3-3 3H4l2-8z" fill="#b98a58"/></symbol>
+  <symbol id="i-nave" viewBox="0 0 24 24"><path d="M3 15h18l-3 5H6z" fill="currentColor"/><path d="M12 3v12M12 4l7 8h-7z" fill="none" stroke="currentColor" stroke-width="1.6"/></symbol>
+  <symbol id="i-escudo" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#8f1c15" stroke="#b8862b" stroke-width="3"/><circle cx="32" cy="32" r="23" fill="none" stroke="#e9c063" stroke-width="1.5"/><path d="M32 12l5 12h13l-10 8 4 13-12-8-12 8 4-13-10-8h13z" fill="#e9c063"/></symbol>
+ </defs>
+</svg>
+
+<div id="app">
+ <!-- fondo de ciudad -->
+ <svg id="bg" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+  <defs><linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1d2b3d"/><stop offset=".6" stop-color="#6a5a4a"/><stop offset="1" stop-color="#c98a52"/></linearGradient></defs>
+  <rect width="390" height="844" fill="url(#cielo)"/>
+  <rect y="560" width="390" height="284" fill="#7b6a56"/><g transform="translate(0,-260)"><circle cx="300" cy="260" r="30" fill="#f3d9a0" opacity=".85"/>
+  <path d="M0 470c60-40 120-50 180-20s140 10 210-30v424H0z" fill="#3d4a3a"/>
+  <path d="M0 540c80-30 160-20 240-10s110 0 150-10v324H0z" fill="#2c3829"/>
+  <g fill="#8a6a4a"><path d="M20 520h60v-40l30-18 30 18v40h60v-30h40v30h40v60H20z" fill="#9b7a58"/></g>
+  <g fill="#d9764a"><path d="M16 520l34-24 34 24z"/><path d="M150 480l15-12 15 12z"/><path d="M250 490l20-14 20 14z"/></g>
+  <g fill="#f1ead9"><rect x="262" y="540" width="100" height="10"/><path d="M258 540l54-28 54 28z"/><g><rect x="268" y="550" width="9" height="46"/><rect x="288" y="550" width="9" height="46"/><rect x="308" y="550" width="9" height="46"/><rect x="328" y="550" width="9" height="46"/><rect x="348" y="550" width="9" height="46"/></g><rect x="258" y="596" width="108" height="8"/></g>
+  <g fill="#7b6a56"><path d="M0 620h390v224H0z"/></g>
+  <g fill="#a08868" opacity=".9"><path d="M0 640h390v6H0z"/><path d="M20 700h60v50H20zM100 690h70v60h-70zM190 705h60v45h-60z"/></g>
+  <g fill="#c8b48c"><path d="M0 600h160v16H0z"/><g fill="#5c4a35"><path d="M10 616v-12a10 10 0 0120 0v12zM40 616v-12a10 10 0 0120 0v12zM70 616v-12a10 10 0 0120 0v12zM100 616v-12a10 10 0 0120 0v12zM130 616v-12a10 10 0 0120 0v12z"/></g></g>
+  <g fill="#1f2d1c"><path d="M345 600l8-60 8 60z"/><path d="M372 610l7-50 7 50z"/><path d="M200 560l7-48 7 48z"/></g>
+</g> </svg>
+ <div id="veil"></div>
+
+ <header id="hdr">
+  <div class="res" id="res"></div>
+  <div class="fila2">
+   <button class="ciudad-sel" data-toast="Elegir ciudad: Roma · Capua · Tarento · Siracusa">ROMA ▾</button>
+   <div class="fecha"><span>Ianuarius · 280 a.C.</span><button data-toast="Velocidad del reloj: ×1" aria-label="Velocidad">▶</button></div>
+   <button class="menu-btn" data-go="#menu" aria-label="Menú">☰</button>
+  </div>
+ </header>
+
+ <main>
+  <!-- CIUDAD -->
+  <section class="screen" id="s-ciudad">
+   <div style="margin-top:auto" class="placa"><div class="greca"></div><h3 style="font-size:16px">Tu ciudad espera, cónsul</h3><p style="font-size:14px;color:var(--tinta2);margin:3px 0 8px">Vista de la ciudad (sin cambios en esta maqueta).</p><button class="btn lino" style="width:100%" data-go="#modal">Ver informe de estación</button></div>
+  </section>
+
+  <!-- GOBIERNO -->
+  <section class="screen" id="s-gobierno">
+   <div class="tabs" id="tabs-gob">
+    <button data-pane="estado">Estado</button><button data-pane="mercado">Mercado</button><button data-pane="rutas">Rutas</button><button data-pane="ajustes">Ajustes</button><button data-pane="cronica">Crónica</button>
+   </div>
+
+   <div class="pane" data-pane="estado">
+    <div class="placa"><div class="greca"></div>
+     <div class="ciudadhead">
+      <svg class="escudo"><use href="#i-escudo"/></svg>
+      <div><h2>ROMA</h2><p>Ciudad municipio</p></div>
+      <div class="felic"><b>72</b><small>felicidad 😊</small></div>
+     </div>
+     <div class="barra"><i style="width:72%"></i></div>
+    </div>
+    <div class="cera">
+     <h3>Lo que falta <small>6 bienes</small></h3>
+     <div class="chips">
+      <span class="chip no"><svg><use href="#i-vino"/></svg>Vino</span><span class="chip no"><svg><use href="#i-marmol"/></svg>Mármol</span><span class="chip no"><svg><use href="#i-purpura"/></svg>Púrpura</span><span class="chip no"><svg><use href="#i-plata"/></svg>Plata</span><span class="chip no"><svg><use href="#i-naval"/></svg>Madera naval</span><span class="chip no"><svg><use href="#i-pieles"/></svg>Pieles</span>
+     </div>
+     <p class="lbl" style="margin-top:8px">Ya tienes</p>
+     <div class="chips"><span class="chip si"><svg><use href="#i-sal"/></svg>Sal</span><span class="chip si"><svg><use href="#i-caballo"/></svg>Caballos</span></div>
+    </div>
+    <div class="cera" style="padding:6px 10px"><div class="fila"><span>Municipio · +5 felicidad<small>Tipo sugerido: Municipio</small></span><button class="btn bronce" style="min-height:44px;font-size:13px" data-toast="Tipo de ciudad elegido: Municipio">Elegir tipo · gratis</button></div></div>
+    <div class="accesos">
+     <button class="placa acc" data-go="#gobierno-mercado"><svg viewBox="0 0 24 24" fill="none" stroke="#7d5a1c" stroke-width="1.8"><path d="M12 3v17M5 20h14M4 7h16M4 7l-2 7a3 3 0 006 0zM20 7l-2 7a3 3 0 006 0z"/></svg><b>Mercado</b><span>Cambio 50 %</span></button>
+     <button class="placa acc" data-go="#gobierno-rutas"><svg><use href="#i-nave" style="color:#7d5a1c"/></svg><b>Rutas</b><span>2 de 4 huecos</span></button>
+     <button class="placa acc" data-go="#gobierno-ajustes"><svg viewBox="0 0 24 24" fill="none" stroke="#7d5a1c" stroke-width="1.8"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg><b>Ajustes</b><span>Dificultad Normal</span></button>
+     <button class="placa acc" data-go="#gobierno-cronica"><svg viewBox="0 0 24 24" fill="none" stroke="#7d5a1c" stroke-width="1.8"><path d="M5 3h12a2 2 0 012 2v16H7a2 2 0 01-2-2zM9 8h7M9 12h7M9 16h4"/></svg><b>Crónica</b><span>Año 280 a.C.</span></button>
+    </div>
+   </div>
+
+   <div class="pane" data-pane="mercado">
+    <div class="cera"><h3>Doy <small id="m-stock-d"></small></h3><div class="tri" id="m-doy"></div></div>
+    <div class="cera"><h3>Recibo <small id="m-stock-r"></small></h3><div class="tri" id="m-rec"></div></div>
+    <div class="cera"><h3>Cantidad <small>cambio 50 %</small></h3><div class="cant" id="m-cant"></div></div>
+    <div class="placa resumen" id="m-res"></div>
+    <button class="btn rojo" style="min-height:60px;font-size:18px;margin-top:auto" id="m-ok">Cambiar</button>
+   </div>
+
+   <div class="pane" data-pane="rutas">
+    <div class="cera"><h3>Huecos de ruta <small id="r-cnt">2 de 4</small></h3><div class="huecos" id="r-huecos"></div></div>
+    <p class="lbl" style="margin:2px 2px 0">Tus rutas y las que te ofrecen</p>
+    <div id="r-lista" style="display:flex;flex-direction:column;gap:8px"></div>
+   </div>
+
+   <div class="pane" data-pane="ajustes">
+    <div class="cera"><h3>La partida</h3>
+     <p class="lbl">Dificultad de la ciudad</p>
+     <div class="seg" data-seg="dif"><button>Tranquila</button><button class="on">Normal</button><button>Dura</button></div>
+     <div class="fila" style="margin-top:4px"><span>Consejos del asesor</span><button class="tg on" data-tg>Sí</button></div>
+     <button class="btn hueso" style="width:100%;min-height:44px;font:600 14px var(--sans)" data-toast="Los consejos se repetirán desde el principio">Repetir los consejos</button>
+    </div>
+    <div class="cera"><h3>Sucesos <small>valen desde el mes siguiente</small></h3>
+     <div class="fila"><span>Crecida del río</span><button class="tg on" data-tg>Sí</button></div>
+     <div class="fila"><span>Incendios</span><button class="tg on" data-tg>Sí</button></div>
+     <div class="fila"><span>Hambre de invierno</span><button class="tg on" data-tg>Sí</button></div>
+    </div>
+    <div class="cera"><h3>Reloj y sonido</h3>
+     <p class="lbl">El reloj se para con avisos…</p>
+     <div class="seg" data-seg="pausa"><button class="on">Todas</button><button>Solo graves</button><button>Ninguna</button></div>
+     <div class="fila" style="margin-top:4px"><span>Sonido</span><button class="tg on" data-tg>Sí</button></div>
+    </div>
+   </div>
+
+   <div class="pane" data-pane="cronica">
+    <div class="cera" style="padding:4px 6px 6px"><h3 style="margin:4px 4px 0">Hechos de la época</h3>
+     <div class="linea" id="c-linea"></div></div>
+    <div class="placa hecho" id="c-hecho"></div>
+    <div class="cera" style="flex:1;min-height:0;display:flex;flex-direction:column"><h3>Sucesos del año 280 <small>5 hechos</small></h3>
+     <ul class="lista">
+      <li><b>Ianuarius</b><span>Elegidos los cónsules del año</span></li>
+      <li><b>Martius</b><span>Se reclutan dos legiones nuevas</span></li>
+      <li><b>Iunius</b><span>Pirro desembarca cerca de Tarento</span></li>
+      <li><b>Sextilis</b><span>Batalla de Heraclea: victoria cara</span></li>
+      <li><b>Nouembris</b><span>El Senado rechaza la paz con Pirro</span></li>
+     </ul></div>
+   </div>
+  </section>
+
+  <!-- IMPERIO -->
+  <section class="screen" id="s-imperio">
+   <div class="tabs sans" id="tabs-imp">
+    <button data-f="todas" class="on">Todas</button><button data-f="urgentes">Urgentes</button><button data-f="sinobra">Sin obra</button><button data-f="enobras">En obras</button><button data-f="animo">Ánimo bajo</button>
+   </div>
+   <div class="placa" style="padding:6px 10px"><div class="resimp">
+    <div><b>5 130</b><small>habitantes</small></div><div><b>+84</b><small>oro / turno</small></div><div><b>4</b><small>ciudades</small></div><div><b>1 240</b><small>en armas</small></div>
+   </div></div>
+   <div class="ciudades" id="imp-lista"></div>
+   <div class="grid4">
+    <button class="btn lino" data-toast="Senado: pantalla fuera de esta maqueta"><svg viewBox="0 0 24 24"><path d="M3 9l9-5 9 5zM5 9v9M10 9v9M14 9v9M19 9v9M3 20h18"/></svg>Senado</button>
+    <button class="btn lino" data-toast="Saber: pantalla fuera de esta maqueta"><svg viewBox="0 0 24 24"><path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v14c-3-1-6-1-8 1-2-2-5-2-8-1z"/></svg>Saber</button>
+    <button class="btn lino" data-toast="General: pantalla fuera de esta maqueta"><svg viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/></svg>General</button>
+    <button class="btn lino" data-go="#gobierno-cronica"><svg viewBox="0 0 24 24"><path d="M5 3h12a2 2 0 012 2v16H7a2 2 0 01-2-2zM9 8h7M9 12h7"/></svg>Crónica</button>
+   </div>
+  </section>
+
+  <!-- MENÚ -->
+  <section class="screen" id="s-menu">
+   <div class="titulo">
+    <svg viewBox="0 0 64 64"><use href="#i-escudo"/></svg>
+    <div><h1>AQVILA</h1><p>ROMA · 280–146 A.C.</p></div>
+    <button data-back aria-label="Volver al juego">✕</button>
+   </div>
+   <button class="placa cont" data-go="#ciudad"><div><h2>Continuar campaña</h2><p>Lucio Cornelio Escipión · Invierno 280 a.C.</p></div><svg viewBox="0 0 24 24"><path d="M8 4l8 8-8 8"/></svg></button>
+   <div class="cera"><h3>Nueva campaña</h3>
+    <input type="text" value="Lucio Cornelio Escipión" aria-label="Nombre del general">
+    <div class="seg" data-seg="mdif" style="margin-top:6px"><button>Tranquila</button><button class="on">Normal</button><button>Dura</button></div>
+    <div class="fila" style="margin-top:2px"><span>Consejos del asesor</span><button class="tg on" data-tg>Sí</button></div>
+    <div class="fila"><span>Región<small>Dónde empieza</small></span><button class="btn hueso" style="min-height:44px;font:700 14px var(--serif);color:var(--oro)" data-toast="Región de Italia (única en esta versión)">Italia ▾</button></div>
+    <button class="btn rojo" style="width:100%;margin-top:4px" data-toast="Nueva campaña lista: empiezas en Roma">Empezar campaña</button>
+   </div>
+   <div class="cera"><h3>Partida corta <small>unos 20 minutos</small></h3>
+    <div class="cols2" id="modos">
+     <button class="modo on"><b>Roma y Capua en pie</b><span>Dos ciudades hechas</span></button>
+     <button class="modo"><b>Fundar de la nada</b><span>Solo un campamento</span></button>
+    </div>
+   </div>
+   <div class="cera" style="padding:6px 10px"><div class="fila"><span>Sonido</span><button class="tg on" data-tg>Sí</button></div>
+    <div class="fila"><span>Fluidez</span><div class="seg" data-seg="flu" style="width:210px"><button>Alta</button><button class="on">Media</button><button>Baja</button></div></div></div>
+   <p class="cred">Arte: 0 A.D. © Wildfire Games · CC BY-SA 3.0<br>Letra Cinzel · SIL OFL 1.1</p>
+  </section>
+ </main>
+
+ <nav id="nav">
+  <button class="tab" data-go="#ciudad"><svg viewBox="0 0 24 24"><path d="M3 20h18M5 20V9l7-5 7 5v11M9 20v-6h6v6"/></svg>Ciudad</button>
+  <button class="tab" data-go="#gobierno"><svg viewBox="0 0 24 24"><path d="M3 9l9-5 9 5zM5 9v9M10 9v9M14 9v9M19 9v9M3 20h18"/></svg>Gobierno</button>
+  <button class="tab" data-go="#imperio"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>Imperio</button>
+  <button class="pasar" data-toast="Pasas al turno 2 · Primavera">Pasar turno<small>Invierno → Primavera</small></button>
+ </nav>
+
+ <!-- MODAL -->
+ <div id="scrim">
+  <div class="placa hoja" id="hoja" role="dialog" aria-label="Informe de estación">
+   <div class="greca"></div>
+   <h2>Invierno del 280 a.C.</h2>
+   <p class="sub">Turno 1 · Informe del cónsul</p>
+   <div class="alerta"><svg viewBox="0 0 34 34"><path d="M17 3l15 27H2z" fill="#e9c063" stroke="#8f1c15" stroke-width="2"/><path d="M17 12v8" stroke="#8f1c15" stroke-width="3"/><circle cx="17" cy="25" r="1.8" fill="#8f1c15"/></svg><div><b>Crecida del río</b><span>Llega en 2 turnos. Protege los graneros.</span></div></div>
+   <ul class="items">
+    <li><span>Obras</span><em>Sin cola · 4 canteras libres</em></li>
+    <li><span>Senado</span><em>Pide 200 de grano</em></li>
+    <li><span>Hombres en armas</span><em>480 · 2 legiones</em></li>
+    <li><span>Tareas</span><em>2 por hacer</em></li>
+   </ul>
+   <div class="mas"><p><b>Consejo del asesor.</b> Pon una obra en cola antes de pasar turno: el invierno es lento y los talleres no deben quedar parados.</p><p>Guarda grano para la crecida y sube el almacén de Roma a nivel 3. El Senado agradecerá la entrega.</p></div>
+   <div class="botones">
+    <button class="btn lino" style="flex:1" id="mas">Ver más</button>
+    <button class="btn rojo" style="flex:1.4" data-close>Seguir</button>
+   </div>
+  </div>
+ </div>
+ <div id="toast"></div>
+</div>
+
+<script>
+(function(){
+var $=function(s,r){return (r||document).querySelector(s)},$$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+var app=$('#app'),prev='#gobierno';
+var RES=[['madera','Madera',400],['piedra','Piedra',400],['hierro','Hierro',400],['grano','Grano',400],['oro','Oro',200]];
+var stock={madera:400,piedra:400,hierro:400,grano:400,oro:200},alm={madera:200,piedra:200,hierro:200,grano:200,oro:0};
+function ico(k){return '<svg><use href="#i-'+k+'"/></svg>'}
+function drawRes(){$('#res').innerHTML=RES.map(function(r){return '<div>'+'<b>'+ico(r[0])+stock[r[0]]+'</b><small>alm '+alm[r[0]]+'</small></div>'}).join('')}
+var toastT;
+function toast(t){var e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toastT);toastT=setTimeout(function(){e.style.display='none'},1800)}
+
+/* ---- navegación ---- */
+function route(){
+  var h=(location.hash||'#gobierno').slice(1),pane='estado',scr=h;
+  if(h.indexOf('gobierno')===0){scr='gobierno';pane=h.split('-')[1]||'estado'}
+  if(['ciudad','gobierno','imperio','menu','modal'].indexOf(scr)<0){scr='gobierno'}
+  var base=scr==='modal'?'ciudad':scr;
+  $$('.screen').forEach(function(s){s.classList.toggle('on',s.id==='s-'+base)});
+  app.className='ver-'+scr;
+  var menu=scr==='menu';
+  $('#hdr').style.display=menu?'none':'';$('#nav').style.display=menu?'none':'';
+  $$('#nav .tab').forEach(function(b){b.classList.toggle('on',b.dataset.go==='#'+base)});
+  $$('#tabs-gob button').forEach(function(b){b.classList.toggle('on',b.dataset.pane===pane)});
+  $$('.pane').forEach(function(p){p.classList.toggle('on',p.dataset.pane===pane)});
+  if(scr!=='menu'&&scr!=='modal')prev='#'+h;
+  if(scr==='modal'){$('#hoja').classList.remove('abierta');$('#mas').textContent='Ver más'}
+}
+window.addEventListener('hashchange',route);
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-go],[data-toast],[data-close],[data-back],[data-tg]');
+  if(!t){if(e.target.id==='scrim')location.hash=prev==='#modal'?'#ciudad':'#ciudad';return}
+  if(t.dataset.go){location.hash=t.dataset.go}
+  else if(t.hasAttribute('data-close')){location.hash='#ciudad'}
+  else if(t.hasAttribute('data-back')){location.hash=prev}
+  else if(t.hasAttribute('data-tg')){var on=t.classList.toggle('on');t.textContent=on?'Sí':'No'}
+  else if(t.dataset.toast)toast(t.dataset.toast);
+});
+$$('#tabs-gob button').forEach(function(b){b.onclick=function(){location.hash=b.dataset.pane==='estado'?'#gobierno':'#gobierno-'+b.dataset.pane}});
+$$('[data-seg]').forEach(function(s){$$('button',s).forEach(function(b){b.onclick=function(){$$('button',s).forEach(function(x){x.classList.remove('on')});b.classList.add('on')}})});
+$$('#modos .modo').forEach(function(b){b.onclick=function(){$$('#modos .modo').forEach(function(x){x.classList.remove('on')});b.classList.add('on')}});
+$('#mas').onclick=function(){var h=$('#hoja'),o=h.classList.toggle('abierta');this.textContent=o?'Ver menos':'Ver más'};
+
+/* ---- mercado ---- */
+var give='madera',get='piedra',ci=0,CANT=[[100,50],[500,250],[2000,1000]];
+function mk(box,sel,fn){
+  $(box).innerHTML=RES.map(function(r){return '<button data-k="'+r[0]+'" class="'+(sel()===r[0]?'on':'')+'">'+ico(r[0])+r[1]+'<em>'+stock[r[0]]+'</em></button>'}).join('');
+  $$(box+' button').forEach(function(b){b.onclick=function(){fn(b.dataset.k);mercado()}});
+}
+function mercado(){
+  mk('#m-doy',function(){return give},function(k){give=k;if(get===k)get=RES[(RES.map(function(r){return r[0]}).indexOf(k)+1)%5][0]});
+  mk('#m-rec',function(){return get},function(k){get=k;if(give===k)give=RES[(RES.map(function(r){return r[0]}).indexOf(k)+1)%5][0]});
+  $('#m-cant').innerHTML=CANT.map(function(c,i){return '<button class="'+(i===ci?'on':'')+'" data-i="'+i+'">'+c[0]+' → '+c[1]+'</button>'}).join('');
+  $$('#m-cant button').forEach(function(b){b.onclick=function(){ci=+b.dataset.i;mercado()}});
+  var c=CANT[ci],ok=stock[give]>=c[0],N=function(k){return RES.filter(function(r){return r[0]===k})[0][1].toLowerCase()};
+  $('#m-res').innerHTML='Das '+c[0]+' de '+N(give)+'<br>Recibes '+c[1]+' de '+N(get)+'<small>'+(ok?'Cambio al 50 %':'Te falta '+N(give)+' para este cambio')+'</small>';
+  $('#m-ok').disabled=!ok;$('#m-stock-d').textContent='tienes '+stock[give];$('#m-stock-r').textContent='tienes '+stock[get];
+  drawRes();
+}
+$('#m-ok').onclick=function(){var c=CANT[ci];if(stock[give]<c[0])return;stock[give]-=c[0];stock[get]+=c[1];mercado();toast('Cambiado: '+c[0]+' → '+c[1])};
+mercado();
+
+/* ---- rutas ---- */
+var rutas=[{d:'Cartago',m:'Grano',g:18,on:1},{d:'Tarento',m:'Hierro',g:12,on:1},{d:'Siracusa',m:'Vino',g:22,on:0}];
+function drawRutas(){
+  var n=rutas.filter(function(r){return r.on}).length;
+  $('#r-cnt').textContent=n+' de 4';
+  var h='';for(var i=0;i<4;i++)h+=i<n?'<div class="hueco lleno"><svg><use href="#i-nave"/></svg></div>':'<div class="hueco">libre</div>';
+  $('#r-huecos').innerHTML=h;
+  $('#r-lista').innerHTML=rutas.map(function(r,i){return '<div class="placa ruta"><div class="info"><b>Roma → '+r.d+'</b><span>'+r.m+' · cada turno</span><span class="gana">'+(r.on?'+':'Ganarías +')+r.g+' oro por turno</span></div><button class="btn '+(r.on?'hueso':'rojo')+'" data-r="'+i+'" style="'+(r.on?'color:#e6dcc0':'')+'">'+(r.on?'Cerrar ruta':'Abrir ruta')+'</button></div>'}).join('');
+  $$('#r-lista [data-r]').forEach(function(b){b.onclick=function(){var r=rutas[+b.dataset.r];if(!r.on&&n>=4){toast('No quedan huecos');return}r.on=r.on?0:1;drawRutas();toast(r.on?'Ruta abierta con '+r.d:'Ruta cerrada')}});
+}
+drawRutas();
+
+/* ---- crónica ---- */
+var HECHOS=[['280','Heraclea','Pirro de Epiro llega a Italia con elefantes y vence a las legiones, pero pierde a muchos de sus mejores hombres.'],['279','Ásculo','Segunda victoria de Pirro, otra vez muy cara. «Otra así y estoy perdido», se le atribuye.'],['275','Benevento','Roma derrota a Pirro y lo expulsa de Italia.'],['272','Tarento','La ciudad griega se rinde y entra en la alianza romana.'],['264','Mesina','Roma cruza a Sicilia: empieza la Primera Guerra Púnica.'],['241','Egates','La flota romana vence a Cartago. Sicilia pasa a Roma.'],['218','Aníbal','Aníbal cruza los Alpes con sus elefantes.'],['216','Cannas','Desastre romano frente a Aníbal.'],['202','Zama','Escipión vence a Aníbal en África.'],['146','Cartago','Roma destruye Cartago.']];
+function hecho(i){
+  $$('#c-linea .hito').forEach(function(b,j){b.classList.toggle('on',j===i)});
+  var h=HECHOS[i];$('#c-hecho').innerHTML='<div class="greca"></div><h3>'+h[0]+' a.C. · '+h[1]+'</h3><p>'+h[2]+'</p>';
+}
+$('#c-linea').innerHTML=HECHOS.map(function(h,i){return '<button class="hito'+(i>0?' futuro':'')+'" data-i="'+i+'"><i></i><b>'+h[0]+'</b></button>'}).join('');
+$$('#c-linea .hito').forEach(function(b){b.onclick=function(){hecho(+b.dataset.i)}});
+hecho(0);
+
+/* ---- imperio ---- */
+var CIU=[
+ {n:'ROMA',p:'1 820',t:2400,a:'😊',o:'Templo de Júpiter',pc:65,av:[],u:0,ob:1,an:0},
+ {n:'CAPUA',p:'1 150',t:1600,a:'😐',o:'',pc:0,av:[['verde','Sin obra · hay recursos']],u:1,ob:0,an:0},
+ {n:'TARENTO',p:'980',t:1800,a:'😠',o:'Muralla',pc:30,av:[['rojo','Inquietud']],u:1,ob:1,an:1},
+ {n:'SIRACUSA',p:'1 180',t:1500,a:'😊',o:'Puerto',pc:82,av:[['ocre','Almacén lleno']],u:1,ob:1,an:0}];
+var filtro='todas';
+function drawImp(){
+  var L=CIU.filter(function(c){return filtro==='todas'||(filtro==='urgentes'&&c.u)||(filtro==='sinobra'&&!c.ob)||(filtro==='enobras'&&c.ob)||(filtro==='animo'&&c.an)});
+  $('#imp-lista').innerHTML=L.length?L.map(function(c){
+    return '<div class="placa cc"><h3><span class="animo">'+c.a+'</span>'+c.n+'</h3><div class="pob"><b>'+c.p+'</b> / '+c.t+'</div>'+
+    '<div class="obra"><span>'+(c.ob?'Obra: '+c.o+' · '+c.pc+' %':'Sin obra')+'</span><span>'+c.av.map(function(a){return '<span class="aviso '+a[0]+'">'+a[1]+'</span>'}).join('')+'</span></div>'+
+    (c.ob?'<div class="bar"><i style="width:'+c.pc+'%"></i></div>':'')+'</div>'}).join(''):'<div class="vacio">Ninguna ciudad cumple este filtro.</div>';
+}
+$$('#tabs-imp button').forEach(function(b){b.onclick=function(){filtro=b.dataset.f;$$('#tabs-imp button').forEach(function(x){x.classList.toggle('on',x===b)});drawImp()}});
+drawImp();
+route();
+})();
+</script>
+</body>
+</html>

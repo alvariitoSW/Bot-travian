@@ -1,0 +1,74 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=390,initial-scale=1">
+<style>
+@font-face{font-family:Cinzel;font-weight:400;src:url(../../../assets/fuentes/cinzel-400.woff2)}
+@font-face{font-family:Cinzel;font-weight:700;src:url(../../../assets/fuentes/cinzel-700.woff2)}
+:root{--noche:#141a22;--noche2:#1b222c;--bronce:#b8862b;--oro:#e9c063;--tinta:#f1ead9;--mudo:#9aa6b4;--oliva:#8fae5a;--ambar:#e9c063;--terra:#d9764a;--rojo:#c0281f;--purp:#6b4bb0;
+ --ter:#8fae5a;--mer:#5aa6c4;--mil:#d0443a}
+*{box-sizing:border-box;margin:0}
+body{width:390px;height:844px;overflow:hidden;font-family:Inter,Roboto,"Helvetica Neue",Arial,sans-serif;color:var(--tinta);
+ background:radial-gradient(120% 60% at 50% 30%,#4a3a26 0,#2a2018 45%,#17110d 100%)}
+.p{background:rgba(20,26,34,.94);border:1.5px solid var(--bronce);border-radius:8px}
+.cz{font-family:Cinzel,serif;font-weight:700;letter-spacing:.06em}
+#top{position:absolute;left:8px;right:8px;top:8px;height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 12px}
+#top b{color:var(--oro);font-size:15px}#top span{color:var(--mudo);font-size:12px}
+#fav{position:absolute;left:8px;right:8px;top:54px;display:flex;gap:8px}
+#fav div{flex:1;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600}
+#fav i{flex:1;height:6px;border-radius:3px;background:#0008;position:relative;overflow:hidden}
+#fav i::after{content:'';position:absolute;inset:0;width:var(--w);background:var(--c);border-radius:3px}
+#ley{position:absolute;left:8px;right:8px;top:78px;padding:9px 12px 10px}
+#ley small{font-family:Cinzel;font-size:10px;letter-spacing:.14em;color:var(--oro)}
+#ley h1{font-family:Cinzel;font-size:21px;line-height:1.15;margin:1px 0 3px}
+#ley p{font-size:12.5px;line-height:1.3;color:#c9c2b2}
+#sala{position:absolute;left:0;right:0;top:184px;height:192px}
+#cuenta{position:absolute;left:8px;right:8px;top:380px;text-align:center;font-size:13px}
+#cuenta b{font-size:15px}.si{color:var(--oliva)}.du{color:var(--ambar)}.no{color:var(--terra)}
+#cuenta em{font-style:normal;color:var(--mudo)}
+#cards{position:absolute;left:8px;right:8px;top:406px;display:flex;flex-direction:column;gap:6px}
+.c{padding:8px 11px 9px;position:relative;background:rgba(20,26,34,.96);border:1.5px solid #3a4350;border-radius:8px}
+.c.on{border:2px solid var(--oro);background:#221a10;padding:7.5px 10.5px 8.5px}
+.c .h{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--mudo)}
+.c .h u{width:10px;height:10px;border-radius:50%;background:var(--f);text-decoration:none}
+.c .h s{margin-left:auto;text-decoration:none;font-weight:700;font-size:11.5px;padding:2px 9px;border-radius:10px;color:#17110d}
+.fav{background:var(--oliva)}.dud{background:var(--ambar)}.arr{background:var(--terra)}
+.c h2{font-size:15.5px;font-weight:700;margin:2px 0 1px}
+.c p{font-size:12.5px;line-height:1.3;color:#b9c0c9}
+.c p b{color:var(--tinta)}
+#veto{position:absolute;left:8px;right:8px;top:686px;padding:7px 11px;background:rgba(107,75,176,.9);border:1.5px solid #a58be0;border-radius:8px;font-size:12.5px}
+#veto b{font-family:Cinzel;font-size:10.5px;letter-spacing:.1em;margin-right:6px}
+#bot{position:absolute;left:8px;right:8px;bottom:10px;height:76px;display:flex;gap:8px}
+#pasar{width:104px;display:grid;place-items:center;text-align:center;font-size:13px;color:#c9c2b2;border-color:#3a4350}
+#votar{flex:1;background:linear-gradient(#cf3528,#a8221a);border:2px solid var(--oro);border-radius:8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+#votar b{font-family:Cinzel;font-size:20px;letter-spacing:.08em}#votar span{font-size:12.5px;color:#ffe9b8}
+</style></head><body>
+<div id="top" class="p"><b class="cz">Senado</b><span>Primavera · 218 a.C.</span></div>
+<div id="fav"><div>Senado <i style="--w:58%;--c:var(--oro)"></i> 58</div><div>Pueblo <i style="--w:62%;--c:#5fae6e"></i> 62</div></div>
+<div id="ley" class="p"><small>PROPONE EL CÓNSUL FLAMINIO</small><h1>Guerra a Cartago</h1>
+<p>Si sale: puedes atacar ciudades púnicas y el Senado paga una legión. El mar se cierra al comercio.</p></div>
+<svg id="sala" viewBox="0 0 390 196"></svg>
+<div id="cuenta"><b class="si">13 sí</b> · <b class="du">8 dudan</b> · <b class="no">9 no</b> <em>— hacen falta 16 de 30</em></div>
+<div id="cards">
+ <div class="c on" style="--f:var(--ter)"><div class="h"><u></u>Terratenientes · 12 escaños<s class="dud">Dudoso</s></div>
+  <h2>Prometer: sin leva en sus campos</h2><p>Te dan <b>5 votos</b>. Un año sin reclutar en Capua. Si rompes la promesa, −15 de favor.</p></div>
+ <div class="c" style="--f:var(--mer)"><div class="h"><u></u>Mercaderes · 8 escaños<s class="arr">Arriesgado</s></div>
+  <h2>Pagar el seguro del puerto</h2><p>Te dan <b>3 votos</b> por 150 de oro. Si la guerra se alarga, pedirán más.</p></div>
+ <div class="c" style="--f:var(--mil)"><div class="h"><u></u>Militares · 10 escaños<s class="fav">Favorable</s></div>
+  <h2>Ya votan sí</h2><p>Quieren mando y botín: esperan un triunfo.</p></div>
+</div>
+<div id="veto"><b>TRIBUNO DE LA PLEBE</b>No veta: la plebe está contenta.</div>
+<div id="bot"><div id="pasar" class="p">Dejar<br>pasar</div><div id="votar"><b>VOTAR</b><span>Con la promesa: 18 de 16</span></div></div>
+<script>
+const S=document.getElementById('sala'),cx=195,cy=186,rows=[[8,74],[10,106],[12,138]];let seats=[];
+rows.forEach(([n,r])=>{for(let i=0;i<n;i++){const a=Math.PI*(1-(i+.5)/n);seats.push({a,x:cx+r*Math.cos(a),y:cy-r*Math.sin(a)})}});
+seats.sort((p,q)=>q.a-p.a);
+const fac=[['ter',12,'#8fae5a',[3,5,4]],['mer',8,'#5aa6c4',[0,3,5]],['mil',10,'#d0443a',[10,0,0]]];
+let h='<path d="M30 186A165 165 0 0 1 360 186Z" fill="#0b0f14" opacity=".55" stroke="#b8862b" stroke-width="1.5"/><path d="M150 186A45 45 0 0 1 240 186Z" fill="#3a2a1a" stroke="#b8862b"/>',k=0;
+const lab=[[62,52,'TERRATENIENTES','#8fae5a'],[195,30,'MERCADERES','#5aa6c4'],[330,52,'MILITARES','#d0443a']];
+fac.forEach(([id,n,col,[si,du,no]])=>{const g=seats.slice(k,k+n);k+=n;g.sort((p,q)=>Math.hypot(p.x-cx,p.y-cy)-Math.hypot(q.x-cx,q.y-cy));
+ g.forEach((s,i)=>{const st=i<si?'si':i<si+du?'du':'no';
+  if(st=='si')h+=`<circle cx="${s.x}" cy="${s.y}" r="10" fill="${col}" stroke="#17110d" stroke-width="1.5"/>`;
+  else if(st=='du')h+=`<circle cx="${s.x}" cy="${s.y}" r="9" fill="#141a22" stroke="${col}" stroke-width="2.5" stroke-dasharray="4 3"/><text x="${s.x}" y="${s.y+4}" text-anchor="middle" font-size="11" font-weight="700" fill="${col}">?</text>`;
+  else h+=`<circle cx="${s.x}" cy="${s.y}" r="9" fill="#141a22" stroke="#4a5360" stroke-width="2"/><path d="M${s.x-4} ${s.y-4}l8 8m0-8l-8 8" stroke="${col}" stroke-width="2" opacity=".75"/>`})});
+lab.forEach(([x,y,t,c])=>h+=`<text x="${x}" y="${y}" text-anchor="middle" font-family="Cinzel" font-weight="700" font-size="10" letter-spacing="1.2" fill="${c}">${t}</text>`);
+h+=`<text x="195" y="176" text-anchor="middle" font-family="Cinzel" font-weight="700" font-size="9" letter-spacing="1" fill="#e9c063">CÓNSULES</text>`;
+S.innerHTML=h;
+</script></body></html>

@@ -1,0 +1,7 @@
+# CN15b — Dictamen histórico: cuadrilla de obra, andamio y recuas (13/11/2026)
+
+- **Cuadrilla en la obra** (obreros junto al andamio, montón de material que baja con el avance): obras públicas y privadas con mano de obra libre y esclava eran cotidianas en la Roma republicana; el montón de piedra, madera y paja es verosímil. Dictamen: **probable**. Sin cargos ni oficios concretos. Las figuras usan la ciudadana de 0 A.D. (la ropa no distingue esclavo de libre): **licencia de juego**.
+- **Andamio con lona, cuerdas y escalera**: los romanos usaban andamios de madera atados con cuerda y escaleras de mano (relieves de grúas y obras; Vitruvio habla de andamiaje en *De architectura*). La lona colgada para sombra o para proteger la obra: **licencia de juego** (plausible, sin prueba directa). POR COTEJAR: cita de Vitruvio sobre andamios.
+- **Obra parada, sin obreros**: es una señal de juego (falta de caja), no un hecho de época. **Licencia de juego**.
+- **Recuas de mulas con sacos, vasijas y troncos**: el transporte con mulas y asnos (*muli*, *asini*) de cereal, vino y aceite en ánforas es muy documentado; el arriero (*mulio*) a pie, también. Dictamen: **histórico**. El pelaje, el número (4 mulas por recua) y los recorridos fijos son **licencia de juego**.
+- **Mulas por código** (cajas con color y patas con vaivén): sin arte nuevo. Si más adelante se quisiera un animal real hay que buscar arte libre y registrar su licencia.

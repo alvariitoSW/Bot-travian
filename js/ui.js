@@ -56,10 +56,45 @@ const licHtml = o => o && o.lic ? '<div class="licl"><span class="lic">licencia 
 const cohort = k => (D.UNITS[k].cls === 'cav' ? 10 : 20);
 
 /* ---------- avisos y modales ---------- */
-function toast(txt, kind) {
-  const t = document.createElement('div'); t.className = 'toast ' + (kind || ''); t.textContent = txt; $('toasts').appendChild(t);
-  while ($('toasts').children.length > 3) $('toasts').firstChild.remove();
-  setTimeout(() => t.remove(), 3200);
+/* Cola de avisos (CN22): nunca más de UN aviso a la vista, ≈2,8 s, debajo de #linea.
+   Misma clave = sustituye (y cuenta «+N»). Distintos esperan en cola corta (máx. 3; el resto se agrupa en «+N avisos»).
+   Los errores de acción directa del jugador pasan por delante; los de sistema (4.º parámetro true) esperan.
+   Es memoria de pantalla: no se guarda. Todo sigue en G.log (pestaña Crónica). */
+const AV = { cur: null, pend: [], mas: 0, tm: 0, acum: null };
+const avClave = txt => String(txt).replace(/[0-9]+/g, '').split(/[:.;(]/)[0].trim().slice(0, 24);
+function avPon() {
+  const box = $('toasts'); if (!box) return;
+  const a = AV.cur; if (!a) { box.textContent = ''; return; }
+  const lin = $('linea'), r = lin && !lin.hidden && lin.offsetParent ? lin.getBoundingClientRect() : null, pz = $('pausa');
+  box.style.top = r && r.height ? Math.round(r.bottom + 6 + (pz && !pz.hidden ? pz.offsetHeight + 6 : 0)) + 'px' : (pz && !pz.hidden ? Math.round(pz.getBoundingClientRect().bottom + 6) + 'px' : '');
+  const t = document.createElement('div'); t.className = 'toast ' + (a.kind || '');
+  t.textContent = a.txt + (a.n > 1 ? ' · +' + (a.n - 1) : '') + (a.extra ? ' · +' + a.extra + (a.extra === 1 ? ' aviso' : ' avisos') : '');
+  box.textContent = ''; box.appendChild(t);
+  clearTimeout(AV.tm); AV.tm = setTimeout(avSigue, 2800);
+}
+function avSigue() {
+  AV.cur = AV.pend.shift() || null;
+  if (AV.cur && !AV.pend.length && AV.mas) { AV.cur.extra = AV.mas; AV.mas = 0; }
+  avPon();
+}
+function toast(txt, kind, clave, sistema) {
+  if (sistema && AV.acum) { AV.acum.push({ txt: txt, kind: kind }); return; }           // durante «Pasar turno»: se acumulan en un resumen
+  const k = clave || avClave(txt), a = { txt: txt, kind: kind || '', k: k, n: 1, extra: 0, sis: !!sistema };
+  if (AV.cur && AV.cur.k === k) { a.n = AV.cur.n + 1; a.extra = AV.cur.extra; AV.cur = a; avPon(); return; }
+  const q = AV.pend.findIndex(x => x.k === k); if (q >= 0) { a.n = AV.pend[q].n + 1; AV.pend[q] = a; return; }
+  if (!AV.cur) { AV.cur = a; avPon(); return; }
+  if (!sistema && a.kind === 'bad') { const f = AV.pend.findIndex(x => x.sis); AV.pend.splice(f < 0 ? AV.pend.length : f, 0, a); }
+  else AV.pend.push(a);
+  while (AV.pend.length > 3) { AV.pend.pop(); AV.mas++; }
+}
+/* Resumen de «Pasar turno»: un solo aviso con lo que ha pasado (todo sigue en la Crónica) */
+function toastResumen(lista) {
+  if (!lista || !lista.length) return;
+  const gr = lista.filter(x => x.kind === 'bad'); if (gr.length === 1 && lista.length === 1) { toast(gr[0].txt, 'bad', 'turno'); return; }   // un solo aviso grave: se lee entero
+  const graves = gr.length, obras = lista.filter(x => /^🔨/.test(x.txt)).length;
+  const p = []; if (obras) p.push(obras + (obras === 1 ? ' obra' : ' obras')); if (graves) p.push(graves + (graves === 1 ? ' aviso grave' : ' avisos graves'));
+  const otros = lista.length - obras - graves; if (otros > 0 || !p.length) p.push(Math.max(otros, 0) + (otros === 1 ? ' aviso' : ' avisos'));
+  toast(ASESOR.TEXTOS.turno(p.join(', ')), graves ? 'bad' : '', 'turno');
 }
 function modal(html, sticky) { UI.modalQ.push({ html: html, sticky: sticky }); pump(); }
 function pump() {
@@ -69,10 +104,29 @@ function pump() {
 }
 function closeModal() { UI.modalOpen = false; $('modal').hidden = true; pump(); }
 
+/* R3: el reloj se para con motivo. Una línea (#pausa) con «Continuar»; un toque en ella o en el reloj reanuda a la velocidad de antes. */
+function pausaPon() {
+  const el = $('pausa'), z = UI.pausa; if (!el) return;
+  el.hidden = !z; if (!z) return;
+  el.classList.toggle('grave', !!z.grave); $('p-txt').textContent = z.txt + (z.n > 1 ? ' · +' + (z.n - 1) : '');
+  const lin = $('linea'), r = lin && !lin.hidden && lin.offsetParent ? lin.getBoundingClientRect() : null; el.style.top = r && r.height ? Math.round(r.bottom + 6) + 'px' : '';
+  if (AV.cur) avPon();
+}
+function pausar(p) {
+  const s = S(); if (!s || s.over || AV.acum || UI.menu || UI.battle) return;
+  if (!UI.pausa) { if (!(s.speed > 0)) return; UI.velPrev = s.speed; UI.pausa = { txt: p.motivo, n: 1, grave: !!p.grave }; }
+  else { UI.pausa.n++; if (p.grave && !UI.pausa.grave) { UI.pausa.txt = p.motivo; UI.pausa.grave = true; } }
+  s.speed = 0; pausaPon(); UI.dirty = true;
+}
+function seguirPausa() {
+  const s = S(), v = UI.velPrev || 1; UI.pausa = null; UI.velPrev = 0; pausaPon();
+  if (s && !s.over) { s.speed = G.turnos ? 1 : v; tickUI(); }
+}
 G.onEvent = function (type, p) {
+  if (type === 'parar') { pausar(p); return; }
   if (type === 'event') modal('<div class="yr">' + p.y + ' A.C.</div><h2>' + esc(p.t) + '</h2><p>' + esc(p.x) + '</p><div class="acts"><button class="btn" data-act="close">Continuar</button></div>');
-  else if (type === 'alert') toast(p, 'bad');
-  else if (type === 'log') { if (p.k === 'good') toast(p.x); else if (p.k === 'bad') toast(p.x, 'bad'); UI.dirty = true; }
+  else if (type === 'alert') toast(p, 'bad', null, true);
+  else if (type === 'log') { if (!p.mudo) { if (p.k === 'good') toast(p.x, '', null, true); else if (p.k === 'bad') toast(p.x, 'bad', null, true); } UI.dirty = true; }
   else if (type === 'dirty') UI.dirty = true;
   else if (type === 'colonos') { const d = D.COLONIAS[p.sitio]; if (d) modal('<div class="yr">COLONOS</div><h2>Han llegado a ' + esc(d.n) + '</h2><p>Los colonos esperan tu orden. Elige el lugar del foro y el arado trazará el surco sagrado.</p><div class="acts"><button class="btn ghost" data-act="close">Más tarde</button><button class="btn gold" data-act="fundar" data-v="' + p.sitio + '">Fundar ' + esc(d.n) + '</button></div>'); }
   else if (type === 'turno') { const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.over) consejoModal(); UI.dirty = true; }
@@ -80,15 +134,48 @@ G.onEvent = function (type, p) {
 };
 
 /* ---------- menú ---------- */
+/* CN14-C: dificultad (3 botones) y casilla del asesor; en el menú ('m') valen para la partida nueva, en Gobierno ('g') para la actual */
+const DIF_NOM = { tranquila: 'Tranquila', normal: 'Normal', dura: 'Dura' };
+function difFila(donde) {
+  const act = donde === 'g' ? ((G.ajustes() || {}).dif || 'normal') : (UI.difSel || 'normal'), ase = donde === 'g' ? !!(G.ajustes() || {}).asesor : UI.asesorSel !== false;
+  return '<div class="ajf" id="dif-' + donde + '"><b>Dificultad de la ciudad</b><div class="ajb">' + Object.keys(D.DIFICULTAD).map(k => '<button class="chip' + (k === act ? ' on' : '') + '" data-act="dif" data-v="' + k + '" data-d="' + donde + '">' + (DIF_NOM[k] || k) + '</button>').join('') + '</div>' +
+    '<label class="ajc"><input type="checkbox" id="ase-' + donde + '" data-act="asesor" data-d="' + donde + '"' + (ase ? ' checked' : '') + '> Consejos del asesor</label></div>';
+}
+/* CN15c: sonido sí/no (Sonido guarda la clave 'aqvila-sonido'); el contexto de audio nace en el primer toque (lo hace sonido.js) */
+const sonidoOn = () => !window.Sonido || window.Sonido.activo !== false, sonidoTxt = () => 'Sonido: ' + (sonidoOn() ? 'sí' : 'no');
+function ajustesHtml() {
+  const a = G.ajustes(); if (!a) return '';
+  const sw = [['crecida', 'Crecida del río'], ['fuego', 'Incendios'], ['hambre', 'Hambre de invierno']];
+  return '<div class="empty ajustes" id="ajustes"><b>Ajustes</b>' + difFila('g') + '<div class="ajb">' + sw.map(q => '<button class="chip' + (a.suc[q[0]] ? ' on' : '') + '" data-act="suceso" data-v="' + q[0] + '">' + q[1] + ': ' + (a.suc[q[0]] ? 'sí' : 'no') + (q[0] === 'hambre' && !((D.DIFICULTAD[a.dif] || {}).hambre || {}).meses ? ' (sin efecto en Tranquila)' : '') + '</button>').join('') + '</div>' +
+    '<small>Los cambios de dificultad y sucesos valen desde el mes siguiente.</small><div class="ajb"><button class="chip" data-act="repetirasesor">Repetir los consejos</button></div>' +
+    '<div class="ajf" id="aj-pausas"><b>Pausas del reloj</b><div class="ajb">' + [['todas', 'Todas'], ['graves', 'Solo graves'], ['ninguna', 'Ninguna']].map(q => '<button class="chip' + (G.pausas() === q[0] ? ' on' : '') + '" data-act="pausas" data-v="' + q[0] + '">' + q[1] + '</button>').join('') + '</div><small>El reloj se para al acabar una obra o una leva, al cumplirse una misión o al venir un ataque.</small></div>' +
+    '<div class="ajf" id="aj-batalla"><b>Batalla</b><div class="ajb">' + [['nueva', 'Nueva'], ['clasica', 'Clásica']].map(q => '<button class="chip' + (G.batalla() === q[0] ? ' on' : '') + '" data-act="batalla" data-v="' + q[0] + '">' + q[1] + '</button>').join('') + '</div><small>Nueva: maniobra y choque por sectores. Clásica: el campo abierto de siempre.</small></div>' +
+    '<div class="ajf" id="aj-ambiente"><div class="ajb"><button class="chip' + (G.ambiente() ? ' on' : '') + '" data-act="ambiente">Ambiente: ' + (G.ambiente() ? 'sí' : 'no') + '</button></div><small>Tono por estación, viñeta y contorno dorado en la ciudad.</small></div>' +
+    '<div class="ajf" id="aj-sonido"><div class="ajb"><button class="chip' + (sonidoOn() ? ' on' : '') + '" data-act="sonido">' + sonidoTxt() + '</button></div></div></div>';
+}
+/* I8: bloque «Partida corta» del menú: dos botones con su línea de explicación (los textos vienen de D.MODOS.corta) */
+function cortaHtml() {
+  const m = D.MODOS && D.MODOS.corta; if (!m) return '';
+  const b = (k, act) => '<button class="btn corta" data-act="' + act + '">' + esc(m.inicio[k].n) + '</button><small class="cortad">' + esc(m.inicio[k].d) + '</small>';
+  return '<div class="cortab"><b>Partida corta (Italia, ' + m.duracion.horasMin + ' a ' + m.duracion.horasMax + ' horas)</b>' + b('enPie', 'cortaen') + b('fundar', 'cortafun') + '</div>';
+}
+/* K12a-B «Hojas»: menú principal. Arriba emblema y nombre; abajo, al alcance del pulgar, lo que se usa. Partida corta y Sonido/fluidez viven en hojas */
+const EMBLEMA = '<svg class="emb" viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 12c-4 0-7 3-7 6l-9-4 3 9-8 3 9 4-4 8 9-3 7 9 7-9 9 3-4-8 9-4-8-3 3-9-9 4c0-3-3-6-7-6z"/><path d="M32 18v22M26 52h12"/></svg>';
+const ICO_GLOBO = svgIco('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'), ICO_ESC = svgIco('<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>');
+function subGuardada() {
+  try { const r = JSON.parse(localStorage.getItem('aqvila-save-v1') || 'null'), st = r && (r.t != null ? r : r.state || r.s); if (st && st.t != null) return G.dateStr(st.t); } catch (e) { }
+  return '';
+}
 function showMenu() {
-  UI.menu = true; $('menu').hidden = false;
-  const img = portrait('general', ROMA);
-  $('menu').innerHTML = (img ? '<div class="hero"><img src="' + img + '" alt=""></div>' : '') + '<h1>AQVILA</h1><div class="sub">EL ASCENSO DE ROMA</div>' +
-    '<p>280 a.C. Gobierna tus ciudades, levanta legiones, dirige las batallas sobre el terreno y lleva las águilas hasta Cartago antes del 146 a.C.</p>' +
-    (G.hasSave() ? '<button class="btn gold" data-act="continue">Continuar campaña</button>' : '') +
-    '<input id="hname" maxlength="28" placeholder="Nombre de tu general" value="Lucio Cornelio Escipión">' +
-    '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="newregion" data-v="italia">Región de Italia</button><button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><div class="spqr">S·P·Q·R</div>' +
-    '<div class="credits">Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1</div>';
+  hojaCierra(true); UI.menu = true; $('menu').hidden = false;
+  const img = portrait('general', ROMA), sv = G.hasSave(), sub = sv ? subGuardada() : '';
+  const tile = (act, v, ico, txt) => '<button class="mt" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span>' + txt + '</span></button>';
+  $('menu').innerHTML = '<svg id="mfondo" viewBox="0 0 390 844" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs><linearGradient id="mcielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101a28"/><stop offset=".55" stop-color="#352b3a"/><stop offset=".75" stop-color="#8a4a33"/><stop offset="1" stop-color="#2a1a18"/></linearGradient></defs><rect width="390" height="844" fill="url(#mcielo)"/><circle cx="300" cy="470" r="50" fill="#e9c063" opacity=".14"/><path d="M0 640q80-50 170-15t220-15v234H0z" fill="#2a2630"/><g fill="#1a1a22"><path d="M30 612l60-30 60 30z"/><rect x="38" y="614" width="104" height="6"/><rect x="44" y="620" width="9" height="46"/><rect x="62" y="620" width="9" height="46"/><rect x="80" y="620" width="9" height="46"/><rect x="98" y="620" width="9" height="46"/><rect x="116" y="620" width="9" height="46"/><rect x="134" y="620" width="9" height="46"/><rect x="30" y="666" width="120" height="10"/><rect x="176" y="574" width="26" height="102"/><path d="M172 574h34l-17-18z"/><rect x="214" y="610" width="64" height="66"/><path d="M214 610a32 24 0 0164 0z"/><path d="M290 640h100v10H290zM296 650h12v26h-12zM322 650h12v26h-12zM348 650h12v26h-12zM374 650h12v26h-12z"/></g><rect y="676" width="390" height="168" fill="#10131a"/></svg>' +
+    '<div class="mcab">' + EMBLEMA + '<h1>AQVILA</h1><div class="sub">EL ASCENSO DE ROMA</div><p>280 a.C. Gobierna tus ciudades, levanta legiones y lleva las águilas hasta Cartago.</p></div>' +
+    '<input id="hname" maxlength="28" placeholder="Nombre de tu general" aria-label="Nombre de tu general" value="Lucio Cornelio Escipión">' + difFila('m') +
+    '<div class="mabajo">' + (sv ? '<button class="btn gold mcont" data-act="continue">Continuar campaña' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button><button class="btn" data-act="new">Nueva campaña</button>' : '<button class="btn gold mcont" data-act="new">Nueva campaña</button>') +
+    '<div class="mtrio">' + tile('newregion', 'italia', ICO_GLOBO, 'Región de Italia') + tile('hoja', 'corta', ICO_ESC, 'Partida corta') + tile('hoja', 'sonmenu', ICO_FLU, 'Sonido y fluidez') + '</div>' +
+    '<div class="mcred">' + CREDITOS + '</div><div class="spqr">S·P·Q·R</div></div>';
 }
 { let tv = 0; const sf = () => { clearTimeout(tv); tv = setTimeout(() => { UI.svDown = false; }, 150); };   // Saber: no repintar entre pulsar y soltar
   document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('.sv')) { UI.svDown = true; clearTimeout(tv); tv = setTimeout(() => { UI.svDown = false; }, 1500); } }, true);
@@ -97,13 +184,49 @@ function showMenu() {
   const fin = () => { clearTimeout(tm); tm = setTimeout(() => { UI.cuDown = false; }, 120); };
   document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('#cuentas')) { UI.cuDown = true; clearTimeout(tm); tm = setTimeout(() => { UI.cuDown = false; }, 1500); } }, true);
   document.addEventListener('pointerup', fin, true); document.addEventListener('pointercancel', fin, true); }
-function startGame() { if (G.turnos && S()) S().speed = 0; UI.menu = false; $('menu').hidden = true; UI.city = 'roma'; UI.sel = null; if (UI.map) UI.map.encuadre(); UI.cityList = false; setModo('gobierno'); }
+function startGame() {
+  hojaCierra(true); UI.avisoFirma = ''; UI.pausa = null; pausaPon(); if (G.turnos && S()) S().speed = 0; UI.menu = false; $('menu').hidden = true; UI.sel = null; if (UI.map) UI.map.encuadre(); UI.cityList = false;
+  const sitio = G.fundando() ? G.modo().inicio.fundar.sitio : null, cap = S() && S().capital;
+  UI.city = sitio || (cap && S().cities[cap] ? cap : 'roma');   // I8: en «fundar de la nada» la ciudad es el sitio; con capital propia, esa
+  if (sitio) { UI.modo = 'gobierno'; UI.tab = 'city'; iniciarFundar(); } else setModo('gobierno');
+}
+/* I8: «Fundar de la nada». Con el reloj parado (G.fundando) se abre la pantalla de fundar; si la vista 3D aún carga, se reintenta en 0,4 s. */
+function iniciarFundar() {
+  clearTimeout(UI.fundarT); if (!G.fundando() || UI.menu) return;
+  const sitio = G.modo().inicio.fundar.sitio;
+  if (!UI.cityV || !UI.cityV.listo) { UI.fundarT = setTimeout(iniciarFundar, 400); return; }
+  if (UI.fundar) return;
+  if (UI.modalOpen || UI.modalQ.length) { UI.fundarT = setTimeout(iniciarFundar, 400); return; }   // primero los avisos de época que haya en cola
+  UI.city = sitio; UI.tab = 'city'; UI.modo = 'gobierno';
+  if (UI.abrirFundar(sitio, alFundarModo)) lineaPon('Tus colonos han llegado a ' + D.COLONIAS[sitio].n + ': elige dónde fundar.', 'aviso');
+  else UI.fundarT = setTimeout(iniciarFundar, 600);
+}
+function alFundarModo(sitio) { UI.city = sitio; UI.overShown = false; G.save(); setModo('gobierno'); toast('Has fundado ' + D.CITIES[sitio].n + ': es tu capital.', ''); }
+function fundarCancelado() {   // sin ciudad no hay partida a la que volver: se ofrece reabrir la pantalla o salir al menú (la partida queda guardada)
+  modal('<div class="yr">COLONOS</div><h2>Aún no has fundado</h2><p>Tus colonos esperan en ' + esc(D.COLONIAS[G.modo().inicio.fundar.sitio].n) + '. La partida no empieza hasta que elijas el lugar.</p><div class="acts"><button class="btn ghost" data-act="tomenu">Volver al menú</button><button class="btn gold" data-act="refundar">Elegir el lugar</button></div>', true);
+}
 function showOver() {
   const s = S(), o = s.over; if (!o || UI.overShown) return; UI.overShown = true;
+  if (o.resumen) { showOverCorta(o); return; }
   modal('<div class="yr">' + (o.win ? 'VICTORIA' : 'DERROTA') + '</div><h2>' + (o.win ? 'Roma Victrix' : 'Vae victis') + '</h2><p>' + esc(o.why) + '</p>' +
     '<p>Ciudades: <b>' + G.myCities().length + '</b> de ' + G.ciudadesRegion().length + ' · Batallas: <b>' + s.stats.wins + '/' + s.stats.battles + '</b> ganadas\nEnemigos abatidos: <b>' + s.stats.kills + '</b> · Bajas propias: <b>' + s.stats.lost + '</b>\n' + esc(s.hero.name) + ', nivel <b>' + s.hero.lvl + '</b></p>' +
     '<div class="acts"><button class="btn" data-act="tomenu">Volver al menú</button></div>', true);
 }
+
+/* I8: final de la partida corta: resumen en llano, sin nota ni puntuación */
+function showOverCorta(o) {
+  const r = o.resumen, md = D.MODOS[r.modo], ini = md && md.inicio && md.inicio[r.inicio], ed = r.edad || 1, edn = D.SABER.edadNombres[ed - 1] || '';
+  const hr = r.horas, hTxt = hr < 0.95 ? 'menos de una hora' : hr < 1.05 ? 'una hora' : 'unas ' + String(Math.round(hr * 10) / 10).replace('.', ',') + ' horas';
+  const f = (k, v) => '<div class="rs-f"><span>' + k + '</span><b>' + v + '</b></div>';
+  modal('<div class="yr">' + (o.win ? 'VICTORIA' : 'DERROTA') + '</div><h2>' + (o.win ? 'Roma Victrix' : 'Vae victis') + '</h2><p>' + esc(o.why) + '</p>' +
+    '<div class="resumen"><div class="rs-t">' + esc(md ? md.n : 'Partida') + (ini ? ' · ' + esc(ini.n) : '') + '</div>' +
+    f('Año al terminar', r.anio + ' a.C.') + f('Turnos jugados', r.turnos) + f('Tiempo de juego', hTxt + ' (estimado)') +
+    f('Ciudades que tenías', r.ciudades + (r.fundadas ? ' (' + r.fundadas + (r.fundadas === 1 ? ' fundada' : ' fundadas') + ' por ti)' : '')) +
+    f('Batallas ganadas', r.victorias + ' de ' + r.batallas) + f('Enemigos abatidos', r.bajasEnemigas) + f('Bajas propias', r.bajasPropias) +
+    f('Edad alcanzada', 'Edad ' + ['I', 'II', 'III', 'IV'][ed - 1] + (edn ? ' · ' + esc(edn) : '')) + f(esc(s_name()), 'nivel ' + r.heroe) + '</div>' +
+    '<div class="acts"><button class="btn" data-act="tomenu">Volver al menú</button></div>', true);
+}
+const s_name = () => (S() && S().hero && S().hero.name) || 'General';
 
 /* ---------- HUD ---------- */
 function buildTop() {
@@ -112,18 +235,34 @@ function buildTop() {
   $('res').dataset.act = 'cuentas'; $('res').title = 'Cuentas del mes';
 }
 const turnosTxt = n => 'en ' + n + (n === 1 ? ' turno' : ' turnos');
+/* CN22B: informe de estación compacto. Tarjeta baja (#inf, ≤ ⅓ de pantalla, no bloquea la ciudad); «Ver más» despliega el detalle completo. */
 function consejoModal() {
-  const l = G.consejo(), inf = G.informeEstacion();
+  const l = G.consejo(), inf = G.informeEstacion(), ant = UI.infoPrev || [];
+  const col = q => q.k === 'bad' ? 'color:var(--bad)' : q.k === 'good' ? 'color:var(--good)' : '';
   const fila = r => { const a = inf.r[r]; return '<tr><td>' + D.RES_ICON[r] + '</td><td>+' + fmt(a.gan) + '</td><td>' + fmt(a.gua) + '</td><td style="' + (a.per > 0 ? 'color:var(--bad)' : 'opacity:.5') + '">' + (a.per > 0 ? '-' : '') + fmt(a.per) + '</td></tr>'; };
   const informe = inf.meses ? '<p style="margin:6px 0 2px"><b>Informe de la estación</b> (' + inf.meses + (inf.meses === 1 ? ' mes' : ' meses') + ')</p><table style="width:100%;text-align:center;font-size:13px"><tr style="opacity:.6;font-size:11px"><td></td><td>ganado</td><td>guardado</td><td>perdido</td></tr>' + D.RES.map(fila).join('') + '</table><p style="margin:2px 0 8px;color:' + (inf.r.oro.gua >= 0 ? 'var(--good)' : 'var(--bad)') + '">Saldo de oro: ' + (inf.r.oro.gua - 0) + ' al almacén.</p>' : '';
-  modal('<div class="yr">INFORME Y CONSEJO DE ESTACIÓN</div><h2>' + esc(l[0].x) + '</h2>' + informe + l.slice(1).map(q => '<p style="' + (q.k === 'bad' ? 'color:var(--bad)' : q.k === 'good' ? 'color:var(--good)' : '') + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</p>').join('') + '<div class="acts"><button class="btn gold" data-act="close">Seguir</button></div>');
+  const detalle = '<div class="yr">INFORME Y CONSEJO DE ESTACIÓN</div><h2>' + esc(l[0].x) + '</h2>' + informe + l.slice(1).map(q => '<p style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</p>').join('');
+  // tarjeta: lo grave siempre; lo demás solo si cambió desde el trimestre anterior
+  const perd = D.RES.filter(r => inf.meses && inf.r[r].per > 0).map(r => D.RES_ICON[r] + ' -' + fmt(inf.r[r].per));
+  const todo = l.slice(1, -1).concat(perd.length ? [{ k: 'bad', x: ASESOR.TEXTOS.perdido(perd.join(' ')) }] : []);
+  const mostrar = todo.filter(q => q.k === 'bad' || ant.indexOf(q.x) < 0).slice(0, 3);
+  UI.infoPrev = todo.map(q => q.x);
+  const rec = l[l.length - 1];
+  const lineas = (mostrar.length ? mostrar : [{ k: '', x: 'Sin novedades este trimestre.' }]).concat(rec ? [rec] : []);
+  let el = document.getElementById('inf'); if (el) el.remove();
+  el = document.createElement('div'); el.id = 'inf'; el.className = 'inf';
+  const corta = '<i class="inf-sello">S</i><div class="inf-t">' + esc(l[0].x) + '</div>' + lineas.map(q => '<div class="inf-l" style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</div>').join('') + '<div class="inf-b"><button class="btn ghost" data-act="inf-mas" id="inf-mas">Ver más</button><button class="btn gold" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
+  const larga = '<i class="inf-sello">S</i><div class="inf-d">' + detalle + '</div><div class="inf-b"><button class="btn ghost" data-act="inf-mas" id="inf-mas">Cerrar detalle</button><button class="btn gold" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
+  el._corta = corta; el._larga = larga; el.innerHTML = corta; document.body.appendChild(el);
 }
+UI.infoMas = function () { const el = document.getElementById('inf'); if (!el) return; const m = el.classList.toggle('mas'); el.innerHTML = m ? el._larga : el._corta; };
+UI.infoCierra = function () { const el = document.getElementById('inf'); if (el) el.remove(); UI.dirty = true; };
 const VEL = { 0: 'II', 1: '▶', 2: '▶▶', 4: '▶▶▶' };
 const ICO_GOB = svgIco('<path d="M3 20h18M5 20V9h14v11M3 9h18M9 20v-6h6v6M12 4v5"/>');
 function cityOk() { const my = G.myCities(); if (!my.includes(UI.city)) UI.city = my[0] || 'roma'; return UI.city; }
 function setTxt(id, v) { const e = $(id); if (e && e.dataset.k !== v) { e.dataset.k = v; e.innerHTML = v; } }
 function hudDock() {
-  const s = S(); if (!s) return; const g = UI.modo !== 'guerra', c = s.cities[cityOk()], open = !$('hoja').hidden;
+  const s = S(); if (!s || G.fundando()) return; const g = UI.modo !== 'guerra', c = s.cities[cityOk()], open = !$('hoja').hidden;
   const f = Math.round(G.felicidad(c)), cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠', nm = s.marches.filter(m => m.owner === 'roma').length;
   $('app').dataset.modo = g ? 'gobierno' : 'guerra';
   $('bact').className = 'rd ' + (g ? 'oro' : 'rojo'); $('bmodo').className = 'rd ' + (open ? 'cierra' : g ? 'oro' : 'rojo'); $('bpill').className = g ? '' : 'w';
@@ -131,11 +270,12 @@ function hudDock() {
   setTxt('bmodo', open ? '<span class="em">✕</span><small>Cerrar</small>' : (g ? ICO_GOB : D.GUERRA_ICON.espadas) + '<small>' + (g ? 'Gobierno' : 'Guerra') + '</small>');
   setTxt('bpill', g ? D.POP_ICON + ' ' + Math.floor(c.pop) + '/' + G.popCap(c) + ' · ' + cara + ' ' + f : '🚩 ' + (nm === 1 ? '1 marcha en curso' : nm + ' marchas en curso'));
   const t3 = UI.tab === 'imperio' || UI.tab === 'senado' || UI.tab === 'saber' ? 'imperio' : UI.tab === 'city' ? (UI.cityList || !UI.cityV ? 'gobierno' : 'ciudad') : '';
-  document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3));
+  document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3)); $('app').dataset.tab = t3; $('app').dataset.vista = UI.tab;
   setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
 }
 function tickUI() {
-  const s = S(); if (!s) return;
+  const s = S(); if (UI.pausa) { if (s && s.speed > 0) UI.pausa = null; pausaPon(); }   // R3: si el reloj corre por otra vía, la línea sobra
+  if (!s || G.fundando()) return;   // I8: sin ciudad aún no hay cuentas que pintar
   if (UI.map && UI.map.cities) for (const id in UI.map.cities) { if (!D.CITIES[id] || !D.CITIES[id].antes) continue; const sp = UI.map.cities[id].el.querySelector('span'); if (sp && sp.textContent !== D.CITIES[id].n) sp.textContent = D.CITIES[id].n; }   // H14: el nombre del mapa cambia con la fecha (Poblado íbero → Carthago Nova)
   const p = G.prod(), cap = G.cap(), pr = G.previsionCierre(), aviso = G.fraccionMes() >= D.AVISO_CIERRE;
   for (const r of D.RES) {
@@ -146,8 +286,8 @@ function tickUI() {
     $('rb-' + r).title = (RES_NOM[r] || r) + ': caja del mes ' + fmt(s.res[r]) + ', almacén ' + fmt(s.alm[r]) + ' de ' + fmt(cap) + ', ' + (v >= 0 ? '+' : '') + v + ' al mes' + (pierde ? ' · se perderán ' + pr[r].perdera : lleno ? ' (almacén lleno)' : '');
     $('rb-' + r).classList.toggle('full', lleno);
   }
-  if (aviso && UI.avisoMes !== Math.floor(s.t)) { UI.avisoMes = Math.floor(s.t); const av = G.avisoCierre(); if (av.length) toast('Fin de mes: ' + av[0] + (av.length > 1 ? ' (y ' + (av.length - 1) + ' más)' : ''), 'bad'); }
-  renderCuentas();
+  if (aviso && UI.avisoMes !== Math.floor(s.t)) { UI.avisoMes = Math.floor(s.t); const av = G.avisoCierre(), firma = av.map(x => x.split(':')[0]).join('|'), nueva = av.length && firma !== UI.avisoFirma; UI.avisoFirma = firma; if (nueva) toast('Fin de mes: ' + av[0] + (av.length > 1 ? ' (y ' + (av.length - 1) + ' más)' : ''), 'bad', 'cierre', true); }
+  renderCuentas(); hojaPinta();
   const c = s.cities[cityOk()]; $('r-recl').textContent = fmt(G.recruits(c));
   const nm = s.marches.filter(m => m.owner === 'roma').length; $('r-march').textContent = nm + (nm === 1 ? ' marcha' : ' marchas');
   hudDock();
@@ -166,13 +306,18 @@ function tickUI() {
   if (UI.tab === 'city' && UI.cityV && !UI.cityList && !UI.fundar && !$('citywrap').hidden) { const m = cityMeta(c), k = metaKey(m); if (k !== UI.metaK) renderCity3D(); else { UI.cityV.meta = m; cityPantalla(); pintaLinea(); } }
 }
 
+/* C1: ¿se puede abrir la ciudad 3D desde el mapa? Solo las propias y con la vista ya cargada */
+function propiaEntrable(id) { const s = S(); return !!(s && s.cities[id] && s.cities[id].owner === 'roma' && UI.cityV && UI.cityV.listo && G.ciudadE(id) && !UI.fundar); }
+function volverAlMapa() { UI.deMapa = false; setTab('map'); if (UI.map) UI.map.restaurar(); }
+
 /* ---------- paneles ---------- */
 function setTab(t) {
   if (UI.fundar) cerrarFundar(true);
-  UI.tab = t; if (t === 'map' || t === 'army') UI.modo = 'guerra'; else if (t === 'city' || t === 'imperio' || t === 'senado' || t === 'saber') UI.modo = 'gobierno'; $('hoja').hidden = true; $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
+  UI.tab = t; if (t === 'map' || t === 'army') UI.modo = 'guerra'; else if (t === 'city' || t === 'imperio' || t === 'senado' || t === 'saber') UI.modo = 'gobierno'; hojaCierra(true); $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
   const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D (o en lista si se prefiere)
   $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3; UI.linK = null; if (!c3) $('linea').hidden = true;
   if (c3) { UI.cityV.resize(); renderCity3D(); }
+  { let b = $('bmapa'); if (!b) { b = document.createElement('button'); b.id = 'bmapa'; b.type = 'button'; b.dataset.act = 'almapa'; b.textContent = '← Mapa'; b.style.cssText = 'position:absolute;left:8px;top:64px;z-index:6;padding:6px 12px;border-radius:14px;border:1px solid #e9c063;background:#1b2430cc;color:#f1e6c8;font:600 13px system-ui'; $('citywrap').appendChild(b); } if (t !== 'city') UI.deMapa = false; b.hidden = !(c3 && UI.deMapa); }
   if (t === 'map') renderSheet(); else { $('sheet').hidden = true; $('view').scrollTop = 0; render(); }
   hudDock();
 }
@@ -181,9 +326,9 @@ function cityChips() { cityOk(); return ''; }      // el selector de ciudad ya n
 /* Cuentas del mes (Q3) */
 const sg = (n, d) => (n >= 0 ? '+' : '−') + (Math.abs(n) >= 100 ? Math.round(Math.abs(n)) : Math.abs(n).toFixed(d === undefined ? 1 : d));
 function cuentasHtml() {
-  const s = S(), c = s.cities[cityOk()], cu = G.cuentas(), o = cu.oro, mercado = G.tradeRate() > 0, avisos = [], om = G.obraMayor(), ob = om ? om.id : null, puedeAd = !!om && G.canAfford(G.cuotasRestantes(om.q));
+  const s = S(), c = s.cities[cityOk()], cu = G.cuentas(), o = cu.oro, mercado = G.tradeRate() > 0, avisos = [], om = G.obraMayor(), ob = om ? om.id : null, puedeAd = !!om && G.canAfford(G.cuotasRestantes(om.q)); const of = G.fiestaInfo(cityOk(), 'ofrenda');
   const fila = r => { const m = cu.mat[r], tope = Math.max(1, m.entra, m.comprometido + Math.max(0, m.queda)), pc = Math.min(100, Math.round(m.comprometido / tope * 100)), pq = Math.max(0, Math.min(100 - pc, Math.round(Math.max(0, m.queda) / tope * 100)));
-    if (m.perdera >= 1) avisos.push('<div class="cu-aviso" data-r="' + r + '">⚠ <span>' + RES_NOM[r] + ': sobran ' + Math.floor(m.queda) + ', caben ' + Math.floor(m.caben) + ', <b>se pierden ' + Math.floor(m.perdera) + '</b></span></div><div class="cu-btns"><button class="btn" data-act="cuvender" data-v="' + r + '"' + (mercado ? '' : ' disabled') + '>Vender en el mercado</button><button class="btn" data-act="cuobra"' + (ob ? ' data-v="' + ob + '"' : '') + '>' + (ob ? 'Ir a la obra de ' + esc(D.CITIES[ob].n) : 'Adelantar obra') + '</button>' + (ob && puedeAd ? '<button class="btn" data-act="cuadelantar" data-v="' + ob + '" data-i="' + om.i + '">Adelantar cuotas</button>' : '') + (mercado ? '' : '<small>Sin mercado: construye uno para vender.</small>') + '</div>');
+    if (m.perdera >= 1) avisos.push('<div class="cu-aviso" data-r="' + r + '">⚠ <span>' + RES_NOM[r] + ': sobran ' + Math.floor(m.queda) + ', caben ' + Math.floor(m.caben) + ', <b>se pierden ' + Math.floor(m.perdera) + '</b></span></div><div class="cu-btns"><button class="btn" data-act="cuvender" data-v="' + r + '"' + (mercado ? '' : ' disabled') + '>Vender en el mercado</button><button class="btn" data-act="cuobra"' + (ob ? ' data-v="' + ob + '"' : '') + '>' + (ob ? 'Ir a la obra de ' + esc(D.CITIES[ob].n) : 'Adelantar obra') + '</button>' + (ob && puedeAd ? '<button class="btn" data-act="cuadelantar" data-v="' + ob + '" data-i="' + om.i + '">Adelantar cuotas</button>' : '') + (of.motivo ? '' : '<button class="btn" data-act="fiesta" data-v="ofrenda">' + D.FIESTAS.ofrenda.i + ' Ofrenda con lo que sobra · ' + D.RES_ICON.oro + fmt(of.coste) + '</button>') + (mercado ? '' : '<small>Sin mercado: construye uno para vender.</small>') + '</div>');
     return '<div class="cu-fila"><span class="cu-ic">' + D.RES_ICON[r] + '</span><div class="cu-cen"><div class="cu-l1"><b>' + RES_NOM[r] + '</b> <span>entra ' + Math.round(m.entra) + '</span><em>compr. ' + Math.round(m.comprometido) + '</em></div><div class="cu-bar"><i class="c" style="width:' + pc + '%"></i><i class="q" style="width:' + pq + '%"></i></div></div>' +
       '<div class="cu-der"><b class="' + (m.queda >= 0 ? 'ok' : 'mal') + '">' + sg(m.queda, 0) + '</b><span>al almacén ' + Math.floor(m.alAlmacen) + '</span></div></div>' + (m.perdera >= 1 ? avisos.pop() : ''); };
   const impu = Object.keys(D.IMPUESTOS).map(k => '<button class="chip ' + ((c.imp || 'normal') === k ? 'on' : '') + '" data-act="imp" data-v="' + k + '">' + D.IMPUESTOS[k].n + '</button>').join('');
@@ -194,11 +339,67 @@ function cuentasHtml() {
     '<div class="cu-saldo ' + (o.saldo >= 0 ? 'ok' : 'mal') + '"><span>Saldo del mes</span><b>' + (o.saldo >= 0 ? '+ ' : '− ') + Math.round(Math.abs(o.saldo)) + '</b></div>';
 }
 function renderCuentas(forzar) { const e = $('cuentas'); if (!e || e.hidden || !S() || (UI.cuDown && !forzar)) return; const h = cuentasHtml(); if (forzar || e.dataset.k !== h) { e.dataset.k = h; e.innerHTML = h; } }
-function hojaHtml() {
+/* K12a: HOJA INFERIOR única (menú, ajustes, mercado, rutas, pueblo…). #hoja es el panel y #hscrim el telón que oscurece. Cuerpo = HOJAS[id].html() */
+const CREDITOS = 'Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1';
+const HOJA_ALT = [420, 600, 770];
+const ICO_AJ = svgIco('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'), ICO_MERC = svgIco('<path d="M4 8h15l-3-3M20 16H5l3 3"/>'), ICO_RUTA = svgIco('<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>'),
+  ICO_PUEB = svgIco('<circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M18 14c2 1 3 3 3 6"/>'), ICO_CRON = svgIco('<path d="M7 4h11v13a3 3 0 0 1-3 3H6M7 4a2 2 0 0 0-2 2v2h2M7 4v12a3 3 0 0 1-3 3 2 2 0 0 0 2 1M10 9h5M10 13h5"/>'),
+  ICO_TEMPLO = svgIco('<path d="M3 10l9-6 9 6M5 10v9M9 10v9M15 10v9M19 10v9M3 20h18"/>'), ICO_INFO = svgIco('<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'), ICO_CRED = svgIco('<path d="M12 3l2.5 5.5 6 .7-4.4 4.1 1.2 5.9L12 16.3 6.7 19.2l1.2-5.9L3.5 9.2l6-.7z"/>'), ICO_FLU = svgIco('<path d="M3 17l5-6 4 4 4-7 5 6"/>');
+function menuHoja() {
+  if (UI.hojaConf) return '<div class="hconf"><p class="hq">¿Volver al menú principal?</p><p class="hs">Tu partida se guarda sola.</p><button class="hbig" data-act="hojax">Seguir jugando</button><button class="hdisc" data-act="menu">Sí, volver al menú</button></div>';
   const g = UI.modo !== 'guerra', on = (m, c) => (UI.tab === 'city' || UI.tab === 'map' || UI.tab === 'army') && (m === 'g' ? g : !g) ? ' ' + c : '';
-  return '<button class="oro' + on('g', 'on') + '" data-act="modo" data-v="gobierno">' + ICO_GOB + ' Gobierno</button><button class="rojo' + on('w', 'on') + '" data-act="modo" data-v="guerra">' + D.GUERRA_ICON.espadas + ' Guerra</button>' +
-    '<button data-act="tab" data-v="hero">' + D.GUERRA_ICON.aguila + ' General</button><button data-act="tab" data-v="log">📜 Crónica</button><div class="dos"><button data-act="ayuda">❓ Ayuda</button><button data-act="menu">⚙️ Menú</button></div>';
+  const f = (act, v, ico, txt, cls) => '<button class="hf' + (cls ? ' ' + cls : '') + '" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span>' + txt + '</span></button>';
+  return '<div class="hdos">' + f('modo', 'gobierno', ICO_GOB, 'Gobierno', 'oro' + on('g', 'on')) + f('modo', 'guerra', D.GUERRA_ICON.espadas, 'Guerra', 'rojo' + on('w', 'on')) + '</div>' +
+    f('tab', 'hero', D.GUERRA_ICON.aguila, 'General') + f('tab', 'log', ICO_CRON, 'Crónica') + f('ayuda', null, ICO_INFO, 'Ayuda') + f('hoja', 'ajustes', ICO_AJ, 'Ajustes') +
+    f('fluidez', null, ICO_FLU, fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + f('hoja', 'creditos', ICO_CRED, 'Créditos') +
+    '<div class="hsep"></div><button class="hdisc hfondo" data-act="menuconf">Volver al menú principal</button>';
 }
+function ajustesHoja() {
+  const a = G.ajustes(); if (!a) return '<div class="empty">Aún no hay partida.</div>';
+  const seg = (lis, cur, act, d) => '<div class="hseg">' + lis.map(q => '<button class="chip' + (q[0] === cur ? ' on' : '') + '" data-act="' + act + '" data-v="' + q[0] + '"' + (d ? ' data-d="' + d + '"' : '') + '>' + q[1] + '</button>').join('') + '</div>';
+  const tog = (txt, attrs, on, sub) => '<label class="htog"><span>' + txt + (sub ? '<small>' + sub + '</small>' : '') + '</span><input type="checkbox" ' + attrs + (on ? ' checked' : '') + '></label>';
+  const sw = [['crecida', 'Crecida del río'], ['fuego', 'Incendios'], ['hambre', 'Hambre de invierno']], frase = 'El reloj se para al acabar una obra o una leva, al cumplirse una misión o al venir un ataque.';
+  return '<div id="ajustes" class="ajh"><div class="ajf" id="dif-g"><b class="hrot">Dificultad</b>' + seg(Object.keys(D.DIFICULTAD).map(k => [k, DIF_NOM[k] || k]), a.dif || 'normal', 'dif', 'g') + '<small>Los cambios de dificultad y sucesos valen desde el mes siguiente.</small></div>' +
+    '<div class="ajf" id="aj-pausas"><b class="hrot">Pausas del reloj</b>' + seg([['todas', 'Todas'], ['graves', 'Solo graves'], ['ninguna', 'Ninguna']], G.pausas(), 'pausas') + '<small>' + frase + '</small></div><div class="hsep"></div>' +
+    tog('Consejos del asesor', 'id="ase-g" data-act="asesor" data-d="g"', !!a.asesor) + '<button class="chip hbtn" data-act="repetirasesor">Repetir los consejos</button><div class="hsep"></div><b class="hrot">Sucesos</b>' +
+    sw.map(q => tog(q[1], 'data-act="suceso" data-v="' + q[0] + '"', !!a.suc[q[0]], q[0] === 'hambre' && !((D.DIFICULTAD[a.dif] || {}).hambre || {}).meses ? 'Sin efecto en Tranquila' : '')).join('') +
+    '<div class="hsep"></div>' + tog('Ambiente', 'id="aj-ambiente" data-act="ambiente"', G.ambiente(), 'Tono por estación, viñeta y contorno dorado en la ciudad') + '<div id="aj-sonido">' + tog('Sonido', 'data-act="sonido"', sonidoOn()) + '</div></div>';
+}
+const HOJAS = {
+  menu: { titulo: 'Menú', alt: 1, html: menuHoja },
+  ajustes: { titulo: 'Ajustes', alt: 2, html: ajustesHoja },
+  corta: { titulo: 'Partida corta', alt: 1, html: () => cortaHtml() || '<div class="empty">No disponible.</div>' },
+  sonmenu: { titulo: 'Sonido y fluidez', alt: 0, html: () => '<button class="hf" data-act="sonido">' + ICO_INFO + '<span>' + sonidoTxt() + '</span></button><button class="hf" data-act="fluidez">' + ICO_FLU + '<span>' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</span></button>' },
+  creditos: { titulo: 'Créditos', alt: 0, html: () => '<div class="hcred">' + CREDITOS + '</div>' },
+  mercado: { titulo: 'Mercado', alt: 1, html: () => marketHtml() || '<div class="empty">Sin mercado: construye uno para cambiar recursos.</div>' },
+  rutas: { titulo: 'Rutas', alt: 2, html: () => rutasHtml(S().cities[cityOk()], UI.city) || '<div class="empty">Esta ciudad no tiene rutas.</div>' },
+  pueblo: { titulo: 'Pueblo', alt: 2, html: () => { const c = S().cities[cityOk()]; return '<div class="empty">' + popHtml(c) + '</div>' + repartoHtml(c) + (c.owner === 'roma' ? '<div class="empty">' + tipoHtml(c) + '</div>' : ''); } },
+  aldeas: { titulo: 'Pueblos', alt: 2, html: () => pueblosHtml(S().cities[cityOk()]) || '<div class="empty">Solo en tus ciudades.</div>' },
+  servicios: { titulo: 'Templo y forja', alt: 2, html: () => { const c = S().cities[cityOk()]; return (c.b.templo > 0 ? '<div class="empty">' + diosBloque(c, 'templo') + '</div>' : '') + forjaHtml(c); } },
+  estado: { titulo: 'Estado de la ciudad', alt: 1, html: () => { const c = S().cities[cityOk()], f = Math.round(G.felicidad(c)); return '<div class="empty"><span class="stat">' + (f >= 60 ? '😊' : f >= 40 ? '😐' : '😠') + ' Felicidad <b>' + f + ' %</b></span>' + inqHtml(c) + '</div>' + (c.owner === 'roma' ? '<div class="empty">' + espResumen() + '</div>' : ''); } },
+};
+function hojaAlt(i) { if (!UI.hoja) return; UI.hoja.alt = Math.max(0, Math.min(2, i)); $('hoja').style.setProperty('--ha', HOJA_ALT[UI.hoja.alt] + 'px'); }
+function hojaPinta(forzar) {
+  const h = $('hoja'), d = UI.hoja && HOJAS[UI.hoja.id]; if (h.hidden || !d || (!S() && !UI.menu) || (UI.hjDown && !forzar)) return;
+  const titulo = UI.hojaConf ? 'Volver al menú' : d.titulo, cuerpo = d.html();
+  if (h.dataset.id !== UI.hoja.id) { h.dataset.id = UI.hoja.id; h.dataset.k = ''; h.innerHTML = '<div class="hasa" role="button" aria-label="Cambiar la altura de la hoja"><i></i></div><div class="hcab"><h2 class="ht"></h2><button class="hx" data-act="hojax" aria-label="Cerrar">✕</button></div><div class="hcuerpo"></div>'; }
+  const k = titulo + '|' + cuerpo; if (h.dataset.k === k) return; h.dataset.k = k;
+  h.querySelector('.ht').textContent = titulo;
+  const b = h.querySelector('.hcuerpo'), st = b.scrollTop; b.innerHTML = cuerpo; b.scrollTop = st;
+}
+function hojaAbre(id, alt) {
+  if (!HOJAS[id] || (!S() && !UI.menu)) return; UI.hoja = { id, alt: 1 }; UI.hojaConf = false; const h = $('hoja'); if (UI.menu) { document.body.append($('hscrim'), h); h.classList.add('enmenu'); $('hscrim').classList.add('enmenu'); } h.dataset.id = ''; h.hidden = false; $('hscrim').hidden = false; document.body.classList.add('conhoja');
+  hojaAlt(alt == null ? HOJAS[id].alt : alt); hojaPinta(true); hudDock();
+}
+function hojaCierra(sinDock) { if ($('hoja').classList.contains('enmenu')) { const ap = $('app'), r = $('popsheet'); ap.insertBefore($('hscrim'), r); ap.insertBefore($('hoja'), r); $('hoja').classList.remove('enmenu'); $('hscrim').classList.remove('enmenu'); } UI.hoja = null; UI.hojaConf = false; document.body.classList.remove('conhoja'); $('hoja').hidden = true; $('hscrim').hidden = true; $('hoja').style.transform = ''; if (!sinDock) hudDock(); }
+{ let y0 = null, via = '';   // asa y cabecera: tocar el asa = siguiente altura; arrastrar abajo = bajar o cerrar; arriba = subir
+  document.addEventListener('pointerdown', e => { const t = e.target.closest && e.target.closest('#hoja'); if (!t) return; UI.hjDown = true; clearTimeout(UI.hjT); UI.hjT = setTimeout(() => { UI.hjDown = false; }, 1500);
+    const z = e.target.closest('.hasa, .hcab'); y0 = z && !e.target.closest('.hx') ? e.clientY : null; via = z && z.classList.contains('hasa') ? 'asa' : 'cab'; }, true);
+  document.addEventListener('pointermove', e => { if (y0 == null || !UI.hoja) return; const dy = e.clientY - y0; if (Math.abs(dy) > 6) $('hoja').style.transform = 'translateY(' + Math.max(0, dy) + 'px)'; });
+  const fin = e => { clearTimeout(UI.hjT); UI.hjT = setTimeout(() => { UI.hjDown = false; }, 120); if (y0 == null) return; const dy = e.type === 'pointercancel' ? 0 : e.clientY - y0; y0 = null; $('hoja').style.transform = ''; if (!UI.hoja) return;
+    if (Math.abs(dy) < 8) { if (via === 'asa' && e.type !== 'pointercancel') hojaAlt((UI.hoja.alt + 1) % 3); } else if (dy > 50) { if (UI.hoja.alt > 0) hojaAlt(UI.hoja.alt - 1); else hojaCierra(); } else if (dy < -50) hojaAlt(UI.hoja.alt + 1); };
+  document.addEventListener('pointerup', fin); document.addEventListener('pointercancel', fin);
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && UI.hoja) hojaCierra(); }); }
 function cityMenuHtml() {
   const s = S(); cityOk();
   return G.myCities().map(id => '<button class="' + (id === UI.city ? 'on' : '') + '" data-act="city" data-v="' + id + '">' + D.CITIES[id].n + (s.hero.city === id ? ' ' + D.GUERRA_ICON.aguila : '') + '<small>' + Math.floor(s.cities[id].pop) + ' hab.</small></button>').join('');
@@ -206,7 +407,7 @@ function cityMenuHtml() {
 function renderPop() { renderCuentas(); const ps = $('popsheet'); if (ps.hidden) return; ps.innerHTML = '<div class="tt">' + D.CITIES[cityOk()].n + '</div>' + popHtml(S().cities[UI.city]) + '<div class="acts"><button class="btn" data-act="popx">Cerrar</button></div>'; }
 function render() {
   UI.dirty = false;
-  if (!S()) return; renderPop(); if (UI.tab === 'map') { renderSheet(); return; }
+  if (!S() || G.fundando()) return; renderPop(); hojaPinta(); if (UI.tab === 'map') { renderSheet(); return; }
   if (UI.tab === 'city' && UI.cityV && !UI.cityList) { renderCity3D(); tickUI(); return; }
   if (UI.tab === 'saber' && UI.svDown) { UI.dirty = true; return; }   // no repintar entre pulsar y soltar: se perderían los toques
   const v = $('view'), st = v.scrollTop;
@@ -220,9 +421,25 @@ const espResumen = () => {
   const t = G.especiales(), ks = Object.keys(D.ESPECIAL), tiene = ks.filter(k => t[k]), falta = ks.filter(k => !t[k]);
   return '<span class="stat">Tienes: ' + (tiene.map(k => D.ESPECIAL[k].i + ' ' + D.ESPECIAL[k].n).join(' · ') || 'ninguno') + '.</span>' + (falta.length ? '<span class="stat">Te faltan: ' + falta.map(k => D.ESPECIAL[k].i + ' ' + D.ESPECIAL[k].n + ' (' + dondeEsp(k) + ')').join(' · ') + '</span>' : '');
 };
+/* CN13a: arca del foro, fiestas, ración y granero. Todo lee G.arca / G.fiestaInfo / G.graneroInfo y no guarda nada */
+const fiestaBtn = (cid, id, corto) => {
+  const d = D.FIESTAS[id], fi = G.fiestaInfo(cid, id), on = !fi.motivo, estado = fi.activa ? 'En marcha: ' + fi.quedan + (fi.quedan === 1 ? ' mes' : ' meses') + '.' : '';
+  return '<button class="btn fiesta' + (on ? '' : ' no') + '" data-act="fiesta" data-v="' + id + '"' + (on ? '' : ' disabled') + '>' + d.i + ' ' + (corto || d.n) + ' · ' + D.RES_ICON.oro + fmt(fi.coste) + (d.pago === 'arca' ? ' en arca' : '') + '</button>' +
+    '<small class="fi-n">' + esc(estado + (estado && fi.motivo ? ' ' : '') + (fi.motivo || '')) + '</small>';
+};
+const arcaHtml = c => {
+  const cid = UI.city, a = G.arca(cid), pips = [1, 2, 3, 4].map(i => '<i class="' + (a.nivel >= i ? 'on' : '') + '"></i>').join(''), sob = Object.keys(a.sobra);
+  return '<div class="arca"><div class="ar-top"><b>Arca</b><span class="ar-med" title="Lo que el almacén va a perder este mes">' + pips + '</span><em>' + (sob.length ? 'sobra ' + sob.map(r => D.RES_ICON[r] + fmt(a.sobra[r])).join(' ') : 'no se pierde nada') + '</em></div>' +
+    '<div class="ar-fi">' + fiestaBtn(cid, 'juegos') + '</div><div class="ar-leva" data-hueco="leva"></div></div>';   // el hueco de la leva (CN16) cuelga de .ar-leva
+};
+const graneroHtml = c => {
+  const cid = UI.city, g = G.graneroInfo(cid), rc = c.rac || 'normal', rac = Object.keys(D.RACION).map(k => '<button class="chip ' + (rc === k ? 'on' : '') + '" data-act="racion" data-v="' + k + '" title="' + esc(D.RACION[k].d) + '">' + D.RACION[k].n + '</button>').join('');
+  const fr = g.hambre ? 'Sin grano: hay hambre.' : g.invierno ? 'Invierno sin granero: no llegan familias.' : g.meses === null ? 'El grano crece cada mes.' : 'El grano dura ' + String(g.meses).replace('.', ',') + (g.meses === 1 ? ' mes.' : ' meses.');
+  return '<div class="granero"><div class="gr-top"><b>Granero</b><span class="gr-bar"><i style="width:' + g.pct + '%"></i></span><em>' + g.pct + ' %</em></div><div class="gr-f' + (g.hambre || g.invierno ? ' mal' : '') + '">' + fr + '</div><div class="chips" style="flex-wrap:wrap">' + rac + '</div></div>';
+};
 function diosBloque(c, b) {
   const dg = b === 'templo' ? G.diosDe(c) : null;
-  return b !== 'templo' || c.owner !== 'roma' ? '' : dg ? '<div class="ds">' + dg.i + ' <b>Templo de ' + dg.n + '</b> · ' + esc(dg.d) + '</div>' :
+  return b !== 'templo' || c.owner !== 'roma' ? '' : dg ? '<div class="ds">' + dg.i + ' <b>Templo de ' + dg.n + '</b> · ' + esc(dg.d) + '</div><div class="ar-fi">' + fiestaBtn(UI.city, 'ofrenda') + '</div>' :
     '<div class="ds">Elige el dios:</div><div class="chips" style="flex-wrap:wrap">' + Object.keys(D.DIOSES).map(k => { const d = D.DIOSES[k], no = d.sea && !D.CITIES[UI.city].sea; return '<button class="chip ' + ((c.dios || 'marte') === k && !no ? 'on' : '') + '" ' + (no ? 'disabled' : 'data-act="dios" data-v="' + k + '"') + ' title="' + esc(d.d) + '">' + d.i + ' ' + d.n + '</button>'; }).join('') + '</div><div class="ds">' + esc(D.DIOSES[c.dios && !(D.DIOSES[c.dios].sea && !D.CITIES[UI.city].sea) ? c.dios : 'marte'].d) + '</div>';
 }
 /* Barrios (CN6): la ciudad (Aldea, Villa, Ciudad, Urbs) con lo que le falta, y una fila por barrio con su nivel y su «para subir falta…» */
@@ -234,12 +451,20 @@ const barrioFrase = bi => {
   if (bi.nivel >= D.BARRIO.length - 1) return 'La ciudad está al máximo.';
   return 'Para ser ' + D.BARRIO[bi.nivel + 1].n + ' falta ' + (bi.falta.length ? lst(bi.falta) : 'esperar unos meses') + '.';
 };
+/* CN13b: techar un barrio con tejas (el fuego ya no salta de casa en casa). Botón pequeño en cada fila del barrio. */
+const techoBtn = i => {
+  const t = G.techoInfo(UI.city, i); if (t.hecho) return '<span class="tj-ok" title="El fuego no salta entre estas casas">techado</span>';
+  if (t.enObra) return '<span class="tj-ok" title="' + esc(t.motivo) + '">techando · ' + t.enObra + 'm</span>';
+  if (!t.coste || t.casas < 1) return '';
+  const cs = Object.keys(t.coste).filter(r => t.coste[r] > 0).map(r => D.RES_ICON[r] + fmt(t.coste[r])).join(' ');
+  return '<button class="chip tj' + (t.motivo ? ' no' : '') + '" data-act="techar" data-v="' + i + '"' + (t.motivo ? ' disabled' : '') + ' title="' + esc('Techos de teja: el fuego no salta entre las casas. Tarda ' + t.plazo + ' meses. ' + (t.motivo || '')) + '">Techar barrio · ' + cs + '</button>';
+};
 const barrioHtml = c => {
   if (c.owner !== 'roma') return '';
   const bi = G.barrioInfo(c), bs = bi.barrios || [], ver = k => BARRIO_ICO[k] && !bi.serv[k] ? '<span class="bs" title="Falta ' + D.BARRIO_SERV[k].toLowerCase() + '">' + BARRIO_ICO[k]() + '</span>' : '';
   return '<div class="barrio"><div class="bn"><b>' + D.BARRIO[bi.nivel].n + '</b> · nivel ' + bi.nivel + ' de ' + (D.BARRIO.length - 1) + '<span class="bsv">' + ver('grano') + ver('lujo') + '</span></div>' +
     '<div class="bf' + (bi.objetivo < bi.nivel ? ' mal' : '') + '">' + barrioFrase(bi) + '</div>' +
-    (bs.length ? '<div class="blis">' + bs.map(b => '<div class="bfila' + (b.objetivo < b.nivel ? ' mal' : '') + '"><span class="bniv">' + ROMS[b.nivel] + '</span><span class="bnom">' + esc(b.corto || b.nombre) + '</span><span class="bfalta">' + (b.falta ? 'para subir falta ' + esc(b.falta.replace(/^para subir falta /, '')) : 'lo tiene todo') + '</span></div>').join('') + '</div>' : '') + '</div>';
+    (bs.length ? '<div class="blis">' + bs.map(b => '<div class="bfila' + (b.objetivo < b.nivel ? ' mal' : '') + '"><span class="bniv">' + ROMS[b.nivel] + '</span><span class="bnom">' + esc(b.corto || b.nombre) + '</span><span class="bfalta">' + (b.falta ? 'para subir falta ' + esc(b.falta.replace(/^para subir falta /, '')) : 'lo tiene todo') + '</span>' + techoBtn(b.i) + '</div>').join('') + '</div>' : '') + '</div>';
 };
 /* Clases (Q6): ciudadanos, plebeyos, esclavos; cifra, barra de parte y cara de ánimo, y lo que piden */
 const clasesFrase = (c, cl, an) => {
@@ -287,7 +512,7 @@ function marketHtml() {
   const rate = G.tradeRate(); if (!rate) return '';
   UI.mf = UI.mf || 'madera'; UI.mt = UI.mt || 'hierro';
   const chips = (act, cur) => D.RES.map(r => '<button class="chip ' + (r === cur ? 'on' : '') + '" data-act="' + act + '" data-v="' + r + '">' + D.RES_ICON[r] + '</button>').join('');
-  return '<div class="market"><div class="tt">⚖️ Mercado · cambio ' + Math.round(rate * 100) + ' %</div><div class="mrow"><span>Doy</span>' + chips('mfrom', UI.mf) + '</div><div class="mrow"><span>Recibo</span>' + chips('mto', UI.mt) + '</div>' +
+  return '<div class="market mar mar-merc"><div class="tt">⚖️ Mercado · cambio ' + Math.round(rate * 100) + ' %</div><div class="mrow"><span>Doy</span>' + chips('mfrom', UI.mf) + '</div><div class="mrow"><span>Recibo</span>' + chips('mto', UI.mt) + '</div>' +
     '<div class="btns" style="flex-direction:row">' + [100, 500, 2000].map(n => '<button class="btn" data-act="trade" data-n="' + n + '" data-need=\'' + JSON.stringify({ [UI.mf]: n }) + '\'>' + n + ' ' + D.RES_ICON[UI.mf] + ' → ' + Math.floor(n * rate) + ' ' + D.RES_ICON[UI.mt] + '</button>').join('') + '</div></div>';
 }
 /* hueco del encargo C: tarjeta de los sabios en la ficha de la Escuela */
@@ -327,6 +552,17 @@ function forjaHtml(c) {
       (en || max || topada ? '' : '<button class="btn ' + (f.cola ? 'no' : '') + '" data-act="forja" data-v="' + k + '" ' + (f.cola ? '' : "data-need='" + JSON.stringify(cost) + "'") + '>Mejorar ' + F.n.toLowerCase() + '<small>' + months(G.forjaTime(k, L, UI.city)) + '</small></button>') + '</div>';
   }).join('');
 }
+/* Pueblos (J3): satélites que producen para la capital; una fila por hueco */
+function pueblosHtml(c) {
+  if (c.owner !== 'roma') return '';
+  const cid = UI.city;
+  return '<div class="sec">Pueblos de ' + D.CITIES[cid].n + '</div>' + G.pueblosDe(cid).map(p => {
+    const F = p.ficha, max = p.nivel >= D.PUEBLO_MAX, ok = G.puebloOk(cid, p.i), cost = G.puebloCoste(cid, p.i), prod = Object.keys(F.prod).map(r => D.RES_ICON[r] + ' +' + (G.rate(Math.max(1, p.nivel)) * F.prod[r]).toFixed(0)).join(' ') + (F.pop ? ' · 👥 +' + F.pop + '/nivel' : '');
+    return '<div class="card"><div class="ic">' + F.i + '</div><div class="bd"><div class="tt">' + F.n + '<span class="lv">' + (p.nivel ? 'Nv ' + p.nivel : 'Sin fundar') + '</span></div><div class="ds">' + F.d + ' ' + prod + '</div>' +
+      (p.obra ? '<div class="prog" data-t0="' + p.obra.t0 + '" data-t1="' + p.obra.t1 + '"><i></i></div><span class="rem"></span>' : max ? '<div class="ds">Nivel máximo.</div>' : costHtml(cost)) + '</div>' +
+      (p.obra || max ? '' : '<button class="btn ' + (ok ? '' : 'no') + '" data-act="pueblo" data-v="' + p.i + '" ' + (ok ? "data-need='" + JSON.stringify(cost) + "'" : '') + '>' + (p.nivel ? 'Mejorar a ' + (p.nivel + 1) : 'Fundar') + '<small>' + months(G.puebloTiempo(cid, p.i)) + '</small></button>') + '</div>';
+  }).join('');
+}
 const RES_NOM = { madera: 'Madera', piedra: 'Piedra', hierro: 'Hierro', grano: 'Grano', oro: 'Oro' };
 function repartoHtml(c) {
   if (c.owner !== 'roma') return '';
@@ -344,29 +580,32 @@ function repartoHtml(c) {
 function rutasHtml(c, id) {
   if (c.owner !== 'roma') return '';
   const s = S(), cn = x => D.CITIES[x].n, abiertas = G.rutasAbiertas().filter(r => r.a === id || r.b === id);
-  let h = '<div class="sec">Rutas comerciales</div><div class="empty">Huecos: ' + G.rutasDeCiudad(id) + ' / ' + G.rutaMax(c) + '. Los tratados de Roma y Cartago ya repartían dónde comerciar (Polibio 3.22-25).</div>';
+  let h = '<div class="mar mar-rut"><div class="sec mar-t">Rutas comerciales</div><div class="empty mar-card">Huecos: ' + G.rutasDeCiudad(id) + ' / ' + G.rutaMax(c) + '. Los tratados de Roma y Cartago ya repartían dónde comerciar (Polibio 3.22-25).</div>';
   for (const r of abiertas) {
     const o = r.a === id ? r.b : r.a;
-    h += '<div class="empty">⚖️ <b>' + cn(r.a) + ' ↔ ' + cn(r.b) + '</b> · +' + Math.round(G.rutaRenta(r)) + ' oro/mes · ' + (G.rutaMar(r) ? 'por mar' : 'por tierra') + (r.f !== 'roma' && D.ESPECIAL[D.CITIES[r.b].esp] ? ' · bien: ' + D.ESPECIAL[D.CITIES[r.b].esp].i + ' ' + D.ESPECIAL[D.CITIES[r.b].esp].n : '') +
+    h += '<div class="empty mar-card">⚖️ <b>' + cn(r.a) + ' ↔ ' + cn(r.b) + '</b> · +' + Math.round(G.rutaRenta(r)) + ' oro/mes · ' + (G.rutaMar(r) ? 'por mar' : 'por tierra') + (r.f !== 'roma' && D.ESPECIAL[D.CITIES[r.b].esp] ? ' · bien: ' + D.ESPECIAL[D.CITIES[r.b].esp].i + ' ' + D.ESPECIAL[D.CITIES[r.b].esp].n : '') +
       (r.a === id ? '<div class="btns"><button class="btn ghost" data-act="rutacerrar" data-v="' + r.a + '>' + r.b + '">Cerrar ruta</button></div>' : '') + '</div>';
   }
   for (const o of G.neighbors(id)) {
     if (G.rutaDe(id, o)) continue;
     const mot = G.rutaPuede(id, o), ajena = s.cities[o].owner !== 'roma', e = D.ESPECIAL[D.CITIES[o].esp];
     const verbo = ajena ? 'Firmar tratado con ' + cn(o) : 'Abrir ruta con ' + cn(o);
-    if (mot && !/^Faltan/.test(mot)) h += '<div class="empty" style="opacity:.6">' + verbo + ' · ' + esc(mot) + '</div>';
-    else h += '<div class="empty"><div class="btns"><button class="btn ' + (mot ? 'no' : '') + '" data-act="ruta" data-v="' + id + '>' + o + '" data-need=\'' + JSON.stringify({ oro: D.RUTA_COSTE }) + '\'>' + verbo + ' · ' + D.RUTA_COSTE + ' ' + D.RES_ICON.oro + '</button></div>' + (ajena && e ? '<div class="ds">Aporta el bien: ' + e.i + ' ' + e.n + '</div>' : '') + '</div>';
+    if (mot && !/^Faltan/.test(mot)) h += '<div class="empty mar-card mar-off">' + verbo + ' · ' + esc(mot) + '</div>';
+    else h += '<div class="empty mar-card"><div class="btns"><button class="btn ' + (mot ? 'no' : '') + '" data-act="ruta" data-v="' + id + '>' + o + '" data-need=\'' + JSON.stringify({ oro: D.RUTA_COSTE }) + '\'>' + verbo + ' · ' + D.RUTA_COSTE + ' ' + D.RES_ICON.oro + '</button></div>' + (ajena && e ? '<div class="ds">Aporta el bien: ' + e.i + ' ' + e.n + '</div>' : '') + '</div>';
   }
-  return h;
+  return h + '</div>';
 }
-function viewCity() {
-  const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city], roma = c.owner === 'roma';
-  let h = cityChips() + '<div class="head"><h2>' + d.n + '</h2><p>' + esc(d.h) + '</p></div>' + (UI.cityV ? '<div class="acts" style="margin:0 0 6px"><button class="btn ghost" data-act="clist">Ver la ciudad en 3D</button></div>' : '');
-  h += '<div class="empty">' + popHtml(c) + '</div>' + repartoHtml(c) + (roma ? '<div class="empty">' + espResumen() + '</div><div class="empty">' + tipoHtml(c) + '</div>' : '');
-  if (roma && c.b.templo > 0) h += '<div class="empty">' + diosBloque(c, 'templo') + '</div>';
-  if (G.tradeRate() > 0) h += marketHtml();
-  if (c.b.herreria > 0) h += forjaHtml(c);
-  return h + rutasHtml(c, UI.city);
+const espFalta = () => { const t = G.especiales(); return Object.keys(D.ESPECIAL).filter(k => !t[k]); };
+function viewCity() {   // Gobierno (K12a): ciudad, felicidad, lo que falta y atajos; sin scroll de página. Lo demás vive en hojas (HOJAS)
+  const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city], roma = c.owner === 'roma', f = Math.round(G.felicidad(c)), cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠', R = 52, C = 2 * Math.PI * R;
+  const falta = roma ? espFalta() : [], fic = falta.slice(0, 3).map(k => '<button class="gfic" data-act="hoja" data-v="estado">' + ICO_ALERTA + '<span>' + D.ESPECIAL[k].n + '</span></button>').join('') + (falta.length > 3 ? '<button class="gfic" data-act="hoja" data-v="estado"><span>+' + (falta.length - 3) + '</span></button>' : '');
+  const at = (id, ico, nom, sub, off) => '<button class="gat' + (off ? ' off' : '') + '"' + (off ? ' disabled' : ' data-act="' + (id === 'cron' ? 'tab" data-v="log' : 'hoja" data-v="' + id) + '"') + '>' + ico + '<b>' + nom + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</button>';
+  const mer = G.tradeRate() > 0;
+  return '<div class="gob"><div class="gnomb"><h2>' + d.n + '</h2><p>' + (UI.city === 'roma' ? 'Capital' : esc(G.tipoDe(c).n)) + ' · ' + Math.floor(c.pop) + ' habitantes</p></div>' +
+    '<button class="gani" data-act="hoja" data-v="estado" aria-label="Felicidad ' + f + ' por ciento: ver el estado"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="gpista" cx="60" cy="60" r="' + R + '"/><circle class="gval" cx="60" cy="60" r="' + R + '" style="stroke:' + (f >= 60 ? 'var(--good)' : f >= 40 ? 'var(--gold)' : 'var(--bad)') + '" stroke-dasharray="' + (C * Math.max(0, Math.min(100, f)) / 100).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 60 60)"/></svg><span class="gcen"><span class="gcara">' + cara + '</span><b>' + f + ' %</b><small>Felicidad</small></span></button>' +
+    '<div class="gfalta"><span>Falta:</span>' + (fic || '<em>No falta nada</em>') + '</div>' +
+    '<div class="gatajos">' + at('mercado', ICO_MERC, 'Mercado', mer ? '' : 'Sin mercado', !mer) + (roma ? at('rutas', ICO_RUTA, 'Rutas', G.rutasDeCiudad(UI.city) + '/' + G.rutaMax(c)) : '') + at('pueblo', ICO_PUEB, 'Pueblo') + (roma ? at('aldeas', ICO_PUEB, 'Pueblos', G.pueblosDe(UI.city).filter(p => p.nivel > 0).length + '/' + G.pueblosDe(UI.city).length) : '') + at('ajustes', ICO_AJ, 'Ajustes') + at('cron', ICO_CRON, 'Crónica') + (roma && (c.b.templo > 0 || c.b.herreria > 0) ? at('servicios', ICO_TEMPLO, 'Templo y forja') : '') + '</div>' +
+    (UI.cityV ? '<button class="gver" data-act="clist">Ver la ciudad en 3D</button>' : '') + '</div>';
 }
 /* ---------- J6 · Ciudad como pantalla principal ---------- */
 const ICO_X = svgIco('<path d="M6 6l12 12M18 6L6 18"/>');
@@ -401,9 +640,9 @@ function viewImperio() {
   const ok = { todas: () => true, urgentes: r => r.urg, sinobra: r => !r.ob.length, obras: r => !!r.ob.length, animo: r => r.f < 40 }[F] || (() => true);
   const lista = filas.filter(ok).sort((a, b) => b.pts - a.pts || b.c.pop - a.c.pop);
   const cara = f => f >= 60 ? '😊' : f >= 40 ? '😐' : '😠';
-  let h = '<div class="imp"><div class="imp-res"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div><button class="btn cu-go" data-act="cuentas">📊 Cuentas del mes<small>materiales y oro</small></button><button class="btn cu-go" data-act="tab" data-v="senado">🏛️ Senado<small>favor y misión</small></button><button class="btn cu-go" data-act="tab" data-v="saber">📚 Saber<small>edades e investigación</small></button>' +
+  let h = '<div class="imp mar mar-imp"><div class="mar-top"><div class="imp-res mar-placa"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div>' +
     (peor && n > 1 ? '<div class="imp-peor">Peor ánimo: <b>' + D.CITIES[peor.id].n + '</b> ' + cara(peor.f) + ' ' + peor.f + '</div>' : '') +
-    '<div class="imp-chips">' + IMP_FILTROS.map(x => '<button class="' + (F === x[0] ? 'on' : '') + '" data-act="impf" data-v="' + x[0] + '">' + x[1] + ' <i>' + cuenta[x[0]] + '</i></button>').join('') + '</div><div class="imp-lista">';
+    '<div class="imp-chips">' + IMP_FILTROS.map(x => '<button class="' + (F === x[0] ? 'on' : '') + '" data-act="impf" data-v="' + x[0] + '">' + x[1] + ' <i>' + cuenta[x[0]] + '</i></button>').join('') + '</div></div><div class="imp-lista mar-lista">';
   if (!lista.length) h += '<div class="imp-vacio">Ninguna ciudad cumple este filtro.</div>';
   for (const r of lista) {
     const c = r.c;
@@ -411,11 +650,7 @@ function viewImperio() {
       '<div class="imp-l2">' + (r.ob.length ? '<div class="imp-obs">' + r.ob.map(q => impObraHtml(q, 'imp-obra')).join('') + '</div>' : '<span class="imp-sin">sin obra</span>') +
       (r.causa ? '<em class="imp-tag ' + r.tono + '">' + r.causa + '</em>' : '') + '</div></div></div>';
   }
-  h += '</div><div class="sec">Obras</div><div class="imp-obras">';
-  const en = filas.filter(r => r.ob.length).sort((a, b) => Math.min(...a.ob.map(q => q.t1)) - Math.min(...b.ob.map(q => q.t1)));
-  if (!en.length) h += '<div class="imp-vacio">Ninguna ciudad tiene obras en curso.</div>';
-  for (const r of en) h += '<div class="imp-ob imp-ob-c"><b>' + D.CITIES[r.id].n + ' <small>' + obrasTxt(r.c) + '</small></b>' + r.ob.map(q => '<div class="imp-ob1"><span class="imp-nb">' + esc(obraNom(q)) + '</span><div class="prog" data-t0="' + q.t0 + '" data-t1="' + q.t1 + '"><i></i></div><span class="rem"></span>' + (plazoTxt(q) ? '<div class="plz' + (q.pausa ? ' pausa' : '') + '">' + plazoTxt(q) + '</div>' : '') + '</div>').join('') + '</div>';
-  h += '</div>';
+  h += '</div><div class="mar-pie"><button class="btn cu-go" data-act="cuentas">📊<span>Cuentas</span></button><button class="btn cu-go" data-act="tab" data-v="senado">🏛️<span>Senado</span></button><button class="btn cu-go" data-act="tab" data-v="saber">📚<span>Saber</span></button><button class="btn cu-go" data-act="tab" data-v="hero">🛡️<span>General</span></button></div>';
   return h + '</div>';
 }
 /* pone una pieza en una ciudad: la mejora (op.mej = id de la pieza) o una nueva en su mejor sitio. Devuelve {ok, motivo, obra} */
@@ -493,7 +728,7 @@ const FASE_MURALLA = ['Sin muralla', 'Empalizada', 'Muralla de piedra'];
 /* CN7: aviso del arrabal (3 o más casas fuera del surco y sin muralla de piedra); '' si no toca */
 function avisoArrabal(E) {
   if (!E || !Ciudad.casasArrabal) return ''; const n = Ciudad.casasArrabal(E), f = Ciudad.faseDeNivel ? (E.muralla.fase || 0) : 0;
-  return n >= 3 && f < 2 ? ' Tu arrabal tiene ' + n + ' casas ' + (f === 1 ? 'sin muralla de piedra.' : 'sin muralla.') : '';
+  return n >= 3 && f < 2 ? ASESOR.TEXTOS.arrabal(n, f === 1) : '';
 }
 function consejo(c, id) {
   id = id || UI.city; const s = S(), cap = G.cap(), E = c.owner === 'roma' ? G.ciudadE(id) : null, flags = {};
@@ -501,23 +736,23 @@ function consejo(c, id) {
   const tope = c.pop >= G.popCap(c) - 1;
   if (E && lleno && E.abiertas.includes('almacen')) flags.almacen = 'alerta';
   if (E && tope) flags.viviendas = 'alerta';
-  const rg = E && typeof G.riesgos === 'function' ? (G.riesgos(id) || []).filter(r => r.meses <= 3) : [];
+  const rg = E && typeof G.riesgos === 'function' ? (G.riesgos(id) || []).filter(r => r.meses <= G.avisoMeses()) : [];
   const rgP = rg.find(r => r.pieza && !E.edificios.some(q => q.tipo === r.pieza) && opcionPieza(id, r.pieza, true));
   if (rgP) flags[rgP.pieza] = 'alerta';
-  const rgT = !rgP && rg[0] ? ' ' + rg[0].t + (rg[0].remedio ? ' ' + rg[0].remedio : '') : '';
-  const mk = (t, op) => ({ t: t + rgT, rec: !!op && G.canAfford(op.ini), b: op ? Ciudad.EDIF[op.pieza].bid || null : null, pieza: op ? op.pieza : null, mej: op ? op.mej : null, flags });
-  if (c.obras.length >= G.huecos(c)) { const o = c.obras[0]; return { t: 'En obras: ' + obraNom(o) + (c.obras.length > 1 ? ' y ' + (c.obras.length - 1) + ' más' : '') + '. Faltan ' + months(Math.max(0, o.t1 - s.t)) + '.', rec: false, b: o.b || null, pieza: o.pieza || null, mej: null, flags }; }
-  if (!E) return mk('Faltan recursos para nuevas obras. Espera a que lleguen.', null);
-  if (flags.almacen) return mk('Tu ' + RES_NOM[lleno[0]].toLowerCase() + ' llega al ' + Math.min(100, Math.round(lleno[1] * 100)) + ' %: ' + (E.edificios.some(q => q.tipo === 'almacen') ? 'coloca otro almacén.' : 'coloca un almacén.'), opcionPieza(id, 'almacen', true));
-  if (rgP) { const op = opcionPieza(id, rgP.pieza, true); if (op && G.canAfford(op.ini)) return mk(rgP.t + ' ' + rgP.remedio, op); }
-  if (E.abiertas.includes('granero') && !E.edificios.some(q => q.tipo === 'granero')) return mk('Falta un granero: sin él hay hambre en invierno.', opcionPieza(id, 'granero', true));
-  if (tope) return mk('La población está al tope: faltan casas. Las casas nacen solas junto a las calles; coloca una obra que traiga una calle.', null);
+  const rgT = !rgP && rg[0] ? (rg[0].a || rg[0].t) : '';   // R4: el riesgo (más urgente) sustituye al consejo corriente
+  const mk = (t, op) => ({ t: rgT || t, rec: !!op && G.canAfford(op.ini), b: op ? Ciudad.EDIF[op.pieza].bid || null : null, pieza: op ? op.pieza : null, mej: op ? op.mej : null, flags });
+  if (c.obras.length >= G.huecos(c)) { const o = c.obras[0]; return { t: ASESOR.TEXTOS.obras(obraNom(o), c.obras.length - 1, months(Math.max(0, o.t1 - s.t))), rec: false, b: o.b || null, pieza: o.pieza || null, mej: null, flags }; }
+  if (!E) return mk(ASESOR.TEXTOS.sinRecursos(), null);
+  if (flags.almacen) return mk(ASESOR.TEXTOS.almacen(RES_NOM[lleno[0]].toLowerCase(), Math.min(100, Math.round(lleno[1] * 100)), E.edificios.some(q => q.tipo === 'almacen')), opcionPieza(id, 'almacen', true));
+  if (rgP) { const op = opcionPieza(id, rgP.pieza, true); if (op && G.canAfford(op.ini)) return mk(rgP.a || rgP.t, op); }
+  if (E.abiertas.includes('granero') && !E.edificios.some(q => q.tipo === 'granero') && (sc => sc.on.hambre && ((D.DIFICULTAD[sc.dif] || {}).hambre || {}).meses > 0)(G.sucesosEn(E.mesN + 1))) return mk(ASESOR.TEXTOS.granero(), opcionPieza(id, 'granero', true));
+  if (tope) return mk(ASESOR.TEXTOS.tope(), null);
   const bi = G.barrioInfo(c), baja = bi.objetivo < bi.nivel, fl = baja ? (D.BARRIO[bi.nivel].pide || []).filter(k => !bi.serv[k]) : bi.falta;
   const sv = fl.map(k => ({ templo: 'templo', agua: 'fuente', mercado: 'mercado', grano: 'granja' })[k]).filter(Boolean).map(p => opcionPieza(id, p, true)).find(o => o && G.canAfford(o.ini));
-  if (sv) return mk((baja ? 'Para seguir siendo ' + D.BARRIO[bi.nivel].n : 'Para ser ' + D.BARRIO[bi.nivel + 1].n) + ' falta ' + ({ templo: 'un templo', fuente: 'una fuente', mercado: 'un mercado', granja: 'más grano: una granja' })[sv.pieza] + '.', sv);
+  if (sv) return mk(ASESOR.TEXTOS.barrio(baja, baja ? D.BARRIO[bi.nivel].n : D.BARRIO[bi.nivel + 1].n, ({ templo: 'un templo', fuente: 'una fuente', mercado: 'un mercado', granja: 'más grano (una granja)' })[sv.pieza]), sv);
   const cand = ['granja', 'aserradero', 'cantera', 'mina', 'almacen'].map(p => opcionPieza(id, p, false)).filter(o => o && G.canAfford(o.ini)).sort((x, y) => x.lvl - y.lvl)[0];
-  if (cand) return mk((cand.mej ? 'Mejora a ' : 'Coloca: ') + cand.nombre + '. Ya tienes los recursos.' + avisoArrabal(E), cand);
-  return mk('Faltan recursos para nuevas obras. Espera a que lleguen.' + avisoArrabal(E), null);
+  if (cand) return mk(avisoArrabal(E) || ASESOR.TEXTOS.mejora(cand.mej, cand.nombre), cand);
+  return mk(avisoArrabal(E) || ASESOR.TEXTOS.sinRecursos(), null);
 }
 /* la pieza (o el foro, o la obra) que enseña la ficha, a partir de UI.bsel = {k:'pieza'|'foro'|'obra', id, pieza, x, z} */
 function selDe(c) {
@@ -530,7 +765,7 @@ function selDe(c) {
 }
 function cityMeta(c) {
   const cons = consejo(c), sd = selDe(c);
-  const fk = c.obras.map(o => (o.eid || o.pieza || '') + (o.pausa ? 'p' : '')).join() + '|' + (sd ? sd.k + (sd.e ? sd.e.id + (sd.e.mejora || 0) + (sd.e.ruina ? 'r' : '') : '') + (sd.k === 'foro' ? c.b.foro : '') : '');
+  const fk = c.obras.map(o => (o.eid || o.pieza || '') + (o.pausa ? 'p' : '')).join() + '|' + (sd ? sd.k + (sd.e ? sd.e.id + (sd.e.mejora || 0) + (sd.e.ruina ? 'r' : '') : '') + (sd.k === 'foro' ? c.b.foro : '') + (sd.k === 'foro' || (sd.e && (sd.e.tipo === 'granero' || sd.e.tipo === 'templo')) ? '|' + [c.rac, c.fiesta && c.fiesta.ofrenda, c.fiesta && c.fiesta.juegos, Math.floor(S().t), Math.round(S().res.oro / 10)].join() : '') : '');
   return { cons, rec: cons.rec ? cons.b : null, flags: cons.flags, oculta: {}, fk };
 }
 const metaKey = m => JSON.stringify([m.cons.pieza, m.cons.mej, m.cons.rec, m.cons.t.replace(/Faltan .*$/, ''), m.flags, m.fk]);
@@ -539,8 +774,8 @@ function fichaHtml(c, sd) {
   const E = G.ciudadE(UI.city), cn = D.CITIES[UI.city].n, lleno = c.obras.length >= G.huecos(c);
   let ico, nom, sub, que, nv, cuerpo = '', e = null, P = null, ob = null;
   if (sd.k === 'foro') {
-    ico = bIco('foro'); nom = 'Foro'; sub = cn + ' · nivel ' + (c.b.foro || 1); que = D.BUILD.foro.d; nv = 'NIVEL ' + (c.b.foro || 1);
-    cuerpo = '<div class="nota">Obras a la vez: <b>' + c.obras.length + ' de ' + G.huecos(c) + '</b>. El foro sube solo con las casas y los barrios: no se mejora ni se derriba.</div>';
+    ico = bIco('foro'); nom = 'Foro'; sub = cn + ' · nivel ' + (c.b.foro || 1) + (E && E.terreno && E.terreno !== 'rio' && D.TERRENOS[E.terreno] ? ' · ' + D.TERRENOS[E.terreno].n : ''); que = D.BUILD.foro.d; nv = 'NIVEL ' + (c.b.foro || 1);
+    cuerpo = '<div class="nota">Obras a la vez: <b>' + c.obras.length + ' de ' + G.huecos(c) + '</b>. El foro sube solo con las casas y los barrios: no se mejora ni se derriba.</div>' + (c.owner === 'roma' ? arcaHtml(c) : '');
   } else {
     e = sd.e || null; ob = sd.o || c.obras.find(q => q.eid === e.id) || null; P = Ciudad.EDIF[e ? e.tipo : sd.o.pieza];
     const bid = P.bid, dg = bid === 'templo' ? G.diosDe(c) : null, k = e ? (e.mejora || 0) : 0;
@@ -556,11 +791,11 @@ function fichaHtml(c, sd) {
       } else if (!e.ruina && P.mejoras) cuerpo += '<div class="nota">Nivel máximo alcanzado.</div>';
       if (e.tipo !== 'compitum') {
         const dk = UI.city + ':' + e.id;
-        cuerpo += '<div class="fila fila2">' + '<button class="bsec' + (UI.derr === dk ? ' sure' : '') + '" data-act="derr" data-v="' + e.id + '">' + (UI.derr === dk ? '¿Seguro? Derribar' : 'Derribar') + '</button></div>';
+        cuerpo += '<div class="fila fila2">' + '<button class="bsec" data-act="mover" data-v="' + e.id + '">Mover</button>' + '<button class="bsec' + (UI.derr === dk ? ' sure' : '') + '" data-act="derr" data-v="' + e.id + '">' + (UI.derr === dk ? '¿Seguro? Derribar' : 'Derribar') + '</button></div>';
       } else cuerpo += '<div class="nota">Una capilla de cruce no se derriba.</div>';
     }
   }
-  const bid = P && P.bid, extra = (bid === 'templo' ? diosBloque(c, 'templo') : '') + (bid === 'mercado' ? marketHtml() : '') + (bid === 'herreria' ? forjaHtml(c) : '') + (bid === 'escuela' ? escuelaHtml(c) : '');
+  const bid = P && P.bid, extra = (bid === 'templo' ? diosBloque(c, 'templo') : '') + (bid === 'mercado' ? marketHtml() : '') + (bid === 'herreria' ? forjaHtml(c) : '') + (bid === 'escuela' ? escuelaHtml(c) : '') + (e && e.tipo === 'granero' && c.owner === 'roma' ? graneroHtml(c) : '');
   return '<div class="ficha"><div class="greca"></div><div class="cab"><span class="ic">' + ico + '</span><div class="cn"><h2>' + esc(nom) + '</h2><p>' + esc(sub) + '</p></div><button class="x" data-act="cclose" aria-label="Cerrar la ficha">' + ICO_X + '</button></div>' +
     '<div class="cuerpo">' + (que ? '<div class="efecto"><span class="nv">' + nv + '</span><span>' + esc(que) + '</span></div>' : '') + cuerpo + (extra ? '<div class="fxd">' + extra + '</div>' : '') + '</div></div>';
 }
@@ -569,38 +804,60 @@ function fichaHtml(c, sd) {
 const NOTA3 = { verde: 'Buen sitio', ocre: 'Sitio regular', rojo: 'Mal sitio', nada: 'Aquí no' };
 const coste5 = k => Object.keys(k).filter(r => k[r] > 0).map(r => D.RES_ICON[r] + fmt(k[r])).join(' ');
 const suma5 = k => Object.keys(k).reduce((a, r) => a + k[r], 0);
-function lineaPon(t, clase, nota, seg) { UI.lin = t ? { t, c: clase || '', n: nota || '', hasta: seg ? performance.now() + seg * 1000 : 0 } : null; pintaLinea(); }
+/* efecto/mejor (opcionales): la cifra grande de CN14-A; sin ellos #l-cifra queda vacío */
+function lineaPon(t, clase, nota, seg, efecto, mejor) { UI.lin = (t || efecto) ? { t: t || '', c: clase || '', n: nota || '', hasta: seg ? performance.now() + seg * 1000 : 0, ef: efecto || null, mj: efecto && mejor != null ? mejor : null } : null; pintaLinea(); }
+/* CN14-C: la lección del asesor que toca ahora (o null). No se marca como vista hasta pulsar «Entendido». */
+function leccionHoy() {
+  const s = S(); if (typeof ASESOR === 'undefined' || !s || !s.ajustes || !s.ajustes.asesor || (s.pending && s.pending.length) || s.vivo || !UI.cityV || !UI.cityV.meta) return null;
+  let riesgo = false, arrabal = false, cuotas = false, lleno = false; const c = s.cities[UI.city];
+  try { const rg = G.riesgos(UI.city) || []; riesgo = rg.some(r => r.meses <= G.avisoMeses()); } catch (e) { }
+  try { arrabal = !!avisoArrabal(G.ciudadE(UI.city)); } catch (e) { }
+  try { cuotas = !!(c && c.obras && c.obras.some(o => o.q)); } catch (e) { }
+  try { const cap = G.cap(); lleno = !!cap && D.RES.filter(r => r !== 'oro').some(r => s.res[r] / cap >= 0.9); } catch (e) { }
+  const ctx = { mes: Math.floor(s.t + 1e-9), ahora: Date.now(), colocando: (UI.modo3 || 'mirar') !== 'mirar', bandeja: !$('bandeja').hidden, cifra: !!$('l-cifra').textContent, cuotas, riesgo, barrioSube: false, almacenLleno: lleno, arrabal, turnos: !!s.turnos };
+  const r = ASESOR.siguiente(s.ajustes, ctx); return r || null;
+}
+const conSigno = n => (n < 0 ? '\u2212' : '+') + Math.abs(n);
 function pintaLinea() {
   const l = $('linea'), m3 = UI.modo3 || 'mirar'; let x = UI.lin;
   if (x && x.hasta && performance.now() > x.hasta) x = UI.lin = null;
-  if (!x && m3 === 'mirar' && UI.cityV && UI.cityV.meta) x = { t: UI.cityV.meta.cons.t, c: 'aviso consejo', n: '' };
-  const k = UI.bsel || !x || !x.t ? '' : x.c + '|' + x.n + '|' + x.t;
+  let les = null;   // CN14-C: prioridad colocar > riesgo > lección > consejo (la lección calla con asesor apagado, batalla pendiente o s.vivo)
+  if (!x && m3 === 'mirar' && UI.cityV && UI.cityV.meta) {
+    x = { t: UI.cityV.meta.cons.t, c: 'aviso consejo', n: '' }; les = leccionHoy();
+    if (les) x = { t: les.texto, c: 'aviso leccion', n: 'Lección' };
+  }
+  const ef = x && x.ef, mj = ef && x.mj != null && x.mj > ef.n ? x.mj : null;
+  const k = UI.bsel || !x || (!x.t && !x.ef) ? '' : x.c + '|' + x.n + '|' + x.t + '|' + (ef ? ef.txt + '|' + ef.tono : '') + '|' + (mj != null ? mj : '') + '|' + (les ? 'L' + les.id : '');
   if (k === UI.linK) return; UI.linK = k;
-  if (!k) { l.hidden = true; return; }
+  if (!k) { l.hidden = true; $('l-cifra').textContent = ''; $('l-ok').hidden = true; return; }
+  $('l-ok').hidden = !les; UI.lesId = les ? les.id : null;
   l.hidden = false; l.className = x.c; $('l-nota').textContent = x.n; $('l-nota').hidden = !x.n; $('l-texto').textContent = x.t;
+  const ci = $('l-cifra'); ci.className = ef ? ef.tono : ''; ci.textContent = ef ? ef.txt : '';
+  if (mj != null) { const sm = document.createElement('small'); sm.textContent = 'mejor hasta ahora: ' + conSigno(mj); ci.appendChild(sm); }
 }
 /* datos de una ficha de la bandeja: nombre, coste total, lo que se paga al empezar y si ya hay obra */
 function piezaInfo(id) {
   const c = S().cities[UI.city], E = G.ciudadE(UI.city);
-  if (id === 'muralla') { const m = Ciudad.murallaSiguiente(E); return { nombre: E.muralla.fase ? 'Muralla de piedra' : 'Empalizada', coste: m && m.coste, ini: m && m.coste, enObra: !!E.muralla.obra, boton: m && m.nombre }; }
+  if (id === 'muralla') { const m = Ciudad.murallaSiguiente(E) || Ciudad.murallaAmpliar(E); return { nombre: E.muralla.rec ? 'Muralla ampliada' : E.muralla.ampl ? 'Muralla en ampliación' : E.muralla.fase ? 'Muralla de piedra' : 'Empalizada', coste: m && m.coste, ini: m && m.coste, enObra: !!E.muralla.obra || !!E.muralla.ampl, ya: !!E.muralla.rec, boton: m && m.nombre }; }
   const P = Ciudad.EDIF[id], dur = P.bid ? G.buildTime(c, P.bid) : P.obra * (1 - 0.04 * (c.b.foro || 0)) * G.bonoMul('obra');
   return { nombre: P.nombre, coste: P.coste, ini: G.planPago(P.coste, dur).primera, cerrada: P.bid ? G.faltaInv(P.bid) : null };
 }
+const PZ_EMO = { salinas: '🧂', zanja: '〰️' };   // icono provisional hasta que carguen las miniaturas
 function bandejaIds() {
   const E = G.ciudadE(UI.city); if (!E) return [];
   const ids = E.abiertas.filter(id => id !== 'muralla' && Ciudad.EDIF[id] && !Ciudad.EDIF[id].accion);
-  if (Ciudad.murallaSiguiente(E) || E.muralla.obra) ids.push('muralla'); return ids;
+  if (Ciudad.murallaSiguiente(E) || Ciudad.murallaAmpliar(E) || E.muralla.obra || E.muralla.ampl || E.muralla.rec) ids.push('muralla'); return ids;
 }
 function bandejaPinta() {
   const b = $('bandeja'), E = G.ciudadE(UI.city); if (!E || !E.fundada) { b.innerHTML = ''; UI.bandK = ''; return; }
-  const ids = bandejaIds(), k = UI.city + '|' + ids.join() + '|' + ids.map(q => Ciudad.EDIF[q] && Ciudad.EDIF[q].bid && G.faltaInv(Ciudad.EDIF[q].bid) ? 1 : 0).join('') + '|' + E.muralla.fase + E.muralla.obra + '|' + (UI.minis ? 1 : 0);
+  const ids = bandejaIds(), k = UI.city + '|' + ids.join() + '|' + ids.map(q => Ciudad.EDIF[q] && Ciudad.EDIF[q].bid && G.faltaInv(Ciudad.EDIF[q].bid) ? 1 : 0).join('') + '|' + E.muralla.fase + E.muralla.obra + (E.muralla.rec || 0) + (E.muralla.ampl || 0) + '|' + (UI.minis ? 1 : 0);
   if (k !== UI.bandK) {
     const antes = (UI.bandK || '').split('|')[1], viejas = antes ? antes.split(',') : []; UI.bandK = k;
     b.innerHTML = ids.map(id => { const i = piezaInfo(id);
-      return '<button class="pza' + (viejas.length > 1 && !viejas.includes(id) ? ' nueva' : '') + (i.cerrada ? ' cerrada' : '') + '" data-id="' + id + '"' + (i.cerrada ? ' style="opacity:.55" title="' + esc(i.cerrada) + '"' : '') + '>' + (UI.minis && UI.minis[id] ? '<img src="' + UI.minis[id] + '" alt="" draggable="false">' : '<i></i>') + '<b>' + esc(i.nombre) + '</b><span>' + (i.cerrada ? 'cerrada' : i.enObra ? 'en obra' : i.coste ? fmt(suma5(i.coste)) : '') + '</span></button>'; }).join('');
+      return '<button class="pza' + (viejas.length > 1 && !viejas.includes(id) ? ' nueva' : '') + (i.cerrada ? ' cerrada' : '') + '" data-id="' + id + '"' + (i.cerrada ? ' style="opacity:.55" title="' + esc(i.cerrada) + '"' : '') + '>' + (UI.minis && UI.minis[id] ? '<img src="' + UI.minis[id] + '" alt="" draggable="false">' : '<i>' + (PZ_EMO[id] || '') + '</i>') + '<b>' + esc(i.nombre) + '</b><span>' + (i.cerrada ? 'cerrada' : i.enObra ? 'en obra' : i.ya ? 'ya ampliada' : i.coste ? fmt(suma5(i.coste)) : '') + '</span></button>'; }).join('');
   }
   /* CN8: la ficha que remedia un riesgo (fuente o granero) sale resaltada; se recalcula solo al cambiar la ciudad */
-  const rk = UI.city + '|' + E.rev + '|' + E.mesN; if (UI.rgK !== rk) { UI.rgK = rk; const r = typeof G.riesgos === 'function' ? (G.riesgos(UI.city) || []).find(q => q.pieza && q.meses <= 3 && !E.edificios.some(e => e.tipo === q.pieza)) : null; UI.rgPz = r ? r.pieza : null; }
+  const rk = UI.city + '|' + E.rev + '|' + E.mesN + '|' + ((G.state && G.state.ajustes && G.state.ajustes.v) || 0); if (UI.rgK !== rk) { UI.rgK = rk; const r = typeof G.riesgos === 'function' ? (G.riesgos(UI.city) || []).find(q => q.pieza && q.meses <= G.avisoMeses() && !E.edificios.some(e => e.tipo === q.pieza)) : null; UI.rgPz = r ? r.pieza : null; }
   for (const f of b.children) { const i = piezaInfo(f.dataset.id); f.classList.toggle('cara', !i.enObra && !!i.ini && !G.canAfford(i.ini)); f.classList.toggle('aconseja', f.dataset.id === UI.rgPz && !i.enObra); }
 }
 function cityPantalla() {
@@ -613,16 +870,16 @@ function cityPantalla() {
   if (si._t !== t) { si._t = t; si.innerHTML = t; } si.disabled = off;
 }
 function salir3(avisar) {
-  if (UI.modo3 === 'fundar') { cerrarFundar(); return; }
-  UI.modo3 = 'mirar'; UI.sel3 = null;
+  if (UI.modo3 === 'fundar') { if (G.fundando()) { cerrarFundar(true); fundarCancelado(); } else cerrarFundar(); return; }
+  UI.modo3 = 'mirar'; UI.sel3 = null;      /* con sel3 se van el efecto y el «mejor» */
   if (UI.cityV) { UI.cityV.ponerFantasma(null); UI.cityV.calor(null); }
   if (!avisar) lineaPon(''); cityPantalla(); pintaLinea();
 }
 function elegir3(id, p) {
   if (!UI.cityV || !G.ciudadE(UI.city)) return; UI.bsel = null; UI.vistas = false; UI.col3City = UI.city; $('csheet').dataset.m = '';
   if (id === 'muralla') { UI.modo3 = 'muralla'; UI.modoT = performance.now(); UI.sel3 = null; UI.cityV.ponerFantasma(null); UI.cityV.calor(null); const E = G.ciudadE(UI.city);
-    lineaPon(Ciudad.murallaSiguiente(E) ? (E.muralla.fase ? 'La empalizada se rehace en piedra, con torres y puertas donde cruzan las calles.' : 'La empalizada sigue el surco, con puertas donde cruzan las calles. Las casas de fuera quedan de arrabal.') : 'La obra de la muralla ya está en marcha.', 'aviso'); renderCity3D(); return; }
-  UI.modo3 = 'colocar'; UI.modoT = performance.now(); UI.sel3 = { id }; UI.cityV.calor(G.mapaCalor(UI.city, id));
+    lineaPon(!Ciudad.murallaSiguiente(E) && Ciudad.murallaAmpliar(E) ? 'La muralla se amplía por fuera del surco: los barrios nuevos dejan de ser arrabal.' : Ciudad.murallaSiguiente(E) ? (E.muralla.fase ? 'La empalizada se rehace en piedra, con torres y puertas donde cruzan las calles.' : 'La empalizada sigue el surco, con puertas donde cruzan las calles. Las casas de fuera quedan de arrabal.') : E.muralla.rec ? 'La muralla ya está ampliada: los barrios nuevos quedan dentro.' : 'La obra de la muralla ya está en marcha.', 'aviso'); renderCity3D(); return; }
+  UI.modo3 = 'colocar'; UI.modoT = performance.now(); UI.sel3 = { id, efecto: null, mejor: null }; UI.cityV.calor(G.mapaCalor(UI.city, id));
   if (!p) p = UI.cityV.sueloEn(innerWidth / 2, innerHeight * 0.45); if (!p) { const E = G.ciudadE(UI.city); p = [E.foro.x, E.foro.z]; }
   renderCity3D(); mover3(p[0], p[1]);
 }
@@ -630,16 +887,21 @@ function mover3(x, z) {
   const sel = UI.sel3; if (UI.modo3 !== 'colocar' || !sel) return; const n = G.notaSitio(UI.city, sel.id, x, z); if (!n) return;
   const col = n.vale ? Ciudad.color(n.nota) : 'rojo'; Object.assign(sel, { x, z, vale: n.vale, nota: n.nota });
   UI.cityV.ponerFantasma({ id: sel.id, x, z, ang: n.ang || 0, color: col, radio: n.vale ? n.radio : 0 });
-  lineaPon(n.razones.join(' · '), 'sitio ' + col, NOTA3[col]); cityPantalla();
+  const ef = n.efecto || null; sel.efecto = ef; if (ef && (sel.mejor == null || ef.n > sel.mejor)) sel.mejor = ef.n;
+  /* con cifra grande se quita de las razones la frase que repite el número */
+  const rz = ef ? n.razones.filter(r => !/^(Daría agua a|Llegaría a|Su humo molestaría a) \d|^\d+ casas comprarían aquí/.test(r)) : n.razones;
+  lineaPon(rz.join(' · '), 'sitio ' + col, NOTA3[col], 0, ef, sel.mejor); cityPantalla();
 }
 function construir3() {
   if (performance.now() - (UI.modoT || 0) < 450) return;      // el «clic fantasma» del toque en la ficha cae sobre el botón recién aparecido
   if (UI.modo3 === 'fundar') { fundarAqui(); return; }
   if (UI.modo3 === 'muralla') {
     // CN7: tabla de guerra, saqueo y consejo cuelgan de G.levantarMuralla
-    const nom = piezaInfo('muralla').nombre, r = G.levantarMuralla(UI.city); if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); return; }
-    salir3(); toast('🔨 ' + nom + ': en obra', 'good'); renderCity3D(); tickUI(); return; }
+    const E3 = G.ciudadE(UI.city), amp = !Ciudad.murallaSiguiente(E3) && (!!Ciudad.murallaAmpliar(E3) || !!E3.muralla.rec || !!E3.muralla.ampl), nom = piezaInfo('muralla').nombre, r = amp ? G.ampliarMuralla(UI.city) : G.levantarMuralla(UI.city); if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); return; }
+    salir3(); toast(amp ? '🔨 Muralla: ampliación en marcha' : '🔨 ' + nom + ': en obra', 'good'); renderCity3D(); tickUI(); return; }
   const sel = UI.sel3; if (UI.modo3 !== 'colocar' || !sel) return;
+  if (sel.mover) { const r = G.moverPieza(UI.city, sel.mover, sel.x, sel.z); if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); cityPantalla(); return; }
+    salir3(); toast('🚚 ' + Ciudad.EDIF[sel.id].nombre + ' movido, con sus mejoras', 'good'); renderCity3D(); tickUI(); return; }
   const r = G.colocar(UI.city, sel.id, sel.x, sel.z);
   if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); cityPantalla(); return; }
   const P = Ciudad.EDIF[sel.id]; salir3(); toast('🔨 ' + P.nombre + ': obra en marcha (' + (P.obra === 1 ? 'un mes' : P.obra + ' meses') + ')', 'good'); renderCity3D(); tickUI();
@@ -755,17 +1017,18 @@ function svTarjeta(id) {
 }
 function viewSaber() {
   const s = S(), V = G.invVista();
-  let h = '<div class="acts"><button class="btn ghost" data-act="tab" data-v="imperio">← Volver al Imperio</button></div><div class="sv"><h2>📚 Saber</h2>';
-  if (!V.nHechas && !V.cola) h += '<div class="sv-guia"><b>Primera vez</b><ol><li>Investiga Preceptores griegos.</li><li>Construye la Escuela y pon gente a estudiar desde su ficha.</li><li>En cada par elige uno: el otro se cierra.</li></ol></div>';
+  let h = '<div class="sv mos mos-sab"><div class="mos-cab"><h2>📚 Saber</h2>', gu = '';   // K12c: cabecera fija, cuerpo con scroll, «volver» abajo
+  if (!V.nHechas && !V.cola) gu += '<div class="sv-guia"><b>Primera vez</b><ol><li>Investiga Preceptores griegos.</li><li>Construye la Escuela y pon gente a estudiar desde su ficha.</li><li>En cada par elige uno: el otro se cierra.</li></ol></div>';
+  const hc = h; h = '';
   h += '<div class="sv-ed"><b>Edad ' + ['I', 'II', 'III', 'IV'][V.edad - 1] + ' · ' + esc(V.edadNombre) + '</b>';
   if (V.sig) { h += '<small>Para la edad ' + ['II', 'III', 'IV'][V.edad - 1] + ' (' + esc(V.sig.n) + '):</small>' + svChips(V.sig.req) + svCoste(V.sig.id) + '<div class="sv-m">' + months(V.sig.tiempo) + '</div>';
     h += V.sig.estado.e === 'ok' ? '<button class="btn" data-act="saberedad">Subir de edad</button>' : V.sig.estado.e === 'curso' || V.sig.estado.e === 'cola' || V.sig.estado.e === 'req' ? '' : '<div class="sv-no">' + esc(V.sig.estado.motivo) + '</div>'; }
   else h += '<small>Has llegado a la última edad.</small>';
-  h += '</div>';
+  h += '</div>'; const ed = h; h = hc;
   if (V.cola) { const vel = V.cola.vel || 1, t0 = s.t - V.cola.p / vel, t1 = s.t + (V.cola.P - V.cola.p) / vel;
     h += '<div class="sv-cola"><b>Estudiando: ' + esc(V.cola.n) + '</b><div class="prog" data-t0="' + t0 + '" data-t1="' + t1 + '"><i></i></div><span class="rem"></span>' + (V.cola.eureka ? '<div class="sv-eu">💡 Eureka: ritmo ×1,33</div>' : '') + (V.cola.sabios && V.cola.sabios.n > 0 ? '<div class="sv-eu">📜 Ritmo ×' + dec1(V.cola.sabios.vel).replace(/,0$/, '') + ' con tus ' + V.cola.sabios.n + ' sabios' + (V.cola.sabios.vel >= 0.9 * D.SABER.velMax ? ' · Tope útil alcanzado' : '') + '</div>' : '') + '</div>'; }
   h += '<div class="sv-ramas">' + Object.keys(SV_RAMAS).map(k => '<span class="sv-r">' + SV_RAMAS[k][0] + ' ' + SV_RAMAS[k][1] + '<b>' + V.ramas[k] + '</b></span>').join('') + '</div>';
-  h += '<div class="sv-forja">⚔️ Guerra: forja, armas nivel ' + s.forja.armas + ', armaduras nivel ' + s.forja.armaduras + ' (se dirige desde la herrería de la ciudad).</div>';
+  h += '</div><div class="mos-cuerpo">' + gu + ed + '<div class="sv-forja">⚔️ Guerra: forja, armas nivel ' + s.forja.armas + ', armaduras nivel ' + s.forja.armaduras + ' (se dirige desde la herrería de la ciudad).</div>';
   for (let e = 1; e <= 4; e++) {
     const ids = Object.keys(D.INVEST).filter(k => D.INVEST[k].edad === e); if (!ids.length) continue;
     h += '<div class="sv-fila' + (e > V.edad ? ' lejos' : '') + '"><div class="sv-eh">Edad ' + ['I', 'II', 'III', 'IV'][e - 1] + ' · ' + esc(D.SABER.edadNombres[e - 1]) + '</div>';
@@ -777,7 +1040,7 @@ function viewSaber() {
     }
     h += '</div>';
   }
-  return h + '</div>';
+  return h + '</div><div class="mos-pie"><button class="btn mos-vol" data-act="tab" data-v="imperio">← Volver al Imperio</button></div></div>';
 }
 function viewSenado() {
   const f = G.favor(), mi = G.misionActual(), mot = G.senadoMotivo();
@@ -797,10 +1060,10 @@ function viewHero() {
   const s = S(), h = s.hero, need = G.xpNeed(h.lvl);
   const where = h.wound > s.t ? '🩸 Herido — se recupera en ' + months(h.wound - s.t) : h.march ? '🚩 En marcha con el ejército' : '📍 En ' + D.CITIES[h.city].n;
   const SK = { mando: [D.GUERRA_ICON.espadas + ' Mando', '+4 % de ataque de tu ejército por nivel'], disc: [D.GUERRA_ICON.escudo + ' Disciplina', '+3 % de defensa y +4 de moral por nivel'], log: ['🧭 Logística', '+8 % de velocidad de marcha y +10 % de botín por nivel'] };
-  let o = '<div class="head"><div class="pt">' + pt('general') + '</div><h2>' + esc(h.name) + '</h2><p>General de la República · Nivel ' + h.lvl + '</p>' + '<div class="xp"><i style="width:' + Math.min(100, h.xp / need * 100) + '%"></i></div><p>Experiencia ' + h.xp + ' / ' + need + '<br>' + where + '</p></div>';
+  let o = '<div class="mos mos-gen"><div class="mos-cab"><div class="head"><div class="pt">' + pt('general') + '</div><h2>' + esc(h.name) + '</h2><p>General de la República · Nivel ' + h.lvl + '</p>' + '<div class="xp"><i style="width:' + Math.min(100, h.xp / need * 100) + '%"></i></div><p>Experiencia ' + h.xp + ' / ' + need + '<br>' + where + '</p></div></div><div class="mos-cuerpo">';
   o += '<div class="sec">Habilidades · ' + h.pts + ' punto' + (h.pts === 1 ? '' : 's') + '</div>';
   for (const k in SK) o += '<div class="card"><div class="bd"><div class="tt">' + SK[k][0] + '<span class="lv">Nv ' + h.sk[k] + '</span></div><div class="ds">' + SK[k][1] + '</div></div><button class="btn ' + (h.pts > 0 && h.sk[k] < 10 ? 'gold' : 'no') + '" data-act="skill" data-v="' + k + '">＋</button></div>';
-  return o + '<div class="empty">Tu general combate con su guardia de caballería cuando acompaña a un ejército o defiende la ciudad en la que está. Gana experiencia en cada batalla; si su guardia es aniquilada, quedará herido hasta dos años.</div>';
+  return o + '<div class="empty mos-nota">Tu general combate con su guardia de caballería cuando acompaña a un ejército o defiende la ciudad en la que está. Gana experiencia en cada batalla; si su guardia es aniquilada, quedará herido hasta dos años.</div></div><div class="mos-pie"><button class="btn mos-vol" data-act="tab" data-v="imperio">← Volver al Imperio</button></div></div>';
 }
 function viewCodice() {
   const K = window.CODICE, sec = UI.codice, N = { tropas: 'Tropas', ciudades: 'Ciudades', hechos: 'Hechos' };
@@ -810,11 +1073,12 @@ function viewCodice() {
 }
 function viewLog() {
   if (UI.codice && window.CODICE) return viewCodice();
-  const s = S(), year = G.yearOf(s.t), left = year - D.END_YEAR + 1;
-  let o = (window.CODICE ? '<div class="acts"><button class="btn gold" style="width:100%" data-act="codice" data-v="tropas">📖 Abrir el Códice</button></div>' : '') + '<div class="head"><h2>' + (G.regionId() === 'mediterraneo' ? 'Carthago delenda est' : 'Dominar ' + esc(G.region().n)) + '</h2><p>Conquista <b>' + D.CITIES[G.region().capitalRival].n + '</b> antes de que termine el año ' + G.region().hasta + ' a.C. Si Roma cae, la campaña termina.</p><p>⏳ Quedan <b>' + left + '</b> años · 🏛️ ' + G.myCities().length + '/' + G.ciudadesRegion().length + ' ciudades · ' + D.GUERRA_ICON.espadas + ' ' + s.stats.wins + '/' + s.stats.battles + ' batallas</p></div>';
-  o += '<div class="sec">Línea del tiempo</div><div class="tl">' + D.EVENTS.map((e, i) => '<div class="' + (s.ev[i] ? 'done' : '') + '"' + (s.ev[i] ? ' data-act="ev" data-v="' + i + '"' : '') + '>' + e.y + ' a.C. — ' + (s.ev[i] ? esc(e.t) : '···') + '</div>').join('') + '</div>';
-  o += '<div class="sec">Crónica</div>' + (s.log.length ? s.log.map(l => '<div class="logl ' + l.k + '"><small>' + G.yearOf(l.t) + ' a.C.</small>' + esc(l.x) + '</div>').join('') : '<div class="empty">Aún no ha ocurrido nada.</div>');
-  return o + '<div class="acts" style="margin-top:16px"><button class="btn ghost" data-act="tomenu">Guardar y salir al menú</button></div>';
+  // K12b: Crónica en estilo Códice. Tres folios con scroll-snap horizontal (sin scroll infinito): Campaña, Línea del tiempo y Crónica reciente.
+  const s = S(), year = G.yearOf(s.t), left = year - D.END_YEAR + 1, cap = ch => '<span class="cod-cap">' + ch + '</span>';
+  const f1 = '<section class="cod-f"><div class="cod-h">' + cap('C') + '<div><h2>' + (G.regionId() === 'mediterraneo' ? 'Carthago delenda est' : 'Dominar ' + esc(G.region().n)) + '</h2><i>Folio I · La campaña</i></div></div><p>Conquista <b>' + D.CITIES[G.region().capitalRival].n + '</b> antes de que termine el año ' + G.region().hasta + ' a.C. Si Roma cae, la campaña termina.</p><p class="cod-st">⏳ Quedan <b>' + left + '</b> años · 🏛️ ' + G.myCities().length + '/' + G.ciudadesRegion().length + ' ciudades · ' + D.GUERRA_ICON.espadas + ' ' + s.stats.wins + '/' + s.stats.battles + ' batallas</p>' + (window.CODICE ? '<button class="btn gold cod-b" data-act="codice" data-v="tropas">📖 Abrir el Códice</button>' : '') + '<button class="btn ghost cod-b" data-act="tomenu">Guardar y salir al menú</button></section>';
+  const f2 = '<section class="cod-f"><div class="cod-h">' + cap('L') + '<div><h2>Línea del tiempo</h2><i>Folio II · Lo que fue y lo que viene</i></div></div><div class="tl cod-tl">' + D.EVENTS.map((e, i) => '<div class="' + (s.ev[i] ? 'done' : '') + '"' + (s.ev[i] ? ' data-act="ev" data-v="' + i + '"' : '') + '><b>' + e.y + ' a.C.</b>' + (s.ev[i] ? esc(e.t) : '···') + '</div>').join('') + '</div></section>';
+  const f3 = '<section class="cod-f"><div class="cod-h">' + cap('A') + '<div><h2>Anales</h2><i>Folio III · Lo último que ocurrió</i></div></div>' + (s.log.length ? '<div class="cod-an">' + s.log.slice(0, 10).map(l => '<div class="logl ' + l.k + '"><small>' + D.MONTHS[Math.floor(l.t) % 12] + ' · ' + G.yearOf(l.t) + ' a.C.</small>' + esc(l.x) + '</div>').join('') + '</div>' : '<div class="empty">Aún no ha ocurrido nada.</div>') + '</section>';
+  return '<div class="cod"><div class="cod-fs">' + f1 + f2 + f3 + '</div><div class="cod-pie">Tres folios · desliza ↔</div></div>';
 }
 
 /* ---------- ficha de ciudad sobre el mapa ---------- */
@@ -830,6 +1094,7 @@ function sheetSitio(id) {
   if (key === UI.sheetKey && !sh.hidden) return; UI.sheetKey = key;
   const K = G.COLONOS, coste = D.POP_ICON + ' ' + K.pop + ' · ' + coste5({ grano: K.grano, oro: K.oro });
   let h = '<button class="x" data-act="unsel" aria-label="Cerrar la ficha">✕</button><h3>' + esc(d.n) + '<span class="tagf" style="background:#8a6a2c">' + (TIPO_COL[d.tipo] || 'Colonia') + '</span></h3><p>' + esc(d.h) + '</p>';
+  { const T = D.TERRENOS && D.TERRENOS[D.terrenoDe(id)]; if (T) h += '<span class="stat">⛰️ ' + esc(T.n) + '</span><p>' + esc(T.d) + '</p>'; }
   h += '<span class="stat">📜 Fundada en ' + d.anio + ' a.C.</span><span class="stat">🏛️ ' + (k.estado === 'libre' ? 'Sitio libre' : k.estado === 'camino' ? 'Colonos en camino' : 'Colonos esperando') + '</span>';
   h += '<div class="acts">';
   if (k.estado === 'libre') {
@@ -853,11 +1118,12 @@ UI.abrirFundar = function (sitio, alFundar) {
   if (UI.fundar) cerrarFundar(true);
   UI.fundar = { sitio, E, alFundar, x: undefined, z: undefined, vale: false, fase: 'elegir', stub: { obras: [], units: {} }, t0: 0 };
   UI.modo3 = 'fundar'; UI.modoT = performance.now(); UI.sel3 = null; UI.bsel = null; UI.vistas = false; UI.modalOpen = false;
-  $('modal').hidden = true; $('sheet').hidden = true; $('zoom').hidden = true; $('ctop').hidden = true; $('view').hidden = true; $('hoja').hidden = true; $('citywrap').hidden = false; $('csheet').hidden = false; $('csheet').dataset.m = 'fundar';
+  $('modal').hidden = true; $('sheet').hidden = true; $('zoom').hidden = true; $('ctop').hidden = true; $('view').hidden = true; hojaCierra(true); $('citywrap').hidden = false; $('csheet').hidden = false; $('csheet').dataset.m = 'fundar';
   UI.cityV.resize(); UI.cityV.calor(G.mapaCalorFundar(sitio)); UI.cityV.update(UI.fundar.stub, sitio, null, performance.now() / 1000);
   UI.cityV.mirar(0, 0, 760, 0);
   let mejor = null; for (let x = -420; x <= 420; x += 60) for (let z = -420; z <= 420; z += 60) { const n = G.notaFundar(sitio, x, z); if (n && n.vale && (!mejor || n.nota > mejor.n)) mejor = { x, z, n: n.nota }; }
   if (mejor) UI.cityV.mirar(mejor.x, mejor.z, 620, 0);
+  { const T = D.TERRENOS && D.TERRENOS[D.terrenoDe(sitio)]; if (T) { UI.fundar.terr = T; toast(T.n + ': ' + T.d, '', 'terreno-fundar'); } }
   moverFundar(mejor ? mejor.x : 0, mejor ? mejor.z : 0); return true;
 };
 function pintaBotonesFundar() {
@@ -869,7 +1135,7 @@ function moverFundar(x, z) {
   const F = UI.fundar; if (!F || F.fase !== 'elegir') return; const n = G.notaFundar(F.sitio, x, z); if (!n) return;
   const col = n.vale ? Ciudad.color(n.nota) : 'rojo'; Object.assign(F, { x, z, vale: !!n.vale, nota: n.nota });
   UI.cityV.ponerGroma({ x, z, color: col });
-  lineaPon((n.razones && n.razones.length ? n.razones.join(' · ') : n.vale ? 'Aquí puede nacer la ciudad.' : 'Aquí no se puede fundar.'), 'sitio ' + col, NOTA3[col]); pintaBotonesFundar();
+  lineaPon((F.terr ? F.terr.n + ' · ' : '') + (n.razones && n.razones.length ? n.razones.join(' · ') : n.vale ? 'Aquí puede nacer la ciudad.' : 'Aquí no se puede fundar.'), 'sitio ' + col, NOTA3[col]); pintaBotonesFundar();
 }
 function fundarAqui() {
   const F = UI.fundar; if (!F || F.fase !== 'elegir' || !F.vale) return;
@@ -918,6 +1184,7 @@ function showPicker(from, to) {
   let h = '<div class="yr">DESDE ' + D.CITIES[from].n.toUpperCase() + ' · ' + (G.turnos ? ('LLEGAN ' + turnosTxt(Math.max(1, Math.ceil((G.llegada(s.t + G.travel(from, to, false)) - s.t) / D.TURNO_MESES - 1e-9)))).toUpperCase() : months(G.travel(from, to, false)).toUpperCase()) + '</div><h2>' + (own ? 'Reforzar ' : 'Atacar ') + D.CITIES[to].n + '</h2>';
   if (!ks.length && !hero) h += '<p>No hay tropas en ' + D.CITIES[from].n + '. Recluta en la pestaña Ejército.</p>';
   h += ks.map(k => '<div class="pick"><div class="pt">' + pt(k) + '</div><div><label><span>' + D.UNITS[k].n + '</span><span><b id="pv-' + k + '">' + c.units[k] + '</b> / ' + c.units[k] + '</span></label><input type="range" min="0" max="' + c.units[k] + '" value="' + c.units[k] + '" data-k="' + k + '"></div></div>').join('');
+  { const tl = G.tribunos().filter(t => t.libre), lib = tl[0]; h += '<div class="pw">' + (lib ? 'Sin el general, manda el tribuno <b>' + esc(lib.n) + '</b> (' + esc(lib.car) + '). Tribunos libres: ' + tl.length + ' de ' + G.maxEjercitos() + '.' : (hero ? 'No quedan tribunos libres: solo puede partir el ejército con el general.' : 'No quedan tribunos libres: ningún ejército más puede partir.')) + '</div>'; }
   if (hero) h += '<label class="chk"><input type="checkbox" id="pk-hero" checked> ' + D.GUERRA_ICON.aguila + ' El general acompaña al ejército</label>';
   if (!own) { const bo = G.botin(to); h += '<label class="chk"><input type="checkbox" id="pk-saq"> 💰 Solo saquear, sin conquistar: las tropas vuelven</label><div class="pw">Botín: ' + D.RES.map(r => bo[r] + ' ' + D.RES_ICON[r]).join(' · ') + '</div>'; }
   if (!own) h += '<div class="pw">Fuerza enemiga: ' + G.power(s.cities[to].units) + ' · ' + FASE_MURALLA[G.faseMuralla(s.cities[to])].toLowerCase() + ' (defensa ' + G.nivelMuralla(s.cities[to]) + ')<br>Tu fuerza: <b id="pk-pw"></b></div>';
@@ -937,10 +1204,14 @@ function battlePrompt() {
   const pb = S().pending[0], info = G.battleInfo(pb), d = D.CITIES[info.city];
   UI.binfo = info;
   if (!info.cfg.terreno) info.cfg.terreno = window.Battle.terrenoDe(info.city, info.cfg.seed);   // campo tipo de la ciudad (o por semilla)
+  const pl = G.planBatalla(info), nu = pl.modo === 'nueva', tr = info.cfg.sides[0].tribuno;   // NB7: batalla nueva o clásica según Ajustes
+  const bot = !nu ? '<button class="btn" data-act="bview">' + D.GUERRA_ICON.espadas + ' Dirigir la batalla</button><button class="btn ghost" data-act="bquick">Resolver</button>'
+    : pl.via === 'sola' ? '<button class="btn" data-act="bquick">Ver el resultado</button>'
+    : '<button class="btn" data-act="bview">' + D.GUERRA_ICON.espadas + (pl.via === 'maniobra' ? ' Planear la maniobra' : ' Ir al choque') + '</button><button class="btn ghost" data-act="bquick">Delegar en tus tribunos</button>';
   modal('<div class="yr">' + G.yearOf(S().t) + ' A.C.</div><h2>' + (info.kind === 'attack' ? 'Asalto a ' : 'Defensa de ') + d.n + '</h2>' +
     '<div class="vs">' + sideHtml(info.cfg.sides[0]) + sideHtml(info.cfg.sides[1]) + '</div>' +
-    '<div class="pw">Fuerza: ' + G.power(info.cfg.sides[0].units) + ' contra ' + G.power(info.cfg.sides[1].units) + ' · Muralla del defensor: nivel ' + info.cfg.wall + '</div>' +
-    '<div class="acts"><button class="btn" data-act="bview">' + D.GUERRA_ICON.espadas + ' Dirigir la batalla</button><button class="btn ghost" data-act="bquick">Resolver</button></div>', true);
+    '<div class="pw">Fuerza: ' + G.power(info.cfg.sides[0].units) + ' contra ' + G.power(info.cfg.sides[1].units) + ' · Muralla del defensor: nivel ' + info.cfg.wall + (tr ? '<br>Al mando: el tribuno ' + esc(tr.n) + ' (' + esc(tr.car) + ')' : '') + (pl.texto ? '<br>' + esc(pl.texto) : pl.via === 'directo' ? '<br>Escaramuza: se va directo al choque.' : '') + '</div>' +
+    '<div class="acts">' + bot + '</div>', true);
 }
 // N15: la dificultad ya no se elige; el motor la explica por contexto (b.dif = { nivel, texto, factores:[{n,txt,v}] })
 function rivalHtml(b) {
@@ -1043,11 +1314,18 @@ function filaRonda(B) {
     case 'informe': return '<button data-act="brepetir">Ver otra vez</button><button class="go on" data-act="bseguir">Seguir planeando</button>';
     case 'cond': return Object.keys(C).map(k => '<button data-act="bcnd" data-v="' + k + '"' + (act(k) ? ' class="on"' : '') + '>' + C[k] + '</button>').join('') + '<button data-act="bcnd" data-v="">Sin condición</button><button class="on" data-act="bcondok">Listo</button>';
     default: {
+      if (!B.aMano && B.b.consejo && !B.b.over) { const cs = tarjetasConsejo(B); if (cs) return cs; }
       const ps = B.view && B.view.propios ? B.view.propios() : [], tp = ps.length && ps.every(r => tipoOrden(r) === tipoOrden(ps[0])) ? tipoOrden(ps[0]) : null;
-      return '<div class="ord' + (ps.length ? '' : ' sinsel') + '">' + TIPOS_ORDEN.map(t => '<button class="ob o-' + t[0] + (tp === t[0] ? ' on' : '') + '" data-act="bord" data-v="' + t[0] + '">' + icoOrd(t[0]) + '<span>' + t[1] + '</span></button>').join('') + '</div>' +
+      return '<div class="ord' + (ps.length ? '' : ' sinsel') + '">' + TIPOS_ORDEN.map(t => '<button class="ob o-' + t[0] + (tp === t[0] ? ' on' : '') + '" data-act="bord" data-v="' + t[0] + '"' + (t[0] === 'aguantar' ? ' title="Aguantar: recibe un tercio menos de daño. Si te quedas quieto mucho rato el rival te toma la medida y el efecto se pierde."' : '') + '>' + icoOrd(t[0]) + '<span>' + t[1] + '</span></button>').join('') + '</div>' +
         '<button class="mini" data-act="bsig" aria-label="Siguiente regimiento">' + icoOrd('sig') + '<span>Siguiente</span></button><button class="mini' + (B.mas ? ' on' : '') + '" data-act="bmas" aria-label="Más opciones">' + icoOrd('mas') + '<span>Más</span></button>' + chipMando(B) + '<button class="go on" data-act="bejec">Ver la ronda</button>';
     }
   }
+}
+// R2: tres tarjetas, cada una con un plan completo de un tribuno y su etiqueta; «A mano» devuelve la fila de órdenes
+function tarjetasConsejo(B) {
+  const cs = B.b.consejo(); if (!cs.length) return '';
+  return '<div class="tarjs">' + cs.map((c, i) => '<button class="tarj t-' + c.etiqueta.toLowerCase() + (B.consejoSel === i ? ' on' : '') + '" data-act="btarj" data-v="' + i + '"><small>' + esc(c.tribuno) + ' · ' + c.rasgo + '</small><b>' + esc(c.titulo) + '</b><em>' + esc(c.motivo) + '</em><i class="et">' + c.etiqueta + '</i></button>').join('') + '</div>' +
+    '<button class="mini" data-act="bamano" aria-label="Dar las órdenes a mano"><span>A mano</span></button><button class="go on" data-act="bejec">Ver la ronda</button>';
 }
 // N5: puntos de mando junto al botón de ejecutar (rojo si te pasas) y fila de cartas de táctica
 const CARTAS_TXT = { arenga: ['Arenga', 'Sube la moral (+15 %) de las tropas dentro del radio de mando, en la ronda siguiente'], paso: ['Paso doble', 'Velocidad x1,25 la ronda siguiente, dentro del radio de mando'], cerrada: ['Cerrada', 'Reciben x0,85 de daño la ronda siguiente, dentro del radio de mando'] };
@@ -1058,7 +1336,7 @@ function filaCartas(B) {
 }
 function condSel(B) { return B.view && B.view.sel ? [...B.view.sel].filter(r => r.st === 'ok' && r.side === 0 && r.order && r.order.k !== 'quieto') : []; }
 function rondaModo(B, m) {
-  B.modo = m; B.filaKey = ''; B.mas = false; B.atajoTx = null; B.formVer = null; if (B.view && B.view.ponTPrev) { B.view.ponTPrev(0); B.view.activaFrente && B.view.activaFrente(false); } B.pmin = false; B.panelTx = null; if (m === 'plan' || m === 'informe') B.paused = false;
+  B.modo = m; B.filaKey = ''; if (m === 'plan') B.consejoSel = null; B.mas = false; B.atajoTx = null; B.formVer = null; if (B.view && B.view.ponTPrev) { B.view.ponTPrev(0); B.view.activaFrente && B.view.activaFrente(false); } B.pmin = false; B.panelTx = null; if (m === 'plan' || m === 'informe') B.paused = false;
   if (m !== 'plan') B.choque = null;
 }
 function textoRonda(B) {
@@ -1068,8 +1346,9 @@ function textoRonda(B) {
   if (B.modo === 'cond') { const sel = condSel(B); if (!sel.length) return 'Elige un regimiento con orden y vuelve a pulsar «Más» y «Condición».'; const r = sel[0], c = r.order.cond; return '<b>' + esc(r.name || r.u.n) + (sel.length > 1 ? ' y ' + (sel.length - 1) + ' más' : '') + '</b>: ' + (c ? esc(C[c]) + '.' : 'sin condición. Elige una (solo una por orden).'); }
   if (v && v.modoFrente) return '<div class="pt" data-act="bfrente">Frente<i></i></div>Arrastra el dedo sobre el campo, de un extremo a otro del frente. Pulsa aquí para cancelar.';
   if (B.mas === 'form' || B.mas === 'atajos' || B.mas === 'tiempo') return panelN7(B);
-  if (B.mas) { const w = B.b, ex = (c, a, t) => c ? '<button data-act="' + a + '">' + t + '</button>' : ''; return '<div class="pt" data-act="bmas">Más<i></i></div><div class="pbt p3"><button data-act="bcond">Condición</button><button data-act="bchoque">Prever choque</button><button data-act="ball">Todas</button><button data-act="bskip">Resolver</button><button data-act="bsonido">' + (window.Sonido && !window.Sonido.activo ? '🔇 Sonido apagado' : '🔊 Sonido activado') + '</button>' + ex(w.formacionesPosibles, 'bformas', 'Formación') + ex(w.fijarFrente && B.view.activaFrente, 'bfrente', 'Frente') + ex(w.agrupar, 'bjuntos', 'Marchar juntos') + ex(w.relevarLinea, 'brelevar', 'Relevar línea') + ex(w.atajo, 'batajos', 'Atajos') + ex(w.prevision && B.view.ponTPrev, 'btiempo', 'Ver futuro') + '</div>'; }
+  if (B.mas) { const w = B.b, ex = (c, a, t) => c ? '<button data-act="' + a + '">' + t + '</button>' : ''; return '<div class="pt" data-act="bmas">Más<i></i></div><div class="pbt p3"><button data-act="bcond">Condición</button><button data-act="bchoque">Prever choque</button><button data-act="ball">Todas</button><button data-act="bskip">Resolver</button>' + ex(w.consejo, 'btarjetas', 'Tarjetas') + '<button data-act="bsonido">' + (window.Sonido && !window.Sonido.activo ? '🔇 Sonido apagado' : '🔊 Sonido activado') + '</button>' + ex(w.formacionesPosibles, 'bformas', 'Formación') + ex(w.fijarFrente && B.view.activaFrente, 'bfrente', 'Frente') + ex(w.agrupar, 'bjuntos', 'Marchar juntos') + ex(w.relevarLinea, 'brelevar', 'Relevar línea') + ex(w.atajo, 'batajos', 'Atajos') + ex(w.prevision && B.view.ponTPrev, 'btiempo', 'Ver futuro') + '</div>'; }
   if (B.choque && performance.now() < B.choqueT) return B.choque;
+  if (!B.aMano && b.consejo) return B.consejoSel != null && B.tarjTx ? B.tarjTx : 'Tres tribunos te aconsejan. Toca una tarjeta para ver su plan. Las cartas y las órdenes sueltas están en «A mano».';
   if (condSel(B).length) return 'Orden dada. En «Más» puedes añadirle una condición.';
   if (v && v.propios && v.propios().length) return 'Elige una orden abajo o dibuja el recorrido sobre el campo. Toca otro estandarte para cambiar de regimiento.';
   if (v && v.haySombras) return 'Las siluetas marcan dónde acabarían tus tropas si el enemigo se queda quieto. <b>El enemigo puede moverse.</b>';
@@ -1107,9 +1386,9 @@ function rondaHud() {
   const key = tit + '|' + n0 + '|' + n1; if (key !== UI.hudKey) { UI.hudKey = key;
     $('bhud').innerHTML = '<div class="r1"><b class="rt">' + tit + '</b><span class="n0" style="color:#ff9c8c">' + esc(s0.name) + ' ' + n0 + '</span><div class="bar"><i style="width:' + n0 / Math.max(1, n0 + n1) * 100 + '%;background:' + s0.col + '"></i><i style="flex:1;background:' + s1.col + '"></i></div><span class="n1">' + n1 + ' ' + esc(s1.name) + '</span><span class="alj"><button data-act="bsalto" data-v="-1">Ala izq.</button><button data-act="bsalto" data-v="0">Centro</button><button data-act="bsalto" data-v="1">Ala der.</button></span></div>'; }
   { let cr = $('bcartas'); if (!cr) { cr = document.createElement('div'); cr.id = 'bcartas'; $('bctl').parentNode.insertBefore(cr, $('bctl')); }
-    const ver = B.modo === 'plan' && !b.over, ck = ver ? filaCartas(B) : ''; if (cr.dataset.k !== ck) { cr.dataset.k = ck; cr.innerHTML = ck; } cr.style.display = ver ? '' : 'none';
+    const ver = B.modo === 'plan' && !b.over && (B.aMano || !b.consejo), ck = ver ? filaCartas(B) : ''; if (cr.dataset.k !== ck) { cr.dataset.k = ck; cr.innerHTML = ck; } cr.style.display = ver ? '' : 'none';
     if (ver && B.avisoGen !== b.ronda && b.genDown[0]) { B.avisoGen = b.ronda; toast('Cayó tu general: solo ' + b.mandoPuntos().max + ' órdenes por ronda.', 'bad'); } }
-  const mp = b.mandoPuntos(), fk = mp.usados + '/' + mp.max + b.cartas.join() + b.cartaPlan + b.cartaRonda + '|' + B.modo + '|' + B.speed + '|' + B.paused + '|' + (B.mas ? 'm' + B.mas : '') + '|' + (B.modo === 'cond' ? condSel(B).map(r => r.id + (r.order.cond || '')).join() : B.modo === 'plan' && B.view && B.view.propios ? B.view.propios().map(r => r.id + (tipoOrden(r) || '-')).join() : '');
+  const mp = b.mandoPuntos(), fk = mp.usados + '/' + mp.max + b.cartas.join() + b.cartaPlan + b.cartaRonda + '|' + B.modo + '|' + B.speed + '|' + B.paused + '|' + (B.mas ? 'm' + B.mas : '') + '|' + (B.aMano ? 'a' : 't' + B.consejoSel + 'r' + b.ronda) + '|' + (B.modo === 'cond' ? condSel(B).map(r => r.id + (r.order.cond || '')).join() : B.modo === 'plan' && B.view && B.view.propios ? B.view.propios().map(r => r.id + (tipoOrden(r) || '-')).join() : '');
   if (fk !== B.filaKey) { B.filaKey = fk; $('bctl').innerHTML = filaRonda(B); }
   const pn = $('bpanel'), tx = textoRonda(B); if (pn) {
     if (tx !== B.panelTx) { B.panelTx = tx; B.panelT = performance.now(); pn.innerHTML = tx; }
@@ -1118,7 +1397,18 @@ function rondaHud() {
     pn.style.display = tx && (B.modo !== 'plan' || B.mas || performance.now() - B.panelT < 7000 || (B.choque && performance.now() < B.choqueT)) ? '' : 'none'; }
   return true;
 }
+/* NB7: la batalla nueva. Maniobra (si hay más de 600 hombres) y luego el choque; al acabar se devuelve a la campaña lo mismo que la clásica. */
+function iniciaNueva(info, pl) {
+  closeModal(); UI.nueva = true; UI.sheetKey = '';
+  try { iniciaNueva2(info, pl); } catch (err) { console.error(err); UI.nueva = false; toast('No se pudo abrir la batalla nueva.', 'bad'); }
+}
+function iniciaNueva2(info, pl) {
+  const alChoque = (ch, estM) => window.UIBatalla2.abrir({ estado: G.estadoChoque(info, ch, {}) }, r2 => endBattle(G.resultadoNueva(info, r2, estM)));
+  if (pl.via === 'maniobra') window.UIManiobra.abrir(G.cfgManiobra(info), r => { if (r.accion === 'batalla') alChoque(r.choque, r.estado); else endBattle(G.resultadoManiobra(info, r.estado)); });
+  else alChoque(null, null);
+}
 function endBattle(res) {
+  UI.nueva = false;
   const info = UI.binfo, out = G.applyBattle(res), d = D.CITIES[info.city];
   const loss = side => Object.keys(res.lost[side]).filter(k => res.lost[side][k] > 0).map(k => '<div><span>' + D.UNITS[k].n + '</span><b>−' + res.lost[side][k] + '</b></div>').join('') || '<div><span>Sin bajas</span></div>';
   modal('<div class="yr">' + (out.kind === 'attack' ? 'ASALTO A ' : 'DEFENSA DE ') + d.n.toUpperCase() + '</div><h2>' + (out.win ? '¡Victoria!' : 'Derrota') + '</h2>' +
@@ -1130,22 +1420,36 @@ function endBattle(res) {
 document.addEventListener('click', function (e) {
   const el = e.target.closest('[data-act]');
   if (!el && e.target.closest('#cuentas')) return;
-  if (!el) { $('cuentas').hidden = true; $('hoja').hidden = true; $('citymenu').hidden = true; $('popsheet').hidden = true; if (e.target.id === 'modal' && !UI.sticky) closeModal(); hudDock(); return; }
+  if (!el) { $('cuentas').hidden = true; if (!e.target.closest('#hoja')) hojaCierra(true); $('citymenu').hidden = true; $('popsheet').hidden = true; if (e.target.id === 'modal' && !UI.sticky) closeModal(); hudDock(); return; }
   const a = el.dataset.act, v = el.dataset.v, s = S(), B = UI.battle;
-  if (a !== 'menumodo') $('hoja').hidden = true; if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true; if (a !== 'cuentas' && a !== 'imp' && a !== 'cuvender' && a !== 'cuadelantar') $('cuentas').hidden = true;
+  if (el.closest('#hoja')) UI.hjDown = false; if (a !== 'menumodo' && a !== 'hoja' && !el.closest('#hoja')) hojaCierra(true); if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true; if (a !== 'cuentas' && a !== 'imp' && a !== 'cuvender' && a !== 'cuadelantar') $('cuentas').hidden = true;
   if (a !== 'derr') UI.derr = null;
   switch (a) {
-    case 'fluidez': fijarFluidez(!fluidezOn()); showMenu(); break;
-    case 'new': case 'newregion': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo'); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
+    case 'dif': if (el.dataset.d === 'm') { UI.difSel = v; const nm = $('hname') ? $('hname').value : ''; showMenu(); if (nm && $('hname')) $('hname').value = nm; } else { const r = G.ponerAjustes({ dif: v }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); toast('Dificultad ' + (DIF_NOM[v] || v) + ': vale desde el mes siguiente.'); } render(); } break;
+    case 'asesor': if (el.dataset.d === 'm') UI.asesorSel = el.checked; else { G.ponerAjustes({ asesor: el.checked }); G.save(); UI.linK = null; pintaLinea(); } break;
+    case 'pausas': { const r = G.ponerAjustes({ pausas: v }); if (!r.ok) toast(r.motivo, 'bad'); else G.save(); render(); break; }
+    case 'suceso': { const a = G.ajustes(), r = G.ponerAjustes({ suc: { [v]: !a.suc[v] } }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); toast('Vale desde el mes siguiente.'); } render(); break; }
+    case 'repetirasesor': if (typeof ASESOR !== 'undefined') { ASESOR.repetir(S().ajustes); G.save(); UI.linK = null; pintaLinea(); toast('Los consejos volverán a salir.'); } break;
+    case 'entendido': if (typeof ASESOR !== 'undefined' && UI.lesId) { ASESOR.marcar(S().ajustes, UI.lesId, { mes: Math.floor(S().t + 1e-9), ahora: Date.now() }); G.save(); } UI.linK = null; pintaLinea(); break;
+    case 'ambiente': { const nv = el.type === 'checkbox' ? el.checked : !G.ambiente(), r = G.ponerAjustes({ ambiente: nv }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); if (UI.cityV && UI.cityV.ponerAmbiente) UI.cityV.ponerAmbiente(nv); } render(); break; }
+    case 'sonido': { const so = window.Sonido; if (so) { if (sonidoOn()) so.off(); else so.on(); } if (UI.menu) hojaPinta(true); else render(); break; }
+    case 'fluidez': fijarFluidez(!fluidezOn()); hojaPinta(true); break;
+    case 'new': case 'newregion': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
+    case 'cortaen': case 'cortafun': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', null, { modo: 'corta', inicio: a === 'cortafun' ? 'fundar' : 'enPie', dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
+    case 'refundar': closeModal(); iniciarFundar(); break;
     case 'continue': if (G.load()) { UI.overShown = false; startGame(); if (S().over) showOver(); } break;
     case 'tomenu': G.save(); UI.modalQ = []; closeModal(); stopBattle(); showMenu(); break;
     case 'tab': UI.codice = null; setTab(v); break;
     case 'codice': UI.codice = v || null; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;
-    case 'turno': if (!G.turnos || s.over || s.pending.length || UI.modalOpen) break; G.pasarTurno(); UI.dirty = true; tickUI(); break;
-    case 'speed': if (G.turnos) { s.speed = s.speed ? 0 : 1; tickUI(); break; } s.speed = v === 'next' ? ({ 1: 2, 2: 4, 4: 0, 0: 1 }[s.speed] || 1) : +v; tickUI(); break;
+    case 'turno': if (!G.turnos || s.over || s.pending.length || UI.modalOpen) break; AV.acum = []; try { G.pasarTurno(); } finally { const l = AV.acum; AV.acum = null; toastResumen(l); } UI.dirty = true; tickUI(); break;
+    case 'seguir': seguirPausa(); break;
+    case 'speed': if (UI.pausa) { seguirPausa(); break; } if (G.turnos) { s.speed = s.speed ? 0 : 1; tickUI(); break; } s.speed = v === 'next' ? ({ 1: 2, 2: 4, 4: 0, 0: 1 }[s.speed] || 1) : +v; tickUI(); break;
     case 'modo': setModo(v); break;
     case 'citymenu': { const m = $('citymenu'); m.hidden = !m.hidden; if (!m.hidden) m.innerHTML = cityMenuHtml(); break; }
-    case 'menumodo': { const h = $('hoja'); h.hidden = !h.hidden; if (!h.hidden) h.innerHTML = hojaHtml(); hudDock(); break; }
+    case 'menumodo': if (UI.hoja && UI.hoja.id === 'menu' && !$('hoja').hidden) hojaCierra(); else hojaAbre('menu'); break;
+    case 'hoja': hojaAbre(v); break;
+    case 'hojax': hojaCierra(); break;
+    case 'menuconf': UI.hojaConf = true; hojaPinta(true); break;
     case 'accion': if (UI.modo === 'guerra') setTab('army'); else { UI.cityList = true; setTab('city'); } break;
     case 'pill': if (UI.modo !== 'guerra') { const ps = $('popsheet'); ps.hidden = !ps.hidden; renderPop(); } break;
     case 'popx': $('popsheet').hidden = true; break;
@@ -1157,13 +1461,16 @@ document.addEventListener('click', function (e) {
     case 'cuobra': $('cuentas').hidden = true; if (v && s.cities[v]) { UI.city = v; UI.bsel = null; UI.cityList = false; } else UI.cityList = true; setTab('city'); break;
     case 'cuadelantar': { const nm = D.CITIES[v] ? D.CITIES[v].n : v; if (G.adelantarObra(v, el.dataset.i == null ? undefined : +el.dataset.i)) toast('🔨 ' + nm + ': pagas de golpe las cuotas que faltan.'); else toast('No alcanza para adelantar las cuotas de ' + nm + '.', 'bad'); renderCuentas(true); break; }
     case 'ayuda': UI.codice = window.CODICE ? 'tropas' : null; setTab('log'); break;
-    case 'menu': G.save(); showMenu(); break;
+    case 'menu': G.save(); hojaCierra(true); showMenu(); break;
     case 'impf': UI.impF = v; render(); break;
     case 'impmismo': { const c = s.cities[v], o = c.obras[0], pz = o && o.pieza ? o.pieza : consejo(c, v).pieza; if (pz) mismoModal(v, pz, o && o.pieza ? !!o.nuevo : !consejo(c, v).mej); else toast('Esa ciudad no tiene una obra de la que copiar.', 'bad'); break; }
     case 'impmas': { const q = v.split('>'), op = opcionPieza(q[0], q[1], q[2] === '1'); if (!op) toast('Ya no se puede hacer esa obra.', 'bad'); else { const r = ponPieza(q[0], op); if (r.ok) { toast('🔨 ' + D.CITIES[q[0]].n + ': ' + op.nombre + '.'); closeModal(); render(); mismoModal(q[0], q[1], q[2] === '1'); } else toast(r.motivo + '.', 'bad'); } break; }
     case 'impc': UI.city = v; UI.bsel = null; UI.cityList = false; setTab('city'); break;
     case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; if (UI.tab === 'map' && UI.map) UI.map.center(v); render(); tickUI(); break;
     case 'rep': if (G.reparto(UI.city, el.dataset.r, +el.dataset.d)) render(); break;
+    case 'fiesta': if (G.hacerFiesta(UI.city, v)) { render(); renderCuentas(true); } break;
+    case 'racion': if (G.setRacion(UI.city, v)) render(); break;
+    case 'techar': if (G.techarBarrio(UI.city, +v)) render(); break;
     case 'imp': if (G.setImp(UI.city, el.dataset.v)) render(); break;
     case 'ciud': if (G.darCiudadania(UI.city)) render(); break;
     case 'ruta': { const q = v.split('>'); if (G.rutaAbrir(q[0], q[1])) { toast('⚖️ Ruta abierta con ' + D.CITIES[q[1]].n + '.'); render(); } else toast(G.rutaPuede(q[0], q[1]) || 'No se puede abrir la ruta.', 'bad'); break; }
@@ -1171,13 +1478,14 @@ document.addEventListener('click', function (e) {
     case 'tipos': modal(tiposModal()); break;
     case 'dios': if (G.elegirDios(UI.city, v)) render(); break;
     case 'tipo': if (G.setTipo(UI.city, v)) { closeModal(); toast(D.TIPOS[v].i + ' ' + D.CITIES[UI.city].n + ': ' + D.TIPOS[v].n + '.'); render(); } else toast('No se puede elegir ese tipo.', 'bad'); break;
+    case 'mover': { const E = G.ciudadE(UI.city), e = E && E.edificios.find(q => q.id === +v); if (!e) break; elegir3(e.tipo, [e.x, e.z]); if (UI.sel3) UI.sel3.mover = e.id; break; }
     case 'derr': { const k = UI.city + ':' + v; if (UI.derr !== k) { UI.derr = k; renderCity3D(); break; } UI.derr = null; const r = G.derribarPieza(UI.city, +v); if (r.ok) { UI.bsel = null; toast('🧱 Pieza derribada.', 'good'); } else toast(r.motivo + '.', 'bad'); renderCity3D(); tickUI(); break; }
     case 'clist': UI.cityList = !UI.cityList; setTab('city'); break;
     case 'cview': if (UI.cityV) { UI.bsel = null; UI.vistas = false; UI.cityV.view(v); renderCity3D(); } break;
     case 'tab3': UI.codice = null; UI.vistas = false; UI.bsel = null; if (v === 'imperio') { UI.modo = 'gobierno'; setTab('imperio'); } else { UI.cityList = v === 'gobierno'; setTab('city'); } break;
     case 'cvistas': UI.vistas = !UI.vistas; renderCity3D(); break;
     case 'cbuild': construir3(); break;
-    case 'fundar': closeModal(); UI.abrirFundar(v); break;
+    case 'fundar': closeModal(); UI.abrirFundar(v, G.fundando() ? alFundarModo : undefined); break;
     case 'colonos': { const r = G.enviarColonos(el.dataset.from, el.dataset.to); if (r.ok) toast('🏛️ Los colonos parten hacia ' + G.lugar(el.dataset.to).n + '.', 'good'); else toast(r.motivo, 'bad'); UI.sheetKey = ''; renderSheet(); break; }
     case 'ccancel': salir3(); break;
     case 'cclose': UI.bsel = null; renderCity3D(); tickUI(); break;
@@ -1185,6 +1493,7 @@ document.addEventListener('click', function (e) {
     case 'saberedad': { const r = G.edadUp(); if (r.ok) { toast('Empiezas a subir de edad'); UI.svDown = false; render(); } else toast(r.motivo, 'bad'); break; }
     case 'sabersel': UI.svSel = UI.svSel === v ? null : v; UI.svDown = false; render(); break;
     case 'dotsab': case 'clasab': { const x = G.sabiosDe(s.cities[UI.city]), r = a === 'dotsab' ? G.setSabios(UI.city, +v, x.clase) : G.setSabios(UI.city, x.dot, v); if (!r.ok) toast(r.motivo + '.', 'bad'); render(); break; }
+    case 'pueblo': if (G.puebloMejorar(UI.city, +v)) render(); else toast(G.state.cities[UI.city].pobra ? 'Ya hay una obra de pueblo en curso.' : 'Faltan recursos.', 'bad'); break;
     case 'forja': if (G.forjaUp(UI.city, v)) render(); else toast(S().forja.cola ? 'Ya hay una mejora en curso.' : 'Faltan recursos.', 'bad'); break;
     case 'mejpz': { const r = G.mejorarPieza(UI.city, +v); if (r.ok) toast('🔨 ' + obraNom(r.obra) + ': obra en marcha.', 'good'); else toast(r.motivo + '.', 'bad'); renderCity3D(); tickUI(); break; }
     case 'train': if (G.train(UI.city, v, +el.dataset.n)) render(); else toast(s.cities[UI.city].train.length >= 5 ? 'La cola de instrucción está llena.' : G.recruits(s.cities[UI.city]) < +el.dataset.n ? 'No hay población suficiente: construye Ínsulas o espera a que crezca.' : 'Faltan recursos.', 'bad'); break;
@@ -1194,6 +1503,7 @@ document.addEventListener('click', function (e) {
     case 'skill': if (G.skill(v)) render(); break;
     case 'ev': { const ev = D.EVENTS[+v]; modal('<div class="yr">' + ev.y + ' A.C.</div><h2>' + esc(ev.t) + '</h2><p>' + esc(ev.x) + '</p>' + licHtml(ev) + '<div class="acts"><button class="btn" data-act="close">Cerrar</button></div>'); break; }
     case 'zoom': if (UI.map) UI.map.zoom(+v); break;
+    case 'almapa': volverAlMapa(); break;
     case 'home': if (UI.map) UI.map.center(s.hero.city || 'roma'); break;
     case 'unsel': UI.sel = null; renderSheet(); break;
     case 'goto': UI.city = v; setTab('city'); break;
@@ -1203,12 +1513,15 @@ document.addEventListener('click', function (e) {
       const hero = $('pk-hero') && $('pk-hero').checked;
       const saq = $('pk-saq') && $('pk-saq').checked;
       if (G.send(el.dataset.from, el.dataset.to, pickUnits(), hero, saq ? 'saqueo' : null)) { closeModal(); toast((saq ? '💰 Partida de saqueo hacia ' : '🚩 El ejército parte hacia ') + D.CITIES[el.dataset.to].n + '.'); UI.sheetKey = ''; renderSheet(); }
-      else toast('Selecciona al menos una unidad.', 'bad');
+      else toast(G.sendMotivo || 'Selecciona al menos una unidad.', 'bad');
       break;
     }
     case 'close': closeModal(); break;
-    case 'bview': startBattle(); break;
-    case 'bquick': { closeModal(); const b = new window.Battle(UI.binfo.cfg); b.finish(); endBattle(b.result()); break; }
+    case 'inf-mas': UI.infoMas(); break;
+    case 'inf-cierra': UI.infoCierra(); break;
+    case 'bview': { const pl = G.planBatalla(UI.binfo); if (pl.modo === 'nueva') iniciaNueva(UI.binfo, pl); else startBattle(); break; }
+    case 'bquick': { closeModal(); const pl = G.planBatalla(UI.binfo); if (pl.modo === 'nueva') { endBattle(G.jugarNueva(UI.binfo, { bono0: pl.via === 'sola' ? 1 : 0.92 })); break; } const b = new window.Battle(UI.binfo.cfg); b.finish(); endBattle(b.result()); break; }
+    case 'batalla': { const r = G.ponerAjustes({ batalla: v }); if (!r.ok) toast(r.motivo, 'bad'); else G.save(); render(); break; }
     case 'bdone': closeModal(); stopBattle(); UI.sheetKey = ''; render(); if (S().over) showOver(); break;
     case 'bpause': B.paused = !B.paused; el.textContent = B.paused ? '▶' : 'II'; break;
     case 'bspeed': B.speed = B.speed === 1 ? 2 : B.speed === 2 ? 4 : 1; el.textContent = 'x' + B.speed; break;
@@ -1227,6 +1540,9 @@ document.addEventListener('click', function (e) {
     case 'bjuntos': { const sel = B.view.propios(); if (sel.length < 2) { toast('Elige varios regimientos (botón «Todas») para que marchen juntos.'); break; } const n = B.b.agrupar(sel); toast(n === false || n === 0 ? (B.b.motivo || 'No pueden marchar juntos ahora.') : 'Marchan juntos, a la velocidad del más lento.', n === false || n === 0 ? 'bad' : undefined); B.mas = false; B.panelTx = null; break; }
     case 'brelevar': { const r = B.view.propios().find(q => q.linea); if (!r) { toast('Elige un regimiento romano con su línea (I, II o III).'); break; } const n = B.b.relevarLinea(0, r.linea); toast(n ? 'Relevo: ' + n + (n === 1 ? ' regimiento cambia' : ' regimientos cambian') + ' de línea.' : 'No hay relevo posible ahora.', n ? undefined : 'bad'); B.mas = false; B.panelTx = null; break; }
     case 'bataj': { const sel = B.view.propios(), regs = sel.length ? sel : B.b.regs.filter(q => q.side === 0 && q.st === 'ok'), q = B.b.atajo(v, regs); B.atajoTx = q ? q.txt : (B.b.motivo || 'Ahora no sirve.'); if (q) toast(q.txt); B.panelTx = null; B.filaKey = ''; break; }
+    case 'btarj': { const c = B.b.aplicarConsejo(+v); if (c) { B.consejoSel = +v; B.view.sel.clear(); B.filaKey = ''; B.panelTx = null; B.panelT = performance.now(); B.tarjTx = c.tribuno + ': ' + c.titulo + '. Mira el plan sobre el campo y pulsa «Ver la ronda».'; } break; }
+    case 'bamano': B.aMano = true; B.mas = false; B.filaKey = ''; B.panelTx = null; break;
+    case 'btarjetas': B.aMano = false; B.mas = false; B.filaKey = ''; B.panelTx = null; break;
     case 'bmas': B.mas = !B.mas; B.choque = null; B.panelTx = null; B.filaKey = ''; break;
     case 'bpmin': B.pmin = !B.pmin; break;
     case 'bsalto': B.view.saltoAla(+v); break;
@@ -1234,7 +1550,7 @@ document.addEventListener('click', function (e) {
     case 'bsonido': if (window.Sonido) { if (window.Sonido.activo) window.Sonido.off(); else window.Sonido.on(); } B.filaKey = ''; B.panelTx = null; break;
     case 'bfac': { const f = document.querySelector('#bdif .fac'); if (f) f.hidden = !f.hidden; break; }
     case 'bform': B.b.formar(0, v); document.querySelectorAll('#bctl [data-act="bform"]').forEach(x => x.classList.toggle('on', x === el)); break;
-    case 'bejec': if (B.b.ejecutar()) { B.view.sel.clear(); B.mas = false; B.speed = 1; rondaModo(B, 'ejec'); } else if (B.b.motivo) toast(B.b.motivo, 'bad'); break;
+    case 'bejec': B.b.manual = true; if (B.b.ejecutar()) { B.view.sel.clear(); B.mas = false; B.speed = 1; rondaModo(B, 'ejec'); } else if (B.b.motivo) toast(B.b.motivo, 'bad'); break;   // (N15c) manual: el relevo sin órdenes no actúa
     case 'bcarta': if (B.b.jugarCarta(v)) { toast('Carta jugada: ' + CARTAS_TXT[v][0] + '. Vale para la ronda que viene.'); B.filaKey = ''; } else toast(B.b.generalVivo(0) ? 'Solo una carta por ronda.' : 'Sin general no hay cartas.', 'bad'); break;
     case 'bchoque': { const q = B.b.preverChoque(), n = B.b.cfg.sides, p = x => Math.round(x * 100) + ' %'; B.choque = 'Si chocan ya (aproximado): ' + (q.gana < 0 ? 'empate.' : q.claro ? 'ventaja de <b>' + esc(n[q.gana].name) + '</b>.' : 'muy igualado, algo mejor para <b>' + esc(n[q.gana].name) + '</b>.') + ' Conservarían ' + esc(n[0].name) + ' ' + p(q.f0) + ' y ' + esc(n[1].name) + ' ' + p(q.f1) + '.'; B.choqueT = performance.now() + 9000; B.mas = false; B.panelTx = null; B.filaKey = ''; break; }
     case 'bcond': if (condSel(B).length) rondaModo(B, 'cond'); else toast('Elige un regimiento con orden: toca su estandarte y dale una orden.'); break;
@@ -1257,13 +1573,13 @@ function frame(now) {
     battleHud(); objetivoHud(B); B.view.draw();
     if (b.over && !B.done) { B.endT += dt; if (B.endT > 2.2) { B.done = true; endBattle(b.result()); } }
   } else if (s && !UI.menu) {
-    if (!UI.modalOpen && !s.over) {
+    if (!UI.modalOpen && !s.over && !UI.nueva) {
       if (s.pending.length) battlePrompt();
       else if (s.speed > 0) G.tick(dt * s.speed / 4);
     }
     if (UI.fundar) fundarCuadro(now);
     else if (UI.map && UI.tab === 'map') UI.map.update(s, UI.sel);
-    if (UI.cityV && UI.tab === 'city' && !UI.cityList && !UI.fundar) { if (s.cities[UI.city].owner !== 'roma') UI.city = G.myCities()[0] || 'roma'; if (UI.cityV.listo && !UI.minis) { try { UI.minis = UI.cityV.miniaturas(); } catch (e) { UI.minis = {}; } UI.bandK = ''; cityPantalla(); } UI.cityV.update(s.cities[UI.city], UI.city, UI.bsel, now / 1000); }
+    if (UI.cityV && UI.tab === 'city' && !UI.cityList && !UI.fundar && !G.fundando()) { if (s.cities[UI.city].owner !== 'roma') UI.city = G.myCities()[0] || 'roma'; if (UI.cityV.listo && !UI.minis) { try { UI.minis = UI.cityV.miniaturas(); } catch (e) { UI.minis = {}; } UI.bandK = ''; cityPantalla(); } UI.cityV.update(s.cities[UI.city], UI.city, UI.bsel, now / 1000); }
     if (UI.modo3 && UI.modo3 !== 'mirar' && UI.modo3 !== 'fundar' && (UI.tab !== 'city' || UI.cityList || UI.city !== UI.col3City)) salir3();
     if (UI.dirty) render();
     UI.acc = (UI.acc || 0) + dt; if (UI.acc > 0.25) { UI.acc = 0; tickUI(); if (UI.tab === 'map' && UI.sel && !UI.modalOpen) renderSheet(); }
@@ -1277,7 +1593,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && S()
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
 
 buildTop(); buildTabs(); initBandeja();
-try { UI.map = new MapView3D($('mapwrap'), { onSelect: id => { UI.sel = id; UI.sheetKey = ''; renderSheet(); } }); }
+try { UI.map = new MapView3D($('mapwrap'), { onSelect: id => { const otra = id && id === UI.sel && propiaEntrable(id); UI.sel = id; UI.sheetKey = ''; renderSheet(); if (otra) UI.map.entrarCiudad(id); }, puedeEntrar: propiaEntrable, ocupado: () => !!UI.battle, onEntrar: id => { UI.city = id; UI.bsel = null; UI.cityList = false; UI.deMapa = true; setTab('city'); } }); }
 catch (e) { console.warn('WebGL no disponible para el mapa', e); $('mapwrap').innerHTML = '<div class="empty" style="padding:160px 24px;text-align:center">Tu dispositivo no puede mostrar el mapa 3D. Puedes jugar desde las pestañas Ciudad y Ejército.</div>'; }
 showMenu(); requestAnimationFrame(frame);
 // modelos reales (0 A.D.): se cargan en segundo plano; hasta entonces se usan los generados por código
@@ -1286,7 +1602,7 @@ loadStaticIndex().then(idx => Promise.all([preloadStatic(Object.keys(idx)), load
   try { $('citywrap').hidden = false; UI.cityV = new CityView3D($('citywrap'), Object.assign({ onPick: tocarCiudad }, gestosCiudad)); $('citywrap').hidden = true; if (UI.tab === 'city' && !UI.menu) setTab('city'); }
   catch (e) { console.warn('Sin vista 3D de ciudad', e); $('citywrap').hidden = true; }
 });
-window.UI = UI;
+window.UI = UI; UI.maniobra = window.UIManiobra; UI.batalla2 = window.UIBatalla2; UI.consejoModal = consejoModal; UI.toast = toast; UI.toastResumen = toastResumen;   // CN22: la cola de avisos, para quien la necesite desde fuera
 
 // N7: el deslizador de tiempo de «Ver futuro» (4 posiciones: final, 10, 20, 30 s)
 document.addEventListener('input', ev => { const t = ev.target; if (!t || t.id !== 'btslider' || !UI.battle || !UI.battle.view || !UI.battle.view.ponTPrev) return; UI.battle.view.ponTPrev([0, 10, 20, 30][+t.value] || 0); });

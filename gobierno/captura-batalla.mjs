@@ -27,7 +27,7 @@ await page.evaluate((arg) => {
   if (arg.terreno) UI.binfo.cfg.terreno = arg.terreno; if (arg.fw) UI.binfo.cfg.fw = +arg.fw;
   const bt = document.createElement('button'); bt.dataset.act = 'bview'; document.body.appendChild(bt); bt.click(); bt.remove();
 }, { terreno, fw });
-await page.waitForTimeout(11000);
+await page.waitForTimeout(11000); await page.evaluate(() => { const m = document.getElementById('modal'); if (m) m.hidden = true; });
 await page.evaluate(c => { const B = UI.battle; B.view.intro = 1; for (let i = 0; i < +c; i++) B.view.cycleCam(); }, cam);
 let empezada = false;
 // Escenas del plan (N5): «p1» órdenes cerca del general (círculo y contador), «p2» una orden fuera del radio (punteada),

@@ -11,8 +11,11 @@ import { THREE } from './models.js';
 import { preloadStatic, getStatic, CULTURA } from './statics.js';
 import * as UN from './units.js';
 import * as vida from './vida.js';
-import { crearRio, crearCielo, texturaRuido, texturasMundo, loadGroundTextures, crearSuelo3, GLSL_NUBES } from './ground.js';
-import { altura, RIO, NIVEL_RIO, azar } from './mundo.js';
+import * as Civicas from './civicas.js';          // CN15d: dique, arca del foro y (con tinteC) tejado por barrio
+import * as trajin from './trajin.js';              // CN15b: cuadrilla de obra y recuas (lo escribe otro encargo)
+import * as Fachadas from './fachadas.js';           // CN15a: puestos, toldos y ropa de la plaza y los barrios (lo escribe otro encargo)
+import { crearRio, crearCielo, texturaRuido, texturasMundo, loadGroundTextures, crearSuelo3, GLSL_NUBES, tintesEstacion } from './ground.js';
+import { altura, RIO, NIVEL_RIO, azar, distRio } from './mundo.js';
 import * as CI from '../ciudad.js';
 const { PUENTE } = CI;
 const D = window.DATA;
@@ -134,11 +137,23 @@ const TEMPLO_C = { grie: ['grie_templo', 1.09], cart: ['cart_templo', 1.02] };
 const TEMPLO_PZ = ['grie_templo', 'cart_templo'];
 const TINTE_O = { galos: { m: [0.97, 1.03, 0.94], t: [0.96, 1.02, 0.95] }, iberos: { m: [1.04, 0.97, 0.86], t: [1.03, 0.96, 0.88] }, etruscos: { m: [1.03, 0.96, 0.92], t: [1.04, 0.95, 0.9] }, campanos: { m: [1.02, 1.0, 0.94], t: [1.0, 0.98, 0.94] }, mamertinos: { m: [1.0, 0.97, 0.93], t: [1.0, 0.97, 0.94] } };
 let cul = 'roma', tinteO = null;
-function tinteC(a, b) {                                  // muro y teja por cultura (grie y cart: la función tinte() de gobierno/maquetas/ciudad2)
+function tinteBase(a, b) {                               // muro y teja por cultura (grie y cart: la función tinte() de gobierno/maquetas/ciudad2)
   const v = 0.9 + 0.2 * ((a * 7.13) % 1), cx = familia() === CASAS_C.roma ? 'roma' : cul;
   if (cx === 'grie') { const muro = a < 0.7 ? lerp3([1.12, 1.06, 0.94], [1.04, 0.95, 0.80], a / 0.7) : [0.98, 0.84, 0.64], teja = b < 0.5 ? [1.12, 1.02, 0.92] : b < 0.85 ? [0.98, 0.94, 0.88] : [0.8, 0.76, 0.72]; return { muro: muro.map(x => x * v), teja: [...teja, a < 0.7 ? 0.85 : 0.4] }; }
   if (cx === 'cart') { const muro = a < 0.3 ? [0.98, 0.92, 0.80] : a < 0.8 ? lerp3([0.98, 0.84, 0.60], [0.88, 0.72, 0.52], (a - 0.3) / 0.5) : [0.82, 0.66, 0.50]; return { muro: muro.map(x => x * v), teja: [0.9, 0.86, 0.8, a < 0.3 ? 0.7 : 0.25] }; }
   const r = tinte(a, b); if (!tinteO) return r; return { muro: r.muro.map((x, i) => x * tinteO.m[i]), teja: [r.teja[0] * tinteO.t[0], r.teja[1] * tinteO.t[1], r.teja[2] * tinteO.t[2], r.teja[3]] };
+}
+/* CN15a: tono por barrio. nb = nivel del barrio (1..4), arr = parcela de arrabal. Solo cambia el color (cero triángulos); sin nb o con el interruptor apagado, igual que antes.
+   Rico: más encalado y teja roja. Pobre y arrabal: más toba y teja vieja. Se aplica sobre el tinte de cultura, sin romperlo. */
+const MURO_RICO = [0.98, 0.95, 0.88], TEJA_RICA = [1.12, 0.92, 0.84], MURO_POBRE = [0.84, 0.76, 0.62], TEJA_VIEJA = [0.8, 0.76, 0.72];
+/* CN15d: barrio con tejas (E.barrios[i].tejas): el tejado se pasa a teja roja y nueva. Sin ese dato no cambia nada. */
+const TEJA_NUEVA = [1.2, 0.74, 0.58, 0.95];
+function tinteC(a, b, nb, arr, tej) { const r = tinteC0(a, b, nb, arr); return tej && Civicas.CIVICAS_TEJADO ? { muro: r.muro, teja: r.teja.map((x, i) => x + (TEJA_NUEVA[i] - x) * 0.85) } : r; }
+function tinteC0(a, b, nb, arr) {
+  const r = tinteBase(a, b); if (!Fachadas.FACHADAS_BARRIO || (nb === undefined && !arr)) return r;
+  const k = arr ? -0.22 : nb >= 3 ? (nb - 2) * 0.14 : nb <= 1 ? -0.14 : 0; if (!k) return r;
+  const mc = k > 0 ? MURO_RICO : MURO_POBRE, tc = k > 0 ? TEJA_RICA : TEJA_VIEJA, w = Math.abs(k);
+  return { muro: r.muro.map((x, i) => x + (mc[i] - x) * w), teja: [r.teja[0] + (tc[0] - r.teja[0]) * w, r.teja[1] + (tc[1] - r.teja[1]) * w, r.teja[2] + (tc[2] - r.teja[2]) * w, Math.max(0, Math.min(1, r.teja[3] + k * 0.5))] };
 }
 /* familia de casas de la cultura; si falta alguna pieza, vuelve a las romanas */
 const familia = () => { const f = CASAS_C[cul].filter(k => pieza(k)); return f.length === CASAS_C[cul].length ? f : CASAS_C.roma; };
@@ -187,10 +202,12 @@ const ANCLAS = [
 for (const a of ANCLAS) { a.dir = new THREE.Vector3(...a.dir).normalize(); for (const k of ['sol', 'hc', 'hg', 'h']) a[k] = new THREE.Color(a[k]); }
 const ORO = { sol: new THREE.Color('#ff8f3c'), h: new THREE.Color('#e2a574'), hc: new THREE.Color('#d8a888') };
 const _c1 = new THREE.Color(), _sm = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
-let estSol = -1, luzT = NaN, cieloU = null, noche = 0;
+let estSol = -1, luzT = NaN, cieloU = null, noche = 0, estK = 1, estF = 0;
+/* CN15a: estación actual para quien la necesite. k = ancla de la que se parte (0 primavera, 1 verano, 2 otoño, 3 invierno; el índice A de luz()), f = mezcla suave hacia la siguiente (0..1), ks = estación del calendario */
+export function estacionActual() { return { k: estK, f: estF, ks: estSol < 0 ? estK : estSol }; }
 function luz() {
   const Gm = window.Game, t = Gm && Gm.state && typeof Gm.state.t === 'number' ? Gm.state.t : 7.5; if (t === luzT) return; luzT = t;
-  const u = t / 3, a = u - 0.5, i0 = Math.floor(a), f = _sm(a - i0), A = ANCLAS[((i0 + 3) % 4 + 4) % 4], B = ANCLAS[((i0 + 4) % 4 + 4) % 4], ks = ((Math.floor(u) + 3) % 4 + 4) % 4;
+  const u = t / 3, a = u - 0.5, i0 = Math.floor(a), f = _sm(a - i0), A = ANCLAS[((i0 + 3) % 4 + 4) % 4], B = ANCLAS[((i0 + 4) % 4 + 4) % 4], ks = ((Math.floor(u) + 3) % 4 + 4) % 4; estK = ((i0 + 3) % 4 + 4) % 4; estF = f;
   const fm = t - Math.floor(t), oro = Math.min(1, _sm((fm - 0.7) / 0.25) + 1 - _sm(fm / 0.12));          // tarde dorada: sube al final del mes y baja al empezar el siguiente
   noche = Math.min(1, _sm((fm - 0.85) / 0.12) + 1 - _sm(fm / 0.08));
   if (ks !== estSol) { estSol = ks; SOL.copy(ANCLAS[ks].dir); sol.position.set(0, 0, -70).addScaledVector(SOL, 1500); if (cieloU) cieloU.uSol.value.copy(SOL); sombraPend = true; }
@@ -206,16 +223,19 @@ function ponerLuz() { const RS = 600; sol.position.set(0, 0, -70).addScaledVecto
 /* tipo -> [pieza, escala, giro de fachada, hundido] */
 const PZ = { foro: ['foro', 0.78, 0, 0.2], fuente: ['prop_pozo', 2.2, 0, 0.1], granero: ['almacen', 1.35, 0, 0.3], almacen: ['almacen', 1.1, 0, 0.3], granja: ['granja', 1.0, 0, 0.3], aserradero: ['aserradero', 1.25, 0, 0.2], taller: ['aserradero', 1.25, 0, 0.2],
   cantera: ['cantera', 0.8, 0, 0.3], mina: ['mina', 1.0, 0, 0.3], templo: ['templo', 0.86, 0, 1.2], mercado: ['mercado', 0.82, 0, 0.2], herreria: ['aserradero', 0.95, 0, 0.2], escuela: ['mercado', 0.7, 0, 0.2], cuartel: ['cuartel', 1.1, 0, 0.3], establo: ['establo', 1.1, 0, 0.3],
-  muelle: ['puerto', 0.85, 0, 0], compitum: ['vesta', 0.5, 0, 0.6] };       // herrería usa el taller reducido (aún no hay pieza propia); la fuente espera a prop_pozo
+  muelle: ['puerto', 0.85, 0, 0], salinas: ['almacen', 0.8, 0, 0.3], zanja: ['prop_pozo', 1.2, 0, 0.1], compitum: ['vesta', 0.5, 0, 0.6], dique: ['muro', 1.0, 0, 0.2] };       // herrería usa el taller reducido (aún no hay pieza propia); la fuente espera a prop_pozo
 const PIEL_U = { muro: [0.93, 0.86, 0.76], teja: [0.86, 0.8, 0.76, 0.15] };
 const L = {}, G = {};                 // lotes y mallas sueltas
-let pinM, sueloJ, rio, crecida, dinM, andM, estM, anilloM, surcoM, gromaM, aradoM, chozaM, tiendaM;
+let pinM, sueloJ, rio, crecida, dinM, andM, andL, estM, anilloM, surcoM, gromaM, aradoM, chozaM, tiendaM;
+let estQ = 0, estClave = -1;       // CN15a: paso discreto de la mezcla de estación (0..8) y clave k*9+paso para repintar solo al cambiar
+const ANDAMIO_NUEVO = true;       // CN15b-B: andamio con lona, cuerdas y escalera; obra en pausa apagada; sin árboles dentro de la obra activa. false = como antes
+let firmaArb = '';
 let E = null, revVista = -1, fantasma = null, sombraPend = true, animHasta = 0, surcoT0 = -1, esperaSurco = 0, nTalados = -1;
 const tNace = new Map(), firma = new Map();
 const ahora = () => performance.now() / 1000;
 
 export async function montar() {
-  const claves = ['casa', 'almacen', 'aserradero', 'mercado', 'foro', 'vesta', 'templo', 'granja', 'puerto', 'cantera', 'mina', 'cuartel', 'establo', 'muro', 'torre', 'puerta', 'cipres', 'olivo', 'pino', 'algarrobo', 'casa_b', 'casa_c', 'casa_d', 'prop_paja', 'prop_pozo', 'prop_carreta', ...CASAS_C.grie, ...CASAS_C.cart, 'grie_templo', 'cart_templo'];
+  const claves = ['casa', 'almacen', 'aserradero', 'mercado', 'foro', 'vesta', 'templo', 'granja', 'puerto', 'cantera', 'mina', 'cuartel', 'establo', 'muro', 'torre', 'puerta', 'cipres', 'olivo', 'pino', 'algarrobo', 'casa_b', 'casa_c', 'casa_d', 'prop_paja', 'prop_pozo', 'prop_carreta', 'prop_mesa', 'prop_cesto', 'prop_sacos', 'prop_vaso', 'prop_caja', 'prop_cajas', 'prop_paja_grande', 'prop_puesto_cart', ...CASAS_C.grie, ...CASAS_C.cart, 'grie_templo', 'cart_templo'];
   await Promise.all([preloadStatic(claves), loadGroundTextures(), UN.preload(['ciudadana', 'sacerdote'])]);
   const T = texturasMundo();
   U.uRuido.value = texturaRuido(); ponerCamara(); ponerLuz(); { const cl = crearCielo(SOL, HORIZ, U); cieloU = cl.userData.luz; scene.add(cl); }
@@ -239,13 +259,16 @@ export async function montar() {
     tiendaM = new THREE.InstancedMesh(t.geo(), matBulto, 40); for (const m of [...chozaM, tiendaM]) { m.count = 0; m.castShadow = m.receiveShadow = true; m.frustumCulled = false; m.instanceMatrix.setUsage(THREE.DynamicDrawUsage); scene.add(m); } }
   L.paja = lote('prop_paja', 90, { sinTeja: true }); L.carreta = lote('prop_carreta', 8, { sinTeja: true });
   vida.iniciar({ scene, colorGuarn: D.FACTIONS.roma.col, U, HORIZ, altura, azar, carros: L.carreta, pedirReparto: () => { pedirReparto = true; } });
+  trajin.iniciar({ scene, colorGuarn: D.FACTIONS.roma.col, U, HORIZ, altura, azar, pieza, lote, matriz, Bulto, matBulto, pedirReparto: () => { pedirReparto = true; } });
+  Civicas.iniciar({ scene, altura, azar, pieza, lote, matriz, Bulto, matBulto, pedirReparto: () => { pedirReparto = true; } });
+  Fachadas.iniciar({ scene, altura, azar, pieza, lote, matriz, Bulto, matBulto, pedirReparto: () => { pedirReparto = true; } });
 }
 /* el terreno de una partida: suelo, río, bosque, puente */
 export function mundo(estado) {
-  vida.reiniciar(); E = estado; cul = CASAS_C[estado.cultura] ? estado.cultura : 'roma'; tinteO = cul === 'roma' && estado.tinte ? TINTE_O[estado.tinte] || null : null; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1;
-  for (const m of [sueloJ && sueloJ.malla, rio, crecida, estM, dinM, andM, surcoM, aradoM]) if (m) { scene.remove(m); if (m.geometry) m.geometry.dispose(); }
-  dinM = andM = surcoM = aradoM = null; if (antM) { scene.remove(antM); antM.geometry.dispose(); antM = null; } antFirma = ''; obrasF = []; firmaObras = '';
-  sueloJ = crearSuelo3(G.T, U, E ? E.bosquetes : []); scene.add(sueloJ.malla); rio = crearRio(G.T, U); scene.add(rio);
+  vida.reiniciar(); E = estado; cul = CASAS_C[estado.cultura] ? estado.cultura : 'roma'; tinteO = cul === 'roma' && estado.tinte ? TINTE_O[estado.tinte] || null : null; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1; estClave = -1; firmaArb = ''; Fachadas.reiniciar(); Civicas.reiniciar(); trajin.reiniciar();
+  for (const m of [sueloJ && sueloJ.malla, rio, crecida, estM, dinM, andM, andL, surcoM, aradoM]) if (m) { scene.remove(m); if (m.geometry) m.geometry.dispose(); }
+  dinM = andM = andL = surcoM = aradoM = null; if (antM) { scene.remove(antM); antM.geometry.dispose(); antM = null; } antFirma = ''; obrasF = []; firmaObras = '';
+  sueloJ = crearSuelo3(G.T, U, E ? E.bosquetes : []); sueloJ.terreno(E && E.terreno); scene.add(sueloJ.malla); rio = crearRio(G.T, U); scene.add(rio);
   /* lámina de la crecida: una cinta más ancha que el río, escondida bajo el cauce hasta que toca */
   { const n = RIO.length, pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = []; let sl = 0; for (let i = 0; i < n; i++) { const a = RIO[Math.max(0, i - 1)], b = RIO[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]), nx = -(b[1] - a[1]) / l, nz = (b[0] - a[0]) / l, w = 124; if (i) sl += Math.hypot(RIO[i][0] - RIO[i - 1][0], RIO[i][1] - RIO[i - 1][1]); pos.set([RIO[i][0] + nx * w, 0, RIO[i][1] + nz * w, RIO[i][0] - nx * w, 0, RIO[i][1] - nz * w], i * 6); uv.set([0, sl / 60, 2.5, sl / 60], i * 4); if (i < n - 1) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
@@ -292,12 +315,13 @@ function casas(t) {
     let k; if (fam === CASAS_C.roma) k = c.nivel === 2 ? (l.tipo < 0.5 ? 'casa_c' : 'casa_d') : c.nivel === 3 ? ['casa_b', 'casa_c', 'casa_d'][Math.floor(l.tipo * 3) % 3] : (l.tipo < 0.55 ? 'casa' : 'casa_b');
     else { const n = fam.length, lo = Math.max(1, Math.round(n * 0.4)), a = c.nivel === 2 ? 0 : c.nivel === 3 ? Math.floor(n * 0.25) : n - Math.max(2, Math.round(n * 0.5)), b = c.nivel === 2 ? lo : c.nivel === 3 ? Math.min(n, a + Math.max(2, Math.round(n * 0.6))) : n; k = fam[a + Math.floor(l.tipo * (b - a)) % (b - a)]; }
     const e = c.nivel === 2 ? 0.64 : c.nivel === 3 ? 0.84 : 0.97, alto = c.nivel === 4 ? 1.3 : c.nivel === 3 ? 1 : 0.9, tn = c.nivel === 2 ? l.tono * 0.42 : c.nivel === 3 ? 0.3 + l.tono * 0.45 : 0.62 + l.tono * 0.38, tj = c.nivel === 2 ? 0.6 + l.teja * 0.4 : c.nivel === 4 ? l.teja * 0.6 : l.teja;
-    por[k].push({ m: matriz(l.x, suelo(l.x, l.z, 6 * e) - 0.25, l.z, giro, e * EC * sx, e * EC * alto * sy, e * EC * sx), ...tinteC(tn, tj) }); }
+    por[k].push({ m: matriz(l.x, suelo(l.x, l.z, 6 * e) - 0.25, l.z, giro, e * EC * sx, e * EC * alto * sy, e * EC * sx), ...tinteC(tn, tj, E.barrios && E.barrios[l.barrio] ? E.barrios[l.barrio].nivel : undefined, l.arrabal, E.barrios && E.barrios[l.barrio] && E.barrios[l.barrio].tejas) }); }
   for (const k in por) L[k].poner(por[k]);
   tiendaM.count = nt; for (const m of [...chozaM, tiendaM]) { if (m !== tiendaM) m.count = nc; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; }
   return anim;
 }
 function edificios() {
+  contornoSucio = true;      // E5: el contorno se rehace con las matrices nuevas
   const por = {}; for (const t in PZ) por[PZ[t][0]] = []; for (const k of TEMPLO_PZ) por[k] = [];
   const pon = (tipo, x, z, ang, sy, piel, dy = 0) => { let d = PZ[tipo]; if (!d) return; if (tipo === 'templo' && TEMPLO_C[cul] && L[TEMPLO_C[cul][0]]) d = [TEMPLO_C[cul][0], TEMPLO_C[cul][1], d[2], d[3]]; const y = tipo === 'muelle' ? NIVEL_RIO + 1.4 : suelo(x, z, tipo === 'fuente' || tipo === 'compitum' ? 2 : 7) - d[3]; por[d[0]].push({ m: matriz(x, y + dy, z, Math.PI / 2 - ang + d[2], d[1], d[1] * sy, d[1]), ...piel }); };
   if (E.foro && ahora() >= esperaSurco) { const f = E.foro; pon('foro', f.x - Math.cos(f.ang) * 8, f.z - Math.sin(f.ang) * 8, f.ang, 1, PIEL_U); }
@@ -306,13 +330,13 @@ function edificios() {
   if (fantasma) pon(fantasma.id, fantasma.x, fantasma.z, fantasma.ang, 1, { muro: TINTE_F[fantasma.color], teja: [...TINTE_F[fantasma.color], 0.5] }, 0.4);
   for (const k in por) if (L[k]) L[k].poner(por[k]);
 }
-function arboles() { const n = E.arboles.reduce((s, a) => s + (a.talado ? 1 : 0), 0); if (n === nTalados) return; nTalados = n; const arb = {};
-  for (const a of E.arboles) { if (a.talado) continue; const y = altura(a.x, a.z), v = 0.62 + 0.3 * a.tono, col = a.pieza === 'olivo' ? [v * 1.7, v * 1.7, v * 1.5] : a.pieza === 'cipres' ? [v * 1.5, v * 1.5, v * 1.2] : [v * 1.9, v * 1.75, v * 1.25]; (arb[a.pieza] = arb[a.pieza] || []).push({ m: matriz(a.x, y - 0.3, a.z, a.ang, a.esc, a.esc * (0.9 + 0.3 * a.tono), a.esc), muro: col }); }
+function arboles() { const n = E.arboles.reduce((s, a) => s + (a.talado ? 1 : 0), 0), fa = ANDAMIO_NUEVO ? obrasF.filter(o => !o.pausa).map(o => o.x + ',' + o.z).join('|') : ''; if (n === nTalados && fa === firmaArb) return; nTalados = n; firmaArb = fa; const act = ANDAMIO_NUEVO ? obrasF.filter(o => !o.pausa) : []; const arb = {}, te = LUZ_ESTACIONAL ? tintesEstacion(estK, estQ / 8).arbol : [1, 1, 1];      // te: tinte de la estación (multiplica el color de cada árbol)
+  for (const a of E.arboles) { if (a.talado) continue; if (act.length && act.some(o => Math.hypot(a.x - o.x, a.z - o.z) < 3.5)) continue; const y = altura(a.x, a.z), v = 0.62 + 0.3 * a.tono, col = a.pieza === 'olivo' ? [v * 1.7, v * 1.7, v * 1.5] : a.pieza === 'cipres' ? [v * 1.5, v * 1.5, v * 1.2] : [v * 1.9, v * 1.75, v * 1.25]; (arb[a.pieza] = arb[a.pieza] || []).push({ m: matriz(a.x, y - 0.3, a.z, a.ang, a.esc, a.esc * (0.9 + 0.3 * a.tono), a.esc), muro: [col[0] * te[0], col[1] * te[1], col[2] * te[2]] }); }
   for (const k in L.arbol) L.arbol[k].poner(arb[k] || []); }
 /* muralla: por el surco; primero empalizada (por código), luego tramos de piedra reales con torres; puertas donde cruzan las calles */
 function muralla(B) {
   const m = E.muralla; L.muro.poner([]); L.torre.poner([]); L.puerta.poner([]); if (!E.surco) return;
-  const S = E.surco, n = S.length, cerca = (x, z, r) => E.puertas.find(p => Math.hypot(p.x - x, p.z - z) < r);
+  const S = (E.muralla.rec && E.muro) || E.surco, n = S.length, cerca = (x, z, r) => E.puertas.find(p => Math.hypot(p.x - x, p.z - z) < r);
   /* mojones en las puertas mientras no hay muralla de piedra */
   if (m.fase < 2) for (const p of E.puertas) for (const sg of [1, -1]) { const x = p.x + Math.cos(p.ang) * 7 * sg, z = p.z + Math.sin(p.ang) * 7 * sg, y = altura(x, z); if (m.fase === 1 || m.obra) { B.caja(1.1, 9, 1.1, x, y + 4.5, z, '#5c4630', -p.ang); if (sg > 0) B.caja(15.5, 1, 1, p.x, altura(p.x, p.z) + 8.6, p.z, '#5c4630', -p.ang); } else { B.caja(1.6, 3.4, 1.6, x, y + 1.7, z, '#b0a690', -p.ang); B.cono(1.2, 1.2, 4, x, y + 4, z, '#b0a690', 1, -p.ang + 0.785); } }
   if (!m.fase && !m.obra) return;
@@ -323,7 +347,7 @@ function muralla(B) {
   const tm = () => { const v = 0.62 + 0.18 * rr(); return { muro: [v, v * 0.94, v * 0.84], teja: [0.8, 0.76, 0.72, 0] }; }, muros = [], torres = [], puertasL = [];
   const nT = Math.round(largo / 30.5), paso = largo / nT;
   for (let i = 0; i < nT; i++) { const q = en((i + 0.5) * paso), ini = en(i * paso); if (i / nT >= hechoPie) {            // empalizada: estacas
-      if (i / nT < hechoEmp) for (let s = i * paso; s < (i + 1) * paso; s += 1.7) { const e = en(s); if (cerca(e[0], e[1], 7)) continue; const h = 6.2 + rr() * 1.4; B.caja(1.5, h + 2, 1.2, e[0], altura(e[0], e[1]) + h / 2 - 1, e[1], rr() < 0.5 ? '#6b5338' : '#7a6042', -e[2]); }
+      if (i / nT < hechoEmp) for (let s = i * paso; s < (i + 1) * paso; s += 1.7) { const e = en(s); if (cerca(e[0], e[1], 7)) continue; const h = (6.2 + rr() * 1.4) * (m.fase >= 1 ? 1 : 0.3 + 0.7 * hechoEmp); B.caja(1.5, h + 2, 1.2, e[0], altura(e[0], e[1]) + h / 2 - 1, e[1], rr() < 0.5 ? '#6b5338' : '#7a6042', -e[2]); }
       continue; }
     const pu = cerca(q[0], q[1], paso * 0.55);
     if (pu && !pu._hecha) { pu._hecha = true; puertasL.push({ m: matriz(pu.x, suelo(pu.x, pu.z, 8) - 1.2, pu.z, -pu.ang, 0.83, 0.86, 0.8), ...tm() }); torres.push({ m: matriz(ini[0], suelo(ini[0], ini[1], 4) - 1.5, ini[1], 0, 0.8, 0.72, 0.8), ...tm() }); }
@@ -333,23 +357,44 @@ function muralla(B) {
 }
 /* andamio de obra (CN3): uno por cada entrada de Game.state.cities[id].obras. obrasAlDia() corre cada cuadro y solo reconstruye cuando el avance cambia un 5 % */
 let obrasF = [], firmaObras = '', obrasLista = null; const angObra = new WeakMap();
-function andamio(B, o, rr) {
-  const { x, z, ang, w, d, av } = o, c = Math.cos(ang + Math.PI / 2), s = Math.sin(ang + Math.PI / 2), en = (u, v) => [x + u * c - v * s, z + u * s + v * c], h = Math.min(16, Math.max(w, d) * 0.6) + 2;
-  for (const [u, v] of [[-1, -1], [1, -1], [1, 1], [-1, 1], [0, -1], [0, 1]]) { const p = en(u * (w / 2 + 1), v * (d / 2 + 1)); B.caja(0.4, h + 2, 0.4, p[0], altura(p[0], p[1]) + h / 2 - 1, p[1], '#8a6c48'); }
+const _gris = new THREE.Color();
+const apaga = (col, pausa) => { if (!pausa) return col; _gris.set(col); const l = (_gris.r + _gris.g + _gris.b) / 3 * 0.8; _gris.r = _gris.r * 0.3 + l * 0.7; _gris.g = _gris.g * 0.3 + l * 0.7; _gris.b = _gris.b * 0.3 + l * 0.7; return '#' + _gris.getHexString(); };
+/* paño de lona (8 triángulos, doble cara): de (xa,za) a (xb,zb), de y0 a y1; hinchado si hay obra, caído y gris si está en pausa */
+function lonaPaño(B, xa, za, xb, zb, y0, y1, col, pausa, fase) {
+  const L = Math.hypot(xb - xa, zb - za), g = new THREE.PlaneGeometry(L, y1 - y0, 4, 1), P = g.attributes.position;
+  for (let i = 0; i < P.count; i++) P.setZ(i, pausa ? 0.05 : Math.sin(P.getX(i) / L * 6.28 + fase) * 0.35);
+  g.computeVertexNormals(); B.add(g, col, new THREE.Matrix4().compose(new THREE.Vector3((xa + xb) / 2, (y0 + y1) / 2, (za + zb) / 2), _q.setFromEuler(_e.set(0, -Math.atan2(zb - za, xb - xa), 0, 'YXZ')), new THREE.Vector3(1, 1, 1))); }
+/* lona, cuerdas y escalera de un andamio (≈112 triángulos); mallas sin sombra aparte del armazón */
+function andamioExtra(B, o, rr, en, h, y) {
+  const { w, d, ang, pausa } = o, hl = pausa ? 0.38 : 0.62, col = apaga(pausa ? '#c2b698' : '#e0cfa0', pausa), cu = apaga('#6a5636', pausa), mad = apaga('#8a6c48', pausa), fase = rr() * 6;
+  const a = en(-(w / 2 + 1), -(d / 2 + 1.1)), b = en(w / 2 + 1, -(d / 2 + 1.1)), c = en(w / 2 + 1.1, -(d / 2 + 1)), e = en(w / 2 + 1.1, d / 2 + 1);       // lona de frente y de un costado
+  const ytop = y + h * 0.9; lonaPaño(B, a[0], a[1], b[0], b[1], ytop - h * hl, ytop, col, pausa, fase); lonaPaño(B, c[0], c[1], e[0], e[1], ytop - h * hl, ytop, col, pausa, fase + 2);
+  for (const [p, q] of [[a, b], [c, e]]) { const mx = (p[0] + q[0]) / 2, mz = (p[1] + q[1]) / 2, L = Math.hypot(q[0] - p[0], q[1] - p[1]); B.caja(L, 0.07, 0.07, mx, ytop + 0.1, mz, cu, -Math.atan2(q[1] - p[1], q[0] - p[0])); }      // cuerda de la que cuelga cada paño
+  const hE = Math.min(h * 0.72, 7), ia = pausa ? 0.4 : 0.25, gir = -(ang + Math.PI / 2), v0 = -(d / 2 + 1) - 1.3, y0 = altura(en(0, v0)[0], en(0, v0)[1]);       // escalera apoyada en el frente, inclinada hacia la obra
+  for (const k of [-0.4, 0.4]) { const p = en(w * 0.25 + k, v0 + hE / 2 * Math.sin(ia)); B.caja(0.12, hE, 0.12, p[0], y0 + hE / 2 * Math.cos(ia), p[1], mad, gir, ia); }
+  for (let i = 0; i < 4; i++) { const u = (i + 0.8) / 4.6, p = en(w * 0.25, v0 + hE * u * Math.sin(ia)); B.caja(0.8, 0.1, 0.1, p[0], y0 + hE * u * Math.cos(ia), p[1], mad, gir); }
+}
+function andamio(B, o, rr, B2) {
+  const { x, z, ang, w, d, av } = o, ap = ANDAMIO_NUEVO && o.pausa ? c => apaga(c, true) : c => c, c = Math.cos(ang + Math.PI / 2), s = Math.sin(ang + Math.PI / 2), en = (u, v) => [x + u * c - v * s, z + u * s + v * c], h = Math.min(16, Math.max(w, d) * 0.6) + 2;
+  for (const [u, v] of [[-1, -1], [1, -1], [1, 1], [-1, 1], [0, -1], [0, 1]]) { const p = en(u * (w / 2 + 1), v * (d / 2 + 1)); B.caja(0.4, h + 2, 0.4, p[0], altura(p[0], p[1]) + h / 2 - 1, p[1], ap('#8a6c48')); }
   const niv = av > 0.66 ? [0.38, 0.72, 1] : av > 0.33 ? [0.38, 0.72] : [0.38];            // los tablones suben con la obra
-  for (const hh of niv) for (const v of [-1, 1]) { const p = en(0, v * (d / 2 + 1)); B.caja(w + 2.4, 0.3, 0.9, p[0], altura(x, z) + h * hh, p[1], '#a08458', -(ang + Math.PI / 2)); }
-  for (const hh of niv.slice(0, 2)) for (const u of [-1, 1]) { const p = en(u * (w / 2 + 1), 0); B.caja(0.3, 0.3, d + 2.4, p[0], altura(x, z) + h * hh, p[1], '#a08458', -(ang + Math.PI / 2)); }
+  for (const hh of niv) for (const v of [-1, 1]) { const p = en(0, v * (d / 2 + 1)); B.caja(w + 2.4, 0.3, 0.9, p[0], altura(x, z) + h * hh, p[1], ap('#a08458'), -(ang + Math.PI / 2)); }
+  for (const hh of niv.slice(0, 2)) for (const u of [-1, 1]) { const p = en(u * (w / 2 + 1), 0); B.caja(0.3, 0.3, d + 2.4, p[0], altura(x, z) + h * hh, p[1], ap('#a08458'), -(ang + Math.PI / 2)); }
   for (let i = 0, n = Math.ceil(3 * (1 - av)); i < n; i++) { const p = en((rr() - 0.5) * (w + 10), (d / 2 + 3 + rr() * 3) * -1); B.caja(2.2, 1.2, 1.4, p[0], altura(p[0], p[1]) + 0.6, p[1], ['#b0a48c', '#9a8e78', '#8a6c48'][i % 3], rr() * 3); }
+  if (ANDAMIO_NUEVO && B2) andamioExtra(B2, o, rr, en, h, altura(x, z));
 }
 function obrasAlDia() {
   const G = window.Game, lista = obrasLista, t = G && G.state ? G.state.t : 0, nuevas = [];
   for (const o of lista || []) { if (!o.pieza || !CI.EDIF[o.pieza]) continue; const D0 = CI.EDIF[o.pieza]; let ang = angObra.get(o);
     if (ang === undefined) { const e = o.eid != null ? E.edificios.find(q => q.id === o.eid) : null; ang = e ? e.ang : 0; if (!e) { try { const n = CI.notaSitio(E, o.pieza, o.x, o.z); if (n && isFinite(n.ang)) ang = n.ang; } catch (_) {} } angObra.set(o, ang); }
     const av = Math.max(0, Math.min(1, (t - o.t0) / Math.max(1e-6, o.t1 - o.t0)));
-    nuevas.push({ pieza: o.pieza, x: o.x, z: o.z, ang, w: D0.w, d: D0.d, nuevo: !!o.nuevo, av: Math.floor(av * 20) / 20 }); }
-  const f = nuevas.map(o => o.pieza + o.x + o.z + o.av + o.nuevo).join('|'); if (f === firmaObras) return; firmaObras = f; obrasF = nuevas;
+    nuevas.push({ pieza: o.pieza, x: o.x, z: o.z, ang, w: D0.w, d: D0.d, nuevo: !!o.nuevo, av: Math.floor(av * 20) / 20, pausa: ANDAMIO_NUEVO && !!o.pausa }); }
+  const f = nuevas.map(o => o.pieza + o.x + o.z + o.av + o.nuevo + (o.pausa ? 'p' : '')).join('|'); if (f === firmaObras) return; firmaObras = f; obrasF = nuevas;
+  if (andL) { scene.remove(andL); andL.geometry.dispose(); andL = null; }
   if (andM) { scene.remove(andM); andM.geometry.dispose(); andM = null; }
-  if (nuevas.length) { const B = new Bulto(), rr = azar(11); for (const o of nuevas) andamio(B, o, rr); andM = new THREE.Mesh(B.geo(), matBulto); andM.castShadow = andM.receiveShadow = true; scene.add(andM); }
+  if (nuevas.length) { const B = new Bulto(), B2 = ANDAMIO_NUEVO ? new Bulto() : null, rr = azar(11); for (const o of nuevas) andamio(B, o, rr, B2); andM = new THREE.Mesh(B.geo(), matBulto); andM.castShadow = andM.receiveShadow = true; scene.add(andM);
+    if (B2 && B2.p.length) { andL = new THREE.Mesh(B2.geo(), matBulto); andL.castShadow = false; andL.receiveShadow = true; scene.add(andL); } }
+  if (ANDAMIO_NUEVO && E) arboles();
   edificios(); sombraPend = true; pedirReparto = true;
 }
 function dinamico() {
@@ -421,9 +466,69 @@ function antorchas() {
 /* ---------- cuadro ---------- */
 const _fr = new THREE.Frustum(), _pm = new THREE.Matrix4(), _ult = new Float32Array(16);
 function repartir(todo) { camara.updateMatrixWorld(); _pm.multiplyMatrices(camara.projectionMatrix, camara.matrixWorldInverse); _fr.setFromProjectionMatrix(_pm); const kf = 1 / Math.tan(camara.fov * Math.PI / 360); for (const l of lotes) l.repartir(_fr, camara.position, kf, todo); }
+/* ---------- E5: ambiente. Tono por estación (suave, SE SUMA a la luz y los tintes de Q11/CN15a), viñeta y contorno dorado de lo elegido.
+   Las piezas de efectos de three.js (js/vendor/postprocessing/) se cargan aparte: si fallan, la ciudad sigue sin efectos. Apagado = renderer.render directo, como siempre. ---------- */
+let FX = null, fxFallo = false, fxCarga = null, composer = null, fxTono = null, fxContorno = null, ambienteOn = true, neutro = false, contornoClave = '', contornoMallas = [], contornoSucio = true, vistaActual = null, selActual = null;
+const TONO_E = [{ m: [0.98, 1.02, 1.01], s: 1.05 }, { m: [1.04, 1.0, 0.94], s: 1.04 }, { m: [1.06, 0.99, 0.91], s: 1.06 }, { m: [0.94, 0.99, 1.06], s: 0.86 }];      // primavera fresca, verano cálido, otoño dorado, invierno frío y apagado (en luz lineal)
+const matFantasma = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
+function cargarFX() {
+  if (!fxCarga) fxCarga = Promise.all([import('../vendor/postprocessing/EffectComposer.js'), import('../vendor/postprocessing/RenderPass.js'), import('../vendor/postprocessing/ShaderPass.js'), import('../vendor/postprocessing/OutlinePass.js')])
+    .then(m => { FX = { EffectComposer: m[0].EffectComposer, RenderPass: m[1].RenderPass, ShaderPass: m[2].ShaderPass, OutlinePass: m[3].OutlinePass }; }).catch(e => { fxFallo = true; console.warn('Ciudad 3D: sin efectos de ambiente', e); });
+  return fxCarga;
+}
+const SHADER_TONO = {
+  uniforms: { tDiffuse: { value: null }, uTono: { value: new THREE.Vector3(1, 1, 1) }, uSat: { value: 1 }, uVig: { value: 0 } },
+  vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: 'uniform sampler2D tDiffuse; uniform vec3 uTono; uniform float uSat, uVig; varying vec2 vUv; void main() { vec4 c = texture2D(tDiffuse, vUv); float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722)); vec3 r = mix(vec3(l), c.rgb, uSat) * uTono; float d = length((vUv - 0.5) * vec2(1.0, 1.15)) * 1.414; r *= 1.0 - uVig * smoothstep(0.55, 1.15, d); gl_FragColor = vec4(r, c.a);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' };      // va a pantalla: hace también el ACES y el sRGB (una sola pasada; sin OutputPass)
+function montarComposer() {
+  if (composer || !FX || fxFallo) return !!composer;
+  try {
+    const w = vista.w, h = vista.h, pr = renderer.getPixelRatio();
+    const rt = new THREE.WebGLRenderTarget(Math.max(1, w * pr), Math.max(1, h * pr), { type: THREE.HalfFloatType, samples: 4 });      // con MSAA, como el lienzo directo
+    const c = new FX.EffectComposer(renderer, rt); c.setPixelRatio(pr); c.setSize(w, h);
+    c.addPass(new FX.RenderPass(scene, camara));
+    fxContorno = new FX.OutlinePass(new THREE.Vector2(w, h), scene, camara); fxContorno.edgeStrength = 5; fxContorno.edgeThickness = 1; fxContorno.edgeGlow = 0; fxContorno.pulsePeriod = 0;
+    fxContorno.visibleEdgeColor.set('#ffc94a'); fxContorno.hiddenEdgeColor.set('#7a5614'); fxContorno.enabled = false; c.addPass(fxContorno);
+    fxTono = new FX.ShaderPass(SHADER_TONO); c.addPass(fxTono);      // última pasada, a pantalla: tono, viñeta, ACES y sRGB juntos (el OutputPass sobraría: una pasada menos)
+    composer = c; contornoSucio = true;
+  } catch (e) { fxFallo = true; composer = null; console.warn('Ciudad 3D: no se pudo montar el ambiente', e); }
+  return !!composer;
+}
+/* mezcla suave del tono entre la estación de la que se parte (k) y la siguiente según f; neutro = sin tono ni viñeta (para comparar con el dibujo directo) */
+function ponerTono() {
+  const A = TONO_E[estK], B = TONO_E[(estK + 1) % 4], f = estF, u = fxTono.uniforms;
+  if (neutro) { u.uTono.value.set(1, 1, 1); u.uSat.value = 1; u.uVig.value = 0; return; }
+  u.uTono.value.set(A.m[0] + (B.m[0] - A.m[0]) * f, A.m[1] + (B.m[1] - A.m[1]) * f, A.m[2] + (B.m[2] - A.m[2]) * f); u.uSat.value = A.s + (B.s - A.s) * f; u.uVig.value = 0.3;
+}
+/* contorno: malla temporal solo con la pieza elegida (misma geometría y matriz que su ejemplar en el lote); invisible en el dibujo normal */
+function quitarContorno() { for (const m of contornoMallas) { scene.remove(m); m.dispose(); } contornoMallas = []; if (fxContorno) { fxContorno.selectedObjects = []; fxContorno.enabled = false; } }
+function loteDe(tipo) { let d = PZ[tipo]; if (!d) return null; if (tipo === 'templo' && TEMPLO_C[cul] && L[TEMPLO_C[cul][0]]) d = [TEMPLO_C[cul][0]]; const l = L[d[0]]; return l && l.niv ? l : null; }
+function ponerContorno(pos, sel) {
+  quitarContorno(); if (!pos || !composer || !E) return;
+  const tipo = typeof sel === 'string' ? (sel === 'foro' ? 'foro' : CI.PIEZA_DE[sel]) : null, lotes1 = tipo ? [loteDe(tipo)] : Object.keys(PZ).map(loteDe), vistos = new Set();
+  let mejor = null, dm = 16; for (const l of lotes1) { if (!l || vistos.has(l)) continue; vistos.add(l); for (let i = 0; i < l.n; i++) { const d = Math.hypot(l.M[i * 16 + 12] - pos.x, l.M[i * 16 + 14] - pos.z); if (d < dm) { dm = d; mejor = [l, i]; } } }
+  if (!mejor) return; const [l, i] = mejor;
+  for (const mm of l.niv[0].mallas) { const im = new THREE.InstancedMesh(mm.geometry, matFantasma, 1); im.instanceMatrix.array.set(l.M.subarray(i * 16, i * 16 + 16)); im.frustumCulled = false; im.castShadow = im.receiveShadow = false; scene.add(im); contornoMallas.push(im); }
+  fxContorno.selectedObjects = contornoMallas; fxContorno.enabled = contornoMallas.length > 0;
+}
+export function ponerAmbiente(on) { ambienteOn = !!on; if (ambienteOn) cargarFX(); else quitarContorno(); }
+/* el dibujo final: con Ambiente, por el composer; si algo falla, directo como siempre */
+function pintarFinal(sel) {
+  if (ambienteOn && !fxFallo) {
+    if (FX && montarComposer()) {
+      try {
+        const clave = sel ? (typeof sel === 'object' ? 'p' + sel.x + ',' + sel.z : sel) : ''; if (clave !== contornoClave || contornoSucio) { contornoClave = clave; contornoSucio = false; ponerContorno(clave ? vistaActual.posDe(sel) : null, sel); }
+        ponerTono(); renderer.info.autoReset = false; renderer.info.reset(); composer.render(); renderer.info.autoReset = true; return;
+      } catch (e) { fxFallo = true; renderer.info.autoReset = true; quitarContorno(); composer = null; console.warn('Ciudad 3D: falló el ambiente; sigo sin efectos', e); }
+    } else if (!FX) cargarFX();
+  } else if (contornoMallas.length) { quitarContorno(); contornoClave = ''; }
+  renderer.render(scene, camara);
+}
 export const medidas = { triangulos: 0, llamadas: 0, sombras: 0, conSombra: 0 };
 function dibujar() {
   if (LUZ_ESTACIONAL) luz(); antorchas();
+  /* CN15a: tinte por estación (suelo, árboles, humo). Solo al cambiar de estación o de paso (8 pasos): sin repintar sombras */
+  if (LUZ_ESTACIONAL && sueloJ && estClave !== estK * 9 + Math.round(estF * 8)) { estQ = Math.round(estF * 8); estClave = estK * 9 + estQ; sueloJ.estacion(estK, estQ / 8); vida.tinteHumo(scene.fog.color); if (E) { nTalados = -1; arboles(); pedirReparto = true; } }
   const t = ahora(), dtC = Math.min(0.25, t - (U.uTiempo.value || t)); U.uTiempo.value = t; if (pinM && pinM.visible) pinM.rotation.y = t * 2;
   if (E) { sincronizar(false); if (ahora() >= esperaSurco) obrasAlDia(); }
   /* arado y surco */
@@ -434,7 +539,7 @@ function dibujar() {
   if (sombraPend && !anim) { repartir(true); renderer.shadowMap.needsUpdate = true; renderer.render(scene, camara); sombraPend = false; _ult[0] = NaN; medidas.sombras++; medidas.conSombra = renderer.info.render.triangles; }
   camara.updateMatrixWorld(); _pm.multiplyMatrices(camara.projectionMatrix, camara.matrixWorldInverse); let igual = !pedirReparto; for (let i = 0; i < 16; i++) if (_pm.elements[i] !== _ult[i]) { igual = false; _ult[i] = _pm.elements[i]; }
   if (!igual) { repartir(false); pedirReparto = false; }
-  renderer.render(scene, camara); medidas.triangulos = renderer.info.render.triangles; medidas.llamadas = renderer.info.render.calls;
+  pintarFinal(selActual); medidas.triangulos = renderer.info.render.triangles; medidas.llamadas = renderer.info.render.calls;
 }
 async function texturasListas() { await Promise.all(esperas); hornos.forEach(f => f()); hornos.length = 0; }
 
@@ -446,7 +551,7 @@ const PK = 0.7;                                    // escala de las personas res
 const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 export class CityView3D {
   constructor(hostEl, opts) {
-    host = this.host = hostEl; this.opts = opts || {};
+    host = this.host = hostEl; this.opts = opts || {}; vistaActual = this; try { const Gm = window.Game; ambienteOn = !Gm || !Gm.ambiente || Gm.ambiente(); if (ambienteOn) cargarFX(); } catch (e) { }
     renderer = this.r = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.92; renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false;      // la sombra se calcula a petición
@@ -482,10 +587,21 @@ export class CityView3D {
     M[o] = c; M[o + 1] = 0; M[o + 2] = -s; M[o + 3] = 0; M[o + 4] = 0; M[o + 5] = k; M[o + 6] = 0; M[o + 7] = 0; M[o + 8] = s; M[o + 9] = 0; M[o + 10] = c; M[o + 11] = 0; M[o + 12] = x; M[o + 13] = altura(x, z) + 0.1; M[o + 14] = z; M[o + 15] = 1;
     e.a[e.i] = UN.frameOf(clip, t); e.i++;
   }
+  /* CN15c: sonido ambiente (sonido-ciudad.js); solo lee lo que ya existe y nunca rompe el cuadro */
+  sonar(city, id) {
+    try {
+      const S = window.SonidoCiudad; if (!S || !E || (window.Sonido && window.Sonido.activo === false)) return; const Gm = window.Game, st = Gm && Gm.state, ed = E.edificios || [], n = tp => ed.filter(q => q.tipo === tp && !q.obra && !q.ruina).length, ob = city && city.obras || [];
+      const fm = st && typeof st.t === 'number' ? st.t - Math.floor(st.t) : 0.45;      // el mes hace de día: 0,45 = mediodía, el final del mes es la noche (misma curva que la luz)
+      S.actualizar({ camD: cam.d, camX: camara.position.x, camZ: camara.position.z, estacion: estacionActual().ks, hora: ((fm - 0.45) * 24 + 36) % 24,
+        nObrasActivas: ob.filter(o => !o.pausa).length, forja: n('taller') + n('herreria'), mercado: n('mercado'), granjas: n('granja'),
+        fuego: E.fuego && E.fuego.mes === E.mesN ? 1 : 0, hambre: E.hambre ? 1 : 0, crecida: E.crecida === E.mesN ? 1 : 0, dRio: distRio(cam.tx, cam.tz),
+        pending: !!(st && st.pending && st.pending.length), vivo: !!(st && st.vivo), obreros: trajin.obreros(), recuas: trajin.recuas() });
+    } catch (e) { /* el sonido nunca rompe la vista */ }
+  }
   /* ciudadanos, humo y carros: vida.js (CN11-A). La guarnición formada ante la puerta principal es provisional (CN11-B) */
   people(city, t, dt) {
     for (const e of this.figs.values()) e.i = 0;
-    vida.actualizar(E, cam.d, t, dt, ahora() >= esperaSurco);
+    vida.actualizar(E, cam.d, t, dt, ahora() >= esperaSurco); Fachadas.actualizar(E, cam.d); Civicas.actualizar(E, cam.d); trajin.actualizar(E, city, cam.d, t, dt, ahora() >= esperaSurco);
     /* guarnición: vida.js (CN11-B), real de cerca y cajas de lejos */
     const g = vida.guarnicion(E, city.units, camara.position, t, { PK, D }); this.men = g.men; this.guarn = g.hay ? { x: g.x, z: g.z } : null;
     for (const e of this.figs.values()) { e.m.count = e.i; e.m.instanceMatrix.needsUpdate = true; e.m.geometry.attributes.aFrame.needsUpdate = true; }
@@ -507,6 +623,9 @@ export class CityView3D {
     obrasLista = city && city.obras || null;
     ponerCamara();
     this.people(city, t, dt);
+    this.sonar(city, id);
+    try { const am = !window.Game || !window.Game.ambiente || window.Game.ambiente(); if (am !== ambienteOn) ponerAmbiente(am); } catch (e) { }      // E5: manda el ajuste de la partida
+    selActual = sel || null;
     dibujar();
     this.etiquetasBarrio(H);
     const el = this.armyEl, txt = '⚔️ Guarnición · ' + this.men; if (el._t !== txt) { el._t = txt; el.textContent = txt; }
@@ -525,7 +644,7 @@ export class CityView3D {
     });
   }
   /* dónde está el edificio de D.BUILD b en la ciudad */
-  posDe(b) { if (!E) return null; if (b && typeof b === 'object') return { x: b.x, z: b.z }; if (b === 'foro') return E.foro ? { x: E.foro.x, z: E.foro.z } : null; const pz = CI.PIEZA_DE[b], e = pz && E.edificios.find(q => q.tipo === pz); return e ? { x: e.x, z: e.z } : null; }
+  posDe(b) { if (!E) return null; if (b && typeof b === 'object') { if (b.k === 'foro') b = 'foro'; else return Number.isFinite(b.x) && Number.isFinite(b.z) ? { x: b.x, z: b.z } : null; } if (b === 'foro') return E.foro ? { x: E.foro.x, z: E.foro.z } : null; const pz = CI.PIEZA_DE[b], e = pz && E.edificios.find(q => q.tipo === pz); return e ? { x: e.x, z: e.z } : null; }
   /* qué se ha tocado: id D.BUILD o null */
   tocar(x, y) {
     if (this.opts.onSuelo && this.opts.onSuelo(x, y)) return;      // CN4: en modo colocar el toque mueve el fantasma
@@ -567,5 +686,7 @@ export class CityView3D {
     else { let cx = f ? f.x : 0, cz = f ? f.z - 10 : -20, r = 120; if (E && E.surco && E.surco.length) { cx = cz = 0; for (const p of E.surco) { cx += p[0]; cz += p[1]; } cx /= E.surco.length; cz /= E.surco.length; r = 0; for (const p of E.surco) r = Math.max(r, Math.hypot(p[0] - cx, p[1] - cz)); r = Math.max(r, 120); } cam.tx = cx; cam.tz = cz; cam.az = 0; cam.d = Math.max(260, r * (vert ? 3.6 : 2.8)); }
     ponerCamara();
   }
-  resize() { const w = host.clientWidth || 1, h = host.clientHeight || 1; renderer.setSize(w, h, false); vista.w = w; vista.h = h; ponerCamara(); }
+  resize() { const w = host.clientWidth || 1, h = host.clientHeight || 1; renderer.setSize(w, h, false); vista.w = w; vista.h = h; if (composer) { composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(w, h); } ponerCamara(); }
+  ponerAmbiente(on) { ponerAmbiente(on); }
+  ambienteNeutro(b) { neutro = !!b; }      // pruebas: sin tono ni viñeta, para comparar con el dibujo directo
 }
