@@ -644,7 +644,7 @@ export class CityView3D {
     });
   }
   /* dónde está el edificio de D.BUILD b en la ciudad */
-  posDe(b) { if (!E) return null; if (b && typeof b === 'object') return { x: b.x, z: b.z }; if (b === 'foro') return E.foro ? { x: E.foro.x, z: E.foro.z } : null; const pz = CI.PIEZA_DE[b], e = pz && E.edificios.find(q => q.tipo === pz); return e ? { x: e.x, z: e.z } : null; }
+  posDe(b) { if (!E) return null; if (b && typeof b === 'object') { if (b.k === 'foro') b = 'foro'; else return Number.isFinite(b.x) && Number.isFinite(b.z) ? { x: b.x, z: b.z } : null; } if (b === 'foro') return E.foro ? { x: E.foro.x, z: E.foro.z } : null; const pz = CI.PIEZA_DE[b], e = pz && E.edificios.find(q => q.tipo === pz); return e ? { x: e.x, z: e.z } : null; }
   /* qué se ha tocado: id D.BUILD o null */
   tocar(x, y) {
     if (this.opts.onSuelo && this.opts.onSuelo(x, y)) return;      // CN4: en modo colocar el toque mueve el fantasma

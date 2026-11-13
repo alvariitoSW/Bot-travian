@@ -251,8 +251,8 @@ function consejoModal() {
   const lineas = (mostrar.length ? mostrar : [{ k: '', x: 'Sin novedades este trimestre.' }]).concat(rec ? [rec] : []);
   let el = document.getElementById('inf'); if (el) el.remove();
   el = document.createElement('div'); el.id = 'inf'; el.className = 'inf';
-  const corta = '<div class="inf-t">' + esc(l[0].x) + '</div>' + lineas.map(q => '<div class="inf-l" style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</div>').join('') + '<div class="inf-b"><button class="btn ghost" data-act="inf-mas" id="inf-mas">Ver más</button><button class="btn gold" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
-  const larga = '<div class="inf-d">' + detalle + '</div><div class="inf-b"><button class="btn ghost" data-act="inf-mas" id="inf-mas">Cerrar detalle</button><button class="btn gold" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
+  const corta = '<i class="inf-sello">S</i><div class="inf-t">' + esc(l[0].x) + '</div>' + lineas.map(q => '<div class="inf-l" style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</div>').join('') + '<div class="inf-b"><button class="btn ghost" data-act="inf-mas" id="inf-mas">Ver más</button><button class="btn gold" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
+  const larga = '<i class="inf-sello">S</i><div class="inf-d">' + detalle + '</div><div class="inf-b"><button class="btn ghost" data-act="inf-mas" id="inf-mas">Cerrar detalle</button><button class="btn gold" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
   el._corta = corta; el._larga = larga; el.innerHTML = corta; document.body.appendChild(el);
 }
 UI.infoMas = function () { const el = document.getElementById('inf'); if (!el) return; const m = el.classList.toggle('mas'); el.innerHTML = m ? el._larga : el._corta; };
@@ -270,7 +270,7 @@ function hudDock() {
   setTxt('bmodo', open ? '<span class="em">✕</span><small>Cerrar</small>' : (g ? ICO_GOB : D.GUERRA_ICON.espadas) + '<small>' + (g ? 'Gobierno' : 'Guerra') + '</small>');
   setTxt('bpill', g ? D.POP_ICON + ' ' + Math.floor(c.pop) + '/' + G.popCap(c) + ' · ' + cara + ' ' + f : '🚩 ' + (nm === 1 ? '1 marcha en curso' : nm + ' marchas en curso'));
   const t3 = UI.tab === 'imperio' || UI.tab === 'senado' || UI.tab === 'saber' ? 'imperio' : UI.tab === 'city' ? (UI.cityList || !UI.cityV ? 'gobierno' : 'ciudad') : '';
-  document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3)); $('app').dataset.tab = t3;
+  document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3)); $('app').dataset.tab = t3; $('app').dataset.vista = UI.tab;
   setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
 }
 function tickUI() {
@@ -1072,11 +1072,12 @@ function viewCodice() {
 }
 function viewLog() {
   if (UI.codice && window.CODICE) return viewCodice();
-  const s = S(), year = G.yearOf(s.t), left = year - D.END_YEAR + 1;
-  let o = (window.CODICE ? '<div class="acts"><button class="btn gold" style="width:100%" data-act="codice" data-v="tropas">📖 Abrir el Códice</button></div>' : '') + '<div class="head"><h2>' + (G.regionId() === 'mediterraneo' ? 'Carthago delenda est' : 'Dominar ' + esc(G.region().n)) + '</h2><p>Conquista <b>' + D.CITIES[G.region().capitalRival].n + '</b> antes de que termine el año ' + G.region().hasta + ' a.C. Si Roma cae, la campaña termina.</p><p>⏳ Quedan <b>' + left + '</b> años · 🏛️ ' + G.myCities().length + '/' + G.ciudadesRegion().length + ' ciudades · ' + D.GUERRA_ICON.espadas + ' ' + s.stats.wins + '/' + s.stats.battles + ' batallas</p></div>';
-  o += '<div class="sec">Línea del tiempo</div><div class="tl">' + D.EVENTS.map((e, i) => '<div class="' + (s.ev[i] ? 'done' : '') + '"' + (s.ev[i] ? ' data-act="ev" data-v="' + i + '"' : '') + '>' + e.y + ' a.C. — ' + (s.ev[i] ? esc(e.t) : '···') + '</div>').join('') + '</div>';
-  o += '<div class="sec">Crónica</div>' + (s.log.length ? s.log.map(l => '<div class="logl ' + l.k + '"><small>' + G.yearOf(l.t) + ' a.C.</small>' + esc(l.x) + '</div>').join('') : '<div class="empty">Aún no ha ocurrido nada.</div>');
-  return o + '<div class="acts" style="margin-top:16px"><button class="btn ghost" data-act="tomenu">Guardar y salir al menú</button></div>';
+  // K12b: Crónica en estilo Códice. Tres folios con scroll-snap horizontal (sin scroll infinito): Campaña, Línea del tiempo y Crónica reciente.
+  const s = S(), year = G.yearOf(s.t), left = year - D.END_YEAR + 1, cap = ch => '<span class="cod-cap">' + ch + '</span>';
+  const f1 = '<section class="cod-f"><div class="cod-h">' + cap('C') + '<div><h2>' + (G.regionId() === 'mediterraneo' ? 'Carthago delenda est' : 'Dominar ' + esc(G.region().n)) + '</h2><i>Folio I · La campaña</i></div></div><p>Conquista <b>' + D.CITIES[G.region().capitalRival].n + '</b> antes de que termine el año ' + G.region().hasta + ' a.C. Si Roma cae, la campaña termina.</p><p class="cod-st">⏳ Quedan <b>' + left + '</b> años · 🏛️ ' + G.myCities().length + '/' + G.ciudadesRegion().length + ' ciudades · ' + D.GUERRA_ICON.espadas + ' ' + s.stats.wins + '/' + s.stats.battles + ' batallas</p>' + (window.CODICE ? '<button class="btn gold cod-b" data-act="codice" data-v="tropas">📖 Abrir el Códice</button>' : '') + '<button class="btn ghost cod-b" data-act="tomenu">Guardar y salir al menú</button></section>';
+  const f2 = '<section class="cod-f"><div class="cod-h">' + cap('L') + '<div><h2>Línea del tiempo</h2><i>Folio II · Lo que fue y lo que viene</i></div></div><div class="tl cod-tl">' + D.EVENTS.map((e, i) => '<div class="' + (s.ev[i] ? 'done' : '') + '"' + (s.ev[i] ? ' data-act="ev" data-v="' + i + '"' : '') + '><b>' + e.y + ' a.C.</b>' + (s.ev[i] ? esc(e.t) : '···') + '</div>').join('') + '</div></section>';
+  const f3 = '<section class="cod-f"><div class="cod-h">' + cap('A') + '<div><h2>Anales</h2><i>Folio III · Lo último que ocurrió</i></div></div>' + (s.log.length ? '<div class="cod-an">' + s.log.slice(0, 10).map(l => '<div class="logl ' + l.k + '"><small>' + D.MONTHS[Math.floor(l.t) % 12] + ' · ' + G.yearOf(l.t) + ' a.C.</small>' + esc(l.x) + '</div>').join('') + '</div>' : '<div class="empty">Aún no ha ocurrido nada.</div>') + '</section>';
+  return '<div class="cod"><div class="cod-fs">' + f1 + f2 + f3 + '</div><div class="cod-pie">Tres folios · desliza ↔</div></div>';
 }
 
 /* ---------- ficha de ciudad sobre el mapa ---------- */
