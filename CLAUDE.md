@@ -74,4 +74,5 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
   Ideas sí; código y arte de juegos comerciales, nunca.
 - **Gasto**: presupuesto antes de empezar y `node gobierno/gasto.mjs` al cerrar. El director no construye; los
   agentes van en Sonnet. La skill `ahorro` revisa los partes y propone recortes.
+- **Modo rápido (decidido 13/11, vale para toda sesión)**: sin cadena de agentes en tareas pequeñas o medias (construye el director directo; un solo revisor al final de la sesión); durante el trabajo `node gobierno/jueces.mjs --rapido`, y los jueces completos con capturas una sola vez al cerrar cada tarea; parte de ~10 líneas y 2 o 3 capturas; no preguntar lo ya decidido (elegir lo recomendado y anotarlo); commits pequeños y `git pull --rebase` antes de cada push.
 - **Cuadro de mando** (Artifact para el móvil del usuario): dirección en `gobierno/cuadro.json`; skill `cuadro-de-mando`.

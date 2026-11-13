@@ -36,7 +36,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 - ✅ B2 Rutas comerciales (11/11): desde una ciudad con mercado abres ruta con una vecina propia o firmas un tratado con una ajena (100 de oro); da oro cada mes y el tratado da acceso al bien de esa ciudad; se rompe si hay guerra. En el mapa, trazo dorado con un mercante (barco o carro).
 - ✅ B3 Felicidad e impuestos (bajo, normal, alto) por ciudad.
 - ✅ B4 Termas, acueducto y anfiteatro con sus reglas; en 3D llevan un modelo provisional hasta E4.
-- ⬜ B5 Marina: flotas, batallas navales o bloqueo.
+- ⬜ (recortada por el usuario el 13/11: no se hace) B5 Marina: flotas, batallas navales o bloqueo.
 - ✅ B6 Equilibrio: el bot de pruebas toma Cartago en 6 de 10 campañas; sin cambiar números del juego.
 
 - ✅ B7 Saqueo (11/11): al atacar eliges «Solo saquear»: botín según riqueza, almacén y muralla de la ciudad enemiga, sin conquistarla y con las tropas de vuelta; una ciudad saqueada hace poco da el 40 %. Los rivales también saquean: la mitad de sus incursiones no conquistan, te llevan el 20 % de lo que el almacén no esconde (120 por nivel de almacén y recurso).
@@ -61,7 +61,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ I5 **Saber: investigación y edades** (12/11): 22 saberes, 3 edades, cola, techos, ganchos de economía y pestaña «Saber»; precio fijo con tope. Parte: `partes/2026-11-12-I5.md`.
 - ✅ I5b **Escuela y sabios** (P93): la Escuela se abre con «Preceptores griegos», destinas plebeyos, ciudadanos o esclavos a estudiar; ritmo real de estudio, paga mensual que sube con el total de sabios, script de calibración. Parte `partes/2026-11-12-I5b.md`.
 - ✅ I5c **Ciencia en combate y rival**: moral, ataque, muralla, brecha y herida cableados; el rival copia por bando (techos bajados tras medir 4.16). Parte `partes/2026-11-12-I5c.md`.
-- ⬜ I5d **Reformar y afinado** (opcional, ≈1 M; tras jugar el sistema): cambiar de saber pagando el coste completo; afinado con medida real y cotejo de citas.
+- ⬜ (en pausa desde 13/11) I5d **Reformar y afinado** (opcional, ≈1 M; tras jugar el sistema): cambiar de saber pagando el coste completo; afinado con medida real y cotejo de citas.
 - ✅ I6 **Región de Italia** montada solo con fichas (12/11): `D.REGIONES`, `G.newGame(nombre, región)`, mapa que oculta lo de fuera, botón «Región de Italia». Cómo definir una región: parte I6.
 - ✅ I7 Fundida en J3 (capital y pueblos; decisión del 11/11).
 - ✅ I8 **Partida corta** (P49): menú con «Roma y Capua en pie» y «Fundar de la nada», Italia, un rival, final con resumen (D.MODOS). Parte: gobierno/partes/2026-11-13-I8.md
@@ -71,7 +71,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ J2 **Obras de un toque** (11/11): hecha dentro de J7 (cola de obras y filas deslizables en Imperio).
 - ✅ J6 **Ciudad como pantalla principal** (11/11): ciudad 3D a pantalla completa, medallas de bronce con nivel, ficha única con consejo, pestañas Ciudad/Gobierno/Imperio. Parte `partes/2026-11-11-J6.md`.
 - ✅ J7 **Parte densa: Imperio y Obras** (11/11): pestaña Imperio con ciudades por urgencia, filtros, resumen de población y ánimo, cola de obras, filas deslizables y «Hacer lo mismo en…». Parte `partes/2026-11-11-J7.md`.
-- ⬜ J7b **Pestañas también en el mapa de guerra** (sacada de J7; esperar a que I2 Mapa por turnos termine con `js/game.js` y el mapa).
+- ⬜ (en pausa desde 13/11) J7b **Pestañas también en el mapa de guerra** (sacada de J7; esperar a que I2 Mapa por turnos termine con `js/game.js` y el mapa).
 - ⬜ J3 **Capital y pueblos** (P60; incluye I7): cada territorio tiene una capital con los edificios de gobierno y pueblos de recursos, pescadores y agricultores-ganaderos. Los pueblos producen; la capital gobierna, recluta y comercia. 0,3 + 1,0 M, en dos tareas. Después de I6.
 - ⬜ J4 **Mapa más grande por regiones** (P62; amplía I6): más ciudades y territorios, cada región con su capital y sus núcleos pequeños; lista de ciudades con fuente histórica; vigilar la fluidez. 0,3 + 1,2 M, en dos o tres tareas. Después de J3. **Incluye** crear Perusia, Clusio y Rusellae (H11c, madera naval, Livio 28.45). Idea para bajar de nivel (Mare Nostrum › región › ciudad, con «volver»): `estudios/R20-niveles-de-mapa.md` (solo la idea, sin código del kit; 12/11).
 - ⬜ J5 **Política territorial** (P61): apartado «Senado» con planes de infraestructuras, ciudadanía, ejército, diplomacia y mercado. Primero informe corto de diseño con fuentes; se une con I5 y C3. 0,3 + 1,0 M, en dos tareas.
@@ -84,8 +84,8 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ K5 **Concurso Gobierno 2** (11/11): Ciudad 61, Tabularium 60, Lentes 56, Domus 52, Foro 44.
 - ⬜ V1 **Informe en vídeo: menús del juego** (pedido 12/11): cómo hacer los menús legibles, que no ocupen toda la pantalla, que quepan en el móvil para usarlos con los pulgares y sin mil cosas a la vez. Sesión barata (Haiku) con la maquinaria de /moncloa del repositorio de fiebres. Solo informe; no toca el juego.
 - ⬜ K6 **Concurso de arte: batalla y manejo de tropas** (pedido 12/11): cinco maquetas en Haiku (esfuerzo alto) y jurado ciego, sobre cómo se ve y se manejan las tropas. Solo `gobierno/maquetas/`; no toca `js/`.
-- ⬜ K7 **Concurso: interfaz y jugabilidad de ciudades y fuera de ellas** (pedido 12/11; después de K6): rutas de comercio como parte del juego, diplomacia y movimiento de tropas. Solo `gobierno/maquetas/`.
-- ⬜ K8 **Concurso: Senado, política y economía** (pedido 12/11, aprobado «igual que K6»; ≈2 a 3 M): ocho maquetas rivales en Haiku (esfuerzo alto) y jurado ciego, sobre el diseño y la jugabilidad del Senado, la política y la economía (incluye avisos de «Cierre de mes» e informe de estación que hoy tapan la pantalla, y construir y conseguir recursos, conservando lo que va bien). Solo `gobierno/maquetas/`; no toca `js/`. Después de K6 y K7.
+- ⬜ (recortada por el usuario el 13/11: no se hace) K7 **Concurso: interfaz y jugabilidad de ciudades y fuera de ellas** (pedido 12/11; después de K6): rutas de comercio como parte del juego, diplomacia y movimiento de tropas. Solo `gobierno/maquetas/`.
+- ⬜ (recortada por el usuario el 13/11: no se hace) K8 **Concurso: Senado, política y economía** (pedido 12/11, aprobado «igual que K6»; ≈2 a 3 M): ocho maquetas rivales en Haiku (esfuerzo alto) y jurado ciego, sobre el diseño y la jugabilidad del Senado, la política y la economía (incluye avisos de «Cierre de mes» e informe de estación que hoy tapan la pantalla, y construir y conseguir recursos, conservando lo que va bien). Solo `gobierno/maquetas/`; no toca `js/`. Después de K6 y K7.
 - 🔶 K10 **Concurso de arte de la batalla** (13/11, pedido del usuario): piezas P1 a P5 en cuatro rondas, Opus y Sonnet sin Fable, jurado ciego y voto del usuario. Solo `gobierno/maquetas/piezas-batalla/`; no toca `js/`. Tope duro 4 M.
 - ✅ K11 **Concurso de menús y pantallas** (13/11): cuatro maquetas y jurado ciego; 1.º B Hojas (118/150), 2.º D Códice (102), 3.º C Mosaico (100), 4.º A Mármol (99). Informe `estudios/K11-concurso.md`. Elige el usuario. Gasto 3,45 M (tope 3).
 - 🔶 K12 **Construir los menús ganadores** (aprobado por el usuario el 13/11 con «vamos a finalizarlo… para subirlo a main»): se conservan los cuatro estilos, uno por tipo de pantalla; «Volver al menú principal» dentro del ☰, al fondo y con confirmación. Tres partes, una detrás de otra (todas tocan `js/ui.js` y `css/style.css`):
@@ -171,7 +171,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ⬜ CN17 **Barrios con carácter, encargos e hitos** (P87, ≈1,5 M): barrios con nombre propio, plaza en los cruces, encargos cortos del Senado, hitos que abren algo nuevo. Tras CN6 y Q7.
 - ⬜ CN18 **Hecho para el móvil** (P88, ≈1,5 M): postal y crónica de la ciudad, modo contemplar, punto de parada, copia de la partida en un archivo, partida corta con nota (enlaza con I8).
 - ⬜ CN19 **Más terrenos donde fundar** (P90, ≈2,5 M, partir en dos): costa con salinas, pantano, terrazas, llanura. Tras CN5.
-- ⬜ CN20 **La historia llega a tu ciudad** (P91, ≈1,5 M más fichas): Pirro, Aníbal, la Gran Madre, auspicios, fiestas; cada hecho con su ficha antes de entrar (skill `historia`).
+- ⬜ (recortada por el usuario el 13/11: no se hace) CN20 **La historia llega a tu ciudad** (P91, ≈1,5 M más fichas): Pirro, Aníbal, la Gran Madre, auspicios, fiestas; cada hecho con su ficha antes de entrar (skill `historia`).
 - ⬜ CN21 **Mover un edificio** (P96, ≈0,4 M): `G.moverPieza` en `js/game.js` y botón «Mover» en la ficha del edificio; hoy derribar y volver a colocar borra las mejoras. Toca `game.js` y `ui.js`.
 - ✅ CN22 **Avisos pequeños que no tapan la pantalla** (P97): los «Cierre de mes» se apilan y tapan la ciudad y el informe de estación ocupa todo. Avisos pequeños que se van solos o se agrupan, y mejor la parte de construir y conseguir recursos, sin tirar lo que hay. Toca `js/ui.js` y `css/`.
 - ⬜ CN23 **Ampliar la muralla: segundo recinto** (P99): los barrios nuevos nacen fuera del surco y quedan de arrabal; permitir ampliar la muralla (no el pomerium). Toca `ciudad.js`, `game.js`, `city3d.js`; CN12 lee la geometría de `E.muralla.geo`.
