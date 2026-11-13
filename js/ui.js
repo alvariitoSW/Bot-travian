@@ -150,6 +150,7 @@ function ajustesHtml() {
     '<small>Los cambios de dificultad y sucesos valen desde el mes siguiente.</small><div class="ajb"><button class="chip" data-act="repetirasesor">Repetir los consejos</button></div>' +
     '<div class="ajf" id="aj-pausas"><b>Pausas del reloj</b><div class="ajb">' + [['todas', 'Todas'], ['graves', 'Solo graves'], ['ninguna', 'Ninguna']].map(q => '<button class="chip' + (G.pausas() === q[0] ? ' on' : '') + '" data-act="pausas" data-v="' + q[0] + '">' + q[1] + '</button>').join('') + '</div><small>El reloj se para al acabar una obra o una leva, al cumplirse una misión o al venir un ataque.</small></div>' +
     '<div class="ajf" id="aj-batalla"><b>Batalla</b><div class="ajb">' + [['nueva', 'Nueva'], ['clasica', 'Clásica']].map(q => '<button class="chip' + (G.batalla() === q[0] ? ' on' : '') + '" data-act="batalla" data-v="' + q[0] + '">' + q[1] + '</button>').join('') + '</div><small>Nueva: maniobra y choque por sectores. Clásica: el campo abierto de siempre.</small></div>' +
+    '<div class="ajf" id="aj-ambiente"><div class="ajb"><button class="chip' + (G.ambiente() ? ' on' : '') + '" data-act="ambiente">Ambiente: ' + (G.ambiente() ? 'sí' : 'no') + '</button></div><small>Tono por estación, viñeta y contorno dorado en la ciudad.</small></div>' +
     '<div class="ajf" id="aj-sonido"><div class="ajb"><button class="chip' + (sonidoOn() ? ' on' : '') + '" data-act="sonido">' + sonidoTxt() + '</button></div></div></div>';
 }
 /* I8: bloque «Partida corta» del menú: dos botones con su línea de explicación (los textos vienen de D.MODOS.corta) */
@@ -362,7 +363,7 @@ function ajustesHoja() {
     '<div class="ajf" id="aj-pausas"><b class="hrot">Pausas del reloj</b>' + seg([['todas', 'Todas'], ['graves', 'Solo graves'], ['ninguna', 'Ninguna']], G.pausas(), 'pausas') + '<small>' + frase + '</small></div><div class="hsep"></div>' +
     tog('Consejos del asesor', 'id="ase-g" data-act="asesor" data-d="g"', !!a.asesor) + '<button class="chip hbtn" data-act="repetirasesor">Repetir los consejos</button><div class="hsep"></div><b class="hrot">Sucesos</b>' +
     sw.map(q => tog(q[1], 'data-act="suceso" data-v="' + q[0] + '"', !!a.suc[q[0]], q[0] === 'hambre' && !((D.DIFICULTAD[a.dif] || {}).hambre || {}).meses ? 'Sin efecto en Tranquila' : '')).join('') +
-    '<div class="hsep"></div><div id="aj-sonido">' + tog('Sonido', 'data-act="sonido"', sonidoOn()) + '</div></div>';
+    '<div class="hsep"></div>' + tog('Ambiente', 'id="aj-ambiente" data-act="ambiente"', G.ambiente(), 'Tono por estación, viñeta y contorno dorado en la ciudad') + '<div id="aj-sonido">' + tog('Sonido', 'data-act="sonido"', sonidoOn()) + '</div></div>';
 }
 const HOJAS = {
   menu: { titulo: 'Menú', alt: 1, html: menuHoja },
@@ -1426,6 +1427,7 @@ document.addEventListener('click', function (e) {
     case 'suceso': { const a = G.ajustes(), r = G.ponerAjustes({ suc: { [v]: !a.suc[v] } }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); toast('Vale desde el mes siguiente.'); } render(); break; }
     case 'repetirasesor': if (typeof ASESOR !== 'undefined') { ASESOR.repetir(S().ajustes); G.save(); UI.linK = null; pintaLinea(); toast('Los consejos volverán a salir.'); } break;
     case 'entendido': if (typeof ASESOR !== 'undefined' && UI.lesId) { ASESOR.marcar(S().ajustes, UI.lesId, { mes: Math.floor(S().t + 1e-9), ahora: Date.now() }); G.save(); } UI.linK = null; pintaLinea(); break;
+    case 'ambiente': { const nv = el.type === 'checkbox' ? el.checked : !G.ambiente(), r = G.ponerAjustes({ ambiente: nv }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); if (UI.cityV && UI.cityV.ponerAmbiente) UI.cityV.ponerAmbiente(nv); } render(); break; }
     case 'sonido': { const so = window.Sonido; if (so) { if (sonidoOn()) so.off(); else so.on(); } if (UI.menu) hojaPinta(true); else render(); break; }
     case 'fluidez': fijarFluidez(!fluidezOn()); hojaPinta(true); break;
     case 'new': case 'newregion': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;

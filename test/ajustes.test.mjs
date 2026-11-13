@@ -93,5 +93,14 @@ try {
   assert.deepStrictEqual(JSON.parse(JSON.stringify(Ci.DIF_RESERVA)), JSON.parse(JSON.stringify(D.DIFICULTAD)).constructor === Object ? Object.fromEntries(Object.entries(D.DIFICULTAD).map(([k, v]) => [k, { nombre: v.nombre, crecida: v.crecida, incendio: v.incendio, hambre: v.hambre, aviso: v.aviso }])) : null, 'DIF_RESERVA (ciudad.js) debe coincidir con D.DIFICULTAD (data.js)');
 } catch (e) { fallos.push('asesor/dificultades: ' + e.message); }
 
+/* E5: ambiente de la ciudad 3D (booleano, por defecto sí; migra partidas viejas) */
+try {
+  G.newGame('Test', undefined, {}); assert.strictEqual(G.ambiente(), true, 'por defecto encendido');
+  delete G.state.ajustes.ambiente; assert.strictEqual(G.ajustes().ambiente, true, 'migra: partida vieja sin el campo');
+  assert.strictEqual(G.ponerAjustes({ ambiente: false }).ok, true); assert.strictEqual(G.ambiente(), false);
+  assert.strictEqual(G.ponerAjustes({ ambiente: 'no' }).ok, false, 'solo booleano'); assert.strictEqual(G.ambiente(), false);
+  G.ponerAjustes({ ambiente: true }); assert.strictEqual(G.ambiente(), true);
+} catch (e) { fallos.push('ambiente: ' + e.message); }
+
 if (fallos.length) { console.log('FALLOS:\n - ' + fallos.join('\n - ')); process.exit(1); }
 console.log('ajustes.test: bien');

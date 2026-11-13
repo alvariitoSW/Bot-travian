@@ -321,6 +321,7 @@ function casas(t) {
   return anim;
 }
 function edificios() {
+  contornoSucio = true;      // E5: el contorno se rehace con las matrices nuevas
   const por = {}; for (const t in PZ) por[PZ[t][0]] = []; for (const k of TEMPLO_PZ) por[k] = [];
   const pon = (tipo, x, z, ang, sy, piel, dy = 0) => { let d = PZ[tipo]; if (!d) return; if (tipo === 'templo' && TEMPLO_C[cul] && L[TEMPLO_C[cul][0]]) d = [TEMPLO_C[cul][0], TEMPLO_C[cul][1], d[2], d[3]]; const y = tipo === 'muelle' ? NIVEL_RIO + 1.4 : suelo(x, z, tipo === 'fuente' || tipo === 'compitum' ? 2 : 7) - d[3]; por[d[0]].push({ m: matriz(x, y + dy, z, Math.PI / 2 - ang + d[2], d[1], d[1] * sy, d[1]), ...piel }); };
   if (E.foro && ahora() >= esperaSurco) { const f = E.foro; pon('foro', f.x - Math.cos(f.ang) * 8, f.z - Math.sin(f.ang) * 8, f.ang, 1, PIEL_U); }
@@ -465,6 +466,64 @@ function antorchas() {
 /* ---------- cuadro ---------- */
 const _fr = new THREE.Frustum(), _pm = new THREE.Matrix4(), _ult = new Float32Array(16);
 function repartir(todo) { camara.updateMatrixWorld(); _pm.multiplyMatrices(camara.projectionMatrix, camara.matrixWorldInverse); _fr.setFromProjectionMatrix(_pm); const kf = 1 / Math.tan(camara.fov * Math.PI / 360); for (const l of lotes) l.repartir(_fr, camara.position, kf, todo); }
+/* ---------- E5: ambiente. Tono por estación (suave, SE SUMA a la luz y los tintes de Q11/CN15a), viñeta y contorno dorado de lo elegido.
+   Las piezas de efectos de three.js (js/vendor/postprocessing/) se cargan aparte: si fallan, la ciudad sigue sin efectos. Apagado = renderer.render directo, como siempre. ---------- */
+let FX = null, fxFallo = false, fxCarga = null, composer = null, fxTono = null, fxContorno = null, ambienteOn = true, neutro = false, contornoClave = '', contornoMallas = [], contornoSucio = true, vistaActual = null, selActual = null;
+const TONO_E = [{ m: [0.98, 1.02, 1.01], s: 1.05 }, { m: [1.04, 1.0, 0.94], s: 1.04 }, { m: [1.06, 0.99, 0.91], s: 1.06 }, { m: [0.94, 0.99, 1.06], s: 0.86 }];      // primavera fresca, verano cálido, otoño dorado, invierno frío y apagado (en luz lineal)
+const matFantasma = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
+function cargarFX() {
+  if (!fxCarga) fxCarga = Promise.all([import('../vendor/postprocessing/EffectComposer.js'), import('../vendor/postprocessing/RenderPass.js'), import('../vendor/postprocessing/ShaderPass.js'), import('../vendor/postprocessing/OutlinePass.js')])
+    .then(m => { FX = { EffectComposer: m[0].EffectComposer, RenderPass: m[1].RenderPass, ShaderPass: m[2].ShaderPass, OutlinePass: m[3].OutlinePass }; }).catch(e => { fxFallo = true; console.warn('Ciudad 3D: sin efectos de ambiente', e); });
+  return fxCarga;
+}
+const SHADER_TONO = {
+  uniforms: { tDiffuse: { value: null }, uTono: { value: new THREE.Vector3(1, 1, 1) }, uSat: { value: 1 }, uVig: { value: 0 } },
+  vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: 'uniform sampler2D tDiffuse; uniform vec3 uTono; uniform float uSat, uVig; varying vec2 vUv; void main() { vec4 c = texture2D(tDiffuse, vUv); float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722)); vec3 r = mix(vec3(l), c.rgb, uSat) * uTono; float d = length((vUv - 0.5) * vec2(1.0, 1.15)) * 1.414; r *= 1.0 - uVig * smoothstep(0.55, 1.15, d); gl_FragColor = vec4(r, c.a);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' };      // va a pantalla: hace también el ACES y el sRGB (una sola pasada; sin OutputPass)
+function montarComposer() {
+  if (composer || !FX || fxFallo) return !!composer;
+  try {
+    const w = vista.w, h = vista.h, pr = renderer.getPixelRatio();
+    const rt = new THREE.WebGLRenderTarget(Math.max(1, w * pr), Math.max(1, h * pr), { type: THREE.HalfFloatType, samples: 4 });      // con MSAA, como el lienzo directo
+    const c = new FX.EffectComposer(renderer, rt); c.setPixelRatio(pr); c.setSize(w, h);
+    c.addPass(new FX.RenderPass(scene, camara));
+    fxContorno = new FX.OutlinePass(new THREE.Vector2(w, h), scene, camara); fxContorno.edgeStrength = 5; fxContorno.edgeThickness = 1; fxContorno.edgeGlow = 0; fxContorno.pulsePeriod = 0;
+    fxContorno.visibleEdgeColor.set('#ffc94a'); fxContorno.hiddenEdgeColor.set('#7a5614'); fxContorno.enabled = false; c.addPass(fxContorno);
+    fxTono = new FX.ShaderPass(SHADER_TONO); c.addPass(fxTono);      // última pasada, a pantalla: tono, viñeta, ACES y sRGB juntos (el OutputPass sobraría: una pasada menos)
+    composer = c; contornoSucio = true;
+  } catch (e) { fxFallo = true; composer = null; console.warn('Ciudad 3D: no se pudo montar el ambiente', e); }
+  return !!composer;
+}
+/* mezcla suave del tono entre la estación de la que se parte (k) y la siguiente según f; neutro = sin tono ni viñeta (para comparar con el dibujo directo) */
+function ponerTono() {
+  const A = TONO_E[estK], B = TONO_E[(estK + 1) % 4], f = estF, u = fxTono.uniforms;
+  if (neutro) { u.uTono.value.set(1, 1, 1); u.uSat.value = 1; u.uVig.value = 0; return; }
+  u.uTono.value.set(A.m[0] + (B.m[0] - A.m[0]) * f, A.m[1] + (B.m[1] - A.m[1]) * f, A.m[2] + (B.m[2] - A.m[2]) * f); u.uSat.value = A.s + (B.s - A.s) * f; u.uVig.value = 0.3;
+}
+/* contorno: malla temporal solo con la pieza elegida (misma geometría y matriz que su ejemplar en el lote); invisible en el dibujo normal */
+function quitarContorno() { for (const m of contornoMallas) { scene.remove(m); m.dispose(); } contornoMallas = []; if (fxContorno) { fxContorno.selectedObjects = []; fxContorno.enabled = false; } }
+function loteDe(tipo) { let d = PZ[tipo]; if (!d) return null; if (tipo === 'templo' && TEMPLO_C[cul] && L[TEMPLO_C[cul][0]]) d = [TEMPLO_C[cul][0]]; const l = L[d[0]]; return l && l.niv ? l : null; }
+function ponerContorno(pos, sel) {
+  quitarContorno(); if (!pos || !composer || !E) return;
+  const tipo = typeof sel === 'string' ? (sel === 'foro' ? 'foro' : CI.PIEZA_DE[sel]) : null, lotes1 = tipo ? [loteDe(tipo)] : Object.keys(PZ).map(loteDe), vistos = new Set();
+  let mejor = null, dm = 16; for (const l of lotes1) { if (!l || vistos.has(l)) continue; vistos.add(l); for (let i = 0; i < l.n; i++) { const d = Math.hypot(l.M[i * 16 + 12] - pos.x, l.M[i * 16 + 14] - pos.z); if (d < dm) { dm = d; mejor = [l, i]; } } }
+  if (!mejor) return; const [l, i] = mejor;
+  for (const mm of l.niv[0].mallas) { const im = new THREE.InstancedMesh(mm.geometry, matFantasma, 1); im.instanceMatrix.array.set(l.M.subarray(i * 16, i * 16 + 16)); im.frustumCulled = false; im.castShadow = im.receiveShadow = false; scene.add(im); contornoMallas.push(im); }
+  fxContorno.selectedObjects = contornoMallas; fxContorno.enabled = contornoMallas.length > 0;
+}
+export function ponerAmbiente(on) { ambienteOn = !!on; if (ambienteOn) cargarFX(); else quitarContorno(); }
+/* el dibujo final: con Ambiente, por el composer; si algo falla, directo como siempre */
+function pintarFinal(sel) {
+  if (ambienteOn && !fxFallo) {
+    if (FX && montarComposer()) {
+      try {
+        const clave = sel ? (typeof sel === 'object' ? 'p' + sel.x + ',' + sel.z : sel) : ''; if (clave !== contornoClave || contornoSucio) { contornoClave = clave; contornoSucio = false; ponerContorno(clave ? vistaActual.posDe(sel) : null, sel); }
+        ponerTono(); renderer.info.autoReset = false; renderer.info.reset(); composer.render(); renderer.info.autoReset = true; return;
+      } catch (e) { fxFallo = true; renderer.info.autoReset = true; quitarContorno(); composer = null; console.warn('Ciudad 3D: falló el ambiente; sigo sin efectos', e); }
+    } else if (!FX) cargarFX();
+  } else if (contornoMallas.length) { quitarContorno(); contornoClave = ''; }
+  renderer.render(scene, camara);
+}
 export const medidas = { triangulos: 0, llamadas: 0, sombras: 0, conSombra: 0 };
 function dibujar() {
   if (LUZ_ESTACIONAL) luz(); antorchas();
@@ -480,7 +539,7 @@ function dibujar() {
   if (sombraPend && !anim) { repartir(true); renderer.shadowMap.needsUpdate = true; renderer.render(scene, camara); sombraPend = false; _ult[0] = NaN; medidas.sombras++; medidas.conSombra = renderer.info.render.triangles; }
   camara.updateMatrixWorld(); _pm.multiplyMatrices(camara.projectionMatrix, camara.matrixWorldInverse); let igual = !pedirReparto; for (let i = 0; i < 16; i++) if (_pm.elements[i] !== _ult[i]) { igual = false; _ult[i] = _pm.elements[i]; }
   if (!igual) { repartir(false); pedirReparto = false; }
-  renderer.render(scene, camara); medidas.triangulos = renderer.info.render.triangles; medidas.llamadas = renderer.info.render.calls;
+  pintarFinal(selActual); medidas.triangulos = renderer.info.render.triangles; medidas.llamadas = renderer.info.render.calls;
 }
 async function texturasListas() { await Promise.all(esperas); hornos.forEach(f => f()); hornos.length = 0; }
 
@@ -492,7 +551,7 @@ const PK = 0.7;                                    // escala de las personas res
 const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 export class CityView3D {
   constructor(hostEl, opts) {
-    host = this.host = hostEl; this.opts = opts || {};
+    host = this.host = hostEl; this.opts = opts || {}; vistaActual = this; try { const Gm = window.Game; ambienteOn = !Gm || !Gm.ambiente || Gm.ambiente(); if (ambienteOn) cargarFX(); } catch (e) { }
     renderer = this.r = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.92; renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false;      // la sombra se calcula a petición
@@ -565,6 +624,8 @@ export class CityView3D {
     ponerCamara();
     this.people(city, t, dt);
     this.sonar(city, id);
+    try { const am = !window.Game || !window.Game.ambiente || window.Game.ambiente(); if (am !== ambienteOn) ponerAmbiente(am); } catch (e) { }      // E5: manda el ajuste de la partida
+    selActual = sel || null;
     dibujar();
     this.etiquetasBarrio(H);
     const el = this.armyEl, txt = '⚔️ Guarnición · ' + this.men; if (el._t !== txt) { el._t = txt; el.textContent = txt; }
@@ -625,5 +686,7 @@ export class CityView3D {
     else { let cx = f ? f.x : 0, cz = f ? f.z - 10 : -20, r = 120; if (E && E.surco && E.surco.length) { cx = cz = 0; for (const p of E.surco) { cx += p[0]; cz += p[1]; } cx /= E.surco.length; cz /= E.surco.length; r = 0; for (const p of E.surco) r = Math.max(r, Math.hypot(p[0] - cx, p[1] - cz)); r = Math.max(r, 120); } cam.tx = cx; cam.tz = cz; cam.az = 0; cam.d = Math.max(260, r * (vert ? 3.6 : 2.8)); }
     ponerCamara();
   }
-  resize() { const w = host.clientWidth || 1, h = host.clientHeight || 1; renderer.setSize(w, h, false); vista.w = w; vista.h = h; ponerCamara(); }
+  resize() { const w = host.clientWidth || 1, h = host.clientHeight || 1; renderer.setSize(w, h, false); vista.w = w; vista.h = h; if (composer) { composer.setPixelRatio(renderer.getPixelRatio()); composer.setSize(w, h); } ponerCamara(); }
+  ponerAmbiente(on) { ponerAmbiente(on); }
+  ambienteNeutro(b) { neutro = !!b; }      // pruebas: sin tono ni viñeta, para comparar con el dibujo directo
 }

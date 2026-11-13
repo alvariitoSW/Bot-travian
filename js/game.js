@@ -817,7 +817,7 @@
   G.migrarAjustes = function (s) {
     if (!s.ajustes || typeof s.ajustes !== 'object') s.ajustes = { dif: 'normal', suc: { crecida: true, fuego: true, hambre: true }, asesor: false, vistos: [], hist: [], v: 0 };
     const a = s.ajustes; if (!Object.hasOwn(D.DIFICULTAD, a.dif)) a.dif = 'normal'; a.suc = Object.assign({ crecida: true, fuego: true, hambre: true }, a.suc || {});
-    if (typeof a.asesor !== 'boolean') a.asesor = false; if (!Array.isArray(a.vistos)) a.vistos = []; if (!Array.isArray(a.hist)) a.hist = []; if (!(a.v >= 0)) a.v = 0; G.migrarPausas(s); G.migrarBatalla(s);
+    if (typeof a.asesor !== 'boolean') a.asesor = false; if (!Array.isArray(a.vistos)) a.vistos = []; if (!Array.isArray(a.hist)) a.hist = []; if (!(a.v >= 0)) a.v = 0; G.migrarPausas(s); G.migrarBatalla(s); if (typeof a.ambiente !== 'boolean') a.ambiente = true;      // E5: tono, viñeta y contorno de la ciudad 3D
   };
   /* R3: pausas del reloj. 'todas' (por defecto) | 'graves' (ataque en camino y misión fallida) | 'ninguna'.
      G.parar avisa a la pantalla (evento 'parar' con motivo); la pantalla pone la velocidad a 0. Sin pantalla (pruebas) no hace nada. */
@@ -829,6 +829,7 @@
   G.BATALLAS = BATALLAS;
   G.migrarBatalla = function (s) { const a = s && s.ajustes; if (a && !BATALLAS.includes(a.batalla)) a.batalla = 'nueva'; };
   G.batalla = () => { const s = G.state, a = s && s.ajustes; return a && BATALLAS.includes(a.batalla) ? a.batalla : 'nueva'; };
+  G.ambiente = () => { const s = G.state, a = s && s.ajustes; return a && typeof a.ambiente === 'boolean' ? a.ambiente : true; };
   G.pausas = () => { const s = G.state, a = s && s.ajustes; return a && PAUSAS.includes(a.pausas) ? a.pausas : 'todas'; };
   G.parar = function (motivo, grave) {
     const m = G.pausas(); if (m === 'ninguna' || (m === 'graves' && !grave)) return false;
@@ -843,6 +844,7 @@
     if (p.asesor !== undefined && typeof p.asesor !== 'boolean') return { ok: false, motivo: 'El asesor es sí o no.' };
     if (p.pausas !== undefined && !PAUSAS.includes(p.pausas)) return { ok: false, motivo: 'Pausas no válidas.' };
     if (p.batalla !== undefined && !BATALLAS.includes(p.batalla)) return { ok: false, motivo: 'Motor de batalla no válido.' };
+    if (p.ambiente !== undefined && typeof p.ambiente !== 'boolean') return { ok: false, motivo: 'El ambiente es sí o no.' };
     const dif = p.dif !== undefined ? p.dif : a.dif, suc = Object.assign({}, a.suc, p.suc || {}), cambia = dif !== a.dif || SUC_CLAVES.some(k => suc[k] !== a.suc[k]);
     if (cambia) {   // vale desde el mes siguiente; el pasado no cambia
       const k = mesAlin() + 1, e = [k, { dif, suc: Object.assign({}, suc) }], i = a.hist.findIndex(h => h[0] === k);
@@ -852,6 +854,7 @@
     if (p.asesor !== undefined) a.asesor = p.asesor;
     if (p.pausas !== undefined) a.pausas = p.pausas;
     if (p.batalla !== undefined) a.batalla = p.batalla;
+    if (p.ambiente !== undefined) a.ambiente = p.ambiente;
     if (cambia || p.asesor !== undefined) a.v++;
     return { ok: true, motivo: '' };
   };
