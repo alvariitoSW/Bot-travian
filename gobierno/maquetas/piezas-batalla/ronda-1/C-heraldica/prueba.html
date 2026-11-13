@@ -1,0 +1,23 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><title>Estandarte C</title>
+<style>body{margin:0;font:12px sans-serif;color:#f1ead9;background:#222}
+section{padding:10px 12px}h2{font-size:14px;margin:6px 0}.g{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-start}
+.r{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin:3px 0}.l{width:90px;font-size:12px}.c{display:inline-block;text-align:center;font-size:11px}
+.campo{background:#8c8a62}.noche{background:#0b1016}svg{flex:none}</style></head><body>
+<script src="estandarte.svg.js"></script><script>
+var T=['hastati','principes','triarios','velites','equites','general','elefantes','falange'],A=['F','V','D','H'];
+function S(o,k){var s=estandarte(o);return k==1?s:s.replace('width="36" height="60"','width="'+36*k+'" height="'+60*k+'"');}
+function bloque(bg,k){
+ var h='<section class="'+bg+'"><h2>Fondo '+bg+' · escala '+k+'</h2>';
+ for(var b=0;b<2;b++)for(var a=0;a<4;a++){h+='<div class="r"><span class="l">'+(b?'Cartago ':'Roma ')+'ánimo '+A[a]+'</span>';
+  T.forEach(function(t){h+=S({bando:b,tipo:t,animo:A[a],cansancio:0,vet:1,sel:false},k)});h+='</div>';}
+ h+='<h2>Cansancio 0-3 (filas) × veteranía 0-2 (columnas), hastati</h2>';
+ for(var b=0;b<2;b++)for(var cn=0;cn<4;cn++){h+='<div class="r"><span class="l">'+(b?'Cart ':'Roma ')+'cansancio '+cn+'</span>';
+  for(var v=0;v<3;v++)h+=S({bando:b,tipo:'hastati',animo:'F',cansancio:cn,vet:v},k);
+  h+='<span class="l">&nbsp;equites:</span>';for(var v=0;v<3;v++)h+=S({bando:b,tipo:'equites',animo:'F',cansancio:cn,vet:v},k);h+='</div>';}
+ h+='<h2>Elegido (sel) y combinaciones</h2><div class="r"><span class="l">sin / con sel</span>';
+ T.forEach(function(t){h+=S({bando:0,tipo:t,animo:'F',sel:false},k)+S({bando:0,tipo:t,animo:'F',sel:true},k)});h+='</div><div class="r"><span class="l">Cartago sel</span>';
+ T.forEach(function(t){h+=S({bando:1,tipo:t,animo:'V',cansancio:2,vet:2,sel:true},k)});h+='</div><div class="r"><span class="l">Roma todo</span>';
+ A.forEach(function(a){h+=S({bando:0,tipo:'principes',animo:a,cansancio:3,vet:2,sel:true},k)});h+='</div></section>';
+ return h;}
+document.write(bloque('campo',1)+bloque('noche',1)+bloque('campo',3)+bloque('noche',3));
+</script></body></html>

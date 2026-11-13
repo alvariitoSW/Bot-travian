@@ -1,0 +1,14 @@
+PIEZA P1 «ESTANDARTE» — ficha de cada regimiento en la batalla (va en pantalla todo el rato, sobre un campo 3D visto desde arriba, muchas a la vez y a veces solapadas).
+ARCHIVO: estandarte.svg.js  (en tu carpeta). Función global: estandarte(datos) → string '<svg …>…</svg>' (con viewBox="0 0 36 60", width="36" height="60").
+ENTRADAS: { bando: 0|1 (0 = Roma rojo legión, 1 = Cartago púrpura; opcional color:'#rrggbb' que manda sobre bando),
+ tipo: 'hastati'|'principes'|'triarios'|'velites'|'equites'|'general'|'elefantes'|'falange' (8 emblemas, uno por tipo, distinguibles a 36×60 px y mejor aún a mitad de tamaño),
+ animo: 'F' firme | 'V' vacila | 'D' desordenado | 'H' huye,
+ cansancio: 0 fresco | 1 cansado | 2 agotado | 3 exhausto,
+ vet: 0 bisoño | 1 curtido | 2 veterano,
+ sel: true|false (elegido por el jugador: se nota al instante, con oro) }
+Ejemplo: estandarte({ bando: 0, tipo: 'hastati', animo: 'V', cansancio: 1, vet: 2, sel: false }).
+MEDIDA: 36×60 px a escala 1; el dibujo llena ese rectángulo (puede tener la silueta de insignia/estandarte con asta). Nada de texto menor de 11 px (mejor sin texto: solo formas).
+LO QUE EL JUGADOR TIENE QUE LEER DE UN VISTAZO, sin saber las reglas: (1) bando por color y forma general; (2) tipo por el emblema (caballería y elefantes distintos del resto de un golpe; infantería pesada/ligera/lanceros distinguibles); (3) ánimo: firme = erguido y limpio; vacila = algo torcido/con marca; desordenado = muy inclinado/rasgado; huye = caído/volteado y apagado; (4) cansancio 0-3 como una marca gradual y visible (p. ej. desgaste, muescas, color que se apaga, gotas) — que 3 no se confunda con 1; (5) veteranía 0-2 como galones/estrellas/coronas pequeñas; (6) elegido = realce de oro que no se confunda con el resto. Los cuatro rasgos (ánimo, cansancio, veteranía, elegido) se leen por SEPARADO aunque estén combinados.
+Hay barras de vida y puntos de tropa propios DEBAJO de la ficha: no las dibujes.
+SOLO se concursa el dibujo (forma, emblema, cómo se ve el ánimo y el cansancio) y su legibilidad. Prohibido cambiar pantallas, añadir reglas o botones, otro estilo o época.
+prueba.html: 8 emblemas × 4 ánimos × 2 bandos en una cuadrícula (cansancio 0 y vet 1), luego una tira con cansancio 0-3 × vet 0-2 de un tipo, y una con 'sel'. Rótulos de 11 px o más.

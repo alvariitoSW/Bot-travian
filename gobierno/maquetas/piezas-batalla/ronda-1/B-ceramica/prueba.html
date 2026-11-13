@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Estandarte cerámica</title>
+<style>
+  body { margin: 0; padding: 12px; background: #0b1016; color: #f1ead9; font: 13px/1.3 system-ui, sans-serif; }
+  h2 { font-size: 15px; margin: 18px 0 6px; color: #e9c063; }
+  .fondo { padding: 10px; border-radius: 8px; margin-bottom: 10px; overflow-x: auto; }
+  .campo { background: #8c8a62; color: #0b1016; }
+  .noche { background: #0b1016; color: #f1ead9; border: 1px solid #9aa6b4; }
+  table { border-collapse: collapse; }
+  td, th { padding: 2px 4px; text-align: center; vertical-align: bottom; font-size: 12px; font-weight: 600; }
+  th.izq { text-align: right; }
+  .monton { position: relative; height: 70px; width: 140px; }
+  .monton span { position: absolute; }
+</style>
+</head>
+<body>
+<div id="raiz"></div>
+<script src="estandarte.svg.js"></script>
+<script>
+var TIPOS = ['hastati','principes','triarios','velites','equites','general','elefantes','falange'];
+var ANIMOS = [['F','firme'],['V','vacila'],['D','desorden'],['H','huye']];
+function esc(svg, s) { return svg.replace('width="36" height="60"', 'width="' + 36*s + '" height="' + 60*s + '"'); }
+function cuadricula(s) {
+  var h = '<table><tr><th></th>';
+  [0,1].forEach(function(b){ ANIMOS.forEach(function(a){ h += '<th>' + (b ? 'Cart.' : 'Roma') + '<br>' + a[1] + '</th>'; }); });
+  h += '</tr>';
+  TIPOS.forEach(function(t){
+    h += '<tr><th class="izq">' + t + '</th>';
+    [0,1].forEach(function(b){ ANIMOS.forEach(function(a){
+      h += '<td>' + esc(estandarte({bando:b, tipo:t, animo:a[0], cansancio:0, vet:1, sel:false}), s) + '</td>';
+    }); });
+    h += '</tr>';
+  });
+  return h + '</table>';
+}
+function tira(s, tipo, bando) {
+  var h = '<table><tr><th></th>';
+  for (var c=0;c<4;c++) h += '<th>cansancio ' + c + '</th>';
+  h += '</tr>';
+  for (var v=0; v<3; v++) {
+    h += '<tr><th class="izq">vet ' + v + '</th>';
+    for (var c2=0;c2<4;c2++) h += '<td>' + esc(estandarte({bando:bando, tipo:tipo, animo:'F', cansancio:c2, vet:v, sel:false}), s) + '</td>';
+    h += '</tr>';
+  }
+  return h + '</table>';
+}
+function tiraSel(s) {
+  var casos = [
+    {bando:0,tipo:'hastati',animo:'F',cansancio:0,vet:0},
+    {bando:0,tipo:'equites',animo:'V',cansancio:1,vet:1},
+    {bando:1,tipo:'elefantes',animo:'D',cansancio:2,vet:2},
+    {bando:1,tipo:'falange',animo:'H',cansancio:3,vet:1},
+    {bando:0,tipo:'general',animo:'F',cansancio:3,vet:2}
+  ];
+  var h = '<table><tr>';
+  casos.forEach(function(c){ h += '<th>' + c.tipo + ' ' + c.animo + c.cansancio + ' v' + c.vet + '</th>'; });
+  h += '</tr><tr>';
+  casos.forEach(function(c){ h += '<td>' + esc(estandarte(Object.assign({sel:false}, c)), s) + '</td>'; });
+  h += '</tr><tr>';
+  casos.forEach(function(c){ h += '<td>' + esc(estandarte(Object.assign({sel:true}, c)), s) + '</td>'; });
+  return h + '</tr><tr>' + casos.map(function(){return '<th>elegido</th>';}).join('') + '</tr></table>';
+}
+function monton() {
+  var lista = [[0,'hastati',0],[18,'principes',0],[34,'triarios',0],[52,'equites',0],[70,'general',1],[88,'elefantes',1],[104,'falange',1]];
+  var h = '<div class="monton">';
+  lista.forEach(function(e,i){ h += '<span style="left:' + e[0] + 'px;top:' + (i%2*8) + 'px">' + estandarte({bando:e[2],tipo:e[1],animo:'F',cansancio:i%4,vet:i%3,sel:i===3}) + '</span>'; });
+  return h + '</div>';
+}
+var h = '';
+[['campo','Campo'],['noche','Noche']].forEach(function(f){
+  [1,3].forEach(function(s){
+    h += '<h2>' + f[1] + ' · escala ' + s + ' · 8 tipos × 4 ánimos × 2 bandos (cansancio 0, vet 1)</h2>';
+    h += '<div class="fondo ' + f[0] + '">' + cuadricula(s) + '</div>';
+    h += '<h2>' + f[1] + ' · escala ' + s + ' · cansancio 0-3 × veteranía 0-2</h2>';
+    h += '<div class="fondo ' + f[0] + '"><table><tr><th>Roma · hastati</th><th>Cartago · equites</th></tr><tr><td>' + tira(s,'hastati',0) + '</td><td>' + tira(s,'equites',1) + '</td></tr></table></div>';
+    h += '<h2>' + f[1] + ' · escala ' + s + ' · elegido (fila de abajo)</h2>';
+    h += '<div class="fondo ' + f[0] + '">' + tiraSel(s) + '</div>';
+  });
+  h += '<h2>' + f[1] + ' · escala 1 · fichas solapadas</h2><div class="fondo ' + f[0] + '">' + monton() + '</div>';
+});
+document.getElementById('raiz').innerHTML = h;
+</script>
+</body>
+</html>
