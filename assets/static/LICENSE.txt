@@ -22,4 +22,8 @@ Carreta prop_carreta y pozo prop_pozo (con sus texturas props_wood_a, props_wrld
 (Wildfire Games, CC BY-SA 3.0, actores props/special/eyecandy: carreta de carga y pozo). Aligerados con meshoptimizer (MIT); se regeneran
 con tools/piezas_propias.mjs (lista tools/piezas_maqueta.txt).
 
+Casas griegas grie_casa a grie_casa_e (texturas structural_ao_hele_house_* y structural_hele_struct_b), casas púnicas cart_casa, cart_casa_b y cart_casa_c
+(texturas structural_ao_kart_house_*) y puesto cartaginés prop_puesto_cart: proceden de 0 A.D. (Wildfire Games, CC BY-SA 3.0, actores de las
+facciones helena y cartaginesa). Aligerados con meshoptimizer (MIT); se regeneran con tools/piezas_propias.mjs (lista tools/piezas_maqueta.txt).
+
 Esta licencia se aplica solo al contenido de assets/static/. El código del juego es independiente.

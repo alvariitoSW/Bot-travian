@@ -605,6 +605,7 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 #bandeja { display: flex; gap: 8px; padding: 6px 2px 4px; overflow-x: auto; overflow-y: hidden; touch-action: pan-x; scrollbar-width: none; overscroll-behavior: contain; }
 #bandeja::-webkit-scrollbar { display: none; }
 .pza { flex: none; width: 77px; height: 88px; padding: 3px 3px 5px; border-radius: 12px; background: linear-gradient(rgba(44, 36, 26, .94), rgba(22, 19, 15, .94)); border: 1px solid var(--line2); box-shadow: 0 4px 12px rgba(0, 0, 0, .45); display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 1px; touch-action: pan-x; overflow: clip; }
+.pza.aconseja { border-color: var(--gold); box-shadow: 0 0 0 2px var(--gold), 0 4px 12px rgba(0, 0, 0, .45); }
 .pza img, .pza i { width: 56px; height: 50px; object-fit: contain; pointer-events: none; display: block; }
 .pza b { font-size: 12px; font-weight: 650; line-height: 1.1; text-align: center; white-space: nowrap; max-width: 100%; }
 .pza span { font-size: 12px; color: var(--gold); font-weight: 650; display: flex; align-items: center; gap: 3px; min-height: 14px; }
@@ -653,3 +654,45 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 .sv-i { float: right; font-size: 16px; margin-left: 4px; } .sv-t.sel { border-color: var(--gold); } .sv-t.hecha { border-color: #3f7a4d; background: #1f3a2644; } .sv-t.ok { border-color: var(--gold); }
 .sv-t.excl { opacity: .5; } .sv-t.req, .sv-t.edad, .sv-t.falta { opacity: .75; } .sv-o { font: 700 13px var(--serif); color: var(--mute); flex: none; }
 .sv-det { margin: 0 0 8px; padding: 9px 11px; border-radius: 8px; background: #17110d; border: 1px solid var(--gold); font-size: 12.5px; } .sv-det p { margin: 0 0 4px; } .sv-det .btn { margin-top: 8px; width: 100%; }
+/* Escuela: tarjeta de sabios (I5b) */
+.esc { display: flex; flex-direction: column; gap: 6px; }
+.esc-h { font-size: 12px; letter-spacing: .06em; color: var(--gold2, var(--gold)); margin-top: 2px; } .esc-h small { margin-left: 6px; color: var(--mute); letter-spacing: 0; }
+.esc-g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .esc-g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.esc-b { min-height: 48px; padding: 6px 7px; border-radius: 8px; border: 1px solid var(--line, #555); background: transparent; color: inherit; text-align: left; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.esc-b b { font-size: 13px; } .esc-b small { font-size: 11px; color: var(--mute); line-height: 1.25; overflow-wrap: anywhere; }
+.esc-b.on { border-color: var(--gold); background: rgba(201, 162, 77, .16); } .esc-b.off { opacity: .4; }
+.esc-v { font-size: 12.5px; line-height: 1.35; } .esc-av { font-size: 12px; color: var(--gold); line-height: 1.3; }
+/* Q4b: varias obras por ciudad */
+.imp-obs { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.imp-ob-c { flex-direction: column; align-items: stretch; gap: 4px; }
+.imp-ob-c b { max-width: none; }
+.imp-ob-c b small { color: var(--mute); font-weight: 400; margin-left: 6px; }
+.imp-ob1 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.imp-ob1 .prog { flex: 1; min-width: 30px; margin: 0; } .imp-ob1 .rem { flex: none; } .imp-ob1 .plz { flex-basis: 100%; }
+
+/* Q4b: cada obra de la fila del Imperio en su línea */
+.imp-l2 { flex-wrap: wrap; } .imp-l2 .imp-obs { flex: 1 1 100%; } .imp-ob1 .imp-nb { max-width: 110px; }
+
+/* ---------- CN5 · colonias: sitios en el mapa, ficha del sitio y pantalla de fundar ---------- */
+.mlabel.sitio { border-style: dashed; border-color: rgba(233, 192, 99, .7); padding: 2px 8px 2px 5px; font-size: 11px; background: rgba(10, 14, 20, .7); }
+.mlabel.sitio i { background: #e9c063; width: 9px; height: 9px; }
+.mlabel.sitio span { color: #f4e6bd; }
+.mlabel.sitio[data-est="camino"] { opacity: .8; } .mlabel.sitio[data-est="camino"] i { background: #9aa4b0; }
+.mlabel.sitio[data-est="pendiente"] { border-style: solid; border-color: #7fd060; } .mlabel.sitio[data-est="pendiente"] i { background: #7fd060; } .mlabel.sitio[data-est="pendiente"] em { color: #9be07a; }
+.mlabel.sitio.sel { border-style: solid; }
+#sheet .orig { display: flex; align-items: center; gap: 8px; flex: 1 1 100%; font-size: 12.5px; color: #c6cfda; }
+#sheet .orig select { flex: 1; min-width: 0; height: 38px; border-radius: 8px; background: #1a212b; color: var(--ink); border: 1px solid var(--line2); padding: 0 8px; font-size: 13.5px; }
+#sheet .acts .btn small { display: block; font-size: 11.5px; font-weight: 600; opacity: .85; white-space: nowrap; }
+#sheet .acts .empty { flex: 1 1 100%; margin: 0; font-size: 12px; color: #e0a030; }
+#csheet[data-m="fundar"] #bandeja, #csheet[data-m="fundar"] #fichab { display: none; }
+#csheet[data-m="fundar"] #acciones { display: flex; }
+#app #csheet[data-m="fundar"] { bottom: calc(92px + env(safe-area-inset-bottom)); }
+
+/* CN6: lista de barrios en la ficha de la ciudad y etiqueta de barrio en el mapa */
+.barrio .bn { display: flex; align-items: center; gap: 6px; } .barrio .bsv { display: inline-flex; gap: 4px; margin: 0 0 0 auto; }
+.barrio .bs { flex: none; width: 28px; max-width: none; height: 24px; opacity: 1; filter: none; border-color: #e05050; }
+.blis { margin-top: 5px; display: flex; flex-direction: column; gap: 3px; }
+.bfila { display: flex; align-items: baseline; gap: 6px; font-size: 12px; line-height: 1.3; }
+.bfila .bniv { flex: none; min-width: 26px; text-align: center; font-family: var(--serif); font-weight: 700; color: var(--bronce); border: 1px solid var(--bronce); border-radius: 6px; padding: 0 3px; }
+.bfila .bnom { flex: none; font-weight: 600; } .bfila .bfalta { opacity: .8; min-width: 0; } .bfila.mal .bfalta { color: #e05050; }
+.mlabel.barrio { pointer-events: none; font-size: 11px; padding: 2px 8px; background: rgba(10, 14, 20, .62); border-color: rgba(233, 192, 99, .5); color: #f4e6bd; font-family: var(--serif); letter-spacing: .02em; }

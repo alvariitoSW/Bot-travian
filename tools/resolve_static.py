@@ -26,8 +26,6 @@ STATIC = {
     'cart_templo': 'structures/carthaginians/temple_big.xml', 'cart_trirreme': 'structures/carthaginians/trireme.xml',
     'grie_templo': 'structures/athenians/temple.xml', 'grie_trirreme': 'structures/hellenes/trireme.xml',
     'galo_centro': 'structures/gauls/civic_centre.xml', 'iber_centro': 'structures/iberians/temple.xml',
-    # anfiteatro (Pompeya, hacia 70 a.C.): lo aligera tools/aligerar_static.mjs; termas y acueducto son propios (tools/propio_static.mjs)
-    'anfiteatro': R_ + 'amphitheater_pompeii.xml',
     # árboles mediterráneos
     'cipres': 'flora/trees/mediterranean_cypress.xml', 'olivo': 'flora/trees/olive.xml',
     'pino': 'flora/trees/aleppo_pine.xml', 'algarrobo': 'flora/trees/carob.xml',

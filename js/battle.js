@@ -46,6 +46,8 @@
   const MOR_GENERAL = 4;        // moral que pierde su bando al caer el general (antes 12)
   const MOR_FLANCO = 0.02;      // moral por segundo perdida estando flanqueado
   const MOR_PERDIENDO = 0.05;   // moral por segundo perdida (máx.) si su bando tiene menos hombres que el otro
+  const DESIGUAL_REL = 0.75;    // (N15b) si tiene menos que esta fracción de los hombres del rival, pelea con moral que se gasta más deprisa
+  const DESIGUAL_ACEL = 1.0;    // (N15b) moral por segundo perdida cuando la diferencia es total; crece con ella (batallas muy desiguales más cortas)
   const MOR_HERIDO = 0.3;       // moral por segundo perdida con el regimiento al 0 % de hombres (proporcional a sus bajas)
   const MOR_CANSADO = 0.05;     // moral por segundo perdida con cansancio al máximo (empieza en FAT_UMBRAL)
   const FAT_UMBRAL = 60;        // cansancio a partir del cual se pierde moral y se marca «Cansado»
@@ -97,7 +99,7 @@
   const FORM = {
     normal: { n: 'Normal', gana: 'Se mueve y pelea sin ataduras', pierde: 'Sin ventajas especiales', papeles: null, vel: 1, proy: 1, melee: 1, flanco: 1, choque: 1, fat: 1, pega: 1, t: 3, sep: 1, fondo: 1, frente: 1 },
     testudo: { n: 'Testudo', gana: 'Aguanta flechas y jabalinas (recibe un tercio)', pierde: 'Lenta, pega menos y floja contra caballería por el flanco', papeles: ['pesada', 'media'], vel: 0.6, proy: 0.35, melee: 0.95, flanco: 1.25, choque: 0.7, fat: 1.15, pega: 0.8, t: 4, sep: 0.6, fondo: 1.3, frente: 0.8 },
-    cuna: { n: 'Cuña', gana: 'Rompe la línea enemiga en el choque', pierde: 'En melé larga se desgasta y recibe más daño', papeles: ['jinete', 'pesada'], vel: 1.05, proy: 1.1, melee: 1.15, flanco: 1.15, choque: 1.5, fat: 1.2, pega: 1, larga: 0.85, t: 5, sep: 0.9, fondo: 2.5, frente: 0.6 },
+    cuna: { n: 'Cuña', gana: 'Rompe la línea enemiga en el choque', pierde: 'En melé larga se desgasta y recibe más daño', papeles: ['jinete', 'pesada', 'elefante'], vel: 1.05, proy: 1.1, melee: 1.15, flanco: 1.15, choque: 1.5, fat: 1.2, pega: 1, larga: 0.85, t: 5, sep: 0.9, fondo: 2.5, frente: 0.6 },
     orbe: { n: 'Orbe', gana: 'Sin flancos débiles: aguanta rodeada y recibe menos proyectiles', pierde: 'Muy lenta, pega menos y no carga', papeles: ['ligera', 'media', 'pesada', 'lanceros', 'tirador'], vel: 0.55, proy: 0.85, melee: 1, flanco: 1, choque: 0, fat: 0.9, pega: 0.85, t: 5, sep: 1, fondo: 1, frente: 0.7, cuad: true, sinFlanco: true },
     falange: { n: 'Falange', gana: 'Aguanta mejor de frente, sobre todo contra la caballería', pierde: 'Muy frágil por los flancos y la espalda; algo más lenta', papeles: ['lanceros'], vel: 0.95, proy: 1, melee: 0.95, flanco: 1.35, choque: 1, fat: 1, pega: 1, t: 4, sep: 1, fondo: 2, frente: 1 }
   };
@@ -661,6 +663,8 @@
       if (r.flank) r.mor -= MOR_FLANCO * dt;
       const mia = cur[r.side] / this.start[r.side], suya = cur[1 - r.side] / this.start[1 - r.side];
       if (mia < suya) r.mor -= MOR_PERDIENDO * Math.min(1, (suya - mia) * 8) * dt;
+      const rel = cur[r.side] / Math.max(1, cur[1 - r.side]);
+      if (rel < DESIGUAL_REL && r.fight > 0 && this.start[r.side] < this.start[1 - r.side] * 0.8) r.mor -= DESIGUAL_ACEL * (DESIGUAL_REL - rel) / DESIGUAL_REL * dt;   // (N15b) con muchos menos hombres que el rival, se hunde antes
       if (r.men < r.max && r.fight > 0) r.mor -= MOR_HERIDO * (1 - r.men / r.max) * dt;
       if (r.fat > FAT_UMBRAL) r.mor -= MOR_CANSADO * (r.fat - FAT_UMBRAL) / (100 - FAT_UMBRAL) * dt;
       if (r.mor <= 0) { r.st = 'rout'; this.onBreak(r); continue; }
@@ -797,7 +801,7 @@
   // empieza la ronda de ejecución (desde el plan)
   Battle.prototype.ejecutar = function () {
     if (!this.rondas || this.fase !== 'plan' || this.over) return false;
-    if (this.cfg.relevoAuto === true) this.autoRelevo(0);   // (N7) relevo automático del jugador (opcional)
+    if (this.cfg.relevoAuto === true || (this.cfg.relevoAuto !== false && this.auto && !this.regs.some(q => q.side === 0 && q.order))) this.autoRelevo(0);   // (N7) relevo automático del jugador (opcional)
     const mp = this.mandoPuntos();
     if (mp.usados > mp.max) { this.motivo = 'Tienes ' + mp.usados + ' órdenes y solo ' + mp.max + ' puntos de mando'; return false; }
     const g = this.generalVivo(0);
@@ -940,7 +944,8 @@
   };
   // formaciones que admite un regimiento (siempre 'normal')
   Battle.prototype.formacionesPosibles = function (r) {
-    const out = ['normal']; if (!r || r.st !== 'ok' || r.k === 'general' || r.u.cls === 'gen') return out;
+    const out = ['normal']; if (!r || r.st !== 'ok') return out;
+    if (r.k === 'general' || r.u.cls === 'gen') { if (FORM.cuna.papeles.indexOf(r.papel) >= 0) out.push('cuna'); return out; }   // (N15b) el general también puede ir en cuña
     for (const k of Object.keys(FORM)) if (k !== 'normal' && FORM[k].papeles.indexOf(r.papel) >= 0) out.push(k);
     return out;
   };
@@ -1385,7 +1390,7 @@
       res.lost[r.side][r.k] = (res.lost[r.side][r.k] || 0) + (r.max - alive);
       res.dead[r.side] += r.max - alive;
     }
-    if (this.obj) { const p = this.progresoObjetivo() || { texto: '' }, aniq = this.over && !this.obj.fin && this.winner === this.obj.lado; res.objetivo = { tipo: this.obj.tipo, cumplido: !!this.obj.cumplido || aniq, texto: this.obj.fin ? p.texto : aniq ? 'Ganasteis destruyendo al rival' : (this.over ? 'Objetivo no cumplido' : p.texto) }; }
+    if (this.obj) { const p = this.progresoObjetivo() || { texto: '' }, aniq = this.over && !this.obj.fin && this.winner === this.obj.lado; res.objetivo = { tipo: this.obj.tipo, fin: !!this.obj.fin, cumplido: !!this.obj.cumplido || aniq, texto: this.obj.fin ? p.texto : aniq ? 'Ganasteis destruyendo al rival' : (this.over ? 'Objetivo no cumplido' : p.texto) }; }
     return res;
   };
 

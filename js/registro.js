@@ -10,7 +10,6 @@
   const R = {};
   const CC = 'CC BY-SA 3.0', WG = 'Wildfire Games (0 A.D.)';
   const est = (m, extra) => Object.assign({ modelo: 'assets/static/' + m + '.bin', licencia: CC, credito: WG }, extra || {});   // edificio real de 0 A.D.
-  const propio = (m, extra) => Object.assign({ modelo: 'assets/static/' + m + '.bin', licencia: CC, credito: 'AQVILA (hecho desde cero con tools/propio_static.mjs)' }, extra || {});   // pieza propia del proyecto
   const uni = (m, extra) => Object.assign({ modelo: 'assets/units/' + m + '.bin', licencia: CC, credito: WG }, extra || {});   // tropa real de 0 A.D.
   const h = (fuente, dictamen, nota, texto) => Object.assign({ fuente, dictamen: dictamen || 'por cotejar' }, nota ? { nota } : {}, texto ? { texto } : {});   // texto: lo que lee el jugador en el Códice
   const f = (arte, historia) => ({ arte, historia });
@@ -19,14 +18,12 @@
   // ---- Edificios (D.BUILD). Modelo: el que usa city3d.js (D.BUILD[b].modelo || b) ----
   const edificio = {
     aserradero: f(est('aserradero'), SIN_H), cantera: f(est('cantera'), SIN_H), mina: f(est('mina'), SIN_H), granja: f(est('granja'), SIN_H),
-    viviendas: f(est('casa', { nota: 'las ínsulas se dibujan como manzanas de casas (casa.bin)' }), SIN_H),
-    foro: f(est('foro'), SIN_H), almacen: f(est('almacen'), SIN_H), mercado: f(est('mercado'), SIN_H), puerto: f(est('puerto'), SIN_H),
+    viviendas: f(est('casa', { nota: 'las ínsulas se dibujan como manzanas de casas (casa.bin, casa_b, casa_c y casa_d). Según la cultura de la ciudad (E.cultura) se usan las casas griegas grie_casa, _b, _c, _d y _e o las púnicas cart_casa, _b y _c, todas de 0 A.D. (Wildfire Games, CC BY-SA 3.0; assets/static/*.bin, mismo crédito en assets/static/LICENSE.txt). Forma y estilo de época son reconstrucción de 0 A.D.: licencia de juego, sin fuente cotejada' }), h('Livio 21.62', 'historico', 'cotejado el 13/11/2026 en Perseus (trad. Roberts). Livio no da año en el pasaje (solo «este invierno», 218-217); que sean ínsulas de adobe y madera es lectura, y generalizarlas a toda ciudad es licencia de juego', 'En Roma ya había casas de varios pisos. Según Livio, un buey subió por su cuenta hasta el tercer piso de una casa del Foro Boario y se arrojó asustado por la gente. Fuera de Roma, las casas eran más bajas.')),
+    foro: f(est('foro'), SIN_H), almacen: f(est('almacen'), SIN_H), mercado: f(est('mercado', { nota: 'los puestos pequeños de ciudad púnica usan prop_puesto_cart.bin (0 A.D., CC BY-SA 3.0)' }), SIN_H), puerto: f(est('puerto'), h('Livio 35.10; Livio 40.51', 'historico', 'cotejado el 13/11/2026 en Perseus (trad. Roberts/Edmonds). 35.10: ediles Lépido y Paulo (193), no censores; el año sale de los cónsules. 40.51: Fulvio (179) hace pilares de puente y mercados; el texto no dice «emporium» ni «pórtico Emilio»', 'Roma tenía su puerto fluvial en el Tíber. Según Livio, en 193 a.C. dos ediles construyeron un pórtico y junto a él un muelle sobre el río. En 179 el censor Fulvio levantó los pilares de un puente y un mercado con columnata fuera de la Porta Trigemina.')),
     cuartel: f(est('cuartel'), SIN_H), establo: f(est('establo'), SIN_H),
-    muralla: f(est('muro', { nota: 'recinto con muro.bin, torre.bin y puerta.bin' }), SIN_H),
+    muralla: f(est('muro', { nota: 'recinto con muro.bin, torre.bin y puerta.bin' }), h('Livio 1.44 (cotejado en Perseus 13/11/2026); Varrón, LL 5.143 por cotejar', 'probable', 'Livio 1.44: Servio rodeó Roma con terraplén, fosos y muro y así extendió el pomerio; los mojones se adelantaban con el muro. No dice quién podía ampliarlo (eso, y Varrón 5.143, siguen por cotejar). Muro regular con torres en las cuatro puertas: licencia de juego', 'Servio Tulio, según Livio, rodeó Roma con terraplén, fosos y muro. El pomerio, la franja sagrada sin cultivar ni edificar, se corría hacia fuera al avanzar el muro. Las ciudades seguían el terreno; el recinto cuadrado del juego es una simplificación.')),
     herreria: f({ sin: 'la herrería no tiene modelo: no se dibuja en la ciudad', provisional: true }, SIN_H),
-    acueducto: f(propio('acueducto', { nota: 'arcada de seis arcos de medio punto con canal; 0 A.D. no trae ninguna' }), SIN_H),
-    termas: f(propio('termas', { nota: 'sala con bóveda de cañón, pórtico, ábside y chimenea; 0 A.D. no trae ninguna. Las grandes termas imperiales son posteriores: es un balneum republicano idealizado' }), SIN_H),
-    anfiteatro: f(est('anfiteatro', { nota: 'anfiteatro de Pompeya (0 A.D., aligerado y a escala de ciudad); es de hacia 70 a.C., posterior a 146 a.C.: licencia de juego, en el 264 a.C. los combates de gladiadores se daban en el Foro Boario' }), SIN_H),
+    escuela: f({ sin: 'la escuela no tiene modelo propio: de momento no se dibuja en la ciudad', provisional: true }, SIN_H),
     templo: f(est('templo'), SIN_H)
   };
 
@@ -112,6 +109,7 @@
   const mision = {
     'levas-heraclea': f(SIN_MIS, h('Plutarco, Pirro 17; Eutropio 2.11', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Pirro ha vencido en Heraclea. El Senado manda alistar nuevas legiones: reúne 300 hombres en armas.')),
     'presidio-regio': f(SIN_MIS, h('Polibio 1.7; Livio, Períocas 12', 'probable', 'plazos, premios, castigos y cifras: licencia de juego', 'Una guarnición romana ha de sostener la Campania. Mantén 100 hombres en Capua.')),
+    'fundar-colonia': f(SIN_MIS, h('Veleyo Patérculo 1.14; Livio, Períocas 15 y 19', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'El Senado manda asentar colonos en tierras conquistadas. Envía colonos y funda una colonia.')),
     'colonias-latinas': f(SIN_MIS, h('Livio, Períocas 14 y 15; Veleyo Patérculo 1.14', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Roma asienta colonos en tierras conquistadas (Paestum, Cosa, Ariminum). Ten 3 ciudades propias.')),
     'flota-260': f(SIN_MIS, h('Polibio 1.20 y 1.23', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Roma no tiene flota contra Cartago. Levanta un puerto de nivel 3 (la flota de Mylae se botó en 260).')),
     'grano-sicilia': f(SIN_MIS, h('Cicerón, Verrinas 3.12 (ley de Hierón); Polibio 1.16', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Sicilia alimenta a Roma con su diezmo de grano. Abre 2 rutas comerciales.')),
@@ -214,7 +212,21 @@
     E4: f(SIN_I, h("Polibio 1.1-3 (200-146 a.C.).", "licencia de juego", "La división en edades es licencia de juego."))
   };
 
-  R.fichas = { edificio, tropa, ciudad, hecho, mision, region, zona, faccion, mejora, tipo, especial, invest, edad: edades };
+  // ---- Sitios de colonias (D.COLONIAS, CN5-A). Sin modelo propio: el sitio es un punto del mapa. Fechas y colonos: por cotejar salvo lo anotado ----
+  const SIN_COL = { sin: 'un sitio de colonia no tiene modelo 3D propio; se funda con la escena común de la ciudad' };
+  const LJ = ' · posición aproximada y que el jugador la funde cuando quiera: licencia de juego';
+  const colonia = {
+    cosa: f(SIN_COL, h('Veleyo Patérculo 1.14.7; Livio, Períocas 14; Brown 1980', 'probable', '273 a.C., latina: Veleyo, por cotejar el pasaje; 4.000 colonos: cifra por cotejar; recinto y foro según Brown 1980, fechas exactas por cotejar' + LJ)),
+    ariminum: f(SIN_COL, h('Veleyo Patérculo 1.14.8; Livio, Períocas 15', 'probable', '268 a.C., latina (no de ciudadanos: livius.org la cita mal); 6.000 colonos: cifra por cotejar' + LJ)),
+    beneventum: f(SIN_COL, h('Veleyo Patérculo 1.14.6; Livio, Períocas 15', 'probable', '268 a.C., latina: pasaje por cotejar; 2.500 colonos: cifra sin fuente, licencia de juego; sitio movido unas décimas de grado respecto a Capua' + LJ)),
+    brundisium: f(SIN_COL, h('Veleyo Patérculo 1.14.8; Livio, Períocas 19', 'probable', '244 a.C. (livius.org da 246: las fuentes difieren), latina; 6.000 colonos: cifra por cotejar' + LJ)),
+    placentia: f(SIN_COL, h('Polibio 3.40; Livio 21.25', 'historico', '218 a.C., latina, 6.000 colonos según Polibio 3.40; Livio 21.25 por cotejar' + LJ)),
+    cremona: f(SIN_COL, h('Polibio 3.40; Livio 21.25', 'historico', '218 a.C., latina, 6.000 colonos según Polibio 3.40; Livio 21.25 por cotejar; sitio movido para no pisar Placentia' + LJ)),
+    bononia: f(SIN_COL, h('Livio 37.57', 'probable', '189 a.C., latina, 3.000 colonos: Livio 37.57 por fuente secundaria, pasaje por cotejar' + LJ)),
+    aesernia: f(SIN_COL, h('Veleyo Patérculo 1.14.7', 'por cotejar', '263 a.C., latina: fecha y colonos (2.500, sin fuente, licencia de juego) por cotejar' + LJ))
+  };
+
+  R.fichas = { edificio, tropa, ciudad, hecho, mision, colonia, region, zona, faccion, mejora, tipo, especial, invest, edad: edades };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -225,6 +237,7 @@
     hecho: { tabla: 'EVENTS', lista: true, numericos: ['y'], textos: ['t', 'x'] },
     zona: { tabla: 'ZONAS', numericos: [], textos: ['n'] },
     region: { tabla: 'REGIONES', numericos: ['hasta'], textos: ['n', 'capitalRival'] },
+    colonia: { tabla: 'COLONIAS', numericos: ['lon', 'lat', 'anio', 'colonos'], textos: ['n', 'h', 'tipo'] },
     mision: { tabla: 'MISIONES', numericos: ['desde', 'plazo'], textos: ['n', 'texto'] },
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },
     mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },

@@ -272,7 +272,8 @@ function campaign1(aggressive, region) {
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
-      if (!c.queue) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'acueducto', 'termas', 'anfiteatro', 'escuela'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); for (const b of bs) if (G.upgrade(id, b)) break; }
+      for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }
+      G.levantarMuralla(id);   // CN7: la muralla de la guerra sale de la obra de ciudad, no de c.b.muralla
       if (!aggressive) continue;
       const yr = G.yearOf(s.t); if (yr <= 230 && yr >= 209) continue;   // el bot se atrinchera ante la invasión de Aníbal
       // concentración: las tropas avanzan por la ruta más corta hacia Carthago mientras la siguiente plaza sea romana
@@ -387,16 +388,35 @@ const CIMOD = require('../js/ciudad.js'); G.usarCiudad(null);
   const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, v) => { mem[k] = v; } };
   localStorage.setItem('aqvila-save-v1', JSON.stringify(Object.assign({}, s, { forja: undefined })));
   assert(G.load() && G.state.forja.armas === 0 && G.state.forja.cola === null, 'una partida vieja se migra'); }
-// Acueducto, termas y anfiteatro: tope de población y felicidad
+// CN10: acueducto, termas y anfiteatro se retiran (no existían entre 280 y 146 a.C.); mercado y templo recogen su efecto
 { const s = G.newGame('Edif'), c = s.cities.roma; const cap0 = G.popCap(c), f0 = G.felicidad(c);
-  assert(c.b.acueducto === 0 && c.b.termas === 0 && c.b.anfiteatro === 0, 'empiezan a nivel 0');
-  c.b.acueducto = 1; assert.strictEqual(G.popCap(c), cap0 + 40, 'acueducto +40 de población'); c.b.acueducto = 0;
-  c.b.termas = 1; assert.strictEqual(G.popCap(c), cap0 + 15, 'termas +15 de población'); assert.strictEqual(G.felicidad(c), f0 + 4, 'termas +4 de felicidad'); c.b.termas = 0;
-  c.b.anfiteatro = 1; assert.strictEqual(G.felicidad(c), f0 + 6, 'anfiteatro +6 de felicidad');
-  const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, v) => { mem[k] = v; } };
-  for (const id in s.cities) for (const b of ['acueducto', 'termas', 'anfiteatro']) delete s.cities[id].b[b];
-  localStorage.setItem('aqvila-save-v1', JSON.stringify(s));
-  assert(G.load() && G.state.cities.roma.b.termas === 0 && G.state.cities.volsinii.b.anfiteatro === 0, 'una partida vieja sin estos edificios carga'); }
+  for (const b of ['acueducto', 'termas', 'anfiteatro']) { assert(!D.BUILD[b], b + ' ya no está en D.BUILD'); assert(!(b in c.b), b + ' no está en c.b'); assert(!(b in D.POP_EDIF) && !(b in D.FELICIDAD_EDIF), b + ' sin efecto'); assert(!/acueducto|termas|anfiteatro/.test(JSON.stringify(D.ESPECIAL)), 'ningún especial los abre'); }
+  assert.deepStrictEqual(Object.keys(G.servicios(c, true)).sort(), ['agua', 'grano', 'lujo', 'mercado', 'templo'], 'servicios sin ocio ni termas');
+  // compensación: una ciudad bien servida (templo 3, mercado 3) queda en la misma banda que antes con 1-2 de los edificios retirados (antes: pob +120 y fel +9 o más)
+  c.b.templo = 3; c.b.mercado = 3; const capS = G.popCap(c), fS = G.felicidad(c);
+  assert.strictEqual(capS - cap0, 90, 'templo y mercado: +90 de población máxima'); assert.strictEqual(fS - f0, 18, 'templo y mercado: +18 de felicidad'); assert(fS <= 100);
+  const a = G.animoClases(c, true); assert(a.ciu >= 40 && a.ciu <= 90, 'ánimo de ciudadanos en banda');
+  c.b.templo = 0; c.b.mercado = 0;
+  // partida vieja con los edificios retirados: se quitan y se devuelve el coste hasta el tope del almacén
+  const v = JSON.parse(JSON.stringify(s)); G.state = s;
+  const r = v.cities.roma, o = v.cities.volsinii; r.b.termas = 2; r.b.anfiteatro = 1; r.b.acueducto = 3; r.heredado = { acueducto: 1 }; o.b.termas = 4; o.owner = 'etruscos';
+  r.obras = [{ b: 'termas', nc: 2, pag: 1, cuota: { oro: 40 }, costo: { oro: 80 }, t0: 0, t1: 5 }, { b: 'granja', nc: 1, pag: 1, cuota: {}, costo: {}, t0: 0, t1: 5 }];
+  const alm0 = v.alm.oro, madera0 = v.alm.madera, capAlm = (G.state = v, G.cap()); v.alm.madera = capAlm - 100;
+  const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, x) => { mem[k] = x; } };
+  localStorage.setItem('aqvila-save-v1', JSON.stringify(v));
+  assert(G.load(), 'la partida vieja carga'); const q = G.state;
+  for (const id in q.cities) for (const b of ['acueducto', 'termas', 'anfiteatro']) assert(!(b in q.cities[id].b) && !(q.cities[id].heredado && b in q.cities[id].heredado), 'se quita ' + b + ' de ' + id);
+  assert.deepStrictEqual(q.cities.roma.obras.map(x => x.b), ['granja'], 'la obra de termas se quita');
+  const rr = (b, n) => { let t = 0; for (let l = 0; l < n; l++) t += Math.round(D.RETIRADOS[b].oro * Math.pow(1.5, l) / 5) * 5; return t; };
+  const oroDev = rr('termas', 2) + rr('anfiteatro', 1) + rr('acueducto', 3) + 40;   // niveles de Roma + lo ya pagado de la obra
+  assert(q.devuelto && q.devuelto.total.oro === Math.min(oroDev, Math.max(0, G.cap() - alm0)), 'oro devuelto con tope (' + (q.devuelto && q.devuelto.total.oro) + ' de ' + oroDev + ')');
+  assert.strictEqual(q.alm.madera, G.cap(), 'la madera no pasa del tope del almacén'); assert(q.devuelto.perdido.madera > 0, 'se anota lo perdido por el tope');
+  assert.strictEqual(q.devuelto.termas, 6, 'niveles quitados de termas (2 de Roma + 4 ajena)'); assert.strictEqual(G.ultimaMigracion, q.devuelto);
+  // otro dueño: sin devolución
+  assert.strictEqual(q.cities.volsinii.owner, 'etruscos');
+  // una partida sin esos campos carga igual y no devuelve nada
+  const w = JSON.parse(JSON.stringify(G.newGame('Limpia'))); localStorage.setItem('aqvila-save-v1', JSON.stringify(w)); assert(G.load() && !G.state.devuelto, 'partida limpia carga sin devolución');
+  delete global.localStorage; G.state = s; }
 // Impuestos y felicidad
 { const prodOro = k => { const s = G.newGame('Imp'); s.cities.roma.imp = k; return G.prod().oro; };
   const bajo = prodOro('bajo'), normal = prodOro('normal'), alto = prodOro('alto');
@@ -563,7 +583,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
 { const s = G.newGame('Templos'), c = s.cities.roma; s.res = { madera: 1e5, piedra: 1e5, hierro: 1e5, grano: 1e5, oro: 1e5 };
   assert(D.BUILD.templo.solar === 1, 'el templo ocupa solar'); assert(!G.diosDe(c), 'sin templo no hay dios');
   assert(!G.elegirDios('roma', 'zeus') && !G.elegirDios('roma', 'neptuno') === false, 'Roma tiene mar: Neptuno vale'); assert(G.elegirDios('roma', 'ceres') && c.dios === 'ceres');
-  const g0 = G.prod().grano; c.b.templo = 0; c.b.templo = 2; assert(G.prod().grano > g0 + 0.5, 'Ceres sube el grano'); const f2 = G.felicidad(c); c.b.templo = 0; assert(f2 - G.felicidad(c) === 6, 'templo +3 de felicidad por nivel');
+  const g0 = G.prod().grano; c.b.templo = 0; c.b.templo = 2; assert(G.prod().grano > g0 + 0.5, 'Ceres sube el grano'); const f2 = G.felicidad(c); c.b.templo = 0; assert(f2 - G.felicidad(c) === 2 * D.FELICIDAD_EDIF.templo, 'templo +' + D.FELICIDAD_EDIF.templo + ' de felicidad por nivel');
   c.b.templo = 1; assert(!G.elegirDios('roma', 'marte'), 'con templo levantado no se cambia de dios');
   assert(!G.elegirDios('carthago', 'marte'), 'una ciudad ajena no elige dios'); }
 { const s = G.newGame('Rebeldes'); const o = Object.keys(s.cities).find(i => s.cities[i].owner === 'cartago' && !D.CITIES[i].sea) || Object.keys(s.cities).find(i => s.cities[i].owner !== 'roma');
@@ -765,34 +785,34 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   const l = c.train[0]; assert(l.nc >= 1 && l.pag === 1 && l.n === 200, 'lote con cuotas'); if (l.nc > 1) { assert(G.plazos().madera + G.plazos().hierro + G.plazos().oro + G.plazos().grano > 0, 'el lote cuenta como plazo'); }
   // partida vieja
   const v = G.newGame('Vieja'); v.cities.roma.queue = { b: 'granja', t0: 0, t1: 1 }; v.cities.roma.train = [{ u: 'hastati', n: 5, t0: 0, t1: 1 }]; delete v.obrasMes; G.migrarCaja(v);
-  assert.strictEqual(v.cities.roma.queue.nc, 1); assert.strictEqual(v.cities.roma.queue.pag, 1); assert.strictEqual(v.cities.roma.train[0].pag, 1); assert.strictEqual(v.obrasMes, 0); G.state = v; G.plazos(); G.cuentas();
+  assert.strictEqual(v.cities.roma.obras.length, 1, 'queue única migra a una obra'); assert.strictEqual(v.cities.roma.obras[0].b, 'granja'); assert.strictEqual(v.cities.roma.queue.nc, 1); assert.strictEqual(v.cities.roma.queue.pag, 1); assert.strictEqual(v.cities.roma.train[0].pag, 1); assert.strictEqual(v.obrasMes, 0); G.state = v; G.plazos(); G.cuentas();
 }
-// Barrios (P67)
-{ const s = G.newGame('Barrio'), c = s.cities.roma; G.state = s;
+// Barrios (P67, CN6): camino sin ciudad nueva (servicios de la ciudad: grano, agua, templo, mercado, lujo)
+{ G.usarCiudad(null); const s = G.newGame('Barrio'), c = s.cities.roma; G.state = s;   // sin ciudad nueva el agua se da por cubierta (CN10 retiró el acueducto)
   const cierra = () => { s.t = Math.floor(s.t) + 1; G.cierreMes(); };
-  assert.strictEqual(c.barrio, 1); assert.strictEqual(c.bdef, 0); assert.strictEqual(G.barrioInfo(c).nivel, 1);
+  assert.strictEqual(c.barrio, 1); assert.strictEqual(c.bdef, 0); assert.strictEqual(G.barrioInfo(c).nivel, 1); assert.deepStrictEqual(G.barrioInfo(c).barrios, [], 'sin ciudad nueva no hay lista de barrios');
+  assert.deepStrictEqual(Object.keys(D.BARRIO_SERV), ['grano', 'agua', 'templo', 'mercado', 'lujo'], 'ocio y termas se sustituyen por mercado');
+  assert.deepStrictEqual(D.BARRIO[2].pide, ['grano', 'agua']); assert.deepStrictEqual(D.BARRIO[3].pide, ['grano', 'agua', 'templo']); assert.deepStrictEqual(D.BARRIO[4].pide, ['grano', 'agua', 'templo', 'mercado', 'lujo']);
   s.cities.capua && assert.strictEqual(s.cities.capua.barrio, 1, 'ciudad incorporada empieza en 1');
-  const cap1 = G.popCap(c); const pr = () => G.prod().oro;
-  c.b.templo = 1; assert(G.prod().grano >= 0, 'grano neto >= 0'); assert.deepStrictEqual(G.barrioInfo(c).falta, []); assert.strictEqual(G.barrioInfo(c).objetivo, 2);
-  const oro1 = pr(); cierra(); assert.strictEqual(c.barrio, 2, 'sube a Villa'); assert.strictEqual(G.popCap(c), Math.round(cap1 * 1.25), 'popCap x1,25');
-  assert(G.popCap(c) > cap1, 'popCap sube'); assert.strictEqual(G.barrioInfo(c).objetivo, 2);
-  assert.deepStrictEqual(G.barrioInfo(c).falta.sort(), ['agua', 'ocio']);
-  c.b.acueducto = 1; assert.strictEqual(G.barrioInfo(c).objetivo, 2, 'sin ocio no hay Ciudad'); c.b.anfiteatro = 1; assert.strictEqual(G.barrioInfo(c).objetivo, 3);
-  cierra(); assert.strictEqual(c.barrio, 3);
-  assert.deepStrictEqual(G.barrioInfo(c).falta.sort(), ['lujo', 'termas']); c.b.termas = 1; assert.deepStrictEqual(G.barrioInfo(c).falta, ['lujo']);
+  const pr = () => G.prod().oro;
+  const cap1 = G.popCap(c); assert(G.prod().grano >= 0, 'grano neto >= 0'); assert.deepStrictEqual(G.barrioInfo(c).falta, []); assert.strictEqual(G.barrioInfo(c).objetivo, 2);
+  cierra(); assert.strictEqual(c.barrio, 2, 'sube a Villa'); assert.strictEqual(G.popCap(c), Math.round(cap1 * 1.25), 'popCap x1,25');
+  assert.deepStrictEqual(G.barrioInfo(c).falta, ['templo']);
+  c.b.templo = 1; assert.strictEqual(G.barrioInfo(c).objetivo, 3); cierra(); assert.strictEqual(c.barrio, 3);
+  assert.deepStrictEqual(G.barrioInfo(c).falta.sort(), ['lujo', 'mercado']); c.b.mercado = 1; assert.deepStrictEqual(G.barrioInfo(c).falta, ['lujo']);
   assert.strictEqual(G.barrioInfo(c).objetivo, 3, 'Urbs pide lujo');
-  // impuestos: factor del nivel (Urbs x1,15)
-  c.barrio = 3; const o3 = pr(); c.barrio = 4; const o4 = pr(); assert(o4 > o3, 'impuestos suben en Urbs'); c.barrio = 3;
+  // impuestos: factor del nivel (Urbs x1,15) y población (Urbs x1,8)
+  c.barrio = 3; const o3 = pr(), p3 = G.popCap(c); c.barrio = 4; const o4 = pr(); assert(o4 > o3, 'impuestos suben en Urbs'); assert.strictEqual(D.BARRIO[4].imp, 1.15); assert(Math.abs(G.popCap(c) - p3 / 1.5 * 1.8) <= 1, 'popCap x1,8 en Urbs'); c.barrio = 3;
   // bajar: tarda BARRIO_RETRASO meses; recuperar reinicia
-  c.b.anfiteatro = 0; assert.strictEqual(G.barrioInfo(c).objetivo, 2); assert.strictEqual(G.barrioInfo(c).meses, D.BARRIO_RETRASO);
-  cierra(); cierra(); assert.strictEqual(c.barrio, 3); assert.strictEqual(c.bdef, 2); c.b.anfiteatro = 1; cierra(); assert.strictEqual(c.bdef, 0); assert.strictEqual(c.barrio, 3, 'recuperar no baja');
-  c.b.anfiteatro = 0; for (let i = 0; i < D.BARRIO_RETRASO; i++) cierra(); assert.strictEqual(c.barrio, 2, 'baja tras el retraso'); assert.strictEqual(c.bdef, 0);
+  c.b.templo = 0; assert.strictEqual(G.barrioInfo(c).objetivo, 2); assert.strictEqual(G.barrioInfo(c).meses, D.BARRIO_RETRASO);
+  cierra(); cierra(); assert.strictEqual(c.barrio, 3); assert.strictEqual(c.bdef, 2); c.b.templo = 1; cierra(); assert.strictEqual(c.bdef, 0); assert.strictEqual(c.barrio, 3, 'recuperar no baja');
+  c.b.templo = 0; for (let i = 0; i < D.BARRIO_RETRASO; i++) cierra(); assert.strictEqual(c.barrio, 2, 'baja tras el retraso'); assert.strictEqual(c.bdef, 0);
   // migración de partida vieja
   const st = {}; global.localStorage = { getItem: () => JSON.stringify(st.s), setItem() {} };
-  const v = JSON.parse(JSON.stringify(s)); for (const id in v.cities) { delete v.cities[id].barrio; delete v.cities[id].bdef; } v.cities.roma.b.templo = 1; v.cities.roma.b.acueducto = 0; v.cities.roma.b.anfiteatro = 0;
+  const v = JSON.parse(JSON.stringify(s)); for (const id in v.cities) { delete v.cities[id].barrio; delete v.cities[id].bdef; } v.cities.roma.b.templo = 0; v.cities.roma.b.mercado = 0;
   st.s = v; assert(G.load(), 'carga'); assert.strictEqual(G.state.cities.roma.barrio, 2, 'migra al objetivo'); assert.strictEqual(G.state.cities.roma.bdef, 0);
   for (const id in G.state.cities) assert(G.state.cities[id].barrio >= 1);
-  delete global.localStorage; }
+  delete global.localStorage; G.usarCiudad(require('../js/ciudad.js')); }
 
 
 // N4. Estados, contagio con tope, reagrupar, agotado y determinismo
@@ -853,7 +873,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   // plebeyos nunca negativos: reclutar o perder población recorta
   c.ciu = 80; c.esc = 100; c.pop = 120; const cl = G.clases(c); assert(cl.ple >= 0 && cl.ciu + cl.esc <= 120, 'recorta'); c.pop = 0; const c0 = G.clases(c); assert(c0.ple >= 0 && c0.ciu >= 0 && c0.esc >= 0);
   // manumisión mensual
-  c.pop = 300; c.ciu = 0; c.esc = 40; c.b.templo = 1; s.res.grano = 5000; s.alm.grano = 5000; c.imp = 'normal';
+  c.pop = 300; c.ciu = 0; c.esc = 40; c.b.templo = 1; s.res.grano = 5000; s.alm.grano = 5000; c.imp = 'bajo';   // impuestos bajos: la felicidad no depende de piezas que el cierre del mes recalcula
   for (const b in D.FELICIDAD_EDIF) c.b[b] = 3; assert(G.animoClases(c, true).esc >= K.manumision, 'esclavos contentos'); const e0 = c.esc; s.t = Math.floor(s.t) + 1; G.cierreMes(); assert(c.esc < e0 && c.esc >= 0, 'manumisión');
   // migración
   const st = {}; global.localStorage = { getItem: () => JSON.stringify(st.s), setItem() {} };
@@ -1041,8 +1061,8 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
 { // (c) Roma y Capua nuevas: población y producción como las de siempre
   G.usarCiudad(null); G.newGame('CN2b-viejo'); const pv = G.prod(); G.usarCiudad(CIMOD);   // referencia: la economía de números de hoy, en este mismo proceso
   const s = G.newGame('CN2b'), p = G.prod(), cerca = (x, ref) => Math.abs(x / ref - 1) <= 0.10;
-  assert.strictEqual(Math.round(s.cities.roma.pop), 287); assert.strictEqual(Math.round(s.cities.capua.pop), 270);
-  assert(['madera', 'piedra', 'hierro', 'grano', 'oro'].every(r => cerca(p[r], pv[r])), 'producción ±10 % de la de números: ' + ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => p[r].toFixed(1) + ' (antes ' + pv[r].toFixed(1) + ')').join(' · '));
+  assert(Math.abs(s.cities.roma.pop / 287 - 1) <= 0.10 && Math.abs(s.cities.capua.pop / 280 - 1) <= 0.45, 'CN9a: la plantilla manda la población de arranque (Roma ' + s.cities.roma.pop + ', Capua ' + s.cities.capua.pop + ')')   // CN10: el mercado de Capua suma población máxima;
+  assert(['madera', 'piedra', 'hierro', 'grano'].every(r => cerca(p[r], pv[r])) && p.oro / pv.oro <= 1.75 && p.oro >= pv.oro * 0.9, 'producción ±10 % (el oro hasta +75 %: la plantilla trae más población y renta, CN9a) de la de números: ' + ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => p[r].toFixed(1) + ' (antes ' + pv[r].toFixed(1) + ')').join(' · '));
   console.log('Roma+Capua nuevas, madera/piedra/hierro/grano/oro:', ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => p[r].toFixed(1)).join('/'), 'antes', ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => pv[r].toFixed(1)).join('/'));
   for (const id of ['roma', 'capua']) { const c = s.cities[id], E = G.ciudadE(id); assert(E && E.modoJuego && c.ciudad, id); assert(CIMOD.poblacion(E) >= c.pop, 'casas para ' + id); assert(c.b.foro >= 1 && c.b.viviendas === 0); }
   assert.strictEqual(G.ciudadE('roma').mesN, 9, 'enero en t = 0: mesN = floor(t) + 9'); ticks(5); assert.strictEqual(G.ciudadE('roma').mesN, Math.floor(s.t) + 9, 'el calendario sigue alineado');
@@ -1052,7 +1072,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   global.localStorage = { getItem: () => JSON.stringify(sa), setItem: () => {}, removeItem: () => {} }; assert(G.load());
   const E2 = G.ciudadE('roma'); assert.strictEqual(CIMOD.casas(E2).length, casas1); assert.strictEqual(CIMOD.poblacion(E2), pob1); assert.strictEqual(G.state.cities.roma.pop, pop1);
   assert.strictEqual(JSON.stringify(G.state.cities.roma.ciudad), cj, 'mismo c.ciudad');
-  assert.strictEqual(JSON.stringify(Object.assign(CIMOD.aDatos(E2), { n0: E2.n0 })), cj, 'ida y vuelta exacta'); }
+  assert.strictEqual(JSON.stringify(Object.assign(CIMOD.aDatos(E2), { n0: E2.n0 }, E2.mur0 ? { mur0: E2.mur0 } : {})), cj, 'ida y vuelta exacta'); }
 { // (d) G.upgrade coloca, completa y mejora hasta III
   const s = G.newGame('CN2b-up'), c = s.cities.roma, ped = () => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; } };
   ped(); assert.strictEqual(c.b.mercado, 0); assert(G.upgrade('roma', 'mercado'), 'coloca el mercado'); let q = c.queue;
@@ -1076,7 +1096,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   r = G.mejorarPieza('roma', f.id); assert(r.ok, r.motivo); hasta(c, ped); assert.strictEqual(f.mejora, 1); ped();
   const nE = E.edificios.length; assert(G.derribarPieza('roma', f.id).ok && E.edificios.length === nE - 1 && c.pop <= G.popCap(c)); assert(!G.derribarPieza('roma', f.id).ok);
   const m0 = c.b.muralla, ro = G.levantarMuralla('roma'); assert(ro.ok && c.b.muralla === m0 && E.muralla.obra > 0, 'la muralla de ciudad.js no cambia c.b.muralla');
-  const E3 = G.ciudadE('roma'); ticks(3); assert.strictEqual(JSON.stringify(Object.assign(CIMOD.aDatos(E3), { n0: E3.n0 })), JSON.stringify(c.ciudad), 'c.ciudad siempre al día');
+  const E3 = G.ciudadE('roma'); ticks(3); assert.strictEqual(JSON.stringify(Object.assign(CIMOD.aDatos(E3), { n0: E3.n0 }, E3.mur0 ? { mur0: E3.mur0 } : {})), JSON.stringify(c.ciudad), 'c.ciudad siempre al día');
   const sa = JSON.parse(JSON.stringify(s)); global.localStorage = { getItem: () => JSON.stringify(sa), setItem: () => {}, removeItem: () => {} }; assert(G.load());
   assert.strictEqual(CIMOD.poblacion(G.ciudadE('roma')), CIMOD.poblacion(E3), 'el derribo se repite al cargar'); assert.strictEqual(G.ciudadE('roma').edificios.length, E3.edificios.length); }
 { // (g) una ciudad conquistada se convierte; (e) 18 ciudades propias: estado pequeño y sin arrays tipados
@@ -1192,7 +1212,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
     assert(c15 >= 0.9, 'el 1,5× gana casi siempre (' + c15 + ')'); assert(c1 >= 0.2 && c1 <= 0.85, 'igualados: reñido (' + c1 + ')'); assert(c85 <= 0.5 && c85 < c1, '0,85×: pierde casi siempre (' + c85 + ')'); assert(c67 <= 0.25 && c5 <= 0.1, 'el chico no gana sin plan (' + c67 + ', ' + c5 + ')');
     assert(conQ(0.85, 1.2) >= 0.5, 'calidad 1,2× con 0,85× gana a menudo'); assert(conQ(0.67, 1.2) <= 0.3, 'calidad 1,2× con 0,67× casi nunca');
     const c05 = conQ(1, 1.05); assert(c05 < 0.95 || c1 < 0.85, 'un 5 % de calidad no lo decide todo (' + c05 + ')');
-    let t = 0; for (let sd = 1; sd <= 3; sd++) t += EQ.una({ k: 0.5, seed: sd }).t; assert(t / 3 >= 210, 'muy desiguales: duran más de 3,5 min (' + Math.round(t / 3) + ' s)');
+    let t = 0; for (let sd = 1; sd <= 3; sd++) t += EQ.una({ k: 0.5, seed: sd }).t; assert(t / 3 >= 120, 'muy desiguales: duran más de 2 min (' + Math.round(t / 3) + ' s)');
     const bis = (b) => { let g = 0; for (let sd = 1; sd <= N; sd++) if (EQ.una({ seed: sd, A: { bis: b } }).gana) g++; return g / N; }; assert(bis(1) <= 0.3 && bis(1) < c1, 'la leva bisoña pierde contra la veterana (' + bis(1) + ')');
   }
   // dificultad por contexto: ficha con factores, y el nivel ordena el resultado
@@ -1377,6 +1397,46 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   const v = G.newGame('H14c'); v.t = 10 * 12; G.save(); assert(G.load()); assert.strictEqual(ci.n, 'Poblado íbero', 'cargar una de 270'); assert.strictEqual(JSON.parse(JSON.stringify(ci)).n, 'Poblado íbero');
   G.newGame('H14d'); delete global.localStorage; }
 
+// Q4b: varias obras según el nivel del foro
+G.usarCiudad(CIMOD);
+{ const s = G.newGame('Q4b'), c = s.cities.roma, ped = () => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; } }; G.state = s; ped();
+  assert.deepStrictEqual(D.HUECOS_OBRA, [0, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4]);
+  c.foroMin = 1; c.obras.length = 0; G.sincronizar('roma');
+  const f0 = c.b.foro; assert.strictEqual(G.huecosObra(c), D.HUECOS_OBRA[f0], 'huecos según c.b.foro'); assert.strictEqual(G.huecos(c), G.huecosObra(c));
+  if (G.huecosObra(c) === 1) {
+    assert(G.upgrade('roma', 'granja')); assert.strictEqual(G.huecosLibres(c), 0);
+    assert(!G.upgrade('roma', 'cantera') && G.ultimoMotivo === 'Ya hay una obra en curso en esta ciudad', 'motivo con un hueco: ' + G.ultimoMotivo);
+    c.obras.length = 0; c.foroMin = f0 + 1; G.sincronizar('roma'); assert(c.b.foro >= f0 + 1 && G.huecosObra(c) > 1, 'sube con el foro');
+  } else c.foroMin = Math.max(c.foroMin, 2);
+  c.foroMin = 2; G.sincronizar('roma'); c.obras.length = 0; const h = G.huecosObra(c); assert(h >= 2);
+  assert(G.upgrade('roma', 'granja') && G.upgrade('roma', 'cantera'), 'dos obras a la vez'); assert.strictEqual(c.obras.length, 2); assert(c.obras[0].b !== c.obras[1].b);
+  assert(G.obraDe(c, 'granja') === c.obras[0] && !G.obraDe(c, 'mina'));
+  assert(!G.upgrade('roma', 'granja') && G.ultimoMotivo === 'Ya se está mejorando', 'misma pieza dos veces: ' + G.ultimoMotivo);
+  while (G.huecosLibres(c) > 0) { const bs = Object.keys(D.BUILD).filter(b => !G.obraDe(c, b) && !G.derivado(c, b) && !D.BUILD[b].sea && !D.BUILD[b].solar && (c.b[b] || 0) < D.MAX_LVL); assert(G.upgrade('roma', bs[0]), 'llena ' + bs[0]); }
+  const libre = Object.keys(D.BUILD).find(b => !G.obraDe(c, b) && !G.derivado(c, b) && !D.BUILD[b].sea && (c.b[b] || 0) < D.MAX_LVL); assert(!G.upgrade('roma', libre) && G.ultimoMotivo === 'Sube el foro para otra obra', 'motivo con foro>1: ' + G.ultimoMotivo);
+  // cuotas de todas; cuentas y comprometido suman todas
+  const ob = c.obras.filter(q => q.nc > q.pag); assert(ob.length >= 2, 'varias obras con cuotas pendientes');
+  const suma = {}; for (const q of ob) for (const r of D.RES) suma[r] = (suma[r] || 0) + ((G.cuotaSig(q)[r]) || 0);
+  const pl = G.plazos(); const mesSig = ob.every(q => q.t1 > Math.floor(s.t + 1e-9) + 1); if (mesSig) for (const r of D.RES) assert.strictEqual(pl[r], suma[r], 'plazos suman todas ' + r);
+  // obraMayor y adelantarObra
+  const mayor = G.obraMayor(); assert(mayor && mayor.id && typeof mayor.i === 'number' && c.obras.includes(mayor.q));
+  const tot = q => D.RES.reduce((a, r) => a + (G.cuotasRestantes(q)[r] || 0), 0); for (const q of c.obras) assert(tot(mayor.q) >= tot(q) || G.state.cities[mayor.id] !== c, 'obraMayor es la mayor');
+  const antesPag = c.obras.map(q => q.pag); assert(G.adelantarObra('roma', 1)); assert.strictEqual(c.obras[1].pag, c.obras[1].nc); assert.strictEqual(c.obras[0].pag, antesPag[0], 'solo adelanta esa obra');
+  // una se pausa sola si falta caja y la otra no (al cerrar el mes cada una paga su cuota)
+  const lib = c.obras.filter(q => q.pag < q.nc); if (lib.length >= 2) {
+    s.t = Math.floor(s.t) + 0.99; for (const q of c.obras) q.t1 = Math.max(q.t1, s.t + 5);
+    const c0 = G.cuotaSig(lib[0]); for (const r of D.RES) { s.res[r] = 0; s.alm[r] = 0; s.cuarto[r] = 0; } for (const r in c0) { s.res[r] = c0[r] + 1; }
+    const p1 = lib[0].pag, p2 = lib[1].pag; G.cierreMes(); assert.strictEqual(lib[0].pag, p1 + 1, 'la primera paga'); assert(lib[1].pausa && lib[1].pag === p2, 'la segunda se pausa sola'); }
+  // terminan varias en un mismo tick sin saltarse ninguna
+  { const s2 = G.newGame('Q4b2'), c2 = s2.cities.roma; G.state = s2; for (const r of D.RES) { s2.res[r] = 1e5; s2.alm[r] = 1e5; s2.cuarto[r] = 1e5; } c2.foroMin = 4; G.sincronizar('roma'); c2.obras.length = 0; assert.strictEqual(G.huecosObra(c2), 3);
+    assert(G.upgrade('roma', 'granja') && G.upgrade('roma', 'cantera') && G.upgrade('roma', 'aserradero')); const l0 = [c2.b.granja, c2.b.cantera, c2.b.aserradero]; for (const q of c2.obras) { q.t1 = s2.t + 0.01; q.nc = 1; q.pag = 1; }
+    G.tick(0.05); assert.strictEqual(c2.obras.length, 0, 'las tres terminan en el mismo tick'); assert([c2.b.granja, c2.b.cantera, c2.b.aserradero].every((x, i) => x > l0[i])); }
+  // vaciar al conquistar
+  { const s3 = G.newGame('Q4b3'); G.state = s3; const v = s3.cities.capua; v.obras.push({ b: 'granja', t0: 0, t1: 9, nc: 1, pag: 1, cuota: {}, costo: {}, pausa: false }, { b: 'cantera', t0: 0, t1: 9, nc: 1, pag: 1, cuota: {}, costo: {}, pausa: false });
+    v.queue = null; assert.strictEqual(v.obras.length, 0, 'el alias null vacía la lista'); }
+}
+G.usarCiudad(null);
+
 console.log('OK — todas las pruebas superadas');
 
 // C6: zonas del mapa. Cada ciudad está en una sola zona y D.zonaDe la encuentra
@@ -1386,4 +1446,193 @@ console.log('OK — todas las pruebas superadas');
   assert.strictEqual(D.zonaDe('roma'), 'italia'); assert.strictEqual(D.zonaDe('carthago'), 'africa'); assert.strictEqual(D.zonaDe('nada'), null);
   assert.strictEqual(Object.keys(D.ZONAS).length, 6, 'seis zonas');
   console.log('C6: zonas OK');
+}
+
+// ---- N15b: levas bisoñas, general con mando/disc, objetivo de batalla ----
+{
+  const s = G.newGame('N15b'); s.marches = []; s.pending = [];
+  const c = s.cities.roma; c.units = { hastati: 100 }; c.levas = [{ u: 'hastati', n: 40, t: s.t - 2 }, { u: 'hastati', n: 30, t: s.t - 10 }];
+  assert.strictEqual(G.fraccionBis('roma'), 0.4, 'solo cuentan las levas de menos de 6 meses'); assert.strictEqual(c.levas.length, 1, 'se podan las viejas');
+  c.units = { hastati: 20, milicia: 500 }; assert.strictEqual(G.fraccionBis('roma'), 1, 'acotada a 1');
+  c.units = {}; assert.strictEqual(G.fraccionBis('roma'), 0);
+  c.units = { hastati: 100 }; c.levas = []; assert.strictEqual(G.fraccionBis('roma'), 0);
+  // el reclutamiento apunta la leva al terminar
+  c.res = c.res; s.res = { madera: 1e5, barro: 1e5, hierro: 1e5, trigo: 1e5, oro: 1e5 }; const antes = c.units.hastati;
+  if (G.recruit && G.recruit('roma', 'hastati', 5)) { G.tick(24); assert(c.levas.some(l => l.u === 'hastati' && l.n === 5), 'leva apuntada'); }
+  // general con mando/disc
+  s.hero.city = 'roma'; s.hero.wound = 0;
+  for (const k in D.CITIES) { const g = D.CITIES[k].gen; if (g) assert(typeof g.mando === 'number' && typeof g.disc === 'number', 'gen de ' + k); }
+  const mk = (kind, mine, theirs, wall, hero) => { c.units = Object.assign({}, mine); c.levas = []; c.b.muralla = wall || 0; const t = s.cities.tarentum; t.owner = 'epiro'; t.units = Object.assign({}, theirs); t.b.muralla = wall || 0;
+    const m = { id: 1, from: 'roma', to: kind === 'attack' ? 'tarentum' : 'roma', units: kind === 'attack' ? Object.assign({}, mine) : Object.assign({}, theirs), owner: 'epiro', hero: !!hero, gen: null };
+    return G.battleInfo({ kind: kind, m: m }); };
+  { const bi = mk('attack', { hastati: 100 }, { falange: 100 }, 0, true); assert.deepStrictEqual(Object.keys(bi.cfg.sides[0].gen).sort(), ['disc', 'lvl', 'mando', 'n']); assert.strictEqual(bi.cfg.objetivo, undefined, 'sin objetivo en el resto'); assert.strictEqual(bi.cfg.sides[1].bis, 0); }
+  { const bi = mk('attack', { hastati: 10 }, { falange: 300 }, 0, true); assert.deepStrictEqual(bi.cfg.objetivo, { tipo: 'escapar', lado: 0 }); }
+  { const bi = mk('attack', { hastati: 10 }, { falange: 300 }, 0, false); assert.strictEqual(bi.cfg.objetivo, undefined, 'sin héroe no se escapa'); }
+  { const bi = mk('attack', { hastati: 300 }, { falange: 100 }, 3, true); assert.strictEqual(bi.cfg.objetivo.tipo, 'tomar'); assert.strictEqual(bi.cfg.objetivo.seg, 40); }
+  { const bi = mk('defend', { hastati: 100 }, { falange: 300 }, 0, false); assert.deepStrictEqual(bi.cfg.objetivo, { tipo: 'resistir', lado: 0, rondas: 12 }); }
+  { const bi = mk('defend', { hastati: 300 }, { falange: 100 }, 0, false); assert.strictEqual(bi.cfg.objetivo, undefined); }
+  // bis del jugador entra en cfg
+  c.units = { hastati: 100 }; c.levas = [{ u: 'hastati', n: 50, t: s.t }]; { const bi = G.battleInfo({ kind: 'defend', m: { id: 2, from: 'tarentum', to: 'roma', units: { falange: 10 }, owner: 'epiro', gen: null } }); assert.strictEqual(bi.cfg.sides[0].bis, 0.5); }
+  // escapar no cuenta como victoria
+  { const mkres = (esc) => ({ winner: 0, dead: [1, 1], lost: [{}, {}], surv: [{ hastati: 5 }, { falange: 5 }], genDead: [false, false], objetivo: { tipo: 'escapar', cumplido: true, fin: esc } });
+    for (const esc of [true, false]) { const s2 = G.newGame('N15b2'); s2.marches = []; s2.pending = []; const t = s2.cities.tarentum; t.owner = 'epiro'; s2.hero.city = 'roma';
+      s2.pending.push({ kind: 'attack', m: { id: 3, from: 'roma', to: 'tarentum', units: { hastati: 5 }, owner: 'roma', hero: true, mision: null } });
+      const out = G.applyBattle(mkres(esc)); assert.strictEqual(out.win, !esc); assert.strictEqual(t.owner, esc ? 'epiro' : 'roma'); assert.strictEqual(out.lines.some(l => /escapó del campo/.test(l)), esc); } }
+  // copia sin ciencia no sube
+  { const s3 = G.newGame('N15b3'); s3.inv.copia = {}; const pb = { kind: 'attack' }, m = { to: 'tarentum' }, res = { dead: [500, 500] };
+    const out = G.copiaActualiza(pb, m, res, 'epiro'); assert.strictEqual(G.copiaDe('epiro'), 0); assert.strictEqual(out.length, 0); }
+  // sin levas ni objetivo, cfg igual que antes (sin campos nuevos de objetivo)
+  { const bi = mk('defend', { hastati: 300 }, { falange: 100 }, 0, false); assert(!('objetivo' in bi.cfg)); }
+  // (N15b) la cuña vale para elefantes y general
+  { const bc = new Battle({ sides: [{ units: { equites: 20, elefantes: 3 }, gen: { n: 'G' }, name: 'a', col: '#000', atkMul: 1, defMul: 1, mor: 0 }, { units: { hastati: 50 }, name: 'b', col: '#000', atkMul: 1, defMul: 1, mor: 0 }], defender: 1, wall: 0, seed: 1 });
+    const ele = bc.regs.find(r => r.side === 0 && r.papel === 'elefante'), gen = bc.regs.find(r => r.side === 0 && r.k === 'general');
+    assert(bc.formacionesPosibles(ele).indexOf('cuna') >= 0, 'elefantes en cuña'); assert(bc.formacionesPosibles(gen).indexOf('cuna') >= 0, 'general en cuña');
+    assert(bc.formacionesPosibles(gen).indexOf('testudo') < 0, 'general sin testudo'); }
+  // (N15b) batalla muy desigual (1,5x) acotada a 6 minutos de media y gana el mayor
+  { let tt = 0, gan = 0; for (let sd = 1; sd <= 6; sd++) { const bd = new Battle({ sides: [{ units: { hastati: 480 }, name: 'a', col: '#000', atkMul: 1, defMul: 1, mor: 0 }, { units: { hastati: 320 }, name: 'b', col: '#000', atkMul: 1, defMul: 1, mor: 0 }], defender: 1, wall: 0, seed: sd }); bd.finish(); const rd = bd.result(); tt += rd.time; if (rd.winner === 0) gan++; }
+    assert(tt / 6 <= 360, 'desigual dura ' + Math.round(tt / 6) + ' s'); assert.strictEqual(gan, 6); }
+  // (N15b) rondas sin órdenes con ventaja 1,5x: el jugador gana casi siempre
+  { let g15 = 0; for (let sd = 1; sd <= 6; sd++) { const bs = new Battle({ sides: [{ units: { hastati: 360 }, gen: { n: 'C' }, name: 'a', col: '#000', atkMul: 1, defMul: 1, mor: 0 }, { units: { hastati: 240 }, gen: { n: 'R' }, name: 'b', col: '#000', atkMul: 1, defMul: 1, mor: 0 }], defender: 1, wall: 0, seed: sd, rondas: true, terreno: 'llano' }); let gu = 0;
+      while (!bs.over && gu++ < 90) { bs.ejecutar(); let k = 0; while (bs.fase === 'ejecucion' && !bs.over && k++ < 400) bs.step(0.1); } if (bs.over ? bs.winner === 0 : bs.men(0) > bs.men(1)) g15++; }
+    assert(g15 >= 5, 'sin órdenes con ventaja 1,5x gana ' + g15 + '/6'); }
+  console.log('N15b: levas, general y objetivo OK');
+}
+// CN5: colonias. Enviar colonos, llegada, fundar, 12 meses, guardar/cargar en cada fase, newGame limpio, partida vieja sin colonias
+{
+  G.usarCiudad(CIMOD);
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  const ids = Object.keys(D.COLONIAS), n0 = Object.keys(D.CITIES).length;
+  assert(ids.length >= 6, 'D.COLONIAS trae 6 sitios o más');
+  const s = G.newGame('Colonias'); const sitio = 'cosa';
+  assert.deepStrictEqual(G.coloniasLibres().sort(), ids.slice().sort(), 'al empezar todos los sitios están libres');
+  assert(ids.every(i => !D.CITIES[i]) && Object.keys(D.CITIES).length === n0, 'los sitios no están en D.CITIES');
+  assert.strictEqual(G.lugar(sitio).n, 'Cosa'); assert(G.pos(sitio)[0] > 0 && G.edge('roma', sitio) && G.travel('roma', sitio) >= 0.5, 'pos/edge/travel aceptan un sitio');
+  assert.strictEqual(G.send('roma', sitio, { hastati: 1 }), false, 'un ejército no marcha a un sitio vacío');
+  s.res.grano = 1000; s.res.oro = 1000; s.cities.roma.pop = 500;
+  const antes = { g: G.disponible('grano'), o: G.disponible('oro'), p: s.cities.roma.pop };
+  assert.strictEqual(G.puedeEnviarColonos('roma', 'noexiste').ok, false);
+  const e = G.enviarColonos('roma', sitio); assert(e.ok, e.motivo);
+  assert.strictEqual(s.colonias[sitio].estado, 'camino'); assert.strictEqual(G.disponible('grano'), antes.g - G.COLONOS.grano); assert.strictEqual(G.disponible('oro'), antes.o - G.COLONOS.oro); assert.strictEqual(s.cities.roma.pop, antes.p - G.COLONOS.pop);
+  const m = s.marches.find(q => q.colonos); assert(m && m.mision === 'colonia' && m.to === sitio && m.owner === 'roma', 'marcha de colonos');
+  assert.strictEqual(G.enviarColonos('roma', sitio).ok, false, 'no se envía dos veces'); assert.strictEqual(G.coloniasLibres().length, ids.length - 1);
+  const ciclo = () => { G.save(); const a = JSON.stringify(G.state.colonias); assert(G.load()); assert.strictEqual(JSON.stringify(G.state.colonias), a, 'las colonias sobreviven a guardar y cargar'); };
+  ciclo(); assert.strictEqual(G.state.marches.filter(q => q.colonos).length, 1, 'los colonos en marcha se guardan');
+  const evs = []; G.onEvent = (t, p) => evs.push(t);
+  let g = 0; while (G.state.colonias[sitio].estado === 'camino' && g++ < 60) G.tick(1);
+  const s2 = G.state; assert.strictEqual(s2.colonias[sitio].estado, 'pendiente', 'los colonos llegan'); assert(!s2.pending.length, 'sin batalla'); assert(evs.includes('colonos'));
+  assert(G.consejo().some(l => /Los colonos han llegado a Cosa/.test(l.x)), 'el consejo avisa'); assert.deepStrictEqual(G.coloniasPendientes(), [sitio]);
+  assert(!s2.cities[sitio] && !D.CITIES[sitio], 'aún no es ciudad'); ciclo();
+  const mala = G.fundarColonia(sitio, 0, -430); assert.strictEqual(mala.ok, false, 'no se funda en el agua o fuera de rango'); assert(mala.motivo);
+  assert(G.notaFundar(sitio, 172, -196).vale && G.mapaCalorFundar(sitio).length > 100, 'nota y mapa de calor');
+  assert.strictEqual(G.MISION_TIPOS.colonia.cumple(G.state, { n: 1 }), false);
+  const f = G.fundarColonia(sitio, 172, -196); assert(f.ok, f.motivo);
+  const s3 = G.state; assert.strictEqual(s3.colonias[sitio].estado, 'fundada'); assert(D.CITIES[sitio] && G.myCities().includes(sitio), 'cuenta en G.myCities');
+  assert(G.neighbors(sitio).length, 'la colonia tiene rutas'); assert(G.MISION_TIPOS.colonia.cumple(s3, { n: 1 }));
+  const E = G.ciudadE(sitio); assert(E && E.fundada && CIMOD.casas(E).length >= 20 && E.puertas.length >= 2, 'nace con foro, calles, puertas y chozas');
+  { const bi = G.barrioInfo(G.state.cities[sitio]); assert(bi.barrios.length >= 1 && bi.barrios[0].nivel === 1 && bi.barrios[0].casas >= 20 && bi.nivel === 1, 'CN6: la colonia fundada tiene sus barrios (nivel I)'); }
+  ciclo(); assert(D.CITIES[sitio] && G.state.cities[sitio].owner === 'roma' && G.ciudadE(sitio).fundada, 'fundada tras cargar');
+  const r0 = G.state.cities[sitio].pop; assert(r0 > 0);
+  G.state.res.madera = 2000; G.state.res.piedra = 2000; G.state.res.hierro = 2000; G.state.res.grano = 2000; const pAntes = G.prod().madera; assert(G.upgrade(sitio, 'aserradero'), 'la colonia puede construir: ' + G.ultimoMotivo);
+  for (let i = 0; i < 12; i++) G.tick(1);
+  assert(G.myCities().includes(sitio) && !G.state.over, 'a los 12 meses sigue siendo tuya'); assert(G.state.cities[sitio].b.aserradero >= 1 && G.prod().madera > pAntes, 'la colonia produce madera (' + pAntes + ' → ' + G.prod().madera + ')'); assert(G.state.cities[sitio].pop >= r0 * 0.8, 'vive');
+  ciclo(); assert.strictEqual(G.enviarColonos('roma', sitio).ok, false);
+  G.state.res.grano = 1000; G.state.res.oro = 1000; G.state.cities.roma.pop = Math.max(G.state.cities.roma.pop, 500);
+  assert(G.enviarColonos('roma', 'ariminum').ok); ciclo(); g = 0; while (G.state.colonias.ariminum.estado === 'camino' && g++ < 60) G.tick(1);
+  assert.strictEqual(G.state.colonias.ariminum.estado, 'pendiente'); ciclo(); assert(G.ciudadPendiente('ariminum')); ciclo();
+  G.newGame('Limpia'); assert(Object.keys(D.CITIES).length === n0 && !D.CITIES[sitio], 'newGame quita las colonias fundadas'); assert.strictEqual(G.coloniasFundadas(), 0); assert.strictEqual(G.coloniasLibres().length, ids.length);
+  assert(!D.EDGES.some(e => e[0] === sitio || e[1] === sitio), 'sin aristas de colonias');
+  { const raw = require('fs').readFileSync(__dirname + '/partida-vieja.json', 'utf8'); assert(!JSON.parse(raw).colonias); global.localStorage = { getItem: () => raw, setItem: () => {}, removeItem: () => {} };
+    assert(G.load()); assert.strictEqual(G.coloniasLibres().length, ids.length); assert.strictEqual(G.coloniasFundadas(), 0); assert(ids.every(i => G.state.colonias[i].estado === 'libre')); }
+  G.newGame('Bot'); for (let i = 0; i < 24; i++) G.tick(1); assert.strictEqual(G.coloniasLibres().length, ids.length, 'nada envía colonos solo');
+  G.newGame('Fin'); delete global.localStorage; G.onEvent = null; G.usarCiudad(null);
+  console.log('CN5: colonias OK (enviar, llegar, fundar, 12 meses, guardar/cargar, newGame, partida vieja)');
+}
+
+// ---------- CN6: el nivel de la ciudad sale de sus barrios ----------
+{ G.usarCiudad(CIMOD);
+  assert.strictEqual(CIMOD.RETRASO_BARRIO, D.BARRIO_RETRASO, 'una sola cifra de retraso');
+  const s = G.newGame('CN6'), c = s.cities.roma; G.state = s; G.convertir('roma'); const E = G.ciudadE('roma'),   /* Roma sin plantilla: la prueba parte de una ciudad pelada */ cierra = () => { s.t = Math.floor(s.t) + 1; G.cierreMes(); };
+  const pon = id => { const q = CIMOD.mejorSitio(E, id); const r = q && CIMOD.colocar(E, id, q[0], q[1], true); if (r && r.ok) r.e.obra = 0; E.rev++; return !!(r && r.ok); };
+  let bi = G.barrioInfo(c); assert(bi.barrios.length === 1 && bi.barrios[0].nivel === 1 && bi.nivel === 1 && bi.barrios[0].falta === 'agua (una fuente)', 'empieza con un barrio de nivel I');
+  assert(/^Barrio del Foro · nivel I/.test(bi.barrios[0].texto) && bi.barrios[0].texto === CIMOD.textoBarrio(E, 0));
+  // sube de uno en uno aunque el objetivo sea IV
+  assert(pon('fuente') && pon('templo') && pon('mercado')); assert.strictEqual(CIMOD.nivelBarrio(E, 0).nivel, 4, 'objetivo IV');
+  assert(/subirá pronto/.test(CIMOD.textoBarrio(E, 0)) && G.barrioInfo(c).barrios[0].objetivo === 4);
+  const sube = []; for (let i = 0; i < 4; i++) { CIMOD.mes(E); sube.push(E.barrios[0].nivel); } assert.deepStrictEqual(sube.slice(0, 3), [2, 3, 4], 'sube un nivel por mes'); assert.strictEqual(sube[3], 4);
+  // segundo barrio con casas propias y otro nivel: la ciudad es la media por casas, redondeada
+  E.barrios.push({ nombre: 'Barrio Prueba', corto: 'Prueba', x: 0, z: 0, tipo: 'compitum', nivel: 1, bdef: 0 });
+  const cs = E.parcelas.filter(l => l.casa && !l.fuera); const n1 = Math.floor(cs.length / 4); cs.slice(0, n1).forEach(l => { l.barrio = 1; }); E.rev++;
+  const nb = G.barrioInfo(c).barrios; assert.strictEqual(nb.length, 2); assert.strictEqual(nb[1].casas, n1); assert.strictEqual(nb[0].casas, cs.length - n1);
+  E.barrios[0].nivel = 4; E.barrios[1].nivel = 1; E.rev++; const media = Math.round((4 * (cs.length - n1) + 1 * n1) / cs.length);   // 3/4 de las casas en nivel 4: media 3,25 = 3
+  assert.strictEqual(media, 3); assert.strictEqual(G.nivelDeBarrios(c), 3, 'nivel de ciudad = media ponderada redondeada'); assert.notStrictEqual(nb[0].nivel, nb[1].nivel, 'dos barrios, dos niveles');
+  E.barrios[0].nivel = 2; E.barrios[1].nivel = 1; E.rev++; assert.strictEqual(G.nivelDeBarrios(c), 2, '1,75 -> 2'); E.barrios[0].nivel = 1; E.rev++; assert.strictEqual(G.nivelDeBarrios(c), 1);
+  // los servicios de la ciudad recortan: sin lujo no hay Urbs
+  E.barrios[0].nivel = 4; E.barrios[1].nivel = 4; E.rev++; assert.strictEqual(G.nivelDeBarrios(c), 3, 'sin lujo no pasa de III');
+  // c.barrio sale de los barrios al cerrar el mes, y de ahí popCap, impuestos y Dar ciudadanía
+  E.barrios[0].nivel = 2; E.barrios[1].nivel = 2; E.rev++; G.state.t = Math.floor(s.t) + 1; s.t = Math.floor(s.t) + 1; G.cierreMes(); const b2 = E.barrios.map(b => b.nivel);
+  assert(c.barrio >= 2 && c.barrio === G.barrioInfo(c).nivel, 'c.barrio = media de los barrios: ' + c.barrio + ' de ' + b2);
+  c.pop = 300; s.res.oro = 500; s.alm.oro = 0; c.barrio = 1; assert(G.motivoCiudadania(c), 'barrio I no puede'); c.barrio = 2; assert.strictEqual(G.motivoCiudadania(c), null, 'barrio 2 puede dar ciudadanía');
+  const base = G.popCap(c); c.barrio = 4; assert(Math.abs(G.popCap(c) - base / 1.25 * 1.8) <= 1, 'popCap de Urbs x1,8'); assert.strictEqual(D.BARRIO[4].imp, 1.15, 'impuestos de Urbs x1,15'); c.barrio = 2;
+  // retraso de 3 meses POR BARRIO: el que pierde servicios baja tras 3; el otro no se entera
+  E.barrios[1].nivel = 4; E.barrios[0].nivel = 1; E.barrios[0].bdef = 0; E.barrios[1].bdef = 0; E.edificios.forEach(e => { if (e.tipo === 'fuente') e.ruina = true; }); E.rev++;
+  const ob1 = CIMOD.nivelBarrio(E, 1).nivel; assert(ob1 < 4 && CIMOD.nivelBarrio(E, 0).nivel >= 1);
+  CIMOD.mes(E); CIMOD.mes(E); assert.strictEqual(E.barrios[1].nivel, 4, 'a los 2 meses sigue igual'); assert.strictEqual(E.barrios[1].bdef, 2); assert.strictEqual(G.barrioInfo(c).barrios[1].meses, 1);
+  assert(/bajará en 1 mes\b/.test(CIMOD.textoBarrio(E, 1)), CIMOD.textoBarrio(E, 1)); CIMOD.mes(E); assert.strictEqual(E.barrios[1].nivel, 3, 'al tercer mes baja un nivel'); assert.strictEqual(E.barrios[1].bdef, 0);
+  // rehacer la ciudad desde semilla y acciones da los mismos niveles
+  { const s6 = G.newGame('CN6b'), E1 = G.ciudadE('roma'); const q = CIMOD.mejorSitio(E1, 'fuente'); const r = CIMOD.colocar(E1, 'fuente', q[0], q[1], true); r.e.obra = 0; E1.rev++;
+    for (let i = 0; i < 5; i++) { s6.t = Math.floor(s6.t) + 1; G.cierreMes(); } const antes = E1.barrios.map(b => [b.nivel, b.bdef]), cb = s6.cities.roma.barrio;
+    const sa = JSON.parse(JSON.stringify(s6)); global.localStorage = { getItem: () => JSON.stringify(sa), setItem: () => {}, removeItem: () => {} }; assert(G.load());
+    assert.deepStrictEqual(G.ciudadE('roma').barrios.map(b => [b.nivel, b.bdef]), antes, 'mismos niveles de barrio al rehacer desde semilla y acciones'); assert.strictEqual(G.state.cities.roma.barrio, cb); delete global.localStorage; }
+  // partida vieja real: carga y c.barrio sale de los barrios rehechos
+  { const raw = require('fs').readFileSync(__dirname + '/partida-vieja.json', 'utf8'); global.localStorage = { getItem: () => raw, setItem: () => {}, removeItem: () => {} };
+    assert(G.load(), 'carga'); const cr = G.state.cities.roma; assert(cr.barrio >= 1 && cr.barrio <= 4 && G.barrioInfo(cr).barrios.length >= 1, 'la partida vieja trae su barrio calculado'); delete global.localStorage; }
+  G.usarCiudad(null);
+  console.log('CN6: barrios OK (media, retraso por barrio, ciudadanía, popCap, partida vieja, colonia)'); }
+
+// ---------- CN7: la guerra lee la muralla de la fase ----------
+{ G.usarCiudad(CIMOD);
+  const s = G.newGame('CN7'); G.state = s; const c = s.cities.roma, E = G.ciudadE('roma'); assert(E, 'Roma tiene ciudad nueva');
+  const nivel = f => { E.muralla.fase = f; delete E.muralla.nivel; E.rev++; return G.nivelMuralla(c); };
+  assert([0, 1, 2].map(nivel).join() === '0,3,6', 'fases 0, 3 y 6'); assert(G.faseMuralla(c) === 2);
+  const bot = f => { nivel(f); return G.botin('roma').madera; };
+  const b0 = bot(0), b2 = bot(2); assert(b2 < b0, 'el botín baja con muralla de piedra: ' + b2 + ' < ' + b0);
+  nivel(2); const bi = G.battleInfo({ kind: 'defend', m: { id: 1, to: 'roma', from: 'capua', owner: 'cartago', units: { libios: 100 }, mision: 'saqueo' } }); assert(bi.cfg.wall === 6, 'wall 6 en la defensa');
+  nivel(0); assert(G.battleInfo({ kind: 'defend', m: { id: 1, to: 'roma', from: 'capua', owner: 'cartago', units: { libios: 100 }, mision: 'saqueo' } }).cfg.wall === 0);
+  assert(G.faseMuralla({ owner: 'cartago', b: { muralla: 2 } }) === 1 && G.faseMuralla({ owner: 'cartago', b: { muralla: 5 } }) === 2 && G.nivelMuralla({ owner: 'cartago', b: { muralla: 5 } }) === 5, 'enemigas: fase por wl');
+  // partida vieja: c.b.muralla = 5 -> fase 2 y nivel 5
+  const raw = JSON.parse(JSON.stringify(s)); delete raw.cities.roma.ciudad; raw.cities.roma.b.muralla = 5;
+  const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, v) => { mem[k] = v; } }; localStorage.setItem('aqvila-save-v1', JSON.stringify(raw));
+  assert(G.load()); const E2 = G.ciudadE('roma'); assert(E2.muralla.fase === 2 && E2.muralla.nivel === 5 && G.nivelMuralla(G.state.cities.roma) === 5, 'partida vieja con muralla 5 conserva su defensa');
+  G.save(); assert(G.load() && G.nivelMuralla(G.state.cities.roma) === 5, 'y sigue igual tras guardar y cargar'); delete global.localStorage;
+  console.log('CN7: muralla por fases OK (tabla, botín, wall, partida vieja)'); G.usarCiudad(null); }
+
+// CN9a: Roma y Capua en pie con plantilla; conquistada conserva cultura; enemiga bajo demanda fuera del guardado
+{
+  G.usarCiudad(CIMOD);
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  const t0 = Date.now(); const s = G.newGame('CN9a'); const tN = Date.now() - t0;
+  const Er = G.ciudadE('roma'), Ec = G.ciudadE('capua');
+  assert(Er && Ec && Er.cultura === 'roma' && Er.tinte === 'roma' && Ec.cultura === 'roma' && Ec.tinte === 'campanos', 'Roma y Capua nacen con plantilla (cultura y tinte)');
+  assert(CIMOD.poblacion(Er) > 0 && CIMOD.poblacion(Ec) > 0 && s.cities.roma.plantilla && s.cities.capua.plantilla, 'nacen con población');
+  assert(Er.mesN === Math.floor(s.t + 1e-9) + 9, 'el calendario de la plantilla alinea con la partida');
+  for (const id of ['roma', 'capua']) { const c = s.cities[id], b = G.edificiosBase(id, D.CITIES[id].w, D.CITIES[id].wl);
+    for (const k of ['granja', 'aserradero', 'cantera', 'mina', 'almacen', 'cuartel', 'muralla']) assert.strictEqual(c.b[k], b[k], id + ' ' + k + ': ' + c.b[k] + ' vs ' + b[k]);
+    assert(c.pop > 0 && c.pop <= G.popCap(c), id + ' población ' + c.pop + ' dentro del tope'); }
+  const huella = id => JSON.stringify([G.ciudadE(id).edificios.map(e => [e.tipo, e.mejora || 0, Math.round(e.x), Math.round(e.z)]), CIMOD.poblacion(G.ciudadE(id)), G.state.cities[id].pop]);
+  const h1 = huella('roma') + huella('capua'), t1 = Date.now(); G.newGame('CN9a'); const tM = Date.now() - t1;
+  assert.strictEqual(huella('roma') + huella('capua'), h1, 'newGame dos veces: misma ciudad'); console.log('CN9a newGame: 1ª ' + tN + ' ms, 2ª ' + tM + ' ms');
+  // conquistadas: griega y púnica conservan cultura tras guardar y cargar
+  G.newGame('CN9a'); G.state.t = 3;
+  for (const [id, cu] of [['tarentum', 'grie'], ['carthago', 'cart']]) { const c = G.state.cities[id]; c.owner = D.CITIES[id].f; G.incorporar(c, {}, true); const E = G.ciudadE(id); assert(E && E.cultura === cu && c.ciudad && c.ciudad.cultura === cu, id + ' conquistada con cultura ' + cu); }
+  const antes = ['tarentum', 'carthago'].map(id => G.ciudadE(id).edificios.length + '|' + CIMOD.poblacion(G.ciudadE(id)));
+  G.save(); assert(G.load()); ['tarentum', 'carthago'].forEach((id, i) => { const E = G.ciudadE(id); assert(E.cultura === (i ? 'cart' : 'grie') && E.edificios.length + '|' + CIMOD.poblacion(E) === antes[i], id + ' conserva cultura y piezas tras cargar'); });
+  { const c = G.state.cities.volsinii; c.owner = D.CITIES.volsinii.f; c.b.templo = 2; c.b.herreria = 2; c.b.puerto = 1; G.incorporar(c, {}, true); G.ciudadE('volsinii');
+    assert(c.b.templo >= 2 && c.b.herreria >= 2, 'la conquistada conserva los niveles de edificio que traía (templo ' + c.b.templo + ', herrería ' + c.b.herreria + ')'); }
+  // enemiga bajo demanda: idéntica y fuera del guardado
+  const tam0 = JSON.stringify(G.state).length, e1 = G.ciudadEnemiga('syracusae'), e2 = G.ciudadEnemiga('syracusae');
+  assert(e1 && e1 === e2 && e1.cultura === 'grie' && e1.edificios.length > 0, 'ciudadEnemiga idéntica dos veces');
+  assert.strictEqual(JSON.stringify(G.state).length, tam0, 'la enemiga no crece el guardado'); assert.strictEqual(G.ciudadEnemiga('roma'), null); assert.strictEqual(G.ciudadEnemiga('nada'), null);
+  assert.strictEqual(CIMOD.nivelMuralla(e1), G.nivelMuralla(G.state.cities.syracusae), 'muralla enemiga coincide con la de la batalla');
+  const vj = require('fs').readFileSync(__dirname + '/partida-vieja.json', 'utf8'); store['aqvila-save-v1'] = vj; assert(G.load() && G.ciudadE('roma'), 'partida vieja carga y convierte');
+  delete global.localStorage; G.usarCiudad(null); console.log('CN9a: plantillas, conquistada, enemiga y partida vieja OK');
 }

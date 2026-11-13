@@ -19,6 +19,27 @@ const ESCENARIOS = [
   { n: 'duro: parejo, rival en colina, astuto', yo: [{ hastati: 205, equites: 40 }, gen('Cónsul')], el: [{ libios: 150, iberos: 60, numidas: 60 }, Object.assign(gen('Aníbal', { mando: 3, disc: 2 }), { name: 'Cartago' })], ter: 'colina', def: 1 },
   { n: 'muy duro: menor, rival en cerro con general', yo: [{ hastati: 250, equites: 40 }, gen('Cónsul')], el: [{ falange: 190, hoplitas: 50, elefantes: 6 }, Object.assign(gen('Pirro', { mando: 4, disc: 3 }), { name: 'Epiro' })], ter: 'cerro', def: 1 }
 ];
+// (N15b) ventaja clara sin órdenes del jugador: 1,2x y 1,5x de hastati contra hastati con general rival
+const VENTAJA = [
+  { n: 'ventaja 1,2x en llano (sin órdenes)', yo: [{ hastati: 288 }, gen('Cónsul')], el: [{ hastati: 240 }, gen('Rival')], ter: 'llano', def: 1 },
+  { n: 'ventaja 1,5x en llano (sin órdenes)', yo: [{ hastati: 360 }, gen('Cónsul')], el: [{ hastati: 240 }, gen('Rival')], ter: 'llano', def: 1 }
+];
+// (N15b) 0,67x con buen plan: el jugador defiende en cerro (ataca por iniciativa propia), cierra testudo (las pesadas) y juega la carta de formación cerrada
+function conPlan(n, k) {
+  let g = 0, t = 0;
+  for (let s = 1; s <= n; s++) {
+    const e = { yo: [{ hastati: Math.round(HAST * (k || 0.67)) }, gen('Cónsul')], el: [{ hastati: HAST }, gen('Rival')], ter: 'cerro', def: 0 };
+    const bt = new Battle(configEscenario(e, s));
+    let guardia = 0;
+    while (!bt.over && guardia++ < 90) {
+      if (bt.ronda === 0 || guardia === 1) { bt.jugarCarta('cerrada'); }
+      for (const r of bt.regs) if (r.side === 0 && r.k !== 'general' && r.st === 'ok' && r.form !== 'testudo' && bt.formacionesPosibles(r).indexOf('testudo') >= 0) bt.ponerFormacion(r, 'testudo');
+      bt.ejecutar(); let kk = 0; while (bt.fase === 'ejecucion' && !bt.over && kk++ < 400) bt.step(0.1);
+    }
+    if (bt.over && bt.winner === 0) g++; t += bt.t;
+  }
+  return { pct: Math.round(100 * g / n), seg: Math.round(t / n) };
+}
 function configEscenario(e, seed) { return { sides: [Object.assign({ units: e.yo[0], name: 'Roma', col: '#000', atkMul: 1, defMul: 1, mor: 0 }, e.yo[1]), Object.assign({ units: e.el[0], name: 'x', col: '#000', atkMul: 1, defMul: 1, mor: 0 }, e.el[1])], defender: e.def, wall: 0, seed: seed, rondas: true, terreno: e.ter }; }
 function escenario(e, n) {
   let g = 0, nivel = 0;
@@ -41,7 +62,8 @@ function main() {
   console.log('Levas bisoñas de A contra veterana (igual tamaño)'); for (const b of [0.5, 1]) fila('bis ' + b, serie(n, s => ({ seed: s, A: { bis: b } })));
   fila('milicia 200 contra hastati 200', (() => { let g = 0, t = 0; for (let s = 1; s <= n; s++) { const bt = new Battle({ sides: [side({ milicia: 200 }), side({ hastati: 200 })], defender: 1, wall: 0, seed: s }); bt.finish(); const r = bt.result(); if (r.winner === 0) g++; t += r.time; } return { pct: Math.round(100 * g / n), seg: Math.round(t / n) }; })());
   console.log('Terreno (A 0.85x)'); for (const ter of ['llano', 'paso', 'rio']) fila(ter, serie(n, s => ({ k: 0.85, seed: s, cfg: { terreno: ter } })));
+  fila('0.67x con buen plan (cerro, testudo)', conPlan(Math.min(n, 30), 0.67)); fila('0.85x con buen plan', conPlan(Math.min(n, 30), 0.85));
   console.log('Dificultad por contexto (rondas, sin órdenes del jugador; victorias del jugador y nivel -1..1)');
-  for (const e of ESCENARIOS) { const r = escenario(e, Math.min(n, 30)); console.log('  ' + e.n.padEnd(46) + String(r.pct + ' %').padStart(6) + '  nivel ' + r.nivel); }
+  for (const e of ESCENARIOS.concat(VENTAJA)) { const r = escenario(e, Math.min(n, 30)); console.log('  ' + e.n.padEnd(46) + String(r.pct + ' %').padStart(6) + '  nivel ' + r.nivel); }
 }
-if (require.main === module) main(); else module.exports = { una, serie, escenario, ESCENARIOS, configEscenario };
+if (require.main === module) main(); else module.exports = { conPlan, VENTAJA, una, serie, escenario, ESCENARIOS, configEscenario };
