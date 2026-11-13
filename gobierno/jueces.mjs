@@ -308,9 +308,10 @@ async function navegador() {
 
     await paso('La batalla termina y se aplica el resultado', async () => {
       // «Resolver» está en la fila durante la ejecución y, en el plan, dentro del panel «Más»
+      await page.waitForFunction(() => !document.querySelector('#bctl [data-act="bauto"]'), null, { timeout: 20000 }).catch(() => {});   // la fila estática de index.html (con «Fin») tarda en cambiar a la de rondas
       if (!(await page.locator('[data-act="bskip"]').count())) {
         if (await page.locator('#bctl [data-act="bseguir"]').count()) { await page.click('#bctl [data-act="bseguir"]'); await espera(300); }
-        if (await page.locator('#bctl [data-act="bamano"]').count()) { await page.click('#bctl [data-act="bamano"]'); await espera(300); }   // R2: en el plan hay tarjetas; «Más» está en «A mano»
+        if (await page.locator('#bctl [data-act="bamano"]').count()) { await page.click('#bctl [data-act="bamano"]'); await page.waitForSelector('#bctl [data-act="bmas"]', { timeout: 5000 }); }   // R2: en el plan hay tarjetas; «Más» está en «A mano»
         if (await page.locator('#bctl [data-act="bmas"]').count()) { await page.click('#bctl [data-act="bmas"]'); await espera(300); }
       }
       await page.click('[data-act="bskip"]');
