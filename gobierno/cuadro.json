@@ -1106,6 +1106,12 @@
       "titulo": "Partida corta · I8",
       "nota": "dos modos, un rival y un final claro (data.js, game.js, ui.js)",
       "url": "https://claude.ai/code/session_01QiKC391yuLKSqC83j1RNEy"
+    },
+    {
+      "tarea": "R1",
+      "titulo": "Batalla más corta · R1",
+      "nota": "ritmo y ancho del campo (battle.js, una línea de game.js)",
+      "url": "https://claude.ai/code/session_01QiKC36xfv7cpFAMiRGen1V"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
