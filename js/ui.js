@@ -511,7 +511,7 @@ function marketHtml() {
   const rate = G.tradeRate(); if (!rate) return '';
   UI.mf = UI.mf || 'madera'; UI.mt = UI.mt || 'hierro';
   const chips = (act, cur) => D.RES.map(r => '<button class="chip ' + (r === cur ? 'on' : '') + '" data-act="' + act + '" data-v="' + r + '">' + D.RES_ICON[r] + '</button>').join('');
-  return '<div class="market"><div class="tt">⚖️ Mercado · cambio ' + Math.round(rate * 100) + ' %</div><div class="mrow"><span>Doy</span>' + chips('mfrom', UI.mf) + '</div><div class="mrow"><span>Recibo</span>' + chips('mto', UI.mt) + '</div>' +
+  return '<div class="market mar mar-merc"><div class="tt">⚖️ Mercado · cambio ' + Math.round(rate * 100) + ' %</div><div class="mrow"><span>Doy</span>' + chips('mfrom', UI.mf) + '</div><div class="mrow"><span>Recibo</span>' + chips('mto', UI.mt) + '</div>' +
     '<div class="btns" style="flex-direction:row">' + [100, 500, 2000].map(n => '<button class="btn" data-act="trade" data-n="' + n + '" data-need=\'' + JSON.stringify({ [UI.mf]: n }) + '\'>' + n + ' ' + D.RES_ICON[UI.mf] + ' → ' + Math.floor(n * rate) + ' ' + D.RES_ICON[UI.mt] + '</button>').join('') + '</div></div>';
 }
 /* hueco del encargo C: tarjeta de los sabios en la ficha de la Escuela */
@@ -579,20 +579,20 @@ function repartoHtml(c) {
 function rutasHtml(c, id) {
   if (c.owner !== 'roma') return '';
   const s = S(), cn = x => D.CITIES[x].n, abiertas = G.rutasAbiertas().filter(r => r.a === id || r.b === id);
-  let h = '<div class="sec">Rutas comerciales</div><div class="empty">Huecos: ' + G.rutasDeCiudad(id) + ' / ' + G.rutaMax(c) + '. Los tratados de Roma y Cartago ya repartían dónde comerciar (Polibio 3.22-25).</div>';
+  let h = '<div class="mar mar-rut"><div class="sec mar-t">Rutas comerciales</div><div class="empty mar-card">Huecos: ' + G.rutasDeCiudad(id) + ' / ' + G.rutaMax(c) + '. Los tratados de Roma y Cartago ya repartían dónde comerciar (Polibio 3.22-25).</div>';
   for (const r of abiertas) {
     const o = r.a === id ? r.b : r.a;
-    h += '<div class="empty">⚖️ <b>' + cn(r.a) + ' ↔ ' + cn(r.b) + '</b> · +' + Math.round(G.rutaRenta(r)) + ' oro/mes · ' + (G.rutaMar(r) ? 'por mar' : 'por tierra') + (r.f !== 'roma' && D.ESPECIAL[D.CITIES[r.b].esp] ? ' · bien: ' + D.ESPECIAL[D.CITIES[r.b].esp].i + ' ' + D.ESPECIAL[D.CITIES[r.b].esp].n : '') +
+    h += '<div class="empty mar-card">⚖️ <b>' + cn(r.a) + ' ↔ ' + cn(r.b) + '</b> · +' + Math.round(G.rutaRenta(r)) + ' oro/mes · ' + (G.rutaMar(r) ? 'por mar' : 'por tierra') + (r.f !== 'roma' && D.ESPECIAL[D.CITIES[r.b].esp] ? ' · bien: ' + D.ESPECIAL[D.CITIES[r.b].esp].i + ' ' + D.ESPECIAL[D.CITIES[r.b].esp].n : '') +
       (r.a === id ? '<div class="btns"><button class="btn ghost" data-act="rutacerrar" data-v="' + r.a + '>' + r.b + '">Cerrar ruta</button></div>' : '') + '</div>';
   }
   for (const o of G.neighbors(id)) {
     if (G.rutaDe(id, o)) continue;
     const mot = G.rutaPuede(id, o), ajena = s.cities[o].owner !== 'roma', e = D.ESPECIAL[D.CITIES[o].esp];
     const verbo = ajena ? 'Firmar tratado con ' + cn(o) : 'Abrir ruta con ' + cn(o);
-    if (mot && !/^Faltan/.test(mot)) h += '<div class="empty" style="opacity:.6">' + verbo + ' · ' + esc(mot) + '</div>';
-    else h += '<div class="empty"><div class="btns"><button class="btn ' + (mot ? 'no' : '') + '" data-act="ruta" data-v="' + id + '>' + o + '" data-need=\'' + JSON.stringify({ oro: D.RUTA_COSTE }) + '\'>' + verbo + ' · ' + D.RUTA_COSTE + ' ' + D.RES_ICON.oro + '</button></div>' + (ajena && e ? '<div class="ds">Aporta el bien: ' + e.i + ' ' + e.n + '</div>' : '') + '</div>';
+    if (mot && !/^Faltan/.test(mot)) h += '<div class="empty mar-card mar-off">' + verbo + ' · ' + esc(mot) + '</div>';
+    else h += '<div class="empty mar-card"><div class="btns"><button class="btn ' + (mot ? 'no' : '') + '" data-act="ruta" data-v="' + id + '>' + o + '" data-need=\'' + JSON.stringify({ oro: D.RUTA_COSTE }) + '\'>' + verbo + ' · ' + D.RUTA_COSTE + ' ' + D.RES_ICON.oro + '</button></div>' + (ajena && e ? '<div class="ds">Aporta el bien: ' + e.i + ' ' + e.n + '</div>' : '') + '</div>';
   }
-  return h;
+  return h + '</div>';
 }
 const espFalta = () => { const t = G.especiales(); return Object.keys(D.ESPECIAL).filter(k => !t[k]); };
 function viewCity() {   // Gobierno (K12a): ciudad, felicidad, lo que falta y atajos; sin scroll de página. Lo demás vive en hojas (HOJAS)
@@ -639,9 +639,9 @@ function viewImperio() {
   const ok = { todas: () => true, urgentes: r => r.urg, sinobra: r => !r.ob.length, obras: r => !!r.ob.length, animo: r => r.f < 40 }[F] || (() => true);
   const lista = filas.filter(ok).sort((a, b) => b.pts - a.pts || b.c.pop - a.c.pop);
   const cara = f => f >= 60 ? '😊' : f >= 40 ? '😐' : '😠';
-  let h = '<div class="imp"><div class="imp-res"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div><button class="btn cu-go" data-act="cuentas">📊 Cuentas del mes<small>materiales y oro</small></button><button class="btn cu-go" data-act="tab" data-v="senado">🏛️ Senado<small>favor y misión</small></button><button class="btn cu-go" data-act="tab" data-v="saber">📚 Saber<small>edades e investigación</small></button>' +
+  let h = '<div class="imp mar mar-imp"><div class="mar-top"><div class="imp-res mar-placa"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div>' +
     (peor && n > 1 ? '<div class="imp-peor">Peor ánimo: <b>' + D.CITIES[peor.id].n + '</b> ' + cara(peor.f) + ' ' + peor.f + '</div>' : '') +
-    '<div class="imp-chips">' + IMP_FILTROS.map(x => '<button class="' + (F === x[0] ? 'on' : '') + '" data-act="impf" data-v="' + x[0] + '">' + x[1] + ' <i>' + cuenta[x[0]] + '</i></button>').join('') + '</div><div class="imp-lista">';
+    '<div class="imp-chips">' + IMP_FILTROS.map(x => '<button class="' + (F === x[0] ? 'on' : '') + '" data-act="impf" data-v="' + x[0] + '">' + x[1] + ' <i>' + cuenta[x[0]] + '</i></button>').join('') + '</div></div><div class="imp-lista mar-lista">';
   if (!lista.length) h += '<div class="imp-vacio">Ninguna ciudad cumple este filtro.</div>';
   for (const r of lista) {
     const c = r.c;
@@ -649,11 +649,7 @@ function viewImperio() {
       '<div class="imp-l2">' + (r.ob.length ? '<div class="imp-obs">' + r.ob.map(q => impObraHtml(q, 'imp-obra')).join('') + '</div>' : '<span class="imp-sin">sin obra</span>') +
       (r.causa ? '<em class="imp-tag ' + r.tono + '">' + r.causa + '</em>' : '') + '</div></div></div>';
   }
-  h += '</div><div class="sec">Obras</div><div class="imp-obras">';
-  const en = filas.filter(r => r.ob.length).sort((a, b) => Math.min(...a.ob.map(q => q.t1)) - Math.min(...b.ob.map(q => q.t1)));
-  if (!en.length) h += '<div class="imp-vacio">Ninguna ciudad tiene obras en curso.</div>';
-  for (const r of en) h += '<div class="imp-ob imp-ob-c"><b>' + D.CITIES[r.id].n + ' <small>' + obrasTxt(r.c) + '</small></b>' + r.ob.map(q => '<div class="imp-ob1"><span class="imp-nb">' + esc(obraNom(q)) + '</span><div class="prog" data-t0="' + q.t0 + '" data-t1="' + q.t1 + '"><i></i></div><span class="rem"></span>' + (plazoTxt(q) ? '<div class="plz' + (q.pausa ? ' pausa' : '') + '">' + plazoTxt(q) + '</div>' : '') + '</div>').join('') + '</div>';
-  h += '</div>';
+  h += '</div><div class="mar-pie"><button class="btn cu-go" data-act="cuentas">📊<span>Cuentas</span></button><button class="btn cu-go" data-act="tab" data-v="senado">🏛️<span>Senado</span></button><button class="btn cu-go" data-act="tab" data-v="saber">📚<span>Saber</span></button><button class="btn cu-go" data-act="tab" data-v="hero">🛡️<span>General</span></button></div>';
   return h + '</div>';
 }
 /* pone una pieza en una ciudad: la mejora (op.mej = id de la pieza) o una nueva en su mejor sitio. Devuelve {ok, motivo, obra} */
@@ -1019,17 +1015,18 @@ function svTarjeta(id) {
 }
 function viewSaber() {
   const s = S(), V = G.invVista();
-  let h = '<div class="acts"><button class="btn ghost" data-act="tab" data-v="imperio">← Volver al Imperio</button></div><div class="sv"><h2>📚 Saber</h2>';
-  if (!V.nHechas && !V.cola) h += '<div class="sv-guia"><b>Primera vez</b><ol><li>Investiga Preceptores griegos.</li><li>Construye la Escuela y pon gente a estudiar desde su ficha.</li><li>En cada par elige uno: el otro se cierra.</li></ol></div>';
+  let h = '<div class="sv mos mos-sab"><div class="mos-cab"><h2>📚 Saber</h2>', gu = '';   // K12c: cabecera fija, cuerpo con scroll, «volver» abajo
+  if (!V.nHechas && !V.cola) gu += '<div class="sv-guia"><b>Primera vez</b><ol><li>Investiga Preceptores griegos.</li><li>Construye la Escuela y pon gente a estudiar desde su ficha.</li><li>En cada par elige uno: el otro se cierra.</li></ol></div>';
+  const hc = h; h = '';
   h += '<div class="sv-ed"><b>Edad ' + ['I', 'II', 'III', 'IV'][V.edad - 1] + ' · ' + esc(V.edadNombre) + '</b>';
   if (V.sig) { h += '<small>Para la edad ' + ['II', 'III', 'IV'][V.edad - 1] + ' (' + esc(V.sig.n) + '):</small>' + svChips(V.sig.req) + svCoste(V.sig.id) + '<div class="sv-m">' + months(V.sig.tiempo) + '</div>';
     h += V.sig.estado.e === 'ok' ? '<button class="btn" data-act="saberedad">Subir de edad</button>' : V.sig.estado.e === 'curso' || V.sig.estado.e === 'cola' || V.sig.estado.e === 'req' ? '' : '<div class="sv-no">' + esc(V.sig.estado.motivo) + '</div>'; }
   else h += '<small>Has llegado a la última edad.</small>';
-  h += '</div>';
+  h += '</div>'; const ed = h; h = hc;
   if (V.cola) { const vel = V.cola.vel || 1, t0 = s.t - V.cola.p / vel, t1 = s.t + (V.cola.P - V.cola.p) / vel;
     h += '<div class="sv-cola"><b>Estudiando: ' + esc(V.cola.n) + '</b><div class="prog" data-t0="' + t0 + '" data-t1="' + t1 + '"><i></i></div><span class="rem"></span>' + (V.cola.eureka ? '<div class="sv-eu">💡 Eureka: ritmo ×1,33</div>' : '') + (V.cola.sabios && V.cola.sabios.n > 0 ? '<div class="sv-eu">📜 Ritmo ×' + dec1(V.cola.sabios.vel).replace(/,0$/, '') + ' con tus ' + V.cola.sabios.n + ' sabios' + (V.cola.sabios.vel >= 0.9 * D.SABER.velMax ? ' · Tope útil alcanzado' : '') + '</div>' : '') + '</div>'; }
   h += '<div class="sv-ramas">' + Object.keys(SV_RAMAS).map(k => '<span class="sv-r">' + SV_RAMAS[k][0] + ' ' + SV_RAMAS[k][1] + '<b>' + V.ramas[k] + '</b></span>').join('') + '</div>';
-  h += '<div class="sv-forja">⚔️ Guerra: forja, armas nivel ' + s.forja.armas + ', armaduras nivel ' + s.forja.armaduras + ' (se dirige desde la herrería de la ciudad).</div>';
+  h += '</div><div class="mos-cuerpo">' + gu + ed + '<div class="sv-forja">⚔️ Guerra: forja, armas nivel ' + s.forja.armas + ', armaduras nivel ' + s.forja.armaduras + ' (se dirige desde la herrería de la ciudad).</div>';
   for (let e = 1; e <= 4; e++) {
     const ids = Object.keys(D.INVEST).filter(k => D.INVEST[k].edad === e); if (!ids.length) continue;
     h += '<div class="sv-fila' + (e > V.edad ? ' lejos' : '') + '"><div class="sv-eh">Edad ' + ['I', 'II', 'III', 'IV'][e - 1] + ' · ' + esc(D.SABER.edadNombres[e - 1]) + '</div>';
@@ -1041,7 +1038,7 @@ function viewSaber() {
     }
     h += '</div>';
   }
-  return h + '</div>';
+  return h + '</div><div class="mos-pie"><button class="btn mos-vol" data-act="tab" data-v="imperio">← Volver al Imperio</button></div></div>';
 }
 function viewSenado() {
   const f = G.favor(), mi = G.misionActual(), mot = G.senadoMotivo();
@@ -1061,10 +1058,10 @@ function viewHero() {
   const s = S(), h = s.hero, need = G.xpNeed(h.lvl);
   const where = h.wound > s.t ? '🩸 Herido — se recupera en ' + months(h.wound - s.t) : h.march ? '🚩 En marcha con el ejército' : '📍 En ' + D.CITIES[h.city].n;
   const SK = { mando: [D.GUERRA_ICON.espadas + ' Mando', '+4 % de ataque de tu ejército por nivel'], disc: [D.GUERRA_ICON.escudo + ' Disciplina', '+3 % de defensa y +4 de moral por nivel'], log: ['🧭 Logística', '+8 % de velocidad de marcha y +10 % de botín por nivel'] };
-  let o = '<div class="head"><div class="pt">' + pt('general') + '</div><h2>' + esc(h.name) + '</h2><p>General de la República · Nivel ' + h.lvl + '</p>' + '<div class="xp"><i style="width:' + Math.min(100, h.xp / need * 100) + '%"></i></div><p>Experiencia ' + h.xp + ' / ' + need + '<br>' + where + '</p></div>';
+  let o = '<div class="mos mos-gen"><div class="mos-cab"><div class="head"><div class="pt">' + pt('general') + '</div><h2>' + esc(h.name) + '</h2><p>General de la República · Nivel ' + h.lvl + '</p>' + '<div class="xp"><i style="width:' + Math.min(100, h.xp / need * 100) + '%"></i></div><p>Experiencia ' + h.xp + ' / ' + need + '<br>' + where + '</p></div></div><div class="mos-cuerpo">';
   o += '<div class="sec">Habilidades · ' + h.pts + ' punto' + (h.pts === 1 ? '' : 's') + '</div>';
   for (const k in SK) o += '<div class="card"><div class="bd"><div class="tt">' + SK[k][0] + '<span class="lv">Nv ' + h.sk[k] + '</span></div><div class="ds">' + SK[k][1] + '</div></div><button class="btn ' + (h.pts > 0 && h.sk[k] < 10 ? 'gold' : 'no') + '" data-act="skill" data-v="' + k + '">＋</button></div>';
-  return o + '<div class="empty">Tu general combate con su guardia de caballería cuando acompaña a un ejército o defiende la ciudad en la que está. Gana experiencia en cada batalla; si su guardia es aniquilada, quedará herido hasta dos años.</div>';
+  return o + '<div class="empty mos-nota">Tu general combate con su guardia de caballería cuando acompaña a un ejército o defiende la ciudad en la que está. Gana experiencia en cada batalla; si su guardia es aniquilada, quedará herido hasta dos años.</div></div><div class="mos-pie"><button class="btn mos-vol" data-act="tab" data-v="imperio">← Volver al Imperio</button></div></div>';
 }
 function viewCodice() {
   const K = window.CODICE, sec = UI.codice, N = { tropas: 'Tropas', ciudades: 'Ciudades', hechos: 'Hechos' };

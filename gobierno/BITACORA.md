@@ -282,3 +282,5 @@ Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que 
 - 13/11/2026 — **CN15d hecha (dibujo)**: dique, arca del foro y tejado rojo por barrio, listos para cuando CN13 ponga los datos (`dique` en E.edificios, `E.arca`, `barrios[i].tejas`). Probado con datos de mentira; en una partida normal aún no se ve nada. Parte: gobierno/partes/2026-11-13-CN15d.md
 
 - 13/11/2026 — **K12a hecha (marco general, estilo Hojas)**: hoja inferior única, menú ☰ con «Volver al menú principal» al fondo y con confirmación, Gobierno con anillo de felicidad y atajos, Ajustes y Pausas en hojas, barras y «Pasar turno» nuevos, menú principal al estilo B. Jueces APTO. Gasto ≈2,7 M (tope previsto 1,8 M): K12b+K12c deben caber en ≈0,8 M del tope 3,5 M; el usuario decide si amplía. Parte `partes/2026-11-13-K12a.md`.
+
+- 13/11/2026 — **K12c hecha (Mármol y Mosaico)**: Imperio, Mercado y Rutas en Mármol; Saber y General en Mosaico. Lógica y datos sin tocar. `--rapido` pasa; el recorrido completo lo pasa el gobierno. Parte `partes/2026-11-13-K12c.md`. Capturas `capturas-tarea/K12c-*.jpg`.

@@ -867,3 +867,88 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 
 /* K12a: con una hoja abierta, la línea de pausa no la tapa */
 body.conhoja #pausa { display: none; }
+
+/* ===== K12c · MÁRMOL (Imperio, Mercado, Rutas) y MOSAICO (Saber, General). Prefijos .mar- y .mos- ===== */
+.mar { --mm: #f1ead9; --mt: #2b2418; --mt2: #5b4d36; --mb: #b8862b; }
+.mar-placa, .mar-card { color: var(--mt); background: linear-gradient(#f5efdf, #e6dcc2); border: 2px solid var(--mb); border-radius: 12px; box-shadow: inset 0 0 0 3px #f1ead9, inset 0 0 0 4px #b8862b66, 0 2px 0 #0007; }
+/* Imperio: libro de cuentas, sin scroll de página; solo la lista se desplaza */
+.mar-imp { height: 100%; display: flex; flex-direction: column; padding: 0 2px; max-width: 560px; }
+.mar-top { flex: none; }
+.mar-lista { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 2px 0 8px; gap: 8px; }
+.mar-pie { flex: none; display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; padding-top: 8px; }
+.mar-pie .cu-go { margin: 0; width: auto; min-width: 0; min-height: 58px; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 20px; color: var(--mt); background: linear-gradient(#f5efdf, #e6dcc2); border: 2px solid var(--mb); border-radius: 10px; box-shadow: inset 0 0 0 2px #f1ead9, 0 2px 0 #0007; }
+.mar-pie .cu-go span { font: 700 13px var(--serif); letter-spacing: .02em; }
+.mar-placa.imp-res { margin-top: 4px; padding: 8px 4px; }
+.mar-placa.imp-res b { color: var(--mt); font-size: 18px; } .mar-placa.imp-res b small { color: var(--mt2); }
+.mar-placa.imp-res span { color: var(--mt2); font-size: 13px; }
+.mar-imp .imp-peor { color: var(--mm); } .mar-imp .imp-peor b { color: #ff9a8e; }
+.mar-imp .imp-chips { margin: 8px -2px 8px; padding: 0 2px 3px; gap: 4px; }
+.mar-imp .imp-chips button { min-height: 46px; padding: 0 11px; border-radius: 7px 7px 2px 2px; background: linear-gradient(#c79a3b, #8a6420); border: 1px solid #e0b858; border-bottom: 3px solid #5a4010; color: #2a1c05; font: 700 13px var(--serif); letter-spacing: .02em; }
+.mar-imp .imp-chips button i { color: #3b2a0a; font-size: 13px; }
+.mar-imp .imp-chips button.on { background: linear-gradient(#f4dc8f, #e9c063); border-bottom-color: var(--red); color: #3b0d09; }
+.mar-imp .imp-fila { color: var(--mt); background: linear-gradient(#f5efdf, #e6dcc2); border: 2px solid var(--mb); border-left-width: 6px; border-radius: 12px; min-height: 64px; box-shadow: inset 0 0 0 2px #f1ead9, 0 2px 0 #0007; }
+.mar-imp .imp-fila.urg { border-left-color: var(--red); }
+.mar-imp .imp-l1 b { color: var(--mt); font-size: 16px; letter-spacing: .03em; }
+.mar-imp .imp-pop, .mar-imp .imp-an { color: var(--mt2); font-size: 13px; }
+.mar-imp .imp-obra, .mar-imp .imp-sin { color: var(--mt2); font-size: 13px; }
+.mar-imp .imp-obra .prog { height: 9px; background: #c9bd9c; border: 1px solid #8a6a22; }
+.mar-imp .imp-obra .prog i { background: linear-gradient(#e9c063, #b8862b); }
+.mar-imp .imp-tag { font-size: 13px; background: #00000012; color: var(--mt); } .mar-imp .imp-tag.mal { background: var(--red2); color: #fff; } .mar-imp .imp-tag.av { color: #6b4a08; border-color: #b8862b; }
+.mar-imp .imp-vacio { color: var(--mm); }
+/* Mercado: tablillas de cera con filete de bronce y una placa de mármol con el cambio */
+.mar-merc { background: none; border: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.mar-merc .tt { margin: 0; padding: 9px 10px; text-align: center; font: 700 16px var(--serif); letter-spacing: .04em; color: var(--mt); background: linear-gradient(#f5efdf, #e6dcc2); border: 2px solid var(--mb); border-radius: 12px; box-shadow: inset 0 0 0 3px #f1ead9, 0 2px 0 #0007; }
+.mar-merc .mrow { flex-wrap: wrap; gap: 6px; margin: 0; padding: 10px; background: linear-gradient(#3a3125, #2b241a); border: 2px solid var(--mb); border-radius: 12px; box-shadow: 0 2px 0 #0007; }
+.mar-merc .mrow span { width: 100%; font: 700 14px var(--serif); letter-spacing: .1em; text-transform: uppercase; color: var(--gold); }
+.mar-merc .mrow .chip { flex: 1; min-width: 0; min-height: 52px; padding: 0 2px; border-radius: 10px; font-size: 22px; background: #17110d; border: 1px solid #7d5a1c; }
+.mar-merc .mrow .chip.on { background: linear-gradient(var(--red), var(--red2)); border-color: #f0cf86; }
+.mar-merc .btns { gap: 6px; }
+.mar-merc .btn { min-height: 56px; padding: 6px 2px; font: 700 14px var(--sans); color: #2a1c05; background: linear-gradient(#f4dc8f, #d9a741); border: 1px solid #f0cf86; box-shadow: 0 2px 0 #5a4010; }
+.mar-merc .btn.no, .mar-merc .btn:disabled { background: #3a3125; color: #8a7a5a; border-color: #5b4d36; box-shadow: none; }
+/* Rutas */
+.mar-rut { display: flex; flex-direction: column; gap: 8px; }
+.mar-rut .sec.mar-t { margin: 2px 2px 0; font-size: 14px; }
+.mar-card { padding: 12px; font-size: 14px; line-height: 1.35; }
+.mar-card b { color: var(--mt); } .mar-card .ds { color: var(--mt2); font-size: 13px; margin-top: 6px; }
+.mar-card .btns { margin-top: 8px; display: flex; }
+.mar-card .btn { flex: 1; min-height: 48px; font: 700 14px var(--sans); }
+.mar-card .btn.ghost { background: linear-gradient(#f4dc8f, #d9a741); color: #2a1c05; border-color: #b8862b; }
+.mar-off { opacity: .7; }
+/* Mosaico: teselas grandes con junta; cabecera fija, cuerpo que se desplaza y «volver» abajo */
+.mos { --junta: rgba(0, 0, 0, .28); --tinta: #1d1408; height: 100%; display: flex; flex-direction: column; padding: 0 2px; max-width: 560px; }
+.mos-cab { flex: none; } .mos-cuerpo { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding-bottom: 8px; } .mos-pie { flex: none; padding-top: 8px; }
+.mos-vol { width: 100%; min-height: 52px; border-radius: 12px; font: 700 15px var(--serif); letter-spacing: .04em; background: linear-gradient(#2a2216, #1a150d); border: 1px solid var(--mb, #b8862b); color: var(--gold); }
+.mos .sv-ed, .mos .sv-cola, .mos .sv-forja, .mos .sv-guia, .mos .sv-det, .mos .sv-t, .mos .sv-r, .mos .head, .mos .card {
+  color: #fff; background-color: var(--c, #26323f); border: 0; border-radius: 12px;
+  background-image: linear-gradient(var(--junta) 1px, transparent 1px), linear-gradient(90deg, var(--junta) 1px, transparent 1px); background-size: 11px 11px; box-shadow: inset 0 0 0 2px rgba(241, 234, 217, .28), 0 2px 0 rgba(0, 0, 0, .4); }
+.mos .sv-ed { --c: #2a6585; } .mos .sv-cola { --c: #d9a63c; color: var(--tinta); } .mos .sv-forja { --c: #26323f; } .mos .sv-guia { --c: #d9a63c; color: var(--tinta); } .mos .sv-det { --c: #b4532e; }
+.mos .sv-ed > b, .mos .sv-eh { font: 700 15px var(--serif); color: inherit; } .mos .sv-eh { color: var(--gold); font-size: 14px; letter-spacing: .08em; text-transform: uppercase; }
+.mos small, .mos .sv-m, .mos .sv-no, .mos .sv-eu, .mos .sv-forja, .mos .sv-ch, .mos .sv-det, .mos .sv-guia, .mos .sv-cola { font-size: 13px; }
+.mos .sv-no { color: #ffd2cb; } .mos .sv-ok { color: #cdf5b0; } .mos .sv-eu { color: inherit; }
+.mos .sv h2, .mos h2 { margin: 2px 2px 6px; font-size: 20px; color: var(--gold); }
+.mos .sv-ed .btn, .mos .sv-det .btn { min-height: 48px; font: 700 15px var(--serif); color: #1d1408; background: linear-gradient(#f4dc8f, #d9a741); border: 1px solid #f0cf86; }
+.mos .sv-ramas { gap: 5px; margin: 6px 0; } .mos .sv-r { padding: 5px 2px; font-size: 13px; min-height: 52px; } .mos .sv-r b { font-size: 16px; }
+.mos .sv-r:nth-child(1) { --c: #b4532e; } .mos .sv-r:nth-child(2) { --c: #2a6585; } .mos .sv-r:nth-child(3) { --c: #5f7f2f; } .mos .sv-r:nth-child(4) { --c: #8a6a22; }
+.mos .sv-par { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; position: relative; margin-bottom: 8px; } .mos .sv-par.dos { align-items: stretch; }
+.mos .sv-t { max-width: none; min-height: 96px; padding: 10px; --c: #26323f; }
+.mos .sv-t b { font: 700 14px/1.2 var(--serif); } .mos .sv-t small { margin-top: 4px; font-size: 13px; opacity: .95; }
+.mos .sv-i { font-size: 22px; } .mos .sv-t.hecha { --c: #5f7f2f; } .mos .sv-t.ok { --c: #2a6585; } .mos .sv-t.curso { --c: #d9a63c; color: var(--tinta); }
+.mos .sv-t.excl, .mos .sv-t.req, .mos .sv-t.edad, .mos .sv-t.falta { opacity: .75; } .mos .sv-t.sel { outline: 3px solid var(--gold); outline-offset: -1px; }
+.mos .sv-o { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 26px; height: 26px; display: grid; place-items: center; border-radius: 50%; background: #17110d; border: 1px solid var(--gold); color: var(--gold); font-size: 13px; z-index: 1; font-style: normal; }
+.mos .sv-det { padding: 12px; margin-bottom: 8px; }
+.mos .sv-fila.lejos { opacity: .6; }
+.mos-gen .head { --c: #b4532e; padding: 12px; min-height: 120px; } .mos-gen .head h2 { color: #fff; font-size: 22px; } .mos-gen .head p { color: #fff; font-size: 13px; }
+.mos-gen .card { min-height: 84px; padding: 12px; } .mos-gen .mos-cuerpo > .card:nth-of-type(1) { --c: #2a6585; } .mos-gen .mos-cuerpo > .card:nth-of-type(2) { --c: #5f7f2f; } .mos-gen .mos-cuerpo > .card:nth-of-type(3) { --c: #8a6a22; }
+.mos-gen .card .tt { font: 700 16px var(--serif); color: #fff; } .mos-gen .card .ds { color: #fff; font-size: 13px; }
+.mos-gen .card .btn { flex: none; width: 56px; height: 56px; min-width: 0; padding: 0; font-size: 24px; color: #1d1408; background: linear-gradient(#f4dc8f, #d9a741); border: 1px solid #f0cf86; }
+.mos-gen .card .btn.no { background: #00000055; color: #fff8; border-color: #fff3; }
+.mos-gen .mos-nota { color: var(--mute); font-size: 13px; }
+/* K12c: ajustes tras mirar capturas */
+.mar-imp .imp-chips { overflow: visible; display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+.mar-imp .imp-chips button { flex: none; min-width: 0; padding: 0 1px; min-height: 50px; font: 700 13px/1.1 var(--sans); letter-spacing: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.mar-imp .imp-chips button i { font-weight: 700; font-size: 14px; }
+.mar-merc .btn { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 2px 4px; font-size: 14px; line-height: 1.3; }
+.mar-merc .btn .ico, .mar-merc .btn svg { stroke: #2a1c05; width: 18px; height: 18px; }
+.mar-merc .btn.no .ico, .mar-merc .btn.no svg { stroke: #b8a070; }
+.mos-gen { padding-top: 46px; } .mos-gen .head h2 { padding-right: 96px; }
+.mos .sv-par:not(.dos) .sv-t { grid-column: 1 / -1; min-height: 80px; }
