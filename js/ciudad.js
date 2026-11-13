@@ -35,8 +35,14 @@ export function suceso(E, tipo, mesN) {
   const c = E && E.suc ? E.suc(mesN ?? E.mesN) : null, dif = c && T[c.dif] ? c.dif : 'normal', on = (c && c.on) || {}, N = T[dif];
   return { activo: on[ON_TIPO[tipo]] !== false, dif, aviso: N.aviso, ...N[tipo] };
 }
-/* ribera: ¿es ribera baja Y la crecida está encendida? Único sitio donde se decide (CN13b añadirá aquí la protección). */
-export const ribera = (E, x, z, mesN) => inundable(x, z) && suceso(E, 'crecida', mesN).activo;
+/* ribera: ¿es ribera baja, la crecida está encendida Y no hay dique que la guarde? Único sitio donde se decide (CN13b). */
+export const ribera = (E, x, z, mesN) => inundable(x, z) && suceso(E, 'crecida', mesN).activo && !protegida(E, x, z);
+/* protegida: un dique ya terminado (sin obra ni ruina) cubre el punto dentro de su radio. */
+export function protegida(E, x, z) { for (const e of E.edificios) if (e.tipo === 'dique' && !e.obra && !e.ruina && Math.hypot(x - e.x, z - e.z) < (e.radio || EDIF.dique.radio)) return true; return false; }
+/* techado de barrio (CN13b): b.tejas = mes en que acaba el techado. Hasta entonces el barrio sigue con paja. */
+export const TECHO_MESES = 3;
+export const tejado = (E, i) => { const b = E.barrios[i]; return !!(b && typeof b.tejas === 'number' && b.tejas <= E.mesN); };
+export const tejada = (E, l) => !!(l && l.casa && l.barrio >= 0 && tejado(E, l.barrio));
 const vega = (x, z) => { const d = drio(x, z); return d >= 120 && d < 330 && alt(x, z) < 6; };
 
 /* puente y camino que ya estaban antes de la colonia */
@@ -71,6 +77,7 @@ export const EDIF = {
   cuartel: { nombre: 'Cuartel', bid: 'cuartel', coste: R5(90, 60, 70, 40, 0), obra: 2, w: 24, d: 20, radio: 0, desde: 300, que: 'Recluta infantería; junto a una puerta del surco' },
   establo: { nombre: 'Establo', bid: 'establo', coste: R5(110, 60, 80, 70, 0), obra: 2, w: 26, d: 20, radio: 0, desde: 500, que: 'Recluta caballería; en llano y junto a una puerta' },
   muralla: { nombre: 'Muralla', bid: 'muralla', coste: R5(40, 120, 30, 20, 0), obra: 3, radio: 0, desde: 1000, accion: true, que: 'Sigue el surco' },
+  dique: { nombre: 'Dique', bid: null, coste: R5(40, 70, 10, 0, 0), obra: 2, w: 26, d: 7, radio: 110, desde: 0, que: 'Guarda del Tíber las casas de la ribera baja; va en la ribera, junto al río' },
   compitum: { nombre: 'Abrir barrio', bid: null, coste: R5(40, 40, 10, 20, 20), obra: 1, w: 9, d: 9, radio: 0, desde: 1400, que: 'Capilla de cruce: nace un barrio' }
 };
 /* id de D.BUILD -> id de pieza; y nivel de D.BUILD equivalente a cada mejora (0, I, II, III). */
@@ -81,7 +88,7 @@ export const MEJORA_DE_NIVEL = n => n < 1 ? -1 : n === 1 ? 0 : n <= 3 ? 1 : n <=
    Sin bid: coste base × 1.5 por mejora. radioMul = cuánto crece su radio; rinde = multiplicador de lo que da (provisional). */
 const SALTA = [[1, 2], [3, 4, 5], [6, 7, 8, 9]], MEJ = [[1.15, 1.2], [1.3, 1.5], [1.5, 2]];
 for (const D of Object.values(EDIF)) D.mejoras = MEJ.map(([radioMul, rinde], k) => ({ coste: D.bid ? sumaCostes(SALTA[k].map(L => costeNivel(D.coste, L))) : costeNivel(D.coste, k + 1), radioMul, rinde }));
-export const ORDEN = ['fuente', 'granero', 'granja', 'aserradero', 'cantera', 'mina', 'almacen', 'templo', 'mercado', 'taller', 'muelle', 'herreria', 'escuela', 'cuartel', 'establo', 'muralla', 'compitum'];
+export const ORDEN = ['fuente', 'granero', 'granja', 'aserradero', 'cantera', 'mina', 'almacen', 'templo', 'mercado', 'taller', 'muelle', 'herreria', 'escuela', 'cuartel', 'establo', 'muralla', 'compitum', 'dique'];
 /* Monedero interno E.monedas: solo para pruebas y modo normal sin juego. Un coste en 5 recursos vale la suma de sus números. */
 const valor = c => RECURSOS.reduce((s, r) => s + (c[r] || 0), 0);
 /* Cobro: pago(coste)->bool lo decide el juego; sin pago se descuenta del monedero interno. */
@@ -94,7 +101,7 @@ export function crear(semilla = 1) {
   terreno();
   const E = { semilla, modoJuego: false, rnd: azar(semilla * 7919 + 13), mesN: 0, monedas: 300, fundada: false, foro: null, surco: null, RS: null,
     vias: [], parcelas: [], bocas: [], edificios: [], barrios: [], puertas: [], arboles: [], bosquetes: [], muralla: { fase: 0, obra: 0, rec: 0, ampl: 0 }, diario: [],
-    abiertas: ['fuente', 'granero', 'granja', 'aserradero', 'cantera', 'mina', 'almacen', 'templo'], crecida: -99, hambre: false, avisado: {}, rev: 0, nId: 1,
+    abiertas: ['fuente', 'granero', 'granja', 'aserradero', 'cantera', 'mina', 'almacen', 'templo', 'dique'], crecida: -99, marcas: [], hambre: false, avisado: {}, rev: 0, nId: 1,
     ocup: new Uint8Array(N * N), lote: new Int16Array(N * N), dVia: new Float32Array(N * N).fill(999), aVia: new Float32Array(N * N), tVia: new Uint8Array(N * N) };
   nuevaVia(E, CAMINO, 4.2, 'camino');
   bosque(E);
@@ -286,6 +293,7 @@ const EFECTO_SITIO = {
   mercado: ctx => ({ n: ctx.c, txt: ctx.c + ' casas lo usarían', tono: ctx.c ? 'bien' : 'neutro' }),
   taller: ctx => ({ n: -ctx.c, txt: ctx.c ? '\u2212' + ctx.c + ' casas con humo' : '0 casas con humo', tono: ctx.c ? 'mal' : 'neutro' }),
   herreria: ctx => EFECTO_SITIO.taller(ctx),
+  dique: ctx => ({ n: ctx.c, txt: ctx.c ? 'protege ' + ctx.c + (ctx.c === 1 ? ' casa' : ' casas') : 'no protege casas', tono: ctx.c ? 'bien' : 'neutro' }),
 };
 export function notaSitio(E, id, x, z, cx) {
   const D = EDIF[id], k = ci(x, z); cx = cx || contexto(E);
@@ -295,7 +303,7 @@ export function notaSitio(E, id, x, z, cx) {
   else if (esAgua(x, z)) return mal('En el agua no');
   if (id !== 'muelle' && PEND[k] > (id === 'granja' ? 0.12 : id === 'cantera' || id === 'mina' ? 0.5 : 0.24)) return mal(id === 'granja' ? 'En cuesta no se labra' : 'Demasiado empinado');
   let choque = ''; if (!huella(E, x, z, ang + Math.PI / 2, D.w, D.d, (o, q) => { if (o === 1) choque = 'Encima de una calle no'; else if (o === 2 || o === 4) choque = 'Ya hay un edificio'; else if (o === 5) choque = 'Sobre el surco sagrado no'; else if (o === 3) { const l = E.parcelas[E.lote[q] - 1]; if (l && l.casa) choque = 'Hay casas: busca un solar libre'; } return !!choque; })) return mal(choque || 'Fuera del territorio');
-  const raz = [], inu = id !== 'muelle' && ribera(E, x, z, E.mesN + 1), den = dentro(E, x, z), dF = Math.hypot(x - E.foro.x, z - E.foro.z); let n = 0, radio = D.radio || 0, ctx = { c: 0 };   // ctx.c = casas que cuenta la rama; EFECTO_SITIO lo convierte en texto
+  const raz = [], inu = id !== 'muelle' && id !== 'dique' && ribera(E, x, z, E.mesN + 1), den = dentro(E, x, z), dF = Math.hypot(x - E.foro.x, z - E.foro.z); let n = 0, radio = D.radio || 0, ctx = { c: 0 };   // ctx.c = casas que cuenta la rama; EFECTO_SITIO lo convierte en texto
   const cuantas = (r, f) => cx.casas.reduce((s, c) => s + (Math.hypot(c.x - x, c.z - z) < r && (!f || f(c)) ? 1 : 0), 0);
   if (id === 'fuente') { const c = cuantas(radio, c => !c.s.agua), ya = cuantas(radio, c => c.s.fuente); ctx.c = c;
     if (d < R_AGUA_RIO) { n -= 2; raz.push('Aquí ya beben del río −2'); }
@@ -308,6 +316,8 @@ export function notaSitio(E, id, x, z, cx) {
   else if (id === 'mercado') { const c = cuantas(radio), pr = E.dVia[k] < 34 && E.tVia[k] <= 2;
     if (dF < 95) { n += 2; raz.push('Junto al foro +2'); } else if (pr) { n += 1; raz.push('En calle principal +1'); } else { n -= 1; raz.push('Lejos del foro y de las calles principales −1'); }
     ctx.c = c; if (c) { const p = Math.min(2, Math.ceil(c / 15)); n += p; raz.push(c + ' casas comprarían aquí: +' + Math.round(c * 0.2) + ' monedas al mes'); } else raz.push('Sin casas cerca: no vende'); }
+  else if (id === 'dique') { if (!inundable(x, z)) return mal('El dique va en la ribera baja, junto al río'); const c = cuantas(radio, c => inundable(c.x, c.z) && !protegida(E, c.x, c.z)); ctx.c = c;
+    if (c) { const p = Math.min(4, 1 + Math.ceil(c / 3)); n += p; raz.push('Protegería ' + c + (c === 1 ? ' casa' : ' casas') + ' de la crecida +' + p); } else { n -= 1; raz.push('Aquí no hay casas que guardar −1'); } }
   else if (id === 'granero') { if (!den) return mal('El granero va dentro del surco'); const dp = Math.min(...E.puertas.map(p => Math.hypot(p.x - x, p.z - z)), 999);
     n += 1; raz.push('Dentro del surco +1'); if (dp < 75) { n += 2; raz.push('Cerca de una puerta: los carros llegan +2'); } else { n -= 1; raz.push('Lejos de las puertas −1'); } }
   else if (id === 'taller') { if (d > 170) return mal('El taller necesita agua: ponlo cerca de la orilla'); const c = cuantas(radio); ctx.c = c;
@@ -365,6 +375,20 @@ export function colocar(E, id, x, z, gratis, pago) {
     E.barrios.push({ nombre: 'Barrio ' + nombre, corto: nombre.replace(/^(del|de la|de los) /, ''), x, z, tipo: 'compitum', nivel: 1, bdef: 0 });
     const a = s.ang, dv = E.dVia[k]; for (const sg of [-1, 1]) { const o = sg < 0 ? 7 : dv + 9, b = { x: x + Math.cos(a) * o * sg, z: z + Math.sin(a) * o * sg, dx: Math.cos(a) * sg, dz: Math.sin(a) * sg, hecha: false }; const v = callejon(E, b, 96); if (v) { v.t = 'via'; v.w = 3; v.punta = null; } } }
   E.edificios.push(e); E.diario.push({ a: 'c', n: E.mesN, tipo: id, x, z }); puertas(E); reparcelar(E); return { ok: true, e };
+}
+/* ---------- techar un barrio (CN13b): acción por barrio, no pieza. Anota {a:'j'} en el diario y deDatos la repite. ---------- */
+export function techoInfo(E, i) {
+  const b = E && E.barrios[i], o = { coste: null, motivo: null, plazo: TECHO_MESES, casas: 0, hecho: false, enObra: 0 };
+  if (!b) { o.motivo = 'No hay ese barrio'; return o; }
+  o.casas = E.parcelas.filter(l => l.casa && !l.fuera && l.barrio === i).length; o.coste = R5(Math.max(1, Math.ceil(o.casas * 1.5)), Math.max(1, o.casas * 3), 0, 0, 0);
+  if (tejado(E, i)) { o.hecho = true; o.motivo = 'Ya tiene techos de teja'; } else if (typeof b.tejas === 'number') { o.enObra = b.tejas - E.mesN; o.motivo = 'Techado en marcha: faltan ' + o.enObra + (o.enObra === 1 ? ' mes' : ' meses'); }
+  else if (!o.casas) o.motivo = 'No hay casas que techar';
+  return o;
+}
+export function techarBarrio(E, i, gratis, pago) {
+  const o = techoInfo(E, i); if (o.motivo) return { ok: false, motivo: o.motivo };
+  if (!gratis) { const mo = cobrar(E, o.coste, pago); if (mo) return { ok: false, motivo: mo }; }
+  E.barrios[i].tejas = E.mesN + TECHO_MESES; E.diario.push({ a: 'j', n: E.mesN, i }); E.rev++; return { ok: true, listo: E.barrios[i].tejas };
 }
 /* ---------- muralla y guerra (CN7): una tabla sencilla de fase a nivel de guerra ---------- */
 export const NIVEL_FASE = [0, 3, 6];
@@ -430,7 +454,7 @@ export function deDatos(datos) {
   if (datos.sitio) fundar(E, datos.sitio.x, datos.sitio.z);
   const ac = datos.acciones || [];
   for (let n = datos.n0 || 0; n <= datos.mesN; n++) {
-    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') { const r = colocar(E, a.tipo, a.x, a.z, true); if (r.ok && E.modoJuego) r.e.obra = 0; } else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 'a') ampliarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); else if (a.a === 'q') saquearArrabal(E, a.fz); }
+    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') { const r = colocar(E, a.tipo, a.x, a.z, true); if (r.ok && E.modoJuego) r.e.obra = 0; } else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 'a') ampliarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); else if (a.a === 'q') saquearArrabal(E, a.fz); else if (a.a === 'j') techarBarrio(E, a.i, true); }
     if (n < datos.mesN) mes(E);
   }
   E.monedas = datos.monedas; (datos.barrios || []).forEach((b, i) => { if (E.barrios[i]) { E.barrios[i].nombre = b.nombre; E.barrios[i].corto = b.corto; } }); E.rev++;
@@ -451,9 +475,9 @@ export function riesgos(E) {
   if (!E || !E.fundada) return []; const r = [], S = servicios(E);
   const sC = suceso(E, 'crecida', E.mesN + 1), sF = suceso(E, 'incendio', E.mesN + 1), sH = suceso(E, 'hambre', E.mesN + 1), mC = mesesHasta(E, 2), mH = enInvierno(fecha(E).mes, sH.meses) ? 0 : mesesHasta(E, 11);
   let c = 0, g = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && ribera(E, l.x, l.z, E.mesN + 1)) c++; for (const e of E.edificios) if (e.tipo !== 'muelle' && !e.ruina && ribera(E, e.x, e.z, E.mesN + 1)) g++;
-  if (c + g && mC <= sC.aviso) r.push({ c: 'crecida', p: 5, meses: mC, n: c + g, a: 'Crecida: el río puede llevarse ' + (c + g) + (c + g === 1 ? ' construcción' : ' construcciones') + ': no edifiques en la zona azul.', t: 'Crecida de primavera: el río puede llevarse ' + (c ? c + (c === 1 ? ' casa' : ' casas') : '') + (c && g ? ' y ' : '') + (g ? g + (g === 1 ? ' obra' : ' obras') : '') + ' de la ribera baja.', remedio: 'No pongas más obras en la ribera baja (zona azul del mapa de calor)', pieza: null });
-  let peor = -1, nPeor = 0, nTot = 0; E.barrios.forEach((b, i) => { const cs = E.parcelas.filter(l => l.casa && !l.casa.ruina && l.barrio === i && !l.fuera); if (cs.length <= 10 || E.mesN - (b.fuego || -9) < 8) return; const sin = cs.filter(l => !cerca(S.fu, l.x, l.z)).length; if (!sin) return; nTot += sin; if (sin > nPeor) { nPeor = sin; peor = i; } });
-  if (peor >= 0 && sF.activo) { const nb = E.barrios[peor].nombre; r.push({ c: 'fuego', p: 5, meses: 0, n: nTot, a: 'Riesgo de incendio en ' + nTot + (nTot === 1 ? ' casa' : ' casas') + ': pon una fuente cerca.', t: 'Riesgo de incendio: ' + nTot + (nTot === 1 ? ' casa' : ' casas') + ' sin fuente cerca.', remedio: 'Pon una fuente cerca del ' + nb, pieza: 'fuente' }); }
+  if (c + g && mC <= sC.aviso) r.push({ c: 'crecida', p: 5, meses: mC, n: c + g, a: 'Crecida: el río puede llevarse ' + (c + g) + (c + g === 1 ? ' construcción' : ' construcciones') + ': no edifiques en la zona azul.', t: 'Crecida de primavera: el río puede llevarse ' + (c ? c + (c === 1 ? ' casa' : ' casas') : '') + (c && g ? ' y ' : '') + (g ? g + (g === 1 ? ' obra' : ' obras') : '') + ' de la ribera baja.', remedio: 'No pongas más obras en la ribera baja (zona azul del mapa de calor)' + (E.abiertas.includes('dique') ? ' o levanta un dique en la orilla' : ''), pieza: E.abiertas.includes('dique') ? 'dique' : null });
+  let peor = -1, nPeor = 0, nTot = 0; E.barrios.forEach((b, i) => { const cs = E.parcelas.filter(l => l.casa && !l.casa.ruina && l.barrio === i && !l.fuera); if (cs.length <= 10 || E.mesN - (b.fuego || -9) < 8) return; const sin = cs.filter(l => !cerca(S.fu, l.x, l.z) && !tejada(E, l)).length; if (!sin) return; nTot += sin; if (sin > nPeor) { nPeor = sin; peor = i; } });
+  if (peor >= 0 && sF.activo) { const nb = E.barrios[peor].nombre; r.push({ c: 'fuego', p: 5, meses: 0, n: nTot, a: 'Riesgo de incendio en ' + nTot + (nTot === 1 ? ' casa' : ' casas') + ': pon una fuente cerca.', t: 'Riesgo de incendio: ' + nTot + (nTot === 1 ? ' casa' : ' casas') + ' sin fuente cerca.', remedio: 'Pon una fuente cerca del ' + nb + ' o techa el barrio con tejas', pieza: 'fuente', barrio: peor }); }
   if (sH.activo && sH.meses > 0 && !hechos(E, 'granero').length && mH <= sH.aviso) { const ya = mH === 0 && enInvierno(fecha(E).mes, sH.meses); const n = E.parcelas.filter(l => l.casa && !l.casa.ruina).length; r.push({ c: 'hambre', p: 4, meses: mH, n, a: ya ? 'Hay hambre de invierno: coloca un granero para el próximo.' : 'Sin granero habrá hambre en invierno: coloca uno antes de diciembre.', t: 'Hambre de invierno (sin granero): las casas no ' + (ya ? 'crecen' : 'crecerán') + ' hasta la primavera.', remedio: ya ? 'Coloca un granero para el próximo invierno' : 'Coloca un granero antes de diciembre', pieza: 'granero' }); }
   return r.sort((a, b) => b.p - a.p);
 }
@@ -468,13 +492,14 @@ export function mes(E) {
   if (!E.modoJuego) E.monedas += ingreso(E);      // en modo juego, la renta la cobra game.js
   /* crecida de primavera: se lleva lo que esté en la ribera baja */
   const scr = suceso(E, 'crecida'), sin = suceso(E, 'incendio'), sha = suceso(E, 'hambre');
-  if (f.mes === 2 && scr.activo) { let c = 0, g = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && ribera(E, l.x, l.z)) { l.casa.ruina = scr.ruina; c++; } for (const e of E.edificios) if (e.tipo !== 'muelle' && !e.ruina && ribera(E, e.x, e.z)) { e.ruina = scr.ruina; g++; }
-    E.crecida = E.mesN; di(c + g ? 'Crecida de primavera: el río anegó ' + (c ? c + (c === 1 ? ' casa' : ' casas') : '') + (c && g ? ' y ' : '') + (g ? g + (g === 1 ? ' obra' : ' obras') : '') + ' de la ribera baja. Lo alto se salvó.' : 'Crecida de primavera: el río se salió, pero nada tuyo estaba en la ribera baja.', c + g ? 5 : 2, 'crecida'); if (c + g) av[av.length - 1].cg = [c, g]; }
+  if (f.mes === 2 && scr.activo) { let c = 0, g = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && ribera(E, l.x, l.z)) { l.casa.ruina = scr.ruina; l.casa.barro = E.mesN; c++; } for (const e of E.edificios) if (e.tipo !== 'muelle' && !e.ruina && ribera(E, e.x, e.z)) { e.ruina = scr.ruina; g++; }
+    E.crecida = E.mesN; if (c) E.marcas.push({ mes: E.mesN, n: c }); di(c + g ? 'Crecida de primavera: el río anegó ' + (c ? c + (c === 1 ? ' casa' : ' casas') : '') + (c && g ? ' y ' : '') + (g ? g + (g === 1 ? ' obra' : ' obras') : '') + ' de la ribera baja. Lo alto se salvó.' : 'Crecida de primavera: el río se salió, pero nada tuyo estaba en la ribera baja.', c + g ? 5 : 2, 'crecida'); if (c + g) av[av.length - 1].cg = [c, g]; }
   /* incendio: en barrios de más de 10 casas, una casa sin fuente cerca */
   E.barrios.forEach((b, i) => { const cs = E.parcelas.filter(l => l.casa && !l.casa.ruina && l.barrio === i && !l.fuera); if (!sin.activo || cs.length <= 10 || rnd() > sin.prob || E.mesN - (b.fuego || -9) < 8) return; const l = cs[Math.floor(rnd() * cs.length)];
+    if (tejada(E, l)) { b.fuego = E.mesN; di('Fuego en el ' + b.nombre + ': el techo de teja lo frenó y no saltó de casa en casa.', 3, 'fuego'); return; }   // barrio techado: el fuego no prende (CN13b)
     if (cerca(S0.fu, l.x, l.z)) { b.fuego = E.mesN; di('Fuego en el ' + b.nombre + ': la fuente estaba cerca y se apagó a tiempo.', 3, 'fuego'); return; }
-    let n = 1; l.casa.ruina = 5; l.casa.arde = true; for (const o of cs) if (o !== l && n < sin.max && Math.hypot(o.x - l.x, o.z - l.z) < 24 && !cerca(S0.fu, o.x, o.z) && rnd() < 0.7) { o.casa.ruina = 5; o.casa.arde = true; n++; }
-    b.fuego = E.mesN; E.fuego = { mes: E.mesN, x: l.x, z: l.z }; di('Incendio en el ' + b.nombre + ': ' + (n === 1 ? 'ardió una casa' : 'ardieron ' + n + ' casas') + '. No había fuente cerca para apagarlo.', 5, 'fuego'); av[av.length - 1].cg = [n, 0]; });
+    let n = 1; const ids = [E.parcelas.indexOf(l)]; l.casa.ruina = 5; l.casa.arde = true; for (const o of cs) if (o !== l && n < sin.max && Math.hypot(o.x - l.x, o.z - l.z) < 24 && !cerca(S0.fu, o.x, o.z) && rnd() < 0.7) { o.casa.ruina = 5; o.casa.arde = true; n++; ids.push(E.parcelas.indexOf(o)); }
+    b.fuego = E.mesN; E.fuego = { mes: E.mesN, x: l.x, z: l.z, ids }; di('Incendio en el ' + b.nombre + ': ' + (n === 1 ? 'ardió una casa' : 'ardieron ' + n + ' casas') + '. No había fuente cerca para apagarlo.', 5, 'fuego'); av[av.length - 1].cg = [n, 0]; });
   /* hambre de invierno */
   const invierno = enInvierno(f.mes, sha.meses); E.hambre = sha.activo && invierno && !hechos(E, 'granero').length;
   if (E.hambre && f.mes === 11) di('Invierno sin granero: hay hambre. Las casas no crecen hasta la primavera.', 4, 'hambre');

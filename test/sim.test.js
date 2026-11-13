@@ -1776,4 +1776,25 @@ console.log('OK — todas las pruebas superadas');
 {   // NB7: batalla nueva conectada con la campaña, tribunos-generales e interruptor (test/nb7.test.mjs)
   const r = require('child_process').spawnSync(process.execPath, [__dirname + '/nb7.test.mjs'], { encoding: 'utf8', timeout: 120000 });
   assert(r.status === 0, 'NB7: ' + String(r.stdout).split('\n').filter(l => /^MAL/.test(l)).join(' | ') + String(r.stderr).slice(0, 300)); console.log('NB7: batalla nueva, tribunos e interruptor OK');
+{ // CN13b: dique y techado de barrio por la API del juego, y guardar/cargar por G.load
+  const CIM = require('../js/ciudad.js'); G.usarCiudad(CIM);
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  const s = G.newGame('Tejas', 'mediterraneo'), c = s.cities.roma; for (const r of ['madera', 'piedra', 'hierro', 'grano', 'oro']) { s.res[r] = 5000; s.alm[r] = 0; }
+  let E = G.ciudadE('roma'), t = G.techoInfo('roma', 0); assert(E.abiertas.includes('dique'), 'Roma tiene el dique en la bandeja');
+  assert(t.coste && t.coste.madera > 0 && t.plazo === CIM.TECHO_MESES && !t.motivo && t.casas > 0, 'techoInfo trae coste y plazo: ' + JSON.stringify(t));
+  assert(!G.techoInfo('no', 0).coste === true || G.techoInfo('no', 0).motivo, 'solo en tus ciudades'); assert(G.techoInfo('roma', 99).motivo, 'barrio inexistente');
+  const m0 = s.res.madera; assert(G.techarBarrio('roma', 0), 'techar el barrio'); assert(s.res.madera < m0, 'cobra'); E = G.ciudadE('roma');
+  assert(typeof E.barrios[0].tejas === 'number' && E.barrios[0].tejas === E.mesN + CIM.TECHO_MESES, 'plazo en meses'); assert(!G.techarBarrio('roma', 0) && /marcha/.test(G.techoInfo('roma', 0).motivo), 'no se repite');
+  assert(c.ciudad.acciones.some(a => a.a === 'j' && a.i === 0), 'la acción va al diario guardado');
+  // dique por la cola de obras del juego
+  let sitio = null; for (const e of [E]) sitio = CIM.mejorSitio(e, 'dique'); assert(sitio, 'hay sitio para el dique'); const rd = G.colocar('roma', 'dique', sitio[0], sitio[1]); assert(rd.ok, 'dique encargado: ' + JSON.stringify(rd));
+  const ped = () => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; } };
+  assert(c.obras.some(o => o.pieza === 'dique'), 'el dique está en la cola de obras'); hasta(c, ped); G.state.pending.length = 0; E = G.ciudadE('roma'); assert(E.edificios.some(e => e.tipo === 'dique' && !e.obra) || c.obras.length === 0, 'el dique se termina');
+  const tej = E.barrios[0].tejas, nE = E.edificios.length, ark = JSON.stringify(c.ciudad.acciones);
+  G.save(); assert(G.load(), 'carga'); const c2 = G.state.cities.roma, E2 = G.ciudadE('roma');
+  assert(E2.barrios[0].tejas === tej, 'el techado sobrevive a G.load'); assert(E2.edificios.some(e => e.tipo === 'dique') && E2.edificios.length === nE, 'el dique sobrevive a G.load'); assert(JSON.stringify(c2.ciudad.acciones) === ark, 'mismo diario');
+  // partida vieja: sin tejas ni marcas
+  const F = JSON.parse(JSON.stringify(G.state)); F.cities.roma.ciudad.acciones = F.cities.roma.ciudad.acciones.filter(a => a.a !== 'j' && !(a.a === 'c' && a.tipo === 'dique')); store['aqvila-save-v1'] = JSON.stringify(F); assert(G.load(), 'carga vieja');
+  const E3 = G.ciudadE('roma'); assert(E3.barrios[0].tejas === undefined && Array.isArray(E3.marcas), 'sin tejas ni marcas: valores por defecto');
+  delete global.localStorage; G.usarCiudad(null); console.log('CN13b: techado, dique, guardar y cargar OK');
 }

@@ -328,6 +328,19 @@
     const r = regE.get(c); if (r) pantalla(c, r);
     return true;
   };
+  /* CN13b: techar un barrio con tejas (acción, no pieza). Coste en recursos, plazo en meses, motivo si no se puede. Devuelve {coste, motivo, plazo, casas, hecho, enObra}. */
+  G.techoInfo = function (cid, i) {
+    const c = G.state && G.state.cities[cid], E = c && c.owner === 'roma' ? G.ciudadE(cid) : null;
+    if (!E) return { coste: null, motivo: 'Solo en tus ciudades.', plazo: CI ? CI.TECHO_MESES : 3, casas: 0, hecho: false, enObra: 0 };
+    const o = CI.techoInfo(E, i); if (o.coste) { o.coste = escalaCoste(o.coste); if (!o.motivo && !G.canAfford(limpia(o.coste))) o.motivo = 'Faltan recursos.'; } return o;
+  };
+  G.techarBarrio = function (cid, i) {
+    const o = G.techoInfo(cid, i); if (o.motivo) return false; const c = G.state.cities[cid], E = G.ciudadE(cid);
+    const r = CI.techarBarrio(E, i, true); if (!r.ok) return false;
+    const co = limpia(o.coste); for (const k in co) gasta(k, co[k]);
+    const rr = regE.get(c); if (rr) { ponerDatos(c, rr); rr.rev = -1; }
+    G.log('Techado de ' + E.barrios[i].nombre + ' en ' + D.CITIES[cid].n + ': acabará en ' + o.plazo + ' meses.', 'good', true); return true;
+  };
   // el granero de la ciudad: pct = grano guardado sobre el tope, meses = cuánto dura (null si no baja), invierno = hambre de invierno en la ciudad (E.hambre), hambre = grano agotado
   G.graneroInfo = function (cid) {
     const s = G.state, c = s.cities[cid], p = G.prod(), tot = Math.max(0, s.res.grano) + Math.max(0, s.alm.grano), E = c ? G.ciudadE(cid) : null;
@@ -530,7 +543,7 @@
       for (const a of ac) { if (a.n !== n) continue;
         if (a.a === 'c') { const r = CI.colocar(E, a.tipo, a.x, a.z, true); if (r.ok) r.e.obra = 0; }
         else if (a.a === 'u') CI.mejorar(E, a.id, true); else if (a.a === 'v') CI.mover(E, a.id, a.x, a.z); else if (a.a === 'm') CI.levantarMuralla(E, true); else if (a.a === 'a') CI.ampliarMuralla(E, true);
-        else if (a.a === 's') CI.sembrarCasas(E, a.pob); else if (a.a === 'd') quitar(E, a.id); else if (a.a === 'q') CI.saquearArrabal(E, a.fz); }
+        else if (a.a === 's') CI.sembrarCasas(E, a.pob); else if (a.a === 'd') quitar(E, a.id); else if (a.a === 'q') CI.saquearArrabal(E, a.fz); else if (a.a === 'j') CI.techarBarrio(E, a.i, true); }
       if (n < d.mesN) CI.mes(E);
     }
     E.monedas = d.monedas; (d.barrios || []).forEach((b, i) => { if (E.barrios[i]) { E.barrios[i].nombre = b.nombre; E.barrios[i].corto = b.corto; } }); E.rev++;

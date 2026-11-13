@@ -65,6 +65,11 @@
     ofrenda: { n: 'Ofrenda al templo', i: '🏺', mult: 2, min: 60, dura: 1, reposo: 1, fel: 4, pueblo: 2, inq: 0, dios: 2, pago: 'arca', templo: true, d: 'Duplica un mes el don del dios del templo.' },
     juegos: { n: 'Juegos públicos', i: '🎭', mult: 4, min: 150, dura: 3, reposo: 6, fel: 10, pueblo: 5, inq: 4, dios: 1, pago: 'oro', templo: false, d: 'Calman al pueblo y a una ciudad conquistada.' }
   };
+  /* Remedios contra los sucesos de la ciudad (CN13b): solo nombre y texto. Reglas y cifras viven en ciudad.js (EDIF.dique, techarBarrio); aquí van para que tengan ficha histórica. */
+  D.REMEDIOS = {
+    dique: { n: 'Dique contra la crecida', i: '🌊', d: 'Un dique en la orilla guarda de la crecida las casas de su alrededor.' },
+    tejas: { n: 'Techos de teja', i: '🏠', d: 'Un barrio techado con tejas no se incendia de casa en casa.' }
+  };
   /* Racionar el grano (CN13a): gasta menos y el pueblo lo nota. Es la ración de la ciudad (c.rac); no es el «hambre» del invierno (E.hambre) ni la de G.tick (grano agotado). */
   D.RACION = { normal: { n: 'Ración normal', grano: 1, f: 0, d: 'Come todo el mundo.' }, escasa: { n: 'Ración escasa', grano: 0.7, f: -8, d: 'Un 30 % menos de grano; el pueblo se queja.' } };
   /* El arca del foro cuenta lo que el tope del almacén va a hacer perder. valor = oro que vale cada unidad (mercado); umbrales = fracción del tope (en oro) para los niveles 1 a 4. */

@@ -45,11 +45,11 @@ prueba('60 meses tardan menos de 8 s', () => { const t = Date.now(); const F = R
 
 /* ---------- CN2a: catálogo único, costes en 5 recursos, mejoras, siembra y fundación automática ---------- */
 const RES = ['madera', 'piedra', 'hierro', 'grano', 'oro'], suma = c => RES.reduce((t, r) => t + c[r], 0);
-prueba('cada pieza tiene coste de 5 claves y 3 mejoras crecientes', () => { assert.equal(Object.keys(R.EDIF).length, 17); assert.deepEqual([...R.ORDEN].sort(), Object.keys(R.EDIF).sort());
+prueba('cada pieza tiene coste de 5 claves y 3 mejoras crecientes', () => { assert.equal(Object.keys(R.EDIF).length, 18); assert.deepEqual([...R.ORDEN].sort(), Object.keys(R.EDIF).sort());
   for (const [k, D] of Object.entries(R.EDIF)) { assert.deepEqual(Object.keys(D.coste), RES, k); assert.equal(D.mejoras.length, 3, k); let ant = suma(D.coste); assert.ok(ant > 0, k);
     for (const m of D.mejoras) { assert.deepEqual(Object.keys(m.coste), RES, k); assert.ok(suma(m.coste) > ant, k + ' mejora creciente'); ant = suma(m.coste); } } });
 prueba('PIEZA_DE es biyectiva con los bid; niveles de mejora', () => { const bids = Object.values(R.EDIF).map(D => D.bid).filter(Boolean); assert.equal(bids.length, 13); assert.equal(Object.keys(R.PIEZA_DE).length, 13);
-  for (const [k, D] of Object.entries(R.EDIF)) if (D.bid) assert.equal(R.PIEZA_DE[D.bid], k); else assert.ok(['fuente', 'granero', 'taller', 'compitum'].includes(k));
+  for (const [k, D] of Object.entries(R.EDIF)) if (D.bid) assert.equal(R.PIEZA_DE[D.bid], k); else assert.ok(['fuente', 'granero', 'taller', 'compitum', 'dique'].includes(k));
   assert.equal(R.PIEZA_DE.puerto, 'muelle'); assert.deepEqual(R.NIVEL_MEJORA, [1, 3, 6, 10]);
   assert.deepEqual([0, 1, 2, 3, 4, 6, 7, 10].map(R.MEJORA_DE_NIVEL), [-1, 0, 1, 1, 2, 2, 3, 3]); });
 prueba('el coste de mejora I de la granja = niveles 1 y 2 de D.BUILD (40,40,20,10 x1.5 y x2.25)', () => { const c = R.EDIF.granja.mejoras[0].coste; assert.deepEqual(c, { madera: 150, piedra: 150, hierro: 75, grano: 40, oro: 0 }); assert.deepEqual(R.EDIF.granja.coste, { madera: 40, piedra: 40, hierro: 20, grano: 10, oro: 0 }); });
@@ -112,7 +112,7 @@ prueba('CN8: riesgos() anuncia lo que luego pasa (crecida en marzo, fuego, hambr
   const mk = () => { const F = R.crear(3); R.fundar(F, 172, -196); R.sembrarCasas(F, 400); for (const l of F.parcelas) if (!l.fuera && R.inundable(l.x, l.z) && !l.casa) l.casa = { nivel: 1, desde: 0, nace: 0, ruina: 0 }; return F; };
   const hasta = (F, m) => { let k = 0; while (R.fecha(F).mes !== m && k++ < 14) R.mes(F); };
   const F = mk(); hasta(F, 1); const sn = JSON.stringify(R.aDatos(F)), r = R.riesgos(F), r2 = R.riesgos(F); assert.equal(JSON.stringify(R.aDatos(F)), sn, 'pura'); assert.deepEqual(r, r2);
-  const cr = r.find(x => x.c === 'crecida'); assert.ok(cr && cr.meses === 0 && cr.n >= 1 && cr.pieza === null, JSON.stringify(r)); assert.match(cr.remedio, /ribera baja/);
+  const cr = r.find(x => x.c === 'crecida'); assert.ok(cr && cr.meses === 0 && cr.n >= 1 && cr.pieza === 'dique', JSON.stringify(r)); assert.match(cr.remedio, /ribera baja/); assert.match(cr.remedio, /dique/);
   const fu = r.find(x => x.c === 'fuego'); assert.ok(fu && fu.meses === 0 && fu.pieza === 'fuente' && /^Pon una fuente cerca del /.test(fu.remedio)); assert.ok(r[0].p >= r[r.length - 1].p);
   const pob0 = R.poblacion(F), av = R.mes(F); assert.equal(R.fecha(F).mes, 2, 'la crecida cae en marzo'); const a = av.find(x => x.c === 'crecida'); assert.ok(a && a.cg && a.cg[0] + a.cg[1] === cr.n, 'anunciada = ocurrida');
   assert.ok(R.poblacion(F) < pob0, 'la población baja con la crecida'); for (let i = 0; i < 4; i++) R.mes(F);
@@ -266,4 +266,43 @@ prueba('CN23: ampliar la muralla deja los barrios nuevos dentro; guardar y carga
   assert.equal(G2.muralla.rec, F.muralla.rec); assert.equal(G2.muralla.ampl, F.muralla.ampl); assert.equal(G2.parcelas.filter(l => l.arrabal).length, arr1);
   assert.deepEqual(G2.RM, F.RM); assert.deepEqual(G2.muralla.geo.surco, F.muralla.geo.surco); });
 
+/* ---------- CN13b: dique del Tíber, marca de la crecida y techos de teja por barrio ---------- */
+{
+  const mk13 = () => { const F = R.crear(3); R.fundar(F, 172, -196); R.sembrarCasas(F, 400); for (const l of F.parcelas) if (!l.fuera && R.inundable(l.x, l.z) && !l.casa) l.casa = { nivel: 1, desde: 0, nace: 0, ruina: 0 }; F.monedas = 5000; return F; };
+  const hastaM = (F, m) => { let k = 0; while (R.fecha(F).mes !== m && k++ < 14) R.mes(F); };
+  const bajas = F => F.parcelas.filter(l => l.casa && !l.fuera && R.inundable(l.x, l.z));
+  prueba('CN13b dique: las casas de su radio salen de riesgos() y marzo no las arruina; la marca queda en las demás', () => {
+    const A = mk13(), B = mk13(), s = R.mejorSitio(B, 'dique'); assert.ok(s, 'hay sitio para el dique');
+    const ns = R.notaSitio(B, 'dique', s[0], s[1]); assert.ok(ns.vale && ns.efecto && /^protege \d+ casas?$/.test(ns.efecto.txt) && ns.efecto.n > 0, JSON.stringify(ns.efecto));
+    assert.ok(!R.notaSitio(B, 'dique', B.foro.x, B.foro.z).vale, 'el dique no vale lejos del río');
+    const r = R.colocar(B, 'dique', s[0], s[1], true); assert.ok(r.ok); assert.equal(r.e.obra, 2); assert.ok(!R.protegida(B, s[0], s[1]), 'en obra aún no protege');
+    hastaM(A, 1); hastaM(B, 1); const nA = R.riesgos(A).find(x => x.c === 'crecida').n, rB = R.riesgos(B).find(x => x.c === 'crecida');
+    assert.ok(R.protegida(B, s[0], s[1]), 'terminado protege'); assert.ok(!rB || rB.n < nA, 'con dique se anuncian menos: ' + nA + ' → ' + (rB ? rB.n : 0));
+    const cub = bajas(B).filter(l => R.protegida(B, l.x, l.z)); assert.ok(cub.length > 0);
+    const aA = R.mes(A), aB = R.mes(B); assert.ok(aA.some(a => /Crecida/.test(a.t)) && aB.some(a => /Crecida|río se salió/.test(a.t)));
+    assert.ok(cub.every(l => !l.casa.ruina && l.casa.barro === undefined), 'las casas bajo el dique no se arruinan ni se marcan');
+    assert.ok(B.edificios.find(e => e.tipo === 'dique').ruina === 0, 'el dique no se lo lleva el río');
+    const ma = bajas(A).filter(l => l.casa.ruina); assert.ok(ma.length > 0 && ma.every(l => l.casa.barro === A.mesN), 'sin dique, marca barro = mes de la crecida'); assert.deepEqual(A.marcas, [{ mes: A.mesN, n: ma.length }]);
+    assert.ok(bajas(B).filter(l => l.casa.ruina).length < ma.length, 'el dique salva casas'); });
+  prueba('CN13b dique: las casas bajo la marca siguen subiendo de nivel (decidido: solo se premia el dique)', () => {
+    const A = mk13(); hastaM(A, 2); R.mes(A); const m = bajas(A).filter(l => l.casa.barro !== undefined); assert.ok(m.length); for (let i = 0; i < 6; i++) R.mes(A); assert.ok(m.some(l => l.casa.ruina === 0), 'se reconstruyen'); });
+  prueba('CN13b tejas: plazo, coste y motivo', () => {
+    const F = mk13(), t = R.techoInfo(F, 0); assert.equal(t.plazo, R.TECHO_MESES); assert.ok(t.casas > 10 && t.coste.madera > 0 && t.coste.piedra > t.coste.madera && !t.motivo, JSON.stringify(t));
+    const m0 = F.monedas, r = R.techarBarrio(F, 0); assert.ok(r.ok); assert.equal(F.monedas, m0 - (t.coste.madera + t.coste.piedra)); assert.equal(F.barrios[0].tejas, F.mesN + R.TECHO_MESES);
+    assert.ok(!R.tejado(F, 0) && /en marcha/.test(R.techoInfo(F, 0).motivo) && !R.techarBarrio(F, 0).ok, 'en obra: ni protege ni se repite');
+    for (let i = 0; i < R.TECHO_MESES; i++) R.mes(F); assert.ok(R.tejado(F, 0)); assert.ok(R.tejada(F, F.parcelas.find(l => l.casa && l.barrio === 0))); assert.match(R.techoInfo(F, 0).motivo, /Ya tiene/);
+    const P = mk13(); P.monedas = 5; assert.match(R.techarBarrio(P, 0).motivo, /Faltan/); assert.equal(P.barrios[0].tejas, undefined); assert.ok(!R.techarBarrio(P, 9).ok); assert.equal(P.diario.filter(d => d.a === 'j').length, 0); });
+  prueba('CN13b tejas: con barrio techado no hay incendio (semilla fija) y sin techar arde como siempre; riesgos lo deja de anunciar', () => {
+    const corre = tecnar => { const F = R.crear(1); R.fundar(F, 172, -196); if (tecnar) R.techarBarrio(F, 0, true); let arde = 0, frena = 0, aviso = 0; for (let i = 0; i < 60; i++) { for (const a of R.mes(F)) { if (/Incendio/.test(a.t)) arde++; if (/techo de teja/.test(a.t)) frena++; } if (R.riesgos(F).some(x => x.c === 'fuego')) aviso++; } return { arde, frena, aviso, ard: F.parcelas.filter(l => l.casa && l.casa.arde).length }; };
+    const a = corre(false), b = corre(true); assert.ok(a.arde > 0 && a.aviso > 0, JSON.stringify(a)); assert.equal(b.arde, 0, 'techado: ningún incendio'); assert.ok(b.frena > 0 && b.aviso < a.aviso, JSON.stringify(b)); });
+  prueba('CN13b E.fuego guarda los ids de las casas quemadas', () => {
+    const F = R.crear(1); R.fundar(F, 172, -196); for (let i = 0; i < 60 && !(F.fuego && F.fuego.ids); i++) R.mes(F); assert.ok(F.fuego && F.fuego.ids.length >= 1); assert.ok(F.fuego.ids.every(k => F.parcelas[k] && F.parcelas[k].casa)); });
+  prueba('CN13b guardar y cargar con dique y barrio techado da la misma ciudad (plazo y marca incluidos)', () => {
+    const F = mk13(), s = R.mejorSitio(F, 'dique'); R.colocar(F, 'dique', s[0], s[1], true); hastaM(F, 1); R.techarBarrio(F, 0); for (let i = 0; i < 4; i++) R.mes(F); R.techarBarrio(F, 0);
+    const H = R.deDatos(JSON.parse(JSON.stringify(R.aDatos(F)))); assert.equal(JSON.stringify(R.aDatos(H)), JSON.stringify(R.aDatos(F)));
+    assert.equal(H.barrios[0].tejas, F.barrios[0].tejas); assert.deepEqual(H.marcas, F.marcas); assert.ok(H.edificios.some(e => e.tipo === 'dique')); assert.equal(R.riesgos(H).length, R.riesgos(F).length);
+    assert.equal(bajas(H).filter(l => l.casa.barro !== undefined).length, bajas(F).filter(l => l.casa.barro !== undefined).length); });
+  prueba('CN13b partida vieja sin tejas ni marcas: valores por defecto', () => {
+    const F = R.crear(1); R.fundar(F, 172, -196); const d = JSON.parse(JSON.stringify(R.aDatos(F))); const H = R.deDatos(d); assert.deepEqual(H.marcas, []); assert.equal(H.barrios[0].tejas, undefined); assert.ok(!R.tejado(H, 0)); assert.ok(!R.protegida(H, 0, 0)); });
+}
 process.exit(fallos.length ? 1 : 0);

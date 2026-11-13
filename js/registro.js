@@ -240,7 +240,13 @@
     juegos: f(SIN_FIESTA, h('Livio 22.9-10 (los ludi magni votados en 217); pistas por comprobar: Livio 25.12 (ludi Apollinares), Livio 29.14, Ovidio, Fastos 4', 'licencia de juego', 'Los ludi eran fiestas públicas reales; su precio ligado al ingreso, el reposo de seis meses y el calmar a una ciudad conquistada son reglas de juego. Los pasajes marcados como pista no se han comprobado.', 'Los ludi eran juegos públicos que pagaban los magistrados o el erario por voto del Senado (Livio 22.9-10). Aquí calman al pueblo y a una ciudad conquistada.'))
   };
 
-  R.fichas = { edificio, tropa, fiesta, ciudad, hecho, mision, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades };
+  const SIN_REM = { sin: 'un remedio no tiene modelo 3D propio: el dique usa el muro de 0 A.D. como figura provisional (js/gfx/city3d.js, CN13b) y el tejado lo pintará CN15' };
+  const remedio = {
+    dique: f(SIN_REM, h('Livio 24.9; Livio 30.38 (crecidas del Tíber, por cotejar); sin fuente abierta de diques en 280-146', 'licencia de juego', 'Las crecidas del Tíber están en Livio, pero no se ha comprobado que Roma levantara diques o malecones en esta época: los grandes muros de contención son posteriores. Es una regla de juego para dar remedio a la ribera baja.', 'El Tíber se desbordaba a menudo y anegaba la parte baja de Roma; Livio lo cuenta varias veces. Aquí puedes levantar un dique en la orilla para guardar las casas, aunque no consta que se hiciera así entonces.')),
+    tejas: f(SIN_REM, h('Plinio, Historia natural 16.36 (por cotejar: Roma cubierta con tablillas de madera hasta la guerra de Pirro)', 'por cotejar', 'Se cita la pista de Plinio, sin abrir aquí: según ella Roma se cubrió con tablillas de madera hasta la guerra de Pirro (280-275) y después vendrían las tejas. Techar por barrios, su coste y su plazo son reglas de juego.'))
+  };
+
+  R.fichas = { edificio, tropa, fiesta, remedio, ciudad, hecho, mision, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -260,7 +266,8 @@
     especial: { tabla: 'ESPECIAL', numericos: [], textos: ['n', 'i', 'd'] },
     invest: { tabla: 'INVEST', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n', 'i', 'rama'] },
     edad: { tabla: 'EDADES', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n'] },
-    fiesta: { tabla: 'FIESTAS', numericos: ['mult', 'min', 'dura', 'reposo'], textos: ['n', 'i', 'd'] }
+    fiesta: { tabla: 'FIESTAS', numericos: ['mult', 'min', 'dura', 'reposo'], textos: ['n', 'i', 'd'] },
+    remedio: { tabla: 'REMEDIOS', numericos: [], textos: ['n', 'i', 'd'] }
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */

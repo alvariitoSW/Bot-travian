@@ -223,7 +223,7 @@ function ponerLuz() { const RS = 600; sol.position.set(0, 0, -70).addScaledVecto
 /* tipo -> [pieza, escala, giro de fachada, hundido] */
 const PZ = { foro: ['foro', 0.78, 0, 0.2], fuente: ['prop_pozo', 2.2, 0, 0.1], granero: ['almacen', 1.35, 0, 0.3], almacen: ['almacen', 1.1, 0, 0.3], granja: ['granja', 1.0, 0, 0.3], aserradero: ['aserradero', 1.25, 0, 0.2], taller: ['aserradero', 1.25, 0, 0.2],
   cantera: ['cantera', 0.8, 0, 0.3], mina: ['mina', 1.0, 0, 0.3], templo: ['templo', 0.86, 0, 1.2], mercado: ['mercado', 0.82, 0, 0.2], herreria: ['aserradero', 0.95, 0, 0.2], escuela: ['mercado', 0.7, 0, 0.2], cuartel: ['cuartel', 1.1, 0, 0.3], establo: ['establo', 1.1, 0, 0.3],
-  muelle: ['puerto', 0.85, 0, 0], compitum: ['vesta', 0.5, 0, 0.6] };       // herrería usa el taller reducido (aún no hay pieza propia); la fuente espera a prop_pozo
+  muelle: ['puerto', 0.85, 0, 0], compitum: ['vesta', 0.5, 0, 0.6], dique: ['muro', 1.0, 0, 0.2] };       // herrería usa el taller reducido (aún no hay pieza propia); la fuente espera a prop_pozo
 const PIEL_U = { muro: [0.93, 0.86, 0.76], teja: [0.86, 0.8, 0.76, 0.15] };
 const L = {}, G = {};                 // lotes y mallas sueltas
 let pinM, sueloJ, rio, crecida, dinM, andM, andL, estM, anilloM, surcoM, gromaM, aradoM, chozaM, tiendaM;

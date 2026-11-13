@@ -14,3 +14,14 @@ Dictamen honesto: lo que se pudo comprobar y lo que no. Todas las cifras (coste,
 
 ## Ración escasa (`D.RACION`)
 Licencia de juego: no es un hecho de la época, solo una palanca para el jugador. Sin ficha histórica.
+
+# CN13b · Cotejo histórico: dique y techos de teja
+
+## Dique del Tíber (`D.REMEDIOS.dique`, pieza `dique` de ciudad.js)
+- **Histórico, por cotejar**: las crecidas del Tíber que anegan la parte baja de Roma (Livio 24.9 y 30.38 son pistas, sin abrir aquí). Eso explica la regla de la ribera baja.
+- **Sin fuente abierta**: que Roma levantara diques o malecones en 280-146 a.C. No consta; los grandes muros de contención son posteriores. La ficha va como **licencia de juego**: es un remedio jugable, no un hecho de época.
+- **Licencia de juego**: coste, radio (110), dos meses de obra, que el dique no se lo lleve el río y que las casas bajo la marca de la crecida sigan subiendo de nivel (solo se premia al que hace dique).
+
+## Techos de teja (`D.REMEDIOS.tejas`, acción «techar barrio»)
+- **Por cotejar, sin darlo por bueno**: Plinio, *Historia natural* 16.36 (Roma habría estado cubierta con tablillas de madera hasta la guerra de Pirro). La ficha queda en «por cotejar» y no tiene texto en el Códice.
+- **Licencia de juego**: techado por barrio (no por pieza con radio), tres meses de plazo, coste en madera y piedra según las casas; un barrio techado no se prende y no hay salto de fuego entre sus casas (el fuego que habría empezado se «frena»). Es una palanca, no un hecho.

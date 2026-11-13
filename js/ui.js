@@ -386,12 +386,20 @@ const barrioFrase = bi => {
   if (bi.nivel >= D.BARRIO.length - 1) return 'La ciudad está al máximo.';
   return 'Para ser ' + D.BARRIO[bi.nivel + 1].n + ' falta ' + (bi.falta.length ? lst(bi.falta) : 'esperar unos meses') + '.';
 };
+/* CN13b: techar un barrio con tejas (el fuego ya no salta de casa en casa). Botón pequeño en cada fila del barrio. */
+const techoBtn = i => {
+  const t = G.techoInfo(UI.city, i); if (t.hecho) return '<span class="tj-ok" title="El fuego no salta entre estas casas">techado</span>';
+  if (t.enObra) return '<span class="tj-ok" title="' + esc(t.motivo) + '">techando · ' + t.enObra + 'm</span>';
+  if (!t.coste || t.casas < 1) return '';
+  const cs = Object.keys(t.coste).filter(r => t.coste[r] > 0).map(r => D.RES_ICON[r] + fmt(t.coste[r])).join(' ');
+  return '<button class="chip tj' + (t.motivo ? ' no' : '') + '" data-act="techar" data-v="' + i + '"' + (t.motivo ? ' disabled' : '') + ' title="' + esc('Techos de teja: el fuego no salta entre las casas. Tarda ' + t.plazo + ' meses. ' + (t.motivo || '')) + '">Techar barrio · ' + cs + '</button>';
+};
 const barrioHtml = c => {
   if (c.owner !== 'roma') return '';
   const bi = G.barrioInfo(c), bs = bi.barrios || [], ver = k => BARRIO_ICO[k] && !bi.serv[k] ? '<span class="bs" title="Falta ' + D.BARRIO_SERV[k].toLowerCase() + '">' + BARRIO_ICO[k]() + '</span>' : '';
   return '<div class="barrio"><div class="bn"><b>' + D.BARRIO[bi.nivel].n + '</b> · nivel ' + bi.nivel + ' de ' + (D.BARRIO.length - 1) + '<span class="bsv">' + ver('grano') + ver('lujo') + '</span></div>' +
     '<div class="bf' + (bi.objetivo < bi.nivel ? ' mal' : '') + '">' + barrioFrase(bi) + '</div>' +
-    (bs.length ? '<div class="blis">' + bs.map(b => '<div class="bfila' + (b.objetivo < b.nivel ? ' mal' : '') + '"><span class="bniv">' + ROMS[b.nivel] + '</span><span class="bnom">' + esc(b.corto || b.nombre) + '</span><span class="bfalta">' + (b.falta ? 'para subir falta ' + esc(b.falta.replace(/^para subir falta /, '')) : 'lo tiene todo') + '</span></div>').join('') + '</div>' : '') + '</div>';
+    (bs.length ? '<div class="blis">' + bs.map(b => '<div class="bfila' + (b.objetivo < b.nivel ? ' mal' : '') + '"><span class="bniv">' + ROMS[b.nivel] + '</span><span class="bnom">' + esc(b.corto || b.nombre) + '</span><span class="bfalta">' + (b.falta ? 'para subir falta ' + esc(b.falta.replace(/^para subir falta /, '')) : 'lo tiene todo') + '</span>' + techoBtn(b.i) + '</div>').join('') + '</div>' : '') + '</div>';
 };
 /* Clases (Q6): ciudadanos, plebeyos, esclavos; cifra, barra de parte y cara de ánimo, y lo que piden */
 const clasesFrase = (c, cl, an) => {
@@ -1375,6 +1383,7 @@ document.addEventListener('click', function (e) {
     case 'rep': if (G.reparto(UI.city, el.dataset.r, +el.dataset.d)) render(); break;
     case 'fiesta': if (G.hacerFiesta(UI.city, v)) { render(); renderCuentas(true); } break;
     case 'racion': if (G.setRacion(UI.city, v)) render(); break;
+    case 'techar': if (G.techarBarrio(UI.city, +v)) render(); break;
     case 'imp': if (G.setImp(UI.city, el.dataset.v)) render(); break;
     case 'ciud': if (G.darCiudadania(UI.city)) render(); break;
     case 'ruta': { const q = v.split('>'); if (G.rutaAbrir(q[0], q[1])) { toast('⚖️ Ruta abierta con ' + D.CITIES[q[1]].n + '.'); render(); } else toast(G.rutaPuede(q[0], q[1]) || 'No se puede abrir la ruta.', 'bad'); break; }
