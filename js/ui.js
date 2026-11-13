@@ -504,10 +504,15 @@ function consejo(c, id) {
   const tope = c.pop >= G.popCap(c) - 1;
   if (E && lleno && E.abiertas.includes('almacen')) flags.almacen = 'alerta';
   if (E && tope) flags.viviendas = 'alerta';
-  const mk = (t, op) => ({ t, rec: !!op && G.canAfford(op.ini), b: op ? Ciudad.EDIF[op.pieza].bid || null : null, pieza: op ? op.pieza : null, mej: op ? op.mej : null, flags });
+  const rg = E && typeof G.riesgos === 'function' ? (G.riesgos(id) || []).filter(r => r.meses <= 3) : [];
+  const rgP = rg.find(r => r.pieza && !E.edificios.some(q => q.tipo === r.pieza) && opcionPieza(id, r.pieza, true));
+  if (rgP) flags[rgP.pieza] = 'alerta';
+  const rgT = !rgP && rg[0] ? ' ' + rg[0].t + (rg[0].remedio ? ' ' + rg[0].remedio : '') : '';
+  const mk = (t, op) => ({ t: t + rgT, rec: !!op && G.canAfford(op.ini), b: op ? Ciudad.EDIF[op.pieza].bid || null : null, pieza: op ? op.pieza : null, mej: op ? op.mej : null, flags });
   if (c.obras.length >= G.huecos(c)) { const o = c.obras[0]; return { t: 'En obras: ' + obraNom(o) + (c.obras.length > 1 ? ' y ' + (c.obras.length - 1) + ' más' : '') + '. Faltan ' + months(Math.max(0, o.t1 - s.t)) + '.', rec: false, b: o.b || null, pieza: o.pieza || null, mej: null, flags }; }
   if (!E) return mk('Faltan recursos para nuevas obras. Espera a que lleguen.', null);
   if (flags.almacen) return mk('Tu ' + RES_NOM[lleno[0]].toLowerCase() + ' llega al ' + Math.min(100, Math.round(lleno[1] * 100)) + ' %: ' + (E.edificios.some(q => q.tipo === 'almacen') ? 'coloca otro almacén.' : 'coloca un almacén.'), opcionPieza(id, 'almacen', true));
+  if (rgP) { const op = opcionPieza(id, rgP.pieza, true); if (op && G.canAfford(op.ini)) return mk(rgP.t + ' ' + rgP.remedio, op); }
   if (E.abiertas.includes('granero') && !E.edificios.some(q => q.tipo === 'granero')) return mk('Falta un granero: sin él hay hambre en invierno.', opcionPieza(id, 'granero', true));
   if (tope) return mk('La población está al tope: faltan casas. Las casas nacen solas junto a las calles; coloca una obra que traiga una calle.', null);
   const bi = G.barrioInfo(c), baja = bi.objetivo < bi.nivel, fl = baja ? (D.BARRIO[bi.nivel].pide || []).filter(k => !bi.serv[k]) : bi.falta;
@@ -597,7 +602,9 @@ function bandejaPinta() {
     b.innerHTML = ids.map(id => { const i = piezaInfo(id);
       return '<button class="pza' + (viejas.length > 1 && !viejas.includes(id) ? ' nueva' : '') + (i.cerrada ? ' cerrada' : '') + '" data-id="' + id + '"' + (i.cerrada ? ' style="opacity:.55" title="' + esc(i.cerrada) + '"' : '') + '>' + (UI.minis && UI.minis[id] ? '<img src="' + UI.minis[id] + '" alt="" draggable="false">' : '<i></i>') + '<b>' + esc(i.nombre) + '</b><span>' + (i.cerrada ? 'cerrada' : i.enObra ? 'en obra' : i.coste ? fmt(suma5(i.coste)) : '') + '</span></button>'; }).join('');
   }
-  for (const f of b.children) { const i = piezaInfo(f.dataset.id); f.classList.toggle('cara', !i.enObra && !!i.ini && !G.canAfford(i.ini)); }
+  /* CN8: la ficha que remedia un riesgo (fuente o granero) sale resaltada; se recalcula solo al cambiar la ciudad */
+  const rk = UI.city + '|' + E.rev + '|' + E.mesN; if (UI.rgK !== rk) { UI.rgK = rk; const r = typeof G.riesgos === 'function' ? (G.riesgos(UI.city) || []).find(q => q.pieza && q.meses <= 3 && !E.edificios.some(e => e.tipo === q.pieza)) : null; UI.rgPz = r ? r.pieza : null; }
+  for (const f of b.children) { const i = piezaInfo(f.dataset.id); f.classList.toggle('cara', !i.enObra && !!i.ini && !G.canAfford(i.ini)); f.classList.toggle('aconseja', f.dataset.id === UI.rgPz && !i.enObra); }
 }
 function cityPantalla() {
   const m3 = UI.bsel ? 'ficha' : (UI.modo3 || 'mirar'), cs = $('csheet'); if (cs.dataset.m !== m3) cs.dataset.m = m3;

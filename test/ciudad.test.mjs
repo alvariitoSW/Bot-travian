@@ -108,4 +108,31 @@ prueba('CN7: tabla de muralla y saqueo del arrabal reproducible', () => {
   const G2 = mk(0); for (const l of G2.parcelas) if (l.arrabal && l.casa) l.casa.ruina = 3; const r0 = R.saquearArrabal(G2, 1); assert.equal(r0.n, 0);
   const H = R.crear(1); R.fundar(H, 172, -196); R.sembrarCasas(H, 1500); assert.ok(R.casasArrabal(H) > 2); assert.ok(R.saquearArrabal(H, 1).n > 0); const H2 = R.deDatos(JSON.parse(JSON.stringify(R.aDatos(H)))); assert.equal(R.casasArrabal(H2), R.casasArrabal(H), 'el saqueo sobrevive a guardar y cargar');
   const O = mk(0); O.muralla.obra = 1; O.muralla.nivel = 2; R.mes(O); assert.equal(O.muralla.fase, 1); assert.equal(O.muralla.nivel, undefined); assert.equal(R.nivelMuralla(O), 3); assert.equal(O.muralla.geo.fase, 1); });
+prueba('CN8: riesgos() anuncia lo que luego pasa (crecida en marzo, fuego, hambre en diciembre) y es pura', () => {
+  const mk = () => { const F = R.crear(3); R.fundar(F, 172, -196); R.sembrarCasas(F, 400); for (const l of F.parcelas) if (!l.fuera && R.inundable(l.x, l.z) && !l.casa) l.casa = { nivel: 1, desde: 0, nace: 0, ruina: 0 }; return F; };
+  const hasta = (F, m) => { let k = 0; while (R.fecha(F).mes !== m && k++ < 14) R.mes(F); };
+  const F = mk(); hasta(F, 1); const sn = JSON.stringify(R.aDatos(F)), r = R.riesgos(F), r2 = R.riesgos(F); assert.equal(JSON.stringify(R.aDatos(F)), sn, 'pura'); assert.deepEqual(r, r2);
+  const cr = r.find(x => x.c === 'crecida'); assert.ok(cr && cr.meses === 0 && cr.n >= 1 && cr.pieza === null, JSON.stringify(r)); assert.match(cr.remedio, /ribera baja/);
+  const fu = r.find(x => x.c === 'fuego'); assert.ok(fu && fu.meses === 0 && fu.pieza === 'fuente' && /^Pon una fuente cerca del /.test(fu.remedio)); assert.ok(r[0].p >= r[r.length - 1].p);
+  const pob0 = R.poblacion(F), av = R.mes(F); assert.equal(R.fecha(F).mes, 2, 'la crecida cae en marzo'); const a = av.find(x => x.c === 'crecida'); assert.ok(a && a.cg && a.cg[0] + a.cg[1] === cr.n, 'anunciada = ocurrida');
+  assert.ok(R.poblacion(F) < pob0, 'la población baja con la crecida'); for (let i = 0; i < 4; i++) R.mes(F);
+  R.mes(F); assert.ok(R.casas(F).filter(l => R.inundable(l.x, l.z)).every(l => !l.casa.ruina), 'a los 5 meses se recupera'); assert.ok(R.poblacion(F) >= pob0 - 40, 'población recuperada');
+  const H = mk(); hasta(H, 9); const h = R.riesgos(H).find(x => x.c === 'hambre'); assert.ok(h && h.meses === 1 && h.pieza === 'granero', JSON.stringify(R.riesgos(H))); assert.match(h.remedio, /granero antes de diciembre/);
+  R.mes(H); assert.equal(R.riesgos(H).find(x => x.c === 'hambre').meses, 0); const av2 = R.mes(H); assert.equal(R.fecha(H).mes, 11); assert.ok(av2.some(x => x.c === 'hambre') && H.hambre, 'hambre en diciembre');
+  for (let i = 0; i < 2; i++) R.mes(H); assert.equal(R.fecha(H).mes, 1); assert.ok(H.hambre, 'dura hasta febrero'); R.mes(H); assert.ok(!H.hambre, 'termina en marzo');
+  const J = mk(); const s = R.mejorSitio(J, 'granero'); R.colocar(J, 'granero', s[0], s[1], true).e.obra = 0; hasta(J, 9); assert.ok(!R.riesgos(J).some(x => x.c === 'hambre'), 'con granero no hay riesgo');
+  let visto = 0; for (let sem = 1; sem <= 6 && !visto; sem++) { const K = R.crear(sem); R.fundar(K, 172, -196); R.sembrarCasas(K, 700); for (let i = 0; i < 60 && !visto; i++) { const q = R.riesgos(K).find(x => x.c === 'fuego'), n0 = K.mesN, av3 = R.mes(K); if (av3.some(x => x.c === 'fuego')) { assert.ok(q, 'el fuego se anunció antes'); visto++; } } } assert.ok(visto, 'hay fuego en alguna semilla'); });
+prueba('CN8: el mismo mes llega en modo turnos, con un solo aviso por mes aunque haya varias ciudades; la colonia tiene los mismos sucesos', () => {
+  const rq = createRequire(import.meta.url), D = rq('../js/data.js'), G = rq('../js/game.js'); G.usarCiudad(R);
+  const store = {}; globalThis.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  try {
+    G.newGame('CN8'); const ids = G.myCities(); const alertas = [], meses = []; G.onEvent = (t, p) => { if (t === 'alert') { alertas.push(p); if (/Crecida/.test(p)) meses.push(R.fecha({ mesN: Math.floor(G.state.t + 1e-9) + 9 }).mes); } };
+    for (const id of ids) { const E = G.ciudadE(id); if (!E) continue; R.sembrarCasas(E, 300); for (const l of E.parcelas) if (!l.fuera && R.inundable(l.x, l.z) && !l.casa) l.casa = { nivel: 1, desde: 0, nace: 0, ruina: 0 }; }
+    assert.ok(ids.length >= 2 && Array.isArray(G.riesgos(ids[0])) && G.riesgos('no existe').length === 0); const imp = G.riesgosImperio(); assert.ok(imp.every(x => Array.isArray(x.ciudades) && x.cid && x.remedio && x.c));
+    for (let k = 0; k < 6; k++) G.pasarTurno();
+    assert.ok(meses.length >= 1, 'llega la crecida en modo turnos'); assert.ok(meses.every(m => m === 2), 'siempre en marzo: ' + meses);
+    const cr = alertas.filter(a => /Crecida/.test(a)); assert.ok(cr.every(a => (a.match(/🌊/g) || []).length === 1) && cr[0].includes(D.CITIES[ids[0]].n) && cr[0].includes(D.CITIES[ids[1]].n), 'una línea con todas las ciudades: ' + cr[0]);
+    const s = G.state; s.res.grano = 900; s.res.oro = 900; s.cities.roma.pop = 500; assert.ok(G.enviarColonos('roma', 'cosa').ok); let n = 0; while (G.state.colonias.cosa.estado === 'camino' && n++ < 80) G.tick(1);
+    assert.ok(G.fundarColonia('cosa', 172, -196).ok); assert.ok(Array.isArray(G.riesgos('cosa')) && G.ciudadE('cosa').fundada, 'la colonia tiene riesgos igual');
+  } finally { delete globalThis.localStorage; G.onEvent = null; G.usarCiudad(null); } });
 process.exit(fallos.length ? 1 : 0);

@@ -390,6 +390,18 @@ export function ingreso(E) { const S = servicios(E); let t = 0;
   return Math.round(t); }
 
 /* ---------- un mes ---------- */
+/* Riesgos que se ven venir (pura: no muta E ni gasta E.rnd). meses = ticks de mes() que faltan SIN contar el que lo trae: 0 = ocurre en el próximo mes() */
+const mesesHasta = (E, m) => { for (let k = 1; k <= 12; k++) if (fecha({ mesN: E.mesN + k }).mes === m) return k - 1; return 12; };
+export function riesgos(E) {
+  if (!E || !E.fundada) return []; const r = [], S = servicios(E);
+  const mC = mesesHasta(E, 2), mH = fecha(E).mes === 11 || fecha(E).mes <= 1 ? 0 : mesesHasta(E, 11);
+  let c = 0, g = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && inundable(l.x, l.z)) c++; for (const e of E.edificios) if (e.tipo !== 'muelle' && !e.ruina && inundable(e.x, e.z)) g++;
+  if (c + g && mC <= 5) r.push({ c: 'crecida', p: 5, meses: mC, n: c + g, t: 'Crecida de primavera: el río puede llevarse ' + (c ? c + (c === 1 ? ' casa' : ' casas') : '') + (c && g ? ' y ' : '') + (g ? g + (g === 1 ? ' obra' : ' obras') : '') + ' de la ribera baja.', remedio: 'No pongas más obras en la ribera baja (zona azul del mapa de calor)', pieza: null });
+  let peor = -1, nPeor = 0, nTot = 0; E.barrios.forEach((b, i) => { const cs = E.parcelas.filter(l => l.casa && !l.casa.ruina && l.barrio === i && !l.fuera); if (cs.length <= 10 || E.mesN - (b.fuego || -9) < 8) return; const sin = cs.filter(l => !cerca(S.fu, l.x, l.z)).length; if (!sin) return; nTot += sin; if (sin > nPeor) { nPeor = sin; peor = i; } });
+  if (peor >= 0) { const nb = E.barrios[peor].nombre; r.push({ c: 'fuego', p: 5, meses: 0, n: nTot, t: 'Riesgo de incendio: ' + nTot + (nTot === 1 ? ' casa' : ' casas') + ' sin fuente cerca.', remedio: 'Pon una fuente cerca del ' + nb, pieza: 'fuente' }); }
+  if (!hechos(E, 'granero').length && mH <= 5) { const ya = mH === 0 && (fecha(E).mes === 11 || fecha(E).mes <= 1); const n = E.parcelas.filter(l => l.casa && !l.casa.ruina).length; r.push({ c: 'hambre', p: 4, meses: mH, n, t: 'Hambre de invierno (sin granero): las casas no ' + (ya ? 'crecen' : 'crecerán') + ' hasta la primavera.', remedio: ya ? 'Coloca un granero para el próximo invierno' : 'Coloca un granero antes de diciembre', pieza: 'granero' }); }
+  return r.sort((a, b) => b.p - a.p);
+}
 export function mes(E) {
   if (!E.fundada) return []; const av = [], rnd = E.rnd, di = (t, p = 1, c = '') => av.push({ t, p, c });
   E.mesN++; const f = fecha(E), S0 = servicios(E);
@@ -400,12 +412,12 @@ export function mes(E) {
   if (!E.modoJuego) E.monedas += ingreso(E);      // en modo juego, la renta la cobra game.js
   /* crecida de primavera: se lleva lo que esté en la ribera baja */
   if (f.mes === 2) { let c = 0, g = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && inundable(l.x, l.z)) { l.casa.ruina = 5; c++; } for (const e of E.edificios) if (e.tipo !== 'muelle' && !e.ruina && inundable(e.x, e.z)) { e.ruina = 5; g++; }
-    E.crecida = E.mesN; di(c + g ? 'Crecida de primavera: el río anegó ' + (c ? c + (c === 1 ? ' casa' : ' casas') : '') + (c && g ? ' y ' : '') + (g ? g + (g === 1 ? ' obra' : ' obras') : '') + ' de la ribera baja. Lo alto se salvó.' : 'Crecida de primavera: el río se salió, pero nada tuyo estaba en la ribera baja.', c + g ? 5 : 2, 'crecida'); }
+    E.crecida = E.mesN; di(c + g ? 'Crecida de primavera: el río anegó ' + (c ? c + (c === 1 ? ' casa' : ' casas') : '') + (c && g ? ' y ' : '') + (g ? g + (g === 1 ? ' obra' : ' obras') : '') + ' de la ribera baja. Lo alto se salvó.' : 'Crecida de primavera: el río se salió, pero nada tuyo estaba en la ribera baja.', c + g ? 5 : 2, 'crecida'); if (c + g) av[av.length - 1].cg = [c, g]; }
   /* incendio: en barrios de más de 10 casas, una casa sin fuente cerca */
   E.barrios.forEach((b, i) => { const cs = E.parcelas.filter(l => l.casa && !l.casa.ruina && l.barrio === i && !l.fuera); if (cs.length <= 10 || rnd() > 0.09 || E.mesN - (b.fuego || -9) < 8) return; const l = cs[Math.floor(rnd() * cs.length)];
     if (cerca(S0.fu, l.x, l.z)) { b.fuego = E.mesN; di('Fuego en el ' + b.nombre + ': la fuente estaba cerca y se apagó a tiempo.', 3, 'fuego'); return; }
     let n = 1; l.casa.ruina = 5; l.casa.arde = true; for (const o of cs) if (o !== l && n < 3 && Math.hypot(o.x - l.x, o.z - l.z) < 24 && !cerca(S0.fu, o.x, o.z) && rnd() < 0.7) { o.casa.ruina = 5; o.casa.arde = true; n++; }
-    b.fuego = E.mesN; E.fuego = { mes: E.mesN, x: l.x, z: l.z }; di('Incendio en el ' + b.nombre + ': ' + (n === 1 ? 'ardió una casa' : 'ardieron ' + n + ' casas') + '. No había fuente cerca para apagarlo.', 5, 'fuego'); });
+    b.fuego = E.mesN; E.fuego = { mes: E.mesN, x: l.x, z: l.z }; di('Incendio en el ' + b.nombre + ': ' + (n === 1 ? 'ardió una casa' : 'ardieron ' + n + ' casas') + '. No había fuente cerca para apagarlo.', 5, 'fuego'); av[av.length - 1].cg = [n, 0]; });
   /* hambre de invierno */
   const invierno = f.mes === 11 || f.mes <= 1; E.hambre = invierno && !hechos(E, 'granero').length;
   if (E.hambre && f.mes === 11) di('Invierno sin granero: hay hambre. Las casas no crecen hasta la primavera.', 4, 'hambre');

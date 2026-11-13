@@ -555,12 +555,18 @@
   }
   // cada mes entero: la ciudad nueva vive un mes y sus avisos importantes pasan al diario del juego (máx. 2 líneas por ciudad)
   function mesCiudades() {
-    if (!CI) return;
+    if (!CI) return; const grupo = {};
     for (const id of G.myCities()) { const c = G.state.cities[id], r = infoC(c); if (!r) continue;
       const alin = mesAlin(); let av = [], k = 0; while (r.E.mesN < alin && k++ < 36) av = av.concat(CI.mes(r.E)); if (!k) continue;
       sinc(c, r); ponerDatos(c, r);
-      let n = 0; for (const a of av) { if (n >= 2 || (a.c !== 'crecida' && a.c !== 'fuego' && a.c !== 'hambre')) continue; n++; G.log('🏘️ ' + D.CITIES[id].n + ': ' + a.t, a.p >= 4 ? 'bad' : ''); } }
+      for (const a of av) { if (a.c !== 'crecida' && a.c !== 'fuego' && a.c !== 'hambre') continue; if (a.c === 'fuego' && !(a.cg && a.cg[0])) continue; const g = grupo[a.c] = grupo[a.c] || {}, e = g[id] = g[id] || [0, 0]; if (a.cg) { e[0] += a.cg[0]; e[1] += a.cg[1]; } } }
+    const cuenta = (e, u1, uN, o1, oN) => { const p = []; if (e[0]) p.push(e[0] + ' ' + (e[0] === 1 ? u1 : uN)); if (e[1]) p.push(e[1] + ' ' + (e[1] === 1 ? o1 : oN)); return p.join(' y '); };
+    const lineas = [['crecida', '🌊 Crecida: ', e => cuenta(e, 'casa', 'casas', 'obra', 'obras')], ['fuego', '🔥 Incendio: ', e => cuenta([e[0], 0], 'casa ardió', 'casas ardieron', '', '')], ['hambre', '🥖 Hambre de invierno (sin granero): ', () => '']];
+    for (const [k, pre, f] of lineas) { const g = grupo[k]; if (!g) continue; const txt = pre + Object.keys(g).map(id => { const x = f(g[id]); return D.CITIES[id].n + (x ? ' (' + x + ')' : ''); }).join(', '); G.log(txt, 'bad'); emit('alert', txt); }
   }
+  // riesgos que se ven venir: de una ciudad propia, y agrupados por tipo para el consejo del imperio
+  G.riesgos = function (cid) { const E = G.ciudadE(cid); if (!E || !CI) return []; const k = E.rev + '|' + E.mesN; if (!E._rg || E._rg.k !== k) E._rg = { k, v: CI.riesgos(E) }; return E._rg.v; };   // en caché por revisión y mes: la pantalla lo pide a cada cuadro
+  G.riesgosImperio = function () { const m = {}; for (const id of G.myCities()) { for (const r of G.riesgos(id)) { const g = m[r.c] = m[r.c] || { c: r.c, p: r.p, ciudades: [], t: r.t, remedio: r.remedio, pieza: r.pieza, cid: id, _n: -1 }; g.ciudades.push(D.CITIES[id].n); g.meses = Math.min(g.meses === undefined ? 99 : g.meses, r.meses); if (r.n > g._n) { g._n = r.n; g.cid = id; g.t = r.t; g.remedio = r.remedio; } } } return Object.values(m).map(g => { delete g._n; return g; }).sort((a, b) => b.p - a.p); };
 
   /* ---------- API para el modo «colocar» (CN4) ----------  tipo = id de pieza (EDIF de ciudad.js) o id de D.BUILD */
   const tipoPz = t => piezaDe(t) || (CI && CI.EDIF[t] ? t : null);
@@ -1114,6 +1120,8 @@
     const sin = mis.filter(id => G.huecosLibres(s.cities[id]) > 0).map(id => D.CITIES[id].n);
     if (sin.length) { out.push({ k: '', x: 'Sin obras en cola: ' + sin.slice(0, 3).join(', ') + (sin.length > 3 ? '…' : '') + '.' }); rec = rec || 'Pon a trabajar a los constructores.'; }
     for (const x of G.avisoCierre(G.turnos)) out.push({ k: 'bad', x: x });
+    const rs = typeof G.riesgosImperio === 'function' ? (G.riesgosImperio() || []).filter(r => r.meses <= 3).sort((a, b) => b.p - a.p) : [];
+    if (rs.length) { const r = rs[0]; out.unshift({ k: 'bad', x: r.t + (r.remedio ? ' ' + r.remedio : '') }); rec = rec || r.remedio || null; }
     const llenos = D.RES.filter(r => s.alm[r] >= cap - 1);
     if (llenos.length) out.push({ k: '', x: 'Almacén lleno: ' + llenos.join(', ') + '. Gasta o amplía.' });
     const mi = G.misionActual(), sen = G.favorBajo() ? { k: 'bad', x: 'Senado: favor bajo; sin tratados ajenos ni levas extra.' } : mi ? { k: '', x: 'Senado: ' + mi.m.n + ', quedan ' + mi.quedan + ' meses. ' + mi.falta } : null;   // sustituye al tercer aviso
