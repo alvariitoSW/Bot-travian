@@ -80,6 +80,20 @@ G.onEvent = function (type, p) {
 };
 
 /* ---------- menú ---------- */
+/* CN14-C: dificultad (3 botones) y casilla del asesor; en el menú ('m') valen para la partida nueva, en Gobierno ('g') para la actual */
+const DIF_NOM = { tranquila: 'Tranquila', normal: 'Normal', dura: 'Dura' };
+function difFila(donde) {
+  const act = donde === 'g' ? ((G.ajustes() || {}).dif || 'normal') : (UI.difSel || 'normal'), ase = donde === 'g' ? !!(G.ajustes() || {}).asesor : UI.asesorSel !== false;
+  return '<div class="ajf" id="dif-' + donde + '"><b>Dificultad de la ciudad</b><div class="ajb">' + Object.keys(D.DIFICULTAD).map(k => '<button class="chip' + (k === act ? ' on' : '') + '" data-act="dif" data-v="' + k + '" data-d="' + donde + '">' + (DIF_NOM[k] || k) + '</button>').join('') + '</div>' +
+    '<label class="ajc"><input type="checkbox" id="ase-' + donde + '" data-act="asesor" data-d="' + donde + '"' + (ase ? ' checked' : '') + '> Consejos del asesor</label></div>';
+}
+function ajustesHtml() {
+  const a = G.ajustes(); if (!a) return '';
+  const sw = [['crecida', 'Crecida del río'], ['fuego', 'Incendios'], ['hambre', 'Hambre de invierno']];
+  return '<div class="empty ajustes" id="ajustes"><b>Ajustes</b>' + difFila('g') + '<div class="ajb">' + sw.map(q => '<button class="chip' + (a.suc[q[0]] ? ' on' : '') + '" data-act="suceso" data-v="' + q[0] + '">' + q[1] + ': ' + (a.suc[q[0]] ? 'sí' : 'no') + '</button>').join('') + '</div>' +
+    '<small>Los cambios de dificultad y sucesos valen desde el mes siguiente.</small><div class="ajb"><button class="chip" data-act="repetirasesor">Repetir los consejos</button></div>' +
+    '<!-- CN15c: fila «Sonido» -->' + '<div class="ajf" id="aj-sonido" hidden></div></div>';
+}
 function showMenu() {
   UI.menu = true; $('menu').hidden = false;
   const img = portrait('general', ROMA);
@@ -87,7 +101,7 @@ function showMenu() {
     '<p>280 a.C. Gobierna tus ciudades, levanta legiones, dirige las batallas sobre el terreno y lleva las águilas hasta Cartago antes del 146 a.C.</p>' +
     (G.hasSave() ? '<button class="btn gold" data-act="continue">Continuar campaña</button>' : '') +
     '<input id="hname" maxlength="28" placeholder="Nombre de tu general" value="Lucio Cornelio Escipión">' +
-    '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="newregion" data-v="italia">Región de Italia</button><button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><div class="spqr">S·P·Q·R</div>' +
+    difFila('m') + '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="newregion" data-v="italia">Región de Italia</button><button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><div class="spqr">S·P·Q·R</div>' +
     '<div class="credits">Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1</div>';
 }
 { let tv = 0; const sf = () => { clearTimeout(tv); tv = setTimeout(() => { UI.svDown = false; }, 150); };   // Saber: no repintar entre pulsar y soltar
@@ -362,7 +376,7 @@ function rutasHtml(c, id) {
 function viewCity() {
   const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city], roma = c.owner === 'roma';
   let h = cityChips() + '<div class="head"><h2>' + d.n + '</h2><p>' + esc(d.h) + '</p></div>' + (UI.cityV ? '<div class="acts" style="margin:0 0 6px"><button class="btn ghost" data-act="clist">Ver la ciudad en 3D</button></div>' : '');
-  h += '<div class="empty">' + popHtml(c) + '</div>' + repartoHtml(c) + (roma ? '<div class="empty">' + espResumen() + '</div><div class="empty">' + tipoHtml(c) + '</div>' : '');
+  h += '<div class="empty">' + popHtml(c) + '</div>' + repartoHtml(c) + (roma ? '<div class="empty">' + espResumen() + '</div><div class="empty">' + tipoHtml(c) + '</div>' : '') + (roma && UI.city === 'roma' ? ajustesHtml() : '');
   if (roma && c.b.templo > 0) h += '<div class="empty">' + diosBloque(c, 'templo') + '</div>';
   if (G.tradeRate() > 0) h += marketHtml();
   if (c.b.herreria > 0) h += forjaHtml(c);
@@ -571,15 +585,31 @@ const coste5 = k => Object.keys(k).filter(r => k[r] > 0).map(r => D.RES_ICON[r] 
 const suma5 = k => Object.keys(k).reduce((a, r) => a + k[r], 0);
 /* efecto/mejor (opcionales): la cifra grande de CN14-A; sin ellos #l-cifra queda vacío */
 function lineaPon(t, clase, nota, seg, efecto, mejor) { UI.lin = (t || efecto) ? { t: t || '', c: clase || '', n: nota || '', hasta: seg ? performance.now() + seg * 1000 : 0, ef: efecto || null, mj: efecto && mejor != null ? mejor : null } : null; pintaLinea(); }
+/* CN14-C: la lección del asesor que toca ahora (o null). No se marca como vista hasta pulsar «Entendido». */
+function leccionHoy() {
+  const s = S(); if (typeof ASESOR === 'undefined' || !s || !s.ajustes || !s.ajustes.asesor || (s.pending && s.pending.length) || s.vivo || !UI.cityV || !UI.cityV.meta) return null;
+  let riesgo = false, arrabal = false, cuotas = false, lleno = false; const c = s.cities[UI.city];
+  try { const rg = G.riesgos(UI.city) || []; riesgo = rg.some(r => r.meses <= G.avisoMeses()); } catch (e) { }
+  try { arrabal = !!avisoArrabal(G.ciudadE(UI.city)); } catch (e) { }
+  try { cuotas = !!(c && c.obras && c.obras.some(o => o.q)); } catch (e) { }
+  try { const cap = G.cap(); lleno = !!cap && D.RES.filter(r => r !== 'oro').some(r => s.res[r] / cap >= 0.9); } catch (e) { }
+  const ctx = { mes: Math.floor(s.t + 1e-9), ahora: Date.now(), colocando: (UI.modo3 || 'mirar') !== 'mirar', bandeja: !$('bandeja').hidden, cifra: !!$('l-cifra').textContent, cuotas, riesgo, barrioSube: false, almacenLleno: lleno, arrabal, turnos: !!s.turnos };
+  const r = ASESOR.siguiente(s.ajustes, ctx); return r || null;
+}
 const conSigno = n => (n < 0 ? '\u2212' : '+') + Math.abs(n);
 function pintaLinea() {
   const l = $('linea'), m3 = UI.modo3 || 'mirar'; let x = UI.lin;
   if (x && x.hasta && performance.now() > x.hasta) x = UI.lin = null;
-  if (!x && m3 === 'mirar' && UI.cityV && UI.cityV.meta) x = { t: UI.cityV.meta.cons.t, c: 'aviso consejo', n: '' };
+  let les = null;   // CN14-C: prioridad colocar > riesgo > lección > consejo (la lección calla con asesor apagado, batalla pendiente o s.vivo)
+  if (!x && m3 === 'mirar' && UI.cityV && UI.cityV.meta) {
+    x = { t: UI.cityV.meta.cons.t, c: 'aviso consejo', n: '' }; les = leccionHoy();
+    if (les) x = { t: les.texto, c: 'aviso leccion', n: 'Lección' };
+  }
   const ef = x && x.ef, mj = ef && x.mj != null && x.mj > ef.n ? x.mj : null;
-  const k = UI.bsel || !x || (!x.t && !x.ef) ? '' : x.c + '|' + x.n + '|' + x.t + '|' + (ef ? ef.txt + '|' + ef.tono : '') + '|' + (mj != null ? mj : '');
+  const k = UI.bsel || !x || (!x.t && !x.ef) ? '' : x.c + '|' + x.n + '|' + x.t + '|' + (ef ? ef.txt + '|' + ef.tono : '') + '|' + (mj != null ? mj : '') + '|' + (les ? 'L' + les.id : '');
   if (k === UI.linK) return; UI.linK = k;
-  if (!k) { l.hidden = true; $('l-cifra').textContent = ''; return; }
+  if (!k) { l.hidden = true; $('l-cifra').textContent = ''; $('l-ok').hidden = true; return; }
+  $('l-ok').hidden = !les; UI.lesId = les ? les.id : null;
   l.hidden = false; l.className = x.c; $('l-nota').textContent = x.n; $('l-nota').hidden = !x.n; $('l-texto').textContent = x.t;
   const ci = $('l-cifra'); ci.className = ef ? ef.tono : ''; ci.textContent = ef ? ef.txt : '';
   if (mj != null) { const sm = document.createElement('small'); sm.textContent = 'mejor hasta ahora: ' + conSigno(mj); ci.appendChild(sm); }
@@ -1143,8 +1173,13 @@ document.addEventListener('click', function (e) {
   if (a !== 'menumodo') $('hoja').hidden = true; if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true; if (a !== 'cuentas' && a !== 'imp' && a !== 'cuvender' && a !== 'cuadelantar') $('cuentas').hidden = true;
   if (a !== 'derr') UI.derr = null;
   switch (a) {
+    case 'dif': if (el.dataset.d === 'm') { UI.difSel = v; const nm = $('hname') ? $('hname').value : ''; showMenu(); if (nm && $('hname')) $('hname').value = nm; } else { const r = G.ponerAjustes({ dif: v }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); toast('Dificultad ' + (DIF_NOM[v] || v) + ': vale desde el mes siguiente.'); } render(); } break;
+    case 'asesor': if (el.dataset.d === 'm') UI.asesorSel = el.checked; else { G.ponerAjustes({ asesor: el.checked }); G.save(); UI.linK = null; pintaLinea(); } break;
+    case 'suceso': { const a = G.ajustes(), r = G.ponerAjustes({ suc: { [v]: !a.suc[v] } }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); toast('Vale desde el mes siguiente.'); } render(); break; }
+    case 'repetirasesor': if (typeof ASESOR !== 'undefined') { ASESOR.repetir(S().ajustes); G.save(); UI.linK = null; pintaLinea(); toast('Los consejos volverán a salir.'); } break;
+    case 'entendido': if (typeof ASESOR !== 'undefined' && UI.lesId) { ASESOR.marcar(S().ajustes, UI.lesId, { mes: Math.floor(S().t + 1e-9), ahora: Date.now() }); G.save(); } UI.linK = null; pintaLinea(); break;
     case 'fluidez': fijarFluidez(!fluidezOn()); showMenu(); break;
-    case 'new': case 'newregion': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo'); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
+    case 'new': case 'newregion': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'continue': if (G.load()) { UI.overShown = false; startGame(); if (S().over) showOver(); } break;
     case 'tomenu': G.save(); UI.modalQ = []; closeModal(); stopBattle(); showMenu(); break;
     case 'tab': UI.codice = null; setTab(v); break;

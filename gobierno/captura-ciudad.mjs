@@ -15,7 +15,7 @@ import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const [pref = 'ciudad', ...resto] = process.argv.slice(2), op = Object.fromEntries(resto.map(a => a.split('=')));
-const vistas = (op.vistas || (pref === 'CN14B' ? 'c14-sin-crecida' : pref === 'CN14A' ? 'c14-cifra-a,c14-cifra-b' : pref === 'CN9a' ? 'c9-ciudad' : pref === 'CN8' ? 'c8-aviso,c8-crecida,c8-fuego,c8-ruina' : pref === 'CN7' ? 'c7-surco,c7-empalizada-obra,c7-empalizada,c7-piedra,c7-ruina' : 'bandeja,fantasma,rojo,ficha,obra')).split(','), ciudad = op.ciudad || 'roma', dpr = +(op.dpr || 2);
+const vistas = (op.vistas || (pref === 'CN14C' ? 'c14-asesor,c14-ajustes,c14-nueva' : pref === 'CN14B' ? 'c14-sin-crecida' : pref === 'CN14A' ? 'c14-cifra-a,c14-cifra-b' : pref === 'CN9a' ? 'c9-ciudad' : pref === 'CN8' ? 'c8-aviso,c8-crecida,c8-fuego,c8-ruina' : pref === 'CN7' ? 'c7-surco,c7-empalizada-obra,c7-empalizada,c7-piedra,c7-ruina' : 'bandeja,fantasma,rojo,ficha,obra')).split(','), ciudad = op.ciudad || 'roma', dpr = +(op.dpr || 2);
 const LUZ_ESTACIONAL = true;          // Q11: false = sin mes= ni vistas de luz (la ciudad usa la luz de siempre)
 const ponerFecha = (mes, frac) => page.evaluate(([m, f]) => { Game.state.speed = 0; Game.state.t = 24 + (m - 1) + f; }, [mes, frac]);     // inversa de G.estacion: enero = invierno, 3 meses por turno
 const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream' };
@@ -37,7 +37,7 @@ await page.evaluate(c => { const b = document.createElement('button'); b.dataset
 await page.waitForTimeout(12000); await cierra();
 await mkdir(join(RAIZ, 'gobierno/capturas-tarea'), { recursive: true });
 const medir = () => page.evaluate(() => { const i = UI.cityV.r.info.render; return i.triangles + ' triángulos, ' + i.calls + ' llamadas'; });
-await page.evaluate(() => { Game.state.speed = 0; });      // el tiempo quieto: las capturas no cambian solas
+await page.evaluate(() => { Game.state.speed = 0; const a = Game.state.ajustes; if (a) a.asesor = false; });      // el tiempo quieto; CN14-C: el asesor de serie apagado salvo en c14-asesor: las capturas no cambian solas
 const elegir = c => page.evaluate(c => { const b = document.createElement('button'); b.dataset.act = 'impc'; b.dataset.v = c; UI.city = c; document.body.appendChild(b); b.click(); b.remove(); }, c);
 const lineaTxt = () => page.evaluate(() => { const l = document.getElementById('linea'); return l.hidden ? '(sin línea)' : l.textContent.trim().slice(0, 120); });
 const elegirFicha = async id => { await page.evaluate(() => { const n = document.getElementById('b-no'); if (n && n.offsetParent) n.click(); const cc = document.querySelector('#fichab [data-act="cclose"]'); if (cc && cc.offsetParent) cc.click(); const s = Game.state; for (const r of DATA.RES) { s.res[r] = 1e4; s.alm[r] = Math.max(s.alm[r] || 0, 1e4); } }); const f = page.locator('.pza[data-id="' + id + '"]'); await f.scrollIntoViewIfNeeded().catch(() => {}); await f.tap(); await page.waitForTimeout(1200); };
@@ -75,6 +75,14 @@ const PASOS = {
   /* CN14-A: cifra grande al colocar la fuente. a = junto a muchas casas; b = lejos. Se mueve como un dedo (tocando el suelo). */
   'c14-cifra-a': async () => cifraVista('a'),
   'c14-cifra-b': async () => cifraVista('b'),
+  /* CN14-C: asesor encendido (lecciones desde cero), Gobierno con el bloque Ajustes y el menú de Nueva campaña */
+  'c14-asesor': async () => { await page.evaluate(() => { const a = Game.state.ajustes; a.asesor = true; a.vistos = []; Game.state.speed = 0; UI.cityV.view('ciudad'); UI.linK = null; UI.dirty = true; }); await page.waitForTimeout(2500);
+    const r = await page.evaluate(() => { const l = document.getElementById('linea'), b = document.getElementById('l-ok'), q = l.getBoundingClientRect(), k = b ? b.getBoundingClientRect() : null; return 'lección: «' + l.textContent.trim().slice(0, 120) + '» · alto ' + Math.round(q.height) + ' px · botón ' + (k ? Math.round(k.width) + '×' + Math.round(k.height) + ' px' : 'no existe') + ' · oculta=' + l.hidden; }); return r; },
+  'c14-ajustes': async () => { await page.evaluate(() => { const b = document.createElement('button'); b.dataset.act = 'tab3'; b.dataset.v = 'gobierno'; document.body.appendChild(b); b.click(); b.remove(); }); await page.waitForTimeout(1500);
+    await page.evaluate(() => document.getElementById('ajustes').scrollIntoView({ block: 'center' })); await page.waitForTimeout(500);
+    return await page.evaluate(() => { const a = document.getElementById('ajustes'); if (!a) return '(no hay bloque #ajustes)'; const bs = [...a.querySelectorAll('button')]; return bs.length + ' botones, el más bajo ' + Math.round(Math.min(...bs.map(b => b.getBoundingClientRect().height))) + ' px · ancho página ' + document.documentElement.scrollWidth; }); },
+  'c14-nueva': async () => { await page.evaluate(() => { const b = document.createElement('button'); b.dataset.act = 'menu'; document.body.appendChild(b); b.click(); b.remove(); }); await page.waitForTimeout(1500);
+    return await page.evaluate(() => { const m = document.getElementById('menu'); return 'menú visible=' + !m.hidden + ' · scrollWidth ' + m.scrollWidth + '/' + m.clientWidth + ' · alto ' + m.scrollHeight + ' · dif-m=' + !!document.getElementById('dif-m') + ' ase-m=' + !!document.getElementById('ase-m'); }); },
   'c14-sin-crecida': async () => page.evaluate(async () => { const r = Game.ponerAjustes({ suc: { crecida: false } }), E = Game.ciudadE(UI.city); E.rev++; UI.cityV.view('ciudad'); UI.cityV.mirar(200, -320, 260, 0.5); const C = await import('/js/ciudad.js'); const n = C.notaSitio(E, 'fuente', 200, -320); return 'crecida apagada: ' + JSON.stringify(r) + ' · razones: ' + n.razones.join(' · '); }),
   'c8-aviso': async () => page.evaluate(async () => { const E = Game.ciudadE(UI.city); Game.state.t = 24 + 0.5; E.rev++; UI.cityV.view('ciudad'); const r = Game.riesgos ? Game.riesgos(UI.city) : []; UI.dirty = true; await new Promise(q => setTimeout(q, 1500)); return 'riesgos: ' + r.map(x => x.c + ' (' + x.remedio + ')').join(' | '); }),
   'c8-crecida': async () => page.evaluate(async () => { const C = await import('/js/ciudad.js'), E = Game.ciudadE(UI.city); let n = 0, g = 0;

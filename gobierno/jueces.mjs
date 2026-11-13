@@ -131,6 +131,7 @@ async function navegador() {
 
     await paso('Nueva partida: se ve el mapa', async () => {
       await page.click('#menu [data-act="new"]'); await espera(2500); await cierraAvisos();
+      await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; });      // CN14-C: el asesor de serie no cambia el recorrido
       const ok = await estado(() => !!Game.state && !UI.menu && Game.myCities().includes('roma'));
       return { ok, detalle: ok ? await estado(() => Game.dateStr(Game.state.t)) : 'no hay partida', captura: await foto('mapa') };
     });
@@ -139,6 +140,23 @@ async function navegador() {
       await espera(3000);   // la partida nueva abre en Gobierno (ciudad)
       const ok = await estado(() => !document.getElementById('citywrap').hidden && !!document.querySelector('#citywrap canvas'));
       return { ok, detalle: ok ? '' : 'no aparece la vista 3D de la ciudad', captura: await foto('ciudad') };
+    });
+
+    await paso('Ajustes y asesor: dificultad en Gobierno', async () => {
+      await page.click('#tabs3 [data-v="gobierno"]'); await espera(500);
+      const hay = await estado(() => !!document.getElementById('ajustes') && !!document.getElementById('dif-g') && !!document.getElementById('ase-g'));
+      let dura = false, sigue = false, alto = 0;
+      if (hay) {
+        alto = await estado(() => Math.min(...[...document.querySelectorAll('#ajustes .chip')].map(b => b.getBoundingClientRect().height)));
+        await page.click('#ajustes [data-act="dif"][data-v="dura"]'); await espera(300);
+        dura = await estado(() => Game.ajustes().dif === 'dura');
+        sigue = await estado(() => { Game.save(); return JSON.parse(localStorage.getItem('aqvila-save-v1')).ajustes.dif === 'dura'; });
+        await page.click('#ajustes [data-act="dif"][data-v="normal"]'); await espera(300);
+      }
+      const normal = await estado(() => Game.ajustes().dif === 'normal');
+      await page.click('#tabs3 [data-v="ciudad"]'); await espera(500);
+      const ok = hay && dura && sigue && normal && alto >= 40;
+      return { ok, detalle: ok ? 'bloque Ajustes presente; «Dura» se guarda; vuelve a Normal' : 'ajustes=' + hay + ' dura=' + dura + ' guardada=' + sigue + ' normal=' + normal + ' botón=' + alto + ' px' };
     });
 
     await paso('Construir un edificio', async () => {

@@ -363,9 +363,9 @@
      crecida.ruina = meses que tarda en rehacerse lo anegado · incendio = prob. mensual por barrio y máx. casas que arden ·
      hambre.meses = meses de invierno con hambre (3: dic-feb · 1: solo diciembre) · aviso = meses de antelación con que se anuncia el riesgo. */
   D.DIFICULTAD = {
-    tranquila: { nombre: 'Tranquila', crecida: { ruina: 3 }, incendio: { prob: 0.045, max: 2 }, hambre: { meses: 1 }, aviso: 6, consejo: 4 },
+    tranquila: { nombre: 'Tranquila', crecida: { ruina: 1 }, incendio: { prob: 0.01, max: 1 }, hambre: { meses: 1 }, aviso: 8, consejo: 4 },
     normal: { nombre: 'Normal', crecida: { ruina: 5 }, incendio: { prob: 0.09, max: 3 }, hambre: { meses: 3 }, aviso: 5, consejo: 3 },
-    dura: { nombre: 'Dura', crecida: { ruina: 7 }, incendio: { prob: 0.13, max: 4 }, hambre: { meses: 3 }, aviso: 3, consejo: 2 } };
+    dura: { nombre: 'Dura', crecida: { ruina: 9 }, incendio: { prob: 0.19, max: 5 }, hambre: { meses: 6 }, aviso: 3, consejo: 2 } };
   D.DEUDA = { desBase: 0.02, desMes: 0.03, desMax: 0.12 };   // I3b: deserción mensual con paga atrasada = base + desMes por mes de paga debido, con tope
   D.SENADO = {
     favorIni: 50, min: 0, max: 100, bajo: 25,

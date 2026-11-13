@@ -73,5 +73,25 @@ try {
   assert(JSON.parse(JSON.stringify(G.state)).ajustes, 'los ajustes se guardan');
 } catch (e) { fallos.push('ajustes a mitad de campaña: ' + e.message); }
 
+// Asesor y dificultades: lecciones, separación, reinicio y copia de reserva idéntica a D.DIFICULTAD
+try {
+  const A = require('../js/asesor.js'), Ci = await import('../js/ciudad.js');
+  assert.strictEqual(A.LECCIONES.length, 8); assert.strictEqual(new Set(A.LECCIONES.map(l => l.id)).size, 8);
+  assert(A.LECCIONES.every(l => l.texto.length <= 110 && typeof l.cuando === 'function'), 'texto de lección > 110 o sin cuando');
+  const todo = { bandeja: true, cifra: true, cuotas: true, riesgo: true, barrioSube: true, almacenLleno: true, arrabal: true, turnos: 2 };
+  assert.strictEqual(A.siguiente({ asesor: false }, todo), null); assert.strictEqual(A.siguiente(null, todo), null);
+  assert.strictEqual(A.siguiente({ asesor: true }, Object.assign({}, todo, { colocando: true })), null);
+  const a = { asesor: true, vistos: [] }; assert.strictEqual(A.siguiente(a, todo).id, 'bandeja');
+  A.marcar(a, 'bandeja', { mes: 5, ahora: 1000 }); A.marcar(a, 'bandeja', { mes: 5, ahora: 1000 });
+  assert.deepStrictEqual(a.vistos, ['bandeja']); assert.strictEqual(a.asesorMes, 5);
+  assert.strictEqual(A.siguiente(a, Object.assign({ mes: 6, ahora: 2000 }, todo)), null, 'separación mínima');
+  assert.strictEqual(A.siguiente(a, Object.assign({ mes: 8, ahora: 2000 }, todo)).id, 'cifra', '3 meses bastan');
+  assert.strictEqual(A.siguiente(a, Object.assign({ mes: 6, ahora: 61000 }, todo)).id, 'cifra', '60 s bastan');
+  A.marcar(a, 'cifra', { mes: 9, ahora: 70000 }); assert.notStrictEqual(A.siguiente(a, Object.assign({ mes: 20, ahora: 99999 }, todo)).id, 'cifra', 'no repite');
+  A.repetir(a); assert.deepStrictEqual(a.vistos, []); assert.strictEqual(a.asesorMes, undefined);
+  assert.strictEqual(A.siguiente(a, Object.assign({ mes: 0, ahora: 0 }, todo)).id, 'bandeja');
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(Ci.DIF_RESERVA)), JSON.parse(JSON.stringify(D.DIFICULTAD)).constructor === Object ? Object.fromEntries(Object.entries(D.DIFICULTAD).map(([k, v]) => [k, { nombre: v.nombre, crecida: v.crecida, incendio: v.incendio, hambre: v.hambre, aviso: v.aviso }])) : null, 'DIF_RESERVA (ciudad.js) debe coincidir con D.DIFICULTAD (data.js)');
+} catch (e) { fallos.push('asesor/dificultades: ' + e.message); }
+
 if (fallos.length) { console.log('FALLOS:\n - ' + fallos.join('\n - ')); process.exit(1); }
 console.log('ajustes.test: bien');

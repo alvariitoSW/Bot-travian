@@ -25,9 +25,9 @@ export const esAgua = (x, z) => drio(x, z) < 52 || alt(x, z) < NIVEL_RIO + 0.5;
 export const inundable = (x, z) => drio(x, z) < 120 && alt(x, z) < 1.2;
 /* CN14-B: sucesos apagables y dificultad de la ciudad (no confundir con Fácil/Normal/Difícil, que son del enemigo en la batalla).
    Los números viven en DATA.DIFICULTAD (js/data.js); esta copia solo vale si data.js no está cargado (una prueba vigila que coincidan). */
-const DIF_RESERVA = { tranquila: { nombre: 'Tranquila', crecida: { ruina: 3 }, incendio: { prob: 0.045, max: 2 }, hambre: { meses: 1 }, aviso: 6 },
+export const DIF_RESERVA = { tranquila: { nombre: 'Tranquila', crecida: { ruina: 1 }, incendio: { prob: 0.01, max: 1 }, hambre: { meses: 1 }, aviso: 8 },
   normal: { nombre: 'Normal', crecida: { ruina: 5 }, incendio: { prob: 0.09, max: 3 }, hambre: { meses: 3 }, aviso: 5 },
-  dura: { nombre: 'Dura', crecida: { ruina: 7 }, incendio: { prob: 0.13, max: 4 }, hambre: { meses: 3 }, aviso: 3 } };
+  dura: { nombre: 'Dura', crecida: { ruina: 9 }, incendio: { prob: 0.19, max: 5 }, hambre: { meses: 6 }, aviso: 3 } };
 const ON_TIPO = { crecida: 'crecida', incendio: 'fuego', hambre: 'hambre' };
 /* suceso(E, tipo, mesN): tipo 'crecida' | 'incendio' | 'hambre' -> { activo, dif, aviso, ...parámetros del tipo }. E.suc(mesN) -> { dif, on: { crecida, fuego, hambre } }; sin E.suc = Normal con todo encendido. */
 export function suceso(E, tipo, mesN) {
