@@ -1,0 +1,184 @@
+/* P2 · Tarjeta de tribuno — «Tablilla de cera y pergamino de mando».
+   Marco de madera (banda de bronce sobre noche) con doble filete, superficie de cera
+   con biselado, cinta vertical de dictamen y sello del carácter. Sin JavaScript. */
+
+.tarjeta {
+  --t-noche: #0b1016;
+  --t-oro: #e9c063;
+  --t-bronce: #b8862b;
+  --t-marmol: #f1ead9;
+  --t-piedra: #9aa6b4;
+  --t-cinta: var(--t-oro);
+
+  position: relative;
+  box-sizing: border-box;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 78px;
+  margin: 0;
+  padding: 5px 6px 4px 7px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+  color: var(--t-marmol);
+  font: 11px/13px system-ui, sans-serif;
+  border: 1px solid var(--t-bronce);
+  border-radius: 7px;
+  /* Cera: noche con tinte de bronce y rayado fino de estilete */
+  background:
+    repeating-linear-gradient(0deg, rgba(241, 234, 217, .025) 0 1px, transparent 1px 5px),
+    linear-gradient(rgba(184, 134, 43, .10), rgba(184, 134, 43, .10)),
+    var(--t-noche);
+  /* Marco: banda de madera, filete interior de bronce, bisel de la cera */
+  box-shadow:
+    inset 0 0 0 2px rgba(184, 134, 43, .42),
+    inset 0 0 0 3px rgba(184, 134, 43, .95),
+    inset 2px 2px 0 3px rgba(0, 0, 0, .55),
+    inset -1px -1px 0 4px rgba(241, 234, 217, .06),
+    0 1px 0 rgba(0, 0, 0, .6);
+  -webkit-tap-highlight-color: transparent;
+}
+.tarjeta:active { transform: translateY(1px); }
+.tarjeta:focus-visible { outline: 2px solid var(--t-marmol); outline-offset: 1px; }
+
+/* Cabecera: sello del carácter + nombre + carácter */
+.tarjeta__cabeza {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 0 0 14px;
+  height: 14px;
+  white-space: nowrap;
+}
+.tarjeta__nombre {
+  font: 600 11px/13px 'Cinzel', 'Palatino Linotype', Palatino, Georgia, serif;
+  text-transform: uppercase;
+  letter-spacing: 0;
+  color: var(--t-oro);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex: 0 1 auto;
+}
+.tarjeta__caracter {
+  flex: 0 0 auto;
+  color: var(--t-piedra);
+}
+.tarjeta__caracter::before { content: "· "; color: var(--t-bronce); }
+
+/* Sello: disco de bronce con el símbolo del carácter recortado en noche */
+.tarjeta__sello {
+  position: relative;
+  flex: 0 0 14px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--t-bronce);
+  box-shadow: inset 0 0 0 1px rgba(11, 16, 22, .45);
+}
+.tarjeta__sello::before {
+  content: "";
+  position: absolute;
+  inset: 1.5px;
+  background: var(--t-noche);
+  -webkit-mask: var(--simbolo) center / contain no-repeat;
+          mask: var(--simbolo) center / contain no-repeat;
+}
+/* Prudente = escudo (scutum con umbo) */
+.tarjeta__sello[data-caracter="Prudente"] {
+  --simbolo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill-rule='evenodd' d='M4.5 1h7Q13 1 13 2.5v11Q13 15 11.5 15h-7Q3 15 3 13.5v-11Q3 1 4.5 1zM8 6a2 2 0 1 0 0 4a2 2 0 1 0 0-4z'/%3E%3C/svg%3E");
+}
+/* Agresivo = lanza (pilum en diagonal) */
+.tarjeta__sello[data-caracter="Agresivo"] {
+  --simbolo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M15 1L13.6 7.2L11.6 6.1L3.2 14.5L1.5 12.8L9.9 4.4L8.8 2.4Z'/%3E%3C/svg%3E");
+}
+/* Astuto = yelmo con cimera */
+.tarjeta__sello[data-caracter="Astuto"] {
+  --simbolo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.5 10.5a5.5 5.5 0 0 1 11 0V15h-3.5v-3.5h-4V15H2.5z'/%3E%3Cpath d='M3 4.8Q8 -0.6 13 4.8L11.8 5.9Q8 2.2 4.2 5.9z'/%3E%3C/svg%3E");
+}
+
+/* Título: lo que propone, hasta dos líneas */
+.tarjeta__titulo {
+  flex: 0 0 26px;
+  font: 600 12px/13px system-ui, sans-serif;
+  color: var(--t-marmol);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  max-height: 26px;
+}
+
+/* Motivo: una línea, cursiva, como anotación al margen */
+.tarjeta__motivo {
+  flex: 0 0 13px;
+  font-style: italic;
+  letter-spacing: -.02em;
+  color: var(--t-piedra);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Etiqueta: cinta atada que cruza el marco por la izquierda, con cola de golondrina */
+.tarjeta__etiqueta {
+  align-self: flex-start;
+  flex: 0 0 14px;
+  height: 14px;
+  margin-left: -7px;            /* nace en el borde: la cinta cruza la madera */
+  padding: 0 16px 0 7px;
+  font: 700 11px/14px system-ui, sans-serif;
+  letter-spacing: .02em;
+  white-space: nowrap;
+  color: var(--t-noche);
+  background: var(--t-cinta);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 6px) 50%, 100% 100%, 0 100%);
+  box-shadow: inset 0 1px 0 rgba(241, 234, 217, .25), inset 0 -1px 0 rgba(11, 16, 22, .3);
+}
+
+/* Elegida: además de la cinta, un rótulo de oro al pie */
+.tarjeta::after {
+  content: none;
+}
+.tarjeta.sel::after {
+  content: "Elegida";
+  position: absolute;
+  right: 8px;
+  bottom: 4px;
+  font: 700 11px/14px 'Cinzel', 'Palatino Linotype', Palatino, Georgia, serif;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--t-oro);
+}
+
+/* Modificadores de dictamen */
+.tarjeta--fav { --t-cinta: #8fae5a; }
+.tarjeta--dud { --t-cinta: #e9c063; }
+.tarjeta--arr { --t-cinta: #d9764a; }
+
+/* Elegida: marco dorado, cera más cálida, sello de lacre rojo con símbolo de oro */
+.tarjeta.sel {
+  border-color: var(--t-oro);
+  outline: 2px solid var(--t-oro);
+  outline-offset: -1px;
+  background:
+    repeating-linear-gradient(0deg, rgba(241, 234, 217, .03) 0 1px, transparent 1px 5px),
+    linear-gradient(rgba(233, 192, 99, .17), rgba(233, 192, 99, .17)),
+    var(--t-noche);
+  box-shadow:
+    inset 0 0 0 3px rgba(233, 192, 99, .55),
+    inset 0 0 0 4px var(--t-oro),
+    inset 2px 2px 0 4px rgba(0, 0, 0, .5),
+    0 0 0 1px var(--t-noche);
+}
+.tarjeta.sel .tarjeta__sello {
+  background: #c0281f;
+  box-shadow: 0 0 0 1px var(--t-oro);
+}
+.tarjeta.sel .tarjeta__sello::before { background: var(--t-oro); }
+.tarjeta.sel .tarjeta__titulo { color: #fff; }
+.tarjeta.sel .tarjeta__caracter { color: var(--t-marmol); }

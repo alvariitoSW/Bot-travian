@@ -1,0 +1,199 @@
+/* P4 · HUD de batalla horizontal — voz «Inscripción epigráfica en mármol».
+   Friso de mármol arriba, placas con doble filete de bronce, centro del campo libre. */
+
+.hud {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font: 12px/16px system-ui, sans-serif;
+  color: #0b1016;
+  overflow: clip;
+}
+.hud > * { pointer-events: auto; }
+
+.hud button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+  font-family: 'Cinzel', 'Palatino Linotype', Palatino, Georgia, serif;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* ---- Friso superior ---- */
+.hud-barra {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-left: 12px;
+  background: rgba(241, 234, 217, .95);
+  border-bottom: 1px solid #b8862b;
+  box-shadow:
+    0 2px 0 rgba(241, 234, 217, .95),
+    0 3px 0 #b8862b,
+    0 4px 6px rgba(0, 0, 0, .3);
+}
+.hud-ronda {
+  font: 700 12px/1 'Cinzel', 'Palatino Linotype', Palatino, Georgia, serif;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding-right: 10px;
+  border-right: 1px solid rgba(184, 134, 43, .7);
+  line-height: 24px;
+}
+.hud-roma, .hud-cart {
+  font-weight: 700;
+  font-size: 12px;
+  white-space: nowrap;
+}
+.hud-roma { color: #c0281f; }
+.hud-cart { color: #5b3a8c; }
+
+.hud-fuerza {
+  flex: 1 1 auto;
+  min-width: 80px;
+  height: 10px;
+  display: flex;
+  background: #5b3a8c;
+  border: 1px solid #0b1016;
+  outline: 1px solid #b8862b;
+  outline-offset: 1px;
+  border-radius: 1px;
+}
+.hud-fuerza i {
+  display: block;
+  height: 100%;
+  background: #c0281f;
+  border-right: 2px solid #f1ead9;
+  box-sizing: border-box;
+}
+
+.hud-ala {
+  flex: none;
+  height: 44px;
+  min-width: 74px;
+  padding: 0 10px;
+  border: 0;
+  border-left: 1px solid rgba(184, 134, 43, .7);
+  background: transparent;
+  color: #0b1016;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.hud-ala:active { background: rgba(184, 134, 43, .2); }
+
+/* ---- Objetivo: placa a la derecha bajo el friso ---- */
+.hud-objetivo {
+  position: absolute;
+  top: 54px;
+  right: 8px;
+  max-width: 220px;
+  box-sizing: border-box;
+  padding: 6px 10px;
+  font-size: 12px;
+  line-height: 16px;
+  background: rgba(241, 234, 217, .94);
+  border: 1px solid #b8862b;
+  border-radius: 6px;
+  box-shadow:
+    inset 0 0 0 2px rgba(241, 234, 217, .94),
+    inset 0 0 0 3px #b8862b,
+    0 2px 5px rgba(0, 0, 0, .35);
+}
+
+/* ---- Gesto: cinta centrada bajo el friso ---- */
+.hud-gesto {
+  position: absolute;
+  top: 56px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 340px;
+  box-sizing: border-box;
+  padding: 5px 18px;
+  font-size: 13px;
+  line-height: 18px;
+  font-style: italic;
+  text-align: center;
+  color: #f1ead9;
+  background: rgba(11, 16, 22, .8);
+  border-top: 1px solid #b8862b;
+  border-bottom: 1px solid #b8862b;
+  box-shadow: inset 0 2px 0 rgba(11, 16, 22, .8), inset 0 3px 0 rgba(184, 134, 43, .6),
+              inset 0 -2px 0 rgba(11, 16, 22, .8), inset 0 -3px 0 rgba(184, 134, 43, .6);
+  white-space: nowrap;
+}
+
+/* ---- Seguir: discreto, a la derecha del centro ---- */
+.hud-seguir {
+  position: absolute;
+  top: calc(50% - 22px);
+  right: 12px;
+  height: 44px;
+  min-width: 104px;
+  padding: 0 16px;
+  border: 1px solid #b8862b;
+  border-radius: 6px;
+  background: rgba(241, 234, 217, .82);
+  box-shadow: inset 0 0 0 2px rgba(241, 234, 217, .82), inset 0 0 0 3px rgba(184, 134, 43, .8);
+  color: #0b1016;
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+}
+
+/* ---- Fila de órdenes: franja inferior ---- */
+.hud-ordenes {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 8px;
+  height: 78px;
+  display: flex;
+  gap: 6px;
+}
+.hud-tarjetas {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  gap: 4px;
+}
+.hud-tarjetas > .tarjeta { flex: 1 1 0; }
+
+.hud-btn {
+  flex: none;
+  width: 64px;
+  height: 78px;
+  padding: 0 4px;
+  border: 1px solid #b8862b;
+  border-radius: 6px;
+  background: #f1ead9;
+  box-shadow: inset 0 0 0 2px #f1ead9, inset 0 0 0 3px #b8862b, 0 2px 5px rgba(0, 0, 0, .4);
+  color: #0b1016;
+  font-weight: 700;
+  font-size: 11px;
+  line-height: 14px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+.hud-btn.hud-principal {
+  width: 150px;
+  border: 2px solid #e9c063;
+  background: #c0281f;
+  box-shadow: inset 0 0 0 1px #0b1016, inset 0 0 0 3px #c0281f, inset 0 0 0 4px rgba(233, 192, 99, .7),
+              0 2px 5px rgba(0, 0, 0, .45);
+  color: #f1ead9;
+  font-size: 14px;
+  line-height: 18px;
+  letter-spacing: .1em;
+}
+.hud-btn:active { transform: translateY(1px); }
