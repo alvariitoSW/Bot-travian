@@ -411,7 +411,9 @@
     const r = regE.get(c); if (r === false) return null; if (r) return info(c);
     return abrir(c) ? info(c) : null;
   }
-  const datosDe = E => Object.assign(CI.aDatos(E), { n0: E.n0 || 0 });
+  const datosDe = E => Object.assign(CI.aDatos(E), { n0: E.n0 || 0 }, E.mur0 ? { mur0: E.mur0 } : {});
+  /* partida vieja: una ciudad propia con c.b.muralla = N y sin fase pasa a la fase que le toca y conserva su nivel exacto N hasta la próxima obra */
+  function aplicarMur0(E, n) { E.mur0 = n || 0; if (E.mur0 > 0 && E.muralla.fase === 0 && !E.muralla.obra) { E.muralla.fase = CI.faseDeNivel(E.mur0); E.muralla.nivel = E.mur0; } else if (E.mur0 > 0 && E.muralla.fase === 0) { E.muralla.nivel = E.mur0; } if (E.muralla.geo) E.muralla.geo.fase = E.muralla.fase; }
   const ponerDatos = (c, r) => { c.ciudad = datosDe(r.E); };
 
   /* ciudad.crear tarda ~0,3 s (el bosque): se hace una vez por semilla y las demás ciudades con esa semilla copian la plantilla (misma ciudad, mismo azar). */
@@ -425,13 +427,13 @@
   }
   /* Rehace E desde sus datos guardados. Igual que ciudad.deDatos pero desde n0 y con la acción 'd' (derribo). */
   function reconstruir(d) {
-    const E = crearE(d.semilla); E.modoJuego = true; E.n0 = d.n0 || 0; E.mesN = E.n0; if (d.sitio) CI.fundar(E, d.sitio.x, d.sitio.z);
+    const E = crearE(d.semilla); E.modoJuego = true; E.n0 = d.n0 || 0; E.mesN = E.n0; if (d.sitio) CI.fundar(E, d.sitio.x, d.sitio.z); aplicarMur0(E, d.mur0 || 0);
     const ac = d.acciones || [];
     for (let n = E.n0; n <= d.mesN; n++) {
       for (const a of ac) { if (a.n !== n) continue;
         if (a.a === 'c') { const r = CI.colocar(E, a.tipo, a.x, a.z, true); if (r.ok) r.e.obra = 0; }
         else if (a.a === 'u') CI.mejorar(E, a.id, true); else if (a.a === 'm') CI.levantarMuralla(E, true);
-        else if (a.a === 's') CI.sembrarCasas(E, a.pob); else if (a.a === 'd') quitar(E, a.id); }
+        else if (a.a === 's') CI.sembrarCasas(E, a.pob); else if (a.a === 'd') quitar(E, a.id); else if (a.a === 'q') CI.saquearArrabal(E, a.fz); }
       if (n < d.mesN) CI.mes(E);
     }
     E.monedas = d.monedas; (d.barrios || []).forEach((b, i) => { if (E.barrios[i]) { E.barrios[i].nombre = b.nombre; E.barrios[i].corto = b.corto; } }); E.rev++;
@@ -485,14 +487,14 @@
       if (CI.poblacion(E) < (c.pop || 0)) CI.sembrarCasas(E, c.pop);
       memoConv[clave] = { datos: datosDe(E), her: Object.assign({}, her) };
     }
-    c.heredado = her; c.foroMin = Math.max(1, c.b.foro || 0); regE.set(c, { E, id, rev: -1 }); sinc(c, regE.get(c)); ponerDatos(c, regE.get(c));
+    aplicarMur0(E, c.b.muralla || 0); c.heredado = her; c.foroMin = Math.max(1, c.b.foro || 0); regE.set(c, { E, id, rev: -1 }); sinc(c, regE.get(c)); ponerDatos(c, regE.get(c));
     return E;
   }
   const MEJORA = n => CI.MEJORA_DE_NIVEL(n);
   function abrir(c) {                    // reconstruye (si hay datos) o convierte
     const id = idDe(c); if (!id) return null; let E = null;
     try {
-      if (c.ciudad) { E = reconstruir(c.ciudad); regE.set(c, { E, id, rev: -1 }); const r = regE.get(c); sinc(c, r);
+      if (c.ciudad) { if (c.ciudad.mur0 === undefined && c.b.muralla > 0) c.ciudad.mur0 = c.b.muralla; E = reconstruir(c.ciudad); regE.set(c, { E, id, rev: -1 }); const r = regE.get(c); sinc(c, r);
         const alin = mesAlin(); let n = 0; while (E.mesN < alin && n++ < 36) CI.mes(E);       // se pone al día (tope de meses)
         if (n) { sinc(c, r); ponerDatos(c, r); } }
       else E = convertir(c, id);
@@ -595,7 +597,10 @@
     if (c.obras.some(q => q.eid === idPieza)) return { ok: false, motivo: 'Se está mejorando' };
     quitar(r.E, idPieza); sinc(c, r); ponerDatos(c, r); const pc = G.popCap(c); if (c.pop > pc) c.pop = pc; return { ok: true };
   };
-  G.levantarMuralla = function (cid) {   // paga entera al empezar; no toca c.b.muralla (lo lee battleInfo hasta CN7)
+  /* CN7: nivel de muralla para la guerra. Propia con ciudad abierta: sale de la fase (tabla de ciudad.js); si no, c.b.muralla. */
+  G.nivelMuralla = function (c) { const r = c && c.owner === 'roma' && !cargando ? infoC(c) : null; return r ? CI.nivelMuralla(r.E) : ((c && c.b && c.b.muralla) || 0); };
+  G.faseMuralla = function (c) { const r = c && c.owner === 'roma' && !cargando ? infoC(c) : null; return r ? r.E.muralla.fase : (n => n <= 0 ? 0 : n <= 3 ? 1 : 2)((c && c.b && c.b.muralla) || 0); };
+  G.levantarMuralla = function (cid) {   // paga entera al empezar; la guerra lee la fase por G.nivelMuralla
     const c = prop(cid), r = c && infoC(c); if (!r) return { ok: false, motivo: 'No se puede' };
     const res = CI.levantarMuralla(r.E, false, coste => { const k = limpia(coste); if (!G.canAfford(k)) return false; pay(k); return true; });
     if (res.ok) ponerDatos(c, r); return res;
@@ -707,7 +712,7 @@
   // botín de un saqueo a una ciudad enemiga: por recurso; el oro, un 60 %
   G.botin = function (cid) {
     const s = G.state, c = s.cities[cid], d = D.CITIES[cid], h = s.hero; if (!c) return {};
-    let b = D.SAQUEO_BASE * (c.w || d.w) * (1 + 0.1 * h.sk.log) * (1 + 0.05 * (c.b.almacen || 0)) * (1 - 0.08 * (c.b.muralla || 0));
+    let b = D.SAQUEO_BASE * (c.w || d.w) * (1 + 0.1 * h.sk.log) * (1 + 0.05 * (c.b.almacen || 0)) * (1 - 0.08 * G.nivelMuralla(c));
     if (c.saqueada !== undefined && s.t - c.saqueada < D.SAQUEO_MESES) b *= D.SAQUEO_REPETIDO;
     const o = {}; for (const r of D.RES) o[r] = Math.max(0, Math.round(b * (r === 'oro' ? 0.6 : 1))); return o;
   };
@@ -1133,7 +1138,7 @@
     const s = G.state, out = [];
     if (!G.copiaBando(facc) || res.dead[0] + res.dead[1] < D.SABER.copiaBajasMin) return out;
     if (!s.inv.copia) s.inv.copia = {};
-    const V = G.cienciaGuerra(pb.kind === 'defend' ? 0 : (s.cities[m.to].b.muralla || 0), false);
+    const V = G.cienciaGuerra(pb.kind === 'defend' ? 0 : (G.nivelMuralla(s.cities[m.to])), false);
     if (V.atk <= 1 && V.def <= 1 && V.mor <= 0) return out;   // N15b: sin ventaja que copiar, la copia no sube
     const k = G.copiaDe(facc), n = k + (1 - k) * D.SABER.copiaBatalla; s.inv.copia[facc] = n;
     out.push(D.FACTIONS[facc].n + ' ya copia el ' + Math.round(n * D.SABER.copia * 100) + ' % de tu ventaja.');
@@ -1154,7 +1159,7 @@
     const a = fuerzaSimple(me), b = fuerzaSimple(foe);
     if (pb.kind === 'defend') return b > 1.3 * a ? { tipo: 'resistir', lado: 0, rondas: 12 } : null;
     if (heroIn !== undefined ? heroIn : pb.m.hero) { if (a < 0.5 * b) return { tipo: 'escapar', lado: 0 }; }
-    if ((c.b.muralla || 0) >= 3) return { tipo: 'tomar', lado: 0, zona: { x: 0.35, y: 0.42, w: 0.3, h: 0.16 }, seg: 40 };
+    if (G.nivelMuralla(c) >= 3) return { tipo: 'tomar', lado: 0, zona: { x: 0.35, y: 0.42, w: 0.3, h: 0.16 }, seg: 40 };
     return null;
   };
   G.battleInfo = function (pb) {
@@ -1170,14 +1175,14 @@
       foe = { units: c.units, name: D.FACTIONS[c.owner].n, col: D.FACTIONS[c.owner].col, gen: g, atkMul: g ? 1 + 0.04 * g.mando : 1, defMul: g ? 1 + 0.03 * g.disc : 1, mor: g ? 4 * g.disc : 0 };
     } else {
       heroIn = G.heroAvailable(cid);
-      const u = Object.assign({}, c.units); u.vigiles = 20 + 20 * (c.b.muralla || 0);
+      const u = Object.assign({}, c.units); u.vigiles = 20 + 20 * G.nivelMuralla(c);
       me = Object.assign({ units: u, name: 'Roma', col: D.FACTIONS.roma.col, gen: heroIn ? { n: h.name, mando: h.sk.mando, disc: h.sk.disc, lvl: h.lvl } : null }, heroIn ? hm : noHero);
       { const dg = G.diosDe(c); if (dg && dg.mor) me.mor += dg.mor * G.diosNivel(c); }
       const g = m.gen;
       foe = { units: m.units, name: D.FACTIONS[m.owner].n, col: D.FACTIONS[m.owner].col, gen: g, atkMul: g ? 1 + 0.04 * g.mando : 1, defMul: g ? 1 + 0.03 * g.disc : 1, mor: g ? 4 * g.disc : 0 };
     }
     {   // I5c-A: ciencia de guerra del jugador
-      const wall = c.b.muralla || 0, mar = pb.kind === 'attack' && G.esMar(m.from, m.to);
+      const wall = G.nivelMuralla(c), mar = pb.kind === 'attack' && G.esMar(m.from, m.to);
       me.atkMul *= Math.min(D.SABER.techos.atk, G.invMul('atk') * (mar ? G.invMul('atkMar') : 1)); me.mor += G.invSum('mor');
       if (pb.kind === 'defend') me.defMul *= 1 + G.invSum('defMuro') * Math.min(6, wall);
       else if (wall > 0 && G.invSum('brecha') > 0) foe.defMul /= (1 + 0.1 * wall) / (1 + 0.1 * Math.max(0, wall - G.invSum('brecha')));
@@ -1185,14 +1190,14 @@
     {   // I5c-B: copia del rival
       const ff = pb.kind === 'attack' ? c.owner : m.owner, k = G.copiaDe(ff);
       if (G.copiaBando(ff) && k > 0) {
-        const V = G.cienciaGuerra(pb.kind === 'defend' ? 0 : (c.b.muralla || 0), pb.kind === 'defend' && G.esMar(m.from, m.to)), q = k * D.SABER.copia;
+        const V = G.cienciaGuerra(pb.kind === 'defend' ? 0 : G.nivelMuralla(c), pb.kind === 'defend' && G.esMar(m.from, m.to)), q = k * D.SABER.copia;
         foe.atkMul *= 1 + q * (V.atk - 1); foe.defMul *= 1 + q * (V.def - 1); foe.mor += q * V.mor;
       }
     }
     {   // N15b: levas bisoñas del jugador y objetivo de batalla
       const oc = pb.kind === 'attack' ? m.from : cid; me.bis = G.fraccionBis(oc); foe.bis = 0;
     }
-    const cfg = { sides: [me, foe], defender: pb.kind === 'attack' ? 1 : 0, wall: c.b.muralla || 0, seed: Math.floor(s.t * 1000) + m.id };
+    const cfg = { sides: [me, foe], defender: pb.kind === 'attack' ? 1 : 0, wall: G.nivelMuralla(c), seed: Math.floor(s.t * 1000) + m.id };
     const ob = G.objetivoBatalla(pb, me, foe, c, heroIn); if (ob) cfg.objetivo = ob;
     return { cfg: cfg, city: cid, heroIn: heroIn, kind: pb.kind };
   };
@@ -1205,6 +1210,14 @@
     soltarCiudad(c); c.owner = f; c.inq = 0; c.obras.length = 0; c.train = []; c.levas = []; c.units = Object.assign({}, G.guarnicionBase(id, f) || {});
     if (s.hero.city === id) { s.hero.city = 'roma'; s.hero.march = null; }
     G.log(texto || '🔥 ¡' + D.CITIES[id].n + ' se rebela y vuelve a ' + D.FACTIONS[f].n + '! Un templo y una felicidad alta habrían calmado la ciudad.', 'bad'); G.rutasRevisar(); emit('dirty');
+  }
+  /* CN7: el atacante gana al defender o saquea: las casas de fuera del surco quedan en ruina (fuerza 0,3 a 1 según el tamaño del ataque) */
+  function arrabalSaqueado(c, m, res, out) {
+    const r = c.owner === 'roma' ? infoC(c) : null; if (!r) return;
+    let ata = 0; for (const k in (m.units || {})) ata += m.units[k]; const fz = Math.max(0.3, Math.min(1, ata / 400));
+    const q = CI.saquearArrabal(r.E, fz); if (!q.n) return;
+    ponerDatos(c, r); r.rev = -1; const t = q.n + (q.n === 1 ? ' casa del arrabal saqueada' : ' casas del arrabal saqueadas');
+    out.arrabal = q.n; out.lines.push('🏚️ ' + t + '.'); G.log('🏚️ ' + t + ' en ' + D.CITIES[m.to].n + '.', 'bad');
   }
   G.applyBattle = function (res) {
     const s = G.state, pb = s.pending.shift(), m = pb.m, cid = m.to, c = s.cities[cid], d = D.CITIES[cid], h = s.hero;
@@ -1246,10 +1259,11 @@
       } else if (m.mision === 'saqueo') {
         const esc = D.ESCONDITE * (c.b.almacen || 0), rob = {};
         for (const r of D.RES) { const tot = s.res[r] + s.alm[r]; rob[r] = Math.round(Math.max(0, Math.min(D.SAQUEO_ROBO * tot, tot - esc))); const dc = Math.min(rob[r], Math.max(0, s.res[r])); s.res[r] -= dc; s.alm[r] = Math.max(0, s.alm[r] - (rob[r] - dc)); }   // primero se lleva la caja; el almacén esconde parte
-        c.units = keep(res.surv[0], res.lost[0], 1, 0.3);
+        c.units = keep(res.surv[0], res.lost[0], 1, 0.3); arrabalSaqueado(c, m, res, out);
         out.saqueo = true; out.lines.push('🔥 ' + D.FACTIONS[m.owner].n + ' saquea ' + d.n + ' y se marcha: ' + D.RES.map(r => '-' + rob[r] + ' ' + D.RES_ICON[r]).join(' ') + '.', 'Cada almacén esconde ' + D.ESCONDITE + ' de cada recurso.');
         G.log('🔥 ' + d.n + ' ha sido saqueada por ' + D.FACTIONS[m.owner].n + '.', 'bad');
       } else {
+        arrabalSaqueado(c, m, res, out);
         soltarCiudad(c); c.owner = m.owner; c.units = keep(res.surv[1], res.lost[1], 1, 0.3); c.obras.length = 0; c.train = [];
         out.lines.push('🔥 ' + d.n + ' ha caído en manos de ' + D.FACTIONS[m.owner].n + '.');
         G.log('🔥 ' + d.n + ' ha caído ante ' + D.FACTIONS[m.owner].n + '.', 'bad');

@@ -30,7 +30,8 @@ function campana(inv, seed) {
       for (const id of G.myCities()) {
         const c = s.cities[id];
         if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
-        if (!c.queue) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'acueducto', 'termas', 'anfiteatro', 'escuela'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); for (const b of bs) if (G.upgrade(id, b)) break; }
+        if (!c.queue) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'acueducto', 'termas', 'anfiteatro', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); for (const b of bs) if (G.upgrade(id, b)) break; }
+        G.levantarMuralla(id);   // CN7: la defensa sale de la obra de ciudad
         const yr = G.yearOf(s.t); if (yr <= 230 && yr >= 209) continue;
         const sig = G.neighbors(id).sort((a, b) => dist[a] - dist[b])[0];
         if (id !== meta && dist[sig] < dist[id] && s.cities[sig].owner === 'roma' && !s.marches.some(m => m.owner === 'roma' && m.from === id)) { const u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (id === 'roma' ? 0.15 : 0.65)); if (G.men(u) >= 100 && G.send(id, sig, u, false)) continue; }

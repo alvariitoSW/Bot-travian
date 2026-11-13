@@ -15,7 +15,7 @@ import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const [pref = 'ciudad', ...resto] = process.argv.slice(2), op = Object.fromEntries(resto.map(a => a.split('=')));
-const vistas = (op.vistas || 'bandeja,fantasma,rojo,ficha,obra').split(','), ciudad = op.ciudad || 'roma', dpr = +(op.dpr || 2);
+const vistas = (op.vistas || (pref === 'CN7' ? 'c7-surco,c7-empalizada-obra,c7-empalizada,c7-piedra,c7-ruina' : 'bandeja,fantasma,rojo,ficha,obra')).split(','), ciudad = op.ciudad || 'roma', dpr = +(op.dpr || 2);
 const LUZ_ESTACIONAL = true;          // Q11: false = sin mes= ni vistas de luz (la ciudad usa la luz de siempre)
 const ponerFecha = (mes, frac) => page.evaluate(([m, f]) => { Game.state.speed = 0; Game.state.t = 24 + (m - 1) + f; }, [mes, frac]);     // inversa de G.estacion: enero = invierno, 3 meses por turno
 const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream' };
@@ -50,6 +50,18 @@ const PASOS = {
       await page.screenshot({ path: join(RAIZ, 'gobierno/capturas-tarea', pref + '-estaciones-' + n + '.jpg'), type: 'jpeg', quality: 84, timeout: 180000 }); out.push(n + ' ' + await medir()); }
     const M2 = await page.evaluate(async () => await import('/js/gfx/city3d.js').then(m => m.medidas.sombras)); return out.join(' | ') + ' · cálculos de sombra en las 4 estaciones: ' + (M2 - M); },
   atardecer: async () => { await ponerFecha(8, 0.95); await page.evaluate(() => { const E = Game.ciudadE(UI.city); UI.cityV.view('ciudad'); UI.cityV.mirar(E.foro.x, E.foro.z, 150, 0.45); }); await page.waitForTimeout(1500); return 'verano, fracción 0,95 del mes'; },
+  // --- CN7: muralla por fases y arrabal en ruina (node gobierno/captura-ciudad.mjs CN7) ---
+  'c7-surco': async () => page.evaluate(() => { const E = Game.ciudadE(UI.city), S = E.surco, p = E.puertas[0] || { x: S[0][0], z: S[0][1] }; E.muralla.fase = 0; E.muralla.obra = 0; E.rev++; UI.cityV.view('ciudad'); UI.cityV.mirar(p.x, p.z, 170, 0.5); return 'surco sin muralla (fase 0)'; }),
+  'c7-empalizada-obra': async () => page.evaluate(() => { const E = Game.ciudadE(UI.city), S = E.surco, p = E.puertas[0] || { x: S[0][0], z: S[0][1] }; E.muralla.fase = 0; E.muralla.obra = 1; E.rev++; UI.cityV.view('ciudad'); UI.cityV.mirar(p.x, p.z, 170, 0.5); return 'empalizada a medio hacer (fase 0, obra 1)'; }),
+  'c7-empalizada': async () => page.evaluate(() => { const E = Game.ciudadE(UI.city), S = E.surco, p = E.puertas[0] || { x: S[0][0], z: S[0][1] }; E.muralla.fase = 1; E.muralla.obra = 0; E.rev++; UI.cityV.view('ciudad'); UI.cityV.mirar(p.x, p.z, 170, 0.5); return 'empalizada completa (fase 1)'; }),
+  'c7-piedra': async () => page.evaluate(() => { const E = Game.ciudadE(UI.city), S = E.surco, p = E.puertas[0] || { x: S[0][0], z: S[0][1] }; E.muralla.fase = 2; E.muralla.obra = 0; E.rev++; UI.cityV.view('ciudad'); UI.cityV.mirar(p.x, p.z, 170, 0.5); return 'piedra con torres y puertas (fase 2)'; }),
+  'c7-ruina': async () => page.evaluate(async () => { const C = await import('/js/ciudad.js'), E = Game.ciudadE(UI.city); E.muralla.fase = 0; E.muralla.obra = 0; for (const l of E.parcelas) if (l.casa) l.casa.ruina = 0;
+    let nat = C.casasArrabal(E); if (nat < 8) { const fu = E.parcelas.filter(l => l.casa && !l.fuera && !l.arrabal).sort((a, b) => Math.hypot(b.x - E.foro.x, b.z - E.foro.z) - Math.hypot(a.x - E.foro.x, a.z - E.foro.z)).slice(0, 14); fu.forEach(l => { l.arrabal = true; }); }      // Roma recién creada no tiene arrabal: se marcan como arrabal las 14 casas más alejadas
+    const ant = C.casasArrabal(E), q = C.saquearArrabal(E, 1), ids = new Set(q.ids), rs = E.parcelas.filter(l => ids.has(l.id)); E.rev++;
+    if (rs.length) UI.cityV.mirar(rs.reduce((a, l) => a + l.x, 0) / rs.length, rs.reduce((a, l) => a + l.z, 0) / rs.length, 170, 0.6); return 'arrabal: ' + ant + ' casas vivas, ' + q.n + ' en ruina'; }),
+  'c7-ficha': async () => { await page.evaluate(() => { const b = document.createElement('button'); b.dataset.act = 'modo'; b.dataset.v = 'guerra'; document.body.appendChild(b); b.click(); b.remove(); }); await page.waitForTimeout(1500); await cierra();
+    return page.evaluate(async () => { const s = Game.state, id = Object.keys(s.cities).find(k => s.cities[k].owner !== 'roma'); s.cities[id].b = Object.assign(s.cities[id].b || {}, { muralla: 6 }); UI.sel = id; UI.sheetKey = ''; UI.dirty = true; UI.map.center(id); UI.map.c.dist = 34; UI.map.clamp(); await new Promise(r => setTimeout(r, 2500)); document.getElementById('sheet').hidden = false;
+      const sh = document.getElementById('sheet'), ex = [...sh.querySelectorAll('.stat')].filter(e => e.getBoundingClientRect().right > 390).length; return 'ciudad ' + id + ' · ' + (sh.querySelector('.stat') ? [...sh.querySelectorAll('.stat')].map(e => e.textContent).join(' | ') : 'sin .stat') + ' · stats pasados de 390 px: ' + ex + ' · scrollW ' + sh.scrollWidth + '/' + sh.clientWidth; }); },
   // --- CN4: bandeja, fantasma, ficha y obra (todo tocando la pantalla como un dedo) ---
   // --- CN6: barrios (etiquetas con la cámara lejos, capilla de cruce, ficha de la ciudad) ---
   barrios: async () => { await elegir(ciudad); await page.waitForTimeout(3000); await cierra(); return page.evaluate(() => { const s = Game.state, id = UI.city, E = Game.ciudadE(id); for (const r of DATA.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; }
@@ -154,7 +166,7 @@ for (const v of vistas) {
   await page.evaluate(v => { const V = UI.cityV; if (!/^(bandeja|fantasma|rojo|ficha|obra)$/.test(v)) UI.bsel = null;
     if (v === 'grande') { const c = Game.state.cities[UI.city]; for (const b in DATA.BUILD) c.b[b] = Math.max(c.b[b] || 0, 5); Object.assign(c.units, { hastati: 400, principes: 300, triarii: 150, velites: 250, equites: 120 }); V.view('ciudad'); }
     else if (v === 'media') { V.view('ciudad'); V.c.dist = 250; }
-    else if (v === 'ruina' || v === 'obras' || v === 'muralla' || v === 'piedra') { }
+    else if (/^c7-/.test(v) || v === 'ruina' || v === 'obras' || v === 'muralla' || v === 'piedra') { }
     else if (v === 'lejos') { V.view('ciudad'); V.c.dist *= 2.2; }
     else if (v === 'barrios' || v === 'capilla' || v === 'fichabarrios') { }
     else if (v === 'toque' || v === 'ciudad' || v === 'meses24' || v === 'capua') V.view('ciudad');
@@ -162,7 +174,7 @@ for (const v of vistas) {
   if (v === 'estaciones') { console.log(nota); continue; }
   await page.waitForTimeout(v === 'grande' ? 9000 : 4500);
   if (v === 'toque') { const t = await tocaPieza(); if (t) nota = ' · ficha de ' + t; else { const g = await page.evaluate(() => { const E = Game.ciudadE(UI.city), V = UI.cityV; V.mirar(E.foro.x + 60, E.foro.z + 60, 260, 0); return 1; }); await page.waitForTimeout(2500); await page.touchscreen.tap(195, 420); await page.waitForTimeout(900); nota = ' · toque en el suelo: ' + await lineaTxt(); } }
-  const f = join(RAIZ, 'gobierno/capturas-tarea', pref + '-' + v + '.jpg');
+  const f = join(RAIZ, 'gobierno/capturas-tarea', pref + '-' + v.replace(/^c7-/, '') + '.jpg');
   for (let i = 0; ; i++) { try { await page.screenshot({ path: f, type: 'jpeg', quality: 84, timeout: 180000 }); break; } catch (e) { if (i >= 2) throw e; } }
   console.log(f + ' · ' + await medir() + (nota ? ' · ' + nota : ''));
 }

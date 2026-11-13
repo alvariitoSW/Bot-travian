@@ -248,7 +248,7 @@ export function fundar(E, x, z) {
 }
 function puertas(E) { if (!E.fundada) return; const o = [];
   for (const v of E.vias) for (let i = 1; i < v.p.length; i++) { const a = v.p[i - 1], b = v.p[i]; if (dentro(E, a[0], a[1]) !== dentro(E, b[0], b[1])) { const x = (a[0] + b[0]) / 2, z = (a[1] + b[1]) / 2; if (!o.some(q => Math.hypot(q.x - x, q.z - z) < 30)) o.push({ x, z, ang: Math.atan2(z - E.foro.z, x - E.foro.x) + Math.PI / 2, via: Math.atan2(b[1] - a[1], b[0] - a[0]) }); } }
-  E.puertas = o; }
+  E.puertas = o; geoMuralla(E); }
 
 /* ---------- nota de sitio de cada edificio. ang = hacia dónde mira la fachada (a la calle más cercana) ---------- */
 /* árboles en cubos de 45 para contar los cercanos sin recorrerlos todos */
@@ -335,9 +335,28 @@ export function colocar(E, id, x, z, gratis, pago) {
     const a = s.ang, dv = E.dVia[k]; for (const sg of [-1, 1]) { const o = sg < 0 ? 7 : dv + 9, b = { x: x + Math.cos(a) * o * sg, z: z + Math.sin(a) * o * sg, dx: Math.cos(a) * sg, dz: Math.sin(a) * sg, hecha: false }; const v = callejon(E, b, 96); if (v) { v.t = 'via'; v.w = 3; v.punta = null; } } }
   E.edificios.push(e); E.diario.push({ a: 'c', n: E.mesN, tipo: id, x, z }); puertas(E); reparcelar(E); return { ok: true, e };
 }
+/* ---------- muralla y guerra (CN7): una tabla sencilla de fase a nivel de guerra ---------- */
+export const NIVEL_FASE = [0, 3, 6];
+export function nivelMuralla(E) { const m = E && E.muralla; if (!m) return 0; return typeof m.nivel === 'number' ? m.nivel : (NIVEL_FASE[m.fase] || 0); }
+export function faseDeNivel(n) { return n <= 0 ? 0 : n <= 3 ? 1 : 2; }
+export function casasArrabal(E) { let n = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && l.arrabal && !l.fuera) n++; return n; }
+/* Geometría para CN12: solo se guarda, no se usa aquí. */
+function geoMuralla(E) { if (!E.muralla) return; const r = v => Math.round(v * 10) / 10;
+  E.muralla.geo = { surco: (E.surco || []).map(q => ({ x: r(q[0]), z: r(q[1]) })), puertas: (E.puertas || []).map(p => Object.assign({}, p)), fase: E.muralla.fase }; }
+/* Saqueo de lo de fuera: deja en ruina (5 meses) casas vivas del arrabal. Reproducible con E.rnd. */
+export function saquearArrabal(E, fuerza) {
+  const viv = []; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && l.arrabal && !l.fuera) viv.push(l);
+  const f = [0.6, 0.5, 0.25][E.muralla.fase] ?? 0.6, fz = Math.round(Math.max(0, Math.min(1, fuerza || 0)) * 1000) / 1000;   // redondeada: el diario la guarda así y la repetición da lo mismo
+  const n = Math.min(12, viv.length, Math.max(1, Math.round(viv.length * fz * f)));
+  if (!viv.length || fz <= 0 || n <= 0) return { n: 0, ids: [] };
+  const claves = viv.map(l => ({ l, k: E.rnd() })); claves.sort((a, b) => a.k - b.k || a.l.id - b.l.id);
+  const ids = []; for (const q of claves.slice(0, n)) { q.l.casa.ruina = 5; ids.push(q.l.id); }
+  E.diario.push({ a: 'q', n: E.mesN, fz: Math.round(fz * 1000) / 1000 }); E.rev++;
+  return { n, ids };
+}
 export function murallaSiguiente(E) { const m = E.muralla; if (!E.fundada || m.obra) return null; return m.fase === 0 ? { nombre: 'Levantar empalizada', coste: EDIF.muralla.coste } : m.fase === 1 ? { nombre: 'Levantar muralla de piedra', coste: sumaCostes([costeNivel(EDIF.muralla.coste, 1), costeNivel(EDIF.muralla.coste, 2)]) } : null; }
 export function levantarMuralla(E, gratis, pago) { const s = murallaSiguiente(E); if (!s) return { ok: false, motivo: E.muralla.obra ? 'La obra ya está en marcha' : 'La muralla ya es de piedra' };
-  if (!gratis) { const mo = cobrar(E, s.coste, pago); if (mo) return { ok: false, motivo: mo }; } E.muralla.obra = 3; E.diario.push({ a: 'm', n: E.mesN }); E.rev++; return { ok: true }; }
+  if (!gratis) { const mo = cobrar(E, s.coste, pago); if (mo) return { ok: false, motivo: mo }; } E.muralla.obra = 3; E.diario.push({ a: 'm', n: E.mesN }); geoMuralla(E); E.rev++; return { ok: true }; }
 
 /* ---------- mejoras I, II, III (solo datos mínimos: la economía real es CN2) ---------- */
 export function mejoraSiguiente(E, id) { const e = E.edificios.find(q => q.id === id); if (!e || e.obra || e.ruina || !EDIF[e.tipo].mejoras || (e.mejora || 0) >= 3) return null; const m = EDIF[e.tipo].mejoras[e.mejora || 0]; return { nombre: EDIF[e.tipo].nombre + ' ' + ROMANOS[(e.mejora || 0) + 1], coste: m.coste, radioMul: m.radioMul, rinde: m.rinde }; }
@@ -357,7 +376,7 @@ export function deDatos(datos) {
   const E = crear(datos.semilla); if (datos.sitio) fundar(E, datos.sitio.x, datos.sitio.z);
   const ac = datos.acciones || [];
   for (let n = 0; n <= datos.mesN; n++) {
-    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') colocar(E, a.tipo, a.x, a.z, true); else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); }
+    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') colocar(E, a.tipo, a.x, a.z, true); else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); else if (a.a === 'q') saquearArrabal(E, a.fz); }
     if (n < datos.mesN) mes(E);
   }
   E.monedas = datos.monedas; (datos.barrios || []).forEach((b, i) => { if (E.barrios[i]) { E.barrios[i].nombre = b.nombre; E.barrios[i].corto = b.corto; } }); E.rev++;
@@ -376,7 +395,7 @@ export function mes(E) {
   E.mesN++; const f = fecha(E), S0 = servicios(E);
   /* obras */
   for (const e of E.edificios) { if (e.obra && --e.obra === 0) di(EDIF[e.tipo].nombre.replace('Abrir barrio', 'Capilla de cruce') + ' terminada' + (e.tipo === 'fuente' ? ': las casas de alrededor ya tienen agua' : ''), 1); if (e.ruina) e.ruina--; }
-  if (E.muralla.obra && --E.muralla.obra === 0) { E.muralla.fase++; di(E.muralla.fase === 1 ? 'Empalizada terminada: la ciudad ya tiene cerca' : 'Muralla de piedra terminada, con torres y puertas', 2); }
+  if (E.muralla.obra && --E.muralla.obra === 0) { E.muralla.fase++; delete E.muralla.nivel; geoMuralla(E); di(E.muralla.fase === 1 ? 'Empalizada terminada: la ciudad ya tiene cerca' : 'Muralla de piedra terminada, con torres y puertas', 2); }
   for (const l of E.parcelas) if (l.casa && l.casa.ruina && --l.casa.ruina === 0) { l.casa.nivel = 1; l.casa.nace = E.mesN; l.casa.arde = false; }
   if (!E.modoJuego) E.monedas += ingreso(E);      // en modo juego, la renta la cobra game.js
   /* crecida de primavera: se lleva lo que esté en la ribera baja */

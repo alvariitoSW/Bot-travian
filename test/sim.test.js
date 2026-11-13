@@ -272,7 +272,8 @@ function campaign1(aggressive, region) {
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
-      for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'acueducto', 'termas', 'anfiteatro', 'escuela'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }
+      for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'acueducto', 'termas', 'anfiteatro', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }
+      G.levantarMuralla(id);   // CN7: la muralla de la guerra sale de la obra de ciudad, no de c.b.muralla
       if (!aggressive) continue;
       const yr = G.yearOf(s.t); if (yr <= 230 && yr >= 209) continue;   // el bot se atrinchera ante la invasión de Aníbal
       // concentración: las tropas avanzan por la ruta más corta hacia Carthago mientras la siguiente plaza sea romana
@@ -1052,7 +1053,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   global.localStorage = { getItem: () => JSON.stringify(sa), setItem: () => {}, removeItem: () => {} }; assert(G.load());
   const E2 = G.ciudadE('roma'); assert.strictEqual(CIMOD.casas(E2).length, casas1); assert.strictEqual(CIMOD.poblacion(E2), pob1); assert.strictEqual(G.state.cities.roma.pop, pop1);
   assert.strictEqual(JSON.stringify(G.state.cities.roma.ciudad), cj, 'mismo c.ciudad');
-  assert.strictEqual(JSON.stringify(Object.assign(CIMOD.aDatos(E2), { n0: E2.n0 })), cj, 'ida y vuelta exacta'); }
+  assert.strictEqual(JSON.stringify(Object.assign(CIMOD.aDatos(E2), { n0: E2.n0 }, E2.mur0 ? { mur0: E2.mur0 } : {})), cj, 'ida y vuelta exacta'); }
 { // (d) G.upgrade coloca, completa y mejora hasta III
   const s = G.newGame('CN2b-up'), c = s.cities.roma, ped = () => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; } };
   ped(); assert.strictEqual(c.b.mercado, 0); assert(G.upgrade('roma', 'mercado'), 'coloca el mercado'); let q = c.queue;
@@ -1076,7 +1077,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   r = G.mejorarPieza('roma', f.id); assert(r.ok, r.motivo); hasta(c, ped); assert.strictEqual(f.mejora, 1); ped();
   const nE = E.edificios.length; assert(G.derribarPieza('roma', f.id).ok && E.edificios.length === nE - 1 && c.pop <= G.popCap(c)); assert(!G.derribarPieza('roma', f.id).ok);
   const m0 = c.b.muralla, ro = G.levantarMuralla('roma'); assert(ro.ok && c.b.muralla === m0 && E.muralla.obra > 0, 'la muralla de ciudad.js no cambia c.b.muralla');
-  const E3 = G.ciudadE('roma'); ticks(3); assert.strictEqual(JSON.stringify(Object.assign(CIMOD.aDatos(E3), { n0: E3.n0 })), JSON.stringify(c.ciudad), 'c.ciudad siempre al día');
+  const E3 = G.ciudadE('roma'); ticks(3); assert.strictEqual(JSON.stringify(Object.assign(CIMOD.aDatos(E3), { n0: E3.n0 }, E3.mur0 ? { mur0: E3.mur0 } : {})), JSON.stringify(c.ciudad), 'c.ciudad siempre al día');
   const sa = JSON.parse(JSON.stringify(s)); global.localStorage = { getItem: () => JSON.stringify(sa), setItem: () => {}, removeItem: () => {} }; assert(G.load());
   assert.strictEqual(CIMOD.poblacion(G.ciudadE('roma')), CIMOD.poblacion(E3), 'el derribo se repite al cargar'); assert.strictEqual(G.ciudadE('roma').edificios.length, E3.edificios.length); }
 { // (g) una ciudad conquistada se convierte; (e) 18 ciudades propias: estado pequeño y sin arrays tipados
@@ -1568,3 +1569,20 @@ console.log('OK — todas las pruebas superadas');
     assert(G.load(), 'carga'); const cr = G.state.cities.roma; assert(cr.barrio >= 1 && cr.barrio <= 4 && G.barrioInfo(cr).barrios.length >= 1, 'la partida vieja trae su barrio calculado'); delete global.localStorage; }
   G.usarCiudad(null);
   console.log('CN6: barrios OK (media, retraso por barrio, ciudadanía, popCap, partida vieja, colonia)'); }
+
+// ---------- CN7: la guerra lee la muralla de la fase ----------
+{ G.usarCiudad(CIMOD);
+  const s = G.newGame('CN7'); G.state = s; const c = s.cities.roma, E = G.ciudadE('roma'); assert(E, 'Roma tiene ciudad nueva');
+  const nivel = f => { E.muralla.fase = f; delete E.muralla.nivel; E.rev++; return G.nivelMuralla(c); };
+  assert([0, 1, 2].map(nivel).join() === '0,3,6', 'fases 0, 3 y 6'); assert(G.faseMuralla(c) === 2);
+  const bot = f => { nivel(f); return G.botin('roma').madera; };
+  const b0 = bot(0), b2 = bot(2); assert(b2 < b0, 'el botín baja con muralla de piedra: ' + b2 + ' < ' + b0);
+  nivel(2); const bi = G.battleInfo({ kind: 'defend', m: { id: 1, to: 'roma', from: 'capua', owner: 'cartago', units: { libios: 100 }, mision: 'saqueo' } }); assert(bi.cfg.wall === 6, 'wall 6 en la defensa');
+  nivel(0); assert(G.battleInfo({ kind: 'defend', m: { id: 1, to: 'roma', from: 'capua', owner: 'cartago', units: { libios: 100 }, mision: 'saqueo' } }).cfg.wall === 0);
+  assert(G.faseMuralla({ owner: 'cartago', b: { muralla: 2 } }) === 1 && G.faseMuralla({ owner: 'cartago', b: { muralla: 5 } }) === 2 && G.nivelMuralla({ owner: 'cartago', b: { muralla: 5 } }) === 5, 'enemigas: fase por wl');
+  // partida vieja: c.b.muralla = 5 -> fase 2 y nivel 5
+  const raw = JSON.parse(JSON.stringify(s)); delete raw.cities.roma.ciudad; raw.cities.roma.b.muralla = 5;
+  const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, v) => { mem[k] = v; } }; localStorage.setItem('aqvila-save-v1', JSON.stringify(raw));
+  assert(G.load()); const E2 = G.ciudadE('roma'); assert(E2.muralla.fase === 2 && E2.muralla.nivel === 5 && G.nivelMuralla(G.state.cities.roma) === 5, 'partida vieja con muralla 5 conserva su defensa');
+  G.save(); assert(G.load() && G.nivelMuralla(G.state.cities.roma) === 5, 'y sigue igual tras guardar y cargar'); delete global.localStorage;
+  console.log('CN7: muralla por fases OK (tabla, botín, wall, partida vieja)'); G.usarCiudad(null); }

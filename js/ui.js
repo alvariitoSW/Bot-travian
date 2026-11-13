@@ -492,6 +492,12 @@ function opcionPieza(cid, pz, nueva) {
 }
 /* La acción aconsejada: almacén lleno, granero, población al tope, servicio del barrio, o la obra más barata que se puede pagar.
    Devuelve {t, rec, b (id D.BUILD o null), pieza (id de pieza o null), mej (id de la pieza a mejorar o null), flags} */
+const FASE_MURALLA = ['Sin muralla', 'Empalizada', 'Muralla de piedra'];
+/* CN7: aviso del arrabal (3 o más casas fuera del surco y sin muralla de piedra); '' si no toca */
+function avisoArrabal(E) {
+  if (!E || !Ciudad.casasArrabal) return ''; const n = Ciudad.casasArrabal(E), f = Ciudad.faseDeNivel ? (E.muralla.fase || 0) : 0;
+  return n >= 3 && f < 2 ? ' Tu arrabal tiene ' + n + ' casas ' + (f === 1 ? 'sin muralla de piedra.' : 'sin muralla.') : '';
+}
 function consejo(c, id) {
   id = id || UI.city; const s = S(), cap = G.cap(), E = c.owner === 'roma' ? G.ciudadE(id) : null, flags = {};
   const lleno = D.RES.filter(r => r !== 'oro').map(r => [r, s.res[r] / cap]).filter(x => x[1] >= 0.9).sort((x, y) => y[1] - x[1])[0];
@@ -508,8 +514,8 @@ function consejo(c, id) {
   const sv = fl.map(k => ({ templo: 'templo', agua: 'fuente', mercado: 'mercado', grano: 'granja' })[k]).filter(Boolean).map(p => opcionPieza(id, p, true)).find(o => o && G.canAfford(o.ini));
   if (sv) return mk((baja ? 'Para seguir siendo ' + D.BARRIO[bi.nivel].n : 'Para ser ' + D.BARRIO[bi.nivel + 1].n) + ' falta ' + ({ templo: 'un templo', fuente: 'una fuente', mercado: 'un mercado', granja: 'más grano: una granja' })[sv.pieza] + '.', sv);
   const cand = ['granja', 'aserradero', 'cantera', 'mina', 'almacen'].map(p => opcionPieza(id, p, false)).filter(o => o && G.canAfford(o.ini)).sort((x, y) => x.lvl - y.lvl)[0];
-  if (cand) return mk((cand.mej ? 'Mejora a ' : 'Coloca: ') + cand.nombre + '. Ya tienes los recursos.', cand);
-  return mk('Faltan recursos para nuevas obras. Espera a que lleguen.', null);
+  if (cand) return mk((cand.mej ? 'Mejora a ' : 'Coloca: ') + cand.nombre + '. Ya tienes los recursos.' + avisoArrabal(E), cand);
+  return mk('Faltan recursos para nuevas obras. Espera a que lleguen.' + avisoArrabal(E), null);
 }
 /* la pieza (o el foro, o la obra) que enseña la ficha, a partir de UI.bsel = {k:'pieza'|'foro'|'obra', id, pieza, x, z} */
 function selDe(c) {
@@ -678,7 +684,7 @@ function viewArmy() {
   const s = S(), c = s.cities[UI.city], p = G.prod();
   let h = cityChips() + '<div class="sec">Guarnición de ' + D.CITIES[UI.city].n + ' · ' + G.men(c.units) + ' hombres</div>' + troopsHtml(c.units);
   h += '<div class="empty">' + popHtml(c) + '</div>';
-  h += '<div class="empty">🌾 Consumo de todas tus tropas: ' + Math.round(p.upkeep) + ' grano/mes · 🪙 Mantenimiento: −' + Math.round(p.mant.total) + ' oro (edificios ' + Math.round(p.mant.edificios) + ', paga ' + Math.round(p.mant.tropas) + ') · ⚖️ Rutas: +' + Math.round(p.rutas) + ' oro · 🧱 Guardia urbana al defender: ' + (20 + 20 * (c.b.muralla || 0)) + '<br>Para enviarlas a la guerra, toca una ciudad vecina en el mapa.</div>';
+  h += '<div class="empty">🌾 Consumo de todas tus tropas: ' + Math.round(p.upkeep) + ' grano/mes · 🪙 Mantenimiento: −' + Math.round(p.mant.total) + ' oro (edificios ' + Math.round(p.mant.edificios) + ', paga ' + Math.round(p.mant.tropas) + ') · ⚖️ Rutas: +' + Math.round(p.rutas) + ' oro · 🧱 Guardia urbana al defender: ' + (20 + 20 * G.nivelMuralla(c)) + '<br>Para enviarlas a la guerra, toca una ciudad vecina en el mapa.</div>';
   if (c.train.length) {
     h += '<div class="sec">En instrucción</div>';
     h += c.train.map(q => '<div class="row"><div style="display:flex;justify-content:space-between"><span>' + q.n + ' × ' + D.UNITS[q.u].n + '</span><span class="rem"></span></div><div class="prog" data-t0="' + q.t0 + '" data-t1="' + q.t1 + '"><i></i></div>' + (plazoTxt(q) ? '<div class="plz' + (q.pausa ? ' pausa' : '') + '">' + plazoTxt(q) + '</div>' : '') + '</div>').join('');
@@ -889,7 +895,7 @@ function renderSheet() {
   const key = id + c.owner + G.rutasAbiertas().length + JSON.stringify(c.units) + src.join() + inc.map(m => m.id + (G.turnos ? G.turnosFaltan(m) : Math.round((m.t1 - s.t) * 2))).join();
   if (key === UI.sheetKey && !sh.hidden) return; UI.sheetKey = key;
   let h = '<button class="x" data-act="unsel">✕</button><h3>' + d.n + '<span class="tagf" style="background:' + f.col + '">' + f.n + '</span></h3><p>' + esc(d.h) + '</p>';
-  h += '<span class="stat">🧱 Muralla ' + (c.b.muralla || 0) + '</span><span class="stat">💰 ' + '★'.repeat(c.w || d.w) + '</span><span class="stat">⚔ Fuerza ' + G.power(c.units) + '</span>' + (D.ESPECIAL[d.esp] ? '<span class="stat">Bien: ' + D.ESPECIAL[d.esp].i + ' ' + D.ESPECIAL[d.esp].n + '</span>' : '');
+  h += '<span class="stat">🧱 ' + FASE_MURALLA[G.faseMuralla(c)] + ' · Defensa ' + G.nivelMuralla(c) + '</span><span class="stat">💰 ' + '★'.repeat(c.w || d.w) + '</span><span class="stat">⚔ Fuerza ' + G.power(c.units) + '</span>' + (D.ESPECIAL[d.esp] ? '<span class="stat">Bien: ' + D.ESPECIAL[d.esp].i + ' ' + D.ESPECIAL[d.esp].n + '</span>' : '');
   { const tr = G.rutasAbiertas().find(r => r.b === id && r.f !== 'roma'); if (tr) h += '<span class="stat">⚖️ Tratado de comercio con Roma</span>'; }
   h += '<div class="units">' + (Object.keys(c.units).filter(k => c.units[k] > 0).map(k => '<span>' + D.UNITS[k].n + ' <b>' + c.units[k] + '</b></span>').join('') || '<span>Sin guarnición</span>') + '</div>';
   if (inc.length) h += inc.map(m => '<div class="stat" style="color:' + (m.owner === 'roma' ? 'var(--good)' : 'var(--bad)') + '">' + (m.owner === 'roma' ? '🚩 Tus tropas llegan' : '⚠️ ' + D.FACTIONS[m.owner].n + ' (' + G.men(m.units) + ') llega') + ' ' + (G.turnos ? turnosTxt(G.turnosFaltan(m)) : 'en ' + months(m.t1 - s.t)) + '</div>').join('');
@@ -910,7 +916,7 @@ function showPicker(from, to) {
   h += ks.map(k => '<div class="pick"><div class="pt">' + pt(k) + '</div><div><label><span>' + D.UNITS[k].n + '</span><span><b id="pv-' + k + '">' + c.units[k] + '</b> / ' + c.units[k] + '</span></label><input type="range" min="0" max="' + c.units[k] + '" value="' + c.units[k] + '" data-k="' + k + '"></div></div>').join('');
   if (hero) h += '<label class="chk"><input type="checkbox" id="pk-hero" checked> ' + D.GUERRA_ICON.aguila + ' El general acompaña al ejército</label>';
   if (!own) { const bo = G.botin(to); h += '<label class="chk"><input type="checkbox" id="pk-saq"> 💰 Solo saquear, sin conquistar: las tropas vuelven</label><div class="pw">Botín: ' + D.RES.map(r => bo[r] + ' ' + D.RES_ICON[r]).join(' · ') + '</div>'; }
-  if (!own) h += '<div class="pw">Fuerza enemiga: ' + G.power(s.cities[to].units) + ' · muralla nivel ' + (s.cities[to].b.muralla || 0) + '<br>Tu fuerza: <b id="pk-pw"></b></div>';
+  if (!own) h += '<div class="pw">Fuerza enemiga: ' + G.power(s.cities[to].units) + ' · ' + FASE_MURALLA[G.faseMuralla(s.cities[to])].toLowerCase() + ' (defensa ' + G.nivelMuralla(s.cities[to]) + ')<br>Tu fuerza: <b id="pk-pw"></b></div>';
   h += '<div class="acts"><button class="btn ghost" data-act="close">Cancelar</button>' + (ks.length || hero ? '<button class="btn" data-act="send" data-from="' + from + '" data-to="' + to + '">' + (own ? 'Enviar' : '¡A las armas!') + '</button>' : '') + '</div>';
   modal(h); pickUpdate();
 }

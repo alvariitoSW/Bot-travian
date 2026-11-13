@@ -495,7 +495,7 @@ export class CityView3D {
   }
   /* CN6: una etiqueta pequeña por barrio («Foro · II»), solo con la cámara lejos y lejos de la línea de arriba y de la bandeja de abajo */
   etiquetasBarrio(H) {
-    const bs = E && E.barrios || [], lejos = cam.d >= 380 && bs.length > 0; this.bel = this.bel || [];
+    const bs = E && E.barrios || [], lejos = cam.d >= 380 && bs.length > 0 && !['popsheet', 'hoja', 'cuentas', 'csheet', 'modal'].some(i => { const q = document.getElementById(i); return q && !q.hidden; }); this.bel = this.bel || [];
     while (this.bel.length < bs.length) { const el = document.createElement('div'); el.className = 'mlabel barrio'; el.style.display = 'none'; this.labels.appendChild(el); this.bel.push(el); }
     const r = host.getBoundingClientRect();
     this.bel.forEach((el, i) => {

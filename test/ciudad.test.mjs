@@ -96,4 +96,16 @@ prueba('CN6: el barrio sube de uno en uno, baja tras el retraso y se rehace igua
   R.mes(F); assert.equal(F.barrios[0].nivel, 3, 'baja un nivel tras 3 meses: ' + JSON.stringify(F.barrios[0]) + R.nivelBarrio(F, 0).nivel); assert.equal(F.barrios[0].bdef, 0);
   const H = R.crear(3); R.fundar(H, 172, -196); for (const id of ['fuente', 'templo']) { const q = R.mejorSitio(H, id); assert.ok(R.colocar(H, id, q[0], q[1], true).ok); } for (let i = 0; i < 7; i++) R.mes(H);
   const B = R.deDatos(JSON.parse(JSON.stringify(R.aDatos(H)))); assert.deepEqual(B.barrios.map(b => [b.nivel, b.bdef]), H.barrios.map(b => [b.nivel, b.bdef]), 'rehecha da los mismos niveles'); assert.ok(H.barrios[0].nivel >= 2); });
+prueba('CN7: tabla de muralla y saqueo del arrabal reproducible', () => {
+  assert.deepEqual(R.NIVEL_FASE, [0, 3, 6]); assert.deepEqual([-1, 0, 1, 3, 4, 9].map(R.faseDeNivel), [0, 0, 1, 1, 2, 2]);
+  const mk = fase => { const F = R.crear(3); R.fundar(F, 172, -196); R.sembrarCasas(F, 400); for (let i = 0; i < 6; i++) R.mes(F); for (const l of F.parcelas) if (l.arrabal && !l.fuera) l.casa = { nivel: 1, desde: 0, nace: 0, ruina: 0 }; F.muralla.fase = fase; return F; };
+  const A = mk(0), B = mk(0); assert.equal(R.nivelMuralla(A), 0); A.muralla.fase = 1; assert.equal(R.nivelMuralla(A), 3); A.muralla.fase = 2; assert.equal(R.nivelMuralla(A), 6); A.muralla.nivel = 5; assert.equal(R.nivelMuralla(A), 5); A.muralla.fase = 0; delete A.muralla.nivel;
+  const nA = R.casasArrabal(A); assert.ok(nA >= 6, 'hay arrabal: ' + nA); assert.ok(Array.isArray(A.muralla.geo.surco) && A.muralla.geo.surco.length > 8 && A.muralla.geo.puertas.length === A.puertas.length);
+  const a = R.saquearArrabal(A, 1), b = R.saquearArrabal(B, 1); assert.deepEqual(a.ids, b.ids, 'misma semilla, mismos ids'); assert.ok(a.n >= 1 && a.n <= 12 && a.n <= Math.max(1, Math.round(nA * 0.6)));
+  for (const id of a.ids) assert.equal(A.parcelas[id - 1].casa.ruina, 5); assert.equal(R.casasArrabal(A), nA - a.n);
+  const C = mk(1), D2 = mk(2), E0 = mk(0), nn = R.casasArrabal(E0), s0 = R.saquearArrabal(E0, 1).n, s1 = R.saquearArrabal(C, 1).n, s2 = R.saquearArrabal(D2, 1).n;
+  assert.ok(s2 <= s1 && s1 <= s0 && s2 < s0, 'piedra < empalizada <= sin muralla: ' + [s2, s1, s0]); assert.ok(R.saquearArrabal(mk(0), 0.3).n <= s0);
+  const G2 = mk(0); for (const l of G2.parcelas) if (l.arrabal && l.casa) l.casa.ruina = 3; const r0 = R.saquearArrabal(G2, 1); assert.equal(r0.n, 0);
+  const H = R.crear(1); R.fundar(H, 172, -196); R.sembrarCasas(H, 1500); assert.ok(R.casasArrabal(H) > 2); assert.ok(R.saquearArrabal(H, 1).n > 0); const H2 = R.deDatos(JSON.parse(JSON.stringify(R.aDatos(H)))); assert.equal(R.casasArrabal(H2), R.casasArrabal(H), 'el saqueo sobrevive a guardar y cargar');
+  const O = mk(0); O.muralla.obra = 1; O.muralla.nivel = 2; R.mes(O); assert.equal(O.muralla.fase, 1); assert.equal(O.muralla.nivel, undefined); assert.equal(R.nivelMuralla(O), 3); assert.equal(O.muralla.geo.fase, 1); });
 process.exit(fallos.length ? 1 : 0);

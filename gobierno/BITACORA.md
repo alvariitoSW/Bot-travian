@@ -140,6 +140,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+**CN7 hecha (13/11).** Sigue la ola 10 (CN8). `G.nivelMuralla(c)` y `G.faseMuralla(c)` son lo único que la guerra lee de la muralla; `Ciudad.saquearArrabal(E,fuerza)` deja casas en ruina; `E.muralla.geo` guarda surco, puertas y fase para CN12. El bot de las pruebas levanta muralla con `G.levantarMuralla`, no con `G.upgrade('muralla')`. Detalle en `gobierno/partes/2026-11-13-CN7.md`.
 **CN6 hecha (13/11).** Sigue **CN7 Muralla y arrabal** (ola 9). `c.barrio` = media por casas de `E.barrios[i].nivel`; `G.barrioInfo(c).barrios` lista cada barrio. Ocio y termas siguen solo para el ánimo de clases hasta CN10. Detalle en `partes/2026-11-13-CN6.md`.
 **CN5 hecha (13/11).** Sigue **CN6 Barrios**. Ojo: la colonia es una ciudad tuya con `c.colonia`; `G.fundarColonia`, `UI.abrirFundar(sitio, alFundar)` y `G.ciudadPendiente` los reutiliza I8. Sin medir en móvil (el arado apenas se ve con render por software). Detalle en `partes/2026-11-13-CN5.md`.
 **N15b hecha (13/11).** La campaña ya pasa bisoñas, general y objetivo a la batalla. Queda N15c (0,67× con buen plan, frente de 60 figuras, igualadas largas) si el usuario quiere más afinado. I5d opcional, tras jugar el sistema. Detalle en `partes/2026-11-13-N15b.md`.
