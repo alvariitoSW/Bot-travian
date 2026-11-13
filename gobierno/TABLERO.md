@@ -231,4 +231,4 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ⬜ I8b **Pulir la partida corta**: etiquetas de colonias libres tapan Roma en el mapa de Italia; recursos vacíos de la barra mientras se funda; probar edad 3 con el bot; arado: pasar a «jugando» al terminar el surco.
 
 ## Carril K — Concurso
-- 🟨 K10 Arte de la batalla: R1 (P1 estandarte) y R2 (P2 tarjeta + P4 barra) hechas, esperan el voto del usuario; **faltan R1b (P1 con reglas nuevas), R3 (P3 avisos) y R4 (P5 mapa de maniobra)**. Parte: `partes/2026-11-13-K10.md`.
+- 🟨 K10 Arte de la batalla: R1 (P1 estandarte) **gusta** (falta elegir A/B/C); R2 (tarjeta + barra) **descartada** (las barras tapan el campo; reformular con menos marco); **faltan R1b (P1 con reglas nuevas), R3 (P3 avisos) y R4 (P5 mapa de maniobra)**. Parte: `partes/2026-11-13-K10.md`.
