@@ -75,7 +75,13 @@ const trisPuesto = 96 + tri('prop_mesa') + Math.max(tri('prop_cesto'), tri('prop
 const trisFach = (fint('FACHADAS_PUESTOS') ? nPuestos * trisPuesto : 0) + (fint('FACHADAS_TOLDOS') ? nToldos * 36 : 0) + (fint('FACHADAS_ROPA') ? nRopa * 48 : 0) + (fint('FACHADAS_BARRIO') ? nMacetas * tri('prop_vaso') : 0);
 console.log('Fachadas (máximo teórico): ' + mil(trisFach) + ' (' + nPuestos + ' puestos, ' + nToldos + ' toldos, ' + nRopa + ' tendederos, ' + nMacetas + ' macetas)');
 if (trisFach > 15000) fallos.push('las fachadas piden ' + mil(trisFach) + ' triángulos y el presupuesto de CN15a es 15 mil');
-const sumaVida = trisCiudad + trisGente + trisCarros + trisGuarn + trisFach;
+// Trajín (CN15b, js/gfx/trajin.js): cuadrilla de obra y recuas. Peor caso: obreros reales + 15 figuras ligeras, montones y mulas (170 tris cada una con carga).
+const tsrc = await readFile(join(RAIZ, 'js', 'gfx', 'trajin.js'), 'utf8'), tcte = n => +(tsrc.match(new RegExp(n + ' = (\\d+)')) || [0, 0])[1], tint = n => new RegExp('export const ' + n + ' = true').test(tsrc);
+const nObr = tcte('N_OBREROS_MAX'), nRec = tcte('N_RECUAS'), nMul = tcte('MULAS_POR_RECUA');
+const trisTraj = (tint('TRAJIN_CUADRILLAS') ? nObr * tri('ciudadana') + 144 : 0) + (tint('TRAJIN_RECUAS') ? nRec * (nMul * 170 + tri('ciudadana')) : 0);
+console.log('Trajín (máximo teórico): ' + mil(trisTraj) + ' (' + nObr + ' obreros, ' + nRec + ' recuas de ' + nMul + ' mulas)');
+if (trisTraj > 22000) fallos.push('el trajín pide ' + mil(trisTraj) + ' triángulos y el techo teórico de CN15b es 22 mil (lo real medido va en medidas-ciudad.json)');
+const sumaVida = trisCiudad + trisGente + trisCarros + trisGuarn + trisFach + trisTraj;
 console.log('  suma teórica si TODO estuviera en pantalla a la vez: ' + mil(sumaVida) + ' triángulos (no es lo que se pinta: la cámara solo ve una parte)');
 // Lo que de verdad se pinta se mide con captura-ciudad.mjs y queda en gobierno/medidas-ciudad.json: ahí se vigila el tope.
 const MED = JSON.parse(await readFile(join(RAIZ, 'gobierno', 'medidas-ciudad.json'), 'utf8'));
