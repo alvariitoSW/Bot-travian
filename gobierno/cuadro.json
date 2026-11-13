@@ -1102,10 +1102,10 @@
       "url": "https://claude.ai/code/session_01QiKC37tiobNBApd9bhi8N3"
     },
     {
-      "tarea": "CN8",
-      "titulo": "Ciudad nueva · CN8 Sucesos",
-      "nota": "game.js, ciudad.js, ui.js, city3d.js (crecida, incendio, hambre y su aviso)",
-      "url": "https://claude.ai/code/session_01QiKC3APZTWPAE7kswYdtx4"
+      "tarea": "CN10",
+      "titulo": "Ciudad nueva · CN10 Edificios de época",
+      "nota": "data.js, game.js, registro.js, ui.js (quitar anfiteatro, termas y acueducto; citas cotejadas)",
+      "url": "https://claude.ai/code/session_01QiKC3ARUntKBmGPmk9m7oB"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
