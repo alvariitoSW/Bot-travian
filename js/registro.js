@@ -240,6 +240,7 @@
     juegos: f(SIN_FIESTA, h('Livio 22.9-10 (los ludi magni votados en 217); pistas por comprobar: Livio 25.12 (ludi Apollinares), Livio 29.14, Ovidio, Fastos 4', 'licencia de juego', 'Los ludi eran fiestas públicas reales; su precio ligado al ingreso, el reposo de seis meses y el calmar a una ciudad conquistada son reglas de juego. Los pasajes marcados como pista no se han comprobado.', 'Los ludi eran juegos públicos que pagaban los magistrados o el erario por voto del Senado (Livio 22.9-10). Aquí calman al pueblo y a una ciudad conquistada.'))
   };
 
+<<<<<<< HEAD
   const SIN_REM = { sin: 'un remedio no tiene modelo 3D propio: el dique usa el muro de 0 A.D. como figura provisional (js/gfx/city3d.js, CN13b) y el tejado lo pintará CN15' };
   const remedio = {
     dique: f(SIN_REM, h('Livio 24.9; Livio 30.38 (crecidas del Tíber, por cotejar); sin fuente abierta de diques en 280-146', 'licencia de juego', 'Las crecidas del Tíber están en Livio, pero no se ha comprobado que Roma levantara diques o malecones en esta época: los grandes muros de contención son posteriores. Es una regla de juego para dar remedio a la ribera baja.', 'El Tíber se desbordaba a menudo y anegaba la parte baja de Roma; Livio lo cuenta varias veces. Aquí puedes levantar un dique en la orilla para guardar las casas, aunque no consta que se hiciera así entonces.')),
@@ -247,6 +248,19 @@
   };
 
   R.fichas = { edificio, tropa, fiesta, remedio, ciudad, hecho, mision, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades };
+=======
+  // ---- Pueblos (D.PUEBLO_TIPOS, J3). Sin modelo. La vida rural (aldeas, villas, pesca) existió; el pueblo como hueco que se funda y sube de nivel es invención del juego ----
+  const PU = 'el pueblo como hueco que se funda y mejora es invención del juego';
+  const pueblo = {
+    lenadores: f(SIN_T, h('Catón, De agri cultura 1', 'licencia de juego', 'la villa rural aprovecha el bosque y la leña; ' + PU)),
+    canteros: f(SIN_T, h('Catón, De agri cultura 14', 'licencia de juego', 'la villa rústica se construía con piedra y cal; ' + PU)),
+    mineros: f(SIN_T, h('Livio 34.21', 'licencia de juego', 'las minas de hierro y su arriendo en Roma; ' + PU)),
+    pescadores: f(SIN_T, h('Varrón, Res rusticae 3.17', 'licencia de juego', 'la pesca y los viveros de peces como negocio de villa costera; ' + PU)),
+    agricolas: f(SIN_T, h('Livio 9.13; Varrón, Res rusticae 1', 'licencia de juego', 'vici y pagi como aldeas de labradores; la villa como explotación agraria; ' + PU))
+  };
+
+  R.fichas = { edificio, tropa, fiesta, ciudad, hecho, mision, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+>>>>>>> 96d144f (J3 Capital y pueblos: pueblos de recursos, pesca y agro por ciudad, API, fichas, pruebas y UI mínima)
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -264,6 +278,7 @@
     mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },
     tipo: { tabla: 'TIPOS', numericos: [], textos: ['n', 'i', 'd'] },
     especial: { tabla: 'ESPECIAL', numericos: [], textos: ['n', 'i', 'd'] },
+    pueblo: { tabla: 'PUEBLO_TIPOS', numericos: [], textos: ['n', 'i', 'd'] },
     invest: { tabla: 'INVEST', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n', 'i', 'rama'] },
     edad: { tabla: 'EDADES', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n'] },
     fiesta: { tabla: 'FIESTAS', numericos: ['mult', 'min', 'dura', 'reposo'], textos: ['n', 'i', 'd'] },
@@ -286,6 +301,7 @@
     edificio: { arte: { modelo: 'assets/static/<id>.bin', licencia: 'CC BY-SA 3.0', credito: 'Wildfire Games (0 A.D.)' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } },
     region: { arte: { sin: 'una región es una ficha de datos; no tiene modelo 3D' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } },   // el id es el de D.REGIONES
     modo: { arte: { sin: 'un modo de partida es una ficha de datos; no tiene modelo 3D' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'licencia de juego' } },   // el id es el de D.MODOS
+    pueblo: { arte: { sin: 'sin modelo: solo un icono' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'licencia de juego' } },
     hecho: { arte: { sin: 'un hecho no tiene modelo 3D' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } }   // el id es «<año>-<clave>»; el año casa con D.EVENTS
   };
 

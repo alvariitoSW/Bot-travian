@@ -154,6 +154,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+**J3 hecha (13/11).** Pueblos por ciudad (`G.pueblosDe`, `G.puebloMejorar`, `G.puebloProd`…; estado `c.pueblos`, `c.pobra`). Sigue **J4**: añade ciudades con `pueblos:[...]` en `D.CITIES` (o el relleno por defecto) y agrúpalas con `D.REGIONES` de I6. API completa en `partes/2026-11-13-J3.md`. Una sesión pidió ampliar a J4/J5/J8 dentro de la sesión de J3: no se hizo (una sesión, una tarea); falta la orden del usuario.
 **CN13b hecha (13/11).** Dique (pieza, protege las casas de la ribera), tejas por barrio (`E.barrios[i].tejas`, acción 'j' del diario) y marca de la crecida (`casa.barro`, `E.marcas`). Sigue CN13c. **Aviso: los jueces de navegador fallan 6 pasos en la rama remota SIN CN13b (batalla termina, recarga sin red, CN22, R3, R4, I8): sospecha de NB6 (maniobra).** Parte: `partes/2026-11-13-CN13b.md`.
 **CN13a hecha (13/11).** `G.arca`, `G.fiestaInfo`, `G.hacerFiesta` (genérico, Q8/CN20 lo reutilizan), `G.setRacion`, `G.graneroInfo`; campos `E.arca`, `E.fiesta`, `E.mendigos` para que CN15 los pinte. Ofrenda al mes con lo que sobra o grano; juegos con oro. Sigue CN13b y luego CN13c. Parte: `partes/2026-11-13-CN13a.md`.
 **Senado nuevo (13/11).** Sesiones lanzadas desde el chat de diseño: primero **SN1** (motor), después **SN2** (pantalla). Ver carril SN del tablero.

@@ -550,6 +550,17 @@ function forjaHtml(c) {
       (en || max || topada ? '' : '<button class="btn ' + (f.cola ? 'no' : '') + '" data-act="forja" data-v="' + k + '" ' + (f.cola ? '' : "data-need='" + JSON.stringify(cost) + "'") + '>Mejorar ' + F.n.toLowerCase() + '<small>' + months(G.forjaTime(k, L, UI.city)) + '</small></button>') + '</div>';
   }).join('');
 }
+/* Pueblos (J3): satélites que producen para la capital; una fila por hueco */
+function pueblosHtml(c) {
+  if (c.owner !== 'roma') return '';
+  const cid = UI.city;
+  return '<div class="sec">Pueblos de ' + D.CITIES[cid].n + '</div>' + G.pueblosDe(cid).map(p => {
+    const F = p.ficha, max = p.nivel >= D.PUEBLO_MAX, ok = G.puebloOk(cid, p.i), cost = G.puebloCoste(cid, p.i), prod = Object.keys(F.prod).map(r => D.RES_ICON[r] + ' +' + (G.rate(Math.max(1, p.nivel)) * F.prod[r]).toFixed(0)).join(' ') + (F.pop ? ' · 👥 +' + F.pop + '/nivel' : '');
+    return '<div class="card"><div class="ic">' + F.i + '</div><div class="bd"><div class="tt">' + F.n + '<span class="lv">' + (p.nivel ? 'Nv ' + p.nivel : 'Sin fundar') + '</span></div><div class="ds">' + F.d + ' ' + prod + '</div>' +
+      (p.obra ? '<div class="prog" data-t0="' + p.obra.t0 + '" data-t1="' + p.obra.t1 + '"><i></i></div><span class="rem"></span>' : max ? '<div class="ds">Nivel máximo.</div>' : costHtml(cost)) + '</div>' +
+      (p.obra || max ? '' : '<button class="btn ' + (ok ? '' : 'no') + '" data-act="pueblo" data-v="' + p.i + '" ' + (ok ? "data-need='" + JSON.stringify(cost) + "'" : '') + '>' + (p.nivel ? 'Mejorar a ' + (p.nivel + 1) : 'Fundar') + '<small>' + months(G.puebloTiempo(cid, p.i)) + '</small></button>') + '</div>';
+  }).join('');
+}
 const RES_NOM = { madera: 'Madera', piedra: 'Piedra', hierro: 'Hierro', grano: 'Grano', oro: 'Oro' };
 function repartoHtml(c) {
   if (c.owner !== 'roma') return '';
@@ -582,6 +593,7 @@ function rutasHtml(c, id) {
   }
   return h;
 }
+<<<<<<< HEAD
 const espFalta = () => { const t = G.especiales(); return Object.keys(D.ESPECIAL).filter(k => !t[k]); };
 function viewCity() {   // Gobierno (K12a): ciudad, felicidad, lo que falta y atajos; sin scroll de página. Lo demás vive en hojas (HOJAS)
   const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city], roma = c.owner === 'roma', f = Math.round(G.felicidad(c)), cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠', R = 52, C = 2 * Math.PI * R;
@@ -593,6 +605,16 @@ function viewCity() {   // Gobierno (K12a): ciudad, felicidad, lo que falta y at
     '<div class="gfalta"><span>Falta:</span>' + (fic || '<em>No falta nada</em>') + '</div>' +
     '<div class="gatajos">' + at('mercado', ICO_MERC, 'Mercado', mer ? '' : 'Sin mercado', !mer) + (roma ? at('rutas', ICO_RUTA, 'Rutas', G.rutasDeCiudad(UI.city) + '/' + G.rutaMax(c)) : '') + at('pueblo', ICO_PUEB, 'Pueblo') + at('ajustes', ICO_AJ, 'Ajustes') + at('cron', ICO_CRON, 'Crónica') + (roma && (c.b.templo > 0 || c.b.herreria > 0) ? at('servicios', ICO_TEMPLO, 'Templo y forja') : '') + '</div>' +
     (UI.cityV ? '<button class="gver" data-act="clist">Ver la ciudad en 3D</button>' : '') + '</div>';
+=======
+function viewCity() {
+  const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city], roma = c.owner === 'roma';
+  let h = cityChips() + '<div class="head"><h2>' + d.n + '</h2><p>' + esc(d.h) + '</p></div>' + (UI.cityV ? '<div class="acts" style="margin:0 0 6px"><button class="btn ghost" data-act="clist">Ver la ciudad en 3D</button></div>' : '');
+  h += '<div class="empty">' + popHtml(c) + '</div>' + repartoHtml(c) + (roma ? '<div class="empty">' + espResumen() + '</div><div class="empty">' + tipoHtml(c) + '</div>' : '') + (roma && UI.city === 'roma' ? ajustesHtml() : '');
+  if (roma && c.b.templo > 0) h += '<div class="empty">' + diosBloque(c, 'templo') + '</div>';
+  if (G.tradeRate() > 0) h += marketHtml();
+  if (c.b.herreria > 0) h += forjaHtml(c);
+  return h + pueblosHtml(c) + rutasHtml(c, UI.city);
+>>>>>>> 96d144f (J3 Capital y pueblos: pueblos de recursos, pesca y agro por ciudad, API, fichas, pruebas y UI mínima)
 }
 /* ---------- J6 · Ciudad como pantalla principal ---------- */
 const ICO_X = svgIco('<path d="M6 6l12 12M18 6L6 18"/>');
@@ -1475,6 +1497,7 @@ document.addEventListener('click', function (e) {
     case 'saberedad': { const r = G.edadUp(); if (r.ok) { toast('Empiezas a subir de edad'); UI.svDown = false; render(); } else toast(r.motivo, 'bad'); break; }
     case 'sabersel': UI.svSel = UI.svSel === v ? null : v; UI.svDown = false; render(); break;
     case 'dotsab': case 'clasab': { const x = G.sabiosDe(s.cities[UI.city]), r = a === 'dotsab' ? G.setSabios(UI.city, +v, x.clase) : G.setSabios(UI.city, x.dot, v); if (!r.ok) toast(r.motivo + '.', 'bad'); render(); break; }
+    case 'pueblo': if (G.puebloMejorar(UI.city, +v)) render(); else toast(G.state.cities[UI.city].pobra ? 'Ya hay una obra de pueblo en curso.' : 'Faltan recursos.', 'bad'); break;
     case 'forja': if (G.forjaUp(UI.city, v)) render(); else toast(S().forja.cola ? 'Ya hay una mejora en curso.' : 'Faltan recursos.', 'bad'); break;
     case 'mejpz': { const r = G.mejorarPieza(UI.city, +v); if (r.ok) toast('🔨 ' + obraNom(r.obra) + ': obra en marcha.', 'good'); else toast(r.motivo + '.', 'bad'); renderCity3D(); tickUI(); break; }
     case 'train': if (G.train(UI.city, v, +el.dataset.n)) render(); else toast(s.cities[UI.city].train.length >= 5 ? 'La cola de instrucción está llena.' : G.recruits(s.cities[UI.city]) < +el.dataset.n ? 'No hay población suficiente: construye Ínsulas o espera a que crezca.' : 'Faltan recursos.', 'bad'); break;

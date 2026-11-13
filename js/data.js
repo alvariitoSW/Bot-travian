@@ -283,6 +283,32 @@
 
   for (const e of D.EDGES) if (e[2]) { D.CITIES[e[0]].sea = true; D.CITIES[e[1]].sea = true; }   // ciudades con salida al mar
 
+  /* ---------- Pueblos (J3): satélites productivos de cada capital. Cifras = licencia de juego ----------
+     Cada ciudad de D.CITIES es la capital de su territorio (gobierna, recluta y comercia). Sus pueblos PRODUCEN.
+     prod: factor sobre G.rate(nivel) por recurso · pop: población máxima extra por nivel · cost: coste base del nivel 1 · time: meses del nivel 1.
+     D.CITIES[id].pueblos = tipos de sus huecos (el índice es el hueco). Los niveles nunca se guardan aquí: viven en la partida (c.pueblos). */
+  D.PUEBLO_MAX = 5; D.PUEBLO_COSTE_NIVEL = 1.5; D.PUEBLO_TIEMPO_NIVEL = 1.35;
+  D.PUEBLO_TIPOS = {
+    lenadores: { n: 'Leñadores', i: '🪓', d: 'Aldea de leñadores: aporta madera.', cat: 'recursos', prod: { madera: 0.5 }, pop: 0, cost: { madera: 60, piedra: 40, grano: 40 }, time: 2, mar: false },
+    canteros: { n: 'Canteros', i: '⛏️', d: 'Aldea de canteros: aporta piedra.', cat: 'recursos', prod: { piedra: 0.5 }, pop: 0, cost: { madera: 60, piedra: 40, grano: 40 }, time: 2, mar: false },
+    mineros: { n: 'Mineros', i: '⚒️', d: 'Aldea minera: aporta hierro.', cat: 'recursos', prod: { hierro: 0.5 }, pop: 0, cost: { madera: 60, piedra: 40, grano: 40 }, time: 2, mar: false },
+    pescadores: { n: 'Pescadores', i: '🐟', d: 'Puerto pesquero: aporta grano y algo de oro. Solo en ciudades de costa.', cat: 'pesca', prod: { grano: 0.4, oro: 0.15 }, pop: 0, cost: { madera: 70, piedra: 30, grano: 30, oro: 20 }, time: 2, mar: true },
+    agricolas: { n: 'Agrícolas', i: '🌾', d: 'Villas y aldeas de labradores: dan más grano y alojan más gente.', cat: 'agro', prod: { grano: 0.5 }, pop: 12, cost: { madera: 50, piedra: 30, grano: 60 }, time: 2, mar: false }
+  };
+  // Huecos por sitio: explícitos en Italia y Sicilia; el resto, por riqueza (w) y mar. Todas las ciudades tienen entre 2 y 4.
+  const PUEBLOS_FIJOS = {
+    roma: ['agricolas', 'agricolas', 'lenadores'], volsinii: ['mineros', 'agricolas'], capua: ['agricolas', 'agricolas', 'lenadores'],
+    tarentum: ['pescadores', 'agricolas', 'pescadores'], mediolanum: ['agricolas', 'lenadores', 'agricolas'], messana: ['pescadores', 'agricolas'],
+    syracusae: ['agricolas', 'canteros', 'agricolas', 'lenadores']
+  };
+  const PUEBLOS_CICLO = ['agricolas', 'lenadores', 'canteros', 'mineros'];
+  for (const id in D.CITIES) {
+    const c = D.CITIES[id]; if (PUEBLOS_FIJOS[id]) { c.pueblos = PUEBLOS_FIJOS[id]; continue; }
+    const n = Math.max(2, Math.min(4, c.w <= 2 ? 2 : c.w === 3 ? 3 : 4)), l = [];
+    for (let i = 0; i < n; i++) l.push(c.sea && i % 2 === 0 ? 'pescadores' : PUEBLOS_CICLO[(i + id.length) % PUEBLOS_CICLO.length]);
+    c.pueblos = l;
+  }
+
   // Proyección lon/lat -> mundo
   D.WORLD = { w: 1600, h: 800 };
   D.proj = function (lon, lat) { return [(lon + 7) * 50, (47 - lat) * 64]; };

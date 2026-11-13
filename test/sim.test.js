@@ -1773,6 +1773,7 @@ console.log('OK — todas las pruebas superadas');
   delete c2.fiesta; delete c2.rac; store['aqvila-save-v1'] = JSON.stringify(G.state); assert(G.load() && G.state.cities.roma.fiesta.juegos === -99 && G.state.cities.roma.rac === 'normal', 'partida vieja sin c.fiesta/c.rac migra');
   delete global.localStorage; G.usarCiudad(null); console.log('CN13a: arca, ofrenda, juegos, ración y granero OK');
 }
+<<<<<<< HEAD
 {   // NB7: batalla nueva conectada con la campaña, tribunos-generales e interruptor (test/nb7.test.mjs)
   const r = require('child_process').spawnSync(process.execPath, [__dirname + '/nb7.test.mjs'], { encoding: 'utf8', timeout: 120000 });
   assert(r.status === 0, 'NB7: ' + String(r.stdout).split('\n').filter(l => /^MAL/.test(l)).join(' | ') + String(r.stderr).slice(0, 300)); console.log('NB7: batalla nueva, tribunos e interruptor OK');
@@ -1799,3 +1800,30 @@ console.log('OK — todas las pruebas superadas');
   const E3 = G.ciudadE('roma'); assert(E3.barrios[0].tejas === undefined && Array.isArray(E3.marcas), 'sin tejas ni marcas: valores por defecto');
   delete global.localStorage; G.usarCiudad(null); console.log('CN13b: techado, dique, guardar y cargar OK');
 }
+=======
+{ // J3: pueblos satélite de cada capital
+  const s = G.newGame('Pueblos'); G.turnos = false; G.state = s; const c = s.cities.roma;
+  assert(G.esCapital('roma') && c.pueblos.length === D.CITIES.roma.pueblos.length && c.pueblos.every(n => n === 0) && c.pobra === null, 'estado inicial: todo a 0');
+  for (const id in D.CITIES) { const n = D.CITIES[id].pueblos.length; assert(n >= 2 && n <= 4, id + ': 2 a 4 huecos'); assert(s.cities[id].pueblos.length === n); }
+  const ag = D.CITIES.roma.pueblos.indexOf('agricolas'), p0 = G.prod(), cap0 = G.popCap(c), m0 = G.mantenimiento().total;
+  assert(G.puebloOk('roma', ag), 'se puede fundar'); s.res.madera = s.res.piedra = s.res.grano = s.res.oro = 1000; s.alm.madera = s.alm.piedra = s.alm.grano = 1000;
+  const c1 = G.puebloCoste('roma', ag), r0 = s.res.madera + s.alm.madera; assert(G.puebloMejorar('roma', ag), 'se funda'); assert(s.res.madera + s.alm.madera < r0, 'cuesta');
+  assert(!G.puebloMejorar('roma', ag) && !G.puebloOk('roma', ag), 'una obra de pueblo a la vez'); assert(G.pueblosDe('roma')[ag].obra, 'obra en curso');
+  s.pending.length = 0; G.tick(0.01); assert.strictEqual(c.pueblos[ag], 0, 'tarda');
+  s.t = c.pobra.t1; G.tick(0.01); assert.strictEqual(c.pueblos[ag], 1, 'termina en el tick'); assert(c.pobra === null);
+  const c2 = G.puebloCoste('roma', ag), t1 = G.puebloTiempo('roma', ag); assert(c2.madera > c1.madera && t1 > D.PUEBLO_TIPOS.agricolas.time, 'el siguiente nivel cuesta y tarda más');
+  const pp = G.puebloProd('roma'); assert(pp.grano > 0 && pp.madera === 0, 'produce grano'); assert(G.prod().grano > p0.grano, 'G.prod lo suma');
+  assert(G.puebloPop('roma') === D.PUEBLO_TIPOS.agricolas.pop && G.popCap(c) === cap0 + D.PUEBLO_TIPOS.agricolas.pop, 'sube la población máxima');
+  assert(Math.abs(G.mantenimiento().total - m0 - D.MANT_EDIF * 0.5) < 1e-9, 'mantenimiento por nivel');
+  assert(G.pueblosResumen().n === 1 && G.pueblosResumen().niveles === 1);
+  c.pueblos[ag] = D.PUEBLO_MAX; assert(!G.puebloOk('roma', ag) && !G.puebloMejorar('roma', ag), 'no pasa del nivel máximo');
+  // pescadores solo con mar
+  const sinMar = Object.keys(D.CITIES).filter(id => !D.CITIES[id].sea), conMar = Object.keys(D.CITIES).filter(id => D.CITIES[id].sea);
+  assert(sinMar.every(id => D.CITIES[id].pueblos.indexOf('pescadores') < 0), 'ciudades sin costa no tienen pescadores'); assert(conMar.some(id => D.CITIES[id].pueblos.indexOf('pescadores') >= 0));
+  const f0 = D.CITIES.volsinii.pueblos.slice(); D.CITIES.volsinii.pueblos[0] = 'pescadores'; s.cities.volsinii.owner = 'roma'; assert(!G.puebloOk('volsinii', 0), 'pescadores sin mar: no'); D.CITIES.volsinii.pueblos = f0;
+  assert(!G.puebloOk('syracusae', 0), 'ciudad ajena no se funda');
+  const pes = D.CITIES.tarentum.pueblos.indexOf('pescadores'); s.cities.tarentum.owner = 'roma'; s.cities.tarentum.pueblos[pes] = 2; const pt = G.puebloProd('tarentum'); assert(pt.grano > 0 && pt.oro > 0, 'pescadores dan grano y oro');
+  // partida vieja
+  const v = JSON.parse(JSON.stringify(s)); for (const id in v.cities) { delete v.cities[id].pueblos; delete v.cities[id].pobra; } G.migrarPueblos(v);
+  assert(v.cities.roma.pueblos.length === D.CITIES.roma.pueblos.length && v.cities.roma.pueblos.every(n => n === 0) && v.cities.roma.pobra === null, 'migración de partida vieja'); G.state = s; }
+>>>>>>> 96d144f (J3 Capital y pueblos: pueblos de recursos, pesca y agro por ciudad, API, fichas, pruebas y UI mínima)
