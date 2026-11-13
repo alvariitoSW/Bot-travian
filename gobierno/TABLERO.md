@@ -160,7 +160,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ⬜ CN22 **Avisos pequeños que no tapan la pantalla** (P97): los «Cierre de mes» se apilan y tapan la ciudad y el informe de estación ocupa todo. Avisos pequeños que se van solos o se agrupan, y mejor la parte de construir y conseguir recursos, sin tirar lo que hay. Toca `js/ui.js` y `css/`.
 - ⬜ CN23 **Ampliar la muralla: segundo recinto** (P99): los barrios nuevos nacen fuera del surco y quedan de arrabal; permitir ampliar la muralla (no el pomerium). Toca `ciudad.js`, `game.js`, `city3d.js`; CN12 lee la geometría de `E.muralla.geo`.
 - ⬜ CN24 **Empalizada en obra que suba en altura** (P100, pequeña): que la empalizada a medias y la completa se distingan por altura, no solo por tramos. Toca solo `js/gfx/city3d.js`.
-- ⬜ CN25 **Tiempos del juego: el mes pasa sin que hagas nada** (pedido 12/11, respuesta «A» el 13/11): meses y turnos duran demasiado o pasan sin decisiones. Primero medir cuánto dura cada mes y qué se decide en él; luego propuesta concreta antes de tocar `game.js`.
+- ⬜ CN25 **Tiempos del juego: el mes pasa sin que hagas nada** (pedido 12/11, respuesta «A» el 13/11): meses y turnos duran demasiado o pasan sin decisiones. Primero medir cuánto dura cada mes y qué se decide en él; luego propuesta concreta antes de tocar `game.js`. **CN25a medida hecha; falta elegir y CN25b** (informe `gobierno/estudios/CN25-tiempos.md`, parte `partes/2026-11-13-CN25a.md`).
 
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
