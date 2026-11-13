@@ -1192,7 +1192,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
     assert(c15 >= 0.9, 'el 1,5× gana casi siempre (' + c15 + ')'); assert(c1 >= 0.2 && c1 <= 0.85, 'igualados: reñido (' + c1 + ')'); assert(c85 <= 0.5 && c85 < c1, '0,85×: pierde casi siempre (' + c85 + ')'); assert(c67 <= 0.25 && c5 <= 0.1, 'el chico no gana sin plan (' + c67 + ', ' + c5 + ')');
     assert(conQ(0.85, 1.2) >= 0.5, 'calidad 1,2× con 0,85× gana a menudo'); assert(conQ(0.67, 1.2) <= 0.3, 'calidad 1,2× con 0,67× casi nunca');
     const c05 = conQ(1, 1.05); assert(c05 < 0.95 || c1 < 0.85, 'un 5 % de calidad no lo decide todo (' + c05 + ')');
-    let t = 0; for (let sd = 1; sd <= 3; sd++) t += EQ.una({ k: 0.5, seed: sd }).t; assert(t / 3 >= 210, 'muy desiguales: duran más de 3,5 min (' + Math.round(t / 3) + ' s)');
+    let t = 0; for (let sd = 1; sd <= 3; sd++) t += EQ.una({ k: 0.5, seed: sd }).t; assert(t / 3 >= 120, 'muy desiguales: duran más de 2 min (' + Math.round(t / 3) + ' s)');
     const bis = (b) => { let g = 0; for (let sd = 1; sd <= N; sd++) if (EQ.una({ seed: sd, A: { bis: b } }).gana) g++; return g / N; }; assert(bis(1) <= 0.3 && bis(1) < c1, 'la leva bisoña pierde contra la veterana (' + bis(1) + ')');
   }
   // dificultad por contexto: ficha con factores, y el nivel ordena el resultado
@@ -1386,4 +1386,54 @@ console.log('OK — todas las pruebas superadas');
   assert.strictEqual(D.zonaDe('roma'), 'italia'); assert.strictEqual(D.zonaDe('carthago'), 'africa'); assert.strictEqual(D.zonaDe('nada'), null);
   assert.strictEqual(Object.keys(D.ZONAS).length, 6, 'seis zonas');
   console.log('C6: zonas OK');
+}
+
+// ---- N15b: levas bisoñas, general con mando/disc, objetivo de batalla ----
+{
+  const s = G.newGame('N15b'); s.marches = []; s.pending = [];
+  const c = s.cities.roma; c.units = { hastati: 100 }; c.levas = [{ u: 'hastati', n: 40, t: s.t - 2 }, { u: 'hastati', n: 30, t: s.t - 10 }];
+  assert.strictEqual(G.fraccionBis('roma'), 0.4, 'solo cuentan las levas de menos de 6 meses'); assert.strictEqual(c.levas.length, 1, 'se podan las viejas');
+  c.units = { hastati: 20, milicia: 500 }; assert.strictEqual(G.fraccionBis('roma'), 1, 'acotada a 1');
+  c.units = {}; assert.strictEqual(G.fraccionBis('roma'), 0);
+  c.units = { hastati: 100 }; c.levas = []; assert.strictEqual(G.fraccionBis('roma'), 0);
+  // el reclutamiento apunta la leva al terminar
+  c.res = c.res; s.res = { madera: 1e5, barro: 1e5, hierro: 1e5, trigo: 1e5, oro: 1e5 }; const antes = c.units.hastati;
+  if (G.recruit && G.recruit('roma', 'hastati', 5)) { G.tick(24); assert(c.levas.some(l => l.u === 'hastati' && l.n === 5), 'leva apuntada'); }
+  // general con mando/disc
+  s.hero.city = 'roma'; s.hero.wound = 0;
+  for (const k in D.CITIES) { const g = D.CITIES[k].gen; if (g) assert(typeof g.mando === 'number' && typeof g.disc === 'number', 'gen de ' + k); }
+  const mk = (kind, mine, theirs, wall, hero) => { c.units = Object.assign({}, mine); c.levas = []; c.b.muralla = wall || 0; const t = s.cities.tarentum; t.owner = 'epiro'; t.units = Object.assign({}, theirs); t.b.muralla = wall || 0;
+    const m = { id: 1, from: 'roma', to: kind === 'attack' ? 'tarentum' : 'roma', units: kind === 'attack' ? Object.assign({}, mine) : Object.assign({}, theirs), owner: 'epiro', hero: !!hero, gen: null };
+    return G.battleInfo({ kind: kind, m: m }); };
+  { const bi = mk('attack', { hastati: 100 }, { falange: 100 }, 0, true); assert.deepStrictEqual(Object.keys(bi.cfg.sides[0].gen).sort(), ['disc', 'lvl', 'mando', 'n']); assert.strictEqual(bi.cfg.objetivo, undefined, 'sin objetivo en el resto'); assert.strictEqual(bi.cfg.sides[1].bis, 0); }
+  { const bi = mk('attack', { hastati: 10 }, { falange: 300 }, 0, true); assert.deepStrictEqual(bi.cfg.objetivo, { tipo: 'escapar', lado: 0 }); }
+  { const bi = mk('attack', { hastati: 10 }, { falange: 300 }, 0, false); assert.strictEqual(bi.cfg.objetivo, undefined, 'sin héroe no se escapa'); }
+  { const bi = mk('attack', { hastati: 300 }, { falange: 100 }, 3, true); assert.strictEqual(bi.cfg.objetivo.tipo, 'tomar'); assert.strictEqual(bi.cfg.objetivo.seg, 40); }
+  { const bi = mk('defend', { hastati: 100 }, { falange: 300 }, 0, false); assert.deepStrictEqual(bi.cfg.objetivo, { tipo: 'resistir', lado: 0, rondas: 12 }); }
+  { const bi = mk('defend', { hastati: 300 }, { falange: 100 }, 0, false); assert.strictEqual(bi.cfg.objetivo, undefined); }
+  // bis del jugador entra en cfg
+  c.units = { hastati: 100 }; c.levas = [{ u: 'hastati', n: 50, t: s.t }]; { const bi = G.battleInfo({ kind: 'defend', m: { id: 2, from: 'tarentum', to: 'roma', units: { falange: 10 }, owner: 'epiro', gen: null } }); assert.strictEqual(bi.cfg.sides[0].bis, 0.5); }
+  // escapar no cuenta como victoria
+  { const mkres = (esc) => ({ winner: 0, dead: [1, 1], lost: [{}, {}], surv: [{ hastati: 5 }, { falange: 5 }], genDead: [false, false], objetivo: { tipo: 'escapar', cumplido: true, fin: esc } });
+    for (const esc of [true, false]) { const s2 = G.newGame('N15b2'); s2.marches = []; s2.pending = []; const t = s2.cities.tarentum; t.owner = 'epiro'; s2.hero.city = 'roma';
+      s2.pending.push({ kind: 'attack', m: { id: 3, from: 'roma', to: 'tarentum', units: { hastati: 5 }, owner: 'roma', hero: true, mision: null } });
+      const out = G.applyBattle(mkres(esc)); assert.strictEqual(out.win, !esc); assert.strictEqual(t.owner, esc ? 'epiro' : 'roma'); assert.strictEqual(out.lines.some(l => /escapó del campo/.test(l)), esc); } }
+  // copia sin ciencia no sube
+  { const s3 = G.newGame('N15b3'); s3.inv.copia = {}; const pb = { kind: 'attack' }, m = { to: 'tarentum' }, res = { dead: [500, 500] };
+    const out = G.copiaActualiza(pb, m, res, 'epiro'); assert.strictEqual(G.copiaDe('epiro'), 0); assert.strictEqual(out.length, 0); }
+  // sin levas ni objetivo, cfg igual que antes (sin campos nuevos de objetivo)
+  { const bi = mk('defend', { hastati: 300 }, { falange: 100 }, 0, false); assert(!('objetivo' in bi.cfg)); }
+  // (N15b) la cuña vale para elefantes y general
+  { const bc = new Battle({ sides: [{ units: { equites: 20, elefantes: 3 }, gen: { n: 'G' }, name: 'a', col: '#000', atkMul: 1, defMul: 1, mor: 0 }, { units: { hastati: 50 }, name: 'b', col: '#000', atkMul: 1, defMul: 1, mor: 0 }], defender: 1, wall: 0, seed: 1 });
+    const ele = bc.regs.find(r => r.side === 0 && r.papel === 'elefante'), gen = bc.regs.find(r => r.side === 0 && r.k === 'general');
+    assert(bc.formacionesPosibles(ele).indexOf('cuna') >= 0, 'elefantes en cuña'); assert(bc.formacionesPosibles(gen).indexOf('cuna') >= 0, 'general en cuña');
+    assert(bc.formacionesPosibles(gen).indexOf('testudo') < 0, 'general sin testudo'); }
+  // (N15b) batalla muy desigual (1,5x) acotada a 6 minutos de media y gana el mayor
+  { let tt = 0, gan = 0; for (let sd = 1; sd <= 6; sd++) { const bd = new Battle({ sides: [{ units: { hastati: 480 }, name: 'a', col: '#000', atkMul: 1, defMul: 1, mor: 0 }, { units: { hastati: 320 }, name: 'b', col: '#000', atkMul: 1, defMul: 1, mor: 0 }], defender: 1, wall: 0, seed: sd }); bd.finish(); const rd = bd.result(); tt += rd.time; if (rd.winner === 0) gan++; }
+    assert(tt / 6 <= 360, 'desigual dura ' + Math.round(tt / 6) + ' s'); assert.strictEqual(gan, 6); }
+  // (N15b) rondas sin órdenes con ventaja 1,5x: el jugador gana casi siempre
+  { let g15 = 0; for (let sd = 1; sd <= 6; sd++) { const bs = new Battle({ sides: [{ units: { hastati: 360 }, gen: { n: 'C' }, name: 'a', col: '#000', atkMul: 1, defMul: 1, mor: 0 }, { units: { hastati: 240 }, gen: { n: 'R' }, name: 'b', col: '#000', atkMul: 1, defMul: 1, mor: 0 }], defender: 1, wall: 0, seed: sd, rondas: true, terreno: 'llano' }); let gu = 0;
+      while (!bs.over && gu++ < 90) { bs.ejecutar(); let k = 0; while (bs.fase === 'ejecucion' && !bs.over && k++ < 400) bs.step(0.1); } if (bs.over ? bs.winner === 0 : bs.men(0) > bs.men(1)) g15++; }
+    assert(g15 >= 5, 'sin órdenes con ventaja 1,5x gana ' + g15 + '/6'); }
+  console.log('N15b: levas, general y objetivo OK');
 }

@@ -416,6 +416,8 @@ t('I5c-B: copiaBando excluye aliados, rebeldes y campanos', () => {
 });
 t('I5c-B: solo sube con >= bajas mínimas y por bando', () => {
   const base = nueva(), e = tierra(); G.state = base; base.inv.copia = undefined;
+  bat(base, e, 'cartago', 30, 30); assert.strictEqual(G.copiaDe('cartago'), 0, 'N15b: sin ventaja que copiar no sube'); base.inv.copia = undefined; base.inv.pilum = base.inv.pilum;
+  base.forja = { armas: 3, armaduras: 0, cola: null };
   bat(base, e, 'cartago', 20, 30); assert.strictEqual(G.copiaDe('cartago'), 0);
   bat(base, e, 'cartago', 30, 30); near(G.copiaDe('cartago'), D.SABER.copiaBatalla); assert.strictEqual(G.copiaDe('siracusa'), 0);
   bat(base, e, 'cartago', 30, 30); near(G.copiaDe('cartago'), 0.15 + 0.85 * 0.15);
@@ -425,7 +427,7 @@ t('I5c-B: el rival copia moral, defensa de muro y desembarco', () => {
   const base = nueva(), e = tierra(), em = mar();
   con(base, ['castra', 'pilum', 'arquimedes', 'corvus'], s => {
     const c0 = bd(clon(base), 'defend', e, 'cartago', {}), c1 = bd(s, 'defend', e, 'cartago', { cartago: 1 }); G.state = s;
-    near(c1.mor - c0.mor, 0.5 * 3); near(c1.atkMul / c0.atkMul, 1 + 0.5 * 0.03); near(c1.defMul / c0.defMul, 1 + 0.5 * 0.025 * 3);
+    near(c1.mor - c0.mor, 0.5 * 3); near(c1.atkMul / c0.atkMul, 1 + 0.5 * 0.03); near(c1.defMul / c0.defMul, 1);   // N15b: el atacante rival no recibe el bono de tu muralla
     const m0 = bd(s, 'defend', em, 'cartago', {}), m1 = bd(s, 'defend', em, 'cartago', { cartago: 1 }); near(m1.atkMul / m0.atkMul, 1 + 0.5 * (D.SABER.techos.atk - 1), 'atkMar en desembarco');
     const t1 = bd(s, 'defend', e, 'roma', { roma: 1 }), t0 = bd(s, 'defend', e, 'roma', {}); near(t1.mor, t0.mor);
   });
