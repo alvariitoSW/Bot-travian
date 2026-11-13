@@ -608,9 +608,9 @@ export class BattleView3D {
     }
     return out;
   }
-  focus(r) { this.suelta(); const w = this.toW(r.x, r.y); this.c.x = w[0]; this.c.z = w[1]; this.intro = 1; }
+  focus(r) { this.manual = true; this.suelta(); const w = this.toW(r.x, r.y); this.c.x = w[0]; this.c.z = w[1]; this.intro = 1; }
   updateOverlay() {
-    const v = new THREE.Vector3(), W = this.host.clientWidth, H = this.host.clientHeight;
+    const v = new THREE.Vector3(), W = this.host.clientWidth, H = this.host.clientHeight, vis = [];
     if (this.flags.scrollLeft || this.flags.scrollTop) { this.flags.scrollLeft = 0; this.flags.scrollTop = 0; }
     for (const R of this.R) {
       const r = R.r, ok = r.st === 'ok';
@@ -621,10 +621,18 @@ export class BattleView3D {
       if (!ok && R.n) { x = R.fx[0]; z = R.fz[0]; }
       v.set(x, this.h(x, z) + (r.u.cls === 'ele' ? 8 : r.u.cls === 'cav' || r.u.cls === 'gen' ? 5 : 4), z).project(this.cam);
       if (v.z > 1 || v.x < -1.1 || v.x > 1.1 || v.y < -1.1 || v.y > 1.1) { R.el.style.display = 'none'; continue; }
-      R.el.style.display = ''; R.el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * H).toFixed(1) + 'px) translate(-50%,-100%)';
+      R.el.style.display = ''; R.sx = (v.x + 1) / 2 * W; R.sy = (1 - v.y) / 2 * H; vis.push(R);
       R.el.classList.toggle('sel', this.sel.has(r)); R.el.classList.toggle('rout', !ok); R.el.classList.toggle('bis', ok && !!(this.b.esBisono ? this.b.esBisono(r) : r.bis));
       { const e = estadoReg(r), cl = R.el.classList; cl.toggle('m1', e.moral === 1); cl.toggle('m2', e.moral === 2); cl.toggle('m3', e.moral === 3); cl.toggle('f1', ok && e.cans === 1); cl.toggle('f2', ok && e.cans === 2); }
       R.bar.style.width = (r.men / r.max * 100) + '%'; R.bar.style.background = r.mor / r.morMax > 0.5 ? '#7ddc5a' : r.mor / r.morMax > 0.25 ? '#f0c040' : '#e8503a';
+    }
+    // R5: los estandartes que se pisan se separan en vertical (el de más abajo en pantalla se queda; los demás suben)
+    const fw = this.flagW || (this.flagW = (vis[0] && vis[0].el.offsetWidth) || 32), fh = this.flagH || (this.flagH = (vis[0] && vis[0].el.offsetHeight) || 28), paso = fh * 0.75, puestos = [];
+    vis.sort((p, q) => q.sy - p.sy);
+    for (const R of vis) {
+      let y = R.sy;
+      for (let k = 0; k < 3; k++) { const c = puestos.find(q => Math.abs(q.x - R.sx) < fw * 0.9 && Math.abs(q.y - y) < paso); if (!c) break; y = c.y - paso; }
+      puestos.push({ x: R.sx, y }); R.el.style.transform = 'translate(' + R.sx.toFixed(1) + 'px,' + y.toFixed(1) + 'px) translate(-50%,-100%)';
     }
   }
 
@@ -649,7 +657,7 @@ export class BattleView3D {
   }
   selectAll() { const all = this.b.regs.filter(r => r.side === 0 && r.st === 'ok'); if (this.sel.size >= all.length) this.sel.clear(); else all.forEach(r => this.sel.add(r)); }
   cycleCam() {
-    this.camMode = ((this.camMode || 0) + 1) % 4; this.intro = 1; const c = this.c; this.seg.ch = null; this.seg.t = 0; this.seg.tCambio = -9;
+    this.camMode = ((this.camMode || 0) + 1) % 4; this.manual = false; this.intro = 1; const c = this.c; this.seg.ch = null; this.seg.t = 0; this.seg.tCambio = -9;
     if (this.camMode === 0) { c.dist = 120; c.pitch = 0.5; c.yaw = 0; }
     else if (this.camMode === 1) { c.dist = Math.min(330, 230 + Math.max(0, this.hw - 75) * 0.5); c.pitch = 1.25; c.yaw = 0; c.x = 0; c.z = 0; }
     else if (this.camMode === 3) { c.dist = 140; c.pitch = 0.7; c.yaw = 0; }   // N8b «Seguir»: placeCam la mueve sola en la ejecución
@@ -872,12 +880,12 @@ export class BattleView3D {
     sel.forEach(r => { r.order = { k: 'move', x: Math.max(20, Math.min(this.b.W - 20, x + (r.x - cx))), y: Math.max(20, Math.min(this.b.H - 20, y + (r.y - cy))) }; r.tgt = null; });
     const w = this.toW(x, y); this.marker.position.set(w[0], this.h(w[0], w[1]) + 0.15, w[1]); this.marker.visible = true; this.markT = this.t; return true;
   }
-  centrarEn(x, y) { this.suelta(); const w = this.toW(x, y); this.c.x = w[0]; this.c.z = w[1]; this.intro = 1; this.clampCam(); }
+  centrarEn(x, y) { this.manual = true; this.suelta(); const w = this.toW(x, y); this.c.x = w[0]; this.c.z = w[1]; this.intro = 1; this.clampCam(); }
 
   /* ---------- cámara y gestos ---------- */
   bind() {
     const P = new Map(); let st = null; const cv = this.cv;
-    this.onDown = e => { cv.setPointerCapture(e.pointerId); P.set(e.pointerId, [e.clientX, e.clientY]); this.dragging = true; this.vel = null; this.suelta(); if (P.size === 1) st = { x: e.clientX, y: e.clientY, mv: 0, t: performance.now(), rot: e.button === 2 || e.shiftKey }; else if (st) { st.mv = 99; st.d = 0; } this.intro = 1;
+    this.onDown = e => { this.manual = true; cv.setPointerCapture(e.pointerId); P.set(e.pointerId, [e.clientX, e.clientY]); this.dragging = true; this.vel = null; this.suelta(); if (P.size === 1) st = { x: e.clientX, y: e.clientY, mv: 0, t: performance.now(), rot: e.button === 2 || e.shiftKey }; else if (st) { st.mv = 99; st.d = 0; } this.intro = 1;
       // despliegue: si el dedo cae sobre un regimiento propio, se arrastra él y no la cámara
       if (st && P.size === 1) {
         let dr = this.dragReg; this.dragReg = null; const g = this.pick(e.clientX, e.clientY);
@@ -923,7 +931,7 @@ export class BattleView3D {
       if (st && st.mv < 10 && performance.now() - st.t < 500 && e.type === 'pointerup' && !P.size) { const g = this.pick(e.clientX, e.clientY); if (g) this.tapField(g[0] / S + this.b.W / 2, g[1] / S + this.b.H / 2); }
       if (!P.size) st = null; else if (st) st.d = 0;
     };
-    this.onWheel = e => { this.suelta(); this.c.dist *= e.deltaY > 0 ? 1.1 : 0.9; this.intro = 1; this.clampCam(); e.preventDefault(); };
+    this.onWheel = e => { this.manual = true; this.suelta(); this.c.dist *= e.deltaY > 0 ? 1.1 : 0.9; this.intro = 1; this.clampCam(); e.preventDefault(); };
     this.onCtx = e => e.preventDefault();
     cv.addEventListener('pointerdown', this.onDown); cv.addEventListener('pointermove', this.onMove); cv.addEventListener('pointerup', this.onUp); cv.addEventListener('pointercancel', this.onUp);
     cv.addEventListener('wheel', this.onWheel, { passive: false }); cv.addEventListener('contextmenu', this.onCtx);
@@ -967,10 +975,22 @@ export class BattleView3D {
     }
     for (const f of b.fx) if (!this.fxSon.has(f)) { this.fxSon.add(f); So.jabalina(vc(f.x0, f.y0)); }
   }
+  // R5: la vista alta encuadra el ancho que ocupan los dos ejércitos (con margen) y se acerca según se juntan; si el jugador mueve la cámara, deja de hacerlo
+  encuadra(dt) {
+    const c = this.c, X = [], Z = [];
+    for (const r of this.b.regs) { if (r.st !== 'ok') continue; const w = this.toW(r.x, r.y); X.push(w[0]); Z.push(w[1]); }
+    if (!X.length) return;
+    X.sort((p, q) => p - q); Z.sort((p, q) => p - q); const e = X.length >= 12 ? 1 : 0, n = X.length - 1;   // se ignora el regimiento más suelto de cada borde
+    const x0 = X[e], x1 = X[n - e], z0 = Z[e], z1 = Z[n - e];
+    const tf = Math.tan(this.cam.fov * Math.PI / 180 / 2), asp = this.cam.aspect || 2, bw = (x1 - x0) / 2 + 34, bh = ((z1 - z0) / 2 + 30) / 0.8;   // 0,8: lo que dejan libre la barra de arriba y las tarjetas
+    const d = Math.max(90, Math.min(270, Math.max(bw / (tf * asp), bh * Math.sin(c.pitch) / tf))), k = Math.min(1, dt * 2.2);
+    c.dist += (d - c.dist) * k; c.x += ((x0 + x1) / 2 - c.x) * k; c.z += ((z0 + z1) / 2 + this.halfD * 0.1 - c.z) * k;
+  }
   placeCam(dt) {
     const c = this.c; let dist = c.dist, pitch = c.pitch, yaw = c.yaw;
     if (this.vel && !this.dragging) { c.x += this.vel[0] * dt; c.z += this.vel[1] * dt; const f = Math.exp(-dt * 5); this.vel[0] *= f; this.vel[1] *= f; if (Math.abs(this.vel[0]) + Math.abs(this.vel[1]) < 0.3) this.vel = null; this.clampCam(); }   // inercia al soltar
     if (this.intro < 1) { this.intro = Math.min(1, this.intro + dt / 3.2); const k = 1 - Math.pow(1 - this.intro, 3); dist = 300 + (c.dist - 300) * k; pitch = 1.0 + (c.pitch - 1.0) * k; yaw = c.yaw + (1 - k) * 0.9; }
+    if (this.camMode === 1 && !this.manual && this.intro >= 1) { this.encuadra(dt); dist = c.dist; }
     const cp = Math.cos(pitch), ty = this.h(c.x, c.z) + 1.5;
     this.cam.position.set(c.x + Math.sin(yaw) * cp * dist, ty + Math.sin(pitch) * dist, c.z + Math.cos(yaw) * cp * dist);
     const gy = this.h(this.cam.position.x, this.cam.position.z) + 2; if (this.cam.position.y < gy) this.cam.position.y = gy;

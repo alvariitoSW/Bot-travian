@@ -177,7 +177,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ✅ R2 (13/11) **Consejo de tribunos y pantalla limpia** (≈1,8 M, tras R1): gestos de `iaRonda0` sacados a una función por bando; `Battle.prototype.consejo()` (hasta 3 opciones de tipos distintos: nombre del tribuno prudente/agresivo/astuto, título, motivo, etiqueta Favorable/Dudoso/Arriesgado, órdenes) y `aplicarConsejo(i)`; en `filaRonda` tres tarjetas, «A mano» y «Ver la ronda». El enemigo no cambia (misma semilla, mismo resultado). No toca `js/gfx/`.
 - ⬜ R3 **El reloj se para con motivo** (≈0,5 M, tras I8): propuesta A de `gobierno/estudios/CN25-tiempos.md` con pausas **todas** por defecto; ajuste «todas / solo graves / ninguna» en Ajustes; migrar en `G.load`. Sustituye a CN25b.
 - ⬜ R4 **Avisos de una frase** (≈0,3 M): cada texto de `js/asesor.js` y del consejo de `ui.js` en una frase de ≤80 caracteres y una acción; si hay dos avisos, el más urgente. Lista de textos antes y después.
-- ⬜ R5 **Batalla más cerca** (≈0,3 M): la cámara de inicio encuadra el ancho de los dos ejércitos; estandartes que se pisan, separados en vertical. Sin tocar el motor. Capturas antes y después a 844×390.
+- ✅ R5 **Batalla más cerca** (≈0,3 M): la cámara de inicio encuadra el ancho de los dos ejércitos; estandartes que se pisan, separados en vertical. Sin tocar el motor. Capturas antes y después a 844×390. Hecha (13/11): la vista alta encuadra los dos ejércitos (nunca más lejos que antes) y los estandartes que se pisan suben en vertical. Parte R5.
 
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
