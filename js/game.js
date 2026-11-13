@@ -790,7 +790,7 @@
     s.evN = D.EVENTS.length; s.evV = EV_VERSION; D.anio = D.START_YEAR;
     if (s.cities.roma) for (const k in D.LEVA_INICIAL) s.cities.roma.units[k] = (s.cities.roma.units[k] || 0) + D.LEVA_INICIAL[k];   // H13b: preparación inicial (licencia de juego)
     checkEvents(D.START_YEAR);
-    G.migrarSenado(s); G.migrarInv(s); G.migrarDeuda(s); G.migrarColonias(s); G.migrarAjustes(s); G.senadoAsignar();
+    G.migrarSenado(s); G.migrarInv(s); G.migrarDeuda(s); G.migrarColonias(s); G.migrarAjustes(s); G.migrarTribunos(s); G.senadoAsignar();
     if (inicioId === 'fundar') { s.hero.city = null; s.colonias[D.MODOS[modoId].inicio.fundar.sitio] = { estado: 'pendiente', desde: null }; }   // colonos «ya llegados»: la pantalla llama a G.fundarColonia
     return s;
   };
@@ -802,13 +802,18 @@
   G.migrarAjustes = function (s) {
     if (!s.ajustes || typeof s.ajustes !== 'object') s.ajustes = { dif: 'normal', suc: { crecida: true, fuego: true, hambre: true }, asesor: false, vistos: [], hist: [], v: 0 };
     const a = s.ajustes; if (!Object.hasOwn(D.DIFICULTAD, a.dif)) a.dif = 'normal'; a.suc = Object.assign({ crecida: true, fuego: true, hambre: true }, a.suc || {});
-    if (typeof a.asesor !== 'boolean') a.asesor = false; if (!Array.isArray(a.vistos)) a.vistos = []; if (!Array.isArray(a.hist)) a.hist = []; if (!(a.v >= 0)) a.v = 0; G.migrarPausas(s);
+    if (typeof a.asesor !== 'boolean') a.asesor = false; if (!Array.isArray(a.vistos)) a.vistos = []; if (!Array.isArray(a.hist)) a.hist = []; if (!(a.v >= 0)) a.v = 0; G.migrarPausas(s); G.migrarBatalla(s);
   };
   /* R3: pausas del reloj. 'todas' (por defecto) | 'graves' (ataque en camino y misión fallida) | 'ninguna'.
      G.parar avisa a la pantalla (evento 'parar' con motivo); la pantalla pone la velocidad a 0. Sin pantalla (pruebas) no hace nada. */
   const PAUSAS = ['todas', 'graves', 'ninguna'];
   G.PAUSAS = PAUSAS;
   G.migrarPausas = function (s) { const a = s && s.ajustes; if (a && !PAUSAS.includes(a.pausas)) a.pausas = 'todas'; };
+  /* NB7: motor de batalla. 'nueva' (maniobra + choque, por defecto) | 'clasica' (js/battle.js). */
+  const BATALLAS = ['nueva', 'clasica'];
+  G.BATALLAS = BATALLAS;
+  G.migrarBatalla = function (s) { const a = s && s.ajustes; if (a && !BATALLAS.includes(a.batalla)) a.batalla = 'nueva'; };
+  G.batalla = () => { const s = G.state, a = s && s.ajustes; return a && BATALLAS.includes(a.batalla) ? a.batalla : 'nueva'; };
   G.pausas = () => { const s = G.state, a = s && s.ajustes; return a && PAUSAS.includes(a.pausas) ? a.pausas : 'todas'; };
   G.parar = function (motivo, grave) {
     const m = G.pausas(); if (m === 'ninguna' || (m === 'graves' && !grave)) return false;
@@ -822,6 +827,7 @@
     if (p.suc !== undefined && !sucOk(p.suc)) return { ok: false, motivo: 'Sucesos no válidos.' };
     if (p.asesor !== undefined && typeof p.asesor !== 'boolean') return { ok: false, motivo: 'El asesor es sí o no.' };
     if (p.pausas !== undefined && !PAUSAS.includes(p.pausas)) return { ok: false, motivo: 'Pausas no válidas.' };
+    if (p.batalla !== undefined && !BATALLAS.includes(p.batalla)) return { ok: false, motivo: 'Motor de batalla no válido.' };
     const dif = p.dif !== undefined ? p.dif : a.dif, suc = Object.assign({}, a.suc, p.suc || {}), cambia = dif !== a.dif || SUC_CLAVES.some(k => suc[k] !== a.suc[k]);
     if (cambia) {   // vale desde el mes siguiente; el pasado no cambia
       const k = mesAlin() + 1, e = [k, { dif, suc: Object.assign({}, suc) }], i = a.hist.findIndex(h => h[0] === k);
@@ -830,6 +836,7 @@
     }
     if (p.asesor !== undefined) a.asesor = p.asesor;
     if (p.pausas !== undefined) a.pausas = p.pausas;
+    if (p.batalla !== undefined) a.batalla = p.batalla;
     if (cambia || p.asesor !== undefined) a.v++;
     return { ok: true, motivo: '' };
   };
@@ -916,7 +923,7 @@
     const o = {}; for (const r of D.RES) o[r] = Math.max(0, Math.round(b * (r === 'oro' ? 0.6 : 1))); return o;
   };
   G.send = function (from, to, units, withHero, mision) {
-    const s = G.state, c = s.cities[from];
+    const s = G.state, c = s.cities[from]; G.sendMotivo = '';
     if (!c || c.owner !== 'roma' || !s.cities[to] || !G.edge(from, to)) return false;
     if (G.edge(from, to)[2] && !(c.b.puerto > 0)) return false;       // por mar hace falta un puerto
     const u = {}; let n = 0;
@@ -924,9 +931,11 @@
     if (withHero && !G.heroAvailable(from)) withHero = false;
     const own = s.cities[to].owner === 'roma';
     if (n === 0 && !(withHero && own)) return false;
+    let tr = null; if (!withHero) { tr = G.tribunoLibre(); if (!tr) { G.sendMotivo = 'Todos tus tribunos mandan ya un ejército. Espera a que vuelva alguno o a que el Senado nombre otro.'; return false; } }   // NB7: cada ejército sin el César necesita un tribuno al mando
     for (const k in u) { c.units[k] -= u[k]; if (c.units[k] <= 0) delete c.units[k]; }
     const m = { id: s.mid++, owner: 'roma', from: from, to: to, units: u, hero: !!withHero, t0: s.t, t1: llegada(s.t + G.travel(from, to, withHero)) };
     if (mision === 'saqueo' && !own) m.mision = 'saqueo';
+    if (tr) m.tribuno = tr.id;
     if (withHero) { s.hero.city = null; s.hero.march = m.id; }
     s.marches.push(m);
     G.rutasRevisar();
@@ -1402,6 +1411,7 @@
         foe.atkMul *= 1 + q * (V.atk - 1); foe.defMul *= 1 + q * (V.def - 1); foe.mor += q * V.mor;
       }
     }
+    if (pb.kind === 'attack' && !heroIn && m.tribuno != null) { const t = (s.tribunos || []).find(x => x.id === m.tribuno); if (t) me.tribuno = { id: t.id, n: t.n, car: t.car }; }   // NB7: el tribuno que manda este ejército
     {   // N15b: levas bisoñas del jugador y objetivo de batalla
       const oc = pb.kind === 'attack' ? m.from : cid; me.bis = G.fraccionBis(oc); foe.bis = 0;
     }
@@ -1485,15 +1495,166 @@
       out.lines.push('🦅 ' + h.name + ' gana experiencia' + (h.lvl > before ? ' y sube al nivel ' + h.lvl + '.' : '.'));
       if (res.genDead[0] && !esc) { const mw = Math.max(6, 24 + G.invSum('herida')); h.wound = s.t + mw; out.lines.push('🩸 ' + h.name + ' ha sido herido: ' + mw + ' meses de convalecencia.'); G.log('🩸 ' + h.name + ' cae herido en combate.', 'bad'); }
     }
+    if (res.nueva) {   // NB7: prisioneros, triunfo y el tribuno que mandaba
+      if (win && res.prisioneros > 0) { const oro = res.prisioneros * 3; s.res.oro += oro; out.lines.push('⛓️ ' + res.prisioneros + ' prisioneros: se venden como esclavos o se piden en rescate (+' + oro + ' de oro).'); }
+      if (win && res.dead[1] >= 200 && res.dead[0] * 3 < res.dead[1]) { G.favorAplica(4, 6); out.triunfo = true; out.lines.push('🎺 ¡Gran victoria! Roma pide un triunfo: sube el favor del Senado y del pueblo.'); }
+    }
+    if (m.tribuno != null && s.tribunos) {
+      const i = s.tribunos.findIndex(t => t.id === m.tribuno);
+      if (i >= 0 && res.tribunoMuerto) { out.lines.push('💀 El tribuno ' + s.tribunos[i].n + ' ha caído al mando del ejército.'); G.log('💀 Muere el tribuno ' + s.tribunos[i].n + '.', 'bad'); s.tribunos.splice(i, 1); out.tribunoMuerto = true; }
+    }
+    if (win && pb.kind === 'attack' && res.nueva && s.stats.wins % NB.TRIB_VICT === 0) { const t = G.nombrarTribuno('ascenso'); if (t) out.lines.push('🦅 ' + t.n + ', centurión veterano, asciende a tribuno.'); }
     G.save();
     if (s.over) emit('over');
     return out;
   };
 
+  /* ---------- NB7: batalla nueva (maniobra + choque) conectada con la campaña, y tribunos-generales ----------
+     Tú eres el César. Cada ejército que no lleva al héroe necesita un tribuno al mando (s.tribunos), así que hay un máximo de
+     ejércitos a la vez. Un tribuno nuevo lo nombra el Senado con favor alto o asciende de un regimiento veterano tras varias victorias;
+     si cae en el choque, se pierde. La lógica de aquí corre en Node: la pantalla (ui.js) solo enlaza UIManiobra y UIBatalla2 con estas funciones. */
+  const NB = { MANIOBRA: 600, TRIPLE: 3, TRIB_MAX: 8, TRIB_FAVOR: 65, TRIB_MESES: 12, TRIB_VICT: 4 };
+  G.NB = NB;
+  const TRIB_INI = [['Quinto Fabio', 'prudente'], ['Marco Claudio', 'agresivo'], ['Cayo Lelio', 'astuto'], ['Publio Cornelio', 'agresivo']];
+  const TRIB_NOM = ['Lucio Emilio', 'Tito Manlio', 'Gneo Servilio', 'Aulo Atilio', 'Marco Minucio', 'Sexto Julio', 'Cayo Flaminio', 'Quinto Cecilio', 'Publio Sulpicio', 'Lucio Postumio'], TRIB_CAR = ['prudente', 'agresivo', 'astuto'];
+  const BAT = () => root.Battle || (typeof require !== 'undefined' ? require('./battle.js').Battle : null);
+  const B2 = () => root.Batalla2 || (typeof require !== 'undefined' ? require('./batalla2.js') : null);
+  const MAN = () => root.Maniobra || (typeof require !== 'undefined' ? require('./maniobra.js') : null);
+  G.migrarTribunos = function (s) {
+    if (!s) return;
+    if (!Array.isArray(s.tribunos)) { s.tribunos = TRIB_INI.map((x, i) => ({ id: i + 1, n: x[0], car: x[1], vet: 0 })); s.tribSeq = TRIB_INI.length + 1; s.tribNom = Math.floor(s.t || 0); }
+    if (!(s.tribSeq > 0)) s.tribSeq = s.tribunos.reduce((a, t) => Math.max(a, t.id), 0) + 1; if (s.tribNom === undefined) s.tribNom = Math.floor(s.t || 0);
+    const ocu = new Set((s.marches || []).concat((s.pending || []).map(p => p.m)).filter(m => m && m.tribuno != null).map(m => m.tribuno));
+    for (const m of s.marches || []) if (m.owner === 'roma' && !m.hero && !m.colonos && m.tribuno == null) { const t = s.tribunos.find(x => !ocu.has(x.id)); if (t) { m.tribuno = t.id; ocu.add(t.id); } }   // partida vieja: marchas en curso
+  };
+  // los tribunos con su estado: libre (puede mandar un ejército) u ocupado
+  G.tribunos = function () {
+    const s = G.state; G.migrarTribunos(s); const ocu = new Set((s.marches || []).concat((s.pending || []).map(p => p.m)).filter(m => m && m.tribuno != null).map(m => m.tribuno));
+    return s.tribunos.map(t => Object.assign({}, t, { libre: !ocu.has(t.id) }));
+  };
+  G.tribunoLibre = () => G.tribunos().find(t => t.libre) || null;
+  G.maxEjercitos = () => { const s = G.state; G.migrarTribunos(s); return s.tribunos.length + 1; };   // los tribunos más el César con el héroe
+  G.nombrarTribuno = function (motivo) {
+    const s = G.state; G.migrarTribunos(s); if (s.tribunos.length >= NB.TRIB_MAX) return null;
+    const id = s.tribSeq++, t = { id, n: TRIB_NOM[(id - 1) % TRIB_NOM.length], car: TRIB_CAR[(id - 1) % 3], vet: motivo === 'ascenso' ? 1 : 0 };
+    s.tribunos.push(t); s.tribNom = Math.floor(s.t + 1e-9);
+    G.log(motivo === 'ascenso' ? '🦅 ' + t.n + ', centurión veterano, asciende a tribuno (' + t.car + ').' : '🏛️ El Senado nombra tribuno a ' + t.n + ' (' + t.car + ').', 'good');
+    return t;
+  };
+  // cada cierre de mes (desde senadoMes): con favor alto del Senado y pasado un año desde el último nombramiento, llega un tribuno
+  G.tribunosMes = function () {
+    const s = G.state; G.migrarTribunos(s);
+    if (s.favor && s.favor.senado >= NB.TRIB_FAVOR && s.tribunos.length < NB.TRIB_MAX && Math.floor(s.t + 1e-9) - s.tribNom >= NB.TRIB_MESES) G.nombrarTribuno('senado');
+  };
+
+  const hombres = u => { let n = 0; for (const k in u) n += u[k]; return n; };
+  // cómo se resuelve esta batalla: 'clasica' | 'sola' (un bando triplica al otro) | 'maniobra' (más de 600 hombres) | 'directo' (escaramuza: al choque)
+  G.planBatalla = function (info) {
+    const sd = info.cfg.sides, a = hombres(sd[0].units), b = hombres(sd[1].units);
+    if (G.batalla() === 'clasica') return { modo: 'clasica', via: 'clasica', a, b };
+    if (Math.min(a, b) * NB.TRIPLE <= Math.max(a, b)) return { modo: 'nueva', via: 'sola', a, b, texto: a > b ? 'Tu ejército triplica al enemigo: la batalla se resuelve sola.' : 'El enemigo triplica a tu ejército: la batalla se resuelve sola.' };
+    return { modo: 'nueva', via: a + b > NB.MANIOBRA ? 'maniobra' : 'directo', a, b };
+  };
+  const carEnem = cfg => { const Bt = BAT(); let c = 'equilibrado'; try { if (Bt) c = Bt.caracterDe(cfg); } catch (e) { /* sin carácter */ } return ['equilibrado', 'astuto', 'impetuoso', 'prudente'].includes(c) ? c : 'equilibrado'; };
+  const PLAN_CAR = { equilibrado: 'centro', astuto: 'emboscar', impetuoso: 'centro', prudente: 'cerro' };
+  // cfg de Maniobra.crear: una legión por bando (dos si pasa de 800 hombres)
+  G.cfgManiobra = function (info) {
+    const sd = info.cfg.sides, car = carEnem(info.cfg);
+    const legs = (u, nom) => { const n = hombres(u) >= 800 ? 2 : 1, r = []; for (let i = 0; i < n; i++) { const x = {}; for (const k in u) { const q = n === 1 ? u[k] : (i === 0 ? Math.floor(u[k] / 2) : u[k] - Math.floor(u[k] / 2)); if (q > 0) x[k] = q; } if (hombres(x)) r.push({ nombre: n === 1 ? nom : nom + ' ' + ['I', 'II'][i], units: x }); } return r; };
+    return { ciudad: info.city, semilla: info.cfg.seed, defensor: info.cfg.defender, bandos: [{ nombre: sd[0].name, car: 'equilibrado', plan: 'centro', legiones: legs(sd[0].units, sd[0].tribuno ? 'Legión de ' + sd[0].tribuno.n.split(' ')[1] : 'Legión') }, { nombre: sd[1].name, car, plan: PLAN_CAR[car], legiones: legs(sd[1].units, 'Ejército') }] };
+  };
+  // terreno de sectores: sin maniobra, el de la ciudad; con maniobra, el del punto del choque
+  const IDX = { izq: 0, centro: 1, der: 2 };
+  function terrenoSectores(info, ch) {
+    const def = info.cfg.defender, att = 1 - def, Bt = BAT(), r = [{}, {}, {}];
+    if (ch) { ['izq', 'centro', 'der'].forEach((k, i) => { const t = ch.terreno[k]; r[i] = { tipo: t === 'cerro' && ch.alto == null ? 'llano' : t, dueno: t === 'cerro' ? ch.alto : null, cruza: t === 'vado' ? 1 - ch.defensor : null }; }); return r; }
+    const id = info.cfg.terreno || (Bt && Bt.terrenoDe(info.city, info.cfg.seed)) || 'llano';
+    if (id === 'cerro' || id === 'colina') return [{ tipo: 'llano' }, { tipo: 'cerro', dueno: def }, { tipo: 'llano' }];
+    if (id === 'bosque') return [{ tipo: 'bosque' }, { tipo: 'bosque' }, { tipo: 'bosque' }];
+    if (id === 'rio') return [{ tipo: 'vado', cruza: att }, { tipo: 'llano' }, { tipo: 'vado', cruza: att }];
+    return [{ tipo: 'llano' }, { tipo: 'llano' }, { tipo: 'llano' }];
+  }
+  function regimientos(u) {   // regimientos de unos 90 hombres, pero nunca menos de seis (con menos, el motor deja sectores vacíos y los da por rotos)
+    const N = hombres(u), tam = Math.max(5, Math.min(90, Math.ceil(N / 6))), r = [];
+    for (const k of Object.keys(u)) { const n = u[k]; if (!(n > 0) || !D.UNITS[k]) continue; const piezas = Math.max(1, Math.min(n, Math.round(n / tam))), base = Math.floor(n / piezas), resto = n - base * piezas; for (let i = 0; i < piezas; i++) r.push({ tipo: k, n: base + (i < resto ? 1 : 0) }); }
+    return r;
+  }
+  // el estado inicial del choque (para Batalla2); ch = choque de la maniobra o null (escaramuza); opt.bot = el bando 0 lo juega el bot; opt.bono0 = factor de fuerza del bando 0
+  G.estadoChoque = function (info, ch, opt) {
+    opt = opt || {}; const sd = info.cfg.sides, s = G.state, bandos = [0, 1].map(b => {
+      const x = sd[b], u = ch ? ch.sides[b].units : x.units, def = info.cfg.defender === b;
+      let f = Math.max(0.6, Math.min(2, (x.atkMul || 1) * (x.defMul || 1))) * (b === 0 && opt.bono0 ? opt.bono0 : 1) * (def && info.cfg.wall > 0 ? 1 + 0.05 * Math.min(6, info.cfg.wall) : 1);
+      const o = { nombre: x.name, regs: regimientos(u), ia: b === 0 ? !!opt.bot : true, bono: { fuerza: f }, car: b ? carEnem(info.cfg) : 'equilibrado' };
+      if (x.gen) o.general = { n: x.gen.n }; else if (b === 0) o.general = x.tribuno ? { n: x.tribuno.n } : null;
+      if (b === 0 && s) { const tr = (s.tribunos || []).slice(), pick = TRIB_CAR.map(c => tr.find(t => t.car === c)).filter(Boolean); if (pick.length === 3) o.tribunos = pick.map(t => ({ n: t.n, car: t.car })); }
+      return o;
+    });
+    const cfg = { semilla: info.cfg.seed, bandos, terreno: { sectores: terrenoSectores(info, ch) }, pausas: G.pausas() };
+    if (info.cfg.objetivo && info.cfg.objetivo.tipo === 'resistir' && info.cfg.objetivo.lado === 0) cfg.objetivo = { tipo: 'resistir', seg: 120 };
+    if (ch) cfg.flancoAbierto = [0, 1].map(b => ch.flancoAbierto[b].length ? IDX[ch.flancoAbierto[b][0]] : null);
+    const est = B2().crear(cfg);
+    if (ch) for (const id in est.regs) { const r = est.regs[id]; if (ch.animo[r.bando] === 'Vacilante') r.animo = Math.max(r.animo, 1); r.fat = Math.max(r.fat, ch.cansancio[r.bando] || 0); }
+    return est;
+  };
+  // «Lo que pasó» de un choque sin pantalla (misma forma que UIBatalla2)
+  G.resumenBatalla2 = function (e) {
+    const f = e.fin || { ganador: 0, motivo: '', t: e.t }, bajas = [];
+    for (const id in e.regs) { const r = e.regs[id]; bajas.push({ id, bando: r.bando, tipo: r.tipo, nombre: r.nombre, n0: r.n0, n: Math.round(r.n), bajas: Math.max(0, Math.round(r.n0 - r.n)), huyo: r.lugar === 'huido', vet: r.vet }); }
+    const g = e.bandos[0].general, vivos = e.fin && e.fin.resultado ? e.fin.resultado[1].vivos : B2().hombres(e, 1);
+    return { ganador: f.ganador, victoria: f.ganador === 0, motivo: f.motivo, t: f.t, bajas, bajasTotal: [0, 1].map(b => bajas.filter(x => x.bando === b).reduce((a, x) => a + x.bajas, 0)), general: g ? { vivo: !!g.vivo, n: g.n } : null, prisioneros: f.ganador === 0 ? Math.round(vivos * 0.25) : 0, estado: e };
+  };
+  // bajas por deserción u hombres perdidos en la maniobra: lo que había al empezar menos lo que queda en las legiones
+  function bajasManiobra(info, e) {
+    const l = [{}, {}]; if (!e) return l;
+    for (let b = 0; b < 2; b++) { const q = {}; e.bandos[b].legiones.forEach(L => { for (const k in L.units) q[k] = (q[k] || 0) + L.units[k]; }); for (const k in info.cfg.sides[b].units) { const d = info.cfg.sides[b].units[k] - (q[k] || 0); if (d > 0) l[b][k] = d; } }
+    return l;
+  }
+  function forma(info, lost, extra) {
+    const sd = info.cfg.sides, surv = [{}, {}], dead = [0, 0];
+    for (let b = 0; b < 2; b++) { for (const k in sd[b].units) { const q = Math.max(0, Math.min(sd[b].units[k], Math.round(lost[b][k] || 0))); if (q > 0) lost[b][k] = q; else delete lost[b][k]; dead[b] += q; if (sd[b].units[k] - q > 0) surv[b][k] = sd[b].units[k] - q; } for (const k in lost[b]) if (!(k in sd[b].units)) delete lost[b][k]; }
+    return Object.assign({ dead, lost, surv, genDead: [false, false], nueva: true, prisioneros: 0 }, extra);
+  }
+  // resultado del choque nuevo en la forma que espera applyBattle (bajas, supervivientes, general, prisioneros)
+  G.resultadoNueva = function (info, r2, estM) {
+    const lost = bajasManiobra(info, estM), sd = info.cfg.sides;
+    for (const x of r2.bajas) if (x.bajas > 0) lost[x.bando][x.tipo] = (lost[x.bando][x.tipo] || 0) + x.bajas;
+    const murio = !!(r2.general && !r2.general.vivo), conGen = !!(sd[0].gen || sd[0].tribuno);
+    return forma(info, lost, { winner: r2.ganador, genDead: [murio && !!sd[0].gen, false], tribunoMuerto: murio && !sd[0].gen && !!sd[0].tribuno, prisioneros: r2.ganador === 0 ? r2.prisioneros | 0 : 0, conGen });
+  };
+  // maniobra que termina sin choque: rendición o retirada de un bando
+  G.resultadoManiobra = function (info, e) {
+    const f = e.fin || {}, b = f.bando == null ? 0 : f.bando, lost = bajasManiobra(info, e); let pris = 0;
+    if (f.tipo === 'rendicion') { e.bandos[b].legiones.forEach(L => { for (const k in L.units) lost[b][k] = (lost[b][k] || 0) + L.units[k]; }); if (b === 1) pris = Math.round(hombres(e.bandos[1].legiones.reduce((q, L) => { for (const k in L.units) q[k] = (q[k] || 0) + L.units[k]; return q; }, {})) * 0.5); }
+    return forma(info, lost, { winner: 1 - b, prisioneros: pris, sinChoque: f.tipo || 'retirada' });
+  };
+  // Resuelve toda la batalla sin pantalla con el bot (campaña de pruebas y «Delegar»): maniobra si toca y choque. opt.bono0: el bando 0 rinde menos al delegar
+  G.jugarNueva = function (info, opt) {
+    opt = opt || {}; const plan = G.planBatalla(info), M = MAN(), Bn = B2(), sem = info.cfg.seed | 0;
+    let estM = null, ch = null;
+    if (plan.via === 'maniobra') {
+      const cfg = G.cfgManiobra(info); cfg.bandos[0].ia = true; let e = M.crear(cfg);
+      for (let i = 0; i < 12 && !e.terminado; i++) { const c = M.consejoDia(e, 0), f = c.filter(x => x.etiqueta === 'Favorable').sort((x, y) => y.puntos - x.puntos)[0] || c.filter(x => x.etiqueta === 'Dudoso').sort((x, y) => y.puntos - x.puntos)[0]; e = M.resolverDia(M.moverDia(e, f ? f.ordenes : [], 0), sem * 7 + i).estado; }
+      estM = e; if (!(e.fin && e.fin.tipo === 'choque')) return G.resultadoManiobra(info, e); ch = e.choque;
+    }
+    let e = G.estadoChoque(info, ch, { bot: true, bono0: opt.bono0 });
+    while (!e.fin && e.pulsos < 700) {
+      if (e.pulsos % 5 === 1) { const c = Bn.consejo(e, 0); let p = null; for (const et of ['Favorable', 'Dudoso', 'Arriesgado']) { p = c.planes.filter(q => q.etiqueta === et && q.factible).sort((a, b) => b.razon - a.razon)[0]; if (p) break; } if (p) e = Bn.aplicar(e, p.ordenes, 0).estado; }
+      e = Bn.pulso(e, sem).estado;
+    }
+    return G.resultadoNueva(info, G.resumenBatalla2(e), estM);
+  };
+  // Resuelve la batalla pendiente por el motor elegido en Ajustes sin pantalla (bot): la forma de res sirve a applyBattle
+  G.resolverPendiente = function () {
+    const s = G.state, info = G.battleInfo(s.pending[0]), plan = G.planBatalla(info); let res;
+    if (plan.modo === 'clasica') { const Bt = BAT(); if (!info.cfg.terreno) info.cfg.terreno = Bt.terrenoDe(info.city, info.cfg.seed); const b = new Bt(info.cfg); b.finish(); res = b.result(); }
+    else res = G.jugarNueva(info, { bono0: plan.via === 'sola' ? 1 : 0.92 });
+    return { info, plan, out: G.applyBattle(res) };
+  };
+
   /* ---------- guardado ---------- */
   G.save = function () { try { if (typeof localStorage !== 'undefined' && G.state) { for (const id of G.myCities()) { const c = G.state.cities[id], r = CI && regE.get(c); if (r) ponerDatos(c, r); } localStorage.setItem(SAVE_KEY, JSON.stringify(G.state)); } } catch (e) { /* almacenamiento no disponible */ } };
   G.hasSave = function () { try { return typeof localStorage !== 'undefined' && !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } };
-  G.load = function () { let ok = false; cargando = true; try { ok = cargar(); } finally { cargando = false; } if (ok && CI) alCargar(); return ok; };
+  G.load = function () { let ok = false; cargando = true; try { ok = cargar(); } finally { cargando = false; } if (ok) { G.migrarAjustes(G.state); G.migrarTribunos(G.state); } if (ok && CI) alCargar(); return ok; };
   function cargar() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; for (const id in s.cities) G.ligarObras(s.cities[id]); if (s.turnos === undefined) s.turnos = true; G.turnos = !!s.turnos; if (G.turnos) { if (s.speed === undefined) s.speed = 0; for (const m of s.marches) { const a = Math.ceil(m.t1 / D.TURNO_MESES - 1e-9) * D.TURNO_MESES; if (a > m.t1) m.t1 = a; } } if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length || s.evV !== EV_VERSION) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } s.evV = EV_VERSION; D.anio = G.yearOf(s.t); for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0; if (c.bdef === undefined) c.bdef = 0;  if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!D.RACION[c.rac]) c.rac = 'normal'; G.fiestaDe(c); if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } G.state = s; for (const id in s.cities) if (s.cities[id].barrio === undefined) { const c = s.cities[id]; c.barrio = 1; c.barrio = G.barrioInfo(c).objetivo; } for (const id in s.cities) { const c = s.cities[id]; if (!c.levas) c.levas = []; if (c.esc === undefined) c.esc = 0; if (c.ciu === undefined) c.ciu = (c.barrio || 1) >= 2 ? Math.round((c.pop || 0) * 0.1) : 0; } G.migrarRegion(s); G.migrarCaja(s); G.migrarRetirados(s); G.migrarSenado(s); G.migrarInv(s); G.migrarDeuda(s); G.migrarColonias(s); G.migrarAjustes(s); G.migrarModo(s); return true; } } catch (e) { /* partida corrupta */ } return false; }
   // tras cargar: cada ciudad propia recupera (o estrena) su ciudad nueva; la obra en curso de una partida vieja se liga a su pieza
   function alCargar() {
@@ -1814,6 +1975,7 @@
     }
     s.favor.senado = topeFavor(s.favor.senado); s.favor.pueblo = topeFavor(s.favor.pueblo);
     if (!s.mision && mes >= s.proxMision) G.senadoAsignar();
+    G.tribunosMes();
   };
   G.wipe = function () { try { localStorage.removeItem(SAVE_KEY); } catch (e) { /* nada */ } };
 

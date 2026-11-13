@@ -149,6 +149,7 @@ function ajustesHtml() {
   return '<div class="empty ajustes" id="ajustes"><b>Ajustes</b>' + difFila('g') + '<div class="ajb">' + sw.map(q => '<button class="chip' + (a.suc[q[0]] ? ' on' : '') + '" data-act="suceso" data-v="' + q[0] + '">' + q[1] + ': ' + (a.suc[q[0]] ? 'sí' : 'no') + (q[0] === 'hambre' && !((D.DIFICULTAD[a.dif] || {}).hambre || {}).meses ? ' (sin efecto en Tranquila)' : '') + '</button>').join('') + '</div>' +
     '<small>Los cambios de dificultad y sucesos valen desde el mes siguiente.</small><div class="ajb"><button class="chip" data-act="repetirasesor">Repetir los consejos</button></div>' +
     '<div class="ajf" id="aj-pausas"><b>Pausas del reloj</b><div class="ajb">' + [['todas', 'Todas'], ['graves', 'Solo graves'], ['ninguna', 'Ninguna']].map(q => '<button class="chip' + (G.pausas() === q[0] ? ' on' : '') + '" data-act="pausas" data-v="' + q[0] + '">' + q[1] + '</button>').join('') + '</div><small>El reloj se para al acabar una obra o una leva, al cumplirse una misión o al venir un ataque.</small></div>' +
+    '<div class="ajf" id="aj-batalla"><b>Batalla</b><div class="ajb">' + [['nueva', 'Nueva'], ['clasica', 'Clásica']].map(q => '<button class="chip' + (G.batalla() === q[0] ? ' on' : '') + '" data-act="batalla" data-v="' + q[0] + '">' + q[1] + '</button>').join('') + '</div><small>Nueva: maniobra y choque por sectores. Clásica: el campo abierto de siempre.</small></div>' +
     '<div class="ajf" id="aj-sonido"><div class="ajb"><button class="chip' + (sonidoOn() ? ' on' : '') + '" data-act="sonido">' + sonidoTxt() + '</button></div></div></div>';
 }
 /* I8: bloque «Partida corta» del menú: dos botones con su línea de explicación (los textos vienen de D.MODOS.corta) */
@@ -1095,6 +1096,7 @@ function showPicker(from, to) {
   let h = '<div class="yr">DESDE ' + D.CITIES[from].n.toUpperCase() + ' · ' + (G.turnos ? ('LLEGAN ' + turnosTxt(Math.max(1, Math.ceil((G.llegada(s.t + G.travel(from, to, false)) - s.t) / D.TURNO_MESES - 1e-9)))).toUpperCase() : months(G.travel(from, to, false)).toUpperCase()) + '</div><h2>' + (own ? 'Reforzar ' : 'Atacar ') + D.CITIES[to].n + '</h2>';
   if (!ks.length && !hero) h += '<p>No hay tropas en ' + D.CITIES[from].n + '. Recluta en la pestaña Ejército.</p>';
   h += ks.map(k => '<div class="pick"><div class="pt">' + pt(k) + '</div><div><label><span>' + D.UNITS[k].n + '</span><span><b id="pv-' + k + '">' + c.units[k] + '</b> / ' + c.units[k] + '</span></label><input type="range" min="0" max="' + c.units[k] + '" value="' + c.units[k] + '" data-k="' + k + '"></div></div>').join('');
+  { const tl = G.tribunos().filter(t => t.libre), lib = tl[0]; h += '<div class="pw">' + (lib ? 'Sin el general, manda el tribuno <b>' + esc(lib.n) + '</b> (' + esc(lib.car) + '). Tribunos libres: ' + tl.length + ' de ' + G.maxEjercitos() + '.' : (hero ? 'No quedan tribunos libres: solo puede partir el ejército con el general.' : 'No quedan tribunos libres: ningún ejército más puede partir.')) + '</div>'; }
   if (hero) h += '<label class="chk"><input type="checkbox" id="pk-hero" checked> ' + D.GUERRA_ICON.aguila + ' El general acompaña al ejército</label>';
   if (!own) { const bo = G.botin(to); h += '<label class="chk"><input type="checkbox" id="pk-saq"> 💰 Solo saquear, sin conquistar: las tropas vuelven</label><div class="pw">Botín: ' + D.RES.map(r => bo[r] + ' ' + D.RES_ICON[r]).join(' · ') + '</div>'; }
   if (!own) h += '<div class="pw">Fuerza enemiga: ' + G.power(s.cities[to].units) + ' · ' + FASE_MURALLA[G.faseMuralla(s.cities[to])].toLowerCase() + ' (defensa ' + G.nivelMuralla(s.cities[to]) + ')<br>Tu fuerza: <b id="pk-pw"></b></div>';
@@ -1114,10 +1116,14 @@ function battlePrompt() {
   const pb = S().pending[0], info = G.battleInfo(pb), d = D.CITIES[info.city];
   UI.binfo = info;
   if (!info.cfg.terreno) info.cfg.terreno = window.Battle.terrenoDe(info.city, info.cfg.seed);   // campo tipo de la ciudad (o por semilla)
+  const pl = G.planBatalla(info), nu = pl.modo === 'nueva', tr = info.cfg.sides[0].tribuno;   // NB7: batalla nueva o clásica según Ajustes
+  const bot = !nu ? '<button class="btn" data-act="bview">' + D.GUERRA_ICON.espadas + ' Dirigir la batalla</button><button class="btn ghost" data-act="bquick">Resolver</button>'
+    : pl.via === 'sola' ? '<button class="btn" data-act="bquick">Ver el resultado</button>'
+    : '<button class="btn" data-act="bview">' + D.GUERRA_ICON.espadas + (pl.via === 'maniobra' ? ' Planear la maniobra' : ' Ir al choque') + '</button><button class="btn ghost" data-act="bquick">Delegar en tus tribunos</button>';
   modal('<div class="yr">' + G.yearOf(S().t) + ' A.C.</div><h2>' + (info.kind === 'attack' ? 'Asalto a ' : 'Defensa de ') + d.n + '</h2>' +
     '<div class="vs">' + sideHtml(info.cfg.sides[0]) + sideHtml(info.cfg.sides[1]) + '</div>' +
-    '<div class="pw">Fuerza: ' + G.power(info.cfg.sides[0].units) + ' contra ' + G.power(info.cfg.sides[1].units) + ' · Muralla del defensor: nivel ' + info.cfg.wall + '</div>' +
-    '<div class="acts"><button class="btn" data-act="bview">' + D.GUERRA_ICON.espadas + ' Dirigir la batalla</button><button class="btn ghost" data-act="bquick">Resolver</button></div>', true);
+    '<div class="pw">Fuerza: ' + G.power(info.cfg.sides[0].units) + ' contra ' + G.power(info.cfg.sides[1].units) + ' · Muralla del defensor: nivel ' + info.cfg.wall + (tr ? '<br>Al mando: el tribuno ' + esc(tr.n) + ' (' + esc(tr.car) + ')' : '') + (pl.texto ? '<br>' + esc(pl.texto) : pl.via === 'directo' ? '<br>Escaramuza: se va directo al choque.' : '') + '</div>' +
+    '<div class="acts">' + bot + '</div>', true);
 }
 // N15: la dificultad ya no se elige; el motor la explica por contexto (b.dif = { nivel, texto, factores:[{n,txt,v}] })
 function rivalHtml(b) {
@@ -1303,7 +1309,15 @@ function rondaHud() {
     pn.style.display = tx && (B.modo !== 'plan' || B.mas || performance.now() - B.panelT < 7000 || (B.choque && performance.now() < B.choqueT)) ? '' : 'none'; }
   return true;
 }
+/* NB7: la batalla nueva. Maniobra (si hay más de 600 hombres) y luego el choque; al acabar se devuelve a la campaña lo mismo que la clásica. */
+function iniciaNueva(info, pl) {
+  closeModal(); UI.nueva = true; UI.sheetKey = '';
+  const alChoque = (ch, estM) => window.UIBatalla2.abrir({ estado: G.estadoChoque(info, ch, {}) }, r2 => endBattle(G.resultadoNueva(info, r2, estM)));
+  if (pl.via === 'maniobra') window.UIManiobra.abrir(G.cfgManiobra(info), r => { if (r.accion === 'batalla') alChoque(r.choque, r.estado); else endBattle(G.resultadoManiobra(info, r.estado)); });
+  else alChoque(null, null);
+}
 function endBattle(res) {
+  UI.nueva = false;
   const info = UI.binfo, out = G.applyBattle(res), d = D.CITIES[info.city];
   const loss = side => Object.keys(res.lost[side]).filter(k => res.lost[side][k] > 0).map(k => '<div><span>' + D.UNITS[k].n + '</span><b>−' + res.lost[side][k] + '</b></div>').join('') || '<div><span>Sin bajas</span></div>';
   modal('<div class="yr">' + (out.kind === 'attack' ? 'ASALTO A ' : 'DEFENSA DE ') + d.n.toUpperCase() + '</div><h2>' + (out.win ? '¡Victoria!' : 'Derrota') + '</h2>' +
@@ -1402,14 +1416,15 @@ document.addEventListener('click', function (e) {
       const hero = $('pk-hero') && $('pk-hero').checked;
       const saq = $('pk-saq') && $('pk-saq').checked;
       if (G.send(el.dataset.from, el.dataset.to, pickUnits(), hero, saq ? 'saqueo' : null)) { closeModal(); toast((saq ? '💰 Partida de saqueo hacia ' : '🚩 El ejército parte hacia ') + D.CITIES[el.dataset.to].n + '.'); UI.sheetKey = ''; renderSheet(); }
-      else toast('Selecciona al menos una unidad.', 'bad');
+      else toast(G.sendMotivo || 'Selecciona al menos una unidad.', 'bad');
       break;
     }
     case 'close': closeModal(); break;
     case 'inf-mas': UI.infoMas(); break;
     case 'inf-cierra': UI.infoCierra(); break;
-    case 'bview': startBattle(); break;
-    case 'bquick': { closeModal(); const b = new window.Battle(UI.binfo.cfg); b.finish(); endBattle(b.result()); break; }
+    case 'bview': { const pl = G.planBatalla(UI.binfo); if (pl.modo === 'nueva') iniciaNueva(UI.binfo, pl); else startBattle(); break; }
+    case 'bquick': { closeModal(); const pl = G.planBatalla(UI.binfo); if (pl.modo === 'nueva') { endBattle(G.jugarNueva(UI.binfo, { bono0: pl.via === 'sola' ? 1 : 0.92 })); break; } const b = new window.Battle(UI.binfo.cfg); b.finish(); endBattle(b.result()); break; }
+    case 'batalla': { const r = G.ponerAjustes({ batalla: v }); if (!r.ok) toast(r.motivo, 'bad'); else G.save(); render(); break; }
     case 'bdone': closeModal(); stopBattle(); UI.sheetKey = ''; render(); if (S().over) showOver(); break;
     case 'bpause': B.paused = !B.paused; el.textContent = B.paused ? '▶' : 'II'; break;
     case 'bspeed': B.speed = B.speed === 1 ? 2 : B.speed === 2 ? 4 : 1; el.textContent = 'x' + B.speed; break;
@@ -1461,7 +1476,7 @@ function frame(now) {
     battleHud(); objetivoHud(B); B.view.draw();
     if (b.over && !B.done) { B.endT += dt; if (B.endT > 2.2) { B.done = true; endBattle(b.result()); } }
   } else if (s && !UI.menu) {
-    if (!UI.modalOpen && !s.over) {
+    if (!UI.modalOpen && !s.over && !UI.nueva) {
       if (s.pending.length) battlePrompt();
       else if (s.speed > 0) G.tick(dt * s.speed / 4);
     }
