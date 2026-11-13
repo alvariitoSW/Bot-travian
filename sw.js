@@ -1,11 +1,6 @@
 /* AQVILA — service worker: todo el juego queda en caché para jugar sin conexión */
-<<<<<<< HEAD
-const CACHE = 'aqvila-v82';
+const CACHE = 'aqvila-v83';
 const FILES = ['./', 'index.html', 'css/style.css', 'css/maniobra.css', 'css/batalla2.css', 'assets/fuentes/cinzel-400.woff2', 'assets/fuentes/cinzel-700.woff2', 'js/data.js', 'js/asesor.js', 'js/ciudad.js', 'js/codice.js', 'js/registro.js', 'js/battle.js', 'js/game.js', 'js/maniobra.js', 'js/ui-maniobra.js', 'js/batalla2.js', 'js/ui-batalla2.js', 'js/ui.js', 'js/gfx/models.js', 'js/gfx/battle3d.js', 'js/gfx/sonido.js', 'js/gfx/sonido-ciudad.js', 'js/gfx/map3d.js', 'assets/mapa/costa.js', 'assets/mapa/alturas.js', 'js/gfx/units.js', 'js/gfx/statics.js', 'js/gfx/city3d.js', 'js/gfx/vida.js', 'js/gfx/fachadas.js', 'js/gfx/civicas.js', 'js/gfx/trajin.js', 'js/gfx/ground.js', 'js/gfx/mundo.js', 'js/gfx/fluidez.js', 'assets/static/static.json', 'assets/units/units.json', 'js/vendor/three.module.min.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
-=======
-const CACHE = 'aqvila-v80';
-const FILES = ['./', 'index.html', 'css/style.css', 'css/maniobra.css', 'css/batalla2.css', 'assets/fuentes/cinzel-400.woff2', 'assets/fuentes/cinzel-700.woff2', 'js/data.js', 'js/asesor.js', 'js/ciudad.js', 'js/codice.js', 'js/registro.js', 'js/battle.js', 'js/game.js', 'js/maniobra.js', 'js/ui-maniobra.js', 'js/batalla2.js', 'js/ui-batalla2.js', 'js/ui.js', 'js/gfx/models.js', 'js/gfx/battle3d.js', 'js/gfx/sonido.js', 'js/gfx/sonido-ciudad.js', 'js/gfx/map3d.js', 'assets/mapa/costa.js', 'assets/mapa/alturas.js', 'js/gfx/units.js', 'js/gfx/statics.js', 'js/gfx/city3d.js', 'js/gfx/vida.js', 'js/gfx/fachadas.js', 'js/gfx/trajin.js', 'js/gfx/ground.js', 'js/gfx/mundo.js', 'js/gfx/fluidez.js', 'assets/static/static.json', 'assets/units/units.json', 'js/vendor/three.module.min.js', 'manifest.webmanifest', 'icons/icon.svg', 'icons/icon-192.png', 'icons/icon-512.png'];
->>>>>>> 96d144f (J3 Capital y pueblos: pueblos de recursos, pesca y agro por ciudad, API, fichas, pruebas y UI mínima)
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', e => {

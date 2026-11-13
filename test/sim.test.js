@@ -1773,7 +1773,6 @@ console.log('OK — todas las pruebas superadas');
   delete c2.fiesta; delete c2.rac; store['aqvila-save-v1'] = JSON.stringify(G.state); assert(G.load() && G.state.cities.roma.fiesta.juegos === -99 && G.state.cities.roma.rac === 'normal', 'partida vieja sin c.fiesta/c.rac migra');
   delete global.localStorage; G.usarCiudad(null); console.log('CN13a: arca, ofrenda, juegos, ración y granero OK');
 }
-<<<<<<< HEAD
 {   // NB7: batalla nueva conectada con la campaña, tribunos-generales e interruptor (test/nb7.test.mjs)
   const r = require('child_process').spawnSync(process.execPath, [__dirname + '/nb7.test.mjs'], { encoding: 'utf8', timeout: 120000 });
   assert(r.status === 0, 'NB7: ' + String(r.stdout).split('\n').filter(l => /^MAL/.test(l)).join(' | ') + String(r.stderr).slice(0, 300)); console.log('NB7: batalla nueva, tribunos e interruptor OK');
@@ -1800,7 +1799,6 @@ console.log('OK — todas las pruebas superadas');
   const E3 = G.ciudadE('roma'); assert(E3.barrios[0].tejas === undefined && Array.isArray(E3.marcas), 'sin tejas ni marcas: valores por defecto');
   delete global.localStorage; G.usarCiudad(null); console.log('CN13b: techado, dique, guardar y cargar OK');
 }
-=======
 { // J3: pueblos satélite de cada capital
   const s = G.newGame('Pueblos'); G.turnos = false; G.state = s; const c = s.cities.roma;
   assert(G.esCapital('roma') && c.pueblos.length === D.CITIES.roma.pueblos.length && c.pueblos.every(n => n === 0) && c.pobra === null, 'estado inicial: todo a 0');
@@ -1826,4 +1824,3 @@ console.log('OK — todas las pruebas superadas');
   // partida vieja
   const v = JSON.parse(JSON.stringify(s)); for (const id in v.cities) { delete v.cities[id].pueblos; delete v.cities[id].pobra; } G.migrarPueblos(v);
   assert(v.cities.roma.pueblos.length === D.CITIES.roma.pueblos.length && v.cities.roma.pueblos.every(n => n === 0) && v.cities.roma.pobra === null, 'migración de partida vieja'); G.state = s; }
->>>>>>> 96d144f (J3 Capital y pueblos: pueblos de recursos, pesca y agro por ciudad, API, fichas, pruebas y UI mínima)
