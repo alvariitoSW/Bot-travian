@@ -4,7 +4,7 @@
   const CONTACT = 50;
   // --- Ritmo, moral y cansancio (A8) ---
   const RITMO = 0.0365;           // multiplica todo el daño: hace las batallas igualadas de 8 a 12 minutos
-  const TOPE_BATALLA = 1500;    // segundos: tope de seguridad (25 min); si se alcanza gana el defensor
+  const TOPE_BATALLA = 1500;    // segundos: tope de seguridad (25 min); si se alcanza gana quien conserve más hombres (empate: el atacante)
   const MOR_BAJAS = 0.62;        // moral perdida por cada 1 % de la vida del regimiento arrancada de golpe
   const MOR_CONTAGIO = 1.5;     // moral que pierden los vecinos cuando un regimiento rompe (antes 5)
   // --- N4: estados, choque y contagio ---
@@ -38,6 +38,9 @@
   const CAV_MELE_MUL = 0.8;     // y pega menos
   const IA_BAJA_RONDA = 10;     // (N15c) y no antes de esta ronda
   const IA_BAJA_FUERZA = 1.25;  // (N15c) la IA en el cerro baja a atacar si es 1,25 veces mayor que el jugador y este no sube
+  const AGUANTAR_SEG = 60;      // (N15d) segundos quieto con «Aguantar» antes de que el rival le tome la medida
+  const AGUANTAR_FIN = 40;      // y segundos en que el bono se apaga del todo
+  const AGUANTAR_ATK = 0.6;
   const AGUANTAR_DEF = 1.5;     // quien aguanta quieto recibe 1/1,5 del daño (N15c: antes 1,15)
   const HOSTIGAR_DIST = 40;     // el hostigador se aparta si un enemigo cuerpo a cuerpo está a menos
   const HOSTIGAR_FAT = 0.5;     // el hostigador se cansa la mitad al moverse
@@ -508,7 +511,8 @@
     let m = amount * RITMO * fl * (1 - FAT_PEGA * a.fat / 100);
     if (esBisono(a)) m *= 1 - (1 - BIS_PEGA) * (1 - (a.curt || 0) / BIS_CURTIDO);
     { const ea = estadoMoral(a), eb = estadoMoral(b); m *= ea === 2 ? DESORDEN_PEGA : ea === 1 ? VACILANTE_PEGA : 1; if (eb === 2) m *= DESORDEN_RECIBE; if (b.cartaFx === 'cerrada') m *= CERRADA_RECIBE; }
-    if (tipoDe(b) === 'aguantar' && !b.mv) m /= AGUANTAR_DEF;
+    if (tipoDe(a) === 'aguantar' && !a.mv) m *= 1 - (1 - AGUANTAR_ATK) * Math.min(1, Math.max(0, ((a.agu || 0) - AGUANTAR_SEG) / AGUANTAR_FIN));   // (N15d) quieto de más, sin iniciativa: pega menos
+    if (tipoDe(b) === 'aguantar' && !b.mv) m /= 1 + (AGUANTAR_DEF - 1) * Math.max(0, Math.min(1, 1 - ((b.agu || 0) - AGUANTAR_SEG) / AGUANTAR_FIN));
     m *= FA.pega * (ranged ? FB.proy : fl > 1 ? 1 : FB.melee) * (b.trans > 0 ? TRANS_RECIBE : 1); if (!ranged && FA.larga && a.cont > LARGA_SEG) m *= FA.larga;
     const ta = this.terrenoEn(a.x, a.y), tb = this.terrenoEn(b.x, b.y);
     m *= 1 + COLINA_PEGA * (ta.alt - tb.alt);   // arriba se pega más; el que sube pega menos
@@ -662,6 +666,7 @@
       const collapse = cur[r.side] < this.start[r.side] * 0.15;
       if (collapse) r.mor -= 1.5 * dt;
       r.mv = false; r.corre = false;
+      r.agu = tipoDe(r) === 'aguantar' ? (r.agu || 0) + dt : 0;
       if (r.flank) r.mor -= MOR_FLANCO * dt;
       const mia = cur[r.side] / this.start[r.side], suya = cur[1 - r.side] / this.start[1 - r.side];
       if (mia < suya) r.mor -= MOR_PERDIENDO * Math.min(1, (suya - mia) * 8) * dt;
@@ -762,7 +767,11 @@
     const n0 = this.men(0), n1 = this.men(1);
     if (n0 <= 0 || n1 <= 0) { this.over = true; this.winner = n0 > 0 ? 0 : 1; }
     else if (this.obj) this.chequeaObjetivo(dt);
-    if (!this.over && this.t > TOPE_BATALLA) { this.over = true; this.winner = this.cfg.defender; }
+    if (!this.over && this.t > TOPE_BATALLA) {
+      // (N15d) al tope gana quien conserva mayor proporción de hombres; si empatan (nadie peleó), no premia al que se quedó esperando: gana el atacante
+      const p0 = n0 / Math.max(1, this.start[0]), p1 = n1 / Math.max(1, this.start[1]);
+      this.over = true; this.winner = Math.abs(p0 - p1) < 0.02 ? 1 - this.cfg.defender : p0 > p1 ? 0 : 1;
+    }
     if (this.rondas && this.fase === 'ejecucion') { this.tRonda += dt; if (!this.over && this.tRonda >= RONDA_SEG - 1e-6) this.finRonda(); }
   };
 
