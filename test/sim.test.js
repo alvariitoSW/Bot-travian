@@ -272,7 +272,7 @@ function campaign1(aggressive, region) {
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
-      if (!c.queue) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'acueducto', 'termas', 'anfiteatro', 'escuela'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); for (const b of bs) if (G.upgrade(id, b)) break; }
+      for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'acueducto', 'termas', 'anfiteatro', 'escuela'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }
       if (!aggressive) continue;
       const yr = G.yearOf(s.t); if (yr <= 230 && yr >= 209) continue;   // el bot se atrinchera ante la invasión de Aníbal
       // concentración: las tropas avanzan por la ruta más corta hacia Carthago mientras la siguiente plaza sea romana
@@ -765,7 +765,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   const l = c.train[0]; assert(l.nc >= 1 && l.pag === 1 && l.n === 200, 'lote con cuotas'); if (l.nc > 1) { assert(G.plazos().madera + G.plazos().hierro + G.plazos().oro + G.plazos().grano > 0, 'el lote cuenta como plazo'); }
   // partida vieja
   const v = G.newGame('Vieja'); v.cities.roma.queue = { b: 'granja', t0: 0, t1: 1 }; v.cities.roma.train = [{ u: 'hastati', n: 5, t0: 0, t1: 1 }]; delete v.obrasMes; G.migrarCaja(v);
-  assert.strictEqual(v.cities.roma.queue.nc, 1); assert.strictEqual(v.cities.roma.queue.pag, 1); assert.strictEqual(v.cities.roma.train[0].pag, 1); assert.strictEqual(v.obrasMes, 0); G.state = v; G.plazos(); G.cuentas();
+  assert.strictEqual(v.cities.roma.obras.length, 1, 'queue única migra a una obra'); assert.strictEqual(v.cities.roma.obras[0].b, 'granja'); assert.strictEqual(v.cities.roma.queue.nc, 1); assert.strictEqual(v.cities.roma.queue.pag, 1); assert.strictEqual(v.cities.roma.train[0].pag, 1); assert.strictEqual(v.obrasMes, 0); G.state = v; G.plazos(); G.cuentas();
 }
 // Barrios (P67)
 { const s = G.newGame('Barrio'), c = s.cities.roma; G.state = s;
@@ -1376,6 +1376,46 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   G.save(); G.newGame('H14b'); assert.strictEqual(ci.n, 'Poblado íbero', 'una partida nueva vuelve a 280'); assert(G.load()); assert.strictEqual(ci.n, 'Carthago Nova', 'cargar una partida de 228'); assert.strictEqual(D.EVENTS.find(e => e.y === 228).t, 'Asdrúbal funda Carthago Nova');
   const v = G.newGame('H14c'); v.t = 10 * 12; G.save(); assert(G.load()); assert.strictEqual(ci.n, 'Poblado íbero', 'cargar una de 270'); assert.strictEqual(JSON.parse(JSON.stringify(ci)).n, 'Poblado íbero');
   G.newGame('H14d'); delete global.localStorage; }
+
+// Q4b: varias obras según el nivel del foro
+G.usarCiudad(CIMOD);
+{ const s = G.newGame('Q4b'), c = s.cities.roma, ped = () => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; } }; G.state = s; ped();
+  assert.deepStrictEqual(D.HUECOS_OBRA, [0, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4]);
+  c.foroMin = 1; c.obras.length = 0; G.sincronizar('roma');
+  const f0 = c.b.foro; assert.strictEqual(G.huecosObra(c), D.HUECOS_OBRA[f0], 'huecos según c.b.foro'); assert.strictEqual(G.huecos(c), G.huecosObra(c));
+  if (G.huecosObra(c) === 1) {
+    assert(G.upgrade('roma', 'granja')); assert.strictEqual(G.huecosLibres(c), 0);
+    assert(!G.upgrade('roma', 'cantera') && G.ultimoMotivo === 'Ya hay una obra en curso en esta ciudad', 'motivo con un hueco: ' + G.ultimoMotivo);
+    c.obras.length = 0; c.foroMin = f0 + 1; G.sincronizar('roma'); assert(c.b.foro >= f0 + 1 && G.huecosObra(c) > 1, 'sube con el foro');
+  } else c.foroMin = Math.max(c.foroMin, 2);
+  c.foroMin = 2; G.sincronizar('roma'); c.obras.length = 0; const h = G.huecosObra(c); assert(h >= 2);
+  assert(G.upgrade('roma', 'granja') && G.upgrade('roma', 'cantera'), 'dos obras a la vez'); assert.strictEqual(c.obras.length, 2); assert(c.obras[0].b !== c.obras[1].b);
+  assert(G.obraDe(c, 'granja') === c.obras[0] && !G.obraDe(c, 'mina'));
+  assert(!G.upgrade('roma', 'granja') && G.ultimoMotivo === 'Ya se está mejorando', 'misma pieza dos veces: ' + G.ultimoMotivo);
+  while (G.huecosLibres(c) > 0) { const bs = Object.keys(D.BUILD).filter(b => !G.obraDe(c, b) && !G.derivado(c, b) && !D.BUILD[b].sea && !D.BUILD[b].solar && (c.b[b] || 0) < D.MAX_LVL); assert(G.upgrade('roma', bs[0]), 'llena ' + bs[0]); }
+  const libre = Object.keys(D.BUILD).find(b => !G.obraDe(c, b) && !G.derivado(c, b) && !D.BUILD[b].sea && (c.b[b] || 0) < D.MAX_LVL); assert(!G.upgrade('roma', libre) && G.ultimoMotivo === 'Sube el foro para otra obra', 'motivo con foro>1: ' + G.ultimoMotivo);
+  // cuotas de todas; cuentas y comprometido suman todas
+  const ob = c.obras.filter(q => q.nc > q.pag); assert(ob.length >= 2, 'varias obras con cuotas pendientes');
+  const suma = {}; for (const q of ob) for (const r of D.RES) suma[r] = (suma[r] || 0) + ((G.cuotaSig(q)[r]) || 0);
+  const pl = G.plazos(); const mesSig = ob.every(q => q.t1 > Math.floor(s.t + 1e-9) + 1); if (mesSig) for (const r of D.RES) assert.strictEqual(pl[r], suma[r], 'plazos suman todas ' + r);
+  // obraMayor y adelantarObra
+  const mayor = G.obraMayor(); assert(mayor && mayor.id && typeof mayor.i === 'number' && c.obras.includes(mayor.q));
+  const tot = q => D.RES.reduce((a, r) => a + (G.cuotasRestantes(q)[r] || 0), 0); for (const q of c.obras) assert(tot(mayor.q) >= tot(q) || G.state.cities[mayor.id] !== c, 'obraMayor es la mayor');
+  const antesPag = c.obras.map(q => q.pag); assert(G.adelantarObra('roma', 1)); assert.strictEqual(c.obras[1].pag, c.obras[1].nc); assert.strictEqual(c.obras[0].pag, antesPag[0], 'solo adelanta esa obra');
+  // una se pausa sola si falta caja y la otra no (al cerrar el mes cada una paga su cuota)
+  const lib = c.obras.filter(q => q.pag < q.nc); if (lib.length >= 2) {
+    s.t = Math.floor(s.t) + 0.99; for (const q of c.obras) q.t1 = Math.max(q.t1, s.t + 5);
+    const c0 = G.cuotaSig(lib[0]); for (const r of D.RES) { s.res[r] = 0; s.alm[r] = 0; s.cuarto[r] = 0; } for (const r in c0) { s.res[r] = c0[r] + 1; }
+    const p1 = lib[0].pag, p2 = lib[1].pag; G.cierreMes(); assert.strictEqual(lib[0].pag, p1 + 1, 'la primera paga'); assert(lib[1].pausa && lib[1].pag === p2, 'la segunda se pausa sola'); }
+  // terminan varias en un mismo tick sin saltarse ninguna
+  { const s2 = G.newGame('Q4b2'), c2 = s2.cities.roma; G.state = s2; for (const r of D.RES) { s2.res[r] = 1e5; s2.alm[r] = 1e5; s2.cuarto[r] = 1e5; } c2.foroMin = 4; G.sincronizar('roma'); c2.obras.length = 0; assert.strictEqual(G.huecosObra(c2), 3);
+    assert(G.upgrade('roma', 'granja') && G.upgrade('roma', 'cantera') && G.upgrade('roma', 'aserradero')); const l0 = [c2.b.granja, c2.b.cantera, c2.b.aserradero]; for (const q of c2.obras) { q.t1 = s2.t + 0.01; q.nc = 1; q.pag = 1; }
+    G.tick(0.05); assert.strictEqual(c2.obras.length, 0, 'las tres terminan en el mismo tick'); assert([c2.b.granja, c2.b.cantera, c2.b.aserradero].every((x, i) => x > l0[i])); }
+  // vaciar al conquistar
+  { const s3 = G.newGame('Q4b3'); G.state = s3; const v = s3.cities.capua; v.obras.push({ b: 'granja', t0: 0, t1: 9, nc: 1, pag: 1, cuota: {}, costo: {}, pausa: false }, { b: 'cantera', t0: 0, t1: 9, nc: 1, pag: 1, cuota: {}, costo: {}, pausa: false });
+    v.queue = null; assert.strictEqual(v.obras.length, 0, 'el alias null vacía la lista'); }
+}
+G.usarCiudad(null);
 
 console.log('OK — todas las pruebas superadas');
 

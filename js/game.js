@@ -16,14 +16,14 @@
   G.myCities = () => Object.keys(G.state.cities).filter(id => G.state.cities[id].owner === 'roma');
   /* ---------- solares y tipos de ciudad (I4) ---------- */
   /* ---------- templos a un dios (F5) y ciudades conquistadas ---------- */
-  G.diosDe = c => ((c.b.templo || 0) > 0 || (c.queue && c.queue.b === 'templo')) && D.DIOSES[c.dios] ? D.DIOSES[c.dios] : null;
+  G.diosDe = c => ((c.b.templo || 0) > 0 || G.obraDe(c, 'templo')) && D.DIOSES[c.dios] ? D.DIOSES[c.dios] : null;
   G.diosNivel = c => G.diosDe(c) ? (c.b.templo || 0) : 0;
-  G.elegirDios = function (cid, k) { const c = G.state.cities[cid]; if (!c || c.owner !== 'roma' || !D.DIOSES[k] || (c.b.templo || 0) > 0 || (c.queue && c.queue.b === 'templo') || (D.DIOSES[k].sea && !D.CITIES[cid].sea)) return false; c.dios = k; return true; };
+  G.elegirDios = function (cid, k) { const c = G.state.cities[cid]; if (!c || c.owner !== 'roma' || !D.DIOSES[k] || (c.b.templo || 0) > 0 || G.obraDe(c, 'templo') || (D.DIOSES[k].sea && !D.CITIES[cid].sea)) return false; c.dios = k; return true; };
   G.inqMul = c => (c.inq > 0 ? 1 - D.INQ_PROD * G.invMul('inqProd') * Math.min(1, c.inq / (D.INQ_MESES * G.invMul('inqMeses'))) : 1);
   G.tipoDe = c => D.TIPOS[c && c.tipo] || D.TIPOS.municipio;
   G.solares = function (id) { const d = D.CITIES[id], c = G.state && G.state.cities[id]; if (d.solares) return d.solares; return Math.min(D.SOLARES_MAX, D.SOLARES_BASE + Math.floor(((c && c.w) || d.w) / 2)); };
   // edificios urbanos que ocupan solar: nivel 1 o más (o levantándose ahora)
-  G.solaresUsados = function (c) { let n = 0; for (const b in D.BUILD) if (D.BUILD[b].solar && ((c.b[b] || 0) >= 1 || (c.queue && c.queue.b === b))) n++; return n; };
+  G.solaresUsados = function (c) { let n = 0; for (const b in D.BUILD) if (D.BUILD[b].solar && ((c.b[b] || 0) >= 1 || G.obraDe(c, b))) n++; return n; };
   G.solaresLibres = (id) => G.solares(id) - G.solaresUsados(G.state.cities[id]);
   G.tipoSugerido = id => (D.CITIES[id] && D.CITIES[id].tipo) || null;
   G.tipoOk = (id, tipo) => !!D.TIPOS[tipo] && !(D.TIPOS[tipo].mar && !D.CITIES[id].sea);
@@ -35,7 +35,7 @@
   };
   // tira un edificio urbano propio a nivel 0 (sin devolver nada) y libera su solar
   G.derribar = function (cid, b) {
-    const c = G.state.cities[cid]; if (!c || c.owner !== 'roma' || !D.BUILD[b] || !D.BUILD[b].solar || b === 'foro' || (c.b[b] || 0) < 1 || (c.queue && c.queue.b === b)) return false;
+    const c = G.state.cities[cid]; if (!c || c.owner !== 'roma' || !D.BUILD[b] || !D.BUILD[b].solar || b === 'foro' || (c.b[b] || 0) < 1 || G.obraDe(c, b)) return false;
     const pz = piezaDe(b), r = pz && infoC(c);
     if (r) { const e = menorMejora(r.E, pz); if (!e) return false; quitar(r.E, e.id); sinc(c, r); ponerDatos(c, r); }
     else c.b[b] = 0;
@@ -76,7 +76,7 @@
   function vencen(T) {
     const s = G.state, out = [];
     for (const id of G.myCities()) { const c = s.cities[id];
-      if (c.queue && c.queue.nc) { const x = plazosDe(c.queue, c.queue.t1 > T - 1e-9); if (x) out.push({ q: c.queue, c: x, id: id }); }
+      for (const q of c.obras) if (q.nc) { const x = plazosDe(q, q.t1 > T - 1e-9); if (x) out.push({ q: q, c: x, id: id }); }
       for (const l of c.train || []) if (l.nc) { const x = plazosDe(l, T > l.t0 + 1e-9 && T <= l.t1 + 1e-9); if (x) out.push({ q: l, c: x, id: id }); }
     }
     return out;
@@ -87,20 +87,25 @@
   G.reintentarPlazos = function (dm) {
     const s = G.state;
     for (const id of G.myCities()) { const c = s.cities[id], nom = D.CITIES[id].n;
-      const q = c.queue; if (q && q.pausa) { if (pagaCuota(q)) { q.pausa = false; G.log('▶️ ' + nom + ': obra reanudada.'); } else q.t1 += dm; }
+      for (const q of c.obras) if (q.pausa) { if (pagaCuota(q)) { q.pausa = false; G.log('▶️ ' + nom + ': obra reanudada.'); } else q.t1 += dm; }
       for (let i = 0; i < c.train.length; i++) { const l = c.train[i]; if (!l.pausa) continue;
         if (pagaCuota(l)) { l.pausa = false; G.log('▶️ ' + nom + ': instrucción reanudada.'); }
         else for (let j = i; j < c.train.length; j++) { c.train[j].t1 += dm; if (j > i) c.train[j].t0 += dm; } }
     }
   };
-  // obras con cuotas por pagar, de mayor a menor cuota pendiente en total
-  G.adelantarObra = function (cid) {
-    const c = G.state.cities[cid], q = c && c.queue; if (!q || !q.nc || q.pag >= q.nc) return false;
+  // coste restante (suma de recursos) de las cuotas por pagar de una obra
+  const restoObra = q => !q || !q.nc || q.pag >= q.nc ? 0 : D.RES.reduce((a, r) => a + (G.cuotasRestantes(q)[r] || 0), 0);
+  // adelanta las cuotas de la obra i de la ciudad cid (sin i: la mayor de esa ciudad)
+  G.adelantarObra = function (cid, i) {
+    const c = G.state.cities[cid]; if (!c) return false;
+    if (i == null) { let bv = 0; i = -1; c.obras.forEach((o, k) => { const v = restoObra(o); if (v > bv) { bv = v; i = k; } }); }
+    const q = c.obras[i]; if (!q || !q.nc || q.pag >= q.nc) return false;
     const rest = G.cuotasRestantes(q); if (!G.canAfford(rest)) return false;
     for (const r in rest) { const de = gasta(r, rest[r]); if (r === 'oro') G.state.obrasMes = (G.state.obrasMes || 0) + de; }
     q.pag = q.nc; q.pausa = false; return true;
   };
-  G.obraMayor = function () { let best = null, bv = 0; for (const id of G.myCities()) { const q = G.state.cities[id].queue; if (!q || !q.nc || q.pag >= q.nc) continue; const v = D.RES.reduce((a, r) => a + (G.cuotasRestantes(q)[r] || 0), 0); if (v > bv) { bv = v; best = id; } } return best; };
+  // la obra con más coste restante entre todas las ciudades propias: { id, i, q } o null
+  G.obraMayor = function () { let best = null, bv = 0; for (const id of G.myCities()) G.state.cities[id].obras.forEach((q, i) => { const v = restoObra(q); if (v > bv) { bv = v; best = { id: id, i: i, q: q }; } }); return best; };
 
   /* ---------- aldeanos: reparto de la población trabajadora (20 partes) ---------- */
   G.REPARTO_RES = ['madera', 'piedra', 'hierro', 'grano'];
@@ -342,7 +347,12 @@
   G.usarCiudad = m => { CI = m || null; };
   G.hayCiudad = () => !!CI;
   G.ciudadMirada = null;                 // reservado: la interfaz pone aquí la ciudad que se mira (hoy se simulan todas)
-  G.huecos = c => 1;                     // obras a la vez por ciudad (Q4b lo subirá)
+  G.huecosObra = c => D.HUECOS_OBRA[Math.min(10, Math.max(1, (c && c.b && c.b.foro) || 1))];   // obras a la vez según el nivel del foro (Q4b)
+  G.huecos = c => G.huecosObra(c);
+  G.huecosLibres = c => Math.max(0, G.huecosObra(c) - c.obras.length);
+  G.obraDe = (c, b) => (c.obras || []).find(q => q.b === b) || null;
+  G.ultimoMotivo = '';
+  const sinHueco = c => G.huecosObra(c) === 1 ? 'Ya hay una obra en curso en esta ciudad' : 'Sube el foro para otra obra';
   const COMPAT = ['almacen', 'templo', 'mercado', 'cuartel', 'establo', 'herreria', 'puerto', 'granja', 'aserradero', 'cantera', 'mina'];
   const piezaDe = b => CI && b && b !== 'muralla' ? CI.PIEZA_DE[b] || null : null;
   const BONO_MIN = 0.8, BONO_MAX = 1.25;
@@ -352,7 +362,7 @@
   const idDe = c => { const cs = G.state && G.state.cities; if (cs) for (const id in cs) if (cs[id] === c) return id; return null; };
   const limpia = o => { const r = {}; for (const k in o) if (o[k] > 0) r[k] = o[k]; return r; };
 
-  /* c.queue es un alias (no enumerable) de c.obras[0]: la lista de obras tiene UN hueco (G.huecos) y el resto del código sigue leyendo c.queue. */
+  /* c.queue es un alias (no enumerable) de c.obras[0], solo por compatibilidad con la pantalla; el motor lee c.obras (huecos: G.huecosObra). */
   G.ligarObras = function (c) {
     const d = Object.getOwnPropertyDescriptor(c, 'queue'); if (d && d.get) return c;
     if (!Array.isArray(c.obras)) c.obras = [];
@@ -474,7 +484,10 @@
   function soltarCiudad(c) { delete c.sabios; regE.delete(c); delete c.ciudad; delete c.heredado; if (!c.b.viviendas) c.b.viviendas = 2; }   // sin ciudad nueva, c.b.viviendas (vista derivada = 0) vuelve a un mínimo para que la reconquista no hunda la población
   // una obra de partida vieja (sin pieza) se liga a la pieza que ahora existe si no pasa por encima de lo ya convertido
   function migrarObra(c, antes) {
-    const q = c.queue; if (!q || 'nuevo' in q) return; q.pieza = null; q.nuevo = false; q.mejora = null;
+    for (const q of c.obras) migrarUna(c, antes, q);
+  }
+  function migrarUna(c, antes, q) {
+    if (!q || 'nuevo' in q) return; q.pieza = null; q.nuevo = false; q.mejora = null;
     const pz = piezaDe(q.b), r = pz && regE.get(c); if (!r) return;
     const ps = r.E.edificios.filter(e => e.tipo === pz);
     if (ps.length) { const e = ps.reduce((m, p) => (p.mejora || 0) < (m.mejora || 0) ? p : m), k = e.mejora || 0; if (k < 3 && CI.NIVEL_MEJORA[k] <= (antes[q.b] || 0)) { q.pieza = pz; q.eid = e.id; q.x = e.x; q.z = e.z; q.mejora = k + 1; } }
@@ -488,14 +501,14 @@
   const durNiveles = (c, b, desde, hasta) => Math.min(30, D.BUILD[b].time * Math.pow(1.35, hasta - 1) * (1 + 0.25 * Math.max(0, hasta - desde - 1)) * (1 - 0.04 * (c.b.foro || 0)) * G.bonoMul('obra'));
   function empezar(c, s) {
     const dur = s.dur, pl = nuevoPlazo(limpia(s.coste), mesesDe(dur)); if (!G.canAfford(cuotaK(pl, 0))) return false;
-    c.obras[0] = Object.assign({ b: s.b, pieza: s.pieza, eid: s.eid, x: s.x, z: s.z, nuevo: !!s.nuevo, mejora: s.mejora, t0: G.state.t, t1: G.state.t + dur }, pl); pagaCuota(c.obras[0]);
-    return true;
+    const nq = Object.assign({ b: s.b, pieza: s.pieza, eid: s.eid, x: s.x, z: s.z, nuevo: !!s.nuevo, mejora: s.mejora, t0: G.state.t, t1: G.state.t + dur }, pl); c.obras.push(nq); pagaCuota(nq);
+    return nq;
   }
   function especNueva(c, E, pz, x, z) { const D0 = CI.EDIF[pz], b = D0.bid; return { b: b, pieza: pz, x: x, z: z, nuevo: true, mejora: 0, coste: D0.coste, dur: b ? G.buildTime(c, b) : D0.obra * (1 - 0.04 * (c.b.foro || 0)) * G.bonoMul('obra') }; }
   function especMejora(c, e) { const D0 = CI.EDIF[e.tipo], k = e.mejora || 0, b = D0.bid; return { b: b, pieza: e.tipo, eid: e.id, x: e.x, z: e.z, nuevo: false, mejora: k + 1, coste: D0.mejoras[k].coste, dur: b ? durNiveles(c, b, CI.NIVEL_MEJORA[k], CI.NIVEL_MEJORA[k + 1]) : D0.obra * (k + 1) * (1 - 0.04 * (c.b.foro || 0)) * G.bonoMul('obra') }; }
   function menorMejora(E, pz) { let m = null; for (const e of E.edificios) if (e.tipo === pz && (!m || (e.mejora || 0) < (m.mejora || 0))) m = e; return m; }
-  function terminarObra(id, c) {
-    const q = c.queue, nom = D.CITIES[id].n, r = CI && regE.get(c) || null; c.queue = null; let txt;
+  function terminarObra(id, c, q) {
+    const nom = D.CITIES[id].n, r = CI && regE.get(c) || null; const ix = c.obras.indexOf(q); if (ix >= 0) c.obras.splice(ix, 1); let txt;
     if (q.pieza && r) {
       const E = r.E, her = c.heredado = c.heredado || {};
       if (q.nuevo) {
@@ -532,28 +545,31 @@
   G.colocar = function (cid, tipo, x, z) {
     const c = prop(cid), E = c && G.ciudadE(cid), pz = tipoPz(tipo); if (!E || !pz || CI.EDIF[pz].accion) return { ok: false, motivo: 'No se puede' };
     if (!isFinite(x) || !isFinite(z)) return { ok: false, motivo: 'Sitio no válido' };
-    if (c.obras.length >= G.huecos(c)) return { ok: false, motivo: 'Ya hay una obra en curso en esta ciudad' };
-    const b = CI.EDIF[pz].bid; if (b && (D.BUILD[b].sea && !D.CITIES[cid].sea)) return { ok: false, motivo: 'Aquí no hay mar' };
-    if (b && G.faltaInv(b)) return { ok: false, motivo: G.faltaInv(b) }; if (b && G.faltaEspecial('edificio', b, c.b[b] || 0)) return { ok: false, motivo: 'Falta un bien especial' };
+    if (G.huecosLibres(c) === 0) return { ok: false, motivo: sinHueco(c) };
+    const b = CI.EDIF[pz].bid; if (b && G.obraDe(c, b)) return { ok: false, motivo: 'Ya se está mejorando' };
+    if (b && (D.BUILD[b].sea && !D.CITIES[cid].sea)) return { ok: false, motivo: 'Aquí no hay mar' };
+    if (b && G.faltaInv(b)) return { ok: false, motivo: G.faltaInv(b) };
+    if (b && G.faltaEspecial('edificio', b, c.b[b] || 0)) return { ok: false, motivo: 'Falta un bien especial' };
     if (pz === 'escuela') { if (!E.abiertas.includes('escuela')) return { ok: false, motivo: 'La Escuela se abre con ' + CI.EDIF.escuela.desde + ' habitantes' }; if ((c.b.escuela || 0) >= 1 || E.edificios.some(q => q.tipo === 'escuela') || c.obras.some(o => o.pieza === 'escuela')) return { ok: false, motivo: 'Ya hay una Escuela en esta ciudad' }; }
     const n = CI.notaSitio(E, pz, x, z); if (!n.vale) return { ok: false, motivo: n.razones[0] };
     if (b === 'templo' && !G.diosDe(c)) c.dios = D.DIOSES[c.dios] && !(D.DIOSES[c.dios].sea && !D.CITIES[cid].sea) ? c.dios : 'marte';
-    if (!empezar(c, especNueva(c, E, pz, x, z))) return { ok: false, motivo: 'Faltan recursos' };
-    return { ok: true, obra: c.obras[0] };
+    const nq = empezar(c, especNueva(c, E, pz, x, z)); if (!nq) return { ok: false, motivo: 'Faltan recursos' };
+    return { ok: true, obra: nq };
   };
   G.mejorarPieza = function (cid, idPieza) {
     const c = prop(cid), E = c && G.ciudadE(cid), e = E && E.edificios.find(p => p.id === idPieza); if (!e) return { ok: false, motivo: 'No existe esa pieza' };
     if (!CI.EDIF[e.tipo].mejoras || (e.mejora || 0) >= 3) return { ok: false, motivo: 'Ya está al máximo' };
-    if (c.obras.length >= G.huecos(c)) return { ok: false, motivo: 'Ya hay una obra en curso en esta ciudad' };
+    if (G.huecosLibres(c) === 0) return { ok: false, motivo: sinHueco(c) };
+    if (c.obras.some(q => q.eid === idPieza) || (CI.EDIF[e.tipo].bid && G.obraDe(c, CI.EDIF[e.tipo].bid))) return { ok: false, motivo: 'Ya se está mejorando' };
     if (e.obra || e.ruina) return { ok: false, motivo: 'Ahora no se puede mejorar' };
     const b = CI.EDIF[e.tipo].bid; if (b && G.faltaInv(b)) return { ok: false, motivo: G.faltaInv(b) }; if (b && G.faltaEspecial('edificio', b, c.b[b] || 0)) return { ok: false, motivo: 'Falta un bien especial' };
-    if (!empezar(c, especMejora(c, e))) return { ok: false, motivo: 'Faltan recursos' };
-    return { ok: true, obra: c.obras[0] };
+    const nq = empezar(c, especMejora(c, e)); if (!nq) return { ok: false, motivo: 'Faltan recursos' };
+    return { ok: true, obra: nq };
   };
   G.derribarPieza = function (cid, idPieza) {
     const c = prop(cid), r = c && infoC(c), e = r && r.E.edificios.find(p => p.id === idPieza); if (!e) return { ok: false, motivo: 'No existe esa pieza' };
     if (e.tipo === 'compitum') return { ok: false, motivo: 'Una capilla de cruce no se derriba' };
-    if (c.queue && c.queue.eid === idPieza) return { ok: false, motivo: 'Se está mejorando' };
+    if (c.obras.some(q => q.eid === idPieza)) return { ok: false, motivo: 'Se está mejorando' };
     quitar(r.E, idPieza); sinc(c, r); ponerDatos(c, r); const pc = G.popCap(c); if (c.pop > pc) c.pop = pc; return { ok: true };
   };
   G.levantarMuralla = function (cid) {   // paga entera al empezar; no toca c.b.muralla (lo lee battleInfo hasta CN7)
@@ -563,7 +579,7 @@
   };
 
   /* deja una ciudad como romana recién incorporada: sin colas, impuesto normal, mitad de población */
-  function incorporar(c, units, conquista) { c.prev = c.owner; c.inq = conquista ? D.INQ_MESES * G.invMul('inqMeses') : 0; c.owner = 'roma'; c.tipo = 'municipio'; c.tipoElegido = false; c.imp = 'normal'; c.reparto = G.repartoBase(); c.units = units; G.ligarObras(c); c.queue = null; c.train = []; c.levas = []; c.barrio = 1; c.bdef = 0; soltarCiudad(c); c.pop = Math.round(G.popCapViejo(c) * 0.5); c.ciu = 0; c.esc = conquista ? Math.round(c.pop * G.K().escConquista) : 0; if (CI && !cargando) abrir(c); }   // la ciudad nueva nace con la población que ya tenía
+  function incorporar(c, units, conquista) { c.prev = c.owner; c.inq = conquista ? D.INQ_MESES * G.invMul('inqMeses') : 0; c.owner = 'roma'; c.tipo = 'municipio'; c.tipoElegido = false; c.imp = 'normal'; c.reparto = G.repartoBase(); c.units = units; G.ligarObras(c); c.obras.length = 0; c.train = []; c.levas = []; c.barrio = 1; c.bdef = 0; soltarCiudad(c); c.pop = Math.round(G.popCapViejo(c) * 0.5); c.ciu = 0; c.esc = conquista ? Math.round(c.pop * G.K().escConquista) : 0; if (CI && !cargando) abrir(c); }   // la ciudad nueva nace con la población que ya tenía
   G.incorporar = incorporar;   // para las pruebas
 
   // edificios iniciales de una ciudad según su riqueza w y su muralla wl
@@ -602,8 +618,10 @@
   /* ---------- acciones del jugador ---------- */
   G.derivado = (c, b) => (b === 'viviendas' || b === 'foro') && !!c && c.owner === 'roma' && !!infoC(c);   // con ciudad nueva salen de las casas: no se levantan
   G.upgrade = function (cid, b) {
-    const c = G.state.cities[cid], L = c.b[b] || 0;
-    if (c.owner !== 'roma' || c.queue || L >= D.MAX_LVL || (D.BUILD[b].sea && !D.CITIES[cid].sea)) return false;
+    const c = G.state.cities[cid], L = c.b[b] || 0; G.ultimoMotivo = '';
+    if (c.owner !== 'roma' || L >= D.MAX_LVL || (D.BUILD[b].sea && !D.CITIES[cid].sea)) return false;
+    if (G.obraDe(c, b)) { G.ultimoMotivo = 'Ya se está mejorando'; return false; }
+    if (G.huecosLibres(c) === 0) { G.ultimoMotivo = sinHueco(c); return false; }
     if (D.BUILD[b].solar && L < 1 && G.solaresUsados(c) >= G.solares(cid)) return false;
     if (G.faltaInv(b) || G.faltaEspecial('edificio', b, L)) return false;   // niveles altos piden un bien especial (B1)   // sin solares no se levanta un edificio urbano nuevo
     const r = infoC(c);
@@ -613,11 +631,11 @@
       let sp; const e = menorMejora(r.E, pz);
       if (e) { if ((e.mejora || 0) >= 3) return false; sp = especMejora(c, e); }
       else { const st = mejorSitioG(r.E, pz); if (st) sp = especNueva(c, r.E, pz, st[0], st[1]); else if (!(c.heredado && c.heredado[b])) return false; }
-      if (sp) { if (b === 'templo' && !G.diosDe(c)) c.dios = D.DIOSES[c.dios] && !(D.DIOSES[c.dios].sea && !D.CITIES[cid].sea) ? c.dios : 'marte'; return empezar(c, sp); }
+      if (sp) { if (b === 'templo' && !G.diosDe(c)) c.dios = D.DIOSES[c.dios] && !(D.DIOSES[c.dios].sea && !D.CITIES[cid].sea) ? c.dios : 'marte'; return !!empezar(c, sp); }
     }
     const cost = G.cost(b, L), dur = G.buildTime(c, b), pl = nuevoPlazo(cost, mesesDe(dur)); if (!G.canAfford(cuotaK(pl, 0))) return false;
     if (b === 'templo' && !G.diosDe(c)) c.dios = D.DIOSES[c.dios] && !(D.DIOSES[c.dios].sea && !D.CITIES[cid].sea) ? c.dios : 'marte';
-    c.queue = Object.assign({ b: b, pieza: null, nuevo: false, mejora: null, t0: G.state.t, t1: G.state.t + dur }, pl); pagaCuota(c.queue);
+    const nq = Object.assign({ b: b, pieza: null, nuevo: false, mejora: null, t0: G.state.t, t1: G.state.t + dur }, pl); c.obras.push(nq); pagaCuota(nq);
     return true;
   };
 
@@ -737,7 +755,7 @@
     // hacia 228 (fecha moderna; Polibio 2.13): el poblado íbero pasa a ser Carthago Nova cartaginesa, salvo que ya sea tuyo
     fundaCarthagoNova: function (s) {
       const c = s.cities.carthagonova, e = D.CITIES.carthagonova.en228; if (!c || c.owner === 'roma' || c.owner === 'cartago') return;
-      c.owner = 'cartago'; c.units = Object.assign({}, e.g); c.w = e.w; c.b = Object.assign(c.b, G.edificiosBase('carthagonova', e.w, e.wl)); c.queue = null; c.train = [];
+      c.owner = 'cartago'; c.units = Object.assign({}, e.g); c.w = e.w; c.b = Object.assign(c.b, G.edificiosBase('carthagonova', e.w, e.wl)); c.obras.length = 0; c.train = [];
       G.log('🏛️ Asdrúbal funda Carthago Nova: el poblado íbero pasa a Cartago.', 'bad');
     },
     corvus: function (s) { s.mods.sea = 0.7; },
@@ -840,7 +858,7 @@
     // colas
     for (const id of G.myCities()) {
       const c = s.cities[id];
-      if (c.queue && s.t >= c.queue.t1) terminarObra(id, c);
+      for (const q of c.obras.filter(o => s.t >= o.t1)) terminarObra(id, c, q);
       while (c.train.length && s.t >= c.train[0].t1) { const q = c.train.shift(); c.units[q.u] = (c.units[q.u] || 0) + q.n; if (q.u !== 'milicia') { if (!c.levas) c.levas = []; c.levas.push({ u: q.u, n: q.n, t: s.t }); } G.log('🛡️ ' + D.CITIES[id].n + ': ' + q.n + ' ' + D.UNITS[q.u].n + ' listos.'); emit('dirty'); }
     }
     // modo turnos: al cerrar la estación se resuelve el mundo (año nuevo, rivales) antes de que lleguen las marchas
@@ -980,7 +998,7 @@
       rec = rec || 'Refuerza ' + D.CITIES[m.to].n + ' antes de que acabe la estación.';
     }
     for (const r of ['grano', 'oro']) if (p[r] < 0 && (s.res[r] + s.alm[r]) / -p[r] < 3) out.push({ k: 'bad', x: (r === 'grano' ? 'El grano' : 'El oro') + ' se acaba en ' + Math.max(1, Math.ceil((s.res[r] + s.alm[r]) / -p[r])) + ' mes(es).' });
-    const sin = mis.filter(id => !s.cities[id].queue).map(id => D.CITIES[id].n);
+    const sin = mis.filter(id => G.huecosLibres(s.cities[id]) > 0).map(id => D.CITIES[id].n);
     if (sin.length) { out.push({ k: '', x: 'Sin obras en cola: ' + sin.slice(0, 3).join(', ') + (sin.length > 3 ? '…' : '') + '.' }); rec = rec || 'Pon a trabajar a los constructores.'; }
     for (const x of G.avisoCierre(G.turnos)) out.push({ k: 'bad', x: x });
     const llenos = D.RES.filter(r => s.alm[r] >= cap - 1);
@@ -1076,7 +1094,7 @@
   // Una ciudad tuya pasa a otro dueño. Sin f: vuelve a su dueño anterior (inquietud). Con f y texto: rebelión de un hecho (Capua, 216)
   function rebelion(id, fijo, texto) {
     const s = G.state, c = s.cities[id], f = fijo || (c.prev && D.FACTIONS[c.prev] && c.prev !== 'roma' ? c.prev : D.CITIES[id].f);
-    soltarCiudad(c); c.owner = f; c.inq = 0; c.queue = null; c.train = []; c.levas = []; c.units = Object.assign({}, G.guarnicionBase(id, f) || {});
+    soltarCiudad(c); c.owner = f; c.inq = 0; c.obras.length = 0; c.train = []; c.levas = []; c.units = Object.assign({}, G.guarnicionBase(id, f) || {});
     if (s.hero.city === id) { s.hero.city = 'roma'; s.hero.march = null; }
     G.log(texto || '🔥 ¡' + D.CITIES[id].n + ' se rebela y vuelve a ' + D.FACTIONS[f].n + '! Un templo y una felicidad alta habrían calmado la ciudad.', 'bad'); G.rutasRevisar(); emit('dirty');
   }
@@ -1124,7 +1142,7 @@
         out.saqueo = true; out.lines.push('🔥 ' + D.FACTIONS[m.owner].n + ' saquea ' + d.n + ' y se marcha: ' + D.RES.map(r => '-' + rob[r] + ' ' + D.RES_ICON[r]).join(' ') + '.', 'Cada almacén esconde ' + D.ESCONDITE + ' de cada recurso.');
         G.log('🔥 ' + d.n + ' ha sido saqueada por ' + D.FACTIONS[m.owner].n + '.', 'bad');
       } else {
-        soltarCiudad(c); c.owner = m.owner; c.units = keep(res.surv[1], res.lost[1], 1, 0.3); c.queue = null; c.train = [];
+        soltarCiudad(c); c.owner = m.owner; c.units = keep(res.surv[1], res.lost[1], 1, 0.3); c.obras.length = 0; c.train = [];
         out.lines.push('🔥 ' + d.n + ' ha caído en manos de ' + D.FACTIONS[m.owner].n + '.');
         G.log('🔥 ' + d.n + ' ha caído ante ' + D.FACTIONS[m.owner].n + '.', 'bad');
         if (cid === 'roma') s.over = { win: false, why: 'Roma ha caído en ' + G.yearOf(s.t) + ' a.C. ante ' + D.FACTIONS[m.owner].n + '. Vae victis.' };
@@ -1160,7 +1178,7 @@
     if (!s.obrasMes) s.obrasMes = 0;
     for (const id in s.cities) { const c = s.cities[id];   // obras y lotes de partidas viejas: pagados enteros
       const vieja = (q, costo) => { if (q && !q.nc) { q.nc = 1; q.pag = 1; q.cuota = costo || {}; q.costo = costo || {}; q.pausa = false; } };
-      vieja(c.queue); for (const l of c.train || []) vieja(l); }
+      for (const q of c.obras || []) vieja(q); if (!c.obras) vieja(c.queue); for (const l of c.train || []) vieja(l); }
     if (!s.gastoMes) s.gastoMes = cero(); if (!s.gan) s.gan = cero(); if (!s.informe) s.informe = [];
     if (!s.alm || !s.cuarto) {
       s.alm = cero(); s.cuarto = cero(); const antes = G.state; G.state = s; const cap = G.cap(); G.state = antes;
