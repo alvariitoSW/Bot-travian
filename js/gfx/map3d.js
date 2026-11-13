@@ -336,7 +336,7 @@ export class MapView3D {
       c.grp.visible = true;
       if (c.owner !== st.owner) { c.owner = st.owner; c.quiere = claveCentro(st.owner); const col = D.FACTIONS[st.owner].col; c.flag.color.set(col); c.dot.style.background = col; c.el.classList.toggle('mine', st.owner === 'roma'); }
       if (c.quiere !== c.puesto) this.ponerCentro(c);
-      this.guarnicion(c, st, !mare && this.c.dist < 95);   // C1: guarnición visible solo de media distancia a cerca
+      this.guarnicion(c, st, !mare && this.c.dist < 95 && !(this.opts.ocupado && this.opts.ocupado()) && Math.hypot(c.x - this.c.x, c.z - this.c.z) < this.c.dist * 1.3);   // C1: guarnición visible solo de media distancia a cerca
       c.ring.visible = sel === id; if (sel === id) c.ring.rotation.z = this.t * 0.8;
       const txt = (state.hero.city === id ? '🦅 ' : '') + G.men(st.units); if (c.txt !== txt) { c.txt = txt; c.em.textContent = txt; }
       c.el.classList.toggle('sel', sel === id); place(c.el, c.x, c.grp.position.y + c.top, c.z);
