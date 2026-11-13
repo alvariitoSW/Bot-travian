@@ -230,7 +230,7 @@ export function crearSuelo3(texs, U, bosquetes) {
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
   const mat = new THREE.MeshLambertMaterial({ color: '#ffffff' });
   mat.onBeforeCompile = sh => {
-    Object.assign(sh.uniforms, { uMC: { value: Cj.m }, uTC: { value: Cj.t }, uMP: { value: Pj.m }, uTP: { value: Pj.t }, uCalor: { value: tCal }, uCal, tDry: { value: texs.terr_grass }, tGreen: { value: texs.terr_dry }, tDirt: { value: texs.terr_dirt }, tPav: { value: texs.terr_paving }, uRuido: U.uRuido, uTiempo: U.uTiempo, uEst });
+    Object.assign(sh.uniforms, { uMC: { value: Cj.m }, uTC: { value: Cj.t }, uMP: { value: Pj.m }, uTP: { value: Pj.t }, uCalor: { value: tCal }, uCal, tDry: { value: texs.terr_grass }, tGreen: { value: texs.terr_dry }, tDirt: { value: texs.terr_dirt }, tPav: { value: texs.terr_paving }, uRuido: U.uRuido, uTiempo: U.uTiempo, uEst, uTer });
     sh.vertexShader = 'varying vec3 vWP;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
     sh.fragmentShader = `varying vec3 vWP; uniform sampler2D uMC, uTC, uMP, uTP, uCalor, tDry, tGreen, tDirt, tPav; uniform float uCal; uniform vec3 uEst, uTer;\n${GLSL_NUBES}\n` + sh.fragmentShader.replace('#include <map_fragment>', `
       vec2 uc = (vWP.xz - vec2(0.0, ${CZ.toFixed(1)})) / ${(EC * 2).toFixed(1)} + 0.5, up = clamp(vWP.xz / ${(EP * 2).toFixed(1)} + 0.5, 0.002, 0.998);
