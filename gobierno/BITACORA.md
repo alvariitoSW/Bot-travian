@@ -249,3 +249,4 @@ Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que 
 
 - 13/11/2026 — **R3 hecha (el reloj se para con motivo)**: obra terminada, tropa lista, misión cumplida/fallida y ataque en camino paran el reloj y dicen por qué en una línea con «Continuar»; ajuste «Pausas del reloj: todas / solo graves / ninguna» (por defecto todas). Jueces APTO. Parte: gobierno/partes/2026-11-13-R3.md.
 - 13/11/2026 — **Pedido del usuario (sin aprobar aún, no entra al tablero)**: «hay que cambiar los menús y hacer un concurso de diseño y de arte para cambiarlos totalmente: son feísimos, contraintuitivos y un scroll infinito» (captura de Gobierno/Ajustes). Espera su confirmación para abrir la tarea (concurso de diseño de menús y pantallas).
+- 13/11/2026 — **Aprobado por el usuario: K11 concurso de menús** («que se abra la sesión de los menús»). Sesión abierta; solo maquetas, sin tocar js/.
