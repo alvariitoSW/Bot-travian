@@ -1397,6 +1397,9 @@ function rondaHud() {
 /* NB7: la batalla nueva. Maniobra (si hay más de 600 hombres) y luego el choque; al acabar se devuelve a la campaña lo mismo que la clásica. */
 function iniciaNueva(info, pl) {
   closeModal(); UI.nueva = true; UI.sheetKey = '';
+  try { iniciaNueva2(info, pl); } catch (err) { console.error(err); UI.nueva = false; toast('No se pudo abrir la batalla nueva.', 'bad'); }
+}
+function iniciaNueva2(info, pl) {
   const alChoque = (ch, estM) => window.UIBatalla2.abrir({ estado: G.estadoChoque(info, ch, {}) }, r2 => endBattle(G.resultadoNueva(info, r2, estM)));
   if (pl.via === 'maniobra') window.UIManiobra.abrir(G.cfgManiobra(info), r => { if (r.accion === 'batalla') alChoque(r.choque, r.estado); else endBattle(G.resultadoManiobra(info, r.estado)); });
   else alChoque(null, null);

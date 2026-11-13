@@ -254,6 +254,8 @@ async function navegador() {
     });
 
     await paso('Llega la batalla', async () => {
+      // NB7: este recorrido prueba la batalla clásica (la red de seguridad); la nueva la cubren test/nb7.test.mjs y captura-nb7.mjs
+      await estado(() => Game.ponerAjustes({ batalla: 'clasica' }));
       // se adelanta el reloj del juego en vez de esperar meses de campaña
       for (let i = 0; i < 400; i++) {
         const hay = await estado(() => { for (let k = 0; k < 20 && !Game.state.pending.length && !Game.state.over; k++) Game.tick(0.25); return Game.state.pending.length > 0; });

@@ -1667,7 +1667,7 @@
   // bajas por deserción u hombres perdidos en la maniobra: lo que había al empezar menos lo que queda en las legiones
   function bajasManiobra(info, e) {
     const l = [{}, {}]; if (!e) return l;
-    for (let b = 0; b < 2; b++) { const q = {}; e.bandos[b].legiones.forEach(L => { for (const k in L.units) q[k] = (q[k] || 0) + L.units[k]; }); for (const k in info.cfg.sides[b].units) { const d = info.cfg.sides[b].units[k] - (q[k] || 0); if (d > 0) l[b][k] = d; } }
+    for (let b = 0; b < 2; b++) { const q = {}; e.bandos[b].legiones.forEach(L => { for (const k in L.units) q[k] = (q[k] || 0) + L.units[k]; }); (e.bandos[b].retirados || []).forEach(L => { for (const k in (L.units || {})) q[k] = (q[k] || 0) + L.units[k]; }); for (const k in info.cfg.sides[b].units) { const d = info.cfg.sides[b].units[k] - (q[k] || 0); if (d > 0) l[b][k] = d; } }
     return l;
   }
   function forma(info, lost, extra) {

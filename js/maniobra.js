@@ -132,7 +132,7 @@
     for (let b = 0; b < 2; b++) legs(e, b).slice().forEach(L => {
       if (L.sinVivres < 2) return;
       const baja = Math.round(fuerza(L) * DESERCION); for (const k in L.units) L.units[k] = Math.floor(L.units[k] * (1 - DESERCION));
-      e.bandos[b].retirados.push({ id: L.id, nombre: L.nombre, fuerza: suma(L.units), deserciones: baja }); quitar(e, b, L);
+      e.bandos[b].retirados.push({ id: L.id, nombre: L.nombre, fuerza: suma(L.units), deserciones: baja, units: Object.assign({}, L.units) }); quitar(e, b, L);
       S(b, 'hambre', L.nombre + ' de ' + e.bandos[b].nombre + ' se retira por hambre (' + baja + ' desertan).');
     });
     for (let b = 0; b < 2; b++) if (!legs(e, b).length && !e.terminado) { e.terminado = true; e.fin = { tipo: 'retirada', bando: b }; }

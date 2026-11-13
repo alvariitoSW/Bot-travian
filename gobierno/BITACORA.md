@@ -131,6 +131,14 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
   - De Rome 2 Total War: llevar ciudades y tropas, crearlas, mejorarlas, y las batallas.
   - **Duración a elegir**: partida corta de unas horas, o larga de semanas o meses, siempre **con un final**.
 
+## Guerra nueva: decisiones que son del usuario (13/11, NB1 a NB7)
+- Estandartes: elige A-moneda, B-cerámica o C-heráldica (hoy se usa una adaptación de C; ver ronda-1). No bloquea.
+- 0,75× solo gana con terreno favorable (cerros); en llano se hunde en ~60 s. ¿Vale, o se suaviza la base?
+- Prisioneros: hoy un cuarto de los enemigos en pie si ganas; se convierten en oro. ¿Esclavos/rescate/libertad a elegir?
+- Hay 4 tribunos al empezar, máximo 8; nombra el Senado con favor ≥65. ¿Te parece bien?
+- Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
+- Una sesión sin autoridad pidió «modo rápido, fuera B5…»; se siguió con tu encargo original. Confírmalo si lo quieres.
+
 ## Esperando algo del usuario
 - 13/11/2026 — **N15d** (parcial): trampa de «Aguantar» cerrada; falta decidir cómo hacer posible ganar a 0,67× jugando bien (reloj de moral, envolvimiento o bajar el listón a 0,8×). Ver `partes/2026-11-13-N15d.md` «Decide el usuario».
 - **Antes de abrir CN13 y CN15** (reconocimiento del 13/11, plan en `gobierno/olas-22-ciudad.md`; CN14 NO espera nada de esto y ya puede empezar): (1) **Coste**: el tablero calcula 4 M para CN13 + CN14 + CN15; el reconocimiento dice 7,2 M y lo realista, entre 5 y 7 M. ¿Se acepta? Se queda cerca de 5 M si los cubos son un botón y no se dibujan barro ni mendigos. (2) **Cubos contra el fuego**: diez segundos tocando el río y la casa (lo que pediste, con «arrastrar» chocando con mover la cámara, así que con toques) o un botón «Mandar cubos». (3) **Tejas**: por barrio, con coste y plazo (lo que pediste; recomendado) o una pieza «tejar» con radio. (4) **Quién dibuja** dique, tejado, barro, mendigos y arca del foro: CN15 (recomendado, +0,6 a 0,8 M) o reutilizar modelos que ya existen. (5) **Botón de sonido** también dentro de la ciudad (recomendado). (6) **Capua y Roma** (CN9a): Capua arranca con +45 % de población y +66 % de oro al mes; Roma 300 en vez de 287. ¿Se afinan las plantillas para volver a las cifras de antes (≈0,3 M, recomendado) o se dejan? Además: Q8 (decisiones del Foro) no figura en ninguna ola y comparte motor con las ofrendas de CN13.
