@@ -593,6 +593,10 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 /* CN4 bandeja: una línea de contexto arriba y una bandeja de fichas abajo (ciudad 3D) */
 #linea { position: absolute; left: 8px; right: 58px; top: calc(138px + env(safe-area-inset-top)); max-width: 560px; margin: 0 auto; z-index: 4; padding: 7px 12px; border-radius: 10px; background: var(--glass); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1px solid var(--line); border-left: 4px solid var(--mute); font-size: 13.5px; line-height: 1.3; box-shadow: 0 4px 14px rgba(0, 0, 0, .35); overflow: clip; pointer-events: none; }
 #l-nota { font-weight: 750; margin-right: 7px; }
+/* CN14-A: cifra grande del efecto de colocar; debajo queda sitio para la «lección con botón» de CN14-C */
+#l-cifra { display: block; font-size: 21px; font-weight: 800; line-height: 1.15; } #l-cifra:empty { display: none; }
+#l-cifra small { display: block; font-size: 11.5px; font-weight: 500; color: var(--mute); }
+#l-cifra.bien { color: #9be07a; } #l-cifra.mal { color: #f58a6a; } #l-cifra.neutro { color: #cdbf98; }
 #linea.verde { border-left-color: #7fd060; } #linea.verde #l-nota { color: #9be07a; }
 #linea.ocre { border-left-color: #f2c45a; } #linea.ocre #l-nota { color: #f2c45a; }
 #linea.rojo { border-left-color: #f07a5a; } #linea.rojo #l-nota { color: #f58a6a; }

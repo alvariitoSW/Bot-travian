@@ -591,7 +591,9 @@
   /* ---------- API para el modo «colocar» (CN4) ----------  tipo = id de pieza (EDIF de ciudad.js) o id de D.BUILD */
   const tipoPz = t => piezaDe(t) || (CI && CI.EDIF[t] ? t : null);
   const prop = cid => { const c = G.state.cities[cid]; return c && c.owner === 'roma' && CI ? c : null; };
-  G.notaSitio = function (cid, tipo, x, z) { const E = G.ciudadE(cid), pz = tipoPz(tipo); return E && pz ? CI.notaSitio(E, pz, x, z) : null; };
+  G.notaSitio = function (cid, tipo, x, z) { const E = G.ciudadE(cid), pz = tipoPz(tipo); if (!E || !pz) return null; const r = CI.notaSitio(E, pz, x, z);
+    if (r.vale && G.CAMPOS.some(b => CI.PIEZA_DE[b] === pz)) { const n = Math.round((bonoSitio(r.nota) - 1) * 100); r.efecto = { n, txt: n ? 'Rinde ' + (n > 0 ? '+' : '\u2212') + Math.abs(n) + ' %' : 'Rinde igual', tono: n > 0 ? 'bien' : n < 0 ? 'mal' : 'neutro' }; }   // el rendimiento de los 4 campos
+    return r; };
   G.mapaCalor = function (cid, tipo) { const E = G.ciudadE(cid), pz = tipoPz(tipo); return E && pz ? CI.mapaCalor(E, pz) : null; };
   G.colocar = function (cid, tipo, x, z) {
     const c = prop(cid), E = c && G.ciudadE(cid), pz = tipoPz(tipo); if (!E || !pz || CI.EDIF[pz].accion) return { ok: false, motivo: 'No se puede' };

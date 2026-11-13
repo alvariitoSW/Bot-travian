@@ -150,6 +150,12 @@ async function navegador() {
       await page.locator(sel).first().scrollIntoViewIfNeeded(); await page.locator(sel).first().tap(); await espera(1200);
       const linea = () => estado(() => { const l = document.getElementById('linea'); return l.hidden ? '' : l.textContent.trim(); });
       const lin = await linea(); if (!lin) fallos.push('al elegir la ficha no aparece el fantasma ni la línea');
+      // CN14-A: la cifra grande de la línea sale al colocar una pieza con efecto y cambia al moverla (se lee antes y después)
+      { const cifra = () => estado(() => { const c = document.getElementById('l-cifra'); return c ? c.textContent.trim() : null; });
+        const conEf = await estado(() => { const r = UI.sel3 && Game.notaSitio('roma', UI.sel3.id, UI.sel3.x, UI.sel3.z); return !!(r && r.efecto); });
+        if (conEf) { const c1 = await cifra(); if (c1 === null) fallos.push('no existe #l-cifra'); else if (!c1) fallos.push('la cifra del efecto está vacía al elegir la pieza');
+          const pt = await estado(() => { const E = Game.ciudadE('roma'), pz = UI.sel3.id; let a = null, ef = Game.notaSitio('roma', pz, UI.sel3.x, UI.sel3.z).efecto; for (let x = E.foro.x - 200; x <= E.foro.x + 200; x += 20) for (let z = E.foro.z - 200; z <= E.foro.z + 200; z += 20) { const n = Game.notaSitio('roma', pz, x, z); if (n && n.efecto && n.efecto.txt !== ef.txt && (!a || n.vale)) a = { x, z }; } if (!a) return null; UI.cityV.mirar(a.x, a.z, 300, 0); return UI.cityV.aPantalla(a.x, a.z, 0); });
+          if (pt) { await espera(600); await page.touchscreen.tap(pt.x, pt.y); await espera(800); const c2 = await cifra(); if (c2 === c1) fallos.push('la cifra no cambia al mover la pieza (' + c1 + ')'); } } }
       const captura = await foto('construir');
       // si el sitio no vale, se toca el suelo en el mejor sitio verde
       if (await estado(() => document.getElementById('b-si').disabled)) {

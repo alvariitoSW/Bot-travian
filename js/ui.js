@@ -569,15 +569,20 @@ function fichaHtml(c, sd) {
 const NOTA3 = { verde: 'Buen sitio', ocre: 'Sitio regular', rojo: 'Mal sitio', nada: 'Aquí no' };
 const coste5 = k => Object.keys(k).filter(r => k[r] > 0).map(r => D.RES_ICON[r] + fmt(k[r])).join(' ');
 const suma5 = k => Object.keys(k).reduce((a, r) => a + k[r], 0);
-function lineaPon(t, clase, nota, seg) { UI.lin = t ? { t, c: clase || '', n: nota || '', hasta: seg ? performance.now() + seg * 1000 : 0 } : null; pintaLinea(); }
+/* efecto/mejor (opcionales): la cifra grande de CN14-A; sin ellos #l-cifra queda vacío */
+function lineaPon(t, clase, nota, seg, efecto, mejor) { UI.lin = (t || efecto) ? { t: t || '', c: clase || '', n: nota || '', hasta: seg ? performance.now() + seg * 1000 : 0, ef: efecto || null, mj: efecto && mejor != null ? mejor : null } : null; pintaLinea(); }
+const conSigno = n => (n < 0 ? '\u2212' : '+') + Math.abs(n);
 function pintaLinea() {
   const l = $('linea'), m3 = UI.modo3 || 'mirar'; let x = UI.lin;
   if (x && x.hasta && performance.now() > x.hasta) x = UI.lin = null;
   if (!x && m3 === 'mirar' && UI.cityV && UI.cityV.meta) x = { t: UI.cityV.meta.cons.t, c: 'aviso consejo', n: '' };
-  const k = UI.bsel || !x || !x.t ? '' : x.c + '|' + x.n + '|' + x.t;
+  const ef = x && x.ef, mj = ef && x.mj != null && x.mj > ef.n ? x.mj : null;
+  const k = UI.bsel || !x || (!x.t && !x.ef) ? '' : x.c + '|' + x.n + '|' + x.t + '|' + (ef ? ef.txt + '|' + ef.tono : '') + '|' + (mj != null ? mj : '');
   if (k === UI.linK) return; UI.linK = k;
-  if (!k) { l.hidden = true; return; }
+  if (!k) { l.hidden = true; $('l-cifra').textContent = ''; return; }
   l.hidden = false; l.className = x.c; $('l-nota').textContent = x.n; $('l-nota').hidden = !x.n; $('l-texto').textContent = x.t;
+  const ci = $('l-cifra'); ci.className = ef ? ef.tono : ''; ci.textContent = ef ? ef.txt : '';
+  if (mj != null) { const sm = document.createElement('small'); sm.textContent = 'mejor hasta ahora: ' + conSigno(mj); ci.appendChild(sm); }
 }
 /* datos de una ficha de la bandeja: nombre, coste total, lo que se paga al empezar y si ya hay obra */
 function piezaInfo(id) {
@@ -614,7 +619,7 @@ function cityPantalla() {
 }
 function salir3(avisar) {
   if (UI.modo3 === 'fundar') { cerrarFundar(); return; }
-  UI.modo3 = 'mirar'; UI.sel3 = null;
+  UI.modo3 = 'mirar'; UI.sel3 = null;      /* con sel3 se van el efecto y el «mejor» */
   if (UI.cityV) { UI.cityV.ponerFantasma(null); UI.cityV.calor(null); }
   if (!avisar) lineaPon(''); cityPantalla(); pintaLinea();
 }
@@ -622,7 +627,7 @@ function elegir3(id, p) {
   if (!UI.cityV || !G.ciudadE(UI.city)) return; UI.bsel = null; UI.vistas = false; UI.col3City = UI.city; $('csheet').dataset.m = '';
   if (id === 'muralla') { UI.modo3 = 'muralla'; UI.modoT = performance.now(); UI.sel3 = null; UI.cityV.ponerFantasma(null); UI.cityV.calor(null); const E = G.ciudadE(UI.city);
     lineaPon(Ciudad.murallaSiguiente(E) ? (E.muralla.fase ? 'La empalizada se rehace en piedra, con torres y puertas donde cruzan las calles.' : 'La empalizada sigue el surco, con puertas donde cruzan las calles. Las casas de fuera quedan de arrabal.') : 'La obra de la muralla ya está en marcha.', 'aviso'); renderCity3D(); return; }
-  UI.modo3 = 'colocar'; UI.modoT = performance.now(); UI.sel3 = { id }; UI.cityV.calor(G.mapaCalor(UI.city, id));
+  UI.modo3 = 'colocar'; UI.modoT = performance.now(); UI.sel3 = { id, efecto: null, mejor: null }; UI.cityV.calor(G.mapaCalor(UI.city, id));
   if (!p) p = UI.cityV.sueloEn(innerWidth / 2, innerHeight * 0.45); if (!p) { const E = G.ciudadE(UI.city); p = [E.foro.x, E.foro.z]; }
   renderCity3D(); mover3(p[0], p[1]);
 }
@@ -630,7 +635,10 @@ function mover3(x, z) {
   const sel = UI.sel3; if (UI.modo3 !== 'colocar' || !sel) return; const n = G.notaSitio(UI.city, sel.id, x, z); if (!n) return;
   const col = n.vale ? Ciudad.color(n.nota) : 'rojo'; Object.assign(sel, { x, z, vale: n.vale, nota: n.nota });
   UI.cityV.ponerFantasma({ id: sel.id, x, z, ang: n.ang || 0, color: col, radio: n.vale ? n.radio : 0 });
-  lineaPon(n.razones.join(' · '), 'sitio ' + col, NOTA3[col]); cityPantalla();
+  const ef = n.efecto || null; sel.efecto = ef; if (ef && (sel.mejor == null || ef.n > sel.mejor)) sel.mejor = ef.n;
+  /* con cifra grande se quita de las razones la frase que repite el número */
+  const rz = ef ? n.razones.filter(r => !/^(Daría agua a|Llegaría a|Su humo molestaría a) \d|^\d+ casas comprarían aquí/.test(r)) : n.razones;
+  lineaPon(rz.join(' · '), 'sitio ' + col, NOTA3[col], 0, ef, sel.mejor); cityPantalla();
 }
 function construir3() {
   if (performance.now() - (UI.modoT || 0) < 450) return;      // el «clic fantasma» del toque en la ficha cae sobre el botón recién aparecido

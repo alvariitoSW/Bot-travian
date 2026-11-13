@@ -270,6 +270,15 @@ function cubosArboles(E) { const m = new Map(); for (const a of E.arboles) { if 
 function arbolesCerca(m, x, z, r) { let n = 0; const i = Math.floor(x / 45), j = Math.floor(z / 45); for (let a = i - 1; a <= i + 1; a++) for (let b = j - 1; b <= j + 1; b++) { const l = m.get(a * 4096 + b); if (l) for (const t of l) if (Math.hypot(t.x - x, t.z - z) < r) n++; } return n; }
 function contexto(E) { const S = servicios(E); return { S, casas: E.parcelas.filter(l => l.casa && !l.fuera).map(l => ({ x: l.x, z: l.z, s: sirve(S, l.x, l.z) })), arb: cubosArboles(E) }; }
 export function orientar(E, id, x, z) { if (id === 'muelle') { let m = 1e9, a = 0; for (let t = 0; t < 6.28; t += 0.196) { const d = distPoli(RIO, x + Math.cos(t) * 20, z + Math.sin(t) * 20); if (d < m) { m = d; a = t; } } return a; } const k = ci(x, z); if (k >= 0 && E.dVia[k] < 70) { const g = (dx, dz) => { const q = ci(x + dx, z + dz); return q < 0 ? 999 : E.dVia[q]; }, gx = g(6, 0) - g(-6, 0), gz = g(0, 6) - g(0, -6); if (gx || gz) return Math.atan2(-gz, -gx); } return E.foro ? Math.atan2(E.foro.z - z, E.foro.x - x) : 0; }
+/* Efecto corto de colocar una pieza, para mostrarlo en pantalla: {n: entero con signo, txt, tono} o null.
+   Una entrada por pieza (CN13b añadirá dique y tejar). ctx.c = casas que cuenta la rama de notaSitio. */
+const EFECTO_SITIO = {
+  fuente: ctx => ({ n: ctx.c, txt: ctx.c ? '+' + ctx.c + ' casas con agua' : '0 casas con agua', tono: ctx.c ? 'bien' : 'neutro' }),
+  templo: ctx => ({ n: ctx.c, txt: (ctx.c ? '+' : '') + ctx.c + ' casas con templo cerca', tono: ctx.c ? 'bien' : 'neutro' }),
+  mercado: ctx => ({ n: ctx.c, txt: ctx.c + ' casas lo usarían', tono: ctx.c ? 'bien' : 'neutro' }),
+  taller: ctx => ({ n: -ctx.c, txt: ctx.c ? '\u2212' + ctx.c + ' casas con humo' : '0 casas con humo', tono: ctx.c ? 'mal' : 'neutro' }),
+  herreria: ctx => EFECTO_SITIO.taller(ctx),
+};
 export function notaSitio(E, id, x, z, cx) {
   const D = EDIF[id], k = ci(x, z); cx = cx || contexto(E);
   if (k < 0 || Math.abs(x) > 460 || z < Z0 + 20 || z > Z0 + LADO - 20) return { nota: -99, vale: false, razones: ['Fuera del territorio'] };
@@ -278,22 +287,22 @@ export function notaSitio(E, id, x, z, cx) {
   else if (esAgua(x, z)) return mal('En el agua no');
   if (id !== 'muelle' && PEND[k] > (id === 'granja' ? 0.12 : id === 'cantera' || id === 'mina' ? 0.5 : 0.24)) return mal(id === 'granja' ? 'En cuesta no se labra' : 'Demasiado empinado');
   let choque = ''; if (!huella(E, x, z, ang + Math.PI / 2, D.w, D.d, (o, q) => { if (o === 1) choque = 'Encima de una calle no'; else if (o === 2 || o === 4) choque = 'Ya hay un edificio'; else if (o === 5) choque = 'Sobre el surco sagrado no'; else if (o === 3) { const l = E.parcelas[E.lote[q] - 1]; if (l && l.casa) choque = 'Hay casas: busca un solar libre'; } return !!choque; })) return mal(choque || 'Fuera del territorio');
-  const raz = [], inu = id !== 'muelle' && ribera(E, x, z, E.mesN + 1), den = dentro(E, x, z), dF = Math.hypot(x - E.foro.x, z - E.foro.z); let n = 0, radio = D.radio || 0;
+  const raz = [], inu = id !== 'muelle' && ribera(E, x, z, E.mesN + 1), den = dentro(E, x, z), dF = Math.hypot(x - E.foro.x, z - E.foro.z); let n = 0, radio = D.radio || 0, ctx = { c: 0 };   // ctx.c = casas que cuenta la rama; EFECTO_SITIO lo convierte en texto
   const cuantas = (r, f) => cx.casas.reduce((s, c) => s + (Math.hypot(c.x - x, c.z - z) < r && (!f || f(c)) ? 1 : 0), 0);
-  if (id === 'fuente') { const c = cuantas(radio, c => !c.s.agua), ya = cuantas(radio, c => c.s.fuente);
+  if (id === 'fuente') { const c = cuantas(radio, c => !c.s.agua), ya = cuantas(radio, c => c.s.fuente); ctx.c = c;
     if (d < R_AGUA_RIO) { n -= 2; raz.push('Aquí ya beben del río −2'); }
     if (c) { const p = Math.min(3, Math.ceil(c / 4)); n += p; raz.push('Daría agua a ' + c + ' casas +' + p); } else raz.push(ya ? 'Estas casas ya tienen fuente' : 'Sin casas con sed cerca');
     if (ya > c && c) { n -= 1; raz.push('Pisa a otra fuente −1'); } }
   else if (id === 'templo') { radio = radioTemplo(E, x, z); const c = cuantas(radio, c => !c.s.templo), sube = h - alt(E.foro.x, E.foro.z);
     if (sube >= 5) { n += 2; raz.push('En alto: se ve desde lejos +2'); } else raz.push('En llano: llega poco');
     if (dF < 95) { n += 1; raz.push('Junto al foro +1'); }
-    if (c) { const p = Math.min(2, Math.ceil(c / 12)); n += p; raz.push('Llegaría a ' + c + ' casas +' + p); } else { n -= 1; raz.push('No llega a ninguna casa −1'); } }
+    ctx.c = c; if (c) { const p = Math.min(2, Math.ceil(c / 12)); n += p; raz.push('Llegaría a ' + c + ' casas +' + p); } else { n -= 1; raz.push('No llega a ninguna casa −1'); } }
   else if (id === 'mercado') { const c = cuantas(radio), pr = E.dVia[k] < 34 && E.tVia[k] <= 2;
     if (dF < 95) { n += 2; raz.push('Junto al foro +2'); } else if (pr) { n += 1; raz.push('En calle principal +1'); } else { n -= 1; raz.push('Lejos del foro y de las calles principales −1'); }
-    if (c) { const p = Math.min(2, Math.ceil(c / 15)); n += p; raz.push(c + ' casas comprarían aquí: +' + Math.round(c * 0.2) + ' monedas al mes'); } else raz.push('Sin casas cerca: no vende'); }
+    ctx.c = c; if (c) { const p = Math.min(2, Math.ceil(c / 15)); n += p; raz.push(c + ' casas comprarían aquí: +' + Math.round(c * 0.2) + ' monedas al mes'); } else raz.push('Sin casas cerca: no vende'); }
   else if (id === 'granero') { if (!den) return mal('El granero va dentro del surco'); const dp = Math.min(...E.puertas.map(p => Math.hypot(p.x - x, p.z - z)), 999);
     n += 1; raz.push('Dentro del surco +1'); if (dp < 75) { n += 2; raz.push('Cerca de una puerta: los carros llegan +2'); } else { n -= 1; raz.push('Lejos de las puertas −1'); } }
-  else if (id === 'taller') { if (d > 170) return mal('El taller necesita agua: ponlo cerca de la orilla'); const c = cuantas(radio);
+  else if (id === 'taller') { if (d > 170) return mal('El taller necesita agua: ponlo cerca de la orilla'); const c = cuantas(radio); ctx.c = c;
     n += 1; raz.push('Tiene agua +1'); if (c) { n -= Math.min(3, 1 + Math.ceil(c / 6)); raz.push('Su humo molestaría a ' + c + ' casas −' + Math.min(3, 1 + Math.ceil(c / 6))); } else { n += 2; raz.push('Lejos de las casas +2'); } }
   else if (id === 'granja') { if (den) return mal('Dentro del surco no se labra'); if (cuantas(40)) return mal('Demasiado pegada a las casas');
     if (vega(x, z)) { n += 3; raz.push('En la vega: rinde más +3'); } else if (PEND[k] < 0.05) { n += 1; raz.push('Llano fértil +1'); } else raz.push('Tierra pobre');
@@ -313,7 +322,7 @@ export function notaSitio(E, id, x, z, cx) {
     if (id === 'establo' && PEND[k] > 0.06) return mal('Los caballos piden llano');
     n += dp < 70 ? 3 : 1; raz.push(dp < 70 ? 'Junto a una puerta: la tropa sale +3' : 'No lejos de una puerta +1'); if (id === 'establo') { n += 1; raz.push('Llano +1'); } const c = cuantas(40); if (c) { n -= 1; raz.push('Ruido para ' + c + ' casas −1'); } }
   else if (id === 'herreria') { if (dF > 150) return mal('La herrería va cerca del foro');
-    const c = cuantas(45); n += 1; raz.push('Cerca del foro +1'); if (c) { const p = Math.min(3, 1 + Math.ceil(c / 6)); n -= p; raz.push('Su humo molestaría a ' + c + ' casas −' + p); } else { n += 2; raz.push('Lejos de las casas +2'); } }
+    const c = cuantas(45); ctx.c = c; n += 1; raz.push('Cerca del foro +1'); if (c) { const p = Math.min(3, 1 + Math.ceil(c / 6)); n -= p; raz.push('Su humo molestaría a ' + c + ' casas −' + p); } else { n += 2; raz.push('Lejos de las casas +2'); } }
   else if (id === 'escuela') { if (dF > 170) return mal('La escuela va cerca del foro');
     const c = cuantas(45), t = E.edificios.some(q => q.tipo === 'taller' || q.tipo === 'herreria') && E.edificios.some(q => (q.tipo === 'taller' || q.tipo === 'herreria') && Math.hypot(q.x - x, q.z - z) < 70);
     n += 1; raz.push('Cerca del foro +1'); if (t) { n -= 2; raz.push('El humo del taller molesta al estudio −2'); } else { n += 2; raz.push('Lejos del humo +2'); } if (c) { n += 1; raz.push('Entre casas: llegan alumnos +1'); } }
@@ -321,7 +330,7 @@ export function notaSitio(E, id, x, z, cx) {
     if (den) return mal('El barrio nuevo se abre fuera del surco'); if (db < 215) return mal('Demasiado cerca de otro barrio'); if (E.dVia[k] > 22) return mal('Tiene que estar junto a un camino'); if (cuantas(45)) return mal('Aquí ya hay casas');
     n += 2; raz.push('Junto al camino +2'); if (PEND[k] < 0.06) { n += 1; raz.push('Llano para crecer +1'); } if (d < 230 && !inu) { n += 1; raz.push('Agua cerca +1'); } }
   if (inu) { n -= 3; raz.push(id === 'granja' ? 'Ribera baja: se inunda −3' : 'Se inunda en primavera −3'); }
-  return { nota: n, vale: true, razones: raz, radio, ang };
+  return { nota: n, vale: true, razones: raz, radio, ang, efecto: (EFECTO_SITIO[id] || (() => null))(ctx) };
 }
 /* mapa de calor: una nota cada 8 unidades. -99 = sin color; -9 = no vale */
 export const PASO_CALOR = 8, N_CALOR = LADO / PASO_CALOR;

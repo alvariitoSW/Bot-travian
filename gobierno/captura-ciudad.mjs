@@ -15,7 +15,7 @@ import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const [pref = 'ciudad', ...resto] = process.argv.slice(2), op = Object.fromEntries(resto.map(a => a.split('=')));
-const vistas = (op.vistas || (pref === 'CN14B' ? 'c14-sin-crecida' : pref === 'CN9a' ? 'c9-ciudad' : pref === 'CN8' ? 'c8-aviso,c8-crecida,c8-fuego,c8-ruina' : pref === 'CN7' ? 'c7-surco,c7-empalizada-obra,c7-empalizada,c7-piedra,c7-ruina' : 'bandeja,fantasma,rojo,ficha,obra')).split(','), ciudad = op.ciudad || 'roma', dpr = +(op.dpr || 2);
+const vistas = (op.vistas || (pref === 'CN14B' ? 'c14-sin-crecida' : pref === 'CN14A' ? 'c14-cifra-a,c14-cifra-b' : pref === 'CN9a' ? 'c9-ciudad' : pref === 'CN8' ? 'c8-aviso,c8-crecida,c8-fuego,c8-ruina' : pref === 'CN7' ? 'c7-surco,c7-empalizada-obra,c7-empalizada,c7-piedra,c7-ruina' : 'bandeja,fantasma,rojo,ficha,obra')).split(','), ciudad = op.ciudad || 'roma', dpr = +(op.dpr || 2);
 const LUZ_ESTACIONAL = true;          // Q11: false = sin mes= ni vistas de luz (la ciudad usa la luz de siempre)
 const ponerFecha = (mes, frac) => page.evaluate(([m, f]) => { Game.state.speed = 0; Game.state.t = 24 + (m - 1) + f; }, [mes, frac]);     // inversa de G.estacion: enero = invierno, 3 meses por turno
 const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream' };
@@ -43,6 +43,23 @@ const lineaTxt = () => page.evaluate(() => { const l = document.getElementById('
 const elegirFicha = async id => { await page.evaluate(() => { const n = document.getElementById('b-no'); if (n && n.offsetParent) n.click(); const cc = document.querySelector('#fichab [data-act="cclose"]'); if (cc && cc.offsetParent) cc.click(); const s = Game.state; for (const r of DATA.RES) { s.res[r] = 1e4; s.alm[r] = Math.max(s.alm[r] || 0, 1e4); } }); const f = page.locator('.pza[data-id="' + id + '"]'); await f.scrollIntoViewIfNeeded().catch(() => {}); await f.tap(); await page.waitForTimeout(1200); };
 const sitioVerde = async pz => { const p = await page.evaluate(pz => { const id = UI.city, E = Game.ciudadE(id); let m = null; for (let x = E.foro.x - 250; x <= E.foro.x + 250; x += 10) for (let z = E.foro.z - 250; z <= E.foro.z + 250; z += 10) { const n = Game.notaSitio(id, pz, x, z); if (n && n.vale && (!m || n.nota > m.n)) m = { n: n.nota, x, z }; } if (!m) return null; UI.cityV.mirar(m.x, m.z, 300, 0); return { x: m.x, z: m.z }; }, pz); if (!p) return false; for (let k = 0; k < 4; k++) { await page.waitForTimeout(1500); const q = await page.evaluate(m => UI.cityV.aPantalla(m.x, m.z, 0), p); await page.touchscreen.tap(q.x, q.y); await page.waitForTimeout(900); if (await page.evaluate(() => !document.getElementById('b-si').disabled)) break; } return true; };
 const tocaPieza = async () => { for (let k = 0; k < 4; k++) { const e = await page.evaluate(() => { const E = Game.ciudadE(UI.city), e = E.edificios.find(q => !q.obra && !q.ruina && DATA.BUILD[q.tipo] && q.x !== undefined); if (!e) return null; UI.cityV.mirar(e.x, e.z, 260, 0); return { x: e.x, z: e.z, t: e.tipo }; }); if (!e) return ''; await page.waitForTimeout(2500); const p = await page.evaluate(e => UI.cityV.aPantalla(e.x, e.z, 4), e); await page.touchscreen.tap(p.x, p.y); await page.waitForTimeout(900); if (await page.evaluate(() => !!document.querySelector('#fichab .ficha'))) return e.t; } return ''; };
+/* CN14-A: elige la fuente con la bandeja, coloca el fantasma tocando el suelo y devuelve lo que dice #l-cifra */
+const cifraVista = async cual => {
+  await page.evaluate(() => { const a = Game.state.ajustes; if (a && 'asesor' in a) a.asesor = false; });
+  const pts = await page.evaluate(() => { const E = Game.ciudadE(UI.city), cs = E.parcelas.filter(l => l.casa && !l.fuera); let a = null, b = null;
+    for (let x = E.foro.x - 260; x <= E.foro.x + 260; x += 10) for (let z = E.foro.z - 260; z <= E.foro.z + 260; z += 10) { const n = Game.notaSitio(UI.city, 'fuente', x, z); if (!n || !n.vale) continue; const e = n.efecto ? n.efecto.n : 0, c = cs.filter(l => Math.hypot(l.x - x, l.z - z) < 60).length;
+      if (!a || e > a.e) a = { x, z, e }; if (c === 0 && (!b || Math.hypot(x - E.foro.x, z - E.foro.z) < Math.hypot(b.x - E.foro.x, b.z - E.foro.z))) b = { x, z, e }; }
+    return { a, b, casas: cs.length }; });
+  const p = pts[cual] || pts.a;
+  /* se eligen las piezas con eventos de puntero (sin «clic» sintético, que caería sobre el botón Cancelar recién aparecido) */
+  await page.evaluate(id => { const n = document.getElementById('b-no'); if (n && n.offsetParent) n.click(); for (const r of DATA.RES) { Game.state.res[r] = 1e4; Game.state.alm[r] = Math.max(Game.state.alm[r] || 0, 1e4); } const f = document.querySelector('.pza[data-id="' + id + '"]'), r = f.getBoundingClientRect(), o = { pointerId: 7, bubbles: true, clientX: r.x + 30, clientY: r.y + 30, pointerType: 'touch' };
+    f.dispatchEvent(new PointerEvent('pointerdown', o)); window.dispatchEvent(new PointerEvent('pointerup', o)); }, process.env.PZ || 'fuente'); await page.waitForTimeout(1200);
+  await page.evaluate(q => UI.cityV.mirar(q.x, q.z, 260, 0.4), p); await page.waitForTimeout(800);
+  const q = await page.evaluate(q => UI.cityV.aPantalla(q.x, q.z, 0), p); await page.touchscreen.tap(q.x, q.y); await page.waitForTimeout(1500);
+  const ci = await page.evaluate(() => { const c = document.getElementById('l-cifra'); return c ? c.textContent : '(no existe #l-cifra)'; });
+  const dbg = await page.evaluate(() => 'tab=' + UI.tab + ' modo=' + UI.modo3 + ' bsel=' + !!UI.bsel + ' pzas=' + document.querySelectorAll('.pza').length);
+  return dbg + ' · sitio ' + cual + ' (' + Math.round(p.x) + ',' + Math.round(p.z) + ') · cifra «' + ci + '» · ' + await lineaTxt();
+};
 const PASOS = {
   // --- CN9a: la ciudad de plantilla (Roma, Capua) o una conquistada (ciudad=tarentum, carthago...) ---
   'c9-ciudad': async () => page.evaluate(async cid => { UI.city = cid; const id = cid, c = Game.state.cities[id]; if (c.owner !== 'roma') { Game.incorporar(c, {}, true); c.pop = Math.max(c.pop, 200); }
@@ -55,6 +72,9 @@ const PASOS = {
     const M2 = await page.evaluate(async () => await import('/js/gfx/city3d.js').then(m => m.medidas.sombras)); return out.join(' | ') + ' · cálculos de sombra en las 4 estaciones: ' + (M2 - M); },
   atardecer: async () => { await ponerFecha(8, 0.95); await page.evaluate(() => { const E = Game.ciudadE(UI.city); UI.cityV.view('ciudad'); UI.cityV.mirar(E.foro.x, E.foro.z, 150, 0.45); }); await page.waitForTimeout(1500); return 'verano, fracción 0,95 del mes'; },
   // --- CN8: sucesos (node gobierno/captura-ciudad.mjs CN8) ---
+  /* CN14-A: cifra grande al colocar la fuente. a = junto a muchas casas; b = lejos. Se mueve como un dedo (tocando el suelo). */
+  'c14-cifra-a': async () => cifraVista('a'),
+  'c14-cifra-b': async () => cifraVista('b'),
   'c14-sin-crecida': async () => page.evaluate(async () => { const r = Game.ponerAjustes({ suc: { crecida: false } }), E = Game.ciudadE(UI.city); E.rev++; UI.cityV.view('ciudad'); UI.cityV.mirar(200, -320, 260, 0.5); const C = await import('/js/ciudad.js'); const n = C.notaSitio(E, 'fuente', 200, -320); return 'crecida apagada: ' + JSON.stringify(r) + ' · razones: ' + n.razones.join(' · '); }),
   'c8-aviso': async () => page.evaluate(async () => { const E = Game.ciudadE(UI.city); Game.state.t = 24 + 0.5; E.rev++; UI.cityV.view('ciudad'); const r = Game.riesgos ? Game.riesgos(UI.city) : []; UI.dirty = true; await new Promise(q => setTimeout(q, 1500)); return 'riesgos: ' + r.map(x => x.c + ' (' + x.remedio + ')').join(' | '); }),
   'c8-crecida': async () => page.evaluate(async () => { const C = await import('/js/ciudad.js'), E = Game.ciudadE(UI.city); let n = 0, g = 0;
