@@ -1827,3 +1827,77 @@ console.log('OK — todas las pruebas superadas');
   // partida vieja
   const v = JSON.parse(JSON.stringify(s)); for (const id in v.cities) { delete v.cities[id].pueblos; delete v.cities[id].pobra; } G.migrarPueblos(v);
   assert(v.cities.roma.pueblos.length === D.CITIES.roma.pueblos.length && v.cities.roma.pueblos.every(n => n === 0) && v.cities.roma.pobra === null, 'migración de partida vieja'); G.state = s; }
+
+{ // CN19-A: terrenos de colonia (costa, pantano, terrazas, llanura) como reglas sobre el mismo relieve
+  const CT = require('../js/ciudad.js'); G.usarCiudad(null);
+  const mk = t => { const E = CT.crear(1); CT.fijarTerreno(E, t); return E; };
+  const NT = ['rio', 'costa', 'pantano', 'terrazas', 'llanura'];
+  // datos: terrenos, reglas y copia de reserva
+  assert.deepStrictEqual(Object.keys(D.TERRENOS), NT, 'cinco terrenos, el río primero');
+  for (const t of NT) assert(D.TERRENOS[t].n && D.TERRENOS[t].d && D.TERRENO_REGLAS[t], 'terreno completo: ' + t);
+  assert.deepStrictEqual(JSON.parse(JSON.stringify(CT.TERRENO_RESERVA)), JSON.parse(JSON.stringify(D.TERRENO_REGLAS)), 'la copia de reserva de ciudad.js coincide con D.TERRENO_REGLAS');
+  assert.deepStrictEqual(Object.keys(D.PIEZAS_TERRENO).sort(), ['salinas', 'zanja']);
+  assert(CT.EDIF.salinas.radio === D.TERRENO_REGLAS.costa.salinasRadio && CT.EDIF.zanja.radio === D.TERRENO_REGLAS.pantano.zanjaRadio, 'los radios de las piezas son los de la tabla');
+  const esperado = { cosa: 'costa', brundisium: 'costa', ariminum: 'costa', cremona: 'pantano', placentia: 'llanura', bononia: 'llanura', beneventum: 'terrazas', aesernia: 'terrazas' };
+  for (const id in D.COLONIAS) assert.strictEqual(D.COLONIAS[id].terreno, esperado[id], 'terreno de ' + id); assert.strictEqual(D.terrenoDe('roma'), 'rio'); assert.strictEqual(D.terrenoDe('capua'), 'rio');
+  const R = mk('rio'), K = mk('costa'), P = mk('pantano'), T = mk('terrazas'), L = mk('llanura');
+  assert.strictEqual(CT.crear(1).terreno, undefined); assert(CT.aDatos(CT.crear(1)).terreno === 'rio', 'sin terreno = río'); assert.strictEqual(mk('inventado').terreno, 'rio');
+  // piezas abiertas solo donde toca
+  assert(K.abiertas.includes('salinas') && !K.abiertas.includes('zanja') && P.abiertas.includes('zanja') && !P.abiertas.includes('salinas') && !R.abiertas.includes('salinas') && !R.abiertas.includes('zanja') && !T.abiertas.includes('salinas'), 'salinas solo en la costa, zanja solo en el pantano');
+  // llanura: sin bono de loma, sin defensa natural, sitios más anchos, muralla más barata
+  const nR = CT.notaFundar(R, 160, 20), nL = CT.notaFundar(L, 160, 20);
+  assert(nR.razones.some(t => /loma/.test(t)) && !nL.razones.some(t => /loma/.test(t)) && nL.razones.some(t => /Sin defensa natural/.test(t)) && nL.nota < nR.nota, 'llanura: ' + nL.razones.join(' · '));
+  let ll = null; for (let x = -240; x <= 240 && !ll; x += 8) for (let z = -400; z <= 220 && !ll; z += 8) { const q = CT.notaFundar(L, x, z); if (q.vale && q.razones.some(t => /Llanura abierta/.test(t))) ll = [x, z]; } assert(ll && CT.notaFundar(L, ll[0], ll[1]).nota - CT.notaFundar(R, ll[0], ll[1]).nota !== 0, 'llanura: +1 llano y \u22122 sin defensa');
+  for (const E of [R, L]) assert(CT.fundar(E, 172, -196)); assert(L.parcelas.length > R.parcelas.length, 'llanura: más parcelas (' + L.parcelas.length + ' > ' + R.parcelas.length + ')');
+  const mR = CT.murallaSiguiente(R).coste, mL = CT.murallaSiguiente(L).coste; assert(CT.RECURSOS.every(r => mL[r] <= mR[r]) && mL.piedra < mR.piedra, 'llanura: muralla más barata');
+  // terrazas: tolera más pendiente y da +1
+  let tz = null; for (let x = -240; x <= 240 && !tz; x += 8) for (let z = -400; z <= 220 && !tz; z += 8) if (!CT.notaFundar(R, x, z).vale && CT.notaFundar(T, x, z).vale) tz = [x, z];
+  assert(tz, 'hay una ladera que solo vale en terrazas'); assert(CT.notaFundar(T, tz[0], tz[1]).razones.some(t => /Terrazas en la ladera/.test(t)));
+  assert.strictEqual(CT.notaFundar(R, 172, -196).razones.some(t => /Terrazas/.test(t)), false);
+  // pantano: ribera más ancha, suelo encharcado
+  let pz = null; for (let x = -240; x <= 240 && !pz; x += 8) for (let z = -400; z <= 220 && !pz; z += 8) if (CT.inundable(x, z, 'pantano') && !CT.inundable(x, z) && CT.notaFundar(P, x, z).vale) pz = [x, z];
+  assert(pz, 'hay ribera que solo se inunda en el pantano'); assert(CT.ribera(P, pz[0], pz[1], 5) && !CT.ribera(R, pz[0], pz[1], 5), 'ribera ancha en el pantano');
+  assert(CT.notaFundar(P, pz[0], pz[1]).razones.some(t => /Suelo encharcado/.test(t)) && !CT.notaFundar(R, pz[0], pz[1]).razones.some(t => /encharcado/.test(t)));
+  for (let x = -240; x <= 240; x += 16) for (let z = -400; z <= 220; z += 16) if (CT.inundable(x, z)) assert(CT.inundable(x, z, 'pantano'), 'la ribera del río siempre es ribera del pantano');
+  // costa: salinas dan oro y restan a las granjas
+  { const E = K; assert(CT.fundar(E, 172, -196)); const g = CT.colocar(E, 'granja', 316, -148, true); assert(g.ok); g.e.obra = 0; E.mesN++;
+    const i0 = CT.ingreso(E), r0 = CT.rindeGranja(E, g.e), vale = CT.notaSitio(E, 'salinas', 288, -200); assert(vale.vale && vale.efecto.n === -1 && vale.razones.some(t => /estropear/.test(t)), vale.razones.join(' · '));
+    const s = CT.colocar(E, 'salinas', 288, -200, true); assert(s.ok); assert.strictEqual(CT.ingreso(E), i0, 'una obra sin terminar no rinde'); s.e.obra = 0;
+    const r1 = CT.rindeGranja(E, g.e); assert(r1.prod === r0.prod - 1 && r1.fam === r0.fam - 0.5 && r1.mul < 1, 'la granja rinde menos junto a las salinas');
+    assert.strictEqual(CT.oroTerreno(E), D.TERRENO_REGLAS.costa.salinasOro); assert.strictEqual(CT.ingreso(E), i0 + D.TERRENO_REGLAS.costa.salinasOro - 1, 'salinas: +' + D.TERRENO_REGLAS.costa.salinasOro + ' oro y -1 de la granja');
+    let sec = null; for (let x = -240; x <= 240 && !sec; x += 16) for (let z = -400; z <= 220 && !sec; z += 16) { const q = CT.notaSitio(E, 'salinas', x, z); if (!q.vale && /junto al agua/.test(q.razones[0])) sec = [x, z]; } assert(sec, 'las salinas piden agua cerca (drio < ' + D.TERRENO_REGLAS.costa.salinasDrio + ')'); }
+  { const E = R; const g = CT.colocar(E, 'granja', 316, -148, true); assert(g.ok); g.e.obra = 0; assert(!CT.notaSitio(E, 'salinas', 288, -200).vale, 'sin costa no hay salinas'); }
+  // pantano: la zanja baja la ruina de la crecida de las casas cercanas
+  { const crecida = zanja => { const E = mk('pantano'); assert(CT.fundar(E, pz[0], pz[1])); CT.sembrarCasas(E, 400); const bajas = CT.casas(E).filter(c => CT.ribera(E, c.x, c.z, 3));
+      assert(bajas.length >= 3, 'casas en la ribera ancha: ' + bajas.length); const cx = bajas.reduce((a, c) => a + c.x, 0) / bajas.length, cz = bajas.reduce((a, c) => a + c.z, 0) / bajas.length;
+      let z = null; if (zanja) { let m = -1e9; for (let dx = -50; dx <= 50; dx += 6) for (let dz = -50; dz <= 50; dz += 6) { const q = CT.notaSitio(E, 'zanja', cx + dx, cz + dz); if (q.vale && q.nota > m) { m = q.nota; z = [cx + dx, cz + dz]; } } assert(z, 'sitio para la zanja'); const r = CT.colocar(E, 'zanja', z[0], z[1], true); assert(r.ok); r.e.obra = 0; }
+      let n = 0; while (CT.fecha(E).mes !== 1 && n++ < 24) CT.mes(E); CT.mes(E); assert.strictEqual(CT.fecha(E).mes, 2); // el mes de la crecida
+      const zz = z; const cerca = c => zz && Math.hypot(c.x - zz[0], c.z - zz[1]) < CT.EDIF.zanja.radio;
+      const l = E.parcelas.filter(q => q.casa && q.casa.ruina && CT.ribera(E, q.x, q.z) && (!zanja || cerca(q))).map(q => q.casa.ruina); return { l, E, z }; };
+    const a = crecida(false), b = crecida(true);
+    assert(a.l.length && a.l.every(v => v === 5), 'sin zanja la crecida deja 5 meses de ruina: ' + a.l.join());
+    assert(b.l.length && b.l.every(v => v < 5), 'con zanja, las casas protegidas sufren menos: ' + b.l.join()); assert(b.l.every(v => v === Math.round(5 * D.TERRENO_REGLAS.pantano.zanjaRuina)), 'ruina = 5 x ' + D.TERRENO_REGLAS.pantano.zanjaRuina);
+    const ca = { x: 0, z: 0 }; const hecha = CT.casas(b.E)[0]; assert(CT.ruinaCasa(R, hecha, 5, true) === 5, 'en el río no cambia'); }
+  // terrazas: las casas en pendiente cuestan más obra; las granjas rinden más en ladera
+  { const E = mk('terrazas'); assert(CT.fundar(E, 172, -196)); let l = null; for (let x = -240; x <= 240 && !l; x += 6) for (let z = -400; z <= 220 && !l; z += 6) { const k = { x, z }; if (CT.ruinaCasa(E, k, 5) > 5) l = k; }
+    assert(l && CT.ruinaCasa(E, l, 5) === 5 + D.TERRENO_REGLAS.terrazas.casaRuina, 'casa en pendiente: obra más larga'); assert.strictEqual(CT.ruinaCasa(E, { x: 160, z: 20 }, 5), 5, 'en llano igual');
+    let gp = null, gl = null; for (let x = -240; x <= 240; x += 8) for (let z = -400; z <= 220; z += 8) { const q = CT.notaSitio(E, 'granja', x, z); if (!q.vale) continue; const r = CT.rindeGranja(E, { x, z, vega: false }), r0 = CT.rindeGranja(R, { x, z, vega: false }); if (r.prod > r0.prod && !gp) gp = r; if (r.prod === r0.prod) gl = r; }
+    assert(gp && gp.prod === 3 + D.TERRENO_REGLAS.terrazas.granjaProd && gp.mul > 1, 'granja en pendiente rinde más'); assert(gl && gl.prod === 3); }
+  // guardar -> cargar conserva el terreno y la ciudad; datos viejos = río
+  for (const t of NT) { const E = mk(t); assert(CT.fundar(E, 172, -196)); const pz2 = t === 'costa' ? CT.colocar(E, 'salinas', 288, -200, true) : t === 'pantano' ? CT.colocar(E, 'zanja', 140, -230, true) : { ok: true }; if (t === 'costa') assert(pz2.ok);
+    for (let i = 0; i < 14; i++) CT.mes(E); const d = JSON.parse(JSON.stringify(CT.aDatos(E))); assert.strictEqual(d.terreno, t); const F = CT.deDatos(d);
+    assert.strictEqual(F.terreno, t); assert.strictEqual(F.edificios.length, E.edificios.length); assert.strictEqual(CT.poblacion(F), CT.poblacion(E), 'la ciudad rehecha es la misma (' + t + ')'); assert.strictEqual(JSON.stringify(F.abiertas), JSON.stringify(E.abiertas));
+    delete d.terreno; const V = CT.deDatos(d); assert.strictEqual(V.terreno, 'rio', 'datos viejos sin terreno = río'); assert(!V.abiertas.includes('salinas') && !V.abiertas.includes('zanja')); }
+  // la partida: el sitio da el terreno, la ciudad fundada lo conserva y guarda/carga
+  { const store = {}; global.localStorage = { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } }; G.usarCiudad(CT);
+    const s = G.newGame('Terreno', null, { modo: 'corta', inicio: 'fundar' }); const sitio = G.modo().inicio.fundar.sitio, E = G.ciudadPendiente(sitio); assert(E, 'ciudad pendiente'); assert.strictEqual(E.terreno, D.terrenoDe(sitio)); assert.strictEqual(s.colonias[sitio].E.terreno, D.terrenoDe(sitio), 'k.E guarda el terreno');
+    let pt = null; for (let x = -240; x <= 240 && !pt; x += 20) for (let z = -300; z <= 200 && !pt; z += 20) if (G.notaFundar(sitio, x, z).vale && Math.hypot(x - 172, z + 196) < 400) pt = [x, z]; const f = G.fundarColonia(sitio, pt[0], pt[1]); assert(f.ok, f.motivo);
+    assert.strictEqual(s.cities[sitio].ciudad.terreno, D.terrenoDe(sitio), 'la ciudad fundada conserva el terreno'); assert(G.ciudadE(sitio).terreno === D.terrenoDe(sitio));
+    G.save(); assert(G.load()); assert.strictEqual(G.state.cities[sitio].ciudad.terreno, D.terrenoDe(sitio)); assert.strictEqual(G.ciudadE(sitio).terreno, D.terrenoDe(sitio), 'guardar y cargar conserva el terreno');
+    G.save(); { const j = JSON.parse(store['aqvila-save-v1']); delete j.cities[sitio].ciudad.terreno; store['aqvila-save-v1'] = JSON.stringify(j); } assert(G.load()); assert.strictEqual(G.ciudadE(sitio).terreno, 'rio', 'partida vieja sin terreno = río');
+    delete global.localStorage; G.usarCiudad(null); }
+  // nada de NaN en ninguna cifra
+  for (const t of NT) { const E = mk(t); assert(CT.fundar(E, 172, -196)); for (let x = -240; x <= 240; x += 40) for (let z = -400; z <= 220; z += 40) { const q = CT.notaFundar(E, x, z); assert(Number.isFinite(q.nota), 'nota finita ' + t); }
+    for (let i = 0; i < 6; i++) CT.mes(E); assert(Number.isFinite(CT.ingreso(E)) && Number.isFinite(CT.oroTerreno(E)) && Number.isFinite(CT.poblacion(E)), 'sin NaN en ' + t); for (const e of E.edificios.filter(q => q.tipo === 'granja')) assert(Object.values(CT.rindeGranja(E, e)).every(Number.isFinite)); }
+  console.log('CN19-A: terrenos (río, costa, pantano, terrazas, llanura), salinas, zanja, guardado y migración OK');
+}

@@ -273,7 +273,24 @@
     agricolas: f(SIN_T, h('Livio 9.13; Varrón, Res rusticae 1', 'licencia de juego', 'vici y pagi como aldeas de labradores; la villa como explotación agraria; ' + PU))
   };
 
-  R.fichas = { edificio, tropa, fiesta, remedio, ciudad, hecho, mision, ley, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+  // ---- Terrenos de colonia (D.TERRENOS, CN19-A). Las reglas y cifras son licencia de juego; la geografía de cada sitio, histórica (pasajes por cotejar) ----
+  const SIN_TER = { sin: 'un terreno es un conjunto de reglas sobre el relieve de la ciudad; no tiene modelo 3D propio' };
+  const LJ_TER = ' · las cifras de D.TERRENO_REGLAS son inventadas para poder jugar: licencia de juego';
+  const terreno = {
+    rio: f(SIN_TER, h('Regla de juego: el valle del río de la ciudad común; no es un sitio histórico concreto', 'licencia de juego', 'es el terreno de todas las ciudades que no son colonias y de las partidas antiguas' + LJ_TER)),
+    costa: f(SIN_TER, h('Livio 1.33.9; Plinio, NH 31.73-89; Veleyo Patérculo 1.14.7-8', 'licencia de juego', 'Cosa, Brundisium y Ariminum eran colonias de costa (pasajes de Veleyo por cotejar); la sal de las costas: ver salinas' + LJ_TER)),
+    pantano: f(SIN_TER, h('Polibio 2.15-17; Livio 21.25', 'licencia de juego', 'Cremona, junto al Po, en tierra baja y húmeda: Polibio describe la llanura del Po y Livio la fundación de 218 a.C. (pasajes por cotejar)' + LJ_TER)),
+    terrazas: f(SIN_TER, h('Veleyo Patérculo 1.14.6-7; Livio, Períocas 15', 'licencia de juego', 'Beneventum y Aesernia, colonias en el Samnio montañoso (pasajes por cotejar); las terrazas de cultivo en ladera son una licencia de juego, no un dato de las fuentes' + LJ_TER)),
+    llanura: f(SIN_TER, h('Polibio 2.14-17; Livio 21.25; Livio 37.57', 'licencia de juego', 'Placentia y Bononia, en la llanura emiliana y padana, sin defensa natural (pasajes por cotejar)' + LJ_TER))
+  };
+  // ---- Piezas de ciudad que solo existen en un terreno (D.PIEZAS_TERRENO). Sin modelo: de momento se dibujan con una pieza genérica ----
+  const SIN_PZ = { sin: 'sin modelo propio: de momento no se dibuja en la ciudad', provisional: true };
+  const piezaTerreno = {
+    salinas: f(SIN_PZ, h('Livio 1.33.9; Plinio, NH 31.73-89', 'probable', 'Livio cuenta que Anco Marcio estableció salinas junto a Ostia (tradición del rey, pero las salinas de Ostia son bien conocidas); Plinio habla de la sal marina y de cómo se obtiene. Que estropeen las granjas vecinas y su renta en oro son licencia de juego')),
+    zanja: f(SIN_PZ, h('Livio 1.38.6; Livio 1.56.2; Vitruvio 1.4.11-12', 'probable', 'Livio atribuye a Tarquinio Prisco el desagüe del Foro con cloacas; Vitruvio recomienda sanear los sitios encharcados. Que reduzca la ruina de la crecida es licencia de juego'))
+  };
+
+  R.fichas = { terreno, piezaTerreno, edificio, tropa, fiesta, remedio, ciudad, hecho, mision, ley, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -285,6 +302,8 @@
     zona: { tabla: 'ZONAS', numericos: [], textos: ['n'] },
     region: { tabla: 'REGIONES', numericos: ['hasta'], textos: ['n', 'capitalRival'] },
     modo: { tabla: 'MODOS', numericos: [], textos: ['n'] },
+    terreno: { tabla: 'TERRENOS', numericos: [], textos: ['n', 'd'] },
+    piezaTerreno: { tabla: 'PIEZAS_TERRENO', numericos: [], textos: ['n', 'd'] },
     colonia: { tabla: 'COLONIAS', numericos: ['lon', 'lat', 'anio', 'colonos'], textos: ['n', 'h', 'tipo'] },
     mision: { tabla: 'MISIONES', numericos: ['desde', 'plazo'], textos: ['n', 'texto'] },
     ley: { tabla: 'LEYES', numericos: [], textos: ['n', 'texto'] },

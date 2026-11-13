@@ -457,15 +457,38 @@
      anio = a.C. positivo; tipo: 'latina' | 'ciudadanos' | 'maritima'; colonos = cifra histórica (cotejo en registro.js y en gobierno/historia/fundacion-de-colonias.md).
      Posiciones aproximadas: las de Beneventum, Cremona y Aesernia se desplazan unas décimas de grado para no pisar Capua, Placentia ni el camino (licencia de juego). */
   D.COLONIAS = {
-    cosa: { id: 'cosa', n: 'Cosa', lon: 11.3, lat: 42.4, anio: 273, tipo: 'latina', colonos: 4000, h: 'Colonia latina sobre una loma junto a la costa etrusca: recinto de piedra, foro abajo y templos arriba.' },
-    ariminum: { id: 'ariminum', n: 'Ariminum', lon: 12.6, lat: 44.05, anio: 268, tipo: 'latina', colonos: 6000, h: 'Colonia latina en el Adriático, puerta de la llanura del Po.' },
-    beneventum: { id: 'beneventum', n: 'Beneventum', lon: 14.95, lat: 41.2, anio: 268, tipo: 'latina', colonos: 2500, h: 'Colonia latina en el Samnio, donde Pirro fue vencido en 275. Vigila los pasos del interior.' },
-    brundisium: { id: 'brundisium', n: 'Brundisium', lon: 17.9, lat: 40.65, anio: 244, tipo: 'latina', colonos: 6000, h: 'Colonia latina en el talón de Italia, el mejor puerto hacia Grecia.' },
-    placentia: { id: 'placentia', n: 'Placentia', lon: 9.7, lat: 45.0, anio: 218, tipo: 'latina', colonos: 6000, h: 'Colonia latina junto al Po, frente a los galos, fundada al empezar la guerra con Aníbal.' },
-    cremona: { id: 'cremona', n: 'Cremona', lon: 10.25, lat: 45.1, anio: 218, tipo: 'latina', colonos: 6000, h: 'Colonia latina en la orilla norte del Po, gemela de Placentia.' },
-    bononia: { id: 'bononia', n: 'Bononia', lon: 11.35, lat: 44.5, anio: 189, tipo: 'latina', colonos: 3000, h: 'Colonia latina en la vía hacia Mutina, sobre una antigua ciudad de los galos boyos.' },
-    aesernia: { id: 'aesernia', n: 'Aesernia', lon: 14.2, lat: 41.6, anio: 263, tipo: 'latina', colonos: 2500, h: 'Colonia latina en las montañas del Samnio, pensada para sujetar a los samnitas.' }
+    cosa: { id: 'cosa', terreno: 'costa', n: 'Cosa', lon: 11.3, lat: 42.4, anio: 273, tipo: 'latina', colonos: 4000, h: 'Colonia latina sobre una loma junto a la costa etrusca: recinto de piedra, foro abajo y templos arriba.' },
+    ariminum: { id: 'ariminum', terreno: 'costa', n: 'Ariminum', lon: 12.6, lat: 44.05, anio: 268, tipo: 'latina', colonos: 6000, h: 'Colonia latina en el Adriático, puerta de la llanura del Po.' },
+    beneventum: { id: 'beneventum', terreno: 'terrazas', n: 'Beneventum', lon: 14.95, lat: 41.2, anio: 268, tipo: 'latina', colonos: 2500, h: 'Colonia latina en el Samnio, donde Pirro fue vencido en 275. Vigila los pasos del interior.' },
+    brundisium: { id: 'brundisium', terreno: 'costa', n: 'Brundisium', lon: 17.9, lat: 40.65, anio: 244, tipo: 'latina', colonos: 6000, h: 'Colonia latina en el talón de Italia, el mejor puerto hacia Grecia.' },
+    placentia: { id: 'placentia', terreno: 'llanura', n: 'Placentia', lon: 9.7, lat: 45.0, anio: 218, tipo: 'latina', colonos: 6000, h: 'Colonia latina junto al Po, frente a los galos, fundada al empezar la guerra con Aníbal.' },
+    cremona: { id: 'cremona', terreno: 'pantano', n: 'Cremona', lon: 10.25, lat: 45.1, anio: 218, tipo: 'latina', colonos: 6000, h: 'Colonia latina en la orilla norte del Po, gemela de Placentia.' },
+    bononia: { id: 'bononia', terreno: 'llanura', n: 'Bononia', lon: 11.35, lat: 44.5, anio: 189, tipo: 'latina', colonos: 3000, h: 'Colonia latina en la vía hacia Mutina, sobre una antigua ciudad de los galos boyos.' },
+    aesernia: { id: 'aesernia', terreno: 'terrazas', n: 'Aesernia', lon: 14.2, lat: 41.6, anio: 263, tipo: 'latina', colonos: 2500, h: 'Colonia latina en las montañas del Samnio, pensada para sujetar a los samnitas.' }
   };
+
+  /* Terrenos de colonia (CN19-A). Cada uno es un conjunto de reglas sobre el mismo relieve de la ciudad (js/ciudad.js, E.terreno). 'rio' es el de siempre.
+     La geografía real de cada sitio es histórica (costa tirrena y adriática, marisma del Po, llanura emiliana, Samnio); las cifras de D.TERRENO_REGLAS son licencia de juego.
+     Las dos piezas nuevas (salinas, zanja) tienen su ficha en D.PIEZAS_TERRENO. */
+  D.TERRENOS = {
+    rio: { n: 'Valle del río', d: 'El sitio de siempre: un río con vega fértil y lomas. La crecida de primavera se lleva la ribera baja.' },
+    costa: { n: 'Costa', d: 'Mar a la vista. Se abren las salinas: dan oro, pero la sal estropea las granjas vecinas.' },
+    pantano: { n: 'Pantano', d: 'Tierra baja y encharcada: la crecida llega más lejos. Una zanja de desagüe protege las casas cercanas. Drenar o convivir.' },
+    terrazas: { n: 'Terrazas de ladera', d: 'Se puede fundar en pendientes más fuertes, y las granjas rinden más en la ladera; las casas cuestan más obra.' },
+    llanura: { n: 'Llanura abierta', d: 'Mucho sitio para crecer, pero sin defensa natural: la muralla sale más barata.' }
+  };
+  D.TERRENO_REGLAS = {
+    rio: {},
+    costa: { salinasDrio: 200, salinasRadio: 70, salinasOro: 4, granjaProd: -1, granjaFam: -0.5 },
+    pantano: { inundDrio: 200, inundAlt: 3, notaFundar: -2, bajaAlt: 4, zanjaRadio: 60, zanjaRuina: 0.4 },
+    terrazas: { pendMax: 0.34, notaFundar: 1, pendNota: 0.08, granjaPendMin: 0.06, granjaProd: 1, casaPend: 0.1, casaRuina: 1 },
+    llanura: { notaLlano: 1, desLlano: 14, notaDefensa: -2, murallaCoste: 0.75, surcoMul: 1.25 }
+  };
+  D.PIEZAS_TERRENO = {
+    salinas: { n: 'Salinas', d: 'Estanques para sacar sal del mar. Solo en la costa. Dan algo de oro; la sal estropea las granjas cercanas.' },
+    zanja: { n: 'Zanja de desagüe', d: 'Canal para sacar el agua del pantano. Solo en el pantano. Las casas cercanas sufren menos con la crecida.' }
+  };
+  D.terrenoDe = id => (D.COLONIAS[id] && D.COLONIAS[id].terreno) || 'rio';
 
   D.MISIONES = {};   // por id (el registro casa por id); el orden de las claves es el orden del Senado
   [

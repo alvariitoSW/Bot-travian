@@ -774,7 +774,7 @@ function fichaHtml(c, sd) {
   const E = G.ciudadE(UI.city), cn = D.CITIES[UI.city].n, lleno = c.obras.length >= G.huecos(c);
   let ico, nom, sub, que, nv, cuerpo = '', e = null, P = null, ob = null;
   if (sd.k === 'foro') {
-    ico = bIco('foro'); nom = 'Foro'; sub = cn + ' · nivel ' + (c.b.foro || 1); que = D.BUILD.foro.d; nv = 'NIVEL ' + (c.b.foro || 1);
+    ico = bIco('foro'); nom = 'Foro'; sub = cn + ' · nivel ' + (c.b.foro || 1) + (E && E.terreno && E.terreno !== 'rio' && D.TERRENOS[E.terreno] ? ' · ' + D.TERRENOS[E.terreno].n : ''); que = D.BUILD.foro.d; nv = 'NIVEL ' + (c.b.foro || 1);
     cuerpo = '<div class="nota">Obras a la vez: <b>' + c.obras.length + ' de ' + G.huecos(c) + '</b>. El foro sube solo con las casas y los barrios: no se mejora ni se derriba.</div>' + (c.owner === 'roma' ? arcaHtml(c) : '');
   } else {
     e = sd.e || null; ob = sd.o || c.obras.find(q => q.eid === e.id) || null; P = Ciudad.EDIF[e ? e.tipo : sd.o.pieza];
@@ -842,6 +842,7 @@ function piezaInfo(id) {
   const P = Ciudad.EDIF[id], dur = P.bid ? G.buildTime(c, P.bid) : P.obra * (1 - 0.04 * (c.b.foro || 0)) * G.bonoMul('obra');
   return { nombre: P.nombre, coste: P.coste, ini: G.planPago(P.coste, dur).primera, cerrada: P.bid ? G.faltaInv(P.bid) : null };
 }
+const PZ_EMO = { salinas: '🧂', zanja: '〰️' };   // icono provisional hasta que carguen las miniaturas
 function bandejaIds() {
   const E = G.ciudadE(UI.city); if (!E) return [];
   const ids = E.abiertas.filter(id => id !== 'muralla' && Ciudad.EDIF[id] && !Ciudad.EDIF[id].accion);
@@ -853,7 +854,7 @@ function bandejaPinta() {
   if (k !== UI.bandK) {
     const antes = (UI.bandK || '').split('|')[1], viejas = antes ? antes.split(',') : []; UI.bandK = k;
     b.innerHTML = ids.map(id => { const i = piezaInfo(id);
-      return '<button class="pza' + (viejas.length > 1 && !viejas.includes(id) ? ' nueva' : '') + (i.cerrada ? ' cerrada' : '') + '" data-id="' + id + '"' + (i.cerrada ? ' style="opacity:.55" title="' + esc(i.cerrada) + '"' : '') + '>' + (UI.minis && UI.minis[id] ? '<img src="' + UI.minis[id] + '" alt="" draggable="false">' : '<i></i>') + '<b>' + esc(i.nombre) + '</b><span>' + (i.cerrada ? 'cerrada' : i.enObra ? 'en obra' : i.ya ? 'ya ampliada' : i.coste ? fmt(suma5(i.coste)) : '') + '</span></button>'; }).join('');
+      return '<button class="pza' + (viejas.length > 1 && !viejas.includes(id) ? ' nueva' : '') + (i.cerrada ? ' cerrada' : '') + '" data-id="' + id + '"' + (i.cerrada ? ' style="opacity:.55" title="' + esc(i.cerrada) + '"' : '') + '>' + (UI.minis && UI.minis[id] ? '<img src="' + UI.minis[id] + '" alt="" draggable="false">' : '<i>' + (PZ_EMO[id] || '') + '</i>') + '<b>' + esc(i.nombre) + '</b><span>' + (i.cerrada ? 'cerrada' : i.enObra ? 'en obra' : i.ya ? 'ya ampliada' : i.coste ? fmt(suma5(i.coste)) : '') + '</span></button>'; }).join('');
   }
   /* CN8: la ficha que remedia un riesgo (fuente o granero) sale resaltada; se recalcula solo al cambiar la ciudad */
   const rk = UI.city + '|' + E.rev + '|' + E.mesN + '|' + ((G.state && G.state.ajustes && G.state.ajustes.v) || 0); if (UI.rgK !== rk) { UI.rgK = rk; const r = typeof G.riesgos === 'function' ? (G.riesgos(UI.city) || []).find(q => q.pieza && q.meses <= G.avisoMeses() && !E.edificios.some(e => e.tipo === q.pieza)) : null; UI.rgPz = r ? r.pieza : null; }
@@ -1093,6 +1094,7 @@ function sheetSitio(id) {
   if (key === UI.sheetKey && !sh.hidden) return; UI.sheetKey = key;
   const K = G.COLONOS, coste = D.POP_ICON + ' ' + K.pop + ' · ' + coste5({ grano: K.grano, oro: K.oro });
   let h = '<button class="x" data-act="unsel" aria-label="Cerrar la ficha">✕</button><h3>' + esc(d.n) + '<span class="tagf" style="background:#8a6a2c">' + (TIPO_COL[d.tipo] || 'Colonia') + '</span></h3><p>' + esc(d.h) + '</p>';
+  { const T = D.TERRENOS && D.TERRENOS[D.terrenoDe(id)]; if (T) h += '<span class="stat">⛰️ ' + esc(T.n) + '</span><p>' + esc(T.d) + '</p>'; }
   h += '<span class="stat">📜 Fundada en ' + d.anio + ' a.C.</span><span class="stat">🏛️ ' + (k.estado === 'libre' ? 'Sitio libre' : k.estado === 'camino' ? 'Colonos en camino' : 'Colonos esperando') + '</span>';
   h += '<div class="acts">';
   if (k.estado === 'libre') {
@@ -1121,6 +1123,7 @@ UI.abrirFundar = function (sitio, alFundar) {
   UI.cityV.mirar(0, 0, 760, 0);
   let mejor = null; for (let x = -420; x <= 420; x += 60) for (let z = -420; z <= 420; z += 60) { const n = G.notaFundar(sitio, x, z); if (n && n.vale && (!mejor || n.nota > mejor.n)) mejor = { x, z, n: n.nota }; }
   if (mejor) UI.cityV.mirar(mejor.x, mejor.z, 620, 0);
+  { const T = D.TERRENOS && D.TERRENOS[D.terrenoDe(sitio)]; if (T) { UI.fundar.terr = T; toast(T.n + ': ' + T.d, '', 'terreno-fundar'); } }
   moverFundar(mejor ? mejor.x : 0, mejor ? mejor.z : 0); return true;
 };
 function pintaBotonesFundar() {
@@ -1132,7 +1135,7 @@ function moverFundar(x, z) {
   const F = UI.fundar; if (!F || F.fase !== 'elegir') return; const n = G.notaFundar(F.sitio, x, z); if (!n) return;
   const col = n.vale ? Ciudad.color(n.nota) : 'rojo'; Object.assign(F, { x, z, vale: !!n.vale, nota: n.nota });
   UI.cityV.ponerGroma({ x, z, color: col });
-  lineaPon((n.razones && n.razones.length ? n.razones.join(' · ') : n.vale ? 'Aquí puede nacer la ciudad.' : 'Aquí no se puede fundar.'), 'sitio ' + col, NOTA3[col]); pintaBotonesFundar();
+  lineaPon((F.terr ? F.terr.n + ' · ' : '') + (n.razones && n.razones.length ? n.razones.join(' · ') : n.vale ? 'Aquí puede nacer la ciudad.' : 'Aquí no se puede fundar.'), 'sitio ' + col, NOTA3[col]); pintaBotonesFundar();
 }
 function fundarAqui() {
   const F = UI.fundar; if (!F || F.fase !== 'elegir' || !F.vale) return;

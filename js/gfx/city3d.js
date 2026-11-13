@@ -223,7 +223,7 @@ function ponerLuz() { const RS = 600; sol.position.set(0, 0, -70).addScaledVecto
 /* tipo -> [pieza, escala, giro de fachada, hundido] */
 const PZ = { foro: ['foro', 0.78, 0, 0.2], fuente: ['prop_pozo', 2.2, 0, 0.1], granero: ['almacen', 1.35, 0, 0.3], almacen: ['almacen', 1.1, 0, 0.3], granja: ['granja', 1.0, 0, 0.3], aserradero: ['aserradero', 1.25, 0, 0.2], taller: ['aserradero', 1.25, 0, 0.2],
   cantera: ['cantera', 0.8, 0, 0.3], mina: ['mina', 1.0, 0, 0.3], templo: ['templo', 0.86, 0, 1.2], mercado: ['mercado', 0.82, 0, 0.2], herreria: ['aserradero', 0.95, 0, 0.2], escuela: ['mercado', 0.7, 0, 0.2], cuartel: ['cuartel', 1.1, 0, 0.3], establo: ['establo', 1.1, 0, 0.3],
-  muelle: ['puerto', 0.85, 0, 0], compitum: ['vesta', 0.5, 0, 0.6], dique: ['muro', 1.0, 0, 0.2] };       // herrería usa el taller reducido (aún no hay pieza propia); la fuente espera a prop_pozo
+  muelle: ['puerto', 0.85, 0, 0], salinas: ['almacen', 0.8, 0, 0.3], zanja: ['prop_pozo', 1.2, 0, 0.1], compitum: ['vesta', 0.5, 0, 0.6], dique: ['muro', 1.0, 0, 0.2] };       // herrería usa el taller reducido (aún no hay pieza propia); la fuente espera a prop_pozo
 const PIEL_U = { muro: [0.93, 0.86, 0.76], teja: [0.86, 0.8, 0.76, 0.15] };
 const L = {}, G = {};                 // lotes y mallas sueltas
 let pinM, sueloJ, rio, crecida, dinM, andM, andL, estM, anilloM, surcoM, gromaM, aradoM, chozaM, tiendaM;
@@ -268,7 +268,7 @@ export function mundo(estado) {
   vida.reiniciar(); E = estado; cul = CASAS_C[estado.cultura] ? estado.cultura : 'roma'; tinteO = cul === 'roma' && estado.tinte ? TINTE_O[estado.tinte] || null : null; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1; estClave = -1; firmaArb = ''; Fachadas.reiniciar(); Civicas.reiniciar(); trajin.reiniciar();
   for (const m of [sueloJ && sueloJ.malla, rio, crecida, estM, dinM, andM, andL, surcoM, aradoM]) if (m) { scene.remove(m); if (m.geometry) m.geometry.dispose(); }
   dinM = andM = andL = surcoM = aradoM = null; if (antM) { scene.remove(antM); antM.geometry.dispose(); antM = null; } antFirma = ''; obrasF = []; firmaObras = '';
-  sueloJ = crearSuelo3(G.T, U, E ? E.bosquetes : []); scene.add(sueloJ.malla); rio = crearRio(G.T, U); scene.add(rio);
+  sueloJ = crearSuelo3(G.T, U, E ? E.bosquetes : []); sueloJ.terreno(E && E.terreno); scene.add(sueloJ.malla); rio = crearRio(G.T, U); scene.add(rio);
   /* lámina de la crecida: una cinta más ancha que el río, escondida bajo el cauce hasta que toca */
   { const n = RIO.length, pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = []; let sl = 0; for (let i = 0; i < n; i++) { const a = RIO[Math.max(0, i - 1)], b = RIO[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]), nx = -(b[1] - a[1]) / l, nz = (b[0] - a[0]) / l, w = 124; if (i) sl += Math.hypot(RIO[i][0] - RIO[i - 1][0], RIO[i][1] - RIO[i - 1][1]); pos.set([RIO[i][0] + nx * w, 0, RIO[i][1] + nz * w, RIO[i][0] - nx * w, 0, RIO[i][1] - nz * w], i * 6); uv.set([0, sl / 60, 2.5, sl / 60], i * 4); if (i < n - 1) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();

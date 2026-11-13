@@ -172,7 +172,8 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ⬜ CN16 **El ejército vive en la ciudad** (P86, ≈1,5 M): campo de Marte, leva en el foro, guarnición en torres, cerrar puertas, veteranos que se asientan, triunfo. Tras CN11.
 - ⬜ CN17 **Barrios con carácter, encargos e hitos** (P87, ≈1,5 M): barrios con nombre propio, plaza en los cruces, encargos cortos del Senado, hitos que abren algo nuevo. Tras CN6 y Q7.
 - ⬜ CN18 **Hecho para el móvil** (P88, ≈1,5 M): postal y crónica de la ciudad, modo contemplar, punto de parada, copia de la partida en un archivo, partida corta con nota (enlaza con I8).
-- ⬜ CN19 **Más terrenos donde fundar** (P90, ≈2,5 M, partir en dos): costa con salinas, pantano, terrazas, llanura. Tras CN5.
+- ✅ CN19 **Más terrenos donde fundar** (13/11): costa (salinas), pantano (zanja), terrazas y llanura; cada colonia trae su terreno, reglas en `D.TERRENO_REGLAS`, tinte del suelo por terreno.
+- ⬜ CN19c **Fundar donde el jugador elige**: `G.fundarColonia` ignora el punto elegido (`convertir` funda con `fundarAuto`); arreglarlo obliga a reequilibrar «partida corta · fundar».
 - ⬜ CN20 **La historia llega a tu ciudad** (P91, ≈1,5 M más fichas): Pirro, Aníbal, la Gran Madre, auspicios, fiestas; cada hecho con su ficha antes de entrar (skill `historia`).
 - ✅ CN21 **Mover un edificio** (13/11): botón «Mover» en la ficha; `CI.mover` + `G.moverPieza`, conserva mejoras, gratis.
 - ✅ CN22 **Avisos pequeños que no tapan la pantalla** (P97): los «Cierre de mes» se apilan y tapan la ciudad y el informe de estación ocupa todo. Avisos pequeños que se van solos o se agrupan, y mejor la parte de construir y conseguir recursos, sin tirar lo que hay. Toca `js/ui.js` y `css/`.
