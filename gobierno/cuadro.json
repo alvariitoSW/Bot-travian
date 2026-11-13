@@ -1096,22 +1096,16 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "K10",
-      "titulo": "Concurso de arte de la batalla · K10",
-      "nota": "piezas sueltas; solo gobierno/maquetas/piezas-batalla/",
-      "url": "https://claude.ai/code/session_01QiKC39jsYoLubrW6tww37R"
-    },
-    {
-      "tarea": "R4",
-      "titulo": "Avisos de una frase · R4",
-      "nota": "textos del asesor y avisos (js/asesor.js, ui.js)",
-      "url": "https://claude.ai/code/session_01QiKC39GggaCEefge9YFwJE"
-    },
-    {
       "tarea": "K12a",
       "titulo": "Menús nuevos: marco general · K12a",
       "nota": "estilo Hojas en el juego real (js/ui.js, css/style.css)",
       "url": "https://claude.ai/code/session_01QiKC38tG3iSHVstPxCmMfE"
+    },
+    {
+      "tarea": "NB1-NB7",
+      "titulo": "Guerra: Batalla nueva (NB1 a NB7)",
+      "nota": "motor nuevo de batalla y maniobra (abierta por el usuario; padre: gobierno)",
+      "url": "https://claude.ai/code/session_01QiKC37eghiyQKGsmkrrDSg"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
