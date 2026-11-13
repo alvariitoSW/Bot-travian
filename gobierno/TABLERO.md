@@ -88,7 +88,10 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ⬜ K8 **Concurso: Senado, política y economía** (pedido 12/11, aprobado «igual que K6»; ≈2 a 3 M): ocho maquetas rivales en Haiku (esfuerzo alto) y jurado ciego, sobre el diseño y la jugabilidad del Senado, la política y la economía (incluye avisos de «Cierre de mes» e informe de estación que hoy tapan la pantalla, y construir y conseguir recursos, conservando lo que va bien). Solo `gobierno/maquetas/`; no toca `js/`. Después de K6 y K7.
 - 🔶 K10 **Concurso de arte de la batalla** (13/11, pedido del usuario): piezas P1 a P5 en cuatro rondas, Opus y Sonnet sin Fable, jurado ciego y voto del usuario. Solo `gobierno/maquetas/piezas-batalla/`; no toca `js/`. Tope duro 4 M.
 - ✅ K11 **Concurso de menús y pantallas** (13/11): cuatro maquetas y jurado ciego; 1.º B Hojas (118/150), 2.º D Códice (102), 3.º C Mosaico (100), 4.º A Mármol (99). Informe `estudios/K11-concurso.md`. Elige el usuario. Gasto 3,45 M (tope 3).
-- ⬜ K12 **Construir los menús ganadores** (a aprobar por el usuario tras elegir): `js/ui.js` y `css/style.css`; no empezar antes.
+- 🔶 K12 **Construir los menús ganadores** (aprobado por el usuario el 13/11 con «vamos a finalizarlo… para subirlo a main»): se conservan los cuatro estilos, uno por tipo de pantalla; «Volver al menú principal» dentro del ☰, al fondo y con confirmación. Tres partes, una detrás de otra (todas tocan `js/ui.js` y `css/style.css`):
+  - 🔶 K12a **Marco general (B Hojas)**: barra, Pasar turno, ☰, hoja inferior, Ajustes, Pausas, menú principal. ≈2,5 M, tope duro 4 M.
+  - ⬜ K12b **Códice (D)**: Senado, Crónica y línea del tiempo, informe de estación con sello de lacre.
+  - ⬜ K12c **Mármol (A) y Mosaico (C)**: Mercado, Rutas, Imperio (libro de cuentas); Saber y habilidades del general.
 - ⬜ K3 **Construir los ganadores**: elegido el 11/11 (ver bitácora: Ciudad + Tabularium, Legado + Estandartes); falta aprobar las tareas P63 a P66 (decide él: cambio grande de aspecto). Lo que cambie en `js/ui.js` y `js/gfx/` lo estima cada nota de `maquetas/concurso/`. No empezar antes.
 
 ## Carril L — Interfaz de guerra: Legado + Estandartes (P66, aprobada 11/11/2026; en paralelo al carril J)

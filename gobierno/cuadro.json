@@ -1106,6 +1106,12 @@
       "titulo": "Avisos de una frase · R4",
       "nota": "textos del asesor y avisos (js/asesor.js, ui.js)",
       "url": "https://claude.ai/code/session_01QiKC39GggaCEefge9YFwJE"
+    },
+    {
+      "tarea": "K12a",
+      "titulo": "Menús nuevos: marco general · K12a",
+      "nota": "estilo Hojas en el juego real (js/ui.js, css/style.css)",
+      "url": "https://claude.ai/code/session_01QiKC38tG3iSHVstPxCmMfE"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
