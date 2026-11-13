@@ -1100,18 +1100,6 @@
       "titulo": "Concurso · K6 Arte de batalla y tropas",
       "nota": "solo maquetas",
       "url": "https://claude.ai/code/session_01QiKC37tiobNBApd9bhi8N3"
-    },
-    {
-      "tarea": "CN9a",
-      "titulo": "Ciudad nueva · CN9a Plantillas por cultura (lógica)",
-      "nota": "ciudad.js, game.js, data.js (Roma y Capua en pie, conquistadas, enemigas bajo demanda)",
-      "url": "https://claude.ai/code/session_01QiKC39dhUVet4uHadVNPq2"
-    },
-    {
-      "tarea": "CN9b",
-      "titulo": "Ciudad nueva · CN9b Casas por cultura (arte)",
-      "nota": "assets/static, city3d.js, statics.js, registro.js (casas griegas y púnicas)",
-      "url": "https://claude.ai/code/session_01QiKC38g8Z9hJqYFjq3nf6C"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"

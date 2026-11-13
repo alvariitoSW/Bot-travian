@@ -285,7 +285,7 @@ async function navegador() {
       const dentro = await estado(() => ({ dist: UI.map.c.dist, migas: document.querySelector('.mmigas').innerText.replace(/\s+/g, ' '), volver: !!document.querySelector('.mmigas [data-volver]') }));
       const fotoZona = await foto('escalon-italia');
       await page.evaluate(() => document.querySelector('.mmigas [data-volver]').click());
-      await espera(1500);
+      await espera(3000);   // 13/11: con la máquina cargada la animación de vuelta tardaba más de 1,5 s y el juez fallaba sin que el juego fallara
       const fin = await estado(() => ({ x: UI.map.c.x, z: UI.map.c.z, dist: UI.map.c.dist, migas: document.querySelector('.mmigas').innerText.replace(/\s+/g, ' ') }));
       const igual = Math.abs(fin.x - antes.x) < 0.01 && Math.abs(fin.z - antes.z) < 0.01 && Math.abs(fin.dist - antes.dist) < 0.01;
       const ok = antes.zonas === 6 && dentro.dist < antes.dist * 0.6 && /Italia/.test(dentro.migas) && dentro.volver && igual && !/Italia/.test(fin.migas);
