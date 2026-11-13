@@ -341,7 +341,7 @@ function muralla(B) {
   const tm = () => { const v = 0.62 + 0.18 * rr(); return { muro: [v, v * 0.94, v * 0.84], teja: [0.8, 0.76, 0.72, 0] }; }, muros = [], torres = [], puertasL = [];
   const nT = Math.round(largo / 30.5), paso = largo / nT;
   for (let i = 0; i < nT; i++) { const q = en((i + 0.5) * paso), ini = en(i * paso); if (i / nT >= hechoPie) {            // empalizada: estacas
-      if (i / nT < hechoEmp) for (let s = i * paso; s < (i + 1) * paso; s += 1.7) { const e = en(s); if (cerca(e[0], e[1], 7)) continue; const h = 6.2 + rr() * 1.4; B.caja(1.5, h + 2, 1.2, e[0], altura(e[0], e[1]) + h / 2 - 1, e[1], rr() < 0.5 ? '#6b5338' : '#7a6042', -e[2]); }
+      if (i / nT < hechoEmp) for (let s = i * paso; s < (i + 1) * paso; s += 1.7) { const e = en(s); if (cerca(e[0], e[1], 7)) continue; const h = (6.2 + rr() * 1.4) * (m.fase >= 1 ? 1 : 0.3 + 0.7 * hechoEmp); B.caja(1.5, h + 2, 1.2, e[0], altura(e[0], e[1]) + h / 2 - 1, e[1], rr() < 0.5 ? '#6b5338' : '#7a6042', -e[2]); }
       continue; }
     const pu = cerca(q[0], q[1], paso * 0.55);
     if (pu && !pu._hecha) { pu._hecha = true; puertasL.push({ m: matriz(pu.x, suelo(pu.x, pu.z, 8) - 1.2, pu.z, -pu.ang, 0.83, 0.86, 0.8), ...tm() }); torres.push({ m: matriz(ini[0], suelo(ini[0], ini[1], 4) - 1.5, ini[1], 0, 0.8, 0.72, 0.8), ...tm() }); }
