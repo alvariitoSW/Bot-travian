@@ -1102,22 +1102,22 @@
       "url": "https://claude.ai/code/session_01QiKC37tiobNBApd9bhi8N3"
     },
     {
-      "tarea": "CN14-B",
-      "titulo": "Ciudad nueva · CN14-B Sucesos apagables y dificultades",
-      "nota": "ciudad.js, game.js, data.js, consejo() (sin pantalla nueva)",
-      "url": "https://claude.ai/code/session_01QiKC37J5xXVpcwFBrbRjMJ"
-    },
-    {
-      "tarea": "CN15a",
-      "titulo": "Ciudad nueva · CN15a Estaciones y fachadas",
-      "nota": "js/gfx (suelo y árboles por estación, fachadas, puestos), assets",
-      "url": "https://claude.ai/code/session_01QiKC37QvUAJTmVHaZCo4J4"
-    },
-    {
       "tarea": "N15c",
       "titulo": "Guerra · N15c Equilibrio fino de la batalla",
       "nota": "battle.js, battle3d.js, parte de batalla de ui.js",
       "url": "https://claude.ai/code/session_01QiKC393KmTUoLDteMx81wS"
+    },
+    {
+      "tarea": "CN14-A",
+      "titulo": "Ciudad nueva · CN14-A Número vivo al colocar",
+      "nota": "ciudad.js notaSitio, game.js, ui.js (cifra al arrastrar la pieza)",
+      "url": "https://claude.ai/code/session_01QiKC38EHJHJniuM7TxNue9"
+    },
+    {
+      "tarea": "CN15b",
+      "titulo": "Ciudad nueva · CN15b Cuadrilla de obra y recuas",
+      "nota": "js/gfx (obreros, recuas, andamio), solo dibujo",
+      "url": "https://claude.ai/code/session_01QiKC3AToCF4gQUKQMsyN15"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
