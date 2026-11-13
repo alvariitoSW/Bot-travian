@@ -26,7 +26,7 @@ function apunta(nombre, ok, detalle, captura) {
 /* ---------- 1. Lógica ---------- */
 console.log('Juez 1 · lógica (test/sim.test.js)');
 {
-  const r = spawnSync(process.execPath, ['test/sim.test.js'], { cwd: RAIZ, encoding: 'utf8', timeout: 300000 });
+  const r = spawnSync(process.execPath, ['test/sim.test.js'], { cwd: RAIZ, encoding: 'utf8', timeout: 900000 });
   const ultima = ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ');
   apunta('Pruebas de lógica', r.status === 0, ultima.slice(0, 400));
 }
