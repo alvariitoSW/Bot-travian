@@ -1096,12 +1096,6 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "NB1-NB7",
-      "titulo": "Guerra: Batalla nueva (NB1 a NB7)",
-      "nota": "motor nuevo de batalla y maniobra (abierta por el usuario; padre: gobierno)",
-      "url": "https://claude.ai/code/session_01QiKC37eghiyQKGsmkrrDSg"
-    },
-    {
       "tarea": "K12b",
       "titulo": "Menús: Códice · K12b",
       "nota": "Crónica e informe de estación (ui.js, css .cod-)",
