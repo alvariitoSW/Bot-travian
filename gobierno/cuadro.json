@@ -1102,10 +1102,10 @@
       "url": "https://claude.ai/code/session_01QiKC37tiobNBApd9bhi8N3"
     },
     {
-      "tarea": "CN6",
-      "titulo": "Ciudad nueva · CN6 Barrios",
-      "nota": "ciudad.js, game.js, data.js, ui.js, city3d.js (nivel por barrio, etiquetas, capilla)",
-      "url": "https://claude.ai/code/session_01QiKC394fsXAcgK1Ek5bMGd"
+      "tarea": "CN7",
+      "titulo": "Ciudad nueva · CN7 Muralla y arrabal",
+      "nota": "game.js, ciudad.js, ui.js (tabla de muralla, saqueo del arrabal, consejo)",
+      "url": "https://claude.ai/code/session_01QiKC36QB3u96jQR3hitwdX"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
