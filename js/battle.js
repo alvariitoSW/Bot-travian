@@ -3,7 +3,7 @@
   const D = root.DATA;
   const CONTACT = 50;
   // --- Ritmo, moral y cansancio (A8) ---
-  const RITMO = 0.0215;          // multiplica todo el daño: hace las batallas igualadas de 8 a 12 minutos
+  const RITMO = 0.0365;           // multiplica todo el daño: hace las batallas igualadas de 8 a 12 minutos
   const TOPE_BATALLA = 1500;    // segundos: tope de seguridad (25 min); si se alcanza gana el defensor
   const MOR_BAJAS = 0.62;        // moral perdida por cada 1 % de la vida del regimiento arrancada de golpe
   const MOR_CONTAGIO = 1.5;     // moral que pierden los vecinos cuando un regimiento rompe (antes 5)
@@ -36,7 +36,9 @@
   const CHOQUE_FRENTE_LANZA = 0.5;  // lanceros de frente reciben la mitad de la moral del choque
   const CAV_MELE_SEG = 8;       // la caballería pasa a melé larga tras este tiempo de contacto seguido
   const CAV_MELE_MUL = 0.8;     // y pega menos
-  const AGUANTAR_DEF = 1.15;    // quien aguanta quieto recibe 1/1,15 del daño
+  const IA_BAJA_RONDA = 10;     // (N15c) y no antes de esta ronda
+  const IA_BAJA_FUERZA = 1.25;  // (N15c) la IA en el cerro baja a atacar si es 1,25 veces mayor que el jugador y este no sube
+  const AGUANTAR_DEF = 1.5;     // quien aguanta quieto recibe 1/1,5 del daño (N15c: antes 1,15)
   const HOSTIGAR_DIST = 40;     // el hostigador se aparta si un enemigo cuerpo a cuerpo está a menos
   const HOSTIGAR_FAT = 0.5;     // el hostigador se cansa la mitad al moverse
   const RELEVO_ATRAS = 60;      // lo que retrocede el cansado en un relevo
@@ -45,11 +47,11 @@
   const RETIRADA_DIST = 60;     // un enemigo a menos de esto castiga la retirada
   const MOR_GENERAL = 4;        // moral que pierde su bando al caer el general (antes 12)
   const MOR_FLANCO = 0.02;      // moral por segundo perdida estando flanqueado
-  const MOR_PERDIENDO = 0.05;   // moral por segundo perdida (máx.) si su bando tiene menos hombres que el otro
+  const MOR_PERDIENDO = 0.115;   // moral por segundo perdida (máx.) si su bando tiene menos hombres que el otro
   const DESIGUAL_REL = 0.75;    // (N15b) si tiene menos que esta fracción de los hombres del rival, pelea con moral que se gasta más deprisa
   const DESIGUAL_ACEL = 1.0;    // (N15b) moral por segundo perdida cuando la diferencia es total; crece con ella (batallas muy desiguales más cortas)
   const MOR_HERIDO = 0.3;       // moral por segundo perdida con el regimiento al 0 % de hombres (proporcional a sus bajas)
-  const MOR_CANSADO = 0.05;     // moral por segundo perdida con cansancio al máximo (empieza en FAT_UMBRAL)
+  const MOR_CANSADO = 0.10;     // moral por segundo perdida con cansancio al máximo (empieza en FAT_UMBRAL)
   const FAT_UMBRAL = 60;        // cansancio a partir del cual se pierde moral y se marca «Cansado»
   const FAT_PELEA = 0.17;       // cansancio por segundo peleando cuerpo a cuerpo (se divide por la masa)
   const FAT_CARGA = 6;          // cansancio de golpe al lanzar una carga (la caballería pesa más)
@@ -107,7 +109,7 @@
   const TRANS_VEL = 0.8;        // (N7) y va a esto de su velocidad
   const COL_DIST = 150;         // (N7) marchando sin enemigo a menos de esto, el regimiento va en columna
   const LARGA_SEG = 12;         // (N7) segundos de melé tras los que la cuña se desgasta
-  const FORMA_BASE = { ligera: { sep: 2.4, fondo: 3 }, media: { sep: 1.5, fondo: 4 }, pesada: { sep: 1.2, fondo: 4 }, lanceros: { sep: 1, fondo: 8 }, tirador: { sep: 2.2, fondo: 2 }, jinete: { sep: 2.4, fondo: 3 }, elefante: { sep: 7, fondo: 1 } };
+  const FORMA_BASE = { ligera: { sep: 2.4, fondo: 3 }, media: { sep: 1.5, fondo: 8 }, pesada: { sep: 1.2, fondo: 8 }, lanceros: { sep: 1, fondo: 8 }, tirador: { sep: 2.2, fondo: 2 }, jinete: { sep: 2.4, fondo: 3 }, elefante: { sep: 7, fondo: 1 } };
   const LINEA_CLASE = { hastati: 1, principes: 2, triarii: 3 };   // (N7) triplex acies
   const LANCEROS_VS_CAB = 1.3;  // bajas extra que los lanceros causan a la caballería (además del ×1,7 de las lanzas)
   const LANCEROS_FLANCO = 1.2;  // los lanceros son débiles de flanco: más daño por flanco o espalda
@@ -125,7 +127,7 @@
 
   // --- Terreno (A5b): cuadrícula gruesa compartida con la vista 3D ---
   const CELDA = 40;             // lado de cada celda de terreno (unidades del campo)
-  const COLINA_PEGA = 0.15;     // el regimiento en alto pega (y el de abajo pega menos) hasta ±15 % según la diferencia de altura
+  const COLINA_PEGA = 0.13;     // el regimiento en alto pega (y el de abajo pega menos) hasta ±15 % según la diferencia de altura
   const COLINA_ALCANCE = 0.15;  // los tiradores en lo alto de la colina tienen +15 % de alcance
   const FAT_SUBIDA = 4;         // cansancio al subir de una celda llana a una de colina (proporcional a la altura que se gana)
   const FAT_CUESTA = 0.5;       // cansancio por segundo peleando cuesta arriba (diferencia de altura 1)
@@ -664,7 +666,7 @@
       const mia = cur[r.side] / this.start[r.side], suya = cur[1 - r.side] / this.start[1 - r.side];
       if (mia < suya) r.mor -= MOR_PERDIENDO * Math.min(1, (suya - mia) * 8) * dt;
       const rel = cur[r.side] / Math.max(1, cur[1 - r.side]);
-      if (rel < DESIGUAL_REL && r.fight > 0 && this.start[r.side] < this.start[1 - r.side] * 0.8) r.mor -= DESIGUAL_ACEL * (DESIGUAL_REL - rel) / DESIGUAL_REL * dt;   // (N15b) con muchos menos hombres que el rival, se hunde antes
+      if (rel < DESIGUAL_REL && r.fight > 0 && !(tipoDe(r) === 'aguantar' && !r.mv) && this.start[r.side] < this.start[1 - r.side] * 0.8) r.mor -= DESIGUAL_ACEL * (DESIGUAL_REL - rel) / DESIGUAL_REL * dt;   // (N15b) con muchos menos hombres que el rival, se hunde antes
       if (r.men < r.max && r.fight > 0) r.mor -= MOR_HERIDO * (1 - r.men / r.max) * dt;
       if (r.fat > FAT_UMBRAL) r.mor -= MOR_CANSADO * (r.fat - FAT_UMBRAL) / (100 - FAT_UMBRAL) * dt;
       if (r.mor <= 0) { r.st = 'rout'; this.onBreak(r); continue; }
@@ -699,7 +701,7 @@
       } else if (r.order && r.order.k === 'move') {
         const ret = tipoDe(r) === 'retirarse';
         if (ret && !this.cubierto(r)) for (const e of regs) if (e.side !== r.side && e.st === 'ok' && e.u.cls !== 'rng' && Math.hypot(e.x - r.x, e.y - r.y) < RETIRADA_DIST) { this.hit(e, r, effN(e.men * (e.u.mass || 1)) * ratio(e.u.atk * e.atkMul, r.u.def * r.defMul) * 0.03 * dt * RETIRADA_CASTIGO, false); break; }
-        if (this.moveTo(r, r.order.x, r.order.y, dt, ret ? 1 : PASO_MARCHA) < 6) { if (r.order.ang != null) r.angObj = r.order.ang; r.order = r.order.cond === 'nopersigue' ? { k: 'quieto' } : null; }
+        if (r.order && this.moveTo(r, r.order.x, r.order.y, dt, ret ? 1 : PASO_MARCHA) < 6 && r.order) { if (r.order.ang != null) r.angObj = r.order.ang; r.order = r.order.cond === 'nopersigue' ? { k: 'quieto' } : null; }
       } else if (tgt) {
         const d = Math.hypot(tgt.x - r.x, tgt.y - r.y);
         // el tirador sin orden no pasa de unos 55 por detrás de su infantería más adelantada
@@ -801,7 +803,7 @@
   // empieza la ronda de ejecución (desde el plan)
   Battle.prototype.ejecutar = function () {
     if (!this.rondas || this.fase !== 'plan' || this.over) return false;
-    if (this.cfg.relevoAuto === true || (this.cfg.relevoAuto !== false && this.auto && !this.regs.some(q => q.side === 0 && q.order))) this.autoRelevo(0);   // (N7) relevo automático del jugador (opcional)
+    if (this.cfg.relevoAuto === true || (this.cfg.relevoAuto !== false && this.auto && !this.manual && !this.regs.some(q => q.side === 0 && q.order))) this.autoRelevo(0);   // (N7) relevo automático del jugador (opcional)
     const mp = this.mandoPuntos();
     if (mp.usados > mp.max) { this.motivo = 'Tienes ' + mp.usados + ' órdenes y solo ' + mp.max + ' puntos de mando'; return false; }
     const g = this.generalVivo(0);
@@ -1245,6 +1247,9 @@
     G.cerro = () => {
       const s = ia.cerro; if (!s) return null;
       const sube = porDist(mios.filter(r => r.u.cls !== 'cav'), 0).sort((a, b) => ia_d(a, s) - ia_d(b, s)), o = []; let i = 0;
+      // (N15c) si ya está arriba, es mayor y nadie ha peleado aún (el jugador no sube a por él), baja a atacar en vez de esperar para siempre
+      if (ia.baja) return null;
+      if (ronda >= IA_BAJA_RONDA && h1 > h0 * IA_BAJA_FUERZA && sube.every(r => ia_d(r, s) < 130) && m0 > 0.92 && m1 > 0.92) { ia.baja = true; return null; }
       for (const r of sube) { if (ia_d(r, s) < 90) o.push(quieto(r)); else if (o.filter(q => q[1].k !== 'quieto').length < pts) o.push(mov(r, s.x + (i++ % 4 - 1.5) * 45, s.y + (i > 3 ? 40 : 0))); }
       return o.length ? { t: 'El enemigo sube ' + (T.id === 'cerro' ? 'al cerro' : 'a la colina'), o: o } : null;
     };

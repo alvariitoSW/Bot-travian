@@ -578,8 +578,8 @@ export class BattleView3D {
   /* ---------- estandartes y tarjetas ---------- */
   buildFlags() {
     for (const R of this.R) {
-      const r = R.r, el = document.createElement('button'); el.className = 'bflag s' + r.side; el.style.setProperty('--c', this.b.cfg.sides[r.side].col);
-      el.innerHTML = '<i>' + (r.u.cls === 'ele' ? '🐘' : r.u.g) + '</i><b><u></u></b><s><em></em><em></em><em></em></s>';
+      const r = R.r, el = document.createElement('button'); el.className = 'bflag s' + r.side ; el.style.setProperty('--c', this.b.cfg.sides[r.side].col); if (r.bis) el.title = 'Bisoño: tropa sin curtir, lucha peor';
+      el.innerHTML = '<i>' + (r.u.cls === 'ele' ? '🐘' : r.u.g) + '</i><b><u></u></b><s><em></em><em></em><em></em></s><q>Bis</q>';
       el.addEventListener('click', ev => { ev.stopPropagation(); if (performance.now() - (this.tArr || 0) < 400) return; this.hitReg(r); });
       // despliegue: mantener el dedo sobre el estandarte y mover arrastra el regimiento (el resto lo sigue el lienzo)
       el.addEventListener('pointerdown', ev => { if (this.b.fase === 'despliegue' && r.side === 0 && r.st === 'ok' && this.onDown) { this.dragReg = r; this.onDown(ev); } else if (this.b.fase !== 'despliegue' && r.side === 0 && r.st === 'ok' && this.sel.has(r) && this.onDown) { this.trazoIni = true; this.onDown(ev); } });
@@ -622,7 +622,7 @@ export class BattleView3D {
       v.set(x, this.h(x, z) + (r.u.cls === 'ele' ? 8 : r.u.cls === 'cav' || r.u.cls === 'gen' ? 5 : 4), z).project(this.cam);
       if (v.z > 1 || v.x < -1.1 || v.x > 1.1 || v.y < -1.1 || v.y > 1.1) { R.el.style.display = 'none'; continue; }
       R.el.style.display = ''; R.el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * H).toFixed(1) + 'px) translate(-50%,-100%)';
-      R.el.classList.toggle('sel', this.sel.has(r)); R.el.classList.toggle('rout', !ok);
+      R.el.classList.toggle('sel', this.sel.has(r)); R.el.classList.toggle('rout', !ok); R.el.classList.toggle('bis', ok && !!(this.b.esBisono ? this.b.esBisono(r) : r.bis));
       { const e = estadoReg(r), cl = R.el.classList; cl.toggle('m1', e.moral === 1); cl.toggle('m2', e.moral === 2); cl.toggle('m3', e.moral === 3); cl.toggle('f1', ok && e.cans === 1); cl.toggle('f2', ok && e.cans === 2); }
       R.bar.style.width = (r.men / r.max * 100) + '%'; R.bar.style.background = r.mor / r.morMax > 0.5 ? '#7ddc5a' : r.mor / r.morMax > 0.25 ? '#f0c040' : '#e8503a';
     }

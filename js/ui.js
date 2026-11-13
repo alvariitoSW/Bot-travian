@@ -1234,7 +1234,7 @@ document.addEventListener('click', function (e) {
     case 'bsonido': if (window.Sonido) { if (window.Sonido.activo) window.Sonido.off(); else window.Sonido.on(); } B.filaKey = ''; B.panelTx = null; break;
     case 'bfac': { const f = document.querySelector('#bdif .fac'); if (f) f.hidden = !f.hidden; break; }
     case 'bform': B.b.formar(0, v); document.querySelectorAll('#bctl [data-act="bform"]').forEach(x => x.classList.toggle('on', x === el)); break;
-    case 'bejec': if (B.b.ejecutar()) { B.view.sel.clear(); B.mas = false; B.speed = 1; rondaModo(B, 'ejec'); } else if (B.b.motivo) toast(B.b.motivo, 'bad'); break;
+    case 'bejec': B.b.manual = true; if (B.b.ejecutar()) { B.view.sel.clear(); B.mas = false; B.speed = 1; rondaModo(B, 'ejec'); } else if (B.b.motivo) toast(B.b.motivo, 'bad'); break;   // (N15c) manual: el relevo sin órdenes no actúa
     case 'bcarta': if (B.b.jugarCarta(v)) { toast('Carta jugada: ' + CARTAS_TXT[v][0] + '. Vale para la ronda que viene.'); B.filaKey = ''; } else toast(B.b.generalVivo(0) ? 'Solo una carta por ronda.' : 'Sin general no hay cartas.', 'bad'); break;
     case 'bchoque': { const q = B.b.preverChoque(), n = B.b.cfg.sides, p = x => Math.round(x * 100) + ' %'; B.choque = 'Si chocan ya (aproximado): ' + (q.gana < 0 ? 'empate.' : q.claro ? 'ventaja de <b>' + esc(n[q.gana].name) + '</b>.' : 'muy igualado, algo mejor para <b>' + esc(n[q.gana].name) + '</b>.') + ' Conservarían ' + esc(n[0].name) + ' ' + p(q.f0) + ' y ' + esc(n[1].name) + ' ' + p(q.f1) + '.'; B.choqueT = performance.now() + 9000; B.mas = false; B.panelTx = null; B.filaKey = ''; break; }
     case 'bcond': if (condSel(B).length) rondaModo(B, 'cond'); else toast('Elige un regimiento con orden: toca su estandarte y dale una orden.'); break;

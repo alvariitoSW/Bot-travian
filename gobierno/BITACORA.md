@@ -231,3 +231,5 @@ Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que 
 - 13/11/2026 — **CN15a hecha (dibujo)**: puestos con toldo en la plaza, acabados de fachada por barrio, suelo y árboles por estación; jueces APTO; faltan CN15b y CN15c. Parte: gobierno/partes/2026-11-13-CN15a.md
 
 - 13/11/2026 — **CN14-B hecha (lógica; faltan A y C)**: tres dificultades (Tranquila·Normal·Dura) y sucesos apagables en la lógica y el guardado, sin pantalla todavía; «Normal» = hoy (cifras guardadas en test/ref-normal.json); jueces APTO con el juez nuevo 1e. **Decide el usuario**: Dura apenas se nota (bot 5/5, ≈1 % de población); ¿más dura? Parte: gobierno/partes/2026-11-13-CN14B.md
+
+- 13/11/2026 — **N15c hecha**: seis puntos de afinado de batalla (aguantar, IA del cerro, frente compacto, igualadas ~10 min, relevo manual, franja del gesto, «Bis»). Jueces APTO; gasto 2,31 M. **Decide el usuario**: «Aguantar» más fuerte, trampa de ganar por tablas quedándose quieto, texto de ayuda. Parte: gobierno/partes/2026-11-13-N15c.md

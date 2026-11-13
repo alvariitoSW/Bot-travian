@@ -565,7 +565,7 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 #bdif .ob { max-width: 250px; font-size: 11px; color: var(--gold); text-shadow: 0 1px 3px #000, 0 0 8px #000; text-align: right; }
 #bobj { position: absolute; z-index: 6; left: 50%; transform: translateX(-50%); top: calc(34px + env(safe-area-inset-top)); display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 700; color: var(--gold); text-shadow: 0 1px 3px #000, 0 0 8px #000; pointer-events: none; white-space: nowrap; }
 #bobj i { display: block; width: 120px; height: 3px; border-radius: 2px; background: #0008; overflow: hidden; } #bobj u { display: block; height: 100%; background: var(--gold); text-decoration: none; }
-#bgesto { position: absolute; z-index: 7; left: calc(110px + env(safe-area-inset-left)); opacity: .88; top: calc(34px + env(safe-area-inset-top)); max-width: min(360px, 52vw); padding: 3px 12px; border-radius: 9px; font-size: 12px; font-weight: 700; font-family: var(--serif); color: var(--gold); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: linear-gradient(rgba(22, 27, 36, .86), rgba(10, 13, 19, .9)); border: 1px solid rgba(184, 134, 43, .7); pointer-events: none; }
+#bgesto { position: absolute; z-index: 7; left: 50%; transform: translateX(-50%); opacity: .88; top: calc(58px + env(safe-area-inset-top)); max-width: min(360px, 52vw); padding: 3px 12px; border-radius: 9px; font-size: 12px; font-weight: 700; font-family: var(--serif); color: var(--gold); text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: linear-gradient(rgba(22, 27, 36, .86), rgba(10, 13, 19, .9)); border: 1px solid rgba(184, 134, 43, .7); pointer-events: none; }
 #bpanel li.gs { color: var(--gold); font-weight: 700; }
 #bpanel li.gs::before { content: ''; }
 
@@ -586,7 +586,7 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 #bpanel input[type=range] { width: 100%; margin: 6px 0 0; accent-color: #e9c063; height: 28px; }
 #bpanel .tk { display: flex; justify-content: space-between; font-size: 10.5px; color: var(--gold); }
 .bflag[data-l]::after, .ucard[data-l]::after { content: attr(data-l); position: absolute; font-size: 8.5px; font-weight: 700; line-height: 1; color: #e9c063; background: rgba(10, 13, 19, .8); padding: 1px 3px; border-radius: 3px; pointer-events: none; }
-.bflag[data-l]::after { right: -3px; top: -3px; }
+.bflag[data-l]::after { left: auto; bottom: auto; right: -3px; top: -3px; }
 .ucard[data-l]::after { right: 1px; bottom: 11px; }
 .bflag[data-l=""]::after, .ucard[data-l=""]::after { display: none; }
 
@@ -696,3 +696,7 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 .bfila .bniv { flex: none; min-width: 26px; text-align: center; font-family: var(--serif); font-weight: 700; color: var(--bronce); border: 1px solid var(--bronce); border-radius: 6px; padding: 0 3px; }
 .bfila .bnom { flex: none; font-weight: 600; } .bfila .bfalta { opacity: .8; min-width: 0; } .bfila.mal .bfalta { color: #e05050; }
 .mlabel.barrio { pointer-events: none; font-size: 11px; padding: 2px 8px; background: rgba(10, 14, 20, .62); border-color: rgba(233, 192, 99, .5); color: #f4e6bd; font-family: var(--serif); letter-spacing: .02em; }
+
+/* N15c: marca de tropa bisoña en el estandarte */
+.bflag q { quotes: none; display: none; position: absolute; left: 50%; top: -10px; transform: translateX(-50%); padding: 0 3px; border-radius: 4px; font-size: 8px; font-style: normal; font-weight: 800; line-height: 11px; color: #1c1206; background: #ffd27a; border: 1px solid #7a5a12; pointer-events: none; }
+.bflag.bis q { display: block; }
