@@ -351,7 +351,7 @@
     return Math.max(0.5, t);
   };
 
-  G.log = function (txt, kind) { const s = G.state; s.log.unshift({ t: s.t, x: txt, k: kind || '' }); if (s.log.length > 60) s.log.pop(); emit('log', { x: txt, k: kind }); };
+  G.log = function (txt, kind, mudo) { const s = G.state; s.log.unshift({ t: s.t, x: txt, k: kind || '' }); if (s.log.length > 60) s.log.pop(); emit('log', { x: txt, k: kind, mudo: !!mudo }); };   // mudo: va a la Crónica pero no saca aviso en pantalla
 
   /* ---------- la ciudad nueva dentro del juego (CN2b) ----------
      js/ciudad.js (ESM) hace la geometría; este bloque la conecta con la economía. El módulo se enchufa con G.usarCiudad(modulo):
@@ -1158,7 +1158,7 @@
       if (per >= 1) pierde.push(Math.round(per) + ' de ' + r);
     }
     s.informe = (s.informe || []).filter(e => e.tn === reg.tn); s.informe.push(reg);
-    if (pierde.length || reg.mes % D.TURNO_MESES === 0) G.log('📦 Cierre de mes: guardado ' + D.RES.map(r => reg.r[r].gua + ' ' + r).join(', ') + (pierde.length ? '; perdido ' + pierde.join(' ') : '') + '.', pierde.length ? 'bad' : '');
+    if (pierde.length || reg.mes % D.TURNO_MESES === 0) G.log('📦 Cierre de mes: guardado ' + D.RES.map(r => reg.r[r].gua + ' ' + r).join(', ') + (pierde.length ? '; perdido ' + pierde.join(' ') : '') + '.', pierde.length ? 'bad' : '', true);      // el aviso en pantalla es «Fin de mes…» (ui.js), una vez; aquí solo el diario
     emit('dirty');
   };
   // suma del informe del turno: por recurso, ganado, guardado y perdido

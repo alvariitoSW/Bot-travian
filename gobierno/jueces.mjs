@@ -324,6 +324,26 @@ async function navegador() {
       return { ok, detalle: ok ? 'seis zonas; Italia acerca la cámara (' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ') y «← volver» la devuelve' : 'zonas ' + antes.zonas + ', dist ' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ', migas «' + dentro.migas + '», volver ' + dentro.volver + ', igual ' + igual + ', migas finales «' + fin.migas + '»', captura: fotoZona, detalle2: fotoMare };
     });
 
+    await paso('CN22 avisos: máx. 2 avisos y tarjeta de estación baja', async () => {
+      await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; Game.state.speed = 0; });
+      await cierraAvisos();
+      if (!(await page.locator('#turno:not([hidden])').count())) return { ok: false, detalle: 'no hay botón «Pasar turno»' };
+      await page.evaluate(() => { const b = document.getElementById('inf'); if (b) b.remove(); document.getElementById('turno').click(); });
+      await espera(500);
+      const toasts = await estado(() => document.querySelectorAll('#toasts .toast').length);
+      await cierraAvisos();
+      await estado(() => { const b = document.getElementById('inf'); if (b) b.remove(); UI.consejoModal(); });
+      await espera(200);
+      const m = await estado(() => { const r = id => { const e = document.getElementById(id); return e ? e.getBoundingClientRect() : null; }; const i = r('inf'), a = r('inf-mas'), b = r('inf-seguir'); return { i: i && i.height, a: a && a.height, b: b && b.height }; });
+      await page.click('#inf-mas'); await espera(200);
+      const d = await estado(() => { const e = document.getElementById('inf-mas'); if (!e) return null; const r = e.getBoundingClientRect(); return { b: r.bottom, l: r.left, r: r.right }; });
+      const captura = await foto('inf-detalle');
+      await estado(() => { const b = document.getElementById('inf'); if (b) b.remove(); UI.dirty = true; });
+      const dentro = !!d && d.b <= 844 && d.l >= 0 && d.r <= 390;
+      const ok = toasts <= 2 && !!m.i && m.i <= 281 && m.a >= 40 && m.b >= 40 && dentro;
+      return { ok, detalle: 'avisos=' + toasts + ' #inf=' + (m.i | 0) + ' px; «Ver más»=' + (m.a | 0) + ' «Seguir»=' + (m.b | 0) + ' px; detalle ' + (dentro ? 'dentro' : 'FUERA') + ' de pantalla', captura };
+    });
+
     await paso('Región de Italia: mapa con 7 ciudades', async () => {
       await page.evaluate(() => Game.save());
       await page.reload({ waitUntil: 'load' });

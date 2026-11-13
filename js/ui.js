@@ -56,10 +56,45 @@ const licHtml = o => o && o.lic ? '<div class="licl"><span class="lic">licencia 
 const cohort = k => (D.UNITS[k].cls === 'cav' ? 10 : 20);
 
 /* ---------- avisos y modales ---------- */
-function toast(txt, kind) {
-  const t = document.createElement('div'); t.className = 'toast ' + (kind || ''); t.textContent = txt; $('toasts').appendChild(t);
-  while ($('toasts').children.length > 3) $('toasts').firstChild.remove();
-  setTimeout(() => t.remove(), 3200);
+/* Cola de avisos (CN22): nunca más de UN aviso a la vista, ≈2,8 s, debajo de #linea.
+   Misma clave = sustituye (y cuenta «+N»). Distintos esperan en cola corta (máx. 3; el resto se agrupa en «+N avisos»).
+   Los errores de acción directa del jugador pasan por delante; los de sistema (4.º parámetro true) esperan.
+   Es memoria de pantalla: no se guarda. Todo sigue en G.log (pestaña Crónica). */
+const AV = { cur: null, pend: [], mas: 0, tm: 0, acum: null };
+const avClave = txt => String(txt).replace(/[0-9]+/g, '').split(/[:.;(]/)[0].trim().slice(0, 24);
+function avPon() {
+  const box = $('toasts'); if (!box) return;
+  const a = AV.cur; if (!a) { box.textContent = ''; return; }
+  const lin = $('linea'), r = lin && !lin.hidden && lin.offsetParent ? lin.getBoundingClientRect() : null;
+  box.style.top = r && r.height ? Math.round(r.bottom + 6) + 'px' : '';
+  const t = document.createElement('div'); t.className = 'toast ' + (a.kind || '');
+  t.textContent = a.txt + (a.n > 1 ? ' · +' + (a.n - 1) : '') + (a.extra ? ' · +' + a.extra + (a.extra === 1 ? ' aviso' : ' avisos') : '');
+  box.textContent = ''; box.appendChild(t);
+  clearTimeout(AV.tm); AV.tm = setTimeout(avSigue, 2800);
+}
+function avSigue() {
+  AV.cur = AV.pend.shift() || null;
+  if (AV.cur && !AV.pend.length && AV.mas) { AV.cur.extra = AV.mas; AV.mas = 0; }
+  avPon();
+}
+function toast(txt, kind, clave, sistema) {
+  if (sistema && AV.acum) { AV.acum.push({ txt: txt, kind: kind }); return; }           // durante «Pasar turno»: se acumulan en un resumen
+  const k = clave || avClave(txt), a = { txt: txt, kind: kind || '', k: k, n: 1, extra: 0, sis: !!sistema };
+  if (AV.cur && AV.cur.k === k) { a.n = AV.cur.n + 1; a.extra = AV.cur.extra; AV.cur = a; avPon(); return; }
+  const q = AV.pend.findIndex(x => x.k === k); if (q >= 0) { a.n = AV.pend[q].n + 1; AV.pend[q] = a; return; }
+  if (!AV.cur) { AV.cur = a; avPon(); return; }
+  if (!sistema && a.kind === 'bad') { const f = AV.pend.findIndex(x => x.sis); AV.pend.splice(f < 0 ? AV.pend.length : f, 0, a); }
+  else AV.pend.push(a);
+  while (AV.pend.length > 3) { AV.pend.pop(); AV.mas++; }
+}
+/* Resumen de «Pasar turno»: un solo aviso con lo que ha pasado (todo sigue en la Crónica) */
+function toastResumen(lista) {
+  if (!lista || !lista.length) return;
+  const gr = lista.filter(x => x.kind === 'bad'); if (gr.length === 1 && lista.length === 1) { toast(gr[0].txt, 'bad', 'turno'); return; }   // un solo aviso grave: se lee entero
+  const graves = gr.length, obras = lista.filter(x => /^🔨/.test(x.txt)).length;
+  const p = []; if (obras) p.push(obras + (obras === 1 ? ' obra' : ' obras')); if (graves) p.push(graves + (graves === 1 ? ' aviso grave' : ' avisos graves'));
+  const otros = lista.length - obras - graves; if (otros > 0 || !p.length) p.push(Math.max(otros, 0) + (otros === 1 ? ' aviso' : ' avisos'));
+  toast('Turno: ' + p.join(', ') + '. Detalle en la Crónica.', graves ? 'bad' : '', 'turno');
 }
 function modal(html, sticky) { UI.modalQ.push({ html: html, sticky: sticky }); pump(); }
 function pump() {
@@ -71,8 +106,8 @@ function closeModal() { UI.modalOpen = false; $('modal').hidden = true; pump(); 
 
 G.onEvent = function (type, p) {
   if (type === 'event') modal('<div class="yr">' + p.y + ' A.C.</div><h2>' + esc(p.t) + '</h2><p>' + esc(p.x) + '</p><div class="acts"><button class="btn" data-act="close">Continuar</button></div>');
-  else if (type === 'alert') toast(p, 'bad');
-  else if (type === 'log') { if (p.k === 'good') toast(p.x); else if (p.k === 'bad') toast(p.x, 'bad'); UI.dirty = true; }
+  else if (type === 'alert') toast(p, 'bad', null, true);
+  else if (type === 'log') { if (!p.mudo) { if (p.k === 'good') toast(p.x, '', null, true); else if (p.k === 'bad') toast(p.x, 'bad', null, true); } UI.dirty = true; }
   else if (type === 'dirty') UI.dirty = true;
   else if (type === 'colonos') { const d = D.COLONIAS[p.sitio]; if (d) modal('<div class="yr">COLONOS</div><h2>Han llegado a ' + esc(d.n) + '</h2><p>Los colonos esperan tu orden. Elige el lugar del foro y el arado trazará el surco sagrado.</p><div class="acts"><button class="btn ghost" data-act="close">Más tarde</button><button class="btn gold" data-act="fundar" data-v="' + p.sitio + '">Fundar ' + esc(d.n) + '</button></div>'); }
   else if (type === 'turno') { const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.over) consejoModal(); UI.dirty = true; }
@@ -111,7 +146,7 @@ function showMenu() {
   const fin = () => { clearTimeout(tm); tm = setTimeout(() => { UI.cuDown = false; }, 120); };
   document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('#cuentas')) { UI.cuDown = true; clearTimeout(tm); tm = setTimeout(() => { UI.cuDown = false; }, 1500); } }, true);
   document.addEventListener('pointerup', fin, true); document.addEventListener('pointercancel', fin, true); }
-function startGame() { if (G.turnos && S()) S().speed = 0; UI.menu = false; $('menu').hidden = true; UI.city = 'roma'; UI.sel = null; if (UI.map) UI.map.encuadre(); UI.cityList = false; setModo('gobierno'); }
+function startGame() { UI.avisoFirma = ''; if (G.turnos && S()) S().speed = 0; UI.menu = false; $('menu').hidden = true; UI.city = 'roma'; UI.sel = null; if (UI.map) UI.map.encuadre(); UI.cityList = false; setModo('gobierno'); }
 function showOver() {
   const s = S(), o = s.over; if (!o || UI.overShown) return; UI.overShown = true;
   modal('<div class="yr">' + (o.win ? 'VICTORIA' : 'DERROTA') + '</div><h2>' + (o.win ? 'Roma Victrix' : 'Vae victis') + '</h2><p>' + esc(o.why) + '</p>' +
@@ -126,12 +161,28 @@ function buildTop() {
   $('res').dataset.act = 'cuentas'; $('res').title = 'Cuentas del mes';
 }
 const turnosTxt = n => 'en ' + n + (n === 1 ? ' turno' : ' turnos');
+/* CN22B: informe de estación compacto. Tarjeta baja (#inf, ≤ ⅓ de pantalla, no bloquea la ciudad); «Ver más» despliega el detalle completo. */
 function consejoModal() {
-  const l = G.consejo(), inf = G.informeEstacion();
+  const l = G.consejo(), inf = G.informeEstacion(), ant = UI.infoPrev || [];
+  const col = q => q.k === 'bad' ? 'color:var(--bad)' : q.k === 'good' ? 'color:var(--good)' : '';
   const fila = r => { const a = inf.r[r]; return '<tr><td>' + D.RES_ICON[r] + '</td><td>+' + fmt(a.gan) + '</td><td>' + fmt(a.gua) + '</td><td style="' + (a.per > 0 ? 'color:var(--bad)' : 'opacity:.5') + '">' + (a.per > 0 ? '-' : '') + fmt(a.per) + '</td></tr>'; };
   const informe = inf.meses ? '<p style="margin:6px 0 2px"><b>Informe de la estación</b> (' + inf.meses + (inf.meses === 1 ? ' mes' : ' meses') + ')</p><table style="width:100%;text-align:center;font-size:13px"><tr style="opacity:.6;font-size:11px"><td></td><td>ganado</td><td>guardado</td><td>perdido</td></tr>' + D.RES.map(fila).join('') + '</table><p style="margin:2px 0 8px;color:' + (inf.r.oro.gua >= 0 ? 'var(--good)' : 'var(--bad)') + '">Saldo de oro: ' + (inf.r.oro.gua - 0) + ' al almacén.</p>' : '';
-  modal('<div class="yr">INFORME Y CONSEJO DE ESTACIÓN</div><h2>' + esc(l[0].x) + '</h2>' + informe + l.slice(1).map(q => '<p style="' + (q.k === 'bad' ? 'color:var(--bad)' : q.k === 'good' ? 'color:var(--good)' : '') + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</p>').join('') + '<div class="acts"><button class="btn gold" data-act="close">Seguir</button></div>');
+  const detalle = '<div class="yr">INFORME Y CONSEJO DE ESTACIÓN</div><h2>' + esc(l[0].x) + '</h2>' + informe + l.slice(1).map(q => '<p style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</p>').join('');
+  // tarjeta: lo grave siempre; lo demás solo si cambió desde el trimestre anterior
+  const perd = D.RES.filter(r => inf.meses && inf.r[r].per > 0).map(r => D.RES_ICON[r] + ' -' + fmt(inf.r[r].per));
+  const todo = l.slice(1, -1).concat(perd.length ? [{ k: 'bad', x: 'Perdido por almacén lleno: ' + perd.join(' ') }] : []);
+  const mostrar = todo.filter(q => q.k === 'bad' || ant.indexOf(q.x) < 0).slice(0, 3);
+  UI.infoPrev = todo.map(q => q.x);
+  const rec = l[l.length - 1];
+  const lineas = (mostrar.length ? mostrar : [{ k: '', x: 'Sin novedades este trimestre.' }]).concat(rec ? [rec] : []);
+  let el = document.getElementById('inf'); if (el) el.remove();
+  el = document.createElement('div'); el.id = 'inf'; el.className = 'inf';
+  const corta = '<div class="inf-t">' + esc(l[0].x) + '</div>' + lineas.map(q => '<div class="inf-l" style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</div>').join('') + '<div class="inf-b"><button class="btn ghost" data-act="inf-mas" id="inf-mas">Ver más</button><button class="btn gold" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
+  const larga = '<div class="inf-d">' + detalle + '</div><div class="inf-b"><button class="btn ghost" data-act="inf-mas" id="inf-mas">Cerrar detalle</button><button class="btn gold" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
+  el._corta = corta; el._larga = larga; el.innerHTML = corta; document.body.appendChild(el);
 }
+UI.infoMas = function () { const el = document.getElementById('inf'); if (!el) return; const m = el.classList.toggle('mas'); el.innerHTML = m ? el._larga : el._corta; };
+UI.infoCierra = function () { const el = document.getElementById('inf'); if (el) el.remove(); UI.dirty = true; };
 const VEL = { 0: 'II', 1: '▶', 2: '▶▶', 4: '▶▶▶' };
 const ICO_GOB = svgIco('<path d="M3 20h18M5 20V9h14v11M3 9h18M9 20v-6h6v6M12 4v5"/>');
 function cityOk() { const my = G.myCities(); if (!my.includes(UI.city)) UI.city = my[0] || 'roma'; return UI.city; }
@@ -160,7 +211,7 @@ function tickUI() {
     $('rb-' + r).title = (RES_NOM[r] || r) + ': caja del mes ' + fmt(s.res[r]) + ', almacén ' + fmt(s.alm[r]) + ' de ' + fmt(cap) + ', ' + (v >= 0 ? '+' : '') + v + ' al mes' + (pierde ? ' · se perderán ' + pr[r].perdera : lleno ? ' (almacén lleno)' : '');
     $('rb-' + r).classList.toggle('full', lleno);
   }
-  if (aviso && UI.avisoMes !== Math.floor(s.t)) { UI.avisoMes = Math.floor(s.t); const av = G.avisoCierre(); if (av.length) toast('Fin de mes: ' + av[0] + (av.length > 1 ? ' (y ' + (av.length - 1) + ' más)' : ''), 'bad'); }
+  if (aviso && UI.avisoMes !== Math.floor(s.t)) { UI.avisoMes = Math.floor(s.t); const av = G.avisoCierre(), firma = av.map(x => x.split(':')[0]).join('|'), nueva = av.length && firma !== UI.avisoFirma; UI.avisoFirma = firma; if (nueva) toast('Fin de mes: ' + av[0] + (av.length > 1 ? ' (y ' + (av.length - 1) + ' más)' : ''), 'bad', 'cierre', true); }
   renderCuentas();
   const c = s.cities[cityOk()]; $('r-recl').textContent = fmt(G.recruits(c));
   const nm = s.marches.filter(m => m.owner === 'roma').length; $('r-march').textContent = nm + (nm === 1 ? ' marcha' : ' marchas');
@@ -1184,7 +1235,7 @@ document.addEventListener('click', function (e) {
     case 'tomenu': G.save(); UI.modalQ = []; closeModal(); stopBattle(); showMenu(); break;
     case 'tab': UI.codice = null; setTab(v); break;
     case 'codice': UI.codice = v || null; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;
-    case 'turno': if (!G.turnos || s.over || s.pending.length || UI.modalOpen) break; G.pasarTurno(); UI.dirty = true; tickUI(); break;
+    case 'turno': if (!G.turnos || s.over || s.pending.length || UI.modalOpen) break; AV.acum = []; try { G.pasarTurno(); } finally { const l = AV.acum; AV.acum = null; toastResumen(l); } UI.dirty = true; tickUI(); break;
     case 'speed': if (G.turnos) { s.speed = s.speed ? 0 : 1; tickUI(); break; } s.speed = v === 'next' ? ({ 1: 2, 2: 4, 4: 0, 0: 1 }[s.speed] || 1) : +v; tickUI(); break;
     case 'modo': setModo(v); break;
     case 'citymenu': { const m = $('citymenu'); m.hidden = !m.hidden; if (!m.hidden) m.innerHTML = cityMenuHtml(); break; }
@@ -1250,6 +1301,8 @@ document.addEventListener('click', function (e) {
       break;
     }
     case 'close': closeModal(); break;
+    case 'inf-mas': UI.infoMas(); break;
+    case 'inf-cierra': UI.infoCierra(); break;
     case 'bview': startBattle(); break;
     case 'bquick': { closeModal(); const b = new window.Battle(UI.binfo.cfg); b.finish(); endBattle(b.result()); break; }
     case 'bdone': closeModal(); stopBattle(); UI.sheetKey = ''; render(); if (S().over) showOver(); break;
@@ -1329,7 +1382,7 @@ loadStaticIndex().then(idx => Promise.all([preloadStatic(Object.keys(idx)), load
   try { $('citywrap').hidden = false; UI.cityV = new CityView3D($('citywrap'), Object.assign({ onPick: tocarCiudad }, gestosCiudad)); $('citywrap').hidden = true; if (UI.tab === 'city' && !UI.menu) setTab('city'); }
   catch (e) { console.warn('Sin vista 3D de ciudad', e); $('citywrap').hidden = true; }
 });
-window.UI = UI;
+window.UI = UI; UI.consejoModal = consejoModal; UI.toast = toast; UI.toastResumen = toastResumen;   // CN22: la cola de avisos, para quien la necesite desde fuera
 
 // N7: el deslizador de tiempo de «Ver futuro» (4 posiciones: final, 10, 20, 30 s)
 document.addEventListener('input', ev => { const t = ev.target; if (!t || t.id !== 'btslider' || !UI.battle || !UI.battle.view || !UI.battle.view.ponTPrev) return; UI.battle.view.ponTPrev([0, 10, 20, 30][+t.value] || 0); });

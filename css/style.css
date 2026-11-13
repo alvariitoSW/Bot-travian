@@ -175,8 +175,8 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 #bhint { position: absolute; left: 0; right: 0; top: calc(74px + env(safe-area-inset-top)); text-align: center; font-size: 11.5px; color: #fff; text-shadow: 0 1px 3px #000, 0 0 8px #000; padding: 0 22px; pointer-events: none; transition: opacity 1s; }
 
 /* avisos */
-#toasts { position: fixed; top: calc(112px + env(safe-area-inset-top)); left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; z-index: 50; }
-.toast { background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line2); border-radius: 99px; padding: 8px 16px; font-size: 13px; max-width: 92%; animation: tin .25s ease-out; box-shadow: 0 6px 18px #0009; }
+#toasts { position: fixed; top: calc(196px + env(safe-area-inset-top)); left: 0; right: 0; display: flex; flex-direction: column; align-items: center; gap: 6px; pointer-events: none; z-index: 50; overflow: clip; }      /* CN22: un solo aviso; ui.js lo baja justo debajo de #linea */
+.toast { background: var(--glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--line2); border-radius: 14px; padding: 5px 12px; font-size: 12.5px; line-height: 1.3; max-width: 92%; box-sizing: border-box; overflow-wrap: anywhere; text-align: center; animation: tin .25s ease-out; box-shadow: 0 6px 18px #0009; }
 .toast.bad { border-color: var(--bad); color: #ffd0c8; }
 @keyframes tin { from { opacity: 0; transform: translateY(-8px); } }
 
@@ -714,3 +714,15 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 #menu .ajf { max-width: 340px; margin: 10px auto 4px; } #menu .ajb { justify-content: center; }
 .ajustes small { display: block; color: var(--mute); font-size: 12px; margin: 4px 0; }
 #menu .ajc { justify-content: center; white-space: nowrap; margin: 8px 0 12px; } #menu .ajc input { flex: none; width: 22px; }
+
+/* CN22B: informe de estación compacto (tarjeta baja, no bloquea) */
+#inf { position: fixed; left: 8px; right: 8px; bottom: calc(80px + env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; z-index: 29; box-sizing: border-box; max-height: 280px; overflow: clip; padding: 10px 12px 10px; background: linear-gradient(160deg, #1c2430f2, #0e131af2); border: 1px solid var(--line2); border-radius: 10px; box-shadow: 0 8px 26px #000b; font-size: 13px; color: #d5dce6; }
+#inf.mas { max-height: 62vh; display: flex; flex-direction: column; }
+.inf-t { color: var(--gold); font-family: var(--serif); font-size: 13px; margin-bottom: 4px; overflow-wrap: anywhere; }
+.inf-l { margin: 2px 0; line-height: 1.3; overflow-wrap: anywhere; }
+.inf-d { overflow-y: auto; flex: 1 1 auto; min-height: 0; -webkit-overflow-scrolling: touch; }
+.inf-d h2 { color: var(--gold); font-size: 16px; text-align: center; margin: 2px 0; }
+.inf-d .yr { text-align: center; color: var(--mute); font-size: 10px; letter-spacing: .2em; }
+.inf-d p { margin: 6px 0; font-size: 13px; white-space: pre-line; }
+.inf-b { display: flex; gap: 8px; margin-top: 8px; }
+.inf-b .btn { flex: 1 1 0; min-height: 42px; padding: 8px 10px; font-size: 14px; }

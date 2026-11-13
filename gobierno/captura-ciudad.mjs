@@ -15,7 +15,7 @@ import { join, extname, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const [pref = 'ciudad', ...resto] = process.argv.slice(2), op = Object.fromEntries(resto.map(a => a.split('=')));
-const vistas = (op.vistas || (pref === 'CN14C' ? 'c14-asesor,c14-ajustes,c14-nueva' : pref === 'CN14B' ? 'c14-sin-crecida' : pref === 'CN14A' ? 'c14-cifra-a,c14-cifra-b' : pref === 'CN9a' ? 'c9-ciudad' : pref === 'CN8' ? 'c8-aviso,c8-crecida,c8-fuego,c8-ruina' : pref === 'CN7' ? 'c7-surco,c7-empalizada-obra,c7-empalizada,c7-piedra,c7-ruina' : 'bandeja,fantasma,rojo,ficha,obra')).split(','), ciudad = op.ciudad || 'roma', dpr = +(op.dpr || 2);
+const vistas = (op.vistas || (pref === 'CN22' ? 'c22-avisos,c22-informe,c22-turno' : pref === 'CN14C' ? 'c14-asesor,c14-ajustes,c14-nueva' : pref === 'CN14B' ? 'c14-sin-crecida' : pref === 'CN14A' ? 'c14-cifra-a,c14-cifra-b' : pref === 'CN9a' ? 'c9-ciudad' : pref === 'CN8' ? 'c8-aviso,c8-crecida,c8-fuego,c8-ruina' : pref === 'CN7' ? 'c7-surco,c7-empalizada-obra,c7-empalizada,c7-piedra,c7-ruina' : 'bandeja,fantasma,rojo,ficha,obra')).split(','), ciudad = op.ciudad || 'roma', dpr = +(op.dpr || 2);
 const LUZ_ESTACIONAL = true;          // Q11: false = sin mes= ni vistas de luz (la ciudad usa la luz de siempre)
 const ponerFecha = (mes, frac) => page.evaluate(([m, f]) => { Game.state.speed = 0; Game.state.t = 24 + (m - 1) + f; }, [mes, frac]);     // inversa de G.estacion: enero = invierno, 3 meses por turno
 const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream' };
@@ -61,6 +61,11 @@ const cifraVista = async cual => {
   return dbg + ' · sitio ' + cual + ' (' + Math.round(p.x) + ',' + Math.round(p.z) + ') · cifra «' + ci + '» · ' + await lineaTxt();
 };
 const PASOS = {
+  // --- CN22: avisos pequeños (node gobierno/captura-ciudad.mjs CN22). Asesor apagado; el reloj quieto ---
+  'c22-avisos': async () => page.evaluate(async () => { const s = Game.state; s.ajustes.asesor = false; s.speed = 0; UI.cityV.view('ciudad'); for (const r of DATA.RES) s.res[r] = 1e5; s.t = Math.floor(s.t) + 0.9;
+    Game.log('🔨 Obra acabada: Granja.', 'good'); Game.log('🔨 Obra acabada: Foro.', 'good'); Game.log('⚠️ Rumor de saqueo cerca de Roma.', 'bad'); Game.tick(0.2); await new Promise(q => setTimeout(q, 300)); return 'cierre de mes con almacén lleno y 3 sucesos'; }),
+  'c22-informe': async () => page.evaluate(async () => { const s = Game.state; s.ajustes.asesor = false; s.speed = 0; s.pending.length = 0; UI.modalOpen = false; document.getElementById('modal').hidden = true; UI.cityV.view('ciudad'); const c = s.cities[UI.city]; const cap = Game.cap(); for (const r of Object.keys(s.alm)) s.alm[r] = cap; UI.infoPrev = []; UI.consejoModal(); await new Promise(q => setTimeout(q, 600)); const e = document.getElementById('inf'); const h = e ? Math.round(e.getBoundingClientRect().height) : -1; document.getElementById('inf-mas').click(); await new Promise(q => setTimeout(q, 200)); const e2 = document.getElementById('inf'), h2 = Math.round(e2.getBoundingClientRect().height), sc = e2.scrollWidth <= e2.clientWidth; document.getElementById('inf-mas').click(); UI.infoCierra(); UI.consejoModal(); const rep = document.getElementById('inf').textContent.includes('Sin obras'); const h3 = Math.round(document.getElementById('inf').getBoundingClientRect().height); UI.infoCierra(); UI.infoPrev = []; UI.consejoModal(); return 'informe de estación: tarjeta #inf alto=' + h + ' px (tope 281); tras Ver más alto=' + h2 + ' sin desborde lateral=' + sc + '; segundo trimestre repite «Sin obras»=' + rep + ' alto=' + h3; }),
+  'c22-turno': async () => page.evaluate(async () => { const s = Game.state; s.ajustes.asesor = false; s.pending.length = 0; UI.modalOpen = false; document.getElementById('modal').hidden = true; UI.cityV.view('ciudad'); const b = document.createElement('button'); b.dataset.act = 'turno'; document.body.appendChild(b); b.click(); b.remove(); await new Promise(q => setTimeout(q, 400)); const t = document.getElementById('toasts'); return 'tras Pasar turno · avisos=' + t.children.length + ' «' + t.textContent + '»'; }),
   // --- CN9a: la ciudad de plantilla (Roma, Capua) o una conquistada (ciudad=tarentum, carthago...) ---
   'c9-ciudad': async () => page.evaluate(async cid => { UI.city = cid; const id = cid, c = Game.state.cities[id]; if (c.owner !== 'roma') { Game.incorporar(c, {}, true); c.pop = Math.max(c.pop, 200); }
     const E = Game.ciudadE(id); if (!E) return 'sin ciudad nueva'; UI.cityV.view('ciudad'); UI.cityV.mirar(E.foro.x, E.foro.z, 300, 0.6); UI.dirty = true; await new Promise(q => setTimeout(q, 3000));
@@ -215,7 +220,7 @@ for (const v of vistas) {
     else if (v === 'toque' || v === 'ciudad' || v === 'meses24' || v === 'capua') V.view('ciudad');
     else if (v === 'calle' || v === 'ejercito') V.view(v); }, v);
   if (v === 'estaciones') { console.log(nota); continue; }
-  await page.waitForTimeout(v === 'grande' ? 9000 : 4500);
+  await page.waitForTimeout(v === 'grande' ? 9000 : /^c22-/.test(v) ? 1000 : 4500);
   if (v === 'toque') { const t = await tocaPieza(); if (t) nota = ' · ficha de ' + t; else { const g = await page.evaluate(() => { const E = Game.ciudadE(UI.city), V = UI.cityV; V.mirar(E.foro.x + 60, E.foro.z + 60, 260, 0); return 1; }); await page.waitForTimeout(2500); await page.touchscreen.tap(195, 420); await page.waitForTimeout(900); nota = ' · toque en el suelo: ' + await lineaTxt(); } }
   const f = join(RAIZ, 'gobierno/capturas-tarea', pref + '-' + v.replace(/^c7-/, '') + '.jpg');
   for (let i = 0; ; i++) { try { await page.screenshot({ path: f, type: 'jpeg', quality: 84, timeout: 180000 }); break; } catch (e) { if (i >= 2) throw e; } }
