@@ -383,7 +383,7 @@
       return { nivel, objetivo: obj, serv, falta: sig ? sig.pide.filter(k => !serv[k]) : [], meses: obj < nivel ? Math.max(0, D.BARRIO_RETRASO - (c.bdef || 0)) : 0, barrios: [] };
     }
     const nb = nbs(E), barrios = E.barrios.map((b, i) => { const n = nb[i], niv = b.nivel || 1, meses = CI.mesesParaBajar(E, i);
-      return { i, nombre: b.nombre, corto: b.corto, nivel: niv, objetivo: n.nivel, casas: n.casas, falta: niv >= n.nivel ? n.falta : '', meses, texto: CI.textoBarrio(E, i) }; });
+      return { i, nombre: b.nombre, corto: b.corto, caracter: CI.caracterBarrio(E, i), nivel: niv, objetivo: n.nivel, casas: n.casas, falta: niv >= n.nivel ? n.falta : '', meses, texto: CI.textoBarrio(E, i) }; });
     const tope = topeServ(serv), nivel = c.barrio || 1, sig = D.BARRIO[nivel + 1], bajan = barrios.filter(b => b.meses > 0).map(b => b.meses);
     return { nivel, objetivo: Math.min(tope, mediaBarrios(barrios, 'objetivo')), serv, falta: sig ? sig.pide.filter(k => !serv[k]) : [], meses: bajan.length ? Math.min.apply(null, bajan) : 0, barrios };
   };
@@ -1992,6 +1992,8 @@
     if (!s.misionesHechas) s.misionesHechas = {};
     if (!s.proxMision) s.proxMision = 0;
     if (D.SENADO.sala && (!s.senado || s.senado.v !== 1)) G.migrarSala(s);   // SN1
+    if (!s.encargos || typeof s.encargos !== 'object') s.encargos = { activo: null, hechos: {}, prox: 0 };   // CN17
+    if (!s.hitos || typeof s.hitos !== 'object') s.hitos = {};
   };
   const topeFavor = v => Math.max(D.SENADO.min, Math.min(D.SENADO.max, v));
   G.favor = function () { const s = G.state; G.migrarSenado(s); if (D.SENADO.sala) sincFavor(s); return { senado: Math.round(s.favor.senado), pueblo: Math.round(s.favor.pueblo) }; };
@@ -2035,6 +2037,36 @@
     if (D.SENADO.sala) { sincFavor(s); G.senadoMensual(); if (!G.turnos && mes % D.TURNO_MESES === 0) G.senadoEstacion(); }   // SN1: promesas y gastos cada mes; sin turnos, la votación se abre cada estación
     if (!s.mision && mes >= s.proxMision) G.senadoAsignar();
     G.tribunosMes();
+    try { G.encargosMes(mes); } catch (e) { console.log("ENCERR", e.stack.split("\n").slice(0,3).join(" / ")); }
+  };
+  /* ---------- CN17: encargos cortos del Senado e hitos (D.ENCARGOS, D.HITOS). Distintos de las misiones históricas: una sola vez, uno activo cada vez. ---------- */
+  G.MEDIDAS = {
+    casas: s => { let n = 0; for (const id of propias(s)) for (const b of G.barrioInfo(s.cities[id]).barrios) n += b.casas; return n; },
+    barrios: s => { let n = 0; for (const id of propias(s)) n += G.barrioInfo(s.cities[id]).barrios.length; return n; },
+    barrioNivel: s => { let n = 0; for (const id of propias(s)) for (const b of G.barrioInfo(s.cities[id]).barrios) n = Math.max(n, b.nivel); return n; },
+    fuentes: s => { let n = 0; for (const id of propias(s)) { const E = ELBAR(s.cities[id]); if (E) n += E.edificios.filter(e => e.tipo === 'fuente' && !e.obra && !e.ruina).length; } return n; },
+    oro: s => Math.floor(s.res.oro),
+    encargos: s => Object.keys(s.encargos.hechos).filter(k => s.encargos.hechos[k] === 'ok').length
+  };
+  const medida = (s, c) => { const f = G.MEDIDAS[c.tipo]; return f ? f(s) : 0; };
+  G.encargoActual = function () {
+    const s = G.state; G.migrarSenado(s); const x = s.encargos.activo, e = x && D.ENCARGOS[x.id]; if (!e) return null;
+    return { e: e, t0: x.t0, t1: x.t1, quedan: Math.max(0, x.t1 - Math.floor(s.t + 1e-9)), tiene: medida(s, e.cond), pide: e.cond.n };
+  };
+  G.hitosVista = function () { const s = G.state; G.migrarSenado(s); return Object.values(D.HITOS).map(h => ({ h: h, logrado: s.hitos[h.id] !== undefined })); };
+  G.encargosMes = function (mes) {
+    const s = G.state; G.migrarSenado(s); const S = s.encargos;
+    for (const h of Object.values(D.HITOS)) if (s.hitos[h.id] === undefined && medida(s, h.cond) >= h.cond.n) {
+      s.hitos[h.id] = mes; aplicaMision(h.premio); G.log('🏅 Hito: ' + h.n + '. ' + h.texto + (h.abre ? ' Se abren ' + h.abre + '.' : ''), 'good');
+    }
+    const x = S.activo, e = x && D.ENCARGOS[x.id];
+    if (x && !e) S.activo = null;
+    else if (x && medida(s, e.cond) >= e.cond.n) { aplicaMision(e.premio); S.hechos[e.id] = 'ok'; S.activo = null; S.prox = mes + D.ENCARGO_PAUSA; G.log('📜 Encargo cumplido: ' + e.n + '. El Senado lo agradece.', 'good'); }
+    else if (x && mes >= x.t1) { S.hechos[e.id] = 'fallo'; S.activo = null; S.prox = mes + D.ENCARGO_PAUSA; G.log('📜 Encargo sin cumplir: ' + e.n + '. El Senado lo da por perdido.', 'bad'); }
+    if (!S.activo && mes >= S.prox) {
+      const n = Object.values(D.ENCARGOS).find(q => !S.hechos[q.id] && (!q.req || s.hitos[q.req] !== undefined) && medida(s, q.cond) < q.cond.n);
+      if (n) { S.activo = { id: n.id, t0: mes, t1: mes + n.plazo }; G.log('📜 El Senado te pide: ' + n.n + '. ' + n.texto, ''); }
+    }
   };
   /* ---------- Senado nuevo (SN1): sala de votos con tres bandos (sin pantalla) ----------
      Informe: gobierno/estudios/senado-nuevo.md. Interruptor D.SENADO.sala: con false no se ejecuta nada de este bloque y el juego es el de Q7.

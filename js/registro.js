@@ -138,6 +138,25 @@
     "ciudadania-capua": f(SIN_LEY, h("Livio, 8.14", "historico", "cifras y efectos: licencia de juego", "En 338 a.C. Roma da a Capua la ciudadanía sin voto (civitas sine suffragio): cargas romanas sin voto en Roma."))
   };
 
+  // ---- CN17: encargos del Senado y hitos (D.ENCARGOS, D.HITOS). Son mecánicas de juego: sin fuente antigua; cifras y plazos, licencia de juego. ----
+  const SIN_ENC = { sin: 'un encargo no tiene modelo 3D' };
+  const LIC = 'encargo inventado para jugar: cifras, plazos y premios son licencia de juego';
+  const encargo = {
+    'techo-30': f(SIN_ENC, h('Vitruvio 2.8 (casas de Roma); Livio 5.55 (reconstrucción tras los galos)', 'probable', LIC, 'Roma se amontona en casas altas y estrechas; el Senado quiere más hogares.')),
+    'agua-2': f(SIN_ENC, h('Frontino, Acueductos 4-5 (Apio Claudio, 312)', 'historico', LIC, 'Roma ya lleva agua con acueductos y fuentes; el pueblo la pide en sus calles.')),
+    'segundo-barrio': f(SIN_ENC, h('Varrón, Lengua latina 5.45-56 (las regiones y los vici)', 'probable', LIC, 'La ciudad se ordena en barrios (vici) con su capilla de cruce (compitum).')),
+    'barrio-sano': f(SIN_ENC, h('Varrón, Lengua latina 5.45-56', 'probable', LIC, 'Un barrio con agua, grano y cobijo prospera.')),
+    'arcas-300': f(SIN_ENC, h('Polibio 6.13 (el Senado y el tesoro)', 'probable', LIC, 'El Senado vigila el tesoro de la República.')),
+    'techo-80': f(SIN_ENC, h('Vitruvio 2.8', 'probable', LIC, 'Una ciudad grande necesita muchas viviendas.')),
+    'barrio-rico': f(SIN_ENC, h('sin fuente antigua: es una meta de juego', 'licencia de juego', LIC, 'Los barrios ricos tienen casas de buena posición, con patio, agua y comercio cerca. Es una meta de juego.'))
+  };
+  const hito = {
+    'casas-50': f(SIN_ENC, h('Vitruvio 2.8', 'probable', LIC, 'Medio centenar de hogares marca el paso de aldea a villa.')),
+    'barrio-3': f(SIN_ENC, h('Varrón, Lengua latina 5.45-56', 'probable', LIC, 'Un barrio de buena posición abre encargos mayores.')),
+    'tres-barrios': f(SIN_ENC, h('Varrón, Lengua latina 5.45-56', 'probable', LIC, 'Tu ciudad ya tiene tres barrios con nombre propio, cada uno con su capilla de cruce.')),
+    'primer-encargo': f(SIN_ENC, h('Polibio 6.13', 'probable', LIC, 'Has cumplido tu primer encargo: el Senado empieza a fiarse de ti.'))
+  };
+
   // ---- Facciones (D.FACTIONS). Sin modelo: solo un nombre y un color. Fuente: H1-ciudades.md y H1-hechos.md ----
   const SIN_F = { sin: 'sin modelo: la facción es un nombre y un color' };
   const faccion = {
@@ -290,7 +309,7 @@
     zanja: f(SIN_PZ, h('Livio 1.38.6; Livio 1.56.2; Vitruvio 1.4.11-12', 'probable', 'Livio atribuye a Tarquinio Prisco el desagüe del Foro con cloacas; Vitruvio recomienda sanear los sitios encharcados. Que reduzca la ruina de la crecida es licencia de juego'))
   };
 
-  R.fichas = { terreno, piezaTerreno, edificio, tropa, fiesta, remedio, ciudad, hecho, mision, ley, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+  R.fichas = { terreno, piezaTerreno, edificio, tropa, fiesta, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -307,6 +326,8 @@
     colonia: { tabla: 'COLONIAS', numericos: ['lon', 'lat', 'anio', 'colonos'], textos: ['n', 'h', 'tipo'] },
     mision: { tabla: 'MISIONES', numericos: ['desde', 'plazo'], textos: ['n', 'texto'] },
     ley: { tabla: 'LEYES', numericos: [], textos: ['n', 'texto'] },
+    encargo: { tabla: 'ENCARGOS', numericos: ['plazo'], textos: ['n', 'texto'] },
+    hito: { tabla: 'HITOS', numericos: [], textos: ['n', 'texto'] },
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },
     mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },
     tipo: { tabla: 'TIPOS', numericos: [], textos: ['n', 'i', 'd'] },

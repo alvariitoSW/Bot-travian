@@ -558,6 +558,27 @@
     { id: 'ciudadania-sabinos', tipo: 'ciudadania', n: 'Ciudadanía a los sabinos', texto: 'Los sabinos reciben la ciudadanía romana. Más votantes y más soldados para ti.', h: 'En 268 a.C. Roma concede la ciudadanía a los sabinos, que pasan a votar y a servir en las legiones.', fuente: 'Veleyo Patérculo, Historia romana, 1.14', dictamen: 'probable', postura: { ter: -1, mer: 0, mil: 1 }, efecto: { ciudadania: 'roma' }, chips: { ciu: 4, ple: -2 } },
     { id: 'ciudadania-capua', tipo: 'ciudadania', n: 'Ciudadanía a Capua', texto: 'Capua recibe la ciudadanía sin voto. Paga y sirve en tus legiones; no vota.', h: 'En 338 a.C. Roma da a Capua la ciudadanía sin voto (civitas sine suffragio): cargas romanas sin voto en Roma.', fuente: 'Livio, 8.14', dictamen: 'historico', postura: { ter: -1, mer: 1, mil: -1 }, efecto: { ciudadania: 'capua' }, chips: { ciu: 4, ple: -2 } }
   ].forEach(l => { D.LEYES[l.id] = l; D.LEYES_ORDEN.push(l.id); });
+  /* CN17: encargos cortos del Senado (de una sola vez, uno activo cada vez; no son las misiones históricas ni los consejos del asesor).
+     cond.tipo: casas | barrios | barrioNivel | fuentes | oro (mide G.MEDIDAS). req: hito que los abre. Todas las cifras son licencia de juego. */
+  D.ENCARGOS = {};
+  [
+    { id: 'techo-30', n: 'Techo para el pueblo', texto: 'Roma pide hogares: ten 30 casas en tus ciudades.', cond: { tipo: 'casas', n: 30 }, plazo: 12, premio: { oro: 120, favorSenado: 3 } },
+    { id: 'agua-2', n: 'Agua para las calles', texto: 'Levanta 2 fuentes públicas.', cond: { tipo: 'fuentes', n: 2 }, plazo: 10, premio: { oro: 100, favorPueblo: 4 } },
+    { id: 'segundo-barrio', n: 'Un barrio más', texto: 'Abre un segundo barrio en tu ciudad.', cond: { tipo: 'barrios', n: 2 }, plazo: 14, premio: { oro: 150, favorSenado: 4 } },
+    { id: 'barrio-sano', n: 'Un barrio con medios', texto: 'Haz que un barrio llegue al nivel 2.', cond: { tipo: 'barrioNivel', n: 2 }, plazo: 14, premio: { oro: 140, favorPueblo: 3 } },
+    { id: 'arcas-300', n: 'Arcas llenas', texto: 'Reúne 300 de oro para lo que venga.', cond: { tipo: 'oro', n: 300 }, plazo: 12, premio: { favorSenado: 5 } },
+    { id: 'techo-80', n: 'La ciudad crece', texto: 'Ten 80 casas en tus ciudades.', cond: { tipo: 'casas', n: 80 }, plazo: 18, req: 'barrio-3', premio: { oro: 250, favorSenado: 5 } },
+    { id: 'barrio-rico', n: 'Un barrio con lujo', texto: 'Haz que un barrio llegue al nivel 4.', cond: { tipo: 'barrioNivel', n: 4 }, plazo: 24, req: 'barrio-3', premio: { oro: 300, favorSenado: 6, favorPueblo: 4 } }
+  ].forEach(e => { D.ENCARGOS[e.id] = e; });
+  D.ENCARGO_PAUSA = 2;   // meses entre un encargo y el siguiente
+  /* CN17: hitos. Al lograrlos se gana favor (el oro de los hitos descuadraba al bot de la partida corta) y, si lo dice «abre», se abre una serie de encargos nuevos (los que piden ese hito en req). */
+  D.HITOS = {};
+  [
+    { id: 'casas-50', n: 'Cincuenta hogares', texto: 'Ya hay 50 casas en tus ciudades.', cond: { tipo: 'casas', n: 50 }, premio: { favorPueblo: 4 } },
+    { id: 'barrio-3', n: 'Un barrio de buena posición', texto: 'Un barrio ha llegado al nivel 3. El Senado te confía encargos mayores.', cond: { tipo: 'barrioNivel', n: 3 }, premio: { favorSenado: 5 }, abre: 'encargos mayores' },
+    { id: 'tres-barrios', n: 'Tres barrios', texto: 'Tu ciudad tiene tres barrios con nombre propio.', cond: { tipo: 'barrios', n: 3 }, premio: { favorSenado: 3, favorPueblo: 3 } },
+    { id: 'primer-encargo', n: 'Servidor del Senado', texto: 'Has cumplido tu primer encargo.', cond: { tipo: 'encargos', n: 1 }, premio: { favorSenado: 2 } }
+  ].forEach(h => { D.HITOS[h.id] = h; });
 
   /* NB5 — plantillas de zona para la maniobra previa (js/maniobra.js). Cada una: 9 a 10 puntos (x, y de 0 a 100; Roma entra por la izquierda)
      con tipo Castra / Cerro / Vado / Puente / Pinar / Cruce / Llano, y caminos entre ellos. ini = [punto del bando 0, punto del bando 1]; centro = punto central.

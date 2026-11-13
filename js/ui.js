@@ -1041,6 +1041,12 @@ function viewSaber() {
   }
   return h + '</div><div class="mos-pie"><button class="btn mos-vol" data-act="tab" data-v="imperio">← Volver al Imperio</button></div></div>';
 }
+/* CN17: encargo corto del Senado (uno cada vez) y hitos */
+function encargoHtml() {
+  const en = G.encargoActual(), hs = G.hitosVista(); let o = '';
+  if (en) o += '<div class="sec">Encargo del Senado</div><div class="card sn-mi"><div class="tt">' + esc(en.e.n) + '</div><div class="ds">' + esc(en.e.texto) + '</div><div class="sn-fa"><b>Llevas</b> ' + Math.min(en.tiene, en.pide) + ' de ' + en.pide + ' · quedan ' + en.quedan + ' meses</div></div>';
+  return o + '<div class="sec">Hitos</div><div class="sn-ex">' + hs.map(x => (x.logrado ? '✔ ' : '▫ ') + esc(x.h.n)).join(' · ') + '</div>';
+}
 function viewSenado() {
   const f = G.favor(), mi = G.misionActual(), mot = G.senadoMotivo();
   const barra = (n, v, c) => '<div class="sn-b"><span>' + n + '</span><div class="sn-bar"><i class="' + c + '" style="width:' + v + '%"></i></div><b>' + v + '</b></div>';
@@ -1048,6 +1054,7 @@ function viewSenado() {
   let o = '<div class="acts"><button class="btn ghost" data-act="tab" data-v="imperio">← Volver al Imperio</button></div><div class="sn"><h2>🏛️ El Senado</h2>' + barra('Senado', f.senado, 'sen') + barra('Pueblo', f.pueblo, 'pue') +
     '<p class="sn-ex">El pueblo sigue el ánimo de tus ciudades. El Senado sube con las misiones cumplidas y baja con las falladas o con el oro en rojo a fin de mes.</p>';
   if (mot) o += '<div class="sn-av">' + esc(mot) + '</div>';
+  o += encargoHtml();
   if (!mi) return o + '<div class="empty">El Senado no te pide nada por ahora.</div></div>';
   const m = mi.m, tot = Math.max(1, mi.t1 - mi.t0);
   o += '<div class="sec">Misión en curso</div><div class="card sn-mi"><div class="tt">' + esc(m.n) + '</div><div class="ds">' + esc(m.texto) + '</div>' +

@@ -245,8 +245,20 @@ export function nivelBarrio(E, i) { const S = servicios(E), cs = E.parcelas.filt
   return { nivel, falta, casas: cs.length, humo: hu, arrabal: cs.filter(l => l.arrabal).length, ag, te, me }; }
 /* El nivel de nivelBarrio es el OBJETIVO (por servicios). El EFECTIVO es b.nivel (1-4): sube uno por mes y baja tras RETRASO_BARRIO meses de déficit (b.bdef). */
 export function mesesParaBajar(E, i) { const b = E.barrios[i], o = nivelBarrio(E, i).nivel; return o < (b.nivel || 1) ? Math.max(0, RETRASO_BARRIO - (b.bdef || 0)) : 0; }
+/* CN17: carácter del barrio (foro, ribera, loma o llano), derivado de su sitio. Las partidas viejas lo calculan al leerlo. */
+export const FRASE_CARACTER = { foro: 'Aquí se juntan foro y mercado', ribera: 'Junto al agua: crecidas y buen riego', loma: 'En lo alto: aire sano y vistas', llano: 'Tierra llana, casas y huertos' };
+export function caracterBarrio(E, i) { const b = E.barrios[i]; if (!b) return 'llano'; if (!b.caracter) b.caracter = b.tipo === 'foro' ? 'foro' : drio(b.x, b.z) < 200 ? 'ribera' : alt(b.x, b.z) > 8 ? 'loma' : 'llano'; return b.caracter; }
+/* CN17: plaza en el cruce. Un cruce es donde el extremo de una vía toca a otra. Una plaza por barrio (menos el del foro, que ya tiene la suya): la más cercana al centro. */
+export function plazasCruce(E) {
+  const out = [], vs = E.vias.filter(v => v.p && v.p.length > 1 && v.t !== 'camino' && v.t !== 'senda');
+  E.barrios.forEach((b, bi) => { if (b.tipo === 'foro') return; let mejor = null, md = 1e9;
+    for (const v of vs) for (const q of [v.p[0], v.p[v.p.length - 1]]) { const d = Math.hypot(q[0] - b.x, q[1] - b.z); if (d >= md || d > 150 || barrioDe(E, q[0], q[1]) !== bi) continue;
+      if (vs.some(w => w !== v && w.p.some(r => Math.hypot(r[0] - q[0], r[1] - q[1]) < 7))) { md = d; mejor = q; } }
+    if (mejor) out.push({ x: mejor[0], z: mejor[1], barrio: bi, car: caracterBarrio(E, bi) }); });
+  return out;
+}
 export function textoBarrio(E, i) { const b = E.barrios[i], n = nivelBarrio(E, i), niv = b.nivel || 1, baja = mesesParaBajar(E, i);
-  return b.nombre + ' · nivel ' + ROMANOS[niv] + ' · ' + n.casas + ' casas' + (n.nivel > niv ? ' · subirá pronto' : n.falta ? ' · para subir falta ' + n.falta : ' · lo tiene todo') + (baja ? ' · bajará en ' + baja + (baja === 1 ? ' mes' : ' meses') : '') + (n.humo > n.casas / 3 ? ' · le molesta el humo' : '') + (n.arrabal > 2 && E.muralla.fase ? ' · ' + n.arrabal + ' fuera de la muralla' : ''); }
+  return b.nombre + ' · nivel ' + ROMANOS[niv] + ' · ' + n.casas + ' casas' + (n.nivel > niv ? ' · subirá pronto' : n.falta ? ' · para subir falta ' + n.falta : ' · lo tiene todo') + (baja ? ' · bajará en ' + baja + (baja === 1 ? ' mes' : ' meses') : '') + (n.humo > n.casas / 3 ? ' · le molesta el humo' : '') + (n.arrabal > 2 && E.muralla.fase ? ' · ' + n.arrabal + ' fuera de la muralla' : '') + ' · ' + FRASE_CARACTER[caracterBarrio(E, i)]; }
 
 
 /* ---------- reglas de terreno (CN19-A): efectos vecinos ---------- */
@@ -297,7 +309,7 @@ export function fundar(E, x, z) {
   const p1 = ruta(E, x, z, k => E.ocup[k] === 1, 30); let ang = 0;
   if (p1) { const q = p1[Math.min(p1.length - 1, 3)]; ang = Math.atan2(q[1] - z, q[0] - x); }
   E.foro = { x, z, ang, w: 46, d: 34 }; E.fundada = true;
-  E.barrios.push({ nombre: 'Barrio del Foro', corto: 'Foro', x, z, tipo: 'foro', nivel: 1, bdef: 0 });
+  E.barrios.push({ nombre: 'Barrio del Foro', corto: 'Foro', x, z, tipo: 'foro', nivel: 1, bdef: 0, caracter: 'foro' });
   let mh = -1e9, mk = -1; for (let j = 0; j < N; j += 2) for (let i = 0; i < N; i += 2) { const k = j * N + i, qx = X0 + (i + 0.5) * C, qz = Z0 + (j + 0.5) * C, d = Math.hypot(qx - x, qz - z); if (d < 120 || d > 215 || DRIO[k] < 90 || PEND[k] > 0.3) continue; const cosA = p1 ? ((qx - x) * Math.cos(ang) + (qz - z) * Math.sin(ang)) / d : 0; const v = ALT[k] - cosA * 6 - (cosA > 0.3 ? 100 : 0); if (v > mh) { mh = v; mk = k; } }
   const corta = pts => { const o = pts.filter(q => { const u = (q[0] - x) * Math.cos(ang) + (q[1] - z) * Math.sin(ang), t = -(q[0] - x) * Math.sin(ang) + (q[1] - z) * Math.cos(ang); return Math.abs(u) > 23 || Math.abs(t) > 17; }); return o; };
   sello(E, x, z, ang, 46, 34, 4);
@@ -420,7 +432,7 @@ export function colocar(E, id, x, z, gratis, pago) {
     if (pts.length > 1) nuevaVia(E, alisar(engancha(E, pts)), sendas ? 1.8 : 2.4, sendas ? 'senda' : 'calle'); }
   if (id === 'granja') { const c = Math.cos(rot), sn = Math.sin(rot); e.campo = [[-36, 11], [36, 11], [36, 62], [-36, 62]].map(([u, t]) => [x + u * c - t * sn, z + u * sn + t * c]); e.vega = vega(x, z); for (const a of E.arboles) { const u = (a.x - x) * c + (a.z - z) * sn, t = -(a.x - x) * sn + (a.z - z) * c; if (Math.abs(u) < 39 && t > 8 && t < 65) a.talado = true; } }
   if (id === 'compitum') { const n = E.barrios.length, nombre = drio(x, z) < 200 ? 'del Vado' : alt(x, z) > 8 ? 'de la Loma' : ['del Olivar', 'de los Pastores', 'de la Vía'][n % 3];
-    E.barrios.push({ nombre: 'Barrio ' + nombre, corto: nombre.replace(/^(del|de la|de los) /, ''), x, z, tipo: 'compitum', nivel: 1, bdef: 0 });
+    E.barrios.push({ nombre: 'Barrio ' + nombre, corto: nombre.replace(/^(del|de la|de los) /, ''), x, z, tipo: 'compitum', nivel: 1, bdef: 0, caracter: drio(x, z) < 200 ? 'ribera' : alt(x, z) > 8 ? 'loma' : 'llano' });
     const a = s.ang, dv = E.dVia[k]; for (const sg of [-1, 1]) { const o = sg < 0 ? 7 : dv + 9, b = { x: x + Math.cos(a) * o * sg, z: z + Math.sin(a) * o * sg, dx: Math.cos(a) * sg, dz: Math.sin(a) * sg, hecha: false }; const v = callejon(E, b, 96); if (v) { v.t = 'via'; v.w = 3; v.punta = null; } } }
   E.edificios.push(e); E.diario.push({ a: 'c', n: E.mesN, tipo: id, x, z }); puertas(E); reparcelar(E); return { ok: true, e };
 }
