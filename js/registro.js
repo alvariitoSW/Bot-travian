@@ -233,7 +233,14 @@
     aesernia: f(SIN_COL, h('Veleyo Patérculo 1.14.7', 'por cotejar', '263 a.C., latina: fecha y colonos (2.500, sin fuente, licencia de juego) por cotejar' + LJ))
   };
 
-  R.fichas = { edificio, tropa, ciudad, hecho, mision, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades };
+  // ---- Fiestas del Foro y del Templo (D.FIESTAS, CN13a). Se casan por id. Cotejo: gobierno/historia/CN13-cotejo.md ----
+  const SIN_FIESTA = { sin: 'una fiesta no tiene modelo 3D propio; la ciudad solo cambia el aspecto del arca (CN15)' };
+  const fiesta = {
+    ofrenda: f(SIN_FIESTA, h('Livio 22.9-10 (cotejado); pistas por comprobar: Livio 25.12 y 29.14, Ovidio, Fastos 4', 'licencia de juego', 'El Senado votó ofrendas y ritos tras el Trasimeno (Livio 22.9-10): eso es histórico. Pagarlas con lo que sobra, una al mes, y duplicar el don de un dios son reglas de juego.', 'Tras el desastre del Trasimeno, el Senado votó ofrendas y ritos a los dioses (Livio 22.9-10). Aquí puedes hacer una al mes, y el templo de tu ciudad favorece más a su dios.')),
+    juegos: f(SIN_FIESTA, h('Livio 22.9-10 (los ludi magni votados en 217); pistas por comprobar: Livio 25.12 (ludi Apollinares), Livio 29.14, Ovidio, Fastos 4', 'licencia de juego', 'Los ludi eran fiestas públicas reales; su precio ligado al ingreso, el reposo de seis meses y el calmar a una ciudad conquistada son reglas de juego. Los pasajes marcados como pista no se han comprobado.', 'Los ludi eran juegos públicos que pagaban los magistrados o el erario por voto del Senado (Livio 22.9-10). Aquí calman al pueblo y a una ciudad conquistada.'))
+  };
+
+  R.fichas = { edificio, tropa, fiesta, ciudad, hecho, mision, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -252,7 +259,8 @@
     tipo: { tabla: 'TIPOS', numericos: [], textos: ['n', 'i', 'd'] },
     especial: { tabla: 'ESPECIAL', numericos: [], textos: ['n', 'i', 'd'] },
     invest: { tabla: 'INVEST', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n', 'i', 'rama'] },
-    edad: { tabla: 'EDADES', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n'] }
+    edad: { tabla: 'EDADES', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n'] },
+    fiesta: { tabla: 'FIESTAS', numericos: ['mult', 'min', 'dura', 'reposo'], textos: ['n', 'i', 'd'] }
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */

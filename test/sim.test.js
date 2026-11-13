@@ -1732,3 +1732,44 @@ console.log('OK — todas las pruebas superadas');
   delete global.localStorage; G.onEvent = null; G.usarCiudad(null);
   console.log('I8-a: partida corta OK (datos, fundar, equilibrio del bot, duración 2-4 h, final, campaña intacta, migración)');
 }
+{ // CN13a: arca del foro, ofrenda, juegos, ración y granero (bucles cortos)
+  const CIM = require('../js/ciudad.js'); G.usarCiudad(CIM);
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  const s = G.newGame('Fiestas', 'mediterraneo'), c = s.cities.roma;
+  assert(c.fiesta && c.fiesta.ofrenda === -99 && c.rac === 'normal', 'newGame trae c.fiesta y c.rac');
+  // coste = múltiplo del ingreso bruto mensual (foro + impuestos), con mínimo fijo; baja con menos ingreso
+  c.pop = 4000; c.imp = 'alto'; const pa = G.prod(), ia = pa.det.foro + pa.det.impuestos, ca = G.fiestaCoste('juegos');
+  assert.strictEqual(ca, Math.max(D.FIESTAS.juegos.min, Math.round(D.FIESTAS.juegos.mult * ia)), 'coste = múltiplo del ingreso');
+  c.imp = 'bajo'; const pb = G.prod(), cb = G.fiestaCoste('juegos'); assert(pb.det.impuestos < pa.det.impuestos && cb < ca, 'con menos ingreso, la fiesta cuesta menos (' + cb + ' < ' + ca + ')');
+  c.pop = 0; c.imp = 'normal'; assert(G.fiestaCoste('ofrenda') >= D.FIESTAS.ofrenda.min && G.fiestaCoste('juegos') >= D.FIESTAS.juegos.min, 'mínimo fijo');
+  // sin templo y sin oro no se puede
+  assert(G.fiestaInfo('roma', 'ofrenda').motivo, 'ofrenda sin templo: no se puede'); assert(!G.hacerFiesta('roma', 'ofrenda'));
+  s.res.oro = 0; s.alm.oro = 0; s.cuarto.oro = 0; assert(/oro/i.test(G.fiestaInfo('roma', 'juegos').motivo) && !G.hacerFiesta('roma', 'juegos'), 'juegos sin oro');
+  assert.strictEqual(G.fiestaInfo('capua', 'juegos').motivo !== null || s.cities.capua.owner === 'roma', true);
+  // juegos: efecto en favor, inquietud, felicidad y reposo
+  s.res.oro = 900; c.inq = 8; const f0 = G.favor().pueblo, fel0 = G.felicidadBase(c), oro0 = s.res.oro, co = G.fiestaInfo('roma', 'juegos').coste;
+  assert(G.hacerFiesta('roma', 'juegos'), 'hace los juegos'); assert.strictEqual(oro0 - s.res.oro, co, 'cobra su coste en oro');
+  assert(G.favor().pueblo > f0 && c.inq === 8 - D.FIESTAS.juegos.inq && G.felicidadBase(c) === fel0 + D.FIESTAS.juegos.fel, 'favor, inquietud y felicidad');
+  let fi = G.fiestaInfo('roma', 'juegos'); assert(fi.activa && fi.quedan >= 1 && fi.reposo > 0 && fi.motivo, 'activa y en reposo'); assert(!G.hacerFiesta('roma', 'juegos'), 'no se repite en reposo');
+  s.t += D.FIESTAS.juegos.dura + 0.1; assert(!G.fiestaInfo('roma', 'juegos').activa && G.felicidadBase(c) === fel0, 'el efecto acaba'); s.t += D.FIESTAS.juegos.reposo; assert(!G.fiestaInfo('roma', 'juegos').motivo, 'tras el reposo se puede');
+  // ofrenda: con templo; duplica el don de Ceres un mes; se paga con grano / lo que sobra
+  c.b.templo = 2; c.dios = 'ceres'; s.res.grano = 800; const g0 = G.prod().grano, gr0 = s.res.grano;
+  fi = G.fiestaInfo('roma', 'ofrenda'); assert(!fi.motivo && fi.pago && fi.pago.grano > 0, 'ofrenda pagable con grano: ' + JSON.stringify(fi));
+  assert(G.hacerFiesta('roma', 'ofrenda') && s.res.grano < gr0, 'la ofrenda gasta'); assert(G.diosNivel(c) === 4 && G.prod().grano > g0 - D.FIESTAS.ofrenda.min, 'duplica el nivel del dios'); assert(G.prod().grano > g0 - 100);
+  assert.strictEqual(G.ciudadE('roma').fiesta, 'ofrenda', 'E.fiesta marca la ofrenda'); assert(!G.hacerFiesta('roma', 'ofrenda'), 'una al mes');
+  s.t += 1.1; assert.strictEqual(G.diosNivel(c), 2, 'tras un mes el don vuelve a su nivel');
+  // el arca y los campos de pantalla
+  s.res.madera = G.cap() * 2; const ar = G.arca('roma'); assert(ar.nivel >= 1 && ar.nivel <= 4 && ar.sobra.madera > 0 && ar.oro > 0 && ar.cap === G.cap() && ar.pct >= 0, 'arca ve lo que se perderá'); assert.strictEqual(G.ciudadE('roma').arca, ar.nivel);
+  const pagoArca = G.fiestaPago('ofrenda', 100); assert(pagoArca && pagoArca.madera > 0, 'la ofrenda se paga con lo que sobra');
+  const E = G.ciudadE('roma'); assert(E.mendigos >= 0 && E.mendigos <= 8 && E.arca >= 0 && E.arca <= 4);
+  // ración: baja el consumo de grano
+  s.res.madera = 0; c.pop = 400; const cm = G.prod().comida; assert(G.setRacion('roma', 'escasa') && !G.setRacion('roma', 'x')); const cm2 = G.prod().comida; assert(cm2 < cm, 'ración escasa gasta menos'); c.rac = 'normal';
+  // granero
+  const gi = G.graneroInfo('roma'); assert(gi.pct >= 0 && gi.pct <= 100 && typeof gi.invierno === 'boolean' && typeof gi.hambre === 'boolean' && (gi.meses === null || gi.meses >= 0), 'graneroInfo');
+  s.res.grano = 0; s.alm.grano = 0; assert.strictEqual(G.graneroInfo('roma').hambre, G.prod().grano < 0, 'hambre = sin grano y consumo mayor que producción');
+  // guardar y cargar con fiesta y ración
+  s.res.oro = 900; s.t += 6; G.hacerFiesta('roma', 'juegos'); c.rac = 'escasa'; G.save(); assert(G.load()); const c2 = G.state.cities.roma;
+  assert(c2.fiesta.juegos === c.fiesta.juegos && c2.rac === 'escasa' && G.fiestaActiva(c2, 'juegos'), 'c.fiesta y c.rac sobreviven a guardar y cargar');
+  delete c2.fiesta; delete c2.rac; store['aqvila-save-v1'] = JSON.stringify(G.state); assert(G.load() && G.state.cities.roma.fiesta.juegos === -99 && G.state.cities.roma.rac === 'normal', 'partida vieja sin c.fiesta/c.rac migra');
+  delete global.localStorage; G.usarCiudad(null); console.log('CN13a: arca, ofrenda, juegos, ración y granero OK');
+}

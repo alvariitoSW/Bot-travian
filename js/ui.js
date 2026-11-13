@@ -311,9 +311,9 @@ function cityChips() { cityOk(); return ''; }      // el selector de ciudad ya n
 /* Cuentas del mes (Q3) */
 const sg = (n, d) => (n >= 0 ? '+' : '−') + (Math.abs(n) >= 100 ? Math.round(Math.abs(n)) : Math.abs(n).toFixed(d === undefined ? 1 : d));
 function cuentasHtml() {
-  const s = S(), c = s.cities[cityOk()], cu = G.cuentas(), o = cu.oro, mercado = G.tradeRate() > 0, avisos = [], om = G.obraMayor(), ob = om ? om.id : null, puedeAd = !!om && G.canAfford(G.cuotasRestantes(om.q));
+  const s = S(), c = s.cities[cityOk()], cu = G.cuentas(), o = cu.oro, mercado = G.tradeRate() > 0, avisos = [], om = G.obraMayor(), ob = om ? om.id : null, puedeAd = !!om && G.canAfford(G.cuotasRestantes(om.q)); const of = G.fiestaInfo(cityOk(), 'ofrenda');
   const fila = r => { const m = cu.mat[r], tope = Math.max(1, m.entra, m.comprometido + Math.max(0, m.queda)), pc = Math.min(100, Math.round(m.comprometido / tope * 100)), pq = Math.max(0, Math.min(100 - pc, Math.round(Math.max(0, m.queda) / tope * 100)));
-    if (m.perdera >= 1) avisos.push('<div class="cu-aviso" data-r="' + r + '">⚠ <span>' + RES_NOM[r] + ': sobran ' + Math.floor(m.queda) + ', caben ' + Math.floor(m.caben) + ', <b>se pierden ' + Math.floor(m.perdera) + '</b></span></div><div class="cu-btns"><button class="btn" data-act="cuvender" data-v="' + r + '"' + (mercado ? '' : ' disabled') + '>Vender en el mercado</button><button class="btn" data-act="cuobra"' + (ob ? ' data-v="' + ob + '"' : '') + '>' + (ob ? 'Ir a la obra de ' + esc(D.CITIES[ob].n) : 'Adelantar obra') + '</button>' + (ob && puedeAd ? '<button class="btn" data-act="cuadelantar" data-v="' + ob + '" data-i="' + om.i + '">Adelantar cuotas</button>' : '') + (mercado ? '' : '<small>Sin mercado: construye uno para vender.</small>') + '</div>');
+    if (m.perdera >= 1) avisos.push('<div class="cu-aviso" data-r="' + r + '">⚠ <span>' + RES_NOM[r] + ': sobran ' + Math.floor(m.queda) + ', caben ' + Math.floor(m.caben) + ', <b>se pierden ' + Math.floor(m.perdera) + '</b></span></div><div class="cu-btns"><button class="btn" data-act="cuvender" data-v="' + r + '"' + (mercado ? '' : ' disabled') + '>Vender en el mercado</button><button class="btn" data-act="cuobra"' + (ob ? ' data-v="' + ob + '"' : '') + '>' + (ob ? 'Ir a la obra de ' + esc(D.CITIES[ob].n) : 'Adelantar obra') + '</button>' + (ob && puedeAd ? '<button class="btn" data-act="cuadelantar" data-v="' + ob + '" data-i="' + om.i + '">Adelantar cuotas</button>' : '') + (of.motivo ? '' : '<button class="btn" data-act="fiesta" data-v="ofrenda">' + D.FIESTAS.ofrenda.i + ' Ofrenda con lo que sobra · ' + D.RES_ICON.oro + fmt(of.coste) + '</button>') + (mercado ? '' : '<small>Sin mercado: construye uno para vender.</small>') + '</div>');
     return '<div class="cu-fila"><span class="cu-ic">' + D.RES_ICON[r] + '</span><div class="cu-cen"><div class="cu-l1"><b>' + RES_NOM[r] + '</b> <span>entra ' + Math.round(m.entra) + '</span><em>compr. ' + Math.round(m.comprometido) + '</em></div><div class="cu-bar"><i class="c" style="width:' + pc + '%"></i><i class="q" style="width:' + pq + '%"></i></div></div>' +
       '<div class="cu-der"><b class="' + (m.queda >= 0 ? 'ok' : 'mal') + '">' + sg(m.queda, 0) + '</b><span>al almacén ' + Math.floor(m.alAlmacen) + '</span></div></div>' + (m.perdera >= 1 ? avisos.pop() : ''); };
   const impu = Object.keys(D.IMPUESTOS).map(k => '<button class="chip ' + ((c.imp || 'normal') === k ? 'on' : '') + '" data-act="imp" data-v="' + k + '">' + D.IMPUESTOS[k].n + '</button>').join('');
@@ -350,9 +350,25 @@ const espResumen = () => {
   const t = G.especiales(), ks = Object.keys(D.ESPECIAL), tiene = ks.filter(k => t[k]), falta = ks.filter(k => !t[k]);
   return '<span class="stat">Tienes: ' + (tiene.map(k => D.ESPECIAL[k].i + ' ' + D.ESPECIAL[k].n).join(' · ') || 'ninguno') + '.</span>' + (falta.length ? '<span class="stat">Te faltan: ' + falta.map(k => D.ESPECIAL[k].i + ' ' + D.ESPECIAL[k].n + ' (' + dondeEsp(k) + ')').join(' · ') + '</span>' : '');
 };
+/* CN13a: arca del foro, fiestas, ración y granero. Todo lee G.arca / G.fiestaInfo / G.graneroInfo y no guarda nada */
+const fiestaBtn = (cid, id, corto) => {
+  const d = D.FIESTAS[id], fi = G.fiestaInfo(cid, id), on = !fi.motivo, estado = fi.activa ? 'En marcha: ' + fi.quedan + (fi.quedan === 1 ? ' mes' : ' meses') + '.' : '';
+  return '<button class="btn fiesta' + (on ? '' : ' no') + '" data-act="fiesta" data-v="' + id + '"' + (on ? '' : ' disabled') + '>' + d.i + ' ' + (corto || d.n) + ' · ' + D.RES_ICON.oro + fmt(fi.coste) + (d.pago === 'arca' ? ' en arca' : '') + '</button>' +
+    '<small class="fi-n">' + esc(estado + (estado && fi.motivo ? ' ' : '') + (fi.motivo || '')) + '</small>';
+};
+const arcaHtml = c => {
+  const cid = UI.city, a = G.arca(cid), pips = [1, 2, 3, 4].map(i => '<i class="' + (a.nivel >= i ? 'on' : '') + '"></i>').join(''), sob = Object.keys(a.sobra);
+  return '<div class="arca"><div class="ar-top"><b>Arca</b><span class="ar-med" title="Lo que el almacén va a perder este mes">' + pips + '</span><em>' + (sob.length ? 'sobra ' + sob.map(r => D.RES_ICON[r] + fmt(a.sobra[r])).join(' ') : 'no se pierde nada') + '</em></div>' +
+    '<div class="ar-fi">' + fiestaBtn(cid, 'juegos') + '</div><div class="ar-leva" data-hueco="leva"></div></div>';   // el hueco de la leva (CN16) cuelga de .ar-leva
+};
+const graneroHtml = c => {
+  const cid = UI.city, g = G.graneroInfo(cid), rc = c.rac || 'normal', rac = Object.keys(D.RACION).map(k => '<button class="chip ' + (rc === k ? 'on' : '') + '" data-act="racion" data-v="' + k + '" title="' + esc(D.RACION[k].d) + '">' + D.RACION[k].n + '</button>').join('');
+  const fr = g.hambre ? 'Sin grano: hay hambre.' : g.invierno ? 'Invierno sin granero: no llegan familias.' : g.meses === null ? 'El grano crece cada mes.' : 'El grano dura ' + String(g.meses).replace('.', ',') + (g.meses === 1 ? ' mes.' : ' meses.');
+  return '<div class="granero"><div class="gr-top"><b>Granero</b><span class="gr-bar"><i style="width:' + g.pct + '%"></i></span><em>' + g.pct + ' %</em></div><div class="gr-f' + (g.hambre || g.invierno ? ' mal' : '') + '">' + fr + '</div><div class="chips" style="flex-wrap:wrap">' + rac + '</div></div>';
+};
 function diosBloque(c, b) {
   const dg = b === 'templo' ? G.diosDe(c) : null;
-  return b !== 'templo' || c.owner !== 'roma' ? '' : dg ? '<div class="ds">' + dg.i + ' <b>Templo de ' + dg.n + '</b> · ' + esc(dg.d) + '</div>' :
+  return b !== 'templo' || c.owner !== 'roma' ? '' : dg ? '<div class="ds">' + dg.i + ' <b>Templo de ' + dg.n + '</b> · ' + esc(dg.d) + '</div><div class="ar-fi">' + fiestaBtn(UI.city, 'ofrenda') + '</div>' :
     '<div class="ds">Elige el dios:</div><div class="chips" style="flex-wrap:wrap">' + Object.keys(D.DIOSES).map(k => { const d = D.DIOSES[k], no = d.sea && !D.CITIES[UI.city].sea; return '<button class="chip ' + ((c.dios || 'marte') === k && !no ? 'on' : '') + '" ' + (no ? 'disabled' : 'data-act="dios" data-v="' + k + '"') + ' title="' + esc(d.d) + '">' + d.i + ' ' + d.n + '</button>'; }).join('') + '</div><div class="ds">' + esc(D.DIOSES[c.dios && !(D.DIOSES[c.dios].sea && !D.CITIES[UI.city].sea) ? c.dios : 'marte'].d) + '</div>';
 }
 /* Barrios (CN6): la ciudad (Aldea, Villa, Ciudad, Urbs) con lo que le falta, y una fila por barrio con su nivel y su «para subir falta…» */
@@ -660,7 +676,7 @@ function selDe(c) {
 }
 function cityMeta(c) {
   const cons = consejo(c), sd = selDe(c);
-  const fk = c.obras.map(o => (o.eid || o.pieza || '') + (o.pausa ? 'p' : '')).join() + '|' + (sd ? sd.k + (sd.e ? sd.e.id + (sd.e.mejora || 0) + (sd.e.ruina ? 'r' : '') : '') + (sd.k === 'foro' ? c.b.foro : '') : '');
+  const fk = c.obras.map(o => (o.eid || o.pieza || '') + (o.pausa ? 'p' : '')).join() + '|' + (sd ? sd.k + (sd.e ? sd.e.id + (sd.e.mejora || 0) + (sd.e.ruina ? 'r' : '') : '') + (sd.k === 'foro' ? c.b.foro : '') + (sd.k === 'foro' || (sd.e && (sd.e.tipo === 'granero' || sd.e.tipo === 'templo')) ? '|' + [c.rac, c.fiesta && c.fiesta.ofrenda, c.fiesta && c.fiesta.juegos, Math.floor(S().t), Math.round(S().res.oro / 10)].join() : '') : '');
   return { cons, rec: cons.rec ? cons.b : null, flags: cons.flags, oculta: {}, fk };
 }
 const metaKey = m => JSON.stringify([m.cons.pieza, m.cons.mej, m.cons.rec, m.cons.t.replace(/Faltan .*$/, ''), m.flags, m.fk]);
@@ -670,7 +686,7 @@ function fichaHtml(c, sd) {
   let ico, nom, sub, que, nv, cuerpo = '', e = null, P = null, ob = null;
   if (sd.k === 'foro') {
     ico = bIco('foro'); nom = 'Foro'; sub = cn + ' · nivel ' + (c.b.foro || 1); que = D.BUILD.foro.d; nv = 'NIVEL ' + (c.b.foro || 1);
-    cuerpo = '<div class="nota">Obras a la vez: <b>' + c.obras.length + ' de ' + G.huecos(c) + '</b>. El foro sube solo con las casas y los barrios: no se mejora ni se derriba.</div>';
+    cuerpo = '<div class="nota">Obras a la vez: <b>' + c.obras.length + ' de ' + G.huecos(c) + '</b>. El foro sube solo con las casas y los barrios: no se mejora ni se derriba.</div>' + (c.owner === 'roma' ? arcaHtml(c) : '');
   } else {
     e = sd.e || null; ob = sd.o || c.obras.find(q => q.eid === e.id) || null; P = Ciudad.EDIF[e ? e.tipo : sd.o.pieza];
     const bid = P.bid, dg = bid === 'templo' ? G.diosDe(c) : null, k = e ? (e.mejora || 0) : 0;
@@ -690,7 +706,7 @@ function fichaHtml(c, sd) {
       } else cuerpo += '<div class="nota">Una capilla de cruce no se derriba.</div>';
     }
   }
-  const bid = P && P.bid, extra = (bid === 'templo' ? diosBloque(c, 'templo') : '') + (bid === 'mercado' ? marketHtml() : '') + (bid === 'herreria' ? forjaHtml(c) : '') + (bid === 'escuela' ? escuelaHtml(c) : '');
+  const bid = P && P.bid, extra = (bid === 'templo' ? diosBloque(c, 'templo') : '') + (bid === 'mercado' ? marketHtml() : '') + (bid === 'herreria' ? forjaHtml(c) : '') + (bid === 'escuela' ? escuelaHtml(c) : '') + (e && e.tipo === 'granero' && c.owner === 'roma' ? graneroHtml(c) : '');
   return '<div class="ficha"><div class="greca"></div><div class="cab"><span class="ic">' + ico + '</span><div class="cn"><h2>' + esc(nom) + '</h2><p>' + esc(sub) + '</p></div><button class="x" data-act="cclose" aria-label="Cerrar la ficha">' + ICO_X + '</button></div>' +
     '<div class="cuerpo">' + (que ? '<div class="efecto"><span class="nv">' + nv + '</span><span>' + esc(que) + '</span></div>' : '') + cuerpo + (extra ? '<div class="fxd">' + extra + '</div>' : '') + '</div></div>';
 }
@@ -1336,6 +1352,8 @@ document.addEventListener('click', function (e) {
     case 'impc': UI.city = v; UI.bsel = null; UI.cityList = false; setTab('city'); break;
     case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; if (UI.tab === 'map' && UI.map) UI.map.center(v); render(); tickUI(); break;
     case 'rep': if (G.reparto(UI.city, el.dataset.r, +el.dataset.d)) render(); break;
+    case 'fiesta': if (G.hacerFiesta(UI.city, v)) { render(); renderCuentas(true); } break;
+    case 'racion': if (G.setRacion(UI.city, v)) render(); break;
     case 'imp': if (G.setImp(UI.city, el.dataset.v)) render(); break;
     case 'ciud': if (G.darCiudadania(UI.city)) render(); break;
     case 'ruta': { const q = v.split('>'); if (G.rutaAbrir(q[0], q[1])) { toast('⚖️ Ruta abierta con ' + D.CITIES[q[1]].n + '.'); render(); } else toast(G.rutaPuede(q[0], q[1]) || 'No se puede abrir la ruta.', 'bad'); break; }

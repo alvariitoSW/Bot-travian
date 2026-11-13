@@ -758,3 +758,19 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 .resumen .rs-f:first-of-type { border-top: 0; }
 .resumen .rs-f span { color: var(--mute); }
 .resumen .rs-f b { text-align: right; }
+
+/* CN13a: arca del foro, fiestas y granero (dentro de .ficha; contenedores de etiquetas con overflow: clip) */
+.ficha .arca, .ficha .granero { margin-top: 8px; padding: 8px; border-radius: 10px; background: rgba(255, 255, 255, .05); overflow: clip; }
+.ficha .ar-top, .ficha .gr-top { display: flex; align-items: center; gap: 8px; font-size: 12px; min-width: 0; overflow: clip; }
+.ficha .ar-top em, .ficha .gr-top em { font-style: normal; color: var(--mute); font-size: 11px; white-space: nowrap; overflow: clip; text-overflow: ellipsis; min-width: 0; }
+.ficha .ar-med { display: inline-flex; gap: 3px; flex: none; }
+.ficha .ar-med i { width: 10px; height: 10px; border-radius: 3px; background: rgba(255, 255, 255, .15); }
+.ficha .ar-med i.on { background: #d6a63b; }
+.ficha .ar-fi { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
+.ficha .btn.fiesta { width: 100%; font-size: 12px; padding: 9px 6px; }
+.ficha .btn.fiesta.no { opacity: .5; }
+.ficha .fi-n { color: var(--mute); font-size: 11px; }
+.ficha .ar-leva:empty { display: none; }
+.ficha .gr-bar { flex: 1; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .12); overflow: clip; }
+.ficha .gr-bar i { display: block; height: 100%; background: #b9a24a; }
+.ficha .gr-f { margin: 4px 0 6px; font-size: 12px; } .ficha .gr-f.mal { color: #e07a6a; }

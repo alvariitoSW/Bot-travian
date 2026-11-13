@@ -56,6 +56,19 @@
   // mejoras de la herrería: globales, nivel 0 a FORJA_MAX, +5 % por nivel. Coste y tiempo base (nivel 0), crecen x1.5 y x1.4 por nivel
   /* Impuestos: oro x mult, felicidad +/- f. Edificios que suben la felicidad: puntos por nivel (D.FELICIDAD_EDIF). */
   D.IMPUESTOS = { bajo: { n: 'Impuestos bajos', mult: 0.7, f: 15 }, normal: { n: 'Impuestos normales', mult: 1, f: 0 }, alto: { n: 'Impuestos altos', mult: 1.4, f: -25 } };
+  /* CN13a: fiestas del Foro y del Templo. Licencia de juego en todas las cifras y en el reparto «una ofrenda al mes»; lo real: los ludi eran fiestas públicas pagadas
+     por magistrados y las ofrendas a los dioses (supplicationes, ver sacrum) las ordenaba el Senado (Livio 22.9-10; fichas 'ofrenda' y 'juegos' de registro.js).
+     coste = max(min, mult x ingreso bruto mensual del foro y los impuestos): sigue a la economía. dura = meses de efecto; reposo = meses hasta repetir; fel = felicidad mientras dura;
+     pueblo = favor del pueblo al celebrarla; inq = meses de inquietud que calma en una ciudad conquistada; dios = multiplica el don del dios del templo mientras dura.
+     La ofrenda se paga con lo que el arca iba a perder por el tope (o con grano); los juegos, con oro. */
+  D.FIESTAS = {
+    ofrenda: { n: 'Ofrenda al templo', i: '🏺', mult: 2, min: 60, dura: 1, reposo: 1, fel: 4, pueblo: 2, inq: 0, dios: 2, pago: 'arca', templo: true, d: 'Duplica un mes el don del dios del templo.' },
+    juegos: { n: 'Juegos públicos', i: '🎭', mult: 4, min: 150, dura: 3, reposo: 6, fel: 10, pueblo: 5, inq: 4, dios: 1, pago: 'oro', templo: false, d: 'Calman al pueblo y a una ciudad conquistada.' }
+  };
+  /* Racionar el grano (CN13a): gasta menos y el pueblo lo nota. Es la ración de la ciudad (c.rac); no es el «hambre» del invierno (E.hambre) ni la de G.tick (grano agotado). */
+  D.RACION = { normal: { n: 'Ración normal', grano: 1, f: 0, d: 'Come todo el mundo.' }, escasa: { n: 'Ración escasa', grano: 0.7, f: -8, d: 'Un 30 % menos de grano; el pueblo se queja.' } };
+  /* El arca del foro cuenta lo que el tope del almacén va a hacer perder. valor = oro que vale cada unidad (mercado); umbrales = fracción del tope (en oro) para los niveles 1 a 4. */
+  D.ARCA = { valor: { madera: 0.5, piedra: 0.6, hierro: 0.8, grano: 0.5, oro: 1 }, umbrales: [0.02, 0.1, 0.25, 0.5], pide: 3 };
   D.FELICIDAD_BASE = 55;   // + 5 del municipio (tipo por defecto) = 60, como antes de I4
   D.FELICIDAD_MIN_CRECER = 40;
   D.FELICIDAD_EDIF = { templo: 4, mercado: 2 };   // CN10: sin termas ni anfiteatro (no existían antes del 146 a.C.), su felicidad pasa al templo y al mercado

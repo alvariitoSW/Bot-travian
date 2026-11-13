@@ -18,7 +18,7 @@
   /* ---------- solares y tipos de ciudad (I4) ---------- */
   /* ---------- templos a un dios (F5) y ciudades conquistadas ---------- */
   G.diosDe = c => ((c.b.templo || 0) > 0 || G.obraDe(c, 'templo')) && D.DIOSES[c.dios] ? D.DIOSES[c.dios] : null;
-  G.diosNivel = c => G.diosDe(c) ? (c.b.templo || 0) : 0;
+  G.diosNivel = c => G.diosDe(c) ? (c.b.templo || 0) * G.diosMulFiesta(c) : 0;   // CN13a: una ofrenda en vigor multiplica el don del dios
   G.elegirDios = function (cid, k) { const c = G.state.cities[cid]; if (!c || c.owner !== 'roma' || !D.DIOSES[k] || (c.b.templo || 0) > 0 || G.obraDe(c, 'templo') || (D.DIOSES[k].sea && !D.CITIES[cid].sea)) return false; c.dios = k; return true; };
   G.inqMul = c => (c.inq > 0 ? 1 - D.INQ_PROD * G.invMul('inqProd') * Math.min(1, c.inq / (D.INQ_MESES * G.invMul('inqMeses'))) : 1);
   G.tipoDe = c => D.TIPOS[c && c.tipo] || D.TIPOS.municipio;
@@ -173,7 +173,7 @@
       p.madera += (4 + G.rateCampo(c, 'aserradero')) * rp.madera / 5 * mo * rm; p.piedra += (4 + G.rateCampo(c, 'cantera')) * rp.piedra / 5 * mo * rm; p.hierro += (4 + G.rateCampo(c, 'mina')) * rp.hierro / 5 * mo * rm; p.grano += (6 + G.rateCampo(c, 'granja')) * rp.grano / 5 * mo * rm * (cGra ? G.bonoMul('grano', rm) : 1) * cer;
       const oF = (G.rate(c.b.foro) * 0.5 + 5 * (c.b.puerto || 0)) * (tp.oroCom || 1) * (cOro ? G.bonoMul('oroCom', tp.oroCom || 1) : ocm), oI = G.cabezasImp(c, gOk) * 0.03 * G.impMult(c) * imm * D.BARRIO[c.barrio || 1].imp, oP = ((tp.oroPuerto || 0) + (dg && dg.oroPuerto ? dg.oroPuerto * G.diosNivel(c) : 0)) * (c.b.puerto || 0);
       const oE = (c.esc || 0) * G.K().escRenta; p.oro += oF + oI + oP + oE; det.foro += oF + oP; det.impuestos += oI + oE;   // Villa esclavista: renta por esclavo (0 sin ese saber)   // foro + impuestos de la población + comercio del puerto
-      p.grano -= (c.pop || 0) * 0.02; comPop += (c.pop || 0) * 0.02;
+      { const gc = (c.pop || 0) * 0.02 * G.racionDe(c).grano; p.grano -= gc; comPop += gc; }   // la ración (c.rac) baja el consumo de grano
       for (const k in c.units) up += c.units[k] * D.UNITS[k].up;
     }
     for (const m of s.marches) if (m.owner === 'roma') for (const k in m.units) up += m.units[k] * D.UNITS[k].up;
@@ -258,7 +258,7 @@
   G.felicidadBase = function (c) {
     let f = D.FELICIDAD_BASE + (D.IMPUESTOS[c.imp] || D.IMPUESTOS.normal).f;
     for (const b in D.FELICIDAD_EDIF) f += D.FELICIDAD_EDIF[b] * ((c.b && c.b[b]) || 0);
-    f += (G.tipoDe(c).fel || 0) + G.bonoSum('fel');
+    f += (G.tipoDe(c).fel || 0) + G.bonoSum('fel') + G.racionDe(c).f + G.fiestaFel(c);
     return Math.max(0, Math.min(100, Math.round(f)));
   };
   // felicidad con la inquietud de los esclavos (Q6): con ánimo de esclavos muy bajo, -8
@@ -268,6 +268,82 @@
     return f;
   };
   G.setImp = function (cid, nivel) { const c = G.state.cities[cid]; if (!c || c.owner !== 'roma' || !D.IMPUESTOS[nivel]) return false; c.imp = nivel; return true; };
+
+  /* ---------- CN13a: arca del foro, ofrenda y juegos, ración y granero ----------
+     Las fiestas se guardan por ciudad en c.fiesta = {ofrenda, juegos}: el mes (s.t) en que se celebró la última (-99 = nunca). Sin multas ni gasto automático. */
+  const tiempo = () => (G.state ? G.state.t : 0);
+  G.fiestaDe = c => { if (!c.fiesta || typeof c.fiesta !== 'object') c.fiesta = { ofrenda: -99, juegos: -99 }; for (const k in D.FIESTAS) if (typeof c.fiesta[k] !== 'number') c.fiesta[k] = -99; return c.fiesta; };
+  const fiestaVista = c => c.fiesta && typeof c.fiesta === 'object' ? c.fiesta : null;   // solo lectura: no crea nada (felicidadBase corre muchas veces)
+  G.fiestaActiva = (c, id) => { const f = fiestaVista(c), d = D.FIESTAS[id]; return !!(f && d && typeof f[id] === 'number' && tiempo() < f[id] + d.dura - 1e-9); };
+  G.fiestaFel = c => { let f = 0; for (const id in D.FIESTAS) if (G.fiestaActiva(c, id)) f += D.FIESTAS[id].fel; return f; };
+  G.diosMulFiesta = c => { let m = 1; for (const id in D.FIESTAS) if (G.fiestaActiva(c, id)) m = Math.max(m, D.FIESTAS[id].dios); return m; };
+  G.racionDe = c => D.RACION[c.rac] || D.RACION.normal;
+  G.setRacion = function (cid, k) { const c = G.state.cities[cid]; if (!c || c.owner !== 'roma' || !D.RACION[k]) return false; c.rac = k; return true; };   // molde: G.setImp
+  const NOMR = { madera: 'madera', piedra: 'piedra', hierro: 'hierro', grano: 'grano' };
+  // Lo que el tope del almacén va a perder este mes, en recursos y en oro. nivel 0-4 por fracción del tope. pide = frase para el consejo (null si no pide nada)
+  G.arca = function (cid) {
+    const s = G.state, c = s.cities[cid], cap = Math.max(1, G.cap()), pr = G.previsionCierre(), sobra = {}; let oro = 0;
+    for (const r of ['madera', 'piedra', 'hierro', 'grano']) { const n = pr[r].perdera; if (n >= 1) { sobra[r] = n; oro += n * D.ARCA.valor[r]; } }
+    oro = Math.round(oro); const pct = oro / cap; let nivel = 0; D.ARCA.umbrales.forEach((u, i) => { if (pct >= u) nivel = i + 1; });
+    let pide = null;
+    if (c && c.owner === 'roma' && nivel >= D.ARCA.pide) { const fi = G.fiestaInfo(cid, 'ofrenda'); if (!fi.motivo) pide = 'El arca de ' + D.CITIES[cid].n + ' rebosa: haz una ofrenda en el templo antes de que se pierda.'; }
+    const out = { nivel: nivel, oro: oro, cap: cap, pct: Math.round(pct * 100), sobra: sobra, pide: pide };
+    if (c && c.owner === 'roma') { const r = regE.get(c); if (r) pantalla(c, r, nivel); }
+    return out;
+  };
+  // cuánto pagaría la ciudad por la fiesta: ingreso bruto mensual (foro + impuestos) por el múltiplo, con mínimo fijo
+  G.fiestaCoste = function (id) { const d = D.FIESTAS[id], p = G.prod(), ing = (p.det.foro || 0) + (p.det.impuestos || 0); return Math.max(d.min, Math.round(d.mult * ing)); };
+  // plan de pago: la ofrenda usa primero lo que iba a perderse (el arca) y luego grano; los juegos, oro. null si no alcanza
+  G.fiestaPago = function (id, coste) {
+    const s = G.state, d = D.FIESTAS[id];
+    if (d.pago === 'oro') return G.disponible('oro') >= coste ? { oro: coste } : null;
+    const pr = G.previsionCierre(), pago = {}; let falta = coste;
+    for (const r of ['madera', 'piedra', 'hierro', 'grano']) {
+      if (falta <= 0) break; const v = D.ARCA.valor[r], n = Math.min(Math.floor(pr[r].perdera), Math.floor(Math.max(0, s.res[r])), Math.ceil(falta / v)); if (n < 1) continue;
+      pago[r] = n; falta -= n * v; }
+    if (falta > 0) { const v = D.ARCA.valor.grano, mas = Math.ceil(falta / v), hay = Math.floor(G.disponible('grano') - (pago.grano || 0)); if (hay < mas) return null; pago.grano = (pago.grano || 0) + mas; }
+    return pago;
+  };
+  // estado de una fiesta en una ciudad: coste, motivo (null = se puede), activa, meses que quedan de efecto y de reposo
+  G.fiestaInfo = function (cid, id) {
+    const s = G.state, c = s.cities[cid], d = D.FIESTAS[id], o = { coste: 0, motivo: null, activa: false, quedan: 0, reposo: 0, pago: null };
+    if (!d) { o.motivo = 'Fiesta desconocida.'; return o; }
+    o.coste = G.fiestaCoste(id);
+    if (!c || c.owner !== 'roma') { o.motivo = 'Solo en tus ciudades.'; return o; }
+    const f = fiestaVista(c), h = f && typeof f[id] === 'number' ? f[id] : -99;
+    o.activa = G.fiestaActiva(c, id); o.quedan = o.activa ? Math.max(1, Math.ceil(h + d.dura - s.t - 1e-9)) : 0; o.reposo = Math.max(0, Math.ceil(h + d.reposo - s.t - 1e-9));
+    if (d.templo && !G.diosDe(c)) o.motivo = 'Hace falta un templo con su dios.';
+    else if (o.reposo > 0) o.motivo = 'En reposo: ' + o.reposo + (o.reposo === 1 ? ' mes.' : ' meses.');
+    else { o.pago = G.fiestaPago(id, o.coste); if (!o.pago) o.motivo = d.pago === 'oro' ? 'Falta oro.' : 'Falta lo que sobra en el arca o grano.'; }
+    return o;
+  };
+  // celebra la fiesta (genérica: Q8 y CN20 la reutilizan). Devuelve true si se hizo.
+  G.hacerFiesta = function (cid, id) {
+    const s = G.state, c = s.cities[cid], d = D.FIESTAS[id], fi = G.fiestaInfo(cid, id); if (!c || !d || fi.motivo || !fi.pago) return false;
+    for (const r in fi.pago) gasta(r, fi.pago[r]);
+    G.fiestaDe(c)[id] = s.t;
+    if (d.pueblo) G.favorAplica(0, d.pueblo);
+    if (d.inq && c.inq > 0) c.inq = Math.max(0, c.inq - d.inq);
+    G.log(d.i + ' ' + d.n + ' en ' + D.CITIES[cid].n + '.', 'good', true);
+    const r = regE.get(c); if (r) pantalla(c, r);
+    return true;
+  };
+  // el granero de la ciudad: pct = grano guardado sobre el tope, meses = cuánto dura (null si no baja), invierno = hambre de invierno en la ciudad (E.hambre), hambre = grano agotado
+  G.graneroInfo = function (cid) {
+    const s = G.state, c = s.cities[cid], p = G.prod(), tot = Math.max(0, s.res.grano) + Math.max(0, s.alm.grano), E = c ? G.ciudadE(cid) : null;
+    return { pct: Math.min(100, Math.round(100 * tot / Math.max(1, G.cap()))), meses: p.grano < 0 ? Math.round(tot / -p.grano * 10) / 10 : null, invierno: !!(E && E.hambre), hambre: tot <= 0 && p.grano < 0, neto: p.grano };
+  };
+  // campos de pantalla de la ciudad (no se guardan): E.arca 0-4, E.fiesta id|null, E.mendigos 0-8. CN15 los pinta.
+  let enPantalla = false;   // G.prod puede pedir otra ciudad y volver a sincronizar: no se entra dos veces
+  function pantalla(c, r, nivel) {
+    if (enPantalla) return; enPantalla = true; try { pantalla0(c, r, nivel); } catch (e) { /* el dibujo no debe romper la lógica */ } finally { enPantalla = false; }
+  }
+  function pantalla0(c, r, nivel) {
+    const E = r.E, s = G.state; if (!E || !s || !s.res || !s.alm) return; const id = idDe(c); if (!id || s.cities[id] !== c || c.owner !== 'roma') return;
+    if (nivel === undefined) { let oro = 0; const pr = G.previsionCierre(); for (const q of ['madera', 'piedra', 'hierro', 'grano']) oro += pr[q].perdera * D.ARCA.valor[q]; const f = oro / Math.max(1, G.cap()); nivel = 0; D.ARCA.umbrales.forEach((u, i) => { if (f >= u) nivel = i + 1; }); }
+    E.arca = nivel; E.fiesta = G.fiestaActiva(c, 'juegos') ? 'juegos' : G.fiestaActiva(c, 'ofrenda') ? 'ofrenda' : null;
+    const g = G.graneroInfo(id); let m = 0; if (g.hambre) m = 8; else if (g.meses !== null && g.meses < 2) m = 5; else if (g.meses !== null && g.meses < 4) m = 2; if (E.hambre) m = Math.max(m, 3); E.mendigos = Math.min(8, m);
+  }
 
   /* ---------- población ---------- */
   G.popCapViejo = c => { let n = 120; for (const b in D.POP_EDIF) n += D.POP_EDIF[b] * (c.b[b] || 0); return Math.round(n * D.BARRIO[c.barrio || 1].pop); };
@@ -476,6 +552,7 @@
     c.b.viviendas = 0;
     let casas = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && !l.fuera) casas++;
     c.b.foro = Math.min(D.MAX_LVL, Math.max(c.foroMin || 1, 1 + Math.floor(casas / D.FORO_CASAS) + Math.max(0, E.barrios.length - 1)));   // foro derivado: 1 + una por cada 25 casas (D.FORO_CASAS) + una por barrio extra
+    pantalla(c, r);
     r.rev = -1;
   }
 
@@ -657,7 +734,7 @@
   };
 
   /* deja una ciudad como romana recién incorporada: sin colas, impuesto normal, mitad de población */
-  function incorporar(c, units, conquista) { c.prev = c.owner; c.inq = conquista ? D.INQ_MESES * G.invMul('inqMeses') : 0; c.owner = 'roma'; c.tipo = 'municipio'; c.tipoElegido = false; c.imp = 'normal'; c.reparto = G.repartoBase(); c.units = units; G.ligarObras(c); c.obras.length = 0; c.train = []; c.levas = []; c.barrio = 1; c.bdef = 0; soltarCiudad(c); { const idc = idDe(c); if (!(idc && G.state.colonias && G.state.colonias[idc])) c.plantilla = true; }   /* nace con la plantilla de su facción de origen (las colonias, no) */ c.pop = Math.round(G.popCapViejo(c) * 0.5); c.ciu = 0; c.esc = conquista ? Math.round(c.pop * G.K().escConquista) : 0; if (CI && !cargando) abrir(c); }   // la ciudad nueva nace con la población que ya tenía
+  function incorporar(c, units, conquista) { c.prev = c.owner; c.inq = conquista ? D.INQ_MESES * G.invMul('inqMeses') : 0; c.owner = 'roma'; c.tipo = 'municipio'; c.tipoElegido = false; c.imp = 'normal'; c.rac = 'normal'; c.fiesta = { ofrenda: -99, juegos: -99 }; c.reparto = G.repartoBase(); c.units = units; G.ligarObras(c); c.obras.length = 0; c.train = []; c.levas = []; c.barrio = 1; c.bdef = 0; soltarCiudad(c); { const idc = idDe(c); if (!(idc && G.state.colonias && G.state.colonias[idc])) c.plantilla = true; }   /* nace con la plantilla de su facción de origen (las colonias, no) */ c.pop = Math.round(G.popCapViejo(c) * 0.5); c.ciu = 0; c.esc = conquista ? Math.round(c.pop * G.K().escConquista) : 0; if (CI && !cargando) abrir(c); }   // la ciudad nueva nace con la población que ya tenía
   G.incorporar = incorporar;   // para las pruebas
 
   // edificios iniciales de una ciudad según su riqueza w y su muralla wl
@@ -687,7 +764,7 @@
     const ciudades = D.regionCiudades(region).filter(id => inicioId !== 'fundar' || D.CITIES[id].f !== 'roma');   // «fundar de la nada»: ni Roma ni Capua existen en la partida
     for (const id of ciudades) {
       const d = D.CITIES[id];
-      s.cities[id] = { owner: d.f, barrio: 1, bdef: 0, tipo: 'municipio', tipoElegido: false, units: Object.assign({}, d.g), obras: [], train: [], levas: [], reparto: G.repartoBase(), b: G.edificiosBase(id, d.w, d.wl) };
+      s.cities[id] = { owner: d.f, barrio: 1, bdef: 0, tipo: 'municipio', tipoElegido: false, units: Object.assign({}, d.g), obras: [], train: [], levas: [], reparto: G.repartoBase(), fiesta: { ofrenda: -99, juegos: -99 }, rac: 'normal', b: G.edificiosBase(id, d.w, d.wl) };
     }
     for (const id in s.cities) { const c = s.cities[id]; c.pop = Math.round(G.popCapViejo(c) * 0.7); c.ciu = 0; c.esc = 0; G.ligarObras(c); }
     for (const id of ciudades) if (D.CITIES[id].f === 'roma' && id !== 'roma') incorporar(s.cities[id], D.CITIES[id].g);   // aliada de Roma (Capua): empieza como ciudad recién incorporada
@@ -918,7 +995,7 @@
     if (!CI.fundar(E, x, z)) return { ok: false, motivo: 'No se puede fundar aquí' };
     G.registrarColonia(sitio);
     const b = {}; for (const q in D.BUILD) b[q] = 0;
-    const c = s.cities[sitio] = { owner: 'roma', barrio: 1, bdef: 0, tipo: 'municipio', tipoElegido: false, units: {}, obras: [], train: [], levas: [], reparto: G.repartoBase(), b: b, pop: 0, ciu: 0, esc: 0, heredado: {}, foroMin: 1 };
+    const c = s.cities[sitio] = { owner: 'roma', barrio: 1, bdef: 0, tipo: 'municipio', tipoElegido: false, units: {}, obras: [], train: [], levas: [], reparto: G.repartoBase(), fiesta: { ofrenda: -99, juegos: -99 }, rac: 'normal', b: b, pop: 0, ciu: 0, esc: 0, heredado: {}, foroMin: 1 };
     G.ligarObras(c); c.ciudad = datosDe(E);
     incorporar(c, {}, false); c.heredado = {}; c.foroMin = 1;
     const r = regE.get(c); if (r) { c.pop = Math.max(c.pop, CI.poblacion(r.E)); ponerDatos(c, r); }
@@ -1234,6 +1311,7 @@
     if (rs.length) { const r = rs[0]; out.unshift({ k: 'bad', x: r.a || r.t }); rec = rec || r.remedio || null; }
     const llenos = D.RES.filter(r => s.alm[r] >= cap - 1);
     if (llenos.length) out.push({ k: '', x: T.llenoAlm(llenos.join(', ')) });
+    for (const id of mis) { const pd = G.arca(id).pide; if (pd) { out.push({ k: '', x: pd }); break; } }   // CN13a: el arca pide una ofrenda
     const mi = G.misionActual(), sen = G.favorBajo() ? { k: 'bad', x: T.favor() } : mi ? { k: '', x: T.mision(mi.m.n, mi.quedan, mi.falta) } : null;   // sustituye al tercer aviso
     const l = [head].concat(out.slice(0, sen ? 2 : 3)); if (sen) l.push(sen);
     l.push({ k: rec ? '' : 'good', x: rec || T.tranquila() });
@@ -1404,7 +1482,7 @@
   G.save = function () { try { if (typeof localStorage !== 'undefined' && G.state) { for (const id of G.myCities()) { const c = G.state.cities[id], r = CI && regE.get(c); if (r) ponerDatos(c, r); } localStorage.setItem(SAVE_KEY, JSON.stringify(G.state)); } } catch (e) { /* almacenamiento no disponible */ } };
   G.hasSave = function () { try { return typeof localStorage !== 'undefined' && !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } };
   G.load = function () { let ok = false; cargando = true; try { ok = cargar(); } finally { cargando = false; } if (ok && CI) alCargar(); return ok; };
-  function cargar() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; for (const id in s.cities) G.ligarObras(s.cities[id]); if (s.turnos === undefined) s.turnos = true; G.turnos = !!s.turnos; if (G.turnos) { if (s.speed === undefined) s.speed = 0; for (const m of s.marches) { const a = Math.ceil(m.t1 / D.TURNO_MESES - 1e-9) * D.TURNO_MESES; if (a > m.t1) m.t1 = a; } } if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length || s.evV !== EV_VERSION) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } s.evV = EV_VERSION; D.anio = G.yearOf(s.t); for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0; if (c.bdef === undefined) c.bdef = 0;  if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } G.state = s; for (const id in s.cities) if (s.cities[id].barrio === undefined) { const c = s.cities[id]; c.barrio = 1; c.barrio = G.barrioInfo(c).objetivo; } for (const id in s.cities) { const c = s.cities[id]; if (!c.levas) c.levas = []; if (c.esc === undefined) c.esc = 0; if (c.ciu === undefined) c.ciu = (c.barrio || 1) >= 2 ? Math.round((c.pop || 0) * 0.1) : 0; } G.migrarRegion(s); G.migrarCaja(s); G.migrarRetirados(s); G.migrarSenado(s); G.migrarInv(s); G.migrarDeuda(s); G.migrarColonias(s); G.migrarAjustes(s); G.migrarModo(s); return true; } } catch (e) { /* partida corrupta */ } return false; }
+  function cargar() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; for (const id in s.cities) G.ligarObras(s.cities[id]); if (s.turnos === undefined) s.turnos = true; G.turnos = !!s.turnos; if (G.turnos) { if (s.speed === undefined) s.speed = 0; for (const m of s.marches) { const a = Math.ceil(m.t1 / D.TURNO_MESES - 1e-9) * D.TURNO_MESES; if (a > m.t1) m.t1 = a; } } if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length || s.evV !== EV_VERSION) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } s.evV = EV_VERSION; D.anio = G.yearOf(s.t); for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0; if (c.bdef === undefined) c.bdef = 0;  if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!D.RACION[c.rac]) c.rac = 'normal'; G.fiestaDe(c); if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } G.state = s; for (const id in s.cities) if (s.cities[id].barrio === undefined) { const c = s.cities[id]; c.barrio = 1; c.barrio = G.barrioInfo(c).objetivo; } for (const id in s.cities) { const c = s.cities[id]; if (!c.levas) c.levas = []; if (c.esc === undefined) c.esc = 0; if (c.ciu === undefined) c.ciu = (c.barrio || 1) >= 2 ? Math.round((c.pop || 0) * 0.1) : 0; } G.migrarRegion(s); G.migrarCaja(s); G.migrarRetirados(s); G.migrarSenado(s); G.migrarInv(s); G.migrarDeuda(s); G.migrarColonias(s); G.migrarAjustes(s); G.migrarModo(s); return true; } } catch (e) { /* partida corrupta */ } return false; }
   // tras cargar: cada ciudad propia recupera (o estrena) su ciudad nueva; la obra en curso de una partida vieja se liga a su pieza
   function alCargar() {
     for (const id of G.myCities()) { const c = G.state.cities[id], antes = Object.assign({}, c.b), tenia = !!c.ciudad; regE.delete(c);

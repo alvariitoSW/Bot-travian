@@ -152,6 +152,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+**CN13a hecha (13/11).** `G.arca`, `G.fiestaInfo`, `G.hacerFiesta` (genérico, Q8/CN20 lo reutilizan), `G.setRacion`, `G.graneroInfo`; campos `E.arca`, `E.fiesta`, `E.mendigos` para que CN15 los pinte. Ofrenda al mes con lo que sobra o grano; juegos con oro. Sigue CN13b y luego CN13c. Parte: `partes/2026-11-13-CN13a.md`.
 **Senado nuevo (13/11).** Sesiones lanzadas desde el chat de diseño: primero **SN1** (motor), después **SN2** (pantalla). Ver carril SN del tablero.
 **CN10 hecha (13/11).** Fuera acueducto, termas y anfiteatro (`D.RETIRADOS` solo para la migración `G.migrarRetirados`); templo y mercado cogen su felicidad y población. 8 pasajes cotejados, 2 por cotejar (Varrón 5.143, Catón 5.7). Sigue CN9 (la última). Parte: `gobierno/partes/2026-11-13-CN10.md`.
 **CN8 hecha (13/11).** `G.riesgos(cid)` y `G.riesgosImperio()` dicen qué va a pasar y el remedio (campo `pieza` = ficha resaltada); un solo aviso por mes y tipo. Sigue la ola 11 (CN10).
