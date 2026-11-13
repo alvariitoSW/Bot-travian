@@ -1102,22 +1102,10 @@
       "url": "https://claude.ai/code/session_01QiKC37tiobNBApd9bhi8N3"
     },
     {
-      "tarea": "CN14-C",
-      "titulo": "Ciudad nueva · CN14-C Asesor y ajustes en pantalla",
-      "nota": "asesor.js, ui.js (menú y Ajustes), D.DIFICULTAD",
-      "url": "https://claude.ai/code/session_01QiKC3AC2QxxKD8Bqj5m1qc"
-    },
-    {
-      "tarea": "N15d",
-      "titulo": "Guerra · N15d Cerrar la trampa de Aguantar",
-      "nota": "battle.js, battle3d.js (equilibrio)",
-      "url": "https://claude.ai/code/session_01QiKC36aHmMV6zrgD1a33hN"
-    },
-    {
-      "tarea": "CN25a",
-      "titulo": "Ciudad · CN25a Medir el ritmo del mes",
-      "nota": "solo medir y proponer (no cambia el juego)",
-      "url": "https://claude.ai/code/session_01QiKC368zVfpuegPTHnUFE4"
+      "tarea": "CN15c",
+      "titulo": "Ciudad nueva · CN15c Ciudad que suena",
+      "nota": "sonido sintetizado de la ciudad e interruptor (sonido-ciudad.js, ui.js, city3d.js)",
+      "url": "https://claude.ai/code/session_01QiKC37aaQ81cfqkdRvJMyV"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
