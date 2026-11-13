@@ -1102,10 +1102,16 @@
       "url": "https://claude.ai/code/session_01QiKC39jsYoLubrW6tww37R"
     },
     {
-      "tarea": "R3",
-      "titulo": "Reloj con motivo · R3",
-      "nota": "pausas con motivo y ajuste (game.js, ui.js)",
-      "url": "https://claude.ai/code/session_01QiKC38AcY9z1nhUUWnFBnL"
+      "tarea": "R4",
+      "titulo": "Avisos de una frase · R4",
+      "nota": "textos del asesor y avisos (js/asesor.js, ui.js)",
+      "url": "https://claude.ai/code/session_01QiKC39GggaCEefge9YFwJE"
+    },
+    {
+      "tarea": "K11",
+      "titulo": "Concurso de menús · K11",
+      "nota": "solo maquetas a 390 px (gobierno/maquetas/menus/)",
+      "url": "https://claude.ai/code/session_01QiKC39HeUJp7SLokXmNd1D"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
