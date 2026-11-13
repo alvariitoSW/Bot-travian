@@ -1,6 +1,6 @@
 /* AQVILA — mapa de campaña en 3D: relieve del Mediterráneo, ciudades, rutas y ejércitos en marcha */
 import { THREE, uTime, unitGeometry, unitMaterial } from './models.js';
-import { staticMesh, getStatic } from './statics.js';
+import { staticMesh, getStatic, CULTURA } from './statics.js';
 import COSTA from '../../assets/mapa/costa.js';
 import { mapaMaterial, mapaTexturas, texturaRuido } from './ground.js';
 import ALTURAS from '../../assets/mapa/alturas.js';
@@ -62,7 +62,6 @@ function inPoly(x, y, poly) { let c = false; for (let i = 0, j = poly.length - 1
 function segDist(px, py, a, b) { const dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy, t = l ? Math.max(0, Math.min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / l)) : 0; return Math.hypot(px - a[0] - dx * t, py - a[1] - dy * t); }
 
 /* Cultura de cada bando -> prefijo de sus piezas de 0 A.D. (los que no figuran conservan las casitas) */
-const CULTURA = { cartago: 'cart', epiro: 'grie', macedonia: 'grie', aquea: 'grie', siracusa: 'grie', akragas: 'grie', griegos: 'grie', galos: 'galo', iberos: 'iber' };
 const CENTRO = { cart: 'cart_templo', grie: 'grie_templo', galo: 'galo_centro', iber: 'iber_centro', roma: 'vesta' };
 const claveCentro = dueno => CENTRO[dueno === 'roma' ? 'roma' : CULTURA[dueno]] || null;
 const claveBarco = dueno => (CULTURA[dueno] === 'cart' || CULTURA[dueno] === 'grie') ? CULTURA[dueno] + '_trirreme' : 'trirreme';

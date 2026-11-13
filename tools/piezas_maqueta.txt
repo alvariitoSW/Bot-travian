@@ -6,3 +6,12 @@ casa_d
 prop_paja
 prop_pozo
 prop_carreta
+grie_casa
+grie_casa_b
+grie_casa_c
+grie_casa_d
+grie_casa_e
+cart_casa
+cart_casa_b
+cart_casa_c
+prop_puesto_cart
