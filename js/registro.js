@@ -10,7 +10,6 @@
   const R = {};
   const CC = 'CC BY-SA 3.0', WG = 'Wildfire Games (0 A.D.)';
   const est = (m, extra) => Object.assign({ modelo: 'assets/static/' + m + '.bin', licencia: CC, credito: WG }, extra || {});   // edificio real de 0 A.D.
-  const propio = (m, extra) => Object.assign({ modelo: 'assets/static/' + m + '.bin', licencia: CC, credito: 'AQVILA (hecho desde cero con tools/propio_static.mjs)' }, extra || {});   // pieza propia del proyecto
   const uni = (m, extra) => Object.assign({ modelo: 'assets/units/' + m + '.bin', licencia: CC, credito: WG }, extra || {});   // tropa real de 0 A.D.
   const h = (fuente, dictamen, nota, texto) => Object.assign({ fuente, dictamen: dictamen || 'por cotejar' }, nota ? { nota } : {}, texto ? { texto } : {});   // texto: lo que lee el jugador en el Códice
   const f = (arte, historia) => ({ arte, historia });
@@ -19,15 +18,12 @@
   // ---- Edificios (D.BUILD). Modelo: el que usa city3d.js (D.BUILD[b].modelo || b) ----
   const edificio = {
     aserradero: f(est('aserradero'), SIN_H), cantera: f(est('cantera'), SIN_H), mina: f(est('mina'), SIN_H), granja: f(est('granja'), SIN_H),
-    viviendas: f(est('casa', { nota: 'las ínsulas se dibujan como manzanas de casas (casa.bin)' }), SIN_H),
-    foro: f(est('foro'), SIN_H), almacen: f(est('almacen'), SIN_H), mercado: f(est('mercado'), SIN_H), puerto: f(est('puerto'), SIN_H),
+    viviendas: f(est('casa', { nota: 'las ínsulas se dibujan como manzanas de casas (casa.bin)' }), h('Livio 21.62', 'historico', 'cotejado el 13/11/2026 en Perseus (trad. Roberts). Livio no da año en el pasaje (solo «este invierno», 218-217); que sean ínsulas de adobe y madera es lectura, y generalizarlas a toda ciudad es licencia de juego', 'En Roma ya había casas de varios pisos. Según Livio, un buey subió por su cuenta hasta el tercer piso de una casa del Foro Boario y se arrojó asustado por la gente. Fuera de Roma, las casas eran más bajas.')),
+    foro: f(est('foro'), SIN_H), almacen: f(est('almacen'), SIN_H), mercado: f(est('mercado'), SIN_H), puerto: f(est('puerto'), h('Livio 35.10; Livio 40.51', 'historico', 'cotejado el 13/11/2026 en Perseus (trad. Roberts/Edmonds). 35.10: ediles Lépido y Paulo (193), no censores; el año sale de los cónsules. 40.51: Fulvio (179) hace pilares de puente y mercados; el texto no dice «emporium» ni «pórtico Emilio»', 'Roma tenía su puerto fluvial en el Tíber. Según Livio, en 193 a.C. dos ediles construyeron un pórtico y junto a él un muelle sobre el río. En 179 el censor Fulvio levantó los pilares de un puente y un mercado con columnata fuera de la Porta Trigemina.')),
     cuartel: f(est('cuartel'), SIN_H), establo: f(est('establo'), SIN_H),
-    muralla: f(est('muro', { nota: 'recinto con muro.bin, torre.bin y puerta.bin' }), SIN_H),
+    muralla: f(est('muro', { nota: 'recinto con muro.bin, torre.bin y puerta.bin' }), h('Livio 1.44 (cotejado en Perseus 13/11/2026); Varrón, LL 5.143 por cotejar', 'probable', 'Livio 1.44: Servio rodeó Roma con terraplén, fosos y muro y así extendió el pomerio; los mojones se adelantaban con el muro. No dice quién podía ampliarlo (eso, y Varrón 5.143, siguen por cotejar). Muro regular con torres en las cuatro puertas: licencia de juego', 'Servio Tulio, según Livio, rodeó Roma con terraplén, fosos y muro. El pomerio, la franja sagrada sin cultivar ni edificar, se corría hacia fuera al avanzar el muro. Las ciudades seguían el terreno; el recinto cuadrado del juego es una simplificación.')),
     herreria: f({ sin: 'la herrería no tiene modelo: no se dibuja en la ciudad', provisional: true }, SIN_H),
     escuela: f({ sin: 'la escuela no tiene modelo propio: de momento no se dibuja en la ciudad', provisional: true }, SIN_H),
-    acueducto: f(propio('acueducto', { nota: 'arcada de seis arcos de medio punto con canal; 0 A.D. no trae ninguna' }), SIN_H),
-    termas: f(propio('termas', { nota: 'sala con bóveda de cañón, pórtico, ábside y chimenea; 0 A.D. no trae ninguna. Las grandes termas imperiales son posteriores: es un balneum republicano idealizado' }), SIN_H),
-    anfiteatro: f(est('anfiteatro', { nota: 'anfiteatro de Pompeya (0 A.D., aligerado y a escala de ciudad); es de hacia 70 a.C., posterior a 146 a.C.: licencia de juego, en el 264 a.C. los combates de gladiadores se daban en el Foro Boario' }), SIN_H),
     templo: f(est('templo'), SIN_H)
   };
 

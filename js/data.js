@@ -19,17 +19,14 @@
     viviendas: { n: 'Ínsulas', i: '🏘️', solar: 1, cost: { madera: 60, piedra: 50, hierro: 10, grano: 30 }, time: 1.8, d: 'Viviendas: aumentan la población máxima. La población paga impuestos y de ella salen los reclutas.' },
     foro: { n: 'Foro', i: '🏛️', solar: 1, prod: 'oro', cost: { madera: 80, piedra: 90, hierro: 40, grano: 40 }, time: 2.5, d: 'Recauda denarios, acelera las obras un 4 % por nivel y permite más población.' },
     almacen: { n: 'Almacén', i: '🏺', solar: 1, cost: { madera: 70, piedra: 60, hierro: 30, grano: 20 }, time: 2, d: 'Aumenta la capacidad de almacenamiento.' },
-    mercado: { n: 'Mercado', i: '⚖️', solar: 1, cost: { madera: 80, piedra: 70, hierro: 30, grano: 30, oro: 40 }, time: 2.5, d: 'Permite cambiar unos recursos por otros. Cada nivel mejora el cambio.' },
+    mercado: { n: 'Mercado', i: '⚖️', solar: 1, cost: { madera: 80, piedra: 70, hierro: 30, grano: 30, oro: 40 }, time: 2.5, d: 'Permite cambiar unos recursos por otros. Cada nivel mejora el cambio, y da +2 de felicidad y +20 de población máxima.' },
     puerto: { n: 'Puerto', i: '⚓', solar: 1, cost: { madera: 140, piedra: 80, hierro: 50, grano: 30, oro: 60 }, time: 3, sea: true, d: 'Necesario para embarcar ejércitos por rutas marítimas. Da ingresos por comercio y acorta las travesías.' },
     cuartel: { n: 'Cuartel', i: '⚔️', solar: 1, cost: { madera: 90, piedra: 60, hierro: 70, grano: 40 }, time: 2.5, d: 'Recluta infantería. Nv 3: Príncipes. Nv 5: Triarios.' },
     establo: { n: 'Establo', i: '🐎', solar: 1, cost: { madera: 110, piedra: 60, hierro: 80, grano: 70 }, time: 3, d: 'Recluta caballería (Équites).' },
     muralla: { n: 'Muralla', i: '🧱', cost: { madera: 40, piedra: 120, hierro: 30, grano: 20 }, time: 3, d: '+10 % de defensa por nivel y más guardia urbana al defender.' },
     herreria: { n: 'Herrería', i: '🔨', solar: 1, cost: { madera: 70, piedra: 60, hierro: 90, grano: 30, oro: 30 }, time: 2.5, d: 'Forja mejoras de armas y armaduras para todo el ejército. Cada mejora no puede pasar del nivel de la herrería.' },
     escuela: { n: 'Escuela', i: '📜', solar: 1, cost: { madera: 70, piedra: 90, hierro: 10, grano: 40, oro: 60 }, time: 3, d: 'Aquí estudian los sabios: aceleran las investigaciones y cobran paga.' },
-    acueducto: { n: 'Acueducto', i: '🌉', solar: 1, cost: { madera: 90, piedra: 160, hierro: 50, grano: 50, oro: 60 }, time: 3.5, d: 'Trae agua a la ciudad: +40 de población máxima por nivel.' },
-    termas: { n: 'Termas', i: '♨️', solar: 1, cost: { madera: 100, piedra: 140, hierro: 40, grano: 60, oro: 80 }, time: 3.5, d: 'Baños públicos: +4 de felicidad y +15 de población máxima por nivel.' },
-    anfiteatro: { n: 'Anfiteatro', i: '🏟️', solar: 1, cost: { madera: 130, piedra: 180, hierro: 60, grano: 80, oro: 100 }, time: 4, d: 'Juegos y espectáculos: +6 de felicidad por nivel.' },
-    templo: { n: 'Templo', i: '🔥', solar: 1, cost: { madera: 80, piedra: 100, hierro: 30, grano: 60, oro: 50 }, time: 3, d: 'Un templo a un dios por ciudad (Marte, Ceres o Neptuno). Por nivel: +3 de felicidad, +10 % de experiencia del héroe, calma antes a una ciudad conquistada y el don de su dios.' }
+    templo: { n: 'Templo', i: '🔥', solar: 1, cost: { madera: 80, piedra: 100, hierro: 30, grano: 60, oro: 50 }, time: 3, d: 'Un templo a un dios por ciudad (Marte, Ceres o Neptuno). Por nivel: +4 de felicidad, +10 de población máxima, +10 % de experiencia del héroe, calma antes a una ciudad conquistada y el don de su dios.' }
   };
   /* Templos (F5): cada ciudad puede dedicar su templo a un dios. Los dones son por nivel de templo. Licencia de juego:
      los romanos no «elegían» un dios por ciudad, pero Marte, Ceres y Neptuno eran divinidades reales de Roma (Livio 2.41 para el templo de Ceres, 493 a.C.; Marte, Campo de Marte; Neptuno, Circo Flaminio). Dones inventados. */
@@ -50,15 +47,21 @@
      y de él solo se puede sacar un cuarto cada mes. */
   D.CUARTO_ALMACEN = 0.25; D.AVISO_CIERRE = 0.75;
   D.MAX_LVL = 10;
+  /* CN10: edificios que no existían entre 280 y 146 a.C. Ya no están en D.BUILD; solo guardamos su coste base para devolverlo al cargar una partida vieja (G.migrarRetirados). */
+  D.RETIRADOS = {
+    acueducto: { madera: 90, piedra: 160, hierro: 50, grano: 50, oro: 60 },
+    termas: { madera: 100, piedra: 140, hierro: 40, grano: 60, oro: 80 },
+    anfiteatro: { madera: 130, piedra: 180, hierro: 60, grano: 80, oro: 100 }
+  };
   // mejoras de la herrería: globales, nivel 0 a FORJA_MAX, +5 % por nivel. Coste y tiempo base (nivel 0), crecen x1.5 y x1.4 por nivel
-  /* Impuestos: oro x mult, felicidad +/- f. Edificios que suben la felicidad: puntos por nivel (aquí se añaden termas, anfiteatro…). */
+  /* Impuestos: oro x mult, felicidad +/- f. Edificios que suben la felicidad: puntos por nivel (D.FELICIDAD_EDIF). */
   D.IMPUESTOS = { bajo: { n: 'Impuestos bajos', mult: 0.7, f: 15 }, normal: { n: 'Impuestos normales', mult: 1, f: 0 }, alto: { n: 'Impuestos altos', mult: 1.4, f: -25 } };
   D.FELICIDAD_BASE = 55;   // + 5 del municipio (tipo por defecto) = 60, como antes de I4
   D.FELICIDAD_MIN_CRECER = 40;
-  D.FELICIDAD_EDIF = { templo: 3, termas: 4, anfiteatro: 6 };
+  D.FELICIDAD_EDIF = { templo: 4, mercado: 2 };   // CN10: sin termas ni anfiteatro (no existían antes del 146 a.C.), su felicidad pasa al templo y al mercado
   D.FORO_CASAS = 25;   // CN2b: el foro de una ciudad con ciudad nueva sube 1 nivel por cada 25 casas (más 1 por barrio extra)
   D.HUECOS_OBRA = [0, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4];   // Q4b: obras a la vez por ciudad según el nivel del foro (índice = nivel 1..10); el foro no tiene mejoras, su nivel es c.b.foro (casas y barrios)
-  D.POP_EDIF = { viviendas: 130, foro: 30, acueducto: 40, termas: 15 };   // población máxima por nivel de cada edificio
+  D.POP_EDIF = { viviendas: 130, foro: 30, mercado: 20, templo: 10 };   // población máxima por nivel de cada edificio (CN10: mercado y templo reparten lo que daban acueducto y termas)
   /* Barrios (P67). Licencia de juego: la idea de que un barrio crece al cubrir servicios viene de Caesar III (estudio R1); los niveles,
      los servicios y todos los números son nuestros. Aldea no pide nada. D.LUJO: claves de D.ESPECIAL que cuentan como bien de lujo. */
   D.BARRIO = [
@@ -166,7 +169,7 @@
     caballos: { n: 'Caballos', i: '🐎', d: 'Abre los Équites y el establo desde el nivel 7. Instrucción un 10 % más rápida.', abre: { edificios: ['establo'], tropas: ['equites'] }, bono: { instr: 0.9 } },
     hierro: { n: 'Hierro de calidad', i: '⚒️', d: 'Abre los Triarios, y cuartel y herrería desde el nivel 7. Mejoras de la herrería un 10 % más baratas.', abre: { edificios: ['cuartel', 'herreria'], tropas: ['triarii'] }, bono: { forjaCoste: 0.9 } },
     plata: { n: 'Plata', i: '⚪', d: '+10 % de oro de impuestos.', abre: {}, bono: { impuestos: 1.1 } },
-    marmol: { n: 'Mármol', i: '🏛️', d: 'Abre foro, templo, termas y anfiteatro desde el nivel 7. Obras un 5 % más rápidas.', abre: { edificios: ['foro', 'templo', 'termas', 'anfiteatro'] }, bono: { obra: 0.95 } },
+    marmol: { n: 'Mármol', i: '🏛️', d: 'Abre foro y templo desde el nivel 7. Obras un 5 % más rápidas.', abre: { edificios: ['foro', 'templo'] }, bono: { obra: 0.95 } },
     purpura: { n: 'Púrpura', i: '🟣', d: '+10 % del oro de foro y puerto.', abre: {}, bono: { oroCom: 1.1 } },
     maderanaval: { n: 'Madera naval', i: '🌲', d: 'Abre el puerto desde el nivel 7. Viajes por mar un 10 % más rápidos.', abre: { edificios: ['puerto'] }, bono: { viajeMar: 0.9 } },
     pieles: { n: 'Pieles', i: '🦌', d: 'La paga de las guarniciones cuesta un 10 % menos.', abre: {}, bono: { paga: 0.9 } }

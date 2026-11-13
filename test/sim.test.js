@@ -272,7 +272,7 @@ function campaign1(aggressive, region) {
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
-      for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'acueducto', 'termas', 'anfiteatro', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }
+      for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }
       G.levantarMuralla(id);   // CN7: la muralla de la guerra sale de la obra de ciudad, no de c.b.muralla
       if (!aggressive) continue;
       const yr = G.yearOf(s.t); if (yr <= 230 && yr >= 209) continue;   // el bot se atrinchera ante la invasión de Aníbal
@@ -388,16 +388,35 @@ const CIMOD = require('../js/ciudad.js'); G.usarCiudad(null);
   const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, v) => { mem[k] = v; } };
   localStorage.setItem('aqvila-save-v1', JSON.stringify(Object.assign({}, s, { forja: undefined })));
   assert(G.load() && G.state.forja.armas === 0 && G.state.forja.cola === null, 'una partida vieja se migra'); }
-// Acueducto, termas y anfiteatro: tope de población y felicidad
+// CN10: acueducto, termas y anfiteatro se retiran (no existían entre 280 y 146 a.C.); mercado y templo recogen su efecto
 { const s = G.newGame('Edif'), c = s.cities.roma; const cap0 = G.popCap(c), f0 = G.felicidad(c);
-  assert(c.b.acueducto === 0 && c.b.termas === 0 && c.b.anfiteatro === 0, 'empiezan a nivel 0');
-  c.b.acueducto = 1; assert.strictEqual(G.popCap(c), cap0 + 40, 'acueducto +40 de población'); c.b.acueducto = 0;
-  c.b.termas = 1; assert.strictEqual(G.popCap(c), cap0 + 15, 'termas +15 de población'); assert.strictEqual(G.felicidad(c), f0 + 4, 'termas +4 de felicidad'); c.b.termas = 0;
-  c.b.anfiteatro = 1; assert.strictEqual(G.felicidad(c), f0 + 6, 'anfiteatro +6 de felicidad');
-  const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, v) => { mem[k] = v; } };
-  for (const id in s.cities) for (const b of ['acueducto', 'termas', 'anfiteatro']) delete s.cities[id].b[b];
-  localStorage.setItem('aqvila-save-v1', JSON.stringify(s));
-  assert(G.load() && G.state.cities.roma.b.termas === 0 && G.state.cities.volsinii.b.anfiteatro === 0, 'una partida vieja sin estos edificios carga'); }
+  for (const b of ['acueducto', 'termas', 'anfiteatro']) { assert(!D.BUILD[b], b + ' ya no está en D.BUILD'); assert(!(b in c.b), b + ' no está en c.b'); assert(!(b in D.POP_EDIF) && !(b in D.FELICIDAD_EDIF), b + ' sin efecto'); assert(!/acueducto|termas|anfiteatro/.test(JSON.stringify(D.ESPECIAL)), 'ningún especial los abre'); }
+  assert.deepStrictEqual(Object.keys(G.servicios(c, true)).sort(), ['agua', 'grano', 'lujo', 'mercado', 'templo'], 'servicios sin ocio ni termas');
+  // compensación: una ciudad bien servida (templo 3, mercado 3) queda en la misma banda que antes con 1-2 de los edificios retirados (antes: pob +120 y fel +9 o más)
+  c.b.templo = 3; c.b.mercado = 3; const capS = G.popCap(c), fS = G.felicidad(c);
+  assert.strictEqual(capS - cap0, 90, 'templo y mercado: +90 de población máxima'); assert.strictEqual(fS - f0, 18, 'templo y mercado: +18 de felicidad'); assert(fS <= 100);
+  const a = G.animoClases(c, true); assert(a.ciu >= 40 && a.ciu <= 90, 'ánimo de ciudadanos en banda');
+  c.b.templo = 0; c.b.mercado = 0;
+  // partida vieja con los edificios retirados: se quitan y se devuelve el coste hasta el tope del almacén
+  const v = JSON.parse(JSON.stringify(s)); G.state = s;
+  const r = v.cities.roma, o = v.cities.volsinii; r.b.termas = 2; r.b.anfiteatro = 1; r.b.acueducto = 3; r.heredado = { acueducto: 1 }; o.b.termas = 4; o.owner = 'etruscos';
+  r.obras = [{ b: 'termas', nc: 2, pag: 1, cuota: { oro: 40 }, costo: { oro: 80 }, t0: 0, t1: 5 }, { b: 'granja', nc: 1, pag: 1, cuota: {}, costo: {}, t0: 0, t1: 5 }];
+  const alm0 = v.alm.oro, madera0 = v.alm.madera, capAlm = (G.state = v, G.cap()); v.alm.madera = capAlm - 100;
+  const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, x) => { mem[k] = x; } };
+  localStorage.setItem('aqvila-save-v1', JSON.stringify(v));
+  assert(G.load(), 'la partida vieja carga'); const q = G.state;
+  for (const id in q.cities) for (const b of ['acueducto', 'termas', 'anfiteatro']) assert(!(b in q.cities[id].b) && !(q.cities[id].heredado && b in q.cities[id].heredado), 'se quita ' + b + ' de ' + id);
+  assert.deepStrictEqual(q.cities.roma.obras.map(x => x.b), ['granja'], 'la obra de termas se quita');
+  const rr = (b, n) => { let t = 0; for (let l = 0; l < n; l++) t += Math.round(D.RETIRADOS[b].oro * Math.pow(1.5, l) / 5) * 5; return t; };
+  const oroDev = rr('termas', 2) + rr('anfiteatro', 1) + rr('acueducto', 3) + 40;   // niveles de Roma + lo ya pagado de la obra
+  assert(q.devuelto && q.devuelto.total.oro === Math.min(oroDev, Math.max(0, G.cap() - alm0)), 'oro devuelto con tope (' + (q.devuelto && q.devuelto.total.oro) + ' de ' + oroDev + ')');
+  assert.strictEqual(q.alm.madera, G.cap(), 'la madera no pasa del tope del almacén'); assert(q.devuelto.perdido.madera > 0, 'se anota lo perdido por el tope');
+  assert.strictEqual(q.devuelto.termas, 6, 'niveles quitados de termas (2 de Roma + 4 ajena)'); assert.strictEqual(G.ultimaMigracion, q.devuelto);
+  // otro dueño: sin devolución
+  assert.strictEqual(q.cities.volsinii.owner, 'etruscos');
+  // una partida sin esos campos carga igual y no devuelve nada
+  const w = JSON.parse(JSON.stringify(G.newGame('Limpia'))); localStorage.setItem('aqvila-save-v1', JSON.stringify(w)); assert(G.load() && !G.state.devuelto, 'partida limpia carga sin devolución');
+  delete global.localStorage; G.state = s; }
 // Impuestos y felicidad
 { const prodOro = k => { const s = G.newGame('Imp'); s.cities.roma.imp = k; return G.prod().oro; };
   const bajo = prodOro('bajo'), normal = prodOro('normal'), alto = prodOro('alto');
@@ -564,7 +583,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
 { const s = G.newGame('Templos'), c = s.cities.roma; s.res = { madera: 1e5, piedra: 1e5, hierro: 1e5, grano: 1e5, oro: 1e5 };
   assert(D.BUILD.templo.solar === 1, 'el templo ocupa solar'); assert(!G.diosDe(c), 'sin templo no hay dios');
   assert(!G.elegirDios('roma', 'zeus') && !G.elegirDios('roma', 'neptuno') === false, 'Roma tiene mar: Neptuno vale'); assert(G.elegirDios('roma', 'ceres') && c.dios === 'ceres');
-  const g0 = G.prod().grano; c.b.templo = 0; c.b.templo = 2; assert(G.prod().grano > g0 + 0.5, 'Ceres sube el grano'); const f2 = G.felicidad(c); c.b.templo = 0; assert(f2 - G.felicidad(c) === 6, 'templo +3 de felicidad por nivel');
+  const g0 = G.prod().grano; c.b.templo = 0; c.b.templo = 2; assert(G.prod().grano > g0 + 0.5, 'Ceres sube el grano'); const f2 = G.felicidad(c); c.b.templo = 0; assert(f2 - G.felicidad(c) === 2 * D.FELICIDAD_EDIF.templo, 'templo +' + D.FELICIDAD_EDIF.templo + ' de felicidad por nivel');
   c.b.templo = 1; assert(!G.elegirDios('roma', 'marte'), 'con templo levantado no se cambia de dios');
   assert(!G.elegirDios('carthago', 'marte'), 'una ciudad ajena no elige dios'); }
 { const s = G.newGame('Rebeldes'); const o = Object.keys(s.cities).find(i => s.cities[i].owner === 'cartago' && !D.CITIES[i].sea) || Object.keys(s.cities).find(i => s.cities[i].owner !== 'roma');
@@ -769,14 +788,14 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   assert.strictEqual(v.cities.roma.obras.length, 1, 'queue única migra a una obra'); assert.strictEqual(v.cities.roma.obras[0].b, 'granja'); assert.strictEqual(v.cities.roma.queue.nc, 1); assert.strictEqual(v.cities.roma.queue.pag, 1); assert.strictEqual(v.cities.roma.train[0].pag, 1); assert.strictEqual(v.obrasMes, 0); G.state = v; G.plazos(); G.cuentas();
 }
 // Barrios (P67, CN6): camino sin ciudad nueva (servicios de la ciudad: grano, agua, templo, mercado, lujo)
-{ const s = G.newGame('Barrio'), c = s.cities.roma; G.state = s;
+{ G.usarCiudad(null); const s = G.newGame('Barrio'), c = s.cities.roma; G.state = s;   // sin ciudad nueva el agua se da por cubierta (CN10 retiró el acueducto)
   const cierra = () => { s.t = Math.floor(s.t) + 1; G.cierreMes(); };
   assert.strictEqual(c.barrio, 1); assert.strictEqual(c.bdef, 0); assert.strictEqual(G.barrioInfo(c).nivel, 1); assert.deepStrictEqual(G.barrioInfo(c).barrios, [], 'sin ciudad nueva no hay lista de barrios');
   assert.deepStrictEqual(Object.keys(D.BARRIO_SERV), ['grano', 'agua', 'templo', 'mercado', 'lujo'], 'ocio y termas se sustituyen por mercado');
   assert.deepStrictEqual(D.BARRIO[2].pide, ['grano', 'agua']); assert.deepStrictEqual(D.BARRIO[3].pide, ['grano', 'agua', 'templo']); assert.deepStrictEqual(D.BARRIO[4].pide, ['grano', 'agua', 'templo', 'mercado', 'lujo']);
   s.cities.capua && assert.strictEqual(s.cities.capua.barrio, 1, 'ciudad incorporada empieza en 1');
   const pr = () => G.prod().oro;
-  c.b.acueducto = 1; const cap1 = G.popCap(c); assert(G.prod().grano >= 0, 'grano neto >= 0'); assert.deepStrictEqual(G.barrioInfo(c).falta, []); assert.strictEqual(G.barrioInfo(c).objetivo, 2);
+  const cap1 = G.popCap(c); assert(G.prod().grano >= 0, 'grano neto >= 0'); assert.deepStrictEqual(G.barrioInfo(c).falta, []); assert.strictEqual(G.barrioInfo(c).objetivo, 2);
   cierra(); assert.strictEqual(c.barrio, 2, 'sube a Villa'); assert.strictEqual(G.popCap(c), Math.round(cap1 * 1.25), 'popCap x1,25');
   assert.deepStrictEqual(G.barrioInfo(c).falta, ['templo']);
   c.b.templo = 1; assert.strictEqual(G.barrioInfo(c).objetivo, 3); cierra(); assert.strictEqual(c.barrio, 3);
@@ -790,10 +809,10 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   c.b.templo = 0; for (let i = 0; i < D.BARRIO_RETRASO; i++) cierra(); assert.strictEqual(c.barrio, 2, 'baja tras el retraso'); assert.strictEqual(c.bdef, 0);
   // migración de partida vieja
   const st = {}; global.localStorage = { getItem: () => JSON.stringify(st.s), setItem() {} };
-  const v = JSON.parse(JSON.stringify(s)); for (const id in v.cities) { delete v.cities[id].barrio; delete v.cities[id].bdef; } v.cities.roma.b.acueducto = 1; v.cities.roma.b.templo = 0; v.cities.roma.b.mercado = 0;
+  const v = JSON.parse(JSON.stringify(s)); for (const id in v.cities) { delete v.cities[id].barrio; delete v.cities[id].bdef; } v.cities.roma.b.templo = 0; v.cities.roma.b.mercado = 0;
   st.s = v; assert(G.load(), 'carga'); assert.strictEqual(G.state.cities.roma.barrio, 2, 'migra al objetivo'); assert.strictEqual(G.state.cities.roma.bdef, 0);
   for (const id in G.state.cities) assert(G.state.cities[id].barrio >= 1);
-  delete global.localStorage; }
+  delete global.localStorage; G.usarCiudad(require('../js/ciudad.js')); }
 
 
 // N4. Estados, contagio con tope, reagrupar, agotado y determinismo
@@ -854,7 +873,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   // plebeyos nunca negativos: reclutar o perder población recorta
   c.ciu = 80; c.esc = 100; c.pop = 120; const cl = G.clases(c); assert(cl.ple >= 0 && cl.ciu + cl.esc <= 120, 'recorta'); c.pop = 0; const c0 = G.clases(c); assert(c0.ple >= 0 && c0.ciu >= 0 && c0.esc >= 0);
   // manumisión mensual
-  c.pop = 300; c.ciu = 0; c.esc = 40; c.b.templo = 1; s.res.grano = 5000; s.alm.grano = 5000; c.imp = 'normal';
+  c.pop = 300; c.ciu = 0; c.esc = 40; c.b.templo = 1; s.res.grano = 5000; s.alm.grano = 5000; c.imp = 'bajo';   // impuestos bajos: la felicidad no depende de piezas que el cierre del mes recalcula
   for (const b in D.FELICIDAD_EDIF) c.b[b] = 3; assert(G.animoClases(c, true).esc >= K.manumision, 'esclavos contentos'); const e0 = c.esc; s.t = Math.floor(s.t) + 1; G.cierreMes(); assert(c.esc < e0 && c.esc >= 0, 'manumisión');
   // migración
   const st = {}; global.localStorage = { getItem: () => JSON.stringify(st.s), setItem() {} };
@@ -1042,7 +1061,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
 { // (c) Roma y Capua nuevas: población y producción como las de siempre
   G.usarCiudad(null); G.newGame('CN2b-viejo'); const pv = G.prod(); G.usarCiudad(CIMOD);   // referencia: la economía de números de hoy, en este mismo proceso
   const s = G.newGame('CN2b'), p = G.prod(), cerca = (x, ref) => Math.abs(x / ref - 1) <= 0.10;
-  assert.strictEqual(Math.round(s.cities.roma.pop), 287); assert.strictEqual(Math.round(s.cities.capua.pop), 270);
+  assert.strictEqual(Math.round(s.cities.roma.pop), 287); assert.strictEqual(Math.round(s.cities.capua.pop), 280)   // CN10: el mercado de Capua suma población máxima;
   assert(['madera', 'piedra', 'hierro', 'grano', 'oro'].every(r => cerca(p[r], pv[r])), 'producción ±10 % de la de números: ' + ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => p[r].toFixed(1) + ' (antes ' + pv[r].toFixed(1) + ')').join(' · '));
   console.log('Roma+Capua nuevas, madera/piedra/hierro/grano/oro:', ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => p[r].toFixed(1)).join('/'), 'antes', ['madera', 'piedra', 'hierro', 'grano', 'oro'].map(r => pv[r].toFixed(1)).join('/'));
   for (const id of ['roma', 'capua']) { const c = s.cities[id], E = G.ciudadE(id); assert(E && E.modoJuego && c.ciudad, id); assert(CIMOD.poblacion(E) >= c.pop, 'casas para ' + id); assert(c.b.foro >= 1 && c.b.viviendas === 0); }

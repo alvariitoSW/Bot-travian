@@ -63,8 +63,7 @@ Esa licencia obliga a citar a Wildfire Games y a compartir este arte y sus modif
 
 La letra de los títulos es **Cinzel**, de The Cinzel Project Authors, con licencia **[SIL OFL 1.1](https://openfontlicense.org)**
 (ver `assets/fuentes/LICENSE.txt`). Va incluida en el juego para que se vea igual sin conexión.
-Los iconos de recursos son dibujos propios en SVG, dentro de `js/ui.js`. Las termas y el acueducto de la ciudad son modelos propios (`tools/propio_static.mjs`),
-hechos desde cero y publicados también con CC BY-SA 3.0; el anfiteatro es el de Pompeya de 0 A.D., aligerado.
+Los iconos de recursos son dibujos propios en SVG, dentro de `js/ui.js`.
 
 Para regenerarlos hace falta un clon parcial de `github.com/0ad/0ad` y los cargadores de ejemplo de three.js:
 

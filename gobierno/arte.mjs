@@ -53,7 +53,7 @@ console.log('Batalla típica (Roma contra ' + rival[1].n + '): pide ' + soldados
 if (pintados < trisBatalla) console.log('  aviso: el juego recorta la batalla al ' + Math.round(100 * pintados / trisBatalla) + ' % de sus soldados para no pasar de ' + mil(recorte) + ' triángulos en móvil');
 if (pintados > E.triangulosPorBatalla) fallos.push('la batalla típica pinta ' + mil(pintados) + ' triángulos y el tope es ' + mil(E.triangulosPorBatalla));
 // Ciudad: todos los edificios de data.js a un nivel medio, con sus casas, muralla, barcos y arbolado.
-const nv = E.nivelCiudad, piezas = { casa: 2 + nv * 3, muro: 16, puerta: 4, torre: 21, barco: Math.min(5, nv) - Math.floor(Math.min(5, nv) / 3), trirreme: Math.floor(Math.min(5, nv) / 3), vesta: 1, arco: 1, ...E.arboles };
+const nv = E.nivelCiudad, piezas = { casa: 2 + nv * 3, muro: 16, puerta: 4, torre: 21, barco: Math.min(5, nv) - Math.floor(Math.min(5, nv) / 3), trirreme: Math.floor(Math.min(5, nv) / 3), ...E.arboles };
 for (const b in D.BUILD) if (TRIS[b]) piezas[b] = 1;
 // Las casas se reparten a partes iguales entre las variantes que existan (casa, casa_b, casa_c, casa_d). Cuenta aproximada: cuando js/gfx/city3d.js elija variantes, hay que ajustarla aquí.
 const vCasa = ['casa', 'casa_b', 'casa_c', 'casa_d'].filter(k => TRIS[k]), nCasa = piezas.casa; delete piezas.casa;

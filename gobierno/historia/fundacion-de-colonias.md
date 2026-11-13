@@ -22,9 +22,9 @@
 - Riadas: Livio 30.38.10 (202), 35.9.2 y 35.21.5 (193-192), 38.28.4 (189); la lista sale de una tabla de ingeniería, POR COTEJAR cada pasaje. Roma estaba junto al río; una colonia en un cerro, menos. `histórico`.
 - Incendios: de noche vigilaban los *triumviri capitales* y ediles (Livio 9.46 y 39.14.10, POR COTEJAR; no hubo cuerpo especial). Los **vigiles son de Augusto**: anacronismo.
 - Grano: *annona*, compras públicas y edil; Livio 30.26 (203, POR COTEJAR).
-- Agua: pozos, cisternas y fuentes. Aqua Appia 312 y Anio Vetus 272 (Frontinus *Aq.* 4-6, cotejado por resumen); eran casi subterráneos, **sin arcos hasta la Aqua Marcia (144)**, POR COTEJAR.
+- Agua: pozos, cisternas y fuentes. Aqua Appia 312 y Anio Vetus 272 (Frontino *Aq.* 5-6, cotejado en LacusCurtius, trad. Bennett, 13/11/2026, resultado: matiza). Appia: 11 190 pasos, 11 130 bajo tierra, el resto sobre sustrucciones y, junto a la Porta Capena, sobre arcos; Anio Vetus: 43 000 pasos, 42 779 bajo tierra, 221 sobre sustrucciones, sin arcos (año 273 según la nota del traductor); Marcia (consulado de Galba y Cotta, 144): 6 935 pasos sobre arcos. Así que «sin arcos hasta la Marcia» es casi cierto, pero la Appia ya tenía un tramo corto de arcos.
 
-**8. Casas.** Chozas en las fundaciones tempranas, casas de atrio de adobe/toba con teja (Cosa, Brown 1980, POR COTEJAR). Ínsulas de varios pisos en Roma ya en 218 (Livio 21.62: la vaca en el tercer piso, POR COTEJAR). `probable`.
+**8. Casas.** Chozas en las fundaciones tempranas, casas de atrio de adobe/toba con teja (Cosa, Brown 1980, POR COTEJAR). Casas de varios pisos en Roma ya hacia 218-217 (Livio 21.62: un buey sube al tercer piso de una casa del Foro Boario; cotejado en Perseus 13/11/2026, resultado: matiza, el pasaje no da año, solo «este invierno»; dice «buey», no vaca). `probable`.
 
 **Lo que se discute**: la datación de retículas (Sewell frente a Pelgrom); qué parte del ritual era real; si había plan previo en Cosa; las cifras de colonos (exageradas o incompletas); si Ariminum y Brundisium se fecharon bien.
 
@@ -41,3 +41,6 @@
 
 ## CN5-A · sitios de colonias del juego (13/11/2026)
 `D.COLONIAS` (js/data.js) trae 8 sitios, todos `latina`: Cosa 273 (4 000), Ariminum 268 (6 000), Beneventum 268 (2 500), Brundisium 244 (6 000), Placentia 218 (6 000, Polibio 3.40), Cremona 218 (6 000, Polibio 3.40), Bononia 189 (3 000, Livio 37.57), Aesernia 263 (2 500). No se abrió ninguna fuente nueva en esta tarea: las fechas vienen de las notas de arriba y siguen **POR COTEJAR** (Veleyo 1.14.6-8, Períocas 14/15/19, Livio 21.25 y 37.57); el dictamen «histórico» solo en Placentia y Cremona (Polibio 3.40 ya anotado). Las cifras de Beneventum y Aesernia (2 500) no tienen fuente: licencia de juego. Brundisium: 244 (Períocas) frente a 246 (livius.org). Coordenadas aproximadas; Beneventum, Cremona y Aesernia se desplazan unas décimas para no pisar Capua ni Placentia (licencia de juego). Misión `fundar-colonia` (desde 268, `cond: {tipo:'colonia', n:1}`).
+
+## CN10 · cotejo de pasajes (13/11/2026)
+Detalle en `gobierno/historia/CN10-cotejo.md`. Cotejados en Perseus (Livio, trad. Roberts/Edmonds) y LacusCurtius (Frontino, Bennett): Livio 1.35 (confirma), 1.44 (matiza), 8.20 (confirma), 21.62 (matiza), 33.27 (confirma), 35.10 (matiza), 40.51 (matiza), Frontino 5-7 (matiza). **Siguen POR COTEJAR** (no abrieron): Varrón LL 5.143 y Catón Agr. 5.7 (Compitalia).
