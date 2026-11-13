@@ -1096,12 +1096,6 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "R5",
-      "titulo": "Batalla más cerca · R5",
-      "nota": "cámara y estandartes (js/gfx/battle3d.js)",
-      "url": "https://claude.ai/code/session_01QiKC3A6VndptHJHXu3AVKf"
-    },
-    {
       "tarea": "K10",
       "titulo": "Concurso de arte de la batalla · K10",
       "nota": "piezas sueltas; solo gobierno/maquetas/piezas-batalla/",
