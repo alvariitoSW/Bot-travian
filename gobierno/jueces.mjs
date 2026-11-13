@@ -120,6 +120,14 @@ console.log('Juez 1e · ajustes y dificultades (test/ajustes.test.mjs)');
   apunta('Ajustes y dificultades (bot por nivel)', r.status === 0, ult.slice(0, 200));
 }
 
+/* ---------- 1e2. Diplomacia (C3; lógica pura, segundos) ---------- */
+console.log('Juez 1e2 · diplomacia e IA que construye (test/diplomacia.test.mjs)');
+{
+  const r = spawnSync(process.execPath, ['test/diplomacia.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 60000 });
+  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l)), mal = lineas.filter(l => /^MAL/.test(l));
+  apunta('Diplomacia (alianza, tributo, IA construye)', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, 400));
+}
+
 /* ---------- 1f. Sonido de la ciudad (CN15c; lógica pura, segundos; también en --rapido) ---------- */
 console.log('Juez 1f · sonido de la ciudad (test/sonido-ciudad.test.mjs)');
 {

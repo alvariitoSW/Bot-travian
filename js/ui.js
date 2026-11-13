@@ -594,6 +594,18 @@ function rutasHtml(c, id) {
   }
   return h + '</div>';
 }
+/* C3: diplomacia con la facción dueña de una ciudad ajena (alianza o tributo) */
+function dipHtml(c) {
+  if (c.owner === 'roma') return '';
+  const f = c.owner, fn = D.FACTIONS[f].n, e = G.dipEstado(f);
+  let h = '<div class="sec">Diplomacia</div>';
+  if (e) return h + '<div class="empty">' + (e === 'alianza' ? '🤝 <b>Aliado</b> de Roma: no os ataca y comercia (+20 oro/mes).' : '📜 <b>Tributario</b>: no os ataca y paga ' + G.dipIngreso() + ' oro/mes.') + '</div>';
+  const mA = G.dipMotivoAlianza(f), mT = G.dipMotivoTributo(f);
+  h += '<div class="empty"><div class="btns"><button class="btn ' + (mA ? 'no' : '') + '" data-act="dipalianza" data-v="' + f + '">Proponer alianza (150)</button>' +
+    '<button class="btn ' + (mT ? 'no' : '') + '" data-act="diptributo" data-v="' + f + '">Imponer tributo</button></div>' +
+    (mA && !/^Esta facción no/.test(mA) ? '<div class="empty" style="opacity:.7">Alianza: ' + esc(mA) + '</div>' : '') + (mT && !/^No es/.test(mT) ? '<div class="empty" style="opacity:.7">Tributo: ' + esc(mT) + '</div>' : '') + '</div>';
+  return h + '';
+}
 const espFalta = () => { const t = G.especiales(); return Object.keys(D.ESPECIAL).filter(k => !t[k]); };
 function viewCity() {   // Gobierno (K12a): ciudad, felicidad, lo que falta y atajos; sin scroll de página. Lo demás vive en hojas (HOJAS)
   const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city], roma = c.owner === 'roma', f = Math.round(G.felicidad(c)), cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠', R = 52, C = 2 * Math.PI * R;
@@ -604,7 +616,7 @@ function viewCity() {   // Gobierno (K12a): ciudad, felicidad, lo que falta y at
     '<button class="gani" data-act="hoja" data-v="estado" aria-label="Felicidad ' + f + ' por ciento: ver el estado"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="gpista" cx="60" cy="60" r="' + R + '"/><circle class="gval" cx="60" cy="60" r="' + R + '" style="stroke:' + (f >= 60 ? 'var(--good)' : f >= 40 ? 'var(--gold)' : 'var(--bad)') + '" stroke-dasharray="' + (C * Math.max(0, Math.min(100, f)) / 100).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 60 60)"/></svg><span class="gcen"><span class="gcara">' + cara + '</span><b>' + f + ' %</b><small>Felicidad</small></span></button>' +
     '<div class="gfalta"><span>Falta:</span>' + (fic || '<em>No falta nada</em>') + '</div>' +
     '<div class="gatajos">' + at('mercado', ICO_MERC, 'Mercado', mer ? '' : 'Sin mercado', !mer) + (roma ? at('rutas', ICO_RUTA, 'Rutas', G.rutasDeCiudad(UI.city) + '/' + G.rutaMax(c)) : '') + at('pueblo', ICO_PUEB, 'Pueblo') + (roma ? at('aldeas', ICO_PUEB, 'Pueblos', G.pueblosDe(UI.city).filter(p => p.nivel > 0).length + '/' + G.pueblosDe(UI.city).length) : '') + at('ajustes', ICO_AJ, 'Ajustes') + at('cron', ICO_CRON, 'Crónica') + (roma && (c.b.templo > 0 || c.b.herreria > 0) ? at('servicios', ICO_TEMPLO, 'Templo y forja') : '') + '</div>' +
-    (UI.cityV ? '<button class="gver" data-act="clist">Ver la ciudad en 3D</button>' : '') + '</div>';
+    (UI.cityV ? '<button class="gver" data-act="clist">Ver la ciudad en 3D</button>' : '') + dipHtml(c) + '</div>';
 }
 /* ---------- J6 · Ciudad como pantalla principal ---------- */
 const ICO_X = svgIco('<path d="M6 6l12 12M18 6L6 18"/>');
@@ -1495,6 +1507,8 @@ document.addEventListener('click', function (e) {
     case 'techar': if (G.techarBarrio(UI.city, +v)) render(); break;
     case 'imp': if (G.setImp(UI.city, el.dataset.v)) render(); break;
     case 'ciud': if (G.darCiudadania(UI.city)) render(); break;
+    case 'dipalianza': { const r = G.dipAlianza(v); if (r.ok) { toast('🤝 ' + D.FACTIONS[v].n + ' firma el foedus con Roma.', 'good'); render(); } else toast(r.motivo); break; }
+    case 'diptributo': { const r = G.dipTributo(v); if (r.ok) { toast('📜 ' + D.FACTIONS[v].n + ' pagará ' + r.mensual + ' oro al mes.', 'good'); render(); } else toast(r.motivo); break; }
     case 'ruta': { const q = v.split('>'); if (G.rutaAbrir(q[0], q[1])) { toast('⚖️ Ruta abierta con ' + D.CITIES[q[1]].n + '.'); render(); } else toast(G.rutaPuede(q[0], q[1]) || 'No se puede abrir la ruta.', 'bad'); break; }
     case 'rutacerrar': { const q = v.split('>'); if (G.rutaCerrar(q[0], q[1])) { toast('Ruta cerrada.'); render(); } break; }
     case 'tipos': modal(tiposModal()); break;
@@ -1534,6 +1548,7 @@ document.addEventListener('click', function (e) {
     case 'send': {
       const hero = $('pk-hero') && $('pk-hero').checked;
       const saq = $('pk-saq') && $('pk-saq').checked;
+      { const fa = s.cities[el.dataset.to].owner; if (G.dipEstado(fa) === 'alianza') { if (!confirm('Atacar a ' + D.FACTIONS[fa].n + ' rompe vuestra alianza. ¿Seguir?')) break; G.dipRomper(fa); } }   // C3
       if (G.send(el.dataset.from, el.dataset.to, pickUnits(), hero, saq ? 'saqueo' : null)) { closeModal(); toast((saq ? '💰 Partida de saqueo hacia ' : '🚩 El ejército parte hacia ') + D.CITIES[el.dataset.to].n + '.'); UI.sheetKey = ''; renderSheet(); }
       else toast(G.sendMotivo || 'Selecciona al menos una unidad.', 'bad');
       break;
