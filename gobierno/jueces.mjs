@@ -364,6 +364,37 @@ async function navegador() {
       const ok = r.reg === 'italia' && r.vis === 7 && r.fantasmas === 0;
       return { ok, detalle: ok ? '7 ciudades visibles, ' + r.rutas + ' rutas' : 'región ' + r.reg + ', visibles ' + r.vis + ', fantasmas ' + r.fantasmas, captura: await foto('italia') };
     });
+
+    await paso('I8 partida corta: menú, en pie, fundar, continuar y final con resumen', async () => {
+      const recarga = async () => { await page.evaluate(() => Game.save()); await page.reload({ waitUntil: 'load' }); await page.waitForSelector('#menu [data-act="cortaen"]', { timeout: 30000 }); await page.waitForFunction(() => window.UI && window.UI.cityV && window.UI.cityV.listo, null, { timeout: 90000 }).catch(() => { }); };
+      await recarga();   // el menú vuelve a estar a la vista (la partida de Italia seguía abierta)
+      const menu = await estado(() => { const m = document.getElementById('menu'), r = m.getBoundingClientRect(), b = [...m.querySelectorAll('[data-act="cortaen"],[data-act="cortafun"]')]; return { n: b.length, fuera: b.some(e => e.getBoundingClientRect().right > 390 || e.getBoundingClientRect().left < 0), sw: m.scrollWidth }; });
+      const fm = await foto('i8-menu');
+      // 1) en pie: región de Italia con el modo
+      await page.click('#menu [data-act="cortaen"]'); await espera(3000); await cierraAvisos();
+      const pie = await estado(() => ({ modo: Game.modo() && Game.modo().id, fase: Game.modoFase(), reg: Game.regionId(), mias: Game.myCities().length, vis: UI.map ? Object.keys(UI.map.cities).filter(i => UI.map.cities[i].grp.visible && Game.state.cities[i]).length : -1, city: UI.city }));
+      // 2) fundar de la nada: abre la pantalla de fundar con el reloj parado
+      await recarga();
+      await page.click('#menu [data-act="cortafun"]'); await espera(1500); await cierraAvisos();
+      await page.waitForFunction(() => window.UI.fundar && window.UI.fundar.vale, null, { timeout: 60000 });
+      const t0 = await estado(() => { Game.state.speed = 1; return Game.state.t; }); await espera(1500);
+      const fun = await estado(() => ({ fundando: Game.fundando(), t: Game.state.t, mias: Game.myCities().length, linea: (document.getElementById('linea').innerText || '') }));
+      const ff = await foto('i8-fundar');
+      // continuar: la partida a medio fundar se recupera con su pantalla de fundar
+      await recarga(); await page.click('#menu [data-act="continue"]');
+      await page.waitForFunction(() => window.UI.fundar, null, { timeout: 60000 });
+      await page.waitForFunction(() => window.UI.fundar.vale, null, { timeout: 30000 });
+      await page.click('#b-si'); await page.waitForFunction(() => !window.UI.fundar && Game.myCities().length === 1, null, { timeout: 40000 }); await espera(800); await cierraAvisos();
+      const fd = await estado(() => ({ fase: Game.modoFase(), mias: Game.myCities(), city: UI.city, cap: Game.state.capital }));
+      // 3) final con resumen (se fuerza) y final de campaña sin resumen
+      await estado(() => { const s = Game.state; s.over = { win: true, why: 'Prueba', resumen: Game.resumen() }; UI.overShown = false; UI.modalQ = []; UI.modalOpen = false; document.getElementById('modal').hidden = true; Game.onEvent('over'); });
+      await espera(500);
+      const fin = await estado(() => ({ res: !!document.querySelector('#mbox .resumen'), btn: !!document.querySelector('#mbox [data-act="tomenu"]'), filas: document.querySelectorAll('#mbox .rs-f').length }));
+      const fo = await foto('i8-final');
+      const ok = menu.n === 2 && !menu.fuera && menu.sw <= 390 && pie.modo === 'corta' && pie.fase === 'jugando' && pie.reg === 'italia' && pie.mias === 2 && pie.vis === 7 &&
+        fun.fundando && fun.t === t0 && fun.mias === 0 && /Beneventum/.test(fun.linea) && fd.fase === 'jugando' && fd.mias.length === 1 && fd.city === fd.cap && fd.cap === 'beneventum' && fin.res && fin.btn && fin.filas >= 8;
+      return { ok, detalle: ok ? 'menú con 2 botones; en pie: Italia, 2 ciudades, 7 en el mapa; fundar: reloj parado, continuar reabre, ciudad ' + fd.cap + ' es tuya; final con ' + fin.filas + ' filas' : JSON.stringify({ menu, pie, fun, t0, fd, fin }), captura: fo };
+    });
   } finally {
     await br.close().catch(() => { }); srv.close();
   }

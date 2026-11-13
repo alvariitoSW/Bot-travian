@@ -741,3 +741,14 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 #battle.ronda:not(.desp) #bctl .tarj.on { border-color: var(--gold); background: rgba(233, 192, 99, .22); box-shadow: 0 0 9px rgba(233, 192, 99, .5); }
 #battle.ronda:not(.desp) #bctl .mini[data-act="bamano"] { flex: 0 0 58px; height: 58px; font-size: 10.5px; }
 #battle.ronda:not(.desp) #bctl .tarjs ~ .go { height: 58px; }
+/* I8: partida corta (menú y final) */
+#menu .cortab { width: 100%; max-width: 320px; margin: 6px 0 4px; padding: 10px 0 2px; border-top: 1px solid var(--line2); }
+#menu .cortab > b { display: block; font-family: var(--serif); letter-spacing: .06em; font-size: 12.5px; color: var(--gold); margin-bottom: 8px; }
+#menu .cortab .btn.corta { margin-bottom: 3px; letter-spacing: .06em; }
+#menu .cortad { display: block; color: #c6cfda; font-size: 11.5px; line-height: 1.3; margin: 0 4px 11px; }
+.resumen { margin: 6px 0 12px; padding: 8px 12px; border: 1px solid var(--line2); border-radius: 12px; background: #0005; text-align: left; }
+.resumen .rs-t { font-family: var(--serif); color: var(--gold); font-size: 12px; letter-spacing: .06em; margin-bottom: 4px; text-align: center; }
+.resumen .rs-f { display: flex; justify-content: space-between; gap: 10px; padding: 3px 0; font-size: 13px; border-top: 1px solid var(--line); }
+.resumen .rs-f:first-of-type { border-top: 0; }
+.resumen .rs-f span { color: var(--mute); }
+.resumen .rs-f b { text-align: right; }

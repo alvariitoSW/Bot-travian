@@ -169,6 +169,13 @@
     italia: f(SIN_REG, h('Plutarco, Pirro 13-25; Polibio 1.6-7 y 2.14-35', 'licencia de juego', 'campaña corta en la península y Sicilia oriental contra Tarento (cayó en 272); Tarentum sigue de Epiro, Volsinii etrusca y Mediolanum gala, y la fecha de corte es de jugabilidad', 'La Italia de Pirro: Roma contra Tarento, la ciudad que llamó al rey del Epiro.'))
   };
 
+  // ---- Modos de partida (D.MODOS, I8). Se casan por id. Los factores, el año tope y la duración son licencia de juego (nota en gobierno/historia/I8-partida-corta.md). ----
+  const SIN_MODO = { sin: 'un modo de partida es una ficha de datos; no tiene modelo 3D' };
+  const modo = {
+    campana: f(SIN_MODO, h('Polibio 1.1-3; Livio, Períocas 51', 'historico', 'la campaña de 280 a 146 a.C.: es la de siempre, sin factores ni tope de horas')),
+    corta: f(SIN_MODO, h('Plutarco, Pirro 13-25; Polibio 1.6-7 y 2.14-35; Eutropio 2.11-14', 'licencia de juego', 'Roma contra Tarento (Epiro) en Italia es histórico; fundar de la nada, el rival único, las tres edades, el año tope y la duración de 2 a 4 horas son licencia de juego. Sin Roma ni Capua, la primera colonia hace de capital (las colonias latinas de Beneventum, 268 a.C., y Cosa, 273 a.C., son históricas)', 'Una partida de unas horas: conquista Tarento antes de que se acabe el plazo, con Roma y Capua en pie o fundando tu primera ciudad.'))
+  };
+
   // ---- Zonas del mapa (D.ZONAS, C6). Se casan por id. Los límites son agrupación de juego. ----
   const SIN_ZONA = { sin: 'una zona es una ficha de datos; no tiene modelo 3D' };
   const zona = {
@@ -226,7 +233,7 @@
     aesernia: f(SIN_COL, h('Veleyo Patérculo 1.14.7', 'por cotejar', '263 a.C., latina: fecha y colonos (2.500, sin fuente, licencia de juego) por cotejar' + LJ))
   };
 
-  R.fichas = { edificio, tropa, ciudad, hecho, mision, colonia, region, zona, faccion, mejora, tipo, especial, invest, edad: edades };
+  R.fichas = { edificio, tropa, ciudad, hecho, mision, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -237,6 +244,7 @@
     hecho: { tabla: 'EVENTS', lista: true, numericos: ['y'], textos: ['t', 'x'] },
     zona: { tabla: 'ZONAS', numericos: [], textos: ['n'] },
     region: { tabla: 'REGIONES', numericos: ['hasta'], textos: ['n', 'capitalRival'] },
+    modo: { tabla: 'MODOS', numericos: [], textos: ['n'] },
     colonia: { tabla: 'COLONIAS', numericos: ['lon', 'lat', 'anio', 'colonos'], textos: ['n', 'h', 'tipo'] },
     mision: { tabla: 'MISIONES', numericos: ['desde', 'plazo'], textos: ['n', 'texto'] },
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },
@@ -262,6 +270,7 @@
     tropa: { arte: ARTE_TROPA, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } },
     edificio: { arte: { modelo: 'assets/static/<id>.bin', licencia: 'CC BY-SA 3.0', credito: 'Wildfire Games (0 A.D.)' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } },
     region: { arte: { sin: 'una región es una ficha de datos; no tiene modelo 3D' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } },   // el id es el de D.REGIONES
+    modo: { arte: { sin: 'un modo de partida es una ficha de datos; no tiene modelo 3D' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'licencia de juego' } },   // el id es el de D.MODOS
     hecho: { arte: { sin: 'un hecho no tiene modelo 3D' }, historia: { fuente: '<autor antiguo y pasaje>', dictamen: 'por cotejar' } }   // el id es «<año>-<clave>»; el año casa con D.EVENTS
   };
 

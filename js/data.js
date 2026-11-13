@@ -339,8 +339,32 @@
       camara: { lon: 13.4, lat: 40.2, zoom: 3.2 }
     }
   };
-  D.regionCiudades = id => { const r = D.REGIONES[id]; return r && r.ciudades ? r.ciudades.filter(c => D.CITIES[c]) : Object.keys(D.CITIES); };
-  D.regionEdges = id => { const l = D.regionCiudades(id); return D.EDGES.filter(e => l.indexOf(e[0]) >= 0 && l.indexOf(e[1]) >= 0); };
+  /* Modos de partida (I8). Un modo es una ficha de datos: TODO número suyo vive aquí y es licencia de juego (se lee solo con G.modo()).
+     campana = la campaña histórica de siempre (sin factores; la partida guarda modo null). corta = «Partida corta»: una sola región, un solo rival,
+     tres edades y 2-4 horas de juego. `factores` (1 = como la campaña): obra y instr multiplican el tiempo de obras y de instrucción, costes el de
+     edificios, tropas y piezas, saber el del estudio, refuerzos el ritmo con que el rival repone su guarnición y guarnicion el tope de esa guarnición.
+     `inicio.<variante>.factores` pisa los de arriba. rival: solo esa facción refuerza y ataca (turnoIA). hasta: año a.C. tope (se pierde al pasarlo).
+     duracion: la partida se mide en turnos (3 meses). segReloj = 3 meses a 4 s/mes en x1 = 12 s; segDecision = estimación de lo que tarda el jugador en
+     decidir cada turno (licencia de juego, sin medir en móvil); segPorTurno = suma. Objetivo: de horasMin a horasMax. `inicio.fundar.sitio` es un id de D.COLONIAS. */
+  D.MODOS = {
+    campana: { id: 'campana', n: 'Campaña histórica', resumen: 'Roma contra el mundo, de 280 a 146 a.C., sin límite de horas.' },
+    corta: {
+      id: 'corta', n: 'Partida corta', region: 'italia', edades: 3, rival: 'epiro', capitalRival: 'tarentum', hasta: 232,
+      factores: { obra: 1, instr: 1, costes: 1, saber: 1, refuerzos: 1, guarnicion: 2 },
+      duracion: { horasMin: 2, horasMax: 4, segReloj: 12, segDecision: 60, segPorTurno: 72 },
+      inicio: {
+        enPie: { n: 'Roma y Capua en pie', d: 'Empiezas con Roma y Capua ya construidas, como en la campaña de Italia.', factores: { obra: 1.3, instr: 1.6, guarnicion: 3 } },   // con dos ciudades hechas el bot llega antes: se compensa con tropas más lentas y un Tarento más fuerte
+        fundar: { n: 'Fundar de la nada', d: 'Empiezas sin ciudad: funda tu primera colonia y de ella saldrá todo.', sitio: 'beneventum' }
+      },
+      final: {
+        gana: 'Tarento ha caído en {anio} a.C. Toda la Italia peninsular reconoce tu poder: el Sur ya no tiene rey.',
+        pierde: 'Tu capital ha caído en {anio} a.C. ante {rival}. Vae victis.',
+        agota: 'Ha pasado el año {hasta} a.C. y Tarento sigue libre. No has dominado la península a tiempo.'
+      }
+    }
+  };
+  D.regionCiudades = (id, conColonias) => { const r = D.REGIONES[id]; return r && r.ciudades ? r.ciudades.filter(c => D.CITIES[c]).concat(conColonias ? Object.keys(D.CITIES).filter(c => D.CITIES[c].colonia) : []) : Object.keys(D.CITIES); };   // las colonias fundadas (D.CITIES[c].colonia) cuentan solo si conColonias (partida corta); la campaña de Italia queda como antes
+  D.regionEdges = (id, conColonias) => { const l = D.regionCiudades(id, conColonias); return D.EDGES.filter(e => l.indexOf(e[0]) >= 0 && l.indexOf(e[1]) >= 0); };
 
   /* Zonas del mapa (C6, escalones). Agrupan las ciudades de D.CITIES por id para los nombres grandes de Mare Nostrum.
      Cada ciudad está en una sola zona. Los límites son agrupación de juego, no fronteras de la época. */

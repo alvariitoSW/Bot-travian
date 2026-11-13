@@ -64,7 +64,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ⬜ I5d **Reformar y afinado** (opcional, ≈1 M; tras jugar el sistema): cambiar de saber pagando el coste completo; afinado con medida real y cotejo de citas.
 - ✅ I6 **Región de Italia** montada solo con fichas (12/11): `D.REGIONES`, `G.newGame(nombre, región)`, mapa que oculta lo de fuera, botón «Región de Italia». Cómo definir una región: parte I6.
 - ✅ I7 Fundida en J3 (capital y pueblos; decisión del 11/11).
-- ⬜ I8 **Partida corta** (P49): fundas de cero, un rival, un final. Sustituye a F1b. 0,25 + 0,8 M · 25 min. Después de I2 a I7.
+- ✅ I8 **Partida corta** (P49): menú con «Roma y Capua en pie» y «Fundar de la nada», Italia, un rival, final con resumen (D.MODOS). Parte: gobierno/partes/2026-11-13-I8.md
 
 ## Carril J — Interfaz y territorio (aprobado 11/11/2026, P58 a P62)
 - ✅ J1 **Pantalla limpia** (11/11): maqueta B elegida por el usuario; dos modos Gobierno/Guerra, fila fina de recursos, tira de vistas y tres botones redondos abajo; sin barra de pestañas. Parte: `partes/2026-11-11-J1.md`.
@@ -220,3 +220,4 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ✅ G3 Dos informes de diseño con plan y presupuesto: `gobierno/estudios/G3-batallas-estrategicas.md` (diez tareas; reparte A1 a A6) y `G3-gran-diseno.md` (seis decisiones y tres fases). Propuestas P40 a P49 en la bitácora; nada se construye sin aprobar.
 - ✅ G2 Ministerio de Adecuación Histórica montado (11/11/2026): skill `historia`. Sus tareas, cuando el usuario las apruebe, irán en un carril H.
 - ✅ G1 Gobierno reducido y cuadro de mando montados (11/11/2026). Guía: `gobierno/LEEME.md`.
+- ⬜ I8b **Pulir la partida corta**: etiquetas de colonias libres tapan Roma en el mapa de Italia; recursos vacíos de la barra mientras se funda; probar edad 3 con el bot; arado: pasar a «jugando» al terminar el surco.

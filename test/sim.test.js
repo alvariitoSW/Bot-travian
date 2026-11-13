@@ -3,6 +3,7 @@ const assert = require('assert');
 const D = require('../js/data.js');
 const { Battle } = require('../js/battle.js');
 const G = require('../js/game.js');
+const CIUDADES_0 = JSON.stringify(D.CITIES);   // I8-a: pruebas anteriores retocan guarniciones de D.CITIES y no las devuelven; el bloque de la partida corta las restaura
 
 const side = (units, extra) => Object.assign({ units, name: 'x', col: '#000', atkMul: 1, defMul: 1, mor: 0 }, extra || {});
 function fight(a, b, opt) { const bt = new Battle(Object.assign({ sides: [side(a), side(b)], defender: 1, wall: 0, seed: 42 }, opt || {})); bt.finish(); return bt.result(); }
@@ -256,13 +257,14 @@ for (const id in D.CITIES) { assert(D.FACTIONS[D.CITIES[id].f]); for (const k in
 
 // 5. Campaña completa con un bot sencillo: no debe lanzar excepciones y debe terminar
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-function campaign(aggressive, seed, region) {
+function campaign(aggressive, seed, region, opciones) {
   const rndOrig = Math.random; if (seed) Math.random = mulberry32(seed);
-  try { return campaign1(aggressive, region); } finally { Math.random = rndOrig; }
+  try { return campaign1(aggressive, region, opciones); } finally { Math.random = rndOrig; }
 }
-function campaign1(aggressive, region) {
-  const s = G.newGame('Test', region); const meta = G.region().capitalRival; const events = [];
+function campaign1(aggressive, region, opciones) {
+  const s = G.newGame('Test', region, opciones); const meta = G.capitalRival(); const events = [];
   G.onEvent = (t, p) => { events.push(t); if (process.env.V && t === 'log' && /⚠|🔥|🏆|💀|rechaza|📜/.test(p.x)) console.log('  ', G.yearOf(s.t), p.x); };
+  if (G.fundando()) { const sitio = G.modo().inicio.fundar.sitio; let pt = G.notaFundar(sitio, 172, -196).vale ? [172, -196] : null; for (let x = -300; x <= 300 && !pt; x += 20) for (let z = -300; z <= 300 && !pt; z += 20) if (G.notaFundar(sitio, x, z).vale) pt = [x, z]; assert(pt, 'hay un punto válido para fundar'); assert(G.fundarColonia(sitio, pt[0], pt[1]).ok); }   // I8: el bot funda su primera ciudad
   const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
   let guard = 0;
   while (!s.over && guard++ < 200000) {
@@ -278,10 +280,10 @@ function campaign1(aggressive, region) {
       const yr = G.yearOf(s.t); if (yr <= 230 && yr >= 209) continue;   // el bot se atrinchera ante la invasión de Aníbal
       // concentración: las tropas avanzan por la ruta más corta hacia Carthago mientras la siguiente plaza sea romana
       const sig = G.neighbors(id).sort((a, b) => dist[a] - dist[b])[0];
-      if (id !== meta && dist[sig] < dist[id] && s.cities[sig].owner === 'roma' && !s.marches.some(m => m.owner === 'roma' && m.from === id)) { const u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (id === "roma" ? 0.15 : 0.65)); if (G.men(u) >= 100 && G.send(id, sig, u, false)) continue; }
+      if (id !== meta && dist[sig] < dist[id] && s.cities[sig].owner === 'roma' && !s.marches.some(m => m.owner === 'roma' && m.from === id)) { const u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (id === G.capital() ? 0.15 : 0.65)); if (G.men(u) >= 100 && G.send(id, sig, u, false)) continue; }
       for (const n of G.neighbors(id)) {
         const t = s.cities[n]; if (t.owner === 'roma') continue;
-        const keepHome = id === 'roma' ? 0.35 : 0.2, u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (1 - keepHome));
+        const keepHome = id === G.capital() ? 0.35 : 0.2, u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (1 - keepHome));
         if (G.power(u) > G.power(t.units) * (1.6 + 0.12 * t.b.muralla) && !s.marches.some(m => m.owner === 'roma' && s.cities[m.to].owner !== 'roma')) { G.send(id, n, u, G.heroAvailable(id)); break; }
       }
     }
@@ -1655,4 +1657,78 @@ console.log('OK — todas las pruebas superadas');
   const antes = snap(), hist = JSON.stringify(G.ajustes().hist); G.save(); assert(G.load()); assert.strictEqual(snap(), antes, 'cargar da la misma ciudad'); assert.strictEqual(JSON.stringify(G.ajustes().hist), hist);
   assert(G.sucesosEn(G.state.ajustes.hist[G.state.ajustes.hist.length - 1][0]).on.crecida === false);
   delete global.localStorage; G.usarCiudad(null); console.log('CN14-B: ajustes, migración y reproducibilidad OK (consejo del granero: solo en ui.js, para la captura)');
+}
+{ // I8-a: «Partida corta» (D.MODOS.corta): datos, fundar de la nada, equilibrio del bot, duración, final, campaña intacta y migración
+  const fs = require('fs'); G.usarCiudad(CIMOD); { const c0 = JSON.parse(CIUDADES_0); for (const id in c0) if (D.CITIES[id]) for (const k of ['g', 'w', 'wl', 'f', 'post', 'en228']) if (c0[id][k] !== undefined) D.CITIES[id][k] = c0[id][k]; }
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  const M = D.MODOS.corta, du = M.duracion, sitio = M.inicio.fundar.sitio;
+  assert(D.MODOS.campana && M.id === 'corta' && M.region === 'italia' && M.edades === 3 && D.REGIONES[M.region], 'D.MODOS: campaña y corta');
+  assert(D.COLONIAS[sitio] && D.CITIES[M.capitalRival] && D.FACTIONS[M.rival] && D.CITIES[M.capitalRival].f === M.rival, 'el sitio, la capital rival y el rival existen');
+  assert.strictEqual(du.segPorTurno, du.segReloj + du.segDecision, 'segPorTurno = reloj + decisión'); assert.strictEqual(du.segReloj, 3 * 4, 'el reloj de un turno: 3 meses a 4 s/mes');
+  assert(M.hasta < D.START_YEAR && /\{anio\}/.test(M.final.gana) && /\{anio\}/.test(M.final.pierde) && /\{hasta\}/.test(M.final.agota), 'textos finales con sus huecos');
+
+  // (c) campaña histórica intacta: sin modo (o con 'campana') la partida es la de siempre
+  { const a = JSON.stringify(G.newGame('Igual', 'italia')), sa = G.state, b = JSON.stringify(G.newGame('Igual', 'italia', { modo: 'campana' }));
+    assert.strictEqual(a, b, "modo 'campana' = sin modo, bit a bit"); assert.strictEqual(sa.modo, null); assert.strictEqual(sa.capital, undefined);
+    assert(G.modo() === null && G.modoFase() === null && !G.fundando() && G.factor('instr') === 1 && G.factor('guarnicion') === 1 && G.hasta() === 230 && G.capital() === 'roma' && G.edadMax() === 4 && G.capitalRival() === 'tarentum', 'sin modo todo vale como antes');
+    G.newGame('M'); assert(G.hasta() === D.END_YEAR && G.capitalRival() === 'carthago', 'Mediterráneo intacto'); }
+
+  // arranque «en pie»
+  { const s = G.newGame('Pie', null, { modo: 'corta', inicio: 'enPie' });
+    assert.deepStrictEqual(s.modo, { id: 'corta', inicio: 'enPie', fase: 'jugando' }); assert.strictEqual(s.region, 'italia'); assert.strictEqual(s.capital, 'roma'); assert.deepStrictEqual(G.myCities().sort(), ['capua', 'roma']);
+    assert(G.modo() === M && G.hasta() === 232 && G.factor('instr') === 1.6 && G.factor('saber') === 1 && G.edadMax() === 3 && !G.fundando());
+    assert(G.bonoMul('instr') > 0 && G.factor('guarnicion') === 3 && s.cities.tarentum.units.falange === Math.round(D.CITIES.tarentum.g.falange * 3), 'el rival parte con la guarnición del modo'); }
+  // arranque «fundar de la nada»
+  { const s = G.newGame('Nada', null, { modo: 'corta', inicio: 'fundar' });
+    assert.deepStrictEqual(s.modo, { id: 'corta', inicio: 'fundar', fase: 'fundando' }); assert(G.fundando() && G.modoFase() === 'fundando');
+    assert.deepStrictEqual(G.myCities(), [], 'sin ciudad'); assert(!s.cities.roma && !s.cities.capua && s.cities.tarentum && s.cities.volsinii, 'ni Roma ni Capua; el resto de Italia sí');
+    assert.strictEqual(s.colonias[sitio].estado, 'pendiente'); assert.deepStrictEqual(G.coloniasPendientes(), [sitio]); assert.strictEqual(s.hero.city, null); assert.strictEqual(s.capital, undefined);
+    const t0 = s.t; G.tick(1); G.tick(0.25); assert.strictEqual(s.t, t0, 'el tiempo no corre hasta fundar'); assert(!s.over && !s.pending.length && G.pasarTurno() === false);
+    assert(G.prod() && G.cap() === 0 && G.consejo() !== undefined, 'nada se rompe sin ciudades');   // G.consejo lee la partida
+    G.save(); assert(G.load()); assert(G.fundando() && G.state.colonias[sitio].estado === 'pendiente' && G.myCities().length === 0, 'guardar y cargar antes de fundar');
+    assert.strictEqual(G.fundarColonia(sitio, 0, -430).ok, false); assert(G.fundando(), 'un intento fallido no arranca la partida');
+    let pt = null; for (let x = -300; x <= 300 && !pt; x += 20) for (let z = -300; z <= 300 && !pt; z += 20) if (G.notaFundar(sitio, x, z).vale) pt = [x, z];
+    const f = G.fundarColonia(sitio, pt[0], pt[1]); assert(f.ok, f.motivo); const s2 = G.state;
+    assert(!G.fundando() && s2.modo.fase === 'jugando' && s2.capital === sitio && s2.hero.city === sitio && G.capital() === sitio && G.myCities().join() === sitio, 'fundada: capital, héroe y fase jugando');
+    assert(G.neighbors(sitio).includes(M.capitalRival) && !G.neighbors(sitio).some(n => !s2.cities[n]), 'la colonia llega a Tarento y a ningún lugar ausente');
+    const t1 = s2.t; for (let i = 0; i < 8; i++) G.tick(0.25); assert(s2.t > t1 && !s2.over, 'ya corre el tiempo');
+    G.save(); assert(G.load()); assert(G.state.modo.fase === 'jugando' && G.state.capital === sitio && G.myCities().join() === sitio, 'guardar y cargar tras fundar'); }
+  // sin la ciudad nueva no se puede fundar: cae a «en pie» (la interfaz siempre la tiene)
+  { G.usarCiudad(null); assert.strictEqual(G.newGame('S', null, { modo: 'corta', inicio: 'fundar' }).modo.inicio, 'enPie'); G.usarCiudad(CIMOD); }
+
+  // edades: el tope del modo
+  { const s = G.newGame('Ed', null, { modo: 'corta' }); s.inv.edad = 3; const r = G.edadUp(); assert(!r.ok && /última edad/.test(r.motivo), 'tope de 3 edades en la corta'); assert(G.invEstado('E4').e === 'edad');
+    const c = G.newGame('Ed2', 'italia'); c.inv.edad = 3; assert(G.edadMax() === 4 && G.invEstado('E4').e !== 'edad', 'la campaña sigue llegando a la edad IV'); }
+
+  // (a)+(b) el bot agresivo y el pasivo juegan la corta, en 10 semillas y en los dos inicios; se mide la duración
+  const horas = s => s.over.resumen.turnos * du.segPorTurno / 3600, tabla = [], todas = { agr: [], pas: [] };
+  for (const ini of ['enPie', 'fundar']) for (const ag of [true, false]) {
+    const l = []; for (let sd = 1; sd <= 10; sd++) {
+      const s = campaign(ag, sd, null, { modo: 'corta', inicio: ini }); l.push(s); todas[ag ? 'agr' : 'pas'].push(s);
+      assert(s.over && s.over.resumen && s.over.resumen.modo === 'corta' && s.over.resumen.inicio === ini && s.over.resumen.turnos > 0 && Math.abs(s.over.resumen.horas - horas(s)) < 0.01, 'resumen del final');
+      assert(['ciudades', 'fundadas', 'batallas', 'bajasEnemigas', 'bajasPropias', 'edad', 'anio', 'victorias'].every(k => typeof s.over.resumen[k] === 'number'), 'el resumen trae los datos de la pantalla final');
+      const dentro = new Set(D.regionCiudades('italia', true)); for (const id in s.cities) assert(dentro.has(id), 'ciudad fuera de la región: ' + id);
+      assert(s.region === 'italia' && s.inv.edad <= 3, 'región e edades de la corta');
+      if (ini === 'fundar') assert(!('roma' in s.cities) && !('capua' in s.cities) && s.capital === sitio, 'fundar: sin Roma ni Capua y capital = primera colonia');
+      assert(!/\{/.test(s.over.why), 'el texto final no deja huecos sin rellenar: ' + s.over.why);
+      if (s.over.win) assert(/Tarento ha caído en \d+ a\.C\./.test(s.over.why) && s.over.resumen.ciudades >= 2, 'victoria = capital rival tomada'); else assert(/capital ha caído|Tarento sigue libre/.test(s.over.why), 'derrota: capital perdida o año tope');
+    }
+    const w = l.filter(s => s.over.win), hs = l.map(horas), hw = w.map(horas);
+    tabla.push([ini, ag ? 'agresivo' : 'pasivo', w.length + '/10', hw.length ? Math.min(...hw).toFixed(2) + '-' + Math.max(...hw).toFixed(2) + ' h' : '-', (hs.reduce((a, b) => a + b, 0) / 10).toFixed(2) + ' h', l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t)).join(' ')]);
+    if (ag) assert(w.length >= 6, 'partida corta ' + ini + ': el agresivo gana la mayoría (' + w.length + '/10)'); else assert.strictEqual(w.length, 0, 'partida corta ' + ini + ': el pasivo no gana nunca');
+    for (const x of hw) assert(x >= du.horasMin && x <= du.horasMax, 'una victoria en ' + ini + ' dura ' + x.toFixed(2) + ' h, fuera de ' + du.horasMin + '-' + du.horasMax + ' h');
+    for (const x of hs) assert(x <= du.horasMax, 'ninguna partida pasa de ' + du.horasMax + ' h (' + x.toFixed(2) + ' h)');
+  }
+  console.log('Partida corta (' + du.segPorTurno + ' s por turno):'); for (const f of tabla) console.log('  ' + f[0].padEnd(7) + f[1].padEnd(9) + 'gana ' + f[2].padEnd(6) + 'victorias ' + f[3].padEnd(15) + 'media ' + f[4] + '  ' + f[5]);
+  assert(todas.agr.some(s => !s.over.win), 'el agresivo debe poder perder alguna'); assert(todas.agr.some(s => s.over.win && s.over.resumen.edad >= 1));
+
+  // (d) migración: partida vieja = campaña; una corta guarda y carga igual
+  { const raw = fs.readFileSync(__dirname + '/partida-vieja.json', 'utf8'); assert(JSON.parse(raw).modo === undefined); store['aqvila-save-v1'] = raw;
+    assert(G.load()); assert.strictEqual(G.state.modo, null); assert(G.modo() === null && G.capital() === 'roma' && G.edadMax() === 4 && !G.fundando(), 'partida vieja = campaña');
+    const m = G.migrarModo; const raro = { modo: { id: 'inventada' }, cities: {}, colonias: {} }; m(raro); assert.strictEqual(raro.modo, null, 'modo desconocido = campaña');
+    const s = G.newGame('Guarda', null, { modo: 'corta', inicio: 'enPie' }); for (let i = 0; i < 12; i++) G.tick(0.25); const antes = JSON.stringify({ m: s.modo, c: s.capital, t: s.t, ci: G.myCities() });
+    G.save(); assert(G.load()); assert.strictEqual(JSON.stringify({ m: G.state.modo, c: G.state.capital, t: G.state.t, ci: G.myCities() }), antes, 'la corta guarda y carga igual'); assert(G.modo() === M);
+    delete G.state.modo.fase; G.state.modo.inicio = 'rara'; G.migrarModo(G.state); assert(G.state.modo.inicio === 'enPie' && G.state.modo.fase === 'jugando', 'migrarModo repara un modo estropeado'); }
+  delete global.localStorage; G.onEvent = null; G.usarCiudad(null);
+  console.log('I8-a: partida corta OK (datos, fundar, equilibrio del bot, duración 2-4 h, final, campaña intacta, migración)');
 }

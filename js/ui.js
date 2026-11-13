@@ -131,6 +131,12 @@ function ajustesHtml() {
     '<small>Los cambios de dificultad y sucesos valen desde el mes siguiente.</small><div class="ajb"><button class="chip" data-act="repetirasesor">Repetir los consejos</button></div>' +
     '<div class="ajf" id="aj-sonido"><div class="ajb"><button class="chip' + (sonidoOn() ? ' on' : '') + '" data-act="sonido">' + sonidoTxt() + '</button></div></div></div>';
 }
+/* I8: bloque «Partida corta» del menú: dos botones con su línea de explicación (los textos vienen de D.MODOS.corta) */
+function cortaHtml() {
+  const m = D.MODOS && D.MODOS.corta; if (!m) return '';
+  const b = (k, act) => '<button class="btn corta" data-act="' + act + '">' + esc(m.inicio[k].n) + '</button><small class="cortad">' + esc(m.inicio[k].d) + '</small>';
+  return '<div class="cortab"><b>Partida corta (Italia, ' + m.duracion.horasMin + ' a ' + m.duracion.horasMax + ' horas)</b>' + b('enPie', 'cortaen') + b('fundar', 'cortafun') + '</div>';
+}
 function showMenu() {
   UI.menu = true; $('menu').hidden = false;
   const img = portrait('general', ROMA);
@@ -138,7 +144,7 @@ function showMenu() {
     '<p>280 a.C. Gobierna tus ciudades, levanta legiones, dirige las batallas sobre el terreno y lleva las águilas hasta Cartago antes del 146 a.C.</p>' +
     (G.hasSave() ? '<button class="btn gold" data-act="continue">Continuar campaña</button>' : '') +
     '<input id="hname" maxlength="28" placeholder="Nombre de tu general" value="Lucio Cornelio Escipión">' +
-    difFila('m') + '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="newregion" data-v="italia">Región de Italia</button><button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><button class="btn" data-act="sonido">' + sonidoTxt() + '</button><div class="spqr">S·P·Q·R</div>' +
+    difFila('m') + '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="newregion" data-v="italia">Región de Italia</button>' + cortaHtml() + '<button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><button class="btn" data-act="sonido">' + sonidoTxt() + '</button><div class="spqr">S·P·Q·R</div>' +
     '<div class="credits">Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1</div>';
 }
 { let tv = 0; const sf = () => { clearTimeout(tv); tv = setTimeout(() => { UI.svDown = false; }, 150); };   // Saber: no repintar entre pulsar y soltar
@@ -148,13 +154,49 @@ function showMenu() {
   const fin = () => { clearTimeout(tm); tm = setTimeout(() => { UI.cuDown = false; }, 120); };
   document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('#cuentas')) { UI.cuDown = true; clearTimeout(tm); tm = setTimeout(() => { UI.cuDown = false; }, 1500); } }, true);
   document.addEventListener('pointerup', fin, true); document.addEventListener('pointercancel', fin, true); }
-function startGame() { UI.avisoFirma = ''; if (G.turnos && S()) S().speed = 0; UI.menu = false; $('menu').hidden = true; UI.city = 'roma'; UI.sel = null; if (UI.map) UI.map.encuadre(); UI.cityList = false; setModo('gobierno'); }
+function startGame() {
+  UI.avisoFirma = ''; if (G.turnos && S()) S().speed = 0; UI.menu = false; $('menu').hidden = true; UI.sel = null; if (UI.map) UI.map.encuadre(); UI.cityList = false;
+  const sitio = G.fundando() ? G.modo().inicio.fundar.sitio : null, cap = S() && S().capital;
+  UI.city = sitio || (cap && S().cities[cap] ? cap : 'roma');   // I8: en «fundar de la nada» la ciudad es el sitio; con capital propia, esa
+  if (sitio) { UI.modo = 'gobierno'; UI.tab = 'city'; iniciarFundar(); } else setModo('gobierno');
+}
+/* I8: «Fundar de la nada». Con el reloj parado (G.fundando) se abre la pantalla de fundar; si la vista 3D aún carga, se reintenta en 0,4 s. */
+function iniciarFundar() {
+  clearTimeout(UI.fundarT); if (!G.fundando() || UI.menu) return;
+  const sitio = G.modo().inicio.fundar.sitio;
+  if (!UI.cityV || !UI.cityV.listo) { UI.fundarT = setTimeout(iniciarFundar, 400); return; }
+  if (UI.fundar) return;
+  if (UI.modalOpen || UI.modalQ.length) { UI.fundarT = setTimeout(iniciarFundar, 400); return; }   // primero los avisos de época que haya en cola
+  UI.city = sitio; UI.tab = 'city'; UI.modo = 'gobierno';
+  if (UI.abrirFundar(sitio, alFundarModo)) lineaPon('Tus colonos han llegado a ' + D.COLONIAS[sitio].n + ': elige dónde fundar.', 'aviso');
+  else UI.fundarT = setTimeout(iniciarFundar, 600);
+}
+function alFundarModo(sitio) { UI.city = sitio; UI.overShown = false; G.save(); setModo('gobierno'); toast('Has fundado ' + D.CITIES[sitio].n + ': es tu capital.', ''); }
+function fundarCancelado() {   // sin ciudad no hay partida a la que volver: se ofrece reabrir la pantalla o salir al menú (la partida queda guardada)
+  modal('<div class="yr">COLONOS</div><h2>Aún no has fundado</h2><p>Tus colonos esperan en ' + esc(D.COLONIAS[G.modo().inicio.fundar.sitio].n) + '. La partida no empieza hasta que elijas el lugar.</p><div class="acts"><button class="btn ghost" data-act="tomenu">Volver al menú</button><button class="btn gold" data-act="refundar">Elegir el lugar</button></div>', true);
+}
 function showOver() {
   const s = S(), o = s.over; if (!o || UI.overShown) return; UI.overShown = true;
+  if (o.resumen) { showOverCorta(o); return; }
   modal('<div class="yr">' + (o.win ? 'VICTORIA' : 'DERROTA') + '</div><h2>' + (o.win ? 'Roma Victrix' : 'Vae victis') + '</h2><p>' + esc(o.why) + '</p>' +
     '<p>Ciudades: <b>' + G.myCities().length + '</b> de ' + G.ciudadesRegion().length + ' · Batallas: <b>' + s.stats.wins + '/' + s.stats.battles + '</b> ganadas\nEnemigos abatidos: <b>' + s.stats.kills + '</b> · Bajas propias: <b>' + s.stats.lost + '</b>\n' + esc(s.hero.name) + ', nivel <b>' + s.hero.lvl + '</b></p>' +
     '<div class="acts"><button class="btn" data-act="tomenu">Volver al menú</button></div>', true);
 }
+
+/* I8: final de la partida corta: resumen en llano, sin nota ni puntuación */
+function showOverCorta(o) {
+  const r = o.resumen, md = D.MODOS[r.modo], ini = md && md.inicio && md.inicio[r.inicio], ed = r.edad || 1, edn = D.SABER.edadNombres[ed - 1] || '';
+  const hr = r.horas, hTxt = hr < 0.95 ? 'menos de una hora' : hr < 1.05 ? 'una hora' : 'unas ' + String(Math.round(hr * 10) / 10).replace('.', ',') + ' horas';
+  const f = (k, v) => '<div class="rs-f"><span>' + k + '</span><b>' + v + '</b></div>';
+  modal('<div class="yr">' + (o.win ? 'VICTORIA' : 'DERROTA') + '</div><h2>' + (o.win ? 'Roma Victrix' : 'Vae victis') + '</h2><p>' + esc(o.why) + '</p>' +
+    '<div class="resumen"><div class="rs-t">' + esc(md ? md.n : 'Partida') + (ini ? ' · ' + esc(ini.n) : '') + '</div>' +
+    f('Año al terminar', r.anio + ' a.C.') + f('Turnos jugados', r.turnos) + f('Tiempo de juego', hTxt + ' (estimado)') +
+    f('Ciudades que tenías', r.ciudades + (r.fundadas ? ' (' + r.fundadas + (r.fundadas === 1 ? ' fundada' : ' fundadas') + ' por ti)' : '')) +
+    f('Batallas ganadas', r.victorias + ' de ' + r.batallas) + f('Enemigos abatidos', r.bajasEnemigas) + f('Bajas propias', r.bajasPropias) +
+    f('Edad alcanzada', 'Edad ' + ['I', 'II', 'III', 'IV'][ed - 1] + (edn ? ' · ' + esc(edn) : '')) + f(esc(s_name()), 'nivel ' + r.heroe) + '</div>' +
+    '<div class="acts"><button class="btn" data-act="tomenu">Volver al menú</button></div>', true);
+}
+const s_name = () => (S() && S().hero && S().hero.name) || 'General';
 
 /* ---------- HUD ---------- */
 function buildTop() {
@@ -190,7 +232,7 @@ const ICO_GOB = svgIco('<path d="M3 20h18M5 20V9h14v11M3 9h18M9 20v-6h6v6M12 4v5
 function cityOk() { const my = G.myCities(); if (!my.includes(UI.city)) UI.city = my[0] || 'roma'; return UI.city; }
 function setTxt(id, v) { const e = $(id); if (e && e.dataset.k !== v) { e.dataset.k = v; e.innerHTML = v; } }
 function hudDock() {
-  const s = S(); if (!s) return; const g = UI.modo !== 'guerra', c = s.cities[cityOk()], open = !$('hoja').hidden;
+  const s = S(); if (!s || G.fundando()) return; const g = UI.modo !== 'guerra', c = s.cities[cityOk()], open = !$('hoja').hidden;
   const f = Math.round(G.felicidad(c)), cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠', nm = s.marches.filter(m => m.owner === 'roma').length;
   $('app').dataset.modo = g ? 'gobierno' : 'guerra';
   $('bact').className = 'rd ' + (g ? 'oro' : 'rojo'); $('bmodo').className = 'rd ' + (open ? 'cierra' : g ? 'oro' : 'rojo'); $('bpill').className = g ? '' : 'w';
@@ -202,7 +244,7 @@ function hudDock() {
   setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
 }
 function tickUI() {
-  const s = S(); if (!s) return;
+  const s = S(); if (!s || G.fundando()) return;   // I8: sin ciudad aún no hay cuentas que pintar
   if (UI.map && UI.map.cities) for (const id in UI.map.cities) { if (!D.CITIES[id] || !D.CITIES[id].antes) continue; const sp = UI.map.cities[id].el.querySelector('span'); if (sp && sp.textContent !== D.CITIES[id].n) sp.textContent = D.CITIES[id].n; }   // H14: el nombre del mapa cambia con la fecha (Poblado íbero → Carthago Nova)
   const p = G.prod(), cap = G.cap(), pr = G.previsionCierre(), aviso = G.fraccionMes() >= D.AVISO_CIERRE;
   for (const r of D.RES) {
@@ -273,7 +315,7 @@ function cityMenuHtml() {
 function renderPop() { renderCuentas(); const ps = $('popsheet'); if (ps.hidden) return; ps.innerHTML = '<div class="tt">' + D.CITIES[cityOk()].n + '</div>' + popHtml(S().cities[UI.city]) + '<div class="acts"><button class="btn" data-act="popx">Cerrar</button></div>'; }
 function render() {
   UI.dirty = false;
-  if (!S()) return; renderPop(); if (UI.tab === 'map') { renderSheet(); return; }
+  if (!S() || G.fundando()) return; renderPop(); if (UI.tab === 'map') { renderSheet(); return; }
   if (UI.tab === 'city' && UI.cityV && !UI.cityList) { renderCity3D(); tickUI(); return; }
   if (UI.tab === 'saber' && UI.svDown) { UI.dirty = true; return; }   // no repintar entre pulsar y soltar: se perderían los toques
   const v = $('view'), st = v.scrollTop;
@@ -701,7 +743,7 @@ function cityPantalla() {
   if (si._t !== t) { si._t = t; si.innerHTML = t; } si.disabled = off;
 }
 function salir3(avisar) {
-  if (UI.modo3 === 'fundar') { cerrarFundar(); return; }
+  if (UI.modo3 === 'fundar') { if (G.fundando()) { cerrarFundar(true); fundarCancelado(); } else cerrarFundar(); return; }
   UI.modo3 = 'mirar'; UI.sel3 = null;      /* con sel3 se van el efecto y el «mejor» */
   if (UI.cityV) { UI.cityV.ponerFantasma(null); UI.cityV.calor(null); }
   if (!avisar) lineaPon(''); cityPantalla(); pintaLinea();
@@ -1242,6 +1284,8 @@ document.addEventListener('click', function (e) {
     case 'sonido': { const so = window.Sonido; if (so) { if (sonidoOn()) so.off(); else so.on(); } if (UI.menu) { const nm = $('hname') ? $('hname').value : ''; showMenu(); if (nm && $('hname')) $('hname').value = nm; } else render(); break; }
     case 'fluidez': fijarFluidez(!fluidezOn()); showMenu(); break;
     case 'new': case 'newregion': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
+    case 'cortaen': case 'cortafun': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', null, { modo: 'corta', inicio: a === 'cortafun' ? 'fundar' : 'enPie', dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
+    case 'refundar': closeModal(); iniciarFundar(); break;
     case 'continue': if (G.load()) { UI.overShown = false; startGame(); if (S().over) showOver(); } break;
     case 'tomenu': G.save(); UI.modalQ = []; closeModal(); stopBattle(); showMenu(); break;
     case 'tab': UI.codice = null; setTab(v); break;
@@ -1282,7 +1326,7 @@ document.addEventListener('click', function (e) {
     case 'tab3': UI.codice = null; UI.vistas = false; UI.bsel = null; if (v === 'imperio') { UI.modo = 'gobierno'; setTab('imperio'); } else { UI.cityList = v === 'gobierno'; setTab('city'); } break;
     case 'cvistas': UI.vistas = !UI.vistas; renderCity3D(); break;
     case 'cbuild': construir3(); break;
-    case 'fundar': closeModal(); UI.abrirFundar(v); break;
+    case 'fundar': closeModal(); UI.abrirFundar(v, G.fundando() ? alFundarModo : undefined); break;
     case 'colonos': { const r = G.enviarColonos(el.dataset.from, el.dataset.to); if (r.ok) toast('🏛️ Los colonos parten hacia ' + G.lugar(el.dataset.to).n + '.', 'good'); else toast(r.motivo, 'bad'); UI.sheetKey = ''; renderSheet(); break; }
     case 'ccancel': salir3(); break;
     case 'cclose': UI.bsel = null; renderCity3D(); tickUI(); break;
@@ -1373,7 +1417,7 @@ function frame(now) {
     }
     if (UI.fundar) fundarCuadro(now);
     else if (UI.map && UI.tab === 'map') UI.map.update(s, UI.sel);
-    if (UI.cityV && UI.tab === 'city' && !UI.cityList && !UI.fundar) { if (s.cities[UI.city].owner !== 'roma') UI.city = G.myCities()[0] || 'roma'; if (UI.cityV.listo && !UI.minis) { try { UI.minis = UI.cityV.miniaturas(); } catch (e) { UI.minis = {}; } UI.bandK = ''; cityPantalla(); } UI.cityV.update(s.cities[UI.city], UI.city, UI.bsel, now / 1000); }
+    if (UI.cityV && UI.tab === 'city' && !UI.cityList && !UI.fundar && !G.fundando()) { if (s.cities[UI.city].owner !== 'roma') UI.city = G.myCities()[0] || 'roma'; if (UI.cityV.listo && !UI.minis) { try { UI.minis = UI.cityV.miniaturas(); } catch (e) { UI.minis = {}; } UI.bandK = ''; cityPantalla(); } UI.cityV.update(s.cities[UI.city], UI.city, UI.bsel, now / 1000); }
     if (UI.modo3 && UI.modo3 !== 'mirar' && UI.modo3 !== 'fundar' && (UI.tab !== 'city' || UI.cityList || UI.city !== UI.col3City)) salir3();
     if (UI.dirty) render();
     UI.acc = (UI.acc || 0) + dt; if (UI.acc > 0.25) { UI.acc = 0; tickUI(); if (UI.tab === 'map' && UI.sel && !UI.modalOpen) renderSheet(); }
