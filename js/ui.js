@@ -1490,7 +1490,7 @@ loadStaticIndex().then(idx => Promise.all([preloadStatic(Object.keys(idx)), load
   try { $('citywrap').hidden = false; UI.cityV = new CityView3D($('citywrap'), Object.assign({ onPick: tocarCiudad }, gestosCiudad)); $('citywrap').hidden = true; if (UI.tab === 'city' && !UI.menu) setTab('city'); }
   catch (e) { console.warn('Sin vista 3D de ciudad', e); $('citywrap').hidden = true; }
 });
-window.UI = UI; UI.maniobra = window.UIManiobra; UI.consejoModal = consejoModal; UI.toast = toast; UI.toastResumen = toastResumen;   // CN22: la cola de avisos, para quien la necesite desde fuera
+window.UI = UI; UI.maniobra = window.UIManiobra; UI.batalla2 = window.UIBatalla2; UI.consejoModal = consejoModal; UI.toast = toast; UI.toastResumen = toastResumen;   // CN22: la cola de avisos, para quien la necesite desde fuera
 
 // N7: el deslizador de tiempo de «Ver futuro» (4 posiciones: final, 10, 20, 30 s)
 document.addEventListener('input', ev => { const t = ev.target; if (!t || t.id !== 'btslider' || !UI.battle || !UI.battle.view || !UI.battle.view.ponTPrev) return; UI.battle.view.ponTPrev([0, 10, 20, 30][+t.value] || 0); });
