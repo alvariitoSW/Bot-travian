@@ -77,6 +77,14 @@ console.log('Juez 1e · ajustes y dificultades (test/ajustes.test.mjs)');
   apunta('Ajustes y dificultades (bot por nivel)', r.status === 0, ult.slice(0, 200));
 }
 
+/* ---------- 1f. Sonido de la ciudad (CN15c; lógica pura, segundos; también en --rapido) ---------- */
+console.log('Juez 1f · sonido de la ciudad (test/sonido-ciudad.test.mjs)');
+{
+  const r = spawnSync(process.execPath, ['test/sonido-ciudad.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 60000 });
+  const ult = ((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean).slice(-1)[0] || '';
+  apunta('Sonido de la ciudad', r.status === 0, ult.slice(0, 200));
+}
+
 /* ---------- 2. Navegador ---------- */
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.txt': 'text/plain; charset=utf-8' };
 function servidor() {

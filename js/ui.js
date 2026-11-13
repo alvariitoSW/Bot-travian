@@ -122,12 +122,14 @@ function difFila(donde) {
   return '<div class="ajf" id="dif-' + donde + '"><b>Dificultad de la ciudad</b><div class="ajb">' + Object.keys(D.DIFICULTAD).map(k => '<button class="chip' + (k === act ? ' on' : '') + '" data-act="dif" data-v="' + k + '" data-d="' + donde + '">' + (DIF_NOM[k] || k) + '</button>').join('') + '</div>' +
     '<label class="ajc"><input type="checkbox" id="ase-' + donde + '" data-act="asesor" data-d="' + donde + '"' + (ase ? ' checked' : '') + '> Consejos del asesor</label></div>';
 }
+/* CN15c: sonido sí/no (Sonido guarda la clave 'aqvila-sonido'); el contexto de audio nace en el primer toque (lo hace sonido.js) */
+const sonidoOn = () => !window.Sonido || window.Sonido.activo !== false, sonidoTxt = () => 'Sonido: ' + (sonidoOn() ? 'sí' : 'no');
 function ajustesHtml() {
   const a = G.ajustes(); if (!a) return '';
   const sw = [['crecida', 'Crecida del río'], ['fuego', 'Incendios'], ['hambre', 'Hambre de invierno']];
-  return '<div class="empty ajustes" id="ajustes"><b>Ajustes</b>' + difFila('g') + '<div class="ajb">' + sw.map(q => '<button class="chip' + (a.suc[q[0]] ? ' on' : '') + '" data-act="suceso" data-v="' + q[0] + '">' + q[1] + ': ' + (a.suc[q[0]] ? 'sí' : 'no') + '</button>').join('') + '</div>' +
+  return '<div class="empty ajustes" id="ajustes"><b>Ajustes</b>' + difFila('g') + '<div class="ajb">' + sw.map(q => '<button class="chip' + (a.suc[q[0]] ? ' on' : '') + '" data-act="suceso" data-v="' + q[0] + '">' + q[1] + ': ' + (a.suc[q[0]] ? 'sí' : 'no') + (q[0] === 'hambre' && !((D.DIFICULTAD[a.dif] || {}).hambre || {}).meses ? ' (sin efecto en Tranquila)' : '') + '</button>').join('') + '</div>' +
     '<small>Los cambios de dificultad y sucesos valen desde el mes siguiente.</small><div class="ajb"><button class="chip" data-act="repetirasesor">Repetir los consejos</button></div>' +
-    '<!-- CN15c: fila «Sonido» -->' + '<div class="ajf" id="aj-sonido" hidden></div></div>';
+    '<div class="ajf" id="aj-sonido"><div class="ajb"><button class="chip' + (sonidoOn() ? ' on' : '') + '" data-act="sonido">' + sonidoTxt() + '</button></div></div></div>';
 }
 function showMenu() {
   UI.menu = true; $('menu').hidden = false;
@@ -136,7 +138,7 @@ function showMenu() {
     '<p>280 a.C. Gobierna tus ciudades, levanta legiones, dirige las batallas sobre el terreno y lleva las águilas hasta Cartago antes del 146 a.C.</p>' +
     (G.hasSave() ? '<button class="btn gold" data-act="continue">Continuar campaña</button>' : '') +
     '<input id="hname" maxlength="28" placeholder="Nombre de tu general" value="Lucio Cornelio Escipión">' +
-    difFila('m') + '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="newregion" data-v="italia">Región de Italia</button><button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><div class="spqr">S·P·Q·R</div>' +
+    difFila('m') + '<button class="btn" data-act="new">Nueva campaña</button><button class="btn" data-act="newregion" data-v="italia">Región de Italia</button><button class="btn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><button class="btn" data-act="sonido">' + sonidoTxt() + '</button><div class="spqr">S·P·Q·R</div>' +
     '<div class="credits">Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1</div>';
 }
 { let tv = 0; const sf = () => { clearTimeout(tv); tv = setTimeout(() => { UI.svDown = false; }, 150); };   // Saber: no repintar entre pulsar y soltar
@@ -575,7 +577,7 @@ function consejo(c, id) {
   if (!E) return mk('Faltan recursos para nuevas obras. Espera a que lleguen.', null);
   if (flags.almacen) return mk('Tu ' + RES_NOM[lleno[0]].toLowerCase() + ' llega al ' + Math.min(100, Math.round(lleno[1] * 100)) + ' %: ' + (E.edificios.some(q => q.tipo === 'almacen') ? 'coloca otro almacén.' : 'coloca un almacén.'), opcionPieza(id, 'almacen', true));
   if (rgP) { const op = opcionPieza(id, rgP.pieza, true); if (op && G.canAfford(op.ini)) return mk(rgP.t + ' ' + rgP.remedio, op); }
-  if (E.abiertas.includes('granero') && !E.edificios.some(q => q.tipo === 'granero') && G.sucesosEn(E.mesN + 1).on.hambre) return mk('Falta un granero: sin él hay hambre en invierno.', opcionPieza(id, 'granero', true));
+  if (E.abiertas.includes('granero') && !E.edificios.some(q => q.tipo === 'granero') && (sc => sc.on.hambre && ((D.DIFICULTAD[sc.dif] || {}).hambre || {}).meses > 0)(G.sucesosEn(E.mesN + 1))) return mk('Falta un granero: sin él hay hambre en invierno.', opcionPieza(id, 'granero', true));
   if (tope) return mk('La población está al tope: faltan casas. Las casas nacen solas junto a las calles; coloca una obra que traiga una calle.', null);
   const bi = G.barrioInfo(c), baja = bi.objetivo < bi.nivel, fl = baja ? (D.BARRIO[bi.nivel].pide || []).filter(k => !bi.serv[k]) : bi.falta;
   const sv = fl.map(k => ({ templo: 'templo', agua: 'fuente', mercado: 'mercado', grano: 'granja' })[k]).filter(Boolean).map(p => opcionPieza(id, p, true)).find(o => o && G.canAfford(o.ini));
@@ -1229,6 +1231,7 @@ document.addEventListener('click', function (e) {
     case 'suceso': { const a = G.ajustes(), r = G.ponerAjustes({ suc: { [v]: !a.suc[v] } }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); toast('Vale desde el mes siguiente.'); } render(); break; }
     case 'repetirasesor': if (typeof ASESOR !== 'undefined') { ASESOR.repetir(S().ajustes); G.save(); UI.linK = null; pintaLinea(); toast('Los consejos volverán a salir.'); } break;
     case 'entendido': if (typeof ASESOR !== 'undefined' && UI.lesId) { ASESOR.marcar(S().ajustes, UI.lesId, { mes: Math.floor(S().t + 1e-9), ahora: Date.now() }); G.save(); } UI.linK = null; pintaLinea(); break;
+    case 'sonido': { const so = window.Sonido; if (so) { if (sonidoOn()) so.off(); else so.on(); } if (UI.menu) { const nm = $('hname') ? $('hname').value : ''; showMenu(); if (nm && $('hname')) $('hname').value = nm; } else render(); break; }
     case 'fluidez': fijarFluidez(!fluidezOn()); showMenu(); break;
     case 'new': case 'newregion': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'continue': if (G.load()) { UI.overShown = false; startGame(); if (S().over) showOver(); } break;

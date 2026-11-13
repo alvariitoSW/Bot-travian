@@ -14,7 +14,7 @@ import * as vida from './vida.js';
 import * as trajin from './trajin.js';              // CN15b: cuadrilla de obra y recuas (lo escribe otro encargo)
 import * as Fachadas from './fachadas.js';           // CN15a: puestos, toldos y ropa de la plaza y los barrios (lo escribe otro encargo)
 import { crearRio, crearCielo, texturaRuido, texturasMundo, loadGroundTextures, crearSuelo3, GLSL_NUBES, tintesEstacion } from './ground.js';
-import { altura, RIO, NIVEL_RIO, azar } from './mundo.js';
+import { altura, RIO, NIVEL_RIO, azar, distRio } from './mundo.js';
 import * as CI from '../ciudad.js';
 const { PUENTE } = CI;
 const D = window.DATA;
@@ -523,6 +523,17 @@ export class CityView3D {
     M[o] = c; M[o + 1] = 0; M[o + 2] = -s; M[o + 3] = 0; M[o + 4] = 0; M[o + 5] = k; M[o + 6] = 0; M[o + 7] = 0; M[o + 8] = s; M[o + 9] = 0; M[o + 10] = c; M[o + 11] = 0; M[o + 12] = x; M[o + 13] = altura(x, z) + 0.1; M[o + 14] = z; M[o + 15] = 1;
     e.a[e.i] = UN.frameOf(clip, t); e.i++;
   }
+  /* CN15c: sonido ambiente (sonido-ciudad.js); solo lee lo que ya existe y nunca rompe el cuadro */
+  sonar(city, id) {
+    try {
+      const S = window.SonidoCiudad; if (!S || !E || (window.Sonido && window.Sonido.activo === false)) return; const Gm = window.Game, st = Gm && Gm.state, ed = E.edificios || [], n = tp => ed.filter(q => q.tipo === tp && !q.obra && !q.ruina).length, ob = city && city.obras || [];
+      const fm = st && typeof st.t === 'number' ? st.t - Math.floor(st.t) : 0.45;      // el mes hace de día: 0,45 = mediodía, el final del mes es la noche (misma curva que la luz)
+      S.actualizar({ camD: cam.d, camX: camara.position.x, camZ: camara.position.z, estacion: estacionActual().ks, hora: ((fm - 0.45) * 24 + 36) % 24,
+        nObrasActivas: ob.filter(o => !o.pausa).length, forja: n('taller') + n('herreria'), mercado: n('mercado'), granjas: n('granja'),
+        fuego: E.fuego && E.fuego.mes === E.mesN ? 1 : 0, hambre: E.hambre ? 1 : 0, crecida: E.crecida === E.mesN ? 1 : 0, dRio: distRio(cam.tx, cam.tz),
+        pending: !!(st && st.pending && st.pending.length), vivo: !!(st && st.vivo), obreros: trajin.obreros(), recuas: trajin.recuas() });
+    } catch (e) { /* el sonido nunca rompe la vista */ }
+  }
   /* ciudadanos, humo y carros: vida.js (CN11-A). La guarnición formada ante la puerta principal es provisional (CN11-B) */
   people(city, t, dt) {
     for (const e of this.figs.values()) e.i = 0;
@@ -548,6 +559,7 @@ export class CityView3D {
     obrasLista = city && city.obras || null;
     ponerCamara();
     this.people(city, t, dt);
+    this.sonar(city, id);
     dibujar();
     this.etiquetasBarrio(H);
     const el = this.armyEl, txt = '⚔️ Guarnición · ' + this.men; if (el._t !== txt) { el._t = txt; el.textContent = txt; }
