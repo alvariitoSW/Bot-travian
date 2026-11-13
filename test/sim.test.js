@@ -271,6 +271,7 @@ function campaign1(aggressive, region, opciones) {
     G.tick(0.25);
     while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); if (process.env.DBG) console.log(G.yearOf(s.t), JSON.stringify(info.cfg.sides.map(x => x.units)), 'def', info.cfg.defender, 'wall', info.cfg.wall, '->', b.result().winner, Math.round(b.t)); G.applyBattle(b.result()); }
     if (guard % 8) continue;
+    if (D.SENADO.sala && s.senado && s.senado.votacion) G.votar(G.tratos(s.senado.votacion.id).filter(t => t.etiqueta === 'Favorable'));   // SN1: el bot vota con la tarjeta Favorable (o deja pasar)
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
@@ -284,7 +285,7 @@ function campaign1(aggressive, region, opciones) {
       for (const n of G.neighbors(id)) {
         const t = s.cities[n]; if (t.owner === 'roma') continue;
         const keepHome = id === G.capital() ? 0.35 : 0.2, u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (1 - keepHome));
-        if (G.power(u) > G.power(t.units) * (1.6 + 0.12 * t.b.muralla) && !s.marches.some(m => m.owner === 'roma' && s.cities[m.to].owner !== 'roma')) { G.send(id, n, u, G.heroAvailable(id)); break; }
+        if (G.power(u) > G.power(t.units) * (1.6 + 0.12 * t.b.muralla) && !s.marches.some(m => m.owner === 'roma' && s.cities[m.to].owner !== 'roma')) { if (s.senado) s.senado.permisos[t.owner] = 99999; G.send(id, n, u, G.heroAvailable(id)); break; }   // SN1: el bot declara la guerra por su cuenta
       }
     }
   }
@@ -1112,6 +1113,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
 
 // 8. Senado (Q7): favor, misiones, partida vieja, favor bajo
 {
+  D.SENADO.sala = false;   // SN1: este bloque prueba el Senado de Q7 (la sala nueva se prueba en test/senado.test.js)
   const s = G.newGame('Test'); G.turnos = false;
   assert(s.favor.senado === 50 && s.favor.pueblo === 50, 'favor inicial 50/50');
   let ma = G.misionActual(); assert(ma && ma.m.id === 'levas-heraclea' && ma.t1 === ma.t0 + ma.m.plazo && typeof ma.falta === 'string', 'misión nueva al empezar');
@@ -1138,6 +1140,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   // partida vieja sin favor
   const vieja = JSON.parse(JSON.stringify(s)); delete vieja.favor; delete vieja.mision; delete vieja.misionesHechas; delete vieja.proxMision; G.migrarSenado(vieja);
   assert(vieja.favor.senado === 50 && vieja.favor.pueblo === 50 && vieja.mision === null, 'partida vieja: favor 50 y sin misión');
+  D.SENADO.sala = true;
 }
 
 // N15. Equilibrio y objetivos: ancho de frente, bisoñas, objetivos de batalla, curva de equilibrio y dificultad por contexto

@@ -121,6 +121,23 @@
     'levas-macedonia': f(SIN_MIS, h('Livio 31.6 a 31.8; Polibio 6.19 a 6.21', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'El Senado declara la guerra a Filipo V. Cuartel de nivel 5 en Roma para instruir legiones.')),
   };
 
+  // ---- Leyes del Senado nuevo (D.LEYES, SN1). Se casan por id. Las posturas de los bandos, los efectos y los chips son licencia de juego. ----
+  const SIN_LEY = { sin: 'una ley no tiene modelo 3D' };
+  const ley = {
+    "guerra-cartago": f(SIN_LEY, h("Polibio, Historias 1.10–11", "historico", "cifras y efectos: licencia de juego", "En 264 a.C. los mamertinos de Mesina piden ayuda a Roma; el Senado la acepta y empieza la primera guerra púnica.")),
+    "guerra-tarento": f(SIN_LEY, h("Livio, Periocha 12", "probable", "cifras y efectos: licencia de juego", "En 282–281 a.C. Tarento ataca a la flota romana en su bahía; la guerra atrae a Pirro, que llega en 280.")),
+    "paz-pirro": f(SIN_LEY, h("Plutarco, Vida de Pirro 18–19", "historico", "cifras y efectos: licencia de juego", "Hacia 279 a.C. Cineas, enviado de Pirro, propone la paz en Roma; el anciano Apio Claudio Ceco hace rechazarla.")),
+    "paz-cartago": f(SIN_LEY, h("Polibio, Historias 1.62", "historico", "cifras y efectos: licencia de juego", "En 241 a.C., tras la batalla de las Égadas, Cartago firma con Lutacio Catulo el tratado que pone fin a la primera guerra púnica.")),
+    "leva-volones": f(SIN_LEY, h("Livio, 22.57", "historico", "cifras y efectos: licencia de juego", "En 216 a.C., tras Cannas, Roma arma a esclavos voluntarios, los volones, y les promete la libertad al acabar la guerra.")),
+    "leva-sin-bienes": f(SIN_LEY, h("Livio, 24.11", "probable", "cifras y efectos: licencia de juego", "Hacia 214 a.C., con Aníbal en Italia, el Senado arma a ciudadanos de la clase más baja del censo.")),
+    "ley-grano-barato": f(SIN_LEY, h("Plutarco, Vida de Cayo Graco (referencia posterior)", "licencia de juego", "ley inventada para el juego: la de Cayo Graco es de 123 a.C.", "El reparto de grano llega después: la ley de Cayo Graco es de 123 a.C. Esta ley es licencia de juego.")),
+    "ley-claudia": f(SIN_LEY, h("Livio, 21.63", "historico", "cifras y efectos: licencia de juego", "En 218 a.C., la ley Claudia prohíbe a los senadores naves de más de 300 ánforas de carga.")),
+    "obra-anio-vetus": f(SIN_LEY, h("Frontino, Sobre los acueductos de Roma, 6", "historico", "cifras y efectos: licencia de juego", "Hacia 272 a.C. se construye el Anio Vetus, segundo acueducto de Roma, pagado con botín de la guerra de Pirro.")),
+    "obra-via-flaminia": f(SIN_LEY, h("Livio, Periocha 20", "probable", "cifras y efectos: licencia de juego", "En 220 a.C. el censor Cayo Flaminio abre la calzada que lleva su nombre hacia el norte de Italia.")),
+    "ciudadania-sabinos": f(SIN_LEY, h("Veleyo Patérculo, Historia romana, 1.14", "probable", "cifras y efectos: licencia de juego", "En 268 a.C. Roma concede la ciudadanía a los sabinos, que pasan a votar y a servir en las legiones.")),
+    "ciudadania-capua": f(SIN_LEY, h("Livio, 8.14", "historico", "cifras y efectos: licencia de juego", "En 338 a.C. Roma da a Capua la ciudadanía sin voto (civitas sine suffragio): cargas romanas sin voto en Roma."))
+  };
+
   // ---- Facciones (D.FACTIONS). Sin modelo: solo un nombre y un color. Fuente: H1-ciudades.md y H1-hechos.md ----
   const SIN_F = { sin: 'sin modelo: la facción es un nombre y un color' };
   const faccion = {
@@ -256,7 +273,7 @@
     agricolas: f(SIN_T, h('Livio 9.13; Varrón, Res rusticae 1', 'licencia de juego', 'vici y pagi como aldeas de labradores; la villa como explotación agraria; ' + PU))
   };
 
-  R.fichas = { edificio, tropa, fiesta, remedio, ciudad, hecho, mision, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+  R.fichas = { edificio, tropa, fiesta, remedio, ciudad, hecho, mision, ley, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -270,6 +287,7 @@
     modo: { tabla: 'MODOS', numericos: [], textos: ['n'] },
     colonia: { tabla: 'COLONIAS', numericos: ['lon', 'lat', 'anio', 'colonos'], textos: ['n', 'h', 'tipo'] },
     mision: { tabla: 'MISIONES', numericos: ['desde', 'plazo'], textos: ['n', 'texto'] },
+    ley: { tabla: 'LEYES', numericos: [], textos: ['n', 'texto'] },
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },
     mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },
     tipo: { tabla: 'TIPOS', numericos: [], textos: ['n', 'i', 'd'] },

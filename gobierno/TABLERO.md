@@ -188,13 +188,13 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 
 ## Carril SN — Senado nuevo: sala de votos con tres bandos (aprobado por el usuario el 13/11/2026; diseño `gobierno/estudios/senado-nuevo.md`, captura `capturas-tarea/senado-1-votacion.png`)
 Una tarea por sesión, constructor en Sonnet. SN2 después de SN1. No tocar `js/battle.js` ni `js/gfx/`. Absorbe J5 y J8.
-- ⬜ SN1 **Motor del Senado sin pantalla** (≈1,15 M, ~30 min; tope 1,5 M): bandos, escaños desde la ciudad, humores (el favor del Senado = media ponderada), 12 leyes + las 11 misiones como propuestas, votos, tratos (promesa y pago), veto del tribuno y juegos, promesas, permisos de guerra, interruptor `D.SENADO.sala`, migración y bot. Secciones 2 y 4 del informe; «Hecho si» SN1. Si pasa de 1,5 M: quitar el Pago y luego «Cambiar propuesta».
+- ✅ SN1 **Motor del Senado sin pantalla** (13/11, 1,71 M): `D.BANDOS`, `D.LEYES` (12), `D.SENADO.sala`. Para SN2: `G.senadoSala()` → {ley, cambiada}, `G.escanos()`, `G.humores()`, `G.votos(ley, tratos)`, `G.tratos(ley)` (3 tarjetas con etiqueta), `G.veto(ley)`, `G.juegos()`, `G.propuestasAlternativas()`, `G.cambiarPropuesta(id)`, `G.votar(tratos)`, `G.dejarPasar()` (→ {sale, vetada, si, duda, no, linea}), `G.leyDe(id)`; `G.consejo()` ya trae «El Senado vota: …». Parte `partes/2026-11-13-SN1.md`.
 - ⬜ SN2 **Pantalla del Senado** (≈0,95 M, ~30 min; tras SN1): `viewSenado` como la captura, aviso «El Senado vota» en el consejo de estación, captura 390×844. Sección 3 del informe; «Hecho si» SN2.
 - ⬜ SN3 Cónsules con nombre desde tus tribunos (sin empezar).
 - ⬜ SN4 Dictador (sin empezar).
 - ⬜ SN5 Triunfo y fama, tras la batalla nueva (sin empezar).
 - ⬜ SN6 Concurso de arte por piezas del Senado, en Haiku (sin empezar).
-- ⬜ SN7 Equilibrio con partidas del usuario (sin empezar).
+- ⬜ SN7 Equilibrio con partidas del usuario (sin empezar; lo que dejó SN1: con Terr. y Merc. a 50, Militares 80 con 12 escaños dan 14 sí, no 16; faltan «obra −20 %» y que la paz frene ataques).
 
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.

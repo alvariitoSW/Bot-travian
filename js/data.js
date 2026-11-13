@@ -442,7 +442,15 @@
     premio: 12, castigo: -10,   // favor del Senado por defecto al cumplir o fallar una misión
     pausa: 3,              // meses entre una misión y la siguiente
     ventana: 20,           // años que una misión sigue disponible desde su fecha
-    levaMax: 4             // con poco favor no se admite una leva más si ya hay tantas en cola
+    levaMax: 4,            // con poco favor no se admite una leva más si ya hay tantas en cola
+    // Senado nuevo (SN1): sala de votos con tres bandos. sala:false = comportamiento idéntico a Q7. Cifras: licencia de juego (gobierno/estudios/senado-nuevo.md)
+    sala: true, escanos: 30, mayoria: 16, minimo: 4, vetoPueblo: 35, juegos: { oro: 120, pueblo: 8 }, pagoVoto: 30,
+    romper: -15, cumplir: 5, pagar: 2, cambiar: -3, sinPermiso: -10, postura: 4, duracion: 4   // duracion = estaciones que dura un permiso, una promesa o un efecto
+  };
+  D.BANDOS = {
+    ter: { n: 'Terratenientes', col: '#8FAE5A', peso: 'grano al mes / 10 + niveles de granja' },
+    mer: { n: 'Mercaderes', col: '#5AA6C4', peso: 'mercado y puerto x 3 + rutas x 5 + oro de rutas / 20' },
+    mil: { n: 'Militares', col: '#D0443A', peso: 'hombres en armas / 100 + cuartel x 2 + victorias del año x 3' }
   };
   // desde: año (a.C.) en que el Senado puede encargarla; plazo en meses; las cifras son licencia de juego
   /* Sitios de colonias (CN5-A). Aún no son ciudades: el jugador manda colonos y funda. Mismo sistema lon/lat que D.CITIES.
@@ -510,6 +518,23 @@
       premio: { oro: 120, favorSenado: 12, favorPueblo: -4 }, castigo: { favorSenado: -8, favorPueblo: 3 },
       fuente: 'Livio 31.6 a 31.8; Polibio 6.19 a 6.21', dictamen: 'historico' }
   ].forEach(m => { D.MISIONES[m.id] = m; });
+  /* Leyes del Senado nuevo (SN1). Texto y fuente: gobierno/estudios/senado-leyes.md. postura = {ter,mer,mil} de -2 a +2; chips = efecto en el pueblo por clase;
+     efecto = lo que ocurre si sale (lo lee G.senadoEfecto). Las 11 misiones de Q7 son además propuestas de tipo «obra» (las arma G.leyDe). */
+  D.LEYES = {}; D.LEYES_ORDEN = [];
+  [
+    { id: 'guerra-cartago', tipo: 'guerra', n: 'Guerra a Cartago', texto: 'Roma entra en guerra con Cartago por Sicilia. Tus legiones cruzan al mar.', h: 'En 264 a.C. los mamertinos de Mesina piden ayuda a Roma; el Senado la acepta y empieza la primera guerra púnica.', fuente: 'Polibio, Historias 1.10–11', dictamen: 'historico', postura: { ter: -1, mer: -1, mil: 2 }, efecto: { permiso: 'cartago' }, chips: { ple: -3 } },
+    { id: 'guerra-tarento', tipo: 'guerra', n: 'Guerra a Tarento', texto: 'Tarento ataca naves romanas. Roma declara la guerra y reúne a sus aliados.', h: 'En 282–281 a.C. Tarento ataca a la flota romana en su bahía; la guerra atrae a Pirro, que llega en 280.', fuente: 'Livio, Periocha 12', dictamen: 'probable', postura: { ter: -1, mer: 0, mil: 2 }, efecto: { permiso: 'epiro' }, chips: { ple: -3 } },
+    { id: 'paz-pirro', tipo: 'paz', n: 'Paz con Pirro', texto: 'Pirro ofrece la paz si Roma le deja lo conquistado. Tú decides si aceptas.', h: 'Hacia 279 a.C. Cineas, enviado de Pirro, propone la paz en Roma; el anciano Apio Claudio Ceco hace rechazarla.', fuente: 'Plutarco, Vida de Pirro 18–19', dictamen: 'historico', postura: { ter: 1, mer: 2, mil: -2 }, efecto: { tregua: 'epiro' }, chips: { ple: 3 } },
+    { id: 'paz-cartago', tipo: 'paz', n: 'Paz con Cartago', texto: 'Cartago pide la paz tras perder su flota. Firmar exige pagar y dejar Sicilia.', h: 'En 241 a.C., tras la batalla de las Égadas, Cartago firma con Lutacio Catulo el tratado que pone fin a la primera guerra púnica.', fuente: 'Polibio, Historias 1.62', dictamen: 'historico', postura: { ter: 1, mer: 1, mil: -2 }, efecto: { tregua: 'cartago' }, chips: { ple: 3 } },
+    { id: 'leva-volones', tipo: 'leva', n: 'Leva extraordinaria', texto: 'Tras Cannas faltan hombres. Esclavos voluntarios se alistan con promesa de libertad.', h: 'En 216 a.C., tras Cannas, Roma arma a esclavos voluntarios, los volones, y les promete la libertad al acabar la guerra.', fuente: 'Livio, 22.57', dictamen: 'historico', postura: { ter: -2, mer: 0, mil: 2 }, efecto: { leva: 1 }, chips: { ple: -5 } },
+    { id: 'leva-sin-bienes', tipo: 'leva', n: 'Leva de los sin propiedad', texto: 'Roma arma a los ciudadanos sin bienes. Ganas hombres ya; luego pesarán en la política.', h: 'Hacia 214 a.C., con Aníbal en Italia, el Senado arma a ciudadanos de la clase más baja del censo.', fuente: 'Livio, 24.11', dictamen: 'probable', postura: { ter: -2, mer: -1, mil: 1 }, efecto: { leva: 1 }, chips: { ple: -2 } },
+    { id: 'ley-grano-barato', tipo: 'ley', n: 'Grano barato en Roma', texto: 'Una ley reparte grano barato en Roma. La plebe te lo agradece.', h: 'El reparto de grano llega después: la ley de Cayo Graco es de 123 a.C. Esta ley es licencia de juego.', fuente: 'Plutarco, Vida de Cayo Graco (referencia posterior)', dictamen: 'licencia de juego', postura: { ter: -1, mer: 1, mil: 0 }, efecto: { oroEstacion: -60 }, chips: { ple: 8, ciu: -2 } },
+    { id: 'ley-claudia', tipo: 'ley', n: 'Ley Claudia', texto: 'Los senadores no pueden tener barcos grandes de comercio. El dinero queda en tierra.', h: 'En 218 a.C., la ley Claudia prohíbe a los senadores naves de más de 300 ánforas de carga.', fuente: 'Livio, 21.63', dictamen: 'historico', postura: { ter: 2, mer: -2, mil: 0 }, efecto: {}, chips: { ple: 2 } },
+    { id: 'obra-anio-vetus', tipo: 'obra', n: 'Acueducto Anio Vetus', texto: 'Un acueducto trae agua fresca a Roma. Más agua, más población y más baños.', h: 'Hacia 272 a.C. se construye el Anio Vetus, segundo acueducto de Roma, pagado con botín de la guerra de Pirro.', fuente: 'Frontino, Sobre los acueductos de Roma, 6', dictamen: 'historico', postura: { ter: 1, mer: 1, mil: 0 }, efecto: { oro: -80 }, chips: { ple: 4 } },
+    { id: 'obra-via-flaminia', tipo: 'obra', n: 'Vía Flaminia', texto: 'Una calzada nueva une Roma con el norte. Tus ejércitos llegan antes a la frontera.', h: 'En 220 a.C. el censor Cayo Flaminio abre la calzada que lleva su nombre hacia el norte de Italia.', fuente: 'Livio, Periocha 20', dictamen: 'probable', postura: { ter: 0, mer: 2, mil: 1 }, efecto: { oro: -100 }, chips: { ple: 1 } },
+    { id: 'ciudadania-sabinos', tipo: 'ciudadania', n: 'Ciudadanía a los sabinos', texto: 'Los sabinos reciben la ciudadanía romana. Más votantes y más soldados para ti.', h: 'En 268 a.C. Roma concede la ciudadanía a los sabinos, que pasan a votar y a servir en las legiones.', fuente: 'Veleyo Patérculo, Historia romana, 1.14', dictamen: 'probable', postura: { ter: -1, mer: 0, mil: 1 }, efecto: { ciudadania: 'roma' }, chips: { ciu: 4, ple: -2 } },
+    { id: 'ciudadania-capua', tipo: 'ciudadania', n: 'Ciudadanía a Capua', texto: 'Capua recibe la ciudadanía sin voto. Paga y sirve en tus legiones; no vota.', h: 'En 338 a.C. Roma da a Capua la ciudadanía sin voto (civitas sine suffragio): cargas romanas sin voto en Roma.', fuente: 'Livio, 8.14', dictamen: 'historico', postura: { ter: -1, mer: 1, mil: -1 }, efecto: { ciudadania: 'capua' }, chips: { ciu: 4, ple: -2 } }
+  ].forEach(l => { D.LEYES[l.id] = l; D.LEYES_ORDEN.push(l.id); });
 
   /* NB5 — plantillas de zona para la maniobra previa (js/maniobra.js). Cada una: 9 a 10 puntos (x, y de 0 a 100; Roma entra por la izquierda)
      con tipo Castra / Cerro / Vado / Puente / Pinar / Cruce / Llano, y caminos entre ellos. ini = [punto del bando 0, punto del bando 1]; centro = punto central.
