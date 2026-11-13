@@ -150,7 +150,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ⬜ (en pausa: espera a CN8 y al carril Guerra) CN12 **Asedio en tu propia muralla** (P89, ≈3 M): el sitio y la muralla que colocaste son el campo de batalla. Une ciudad y batalla (CLAUDE.md §2): el usuario dijo «Sí» el 12/11. Toca `js/battle.js` y la ciudad. Alcance en `estudios/Q1l-competencia.md` (palanca 10) y `Q1l-lluvia-de-ideas.md` (paquete E).
 - ⬜ CN13 **Lo que sobra se gasta y sucesos que se juegan** (P83, ≈1,5 M): arca del foro, ofrendas y juegos, tejas, cubos contra el fuego, marca de la crecida y dique, hambre que se ve. Tras CN8.
 - ⬜ CN14 **Colocar con número vivo, asesor y dificultad** (P84, ≈1 M): «+14 casas con agua» que cambia al mover la pieza; asesor que enseña una cosa cada vez; sucesos apagables y tres dificultades. Tras CN4 y CN8.
-- ⬜ CN15 **Ciudad viva** (P85, ≈1,5 M): estaciones y luz, andamios, fachadas ricas y pobres, recuas, sonido. Tras CN11 y Q11; no repite lo suyo.
+- ⬜ CN15 **Ciudad viva** (P85, ≈1,5 M): estaciones y luz, andamios, fachadas ricas y pobres, recuas, sonido. Tras CN11 y Q11; no repite lo suyo. **CN15a hecha (estaciones y fachadas); faltan b (cuadrilla y recuas) y c (sonido).**
 - ⬜ CN16 **El ejército vive en la ciudad** (P86, ≈1,5 M): campo de Marte, leva en el foro, guarnición en torres, cerrar puertas, veteranos que se asientan, triunfo. Tras CN11.
 - ⬜ CN17 **Barrios con carácter, encargos e hitos** (P87, ≈1,5 M): barrios con nombre propio, plaza en los cruces, encargos cortos del Senado, hitos que abren algo nuevo. Tras CN6 y Q7.
 - ⬜ CN18 **Hecho para el móvil** (P88, ≈1,5 M): postal y crónica de la ciudad, modo contemplar, punto de parada, copia de la partida en un archivo, partida corta con nota (enlaza con I8).

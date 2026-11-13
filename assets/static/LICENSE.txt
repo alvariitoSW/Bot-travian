@@ -26,4 +26,8 @@ Casas griegas grie_casa a grie_casa_e (texturas structural_ao_hele_house_* y str
 (texturas structural_ao_kart_house_*) y puesto cartaginés prop_puesto_cart: proceden de 0 A.D. (Wildfire Games, CC BY-SA 3.0, actores de las
 facciones helena y cartaginesa). Aligerados con meshoptimizer (MIT); se regeneran con tools/piezas_propias.mjs (lista tools/piezas_maqueta.txt).
 
+Atrezo de plaza y fachadas prop_mesa, prop_cesto, prop_sacos, prop_vaso, prop_caja, prop_cajas y prop_paja_grande (texturas props_basket_rome_1,
+props_vase_rome_1, props_wrld_hay_a y props_wrld_sack): proceden de 0 A.D. (Wildfire Games, CC BY-SA 3.0, actores props/special/eyecandy: mesa larga,
+cesto, sacos, vasija, caja, cajas y paja). Aligerados con meshoptimizer (MIT); se regeneran con tools/piezas_propias.mjs (lista tools/piezas_maqueta.txt).
+
 Esta licencia se aplica solo al contenido de assets/static/. El código del juego es independiente.

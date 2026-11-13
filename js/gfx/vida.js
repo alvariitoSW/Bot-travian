@@ -34,12 +34,14 @@ export function apagar(h) { if (!h) return; const g = h.grupo || [h]; extras = e
 export function apagarTodo() { extras = []; sucio = true; }
 
 /* ---------- humo: malla instanciada con shader, sin sombras ---------- */
-let matHumo = null;
+let matHumo = null, tH = null;
+export function tinteHumo(c) { tH = c.clone(); if (matHumo) matHumo.uniforms.uH.value.copy(c); }      // CN15a: niebla del humo con el color de la estación
 function material() {
   if (matHumo) return matHumo;
   matHumo = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uH: { value: new THREE.Color(C.HORIZ) }, uTiempo: C.U.uTiempo },
     vertexShader: 'attribute vec4 aPos; attribute vec3 aOp; attribute vec3 aCol; uniform float uTiempo; varying vec2 vUv; varying vec3 vOp; varying vec3 vCol; varying float vD; void main(){ vUv = uv; vOp = aOp; vCol = aCol; vec3 p = aPos.xyz; p.x += sin(uTiempo * 0.7 + aOp.y * 20.0) * aPos.w * 0.12; p.y += sin(uTiempo * 0.5 + aOp.y * 31.0) * aPos.w * 0.1; vec4 mv = modelViewMatrix * vec4(p, 1.0); mv.xy += position.xy * aPos.w * (1.0 + aOp.z * 0.25 * sin(uTiempo * 9.0 + aOp.y * 50.0)); vD = -mv.z; gl_Position = projectionMatrix * mv; }',
     fragmentShader: 'varying vec2 vUv; varying vec3 vOp; varying vec3 vCol; varying float vD; uniform vec3 uH; void main(){ vec2 d = vUv - 0.5; float r = length(d) * 2.0; float a = smoothstep(1.0, 0.15, r) * vOp.x; a *= 0.75 + 0.25 * sin(vUv.x * 9.0 + vOp.y * 30.0) * sin(vUv.y * 7.0 + vOp.y * 17.0); vec3 c = vCol * mix(0.84, 1.0, smoothstep(-0.3, 0.4, d.y - d.x)); c = mix(c, uH, (1.0 - exp(-vD * vD * 0.00000011)) * (1.0 - vOp.z)); gl_FragColor = vec4(c, a);\n #include <tonemapping_fragment>\n #include <colorspace_fragment>\n }' });
+  if (tH) matHumo.uniforms.uH.value.copy(tH);
   return matHumo;
 }
 function humo(E) {
