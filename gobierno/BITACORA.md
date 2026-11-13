@@ -254,3 +254,5 @@ Lo que espera a que acaben los carriles (tocan `js/data.js` y `js/game.js`, que 
 - 13/11/2026 — **Decisión K10**: estandartes (P1) le gustan, sobre todo ver los tipos de tropa; tarjetas y barra (R2) NO: las barras se comen la pantalla y quitan gameplay, hay que reformularlas (más campo, menos marco). Quiere seguir con las maquetas de la guerra y tenerlo todo listo hoy para jugar. Pendiente de él: elegir A/B/C de los estandartes.
 
 - 13/11/2026 — **K11 hecha (concurso de menús)**: ranking ciego 1.º B Hojas (118/150), 2.º D Códice (102), 3.º C Mosaico (100), 4.º A Mármol (99); informe `estudios/K11-concurso.md`. **Decide el usuario**: ganador (o mezcla: estructura de B + lenguaje romano de D) y si se amplía el tope para construirlo (K12). Gasto 3,45 M frente a 3 M (+15 %). Parte: gobierno/partes/2026-11-13-K11.md
+
+- 13/11/2026 — **Tarea nueva CN15d** (a petición del usuario): dibujar dique, tejado por barrio y arca del foro, que CN15a-c no cubrieron (no hay rastro en `js/gfx/`). Va al tablero como ⬜; espera a que CN13 deje los datos (`tejas`).
