@@ -74,8 +74,8 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ⬜ J7b **Pestañas también en el mapa de guerra** (sacada de J7; esperar a que I2 Mapa por turnos termine con `js/game.js` y el mapa).
 - ⬜ J3 **Capital y pueblos** (P60; incluye I7): cada territorio tiene una capital con los edificios de gobierno y pueblos de recursos, pescadores y agricultores-ganaderos. Los pueblos producen; la capital gobierna, recluta y comercia. 0,3 + 1,0 M, en dos tareas. Después de I6.
 - ⬜ J4 **Mapa más grande por regiones** (P62; amplía I6): más ciudades y territorios, cada región con su capital y sus núcleos pequeños; lista de ciudades con fuente histórica; vigilar la fluidez. 0,3 + 1,2 M, en dos o tres tareas. Después de J3. **Incluye** crear Perusia, Clusio y Rusellae (H11c, madera naval, Livio 28.45). Idea para bajar de nivel (Mare Nostrum › región › ciudad, con «volver»): `estudios/R20-niveles-de-mapa.md` (solo la idea, sin código del kit; 12/11).
-- ⬜ J5 **Política territorial** (P61): apartado «Senado» con planes de infraestructuras, ciudadanía, ejército, diplomacia y mercado. Primero informe corto de diseño con fuentes; se une con I5 y C3. 0,3 + 1,0 M, en dos tareas.
-- ⬜ J8 **Foro y chips** (P65, aprobada 11/11 desde el cuadro): discursos y revueltas en el Foro por clases sociales; chips verde/rojo con el efecto de cada decisión por clase. Va con J5, después de J6 y J7.
+- ➡️ J5 (absorbida por SN, 13/11) **Política territorial** (P61): apartado «Senado» con planes de infraestructuras, ciudadanía, ejército, diplomacia y mercado. Primero informe corto de diseño con fuentes; se une con I5 y C3. 0,3 + 1,0 M, en dos tareas.
+- ➡️ J8 (absorbida por SN, 13/11: chips por clase en las leyes y juegos del Foro) **Foro y chips** (P65, aprobada 11/11 desde el cuadro): discursos y revueltas en el Foro por clases sociales; chips verde/rojo con el efecto de cada decisión por clase. Va con J5, después de J6 y J7.
 
 ## Carril K — Concurso de diseño de interfaz (pedido 11/11/2026)
 - ✅ K1 **Concurso Gobierno** (11/11): cinco maquetas verticales y jurado ciego. Ranking: Cartas 73, Tablero 70, Senado 65, Cursus 63, Crónica 61. Informe `estudios/K-concurso.md`.
@@ -85,7 +85,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ⬜ V1 **Informe en vídeo: menús del juego** (pedido 12/11): cómo hacer los menús legibles, que no ocupen toda la pantalla, que quepan en el móvil para usarlos con los pulgares y sin mil cosas a la vez. Sesión barata (Haiku) con la maquinaria de /moncloa del repositorio de fiebres. Solo informe; no toca el juego.
 - ⬜ K6 **Concurso de arte: batalla y manejo de tropas** (pedido 12/11): cinco maquetas en Haiku (esfuerzo alto) y jurado ciego, sobre cómo se ve y se manejan las tropas. Solo `gobierno/maquetas/`; no toca `js/`.
 - ⬜ K7 **Concurso: interfaz y jugabilidad de ciudades y fuera de ellas** (pedido 12/11; después de K6): rutas de comercio como parte del juego, diplomacia y movimiento de tropas. Solo `gobierno/maquetas/`.
-- ⬜ K8 **Concurso: Senado, política y economía** (pedido 12/11, aprobado «igual que K6»; ≈2 a 3 M): ocho maquetas rivales en Haiku (esfuerzo alto) y jurado ciego, sobre el diseño y la jugabilidad del Senado, la política y la economía (incluye avisos de «Cierre de mes» e informe de estación que hoy tapan la pantalla, y construir y conseguir recursos, conservando lo que va bien). Solo `gobierno/maquetas/`; no toca `js/`. Después de K6 y K7.
+- ⬜ K8 (13/11: el Senado sale de aquí, lo hace el carril SN; queda solo la economía) **Concurso: Senado, política y economía** (pedido 12/11, aprobado «igual que K6»; ≈2 a 3 M): ocho maquetas rivales en Haiku (esfuerzo alto) y jurado ciego, sobre el diseño y la jugabilidad del Senado, la política y la economía (incluye avisos de «Cierre de mes» e informe de estación que hoy tapan la pantalla, y construir y conseguir recursos, conservando lo que va bien). Solo `gobierno/maquetas/`; no toca `js/`. Después de K6 y K7.
 - 🔶 K10 **Concurso de arte de la batalla** (13/11, pedido del usuario): piezas P1 a P5 en cuatro rondas, Opus y Sonnet sin Fable, jurado ciego y voto del usuario. Solo `gobierno/maquetas/piezas-batalla/`; no toca `js/`. Tope duro 4 M.
 - ✅ K11 **Concurso de menús y pantallas** (13/11): cuatro maquetas y jurado ciego; 1.º B Hojas (118/150), 2.º D Códice (102), 3.º C Mosaico (100), 4.º A Mármol (99). Informe `estudios/K11-concurso.md`. Elige el usuario. Gasto 3,45 M (tope 3).
 - 🔶 K12 **Construir los menús ganadores** (tope duro total 3,5 M; aprobado por el usuario el 13/11 con «vamos a finalizarlo… para subirlo a main»): se conservan los cuatro estilos, uno por tipo de pantalla; «Volver al menú principal» dentro del ☰, al fondo y con confirmación. Tres partes, una detrás de otra (todas tocan `js/ui.js` y `css/style.css`):
@@ -184,6 +184,16 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ✅ R3 **El reloj se para con motivo** (hecha 13/11, parte `partes/2026-11-13-R3.md`; sustituye a CN25b) (≈0,5 M, tras I8): propuesta A de `gobierno/estudios/CN25-tiempos.md` con pausas **todas** por defecto; ajuste «todas / solo graves / ninguna» en Ajustes; migrar en `G.load`. Sustituye a CN25b.
 - ✅ R4 **Avisos de una frase** (≈0,3 M): cada texto de `js/asesor.js` y del consejo de `ui.js` en una frase de ≤80 caracteres y una acción; si hay dos avisos, el más urgente. Lista de textos antes y después.
 - ✅ R5 **Batalla más cerca** (≈0,3 M): la cámara de inicio encuadra el ancho de los dos ejércitos; estandartes que se pisan, separados en vertical. Sin tocar el motor. Capturas antes y después a 844×390. Hecha (13/11): la vista alta encuadra los dos ejércitos (nunca más lejos que antes) y los estandartes que se pisan suben en vertical. Parte R5.
+
+## Carril SN — Senado nuevo: sala de votos con tres bandos (aprobado por el usuario el 13/11/2026; diseño `gobierno/estudios/senado-nuevo.md`, captura `capturas-tarea/senado-1-votacion.png`)
+Una tarea por sesión, constructor en Sonnet. SN2 después de SN1. No tocar `js/battle.js` ni `js/gfx/`. Absorbe J5 y J8.
+- ⬜ SN1 **Motor del Senado sin pantalla** (≈1,15 M, ~30 min; tope 1,5 M): bandos, escaños desde la ciudad, humores (el favor del Senado = media ponderada), 12 leyes + las 11 misiones como propuestas, votos, tratos (promesa y pago), veto del tribuno y juegos, promesas, permisos de guerra, interruptor `D.SENADO.sala`, migración y bot. Secciones 2 y 4 del informe; «Hecho si» SN1. Si pasa de 1,5 M: quitar el Pago y luego «Cambiar propuesta».
+- ⬜ SN2 **Pantalla del Senado** (≈0,95 M, ~30 min; tras SN1): `viewSenado` como la captura, aviso «El Senado vota» en el consejo de estación, captura 390×844. Sección 3 del informe; «Hecho si» SN2.
+- ⬜ SN3 Cónsules con nombre desde tus tribunos (sin empezar).
+- ⬜ SN4 Dictador (sin empezar).
+- ⬜ SN5 Triunfo y fama, tras la batalla nueva (sin empezar).
+- ⬜ SN6 Concurso de arte por piezas del Senado, en Haiku (sin empezar).
+- ⬜ SN7 Equilibrio con partidas del usuario (sin empezar).
 
 ## Carril E — Arte (sistema coherente con la época)
 - ✅ E1 Guía de arte aprobada (paleta, letra, iconos): `gobierno/estudios/E1-guia-de-arte.md` y su muestra.
