@@ -296,6 +296,10 @@ function tickUI() {
   if (UI.tab === 'city' && UI.cityV && !UI.cityList && !UI.fundar && !$('citywrap').hidden) { const m = cityMeta(c), k = metaKey(m); if (k !== UI.metaK) renderCity3D(); else { UI.cityV.meta = m; cityPantalla(); pintaLinea(); } }
 }
 
+/* C1: ¿se puede abrir la ciudad 3D desde el mapa? Solo las propias y con la vista ya cargada */
+function propiaEntrable(id) { const s = S(); return !!(s && s.cities[id] && s.cities[id].owner === 'roma' && UI.cityV && UI.cityV.listo && G.ciudadE(id) && !UI.fundar); }
+function volverAlMapa() { UI.deMapa = false; setTab('map'); if (UI.map) UI.map.restaurar(); }
+
 /* ---------- paneles ---------- */
 function setTab(t) {
   if (UI.fundar) cerrarFundar(true);
@@ -303,6 +307,7 @@ function setTab(t) {
   const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D (o en lista si se prefiere)
   $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3; UI.linK = null; if (!c3) $('linea').hidden = true;
   if (c3) { UI.cityV.resize(); renderCity3D(); }
+  { let b = $('bmapa'); if (!b) { b = document.createElement('button'); b.id = 'bmapa'; b.type = 'button'; b.dataset.act = 'almapa'; b.textContent = '← Mapa'; b.style.cssText = 'position:absolute;left:8px;top:64px;z-index:6;padding:6px 12px;border-radius:14px;border:1px solid #e9c063;background:#1b2430cc;color:#f1e6c8;font:600 13px system-ui'; $('citywrap').appendChild(b); } if (t !== 'city') UI.deMapa = false; b.hidden = !(c3 && UI.deMapa); }
   if (t === 'map') renderSheet(); else { $('sheet').hidden = true; $('view').scrollTop = 0; render(); }
   hudDock();
 }
@@ -1387,6 +1392,7 @@ document.addEventListener('click', function (e) {
     case 'skill': if (G.skill(v)) render(); break;
     case 'ev': { const ev = D.EVENTS[+v]; modal('<div class="yr">' + ev.y + ' A.C.</div><h2>' + esc(ev.t) + '</h2><p>' + esc(ev.x) + '</p>' + licHtml(ev) + '<div class="acts"><button class="btn" data-act="close">Cerrar</button></div>'); break; }
     case 'zoom': if (UI.map) UI.map.zoom(+v); break;
+    case 'almapa': volverAlMapa(); break;
     case 'home': if (UI.map) UI.map.center(s.hero.city || 'roma'); break;
     case 'unsel': UI.sel = null; renderSheet(); break;
     case 'goto': UI.city = v; setTab('city'); break;
@@ -1475,7 +1481,7 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && S()
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
 
 buildTop(); buildTabs(); initBandeja();
-try { UI.map = new MapView3D($('mapwrap'), { onSelect: id => { UI.sel = id; UI.sheetKey = ''; renderSheet(); } }); }
+try { UI.map = new MapView3D($('mapwrap'), { onSelect: id => { const otra = id && id === UI.sel && propiaEntrable(id); UI.sel = id; UI.sheetKey = ''; renderSheet(); if (otra) UI.map.entrarCiudad(id); }, puedeEntrar: propiaEntrable, onEntrar: id => { UI.city = id; UI.bsel = null; UI.cityList = false; UI.deMapa = true; setTab('city'); } }); }
 catch (e) { console.warn('WebGL no disponible para el mapa', e); $('mapwrap').innerHTML = '<div class="empty" style="padding:160px 24px;text-align:center">Tu dispositivo no puede mostrar el mapa 3D. Puedes jugar desde las pestañas Ciudad y Ejército.</div>'; }
 showMenu(); requestAnimationFrame(frame);
 // modelos reales (0 A.D.): se cargan en segundo plano; hasta entonces se usan los generados por código
