@@ -702,7 +702,7 @@ function fichaHtml(c, sd) {
       } else if (!e.ruina && P.mejoras) cuerpo += '<div class="nota">Nivel máximo alcanzado.</div>';
       if (e.tipo !== 'compitum') {
         const dk = UI.city + ':' + e.id;
-        cuerpo += '<div class="fila fila2">' + '<button class="bsec' + (UI.derr === dk ? ' sure' : '') + '" data-act="derr" data-v="' + e.id + '">' + (UI.derr === dk ? '¿Seguro? Derribar' : 'Derribar') + '</button></div>';
+        cuerpo += '<div class="fila fila2">' + '<button class="bsec" data-act="mover" data-v="' + e.id + '">Mover</button>' + '<button class="bsec' + (UI.derr === dk ? ' sure' : '') + '" data-act="derr" data-v="' + e.id + '">' + (UI.derr === dk ? '¿Seguro? Derribar' : 'Derribar') + '</button></div>';
       } else cuerpo += '<div class="nota">Una capilla de cruce no se derriba.</div>';
     }
   }
@@ -810,6 +810,8 @@ function construir3() {
     const nom = piezaInfo('muralla').nombre, r = G.levantarMuralla(UI.city); if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); return; }
     salir3(); toast('🔨 ' + nom + ': en obra', 'good'); renderCity3D(); tickUI(); return; }
   const sel = UI.sel3; if (UI.modo3 !== 'colocar' || !sel) return;
+  if (sel.mover) { const r = G.moverPieza(UI.city, sel.mover, sel.x, sel.z); if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); cityPantalla(); return; }
+    salir3(); toast('🚚 ' + Ciudad.EDIF[sel.id].nombre + ' movido, con sus mejoras', 'good'); renderCity3D(); tickUI(); return; }
   const r = G.colocar(UI.city, sel.id, sel.x, sel.z);
   if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); cityPantalla(); return; }
   const P = Ciudad.EDIF[sel.id]; salir3(); toast('🔨 ' + P.nombre + ': obra en marcha (' + (P.obra === 1 ? 'un mes' : P.obra + ' meses') + ')', 'good'); renderCity3D(); tickUI();
@@ -1361,6 +1363,7 @@ document.addEventListener('click', function (e) {
     case 'tipos': modal(tiposModal()); break;
     case 'dios': if (G.elegirDios(UI.city, v)) render(); break;
     case 'tipo': if (G.setTipo(UI.city, v)) { closeModal(); toast(D.TIPOS[v].i + ' ' + D.CITIES[UI.city].n + ': ' + D.TIPOS[v].n + '.'); render(); } else toast('No se puede elegir ese tipo.', 'bad'); break;
+    case 'mover': { const E = G.ciudadE(UI.city), e = E && E.edificios.find(q => q.id === +v); if (!e) break; elegir3(e.tipo, [e.x, e.z]); if (UI.sel3) UI.sel3.mover = e.id; break; }
     case 'derr': { const k = UI.city + ':' + v; if (UI.derr !== k) { UI.derr = k; renderCity3D(); break; } UI.derr = null; const r = G.derribarPieza(UI.city, +v); if (r.ok) { UI.bsel = null; toast('🧱 Pieza derribada.', 'good'); } else toast(r.motivo + '.', 'bad'); renderCity3D(); tickUI(); break; }
     case 'clist': UI.cityList = !UI.cityList; setTab('city'); break;
     case 'cview': if (UI.cityV) { UI.bsel = null; UI.vistas = false; UI.cityV.view(v); renderCity3D(); } break;

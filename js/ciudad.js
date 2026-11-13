@@ -381,6 +381,21 @@ export function murallaSiguiente(E) { const m = E.muralla; if (!E.fundada || m.o
 export function levantarMuralla(E, gratis, pago) { const s = murallaSiguiente(E); if (!s) return { ok: false, motivo: E.muralla.obra ? 'La obra ya está en marcha' : 'La muralla ya es de piedra' };
   if (!gratis) { const mo = cobrar(E, s.coste, pago); if (mo) return { ok: false, motivo: mo }; } E.muralla.obra = 3; E.diario.push({ a: 'm', n: E.mesN }); geoMuralla(E); E.rev++; return { ok: true }; }
 
+/* CN21: mover una pieza ya levantada a otro sitio sin perder sus mejoras. Gratis. No vale con obra, ruina ni capilla de cruce.
+   Se anota en el diario como 'v' para que la repetición de la partida lo rehaga. */
+export function mover(E, id, x, z) {
+  const e = E.edificios.find(q => q.id === id); if (!e || !E.fundada) return { ok: false, motivo: 'No existe esa pieza' };
+  if (e.tipo === 'compitum') return { ok: false, motivo: 'Una capilla de cruce no se mueve' };
+  if (e.obra || e.ruina) return { ok: false, motivo: 'Ahora no se puede mover' };
+  const D = EDIF[e.tipo], rotV = e.ang + Math.PI / 2; sello(E, e.x, e.z, rotV, D.w, D.d, 0, 0, 2);      // libera su huella para que no choque consigo misma
+  const s = notaSitio(E, e.tipo, x, z);
+  if (!s.vale) { sello(E, e.x, e.z, rotV, D.w, D.d, 2); return { ok: false, motivo: s.razones[0] }; }
+  e.x = x; e.z = z; e.ang = s.ang; e.nota = s.nota; const rot = s.ang + Math.PI / 2;
+  huella(E, x, z, rot, D.w + 2, D.d + 2, (o, q) => { if (o === 3) { const l = E.parcelas[E.lote[q] - 1]; if (l && !l.casa) quitarParcela(E, l); } return false; });
+  sello(E, x, z, rot, D.w, D.d, 2); e.radio = alcance(E, e.tipo, x, z, e.mejora || 0);
+  if (e.tipo === 'granja') { const c = Math.cos(rot), sn = Math.sin(rot); e.campo = [[-36, 11], [36, 11], [36, 62], [-36, 62]].map(([u, t]) => [x + u * c - t * sn, z + u * sn + t * c]); e.vega = vega(x, z); for (const a of E.arboles) { const u = (a.x - x) * c + (a.z - z) * sn, t = -(a.x - x) * sn + (a.z - z) * c; if (Math.abs(u) < 39 && t > 8 && t < 65) a.talado = true; } }
+  E.diario.push({ a: 'v', n: E.mesN, id, x, z }); puertas(E); reparcelar(E); return { ok: true, e };
+}
 /* ---------- mejoras I, II, III (solo datos mínimos: la economía real es CN2) ---------- */
 export function mejoraSiguiente(E, id) { const e = E.edificios.find(q => q.id === id); if (!e || e.obra || e.ruina || !EDIF[e.tipo].mejoras || (e.mejora || 0) >= 3) return null; const m = EDIF[e.tipo].mejoras[e.mejora || 0]; return { nombre: EDIF[e.tipo].nombre + ' ' + ROMANOS[(e.mejora || 0) + 1], coste: m.coste, radioMul: m.radioMul, rinde: m.rinde }; }
 export function mejorar(E, id, gratis, pago) { const s = mejoraSiguiente(E, id); if (!s) return { ok: false, motivo: 'No se puede mejorar' };
