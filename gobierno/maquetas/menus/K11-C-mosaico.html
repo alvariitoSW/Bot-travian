@@ -1,0 +1,575 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AQVILA · Mosaico</title>
+<style>
+@font-face{font-family:Cinzel;font-weight:700;src:url(../../../assets/fuentes/cinzel-700.woff2) format("woff2")}
+@font-face{font-family:Cinzel;font-weight:400;src:url(../../../assets/fuentes/cinzel-400.woff2) format("woff2")}
+:root{
+  --noche:#0b1016;--noche2:#141c26;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;
+  --terra:#b4532e;--azul:#2a6585;--oliva:#5f7f2f;--ocre:#d9a63c;--tinta:#1d1408;
+  --junta:rgba(11,16,22,.28);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#05080c;color:var(--marmol);font:400 14px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden}
+body{display:flex;justify-content:center}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer;padding:0}
+svg.i{width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+#app{position:relative;width:390px;height:844px;max-width:100vw;background:var(--noche);overflow:hidden;display:flex;flex-direction:column}
+.cin{font-family:Cinzel,Georgia,serif;font-weight:700;letter-spacing:.02em}
+
+/* cabecera del juego */
+#top{flex:none;padding:6px 8px 4px;background:var(--noche2);border-bottom:2px solid var(--bronce)}
+#top .r1{display:flex;gap:6px;align-items:center;height:44px}
+.pill{height:44px;min-width:44px;padding:0 12px;border-radius:22px;background:#1f2a38;display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:15px}
+#top .fecha{flex:1;text-align:center;font-size:13px;line-height:1.15;color:var(--piedra)}
+#top .fecha b{display:block;color:var(--marmol);font-size:14px}
+#top .r2{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin-top:4px}
+.rc{border-radius:8px;padding:3px 2px;text-align:center;background:#1a2431;line-height:1.15}
+.rc b{display:flex;align-items:center;justify-content:center;gap:3px;font-size:15px}
+.rc small{font-size:13px;color:var(--piedra)}
+.rc .i{font-size:14px}
+
+/* pantallas */
+#main{flex:1;position:relative;min-height:0}
+.screen{position:absolute;inset:0;padding:10px;display:none}
+.screen.on{display:block}
+.grid{display:grid;gap:8px;height:100%;grid-template-columns:1fr 1fr}
+
+/* tesela */
+.tile{position:relative;border-radius:12px;padding:10px 12px;text-align:left;display:flex;flex-direction:column;overflow:hidden;color:#fff;
+  background-color:var(--c);
+  background-image:linear-gradient(var(--junta) 1px,transparent 1px),linear-gradient(90deg,var(--junta) 1px,transparent 1px);
+  background-size:11px 11px;box-shadow:inset 0 0 0 2px rgba(241,234,217,.28),0 2px 0 rgba(0,0,0,.4);transition:transform .12s}
+.tile:active{transform:scale(.97)}
+.tile.terra{--c:var(--terra)}.tile.azul{--c:var(--azul)}.tile.oliva{--c:var(--oliva)}.tile.ocre{--c:var(--ocre);color:var(--tinta)}
+.tile.noche{--c:#26323f}
+.tile.span2{grid-column:span 2}
+.tile .ico{font-size:26px;display:block}
+.tile h3{margin:4px 0 0;font:700 15px/1.1 Cinzel,Georgia,serif;letter-spacing:.02em}
+.tile .big{font:700 32px/1 Cinzel,Georgia,serif;margin-top:auto}
+.tile .sub{font-size:13px;opacity:.95;margin-top:3px}
+.tile .go{position:absolute;right:8px;top:8px;width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,.32);display:flex;align-items:center;justify-content:center;font-size:16px}
+.tile.ocre .go{background:rgba(255,255,255,.4)}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:14px;font-size:13px;font-weight:700;background:rgba(0,0,0,.35);color:#fff}
+.chip.mal{background:var(--rojo)}.chip.ok{background:rgba(255,255,255,.22)}
+
+/* gobierno */
+#s-gobierno .grid{grid-template-rows:1.25fr 1fr 1fr .78fr}
+.face{width:44px;height:44px;flex:none}
+.felic{display:flex;align-items:center;gap:10px;margin-top:6px}
+.felic .num{font:700 38px/1 Cinzel,serif}
+.bar{height:10px;border-radius:5px;background:rgba(0,0,0,.35);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--oro);border-radius:5px}
+.faltas{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.seg{display:flex;background:rgba(0,0,0,.35);border-radius:12px;padding:3px;gap:3px;margin-top:auto}
+.seg button{flex:1;min-height:44px;border-radius:9px;font-weight:700;font-size:14px;color:#fff}
+.seg button.on{background:var(--oro);color:var(--tinta)}
+
+/* menu */
+#s-menu{padding:0;background:radial-gradient(120% 60% at 50% 0,#27374a 0,var(--noche) 70%)}
+#s-menu .wrap{height:100%;padding:12px 10px 10px;display:flex;flex-direction:column;gap:8px}
+.banner{text-align:center;padding:6px 0 2px}
+.banner svg{width:54px;height:40px}
+.banner h1{margin:0;font:700 40px/1 Cinzel,serif;letter-spacing:.22em;color:var(--oro);text-shadow:0 2px 0 #000;padding-left:.22em}
+.banner p{margin:4px 0 0;color:var(--piedra);font-size:13px}
+#s-menu .grid{flex:1;grid-template-rows:1.1fr 1fr 1fr .6fr}
+
+/* imperio */
+.filtros{display:flex;gap:6px;overflow-x:auto;margin:0 -10px 8px;padding:0 10px;scrollbar-width:none}
+.filtros::-webkit-scrollbar{display:none}
+.filtros button{flex:none;height:44px;padding:0 14px;border-radius:22px;background:#1f2a38;font-weight:700;font-size:14px}
+.filtros button.on{background:var(--oro);color:var(--tinta)}
+#s-imperio .stack{display:flex;flex-direction:column;gap:8px;height:100%}
+.resumen{flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;text-align:center;padding:8px 6px}
+.resumen b{display:block;font:700 20px/1.1 Cinzel,serif}
+.resumen span{font-size:13px}
+.ciudades{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8px}
+.cit{transition:opacity .2s,filter .2s}
+.cit.off{opacity:.25;filter:grayscale(.8)}
+.cit .top{display:flex;justify-content:space-between;align-items:center}
+.cit h3{font-size:16px;margin:0}
+.cit .pop{font-size:14px;font-weight:700;margin-top:4px}
+.cit .obra{font-size:13px;margin-top:5px;line-height:1.2}
+.cit .bar{margin-top:3px}
+.cit .av{margin-top:auto;padding-top:4px}
+.cit .face{width:30px;height:30px}
+.acceso{flex:none;display:grid;grid-template-columns:repeat(4,1fr);gap:8px;height:84px}
+.acceso .tile{padding:8px 4px;align-items:center;justify-content:center;text-align:center;gap:2px}
+.acceso .tile h3{font-size:13px}
+
+/* barra inferior */
+#nav{flex:none;height:72px;display:grid;grid-template-columns:1fr 1fr 1.25fr 1fr 1fr;gap:2px;padding:6px 6px 8px;background:var(--noche2);border-top:2px solid var(--bronce);align-items:stretch}
+#nav button{border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:13px;font-weight:600;color:var(--piedra)}
+#nav button .i{font-size:22px}
+#nav button.on{color:var(--oro);background:#1f2a38}
+#nav .turno{background:var(--rojo);color:#fff;border-radius:16px;font-weight:700;box-shadow:inset 0 0 0 2px rgba(241,234,217,.35)}
+
+/* panel expandido */
+.panel{position:absolute;inset:0;z-index:30;background:var(--noche);display:flex;flex-direction:column;transform:translateY(16px) scale(.97);opacity:0;pointer-events:none;transition:transform .18s,opacity .18s}
+.panel.on{transform:none;opacity:1;pointer-events:auto}
+.phead{flex:none;height:68px;display:flex;align-items:center;gap:10px;padding:0 10px;color:#fff;background-color:var(--c);
+  background-image:linear-gradient(var(--junta) 1px,transparent 1px),linear-gradient(90deg,var(--junta) 1px,transparent 1px);background-size:11px 11px;border-bottom:3px solid var(--bronce)}
+.phead.ocre{color:var(--tinta)}
+.phead .atras{width:48px;height:48px;border-radius:50%;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+.phead.ocre .atras{background:rgba(255,255,255,.45)}
+.phead h2{margin:0;font:700 20px/1.1 Cinzel,serif;flex:1}
+.phead .i{font-size:28px}
+.pbody{flex:1;min-height:0;padding:12px;display:flex;flex-direction:column;gap:10px}
+.pfoot{flex:none;padding:8px 12px 12px;display:flex;gap:8px}
+.btn{flex:1;min-height:52px;border-radius:14px;font-weight:700;font-size:16px;background:#26323f;color:var(--marmol);display:flex;align-items:center;justify-content:center;gap:8px;padding:0 14px}
+.btn.prim{background:var(--rojo);color:#fff;box-shadow:inset 0 0 0 2px rgba(241,234,217,.35)}
+.btn.oro{background:var(--oro);color:var(--tinta)}
+.btn[disabled]{opacity:.4}
+.lbl{font:700 13px/1 Cinzel,serif;letter-spacing:.08em;color:var(--oro);text-transform:uppercase}
+.card{background:var(--noche2);border-radius:12px;padding:10px 12px;box-shadow:inset 0 0 0 1px #2c394a}
+.row{display:flex;align-items:center;gap:10px;min-height:48px}
+.row .t{flex:1;font-size:15px}
+.row .t small{display:block;color:var(--piedra);font-size:13px}
+.sw{width:56px;height:32px;border-radius:16px;background:#3a4656;position:relative;flex:none;transition:background .15s}
+.sw::after{content:"";position:absolute;left:4px;top:4px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .15s}
+.sw.on{background:var(--oliva)}.sw.on::after{left:28px}
+.sw b{position:absolute;font-size:13px;top:7px;color:#fff}
+.opts{display:grid;gap:6px}
+.opts.c3{grid-template-columns:repeat(3,1fr)}.opts.c5{grid-template-columns:repeat(5,1fr)}.opts.c2{grid-template-columns:1fr 1fr}
+.opt{min-height:48px;border-radius:12px;background:#1f2a38;font-weight:700;font-size:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:4px 2px;box-shadow:inset 0 0 0 2px transparent}
+.opt.on{background:#2d3f55;box-shadow:inset 0 0 0 2px var(--oro);color:var(--oro)}
+.opt[disabled]{opacity:.3}
+.opt .i{font-size:20px}
+.lista{overflow-y:auto;display:flex;flex-direction:column;gap:6px;min-height:0;flex:1;padding-right:2px}
+.ev{display:flex;gap:10px;padding:9px 10px;background:var(--noche2);border-radius:10px;align-items:flex-start}
+.ev .a{flex:none;width:58px;font:700 14px/1.2 Cinzel,serif;color:var(--oro)}
+.ev div{font-size:14px}
+.ev small{display:block;color:var(--piedra);font-size:13px}
+.pips{display:flex;gap:8px}
+.pips i{width:44px;height:14px;border-radius:7px;background:#3a4656}
+.pips i.on{background:var(--oliva)}
+.ruta{display:flex;align-items:center;gap:10px;min-height:64px}
+.ruta .ic{width:44px;height:44px;border-radius:10px;background:var(--oliva);display:flex;align-items:center;justify-content:center;font-size:24px;flex:none}
+.ruta .t{flex:1;font-size:15px;font-weight:700}
+.ruta .t small{display:block;font-weight:400;color:var(--piedra);font-size:13px}
+.ruta .g{font:700 16px Cinzel,serif;color:var(--oro);text-align:right}
+.res3{font-size:18px;text-align:center;padding:8px;flex:1;max-height:170px;display:flex;flex-direction:column;justify-content:center;line-height:1.7}
+.pbody .opts .opt{min-height:64px}.ruta{min-height:92px!important}
+.res3 b{color:var(--oro);font-size:24px}
+input.txt{width:100%;height:48px;border-radius:12px;border:2px solid var(--bronce);background:var(--noche);color:var(--marmol);font:700 16px Cinzel,serif;padding:0 12px}
+.falta{display:flex;gap:10px;align-items:center;min-height:56px}
+.falta .ic{width:40px;height:40px;border-radius:10px;background:var(--rojo);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.falta .t{flex:1;font-size:15px;font-weight:700}
+.falta .t small{display:block;font-weight:400;color:var(--piedra);font-size:13px}
+.mapita{width:100%;height:230px;border-radius:12px;background:#12324a}
+
+/* modal */
+#modal{position:absolute;inset:0;z-index:50;display:none}
+#modal.on{display:block}
+#modal .vel{position:absolute;inset:0;background:rgba(5,8,12,.66)}
+#modal .hoja{position:absolute;left:0;right:0;bottom:0;background:var(--noche2);border-radius:22px 22px 0 0;border-top:3px solid var(--bronce);padding:8px 12px 12px;display:flex;flex-direction:column;gap:8px;animation:sube .22s ease-out}
+@keyframes sube{from{transform:translateY(60px);opacity:0}}
+.hoja .agarre{width:46px;height:5px;border-radius:3px;background:#4a586a;margin:0 auto}
+.hoja h2{margin:0;font:700 20px/1.1 Cinzel,serif;color:var(--oro);text-align:center}
+.hoja .meta{text-align:center;color:var(--piedra);font-size:13px;margin-top:-4px}
+.mini{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.mini .tile{padding:8px 10px;min-height:86px}
+.mini .tile h3{font-size:14px;margin:0}
+.mini .tile .ico{font-size:20px}
+.mini .tile .sub{margin-top:auto;font-size:13px;font-weight:600}
+.mas{display:none;flex-direction:column;gap:6px}
+.hoja.ext .mas{display:flex}
+.tarea{display:flex;align-items:center;gap:10px;min-height:44px;padding:6px 10px;background:#1a2431;border-radius:10px;font-size:14px;width:100%;text-align:left}
+.tarea .ck{width:24px;height:24px;border-radius:6px;border:2px solid var(--bronce);flex:none;display:flex;align-items:center;justify-content:center;color:var(--oro);font-size:16px}
+.tarea.hecha .ck{background:var(--oliva);border-color:var(--oliva);color:#fff}
+.consejo{font-size:14px;padding:8px 10px;background:#1a2431;border-radius:10px;border-left:4px solid var(--oro)}
+
+#toast{position:absolute;left:50%;bottom:90px;transform:translateX(-50%);z-index:90;background:var(--marmol);color:var(--tinta);padding:10px 16px;border-radius:20px;font-weight:700;font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s;white-space:nowrap}
+#toast.on{opacity:1}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+<defs>
+<symbol id="madera" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="5"/><circle cx="18" cy="12" r="2.5"/><path d="M6 10h6M6 14h5"/></symbol>
+<symbol id="piedra" viewBox="0 0 24 24"><path d="M4 18l3-9 5-3 6 4 2 8z"/><path d="M7 9l5 4 6-3M12 13v5"/></symbol>
+<symbol id="hierro" viewBox="0 0 24 24"><path d="M3 9h14l4 3-4 3H3z"/><path d="M7 15v4h8v-4"/></symbol>
+<symbol id="grano" viewBox="0 0 24 24"><path d="M12 21V8M12 8c-3 0-4-2-4-4 3 0 4 2 4 4zM12 8c3 0 4-2 4-4-3 0-4 2-4 4zM12 14c-3 0-4-2-4-4 3 0 4 2 4 4zM12 14c3 0 4-2 4-4-3 0-4 2-4 4z"/></symbol>
+<symbol id="oro" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7v10M9 9.5c0-1.5 6-1.5 6 0 0 2-6 1.5-6 3.5 0 1.500 6 1.500 6 0"/></symbol>
+<symbol id="ciudad" viewBox="0 0 24 24"><path d="M3 20V10l4-3 4 3v10M11 20V6l5-3 5 3v14M2 20h20M6 13h2M14 10h2M14 14h2"/></symbol>
+<symbol id="mercado" viewBox="0 0 24 24"><path d="M12 3v16M5 7h14M5 7l-3 7h6zM19 7l-3 7h6zM8 20h8"/></symbol>
+<symbol id="ruta" viewBox="0 0 24 24"><rect x="2" y="8" width="12" height="8" rx="1"/><path d="M14 11h4l3 3v2h-7"/><circle cx="6" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></symbol>
+<symbol id="cronica" viewBox="0 0 24 24"><path d="M6 3h11a2 2 0 012 2v12a3 3 0 01-3 3H6a2 2 0 01-2-2V5a2 2 0 012-2zM8 8h8M8 12h8M8 16h5"/></symbol>
+<symbol id="ajustes" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></symbol>
+<symbol id="reloj" viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 8v5l3 2M9 2h6"/></symbol>
+<symbol id="senado" viewBox="0 0 24 24"><path d="M2 9l10-6 10 6zM5 10v8M10 10v8M14 10v8M19 10v8M3 20h18"/></symbol>
+<symbol id="saber" viewBox="0 0 24 24"><path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v13c-3-1-6-1-8 1-2-2-5-2-8-1z"/><path d="M12 6v13"/></symbol>
+<symbol id="general" viewBox="0 0 24 24"><path d="M4 14a8 8 0 0116 0v3H4zM12 3v4M9 17v3M15 17v3M4 14h16"/></symbol>
+<symbol id="menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
+<symbol id="atras" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+<symbol id="ir" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+<symbol id="play" viewBox="0 0 24 24"><path d="M7 4l12 8-12 8z"/></symbol>
+<symbol id="pausa" viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></symbol>
+<symbol id="turno" viewBox="0 0 24 24"><path d="M5 5l7 7-7 7M12 5l7 7-7 7"/></symbol>
+<symbol id="informe" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6zM14 3v5h5M9 12h7M9 16h7"/></symbol>
+<symbol id="campana" viewBox="0 0 24 24"><path d="M5 21V4M5 5h13l-3 4 3 4H5"/></symbol>
+<symbol id="espada" viewBox="0 0 24 24"><path d="M5 19L18 6l1-3-3 1L3 17zM6 15l3 3M3 21l3-3"/></symbol>
+<symbol id="mapa" viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/></symbol>
+<symbol id="sonido" viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9zM16 9c1.500 1.500 1.500 4.500 0 6M19 6c3 3 3 9 0 12"/></symbol>
+<symbol id="corona" viewBox="0 0 24 24"><path d="M3 17l-1-10 6 4 4-7 4 7 6-4-1 10zM4 20h16"/></symbol>
+<symbol id="ola" viewBox="0 0 24 24"><path d="M2 9c3-3 5 3 8 0s5 3 8 0 4 1 4 1M2 15c3-3 5 3 8 0s5 3 8 0 4 1 4 1"/></symbol>
+<symbol id="fuego" viewBox="0 0 24 24"><path d="M12 3c1 4 6 6 6 11a6 6 0 01-12 0c0-3 2-4 3-7 1 1 2 2 3-4z"/></symbol>
+<symbol id="nieve" viewBox="0 0 24 24"><path d="M12 2v20M3 7l18 10M21 7L3 17"/></symbol>
+<symbol id="martillo" viewBox="0 0 24 24"><path d="M14 3l7 7-3 3-7-7zM12 8L4 16l4 4 8-8"/></symbol>
+<symbol id="sal" viewBox="0 0 24 24"><path d="M7 9h10l-1 11H8zM8 9V6h8v3M10 13h4"/></symbol>
+<symbol id="caballo" viewBox="0 0 24 24"><path d="M4 20c0-6 2-9 6-11l1-4 3 2 4 4-3 2-1 3v4M10 9l-5 3"/></symbol>
+<symbol id="vino" viewBox="0 0 24 24"><path d="M7 3h10c0 6-1 9-5 9S7 9 7 3zM12 12v8M8 21h8"/></symbol>
+<symbol id="ok" viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></symbol>
+<symbol id="carta" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></symbol>
+<symbol id="libro" viewBox="0 0 24 24"><path d="M5 3h12a2 2 0 012 2v14H7a2 2 0 01-2-2zM5 17a2 2 0 012-2h12"/></symbol>
+</defs>
+</svg>
+
+<div id="app">
+  <header id="top">
+    <div class="r1">
+      <button class="pill" id="ciudadSel" aria-label="Cambiar de ciudad"><svg class="i"><use href="#ciudad"/></svg><span id="ciudadNom">Roma</span> ▾</button>
+      <div class="fecha"><b>Invierno</b>280 a.C. · turno 1</div>
+      <button class="pill" id="vel" aria-label="Velocidad del reloj"><svg class="i"><use href="#play"/></svg><span>x1</span></button>
+      <button class="pill" id="btnMenu" aria-label="Abrir el menú"><svg class="i" style="font-size:22px"><use href="#menu"/></svg></button>
+    </div>
+    <div class="r2" id="recs"></div>
+  </header>
+
+  <main id="main">
+    <!-- GOBIERNO -->
+    <section class="screen" id="s-gobierno">
+      <div class="grid">
+        <button class="tile terra span2" data-go="gobierno-estado">
+          <span class="go"><svg class="i"><use href="#ir"/></svg></span>
+          <h3>Estado de Roma</h3>
+          <div class="sub">Ciudad grande · gobierno consular</div>
+          <div class="felic"><svg class="face" id="faceEst"></svg><span class="num">72</span><div style="flex:1"><div class="sub" style="margin:0 0 4px">Felicidad</div><div class="bar"><i style="width:72%"></i></div></div></div>
+          <div class="faltas"><span class="chip mal"><svg class="i"><use href="#sal"/></svg>Sal</span><span class="chip mal"><svg class="i"><use href="#caballo"/></svg>Caballos</span><span class="chip mal"><svg class="i"><use href="#vino"/></svg>Vino</span></div>
+        </button>
+        <button class="tile azul" data-go="gobierno-mercado">
+          <span class="go"><svg class="i"><use href="#ir"/></svg></span>
+          <svg class="i ico"><use href="#mercado"/></svg><h3>Mercado</h3>
+          <div class="big">50 %</div><div class="sub">Cambia recursos</div>
+        </button>
+        <button class="tile oliva" data-go="gobierno-rutas">
+          <span class="go"><svg class="i"><use href="#ir"/></svg></span>
+          <svg class="i ico"><use href="#ruta"/></svg><h3>Rutas</h3>
+          <div class="big">2 / 4</div><div class="sub">huecos usados</div>
+        </button>
+        <button class="tile ocre" data-go="gobierno-cronica">
+          <span class="go"><svg class="i"><use href="#ir"/></svg></span>
+          <svg class="i ico"><use href="#cronica"/></svg><h3>Crónica</h3>
+          <div class="big">280</div><div class="sub">a.C. · hechos y sucesos</div>
+        </button>
+        <button class="tile noche" data-go="gobierno-ajustes">
+          <span class="go"><svg class="i"><use href="#ir"/></svg></span>
+          <svg class="i ico"><use href="#ajustes"/></svg><h3>Ajustes</h3>
+          <div class="big" id="ajDif">Normal</div><div class="sub">dificultad y avisos</div>
+        </button>
+        <div class="tile noche span2" style="padding:8px 10px">
+          <h3 style="display:flex;align-items:center;gap:8px"><svg class="i" style="font-size:20px"><use href="#reloj"/></svg>Pausas del reloj</h3>
+          <div class="seg" id="segPausa"><button data-v="Todas" class="on">Todas</button><button data-v="Solo graves">Solo graves</button><button data-v="Ninguna">Ninguna</button></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MENÚ -->
+    <section class="screen" id="s-menu">
+      <div class="wrap">
+        <div class="banner">
+          <svg viewBox="0 0 54 40"><path d="M3 36V16l12-8 12 8v20M27 36V10l14-8 11 8v26M2 36h50" fill="none" stroke="#e9c063" stroke-width="2.500" stroke-linejoin="round"/></svg>
+          <h1>AQVILA</h1><p>Roma · 280–146 a.C.</p>
+        </div>
+        <div class="grid">
+          <button class="tile terra span2" data-act="continuar">
+            <span class="go"><svg class="i"><use href="#play"/></svg></span>
+            <svg class="i ico"><use href="#campana"/></svg>
+            <h3>Continuar campaña</h3>
+            <div class="sub">Lucio Cornelio Escipión · Invierno del 280 a.C., turno 1</div>
+            <div class="big" style="font-size:22px">Seguir jugando</div>
+          </button>
+          <button class="tile azul" data-go="menu-nueva"><span class="go"><svg class="i"><use href="#ir"/></svg></span><svg class="i ico"><use href="#espada"/></svg><h3>Nueva campaña</h3><div class="sub" style="margin-top:auto">Nombre, dificultad</div></button>
+          <button class="tile oliva" data-go="menu-region"><span class="go"><svg class="i"><use href="#ir"/></svg></span><svg class="i ico"><use href="#mapa"/></svg><h3>Región de Italia</h3><div class="sub" style="margin-top:auto">Mapa de partida</div></button>
+          <button class="tile ocre" data-go="menu-corta"><span class="go"><svg class="i"><use href="#ir"/></svg></span><svg class="i ico"><use href="#reloj"/></svg><h3>Partida corta</h3><div class="sub" style="margin-top:auto">2 modos</div></button>
+          <button class="tile noche" data-go="menu-sonido"><span class="go"><svg class="i"><use href="#ir"/></svg></span><svg class="i ico"><use href="#sonido"/></svg><h3>Sonido y fluidez</h3><div class="sub" style="margin-top:auto">Sonido: sí</div></button>
+          <button class="tile noche span2" data-go="menu-creditos" style="flex-direction:row;align-items:center;gap:10px"><svg class="i ico"><use href="#corona"/></svg><h3 style="margin:0;flex:1">Créditos</h3><svg class="i"><use href="#ir"/></svg></button>
+        </div>
+      </div>
+    </section>
+
+    <!-- IMPERIO -->
+    <section class="screen" id="s-imperio">
+      <div class="stack">
+        <div class="filtros" id="filtros"></div>
+        <div class="tile noche resumen" style="flex-direction:row" id="resumen"></div>
+        <div class="ciudades" id="ciudades"></div>
+        <div class="acceso">
+          <button class="tile azul" data-go="imp-senado"><svg class="i ico"><use href="#senado"/></svg><h3>Senado</h3></button>
+          <button class="tile oliva" data-go="imp-saber"><svg class="i ico"><use href="#saber"/></svg><h3>Saber</h3></button>
+          <button class="tile terra" data-go="imp-general"><svg class="i ico"><use href="#general"/></svg><h3>General</h3></button>
+          <button class="tile ocre" data-go="gobierno-cronica"><svg class="i ico"><use href="#cronica"/></svg><h3>Crónica</h3></button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav id="nav">
+    <button data-nav="gobierno"><svg class="i"><use href="#corona"/></svg>Gobierno</button>
+    <button data-nav="imperio"><svg class="i"><use href="#ciudad"/></svg>Imperio</button>
+    <button class="turno" id="btnTurno"><svg class="i"><use href="#turno"/></svg>Pasar turno</button>
+    <button data-nav="modal"><svg class="i"><use href="#informe"/></svg>Informe</button>
+    <button data-nav="menu"><svg class="i"><use href="#menu"/></svg>Menú</button>
+  </nav>
+
+  <div id="paneles"></div>
+
+  <!-- MODAL -->
+  <div id="modal">
+    <div class="vel" data-cerrar></div>
+    <div class="hoja" id="hoja">
+      <div class="agarre"></div>
+      <h2>Invierno del 280 a.C.</h2>
+      <div class="meta">Informe del asesor · turno 1</div>
+      <div class="mini">
+        <div class="tile azul"><svg class="i ico"><use href="#ola"/></svg><h3>Crecida del río</h3><div class="sub">Sube el Tíber en 2 turnos</div></div>
+        <div class="tile ocre"><svg class="i ico"><use href="#martillo"/></svg><h3>Obras</h3><div class="sub">Sin cola · hay recursos</div></div>
+        <div class="tile terra"><svg class="i ico"><use href="#senado"/></svg><h3>Senado</h3><div class="sub">1 ley por votar</div></div>
+        <div class="tile oliva"><svg class="i ico"><use href="#general"/></svg><h3>En armas</h3><div class="sub">120 hombres</div></div>
+      </div>
+      <div class="mas">
+        <div class="consejo">Consejo: pon obra a Roma antes de la crecida. Sube el almacén de grano.</div>
+        <button class="tarea" data-tarea><span class="ck"><svg class="i"><use href="#ok"/></svg></span>Poner una obra en Roma</button>
+        <button class="tarea" data-tarea><span class="ck"><svg class="i"><use href="#ok"/></svg></span>Votar la ley en el Senado</button>
+        <button class="tarea hecha" data-tarea><span class="ck"><svg class="i"><use href="#ok"/></svg></span>Reclutar 120 hombres</button>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" id="btnMas" style="flex:.8">Ver más</button>
+        <button class="btn prim" id="btnSeguir">Seguir</button>
+      </div>
+    </div>
+  </div>
+  <div id="toast"></div>
+</div>
+
+<script>
+const $=(s,r=document)=>r.querySelector(s), $$=(s,r=document)=>[...r.querySelectorAll(s)];
+const ic=(n,x='')=>`<svg class="i" ${x}><use href="#${n}"/></svg>`;
+const toastEl=$('#toast');let tt;
+function toast(m){toastEl.textContent=m;toastEl.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>toastEl.classList.remove('on'),1600)}
+
+/* caras de ánimo */
+function face(m,cls='face'){
+  const col={ok:'#8fae5a',med:'#e9c063',mal:'#c0281f'}[m];
+  const boca={ok:'M12 27c3 5 13 5 16 0',med:'M13 29h14',mal:'M12 31c3-5 13-5 16 0'}[m];
+  return `<svg class="${cls}" viewBox="0 0 40 40"><circle cx="20" cy="20" r="18" fill="${col}" stroke="#0b1016" stroke-width="2"/><circle cx="14" cy="16" r="2.4" fill="#0b1016"/><circle cx="26" cy="16" r="2.4" fill="#0b1016"/><path d="${boca}" fill="none" stroke="#0b1016" stroke-width="2.600" stroke-linecap="round"/></svg>`;
+}
+$('#faceEst').outerHTML=face('med');
+
+/* recursos */
+const RES=[['madera','Madera',420,1200],['piedra','Piedra',310,1200],['hierro','Hierro',95,800],['grano','Grano',780,1500],['oro','Oro',260,2000]];
+const cols={madera:'#c98a4b',piedra:'#9aa6b4',hierro:'#7fa0c0',grano:'#e9c063',oro:'#f0d27a'};
+$('#recs').innerHTML=RES.map(r=>`<div class="rc"><b style="color:${cols[r[0]]}">${ic(r[0])}${r[2]}</b><small>alm ${r[3]}</small></div>`).join('');
+
+/* cabecera: ciudad, velocidad */
+const CIU=['Roma','Capua','Tarento','Siracusa'];let ci=0;
+$('#ciudadSel').onclick=()=>{ci=(ci+1)%4;$('#ciudadNom').textContent=CIU[ci];toast('Ciudad: '+CIU[ci])};
+const VELS=[['pausa','Pausa'],['play','x1'],['play','x2'],['play','x3']];let vi=1;
+$('#vel').onclick=()=>{vi=(vi+1)%4;$('#vel').innerHTML=ic(VELS[vi][0])+'<span>'+VELS[vi][1]+'</span>'};
+$('#btnMenu').onclick=()=>go('menu');
+$('#btnTurno').onclick=()=>toast('Pasas el turno (demostración)');
+
+/* pausas */
+$$('#segPausa button').forEach(b=>b.onclick=e=>{e.stopPropagation();$$('#segPausa button').forEach(x=>x.classList.toggle('on',x===b));toast('Pausas: '+b.dataset.v)});
+
+/* estado */
+const S={dif:'Normal',consejos:true,crecida:true,incendios:true,hambre:false,sonido:true,fluidez:'Normal',
+  doy:'madera',recibo:'piedra',cant:1,nombre:'Lucio Cornelio Escipión',modo:0};
+
+/* IMPERIO */
+const CITS=[
+ {n:'Roma',pop:1840,tope:2000,m:'ok',obra:'Muralla, nivel 3',p:62,av:['Almacén lleno'],urg:1,col:'terra'},
+ {n:'Capua',pop:1120,tope:1500,m:'med',obra:'Cuartel, nivel 2',p:30,av:['Todo en orden'],urg:0,col:'azul'},
+ {n:'Tarento',pop:640,tope:1000,m:'mal',obra:null,p:0,av:['Inquietud','Sin obra · hay recursos'],urg:1,col:'ocre'},
+ {n:'Siracusa',pop:880,tope:1200,m:'ok',obra:'Puerto, nivel 1',p:85,av:['Todo en orden'],urg:0,col:'oliva'}];
+const FIL=[['Todas',()=>1],['Urgentes',c=>c.urg],['Sin obra',c=>!c.obra],['En obras',c=>!!c.obra],['Ánimo bajo',c=>c.m!=='ok']];
+let fi=0;
+$('#filtros').innerHTML=FIL.map((f,i)=>`<button data-f="${i}" class="${i?'':'on'}">${f[0]}</button>`).join('');
+$('#ciudades').innerHTML=CITS.map((c,i)=>`<button class="tile cit ${c.col}" data-ci="${i}">
+  <div class="top"><h3 class="cin">${c.n}</h3>${face(c.m)}</div>
+  <div class="pop">Gente ${c.pop}/${c.tope}</div>
+  <div class="obra">${c.obra?c.obra+' · '+c.p+' %':'Sin obra'}<div class="bar"><i style="width:${c.p}%"></i></div></div>
+  <div class="av"><span class="chip ${c.urg?'mal':'ok'}">${c.av[0]}</span></div></button>`).join('');
+$('#resumen').innerHTML=`<div style="flex:1"><b>4</b><span>ciudades</span></div><div style="flex:1"><b>4480</b><span>gente</span></div><div style="flex:1"><b>3</b><span>avisos</span></div><div style="flex:1"><b>+86</b><span>oro/turno</span></div>`;
+function filtra(){
+  $$('#filtros button').forEach((b,i)=>b.classList.toggle('on',i===fi));
+  $$('.cit').forEach((el,i)=>el.classList.toggle('off',!FIL[fi][1](CITS[i])));
+}
+$('#filtros').onclick=e=>{const b=e.target.closest('button');if(!b)return;fi=+b.dataset.f;filtra()};
+
+/* PANELES */
+const P={};
+function panel(id,{titulo,icono,color,volver,cuerpo,pie,init}){P[id]={titulo,icono,color,volver,cuerpo,pie,init}}
+const volverG='gobierno',volverM='menu',volverI='imperio';
+
+panel('gobierno-estado',{titulo:'Estado de Roma',icono:'corona',color:'terra',volver:volverG,cuerpo:()=>`
+  <div class="card"><div class="lbl">Tipo de ciudad</div><div class="row"><div class="t">Ciudad grande<small>Gobierno consular · 1840 de 2000 habitantes</small></div></div></div>
+  <div class="card"><div class="lbl">Felicidad</div><div class="row">${face('med')}<div style="flex:1"><div class="cin" style="font-size:24px;color:var(--oro)">72 de 100</div><div class="bar" style="margin-top:4px"><i style="width:72%"></i></div></div></div></div>
+  <div class="lbl">Lo que falta</div>
+  <div class="card"><div class="falta"><span class="ic">${ic('sal')}</span><div class="t">Sal<small>Quita 6 de ánimo. Cómprala en el Mercado.</small></div></div>
+  <div class="falta"><span class="ic">${ic('caballo')}</span><div class="t">Caballos<small>No puedes formar caballería.</small></div></div>
+  <div class="falta"><span class="ic">${ic('vino')}</span><div class="t">Vino<small>Los nobles piden vino.</small></div></div></div>`,
+  pie:`<button class="btn oro" data-go="gobierno-mercado">${ic('mercado','style="font-size:22px"')}Ir al Mercado</button>`});
+
+panel('gobierno-mercado',{titulo:'Mercado',icono:'mercado',color:'azul',volver:volverG,cuerpo:()=>`
+  <div class="lbl">Doy</div><div class="opts c5" id="mDoy"></div>
+  <div class="lbl">Recibo</div><div class="opts c5" id="mRec"></div>
+  <div class="lbl">Cantidad · cambio 50 %</div><div class="opts c3" id="mCant"></div>
+  <div class="card res3" id="mRes"></div>`,
+  pie:`<button class="btn prim" id="mBtn">${ic('mercado','style="font-size:22px"')}Cambiar</button>`,
+  init(){
+    const nom=Object.fromEntries(RES.map(r=>[r[0],r[1]]));const Q=[[100,50],[500,250],[2000,1000]];
+    const pinta=()=>{
+      $('#mDoy').innerHTML=RES.map(r=>`<button class="opt ${S.doy===r[0]?'on':''}" data-r="${r[0]}">${ic(r[0])}<span style="font-size:13px">${r[1]}</span></button>`).join('');
+      $('#mRec').innerHTML=RES.map(r=>`<button class="opt ${S.recibo===r[0]?'on':''}" data-r="${r[0]}" ${S.doy===r[0]?'disabled':''}>${ic(r[0])}<span style="font-size:13px">${r[1]}</span></button>`).join('');
+      $('#mCant').innerHTML=Q.map((q,i)=>`<button class="opt ${S.cant===i?'on':''}" data-q="${i}" style="min-height:56px;font-size:15px">${q[0]} → ${q[1]}</button>`).join('');
+      const q=Q[S.cant];$('#mRes').innerHTML=`Das <b>${q[0]} ${nom[S.doy]}</b><br>Recibes <b>${q[1]} ${nom[S.recibo]}</b>`;
+    };
+    pinta();
+    $('#mDoy').onclick=e=>{const b=e.target.closest('[data-r]');if(!b)return;S.doy=b.dataset.r;if(S.recibo===S.doy)S.recibo=RES.find(r=>r[0]!==S.doy)[0];pinta()};
+    $('#mRec').onclick=e=>{const b=e.target.closest('[data-r]');if(!b||b.disabled)return;S.recibo=b.dataset.r;pinta()};
+    $('#mCant').onclick=e=>{const b=e.target.closest('[data-q]');if(!b)return;S.cant=+b.dataset.q;pinta()};
+    $('#mBtn').onclick=()=>toast('Cambio hecho: '+Q[S.cant][0]+' → '+Q[S.cant][1]);
+  }});
+
+panel('gobierno-rutas',{titulo:'Rutas comerciales',icono:'ruta',color:'oliva',volver:volverG,cuerpo:()=>`
+  <div class="card"><div class="lbl">Huecos de ruta</div><div class="row"><div class="pips"><i class="on"></i><i class="on"></i><i></i><i></i></div><div class="cin" style="font-size:22px;margin-left:auto">2 / 4</div></div></div>
+  <div class="lbl">Tus rutas</div>
+  <div class="card ruta"><span class="ic">${ic('vino')}</span><div class="t">Capua<small>Vino · 1 viaje cada turno</small></div><div class="g">+24<br><small style="font:13px system-ui;color:var(--piedra)">oro/turno</small></div></div>
+  <div class="card ruta"><span class="ic">${ic('grano')}</span><div class="t">Siracusa<small>Grano · por mar</small></div><div class="g">+41<br><small style="font:13px system-ui;color:var(--piedra)">oro/turno</small></div></div>
+  <div class="card ruta" style="opacity:.9"><span class="ic" style="background:#3a4656">${ic('ruta')}</span><div class="t">Tarento<small>Lana · propuesta libre</small></div><button class="opt on" style="min-width:90px;min-height:44px" data-toast="Ruta a Tarento creada">Activar</button></div>`,
+  pie:`<button class="btn oro" data-toast="Elige ciudad y mercancía (demostración)">${ic('ruta','style="font-size:22px"')}Nueva ruta</button>`});
+
+panel('gobierno-ajustes',{titulo:'Ajustes',icono:'ajustes',color:'noche',volver:volverG,cuerpo:()=>`
+  <div><div class="lbl" style="margin-bottom:6px">Dificultad</div><div class="opts c3" id="aDif">${['Tranquila','Normal','Dura'].map(d=>`<button class="opt ${S.dif===d?'on':''}" data-d="${d}" style="min-height:52px;font-size:15px">${d}</button>`).join('')}</div></div>
+  <div class="card" style="padding:2px 12px">
+   ${sw('Consejos del asesor','consejos')}
+   <div class="lbl" style="padding:8px 0 0">Sucesos</div>
+   ${sw('Crecida del río','crecida')}${sw('Incendios','incendios')}${sw('Hambre de invierno','hambre')}
+   ${sw('Sonido','sonido')}</div>`,
+  pie:`<button class="btn" data-toast="Los consejos vuelven a salir">${ic('informe','style="font-size:22px"')}Repetir los consejos</button>`,
+  init(){
+    $('#aDif').onclick=e=>{const b=e.target.closest('[data-d]');if(!b)return;S.dif=b.dataset.d;$$('#aDif .opt').forEach(x=>x.classList.toggle('on',x===b));$('#ajDif').textContent=S.dif};
+    bindSw();
+  }});
+function sw(t,k){return `<div class="row"><div class="t">${t}</div><button class="sw ${S[k]?'on':''}" data-sw="${k}" aria-label="${t}"></button></div>`}
+function bindSw(){$$('[data-sw]').forEach(b=>b.onclick=()=>{S[b.dataset.sw]=!S[b.dataset.sw];b.classList.toggle('on',S[b.dataset.sw])})}
+
+const HECHOS=[['280','Pirro desembarca en Italia','Llama en ayuda de Tarento'],['280','Batalla de Heraclea','Victoria cara de Pirro'],['279','Batalla de Ásculo','Otra victoria que cuesta mucho'],['275','Batalla de Benevento','Pirro deja Italia'],['272','Tarento se rinde','Roma domina el sur'],['264','Comienza la guerra contra Cartago','Chispa en Mesina']];
+const SUCESOS=[['Invierno','Crecida del Tíber','Sube el agua en 2 turnos'],['Invierno','Hambre de invierno','Se gasta más grano'],['Primavera','Mercaderes llegan a Capua','Rutas más baratas'],['Verano','Riesgo de incendio','Cuidado con las casas de madera'],['Otoño','Cosecha','Más grano en los campos']];
+panel('gobierno-cronica',{titulo:'Crónica',icono:'cronica',color:'ocre',volver:volverG,cuerpo:()=>`
+  <div class="opts c2" id="cSeg"><button class="opt on" data-t="0" style="min-height:52px;font-size:15px">Línea del tiempo</button><button class="opt" data-t="1" style="min-height:52px;font-size:15px">Sucesos del año</button></div>
+  <div class="lista" id="cLista"></div>`,
+  init(){
+    const pinta=t=>{$$('#cSeg .opt').forEach(x=>x.classList.toggle('on',+x.dataset.t===t));
+      $('#cLista').innerHTML=t?SUCESOS.map(s=>`<div class="ev"><span class="a">${s[0]}</span><div>${s[1]}<small>${s[2]}</small></div></div>`).join(''):HECHOS.map(s=>`<div class="ev"><span class="a">${s[0]} a.C.</span><div>${s[1]}<small>${s[2]}</small></div></div>`).join('')};
+    pinta(0);$('#cSeg').onclick=e=>{const b=e.target.closest('[data-t]');if(b)pinta(+b.dataset.t)};
+  }});
+
+panel('menu-nueva',{titulo:'Nueva campaña',icono:'espada',color:'azul',volver:volverM,cuerpo:()=>`
+  <div><div class="lbl" style="margin-bottom:6px">Nombre del general</div><input class="txt" id="nNom" value="${S.nombre}"></div>
+  <div><div class="lbl" style="margin-bottom:6px">Dificultad</div><div class="opts c3" id="nDif">${['Tranquila','Normal','Dura'].map(d=>`<button class="opt ${S.dif===d?'on':''}" data-d="${d}" style="min-height:52px;font-size:15px">${d}</button>`).join('')}</div></div>
+  <div class="card" style="padding:2px 12px">${sw('Consejos del asesor','consejos')}</div>`,
+  pie:`<button class="btn prim" data-toast="Empieza la campaña (demostración)">${ic('campana','style="font-size:22px"')}Empezar campaña</button>`,
+  init(){$('#nDif').onclick=e=>{const b=e.target.closest('[data-d]');if(!b)return;S.dif=b.dataset.d;$$('#nDif .opt').forEach(x=>x.classList.toggle('on',x===b))};bindSw()}});
+
+panel('menu-region',{titulo:'Región de Italia',icono:'mapa',color:'oliva',volver:volverM,cuerpo:()=>`
+  <svg class="mapita" viewBox="0 0 300 230"><rect width="300" height="230" fill="#12324a"/>
+   <path d="M95 12l40 8 20 25 -10 25 22 22 30 25 25 20 -10 15 -30 -10 -22 -15 -5 25 -25 35 -22 15 -12 -20 5 -30 -25 -30 -20 -40 15 -25z" fill="#6f8f45" stroke="#e9c063" stroke-width="2"/>
+   <path d="M120 195l40-8 25 12-5 18-40 5z" fill="#6f8f45" stroke="#e9c063" stroke-width="2"/>
+   ${[['Roma',112,66],['Capua',140,100],['Tarento',200,142],['Siracusa',158,205]].map(c=>`<circle cx="${c[1]}" cy="${c[2]}" r="6" fill="#c0281f" stroke="#f1ead9" stroke-width="2"/><text x="${c[1]+10}" y="${c[2]+5}" fill="#f1ead9" font-size="14" font-weight="700">${c[0]}</text>`).join('')}</svg>
+  <div class="card"><div class="row"><div class="t">Italia del sur y Sicilia<small>4 ciudades · de Roma a Siracusa</small></div></div></div>`,
+  pie:`<button class="btn oro" data-toast="Región elegida: Italia">${ic('ok','style="font-size:22px"')}Elegir esta región</button>`});
+
+panel('menu-corta',{titulo:'Partida corta',icono:'reloj',color:'ocre',volver:volverM,cuerpo:()=>`
+  <div class="opts" id="cMod">${[['Roma y Capua en pie','Empiezas con dos ciudades hechas.'],['Fundar de la nada','Empiezas con un campamento.']].map((m,i)=>`<button class="opt ${S.modo===i?'on':''}" data-m="${i}" style="min-height:104px;font-size:18px;font-family:Cinzel,serif;text-align:center;padding:10px">${m[0]}<small style="font:400 14px system-ui;color:var(--marmol)">${m[1]}</small></button>`).join('')}</div>
+  <div class="card" style="font-size:14px">Dura unos 20 turnos. Ideal para jugar un rato.</div>`,
+  pie:`<button class="btn prim" data-toast="Empieza la partida corta (demostración)">${ic('play','style="font-size:22px"')}Empezar partida corta</button>`,
+  init(){$('#cMod').onclick=e=>{const b=e.target.closest('[data-m]');if(!b)return;S.modo=+b.dataset.m;$$('#cMod .opt').forEach(x=>x.classList.toggle('on',x===b))}}});
+
+panel('menu-sonido',{titulo:'Sonido y fluidez',icono:'sonido',color:'noche',volver:volverM,cuerpo:()=>`
+  <div class="card" style="padding:2px 12px">${sw('Sonido','sonido')}</div>
+  <div><div class="lbl" style="margin-bottom:6px">Fluidez</div><div class="opts c3" id="fl">${['Suave','Normal','Bonita'].map(d=>`<button class="opt ${S.fluidez===d?'on':''}" data-d="${d}" style="min-height:52px;font-size:15px">${d}</button>`).join('')}</div>
+  <div class="sub" style="margin-top:6px;color:var(--piedra)">Suave gasta menos batería.</div></div>`,
+  init(){bindSw();$('#fl').onclick=e=>{const b=e.target.closest('[data-d]');if(!b)return;S.fluidez=b.dataset.d;$$('#fl .opt').forEach(x=>x.classList.toggle('on',x===b))}}});
+
+panel('menu-creditos',{titulo:'Créditos',icono:'corona',color:'noche',volver:volverM,cuerpo:()=>`
+  <div class="card"><div class="lbl">Arte 3D</div><p style="font-size:15px;margin:6px 0 0">0 A.D. © Wildfire Games<br>Licencia CC BY-SA 3.0</p></div>
+  <div class="card"><div class="lbl">Letra</div><p style="font-size:15px;margin:6px 0 0">Cinzel<br>Licencia SIL OFL 1.1</p></div>
+  <div class="card"><div class="lbl">Juego</div><p style="font-size:15px;margin:6px 0 0">AQVILA · Roma, 280–146 a.C.</p></div>`});
+
+panel('imp-senado',{titulo:'Senado',icono:'senado',color:'azul',volver:volverI,cuerpo:()=>`<div class="card"><div class="row"><div class="t">1 ley por votar<small>Ley de reclutamiento · pide 120 hombres</small></div></div></div><div class="card"><div class="row"><div class="t">Favor del Senado<small>Alto</small></div></div></div>`,pie:`<button class="btn oro" data-toast="Votado (demostración)">Votar la ley</button>`});
+panel('imp-saber',{titulo:'Saber',icono:'saber',color:'oliva',volver:volverI,cuerpo:()=>`<div class="card"><div class="row"><div class="t">Estudiando: Hierro mejor<small>Falta 1 turno</small></div></div><div class="bar" style="margin-top:6px"><i style="width:70%"></i></div></div><div class="card"><div class="row"><div class="t">3 saberes listos<small>Elige el siguiente</small></div></div></div>`,pie:`<button class="btn oro" data-toast="Elige saber (demostración)">Elegir saber</button>`});
+panel('imp-general',{titulo:'General',icono:'general',color:'terra',volver:volverI,cuerpo:()=>`<div class="card"><div class="row"><div class="t">Lucio Cornelio Escipión<small>120 hombres en armas · moral alta</small></div></div></div><div class="card"><div class="row"><div class="t">Campaña lista<small>Elige un destino en el mapa</small></div></div></div>`,pie:`<button class="btn oro" data-toast="Abre el mapa (demostración)">Abrir el mapa</button>`});
+
+const CD={}; // paneles de ciudad
+CITS.forEach((c,i)=>panel('imp-'+c.n.toLowerCase(),{titulo:c.n,icono:'ciudad',color:c.col,volver:volverI,cuerpo:()=>`
+  <div class="card"><div class="row">${face(c.m,'face')}<div class="t">Gente ${c.pop} de ${c.tope}<small>Ánimo ${c.m==='ok'?'bueno':c.m==='med'?'regular':'bajo'}</small></div></div></div>
+  <div class="card"><div class="lbl">Obra en curso</div><div class="row"><div class="t">${c.obra?c.obra:'Sin obra'}<small>${c.obra?c.p+' % hecha':'Hay recursos para construir'}</small></div></div>${c.obra?`<div class="bar"><i style="width:${c.p}%"></i></div>`:''}</div>
+  <div class="card"><div class="lbl">Avisos</div>${c.av.map(a=>`<div class="row" style="min-height:40px"><span class="chip ${c.urg?'mal':'ok'}">${a}</span></div>`).join('')}</div>`,
+  pie:`<button class="btn oro" data-toast="Entras en ${c.n} (demostración)">Ver ${c.n}</button>`}));
+
+function construye(id){
+  const d=P[id];let el=document.getElementById('p-'+id);
+  if(!el){el=document.createElement('div');el.className='panel';el.id='p-'+id;
+    el.innerHTML=`<div class="phead ${d.color}" style="--c:var(--${d.color==='noche'?'noche2':d.color})"><button class="atras" data-volver aria-label="Volver">${ic('atras')}</button><h2>${d.titulo}</h2>${ic(d.icono)}</div>
+    <div class="pbody">${d.cuerpo()}</div>
+    <div class="pfoot">${d.pie||''}<button class="btn" data-volver style="flex:${d.pie?'.55':'1'}">Volver</button></div>`;
+    $('#paneles').appendChild(el);
+    if(d.init)d.init();
+  }
+  return el;
+}
+$('#paneles').addEventListener('click',e=>{
+  if(e.target.closest('[data-volver]')){go(P[curPanel].volver);return}
+});
+
+/* ENRUTADO */
+const SCR=['gobierno','imperio','menu'];
+let curPanel=null;
+function go(h){location.hash='#'+h}
+function route(){
+  const h=(location.hash||'#gobierno').slice(1);
+  $$('.panel').forEach(p=>p.classList.remove('on'));curPanel=null;
+  $('#modal').classList.remove('on');
+  let scr=h;
+  if(P[h]){curPanel=h;construye(h);scr=P[h].volver;requestAnimationFrame(()=>$('#p-'+h).classList.add('on'))}
+  else if(h==='modal'){scr='gobierno';$('#modal').classList.add('on');$('#hoja').classList.remove('ext');$('#btnMas').textContent='Ver más'}
+  if(!SCR.includes(scr))scr='gobierno';
+  $$('.screen').forEach(s=>s.classList.toggle('on',s.id==='s-'+scr));
+  $('#top').style.display=scr==='menu'?'none':'';
+  $$('#nav [data-nav]').forEach(b=>b.classList.toggle('on',b.dataset.nav===(h==='modal'?'modal':scr)));
+  if(scr==='imperio')filtra();
+}
+window.addEventListener('hashchange',route);
+
+document.addEventListener('click',e=>{
+  const g=e.target.closest('[data-go]');if(g){go(g.dataset.go);return}
+  const n=e.target.closest('[data-nav]');if(n){go(n.dataset.nav);return}
+  const c=e.target.closest('[data-ci]');if(c){go('imp-'+CITS[+c.dataset.ci].n.toLowerCase());return}
+  const t=e.target.closest('[data-toast]');if(t){toast(t.dataset.toast);return}
+  const a=e.target.closest('[data-act]');if(a){toast('Sigues la campaña (demostración)');return}
+});
+$('#btnMas').onclick=()=>{const h=$('#hoja');h.classList.toggle('ext');$('#btnMas').textContent=h.classList.contains('ext')?'Ver menos':'Ver más'};
+$('#btnSeguir').onclick=()=>go('gobierno');
+$('[data-cerrar]').onclick=()=>go('gobierno');
+$$('[data-tarea]').forEach(b=>b.onclick=()=>b.classList.toggle('hecha'));
+/* gesto: bajar la hoja con el pulgar */
+(()=>{let y0=null;const h=$('#hoja');h.addEventListener('touchstart',e=>y0=e.touches[0].clientY,{passive:true});h.addEventListener('touchend',e=>{if(y0!==null&&e.changedTouches[0].clientY-y0>60)go('gobierno');y0=null})})();
+route();
+</script>
+</body>
+</html>
