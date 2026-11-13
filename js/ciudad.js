@@ -93,7 +93,7 @@ const MAX_CASAS = 200, R_BARRIO = 150, R_AGUA_RIO = 90;
 export function crear(semilla = 1) {
   terreno();
   const E = { semilla, modoJuego: false, rnd: azar(semilla * 7919 + 13), mesN: 0, monedas: 300, fundada: false, foro: null, surco: null, RS: null,
-    vias: [], parcelas: [], bocas: [], edificios: [], barrios: [], puertas: [], arboles: [], bosquetes: [], muralla: { fase: 0, obra: 0 }, diario: [],
+    vias: [], parcelas: [], bocas: [], edificios: [], barrios: [], puertas: [], arboles: [], bosquetes: [], muralla: { fase: 0, obra: 0, rec: 0, ampl: 0 }, diario: [],
     abiertas: ['fuente', 'granero', 'granja', 'aserradero', 'cantera', 'mina', 'almacen', 'templo'], crecida: -99, hambre: false, avisado: {}, rev: 0, nId: 1,
     ocup: new Uint8Array(N * N), lote: new Int16Array(N * N), dVia: new Float32Array(N * N).fill(999), aVia: new Float32Array(N * N), tVia: new Uint8Array(N * N) };
   nuevaVia(E, CAMINO, 4.2, 'camino');
@@ -155,8 +155,16 @@ const alisar = pts => { let p = pts; for (let n = 0; n < 2; n++) p = p.map((q, i
 function engancha(E, pts) { const f = pts[pts.length - 1]; let m = 1e9, mq = null; for (const v of E.vias) for (const q of v.p) { const d = Math.hypot(q[0] - f[0], q[1] - f[1]); if (d < m) { m = d; mq = q; } } if (mq && m < 14 && m > 0.5) pts.push([mq[0], mq[1]]); return pts; }
 
 /* ---------- barrios ---------- */
-function radioSurco(E, x, z) { const t = Math.atan2(z - E.foro.z, x - E.foro.x), n = E.RS.length, f = ((t / (Math.PI * 2)) % 1 + 1) % 1 * n, i = Math.floor(f), u = f - i; return E.RS[i % n] * (1 - u) + E.RS[(i + 1) % n] * u; }
+function radioDe(R, E, x, z) { const t = Math.atan2(z - E.foro.z, x - E.foro.x), n = R.length, f = ((t / (Math.PI * 2)) % 1 + 1) % 1 * n, i = Math.floor(f), u = f - i; return R[i % n] * (1 - u) + R[(i + 1) % n] * u; }
+function radioSurco(E, x, z) { return radioDe(E.RS, E, x, z); }
 export const dentro = (E, x, z) => E.fundada && Math.hypot(x - E.foro.x, z - E.foro.z) < radioSurco(E, x, z);
+/* CN23: la muralla activa (el surco o, ampliada, el segundo recinto). El surco sagrado (dentro) no cambia. */
+export const cercado = (E, x, z) => E.fundada && Math.hypot(x - E.foro.x, z - E.foro.z) < radioDe(E.RM || E.RS, E, x, z);
+const fueraTerr = (x, z) => ci(x, z) < 0 || Math.abs(x) > 460 || z < Z0 + 20 || z > Z0 + LADO - 20;
+/* Radios y anillo del recinto activo: sin ampliar, igual al surco; ampliado, x1,32 recortado donde topa con agua o con el borde. */
+function recinto(E) { if (!E.RS) return; const NR = E.RS.length, x = E.foro.x, z = E.foro.z;
+  E.RM = (E.muralla && E.muralla.rec) ? E.RS.map((r0, i) => { const t = i / NR * Math.PI * 2; let f = 1.32; while (f > 1 && (esAgua(x + Math.cos(t) * r0 * f, z + Math.sin(t) * r0 * f) || fueraTerr(x + Math.cos(t) * r0 * f, z + Math.sin(t) * r0 * f))) f -= 0.02; return r0 * Math.max(1, f); }) : E.RS.slice();
+  E.muro = E.RM.map((r, i) => [x + Math.cos(i / NR * Math.PI * 2) * r, z + Math.sin(i / NR * Math.PI * 2) * r]); }
 export function barrioDe(E, x, z) { let m = 1e9, mb = -1; E.barrios.forEach((b, i) => { const d = Math.hypot(x - b.x, z - b.z), lim = b.tipo === 'foro' ? radioSurco(E, x, z) + 45 : R_BARRIO; if (d <= lim) { const dn = d / lim; if (dn < m) { m = dn; mb = i; } } }); return mb; }
 
 /* ---------- parcelas a los lados de una calle; cada 4 huecos se reserva una boca de callejón ---------- */
@@ -171,7 +179,7 @@ function parcelar(E, v) {
         if (!huella(E, cx, cz, ang, 12, 13, (o, q) => { mn = Math.min(mn, ALT[q]); mx = Math.max(mx, ALT[q]); return o === 2 || o === 4 || o === 5 || DRIO[q] < 56 || ALT[q] < NIVEL_RIO + 1; }) || mx - mn > 4.6) continue;
         if (E.parcelas.some(l => !l.fuera && Math.abs(l.x - cx) < 14 && Math.hypot(l.x - cx, l.z - cz) < 13.6)) continue;
         if (E.vias.some(o => !(cx < o.caja[0] - 14 || cz < o.caja[1] - 14 || cx > o.caja[2] + 14 || cz > o.caja[3] + 14) && distPoli(o.p, cx, cz) < o.w + (o === v ? 7.6 : 8.2))) continue;
-        const l = { id: E.parcelas.length + 1, x: cx, z: cz, ang, lado, via: v.id, barrio: b, casa: null, tono: E.rnd(), teja: E.rnd(), tipo: E.rnd(), fuera: false, arrabal: !dentro(E, cx, cz) };
+        const l = { id: E.parcelas.length + 1, x: cx, z: cz, ang, lado, via: v.id, barrio: b, casa: null, tono: E.rnd(), teja: E.rnd(), tipo: E.rnd(), fuera: false, arrabal: !cercado(E, cx, cz) };
         E.parcelas.push(l); sello(E, cx, cz, ang, 11, 12, 3, l.id, 0); } }
     s += L; }
 }
@@ -254,14 +262,14 @@ export function fundar(E, x, z) {
     c.unshift([x + e[0] * Math.cos(ang) - e[1] * Math.sin(ang), z + e[0] * Math.sin(ang) + e[1] * Math.cos(ang)]); nuevaVia(E, alisar(c), 3.6, 'via'); }
   /* franja sagrada del surco: nadie construye encima; las calles la cruzan por las puertas */
   for (let i = 0; i < NR; i++) { const a = E.surco[i], b = E.surco[(i + 1) % NR], L = Math.hypot(b[0] - a[0], b[1] - a[1]); for (let s = 0; s <= L; s += 2) for (const o of [-4, 0, 4]) { const t = Math.atan2(a[1] - z, a[0] - x), k = ci(a[0] + (b[0] - a[0]) * s / L + Math.cos(t) * o, a[1] + (b[1] - a[1]) * s / L + Math.sin(t) * o); if (k >= 0 && E.ocup[k] === 0) E.ocup[k] = 5; else if (k >= 0 && E.ocup[k] === 3) { const l = E.parcelas[E.lote[k] - 1]; if (l) quitarParcela(E, l); E.ocup[k] = 5; } } }
-  puertas(E); reparcelar(E);
+  recinto(E); puertas(E); reparcelar(E);
   /* las primeras chozas de los colonos, pegadas al foro */
   const S = servicios(E), libres = E.parcelas.filter(l => !l.fuera && !l.arrabal).sort((a, b) => Math.hypot(a.x - x, a.z - z) - Math.hypot(b.x - x, b.z - z)).slice(0, 20);
   for (const l of libres) l.casa = { nivel: 1, desde: 0, nace: 0, ruina: 0 };
   E.sitio = { x, z }; E.rev++; return true;
 }
 function puertas(E) { if (!E.fundada) return; const o = [];
-  for (const v of E.vias) for (let i = 1; i < v.p.length; i++) { const a = v.p[i - 1], b = v.p[i]; if (dentro(E, a[0], a[1]) !== dentro(E, b[0], b[1])) { const x = (a[0] + b[0]) / 2, z = (a[1] + b[1]) / 2; if (!o.some(q => Math.hypot(q.x - x, q.z - z) < 30)) o.push({ x, z, ang: Math.atan2(z - E.foro.z, x - E.foro.x) + Math.PI / 2, via: Math.atan2(b[1] - a[1], b[0] - a[0]) }); } }
+  for (const v of E.vias) for (let i = 1; i < v.p.length; i++) { const a = v.p[i - 1], b = v.p[i]; if (cercado(E, a[0], a[1]) !== cercado(E, b[0], b[1])) { const x = (a[0] + b[0]) / 2, z = (a[1] + b[1]) / 2; if (!o.some(q => Math.hypot(q.x - x, q.z - z) < 30)) o.push({ x, z, ang: Math.atan2(z - E.foro.z, x - E.foro.x) + Math.PI / 2, via: Math.atan2(b[1] - a[1], b[0] - a[0]) }); } }
   E.puertas = o; geoMuralla(E); }
 
 /* ---------- nota de sitio de cada edificio. ang = hacia dónde mira la fachada (a la calle más cercana) ---------- */
@@ -365,7 +373,7 @@ export function faseDeNivel(n) { return n <= 0 ? 0 : n <= 3 ? 1 : 2; }
 export function casasArrabal(E) { let n = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && l.arrabal && !l.fuera) n++; return n; }
 /* Geometría para CN12: solo se guarda, no se usa aquí. */
 function geoMuralla(E) { if (!E.muralla) return; const r = v => Math.round(v * 10) / 10;
-  E.muralla.geo = { surco: (E.surco || []).map(q => ({ x: r(q[0]), z: r(q[1]) })), puertas: (E.puertas || []).map(p => Object.assign({}, p)), fase: E.muralla.fase }; }
+  E.muralla.geo = { rec: E.muralla.rec || 0, surco: ((E.muralla.rec && E.muro) || E.surco || []).map(q => ({ x: r(q[0]), z: r(q[1]) })), puertas: (E.puertas || []).map(p => Object.assign({}, p)), fase: E.muralla.fase }; }
 /* Saqueo de lo de fuera: deja en ruina (5 meses) casas vivas del arrabal. Reproducible con E.rnd. */
 export function saquearArrabal(E, fuerza) {
   const viv = []; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && l.arrabal && !l.fuera) viv.push(l);
@@ -380,6 +388,10 @@ export function saquearArrabal(E, fuerza) {
 export function murallaSiguiente(E) { const m = E.muralla; if (!E.fundada || m.obra) return null; return m.fase === 0 ? { nombre: 'Levantar empalizada', coste: EDIF.muralla.coste } : m.fase === 1 ? { nombre: 'Levantar muralla de piedra', coste: sumaCostes([costeNivel(EDIF.muralla.coste, 1), costeNivel(EDIF.muralla.coste, 2)]) } : null; }
 export function levantarMuralla(E, gratis, pago) { const s = murallaSiguiente(E); if (!s) return { ok: false, motivo: E.muralla.obra ? 'La obra ya está en marcha' : 'La muralla ya es de piedra' };
   if (!gratis) { const mo = cobrar(E, s.coste, pago); if (mo) return { ok: false, motivo: mo }; } E.muralla.obra = 3; E.diario.push({ a: 'm', n: E.mesN }); geoMuralla(E); E.rev++; return { ok: true }; }
+/* CN23: segundo recinto. Solo con piedra terminada y sin obra; cuesta el doble de la muralla y tarda 4 meses. */
+export function murallaAmpliar(E) { const m = E.muralla; if (!E.fundada || m.fase !== 2 || (m.rec || 0) !== 0 || m.obra || m.ampl) return null; return { nombre: 'Ampliar la muralla', coste: sumaCostes([EDIF.muralla.coste, EDIF.muralla.coste]) }; }
+export function ampliarMuralla(E, gratis, pago) { const s = murallaAmpliar(E); if (!s) return { ok: false, motivo: E.muralla.ampl ? 'La ampliación ya está en marcha' : E.muralla.rec ? 'La muralla ya está ampliada' : E.muralla.obra ? 'La obra ya está en marcha' : 'Antes hace falta la muralla de piedra' };
+  if (!gratis) { const mo = cobrar(E, s.coste, pago); if (mo) return { ok: false, motivo: mo }; } E.muralla.ampl = 4; E.diario.push({ a: 'a', n: E.mesN }); E.rev++; return { ok: true }; }
 
 /* CN21: mover una pieza ya levantada a otro sitio sin perder sus mejoras. Gratis. No vale con obra, ruina ni capilla de cruce.
    Se anota en el diario como 'v' para que la repetición de la partida lo rehaga. */
@@ -418,7 +430,7 @@ export function deDatos(datos) {
   if (datos.sitio) fundar(E, datos.sitio.x, datos.sitio.z);
   const ac = datos.acciones || [];
   for (let n = datos.n0 || 0; n <= datos.mesN; n++) {
-    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') { const r = colocar(E, a.tipo, a.x, a.z, true); if (r.ok && E.modoJuego) r.e.obra = 0; } else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); else if (a.a === 'q') saquearArrabal(E, a.fz); }
+    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') { const r = colocar(E, a.tipo, a.x, a.z, true); if (r.ok && E.modoJuego) r.e.obra = 0; } else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 'a') ampliarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); else if (a.a === 'q') saquearArrabal(E, a.fz); }
     if (n < datos.mesN) mes(E);
   }
   E.monedas = datos.monedas; (datos.barrios || []).forEach((b, i) => { if (E.barrios[i]) { E.barrios[i].nombre = b.nombre; E.barrios[i].corto = b.corto; } }); E.rev++;
@@ -451,6 +463,7 @@ export function mes(E) {
   /* obras */
   for (const e of E.edificios) { if (e.obra && --e.obra === 0) di(EDIF[e.tipo].nombre.replace('Abrir barrio', 'Capilla de cruce') + ' terminada' + (e.tipo === 'fuente' ? ': las casas de alrededor ya tienen agua' : ''), 1); if (e.ruina) e.ruina--; }
   if (E.muralla.obra && --E.muralla.obra === 0) { E.muralla.fase++; delete E.muralla.nivel; geoMuralla(E); di(E.muralla.fase === 1 ? 'Empalizada terminada: la ciudad ya tiene cerca' : 'Muralla de piedra terminada, con torres y puertas', 2); }
+  if (E.muralla.ampl && --E.muralla.ampl === 0) { E.muralla.rec = 1; recinto(E); for (const l of E.parcelas) l.arrabal = !cercado(E, l.x, l.z); puertas(E); di('Muralla ampliada: los barrios nuevos quedan dentro', 2); }
   for (const l of E.parcelas) if (l.casa && l.casa.ruina && --l.casa.ruina === 0) { l.casa.nivel = 1; l.casa.nace = E.mesN; l.casa.arde = false; }
   if (!E.modoJuego) E.monedas += ingreso(E);      // en modo juego, la renta la cobra game.js
   /* crecida de primavera: se lleva lo que esté en la ribera baja */

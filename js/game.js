@@ -529,7 +529,7 @@
     for (let n = E.n0; n <= d.mesN; n++) {
       for (const a of ac) { if (a.n !== n) continue;
         if (a.a === 'c') { const r = CI.colocar(E, a.tipo, a.x, a.z, true); if (r.ok) r.e.obra = 0; }
-        else if (a.a === 'u') CI.mejorar(E, a.id, true); else if (a.a === 'v') CI.mover(E, a.id, a.x, a.z); else if (a.a === 'm') CI.levantarMuralla(E, true);
+        else if (a.a === 'u') CI.mejorar(E, a.id, true); else if (a.a === 'v') CI.mover(E, a.id, a.x, a.z); else if (a.a === 'm') CI.levantarMuralla(E, true); else if (a.a === 'a') CI.ampliarMuralla(E, true);
         else if (a.a === 's') CI.sembrarCasas(E, a.pob); else if (a.a === 'd') quitar(E, a.id); else if (a.a === 'q') CI.saquearArrabal(E, a.fz); }
       if (n < d.mesN) CI.mes(E);
     }
@@ -736,6 +736,12 @@
   G.levantarMuralla = function (cid) {   // paga entera al empezar; la guerra lee la fase por G.nivelMuralla
     const c = prop(cid), r = c && infoC(c); if (!r) return { ok: false, motivo: 'No se puede' };
     const res = CI.levantarMuralla(r.E, false, coste => { const k = limpia(coste); if (!G.canAfford(k)) return false; pay(k); return true; });
+    if (res.ok) ponerDatos(c, r); return res;
+  };
+
+  G.ampliarMuralla = function (cid) {   // segundo recinto (CN23): mismo cobro que levantarMuralla
+    const c = prop(cid), r = c && infoC(c); if (!r) return { ok: false, motivo: 'No se puede' };
+    const res = CI.ampliarMuralla(r.E, false, coste => { const k = limpia(coste); if (!G.canAfford(k)) return false; pay(k); return true; });
     if (res.ok) ponerDatos(c, r); return res;
   };
 

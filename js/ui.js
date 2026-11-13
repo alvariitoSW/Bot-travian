@@ -749,22 +749,22 @@ function pintaLinea() {
 /* datos de una ficha de la bandeja: nombre, coste total, lo que se paga al empezar y si ya hay obra */
 function piezaInfo(id) {
   const c = S().cities[UI.city], E = G.ciudadE(UI.city);
-  if (id === 'muralla') { const m = Ciudad.murallaSiguiente(E); return { nombre: E.muralla.fase ? 'Muralla de piedra' : 'Empalizada', coste: m && m.coste, ini: m && m.coste, enObra: !!E.muralla.obra, boton: m && m.nombre }; }
+  if (id === 'muralla') { const m = Ciudad.murallaSiguiente(E) || Ciudad.murallaAmpliar(E); return { nombre: E.muralla.rec ? 'Muralla ampliada' : E.muralla.ampl ? 'Muralla en ampliación' : E.muralla.fase ? 'Muralla de piedra' : 'Empalizada', coste: m && m.coste, ini: m && m.coste, enObra: !!E.muralla.obra || !!E.muralla.ampl, ya: !!E.muralla.rec, boton: m && m.nombre }; }
   const P = Ciudad.EDIF[id], dur = P.bid ? G.buildTime(c, P.bid) : P.obra * (1 - 0.04 * (c.b.foro || 0)) * G.bonoMul('obra');
   return { nombre: P.nombre, coste: P.coste, ini: G.planPago(P.coste, dur).primera, cerrada: P.bid ? G.faltaInv(P.bid) : null };
 }
 function bandejaIds() {
   const E = G.ciudadE(UI.city); if (!E) return [];
   const ids = E.abiertas.filter(id => id !== 'muralla' && Ciudad.EDIF[id] && !Ciudad.EDIF[id].accion);
-  if (Ciudad.murallaSiguiente(E) || E.muralla.obra) ids.push('muralla'); return ids;
+  if (Ciudad.murallaSiguiente(E) || Ciudad.murallaAmpliar(E) || E.muralla.obra || E.muralla.ampl || E.muralla.rec) ids.push('muralla'); return ids;
 }
 function bandejaPinta() {
   const b = $('bandeja'), E = G.ciudadE(UI.city); if (!E || !E.fundada) { b.innerHTML = ''; UI.bandK = ''; return; }
-  const ids = bandejaIds(), k = UI.city + '|' + ids.join() + '|' + ids.map(q => Ciudad.EDIF[q] && Ciudad.EDIF[q].bid && G.faltaInv(Ciudad.EDIF[q].bid) ? 1 : 0).join('') + '|' + E.muralla.fase + E.muralla.obra + '|' + (UI.minis ? 1 : 0);
+  const ids = bandejaIds(), k = UI.city + '|' + ids.join() + '|' + ids.map(q => Ciudad.EDIF[q] && Ciudad.EDIF[q].bid && G.faltaInv(Ciudad.EDIF[q].bid) ? 1 : 0).join('') + '|' + E.muralla.fase + E.muralla.obra + (E.muralla.rec || 0) + (E.muralla.ampl || 0) + '|' + (UI.minis ? 1 : 0);
   if (k !== UI.bandK) {
     const antes = (UI.bandK || '').split('|')[1], viejas = antes ? antes.split(',') : []; UI.bandK = k;
     b.innerHTML = ids.map(id => { const i = piezaInfo(id);
-      return '<button class="pza' + (viejas.length > 1 && !viejas.includes(id) ? ' nueva' : '') + (i.cerrada ? ' cerrada' : '') + '" data-id="' + id + '"' + (i.cerrada ? ' style="opacity:.55" title="' + esc(i.cerrada) + '"' : '') + '>' + (UI.minis && UI.minis[id] ? '<img src="' + UI.minis[id] + '" alt="" draggable="false">' : '<i></i>') + '<b>' + esc(i.nombre) + '</b><span>' + (i.cerrada ? 'cerrada' : i.enObra ? 'en obra' : i.coste ? fmt(suma5(i.coste)) : '') + '</span></button>'; }).join('');
+      return '<button class="pza' + (viejas.length > 1 && !viejas.includes(id) ? ' nueva' : '') + (i.cerrada ? ' cerrada' : '') + '" data-id="' + id + '"' + (i.cerrada ? ' style="opacity:.55" title="' + esc(i.cerrada) + '"' : '') + '>' + (UI.minis && UI.minis[id] ? '<img src="' + UI.minis[id] + '" alt="" draggable="false">' : '<i></i>') + '<b>' + esc(i.nombre) + '</b><span>' + (i.cerrada ? 'cerrada' : i.enObra ? 'en obra' : i.ya ? 'ya ampliada' : i.coste ? fmt(suma5(i.coste)) : '') + '</span></button>'; }).join('');
   }
   /* CN8: la ficha que remedia un riesgo (fuente o granero) sale resaltada; se recalcula solo al cambiar la ciudad */
   const rk = UI.city + '|' + E.rev + '|' + E.mesN + '|' + ((G.state && G.state.ajustes && G.state.ajustes.v) || 0); if (UI.rgK !== rk) { UI.rgK = rk; const r = typeof G.riesgos === 'function' ? (G.riesgos(UI.city) || []).find(q => q.pieza && q.meses <= G.avisoMeses() && !E.edificios.some(e => e.tipo === q.pieza)) : null; UI.rgPz = r ? r.pieza : null; }
@@ -788,7 +788,7 @@ function salir3(avisar) {
 function elegir3(id, p) {
   if (!UI.cityV || !G.ciudadE(UI.city)) return; UI.bsel = null; UI.vistas = false; UI.col3City = UI.city; $('csheet').dataset.m = '';
   if (id === 'muralla') { UI.modo3 = 'muralla'; UI.modoT = performance.now(); UI.sel3 = null; UI.cityV.ponerFantasma(null); UI.cityV.calor(null); const E = G.ciudadE(UI.city);
-    lineaPon(Ciudad.murallaSiguiente(E) ? (E.muralla.fase ? 'La empalizada se rehace en piedra, con torres y puertas donde cruzan las calles.' : 'La empalizada sigue el surco, con puertas donde cruzan las calles. Las casas de fuera quedan de arrabal.') : 'La obra de la muralla ya está en marcha.', 'aviso'); renderCity3D(); return; }
+    lineaPon(!Ciudad.murallaSiguiente(E) && Ciudad.murallaAmpliar(E) ? 'La muralla se amplía por fuera del surco: los barrios nuevos dejan de ser arrabal.' : Ciudad.murallaSiguiente(E) ? (E.muralla.fase ? 'La empalizada se rehace en piedra, con torres y puertas donde cruzan las calles.' : 'La empalizada sigue el surco, con puertas donde cruzan las calles. Las casas de fuera quedan de arrabal.') : E.muralla.rec ? 'La muralla ya está ampliada: los barrios nuevos quedan dentro.' : 'La obra de la muralla ya está en marcha.', 'aviso'); renderCity3D(); return; }
   UI.modo3 = 'colocar'; UI.modoT = performance.now(); UI.sel3 = { id, efecto: null, mejor: null }; UI.cityV.calor(G.mapaCalor(UI.city, id));
   if (!p) p = UI.cityV.sueloEn(innerWidth / 2, innerHeight * 0.45); if (!p) { const E = G.ciudadE(UI.city); p = [E.foro.x, E.foro.z]; }
   renderCity3D(); mover3(p[0], p[1]);
@@ -807,8 +807,8 @@ function construir3() {
   if (UI.modo3 === 'fundar') { fundarAqui(); return; }
   if (UI.modo3 === 'muralla') {
     // CN7: tabla de guerra, saqueo y consejo cuelgan de G.levantarMuralla
-    const nom = piezaInfo('muralla').nombre, r = G.levantarMuralla(UI.city); if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); return; }
-    salir3(); toast('🔨 ' + nom + ': en obra', 'good'); renderCity3D(); tickUI(); return; }
+    const E3 = G.ciudadE(UI.city), amp = !Ciudad.murallaSiguiente(E3) && (!!Ciudad.murallaAmpliar(E3) || !!E3.muralla.rec || !!E3.muralla.ampl), nom = piezaInfo('muralla').nombre, r = amp ? G.ampliarMuralla(UI.city) : G.levantarMuralla(UI.city); if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); return; }
+    salir3(); toast(amp ? '🔨 Muralla: ampliación en marcha' : '🔨 ' + nom + ': en obra', 'good'); renderCity3D(); tickUI(); return; }
   const sel = UI.sel3; if (UI.modo3 !== 'colocar' || !sel) return;
   if (sel.mover) { const r = G.moverPieza(UI.city, sel.mover, sel.x, sel.z); if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); cityPantalla(); return; }
     salir3(); toast('🚚 ' + Ciudad.EDIF[sel.id].nombre + ' movido, con sus mejoras', 'good'); renderCity3D(); tickUI(); return; }

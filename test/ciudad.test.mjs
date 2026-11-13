@@ -247,4 +247,23 @@ prueba('CN14-A: G.notaSitio de una granja da «Rinde» coherente con la nota', (
   for (let x = -450; x <= 450 && visto < 2; x += 30) for (let z = -480; z <= 480 && visto < 2; z += 30) { const r = G.notaSitio('roma', 'granja', x, z); if (!r || !r.vale) continue; visto++;
     const n = Math.round((Math.max(0.8, Math.min(1.25, 0.9 + 0.04 * r.nota)) - 1) * 100); assert.equal(r.efecto.n, n); assert.ok(/^Rinde /.test(r.efecto.txt) || r.efecto.txt === 'Rinde igual'); assert.equal(r.efecto.tono, n > 0 ? 'bien' : n < 0 ? 'mal' : 'neutro'); if (n) assert.ok(r.efecto.txt.includes((n > 0 ? '+' : '\u2212') + Math.abs(n) + ' %'), r.efecto.txt); }
   assert.ok(visto, 'hay algún sitio de granja'); assert.equal(G.notaSitio('roma', 'muelle', -450, -480).efecto || null, null); });
+
+/* ---------- CN23: segundo recinto de la muralla ---------- */
+prueba('CN23: ampliar la muralla deja los barrios nuevos dentro; guardar y cargar lo rehacen igual', () => {
+  const F = R.crear(3); R.fundar(F, 172, -196); R.sembrarCasas(F, 400); for (let i = 0; i < 6; i++) R.mes(F);
+  assert.equal(R.murallaAmpliar(F), null, 'sin piedra no se puede'); assert.equal(F.muralla.rec, 0);
+  F.monedas = 1e6; R.levantarMuralla(F, true); for (let i = 0; i < 3; i++) R.mes(F); R.levantarMuralla(F, true); for (let i = 0; i < 3; i++) R.mes(F); assert.equal(F.muralla.fase, 2);
+  const arr0 = F.parcelas.filter(l => l.arrabal).length, sur0 = F.muralla.geo.surco.map(p => p.x + ',' + p.z).join(); assert.ok(arr0 > 0, 'hay arrabal antes: ' + arr0);
+  assert.ok(F.RM.every((r, i) => Math.abs(r - F.RS[i]) < 1e-9), 'sin ampliar, RM = RS');
+  const s = R.murallaAmpliar(F); assert.ok(s && s.coste); assert.ok(R.ampliarMuralla(F, true).ok); assert.equal(F.muralla.ampl, 4); assert.ok(!R.ampliarMuralla(F, true).ok, 'no dos veces');
+  for (let i = 0; i < 3; i++) R.mes(F); assert.equal(F.muralla.rec, 0, 'aún en obra'); assert.equal(F.parcelas.filter(l => l.arrabal).length, arr0);
+  R.mes(F); assert.equal(F.muralla.rec, 1); assert.equal(F.muralla.ampl, 0);
+  const arr1 = F.parcelas.filter(l => l.arrabal).length; assert.ok(arr1 < arr0, 'menos arrabal después: ' + arr0 + ' → ' + arr1);
+  assert.ok(F.RM.every((r, i) => r >= F.RS[i] - 1e-9) && F.RM.some((r, i) => r > F.RS[i] + 1), 'el recinto crece');
+  assert.equal(F.muralla.geo.rec, 1); assert.notEqual(F.muralla.geo.surco.map(p => p.x + ',' + p.z).join(), sur0); assert.ok(!R.murallaAmpliar(F), 'ya ampliada');
+  assert.ok(R.dentro(F, F.foro.x, F.foro.z) && !R.dentro(F, F.foro.x + 1000, F.foro.z));
+  const G2 = R.deDatos(JSON.parse(JSON.stringify(R.aDatos(F))));
+  assert.equal(G2.muralla.rec, F.muralla.rec); assert.equal(G2.muralla.ampl, F.muralla.ampl); assert.equal(G2.parcelas.filter(l => l.arrabal).length, arr1);
+  assert.deepEqual(G2.RM, F.RM); assert.deepEqual(G2.muralla.geo.surco, F.muralla.geo.surco); });
+
 process.exit(fallos.length ? 1 : 0);

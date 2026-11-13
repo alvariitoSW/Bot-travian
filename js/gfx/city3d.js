@@ -330,7 +330,7 @@ function arboles() { const n = E.arboles.reduce((s, a) => s + (a.talado ? 1 : 0)
 /* muralla: por el surco; primero empalizada (por código), luego tramos de piedra reales con torres; puertas donde cruzan las calles */
 function muralla(B) {
   const m = E.muralla; L.muro.poner([]); L.torre.poner([]); L.puerta.poner([]); if (!E.surco) return;
-  const S = E.surco, n = S.length, cerca = (x, z, r) => E.puertas.find(p => Math.hypot(p.x - x, p.z - z) < r);
+  const S = (E.muralla.rec && E.muro) || E.surco, n = S.length, cerca = (x, z, r) => E.puertas.find(p => Math.hypot(p.x - x, p.z - z) < r);
   /* mojones en las puertas mientras no hay muralla de piedra */
   if (m.fase < 2) for (const p of E.puertas) for (const sg of [1, -1]) { const x = p.x + Math.cos(p.ang) * 7 * sg, z = p.z + Math.sin(p.ang) * 7 * sg, y = altura(x, z); if (m.fase === 1 || m.obra) { B.caja(1.1, 9, 1.1, x, y + 4.5, z, '#5c4630', -p.ang); if (sg > 0) B.caja(15.5, 1, 1, p.x, altura(p.x, p.z) + 8.6, p.z, '#5c4630', -p.ang); } else { B.caja(1.6, 3.4, 1.6, x, y + 1.7, z, '#b0a690', -p.ang); B.cono(1.2, 1.2, 4, x, y + 4, z, '#b0a690', 1, -p.ang + 0.785); } }
   if (!m.fase && !m.obra) return;
