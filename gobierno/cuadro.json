@@ -1100,6 +1100,12 @@
       "titulo": "Concurso · K6 Arte de batalla y tropas",
       "nota": "solo maquetas",
       "url": "https://claude.ai/code/session_01QiKC37tiobNBApd9bhi8N3"
+    },
+    {
+      "tarea": "CN14-B",
+      "titulo": "Ciudad nueva · CN14-B Sucesos apagables y dificultades",
+      "nota": "ciudad.js, game.js, data.js, consejo() (sin pantalla nueva)",
+      "url": "https://claude.ai/code/session_01QiKC37J5xXVpcwFBrbRjMJ"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
