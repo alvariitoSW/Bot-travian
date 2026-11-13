@@ -3,7 +3,7 @@
   const D = root.DATA;
   const CONTACT = 50;
   // --- Ritmo, moral y cansancio (A8) ---
-  const RITMO = 0.0365;           // multiplica todo el daño: hace las batallas igualadas de 8 a 12 minutos
+  const RITMO = 0.11;             // multiplica todo el daño: hace las batallas igualadas de 4 a 6 minutos (R1)
   const TOPE_BATALLA = 1500;    // segundos: tope de seguridad (25 min); si se alcanza gana quien conserve más hombres (empate: el atacante)
   const MOR_BAJAS = 0.62;        // moral perdida por cada 1 % de la vida del regimiento arrancada de golpe
   const MOR_CONTAGIO = 1.5;     // moral que pierden los vecinos cuando un regimiento rompe (antes 5)
@@ -137,8 +137,8 @@
   const BOSQUE_VEL = 0.78;       // velocidad dentro del bosque
   const BOSQUE_PROY = 0.7;      // el daño de proyectiles que recibe un regimiento dentro del bosque
   // --- N14: campos amplios y relieve nuevo ---
-  const ANCHO_BASE = 1200;      // ancho del campo por defecto (unidades del campo; cfg.fw lo cambia, mínimo 600)
-  const ANCHO_GRANDE = 1500;    // ancho si entre los dos bandos hay más de HOMBRES_GRANDE hombres
+  const ANCHO_BASE = 800;       // ancho del campo por defecto (unidades del campo; cfg.fw lo cambia, mínimo 600)
+  const ANCHO_GRANDE = 1000;    // ancho si entre los dos bandos hay más de HOMBRES_GRANDE hombres
   const HOMBRES_GRANDE = 700;
   const VADO_VEL = 0.6;         // velocidad dentro de un vado
   const VADO_MOR = 0.15;        // moral (fracción de la máxima) que pierde un regimiento al entrar en un vado: cruzar desordena

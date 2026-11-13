@@ -18,12 +18,12 @@ assert(r.time < 1500, 'toda batalla termina antes del tope de seguridad');
 r = fight({ hastati: 200 }, { libios: 200 });
 assert(r.dead[0] > 20 && r.dead[1] > 20, 'ambos bandos sufren bajas');
 
-// 2b. Ritmo (A8): una batalla igualada dura entre 5 y 12 minutos (las de 480 hastati, unos 10) de juego
+// 2b. Ritmo (A8): una batalla igualada dura entre 3,5 y 7 minutos (R1; antes 5 a 12) de juego
 for (const sd of [1, 2, 3, 4]) {
   const q = fight({ hastati: 200 }, { libios: 200 }, { seed: sd });
-  assert(q.time >= 300 && q.time <= 720, 'igualada 200 vs 200 (semilla ' + sd + '): ' + Math.round(q.time) + ' s');
+  assert(q.time >= 150 && q.time <= 420, 'igualada 200 vs 200 (semilla ' + sd + '): ' + Math.round(q.time) + ' s');
   const m = fight({ hastati: 300, velites: 60, equites: 40 }, { libios: 265, numidas: 52, jinetes: 33 }, { seed: sd });
-  assert(m.time >= 300 && m.time <= 720, 'igualada mixta (semilla ' + sd + '): ' + Math.round(m.time) + ' s');
+  assert(m.time >= 150 && m.time <= 420, 'igualada mixta (semilla ' + sd + '): ' + Math.round(m.time) + ' s');
   assert(fight({ hastati: 300, velites: 60, equites: 40 }, { milicia: 100 }, { seed: sd }).time > 20, "la desigual no dura segundos");
 }
 
@@ -922,7 +922,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
     while (c.fase === 'ejecucion') c.step(0.2); assert.strictEqual(a.cartaFx, null, 'se limpia al acabar la ronda'); }
   { const dist = (carta) => { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), r = propios(c)[0]; pon(g, 300, 600); pon(r, 300, 580); r.order = { k: 'move', x: 300, y: 400 }; if (carta) c.jugarCarta(carta); c.ejecutar(); for (let i = 0; i < 3; i++) c.step(0.1); const y0 = r.y; for (let i = 0; i < 6; i++) c.step(0.1); return y0 - r.y; };
     const n = dist(null), p = dist('paso'); assert(p > n * 1.2 && p < n * 1.3, 'paso doble ~x1,25: ' + p / n); }
-  { const daño = (carta) => { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), r = propios(c)[0], e = c.regs.find(q => q.side === 1); pon(g, 300, 600); pon(r, 300, 580); if (carta) c.jugarCarta(carta); c.ejecutar(); const m = r.men; c.hit(e, r, 600, false); return m - r.men; };
+  { const daño = (carta) => { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), r = propios(c)[0], e = c.regs.find(q => q.side === 1); pon(g, 300, 600); pon(r, 300, 580); if (carta) c.jugarCarta(carta); c.ejecutar(); const m = r.men; c.hit(e, r, 200, false); return m - r.men; };
     const n = daño(null), k = daño('cerrada'); assert(k < n && Math.abs(k / n - 0.85) < 0.1, 'cerrada recibe ~x0,85: ' + k / n); }
   // «Ver otra vez» sigue siendo idéntico con carta y retraso
   { const c = mkN(), g = c.regs.find(r => r.k === 'general' && r.side === 0), P = propios(c); pon(g, 300, 600); pon(P[0], 300, 560); pon(P[1], 300, 250);
@@ -935,9 +935,9 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
 // N14. Campos amplios y relieve nuevo
 {
   const mk = (ter, ex) => new Battle(Object.assign({ sides: [side({ hastati: 200, velites: 80, equites: 60 }, { gen: { n: 'C' } }), side({ libios: 200, numidas: 60, honderos: 40, jinetes: 60 }, { gen: { n: 'S' } })], defender: 1, wall: 0, seed: 3, terreno: ter }, ex || {}));
-  // ancho variable: por defecto 1200; 1500 con más de 700 hombres; cfg.fw manda; mínimo 600
-  assert.strictEqual(mk('llano').W, 1200, 'ancho por defecto');
-  assert.strictEqual(new Battle({ sides: [side({ hastati: 500 }), side({ libios: 400 })], defender: 1, wall: 0, seed: 1 }).W, 1500, 'ejército grande: campo de 1500');
+  // ancho variable: por defecto 800 (R1); 1000 con más de 700 hombres; cfg.fw manda; mínimo 600
+  assert.strictEqual(mk('llano').W, 800, 'ancho por defecto');
+  assert.strictEqual(new Battle({ sides: [side({ hastati: 500 }), side({ libios: 400 })], defender: 1, wall: 0, seed: 1 }).W, 1000, 'ejército grande: campo de 1000');
   assert.strictEqual(mk('llano', { fw: 600 }).W, 600); assert.strictEqual(mk('llano', { fw: 300 }).W, 600, 'mínimo 600'); assert.strictEqual(mk('llano', { fw: 900 }).W, 900);
   for (const fw of [600, 1200, 1500]) for (const tpl of ['clasica', 'linea', 'ancha', 'tres', 'centro', 'alas']) {
     const b = mk('llano', { fw }); b.formar(0, tpl); b.formar(1, tpl);
@@ -1212,7 +1212,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
     assert(c15 >= 0.9, 'el 1,5× gana casi siempre (' + c15 + ')'); assert(c1 >= 0.2 && c1 <= 0.85, 'igualados: reñido (' + c1 + ')'); assert(c85 <= 0.5 && c85 < c1, '0,85×: pierde casi siempre (' + c85 + ')'); assert(c67 <= 0.25 && c5 <= 0.1, 'el chico no gana sin plan (' + c67 + ', ' + c5 + ')');
     assert(conQ(0.85, 1.2) >= 0.5, 'calidad 1,2× con 0,85× gana a menudo'); assert(conQ(0.67, 1.2) <= 0.3, 'calidad 1,2× con 0,67× casi nunca');
     const c05 = conQ(1, 1.05); assert(c05 < 0.95 || c1 < 0.85, 'un 5 % de calidad no lo decide todo (' + c05 + ')');
-    let t = 0; for (let sd = 1; sd <= 3; sd++) t += EQ.una({ k: 0.5, seed: sd }).t; assert(t / 3 >= 120, 'muy desiguales: duran más de 2 min (' + Math.round(t / 3) + ' s)');
+    let t = 0; for (let sd = 1; sd <= 3; sd++) t += EQ.una({ k: 0.5, seed: sd }).t; assert(t / 3 >= 70, 'muy desiguales: duran más de 70 s (R1) (' + Math.round(t / 3) + ' s)');
     const bis = (b) => { let g = 0; for (let sd = 1; sd <= N; sd++) if (EQ.una({ seed: sd, A: { bis: b } }).gana) g++; return g / N; }; assert(bis(1) <= 0.3 && bis(1) < c1, 'la leva bisoña pierde contra la veterana (' + bis(1) + ')');
   }
   // dificultad por contexto: ficha con factores, y el nivel ordena el resultado
@@ -1279,7 +1279,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   }
   // columna y marcha agrupada
   {
-    const bt = mk({ hastati: 240, equites: 60, velites: 100 }, { hastati: 240 }); bt.empezar();
+    const bt = mk({ hastati: 240, equites: 60, velites: 100 }, { hastati: 240 }, { fw: 1200 }); bt.empezar();
     const hs = R(bt, 0, 'hastati')[0], eq = R(bt, 0, 'equites')[0], ve = R(bt, 0, 'velites')[0];
     const antes = Battle.forma(hs); hs.columna = true; const col = Battle.forma(hs); hs.columna = false;
     assert(col.ancho < antes.ancho && col.fondo > antes.fondo, 'la columna es larga y estrecha');
@@ -1469,7 +1469,7 @@ console.log('OK — todas las pruebas superadas');
   { const bi = mk('attack', { hastati: 10 }, { falange: 300 }, 0, true); assert.deepStrictEqual(bi.cfg.objetivo, { tipo: 'escapar', lado: 0 }); }
   { const bi = mk('attack', { hastati: 10 }, { falange: 300 }, 0, false); assert.strictEqual(bi.cfg.objetivo, undefined, 'sin héroe no se escapa'); }
   { const bi = mk('attack', { hastati: 300 }, { falange: 100 }, 3, true); assert.strictEqual(bi.cfg.objetivo.tipo, 'tomar'); assert.strictEqual(bi.cfg.objetivo.seg, 40); }
-  { const bi = mk('defend', { hastati: 100 }, { falange: 300 }, 0, false); assert.deepStrictEqual(bi.cfg.objetivo, { tipo: 'resistir', lado: 0, rondas: 12 }); }
+  { const bi = mk('defend', { hastati: 100 }, { falange: 300 }, 0, false); assert.deepStrictEqual(bi.cfg.objetivo, { tipo: 'resistir', lado: 0, rondas: 7 }); }
   { const bi = mk('defend', { hastati: 300 }, { falange: 100 }, 0, false); assert.strictEqual(bi.cfg.objetivo, undefined); }
   // bis del jugador entra en cfg
   c.units = { hastati: 100 }; c.levas = [{ u: 'hastati', n: 50, t: s.t }]; { const bi = G.battleInfo({ kind: 'defend', m: { id: 2, from: 'tarentum', to: 'roma', units: { falange: 10 }, owner: 'epiro', gen: null } }); assert.strictEqual(bi.cfg.sides[0].bis, 0.5); }

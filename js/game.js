@@ -1228,7 +1228,7 @@
   const fuerzaSimple = sd => { let n = 0; for (const k in sd.units || {}) { const u = D.UNITS[k]; if (u && u.cls !== 'ele') n += sd.units[k]; } return n * (sd.atkMul || 1) * (sd.defMul || 1); };
   G.objetivoBatalla = function (pb, me, foe, c, heroIn) {
     const a = fuerzaSimple(me), b = fuerzaSimple(foe);
-    if (pb.kind === 'defend') return b > 1.3 * a ? { tipo: 'resistir', lado: 0, rondas: 12 } : null;
+    if (pb.kind === 'defend') return b > 1.3 * a ? { tipo: 'resistir', lado: 0, rondas: 7 } : null;
     if (heroIn !== undefined ? heroIn : pb.m.hero) { if (a < 0.5 * b) return { tipo: 'escapar', lado: 0 }; }
     if (G.nivelMuralla(c) >= 3) return { tipo: 'tomar', lado: 0, zona: { x: 0.35, y: 0.42, w: 0.3, h: 0.16 }, seg: 40 };
     return null;
