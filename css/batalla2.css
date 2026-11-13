@@ -83,3 +83,4 @@
 #b2 .b2-fin dt { font: 700 11px var(--serif); letter-spacing: .06em; color: var(--mute, #9aa6b4); } #b2 .b2-fin dd { margin: 0; font-size: 12px; line-height: 1.3; } #b2 .b2-fin dd.bien { color: var(--good, #8fae5a); } #b2 .b2-fin dd.mal { color: var(--bad, #d9764a); }
 #b2 .b2-fin .b2-seguir { width: 100%; margin-top: auto; flex-direction: row; min-height: 44px; flex: none; }
 @media (max-height: 360px) { #b2 .b2-fin dl { gap: 2px 8px; } }
+#b2 .b2-cluster { pointer-events: auto; }

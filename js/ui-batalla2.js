@@ -59,9 +59,17 @@
     el.addEventListener('pointerdown', ev => { const b = ev.target.closest('button'); S.down = b ? { b, t: Date.now() } : null; });
     el.addEventListener('click', onClick);
     S.timer = setInterval(tick, 100);
+    entra3d();
     pausar(S.pausa); return el;
   }
-  function cerrar() { if (S) { clearInterval(S.timer); if (S.el) S.el.remove(); } S = null; }
+  function cerrar() { if (S) { clearInterval(S.timer); if (S.g3) { try { S.g3.cerrar(); } catch (err) { /* nada que liberar */ } } S.g3 = null; if (S.el) S.el.remove(); } S = null; }
+
+  /* ---------- 3D en directo (NB4): si falla WebGL o el módulo, sigue el campo 2D liso ---------- */
+  function entra3d() {
+    const S0 = S; if (root.UIBatalla2.sin3d) return;
+    try { import('./gfx/choque3d.js').then(m => { if (S !== S0 || !m.Choque3D.disponible()) return; S0.g3 = new m.Choque3D(S0.el.querySelector('#b2-3d')); S0.g3.estado(S0.e, { corre: S0.corre, pausa: S0.pausa, ms: (root.UIBatalla2.ritmo || 2000) / S0.vel }); S0.el.classList.add('con3d'); }).catch(err => console.warn('3D del choque:', err)); } catch (err) { console.warn('3D del choque:', err); }
+  }
+  function al3d(f) { if (S && S.g3) { try { f(S.g3); } catch (err) { console.warn('3D del choque:', err); } } }
 
   /* ---------- bucle ---------- */
   function tick() {
@@ -75,7 +83,7 @@
     const r = B().pulso(S.e, S.semilla++); S.e = r.estado; S.pulsos++;
     S.flot = {}; for (const id in S.e.regs) { const d = antes[id] - S.e.regs[id].n; if (d >= 4) S.flot[id] = Math.round(d); }
     S.hist.push.apply(S.hist, r.sucesos);
-    avisosDe(r.sucesos);
+    avisosDe(r.sucesos); al3d(g => g.sucesos(r.sucesos, S.e));
     try { if (typeof root.UIBatalla2.alSuceso === 'function') root.UIBatalla2.alSuceso(r.sucesos, S.e); } catch (err) { console.warn('alSuceso:', err); }
     if (S.e.fin) { S.corre = false; S.verFin = true; S.pausa = { motivo: S.e.fin.motivo, tipo: 'fin' }; S.cons = null; pintar(); return; }
     if (r.pausa) { pausar(r.pausa); return; }
@@ -125,7 +133,7 @@
     return h;
   }
   function pintar() {
-    if (!S) return; const e = S.e, B2 = B();
+    if (!S) return; const e = S.e, B2 = B(); al3d(g => g.estado(e, { corre: S.corre, pausa: S.pausa, ms: (root.UIBatalla2.ritmo || 2000) / S.vel }));
     const h0 = B2.hombres(e, 0), h1 = B2.hombres(e, 1), pc = Math.round(100 * h0 / Math.max(1, h0 + h1));
     const bd = e.bandos[0], mando = S.mandoSim != null && !S.corre ? S.mandoSim : bd.mando, mx = bd.general && bd.general.vivo ? 5 : 2;
     const enm = Object.keys(e.regs).map(i => e.regs[i]).filter(r => r.bando === 0 && (r.lugar === 'rodeo' || r.lugar === 'marcha')).length;
