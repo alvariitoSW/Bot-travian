@@ -170,9 +170,16 @@ export class MapView3D {
       const geo = new THREE.BufferGeometry().setFromPoints(pts), line = new THREE.Line(geo, new THREE.LineDashedMaterial({ color: e[2] ? '#e8f6ff' : '#5a3418', dashSize: e[2] ? 0.35 : 0.6, gapSize: e[2] ? 0.5 : 0.3, transparent: true, opacity: e[2] ? 0.55 : 0.85 }));
       line.computeLineDistances(); sc.add(line); this.aristas.push({ a: e[0], b: e[1], line: line });
     }
-    // --- ciudades ---
-    this.cities = {};
-    for (const id in D.CITIES) {
+    // --- ciudades (y, aparte, los sitios de colonia de CN5) ---
+    this.cities = {}; this.sitios = {}; this.aristaSet = new Set(this.aristas.map(e => e.a + '|' + e.b)); this.firmaMundo = '';
+    for (const id in D.CITIES) this.crearCiudad(id);
+    this.crearSitios();
+  }
+
+  /* una ciudad del mapa: muralla, casas, bandera, etiqueta. Aparte para poder añadir la colonia cuando se funda (CN5) */
+  crearCiudad(id) {
+    const sc = this.scene;
+    {
       const d = D.CITIES[id], p = G.pos(id), x = p[0] * K, z = p[1] * K, grp = new THREE.Group(), s = id === 'roma' || id === 'carthago' ? 1.5 : 0.95 + d.w * 0.09;
       const stone = new THREE.MeshLambertMaterial({ color: '#cfc3a6', flatShading: true }), roof = new THREE.MeshLambertMaterial({ color: '#b5522f', flatShading: true }), plaster = new THREE.MeshLambertMaterial({ color: '#efe5cc', flatShading: true });
       const wall = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.1, 0.32, 14, 1, true), stone); wall.material.side = THREE.DoubleSide; wall.position.y = 0.16; grp.add(wall);
@@ -191,6 +198,51 @@ export class MapView3D {
       el.addEventListener('click', ev => { ev.stopPropagation(); if (this.opts.onSelect) this.opts.onSelect(id); });
       this.labels.appendChild(el);
       this.cities[id] = { casas: casas, pole: pole, flag: fm, flagMesh: flag, centro: null, quiere: null, grp: grp, ring: ring, el: el, dot: el.querySelector('i'), em: el.querySelector('em'), owner: null, x: x, z: z, top: 2.6 * s };
+    }
+  }
+
+  /* CN5 · sitios de colonia: un mojón con banderín (sin muralla ni casas, para no parecer una ciudad). Se eligen al tocar como las ciudades. */
+  crearSitios() {
+    const sc = this.scene, palo = new THREE.MeshLambertMaterial({ color: '#4a3524', flatShading: true }), tela = new THREE.MeshLambertMaterial({ color: '#e9c063', side: THREE.DoubleSide, flatShading: true }), piedra = new THREE.MeshLambertMaterial({ color: '#cfc3a6', flatShading: true });
+    for (const id in (D.COLONIAS || {})) {
+      const d = D.COLONIAS[id], p = G.pos(id), x = p[0] * K, z = p[1] * K, grp = new THREE.Group();
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.42, 0.5, 0.18, 8), piedra); base.position.y = 0.09; grp.add(base);
+      const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.7, 5), palo); mast.position.y = 0.95; grp.add(mast);
+      const bar = new THREE.Mesh(new THREE.BoxGeometry(0.62, 0.05, 0.05), palo); bar.position.y = 1.62; grp.add(bar);
+      const flag = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.4), tela); flag.position.set(0.3, 1.38, 0); grp.add(flag);
+      const ring = new THREE.Mesh(new THREE.RingGeometry(0.85, 1.05, 24), new THREE.MeshBasicMaterial({ color: '#e9c063', transparent: true, opacity: 0.9, depthWrite: false })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.05; grp.add(ring);
+      grp.position.set(x, Math.max(0.05, this.hAt(x, z)), z); grp.visible = false; sc.add(grp);
+      const el = document.createElement('button'); el.type = 'button'; el.className = 'mlabel sitio'; el.innerHTML = '<i></i><span>' + d.n + '</span><em></em>'; el.style.display = 'none';
+      el.addEventListener('click', ev => { ev.stopPropagation(); if (this.opts.onSelect) this.opts.onSelect(id); });
+      this.labels.appendChild(el);
+      this.sitios[id] = { grp: grp, ring: ring, flag: tela, el: el, em: el.querySelector('em'), x: x, z: z, top: 2.1, est: '' };
+    }
+  }
+  /* ¿el sitio cae en la región de esta partida (I6)? Vale la ciudad no-colonia más cercana: si está en el mapa, el sitio también */
+  sitioEnRegion(id, state) {
+    const d = D.COLONIAS[id]; if (!d) return false; const p = D.proj(d.lon, d.lat); let best = null, bd = 1e9;
+    for (const o in D.CITIES) { if (D.CITIES[o].colonia) continue; const q = G.pos(o), dd = Math.hypot(q[0] - p[0], q[1] - p[1]); if (dd < bd) { bd = dd; best = o; } }
+    return !!best && !!state.cities[best];
+  }
+  /* carreta con bueyes y un banderín: los colonos que marchan (sin soldados, sin batalla) */
+  colonosModel(m) {
+    const grp = new THREE.Group(), mad = new THREE.MeshLambertMaterial({ color: '#7a4a22', flatShading: true }), lona = new THREE.MeshLambertMaterial({ color: '#efe5cc', flatShading: true }), buey = new THREE.MeshLambertMaterial({ color: '#8a7458', flatShading: true });
+    const car = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.2, 0.8), mad); car.position.set(0, 0.28, -0.25); grp.add(car);
+    const toldo = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.3, 0.6), lona); toldo.position.set(0, 0.52, -0.25); grp.add(toldo);
+    for (const dx of [-0.16, 0.16]) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.26, 0.4), buey); b.position.set(dx, 0.24, 0.35); grp.add(b); }
+    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.5, 5), mad); pole.position.set(0.3, 0.75, -0.5); grp.add(pole);
+    const fl = new THREE.Mesh(new THREE.PlaneGeometry(0.5, 0.36), new THREE.MeshLambertMaterial({ color: D.FACTIONS.roma.col, side: THREE.DoubleSide })); fl.position.set(0.55, 1.25, -0.5); grp.add(fl);
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.85, 0.05, 18), new THREE.MeshBasicMaterial({ color: '#e9c063', transparent: true, opacity: 0.45 })); base.position.y = 0.03; grp.add(base);
+    const el = document.createElement('div'); el.className = 'mlabel army mine'; this.labels.appendChild(el); this.scene.add(grp); return { grp: grp, el: el, anims: [], colonos: true };
+  }
+  /* rutas y ciudades que aparecen después de construir el mapa (colonia recién fundada o cargada) */
+  alDiaMundo() {
+    const f = Object.keys(D.CITIES).length + '|' + D.EDGES.length; if (f === this.firmaMundo) return; this.firmaMundo = f;
+    for (const id in D.CITIES) if (!this.cities[id]) this.crearCiudad(id);
+    for (const e of D.EDGES) {
+      const k = e[0] + '|' + e[1]; if (this.aristaSet.has(k) || this.aristaSet.has(e[1] + '|' + e[0])) continue; this.aristaSet.add(k);
+      const pts = trazo(this, G.pos(e[0]), G.pos(e[1]), 0.08), line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineDashedMaterial({ color: e[2] ? '#e8f6ff' : '#5a3418', dashSize: e[2] ? 0.35 : 0.6, gapSize: e[2] ? 0.5 : 0.3, transparent: true, opacity: e[2] ? 0.55 : 0.85 }));
+      line.computeLineDistances(); this.scene.add(line); this.aristas.push({ a: e[0], b: e[1], line: line });
     }
   }
 
@@ -245,6 +297,17 @@ export class MapView3D {
     if (this.labels.scrollLeft || this.labels.scrollTop) { this.labels.scrollLeft = 0; this.labels.scrollTop = 0; }
     this.escalon(state, dt, place);
     const mare = this.esc.mare;
+    this.alDiaMundo();
+    for (const id in this.sitios) {      // CN5: sitios libres, con colonos en camino o con colonos esperando; los de fuera de la región, ocultos (I6)
+      const q = this.sitios[id], k = state.colonias && state.colonias[id], ver = !!k && k.estado !== 'fundada' && this.sitioEnRegion(id, state) && D.COLONIAS[id];
+      if (!ver) { q.grp.visible = false; q.el.style.display = 'none'; continue; }
+      q.grp.visible = true; q.ring.visible = true; q.ring.rotation.z = this.t * 0.8; q.ring.scale.setScalar(k.estado === 'pendiente' ? 1 + 0.12 * Math.sin(this.t * 4) : 1);
+      q.grp.scale.setScalar(k.estado === 'libre' ? 1 : 1.15);
+      if (q.est !== k.estado) { q.est = k.estado; q.flag.color.set(k.estado === 'libre' ? '#e9c063' : k.estado === 'camino' ? '#9aa4b0' : '#7fd060'); q.el.dataset.est = k.estado; q.em.textContent = k.estado === 'libre' ? D.COLONIAS[id].anio + ' a.C.' : k.estado === 'camino' ? 'colonos en camino' : '¡funda aquí!'; }
+      q.el.classList.toggle('sel', sel === id); place(q.el, q.x, q.grp.position.y + q.top, q.z); if (mare) q.el.style.display = 'none';
+    }
+    { const vs = Object.values(this.sitios).filter(q => q.el.style.display !== 'none').map(q => ({ e: q.el, r: q.el.getBoundingClientRect() })).sort((p, q) => p.r.top - q.r.top), hs = [];   // los nombres de sitios no se pisan entre sí
+      for (const o of vs) { let dy = 0; for (const q of hs) if (o.r.left < q.right && o.r.right > q.left && o.r.top + dy < q.bottom && o.r.bottom + dy > q.top) dy = q.bottom - o.r.top + 2; if (dy) o.e.style.transform += ' translateY(' + dy.toFixed(0) + 'px)'; hs.push({ left: o.r.left, right: o.r.right, top: o.r.top + dy, bottom: o.r.bottom + dy }); } }
     for (const id in this.cities) {
       const c = this.cities[id], st = state.cities[id];
       if (!st) { c.grp.visible = false; c.el.style.display = 'none'; continue; }   // ciudad que no es de esta región: ni modelo ni etiqueta
@@ -277,12 +340,12 @@ export class MapView3D {
     for (const [k, o] of this.rutaObj) if (!vistas.has(k)) { this.scene.remove(o.linea, o.g); o.linea.geometry.dispose(); o.g.traverse(m => { if (m.geometry) m.geometry.dispose(); }); this.rutaObj.delete(k); }
     const seen = new Set();
     for (const m of state.marches) {
-      if (!state.cities[m.to] || (m.from && !state.cities[m.from])) continue;
-      seen.add(m.id); let a = this.armies.get(m.id); if (!a) { a = this.armyModel(m); this.armies.set(m.id, a); }
+      if (m.colonos ? !(state.cities[m.from] && this.sitioEnRegion(m.to, state)) : (!state.cities[m.to] || (m.from && !state.cities[m.from]))) continue;
+      seen.add(m.id); let a = this.armies.get(m.id); if (!a) { a = m.colonos ? this.colonosModel(m) : this.armyModel(m); this.armies.set(m.id, a); }
       const p0 = m.fromXY || G.pos(m.from), p1 = G.pos(m.to), f = Math.max(0, Math.min(1, (state.t - m.t0) / (m.t1 - m.t0))), x = (p0[0] + (p1[0] - p0[0]) * f) * K, z = (p0[1] + (p1[1] - p0[1]) * f) * K, y = Math.max(0.04, this.hAt(x, z));
       a.grp.position.set(x, y, z); a.grp.rotation.y = Math.atan2(p1[0] - p0[0], p1[1] - p0[1]);
       for (const an of a.anims) { an.a.array[0] = frameOf(an.clip, this.t + an.ph); an.a.needsUpdate = true; }
-      const txt = (m.owner === 'roma' ? '' : (m.label || D.FACTIONS[m.owner].n) + ' · ') + G.men(m.units); if (a.txt !== txt) { a.txt = txt; a.el.textContent = txt; }
+      const txt = m.colonos ? '🏛️ Colonos a ' + G.lugar(m.to).n : (m.owner === 'roma' ? '' : (m.label || D.FACTIONS[m.owner].n) + ' · ') + G.men(m.units); if (a.txt !== txt) { a.txt = txt; a.el.textContent = txt; }
       place(a.el, x, y + 2.7, z);
     }
     for (const [id, a] of this.armies) if (!seen.has(id)) { this.scene.remove(a.grp); a.grp.traverse(o => { if (o.geometry && !o.userData.real) o.geometry.dispose(); }); a.el.remove(); this.armies.delete(id); }
@@ -359,6 +422,7 @@ export class MapView3D {
         const rc = cv.getBoundingClientRect(), ray = new THREE.Raycaster(); ray.setFromCamera(new THREE.Vector2((e.clientX - rc.left) / rc.width * 2 - 1, -((e.clientY - rc.top) / rc.height) * 2 + 1), this.cam);
         const o = ray.ray.origin, d = ray.ray.direction, k = (0.3 - o.y) / d.y, x = o.x + d.x * k, z = o.z + d.z * k; let best = null, bd = 2.6;
         for (const id in this.cities) { const c = this.cities[id], dd = Math.hypot(c.x - x, c.z - z); if (dd < bd) { bd = dd; best = id; } }
+        for (const id in this.sitios) { const c = this.sitios[id]; if (!c.grp.visible) continue; const dd = Math.hypot(c.x - x, c.z - z); if (dd < bd) { bd = dd; best = id; } }
         if (this.opts.onSelect) this.opts.onSelect(best);
       }
       if (!P.size) st = null; else if (st) st.d = 0;

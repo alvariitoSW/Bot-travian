@@ -113,6 +113,7 @@
   const mision = {
     'levas-heraclea': f(SIN_MIS, h('Plutarco, Pirro 17; Eutropio 2.11', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Pirro ha vencido en Heraclea. El Senado manda alistar nuevas legiones: reúne 300 hombres en armas.')),
     'presidio-regio': f(SIN_MIS, h('Polibio 1.7; Livio, Períocas 12', 'probable', 'plazos, premios, castigos y cifras: licencia de juego', 'Una guarnición romana ha de sostener la Campania. Mantén 100 hombres en Capua.')),
+    'fundar-colonia': f(SIN_MIS, h('Veleyo Patérculo 1.14; Livio, Períocas 15 y 19', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'El Senado manda asentar colonos en tierras conquistadas. Envía colonos y funda una colonia.')),
     'colonias-latinas': f(SIN_MIS, h('Livio, Períocas 14 y 15; Veleyo Patérculo 1.14', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Roma asienta colonos en tierras conquistadas (Paestum, Cosa, Ariminum). Ten 3 ciudades propias.')),
     'flota-260': f(SIN_MIS, h('Polibio 1.20 y 1.23', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Roma no tiene flota contra Cartago. Levanta un puerto de nivel 3 (la flota de Mylae se botó en 260).')),
     'grano-sicilia': f(SIN_MIS, h('Cicerón, Verrinas 3.12 (ley de Hierón); Polibio 1.16', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Sicilia alimenta a Roma con su diezmo de grano. Abre 2 rutas comerciales.')),
@@ -215,7 +216,21 @@
     E4: f(SIN_I, h("Polibio 1.1-3 (200-146 a.C.).", "licencia de juego", "La división en edades es licencia de juego."))
   };
 
-  R.fichas = { edificio, tropa, ciudad, hecho, mision, region, zona, faccion, mejora, tipo, especial, invest, edad: edades };
+  // ---- Sitios de colonias (D.COLONIAS, CN5-A). Sin modelo propio: el sitio es un punto del mapa. Fechas y colonos: por cotejar salvo lo anotado ----
+  const SIN_COL = { sin: 'un sitio de colonia no tiene modelo 3D propio; se funda con la escena común de la ciudad' };
+  const LJ = ' · posición aproximada y que el jugador la funde cuando quiera: licencia de juego';
+  const colonia = {
+    cosa: f(SIN_COL, h('Veleyo Patérculo 1.14.7; Livio, Períocas 14; Brown 1980', 'probable', '273 a.C., latina: Veleyo, por cotejar el pasaje; 4.000 colonos: cifra por cotejar; recinto y foro según Brown 1980, fechas exactas por cotejar' + LJ)),
+    ariminum: f(SIN_COL, h('Veleyo Patérculo 1.14.8; Livio, Períocas 15', 'probable', '268 a.C., latina (no de ciudadanos: livius.org la cita mal); 6.000 colonos: cifra por cotejar' + LJ)),
+    beneventum: f(SIN_COL, h('Veleyo Patérculo 1.14.6; Livio, Períocas 15', 'probable', '268 a.C., latina: pasaje por cotejar; 2.500 colonos: cifra sin fuente, licencia de juego; sitio movido unas décimas de grado respecto a Capua' + LJ)),
+    brundisium: f(SIN_COL, h('Veleyo Patérculo 1.14.8; Livio, Períocas 19', 'probable', '244 a.C. (livius.org da 246: las fuentes difieren), latina; 6.000 colonos: cifra por cotejar' + LJ)),
+    placentia: f(SIN_COL, h('Polibio 3.40; Livio 21.25', 'historico', '218 a.C., latina, 6.000 colonos según Polibio 3.40; Livio 21.25 por cotejar' + LJ)),
+    cremona: f(SIN_COL, h('Polibio 3.40; Livio 21.25', 'historico', '218 a.C., latina, 6.000 colonos según Polibio 3.40; Livio 21.25 por cotejar; sitio movido para no pisar Placentia' + LJ)),
+    bononia: f(SIN_COL, h('Livio 37.57', 'probable', '189 a.C., latina, 3.000 colonos: Livio 37.57 por fuente secundaria, pasaje por cotejar' + LJ)),
+    aesernia: f(SIN_COL, h('Veleyo Patérculo 1.14.7', 'por cotejar', '263 a.C., latina: fecha y colonos (2.500, sin fuente, licencia de juego) por cotejar' + LJ))
+  };
+
+  R.fichas = { edificio, tropa, ciudad, hecho, mision, colonia, region, zona, faccion, mejora, tipo, especial, invest, edad: edades };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -226,6 +241,7 @@
     hecho: { tabla: 'EVENTS', lista: true, numericos: ['y'], textos: ['t', 'x'] },
     zona: { tabla: 'ZONAS', numericos: [], textos: ['n'] },
     region: { tabla: 'REGIONES', numericos: ['hasta'], textos: ['n', 'capitalRival'] },
+    colonia: { tabla: 'COLONIAS', numericos: ['lon', 'lat', 'anio', 'colonos'], textos: ['n', 'h', 'tipo'] },
     mision: { tabla: 'MISIONES', numericos: ['desde', 'plazo'], textos: ['n', 'texto'] },
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },
     mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },

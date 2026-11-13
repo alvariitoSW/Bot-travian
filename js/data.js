@@ -367,6 +367,20 @@
     levaMax: 4             // con poco favor no se admite una leva más si ya hay tantas en cola
   };
   // desde: año (a.C.) en que el Senado puede encargarla; plazo en meses; las cifras son licencia de juego
+  /* Sitios de colonias (CN5-A). Aún no son ciudades: el jugador manda colonos y funda. Mismo sistema lon/lat que D.CITIES.
+     anio = a.C. positivo; tipo: 'latina' | 'ciudadanos' | 'maritima'; colonos = cifra histórica (cotejo en registro.js y en gobierno/historia/fundacion-de-colonias.md).
+     Posiciones aproximadas: las de Beneventum, Cremona y Aesernia se desplazan unas décimas de grado para no pisar Capua, Placentia ni el camino (licencia de juego). */
+  D.COLONIAS = {
+    cosa: { id: 'cosa', n: 'Cosa', lon: 11.3, lat: 42.4, anio: 273, tipo: 'latina', colonos: 4000, h: 'Colonia latina sobre una loma junto a la costa etrusca: recinto de piedra, foro abajo y templos arriba.' },
+    ariminum: { id: 'ariminum', n: 'Ariminum', lon: 12.6, lat: 44.05, anio: 268, tipo: 'latina', colonos: 6000, h: 'Colonia latina en el Adriático, puerta de la llanura del Po.' },
+    beneventum: { id: 'beneventum', n: 'Beneventum', lon: 14.95, lat: 41.2, anio: 268, tipo: 'latina', colonos: 2500, h: 'Colonia latina en el Samnio, donde Pirro fue vencido en 275. Vigila los pasos del interior.' },
+    brundisium: { id: 'brundisium', n: 'Brundisium', lon: 17.9, lat: 40.65, anio: 244, tipo: 'latina', colonos: 6000, h: 'Colonia latina en el talón de Italia, el mejor puerto hacia Grecia.' },
+    placentia: { id: 'placentia', n: 'Placentia', lon: 9.7, lat: 45.0, anio: 218, tipo: 'latina', colonos: 6000, h: 'Colonia latina junto al Po, frente a los galos, fundada al empezar la guerra con Aníbal.' },
+    cremona: { id: 'cremona', n: 'Cremona', lon: 10.25, lat: 45.1, anio: 218, tipo: 'latina', colonos: 6000, h: 'Colonia latina en la orilla norte del Po, gemela de Placentia.' },
+    bononia: { id: 'bononia', n: 'Bononia', lon: 11.35, lat: 44.5, anio: 189, tipo: 'latina', colonos: 3000, h: 'Colonia latina en la vía hacia Mutina, sobre una antigua ciudad de los galos boyos.' },
+    aesernia: { id: 'aesernia', n: 'Aesernia', lon: 14.2, lat: 41.6, anio: 263, tipo: 'latina', colonos: 2500, h: 'Colonia latina en las montañas del Samnio, pensada para sujetar a los samnitas.' }
+  };
+
   D.MISIONES = {};   // por id (el registro casa por id); el orden de las claves es el orden del Senado
   [
     { id: 'levas-heraclea', n: 'Nuevas levas tras Heraclea', desde: 280, plazo: 12, cond: { tipo: 'tropas', n: 300 },
@@ -381,6 +395,10 @@
       texto: 'Roma asienta colonos en tierras conquistadas (Paestum, Cosa, Ariminum). Ten 3 ciudades propias.',
       premio: { oro: 120, favorSenado: 15, favorPueblo: 8 }, castigo: { favorSenado: -8, favorPueblo: -5 },
       fuente: 'Livio, Períocas 14 y 15; Veleyo Patérculo 1.14', dictamen: 'historico' },
+    { id: 'fundar-colonia', n: 'Una colonia para Roma', desde: 268, plazo: 30, cond: { tipo: 'colonia', n: 1 },
+      texto: 'El Senado manda asentar colonos en tierras conquistadas. Envía colonos y funda una colonia.',
+      premio: { oro: 100, favorSenado: 12, favorPueblo: 8 }, castigo: { favorSenado: -8, favorPueblo: -5 },
+      fuente: 'Veleyo Patérculo 1.14; Livio, Períocas 15 y 19', dictamen: 'historico' },
     { id: 'flota-260', n: 'Una flota para Roma', desde: 262, plazo: 14, cond: { tipo: 'edificio', b: 'puerto', n: 3 },
       texto: 'Roma no tiene flota contra Cartago. Levanta un puerto de nivel 3 (la flota de Mylae se botó en 260).',
       premio: { oro: 150, favorSenado: 15, favorPueblo: 5 }, castigo: { favorSenado: -12, favorPueblo: -4 },

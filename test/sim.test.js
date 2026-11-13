@@ -1477,3 +1477,52 @@ console.log('OK — todas las pruebas superadas');
     assert(g15 >= 5, 'sin órdenes con ventaja 1,5x gana ' + g15 + '/6'); }
   console.log('N15b: levas, general y objetivo OK');
 }
+// CN5: colonias. Enviar colonos, llegada, fundar, 12 meses, guardar/cargar en cada fase, newGame limpio, partida vieja sin colonias
+{
+  G.usarCiudad(CIMOD);
+  const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  const ids = Object.keys(D.COLONIAS), n0 = Object.keys(D.CITIES).length;
+  assert(ids.length >= 6, 'D.COLONIAS trae 6 sitios o más');
+  const s = G.newGame('Colonias'); const sitio = 'cosa';
+  assert.deepStrictEqual(G.coloniasLibres().sort(), ids.slice().sort(), 'al empezar todos los sitios están libres');
+  assert(ids.every(i => !D.CITIES[i]) && Object.keys(D.CITIES).length === n0, 'los sitios no están en D.CITIES');
+  assert.strictEqual(G.lugar(sitio).n, 'Cosa'); assert(G.pos(sitio)[0] > 0 && G.edge('roma', sitio) && G.travel('roma', sitio) >= 0.5, 'pos/edge/travel aceptan un sitio');
+  assert.strictEqual(G.send('roma', sitio, { hastati: 1 }), false, 'un ejército no marcha a un sitio vacío');
+  s.res.grano = 1000; s.res.oro = 1000; s.cities.roma.pop = 500;
+  const antes = { g: G.disponible('grano'), o: G.disponible('oro'), p: s.cities.roma.pop };
+  assert.strictEqual(G.puedeEnviarColonos('roma', 'noexiste').ok, false);
+  const e = G.enviarColonos('roma', sitio); assert(e.ok, e.motivo);
+  assert.strictEqual(s.colonias[sitio].estado, 'camino'); assert.strictEqual(G.disponible('grano'), antes.g - G.COLONOS.grano); assert.strictEqual(G.disponible('oro'), antes.o - G.COLONOS.oro); assert.strictEqual(s.cities.roma.pop, antes.p - G.COLONOS.pop);
+  const m = s.marches.find(q => q.colonos); assert(m && m.mision === 'colonia' && m.to === sitio && m.owner === 'roma', 'marcha de colonos');
+  assert.strictEqual(G.enviarColonos('roma', sitio).ok, false, 'no se envía dos veces'); assert.strictEqual(G.coloniasLibres().length, ids.length - 1);
+  const ciclo = () => { G.save(); const a = JSON.stringify(G.state.colonias); assert(G.load()); assert.strictEqual(JSON.stringify(G.state.colonias), a, 'las colonias sobreviven a guardar y cargar'); };
+  ciclo(); assert.strictEqual(G.state.marches.filter(q => q.colonos).length, 1, 'los colonos en marcha se guardan');
+  const evs = []; G.onEvent = (t, p) => evs.push(t);
+  let g = 0; while (G.state.colonias[sitio].estado === 'camino' && g++ < 60) G.tick(1);
+  const s2 = G.state; assert.strictEqual(s2.colonias[sitio].estado, 'pendiente', 'los colonos llegan'); assert(!s2.pending.length, 'sin batalla'); assert(evs.includes('colonos'));
+  assert(G.consejo().some(l => /Los colonos han llegado a Cosa/.test(l.x)), 'el consejo avisa'); assert.deepStrictEqual(G.coloniasPendientes(), [sitio]);
+  assert(!s2.cities[sitio] && !D.CITIES[sitio], 'aún no es ciudad'); ciclo();
+  const mala = G.fundarColonia(sitio, 0, -430); assert.strictEqual(mala.ok, false, 'no se funda en el agua o fuera de rango'); assert(mala.motivo);
+  assert(G.notaFundar(sitio, 172, -196).vale && G.mapaCalorFundar(sitio).length > 100, 'nota y mapa de calor');
+  assert.strictEqual(G.MISION_TIPOS.colonia.cumple(G.state, { n: 1 }), false);
+  const f = G.fundarColonia(sitio, 172, -196); assert(f.ok, f.motivo);
+  const s3 = G.state; assert.strictEqual(s3.colonias[sitio].estado, 'fundada'); assert(D.CITIES[sitio] && G.myCities().includes(sitio), 'cuenta en G.myCities');
+  assert(G.neighbors(sitio).length, 'la colonia tiene rutas'); assert(G.MISION_TIPOS.colonia.cumple(s3, { n: 1 }));
+  const E = G.ciudadE(sitio); assert(E && E.fundada && CIMOD.casas(E).length >= 20 && E.puertas.length >= 2, 'nace con foro, calles, puertas y chozas');
+  ciclo(); assert(D.CITIES[sitio] && G.state.cities[sitio].owner === 'roma' && G.ciudadE(sitio).fundada, 'fundada tras cargar');
+  const r0 = G.state.cities[sitio].pop; assert(r0 > 0);
+  G.state.res.madera = 2000; G.state.res.piedra = 2000; G.state.res.hierro = 2000; G.state.res.grano = 2000; const pAntes = G.prod().madera; assert(G.upgrade(sitio, 'aserradero'), 'la colonia puede construir: ' + G.ultimoMotivo);
+  for (let i = 0; i < 12; i++) G.tick(1);
+  assert(G.myCities().includes(sitio) && !G.state.over, 'a los 12 meses sigue siendo tuya'); assert(G.state.cities[sitio].b.aserradero >= 1 && G.prod().madera > pAntes, 'la colonia produce madera (' + pAntes + ' → ' + G.prod().madera + ')'); assert(G.state.cities[sitio].pop >= r0 * 0.8, 'vive');
+  ciclo(); assert.strictEqual(G.enviarColonos('roma', sitio).ok, false);
+  G.state.res.grano = 1000; G.state.res.oro = 1000; G.state.cities.roma.pop = Math.max(G.state.cities.roma.pop, 500);
+  assert(G.enviarColonos('roma', 'ariminum').ok); ciclo(); g = 0; while (G.state.colonias.ariminum.estado === 'camino' && g++ < 60) G.tick(1);
+  assert.strictEqual(G.state.colonias.ariminum.estado, 'pendiente'); ciclo(); assert(G.ciudadPendiente('ariminum')); ciclo();
+  G.newGame('Limpia'); assert(Object.keys(D.CITIES).length === n0 && !D.CITIES[sitio], 'newGame quita las colonias fundadas'); assert.strictEqual(G.coloniasFundadas(), 0); assert.strictEqual(G.coloniasLibres().length, ids.length);
+  assert(!D.EDGES.some(e => e[0] === sitio || e[1] === sitio), 'sin aristas de colonias');
+  { const raw = require('fs').readFileSync(__dirname + '/partida-vieja.json', 'utf8'); assert(!JSON.parse(raw).colonias); global.localStorage = { getItem: () => raw, setItem: () => {}, removeItem: () => {} };
+    assert(G.load()); assert.strictEqual(G.coloniasLibres().length, ids.length); assert.strictEqual(G.coloniasFundadas(), 0); assert(ids.every(i => G.state.colonias[i].estado === 'libre')); }
+  G.newGame('Bot'); for (let i = 0; i < 24; i++) G.tick(1); assert.strictEqual(G.coloniasLibres().length, ids.length, 'nada envía colonos solo');
+  G.newGame('Fin'); delete global.localStorage; G.onEvent = null; G.usarCiudad(null);
+  console.log('CN5: colonias OK (enviar, llegar, fundar, 12 meses, guardar/cargar, newGame, partida vieja)');
+}

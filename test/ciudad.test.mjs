@@ -2,6 +2,7 @@
 // Porta las 17 comprobaciones de la maqueta (fundar, colocar, 5 años) y añade radio, mejoras, determinismo y guardado.
 import * as R from '../js/ciudad.js';
 import assert from 'node:assert';
+import { createRequire } from 'node:module';
 const E = R.crear(+(process.argv[2] || 1)), fallos = [], ok = (c, t) => { if (!c) fallos.push(t); console.log((c ? 'bien  ' : 'MAL   ') + t); };
 const loma = R.notaFundar(E, 160, 20), ribera = R.notaFundar(E, 200, -320), alto = R.notaFundar(E, 172, -196);
 ok(loma.razones.some(t => /loma/.test(t)), 'en la loma se defiende mejor: ' + loma.razones.join(' · '));
@@ -74,4 +75,15 @@ prueba('ida y vuelta con piezas nuevas y siembra: misma población y casas; JSON
   const J = JSON.stringify(R.aDatos(F)), B = R.deDatos(JSON.parse(J)); console.log('      (' + n + ' piezas, JSON ' + J.length + ' bytes)');
   assert.ok(n >= 8); assert.equal(R.poblacion(B), R.poblacion(F)); assert.equal(R.casas(B).length, R.casas(F).length); assert.deepEqual(R.aDatos(B), R.aDatos(F)); assert.deepEqual(B.edificios.map(e => e.tipo), F.edificios.map(e => e.tipo));
   assert.ok(J.length < 8000, J.length); assert.ok(R.aDatos(F).piezas.every(p => !ArrayBuffer.isView(p.x))); });
+prueba('CN5: una colonia se funda desde el juego, guarda y recarga la misma ciudad', () => {
+  const rq = createRequire(import.meta.url), D = rq('../js/data.js'), G = rq('../js/game.js'); G.usarCiudad(R);
+  const store = {}; globalThis.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+  try {
+    const s = G.newGame('CN5'); assert.ok(!D.CITIES.cosa, 'el sitio no es ciudad'); s.res.grano = 900; s.res.oro = 900; s.cities.roma.pop = 500;
+    assert.ok(G.enviarColonos('roma', 'cosa').ok); let n = 0; while (G.state.colonias.cosa.estado === 'camino' && n++ < 60) G.tick(1);
+    assert.equal(G.state.colonias.cosa.estado, 'pendiente'); assert.equal(G.fundarColonia('cosa', 100, -450).ok, false);
+    assert.ok(G.fundarColonia('cosa', 172, -196).ok); const a = JSON.stringify(R.aDatos(G.ciudadE('cosa')));
+    G.save(); assert.ok(G.load()); assert.equal(JSON.stringify(R.aDatos(G.ciudadE('cosa'))), a, 'misma ciudad tras cargar');
+    assert.equal(R.estado(G.ciudadE('cosa')).casas, 20); G.newGame('x'); assert.ok(!D.CITIES.cosa);
+  } finally { delete globalThis.localStorage; G.usarCiudad(null); } });
 process.exit(fallos.length ? 1 : 0);

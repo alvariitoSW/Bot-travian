@@ -77,6 +77,7 @@ G.onEvent = function (type, p) {
   else if (type === 'alert') toast(p, 'bad');
   else if (type === 'log') { if (p.k === 'good') toast(p.x); else if (p.k === 'bad') toast(p.x, 'bad'); UI.dirty = true; }
   else if (type === 'dirty') UI.dirty = true;
+  else if (type === 'colonos') { const d = D.COLONIAS[p.sitio]; if (d) modal('<div class="yr">COLONOS</div><h2>Han llegado a ' + esc(d.n) + '</h2><p>Los colonos esperan tu orden. Elige el lugar del foro y el arado trazará el surco sagrado.</p><div class="acts"><button class="btn ghost" data-act="close">Más tarde</button><button class="btn gold" data-act="fundar" data-v="' + p.sitio + '">Fundar ' + esc(d.n) + '</button></div>'); }
   else if (type === 'turno') { const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.over) consejoModal(); UI.dirty = true; }
   else if (type === 'over') { if (!UI.battle && !UI.binfo) showOver(); }
 };
@@ -165,11 +166,12 @@ function tickUI() {
   });
   document.querySelectorAll('[data-need]').forEach(b => b.classList.toggle('no', !G.canAfford(JSON.parse(b.dataset.need))));
   document.querySelectorAll('[data-have]').forEach(e => { e.textContent = 'de ' + fmt(G.disponible(e.dataset.have)); });
-  if (UI.tab === 'city' && UI.cityV && !UI.cityList && !$('citywrap').hidden) { const m = cityMeta(c), k = metaKey(m); if (k !== UI.metaK) renderCity3D(); else { UI.cityV.meta = m; cityPantalla(); pintaLinea(); } }
+  if (UI.tab === 'city' && UI.cityV && !UI.cityList && !UI.fundar && !$('citywrap').hidden) { const m = cityMeta(c), k = metaKey(m); if (k !== UI.metaK) renderCity3D(); else { UI.cityV.meta = m; cityPantalla(); pintaLinea(); } }
 }
 
 /* ---------- paneles ---------- */
 function setTab(t) {
+  if (UI.fundar) cerrarFundar(true);
   UI.tab = t; if (t === 'map' || t === 'army') UI.modo = 'guerra'; else if (t === 'city' || t === 'imperio' || t === 'senado' || t === 'saber') UI.modo = 'gobierno'; $('hoja').hidden = true; $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
   const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D (o en lista si se prefiere)
   $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3; UI.linK = null; if (!c3) $('linea').hidden = true;
@@ -600,6 +602,7 @@ function cityPantalla() {
   if (si._t !== t) { si._t = t; si.innerHTML = t; } si.disabled = off;
 }
 function salir3(avisar) {
+  if (UI.modo3 === 'fundar') { cerrarFundar(); return; }
   UI.modo3 = 'mirar'; UI.sel3 = null;
   if (UI.cityV) { UI.cityV.ponerFantasma(null); UI.cityV.calor(null); }
   if (!avisar) lineaPon(''); cityPantalla(); pintaLinea();
@@ -620,6 +623,7 @@ function mover3(x, z) {
 }
 function construir3() {
   if (performance.now() - (UI.modoT || 0) < 450) return;      // el «clic fantasma» del toque en la ficha cae sobre el botón recién aparecido
+  if (UI.modo3 === 'fundar') { fundarAqui(); return; }
   if (UI.modo3 === 'muralla') {
     // CN7: tabla de guerra, saqueo y consejo cuelgan de G.levantarMuralla
     const nom = piezaInfo('muralla').nombre, r = G.levantarMuralla(UI.city); if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); return; }
@@ -663,9 +667,9 @@ function initBandeja() {
 }
 /* ganchos de CityView3D.bind: toque en el suelo, agarrar el fantasma y arrastrarlo */
 const gestosCiudad = {
-  onSuelo: (x, y) => { if (UI.modo3 !== 'colocar') return false; const g = UI.cityV.sueloEn(x, y); if (g) mover3(g[0], g[1]); return true; },
-  agarra: (x, y) => { const q = UI.sel3; if (UI.modo3 !== 'colocar' || !q || q.x === undefined) return null; const p = UI.cityV.aPantalla(q.x, q.z, 4); return Math.hypot(p.x - x, p.y - y) < 64 ? { dx: p.x - x, dy: p.y - y } : null; },
-  onFicha: (x, y) => { const g = UI.cityV.sueloEn(x, y); if (g) mover3(g[0], g[1]); }
+  onSuelo: (x, y) => { if (UI.modo3 === 'fundar') { if (UI.fundar && UI.fundar.fase === 'elegir') { const g = UI.cityV.sueloEn(x, y); if (g) moverFundar(g[0], g[1]); } return true; } if (UI.modo3 !== 'colocar') return false; const g = UI.cityV.sueloEn(x, y); if (g) mover3(g[0], g[1]); return true; },
+  agarra: (x, y) => { if (UI.modo3 === 'fundar') { const F = UI.fundar; if (!F || F.fase !== 'elegir' || F.x === undefined) return null; const p = UI.cityV.aPantalla(F.x, F.z, 6); return Math.hypot(p.x - x, p.y - y) < 64 ? { dx: p.x - x, dy: p.y - y } : null; } const q = UI.sel3; if (UI.modo3 !== 'colocar' || !q || q.x === undefined) return null; const p = UI.cityV.aPantalla(q.x, q.z, 4); return Math.hypot(p.x - x, p.y - y) < 64 ? { dx: p.x - x, dy: p.y - y } : null; },
+  onFicha: (x, y) => { const g = UI.cityV.sueloEn(x, y); if (g) { if (UI.modo3 === 'fundar') moverFundar(g[0], g[1]); else mover3(g[0], g[1]); } }
 };
 const bar = (label, v, max) => '<span>' + label + '</span><u><s style="width:' + Math.min(100, v / max * 100) + '%"></s></u>';
 const avisoMo = (c, n) => { const z = Math.round(G.manoObraDe(c, Math.max(0, (c.pop || 0) - n)) * 100); return z < 100 ? '<div class="ds" style="color:#e0a030">Los campos quedarán al ' + z + ' % (+' + n + ')</div>' : ''; };
@@ -803,8 +807,82 @@ function viewLog() {
 }
 
 /* ---------- ficha de ciudad sobre el mapa ---------- */
+/* ---------- CN5 · colonias: ficha del sitio y pantalla de fundar ---------- */
+const TIPO_COL = { latina: 'Colonia latina', ciudadanos: 'Colonia de ciudadanos', maritima: 'Colonia marítima' };
+function sheetSitio(id) {
+  const s = S(), sh = $('sheet'), d = D.COLONIAS[id], k = s.colonias && s.colonias[id];
+  if (!k || k.estado === 'fundada') { sh.hidden = true; UI.sheetKey = ''; return; }
+  const orig = G.myCities().filter(o => D.CITIES[o] && s.cities[o].owner === 'roma');
+  if (!UI.colDesde || orig.indexOf(UI.colDesde) < 0) UI.colDesde = orig.indexOf('roma') >= 0 ? 'roma' : orig[0];
+  const mar = s.marches.find(m => m.colonos && m.to === id), v = k.estado === 'libre' && UI.colDesde ? G.puedeEnviarColonos(UI.colDesde, id) : { ok: false, motivo: '' };
+  const key = 'sitio' + id + k.estado + UI.colDesde + orig.join() + v.ok + v.motivo + (mar ? (G.turnos ? G.turnosFaltan(mar) : Math.round((mar.t1 - s.t) * 2)) : '');
+  if (key === UI.sheetKey && !sh.hidden) return; UI.sheetKey = key;
+  const K = G.COLONOS, coste = D.POP_ICON + ' ' + K.pop + ' · ' + coste5({ grano: K.grano, oro: K.oro });
+  let h = '<button class="x" data-act="unsel" aria-label="Cerrar la ficha">✕</button><h3>' + esc(d.n) + '<span class="tagf" style="background:#8a6a2c">' + (TIPO_COL[d.tipo] || 'Colonia') + '</span></h3><p>' + esc(d.h) + '</p>';
+  h += '<span class="stat">📜 Fundada en ' + d.anio + ' a.C.</span><span class="stat">🏛️ ' + (k.estado === 'libre' ? 'Sitio libre' : k.estado === 'camino' ? 'Colonos en camino' : 'Colonos esperando') + '</span>';
+  h += '<div class="acts">';
+  if (k.estado === 'libre') {
+    h += '<label class="orig"><span>Salen de</span><select id="col-desde" aria-label="Ciudad de origen de los colonos">' + orig.map(o => '<option value="' + o + '"' + (o === UI.colDesde ? ' selected' : '') + '>' + esc(D.CITIES[o].n) + ' · ' + months(G.travel(o, id, false)) + '</option>').join('') + '</select></label>';
+    h += '<button class="btn gold" data-act="colonos" data-from="' + UI.colDesde + '" data-to="' + id + '"' + (v.ok ? '' : ' disabled') + '>Enviar colonos<small>' + coste + '</small></button>';
+    if (!v.ok && v.motivo) h += '<div class="empty">' + esc(v.motivo) + '</div>';
+  } else if (k.estado === 'camino') {
+    h += '<div class="empty">Los colonos de ' + esc(k.desde && D.CITIES[k.desde] ? D.CITIES[k.desde].n : 'Roma') + ' llegan ' + (mar ? (G.turnos ? turnosTxt(G.turnosFaltan(mar)) : 'en ' + months(mar.t1 - s.t)) : 'pronto') + '.</div>';
+  } else {
+    h += '<button class="btn gold" data-act="fundar" data-v="' + id + '">Fundar ' + esc(d.n) + '</button>';
+  }
+  const st = sh.scrollTop; sh.innerHTML = h + '</div>'; sh.hidden = false; sh.scrollTop = st;
+}
+$('sheet').addEventListener('change', e => { if (e.target && e.target.id === 'col-desde') { UI.colDesde = e.target.value; UI.sheetKey = ''; renderSheet(); } });
+/* Pantalla de fundar (reutilizable: I8 la llama igual). UI.abrirFundar(sitio, alFundar): sitio = id de D.COLONIAS con colonos llegados;
+   alFundar(sitio) se llama cuando el arado ha terminado el surco (sin él se abre la colonia en la pestaña Ciudad). */
+const ciudadE0 = G.ciudadE; G.ciudadE = id => (UI.fundar && id === UI.fundar.sitio && UI.fundar.E) ? UI.fundar.E : ciudadE0(id);   // la ciudad 3D lee la ciudad sin fundar por aquí
+UI.abrirFundar = function (sitio, alFundar) {
+  const s = S(); if (!s || !UI.cityV || !UI.cityV.listo) { toast('La vista de ciudad aún carga: prueba en unos segundos.', 'bad'); return false; }
+  const E = G.ciudadPendiente(sitio); if (!E) { toast('Aún no han llegado los colonos.', 'bad'); return false; }
+  if (UI.fundar) cerrarFundar(true);
+  UI.fundar = { sitio, E, alFundar, x: undefined, z: undefined, vale: false, fase: 'elegir', stub: { obras: [], units: {} }, t0: 0 };
+  UI.modo3 = 'fundar'; UI.modoT = performance.now(); UI.sel3 = null; UI.bsel = null; UI.vistas = false; UI.modalOpen = false;
+  $('modal').hidden = true; $('sheet').hidden = true; $('zoom').hidden = true; $('ctop').hidden = true; $('view').hidden = true; $('hoja').hidden = true; $('citywrap').hidden = false; $('csheet').hidden = false; $('csheet').dataset.m = 'fundar';
+  UI.cityV.resize(); UI.cityV.calor(G.mapaCalorFundar(sitio)); UI.cityV.update(UI.fundar.stub, sitio, null, performance.now() / 1000);
+  UI.cityV.mirar(0, 0, 760, 0);
+  let mejor = null; for (let x = -420; x <= 420; x += 60) for (let z = -420; z <= 420; z += 60) { const n = G.notaFundar(sitio, x, z); if (n && n.vale && (!mejor || n.nota > mejor.n)) mejor = { x, z, n: n.nota }; }
+  if (mejor) UI.cityV.mirar(mejor.x, mejor.z, 620, 0);
+  moverFundar(mejor ? mejor.x : 0, mejor ? mejor.z : 0); return true;
+};
+function pintaBotonesFundar() {
+  const F = UI.fundar, si = $('b-si'), no = $('b-no'); if (!F || !si) return;
+  const t = F.fase === 'elegir' ? (F.vale ? 'Fundar aquí' : 'Aquí no se puede fundar') : 'Trazando el surco…';
+  if (si._t !== t) { si._t = t; si.textContent = t; } si.disabled = !F.vale || F.fase !== 'elegir'; no.textContent = 'Cancelar'; no.disabled = F.fase !== 'elegir';
+}
+function moverFundar(x, z) {
+  const F = UI.fundar; if (!F || F.fase !== 'elegir') return; const n = G.notaFundar(F.sitio, x, z); if (!n) return;
+  const col = n.vale ? Ciudad.color(n.nota) : 'rojo'; Object.assign(F, { x, z, vale: !!n.vale, nota: n.nota });
+  UI.cityV.ponerGroma({ x, z, color: col });
+  lineaPon((n.razones && n.razones.length ? n.razones.join(' · ') : n.vale ? 'Aquí puede nacer la ciudad.' : 'Aquí no se puede fundar.'), 'sitio ' + col, NOTA3[col]); pintaBotonesFundar();
+}
+function fundarAqui() {
+  const F = UI.fundar; if (!F || F.fase !== 'elegir' || !F.vale) return;
+  const r = G.fundarColonia(F.sitio, F.x, F.z);
+  if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); return; }
+  F.fase = 'arando'; F.t0 = performance.now(); UI.cityV.calor(null); UI.cityV.ponerGroma(null); UI.cityV.surcar();
+  lineaPon('El arado traza el surco sagrado: dentro nacerá la ciudad.', 'aviso'); $('csheet').hidden = true; pintaBotonesFundar();
+}
+function fundarCuadro(now) {
+  const F = UI.fundar; if (!F || !UI.cityV) return;
+  if (F.fase === 'arando' && now - F.t0 > 7500) { const sitio = F.sitio, cb = F.alFundar; cerrarFundar(true); UI.city = sitio; if (cb) cb(sitio); else setTab('city'); return; }
+  UI.cityV.update(F.stub, F.sitio, null, now / 1000); pintaBotonesFundar();
+}
+function cerrarFundar(sinTab) {
+  const F = UI.fundar; UI.fundar = null; UI.modo3 = 'mirar'; UI.sel3 = null;
+  if (UI.cityV) { UI.cityV.ponerGroma(null); UI.cityV.calor(null); }
+  $('csheet').dataset.m = ''; lineaPon(''); if (!sinTab) setTab(UI.tab);
+}
+
 function renderSheet() {
+  if (UI.fundar) { $('sheet').hidden = true; UI.sheetKey = ''; return; }      // la pantalla de fundar no lleva ficha encima
   const s = S(), sh = $('sheet'); if (!s || !UI.sel || UI.tab !== 'map') { sh.hidden = true; UI.sheetKey = ''; return; }
+  if (UI.sel && !s.cities[UI.sel] && D.COLONIAS && D.COLONIAS[UI.sel]) { sheetSitio(UI.sel); return; }
+  if (!s.cities[UI.sel]) { sh.hidden = true; UI.sheetKey = ''; return; }
   const id = UI.sel, c = s.cities[id], d = D.CITIES[id], f = D.FACTIONS[c.owner], mine = c.owner === 'roma';
   const src = G.neighbors(id).filter(n => s.cities[n].owner === 'roma'), inc = s.marches.filter(m => m.to === id);
   const key = id + c.owner + G.rutasAbiertas().length + JSON.stringify(c.units) + src.join() + inc.map(m => m.id + (G.turnos ? G.turnosFaltan(m) : Math.round((m.t1 - s.t) * 2))).join();
@@ -1088,6 +1166,8 @@ document.addEventListener('click', function (e) {
     case 'tab3': UI.codice = null; UI.vistas = false; UI.bsel = null; if (v === 'imperio') { UI.modo = 'gobierno'; setTab('imperio'); } else { UI.cityList = v === 'gobierno'; setTab('city'); } break;
     case 'cvistas': UI.vistas = !UI.vistas; renderCity3D(); break;
     case 'cbuild': construir3(); break;
+    case 'fundar': closeModal(); UI.abrirFundar(v); break;
+    case 'colonos': { const r = G.enviarColonos(el.dataset.from, el.dataset.to); if (r.ok) toast('🏛️ Los colonos parten hacia ' + G.lugar(el.dataset.to).n + '.', 'good'); else toast(r.motivo, 'bad'); UI.sheetKey = ''; renderSheet(); break; }
     case 'ccancel': salir3(); break;
     case 'cclose': UI.bsel = null; renderCity3D(); tickUI(); break;
     case 'saber': { const r = G.invUp(v); if (r.ok) { toast('Empiezas a estudiar: ' + D.INVEST[v].n); UI.svSel = null; UI.svDown = false; render(); } else toast(r.motivo, 'bad'); break; }
@@ -1170,9 +1250,10 @@ function frame(now) {
       if (s.pending.length) battlePrompt();
       else if (s.speed > 0) G.tick(dt * s.speed / 4);
     }
-    if (UI.map && UI.tab === 'map') UI.map.update(s, UI.sel);
-    if (UI.cityV && UI.tab === 'city' && !UI.cityList) { if (s.cities[UI.city].owner !== 'roma') UI.city = G.myCities()[0] || 'roma'; if (UI.cityV.listo && !UI.minis) { try { UI.minis = UI.cityV.miniaturas(); } catch (e) { UI.minis = {}; } UI.bandK = ''; cityPantalla(); } UI.cityV.update(s.cities[UI.city], UI.city, UI.bsel, now / 1000); }
-    if (UI.modo3 && UI.modo3 !== 'mirar' && (UI.tab !== 'city' || UI.cityList || UI.city !== UI.col3City)) salir3();
+    if (UI.fundar) fundarCuadro(now);
+    else if (UI.map && UI.tab === 'map') UI.map.update(s, UI.sel);
+    if (UI.cityV && UI.tab === 'city' && !UI.cityList && !UI.fundar) { if (s.cities[UI.city].owner !== 'roma') UI.city = G.myCities()[0] || 'roma'; if (UI.cityV.listo && !UI.minis) { try { UI.minis = UI.cityV.miniaturas(); } catch (e) { UI.minis = {}; } UI.bandK = ''; cityPantalla(); } UI.cityV.update(s.cities[UI.city], UI.city, UI.bsel, now / 1000); }
+    if (UI.modo3 && UI.modo3 !== 'mirar' && UI.modo3 !== 'fundar' && (UI.tab !== 'city' || UI.cityList || UI.city !== UI.col3City)) salir3();
     if (UI.dirty) render();
     UI.acc = (UI.acc || 0) + dt; if (UI.acc > 0.25) { UI.acc = 0; tickUI(); if (UI.tab === 'map' && UI.sel && !UI.modalOpen) renderSheet(); }
     UI.saveT += dt; if (UI.saveT > 8) { UI.saveT = 0; G.save(); }

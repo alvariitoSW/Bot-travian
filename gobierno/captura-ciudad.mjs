@@ -101,6 +101,47 @@ if (op.medida) {
 }
 if (op.mes && LUZ_ESTACIONAL) await ponerFecha(+op.mes, +(op.frac || 0));
 if (op.sombras30) { const r = await page.evaluate(async () => { const M = await import('/js/gfx/city3d.js'), a = M.medidas.sombras; Game.state.speed = 1; await new Promise(r => setTimeout(r, 30000)); const b = M.medidas.sombras; Game.state.speed = 0; return { pedidas: b - a, t: Game.state.t }; }); console.log('Sombras pedidas en 30 s con el reloj en marcha: ' + r.pedidas + ' (t=' + r.t.toFixed(2) + ')'); }
+/* CN5 · fundar colonias: node gobierno/captura-ciudad.mjs CN5 → mapa con sitios, ficha, colonos en marcha aviso, pantalla de fundar (verde y rojo), arado a medio trazar y colonia fundada.
+   Todo tocando la pantalla como un dedo; mide los triángulos de cada vista (tope 300.000). */
+if (pref === 'CN5' && !op.vistas) {
+  const act = (a, v) => page.evaluate(([a, v]) => { const b = document.createElement('button'); b.dataset.act = a; if (v) b.dataset.v = v; document.body.appendChild(b); b.click(); b.remove(); }, [a, v]);
+  const tri = () => page.evaluate(() => { const m = UI.tab === 'map' && !UI.fundar ? UI.map : UI.cityV; return m.r.info.render.triangles; });
+  let maxTri = 0; const informe = [];
+  const foto = async (n, nota) => { await page.waitForTimeout(1500); const f = join(RAIZ, 'gobierno/capturas-tarea', pref + '-' + n + '.jpg'); for (let i = 0; ; i++) { try { await page.screenshot({ path: f, type: 'jpeg', quality: 84, timeout: 180000 }); break; } catch (e) { if (i >= 2) throw e; } }
+    const t = await tri(); maxTri = Math.max(maxTri, t); informe.push(f + ' · ' + t + ' triángulos' + (nota ? ' · ' + nota : '')); };
+  await page.evaluate(() => { const s = Game.state; s.speed = 0; for (const r of DATA.RES) { s.res[r] = 1e4; s.alm[r] = Math.max(s.alm[r] || 0, 1e4); } s.cities.roma.pop = Math.max(s.cities.roma.pop, 400); });
+  await page.evaluate(() => { UI.modalOpen = false; document.getElementById('modal').hidden = true; });      // cierra() solo oculta: aquí el modal debe quedar libre para que salga el aviso
+await act('modo', 'guerra'); await page.waitForTimeout(1500); await cierra();
+  await page.evaluate(() => { UI.sel = null; UI.map.center('cosa'); UI.map.c.dist = 62; UI.map.clamp(); }); await page.waitForTimeout(3000);
+  await foto('mapa', 'sitios libres: ' + await page.evaluate(() => Game.coloniasLibres().join(',')));
+  await page.evaluate(() => { UI.sel = 'cosa'; UI.sheetKey = ''; UI.map.center('cosa'); UI.map.c.dist = 34; UI.map.clamp(); }); await page.waitForTimeout(2500);
+  await foto('ficha', 'ficha de Cosa: ' + await page.evaluate(() => document.getElementById('sheet').innerText.replace(/\n+/g, ' / ').slice(0, 200)));
+  const env = await page.evaluate(() => { const r = Game.enviarColonos('roma', 'cosa'); const m = Game.state.marches.find(q => q.colonos); if (m) m.t0 = Game.state.t - (m.t1 - m.t0) * 0.5 + 0 * (m.t1 = Game.state.t + (m.t1 - m.t0) * 0.5); UI.sheetKey = ''; UI.map.c.dist = 34; return JSON.stringify(r) + ' marcha=' + !!m; });
+  await page.evaluate(() => { const m = Game.state.marches.find(q => q.colonos); const a = Game.pos(m.from), b = Game.pos(m.to); UI.map.c.x = (a[0] + b[0]) / 2 * 0.1; UI.map.c.z = (a[1] + b[1]) / 2 * 0.1; UI.map.c.dist = 30; UI.map.clamp(); Game.tick(0.001); }); await page.waitForTimeout(2500);
+  await foto('colonos', 'enviar: ' + env);
+  await page.evaluate(() => { const m = Game.state.marches.find(q => q.colonos); if (m) m.t1 = Game.state.t - 0.01; const tu = Game.turnos; Game.turnos = false; Game.tick(0.01); Game.turnos = tu; });      // en modo turnos las marchas llegan al pasar turno: aquí se fuerza la llegada await page.waitForTimeout(1500);
+  for (let i = 0; i < 5 && !(await page.$('#mbox [data-act="fundar"]')); i++) { const c = await page.$('#mbox [data-act="close"]'); if (c) { await c.click(); await page.waitForTimeout(600); } }      // antes puede haber un hecho histórico en cola
+  await foto('aviso', 'modal al llegar: ' + await page.evaluate(() => document.getElementById('mbox').innerText.replace(/\n+/g, ' / ').slice(0, 160)));
+  await page.click('#mbox [data-act="fundar"]'); await page.waitForTimeout(6000);
+  const pts = await page.evaluate(() => { const S = 'cosa'; let ver = null, roj = null; for (let x = -300; x <= 300; x += 40) for (let z = -300; z <= 300; z += 40) { const n = Game.notaFundar(S, x, z); if (!n) continue; if (n.vale && (!ver || n.nota > ver.n)) ver = { x, z, n: n.nota }; if (!n.vale && !roj && Math.hypot(x, z) > 80) roj = { x, z }; } return { ver, roj, modo: UI.modo3 }; });
+  const tocar = async p => { const q = await page.evaluate(p => UI.cityV.aPantalla(p.x, p.z, 0), p); await page.touchscreen.tap(q.x, q.y); await page.waitForTimeout(900); };
+  if (pts.ver) { await page.evaluate(p => UI.cityV.mirar(p.x, p.z, 700, 0), pts.ver); await page.waitForTimeout(800); await tocar(pts.ver); }
+  await foto('fundar-verde', 'modo=' + pts.modo + ' · ' + await lineaTxt() + ' · botón: ' + await page.evaluate(() => document.getElementById('b-si').textContent));
+  if (pts.roj) { await page.evaluate(p => UI.cityV.mirar(p.x, p.z, 520, 0), pts.roj); await page.waitForTimeout(800); await tocar(pts.roj); }
+  await foto('fundar-rojo', await lineaTxt() + ' · botón: ' + await page.evaluate(() => { const b = document.getElementById('b-si'); return b.textContent + (b.disabled ? ' (desactivado)' : ''); }));
+  if (pts.ver) { await page.evaluate(p => UI.cityV.mirar(p.x, p.z, 420, 0), pts.ver); await page.waitForTimeout(800); await tocar(pts.ver); }
+  await page.click('#b-si'); await page.waitForTimeout(500);
+  await page.evaluate(() => { const E = UI.fundar && UI.fundar.E; if (!E || !E.surco) return; const p = E.surco[Math.floor(E.surco.length * 0.2)]; UI.cityV.mirar(p[0], p[1], 230, 0.5); }); await page.waitForTimeout(500);
+  await foto('arado', 'fase=' + await page.evaluate(() => UI.fundar && UI.fundar.fase) + ' · ' + await lineaTxt());
+  await page.waitForFunction(() => !UI.fundar, null, { timeout: 60000 }); await page.waitForTimeout(9000); await cierra();
+  await page.evaluate(() => UI.cityV.view('ciudad')); await page.waitForTimeout(4000);
+  await foto('fundada', 'colonia: ' + await page.evaluate(() => { const c = Game.state.cities.cosa, E = Game.ciudadE('cosa'); return c ? 'tuya=' + (c.owner === 'roma') + ' pestaña=' + UI.tab + ' foro=' + !!(E && E.foro) + ' casas=' + (E ? E.parcelas.filter(l => l.casa).length : 0) : 'no existe'; }));
+  await page.evaluate(() => { UI.sel = null; }); await act('modo', 'guerra'); await page.evaluate(() => { UI.map.center('cosa'); UI.map.c.dist = 40; UI.map.clamp(); }); await page.waitForTimeout(3500);
+  await foto('mapa-colonia', 'la colonia ya es ciudad en el mapa');
+  console.log(informe.join('\n')); console.log('Máximo ' + maxTri + ' triángulos (tope 300000): ' + (maxTri <= 300000 ? 'BIEN' : 'PASADO'));
+  if (errores.length) console.log('ERRORES DE CONSOLA:\n' + [...new Set(errores)].join('\n')); else console.log('Sin errores de consola.');
+  await br.close(); srv.close(); process.exit(0);
+}
 for (const v of vistas) {
   let nota = '';
   if (PASOS[v]) nota = (await PASOS[v]()) || '';
