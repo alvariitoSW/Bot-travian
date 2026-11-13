@@ -86,6 +86,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ⬜ K6 **Concurso de arte: batalla y manejo de tropas** (pedido 12/11): cinco maquetas en Haiku (esfuerzo alto) y jurado ciego, sobre cómo se ve y se manejan las tropas. Solo `gobierno/maquetas/`; no toca `js/`.
 - ⬜ K7 **Concurso: interfaz y jugabilidad de ciudades y fuera de ellas** (pedido 12/11; después de K6): rutas de comercio como parte del juego, diplomacia y movimiento de tropas. Solo `gobierno/maquetas/`.
 - ⬜ K8 **Concurso: Senado, política y economía** (pedido 12/11, aprobado «igual que K6»; ≈2 a 3 M): ocho maquetas rivales en Haiku (esfuerzo alto) y jurado ciego, sobre el diseño y la jugabilidad del Senado, la política y la economía (incluye avisos de «Cierre de mes» e informe de estación que hoy tapan la pantalla, y construir y conseguir recursos, conservando lo que va bien). Solo `gobierno/maquetas/`; no toca `js/`. Después de K6 y K7.
+- 🔶 K10 **Concurso de arte de la batalla** (13/11, pedido del usuario): piezas P1 a P5 en cuatro rondas, Opus y Sonnet sin Fable, jurado ciego y voto del usuario. Solo `gobierno/maquetas/piezas-batalla/`; no toca `js/`. Tope duro 4 M.
 - ⬜ K3 **Construir los ganadores**: elegido el 11/11 (ver bitácora: Ciudad + Tabularium, Legado + Estandartes); falta aprobar las tareas P63 a P66 (decide él: cambio grande de aspecto). Lo que cambie en `js/ui.js` y `js/gfx/` lo estima cada nota de `maquetas/concurso/`. No empezar antes.
 
 ## Carril L — Interfaz de guerra: Legado + Estandartes (P66, aprobada 11/11/2026; en paralelo al carril J)
