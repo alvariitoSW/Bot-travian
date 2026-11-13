@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=844,initial-scale=1">
+<title>K9-3 · Vaso de caza</title>
+<style>
+@font-face{font-family:Cinzel;src:url('../../../assets/fuentes/cinzel-700.woff2') format('woff2');font-weight:700}
+:root{--barro:#b4572a;--barro2:#7d3a1a;--lodo:#5a2f17;--negro:#17110d;--marfil:#ecdcb4;--hoja:#4f8a3a;--hoja2:#1f3a22;--oro:#e0a447;--rojo:#c23b22}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none!important}
+html,body{width:844px;height:390px;overflow:hidden;background:var(--negro);font:600 11px/1.2 system-ui,"Segoe UI",Roboto,sans-serif;color:var(--marfil)}
+#st{position:relative;width:844px;height:390px;overflow:hidden}
+#map{position:absolute;inset:0;width:844px;height:390px}
+#fx{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(0,0,0,.62),rgba(0,0,0,0) 20%,rgba(0,0,0,0) 80%,rgba(0,0,0,.62));box-shadow:inset 0 0 70px rgba(0,0,0,.55)}
+#dim{position:absolute;inset:36px 0 0 0;background:rgba(14,9,6,.55);pointer-events:none}
+.cz{font-family:Cinzel,Georgia,serif;font-weight:700;letter-spacing:.04em}
+button{font:inherit;color:var(--marfil);cursor:pointer;border:0;background:none}
+/* barra superior: borde del vaso con greca */
+#bar{position:absolute;left:0;top:0;width:844px;height:36px;background:var(--negro) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='6'%3E%3Cpath d='M0 5H14V1H3V3.5H10' fill='none' stroke='%23b4572a' stroke-width='1.2'/%3E%3C/svg%3E") repeat-x 0 100%;display:flex;align-items:center;gap:6px;padding:0 8px 5px;border-bottom:1px solid #000}
+#bar .t{font-size:13px;color:var(--oro);margin-right:4px;white-space:nowrap}
+.st{height:28px;padding:0 10px;border:1px solid var(--barro2);border-radius:14px;background:#241a13;font-size:11px;white-space:nowrap}
+.st.on{background:var(--barro);color:#fff;border-color:var(--oro)}
+.chip{margin-left:auto;display:flex;gap:5px}
+.chip span{padding:4px 7px;border-radius:10px;background:#2b1f16;border:1px solid #3a2a1c;font-size:10px;white-space:nowrap}
+.chip b{color:var(--oro)}
+/* tiras y paneles */
+.pan{position:absolute;background:rgba(23,17,13,.92);border:2px solid var(--barro);border-radius:8px}
+#izq{left:6px;top:44px;width:40px;display:flex;flex-direction:column;gap:5px}
+#izq button{width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8a4a26,var(--lodo));border:2px solid #2a160a;font-size:9px;line-height:1.05}
+#esc{position:absolute;left:52px;bottom:8px;font-size:10px;display:flex;align-items:center;gap:6px;color:#2a160a;text-shadow:0 0 3px var(--marfil)}
+#esc i{display:block;width:123px;height:6px;border:2px solid #17110d;border-top:0;background:var(--marfil)}
+/* anillo de barro alrededor del dedo */
+#ring{position:absolute;left:152px;top:150px;width:0;height:0}
+#ring .band{position:absolute;left:-66px;top:-66px;width:132px;height:132px;border-radius:50%;border:14px solid rgba(90,47,23,.88);box-shadow:0 0 0 2px #2a160a,inset 0 0 0 2px #2a160a,0 5px 12px rgba(0,0,0,.6)}
+#ring .dedo{position:absolute;left:-17px;top:-17px;width:34px;height:34px;border-radius:50%;background:radial-gradient(circle,rgba(236,220,180,.55) 0 30%,rgba(236,220,180,.15) 31% 60%,transparent 62%);border:2px solid rgba(236,220,180,.8)}
+#ring button{position:absolute;width:48px;height:48px;margin:-24px 0 0 -24px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#9a5a30,var(--lodo));border:2px solid #2a160a;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:8.5px;box-shadow:0 3px 6px rgba(0,0,0,.6)}
+#ring button.sel{border-color:var(--oro);background:radial-gradient(circle at 35% 28%,#d0793a,#7d3a1a);color:#fff}
+#ring svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#tip{left:36px;top:218px;width:150px;padding:6px 8px;font-size:10px;line-height:1.25}
+#tip b{color:var(--oro)}
+/* ventana flotante de escena */
+#vent{position:absolute;background:var(--negro);border:2px solid var(--barro);border-radius:8px;overflow:hidden;box-shadow:0 6px 16px rgba(0,0,0,.7)}
+#vent .h{height:26px;display:flex;align-items:center;gap:6px;padding:0 4px 0 8px;background:#241a13;font-size:10.5px}
+#vent .h b{color:var(--oro);flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#vent .h button{height:24px;padding:0 9px;border-radius:12px;background:var(--lodo);border:1px solid var(--barro);font-size:10px}
+#vent .sc{width:100%}
+#vent svg{display:block;width:100%;height:100%}
+#vent .ord{height:34px;display:flex;gap:6px;padding:3px 6px;background:#241a13}
+#vent .ord button{flex:1;border-radius:6px;background:var(--lodo);border:1px solid var(--barro);font-size:10.5px}
+#vent .ord button.go{background:var(--barro);border-color:var(--oro);color:#fff}
+#vent.s{left:262px;top:244px;width:340px}#vent.s .sc{height:112px}#vent.s .ord{display:none}
+#vent.b{left:130px;top:44px;width:584px}#vent.b .sc{height:204px}
+#vent.m{left:52px;top:298px;width:170px}#vent.m .sc{height:56px}#vent.m .h{height:22px}#vent.m .h button{display:none}#vent.m .ord{display:none}
+/* mando inferior derecho */
+#act{left:612px;top:318px;width:226px;height:64px;padding:5px;display:flex;flex-direction:column;gap:4px}
+#act p{font-size:10px;color:#cdb98e}
+#act .row{display:flex;gap:5px;flex:1}
+#act button{flex:1;border-radius:6px;background:var(--lodo);border:1px solid var(--barro);font-size:11px}
+#act button.go{background:var(--barro);border-color:var(--oro);color:#fff;font-size:12px}
+/* aviso de evento */
+#ev{left:232px;top:44px;width:380px;padding:6px 10px;display:flex;gap:8px;align-items:center;border-color:var(--oro)}
+#ev .x{font-size:20px;color:var(--oro);line-height:1}
+#ev b{color:var(--oro)}
+/* resultado */
+#res{left:232px;top:44px;width:380px;height:244px;padding:10px 14px}
+#res h2{font-size:17px;color:var(--oro);margin-bottom:3px}
+#res .g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:8px 0}
+#res .g div{background:#2b1f16;border:1px solid #3a2a1c;border-radius:6px;padding:5px 6px;font-size:10px}
+#res .g b{display:block;font-size:15px;color:var(--marfil)}
+#res .o{display:flex;flex-direction:column;gap:5px}
+#res .o button{height:36px;border-radius:6px;background:var(--lodo);border:1px solid var(--barro);font-size:11.5px;text-align:left;padding:0 10px}
+#res .o button.go{background:var(--barro);border-color:var(--oro);color:#fff}
+#res .o small{font-size:9.5px;color:#d9c79b;font-weight:600;display:block}
+@keyframes bob{to{transform:translateY(-1.6px)}}
+@keyframes pol{0%{opacity:.75;transform:scale(.6)}100%{opacity:0;transform:scale(1.7)}}
+@keyframes flu{to{stroke-dashoffset:-28}}
+.bob{animation:bob .5s ease-in-out infinite alternate}
+.dust{animation:pol 1.6s ease-out infinite;transform-box:fill-box;transform-origin:center}
+.flu{stroke-dasharray:9 5;animation:flu 1s linear infinite}
+</style></head><body>
+<div id="st">
+<svg id="map" viewBox="0 0 844 390" xmlns="http://www.w3.org/2000/svg">
+<defs>
+<radialGradient id="gr" cx="50%" cy="50%" r="75%"><stop offset="0" stop-color="#d2692f"/><stop offset=".7" stop-color="#b4572a"/><stop offset="1" stop-color="#7d3a1a"/></radialGradient>
+<radialGradient id="fo" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#1a301c"/><stop offset=".75" stop-color="#1f3a22" stop-opacity=".92"/><stop offset="1" stop-color="#1f3a22" stop-opacity="0"/></radialGradient>
+<g id="t"><path d="M0 0V-9" stroke="#17110d" stroke-width="2.2"/><ellipse cy="-13" rx="7.5" ry="6" fill="#3f7a35" stroke="#17110d" stroke-width="1"/><ellipse cx="-2.5" cy="-14" rx="4" ry="3" fill="#6a9a44"/></g>
+</defs>
+<rect width="844" height="390" fill="url(#gr)"/>
+<ellipse cx="422" cy="72" rx="215" ry="26" fill="#d98a4e" opacity=".55"/><ellipse cx="422" cy="338" rx="215" ry="26" fill="#d98a4e" opacity=".55"/>
+<text x="420" y="76" class="cz" font-size="10" fill="#6b2f12" text-anchor="middle">CLARO NORTE</text>
+<text x="420" y="342" class="cz" font-size="10" fill="#6b2f12" text-anchor="middle">CLARO SUR</text>
+<g id="rio"><path d="M238 36C282 110 228 150 252 200S292 300 262 390" fill="none" stroke="#17110d" stroke-width="13"/><path d="M238 36C282 110 228 150 252 200S292 300 262 390" fill="none" stroke="#ecdcb4" stroke-width="1.8" stroke-dasharray="6 9"/>
+<g fill="#ecdcb4" stroke="#17110d"><rect x="236" y="194" width="9" height="5"/><rect x="249" y="202" width="9" height="5"/><rect x="260" y="196" width="9" height="5"/></g></g>
+<text x="300" y="132" class="cz" font-size="10" fill="#17110d" transform="rotate(-76 300 132)">RÍO · VADO</text>
+<ellipse cx="422" cy="205" rx="112" ry="74" fill="url(#fo)"/>
+<g id="arb"></g>
+<text x="422" y="208" class="cz" font-size="13" fill="#9bc07a" text-anchor="middle" opacity=".85">SELVA</text>
+<g id="uni"></g>
+<g data-on="1"><path class="flu" d="M152 150C210 92 330 62 520 72C600 78 640 100 660 128" fill="none" stroke="#17110d" stroke-width="4"/>
+<path class="flu" d="M152 150C210 92 330 62 520 72C600 78 640 100 660 128" fill="none" stroke="#ecdcb4" stroke-width="2"/>
+<path d="M650 118l16 12-19 4z" fill="#ecdcb4" stroke="#17110d"/>
+<text x="360" y="58" class="cz" font-size="10" fill="#17110d" text-anchor="middle">FLANQUEO · 2 TURNOS</text>
+<circle cx="425" cy="206" r="40" fill="none" stroke="#ecdcb4" stroke-width="2.5" stroke-dasharray="5 4"/>
+<circle cx="425" cy="206" r="14" fill="#17110d" stroke="#e0a447" stroke-width="2"/><ellipse cx="425" cy="206" rx="8" ry="4" fill="none" stroke="#e0a447" stroke-width="1.6"/><circle cx="425" cy="206" r="2" fill="#e0a447"/>
+<text x="425" y="252" class="cz" font-size="9" fill="#ecdcb4" text-anchor="middle">EMBOSCADA · ESPERAR</text></g>
+<g data-on="2,3,4"><path class="flu" d="M706 250C640 300 520 318 360 322" fill="none" stroke="#ecdcb4" stroke-width="4"/>
+<path class="flu" d="M425 215C470 245 500 280 520 306" fill="none" stroke="#17110d" stroke-width="4"/>
+<path d="M514 296l16 14-20 1z" fill="#17110d"/><path d="M366 314l-16 9 16 8z" fill="#ecdcb4" stroke="#17110d"/>
+<circle cx="520" cy="312" r="16" fill="#c23b22" stroke="#17110d" stroke-width="2"/><text x="520" y="318" class="cz" font-size="16" fill="#ecdcb4" text-anchor="middle">!</text>
+<path class="flu" d="M152 150C210 92 330 62 520 72C600 78 640 100 660 128" fill="none" stroke="#17110d" stroke-width="3" opacity=".7"/></g>
+<text x="52" y="368" class="cz" font-size="9" fill="#17110d" data-on="1,2,3,4" opacity="0">.</text>
+</svg>
+<div id="fx"></div><div id="dim" data-on="3,4"></div>
+<div id="bar"><span class="t cz">SELVA LITANA</span>
+<button class="st cz" data-go="1">1 Planear</button><button class="st cz" data-go="2">2 Turno</button><button class="st cz" data-go="3">3 Choque</button><button class="st cz" data-go="4">4 Resultado</button>
+<div class="chip"><span>Campo <b>1.500 m</b></span><span><b>30</b> regimientos</span><span>Moral <b>82</b></span><span>Trigo <b>4 días</b></span></div></div>
+<div id="izq" data-on="1,2"><button>Acercar</button><button>Alejar</button><button>Centrar</button></div>
+<div id="esc" data-on="1,2"><i></i>250 m · norte arriba</div>
+<div id="ring" data-on="1"><div class="band"></div><div class="dedo"></div></div>
+<div id="tip" class="pan" data-on="1"><b>Flanquear</b><br>La caballería rodea por el claro norte y cae sobre el flanco. Tarda 2 turnos.</div>
+<div id="ev" class="pan" data-on="2"><span class="x cz">!</span><span><b>¡Emboscada!</b> La infantería 9 sale del bosque y corta la columna enemiga por el costado.</span></div>
+<div id="vent" class="pan s"><div class="h"><b id="vt"></b><button id="vb">Ampliar</button></div><div class="sc" id="sc"></div>
+<div class="ord"><button>Cargar caballería</button><button>Retirar el flanco</button><button class="go">Mantener la línea</button></div></div>
+<div id="act" class="pan" data-on="1,2"></div>
+<div id="res" class="pan" data-on="4">
+<h2 class="cz">Victoria en la selva</h2><p style="font-size:10.5px;color:#d9c79b">Los hirpinos se rompieron al salir del claro. Hace 3 horas que cayó el flanco.</p>
+<div class="g"><div>Bajas propias<b>312</b></div><div>Bajas enemigas<b>1.140</b></div><div>Moral<b>78</b></div></div>
+<div class="o"><button class="go">Mantener la posición 3 días<small>Defensa +20 % en el bosque. Cuesta 30 de trigo al día.</small></button>
+<button>Perseguir al enemigo<small>Caballería a por los que huyen. Se pierde la cobertura.</small></button>
+<button>Retirarse al río<small>Salva las tropas. El vado queda cubierto.</small></button></div></div>
+</div>
+<script>
+let sd=7;const rnd=()=>{sd=(sd*1664525+1013904223)>>>0;return sd/4294967296};
+/* árboles de la selva */
+let ar=[];for(let i=0;i<60;i++){const a=rnd()*6.283,r=Math.sqrt(rnd());ar.push([422+Math.cos(a)*r*104,205+Math.sin(a)*r*68,.8+rnd()*.5])}
+ar.sort((a,b)=>a[1]-b[1]);
+document.getElementById('arb').innerHTML=ar.map(a=>`<use href="#t" transform="translate(${a[0].toFixed(0)} ${a[1].toFixed(0)}) scale(${a[2].toFixed(2)})"/>`).join('');
+/* regimientos: Roma figuras negras con filo marfil, enemigo marfil */
+let u='';let ne=0;
+const glifo=(x,y,n,cav,rom)=>{const f=rom?'#17110d':'#ecdcb4',s=rom?'#ecdcb4':'#17110d';
+return `<g transform="translate(${x} ${y})"><rect x="-15" y="-7" width="30" height="14" rx="2" fill="${f}" stroke="${s}" stroke-width="1.5"/>${cav?`<path d="M-15 7L-5-7M-5 7L5-7" stroke="${s}" stroke-width="1.5"/>`:''}<path d="M0-7V-14" stroke="${s}" stroke-width="1.5"/><rect x="0" y="-15" width="7" height="5" fill="${rom?'#c23b22':'#4f8a3a'}"/><text y="4" text-anchor="middle" font-size="9" font-weight="800" fill="${s}">${n}</text></g>`};
+for(let c=0;c<3;c++)for(let r=0;r<5;r++){const n=c*5+r+1,cav=c==2&&(r==1||r==3);u+=glifo(72+c*40,100+r*50,n,cav,1);
+ if(c*5+r<13)u+=glifo(790-c*40,100+r*50,c*5+r+1,c==2&&(r==1||r==3),0)}
+u+=glifo(395,196,16,0,1)+glifo(448,220,17,0,1);
+document.getElementById('uni').innerHTML=u+`<circle cx="152" cy="150" r="21" fill="none" stroke="#e0a447" stroke-width="2.5"/>`;
+/* escena en perfil: figuras rojas (Roma) y blancas (enemigo) */
+const DEFS=`<defs><linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0d1a10"/><stop offset="1" stop-color="#26391d"/></linearGradient><radialGradient id="po"><stop offset="0" stop-color="#ecdcb4" stop-opacity=".85"/><stop offset="1" stop-color="#d9b58a" stop-opacity="0"/></radialGradient>
+<g id="r"><path d="M-3-1L-1.5-8M3-1L1.5-8" stroke="#d9743b" stroke-width="2.6"/><path d="M-3.6-8h7.2l1-8h-9.2z" fill="#d9743b"/><circle cy="-19.5" r="3.3" fill="#d9743b"/><path d="M-3.6-21Q0-30 3.6-21z" fill="#c23b22"/><ellipse cx="4.6" cy="-12" rx="3" ry="6.2" fill="#17110d" stroke="#ecdcb4"/><path d="M5-4L16-28" stroke="#ecdcb4" stroke-width="1.3"/></g>
+<g id="e"><path d="M-3-1L-1.5-8M3-1L1.5-8" stroke="#ecdcb4" stroke-width="2.6"/><path d="M-3.6-8h7.2l1-8h-9.2z" fill="#ecdcb4"/><circle cy="-19.5" r="3.3" fill="#ecdcb4"/><path d="M-3-22l-2-5M0-23v-6M3-22l2-5" stroke="#4f8a3a" stroke-width="1.6"/><circle cx="4.6" cy="-12" r="5" fill="#4f8a3a" stroke="#17110d"/><path d="M5-3L17-26" stroke="#ecdcb4" stroke-width="1.3"/></g>
+<g id="sr"><path d="M0 0V-38" stroke="#ecdcb4" stroke-width="1.8"/><rect x="-6" y="-37" width="12" height="9" fill="#c23b22" stroke="#e0a447"/><circle cy="-41" r="3" fill="#e0a447"/></g>
+<g id="se"><path d="M0 0V-38" stroke="#ecdcb4" stroke-width="1.8"/><path d="M0-38l14 4-14 5z" fill="#4f8a3a" stroke="#ecdcb4"/></g></defs>`;
+const S=(x,y,t,d,sc,w)=>`<g class="bob" style="animation-delay:${(rnd()*.5).toFixed(2)}s"><use href="#${t}" transform="translate(${x} ${y}) scale(${d*(sc||1)} ${sc||1})"/></g>`;
+const D=(x,y,r,dl)=>`<circle class="dust" cx="${x}" cy="${y}" r="${r}" fill="url(#po)" style="animation-delay:${dl}s"/>`;
+function escena(m){let s=`<svg viewBox="0 0 400 140" preserveAspectRatio="xMidYMid slice">${DEFS}<rect width="400" height="140" fill="url(#cielo)"/>`;
+ for(let i=0;i<19;i++){const x=i*22+(i%2)*6,y=62+(i%3)*9;s+=`<g transform="translate(${x} ${y}) scale(${(2.2+(i%4)*.3).toFixed(1)})"><path d="M0 0V-9" stroke="#0a0705" stroke-width="2.2"/><ellipse cy="-13" rx="7.5" ry="6" fill="${i%2?'#2f5d34':'#3f7a35'}" stroke="#0a0705"/><ellipse cx="-2.5" cy="-14" rx="4" ry="3" fill="#6a9a44" opacity=".7"/></g>`}
+ s+=`<rect y="108" width="400" height="32" fill="#8a3f1c"/><path d="M0 108H400" stroke="#17110d" stroke-width="3"/><path d="M0 114h6v4h6v-4h6" stroke="#17110d" fill="none" stroke-width="0"/>`;
+ let g='';for(let i=0;i<26;i++)g+=`M${i*16} 134H${i*16+13}V124H${i*16+3}V130H${i*16+9}`;s+=`<path d="${g}" fill="none" stroke="#17110d" stroke-width="1.6"/>`;
+ if(m=='prev'){for(let i=0;i<7;i++)s+=S(40+i*24,116,'r',1,1.25)+S(52+i*24,122,'r',1,1.25);s+=`<use href="#sr" transform="translate(24 118) scale(1.3)"/><use href="#sr" transform="translate(172 118) scale(1.3)"/>`;
+  s+=`<path d="M250 100C290 76 340 70 380 86" fill="none" stroke="#e0a447" stroke-width="2" stroke-dasharray="5 4"/><path d="M372 78l12 9-14 3z" fill="#e0a447"/>`}
+ if(m=='amb'){for(let i=0;i<8;i++)s+=S(385-i*26,118+(i%2)*5,'e',-1,1.25)+`<text x="${385-i*26}" y="80" font-size="10" fill="#e0a447" text-anchor="middle" font-family="Cinzel" opacity="${i<4?1:0}">!</text>`;
+  for(let i=0;i<6;i++)s+=S(70+i*22,114+(i%3)*5,'r',1,1.3);s+=`<use href="#sr" transform="translate(52 112) scale(1.3)"/>`;
+  s+=D(210,112,12,0)+D(240,118,10,.5)+D(150,116,9,1)}
+ if(m=='clash'){for(let i=0;i<10;i++){const y=112+(i%3)*8;s+=S(150-(i%2)*20-(i>>1)*5,y,'r',1,1.6)+S(250+(i%2)*20+(i>>1)*5,y,'e',-1,1.6)}
+  s+=`<use href="#sr" transform="translate(70 120) scale(1.6)"/><use href="#se" transform="translate(340 120) scale(1.6)"/>`;
+  s+=`<g transform="translate(215 128) rotate(80) scale(1.5)"><use href="#e"/></g><g transform="translate(165 130) rotate(-84) scale(1.5)"><use href="#r"/></g>`;
+  s+=D(200,118,22,0)+D(228,122,18,.4)+D(180,120,16,.9)+D(250,116,14,1.2)+D(130,122,12,.6)}
+ if(m=='win'){for(let i=0;i<7;i++)s+=S(50+i*26,118+(i%2)*5,'r',1,1.3);s+=`<use href="#sr" transform="translate(150 120) scale(1.9)"/>`;for(let i=0;i<4;i++)s+=S(330+i*18,116,'e',1,1)}
+ return s+`</svg>`}
+/* anillo de órdenes */
+const IC={Marchar:'<path d="M4 12h14M13 6l6 6-6 6"/>',Emboscar:'<path d="M2 12C6 5 18 5 22 12 18 19 6 19 2 12z"/><circle cx="12" cy="12" r="2.5"/>',Flanquear:'<path d="M4 18C4 8 10 6 18 6M14 2l5 4-5 4"/>',Mantener:'<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>',Cargar:'<path d="M5 19L19 5M13 5h6v6"/>'};
+const ord=['Mantener','Marchar','Emboscar','Cargar','Flanquear'];let rg='';
+ord.forEach((o,i)=>{const a=(-90+i*72)*Math.PI/180;rg+=`<button class="${o=='Flanquear'?'sel':''}" style="left:${(Math.cos(a)*66).toFixed(0)}px;top:${(Math.sin(a)*66).toFixed(0)}px"><svg viewBox="0 0 24 24">${IC[o]}</svg>${o}</button>`});
+document.getElementById('ring').insertAdjacentHTML('beforeend',rg);
+const T={1:['Escena de prueba · Caballería 3 por el claro','prev','s'],2:['Escena en vivo · Emboscada en el flanco sur','amb','s'],3:['Choque en directo · Hastati 9 contra los hirpinos','clash','b'],4:['Escena · Se alza el estandarte','win','m']};
+const A={1:'<p>Plan: 1 flanqueo, 1 emboscada, 2 en reserva.</p><div class="row"><button>Probar el plan</button><button class="go">Ejecutar el turno</button></div>',
+2:'<p>Turno 3 de 8 · 14:20 · avanza el enemigo</p><div class="row"><button>Pausa</button><button>Doble velocidad</button><button class="go">Saltar al choque</button></div>'};
+function set(n){document.body.dataset.s=n;
+ document.querySelectorAll('[data-on]').forEach(e=>e.hidden=!e.dataset.on.split(',').includes(String(n)));
+ document.querySelectorAll('[data-go]').forEach(b=>b.classList.toggle('on',b.dataset.go==n));
+ const t=T[n];document.getElementById('vt').textContent=t[0];document.getElementById('sc').innerHTML=escena(t[1]);
+ const v=document.getElementById('vent');v.className='pan '+t[2];document.getElementById('vb').textContent=t[2]=='b'?'Reducir':'Ampliar';
+ document.getElementById('act').innerHTML=A[n]||''}
+document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>set(+b.dataset.go));
+document.getElementById('vb').onclick=()=>set(document.getElementById('vent').classList.contains('b')?2:3);
+set(1);
+</script></body></html>
