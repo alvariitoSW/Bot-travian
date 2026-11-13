@@ -31,6 +31,14 @@ console.log('Juez 1 · lógica (test/sim.test.js)');
   apunta('Pruebas de lógica', r.status === 0, ultima.slice(0, 400));
 }
 
+/* ---------- 1R. Pausas del reloj (R3, sin pantalla) ---------- */
+console.log('Juez 1R · pausas del reloj (test/pausas.test.mjs)');
+{
+  const r = spawnSync(process.execPath, ['test/pausas.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 120000 });
+  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l)), mal = lineas.filter(l => /^MAL/.test(l));
+  apunta('Pausas del reloj con motivo', r.status === 0, r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 400));
+}
+
 /* ---------- 1a. Ciudad nueva (reglas sin pantalla) ---------- */
 console.log('Juez 1a · ciudad nueva (test/ciudad.test.mjs)');
 {
@@ -351,6 +359,41 @@ async function navegador() {
       const dentro = !!d && d.b <= 844 && d.l >= 0 && d.r <= 390;
       const ok = toasts <= 2 && !!m.i && m.i <= 281 && m.a >= 40 && m.b >= 40 && dentro;
       return { ok, detalle: 'avisos=' + toasts + ' #inf=' + (m.i | 0) + ' px; «Ver más»=' + (m.a | 0) + ' «Seguir»=' + (m.b | 0) + ' px; detalle ' + (dentro ? 'dentro' : 'FUERA') + ' de pantalla', captura };
+    });
+
+    await paso('R3 pausas: la obra que termina para el reloj con su motivo; el ajuste cambia', async () => {
+      await mkdir(join(RAIZ, 'gobierno', 'capturas-tarea'), { recursive: true });
+      const tarea = async nombre => { await page.screenshot({ path: join(RAIZ, 'gobierno', 'capturas-tarea', nombre), type: 'jpeg', quality: 80 }); return nombre; };
+      await cierraAvisos(); await estado(() => { UI.modalQ = []; UI.modalOpen = false; document.getElementById('modal').hidden = true; const inf = document.getElementById('inf'); if (inf) inf.remove(); });
+      await estado(() => document.querySelector('#tabs3 [data-v="ciudad"]').click()); await espera(1200);
+      await estado(() => { const s = Game.state; if (s.ajustes) { s.ajustes.asesor = false; s.ajustes.pausas = 'todas'; } s.speed = 0; UI.pausa = null; const inf = document.getElementById('inf'); if (inf) inf.remove(); for (const r in s.res) s.res[r] = Math.max(s.res[r], 900); });
+      const emp = await estado(() => { const s = Game.state, c = s.cities.roma; const b = Object.keys(window.DATA.BUILD).find(k => Game.upgrade('roma', k)); if (!b) return false; c.obras.forEach(o => { o.t1 = s.t + 0.2; }); s.speed = 1; return true; });
+      const salio = await page.waitForFunction(() => !document.getElementById('pausa').hidden, null, { timeout: 20000 }).then(() => true, () => false);
+      await espera(400);
+      const m = await estado(() => { const e = document.getElementById('pausa'), r = e.getBoundingClientRect(), b = e.querySelector('button').getBoundingClientRect(), tb = document.getElementById('tabs3'), tr = tb ? tb.getBoundingClientRect() : null; return { speed: Game.state.speed, txt: document.getElementById('p-txt').innerText, l: r.left, r: r.right, t: r.top, b: r.bottom, alto: r.height, bt: b.height, abajo: tr ? tr.top : 844, modal: !document.getElementById('modal').hidden }; });
+      const f1 = await tarea('R3-pausa.jpg');
+      await page.click('#pausa button'); await espera(400);
+      const sigue = await estado(() => ({ speed: Game.state.speed, oculto: document.getElementById('pausa').hidden }));
+      const ok1 = emp && salio && m.speed === 0 && /Obra terminada/.test(m.txt) && m.l >= 0 && m.r <= 390 && m.alto <= 70 && m.bt >= 32 && m.b < m.abajo && !m.modal && sigue.speed > 0 && sigue.oculto;
+      // el ajuste
+      await estado(() => { Game.state.speed = 0; });
+      await estado(() => document.querySelector('#tabs3 [data-v="gobierno"]').click()); await espera(600);
+      await estado(() => { const e = document.getElementById('aj-pausas'); if (e) e.scrollIntoView({ block: 'center' }); });
+      await espera(300);
+      const hay = await estado(() => !!document.getElementById('aj-pausas'));
+      let cambia = false, alto = 0, norm = false;
+      if (hay) {
+        alto = await estado(() => Math.min(...[...document.querySelectorAll('#aj-pausas .chip')].map(b => b.getBoundingClientRect().height)));
+        await page.click('#aj-pausas [data-act="pausas"][data-v="graves"]'); await espera(300);
+        cambia = await estado(() => Game.ajustes().pausas === 'graves' && document.querySelector('#aj-pausas .chip.on').dataset.v === 'graves');
+        await estado(() => { const e = document.getElementById('aj-pausas'); if (e) e.scrollIntoView({ block: 'center' }); }); await espera(200);
+        var f2 = await tarea('R3-ajuste.jpg');
+        await page.click('#aj-pausas [data-act="pausas"][data-v="todas"]'); await espera(300);
+        norm = await estado(() => Game.ajustes().pausas === 'todas');
+      }
+      await estado(() => document.querySelector('#tabs3 [data-v="ciudad"]').click()); await espera(500);
+      const ok = ok1 && hay && cambia && norm && alto >= 40;
+      return { ok, detalle: ok ? 'la obra para el reloj («' + m.txt.slice(0, 60) + '»); «Continuar» lo reanuda; el ajuste cambia a «graves» y vuelve a «todas»' : JSON.stringify({ emp, salio, m, sigue, hay, cambia, norm, alto }), captura: f1 };
     });
 
     await paso('Región de Italia: mapa con 7 ciudades', async () => {

@@ -592,7 +592,7 @@
       if (r && piezaDe(b)) { c.heredado = c.heredado || {}; c.heredado[b] = (c.heredado[b] || 0) + 1; sinc(c, r); ponerDatos(c, r); } else c.b[b] = (c.b[b] || 0) + 1;
       txt = D.BUILD[b].n + ' nivel ' + c.b[b];
     }
-    G.log('🏗️ ' + nom + ': ' + txt + '.'); emit('dirty');
+    G.log('🏗️ ' + nom + ': ' + txt + '.'); emit('dirty'); G.parar('Obra terminada en ' + nom + ': ' + txt + '.');
   }
   // cada mes entero: la ciudad nueva vive un mes y sus avisos importantes pasan al diario del juego (máx. 2 líneas por ciudad)
   function mesCiudades() {
@@ -712,14 +712,26 @@
   G.migrarAjustes = function (s) {
     if (!s.ajustes || typeof s.ajustes !== 'object') s.ajustes = { dif: 'normal', suc: { crecida: true, fuego: true, hambre: true }, asesor: false, vistos: [], hist: [], v: 0 };
     const a = s.ajustes; if (!Object.hasOwn(D.DIFICULTAD, a.dif)) a.dif = 'normal'; a.suc = Object.assign({ crecida: true, fuego: true, hambre: true }, a.suc || {});
-    if (typeof a.asesor !== 'boolean') a.asesor = false; if (!Array.isArray(a.vistos)) a.vistos = []; if (!Array.isArray(a.hist)) a.hist = []; if (!(a.v >= 0)) a.v = 0;
+    if (typeof a.asesor !== 'boolean') a.asesor = false; if (!Array.isArray(a.vistos)) a.vistos = []; if (!Array.isArray(a.hist)) a.hist = []; if (!(a.v >= 0)) a.v = 0; G.migrarPausas(s);
   };
+  /* R3: pausas del reloj. 'todas' (por defecto) | 'graves' (ataque en camino y misión fallida) | 'ninguna'.
+     G.parar avisa a la pantalla (evento 'parar' con motivo); la pantalla pone la velocidad a 0. Sin pantalla (pruebas) no hace nada. */
+  const PAUSAS = ['todas', 'graves', 'ninguna'];
+  G.PAUSAS = PAUSAS;
+  G.migrarPausas = function (s) { const a = s && s.ajustes; if (a && !PAUSAS.includes(a.pausas)) a.pausas = 'todas'; };
+  G.pausas = () => { const s = G.state, a = s && s.ajustes; return a && PAUSAS.includes(a.pausas) ? a.pausas : 'todas'; };
+  G.parar = function (motivo, grave) {
+    const m = G.pausas(); if (m === 'ninguna' || (m === 'graves' && !grave)) return false;
+    emit('parar', { motivo: motivo, grave: !!grave }); return true;
+  };
+
   G.ajustes = function () { const s = G.state; if (!s) return null; G.migrarAjustes(s); return COPIA(s.ajustes); };
   G.ponerAjustes = function (p) {
     const s = G.state; if (!s) return { ok: false, motivo: 'No hay partida.' }; G.migrarAjustes(s); p = p || {}; const a = s.ajustes;
     if (p.dif !== undefined && !Object.hasOwn(D.DIFICULTAD, p.dif)) return { ok: false, motivo: 'Dificultad desconocida.' };
     if (p.suc !== undefined && !sucOk(p.suc)) return { ok: false, motivo: 'Sucesos no válidos.' };
     if (p.asesor !== undefined && typeof p.asesor !== 'boolean') return { ok: false, motivo: 'El asesor es sí o no.' };
+    if (p.pausas !== undefined && !PAUSAS.includes(p.pausas)) return { ok: false, motivo: 'Pausas no válidas.' };
     const dif = p.dif !== undefined ? p.dif : a.dif, suc = Object.assign({}, a.suc, p.suc || {}), cambia = dif !== a.dif || SUC_CLAVES.some(k => suc[k] !== a.suc[k]);
     if (cambia) {   // vale desde el mes siguiente; el pasado no cambia
       const k = mesAlin() + 1, e = [k, { dif, suc: Object.assign({}, suc) }], i = a.hist.findIndex(h => h[0] === k);
@@ -727,6 +739,7 @@
       for (const id of G.myCities()) { const E = G.ciudadE(id); if (E) delete E._rg; }
     }
     if (p.asesor !== undefined) a.asesor = p.asesor;
+    if (p.pausas !== undefined) a.pausas = p.pausas;
     if (cambia || p.asesor !== undefined) a.v++;
     return { ok: true, motivo: '' };
   };
@@ -1032,7 +1045,7 @@
       for (const k in c.units) { const q = Math.floor(c.units[k] * 0.4); if (q > 0) { u[k] = q; c.units[k] -= q; } }
       const sq = Math.random() < D.SAQUEO_IA; spawn(c.owner, id, null, to, u, null, G.travel(id, to) * 2 + 4); if (sq) s.marches[s.marches.length - 1].mision = 'saqueo';
       G.log('⚠️ ' + f.n + ' envía ' + (sq ? 'una partida de saqueo' : 'un ejército') + ' desde ' + d.n + ' contra ' + D.CITIES[to].n + '.', 'bad');
-      emit('alert', '¡' + f.n + ' marcha sobre ' + D.CITIES[to].n + '!');
+      emit('alert', '¡' + f.n + ' marcha sobre ' + D.CITIES[to].n + '!'); G.parar('Ataque en camino: ' + f.n + ' marcha sobre ' + D.CITIES[to].n + '.', true);
     }
   }
 
@@ -1069,7 +1082,7 @@
     for (const id of G.myCities()) {
       const c = s.cities[id];
       for (const q of c.obras.filter(o => s.t >= o.t1)) terminarObra(id, c, q);
-      while (c.train.length && s.t >= c.train[0].t1) { const q = c.train.shift(); c.units[q.u] = (c.units[q.u] || 0) + q.n; if (q.u !== 'milicia') { if (!c.levas) c.levas = []; c.levas.push({ u: q.u, n: q.n, t: s.t }); } G.log('🛡️ ' + D.CITIES[id].n + ': ' + q.n + ' ' + D.UNITS[q.u].n + ' listos.'); emit('dirty'); }
+      while (c.train.length && s.t >= c.train[0].t1) { const q = c.train.shift(); c.units[q.u] = (c.units[q.u] || 0) + q.n; if (q.u !== 'milicia') { if (!c.levas) c.levas = []; c.levas.push({ u: q.u, n: q.n, t: s.t }); } G.log('🛡️ ' + D.CITIES[id].n + ': ' + q.n + ' ' + D.UNITS[q.u].n + ' listos.'); emit('dirty'); G.parar('Tropa lista en ' + D.CITIES[id].n + ': ' + q.n + ' ' + D.UNITS[q.u].n + '.'); }
     }
     // modo turnos: al cerrar la estación se resuelve el mundo (año nuevo, rivales) antes de que lleguen las marchas
     if (B !== null) { const yb = G.yearOf(s.t); if (yb < y0) newYear(yb, true); turnoIA(yb, 0.25); }
@@ -1703,10 +1716,10 @@
     if (x && !m) s.mision = null;
     else if (x && G.MISION_TIPOS[m.cond.tipo].cumple(s, m.cond)) {
       aplicaMision(Object.assign({ favorSenado: S.premio }, m.premio)); s.misionesHechas[m.id] = 'ok'; s.mision = null; s.proxMision = mes + S.pausa;
-      G.log('🏛️ Misión cumplida: ' + m.n + '. El Senado lo agradece.', 'good');
+      G.log('🏛️ Misión cumplida: ' + m.n + '. El Senado lo agradece.', 'good'); G.parar('Has cumplido la misión del Senado: ' + m.n + '.');
     } else if (x && mes >= x.t1) {
       aplicaMision(Object.assign({ favorSenado: S.castigo }, m.castigo)); s.misionesHechas[m.id] = 'fallo'; s.mision = null; s.proxMision = mes + S.pausa;
-      G.log('🏛️ Misión fallida: ' + m.n + '. El Senado se queja.', 'bad');
+      G.log('🏛️ Misión fallida: ' + m.n + '. El Senado se queja.', 'bad'); G.parar('Has fallado la misión del Senado: ' + m.n + '.', true);
     }
     s.favor.senado = topeFavor(s.favor.senado); s.favor.pueblo = topeFavor(s.favor.pueblo);
     if (!s.mision && mes >= s.proxMision) G.senadoAsignar();
