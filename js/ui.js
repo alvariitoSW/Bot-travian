@@ -1134,11 +1134,18 @@ function filaRonda(B) {
     case 'informe': return '<button data-act="brepetir">Ver otra vez</button><button class="go on" data-act="bseguir">Seguir planeando</button>';
     case 'cond': return Object.keys(C).map(k => '<button data-act="bcnd" data-v="' + k + '"' + (act(k) ? ' class="on"' : '') + '>' + C[k] + '</button>').join('') + '<button data-act="bcnd" data-v="">Sin condición</button><button class="on" data-act="bcondok">Listo</button>';
     default: {
+      if (!B.aMano && B.b.consejo && !B.b.over) { const cs = tarjetasConsejo(B); if (cs) return cs; }
       const ps = B.view && B.view.propios ? B.view.propios() : [], tp = ps.length && ps.every(r => tipoOrden(r) === tipoOrden(ps[0])) ? tipoOrden(ps[0]) : null;
       return '<div class="ord' + (ps.length ? '' : ' sinsel') + '">' + TIPOS_ORDEN.map(t => '<button class="ob o-' + t[0] + (tp === t[0] ? ' on' : '') + '" data-act="bord" data-v="' + t[0] + '"' + (t[0] === 'aguantar' ? ' title="Aguantar: recibe un tercio menos de daño. Si te quedas quieto mucho rato el rival te toma la medida y el efecto se pierde."' : '') + '>' + icoOrd(t[0]) + '<span>' + t[1] + '</span></button>').join('') + '</div>' +
         '<button class="mini" data-act="bsig" aria-label="Siguiente regimiento">' + icoOrd('sig') + '<span>Siguiente</span></button><button class="mini' + (B.mas ? ' on' : '') + '" data-act="bmas" aria-label="Más opciones">' + icoOrd('mas') + '<span>Más</span></button>' + chipMando(B) + '<button class="go on" data-act="bejec">Ver la ronda</button>';
     }
   }
+}
+// R2: tres tarjetas, cada una con un plan completo de un tribuno y su etiqueta; «A mano» devuelve la fila de órdenes
+function tarjetasConsejo(B) {
+  const cs = B.b.consejo(); if (!cs.length) return '';
+  return '<div class="tarjs">' + cs.map((c, i) => '<button class="tarj t-' + c.etiqueta.toLowerCase() + (B.consejoSel === i ? ' on' : '') + '" data-act="btarj" data-v="' + i + '"><small>' + esc(c.tribuno) + ' · ' + c.rasgo + '</small><b>' + esc(c.titulo) + '</b><em>' + esc(c.motivo) + '</em><i class="et">' + c.etiqueta + '</i></button>').join('') + '</div>' +
+    '<button class="mini" data-act="bamano" aria-label="Dar las órdenes a mano"><span>A mano</span></button><button class="go on" data-act="bejec">Ver la ronda</button>';
 }
 // N5: puntos de mando junto al botón de ejecutar (rojo si te pasas) y fila de cartas de táctica
 const CARTAS_TXT = { arenga: ['Arenga', 'Sube la moral (+15 %) de las tropas dentro del radio de mando, en la ronda siguiente'], paso: ['Paso doble', 'Velocidad x1,25 la ronda siguiente, dentro del radio de mando'], cerrada: ['Cerrada', 'Reciben x0,85 de daño la ronda siguiente, dentro del radio de mando'] };
@@ -1149,7 +1156,7 @@ function filaCartas(B) {
 }
 function condSel(B) { return B.view && B.view.sel ? [...B.view.sel].filter(r => r.st === 'ok' && r.side === 0 && r.order && r.order.k !== 'quieto') : []; }
 function rondaModo(B, m) {
-  B.modo = m; B.filaKey = ''; B.mas = false; B.atajoTx = null; B.formVer = null; if (B.view && B.view.ponTPrev) { B.view.ponTPrev(0); B.view.activaFrente && B.view.activaFrente(false); } B.pmin = false; B.panelTx = null; if (m === 'plan' || m === 'informe') B.paused = false;
+  B.modo = m; B.filaKey = ''; if (m === 'plan') B.consejoSel = null; B.mas = false; B.atajoTx = null; B.formVer = null; if (B.view && B.view.ponTPrev) { B.view.ponTPrev(0); B.view.activaFrente && B.view.activaFrente(false); } B.pmin = false; B.panelTx = null; if (m === 'plan' || m === 'informe') B.paused = false;
   if (m !== 'plan') B.choque = null;
 }
 function textoRonda(B) {
@@ -1159,8 +1166,9 @@ function textoRonda(B) {
   if (B.modo === 'cond') { const sel = condSel(B); if (!sel.length) return 'Elige un regimiento con orden y vuelve a pulsar «Más» y «Condición».'; const r = sel[0], c = r.order.cond; return '<b>' + esc(r.name || r.u.n) + (sel.length > 1 ? ' y ' + (sel.length - 1) + ' más' : '') + '</b>: ' + (c ? esc(C[c]) + '.' : 'sin condición. Elige una (solo una por orden).'); }
   if (v && v.modoFrente) return '<div class="pt" data-act="bfrente">Frente<i></i></div>Arrastra el dedo sobre el campo, de un extremo a otro del frente. Pulsa aquí para cancelar.';
   if (B.mas === 'form' || B.mas === 'atajos' || B.mas === 'tiempo') return panelN7(B);
-  if (B.mas) { const w = B.b, ex = (c, a, t) => c ? '<button data-act="' + a + '">' + t + '</button>' : ''; return '<div class="pt" data-act="bmas">Más<i></i></div><div class="pbt p3"><button data-act="bcond">Condición</button><button data-act="bchoque">Prever choque</button><button data-act="ball">Todas</button><button data-act="bskip">Resolver</button><button data-act="bsonido">' + (window.Sonido && !window.Sonido.activo ? '🔇 Sonido apagado' : '🔊 Sonido activado') + '</button>' + ex(w.formacionesPosibles, 'bformas', 'Formación') + ex(w.fijarFrente && B.view.activaFrente, 'bfrente', 'Frente') + ex(w.agrupar, 'bjuntos', 'Marchar juntos') + ex(w.relevarLinea, 'brelevar', 'Relevar línea') + ex(w.atajo, 'batajos', 'Atajos') + ex(w.prevision && B.view.ponTPrev, 'btiempo', 'Ver futuro') + '</div>'; }
+  if (B.mas) { const w = B.b, ex = (c, a, t) => c ? '<button data-act="' + a + '">' + t + '</button>' : ''; return '<div class="pt" data-act="bmas">Más<i></i></div><div class="pbt p3"><button data-act="bcond">Condición</button><button data-act="bchoque">Prever choque</button><button data-act="ball">Todas</button><button data-act="bskip">Resolver</button>' + ex(w.consejo, 'btarjetas', 'Tarjetas') + '<button data-act="bsonido">' + (window.Sonido && !window.Sonido.activo ? '🔇 Sonido apagado' : '🔊 Sonido activado') + '</button>' + ex(w.formacionesPosibles, 'bformas', 'Formación') + ex(w.fijarFrente && B.view.activaFrente, 'bfrente', 'Frente') + ex(w.agrupar, 'bjuntos', 'Marchar juntos') + ex(w.relevarLinea, 'brelevar', 'Relevar línea') + ex(w.atajo, 'batajos', 'Atajos') + ex(w.prevision && B.view.ponTPrev, 'btiempo', 'Ver futuro') + '</div>'; }
   if (B.choque && performance.now() < B.choqueT) return B.choque;
+  if (!B.aMano && b.consejo) return B.consejoSel != null && B.tarjTx ? B.tarjTx : 'Tres tribunos te aconsejan. Toca una tarjeta para ver su plan. Las cartas y las órdenes sueltas están en «A mano».';
   if (condSel(B).length) return 'Orden dada. En «Más» puedes añadirle una condición.';
   if (v && v.propios && v.propios().length) return 'Elige una orden abajo o dibuja el recorrido sobre el campo. Toca otro estandarte para cambiar de regimiento.';
   if (v && v.haySombras) return 'Las siluetas marcan dónde acabarían tus tropas si el enemigo se queda quieto. <b>El enemigo puede moverse.</b>';
@@ -1198,9 +1206,9 @@ function rondaHud() {
   const key = tit + '|' + n0 + '|' + n1; if (key !== UI.hudKey) { UI.hudKey = key;
     $('bhud').innerHTML = '<div class="r1"><b class="rt">' + tit + '</b><span class="n0" style="color:#ff9c8c">' + esc(s0.name) + ' ' + n0 + '</span><div class="bar"><i style="width:' + n0 / Math.max(1, n0 + n1) * 100 + '%;background:' + s0.col + '"></i><i style="flex:1;background:' + s1.col + '"></i></div><span class="n1">' + n1 + ' ' + esc(s1.name) + '</span><span class="alj"><button data-act="bsalto" data-v="-1">Ala izq.</button><button data-act="bsalto" data-v="0">Centro</button><button data-act="bsalto" data-v="1">Ala der.</button></span></div>'; }
   { let cr = $('bcartas'); if (!cr) { cr = document.createElement('div'); cr.id = 'bcartas'; $('bctl').parentNode.insertBefore(cr, $('bctl')); }
-    const ver = B.modo === 'plan' && !b.over, ck = ver ? filaCartas(B) : ''; if (cr.dataset.k !== ck) { cr.dataset.k = ck; cr.innerHTML = ck; } cr.style.display = ver ? '' : 'none';
+    const ver = B.modo === 'plan' && !b.over && (B.aMano || !b.consejo), ck = ver ? filaCartas(B) : ''; if (cr.dataset.k !== ck) { cr.dataset.k = ck; cr.innerHTML = ck; } cr.style.display = ver ? '' : 'none';
     if (ver && B.avisoGen !== b.ronda && b.genDown[0]) { B.avisoGen = b.ronda; toast('Cayó tu general: solo ' + b.mandoPuntos().max + ' órdenes por ronda.', 'bad'); } }
-  const mp = b.mandoPuntos(), fk = mp.usados + '/' + mp.max + b.cartas.join() + b.cartaPlan + b.cartaRonda + '|' + B.modo + '|' + B.speed + '|' + B.paused + '|' + (B.mas ? 'm' + B.mas : '') + '|' + (B.modo === 'cond' ? condSel(B).map(r => r.id + (r.order.cond || '')).join() : B.modo === 'plan' && B.view && B.view.propios ? B.view.propios().map(r => r.id + (tipoOrden(r) || '-')).join() : '');
+  const mp = b.mandoPuntos(), fk = mp.usados + '/' + mp.max + b.cartas.join() + b.cartaPlan + b.cartaRonda + '|' + B.modo + '|' + B.speed + '|' + B.paused + '|' + (B.mas ? 'm' + B.mas : '') + '|' + (B.aMano ? 'a' : 't' + B.consejoSel + 'r' + b.ronda) + '|' + (B.modo === 'cond' ? condSel(B).map(r => r.id + (r.order.cond || '')).join() : B.modo === 'plan' && B.view && B.view.propios ? B.view.propios().map(r => r.id + (tipoOrden(r) || '-')).join() : '');
   if (fk !== B.filaKey) { B.filaKey = fk; $('bctl').innerHTML = filaRonda(B); }
   const pn = $('bpanel'), tx = textoRonda(B); if (pn) {
     if (tx !== B.panelTx) { B.panelTx = tx; B.panelT = performance.now(); pn.innerHTML = tx; }
@@ -1326,6 +1334,9 @@ document.addEventListener('click', function (e) {
     case 'bjuntos': { const sel = B.view.propios(); if (sel.length < 2) { toast('Elige varios regimientos (botón «Todas») para que marchen juntos.'); break; } const n = B.b.agrupar(sel); toast(n === false || n === 0 ? (B.b.motivo || 'No pueden marchar juntos ahora.') : 'Marchan juntos, a la velocidad del más lento.', n === false || n === 0 ? 'bad' : undefined); B.mas = false; B.panelTx = null; break; }
     case 'brelevar': { const r = B.view.propios().find(q => q.linea); if (!r) { toast('Elige un regimiento romano con su línea (I, II o III).'); break; } const n = B.b.relevarLinea(0, r.linea); toast(n ? 'Relevo: ' + n + (n === 1 ? ' regimiento cambia' : ' regimientos cambian') + ' de línea.' : 'No hay relevo posible ahora.', n ? undefined : 'bad'); B.mas = false; B.panelTx = null; break; }
     case 'bataj': { const sel = B.view.propios(), regs = sel.length ? sel : B.b.regs.filter(q => q.side === 0 && q.st === 'ok'), q = B.b.atajo(v, regs); B.atajoTx = q ? q.txt : (B.b.motivo || 'Ahora no sirve.'); if (q) toast(q.txt); B.panelTx = null; B.filaKey = ''; break; }
+    case 'btarj': { const c = B.b.aplicarConsejo(+v); if (c) { B.consejoSel = +v; B.view.sel.clear(); B.filaKey = ''; B.panelTx = null; B.panelT = performance.now(); B.tarjTx = c.tribuno + ': ' + c.titulo + '. Mira el plan sobre el campo y pulsa «Ver la ronda».'; } break; }
+    case 'bamano': B.aMano = true; B.mas = false; B.filaKey = ''; B.panelTx = null; break;
+    case 'btarjetas': B.aMano = false; B.mas = false; B.filaKey = ''; B.panelTx = null; break;
     case 'bmas': B.mas = !B.mas; B.choque = null; B.panelTx = null; B.filaKey = ''; break;
     case 'bpmin': B.pmin = !B.pmin; break;
     case 'bsalto': B.view.saltoAla(+v); break;

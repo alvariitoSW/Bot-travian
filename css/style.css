@@ -726,3 +726,18 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 .inf-d p { margin: 6px 0; font-size: 13px; white-space: pre-line; }
 .inf-b { display: flex; gap: 8px; margin-top: 8px; }
 .inf-b .btn { flex: 1 1 0; min-height: 42px; padding: 8px 10px; font-size: 14px; }
+
+/* R2: consejo de tribunos — tres tarjetas en lugar de la fila de órdenes */
+#battle.ronda #bctl .tarjs { display: flex; flex: 7 1 0; gap: 4px; min-width: 0; }
+#battle.ronda:not(.desp) #bctl .tarj { position: relative; display: flex; flex-direction: column; align-items: flex-start; justify-content: flex-start; gap: 1px; height: 58px; padding: 4px 6px 4px 7px; text-align: left; border-radius: 9px; border: 1px solid rgba(184, 134, 43, .55); background: rgba(255, 255, 255, .07); color: var(--ink); overflow: clip; }
+#battle.ronda #bctl .tarj small { max-width: 100%; font-size: 8.5px; font-weight: 600; letter-spacing: .02em; color: var(--gold); text-transform: capitalize; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: .9; }
+#battle.ronda #bctl .tarj b { max-width: 100%; font-family: var(--serif); font-size: 11.5px; font-weight: 700; line-height: 1.12; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#battle.ronda #bctl .tarj em { max-width: 100%; font-style: normal; font-size: 9px; font-weight: 500; opacity: .75; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#battle.ronda #bctl .tarj .et { position: absolute; right: 4px; top: 3px; padding: 1px 5px; border-radius: 6px; font-style: normal; font-size: 8.5px; font-weight: 800; letter-spacing: .02em; color: #10161c; }
+#battle.ronda #bctl .tarj small { padding-right: 52px; }
+#battle.ronda #bctl .t-favorable .et { background: #6fe0a4; }
+#battle.ronda #bctl .t-dudoso .et { background: #f2cf72; }
+#battle.ronda #bctl .t-arriesgado .et { background: #ff8a78; }
+#battle.ronda:not(.desp) #bctl .tarj.on { border-color: var(--gold); background: rgba(233, 192, 99, .22); box-shadow: 0 0 9px rgba(233, 192, 99, .5); }
+#battle.ronda:not(.desp) #bctl .mini[data-act="bamano"] { flex: 0 0 58px; height: 58px; font-size: 10.5px; }
+#battle.ronda:not(.desp) #bctl .tarjs ~ .go { height: 58px; }

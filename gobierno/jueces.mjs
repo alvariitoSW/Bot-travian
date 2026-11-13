@@ -288,6 +288,7 @@ async function navegador() {
       // «Resolver» está en la fila durante la ejecución y, en el plan, dentro del panel «Más»
       if (!(await page.locator('[data-act="bskip"]').count())) {
         if (await page.locator('#bctl [data-act="bseguir"]').count()) { await page.click('#bctl [data-act="bseguir"]'); await espera(300); }
+        if (await page.locator('#bctl [data-act="bamano"]').count()) { await page.click('#bctl [data-act="bamano"]'); await espera(300); }   // R2: en el plan hay tarjetas; «Más» está en «A mano»
         if (await page.locator('#bctl [data-act="bmas"]').count()) { await page.click('#bctl [data-act="bmas"]'); await espera(300); }
       }
       await page.click('[data-act="bskip"]');

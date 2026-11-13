@@ -1201,20 +1201,18 @@
   Battle.prototype.iaFoto = function () { return { r: this.regs.map(function (r) { return [Math.round(r.x), Math.round(r.y), r.men, r.st === 'ok' ? 1 : 0]; }) }; };
   // un gesto visible por ronda: decide con la foto, da órdenes (con límite de puntos y radio) y quizá juega una carta
   Battle.prototype.iaRonda = function () { this.iaRonda0(); if (this.cfg.relevoAuto !== false) this.autoRelevo(1); };
-  Battle.prototype.iaRonda0 = function () {
-    const ia = this.ia, ca = CARACTER[ia.car], dif = ia.dif, nv = ia.nivel || 0, dur = dif === 'dificil' || nv >= NIVEL_DURO,
+  // Tabla de gestos: la usa el enemigo (bando 1: su carácter, su foto y su estado ia) y los tribunos del jugador (bando 0: estado de usar y tirar).
+  // Devuelve null si no hay a quién mandar o a quién mirar. Las órdenes llevan ia:true; el consejo se las quita.
+  Battle.prototype.gestosTabla = function (bando, ia, F, ca) {
+    const dif = ia.dif, nv = ia.nivel || 0, dur = dif === 'dificil' || nv >= NIVEL_DURO,
       margen = ca.margen < 5 ? ca.margen * (1 - 0.5 * nv) : ca.margen, piso = ca.piso * (1 + 0.2 * nv), ronda = this.ronda, W = this.W, H = this.H, T = this.tr, B = T.banda;
-    const g = this.generalVivo(1), pts = g ? MANDO_PUNTOS : MANDO_PUNTOS_SIN;
-    if (!ia.fotos.length) ia.fotos.push(this.iaFoto());
-    const F = ia.fotos[(dif === 'facil' || nv <= -NIVEL_DURO) && ia.fotos.length > 1 ? 1 : 0].r;
-    ia.cartaTxt = '';
-    if (dif === 'facil' && ronda % 2 === 0) { this.gesto = 'El enemigo mantiene su línea'; return; }
-    // lo que se ve: los regimientos del jugador según la foto (la orden de ahora no se mira)
+    const op = 1 - bando, av = bando === 1 ? 1 : -1, g = this.generalVivo(bando), pts = g ? MANDO_PUNTOS : MANDO_PUNTOS_SIN;
+    // lo que se ve: los regimientos del otro bando según la foto (la orden de ahora no se mira)
     const vis = [], regs = this.regs; let h0 = 0, h1 = 0;
-    regs.forEach(function (r, i) { const f = F[i]; if (!f || !f[3]) return; if (r.side === 0) { h0 += f[2]; if (r.st === 'ok') vis.push({ r: r, x: f[0], y: f[1], men: f[2], cl: r.u.cls, id: i }); } else h1 += f[2]; });
-    const m0 = h0 / Math.max(1, this.start[0]), m1 = h1 / Math.max(1, this.start[1]);
-    const mios = regs.filter(r => r.side === 1 && r.st === 'ok' && r.k !== 'general');
-    if (!mios.length || !vis.length) { this.gesto = 'El enemigo espera'; return; }
+    regs.forEach(function (r, i) { const f = F[i]; if (!f || !f[3]) return; if (r.side === op) { h0 += f[2]; if (r.st === 'ok') vis.push({ r: r, x: f[0], y: f[1], men: f[2], cl: r.u.cls, id: i }); } else h1 += f[2]; });
+    const m0 = h0 / Math.max(1, this.start[op]), m1 = h1 / Math.max(1, this.start[bando]);
+    const mios = regs.filter(r => r.side === bando && r.st === 'ok' && r.k !== 'general');
+    if (!mios.length || !vis.length) return null;
     const sede = (r) => (ia_cerca(vis, r.x, r.y) || vis[0]), dist = (r) => ia_d(r, sede(r));
     const tipoA = ca.carga ? 'cargar' : 'avanzar';
     const O = (extra) => Object.assign({ ia: true, hasta: ronda + 1 }, extra);
@@ -1232,27 +1230,27 @@
     G.ala = () => {   // los dos regimientos más cerca del borde se estiran hacia el lado abierto
       if (mios.length < 2) return null;
       const ext = mios.slice().sort((a, b) => (b.x - a.x) * lado).slice(0, 2);
-      return { t: 'El enemigo estira el ala ' + ladoTxt, o: ext.map(r => mov(r, r.x + lado * 150, r.y + 110)) };
+      return { t: 'El enemigo estira el ala ' + ladoTxt, y: 'Estirad el ala ' + ladoTxt + ' hacia el hueco', o: ext.map(r => mov(r, r.x + lado * 150, r.y + av * 110)) };
     };
     G.flanco = () => {
       if (!cavs.length) return null;
       const obj = vis.slice().sort((a, b) => (b.x - a.x) * lado)[0];
-      return { t: 'La caballería enemiga busca tu flanco ' + (obj.x < W / 2 ? 'izquierdo' : 'derecho'), o: cavs.slice(0, 2).map(r => atk(r, obj, 'cargar')) };
+      return { t: 'La caballería enemiga busca tu flanco ' + (obj.x < W / 2 ? 'izquierdo' : 'derecho'), y: 'La caballería rodea su flanco ' + (obj.x < W / 2 ? 'izquierdo' : 'derecho'), o: cavs.slice(0, 2).map(r => atk(r, obj, 'cargar')) };
     };
     G.reserva = () => {
       let debil = null, dw = 1e9;
       for (const r of mios) { const q = r.men / r.max + r.mor / r.morMax; if (dist(r) < 130 && (r.men / r.max < 0.7 || r.mor / r.morMax < 0.5) && q < dw) { dw = q; debil = r; } }
       if (!debil) return null;
       const res = ia_cerca(mios.filter(r => r !== debil && r.u.cls !== 'rng' && dist(r) > 200), debil.x, debil.y); if (!res) return null;
-      return { t: 'El enemigo manda la reserva al punto débil', o: [atk(res, sede(debil), res.u.cls === 'cav' ? 'cargar' : tipoA)] };
+      return { t: 'El enemigo manda la reserva al punto débil', y: 'La reserva acude al punto débil', o: [atk(res, sede(debil), res.u.cls === 'cav' ? 'cargar' : tipoA)] };
     };
     G.centro = () => {
       const c = porDist(pesados).slice(0, pts); if (!c.length) return null;
-      if (ca.cerrada && ronda < 3) return { t: 'El enemigo cierra la falange en el centro', o: c.map(r => quieto(r)) };
-      return { t: 'El enemigo adelanta el centro', o: c.map(r => atk(r, sede(r))) };
+      if (ca.cerrada && ronda < 3) return { t: 'El enemigo cierra la falange en el centro', y: 'Cerrad el centro y esperad', o: c.map(r => quieto(r)) };
+      return { t: 'El enemigo adelanta el centro', y: 'Adelantad el centro', o: c.map(r => atk(r, sede(r))) };
     };
-    G.carga = () => { const c = porDist(mios.filter(r => r.u.cls !== 'rng')).slice(0, pts); return c.length ? { t: 'El caudillo lanza a los suyos a la carga', o: c.map(r => atk(r, sede(r), 'cargar')) } : null; };
-    G.avanza = () => { const c = porDist(mios).slice(0, pts); return c.length ? { t: 'El enemigo aprieta el paso', o: c.map(r => atk(r, sede(r), r.u.cls === 'rng' ? 'avanzar' : tipoA)) } : null; };
+    G.carga = () => { const c = porDist(mios.filter(r => r.u.cls !== 'rng')).slice(0, pts); return c.length ? { t: 'El caudillo lanza a los suyos a la carga', y: 'Lanzad la carga', o: c.map(r => atk(r, sede(r), 'cargar')) } : null; };
+    G.avanza = () => { const c = porDist(mios).slice(0, pts); return c.length ? { t: 'El enemigo aprieta el paso', y: 'Apretad el paso sobre todo el frente', o: c.map(r => atk(r, sede(r), r.u.cls === 'rng' ? 'avanzar' : tipoA)) } : null; };
     G.cerro = () => {
       const s = ia.cerro; if (!s) return null;
       const sube = porDist(mios.filter(r => r.u.cls !== 'cav'), 0).sort((a, b) => ia_d(a, s) - ia_d(b, s)), o = []; let i = 0;
@@ -1283,11 +1281,11 @@
     };
     G.hostiga = () => {
       const c = ligeros.filter(r => r.u.cls === 'rng' || r.papel === 'ligera').slice(0, pts); if (!c.length) return null;
-      return { t: 'El enemigo hostiga con sus tiradores', o: c.map(r => atk(r, sede(r), 'hostigar')) };
+      return { t: 'El enemigo hostiga con sus tiradores', y: 'Hostigad con los tiradores', o: c.map(r => atk(r, sede(r), 'hostigar')) };
     };
     G.huida = () => {
       const c = ligeros.filter(r => dist(r) < 160).slice(0, pts); if (!c.length) return null;
-      return { t: 'El enemigo rompe contacto y se aleja', o: c.map(r => mov(r, r.x, r.y - 170, 'retirarse')) };
+      return { t: 'El enemigo rompe contacto y se aleja', o: c.map(r => mov(r, r.x, r.y - av * 170, 'retirarse')) };
     };
     G.contra = () => {
       if (ia.finta !== ronda - 1) return null; ia.finta = 0;
@@ -1301,8 +1299,23 @@
       const c = porDist(mios).filter(r => dist(r) < 220).sort((a, b) => a.men / a.max - b.men / b.max).slice(0, Math.min(pts, 3)); if (!c.length) return null;
       const ref = dur && ia.cerro ? ia.cerro : null;
       if (finta) ia.finta = ronda;
-      return { t: finta ? 'El enemigo finge retirarse' : 'El enemigo se repliega para rehacerse', o: c.map(r => ref ? mov(r, ref.x, ref.y, 'retirarse') : mov(r, r.x, r.y - 150, 'retirarse')) };
+      return { t: finta ? 'El enemigo finge retirarse' : 'El enemigo se repliega para rehacerse', y: finta ? 'Fingid una retirada' : 'Replegaos para rehaceros', o: c.map(r => ref ? mov(r, ref.x, ref.y, 'retirarse') : mov(r, r.x, r.y - av * 150, 'retirarse')) };
     };
+    G.firmes = () => {   // (solo consejo) la línea pesada cierra filas y aguanta
+      const c = porDist(pesados).slice(0, pts); if (!c.length) return null;
+      return { t: 'El enemigo cierra filas', y: 'Cerrad filas y aguantad el choque', o: c.map(r => quieto(r)) };
+    };
+    return { G: G, vis: vis, mios: mios, m0: m0, m1: m1, h0: h0, h1: h1, g: g, pts: pts, dist: dist, sede: sede, porDist: porDist, O: O, tipoA: tipoA, dur: dur, dif: dif, nv: nv, margen: margen, piso: piso };
+  };
+  Battle.prototype.iaRonda0 = function () {
+    const ia = this.ia, ca = CARACTER[ia.car], ronda = this.ronda, regs = this.regs;
+    if (!ia.fotos.length) ia.fotos.push(this.iaFoto());
+    const F = ia.fotos[(ia.dif === 'facil' || (ia.nivel || 0) <= -NIVEL_DURO) && ia.fotos.length > 1 ? 1 : 0].r;
+    ia.cartaTxt = '';
+    if (ia.dif === 'facil' && ronda % 2 === 0) { this.gesto = 'El enemigo mantiene su línea'; return; }
+    const tb = this.gestosTabla(1, ia, F, ca);
+    if (!tb) { this.gesto = 'El enemigo espera'; return; }
+    const G = tb.G, vis = tb.vis, mios = tb.mios, m0 = tb.m0, m1 = tb.m1, h0 = tb.h0, h1 = tb.h1, g = tb.g, pts = tb.pts, dist = tb.dist, porDist = tb.porDist, O = tb.O, tipoA = tb.tipoA, dur = tb.dur, dif = tb.dif, nv = tb.nv, margen = tb.margen, piso = tb.piso;
     const apertura = { centro: 'centro', alas: 'ala', cerro: 'cerro', emboscar: 'emboscada', hostigar: 'hostiga' }[ia.plan];
     const resto = { centro: ['flanco', 'ala'], alas: ['flanco', 'ala', 'centro'], cerro: ['cerro'], emboscar: ['salen', 'flanco', 'centro'], hostigar: ['huida', 'hostiga', 'flanco'] }[ia.plan];
     let cola = ['contra', 'repliegue', 'salen'];
@@ -1341,6 +1354,70 @@
       for (const r of regs) if (r.side === 1 && r.st === 'ok' && !this.fueraDeMando(r, g)) { r.cartaFx = carta; if (carta === 'arenga') r.mor = Math.min(topeMor(r), r.mor + ARENGA_MORAL * r.morMax); }
     }
     ia.ult = clave; ia.gestos++; this.gesto = gest.t + (carta ? ' y juega ' + CARTA_TXT[carta] : '');
+  };
+
+
+  /* ---------- R2: consejo de tribunos (los gestos del enemigo, al servicio del jugador) ---------- */
+  // Tres tribunos con carácter fijo: cada uno propone, por orden, el primer gesto de su lista que sea posible y que no haya propuesto otro.
+  const TRIBUNOS = [
+    { n: 'Quinto Fabio', rasgo: 'prudente', car: 'prudente', gestos: ['firmes', 'repliegue', 'centro', 'avanza'] },
+    { n: 'Cayo Flaminio', rasgo: 'agresivo', car: 'impetuoso', gestos: ['centro', 'carga', 'avanza'] },
+    { n: 'Publio Cornelio', rasgo: 'astuto', car: 'astuto', gestos: ['flanco', 'ala', 'hostiga', 'reserva', 'carga'] }
+  ];
+  const MOTIVO_CONSEJO = { firmes: 'Que se estrellen contra los escudos.', repliegue: 'Rehaced la línea antes de seguir.', centro: 'Su centro es lo más cercano.', avanza: 'Presionad ya, sin darles respiro.', carga: 'Un golpe fuerte antes de que se ordenen.', flanco: 'Los jinetes pueden rodearles.', ala: 'Hay hueco por ese lado.', hostiga: 'Los tiradores desgastan sin riesgo.', reserva: 'Reforzad donde más sufrimos.' };
+  const CONSEJO_RADIO = 260;
+  // etiqueta del plan según la zona donde actúa: fuerza propia (los que obedecen y los cercanos) frente a la enemiga
+  Battle.prototype.consejoEtiqueta = function (clave, ordenes, vis) {
+    if (!ordenes.length) return 'Dudoso';
+    let cx = 0, cy = 0; const pr = new Set();
+    for (const p of ordenes) { const r = p[0], o = p[1]; pr.add(r); const t = o.k === 'atk' ? o.r : o.k === 'move' ? o : r; cx += t.x; cy += t.y; }
+    cx /= ordenes.length; cy /= ordenes.length;
+    let propia = 0, enemiga = 0, cercanos = 0;
+    for (const r of this.regs) {
+      if (r.st !== 'ok' || r.k === 'general') continue;
+      if (r.side === 0 && (pr.has(r) || Math.hypot(r.x - cx, r.y - cy) <= CONSEJO_RADIO)) propia += r.men;
+      else if (r.side === 1 && Math.hypot(r.x - cx, r.y - cy) <= CONSEJO_RADIO) { enemiga += r.men; if (Math.hypot(r.x - cx, r.y - cy) <= 200) cercanos++; }
+    }
+    const libre = (clave === 'ala' || clave === 'flanco') && cercanos <= 1;
+    if (clave === 'firmes' && !enemiga) return 'Dudoso';   // esperar sin nadie cerca no es ventaja
+    if (libre || propia > enemiga * 1.15) return 'Favorable';
+    if (propia < enemiga * 0.85) return 'Arriesgado';
+    return 'Dudoso';
+  };
+  // hasta tres planes completos para el bando 0. No cambia nada en la batalla.
+  Battle.prototype.consejo = function () {
+    if (!this.rondas || this.fase !== 'plan' || this.over) return [];
+    const F = this.iaFoto().r, usados = {}, res = [], g0 = this.generalVivo(0);
+    for (const tr of TRIBUNOS) {
+      const ia = { car: tr.car, dif: 'normal', nivel: 0, cerro: null, bosque: null, emb: null, finta: 0, baja: false, ult: '', plan: 'centro', fotos: [] };
+      const tb = this.gestosTabla(0, ia, F, CARACTER[tr.car]); if (!tb) break;
+      for (const k of tr.gestos) {
+        if (usados[k]) continue; const ge = tb.G[k] && tb.G[k](); if (!ge) continue;
+        usados[k] = 1;
+        const nuevo = new Map(); for (const p of ge.o) if (!nuevo.has(p[0])) nuevo.set(p[0], p[1]);
+        if (g0) for (const r of Array.from(nuevo.keys())) if (this.fueraDeMando(r, g0) && nuevo.size > 1) nuevo.delete(r);   // dentro del radio del general (si queda alguien)
+        if (k !== 'firmes' && k !== 'repliegue' && k !== 'hostiga' && nuevo.size < tb.pts) {   // plan completo: los pesados libres más cercanos avanzan
+          for (const r of tb.porDist(tb.mios.filter(q => q.u.cls !== 'rng' && q.u.cls !== 'cav'))) { if (nuevo.size >= tb.pts) break; if (!nuevo.has(r) && !(g0 && this.fueraDeMando(r, g0))) nuevo.set(r, tb.O({ k: 'atk', r: tb.sede(r).r, tipo: 'avanzar' })); }
+        }
+        const ord = [];
+        for (const [r, o] of nuevo) {
+          const c = Object.assign({}, o); delete c.ia; delete c.hasta;
+          if (c.k !== 'quieto' && !c.form && r.form !== 'normal' && r.k !== 'falange') c.form = 'normal';
+          ord.push([r, c]);
+        }
+        let act = 0; const lim = ord.filter(p => p[1].k !== 'quieto' && (act++) < tb.pts || p[1].k === 'quieto');
+        res.push({ tribuno: tr.n, rasgo: tr.rasgo, clave: k, titulo: ge.y || ge.t, motivo: MOTIVO_CONSEJO[k] || '', etiqueta: this.consejoEtiqueta(k, lim, tb.vis), ordenes: lim });
+        break;
+      }
+    }
+    return res;
+  };
+  // pone el plan elegido como si lo hubieras dado tú: quita las órdenes anteriores y escribe estas. Devuelve el consejo aplicado o null.
+  Battle.prototype.aplicarConsejo = function (i) {
+    const c = this.consejo()[i]; if (!c) return null;
+    for (const r of this.regs) if (r.side === 0 && r.st === 'ok' && r.k !== 'general') { r.order = null; r.tgt = null; r.pend = null; r.pendT = 0; }
+    for (const p of c.ordenes) { p[0].order = Object.assign({}, p[1]); p[0].tgt = null; p[0].pend = null; p[0].pendT = 0; }
+    return c;
   };
 
   /* ---------- N15: objetivos de batalla ---------- */
