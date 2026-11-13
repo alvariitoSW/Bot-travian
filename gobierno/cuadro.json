@@ -1106,12 +1106,6 @@
       "titulo": "Avisos de una frase · R4",
       "nota": "textos del asesor y avisos (js/asesor.js, ui.js)",
       "url": "https://claude.ai/code/session_01QiKC39GggaCEefge9YFwJE"
-    },
-    {
-      "tarea": "K11",
-      "titulo": "Concurso de menús · K11",
-      "nota": "solo maquetas a 390 px (gobierno/maquetas/menus/)",
-      "url": "https://claude.ai/code/session_01QiKC39HeUJp7SLokXmNd1D"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
