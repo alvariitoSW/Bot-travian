@@ -931,6 +931,21 @@
    "archivo": "gobierno/capturas-tarea/N15b-25s.jpg",
    "pie": "Batalla de campaña con objetivo: «Tomad la zona y quedaos solos en ella 40 s»",
    "ancha": true
+  },
+  {
+   "tarea": "Q4b",
+   "archivo": "gobierno/capturas-tarea/q4b-imperio.jpg",
+   "pie": "Imperio: Roma con dos obras a la vez (foro 2), «Obras 2/2»"
+  },
+  {
+   "tarea": "Q4b",
+   "archivo": "gobierno/capturas-tarea/q4b-ficha.jpg",
+   "pie": "Ficha llena: «Sube el foro para otra obra. Obras 2/2.»"
+  },
+  {
+   "tarea": "Q4b",
+   "archivo": "gobierno/capturas-tarea/q4b-andamio.jpg",
+   "pie": "Andamio de obra en la ciudad (uno por cada obra)"
   }
  ],
  "informes": [
