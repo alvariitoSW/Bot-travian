@@ -1096,16 +1096,22 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "K12a",
-      "titulo": "Menús nuevos: marco general · K12a",
-      "nota": "estilo Hojas en el juego real (js/ui.js, css/style.css)",
-      "url": "https://claude.ai/code/session_01QiKC38tG3iSHVstPxCmMfE"
-    },
-    {
       "tarea": "NB1-NB7",
       "titulo": "Guerra: Batalla nueva (NB1 a NB7)",
       "nota": "motor nuevo de batalla y maniobra (abierta por el usuario; padre: gobierno)",
       "url": "https://claude.ai/code/session_01QiKC37eghiyQKGsmkrrDSg"
+    },
+    {
+      "tarea": "K12b",
+      "titulo": "Menús: Códice · K12b",
+      "nota": "Crónica e informe de estación (ui.js, css .cod-)",
+      "url": "https://claude.ai/code/session_01QiKC39y44NSrhkGd1AWovo"
+    },
+    {
+      "tarea": "K12c",
+      "titulo": "Menús: Mármol y Mosaico · K12c",
+      "nota": "Imperio, Mercado, Rutas, Saber (ui.js, css .mar-/.mos-)",
+      "url": "https://claude.ai/code/session_01QiKC37mkMzTRdX8y9NPqcM"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
