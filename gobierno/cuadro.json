@@ -1096,22 +1096,16 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "I3b",
-      "titulo": "Gran diseño · I3b Paga de tropas",
-      "nota": "js/game.js, data.js, tests (paga y deuda)",
-      "url": "https://claude.ai/code/session_01QiKC37D2N4Qw3NvC9TcdmE"
-    },
-    {
       "tarea": "K6",
       "titulo": "Concurso · K6 Arte de batalla y tropas",
       "nota": "solo maquetas",
       "url": "https://claude.ai/code/session_01QiKC37tiobNBApd9bhi8N3"
     },
     {
-      "tarea": "CN5",
-      "titulo": "Ciudad nueva · CN5 Fundar colonias",
-      "nota": "data.js, game.js, map3d.js, ui.js, registro.js (colonias)",
-      "url": "https://claude.ai/code/session_01QiKC37pDgsJjsNbqKB5nNt"
+      "tarea": "CN6",
+      "titulo": "Ciudad nueva · CN6 Barrios",
+      "nota": "ciudad.js, game.js, data.js, ui.js, city3d.js (nivel por barrio, etiquetas, capilla)",
+      "url": "https://claude.ai/code/session_01QiKC394fsXAcgK1Ek5bMGd"
     }
   ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
