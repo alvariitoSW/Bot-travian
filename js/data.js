@@ -467,6 +467,44 @@
       fuente: 'Livio 31.6 a 31.8; Polibio 6.19 a 6.21', dictamen: 'historico' }
   ].forEach(m => { D.MISIONES[m.id] = m; });
 
+  /* NB5 — plantillas de zona para la maniobra previa (js/maniobra.js). Cada una: 9 a 10 puntos (x, y de 0 a 100; Roma entra por la izquierda)
+     con tipo Castra / Cerro / Vado / Puente / Pinar / Cruce / Llano, y caminos entre ellos. ini = [punto del bando 0, punto del bando 1]; centro = punto central.
+     Licencia de juego: las plantillas son esquemas genéricos de terreno, no reproducen un campo de batalla concreto. */
+  D.ZONAS_MANIOBRA = {
+    rio: { n: 'Río con vados', ini: ['a', 'b'], centro: 'm1', puntos: [
+      { id: 'a', n: 'Campamento de la orilla oeste', tipo: 'Castra', x: 8, y: 50 }, { id: 'n1', n: 'Prado norte', tipo: 'Llano', x: 28, y: 22 },
+      { id: 's1', n: 'Prado sur', tipo: 'Llano', x: 28, y: 78 }, { id: 'm1', n: 'Loma de la orilla', tipo: 'Cerro', x: 32, y: 50 },
+      { id: 'vd', n: 'Vado', tipo: 'Vado', x: 50, y: 22 }, { id: 'pt', n: 'Puente', tipo: 'Puente', x: 50, y: 78 },
+      { id: 'rn', n: 'Orilla norte', tipo: 'Llano', x: 72, y: 22 }, { id: 'rs', n: 'Orilla sur', tipo: 'Llano', x: 72, y: 78 },
+      { id: 'm2', n: 'Sauceda', tipo: 'Pinar', x: 70, y: 50 }, { id: 'b', n: 'Campamento de la orilla este', tipo: 'Castra', x: 92, y: 50 }],
+      caminos: [['a', 'n1'], ['a', 's1'], ['a', 'm1'], ['m1', 'n1'], ['m1', 's1'], ['n1', 'vd'], ['vd', 'rn'], ['s1', 'pt'], ['pt', 'rs'], ['rn', 'm2'], ['rs', 'm2'], ['rn', 'b'], ['rs', 'b'], ['m2', 'b']] },
+    cerro: { n: 'Cerro dominante', ini: ['a', 'b'], centro: 'c', puntos: [
+      { id: 'a', n: 'Campamento del valle', tipo: 'Castra', x: 8, y: 50 }, { id: 'l1', n: 'Pradera alta', tipo: 'Llano', x: 26, y: 24 },
+      { id: 'l2', n: 'Pradera baja', tipo: 'Llano', x: 26, y: 76 }, { id: 'o', n: 'Otero del valle', tipo: 'Cerro', x: 24, y: 50 }, { id: 'c', n: 'Cerro mayor', tipo: 'Cerro', x: 50, y: 50 },
+      { id: 'p', n: 'Encinar', tipo: 'Pinar', x: 50, y: 12 }, { id: 'x', n: 'Cruce de caminos', tipo: 'Cruce', x: 50, y: 88 },
+      { id: 'l3', n: 'Ladera norte', tipo: 'Llano', x: 74, y: 24 }, { id: 'l4', n: 'Ladera sur', tipo: 'Llano', x: 74, y: 76 },
+      { id: 'b', n: 'Campamento de la altura', tipo: 'Castra', x: 92, y: 50 }],
+      caminos: [['a', 'o'], ['o', 'c'], ['a', 'l1'], ['a', 'l2'], ['l1', 'c'], ['l2', 'c'], ['l1', 'p'], ['l2', 'x'], ['c', 'l3'], ['c', 'l4'], ['p', 'l3'], ['x', 'l4'], ['l3', 'b'], ['l4', 'b']] },
+    bosque: { n: 'Bosque cerrado', ini: ['a', 'b'], centro: 'cl', puntos: [
+      { id: 'a', n: 'Campamento del camino', tipo: 'Castra', x: 8, y: 50 }, { id: 'p1', n: 'Pinar norte', tipo: 'Pinar', x: 28, y: 22 },
+      { id: 'p2', n: 'Pinar sur', tipo: 'Pinar', x: 28, y: 78 }, { id: 'cl', n: 'Claro', tipo: 'Cruce', x: 46, y: 50 },
+      { id: 'ot', n: 'Otero', tipo: 'Cerro', x: 16, y: 12 }, { id: 'p3', n: 'Robledal', tipo: 'Pinar', x: 68, y: 26 },
+      { id: 'vd', n: 'Arroyo', tipo: 'Vado', x: 68, y: 76 }, { id: 'lc', n: 'Calvero', tipo: 'Llano', x: 80, y: 50 },
+      { id: 'b', n: 'Campamento del bosque', tipo: 'Castra', x: 94, y: 50 }],
+      caminos: [['a', 'p1'], ['a', 'p2'], ['a', 'cl'], ['p1', 'cl'], ['p2', 'cl'], ['a', 'ot'], ['p1', 'ot'], ['cl', 'p3'], ['cl', 'vd'], ['p2', 'vd'], ['p3', 'lc'], ['vd', 'lc'], ['lc', 'b'], ['p3', 'b'], ['vd', 'b']] },
+    paso: { n: 'Paso de montaña', ini: ['a', 'b'], centro: 'g', puntos: [
+      { id: 'a', n: 'Campamento de la entrada', tipo: 'Castra', x: 6, y: 50 }, { id: 'l1', n: 'Antepuerto', tipo: 'Llano', x: 22, y: 50 },
+      { id: 'rn', n: 'Risco norte', tipo: 'Cerro', x: 36, y: 18 }, { id: 'rs', n: 'Hayedo sur', tipo: 'Pinar', x: 36, y: 82 },
+      { id: 'g', n: 'Garganta', tipo: 'Puente', x: 50, y: 50 }, { id: 'x', n: 'Collado', tipo: 'Llano', x: 66, y: 18 },
+      { id: 'y', n: 'Torrente', tipo: 'Vado', x: 66, y: 82 }, { id: 'l2', n: 'Explanada', tipo: 'Llano', x: 78, y: 50 },
+      { id: 'b', n: 'Campamento de la salida', tipo: 'Castra', x: 94, y: 50 }],
+      caminos: [['a', 'l1'], ['a', 'rn'], ['a', 'rs'], ['l1', 'g'], ['l1', 'rn'], ['l1', 'rs'], ['rn', 'x'], ['rs', 'y'], ['g', 'l2'], ['x', 'l2'], ['y', 'l2'], ['x', 'b'], ['y', 'b'], ['l2', 'b']] }
+  };
+  // zona de cada ciudad, según su terreno de batalla (Battle.TERRENO_CIUDAD): río→río, cerro/colina/mixto→cerro, bosque/pantano→bosque, paso→paso, llano→río o paso
+  D.ZONA_MANIOBRA_CIUDAD = { roma: 'cerro', volsinii: 'bosque', capua: 'rio', tarentum: 'rio', mediolanum: 'bosque', messana: 'cerro', syracusae: 'cerro', agrigentum: 'cerro', panormus: 'rio',
+    lilybaeum: 'paso', carales: 'bosque', emporion: 'bosque', saguntum: 'paso', carthagonova: 'cerro', ambracia: 'paso', pella: 'cerro', corinthus: 'paso', carthago: 'rio' };
+  D.zonaManiobra = function (ciudad, semilla) { const ids = Object.keys(D.ZONAS_MANIOBRA); return D.ZONA_MANIOBRA_CIUDAD[ciudad] || ids[Math.abs(Math.floor(semilla || 0)) % ids.length]; };
+
   root.DATA = D;
   if (typeof module !== 'undefined') module.exports = D;
 })(typeof window !== 'undefined' ? window : globalThis);
