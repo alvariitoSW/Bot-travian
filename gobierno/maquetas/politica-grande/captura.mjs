@@ -9,7 +9,7 @@ const AQUI = dirname(fileURLToPath(import.meta.url)), RAIZ = join(AQUI, '..', '.
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
 const args = process.argv.slice(2), op = Object.fromEntries(args.filter(a => a.includes('=')).map(a => a.split(/=(.*)/s).slice(0, 2)));
 const srv = await new Promise(ok => { const s = createServer(async (req, res) => { try { let r = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^([/\\])+/, ''); if (r === '' || r.endsWith('/')) r += 'index.html'; if (r.startsWith('..')) throw new Error('fuera'); const d = await readFile(join(RAIZ, r)); res.writeHead(200, { 'Content-Type': TIPOS[extname(r)] || 'application/octet-stream' }); res.end(d); } catch (e) { res.writeHead(404); res.end(); } }); s.listen(args.includes('--servir') ? 8380 : 0, '127.0.0.1', () => ok(s)); });
-const URL0 = 'http://127.0.0.1:' + srv.address().port + '/gobierno/maquetas/politica-grande/';
+const URL0 = 'http://127.0.0.1:' + srv.address().port + '/gobierno/maquetas/politica-grande/?semilla=1';
 if (args.includes('--servir')) { console.log('Sirviendo en ' + URL0); await new Promise(() => {}); }
 const { chromium } = createRequire(join(RAIZ, 'x.js'))('playwright');
 const br = await chromium.launch();

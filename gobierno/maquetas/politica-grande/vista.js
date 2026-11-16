@@ -1,15 +1,16 @@
 // EV2 · pantalla de «Gobernar Roma». Sin relojes: todo avanza cuando el jugador toca.
 import * as R from './reglas.js';
+const SEMILLA_FIJA = +new URLSearchParams(location.search).get('semilla') || 0, semillaNueva = () => SEMILLA_FIJA || (Date.now() % 2147483646) + 1; /* EV4a: cada partida, un año distinto */
 import * as A from './arte.js';
 const { BANDOS, CARGOS, ORDEN_CARGOS, ESTACIONES, PERSONAS } = R;
-const CLAVE = 'aqvila-maqueta-ev2', BS = ['ter', 'mer', 'mil'];
+const CLAVE = 'aqvila-maqueta-ev4a', BS = ['ter', 'mer', 'mil'];
 const $ = i => document.getElementById(i);
 let e, ui, ov = {}, aviso = '', ultimoLugar = null;
 const nuevoUI = () => ({ lugar: 'casa', paso: null, res: {}, rec: null, yo: {}, opc: null, tr: [], visto: {}, ajusteVisto: false });
 function guardar() { try { localStorage.setItem(CLAVE, JSON.stringify({ e, ui })); } catch (_) { } }
 function cargar() {
   try { const s = JSON.parse(localStorage.getItem(CLAVE)); if (s && s.e && s.ui && s.e.cargos && s.e.marcas) { e = s.e; ui = Object.assign(nuevoUI(), s.ui); return; } } catch (_) { }
-  e = R.crear(); ui = nuevoUI();
+  e = R.crear(semillaNueva()); ui = nuevoUI();
 }
 const num = n => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 const pers = id => PERSONAS.find(p => p.id === id);
@@ -160,7 +161,7 @@ function curiaHTML() {
     let h = `<div class="cur">${A.curia()}${asientos(v, rev)}</div>${ley}${cont(sum('si'), sum('duda'), sum('no'))}`;
     if (rev) return h + cabeza;
     const pend = !!e.marcas.pendiente, tit = pend ? 'El Senado no se decide' : res.salio === 'cruzar' || res.salio === 'senado' ? 'Roma cruza a Sicilia' : (opts.find(o => o.id === res.salio) || { titulo: as.titulo }).titulo;
-    h += `<div class="pan res"><h2>${res.sale ? 'Aprobado' : 'No sale'}: ${tit}</h2><p>${res.linea}</p>${chips(res.cambios)}${res.extra ? `<p style="margin-top:8px">${res.extra.linea}</p>${chips(res.extra.cambios)}` : ''}`;
+    h += `<div class="pan res"><h2>${pend ? tit : res.sale ? 'Aprobado: ' + tit : res.salio ? 'Tu propuesta cae. Sale: ' + tit : 'Tu propuesta cae: no sale nada'}</h2><p>${res.linea}</p>${chips(res.cambios)}${res.extra ? `<p style="margin-top:8px">${res.extra.linea}</p>${chips(res.extra.cambios)}` : ''}`;
     if (res.tr.length) h += `<div class="chips">` + res.tr.map(t => R.tratos(e).find(x => x.id === t)).map(t => `<span class="chip b">${A.icono('promesa', 16)}${t.titulo}</span>`).join('') + `</div>`;
     h += `</div>`;
     if (pend) h += `<div class="pan"><b>Qué haces</b><div class="suave" style="font-size:13px">Llevarlo al pueblo: ${chips(simulaPueblo('pueblo')).replace('chips', 'chips')}</div><div class="suave" style="font-size:13px;margin-top:6px">Acatar al Senado: ${chips(simulaPueblo('acatar'))}</div></div>`;
@@ -233,12 +234,12 @@ const acciones = {
     const r = R.votar(e, opc, tr); ui.res[e.estacion] = { sale: r.sale, salio: r.salio, votos: r.votos, cambios: r.cambios, linea: r.linea, tr }; ui.rec = { est: e.estacion, paso: 0 };
   },
   revela: () => { ui.rec.paso++; if (ui.rec.paso >= 3) ui.rec = null; },
-  elegir: x => { const r = R.elegir(e, x); ui.res[e.estacion].extra = r; ui.res[e.estacion].sale = x === 'pueblo'; ui.res[e.estacion].salio = x === 'pueblo' ? 'cruzar' : 'acatar'; },
+  elegir: x => { const r = R.elegir(e, x); ui.res[e.estacion].extra = r; const va = x === 'pueblo' && r.sale !== false; ui.res[e.estacion].sale = va; ui.res[e.estacion].salio = va ? 'cruzar' : 'acatar'; },
   consultas: () => { const t = document.getElementById('consultas'); if (t) t.scrollIntoView(); },
   cerrar: () => { const d = e.estacion; R.cerrarEstacion(e); if (d === 2) R.cerrarEstacion(e); ui.paso = { desde: d }; ui.lugar = 'casa'; ui.opc = null; ui.tr = []; ui.rec = null; ov = {}; ultimoLugar = null; },
   entrar: () => { ui.paso = null; ui.lugar = 'casa'; $('cuerpo').scrollTop = 0; },
-  otro: () => { const aj = e.ajuste; e = R.crear(); R.ajustar(e, aj); ui = Object.assign(nuevoUI(), { ajusteVisto: true }); ultimoLugar = null; },
-  reiniciar: () => { e = R.crear(); ui = nuevoUI(); ov = {}; ultimoLugar = null; },
+  otro: () => { const aj = e.ajuste; e = R.crear(semillaNueva()); R.ajustar(e, aj); ui = Object.assign(nuevoUI(), { ajusteVisto: true }); ultimoLugar = null; },
+  reiniciar: () => { e = R.crear(semillaNueva()); ui = nuevoUI(); ov = {}; ultimoLugar = null; },
 };
 document.addEventListener('click', ev => {
   const b = ev.target.closest('[data-a]'); if (!b || b.disabled) return; ev.preventDefault();
