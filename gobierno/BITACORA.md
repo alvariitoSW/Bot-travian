@@ -203,7 +203,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
-- 16/11/2026 — **EV4a hecha, se pasó de gasto (≈2,3 M sobre 1,6 M)**: las reglas nuevas de política pasan sus robots, pero no las ha revisado un segundo agente. ¿Se revisan antes de dibujar las pantallas? (A) sí, un revisor ahora (≈0,15 M); (B) no, que las revise EV4b al dibujar.
+- 16/11/2026 — **EV4a hecha, se pasó de gasto (2,5 M sobre 1,6 M)**: las reglas nuevas de política pasan sus robots, pero no las ha revisado un segundo agente. ¿Se revisan antes de dibujar las pantallas? (A) sí, un revisor ahora (≈0,15 M); (B) no, que las revise EV4b al dibujar.
 - 16/11/2026 — **Probar la batalla que empieza de lejos (GM7)**: https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/guerra-lejos/ . (1) ¿Así empieza la batalla? (A) sí; (B) sí, con cambios; (C) no. (2) Acercarse dura unos 40 s: (A) está bien; (B) más largo; (C) más corto. (3) El testudo en campo abierto no es de esta época (solo se usaba contra murallas): (A) se queda, marcado como licencia de juego; (B) solo «Escudos».
 
 ## Propuestas por aprobar
