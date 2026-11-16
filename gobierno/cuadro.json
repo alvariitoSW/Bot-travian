@@ -1268,6 +1268,18 @@
       "titulo": "Política · EV1 Informe y maqueta de la parte política",
       "nota": "solo gobierno/estudios/ y gobierno/maquetas/politica/",
       "url": "https://claude.ai/code/session_01QiKC38TTo27r9G2BX3tAyN"
+    },
+    {
+      "tarea": "GC2",
+      "titulo": "Juez de la batalla que se juega de verdad",
+      "nota": "solo gobierno/",
+      "url": "https://claude.ai/code/session_01QiKC36PzPJgjr1dDmEGFxu"
+    },
+    {
+      "tarea": "GC5",
+      "titulo": "Sonido y más rivales con su carácter",
+      "nota": "solo js/guerra.js, la vista de guerra, sonido y registro.js",
+      "url": "https://claude.ai/code/session_01QiKC39rf6fuo1PUF7uQt8c"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
