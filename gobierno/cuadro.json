@@ -1176,10 +1176,10 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "GC3",
-      "titulo": "Reglas de la batalla nueva dentro del juego",
-      "nota": "Solo el motor nuevo en js/, su prueba y su juez; no toca ui.js, game.js ni la batalla que sale hoy",
-      "url": "https://claude.ai/code/session_01QiKC37YnzYY23ieYMVzuFx"
+      "tarea": "GC4",
+      "titulo": "Pantalla de la batalla nueva en el juego",
+      "nota": "Toca js/ui.js, js/game.js y sw.js; al cerrar abre GC2 y GC5",
+      "url": "https://claude.ai/code/session_01QiKC36WsNhRwoAZeuo8U9D"
     },
     {
       "tarea": "GM1",
