@@ -1627,6 +1627,12 @@
       "titulo": "Batalla mejorada · GM32 Ingeniería inversa de cómo se ve Total War (estudio)",
       "nota": "solo gobierno/estudios/ y, si cabe, gobierno/maquetas/guerra-aspecto/ (nueva)",
       "url": "https://claude.ai/code/session_01QiKC374G1epbWqwNyFv2G1"
+    },
+    {
+      "tarea": "K7",
+      "titulo": "Concurso K7 · Ciudades y fuera de ellas (rutas, diplomacia, tropas)",
+      "nota": "solo gobierno/maquetas/concurso9/ y estudios",
+      "url": "https://claude.ai/code/session_01QiKC38UTqKFjwmrHC9iifb"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
