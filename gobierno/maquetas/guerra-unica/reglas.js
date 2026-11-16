@@ -1,4 +1,4 @@
-/* Maqueta GM7 «guerra de lejos» — REGLAS. Sin pantalla: corre igual en Node (prueba.mjs) y en el navegador.
+/* Maqueta GM11/GM21 «guerra única» — REGLAS. Sin pantalla: corre igual en Node (prueba.mjs) y en el navegador.
    Es la batalla de tres cuerpos de GC1/GM1 (ala izquierda, centro, ala derecha; tres líneas que se relevan) con esto nuevo:
    1) EMPIEZA DE LEJOS. Las líneas salen a DIST0 metros. Delante van los tiradores (vélites, honderos): tiran, y se
       retiran por los huecos antes del choque. Cada cuerpo choca cuando llega: no todos a la vez.
@@ -6,6 +6,8 @@
       despacio) o testudo (casi inmune, agota, casi no anda, y si le chocan dentro se deshace).
    3) UNA FICHA POR TROPA. Cada tropa es una línea de TROPAS que dice su arma (ARMAS), su formación (FORMACIONES) y su
       cartón. Un ejército es una lista de nombres (EJERCITOS). Para añadir una tropa o un arma no se toca el motor ni el dibujo.
+   4) EL PLAN (GM21). Antes de marchar se elige: fondo de cada cuerpo (ancho, normal, hondo), disposición (recta, centro fuerte,
+      ala fuerte, centro atrás), dónde espera la caballería y si los vélites van delante. Sin plan, todo es como antes.
    El jugador da las mismas pocas órdenes; los cuatro botones dicen otra cosa según el cuerpo esté lejos o luchando. */
 
 export const LADO_ROMA = 0, LADO_ENEMIGO = 1;
@@ -83,12 +85,50 @@ export const ORDENES = {
   caballeria: { que: 'Caballería', sub: 'carga al flanco' },
 };
 
+
+/* EL PLAN (GM21). Lo que se elige antes de marchar. Las pantallas sacan de aquí los nombres y las líneas «qué da y qué cuesta».
+   FONDOS: razon = cuántas veces más ancha que honda se dibuja cada línea (es lo que se pasa a formacion.filesDe) · anchura = frente relativo
+   (decide quién desborda a quién) · frente = cuánto pega de frente · moral = cuánto deprisa cae la moral · relevo = cuánto tarda el relevo */
+export const FONDOS = {
+  ancho:  { n: 'Ancho',  razon: 6,    anchura: 1.35, frente: 1.1, moral: 1.4, relevo: 1.6,  sub: 'Pega más y desborda; cede antes y relevar tarda' },
+  normal: { n: 'Normal', razon: 3.2,  anchura: 1,    frente: 1,    moral: 1,   relevo: 1,    sub: 'Equilibrado: ni gana ni pierde nada' },
+  hondo:  { n: 'Hondo',  razon: 1.25, anchura: 0.7,  frente: 0.95, moral: 0.7, relevo: 0.8, sub: 'Aguanta y releva deprisa; pega menos y lo desbordan' },
+};
+/* DISPOSICIONES. grande = cuerpo que recibe hombres de los otros · atras = metros que sale más atrás cada cuerpo (z mayor) · pasa = parte de los hombres que cede cada cuerpo */
+export const DISPOSICIONES = {
+  'recta':         { n: 'Línea recta',       sub: 'Los tres cuerpos, iguales y a la par',                 grande: -1, atras: [0, 0, 0],   pasa: [0, 0, 0] },
+  'centro-fuerte': { n: 'Centro fuerte',     sub: 'Más hombres al centro; las alas, más flacas',          grande: 1,  atras: [0, 0, 0],   pasa: [0.2, 0, 0.2] },
+  'ala-izquierda': { n: 'Ala izquierda fuerte', sub: 'Golpe a la izquierda; la derecha, rehusada y atrasada', grande: 0,  atras: [0, 0, 30],  pasa: [0, 0.2, 0.2] },
+  'ala-derecha':   { n: 'Ala derecha fuerte',   sub: 'Golpe a la derecha; la izquierda, rehusada y atrasada', grande: 2,  atras: [30, 0, 0],  pasa: [0.2, 0.2, 0] },
+  'centro-atras':  { n: 'Centro atrás',      sub: 'Las alas chocan antes; el centro llega tarde',         grande: -1, atras: [0, 35, 0],  pasa: [0, 0, 0] },
+};
+/* SITIOS_CABALLERIA. adelanto = segundos que antes (negativo) o después llega la carga a cada sector · mitad = el golpe vale la mitad */
+export const SITIOS_CABALLERIA = {
+  reserva:   { n: 'En reserva',    sub: 'Espera tras el centro; llega igual a todas partes',   llega: [0, 0, 0],   mitad: false },
+  izquierda: { n: 'Ala izquierda', sub: 'Llega antes a la izquierda y tarda en las demás',     llega: [-2, 2, 2],  mitad: false },
+  derecha:   { n: 'Ala derecha',   sub: 'Llega antes a la derecha y tarda en las demás',       llega: [2, 2, -2],  mitad: false },
+  repartida: { n: 'Repartida',     sub: 'Llega antes a las dos alas, pero el golpe vale la mitad', llega: [-1, 0, -1], mitad: true },
+};
+export const VELITES = { true: { n: 'Sí', sub: 'Tiran y se retiran por los huecos antes del choque' }, false: { n: 'No', sub: 'Quedan tras los triarios: ni tiran ni caen' } };
+export const PLAN_BASE = { fondo: ['normal', 'normal', 'normal'], disposicion: 'recta', caballeria: 'reserva', velites: true };
+/* Plan completo y válido a partir de uno parcial (o de ninguno) */
+export function planNormal(p) {
+  const b = { fondo: PLAN_BASE.fondo.slice(), disposicion: PLAN_BASE.disposicion, caballeria: PLAN_BASE.caballeria, velites: PLAN_BASE.velites };
+  if (!p) return b;
+  if (p.fondo) { const f = Array.isArray(p.fondo) ? p.fondo : [p.fondo, p.fondo, p.fondo]; for (let i = 0; i < 3; i++) if (FONDOS[f[i]]) b.fondo[i] = f[i]; }
+  if (DISPOSICIONES[p.disposicion]) b.disposicion = p.disposicion;
+  if (SITIOS_CABALLERIA[p.caballeria]) b.caballeria = p.caballeria;
+  if (typeof p.velites === 'boolean') b.velites = p.velites;
+  return b;
+}
+
 /* PREMIO Y CASTIGO (GM6). Cuánto sube o baja el ÁNIMO DE LA LEGIÓN (B.animo, 0 a 1, empieza en 0,5) cada acierto o error del mando */
 export const MANDO = { relevoBien: 0.06, relevoMal: 0.06, ordenBien: 0.03, ordenMal: 0.05, contraorden: 0.03, cubre: 0.03, escudos: 0.02, vuelve: 0.004, deshecha: 0.07, costado: 0.05,
   empuje: 6, empujeFuerza: 1.2, fuerza: 0.2, moral: 0.012, enfria: 6 };
 const CEDE = 0.5;                  // un cuerpo que ha cedido tanto terreno descubre el costado de su vecino
 export const GOLPE = { costado: { dano: 0.5, moral: 0.01 }, espalda: { dano: 0.9, moral: 0.035 } };   // lo que agrava un golpe de lado o de atrás (por la «flanco» de la formación)
 const BRIO = 0.05;                 // cada cuerpo enemigo llega un poco mejor o peor según el día (±7 %)
+export const DESBORDE = { razon: 1.25, desde: 6, peso: 0.1 };   // quien tiene un frente 25 % mayor que el de enfrente le llega de costado, a media fuerza, desde 6 s tras el choque
 export const DIST0 = 150;         // metros entre las dos líneas al empezar
 const CONTACTO = 1;               // a esta distancia ya se lucha cuerpo a cuerpo
 export const T_RELEVO = 3.2;             // lo que tarda una línea en pasar por los huecos de la otra
@@ -105,19 +145,31 @@ function cuerpo(lado, i, tipos, k) {
   const linea = t => { const h = Math.round(TROPAS[t].hombres * k); return { tipo: t, hombres: h, max: h, fatiga: 0 }; };
   const del = tipos.filter(t => FORMACIONES[TROPAS[t].forma].delante)[0], lineas = tipos.filter(t => t !== del).map(linea);
   const tir = del ? Object.assign(linea(del), { estado: 'sale', av: 3, mun: TROPAS[del].mun, blanco: null }) : null;   // los que van delante a tirar
-  return { lado, i, lineas, tir, z: DIST0 / 2, postura: 'avanzar', moral: 1, roto: false, relevo: 0, golpe: 0, impulso: 0, frenada: 0, fuego: -9, pila: false, flanqueado: false, flanco: { costado: 0, espalda: 0, cubre: false, causa: '' }, hueco: false, desorden: 0, empuje: 0, relevoDe: 0, tOrd: -9, tBien: -9, tFlanco: 0, golpePor: '', libre: 0, tPost: 0,
+  return { lado, i, lineas, tir, z: DIST0 / 2, postura: 'avanzar', moral: 1, roto: false, relevo: 0, golpe: 0, impulso: 0, frenada: 0, fuego: -9, pila: false, flanqueado: false, ff: FONDOS.normal, nf: 'normal', anch: lineas.length && TROPAS[lineas[0].tipo].forma === 'falange' ? 0.85 : 1, flanco: { costado: 0, espalda: 0, cubre: false, causa: '' }, hueco: false, desorden: 0, empuje: 0, relevoDe: 0, tOrd: -9, tBien: -9, tFlanco: 0, golpePor: '', libre: 0, tPost: 0,
     inicial: lineas.reduce((a, l) => a + l.max, 0) + (tir ? tir.max : 0) };
 }
 
 export const BASE_HOMBRES = 1020;   // romanos de la batalla base (tres cuerpos de 40 vélites + 120 + 120 + 60)
-export function nueva(semilla, hombresRoma, rival, cuerpos) {   // cuerpos = [[3 cuerpos de Roma], [3 del rival]] de nombres de tropa: para probar duelos
+export function nueva(semilla, hombresRoma, rival, cuerpos, plan) {   // cuerpos = [[3 cuerpos de Roma], [3 del rival]] de nombres de tropa: para probar duelos
   const k = Math.max(0.3, (hombresRoma || BASE_HOMBRES) / BASE_HOMBRES), lejos = 2.2 * (Math.sqrt(Math.max(1, k)) - 1);   // el campo crece: los jinetes tardan más en llegar
   const yo = EJERCITOS.roma, el = EJERCITOS[rival] || EJERCITOS.cartago;
   const B = { k, lejos, t: 0, fase: 'lejos', rnd: azar(semilla || 7), sect: [], eventos: [], animo: 0.5, mando: { bien: 0, mal: 0 }, fijo: false, dt: 0, resultado: null, ordenes: 0, rival: el.n, porTiro: [0, 0], porTiroLinea: [0, 0],
-    cab: { tipo: yo.jinetes, estado: 'lista', sect: -1, t: 0, hombres: Math.round(TROPAS[yo.jinetes].hombres * k) },
+    cab: { tipo: yo.jinetes, estado: 'lista', sect: -1, t: 0, total: 3, mitad: 1, hombres: Math.round(TROPAS[yo.jinetes].hombres * k) },
     num: { tipo: el.jinetes, estado: 'lejos', sect: -1, t: 0, veces: 0, proxima: 1e9, hombres: Math.round(TROPAS[el.jinetes].hombres * k) } };
   for (let i = 0; i < 3; i++) { B.sect.push({ i, frente: 0, dist: DIST0, tChoque: -1, c: [cuerpo(0, i, (cuerpos ? cuerpos[0] : yo.cuerpos)[i], k), cuerpo(1, i, (cuerpos ? cuerpos[1] : el.cuerpos)[i], k)] }); B.sect[i].c[1].brio = 1 + BRIO * (2 * B.rnd() - 1); }
+  B.plan = planNormal(plan); aplicarPlan(B);
   return B;
+}
+
+/* El plan en las reglas: fondo de cada cuerpo, reparto de hombres, quién sale más atrás y si los vélites van delante */
+function aplicarPlan(B) {
+  const P = B.plan, tropas = c => c.lineas.concat(c.tir ? [c.tir] : []), D = DISPOSICIONES[P.disposicion], cs = B.sect.map(s => s.c[0]);
+  cs.forEach((c, i) => { c.nf = P.fondo[i]; c.ff = FONDOS[c.nf]; c.anch = c.ff.anchura; });
+  const cede = cs.map((c, i) => tropas(c).map(l => Math.round(l.max * D.pasa[i])));      // lo que cede cada tropa de cada cuerpo, calculado antes de mover a nadie
+  const dest = P.disposicion === 'centro-fuerte' ? [1, 1, 1] : P.disposicion === 'ala-izquierda' ? [0, 0, 0] : P.disposicion === 'ala-derecha' ? [2, 2, 2] : null;
+  if (dest) cs.forEach((c, i) => { if (dest[i] === i) return; tropas(c).forEach((l, j) => { const m = cede[i][j]; l.max -= m; l.hombres -= m; const z = tropas(cs[dest[i]])[j]; z.max += m; z.hombres += m; }); });
+  cs.forEach((c, i) => { c.z += D.atras[i]; c.inicial = tropas(c).reduce((a, l) => a + l.max, 0); B.sect[i].dist = c.z + B.sect[i].c[1].z; });
+  if (!P.velites) for (const c of cs) if (c.tir) { c.tir.estado = 'fuera'; c.tir.av = 0; c.tir.atras = true; }       // se quedan detrás: ni tiran ni los alcanzan
 }
 
 export const frente = c => c.lineas[0];
@@ -136,7 +188,7 @@ function ev(B, tipo, sect, texto, mas) { B.eventos.push(Object.assign({ tipo, se
 export function fuerza(c, rival) {
   const l = frente(c), T = TROPAS[l.tipo], F = FORMACIONES[T.forma], R = rival && TROPAS[frente(rival).tipo], clavada = R && ARMAS[R.arma].frena && rival.postura === 'aguantar';
   const fondo = Math.max(0.3, Math.min(1, l.hombres / (0.4 * l.max)));          // pega con todo hasta que la línea se queda en el 40 %
-  return T.cal * fondo * (1 - 0.55 * l.fatiga) * (c.postura === 'empujar' ? 1.25 : 0.8) * (c.relevo > 0 ? 0.7 : 1) * (0.7 + 0.3 * c.moral) * (c.impulso > 0 && !clavada ? 1.15 : 1) * F.frente * (R && T.arma === 'espada' && R.forma === 'falange' ? 0.8 : 1) * (c.frenada > 0 ? 0.8 : 1) * (c.brio || 1) * (c.empuje > 0 ? MANDO.empujeFuerza : 1) * (1 - 0.15 * c.flanco.costado - 0.25 * c.flanco.espalda);   // quien se vuelve a mirar atrás no pega delante
+  return T.cal * fondo * (1 - 0.55 * l.fatiga) * (c.postura === 'empujar' ? 1.25 : 0.8) * (c.relevo > 0 ? 0.7 : 1) * (0.7 + 0.3 * c.moral) * (c.impulso > 0 && !clavada ? 1.15 : 1) * F.frente * (R && T.arma === 'espada' && R.forma === 'falange' ? 0.8 : 1) * (c.frenada > 0 ? 0.8 : 1) * (c.brio || 1) * c.ff.frente * (c.empuje > 0 ? MANDO.empujeFuerza : 1) * (1 - 0.15 * c.flanco.costado - 0.25 * c.flanco.espalda);   // quien se vuelve a mirar atrás no pega delante
 }
 
 /* Cuánto agrava el daño lo que le llega por el costado o la espalda (1 = nada). La reserva que se vuelve lo rebaja */
@@ -191,11 +243,14 @@ function flancos(B) {
       }
       c.hueco = hueco; if (hueco) { costado = 1; causa = causa || 'hueco'; }
       if (c.golpe > 0 && c.golpePor) { costado = 1; causa = 'jinetes'; }
+      const o = s.c[1 - c.lado];                                      // DESBORDE: el frente de enfrente es un 25 % más largo que el mío y ya llevan 6 s luchando
+      if (!lejos(s) && s.tChoque >= 0 && B.t - s.tChoque >= DESBORDE.desde && !o.roto && o.anch >= c.anch * DESBORDE.razon && costado < DESBORDE.peso) { costado = DESBORDE.peso; causa = 'desborde'; }
     }
     fl.costado = costado; fl.espalda = espalda; fl.causa = causa;
     fl.cubre = costado > 0 && !!FORMACIONES[TROPAS[frente(c).tipo].forma].cubre && c.postura === 'aguantar' && c.lineas.length > 1 && !lejos(s);   // la reserva se vuelve
     const ahora = costado > 0 ? 'costado' : '';
     if (ahora && !antes && causa === 'hueco') ev(B, 'flanco', s.i, c.lado === 0 ? '¡Te entran por el hueco ' + DONDE[s.i] + '!' : 'Hueco en su línea ' + DONDE[s.i], { lado: c.lado, por: ahora, causa });
+    if (ahora && !antes && causa === 'desborde') ev(B, 'flanco', s.i, c.lado === 0 ? 'Te desbordan ' + DONDE[s.i] : 'Desbordas su línea ' + DONDE[s.i], { lado: c.lado, por: ahora, causa });
     if (ahora && !antes && fl.cubre && c.lado === 0) ev(B, 'cubre', s.i, 'Tu reserva se vuelve y cubre el costado', { lado: 0 });
     /* premio y castigo: tapar el costado a tiempo cuenta; dejarlo al aire seis segundos, pudiendo taparlo, también */
     if (c.lado === 0 && !c.roto) {
@@ -242,10 +297,10 @@ export function ordenar(B, i, orden) {
   else if (POSTURAS[orden]) { c.postura = orden; ev(B, 'orden', i, orden === 'avanzar' ? '¡Adelante!' : orden === 'escudos' ? 'Escudos arriba' : 'Forman el testudo', { orden }); }
   else if (orden === 'empujar' || orden === 'aguantar') { c.postura = orden; ev(B, 'orden', i, orden === 'empujar' ? '¡Adelante!' : 'Escudos juntos', { orden }); }
   else if (orden === 'relevo') {
-    const j = juicioRelevo(B, i); c.lineas.push(c.lineas.shift()); c.relevo = c.relevoDe = T_RELEVO; const entran = TROPAS[frente(c).tipo].uno;
-    if (j === 'a-tiempo') { c.relevo = c.relevoDe = T_RELEVO * 0.6; c.empuje = MANDO.empuje; c.moral = Math.min(1, c.moral + 0.1); }      // limpio: entran antes y con empuje
+    const j = juicioRelevo(B, i); c.lineas.push(c.lineas.shift()); const TR = T_RELEVO * c.ff.relevo; c.relevo = c.relevoDe = TR; const entran = TROPAS[frente(c).tipo].uno;
+    if (j === 'a-tiempo') { c.relevo = c.relevoDe = TR * 0.6; c.empuje = MANDO.empuje; c.moral = Math.min(1, c.moral + 0.1); }      // limpio: entran antes y con empuje
     else if (j === 'sin-necesidad') { c.desorden = Math.min(1, c.desorden + 0.25); c.moral = Math.min(1, c.moral + 0.05); }
-    else if (j === 'bajo-carga') { c.relevo = c.relevoDe = T_RELEVO * 1.4; c.desorden = Math.min(1, c.desorden + 0.35); c.moral -= 0.05; }
+    else if (j === 'bajo-carga') { c.relevo = c.relevoDe = TR * 1.4; c.desorden = Math.min(1, c.desorden + 0.35); c.moral -= 0.05; }
     else c.moral = Math.min(1, c.moral + (j === '' ? 0.05 : 0.1));
     ev(B, 'relevo', i, 'Entran ' + entran, { orden, juicio: j });
     if (j === 'a-tiempo') mando(B, i, true, 'Relevo a tiempo: entran ' + entran + ' con empuje', MANDO.relevoBien);
@@ -254,7 +309,7 @@ export function ordenar(B, i, orden) {
     else if (j === 'sin-aliento') mando(B, i, false, 'Entran ' + entran + ' sin aliento', MANDO.relevoMal / 2);
   } else if (orden === 'caballeria') {
     const t = tirando(s.c[1]);                                             // si sus tiradores siguen delante, la carga va a por ellos
-    B.cab.estado = 'yendo'; B.cab.sect = i; B.cab.t = 3 + B.lejos + (lejos(s) ? 2.5 : 0);
+    const SC = SITIOS_CABALLERIA[B.plan.caballeria]; B.cab.estado = 'yendo'; B.cab.sect = i; B.cab.t = Math.max(0.8, 3 + B.lejos + (lejos(s) ? 2.5 : 0) + SC.llega[i]); B.cab.total = B.cab.t; B.cab.mitad = SC.mitad ? 0.5 : 1;
     ev(B, 'caballeria', i, t ? 'Los jinetes van a por ' + TROPAS[t.tipo].uno : 'Los jinetes cargan ' + DONDE[i], { orden });
   }
   return '';
@@ -376,7 +431,7 @@ export function paso(B, dt) {
       let d = f * K_BAJAS * B.k * dt * ruido * (T.forma === 'falange' ? FORMACIONES.falange.recibe + (1 - FORMACIONES.falange.recibe) * c.desorden : FORMACIONES[T.forma].recibe) * (c.postura === 'aguantar' ? (T.firme ? 0.45 : 0.6) : 1) * agravante(c) * (c.golpe > 0 && !c.golpePor ? 1.4 : 1);
       if (c.postura === 'empujar' && rival.postura === 'aguantar') d *= 1.12; if (c.postura === 'empujar' && rival.postura === 'empujar') d *= 1.2;      // quien se lanza contra un muro de escudos paga más
       const total = c.inicial, fl = c.flanco, F = FORMACIONES[T.forma], kc = fl.cubre ? 0.4 : 1, pesa = Math.max(0.3, Math.min(1.2, hombres(rival) / Math.max(1, hombres(c))));   // un puñado de hombres en tu costado asusta menos
-      c.moral -= d / total * 1.2 + GOLPE.costado.moral * fl.costado * F.flanco * kc * pesa * dt + GOLPE.espalda.moral * fl.espalda * F.flanco * kc * pesa * dt + (f > fuerza(c, rival) ? 0.013 * (f - fuerza(c, rival)) * dt : 0) + (l.fatiga > 0.85 ? 0.006 * dt : 0);
+      c.moral -= (d / total * 1.2 + GOLPE.costado.moral * fl.costado * F.flanco * kc * pesa * dt + GOLPE.espalda.moral * fl.espalda * F.flanco * kc * pesa * dt + (f > fuerza(c, rival) ? 0.013 * (f - fuerza(c, rival)) * dt : 0) + (l.fatiga > 0.85 ? 0.006 * dt : 0)) * c.ff.moral;
       if (c.postura === 'aguantar' && !fl.costado && !fl.espalda) c.moral += 0.004 * dt;
       c.desorden = Math.max(0, Math.min(1, c.desorden + ((c.postura === 'empujar' ? 0.03 : -0.05) + 0.07 * (fl.costado + fl.espalda) * kc) * dt));   // el orden de las filas se abre al avanzar y con peligro de lado; se rehace a pie firme
       l.fatiga = Math.max(0, Math.min(1, l.fatiga + (c.postura === 'empujar' ? BASE_FATIGA * T.cansa : -BASE_FATIGA * 0.22) * dt));
@@ -400,8 +455,8 @@ export function paso(B, dt) {
       if (cab.estado === 'yendo') {
         const s = B.sect[cab.sect], e = s.c[1], t = tirando(e);
         if ((num.estado === 'hostiga' || num.estado === 'llega') && num.sect === cab.sect) { num.estado = 'lejos'; num.proxima = B.t + 34 + B.rnd() * 10; ev(B, 'numidas-fuera', cab.sect, 'Tus jinetes espantan a ' + TROPAS[num.tipo].uno); }
-        else if (t) { t.hombres *= 0.45; t.estado = 'fuera'; t.huido = true; t.blanco = null; e.moral -= 0.06; ev(B, 'impacto', cab.sect, 'Tus jinetes barren a ' + TROPAS[t.tipo].uno, { a: 'tir' }); }
-        else if (!e.roto) { e.moral -= 0.2; bajas(e, 22 * B.k); e.golpe = 6; e.golpePor = 'costado'; ev(B, 'impacto', cab.sect, 'Carga en el flanco enemigo'); if (e.moral <= 0) romper(B, s, 1); }
+        else if (t) { t.hombres *= 1 - 0.55 * cab.mitad; t.estado = 'fuera'; t.huido = true; t.blanco = null; e.moral -= 0.06 * cab.mitad; ev(B, 'impacto', cab.sect, 'Tus jinetes barren a ' + TROPAS[t.tipo].uno, { a: 'tir' }); }
+        else if (!e.roto) { e.moral -= 0.2 * cab.mitad; bajas(e, 22 * B.k * cab.mitad); e.golpe = 6; e.golpePor = 'costado'; ev(B, 'impacto', cab.sect, 'Carga en el flanco enemigo'); if (e.moral <= 0) romper(B, s, 1); }
         cab.estado = 'cargando'; cab.t = 4;
       } else if (cab.estado === 'cargando') { cab.estado = 'volviendo'; cab.t = T_CABALLERIA - 7; }
       else { cab.estado = 'lista'; cab.sect = -1; ev(B, 'caballeria-lista', -1, 'Jinetes listos'); }
@@ -410,7 +465,7 @@ export function paso(B, dt) {
   /* Jinetes rivales: avisan, rodean un ala y la hostigan hasta que alguien los eche o se cansen. Solo cuando ya se lucha */
   if (num.estado === 'lejos' && B.t >= num.proxima && num.veces < 3) {
     const alas = [0, 2].filter(i => !B.sect[i].c[0].roto);
-    if (alas.length) { alas.sort((a, b) => B.sect[a].c[0].moral - B.sect[b].c[0].moral); num.sect = B.rnd() < 0.7 ? alas[0] : alas[alas.length - 1]; num.estado = 'llega'; num.t = 5 + B.lejos; num.veces++; ev(B, 'numidas-aviso', num.sect, '¡' + May(TROPAS[num.tipo].n) + ' ' + DONDE[num.sect] + '!'); }
+    if (alas.length) { alas.sort((a, b) => B.sect[a].c[0].moral - B.sect[b].c[0].moral); num.sect = B.rnd() < 0.7 ? alas[0] : alas[alas.length - 1]; num.estado = 'llega'; num.t = (5 + B.lejos) * ((B.plan.caballeria === 'izquierda' && num.sect === 0) || (B.plan.caballeria === 'derecha' && num.sect === 2) ? 2 : 1); num.veces++; ev(B, 'numidas-aviso', num.sect, '¡' + May(TROPAS[num.tipo].n) + ' ' + DONDE[num.sect] + '!'); }
     else num.proxima = B.t + 20;
   } else if (num.estado === 'llega') { num.t -= dt; if (num.t <= 0) { num.estado = 'hostiga'; num.t = 15; } }
   else if (num.estado === 'hostiga') {

@@ -32,7 +32,7 @@ async function abrir(url, w, h) {
 
 /* Una partida a la medida de un móvil: de lejos, el choque, el relevo pasando, el aviso de flanco (si sale) y la comprobación de que el relevo dura lo que dicen las reglas. */
 async function partida(nombre, w, h, completa) {
-  const { ctx, page, carga } = await abrir(URL0 + '?semilla=4242&hombres=5000', w, h), id = nombre;
+  const { ctx, page, carga } = await abrir(URL0 + '?directo=1&semilla=4242&hombres=5000', w, h), id = nombre;
   const g = (f, ...a) => page.evaluate(([f, a]) => window.__gc[f](...a), [f, a]);
   const foto = async n => { await espera(page, 1500); for (let i = 0; ; i++) { try { await page.screenshot({ path: prefijo + id + '-' + n + '.jpg', type: 'jpeg', quality: 80, timeout: 240000 }); break; } catch (e) { if (i >= 2) throw e; } } const e = await g('estado'); const cinta = await page.textContent('#cinta'); console.log(`${id}-${n}: t=${e.t.toFixed(0)} s · botones ${e.botones.join(', ')} · cinta «${cinta}»`); return { ...e, cinta }; };
   const pulsa = async sel => { await page.tap(sel); await espera(page, 250); };

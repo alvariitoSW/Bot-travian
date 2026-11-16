@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0b1016">
-<title>AQVILA · La batalla empieza de lejos (maqueta GM7)</title>
+<title>AQVILA · Despliegue y batalla (maqueta GM11/GM21)</title>
 <base href="../../../">
 <style>
 @font-face{font-family:Cinzel;font-weight:700;src:url("assets/fuentes/cinzel-700.woff2") format("woff2")}
@@ -82,6 +82,41 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 .gordo.b{background:linear-gradient(#3a2c14,#241b0d);border-color:var(--bronce)}
 #creditos{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 10px);font-size:10.5px;color:#8d846f;text-align:center;padding:0 16px}
 
+/* el despliegue (GM21): el plan antes de marchar */
+#plan{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);bottom:calc(env(safe-area-inset-bottom) + 8px);display:grid;gap:8px;padding:10px;border-radius:14px;background:var(--vidrio);border:1px solid var(--fil);box-shadow:0 4px 16px rgba(0,0,0,.5);pointer-events:auto}
+#pl-pie{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) minmax(0,1.3fr);gap:6px}
+.pest,.opc{min-height:44px;padding:4px 6px;border-radius:10px;background:linear-gradient(#3a2c14,#241b0d);border:1.5px solid var(--bronce);font:600 12.5px/1.15 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--marmol);display:flex;align-items:center;justify-content:center;text-align:center;overflow-wrap:anywhere}
+.pest.activa,.opc.activa{background:linear-gradient(#8a2a20,#5c1b15);border-color:var(--oro);color:#fff}
+#plan .gordo{min-width:0;height:48px;padding:0 8px;font-size:15px}
+.opc:active,.pest:active{transform:scale(.97)}
+#pl-formacion,#pl-plan{display:grid;gap:8px}
+.cr{display:grid;grid-template-columns:96px minmax(0,1fr);gap:4px 8px;align-items:center}
+.cr-n{font:700 12.5px Cinzel,Georgia,serif;color:var(--oro);white-space:nowrap}
+.seg{display:grid;grid-template-columns:repeat(var(--n,3),minmax(0,1fr));gap:5px}
+.cr-s{grid-column:1/-1;font-size:11.5px;line-height:1.25;color:#cdbf9d;min-height:14px}
+.pl-t{font:700 12.5px Cinzel,Georgia,serif;color:var(--oro);margin-bottom:3px}
+.seg5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.opc.esq{flex-direction:column;gap:3px;min-height:78px;padding:5px 3px;font-size:10.5px}
+.opc.esq svg{width:38px;height:26px;stroke:none;fill:currentColor}
+.pl-fila{display:grid;gap:8px}
+.pl-vel{display:grid;grid-template-columns:minmax(0,1fr) 128px;gap:8px;align-items:center}
+@media (orientation:landscape){
+  #plan{gap:6px 8px;padding:5px 8px;grid-template-columns:minmax(0,1fr) 150px}
+  #pl-formacion,#pl-plan{grid-column:1;grid-row:1}
+  #pl-pie{grid-column:2;grid-row:1;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(3,minmax(44px,1fr))}
+  #plan .gordo{height:auto}
+  #pl-formacion{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .cr{grid-template-columns:minmax(0,1fr)}
+  .cr-s{min-height:28px}
+  #pl-plan{gap:5px}
+  #pl-plan .cr-s{min-height:14px}
+  .pl-t{margin-bottom:2px}
+  .opc.esq{flex-direction:row;min-height:44px;gap:6px;font-size:11px;padding:3px 5px}
+  .opc.esq svg{width:30px;height:22px;flex:none}
+  .pl-fila{grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);align-items:start}
+  .pl-vel{grid-template-columns:minmax(0,1fr);gap:3px}
+}
+
 @media (orientation:landscape){
   #mando{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:end}
   .cuerpo{height:78px;padding:4px 6px 5px}
@@ -114,6 +149,11 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
       <button class="orden" data-o="caballeria"><span class="glifo">♞</span><span class="que">Caballería</span><span class="sub">carga al flanco</span></button>
     </div>
   </div>
+  <div id="plan" hidden>
+    <div id="pl-formacion"></div>
+    <div id="pl-plan" hidden></div>
+    <div id="pl-pie"><button class="pest activa" data-t="formacion">Formación</button><button class="pest" data-t="plan">Plan</button><button id="marchar" class="gordo">Marchar</button></div>
+  </div>
   <div id="salir" class="velo" hidden>
     <h1>¿Retirarse?</h1>
     <p>La legión sale del campo en orden. La batalla se da por perdida.</p>
@@ -130,7 +170,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
     <p id="fin-p"></p>
     <div class="cifras" id="fin-c"></div>
     <div class="fila"><button class="gordo" id="otra">Otra batalla</button></div>
-    <div id="creditos">Maqueta GM7 · Soldados y texturas de 0 A.D. (Wildfire Games, CC BY-SA 3.0)</div>
+    <div id="creditos">Maqueta GM11/GM21 · Soldados y texturas de 0 A.D. (Wildfire Games, CC BY-SA 3.0)</div>
   </div>
   <div id="carga" class="velo"><h1>AQVILA</h1><p id="carga-p">Formando la legión…</p></div>
 </div>

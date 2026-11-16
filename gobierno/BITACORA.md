@@ -221,6 +221,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
+- 16/11/2026 — **Probar el despliegue (GM21)**: https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/guerra-unica/ . (1) ¿Es lo que querías antes de marchar? (A) sí; (B) sí, con cambios; (C) no. (2) GM21 gastó el triple de lo previsto: ¿se pasa ahora el revisor y los jueces completos (unos 0,4 M más)? (A) sí; (B) no, esperar a mi prueba.
 - **GM7 · qué cambios en el arranque**: dijiste «sí, con cambios». ¿Qué es lo primero que cambiarías al empezar la batalla? (A) más separación entre los ejércitos; (B) más proyectiles o que se vean mejor; (C) que se pueda cubrirse antes o con más aviso; (D) otra cosa (dila).
 - **GM4 · qué falla en el arte**: dijiste que no se ve mejor. ¿Qué es lo primero que no te gusta? (A) las figuras aún se ven de polígonos; (B) el suelo, el relieve o la luz; (C) los colores y los estandartes; (D) se ve peor o va más lento que la de antes; (E) otra cosa (dila). Si no lo tienes claro, mándame una captura de tu móvil.
 

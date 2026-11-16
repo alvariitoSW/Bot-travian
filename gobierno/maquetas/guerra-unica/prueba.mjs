@@ -1,4 +1,4 @@
-/* Maqueta GM7 — prueba de las reglas con jugadores de mentira. Uso: node gobierno/maquetas/guerra-lejos/prueba.mjs
+/* Maqueta GM11/GM21 — prueba de las reglas con jugadores de mentira. Uso: node gobierno/maquetas/guerra-unica/prueba.mjs
    Lo que debe cumplirse: quien no hace nada pierde; quien solo avanza y empuja pierde; quien decide con cabeza y se cubre a
    tiempo gana casi siempre; el mismo jugador SIN cubrirse gana bastante menos y pierde más hombres; el que se queda en el
    testudo hasta el choque sale peor que el que lo deshace a tiempo; la batalla dura entre dos y cuatro minutos, con medio
@@ -212,6 +212,72 @@ console.log('\n== Relevo visible: duración y juicio ==');
   console.log(`   relevo visible: a tiempo ${dur['a-tiempo'].toFixed(2)} s, sin necesidad ${dur['sin-necesidad'].toFixed(2)} s, bajo la carga ${dur['bajo-carga'].toFixed(2)} s`);
   pide(dur['a-tiempo'] < dur['sin-necesidad'] && dur['sin-necesidad'] < dur['bajo-carga'] && Math.abs(dur['a-tiempo'] / dur['sin-necesidad'] - 0.6) < 0.05, 'a tiempo entra en ~60 % del tiempo; bajo la carga es el más lento');
   { const B = trab(), c = B.sect[0].c[0]; pide(R.progresoRelevo(c) === 0, 'sin relevo el progreso es 0'); }
+}
+
+
+/* ---------- DESPLIEGUE Y PLAN (GM21): fondo, disposición, caballería, vélites ---------- */
+console.log('\n== Despliegue y plan (GM21) ==');
+{
+  const N = 12, H = 5000, SEM = k => 1000 + k * 7919;
+  const juega = (rival, plan, bot, k, nParam) => {
+    const B = nParam === 4 ? R.nueva(SEM(k), H, rival) : R.nueva(SEM(k), H, rival, undefined, plan); let prox = 0;
+    while (B.fase !== 'fin') { if (B.t >= prox) { bot(B); prox = B.t + 1.5; } R.paso(B, 0.1); }
+    return B;
+  };
+  const huella = B => JSON.stringify([B.resultado.como, B.resultado.t.toFixed(2), B.resultado.bajas]);
+  const mide = (rival, plan, bot) => { let g = 0, bR = 0, bE = 0, desb = 0, t = 0; for (let k = 0; k < N; k++) { const B = juega(rival, plan, bot, k), r = B.resultado; if (r.como === 'victoria') g++; bR += r.bajas[0] / r.inicial[0]; bE += r.bajas[1] / r.inicial[1]; t += r.t; if (B.eventos.some(e => e.tipo === 'flanco' && e.causa === 'desborde')) desb++; } return { pct: Math.round(100 * g / N), bR: Math.round(100 * bR / N), bE: Math.round(100 * bE / N), t: Math.round(t / N), desb }; };
+  /* (a) sin plan, lo mismo que antes: mismo resultado y mismas bajas que la llamada de cuatro parámetros */
+  { let igual = 0, tot = 0; for (const rival of ['cartago', 'pirro']) for (let k = 0; k < 4; k++) { tot++; if (huella(juega(rival, undefined, bots['con cabeza, escudos a tiempo'], k, 4)) === huella(juega(rival, R.PLAN_BASE, bots['con cabeza, escudos a tiempo'], k, 5))) igual++; }
+    console.log(`   sin plan o con el plan base, igual que antes: ${igual} de ${tot}`); pide(igual === tot, 'sin plan, el resultado debe ser idéntico a nueva de cuatro parámetros'); }
+  const planes = [];
+  for (const f of Object.keys(R.FONDOS)) for (const d of Object.keys(R.DISPOSICIONES)) planes.push([`fondo ${f} + ${d}`, { fondo: f, disposicion: d }]);
+  for (const c of Object.keys(R.SITIOS_CABALLERIA)) planes.push([`caballería ${c}`, { caballeria: c }]);
+  planes.push(['vélites delante: sí', { velites: true }], ['vélites delante: no', { velites: false }]);
+  console.log('   plan                                  | con cabeza: Cartago (gana, bajas Roma/enemigo) · Pirro   | torpe: Cartago · Pirro');
+  const todos = [];
+  for (const [n, plan] of planes) {
+    const o = {}; for (const rival of ['cartago', 'pirro']) { o[rival] = mide(rival, plan, bots['con cabeza, escudos a tiempo']); o[rival + 'T'] = mide(rival, plan, bots['con cabeza, SIN cubrirse']); }
+    todos.push([n, o]);
+    console.log(`   ${n.padEnd(37)} | ${String(o.cartago.pct).padStart(3)} % (${o.cartago.bR}/${o.cartago.bE}) · ${String(o.pirro.pct).padStart(3)} % (${o.pirro.bR}/${o.pirro.bE}) | ${String(o.cartagoT.pct).padStart(3)} % · ${String(o.pirroT.pct).padStart(3)} %`);
+  }
+  /* (c) ningún plan gana siempre, ni siquiera con el bot torpe */
+  for (const [n, o] of todos) pide(!(o.cartagoT.pct === 100 && o.pirroT.pct === 100), `el plan «${n}» gana el 100 % contra los dos rivales con el bot torpe`);
+  /* (c) el fondo se nota: ningún fondo da el mismo resultado exacto que otro */
+  { const por = f => mide('cartago', { fondo: f }, bots['con cabeza, escudos a tiempo']), huellas = Object.keys(R.FONDOS).map(f => { const m = por(f); return f + ':' + JSON.stringify(m); });
+    console.log('   por fondo, contra Cartago: ' + huellas.join('  ·  ')); pide(new Set(huellas.map(h => h.split(':').slice(1).join(':'))).size === 3, 'cada fondo debe dar un resultado distinto'); }
+  { const B = (f, g) => { const x = R.nueva(77, H, 'cartago', undefined, { fondo: [f, g, f] }); return x; }; const x = B('ancho', 'hondo');
+    pide(x.sect[0].c[0].ff === R.FONDOS.ancho && x.sect[1].c[0].ff === R.FONDOS.hondo, 'cada cuerpo toma su propio fondo'); }
+  /* (d) el desborde: Roma ancha contra la falange lo provoca; Roma normal, no; Roma honda es desbordada */
+  { const corto = (plan, rival) => { const B = R.nueva(5, H, rival, undefined, plan); let prox = 0; while (B.fase !== 'fin' && B.t < 90) { if (B.t >= prox) { bots['con cabeza, escudos a tiempo'](B); prox = B.t + 1.5; } R.paso(B, 0.1); } return B.eventos.filter(e => e.tipo === 'flanco' && e.causa === 'desborde'); };
+    const a = corto({ fondo: 'ancho' }, 'pirro'), n = corto({ fondo: 'normal' }, 'pirro'), h = corto({ fondo: 'hondo' }, 'cartago');
+    console.log(`   desborde: ancho contra la falange «${(a[0] || {}).texto}» · normal: ${n.length} avisos · hondo contra Cartago «${(h[0] || {}).texto}»`);
+    pide(a.some(e => e.lado === 1 && /Desbordas su línea/.test(e.texto)), 'Roma ancha contra la falange debe desbordarla (aviso «Desbordas su línea…»)');
+    pide(n.length === 0, 'Roma en fondo normal contra la falange no la desborda ni la desbordan');
+    pide(h.some(e => e.lado === 0 && /Te desbordan/.test(e.texto)), 'Roma honda frente a un rival normal es desbordada (aviso «Te desbordan…»)');
+    const B6 = R.nueva(5, H, 'pirro', undefined, { fondo: 'ancho' }); while (R.lejos(B6.sect[1]) && B6.t < 120) R.paso(B6, 0.1); const t0 = B6.t; while (B6.t < t0 + 5) R.paso(B6, 0.1); pide(B6.sect[1].c[1].flanco.causa !== 'desborde', 'el desborde no llega antes de 6 s del choque'); while (B6.t < t0 + 8) R.paso(B6, 0.1); pide(B6.sect[1].c[1].flanco.causa === 'desborde' && B6.sect[1].c[1].flanco.costado < 1, 'a los 6 s llega el desborde, con menos peso que un flanqueo completo'); }
+  /* disposición: reparto de hombres y metros */
+  { const total = B => R.inicialLado(B, 0), base = R.nueva(1, H, 'cartago'), hs = (B, i) => B.sect[i].c[0].inicial;
+    for (const d of Object.keys(R.DISPOSICIONES)) { const B = R.nueva(1, H, 'cartago', undefined, { disposicion: d }); pide(total(B) === total(base), `${d}: los hombres se reparten sin perder ni ganar ninguno`); }
+    const cf = R.nueva(1, H, 'cartago', undefined, { disposicion: 'centro-fuerte' }), ai = R.nueva(1, H, 'cartago', undefined, { disposicion: 'ala-izquierda' }), ad = R.nueva(1, H, 'cartago', undefined, { disposicion: 'ala-derecha' }), ca = R.nueva(1, H, 'cartago', undefined, { disposicion: 'centro-atras' });
+    pide(hs(cf, 1) > hs(cf, 0) * 1.5 && hs(cf, 0) < hs(base, 0), 'centro fuerte: el centro es mucho mayor y las alas menores');
+    pide(hs(ai, 0) > hs(ai, 1) && hs(ai, 0) > hs(ai, 2) && ai.sect[2].dist === base.sect[2].dist + 30 && ai.sect[0].dist === base.sect[0].dist, 'ala izquierda fuerte: la izquierda es mayor y la derecha sale 30 m más atrás');
+    pide(hs(ad, 2) > hs(ad, 1) && ad.sect[0].dist === base.sect[0].dist + 30, 'ala derecha fuerte: espejo de la izquierda');
+    pide(ca.sect[1].dist === base.sect[1].dist + 35 && ca.sect[0].dist === base.sect[0].dist, 'centro atrás: el centro sale 35 m más atrás');
+    const t = c => c.lineas.map(l => l.tipo + ':' + (l.max / (c.lineas[0].max || 1)).toFixed(1)).join(','); pide(t(cf.sect[1].c[0]) === t(base.sect[1].c[0]), 'el reparto mantiene la proporción de cada tropa'); }
+  /* caballería y vélites */
+  { const llega = (plan, i) => { const B = R.nueva(2, H, 'cartago', undefined, { caballeria: plan }); R.ordenar(B, i, 'caballeria'); return B.cab.t; };
+    pide(llega('izquierda', 0) < llega('reserva', 0) && llega('izquierda', 2) > llega('reserva', 2), 'caballería en el ala izquierda: llega antes a la izquierda y después a las demás');
+    pide(llega('derecha', 2) < llega('reserva', 2) && llega('derecha', 0) > llega('reserva', 0), 'caballería en el ala derecha: espejo');
+    pide(llega('repartida', 0) < llega('reserva', 0) && llega('repartida', 2) < llega('reserva', 2), 'caballería repartida: llega antes a las dos alas');
+    const golpe = plan => { const B = R.nueva(2, H, 'cartago', undefined, { caballeria: plan }); while (B.sect.some(s => R.lejos(s))) R.paso(B, 0.1); const e = B.sect[0].c[1]; e.moral = 1; R.ordenar(B, 0, 'caballeria'); const antes = R.hombres(e); let k = 0; while (B.cab.estado === 'yendo' && k++ < 400) R.paso(B, 0.05); return antes - R.hombres(e); };
+    pide(golpe('repartida') < golpe('reserva') * 0.8, 'la caballería repartida golpea con la mitad de fuerza');
+    const num = plan => { const B = R.nueva(2, H, 'cartago', undefined, { caballeria: plan }); B.num.sect = 0; B.num.proxima = 0; B.t = 1; R.paso(B, 0.1); return B.num.estado === 'llega' ? B.num.t : -1; };
+    const nIz = (() => { let r = []; for (const plan of ['reserva', 'izquierda']) { let tot = 0, n = 0; for (let sd = 1; sd < 40; sd++) { const B = R.nueva(sd, H, 'cartago', undefined, { caballeria: plan }); B.num.proxima = 0; B.t = 1; R.paso(B, 0.1); if (B.num.estado === 'llega' && B.num.sect === 0) { tot += B.num.t; n++; } } r.push(n ? tot / n : 0); } return r; })();
+    pide(nIz[0] > 0 && Math.abs(nIz[1] / nIz[0] - 2) < 0.05, 'los jinetes enemigos que van al ala de tu caballería tardan el doble en llegar');
+    const velites = v => { const B = R.nueva(2, H, 'cartago', undefined, { velites: v }); let n = 0; while (R.lejos(B.sect[1]) && B.t < 120) { R.paso(B, 0.1); } return { tiran: B.eventos.some(e => e.tipo === 'tir-tiran' && e.lado === 0), t: B.sect.reduce((a, s) => a + (s.c[0].tir ? s.c[0].tir.hombres : 0), 0), ini: B.sect.reduce((a, s) => a + (s.c[0].tir ? s.c[0].tir.max : 0), 0) }; };
+    const vs = velites(true), vn = velites(false); pide(vs.tiran && !vn.tiran, 'sin vélites delante no tiran; con ellos, sí'); pide(vn.t === vn.ini, 'los vélites que se quedan detrás no sufren bajas de proyectil'); }
+  /* partidas con plan: todas terminan solas */
+  pide(todos.every(([n, o]) => o.cartago.t > 60 && o.cartago.t < 345 && o.pirro.t > 60 && o.pirro.t < 345), 'toda batalla con plan debe terminar entre uno y cinco minutos y medio');
 }
 
 console.log(mal ? 'NO APTO' : 'APTO');
