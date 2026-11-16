@@ -177,7 +177,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - **EV1 · ¿Con qué pueblo empieza la política?** (A) Solo Roma primero y los demás después, recomendada; (B) Roma y Cartago a la vez, dobla el coste de las cartas.
 
 ## Propuestas por aprobar
-- **P117 · Política en una sola sala (sale de EV1)**: llevar al juego la orientación del informe `estudios/EV1-politica.md`, en este orden: PL1 la sala del Senado en directo (es SN2, 0,95 M), PL2 motor de encrucijadas sin pantalla (1,0 M), PL3 encrucijadas en pantalla (1,0 M), PL4 el hilo de la historia y los finales (0,9 M). Después, PL5 a PL10 (Foro de un toque, tratados, provincias con oficio y edicto, cónsules y dictador, equilibrio). Funde Q8, Q10, GR1, lo político de C3, SN3 y SN4; SN6 sobra. Por aprobar.
+- P117 **Política en una sola sala del Senado (sale de EV1)**: llevar al juego la orientación del informe `estudios/EV1-politica.md`, en este orden: PL1 la sala del Senado en directo (es SN2, 0,95 M), PL2 motor de encrucijadas sin pantalla (1,0 M), PL3 encrucijadas en pantalla (1,0 M), PL4 el hilo de la historia y los finales (0,9 M). Después, PL5 a PL10 (Foro de un toque, tratados, provincias con oficio y edicto, cónsules y dictador, equilibrio). Funde Q8, Q10, GR1, lo político de C3, SN3 y SN4; SN6 sobra. Por aprobar.
 
 
 0. **C6 hecha (12/11)**, en la rama `claude/c6-mapa-escalones` unida a la rama del juego; `main` puesta al día. Siguiente del mapa: J4 (más ciudades), que ya puede usar `D.ZONAS`; C1 (bajar a la ciudad 3D) completa los escalones.
