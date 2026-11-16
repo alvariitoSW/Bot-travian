@@ -1452,6 +1452,18 @@
       "titulo": "Batalla mejorada · GM8 y GM9 Caballería que maniobra, flanqueo natural y elefantes temibles (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-lejos/; no toca js/",
       "url": "https://claude.ai/code/session_01QiKC3Ao459CtVK6J5eExo6"
+    },
+    {
+      "tarea": "GM17",
+      "titulo": "Batalla mejorada · GM17 Estudio de Heraclea, 280 a.C. (ficha de historia)",
+      "nota": "solo gobierno/historia/; sin código",
+      "url": "https://claude.ai/code/session_01QiKC372EDu3vvuRKGFQWoE"
+    },
+    {
+      "tarea": "GM15",
+      "titulo": "Batalla mejorada · GM15 Diseño corto: terreno, hora del día y maniobra al empezar",
+      "nota": "solo gobierno/estudios/; sin código",
+      "url": "https://claude.ai/code/session_01QiKC382X7zpQp7FGMKipML"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
