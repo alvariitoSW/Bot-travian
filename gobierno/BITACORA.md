@@ -227,16 +227,14 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - 16/11/2026 — **Probar el despliegue (GM21)**: https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/guerra-unica/ . (1) ¿Es lo que querías antes de marchar? (A) sí; (B) sí, con cambios; (C) no. (2) GM21 gastó el triple de lo previsto: ¿se pasa ahora el revisor y los jueces completos (unos 0,4 M más)? (A) sí; (B) no, esperar a mi prueba.
 
 ## Propuestas por aprobar
-- 16/11/2026 — **GM32, resto de la lista** (detalle y costes en `estudios/GM32-como-se-ve-total-war.md`; los tres primeros ya son GM33 a GM35):
-  - P144 **Primera fila que lucha y caídos de verdad**: parejas que golpean, paran y retroceden; el que cae, cae animado y se queda. ≈1,5 M; es lo más caro de pintar de cerca.
-  - P145 **Lo muy lejano como masa**: sin centelleo; mancha con lanzas y cascos en vez de puntos. ≈0,8 M.
-  - P146 **Carteles discretos**: cartel pequeño pegado al estandarte, números al tocar, marca de selección en el suelo. ≈0,6 M; toca el manejo de GM10 y GM31.
-  - P147 **Detalle junto a la cámara**: matas, piedras y arboledas. ≈0,5 M; la fluidez de cerca va justa.
-  - P148 **Polvo que queda colgado y estela de proyectiles**. ≈0,4 M.
-  - P149 **Tono por región y hora del día**. ≈0,3 M; pasa por Arte.
+- P144 **Primera fila que lucha y caídos de verdad** (GM32, 16/11; estudio `estudios/GM32-como-se-ve-total-war.md`): parejas que golpean, paran y retroceden; el que cae, cae animado y se queda. ≈1,5 M; es lo más caro de pintar de cerca.
+- P145 **Lo muy lejano como masa** (GM32, 16/11; estudio `estudios/GM32-como-se-ve-total-war.md`): sin centelleo; mancha con lanzas y cascos en vez de puntos. ≈0,8 M.
+- P146 **Carteles discretos** (GM32, 16/11; estudio `estudios/GM32-como-se-ve-total-war.md`): cartel pequeño pegado al estandarte, números al tocar, marca de selección en el suelo. ≈0,6 M; toca el manejo de GM10 y GM31.
+- P147 **Detalle junto a la cámara** (GM32, 16/11; estudio `estudios/GM32-como-se-ve-total-war.md`): matas, piedras y arboledas. ≈0,5 M; la fluidez de cerca va justa.
+- P148 **Polvo que queda colgado y estela de proyectiles**. ≈0,4 M.
+- P149 **Tono por región y hora del día**. ≈0,3 M; pasa por Arte.
 - P142 **Grecia y mitología como modo aparte** (pedido del 16/11, «más adelante»; el usuario dijo sí a «aparte» el 16/11): no se abre hasta que la batalla romana esté cerrada. Al abrirla hay que decidir cómo queda la regla de fidelidad histórica; la campaña romana no se toca.
 
-## Propuestas por aprobar
 
 
 0. **C6 hecha (12/11)**, en la rama `claude/c6-mapa-escalones` unida a la rama del juego; `main` puesta al día. Siguiente del mapa: J4 (más ciudades), que ya puede usar `D.ZONAS`; C1 (bajar a la ciudad 3D) completa los escalones.
