@@ -239,7 +239,7 @@ Una tarea por sesión, constructor en Sonnet. SN2 después de SN1. No tocar `js/
 - ✅ E5 **Ambiente de la ciudad** (13/11): tono por estación, viñeta y contorno dorado de lo elegido en la ciudad 3D; interruptor «Ambiente» en Ajustes (apagado = como antes). +11 % de tiempo por fotograma con render por software. Parte `partes/2026-11-13-E5.md`.
 - ⬜ E5b **Contorno de barrio entero** (apuntada por E5): hoy el contorno sale en el edificio elegido, no en un barrio completo.
 - ⬜ E6 **Vida del campo con arte CC0** (13/11, apuntada; sin empezar): ganado, carros, cultivos, árboles y texturas de suelo de Quaternius y Poly Haven (CC0) para la ciudad y la llanura de batalla; skill `arte`, presupuesto de peso. Antes de construir, enseñar al usuario 3 o 4 piezas candidatas junto a 0 A.D. para que apruebe el estilo. ≈0,5 M.
-- ⬜ E11 **Aligerar las piezas estáticas en nuestro formato** (P115, aprobada 16/11; medida en `estudios/RD1-gltf-transform.md`): `tools/` guarda índices y posiciones a 16 bits, `js/gfx/statics.js` los lee. Meta: `.bin` estático de 10,4 MB a ~5 MB sin añadir lectores ni perder aspecto. Cierra con `node gobierno/arte.mjs` y capturas antes/después a 390 px. Media. Sonnet.
+- ✅ E11 Piezas estáticas aligeradas en nuestro formato (índices + 16 bits, `tools/indexar_static.mjs`): `.bin` de 10,4 MB a 3,7 MB, sin lectores nuevos (parte 2026-11-16-E11).
 
 ## Carril C — Mapa y campaña
 - ✅ C1 **Zoom a la ciudad y guarnición en el mapa** (13/11): 1 a 4 figuras de guarnición junto a cada ciudad con la cámara cerca; acercar sobre una ciudad propia (o tocarla dos veces) abre la ciudad con transición y «← Mapa» vuelve al encuadre exacto. Parte `partes/2026-11-13-C1.md`.
