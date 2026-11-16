@@ -129,8 +129,8 @@ Coste en **M** (millones de tokens, la unidad de `gasto.mjs`) y en sesiones. Apr
 |---|---|---|---|
 | 1 | **Cerrar el modelo: una sola batalla.** Reglas de GM2 + aspecto 3D + pantalla del juego (GC4). Las batallas vieja, N y NB dejan de salir y de mantenerse. | Mientras haya cinco, todo lo demás se paga cinco veces | 0 M: es una decisión del usuario |
 | 2 | **Mandar bien premia y mandar mal castiga, y se ve** (relevo a tiempo o a destiempo, ánimo de la legión). Relevo que se ve pasar. | Lo pidió el usuario; es lo más barato que da sensación de juego | Hecho en esta tarea (GM6) |
-| 3 | **Sonido**: choque, cuerno, carga, relevo, victoria. Por código, sin archivos. | Lo dice Pulgar Rojo y tiene razón: es lo que más se nota por euro gastado | 0,5 M · 1 sesión |
-| 4 | **El juez que juega la batalla** (GC2) y **medir fluidez en el móvil del usuario** con un contador en pantalla. | Sin esto seguiremos diciendo APTO a ciegas | 0,8 M · 1 sesión |
+| 3 | **Sonido**: choque, cuerno, carga, relevo, victoria. Por código, sin archivos. | Lo dice Pulgar Rojo y tiene razón: es lo que más se nota por euro gastado | En marcha (GC5) |
+| 4 | **El juez que juega la batalla** (GC2) y **medir fluidez en el móvil del usuario** con un contador en pantalla. | Sin esto seguiremos diciendo APTO a ciegas | El juez, en marcha (GC2); el contador, 0,2 M |
 | 5 | **Que no haya una respuesta correcta**: azar más ancho, dos o tres planes enemigos por rival y dos maneras de ganar (por las alas o por el centro). | Sin esto la batalla se agota en cinco partidas | 1,0 M · 1 sesión |
 | 6 | **El porqué a la vista**: al tocar una orden, una línea con lo que cuesta y lo que da ahora («Relevo: entran frescos · 3 s de desorden»); al final, tres frases de por qué ganaste o perdiste y una nota (bronce, plata, oro). | Lo dicen Hexágono y Pulgar Rojo | 0,8 M · 1 sesión |
 | 7 | **El después**: veteranía, perseguir o reagrupar, y que la nota de la batalla cuente en la campaña (NB8 lo tenía apuntado). | Hace que cada batalla importe | 1,2 M · 1–2 sesiones |
@@ -175,4 +175,4 @@ una sola barra y sus números son *licencia de juego*. Citas de memoria, sin cot
 ## 6. Lo que decide el usuario
 1. ¿Se cierra el modelo en «reglas de GM2 + aspecto 3D + cuatro órdenes» y se dejan de mantener las batallas vieja, N y NB? (A) sí; (B) todavía no.
 2. ¿El premio y castigo y el relevo nuevo te valen? (A) sí; (B) con cambios; (C) no.
-3. De la lista del apartado 4, ¿qué pasa al tablero? (A) los puntos 3 a 6, que es lo recomendado; (B) todos; (C) los elijo yo.
+3. De la lista del apartado 4, ¿qué pasa al tablero? (A) los puntos 5 y 6, que es lo recomendado (el 3 y el 4 ya están en marcha); (B) todos; (C) los elijo yo.

@@ -1205,6 +1205,32 @@
       "tarea": "EV2",
       "archivo": "gobierno/capturas-tarea/EV2-12-cierre.jpg",
       "pie": "Invierno: el hilo de la historia"
+    },
+    {
+      "tarea": "GM6",
+      "archivo": "gobierno/capturas-tarea/GM6-relevo-2.jpg",
+      "pie": "Relevo en 3D: la línea que entra pasa en columnas entre la que sale"
+    },
+    {
+      "tarea": "GM6",
+      "archivo": "gobierno/capturas-tarea/GM6-relevo-3.jpg",
+      "pie": "El mismo relevo, un momento después: se abren al llegar al frente"
+    },
+    {
+      "tarea": "GM6",
+      "archivo": "gobierno/capturas-tarea/GM6-relevo-mal.jpg",
+      "pie": "Relevo a destiempo: filas torcidas y el ánimo de la legión baja (barra de arriba, en rojo)"
+    },
+    {
+      "tarea": "GM6",
+      "archivo": "gobierno/capturas-tarea/GM6-mando-bien.jpg",
+      "pie": "Barra «Ánimo de la legión» arriba; el botón Relevo avisa del momento"
+    },
+    {
+      "tarea": "GM6",
+      "archivo": "gobierno/capturas-tarea/GM6-ancha.jpg",
+      "pie": "En horizontal contra Pirro: falange, elefantes y el botón Relevo que dice «aún están enteros»",
+      "ancha": true
     }
   ],
   "informes": [
@@ -1355,17 +1381,15 @@
     {
       "titulo": "EV2 · Política grande: casa, Foro, Curia y magistrados",
       "archivo": "gobierno/estudios/EV2-politica-grande.md"
+    },
+    {
+      "titulo": "GM6 · Crítica dura de las batallas (cuatro rivales y el gobierno)",
+      "archivo": "gobierno/estudios/GM6-critica-batallas.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
-    {
-      "tarea": "GM6",
-      "titulo": "Batalla mejorada · GM6 Crítica dura (4 competidores), relevo y premio o castigo",
-      "nota": "solo gobierno/estudios/ y maquetas (guerra-cuerpo y copia propia); no toca js/",
-      "url": "https://claude.ai/code/session_01QiKC36f9DHkzNeZTfqT9nb"
-    },
     {
       "tarea": "GC2",
       "titulo": "Juez de la batalla que se juega de verdad",
