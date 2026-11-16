@@ -1338,6 +1338,12 @@
       "titulo": "Sonido y más rivales con su carácter",
       "nota": "solo js/guerra.js, la vista de guerra, sonido y registro.js",
       "url": "https://claude.ai/code/session_01QiKC39rf6fuo1PUF7uQt8c"
+    },
+    {
+      "tarea": "GM7",
+      "titulo": "Batalla mejorada · GM7 Empezar de lejos, proyectiles y testudo (maqueta)",
+      "nota": "solo gobierno/maquetas/guerra-lejos/",
+      "url": "https://claude.ai/code/session_01QiKC3AGYXUi3fSV7A4hP2x"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
