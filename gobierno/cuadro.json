@@ -1522,12 +1522,6 @@
       "url": "https://claude.ai/code/session_01QiKC36ZF1e1BhVX8T4HFhB"
     },
     {
-      "tarea": "GM8",
-      "titulo": "Batalla mejorada · GM8 y GM9 Caballería que maniobra, flanqueo natural y elefantes temibles (maqueta)",
-      "nota": "solo gobierno/maquetas/guerra-lejos/; no toca js/",
-      "url": "https://claude.ai/code/session_01QiKC3Ao459CtVK6J5eExo6"
-    },
-    {
       "tarea": "GM17",
       "titulo": "Batalla mejorada · GM17 Estudio de Heraclea, 280 a.C. (ficha de historia)",
       "nota": "solo gobierno/historia/; sin código",
@@ -1550,6 +1544,12 @@
       "titulo": "Política · EV4a Gobierno, segunda vuelta: reglas primero (maqueta)",
       "nota": "solo gobierno/maquetas/politica-grande/ (reglas.js y prueba.mjs); no toca js/",
       "url": "https://claude.ai/code/session_01QiKC39ngyZQs6cmQwm2RAh"
+    },
+    {
+      "tarea": "GM10",
+      "titulo": "Batalla mejorada · GM10 Mover con el dedo, a nuestra manera (diseño y maqueta)",
+      "nota": "solo gobierno/maquetas/guerra-manejo/ (nueva); no toca js/ ni guerra-lejos",
+      "url": "https://claude.ai/code/session_01QiKC3A2gLXMYhmXHkSFzeu"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
