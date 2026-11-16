@@ -37,21 +37,31 @@
      Las cifras de cal y cansa son licencia de juego. Las fuentes dan el carácter, no los números
      (todo sin cotejar pasaje a pasaje: se cita la obra y el capítulo que se recuerda). */
   const CARACTER = {
-    hastati:   { cal: 1.00, cansa: 1.00, mente: 'media' },                 /* legión manipular: Polibio 6.21-24, sin cotejar. Cifras: licencia de juego */
-    principes: { cal: 1.14, cansa: 0.90, mente: 'media' },                 /* ídem */
-    triarii:   { cal: 1.12, cansa: 0.80, mente: 'media', firme: true },    /* ídem; lanceros que aguantan a pie quieto */
-    galos:     { cal: 1.34, cansa: 1.75, mente: 'furia' },                 /* Polibio 2.33: furia inicial que se agota. Cifras: licencia de juego */
-    libios:    { cal: 1.20, cansa: 0.72, mente: 'paciencia' },             /* Polibio 15.11-14 y 3.114: armados a la romana en Cannas. Cifras: licencia de juego */
-    iberos:    { cal: 1.10, cansa: 1.05, mente: 'media' },                 /* Polibio 3.114. Cifras: licencia de juego */
-    sagrada:   { cal: 1.25, cansa: 0.75, mente: 'media', firme: true },    /* Diodoro 16.80 (Batallón Sagrado). Cifras: licencia de juego */
-    falange:   { cal: 1.22, cansa: 0.70, mente: 'media', firme: true },    /* Polibio 18.29-30 y 18.32. Cifras: licencia de juego */
+    hastati:   { cal: 1.00, cansa: 1.00, mente: 'media', pl: true },                 /* legión manipular: Polibio 6.21-24, sin cotejar. Cifras: licencia de juego */
+    principes: { cal: 1.14, cansa: 0.90, mente: 'media', pl: true },                 /* ídem */
+    triarii:   { cal: 1.12, cansa: 0.80, mente: 'media', firme: true, pl: true },    /* ídem; lanceros que aguantan a pie quieto */
+    galos:     { cal: 1.34, cansa: 1.75, mente: 'furia', nom: 'guerreros galos' },                 /* Polibio 2.33: furia inicial que se agota. Cifras: licencia de juego */
+    libios:    { cal: 1.20, cansa: 0.72, mente: 'paciencia', nom: 'infantería libia', art: 'la', pl: false },             /* Polibio 15.11-14 y 3.114: armados a la romana en Cannas. Cifras: licencia de juego */
+    iberos:    { cal: 1.10, cansa: 1.05, mente: 'media', nom: 'guerreros íberos' },                 /* Polibio 3.114. Cifras: licencia de juego */
+    sagrada:   { cal: 1.25, cansa: 0.75, mente: 'media', firme: true, nom: 'ciudadanos de Cartago' },    /* Diodoro 16.80 (Batallón Sagrado). Cifras: licencia de juego */
+    falange:   { cal: 1.22, cansa: 0.70, mente: 'media', firme: true, flanco: 1.85, art: 'la', pl: false },   /* Polibio 18.29-30 y 18.32: de frente imbatible, de flanco se hunde. Cifras: licencia de juego */
+    elefantes: { cal: 1.55, cansa: 2.4, mente: 'furia', pavor: true, art: 'los', pl: true },        /* Plutarco, Pirro 17 y 21; Polibio 1.40: arrollan al chocar y, heridos, se desbocan. Cifras: licencia de juego */
     hoplitas:  { cal: 1.05, cansa: 0.85, mente: 'media', firme: true },    /* licencia de juego */
     peltastas: { cal: 0.70, cansa: 1.00, mente: 'media' },                 /* licencia de juego */
     honderos:  { cal: 0.65, cansa: 1.00, mente: 'media' },                 /* licencia de juego */
-    milicia:   { cal: 0.80, cansa: 1.00, mente: 'media' },                 /* licencia de juego */
-    vigiles:   { cal: 0.85, cansa: 1.00, mente: 'media' }                  /* licencia de juego */
+    milicia:   { cal: 0.80, cansa: 1.00, mente: 'media', art: 'la', pl: false },                 /* licencia de juego */
+    vigiles:   { cal: 0.85, cansa: 1.00, mente: 'media', nom: 'guardia urbana', art: 'la', pl: false }                  /* licencia de juego */
   };
-  const GENERICO = { cal: 1.0, cansa: 1.0, mente: 'media' };              /* tipo sin ficha: licencia de juego */
+  const GENERICO = { cal: 1.0, cansa: 1.0, mente: 'media' };
+  /* Cómo se nombra un cuerpo en los avisos: «Los galos cargan», «La falange avanza». Sin ficha: plural. */
+  const sujeto = t => { const T = car(t), n = T.nom || nombre(t).toLowerCase(), pl = T.pl !== undefined ? T.pl : true, art = T.art || (pl ? 'los' : 'la'); const x = art + ' ' + (t === 'elefantes' ? 'elefantes' : n); return { x: x.charAt(0).toUpperCase() + x.slice(1), pl }; };
+  const verbo = (t, pl, plural, singular) => pl ? plural : singular;
+  const FRASE = {
+    carga: (t, d) => { const q = sujeto(t); return t === 'falange' ? q.x + ' avanza con las sarisas bajas ' + d : t === 'elefantes' ? q.x + ' arremeten ' + d : t === 'galos' ? q.x + ' se lanzan a la carga ' + d : q.x + ' ' + verbo(t, q.pl, 'cargan', 'carga') + ' ' + d; },
+    cede: (t, d) => { const q = sujeto(t); return t === 'falange' ? 'La falange se detiene ' + d : q.x + ' ' + verbo(t, q.pl, 'flaquean', 'flaquea') + ' ' + d; },
+    huye: (t, d) => { const q = sujeto(t); return t === 'falange' ? 'Se rompe la falange ' + d : t === 'elefantes' ? 'Los elefantes se desbandan ' + d : q.x + ' ' + verbo(t, q.pl, 'huyen', 'huye') + ' ' + d; },
+    desboque: (t, d) => 'Los elefantes se desbocan ' + d + ': pisotean a los suyos'
+  };              /* tipo sin ficha: licencia de juego */
   const car = t => CARACTER[t] || GENERICO;
   const nombre = t => (UN[t] && UN[t].n) || t;
   const esCab = t => !!(UN[t] && UN[t].cls === 'cav');
@@ -66,6 +76,7 @@
   const K_BAJAS = 1.55;             /* hombres por segundo que causa una fuerza de 1 */
   const REF_ROMA = { hastati: 120, principes: 120, triarii: 60 };
   const REF_ENEMIGO = 720;
+  const REF_ELE = 10;               /* elefantes de una línea con su propia referencia: 10 pesan como 720 hombres */
   const REF_CAB = 60;
   const ESC_MIN = 0.15, ESC_MAX = 3;
   const limita = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -107,7 +118,8 @@
 
   function repartoEnemigo(ej) {
     const tipos = [];
-    for (const t in ej) if (!esCab(t) && ej[t] > 0) tipos.push([t, ej[t]]);
+    let ele = 0; for (const t in ej) if (!esCab(t) && ej[t] > 0) { if (t === 'elefantes') ele = ej[t]; else tipos.push([t, ej[t]]); }
+    if (!tipos.length && ele) { tipos.push(['elefantes', ele]); ele = 0; }
     tipos.sort((a, b) => b[1] - a[1]);
     const cuerpos = [[], [], []];
     if (tipos.length >= 3) {
@@ -122,6 +134,8 @@
     } else {
       for (const [t, n] of tipos) for (let i = 0; i < 3; i++) cuerpos[i].push(linea(t, { [t]: parte(n, i) }, REF_ENEMIGO));
     }
+    /* Los elefantes van delante, en el centro: el golpe de ariete del ejército. Si caen o se desbocan, entra la línea de detrás. */
+    if (ele) cuerpos[1].unshift(linea('elefantes', { elefantes: ele }, REF_ELE));
     return cuerpos;
   }
 
@@ -198,8 +212,8 @@
 
   function romper(B, s, lado) {
     const c = s.c[lado]; if (c.roto) return; c.roto = true; c.moral = 0;
-    const quien = lado === 0 ? 'Tu ' + NOMBRE_SECTOR[s.i].toLowerCase() + ' huye' : 'Huye el cuerpo de ' + nombre(frente(c).tipo) + ' ' + DONDE[s.i];
-    ev(B, 'roto', s.i, quien, { lado });
+    const quien = lado === 0 ? 'Tu ' + NOMBRE_SECTOR[s.i].toLowerCase() + ' huye' : FRASE.huye(frente(c).tipo, DONDE[s.i]);
+    ev(B, 'roto', s.i, quien, { lado, tropa: frente(c).tipo });
     for (const o of B.sect) { if (o === s) continue; if (!o.c[lado].roto) o.c[lado].moral = Math.max(0.02, o.c[lado].moral - 0.13); if (!o.c[1 - lado].roto) o.c[1 - lado].moral = Math.min(1, o.c[1 - lado].moral + 0.1); }
     s.c[1 - lado].libre = 4;
     if (lado === 0 && B.num.estado === 'hostiga' && B.num.sect === s.i) { B.num.estado = 'lejos'; B.num.proxima = B.t + 25; }
@@ -226,7 +240,12 @@
     if (m === 'furia') quiere = e.postura === 'empujar' ? (l.fatiga > 0.78 ? 'aguantar' : 'empujar') : (l.fatiga < 0.5 || e.tPost > 16 ? 'empujar' : 'aguantar');
     else if (m === 'paciencia') { if (B.t < T_MARCHA + 14) quiere = 'aguantar'; else quiere = e.postura === 'empujar' ? (e.tPost > 15 || l.fatiga > 0.85 ? 'aguantar' : 'empujar') : ((e.tPost > 9 && l.fatiga < 0.7) || (!r.roto && frente(r).fatiga > 0.6 && e.tPost > 4) ? 'empujar' : 'aguantar'); }
     else quiere = e.postura === 'empujar' ? (e.tPost > 11 || l.fatiga > 0.8 ? 'aguantar' : 'empujar') : (e.tPost > 8 && l.fatiga < 0.65 ? 'empujar' : 'aguantar');
-    if (quiere !== e.postura) { e.postura = quiere; e.tPost = 0; if (!r.roto) ev(B, quiere === 'empujar' ? 'carga-enemiga' : 'enemigo-cede', s.i, quiere === 'empujar' ? 'Carga de ' + nombre(tipo) + ' ' + DONDE[s.i] : 'Flaquea el empuje de ' + nombre(tipo) + ' ' + DONDE[s.i]); }
+    if (car(tipo).pavor && !e.desboque && e.postura === 'empujar' && (l.fatiga > 0.7 || l.hombres < 0.5 * l.max)) {
+      /* Elefantes heridos o agotados se vuelven contra los suyos (Polibio 1.40): pierden la mitad y el cuerpo duda. Entra la línea de detrás. */
+      e.desboque = true; e.moral -= 0.1; if (!bajas(e, l.hombres * 0.5) && e.lineas.length > 1) { e.lineas.shift(); e.relevo = Math.max(e.relevo, 1.5); }
+      e.postura = 'aguantar'; e.tPost = 0; ev(B, 'elefantes-desbocados', s.i, FRASE.desboque(tipo, DONDE[s.i])); return;
+    }
+    if (quiere !== e.postura) { e.postura = quiere; e.tPost = 0; if (!r.roto) ev(B, quiere === 'empujar' ? 'carga-enemiga' : 'enemigo-cede', s.i, quiere === 'empujar' ? FRASE.carga(tipo, DONDE[s.i]) : FRASE.cede(tipo, DONDE[s.i]), { tropa: tipo }); }
   }
 
   function comprobarFin(B) {
@@ -245,7 +264,7 @@
         B.fase = 'lucha'; for (const s of B.sect) s.c[1].tPost = 0;
         const izq = B.sect[0].c[1]; if (!izq.roto) { izq.postura = 'empujar'; }
         ev(B, 'choque', 1, 'Las líneas chocan');
-        if (!izq.roto) ev(B, 'carga-enemiga', 0, 'Carga de ' + nombre(frente(izq).tipo) + ' por la izquierda');
+        if (!izq.roto) ev(B, 'carga-enemiga', 0, FRASE.carga(frente(izq).tipo, DONDE[0]), { tropa: frente(izq).tipo });
       }
       comprobarFin(B); return;
     }
@@ -262,7 +281,7 @@
       const fr = fuerza(r), fe = fuerza(e), ruido = 0.9 + 0.2 * rnd(B);
       for (const [c, f, rival] of [[r, fe, e], [e, fr, r]]) {
         const l = frente(c), T = car(l.tipo);
-        let d = f * K_BAJAS * dt * ruido * escala(frente(rival)) * (c.postura === 'aguantar' ? (T.firme ? 0.45 : 0.6) : 1) * (c.flanqueado ? 1.5 : 1) * (c.golpe > 0 ? 1.4 : 1);
+        let d = f * K_BAJAS * dt * ruido * escala(frente(rival)) * (c.postura === 'aguantar' ? (T.firme ? 0.45 : 0.6) : 1) * (c.flanqueado ? (T.flanco || 1.5) : 1) * (c.golpe > 0 ? 1.4 : 1);
         if (c.postura === 'empujar' && rival.postura === 'aguantar') d *= 1.12;
         if (c.postura === 'empujar' && rival.postura === 'empujar') d *= 1.2;
         const total = c.inicial;
@@ -346,7 +365,7 @@
   }
 
   const Guerra = { crear, paso, ordenar, puede, retirarse, fin, guardar, cargar, resumen, rnd, frente, hombres, hombresLado, inicialLado, vecino,
-    CARACTER, GENERICO, NOMBRE_SECTOR, DONDE, T_MARCHA, repartoRoma, repartoEnemigo };
+    CARACTER, GENERICO, FRASE, NOMBRE_SECTOR, DONDE, T_MARCHA, repartoRoma, repartoEnemigo };
   root.Guerra = Guerra;
   if (typeof module !== 'undefined') module.exports = Guerra;
 })(typeof window !== 'undefined' ? window : globalThis);

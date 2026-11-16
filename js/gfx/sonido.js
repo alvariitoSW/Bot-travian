@@ -50,6 +50,16 @@
   S.carga = function (v) {
     try { if (!listo()) return; v = vol(v); if (v < 0.03 || !voz(1.1)) return; const t = S.ctx.currentTime; ruido(t, 1.0, 220, 70, 0.4 * v); tono(t, 0.9, 70, 45, 0.25 * v, 'sine'); } catch (e) { /* silencio */ }
   };
+  /* GC5: cuerno del enemigo (más grave y áspero que el romano), barrito de elefante y redoble de la falange. Síntesis propia, sin archivos. */
+  S.cuernoRival = function (v) {
+    try { if (!listo()) return; v = vol(v === undefined ? 0.7 : v); if (!voz(1.3)) return; const t = S.ctx.currentTime; tono(t, 0.6, 130, 120, 0.2 * v, 'sawtooth'); tono(t + 0.1, 0.6, 133, 118, 0.12 * v, 'square'); tono(t + 0.7, 0.55, 98, 92, 0.2 * v, 'sawtooth'); } catch (e) { /* silencio */ }
+  };
+  S.elefante = function (v) {
+    try { if (!listo()) return; v = vol(v === undefined ? 0.8 : v); if (v < 0.03 || !voz(1.2)) return; const t = S.ctx.currentTime; tono(t, 0.25, 260, 520, 0.2 * v, 'sawtooth'); tono(t + 0.2, 0.8, 520, 180, 0.22 * v, 'sawtooth'); ruido(t, 0.9, 900, 300, 0.1 * v, 'bandpass'); } catch (e) { /* silencio */ }
+  };
+  S.falange = function (v) {
+    try { if (!listo()) return; v = vol(v === undefined ? 0.7 : v); if (v < 0.03 || !voz(0.9)) return; const t = S.ctx.currentTime; for (let i = 0; i < 4; i++) tono(t + i * 0.2, 0.18, 90, 55, 0.2 * v, 'sine'); ruido(t, 0.8, 3000, 1200, 0.05 * v, 'highpass'); } catch (e) { /* silencio */ }
+  };
   S.on = function () { S.activo = true; try { raiz.localStorage.setItem(CLAVE, '1'); } catch (e) { /* nada */ } desbloquea(); };
   S.off = function () { S.activo = false; try { raiz.localStorage.setItem(CLAVE, '0'); } catch (e) { /* nada */ } };
   // volumen por cercanía: d = distancia cámara-evento (mundo)

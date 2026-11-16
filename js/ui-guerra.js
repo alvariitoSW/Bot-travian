@@ -46,7 +46,7 @@
     const $ = id => el.querySelector('#gu-' + id);
     $('carga-no').addEventListener('click', () => { cerrar(); if (alTerminar) alTerminar(root.Guerra.resumen(cfg.estado)); });
     try {
-      const [M, U, Gr, St] = await Promise.all([import('./gfx/models.js'), import('./gfx/units.js'), import('./gfx/ground.js'), import('./gfx/statics.js')]);
+      const [M, U, Gr, St] = await Promise.all([import('./gfx/models.js'), import('./gfx/units.js'), import('./gfx/ground.js'), import('./gfx/statics.js'), import('./gfx/sonido.js')]);
       if (activa !== a) return;
       const fin = r => { if (activa === a) { activa = null; el.remove(); } if (alTerminar) alTerminar(r); };
       const P = pantalla(M, U, Gr, St, el, $, cfg, fin); a.cerrar = P.cerrarTodo;
@@ -305,6 +305,19 @@
       });
     }
     function cinta(texto, tono) { const c = $('cinta'); c.textContent = texto; c.className = 've' + (tono ? ' ' + tono : ''); cintaHasta = performance.now() + 2800; }
+    /* GC5: sonido de la batalla. Sonido ya sabe callarse (apagado, sin gesto, app oculta). */
+    function suena(e) {
+      const S = root.Sonido; if (!S) return;
+      const tropa = e.tropa;
+      if (e.tipo === 'choque') { S.cuerno(0.8); setTimeout(() => S.cuernoRival(0.6), 700); setTimeout(() => S.choque(1, 1), 1400); }
+      else if (e.tipo === 'carga-enemiga') { if (tropa === 'elefantes') S.elefante(0.8); else if (tropa === 'falange') S.falange(0.7); else { S.carga(0.7); } }
+      else if (e.tipo === 'elefantes-desbocados') { S.elefante(1); setTimeout(() => S.choque(0.8, 1), 500); }
+      else if (e.tipo === 'caballeria') S.cuerno(0.7);
+      else if (e.tipo === 'impacto') { S.carga(0.9); S.choque(1, 1); }
+      else if (e.tipo === 'numidas-aviso') S.cuernoRival(0.7);
+      else if (e.tipo === 'relevo') S.cuerno(0.5);
+      else if (e.tipo === 'roto' || e.tipo === 'envuelve') S.choque(0.8, 0.9);
+    }
     function eventos() {
       for (; nEv < B.eventos.length; nEv++) {
         const e = B.eventos[nEv];
@@ -314,6 +327,7 @@
         const mala = ['carga-enemiga', 'numidas-aviso', 'cansados', 'linea-deshecha'].includes(e.tipo) || (e.tipo === 'roto' && e.lado === 0) || (e.tipo === 'envuelve' && e.lado === 1);
         const buena = ['enemigo-cede', 'impacto', 'numidas-fuera'].includes(e.tipo) || (e.tipo === 'roto' && e.lado === 1) || (e.tipo === 'envuelve' && e.lado === 0);
         cinta(e.texto, mala ? 'mala' : buena ? 'buena' : '');
+        suena(e);
         if (e.tipo === 'impacto' || e.tipo === 'choque') temblor = 1;
         if (e.tipo === 'roto' || e.tipo === 'impacto' || e.tipo === 'relevo' || e.tipo === 'caballeria') mirar(e.sect, e.tipo === 'caballeria' ? 6.5 : 3.2, true);
         else if (e.tipo === 'carga-enemiga' || e.tipo === 'envuelve' || e.tipo === 'numidas-aviso') mirar(e.sect, 2.8, false);
@@ -350,7 +364,14 @@
     });
 
     /* ---------- bucle ---------- */
-    function avanza(dt) { T += dt; R.paso(B, dt); eventos(); colocar(dt); mover(dt); }
+    let tRuido = 0;
+    /* Fragor de fondo: el choque suena cada poco, más fuerte cuantos más cuerpos empujan (Sonido limita las voces) */
+    function ambiente(dt) {
+      if (B.fase !== 'lucha' || !root.Sonido) return; tRuido -= dt; if (tRuido > 0) return;
+      const n = B.sect.filter(s => !s.c[0].roto && !s.c[1].roto), emp = n.filter(s => s.c[0].postura === 'empujar' || s.c[1].postura === 'empujar').length;
+      if (n.length) { root.Sonido.choque(0.25 + 0.2 * emp, 0.8); tRuido = 1.1 + Math.random() * 0.8 - 0.15 * emp; }
+    }
+    function avanza(dt) { T += dt; R.paso(B, dt); eventos(); ambiente(dt); colocar(dt); mover(dt); }
     let raf = 0, cerrado = false, tFin = 0, retardo0 = false, antes = 0, acum = 0, cuadros = 0, lentos = 0, tHud = 0;
     function cuadro(ahora) {
       if (cerrado) return; raf = requestAnimationFrame(cuadro);

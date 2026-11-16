@@ -150,5 +150,46 @@ t('ejército diminuto (5 hombres) y vacío no rompen el motor', () => {
   assert.strictEqual(R.resumen(juega(ROMA, {}, bots['no toca nada'], 5)).ganador, 0, 'enemigo sin infantería pierde');
 });
 
+/* GC5: rivales con carácter */
+const PIRRO = { falange: 700, hoplitas: 400, peltastas: 200, elefantes: 12, tesalios: 100 };
+t('elefantes: línea propia delante en el centro, con su referencia; sin ellos no hay línea', () => {
+  const B = R.crear({ semilla: 3, ejercitos: [ROMA, PIRRO] });
+  const c = B.sect[1].c[1]; assert.strictEqual(c.lineas[0].tipo, 'elefantes'); assert.strictEqual(c.lineas[0].hombres, 12);
+  assert(B.sect[0].c[1].lineas.every(l => l.tipo !== 'elefantes') && B.sect[2].c[1].lineas.every(l => l.tipo !== 'elefantes'));
+  assert(R.crear({ semilla: 3, ejercitos: [ROMA, { falange: 700, hoplitas: 400, peltastas: 200 }] }).sect[1].c[1].lineas.every(l => l.tipo !== 'elefantes'));
+  const solo = R.crear({ semilla: 3, ejercitos: [ROMA, { elefantes: 6 }] }); assert(R.hombresLado(solo, 1) > 0, 'solo elefantes cuentan como infantería');
+});
+t('elefantes: se desbocan una sola vez, avisan y las bajas suman bien', () => {
+  let visto = 0, todos = 0;
+  for (let sem = 1; sem <= 12; sem++) {
+    const B = juega(ROMA, PIRRO, bots['con cabeza'], sem), r = R.resumen(B), d = B.eventos.filter(e => e.tipo === 'elefantes-desbocados');
+    assert(d.length <= 1, 'más de un desboque'); if (d.length) { visto++; assert(/elefantes/i.test(d[0].texto)); } todos++;
+    for (const x of r.bajas) assert(x.bajas >= 0 && x.bajas <= x.n0);
+    JSON.parse(R.guardar(B));
+  }
+  assert(visto >= 6, 'los elefantes casi siempre acaban desbocándose (' + visto + '/' + todos + ')');
+});
+t('falange: el flanco la hunde más que a otra tropa', () => {
+  assert(R.CARACTER.falange.flanco > 1.5 && R.CARACTER.falange.firme);
+  const gana = e => { let v = 0; for (let s = 1; s <= 10; s++) if (R.resumen(juega(ROMA, e, bots['con cabeza'], s)).victoria) v++; return v; };
+  const f = gana({ falange: 900, peltastas: 300, tesalios: 100 }); assert(f >= 1 && f <= 10, 'falange: ni imposible ni trivial (' + f + '/10)');
+});
+t('textos: cuadran con cada rival (género, número y sitio)', () => {
+  const F = R.FRASE;
+  assert.strictEqual(F.carga('falange', 'en el centro'), 'La falange avanza con las sarisas bajas en el centro');
+  assert.strictEqual(F.carga('elefantes', 'por la izquierda'), 'Los elefantes arremeten por la izquierda');
+  assert.strictEqual(F.carga('hoplitas', 'por la derecha'), 'Los hoplitas cargan por la derecha');
+  assert.strictEqual(F.carga('galos', 'por la izquierda'), 'Los guerreros galos se lanzan a la carga por la izquierda');
+  assert.strictEqual(F.cede('falange', 'en el centro'), 'La falange se detiene en el centro');
+  assert.strictEqual(F.cede('libios', 'por la derecha'), 'La infantería libia flaquea por la derecha');
+  assert.strictEqual(F.huye('sagrada', 'en el centro'), 'Los ciudadanos de Cartago huyen en el centro');
+  assert.strictEqual(F.cede('libios', 'en el centro'), 'La infantería libia flaquea en el centro');
+  assert.strictEqual(F.huye('milicia', 'por la izquierda'), 'La milicia huye por la izquierda');
+  for (const rival of [PIRRO, { galos: 500 }, { hoplitas: 300, milicia: 100 }, { libios: 400, iberos: 300, honderos: 100, sagrada: 200 }]) {
+    const B = juega(ROMA, rival, bots['con cabeza'], 4);
+    for (const e of B.eventos) assert(!/ undefined|\bDe\b|Carga de|Huye el cuerpo de|Flaquea el empuje/.test(e.texto || ''), 'texto raro: ' + e.texto);
+  }
+});
+
 console.log(mal ? 'MAL: ' + mal + ' de ' + (n + mal) : 'APTO: ' + n + ' comprobaciones');
 process.exit(mal ? 1 : 0);
