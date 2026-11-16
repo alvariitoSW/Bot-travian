@@ -108,6 +108,9 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 ## Carril GR — Gobierno de región (P104, aprobada por el usuario el 16/11/2026)
 - ⬜ GR1 **Gobierno de provincias: diseño corto y maqueta jugable** (P104): que la segunda y la décima ciudad no obliguen a repetir todo desde cero y que el oficio de cada una cambie de verdad cómo se juega; se conserva la construcción a mano. Espera a que el usuario diga si vale el formato de `gobierno/estudios/FJ-formato-de-juego.md`. No toca `js/`.
 
+## Carril EV — Eventos que cambian la historia (P103, aprobada por el usuario el 16/11/2026)
+- ⬜ EV1 **Eventos e historia alternativa: diseño corto y maqueta jugable** (P103): en cualquier partida, según pasa el tiempo, salen eventos que dependen del año y de lo que has hecho (batallas, alianzas, política, economía, cultura); tus decisiones desvían la historia real y llevan a finales distintos. Que se entienda sin instrucciones. Aprovecha el Senado nuevo, los hechos históricos y el Códice; cada evento con su fuente (skill `historia`). No toca `js/`.
+
 ## Carril N — Guerra nueva: «planeas y luego miras» (pedido 11/11/2026; diseño `gobierno/estudios/N1-guerra-nueva.md`)
 - ✅ N1 **Diseño y maqueta jugable de la guerra nueva** (11/11): batalla por rondas (plan en pausa, ejecución para los dos), 4 puntos de mando, sombras, relevo y enemigo con tres planes. Maqueta `gobierno/maquetas/guerra-nueva.html`; parte `partes/2026-11-11-N1.md`. En pausa hasta que el usuario decida: L3, A1, A2, A6 y A8b.
 - ✅ N1b **Guerra ampliada con ingeniería reversa** (11/11): siete estudios (R8 a R14: Rome II, Field of Glory II, Frozen Synapse, Combat Mission, Ultimate General, Imperator, Hegemony), diseño `estudios/N1b-guerra-ampliada.md` y capturas de la vista 3D real con la interfaz nueva (`capturas-tarea/N1b-*.jpg`). Parte `partes/2026-11-11-N1b.md`.
