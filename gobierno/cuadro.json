@@ -1468,6 +1468,12 @@
       "titulo": "Batalla mejorada · GM15 Diseño corto: terreno, hora del día y maniobra al empezar",
       "nota": "solo gobierno/estudios/; sin código",
       "url": "https://claude.ai/code/session_01QiKC382X7zpQp7FGMKipML"
+    },
+    {
+      "tarea": "GM11",
+      "titulo": "Batalla mejorada · GM11 Motor único de batalla (guerra-unica)",
+      "nota": "solo gobierno/maquetas/guerra-unica/ (nueva); no toca guerra-lejos",
+      "url": "https://claude.ai/code/session_01QiKC38JUoff72j6pJjdS8B"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
