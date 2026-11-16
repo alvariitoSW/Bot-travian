@@ -1155,6 +1155,21 @@
       "archivo": "gobierno/capturas-tarea/GC4-13-recargado-aviso.jpg",
       "pie": "Tras recargar: «Seguir la batalla»",
       "ancha": false
+    },
+    {
+      "tarea": "EV1",
+      "archivo": "gobierno/capturas-tarea/EV1-2b-debate.jpg",
+      "pie": "Política (maqueta): el Senado debate en directo y tú compras votos con tratos"
+    },
+    {
+      "tarea": "EV1",
+      "archivo": "gobierno/capturas-tarea/EV1-3-hieron.jpg",
+      "pie": "Verano de 264: Hierón ofrece paz; cada opción enseña su precio"
+    },
+    {
+      "tarea": "EV1",
+      "archivo": "gobierno/capturas-tarea/EV1-7-hilo-desvio.jpg",
+      "pie": "Cierre del año: tu hilo se separa de la historia real"
     }
   ],
   "informes": [
@@ -1297,6 +1312,10 @@
     {
       "titulo": "GM1 · Ejércitos grandes sin miles de figuras",
       "archivo": "gobierno/estudios/GM1-ejercitos-grandes.md"
+    },
+    {
+      "titulo": "EV1 · Cómo orientar la política",
+      "archivo": "gobierno/estudios/EV1-politica.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1307,12 +1326,6 @@
       "titulo": "Batalla mejorada · GM6 Crítica dura (4 competidores), relevo y premio o castigo",
       "nota": "solo gobierno/estudios/ y maquetas (guerra-cuerpo y copia propia); no toca js/",
       "url": "https://claude.ai/code/session_01QiKC36f9DHkzNeZTfqT9nb"
-    },
-    {
-      "tarea": "EV1",
-      "titulo": "Política · EV1 Informe y maqueta de la parte política",
-      "nota": "solo gobierno/estudios/ y gobierno/maquetas/politica/",
-      "url": "https://claude.ai/code/session_01QiKC38TTo27r9G2BX3tAyN"
     },
     {
       "tarea": "GC2",
