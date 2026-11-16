@@ -1385,6 +1385,10 @@
     {
       "titulo": "GM6 · Crítica dura de las batallas (cuatro rivales y el gobierno)",
       "archivo": "gobierno/estudios/GM6-critica-batallas.md"
+    },
+    {
+      "titulo": "R21 · Caballería que maniobra y elefantes temibles",
+      "archivo": "gobierno/estudios/R21-caballeria-y-elefantes.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
