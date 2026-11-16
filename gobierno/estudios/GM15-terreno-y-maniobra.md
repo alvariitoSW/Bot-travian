@@ -8,6 +8,19 @@ al ejército al otro lado del río antes de que se acerque el ejército enemigo�
 Ya decidido por ti y respetado aquí: batalla de hasta 4 minutos; jinetes con el botón Caballería; mover con el dedo
 (GM10) después del motor único; ejércitos sin tope; vertical y horizontal; una mano.
 
+## 0. Lo que decidiste (16/11, tras leerlo)
+1. **Maniobra**: variante C, **solo escenario**. No hay fase de 20 s ni botones; los apartados 2 (paso 4) y 4 quedan como descartados.
+   La orilla o la loma es de quien ya esperaba allí en el mapa.
+2. **Hora y niebla**: eliges la hora si llevas la iniciativa; la niebla, cuando el sitio y la estación la dan.
+3. **Toparse**: al cruzarse en el camino y con «Salir al encuentro».
+4. **Río y nadie cruza**: no hay batalla; cada uno vuelve.
+5. **Emboscada**, con tus palabras: ocurre «si antes de que un ejército pase cerca tuya el tuyo está escondido», y eso es
+   «en el mapa grande general, no durante la batalla»; durante la batalla «solo puedes esconder tropas en las arboladas o
+   en campos de trigo grandes». El trigal es un rasgo nuevo (esconde como el bosque; su regla está por escribir).
+6. **Noche**: solo en emboscadas.
+7. **Maqueta**: después del motor único (GM11).
+**Queda por concretar** al hacer la maqueta: cómo se esconde un ejército en el mapa y cómo se esconden tropas en la batalla sin despliegue.
+
 **Lo que he mirado**: los estudios GM6b (decisión 6 y apartado 3.A), R22, GM7 y R6; la bitácora; y, solo leyendo, cómo
 marchan los ejércitos en `js/game.js` y `js/data.js`. **Lo que no**: no he abierto Rome II ni ninguna guía hoy (todo lo
 suyo va de memoria); no he probado nada en un móvil; ninguna cita antigua está cotejada con el texto.
