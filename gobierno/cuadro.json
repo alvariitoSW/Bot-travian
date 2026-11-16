@@ -1090,23 +1090,14 @@
     {
       "titulo": "H11a · Cotejo de fichas con las fuentes",
       "archivo": "gobierno/estudios/H11-cotejo.md"
+    },
+    {
+      "titulo": "Consejo de ministros extraordinario · 16/11",
+      "archivo": "gobierno/estudios/consejo-2026-11-16.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
-  "sesiones": [
-    {
-      "tarea": "K12b",
-      "titulo": "Menús: Códice · K12b",
-      "nota": "Crónica e informe de estación (ui.js, css .cod-)",
-      "url": "https://claude.ai/code/session_01QiKC39y44NSrhkGd1AWovo"
-    },
-    {
-      "tarea": "K12c",
-      "titulo": "Menús: Mármol y Mosaico · K12c",
-      "nota": "Imperio, Mercado, Rutas, Saber (ui.js, css .mar-/.mos-)",
-      "url": "https://claude.ai/code/session_01QiKC37mkMzTRdX8y9NPqcM"
-    }
-  ],
+  "sesiones": [],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
 }

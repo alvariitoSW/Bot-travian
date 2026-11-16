@@ -146,7 +146,9 @@ if (informe) {
   const figs = [];
   for (const p of informe.pasos) {
     if (!p.captura) continue;
-    const b64 = (await readFile(join(AQUI, 'capturas', p.captura))).toString('base64');
+    /* algunas capturas del recorrido se guardan en capturas-tarea/ (R3, R4): se buscan en los dos sitios y, si faltan, se saltan */
+    let b64 = null; for (const d of ['capturas', 'capturas-tarea']) { try { b64 = (await readFile(join(AQUI, d, p.captura))).toString('base64'); break; } catch (e) { } }
+    if (!b64) continue;
     figs.push('<figure class="' + (/batalla\.jpg$/.test(p.captura) && !/aviso/.test(p.captura) || /resultado/.test(p.captura) ? 'ancha' : '') + (p.ok ? '' : ' mal') + '"><img alt="' + esc(p.nombre) + '" src="data:image/jpeg;base64,' + b64 + '"><figcaption><b>' + (p.ok ? '✔ ' : '✘ ') + esc(p.nombre) + '</b>' + esc(p.detalle) + '</figcaption></figure>');
   }
   htmlCapturas = figs.join('');
