@@ -1344,6 +1344,12 @@
       "titulo": "Batalla mejorada · GM7 Empezar de lejos, proyectiles y testudo (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-lejos/",
       "url": "https://claude.ai/code/session_01QiKC3AGYXUi3fSV7A4hP2x"
+    },
+    {
+      "tarea": "EV2",
+      "titulo": "Política · EV2 Política grande: casa del gobernante, Foro, Curia y magistrados (maqueta)",
+      "nota": "solo gobierno/estudios/ y gobierno/maquetas/politica-grande/; no toca js/",
+      "url": "https://claude.ai/code/session_01QiKC36KsLzacZLb8LwerPE"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
