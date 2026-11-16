@@ -1350,6 +1350,12 @@
       "titulo": "Política · EV2 Política grande: casa del gobernante, Foro, Curia y magistrados (maqueta)",
       "nota": "solo gobierno/estudios/ y gobierno/maquetas/politica-grande/; no toca js/",
       "url": "https://claude.ai/code/session_01QiKC36KsLzacZLb8LwerPE"
+    },
+    {
+      "tarea": "GM4",
+      "titulo": "Batalla mejorada · GM4 Aspecto visual: soldados sin polígonos a la vista (maqueta)",
+      "nota": "solo gobierno/maquetas/guerra-arte/",
+      "url": "https://claude.ai/code/session_01QiKC36ZF1e1BhVX8T4HFhB"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
