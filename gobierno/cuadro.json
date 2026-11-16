@@ -1180,6 +1180,18 @@
       "titulo": "Reglas de la batalla nueva dentro del juego",
       "nota": "Solo el motor nuevo en js/, su prueba y su juez; no toca ui.js, game.js ni la batalla que sale hoy",
       "url": "https://claude.ai/code/session_01QiKC37YnzYY23ieYMVzuFx"
+    },
+    {
+      "tarea": "GM1",
+      "titulo": "Batalla mejorada · GM1 Ejércitos grandes (maqueta)",
+      "nota": "solo gobierno/maquetas/guerra-grande/",
+      "url": ""
+    },
+    {
+      "tarea": "GM2",
+      "titulo": "Batalla mejorada · GM2 Combate en vivo, armas y flancos (reglas en maqueta)",
+      "nota": "solo gobierno/maquetas/guerra-cuerpo/",
+      "url": ""
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
