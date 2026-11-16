@@ -478,6 +478,14 @@ async function navegador() {
 
 if (!RAPIDO) await navegador();
 
+/* ---------- 2. Juez de la guerra jugada de verdad (GC2: gobierno/juez-guerra.mjs, ~4 min; solo en el recorrido completo) ---------- */
+if (!RAPIDO) {
+  console.log('Juez 2 · Guerra jugada de verdad (gobierno/juez-guerra.mjs)');
+  const r = spawnSync(process.execPath, ['gobierno/juez-guerra.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 900000 });
+  const lineas = (r.stdout || '').split('\n'), mal = lineas.filter(l => /MAL:|^prueba:|^consola:|^excepción:/.test(l)), avisos = lineas.filter(l => /AVISO/.test(l)).length, bien = lineas.filter(l => /^\s*bien:/.test(l)).length;
+  apunta('Guerra jugada de verdad (entrar, salir, maniobra, primer toque, arte)', r.status === 0, r.status === 0 ? bien + ' comprobaciones bien' + (avisos ? ' · ' + avisos + ' aviso(s) de fallos conocidos del juego (ver salida de juez-guerra.mjs)' : '') : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 400));
+}
+
 const fallos = pasos.filter(p => !p.ok);
 const informe = { fecha: new Date().toISOString(), segundos: Math.round((Date.now() - t0) / 1000), ok: fallos.length === 0, rapido: RAPIDO, pasos, errores };
 if (!RAPIDO) await writeFile(join(CAPS, 'informe.json'), JSON.stringify(informe, null, 1));

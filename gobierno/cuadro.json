@@ -1442,12 +1442,6 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "GC2",
-      "titulo": "Juez de la batalla que se juega de verdad",
-      "nota": "solo gobierno/",
-      "url": "https://claude.ai/code/session_01QiKC36PzPJgjr1dDmEGFxu"
-    },
-    {
       "tarea": "GM4",
       "titulo": "Batalla mejorada · GM4 Aspecto visual: soldados sin polígonos a la vista (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-arte/",
