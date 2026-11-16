@@ -167,8 +167,8 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 ## Esperando algo del usuario
 
 ## Propuestas por aprobar
-- **P115** (de RD1) — Aligerar las piezas estáticas en NUESTRO formato: guardar índices y posiciones a 16 bits en `tools/` y leerlos en `js/gfx/statics.js`. Medido: ≈ 50 % menos de `.bin` (10,4 MB → ~5 MB) sin añadir lectores; glTF-Transform no mejora los triángulos (usa el mismo meshoptimizer). Detalle en `estudios/RD1-gltf-transform.md`.
-- **P116** (de RD1) — Leer las licencias de Kenney, Quaternius y OpenGameArt en su fuente: la red lo impidió. Hace falta una sesión que pueda abrirlas, o que el usuario pegue el texto de sus páginas de licencia. Hasta entonces no entra arte de esos bancos.
+- P115 (de RD1) — Aligerar las piezas estáticas en NUESTRO formato: guardar índices y posiciones a 16 bits en `tools/` y leerlos en `js/gfx/statics.js`. Medido: ≈ 50 % menos de `.bin` (10,4 MB → ~5 MB) sin añadir lectores; glTF-Transform no mejora los triángulos (usa el mismo meshoptimizer). Detalle en `estudios/RD1-gltf-transform.md`.
+- P116 (de RD1) — Leer las licencias de Kenney, Quaternius y OpenGameArt en su fuente: la red lo impidió. Hace falta una sesión que pueda abrirlas, o que el usuario pegue el texto de sus páginas de licencia. Hasta entonces no entra arte de esos bancos.
 
 
 0. **C6 hecha (12/11)**, en la rama `claude/c6-mapa-escalones` unida a la rama del juego; `main` puesta al día. Siguiente del mapa: J4 (más ciudades), que ya puede usar `D.ZONAS`; C1 (bajar a la ciudad 3D) completa los escalones.
