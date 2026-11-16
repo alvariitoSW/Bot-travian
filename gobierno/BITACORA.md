@@ -166,6 +166,8 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
+- 16/11/2026 — **GM2, combate en vivo y flancos** (maqueta: https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/guerra-cuerpo/ ; estudio `estudios/GM2-combate-en-vivo.md`): ¿estas reglas pasan a la batalla nueva? (A) sí, tal cual; (B) sí, con cambios; (C) no, otra vuelta
+- 16/11/2026 — **GM2, vélites delante desde el principio**, como en la historia, tirando jabalinas antes del choque: (A) sí; (B) no, como en GC1
 
 ## Propuestas por aprobar
 
@@ -185,6 +187,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+**GM2 hecha (16/11), espera prueba.** Reglas de combate en vivo, armas, formaciones y flancos en `gobierno/maquetas/guerra-cuerpo/reglas.js` (parte de GC1; prueba `prueba.mjs` APTO). Para unir con GM1: quien dibuje solo lee `retrato(B)` (una ficha por línea: hombres, filas, posición, hacia dónde mira, alcance, qué hace, peligro de costado o espalda) y los eventos. Para GM5/GC3: estas reglas son un superconjunto de `guerra-cero/reglas.js` (mismas órdenes y misma forma del estado, con `dist`, `flanco` y `desorden` de más); no se llevan a `js/` hasta que el usuario conteste. Sin comprobar en pantalla: el latido del botón Caballería con «¡por la espalda!» y la flecha de espalda sobre Roma. Se pasó de presupuesto (1,8 M sobre 1,4 M). Parte: `partes/2026-11-16-GM2.md`.
 **GC3 hecha (16/11).** Motor `js/guerra.js` (API: `crear({semilla, ejercitos:[units0,units1]})`, `paso`, `ordenar`, `retirarse`, `resumen`, `guardar`, `cargar`). Para GC4 hace falta en `js/game.js` algo como `G.estadoGuerra(info)` = `Guerra.crear({semilla: info.cfg.seed, ejercitos: [sides[0].units, sides[1].units]})`, y `G.resultadoNueva(info, Guerra.resumen(B), estM)` ya sirve. Sigue **GC4** (pantalla); después GC2 (juez) y GC5 (sonido y rivales). Parte: `partes/2026-11-16-GC3.md`.
 **P106 aprobada (16/11): carril GC, en orden GC2 → GC3 → GC4 → GC5.** La base es `gobierno/maquetas/guerra-cero/` (el usuario: «es la base que quería hacer»). Vertical y horizontal. GC3 y GC4 tocan `js/`: no abrirlas a la vez que otra sesión que toque `js/ui.js` o `js/game.js`.
 **GC1 hecha (16/11).** Batalla nueva en maqueta: `gobierno/maquetas/guerra-cero/` (reglas en `reglas.js`, sin pantalla, con su prueba `prueba.mjs`; pantalla en `vista.js`; recorrido con dedo en `captura.mjs`). Estudio `estudios/GC1-guerra-desde-cero.md`. **No se lleva al juego hasta que el usuario la pruebe y conteste** (dos preguntas arriba). Sigue **GC2** (juez de la batalla que se juega de verdad): puede partir de `captura.mjs`, que ya comprueba botones enteros, primer toque útil, duración y salida en dos toques en vertical y horizontal. Sin medir: fluidez en móvil real (unas 230 figuras, 495.000 triángulos). Parte: `partes/2026-11-16-GC1.md`.

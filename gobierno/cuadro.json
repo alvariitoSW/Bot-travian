@@ -1052,6 +1052,32 @@
       "archivo": "gobierno/capturas-tarea/GC1-horizontal-4-caballeria.jpg",
       "pie": "En horizontal: los jinetes espantan a los númidas en el ala izquierda",
       "ancha": true
+    },
+    {
+      "tarea": "GM2",
+      "archivo": "gobierno/capturas-tarea/GM2-1-tiro.jpg",
+      "pie": "Combate en vivo: los arqueros de Pirro tiran mientras las líneas se acercan"
+    },
+    {
+      "tarea": "GM2",
+      "archivo": "gobierno/capturas-tarea/GM2-3-flanco-enemigo.jpg",
+      "pie": "Tus jinetes cogen el costado de la falange: «costado al aire»"
+    },
+    {
+      "tarea": "GM2",
+      "archivo": "gobierno/capturas-tarea/GM2-4-flanco-roma.jpg",
+      "pie": "Te entran por el costado: flecha roja, aviso y la reserva se vuelve a cubrir"
+    },
+    {
+      "tarea": "GM2",
+      "archivo": "gobierno/capturas-tarea/GM2-5-cartago.jpg",
+      "pie": "Contra Cartago: elefantes, galos e iberos, cada uno con su formación"
+    },
+    {
+      "tarea": "GM2",
+      "archivo": "gobierno/capturas-tarea/GM2-6-horizontal.jpg",
+      "pie": "En horizontal: falange, arqueros y elefantes al chocar",
+      "ancha": true
     }
   ],
   "informes": [
@@ -1186,6 +1212,10 @@
     {
       "titulo": "RD1 · glTF-Transform, medida",
       "archivo": "gobierno/estudios/RD1-gltf-transform.md"
+    },
+    {
+      "titulo": "GM2 · Combate en vivo, armas y flancos",
+      "archivo": "gobierno/estudios/GM2-combate-en-vivo.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1202,12 +1232,6 @@
       "titulo": "Batalla mejorada · GM1 Ejércitos grandes (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-grande/",
       "url": "https://claude.ai/code/session_01QiKC3AKD1saZ9LQKVLUpuX"
-    },
-    {
-      "tarea": "GM2",
-      "titulo": "Batalla mejorada · GM2 Combate en vivo, armas y flancos (reglas en maqueta)",
-      "nota": "solo gobierno/maquetas/guerra-cuerpo/",
-      "url": "https://claude.ai/code/session_01QiKC38qgn35XZf77smxLzy"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
