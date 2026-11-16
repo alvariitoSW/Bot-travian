@@ -211,7 +211,7 @@ Una tarea por sesión; CN1 a CN4 tocan `js/game.js` y `js/data.js`, así que van
 - ✅ CN15 **Ciudad viva** (P85, ≈1,5 M): estaciones y luz, andamios, fachadas ricas y pobres, recuas, sonido. Tras CN11 y Q11; no repite lo suyo. **CN15a, b y c hechas (estaciones, fachadas, obra, recuas y sonido); cerrada.**
 - ✅ CN15d **Dique, tejado y arca del foro (solo dibujo)** (13/11): `js/gfx/civicas.js` dibuja tramos de dique (`E.edificios` tipo `dique`) y el arca (`E.arca`); el tejado rojo por barrio (`E.barrios[i].tejas`) va en `tinteC`. Sin esos datos no pinta nada: lo activa CN13.
 - ⬜ CN16 **El ejército vive en la ciudad** (P86, ≈1,5 M): campo de Marte, leva en el foro, guarnición en torres, cerrar puertas, veteranos que se asientan, triunfo. Tras CN11.
-- ⬜ CN17 **Barrios con carácter, encargos e hitos** (P87, ≈1,5 M): barrios con nombre propio, plaza en los cruces, encargos cortos del Senado, hitos que abren algo nuevo. Tras CN6 y Q7.
+- ✅ CN17 **Barrios con carácter, encargos e hitos**: carácter y plaza por barrio, 7 encargos del Senado, 4 hitos. Plaza y tinte sin ver en captura (solo salen en barrios nuevos).
 - ⬜ CN18 **Hecho para el móvil** (P88, ≈1,5 M): postal y crónica de la ciudad, modo contemplar, punto de parada, copia de la partida en un archivo, partida corta con nota (enlaza con I8).
 - ✅ CN19 **Más terrenos donde fundar** (13/11): costa (salinas), pantano (zanja), terrazas y llanura; cada colonia trae su terreno, reglas en `D.TERRENO_REGLAS`, tinte del suelo por terreno.
 - ⬜ CN19c **Fundar donde el jugador elige**: `G.fundarColonia` ignora el punto elegido (`convertir` funda con `fundarAuto`); arreglarlo obliga a reequilibrar «partida corta · fundar».
