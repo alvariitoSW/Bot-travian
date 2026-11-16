@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 16/11/2026 — **EV4a, revisar las reglas antes de dibujar**: «A». (Lectura de Claude: un revisor ahora. Hecho: encontró un truco para sacar honores sin votar y dos fallos menores; arreglados y metidos en la prueba.)
 - 16/11/2026 — **Crítica de política (EV6): aprueba todo** (cuatro preguntas en el chat): P129 y P130, «Sí, las dos»; partir EV4, «Sí, en dos»; P131, P132 y P133, «Las tres»; retirar EV1, «Sí, retirarla». (Lectura de Claude: EV4 pasa a ser EV4a, reglas con P129, P130 y P131, y EV4b, pantallas con P132; P133 queda como norma de color en EV3 y EV5; EV1 se archiva sin borrar su carpeta.)
 
 - 16/11/2026 — **Pedido nuevo (sin aprobar aún): mapamundi mucho más grande, ejércitos con movimiento libre, campamentos y posturas**. Literal: «Habría que hacer el mapamundi mucho más grande y que los ejércitos se pudieran mover libremente por él y así poder esconderse o formar pequeños campamentos y estar protegidos y luchar desde ellos cuando les atacan y tener como en el Rome 2 por cada turno una distancia de movimientos, al igual que si me pongo en modo emboscada o modo saqueo o modo campamento». (Lectura de Claude: cambia la arquitectura de la campaña, que hoy va por caminos fijos de `D.EDGES`; es una tarea nueva y grande que sustituiría a «esconder en un sitio del camino» de GM15b. Falta diseño corto y que el usuario lo apruebe antes de pasar al tablero. GM15b sigue como está, sobre los caminos.)
@@ -203,7 +204,6 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
-- 16/11/2026 — **EV4a hecha, se pasó de gasto (2,5 M sobre 1,6 M)**: las reglas nuevas de política pasan sus robots, pero no las ha revisado un segundo agente. ¿Se revisan antes de dibujar las pantallas? (A) sí, un revisor ahora (≈0,15 M); (B) no, que las revise EV4b al dibujar.
 - 16/11/2026 — **Probar la batalla que empieza de lejos (GM7)**: https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/guerra-lejos/ . (1) ¿Así empieza la batalla? (A) sí; (B) sí, con cambios; (C) no. (2) Acercarse dura unos 40 s: (A) está bien; (B) más largo; (C) más corto. (3) El testudo en campo abierto no es de esta época (solo se usaba contra murallas): (A) se queda, marcado como licencia de juego; (B) solo «Escudos».
 
 ## Propuestas por aprobar

@@ -147,8 +147,8 @@ for (const a of ['todo', 'grande', 'nada']) {
 { const e = crear(); votar(e, 'cruzar', ['mer', 'mer']); ok(e.marcas.tratos.length === 1, 'repetir un bando en la misma lista no falla ni cobra dos veces'); ok(e.oro === 140, 'trato mer cobra 60'); }
 { const e = crear(); e.estacion = 1; e.marcas.cruza = true; votar(e, 'alianza', ['mer']); e.marcas.hecho1 = false; delete e.marcas.pendiente; ok(lanza(() => votar(e, 'sitio', ['mer'])), 'un trato solo una vez al año'); }
 { const e = crear(); e.marcas.contra = true; ok(tratos(e).every(t => t.bloqueado), 'Senado en contra: tratos bloqueados'); ok(lanza(() => votar(e, 'cruzar', ['mer'])), 'con el Senado en contra los tratos no valen'); const a = votos(e, 'cruzar', ['mil', 'mer']), b = votos(e, 'cruzar', []); ok(a.si === b.si && a.duda === b.duda, 'el pronóstico ignora los tratos'); }
-{ const e = crear(); const a = nombrar(e, 'edil', 'junio'); ok(a.coste === 0 && e.oro === 200 && e.cargos.edil === 'junio' && e.humor.mer === 53 && e.humor.ter === 50, 'nombrar gratis en primavera (+3 al nombrado)');
-  nombrar(e, 'edil', 'fabio'); nombrar(e, 'edil', 'junio'); ok(e.humor.mer === 53, 'no se puede sacar partido nombrando de ida y vuelta');
+{ const e = crear(); const a = nombrar(e, 'edil', 'junio'); ok(a.coste === 0 && e.oro === 200 && e.cargos.edil === 'junio' && e.humor.mer === 50 && e.humor.ter === 50, 'nombrar en primavera es gratis y no da favor');
+  nombrar(e, 'edil', 'fabio'); nombrar(e, 'edil', 'junio'); ok(e.humor.mer === 50, 'no se puede sacar partido nombrando de ida y vuelta');
   ajustar(e, 'nada'); cerrarEstacion(e); const oro = e.oro, mil = e.humor.mil; const b = nombrar(e, 'edil', 'duilio'); ok(b.coste === 30 && e.oro === oro - 30 && e.humor.mil === mil + 3, 'nombrar cuesta 30 y da +3 al bando nombrado');
   const e3 = crear(); ajustar(e3, 'nada'); cerrarEstacion(e3); const h3 = structuredClone(e3.humor); nombrar(e3, 'edil', 'junio'); ok(e3.humor.ter === h3.ter - 6 && e3.humor.mer === h3.mer + 3, 'enfada (−6) al bando del destituido');
   const e4 = crear(); e4.estacion = 1; e4.oro = 10; ok(lanza(() => nombrar(e4, 'edil', 'junio')), 'sin oro no se nombra'); }
@@ -203,4 +203,9 @@ ok(R3.honores >= 55 && R3.honores <= 92 && R3.casa <= 8, 'con cabeza: honores 55
 ok(R4.media >= R3.media - 5, 'sigue la historia: nota media no más de 5 por debajo de con cabeza (' + R4.media.toFixed(1) + ' frente a ' + R3.media.toFixed(1) + ')');
 ok(R2.rumbos.size === 6, 'el robot al azar alcanza los 6 rumbos (' + R2.rumbos.size + ')');
 const seg = (Date.now() - t0) / 1000; console.log('\nTiempo: ' + seg.toFixed(1) + ' s'); ok(seg < 20, 'la prueba tarda menos de 20 s (' + seg.toFixed(1) + ')');
+// Truco que cazó el revisor (16/11): sin votar nada, nombrar a todos en primavera y atender las visitas con la primera opción no debe dar honores
+{ let h = 0, err = 0; for (let sm = 1; sm <= 500; sm++) { const e = R.crear(sm); R.ajustar(e, 'nada'); for (const c of R.ORDEN_CARGOS) for (const p of R.candidatos(e, c)) R.nombrar(e, c, p.id);
+    for (let k = 0; k < 4; k++) { const v = R.visita(e); if (v && !v.atendida) R.atender(e, v.opciones[0].id); R.cerrarEstacion(e); } if (R.veredicto(e).grado === 'honores') h++; }
+  ok(h <= 25, 'truco «nombrar a todos y atender sin votar»: honores ≤ 5 % (' + (h / 5).toFixed(1) + ' %)'); console.log('Truco sin votar: honores ' + (h / 5).toFixed(1) + ' %');
+  for (let sm = 1; sm <= 300; sm++) { const e = R.crear(sm); const r = R.votar(e, 'cruzar', []); if (!r.sale) { R.ajustar(e, 'nada'); try { R.cerrarEstacion(e); } catch (_) { err++; } } } ok(err === 0, 'pasar a «nada» con el voto caído no rompe el cierre (' + err + ')'); }
 console.log(fallos ? 'NO APTO · ' + fallos + ' fallos' : 'APTO'); process.exit(fallos ? 1 : 0);

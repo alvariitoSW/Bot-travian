@@ -161,7 +161,7 @@ function curiaHTML() {
     let h = `<div class="cur">${A.curia()}${asientos(v, rev)}</div>${ley}${cont(sum('si'), sum('duda'), sum('no'))}`;
     if (rev) return h + cabeza;
     const pend = !!e.marcas.pendiente, tit = pend ? 'El Senado no se decide' : res.salio === 'cruzar' || res.salio === 'senado' ? 'Roma cruza a Sicilia' : (opts.find(o => o.id === res.salio) || { titulo: as.titulo }).titulo;
-    h += `<div class="pan res"><h2>${pend ? tit : res.sale ? 'Aprobado: ' + tit : res.salio ? 'Tu propuesta cae. Sale: ' + tit : 'Tu propuesta cae: no sale nada'}</h2><p>${res.linea}</p>${chips(res.cambios)}${res.extra ? `<p style="margin-top:8px">${res.extra.linea}</p>${chips(res.extra.cambios)}` : ''}`;
+    h += `<div class="pan res"><h2>${pend ? tit : res.sale ? 'Aprobado: ' + tit : res.salio === 'acatar' ? 'Roma no cruza' : res.salio ? 'Tu propuesta cae. Sale: ' + tit : 'Tu propuesta cae: no sale nada'}</h2><p>${res.linea}</p>${chips(res.cambios)}${res.extra ? `<p style="margin-top:8px">${res.extra.linea}</p>${chips(res.extra.cambios)}` : ''}`;
     if (res.tr.length) h += `<div class="chips">` + res.tr.map(t => R.tratos(e).find(x => x.id === t)).map(t => `<span class="chip b">${A.icono('promesa', 16)}${t.titulo}</span>`).join('') + `</div>`;
     h += `</div>`;
     if (pend) h += `<div class="pan"><b>Qué haces</b><div class="suave" style="font-size:13px">Llevarlo al pueblo: ${chips(simulaPueblo('pueblo')).replace('chips', 'chips')}</div><div class="suave" style="font-size:13px;margin-top:6px">Acatar al Senado: ${chips(simulaPueblo('acatar'))}</div></div>`;

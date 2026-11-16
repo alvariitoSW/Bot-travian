@@ -194,7 +194,7 @@ export function nombrar(e, cargo, id) {
   const ant = personaDe(e, cargo); if (ant.id === id) return { cambios: [], coste: 0 };
   const gratis = e.estacion === 0; if (!gratis && e.oro < 30) throw new Error('falta oro');
   const ef = []; if (!gratis) { ef.push({ que: 'oro', n: -30 }); ef.push({ que: ant.bando, n: -6 }); }
-  if (!e.marcas.nombrados.includes(id)) { e.marcas.nombrados.push(id); ef.push({ que: p.bando, n: 3 }); }
+  if (!gratis && !e.marcas.nombrados.includes(id)) { e.marcas.nombrados.push(id); ef.push({ que: p.bando, n: 3 }); } // en primavera es gratis y no da favor: si no, nombrar a todos subía el humor sin coste
   e.cargos[cargo] = id; return { cambios: aplica(e, ef), coste: gratis ? 0 : 30 };
 }
 export function ordenar(e, cargo, ordenId) {
@@ -411,7 +411,8 @@ function llevaElConsul(e) { // ajuste «nada» (o voto no hecho): el cónsul lle
   if (e.estacion === 0) { for (const t of pref) { if (t === 'guerra') { id = 'cruzar'; break; } if (t === 'paz') { id = 'acatar'; break; } } if (!id) id = 'acatar'; titulo = id === 'acatar' ? 'no cruzar' : as.opciones[0].titulo; }
   else { const ops = as.opciones.filter(o => !o.apagada); for (const t of pref) { const o = ops.find(x => x.tono === t); if (o) { id = o.id; break; } } if (!id) id = ops[0].id; titulo = ops.find(o => o.id === id).titulo; }
   let r;
-  if (e.estacion === 0) { if (id === 'cruzar') { r = votar(e, 'cruzar', []); if (!r.sale) r = { ...r, ...elegir(e, 'acatar') }; } else { e.marcas.pendiente = true; r = elegir(e, 'acatar'); } }
+  if (e.estacion === 0 && e.marcas.pendiente) r = elegir(e, 'acatar'); // ya votaste y cayó: el cónsul acata
+  else if (e.estacion === 0) { if (id === 'cruzar') { r = votar(e, 'cruzar', []); if (!r.sale) r = { ...r, ...elegir(e, 'acatar') }; } else { e.marcas.pendiente = true; r = elegir(e, 'acatar'); } }
   else r = votar(e, id, []);
   return { id, titulo, linea: r.linea };
 }
@@ -440,7 +441,7 @@ function suceso(e, est, id, titulo, texto, cambios) { // la misma crisis que sig
   const continua = e.sucesos.some(x => x.id === id && x.estacion === est - 1), s = { estacion: est, id, titulo, texto, cambios: cambios.filter(c => c.n !== 0) }; if (continua) s.continua = true; e.sucesos.push(s); e.marcas.desastres[id]++; return s; }
 export function cerrarEstacion(e) {
   if (e.cerrado) throw new Error('el año ya acabó');
-  if (e.ajuste === 'nada' && e.estacion <= 2 && !e.marcas['hecho' + e.estacion]) { e.marcas.llevo = llevaElConsul(e); e.marcas.llevo.est = e.estacion; }
+  if (e.ajuste === 'nada' && e.estacion <= 2 && !e.marcas['hecho' + e.estacion]) { const pr = e.marcas.propios; e.marcas.llevo = llevaElConsul(e); e.marcas.propios = pr; e.marcas.delegados = (e.marcas.delegados || 0) + 1; /* lo llevó el cónsul, no tú: ni mérito ni gobierno */ e.marcas.llevo.est = e.estacion; }
   const pc = puedeCerrar(e); if (!pc.ok) throw new Error('falta: ' + pc.falta.join('; '));
   const est = e.estacion, m = e.marcas, prog0 = m.progreso, sucesos = [], animoDe = c => { const a = m.animo[c]; return a && a.hasta >= est ? a.estado : null; };
   const cs = est <= 2 ? consultasEst(e) : [], decide = {};
@@ -496,15 +497,16 @@ const RUMBOS = {
   'no-nada': { id: 'dudosa', titulo: 'Paz sin dueño', frase: 'Ni guerra ni pacto: el Estrecho queda en manos de quien se atreva.', viene: 'Alguien llenará el vacío.', real: false },
 };
 const GRADOS = { honores: { titulo: 'Reelegido con honores', frase: 'Roma te recordará: el Senado te aplaude y la plebe te corea.' }, gris: { titulo: 'Año gris', frase: 'Ni gloria ni escándalo: acabas el año sin pena ni honra.' }, casa: { titulo: 'A casa', frase: 'El año te ha comido: el pueblo y el Senado te dan la espalda y vuelves a casa sin honores.' } };
-export const NOTA_HONORES = 64, NOTA_CASA = 28;
+const DELEG = 6;
+export const NOTA_HONORES = 50, NOTA_CASA = 17;
 export function veredicto(e) {
   const m = e.marcas, causas = [], add = (texto, puntos) => causas.push({ texto, puntos }), fv = favor(e);
   add('Oro en el arca (' + e.oro + ')', clamp(Math.round((e.oro - 40) / 7), 0, 22)); add('Contento del pueblo (' + e.pueblo + ')', clamp(Math.round((e.pueblo - 35) / 1.6), 0, 20));
   add('Favor del Senado (' + Math.round(fv) + ')', clamp(Math.round((fv - 40) / 2), 0, 12)); add('Obras terminadas (' + e.ciudad.obras.length + ')', Math.min(15, Math.round(e.ciudad.obras.length * 2.5)));
-  if (m.propios) add('Asuntos grandes sacados con tu propuesta (' + m.propios + ')', m.propios * 6);
+  if (m.propios) add('Asuntos grandes sacados con tu propuesta (' + m.propios + ')', m.propios * 8);
   const cum = (m.cumplidas || []).length, rot = (m.rotas || []).length; if (cum) add('Promesas cumplidas (' + cum + ')', cum * 3); if (rot) add('Promesas rotas (' + rot + ')', -rot * 8);
   for (const s of e.sucesos) add(s.titulo + (s.continua ? ' (sigue) · ' : ' · ') + ESTACIONES[s.estacion].toLowerCase(), (s.id === 'arca' ? -10 : s.id === 'tumulto' ? -12 : -8) / (s.continua ? 2 : 1));
-  if (m.sinResolver) add('Asuntos sin resolver (' + m.sinResolver + ')', -m.sinResolver * 7); const atend = Object.values(m.visitas).filter(v => v.atendida).length; if (atend) add('Visitas atendidas (' + atend + ')', atend * 7); if (m.desatendidas) add('Visitas desatendidas (' + m.desatendidas + ')', -m.desatendidas * 9);
+  if (m.delegados) add('Asuntos grandes que dejaste al cónsul (' + m.delegados + ')', -m.delegados * DELEG); if (m.sinResolver) add('Asuntos sin resolver (' + m.sinResolver + ')', -m.sinResolver * 7); const atend = Object.values(m.visitas).filter(v => v.atendida).length; if (atend) add('Visitas atendidas (' + atend + ')', atend * 2); if (m.desatendidas) add('Visitas desatendidas (' + m.desatendidas + ')', -m.desatendidas * 6);
   const nota = clamp(causas.reduce((s, c) => s + c.puntos, 0), 0, 100), desastres = e.sucesos.filter(x => !x.continua).length;
   const grado = desastres >= 2 || nota < NOTA_CASA ? 'casa' : nota >= NOTA_HONORES ? 'honores' : 'gris';
   const r = { nota, grado, titulo: GRADOS[grado].titulo, frase: GRADOS[grado].frase, causas, desastres, dictamen: 'licencia de juego: en 264 un cónsul no podía repetir hasta pasados diez años (Livio 7.42); el veredicto es un marcador' };
