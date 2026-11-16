@@ -1409,6 +1409,22 @@
       "tarea": "GM10",
       "archivo": "gobierno/capturas-tarea/GM10-B-jinetes.jpg",
       "pie": "Manejo B: tocas «Jinetes» y eliges ruta y objetivo"
+    },
+    {
+      "tarea": "GM32",
+      "archivo": "gobierno/capturas-tarea/GM32-antes-vertical-1-llegada.jpg",
+      "pie": "Campo de antes: suelo a rayas y sin horizonte"
+    },
+    {
+      "tarea": "GM32",
+      "archivo": "gobierno/capturas-tarea/GM32-despues-vertical-1-llegada.jpg",
+      "pie": "Campo nuevo: sin rayas, con cielo, colinas y sombra bajo los bloques"
+    },
+    {
+      "tarea": "GM32",
+      "archivo": "gobierno/capturas-tarea/GM32-despues-horizontal-2-choque.jpg",
+      "pie": "Campo nuevo en horizontal (los soldados aún no cambian)",
+      "ancha": true
     }
   ],
   "informes": [
@@ -1599,6 +1615,10 @@
     {
       "titulo": "GM10 · Mover con el dedo (diseño corto)",
       "archivo": "gobierno/estudios/GM10-manejo.md"
+    },
+    {
+      "titulo": "GM32 · Cómo se ve Total War y cómo acercarnos en el móvil",
+      "archivo": "gobierno/estudios/GM32-como-se-ve-total-war.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1621,12 +1641,6 @@
       "titulo": "Batalla mejorada · GM31 Tablilla de mando y ajustes del manejo (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-manejo/; no toca js/",
       "url": "https://claude.ai/code/session_01QiKC37zLtSEbgCEXGMSZdg"
-    },
-    {
-      "tarea": "GM32",
-      "titulo": "Batalla mejorada · GM32 Ingeniería inversa de cómo se ve Total War (estudio)",
-      "nota": "solo gobierno/estudios/ y, si cabe, gobierno/maquetas/guerra-aspecto/ (nueva)",
-      "url": "https://claude.ai/code/session_01QiKC374G1epbWqwNyFv2G1"
     },
     {
       "tarea": "K7",

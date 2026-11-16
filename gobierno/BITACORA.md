@@ -222,9 +222,18 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
+- 16/11/2026 — **GM32 · maqueta del campo nuevo**: ábrela (https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/guerra-aspecto/) y pulsa «Aspecto: nuevo / de antes». ¿El campo y el aire van por buen camino? (A) sí; (B) sí, pero el cielo y los colores lejanos no; (C) no noto mejora. Dime también las imágenes por segundo.
+- 16/11/2026 — **GM32 · leer las fuentes oficiales de Total War**: esta sesión no pudo abrir gpuopen.com ni totalwar.com (solo resúmenes del buscador). ¿Permites esos dos sitios en la red de las sesiones? (A) sí; (B) no hace falta.
 - 16/11/2026 — **Probar el despliegue (GM21)**: https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/guerra-unica/ . (1) ¿Es lo que querías antes de marchar? (A) sí; (B) sí, con cambios; (C) no. (2) GM21 gastó el triple de lo previsto: ¿se pasa ahora el revisor y los jueces completos (unos 0,4 M más)? (A) sí; (B) no, esperar a mi prueba.
 
 ## Propuestas por aprobar
+- 16/11/2026 — **GM32, resto de la lista** (detalle y costes en `estudios/GM32-como-se-ve-total-war.md`; los tres primeros ya son GM33 a GM35):
+  - P144 **Primera fila que lucha y caídos de verdad**: parejas que golpean, paran y retroceden; el que cae, cae animado y se queda. ≈1,5 M; es lo más caro de pintar de cerca.
+  - P145 **Lo muy lejano como masa**: sin centelleo; mancha con lanzas y cascos en vez de puntos. ≈0,8 M.
+  - P146 **Carteles discretos**: cartel pequeño pegado al estandarte, números al tocar, marca de selección en el suelo. ≈0,6 M; toca el manejo de GM10 y GM31.
+  - P147 **Detalle junto a la cámara**: matas, piedras y arboledas. ≈0,5 M; la fluidez de cerca va justa.
+  - P148 **Polvo que queda colgado y estela de proyectiles**. ≈0,4 M.
+  - P149 **Tono por región y hora del día**. ≈0,3 M; pasa por Arte.
 - P142 **Grecia y mitología como modo aparte** (pedido del 16/11, «más adelante»; el usuario dijo sí a «aparte» el 16/11): no se abre hasta que la batalla romana esté cerrada. Al abrirla hay que decidir cómo queda la regla de fidelidad histórica; la campaña romana no se toca.
 
 ## Propuestas por aprobar
@@ -245,6 +254,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+**GM32 hecha (16/11).** Estudio `estudios/GM32-como-se-ve-total-war.md`; maqueta `maquetas/guerra-aspecto/` (copia de `guerra-arte/` más `aspecto.js`, cinco ganchos `AS.*` en `vista.js`; `comparar.mjs` saca antes y después). Siguen, en este orden y de una en una (mismos archivos): **GM33** (la tropa como gentío), **GM34** (movimiento vivo), **GM35** (campo corregido). Ojo al gasto: el constructor de la maqueta costó 1,08 M con un encargo de seis mejoras; encargar de una en una. Nada de esto va a `js/` sin enseñar antes capturas al usuario.
 **CN13 y CN16a cerradas con pulido y cotejo (16/11).** Campo de Marte con textura y bloques; citas cotejadas en Perseus/LacusCurtius: Livio 24.9, 25.12, 29.14 y 30.38 y Plinio 16.36 comprobadas (la pista de `cubos` Livio 5.7 era errónea y se cambió por Livio 39.14 y 9.46). Quedan por cotejar Ovidio, Fastos 4 y Digesto 1.15 (sitios bloqueados en esa sesión). Pendiente de verdad: CN16b (esperar a la batalla nueva). Parte: `partes/2026-11-16-CN16p.md`.
 **GM31 hecha (16/11), espera prueba.** `maquetas/guerra-manejo/`: manejo C «tablilla» (`montarC` en `manejo.js`), sin tiempo lento, B de entrada. Para GM11/GM11b: traer `manejo.js` y los ganchos de `vista.js`. A decidir por el usuario: qué manejo se queda (A, B, C) y si C reemplaza a B. Pendiente menor: el rótulo de la orden tapa fichas al arrastrar y la tablilla no marca el cuerpo elegido. Siguen GM32 (estudio de cómo se ve Total War) y GM11b. Parte: `partes/2026-11-16-GM31.md`.
 **GM4 hecha (16/11), espera prueba.** Maqueta `gobierno/maquetas/guerra-arte/`: todo el dibujo en `arte.js`, diez enganches `/* GM4 */` en `vista.js`. Para ponerlo sobre `guerra-lejos/`, `guerra-unica/` o el juego (GM5): copiar `arte.js` y esas líneas (lista en `estudios/GM4-aspecto-batalla.md`); `arte.js` lleva copia del sombreador del cartón, así que poses o estados nuevos se añaden también ahí. Lección de gasto: encargos de arte de una sola mejora y tope de 40 pasos.
