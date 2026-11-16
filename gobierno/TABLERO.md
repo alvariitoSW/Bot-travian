@@ -101,6 +101,10 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ L2 **Estandartes y alas** (11/11): moral y cansancio en la tela del estandarte; alas Línea, Reserva, Ligeros y Jinetes con corchete dorado; tocar un ala la elige y la orden va a todos sus regimientos. Pendiente: 20+ regimientos sin medir, estandartes en huida solo en tarjeta.
 - ✅ L3 Fantasmas en pausa y atajos: absorbida por N7 (12/11).
 
+## Carril GC — Guerra desde cero (aprobado por el usuario el 16/11/2026; sustituye en rumbo a los carriles A, N y NB, que no se parchean)
+- 🔶 GC1 **Replantear la batalla: diseño corto y maqueta jugable** (P101, «que se haga de inmediato»): una pantalla, tres cuerpos, una decisión grande cada pocos segundos, cámara que baja a donde pasa algo, la legión en tres líneas con relevo. Estudio `gobierno/estudios/GC1-guerra-desde-cero.md`, maqueta en `gobierno/maquetas/guerra-cero/`. No toca `js/`.
+- ⬜ GC2 **Juez de la batalla que se juega de verdad** (P102): el recorrido entra en la batalla por defecto, en vertical y horizontal, comprueba que se puede salir y mide si se entiende sin instrucciones (primer toque útil sin leer nada). En consonancia con GC1: juzga lo que GC1 defina.
+
 ## Carril N — Guerra nueva: «planeas y luego miras» (pedido 11/11/2026; diseño `gobierno/estudios/N1-guerra-nueva.md`)
 - ✅ N1 **Diseño y maqueta jugable de la guerra nueva** (11/11): batalla por rondas (plan en pausa, ejecución para los dos), 4 puntos de mando, sombras, relevo y enemigo con tres planes. Maqueta `gobierno/maquetas/guerra-nueva.html`; parte `partes/2026-11-11-N1.md`. En pausa hasta que el usuario decida: L3, A1, A2, A6 y A8b.
 - ✅ N1b **Guerra ampliada con ingeniería reversa** (11/11): siete estudios (R8 a R14: Rome II, Field of Glory II, Frozen Synapse, Combat Mission, Ultimate General, Imperator, Hegemony), diseño `estudios/N1b-guerra-ampliada.md` y capturas de la vista 3D real con la interfaz nueva (`capturas-tarea/N1b-*.jpg`). Parte `partes/2026-11-11-N1b.md`.
