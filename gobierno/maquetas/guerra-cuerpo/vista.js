@@ -265,6 +265,7 @@ function eventos() {
     let mala = MALOS.includes(e.tipo) || (e.tipo === 'roto' && e.lado === 0), buena = ['enemigo-cede', 'impacto', 'numidas-fuera', 'cubre'].includes(e.tipo) || (e.tipo === 'roto' && e.lado === 1);
     if (['flanco', 'envuelve', 'estampida'].includes(e.tipo)) { mala = e.lado === 0; buena = e.lado === 1; }
     if (e.tipo === 'calles') { buena = e.texto.startsWith('Abres'); mala = !buena; }
+    if (e.tipo === 'mando') { buena = e.juicio === 'bien'; mala = !buena; }      /* GM6: premio y castigo */
     cinta(e.texto, mala ? 'mala' : buena ? 'buena' : '');
     if (e.tipo === 'roto' && e.lado === 0 && e.sect === sel) { const j = [1, 0, 2].find(k => !B.sect[k].c[0].roto); if (j !== undefined) sel = j; }
   }

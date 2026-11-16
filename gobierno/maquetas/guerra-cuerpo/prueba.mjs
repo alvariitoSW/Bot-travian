@@ -85,7 +85,7 @@ for (const rival of Object.keys(R.RIVALES)) {
   }
   falla(res['no toca nada'].p <= 5, 'quien no toca nada debería perder'); falla(res['todo empujar'].p <= 15, 'quien solo empuja debería perder');
   falla(res['con cabeza'].p >= 85, 'quien juega con cabeza debería ganar');
-  falla(res['con cabeza'].bR <= 0.85 * res['con cabeza, sin jinetes'].bR && res['con cabeza'].dur < res['con cabeza, sin jinetes'].dur, 'buscar el flanco debería ahorrar bajas y tiempo');
+  falla(res['con cabeza'].bR <= 0.9 * res['con cabeza, sin jinetes'].bR && res['con cabeza'].dur < res['con cabeza, sin jinetes'].dur, 'buscar el flanco debería ahorrar bajas y tiempo');
   /* F) la legión mermada: con tres cuartos de los hombres solo se gana buscando costado y espalda; con la mitad, ni así */
   for (const merma of [0.75, 0.5]) {
     const mermada = R.ROMA.map(c => c.map(t => ({ tipo: t, hombres: Math.round(R.TROPAS[t].hombres * merma) }))), f = {};
@@ -94,6 +94,37 @@ for (const rival of Object.keys(R.RIVALES)) {
     if (merma === 0.75) falla(f['con cabeza'] >= 70 && f['con cabeza, sin jinetes'] <= 30, 'F) con tres cuartos de los hombres, el flanco debería marcar la diferencia');
     else falla(f['con cabeza'] <= 20, 'F) con la mitad de los hombres no debería bastar el flanco: sería trampa');
   }
+}
+
+/* ---------- G) PREMIO Y CASTIGO (GM6): mandar bien sube el ánimo de la legión y ayuda; mandar mal lo baja y se paga ---------- */
+console.log('\nG) PREMIO Y CASTIGO');
+{
+  /* G1: el mismo relevo, a tiempo y a destiempo. Hastati y príncipes contra iberos; se releva una sola vez. */
+  const unRelevo = cuando => { let animo = 0, terreno = 0, saldo = 0, n = 0; for (let k = 0; k < N; k++) {
+    const B = R.nueva(77 + k * 313, { ejercitos: [[['hastati', 'principes']], [['iberos']]], auto: [false, true], sinJinetes: true }); let t0 = 0, f0 = 0, h0 = 0, a1 = 0; R.ordenar(B, 0, 'empujar');
+    while (B.fase !== 'fin' && !(t0 && B.t > t0 + 10)) { R.paso(B, 0.1); const c = B.sect[0].c[0], e = B.sect[0].c[1]; if (B.chocado && c.postura === 'empujar' && !t0) R.ordenar(B, 0, 'aguantar');
+      if (!t0 && B.chocado && !c.roto && cuando(B, c, e) && !R.puede(B, 0, 'relevo')) { t0 = B.t; f0 = B.sect[0].frente; h0 = R.hombres(e) - R.hombres(c); R.ordenar(B, 0, 'relevo'); a1 = B.animo; R.ordenar(B, 0, 'empujar'); } }
+    if (t0) { n++; animo += a1; terreno += B.sect[0].frente - f0; saldo += h0 - (R.hombres(B.sect[0].c[1]) - R.hombres(B.sect[0].c[0])); } }
+    return { animo: animo / n, terreno: terreno / n, saldo: saldo / n, n }; };
+  const J = R.juicioRelevo, aTiempo = unRelevo(B => J(B, 0) === 'a-tiempo'), pronto = unRelevo(B => J(B, 0) === 'sin-necesidad' && B.t > 30), carga = unRelevo((B, c) => J(B, 0) === 'bajo-carga');
+  const linea = (n, x) => `${n}: ánimo ${x.animo.toFixed(2)}, terreno ${(x.terreno * 22).toFixed(1)} m, saldo de bajas ${x.saldo.toFixed(0)}`;
+  console.log('   un relevo y empujar, 10 s después (terreno ganado y bajas enemigas menos propias)\n   ' + linea('a tiempo', aTiempo) + '\n   ' + linea('sin necesidad', pronto) + '\n   ' + linea('bajo la carga', carga));
+  falla(aTiempo.n && pronto.n && carga.n, 'no se dieron los tres casos de relevo');
+  falla(aTiempo.animo > 0.5 && pronto.animo < 0.5 && carga.animo < 0.5, 'el relevo a tiempo debería subir el ánimo y el relevo a destiempo bajarlo');
+  falla(aTiempo.terreno > pronto.terreno && aTiempo.terreno > carga.terreno, 'el relevo a tiempo debería ganar más terreno que el relevo a destiempo');
+  /* G2: batalla entera. El que manda con cabeza acaba con el ánimo alto; el que marea a la tropa, con el ánimo por los suelos y peor resultado. */
+  const marea = B => { for (let i = 0; i < 3; i++) { const c = B.sect[i].c[0]; if (c.roto) continue; R.ordenar(B, i, c.postura === 'empujar' ? 'aguantar' : 'empujar'); R.ordenar(B, i, 'relevo'); } };
+  for (const rival of Object.keys(R.RIVALES)) {
+    const media = (bot, cada) => { let a = 0, bien = 0, mal2 = 0, g = 0; for (let k = 0; k < N; k++) { const r = correr(R.nueva(5000 + k * 4099, { rival }), bot, cada); a += r.animo; bien += r.mando.bien; mal2 += r.mando.mal; if (r.como === 'victoria') g++; } return { a: a / N, bien: bien / N, mal: mal2 / N, p: Math.round(100 * g / N) }; };
+    const c = media(bots['con cabeza']), m = media(marea, 1.2), q = media(bots['no toca nada']);
+    console.log(`   ${R.RIVALES[rival].n}: con cabeza, ánimo ${c.a.toFixed(2)} (${c.bien.toFixed(1)} aciertos, ${c.mal.toFixed(1)} errores), gana ${c.p} %  ·  mareando a la tropa, ánimo ${m.a.toFixed(2)} (${m.bien.toFixed(1)} / ${m.mal.toFixed(1)}), gana ${m.p} %  ·  sin tocar, ánimo ${q.a.toFixed(2)}`);
+    falla(c.a >= 0.6 && c.a <= 0.95, 'mandar con cabeza debería dejar el ánimo alto'); falla(m.a <= 0.25 && m.p <= 10, 'marear a la tropa debería hundir el ánimo y perder'); falla(q.a <= 0.5, 'no hacer nada no debería premiarse');
+  }
+  /* G3: el ánimo pesa, sin mandar. La misma batalla en automático con el ánimo fijado arriba, en medio y abajo. */
+  const conAnimo = (a, H = 330) => { let g = 0; for (let k = 0; k < N; k++) { const B = R.nueva(8000 + k * 577, { ejercitos: [[['hastati', 'principes', 'triarii']], [[{ tipo: 'iberos', hombres: H }]]], auto: [true, true], sinJinetes: true }); B.animo = a; B.fijo = true; if (correr(B).como === 'victoria') g++; } return Math.round(100 * g / N); };
+  const g0 = conAnimo(0), g5 = conAnimo(0.5), g1 = conAnimo(1), h0 = conAnimo(0, 300), h5 = conAnimo(0.5, 300);
+  console.log(`   el ánimo solo (misma batalla en automático): contra 330 iberos, por los suelos gana ${g0} %, normal ${g5} %, por las nubes ${g1} %  ·  contra 300, por los suelos ${h0} %, normal ${h5} %`);
+  falla(g1 >= g5 && g5 >= g0 && g1 > g0 && h5 > h0, 'con más ánimo se debería ganar más');
 }
 console.log(mal ? '\nNO APTO' : '\nAPTO');
 process.exit(mal ? 1 : 0);

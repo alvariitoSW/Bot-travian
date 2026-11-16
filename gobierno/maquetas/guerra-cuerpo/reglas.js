@@ -5,6 +5,9 @@
       y su formación (falange, manípulos, tropel, línea cerrada, línea de tiro, tropa ligera, hilera de elefantes).
    2) FLANCOS Y RETAGUARDIA: cada cuerpo sabe si le pegan de frente, por el costado o por la espalda. Costado y espalda
       pegan más y hunden antes el ánimo; cuánto, depende de la formación. El enemigo también lo busca.
+   3) PREMIO Y CASTIGO (GM6): cada orden se juzga en el momento. Mandar bien sube el ÁNIMO DE LA LEGIÓN (B.animo, de 0 a 1)
+      y mandar mal lo baja; el ánimo da o quita fuerza y aguante a toda Roma. El relevo a tiempo entra antes y con empuje;
+      a destiempo (sin necesidad, bajo la carga o con la reserva sin aliento) desordena. Sin botones nuevos.
    El estado son datos sencillos (el azar es un número guardado en B.s): se puede guardar a medias. */
 
 export const NOMBRE_SECTOR = ['Ala izquierda', 'Centro', 'Ala derecha'];
@@ -60,6 +63,9 @@ export const RIVALES = {
 export const DIST0 = 140;          // metros entre las dos líneas al empezar
 const CONTACTO = 3;                // a esta distancia ya se lucha cuerpo a cuerpo
 const T_RELEVO = 3.2, T_CABALLERIA = 24, BASE_FATIGA = 1 / 42, DESCANSO = 1 / 120, K_BAJAS = 1.25;
+/* PREMIO Y CASTIGO. Cuánto sube o baja el ánimo de la legión cada acierto o error, y qué da el relevo a tiempo */
+export const MANDO = { relevoBien: 0.06, relevoMal: 0.06, ordenBien: 0.03, ordenMal: 0.05, contraorden: 0.03, cubre: 0.03, jinetes: 0.04, vuelve: 0.004, deshecha: 0.07, agotados: 0.05, costado: 0.05,
+  empuje: 6, empujeFuerza: 1.2, fuerza: 0.2, moral: 0.012, enfria: 6 };
 const CEDE = 0.5;                  // un cuerpo que ha cedido tanto terreno descubre el costado de su vecino
 export const GOLPE = { costado: { dano: 0.5, moral: 0.02 }, espalda: { dano: 0.9, moral: 0.035 } };
 
@@ -67,7 +73,7 @@ function rnd(B) { B.s = (B.s * 1664525 + 1013904223) >>> 0; return B.s / 4294967
 
 function cuerpo(lado, i, lineas) {
   const c = { lado, i, lineas: lineas.map(l => { const t = typeof l === 'string' ? l : l.tipo, h = typeof l === 'string' ? TROPAS[t].hombres : l.hombres; return { tipo: t, hombres: h, max: h, fatiga: 0, mun: TROPAS[t].mun || 0, tras: false }; }),
-    postura: 'aguantar', moral: 1, roto: false, relevo: 0, libre: 0, tPost: 0, desorden: 0,
+    postura: 'aguantar', moral: 1, roto: false, relevo: 0, relevoDe: 0, empuje: 0, tOrd: -9, tBien: -9, tFlanco: 0, libre: 0, tPost: 0, desorden: 0,
     envuelto: false, golpe: 0, golpePor: '', acoso: 0, flanco: { costado: 0, espalda: 0, cubre: false }, tiraT: 0 };
   c.inicial = c.lineas.reduce((a, l) => a + l.hombres, 0);
   return c;
@@ -78,7 +84,7 @@ function cuerpo(lado, i, lineas) {
 export function nueva(semilla, op) {
   op = op || {}; const riv = RIVALES[op.rival || 'pirro'], ej = op.ejercitos || [ROMA, riv.cuerpos];
   const B = { t: 0, fase: 'marcha', s: (semilla >>> 0) || 7, sect: [], eventos: [], resultado: null, ordenes: 0, rival: op.rival || 'pirro', jinetes: riv.jinetes,
-    auto: op.auto || [false, true], sinJinetes: !!op.sinJinetes,
+    auto: op.auto || [false, true], sinJinetes: !!op.sinJinetes, animo: 0.5, mando: { bien: 0, mal: 0 },
     cab: { estado: 'lista', sect: -1, t: 0, por: '' },
     num: { estado: 'lejos', sect: -1, t: 0, veces: 0, proxima: 0 } };
   for (let i = 0; i < ej[0].length; i++) B.sect.push({ i, frente: 0, dist: DIST0, c: [cuerpo(0, i, ej[0][i]), cuerpo(1, i, ej[1][i])] });
@@ -100,7 +106,7 @@ function ev(B, tipo, sect, texto, mas) { B.eventos.push(Object.assign({ tipo, se
 export function fuerza(c, rival) {
   const l = frente(c), T = TROPAS[l.tipo], F = FORMACIONES[T.forma];
   const fondo = Math.max(0.3, Math.min(1, l.hombres / (0.4 * l.max)));
-  let f = T.cal * fondo * (1 - 0.55 * l.fatiga) * (c.postura === 'empujar' ? 1.25 : 0.8) * (c.relevo > 0 ? 0.7 : 1) * (0.7 + 0.3 * c.moral);
+  let f = T.cal * fondo * (1 - 0.55 * l.fatiga) * (c.postura === 'empujar' ? 1.25 : 0.8) * (c.relevo > 0 ? 0.7 : 1) * (c.empuje > 0 ? MANDO.empujeFuerza : 1) * (0.7 + 0.3 * c.moral);
   f *= T.forma === 'falange' ? 1 + (F.frente - 1) * (1 - c.desorden) : F.frente;                        // la falange vale lo que vale su orden
   f *= 1 - 0.15 * c.flanco.costado - 0.25 * c.flanco.espalda;                                           // quien se vuelve a mirar atrás no pega delante
   if (rival) {
@@ -138,14 +144,64 @@ export function puede(B, i, orden) {
   return 'Orden desconocida';
 }
 
-function relevar(c) { const l = c.lineas.shift(); if (forma(l.tipo).delante) l.tras = true; c.lineas.push(l); while (frente(c).tras && reserva(c).length) c.lineas.push(c.lineas.shift()); c.relevo = T_RELEVO; }
+function relevar(c) { const l = c.lineas.shift(); if (forma(l.tipo).delante) l.tras = true; c.lineas.push(l); while (frente(c).tras && reserva(c).length) c.lineas.push(c.lineas.shift()); c.relevo = c.relevoDe = T_RELEVO; }
+
+/* JUICIO DEL MANDO. Apunta el acierto o el error, mueve el ánimo de la legión y lo cuenta con un evento 'mando' (juicio: 'bien' | 'mal') */
+function mando(B, i, bien, texto, cuanto) {
+  B.animo = Math.max(0, Math.min(1, B.animo + (bien ? cuanto : -cuanto))); B.mando[bien ? 'bien' : 'mal']++;
+  ev(B, 'mando', i, texto, { juicio: bien ? 'bien' : 'mal', animo: B.animo });
+}
+/* ¿Es buen momento para relevar? '' = ni bien ni mal. Se mira ANTES de mover las líneas. */
+export function juicioRelevo(B, i) {
+  const s = B.sect[i], c = s.c[0], e = s.c[1], l = frente(c), sig = reserva(c)[0];
+  if (s.dist > CONTACTO || forma(l.tipo).delante || !sig) return '';
+  if (l.fatiga < 0.5 && l.hombres > 0.55 * l.max) return 'sin-necesidad';
+  if (!e.roto && e.postura === 'empujar' && e.tPost < 4) return 'bajo-carga';
+  if (sig.fatiga > 0.5) return 'sin-aliento';
+  return 'a-tiempo';
+}
+/* ¿Y para empujar o aguantar? Solo se juzga en el cuerpo a cuerpo. */
+export function juicioPostura(B, i, orden) {
+  const s = B.sect[i], c = s.c[0], e = s.c[1], l = frente(c);
+  if (s.dist > CONTACTO || e.roto) return '';
+  if (B.t - c.tOrd < 2) return 'contraorden';
+  const abierto = e.flanco.costado > 0 || e.flanco.espalda > 0 || e.desorden > 0.5;
+  if (orden === 'empujar') {
+    if (l.fatiga > 0.75) return 'agotados';
+    if (TROPAS[frente(e).tipo].forma === 'falange' && !abierto && TROPAS[l.tipo].arma === 'espada') return 'picas';
+    if (e.postura === 'aguantar' || abierto || frente(e).fatiga > 0.6) return 'flaquean';
+    return '';
+  }
+  return e.postura === 'empujar' && e.tPost < 5 ? 'carga' : '';
+}
+const JUICIOS = {
+  contraorden: [false, 'Órdenes y contraórdenes: dudan', 'contraorden'], agotados: [false, 'Empujas con hombres agotados', 'ordenMal'], picas: [false, 'De frente contra las picas', 'ordenMal'],
+  flaquean: [true, 'Bien visto: empujas cuando flaquean', 'ordenBien'], carga: [true, 'Bien: aguantas la carga', 'ordenBien'],
+};
 
 export function ordenar(B, i, orden) {
   const no = puede(B, i, orden); if (no) return no;
   const s = B.sect[i], c = s.c[0]; B.ordenes++;
+  if (orden === 'empujar' || orden === 'aguantar') {
+    const j = JUICIOS[juicioPostura(B, i, orden)];
+    if (j && (!j[0] || B.t - c.tBien >= MANDO.enfria)) { mando(B, i, j[0], j[1], MANDO[j[2]]); if (j[0]) c.tBien = B.t; }
+    c.tOrd = B.t;
+  }
   if (orden === 'empujar' || orden === 'aguantar') { c.postura = orden; ev(B, 'orden', i, orden === 'empujar' ? (s.dist > CONTACTO ? '¡A paso ligero!' : '¡Adelante!') : (s.dist > CONTACTO ? 'Alto: escudos arriba' : 'Escudos juntos'), { orden }); }
-  else if (orden === 'relevo') { relevar(c); c.moral = Math.min(1, c.moral + 0.1); ev(B, 'relevo', i, 'Entran ' + TROPAS[frente(c).tipo].uno, { orden }); }
-  else if (orden === 'caballeria') { const por = ocasion(B, i); B.cab.estado = 'yendo'; B.cab.sect = i; B.cab.t = por === 'espalda' ? 4 : 3; B.cab.por = por; ev(B, 'caballeria', i, por === 'espalda' ? 'Los jinetes rodean ' + DONDE[i] : 'Los jinetes cargan ' + DONDE[i], { orden, por }); }
+  else if (orden === 'relevo') {
+    const j = juicioRelevo(B, i); relevar(c); const entran = TROPAS[frente(c).tipo].uno;
+    if (j === 'a-tiempo') { c.relevo = c.relevoDe = T_RELEVO * 0.6; c.empuje = MANDO.empuje; c.moral = Math.min(1, c.moral + 0.1); }      // limpio: entran antes y con empuje
+    else if (j === 'sin-necesidad') c.desorden = Math.min(1, c.desorden + 0.25);
+    else if (j === 'bajo-carga') { c.relevo = c.relevoDe = T_RELEVO * 1.4; c.desorden = Math.min(1, c.desorden + 0.35); c.moral -= 0.05; }
+    else if (j === '') c.moral = Math.min(1, c.moral + 0.05);
+    ev(B, 'relevo', i, 'Entran ' + entran, { orden, juicio: j });
+    if (j === 'a-tiempo') mando(B, i, true, 'Relevo a tiempo: entran ' + entran + ' con empuje', MANDO.relevoBien);
+    else if (j === 'sin-necesidad') mando(B, i, false, 'Relevo sin necesidad: la línea se desordena', MANDO.relevoMal);
+    else if (j === 'bajo-carga') mando(B, i, false, 'Relevo bajo la carga: se desordenan', MANDO.relevoMal);
+    else if (j === 'sin-aliento') mando(B, i, false, 'Entran ' + entran + ' sin aliento', MANDO.relevoMal / 2);
+  }
+  else if (orden === 'caballeria') { const por = ocasion(B, i); B.cab.estado = 'yendo'; B.cab.sect = i; B.cab.t = por === 'espalda' ? 4 : 3; B.cab.por = por; ev(B, 'caballeria', i, por === 'espalda' ? 'Los jinetes rodean ' + DONDE[i] : 'Los jinetes cargan ' + DONDE[i], { orden, por });
+    if (por !== 'costado') mando(B, i, true, por === 'espalda' ? 'Bien: los jinetes, a su espalda' : 'Bien: tus jinetes salen al paso', MANDO.jinetes); }
   return '';
 }
 
@@ -239,7 +295,7 @@ function chocar(B, s) {
     let k = T.carga * (c.postura === 'empujar' ? 1 : 0.4) * (c.cargaRota ? 0.7 : 1);
     if (ARMAS[R.arma].frena && rival.postura === 'aguantar') k *= 0.35;                                  // lanzas clavadas
     if (R.forma === 'falange') k *= 0.5;                                                                 // nadie carga contra un erizo
-    if (T.arma === 'elefante' && R.forma === 'manipulos' && rival.postura === 'aguantar') { k *= 0.3; ev(B, 'calles', s.i, c.lado === 1 ? 'Abres calles: los elefantes pasan de largo' : 'Abren calles a tus elefantes', { lado: rival.lado }); }
+    if (T.arma === 'elefante' && R.forma === 'manipulos' && rival.postura === 'aguantar') { k *= 0.3; ev(B, 'calles', s.i, c.lado === 1 ? 'Abres calles: los elefantes pasan de largo' : 'Abren calles a tus elefantes', { lado: rival.lado }); if (c.lado === 1 && !B.auto[0] && rival.tOrd >= 0) mando(B, s.i, true, 'Bien: calles a los elefantes', MANDO.ordenBien); }
     golpe[1 - c.lado] += k * 26; rival.moral -= k * 0.11; if (T.arma === 'elefante') rival.desorden = Math.min(1, rival.desorden + 0.35 * k);
   }
   for (const c of s.c) { delete c.cargaRota; bajas(B, s, c, golpe[c.lado]); c.tPost = 0; }
@@ -269,16 +325,24 @@ function flancos(B) {
     const ahora = espalda > 0 ? 'espalda' : costado > 0 ? 'costado' : '';
     if (ahora && ahora !== antes && causa !== 'jinetes' && causa !== 'envuelto') ev(B, 'flanco', s.i, c.lado === 0 ? '¡Te entran por el costado ' + DONDE[s.i] + '!' : 'Costado enemigo al aire ' + DONDE[s.i], { lado: c.lado, por: ahora, causa });
     if (ahora && !antes && fl.cubre && c.lado === 0) ev(B, 'cubre', s.i, 'Tu reserva se vuelve y cubre ' + (ahora === 'espalda' ? 'la espalda' : 'el costado'), { lado: 0 });
+    /* premio y castigo: tapar el costado a tiempo cuenta; dejarlo al aire seis segundos, pudiendo taparlo, también */
+    if (c.lado === 0 && !B.auto[0] && !c.roto) {
+      const pudo = !!FORMACIONES[T.forma].cubre && reserva(c).length > 0;
+      if (!ahora) c.tFlanco = 0;
+      else if (fl.cubre) { if (c.tFlanco >= 0 && B.t - c.tOrd < 6) mando(B, s.i, true, 'Bien: la reserva tapa ' + (ahora === 'espalda' ? 'la espalda' : 'el costado'), MANDO.cubre); c.tFlanco = -1; }
+      else if (pudo && c.tFlanco >= 0) { c.tFlanco += B.dt || 0; if (c.tFlanco >= 6) { mando(B, s.i, false, 'Costado al aire sin respuesta ' + DONDE[s.i], MANDO.costado); c.tFlanco = -1; } }
+    }
   }
 }
 
 export function paso(B, dt) {
   if (B.fase === 'fin') return;
-  B.t += dt;
+  B.t += dt; B.dt = dt;
+  if (!B.fijo) B.animo += Math.max(-MANDO.vuelve * dt, Math.min(MANDO.vuelve * dt, 0.5 - B.animo));      // el ánimo vuelve poco a poco a su sitio: hay que seguir mandando bien
   flancos(B);
   for (const s of B.sect) {
     const r = s.c[0], e = s.c[1];
-    for (const c of s.c) { if (c.relevo > 0) c.relevo = Math.max(0, c.relevo - dt); if (c.golpe > 0) c.golpe = Math.max(0, c.golpe - dt); for (let k = 1; k < c.lineas.length; k++) c.lineas[k].fatiga = Math.max(0, c.lineas[k].fatiga - DESCANSO * dt); }
+    for (const c of s.c) { if (c.relevo > 0) c.relevo = Math.max(0, c.relevo - dt); else if (c.empuje > 0) c.empuje = Math.max(0, c.empuje - dt); if (c.golpe > 0) c.golpe = Math.max(0, c.golpe - dt); for (let k = 1; k < c.lineas.length; k++) c.lineas[k].fatiga = Math.max(0, c.lineas[k].fatiga - DESCANSO * dt); }
     if (r.roto && e.roto) continue;
     if (r.roto || e.roto) {                                           // el vencedor se vuelve contra el costado del vecino
       const v = r.roto ? e : r; if (v.libre > 0) { v.libre -= dt; if (v.libre <= 0) { const o = vecino(B, s.i, 1 - v.lado); if (o) { const w = o.c[1 - v.lado]; if (!w.envuelto) { w.envuelto = true; ev(B, 'envuelve', o.i, v.lado === 0 ? 'Tus hombres envuelven ' + (o.i === 1 ? 'el centro enemigo' : 'el ala enemiga') : 'El enemigo te envuelve ' + DONDE[o.i], { lado: 1 - v.lado, por: 'costado' }); } } } }
@@ -287,7 +351,7 @@ export function paso(B, dt) {
     for (const lado of [0, 1]) if (B.auto[lado]) mente(B, s, lado, dt);
     if (s.dist > CONTACTO) { acercar(B, s, dt); for (const c of s.c) if (c.moral <= 0) romper(B, s, c.lado); continue; }
     tirar(B, s, dt);                                                   // los arqueros retirados siguen tirando por encima
-    const fr = fuerza(r, e), fe = fuerza(e, r), ruido = 0.9 + 0.2 * rnd(B);
+    const fr = fuerza(r, e) * (1 + MANDO.fuerza * (B.animo - 0.5)), fe = fuerza(e, r), ruido = 0.9 + 0.2 * rnd(B);
     for (const [c, f, rival] of [[r, fe, e], [e, fr, r]]) {
       const l = frente(c), T = TROPAS[l.tipo], F = FORMACIONES[T.forma], fl = c.flanco, k = fl.cubre ? 0.4 : 1;
       let d = f * K_BAJAS * dt * ruido * (c.postura === 'aguantar' ? (ARMAS[T.arma].frena ? 0.45 : 0.6) : 1);
@@ -303,14 +367,16 @@ export function paso(B, dt) {
       /* el orden de las filas: se abre al avanzar y cuando llega peligro de lado; se rehace a pie firme */
       c.desorden = Math.max(0, Math.min(1, c.desorden + ((c.postura === 'empujar' ? 0.03 : -0.05) + 0.07 * (fl.costado + fl.espalda) * k) * dt));
       const cayo = bajas(B, s, c, d);
-      if (cayo && c.lado === 0 && !c.roto) ev(B, 'linea-deshecha', s.i, 'Línea deshecha: entran ' + TROPAS[frente(c).tipo].uno);
+      if (cayo && c.lado === 0 && !c.roto) { ev(B, 'linea-deshecha', s.i, 'Línea deshecha: entran ' + TROPAS[frente(c).tipo].uno); if (!B.auto[0] && T.arma !== 'elefante') mando(B, s.i, false, 'Línea deshecha sin relevo ' + DONDE[s.i], MANDO.deshecha); }
+      if (c.lado === 0) c.moral += MANDO.moral * (B.animo - 0.5) * dt;                                  // el ánimo de la legión sostiene o hunde a cada cuerpo
       c.moral = Math.min(1, c.moral);
     }
     s.frente = Math.max(-1, Math.min(1, s.frente + (fr - fe) * 0.045 * dt));
     if (Math.abs(s.frente) >= 1) (s.frente > 0 ? e : r).moral -= 0.02 * dt;
     for (const c of s.c) { const l = frente(c); if (c.moral <= 0 || (!reserva(c).length && l.hombres < 0.15 * l.max)) romper(B, s, c.lado); }
     if (!r.roto && !r.avisado && frente(r).fatiga > 0.8 && reserva(r).length && r.relevo <= 0) { r.avisado = B.t; ev(B, 'cansados', s.i, 'Tus ' + TROPAS[frente(r).tipo].n + ' están agotados ' + DONDE[s.i]); }
-    if (r.avisado && (frente(r).fatiga < 0.6)) r.avisado = 0;
+    if (r.avisado && (frente(r).fatiga < 0.6)) { r.avisado = 0; r.penado = false; }
+    if (r.avisado && !r.penado && !r.roto && !B.auto[0] && B.t - r.avisado > 8 && reserva(r).length) { r.penado = true; mando(B, s.i, false, 'Nadie releva a los agotados ' + DONDE[s.i], MANDO.agotados); }
   }
   if (!B.sinJinetes) jinetes(B, dt);
 
@@ -357,7 +423,7 @@ export function fin(B, como, motivo) {
   B.fase = 'fin';
   const cuales = l => B.sect.filter(s => s.c[l].roto).map(s => NOMBRE_SECTOR[s.i].toLowerCase()).join(' y ');
   if (!motivo) motivo = como === 'victoria' ? 'Rompiste su ' + cuales(1) + ': el resto huye.' : como === 'derrota' ? 'Cedieron tu ' + cuales(0) + ': la legión se deshace.' : 'Sacas a la legión en orden. El campo queda para el enemigo.';
-  B.resultado = { como, motivo, t: B.t, bajas: [inicialLado(B, 0) - Math.round(hombresLado(B, 0)), inicialLado(B, 1) - Math.round(hombresLado(B, 1))], inicial: [inicialLado(B, 0), inicialLado(B, 1)], ordenes: B.ordenes };
+  B.resultado = { como, motivo, t: B.t, bajas: [inicialLado(B, 0) - Math.round(hombresLado(B, 0)), inicialLado(B, 1) - Math.round(hombresLado(B, 1))], inicial: [inicialLado(B, 0), inicialLado(B, 1)], ordenes: B.ordenes, animo: B.animo, mando: { bien: B.mando.bien, mal: B.mando.mal } };
   ev(B, 'fin', -1, '');
 }
 export const retirarse = B => fin(B, 'retirada');
@@ -376,7 +442,7 @@ export function retrato(B) {
       const hace = c.roto ? 'huye' : c.relevo > 0 && k === 0 ? 'relevo' : k > 0 ? (l.tras && T.arma === 'arco' && l.mun > 0 && s.dist <= ARMAS.arco.alcance ? 'tira' : 'reserva') : s.dist > CONTACTO ? (ARMAS[T.arma].tiro && l.mun > 0 && ARMAS[T.arma].alcance >= s.dist ? 'tira' : c.postura === 'empujar' ? 'marcha' : 'espera') : 'lucha';
       const mira = k === 1 && c.flanco.cubre ? (c.flanco.espalda > 0 ? 180 : 90) : 0;
       fichas.push({ lado: c.lado, sector: s.i, linea: k, tipo: l.tipo, nombre: T.n, arma: T.arma, forma: T.forma, hombres: Math.round(l.hombres), max: l.max, cadaFigura: fig, filas, ancho, hondo,
-        x: (s.i - (B.sect.length - 1) / 2) * ANCHO_SECTOR, z: z0 + dir * (fondo + hondo / 2), mira, alcance: ARMAS[T.arma].alcance, hace, fatiga: l.fatiga, postura: c.postura, moral: c.moral, desorden: c.desorden,
+        x: (s.i - (B.sect.length - 1) / 2) * ANCHO_SECTOR, z: z0 + dir * (fondo + hondo / 2), mira, alcance: ARMAS[T.arma].alcance, hace, fatiga: l.fatiga, postura: c.postura, moral: c.moral, desorden: c.desorden, relevo: c.relevo > 0 && c.relevoDe > 0 ? 1 - c.relevo / c.relevoDe : 1, empuje: k === 0 && c.empuje > 0,
         peligro: k === 0 ? { costado: c.flanco.costado, espalda: c.flanco.espalda, cubre: c.flanco.cubre, causa: c.flanco.causa || '' } : null });
       fondo += hondo + 5;
     });
