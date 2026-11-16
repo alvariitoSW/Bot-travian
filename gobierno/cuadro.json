@@ -988,6 +988,22 @@
       "archivo": "gobierno/capturas-tarea/CN5-fundada.jpg",
       "pie": "Colonia recién fundada: foro, chozas y surco",
       "ancha": false
+    },
+    {
+      "tarea": "Batalla nueva",
+      "archivo": "gobierno/capturas-tarea/consejo-batalla-vertical.jpg",
+      "pie": "16/11, móvil en vertical: empieza en pausa, sin botón para salir; rótulos cortados y soldados como bloques"
+    },
+    {
+      "tarea": "Batalla nueva",
+      "archivo": "gobierno/capturas-tarea/consejo-batalla-horizontal.jpg",
+      "pie": "16/11, en horizontal: rótulos encima de la tropa y textos de prueba («línea 0»)",
+      "ancha": true
+    },
+    {
+      "tarea": "Batalla nueva",
+      "archivo": "gobierno/capturas-tarea/consejo-batalla-fin.jpg",
+      "pie": "16/11: la batalla acaba a los 24 segundos, antes de que las líneas choquen"
     }
   ],
   "informes": [
