@@ -1485,6 +1485,10 @@
     {
       "titulo": "EV6 · Crítica dura de las maquetas de política",
       "archivo": "gobierno/estudios/EV6-critica-politica.md"
+    },
+    {
+      "titulo": "GM15a · Sitios de los caminos (ficha de historia)",
+      "archivo": "gobierno/historia/sitios-de-los-caminos.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1507,12 +1511,6 @@
       "titulo": "Batalla mejorada · GM17 Estudio de Heraclea, 280 a.C. (ficha de historia)",
       "nota": "solo gobierno/historia/; sin código",
       "url": "https://claude.ai/code/session_01QiKC372EDu3vvuRKGFQWoE"
-    },
-    {
-      "tarea": "GM15",
-      "titulo": "Batalla mejorada · GM15 Diseño corto: terreno, hora del día y maniobra al empezar",
-      "nota": "solo gobierno/estudios/; sin código",
-      "url": "https://claude.ai/code/session_01QiKC382X7zpQp7FGMKipML"
     },
     {
       "tarea": "GM11",
