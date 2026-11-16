@@ -598,11 +598,11 @@ function rutasHtml(c, id) {
 function dipHtml(c) {
   if (c.owner === 'roma') return '';
   const f = c.owner, fn = D.FACTIONS[f].n, e = G.dipEstado(f);
-  let h = '<div class="sec">Diplomacia</div>';
-  if (e) return h + '<div class="empty">' + (e === 'alianza' ? '🤝 <b>Aliado</b> de Roma: no os ataca y comercia (+20 oro/mes).' : '📜 <b>Tributario</b>: no os ataca y paga ' + G.dipIngreso() + ' oro/mes.') + '</div>';
+  let h = '';
+  if (e) return h + '<div class="empty" style="margin:6px 0">' + (e === 'alianza' ? '🤝 <b>Aliado</b> de Roma: no os ataca y comercia (+20 oro/mes).' : '📜 <b>Tributario</b>: no os ataca y paga ' + G.dipIngreso() + ' oro/mes.') + '</div>';
   const mA = G.dipMotivoAlianza(f), mT = G.dipMotivoTributo(f);
-  h += '<div class="empty"><div class="btns"><button class="btn ' + (mA ? 'no' : '') + '" data-act="dipalianza" data-v="' + f + '">Proponer alianza (150)</button>' +
-    '<button class="btn ' + (mT ? 'no' : '') + '" data-act="diptributo" data-v="' + f + '">Imponer tributo</button></div>' +
+  h += '<div style="margin:6px 0"><div class="btns" style="display:flex;gap:8px;justify-content:center"><button class="btn ' + (mA ? 'no' : '') + '" data-act="dipalianza" data-v="' + f + '">Alianza (150)</button>' +
+    '<button class="btn ' + (mT ? 'no' : '') + '" data-act="diptributo" data-v="' + f + '">Tributo</button></div>' +
     (mA && !/^Esta facción no/.test(mA) ? '<div class="empty" style="opacity:.7">Alianza: ' + esc(mA) + '</div>' : '') + (mT && !/^No es/.test(mT) ? '<div class="empty" style="opacity:.7">Tributo: ' + esc(mT) + '</div>' : '') + '</div>';
   return h + '';
 }
