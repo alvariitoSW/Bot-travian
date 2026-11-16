@@ -47,6 +47,14 @@ console.log('Juez 1S · encargos e hitos (test/encargos.test.mjs)');
   apunta('Encargos del Senado e hitos', r.status === 0, r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 400));
 }
 
+/* ---------- 1T. Hecho para el móvil (CN18): copia en archivo, nota, parada y crónica, sin pantalla ---------- */
+console.log('Juez 1T · copia, nota y parada (test/movil.test.mjs)');
+{
+  const r = spawnSync(process.execPath, ['test/movil.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 60000 });
+  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l)), mal = lineas.filter(l => /^MAL/.test(l));
+  apunta('Copia de la partida, nota y parada', r.status === 0, r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 400));
+}
+
 /* ---------- 1a. Ciudad nueva (reglas sin pantalla) ---------- */
 console.log('Juez 1a · ciudad nueva (test/ciudad.test.mjs)');
 {

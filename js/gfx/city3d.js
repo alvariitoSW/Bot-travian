@@ -589,6 +589,9 @@ export class CityView3D {
   /* pone la cámara mirando al punto (x, z) del mundo (d = distancia, az = giro; opcionales). Para fichas, avisos y capturas */
   mirar(x, z, d, az) { this.camA = null; cam.tx = x; cam.tz = z; if (d) cam.d = d; if (az !== undefined) cam.az = az; cam.elF = 0; ponerCamara(); }
   sincronizar(forzar) { sincronizar(forzar); }
+  /* CN18: postal (copia del dibujo actual, en el mismo instante en que se pinta) y modo contemplar (la cámara gira sola) */
+  foto() { if (!this.listo) return null; try { dibujar(); const c = document.createElement('canvas'); c.width = this.cv.width; c.height = this.cv.height; c.getContext('2d').drawImage(this.cv, 0, 0); return c; } catch (e) { return null; } }
+  contemplar(on) { this.cont = !!on; if (on) this.camA = null; }
 
   /* figuras reales (ciudadanos y guarnición): una malla instanciada por tipo */
   fig(key, cap) {
@@ -635,6 +638,7 @@ export class CityView3D {
     this.shiftT = sel && top > 0 ? Math.max(-60, Math.min(420, H / 2 - (top / 2 + 24))) : 0;
     this.shift += (this.shiftT - this.shift) * 0.15; if (Math.abs(this.shift - desvio) > 0.4) desvio = this.shift; else if (!this.shiftT && Math.abs(this.shift) < 0.4) desvio = 0;
     obrasLista = city && city.obras || null;
+    if (this.cont) cam.az += dt * 0.12;
     ponerCamara();
     this.people(city, t, dt);
     this.sonar(city, id);

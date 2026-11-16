@@ -8,6 +8,7 @@ import { CityView3D } from './gfx/city3d.js';
 import { loadGroundTextures } from './gfx/ground.js';
 import { fijar as fijarFluidez, estaEncendido as fluidezOn } from './gfx/fluidez.js';
 import * as Ciudad from './ciudad.js';
+import { descargar, copiar, hacerPostal, guardarCopia, cargarCopia, contemplar } from './gfx/movil.js';   // CN18
 
 const D = window.DATA, G = window.Game, $ = id => document.getElementById(id);
 G.usarCiudad(Ciudad);   // CN2b: game.js (script clásico) recibe la ciudad nueva antes de cargar o crear partida
@@ -222,9 +223,12 @@ function showOverCorta(o) {
     f('Año al terminar', r.anio + ' a.C.') + f('Turnos jugados', r.turnos) + f('Tiempo de juego', hTxt + ' (estimado)') +
     f('Ciudades que tenías', r.ciudades + (r.fundadas ? ' (' + r.fundadas + (r.fundadas === 1 ? ' fundada' : ' fundadas') + ' por ti)' : '')) +
     f('Batallas ganadas', r.victorias + ' de ' + r.batallas) + f('Enemigos abatidos', r.bajasEnemigas) + f('Bajas propias', r.bajasPropias) +
-    f('Edad alcanzada', 'Edad ' + ['I', 'II', 'III', 'IV'][ed - 1] + (edn ? ' · ' + esc(edn) : '')) + f(esc(s_name()), 'nivel ' + r.heroe) + '</div>' +
+    f('Edad alcanzada', 'Edad ' + ['I', 'II', 'III', 'IV'][ed - 1] + (edn ? ' · ' + esc(edn) : '')) + f(esc(s_name()), 'nivel ' + r.heroe) + notaHtml(r.nota) + '</div>' +
     '<div class="acts"><button class="btn" data-act="tomenu">Volver al menú</button></div>', true);
 }
+/* CN18: la nota de la partida corta (1 a 10) con sus criterios y lo que la sube o baja */
+const notaHtml = n => !n ? '' : '<div class="nota"><b>' + n.nota + '</b><small>de 10 · dificultad más dura: ' + esc(n.difNombre) + '</small></div>' + n.criterios.map(q => '<div class="rs-n"><span>' + esc(q.n) + ' <small>(' + esc(q.d) + ')</small></span><b>' + q.v.toFixed(1).replace('.', ',') + '</b></div>').join('') +
+  (n.apagados.length ? '<div class="rs-nn">Sucesos apagados (' + esc(n.apagados.join(', ')) + '): -' + String(n.penal).replace('.', ',') + '.</div>' : '') + (n.mul !== 1 ? '<div class="rs-nn">La dificultad ' + esc(n.difNombre) + ' multiplica por ' + String(n.mul).replace('.', ',') + '.</div>' : '');
 const s_name = () => (S() && S().hero && S().hero.name) || 'General';
 
 /* ---------- HUD ---------- */
@@ -344,12 +348,14 @@ const HOJA_ALT = [420, 600, 770];
 const ICO_AJ = svgIco('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'), ICO_MERC = svgIco('<path d="M4 8h15l-3-3M20 16H5l3 3"/>'), ICO_RUTA = svgIco('<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>'),
   ICO_PUEB = svgIco('<circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M18 14c2 1 3 3 3 6"/>'), ICO_CRON = svgIco('<path d="M7 4h11v13a3 3 0 0 1-3 3H6M7 4a2 2 0 0 0-2 2v2h2M7 4v12a3 3 0 0 1-3 3 2 2 0 0 0 2 1M10 9h5M10 13h5"/>'),
   ICO_TEMPLO = svgIco('<path d="M3 10l9-6 9 6M5 10v9M9 10v9M15 10v9M19 10v9M3 20h18"/>'), ICO_INFO = svgIco('<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'), ICO_CRED = svgIco('<path d="M12 3l2.5 5.5 6 .7-4.4 4.1 1.2 5.9L12 16.3 6.7 19.2l1.2-5.9L3.5 9.2l6-.7z"/>'), ICO_FLU = svgIco('<path d="M3 17l5-6 4 4 4-7 5 6"/>');
+const ICO_FOTO = svgIco('<rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/>');   // CN18
+const copiasHtml = () => '<button class="hf" data-act="copiaguardar">' + ICO_CRON + '<span>Guardar copia en un archivo</span></button><button class="hf" data-act="copiacargar">' + ICO_CRON + '<span>Cargar copia de un archivo</span></button>';
 function menuHoja() {
   if (UI.hojaConf) return '<div class="hconf"><p class="hq">¿Volver al menú principal?</p><p class="hs">Tu partida se guarda sola.</p><button class="hbig" data-act="hojax">Seguir jugando</button><button class="hdisc" data-act="menu">Sí, volver al menú</button></div>';
   const g = UI.modo !== 'guerra', on = (m, c) => (UI.tab === 'city' || UI.tab === 'map' || UI.tab === 'army') && (m === 'g' ? g : !g) ? ' ' + c : '';
   const f = (act, v, ico, txt, cls) => '<button class="hf' + (cls ? ' ' + cls : '') + '" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span>' + txt + '</span></button>';
   return '<div class="hdos">' + f('modo', 'gobierno', ICO_GOB, 'Gobierno', 'oro' + on('g', 'on')) + f('modo', 'guerra', D.GUERRA_ICON.espadas, 'Guerra', 'rojo' + on('w', 'on')) + '</div>' +
-    f('tab', 'hero', D.GUERRA_ICON.aguila, 'General') + f('tab', 'log', ICO_CRON, 'Crónica') + f('ayuda', null, ICO_INFO, 'Ayuda') + f('hoja', 'ajustes', ICO_AJ, 'Ajustes') +
+    f('tab', 'hero', D.GUERRA_ICON.aguila, 'General') + f('tab', 'log', ICO_CRON, 'Crónica') + f('ayuda', null, ICO_INFO, 'Ayuda') + f('hoja', 'ajustes', ICO_AJ, 'Ajustes') + f('hoja', 'movil', ICO_FOTO, 'Postal y copias') +
     f('fluidez', null, ICO_FLU, fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + f('hoja', 'creditos', ICO_CRED, 'Créditos') +
     '<div class="hsep"></div><button class="hdisc hfondo" data-act="menuconf">Volver al menú principal</button>';
 }
@@ -368,7 +374,9 @@ const HOJAS = {
   menu: { titulo: 'Menú', alt: 1, html: menuHoja },
   ajustes: { titulo: 'Ajustes', alt: 2, html: ajustesHoja },
   corta: { titulo: 'Partida corta', alt: 1, html: () => cortaHtml() || '<div class="empty">No disponible.</div>' },
-  sonmenu: { titulo: 'Sonido y fluidez', alt: 0, html: () => '<button class="hf" data-act="sonido">' + ICO_INFO + '<span>' + sonidoTxt() + '</span></button><button class="hf" data-act="fluidez">' + ICO_FLU + '<span>' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</span></button>' },
+  sonmenu: { titulo: 'Sonido y fluidez', alt: 0, html: () => '<button class="hf" data-act="sonido">' + ICO_INFO + '<span>' + sonidoTxt() + '</span></button><button class="hf" data-act="fluidez">' + ICO_FLU + '<span>' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</span></button>' + copiasHtml() },
+  movil: { titulo: 'Postal y copias', alt: 1, html: () => '<button class="hf" data-act="postal">' + ICO_FOTO + '<span>Postal de la ciudad (imagen)</span></button><button class="hf" data-act="contemplar">' + ICO_FOTO + '<span>Contemplar la ciudad</span></button><button class="hf" data-act="hoja" data-v="cronicac">' + ICO_CRON + '<span>Crónica de la ciudad (texto)</span></button>' + copiasHtml() },
+  cronicac: { titulo: 'Crónica de la ciudad', alt: 2, html: () => S() ? '<pre class="hcron">' + esc(G.cronicaTexto(cityOk())) + '</pre><div class="hdos2"><button class="hf" data-act="croncopiar"><span>Copiar texto</span></button><button class="hf" data-act="crondescargar"><span>Bajar archivo .txt</span></button></div>' : '<div class="empty">Aún no hay partida.</div>' },
   creditos: { titulo: 'Créditos', alt: 0, html: () => '<div class="hcred">' + CREDITOS + '</div>' },
   mercado: { titulo: 'Mercado', alt: 1, html: () => marketHtml() || '<div class="empty">Sin mercado: construye uno para cambiar recursos.</div>' },
   rutas: { titulo: 'Rutas', alt: 2, html: () => rutasHtml(S().cities[cityOk()], UI.city) || '<div class="empty">Esta ciudad no tiene rutas.</div>' },
@@ -1471,7 +1479,13 @@ document.addEventListener('click', function (e) {
     case 'new': case 'newregion': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'cortaen': case 'cortafun': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', null, { modo: 'corta', inicio: a === 'cortafun' ? 'fundar' : 'enPie', dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'refundar': closeModal(); iniciarFundar(); break;
-    case 'continue': if (G.load()) { UI.overShown = false; startGame(); if (S().over) showOver(); } break;
+    case 'continue': if (G.load()) { const pa = S().parada; UI.overShown = false; startGame(); if (S().over) showOver(); else if (pa) modal('<div class="yr">DÓNDE LO DEJASTE</div><h2>' + esc(pa.fecha || '') + '</h2><p>' + esc(pa.texto) + '</p><div class="acts"><button class="btn" data-act="close">Seguir jugando</button></div>'); } break;
+    case 'postal': if (UI.tab !== 'city' || UI.menu || !UI.cityV || !UI.cityV.listo) toast('Abre una ciudad para sacar la postal.', 'bad'); else hacerPostal(UI.cityV, G, D, cityOk()).then(ok => toast(ok ? 'Postal guardada en tus descargas.' : 'No se pudo hacer la postal.', ok ? '' : 'bad')); break;
+    case 'contemplar': if (UI.tab !== 'city' || UI.menu || !UI.cityV || !UI.cityV.listo) toast('Abre una ciudad para contemplarla.', 'bad'); else { hojaCierra(); contemplar(UI.cityV); } break;
+    case 'croncopiar': copiar(G.cronicaTexto(cityOk())).then(ok => toast(ok ? 'Crónica copiada.' : 'No se pudo copiar.', ok ? '' : 'bad')); break;
+    case 'crondescargar': descargar('cronica-' + cityOk() + '.txt', G.cronicaTexto(cityOk())); toast('Crónica guardada en tus descargas.'); break;
+    case 'copiaguardar': if (!S() || UI.menu && !G.hasSave()) toast('Aún no hay partida que copiar.', 'bad'); else { if (UI.menu) G.load(); toast(guardarCopia(G) ? 'Copia guardada en tus descargas.' : 'No se pudo guardar la copia.'); } break;
+    case 'copiacargar': { if (S() && !UI.menu && !confirm('Cargar una copia reemplaza la partida de este móvil. ¿Seguir?')) break; cargarCopia(G).then(r => { if (r.nada) return; if (!r.ok) { toast(r.motivo, 'bad'); return; } hojaCierra(true); UI.overShown = false; startGame(); toast('Copia cargada: ' + G.dateStr(S().t) + '.'); }); break; }
     case 'tomenu': G.save(); UI.modalQ = []; closeModal(); stopBattle(); showMenu(); break;
     case 'tab': UI.codice = null; setTab(v); break;
     case 'codice': UI.codice = v || null; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;
