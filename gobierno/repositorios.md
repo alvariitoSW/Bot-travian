@@ -33,6 +33,15 @@ regiones aparte; hoy no).
 | `donmccurdy/glTF-Transform` | MIT | Comprimir y aligerar modelos en `tools/` | arte, GM4 |
 | Listas para seguir buscando: `AxiomeCG/awesome-threejs`, `michelpereira/awesome-open-source-games`, `Roobyx/awesome-game-design`, `devanshutak25/3d-resources`, `madjin/awesome-cc0` | CC0 o CC BY | Índices | radar |
 
+## Licencias de bancos de arte — comprobación en la fuente (16/11/2026, RD1)
+**Resultado: NO VERIFICADO.** Las páginas oficiales no se pudieron leer: la red de la sesión bloqueaba `kenney.nl`, `opengameart.org` y `quaternius.com`; el usuario las permitió en el entorno, pero la lectura posterior fue denegada por el control automático de la sesión. Por la regla de este archivo («las dudas se dicen, no se resuelven a ojo») **no se apunta licencia ni crédito de memoria**: ningún arte de estos bancos entra en el juego hasta leerlo.
+| Banco | Página oficial a leer | Qué hay que apuntar |
+|---|---|---|
+| Kenney | https://kenney.nl/support | licencia de los paquetes, si exige crédito, qué no se puede hacer (reventa, etc.) |
+| Quaternius | https://quaternius.com/faq.html | licencia por paquete (¿hay de pago con otra?), crédito |
+| OpenGameArt | https://opengameart.org/content/faq | cada obra lleva SU licencia (CC0, CC BY, CC BY-SA, GPL…): comprobar la de cada archivo y su compatibilidad con repartir el juego |
+Pendiente: una sesión con esas tres páginas legibles (o que el usuario pegue el texto oficial) y apuntar aquí el texto exacto con enlace. Vale también para P114: antes de usar cualquier arte, ficha en `js/registro.js` con licencia y crédito.
+
 ## Los de la cuenta del usuario
 No se copian aquí los nombres: este repositorio es **público** y varios de los suyos son privados o personales.
 Para verlos, una sesión llama a `list_repos` (herramienta de Claude Code Remote; da la lista al momento) y adjunta

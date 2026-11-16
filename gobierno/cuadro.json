@@ -1170,6 +1170,22 @@
     {
       "titulo": "FJ1 · Tropico para una ciudad romana",
       "archivo": "gobierno/estudios/FJ1-tropico.md"
+    },
+    {
+      "titulo": "RD1 · procedural-graphics-engine (multitudes)",
+      "archivo": "gobierno/estudios/RD1-procedural-graphics-engine.md"
+    },
+    {
+      "titulo": "RD1 · Wesnoth (terreno y flancos)",
+      "archivo": "gobierno/estudios/RD1-wesnoth.md"
+    },
+    {
+      "titulo": "RD1 · Unknown Horizons (ciudad y suministro)",
+      "archivo": "gobierno/estudios/RD1-unknown-horizons.md"
+    },
+    {
+      "titulo": "RD1 · glTF-Transform, medida",
+      "archivo": "gobierno/estudios/RD1-gltf-transform.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1192,12 +1208,6 @@
       "titulo": "Batalla mejorada · GM2 Combate en vivo, armas y flancos (reglas en maqueta)",
       "nota": "solo gobierno/maquetas/guerra-cuerpo/",
       "url": "https://claude.ai/code/session_01QiKC38qgn35XZf77smxLzy"
-    },
-    {
-      "tarea": "RD1",
-      "titulo": "Radar · RD1 Leer repositorios libres (GM1, GM2, ciudades)",
-      "nota": "solo gobierno/estudios/ y repositorios.md",
-      "url": "https://claude.ai/code/session_01QiKC36epsG8dAYpwXeCJb9"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
