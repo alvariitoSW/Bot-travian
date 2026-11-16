@@ -1389,6 +1389,26 @@
       "archivo": "gobierno/capturas-tarea/GM4-5000-horizontal-3-de-cerca.jpg",
       "pie": "Con el móvil tumbado: el vexillum romano y la enseña enemiga",
       "ancha": true
+    },
+    {
+      "tarea": "GM10",
+      "archivo": "gobierno/capturas-tarea/GM10-A-cuerpo.jpg",
+      "pie": "Manejo A: arrastras un cuerpo hacia atrás y espera"
+    },
+    {
+      "tarea": "GM10",
+      "archivo": "gobierno/capturas-tarea/GM10-A-jinetes.jpg",
+      "pie": "Manejo A: dibujas por dónde rodean los jinetes"
+    },
+    {
+      "tarea": "GM10",
+      "archivo": "gobierno/capturas-tarea/GM10-B-cuerpo.jpg",
+      "pie": "Manejo B: tocas un cuerpo y eliges con cuatro flechas"
+    },
+    {
+      "tarea": "GM10",
+      "archivo": "gobierno/capturas-tarea/GM10-B-jinetes.jpg",
+      "pie": "Manejo B: tocas «Jinetes» y eliges ruta y objetivo"
     }
   ],
   "informes": [
@@ -1575,6 +1595,10 @@
     {
       "titulo": "GM4 · Aspecto de la batalla grande",
       "archivo": "gobierno/estudios/GM4-aspecto-batalla.md"
+    },
+    {
+      "titulo": "GM10 · Mover con el dedo (diseño corto)",
+      "archivo": "gobierno/estudios/GM10-manejo.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1585,12 +1609,6 @@
       "titulo": "Batalla mejorada · GM17 Estudio de Heraclea, 280 a.C. (ficha de historia)",
       "nota": "solo gobierno/historia/; sin código",
       "url": "https://claude.ai/code/session_01QiKC372EDu3vvuRKGFQWoE"
-    },
-    {
-      "tarea": "GM10",
-      "titulo": "Batalla mejorada · GM10 Mover con el dedo, a nuestra manera (diseño y maqueta)",
-      "nota": "solo gobierno/maquetas/guerra-manejo/ (nueva); no toca js/ ni guerra-lejos",
-      "url": "https://claude.ai/code/session_01QiKC3A2gLXMYhmXHkSFzeu"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
