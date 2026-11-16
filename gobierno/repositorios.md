@@ -23,6 +23,16 @@ formaciones y moral) · `dimitarbez/battle-simulator` (batalla en tiempo real, r
 desde un ordenador; no instalado) · `maplibre/maplibre-gl-js`, `protomaps/PMTiles` (solo si se hiciera un mapa de
 regiones aparte; hoy no).
 
+## Radar de GitHub del 16/11/2026 (nada descargado; licencias leídas de la ficha de GitHub, a comprobar en la fuente antes de usar)
+| Repositorio | Licencia | Para qué | Tarea |
+|---|---|---|---|
+| `Pulindu1/procedural-graphics-engine` | MIT | Multitudes con instancias, rejilla espacial y detalle según distancia, en three.js puro | GM1 |
+| `wesnoth/wesnoth` | GPL-2.0 | Equilibrio de unidades, terreno y zonas de control: solo ideas | GM2 |
+| `unknown-horizons/unknown-horizons` | GPL (la ficha no la indica) | Ciudad y economía tipo Anno: solo ideas | FJ, CN |
+| `SFTtech/openage` | sin licencia clara | Cómo se mueven y forman las unidades de Age of Empires II: solo ideas | GM2 |
+| `donmccurdy/glTF-Transform` | MIT | Comprimir y aligerar modelos en `tools/` | arte, GM4 |
+| Listas para seguir buscando: `AxiomeCG/awesome-threejs`, `michelpereira/awesome-open-source-games`, `Roobyx/awesome-game-design`, `devanshutak25/3d-resources`, `madjin/awesome-cc0` | CC0 o CC BY | Índices | radar |
+
 ## Los de la cuenta del usuario
 No se copian aquí los nombres: este repositorio es **público** y varios de los suyos son privados o personales.
 Para verlos, una sesión llama a `list_repos` (herramienta de Claude Code Remote; da la lista al momento) y adjunta
