@@ -1170,6 +1170,41 @@
       "tarea": "EV1",
       "archivo": "gobierno/capturas-tarea/EV1-7-hilo-desvio.jpg",
       "pie": "Cierre del año: tu hilo se separa de la historia real"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-01-casa.jpg",
+      "pie": "Tu casa: Roma desde la terraza, cuánto te consultan y tu mesa"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-02-foro.jpg",
+      "pie": "El Foro: tus cinco magistrados, con cara y orden"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-03-magistrado.jpg",
+      "pie": "Ficha del cónsul: virtud, defecto y tu orden general"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-04-candidatos.jpg",
+      "pie": "Tres candidatos por cargo para nombrar"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-05-curia.jpg",
+      "pie": "La Curia: 30 senadores sentados y su voto a la vista"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-08-paso-estacion.jpg",
+      "pie": "Pasa la estación: lo nuevo de la ciudad, en oro"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-12-cierre.jpg",
+      "pie": "Invierno: el hilo de la historia"
     }
   ],
   "informes": [
@@ -1316,6 +1351,10 @@
     {
       "titulo": "EV1 · Cómo orientar la política",
       "archivo": "gobierno/estudios/EV1-politica.md"
+    },
+    {
+      "titulo": "EV2 · Política grande: casa, Foro, Curia y magistrados",
+      "archivo": "gobierno/estudios/EV2-politica-grande.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1338,12 +1377,6 @@
       "titulo": "Batalla mejorada · GM7 Empezar de lejos, proyectiles y testudo (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-lejos/",
       "url": "https://claude.ai/code/session_01QiKC3AGYXUi3fSV7A4hP2x"
-    },
-    {
-      "tarea": "EV2",
-      "titulo": "Política · EV2 Política grande: casa del gobernante, Foro, Curia y magistrados (maqueta)",
-      "nota": "solo gobierno/estudios/ y gobierno/maquetas/politica-grande/; no toca js/",
-      "url": "https://claude.ai/code/session_01QiKC36KsLzacZLb8LwerPE"
     },
     {
       "tarea": "GM4",

@@ -179,6 +179,10 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
+- 16/11/2026 — **EV2, política grande** (maqueta: https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/politica-grande/ ; diseño `estudios/EV2-politica-grande.md`): ¿va por aquí la política? (A) sí, es la base; (B) sí, con cambios; (C) no
+- 16/11/2026 — **EV2, quién eres en la política**: (A) un senador principal sin cargo que mueve a los magistrados, como en la maqueta; (B) el cónsul del año
+- 16/11/2026 — **EV2, tribuno de la plebe** con su veto como sexto cargo: (A) sí; (B) todavía no
+- 16/11/2026 — **EV3, cómo son las caras definitivas** de magistrados y candidatos: (A) dibujo de línea como el de la maqueta, mejorado; (B) retratos pintados; (C) bustos en 3D
 
 ## Propuestas por aprobar
 
@@ -198,6 +202,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+**EV2 hecha (16/11), espera prueba.** Política grande en `gobierno/maquetas/politica-grande/` (reglas en `reglas.js` con prueba `prueba.mjs` APTO; dibujo de línea propio en `arte.js`; recorrido con dedo en `captura.mjs`). EV3 (arte) tiene su lista exacta en `estudios/EV2-politica-grande.md` §5, pero conviene esperar a que el usuario conteste cómo quiere las caras. Gastó 2,4 M sobre 1,5 M (ALERTA): ver el parte.
 **GM1 hecha, espera prueba (16/11).** Maqueta `gobierno/maquetas/guerra-grande/`: `formacion.js` (sin pantalla) es el contrato entre motor y dibujo: por regimiento, hombres, hombres por fila, posición, orientación y estado; nadie guarda hombres sueltos. GM2 puede apoyarse en `frenteDe` y `filasDe`. GM3 (primera persona) y GM4 (aspecto) se abren cuando el usuario la pruebe; GM3 ya tiene la figura completa junto a la cámara. Pendiente técnico: fluidez en móvil real y bajar la memoria de los cartones (32 MB) si hace falta.
 **GC5 hecha (16/11).** Batalla nueva con sonido (cuerno romano y rival, carga, choque, barrito, redoble de falange; síntesis propia en `js/gfx/sonido.js`, enchufado en `js/ui-guerra.js`). Rivales: `CARACTER` de `js/guerra.js` con falange (flanco ×1,85) y elefantes (línea propia delante en el centro; se desbocan una vez). Textos por rival en `Guerra.FRASE`. Sigue GC6 (código muerto de la clásica). Parte: `partes/2026-11-16-GC5.md`.
 **GM2 hecha (16/11), espera prueba.** Reglas de combate en vivo, armas, formaciones y flancos en `gobierno/maquetas/guerra-cuerpo/reglas.js` (parte de GC1; prueba `prueba.mjs` APTO). Para unir con GM1: quien dibuje solo lee `retrato(B)` (una ficha por línea: hombres, filas, posición, hacia dónde mira, alcance, qué hace, peligro de costado o espalda) y los eventos. Para GM5/GC3: estas reglas son un superconjunto de `guerra-cero/reglas.js` (mismas órdenes y misma forma del estado, con `dist`, `flanco` y `desorden` de más); no se llevan a `js/` hasta que el usuario conteste. Sin comprobar en pantalla: el latido del botón Caballería con «¡por la espalda!» y la flecha de espalda sobre Roma. Se pasó de presupuesto (1,8 M sobre 1,4 M). Parte: `partes/2026-11-16-GM2.md`.
