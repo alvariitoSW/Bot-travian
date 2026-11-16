@@ -1609,6 +1609,12 @@
       "titulo": "Batalla mejorada · GM17 Estudio de Heraclea, 280 a.C. (ficha de historia)",
       "nota": "solo gobierno/historia/; sin código",
       "url": "https://claude.ai/code/session_01QiKC372EDu3vvuRKGFQWoE"
+    },
+    {
+      "tarea": "J4a",
+      "titulo": "Mapa por regiones · J4a Ciudades y regiones con fuente (datos)",
+      "nota": "js/data.js, js/registro.js, js/game.js (migración)",
+      "url": "https://claude.ai/code/session_01QiKC3AS42L9NVHoCFknGML"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
