@@ -1517,6 +1517,12 @@
       "titulo": "Batalla mejorada · GM11 Motor único de batalla (guerra-unica)",
       "nota": "solo gobierno/maquetas/guerra-unica/ (nueva); no toca guerra-lejos",
       "url": "https://claude.ai/code/session_01QiKC38JUoff72j6pJjdS8B"
+    },
+    {
+      "tarea": "GM15b",
+      "titulo": "Batalla mejorada · GM15b Toparse en el camino (campaña)",
+      "nota": "js/game.js, js/data.js, js/registro.js y lo suyo de js/ui.js; no toca maquetas",
+      "url": "https://claude.ai/code/session_01QiKC3856eK8YNjVRtWetpt"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
