@@ -1078,6 +1078,36 @@
       "archivo": "gobierno/capturas-tarea/GM2-6-horizontal.jpg",
       "pie": "En horizontal: falange, arqueros y elefantes al chocar",
       "ancha": true
+    },
+    {
+      "tarea": "GC4",
+      "archivo": "gobierno/capturas-tarea/GC4-3-choque.jpg",
+      "pie": "El choque, en vertical",
+      "ancha": false
+    },
+    {
+      "tarea": "GC4",
+      "archivo": "gobierno/capturas-tarea/GC4-4-orden.jpg",
+      "pie": "Una orden elegida: «Empujar»",
+      "ancha": false
+    },
+    {
+      "tarea": "GC4",
+      "archivo": "gobierno/capturas-tarea/GC4-5-horizontal.jpg",
+      "pie": "En horizontal, con «Retirarse» arriba",
+      "ancha": true
+    },
+    {
+      "tarea": "GC4",
+      "archivo": "gobierno/capturas-tarea/GC4-9-retirada-pregunta.jpg",
+      "pie": "Retirarse pide confirmación",
+      "ancha": false
+    },
+    {
+      "tarea": "GC4",
+      "archivo": "gobierno/capturas-tarea/GC4-13-recargado-aviso.jpg",
+      "pie": "Tras recargar: «Seguir la batalla»",
+      "ancha": false
     }
   ],
   "informes": [
@@ -1221,12 +1251,6 @@
   "repo": "https://github.com/alvariitosw/bot-travian",
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
-    {
-      "tarea": "GC4",
-      "titulo": "Pantalla de la batalla nueva en el juego",
-      "nota": "Toca js/ui.js, js/game.js y sw.js; al cerrar abre GC2 y GC5",
-      "url": "https://claude.ai/code/session_01QiKC36WsNhRwoAZeuo8U9D"
-    },
     {
       "tarea": "GM1",
       "titulo": "Batalla mejorada · GM1 Ejércitos grandes (maqueta)",

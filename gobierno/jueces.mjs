@@ -66,6 +66,15 @@ console.log('Juez 1h · Guerra nueva (test/guerra.test.mjs)');
   apunta('Guerra nueva (motor sin pantalla)', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, 400));
 }
 
+/* ---------- 1h2. Guerra en el juego (GC4: estadoGuerra, bot, guardar a mitad) ---------- */
+console.log('Juez 1h2 · Guerra en el juego (test/guerra-juego.test.mjs)');
+{
+  const r = spawnSync(process.execPath, ['test/guerra-juego.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 120000 });
+  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l));
+  const mal = lineas.filter(l => /^MAL/.test(l));
+  apunta('Guerra en el juego (bot y guardar a mitad)', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 300)));
+}
+
 /* ---------- 1b. Fichas (registro de piezas) ---------- */
 console.log('Juez 1b · fichas (gobierno/fichas.mjs)');
 {
@@ -272,8 +281,6 @@ async function navegador() {
     });
 
     await paso('Llega la batalla', async () => {
-      // NB7: este recorrido prueba la batalla clásica (la red de seguridad); la nueva la cubren test/nb7.test.mjs y captura-nb7.mjs
-      await estado(() => Game.ponerAjustes({ batalla: 'clasica' }));
       // se adelanta el reloj del juego en vez de esperar meses de campaña
       for (let i = 0; i < 400; i++) {
         const hay = await estado(() => { for (let k = 0; k < 20 && !Game.state.pending.length && !Game.state.over; k++) Game.tick(0.25); return Game.state.pending.length > 0; });
@@ -283,53 +290,37 @@ async function navegador() {
       return { ok: true, detalle: await estado(() => document.querySelector('#mbox h2').textContent), captura: await foto('aviso-batalla') };
     });
 
-    await paso('Dirigir la batalla en 3D (horizontal)', async () => {
+    // GC4: la batalla es la Guerra (js/ui-guerra.js). Con más de 600 hombres pasa antes por la maniobra.
+    await paso('Dirigir la batalla (horizontal): una orden con el dedo', async () => {
       await page.setViewportSize({ width: 844, height: 390 });
-      await page.click('#mbox [data-act="bview"]'); await espera(7000);
-      const en3d = await estado(() => !!UI.battle && !UI.battle.flat && !!document.querySelector('#bfield canvas'));
-      const hayDespliegue = await page.locator('#bctl [data-act="bstart"]').count();
-      if (!hayDespliegue) return { ok: false, detalle: 'no aparece el botón «Empezar batalla» del despliegue' };
-      await page.click('#bctl [data-act="bform"][data-v="ancha"]'); await espera(1500);
-      const capDespliegue = await foto('despliegue');
-      await page.click('#bctl [data-act="bstart"]'); await espera(500);
-      const carta = page.locator('#bcards > *').first();
-      if (await carta.count() && await carta.isVisible()) { await carta.click(); await espera(300); await page.mouse.click(520, 150); await espera(2500); }
-      if (await page.locator('#bctl [data-act="bejec"]').count()) { await page.click('#bctl [data-act="bejec"]'); await espera(3000); }
+      await page.click('#mbox [data-act="bview"]'); await espera(1500);
+      for (let i = 0; i < 14 && !(await page.locator('#gu').count()); i++) {
+        if (await page.locator('.m-choque [data-a="batalla"]').count()) { await page.click('.m-choque [data-a="batalla"]'); await espera(800); break; }
+        if (await page.locator('[data-a="pasar"]').count()) { await page.click('[data-a="pasar"]'); await espera(400); } else await espera(400);
+      }
+      await page.waitForFunction(() => window.__gc && window.__gc.lista === true, null, { timeout: 120000 }).catch(() => {});
+      const lista = await estado(() => !!(window.__gc && window.__gc.lista));
+      if (!lista) return { ok: false, detalle: 'la pantalla de la batalla no llegó a estar lista' };
+      await espera(2000);
+      const retirar = await page.isVisible('#gu-retirar'), cuerpos = await page.locator('#gu .cuerpo').count(), ordenes = await page.locator('#gu .orden').count();
+      await page.tap('#gu .cuerpo[data-i="1"]'); await page.tap('#gu .orden[data-o="empujar"]'); await espera(500);
+      const empuja = await estado(() => window.__gc.B.sect[1].c[0].postura === 'empujar');
       const captura = await foto('batalla');
-      const vivos = await estado(() => UI.battle ? UI.battle.b.men(0) + ' contra ' + UI.battle.b.men(1) : '');
-      return { ok: en3d, detalle: en3d ? vivos : 'la batalla no se ve en 3D (vista de reserva)', captura };
-    });
-
-    // N7: formaciones, tres líneas y sombras por tiempos (se prueba sobre la batalla en curso)
-    await paso('N7: formaciones, líneas y sombras a 10/20/30 s', async () => {
-      const r = await estado(() => {
-        const b = UI.battle && UI.battle.b; if (!b || !window.Battle && !b.formacionesPosibles) return { ok: false, t: 'sin batalla' };
-        const mios = b.regs.filter(q => q.side === 0 && q.st === 'ok');
-        const conForma = mios.filter(q => b.formacionesPosibles(q).length > 1).length;
-        const lineas = mios.filter(q => q.linea).length;
-        const pv = b.prevision([10, 20, 30]);
-        const okPv = Array.isArray(pv) && pv.length === 3 && pv.every(x => x.sombras && x.sombras.length);
-        const dim = mios.every(q => { const f = b.constructor.forma(q); return f && f.ancho > 0 && f.fondo > 0; });
-        return { ok: conForma > 0 && okPv && dim, t: conForma + ' regimientos con formaciones · ' + lineas + ' con línea · sombras ' + (okPv ? 'a 3 tiempos' : 'mal') };
-      });
-      return { ok: !!(r && r.ok), detalle: r && r.t };
+      const ok = retirar && cuerpos === 3 && ordenes === 4 && empuja;
+      return { ok, detalle: ok ? 'Retirarse, tres cuerpos, cuatro órdenes; «Empujar» obedece' : 'retirar ' + retirar + ', cuerpos ' + cuerpos + ', órdenes ' + ordenes + ', empuja ' + empuja, captura };
     });
 
     await paso('La batalla termina y se aplica el resultado', async () => {
-      // «Resolver» está en la fila durante la ejecución y, en el plan, dentro del panel «Más»
-      await page.waitForFunction(() => !document.querySelector('#bctl [data-act="bauto"]'), null, { timeout: 20000 }).catch(() => {});   // la fila estática de index.html (con «Fin») tarda en cambiar a la de rondas
-      if (!(await page.locator('[data-act="bskip"]').count())) {
-        if (await page.locator('#bctl [data-act="bseguir"]').count()) { await page.click('#bctl [data-act="bseguir"]'); await espera(300); }
-        if (await page.locator('#bctl [data-act="bamano"]').count()) { await page.click('#bctl [data-act="bamano"]'); await page.waitForSelector('#bctl [data-act="bmas"]', { timeout: 5000 }); }   // R2: en el plan hay tarjetas; «Más» está en «A mano»
-        if (await page.locator('#bctl [data-act="bmas"]').count()) { await page.click('#bctl [data-act="bmas"]'); await espera(300); }
-      }
-      await page.click('[data-act="bskip"]');
+      // se juega hasta el final con el bot de la campaña de pruebas; el cartel final da paso al resultado
+      await estado(() => { const g = window.__gc; let n = 0; while (g.B.fase !== 'fin' && n++ < 600) { Game.botGuerra(g.B); g.salta(1.5); } });
+      await page.waitForSelector('#gu-seguir:visible', { timeout: 20000 });
+      await page.click('#gu-seguir');
       await page.waitForSelector('#mbox [data-act="bdone"]', { timeout: 20000 });
       const titulo = await estado(() => document.querySelector('#mbox h2').textContent);
       const captura = await foto('resultado');
       await page.click('#mbox [data-act="bdone"]'); await espera(500);
       await page.setViewportSize({ width: 390, height: 844 }); await espera(800); await cierraAvisos();
-      const ok = await estado(() => !UI.battle && Game.state.stats.battles >= 1);
+      const ok = await estado(() => !document.querySelector('#gu') && Game.state.stats.battles >= 1);
       return { ok, detalle: titulo, captura };
     });
 

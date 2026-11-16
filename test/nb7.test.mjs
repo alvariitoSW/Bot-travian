@@ -9,22 +9,22 @@ function t(nombre, f) { try { f(); n++; console.log('bien', nombre); } catch (e)
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const store = {}; global.localStorage = { getItem: k => (k in store ? store[k] : null), setItem: (k, v) => { store[k] = String(v); }, removeItem: k => { delete store[k]; } };
 
-t('ajuste «Batalla»: nueva por defecto, se cambia, se guarda y rechaza lo raro', () => {
+t('ajuste «Batalla»: solo hay un motor (la Guerra nueva), se guarda y rechaza lo raro', () => {
   G.newGame('T'); assert.strictEqual(G.batalla(), 'nueva'); assert.strictEqual(G.ajustes().batalla, 'nueva');
-  assert.strictEqual(G.ponerAjustes({ batalla: 'clasica' }).ok, true); assert.strictEqual(G.batalla(), 'clasica');
-  assert.strictEqual(G.ponerAjustes({ batalla: 'rara' }).ok, false); assert.strictEqual(G.batalla(), 'clasica');
-  G.save(); G.state = null; assert(G.load()); assert.strictEqual(G.batalla(), 'clasica');
+  assert.strictEqual(G.ponerAjustes({ batalla: 'clasica' }).ok, false, 'la clásica ya no existe'); assert.strictEqual(G.batalla(), 'nueva');
+  assert.strictEqual(G.ponerAjustes({ batalla: 'rara' }).ok, false); assert.strictEqual(G.ponerAjustes({ batalla: 'nueva' }).ok, true);
+  G.state.ajustes.batalla = 'clasica'; G.save(); G.state = null; assert(G.load()); assert.strictEqual(G.batalla(), 'nueva'); assert.strictEqual(G.ajustes().batalla, 'nueva', 'una partida con «clasica» migra a «nueva»');
 });
 t('migración: la partida vieja carga con batalla nueva y cuatro tribunos', () => {
   const raw = fs.readFileSync(new URL('./partida-vieja.json', import.meta.url), 'utf8'); const v = JSON.parse(raw); assert(v.tribunos === undefined);
   store['aqvila-save-v1'] = raw; assert(G.load()); assert.strictEqual(G.batalla(), 'nueva'); assert.strictEqual(G.tribunos().length, 4);
   assert.strictEqual(G.maxEjercitos(), 5);
 });
-t('planBatalla: >600 maniobra, menos directo, triple se resuelve sola, clásica sin cambios', () => {
+t('planBatalla: >600 maniobra, menos directo, triple se resuelve sola', () => {
   G.newGame('T'); const mk = (a, b) => ({ cfg: { sides: [{ units: { hastati: a } }, { units: { hoplitas: b } }] } });
   assert.strictEqual(G.planBatalla(mk(400, 300)).via, 'maniobra'); assert.strictEqual(G.planBatalla(mk(200, 150)).via, 'directo');
   assert.strictEqual(G.planBatalla(mk(900, 300)).via, 'sola'); assert.strictEqual(G.planBatalla(mk(100, 400)).via, 'sola');
-  G.ponerAjustes({ batalla: 'clasica' }); assert.strictEqual(G.planBatalla(mk(400, 300)).modo, 'clasica');
+  assert.strictEqual(G.planBatalla(mk(400, 300)).modo, 'nueva');
 });
 t('tribunos: cada ejército sin el César necesita uno; si no quedan, no parte; se nombran con favor alto', () => {
   const s = G.newGame('T'); s.cities.roma.units = { hastati: 2000 }; let k = 0;
@@ -42,7 +42,7 @@ t('si el tribuno cae en el choque, se pierde', () => {
 function campana(modo, sem) {
   const rnd = Math.random; Math.random = mulberry32(sem);
   try {
-    const s = G.newGame('Test'); G.ponerAjustes({ batalla: modo }); const meta = G.region().capitalRival, cuenta = { maniobra: 0, directo: 0, sola: 0, clasica: 0 };
+    const s = G.newGame('Test');  const meta = G.region().capitalRival, cuenta = { maniobra: 0, directo: 0, sola: 0, clasica: 0 };
     const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const nb of G.neighbors(q[i])) if (!(nb in dist)) { dist[nb] = dist[q[i]] + 1; q.push(nb); }
     G.onEvent = () => {}; let guard = 0;
     while (!s.over && guard++ < 200000) {
@@ -62,14 +62,10 @@ function campana(modo, sem) {
     assert(s.over, 'la campaña debe terminar'); return { s, cuenta };
   } finally { Math.random = rnd; G.onEvent = null; }
 }
-for (const sd of (process.env.SEMS||'').split(',').filter(Boolean)) { for (const m of ['nueva','clasica']) { const r = campana(m, +sd); console.log(sd, m, r.s.over.win ? 'V' : 'D', JSON.stringify(r.cuenta), G.yearOf(r.s.t)); } }
+for (const sd of (process.env.SEMS||'').split(',').filter(Boolean)) { for (const m of ['nueva']) { const r = campana(m, +sd); console.log(sd, m, r.s.over.win ? 'V' : 'D', JSON.stringify(r.cuenta), G.yearOf(r.s.t)); } }
 t('campaña con el bot y batalla nueva: termina y usa maniobra y choque', () => {
   const t0 = Date.now(), r = campana('nueva', 3); console.log('     ', JSON.stringify(r.cuenta), r.s.over.win ? 'victoria' : 'derrota', ((Date.now() - t0) / 1000).toFixed(1) + ' s');
   assert(r.cuenta.maniobra + r.cuenta.directo + r.cuenta.sola > 0 && r.cuenta.clasica === 0, 'solo batallas nuevas');
-});
-t('campaña con el bot y batalla clásica: sigue funcionando', () => {
-  const r = campana('clasica', 3); console.log('     ', JSON.stringify(r.cuenta), r.s.over.win ? 'victoria' : 'derrota');
-  assert(r.cuenta.clasica > 0 && r.cuenta.maniobra + r.cuenta.directo + r.cuenta.sola === 0);
 });
 delete global.localStorage;
 console.log(n + ' bien, ' + mal + ' mal'); process.exit(mal ? 1 : 0);

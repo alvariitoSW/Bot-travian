@@ -1,0 +1,72 @@
+/* AQVILA — GC4: pantalla de la batalla (js/ui-guerra.js). Todo cuelga de #gu para no pisar el resto del juego. Sale de la maqueta GC1. */
+#gu{--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--vidrio:rgba(18,15,11,.82);--fil:rgba(184,134,43,.55);--roma:#c23a2e;--rival:#7b5bb5;--verde:#7cc65e;--ambar:#e6ac3c;--rojo:#dd5a43}
+#gu *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+#gu{position:fixed;inset:0;z-index:72;margin:0;background:#15130f;overflow:clip;overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font:14px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--marmol)}
+#gu [hidden]{display:none!important}
+#gu #gu-lienzo{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:none}
+#gu #gu-hud{position:absolute;inset:0;pointer-events:none;overflow:clip}
+#gu button{font:inherit;color:inherit;border:0;cursor:pointer;pointer-events:auto;touch-action:manipulation;margin:0}
+#gu svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+/* salir, siempre a la vista */
+#gu #gu-retirar{position:absolute;left:calc(env(safe-area-inset-left) + 8px);top:calc(env(safe-area-inset-top) + 8px);height:40px;padding:0 14px 0 10px;display:flex;align-items:center;gap:7px;border-radius:20px;background:var(--vidrio);border:1px solid var(--fil);font-weight:600;box-shadow:0 3px 10px rgba(0,0,0,.4)}
+#gu #gu-retirar svg{width:18px;height:18px}
+/* una sola línea de aviso, que se va sola */
+#gu #gu-cinta{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 58px);transform:translateX(-50%);max-width:calc(100% - 24px);padding:8px 16px;border-radius:18px;background:rgba(14,12,9,.78);border:1px solid var(--fil);font:700 14px Cinzel,Georgia,serif;letter-spacing:.03em;color:var(--oro);white-space:nowrap;overflow:clip;text-overflow:ellipsis;opacity:0;transition:opacity .35s}
+#gu #gu-cinta.ve{opacity:1}
+#gu #gu-cinta.mala{color:#ffb39e;border-color:rgba(221,90,67,.7)}
+#gu #gu-cinta.buena{color:#c9ecae;border-color:rgba(124,198,94,.6)}
+/* estandartes del enemigo: flotan sobre su tropa */
+#gu .pend{position:absolute;left:0;top:0;width:66px;margin-left:-33px;padding:4px 6px 5px;border-radius:8px;background:rgba(14,12,9,.7);border:1px solid rgba(123,91,181,.7);text-align:center;font-size:11px;font-weight:600;white-space:nowrap;will-change:transform}
+#gu .pend i{display:block;height:5px;margin-top:3px;border-radius:3px;background:rgba(255,255,255,.16);overflow:clip}
+#gu .pend i b{display:block;height:100%;background:var(--rival);border-radius:3px}
+#gu .pend.carga{border-color:var(--rojo);color:#ffb39e}
+#gu .pend.flaquea{border-color:var(--verde);color:#c9ecae}
+/* abajo: tus tres cuerpos y sus cuatro órdenes */
+#gu #gu-mando{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);bottom:calc(env(safe-area-inset-bottom) + 8px);display:grid;gap:6px}
+#gu #gu-cuerpos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+#gu .cuerpo{position:relative;height:74px;padding:6px 6px 7px;border-radius:12px;background:var(--vidrio);border:1.5px solid rgba(184,134,43,.35);display:flex;flex-direction:column;align-items:center;justify-content:space-between;overflow:clip}
+#gu .cuerpo .nom{font:700 11px Cinzel,Georgia,serif;letter-spacing:.01em;color:#cdbf9d;white-space:nowrap}
+#gu .cuerpo.sel{border-color:var(--oro);background:rgba(46,34,14,.92);box-shadow:0 0 0 2px rgba(233,192,99,.25),0 4px 14px rgba(0,0,0,.5)}
+#gu .cuerpo.sel .nom{color:var(--oro)}
+#gu .cuerpo.roto{opacity:.45}
+#gu .cuerpo.alerta:not(.sel){animation:late 1s infinite}
+#gu .cuerpo .acoso{font-size:19px;line-height:24px;color:var(--rojo);margin-right:2px}
+#gu .escudos{display:flex;align-items:flex-end;gap:5px;height:28px}
+#gu .esc{position:relative;width:15px;height:20px;border-radius:5px/7px;border:1.5px solid rgba(241,234,217,.55);background:rgba(0,0,0,.35);overflow:clip}
+#gu .esc:first-child,#gu .acoso+.esc{width:20px;height:27px;border-color:var(--marmol)}
+#gu .esc b{position:absolute;left:0;right:0;bottom:0;background:var(--verde);transition:height .4s,background .4s}
+#gu .moral{width:100%;height:5px;border-radius:3px;background:rgba(255,255,255,.14);overflow:clip}
+#gu .moral b{display:block;height:100%;border-radius:3px;background:var(--roma);transition:width .4s}
+#gu #gu-ordenes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+#gu .orden{height:66px;padding:5px 2px 4px;border-radius:12px;background:linear-gradient(#3a2c14,#241b0d);border:1.5px solid var(--bronce);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 3px 10px rgba(0,0,0,.45);overflow:clip}
+#gu .orden svg,#gu .orden .glifo{width:22px;height:22px;color:var(--oro)}
+#gu .orden .glifo{font-size:22px;line-height:22px;text-align:center}
+#gu .orden .que{font:700 12.5px Cinzel,Georgia,serif;letter-spacing:.02em;white-space:nowrap}
+#gu .orden .sub{font-size:10.5px;color:#cdbf9d;white-space:nowrap;max-width:100%;overflow:clip;text-overflow:ellipsis}
+#gu .orden.activa{background:linear-gradient(#8a2a20,#5c1b15);border-color:var(--oro)}
+#gu .orden.activa .sub{color:var(--marmol)}
+#gu .orden.no{opacity:.42}
+#gu .orden.pide{animation:pide .8s infinite}
+#gu .orden:active{transform:scale(.96)}
+@keyframes late{50%{border-color:var(--rojo);box-shadow:0 0 0 2px rgba(221,90,67,.4)}}
+@keyframes pide{50%{border-color:#fff;box-shadow:0 0 0 3px rgba(233,192,99,.55)}}
+/* carteles a pantalla completa: carga, retirada y final */
+#gu .velo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:rgba(10,8,6,.72);pointer-events:auto}
+#gu #gu-carga{background:#15130f}
+#gu .velo h1{margin:0;font:700 34px Cinzel,Georgia,serif;letter-spacing:.08em;color:var(--oro)}
+#gu .velo p{margin:0;max-width:330px;font-size:15px;line-height:1.4}
+#gu .velo .cifras{display:grid;grid-template-columns:auto auto;gap:4px 18px;font-size:14px;color:#cdbf9d;text-align:left}
+#gu .velo .cifras b{color:var(--marmol);font-variant-numeric:tabular-nums}
+#gu .velo .fila{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+#gu .gordo{min-width:150px;height:52px;padding:0 20px;border-radius:14px;background:linear-gradient(#8a2a20,#5c1b15);border:1.5px solid var(--oro);font:700 15px Cinzel,Georgia,serif;letter-spacing:.04em}
+#gu .gordo.b{background:linear-gradient(#3a2c14,#241b0d);border-color:var(--bronce)}
+#gu .creditos{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 10px);font-size:10.5px;color:#8d846f;text-align:center;padding:0 16px}
+@media (orientation:landscape){
+#gu #gu-mando{grid-template-columns:1fr 1.15fr;align-items:end}
+#gu .cuerpo{height:66px}
+#gu .orden{height:66px}
+#gu #gu-cinta{top:calc(env(safe-area-inset-top) + 10px)}
+#gu .velo{gap:9px;padding:12px}
+#gu .velo h1{font-size:28px}
+}
+#gu .esc{display:block}

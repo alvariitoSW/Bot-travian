@@ -149,7 +149,6 @@ function ajustesHtml() {
   return '<div class="empty ajustes" id="ajustes"><b>Ajustes</b>' + difFila('g') + '<div class="ajb">' + sw.map(q => '<button class="chip' + (a.suc[q[0]] ? ' on' : '') + '" data-act="suceso" data-v="' + q[0] + '">' + q[1] + ': ' + (a.suc[q[0]] ? 'sí' : 'no') + (q[0] === 'hambre' && !((D.DIFICULTAD[a.dif] || {}).hambre || {}).meses ? ' (sin efecto en Tranquila)' : '') + '</button>').join('') + '</div>' +
     '<small>Los cambios de dificultad y sucesos valen desde el mes siguiente.</small><div class="ajb"><button class="chip" data-act="repetirasesor">Repetir los consejos</button></div>' +
     '<div class="ajf" id="aj-pausas"><b>Pausas del reloj</b><div class="ajb">' + [['todas', 'Todas'], ['graves', 'Solo graves'], ['ninguna', 'Ninguna']].map(q => '<button class="chip' + (G.pausas() === q[0] ? ' on' : '') + '" data-act="pausas" data-v="' + q[0] + '">' + q[1] + '</button>').join('') + '</div><small>El reloj se para al acabar una obra o una leva, al cumplirse una misión o al venir un ataque.</small></div>' +
-    '<div class="ajf" id="aj-batalla"><b>Batalla</b><div class="ajb">' + [['nueva', 'Nueva'], ['clasica', 'Clásica']].map(q => '<button class="chip' + (G.batalla() === q[0] ? ' on' : '') + '" data-act="batalla" data-v="' + q[0] + '">' + q[1] + '</button>').join('') + '</div><small>Nueva: maniobra y choque por sectores. Clásica: el campo abierto de siempre.</small></div>' +
     '<div class="ajf" id="aj-ambiente"><div class="ajb"><button class="chip' + (G.ambiente() ? ' on' : '') + '" data-act="ambiente">Ambiente: ' + (G.ambiente() ? 'sí' : 'no') + '</button></div><small>Tono por estación, viñeta y contorno dorado en la ciudad.</small></div>' +
     '<div class="ajf" id="aj-sonido"><div class="ajb"><button class="chip' + (sonidoOn() ? ' on' : '') + '" data-act="sonido">' + sonidoTxt() + '</button></div></div></div>';
 }
@@ -1204,8 +1203,8 @@ function battlePrompt() {
   const pb = S().pending[0], info = G.battleInfo(pb), d = D.CITIES[info.city];
   UI.binfo = info;
   if (!info.cfg.terreno) info.cfg.terreno = window.Battle.terrenoDe(info.city, info.cfg.seed);   // campo tipo de la ciudad (o por semilla)
-  const pl = G.planBatalla(info), nu = pl.modo === 'nueva', tr = info.cfg.sides[0].tribuno;   // NB7: batalla nueva o clásica según Ajustes
-  const bot = !nu ? '<button class="btn" data-act="bview">' + D.GUERRA_ICON.espadas + ' Dirigir la batalla</button><button class="btn ghost" data-act="bquick">Resolver</button>'
+  const pl = G.planBatalla(info), tr = info.cfg.sides[0].tribuno, resto = G.guerraGuardada(info);   // GC4: una sola batalla (la Guerra); si se recargó a mitad, se puede retomar
+  const bot = resto ? '<button class="btn" data-act="bcont">' + D.GUERRA_ICON.espadas + ' Seguir la batalla</button><button class="btn ghost" data-act="bquick">Delegar en tus tribunos</button>'
     : pl.via === 'sola' ? '<button class="btn" data-act="bquick">Ver el resultado</button>'
     : '<button class="btn" data-act="bview">' + D.GUERRA_ICON.espadas + (pl.via === 'maniobra' ? ' Planear la maniobra' : ' Ir al choque') + '</button><button class="btn ghost" data-act="bquick">Delegar en tus tribunos</button>';
   modal('<div class="yr">' + G.yearOf(S().t) + ' A.C.</div><h2>' + (info.kind === 'attack' ? 'Asalto a ' : 'Defensa de ') + d.n + '</h2>' +
@@ -1398,12 +1397,14 @@ function rondaHud() {
   return true;
 }
 /* NB7: la batalla nueva. Maniobra (si hay más de 600 hombres) y luego el choque; al acabar se devuelve a la campaña lo mismo que la clásica. */
-function iniciaNueva(info, pl) {
+function iniciaNueva(info, pl, resto) {
   closeModal(); UI.nueva = true; UI.sheetKey = '';
-  try { iniciaNueva2(info, pl); } catch (err) { console.error(err); UI.nueva = false; toast('No se pudo abrir la batalla nueva.', 'bad'); }
+  try { iniciaNueva2(info, pl, resto); } catch (err) { console.error(err); UI.nueva = false; toast('No se pudo abrir la batalla nueva.', 'bad'); }
 }
-function iniciaNueva2(info, pl) {
-  const alChoque = (ch, estM) => window.UIBatalla2.abrir({ estado: G.estadoChoque(info, ch, {}) }, r2 => endBattle(G.resultadoNueva(info, r2, estM)));
+function iniciaNueva2(info, pl, resto) {
+  // GC4: la pantalla de la Guerra. Se guarda a mitad (G.guardarGuerra) para poder retomarla si se recarga la página; al acabar se borra
+  const alChoque = (ch, estM, estado) => window.UIGuerra.abrir({ estado: estado || G.estadoGuerra(info, ch), guardar: B => G.guardarGuerra(info, B, estM) }, r2 => { G.borrarGuerra(); endBattle(G.resultadoNueva(info, r2, estM)); });
+  if (resto) { alChoque(null, resto.estM, resto.estado); return; }
   if (pl.via === 'maniobra') window.UIManiobra.abrir(G.cfgManiobra(info), r => { if (r.accion === 'batalla') alChoque(r.choque, r.estado); else endBattle(G.resultadoManiobra(info, r.estado)); });
   else alChoque(null, null);
 }
@@ -1519,9 +1520,9 @@ document.addEventListener('click', function (e) {
     case 'close': closeModal(); break;
     case 'inf-mas': UI.infoMas(); break;
     case 'inf-cierra': UI.infoCierra(); break;
-    case 'bview': { const pl = G.planBatalla(UI.binfo); if (pl.modo === 'nueva') iniciaNueva(UI.binfo, pl); else startBattle(); break; }
-    case 'bquick': { closeModal(); const pl = G.planBatalla(UI.binfo); if (pl.modo === 'nueva') { endBattle(G.jugarNueva(UI.binfo, { bono0: pl.via === 'sola' ? 1 : 0.92 })); break; } const b = new window.Battle(UI.binfo.cfg); b.finish(); endBattle(b.result()); break; }
-    case 'batalla': { const r = G.ponerAjustes({ batalla: v }); if (!r.ok) toast(r.motivo, 'bad'); else G.save(); render(); break; }
+    case 'bview': { const pl = G.planBatalla(UI.binfo); iniciaNueva(UI.binfo, pl); break; }
+    case 'bcont': { const resto = G.guerraGuardada(UI.binfo); if (resto) iniciaNueva(UI.binfo, G.planBatalla(UI.binfo), resto); break; }   // retoma la batalla guardada a mitad
+    case 'bquick': { closeModal(); const pl = G.planBatalla(UI.binfo); G.borrarGuerra(); endBattle(G.jugarNueva(UI.binfo, { bono0: pl.via === 'sola' ? 1 : 0.92 })); break; }
     case 'bdone': closeModal(); stopBattle(); UI.sheetKey = ''; render(); if (S().over) showOver(); break;
     case 'bpause': B.paused = !B.paused; el.textContent = B.paused ? '▶' : 'II'; break;
     case 'bspeed': B.speed = B.speed === 1 ? 2 : B.speed === 2 ? 4 : 1; el.textContent = 'x' + B.speed; break;
@@ -1602,7 +1603,7 @@ loadStaticIndex().then(idx => Promise.all([preloadStatic(Object.keys(idx)), load
   try { $('citywrap').hidden = false; UI.cityV = new CityView3D($('citywrap'), Object.assign({ onPick: tocarCiudad }, gestosCiudad)); $('citywrap').hidden = true; if (UI.tab === 'city' && !UI.menu) setTab('city'); }
   catch (e) { console.warn('Sin vista 3D de ciudad', e); $('citywrap').hidden = true; }
 });
-window.UI = UI; UI.maniobra = window.UIManiobra; UI.batalla2 = window.UIBatalla2; UI.consejoModal = consejoModal; UI.toast = toast; UI.toastResumen = toastResumen;   // CN22: la cola de avisos, para quien la necesite desde fuera
+window.UI = UI; UI.maniobra = window.UIManiobra; UI.guerra = window.UIGuerra; UI.consejoModal = consejoModal; UI.toast = toast; UI.toastResumen = toastResumen;   // CN22: la cola de avisos, para quien la necesite desde fuera
 
 // N7: el deslizador de tiempo de «Ver futuro» (4 posiciones: final, 10, 20, 30 s)
 document.addEventListener('input', ev => { const t = ev.target; if (!t || t.id !== 'btslider' || !UI.battle || !UI.battle.view || !UI.battle.view.ponTPrev) return; UI.battle.view.ponTPrev([0, 10, 20, 30][+t.value] || 0); });

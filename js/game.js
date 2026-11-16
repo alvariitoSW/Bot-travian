@@ -772,7 +772,7 @@
   // guarnición de referencia (refuerzos anuales) de una ciudad según su dueño actual
   G.guarnicionBase = (id, owner) => { const d = D.CITIES[id]; return owner === d.f ? d.g : (d.en228 && owner === 'cartago' ? d.en228.g : (d.post && d.post[owner]) || null); };
   G.newGame = function (heroName, region, opciones) {
-    opciones = opciones || {};
+    opciones = opciones || {}; G.borrarGuerra();   // una partida nueva no retoma la batalla de la anterior
     const dif0 = Object.hasOwn(D.DIFICULTAD, opciones.dificultad) ? opciones.dificultad : 'normal';
     G.quitarColonias();   // las colonias de la partida anterior no pasan a esta
     let modoId = opciones.modo === 'corta' && D.MODOS.corta ? 'corta' : null;   // I8: 'campana' (por defecto) = la de siempre, con modo null
@@ -824,8 +824,8 @@
   const PAUSAS = ['todas', 'graves', 'ninguna'];
   G.PAUSAS = PAUSAS;
   G.migrarPausas = function (s) { const a = s && s.ajustes; if (a && !PAUSAS.includes(a.pausas)) a.pausas = 'todas'; };
-  /* NB7: motor de batalla. 'nueva' (maniobra + choque, por defecto) | 'clasica' (js/battle.js). */
-  const BATALLAS = ['nueva', 'clasica'];
+  /* NB7/GC4: motor de batalla. Solo hay uno: 'nueva' (maniobra + choque de la Guerra, js/guerra.js). Las partidas viejas con 'clasica' pasan a 'nueva'. */
+  const BATALLAS = ['nueva'];
   G.BATALLAS = BATALLAS;
   G.migrarBatalla = function (s) { const a = s && s.ajustes; if (a && !BATALLAS.includes(a.batalla)) a.batalla = 'nueva'; };
   G.batalla = () => { const s = G.state, a = s && s.ajustes; return a && BATALLAS.includes(a.batalla) ? a.batalla : 'nueva'; };
@@ -1588,7 +1588,7 @@
   const TRIB_INI = [['Quinto Fabio', 'prudente'], ['Marco Claudio', 'agresivo'], ['Cayo Lelio', 'astuto'], ['Publio Cornelio', 'agresivo']];
   const TRIB_NOM = ['Lucio Emilio', 'Tito Manlio', 'Gneo Servilio', 'Aulo Atilio', 'Marco Minucio', 'Sexto Julio', 'Cayo Flaminio', 'Quinto Cecilio', 'Publio Sulpicio', 'Lucio Postumio'], TRIB_CAR = ['prudente', 'agresivo', 'astuto'];
   const BAT = () => root.Battle || (typeof require !== 'undefined' ? require('./battle.js').Battle : null);
-  const B2 = () => root.Batalla2 || (typeof require !== 'undefined' ? require('./batalla2.js') : null);
+  const GU = () => root.Guerra || (typeof require !== 'undefined' ? require('./guerra.js') : null);
   const MAN = () => root.Maniobra || (typeof require !== 'undefined' ? require('./maniobra.js') : null);
   G.migrarTribunos = function (s) {
     if (!s) return;
@@ -1618,10 +1618,9 @@
   };
 
   const hombres = u => { let n = 0; for (const k in u) n += u[k]; return n; };
-  // cómo se resuelve esta batalla: 'clasica' | 'sola' (un bando triplica al otro) | 'maniobra' (más de 600 hombres) | 'directo' (escaramuza: al choque)
+  // cómo se resuelve esta batalla: 'sola' (un bando triplica al otro) | 'maniobra' (más de 600 hombres) | 'directo' (escaramuza: al choque)
   G.planBatalla = function (info) {
     const sd = info.cfg.sides, a = hombres(sd[0].units), b = hombres(sd[1].units);
-    if (G.batalla() === 'clasica') return { modo: 'clasica', via: 'clasica', a, b };
     if (Math.min(a, b) * NB.TRIPLE <= Math.max(a, b)) return { modo: 'nueva', via: 'sola', a, b, texto: a > b ? 'Tu ejército triplica al enemigo: la batalla se resuelve sola.' : 'El enemigo triplica a tu ejército: la batalla se resuelve sola.' };
     return { modo: 'nueva', via: a + b > NB.MANIOBRA ? 'maniobra' : 'directo', a, b };
   };
@@ -1633,46 +1632,38 @@
     const legs = (u, nom) => { const n = hombres(u) >= 800 ? 2 : 1, r = []; for (let i = 0; i < n; i++) { const x = {}; for (const k in u) { const q = n === 1 ? u[k] : (i === 0 ? Math.floor(u[k] / 2) : u[k] - Math.floor(u[k] / 2)); if (q > 0) x[k] = q; } if (hombres(x)) r.push({ nombre: n === 1 ? nom : nom + ' ' + ['I', 'II'][i], units: x }); } return r; };
     return { ciudad: info.city, semilla: info.cfg.seed, defensor: info.cfg.defender, bandos: [{ nombre: sd[0].name, car: 'equilibrado', plan: 'centro', legiones: legs(sd[0].units, sd[0].tribuno ? 'Legión de ' + sd[0].tribuno.n.split(' ')[1] : 'Legión') }, { nombre: sd[1].name, car, plan: PLAN_CAR[car], legiones: legs(sd[1].units, 'Ejército') }] };
   };
-  // terreno de sectores: sin maniobra, el de la ciudad; con maniobra, el del punto del choque
-  const IDX = { izq: 0, centro: 1, der: 2 };
-  function terrenoSectores(info, ch) {
-    const def = info.cfg.defender, att = 1 - def, Bt = BAT(), r = [{}, {}, {}];
-    if (ch) { ['izq', 'centro', 'der'].forEach((k, i) => { const t = ch.terreno[k]; r[i] = { tipo: t === 'cerro' && ch.alto == null ? 'llano' : t, dueno: t === 'cerro' ? ch.alto : null, cruza: t === 'vado' ? 1 - ch.defensor : null }; }); return r; }
-    const id = info.cfg.terreno || (Bt && Bt.terrenoDe(info.city, info.cfg.seed)) || 'llano';
-    if (id === 'cerro' || id === 'colina') return [{ tipo: 'llano' }, { tipo: 'cerro', dueno: def }, { tipo: 'llano' }];
-    if (id === 'bosque') return [{ tipo: 'bosque' }, { tipo: 'bosque' }, { tipo: 'bosque' }];
-    if (id === 'rio') return [{ tipo: 'vado', cruza: att }, { tipo: 'llano' }, { tipo: 'vado', cruza: att }];
-    return [{ tipo: 'llano' }, { tipo: 'llano' }, { tipo: 'llano' }];
-  }
-  function regimientos(u) {   // regimientos de unos 90 hombres, pero nunca menos de seis (con menos, el motor deja sectores vacíos y los da por rotos)
-    const N = hombres(u), tam = Math.max(5, Math.min(90, Math.ceil(N / 6))), r = [];
-    for (const k of Object.keys(u)) { const n = u[k]; if (!(n > 0) || !D.UNITS[k]) continue; const piezas = Math.max(1, Math.min(n, Math.round(n / tam))), base = Math.floor(n / piezas), resto = n - base * piezas; for (let i = 0; i < piezas; i++) r.push({ tipo: k, n: base + (i < resto ? 1 : 0) }); }
-    return r;
-  }
-  // el estado inicial del choque (para Batalla2); ch = choque de la maniobra o null (escaramuza); opt.bot = el bando 0 lo juega el bot; opt.bono0 = factor de fuerza del bando 0
-  G.estadoChoque = function (info, ch, opt) {
-    opt = opt || {}; const sd = info.cfg.sides, s = G.state, bandos = [0, 1].map(b => {
-      const x = sd[b], u = ch ? ch.sides[b].units : x.units, def = info.cfg.defender === b;
-      let f = Math.max(0.6, Math.min(2, (x.atkMul || 1) * (x.defMul || 1))) * (b === 0 && opt.bono0 ? opt.bono0 : 1) * (def && info.cfg.wall > 0 ? 1 + 0.05 * Math.min(6, info.cfg.wall) : 1);
-      const o = { nombre: x.name, regs: regimientos(u), ia: b === 0 ? !!opt.bot : true, bono: { fuerza: f }, car: b ? carEnem(info.cfg) : 'equilibrado' };
-      if (x.gen) o.general = { n: x.gen.n }; else if (b === 0) o.general = x.tribuno ? { n: x.tribuno.n } : null;
-      if (b === 0 && s) { const tr = (s.tribunos || []).slice(), pick = TRIB_CAR.map(c => tr.find(t => t.car === c)).filter(Boolean); if (pick.length === 3) o.tribunos = pick.map(t => ({ n: t.n, car: t.car })); }
-      return o;
-    });
-    const cfg = { semilla: info.cfg.seed, bandos, terreno: { sectores: terrenoSectores(info, ch) }, pausas: G.pausas() };
-    if (info.cfg.objetivo && info.cfg.objetivo.tipo === 'resistir' && info.cfg.objetivo.lado === 0) cfg.objetivo = { tipo: 'resistir', seg: 120 };
-    if (ch) cfg.flancoAbierto = [0, 1].map(b => ch.flancoAbierto[b].length ? IDX[ch.flancoAbierto[b][0]] : null);
-    const est = B2().crear(cfg);
-    if (ch) for (const id in est.regs) { const r = est.regs[id]; if (ch.animo[r.bando] === 'Vacilante') r.animo = Math.max(r.animo, 1); r.fat = Math.max(r.fat, ch.cansancio[r.bando] || 0); }
-    return est;
+  // GC4: el estado inicial del choque (motor Guerra). ch = choque de la maniobra (sus ejércitos) o null (escaramuza: los de la ciudad)
+  G.estadoGuerra = function (info, ch) {
+    const sd = info.cfg.sides, ej = [0, 1].map(b => Object.assign({}, ch && ch.sides && ch.sides[b] ? ch.sides[b].units : sd[b].units));
+    return GU().crear({ semilla: info.cfg.seed, ejercitos: ej });
   };
-  // «Lo que pasó» de un choque sin pantalla (misma forma que UIBatalla2)
-  G.resumenBatalla2 = function (e) {
-    const f = e.fin || { ganador: 0, motivo: '', t: e.t }, bajas = [];
-    for (const id in e.regs) { const r = e.regs[id]; bajas.push({ id, bando: r.bando, tipo: r.tipo, nombre: r.nombre, n0: r.n0, n: Math.round(r.n), bajas: Math.max(0, Math.round(r.n0 - r.n)), huyo: r.lugar === 'huido', vet: r.vet }); }
-    const g = e.bandos[0].general, vivos = e.fin && e.fin.resultado ? e.fin.resultado[1].vivos : B2().hombres(e, 1);
-    return { ganador: f.ganador, victoria: f.ganador === 0, motivo: f.motivo, t: f.t, bajas, bajasTotal: [0, 1].map(b => bajas.filter(x => x.bando === b).reduce((a, x) => a + x.bajas, 0)), general: g ? { vivo: !!g.vivo, n: g.n } : null, prisioneros: f.ganador === 0 ? Math.round(vivos * 0.25) : 0, estado: e };
+  // GC4: un bot sencillo para el bando 0 (es el de la prueba «con cabeza» de test/guerra.test.mjs). Lo usan «Delegar» y la campaña de pruebas
+  G.botGuerra = function (B) {
+    const R = GU(); if (B.fase !== 'lucha') return;
+    for (let i = 0; i < 3; i++) {
+      const s = B.sect[i], c = s.c[0], e = s.c[1]; if (c.roto || e.roto) continue;
+      const fe = R.frente(e).fatiga, fr = R.frente(c).fatiga;
+      R.ordenar(B, i, (e.postura === 'aguantar' && fr < 0.75) || fe > 0.6 || e.flanqueado || e.golpe > 0 ? 'empujar' : 'aguantar');
+      const l = R.frente(c), sig = c.lineas[1];
+      if (sig && sig.fatiga < 0.4 && (fr > 0.7 || l.hombres < 0.45 * l.max) && sig.hombres / sig.max > l.hombres / l.max - 0.1) R.ordenar(B, i, 'relevo');
+    }
+    if (B.cab.estado === 'lista') {
+      if (B.num.estado === 'hostiga' || B.num.estado === 'llega') R.ordenar(B, B.num.sect, 'caballeria');
+      else if (B.num.proxima - B.t > 12 || B.num.veces >= 3) { const v = B.sect.filter(s => !s.c[1].roto && !s.c[0].roto).sort((a, b) => a.c[1].moral - b.c[1].moral)[0]; if (v && v.c[1].moral < 0.6) R.ordenar(B, v.i, 'caballeria'); }
+    }
   };
+  // juega el estado B hasta el final con el bot (decide cada `cada` segundos de batalla); devuelve B
+  G.jugarGuerra = function (B, cada) {
+    const R = GU(); let prox = B.t;
+    for (let n = 0; B.fase !== 'fin' && n < 20000; n++) { if (B.t >= prox) { G.botGuerra(B); prox = B.t + (cada || 1.5); } R.paso(B, 0.1); }
+    return B;
+  };
+  // la partida a medias de la batalla (clave aparte en localStorage): sobrevive a recargar la página. clave = la batalla pendiente a la que pertenece
+  const GUERRA_KEY = 'aqvila-guerra-v1';
+  const claveGuerra = info => [info.city, info.cfg.seed, info.kind].join('|');
+  G.guardarGuerra = function (info, B, estM) { try { if (typeof localStorage !== 'undefined') localStorage.setItem(GUERRA_KEY, JSON.stringify({ clave: claveGuerra(info), B: GU().guardar(B), estM: estM || null })); } catch (e) { /* almacenamiento no disponible */ } };
+  G.guerraGuardada = function (info) { try { if (typeof localStorage === 'undefined') return null; const x = JSON.parse(localStorage.getItem(GUERRA_KEY)); if (!x || x.clave !== claveGuerra(info)) return null; const B = GU().cargar(x.B); return B && B.fase !== 'fin' ? { estado: B, estM: x.estM || null } : null; } catch (e) { return null; } };
+  G.borrarGuerra = function () { try { if (typeof localStorage !== 'undefined') localStorage.removeItem(GUERRA_KEY); } catch (e) { /* nada que borrar */ } };
   // bajas por deserción u hombres perdidos en la maniobra: lo que había al empezar menos lo que queda en las legiones
   function bajasManiobra(info, e) {
     const l = [{}, {}]; if (!e) return l;
@@ -1699,25 +1690,20 @@
   };
   // Resuelve toda la batalla sin pantalla con el bot (campaña de pruebas y «Delegar»): maniobra si toca y choque. opt.bono0: el bando 0 rinde menos al delegar
   G.jugarNueva = function (info, opt) {
-    opt = opt || {}; const plan = G.planBatalla(info), M = MAN(), Bn = B2(), sem = info.cfg.seed | 0;
+    opt = opt || {}; const plan = G.planBatalla(info), M = MAN(), sem = info.cfg.seed | 0;
     let estM = null, ch = null;
     if (plan.via === 'maniobra') {
       const cfg = G.cfgManiobra(info); cfg.bandos[0].ia = true; let e = M.crear(cfg);
       for (let i = 0; i < 12 && !e.terminado; i++) { const c = M.consejoDia(e, 0), f = c.filter(x => x.etiqueta === 'Favorable').sort((x, y) => y.puntos - x.puntos)[0] || c.filter(x => x.etiqueta === 'Dudoso').sort((x, y) => y.puntos - x.puntos)[0]; e = M.resolverDia(M.moverDia(e, f ? f.ordenes : [], 0), sem * 7 + i).estado; }
       estM = e; if (!(e.fin && e.fin.tipo === 'choque')) return G.resultadoManiobra(info, e); ch = e.choque;
     }
-    let e = G.estadoChoque(info, ch, { bot: true, bono0: opt.bono0 });
-    while (!e.fin && e.pulsos < 700) {
-      if (e.pulsos % 5 === 1) { const c = Bn.consejo(e, 0); let p = null; for (const et of ['Favorable', 'Dudoso', 'Arriesgado']) { p = c.planes.filter(q => q.etiqueta === et && q.factible).sort((a, b) => b.razon - a.razon)[0]; if (p) break; } if (p) e = Bn.aplicar(e, p.ordenes, 0).estado; }
-      e = Bn.pulso(e, sem).estado;
-    }
-    return G.resultadoNueva(info, G.resumenBatalla2(e), estM);
+    const B = G.jugarGuerra(G.estadoGuerra(info, ch), opt.bono0 && opt.bono0 < 1 ? 2.5 : 1.5);   // al delegar, tus tribunos reaccionan más despacio
+    return G.resultadoNueva(info, GU().resumen(B), estM);
   };
-  // Resuelve la batalla pendiente por el motor elegido en Ajustes sin pantalla (bot): la forma de res sirve a applyBattle
+  // Resuelve la batalla pendiente sin pantalla (bot): la forma de res sirve a applyBattle
   G.resolverPendiente = function () {
     const s = G.state, info = G.battleInfo(s.pending[0]), plan = G.planBatalla(info); let res;
-    if (plan.modo === 'clasica') { const Bt = BAT(); if (!info.cfg.terreno) info.cfg.terreno = Bt.terrenoDe(info.city, info.cfg.seed); const b = new Bt(info.cfg); b.finish(); res = b.result(); }
-    else res = G.jugarNueva(info, { bono0: plan.via === 'sola' ? 1 : 0.92 });
+    res = G.jugarNueva(info, { bono0: plan.via === 'sola' ? 1 : 0.92 });
     return { info, plan, out: G.applyBattle(res) };
   };
 
