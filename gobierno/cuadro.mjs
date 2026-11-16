@@ -98,10 +98,13 @@ const htmlProgreso = '<div class="pct"><b>' + pct(gl.hecho, gl.total) + ' %</b><
   '<details class="porcarril"><summary>Ver el avance por carril</summary><ul>' + carriles.map(c => { const r = cuenta(c.tareas); return '<li><span class="cn">' + esc(c.letra) + ' · ' + esc(c.corto) + '</span>' + barra(r) + '<span class="cp">' + pct(r.hecho, r.total) + ' %</span></li>'; }).join('') + '</ul></details>' +
   '<p class="nota">Cuenta tareas, no horas: una grande pesa igual que una pequeña. Sube al cerrar una tarea y baja cuando apruebas trabajo nuevo.</p>';
 
+const htmlLosas = carriles.map(c => { const r = cuenta(c.tareas), n = pendientes(c).length, dentro = '<span class="cab"><span class="letra">' + esc(c.letra) + '</span><span class="cp">' + (n ? r.hecho + ' de ' + r.total : '✓ ' + r.total) + '</span></span><span class="cn">' + esc(c.corto) + '</span>' + barra(r);
+  return n ? '<button class="losa" data-filtro="carril:' + esc(c.letra) + '" aria-pressed="false" aria-label="' + esc(c.corto) + ': ' + r.hecho + ' de ' + r.total + ' hechas. Ver lo pendiente">' + dentro + '</button>' : '<div class="losa hecha">' + dentro + '</div>'; }).join('');
+const htmlLeyenda = gl.hecho + ' hechas, ' + (gl.falta + gl.marcha) + ' por hacer y ' + gl.pausa + ' en pausa.';
 const htmlMarcha = sesiones.length ? sesiones.map(x =>
   '<li class="sig"><span class="id">' + esc(x.tarea || '') + '</span><span class="que"><b>' + esc(x.titulo || '') + '</b>' + (x.nota ? '<span class="nota">' + esc(x.nota) + '</span>' : '') + '</span>' +
   (x.url ? '<a class="boton fino" href="' + esc(x.url) + '" target="_blank" rel="noopener">Ver</a>' : '') + '</li>').join('')
-  : '<li class="nota">No hay ninguna sesión apuntada. Abre una desde «Todo lo pendiente».</li>';
+  : '<li class="nota">No hay ninguna sesión apuntada. Abre una desde «Tareas».</li>';
 const htmlSiguiente = carriles.map(c => {
   const libres = pendientes(c).filter(t => !t.pausa), t = libres.find(x => !enMarcha.has(x.id));
   if (!t) return '';
@@ -117,14 +120,15 @@ function rapidas(e, i) {
   const ops = letras.length > 1 ? letras.map(l => ['Opción ' + l, l]) : /sí o no|aprobar o rechazar|\?/i.test(e) ? [['Sí', 'Sí'], ['No', 'No']] : [];
   return ops.map(([rot, v]) => '<button class="boton lleno" data-pedir="respuesta" data-ref="E' + (i + 1) + '" data-titulo="' + esc(corto(e)) + '" data-valor="' + esc(v) + '">' + esc(rot) + '</button>').join('');
 }
-const tarjeta = (texto, n) => { const m = texto.match(/^\*\*(.+?)\*\*:?\s*([^]*)$/), tit = m ? m[1] : corto(texto), resto = m ? m[2] : texto;
-  return '<p class="asunto"><span class="num">' + n + '</span><b>' + esc(plano(tit)) + '</b></p>' + (resto.length > 260 ? '<details class="detalle"><summary>' + md(resto.slice(0, 170).replace(/\s\S*$/, '')) + '… <u>leer todo</u></summary><p>' + md(resto) + '</p></details>' : resto ? '<p>' + md(resto) + '</p>' : ''); };
+const romano = n => typeof n === 'number' ? ['', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'][n] || String(n) : n;
+const tarjeta = (texto, n) => { const m = texto.match(/^(?:\d{1,2}\/\d{1,2}\/\d{4} — )?\*\*(.+?)\*\*:?\s*([^]*)$/), tit = m ? m[1] : corto(texto), resto = m ? m[2] : texto;
+  return '<p class="asunto"><span class="num">' + romano(n) + '</span><b>' + esc(plano(tit)) + '</b></p>' + (resto.length > 260 ? '<details class="detalle"><summary>' + md(resto.slice(0, 170).replace(/\s\S*$/, '')) + '… <u>leer todo</u></summary><p>' + md(resto) + '</p></details>' : resto ? '<p>' + md(resto) + '</p>' : ''); };
 const espera = vinetas(bitacora['Esperando algo del usuario'] || []);
 const htmlEspera = espera.length ? espera.map((e, i) =>
   '<li class="ficha toca">' + tarjeta(e, i + 1) + '<div class="fila">' + rapidas(e, i) + '<button class="boton" data-abrir="r-' + i + '">Escribir respuesta</button></div>' +
   '<div class="cambio" id="r-' + i + '" hidden><label class="quien" for="rx-' + i + '">Tu respuesta</label><textarea id="rx-' + i + '"></textarea>' +
   '<div class="fila"><button class="boton lleno" data-pedir="respuesta" data-ref="E' + (i + 1) + '" data-titulo="' + esc(corto(e)) + '" data-texto="rx-' + i + '">Enviar respuesta</button></div></div></li>').join('')
-  : '<li class="nota">Nada pendiente de ti.</li>';
+  : '';
 
 const propuestas = vinetas(bitacora['Propuestas por aprobar'] || []).map(v => { const m = v.match(/^(P\d+)\s+(.*)$/); return m && { id: m[1], texto: m[2] }; }).filter(Boolean);
 const htmlPropuestas = propuestas.length ? propuestas.map(p =>
@@ -134,7 +138,7 @@ const htmlPropuestas = propuestas.length ? propuestas.map(p =>
   '<button class="boton" data-abrir="c-' + p.id + '">Pedir un cambio</button></div>' +
   '<div class="cambio" id="c-' + p.id + '" hidden><label class="quien" for="tx-' + p.id + '">Qué cambiarías</label><textarea id="tx-' + p.id + '"></textarea>' +
   '<div class="fila"><button class="boton lleno" data-pedir="cambio" data-ref="' + p.id + '" data-texto="tx-' + p.id + '">Enviar cambio</button></div></div></li>').join('')
-  : '<li class="nota">No hay propuestas esperando tu visto bueno.</li>';
+  : (espera.length ? '' : '<li class="nota">Nada pendiente de ti. El proyecto sigue sin esperar respuesta tuya.</li>');
 
 /* ---------- capturas y veredicto de los jueces ---------- */
 let informe = null; try { informe = JSON.parse(await lee('capturas/informe.json')); } catch (e) { }
@@ -188,7 +192,7 @@ const hechos = kHecho ? tablero[kHecho].join(' ').split('✅').map(s => s.replac
 const fecha = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 const datos = {
   FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase,
-  PENDIENTE: htmlPendiente, CHIPS: htmlChips, N_ACTIVAS: nActivas, N_TODAS: listaPend.length, N_PAUSA: nPausa, N_MARCHA: sesiones.length, N_HECHAS: hechas, N_PROP: propuestas.length, N_ESP: espera.length, ESPERA: htmlEspera, VIGIA: esc(config.vigia || ''), PROGRESO: htmlProgreso, MARCHA: htmlMarcha, SIGUIENTE: htmlSiguiente, N_ESPERA: espera.length + propuestas.length, PROPUESTAS: htmlPropuestas, CARRILES: htmlCarriles,
+  PENDIENTE: htmlPendiente, CHIPS: htmlChips, N_ACTIVAS: nActivas, N_TODAS: listaPend.length, N_PAUSA: nPausa, N_MARCHA: sesiones.length, N_HECHAS: hechas, N_PROP: propuestas.length, N_ESP: espera.length, ESPERA: htmlEspera, VIGIA: esc(config.vigia || ''), PROGRESO: htmlProgreso, PCT: pct(gl.hecho, gl.total), ARCO: Math.round(326.7 * gl.hecho / (gl.total || 1)), HECHAS_DE: gl.hecho + ' de ' + gl.total, LOSAS: htmlLosas, LEYENDA: htmlLeyenda, TAB_HOY_OCULTO: espera.length + propuestas.length ? '' : 'hidden', MARCHA: htmlMarcha, SIGUIENTE: htmlSiguiente, N_ESPERA: espera.length + propuestas.length, PROPUESTAS: htmlPropuestas, CARRILES: htmlCarriles,
   RESUMEN: hechas + ' tareas hechas en ' + carriles.length + ' carriles.',
   ENSENAR: htmlEnsenar, INFORMES: htmlInformes, CAPTURAS: htmlCapturas, CAPTURAS_NOTA: esc(notaCapturas), HECHOS: hechos.map(h => '<li>' + md(h) + '</li>').join(''),
 };

@@ -67,8 +67,12 @@ Arriba del cuadro hay un aviso con lo pulsado y sin aplicar y un botón que disp
 - Apunta la sesión en `sesiones` de `cuadro.json` (`{tarea, titulo, nota, url}`; la dirección es `https://claude.ai/code/<id de sesión>`): sale en «Trabajando ahora». Cada sesión quita la suya al cerrar y añade la que abra.
 - Como mucho tres o cuatro a la vez, y nunca dos que toquen los mismos archivos.
 
-## Qué enseña la página (de arriba abajo)
-Espera algo tuyo (con botones de respuesta rápida: opciones «(A) … (B) …» del texto, o Sí / No) · Propuestas · Trabajando ahora · Siguiente paso de cada carril (la primera tarea ⬜ sin «(en pausa» y sin sesión, con «Abrir sesión») · Tus pedidos · Tablero (carriles con pendiente arriba; dentro, lo pendiente primero y lo hecho plegado) · capturas e informes.
+## Qué enseña la página (rediseño del 16/11, pedido por el usuario)
+Cuatro vistas con pestañas fijas abajo (la dirección lleva `#hoy`, `#tareas`, `#ver` o `#pedir`):
+- **Hoy**: estandarte púrpura (anillo de avance, veredicto de los jueces, «Jugar ahora», tres cifras), «Decides tú» (preguntas con números romanos y respuestas rápidas, más las propuestas), sesiones abiertas y el vigía.
+- **Tareas**: mapa de carriles en losas (tocar una filtra la lista), lo pendiente con búsqueda y selección en lote, y lo hecho plegado.
+- **Ver**: capturas nuevas, recorrido de los jueces e informes.
+- **Pedir**: pedido libre, órdenes de un toque y la lista de pedidos.
 Para que las respuestas rápidas salgan bien, escribe cada asunto de «Esperando algo del usuario» como una sola pregunta, con sus opciones entre paréntesis: `(A) …; (B) …`. Para aparcar una tarea, empieza su texto por `(en pausa`.
 
 ## Lo que hay que enseñar al usuario
