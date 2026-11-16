@@ -1054,6 +1054,53 @@
       "ancha": true
     },
     {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-5000-vertical-2-choque.jpg",
+      "pie": "Ejércitos grandes: 5 000 por bando, de lejos. Cada hombre es un cartón; la cuenta va arriba"
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-5000-vertical-3-de-cerca.jpg",
+      "pie": "«De cerca»: las 220 figuras completas salen solo junto a la cámara; detrás siguen los cartones"
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-5000-vertical-4-caballeria.jpg",
+      "pie": "Las filas adelgazan al caer gente y los jinetes cargan por el costado"
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-10000-vertical-2-choque.jpg",
+      "pie": "10 000 por bando con el móvil de pie: 18 000 hombres en el campo"
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-10000-vertical-3-de-cerca.jpg",
+      "pie": "10 000 por bando, de cerca: el coste no cambia con el tamaño"
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-1000-vertical-3-de-cerca.jpg",
+      "pie": "1 000 por bando, de cerca"
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-10000-horizontal-2-choque.jpg",
+      "pie": "10 000 por bando con el móvil tumbado: formación más ancha que honda",
+      "ancha": true
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-5000-horizontal-3-de-cerca.jpg",
+      "pie": "5 000 por bando, de cerca y en horizontal",
+      "ancha": true
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-5000-vertical-7-tamano.jpg",
+      "pie": "El botón del número cambia el tamaño: 1 000, 5 000 o 10 000"
+    },
+    {
       "tarea": "GM2",
       "archivo": "gobierno/capturas-tarea/GM2-1-tiro.jpg",
       "pie": "Combate en vivo: los arqueros de Pirro tiran mientras las líneas se acercan"
@@ -1246,17 +1293,15 @@
     {
       "titulo": "GM2 · Combate en vivo, armas y flancos",
       "archivo": "gobierno/estudios/GM2-combate-en-vivo.md"
+    },
+    {
+      "titulo": "GM1 · Ejércitos grandes sin miles de figuras",
+      "archivo": "gobierno/estudios/GM1-ejercitos-grandes.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
-    {
-      "tarea": "GM1",
-      "titulo": "Batalla mejorada · GM1 Ejércitos grandes (maqueta)",
-      "nota": "solo gobierno/maquetas/guerra-grande/",
-      "url": "https://claude.ai/code/session_01QiKC3AKD1saZ9LQKVLUpuX"
-    },
     {
       "tarea": "GM6",
       "titulo": "Batalla mejorada · GM6 Crítica dura (4 competidores), relevo y premio o castigo",

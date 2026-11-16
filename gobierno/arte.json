@@ -6,8 +6,28 @@
   "escenas": {
     "triangulosPorBatalla": 1100000,
     "triangulosPorCiudad": 300000,
-    "ejercitoRomano": { "hastati": 400, "principes": 300, "triarii": 150, "velites": 250, "equites": 120 },
+    "ejercitoRomano": {
+      "hastati": 400,
+      "principes": 300,
+      "triarii": 150,
+      "velites": 250,
+      "equites": 120
+    },
     "nivelCiudad": 5,
-    "arboles": { "pino": 30, "cipres": 60, "algarrobo": 60, "olivo": 15 }
+    "arboles": {
+      "pino": 30,
+      "cipres": 60,
+      "algarrobo": 60,
+      "olivo": 15
+    },
+    "batallaGrande": {
+      "nota": "maqueta GM1 (gobierno/maquetas/guerra-grande): un cartón de 2 triángulos por hombre; figuras completas solo junto a la cámara",
+      "hombresPorBandoMax": 10000,
+      "figurasCompletasMax": 220,
+      "triangulosDeLejos": 150000,
+      "triangulosDeCerca": 650000,
+      "memoriaCartonesMB": 32,
+      "descargaExtraMB": 0
+    }
   }
 }
