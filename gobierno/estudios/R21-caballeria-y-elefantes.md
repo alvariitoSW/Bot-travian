@@ -38,6 +38,22 @@ Viviría en las reglas de la maqueta (`gobierno/maquetas/guerra-cuerpo/reglas.js
 - Contra elefantes: vélites y calles en Zama (Polibio 15.9 y 15.12); se revuelven contra los suyos (Livio 30.33). *Histórico.*
 - Licencia de juego: los tiempos, y que el jugador elija el ala con un botón. Citas de memoria, sin cotejar.
 
+## Enfoque Rome II (decisión del usuario, 16/11: «hazlo todo enfocado en parecernos a un Rome 2 Total War»)
+Se imita **cómo se comporta**, no su código, su arte ni su interfaz. De memoria, sin cotejar. Lo que se toma, traducido a nuestras reglas:
+| En Rome II | En AQVILA (GM9) |
+|---|---|
+| Cada tropa tiene **peso**: el pesado empuja al ligero y lo atraviesa; el ligero rebota | Un número de peso por tropa: elefante, jinete pesado, infantería pesada, ligera. Decide quién cede terreno en el choque |
+| La carga necesita **carrera** y pega solo al llegar | Los jinetes necesitan sitio para arrancar: desde lejos pegan entero; pegados al enemigo, casi nada |
+| El jinete que **se queda** en la melé pierde: hay que sacarlo y volver a cargar | Tras el golpe se retiran solos y se rehacen; si el enemigo tiene lanzas a pie firme, salen mal parados |
+| De frente contra lanzas o picas, la caballería se estrella | Ya está en parte (lanzas clavadas); se extiende a los jinetes |
+| Los caballos **temen** a elefantes (y a camellos) | Los jinetes no los cargan y se espantan si las bestias cargan cerca |
+| El elefante mete **terror** a quien tiene cerca y lanza a los hombres por el aire | Su carga baja el ánimo de todo el cuerpo y de los vecinos, y desordena las filas |
+| El elefante herido **se desboca** y arrolla a quien pille | Ya está (se revuelven contra los suyos); además podrá arrollar al cuerpo vecino |
+| A los elefantes los paran jabalinas, flechas y fuego | Jabalinas, flechas y lanzas clavadas; la espada de frente, apenas |
+| Se gana haciendo **huir**: el ánimo cae por flanco, espalda, cansancio y ver huir al vecino; las bajas llegan en la persecución | Ya hay ánimo, flanco y contagio; se añade que los jinetes libres persigan a los que huyen (está en GM8) |
+| El cansancio se ve y pesa | Ya está (fatiga por línea y relevo) |
+| Veinte unidades que el jugador mueve una a una | **No se toma** salvo que el usuario lo pida: seguimos con tres cuerpos y cuatro órdenes (pregunta abierta en la bitácora) |
+
 ## Coste y riesgo
 - Entra casi entero en **GM8** (ya aprobada: caballería con arranque, galope, choque y vuelta, y que rodee en vez de pasar por encima). Lo nuevo son las reglas 2, 3, 5 y 6. Unos 0,8 M más sobre GM8, con Sonnet y encargos partidos.
 - Riesgo: con jinetes más lentos y elefantes más duros, Pirro y Cartago se vuelven más difíciles; hay que volver a pasar la prueba de equilibrio. El jugador lo vería como «ya no gano igual».
