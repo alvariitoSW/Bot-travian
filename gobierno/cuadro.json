@@ -1266,6 +1266,47 @@
       "archivo": "gobierno/capturas-tarea/GM6-ancha.jpg",
       "pie": "En horizontal contra Pirro: falange, elefantes y el botón Relevo que dice «aún están enteros»",
       "ancha": true
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-sin-jugar.jpg",
+      "pie": "Sin decidir nada el año acaba solo: más oro, 7 obras y cuatro magistrados con «BIEN»"
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-curia.jpg",
+      "pie": "La Curia: 30 senadores iguales de 26 puntos; el marcador ya dice si sale"
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-cae-y-sale-otra.jpg",
+      "pie": "Tu propuesta cae con 13 de 16 y «sale otra» sin votarse"
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-casa.jpg",
+      "pie": "Tu casa: tres cifras sin nombre y una vista azul sobre azul"
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-foro.jpg",
+      "pie": "El Foro: cinco tarjetas y media pantalla vacía"
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-horizontal.jpg",
+      "pie": "Tumbado: una columna estrecha y media pantalla vacía",
+      "ancha": true
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-senado-ev1.jpg",
+      "pie": "Maqueta pequeña (EV1): bolitas, reloj y el tercer trato cortado"
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-hilo-ev1.jpg",
+      "pie": "EV1: el hilo de dos líneas se entiende; los rótulos se montan"
     }
   ],
   "informes": [
@@ -1440,6 +1481,10 @@
     {
       "titulo": "GM15 · Terreno, hora del día y maniobra al empezar (diseño)",
       "archivo": "gobierno/estudios/GM15-terreno-y-maniobra.md"
+    },
+    {
+      "titulo": "EV6 · Crítica dura de las maquetas de política",
+      "archivo": "gobierno/estudios/EV6-critica-politica.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
