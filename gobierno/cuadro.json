@@ -1110,6 +1110,10 @@
     {
       "titulo": "Consejo de ministros extraordinario · 16/11",
       "archivo": "gobierno/estudios/consejo-2026-11-16.md"
+    },
+    {
+      "titulo": "Formato de juego · propuesta del 16/11",
+      "archivo": "gobierno/estudios/FJ-formato-de-juego.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
