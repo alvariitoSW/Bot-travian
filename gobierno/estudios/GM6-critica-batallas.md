@@ -17,6 +17,8 @@ cortas, simulación histórica). Se toman ideas, nunca código ni arte.
 5. **Se ha probado todo menos lo que importa.** Hay pruebas de equilibrio con bots a cientos; no hay una sola medida de
    fluidez en un móvil real, ni sonido, ni un juez que juegue la batalla nueva. Y el usuario prefiere el aspecto de una
    maqueta y las reglas de otra: las hemos hecho por separado.
+   *(Nota del mismo día: después de escribirse esto, el usuario midió en su móvil 50–60 imágenes por segundo con 10 000
+   hombres por bando en la maqueta de ejércitos grandes, y se abrieron el sonido, GC5, y el juez que juega la batalla, GC2.)*
 
 ## 1. Las cuatro empresas (inventadas)
 
