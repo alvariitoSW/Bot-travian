@@ -3,6 +3,31 @@
   "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
   "capturas": [
     {
+      "tarea": "GM11",
+      "archivo": "gobierno/capturas-tarea/GM11-vertical-1-lejos.jpg",
+      "pie": "La batalla única empieza de lejos, con el aspecto de GM1"
+    },
+    {
+      "tarea": "GM11",
+      "archivo": "gobierno/capturas-tarea/GM11-vertical-2-choque.jpg",
+      "pie": "Al chocar: Ánimo de la legión en las cifras y botones Empujar, Aguantar, Relevo y Caballería"
+    },
+    {
+      "tarea": "GM11",
+      "archivo": "gobierno/capturas-tarea/GM11-vertical-3-relevo-en-curso.jpg",
+      "pie": "El relevo se ve: la línea abre calles y la reserva entra en fila"
+    },
+    {
+      "tarea": "GM11",
+      "archivo": "gobierno/capturas-tarea/GM11-vertical-4-aviso-flanco.jpg",
+      "pie": "Aviso de hueco: «¡Te entran por el hueco en el centro!»"
+    },
+    {
+      "tarea": "GM11",
+      "archivo": "gobierno/capturas-tarea/GM11-horizontal-3-relevo-en-curso.jpg",
+      "pie": "El relevo con el móvil tumbado"
+    },
+    {
       "tarea": "GM7",
       "archivo": "gobierno/capturas-tarea/GM7-vertical-2-piedras.jpg",
       "pie": "La batalla empieza de lejos: sus honderos tiran piedras y tus vélites jabalinas antes de chocar"
@@ -1536,12 +1561,6 @@
       "titulo": "Batalla mejorada · GM17 Estudio de Heraclea, 280 a.C. (ficha de historia)",
       "nota": "solo gobierno/historia/; sin código",
       "url": "https://claude.ai/code/session_01QiKC372EDu3vvuRKGFQWoE"
-    },
-    {
-      "tarea": "GM11",
-      "titulo": "Batalla mejorada · GM11 Motor único de batalla (guerra-unica)",
-      "nota": "solo gobierno/maquetas/guerra-unica/ (nueva); no toca guerra-lejos",
-      "url": "https://claude.ai/code/session_01QiKC38JUoff72j6pJjdS8B"
     },
     {
       "tarea": "GM15b",
