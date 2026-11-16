@@ -378,6 +378,26 @@
     const r = regE.get(c); if (r) pantalla(c, r);
     return true;
   };
+  /* CN16a: leva del Foro. G.levaInfo da coste, cuántos se pueden y el motivo si no; G.leva(cid, n) los alista al momento. Nada automático. */
+  G.levaInfo = function (cid, n) {
+    const s = G.state, c = s.cities[cid], d = D.LEVA, q = Math.max(1, Math.floor(n || d.n)), o = { n: q, coste: { grano: d.grano * q, oro: d.oro * q }, motivo: null, tope: 0, libres: 0 };
+    if (!c || c.owner !== 'roma') { o.motivo = 'Solo en tus ciudades.'; return o; }
+    o.libres = G.recruits(c); const bajoArmas = c.units[d.unidad] || 0; o.tope = Math.max(0, Math.floor(d.tope * (c.pop + bajoArmas)) - bajoArmas);
+    const hoy = Math.min(o.libres, o.tope);
+    if (c.inq > 0) o.motivo = 'La ciudad está inquieta.';
+    else if (o.libres < q) o.motivo = 'No quedan aldeanos libres.';
+    else if (hoy < q) o.motivo = 'Ya hay tanta milicia como el campo aguanta.';
+    else if (G.disponible('grano') < o.coste.grano) o.motivo = 'Falta grano.';
+    else if (G.disponible('oro') < o.coste.oro) o.motivo = 'Falta oro.';
+    return o;
+  };
+  G.leva = function (cid, n) {
+    const o = G.levaInfo(cid, n); if (o.motivo) return false; const c = G.state.cities[cid];
+    gasta('grano', o.coste.grano); gasta('oro', o.coste.oro); c.pop -= o.n; c.units[D.LEVA.unidad] = (c.units[D.LEVA.unidad] || 0) + o.n;
+    G.log('⚔️ Leva en ' + D.CITIES[cid].n + ': ' + o.n + ' aldeanos toman las armas.', 'good', true);
+    const r = regE.get(c); if (r) pantalla(c, r);
+    return true;
+  };
   /* CN13b: techar un barrio con tejas (acción, no pieza). Coste en recursos, plazo en meses, motivo si no se puede. Devuelve {coste, motivo, plazo, casas, hecho, enObra}. */
   G.techoInfo = function (cid, i) {
     const c = G.state && G.state.cities[cid], E = c && c.owner === 'roma' ? G.ciudadE(cid) : null;

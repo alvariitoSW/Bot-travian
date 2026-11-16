@@ -765,6 +765,7 @@ div#balas { position: absolute; left: calc(8px + env(safe-area-inset-left)); top
 .ficha .btn.fiesta.no { opacity: .5; }
 .ficha .fi-n { color: var(--mute); font-size: 11px; }
 .ficha .ar-leva:empty { display: none; }
+.ficha .ar-leva { margin-top: 6px; display: flex; flex-direction: column; gap: 4px; }
 .ficha .gr-bar { flex: 1; height: 8px; border-radius: 4px; background: rgba(255, 255, 255, .12); overflow: clip; }
 .ficha .gr-bar i { display: block; height: 100%; background: #b9a24a; }
 .ficha .gr-f { margin: 4px 0 6px; font-size: 12px; } .ficha .gr-f.mal { color: #e07a6a; }

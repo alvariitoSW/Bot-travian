@@ -1938,3 +1938,22 @@ console.log('OK — todas las pruebas superadas');
   G.dejarArder('capua'); assert(s.vivo === null, 'sin más fuegos queda libre');
   G.turnos = false; G.autoVivo = true; G.usarCiudad(null); console.log('CN13c: dos fuegos en cola OK');
 }
+
+{ // CN16a: la leva del Foro cuesta grano y oro, topa por población libre, guarda y carga, y el bot no la usa solo
+  G.usarCiudad(null); G.turnos = false; G.autoVivo = true;
+  const s = G.newGame('Leva', 'mediterraneo', {}); G.state = s; const c = s.cities.roma;
+  for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; } c.pop = 300; c.inq = 0;
+  const li = G.levaInfo('roma', D.LEVA.n); assert(!li.motivo && li.coste.grano === D.LEVA.grano * D.LEVA.n && li.coste.oro === D.LEVA.oro * D.LEVA.n, 'la leva se puede: ' + JSON.stringify(li));
+  const g0 = s.res.grano, o0 = s.res.oro, p0 = c.pop, m0 = c.units.milicia || 0;
+  assert(G.leva('roma', D.LEVA.n) === true, 'la leva sale');
+  assert(c.units.milicia === m0 + D.LEVA.n && c.pop === p0 - D.LEVA.n && s.res.grano === g0 - li.coste.grano && s.res.oro === o0 - li.coste.oro, 'la leva alista, resta aldeanos y cobra');
+  let k = 0; while (G.leva('roma', D.LEVA.n) && k++ < 200); const lv = G.levaInfo('roma', D.LEVA.n);
+  assert(lv.motivo && c.units.milicia - m0 <= Math.ceil(D.LEVA.tope * (p0 + m0)) && G.recruits(c) >= 0, 'la leva topa por población libre: ' + lv.motivo);
+  c.pop = 300; s.res.oro = 0; s.alm.oro = 0; assert(G.leva('roma', D.LEVA.n) === false && /oro|Ya hay/.test(G.levaInfo('roma', D.LEVA.n).motivo), 'sin oro no hay leva');
+  assert(G.levaInfo('capua', 10).motivo === 'Solo en tus ciudades.' || s.cities.capua.owner === 'roma', 'solo en ciudades propias');
+  const antes = c.units.milicia; G.state = JSON.parse(JSON.stringify(s)); assert(G.state.cities.roma.units.milicia === antes, 'la milicia sobrevive a guardar y cargar');
+  G.state = s;
+  // el bot de las pruebas nunca la llama: se comprueba que el texto del bot no contiene G.leva
+  assert(!/G\.leva\(/.test(require('fs').readFileSync(__filename, 'utf8').split('{ // CN16a')[0]), 'el bot no usa la leva');
+  console.log('CN16a: leva OK (coste, tope por población, motivos, guardado, bot sin leva)');
+}

@@ -269,6 +269,13 @@
     aesernia: f(SIN_COL, h('Veleyo Patérculo 1.14.7', 'por cotejar', '263 a.C., latina: fecha y colonos (2.500, sin fuente, licencia de juego) por cotejar' + LJ))
   };
 
+  // ---- Leva y Campo de Marte (D.LEVA_FICHAS, CN16a). Cotejo: gobierno/historia/CN16-cotejo.md ----
+  const SIN_LEVA = { sin: 'la leva es una acción y el campo es una explanada: se dibujan con figuras de soldados y un suelo liso, sin modelo propio' };
+  const leva = {
+    dilectus: f(SIN_LEVA, h('Polibio 6.19-21 (la leva anual de las legiones, descrita con detalle); pista por comprobar: Livio 22.57', 'licencia de juego', 'Que Roma alistaba cada año a sus ciudadanos propietarios por voto de los cónsules y el Senado es histórico (Polibio 6.19-21). Aquí la leva es un botón que pagas con grano y oro y que alista milicia al momento: eso es regla de juego.', 'En Roma los cónsules alistaban cada año a los ciudadanos con tierra (Polibio 6.19-21). Aquí, cuando pulsas, un grupo de aldeanos toma las armas a cambio de grano y oro.')),
+    campo_marte: f(SIN_LEVA, h('Livio 2.5 (el Campo de Marte, junto al Tíber); pista por comprobar: Polibio 6.20', 'licencia de juego', 'El Campo de Marte era la llanura extramuros donde se reunían y ejercitaban los ciudadanos en armas. Ponerlo ante la puerta principal de cada ciudad, con una muestra de la tropa, es licencia de juego. No se ha abierto el pasaje de Livio aquí.', 'El Campo de Marte era la gran llanura junto al Tíber donde Roma reunía y adiestraba a sus soldados. Aquí, ante la puerta, ves una muestra de tu guarnición.'))
+  };
+
   // ---- Fiestas del Foro y del Templo (D.FIESTAS, CN13a). Se casan por id. Cotejo: gobierno/historia/CN13-cotejo.md ----
   const SIN_FIESTA = { sin: 'una fiesta no tiene modelo 3D propio; la ciudad solo cambia el aspecto del arca (CN15)' };
   const fiesta = {
@@ -310,7 +317,7 @@
     zanja: f(SIN_PZ, h('Livio 1.38.6; Livio 1.56.2; Vitruvio 1.4.11-12', 'probable', 'Livio atribuye a Tarquinio Prisco el desagüe del Foro con cloacas; Vitruvio recomienda sanear los sitios encharcados. Que reduzca la ruina de la crecida es licencia de juego'))
   };
 
-  R.fichas = { terreno, piezaTerreno, edificio, tropa, fiesta, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+  R.fichas = { terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -337,6 +344,7 @@
     invest: { tabla: 'INVEST', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n', 'i', 'rama'] },
     edad: { tabla: 'EDADES', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n'] },
     fiesta: { tabla: 'FIESTAS', numericos: ['mult', 'min', 'dura', 'reposo'], textos: ['n', 'i', 'd'] },
+    leva: { tabla: 'LEVA_FICHAS', numericos: [], textos: ['n', 'i', 'd'] },
     remedio: { tabla: 'REMEDIOS', numericos: [], textos: ['n', 'i', 'd'] }
   };
 

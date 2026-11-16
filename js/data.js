@@ -65,6 +65,12 @@
     ofrenda: { n: 'Ofrenda al templo', i: '🏺', mult: 2, min: 60, dura: 1, reposo: 1, fel: 4, pueblo: 2, inq: 0, dios: 2, pago: 'arca', templo: true, d: 'Duplica un mes el don del dios del templo.' },
     juegos: { n: 'Juegos públicos', i: '🎭', mult: 4, min: 150, dura: 3, reposo: 6, fel: 10, pueblo: 5, inq: 4, dios: 1, pago: 'oro', templo: false, d: 'Calman al pueblo y a una ciudad conquistada.' }
   };
+  /* CN16a: la leva del Foro (dilectus). Los aldeanos libres se alistan como milicia a cambio de grano y oro; sin cola ni reloj, solo cuando el jugador pulsa. n = soldados por pulsación; tope = parte de la población libre que puede estar bajo armas por leva (el resto sigue en el campo). Licencia de juego: el coste es de equilibrio, no sale de las fuentes. */
+  D.LEVA = { unidad: 'milicia', n: 10, grano: 6, oro: 4, tope: 0.35, d: 'Alista aldeanos como milicia.' };
+  D.LEVA_FICHAS = {
+    dilectus: { n: 'Leva (dilectus)', i: '⚔️', d: 'Los ciudadanos libres se alistan como soldados cuando el Senado lo manda.' },
+    campo_marte: { n: 'Campo de Marte', i: '🏟️', d: 'Explanada junto a la puerta donde la tropa se forma y se instruye.' }
+  };
   /* Remedios contra los sucesos de la ciudad (CN13b): solo nombre y texto. Reglas y cifras viven en ciudad.js (EDIF.dique, techarBarrio); aquí van para que tengan ficha histórica. */
   D.REMEDIOS = {
     dique: { n: 'Dique contra la crecida', i: '🌊', d: 'Un dique en la orilla guarda de la crecida las casas de su alrededor.' },

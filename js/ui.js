@@ -434,10 +434,16 @@ const fiestaBtn = (cid, id, corto) => {
   return '<button class="btn fiesta' + (on ? '' : ' no') + '" data-act="fiesta" data-v="' + id + '"' + (on ? '' : ' disabled') + '>' + d.i + ' ' + (corto || d.n) + ' · ' + D.RES_ICON.oro + fmt(fi.coste) + (d.pago === 'arca' ? ' en arca' : '') + '</button>' +
     '<small class="fi-n">' + esc(estado + (estado && fi.motivo ? ' ' : '') + (fi.motivo || '')) + '</small>';
 };
+/* CN16a: botón de leva (dilectus). Lee G.levaInfo; el motivo sale en letra pequeña si no se puede */
+const levaBtn = cid => {
+  const d = D.LEVA, lv = G.levaInfo(cid, d.n), on = !lv.motivo;
+  return '<button class="btn fiesta leva' + (on ? '' : ' no') + '" data-act="leva"' + (on ? '' : ' disabled') + '>⚔️ Reclutar ' + lv.n + ' · ' + D.RES_ICON.grano + fmt(lv.coste.grano) + ' ' + D.RES_ICON.oro + fmt(lv.coste.oro) + '</button>' +
+    '<small class="fi-n">' + esc(lv.motivo || 'Aldeanos libres: ' + fmt(lv.libres) + '. La milicia guarnece la ciudad.') + '</small>';
+};
 const arcaHtml = c => {
   const cid = UI.city, a = G.arca(cid), pips = [1, 2, 3, 4].map(i => '<i class="' + (a.nivel >= i ? 'on' : '') + '"></i>').join(''), sob = Object.keys(a.sobra);
   return '<div class="arca"><div class="ar-top"><b>Arca</b><span class="ar-med" title="Lo que el almacén va a perder este mes">' + pips + '</span><em>' + (sob.length ? 'sobra ' + sob.map(r => D.RES_ICON[r] + fmt(a.sobra[r])).join(' ') : 'no se pierde nada') + '</em></div>' +
-    '<div class="ar-fi">' + fiestaBtn(cid, 'juegos') + '</div><div class="ar-leva" data-hueco="leva"></div></div>';   // el hueco de la leva (CN16) cuelga de .ar-leva
+    '<div class="ar-fi">' + fiestaBtn(cid, 'juegos') + '</div><div class="ar-leva" data-hueco="leva">' + levaBtn(cid) + '</div></div>';   // el hueco de la leva (CN16) cuelga de .ar-leva
 };
 const graneroHtml = c => {
   const cid = UI.city, g = G.graneroInfo(cid), rc = c.rac || 'normal', rac = Object.keys(D.RACION).map(k => '<button class="chip ' + (rc === k ? 'on' : '') + '" data-act="racion" data-v="' + k + '" title="' + esc(D.RACION[k].d) + '">' + D.RACION[k].n + '</button>').join('');
@@ -1516,6 +1522,7 @@ document.addEventListener('click', function (e) {
     case 'impc': UI.city = v; UI.bsel = null; UI.cityList = false; setTab('city'); break;
     case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; if (UI.tab === 'map' && UI.map) UI.map.center(v); render(); tickUI(); break;
     case 'rep': if (G.reparto(UI.city, el.dataset.r, +el.dataset.d)) render(); break;
+    case 'leva': if (G.leva(UI.city, D.LEVA.n)) { render(); renderCuentas(true); } break;
     case 'fiesta': if (G.hacerFiesta(UI.city, v)) { render(); renderCuentas(true); } break;
     case 'racion': if (G.setRacion(UI.city, v)) render(); break;
     case 'techar': if (G.techarBarrio(UI.city, +v)) render(); break;
