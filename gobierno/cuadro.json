@@ -1176,6 +1176,12 @@
       "titulo": "Reglas de la batalla nueva dentro del juego",
       "nota": "Solo el motor nuevo en js/, su prueba y su juez; no toca ui.js, game.js ni la batalla que sale hoy",
       "url": "https://claude.ai/code/session_01QiKC37YnzYY23ieYMVzuFx"
+    },
+    {
+      "tarea": "FJ1",
+      "titulo": "Formato de juego · FJ1 Estudio de Tropico",
+      "nota": "solo estudio en gobierno/estudios/ (no toca js/)",
+      "url": ""
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
