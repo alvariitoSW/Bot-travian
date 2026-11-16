@@ -1192,6 +1192,12 @@
       "titulo": "Batalla mejorada · GM2 Combate en vivo, armas y flancos (reglas en maqueta)",
       "nota": "solo gobierno/maquetas/guerra-cuerpo/",
       "url": "https://claude.ai/code/session_01QiKC38qgn35XZf77smxLzy"
+    },
+    {
+      "tarea": "RD1",
+      "titulo": "Radar · RD1 Leer repositorios libres (GM1, GM2, ciudades)",
+      "nota": "solo gobierno/estudios/ y repositorios.md",
+      "url": ""
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
