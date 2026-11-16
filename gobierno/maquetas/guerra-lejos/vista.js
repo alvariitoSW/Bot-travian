@@ -209,24 +209,55 @@ function colocar() {
 }
 function huir(rg, dir, orden) { if (rg.est === 3) return; rg.est = 3; rg.tH = 0; rg.un.uFuga.value.set(0, dir); rg.un.uOrden.value = orden ? 0.55 : 1; }
 
-/* GM8: aquí se cambia cómo carga la caballería (arranque, galope, choque, vuelta, persecución). El motor solo dice
-   B.cab.estado (lista, yendo, cargando, volviendo), B.cab.sect y si va a por los tiradores */
+/* GM8: los jinetes siguen una trayectoria por FUERA de las líneas: salen por el extremo del ala, rodean, entran por detrás y vuelven por el mismo exterior.
+   Cada fase parte de donde estaba el regimiento al empezarla (ini) y recorre una poligonal; nunca cruza el ancho de ninguna línea */
+const pol = { ini: null, fase: null, tot: 1, tx: 0, tz: 0 }, polN = { ini: null, fase: null, tot: 1 };
+const lerpPol = (pts, u) => {                                            // punto a la fracción u (0..1) del largo de la poligonal
+  let L = 0; const seg = []; for (let k = 1; k < pts.length; k++) { const d = Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]); seg.push(d); L += d; }
+  let r = Math.max(0, Math.min(1, u)) * L; for (let k = 0; k < seg.length; k++) { if (r <= seg[k] || k === seg.length - 1) { const f = seg[k] ? Math.min(1, r / seg[k]) : 1; return [pts[k][0] + (pts[k + 1][0] - pts[k][0]) * f, pts[k][1] + (pts[k + 1][1] - pts[k][1]) * f, Math.atan2(pts[k + 1][0] - pts[k][0], pts[k + 1][1] - pts[k][1])]; } r -= seg[k]; }
+  return [pts[0][0], pts[0][1], 0];
+};
+const sigue = c => c.estado !== 'lista';
+let sigueCab = false;
 function jinetes() {
-  const c = B.cab, lado = i => i === 0 ? -1 : 1, llegar = (q, x, z, yaw, seg) => { q.tx = x; q.tz = z; q.tyaw = yaw; q.vQ = Math.max(6, Math.hypot(x - q.x, z - q.z) / Math.max(0.25, seg)); };
+  const c = B.cab, lado = i => i === 0 ? -1 : 1;
   const zRoma = s => zFrente(s) + hueco(s) / 2;
-  rc.giro = 0; rc.ataca = 0;
-  if (c.estado === 'yendo' || c.estado === 'cargando') {
-    const s = B.sect[c.sect], sg = lado(c.sect), e = s.c[1], rt = e.tir && regs.get(e.tir), aTir = rt && (R.tirando(e) || (e.tir.huido && c.estado === 'cargando'));
-    const mx = aTir ? xs(c.sect) + sg * 2 : xs(c.sect) + sg * (ANCHO / 2 + 1.2), mz = aTir ? rt.z - 2 : zFrente(s) - hueco(s) / 2 - Math.min(rc.ancho, e.fondo || FONDO_E) / 2 - 1, total = 3 + B.lejos + (R.lejos(s) ? 2.5 : 0);
-    if (c.estado === 'yendo' && c.t > total * 0.5) llegar(rc, xs(c.sect) + sg * (ANCHO / 2 + 1.2 + rc.ancho * 0.5), zRoma(s) + 2, Math.PI, c.t - total * 0.5);      // primero corren por el costado de los suyos
-    else llegar(rc, mx, mz, -sg * Math.PI / 2, c.estado === 'yendo' ? c.t : 0.3);
-    if (c.estado === 'cargando') { rc.ataca = 3; rc.calma = -2; }
-  } else { rc.tx = 0; rc.tz = zRoma(B.sect[1]) + ZCAB; rc.tyaw = Math.PI; rc.vQ = 14; }
+  const zR = Math.max(...B.sect.map(s => zRoma(s) + (s.c[0].fondo || FONDO_R))) + rc.hondo / 2 + 2;              // por detrás del último romano
+  const zE = Math.min(...B.sect.map(s => zFrente(s) - hueco(s) / 2 - (s.c[1].fondo || FONDO_E))) - rc.hondo / 2 - 1.5;   // por detrás del último enemigo
+  const zRepo = zRoma(B.sect[1]) + ZCAB, reposo = [0, zRepo];
+  rc.giro = 0; rc.ataca = 0; rc.calma = 0.1; rc.mont = true;
+  if (!sigue(c)) { pol.fase = null; sigueCab = false; rc.tx = 0; rc.tz = zRepo; rc.tyaw = Math.PI; rc.vQ = 14; }
+  else {
+    const a = c.ala >= 0 ? c.ala : 0, sg = lado(a), xo = xs(a) + sg * (ANCHO / 2 + 1.5 + rc.ancho / 2), s = B.sect[c.obj >= 0 ? c.obj : a], e = s.c[1];
+    const rt = e.tir && regs.get(e.tir), aTir = rt && (R.tirando(e) || (e.tir.huido && c.estado === 'cargando'));
+    const meta = aTir ? [c.obj !== 1 ? xo : xs(c.obj) + sg * 2, rt.z - 2] : [xs(c.obj >= 0 ? c.obj : a), zFrente(s) - hueco(s) / 2 - (e.fondo || FONDO_E) - rc.hondo / 2 - 1];
+    if (pol.fase !== c.fase) { pol.fase = c.fase; pol.ini = [rc.x, rc.z]; pol.tot = Math.max(0.3, c.t); }
+    const u = 1 - c.t / pol.tot, ini = pol.ini, lej = R.lejos(s) || B.num.guarda[a] > 0;
+    const duelo = c.fase === 'rodea' && B.num.guarda[a] > 0 && !B.sect[a].c[1].roto, zD = zE + (zR - zE) * 0.3;
+    let p;
+    if (c.fase === 'sale') p = lerpPol([ini, [xo, zR]], u * u);                                                         // arranque: al paso y acelerando
+    else if (c.fase === 'rodea') p = lerpPol([ini, duelo ? [xo, zD] : [xo, zE]], Math.pow(Math.max(0, u), 1.25));        // galope por fuera
+    else if (c.fase === 'entra') p = lerpPol([ini, [xo, zE], meta], 0.2 + 0.8 * u * u + 0 * lej);                          // entran por la espalda
+    else if (c.fase === 'golpe') { const pers = e.roto || (aTir && e.tir.huido); p = [meta[0], meta[1] - (pers ? 9 * u : 0) + Math.sin(T * 9) * 0.5, Math.PI]; if (c.obj !== 1 && !aTir) p[0] = meta[0]; p[2] = pers ? Math.PI : 0 + 0; }
+    else p = lerpPol([ini, [xo, zE], [xo, zR], reposo], u);                                                              // vuelven despacio por el mismo exterior
+    const vel = c.fase === 'golpe' ? 6 : 90;
+    rc.tx = p[0]; rc.tz = p[1]; rc.tyaw = c.fase === 'golpe' ? (e.roto || (aTir && e.tir.huido) ? Math.PI : 0) : p[2] + 0; rc.vQ = vel;
+    if (c.fase === 'rodea' || c.fase === 'entra') { rc.calma = -1; }
+    if (c.fase === 'golpe' || (duelo && u > 0.7)) { rc.ataca = 3; rc.calma = -2; }
+    if (c.fase === 'golpe' && c.t > 2.9) temblor = Math.max(temblor, 0.8);
+  }
   const n = B.num;
   if (n.estado === 'llega' || n.estado === 'hostiga') {
-    const s = B.sect[n.sect], sg = lado(n.sect);
-    llegar(rn, xs(n.sect) + sg * (ANCHO / 2 + 3.5), zRoma(s) + rn.ancho / 2 + 2, -sg * Math.PI / 2, n.estado === 'llega' ? n.t : 0.3); rn.giro = n.estado === 'hostiga' ? 1 : 0;
-  } else { const sg = n.sect === 0 ? -1 : 1; rn.tx = sg * (MEDIO + 45); rn.tz = -(FONDO_E + LEJOS / 2 + 70); rn.tyaw = 0; rn.vQ = 16; rn.giro = 0; }
+    const sg = n.sect === 0 ? -1 : 1, s = B.sect[n.sect], xo = xs(n.sect) + sg * (ANCHO / 2 + 3.5 + rn.ancho / 2), zEn = Math.min(...B.sect.map(q => zFrente(q) - hueco(q) / 2 - (q.c[1].fondo || FONDO_E))) - rn.hondo / 2 - 2;
+    const fin = [xs(n.sect) + sg * (ANCHO / 2 + 3.5), zRoma(s) + rn.ancho / 2 + 2], lejos0 = [sg * (MEDIO + 45), -(FONDO_E + LEJOS / 2 + 70)];
+    if (polN.fase !== n.fase) { polN.fase = n.fase; polN.ini = [rn.x, rn.z]; polN.tot = Math.max(0.3, n.t); }
+    const u = 1 - n.t / polN.tot; let p;
+    const duelo = c.fase === 'rodea' && sigue(c) && B.num.guarda[c.ala] > 0 && n.estado !== 'llega';
+    if (duelo) { const sgc = lado(c.ala), zD = zE + (zR - zE) * 0.3; p = [xs(c.ala) + sgc * (ANCHO / 2 + 1.5 + rc.ancho / 2), zD - rc.hondo / 2 - rn.hondo / 2 - 1, 0]; rn.ataca = 3; rn.vQ = 20; }
+    else if (n.estado === 'hostiga') p = [fin[0], fin[1], 0];
+    else p = n.fase === 'sale' ? lerpPol([polN.ini, [xo, zEn]], u) : n.fase === 'rodea' ? lerpPol([polN.ini, [xo, zEn], [xo, fin[1]]], u) : lerpPol([polN.ini, fin], u);
+    rn.tx = p[0]; rn.tz = p[1]; rn.tyaw = n.estado === 'hostiga' ? -sg * Math.PI / 2 : p[2] + (n.fase === 'entra' ? 0 : 0); rn.vQ = duelo ? 20 : 35; rn.giro = n.estado === 'hostiga' ? 1 : 0; if (!duelo) rn.ataca = 0;
+  } else { polN.fase = null; const sg = n.sect === 0 ? -1 : 1; rn.tx = sg * (MEDIO + 45); rn.tz = -(FONDO_E + LEJOS / 2 + 70); rn.tyaw = 0; rn.vQ = 16; rn.giro = 0; rn.ataca = 0; }
 }
 
 /* ---------- mover: una cuenta por regimiento, no por hombre ---------- */
@@ -425,6 +456,7 @@ function adornos(dt) {
 /* ---------- cámara: vista general a la medida del ejército; baja sola a donde pasa algo, o cuando se pide «De cerca» ---------- */
 /* GM8: la cámara que sigue a los jinetes va aquí: otra rama de camaraMeta que mire a (rc.x, rc.z) mientras B.cab no esté 'lista' */
 function camaraMeta() {
+  if (sigueCab && B.cab.estado !== 'lista' && B.fase !== 'fin') return { x: rc.x, y: 1.2, z: rc.z, d: Math.max(vertical ? 30 : 22, rc.ancho * (vertical ? 1.5 : 1.1)) + 6, p: 0.4, a: 0.3 };
   const i = foco.i >= 0 && T < foco.hasta ? foco.i : cerca ? sel : -1;
   if (i >= 0 && B.fase !== 'fin') { const s = B.sect[i], h = hueco(s) / 2; return { x: xs(i), y: 1.2, z: zFrente(s) + 1.5 + h * 0.8, d: (vertical ? 30 : 21) + Math.min(26, h * 0.5), p: 0.3 + Math.min(0.1, h * 0.004), a: (1 - i) * 0.3 + 0.28 }; }
   const tanV = Math.tan(camara.fov * Math.PI / 360), tanH = tanV * camara.aspect, p = vertical ? 0.48 : 0.42, hm = Math.max(...B.sect.map(hueco)), zm = B.sect.reduce((a, s) => a + zFrente(s), 0) / 3, hondo = (FONDO_R + FONDO_E + hm) / 2 + 6;
@@ -504,7 +536,7 @@ function eventos() {
     const mala = ['carga-enemiga', 'numidas-aviso', 'cansados', 'linea-deshecha', 'lluvia', 'testudo-roto'].includes(e.tipo) || (e.tipo === 'roto' && e.lado === 0) || (e.tipo === 'envuelve' && e.lado === 1);
     const buena = ['enemigo-cede', 'impacto', 'numidas-fuera', 'calma', 'tir-tiran'].includes(e.tipo) || (e.tipo === 'pila' && e.lado === 0) || (e.tipo === 'roto' && e.lado === 1) || (e.tipo === 'envuelve' && e.lado === 0);
     cinta(e.texto, mala ? 'mala' : buena ? 'buena' : '');
-    if (e.tipo === 'impacto' || e.tipo === 'choque') temblor = 1;
+    if (e.tipo === 'impacto' || e.tipo === 'choque' || e.tipo === 'cab-golpe') temblor = 1;
     if (e.tipo === 'roto' || e.tipo === 'impacto' || e.tipo === 'relevo' || e.tipo === 'caballeria') mirar(e.sect, e.tipo === 'caballeria' ? 6.5 + B.lejos : 3.2, true);
     else if (e.tipo === 'carga-enemiga' || e.tipo === 'envuelve' || e.tipo === 'numidas-aviso' || (e.tipo === 'lluvia' && e.linea) || e.tipo === 'choque' || e.tipo === 'pila') mirar(e.sect, 2.8, false);
     if (e.tipo === 'roto' && e.lado === 0 && e.sect === sel) { const j = [1, 0, 2].find(k => !B.sect[k].c[0].roto); if (j !== undefined) sel = j; }
@@ -538,7 +570,7 @@ const rayo = new THREE.Raycaster(), plano = new THREE.Plane(new THREE.Vector3(0,
 lienzo.addEventListener('pointerdown', e => { toque.x = e.clientX; toque.y = e.clientY; toque.t = performance.now(); });
 lienzo.addEventListener('pointerup', e => {
   if (!lista || pausa || Math.hypot(e.clientX - toque.x, e.clientY - toque.y) > 12 || performance.now() - toque.t > 600) return;
-  rayo.setFromCamera(new THREE.Vector2(e.clientX / ancho * 2 - 1, -(e.clientY / alto) * 2 + 1), camara); const p = rayo.ray.intersectPlane(plano, V3); if (!p || Math.abs(p.x) > MEDIO + 3 || p.z > ZCAB + LEJOS + 20 || p.z < -(FONDO_E + LEJOS + 10)) return;
+  rayo.setFromCamera(new THREE.Vector2(e.clientX / ancho * 2 - 1, -(e.clientY / alto) * 2 + 1), camara); const p = rayo.ray.intersectPlane(plano, V3); if (p && B.cab.estado !== 'lista' && Math.hypot(p.x - rc.x, p.z - rc.z) < Math.max(6, rc.ancho * 0.7)) { sigueCab = !sigueCab; return; } if (sigueCab) { sigueCab = false; return; } if (!p || Math.abs(p.x) > MEDIO + 3 || p.z > ZCAB + LEJOS + 20 || p.z < -(FONDO_E + LEJOS + 10)) return;
   elegir(Math.max(0, Math.min(2, Math.round(p.x / S) + 1)));
 });
 
@@ -576,7 +608,8 @@ requestAnimationFrame(cuadro); arrancar();
 /* ganchos para las pruebas y las capturas */
 window.__gc = {
   get lista() { return lista; }, get B() { return B; }, R,
-  ordenar: (i, o) => { sel = i; ordenar(o); }, elegir, cerca: verCerca,
+  ordenar: (i, o) => { sel = i; ordenar(o); }, elegir, sigue: v => { sigueCab = v; }, get siguiendo() { return sigueCab; },
+  cab: () => ({ x: rc.x, z: rc.z, ancho: rc.ancho, hondo: rc.hondo, regs: [...regs.values()].filter(r => r.est !== 3 && Math.ceil(r.n) > 0).map(r => ({ x: r.x, z: r.z, lado: r.lado, w: r.files * r.px, h: F.filasDe(Math.ceil(r.n), r.files) * r.pz })) }), cerca: verCerca,
   pausa: v => { pausa = v; },
   salta: seg => { for (let k = 0; k < seg * 20 && B.fase !== 'fin'; k++) avanza(0.05); },
   mirar: (i, seg) => { foco = { i, hasta: i < 0 ? 0 : T + seg, ultimo: T }; moverCamara(0, true); },

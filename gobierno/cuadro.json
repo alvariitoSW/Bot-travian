@@ -1307,6 +1307,27 @@
       "tarea": "EV6",
       "archivo": "gobierno/capturas-tarea/EV6-hilo-ev1.jpg",
       "pie": "EV1: el hilo de dos líneas se entiende; los rótulos se montan"
+    },
+    {
+      "tarea": "GM8",
+      "archivo": "gobierno/capturas-tarea/GM8-vertical-9-jinetes-rodeando.jpg",
+      "pie": "Los jinetes salen por el ala y rodean por fuera"
+    },
+    {
+      "tarea": "GM8",
+      "archivo": "gobierno/capturas-tarea/GM8-vertical-10-choque.jpg",
+      "pie": "El choque tras rodear; la caballería se rehace (vuelve en 20 s)"
+    },
+    {
+      "tarea": "GM8",
+      "archivo": "gobierno/capturas-tarea/GM8-vertical-11-vuelta-camara-siguiendo.jpg",
+      "pie": "Vuelta de los jinetes con la cámara siguiéndolos"
+    },
+    {
+      "tarea": "GM8",
+      "archivo": "gobierno/capturas-tarea/GM8-horizontal-9-jinetes-rodeando.jpg",
+      "pie": "En horizontal: jinetes rodeando",
+      "ancha": true
     }
   ],
   "informes": [

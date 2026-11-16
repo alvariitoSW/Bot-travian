@@ -19,7 +19,7 @@ if (args.includes('--servir')) { console.log('Sirviendo en ' + URL0); await new 
 const { chromium } = createRequire(join(RAIZ, 'x.js'))('playwright');
 const br = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 await mkdir(SALIDA, { recursive: true });
-const dpr = +(op.dpr || 2), prefijo = op.prefijo || join(SALIDA, 'GM7-'), errores = [], tabla = [];
+const dpr = +(op.dpr || 2), prefijo = op.prefijo || join(SALIDA, 'GM8-'), errores = [], tabla = [];
 const espera = (p, ms) => p.waitForTimeout(ms);
 const bien = (ok, texto) => { console.log((ok ? '  bien: ' : '  MAL: ') + texto); if (!ok) errores.push('PRUEBA: ' + texto); };
 async function abrir(url, w, h) {
@@ -88,13 +88,25 @@ async function partida(nombre, w, h, completa, extra) {
     await pulsa('#otra'); await espera(page, 1200);
     bien((await g('estado')).dist.every(d => d > 130), '«Otra batalla» vuelve a empezar de lejos');
     /* la caballería a por los honderos */
-    await g('pausa', true); await hasta('B.sect[1].c[1].tir.estado === "tira"', 40); await pulsa('.cuerpo[data-i="1"]');
+    await g('pausa', true); await hasta('B.sect[2].c[1].tir.estado === "tira"', 40); await pulsa('.cuerpo[data-i="2"]');
     bien(/honderos/.test(await page.textContent('.orden[data-o="caballeria"] .sub')), 'el botón de la caballería dice «a sus honderos» mientras siguen delante');
-    await pulsa('.orden[data-o="caballeria"]'); await hasta('B.cab.estado === "cargando"', 30); await g('salta', 0.6); await g('mirar', 1, 30); await foto('8-jinetes-a-los-honderos');
-    bien(await page.evaluate(() => window.__gc.B.sect[1].c[1].tir.huido === true), 'los jinetes barren a los honderos del centro y dejan de tirar');
+    await pulsa('.orden[data-o="caballeria"]'); await hasta('B.cab.estado === "cargando"', 30); await g('salta', 0.6); await g('mirar', 2, 30); await foto('8-jinetes-a-los-honderos');
+    bien(await page.evaluate(() => window.__gc.B.sect[2].c[1].tir.huido === true), 'los jinetes barren a los honderos del ala y dejan de tirar');
     await g('mirar', -1, 0); await pulsa('#retirar'); await pulsa('#salir-si'); await espera(page, 800);
     bien((await g('estado')).res.como === 'retirada' && await page.isVisible('#otra'), 'dos toques bastan para salir de la batalla');
   }
+  /* GM8: la caballería rodea por fuera, golpea, vuelve; la cámara la sigue */
+  if (completa) { await pulsa('#otra'); await espera(page, 1200); }
+  await g('pausa', true); await g('mirar', -1, 0); await pulsa('.cuerpo[data-i="0"]'); await pulsa('.orden[data-o="caballeria"]');
+  let solapa = 0; const prueba = async () => { const r = await page.evaluate(() => { const c = window.__gc.cab(); return c.regs.filter(q => Math.abs(c.x - q.x) < q.w / 2 && (q.lado === 0 ? c.z > q.z - 1 && c.z < q.z + q.h : c.z < q.z + 1 && c.z > q.z - q.h)).length; }); if (r) console.log('  solape en fase ' + await page.evaluate(() => window.__gc.B.cab.fase + ' x=' + window.__gc.cab().x.toFixed(1) + ' z=' + window.__gc.cab().z.toFixed(1) + ' anc=' + window.__gc.cab().ancho.toFixed(1) + ' regs=' + JSON.stringify(window.__gc.cab().regs.filter(q => Math.abs(window.__gc.cab().x - q.x) < q.w / 2 + 20).map(q => [q.x, q.z, q.lado, q.w, q.h].map(v => Math.round(v)))))); solapa += r; };
+  const paso = async (cond, tope) => { for (let k = 0; k < tope * 4; k++) { if (await page.evaluate(([c]) => { const G = window.__gc, B = G.B; return eval(c); }, [cond])) return true; await g('salta', 0.25); await prueba(); } return false; };
+  await g('sigue', true); await paso('B.cab.fase === "rodea"', 10); await g('salta', 3.2); await prueba(); await g('mirar', -1, 0); await foto('9-jinetes-rodeando');
+  await paso('B.cab.fase === "golpe"', 12); await g('salta', 0.5); await g('mirar', -1, 0); await foto('10-choque');
+  await paso('B.cab.fase === "vuelve"', 12); await g('salta', 2); await g('mirar', -1, 0); await foto('11-vuelta-camara-siguiendo');
+  bien(await page.evaluate(() => window.__gc.siguiendo), 'la cámara sigue a los jinetes mientras vuelven');
+  await paso('B.cab.estado === "lista"', 25); await g('salta', 0.3);
+  bien(!(await page.evaluate(() => window.__gc.B.cab.estado !== 'lista' && window.__gc.siguiendo)), 'al acabar la carga se suelta la cámara');
+  bien(solapa === 0, 'los jinetes nunca pasan por encima de ninguna línea (' + solapa + ' cuadros solapados)');
   await ctx.close();
 }
 const cual = op.solo || 'todo';
