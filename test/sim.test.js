@@ -1930,3 +1930,11 @@ console.log('OK — todas las pruebas superadas');
     assert(G.pasarTurno() === false && s.t === t0 && s.vivo, 'con batalla y fuego no avanza'); s.pending.shift(); assert(s.vivo && G.pasarTurno() === false, 'resuelta la batalla, el fuego sigue esperando'); assert(G.dejarArder().ok && !s.vivo); }
   G.turnos = false; G.autoVivo = true; delete global.localStorage; G.usarCiudad(null); console.log('CN13c: fuego, reloj parado, cubos, guardar y batalla OK');
 }
+{ // CN13c: dos ciudades con fuego el mismo mes: una tarjeta tras otra
+  const CIM = require('../js/ciudad.js'); G.usarCiudad(CIM);
+  const s = G.newGame('Dos', 'mediterraneo', {}); G.turnos = true; G.autoVivo = false; s.speed = 0;
+  s.vivo = { tipo: 'fuego', cid: 'roma', ids: [], t0: s.t }; s.vivoCola = [{ tipo: 'fuego', cid: 'capua', ids: [], t0: s.t }];
+  const r = G.dejarArder('roma'); assert(r && r.ok, 'resuelve la primera'); assert(s.vivo && s.vivo.cid === 'capua' && s.vivoCola.length === 0, 'sale la tarjeta de la segunda ciudad');
+  G.dejarArder('capua'); assert(s.vivo === null, 'sin más fuegos queda libre');
+  G.turnos = false; G.autoVivo = true; G.usarCiudad(null); console.log('CN13c: dos fuegos en cola OK');
+}

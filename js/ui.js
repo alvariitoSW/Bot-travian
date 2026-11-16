@@ -242,7 +242,7 @@ function consejoModal() {
   const informe = inf.meses ? '<p style="margin:6px 0 2px"><b>Informe de la estación</b> (' + inf.meses + (inf.meses === 1 ? ' mes' : ' meses') + ')</p><table style="width:100%;text-align:center;font-size:13px"><tr style="opacity:.6;font-size:11px"><td></td><td>ganado</td><td>guardado</td><td>perdido</td></tr>' + D.RES.map(fila).join('') + '</table><p style="margin:2px 0 8px;color:' + (inf.r.oro.gua >= 0 ? 'var(--good)' : 'var(--bad)') + '">Saldo de oro: ' + (inf.r.oro.gua - 0) + ' al almacén.</p>' : '';
   const detalle = '<div class="yr">INFORME Y CONSEJO DE ESTACIÓN</div><h2>' + esc(l[0].x) + '</h2>' + informe + l.slice(1).map(q => '<p style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</p>').join('');
   // tarjeta: lo grave siempre; lo demás solo si cambió desde el trimestre anterior
-  const perd = D.RES.filter(r => inf.meses && inf.r[r].per > 0).map(r => D.RES_ICON[r] + ' -' + fmt(inf.r[r].per));
+  const perd = D.RES.filter(r => inf.meses && inf.r[r].per > 0).map(r => r + ' -' + fmt(inf.r[r].per));
   const todo = l.slice(1, -1).concat(perd.length ? [{ k: 'bad', x: ASESOR.TEXTOS.perdido(perd.join(' ')) }] : []);
   const mostrar = todo.filter(q => q.k === 'bad' || ant.indexOf(q.x) < 0).slice(0, 3);
   UI.infoPrev = todo.map(q => q.x);
