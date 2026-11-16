@@ -1270,6 +1270,10 @@
   ],
   "informes": [
     {
+      "titulo": "R22 · El escenario y cómo lucha cada tropa, mirando Rome II",
+      "archivo": "gobierno/estudios/R22-escenario-y-tropas-rome2.md"
+    },
+    {
       "titulo": "GM7 · La batalla empieza de lejos: proyectiles, escudos y testudo",
       "archivo": "gobierno/estudios/GM7-empezar-de-lejos.md"
     },
