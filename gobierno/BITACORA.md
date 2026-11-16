@@ -223,7 +223,6 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - 16/11/2026 — **GM10 · qué cambiar en esperar, ceder y rehusar**: contestaste «con cambios». ¿Cuál? (A) quitar alguna de las tres (di cuál); (B) que se note más lo que hacen; (C) que sean botones y no gestos; (D) otra cosa (dila).
 - 16/11/2026 — **GM32 · qué es lo que se ve mal**: para que el estudio de Total War apunte bien. (A) los soldados (parecen muñecos o cartones); (B) el campo (plano, vacío, sin horizonte); (C) el movimiento (no parece una batalla viva); (D) todo eso. Una captura de tu móvil ayuda mucho.
 - **GM4 · qué falla en el arte**: dijiste que no se ve mejor. ¿Qué es lo primero que no te gusta? (A) las figuras aún se ven de polígonos; (B) el suelo, el relieve o la luz; (C) los colores y los estandartes; (D) se ve peor o va más lento que la de antes; (E) otra cosa (dila). Si no lo tienes claro, mándame una captura de tu móvil.
-- **GM4 · soldados aún más finos**: pide arte nuevo que sube la descarga. (A) no subir el peso; (B) estudiar cuánto subiría.
 
 ## Propuestas por aprobar
 - P142 **Grecia y mitología como modo aparte** (pedido del 16/11, «más adelante»; el usuario dijo sí a «aparte» el 16/11): no se abre hasta que la batalla romana esté cerrada. Al abrirla hay que decidir cómo queda la regla de fidelidad histórica; la campaña romana no se toca.
