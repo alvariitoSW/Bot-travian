@@ -1004,6 +1004,54 @@
       "tarea": "Batalla nueva",
       "archivo": "gobierno/capturas-tarea/consejo-batalla-fin.jpg",
       "pie": "16/11: la batalla acaba a los 24 segundos, antes de que las líneas choquen"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-vertical-1-llegada.jpg",
+      "pie": "Batalla nueva, lo primero que se ve: tres cuerpos, cuatro órdenes y «Retirarse»"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-vertical-2-choque.jpg",
+      "pie": "Las líneas chocan: los galos «cargan» por la izquierda"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-vertical-3-relevo.jpg",
+      "pie": "La cámara baja sola al relevo: entran los príncipes"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-vertical-4-caballeria.jpg",
+      "pie": "Caballería: los jinetes cargan por el costado"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-vertical-6-final.jpg",
+      "pie": "Final: victoria, bajas y «Otra batalla»"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-vertical-7-retirarse.jpg",
+      "pie": "«Retirarse» pregunta una vez: dos toques y fuera"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-horizontal-1-llegada.jpg",
+      "pie": "La misma batalla con el móvil en horizontal",
+      "ancha": true
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-horizontal-3-relevo.jpg",
+      "pie": "En horizontal: relevo visto de cerca",
+      "ancha": true
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-horizontal-4-caballeria.jpg",
+      "pie": "En horizontal: los jinetes espantan a los númidas en el ala izquierda",
+      "ancha": true
     }
   ],
   "informes": [
@@ -1114,17 +1162,14 @@
     {
       "titulo": "Formato de juego · propuesta del 16/11",
       "archivo": "gobierno/estudios/FJ-formato-de-juego.md"
+    },
+    {
+      "titulo": "GC1 · Guerra desde cero: la batalla nueva",
+      "archivo": "gobierno/estudios/GC1-guerra-desde-cero.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
-  "sesiones": [
-    {
-      "tarea": "GC1",
-      "titulo": "Guerra desde cero: diseño y maqueta jugable",
-      "nota": "Solo gobierno/estudios y gobierno/maquetas/guerra-cero; no toca el juego",
-      "url": "https://claude.ai/code/session_01QiKC38K8F4ZeDhsZcqCSYS"
-    }
-  ],
+  "sesiones": [],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
 }

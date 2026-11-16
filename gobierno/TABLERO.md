@@ -102,7 +102,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ L3 Fantasmas en pausa y atajos: absorbida por N7 (12/11).
 
 ## Carril GC — Guerra desde cero (aprobado por el usuario el 16/11/2026; sustituye en rumbo a los carriles A, N y NB, que no se parchean)
-- 🔶 GC1 **Replantear la batalla: diseño corto y maqueta jugable** (P101, «que se haga de inmediato»): una pantalla, tres cuerpos, una decisión grande cada pocos segundos, cámara que baja a donde pasa algo, la legión en tres líneas con relevo. Estudio `gobierno/estudios/GC1-guerra-desde-cero.md`, maqueta en `gobierno/maquetas/guerra-cero/`. No toca `js/`.
+- ✅ GC1 **Replantear la batalla: diseño corto y maqueta jugable** (16/11): tres pulsos y cuatro órdenes (Empujar, Aguantar, Relevo, Caballería), una pantalla, «Retirarse» siempre arriba. Estudio `gobierno/estudios/GC1-guerra-desde-cero.md`, maqueta en `gobierno/maquetas/guerra-cero/`. No toca `js/`. Espera que el usuario la pruebe.
 - ⬜ GC2 **Juez de la batalla que se juega de verdad** (P102): el recorrido entra en la batalla por defecto, en vertical y horizontal, comprueba que se puede salir y mide si se entiende sin instrucciones (primer toque útil sin leer nada). Juzga también el arte: un mismo estilo, espectacular desde la sencillez. En consonancia con GC1: juzga lo que GC1 defina.
 
 ## Carril GR — Gobierno de región (P104, aprobada por el usuario el 16/11/2026)
