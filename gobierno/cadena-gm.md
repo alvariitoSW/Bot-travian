@@ -7,8 +7,9 @@ siguiente al cerrar con jueces en APTO (o, si son solo documentos, con su prueba
 | Orden | Tarea | Qué toca | Modelo | Se abre cuando |
 |---|---|---|---|---|
 | 0 | GM8 y GM9 (sesión ya abierta) | `maquetas/guerra-lejos/` | Sonnet | Está en marcha |
-| 1 | **GM11** motor único | nueva `maquetas/guerra-unica/` (copia de `guerra-lejos/` tras GM9) | Sonnet | Cierra GM8 y GM9 |
-| 2 | **GM12** el porqué a la vista y la nota | `guerra-unica/` | Sonnet | Cierra GM11 |
+| 1 | **GM11** motor único | nueva `maquetas/guerra-unica/` (copia de `guerra-lejos/` tal como estaba el 16/11 a las 20:50, con GM7 solo) | Sonnet | **Abierta ya (16/11)**, sin esperar a GM8 y GM9 |
+| 1b | **GM11b** integrar lo de GM8 y GM9 | `guerra-unica/` | Sonnet | Cierra GM11 **y** GM8/GM9 |
+| 2 | **GM12** el porqué a la vista y la nota | `guerra-unica/` | Sonnet | Cierra GM11b |
 | 3 | **GM13** sin respuesta correcta | `guerra-unica/` | Sonnet | Cierra GM12 |
 | 4 | **GM14** la huida mata y perseguir | `guerra-unica/` | Sonnet | Cierra GM13 |
 | 5 | **GM15** maqueta de terreno y maniobra | `guerra-unica/` | Sonnet (Fable si el diseño lo pide) | Cierra GM14, y existe `estudios/GM15-terreno-y-maniobra.md` con la elección del usuario |
@@ -26,11 +27,12 @@ constructor y encargos de una pieza (GM6 se pasó +172 %). No se equilibra con b
 Cierre normal: jueces, capturas, tablero, bitácora, parte, cuadro, commit y push. Si necesitas una decisión, pregunta
 con opciones. Al cerrar, abre la sesión siguiente de esta cadena.»
 
-- **GM11 · Motor único.** Crea `maquetas/guerra-unica/` copiando `guerra-lejos/` tal como la dejó GM9. Trae de
+- **GM11 · Motor único.** Crea `maquetas/guerra-unica/` copiando `guerra-lejos/` tal como está al abrir la sesión. **No toques `guerra-lejos/`**: la sesión de GM8 y GM9 trabaja ahí. **No traigas todavía la caballería ni los elefantes** (los reescribe GM9: se integran en GM11b); deja la caballería y los jinetes enemigos de GM7 como están y los elefantes fuera. Trae de
   `maquetas/guerra-cuerpo/reglas.js` (GM2 y GM6): armas, formaciones, flancos, hueco, caballería enemiga, elefantes,
   falange, ánimo de la legión y juicio de cada orden; y el relevo visible de `maquetas/guerra-relevo/`. **Tres encargos
   seguidos y no uno**: (a) armas y formaciones; (b) flancos, hueco y ánimo; (c) aspecto y relevo. Una sola prueba que
   pase las de GM2, GM6, GM7 y GM9, y una captura a 390×844 y 844×390. No se toca `js/`.
+- **GM11b · Integrar GM8 y GM9.** Cuando GM11 y GM8/GM9 hayan cerrado: trae a `guerra-unica/` lo que GM9 cambió en `guerra-lejos/` (jinetes que rodean, duelo de jinetes, elefantes que imponen, flanqueo natural) más los elefantes y la falange de GM2; una sola prueba. Pequeña a media (0,6 M). Abre GM12 al cerrar.
 - **GM12 · El porqué y la nota.** Línea bajo cada botón con lo que da y cuesta ahora; al final tres frases de por qué y
   nota bronce, plata u oro; la pausa deja leer; los avisos no se van mientras haya peligro. Con los datos que ya guarda
   el motor (`mando`, juicios, ánimo, eventos). 0,8 M.
