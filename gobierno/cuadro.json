@@ -1363,6 +1363,32 @@
       "tarea": "EV4a",
       "archivo": "gobierno/capturas-tarea/EV2-12-cierre.jpg",
       "pie": "Cierre del año con las reglas nuevas (el veredicto lo dibujará EV4b)"
+    },
+    {
+      "tarea": "GM4",
+      "archivo": "gobierno/capturas-tarea/GM4-antes-5000-vertical-3-de-cerca.jpg",
+      "pie": "Arte de la batalla · ANTES: de cerca, como estaba en GM1"
+    },
+    {
+      "tarea": "GM4",
+      "archivo": "gobierno/capturas-tarea/GM4-5000-vertical-3-de-cerca.jpg",
+      "pie": "Arte de la batalla · DESPUÉS: soldados redondeados, sombra de cada hombre, polvo con viento"
+    },
+    {
+      "tarea": "GM4",
+      "archivo": "gobierno/capturas-tarea/GM4-5000-vertical-2-choque.jpg",
+      "pie": "De lejos: estandartes nuevos, tierra pisada y variación entre hombres"
+    },
+    {
+      "tarea": "GM4",
+      "archivo": "gobierno/capturas-tarea/GM4-despues-primer-plano.jpg",
+      "pie": "Primer plano: cartón y figura con la misma luz"
+    },
+    {
+      "tarea": "GM4",
+      "archivo": "gobierno/capturas-tarea/GM4-5000-horizontal-3-de-cerca.jpg",
+      "pie": "Con el móvil tumbado: el vexillum romano y la enseña enemiga",
+      "ancha": true
     }
   ],
   "informes": [
@@ -1545,17 +1571,15 @@
     {
       "titulo": "GM15a · Sitios de los caminos (ficha de historia)",
       "archivo": "gobierno/historia/sitios-de-los-caminos.md"
+    },
+    {
+      "titulo": "GM4 · Aspecto de la batalla grande",
+      "archivo": "gobierno/estudios/GM4-aspecto-batalla.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
-    {
-      "tarea": "GM4",
-      "titulo": "Batalla mejorada · GM4 Aspecto visual: soldados sin polígonos a la vista (maqueta)",
-      "nota": "solo gobierno/maquetas/guerra-arte/",
-      "url": "https://claude.ai/code/session_01QiKC36ZF1e1BhVX8T4HFhB"
-    },
     {
       "tarea": "GM17",
       "titulo": "Batalla mejorada · GM17 Estudio de Heraclea, 280 a.C. (ficha de historia)",
