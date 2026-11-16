@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 16/11/2026 — **GM10 probada: cuatro respuestas y un pedido**: «1-b 2-b 3-no 4-hazlo. Aún así se sigue viendo mal, hay que hacer ingeniería reversa a los juegos de total war para que nos den ideas de cómo aplicar o emular lo suyo aquí que esto aún se ve muy mal». (Lectura de Claude: se queda con el manejo B, tocar y elegir; esperar, ceder y rehusar se quedan pero con cambios, sin decir cuáles; sin tiempo lento; aprueba la tablilla P143, que pasa al tablero como GM31; y pide un estudio de cómo se ve Total War, que pasa como GM32. «Se ve mal» lo leo como el aspecto de la batalla, no el manejo; no lo ha dicho.)
 
 - 16/11/2026 — **GM25: «Si a todo»**. (Lectura de Claude: acepta las recomendaciones de las seis dudas: más recorrido en el mismo mapa; turno de 3 meses todos a la vez; variante recomendada; comida con desgaste suave; campamentos solo se asaltan; movimiento libre en todo el mapa.) Pasa al tablero como GM25a a GM25h. Encargo recomendado para la próxima sesión: GM15c (pulir, pequeña) y luego GM25a.
 
@@ -217,6 +218,8 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
+- 16/11/2026 — **GM10 · qué cambiar en esperar, ceder y rehusar**: contestaste «con cambios». ¿Cuál? (A) quitar alguna de las tres (di cuál); (B) que se note más lo que hacen; (C) que sean botones y no gestos; (D) otra cosa (dila).
+- 16/11/2026 — **GM32 · qué es lo que se ve mal**: para que el estudio de Total War apunte bien. (A) los soldados (parecen muñecos o cartones); (B) el campo (plano, vacío, sin horizonte); (C) el movimiento (no parece una batalla viva); (D) todo eso. Una captura de tu móvil ayuda mucho.
 - **GM4 · qué falla en el arte**: dijiste que no se ve mejor. ¿Qué es lo primero que no te gusta? (A) las figuras aún se ven de polígonos; (B) el suelo, el relieve o la luz; (C) los colores y los estandartes; (D) se ve peor o va más lento que la de antes; (E) otra cosa (dila). Si no lo tienes claro, mándame una captura de tu móvil.
 - **GM4 · fluidez**: ¿cuántas imágenes por segundo marca tu móvil con 10 000 en la maqueta del arte, de lejos y de cerca? (pintar cuesta más que en GM1)
 - **GM4 · soldados aún más finos**: pide arte nuevo que sube la descarga. (A) no subir el peso; (B) estudiar cuánto subiría.
@@ -224,11 +227,9 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 
 ## Propuestas por aprobar
 - P142 **Grecia y mitología como modo aparte** (pedido del 16/11, «más adelante»; el usuario dijo sí a «aparte» el 16/11): no se abre hasta que la batalla romana esté cerrada. Al abrirla hay que decidir cómo queda la regla de fidelidad histórica; la campaña romana no se toca.
-- 16/11/2026 — **Probar el manejo con el dedo (GM10)**: https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/guerra-manejo/ (botón «Manejo A/B» arriba). (1) ¿Qué manejo te quedas? (A) arrastrar en el campo; (B) tocar y elegir; (C) los dos, a elegir en ajustes; (D) ninguno, solo botones. (2) Esperar, ceder y rehusar un costado: (A) se quedan; (B) con cambios; (C) fuera. (3) Tiempo lento mientras mandas: (A) sí; (B) no. (4) ¿Hago el tercer manejo, la tablilla de mando (P143)?
 - 16/11/2026 — **Probar la batalla que empieza de lejos (GM7)**: https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/guerra-lejos/ . (1) ¿Así empieza la batalla? (A) sí; (B) sí, con cambios; (C) no. (2) Acercarse dura unos 40 s: (A) está bien; (B) más largo; (C) más corto. (3) El testudo en campo abierto no es de esta época (solo se usaba contra murallas): (A) se queda, marcado como licencia de juego; (B) solo «Escudos».
 
 ## Propuestas por aprobar
-- P143 **Tercer manejo: tablilla de mando (resto de GM10)**: un plano pequeño visto desde arriba, encima de las órdenes, con fichas grandes que se arrastran; el campo queda limpio para mirar. El enganche está hecho en `maquetas/guerra-manejo/manejo.js` (`montarC`). Unos 0,5 M con Sonnet. Solo tiene sentido si A y B no convencen en el móvil.
 
 
 0. **C6 hecha (12/11)**, en la rama `claude/c6-mapa-escalones` unida a la rama del juego; `main` puesta al día. Siguiente del mapa: J4 (más ciudades), que ya puede usar `D.ZONAS`; C1 (bajar a la ciudad 3D) completa los escalones.
