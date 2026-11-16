@@ -57,6 +57,15 @@ console.log('Juez 1g · Senado (test/senado.test.js)');
   apunta('Senado nuevo (sala de votos)', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, 400));
 }
 
+/* ---------- 1h. Guerra nueva (GC3: motor de la batalla nueva, sin pantalla) ---------- */
+console.log('Juez 1h · Guerra nueva (test/guerra.test.mjs)');
+{
+  const r = spawnSync(process.execPath, ['test/guerra.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 120000 });
+  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l));
+  const mal = lineas.filter(l => /^MAL/.test(l));
+  apunta('Guerra nueva (motor sin pantalla)', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, 400));
+}
+
 /* ---------- 1b. Fichas (registro de piezas) ---------- */
 console.log('Juez 1b · fichas (gobierno/fichas.mjs)');
 {
