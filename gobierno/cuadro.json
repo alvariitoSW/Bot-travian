@@ -1166,6 +1166,10 @@
     {
       "titulo": "GC1 · Guerra desde cero: la batalla nueva",
       "archivo": "gobierno/estudios/GC1-guerra-desde-cero.md"
+    },
+    {
+      "titulo": "FJ1 · Tropico para una ciudad romana",
+      "archivo": "gobierno/estudios/FJ1-tropico.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1176,12 +1180,6 @@
       "titulo": "Reglas de la batalla nueva dentro del juego",
       "nota": "Solo el motor nuevo en js/, su prueba y su juez; no toca ui.js, game.js ni la batalla que sale hoy",
       "url": "https://claude.ai/code/session_01QiKC37YnzYY23ieYMVzuFx"
-    },
-    {
-      "tarea": "FJ1",
-      "titulo": "Formato de juego · FJ1 Estudio de Tropico",
-      "nota": "solo estudio en gobierno/estudios/ (no toca js/)",
-      "url": "https://claude.ai/code/session_01QiKC38z25KunyJDDt9a43f"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
