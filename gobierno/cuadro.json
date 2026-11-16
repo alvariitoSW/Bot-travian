@@ -1232,6 +1232,12 @@
       "titulo": "Batalla mejorada · GM1 Ejércitos grandes (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-grande/",
       "url": "https://claude.ai/code/session_01QiKC3AKD1saZ9LQKVLUpuX"
+    },
+    {
+      "tarea": "GM6",
+      "titulo": "Batalla mejorada · GM6 Crítica dura (4 competidores), relevo y premio o castigo",
+      "nota": "solo gobierno/estudios/ y maquetas (guerra-cuerpo y copia propia); no toca js/",
+      "url": "https://claude.ai/code/session_01QiKC36f9DHkzNeZTfqT9nb"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
