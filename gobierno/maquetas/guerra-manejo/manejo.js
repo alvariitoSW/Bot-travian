@@ -9,7 +9,7 @@
    Todo se manda con ctx.mando(tipo, datos): 'adelantar'|'retrasar'|'rehusar'{i,costado} · 'jinetes'{obj,ala} · 'marcar'{i}. */
 
 export const NOMBRES = { a: 'Arrastrar en el campo', b: 'Tocar y elegir', c: 'Tablilla de mando' };
-export const ORDEN_MANEJOS = ['a', 'b'];
+export const ORDEN_MANEJOS = ['a', 'b', 'c'];
 export const siguiente = n => ORDEN_MANEJOS[(Math.max(0, ORDEN_MANEJOS.indexOf(n)) + 1) % ORDEN_MANEJOS.length];
 
 const COL = { adelante: '#7cc65e', atras: '#e6ac3c', lado: '#6fb4ff', no: '#9a9a9a', ruta: '#ffb02e', diana: '#e0392a' };
@@ -232,8 +232,117 @@ function montarB(ctx) {
   };
 }
 
-/* variante C: tablilla de mando. La escribirá otro agente; ver la cabecera de este archivo. */
-const montarC = null;
+/* ---------- variante C: tablilla de mando (GM31) ---------- */
+/* Un plano pequeño visto desde arriba, dentro de #tablilla. Tus tres cuerpos abajo, los enemigos arriba y los jinetes al fondo.
+   Se arrastra una ficha propia (arriba = adelantar, abajo = retrasar, a un lado = rehusar), se arrastran los jinetes hasta un cuerpo enemigo
+   (pasando por el flanco elegido) y se toca un enemigo para marcarlo. El dibujo se rehace cada cuadro con el estado vivo de la batalla. */
+function montarC(ctx) {
+  const t = ctx.tablilla; t.hidden = false; t.innerHTML = '';
+  const cv = document.createElement('canvas'); t.appendChild(cv); const g = cv.getContext('2d');
+  const NOM = ['Izq.', 'Centro', 'Der.'], UMBRAL = 16;
+  let W = 0, H = 0, dpr = 1, drag = null;
+  function medida() {
+    const w = t.clientWidth, h = t.clientHeight, d = Math.min(2, window.devicePixelRatio || 1);
+    if (w !== W || h !== H || d !== dpr) { W = w; H = h; dpr = d; cv.width = Math.max(1, Math.round(w * d)); cv.height = Math.max(1, Math.round(h * d)); }
+  }
+  /* geometría del plano: de metros de campo a píxeles de la tablilla */
+  function arma() {
+    const B = ctx.B, fh = H < 125 ? 34 : 40, Ye = fh / 2 + 2, Yj = H - fh / 2 - 2, Yo = (Ye + Yj) / 2, pad = 6;
+    const xmin = ctx.xs(0) - ctx.ANCHO / 2 - ctx.rc.ancho - 2, xmax = ctx.xs(2) + ctx.ANCHO / 2 + ctx.rc.ancho + 2, sx = (W - 2 * pad) / (xmax - xmin);
+    const mx = x => pad + (x - xmin) * sx;
+    let zE = 0, zR = 0; for (let i = 0; i < 3; i++) { zE += ctx.rect('enemigo', i).z / 3; zR += ctx.rect('propio', i).z / 3; }
+    const my = z => Math.max(4, Math.min(H - 4, Ye + (z - zE) / ((zR - zE) || 1) * (Yo - Ye)));
+    const ficha = (quien, i) => { const r = ctx.rect(quien, i); return { x: mx(r.x), y: quien === 'propio' ? Yo : Ye, w: Math.max(40, ctx.ANCHO * sx - 5), h: fh, i }; };
+    const prop = [0, 1, 2].map(i => ficha('propio', i)), ene = [0, 1, 2].map(i => ficha('enemigo', i));
+    const lista = B.cab.estado === 'lista', rj = ctx.rect('jinetes', 0);
+    const cab = { x: lista ? W / 2 : mx(rj.x), y: lista ? Yj : my(rj.z), w: Math.max(54, Math.min(110, ctx.rc.ancho * sx)), h: fh, lista };
+    return { prop, ene, cab, mx, my, fh, sx };
+  }
+  const dentro = (f, x, y, m) => Math.abs(x - f.x) <= f.w / 2 + m && Math.abs(y - f.y) <= Math.max(f.h / 2, 22) + m;
+  const enSuelo = (a, x, y) => { for (const f of a.ene) if (dentro(f, x, y, 0)) return f.i; return -1; };
+  function ordenDe(dx, dy) {
+    if (Math.hypot(dx, dy) < UMBRAL) return null;
+    if (Math.abs(dy) >= Math.abs(dx)) return dy < 0 ? { tipo: 'adelantar', nom: 'Adelantar' } : { tipo: 'retrasar', nom: 'Retrasar' };
+    return dx < 0 ? { tipo: 'rehusar', costado: -1, nom: 'Rehusar izquierda' } : { tipo: 'rehusar', costado: 1, nom: 'Rehusar derecha' };
+  }
+  const pos = e => { const r = cv.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; };
+  cv.addEventListener('pointerdown', e => {
+    if (!ctx.B || ctx.B.fase === 'fin') return; const p = pos(e), a = arma(); drag = null;
+    let h = null;
+    for (const f of a.ene) if (dentro(f, p.x, p.y, 2)) h = { tipo: 'ene', i: f.i };
+    for (const f of a.prop) if (dentro(f, p.x, p.y, 2) && !ctx.B.sect[f.i].c[0].roto) h = { tipo: 'propio', i: f.i };
+    if (dentro(a.cab, p.x, p.y, 2) && a.cab.lista) h = { tipo: 'cab', i: 0 };
+    if (!h) return;
+    drag = { ...h, x0: p.x, y0: p.y, x: p.x, y: p.y, mov: false, ala: -1 }; try { cv.setPointerCapture(e.pointerId); } catch (er) { /* sin captura */ }
+    if (h.tipo === 'propio') ctx.elegir(h.i);
+    e.preventDefault();
+  });
+  cv.addEventListener('pointermove', e => {
+    if (!drag) return; const p = pos(e); drag.x = p.x; drag.y = p.y; if (Math.hypot(p.x - drag.x0, p.y - drag.y0) >= UMBRAL) drag.mov = true;
+    if (drag.tipo === 'cab') { if (p.x < W * 0.28) drag.ala = 0; else if (p.x > W * 0.72) drag.ala = 2; else if (drag.ala < 0) drag.ala = p.x < W / 2 ? 0 : 2; }
+  });
+  cv.addEventListener('pointercancel', () => { drag = null; });
+  cv.addEventListener('pointerup', e => {
+    if (!drag) return; const d = drag, p = pos(e); drag = null; d.x = p.x; d.y = p.y; const a = arma(), B = ctx.B;
+    if (B.fase === 'fin') return;
+    if (d.tipo === 'ene') { if (Math.hypot(p.x - d.x0, p.y - d.y0) < 10) ctx.mando('marcar', { i: d.i }); return; }
+    if (d.tipo === 'propio') { const o = ordenDe(p.x - d.x0, p.y - d.y0); if (o) ctx.mando(o.tipo, o.costado ? { i: d.i, costado: o.costado } : { i: d.i }); return; }
+    if (!d.mov) { ctx.cinta('Arrastra los jinetes hasta un cuerpo enemigo', ''); return; }
+    let obj = enSuelo(a, p.x, p.y); if (obj < 0 && B.objetivo >= 0) obj = B.objetivo;
+    if (obj < 0) { ctx.cinta('Suelta los jinetes sobre un cuerpo enemigo', 'mala'); return; }
+    ctx.mando('jinetes', { obj, ala: d.ala >= 0 ? d.ala : (p.x < W / 2 ? 0 : 2) });
+  });
+  /* ---- dibujo ---- */
+  function flecha(x0, y0, x1, y1, col) {
+    const an = Math.atan2(y1 - y0, x1 - x0); g.strokeStyle = g.fillStyle = col; g.lineWidth = 3; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke();
+    g.beginPath(); g.moveTo(x1, y1); g.lineTo(x1 - 11 * Math.cos(an - 0.45), y1 - 11 * Math.sin(an - 0.45)); g.lineTo(x1 - 11 * Math.cos(an + 0.45), y1 - 11 * Math.sin(an + 0.45)); g.closePath(); g.fill();
+  }
+  function rotulo(txt, x, y, col) {
+    g.font = '700 12px system-ui'; const w = g.measureText(txt).width + 14, xx = Math.max(3, Math.min(W - w - 3, x - w / 2)), yy = Math.max(3, Math.min(H - 21, y - 9));
+    g.fillStyle = 'rgba(14,12,9,.9)'; g.strokeStyle = col; g.lineWidth = 1.5; g.beginPath(); g.roundRect(xx, yy, w, 18, 9); g.fill(); g.stroke();
+    g.fillStyle = '#f2e8d0'; g.textBaseline = 'middle'; g.textAlign = 'left'; g.fillText(txt, xx + 7, yy + 9.5);
+  }
+  function placa(f, fondo, borde, alfa, texto) {
+    g.globalAlpha = alfa; g.fillStyle = fondo; g.strokeStyle = borde; g.lineWidth = 2; g.beginPath(); g.roundRect(f.x - f.w / 2, f.y - f.h / 2, f.w, f.h, 8); g.fill(); g.stroke();
+    g.fillStyle = '#f6efdc'; g.font = '700 12px system-ui'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(texto, f.x, f.y + 0.5); g.globalAlpha = 1;
+  }
+  function dibuja() {
+    if (!W || !H) return; const B = ctx.B, a = arma(); g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
+    g.fillStyle = 'rgba(22,30,18,.92)'; g.fillRect(0, 0, W, H);
+    g.strokeStyle = 'rgba(184,134,43,.22)'; g.lineWidth = 1; g.setLineDash([5, 5]); g.beginPath(); const ym = (a.ene[0].y + a.prop[0].y) / 2; g.moveTo(0, ym); g.lineTo(W, ym); g.stroke(); g.setLineDash([]);
+    g.fillStyle = 'rgba(184,134,43,.5)'; g.font = '700 10px system-ui'; g.textBaseline = 'middle'; g.textAlign = 'left'; g.fillText('↶ ala izq.', 5, a.cab.y); g.textAlign = 'right'; g.fillText('ala der. ↷', W - 5, a.cab.y);
+    const marc = B.objetivo;
+    for (const f of a.ene) { const c = B.sect[f.i].c[1], roto = c.roto; placa(f, '#3a4350', roto ? '#666' : '#9db0c8', roto ? 0.3 : 1, NOM[f.i]);
+      if (drag && drag.tipo === 'cab' && enSuelo(a, drag.x, drag.y) === f.i) { g.strokeStyle = '#ffd36a'; g.lineWidth = 3; g.beginPath(); g.roundRect(f.x - f.w / 2 - 3, f.y - f.h / 2 - 3, f.w + 6, f.h + 6, 10); g.stroke(); }
+      if (f.i === marc && !roto) { g.strokeStyle = '#e03a2e'; g.lineWidth = 3.5; g.beginPath(); g.ellipse(f.x, f.y, f.w / 2 + 5, f.h / 2 + 5, 0, 0, 7); g.stroke(); } }
+    for (const f of a.prop) { const c = B.sect[f.i].c[0], roto = c.roto, no = drag && drag.tipo === 'propio' && drag.i === f.i;
+      placa(f, '#7a2a24', no ? '#ffd36a' : '#d9a46a', roto ? 0.3 : 1, NOM[f.i] + (c.postura && c.postura !== 'avanzar' ? ' · ' + c.postura : ''));
+      if (c.rehusa && !roto) { g.fillStyle = '#ffd36a'; const k = c.rehusa, xx = f.x + k * (f.w / 2 + 1); g.beginPath(); g.moveTo(xx, f.y - 9); g.lineTo(xx + k * 8, f.y); g.lineTo(xx, f.y + 9); g.closePath(); g.fill(); } }
+    const cb = a.cab, lista = cb.lista, arrastra = drag && drag.tipo === 'cab';
+    placa(cb, '#5a4a1a', '#ffd36a', lista || arrastra ? (ctx.puede('jinetes', { obj: 1, ala: 0 }) && ctx.puede('jinetes', { obj: 0, ala: 0 }) && ctx.puede('jinetes', { obj: 2, ala: 2 }) ? 0.45 : 1) : 0.7, lista ? '♞ Jinetes' : '♞ ' + (B.cab.fase || 'rehaciendo'));
+    if (drag && drag.mov) {
+      if (drag.tipo === 'propio') {
+        const o = ordenDe(drag.x - drag.x0, drag.y - drag.y0), f = a.prop[drag.i];
+        if (o) { const no = ctx.puede(o.tipo, o.costado ? { i: drag.i, costado: o.costado } : { i: drag.i }), col = no ? '#aaaaaa' : '#ffd36a';
+          flecha(f.x, f.y, Math.max(6, Math.min(W - 6, drag.x)), Math.max(6, Math.min(H - 6, drag.y)), col); rotulo(o.nom + (no ? ' — no se puede' : ''), (f.x + drag.x) / 2, Math.min(H - 12, (f.y + drag.y) / 2 + 16), col); }
+      } else if (arrastra) {
+        let obj = enSuelo(a, drag.x, drag.y); const real = obj >= 0; if (obj < 0) obj = B.objetivo >= 0 ? B.objetivo : 1; const ala = drag.ala >= 0 ? drag.ala : 0, no = real ? ctx.puede('jinetes', { obj, ala }) : '';
+        const ruta = ctx.rutaJinetes(ala, obj).map(p => ({ x: a.mx(p[0]), y: a.my(p[1]) })); ruta[0] = { x: cb.x, y: cb.y }; const col = no ? '#aaaaaa' : '#ffd36a';
+        g.strokeStyle = col; g.lineWidth = 3; g.setLineDash([7, 5]); g.beginPath(); ruta.forEach((p, k) => k ? g.lineTo(p.x, p.y) : g.moveTo(p.x, p.y)); g.stroke(); g.setLineDash([]);
+        const u = ruta[ruta.length - 1], v = ruta[ruta.length - 2]; flecha(v.x, v.y, u.x, u.y, col);
+        g.fillStyle = col; g.beginPath(); g.arc(Math.max(6, Math.min(W - 6, drag.x)), Math.max(6, Math.min(H - 6, drag.y)), 7, 0, 7); g.fill();
+        rotulo('Jinetes por la ' + (ala === 0 ? 'izquierda' : 'derecha') + (real ? ' contra ' + NOM[obj].toLowerCase() : ' · suelta sobre un enemigo') + (no ? ' — ' + no : ''), W / 2, H / 2, col);
+      }
+    }
+  }
+  t.__fichas = () => { const r = cv.getBoundingClientRect(), a = arma(), q = f => ({ x: r.left + f.x, y: r.top + f.y, w: f.w, h: f.h }); return { prop: a.prop.map(q), ene: a.ene.map(q), cab: q(a.cab), caja: { x: r.left, y: r.top, w: r.width, h: r.height } }; };
+  return {
+    toque() { return false },
+    cuadro() { medida(); dibuja(); },
+    cierra() { drag = null; t.hidden = true; t.innerHTML = ''; },
+  };
+}
 export const VARIANTES = { a: montarA, b: montarB, c: montarC };
 export function montar(nombre, ctx) { const f = VARIANTES[nombre]; return f ? f(ctx) : null; }
 

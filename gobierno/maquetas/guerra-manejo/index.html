@@ -87,7 +87,6 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 #arriba{gap:4px}
 #arriba .pildora{padding:0 8px 0 7px;gap:4px;font-size:13px}
 #manejo{padding:0 11px}
-#lento{position:absolute;right:calc(env(safe-area-inset-right) + 12px);top:calc(env(safe-area-inset-top) + 53px);padding:3px 10px;border-radius:12px;background:rgba(14,12,9,.78);border:1px solid var(--fil);font:700 11px system-ui;letter-spacing:.04em;color:var(--oro);pointer-events:none}
 #rotulo{position:absolute;left:0;top:0;max-width:calc(100% - 16px);padding:6px 11px;border-radius:14px;background:rgba(14,12,9,.85);border:1px solid var(--oro);font:700 12.5px system-ui;color:var(--marmol);pointer-events:none;will-change:transform}
 #rotulo.no{border-color:#9a9a9a;color:#cfcfcf}
 .cuerpo .est{font:700 9.5px system-ui;color:#9fd0ff;white-space:nowrap;max-width:100%;overflow:clip;text-overflow:ellipsis}
@@ -102,10 +101,13 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 .ob.no,.pl.no{opacity:.45;border-color:#9a9a9a}
 #ficha-cab{position:absolute;right:0;bottom:calc(100% + 6px)}
 #ficha-cab.no{opacity:.5}
-#tablilla{min-height:0}
+#tablilla{pointer-events:auto;position:relative;height:130px;border-radius:12px;border:1.5px solid rgba(184,134,43,.55);overflow:clip;background:rgba(22,30,18,.92);touch-action:none}
+#tablilla[hidden]{display:none}
+#tablilla canvas{display:block;width:100%;height:100%;touch-action:none}
 @media (orientation:landscape){.cuerpo .est{font-size:9px}}
 
 @media (orientation:landscape){
+  #tablilla{grid-column:1/-1;height:118px}
   #mando{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:end}
   .cuerpo{height:78px;padding:4px 6px 5px}
   .escudos{height:24px}
@@ -129,7 +131,6 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
     <button id="talla" class="pildora"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M2.5 20c.6-3.6 2.8-5.5 5.5-5.5s4.9 1.9 5.5 5.5M14.5 15c2.6-.6 5.4.8 6.5 4.5"/></svg><span id="talla-t">5 000</span></button>
   </div>
   <div id="cuenta"></div>
-  <div id="lento" hidden>tiempo lento</div>
   <div id="rotulo" hidden></div>
   <div id="menu"></div>
   <div id="mando" hidden>

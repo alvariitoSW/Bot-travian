@@ -22,7 +22,7 @@ const FILES = F.filesDe(Math.round(120 * HOMBRES / R.BASE_HOMBRES), DE_PIE ? 1.2
 const S = ANCHO + Math.max(2.5, ANCHO * 0.1), HUECO = 2.4 + ANCHO * 0.03, CAMPO = 7 + ANCHO * 0.06, MEDIO = S * 1.5 + 1.5;
 const ESC = Math.max(0.5, Math.min(1, ANCHO / (DE_PIE ? 42 : 75))), LEJOS = R.DIST0 * ESC;      // los metros de las reglas se pintan a la escala del ejército
 const RIVAL = par.get('rival') || 'cartago';
-const MANEJO = ['a', 'b', 'c'].includes(par.get('manejo')) ? par.get('manejo') : 'a';   // GM10: cómo se manda con el dedo (ver manejo.js)
+const MANEJO = ['a', 'b', 'c'].includes(par.get('manejo')) ? par.get('manejo') : 'b';   // GM10: cómo se manda con el dedo (ver manejo.js)
 const COLOR = ['#b3261e', '#5b3a8c'], ficha = t => R.TROPAS[t], forma = t => R.FORMACIONES[R.TROPAS[t].forma], montado = t => !!R.TROPAS[t].montado;
 const xs = i => (i - 1) * S;
 const miles = n => String(Math.max(0, Math.round(n))).replace(/\B(?=(\d{3})+$)/g, ' ');
@@ -574,7 +574,7 @@ let lento = false, manejo = null, capa = null;
 let rutaVista = 0;      // tras mandar a los jinetes, unos segundos de cámara abierta para ver su ruta
 const zRuta = () => Math.max(1.3, Math.min(2.4, 1.1 * (xs(2) + ANCHO / 2 + rc.ancho / 2 + 6) / MEDIO));      // lo que hay que alejar la cámara para que quepa la ruta por fuera de las alas
 function ponZoom(v) { zoomG = performance.now() < rutaVista ? zRuta() : v > 1 ? zRuta() : 1; }      // al elegir la ruta de los jinetes, la cámara se aleja para ver las alas
-function ponLento(v) { lento = !!v; $('lento').hidden = !lento; }      // mientras el dedo manda, el tiempo va a un cuarto
+function ponLento(v) { /* GM31: el tiempo lento se quitó; las llamadas siguen por compatibilidad y no hacen nada */ }
 const NOM_SECT = ['el ala izquierda', 'el centro', 'el ala derecha'];      // se dice «contra …»
 /* dónde está cada cosa en el suelo, en metros de pantalla: centro (x, z), ancho w y fondo d */
 function rect(quien, i) {
@@ -643,7 +643,7 @@ function cuadro(ahora) {
   const bruto = (ahora - antes) / 1000 || 0, real = Math.min(0.1, bruto); antes = ahora;
   if (!lista) return;
   if (!pausa) {
-    if (B.fase !== 'fin') { acum += real * (lento ? 0.25 : 1); while (acum >= 0.05) { avanza(0.05); acum -= 0.05; } }
+    if (B.fase !== 'fin') { acum += real; while (acum >= 0.05) { avanza(0.05); acum -= 0.05; } }
     else { T += real; colocar(); mover(real); }
     if (bruto > 0 && bruto < 1) { fps = fps ? fps * 0.95 + 0.05 / bruto : 1 / bruto; if (B.fase !== 'fin') { nMed++; tMed += bruto; } }
   }

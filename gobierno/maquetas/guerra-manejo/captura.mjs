@@ -109,9 +109,39 @@ async function partida(nombre, w, h, completa, extra) {
   bien(solapa === 0, 'los jinetes nunca pasan por encima de ninguna línea (' + solapa + ' cuadros solapados)');
   await ctx.close();
 }
+/* GM31: manejo C (tablilla de mando) con gestos de verdad: arrastrar un cuerpo, marcar un enemigo, arrastrar los jinetes */
+async function partidaC(nombre, w, h) {
+  const { ctx, page, carga } = await abrir(URL0 + '?semilla=4242&hombres=5000&manejo=c', w, h); console.log(`\n== ${nombre}: manejo C, cargada en ${carga.toFixed(0)} s ==`);
+  const g = (f, ...a) => page.evaluate(([f, a]) => window.__gc[f](...a), [f, a]);
+  const fic = () => page.evaluate(() => document.getElementById('tablilla').__fichas());
+  const arrastra = async (de, a, ruedas, soltar = true) => { await page.mouse.move(de.x, de.y); await page.mouse.down(); for (let k = 1; k <= 8; k++) await page.mouse.move(de.x + (a.x - de.x) * k / 8, de.y + (a.y - de.y) * k / 8); await espera(page, 120); if (!soltar) return; await page.mouse.up(); await espera(page, 200); };
+  await g('pausa', true); await g('salta', 1); await espera(page, 600);
+  let f = await fic();
+  bien(await page.isVisible('#tablilla') && f.caja.h >= 100 && f.caja.h / h <= 0.36 && f.prop.length === 3 && f.ene.length === 3, 'la tablilla se ve con tres cuerpos y tres enemigos, y no pasa del 36 % del alto (' + Math.round(f.caja.h) + ' px)');
+  bien([...f.prop, ...f.ene].every(q => q.h + 10 >= 44 && q.w >= 40), 'las fichas se pueden tocar con el dedo (44 px con su margen)');
+  const nOrd = () => page.evaluate(() => window.__gc.B.ordenes), o0 = await nOrd();
+  await arrastra(f.prop[1], { x: f.prop[1].x, y: f.prop[1].y + 30 }); const o1 = await nOrd();
+  bien(o1 === o0 + 1, 'arrastrar el centro hacia abajo da una orden de retrasar (' + o0 + ' → ' + o1 + ')');
+  await arrastra(f.prop[1], { x: f.prop[1].x, y: f.prop[1].y - 30 }); bien(await nOrd() === o1 + 1, 'y hacia arriba, la de adelantar');
+  await arrastra(f.prop[0], { x: f.prop[0].x + 3, y: f.prop[0].y - 3 });
+  bien(await nOrd() === o1 + 1, 'el temblor del dedo no da órdenes de más');
+  await arrastra(f.ene[2], f.ene[2], 0, true);
+  bien(await page.evaluate(() => window.__gc.B.objetivo) === 2, 'tocar el enemigo de la derecha lo marca (anillo rojo)');
+  if (w > h) { await arrastra(f.prop[0], { x: f.prop[0].x - 50, y: f.prop[0].y }); bien(await page.evaluate(() => window.__gc.B.sect[0].c[0].rehusa) === -1, 'arrastrar a un lado rehúsa ese costado'); }
+  /* jinetes: se empieza a arrastrar y se foto con la ruta pintada; luego se suelta sobre el enemigo marcado */
+  f = await fic(); const lado = { x: f.caja.x + 12, y: f.caja.y + f.caja.h * 0.5 }, sobre = { x: f.ene[1].x, y: f.ene[1].y };
+  await page.mouse.move(f.cab.x, f.cab.y); await page.mouse.down(); await page.mouse.move(lado.x, lado.y, { steps: 6 }); await page.mouse.move(sobre.x, sobre.y, { steps: 6 }); await espera(page, 300);
+  await page.screenshot({ path: prefijoC + (w > h ? 'horizontal' : 'vertical') + '.jpg', type: 'jpeg', quality: 82, timeout: 240000 });
+  await page.mouse.up(); await espera(page, 300);
+  const cb = await page.evaluate(() => ({ e: window.__gc.B.cab.estado, ala: window.__gc.B.cab.ala, obj: window.__gc.B.cab.obj }));
+  bien(cb.e !== 'lista' && cb.ala === 0 && cb.obj === 1, 'los jinetes salen por la izquierda contra el centro (' + JSON.stringify(cb) + ')');
+  await ctx.close();
+}
+const prefijoC = op.prefijoC || join(SALIDA, 'GM31-c-');
 const cual = op.solo || 'todo';
 if (cual === 'todo' || cual === 'vertical') await partida('vertical', 390, 844, true);
 if (cual === 'todo' || cual === 'horizontal') await partida('horizontal', 844, 390, false);
+if (cual === 'todo' || cual === 'c') { await partidaC('c-vertical', 390, 844); await partidaC('c-horizontal', 844, 390); }
 if (cual === 'todo' || cual === 'pirro') await partida('pirro', 390, 844, false, '&rival=pirro');      // otro ejército, hecho solo con fichas nuevas
 console.log(errores.length ? 'NO APTO · ' + errores.length + ' fallos:\n' + errores.join('\n') : 'APTO · sin errores de consola');
 await br.close(); srv.close(); process.exit(errores.length ? 1 : 0);
