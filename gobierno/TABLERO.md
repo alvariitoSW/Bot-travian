@@ -120,6 +120,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 
 ## Carril RD — Radar de repositorios (P114, aprobada por el usuario el 16/11/2026)
 - ✅ RD1 Leídos, sin copiar, procedural-graphics-engine, wesnoth y unknown-horizons, y medido glTF-Transform (16/11/2026): informes en `gobierno/estudios/RD1-*.md`. Licencias de Kenney, Quaternius y OpenGameArt: NO verificadas (red bloqueada), pendientes en `repositorios.md`.
+- ⬜ RD2 **Leer en su fuente las licencias de Kenney, Quaternius y OpenGameArt** (P116 A, aprobada 16/11): abrir `kenney.nl/support`, `quaternius.com/faq.html` y `opengameart.org/content/faq` (ya permitidos en el entorno), apuntar en `gobierno/repositorios.md` licencia, crédito y límites con texto exacto y enlace; lo que no se lea, «no verificado». Solo documentos. Sonnet.
 
 ## Carril FJ — Formato de juego (P107, aprobada por el usuario el 16/11/2026)
 - ✅ FJ1 (16/11, informe `estudios/FJ1-tropico.md`; propuesta P113) **Estudio de Tropico 6 y 7 para una ciudad romana** (P107): skill `ingenieria-reversa`. Cómo funcionan su economía (presupuesto, edictos, exportaciones), su construcción y la gestión de la ciudad, y cómo adaptarlo a una ciudad de 280–146 a.C. Sale un informe de una página en `gobierno/estudios/FJ1-tropico.md` con fuentes y una propuesta de formato de juego centrado en ciudades (entre las opciones A y B de `gobierno/estudios/FJ-formato-de-juego.md`), con versión mínima. Solo ideas: nunca código, arte, sonido ni textos. No toca `js/`. Al terminar, aviso al usuario.
@@ -236,6 +237,7 @@ Una tarea por sesión, constructor en Sonnet. SN2 después de SN1. No tocar `js/
 - ✅ E5 **Ambiente de la ciudad** (13/11): tono por estación, viñeta y contorno dorado de lo elegido en la ciudad 3D; interruptor «Ambiente» en Ajustes (apagado = como antes). +11 % de tiempo por fotograma con render por software. Parte `partes/2026-11-13-E5.md`.
 - ⬜ E5b **Contorno de barrio entero** (apuntada por E5): hoy el contorno sale en el edificio elegido, no en un barrio completo.
 - ⬜ E6 **Vida del campo con arte CC0** (13/11, apuntada; sin empezar): ganado, carros, cultivos, árboles y texturas de suelo de Quaternius y Poly Haven (CC0) para la ciudad y la llanura de batalla; skill `arte`, presupuesto de peso. Antes de construir, enseñar al usuario 3 o 4 piezas candidatas junto a 0 A.D. para que apruebe el estilo. ≈0,5 M.
+- ⬜ E11 **Aligerar las piezas estáticas en nuestro formato** (P115, aprobada 16/11; medida en `estudios/RD1-gltf-transform.md`): `tools/` guarda índices y posiciones a 16 bits, `js/gfx/statics.js` los lee. Meta: `.bin` estático de 10,4 MB a ~5 MB sin añadir lectores ni perder aspecto. Cierra con `node gobierno/arte.mjs` y capturas antes/después a 390 px. Media. Sonnet.
 
 ## Carril C — Mapa y campaña
 - ✅ C1 **Zoom a la ciudad y guarnición en el mapa** (13/11): 1 a 4 figuras de guarnición junto a cada ciudad con la cámara cerca; acercar sobre una ciudad propia (o tocarla dos veces) abre la ciudad con transición y «← Mapa» vuelve al encuadre exacto. Parte `partes/2026-11-13-C1.md`.
