@@ -1238,6 +1238,12 @@
       "titulo": "Batalla mejorada · GM6 Crítica dura (4 competidores), relevo y premio o castigo",
       "nota": "solo gobierno/estudios/ y maquetas (guerra-cuerpo y copia propia); no toca js/",
       "url": "https://claude.ai/code/session_01QiKC36f9DHkzNeZTfqT9nb"
+    },
+    {
+      "tarea": "EV1",
+      "titulo": "Política · EV1 Informe y maqueta de la parte política",
+      "nota": "solo gobierno/estudios/ y gobierno/maquetas/politica/",
+      "url": ""
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
