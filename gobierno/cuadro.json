@@ -3,6 +3,41 @@
   "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
   "capturas": [
     {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-vertical-2-piedras.jpg",
+      "pie": "La batalla empieza de lejos: sus honderos tiran piedras y tus vélites jabalinas antes de chocar"
+    },
+    {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-vertical-3-cubiertos.jpg",
+      "pie": "Testudo en el centro y escudos arriba a la derecha: se ve el tejado de escudos"
+    },
+    {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-vertical-4-testudo-de-cerca.jpg",
+      "pie": "El testudo de cerca, con las piedras cayendo. Los botones dicen Avanzar, Escudos, Testudo y Caballería"
+    },
+    {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-vertical-5-pila.jpg",
+      "pie": "Justo antes del choque los legionarios arrojan los pila"
+    },
+    {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-vertical-6-choque.jpg",
+      "pie": "Al chocar, los mismos botones vuelven a ser Empujar, Aguantar, Relevo y Caballería"
+    },
+    {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-horizontal-3-cubiertos.jpg",
+      "pie": "La misma batalla con el móvil tumbado"
+    },
+    {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-pirro-2-piedras.jpg",
+      "pie": "Otro rival hecho solo con fichas nuevas: Pirro, con arqueros"
+    },
+    {
       "tarea": "N8",
       "archivo": "gobierno/capturas-tarea/n8b-14s.jpg",
       "pie": "Cámara «Seguir» y cinta «Mirando: carga de caballería»"
@@ -1235,6 +1270,10 @@
   ],
   "informes": [
     {
+      "titulo": "GM7 · La batalla empieza de lejos: proyectiles, escudos y testudo",
+      "archivo": "gobierno/estudios/GM7-empezar-de-lejos.md"
+    },
+    {
       "titulo": "D3 · ¿Pasar el juego a Godot?",
       "archivo": "gobierno/estudios/D3-godot.md"
     },
@@ -1399,12 +1438,6 @@
       "titulo": "Juez de la batalla que se juega de verdad",
       "nota": "solo gobierno/",
       "url": "https://claude.ai/code/session_01QiKC36PzPJgjr1dDmEGFxu"
-    },
-    {
-      "tarea": "GM7",
-      "titulo": "Batalla mejorada · GM7 Empezar de lejos, proyectiles y testudo (maqueta)",
-      "nota": "solo gobierno/maquetas/guerra-lejos/",
-      "url": "https://claude.ai/code/session_01QiKC3AGYXUi3fSV7A4hP2x"
     },
     {
       "tarea": "GM4",

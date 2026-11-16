@@ -1,0 +1,139 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1016">
+<title>AQVILA · La batalla empieza de lejos (maqueta GM7)</title>
+<base href="../../../">
+<style>
+@font-face{font-family:Cinzel;font-weight:700;src:url("assets/fuentes/cinzel-700.woff2") format("woff2")}
+:root{--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--vidrio:rgba(18,15,11,.82);--fil:rgba(184,134,43,.55);--roma:#c23a2e;--rival:#7b5bb5;--verde:#7cc65e;--ambar:#e6ac3c;--rojo:#dd5a43}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#15130f;overflow:clip;overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font:14px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--marmol)}
+[hidden]{display:none!important}
+canvas#lienzo{position:fixed;inset:0;display:block;width:100vw;height:100vh;height:100dvh;touch-action:none}
+#hud{position:fixed;inset:0;pointer-events:none;overflow:clip}
+button{font:inherit;color:inherit;border:0;cursor:pointer;pointer-events:auto;touch-action:manipulation;margin:0}
+svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* salir, siempre a la vista */
+#arriba{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);top:calc(env(safe-area-inset-top) + 8px);display:flex;gap:6px;align-items:center}
+.pildora{height:40px;padding:0 12px 0 9px;display:flex;align-items:center;gap:6px;border-radius:20px;background:var(--vidrio);border:1px solid var(--fil);font-weight:600;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.4)}
+.pildora svg{width:18px;height:18px}
+.pildora.activa{border-color:var(--oro);background:rgba(46,34,14,.92);color:var(--oro)}
+#ojo{margin-left:auto}
+/* la cuenta de hombres, siempre a la vista */
+#cuenta{position:absolute;left:calc(env(safe-area-inset-left) + 12px);top:calc(env(safe-area-inset-top) + 53px);font-size:11.5px;font-weight:600;color:#e6dcc3;text-shadow:0 1px 3px #000,0 0 6px rgba(0,0,0,.8);font-variant-numeric:tabular-nums;white-space:nowrap}
+/* una sola línea de aviso, que se va sola */
+#cinta{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 74px);transform:translateX(-50%);max-width:calc(100% - 24px);padding:8px 16px;border-radius:18px;background:rgba(14,12,9,.78);border:1px solid var(--fil);font:700 14px Cinzel,Georgia,serif;letter-spacing:.03em;color:var(--oro);white-space:nowrap;overflow:clip;text-overflow:ellipsis;opacity:0;transition:opacity .35s}
+#cinta.ve{opacity:1}
+#cinta.mala{color:#ffb39e;border-color:rgba(221,90,67,.7)}
+#cinta.buena{color:#c9ecae;border-color:rgba(124,198,94,.6)}
+
+/* estandartes del enemigo: flotan sobre su tropa */
+.pend{position:absolute;left:0;top:0;width:84px;margin-left:-42px;padding:4px 6px 5px;border-radius:8px;background:rgba(14,12,9,.7);border:1px solid rgba(123,91,181,.7);text-align:center;font-size:11px;font-weight:600;white-space:nowrap;will-change:transform}
+.pend em{display:block;font-style:normal;font-size:10px;font-weight:500;color:#cdbf9d;font-variant-numeric:tabular-nums}
+.pend i{display:block;height:5px;margin-top:3px;border-radius:3px;background:rgba(255,255,255,.16);overflow:clip}
+.pend i b{display:block;height:100%;background:var(--rival);border-radius:3px}
+.pend.carga{border-color:var(--rojo);color:#ffb39e}
+.pend.flaquea{border-color:var(--verde);color:#c9ecae}
+
+/* abajo: tus tres cuerpos y sus cuatro órdenes */
+#mando{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);bottom:calc(env(safe-area-inset-bottom) + 8px);display:grid;gap:6px}
+#cuerpos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.cuerpo{position:relative;height:86px;padding:6px 6px 7px;border-radius:12px;background:var(--vidrio);border:1.5px solid rgba(184,134,43,.35);display:flex;flex-direction:column;align-items:center;justify-content:space-between;overflow:clip}
+.cuerpo .nom{font:700 11px Cinzel,Georgia,serif;letter-spacing:.01em;color:#cdbf9d;white-space:nowrap}
+.cuerpo.sel{border-color:var(--oro);background:rgba(46,34,14,.92);box-shadow:0 0 0 2px rgba(233,192,99,.25),0 4px 14px rgba(0,0,0,.5)}
+.cuerpo.sel .nom{color:var(--oro)}
+.cuerpo.roto{opacity:.45}
+.cuerpo.alerta:not(.sel){animation:late 1s infinite}
+.cuerpo .acoso{font-size:19px;line-height:24px;color:var(--rojo);margin-right:2px}
+.cuerpo .hom{font-size:10.5px;color:#e6dcc3;font-variant-numeric:tabular-nums;white-space:nowrap}
+.escudos{display:flex;align-items:flex-end;gap:5px;height:28px}
+.esc{position:relative;width:15px;height:20px;border-radius:5px/7px;border:1.5px solid rgba(241,234,217,.55);background:rgba(0,0,0,.35);overflow:clip}
+.esc:first-child,.acoso+.esc{width:20px;height:27px;border-color:var(--marmol)}
+.esc b{position:absolute;left:0;right:0;bottom:0;background:var(--verde);transition:height .4s,background .4s}
+.moral{width:100%;height:5px;border-radius:3px;background:rgba(255,255,255,.14);overflow:clip}
+.moral b{display:block;height:100%;border-radius:3px;background:var(--roma);transition:width .4s}
+#ordenes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.orden{height:66px;padding:5px 2px 4px;border-radius:12px;background:linear-gradient(#3a2c14,#241b0d);border:1.5px solid var(--bronce);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;box-shadow:0 3px 10px rgba(0,0,0,.45);overflow:clip}
+.orden svg,.orden .glifo{width:22px;height:22px;color:var(--oro)}
+.orden .glifo{font-size:22px;line-height:22px;text-align:center}
+.orden .que{font:700 12.5px Cinzel,Georgia,serif;letter-spacing:.02em;white-space:nowrap}
+.orden .sub{font-size:10.5px;color:#cdbf9d;white-space:nowrap;max-width:100%;overflow:clip;text-overflow:ellipsis}
+.orden.activa{background:linear-gradient(#8a2a20,#5c1b15);border-color:var(--oro)}
+.orden.activa .sub{color:var(--marmol)}
+.orden.no{opacity:.42}
+.orden.pide{animation:pide .8s infinite}
+.orden:active{transform:scale(.96)}
+@keyframes late{50%{border-color:var(--rojo);box-shadow:0 0 0 2px rgba(221,90,67,.4)}}
+@keyframes pide{50%{border-color:#fff;box-shadow:0 0 0 3px rgba(233,192,99,.55)}}
+
+/* carteles a pantalla completa: carga, retirada y final */
+.velo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:rgba(10,8,6,.72);pointer-events:auto}
+#carga{background:#15130f}
+.velo h1{margin:0;font:700 34px Cinzel,Georgia,serif;letter-spacing:.08em;color:var(--oro)}
+.velo p{margin:0;max-width:330px;font-size:15px;line-height:1.4}
+.velo .cifras{display:grid;grid-template-columns:auto auto;gap:4px 18px;font-size:14px;color:#cdbf9d;text-align:left}
+.velo .cifras b{color:var(--marmol);font-variant-numeric:tabular-nums}
+.velo .fila{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:6px}
+.gordo{min-width:104px;height:52px;padding:0 20px;border-radius:14px;background:linear-gradient(#8a2a20,#5c1b15);border:1.5px solid var(--oro);font:700 15px Cinzel,Georgia,serif;letter-spacing:.04em}
+.gordo.b{background:linear-gradient(#3a2c14,#241b0d);border-color:var(--bronce)}
+#creditos{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 10px);font-size:10.5px;color:#8d846f;text-align:center;padding:0 16px}
+
+@media (orientation:landscape){
+  #mando{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr);align-items:end}
+  .cuerpo{height:78px;padding:4px 6px 5px}
+  .escudos{height:24px}
+  .esc:first-child,.acoso+.esc{height:23px}
+  .orden{height:66px}
+  #cinta{top:calc(env(safe-area-inset-top) + 10px);max-width:calc(100% - 420px)}
+  .velo{gap:9px;padding:12px}
+  .velo h1{font-size:28px}
+}
+</style>
+</head>
+<body>
+<canvas id="lienzo"></canvas>
+<div id="hud">
+  <div id="pendones"></div>
+  <div id="cinta"></div>
+  <div id="arriba" hidden>
+    <button id="retirar" class="pildora"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 5h12l-3 4 3 4H5"/></svg>Retirarse</button>
+    <button id="ojo" class="pildora"><svg viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z"/><circle cx="12" cy="12" r="2.8"/></svg><span id="ojo-t">De cerca</span></button>
+    <button id="talla" class="pildora"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="3"/><circle cx="17" cy="9" r="2.4"/><path d="M2.5 20c.6-3.6 2.8-5.5 5.5-5.5s4.9 1.9 5.5 5.5M14.5 15c2.6-.6 5.4.8 6.5 4.5"/></svg><span id="talla-t">5 000</span></button>
+  </div>
+  <div id="cuenta"></div>
+  <div id="mando" hidden>
+    <div id="cuerpos"></div>
+    <div id="ordenes">
+      <button class="orden" data-o="empujar"><svg viewBox="0 0 24 24"><path d="M5 19L18 6M18 6h-5M18 6v5M4 14l6 6M7 17l-3 3"/></svg><span class="que">Empujar</span><span class="sub">pega más, cansa</span></button>
+      <button class="orden" data-o="aguantar"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg><span class="que">Aguantar</span><span class="sub">menos bajas</span></button>
+      <button class="orden" data-o="relevo"><svg viewBox="0 0 24 24"><path d="M7 20V6M7 6l-3.5 3.5M7 6l3.5 3.5M17 4v14M17 18l-3.5-3.5M17 18l3.5-3.5"/></svg><span class="que">Relevo</span><span class="sub">línea fresca</span></button>
+      <button class="orden" data-o="caballeria"><span class="glifo">♞</span><span class="que">Caballería</span><span class="sub">carga al flanco</span></button>
+    </div>
+  </div>
+  <div id="salir" class="velo" hidden>
+    <h1>¿Retirarse?</h1>
+    <p>La legión sale del campo en orden. La batalla se da por perdida.</p>
+    <div class="fila"><button class="gordo b" id="salir-no">Seguir luchando</button><button class="gordo" id="salir-si">Sí, retirarse</button></div>
+  </div>
+  <div id="tallas" class="velo" hidden>
+    <h1>¿Cuántos hombres?</h1>
+    <p>Por bando. Se cuentan todos, uno a uno. De lejos cada hombre es un cartón pintado; de cerca salen las figuras.</p>
+    <div class="fila"><button class="gordo" data-h="1000">1 000</button><button class="gordo" data-h="5000">5 000</button><button class="gordo" data-h="10000">10 000</button></div>
+    <div class="fila"><button class="gordo b" data-h="0">Seguir con esta</button></div>
+  </div>
+  <div id="fin" class="velo" hidden>
+    <h1 id="fin-t"></h1>
+    <p id="fin-p"></p>
+    <div class="cifras" id="fin-c"></div>
+    <div class="fila"><button class="gordo" id="otra">Otra batalla</button></div>
+    <div id="creditos">Maqueta GM7 · Soldados y texturas de 0 A.D. (Wildfire Games, CC BY-SA 3.0)</div>
+  </div>
+  <div id="carga" class="velo"><h1>AQVILA</h1><p id="carga-p">Formando la legión…</p></div>
+</div>
+<script type="module" src="gobierno/maquetas/guerra-lejos/vista.js"></script>
+</body>
+</html>
