@@ -317,7 +317,65 @@
     zanja: f(SIN_PZ, h('Livio 1.38.6; Livio 1.56.2; Vitruvio 1.4.11-12', 'probable', 'Livio atribuye a Tarquinio Prisco el desagüe del Foro con cloacas; Vitruvio recomienda sanear los sitios encharcados. Que reduzca la ruina de la crecida es licencia de juego'))
   };
 
-  R.fichas = { terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+
+  // ---- Sitios de los caminos (D.SITIOS, GM15b). Fuente: gobierno/historia/sitios-de-los-caminos.md (ficha GM15a). Sin `texto`: las citas no cotejadas NO se enseñan, en pantalla solo el nombre ----
+  const SIN_SIT = { sin: 'un sitio del camino es un dato de terreno; no tiene modelo 3D propio' };
+  const LJ_SIT = ' · licencia de juego: el camino es una recta entre ciudades y el punto del sitio es su proyección sobre ella';
+  // s(fuente, etiqueta del estudio ('h' histórico, 'p' probable), cotejada, nota). Histórico sin pasaje cotejado queda «por cotejar» (la regla del registro: «historico» = cotejado)
+  const s = (fuente, et, cot, nota) => f(SIN_SIT, h(fuente, et === 'p' ? 'probable' : cot ? 'historico' : 'por cotejar', (nota ? nota + ' · ' : '') + 'estudio GM15a: ' + (et === 'p' ? 'probable' : 'histórico') + (cot ? ', pasaje cotejado' : ', pasaje de memoria, sin cotejar') + LJ_SIT));
+  const BA = 'Barrington Atlas 2000 (de memoria, no se pudo abrir)';
+  const sitio = {
+    tiber: s(BA + ', mapa 43', 'p', false, 'vado del valle del Tíber; ningún combate del periodo localizado aquí'),
+    vadimon: s('Polibio 2.20; Livio, Per. 12 (de memoria)', 'p', false, 'Polibio 2.20 solo menciona la derrota de boyos y etruscos en 283; el lugar exacto del lago se discute'),
+    ciminio: s('Livio 9.36-37 (de memoria)', 'h', false, 'Fabio Ruliano lo cruzó en 310, antes del periodo: vale como terreno'),
+    albanos: s(BA, 'p', false, 'colinas volcánicas; sin batalla del periodo conocida'),
+    liris: s('Livio 22.13-15 (de memoria)', 'p', false, 'Aníbal lo dejó atrás en 217; la identificación del vado es de memoria'),
+    massico: s('Polibio 3.90-94', 'h', true, 'Fabio guardó los pasos en 217; Aníbal salió con la argucia de los bueyes con fuego'),
+    trasimeno: s('Polibio 3.82-85', 'h', true, 'emboscada de Aníbal, 217: franja estrecha entre colinas y lago, con niebla'),
+    arno: s('Polibio 3.78-79', 'p', true, 'marcha de tres días por marismas en 217; que fuera el Arno lo da la tradición, lo cotejado es la marisma'),
+    trebia: s('Polibio 3.67-74', 'h', true, 'batalla del Trebia, 218; el cauce de orillas empinadas escondió la emboscada (3.71)'),
+    ticino: s('Polibio 3.64-65', 'h', true, 'choque de caballería, 218; Polibio no da el lugar exacto'),
+    alpes: s('Polibio 3.47-56', 'h', true, 'marcha de Aníbal, 218; las lomas del juego suavizan los Alpes'),
+    rodano: s('Polibio 3.42-43', 'h', true, 'cruce con balsas, 218; el vado exacto se discute'),
+    benevento: s('Plutarco, Pirro 25 (de memoria)', 'h', false, 'batalla de Benevento, 275: Curio Dentato vence a Pirro'),
+    ausculum: s('Plutarco, Pirro 21 (cotejado vía la ficha heraclea-280)', 'p', true, 'batalla de Ausculum, 279; el lugar exacto se discute y queda lejos de la recta (más de 0,5 grados)'),
+    siris: s('Plutarco, Pirro 16-17 (cotejado vía la ficha heraclea-280)', 'h', true, 'batalla de Heraclea, 280, vado del Siris; llanura de trigo'),
+    silaro: s('Livio 25.19-20 (de memoria)', 'p', false, 'combate de Aníbal con Centenio, 212; la identificación con el Sele es de memoria; el camino 6 es licencia de estrecho'),
+    sila: s('Estrabón 6.1.9 (de memoria)', 'p', false, 'bosque de pino para la brea; sin batalla del periodo'),
+    aspromonte: s(BA, 'p', false, 'sierra que acaba en el estrecho; sin batalla del periodo'),
+    longano: s('Polibio 1.9', 'h', true, 'Hierón derrotó a los mamertinos junto al Longano (hacia 269); llano de trigo'),
+    simeto: s('Estrabón 6.2.3 (de memoria)', 'p', false, 'llanura de Catania, vado grande; trigal'),
+    anapo: s('Livio 24.35 (de memoria)', 'p', false, 'cartagineses e Himilcón lucharon cerca en 213; el sitio es de memoria'),
+    nebrodi: s(BA, 'p', false, 'selva interior de Sicilia; sin batalla del periodo conocida'),
+    himera: s('Polibio 1.24', 'h', true, 'campamento romano entre el Paropo y las termas de Himera, 258'),
+    panormus: s('Polibio 1.40', 'h', true, 'batalla de Panormus, 250: Metelo atrae a Hasdrúbal al otro lado del río y captura diez elefantes'),
+    hibleos: s(BA, 'p', false, 'mesetas calizas; sin batalla del periodo'),
+    gela: s('Diodoro 13.108-111 (de memoria)', 'p', false, 'batalla de Gela, 405, antes del periodo: vale como terreno; trigal'),
+    salso: s('Diodoro 19.109 (de memoria)', 'p', false, 'Agátocles vencido allí en 311, antes del periodo: vale como terreno'),
+    toro: s('Polibio 1.17-19', 'h', true, 'asedio romano de Agrigento, 262; Hanón ocupó la colina Toro (1.19.5)'),
+    halico: s('Diodoro (sin capítulo; de memoria)', 'p', false, 'frontera clásica sicula y cartaginesa; sin batalla del periodo'),
+    lilybaeum: s('Polibio 1.42-45', 'h', true, 'asedio romano, 250-249: fosos y empalizada entre campamentos'),
+    hercte: s('Polibio 1.56 (de memoria)', 'h', false, 'campamento de Amílcar, hacia 247-244; el pasaje no se cotejó'),
+    erice: s('Polibio 1.55-58 (de memoria)', 'h', false, 'ocupado por Amílcar contra Roma en 244; cotejo no logrado'),
+    drepana: s('Polibio 1.46-55 (de memoria)', 'p', false, 'zona de la batalla naval de Drepana, 249; la tierra es llana'),
+    tarraco: s('Polibio 3.76; Livio 21.60-61 (de memoria)', 'h', false, 'Cneo Escipión vence a Hannón en Cissa, 218, y hace de Tarraco su base'),
+    ebro: s('Livio 23.28-29 (de memoria)', 'h', false, 'batalla de Dertosa, 215; el resultado se discute (victoria romana o inconcluyente)'),
+    valencia: s('Estrabón 3.4.6 (de memoria)', 'p', false, 'huerta fértil; sin batalla del periodo localizada'),
+    sucro: s('Estrabón 3.4.6 (de memoria)', 'p', false, 'motín de las tropas de Escipión junto al Sucro, 206 (Livio 28.24, de memoria); la batalla del Sucro es del 75 a.C., posterior al periodo'),
+    esparto: s('Estrabón 3.4.9 (de memoria)', 'h', false, 'llanura de esparto al interior de Cartagena'),
+    tader: s('Plinio, NH 3.19; Livio (de memoria)', 'p', false, 'combates menores de la guerra de Iberia; nada cotejado'),
+    aous: s('Livio 32.10-12; Plutarco, Flaminino 3-5 (de memoria)', 'h', false, 'batalla del Aous, 198 (Filipo V y Flaminino); el lugar exacto se discute y queda lejos de la recta (más de 1 grado)'),
+    cinoscefalas14: s('Polibio 18.19-27', 'h', true, 'batalla de Cinoscéfalas, 197: colinas «cabezas de perro» rotas y ásperas (18.22.9); queda lejos de la recta (medio grado)'),
+    tempe14: s('Polibio 18.27', 'h', true, 'Filipo se retira hacia Tempe tras Cinoscéfalas'),
+    termopilas15: s('Livio 36.15-19; Apiano, Siria 17-20 (de memoria)', 'h', false, 'batalla de las Termópilas, 191: Acilio Glabrión supera a Antíoco III rodeando por el monte'),
+    parnaso: s(BA, 'p', false, 'sierras entre Fócida y Beocia; sin batalla del periodo'),
+    beocia: s(BA, 'p', false, 'llanura y trigal; Beocia es llano de trigo notable'),
+    tempe16: s('Polibio 18.27; Livio 44.6 (de memoria)', 'h', true, 'paso clásico entre Macedonia y Tesalia (lo cotejado es Polibio 18.27)'),
+    cinoscefalas16: s('Polibio 18.19-27', 'h', true, 'batalla de 197; ver el camino 14'),
+    termopilas16: s('Livio 36.15-19; Apiano, Siria 17-20 (de memoria)', 'h', false, 'batalla de 191; ver el camino 15')
+  };
+
+  R.fichas = { sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -329,6 +387,7 @@
     zona: { tabla: 'ZONAS', numericos: [], textos: ['n'] },
     region: { tabla: 'REGIONES', numericos: ['hasta'], textos: ['n', 'capitalRival'] },
     modo: { tabla: 'MODOS', numericos: [], textos: ['n'] },
+    sitio: { tabla: 'SITIOS', numericos: ['c', 'p'], textos: ['n', 'r'] },
     terreno: { tabla: 'TERRENOS', numericos: [], textos: ['n', 'd'] },
     piezaTerreno: { tabla: 'PIEZAS_TERRENO', numericos: [], textos: ['n', 'd'] },
     colonia: { tabla: 'COLONIAS', numericos: ['lon', 'lat', 'anio', 'colonos'], textos: ['n', 'h', 'tipo'] },

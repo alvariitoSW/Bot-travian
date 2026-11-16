@@ -1206,15 +1206,18 @@ function renderSheet() {
   if (UI.sel && !s.cities[UI.sel] && D.COLONIAS && D.COLONIAS[UI.sel]) { sheetSitio(UI.sel); return; }
   if (!s.cities[UI.sel]) { sh.hidden = true; UI.sheetKey = ''; return; }
   const id = UI.sel, c = s.cities[id], d = D.CITIES[id], f = D.FACTIONS[c.owner], mine = c.owner === 'roma';
-  const src = G.neighbors(id).filter(n => s.cities[n].owner === 'roma'), inc = s.marches.filter(m => m.to === id);
-  const key = id + c.owner + G.rutasAbiertas().length + JSON.stringify(c.units) + src.join() + inc.map(m => m.id + (G.turnos ? G.turnosFaltan(m) : Math.round((m.t1 - s.t) * 2))).join();
+  const src = G.neighbors(id).filter(n => s.cities[n].owner === 'roma'), inc = s.marches.filter(m => m.to === id && !m.sitio), esp = s.marches.filter(m => m.sitio && m.from === id), sal = c.owner === 'roma' ? G.salidasPosibles(id, G.heroAvailable(id)) : [];
+  const key = esp.map(m => m.id + (m.postura || '')).join() + sal.map(x => x.m.id).join() + id + c.owner + G.rutasAbiertas().length + JSON.stringify(c.units) + src.join() + inc.map(m => m.id + (G.turnos ? G.turnosFaltan(m) : Math.round((m.t1 - s.t) * 2))).join();
   if (key === UI.sheetKey && !sh.hidden) return; UI.sheetKey = key;
   let h = '<button class="x" data-act="unsel">✕</button><h3>' + d.n + '<span class="tagf" style="background:' + f.col + '">' + f.n + '</span></h3><p>' + esc(d.h) + '</p>';
   h += '<span class="stat">🧱 ' + FASE_MURALLA[G.faseMuralla(c)] + ' · Defensa ' + G.nivelMuralla(c) + '</span><span class="stat">💰 ' + '★'.repeat(c.w || d.w) + '</span><span class="stat">⚔ Fuerza ' + G.power(c.units) + '</span>' + (D.ESPECIAL[d.esp] ? '<span class="stat">Bien: ' + D.ESPECIAL[d.esp].i + ' ' + D.ESPECIAL[d.esp].n + '</span>' : '');
   { const tr = G.rutasAbiertas().find(r => r.b === id && r.f !== 'roma'); if (tr) h += '<span class="stat">⚖️ Tratado de comercio con Roma</span>'; }
   h += '<div class="units">' + (Object.keys(c.units).filter(k => c.units[k] > 0).map(k => '<span>' + D.UNITS[k].n + ' <b>' + c.units[k] + '</b></span>').join('') || '<span>Sin guarnición</span>') + '</div>';
   if (inc.length) h += inc.map(m => '<div class="stat" style="color:' + (m.owner === 'roma' ? 'var(--good)' : 'var(--bad)') + '">' + (m.owner === 'roma' ? '🚩 Tus tropas llegan' : '⚠️ ' + D.FACTIONS[m.owner].n + ' (' + G.men(m.units) + ') llega') + ' ' + (G.turnos ? turnosTxt(G.turnosFaltan(m)) : 'en ' + months(m.t1 - s.t)) + '</div>').join('');
+  h += esp.map(m => '<div class="stat" style="color:var(--good)">🏕️ Tu ejército espera en ' + esc(m.sitio.n) + ' (' + D.RASGOS[m.sitio.r] + ')' + (m.postura ? ' · apostado' : '') + '</div>').join('');
   h += '<div class="acts">';
+  h += sal.map(x => '<button class="btn" data-act="salir" data-v="' + id + '" data-m="' + x.m.id + '">⚔️ Salir al encuentro de ' + esc(D.FACTIONS[x.m.owner].n) + '</button>').join('');
+  h += esp.map(m => (D.CAMPO.apostables.includes(m.sitio.r) && !m.postura ? '<button class="btn" data-act="apostar" data-m="' + m.id + '">🌿 Apostar en ' + esc(m.sitio.n) + '</button>' : '') + '<button class="btn ghost" data-act="dejarsitio" data-m="' + m.id + '">Volver a ' + esc(D.CITIES[id].n) + '</button>').join('');
   if (mine) h += '<button class="btn gold" data-act="goto" data-v="' + id + '">Gestionar</button>';
   if (src.length) h += src.map(n => '<button class="btn" data-act="pick" data-from="' + n + '" data-to="' + id + '">' + (mine ? 'Reforzar' : 'Atacar') + ' desde ' + D.CITIES[n].n + (G.edge(n, id)[2] ? ' ⚓' : '') + '</button>').join('');
   else if (!mine) h += '<div class="empty">Sin ruta: conquista antes una ciudad vecina (' + G.neighbors(id).map(n => D.CITIES[n].n).join(', ') + ').</div>';
@@ -1236,6 +1239,22 @@ function showPicker(from, to) {
   h += '<div class="acts"><button class="btn ghost" data-act="close">Cancelar</button>' + (ks.length || hero ? '<button class="btn" data-act="send" data-from="' + from + '" data-to="' + to + '">' + (own ? 'Enviar' : '¡A las armas!') + '</button>' : '') + '</div>';
   modal(h); pickUpdate();
 }
+// GM15b: salir al encuentro de un enemigo que marcha sobre la ciudad cid: eliges el sitio, las tropas y la hora
+function showSalir(cid, eid) {
+  const s = S(), c = s.cities[cid], hero = G.heroAvailable(cid), sal = G.salidasPosibles(cid, hero).find(x => x.m.id === eid);
+  if (!sal) { toast('Ese ejército ya no marcha hacia allí.', 'bad'); return; }
+  const ks = Object.keys(c.units).filter(k => c.units[k] > 0), elijo = G.horaAjuste() === 'elijo'; let primero = true;
+  let h = '<div class="yr">' + esc(D.CITIES[cid].n.toUpperCase()) + '</div><h2>Salir al encuentro</h2><p>' + esc(D.FACTIONS[sal.m.owner].n) + ' marcha sobre ' + esc(D.CITIES[cid].n) + ' con ' + G.men(sal.m.units) + ' hombres. Elige dónde esperarlo.</p>';
+  h += sal.sitios.map(x => { const ch = x.ok && primero ? ' checked' : ''; if (x.ok) primero = false; return '<label class="chk"><input type="radio" name="sl-sitio" value="' + x.id + '" data-ap="' + (x.apostable ? 1 : 0) + '"' + (x.ok ? '' : ' disabled') + ch + '> <span><b>' + esc(x.n) + '</b> · ' + D.RASGOS[x.r] + (x.ok ? '' : '<br><small>' + esc(x.motivo) + '</small>') + '</span></label>'; }).join('');
+  h += '<label class="chk"><input type="checkbox" id="sl-apostar"> 🌿 Apostar: esconderse (solo en bosque o loma)</label>';
+  h += elijo ? '<label class="chk"><span>Hora&nbsp;</span><select id="sl-hora"><option value="">Lo que venga</option><option value="amanecer">Amanecer</option><option value="mediodia">Mediodía</option><option value="atardecer">Atardecer</option>' + (sal.niebla ? '<option value="niebla">Amanecer con niebla</option>' : '') + '<option value="noche" hidden>Noche (solo con emboscada)</option></select></label>' : '<div class="pw">La hora sale al azar (ajuste de la partida).</div>';
+  h += ks.map(k => '<div class="pick"><div class="pt">' + pt(k) + '</div><div><label><span>' + D.UNITS[k].n + '</span><span><b id="pv-' + k + '">' + c.units[k] + '</b> / ' + c.units[k] + '</span></label><input type="range" min="0" max="' + c.units[k] + '" value="' + c.units[k] + '" data-k="' + k + '"></div></div>').join('');
+  if (hero) h += '<label class="chk"><input type="checkbox" id="pk-hero" checked> ' + D.GUERRA_ICON.aguila + ' El general acompaña al ejército</label>';
+  h += '<div class="acts"><button class="btn ghost" data-act="close">Cancelar</button><button class="btn" data-act="salirgo" data-v="' + cid + '" data-m="' + eid + '">Salir a esperarlo</button></div>';
+  modal(h); pickUpdate();
+  const ap = $('sl-apostar'), nn = $('sl-hora') && $('sl-hora').querySelector('option[value=noche]');   // «Noche» solo se ofrece con emboscada (apostar)
+  if (ap && nn) ap.addEventListener('change', () => { nn.hidden = !ap.checked; nn.disabled = !ap.checked; if (!ap.checked && $('sl-hora').value === 'noche') $('sl-hora').value = ''; });
+}
 function pickUnits() { const u = {}; document.querySelectorAll('#mbox input[type=range]').forEach(i => { u[i.dataset.k] = +i.value; }); return u; }
 function pickUpdate() { const u = pickUnits(); for (const k in u) { const e = $('pv-' + k); if (e) e.textContent = u[k]; } const p = $('pk-pw'); if (p) p.textContent = G.power(u); }
 $('mbox').addEventListener('input', pickUpdate);
@@ -1253,11 +1272,14 @@ function battlePrompt() {
   const bot = resto ? '<button class="btn" data-act="bcont">' + D.GUERRA_ICON.espadas + ' Seguir la batalla</button><button class="btn ghost" data-act="bquick">Delegar en tus tribunos</button>'
     : pl.via === 'sola' ? '<button class="btn" data-act="bquick">Ver el resultado</button>'
     : '<button class="btn" data-act="bview">' + D.GUERRA_ICON.espadas + (pl.via === 'maniobra' ? ' Planear la maniobra' : ' Ir al choque') + '</button><button class="btn ghost" data-act="bquick">Delegar en tus tribunos</button>';
-  modal('<div class="yr">' + G.yearOf(S().t) + ' A.C.</div><h2>' + (info.kind === 'attack' ? 'Asalto a ' : 'Defensa de ') + d.n + '</h2>' +
+  const cp = info.kind === 'campo' ? info.campo : null;   // GM15b: batalla en el camino
+  modal('<div class="yr">' + G.yearOf(S().t) + ' A.C.' + (cp ? ' · ' + esc(horaTxt(cp).toUpperCase()) : '') + '</div><h2>' + (cp ? 'Se topan: ' + esc(cp.nombre) : (info.kind === 'attack' ? 'Asalto a ' : 'Defensa de ') + d.n) + '</h2>' +
     '<div class="vs">' + sideHtml(info.cfg.sides[0]) + sideHtml(info.cfg.sides[1]) + '</div>' +
-    '<div class="pw">Fuerza: ' + G.power(info.cfg.sides[0].units) + ' contra ' + G.power(info.cfg.sides[1].units) + ' · Muralla del defensor: nivel ' + info.cfg.wall + (tr ? '<br>Al mando: el tribuno ' + esc(tr.n) + ' (' + esc(tr.car) + ')' : '') + (pl.texto ? '<br>' + esc(pl.texto) : pl.via === 'directo' ? '<br>Escaramuza: se va directo al choque.' : '') + '</div>' +
+    '<div class="pw">Fuerza: ' + G.power(info.cfg.sides[0].units) + ' contra ' + G.power(info.cfg.sides[1].units) + (cp ? ' · Terreno: ' + esc(D.RASGOS[cp.rasgo]) + (cp.emboscada ? ' · ¡Emboscada!' : '') + '<br>La hora y la niebla aún no cambian la lucha.' : ' · Muralla del defensor: nivel ' + info.cfg.wall) + (tr ? '<br>Al mando: el tribuno ' + esc(tr.n) + ' (' + esc(tr.car) + ')' : '') + (pl.texto ? '<br>' + esc(pl.texto) : pl.via === 'directo' ? '<br>Escaramuza: se va directo al choque.' : '') + '</div>' +
     '<div class="acts">' + bot + '</div>', true);
 }
+// GM15b: la hora del encuentro en una línea («Amanecer con niebla»)
+function horaTxt(K) { return (D.HORAS[K.hora] || 'Día') + (K.niebla ? ' con niebla' : ''); }
 // N15: la dificultad ya no se elige; el motor la explica por contexto (b.dif = { nivel, texto, factores:[{n,txt,v}] })
 function rivalHtml(b) {
   const s1 = b.cfg.sides[1], ca = window.Battle.CARACTER[b.ia ? b.ia.car : window.Battle.caracterDe(b.cfg)], d = b.dif, pr = b.progresoObjetivo ? b.progresoObjetivo() : null;
@@ -1458,7 +1480,7 @@ function endBattle(res) {
   UI.nueva = false;
   const info = UI.binfo, out = G.applyBattle(res), d = D.CITIES[info.city];
   const loss = side => Object.keys(res.lost[side]).filter(k => res.lost[side][k] > 0).map(k => '<div><span>' + D.UNITS[k].n + '</span><b>−' + res.lost[side][k] + '</b></div>').join('') || '<div><span>Sin bajas</span></div>';
-  modal('<div class="yr">' + (out.kind === 'attack' ? 'ASALTO A ' : 'DEFENSA DE ') + d.n.toUpperCase() + '</div><h2>' + (out.win ? '¡Victoria!' : 'Derrota') + '</h2>' +
+  modal('<div class="yr">' + (out.kind === 'campo' ? esc(out.campo.nombre.toUpperCase()) : (out.kind === 'attack' ? 'ASALTO A ' : 'DEFENSA DE ') + d.n.toUpperCase()) + '</div><h2>' + (out.win ? '¡Victoria!' : 'Derrota') + '</h2>' +
     '<div class="vs"><div class="side"><h4 style="color:#ff9c8c">Bajas romanas</h4>' + loss(0) + '</div><div class="side"><h4>Bajas enemigas</h4>' + loss(1) + '</div></div>' +
     (res.objetivo ? '<p><b>' + (res.objetivo.cumplido || res.objetivo.ok ? 'Objetivo cumplido' : 'Objetivo no cumplido') + ':</b> ' + esc(res.objetivo.texto || '') + '</p>' : '') + '<p>' + out.lines.map(esc).join('\n') + '</p><div class="acts"><button class="btn" data-act="bdone">Continuar</button></div>', true);
 }
@@ -1574,6 +1596,16 @@ document.addEventListener('click', function (e) {
       else toast(G.sendMotivo || 'Selecciona al menos una unidad.', 'bad');
       break;
     }
+    case 'salir': showSalir(v, +el.dataset.m); break;
+    case 'salirgo': {
+      const r = document.querySelector('#mbox input[name=sl-sitio]:checked'), hs = $('sl-hora'), hero = $('pk-hero') && $('pk-hero').checked;
+      if (!r) { toast('Elige un sitio donde esperarlo.', 'bad'); break; }
+      if (G.salirAlEncuentro(+el.dataset.m, r.value, pickUnits(), hero, { apostar: $('sl-apostar').checked, hora: hs ? hs.value : '' })) { closeModal(); toast('🚩 Tu ejército sale a esperarlos en ' + D.SITIOS[r.value].n + '.'); G.save(); UI.sheetKey = ''; renderSheet(); }
+      else toast(G.sendMotivo || 'No se puede salir al encuentro.', 'bad');
+      break;
+    }
+    case 'apostar': if (G.apostar(+el.dataset.m)) { toast('🌿 Tu ejército se esconde.'); G.save(); UI.sheetKey = ''; renderSheet(); } else toast(G.sendMotivo || 'No se puede apostar.', 'bad'); break;
+    case 'dejarsitio': if (G.dejarElSitio(+el.dataset.m)) { toast('Tu ejército vuelve a la ciudad.'); G.save(); UI.sheetKey = ''; renderSheet(); } break;
     case 'close': closeModal(); break;
     case 'inf-mas': UI.infoMas(); break;
     case 'inf-cierra': UI.infoCierra(); break;

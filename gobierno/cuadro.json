@@ -1563,12 +1563,6 @@
       "url": "https://claude.ai/code/session_01QiKC372EDu3vvuRKGFQWoE"
     },
     {
-      "tarea": "GM15b",
-      "titulo": "Batalla mejorada · GM15b Toparse en el camino (campaña)",
-      "nota": "js/game.js, js/data.js, js/registro.js y lo suyo de js/ui.js; no toca maquetas",
-      "url": "https://claude.ai/code/session_01QiKC3856eK8YNjVRtWetpt"
-    },
-    {
       "tarea": "GM10",
       "titulo": "Batalla mejorada · GM10 Mover con el dedo, a nuestra manera (diseño y maqueta)",
       "nota": "solo gobierno/maquetas/guerra-manejo/ (nueva); no toca js/ ni guerra-lejos",

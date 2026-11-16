@@ -290,6 +290,48 @@
 
   for (const e of D.EDGES) if (e[2]) { D.CITIES[e[0]].sea = true; D.CITIES[e[1]].sea = true; }   // ciudades con salida al mar
 
+  /* ---------- GM15b: sitios de los caminos de tierra (gobierno/historia/sitios-de-los-caminos.md, ficha GM15a) ----------
+     Camino c = el c-ésimo trayecto de TIERRA de D.EDGES (1 a 16); su punto 0 es la ciudad e[0] y el 1, la e[1].
+     Cada sitio: [camino, altura (0 a 1 en el camino), rasgo, id, nombre, trigal?]. Rasgo: rio | loma | bosque | llano. «Trigal» es una variante de llano
+     (cuenta como llano para el terreno; esconde como el bosque cuando se escriba esa regla). La altura es la proyección del sitio sobre la recta del camino:
+     licencia de juego (los caminos del juego son rectas entre ciudades). Cada sitio tiene su ficha en js/registro.js; las citas no cotejadas NO salen en pantalla. */
+  const SITIOS_FILAS = [
+    [1, 0.10, 'rio', 'tiber', 'Tíber'], [1, 0.40, 'llano', 'vadimon', 'Lago Vadimón'], [1, 0.50, 'bosque', 'ciminio', 'Bosque Ciminio'],
+    [2, 0.25, 'loma', 'albanos', 'Montes Albanos'], [2, 0.55, 'rio', 'liris', 'Río Liris'], [2, 0.85, 'loma', 'massico', 'Monte Massico'],
+    [3, 0.10, 'loma', 'trasimeno', 'Lago Trasimeno'], [3, 0.30, 'rio', 'arno', 'Valle del Arno'], [3, 0.85, 'rio', 'trebia', 'Río Trebia'],
+    [4, 0.05, 'rio', 'ticino', 'Río Ticino'], [4, 0.35, 'loma', 'alpes', 'Alpes'], [4, 0.70, 'rio', 'rodano', 'Río Ródano'],
+    [5, 0.15, 'loma', 'benevento', 'Beneventum'], [5, 0.35, 'rio', 'ausculum', 'Ausculum'], [5, 0.85, 'rio', 'siris', 'Río Siris', 1],
+    [6, 0.20, 'rio', 'silaro', 'Río Silaro'], [6, 0.60, 'bosque', 'sila', 'Selva de la Sila'], [6, 0.85, 'loma', 'aspromonte', 'Aspromonte'],
+    [7, 0.10, 'llano', 'longano', 'Llano del Longano', 1], [7, 0.60, 'rio', 'simeto', 'Río Símeto', 1], [7, 0.95, 'rio', 'anapo', 'Río Anapo'],
+    [8, 0.30, 'bosque', 'nebrodi', 'Montes Nebrodi'], [8, 0.65, 'rio', 'himera', 'Río Himera'], [8, 0.95, 'llano', 'panormus', 'Llano de Panormus'],
+    [9, 0.25, 'loma', 'hibleos', 'Montes Hibleos'], [9, 0.55, 'rio', 'gela', 'Río Gela', 1], [9, 0.85, 'rio', 'salso', 'Río Salso'],
+    [10, 0.05, 'loma', 'toro', 'Colina Toro'], [10, 0.35, 'rio', 'halico', 'Río Hálico'], [10, 0.95, 'llano', 'lilybaeum', 'Llano de Lilybaeum'],
+    [11, 0.05, 'loma', 'hercte', 'Monte Hercte'], [11, 0.55, 'loma', 'erice', 'Monte Érice'], [11, 0.80, 'llano', 'drepana', 'Llanos de Drepana'],
+    [12, 0.50, 'loma', 'tarraco', 'Tarraco y Cissa'], [12, 0.70, 'rio', 'ebro', 'Río Ebro'], [12, 0.90, 'llano', 'valencia', 'Llano de Valencia'],
+    [13, 0.20, 'rio', 'sucro', 'Río Sucro'], [13, 0.70, 'llano', 'esparto', 'Campo del Esparto'], [13, 0.85, 'rio', 'tader', 'Río Tader'],
+    [14, 0.15, 'rio', 'aous', 'Río Aous'], [14, 0.55, 'loma', 'cinoscefalas14', 'Cinoscéfalas'], [14, 0.75, 'rio', 'tempe14', 'Valle de Tempe'],
+    [15, 0.45, 'loma', 'termopilas15', 'Termópilas'], [15, 0.65, 'loma', 'parnaso', 'Parnaso'], [15, 0.85, 'llano', 'beocia', 'Llanura de Beocia', 1],
+    [16, 0.30, 'rio', 'tempe16', 'Valle de Tempe'], [16, 0.50, 'loma', 'cinoscefalas16', 'Cinoscéfalas'], [16, 0.70, 'loma', 'termopilas16', 'Termópilas']
+  ];
+  D.CAMINOS = D.EDGES.filter(e => !e[2]);   // camino c = D.CAMINOS[c - 1]
+  D.SITIOS = {};
+  SITIOS_FILAS.forEach(r => { D.SITIOS[r[3]] = { c: r[0], p: r[1], r: r[2], n: r[4], trigal: !!r[5] }; });
+  D.RASGOS = { rio: 'río', loma: 'loma', bosque: 'bosque', llano: 'llano' };
+  D.HORAS = { amanecer: 'Amanecer', mediodia: 'Mediodía', atardecer: 'Atardecer', noche: 'Noche' };
+  /* Toparse y apostarse. Licencia de juego en todas las cifras.
+     radio: lo lejos (en fracción del camino) que puede estar un sitio del punto del encuentro para mandar; si no hay, llano.
+     retraso: meses que pierde el ganador. descubre: probabilidad de que el enemigo descubra a un ejército apostado (con buena caballería / sin ella).
+     apostar: meses que aguanta un ejército apostado (3 días). cab: fracción de caballería que cuenta como «buena caballería».
+     rioCruza: en un sitio de río, si el enemigo tiene menos de esta parte de tu fuerza, no fuerza el paso: no hay batalla y cada uno vuelve. */
+  D.CAMPO = { radio: 0.15, retraso: 0.25, descubre: { conCab: 0.7, sinCab: 0.3 }, apostar: 0.1, cab: 0.15, niebla: 0.5, rioCruza: 0.6, apostables: ['bosque', 'loma'] };
+  // rasgo del sitio → el terreno de batalla y la zona de maniobra que el juego YA sabe dibujar (llano: sin zona propia, sale por semilla)
+  D.TERRENO_CAMPO = { rio: 'rio', loma: 'colina', bosque: 'bosque', llano: 'llano' };
+  D.ZONA_CAMPO = { rio: 'rio', loma: 'cerro', bosque: 'bosque' };
+  // el camino de tierra entre dos ciudades: { c, sentido } (sentido 1 si a es el extremo 0), o null si es mar o no hay ruta
+  D.caminoDe = (a, b) => { for (let i = 0; i < D.CAMINOS.length; i++) { const e = D.CAMINOS[i]; if (e[0] === a && e[1] === b) return { c: i + 1, sentido: 1 }; if (e[0] === b && e[1] === a) return { c: i + 1, sentido: -1 }; } return null; };
+  D.sitiosDe = c => Object.keys(D.SITIOS).filter(id => D.SITIOS[id].c === c).map(id => Object.assign({ id: id }, D.SITIOS[id])).sort((x, y) => x.p - y.p);
+  D.sitioCerca = (c, punto) => { let m = null, dm = D.CAMPO.radio + 1e-9; for (const s of D.sitiosDe(c)) { const d = Math.abs(s.p - punto); if (d <= dm) { dm = d; m = s; } } return m; };
+
   /* ---------- Pueblos (J3): satélites productivos de cada capital. Cifras = licencia de juego ----------
      Cada ciudad de D.CITIES es la capital de su territorio (gobierna, recluta y comercia). Sus pueblos PRODUCEN.
      prod: factor sobre G.rate(nivel) por recurso · pop: población máxima extra por nivel · cost: coste base del nivel 1 · time: meses del nivel 1.

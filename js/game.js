@@ -906,7 +906,7 @@
   G.migrarAjustes = function (s) {
     if (!s.ajustes || typeof s.ajustes !== 'object') s.ajustes = { dif: 'normal', suc: { crecida: true, fuego: true, hambre: true }, asesor: false, vistos: [], hist: [], v: 0 };
     const a = s.ajustes; if (!Object.hasOwn(D.DIFICULTAD, a.dif)) a.dif = 'normal'; a.suc = Object.assign({ crecida: true, fuego: true, hambre: true }, a.suc || {});
-    if (typeof a.asesor !== 'boolean') a.asesor = false; if (!Array.isArray(a.vistos)) a.vistos = []; if (!Array.isArray(a.hist)) a.hist = []; if (!(a.v >= 0)) a.v = 0; if (!Object.hasOwn(NIV_DIF, a.maxDif) || NIV_DIF[a.maxDif] < NIV_DIF[a.dif]) a.maxDif = a.dif; if (!Array.isArray(a.apagados)) a.apagados = []; for (const k of SUC_CLAVES) if (a.suc[k] === false && !a.apagados.includes(k)) a.apagados.push(k); G.migrarPausas(s); G.migrarBatalla(s); if (typeof a.ambiente !== 'boolean') a.ambiente = true;      // E5: tono, viñeta y contorno de la ciudad 3D
+    if (typeof a.asesor !== 'boolean') a.asesor = false; if (!Array.isArray(a.vistos)) a.vistos = []; if (!Array.isArray(a.hist)) a.hist = []; if (!(a.v >= 0)) a.v = 0; if (!Object.hasOwn(NIV_DIF, a.maxDif) || NIV_DIF[a.maxDif] < NIV_DIF[a.dif]) a.maxDif = a.dif; if (!Array.isArray(a.apagados)) a.apagados = []; for (const k of SUC_CLAVES) if (a.suc[k] === false && !a.apagados.includes(k)) a.apagados.push(k); G.migrarPausas(s); G.migrarBatalla(s); if (typeof a.ambiente !== 'boolean') a.ambiente = true; if (a.hora !== 'elijo' && a.hora !== 'azar') a.hora = 'elijo';      // E5: tono, viñeta y contorno de la ciudad 3D
   };
   /* R3: pausas del reloj. 'todas' (por defecto) | 'graves' (ataque en camino y misión fallida) | 'ninguna'.
      G.parar avisa a la pantalla (evento 'parar' con motivo); la pantalla pone la velocidad a 0. Sin pantalla (pruebas) no hace nada. */
@@ -934,6 +934,7 @@
     if (p.pausas !== undefined && !PAUSAS.includes(p.pausas)) return { ok: false, motivo: 'Pausas no válidas.' };
     if (p.batalla !== undefined && !BATALLAS.includes(p.batalla)) return { ok: false, motivo: 'Motor de batalla no válido.' };
     if (p.ambiente !== undefined && typeof p.ambiente !== 'boolean') return { ok: false, motivo: 'El ambiente es sí o no.' };
+    if (p.hora !== undefined && p.hora !== 'elijo' && p.hora !== 'azar') return { ok: false, motivo: 'La hora se elige o sale al azar.' };
     const dif = p.dif !== undefined ? p.dif : a.dif, suc = Object.assign({}, a.suc, p.suc || {}), cambia = dif !== a.dif || SUC_CLAVES.some(k => suc[k] !== a.suc[k]);
     if (cambia) {   // vale desde el mes siguiente; el pasado no cambia
       const k = mesAlin() + 1, e = [k, { dif, suc: Object.assign({}, suc) }], i = a.hist.findIndex(h => h[0] === k);
@@ -945,6 +946,7 @@
     if (p.pausas !== undefined) a.pausas = p.pausas;
     if (p.batalla !== undefined) a.batalla = p.batalla;
     if (p.ambiente !== undefined) a.ambiente = p.ambiente;
+    if (p.hora !== undefined) a.hora = p.hora;
     if (cambia || p.asesor !== undefined) a.v++;
     return { ok: true, motivo: '' };
   };
@@ -1346,8 +1348,9 @@
     // modo turnos: al cerrar la estación se resuelve el mundo (año nuevo, rivales) antes de que lleguen las marchas
     if (B !== null) { const yb = G.yearOf(s.t); if (yb < y0) newYear(yb, true); turnoIA(yb, 0.25); }
     // marchas
+    if (!(G.turnos && B === null)) G.encuentros();   // GM15b: ¿se topan en el camino?
     for (let i = s.marches.length - 1; i >= 0; i--) {
-      const m = s.marches[i]; if (s.t < m.t1 - 1e-9 || (G.turnos && B === null)) continue;
+      const m = s.marches[i]; if (m.sitio || s.t < m.t1 - 1e-9 || (G.turnos && B === null)) continue;   // un ejército esperando en un sitio no «llega»: o se topa o vuelve a casa
       s.marches.splice(i, 1);
       if (m.colonos) { G.llegadaColonos(m); continue; }   // colonos: sin batalla y sin ciudad destino
       const c = s.cities[m.to];
@@ -1545,6 +1548,7 @@
     return null;
   };
   G.battleInfo = function (pb) {
+    if (pb.kind === 'campo') return G.battleInfoCampo(pb);   // GM15b
     const s = G.state, m = pb.m, cid = m.to, c = s.cities[cid], d = D.CITIES[cid], h = s.hero;
     const fa = G.forjaMul(s, 'armas'), fd = G.forjaMul(s, 'armaduras');
     const hm = { atkMul: (1 + 0.04 * h.sk.mando) * (s.mods.flex ? 1.1 : 1) * fa, defMul: (1 + 0.03 * h.sk.disc) * fd, mor: 4 * h.sk.disc };
@@ -1603,6 +1607,7 @@
     out.arrabal = q.n; out.lines.push('🏚️ ' + t + '.'); G.log('🏚️ ' + t + ' en ' + D.CITIES[m.to].n + '.', 'bad');
   }
   G.applyBattle = function (res) {
+    if (G.state.pending[0] && G.state.pending[0].kind === 'campo') return aplicarCampo(res);   // GM15b
     const s = G.state, pb = s.pending.shift(), m = pb.m, cid = m.to, c = s.cities[cid], d = D.CITIES[cid], h = s.hero;
     const heroIn = pb.kind === 'attack' ? m.hero : G.heroAvailable(cid);
     const esc = !!(res.objetivo && res.objetivo.tipo === 'escapar' && res.objetivo.fin && res.objetivo.cumplido), win = res.winner === 0 && !esc, out = { win: win, kind: pb.kind, city: cid, dead: res.dead, lines: [] };
@@ -1725,7 +1730,7 @@
   G.cfgManiobra = function (info) {
     const sd = info.cfg.sides, car = carEnem(info.cfg);
     const legs = (u, nom) => { const n = hombres(u) >= 800 ? 2 : 1, r = []; for (let i = 0; i < n; i++) { const x = {}; for (const k in u) { const q = n === 1 ? u[k] : (i === 0 ? Math.floor(u[k] / 2) : u[k] - Math.floor(u[k] / 2)); if (q > 0) x[k] = q; } if (hombres(x)) r.push({ nombre: n === 1 ? nom : nom + ' ' + ['I', 'II'][i], units: x }); } return r; };
-    return { ciudad: info.city, semilla: info.cfg.seed, defensor: info.cfg.defender, bandos: [{ nombre: sd[0].name, car: 'equilibrado', plan: 'centro', legiones: legs(sd[0].units, sd[0].tribuno ? 'Legión de ' + sd[0].tribuno.n.split(' ')[1] : 'Legión') }, { nombre: sd[1].name, car, plan: PLAN_CAR[car], legiones: legs(sd[1].units, 'Ejército') }] };
+    return { ciudad: info.city, zona: info.campo ? D.ZONA_CAMPO[info.campo.rasgo] : undefined, semilla: info.cfg.seed, defensor: info.cfg.defender, bandos: [{ nombre: sd[0].name, car: 'equilibrado', plan: 'centro', legiones: legs(sd[0].units, sd[0].tribuno ? 'Legión de ' + sd[0].tribuno.n.split(' ')[1] : 'Legión') }, { nombre: sd[1].name, car, plan: PLAN_CAR[car], legiones: legs(sd[1].units, 'Ejército') }] };
   };
   // GC4: el estado inicial del choque (motor Guerra). ch = choque de la maniobra (sus ejércitos) o null (escaramuza: los de la ciudad)
   G.estadoGuerra = function (info, ch) {
@@ -1802,6 +1807,211 @@
     return { info, plan, out: G.applyBattle(res) };
   };
 
+  /* ---------- GM15b: toparse en el camino (campaña) ----------
+     Dos marchas enemigas por el mismo camino de TIERRA en sentidos contrarios que se cruzan luchan allí: batalla `kind: 'campo'` con la ficha
+     `campo: { camino, punto, rasgo, nombre, hora, niebla, emboscada, semilla, … }` (D.SITIOS manda por el sitio más cercano; sin sitio cerca, llano).
+     Por mar no. El que pierde vuelve a su ciudad de salida; el que gana sigue su marcha con retraso (D.CAMPO.retraso).
+     «Salir al encuentro»: ante un enemigo que marcha sobre una ciudad tuya, eliges un sitio de su camino y tu ejército sale a esperarlo allí.
+     «Apostar»: ese ejército, parado en un sitio de bosque o loma, se esconde (dura hasta que se mueva o D.CAMPO.apostar meses); el enemigo que pasa lo
+     descubre con probabilidad D.CAMPO.descubre (más si lleva buena caballería); si no lo descubre, hay emboscada (campo.emboscada = true).
+     Hora: la elige quien lleva la iniciativa (si el ajuste hora es «elijo»), si no sale al azar; niebla solo con río y otoño o invierno; noche solo en emboscadas.
+     Río y nadie cruza: no hay batalla (cada uno sigue su camino); la batalla de hoy usa solo el terreno que ya sabe dibujar. La hora y la niebla se guardan
+     y se enseñan en el cartel, pero NO cambian el combate todavía. Todas las cifras: licencia de juego. battle.js no sabe nada de esto. */
+  const rngCampo = seed => { let a = seed >>> 0; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; };
+  const progM = (m, t) => { const d = m.t1 - m.t0; return d > 1e-9 ? Math.max(0, Math.min(1, (t - m.t0) / d)) : 1; };   // fracción recorrida de su camino
+  const hombresM = u => { let n = 0; for (const k in (u || {})) n += u[k] > 0 ? u[k] : 0; return n; };
+  G.horaAjuste = () => { const s = G.state, a = s && s.ajustes; return a && a.hora === 'azar' ? 'azar' : 'elijo'; };
+  // ¿puede haber niebla aquí? Solo junto a un río y en otoño o invierno
+  G.nieblaPosible = (sitio, t) => { const e = G.estacion(t); return !!sitio && sitio.r === 'rio' && (e === 'Otoño' || e === 'Invierno'); };
+  /* La ficha de campo de un encuentro. o: { semilla, t, emboscada, iniciativa (el jugador la lleva), hora (la que pide el jugador) } */
+  G.fichaCampo = function (c, punto, o) {
+    o = o || {}; const st = D.sitioCerca(c, punto), rasgo = st ? st.r : 'llano', rng = rngCampo(o.semilla | 0), A = D.CAMINOS[c - 1];
+    const nieblaOk = G.nieblaPosible(st, o.t === undefined ? G.state.t : o.t);
+    let hora = null, niebla = false;
+    if (o.iniciativa && G.horaAjuste() === 'elijo' && o.hora) {
+      if (o.hora === 'niebla') { if (nieblaOk) { hora = 'amanecer'; niebla = true; } }
+      else if (o.hora === 'noche') { if (o.emboscada) hora = 'noche'; }
+      else if (D.HORAS[o.hora]) hora = o.hora;
+    }
+    if (!hora) { const r = rng(); hora = r < 0.25 ? 'amanecer' : r < 0.7 ? 'mediodia' : 'atardecer'; }
+    if (!niebla && nieblaOk && hora === 'amanecer' && rng() < D.CAMPO.niebla) niebla = true;
+    return { camino: c, punto: Math.round(punto * 1000) / 1000, rasgo: rasgo, sitio: st ? st.id : null, nombre: st ? st.n : 'Camino de ' + D.CITIES[A[0]].n + ' a ' + D.CITIES[A[1]].n,
+      hora: hora, niebla: niebla, emboscada: !!o.emboscada, semilla: o.semilla | 0, t: o.t === undefined ? G.state.t : o.t };
+  };
+  const caballeria = u => { let c = 0, n = 0; for (const k in u) { n += u[k]; if (D.UNITS[k] && D.UNITS[k].cls === 'cav') c += u[k]; } return n > 0 && c / n >= D.CAMPO.cab; };
+  function crearCampo(r, e, cm, punto, t, o) {
+    const s = G.state; o = o || {};
+    for (const x of [r, e]) { const i = s.marches.indexOf(x); if (i >= 0) s.marches.splice(i, 1); }
+    const semilla = (Math.floor(t * 1000) + r.id * 31 + e.id * 17) | 0, rng = rngCampo(semilla ^ 0x5bd1e995);
+    let emb = false;
+    if (o.apostado) { const desc = rng() < (caballeria(e.units) ? D.CAMPO.descubre.conCab : D.CAMPO.descubre.sinCab); emb = !desc; if (desc) G.log('👁️ ' + D.FACTIONS[e.owner].n + ' descubre a tu ejército apostado.', 'bad', true); }
+    const K = G.fichaCampo(cm.c, punto, { semilla: semilla, t: t, emboscada: emb, iniciativa: !!o.iniciativa, hora: o.hora });
+    K.defensor = o.sitio ? 0 : 1; K.emboscador = emb ? 0 : null;
+    s.pending.push({ kind: 'campo', m: r, e: e, campo: K, pm: progM(r, t), pe: progM(e, t) });
+    G.log('⚔️ Tus tropas y ' + D.FACTIONS[e.owner].n + ' se topan en el camino: ' + K.nombre + (emb ? ' (emboscada)' : '') + '.', 'bad');
+    return K;
+  }
+  // el ejército vuelve a su ciudad (o a la capital si la de salida ya no es tuya)
+  function aCasa(m) {
+    const s = G.state, i = s.marches.indexOf(m); if (i >= 0) s.marches.splice(i, 1);
+    const home = s.cities[m.from] && s.cities[m.from].owner === 'roma' ? m.from : G.capital();
+    merge(s.cities[home].units, m.units); if (m.hero) { s.hero.city = home; s.hero.march = null; }
+    return home;
+  }
+  // el ganador sigue su marcha desde donde luchó, con retraso
+  function reanuda(m, pr) {
+    const s = G.state, d0 = Math.max(1e-6, m.t1 - m.t0), t1 = llegada(s.t + (1 - pr) * d0 + D.CAMPO.retraso), d = pr < 1 - 1e-6 ? (t1 - s.t) / (1 - pr) : t1 - s.t;
+    m.t0 = s.t - pr * d; m.t1 = t1; s.marches.push(m);
+  }
+  // el momento (en meses) en que la marcha e pasa por el punto `punto` (0 a 1 desde el extremo 0 del camino)
+  const tEnPunto = (e, cm, punto) => e.t0 + (cm.sentido > 0 ? punto : 1 - punto) * (e.t1 - e.t0);
+  /* Cada vez que corre el tiempo y hay marchas en curso: ¿se topan? Lo llama G.tick antes de las llegadas. */
+  const unEncuentro = function () {
+    const s = G.state; if (!s || s.over) return false;
+    // 1) ejércitos tuyos que esperan en un sitio: el enemigo que pasa por él (el que buscaban u otro del mismo camino) los encuentra
+    for (const m of s.marches.filter(x => x.sitio)) {
+      if (s.marches.indexOf(m) < 0) continue;
+      const S = m.sitio, cmS = { c: S.c, sentido: 1 }; let mejor = null, tm = Infinity;
+      for (const e of s.marches) {
+        if (e === m || e.owner === 'roma' || e.colonos || e.sitio || !e.from || !hombresM(e.units)) continue;
+        const ce = D.caminoDe(e.from, e.to); if (!ce || ce.c !== S.c) continue;
+        const t = tEnPunto(e, ce, S.p); if (t >= S.tLlega - 1e-9 && t >= e.t0 - 1e-9 && t < tm) { tm = t; mejor = e; }
+      }
+      if (mejor && tm <= s.t + 1e-9) {
+        const apost = m.postura === 'apostado' && D.CAMPO.apostables.includes(S.r) && tm >= S.tApuesta - 1e-9 && tm - S.tApuesta <= D.CAMPO.apostar + 1e-9;
+        if (S.r === 'rio' && !apost && G.power(mejor.units) < D.CAMPO.rioCruza * G.power(m.units)) {   // río y nadie cruza: el enemigo, mucho más flojo, no fuerza el paso; no hay batalla y cada uno vuelve
+          const i = s.marches.indexOf(mejor); if (i >= 0) s.marches.splice(i, 1);
+          const eh = mejor.from && s.cities[mejor.from] && s.cities[mejor.from].owner === mejor.owner ? mejor.from : null; if (eh) merge(s.cities[eh].units, mejor.units);
+          aCasa(m); G.log('🌊 Nadie cruza el ' + S.n + ': ' + D.FACTIONS[mejor.owner].n + ' da la vuelta y tu ejército vuelve a casa.', '', true); return true;
+        }
+        crearCampo(m, mejor, cmS, S.p, tm, { sitio: true, iniciativa: true, hora: S.hora, apostado: apost }); return true;
+      }
+      if (!mejor && !s.marches.some(x => x.id === S.contra)) { aCasa(m); G.log('Tu ejército vuelve a casa: el enemigo no pasó por ' + S.n + '.', '', true); return true; }
+    }
+    // 2) dos marchas enemigas por el mismo camino en sentidos contrarios que ya se han cruzado
+    const R = s.marches.filter(m => m.owner === 'roma' && !m.colonos && !m.sitio && m.from && hombresM(m.units) > 0), E = s.marches.filter(m => m.owner !== 'roma' && !m.colonos && !m.sitio && m.from && hombresM(m.units) > 0);
+    let cruce = null;
+    for (const r of R) { const cr = D.caminoDe(r.from, r.to); if (!cr) continue;
+      for (const e of E) {
+        const ce = D.caminoDe(e.from, e.to); if (!ce || ce.c !== cr.c || ce.sentido === cr.sentido) continue;
+        const dr = r.t1 - r.t0, de = e.t1 - e.t0; if (dr < 1e-9 || de < 1e-9) continue;
+        const t = (1 + r.t0 / dr + e.t0 / de) / (1 / dr + 1 / de);   // los dos han recorrido entre ambos todo el camino
+        if (t > s.t + 1e-9 || t < Math.max(r.t0, e.t0) - 1e-9) continue;
+        const pr = (t - r.t0) / dr; if (pr < -1e-9 || pr > 1 + 1e-9) continue;
+        if (!cruce || t < cruce.t) cruce = { r: r, e: e, cm: cr, t: t, punto: cr.sentido > 0 ? pr : 1 - pr };
+      } }
+    if (cruce) { crearCampo(cruce.r, cruce.e, cruce.cm, Math.max(0, Math.min(1, cruce.punto)), cruce.t, {}); return true; }
+    return false;
+  };
+  G.encuentros = function () { for (let i = 0; i < 20 && unEncuentro(); i++); };
+  // marchas enemigas que van sobre una ciudad tuya por camino de tierra, con los sitios donde puedes salir a esperarlas
+  G.salidasPosibles = function (cid, conHero) {
+    const s = G.state, r = [];
+    for (const e of s.marches) {
+      if (e.owner === 'roma' || e.colonos || e.sitio || e.to !== cid || !e.from || !s.cities[e.from] || !hombresM(e.units) || s.cities[cid].owner !== 'roma') continue;
+      const ce = D.caminoDe(e.from, e.to); if (!ce) continue;
+      const q = progM(e, s.t), sitios = D.sitiosDe(ce.c).map(st => {
+        const f = ce.sentido > 0 ? st.p : 1 - st.p, tEnc = e.t0 + f * (e.t1 - e.t0), tLlega = s.t + G.travel(cid, e.from, !!conHero) * (1 - f);
+        const ok = f > q + 1e-6 && tEnc > s.t + 1e-9 && tLlega <= tEnc + 1e-9;
+        return { id: st.id, n: st.n, r: st.r, p: st.p, trigal: st.trigal, tEnc: tEnc, tLlega: tLlega, ok: ok, apostable: D.CAMPO.apostables.includes(st.r), motivo: ok ? '' : f <= q + 1e-6 || tEnc <= s.t + 1e-9 ? 'El enemigo ya ha pasado.' : 'No llegarías a tiempo.' };
+      });
+      r.push({ m: e, camino: ce.c, sitios: sitios, niebla: sitios.some(x => G.nieblaPosible(D.SITIOS[x.id], s.t)) });
+    }
+    return r;
+  };
+  /* Salir al encuentro: tu ejército sale de la ciudad `cid` (la que amenaza el enemigo `enemigoId`) y espera en el sitio. o: { apostar, hora } */
+  G.salirAlEncuentro = function (enemigoId, sitioId, units, withHero, o) {
+    const s = G.state; o = o || {}; G.sendMotivo = '';
+    const e = s.marches.find(x => x.id === enemigoId), st = D.SITIOS[sitioId];
+    const no = t => { G.sendMotivo = t; return false; };
+    if (!e || !st) return no('Ese enemigo ya no marcha.');
+    const cid = e.to, c = s.cities[cid], sp = (G.salidasPosibles(cid, withHero).find(x => x.m === e) || { sitios: [] }).sitios.find(x => x.id === sitioId);
+    if (!c || c.owner !== 'roma' || !sp) return no('No se puede salir al encuentro de ese ejército.');
+    if (!sp.ok) return no(sp.motivo);
+    if (o.apostar && !sp.apostable) return no('Solo se puede apostar en un bosque o una loma.');
+    const u = {}; let n = 0; for (const k in (units || {})) { const q = Math.min(Math.floor(units[k]), c.units[k] || 0); if (q > 0) { u[k] = q; n += q; } }
+    if (withHero && !G.heroAvailable(cid)) withHero = false;
+    if (n === 0) return no('No hay tropas que enviar.');
+    let tr = null; if (!withHero) { tr = G.tribunoLibre(); if (!tr) return no('Todos tus tribunos mandan ya un ejército.'); }
+    for (const k in u) { c.units[k] -= u[k]; if (c.units[k] <= 0) delete c.units[k]; }
+    const m = { id: s.mid++, owner: 'roma', from: cid, to: e.from, units: u, hero: !!withHero, t0: s.t, t1: sp.tEnc,
+      sitio: { id: sitioId, c: st.c, p: st.p, r: st.r, n: st.n, tLlega: sp.tLlega, tEnc: sp.tEnc, contra: e.id, tApuesta: Math.max(sp.tLlega, sp.tEnc - D.CAMPO.apostar), hora: o.hora || null } };
+    if (o.apostar) m.postura = 'apostado';
+    if (tr) m.tribuno = tr.id;
+    if (withHero) { s.hero.city = null; s.hero.march = m.id; }
+    s.marches.push(m); G.rutasRevisar();
+    return true;
+  };
+  // Apostar: el ejército que espera en un sitio de bosque o loma se esconde hasta que se mueva o pasen D.CAMPO.apostar meses
+  G.apostar = function (marchaId) {
+    const s = G.state, m = s.marches.find(x => x.id === marchaId); G.sendMotivo = '';
+    if (!m || !m.sitio || m.owner !== 'roma') { G.sendMotivo = 'Ese ejército no está en ningún sitio.'; return false; }
+    if (!D.CAMPO.apostables.includes(m.sitio.r)) { G.sendMotivo = 'Solo se puede apostar en un bosque o una loma.'; return false; }
+    m.postura = 'apostado'; m.sitio.tApuesta = Math.max(m.sitio.tLlega, s.t, m.sitio.tEnc - D.CAMPO.apostar); return true;
+  };
+  // Se mueve: el ejército deja el sitio y vuelve a su ciudad (deja de estar apostado)
+  G.dejarElSitio = function (marchaId) {
+    const s = G.state, m = s.marches.find(x => x.id === marchaId); if (!m || !m.sitio || m.owner !== 'roma') return false;
+    delete m.postura; aCasa(m); return true;
+  };
+  G.migrarCampo = function (s) {
+    if (!s) return; if (!Array.isArray(s.pending)) s.pending = []; if (!Array.isArray(s.marches)) s.marches = [];
+    const vuelve = m => { if (!m || !m.units) return; const home = s.cities[m.from] && s.cities[m.from].owner === 'roma' ? m.from : (s.cities[G.capital()] ? G.capital() : null); if (home) { merge(s.cities[home].units, m.units); if (m.hero) { s.hero.city = home; s.hero.march = null; } } };
+    // nada se descarta en silencio: una batalla de campo o un ejército en un sitio que no encajan devuelven sus tropas a su ciudad de salida
+    s.pending = s.pending.filter(p => { if (!p) return false; if (p.kind !== 'campo' || (p.m && p.e && p.campo)) return true; if (p.m && p.m.owner === 'roma') vuelve(p.m); return false; });
+    s.marches = s.marches.filter(m => { if (!m.sitio || (m.sitio.id && D.SITIOS[m.sitio.id])) return true; if (m.owner === 'roma') vuelve(m); return false; });
+    for (const m of s.marches) if (m.postura && m.postura !== 'apostado') delete m.postura;
+  };
+  // datos de la batalla de campo para la pantalla y el motor: como battleInfo, pero contra otro ejército en marcha (sin ciudad ni muralla)
+  G.battleInfoCampo = function (pb) {
+    const s = G.state, m = pb.m, e = pb.e, K = pb.campo, h = s.hero, fa = G.forjaMul(s, 'armas'), fd = G.forjaMul(s, 'armaduras');
+    const hm = { atkMul: (1 + 0.04 * h.sk.mando) * (s.mods.flex ? 1.1 : 1) * fa, defMul: (1 + 0.03 * h.sk.disc) * fd, mor: 4 * h.sk.disc }, noHero = { atkMul: (s.mods.flex ? 1.1 : 1) * fa, defMul: fd, mor: 0 };
+    const heroIn = !!m.hero, me = Object.assign({ units: m.units, name: 'Roma', col: D.FACTIONS.roma.col, gen: heroIn ? { n: h.name, mando: h.sk.mando, disc: h.sk.disc, lvl: h.lvl } : null }, heroIn ? hm : noHero), g = e.gen;
+    const foe = { units: e.units, name: D.FACTIONS[e.owner].n, col: D.FACTIONS[e.owner].col, gen: g, atkMul: g ? 1 + 0.04 * g.mando : 1, defMul: g ? 1 + 0.03 * g.disc : 1, mor: g ? 4 * g.disc : 0 };
+    me.atkMul *= Math.min(D.SABER.techos.atk, G.invMul('atk')); me.mor += G.invSum('mor');
+    { const k = G.copiaDe(e.owner); if (G.copiaBando(e.owner) && k > 0) { const V = G.cienciaGuerra(0, false), q = k * D.SABER.copia; foe.atkMul *= 1 + q * (V.atk - 1); foe.defMul *= 1 + q * (V.def - 1); foe.mor += q * V.mor; } }
+    if (!heroIn && m.tribuno != null) { const t = (s.tribunos || []).find(x => x.id === m.tribuno); if (t) me.tribuno = { id: t.id, n: t.n, car: t.car }; }
+    me.bis = G.fraccionBis(m.from); foe.bis = 0;
+    const cfg = { sides: [me, foe], defender: K.defensor === 0 ? 0 : 1, wall: 0, seed: K.semilla, terreno: D.TERRENO_CAMPO[K.rasgo] || 'llano', campo: K };
+    return { cfg: cfg, city: m.to, heroIn: heroIn, kind: 'campo', campo: K };
+  };
+  // aplica el resultado de una batalla de campo: el que pierde vuelve a su ciudad de salida, el que gana sigue (el ejército que esperaba en un sitio vuelve a casa)
+  function aplicarCampo(res) {
+    const s = G.state, pb = s.pending.shift(), m = pb.m, e = pb.e, K = pb.campo, h = s.hero;
+    const win = res.winner === 0, out = { win: win, kind: 'campo', city: m.to, campo: K, dead: res.dead, lines: [] };
+    s.stats.battles++; if (win) s.stats.wins++; s.stats.kills += res.dead[1]; s.stats.lost += res.dead[0];
+    const heroIn = !!m.hero, enNom = D.FACTIONS[e.owner].n;
+    if (win) {
+      m.units = keep(res.surv[0], res.lost[0], 1, 0.25);
+      if (m.sitio) { delete m.sitio; delete m.postura; const home = aCasa(m); out.lines.push('Tus tropas vuelven a ' + D.CITIES[home].n + '.'); }
+      else { reanuda(m, pb.pm); out.lines.push('Tu ejército sigue su marcha, con ' + Math.round(D.CAMPO.retraso * 30) + ' días' + ' de retraso.'); }
+      const eh = e.from && s.cities[e.from] && s.cities[e.from].owner === e.owner ? e.from : null;
+      if (eh) merge(s.cities[eh].units, keep(res.surv[1], res.lost[1], 0.7, 0)); out.lines.push(enNom + ' se retira' + (eh ? ' a ' + D.CITIES[eh].n : '') + '.');
+      G.log('🏆 Victoria en el camino: ' + K.nombre + '.', 'good');
+    } else {
+      const sob = keep(res.surv[0], res.lost[0], 0.7, 0);
+      if (m.hero) { s.hero.march = null; }
+      m.units = sob; delete m.sitio; delete m.postura; const home = aCasa(m);
+      e.units = keep(res.surv[1], res.lost[1], 1, 0.3); reanuda(e, pb.pe);
+      out.lines.push('Los supervivientes se retiran a ' + D.CITIES[home].n + '.', enNom + ' sigue su marcha, con ' + Math.round(D.CAMPO.retraso * 30) + ' días' + ' de retraso.');
+      G.log('💀 Derrota en el camino: ' + K.nombre + '.', 'bad');
+    }
+    if (heroIn) {
+      const before = h.lvl; addXp(res.dead[1] / 4 * (win ? 1.5 : 0.7) + 10);
+      out.lines.push('🦅 ' + h.name + ' gana experiencia' + (h.lvl > before ? ' y sube al nivel ' + h.lvl + '.' : '.'));
+      if (res.genDead[0]) { const mw = Math.max(6, 24 + G.invSum('herida')); h.wound = s.t + mw; out.lines.push('🩸 ' + h.name + ' ha sido herido: ' + mw + ' meses de convalecencia.'); G.log('🩸 ' + h.name + ' cae herido en combate.', 'bad'); }
+    }
+    if (res.nueva) {
+      if (win && res.prisioneros > 0) { const oro = res.prisioneros * 3; s.res.oro += oro; out.lines.push('⛓️ ' + res.prisioneros + ' prisioneros: se venden como esclavos o se piden en rescate (+' + oro + ' de oro).'); }
+      if (win && res.dead[1] >= 200 && res.dead[0] * 3 < res.dead[1]) { G.favorAplica(4, 6); out.triunfo = true; out.lines.push('🎺 ¡Gran victoria! Roma pide un triunfo: sube el favor del Senado y del pueblo.'); }
+    }
+    if (m.tribuno != null && s.tribunos) {
+      const i = s.tribunos.findIndex(t => t.id === m.tribuno);
+      if (i >= 0 && res.tribunoMuerto) { out.lines.push('💀 El tribuno ' + s.tribunos[i].n + ' ha caído al mando del ejército.'); G.log('💀 Muere el tribuno ' + s.tribunos[i].n + '.', 'bad'); s.tribunos.splice(i, 1); out.tribunoMuerto = true; }
+    }
+    G.save(); if (s.over) emit('over'); return out;
+  }
+
   /* ---------- guardado ---------- */
   G.save = function () { try { if (typeof localStorage !== 'undefined' && G.state) { G.state.parada = G.paradaAhora(); for (const id of G.myCities()) { const c = G.state.cities[id], r = CI && regE.get(c); if (r) ponerDatos(c, r); } localStorage.setItem(SAVE_KEY, JSON.stringify(G.state)); } } catch (e) { /* almacenamiento no disponible */ } };
   G.hasSave = function () { try { return typeof localStorage !== 'undefined' && !!localStorage.getItem(SAVE_KEY); } catch (e) { return false; } };
@@ -1813,7 +2023,7 @@
   G.dipTributo = f => { const r = DIP.imponerTributo(G.state, f); if (r.ok) G.log('📜 ' + D.FACTIONS[f].n + ' acepta pagar tributo: ' + r.mensual + ' denarios al mes.', 'good'); return r; };
   G.dipRomper = f => { const r = DIP.romper(G.state, f); if (r) G.log('⚔️ Roma rompe el pacto con ' + D.FACTIONS[f].n + '.', 'bad'); return r; };
   G.dipIngreso = () => DIP.ingresoMes(G.state);
-  G.load = function () { let ok = false; cargando = true; try { ok = cargar(); } finally { cargando = false; } if (ok) { G.migrarAjustes(G.state); G.migrarTribunos(G.state); G.migrarParada(G.state); } if (ok && CI) alCargar(); return ok; };
+  G.load = function () { let ok = false; cargando = true; try { ok = cargar(); } finally { cargando = false; } if (ok) { G.migrarAjustes(G.state); G.migrarTribunos(G.state); G.migrarParada(G.state); G.migrarCampo(G.state); } if (ok && CI) alCargar(); return ok; };
   function cargar() { try { const s = JSON.parse(localStorage.getItem(SAVE_KEY)); if (s && s.v === 1) { G.state = s; for (const id in s.cities) G.ligarObras(s.cities[id]); if (s.turnos === undefined) s.turnos = true; G.turnos = !!s.turnos; if (G.turnos) { if (s.speed === undefined) s.speed = 0; for (const m of s.marches) { const a = Math.ceil(m.t1 / D.TURNO_MESES - 1e-9) * D.TURNO_MESES; if (a > m.t1) m.t1 = a; } } if (s.vivo === undefined) s.vivo = null; if (!Array.isArray(s.vivoCola)) s.vivoCola = []; if (!s.rutas) s.rutas = []; if (!s.forja) s.forja = { armas: 0, armaduras: 0, cola: null }; if (s.evN !== D.EVENTS.length || s.evV !== EV_VERSION) { const y = G.yearOf(s.t); s.ev = {}; D.EVENTS.forEach((e, i) => { if (y <= e.y) s.ev[i] = 1; }); s.evN = D.EVENTS.length; } s.evV = EV_VERSION; D.anio = G.yearOf(s.t); for (const id in s.cities) { const c = s.cities[id]; if (!D.TIPOS[c.tipo]) c.tipo = 'municipio'; if (c.tipoElegido === undefined) c.tipoElegido = false; if (c.inq === undefined) c.inq = 0; if (c.bdef === undefined) c.bdef = 0;  if (c.b.templo > 0 && !D.DIOSES[c.dios]) c.dios = 'marte'; if (!D.FACTIONS[c.owner]) c.owner = id === 'messana' ? 'mamertinos' : 'campanos'; if (id === 'messana' && c.owner === 'campanos') c.owner = 'mamertinos'; for (const b of ['viviendas', 'mercado', 'puerto', 'herreria']) if (c.b[b] === undefined) c.b[b] = b === 'viviendas' ? 2 : 0; if (c.pop === undefined) c.pop = Math.round(G.popCap(c) * 0.7); if (!D.IMPUESTOS[c.imp]) c.imp = 'normal'; if (!D.RACION[c.rac]) c.rac = 'normal'; G.fiestaDe(c); if (!G.repartoValido(c.reparto)) c.reparto = G.repartoBase(); if (id === 'carthagonova' && c.owner !== 'iberos' && !c.w) c.w = D.CITIES.carthagonova.en228.w; } G.state = s; for (const id in s.cities) if (s.cities[id].barrio === undefined) { const c = s.cities[id]; c.barrio = 1; c.barrio = G.barrioInfo(c).objetivo; } for (const id in s.cities) { const c = s.cities[id]; if (!c.levas) c.levas = []; if (c.esc === undefined) c.esc = 0; if (c.ciu === undefined) c.ciu = (c.barrio || 1) >= 2 ? Math.round((c.pop || 0) * 0.1) : 0; } G.migrarRegion(s); G.migrarCaja(s); G.migrarPueblos(s); G.migrarRetirados(s); G.migrarSenado(s); G.migrarInv(s); G.migrarDeuda(s); G.migrarColonias(s); DIP.migrar(s); G.migrarAjustes(s); G.migrarModo(s); return true; } } catch (e) { /* partida corrupta */ } return false; }
   // tras cargar: cada ciudad propia recupera (o estrena) su ciudad nueva; la obra en curso de una partida vieja se liga a su pieza
   function alCargar() {

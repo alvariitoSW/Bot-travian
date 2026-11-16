@@ -365,7 +365,12 @@ export class MapView3D {
     for (const m of state.marches) {
       if (m.colonos ? !(state.cities[m.from] && this.sitioEnRegion(m.to, state)) : (!state.cities[m.to] || (m.from && !state.cities[m.from]))) continue;
       seen.add(m.id); let a = this.armies.get(m.id); if (!a) { a = m.colonos ? this.colonosModel(m) : this.armyModel(m); this.armies.set(m.id, a); }
-      const p0 = m.fromXY || G.pos(m.from), p1 = G.pos(m.to), f = Math.max(0, Math.min(1, (state.t - m.t0) / (m.t1 - m.t0))), x = (p0[0] + (p1[0] - p0[0]) * f) * K, z = (p0[1] + (p1[1] - p0[1]) * f) * K, y = Math.max(0.04, this.hAt(x, z));
+      let p0 = m.fromXY || G.pos(m.from), p1 = G.pos(m.to), f = Math.max(0, Math.min(1, (state.t - m.t0) / (m.t1 - m.t0)));
+      if (m.sitio && D.CAMINOS[m.sitio.c - 1]) {   // GM15b: un ejército que espera en un sitio se dibuja parado sobre el camino, no en la ciudad enemiga
+        const e = D.CAMINOS[m.sitio.c - 1], a0 = G.pos(e[0]), a1 = G.pos(e[1]); p1 = [a0[0] + (a1[0] - a0[0]) * m.sitio.p, a0[1] + (a1[1] - a0[1]) * m.sitio.p];
+        f = Math.max(0, Math.min(1, (state.t - m.t0) / Math.max(1e-6, m.sitio.tLlega - m.t0)));
+      }
+      const x = (p0[0] + (p1[0] - p0[0]) * f) * K, z = (p0[1] + (p1[1] - p0[1]) * f) * K, y = Math.max(0.04, this.hAt(x, z));
       a.grp.position.set(x, y, z); a.grp.rotation.y = Math.atan2(p1[0] - p0[0], p1[1] - p0[1]);
       for (const an of a.anims) { an.a.array[0] = frameOf(an.clip, this.t + an.ph); an.a.needsUpdate = true; }
       const txt = m.colonos ? '🏛️ Colonos a ' + G.lugar(m.to).n : (m.owner === 'roma' ? '' : (m.label || D.FACTIONS[m.owner].n) + ' · ') + G.men(m.units); if (a.txt !== txt) { a.txt = txt; a.el.textContent = txt; }
