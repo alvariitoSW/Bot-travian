@@ -483,6 +483,7 @@ async function navegador() {
       await recarga(); await page.click('#menu [data-act="continue"]');
       await page.waitForFunction(() => window.UI.fundar, null, { timeout: 60000 });
       await page.waitForFunction(() => window.UI.fundar.vale, null, { timeout: 30000 });
+      await cierraAvisos();   // CN18: «Dónde lo dejaste» sale al continuar y tapa los botones
       await page.click('#b-si'); await page.waitForFunction(() => !window.UI.fundar && Game.myCities().length === 1, null, { timeout: 40000 }); await espera(800); await cierraAvisos();
       const fd = await estado(() => ({ fase: Game.modoFase(), mias: Game.myCities(), city: UI.city, cap: Game.state.capital }));
       // 3) final con resumen (se fuerza) y final de campaña sin resumen
