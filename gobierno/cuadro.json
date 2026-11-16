@@ -1444,6 +1444,12 @@
       "titulo": "Batalla mejorada · GM4 Aspecto visual: soldados sin polígonos a la vista (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-arte/",
       "url": "https://claude.ai/code/session_01QiKC36ZF1e1BhVX8T4HFhB"
+    },
+    {
+      "tarea": "GM8",
+      "titulo": "Batalla mejorada · GM8 y GM9 Caballería que maniobra, flanqueo natural y elefantes temibles (maqueta)",
+      "nota": "solo gobierno/maquetas/guerra-lejos/; no toca js/",
+      "url": "https://claude.ai/code/session_01QiKC3Ao459CtVK6J5eExo6"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
