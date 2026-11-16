@@ -1114,6 +1114,13 @@
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
-  "sesiones": [],
+  "sesiones": [
+    {
+      "tarea": "GC1",
+      "titulo": "Guerra desde cero: diseño y maqueta jugable",
+      "nota": "Solo gobierno/estudios y gobierno/maquetas/guerra-cero; no toca el juego",
+      "url": "https://claude.ai/code/session_01QiKC38K8F4ZeDhsZcqCSYS"
+    }
+  ],
   "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
 }
