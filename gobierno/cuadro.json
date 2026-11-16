@@ -1436,6 +1436,10 @@
     {
       "titulo": "R21 · Caballería que maniobra y elefantes temibles",
       "archivo": "gobierno/estudios/R21-caballeria-y-elefantes.md"
+    },
+    {
+      "titulo": "GM15 · Terreno, hora del día y maniobra al empezar (diseño)",
+      "archivo": "gobierno/estudios/GM15-terreno-y-maniobra.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
