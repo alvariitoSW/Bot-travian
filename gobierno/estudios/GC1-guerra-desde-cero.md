@@ -69,6 +69,18 @@ Quien rompe un cuerpo enemigo se vuelve contra el costado del vecino. Gana quien
   alas). Faltan los vélites. Los aliados de las alas se dibujan como romanos. El ejército púnico es una mezcla tipo, no
   una batalla concreta.
 
+## Las dos varas del usuario (16/11): llegar a mucha gente y arte
+- **Que la juegue cualquiera, y mañana dos a la vez.** Se entiende sin instrucciones (cuatro botones que dicen lo que hacen).
+  Las reglas (`reglas.js`) están separadas de la pantalla y corren sin navegador; el azar sale de una semilla, así que la
+  misma semilla y las mismas órdenes dan la misma batalla; el estado son datos sencillos y las órdenes son cuatro palabras
+  con el cuerpo al que van. Con eso, dos jugadores podrían mandar sobre la misma batalla. Falta para guardarla a medias:
+  el generador de azar hoy vive en una función y habría que guardar su número. No se ha construido nada online.
+- **Unión con la campaña.** La batalla recibe un ejército ya decidido fuera (qué tropa va en cada línea y cuántos hombres)
+  y devuelve bajas por bando. Si los ejércitos salen de provincias con oficio, aquí solo cambian los cuerpos que entran.
+- **Arte: espectacular desde la sencillez.** Soldados reales del juego, un estandarte por cuerpo, polvo donde se lucha,
+  montes al fondo y una cámara que baja sola. La interfaz usa una sola familia: bronce y oro sobre vidrio oscuro, Cinzel en
+  los rótulos, botones con icono y verbo. Ese mismo juego de piezas sirve para provincias y eventos.
+
 ## Lo que la maqueta no tiene (a propósito)
 Sonido, elefantes, falange macedónica, terreno con relieve, general, y la unión con la campaña (qué tropas entran y qué
 bajas vuelven). Todo eso cabe después sin tocar la idea: más rivales con su carácter, no más botones.
