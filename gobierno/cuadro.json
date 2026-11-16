@@ -1523,6 +1523,12 @@
       "titulo": "Batalla mejorada · GM15b Toparse en el camino (campaña)",
       "nota": "js/game.js, js/data.js, js/registro.js y lo suyo de js/ui.js; no toca maquetas",
       "url": "https://claude.ai/code/session_01QiKC3856eK8YNjVRtWetpt"
+    },
+    {
+      "tarea": "EV4a",
+      "titulo": "Política · EV4a Gobierno, segunda vuelta: reglas primero (maqueta)",
+      "nota": "solo gobierno/maquetas/politica-grande/ (reglas.js y prueba.mjs); no toca js/",
+      "url": "https://claude.ai/code/session_01QiKC39ngyZQs6cmQwm2RAh"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
