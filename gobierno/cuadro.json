@@ -1170,6 +1170,13 @@
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
-  "sesiones": [],
+  "sesiones": [
+    {
+      "tarea": "GC3",
+      "titulo": "Reglas de la batalla nueva dentro del juego",
+      "nota": "Solo el motor nuevo en js/, su prueba y su juez; no toca ui.js, game.js ni la batalla que sale hoy",
+      "url": "https://claude.ai/code/session_01QiKC37YnzYY23ieYMVzuFx"
+    }
+  ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
 }
