@@ -115,7 +115,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 
 ## Carril GR — Gobierno de región (P104, aprobada por el usuario el 16/11/2026)
 - ✅ GR1 **Gobierno de provincias: diseño y maqueta** (17/11, 0,9 M): aprobada por el usuario el 17/11. Informe `estudios/GR1-gobierno-de-provincias.md`; maqueta `maquetas/provincias/` (225 a.C., cuatro ciudades, oficio y decreto). No tocó `js/`.
-- ⬜ GR2 **Cotejo de fuentes y oficios por ciudad** (≈0,5 M): cotejar con el texto los pasajes de GR1 §4 y §7 y dejar en `gobierno/historia/` qué dos o tres oficios ofrece cada ciudad del mapa según su terreno. Solo `gobierno/`.
+- ✅ GR2 **Cotejo de fuentes y oficios por ciudad** (17/11, ≈0,3 M): ficha `historia/GR2-oficios-por-ciudad.md` (19 citas cotejadas, 26 ciudades con 2–3 oficios). Cuatro citas de GR1 corregidas; Cicerón sin comprobar. No tocó `js/`. Siguiente: GR3.
 - ⬜ GR3 **Oficio en las reglas, sin pantalla** (≈1,3 M; tras GR2): el oficio sustituye a los tipos de ciudad (decisión 17/11); puertas de comida, armas y aliados; migrar en `G.load`. `js/data.js`, `js/game.js`, pruebas.
 - ⬜ GR4 **Entregar y recuperar una ciudad; tope en Ajustes** (≈1,0 M; tras GR3): lo construido se conserva y fija el rango; tope de ciudades a mano corta 3, larga 6, Ajustes de 1 a 12.
 - ⬜ GR5 **Pantalla «Región»** (≈1,0 M; tras GR4): todas tus ciudades en una lista, un toque cada una, como la maqueta `maquetas/provincias/`.
