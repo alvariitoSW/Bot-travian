@@ -160,6 +160,37 @@ function cortaHtml() {
   const b = (k, act) => '<button class="btn corta" data-act="' + act + '">' + esc(m.inicio[k].n) + '</button><small class="cortad">' + esc(m.inicio[k].d) + '</small>';
   return '<div class="cortab"><b>Partida corta (Italia, ' + m.duracion.horasMin + ' a ' + m.duracion.horasMax + ' horas)</b>' + b('enPie', 'cortaen') + b('fundar', 'cortafun') + '</div>';
 }
+/* ES1 «Escaramuzas»: batalla suelta desde el menú, con el motor de guerra (Guerra y UIGuerra) y sin campaña: no lee ni escribe la partida guardada.
+   Se elige en tablillas de cera; «Empezar la batalla» (sello) abre la guerra; al acabar, la hoja «escfin» con el resultado. */
+UI.esc = { mio: 'mediano', fac: 'cartago', ene: 'mediano', campo: 'llano', dif: 'normal' };
+const milesTxt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+function escHtml() {
+  const E = G.ESCARAMUZA, o = UI.esc, e = G.escaramuza(Object.assign({ semilla: 1 }, o)), nombre = id => D.FACTIONS[id] ? D.FACTIONS[id].n : id;
+  const suma = u => Object.values(u).reduce((x, y) => x + y, 0), tropas = u => Object.keys(u).sort((x, y) => u[y] - u[x]).map(t => D.UNITS[t] ? D.UNITS[t].n : t).join(', ');
+  const fila = (tit, k, ops) => '<p class="ro-rubrica esc-r">' + tit + '</p><div class="ro-tablilla esc-t' + (ops.length > 4 ? ' esc-tres' : '') + '">' + ops.map(([v, n]) => '<button class="' + (o[k] === v ? 'on' : '') + '" data-act="escel" data-v="' + k + ':' + v + '">' + esc(n) + '</button>').join('') + '</div>';
+  const tam = Object.keys(E.tamanos).map(k => [k, E.tamanos[k].n]);
+  return '<div class="esc">' + fila('Tu ejército', 'mio', tam) + '<p class="esc-d">Legión de Roma: ' + milesTxt(suma(e.ejercitos[0])) + ' hombres (' + esc(tropas(e.ejercitos[0])) + ').</p>' +
+    fila('Enemigo', 'fac', E.facciones.map(f => [f, nombre(f)])) + fila('Tamaño del enemigo', 'ene', tam) +
+    '<p class="esc-d">' + esc(nombre(e.fac)) + ': ' + milesTxt(suma(e.ejercitos[1])) + ' hombres (' + esc(tropas(e.ejercitos[1])) + ').</p>' +
+    fila('Campo', 'campo', Object.keys(E.campos).map(k => [k, E.campos[k]])) + fila('Dificultad', 'dif', Object.keys(E.dificultad).map(k => [k, E.dificultad[k].n])) +
+    '<p class="esc-d">El campo cambia el paisaje; la pelea aún no depende de él. La dificultad cambia cuántos hombres trae el enemigo.</p>' +
+    '<button class="btn ro-sello esc-go" data-act="escempieza">Empezar la batalla</button></div>';
+}
+function escFinHtml() {
+  const x = UI.escRes; if (!x) return '<div class="empty">Sin resultado.</div>';
+  const R = x.res, t = { victoria: 'Victoria', derrota: 'Derrota', retirada: 'Retirada' }[R.como] || 'Fin', m = Math.floor(R.t / 60), sg = Math.round(R.t % 60);
+  return '<div class="esc esc-fin"><h3 class="esc-res ' + R.como + '">' + t + '</h3><p class="esc-d">' + esc(R.motivo || '') + '</p>' +
+    '<div class="esc-cif"><span>Tus bajas</span><b>' + milesTxt(R.bajas[0]) + ' de ' + milesTxt(R.inicial[0]) + '</b><span>Bajas de ' + esc(D.FACTIONS[x.fac] ? D.FACTIONS[x.fac].n : '') + '</span><b>' + milesTxt(R.bajas[1]) + ' de ' + milesTxt(R.inicial[1]) + '</b><span>Duración</span><b>' + m + ' min ' + sg + ' s</b></div>' +
+    '<button class="btn ro-sello esc-go" data-act="hoja" data-v="escaramuza">Otra escaramuza</button><button class="btn ghost esc-go" data-act="hojax">Volver al menú</button></div>';
+}
+function escEmpieza() {
+  if (!window.UIGuerra || !window.Guerra) { toast('No se ha podido cargar la batalla.', 'bad'); return; }
+  const e = G.escaramuza(UI.esc); hojaCierra(true); UI.escRes = null;
+  window.UIGuerra.abrir({ estado: window.Guerra.crear({ semilla: e.semilla, ejercitos: e.ejercitos }), campo: e.campo }, r => {   // sin guardar: no toca aqvila-save-v1 ni aqvila-guerra-v1
+    const B = r && r.estado; UI.escRes = { res: (B && B.resultado) || { como: 'retirada', motivo: '', t: 0, bajas: [0, 0], inicial: [0, 0] }, fac: e.fac };
+    setTimeout(() => { if (UI.menu) hojaAbre('escfin'); }, 0);   // después del toque en «Ver el resultado»: el oyente general cierra las hojas
+  });
+}
 /* K12a-B «Hojas»: menú principal. Arriba emblema y nombre; abajo, al alcance del pulgar, lo que se usa. Partida corta y Sonido/fluidez viven en hojas */
 const EMBLEMA = '<svg class="emb" viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 12c-4 0-7 3-7 6l-9-4 3 9-8 3 9 4-4 8 9-3 7 9 7-9 9 3-4-8 9-4-8-3 3-9-9 4c0-3-3-6-7-6z"/><path d="M32 18v22M26 52h12"/></svg>';
 const ICO_GLOBO = svgIco('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'), ICO_ESC = svgIco('<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>');
@@ -175,6 +206,7 @@ function showMenu() {
     '<div class="mcab">' + EMBLEMA + '<h1>AQVILA</h1><div class="sub">EL ASCENSO DE ROMA</div><p>280 a.C. Gobierna tus ciudades, levanta legiones y lleva las águilas hasta Cartago.</p></div>' +
     '<input id="hname" maxlength="28" placeholder="Nombre de tu general" aria-label="Nombre de tu general" value="Lucio Cornelio Escipión">' + difFila('m') +
     '<div class="mabajo">' + (sv ? '<button class="btn gold mcont" data-act="continue">Continuar campaña' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button><button class="btn" data-act="new">Nueva campaña</button>' : '<button class="btn gold mcont" data-act="new">Nueva campaña</button>') +
+    '<button class="btn ro-bronce mesc" data-act="hoja" data-v="escaramuza">Escaramuzas<small>Batallas sueltas, sin campaña</small></button>' +
     '<div class="mtrio">' + tile('newregion', 'italia', ICO_GLOBO, 'Región de Italia') + tile('hoja', 'corta', ICO_ESC, 'Partida corta') + tile('hoja', 'sonmenu', ICO_FLU, 'Sonido y fluidez') + '</div>' +
     '<div class="mcred">' + CREDITOS + '</div><div class="spqr">S·P·Q·R</div></div>';
 }
@@ -407,6 +439,8 @@ const HOJAS = {
   menu: { titulo: 'Menú', alt: 1, html: menuHoja },
   guerra: { titulo: 'Guerra', alt: 0, html: guerraHoja },
   ajustes: { titulo: 'Ajustes', alt: 2, html: ajustesHoja },
+  escaramuza: { titulo: 'Escaramuzas', alt: 2, html: () => escHtml() },   // ES1
+  escfin: { titulo: 'Escaramuza', alt: 1, html: () => escFinHtml() },
   corta: { titulo: 'Partida corta', alt: 1, html: () => cortaHtml() || '<div class="empty">No disponible.</div>' },
   sonmenu: { titulo: 'Sonido y fluidez', alt: 0, html: () => '<button class="hf" data-act="sonido">' + ICO_INFO + '<span>' + sonidoTxt() + '</span></button><button class="hf" data-act="fluidez">' + ICO_FLU + '<span>' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</span></button>' + copiasHtml() },
   movil: { titulo: 'Postal y copias', alt: 1, html: () => '<button class="hf" data-act="postal">' + ICO_FOTO + '<span>Postal de la ciudad (imagen)</span></button><button class="hf" data-act="contemplar">' + ICO_FOTO + '<span>Contemplar la ciudad</span></button><button class="hf" data-act="hoja" data-v="cronicac">' + ICO_CRON + '<span>Crónica de la ciudad (texto)</span></button>' + copiasHtml() },
@@ -1540,6 +1574,8 @@ document.addEventListener('click', function (e) {
     case 'entrar': entrarEn(v); break;
     case 'vera': hojaCierra(true); try { if (UI.map) UI.map.center(v); } catch (e) { } break;
     case 'hoja': hojaAbre(v); break;
+    case 'escel': { const i = v.indexOf(':'); UI.esc[v.slice(0, i)] = v.slice(i + 1); hojaPinta(true); break; }
+    case 'escempieza': escEmpieza(); break;
     case 'hojax': hojaCierra(); break;
     case 'menuconf': UI.hojaConf = true; hojaPinta(true); break;
     case 'accion': if (UI.modo === 'guerra') setTab('army'); else { UI.cityList = true; setTab('city'); } break;
