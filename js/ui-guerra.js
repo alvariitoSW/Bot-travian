@@ -1,7 +1,7 @@
 /* AQVILA — GC4: la pantalla de la batalla (la Guerra). Dibuja lo que dice el motor js/guerra.js con los soldados y el suelo del juego.
    Sale de la maqueta gobierno/maquetas/guerra-cero (GC1) sin cambiar cómo se juega: tres cuerpos, cuatro órdenes, «Retirarse» siempre arriba.
    Uso: UIGuerra.abrir(cfg, alTerminar). cfg = { estado } (un estado de Guerra.crear o de Guerra.cargar) y, si se quiere guardar a mitad,
-        guardar(estado) (se llama cada pocos segundos, al pausar y al salir de la app). alTerminar(r) recibe Guerra.resumen(estado).
+        guardar(estado) (se llama cada pocos segundos, al pausar y al salir de la app). alTerminar(r) recibe Guerra.resumen(estado). cfg.campo (ES1): llano, colina, bosque o mixto; solo cambia el paisaje.
    Las vistas gfx son módulos: se cargan con import() al abrir. Arte de 0 A.D. (Wildfire Games, CC BY-SA 3.0). */
 (function (root) {
   'use strict';
@@ -410,9 +410,11 @@
        Solo aspecto: no hay regla de la loma. El llano cubre también de dónde salen la caballería y los númidas. */
     const suave = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
     const REL = { xc: 62, za: -132, zb: 52, zc: -40, r0: 330 };
+    /* ES1: el campo de una escaramuza solo cambia el paisaje (lomas y árboles alrededor); el motor de guerra aún no tiene terreno. Sin campo: «mixto», el de siempre */
+    const CV = { llano: { h: 0.35, arb: 45, r0: 70 }, colina: { h: 2.6, arb: 110, r0: 42 }, bosque: { h: 0.9, arb: 380, r0: 36 }, mixto: { h: 1, arb: 150, r0: 42 } }[cfg.campo] || { h: 1, arb: 150, r0: 42 };
     function alt(x, z) {
       const dx = Math.max(0, Math.abs(x) - REL.xc), dz = Math.max(0, REL.za - z, z - REL.zb), d = Math.hypot(dx, dz), f = suave(0, 110, d);
-      let h = f * (1.4 + 1.8 * Math.sin(x * 0.021 + 1.7) * Math.cos(z * 0.017 - 0.6) + 0.9 * Math.sin(x * 0.047 + z * 0.031)) * (1 + d / 220);
+      let h = CV.h * f * (1.4 + 1.8 * Math.sin(x * 0.021 + 1.7) * Math.cos(z * 0.017 - 0.6) + 0.9 * Math.sin(x * 0.047 + z * 0.031)) * (1 + d / 220);
       const r = Math.hypot(x, z - REL.zc); h += 70 * suave(REL.r0, REL.r0 + 260, r) * (0.65 + 0.35 * Math.sin(Math.atan2(x, z - REL.zc) * 4 + 1));
       return Math.max(0, h);
     }
@@ -428,8 +430,8 @@
       const suelo = new THREE.Mesh(g, applyGround(g, W, 0.09)); escena.add(suelo);
       try { escena.add(crearCielo(sol.position.clone(), HORIZ, { uRuido: { value: texturaRuido() } })); } catch (e) { escena.background = new THREE.Color(HORIZ); console.warn('sin cielo', e); }
       const arboles = { cipres: [], olivo: [], pino: [] }, E = new THREE.Euler(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), SC = new THREE.Vector3();
-      for (let k = 0; k < 150; k++) {
-        const a = rnd() * Math.PI * 2, r = 42 + rnd() * 150, x = Math.cos(a) * r * 1.25, z = Math.sin(a) * r - 20; if (Math.abs(x) < 34 && z > -34 && z < 60) continue;
+      for (let k = 0; k < CV.arb; k++) {
+        const a = rnd() * Math.PI * 2, r = CV.r0 + rnd() * 150, x = Math.cos(a) * r * 1.25, z = Math.sin(a) * r - 20; if (Math.abs(x) < 34 && z > -34 && z < 60) continue;
         const tipo = rnd() < 0.45 ? 'olivo' : rnd() < 0.6 ? 'cipres' : 'pino', e = UNIT_SCALE * (0.75 + rnd() * 0.6) * (tipo === 'pino' ? 0.8 : 1);
         arboles[tipo].push(new THREE.Matrix4().compose(V.set(x, alt(x, z) - 0.2, z), Q.setFromEuler(E.set(0, rnd() * 6.28, 0)), SC.set(e, e, e)));
       }

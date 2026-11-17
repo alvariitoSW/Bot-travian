@@ -1542,3 +1542,18 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 /* ley de texto largo (las misiones): título más corto de letra y sala más pequeña, para que todo quepa sin desplazar */
 .sn2.larga .sn2-ley h3 { font-size: 16.5px; letter-spacing: 0; }
 .sn2.larga .sn2-sala { max-width: 232px; }
+
+/* ======== ES1 Escaramuzas: botón del menú y hojas de elección y resultado (tablillas, rúbricas y sello de MR2) ======== */
+#menu .mabajo .mesc { min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; border-radius: 14px; }
+#menu .mesc small { font: 500 12.5px var(--sans, inherit); letter-spacing: .02em; opacity: .8; }
+#hoja .esc .esc-r { margin: 12px 0 5px; }
+#hoja .esc .esc-r:first-child { margin-top: 2px; }
+#hoja .esc-t > button { min-height: 46px; font-size: 14.5px; }
+#hoja .esc-d { margin: 6px 2px 0; font-size: 13.5px; line-height: 1.35; color: var(--tinta2); }
+#hoja .esc-go { display: block; width: 100%; margin-top: 14px; }
+#hoja .esc-res { margin: 4px 0 2px; text-align: center; font: 700 28px var(--serif); letter-spacing: .12em; text-transform: uppercase; color: var(--tinta); }
+#hoja .esc-res.victoria { color: #8a5a12; } #hoja .esc-res.derrota { color: var(--minio); }
+#hoja .esc-fin .esc-d { text-align: center; }
+#hoja .esc-cif { display: grid; grid-template-columns: 1fr auto; gap: 6px 12px; margin: 12px 4px 0; font-size: 15px; color: var(--tinta); }
+#hoja .esc-cif b { text-align: right; }
+#hoja .esc-t.esc-tres { flex-wrap: wrap; } #hoja .esc-t.esc-tres > button { flex: 1 1 30%; }
