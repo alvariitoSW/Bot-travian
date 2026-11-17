@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1016">
+<title>Zama · Bloques de color</title>
+<style>
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terracota:#d9764a;--panel:rgba(11,16,22,.92);--borde:#2c3a46;--fondo-bot:#1b2630}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--noche);overflow:hidden}
+body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;color:var(--marmol);-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button{font:inherit;color:inherit;cursor:pointer}
+.oculto{display:none !important}
+
+/* Escenario fijo 844x390, escalado al tamaño de la pantalla */
+#escena{position:fixed;left:50%;top:50%;width:844px;height:390px;transform:translate(-50%,-50%) scale(1);transform-origin:50% 50%;overflow:hidden;background:radial-gradient(ellipse at 50% 55%,#17232f 0%,#0b1016 72%)}
+#capas{position:absolute;left:0;top:0;width:844px;height:390px;pointer-events:none}
+.fondo-linea{stroke:rgba(154,166,180,.16);stroke-width:1;stroke-dasharray:4 6}
+.trazo{transition:opacity .6s}
+#unidades,#textos{position:absolute;left:0;top:0;width:844px;height:390px;pointer-events:none}
+
+/* Regimiento: un bloque de color por tipo */
+.u{position:absolute;left:0;top:0;width:66px;height:48px;transition:transform .8s ease}
+.cuerpo{position:absolute;left:0;top:0;width:66px;height:48px;border-radius:7px;background:var(--c);box-shadow:0 2px 0 rgba(0,0,0,.45);transition:box-shadow .2s,filter .2s,opacity .4s}
+.u.sel .cuerpo{box-shadow:0 0 0 3px var(--oro),0 2px 0 rgba(0,0,0,.45)}
+.u.objetivo .cuerpo{outline:2px dashed var(--oro);outline-offset:3px}
+.u.rodeado .cuerpo::after{content:"";position:absolute;left:-5px;top:-5px;right:-5px;bottom:-5px;border:2px dashed var(--rojo);border-radius:10px}
+.u.reserva .cuerpo{opacity:.7}
+.u.retirada .cuerpo{opacity:.45}
+.u.golpe .cuerpo{filter:brightness(1.8)}
+.lado,.num{position:absolute;top:3px;padding:2px 4px;border-radius:4px;background:rgba(11,16,22,.88);font:700 11px/1 system-ui,sans-serif;color:var(--marmol)}
+.lado{left:3px}
+.num{right:3px}
+.u.r .lado{color:var(--oro)}
+.u.c .lado{color:var(--terracota)}
+.anillo{position:absolute;left:18px;top:9px;width:30px;height:30px}
+.disco{fill:rgba(11,16,22,.82)}
+.pista{fill:none;stroke:rgba(241,234,217,.2);stroke-width:3}
+.arco{fill:none;stroke:var(--marmol);stroke-width:3;stroke-linecap:round;transform:rotate(-90deg);transform-origin:15px 15px;transition:stroke-dashoffset .6s,stroke .4s}
+.ico{position:absolute;left:25px;top:16px;width:16px;height:16px;fill:none;stroke:var(--marmol);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.barra{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(11,16,22,.6);border-radius:0 0 7px 7px;overflow:hidden}
+.barra i{display:block;height:100%;width:0;background:var(--terracota);transition:width .6s}
+.nombre{position:absolute;left:-17px;top:51px;width:100px;text-align:center;font:600 11px/1.1 system-ui,sans-serif;color:var(--marmol);text-shadow:0 1px 2px #000,0 0 4px #000;white-space:nowrap}
+
+/* Efectos: marcas, textos que suben, trazos de orden */
+.marca{position:absolute;width:26px;height:26px;margin:-13px 0 0 -13px;border:2px solid var(--oro);border-radius:50%;animation:pulso 1s ease-out forwards}
+@keyframes pulso{from{transform:scale(.4);opacity:1}to{transform:scale(1.6);opacity:0}}
+.flota{position:absolute;transform:translateX(-50%);padding:4px 6px;border-radius:5px;background:var(--marmol);color:var(--noche);font:800 12px/1 system-ui,sans-serif;white-space:nowrap;animation:subir 1.1s ease-out forwards}
+.flota.rojo{background:var(--rojo);color:var(--marmol)}
+.flota.oro{background:var(--oro);color:var(--noche)}
+@keyframes subir{0%{opacity:0;transform:translate(-50%,8px)}15%{opacity:1}100%{opacity:0;transform:translate(-50%,-26px)}}
+
+/* Barra superior: titulo, pista y un solo boton */
+#barra{position:absolute;left:0;right:0;top:0;height:48px;display:flex;align-items:center;gap:8px;padding:0 8px;background:linear-gradient(rgba(11,16,22,.96),rgba(11,16,22,.7));z-index:9}
+.titulo{display:flex;flex-direction:column;flex:0 0 auto;line-height:1.2}
+.titulo b{font-size:13px;color:var(--oro)}
+.titulo span{font-size:11px;color:var(--piedra);white-space:nowrap}
+#pista{flex:1;min-width:0;text-align:center;font-size:13px;color:var(--marmol);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 6px}
+#varios{flex:0 0 auto;height:44px;min-width:112px;padding:0 10px;border:1px solid var(--piedra);border-radius:8px;background:var(--fondo-bot);font-size:13px;font-weight:600}
+#varios[aria-pressed="true"]{border-color:var(--oro);color:var(--oro)}
+
+/* Menu pequeño junto al regimiento elegido */
+#menu{position:absolute;display:grid;grid-template-columns:1fr 1fr;gap:6px;width:196px;padding:6px;background:var(--panel);border:1px solid var(--oro);border-radius:10px;z-index:10}
+#menu button{height:44px;display:flex;align-items:center;gap:6px;padding:0 6px;background:var(--fondo-bot);border:1px solid var(--borde);border-radius:8px;font:600 12px/1 system-ui,sans-serif;text-align:left;color:var(--marmol)}
+#menu button:active{background:var(--oro);color:var(--noche)}
+#menu button.off{opacity:.4}
+#menu svg{flex:none;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Ficha del regimiento elegido (abajo a la izquierda) */
+#info{position:absolute;left:8px;bottom:8px;width:280px;height:72px;padding:6px 10px;background:var(--panel);border:1px solid var(--borde);border-radius:10px;z-index:8;overflow:hidden}
+.f1{display:flex;align-items:center;gap:6px;height:18px;min-width:0}
+#i-nombre{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.chip{flex:none;font-size:11px;font-weight:700;padding:2px 5px;border-radius:4px;border:1px solid var(--piedra);color:var(--marmol);line-height:1.2}
+.chip.malo{border-color:var(--rojo);background:var(--rojo)}
+#i-datos{font-size:12px;color:var(--piedra);height:16px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.f3{display:flex;align-items:center;gap:6px;font-size:12px;margin-top:4px;height:16px}
+.pb{flex:1;height:6px;background:var(--fondo-bot);border-radius:3px;overflow:hidden}
+#i-moral{display:block;height:100%;width:0;background:var(--oliva);transition:width .4s,background .4s}
+#i-mtxt{white-space:nowrap}
+
+/* Registro de lo que pasa (abajo a la derecha) */
+#registro{position:absolute;right:8px;bottom:8px;width:276px;height:72px;padding:6px 10px;background:var(--panel);border:1px solid var(--borde);border-radius:10px;z-index:8;overflow:hidden}
+#registro h2{margin:0 0 2px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--oro)}
+#lista-log{margin:0;padding:0;list-style:none;font-size:12px;line-height:1.25;color:var(--marmol)}
+#lista-log li{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* Aviso si el movil esta en vertical */
+#girar{position:fixed;left:0;top:0;width:100%;height:100%;display:none;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:16px;background:var(--noche);z-index:20;text-align:center;font-size:16px;color:var(--oro)}
+#girar p{margin:0}
+#girar button{min-height:44px;padding:0 18px;border:1px solid var(--oro);border-radius:8px;background:transparent;color:var(--marmol);font-size:14px}
+@media (orientation: portrait){#girar{display:flex}}
+</style>
+</head>
+<body>
+<div id="escena">
+  <svg id="capas" viewBox="0 0 844 390" aria-hidden="true">
+    <line class="fondo-linea" x1="422" y1="48" x2="422" y2="340"/>
+  </svg>
+  <div id="unidades"></div>
+  <div id="textos"></div>
+  <div id="menu" class="ui oculto"></div>
+
+  <header id="barra" class="ui">
+    <div class="titulo"><b>Zama · 202 a.C.</b><span>Roma a la izquierda · Cartago a la derecha</span></div>
+    <div id="pista">Toca un regimiento para darle una orden</div>
+    <button id="varios" class="ui" type="button" aria-pressed="false">Varios: no</button>
+  </header>
+
+  <section id="info" class="ui">
+    <div class="f1"><span id="i-nombre">Ningún regimiento elegido</span><span id="i-chips" style="display:flex;gap:4px"></span></div>
+    <div id="i-datos">Toca uno para ver su ficha y darle órdenes.</div>
+    <div class="f3"><div class="pb"><i id="i-moral"></i></div><span id="i-mtxt"></span></div>
+  </section>
+
+  <section id="registro" class="ui">
+    <h2>Lo que pasa</h2>
+    <ol id="lista-log"></ol>
+  </section>
+</div>
+
+<div id="girar">
+  <p>Gira el móvil a horizontal para ver la batalla.</p>
+  <button id="seguir" type="button">Jugar igual</button>
+</div>
+
+<script>
+(function () {
+  'use strict';
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var CIRC = 2 * Math.PI * 12;
+
+  /* Tipos de regimiento: color por tipo, icono de linea y si pueden cargar */
+  var TIPOS = {
+    hastati:      { n: 'Hastati',     c: '#c0281f', carga: false, ico: '<path d="M6 4h12v8c0 4-3 7-6 8-3-1-6-4-6-8z"/>' },
+    principes:    { n: 'Príncipes',   c: '#b8862b', carga: false, ico: '<circle cx="12" cy="12" r="6.5"/><path d="M12 5.5v13"/>' },
+    triarios:     { n: 'Triarios',    c: '#e9c063', carga: false, ico: '<path d="M12 2v20M8.5 6L12 2l3.5 4"/>' },
+    velites:      { n: 'Velites',     c: '#8fae5a', carga: false, ico: '<path d="M4 20L18 6M14 4h6v6"/>' },
+    caballeria:   { n: 'Caballería',  c: '#f1ead9', carga: true,  ico: '<path d="M4 20L20 4M15 4h5v5M7 14l3 3"/>' },
+    elefantes:    { n: 'Elefantes',   c: '#d9764a', carga: true,  ico: '<path d="M3 9c0-3 3-4 7-4s8 1 9 4l1 2-2 1v3h-2v-3h-3c-2 1-4 1-6 0v3H7v-4c-2-1-4-1-4-3z"/>' },
+    cartagineses: { n: 'Cartagineses', c: '#9aa6b4', carga: false, ico: '<path d="M6 19C6 9 10 4 18 4c-3 4-3 12 0 16z"/>' }
+  };
+
+  /* Ordenes del menu pequeño */
+  var ORDENES = {
+    mover:   { t: 'Mover',   ico: '<path d="M4 12h14M13 6l6 6-6 6"/>' },
+    atacar:  { t: 'Atacar',  ico: '<path d="M5 19L19 5M14 5h5v5M10 19H5v-5"/>' },
+    aguantar:{ t: 'Aguantar',ico: '<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/>' },
+    relevar: { t: 'Relevar', ico: '<path d="M4 12a8 8 0 0 1 14-5M20 12a8 8 0 0 1-14 5M18 3v4h-4M6 21v-4h4"/>' },
+    cargar:  { t: 'Cargar',  ico: '<path d="M4 20L20 4M15 4h5v5M8 16l-4 4"/>' },
+    retirar: { t: 'Retirar', ico: '<path d="M20 12H6M11 6l-6 6 6 6"/>' }
+  };
+
+  var ESTADO = { lista: 'sin órdenes', aguanta: 'aguanta', reserva: 'en reserva', retirada: 'en retirada', 'en marcha': 'en marcha' };
+
+  /* Datos de mentira: Roma a la izquierda, Cartago a la derecha */
+  var DATOS = [
+    { id: 'r1', bando: 'R', tipo: 'hastati',    x: 270, y: 85,  n: 480, moral: 78, cansancio: 10 },
+    { id: 'r2', bando: 'R', tipo: 'hastati',    x: 270, y: 150, n: 460, moral: 66, cansancio: 35, estado: 'aguanta' },
+    { id: 'r3', bando: 'R', tipo: 'principes',  x: 270, y: 215, n: 420, moral: 81, cansancio: 12 },
+    { id: 'r4', bando: 'R', tipo: 'principes',  x: 190, y: 105, n: 400, moral: 74, cansancio: 20 },
+    { id: 'r5', bando: 'R', tipo: 'triarios',   x: 190, y: 185, n: 300, moral: 88, cansancio: 5 },
+    { id: 'r6', bando: 'R', tipo: 'velites',    x: 345, y: 115, n: 200, moral: 70, cansancio: 45 },
+    { id: 'r7', bando: 'R', tipo: 'velites',    x: 345, y: 225, n: 180, moral: 58, cansancio: 60 },
+    { id: 'r8', bando: 'R', tipo: 'caballeria', x: 150, y: 270, n: 240, moral: 72, cansancio: 25 },
+    { id: 'r9', bando: 'R', tipo: 'caballeria', x: 330, y: 294, n: 230, moral: 64, cansancio: 30 },
+    { id: 'c1', bando: 'C', tipo: 'cartagineses', x: 574, y: 85,  n: 420, moral: 74, cansancio: 8 },
+    { id: 'c2', bando: 'C', tipo: 'cartagineses', x: 574, y: 150, n: 460, moral: 70, cansancio: 18 },
+    { id: 'c3', bando: 'C', tipo: 'cartagineses', x: 574, y: 215, n: 440, moral: 79, cansancio: 12 },
+    { id: 'c4', bando: 'C', tipo: 'cartagineses', x: 654, y: 105, n: 400, moral: 68, cansancio: 30 },
+    { id: 'c5', bando: 'C', tipo: 'cartagineses', x: 654, y: 180, n: 380, moral: 72, cansancio: 22 },
+    { id: 'e1', bando: 'C', tipo: 'elefantes',  x: 499, y: 115, n: 8,   moral: 58, cansancio: 40 },
+    { id: 'e2', bando: 'C', tipo: 'elefantes',  x: 499, y: 225, n: 8,   moral: 80, cansancio: 10 },
+    { id: 'n1', bando: 'C', tipo: 'caballeria', x: 694, y: 270, n: 260, moral: 70, cansancio: 22, nombre: 'Caballería númida', etiqueta: 'Númidas' },
+    { id: 'n2', bando: 'C', tipo: 'caballeria', x: 514, y: 294, n: 250, moral: 76, cansancio: 15, nombre: 'Caballería númida', etiqueta: 'Númidas' }
+  ];
+
+  var $ = function (s) { return document.querySelector(s); };
+  var ESC = $('#escena'), CAPAS = $('#capas'), UNID = $('#unidades'), TEXTOS = $('#textos');
+  var MENU = $('#menu'), PISTA = $('#pista'), VARIOS_BTN = $('#varios'), LOG = $('#lista-log');
+  var INFO = {
+    nombre: $('#i-nombre'), chips: $('#i-chips'), datos: $('#i-datos'),
+    moral: $('#i-moral'), mtxt: $('#i-mtxt')
+  };
+
+  var U = [];          /* regimientos vivos */
+  var SEL = [];        /* elegidos */
+  var MODO = null;     /* null | 'mover' | 'atacar' */
+  var VARIOS = false;  /* elegir varios a la vez */
+
+  function clamp(v, a, b) { return Math.max(a, Math.min(b, v)); }
+
+  function nombreDe(u) { return u.nombre || TIPOS[u.tipo].n; }
+
+  function tamano(u) {
+    if (u.tipo === 'elefantes') return u.n + ' elefantes';
+    if (u.tipo === 'caballeria') return u.n + ' jinetes';
+    return u.n + ' hombres';
+  }
+
+  function grupo() {
+    return SEL.length === 1 ? nombreDe(SEL[0]) : SEL.length + ' regimientos';
+  }
+
+  /* Crea el bloque de un regimiento en la pantalla */
+  function crear(d) {
+    var t = TIPOS[d.tipo];
+    var el = document.createElement('div');
+    el.className = 'u ' + (d.bando === 'R' ? 'r' : 'c');
+    el.innerHTML =
+      '<div class="cuerpo" style="--c:' + t.c + '">' +
+        '<span class="lado">' + (d.bando === 'R' ? 'R' : 'C') + '</span>' +
+        '<span class="num"></span>' +
+        '<svg class="anillo" viewBox="0 0 30 30">' +
+          '<circle class="disco" cx="15" cy="15" r="14"/>' +
+          '<circle class="pista" cx="15" cy="15" r="12"/>' +
+          '<circle class="arco" cx="15" cy="15" r="12"/>' +
+        '</svg>' +
+        '<svg class="ico" viewBox="0 0 24 24">' + t.ico + '</svg>' +
+        '<span class="barra"><i></i></span>' +
+      '</div>' +
+      '<span class="nombre">' + (d.etiqueta || t.n) + '</span>';
+    UNID.appendChild(el);
+    d.el = el;
+    d.num = el.querySelector('.num');
+    d.arco = el.querySelector('.arco');
+    d.arco.setAttribute('stroke-dasharray', CIRC);
+    d.barra = el.querySelector('.barra i');
+    d.cuerpo = el.querySelector('.cuerpo');
+    d.estado = d.estado || 'lista';
+    d.rodeado = false;
+    return d;
+  }
+
+  /* Pinta un regimiento: posicion, anillo de moral, cansancio y clases */
+  function pintar(u) {
+    u.el.style.transform = 'translate(' + (u.x - 33) + 'px,' + (u.y - 24) + 'px)';
+    u.el.classList.toggle('sel', SEL.indexOf(u) >= 0);
+    u.el.classList.toggle('rodeado', !!u.rodeado);
+    u.el.classList.toggle('reserva', u.estado === 'reserva');
+    u.el.classList.toggle('retirada', u.estado === 'retirada');
+    u.el.classList.toggle('objetivo', MODO === 'atacar' && SEL.length > 0 && u.bando !== SEL[0].bando);
+    u.num.textContent = u.n;
+    u.arco.style.strokeDashoffset = (CIRC * (1 - u.moral / 100)) + 'px';
+    u.arco.style.stroke = u.moral < 30 ? 'var(--terracota)' : (u.moral < 55 ? 'var(--oro)' : 'var(--marmol)');
+    u.barra.style.width = Math.round(u.cansancio) + '%';
+  }
+
+  function pintarMenu() {
+    if (!SEL.length || MODO) { MENU.classList.add('oculto'); return; }
+    MENU.classList.remove('oculto');
+    var u = SEL[SEL.length - 1];
+    var puedeCargar = SEL.some(function (s) { return TIPOS[s.tipo].carga; });
+    MENU.querySelectorAll('button').forEach(function (b) {
+      b.classList.toggle('off', b.dataset.o === 'cargar' && !puedeCargar);
+    });
+    var left = u.x + 40;
+    if (left + 196 > 836) left = u.x - 40 - 196;
+    left = clamp(left, 8, 836 - 196);
+    var top = clamp(u.y - 78, 52, 176);
+    MENU.style.left = left + 'px';
+    MENU.style.top = top + 'px';
+  }
+
+  function pintarInfo() {
+    if (!SEL.length) {
+      INFO.nombre.textContent = 'Ningún regimiento elegido';
+      INFO.chips.innerHTML = '';
+      INFO.datos.textContent = 'Toca uno para ver su ficha y darle órdenes.';
+      INFO.moral.style.width = '0%';
+      INFO.mtxt.textContent = '';
+      return;
+    }
+    if (SEL.length > 1) {
+      var media = Math.round(SEL.reduce(function (s, u) { return s + u.moral; }, 0) / SEL.length);
+      INFO.nombre.textContent = SEL.length + ' regimientos elegidos';
+      INFO.chips.innerHTML = '';
+      INFO.datos.textContent = SEL.map(nombreDe).join(' · ');
+      INFO.moral.style.width = media + '%';
+      INFO.mtxt.textContent = 'Moral media ' + media;
+      return;
+    }
+    var u = SEL[0];
+    INFO.nombre.textContent = nombreDe(u);
+    INFO.datos.textContent = (u.bando === 'R' ? 'Roma' : 'Cartago') + ' · ' + tamano(u) + ' · ' + ESTADO[u.estado];
+    INFO.moral.style.width = u.moral + '%';
+    INFO.moral.style.background = u.moral < 30 ? 'var(--terracota)' : (u.moral < 55 ? 'var(--oro)' : 'var(--oliva)');
+    INFO.mtxt.textContent = 'Moral ' + Math.round(u.moral) + ' · cansancio ' + Math.round(u.cansancio) + '%';
+    var chips = [];
+    if (u.rodeado) chips.push(['Rodeado', true]);
+    if (u.cansancio >= 60) chips.push(['Cansado', false]);
+    if (u.moral < 30) chips.push(['Moral baja', true]);
+    INFO.chips.innerHTML = chips.map(function (c) {
+      return '<span class="chip' + (c[1] ? ' malo' : '') + '">' + c[0] + '</span>';
+    }).join('');
+  }
+
+  /* Un regimiento queda rodeado si tiene enemigos a los dos lados o tres o mas cerca */
+  function actualizarCerco() {
+    U.forEach(function (u) {
+      var antes = !!u.rodeado;
+      var en = U.filter(function (v) {
+        return v.bando !== u.bando && Math.abs(v.x - u.x) <= 120 && Math.abs(v.y - u.y) <= 70;
+      });
+      var iz = en.some(function (v) { return v.x < u.x; });
+      var de = en.some(function (v) { return v.x > u.x; });
+      u.rodeado = (iz && de) || en.length >= 3;
+      if (u.rodeado && !antes) log(nombreDe(u) + ' queda rodeado.');
+    });
+  }
+
+  function pintarTodo() {
+    actualizarCerco();
+    U.forEach(pintar);
+    pintarMenu();
+    pintarInfo();
+    VARIOS_BTN.textContent = 'Varios: ' + (VARIOS ? 'sí' : 'no');
+    VARIOS_BTN.setAttribute('aria-pressed', String(VARIOS));
+  }
+
+  function pista(t) { PISTA.textContent = t; }
+  function pistaSel() {
+    pista(SEL.length ? 'Elige una orden en el menú' : 'Toca un regimiento para darle una orden');
+  }
+
+  function log(t) {
+    var li = document.createElement('li');
+    li.textContent = t;
+    LOG.insertBefore(li, LOG.firstChild);
+    while (LOG.children.length > 3) LOG.removeChild(LOG.lastChild);
+  }
+
+  function linea(x1, y1, x2, y2, color) {
+    var l = document.createElementNS(NS, 'line');
+    l.setAttribute('x1', x1); l.setAttribute('y1', y1);
+    l.setAttribute('x2', x2); l.setAttribute('y2', y2);
+    l.setAttribute('stroke', color);
+    l.setAttribute('stroke-width', '2.5');
+    l.setAttribute('stroke-dasharray', '7 6');
+    l.setAttribute('class', 'trazo');
+    CAPAS.appendChild(l);
+    setTimeout(function () { l.style.opacity = '0'; }, 700);
+    setTimeout(function () { l.remove(); }, 1300);
+  }
+
+  function marca(x, y, color) {
+    var m = document.createElement('div');
+    m.className = 'marca';
+    m.style.left = x + 'px';
+    m.style.top = y + 'px';
+    m.style.borderColor = color;
+    TEXTOS.appendChild(m);
+    setTimeout(function () { m.remove(); }, 1000);
+  }
+
+  function flota(x, y, texto, clase) {
+    var f = document.createElement('div');
+    f.className = 'flota ' + (clase || '');
+    f.textContent = texto;
+    f.style.left = x + 'px';
+    f.style.top = y + 'px';
+    TEXTOS.appendChild(f);
+    setTimeout(function () { f.remove(); }, 1200);
+  }
+
+  function unidadEn(x, y) {
+    var best = null, bd = 1e9;
+    U.forEach(function (u) {
+      var dx = Math.abs(u.x - x), dy = Math.abs(u.y - y);
+      if (dx <= 36 && dy <= 28 && dx + dy < bd) { bd = dx + dy; best = u; }
+    });
+    return best;
+  }
+
+  function enemigoCerca(u, r) {
+    var best = null, bd = r;
+    U.forEach(function (v) {
+      if (v.bando === u.bando) return;
+      var d = Math.hypot(v.x - u.x, v.y - u.y);
+      if (d <= bd) { bd = d; best = v; }
+    });
+    return best;
+  }
+
+  function destruir(u) {
+    var i = U.indexOf(u); if (i >= 0) U.splice(i, 1);
+    var j = SEL.indexOf(u); if (j >= 0) SEL.splice(j, 1);
+    u.el.remove();
+    log(nombreDe(u) + ' queda destrozado.');
+  }
+
+  /* Choque entre dos regimientos: frente, flanco o espalda; la carga pega mas */
+  function combate(a, d, carga) {
+    if (U.indexOf(a) < 0 || U.indexOf(d) < 0) return;
+    var delante = d.bando === 'R' ? 1 : -1;
+    var rel = a.x - d.x;
+    var tipo;
+    if (rel * delante < 0) tipo = 'espalda';
+    else if (Math.abs(a.y - d.y) > Math.abs(rel) * 0.9) tipo = 'flanco';
+    else tipo = 'frente';
+    var mult = tipo === 'frente' ? 1 : (tipo === 'flanco' ? 1.7 : 2.2);
+    var dmg = Math.round((8 + Math.random() * 6) * mult * (carga ? 1.5 : 1));
+
+    /* El atacante se coloca en el punto desde el que golpea */
+    var lado = rel >= 0 ? 1 : -1;
+    var ox, oy;
+    if (tipo === 'frente') { ox = d.x + lado * 56; oy = d.y; }
+    else if (tipo === 'flanco') { ox = d.x + lado * 14; oy = d.y + (a.y >= d.y ? 1 : -1) * 54; }
+    else { ox = d.x - delante * 56; oy = d.y; }
+    ox = clamp(ox, 40, 804);
+    oy = clamp(oy, 62, 300);
+
+    linea(a.x, a.y, ox, oy, carga ? '#d9764a' : '#e9c063');
+    a.x = ox; a.y = oy;
+    a.estado = 'lista';
+    a.cansancio = Math.min(100, a.cansancio + 10);
+    pintar(a);
+
+    var etiq = (carga ? 'CARGA · ' : '') + (tipo === 'frente' ? 'FRENTE' : (tipo === 'flanco' ? 'FLANQUEO' : 'POR LA ESPALDA'));
+    var clase = tipo === 'flanco' ? 'oro' : (tipo === 'espalda' ? 'rojo' : '');
+    setTimeout(function () { impacto(a, d, dmg, tipo, carga, etiq, clase); }, 800);
+  }
+
+  function impacto(a, d, dmg, tipo, carga, etiq, clase) {
+    if (U.indexOf(d) < 0) return;
+    d.moral = Math.max(0, d.moral - dmg);
+    d.n = Math.max(0, d.n - Math.round(dmg * (d.tipo === 'elefantes' ? 0.15 : 2.4)));
+    if (U.indexOf(a) >= 0) a.moral = Math.max(0, a.moral - Math.round(dmg * 0.2));
+    d.el.classList.add('golpe');
+    setTimeout(function () { d.el.classList.remove('golpe'); }, 380);
+    flota((a.x + d.x) / 2, (a.y + d.y) / 2 - 36, etiq, clase);
+    flota(d.x, d.y - 28, '−' + dmg + ' moral', 'rojo');
+    var donde = tipo === 'frente' ? 'el frente' : (tipo === 'flanco' ? 'el flanco' : 'la espalda');
+    log(nombreDe(a) + (carga ? ' carga' : ' ataca') + ' a ' + nombreDe(d) + ' por ' + donde + '. Moral enemiga −' + dmg + '.');
+    if (d.moral < 25 && d.estado !== 'retirada') {
+      d.estado = 'retirada';
+      d.x = clamp(d.x + (d.bando === 'R' ? -90 : 90), 40, 804);
+      log(nombreDe(d) + ' se desbanda: moral rota.');
+    }
+    if (d.n <= 0) destruir(d);
+    pintarTodo();
+  }
+
+  function cargar() {
+    SEL.filter(function (u) { return TIPOS[u.tipo].carga; }).forEach(function (c, i) {
+      var en = enemigoCerca(c, 300);
+      if (!en) { log(nombreDe(c) + ': no hay enemigo al alcance.'); return; }
+      setTimeout(function () { combate(c, en, true); }, i * 200);
+    });
+  }
+
+  function atacarA(objetivo) {
+    var atacantes = SEL.slice();
+    atacantes.forEach(function (a, i) {
+      setTimeout(function () { combate(a, objetivo, false); }, i * 220);
+    });
+  }
+
+  function moverA(x, y) {
+    var g = SEL.slice();
+    marca(x, y, '#e9c063');
+    g.forEach(function (u, i) {
+      var nx = clamp(x, 40, 804);
+      var ny = clamp(y + (i - (g.length - 1) / 2) * 54, 62, 300);
+      linea(u.x, u.y, nx, ny, '#e9c063');
+      u.x = nx; u.y = ny;
+      u.estado = 'en marcha';
+      u.cansancio = Math.min(100, u.cansancio + 6);
+      setTimeout(function () {
+        if (u.estado === 'en marcha') u.estado = 'lista';
+        pintarTodo();
+      }, 900);
+    });
+    log(grupo() + (g.length > 1 ? ' se mueven' : ' se mueve') + ' al punto marcado.');
+  }
+
+  function ordenar(o) {
+    if (!SEL.length) return;
+    if (o === 'mover') { MODO = 'mover'; pista('Toca el campo: ahí irán. Toca el regimiento para cancelar.'); }
+    else if (o === 'atacar') { MODO = 'atacar'; pista('Toca un enemigo para atacarlo.'); }
+    else if (o === 'aguantar') {
+      SEL.forEach(function (u) { u.estado = 'aguanta'; });
+      log(grupo() + ' aguanta en su sitio.');
+    }
+    else if (o === 'relevar') {
+      SEL.forEach(function (u) {
+        u.estado = 'reserva';
+        u.cansancio = Math.max(0, u.cansancio - 45);
+        u.x = clamp(u.x + (u.bando === 'R' ? -70 : 70), 40, 804);
+      });
+      log(grupo() + ' pasa a la reserva y descansa.');
+    }
+    else if (o === 'cargar') {
+      if (!SEL.some(function (u) { return TIPOS[u.tipo].carga; })) log('Solo la caballería y los elefantes cargan.');
+      else cargar();
+    }
+    else if (o === 'retirar') {
+      SEL.forEach(function (u) {
+        u.estado = 'retirada';
+        u.moral = Math.max(0, u.moral - 4);
+        u.x = clamp(u.x + (u.bando === 'R' ? -110 : 110), 40, 804);
+      });
+      log(grupo() + ' se retira en orden.');
+    }
+    if (o !== 'mover' && o !== 'atacar') pistaSel();
+    pintarTodo();
+  }
+
+  /* Un toque en el campo: elige, da destino o marca enemigo */
+  function tocaCampo(x, y) {
+    var u = unidadEn(x, y);
+    if (MODO === 'mover') {
+      if (u && SEL.indexOf(u) >= 0) MODO = null;
+      else { moverA(x, y); MODO = null; }
+      pistaSel(); pintarTodo(); return;
+    }
+    if (MODO === 'atacar') {
+      if (u && SEL.length && u.bando !== SEL[0].bando) atacarA(u);
+      MODO = null;
+      pistaSel(); pintarTodo(); return;
+    }
+    if (u) {
+      if (VARIOS) {
+        var k = SEL.indexOf(u);
+        if (k >= 0) SEL.splice(k, 1);
+        else if (SEL.length && SEL[0].bando !== u.bando) SEL = [u];
+        else SEL.push(u);
+      } else {
+        SEL = [u];
+      }
+    } else {
+      SEL = [];
+    }
+    pistaSel(); pintarTodo();
+  }
+
+  /* Arranque */
+  function ajustar() {
+    var s = Math.min(window.innerWidth / 844, window.innerHeight / 390);
+    ESC.style.transform = 'translate(-50%,-50%) scale(' + s + ')';
+  }
+
+  ESC.addEventListener('click', function (ev) {
+    if (ev.target.closest && ev.target.closest('.ui')) return;
+    var r = ESC.getBoundingClientRect();
+    tocaCampo((ev.clientX - r.left) * 844 / r.width, (ev.clientY - r.top) * 390 / r.height);
+  });
+
+  Object.keys(ORDENES).forEach(function (k) {
+    var b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.o = k;
+    b.innerHTML = '<svg viewBox="0 0 24 24">' + ORDENES[k].ico + '</svg><span>' + ORDENES[k].t + '</span>';
+    MENU.appendChild(b);
+  });
+  MENU.addEventListener('click', function (ev) {
+    var b = ev.target.closest('button[data-o]');
+    if (!b) return;
+    ev.stopPropagation();
+    ordenar(b.dataset.o);
+  });
+
+  VARIOS_BTN.addEventListener('click', function () {
+    VARIOS = !VARIOS;
+    if (!VARIOS && SEL.length > 1) SEL = SEL.slice(0, 1);
+    pistaSel(); pintarTodo();
+  });
+
+  $('#seguir').addEventListener('click', function () {
+    $('#girar').classList.add('oculto');
+  });
+
+  DATOS.forEach(function (d) { U.push(crear(d)); });
+  log('Zama, 202 a.C. Roma avanza en dos líneas.');
+  log('Los elefantes cartagineses están en el centro.');
+  log('Los velites romanos cubren el flanco derecho.');
+
+  /* Pulso lento: los que aguantan ganan moral, los de reserva descansan */
+  setInterval(function () {
+    U.forEach(function (u) {
+      if (u.estado === 'aguanta') { u.moral = Math.min(95, u.moral + 1); u.cansancio = Math.min(100, u.cansancio + 2); }
+      else if (u.estado === 'reserva') { u.cansancio = Math.max(0, u.cansancio - 4); u.moral = Math.min(90, u.moral + 1); }
+      else { u.cansancio = Math.min(100, u.cansancio + 0.5); }
+    });
+    pintarTodo();
+  }, 1500);
+
+  pistaSel();
+  pintarTodo();
+  ajustar();
+  window.addEventListener('resize', ajustar);
+  window.addEventListener('orientationchange', ajustar);
+})();
+</script>
+</body>
+</html>

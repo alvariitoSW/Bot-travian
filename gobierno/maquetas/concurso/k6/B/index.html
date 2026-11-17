@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Concepto B · Miniaturas</title>
+<style>
+/* Concepto B · Miniaturas: figuras SVG en vista inclinada, órdenes en una tira abajo.
+   Maqueta sin red, sin librerías. Colores de E1-guia-de-arte. */
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terracota:#d9764a}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:var(--noche);color:var(--marmol);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;-webkit-user-select:none;user-select:none;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+body{position:fixed;inset:0}
+#campo{position:absolute;left:0;top:0;width:100%;height:100%;display:block}
+#top{position:absolute;left:0;right:0;top:0;height:46px;display:flex;align-items:center;gap:6px;padding:0 6px;background:linear-gradient(rgba(11,16,22,.94),rgba(11,16,22,.6));z-index:2}
+#titulo{flex:0 1 200px;min-width:0;font-size:12px;font-weight:700;color:var(--oro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#log{flex:1;min-width:0;font-size:12px;color:var(--marmol);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}
+.btn{flex:0 0 auto;min-height:44px;min-width:44px;padding:0 12px;display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--bronce);border-radius:8px;background:rgba(11,16,22,.9);color:var(--marmol);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.btn svg{width:16px;height:16px;flex:0 0 16px}
+.btn.on{background:var(--oro);border-color:var(--oro);color:var(--noche)}
+.btn.fuerte{background:var(--rojo);border-color:var(--rojo)}
+#tray{position:absolute;left:0;right:0;bottom:0;height:56px;display:flex;align-items:center;gap:4px;padding:4px 6px;background:rgba(11,16,22,.95);border-top:1px solid var(--bronce);z-index:2}
+#info{flex:0 0 232px;min-width:0;height:48px;display:flex;align-items:center;gap:8px;padding-left:4px}
+#info > div{min-width:0}
+#info .ico{flex:0 0 24px;width:24px;height:24px;color:var(--oro)}
+#info .t1{font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#info .t2{font-size:11px;line-height:1.3;color:var(--piedra);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ord{flex:1 1 0;min-width:0;height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;border:1px solid var(--bronce);border-radius:8px;background:rgba(11,16,22,.9);color:var(--marmol);font-family:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.ord svg{width:18px;height:18px}
+.ord.on{background:var(--oro);border-color:var(--oro);color:var(--noche)}
+button:focus-visible{outline:2px solid var(--oro);outline-offset:2px}
+#girar{position:fixed;inset:0;z-index:9;display:none;align-items:center;justify-content:center;padding:24px;text-align:center;background:var(--noche);color:var(--oro);font-size:16px;font-weight:700}
+</style>
+</head>
+<body>
+<svg id="campo" aria-label="Campo de batalla en miniatura">
+  <g id="suelo"></g>
+  <g id="lineas"></g>
+  <g id="uni"></g>
+  <g id="efectos"></g>
+</svg>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="gSuelo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1c2620"/>
+      <stop offset=".55" stop-color="#2b3626"/>
+      <stop offset="1" stop-color="#3a4431"/>
+    </linearGradient>
+
+    <!-- Infantería pesada: feet en y=0, mira hacia +x -->
+    <g id="f-inf">
+      <rect x="-2.2" y="-9" width="1.8" height="9" fill="#0b1016" opacity=".6"/>
+      <rect x="0.4" y="-9" width="1.8" height="9" fill="#0b1016" opacity=".6"/>
+      <path d="M-3.2-16H3.2V-8.6H-3.2Z" fill="currentColor"/>
+      <rect x="-3.2" y="-10" width="6.4" height="1.1" fill="#e9c063"/>
+      <circle cx="0" cy="-18" r="2.3" fill="#d9b99b"/>
+      <path d="M-2.6-18.2Q0-22.6 2.6-18.2Z" fill="#e9c063"/>
+      <path d="M-1.2-21.8Q0-24.6 1.4-21.6" fill="none" stroke="#f1ead9" stroke-width=".9"/>
+      <path d="M2.4-16Q8-15.2 7.4-10Q7-5.4 3.6-4Q1.4-7 2.4-16Z" fill="currentColor" stroke="#0b1016" stroke-width=".5"/>
+      <circle cx="4.8" cy="-10" r=".9" fill="#e9c063"/>
+      <path d="M-3-3L10-24" stroke="#f1ead9" stroke-width=".6"/>
+    </g>
+
+    <!-- Infantería ligera: sin casco, jabalinas -->
+    <g id="f-lig">
+      <rect x="-1.9" y="-8" width="1.5" height="8" fill="#0b1016" opacity=".55"/>
+      <rect x="0.4" y="-8" width="1.5" height="8" fill="#0b1016" opacity=".55"/>
+      <path d="M-2.6-14H2.6V-7.6H-2.6Z" fill="currentColor"/>
+      <circle cx="0" cy="-16.6" r="2.1" fill="#d9b99b"/>
+      <circle cx="4" cy="-11" r="2.6" fill="currentColor" stroke="#0b1016" stroke-width=".5"/>
+      <path d="M-4-2L8-24" stroke="#f1ead9" stroke-width=".5"/>
+    </g>
+
+    <!-- Jinete: caballo de lado y jinete -->
+    <g id="f-cab">
+      <path d="M-7-9Q-7-12-3.5-12H3Q6-12 7.6-10.2L9.6-9.4Q10.6-8.8 9.6-7.6L8.4-6.6Q7.2-3.8 4-3.8H-4Q-6.4-3.8-7-6Z" fill="#6b5a44"/>
+      <rect x="-6" y="-4" width="1.5" height="4" fill="#4a3d2e"/>
+      <rect x="-3" y="-4" width="1.5" height="4" fill="#4a3d2e"/>
+      <rect x="3" y="-4" width="1.5" height="4" fill="#4a3d2e"/>
+      <rect x="5.4" y="-4" width="1.5" height="4" fill="#4a3d2e"/>
+      <path d="M-3.4-12L-1.6-20H2.2L3-12Z" fill="currentColor"/>
+      <circle cx="0.4" cy="-22.4" r="2" fill="#d9b99b"/>
+      <path d="M-1.4-23.4Q0.4-26 2.2-23.4Z" fill="#e9c063"/>
+      <path d="M1-14L11-30" stroke="#f1ead9" stroke-width=".6"/>
+    </g>
+
+    <!-- Elefante con torre de combate -->
+    <g id="f-ele">
+      <ellipse cx="0" cy="-8" rx="8.5" ry="5.5" fill="currentColor"/>
+      <circle cx="7.6" cy="-11.5" r="3.6" fill="currentColor"/>
+      <path d="M10.4-10.6Q13.8-6.6 11.2-2.4" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/>
+      <path d="M9.4-8.4L13.2-6.6" stroke="#f1ead9" stroke-width=".9"/>
+      <rect x="-6.4" y="-3.4" width="2.4" height="3.4" fill="#4f5b68"/>
+      <rect x="-2" y="-3.4" width="2.4" height="3.4" fill="#4f5b68"/>
+      <rect x="3" y="-3.4" width="2.4" height="3.4" fill="#4f5b68"/>
+      <rect x="6.4" y="-3.4" width="2.2" height="3.4" fill="#4f5b68"/>
+      <rect x="-4.6" y="-15" width="7.4" height="2" fill="#b8862b"/>
+      <path d="M-4.6-15Q-1-20.5 2.8-15Z" fill="#b8862b"/>
+      <circle cx="-1" cy="-18.6" r="1.6" fill="#d9b99b"/>
+    </g>
+
+    <!-- Iconos de línea -->
+    <symbol id="ic-mover" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h13M13 6l6 6-6 6"/></symbol>
+    <symbol id="ic-atacar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19L17 7M13 5h6v6M9 15l-4 4"/></symbol>
+    <symbol id="ic-cargar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20L15 9M15 9V4l6 3-6 3"/></symbol>
+    <symbol id="ic-aguantar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></symbol>
+    <symbol id="ic-relevar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h12M13 5l3 3-3 3M20 16H8M11 13l-3 3 3 3"/></symbol>
+    <symbol id="ic-retirar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H7M11 6l-6 6 6 6"/></symbol>
+    <symbol id="ic-inf" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="2.5"/><path d="M8 21v-7a4 4 0 0 1 8 0v7"/></symbol>
+    <symbol id="ic-lig" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="2.2"/><path d="M8.5 21l1.5-8h4l1.5 8M5 12l3-2M19 12l-3-2"/></symbol>
+    <symbol id="ic-cab" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="6" r="2"/><path d="M6 19l2-6h4l2 3h4M9 19v0M11 13l-3-2 4-4M17 19v-3"/></symbol>
+    <symbol id="ic-ele" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17h16M5 17V10c0-2.5 3-4 7-4s7 1.5 7 4v7M15 13c2 0 3 2 2 5"/></symbol>
+    <symbol id="ic-play" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5l11 7-11 7z"/></symbol>
+    <symbol id="ic-pausa" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 5v14M16 5v14"/></symbol>
+  </defs>
+</svg>
+
+<header id="top">
+  <div id="titulo">Prueba · Roma contra Cartago</div>
+  <div id="log" aria-live="polite"></div>
+  <button class="btn" id="bVarios" type="button">Elegir: uno</button>
+  <button class="btn" id="bReinicio" type="button">Reiniciar</button>
+  <button class="btn fuerte" id="bMarcha" type="button"><svg viewBox="0 0 24 24"><use id="bMarchaUse" href="#ic-play"/></svg><span>Ejecutar</span></button>
+</header>
+
+<div id="tray">
+  <div id="info">
+    <svg class="ico" id="infoIco" viewBox="0 0 24 24" style="visibility:hidden"><use id="infoUse" href="#ic-inf"/></svg>
+    <div>
+      <div class="t1" id="t1">Toca un regimiento</div>
+      <div class="t2" id="t2">Luego, una orden de abajo.</div>
+    </div>
+  </div>
+  <button class="ord" type="button" data-k="mover"><svg viewBox="0 0 24 24"><use href="#ic-mover"/></svg><span>Mover</span></button>
+  <button class="ord" type="button" data-k="atacar"><svg viewBox="0 0 24 24"><use href="#ic-atacar"/></svg><span>Atacar</span></button>
+  <button class="ord" type="button" data-k="cargar"><svg viewBox="0 0 24 24"><use href="#ic-cargar"/></svg><span>Cargar</span></button>
+  <button class="ord" type="button" data-k="aguantar"><svg viewBox="0 0 24 24"><use href="#ic-aguantar"/></svg><span>Aguantar</span></button>
+  <button class="ord" type="button" data-k="relevar"><svg viewBox="0 0 24 24"><use href="#ic-relevar"/></svg><span>Relevar</span></button>
+  <button class="ord" type="button" data-k="retirar"><svg viewBox="0 0 24 24"><use href="#ic-retirar"/></svg><span>Retirarse</span></button>
+</div>
+
+<div id="girar">Gira el móvil a horizontal para jugar.</div>
+
+<script>
+(function(){
+'use strict';
+
+/* Tipos de regimiento. porFig: efectivos que representa cada figura. */
+const TIPOS = {
+  hastati:  {clase:'inf', vel:34, atq:1.0,  def:1.0,  max:120, porFig:20},
+  principes:{clase:'inf', vel:36, atq:1.1,  def:0.95, max:120, porFig:20},
+  triarii:  {clase:'inf', vel:28, atq:0.9,  def:1.3,  max:110, porFig:20},
+  velites:  {clase:'lig', vel:52, atq:0.45, def:0.7,  max:90,  porFig:15, rango:110, dano:4},
+  equites:  {clase:'cab', vel:92, atq:1.1,  def:0.9,  max:80,  porFig:20, carga:2.2},
+  libios:   {clase:'inf', vel:30, atq:1.0,  def:1.15, max:120, porFig:20},
+  hispanos: {clase:'inf', vel:42, atq:1.2,  def:0.9,  max:120, porFig:20},
+  honderos: {clase:'lig', vel:50, atq:0.45, def:0.7,  max:90,  porFig:15, rango:120, dano:4.5},
+  numidas:  {clase:'cab', vel:95, atq:0.95, def:0.85, max:80,  porFig:20, carga:1.6},
+  elefantes:{clase:'ele', vel:26, atq:1.8,  def:1.2,  max:40,  porFig:20, miedo:true}
+};
+
+/* Formación inicial: [bando, nombre, tipo, x, y]. Campo de 1000 x 600 unidades. */
+const FORMACION = [
+  ['R','Équites I','equites',90,130],
+  ['R','Triarios','triarii',90,295],
+  ['R','Équites II','equites',90,460],
+  ['R','Príncipes I','principes',200,130],
+  ['R','Príncipes II','principes',200,295],
+  ['R','Príncipes III','principes',200,460],
+  ['R','Hastati I','hastati',320,130],
+  ['R','Hastati II','hastati',320,295],
+  ['R','Hastati III','hastati',320,460],
+  ['R','Vélites I','velites',430,130],
+  ['R','Vélites II','velites',430,460],
+  ['C','Honderos','honderos',570,130],
+  ['C','Elefantes I','elefantes',570,295],
+  ['C','Elefantes II','elefantes',570,460],
+  ['C','Libios I','libios',680,130],
+  ['C','Libios II','libios',680,295],
+  ['C','Libios III','libios',680,460],
+  ['C','Hispanos I','hispanos',800,130],
+  ['C','Hispanos II','hispanos',800,295],
+  ['C','Hispanos III','hispanos',800,460],
+  ['C','Númidas I','numidas',910,130],
+  ['C','Númidas II','numidas',910,460],
+  ['C','Libios IV','libios',910,295]
+];
+
+/* Disposición de las figuras por clase. alto y k en unidades de dibujo. */
+const CAP = {
+  inf:{sym:'f-inf', cols:3, colW:12, rowH:10, max:6, alto:24, k:1},
+  lig:{sym:'f-lig', cols:3, colW:11, rowH:10, max:6, alto:24, k:1},
+  cab:{sym:'f-cab', cols:2, colW:17, rowH:13, max:4, alto:26, k:1},
+  ele:{sym:'f-ele', cols:2, colW:22, rowH:0,  max:2, alto:30, k:1.35}
+};
+
+const AYUDA = {
+  mover:'Toca el terreno adonde deben ir.',
+  atacar:'Toca un enemigo para atacarlo, o el terreno para avanzar.',
+  cargar:'Toca un enemigo o el terreno: la caballería carga.',
+  relevar:'Toca el regimiento amigo que ocupa su lugar.'
+};
+const NOMBRE_LADO = {R:'Roma', C:'Cartago'};
+const CONTACTO = 60;
+
+const svg = document.getElementById('campo');
+const elSuelo = document.getElementById('suelo');
+const elLineas = document.getElementById('lineas');
+const elUni = document.getElementById('uni');
+const elEfectos = document.getElementById('efectos');
+const elLog = document.getElementById('log');
+const bVarios = document.getElementById('bVarios');
+const bReinicio = document.getElementById('bReinicio');
+const bMarcha = document.getElementById('bMarcha');
+const bMarchaUse = document.getElementById('bMarchaUse');
+const infoIco = document.getElementById('infoIco');
+const infoUse = document.getElementById('infoUse');
+const t1El = document.getElementById('t1');
+const t2El = document.getElementById('t2');
+const girar = document.getElementById('girar');
+
+let W = 844, H = 390, PX = 24, PY = 62, KX = 0.8, KY = 0.43;
+let U = [], sel = [], efectos = [], pendiente = null, varios = false, marcha = false, ganador = null, tiempoIA = 1.5;
+
+/* ---------- Utilidades ---------- */
+function sxy(gx, gy){ return [PX + gx*KX, PY + gy*KY]; }
+function escala(gy){ return 0.85 + 0.35*(gy/600); }
+function hyp(a, b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+function clamp(v, a, b){ return Math.max(a, Math.min(b, v)); }
+function norm(a){ while(a > Math.PI) a -= 2*Math.PI; while(a < -Math.PI) a += 2*Math.PI; return a; }
+function fdir(u){ return u.lado === 'R' ? 0 : Math.PI; }
+/* 1 de frente, 1.3 de costado, 1.6 por la espalda */
+function flanqueo(a, d){
+  const ang = Math.atan2(a.y-d.y, a.x-d.x);
+  const dif = Math.abs(norm(ang - fdir(d)));
+  if (dif < Math.PI/3) return 1;
+  if (dif < 2*Math.PI/3) return 1.3;
+  return 1.6;
+}
+function cercano(u, pred){
+  let best = null, bd = Infinity;
+  for (const v of U){
+    if (v.fuera || v.huye || v.lado === u.lado) continue;
+    if (pred && !pred(v)) continue;
+    const d = hyp(u, v);
+    if (d < bd){ bd = d; best = v; }
+  }
+  return best ? {u:best, d:bd} : null;
+}
+function avisa(t){ elLog.textContent = t; }
+function efecto(u, t, c){ efectos.push({x:u.x, y:u.y, t:t, c:c || '#e9c063', vida:1.6}); }
+function moverHacia(u, x, y, paso){
+  const dx = x-u.x, dy = y-u.y, d = Math.hypot(dx, dy);
+  if (d <= paso){ u.x = x; u.y = y; return true; }
+  u.x += dx/d*paso; u.y += dy/d*paso;
+  return false;
+}
+function dejar(v){ v.enc = null; v.obj = null; v.dest = null; v.cargando = false; }
+
+function crear(f, i){
+  const t = TIPOS[f[2]];
+  return {id:i, lado:f[0], nombre:f[1], tipo:f[2], clase:t.clase, t:t, max:t.max,
+    hombres:t.max, moral:90, cansancio:0, x:f[3], y:f[4],
+    orden:null, dest:null, obj:null, enc:null,
+    huye:false, fuera:false, cargando:false, enMarcha:false, flanqT:0, rodeado:false};
+}
+
+/* ---------- Combate ---------- */
+function golpe(a, d, dt){
+  const fl = flanqueo(a, d);
+  const fuerza = a.t.atq * (0.5 + 0.5*a.moral/100) * Math.sqrt(a.hombres/a.max) * (a.cansancio > 70 ? 0.8 : 1);
+  const defensa = d.t.def * (d.orden === 'aguantar' ? 1.25 : 1) * (d.cansancio > 70 ? 0.85 : 1) * (0.6 + 0.4*d.moral/100);
+  const bajas = 3.5 * fuerza * fl / defensa * dt;
+  d.hombres = Math.max(0, d.hombres - bajas);
+  d.moral -= (bajas/d.max)*35;
+  if (fl > 1){
+    d.moral -= (fl-1)*6*dt;
+    if (d.flanqT <= 0){
+      d.flanqT = 4;
+      efecto(d, fl > 1.5 ? '¡Por la espalda!' : '¡Flanqueo!', '#d9764a');
+      avisa(a.nombre + ' flanquea a ' + d.nombre + ': cae su moral.');
+    }
+  }
+}
+
+function cargaImpacto(a, d){
+  const fl = flanqueo(a, d);
+  const choque = 10 * (a.t.carga || 1.5) * fl;
+  d.moral -= choque;
+  d.hombres = Math.max(0, d.hombres - 0.03*d.max*fl);
+  a.cansancio = Math.min(100, a.cansancio + 10);
+  efecto(d, '¡Carga!', '#e9c063');
+  avisa(a.nombre + ' carga a ' + d.nombre + ': moral −' + Math.round(choque) + (fl > 1 ? ' (por el flanco)' : '') + '.');
+}
+
+function rout(u){
+  u.huye = true; u.enc = null; u.obj = null; u.cargando = false; u.orden = 'huye';
+  u.dest = {x: u.lado === 'R' ? -10 : 1010, y: u.y};
+  efecto(u, '¡Huye!', '#d9764a');
+  avisa(u.nombre + ' huye. Sus compañeros pierden moral.');
+  for (const v of U){
+    if (v === u || v.fuera || v.huye || v.lado !== u.lado) continue;
+    if (hyp(u, v) < 160) v.moral = clamp(v.moral - 10, 0, 100);
+  }
+}
+
+/* Un paso de simulación de dt segundos */
+function paso(dt){
+  tiempoIA -= dt;
+  if (tiempoIA <= 0){ tiempoIA = 2.5; ia(); }
+
+  /* 1. Soltar combates con quien ya no está o se ha alejado */
+  for (const u of U){
+    if (u.fuera || u.huye || !u.enc) continue;
+    if (u.enc.fuera || u.enc.huye || hyp(u, u.enc) > CONTACTO*1.6) u.enc = null;
+  }
+
+  /* 2. Enganches: el que llega a contacto lucha, y el enemigo le responde */
+  for (const u of U){
+    if (u.fuera || u.huye || u.enc) continue;
+    if (u.orden === 'atacar' && u.obj && !u.obj.fuera && !u.obj.huye && hyp(u, u.obj) <= CONTACTO){
+      u.enc = u.obj;
+    } else if (!u.orden || u.orden === 'aguantar'){
+      const n = cercano(u);
+      if (n && n.d <= CONTACTO) u.enc = n.u;
+    }
+  }
+  for (const u of U){
+    if (u.fuera || u.huye || !u.enc) continue;
+    if (!u.enc.enc && !u.enc.huye) u.enc.enc = u;
+    if (u.cargando){ cargaImpacto(u, u.enc); u.cargando = false; }
+  }
+
+  /* 3. Movimiento (los que luchan no se mueven) */
+  for (const u of U){
+    if (u.fuera) continue;
+    if (u.huye){
+      moverHacia(u, u.dest.x, u.dest.y, u.t.vel*1.3*dt);
+      if (u.x <= -5 || u.x >= 1005){ u.fuera = true; avisa(u.nombre + ' sale del campo.'); }
+      continue;
+    }
+    u.enMarcha = false;
+    if (u.enc) continue;
+    const vel = u.t.vel * (u.cansancio > 70 ? 0.8 : 1) * (u.cargando ? 1.7 : 1) * dt;
+    if (u.orden === 'mover' && u.dest){
+      u.enMarcha = true;
+      if (moverHacia(u, u.dest.x, u.dest.y, vel)){ u.orden = null; u.dest = null; u.cargando = false; }
+    } else if (u.orden === 'atacar' && u.obj){
+      if (u.obj.fuera || u.obj.huye){ u.orden = null; u.obj = null; u.cargando = false; }
+      else { u.enMarcha = true; moverHacia(u, u.obj.x, u.obj.y, vel); }
+    }
+  }
+
+  /* 4. Golpes cuerpo a cuerpo */
+  for (const u of U){
+    if (u.fuera || u.huye || !u.enc) continue;
+    golpe(u, u.enc, dt);
+    if (u.t.miedo && u.enc.clase !== 'ele') u.enc.moral -= 5*dt;
+  }
+
+  /* 4b. Disparo de velites y honderos a distancia */
+  for (const u of U){
+    if (!u.t.rango || u.fuera || u.huye || u.enc) continue;
+    const n = cercano(u, v => hyp(u, v) <= u.t.rango);
+    if (!n) continue;
+    n.u.hombres = Math.max(0, n.u.hombres - u.t.dano*dt*(u.hombres/u.max)/n.u.t.def);
+    n.u.moral -= 0.6*dt;
+  }
+
+  /* 5. Moral, cansancio, huida y bajas */
+  for (const u of U){
+    if (u.fuera) continue;
+    if (u.hombres <= 0.5){
+      u.fuera = true; u.enc = null;
+      efecto(u, '¡Destruido!', '#d9764a');
+      avisa(u.nombre + ' queda destruido.');
+      continue;
+    }
+    if (u.huye) continue;
+    u.flanqT = Math.max(0, u.flanqT - dt);
+    const combate = !!u.enc;
+    u.cansancio = clamp(u.cansancio + (combate || u.enMarcha ? 3*dt : -2*dt), 0, 100);
+    if (!combate && u.flanqT <= 0) u.moral += (u.cansancio > 70 ? 0.8 : 2)*dt;
+    u.moral = clamp(u.moral, 0, 100);
+    const atac = U.filter(v => v.enc === u && !v.fuera && !v.huye);
+    u.rodeado = atac.length >= 2 && atac.some(v => flanqueo(v, u) > 1);
+    if (u.moral <= 12 || u.hombres <= 0.2*u.max) rout(u);
+  }
+
+  for (const e of efectos) e.vida -= dt;
+  efectos = efectos.filter(e => e.vida > 0);
+
+  /* Fin de la prueba */
+  if (!ganador){
+    const r = U.some(u => u.lado === 'R' && !u.fuera && !u.huye);
+    const c = U.some(u => u.lado === 'C' && !u.fuera && !u.huye);
+    if (!r || !c){
+      ganador = r ? 'Roma' : (c ? 'Cartago' : 'Empate');
+      marcha = false;
+      avisa('Fin de la prueba: gana ' + ganador + '. Toca Nueva para repetir.');
+      pintarBotones();
+    }
+  }
+}
+
+/* Cartago decide solo: cada poco tiempo busca al enemigo más cercano */
+function ia(){
+  for (const u of U){
+    if (u.lado !== 'C' || u.fuera || u.huye || u.enc) continue;
+    if (u.orden === 'mover') continue;
+    if (u.orden === 'atacar' && u.obj && !u.obj.fuera && !u.obj.huye) continue;
+    const n = cercano(u);
+    if (!n) continue;
+    if (u.moral < 30 && Math.random() < 0.4) continue;
+    u.orden = 'atacar'; u.obj = n.u; u.dest = null; u.cargando = (u.clase === 'cab');
+  }
+}
+
+/* ---------- Órdenes ---------- */
+function moverA(lista, x, y, carga){
+  lista.forEach((v, i) => {
+    dejar(v);
+    const off = (i - (lista.length-1)/2) * 36;
+    v.orden = 'mover';
+    v.dest = {x: clamp(x, 20, 980), y: clamp(y + off, 20, 580)};
+    v.cargando = !!carga && v.clase === 'cab';
+  });
+}
+
+function intercambiar(A, B){
+  const ax = A.x, ay = A.y, bx = B.x, by = B.y;
+  dejar(A); dejar(B);
+  A.orden = 'mover'; A.dest = {x: bx, y: by};
+  B.orden = 'mover'; B.dest = {x: ax, y: ay};
+  A.cansancio = Math.max(0, A.cansancio - 10);
+}
+
+/* Botones de la tira de abajo */
+function orden(k){
+  const mias = sel.filter(v => v.lado === 'R' && !v.fuera);
+  if (!mias.length){ pendiente = null; avisa('Primero elige un regimiento romano.'); pintarBotones(); return; }
+  if (k === 'aguantar'){
+    pendiente = null;
+    mias.forEach(v => { v.orden = 'aguantar'; v.dest = null; v.obj = null; v.cargando = false; });
+    avisa('Aguantan: no avanzan y resisten mejor.');
+  } else if (k === 'retirar'){
+    pendiente = null;
+    mias.forEach(v => { dejar(v); v.orden = 'mover'; v.dest = {x: 20, y: v.y}; });
+    avisa('Se retiran hacia su borde.');
+  } else if (k === 'cargar' && !mias.some(v => v.clase === 'cab')){
+    pendiente = null; avisa('Solo la caballería carga. Elige un jinete.');
+  } else if (k === 'relevar' && mias.length !== 1){
+    pendiente = null; avisa('Relevo: elige un solo regimiento.');
+  } else if (pendiente === k){
+    pendiente = null; avisa('Orden cancelada.');
+  } else {
+    pendiente = k; avisa(AYUDA[k]);
+  }
+  pintarBotones();
+}
+
+/* Segundo toque, tras elegir una orden que necesita sitio o enemigo */
+function alObjetivo(p, u){
+  const k = pendiente;
+  const gx = (p.x-PX)/KX, gy = (p.y-PY)/KY;
+  const mias = sel.filter(v => v.lado === 'R' && !v.fuera);
+  if (!mias.length){ pendiente = null; avisa('Primero elige un regimiento romano.'); pintarBotones(); return; }
+  if (k === 'relevar'){
+    if (!u || u.lado !== 'R' || mias.includes(u)){ avisa('Relevo: toca otro regimiento romano.'); return; }
+    intercambiar(mias[0], u);
+    avisa(mias[0].nombre + ' se retira del frente y entra ' + u.nombre + '.');
+  } else {
+    let lista = mias;
+    const carga = k === 'cargar';
+    if (carga){
+      lista = mias.filter(v => v.clase === 'cab');
+      if (!lista.length){ pendiente = null; avisa('Solo la caballería carga.'); pintarBotones(); return; }
+    }
+    if (u && u.lado === 'C' && k !== 'mover'){
+      lista.forEach(v => { dejar(v); v.orden = 'atacar'; v.obj = u; v.cargando = carga; });
+      avisa((carga ? 'Carga' : 'Ataque') + ' contra ' + u.nombre + '.');
+    } else {
+      const x = u ? u.x : clamp(gx, 20, 980);
+      const y = u ? u.y : clamp(gy, 20, 580);
+      moverA(lista, x, y, carga);
+      avisa(carga ? 'La caballería carga hacia allí.' : 'Avanzan hacia el punto marcado.');
+    }
+  }
+  pendiente = null;
+  pintarBotones();
+}
+
+function unidadEn(x, y){
+  let best = null, bd = 42;
+  for (const u of U){
+    if (u.fuera) continue;
+    const p = sxy(u.x, u.y);
+    const d = Math.hypot(p[0]-x, (p[1]-12)-y);
+    if (d < bd){ bd = d; best = u; }
+  }
+  return best;
+}
+
+function aSvg(ev){
+  const r = svg.getBoundingClientRect();
+  return {x: (ev.clientX - r.left) * W / r.width, y: (ev.clientY - r.top) * H / r.height};
+}
+
+svg.addEventListener('click', ev => {
+  const p = aSvg(ev);
+  const u = unidadEn(p.x, p.y);
+  if (pendiente){ alObjetivo(p, u); return; }
+  if (u){
+    if (varios){
+      const i = sel.indexOf(u);
+      if (i >= 0) sel.splice(i, 1); else sel.push(u);
+    } else {
+      sel = [u];
+    }
+    avisa(u.lado === 'C'
+      ? 'Enemigo: solo se mira. Elige uno de los tuyos para darle órdenes.'
+      : 'Elegido: ' + u.nombre + '. Toca una orden de abajo.');
+  } else if (!varios){
+    sel = [];
+    avisa('Toca un regimiento; luego, una orden.');
+  }
+  pintarBotones();
+});
+
+document.querySelectorAll('.ord').forEach(b => b.addEventListener('click', () => orden(b.dataset.k)));
+
+bVarios.addEventListener('click', () => {
+  varios = !varios;
+  if (!varios && sel.length > 1) sel = sel.slice(0, 1);
+  pintarBotones();
+});
+
+bReinicio.addEventListener('click', () => reiniciar());
+
+bMarcha.addEventListener('click', () => {
+  if (ganador){ reiniciar(); return; }
+  marcha = !marcha;
+  avisa(marcha
+    ? 'La batalla corre. Puedes dar órdenes en cualquier momento.'
+    : 'Pausa. Elige regimientos y órdenes con calma.');
+  pintarBotones();
+});
+
+function reiniciar(){
+  U = FORMACION.map(crear);
+  sel = []; efectos = []; pendiente = null; marcha = false; ganador = null; tiempoIA = 1.5;
+  avisa('Toca un regimiento; luego, una orden. Ejecutar pone la batalla en marcha.');
+  pintarBotones();
+}
+
+function pintarBotones(){
+  document.querySelectorAll('.ord').forEach(b => b.classList.toggle('on', b.dataset.k === pendiente));
+  bVarios.classList.toggle('on', varios);
+  bVarios.textContent = 'Elegir: ' + (varios ? 'varios' : 'uno');
+  bMarchaUse.setAttribute('href', marcha ? '#ic-pausa' : '#ic-play');
+  bMarcha.querySelector('span').textContent = ganador ? 'Nueva' : (marcha ? 'Pausa' : 'Ejecutar');
+}
+
+function pintarInfo(){
+  sel = sel.filter(u => !u.fuera);
+  if (!sel.length){
+    infoIco.style.visibility = 'hidden';
+    t1El.textContent = 'Toca un regimiento';
+    t2El.textContent = 'Luego, una orden de abajo.';
+    return;
+  }
+  infoIco.style.visibility = 'visible';
+  if (sel.length === 1){
+    const u = sel[0];
+    const estado = [u.huye ? 'huye' : '', u.rodeado ? 'rodeado' : '', u.cansancio > 70 ? 'cansado' : ''].filter(Boolean).join(', ');
+    t1El.textContent = u.nombre + ' · ' + NOMBRE_LADO[u.lado];
+    t2El.textContent = Math.round(u.hombres) + ' efectivos · moral ' + Math.round(u.moral) + (estado ? ' · ' + estado : '');
+    infoUse.setAttribute('href', '#ic-' + u.clase);
+  } else {
+    t1El.textContent = sel.length + ' regimientos elegidos';
+    t2El.textContent = 'Toca una orden de abajo.';
+    infoUse.setAttribute('href', '#ic-mover');
+  }
+}
+
+/* ---------- Dibujo ---------- */
+function dibujarSuelo(){
+  const x0 = PX, y0 = PY, x1 = PX + 1000*KX, y1 = PY + 600*KY;
+  let g = '<rect x="' + (x0+5) + '" y="' + (y0+7) + '" width="' + (x1-x0) + '" height="' + (y1-y0) + '" rx="8" fill="#000" opacity=".55"/>';
+  g += '<rect x="' + x0 + '" y="' + y0 + '" width="' + (x1-x0) + '" height="' + (y1-y0) + '" rx="8" fill="url(#gSuelo)" stroke="#b8862b" stroke-width="2"/>';
+  let semilla = 7;
+  const rnd = () => (semilla = (semilla*16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < 70; i++){
+    const x = x0 + 6 + rnd()*(x1-x0-12), y = y0 + 6 + rnd()*(y1-y0-12);
+    g += '<circle cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" r="' + (0.8 + rnd()*1.6).toFixed(1) + '" fill="#e9c063" opacity="' + (0.04 + rnd()*0.06).toFixed(3) + '"/>';
+  }
+  for (let gx = 100; gx < 1000; gx += 100){
+    g += '<line x1="' + (PX+gx*KX).toFixed(1) + '" y1="' + y0 + '" x2="' + (PX+gx*KX).toFixed(1) + '" y2="' + y1 + '" stroke="#e9c063" stroke-opacity=".08"/>';
+  }
+  for (let gy = 100; gy < 600; gy += 100){
+    g += '<line x1="' + x0 + '" y1="' + (PY+gy*KY).toFixed(1) + '" x2="' + x1 + '" y2="' + (PY+gy*KY).toFixed(1) + '" stroke="#e9c063" stroke-opacity=".08"/>';
+  }
+  g += '<line x1="' + (PX+500*KX).toFixed(1) + '" y1="' + (y0+4) + '" x2="' + (PX+500*KX).toFixed(1) + '" y2="' + (y1-4) + '" stroke="#f1ead9" stroke-opacity=".22" stroke-dasharray="6 6"/>';
+  g += '<text x="' + (x0+12) + '" y="' + (y1-8) + '" font-size="11" font-weight="700" fill="#e9c063" fill-opacity=".75">ROMA</text>';
+  g += '<text x="' + (x1-12) + '" y="' + (y1-8) + '" text-anchor="end" font-size="11" font-weight="700" fill="#9aa6b4">CARTAGO</text>';
+  elSuelo.innerHTML = g;
+}
+
+/* Un regimiento: bloque de figuras, sombra, plaqueta con nombre, cifra, estado y moral */
+function unidad(u){
+  const p = sxy(u.x, u.y), cx = p[0], cy = p[1];
+  const s = escala(u.y);
+  const A = CAP[u.clase];
+  const n = Math.min(A.max, Math.max(1, Math.ceil(u.hombres / u.t.porFig)));
+  const filas = Math.ceil(n / A.cols);
+  const flip = u.lado === 'R' ? 1 : -1;
+  const color = u.lado === 'R' ? '#c0281f' : (u.clase === 'ele' ? '#8a96a5' : '#9aa6b4');
+  const ancho = A.cols * A.colW * s;
+  const topB = cy + 6 - (filas-1) * A.rowH * s - A.alto * s;
+  const marcado = sel.includes(u);
+  let g = '';
+  g += '<ellipse cx="' + cx.toFixed(1) + '" cy="' + (cy+7).toFixed(1) + '" rx="' + (ancho/2+4).toFixed(1) + '" ry="' + (4*s).toFixed(1) + '" fill="#000" opacity=".35"/>';
+  if (marcado){
+    g += '<rect x="' + (cx-ancho/2-7).toFixed(1) + '" y="' + (topB-5).toFixed(1) + '" width="' + (ancho+14).toFixed(1) + '" height="' + (cy+12-topB+5).toFixed(1) + '" rx="7" fill="#e9c063" fill-opacity=".1" stroke="#e9c063" stroke-width="2"/>';
+  }
+  for (let i = n-1; i >= 0; i--){
+    const c = i % A.cols, r = Math.floor(i / A.cols);
+    const fx = cx + (c - (A.cols-1)/2) * A.colW * s;
+    const fy = cy + 6 - r * A.rowH * s;
+    g += '<use href="#' + A.sym + '" color="' + color + '" transform="translate(' + fx.toFixed(1) + ' ' + fy.toFixed(1) + ') scale(' + (s*flip*A.k).toFixed(3) + ' ' + (s*A.k).toFixed(3) + ')"/>';
+  }
+
+  const flag = u.huye ? 'huye' : u.rodeado ? 'rodeado' : u.cansancio > 70 ? 'cansado' : u.cargando ? 'carga' : u.enc ? 'lucha' : '';
+  const fcol = (u.huye || u.rodeado || u.cansancio > 70) ? '#d9764a' : (u.cargando ? '#e9c063' : '#9aa6b4');
+  const linea2 = Math.round(u.hombres) + (flag ? ' · ' + flag : '');
+  const w = Math.max(74, Math.max(u.nombre.length, linea2.length) * 6.3 + 12);
+  const px = cx - w/2, py = topB - 32;
+  const mc = u.moral > 60 ? '#8fae5a' : (u.moral > 30 ? '#e9c063' : '#d9764a');
+  g += '<rect x="' + px.toFixed(1) + '" y="' + py.toFixed(1) + '" width="' + w.toFixed(1) + '" height="30" rx="5" fill="#0b1016" fill-opacity=".88" stroke="' + (marcado ? '#e9c063' : '#b8862b') + '" stroke-width="' + (marcado ? 1.6 : 1) + '"/>';
+  g += '<text x="' + cx.toFixed(1) + '" y="' + (py+12.5).toFixed(1) + '" text-anchor="middle" font-size="11" font-weight="700" fill="#f1ead9">' + u.nombre + '</text>';
+  g += '<text x="' + cx.toFixed(1) + '" y="' + (py+24).toFixed(1) + '" text-anchor="middle" font-size="11" fill="#9aa6b4">' + Math.round(u.hombres) + (flag ? ' · <tspan fill="' + fcol + '">' + flag + '</tspan>' : '') + '</text>';
+  g += '<rect x="' + (px+5).toFixed(1) + '" y="' + (py+26.5).toFixed(1) + '" width="' + ((w-10)*u.moral/100).toFixed(1) + '" height="2" fill="' + mc + '"/>';
+  return g;
+}
+
+function pintar(){
+  let lin = '';
+  for (const u of U){
+    if (u.fuera) continue;
+    const p = sxy(u.x, u.y), cx = p[0], cy = p[1];
+    if (u.enc){
+      const q = sxy(u.enc.x, u.enc.y);
+      lin += '<line x1="' + cx.toFixed(1) + '" y1="' + (cy-10).toFixed(1) + '" x2="' + q[0].toFixed(1) + '" y2="' + (q[1]-10).toFixed(1) + '" stroke="#c0281f" stroke-width="2" stroke-dasharray="3 3" opacity=".85"/>';
+    }
+    if (sel.includes(u) && (u.dest || u.obj)){
+      const t = u.obj ? sxy(u.obj.x, u.obj.y) : sxy(u.dest.x, u.dest.y);
+      lin += '<line x1="' + cx.toFixed(1) + '" y1="' + (cy-10).toFixed(1) + '" x2="' + t[0].toFixed(1) + '" y2="' + t[1].toFixed(1) + '" stroke="#e9c063" stroke-width="1.6" stroke-dasharray="5 4"/>';
+      if (u.dest && !u.obj) lin += '<circle cx="' + t[0].toFixed(1) + '" cy="' + t[1].toFixed(1) + '" r="5" fill="none" stroke="#e9c063" stroke-width="1.6"/>';
+    }
+  }
+  const vivos = U.filter(u => !u.fuera).sort((a, b) => a.y - b.y);
+  elLineas.innerHTML = lin;
+  elUni.innerHTML = vivos.map(unidad).join('');
+  elEfectos.innerHTML = efectos.map(e => {
+    const q = sxy(e.x, e.y);
+    const y = q[1] - 44 - (1.6 - e.vida)*16;
+    const op = clamp(e.vida/0.6, 0, 1).toFixed(2);
+    return '<text x="' + q[0].toFixed(1) + '" y="' + y.toFixed(1) + '" text-anchor="middle" font-size="13" font-weight="700" fill="' + e.c + '" stroke="#0b1016" stroke-width="3" paint-order="stroke" opacity="' + op + '">' + e.t + '</text>';
+  }).join('');
+}
+
+function medir(){
+  W = window.innerWidth; H = window.innerHeight;
+  PX = 24; PY = 62;
+  KX = (W - 48) / 1000;
+  KY = Math.max(0.2, (H - 132) / 600);
+  svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  girar.style.display = W < H ? 'flex' : 'none';
+  dibujarSuelo();
+}
+
+let ultimo = performance.now();
+function bucle(ahora){
+  const dt = Math.min(0.1, (ahora - ultimo) / 1000);
+  ultimo = ahora;
+  if (marcha && !ganador) paso(dt);
+  pintar();
+  pintarInfo();
+  requestAnimationFrame(bucle);
+}
+
+window.addEventListener('resize', medir);
+medir();
+reiniciar();
+requestAnimationFrame(bucle);
+})();
+</script>
+</body>
+</html>
