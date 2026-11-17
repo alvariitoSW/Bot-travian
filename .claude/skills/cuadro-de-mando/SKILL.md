@@ -48,6 +48,13 @@ Es una **sesión fija**, «AQVILA · vigía del cuadro (sesión fija 2)» (cread
 | `capturas` | Abrir una sesión Sonnet que pase los jueces completos, mire las capturas y publique el cuadro. |
 | `informe` | Informe «¿a dónde vamos?» (skill `bitacora`) en `gobierno/estudios/`, añadido a `informes` de `cuadro.json`. |
 
+## Antes de archivar una sesión (regla del 17/11)
+El 17/11 se cerró la sesión del Consejo, abierta por el usuario a mano, y él preguntó por qué y si quedaba algo. Para que no se repita, valga para la orden `limpiar` y para cualquier «cierra las acabadas» dicho en un chat:
+1. **Nunca** se archiva una sesión que abrió el usuario a mano (en la lista sale con origen `android`, `web` o `ios`, sin sesión madre), ni la del vigía, ni la propia. Esas las cierra él.
+2. No se archiva una sesión cuyo documento en `sesiones` diga `estado: "esperando"` o tenga `pendiente`, ni una cuyo último resumen pida algo al usuario o diga que queda algo sin subir.
+3. Cada sesión, al acabar un turno con algo por hacer, lo escribe en su documento de `sesiones`: `pendiente` (una frase) y `actualizado`. Si no queda nada, `estado: "terminada"` y sin `pendiente`. Un documento con más de un día sin tocar no dice nada: se mira el último mensaje de la sesión.
+4. Quien archiva apunta en la bitácora, en una línea, qué sesiones cerró. Si luego falta algo, se sabe quién y cuándo.
+
 ## Sesiones abiertas (colección `sesiones` del Artifact)
 La página pinta en vivo la colección `sesiones`: un documento por sesión de AQVILA sin archivar, con id = id de la sesión y `{titulo, estado, hace, url, actualizado}`; `estado` es `trabajando`, `esperando` (pide algo al usuario) o `terminada`; `hace` es una frase llana. La escribe el vigía en cada pasada y cualquier sesión que abra o cierre otra. Si la colección está vacía, la página enseña `sesiones` de `cuadro.json`.
 

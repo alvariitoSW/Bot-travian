@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<title>MR3 · Menú principal (maqueta)</title>
+<link rel="stylesheet" href="romano.css"><link rel="stylesheet" href="principal.css">
+<style>body.todas { display: flex; flex-wrap: wrap; gap: 16px; padding: 16px; } body.todas .pantalla { flex: none; } .pantalla.cine::after { z-index: 3; }</style>
+</head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+  <linearGradient id="g-bronce" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0bd"/><stop offset=".35" stop-color="#e9c063"/><stop offset=".7" stop-color="#a8781f"/><stop offset="1" stop-color="#6b4a12"/></linearGradient>
+  <radialGradient id="g-cera" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#e0614a"/><stop offset=".45" stop-color="#a3231a"/><stop offset="1" stop-color="#5e0f09"/></radialGradient>
+  <!-- águila de legión dibujada para AQVILA: alas alzadas sobre la barra, corona de laurel y asta -->
+  <symbol id="i-aguila" viewBox="0 0 100 100">
+    <g fill="url(#g-bronce)" stroke="#3a2405" stroke-width="1" stroke-linejoin="round">
+      <path id="ala" d="M45 47C40 36 30 22 14 8c1 6 3 9 6 12l-8-1c4 4 7 7 11 8l-8 1c5 4 9 6 14 6l-7 3c5 2 10 3 14 2l-5 4c4 1 8 1 12 0l-3 4c3 1 6 1 9 0z"/>
+      <use href="#ala" transform="matrix(-1 0 0 1 100 0)"/>
+      <path d="M42 62l8 13 8-13c-3 2-5 3-8 3s-5-1-8-3z"/>
+      <path d="M40 44c0-6 4-9 10-9s10 3 10 9l-4 15c-1 3-3 5-6 5s-5-2-6-5z"/>
+      <path d="M46 34c0-5 3-8 6-8 3 0 5 1 6 3 3 0 5 1 6 3-2 0-3 0-4 1l-1 2c-1 3-3 4-6 4-4 0-7-2-7-5z"/><path d="M64 32c0 2-1 3-2 4" fill="none"/>
+      <path d="M44 66l-2 8M56 66l2 8" fill="none" stroke-width="2"/>
+      <rect x="30" y="74" width="40" height="5" rx="1"/>
+      <rect x="48" y="79" width="4" height="21"/>
+    </g>
+    <g fill="none" stroke="#3a2405" stroke-width=".7"><path d="M46 46q4 3 8 0M46 51q4 3 8 0M46 56q4 3 8 0"/></g>
+    <circle cx="55.5" cy="30.5" r="1.1" fill="#2a1a06"/>
+    <g fill="#5f7d2d" stroke="#2f4214" stroke-width=".5">
+      <ellipse cx="38" cy="86" rx="2" ry="4.5" transform="rotate(-50 38 86)"/><ellipse cx="42" cy="91" rx="2" ry="4.5" transform="rotate(-25 42 91)"/>
+      <ellipse cx="62" cy="86" rx="2" ry="4.5" transform="rotate(50 62 86)"/><ellipse cx="58" cy="91" rx="2" ry="4.5" transform="rotate(25 58 91)"/>
+    </g>
+  </symbol>
+  <symbol id="i-cera" viewBox="0 0 40 40"><path d="M20 1.5c3 0 4.5 2 7 2.6 2.7.6 5.5-.4 7 2 1.5 2.3.3 4.8 1.4 7.2 1 2.3 3.6 3.7 3.1 6.7-.5 2.8-3.2 3.8-3.7 6.4-.5 2.6.8 5.3-1 7.2-1.9 2-4.8 1.1-7.2 2.3-2.4 1.2-3.6 3.8-6.6 3.8s-4-2.4-6.5-3.4c-2.6-1-5.6-.2-7.4-2.3-1.8-2-.6-4.8-1.3-7.3C4.1 24.4 1.5 23 1.5 20s2.6-4.2 3.4-6.7c.8-2.6-.2-5.4 1.7-7.3 1.9-1.9 4.8-1.2 7.2-2.2C16.2 2.8 17 1.5 20 1.5z"/><circle cx="20" cy="20" r="13.5" fill="none" stroke="rgba(60,5,2,.45)" stroke-width="1.6"/></symbol>
+  <symbol id="i-sigue" viewBox="0 0 24 24"><path d="M8 5l9 7-9 7z"/></symbol>
+  <symbol id="i-hedera" viewBox="0 0 22 14"><path d="M3 7C3 3 6 1.5 8.5 3.5 10 1 14 1 15 4c1.5 1 1.5 2 1 3 .5 1 .5 2-1 3-1 3-5 3-6.5.5C6 12.5 3 11 3 7z"/><path d="M16 7h5" stroke="currentColor" stroke-width="1.4" fill="none"/></symbol>
+  <symbol id="i-espada" viewBox="0 0 24 24"><path d="M14 3h7v7L9 22l-3-3zM6 15l3 3M4 17l3 3M3 21l2-2"/></symbol>
+  <symbol id="i-reloj" viewBox="0 0 24 24"><path d="M7 3h10M7 21h10M8 3c0 5 8 6 8 9s-8 4-8 9M16 3c0 5-8 6-8 9s8 4 8 9"/></symbol>
+  <symbol id="i-rollo" viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 010 4H6M6 4a2 2 0 000 4v12h11a2 2 0 000-4H8M9 11h6M9 14h4"/></symbol>
+  <symbol id="i-ajustes" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+  <symbol id="i-laurel" viewBox="0 0 40 40"><path d="M20 34C9 31 6 20 9 10M20 34c11-3 14-14 11-24M9 14c3 0 4 2 4 4M8 20c3 0 5 1 5 4M10 26c3-1 5 0 6 2M31 14c-3 0-4 2-4 4M32 20c-3 0-5 1-5 4M30 26c-3-1-5 0-6 2"/></symbol>
+  <symbol id="i-guardar" viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/></symbol>
+</defs></svg>
+
+<!-- 1 · PORTADA -->
+<div class="pantalla cine portada" id="portada">
+  <div class="cartel"></div><div class="polvo"></div><div class="luz"></div>
+  <span class="version">versión 0.9</span>
+  <div class="centro">
+    <svg class="aguila" viewBox="0 0 100 100"><use href="#i-aguila"/></svg>
+    <div class="marca"><h1>AQVILA</h1><div class="lema">EL ASCENSO DE ROMA</div><div class="anos">280 – 146 a.C.</div></div>
+  </div>
+  <div class="tocar"><span>TOCA PARA EMPEZAR</span></div>
+  <div class="pie-cred">Soldados y edificios: <b>0 A.D.</b> © Wildfire Games, CC BY-SA 3.0 · Letra Cinzel, SIL OFL 1.1</div>
+</div>
+
+<!-- 2 · MENÚ PRINCIPAL -->
+<div class="pantalla cine" id="principal">
+  <div class="cartel ciudad"></div><div class="luz alta"></div>
+  <div class="cabeza">
+    <svg class="mini-aguila" viewBox="0 0 100 100"><use href="#i-aguila"/></svg><span class="nombre">AQVILA</span>
+    <div class="perfil"><span class="medalla"><svg viewBox="0 0 40 40" fill="none" stroke="#3a2405" stroke-width="1.8"><use href="#i-laurel"/></svg></span><span>L. Cornelio<i>Cónsul · 3 triunfos</i></span></div>
+  </div>
+  <div class="cuerpo-menu">
+    <div class="partida">
+      <span class="rub">Tu campaña</span>
+      <h2>Roma <span class="punto"></span> 280 a.C.</h2>
+      <div class="datos"><b>Ianuarius</b> · 5 ciudades · 2 legiones · <b>2 h 14 min</b> jugadas</div>
+      <div class="avance"><div class="barra"><i></i></div><div class="txt"><span>Hacia Cartago</span><span><b>24 %</b> de Italia</span></div></div>
+      <button class="sello-btn"><span class="lacre"><svg class="cera" viewBox="0 0 40 40" fill="url(#g-cera)"><use href="#i-cera"/></svg><svg class="marca" viewBox="0 0 24 24"><use href="#i-sigue"/></svg></span>Continuar</button>
+    </div>
+    <div class="opciones">
+      <div class="op"><svg class="ic"><use href="#i-espada"/></svg><div class="t"><b>Nueva campaña</b><small>Roma contra Cartago, de 280 a 146 a.C.</small></div><span class="flecha">›</span></div>
+      <div class="op"><svg class="ic"><use href="#i-reloj"/></svg><div class="t"><b>Partida corta</b><small>Italia, de 3 a 5 horas, con final</small></div><span class="flecha">›</span></div>
+      <div class="op"><svg class="ic"><use href="#i-rollo"/></svg><div class="t"><b>Códice<span class="nuevo">NUEVO</span></b><small>Batallas, tropas y personajes de verdad</small></div><span class="flecha">›</span></div>
+      <div class="op"><svg class="ic"><use href="#i-ajustes"/></svg><div class="t"><b>Opciones</b><small>Sonido, fluidez y consejos</small></div><span class="flecha">›</span></div>
+    </div>
+  </div>
+  <div class="noticia"><b>NOVEDADES</b><span>Menús romanos y Senado de tres bandos</span></div>
+</div>
+
+<!-- 3 · NUEVA CAMPAÑA -->
+<div class="pantalla cine" id="nueva">
+  <div class="cartel borroso"></div><div class="luz alta" style="background:linear-gradient(rgba(7,6,5,.75),rgba(7,6,5,.92))"></div>
+  <div class="volver-cab"><button class="volver">‹ Volver</button><span class="pasos">NUEVA CAMPAÑA</span></div>
+  <div style="position:absolute;left:12px;right:12px;top:68px;bottom:12px;z-index:4;display:flex;flex-direction:column;gap:10px">
+    <div class="escenarios">
+      <div class="esc sel" style="background-image:url('cartel-legiones.jpg')"><span class="dura">LARGA</span><svg class="ok" viewBox="0 0 40 40" fill="url(#g-cera)"><use href="#i-cera"/></svg><b>Roma contra Cartago</b><small>280–146 a.C. Todo el Mediterráneo, con final.</small></div>
+      <div class="esc" style="background-image:url('cartel-ciudad.jpg')"><span class="dura">3–5 H</span><b>Italia</b><small>Partida corta en la península, con final.</small></div>
+    </div>
+    <div class="panel">
+      <span class="rub">Tu general</span>
+      <div class="campo">Lucio Cornelio Escipión</div>
+      <div class="hedera" style="margin:12px 0 4px"><svg viewBox="0 0 22 14"><use href="#i-hedera"/></svg></div>
+      <span class="rub">Dificultad</span>
+      <div class="tablilla dif">
+        <button>Tranquila<small>Sin hambre ni revueltas</small></button>
+        <button class="on">Normal<small>Como se pensó el juego</small></button>
+        <button>Dura<small>Cartago no perdona</small></button>
+      </div>
+      <div class="interruptor"><span>Consejos del asesor<small>Te avisa de lo que falta</small></span><span class="palanca"></span></div>
+    </div>
+    <div style="flex:1"></div>
+    <button class="sello-btn" style="height:60px;font-size:19px"><span class="lacre"><svg class="cera" viewBox="0 0 40 40" fill="url(#g-cera)"><use href="#i-cera"/></svg><svg class="marca" viewBox="0 0 24 24"><use href="#i-sigue"/></svg></span>Empezar la campaña</button>
+  </div>
+</div>
+
+<!-- 4 · CARGA -->
+<div class="pantalla cine carga" id="carga">
+  <div class="cartel borroso"></div><div class="luz" style="background:linear-gradient(rgba(7,6,5,.55),rgba(7,6,5,.9))"></div>
+  <div class="centro" style="z-index:4">
+    <svg class="aguila" viewBox="0 0 100 100" style="width:72px;height:72px"><use href="#i-aguila"/></svg>
+    <div class="marca"><h1>AQVILA</h1></div>
+    <div class="prep">PREPARANDO LAS LEGIONES</div>
+    <div class="barra-bronce"><i></i></div>
+    <div class="prep-sub">Cargando soldados y edificios · 64 %</div>
+  </div>
+  <div class="sabias" style="z-index:4">
+    <span class="rub">¿Sabías que…?</span>
+    <p class="inicial">Pirro cruzó a Italia en 280 a.C. con veinte elefantes. Los romanos nunca habían visto uno y los llamaron «bueyes de Lucania».</p>
+    <div class="fuente">Según Plutarco, Pirro 15; el nombre, según Plinio, Historia natural VIII 16.</div>
+  </div>
+</div>
+
+<!-- 5 · OPCIONES -->
+<div class="pantalla cine" id="opciones">
+  <div class="cartel borroso"></div><div class="luz" style="background:linear-gradient(rgba(7,6,5,.75),rgba(7,6,5,.92))"></div>
+  <div class="volver-cab"><button class="volver">‹ Volver</button><span class="pasos">OPCIONES</span></div>
+  <div class="rollo" style="top:70px;bottom:16px;z-index:4">
+    <div class="palo"></div>
+    <div class="papiro">
+      <div class="grupo"><span class="rub">Sonido</span>
+        <div class="fila-op"><span>Música</span><span class="deslizador"><i style="width:70%"></i></span></div>
+        <div class="fila-op"><span>Batalla y ciudad</span><span class="deslizador"><i style="width:85%"></i></span></div>
+      </div>
+      <div class="hedera"><svg viewBox="0 0 22 14"><use href="#i-hedera"/></svg></div>
+      <div class="grupo"><span class="rub">Imagen</span>
+        <div class="tablilla chica" style="margin-top:8px"><button>Ahorro</button><button class="on">Equilibrada</button><button>Máxima</button></div>
+        <div class="fila-op"><span>Soldados en pantalla</span><span class="deslizador"><i style="width:55%"></i></span></div>
+      </div>
+      <div class="hedera"><svg viewBox="0 0 22 14"><use href="#i-hedera"/></svg></div>
+      <div class="grupo"><span class="rub">Juego</span>
+        <div class="fila-op"><span>Consejos del asesor</span><span class="palanca"></span></div>
+        <div class="fila-op"><span>El mes pasa solo</span><span class="palanca off"></span></div>
+        <div class="fila-op"><span>Copia de la partida</span><button class="tinta-btn" style="flex:none;min-height:40px;padding:0 12px">Guardar copia</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.rollo').forEach(r => { const d = document.createElement('div'); d.className = 'palo abajo-palo'; r.appendChild(d); });
+const p = new URLSearchParams(location.search).get('p');
+if (p) document.querySelectorAll('.pantalla').forEach(x => { if (x.id !== p) x.remove(); }); else document.body.classList.add('todas');
+</script>
+</body></html>

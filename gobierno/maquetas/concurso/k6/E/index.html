@@ -1,0 +1,619 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Concepto E · Batalla en cartas</title>
+<meta name="description" content="Concepto E del concurso K6: el campo ocupa la pantalla y las órdenes son cartas de táctica. Maqueta con datos de mentira.">
+<style>
+:root{
+  --noche:#0b1016; --rojo:#c0281f; --oro:#e9c063; --bronce:#b8862b;
+  --marmol:#f1ead9; --piedra:#9aa6b4; --oliva:#8fae5a; --terracota:#d9764a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--noche);overflow:hidden}
+body{
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  color:var(--marmol);-webkit-user-select:none;user-select:none;
+  -webkit-tap-highlight-color:transparent;touch-action:none;
+}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+#stage{position:fixed;inset:0;overflow:hidden}
+#field{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+
+/* Arriba a la izquierda: datos del regimiento elegido */
+#info{
+  position:absolute;left:8px;top:8px;width:238px;padding:8px 10px;border-radius:10px;
+  background:rgba(11,16,22,.84);border:1px solid rgba(184,134,43,.55);
+  font-size:13px;line-height:1.4;pointer-events:none;
+}
+#info b{color:var(--oro);font-size:14px}
+#info .vacio{color:var(--piedra)}
+#info .barra{height:6px;border-radius:3px;background:#24303a;margin:5px 0 4px;overflow:hidden}
+#info .barra i{display:block;height:100%}
+
+/* Arriba al centro: una sola frase de ayuda */
+#hint{
+  position:absolute;left:50%;top:10px;transform:translateX(-50%);
+  font-size:13px;color:var(--oro);white-space:nowrap;pointer-events:none;
+  background:rgba(11,16,22,.84);padding:10px 16px;border-radius:22px;
+  border:1px solid rgba(233,192,99,.35);
+}
+#hint.err{color:var(--terracota);border-color:rgba(217,118,74,.7)}
+
+/* Arriba a la derecha: un solo botón */
+#reset{
+  position:absolute;right:8px;top:8px;min-width:44px;min-height:44px;padding:0 14px;
+  border-radius:10px;background:rgba(11,16,22,.84);
+  border:1px solid rgba(154,166,180,.5);font-size:13px;
+}
+
+/* Abajo: la mano de cartas de táctica */
+#hand{position:absolute;left:8px;right:8px;bottom:6px;height:84px;display:flex;gap:8px}
+.card{
+  position:relative;flex:1;min-height:44px;border-radius:12px;padding:8px 10px 10px;
+  display:flex;flex-direction:column;justify-content:space-between;text-align:left;
+  background:linear-gradient(180deg,#1f2a33,#0f151b);
+  border:1.5px solid var(--bronce);box-shadow:0 4px 14px rgba(0,0,0,.55);
+  overflow:hidden;touch-action:none;
+  transition:transform .15s,border-color .15s,opacity .2s,box-shadow .15s;
+}
+.card .top{display:flex;align-items:center;gap:7px}
+.card svg{width:22px;height:22px;flex:none;stroke:var(--oro);fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.card b{font-size:13px;color:var(--oro);white-space:nowrap}
+.card small{display:block;font-size:11px;line-height:1.3;color:rgba(241,234,217,.86)}
+.card.sel{
+  border-color:var(--oro);transform:translateY(-8px);
+  box-shadow:0 0 0 2px rgba(233,192,99,.35),0 8px 18px rgba(0,0,0,.6);
+}
+.card.arrastrando{opacity:.3}
+.card.cool{opacity:.45;pointer-events:none}
+.card .bar{position:absolute;left:0;bottom:0;height:3px;width:0;background:var(--oro)}
+.card.cool .bar{animation:recarga 3.2s linear forwards}
+@keyframes recarga{to{width:100%}}
+.fantasma{
+  position:fixed;width:184px;height:80px;margin:0;transform:translate(-50%,-112%);
+  pointer-events:none;z-index:9;opacity:.96;
+}
+</style>
+</head>
+<body>
+<div id="stage">
+  <svg id="field" viewBox="0 0 844 390" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Campo de batalla: Roma contra Pirro">
+    <defs>
+      <linearGradient id="campo" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="#0b1016"/>
+        <stop offset=".4" stop-color="#17201c"/>
+        <stop offset="1" stop-color="#1c2821"/>
+      </linearGradient>
+      <pattern id="surco" width="36" height="36" patternUnits="userSpaceOnUse">
+        <path d="M0 18H36" stroke="#22302a" stroke-width="2"/>
+      </pattern>
+      <symbol id="ic-escudo" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></symbol>
+      <symbol id="ic-jabalina" viewBox="0 0 24 24"><path d="M4 20L19 5M19 5h-6M19 5v6"/></symbol>
+      <symbol id="ic-lanza" viewBox="0 0 24 24"><path d="M4 20L17 7"/><path d="M17 7l4-3-1 6z"/></symbol>
+      <symbol id="ic-pica" viewBox="0 0 24 24"><path d="M7 21V3M12 21V3M17 21V3"/></symbol>
+      <symbol id="ic-elefante" viewBox="0 0 24 24"><path d="M7 7c0-2.5 2-4 5-4s5 1.5 5 4-1 5-2 6v3"/><path d="M10 13c-2 2-2 5 0 7"/></symbol>
+      <symbol id="ic-cuna" viewBox="0 0 24 24"><path d="M5 6l7 6-7 6M12 6l7 6-7 6"/></symbol>
+      <symbol id="ic-linea" viewBox="0 0 24 24"><path d="M4 8h16M4 16h16"/></symbol>
+      <symbol id="ic-flanco" viewBox="0 0 24 24"><path d="M5 19L19 5M11 5h8v8"/></symbol>
+      <symbol id="ic-retirada" viewBox="0 0 24 24"><path d="M19 12H6M11 7l-5 5 5 5"/></symbol>
+    </defs>
+
+    <rect width="844" height="390" fill="url(#campo)"/>
+    <rect width="844" height="390" fill="url(#surco)" opacity=".7"/>
+    <line x1="422" y1="92" x2="422" y2="300" stroke="#9aa6b4" stroke-opacity=".2" stroke-dasharray="4 8"/>
+    <text x="12" y="196" fill="#f1ead9" fill-opacity=".75" font-size="13" font-weight="700" letter-spacing="2">ROMA</text>
+    <text x="832" y="196" text-anchor="end" fill="#f1ead9" fill-opacity=".75" font-size="13" font-weight="700" letter-spacing="2">PIRRO</text>
+
+    <g id="unidades"></g>
+    <g id="flechas"></g>
+    <g id="textos"></g>
+  </svg>
+
+  <div id="info" aria-live="polite"></div>
+  <div id="hint" role="status"></div>
+  <button id="reset" type="button">Empezar otra vez</button>
+
+  <nav id="hand" aria-label="Cartas de táctica">
+    <button class="card" type="button" data-carta="cuna">
+      <span class="top"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-cuna"/></svg><b>Cuña</b></span>
+      <small>Ataca con la punta. Hace daño, pero cansa.</small>
+      <span class="bar"></span>
+    </button>
+    <button class="card" type="button" data-carta="doble">
+      <span class="top"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-linea"/></svg><b>Doble línea</b></span>
+      <small>Aguanta el choque. Sube la moral.</small>
+      <span class="bar"></span>
+    </button>
+    <button class="card" type="button" data-carta="flanqueo">
+      <span class="top"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-flanco"/></svg><b>Flanqueo</b></span>
+      <small>Rodea al enemigo por detrás. Va sobre un enemigo.</small>
+      <span class="bar"></span>
+    </button>
+    <button class="card" type="button" data-carta="retirada">
+      <span class="top"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#ic-retirada"/></svg><b>Retirada ordenada</b></span>
+      <small>Da un paso atrás y cambia sitio con el de detrás.</small>
+      <span class="bar"></span>
+    </button>
+  </nav>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+const NS='http://www.w3.org/2000/svg';
+const BW=90, BH=40;
+/* Columnas: el índice 2 es el frente de cada bando. Filas: cuatro. */
+const COL={R:[130,225,320],P:[690,595,500]};
+const ROW=[100,149,198,247];
+
+const TIPOS={
+  hastati:{nom:'Hastati',ic:'ic-escudo',c:'#b8862b'},
+  principes:{nom:'Príncipes',ic:'ic-escudo',c:'#e9c063'},
+  triarii:{nom:'Triarios',ic:'ic-escudo',c:'#f1ead9'},
+  velites:{nom:'Velites',ic:'ic-jabalina',c:'#8fae5a'},
+  peltastas:{nom:'Peltastas',ic:'ic-jabalina',c:'#8fae5a'},
+  caballeria:{nom:'Caballería',ic:'ic-lanza',c:'#d9764a'},
+  falange:{nom:'Falange',ic:'ic-pica',c:'#9aa6b4'},
+  elefantes:{nom:'Elefantes',ic:'ic-elefante',c:'#f1ead9',cosa:'elefantes'}
+};
+
+const CARTAS={
+  cuna:{nom:'Cuña',obj:'R'},
+  doble:{nom:'Doble línea',obj:'R'},
+  flanqueo:{nom:'Flanqueo',obj:'P'},
+  retirada:{nom:'Retirada ordenada',obj:'R'}
+};
+
+/* Datos de mentira: Roma (R) contra Pirro (P). c = columna, f = fila. */
+const DATOS=[
+  {id:'R1',b:'R',t:'hastati',n:120,m:78,c:2,f:0},
+  {id:'R2',b:'R',t:'hastati',n:110,m:64,c:1,f:0},
+  {id:'R3',b:'R',t:'principes',n:120,m:82,c:2,f:1},
+  {id:'R4',b:'R',t:'principes',n:100,m:40,c:1,f:1,cansado:true},
+  {id:'R5',b:'R',t:'triarii',n:90,m:88,c:2,f:2},
+  {id:'R6',b:'R',t:'hastati',n:110,m:70,c:1,f:2},
+  {id:'R7',b:'R',t:'velites',n:80,m:55,c:0,f:0},
+  {id:'R8',b:'R',t:'velites',n:75,m:60,c:0,f:1},
+  {id:'R9',b:'R',t:'caballeria',n:60,m:75,c:0,f:2},
+  {id:'R10',b:'R',t:'caballeria',n:52,m:66,c:2,f:3,rodeado:true},
+  {id:'P1',b:'P',t:'falange',n:160,m:80,c:2,f:0},
+  {id:'P2',b:'P',t:'falange',n:150,m:74,c:2,f:1},
+  {id:'P3',b:'P',t:'falange',n:140,m:68,c:1,f:0},
+  {id:'P4',b:'P',t:'peltastas',n:80,m:58,c:0,f:0},
+  {id:'P5',b:'P',t:'elefantes',n:6,m:84,c:2,f:2},
+  {id:'P6',b:'P',t:'elefantes',n:5,m:79,c:1,f:2},
+  {id:'P7',b:'P',t:'caballeria',n:60,m:70,c:1,f:3},
+  {id:'P8',b:'P',t:'caballeria',n:55,m:64,c:2,f:3},
+  {id:'P9',b:'P',t:'peltastas',n:76,m:62,c:0,f:1}
+];
+
+const $=s=>document.querySelector(s);
+const svg=$('#field'), gU=$('#unidades'), gA=$('#flechas'), gF=$('#textos');
+const hint=$('#hint'), info=$('#info'), hand=$('#hand');
+const T=()=>performance.now();
+
+let UNI=[], FLECHAS=[], TEXTOS=[], DRAG=null, GESTO=null, msgT=0, infoKey='';
+const S={sel:[], carta:null, mira:null};
+
+const byId=id=>UNI.find(u=>u.id===id);
+const seleccion=()=>S.sel.map(byId).filter(Boolean);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+function el(tag,attrs,txt){
+  const e=document.createElementNS(NS,tag);
+  for(const k in attrs) e.setAttribute(k,attrs[k]);
+  if(txt!=null) e.textContent=txt;
+  return e;
+}
+
+function crear(d){
+  const u={
+    id:d.id,bando:d.b,tipo:d.t,n:d.n,n0:d.n,m:d.m,c:d.c,f:d.f,
+    x:COL[d.b][d.c],y:ROW[d.f],anim:null,
+    cansado:!!d.cansado,aguanta:false,rodeado:!!d.rodeado,deshecho:false,
+    hit:0,unidad:TIPOS[d.t].cosa||'hombres'
+  };
+  const g=el('g',{'class':'u','data-id':d.id});
+  const r=el('rect',{width:BW,height:BH,rx:6,fill:TIPOS[d.t].c,stroke:'#c0281f','stroke-width':3});
+  const ic=el('use',{href:'#'+TIPOS[d.t].ic,x:6,y:6,width:14,height:14,stroke:'#0b1016',fill:'none','stroke-width':2.2});
+  const nom=el('text',{x:24,y:17,'font-size':11,'font-weight':700,fill:'#0b1016'});
+  const cnt=el('text',{x:6,y:31,'font-size':11,fill:'#0b1016'});
+  const fondo=el('rect',{x:6,y:34,width:BW-12,height:3,rx:1.5,fill:'#0b1016','fill-opacity':.35});
+  const barra=el('rect',{x:6,y:34,width:BW-12,height:3,rx:1.5});
+  const tag=el('text',{x:0,y:BH+9,'font-size':11,'font-weight':700,fill:'#f1ead9'});
+  g.append(r,ic,nom,cnt,fondo,barra,tag);
+  gU.append(g);
+  Object.assign(u,{g,r,nom,cnt,barra,tag});
+  return u;
+}
+
+/* Posición en pantalla de una unidad (con interpolación si se está moviendo). */
+function pos(u,t){
+  const a=u.anim;
+  if(!a) return [u.x,u.y];
+  const k=Math.min(1,(t-a.t0)/a.dur), e=1-Math.pow(1-k,3);
+  return [a.fx+(a.tx-a.fx)*e, a.fy+(a.ty-a.fy)*e];
+}
+
+function mover(u,tx,ty,fin,dur){
+  const t=T(), p=pos(u,t);
+  u.anim={fx:p[0],fy:p[1],tx,ty,t0:t,dur:dur||650,fin:fin||null};
+}
+
+function regresar(u){
+  mover(u,COL[u.bando][u.c],ROW[u.f],null,800);
+}
+
+/* Enemigo o amigo más cercano, sin contar los deshechos. */
+function cercano(u,bando){
+  const t=T(), p=pos(u,t);
+  let best=null, bd=1e9;
+  for(const o of UNI){
+    if(o===u||o.bando!==bando||o.deshecho) continue;
+    const q=pos(o,t), d=Math.hypot(q[0]-p[0],q[1]-p[1]);
+    if(d<bd){bd=d; best=o;}
+  }
+  return best;
+}
+
+function texto(u,str,color){
+  const t=T(), p=pos(u,t);
+  TEXTOS.push({x:p[0]+BW/2,y:p[1]-4,str,color,t0:t});
+}
+
+function orden(a,b,color){
+  FLECHAS.push({a:a.id,b:b.id,color,t0:T(),dur:1100});
+}
+
+/* Daño y pérdida de moral. Aguanta reduce a la mitad. */
+function golpe(v,frac,mor){
+  if(v.aguanta){ frac*=.5; mor=Math.round(mor/2); }
+  const perd=Math.round(v.n*frac);
+  v.n=Math.max(0,v.n-perd);
+  v.m=Math.max(0,v.m-mor);
+  v.hit=T()+420;
+  if(v.n<=v.n0*.15 || v.m<=10){
+    v.deshecho=true;
+    texto(v,'Deshecho','#9aa6b4');
+  } else {
+    texto(v,'−'+perd+' · moral −'+mor,'#d9764a');
+  }
+}
+
+/* Cada carta, una función. Devuelve false si no se puede dar la orden. */
+const ACCIONES={
+  cuna(u){
+    const e=cercano(u,'P'); if(!e) return false;
+    const pa=pos(u,T()), pe=pos(e,T());
+    const cx=pe[0]-Math.sign(pe[0]-pa[0])*(BW+8);
+    orden(u,e,'#e9c063');
+    mover(u,cx,pa[1],()=>{
+      golpe(e,.14,12);
+      u.cansado=true; u.aguanta=false;
+      setTimeout(()=>regresar(u),900);
+    });
+    return true;
+  },
+  doble(u){
+    u.aguanta=true; u.cansado=false;
+    u.m=Math.min(100,u.m+10);
+    texto(u,'+10 moral','#e9c063');
+    u.hit=T()+420;
+    return true;
+  },
+  flanqueo(e){
+    const f=cercano(e,'R'); if(!f) return false;
+    const pf=pos(f,T()), pe=pos(e,T());
+    const tx=pe[0]+Math.sign(pe[0]-pf[0])*(BW+8);
+    orden(f,e,'#e9c063');
+    mover(f,tx,pe[1],()=>{
+      golpe(e,.08,22);
+      e.rodeado=true; f.cansado=true; f.aguanta=false;
+      setTimeout(()=>{ e.rodeado=false; regresar(f); },5000);
+    },800);
+    return true;
+  },
+  retirada(u){
+    if(u.c<=0) return false;
+    const nc=u.c-1;
+    const otro=UNI.find(o=>o!==u&&o.bando===u.bando&&!o.deshecho&&o.c===nc&&o.f===u.f);
+    if(otro){
+      otro.c=u.c;
+      mover(otro,COL[otro.bando][otro.c],ROW[otro.f],null,800);
+    }
+    u.c=nc; u.aguanta=false; u.cansado=false; u.rodeado=false;
+    u.m=Math.min(100,u.m+6);
+    mover(u,COL[u.bando][nc],ROW[u.f],null,800);
+    texto(u,'+6 moral','#e9c063');
+    u.hit=T()+300;
+    return true;
+  }
+};
+
+/* Respuesta de Pirro: un regimiento enemigo carga al más cercano. */
+function respuesta(){
+  const pool=UNI.filter(u=>u.bando==='P'&&!u.deshecho&&!u.anim);
+  if(!pool.length) return;
+  const e=pool[Math.floor(Math.random()*pool.length)];
+  const r=cercano(e,'R'); if(!r) return;
+  const pe=pos(e,T()), pr=pos(r,T());
+  const cx=pr[0]-Math.sign(pr[0]-pe[0])*(BW+8);
+  orden(e,r,'#d9764a');
+  mover(e,cx,pe[1],()=>{
+    golpe(r,.09,8);
+    e.cansado=true; e.aguanta=false;
+    setTimeout(()=>regresar(e),900);
+  });
+}
+
+function jugar(k,u){
+  const c=CARTAS[k];
+  if(u.deshecho){ msg('Ese regimiento ya no combate',true); return false; }
+  let ok=false;
+  if(c.obj==='P'){
+    if(u.bando!=='P'){ msg('Flanqueo va sobre un regimiento enemigo',true); return false; }
+    ok=ACCIONES[k](u);
+  } else {
+    if(u.bando!=='R'){ msg(c.nom+' va sobre un regimiento tuyo',true); return false; }
+    const grupo=(S.sel.length>1&&S.sel.includes(u.id))?seleccion().filter(o=>o.bando==='R'&&!o.deshecho):[u];
+    for(const o of grupo) ok=ACCIONES[k](o)||ok;
+  }
+  if(!ok){ msg(k==='retirada'?'No hay sitio atrás':'Ahora no se puede dar esa orden',true); return false; }
+  const b=hand.querySelector('[data-carta="'+k+'"]');
+  b.classList.add('cool');
+  setTimeout(()=>b.classList.remove('cool'),3200);
+  S.carta=null;
+  pintarCartas();
+  setTimeout(respuesta,1300);
+  return true;
+}
+
+function msg(txt,err){
+  hint.textContent=txt;
+  hint.classList.toggle('err',!!err);
+  clearTimeout(msgT);
+  msgT=setTimeout(pista,1800);
+}
+
+function pista(){
+  hint.classList.remove('err');
+  if(S.carta){
+    const c=CARTAS[S.carta];
+    hint.textContent=c.nom+': toca '+(c.obj==='R'?'un regimiento tuyo':'un enemigo');
+  } else {
+    hint.textContent='Arrastra una carta sobre un regimiento';
+  }
+}
+
+function pintarCartas(){
+  hand.querySelectorAll('.card').forEach(c=>c.classList.toggle('sel',c.dataset.carta===S.carta));
+  pista();
+}
+
+function etiquetas(u){
+  if(u.deshecho) return 'Deshecho';
+  const t=[];
+  if(u.cansado) t.push('Cansado');
+  if(u.aguanta) t.push('Aguanta');
+  if(u.rodeado) t.push('Rodeado');
+  return t.join(' · ');
+}
+
+function colorMoral(m){ return m>=60?'#8fae5a':m>=30?'#e9c063':'#c0281f'; }
+function barraHTML(m){ return '<div class="barra"><i style="width:'+m+'%;background:'+colorMoral(m)+'"></i></div>'; }
+
+function infoHTML(){
+  const us=seleccion();
+  if(!us.length) return '<span class="vacio">Toca un regimiento para ver sus datos. Arrastra en el campo para elegir varios.</span>';
+  if(us.length>1){
+    const h=us.reduce((a,u)=>a+u.n,0);
+    const m=Math.round(us.reduce((a,u)=>a+u.m,0)/us.length);
+    return '<b>'+us.length+' regimientos</b><br>'+h+' hombres · moral media '+m+barraHTML(m);
+  }
+  const u=us[0];
+  const est=u.deshecho?'deshecho':u.rodeado?'rodeado':u.cansado?'cansado':u.aguanta?'aguanta la línea':'fresco';
+  return '<b>'+TIPOS[u.tipo].nom+' · '+(u.bando==='R'?'Roma':'Pirro')+'</b><br>'
+    +u.n+' '+u.unidad+' de '+u.n0+' · moral '+u.m+barraHTML(u.m)
+    +'Estado: '+est;
+}
+
+/* Coordenadas del campo (viewBox) a partir de las de la pantalla. */
+function aCampo(cx,cy){
+  const p=svg.createSVGPoint();
+  p.x=cx; p.y=cy;
+  return p.matrixTransform(svg.getScreenCTM().inverse());
+}
+
+/* Unidad bajo un punto del campo, con margen para el dedo. */
+function bajo(px,py){
+  const t=T();
+  let best=null, bd=1e9;
+  for(const u of UNI){
+    const p=pos(u,t);
+    const cx=p[0]+BW/2, cy=p[1]+BH/2;
+    const dx=Math.abs(px-cx)-BW/2-10, dy=Math.abs(py-cy)-BH/2-10;
+    if(dx<=0 && dy<=0){
+      const d=Math.hypot(px-cx,py-cy);
+      if(d<bd){bd=d; best=u;}
+    }
+  }
+  return best;
+}
+
+/* Dibujo: cada cuadro se repinta con el estado actual. */
+function frame(t){
+  for(const u of UNI){
+    const a=u.anim;
+    if(a && t-a.t0>=a.dur){
+      u.x=a.tx; u.y=a.ty; u.anim=null;
+      if(a.fin) a.fin();
+    }
+  }
+
+  for(const u of UNI){
+    const p=pos(u,t);
+    u.g.setAttribute('transform','translate('+p[0].toFixed(1)+','+p[1].toFixed(1)+')');
+    u.g.setAttribute('opacity',u.deshecho?.4:1);
+    const sel=S.sel.includes(u.id), mira=S.mira===u.id, golpeado=u.hit>t;
+    const lado=u.bando==='R'?'#c0281f':'#9aa6b4';
+    u.r.setAttribute('stroke',(sel||mira)?'#e9c063':golpeado?'#f1ead9':u.rodeado?'#d9764a':lado);
+    u.r.setAttribute('stroke-width',(sel||mira||golpeado)?4:3);
+    u.r.setAttribute('stroke-dasharray',mira?'6 4':(u.rodeado?'2 3':''));
+    u.nom.textContent=TIPOS[u.tipo].nom;
+    u.cnt.textContent=u.deshecho?'deshecho':u.n+' '+u.unidad;
+    u.barra.setAttribute('width',((BW-12)*u.m/100).toFixed(1));
+    u.barra.setAttribute('fill',colorMoral(u.m));
+    u.tag.textContent=etiquetas(u);
+  }
+
+  FLECHAS=FLECHAS.filter(a=>t-a.t0<a.dur);
+  gA.replaceChildren();
+  for(const a of FLECHAS){
+    const A=byId(a.a), B=byId(a.b);
+    if(!A||!B) continue;
+    const pa=pos(A,t), pb=pos(B,t);
+    const x1=pa[0]+BW/2, y1=pa[1]+BH/2, x2=pb[0]+BW/2, y2=pb[1]+BH/2;
+    const L=Math.hypot(x2-x1,y2-y1);
+    if(L<70) continue;
+    const ux=(x2-x1)/L, uy=(y2-y1)/L;
+    const sx=x1+ux*46, sy=y1+uy*46, ex=x2-ux*46, ey=y2-uy*46;
+    const op=(1-(t-a.t0)/a.dur).toFixed(2);
+    gA.append(el('line',{x1:sx,y1:sy,x2:ex,y2:ey,stroke:a.color,'stroke-width':3,'stroke-dasharray':'8 6','stroke-linecap':'round',opacity:op}));
+    gA.append(el('polygon',{points:ex+','+ey+' '+(ex-ux*12-uy*6)+','+(ey-uy*12+ux*6)+' '+(ex-ux*12+uy*6)+','+(ey-uy*12-ux*6),fill:a.color,opacity:op}));
+  }
+
+  if(GESTO && GESTO.caja){
+    const g=GESTO;
+    gA.append(el('rect',{x:Math.min(g.x0,g.x1),y:Math.min(g.y0,g.y1),width:Math.abs(g.x1-g.x0),height:Math.abs(g.y1-g.y0),fill:'#e9c063','fill-opacity':.08,stroke:'#e9c063','stroke-width':2,'stroke-dasharray':'6 4'}));
+  }
+
+  TEXTOS=TEXTOS.filter(o=>t-o.t0<1000);
+  gF.replaceChildren();
+  for(const o of TEXTOS){
+    const k=(t-o.t0)/1000;
+    gF.append(el('text',{x:o.x,y:(o.y-k*28).toFixed(1),'text-anchor':'middle','font-size':13,'font-weight':700,fill:o.color,stroke:'#0b1016','stroke-width':3,'paint-order':'stroke',opacity:(1-k).toFixed(2)},o.str));
+  }
+
+  const key=S.sel.join(',')+'|'+seleccion().map(u=>[u.n,u.m,+u.cansado,+u.aguanta,+u.rodeado,+u.deshecho].join(':')).join(';');
+  if(key!==infoKey){ infoKey=key; info.innerHTML=infoHTML(); }
+
+  requestAnimationFrame(frame);
+}
+
+/* Arrastrar una carta sobre un regimiento, o tocarla y luego el regimiento. */
+hand.addEventListener('pointerdown',e=>{
+  const c=e.target.closest('.card');
+  if(!c||c.classList.contains('cool')) return;
+  c.setPointerCapture(e.pointerId);
+  DRAG={id:e.pointerId,k:c.dataset.carta,el:c,x:e.clientX,y:e.clientY,mov:false,ghost:null};
+});
+
+window.addEventListener('pointermove',e=>{
+  if(!DRAG||e.pointerId!==DRAG.id) return;
+  const d=DRAG;
+  if(!d.mov && Math.hypot(e.clientX-d.x,e.clientY-d.y)>10){
+    d.mov=true;
+    d.el.classList.add('arrastrando');
+    d.ghost=d.el.cloneNode(true);
+    d.ghost.classList.remove('sel','arrastrando');
+    d.ghost.classList.add('fantasma');
+    document.body.appendChild(d.ghost);
+    hint.classList.remove('err');
+    hint.textContent='Suelta '+CARTAS[d.k].nom+' sobre un regimiento';
+  }
+  if(d.mov){
+    d.ghost.style.left=e.clientX+'px';
+    d.ghost.style.top=e.clientY+'px';
+    const p=aCampo(e.clientX,e.clientY), u=bajo(p.x,p.y);
+    S.mira=u?u.id:null;
+  }
+});
+
+window.addEventListener('pointerup',e=>{
+  if(!DRAG||e.pointerId!==DRAG.id) return;
+  const d=DRAG; DRAG=null;
+  d.el.classList.remove('arrastrando');
+  if(!d.mov){
+    S.carta=(S.carta===d.k)?null:d.k;
+    pintarCartas();
+    return;
+  }
+  d.ghost.remove();
+  S.mira=null;
+  const p=aCampo(e.clientX,e.clientY), u=bajo(p.x,p.y);
+  if(u) jugar(d.k,u);
+  else msg('Suelta la carta sobre un regimiento',true);
+});
+
+window.addEventListener('pointercancel',()=>{
+  if(DRAG){ if(DRAG.ghost) DRAG.ghost.remove(); DRAG.el.classList.remove('arrastrando'); DRAG=null; }
+  S.mira=null; GESTO=null;
+});
+
+/* Sobre el campo: tocar elige un regimiento (o da la orden de la carta elegida);
+   arrastrar en vacío dibuja una caja y elige varios amigos. */
+svg.addEventListener('pointerdown',e=>{
+  svg.setPointerCapture(e.pointerId);
+  const p=aCampo(e.clientX,e.clientY);
+  GESTO={id:e.pointerId,x0:p.x,y0:p.y,x1:p.x,y1:p.y,u:bajo(p.x,p.y),caja:false};
+});
+
+svg.addEventListener('pointermove',e=>{
+  if(!GESTO||e.pointerId!==GESTO.id) return;
+  const p=aCampo(e.clientX,e.clientY);
+  GESTO.x1=p.x; GESTO.y1=p.y;
+  if(!GESTO.u && Math.hypot(GESTO.x1-GESTO.x0,GESTO.y1-GESTO.y0)>10) GESTO.caja=true;
+});
+
+svg.addEventListener('pointerup',e=>{
+  if(!GESTO||e.pointerId!==GESTO.id) return;
+  const g=GESTO; GESTO=null;
+  if(g.caja){
+    const x0=Math.min(g.x0,g.x1), x1=Math.max(g.x0,g.x1);
+    const y0=Math.min(g.y0,g.y1), y1=Math.max(g.y0,g.y1);
+    S.sel=UNI.filter(u=>{
+      if(u.bando!=='R'||u.deshecho) return false;
+      const cx=u.x+BW/2, cy=u.y+BH/2;
+      return cx>=x0&&cx<=x1&&cy>=y0&&cy<=y1;
+    }).map(u=>u.id);
+    S.carta=null;
+    pintarCartas();
+    return;
+  }
+  if(g.u){
+    if(S.carta){
+      if(jugar(S.carta,g.u)) return;
+      pintarCartas();
+    } else {
+      S.sel=[g.u.id];
+    }
+  } else {
+    S.sel=[];
+    S.carta=null;
+    pintarCartas();
+  }
+});
+
+svg.addEventListener('pointercancel',()=>{ GESTO=null; });
+
+function iniciar(){
+  gU.replaceChildren();
+  UNI=DATOS.map(crear);
+  FLECHAS=[]; TEXTOS=[];
+  S.sel=[]; S.carta=null; S.mira=null;
+  hand.querySelectorAll('.card').forEach(c=>c.classList.remove('cool','sel'));
+  infoKey='';
+  pista();
+}
+
+$('#reset').addEventListener('click',iniciar);
+
+iniciar();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

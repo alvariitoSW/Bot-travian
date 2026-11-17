@@ -18,7 +18,7 @@ const MAXFIG = Math.max(0, Math.min(400, par.has('figuras') ? +par.get('figuras'
 const DE_PIE = window.innerHeight > window.innerWidth;                                         // la formación se decide al desplegar, según cómo se sujeta el móvil
 const FILES = F.filesDe(Math.round(120 * HOMBRES / R.BASE_HOMBRES), DE_PIE ? 1.25 : 3.2), PASO = 1, ANCHO = FILES * PASO;   // medidas del campo, en metros
 const S = ANCHO + Math.max(2.5, ANCHO * 0.1), HUECO = 2.4 + ANCHO * 0.03, CAMPO = 7 + ANCHO * 0.06, MARCHA = 22 + ANCHO * 0.35, MEDIO = S * 1.5 + 1.5;
-const COLOR = ['#b3261e', '#5b3a8c'], MONTADO = { equites: 1, numidas: 1 };
+const COLOR = ['#b3261e', '#5b3a8c'], MONTADO = { equites: 1, numidas: 1 }; A.colores(COLOR); /* GM4c */
 const xs = i => (i - 1) * S;
 const miles = n => String(Math.max(0, Math.round(n))).replace(/\B(?=(\d{3})+$)/g, ' ');
 
@@ -472,7 +472,7 @@ requestAnimationFrame(cuadro); arrancar();
 window.__gc = {
   get lista() { return lista; }, get B() { return B; }, R,
   ordenar: (i, o) => { sel = i; ordenar(o); }, elegir, cerca: verCerca,
-  pausa: v => { pausa = v; },
+  pausa: v => { pausa = v; }, camara: () => ({ ...cam }), /* GM4c */
   salta: seg => { for (let k = 0; k < seg * 20 && B.fase !== 'fin'; k++) avanza(0.05); },
   mirar: (i, seg) => { foco = { i, hasta: i < 0 ? 0 : T + seg, ultimo: T }; moverCamara(0, true); },
   estado: () => ({ t: B.t, fase: B.fase, sel, res: B.resultado, hombres: [Math.round(R.hombresLado(B, 0)), Math.round(R.hombresLado(B, 1))], jinetes: rc.cap + rn.cap, cartones: todos.reduce((a, r) => a + r.g.instanceCount, 0), figs: nFig, maxFig, tri: renderer.info.render.triangles, llamadas: renderer.info.render.calls, fps: Math.round(fps), dCam: Math.round(cam.d), ancho: Math.round(MEDIO * 2), cartonesMB: A.memoriaMB() /* GM4 */ }),

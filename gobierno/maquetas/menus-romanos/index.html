@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=390">
+<title>MR1 · Menús romanos (maqueta)</title>
+<link rel="stylesheet" href="romano.css">
+<style>body.todas { display: flex; flex-wrap: wrap; gap: 16px; padding: 16px; } body.todas .pantalla { flex: none; }</style>
+</head><body>
+<!-- Iconos de tinta (dibujados aquí, sin arte ajeno) -->
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="i-oro" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.5"/></symbol>
+  <symbol id="i-madera" viewBox="0 0 24 24"><path d="M3 15h18M5 15V9h14v6M8 9V6h8v3"/></symbol>
+  <symbol id="i-piedra" viewBox="0 0 24 24"><path d="M4 18l3-8 5-3 6 3 2 8z"/></symbol>
+  <symbol id="i-grano" viewBox="0 0 24 24"><path d="M12 21V6M12 9c-3-1-4-3-4-5 3 0 4 2 4 5zm0 0c3-1 4-3 4-5-3 0-4 2-4 5zm0 5c-3-1-4-3-4-5 3 0 4 2 4 5zm0 0c3-1 4-3 4-5-3 0-4 2-4 5z"/></symbol>
+  <symbol id="i-hierro" viewBox="0 0 24 24"><path d="M4 18h16l-2-5H6zM8 13l2-6h4l2 6"/></symbol>
+  <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></symbol>
+  <symbol id="i-casa" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7M6 10v10h12V10M10 20v-6h4v6"/></symbol>
+  <symbol id="i-foro" viewBox="0 0 24 24"><path d="M3 9h18L12 4zM5 20h14M6 9v9M10 9v9M14 9v9M18 9v9"/></symbol>
+  <symbol id="i-orbe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></symbol>
+  <symbol id="i-cuentas" viewBox="0 0 24 24"><path d="M5 4h12l2 2v14H5zM8 9h8M8 13h8M8 17h5"/></symbol>
+  <symbol id="i-rollo" viewBox="0 0 24 24"><path d="M6 4h11a2 2 0 010 4H6M6 4a2 2 0 000 4v12h11a2 2 0 000-4H8M9 11h6M9 14h4"/></symbol>
+  <symbol id="i-casco" viewBox="0 0 24 24"><path d="M5 15c0-5 3-9 7-9s7 4 7 9v3h-4v-3H9v3H5zM12 6V3M9 3h6"/></symbol>
+  <symbol id="i-mercado" viewBox="0 0 24 24"><path d="M12 4v16M5 8h14M5 8l-2 6h4zM19 8l-2 6h4zM8 20h8"/></symbol>
+  <symbol id="i-rutas" viewBox="0 0 24 24"><circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 000-6h-4a3 3 0 010-6h6"/></symbol>
+  <symbol id="i-pueblo" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><circle cx="17" cy="9" r="2.5"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6M15 14c3 0 6 2 6 5"/></symbol>
+  <symbol id="i-ajustes" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+  <symbol id="i-laurel" viewBox="0 0 40 40"><path d="M20 34C9 31 6 20 9 10M20 34c11-3 14-14 11-24M9 14c3 0 4 2 4 4M8 20c3 0 5 1 5 4M10 26c3-1 5 0 6 2M31 14c-3 0-4 2-4 4M32 20c-3 0-5 1-5 4M30 26c-3-1-5 0-6 2"/><path d="M16 22l4-9 4 9M17.5 19h5"/></symbol>
+  <symbol id="i-aviso" viewBox="0 0 24 24"><path d="M12 4l9 16H3zM12 10v4M12 17v.5"/></symbol>
+  <symbol id="i-hedera" viewBox="0 0 22 14"><path d="M3 7C3 3 6 1.5 8.5 3.5 10 1 14 1 15 4c1.5 1 1.5 2 1 3 .5 1 .5 2-1 3-1 3-5 3-6.5.5C6 12.5 3 11 3 7z"/><path d="M16 7h5" stroke="currentColor" stroke-width="1.4" fill="none"/></symbol>
+  <symbol id="i-cera" viewBox="0 0 40 40"><path d="M20 1.5c3 0 4.5 2 7 2.6 2.7.6 5.5-.4 7 2 1.5 2.3.3 4.8 1.4 7.2 1 2.3 3.6 3.7 3.1 6.7-.5 2.8-3.2 3.8-3.7 6.4-.5 2.6.8 5.3-1 7.2-1.9 2-4.8 1.1-7.2 2.3-2.4 1.2-3.6 3.8-6.6 3.8s-4-2.4-6.5-3.4c-2.6-1-5.6-.2-7.4-2.3-1.8-2-.6-4.8-1.3-7.3C4.1 24.4 1.5 23 1.5 20s2.6-4.2 3.4-6.7c.8-2.6-.2-5.4 1.7-7.3 1.9-1.9 4.8-1.2 7.2-2.2C16.2 2.8 17 1.5 20 1.5z"/><circle cx="20" cy="20" r="13.5" fill="none" stroke="rgba(60,5,2,.45)" stroke-width="1.6"/><circle cx="20" cy="20" r="15" fill="none" stroke="rgba(255,170,140,.22)" stroke-width="1"/></symbol>
+  <radialGradient id="g-cera" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#e0614a"/><stop offset=".45" stop-color="#a3231a"/><stop offset="1" stop-color="#5e0f09"/></radialGradient>
+  <symbol id="i-sigue" viewBox="0 0 24 24"><path d="M8 5l9 7-9 7z"/></symbol>
+</defs></svg>
+
+<!-- barra de arriba común -->
+<template id="t-arriba">
+  <div class="arriba">
+    <div class="recursos">
+      <div class="rec"><svg><use href="#i-madera"/></svg>400</div><div class="rec"><svg><use href="#i-piedra"/></svg>400</div>
+      <div class="rec"><svg><use href="#i-hierro"/></svg>400</div><div class="rec"><svg><use href="#i-grano"/></svg>400</div>
+      <div class="rec"><svg><use href="#i-oro"/></svg>200</div>
+    </div>
+    <div class="fila2"><button class="ciudad-btn">ROMA ▾</button><div class="fecha">IANVARIVS<i>▴</i>280 a.C.</div><button class="menu-btn"><svg><use href="#i-menu"/></svg></button></div>
+    <div class="greca"></div>
+  </div>
+</template>
+<template id="t-abajo">
+  <div class="abajo">
+    <button class="sello-btn"><span class="lacre"><svg class="cera" viewBox="0 0 40 40" fill="url(#g-cera)"><use href="#i-cera"/></svg><svg class="marca" viewBox="0 0 24 24"><use href="#i-sigue"/></svg></span>Pasar turno <small>· Invierno</small></button>
+    <div class="pestanas">
+      <div class="pest" data-p="ciudad"><svg><use href="#i-casa"/></svg>Ciudad</div>
+      <div class="pest" data-p="gobierno"><svg><use href="#i-foro"/></svg>Gobierno</div>
+      <div class="pest" data-p="imperio"><svg><use href="#i-orbe"/></svg>Imperio</div>
+    </div>
+  </div>
+</template>
+
+<!-- 1 · IMPERIO (variante A: hoja de papiro enrollada) -->
+<div class="pantalla velo" id="imperio" data-pest="imperio">
+  <div class="slot-arriba"></div>
+  <div class="rollo" style="top:96px;bottom:142px">
+    <div class="palo"><span class="asa"></span></div>
+    <div class="papiro desliza">
+      <div class="ansata">IMPERIO</div>
+      <div class="cifras">
+        <div><b>1503<small>/1665</small></b><span class="rub">Pueblo</span></div>
+        <div><b>67</b><span class="rub">Ánimo</span></div>
+        <div><b>0</b><span class="rub">En obras</span></div>
+        <div><b>5</b><span class="rub">Sin obra</span></div>
+      </div>
+      <div class="hedera"><svg viewBox="0 0 22 14"><use href="#i-hedera"/></svg></div>
+      <div class="tablilla">
+        <button class="on">Todas<b>5</b></button><button>Urgen<b>0</b></button><button>Sin obra<b>5</b></button><button>Obras<b>0</b></button><button>Ánimo bajo<b>0</b></button>
+      </div>
+      <div class="cuentas">
+        <div class="renglon"><div><div class="nom">Volsinii</div><div class="est">Sin obra · hay recursos</div></div><div class="num"><svg class="ico"><use href="#i-pueblo"/></svg> <b>301</b>/335<br><span class="cara med"></span><b>67</b></div></div>
+        <div class="renglon"><div><div class="nom">Carales</div><div class="est">Sin obra · hay recursos</div></div><div class="num"><svg class="ico"><use href="#i-pueblo"/></svg> <b>301</b>/335<br><span class="cara med"></span><b>67</b></div></div>
+        <div class="renglon"><div><div class="nom">Emporion</div><div class="est bien">Construye termas · 2 meses</div></div><div class="num"><svg class="ico"><use href="#i-pueblo"/></svg> <b>301</b>/335<br><span class="cara"></span><b>72</b></div></div>
+        <div class="renglon"><div><div class="nom">Roma</div><div class="est">Sin obra · hay recursos</div></div><div class="num"><svg class="ico"><use href="#i-pueblo"/></svg> <b>300</b>/340<br><span class="cara"></span><b>69</b></div></div>
+        <div class="renglon"><div><div class="nom">Capua</div><div class="est">Falta vino</div></div><div class="num"><svg class="ico"><use href="#i-pueblo"/></svg> <b>300</b>/320<br><span class="cara mal"></span><b>48</b></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="slot-abajo"></div>
+  <div class="nota-maq">MR1 · A · Imperio en papiro</div>
+</div>
+
+<!-- 1b · IMPERIO (variante B: marco oscuro de bronce con hojas de papiro) -->
+<div class="pantalla velo" id="imperio-b" data-pest="imperio">
+  <div class="slot-arriba"></div>
+  <div class="marco" style="top:100px;bottom:146px">
+    <div class="ansata">IMPERIO</div>
+    <div class="cifras">
+      <div><b>1503<small>/1665</small></b><span class="rub">Pueblo</span></div>
+      <div><b>67</b><span class="rub">Ánimo</span></div>
+      <div><b>0</b><span class="rub">En obras</span></div>
+      <div><b>5</b><span class="rub">Sin obra</span></div>
+    </div>
+    <div class="tablilla" style="margin-top:10px">
+      <button class="on">Todas<b>5</b></button><button>Urgen<b>0</b></button><button>Sin obra<b>5</b></button><button>Obras<b>0</b></button><button>Ánimo bajo<b>0</b></button>
+    </div>
+    <div class="hoja"><div class="renglon"><div><div class="nom">Volsinii</div><div class="est">Sin obra · hay recursos</div></div><div class="num"><b>301</b>/335<br><span class="cara med"></span><b>67</b></div></div></div>
+    <div class="hoja"><div class="renglon"><div><div class="nom">Carales</div><div class="est">Sin obra · hay recursos</div></div><div class="num"><b>301</b>/335<br><span class="cara med"></span><b>67</b></div></div></div>
+    <div class="hoja bien"><div class="renglon"><div><div class="nom">Emporion</div><div class="est bien">Construye termas · 2 meses</div></div><div class="num"><b>301</b>/335<br><span class="cara"></span><b>72</b></div></div></div>
+    <div class="hoja"><div class="renglon"><div><div class="nom">Roma</div><div class="est">Sin obra · hay recursos</div></div><div class="num"><b>300</b>/340<br><span class="cara"></span><b>69</b></div></div></div>
+<div class="hoja"><div class="renglon"><div><div class="nom">Capua</div><div class="est">Falta vino</div></div><div class="num"><b>300</b>/320<br><span class="cara mal"></span><b>48</b></div></div></div>
+  </div>
+  <div class="slot-abajo"></div>
+  <div class="nota-maq">MR1 · B · Imperio en marco de bronce</div>
+</div>
+
+<!-- 2 · GOBIERNO -->
+<div class="pantalla velo" id="gobierno" data-pest="gobierno">
+  <div class="slot-arriba"></div>
+  <div class="rollo" style="top:96px;bottom:142px">
+    <div class="palo"><span class="asa"></span></div>
+    <div class="papiro">
+      <div class="titulo-ciudad"><div class="ansata">ROMA</div><div class="sub">Capital <span class="punto"></span> 300 habitantes</div></div>
+      <div class="corona">
+        <svg viewBox="0 0 168 168"><circle cx="84" cy="84" r="70" fill="none" stroke="rgba(60,35,10,.18)" stroke-width="12"/>
+          <circle cx="84" cy="84" r="70" fill="none" stroke="#46661f" stroke-width="12" stroke-dasharray="264 440" transform="rotate(-90 84 84)" stroke-linecap="butt"/>
+          <circle cx="84" cy="84" r="78" fill="none" stroke="rgba(60,35,10,.45)" stroke-width="1"/><circle cx="84" cy="84" r="62" fill="none" stroke="rgba(60,35,10,.45)" stroke-width="1"/></svg>
+        <div class="centro"><b>60 %</b><span class="rub">Felicidad</span><span>sube con vino</span></div>
+      </div>
+      <div class="falta"><span class="rub">Falta</span>
+        <span class="pide"><svg class="ico"><use href="#i-aviso"/></svg>Vino</span><span class="pide"><svg class="ico"><use href="#i-aviso"/></svg>Hierro bueno</span><span class="pide"><svg class="ico"><use href="#i-aviso"/></svg>Plata</span><span class="pide">+4</span>
+      </div>
+      <div class="placas seis">
+        <div class="placa"><svg><use href="#i-mercado"/></svg>Mercado</div>
+        <div class="placa"><svg><use href="#i-rutas"/></svg>Rutas<small>0 de 1</small></div>
+        <div class="placa"><svg><use href="#i-pueblo"/></svg>Pueblo</div>
+        <div class="placa"><svg><use href="#i-ajustes"/></svg>Ajustes</div>
+        <div class="placa"><svg><use href="#i-rollo"/></svg>Crónica</div>
+        <div class="placa"><svg><use href="#i-foro"/></svg>Senado</div>
+      </div>
+      <a class="enlace">Ver la ciudad en 3D</a>
+    </div>
+  </div>
+  <div class="slot-abajo"></div>
+  <div class="nota-maq">MR1 · Gobierno</div>
+</div>
+
+<!-- 3 · SENADO -->
+<div class="pantalla velo" id="senado" data-pest="gobierno">
+  <div class="slot-arriba"></div>
+  <div class="rollo" style="top:96px;bottom:10px">
+    <div class="palo"><span class="asa"></span></div>
+    <div class="papiro">
+      <div class="ansata chica" style="margin-top:0">SENADO <span class="punto"></span> PRIMAVERA</div>
+      <div class="bronce-tabla">
+        <span class="clavo" style="left:5px;top:5px"></span><span class="clavo" style="right:5px;top:5px"></span><span class="clavo" style="left:5px;bottom:5px"></span><span class="clavo" style="right:5px;bottom:5px"></span>
+        <div class="rub">264 a.C. <span class="punto"></span> Mesina pide ayuda</div>
+        <p class="inicial">Los mamertinos, mercenarios que tienen Mesina, piden socorro a Roma. Cartago ya tiene allí una guarnición.</p>
+      </div>
+      <div class="propone">El Senado propone: <b>Cruzar a Sicilia</b> · ley de guerra</div>
+      <svg class="hemiciclo" id="hemi" width="330" height="140" viewBox="0 0 330 140"></svg>
+      <div class="recuento"><span class="si">7 sí</span> · <span class="du">18 dudan</span> · <span class="no">5 no</span> <span>— hacen falta 16</span></div>
+      <div class="oferta"><div class="cera"><div class="quien"><span class="bando" style="background:#7d9a3e"></span>Terratenientes · 12 escaños</div><div class="que">Sin levas en el campo este año</div><div class="efe">+6 votos<i>arriesgado</i></div></div></div>
+      <div class="oferta"><div class="cera"><div class="quien"><span class="bando" style="background:#4f86a8"></span>Mercaderes · 8 escaños</div><div class="que">Pagar 60 de oro</div><div class="efe">+6 votos<i>oro −60</i></div></div></div>
+      <div style="height:10px"></div>
+      <button class="sello-btn"><span class="lacre"><svg class="cera" viewBox="0 0 40 40" fill="url(#g-cera)"><use href="#i-cera"/></svg><svg class="marca" viewBox="0 0 24 24"><use href="#i-foro"/></svg></span>Votar ya <small>· 7 de 16</small></button>
+    </div>
+  </div>
+  <div class="nota-maq">MR1 · Senado</div>
+</div>
+
+<!-- 4 · MODAL: informe de estación como carta sellada -->
+<div class="pantalla velo mapa" id="carta" data-pest="imperio">
+  <div class="slot-arriba"></div>
+  <div class="slot-abajo"></div>
+  <div class="velo-modal"></div>
+  <div class="carta-sombra"><div class="sello"><svg class="cera" viewBox="0 0 40 40" fill="url(#g-cera)"><use href="#i-cera"/></svg><svg class="marca" viewBox="0 0 40 40"><use href="#i-laurel"/></svg></div><div class="carta">
+    
+    <h2>FIN DEL INVIERNO</h2>
+    <div class="de">De tu cuestor, en Roma</div>
+    <div class="rub">Cuentas de la estación</div>
+    <div class="balance">
+      <span>Impuestos de 5 ciudades</span><span class="mas">+180 oro</span>
+      <span>Paga de 3 legiones</span><span class="menos">−120 oro</span>
+      <span>Cosecha</span><span class="mas">+400 grano</span>
+    </div>
+    <div class="hedera"><svg viewBox="0 0 22 14"><use href="#i-hedera"/></svg></div>
+    <div class="rub">Lo que pide tu atención</div>
+    <p class="inicial">Capua no tiene vino y su ánimo baja a <b style="color:var(--minio)">48</b>. Una ruta desde Neápolis lo arreglaría.</p>
+    <div class="botones"><button class="tinta-btn">Ver Capua</button><button class="sello-btn"><span class="lacre"><svg class="cera" viewBox="0 0 40 40" fill="url(#g-cera)"><use href="#i-cera"/></svg><svg class="marca" viewBox="0 0 24 24"><use href="#i-sigue"/></svg></span>Seguir</button></div>
+  </div></div>
+  <div class="nota-maq">MR1 · Modal (informe)</div>
+</div>
+
+<script>
+// barras comunes
+const ta = document.getElementById('t-arriba'), tb = document.getElementById('t-abajo');
+document.querySelectorAll('.pantalla').forEach(p => {
+  const a = p.querySelector('.slot-arriba'); if (a) a.replaceWith(ta.content.cloneNode(true));
+  const b = p.querySelector('.slot-abajo'); if (b) { const n = tb.content.cloneNode(true); n.querySelectorAll('.pest').forEach(x => x.classList.toggle('on', x.dataset.p === p.dataset.pest)); b.replaceWith(n); }
+});
+document.querySelectorAll('.rollo').forEach(r => { const d = document.createElement('div'); d.className = 'palo abajo-palo'; r.appendChild(d); });
+// corona de laurel alrededor del anillo de felicidad: dos ramas desde abajo hasta arriba
+document.querySelectorAll('.corona').forEach(co => {
+  const c = 100, r = 92, P = (a, d = r) => [c + d * Math.cos(a), c + d * Math.sin(a)];
+  let l = '<svg class="laurel" viewBox="0 0 200 200">';
+  for (const lado of [-1, 1]) {
+    const a0 = Math.PI / 2 + lado * 0.2, a1 = Math.PI / 2 + lado * 2.75;
+    const [x0, y0] = P(a0), [x1, y1] = P(a1);
+    l += `<path d="M${x0} ${y0} A${r} ${r} 0 0 ${lado > 0 ? 1 : 0} ${x1} ${y1}" fill="none" stroke="#3d5418" stroke-width="1.6"/>`;
+    for (let k = 0; k < 11; k++) {
+      const a = a0 + lado * (k + .5) * (2.55 / 11), [x, y] = P(a), dir = a + lado * Math.PI / 2;
+      for (const o of [-1, 1]) {
+        const g = dir + o * 0.75, lx = x + 6.5 * Math.cos(g), ly = y + 6.5 * Math.sin(g), deg = g * 180 / Math.PI + 90;
+        l += `<ellipse cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" rx="2.6" ry="7" transform="rotate(${deg.toFixed(1)} ${lx.toFixed(1)} ${ly.toFixed(1)})" fill="${(k + o) % 2 ? '#5f7d2d' : '#4a6522'}" stroke="#2f4214" stroke-width=".5"/>`;
+      }
+    }
+  }
+  l += `<path d="M86 192q14-8 28 0M92 192l-6 8M108 192l6 8" fill="none" stroke="#9b2a1a" stroke-width="2.4"/></svg>`;
+  co.insertAdjacentHTML('afterbegin', l);
+});
+// hemiciclo: 30 escaños en tres filas
+const h = document.getElementById('hemi'), cx = 165, cy = 136; let s = '';
+s += '<path d="M27 136 A138 138 0 0 1 303 136" fill="none" stroke="rgba(60,35,10,.5)" stroke-width="1"/>';
+s += '<path d="M125 136 A40 40 0 0 1 205 136 Z" fill="rgba(122,90,31,.25)" stroke="rgba(60,35,10,.5)"/><text x="165" y="130" text-anchor="middle" font-family="Cinzel" font-size="9" font-weight="700" fill="#5a4220" letter-spacing="1">CÓNSULES</text>';
+const filas = [[8, 66], [10, 96], [12, 126]];
+for (const [, r] of filas) s = `<path d="M${cx - r} ${cy} A${r} ${r} 0 0 1 ${cx + r} ${cy}" fill="none" stroke="rgba(150,120,80,.28)" stroke-width="22"/><path d="M${cx - r - 11} ${cy} A${r + 11} ${r + 11} 0 0 1 ${cx + r + 11} ${cy}" fill="none" stroke="rgba(60,35,10,.35)" stroke-width="1"/>` + s; let k = 0;
+const voto = 'ssddnsddddnsdddndsddnddnsdddsd';
+const bando = i => i < 11 ? '#7d9a3e' : i < 19 ? '#4f86a8' : '#a3402a';
+for (const [n, r] of filas) for (let i = 0; i < n; i++, k++) {
+  const ang = Math.PI - (i + .5) / n * Math.PI, x = cx + r * Math.cos(ang), y = cy - r * Math.sin(ang);
+  const idx = Math.floor(i / n * 30), c = bando(idx), v = voto[k % 30];
+  if (v === 's') s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="8" fill="${c}" stroke="#2b1c0a" stroke-width="1"/>`;
+  else if (v === 'n') s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="8" fill="none" stroke="#2b1c0a" stroke-width="1.2"/><path d="M${x - 4} ${y - 4}l8 8m0-8l-8 8" stroke="#9b2a1a" stroke-width="1.6"/>`;
+  else s += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7.5" fill="none" stroke="${c}" stroke-width="2" stroke-dasharray="3 2.5"/>`;
+}
+h.innerHTML = s;
+// ?p=imperio muestra solo esa pantalla (para las capturas); sin parámetro, todas
+const p = new URLSearchParams(location.search).get('p');
+if (p) document.querySelectorAll('.pantalla').forEach(x => { if (x.id !== p) x.remove(); }); else document.body.classList.add('todas');
+document.querySelectorAll('.nota-maq').forEach(n => { if (p) n.remove(); });
+</script>
+</body></html>

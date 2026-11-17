@@ -37,7 +37,7 @@ const luces = () => { const s = new THREE.DirectionalLight('#ffe6b8', 3.0); s.po
 const [cielo0, sol] = luces(); escena.add(cielo0, sol);
 
 /* lo que comparten todos los cartones: reloj, cámara, zona de figuras completas y niebla */
-const COMUN = { uT: { value: 0 }, uCamR: { value: new THREE.Vector3(1, 0, 0) }, uCamU: { value: new THREE.Vector3(0, 1, 0) }, uCamAz: { value: 0 }, uPix: { value: 800 },
+const COMUN = { uT: { value: 0 }, uCamR: { value: new THREE.Vector3(1, 0, 0) }, uCamU: { value: new THREE.Vector3(0, 1, 0) }, uCamAz: { value: 0 }, uL: { value: new THREE.Vector4(0, 0, 1, 1) }, uLH: { value: 0 }, uPix: { value: 800 },
   uDet: { value: new THREE.Vector3(0, 0, -1) }, uNiebla: { value: new THREE.Vector2(90, 520) }, uNieblaC: { value: new THREE.Color(HORIZ) }, uRes: { value: new THREE.Vector2(1, 1) } };
 
 let ancho = 0, alto = 0, vertical = true;
@@ -71,7 +71,7 @@ function atlasDe(tipo, lado) {
 }
 /* El sombreador coloca a cada hombre: su número (gl_InstanceID) da fila y columna; ver formacion.js, que hace la misma cuenta */
 const VS = `
-uniform vec2 uCentro, uPaso, uFuga, uTam, uNiebla; uniform vec3 uDet, uCamR, uCamU;
+uniform vec2 uCentro, uPaso, uFuga, uTam, uNiebla; uniform vec3 uDet, uCamR, uCamU; uniform vec4 uL; uniform float uLH;
 uniform float uRev, uYaw, uFiles, uVivos, uT, uAnim, uAtaca, uCalma, uHuida, uOrden, uGiro, uCamAz, uAlto, uPix, uVida;
 #ifdef CAIDO
 attribute vec4 aC;
@@ -100,10 +100,11 @@ void main() {
   if (uHuida < 0.0 && distance(p, uDet.xy) < uDet.z) esc = 0.0;
 #endif
   float k = mod(floor((yaw - uCamAz) / 0.7853982 + 0.5), 8.0);
-  vec4 mv = viewMatrix * vec4(p.x, uAlto, p.y, 1.0);
+  float ya = uAlto + uLH * (1.0 - smoothstep(0.4, 1.0, length((p - uL.xy) / uL.zw)));   /* cada hombre sigue la loma */
+  vec4 mv = viewMatrix * vec4(p.x, ya, p.y, 1.0);
   vLejos = clamp(1.0 - (uTam.y * uPix / -mv.z - 14.0) / 18.0, 0.0, 1.0);
   vec2 rec = mix(vec2(1.0), vec2(0.5, 0.74), vLejos);                 /* de lejos el cartón se recorta al cuerpo: menos píxeles que pintar */
-  vec3 w = vec3(p.x, uAlto, p.y) + uCamR * (position.x * uTam.x * rec.x * esc) + uCamU * (position.y * uTam.y * rec.y * esc);
+  vec3 w = vec3(p.x, ya, p.y) + uCamR * (position.x * uTam.x * rec.x * esc) + uCamU * (position.y * uTam.y * rec.y * esc);
   mv = viewMatrix * vec4(w, 1.0); gl_Position = projectionMatrix * mv;
   vUv = vec2((0.5 + (uv.x - 0.5) * rec.x + cual) / ${COLS}.0, (0.5 + (uv.y - 0.5) * rec.y + k) / ${DIRS}.0);
   vNiebla = smoothstep(uNiebla.x, uNiebla.y, -mv.z);
@@ -124,6 +125,20 @@ function carton(at, lado, propios, caido) {
   const un = Object.assign({ uMap: { value: at.tex }, uTam: { value: new THREE.Vector2(at.W, at.H) }, uAlto: { value: at.yc }, uBando: { value: new THREE.Color(COLOR[lado]) } }, propios, COMUN);
   const malla = new THREE.Mesh(g, new THREE.ShaderMaterial({ uniforms: un, vertexShader: (caido ? '#define CAIDO\n' : '') + VS, fragmentShader: FS })); malla.frustumCulled = false; escena.add(malla);
   return { g, un, malla };
+}
+
+/* ---------- relieve (GM29) ----------
+   El campo de batalla es llano (aquí se pinta todo a ras de suelo). Fuera de él salen lomas suaves y, lejos, un horizonte de colinas.
+   La LOMA de las reglas es una meseta suave bajo el ala derecha de Roma: las tropas suben y bajan con ella (la altura se toma en el centro de cada cuerpo). */
+const suave = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+let REL = null;                                       // se rellena en campo(): medidas del relieve
+function alt(x, z) {
+  if (!REL) return 0;
+  const dx = Math.max(0, Math.abs(x) - REL.xc), dz = Math.max(0, REL.za - z, z - REL.zb), d = Math.hypot(dx, dz), f = suave(0, 110, d);
+  let h = f * (1.2 + 1.5 * Math.sin(x * 0.021 + 1.7) * Math.cos(z * 0.017 - 0.6) + 0.8 * Math.sin(x * 0.047 + z * 0.031)) * (1 + d / 260);   // lomas suaves fuera del campo
+  const r = Math.hypot(x, z - REL.zc); h += 62 * suave(REL.r0, REL.r0 + 190, r) * (0.7 + 0.3 * Math.sin(Math.atan2(x, z - REL.zc) * 4 + 1));          // horizonte de colinas
+  const u = Math.hypot((x - REL.lx) / REL.lrx, (z - REL.lz) / REL.lrz); h += REL.lh * (1 - suave(0.4, 1, u));                                    // la loma: meseta con laderas
+  return Math.max(0, h);
 }
 
 /* ---------- estado ---------- */
@@ -279,9 +294,10 @@ function mover(dt) {
       rg.pz += (rg.pzQ - rg.pz) * Math.min(1, dt * 4); rg.px += (rg.pxQ - rg.px) * Math.min(1, dt * 4); rg.cubre += (rg.cubreQ - rg.cubre) * Math.min(1, dt * 2.2);
     }
     const n = Math.ceil(rg.n); rg.g.instanceCount = rg.est === 3 && rg.tH > 17 ? 0 : n;
+    rg.y = alt(rg.x, rg.z);
     u.uCentro.value.set(rg.x, rg.z); u.uYaw.value = rg.yaw; u.uVivos.value = n; u.uPaso.value.set(rg.px, rg.pz); u.uAnim.value = rg.anim; u.uAtaca.value = rg.ataca; u.uCalma.value = rg.calma; u.uHuida.value = rg.est === 3 ? rg.tH : -1; u.uGiro.value = rg.giro;
     const filas = F.filasDe(n, rg.files), m = rg.manto; m.visible = rg.est !== 3 && n > 0;
-    if (m.visible) { m.position.set(rg.x + Math.sin(rg.yaw) * 0.6, 0.04, rg.z + Math.cos(rg.yaw) * 0.6); m.rotation.y = rg.yaw + Math.PI; m.scale.set(rg.files * rg.px + 0.9, 1, (filas - 1) * rg.pz + 1.5); }
+    if (m.visible) { m.position.set(rg.x + Math.sin(rg.yaw) * 0.6, rg.y + 0.04, rg.z + Math.cos(rg.yaw) * 0.6); m.rotation.y = rg.yaw + Math.PI; m.scale.set(rg.files * rg.px + 0.9, 1, (filas - 1) * rg.pz + 1.5); }
     if (rg.techo) cubrir(rg, n, filas);
   }
 }
@@ -308,7 +324,7 @@ function tejado() {
 function cubrir(rg, n, filas) {
   const t = rg.techo, q = rg.cubre; t.gr.visible = q > 0.05 && rg.est !== 3 && n > 0; if (!t.gr.visible) return;
   const cuantas = Math.min(filas, q > 1 ? Math.ceil(3 + (filas - 3) * (q - 1)) : 3), anchoB = rg.files * rg.px + 0.25, hondo = (cuantas - 1) * rg.pz + 1.1, alto = 1.25 + 0.75 * Math.min(1, q);
-  t.gr.position.set(rg.x + Math.sin(rg.yaw) * 0.55, 0, rg.z + Math.cos(rg.yaw) * 0.55); t.gr.rotation.y = rg.yaw + Math.PI; t.gr.scale.set(anchoB, alto, hondo);
+  t.gr.position.set(rg.x + Math.sin(rg.yaw) * 0.55, rg.y || 0, rg.z + Math.cos(rg.yaw) * 0.55); t.gr.rotation.y = rg.yaw + Math.PI; t.gr.scale.set(anchoB, alto, hondo);
   t.mapa.repeat.set(rg.files, cuantas); t.mapaM.repeat.set(rg.files, 1); t.mat.opacity = t.matM.opacity = Math.min(1, q * 1.6);
 }
 
@@ -318,9 +334,9 @@ function proyectiles() {
   const g = new THREE.InstancedBufferGeometry(); g.index = QUAD.index.clone(); g.setAttribute('position', QUAD.attributes.position.clone()); g.setAttribute('uv', QUAD.attributes.uv.clone());   // copias propias: al deshacer un regimiento no se lleva los datos de los demás
   const aS = new THREE.InstancedBufferAttribute(new Float32Array(NPRO * 4), 4), aT = new THREE.InstancedBufferAttribute(new Float32Array(NPRO * 4).fill(-999), 4), aC = new THREE.InstancedBufferAttribute(new Float32Array(NPRO * 4), 4);
   for (const a of [aS, aT, aC]) a.setUsage(THREE.DynamicDrawUsage); g.setAttribute('aS', aS); g.setAttribute('aT', aT); g.setAttribute('aC', aC); g.instanceCount = NPRO;
-  const m = new THREE.Mesh(g, new THREE.ShaderMaterial({ uniforms: { uT: COMUN.uT, uRes: COMUN.uRes, uDpr: { value: 1 } }, depthWrite: false, transparent: true,
-    vertexShader: `attribute vec4 aS, aT, aC; uniform float uT, uDpr; uniform vec2 uRes; varying vec4 vC;
-      vec4 arco(float g) { vec2 p = mix(aS.xy, aS.zw, g); return projectionMatrix * viewMatrix * vec4(p.x, 1.5 + aT.z * 4.0 * g * (1.0 - g) - 1.3 * g, p.y, 1.0); }
+  const m = new THREE.Mesh(g, new THREE.ShaderMaterial({ uniforms: { uT: COMUN.uT, uRes: COMUN.uRes, uDpr: { value: 1 }, uL: COMUN.uL, uLH: COMUN.uLH }, depthWrite: false, transparent: true,
+    vertexShader: `attribute vec4 aS, aT, aC; uniform float uT, uDpr, uLH; uniform vec4 uL; uniform vec2 uRes; varying vec4 vC;
+      vec4 arco(float g) { vec2 p = mix(aS.xy, aS.zw, g); return projectionMatrix * viewMatrix * vec4(p.x, uLH * (1.0 - smoothstep(0.4, 1.0, length((p - uL.xy) / uL.zw))) + 1.5 + aT.z * 4.0 * g * (1.0 - g) - 1.3 * g, p.y, 1.0); }
       void main() {
         float f = (uT - aT.x) / aT.y; vec4 c1 = arco(clamp(f, 0.0, 1.0)), c0 = arco(clamp(f - aT.w, 0.0, 1.0));
         vec2 d = (c1.xy / c1.w - c0.xy / c0.w) * uRes * 0.5; float L = length(d); d = L > 0.001 ? d / L : vec2(0.0, 1.0);
@@ -382,9 +398,9 @@ function detalle() {
     const C = m.u.clips, ph = F.h1(q.id) * 5, corre = rg.giro || rg.anim > 1;
     const fr = rg.giro || rg.anim ? frameOf(corre ? (C.run || C.walk) : C.walk, T + ph) : O.fila < rg.ataca && Math.sin(T * 0.8 + F.h2(q.id) * 19) > rg.calma ? frameOf(rg.tir && C.attack_ranged ? C.attack_ranged : C.attack_melee || C.attack_ranged, T + ph) : frameOf(C.idle, T + ph);
     const slot = m.malla.count++, o = slot * 16, a = m.malla.instanceMatrix.array, c = Math.cos(O.yaw) * UNIT_SCALE, s = Math.sin(O.yaw) * UNIT_SCALE;
-    a[o] = c; a[o + 1] = 0; a[o + 2] = -s; a[o + 3] = 0; a[o + 4] = 0; a[o + 5] = UNIT_SCALE; a[o + 6] = 0; a[o + 7] = 0; a[o + 8] = s; a[o + 9] = 0; a[o + 10] = c; a[o + 11] = 0; a[o + 12] = O.x; a[o + 13] = 0; a[o + 14] = O.z; a[o + 15] = 1;
+    a[o] = c; a[o + 1] = 0; a[o + 2] = -s; a[o + 3] = 0; a[o + 4] = 0; a[o + 5] = UNIT_SCALE; a[o + 6] = 0; a[o + 7] = 0; a[o + 8] = s; a[o + 9] = 0; a[o + 10] = c; a[o + 11] = 0; a[o + 12] = O.x; a[o + 13] = alt(O.x, O.z); a[o + 14] = O.z; a[o + 15] = 1;
     m.fr.array[slot] = fr;
-    const e = rg.mont ? 1.5 : 1, w = nFig++ * 16; sm[w] = e; sm[w + 1] = 0; sm[w + 2] = 0; sm[w + 3] = 0; sm[w + 4] = 0; sm[w + 5] = 1; sm[w + 6] = 0; sm[w + 7] = 0; sm[w + 8] = 0; sm[w + 9] = 0; sm[w + 10] = e; sm[w + 11] = 0; sm[w + 12] = O.x; sm[w + 13] = 0.06; sm[w + 14] = O.z; sm[w + 15] = 1;
+    const e = rg.mont ? 1.5 : 1, w = nFig++ * 16; sm[w] = e; sm[w + 1] = 0; sm[w + 2] = 0; sm[w + 3] = 0; sm[w + 4] = 0; sm[w + 5] = 1; sm[w + 6] = 0; sm[w + 7] = 0; sm[w + 8] = 0; sm[w + 9] = 0; sm[w + 10] = e; sm[w + 11] = 0; sm[w + 12] = O.x; sm[w + 13] = alt(O.x, O.z) + 0.06; sm[w + 14] = O.z; sm[w + 15] = 1;
   }
   for (const m of figM.values()) if (m.malla.count) { m.malla.instanceMatrix.needsUpdate = true; m.fr.needsUpdate = true; }
   sombras.count = nFig; sombras.instanceMatrix.needsUpdate = true; if (nFig > maxFig) maxFig = nFig;
@@ -393,22 +409,26 @@ function detalle() {
 /* ---------- campo: suelo, cielo, árboles, estandartes, polvo (todo a la medida del ejército) ---------- */
 function campo() {
   const rnd = (() => { let s = 99; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; })();
-  const dGen = Math.max(MEDIO * 1.04 / (Math.tan(27 * Math.PI / 180) * 390 / 844), 60, camaraMeta().d), lado = Math.max(900, dGen * 5), llano = MEDIO + FONDO_R + 40 + LEJOS / 2;
+  const dGen = Math.max(MEDIO * 1.04 / (Math.tan(27 * Math.PI / 180) * 390 / 844), 60, camaraMeta().d), lado = Math.max(900, dGen * 5), llano = 2 * MEDIO + FONDO_R + 40 + LEJOS / 2;     // GM29: el campo, el doble de ancho que el ejército
+  REL = { xc: Math.max(2 * MEDIO, MEDIO + 60), za: -(FONDO_E + LEJOS / 2 + 90), zb: LEJOS / 2 + FONDO_R + ZCAB + 60, lx: xs(R.LOMA.sect) + 0.3 * ANCHO, lz: LEJOS / 2 + 5, lrx: 1.1 * ANCHO, lrz: 100, lh: 6 };
+  REL.zc = (REL.za + REL.zb) / 2; REL.r0 = Math.max(330, Math.hypot(REL.xc, (REL.zb - REL.za) / 2) + 40);
+  COMUN.uL.value.set(REL.lx, REL.lz, REL.lrx, REL.lrz); COMUN.uLH.value = REL.lh;
   escena.fog.near = dGen * 1.25 + 60; escena.fog.far = dGen * 3.6 + 500; COMUN.uNiebla.value.set(escena.fog.near, escena.fog.far);
-  const g = new THREE.PlaneGeometry(lado, lado, 110, 110).rotateX(-Math.PI / 2), P = g.attributes.position, W = new Float32Array(P.count * 3), ez = CAMPO * 2 + 4 + LEJOS * 0.2, ex = MEDIO * 1.15;
+  const g = new THREE.PlaneGeometry(lado, lado, 170, 170).rotateX(-Math.PI / 2), P = g.attributes.position, W = new Float32Array(P.count * 3), ez = CAMPO * 2 + 4 + LEJOS * 0.2, ex = MEDIO * 1.15;
   for (let i = 0; i < P.count; i++) {
     const x = P.getX(i), z = P.getZ(i), n = 0.5 + 0.5 * Math.sin(x * 0.045 + 1.3) * Math.cos(z * 0.06 - 0.4) + 0.25 * Math.sin(x * 0.13 + z * 0.09);
     const pis = 0.55 * Math.exp(-(z * z) / (ez * ez)) * Math.exp(-(x * x) / (ex * ex));                       // tierra pisada donde se lucha
-    W[i * 3] = Math.max(0, Math.min(0.75, 0.3 + 0.4 * n) * (1 - pis)); W[i * 3 + 1] = pis + 0.08 * Math.max(0, Math.sin(x * 0.21) * Math.sin(z * 0.17)); W[i * 3 + 2] = 0;
-    const lejos = Math.hypot(x, z); if (lejos > llano) P.setY(i, Math.max(0, (lejos - llano) * 0.05 * (0.5 + 0.5 * Math.sin(x * 0.021 + 2) * Math.cos(z * 0.017))));
+    const enLoma = 1 - suave(0.4, 1.15, Math.hypot((x - REL.lx) / REL.lrx, (z - REL.lz) / REL.lrz));   // la loma se pinta de otra tierra: se reconoce a simple vista
+    W[i * 3] = Math.max(0, Math.min(0.75, 0.3 + 0.4 * n + 0.4 * enLoma) * (1 - pis)); W[i * 3 + 1] = pis + 0.08 * Math.max(0, Math.sin(x * 0.21) * Math.sin(z * 0.17)); W[i * 3 + 2] = 0;
+    P.setY(i, alt(x, z));
   }
   escena.add(new THREE.Mesh(g, applyGround(g, W, 0.09)));
   try { escena.add(crearCielo(sol.position.clone(), HORIZ, { uRuido: { value: texturaRuido() } })); } catch (e) { escena.background = new THREE.Color(HORIZ); console.warn('sin cielo', e); }
   const arboles = { cipres: [], olivo: [], pino: [] }, E = new THREE.Euler(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), SC = new THREE.Vector3(), gr = 1 + ANCHO * 0.012;
   for (let k = 0; k < 190; k++) {
-    const a = rnd() * Math.PI * 2, r = llano * (0.55 + rnd() * 1.9), x = Math.cos(a) * r * 1.25, z = Math.sin(a) * r - 20; if (Math.abs(x) < MEDIO + 14 && z > -(FONDO_E + LEJOS / 2 + 14) && z < ZCAB + LEJOS / 2 + 34) continue;
+    const a = rnd() * Math.PI * 2, r = llano * (0.55 + rnd() * 1.9), x = Math.cos(a) * r * 1.25, z = Math.sin(a) * r - 20; if (Math.abs(x) < REL.xc + 30 && z > REL.za - 20 && z < REL.zb) continue;
     const tipo = rnd() < 0.45 ? 'olivo' : rnd() < 0.6 ? 'cipres' : 'pino', e = UNIT_SCALE * (0.75 + rnd() * 0.6) * (tipo === 'pino' ? 0.8 : 1) * gr;
-    arboles[tipo].push(new THREE.Matrix4().compose(V.set(x, 0, z), Q.setFromEuler(E.set(0, rnd() * 6.28, 0)), SC.set(e, e, e)));
+    arboles[tipo].push(new THREE.Matrix4().compose(V.set(x, alt(x, z), z), Q.setFromEuler(E.set(0, rnd() * 6.28, 0)), SC.set(e, e, e)));
   }
   for (const t in arboles) { const m = staticInstances(t, arboles[t]); if (m) escena.add(m); }
   /* un estandarte por cuerpo: es lo que se mira para saber cómo va */
@@ -439,11 +459,11 @@ function adornos(dt) {
   for (const e of estand) {
     const s = B.sect[e.i], c = s.c[e.l], dir = e.l === 0 ? 1 : -1; e.gr.visible = !c.roto && !(B.resultado && (B.resultado.como === 'victoria') === (e.l === 1));
     const rg = regs.get(c.lineas[0]), filas = rg ? F.filasDe(rg.n, FILES) : 1;
-    const zz = (rg ? rg.z : zFrente(s)) + dir * (filas * 1.15 + 0.5); e.gr.position.x += ((rg ? rg.x : xs(e.i)) - e.gr.position.x) * 0.2; e.gr.position.z += (zz - e.gr.position.z) * Math.min(1, dt * 3); e.gr.scale.setScalar(grande);
+    const zz = (rg ? rg.z : zFrente(s)) + dir * (filas * 1.15 + 0.5); e.gr.position.x += ((rg ? rg.x : xs(e.i)) - e.gr.position.x) * 0.2; e.gr.position.z += (zz - e.gr.position.z) * Math.min(1, dt * 3); e.gr.position.y = alt(e.gr.position.x, e.gr.position.z); e.gr.scale.setScalar(grande);
     e.gr.rotation.z = Math.sin(T * 1.7 + e.i) * 0.03 + (1 - c.moral) * 0.22 * Math.sin(T * 3 + e.i); e.tela.scale.y = 0.35 + 0.65 * Math.max(0, c.moral); e.tela.position.y = 4.43 - 0.675 * e.tela.scale.y;
   }
   const c = B.sect[sel].c[0]; marca.visible = !c.roto && B.fase !== 'fin';
-  if (marca.visible) { const f = c.fondo || 10; marca.scale.set(ANCHO + 1.6, 1, f); marca.position.x = xs(sel); marca.position.z = zFrente(B.sect[sel]) + hueco(B.sect[sel]) / 2 + f / 2 + 0.2; marca.material.opacity = 0.14 + 0.06 * Math.sin(T * 4); }
+  if (marca.visible) { const f = c.fondo || 10; marca.scale.set(ANCHO + 1.6, 1, f); marca.position.x = xs(sel); marca.position.z = zFrente(B.sect[sel]) + hueco(B.sect[sel]) / 2 + f / 2 + 0.2; marca.position.y = alt(marca.position.x, marca.position.z) + 0.05; marca.material.opacity = 0.14 + 0.06 * Math.sin(T * 4); }
   const P = polvo.geometry.attributes.position.array, A = polvo.geometry.attributes.aV.array; polvo.material.uniforms.uT.value = alto * 1.6 * (1 + ANCHO * 0.07);
   polvo.userData.p.forEach((p, k) => {
     const s = B.sect[p.s], vivo = B.fase === 'lucha' && !R.lejos(s) && !s.c[0].roto && !s.c[1].roto, fuerza = vivo ? (s.c[0].postura === 'empujar' || s.c[1].postura === 'empujar' ? 1 : 0.5) : 0;
@@ -455,10 +475,12 @@ function adornos(dt) {
 
 /* ---------- cámara: vista general a la medida del ejército; baja sola a donde pasa algo, o cuando se pide «De cerca» ---------- */
 /* GM8: la cámara que sigue a los jinetes va aquí: otra rama de camaraMeta que mire a (rc.x, rc.z) mientras B.cab no esté 'lista' */
+let libre = null;                                    // solo para capturas: una cámara puesta a mano
 function camaraMeta() {
+  if (libre) return libre;
   if (sigueCab && B.cab.estado !== 'lista' && B.fase !== 'fin') return { x: rc.x, y: 1.2, z: rc.z, d: Math.max(vertical ? 30 : 22, rc.ancho * (vertical ? 1.5 : 1.1)) + 6, p: 0.4, a: 0.3 };
   const i = foco.i >= 0 && T < foco.hasta ? foco.i : cerca ? sel : -1;
-  if (i >= 0 && B.fase !== 'fin') { const s = B.sect[i], h = hueco(s) / 2; return { x: xs(i), y: 1.2, z: zFrente(s) + 1.5 + h * 0.8, d: (vertical ? 30 : 21) + Math.min(26, h * 0.5), p: 0.3 + Math.min(0.1, h * 0.004), a: (1 - i) * 0.3 + 0.28 }; }
+  if (i >= 0 && B.fase !== 'fin') { const s = B.sect[i], h = hueco(s) / 2; return { x: xs(i), y: 1.2, z: zFrente(s) + 1.5 + h * 0.8, d: (vertical ? 30 : 21) + Math.min(14, h * 0.2), p: 0.3 + Math.min(0.1, h * 0.004), a: (1 - i) * 0.3 + 0.28 }; }
   const tanV = Math.tan(camara.fov * Math.PI / 360), tanH = tanV * camara.aspect, p = vertical ? 0.48 : 0.42, hm = Math.max(...B.sect.map(hueco)), zm = B.sect.reduce((a, s) => a + zFrente(s), 0) / 3, hondo = (FONDO_R + FONDO_E + hm) / 2 + 6;
   return { x: 0, y: 0, z: zm + (FONDO_R - FONDO_E) * (vertical ? 0.5 : 0.36) + 2, d: Math.max(40, MEDIO * (vertical ? 1.04 : 1.2) / tanH, hondo * Math.sin(p) / (tanV * (vertical ? 0.62 : 0.5))), p, a: 0 };
 }
@@ -548,8 +570,49 @@ function fin() {
   $('fin-c').innerHTML = '<span>Tus bajas</span><b>' + miles(r.bajas[0]) + ' de ' + miles(r.inicial[0]) + '</b><span>Bajas enemigas</span><b>' + miles(r.bajas[1]) + ' de ' + miles(r.inicial[1]) + '</b><span>Caídos por proyectil</span><b>' + miles(B.porTiro[0]) + ' tuyos · ' + miles(B.porTiro[1]) + ' suyos</b><span>Duración</span><b>' + m + ' min ' + s + ' s</b><span>Fluidez en este móvil</span><b>' + (nMed ? Math.round(nMed / tMed) + ' imágenes por segundo' : 'sin medir') + '</b>';
   setTimeout(() => { $('fin').hidden = false; $('mando').hidden = true; $('arriba').hidden = true; $('cinta').className = ''; }, r.como === 'retirada' ? 0 : 1600);
 }
+/* ---------- la orden pintada en el suelo (GM29): una flecha roja gruesa del cuerpo a su objetivo, que se desvanece sola ---------- */
+const flechas = [], FLECHA_SEG = 4;
+const MAT_FLECHA = (color) => new THREE.MeshBasicMaterial({ color, transparent: true, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+function flecha(pts) {
+  const w = Math.max(2.2, cam.d * 0.02), P = [];                                         // ancho según la distancia de la cámara: se ve igual de gorda de lejos
+  for (let k = 0; k < pts.length - 1; k++) { const [x0, z0] = pts[k], [x1, z1] = pts[k + 1], n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 5)); for (let j = k ? 1 : 0; j <= n; j++) P.push([x0 + (x1 - x0) * j / n, z0 + (z1 - z0) * j / n]); }
+  const cab = w * 2.4, tot = P.reduce((a, p, k) => a + (k ? Math.hypot(p[0] - P[k - 1][0], p[1] - P[k - 1][1]) : 0), 0);
+  if (tot < cab * 1.4) return;                                                           // demasiado corta para pintarla
+  const Q = [P[0]]; let dd = 0;                                                          // el cuerpo de la flecha se corta antes de la punta
+  for (let k = 1; k < P.length; k++) { const l = Math.hypot(P[k][0] - P[k - 1][0], P[k][1] - P[k - 1][1]); if (dd + l >= tot - cab) { const f = (tot - cab - dd) / l; Q.push([P[k - 1][0] + (P[k][0] - P[k - 1][0]) * f, P[k - 1][1] + (P[k][1] - P[k - 1][1]) * f]); break; } dd += l; Q.push(P[k]); }
+  const fin = P[P.length - 1], ult = Q[Q.length - 1], dx = fin[0] - ult[0], dz = fin[1] - ult[1], dl = Math.hypot(dx, dz) || 1;
+  const nor = (a, b) => { const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; return [-(b[1] - a[1]) / l, (b[0] - a[0]) / l]; };
+  const geo = (m, mas) => {                                                              // m = grosor; mas = metros que sobresale por la punta
+    const pos = [], idx = [];
+    for (let k = 0; k < Q.length; k++) {
+      const a = Q[Math.max(0, k - 1)], b = Q[Math.min(Q.length - 1, k + 1)], [nx, nz] = nor(a, b), y = alt(Q[k][0], Q[k][1]) + 0.3, ws = w * m * (0.55 + 0.45 * Math.min(1, k / 2)) * 0.5;
+      pos.push(Q[k][0] + nx * ws, y, Q[k][1] + nz * ws, Q[k][0] - nx * ws, y, Q[k][1] - nz * ws); if (k) { const i = (k - 1) * 2; idx.push(i, i + 1, i + 2, i + 1, i + 3, i + 2); }
+    }
+    const nx = -dz / dl, nz = dx / dl, yb = alt(ult[0], ult[1]) + 0.3, yp = alt(fin[0], fin[1]) + 0.3, b0 = pos.length / 3;
+    pos.push(ult[0] + nx * w * 1.15 * m, yb, ult[1] + nz * w * 1.15 * m, ult[0] - nx * w * 1.15 * m, yb, ult[1] - nz * w * 1.15 * m, fin[0] + dx / dl * mas, yp, fin[1] + dz / dl * mas); idx.push(b0, b0 + 1, b0 + 2);
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); return g;
+  };
+  const mk = (g, color, orden) => { const m = new THREE.Mesh(g, MAT_FLECHA(color)); m.frustumCulled = false; m.renderOrder = orden; escena.add(m); return m; };
+  flechas.push({ borde: mk(geo(1.4, w * 0.5), '#2a0504', 40), cuerpo: mk(geo(1, 0), '#d8231a', 41), edad: 0 });
+}
+/* de qué cuerpo a qué sitio va la flecha de cada orden */
+function pintarOrden(o, i) {
+  const s = B.sect[i], x = xs(i), z0 = zFrente(s) + hueco(s) / 2 + 0.5, z1 = zFrente(s) - hueco(s) / 2 - 1;
+  if (o === 'caballeria') {
+    const c = B.cab; if (c.estado === 'lista' || c.ala < 0) return; const a = c.ala, sg = a === 0 ? -1 : 1, xo = xs(a) + sg * (ANCHO / 2 + 6), obj = B.sect[c.obj >= 0 ? c.obj : a], zo = zFrente(obj) - hueco(obj) / 2 - 2;
+    flecha([[rc.x, rc.z], [xo, zFrente(B.sect[a]) + hueco(B.sect[a]) / 2 + 4], [xo, (zFrente(B.sect[a]) + zo) / 2], [xs(c.obj >= 0 ? c.obj : a) + (c.doble ? sg * ANCHO * 0.3 : 0), zo]]);
+  } else if (o === 'avanzar' || o === 'escudos' || o === 'testudo') flecha([[x, z0], [x, Math.min(z1, z0 - 40)]]);
+}
+function animarFlechas(dt) {
+  for (let k = flechas.length - 1; k >= 0; k--) {
+    const f = flechas[k]; f.edad += dt; const a = Math.min(1, f.edad / 0.18) * Math.max(0, Math.min(1, (FLECHA_SEG - f.edad) / 1.6));
+    f.cuerpo.material.opacity = 0.88 * a; f.borde.material.opacity = 0.7 * a;
+    if (f.edad >= FLECHA_SEG) { for (const m of [f.borde, f.cuerpo]) { escena.remove(m); m.geometry.dispose(); m.material.dispose(); } flechas.splice(k, 1); }
+  }
+}
 function ordenar(o) {
   const no = R.ordenar(B, sel, o); tocado = true;
+  if (!no) pintarOrden(o, sel);
   if (no) cinta(no); else if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) { /* sin vibración */ } }
   pintarCartas();
 }
@@ -586,7 +649,7 @@ function cuadro(ahora) {
     else { T += real; colocar(); mover(real); }
     if (bruto > 0 && bruto < 1) { fps = fps ? fps * 0.95 + 0.05 / bruto : 1 / bruto; if (B.fase !== 'fin') { nMed++; tMed += bruto; } }
   }
-  adornos(real); moverCamara(real); detalle(); renderer.render(escena, camara); pintarPendones();
+  adornos(real); animarFlechas(real); moverCamara(real); detalle(); renderer.render(escena, camara); pintarPendones();
   if (ahora - tHud > 200) { tHud = ahora; pintarCartas(); if (ahora > cintaHasta) $('cinta').classList.remove('ve'); }
   /* si el móvil no puede, se baja la nitidez antes que la fluidez */
   if (cuadros < 240) { cuadros++; if (real > 0.04) lentos++; if (cuadros === 240 && lentos > 120 && dpr > 1) { dpr = Math.max(1, dpr * 0.6); renderer.setPixelRatio(dpr); medir(); } }
@@ -607,7 +670,8 @@ requestAnimationFrame(cuadro); arrancar();
 
 /* ganchos para las pruebas y las capturas */
 window.__gc = {
-  get lista() { return lista; }, get B() { return B; }, R,
+  get lista() { return lista; }, get B() { return B; }, R, get flechas() { return flechas.length; }, alt, get rel() { return REL; },
+  vista: o => { libre = o; moverCamara(0, true); },
   ordenar: (i, o) => { sel = i; ordenar(o); }, elegir, sigue: v => { sigueCab = v; }, get siguiendo() { return sigueCab; },
   cab: () => ({ x: rc.x, z: rc.z, ancho: rc.ancho, hondo: rc.hondo, regs: [...regs.values()].filter(r => r.est !== 3 && Math.ceil(r.n) > 0).map(r => ({ x: r.x, z: r.z, lado: r.lado, w: r.files * r.px, h: F.filasDe(Math.ceil(r.n), r.files) * r.pz })) }), cerca: verCerca,
   pausa: v => { pausa = v; },
