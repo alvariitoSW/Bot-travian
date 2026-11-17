@@ -4,7 +4,8 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
-- **17/11, respuestas al cuadro**: CV1 = A (plan tal cual, 12 tareas en la 1.0, lo demás a la nevera); MR1 hojas = A (papiro entero); MR1 iconos = A (iconos de tinta); MR1 fases = A (construir MR2a a MR2g, ≈2,6 M en Sonnet). Falta pasarlas al tablero y quitarlas de «Esperando algo del usuario».
+- 17/11/2026 — **A en todo: se converge en la 1.0** («A en todo pero que piense Fable y trabaje Opus»). (Lectura de Claude: P153/CV1 aprobada tal cual; menús en papiro entero enrollado (A); iconos de tinta en vez de emojis (A); construir todas las fases de menús (A). Pasa al tablero como **Carril V — Versión 1.0** con 12 tareas; las otras 80 quedan «en pausa: después de la 1.0» y 13 sustituidas se cierran sin hacer. **Modelos hasta la 1.0**: dirige y diseña Fable; los agentes que construyen van en Opus, no en Sonnet; `CLAUDE.md` §7 al día. Sin concursos ni estudios nuevos hasta la 1.0; ideas nuevas a «Después de la 1.0».)
+- **17/11, respuestas al cuadro**: CV1 = A (plan tal cual, 12 tareas en la 1.0, lo demás a la nevera); MR1 hojas = A (papiro entero); MR1 iconos = A (iconos de tinta); MR1 fases = A (construir MR2a a MR2g, ≈2,6 M en Sonnet). Ya pasadas al tablero (Carril V) y quitadas de «Esperando algo del usuario».
 - 17/11/2026 — **Converger** («quiero dejar de diverger con las tareas y cosas por hacer y empezar a converger y dejar de tener cada vez más tareas que parece que nunca acabamos»). Propuesta **P153**: plan para la 1.0 en `estudios/CV1-converger.md` (12 tareas cerradas, ideas nuevas a «Después de la 1.0», sin concursos hasta entonces). Espera su (A)/(B)/(C).
 - 17/11/2026 — **Menú principal de plataforma** («quiero que Opus 5.5 actualice el menú principal y lo escale a plataforma de videojuego real»). Hecha la maqueta MR3 (`maquetas/menus-romanos/principal.html`; capturas `capturas-tarea/MR3-6…10`): portada con cartel del propio juego, menú con la partida guardada en papiro, nueva campaña, pantalla de carga con un dato histórico, opciones. Su construcción es MR3b.
 - 17/11/2026 — **MR1 hecha (diseño de menús romanos)**: estudio `estudios/MR1-menus-romanos.md` y maqueta `maquetas/menus-romanos/` (capturas `capturas-tarea/MR1-1…5`). Regla: papiro = leer, tablilla de cera = elegir, bronce = títulos, sello rojo = la acción. **Decide el usuario**: (1) fondo de las hojas (A) papiro entero enrollado [recomendado] o (B) marco oscuro con hojas de papiro; (2) iconos: (A) de tinta en vez de emojis [recomendado] o (B) dejar emojis; (3) aprobar las fases MR2a–MR2g (≈2,6 M en total, Sonnet). Parte `partes/2026-11-17-MR1.md`.
@@ -241,12 +242,11 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
-- CV1 · ¿Cerramos la meta en la versión 1.0 con 12 tareas y lo demás a la nevera? (A) Sí, el plan tal cual (recomendado); (B) más corto, sin la batalla mejorada; (C) cambiar la lista.
-- MR1 · ¿Cómo quieres las hojas de los menús? (A) papiro entero enrollado (recomendado, captura MR1-1); (B) marco oscuro de bronce con hojas de papiro dentro (captura MR1-2).
-- MR1 · ¿Iconos de los menús? (A) iconos de tinta dibujados en vez de emojis (recomendado); (B) dejar los emojis.
-- MR1 · ¿Apruebas construir los menús romanos por fases, MR2a a MR2g (≈2,6 M en Sonnet)? (A) Sí, todas; (B) solo Imperio, Gobierno y Senado de momento.
 
 ## Propuestas por aprobar
+
+## Después de la 1.0 (nevera: ideas nuevas sin estudio ni maqueta; no se abren hasta la 1.0)
+- Que el cuadro de mando enseñe solo el avance de la 1.0 («n de 12») y pliegue lo demás (pequeño; puede ir con V10b).
 
 
 
@@ -265,6 +265,8 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+**Plan 1.0 aprobado (17/11).** Siguiente: **MR2a** (menús romanos: materiales, Imperio y Gobierno), primera del Carril V. Director en Fable, constructor en Opus. Después, en orden, el resto del Carril V. Nada fuera del Carril V.
+
 **GR2 hecha (17/11).** Ficha `gobierno/historia/GR2-oficios-por-ciudad.md`. Antes de GR3: corregir en GR1 §7 las citas (Polibio 1.20.14 es de 264; Capua «trigo y caballería» es Livio 23.5; Polibio 6.21.4–5 solo trata la leva aliada; Livio 26.16 habla de justicia, no de gobernador). Sin comprobar: Cicerón, *Verrinas* 2.3 (abrirlo antes de GR6). El campo mar/tierra de `data.js` falla en Syracusae, Panormus, Tarraco, Corinthus y Saguntum: GR3 debe decidir el puerto por la geografía real (licencia de juego mientras tanto). El «hierro» de Volsinii, Saguntum y Rusellae no tiene fuente; Santuario sigue «probable». Sigue **GR3**.
 
 **GM33 hecha (17/11).** Maqueta `guerra-aspecto/` con `gentio.js`; falta que asomen lanzas y pila (GM33b). Gastó 1,39 M el constructor (tope 1,2 M: pasado). Sigue **GM34** (movimiento vivo), de una pieza y con tope de pasos. Capturas antes/después en `capturas-tarea/GM33-*`. Parte: `partes/2026-11-17-GM33.md`.

@@ -72,6 +72,9 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
   jugar se marca como licencia de juego.
 - **Mirar fuera**: skills `ingenieria-reversa` (una mecánica de otro juego) y `radar` (arte libre, técnica, historia).
   Ideas sí; código y arte de juegos comerciales, nunca.
-- **Gasto**: presupuesto antes de empezar y `node gobierno/gasto.mjs` al cerrar. El director no construye; los
-  agentes van en Sonnet. La skill `ahorro` revisa los partes y propone recortes.
+- **Gasto**: presupuesto antes de empezar y `node gobierno/gasto.mjs` al cerrar. El director no construye.
+  **Hasta la 1.0** (usuario, 17/11): dirige y diseña **Fable**; los agentes que construyen van en **Opus**. La skill
+  `ahorro` revisa los partes y propone recortes.
+- **Meta: la 1.0** (usuario, 17/11). Solo se trabaja en el Carril V del tablero, en orden. Nada nuevo entra; lo nuevo
+  va a «Después de la 1.0» en la bitácora, o entra sacando otra. Sin concursos ni estudios hasta la 1.0.
 - **Cuadro de mando** (Artifact para el móvil del usuario): dirección en `gobierno/cuadro.json`; skill `cuadro-de-mando`.
