@@ -1,0 +1,769 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AQVILA · Puerta de la ciudad</title>
+<style>
+:root{
+  --noche:#0b1016; --noche-2:#111a23; --noche-3:#18232e; --noche-4:#22303d; --mar:#0c1b26; --tierra:#1a2430;
+  --rojo:#c0281f; --oro:#e9c063; --bronce:#b8862b; --marmol:#f1ead9; --piedra:#9aa6b4; --oliva:#8fae5a; --terracota:#d9764a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+[hidden]{display:none !important}
+html,body{height:100%}
+body{background:#05080b;color:var(--marmol);font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;font-size:14px;display:flex;justify-content:center;align-items:center;overflow:hidden}
+#app{position:relative;width:min(390px,100vw);height:min(844px,100vh);background:var(--noche);display:flex;flex-direction:column;overflow:hidden}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;min-height:44px;min-width:44px;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+button:disabled{opacity:.4;cursor:default}
+.ic{fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.sm{font-size:12px;color:var(--piedra);line-height:1.4}
+h1{font-size:24px;line-height:1.1}
+h2{font-size:17px;font-weight:700;color:var(--oro)}
+h3{font-size:12px;font-weight:700;color:var(--piedra);text-transform:uppercase;letter-spacing:.06em;margin-top:4px}
+b{font-weight:700}
+.fila{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.cabeza{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 14px;border-radius:7px;border:1px solid var(--bronce);background:var(--noche-3);color:var(--marmol);font-weight:600;font-size:14px;text-align:center}
+.btn.oro{background:var(--oro);border-color:var(--oro);color:var(--noche)}
+.btn.rojo{border-color:var(--terracota);color:#f4c9b2}
+.btn.solo{background:none;border-color:transparent;padding:0 8px;color:var(--piedra)}
+.btn.sq{width:44px;padding:0}
+.btn.bloque{width:100%}
+.btn.sel{border-color:var(--oro);color:var(--oro)}
+.btn:active{transform:scale(.98)}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;line-height:1;padding:5px 8px;border-radius:6px;border:1px solid var(--piedra);color:var(--piedra);white-space:nowrap}
+.chip.aliada{color:var(--oliva);border-color:var(--oliva)}
+.chip.enemiga{color:var(--terracota);border-color:var(--terracota)}
+.chip.neutral{color:var(--piedra);border-color:var(--piedra)}
+.chip.propia,.chip.oro{color:var(--oro);border-color:var(--bronce)}
+.stars{color:var(--oro);font-size:11px;letter-spacing:1px;white-space:nowrap}
+.card{background:var(--noche-2);border:1px solid var(--noche-4);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.card.alerta{border-color:var(--terracota)}
+.titulo{display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px}
+.renta{color:var(--oro);font-size:15px}
+.barra-p{height:6px;background:var(--noche-4);border-radius:3px;overflow:hidden}
+.barra-p i{display:block;height:100%;background:var(--oro)}
+.barra-p.en i{background:var(--terracota)}
+
+/* Flujo de caravanas */
+.flujo-f{display:flex;align-items:center;gap:8px;font-size:13px}
+.flujo-f .etq{width:42px;color:var(--piedra);font-size:12px}
+.flujo-f .bien{width:82px;font-weight:600}
+.via{position:relative;flex:1;height:14px;border-radius:4px;overflow:hidden;background:var(--noche-4)}
+.cinta{position:absolute;inset:0;background:repeating-linear-gradient(90deg,var(--oro) 0 6px,transparent 6px 16px);background-size:16px 100%;animation:corre .9s linear infinite}
+.cinta.entra{background:repeating-linear-gradient(90deg,var(--bronce) 0 6px,transparent 6px 16px);background-size:16px 100%;animation-name:corre-izq}
+@keyframes corre{to{background-position:16px 0}}
+@keyframes corre-izq{to{background-position:-16px 0}}
+@media (prefers-reduced-motion:reduce){.cinta{animation:none}}
+
+/* Ciudad: las tres puertas */
+.vista-ciudad{flex:1;display:flex;flex-direction:column;gap:12px;padding:14px 16px;min-height:0;overflow:auto}
+.cab{display:flex;flex-direction:column;gap:6px}
+.puertas{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.puerta{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:14px 10px;border:2px solid var(--bronce);background:linear-gradient(180deg,var(--noche-4),var(--noche-2));color:var(--marmol);text-align:center;min-height:44px;transition:transform .15s}
+.puerta:active{transform:scale(.98)}
+.puerta.arco{height:292px;border-radius:999px 999px 10px 10px;padding-top:30px}
+.puerta.foro{grid-column:1/-1;height:118px;flex-direction:row;justify-content:flex-start;text-align:left;border-radius:8px;padding:14px 18px;gap:14px}
+.puerta .pt{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.puerta.arco .pt{align-items:center}
+.puerta .nom-p{font-size:19px;font-weight:700;color:var(--oro)}
+.resumen{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;text-align:center}
+.resumen div{display:flex;flex-direction:column;gap:2px}
+.resumen b{font-size:15px}
+
+/* Vista de mapa */
+.vista-mapa{flex:1;display:flex;flex-direction:column;min-height:0}
+.barra{padding:10px 16px 8px;display:flex;flex-direction:column;gap:8px;border-bottom:1px solid var(--noche-4)}
+.migas{flex:1;display:flex;align-items:center;gap:2px;min-width:0;font-size:14px}
+.migas .sep{color:var(--piedra);padding:0 2px}
+.migas .actual{font-weight:700;color:var(--oro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-left:4px}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.tab{display:flex;align-items:center;justify-content:center;gap:6px;min-height:44px;border-radius:7px;border:1px solid var(--noche-4);background:var(--noche-2);color:var(--piedra);font-weight:600}
+.tab[aria-pressed="true"]{border-color:var(--oro);color:var(--oro);background:var(--noche-3)}
+.mapa{position:relative;height:300px;flex:none;background:var(--mar);overflow:hidden}
+.mapa svg{width:100%;height:100%;display:block}
+#mundo{transform-origin:0 0;transition:transform .7s cubic-bezier(.3,.7,.2,1)}
+.tierra{fill:var(--tierra);stroke:#2c3b4a;stroke-width:1;vector-effect:non-scaling-stroke}
+.ruta{fill:none;stroke-width:2.5;vector-effect:non-scaling-stroke;stroke-linecap:round}
+.ruta.mar{stroke-dasharray:6 5}
+.ruta.prot{stroke:var(--oro)}
+.ruta:not(.prot){stroke:var(--terracota)}
+.lab{fill:var(--marmol);font-weight:600;paint-order:stroke;stroke:var(--noche)}
+.leyenda{position:absolute;left:8px;bottom:8px;display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--piedra);background:rgba(11,16,22,.82);padding:5px 8px;border-radius:6px;max-width:374px}
+.leyenda i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:4px;vertical-align:middle}
+.panel{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 16px;display:flex;flex-direction:column;gap:12px;min-height:0}
+.rejilla{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.fila-b{display:flex;align-items:center;gap:8px;width:100%;text-align:left;min-height:44px;font-weight:600}
+.fila-b .nom{flex:1}
+.chev{display:inline-flex;transition:transform .2s}
+.chev.abierto{transform:rotate(180deg)}
+
+/* Pie común */
+.pie{flex:none;border-top:1px solid var(--noche-4);padding:8px 16px;display:flex;gap:10px;align-items:center;background:var(--noche)}
+.ticker{flex:1;font-size:12px;color:var(--piedra);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;min-width:0}
+.pie .btn{flex:none}
+
+/* Hojas (sheets) y avisos */
+.velo{position:absolute;inset:0;background:rgba(5,8,11,.72);display:flex;align-items:flex-end;z-index:20}
+.hoja{width:100%;max-height:84%;background:var(--noche-2);border-top:2px solid var(--bronce);border-radius:12px 12px 0 0;padding:14px 16px 20px;display:flex;flex-direction:column;gap:12px;overflow:auto}
+.aviso{position:absolute;left:16px;right:16px;top:12px;z-index:30;background:var(--noche-4);border:1px solid var(--oro);border-radius:8px;padding:10px 12px;font-size:13px;opacity:0;transform:translateY(-6px);transition:opacity .25s,transform .25s;pointer-events:none}
+.aviso.on{opacity:1;transform:none}
+.paso{display:flex;align-items:center;gap:10px}
+.paso b.n{min-width:34px;text-align:center;font-size:18px}
+
+@media (prefers-reduced-motion:reduce){#mundo{transition:none}}
+</style>
+</head>
+<body>
+<!-- Iconos de línea (SVG a mano, sin emojis) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-puerto" viewBox="0 0 24 24"><circle cx="12" cy="5" r="2"/><path d="M12 7v13M8 10h8M5 14a7 7 0 0 0 14 0"/></symbol>
+    <symbol id="i-camino" viewBox="0 0 24 24"><path d="M7 21 10 3M17 21 14 3M12 6v3M12 12v4M12 19v.5"/></symbol>
+    <symbol id="i-foro" viewBox="0 0 24 24"><path d="M3 21h18M5 18h14M7 18V10M12 18V10M17 18V10M3 10h18L12 4z"/></symbol>
+    <symbol id="i-volver" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+    <symbol id="i-moneda" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10h3.5a1.5 1.5 0 0 1 0 3h-2a1.5 1.5 0 0 0 0 3H15"/></symbol>
+    <symbol id="i-caravana" viewBox="0 0 24 24"><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/><path d="M3 14h14l3-7H6M6 7V4h5"/></symbol>
+    <symbol id="i-escudo" viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></symbol>
+    <symbol id="i-marcha" viewBox="0 0 24 24"><path d="M6 21V4M6 4h11l-2 4 2 4H6"/></symbol>
+    <symbol id="i-espada" viewBox="0 0 24 24"><path d="M14 4l6-1-1 6-9 9-3-3z"/><path d="M5 15l4 4M3 21l2-2"/></symbol>
+    <symbol id="i-alianza" viewBox="0 0 24 24"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></symbol>
+    <symbol id="i-cortar" viewBox="0 0 24 24"><path d="M9 9l-3 3a3 3 0 0 0 4 4l3-3M15 15l3-3a3 3 0 0 0-4-4l-3 3M3 3l18 18"/></symbol>
+    <symbol id="i-reloj" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></symbol>
+    <symbol id="i-senado" viewBox="0 0 24 24"><path d="M3 9l9-5 9 5M5 9v9M9 9v9M15 9v9M19 9v9M3 20h18"/></symbol>
+    <symbol id="i-alerta" viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/></symbol>
+    <symbol id="i-tributo" viewBox="0 0 24 24"><path d="M4 12h12M11 6l6 6-6 6M4 4v16"/></symbol>
+    <symbol id="i-cerrar" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+    <symbol id="i-abajo" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></symbol>
+  </defs>
+</svg>
+
+<div id="app">
+  <!-- Vista 1: la ciudad -->
+  <section id="vista-ciudad" class="vista-ciudad" aria-label="Ciudad de Roma"></section>
+
+  <!-- Vista 2: el mapa, centrado en la puerta elegida -->
+  <section id="vista-mapa" class="vista-mapa" hidden>
+    <div id="cab" class="barra"></div>
+    <div id="mapa" class="mapa">
+      <svg viewBox="0 0 390 300" aria-label="Mapa de Italia y el Mediterráneo">
+        <g id="mundo">
+          <g id="tierra"></g>
+          <g id="capas"></g>
+        </g>
+      </svg>
+      <div class="leyenda">
+        <span><i style="background:var(--oro)"></i>tuya</span>
+        <span><i style="background:var(--oliva)"></i>aliada</span>
+        <span><i style="background:var(--piedra)"></i>neutral</span>
+        <span><i style="background:var(--terracota)"></i>enemiga</span>
+        <span>línea seguida: por tierra · discontinua: por mar</span>
+      </div>
+    </div>
+    <div id="panel" class="panel"></div>
+  </section>
+
+  <!-- Pie común a las dos vistas -->
+  <footer class="pie">
+    <div id="ticker" class="ticker"></div>
+    <button class="btn oro" data-act="dia"><svg class="ic" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><use href="#i-reloj"/></svg>Pasar un día</button>
+  </footer>
+
+  <div id="velo" class="velo" hidden><div id="hoja" class="hoja" role="dialog" aria-modal="true"></div></div>
+  <div id="aviso" class="aviso" role="status"></div>
+</div>
+
+<script>
+/* ====================== DATOS DE MENTIRA (coherentes con js/data.js) ====================== */
+const MERCADO = 6;                       // mercado de Roma: permite 1 + 6/3 = 3 rutas
+const CIUDADES = {
+  roma:      {n:'Roma',       lon:12.5, lat:41.9,  esp:'tejidos'},
+  capua:     {n:'Capua',      lon:14.5, lat:40.95, esp:'caballos'},
+  volsinii:  {n:'Volsinii',   lon:11.6, lat:43.0,  esp:'hierro'},
+  mediolanum:{n:'Mediolanum', lon:9.2,  lat:45.4,  esp:'pieles'},
+  messana:   {n:'Messana',    lon:15.55,lat:38.3,  esp:'vino'},
+  tarentum:  {n:'Tarentum',   lon:17.2, lat:40.6,  esp:'caballos'},
+  syracusae: {n:'Syracusae',  lon:15.3, lat:37.0,  esp:'madera'},
+  carales:   {n:'Carales',    lon:9.1,  lat:39.25, esp:'sal'},
+  carthago:  {n:'Carthago',   lon:10.3, lat:36.85, esp:'aceite'}
+};
+const MAR = ['messana','tarentum','syracusae','carthago','carales'];   // ciudades con salida al mar
+const TIERRA = ['volsinii','mediolanum'];
+const ETQ_ST = {propia:'Tuya', aliada:'Aliada', neutral:'Neutral', enemiga:'Enemiga'};
+const TIPO = {alianza:'Alianza', comercio:'Tratado de comercio', paz:'Tratado de paz', tributo:'Exigir tributo'};
+const PROT = {
+  escolta: {n:'Escolta',  coste:6,  cohortes:1, desc:'Una cohorte acompaña la caravana. Mientras dure, esa cohorte no sale a marchar.'},
+  patrulla:{n:'Patrulla', coste:10, cohortes:0, desc:'Una patrulla vigila la ruta y avisa de los asaltos. No gasta tropas.'}
+};
+const ETA = {capua:2, volsinii:2, mediolanum:4, tarentum:3};          // días de marcha desde Roma
+const VISTAS = {
+  puerto:{lon:11.6, lat:40.0,  s:1.5},
+  camino:{lon:12.9, lat:42.3,  s:1.8},
+  foro:  {lon:12.5, lat:42.0,  s:1.1}
+};
+const POLI = {
+  italia:[[7.0,44.0],[8.6,44.3],[9.9,44.1],[10.5,43.6],[11.0,42.5],[11.8,42.0],[12.3,41.7],[13.0,41.2],[13.7,41.2],[14.2,40.8],[14.9,40.5],[15.6,40.0],[15.9,39.5],[15.7,38.8],[15.65,38.0],[16.2,38.2],[16.6,38.4],[17.1,39.0],[17.2,40.4],[17.6,40.45],[18.0,40.0],[18.37,39.8],[18.5,40.15],[18.0,40.65],[17.3,41.0],[16.5,41.5],[16.1,41.9],[15.0,42.0],[14.2,42.5],[13.5,43.6],[12.6,44.05],[12.4,45.4],[13.8,45.65],[13.5,46.5],[12.2,47.0],[10.5,46.9],[9.0,46.4],[7.5,45.9],[6.9,45.5]],
+  sicilia:[[12.4,37.8],[13.35,38.15],[15.55,38.25],[15.1,37.5],[15.3,37.05],[14.3,36.8]],
+  cerdena:[[8.4,39.0],[9.2,39.0],[9.7,39.9],[9.8,40.6],[9.6,41.0],[9.2,41.2],[8.4,40.8],[8.2,40.0]],
+  corcega:[[8.6,41.4],[9.0,42.1],[9.5,42.9],[9.4,41.8],[9.2,41.4]],
+  africa:[[7.5,37.0],[9.5,37.3],[11.1,37.1],[11.5,35.0],[10.5,33.2],[7.5,33.2]]
+};
+
+/* ====================== PROYECCIÓN Y GEOMETRÍA ====================== */
+const $ = s => document.querySelector(s);
+const fmt = n => Number.isInteger(n) ? String(n) : n.toFixed(1).replace('.', ',');
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const X = lon => (lon - 6) * 26;
+const Y = lat => (47.5 - lat) * 26;
+const pt = id => ({lon:CIUDADES[id].lon, lat:CIUDADES[id].lat});
+const lerp = (a, b, t) => ({lon:a.lon + (b.lon - a.lon) * t, lat:a.lat + (b.lat - a.lat) * t});
+const posMarcha = m => lerp(m.ini, m.fin, 1 - m.dias / m.total);
+const poly = pts => 'M' + pts.map((p, i) => (i ? 'L' : '') + X(p[0]).toFixed(1) + ' ' + Y(p[1]).toFixed(1)).join(' ') + 'Z';
+const icon = (n, px = 22) => `<svg class="ic" viewBox="0 0 24 24" width="${px}" height="${px}" aria-hidden="true"><use href="#i-${n}"/></svg>`;
+
+/* ====================== ESTADO ====================== */
+function estadoInicial(){
+  return {
+    pantalla:'ciudad', puerta:'puerto', s:VISTAS.puerto.s, dia:14, oro:1240,
+    ejercito:{cohortes:4, jinetes:2},
+    relaciones:{
+      capua:     {st:'aliada',  est:4},
+      volsinii:  {st:'neutral', est:2},
+      messana:   {st:'neutral', est:2},
+      carales:   {st:'neutral', est:2},
+      mediolanum:{st:'enemiga', est:1},
+      tarentum:  {st:'enemiga', est:1},
+      syracusae: {st:'enemiga', est:3},
+      carthago:  {st:'enemiga', est:1}
+    },
+    rutas:[
+      {id:1, a:'roma', b:'capua',   tipo:'tierra', prot:null},
+      {id:2, a:'roma', b:'carales', tipo:'mar',    prot:null}
+    ],
+    marchas:[
+      {id:3, bando:'enemigo', mision:'ataque', etiqueta:'Epiro (Pirro)', de:'tarentum', a:'capua',
+       ini:pt('tarentum'), fin:pt('capua'), dias:3, total:3, fuerza:5}
+    ],
+    llegadas:[
+      {dia:16, m:{id:4, bando:'enemigo', mision:'ataque', etiqueta:'Galos ínsubres', de:'mediolanum', a:'volsinii',
+        ini:pt('mediolanum'), fin:pt('volsinii'), dias:4, total:4, fuerza:3}}
+    ],
+    sucesos:['Día 14. Epiro marcha hacia Capua: llega en 3 días.'],
+    expandida:null, ultimoVoto:'', sig:10
+  };
+}
+let S = estadoInicial();
+let T = {c:0, j:0, dest:'capua', id:null};   // datos de la hoja que está abierta
+let HOJA = null;
+
+/* ====================== REGLAS ====================== */
+const rel = id => id === 'roma' ? 'propia' : S.relaciones[id].st;
+const maxRutas = () => 1 + Math.floor(MERCADO / 3);
+const rutasMar = () => S.rutas.filter(r => r.tipo === 'mar');
+const rutasTierra = () => S.rutas.filter(r => r.tipo === 'tierra');
+function desglose(r){
+  const e = S.relaciones[r.b], mar = r.tipo === 'mar';
+  const base = 4 + MERCADO + e.est;
+  const total = base * (mar ? 1.5 : 1);
+  return {base, total, mar, est:e.est, nombre:CIUDADES[r.b].n};
+}
+const rentaBruta = r => desglose(r).total;
+const neto = r => rentaBruta(r) - (r.prot ? PROT[r.prot].coste : 0);
+const rentaHipo = (id, tipo) => (4 + MERCADO + S.relaciones[id].est) * (tipo === 'mar' ? 1.5 : 1);
+const ingresoMensual = () =>
+  S.rutas.reduce((s, r) => s + neto(r), 0) +
+  Object.values(S.relaciones).reduce((s, r) => s + (r.tributo || 0), 0);
+const cohortesFuera = () => S.marchas.filter(m => m.bando === 'nos').reduce((s, m) => s + m.cohortes, 0);
+const jinetesFuera = () => S.marchas.filter(m => m.bando === 'nos').reduce((s, m) => s + m.jinetes, 0);
+const cohortesEscolta = () => S.rutas.reduce((s, r) => s + (r.prot ? PROT[r.prot].cohortes : 0), 0);
+const enCasaC = () => S.ejercito.cohortes - cohortesFuera() - cohortesEscolta();
+const enCasaJ = () => S.ejercito.jinetes - jinetesFuera();
+function votos(id, tipo){
+  const r = S.relaciones[id];
+  const v = 50 + r.est * 6 + (r.st === 'aliada' ? 10 : 0) - (r.st === 'enemiga' ? 15 : 0) - (tipo === 'tributo' ? 10 : 0);
+  return clamp(v, 5, 95);
+}
+function aplicarTratado(id, tipo){
+  const r = S.relaciones[id];
+  if(tipo === 'alianza'){ r.st = 'aliada'; r.est = Math.min(5, r.est + 1); }
+  if(tipo === 'comercio'){ r.est = Math.min(5, r.est + 1); }
+  if(tipo === 'paz'){ r.st = 'neutral'; }
+  if(tipo === 'tributo'){ r.tributo = 20; }
+}
+const EFECTO = {
+  alianza:'Ahora es aliada. Sube una estrella.',
+  comercio:'Sube una estrella: las rutas con ella rinden más.',
+  paz:'Deja de ser enemiga.',
+  tributo:'Paga 20 den. al mes a Roma.'
+};
+
+/* ====================== SUCESOS, AVISOS, HOJAS ====================== */
+function logE(msg){ S.sucesos.unshift(`Día ${S.dia}: ${msg}`); S.sucesos = S.sucesos.slice(0, 30); }
+function aviso(t){
+  const a = $('#aviso'); a.textContent = t; a.classList.add('on');
+  clearTimeout(aviso.t); aviso.t = setTimeout(() => a.classList.remove('on'), 2600);
+}
+function abrirHoja(fn){ HOJA = fn; $('#velo').hidden = false; refrescarHoja(); }
+function refrescarHoja(){ if(HOJA) $('#hoja').innerHTML = HOJA(); }
+function cerrarHoja(){ $('#velo').hidden = true; HOJA = null; }
+const cerrarBtn = () => `<button class="btn solo sq" data-act="cerrar" aria-label="Cerrar">${icon('cerrar', 20)}</button>`;
+
+/* ====================== ACCIONES ====================== */
+function setVista(){
+  const v = VISTAS[S.puerta];
+  S.s = v.s;
+  const tx = 195 - X(v.lon) * v.s, ty = 150 - Y(v.lat) * v.s;
+  $('#mundo').style.transform = `translate(${tx.toFixed(1)}px,${ty.toFixed(1)}px) scale(${v.s})`;
+}
+function pasarDia(){
+  S.dia++;
+  S.oro += ingresoMensual() / 30;
+  if(S.dia % 4 === 0){
+    const r = S.rutas.find(x => !x.prot);
+    if(r){
+      const p = rentaBruta(r);
+      S.oro -= p;
+      logE(`asaltan una caravana Roma – ${CIUDADES[r.b].n} sin protección: pierdes ${fmt(p)} den.`);
+    }
+  }
+  for(const m of [...S.marchas]){
+    if(!S.marchas.includes(m)) continue;
+    m.dias--;
+    if(m.dias <= 0){ if(m.bando === 'nos') llegaNuestra(m); else llegaEnemiga(m); }
+  }
+  S.llegadas = S.llegadas.filter(p => {
+    if(p.dia <= S.dia){ S.marchas.push(p.m); logE(`${p.m.etiqueta} se acerca a ${CIUDADES[p.m.a].n}.`); return false; }
+    return true;
+  });
+  S.oro = Math.max(0, S.oro);
+  renderAll();
+}
+function retira(m){ S.marchas = S.marchas.filter(x => x !== m); }
+function vuelve(m, desde){
+  retira(m);
+  if(m.cohortes + m.jinetes === 0) return;
+  S.marchas.push({id:S.sig++, bando:'nos', mision:'vuelta', etiqueta:'Vuelven a Roma', de:null, a:'roma',
+    ini:desde, fin:pt('roma'), dias:m.total, total:m.total, cohortes:m.cohortes, jinetes:m.jinetes});
+}
+function llegaNuestra(m){
+  if(m.mision === 'vuelta'){ retira(m); logE('las tropas vuelven a Roma.'); return; }
+  if(m.mision === 'interceptar'){
+    const e = S.marchas.find(x => x.id === m.objetivo);
+    if(!e){ logE('llegan al cruce y ya no hay enemigo: vuelven a Roma.'); return vuelve(m, m.fin); }
+    const fuerza = m.cohortes * 2 + m.jinetes;
+    if(fuerza >= e.fuerza){
+      retira(e);
+      logE(`victoria en el camino: deshaces a ${e.etiqueta}. No pierdes ninguna cohorte.`);
+      return vuelve(m, m.fin);
+    }
+    S.ejercito.cohortes -= 1;
+    m.cohortes = Math.max(0, m.cohortes - 1);
+    logE(`derrota: ${e.etiqueta} te vence. Pierdes una cohorte; el resto vuelve.`);
+    return vuelve(m, m.fin);
+  }
+  if(m.mision === 'saquear'){
+    const botin = 30 + 15 * m.cohortes;
+    S.oro += botin;
+    logE(`saqueo de ${CIUDADES[m.a].n}: +${botin} den. Vuelven a Roma.`);
+    return vuelve(m, pt(m.a));
+  }
+  logE(`las tropas llegan a ${CIUDADES[m.a].n} y vuelven a Roma. La ciudad lo nota.`);
+  vuelve(m, pt(m.a));
+}
+function llegaEnemiga(e){
+  retira(e);
+  const n = CIUDADES[e.a].n;
+  if(rel(e.a) === 'aliada'){ logE(`${e.etiqueta} llega a ${n} y no la toma: la muralla aguanta.`); return; }
+  S.oro -= 25;
+  logE(`${e.etiqueta} saquea los campos de ${n}: pierdes 25 den.`);
+}
+function abrirRuta(id){
+  const tipo = MAR.includes(id) ? 'mar' : 'tierra';
+  const n = CIUDADES[id].n;
+  if(rel(id) === 'enemiga') return aviso(`${n} es enemiga. Firma la paz en el Foro antes.`);
+  if(S.oro < 100) return aviso('No tienes 100 den. para abrir la ruta.');
+  if(S.rutas.length >= maxRutas()) return aviso(`Llegaste al máximo de ${maxRutas()} rutas. Corta una antes.`);
+  S.oro -= 100;
+  S.rutas.push({id:S.sig++, a:'roma', b:id, tipo, prot:null});
+  cerrarHoja();
+  logE(`ruta abierta: Roma – ${n} (${tipo === 'mar' ? 'por mar' : 'por tierra'}).`);
+  aviso(`Ruta abierta: Roma – ${n}. Pagaste 100 den.`);
+  renderAll();
+}
+function aplicarProt(id, tipo){
+  const r = S.rutas.find(x => x.id === id);
+  if(tipo === 'escolta' && r.prot !== 'escolta' && enCasaC() < 1){ return aviso('No hay cohorte libre para la escolta.'); }
+  r.prot = tipo === 'ninguna' ? null : tipo;
+  cerrarHoja();
+  aviso(tipo === 'ninguna' ? 'Quitaste la protección.' : `Ruta protegida: ${PROT[tipo].n.toLowerCase()}.`);
+  renderAll();
+}
+function cortarOk(id){
+  const r = S.rutas.find(x => x.id === id);
+  S.rutas = S.rutas.filter(x => x !== r);
+  cerrarHoja();
+  logE(`cortas la ruta Roma – ${CIUDADES[r.b].n}.`);
+  aviso('Ruta cortada. Para abrirla de nuevo pagas 100 den.');
+  renderAll();
+}
+function lanzaEnvio(){
+  const d = T.dest, mision = rel(d) === 'enemiga' ? 'saquear' : 'apoyo', dias = ETA[d];
+  S.marchas.push({id:S.sig++, bando:'nos', mision,
+    etiqueta: mision === 'saquear' ? `Saquear ${CIUDADES[d].n}` : `Apoyar a ${CIUDADES[d].n}`,
+    de:'roma', a:d, ini:pt('roma'), fin:pt(d), dias, total:dias, cohortes:T.c, jinetes:T.j});
+  cerrarHoja();
+  logE(`sale una marcha de ${T.c} cohortes y ${T.j} jinetes hacia ${CIUDADES[d].n}.`);
+  renderAll();
+}
+function lanzaInterceptar(){
+  const e = S.marchas.find(x => x.id === T.id);
+  if(!e || e.dias < 2) return;
+  const dias = e.dias - 1;
+  const fin = lerp(e.ini, e.fin, 1 - (e.dias - dias) / e.total);   // dónde estará el enemigo al llegar nosotros
+  S.marchas.push({id:S.sig++, bando:'nos', mision:'interceptar', objetivo:e.id,
+    etiqueta:`Interceptar a ${e.etiqueta}`, de:'roma', a:null, ini:pt('roma'), fin, dias, total:dias,
+    cohortes:T.c, jinetes:T.j});
+  cerrarHoja();
+  logE(`sale una marcha para interceptar a ${e.etiqueta}: llega en ${dias} días.`);
+  renderAll();
+}
+function votar(id, tipo){
+  const v = votos(id, tipo), ok = v > 50, n = CIUDADES[id].n;
+  if(ok) aplicarTratado(id, tipo);
+  S.ultimoVoto = `${TIPO[tipo]} con ${n}: ${ok ? 'aprobado' : 'rechazado'}, ${v} a ${100 - v}.`;
+  logE(`el Senado ${ok ? 'aprueba' : 'rechaza'} el ${TIPO[tipo].toLowerCase()} con ${n} (${v} a ${100 - v}).`);
+  HOJA = () => `
+    <div class="cabeza"><h2>El Senado ${ok ? 'aprueba' : 'rechaza'}</h2>${cerrarBtn()}</div>
+    <div class="card"><p><b>${TIPO[tipo]}</b> con ${n}: ${v} votos a favor, ${100 - v} en contra.</p>
+    <p class="sm">${ok ? 'Entra en vigor hoy. ' + EFECTO[tipo] : 'Sigue igual. Vuelve a proponerlo cuando tengas más estrellas o más apoyo en el Senado.'}</p></div>
+    <button class="btn oro bloque" data-act="cerrar">Cerrar</button>`;
+  refrescarHoja();
+  renderAll();
+}
+
+const ACCIONES = {
+  ciudad(){ S.pantalla = 'ciudad'; renderAll(); },
+  puerta(d){ S.puerta = d.p; S.pantalla = 'mapa'; setVista(); renderAll(); },
+  dia(){ pasarDia(); },
+  expande(d){ S.expandida = S.expandida === d.c ? null : d.c; renderAll(); },
+  abrirLista(d){ abrirHoja(() => htmlListaRutas(d.tipo)); },
+  abrirRuta(d){ abrirRuta(d.c); },
+  proteger(d){ abrirHoja(() => htmlProteger(+d.id)); },
+  aplicarProt(d){ aplicarProt(+d.id, d.tipo); },
+  cortar(d){ abrirHoja(() => htmlCortar(+d.id)); },
+  cortarOk(d){ cortarOk(+d.id); },
+  enviar(){ T = {c:Math.min(3, enCasaC()), j:Math.min(1, enCasaJ()), dest:'capua', id:null}; abrirHoja(htmlEnviar); },
+  destino(d){ T.dest = d.c; refrescarHoja(); },
+  paso(d){ T[d.k] = clamp(T[d.k] + (+d.d), 0, +d.max); refrescarHoja(); },
+  lanzaEnvio(){ lanzaEnvio(); },
+  interceptar(d){
+    const e = S.marchas.find(x => x.id === +d.id);
+    if(!e) return;
+    T = {c:Math.min(3, enCasaC()), j:Math.min(1, enCasaJ()), dest:e.a, id:e.id};
+    abrirHoja(htmlInterceptar);
+  },
+  lanzaInterceptar(){ lanzaInterceptar(); },
+  propon(d){ abrirHoja(() => htmlPropuesta(d.c, d.tipo)); },
+  votar(d){ votar(d.c, d.tipo); },
+  cerrar(){ cerrarHoja(); renderAll(); }
+};
+
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-act]');
+  if(!el){ if(e.target.id === 'velo'){ cerrarHoja(); renderAll(); } return; }
+  const fn = ACCIONES[el.dataset.act];
+  if(fn) fn(el.dataset);
+});
+
+/* ====================== HOJAS ====================== */
+function stepper(etq, k, max){
+  return `<div class="card"><div class="fila">
+      <div style="flex:1"><b>${etq}</b></div>
+      <button class="btn sq" data-act="paso" data-k="${k}" data-d="-1" data-max="${max}" aria-label="Quitar">−</button>
+      <b class="n" style="min-width:34px;text-align:center;font-size:18px">${T[k]}</b>
+      <button class="btn sq" data-act="paso" data-k="${k}" data-d="1" data-max="${max}" aria-label="Poner">+</button>
+    </div></div>`;
+}
+function htmlListaRutas(tipo){
+  const cand = tipo === 'mar' ? MAR.filter(id => id !== 'carales') : TIERRA;
+  const libres = cand.filter(id => !S.rutas.some(r => r.b === id));
+  const lleno = S.rutas.length >= maxRutas();
+  const titulo = tipo === 'mar' ? 'Abrir ruta por mar' : 'Abrir ruta por tierra';
+  const filas = libres.map(id => {
+    const c = CIUDADES[id], est = S.relaciones[id].est, en = rel(id) === 'enemiga';
+    const txt = en ? 'Enemiga: firma la paz en el Foro antes.' : (lleno ? 'Sin hueco: corta una ruta.' : 'Pagas 100 den.');
+    return `<div class="card">
+      <div class="fila"><b style="flex:1;font-size:15px">${c.n}</b><span class="chip ${rel(id)}">${ETQ_ST[rel(id)]}</span></div>
+      <div class="sm">${est} estrellas. Renta: ${fmt(rentaHipo(id, tipo))} den. al mes. ${txt}</div>
+      <button class="btn oro bloque" data-act="abrirRuta" data-c="${id}" ${en || lleno || S.oro < 100 ? 'disabled' : ''}>Abrir · 100 den.</button>
+    </div>`;
+  }).join('');
+  return `<div class="cabeza"><h2>${titulo}</h2>${cerrarBtn()}</div>
+    <p class="sm">Rutas: ${S.rutas.length} de ${maxRutas()}. Tienes ${fmt(Math.floor(S.oro))} den.</p>
+    ${filas || '<p class="sm">No hay más ciudades para esta vía.</p>'}`;
+}
+function htmlProteger(id){
+  const r = S.rutas.find(x => x.id === id);
+  const opts = Object.keys(PROT).map(k => {
+    const p = PROT[k], sel = r.prot === k;
+    const falta = k === 'escolta' && !sel && enCasaC() < 1;
+    return `<div class="card">
+      <div class="fila"><b style="flex:1">${p.n}</b><span class="chip oro">−${p.coste} den./mes</span></div>
+      <div class="sm">${p.desc}</div>
+      <button class="btn ${sel ? 'sel' : ''} bloque" data-act="aplicarProt" data-id="${r.id}" data-tipo="${k}" ${sel || falta ? 'disabled' : ''}>
+        ${sel ? 'Ya la tiene' : (falta ? 'Sin cohorte libre' : 'Usar ' + p.n.toLowerCase())}</button>
+    </div>`;
+  }).join('');
+  return `<div class="cabeza"><h2>Proteger la ruta</h2>${cerrarBtn()}</div>
+    <p class="sm">Roma – ${CIUDADES[r.b].n}. Renta bruta: ${fmt(rentaBruta(r))} den. al mes.</p>
+    ${opts}
+    ${r.prot ? `<button class="btn bloque" data-act="aplicarProt" data-id="${r.id}" data-tipo="ninguna">Quitar la protección</button>` : ''}`;
+}
+function htmlCortar(id){
+  const r = S.rutas.find(x => x.id === id);
+  return `<div class="cabeza"><h2>¿Cortar la ruta?</h2>${cerrarBtn()}</div>
+    <p>Roma – ${CIUDADES[r.b].n}. Dejas de cobrar ${fmt(neto(r))} den. al mes.</p>
+    <p class="sm">Para volver a abrirla pagas 100 den. Lo que ya cobraste no vuelve.</p>
+    <button class="btn rojo bloque" data-act="cortarOk" data-id="${r.id}">Sí, cortar la ruta</button>
+    <button class="btn bloque" data-act="cerrar">No, seguir</button>`;
+}
+function htmlEnviar(){
+  const c = enCasaC(), j = enCasaJ(), dest = T.dest, en = rel(dest) === 'enemiga';
+  const lista = Object.keys(ETA).map(id => {
+    const sel = T.dest === id, e = rel(id) === 'enemiga';
+    return `<button class="btn bloque ${sel ? 'sel' : ''}" style="justify-content:space-between" data-act="destino" data-c="${id}">
+      <span>${CIUDADES[id].n} <span class="sm">· ${ETQ_ST[rel(id)].toLowerCase()}</span></span>
+      <span class="sm">${ETA[id]} días · ${e ? 'saquear' : 'apoyar'}</span></button>`;
+  }).join('');
+  const sinNada = T.c + T.j === 0;
+  const botin = 30 + 15 * T.c;
+  return `<div class="cabeza"><h2>Enviar tropas desde Roma</h2>${cerrarBtn()}</div>
+    <p class="sm">En casa ahora: ${c} de ${S.ejercito.cohortes} cohortes y ${j} de ${S.ejercito.jinetes} jinetes.</p>
+    ${stepper('Cohortes (fuerza 2 cada una)', 'c', c)}
+    ${stepper('Jinetes (fuerza 1 cada uno)', 'j', j)}
+    <h3>¿A dónde?</h3>
+    ${lista}
+    <p class="sm">${en ? `Saquear: al llegar cobras ${botin} den. de botín. Luego vuelven a Roma.` : 'Apoyar: llegan, la ciudad lo nota, y vuelven a Roma.'}</p>
+    <button class="btn oro bloque" data-act="lanzaEnvio" ${sinNada ? 'disabled' : ''}>
+      ${en ? 'Saquear' : 'Apoyar'} ${CIUDADES[dest].n}: ${T.c} cohortes, llega en ${ETA[dest]} días</button>`;
+}
+function htmlInterceptar(){
+  const e = S.marchas.find(x => x.id === T.id);
+  if(!e) return `<div class="cabeza"><h2>Esa marcha ya no está</h2>${cerrarBtn()}</div>`;
+  const dias = e.dias - 1, f = T.c * 2 + T.j, favorable = f > 0 && f >= e.fuerza;
+  const ok = e.dias >= 2 && f > 0;
+  const aviso2 = e.dias < 2
+    ? '<p class="chip enemiga" style="align-self:flex-start">Ya llega: no hay tiempo para cortarle el paso.</p>'
+    : `<p>Tu tropa llega al cruce en <b>${dias} día${dias > 1 ? 's' : ''}</b>, antes que él.</p>`;
+  return `<div class="cabeza"><h2>Interceptar</h2>${cerrarBtn()}</div>
+    <div class="card alerta"><div class="titulo">${icon('alerta', 18)} ${e.etiqueta}</div>
+      <div class="sm">${CIUDADES[e.de].n} → ${CIUDADES[e.a].n} · fuerza ${e.fuerza} · llega en ${e.dias} días</div></div>
+    ${aviso2}
+    ${stepper('Cohortes (fuerza 2 cada una)', 'c', enCasaC())}
+    ${stepper('Jinetes (fuerza 1 cada uno)', 'j', enCasaJ())}
+    <div class="card"><div class="fila"><b>Tu fuerza ${f} contra ${e.fuerza}</b>
+      <span class="chip ${favorable ? 'aliada' : 'enemiga'}">${f === 0 ? 'Elige tropas' : (favorable ? 'Favorable' : 'Arriesgado: puedes perder una cohorte')}</span></div></div>
+    <button class="btn rojo bloque" data-act="lanzaInterceptar" ${ok ? '' : 'disabled'}>Interceptar</button>`;
+}
+function htmlPropuesta(id, tipo){
+  const v = votos(id, tipo), n = CIUDADES[id].n;
+  return `<div class="cabeza"><h2>Proponer al Senado</h2>${cerrarBtn()}</div>
+    <p><b>${TIPO[tipo]}</b> con ${n}.</p>
+    <div class="card"><p>Votos previstos: <b>${v}</b> a favor y <b>${100 - v}</b> en contra.</p>
+      <p class="sm">Gana con más de 50. Ser aliada y tener estrellas ayuda; ser enemiga y exigir tributo resta.</p></div>
+    <button class="btn oro bloque" data-act="votar" data-c="${id}" data-tipo="${tipo}">Proponer al Senado</button>
+    <button class="btn bloque" data-act="cerrar">Cancelar</button>`;
+}
+
+/* ====================== PINTURA: CIUDAD ====================== */
+function oroChip(){
+  return `<span class="chip oro" style="font-size:13px;padding:6px 9px">${icon('moneda', 16)} ${fmt(Math.floor(S.oro))} den.</span>`;
+}
+function pintaCiudad(){
+  const mar = rutasMar(), netoMar = mar.reduce((s, r) => s + neto(r), 0);
+  const enemigas = S.marchas.filter(m => m.bando === 'enemigo').length;
+  const nEn = Object.values(S.relaciones).filter(r => r.st === 'enemiga').length;
+  const nAl = Object.values(S.relaciones).filter(r => r.st === 'aliada').length;
+  $('#vista-ciudad').innerHTML = `
+    <div class="cab">
+      <div class="fila">
+        <div style="flex:1"><h1>Roma</h1><div class="sm">Estás en la ciudad · día ${S.dia} · mercado ${MERCADO}</div></div>
+        ${oroChip()}
+      </div>
+      <p class="sm">Tres puertas. Toca una para salir por ella al mapa.</p>
+    </div>
+    <div class="puertas">
+      <button class="puerta foro" data-act="puerta" data-p="foro">
+        ${icon('foro', 40)}
+        <span class="pt"><span class="nom-p">Foro</span><span class="sm">Diplomacia y Senado</span>
+          <span class="chip ${nEn ? 'enemiga' : 'neutral'}">${nEn} enemigas · ${nAl} aliada</span></span>
+      </button>
+      <button class="puerta arco" data-act="puerta" data-p="puerto">
+        ${icon('puerto', 40)}
+        <span class="pt"><span class="nom-p">Puerto</span><span class="sm">${mar.length} ${mar.length === 1 ? 'ruta' : 'rutas'} de mar</span>
+          <span class="chip oro">+${fmt(Math.round(netoMar))} den./mes</span></span>
+      </button>
+      <button class="puerta arco" data-act="puerta" data-p="camino">
+        ${icon('camino', 40)}
+        <span class="pt"><span class="nom-p">Camino</span><span class="sm">Rutas por tierra y marchas</span>
+          ${enemigas ? `<span class="chip enemiga">${icon('alerta', 14)} ${enemigas} enemiga${enemigas > 1 ? 's' : ''}</span>` : '<span class="chip aliada">Sin amenazas</span>'}</span>
+      </button>
+    </div>
+    <div class="card resumen">
+      <div><span class="sm">Renta del mes</span><b>+${fmt(Math.round(ingresoMensual()))}</b></div>
+      <div><span class="sm">Rutas</span><b>${S.rutas.length} de ${maxRutas()}</b></div>
+      <div><span class="sm">En casa</span><b>${enCasaC()} cohortes</b></div>
+    </div>`;
+}
+
+/* ====================== PINTURA: MAPA Y PANELES ====================== */
+const PANEL = {
+  puerto(){
+    const rs = rutasMar();
+    return `
+      <div><h2>Rutas de mar</h2>
+      <p class="sm">Tienes ${S.rutas.length} de ${maxRutas()} rutas. Tu mercado (${MERCADO}) da ${maxRutas()}: 1 + mercado ÷ 3.</p></div>
+      ${rs.map(tarjetaRuta).join('') || '<p class="sm">No hay rutas de mar. Abre una.</p>'}
+      <button class="btn oro bloque" data-act="abrirLista" data-tipo="mar">Abrir ruta por mar · 100 den.</button>
+      <div class="card"><b>Cómo se cuenta la renta</b>
+        <p class="sm">Cada extremo suma: tu mercado si es tuya, o 1 por estrella si es ajena. Por mar, todo se multiplica por 1,5. Cada protección se paga aparte, cada mes.</p></div>`;
+  },
+  camino(){
+    const enemigas = S.marchas.filter(m => m.bando === 'enemigo');
+    const nuestras = S.marchas.filter(m => m.bando === 'nos');
+    return `
+      <div><h2>Caminos y marchas</h2>
+      <p class="sm">En casa: ${enCasaC()} de ${S.ejercito.cohortes} cohortes y ${enCasaJ()} de ${S.ejercito.jinetes} jinetes.</p></div>
+      <button class="btn oro bloque" data-act="enviar">${icon('marcha', 18)} Enviar tropas</button>
+      <h3>Marchas enemigas</h3>
+      ${enemigas.map(tarjetaMarcha).join('') || '<p class="sm">Ninguna por ahora.</p>'}
+      <h3>Tus marchas</h3>
+      ${nuestras.map(tarjetaMarcha).join('') || '<p class="sm">Ninguna. Envía tropas o intercepta una enemiga.</p>'}
+      <h3>Rutas por tierra</h3>
+      ${rutasTierra().map(tarjetaRuta).join('') || '<p class="sm">No hay rutas por tierra.</p>'}
+      <button class="btn bloque" data-act="abrirLista" data-tipo="tierra">Abrir ruta por tierra · 100 den.</button>`;
+  },
+  foro(){
+    return `
+      <div><h2>Diplomacia y Senado</h2>
+      <p class="sm">Toca una ciudad para ver qué puedes proponer. Un tratado es una ley: el Senado la vota.</p></div>
+      <div class="card"><div class="fila"><b style="flex:1">Senado</b><span class="chip oro">100 senadores</span></div>
+        <p class="sm">${S.ultimoVoto || 'Aún no se ha votado nada.'}</p></div>
+      ${Object.keys(S.relaciones).map(filaRel).join('')}`;
+  }
+};
+function tarjetaRuta(r){
+  const d = desglose(r), n = CIUDADES[r.b].n, pr = r.prot ? PROT[r.prot] : null;
+  const cuenta = `4 + ${MERCADO} de tu mercado + ${d.est} de estrellas = ${d.base}${d.mar ? ' × 1,5 por mar' : ''} = ${fmt(d.total)}`;
+  return `<article class="card">
+    <div class="fila">
+      <div class="titulo">${icon(r.tipo === 'mar' ? 'puerto' : 'camino', 20)} Roma – ${n}</div>
+      <span style="flex:1"></span>
+      ${pr ? `<span class="chip oro">${icon('escudo', 14)} ${pr.n}</span>` : '<span class="chip enemiga">Sin protección</span>'}
+    </div>
+    <div class="sm">${cuenta}</div>
+    <div class="flujo-f"><span class="etq">Sale</span><span class="bien">tejidos</span><span class="via"><i class="cinta"></i></span></div>
+    <div class="flujo-f"><span class="etq">Entra</span><span class="bien">${CIUDADES[r.b].esp}</span><span class="via"><i class="cinta entra"></i></span></div>
+    <div class="fila"><b class="renta">${fmt(Math.round(neto(r)))} den. al mes</b>
+      ${pr ? `<span class="sm">(${fmt(d.total)} − ${pr.coste} de ${pr.n.toLowerCase()})</span>` : ''}</div>
+    <div class="fila" style="gap:8px">
+      <button class="btn" style="flex:1" data-act="proteger" data-id="${r.id}">${icon('escudo', 18)} Proteger</button>
+      <button class="btn rojo" style="flex:1" data-act="cortar" data-id="${r.id}">${icon('cortar', 18)} Cortar</button>
+    </div>
+  </article>`;
+}
+function tarjetaMarcha(m){
+  const pct = Math.round((1 - m.dias / m.total) * 100);
+  const dias = `llega en ${m.dias} día${m.dias > 1 ? 's' : ''}`;
+  if(m.bando === 'enemigo'){
+    return `<article class="card alerta">
+      <div class="titulo">${icon('alerta', 18)} ${m.etiqueta}</div>
+      <div class="sm">${CIUDADES[m.de].n} → ${CIUDADES[m.a].n} · fuerza ${m.fuerza} · ${dias}</div>
+      <div class="barra-p en"><i style="width:${pct}%"></i></div>
+      <button class="btn rojo bloque" data-act="interceptar" data-id="${m.id}" ${m.dias >= 2 ? '' : 'disabled'}>
+        ${icon('espada', 18)} Interceptar</button>
+    </article>`;
+  }
+  return `<article class="card">
+    <div class="titulo">${icon('marcha', 18)} ${m.etiqueta}</div>
+    <div class="sm">${m.cohortes} cohortes · ${m.jinetes} jinetes · ${dias}</div>
+    <div class="barra-p"><i style="width:${pct}%"></i></div>
+  </article>`;
+}
+function filaRel(id){
+  const r = S.relaciones[id], c = CIUDADES[id], abierto = S.expandida === id;
+  const acc = [];
+  if(r.st !== 'enemiga' && r.st !== 'aliada') acc.push('alianza');
+  if(r.st !== 'enemiga') acc.push('comercio');
+  if(r.st === 'enemiga') acc.push('paz');
+  if(r.st !== 'aliada' && !r.tributo) acc.push('tributo');
+  const dots = '●'.repeat(r.est) + '○'.repeat(5 - r.est);
+  return `<div class="card">
+    <button class="fila-b" data-act="expande" data-c="${id}" aria-expanded="${abierto}">
+      <span class="nom">${c.n}</span>
+      <span class="chip ${r.st}">${ETQ_ST[r.st]}</span>
+      <span class="stars">${dots}</span>
+      <span class="chev ${abierto ? 'abierto' : ''}">${icon('abajo', 18)}</span>
+    </button>
+    ${r.tributo ? `<div class="sm">Paga ${r.tributo} den. al mes a Roma.</div>` : ''}
+    ${abierto ? `<div class="rejilla">${acc.map(t => `<button class="btn" data-act="propon" data-c="${id}" data-tipo="${t}">${TIPO[t]}</button>`).join('') || '<span class="sm">Nada que proponer ahora.</span>'}</div>` : ''}
+  </div>`;
+}
+function pintaMapaVista(){
+  const pl = {puerto:'Puerto', camino:'Camino', foro:'Foro'};
+  $('#cab').innerHTML = `
+    <div class="fila">
+      <nav class="migas" aria-label="Dónde estás">
+        <button class="btn solo" data-act="ciudad" aria-label="Volver a la ciudad de Roma">${icon('volver', 20)}<span>Roma</span></button>
+        <span class="sep">›</span>
+        <span class="actual">${pl[S.puerta]}</span>
+      </nav>
+      ${oroChip()}
+    </div>
+    <div class="tabs">
+      ${['puerto', 'camino', 'foro'].map(p => `<button class="tab" aria-pressed="${p === S.puerta}" data-act="puerta" data-p="${p}">${icon(p, 18)} ${pl[p]}</button>`).join('')}
+    </div>`;
+  $('#panel').innerHTML = PANEL[S.puerta]();
+  pintaMapa();
+}
+function pintaMapa(){
+  const s = S.s, zz = v => (v / s).toFixed(2);
+  let h = '';
+  for(const r of S.rutas){
+    const A = pt(r.a), B = pt(r.b);
+    h += `<line class="ruta ${r.tipo === 'mar' ? 'mar' : ''} ${r.prot ? 'prot' : ''}" x1="${X(A.lon)}" y1="${Y(A.lat)}" x2="${X(B.lon)}" y2="${Y(B.lat)}"/>`;
+  }
+  const col = {propia:'var(--oro)', aliada:'var(--oliva)', neutral:'var(--piedra)', enemiga:'var(--terracota)'};
+  for(const id in CIUDADES){
+    const c = CIUDADES[id], x = X(c.lon), y = Y(c.lat);
+    h += `<circle cx="${x}" cy="${y}" r="${zz(5)}" fill="${col[rel(id)]}" stroke="var(--noche)" stroke-width="${zz(1.5)}"/>`;
+    h += `<text class="lab" x="${x + 8 / s}" y="${y + 4 / s}" font-size="${zz(12)}" stroke-width="${zz(3)}">${c.n}</text>`;
+  }
+  for(const m of S.marchas){
+    const p = posMarcha(m), x = X(p.lon), y = Y(p.lat);
+    const c = m.bando === 'nos' ? 'var(--oro)' : 'var(--terracota)';
+    if(m.bando === 'nos') h += `<rect x="${x - 4 / s}" y="${y - 4 / s}" width="${zz(8)}" height="${zz(8)}" fill="${c}" stroke="var(--noche)" stroke-width="${zz(1)}" transform="rotate(45 ${x} ${y})"/>`;
+    else h += `<circle cx="${x}" cy="${y}" r="${zz(6)}" fill="${c}" stroke="var(--marmol)" stroke-width="${zz(1.5)}"/>`;
+  }
+  $('#capas').innerHTML = h;
+}
+function renderAll(){
+  $('#vista-ciudad').hidden = S.pantalla !== 'ciudad';
+  $('#vista-mapa').hidden = S.pantalla !== 'mapa';
+  if(S.pantalla === 'ciudad') pintaCiudad(); else pintaMapaVista();
+  $('#ticker').textContent = S.sucesos[0] || '';
+  if(HOJA && !$('#velo').hidden) refrescarHoja();
+}
+
+/* ====================== ARRANQUE ====================== */
+(function arranque(){
+  let tierra = '';
+  for(const k in POLI) tierra += `<path class="tierra" d="${poly(POLI[k])}"/>`;
+  $('#tierra').innerHTML = tierra;
+  setVista();
+  renderAll();
+})();
+</script>
+</body>
+</html>

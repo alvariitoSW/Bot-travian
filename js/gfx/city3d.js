@@ -155,6 +155,9 @@ function tinteC0(a, b, nb, arr) {
   const mc = k > 0 ? MURO_RICO : MURO_POBRE, tc = k > 0 ? TEJA_RICA : TEJA_VIEJA, w = Math.abs(k);
   return { muro: r.muro.map((x, i) => x + (mc[i] - x) * w), teja: [r.teja[0] + (tc[0] - r.teja[0]) * w, r.teja[1] + (tc[1] - r.teja[1]) * w, r.teja[2] + (tc[2] - r.teja[2]) * w, Math.max(0, Math.min(1, r.teja[3] + k * 0.5))] };
 }
+/* CN17: tinte suave por carácter del barrio (foro marfil, ribera fresca, loma cálida, llano sin cambio). Solo color. */
+const TINTE_CAR = { foro: [1.04, 1.03, 1.0], ribera: [0.94, 0.98, 1.04], loma: [1.05, 0.99, 0.9] };
+function tinteK(a, b, nb, arr, tej, car) { const r = tinteC(a, b, nb, arr, tej), k = Fachadas.FACHADAS_BARRIO && TINTE_CAR[car]; return k ? { muro: r.muro.map((x, i) => x * k[i]), teja: r.teja } : r; }
 /* familia de casas de la cultura; si falta alguna pieza, vuelve a las romanas */
 const familia = () => { const f = CASAS_C[cul].filter(k => pieza(k)); return f.length === CASAS_C[cul].length ? f : CASAS_C.roma; };
 
@@ -226,7 +229,7 @@ const PZ = { foro: ['foro', 0.78, 0, 0.2], fuente: ['prop_pozo', 2.2, 0, 0.1], g
   muelle: ['puerto', 0.85, 0, 0], salinas: ['almacen', 0.8, 0, 0.3], zanja: ['prop_pozo', 1.2, 0, 0.1], compitum: ['vesta', 0.5, 0, 0.6], dique: ['muro', 1.0, 0, 0.2] };       // herrería usa el taller reducido (aún no hay pieza propia); la fuente espera a prop_pozo
 const PIEL_U = { muro: [0.93, 0.86, 0.76], teja: [0.86, 0.8, 0.76, 0.15] };
 const L = {}, G = {};                 // lotes y mallas sueltas
-let pinM, sueloJ, rio, crecida, dinM, andM, andL, estM, anilloM, surcoM, gromaM, aradoM, chozaM, tiendaM;
+let pinM, sueloJ, rio, crecida, dinM, andM, andL, estM, anilloM, surcoM, gromaM, aradoM, chozaM, tiendaM, plazaM, plazaF = '';
 let estQ = 0, estClave = -1;       // CN15a: paso discreto de la mezcla de estación (0..8) y clave k*9+paso para repintar solo al cambiar
 const ANDAMIO_NUEVO = true;       // CN15b-B: andamio con lona, cuerdas y escalera; obra en pausa apagada; sin árboles dentro de la obra activa. false = como antes
 let firmaArb = '';
@@ -266,8 +269,8 @@ export async function montar() {
 /* el terreno de una partida: suelo, río, bosque, puente */
 export function mundo(estado) {
   vida.reiniciar(); E = estado; cul = CASAS_C[estado.cultura] ? estado.cultura : 'roma'; tinteO = cul === 'roma' && estado.tinte ? TINTE_O[estado.tinte] || null : null; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1; estClave = -1; firmaArb = ''; Fachadas.reiniciar(); Civicas.reiniciar(); trajin.reiniciar();
-  for (const m of [sueloJ && sueloJ.malla, rio, crecida, estM, dinM, andM, andL, surcoM, aradoM]) if (m) { scene.remove(m); if (m.geometry) m.geometry.dispose(); }
-  dinM = andM = andL = surcoM = aradoM = null; if (antM) { scene.remove(antM); antM.geometry.dispose(); antM = null; } antFirma = ''; obrasF = []; firmaObras = '';
+  for (const m of [sueloJ && sueloJ.malla, rio, crecida, estM, dinM, andM, andL, surcoM, aradoM, plazaM]) if (m) { scene.remove(m); if (m.geometry) m.geometry.dispose(); }
+  dinM = andM = andL = surcoM = aradoM = plazaM = null; plazaF = ''; if (antM) { scene.remove(antM); antM.geometry.dispose(); antM = null; } antFirma = ''; obrasF = []; firmaObras = '';
   sueloJ = crearSuelo3(G.T, U, E ? E.bosquetes : []); sueloJ.terreno(E && E.terreno); scene.add(sueloJ.malla); rio = crearRio(G.T, U); scene.add(rio);
   /* lámina de la crecida: una cinta más ancha que el río, escondida bajo el cauce hasta que toca */
   { const n = RIO.length, pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = []; let sl = 0; for (let i = 0; i < n; i++) { const a = RIO[Math.max(0, i - 1)], b = RIO[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]), nx = -(b[1] - a[1]) / l, nz = (b[0] - a[0]) / l, w = 124; if (i) sl += Math.hypot(RIO[i][0] - RIO[i - 1][0], RIO[i][1] - RIO[i - 1][1]); pos.set([RIO[i][0] + nx * w, 0, RIO[i][1] + nz * w, RIO[i][0] - nx * w, 0, RIO[i][1] - nz * w], i * 6); uv.set([0, sl / 60, 2.5, sl / 60], i * 4); if (i < n - 1) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }
@@ -315,7 +318,7 @@ function casas(t) {
     let k; if (fam === CASAS_C.roma) k = c.nivel === 2 ? (l.tipo < 0.5 ? 'casa_c' : 'casa_d') : c.nivel === 3 ? ['casa_b', 'casa_c', 'casa_d'][Math.floor(l.tipo * 3) % 3] : (l.tipo < 0.55 ? 'casa' : 'casa_b');
     else { const n = fam.length, lo = Math.max(1, Math.round(n * 0.4)), a = c.nivel === 2 ? 0 : c.nivel === 3 ? Math.floor(n * 0.25) : n - Math.max(2, Math.round(n * 0.5)), b = c.nivel === 2 ? lo : c.nivel === 3 ? Math.min(n, a + Math.max(2, Math.round(n * 0.6))) : n; k = fam[a + Math.floor(l.tipo * (b - a)) % (b - a)]; }
     const e = c.nivel === 2 ? 0.64 : c.nivel === 3 ? 0.84 : 0.97, alto = c.nivel === 4 ? 1.3 : c.nivel === 3 ? 1 : 0.9, tn = c.nivel === 2 ? l.tono * 0.42 : c.nivel === 3 ? 0.3 + l.tono * 0.45 : 0.62 + l.tono * 0.38, tj = c.nivel === 2 ? 0.6 + l.teja * 0.4 : c.nivel === 4 ? l.teja * 0.6 : l.teja;
-    por[k].push({ m: matriz(l.x, suelo(l.x, l.z, 6 * e) - 0.25, l.z, giro, e * EC * sx, e * EC * alto * sy, e * EC * sx), ...tinteC(tn, tj, E.barrios && E.barrios[l.barrio] ? E.barrios[l.barrio].nivel : undefined, l.arrabal, E.barrios && E.barrios[l.barrio] && E.barrios[l.barrio].tejas) }); }
+    por[k].push({ m: matriz(l.x, suelo(l.x, l.z, 6 * e) - 0.25, l.z, giro, e * EC * sx, e * EC * alto * sy, e * EC * sx), ...tinteK(tn, tj, E.barrios && E.barrios[l.barrio] ? E.barrios[l.barrio].nivel : undefined, l.arrabal, E.barrios && E.barrios[l.barrio] && E.barrios[l.barrio].tejas, E.barrios && E.barrios[l.barrio] ? CI.caracterBarrio(E, l.barrio) : undefined) }); }
   for (const k in por) L[k].poner(por[k]);
   tiendaM.count = nt; for (const m of [...chozaM, tiendaM]) { if (m !== tiendaM) m.count = nc; m.instanceMatrix.needsUpdate = true; if (m.instanceColor) m.instanceColor.needsUpdate = true; }
   return anim;
@@ -418,11 +421,22 @@ export function surcar() {
   aradoM = new THREE.Mesh(b.geo(), matBulto); aradoM.castShadow = true; scene.add(aradoM);
   surcoT0 = ahora(); esperaSurco = surcoT0 + 2.7; animHasta = esperaSurco + 3;
 }
+/* CN17: plaza empedrada en el cruce de cada barrio (menos el del foro): losas, y una fuente (ribera y llano) o un ara (loma). Una sola malla, pocos triángulos. */
+export const PLAZAS_CRUCE = true;
+function plazas() {
+  const L = PLAZAS_CRUCE ? CI.plazasCruce(E) : [], f = L.map(q => Math.round(q.x) + ',' + Math.round(q.z) + q.car).join('|'); if (f === plazaF) return; plazaF = f;
+  if (plazaM) { scene.remove(plazaM); plazaM.geometry.dispose(); plazaM = null; } if (!L.length) return;
+  const B = new Bulto(); for (const q of L) { const y = altura(q.x, q.z);
+    B.cono(10, 0.5, 14, q.x, y + 0.2, q.z, '#7a6c58'); B.cono(8.6, 0.6, 14, q.x, y + 0.3, q.z, '#b8ab94');
+    if (q.car === 'loma') { B.caja(2.2, 0.5, 2.2, q.x, y + 0.85, q.z, '#cfc6b2'); B.caja(1.5, 1.5, 1.5, q.x, y + 1.6, q.z, '#e0d8c4'); B.caja(2, 0.3, 2, q.x, y + 2.5, q.z, '#cfc6b2'); }
+    else { B.cono(3, 0.9, 10, q.x, y + 0.9, q.z, '#cfc6b2'); B.cono(2.4, 0.5, 10, q.x, y + 1.15, q.z, '#4f86a8'); B.caja(0.6, 2.2, 0.6, q.x, y + 1.9, q.z, '#e0d8c4'); } }
+  plazaM = new THREE.Mesh(B.geo(), matBulto); plazaM.castShadow = plazaM.receiveShadow = true; scene.add(plazaM);
+}
 let pedirReparto = false;
 /* pone la escena al día con el estado. Las sombras se piden aquí (como mucho una vez por cambio) */
 export function sincronizar(forzar) {
   if (!E || (!forzar && E.rev === revVista) || ahora() < esperaSurco) return; revVista = E.rev;
-  sueloJ.pintar(E); arboles(); edificios(); dinamico();
+  sueloJ.pintar(E); arboles(); edificios(); dinamico(); plazas();
   if (surcoM) surcoM.visible = E.muralla.fase < 2;
   if (casas(ahora())) animHasta = Math.max(animHasta, ahora() + 2.6);
   sombraPend = true; pedirReparto = true;
@@ -575,6 +589,9 @@ export class CityView3D {
   /* pone la cámara mirando al punto (x, z) del mundo (d = distancia, az = giro; opcionales). Para fichas, avisos y capturas */
   mirar(x, z, d, az) { this.camA = null; cam.tx = x; cam.tz = z; if (d) cam.d = d; if (az !== undefined) cam.az = az; cam.elF = 0; ponerCamara(); }
   sincronizar(forzar) { sincronizar(forzar); }
+  /* CN18: postal (copia del dibujo actual, en el mismo instante en que se pinta) y modo contemplar (la cámara gira sola) */
+  foto() { if (!this.listo) return null; try { dibujar(); const c = document.createElement('canvas'); c.width = this.cv.width; c.height = this.cv.height; c.getContext('2d').drawImage(this.cv, 0, 0); return c; } catch (e) { return null; } }
+  contemplar(on) { this.cont = !!on; if (on) this.camA = null; }
 
   /* figuras reales (ciudadanos y guarnición): una malla instanciada por tipo */
   fig(key, cap) {
@@ -621,6 +638,7 @@ export class CityView3D {
     this.shiftT = sel && top > 0 ? Math.max(-60, Math.min(420, H / 2 - (top / 2 + 24))) : 0;
     this.shift += (this.shiftT - this.shift) * 0.15; if (Math.abs(this.shift - desvio) > 0.4) desvio = this.shift; else if (!this.shiftT && Math.abs(this.shift) < 0.4) desvio = 0;
     obrasLista = city && city.obras || null;
+    if (this.cont) cam.az += dt * 0.12;
     ponerCamara();
     this.people(city, t, dt);
     this.sonar(city, id);
@@ -628,7 +646,7 @@ export class CityView3D {
     selActual = sel || null;
     dibujar();
     this.etiquetasBarrio(H);
-    const el = this.armyEl, txt = '⚔️ Guarnición · ' + this.men; if (el._t !== txt) { el._t = txt; el.textContent = txt; }
+    const el = this.armyEl, txt = '⚔️ Campo de Marte · ' + this.men; if (el._t !== txt) { el._t = txt; el.textContent = txt; }
     if (this.guarn && this.men && cam.d < 700) { const p = aPantalla(this.guarn.x, this.guarn.z, 14), r = host.getBoundingClientRect(), y = p.y - r.top; if (p.ok && y > 104 && y < H - 150) { el.style.display = ''; el.style.transform = 'translate(' + (p.x - r.left).toFixed(1) + 'px,' + y.toFixed(1) + 'px) translate(-50%,-100%)'; } else el.style.display = 'none'; } else el.style.display = 'none';
   }
   /* CN6: una etiqueta pequeña por barrio («Foro · II»), solo con la cámara lejos y lejos de la línea de arriba y de la bandeja de abajo */

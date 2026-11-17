@@ -3,6 +3,156 @@
   "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
   "capturas": [
     {
+      "tarea": "C8",
+      "archivo": "gobierno/capturas-tarea/c8-mare.jpg",
+      "pie": "Mapamundi: el mundo llena la pantalla; zonas de fuera con flecha en el borde"
+    },
+    {
+      "tarea": "MR2a",
+      "archivo": "gobierno/capturas-tarea/MR2a-1-imperio.jpg",
+      "pie": "Imperio en el juego: rollo de papiro, filtros en tablilla de cera"
+    },
+    {
+      "tarea": "MR2a",
+      "archivo": "gobierno/capturas-tarea/MR2a-2-gobierno.jpg",
+      "pie": "Gobierno en el juego: laurel en la felicidad y atajos en placas de bronce"
+    },
+    {
+      "tarea": "C5a",
+      "archivo": "gobierno/capturas-tarea/despues-mare.jpg",
+      "pie": "Mapamundi: pergamino y filete de tinta en vez del vacío azul"
+    },
+    {
+      "tarea": "K7a",
+      "archivo": "gobierno/capturas-tarea/K7a-despues-etruria.jpg",
+      "pie": "Rutas con grosor según renta y marcas ⚔ de guerra en las ciudades"
+    },
+    {
+      "tarea": "K7a",
+      "archivo": "gobierno/capturas-tarea/K7a-despues-etruriaLejos.jpg",
+      "pie": "Lo mismo, de lejos"
+    },
+    {
+      "tarea": "C4",
+      "archivo": "gobierno/capturas-tarea/C4-despues-tiber.jpg",
+      "pie": "El Tíber junto a Roma"
+    },
+    {
+      "tarea": "C4",
+      "archivo": "gobierno/capturas-tarea/C4-despues-padana.jpg",
+      "pie": "Llanura del Po y los Alpes con el Tesino"
+    },
+    {
+      "tarea": "C4",
+      "archivo": "gobierno/capturas-tarea/C4-despues-italia.jpg",
+      "pie": "Italia: ríos y lagos, playas nítidas"
+    },
+    {
+      "tarea": "K7c",
+      "archivo": "gobierno/capturas-tarea/K7c-miga-mapa.jpg",
+      "pie": "Mapa: miga «Roma › Camino» y botón rojo «Entrar en la ciudad»"
+    },
+    {
+      "tarea": "K7c",
+      "archivo": "gobierno/capturas-tarea/K7c-miga-ciudad.jpg",
+      "pie": "Ciudad: miga «Roma › Ciudad» y botón rojo «Salir al mapa»"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-3-todo-lejos.jpg",
+      "pie": "Arte nuevo, de lejos: suelo oscuro con tierra pisada, estandartes grandes, enemigo en azul"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-0-antes-lejos.jpg",
+      "pie": "De antes, de lejos (lo que se probó el 16/11)"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-3-todo-cerca.jpg",
+      "pie": "Arte nuevo, de cerca: bronce y luz mejor, pero el romano queda de color hueso (por arreglar)"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-0-antes-cerca.jpg",
+      "pie": "De antes, de cerca: rojo de pies a cabeza"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-3-todo-vertical.jpg",
+      "pie": "Arte nuevo en vertical"
+    },
+    {
+      "tarea": "J4a",
+      "archivo": "gobierno/capturas-tarea/J4a-mare-nostrum-8-zonas.jpg",
+      "pie": "Mare Nostrum con 8 zonas: aparecen Etruria y Gallia"
+    },
+    {
+      "tarea": "J4a",
+      "archivo": "gobierno/capturas-tarea/J4a-italia-ciudades-nuevas.jpg",
+      "pie": "Italia con Rusellae, Clusium y Neapolis; las etiquetas aún se pisan (J4b)"
+    },
+    {
+      "tarea": "GM11",
+      "archivo": "gobierno/capturas-tarea/GM11-vertical-1-lejos.jpg",
+      "pie": "La batalla única empieza de lejos, con el aspecto de GM1"
+    },
+    {
+      "tarea": "GM11",
+      "archivo": "gobierno/capturas-tarea/GM11-vertical-2-choque.jpg",
+      "pie": "Al chocar: Ánimo de la legión en las cifras y botones Empujar, Aguantar, Relevo y Caballería"
+    },
+    {
+      "tarea": "GM11",
+      "archivo": "gobierno/capturas-tarea/GM11-vertical-3-relevo-en-curso.jpg",
+      "pie": "El relevo se ve: la línea abre calles y la reserva entra en fila"
+    },
+    {
+      "tarea": "GM11",
+      "archivo": "gobierno/capturas-tarea/GM11-vertical-4-aviso-flanco.jpg",
+      "pie": "Aviso de hueco: «¡Te entran por el hueco en el centro!»"
+    },
+    {
+      "tarea": "GM11",
+      "archivo": "gobierno/capturas-tarea/GM11-horizontal-3-relevo-en-curso.jpg",
+      "pie": "El relevo con el móvil tumbado"
+    },
+    {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-vertical-2-piedras.jpg",
+      "pie": "La batalla empieza de lejos: sus honderos tiran piedras y tus vélites jabalinas antes de chocar"
+    },
+    {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-vertical-3-cubiertos.jpg",
+      "pie": "Testudo en el centro y escudos arriba a la derecha: se ve el tejado de escudos"
+    },
+    {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-vertical-4-testudo-de-cerca.jpg",
+      "pie": "El testudo de cerca, con las piedras cayendo. Los botones dicen Avanzar, Escudos, Testudo y Caballería"
+    },
+    {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-vertical-5-pila.jpg",
+      "pie": "Justo antes del choque los legionarios arrojan los pila"
+    },
+    {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-vertical-6-choque.jpg",
+      "pie": "Al chocar, los mismos botones vuelven a ser Empujar, Aguantar, Relevo y Caballería"
+    },
+    {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-horizontal-3-cubiertos.jpg",
+      "pie": "La misma batalla con el móvil tumbado"
+    },
+    {
+      "tarea": "GM7",
+      "archivo": "gobierno/capturas-tarea/GM7-pirro-2-piedras.jpg",
+      "pie": "Otro rival hecho solo con fichas nuevas: Pirro, con arqueros"
+    },
+    {
       "tarea": "N8",
       "archivo": "gobierno/capturas-tarea/n8b-14s.jpg",
       "pie": "Cámara «Seguir» y cinta «Mirando: carga de caballería»"
@@ -988,9 +1138,574 @@
       "archivo": "gobierno/capturas-tarea/CN5-fundada.jpg",
       "pie": "Colonia recién fundada: foro, chozas y surco",
       "ancha": false
+    },
+    {
+      "tarea": "Batalla nueva",
+      "archivo": "gobierno/capturas-tarea/consejo-batalla-vertical.jpg",
+      "pie": "16/11, móvil en vertical: empieza en pausa, sin botón para salir; rótulos cortados y soldados como bloques"
+    },
+    {
+      "tarea": "Batalla nueva",
+      "archivo": "gobierno/capturas-tarea/consejo-batalla-horizontal.jpg",
+      "pie": "16/11, en horizontal: rótulos encima de la tropa y textos de prueba («línea 0»)",
+      "ancha": true
+    },
+    {
+      "tarea": "Batalla nueva",
+      "archivo": "gobierno/capturas-tarea/consejo-batalla-fin.jpg",
+      "pie": "16/11: la batalla acaba a los 24 segundos, antes de que las líneas choquen"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-vertical-1-llegada.jpg",
+      "pie": "Batalla nueva, lo primero que se ve: tres cuerpos, cuatro órdenes y «Retirarse»"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-vertical-2-choque.jpg",
+      "pie": "Las líneas chocan: los galos «cargan» por la izquierda"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-vertical-3-relevo.jpg",
+      "pie": "La cámara baja sola al relevo: entran los príncipes"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-vertical-4-caballeria.jpg",
+      "pie": "Caballería: los jinetes cargan por el costado"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-vertical-6-final.jpg",
+      "pie": "Final: victoria, bajas y «Otra batalla»"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-vertical-7-retirarse.jpg",
+      "pie": "«Retirarse» pregunta una vez: dos toques y fuera"
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-horizontal-1-llegada.jpg",
+      "pie": "La misma batalla con el móvil en horizontal",
+      "ancha": true
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-horizontal-3-relevo.jpg",
+      "pie": "En horizontal: relevo visto de cerca",
+      "ancha": true
+    },
+    {
+      "tarea": "GC1",
+      "archivo": "gobierno/capturas-tarea/GC1-horizontal-4-caballeria.jpg",
+      "pie": "En horizontal: los jinetes espantan a los númidas en el ala izquierda",
+      "ancha": true
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-5000-vertical-2-choque.jpg",
+      "pie": "Ejércitos grandes: 5 000 por bando, de lejos. Cada hombre es un cartón; la cuenta va arriba"
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-5000-vertical-3-de-cerca.jpg",
+      "pie": "«De cerca»: las 220 figuras completas salen solo junto a la cámara; detrás siguen los cartones"
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-5000-vertical-4-caballeria.jpg",
+      "pie": "Las filas adelgazan al caer gente y los jinetes cargan por el costado"
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-10000-vertical-2-choque.jpg",
+      "pie": "10 000 por bando con el móvil de pie: 18 000 hombres en el campo"
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-10000-vertical-3-de-cerca.jpg",
+      "pie": "10 000 por bando, de cerca: el coste no cambia con el tamaño"
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-1000-vertical-3-de-cerca.jpg",
+      "pie": "1 000 por bando, de cerca"
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-10000-horizontal-2-choque.jpg",
+      "pie": "10 000 por bando con el móvil tumbado: formación más ancha que honda",
+      "ancha": true
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-5000-horizontal-3-de-cerca.jpg",
+      "pie": "5 000 por bando, de cerca y en horizontal",
+      "ancha": true
+    },
+    {
+      "tarea": "GM1",
+      "archivo": "gobierno/capturas-tarea/GM1-5000-vertical-7-tamano.jpg",
+      "pie": "El botón del número cambia el tamaño: 1 000, 5 000 o 10 000"
+    },
+    {
+      "tarea": "GM2",
+      "archivo": "gobierno/capturas-tarea/GM2-1-tiro.jpg",
+      "pie": "Combate en vivo: los arqueros de Pirro tiran mientras las líneas se acercan"
+    },
+    {
+      "tarea": "GM2",
+      "archivo": "gobierno/capturas-tarea/GM2-3-flanco-enemigo.jpg",
+      "pie": "Tus jinetes cogen el costado de la falange: «costado al aire»"
+    },
+    {
+      "tarea": "GM2",
+      "archivo": "gobierno/capturas-tarea/GM2-4-flanco-roma.jpg",
+      "pie": "Te entran por el costado: flecha roja, aviso y la reserva se vuelve a cubrir"
+    },
+    {
+      "tarea": "GM2",
+      "archivo": "gobierno/capturas-tarea/GM2-5-cartago.jpg",
+      "pie": "Contra Cartago: elefantes, galos e iberos, cada uno con su formación"
+    },
+    {
+      "tarea": "GM2",
+      "archivo": "gobierno/capturas-tarea/GM2-6-horizontal.jpg",
+      "pie": "En horizontal: falange, arqueros y elefantes al chocar",
+      "ancha": true
+    },
+    {
+      "tarea": "GC4",
+      "archivo": "gobierno/capturas-tarea/GC4-3-choque.jpg",
+      "pie": "El choque, en vertical",
+      "ancha": false
+    },
+    {
+      "tarea": "GC4",
+      "archivo": "gobierno/capturas-tarea/GC4-4-orden.jpg",
+      "pie": "Una orden elegida: «Empujar»",
+      "ancha": false
+    },
+    {
+      "tarea": "GC4",
+      "archivo": "gobierno/capturas-tarea/GC4-5-horizontal.jpg",
+      "pie": "En horizontal, con «Retirarse» arriba",
+      "ancha": true
+    },
+    {
+      "tarea": "GC4",
+      "archivo": "gobierno/capturas-tarea/GC4-9-retirada-pregunta.jpg",
+      "pie": "Retirarse pide confirmación",
+      "ancha": false
+    },
+    {
+      "tarea": "GC4",
+      "archivo": "gobierno/capturas-tarea/GC4-13-recargado-aviso.jpg",
+      "pie": "Tras recargar: «Seguir la batalla»",
+      "ancha": false
+    },
+    {
+      "tarea": "EV1",
+      "archivo": "gobierno/capturas-tarea/EV1-2b-debate.jpg",
+      "pie": "Política (maqueta): el Senado debate en directo y tú compras votos con tratos"
+    },
+    {
+      "tarea": "EV1",
+      "archivo": "gobierno/capturas-tarea/EV1-3-hieron.jpg",
+      "pie": "Verano de 264: Hierón ofrece paz; cada opción enseña su precio"
+    },
+    {
+      "tarea": "EV1",
+      "archivo": "gobierno/capturas-tarea/EV1-7-hilo-desvio.jpg",
+      "pie": "Cierre del año: tu hilo se separa de la historia real"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-01-casa.jpg",
+      "pie": "Tu casa: Roma desde la terraza, cuánto te consultan y tu mesa"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-02-foro.jpg",
+      "pie": "El Foro: tus cinco magistrados, con cara y orden"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-03-magistrado.jpg",
+      "pie": "Ficha del cónsul: virtud, defecto y tu orden general"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-04-candidatos.jpg",
+      "pie": "Tres candidatos por cargo para nombrar"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-05-curia.jpg",
+      "pie": "La Curia: 30 senadores sentados y su voto a la vista"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-08-paso-estacion.jpg",
+      "pie": "Pasa la estación: lo nuevo de la ciudad, en oro"
+    },
+    {
+      "tarea": "EV2",
+      "archivo": "gobierno/capturas-tarea/EV2-12-cierre.jpg",
+      "pie": "Invierno: el hilo de la historia"
+    },
+    {
+      "tarea": "GM6",
+      "archivo": "gobierno/capturas-tarea/GM6-relevo-2.jpg",
+      "pie": "Relevo en 3D: la línea que entra pasa en columnas entre la que sale"
+    },
+    {
+      "tarea": "GM6",
+      "archivo": "gobierno/capturas-tarea/GM6-relevo-3.jpg",
+      "pie": "El mismo relevo, un momento después: se abren al llegar al frente"
+    },
+    {
+      "tarea": "GM6",
+      "archivo": "gobierno/capturas-tarea/GM6-relevo-mal.jpg",
+      "pie": "Relevo a destiempo: filas torcidas y el ánimo de la legión baja (barra de arriba, en rojo)"
+    },
+    {
+      "tarea": "GM6",
+      "archivo": "gobierno/capturas-tarea/GM6-mando-bien.jpg",
+      "pie": "Barra «Ánimo de la legión» arriba; el botón Relevo avisa del momento"
+    },
+    {
+      "tarea": "GM6",
+      "archivo": "gobierno/capturas-tarea/GM6-ancha.jpg",
+      "pie": "En horizontal contra Pirro: falange, elefantes y el botón Relevo que dice «aún están enteros»",
+      "ancha": true
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-sin-jugar.jpg",
+      "pie": "Sin decidir nada el año acaba solo: más oro, 7 obras y cuatro magistrados con «BIEN»"
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-curia.jpg",
+      "pie": "La Curia: 30 senadores iguales de 26 puntos; el marcador ya dice si sale"
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-cae-y-sale-otra.jpg",
+      "pie": "Tu propuesta cae con 13 de 16 y «sale otra» sin votarse"
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-casa.jpg",
+      "pie": "Tu casa: tres cifras sin nombre y una vista azul sobre azul"
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-foro.jpg",
+      "pie": "El Foro: cinco tarjetas y media pantalla vacía"
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-horizontal.jpg",
+      "pie": "Tumbado: una columna estrecha y media pantalla vacía",
+      "ancha": true
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-senado-ev1.jpg",
+      "pie": "Maqueta pequeña (EV1): bolitas, reloj y el tercer trato cortado"
+    },
+    {
+      "tarea": "EV6",
+      "archivo": "gobierno/capturas-tarea/EV6-hilo-ev1.jpg",
+      "pie": "EV1: el hilo de dos líneas se entiende; los rótulos se montan"
+    },
+    {
+      "tarea": "GM8",
+      "archivo": "gobierno/capturas-tarea/GM8-vertical-9-jinetes-rodeando.jpg",
+      "pie": "Los jinetes salen por el ala y rodean por fuera"
+    },
+    {
+      "tarea": "GM8",
+      "archivo": "gobierno/capturas-tarea/GM8-vertical-10-choque.jpg",
+      "pie": "El choque tras rodear; la caballería se rehace (vuelve en 20 s)"
+    },
+    {
+      "tarea": "GM8",
+      "archivo": "gobierno/capturas-tarea/GM8-vertical-11-vuelta-camara-siguiendo.jpg",
+      "pie": "Vuelta de los jinetes con la cámara siguiéndolos"
+    },
+    {
+      "tarea": "GM8",
+      "archivo": "gobierno/capturas-tarea/GM8-horizontal-9-jinetes-rodeando.jpg",
+      "pie": "En horizontal: jinetes rodeando",
+      "ancha": true
+    },
+    {
+      "tarea": "EV4a",
+      "archivo": "gobierno/capturas-tarea/EV2-07-recuento.jpg",
+      "pie": "Curia con reglas nuevas: el recuento ya no se sabe antes de votar"
+    },
+    {
+      "tarea": "EV4a",
+      "archivo": "gobierno/capturas-tarea/EV2-12-cierre.jpg",
+      "pie": "Cierre del año con las reglas nuevas (el veredicto lo dibujará EV4b)"
+    },
+    {
+      "tarea": "GM4",
+      "archivo": "gobierno/capturas-tarea/GM4-antes-5000-vertical-3-de-cerca.jpg",
+      "pie": "Arte de la batalla · ANTES: de cerca, como estaba en GM1"
+    },
+    {
+      "tarea": "GM4",
+      "archivo": "gobierno/capturas-tarea/GM4-5000-vertical-3-de-cerca.jpg",
+      "pie": "Arte de la batalla · DESPUÉS: soldados redondeados, sombra de cada hombre, polvo con viento"
+    },
+    {
+      "tarea": "GM4",
+      "archivo": "gobierno/capturas-tarea/GM4-5000-vertical-2-choque.jpg",
+      "pie": "De lejos: estandartes nuevos, tierra pisada y variación entre hombres"
+    },
+    {
+      "tarea": "GM4",
+      "archivo": "gobierno/capturas-tarea/GM4-despues-primer-plano.jpg",
+      "pie": "Primer plano: cartón y figura con la misma luz"
+    },
+    {
+      "tarea": "GM4",
+      "archivo": "gobierno/capturas-tarea/GM4-5000-horizontal-3-de-cerca.jpg",
+      "pie": "Con el móvil tumbado: el vexillum romano y la enseña enemiga",
+      "ancha": true
+    },
+    {
+      "tarea": "GM10",
+      "archivo": "gobierno/capturas-tarea/GM10-A-cuerpo.jpg",
+      "pie": "Manejo A: arrastras un cuerpo hacia atrás y espera"
+    },
+    {
+      "tarea": "GM10",
+      "archivo": "gobierno/capturas-tarea/GM10-A-jinetes.jpg",
+      "pie": "Manejo A: dibujas por dónde rodean los jinetes"
+    },
+    {
+      "tarea": "GM10",
+      "archivo": "gobierno/capturas-tarea/GM10-B-cuerpo.jpg",
+      "pie": "Manejo B: tocas un cuerpo y eliges con cuatro flechas"
+    },
+    {
+      "tarea": "GM10",
+      "archivo": "gobierno/capturas-tarea/GM10-B-jinetes.jpg",
+      "pie": "Manejo B: tocas «Jinetes» y eliges ruta y objetivo"
+    },
+    {
+      "tarea": "GM32",
+      "archivo": "gobierno/capturas-tarea/GM32-antes-vertical-1-llegada.jpg",
+      "pie": "Campo de antes: suelo a rayas y sin horizonte"
+    },
+    {
+      "tarea": "GM32",
+      "archivo": "gobierno/capturas-tarea/GM32-despues-vertical-1-llegada.jpg",
+      "pie": "Campo nuevo: sin rayas, con cielo, colinas y sombra bajo los bloques"
+    },
+    {
+      "tarea": "GM32",
+      "archivo": "gobierno/capturas-tarea/GM32-despues-horizontal-2-choque.jpg",
+      "pie": "Campo nuevo en horizontal (los soldados aún no cambian)",
+      "ancha": true
+    },
+    {
+      "tarea": "K7",
+      "archivo": "gobierno/capturas-tarea/K7-A-1.png",
+      "pie": "Concurso K7, maqueta A (ciega; ganó la D)"
+    },
+    {
+      "tarea": "K7",
+      "archivo": "gobierno/capturas-tarea/K7-B-1.png",
+      "pie": "Concurso K7, maqueta B (ciega; ganó la D)"
+    },
+    {
+      "tarea": "K7",
+      "archivo": "gobierno/capturas-tarea/K7-C-1.png",
+      "pie": "Concurso K7, maqueta C (ciega; ganó la D)"
+    },
+    {
+      "tarea": "K7",
+      "archivo": "gobierno/capturas-tarea/K7-D-1.png",
+      "pie": "Concurso K7, maqueta D (ciega; ganó la D)"
+    },
+    {
+      "tarea": "K7",
+      "archivo": "gobierno/capturas-tarea/K7-E-1.png",
+      "pie": "Concurso K7, maqueta E (ciega; ganó la D)"
+    },
+    {
+      "tarea": "GM21",
+      "archivo": "gobierno/capturas-tarea/GM21-vertical-2-todo-ancho.jpg",
+      "pie": "Despliegue: los tres cuerpos formados a lo ancho"
+    },
+    {
+      "tarea": "GM21",
+      "archivo": "gobierno/capturas-tarea/GM21-vertical-4-plan-caballeria-derecha.jpg",
+      "pie": "Plan: centro atrás y caballería en el ala derecha"
+    },
+    {
+      "tarea": "GM21",
+      "archivo": "gobierno/capturas-tarea/GM21-horizontal-7-batalla-ancho.jpg",
+      "pie": "Batalla con todo a lo ancho: Roma desborda",
+      "ancha": true
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-3-region.jpg",
+      "pie": "Gobierno de provincias: la región en una pantalla, con lo que hace falta para el otoño"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-2-oficio-capua.jpg",
+      "pie": "Dar un oficio a Capua: sus tres campos cuentan y nace en rango II"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-4-decreto.jpg",
+      "pie": "El decreto de Tarento: cada opción dice antes lo que da y lo que cuesta"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-5-partida.jpg",
+      "pie": "La partida de exportación: vender ahora o comprar fuera"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-6-batalla.jpg",
+      "pie": "Otoño: tu fuerza sale de los oficios que repartiste"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-7-cuentas.jpg",
+      "pie": "Cuentas del invierno y lo que pasó de verdad"
+    },
+    {
+      "tarea": "J4b",
+      "archivo": "gobierno/capturas-tarea/J4b-antes-etruria.jpg",
+      "pie": "Antes: Volsinii, Clusium y Perusia se pisan"
+    },
+    {
+      "tarea": "J4b",
+      "archivo": "gobierno/capturas-tarea/J4b-despues-etruria.jpg",
+      "pie": "Después: cada nombre tiene su hueco, Roma libre"
+    },
+    {
+      "tarea": "J4b",
+      "archivo": "gobierno/capturas-tarea/J4b-despues-etruriaLejos.jpg",
+      "pie": "De lejos, sin contador de tropas ni sitios"
+    },
+    {
+      "tarea": "I5d",
+      "archivo": "gobierno/capturas-tarea/I5d-1-saber-hecho.jpg",
+      "pie": "Saber ya elegido: botón «Cambiar de saber…»"
+    },
+    {
+      "tarea": "I5d",
+      "archivo": "gobierno/capturas-tarea/I5d-2-aviso.jpg",
+      "pie": "Aviso: lo que pierdes, el coste completo del nuevo y los meses de estudio"
+    },
+    {
+      "tarea": "I5d",
+      "archivo": "gobierno/capturas-tarea/I5d-3-cambiado.jpg",
+      "pie": "Tras cambiar: Viña y olivar en estudio, Trigo abandonado"
+    },
+    {
+      "tarea": "MR1",
+      "archivo": "gobierno/capturas-tarea/MR1-v1-3-gobierno.jpg",
+      "pie": "MR1 v1 (antes de la pasada artística): Gobierno"
+    },
+    {
+      "tarea": "MR1",
+      "archivo": "gobierno/capturas-tarea/MR1-1-imperio-A.jpg",
+      "pie": "MR1 v2 (A): Imperio en papiro enrollado, filtros en tablilla de cera"
+    },
+    {
+      "tarea": "MR1",
+      "archivo": "gobierno/capturas-tarea/MR1-2-imperio-B.jpg",
+      "pie": "MR1 v2 (B): Imperio en marco de bronce con hojas de papiro"
+    },
+    {
+      "tarea": "MR1",
+      "archivo": "gobierno/capturas-tarea/MR1-3-gobierno.jpg",
+      "pie": "MR1 v2: Gobierno en papiro, atajos en placas de bronce"
+    },
+    {
+      "tarea": "MR1",
+      "archivo": "gobierno/capturas-tarea/MR1-4-senado.jpg",
+      "pie": "MR1 v2: Senado con el hecho en tabla de bronce y propuestas en tablillas"
+    },
+    {
+      "tarea": "MR1",
+      "archivo": "gobierno/capturas-tarea/MR1-5-informe.jpg",
+      "pie": "MR1 v2: informe de estación como carta con sello rojo"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-6-portada.jpg",
+      "pie": "MR3: portada con cartel del propio juego"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-7-menu-principal.jpg",
+      "pie": "MR3: menú principal con tu partida en papiro"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-8-nueva-campana.jpg",
+      "pie": "MR3: nueva campaña (escenario, general, dificultad)"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-9-carga.jpg",
+      "pie": "MR3: carga con un dato histórico"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-10-opciones.jpg",
+      "pie": "MR3: opciones en papiro"
+    },
+    {
+      "tarea": "P167",
+      "archivo": "gobierno/capturas-tarea/P167-1-colina.jpg",
+      "pie": "Roma hoy, vista desde una colina: se ve una aldea, no una ciudad"
+    },
+    {
+      "tarea": "P167",
+      "archivo": "gobierno/capturas-tarea/P167-2-colina-cerca.jpg",
+      "pie": "Roma hoy, a media distancia: suelo marrón y pocas casas"
+    },
+    {
+      "tarea": "P167",
+      "archivo": "gobierno/capturas-tarea/P167-3-calle.jpg",
+      "pie": "Roma hoy, a pie de calle: paredes borrosas y antorchas como bolas de luz"
+    },
+    {
+      "tarea": "RM4",
+      "archivo": "gobierno/capturas-tarea/RM4-laminas-hoja.jpg",
+      "pie": "Láminas de dominio público encontradas: Atenas, hoplitas, templo dórico, Foro, puerto de Roma, Siracusa"
     }
   ],
   "informes": [
+    {
+      "titulo": "GM6b · Síntesis de las críticas: la mejora final de las batallas",
+      "archivo": "gobierno/estudios/GM6b-sintesis-criticas.md"
+    },
+    {
+      "titulo": "R22 · El escenario y cómo lucha cada tropa, mirando Rome II",
+      "archivo": "gobierno/estudios/R22-escenario-y-tropas-rome2.md"
+    },
+    {
+      "titulo": "GM7 · La batalla empieza de lejos: proyectiles, escudos y testudo",
+      "archivo": "gobierno/estudios/GM7-empezar-de-lejos.md"
+    },
     {
       "titulo": "D3 · ¿Pasar el juego a Godot?",
       "archivo": "gobierno/estudios/D3-godot.md"
@@ -1090,23 +1805,169 @@
     {
       "titulo": "H11a · Cotejo de fichas con las fuentes",
       "archivo": "gobierno/estudios/H11-cotejo.md"
+    },
+    {
+      "titulo": "Consejo de ministros extraordinario · 16/11",
+      "archivo": "gobierno/estudios/consejo-2026-11-16.md"
+    },
+    {
+      "titulo": "Formato de juego · propuesta del 16/11",
+      "archivo": "gobierno/estudios/FJ-formato-de-juego.md"
+    },
+    {
+      "titulo": "GC1 · Guerra desde cero: la batalla nueva",
+      "archivo": "gobierno/estudios/GC1-guerra-desde-cero.md"
+    },
+    {
+      "titulo": "FJ1 · Tropico para una ciudad romana",
+      "archivo": "gobierno/estudios/FJ1-tropico.md"
+    },
+    {
+      "titulo": "RD1 · procedural-graphics-engine (multitudes)",
+      "archivo": "gobierno/estudios/RD1-procedural-graphics-engine.md"
+    },
+    {
+      "titulo": "RD1 · Wesnoth (terreno y flancos)",
+      "archivo": "gobierno/estudios/RD1-wesnoth.md"
+    },
+    {
+      "titulo": "RD1 · Unknown Horizons (ciudad y suministro)",
+      "archivo": "gobierno/estudios/RD1-unknown-horizons.md"
+    },
+    {
+      "titulo": "RD1 · glTF-Transform, medida",
+      "archivo": "gobierno/estudios/RD1-gltf-transform.md"
+    },
+    {
+      "titulo": "GM2 · Combate en vivo, armas y flancos",
+      "archivo": "gobierno/estudios/GM2-combate-en-vivo.md"
+    },
+    {
+      "titulo": "GM1 · Ejércitos grandes sin miles de figuras",
+      "archivo": "gobierno/estudios/GM1-ejercitos-grandes.md"
+    },
+    {
+      "titulo": "EV1 · Cómo orientar la política",
+      "archivo": "gobierno/estudios/EV1-politica.md"
+    },
+    {
+      "titulo": "EV2 · Política grande: casa, Foro, Curia y magistrados",
+      "archivo": "gobierno/estudios/EV2-politica-grande.md"
+    },
+    {
+      "titulo": "GM6 · Crítica dura de las batallas (cuatro rivales y el gobierno)",
+      "archivo": "gobierno/estudios/GM6-critica-batallas.md"
+    },
+    {
+      "titulo": "R21 · Caballería que maniobra y elefantes temibles",
+      "archivo": "gobierno/estudios/R21-caballeria-y-elefantes.md"
+    },
+    {
+      "titulo": "GM15 · Terreno, hora del día y maniobra al empezar (diseño)",
+      "archivo": "gobierno/estudios/GM15-terreno-y-maniobra.md"
+    },
+    {
+      "titulo": "EV6 · Crítica dura de las maquetas de política",
+      "archivo": "gobierno/estudios/EV6-critica-politica.md"
+    },
+    {
+      "titulo": "GM15a · Sitios de los caminos (ficha de historia)",
+      "archivo": "gobierno/historia/sitios-de-los-caminos.md"
+    },
+    {
+      "titulo": "GM4 · Aspecto de la batalla grande",
+      "archivo": "gobierno/estudios/GM4-aspecto-batalla.md"
+    },
+    {
+      "titulo": "GM10 · Mover con el dedo (diseño corto)",
+      "archivo": "gobierno/estudios/GM10-manejo.md"
+    },
+    {
+      "titulo": "GM32 · Cómo se ve Total War y cómo acercarnos en el móvil",
+      "archivo": "gobierno/estudios/GM32-como-se-ve-total-war.md"
+    },
+    {
+      "titulo": "K7 · Concurso de ciudades, rutas, diplomacia y tropas",
+      "archivo": "gobierno/estudios/K7-concurso.md"
+    },
+    {
+      "titulo": "Crítica independiente de la batalla (guerra-unica)",
+      "archivo": "gobierno/estudios/GM-critica-fable-guerra-unica.md"
+    },
+    {
+      "titulo": "GR1 · Gobierno de provincias: oficio, decreto y partida",
+      "archivo": "gobierno/estudios/GR1-gobierno-de-provincias.md"
+    },
+    {
+      "titulo": "MR1 · Menús al estilo romano (diseño)",
+      "archivo": "gobierno/estudios/MR1-menus-romanos.md"
+    },
+    {
+      "titulo": "CV1 · Converger: plan para la versión 1.0",
+      "archivo": "gobierno/estudios/CV1-converger.md"
+    },
+    {
+      "titulo": "¿A dónde vamos y qué queda? (17/11, mediodía)",
+      "archivo": "gobierno/estudios/ADV-2026-11-17.md"
+    },
+    {
+      "titulo": "P167 · Plan para una Roma 3D realista",
+      "archivo": "gobierno/estudios/P167-roma-3d-realista.md"
+    },
+    {
+      "titulo": "Estado del proyecto (17/11, noche): qué queda para la 1.0, por qué no se cierra y cinco decisiones",
+      "archivo": "gobierno/estudios/estado-proyecto-17-11.md"
+    },
+    {
+      "titulo": "Láminas de referencia · Roma y Grecia",
+      "archivo": "gobierno/historia/laminas-roma-grecia.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "K12b",
-      "titulo": "Menús: Códice · K12b",
-      "nota": "Crónica e informe de estación (ui.js, css .cod-)",
-      "url": "https://claude.ai/code/session_01QiKC39y44NSrhkGd1AWovo"
+      "tarea": "MR2a",
+      "titulo": "Versión 1.0 · MR2a Menús romanos: materiales, Imperio y Gobierno (Fable dirige, Opus construye)",
+      "nota": "Terminada el 17/11: subida y publicada",
+      "url": "https://claude.ai/code/session_01QiKC38MrhvKcf8A9xyWrQs"
     },
     {
-      "tarea": "K12c",
-      "titulo": "Menús: Mármol y Mosaico · K12c",
-      "nota": "Imperio, Mercado, Rutas, Saber (ui.js, css .mar-/.mos-)",
-      "url": "https://claude.ai/code/session_01QiKC37mkMzTRdX8y9NPqcM"
+      "tarea": "GC7",
+      "titulo": "Versión 1.0 · GC7 a GC9 y GC6 Fallos de la batalla y quitar la clásica",
+      "nota": "batalla",
+      "url": "https://claude.ai/code/session_01QiKC3AXEa5xZ9aJP5skXgw"
+    },
+    {
+      "tarea": "DEC",
+      "titulo": "Decisiones delegadas en Fable 5.2 (Nilo y mapamundi)",
+      "nota": "solo decide y avisa; no construye",
+      "url": "https://claude.ai/code/session_01QiKC3AR2FzqYL23coZ3gBE"
+    },
+    {
+      "tarea": "EV7",
+      "titulo": "Política · EV7 Gobierno por turnos: el Senado manda y la ciudad obedece (maqueta, Opus)",
+      "nota": "solo gobierno/maquetas/; excepción a la 1.0; tope 2 M",
+      "url": "https://claude.ai/code/session_01QiKC39GcxgHwQm5q2GKUGc"
+    },
+    {
+      "tarea": "C10",
+      "titulo": "Mapa · C10 Adornos de carta (Opus)",
+      "nota": "js/gfx/map3d.js; excepción a la 1.0",
+      "url": "https://claude.ai/code/session_01QiKC36cUDqd5eZ6evx8RuA"
+    },
+    {
+      "tarea": "JU1",
+      "titulo": "Versión 1.0 · JU1 Dos jueces en rojo: «Construir aquí» y guerra atascada (Opus)",
+      "nota": "diagnóstico: ¿fallo real o del juez?; gobierno/*.mjs",
+      "url": "https://claude.ai/code/session_01QiKC37gQPtkdN7X53tu66G"
+    },
+    {
+      "tarea": "ES1",
+      "titulo": "Versión 1.0 · ES1 Escaramuzas: batallas sueltas desde el menú (Opus)",
+      "nota": "Carril V; js/ui.js, js/game.js (montar ejércitos), js/ui-guerra.js",
+      "url": "https://claude.ai/code/session_01QiKC37ZhZvnuUQQ1zNnxfi"
     }
   ],
-  "vigia": "trig_016NTe7pza27Ww83RVK2fiQR"
+  "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
 }

@@ -12,7 +12,7 @@ description: Ministerio de Arte de AQVILA. Dueño de `tools/`, de las licencias 
 - El juez: `node gobierno/arte.mjs` (peso, triángulos por pieza, licencias y créditos).
 
 ## Reglas
-1. **Licencia antes que píxeles.** Solo entra arte con licencia libre comprobada en su fuente. Hoy todo es de 0 A.D. (Wildfire Games, CC BY-SA 3.0). Otra fuente: decide el usuario.
+1. **Licencia antes que píxeles.** Solo entra arte con licencia libre comprobada en su fuente. Hoy todo es de 0 A.D. (Wildfire Games, CC BY-SA 3.0). Otra fuente: decide el usuario. **Decidido el 16/11/2026**: se admite arte externo solo si una tarea lo pide, de Kenney y Quaternius (CC0, primero) y de OpenGameArt con licencia CC0, CC-BY, CC-BY-SA 3.0 u OGA-BY. Se descartan GPL, CC-BY-SA 4.0 y toda obra de licencia poco clara. Cada obra: ficha en `js/registro.js`, licencia y enlace de su página, y crédito. Textos de las licencias en `gobierno/repositorios.md`.
 2. **CC BY-SA obliga a tres cosas**: citar a Wildfire Games, enlazar la licencia y compartir ese arte (y lo que se derive de él) con la misma licencia. El crédito va en `assets/*/LICENSE.txt`, en el README y en el menú del juego. El código del juego es aparte.
 3. **Nada de juegos comerciales**: ni extraído, ni calcado, ni «inspirado» píxel a píxel.
 4. **Coherencia de época**: 280–146 a.C. Cada pueblo con lo suyo (romano, cartaginés, griego, galo, íbero). Sin legionarios imperiales ni castillos.

@@ -58,6 +58,13 @@ La rama es la que asigne la sesión. Si no asigna ninguna, la de `CLAUDE.md` §5
 6. Regenera y publica el cuadro (skill `cuadro-de-mando`).
 7. Commit y push. Al usuario: qué cambia, en llano, y **capturas**.
 
+## 6. Nada queda sin dueño (regla del usuario, 17/11)
+Antes de decir «hecho» al usuario, repasa lo que dejaste pendiente en la sesión. Cada resto tiene que estar en UNO de estos tres sitios, y se dice cuál:
+- **Hecho ya**, en esta misma sesión (lo pequeño y lo que el usuario pidió terminar).
+- **En marcha**: un agente lanzado y esperando, o una tarea programada (`send_later`) que te despierte. Una frase tipo «queda para luego» sin agente ni aviso NO vale: la sesión se cierra y nadie lo retoma.
+- **En el tablero con ID y orden**, con la razón y lo que lo desbloquea (una decisión del usuario, un permiso de red, otra tarea). Se dice en el chat qué falta.
+Si el usuario pide «termina todo lo que queda», se lanza todo lo posible en esa misma vuelta y no se cierra hasta que cada resto esté hecho o bloqueado con motivo escrito.
+
 ## Plantilla del parte
 ```
 # Parte · <ID> <título> · <fecha>

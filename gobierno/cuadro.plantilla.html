@@ -2,252 +2,301 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap">
 <style>
-/* Disposición: una sola columna para el móvil; arriba lo que espera al usuario, luego carriles plegables y la tira de capturas. */
+/* Disposición: cuatro vistas (Hoy, Tareas, Ver, Pedir) con pestañas fijas abajo, para el pulgar. Hoy abre con un estandarte púrpura:
+   anillo de avance, veredicto y «Jugar». Tareas abre con el mapa de carriles en losas que filtran la lista. */
 :root {
-  --fondo: #f1eff3; --tabla: #fbfafc; --tinta: #231c28; --tenue: #6a6170; --raya: #d9d3de;
+  --fondo: #f3f0f4; --tabla: #fdfcfd; --tinta: #231c28; --tenue: #6a6170; --raya: #ddd6e1;
   --purpura: #6d1f52; --sobre-purpura: #fdf7fb; --bronce: #7d5c1e; --bien: #2c6b45; --mal: #a1332b; --aviso: #8a5a00;
+  --estandarte: #4f1239; --estandarte-2: #7a2460; --oro: #e9c877; --sobre-estandarte: #f9eef4; --tenue-estandarte: #d9b9cb;
   --rotulo: "Cinzel", "Trajan Pro", Georgia, serif; --texto: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --barra: 62px;
 }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
   --fondo: #17131a; --tabla: #221b26; --tinta: #ece6ef; --tenue: #a79cae; --raya: #3a3040;
-  --purpura: #e09cc6; --sobre-purpura: #2a0f20; --bronce: #d2ae68; --bien: #7fcf9d; --mal: #f0958c; --aviso: #e6b659; color-scheme: dark } }
+  --purpura: #e09cc6; --sobre-purpura: #2a0f20; --bronce: #d2ae68; --bien: #7fcf9d; --mal: #f0958c; --aviso: #e6b659;
+  --estandarte: #2c0d22; --estandarte-2: #4a1639; --oro: #e2c37a; --sobre-estandarte: #f3e6ee; --tenue-estandarte: #bfa0b3; color-scheme: dark } }
 :root[data-theme="dark"] {
   --fondo: #17131a; --tabla: #221b26; --tinta: #ece6ef; --tenue: #a79cae; --raya: #3a3040;
-  --purpura: #e09cc6; --sobre-purpura: #2a0f20; --bronce: #d2ae68; --bien: #7fcf9d; --mal: #f0958c; --aviso: #e6b659; color-scheme: dark }
+  --purpura: #e09cc6; --sobre-purpura: #2a0f20; --bronce: #d2ae68; --bien: #7fcf9d; --mal: #f0958c; --aviso: #e6b659;
+  --estandarte: #2c0d22; --estandarte-2: #4a1639; --oro: #e2c37a; --sobre-estandarte: #f3e6ee; --tenue-estandarte: #bfa0b3; color-scheme: dark }
 
 body { background: var(--fondo); color: var(--tinta); font: 16px/1.5 var(--texto); }
-.hoja { max-width: 680px; margin: 0 auto; padding-block: 20px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: flex; flex-direction: column; gap: 28px; }
-h1, h2 { font-family: var(--rotulo); font-weight: 700; letter-spacing: .04em; margin: 0; text-wrap: balance; }
-h1 { font-size: 30px; line-height: 1.1; }
-h2 { font-size: 15px; color: var(--bronce); letter-spacing: .12em; text-transform: uppercase; }
-p { margin: 0; }
-b { font-weight: 600; }
+.hoja { max-width: 680px; margin: 0 auto; padding-block: 16px calc(var(--barra) + 40px); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.vista, section { display: flex; flex-direction: column; }
+.vista { gap: 30px; } section { gap: 12px; scroll-margin-top: 12px; }
+h1, h2 { font-family: var(--rotulo); font-weight: 700; margin: 0; text-wrap: balance; }
+h2 { font-size: 15px; color: var(--bronce); letter-spacing: .12em; text-transform: uppercase; display: flex; align-items: center; gap: 10px; }
+h2::after { content: ""; flex: 1; height: 1px; background: var(--raya); }
+h2 .n { font: 600 13px var(--texto); letter-spacing: 0; color: var(--sobre-purpura); background: var(--purpura); border-radius: 999px; padding: 1px 9px; }
+.titulo { font: 700 26px/1.1 var(--rotulo); letter-spacing: .06em; }
+p { margin: 0; } b { font-weight: 600; }
 code { font-size: .88em; background: var(--raya); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
 a { color: var(--purpura); }
 :focus-visible { outline: 2px solid var(--purpura); outline-offset: 2px; }
-
-.cabeza { display: flex; flex-direction: column; gap: 12px; border-bottom: 2px solid var(--tinta); padding-bottom: 18px; }
-.cabeza .sub { color: var(--tenue); font-size: 14px; }
+.nota { color: var(--tenue); font-size: 14px; }
 .fila { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
-.veredicto { font-weight: 600; font-size: 14px; padding: 5px 12px; border-radius: 999px; border: 1.5px solid currentColor; }
-.veredicto.ok { color: var(--bien); } .veredicto.no { color: var(--mal); } .veredicto.nada { color: var(--tenue); }
+.lista { display: flex; flex-direction: column; gap: 10px; list-style: none; margin: 0; padding: 0; }
 
-.boton { font: 600 15px var(--texto); min-height: 44px; padding: 8px 16px; border-radius: 8px; border: 1.5px solid var(--purpura); background: transparent; color: var(--purpura); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
+/* estandarte */
+.estandarte { background: linear-gradient(160deg, var(--estandarte-2), var(--estandarte) 70%); color: var(--sobre-estandarte); border-radius: 18px; padding: 20px 18px 0; display: flex; flex-direction: column; gap: 18px; overflow: hidden; }
+.estandarte .arriba { display: flex; align-items: center; gap: 16px; }
+.estandarte .lema { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.estandarte h1 { font-size: 34px; line-height: 1; letter-spacing: .14em; color: var(--oro); }
+.estandarte .sub { font-size: 13px; color: var(--tenue-estandarte); }
+.anillo { flex: none; width: 104px; height: 104px; position: relative; }
+.anillo svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.anillo .pista { fill: none; stroke: var(--sobre-estandarte); stroke-opacity: .16; stroke-width: 9; }
+.anillo .arco { fill: none; stroke: var(--oro); stroke-width: 9; stroke-linecap: round; }
+.anillo .cifra { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1; }
+.anillo .cifra b { font: 700 28px var(--rotulo); color: var(--sobre-estandarte); font-variant-numeric: tabular-nums; }
+.anillo .cifra span { font-size: 11px; color: var(--tenue-estandarte); margin-top: 3px; }
+.veredicto { align-self: flex-start; font-weight: 600; font-size: 13px; padding: 3px 11px; border-radius: 999px; border: 1.5px solid currentColor; display: inline-flex; align-items: center; gap: 6px; }
+.veredicto::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+.veredicto.ok { color: #9be0b6; } .veredicto.no { color: #ffb0a6; } .veredicto.nada { color: var(--tenue-estandarte); }
+.jugar { font: 700 17px var(--rotulo); letter-spacing: .1em; text-transform: uppercase; min-height: 52px; border-radius: 12px; background: var(--oro); color: #3a0c29; text-decoration: none; display: flex; align-items: center; justify-content: center; }
+.cifras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: color-mix(in srgb, var(--sobre-estandarte) 18%, transparent); margin: 0 -18px; border-top: 1px solid color-mix(in srgb, var(--sobre-estandarte) 18%, transparent); }
+.cifras a { background: var(--estandarte); color: var(--sobre-estandarte); text-decoration: none; text-align: center; padding: 12px 4px; display: flex; flex-direction: column; gap: 2px; }
+.cifras b { font: 700 24px var(--rotulo); line-height: 1; font-variant-numeric: tabular-nums; }
+.cifras span { font-size: 12px; color: var(--tenue-estandarte); }
+.cifras .alerta b { color: var(--oro); }
+/* greca: el borde de los mosaicos romanos */
+.greca { height: 16px; margin: 0 -18px; background: var(--estandarte) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Cpath d='M0 14h16M14 14V3H4v7h6V7' fill='none' stroke='%23e2c37a' stroke-opacity='.75' stroke-width='1.6'/%3E%3C/svg%3E") repeat-x left center; }
+
+/* botones */
+.boton { font: 600 15px var(--texto); min-height: 44px; padding: 8px 16px; border-radius: 10px; border: 1.5px solid var(--purpura); background: transparent; color: var(--purpura); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; }
 .boton.lleno { background: var(--purpura); color: var(--sobre-purpura); }
 .boton[disabled] { opacity: .45; cursor: default; }
 .boton.fino { min-height: 36px; padding: 4px 12px; font-size: 14px; border-color: var(--raya); color: var(--tenue); }
+.boton.fino.lleno { border-color: var(--purpura); color: var(--sobre-purpura); }
+textarea, #buscar { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--raya); background: var(--tabla); color: var(--tinta); }
+textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
 
-section { display: flex; flex-direction: column; gap: 12px; }
-.nota { color: var(--tenue); font-size: 14px; }
-.lista { display: flex; flex-direction: column; gap: 10px; list-style: none; margin: 0; padding: 0; }
-.ficha { background: var(--tabla); border: 1px solid var(--raya); border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+/* fichas */
+.ficha { background: var(--tabla); border: 1px solid var(--raya); border-radius: 14px; padding: 14px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
 .ficha .quien { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); }
-textarea { font: 16px/1.4 var(--texto); width: 100%; box-sizing: border-box; min-height: 76px; padding: 10px; border-radius: 8px; border: 1.5px solid var(--raya); background: var(--fondo); color: var(--tinta); resize: vertical; }
-
-.carril { border-top: 1px solid var(--raya); }
-.carril > summary, .tarea > summary { list-style: none; cursor: pointer; }
-.carril > summary::-webkit-details-marker, .tarea > summary::-webkit-details-marker { display: none; }
-.carril > summary { display: flex; align-items: baseline; gap: 10px; padding: 14px 0; }
-.carril > summary .letra { font: 700 22px var(--rotulo); color: var(--purpura); width: 26px; flex: none; }
-.carril > summary .nombre { font-weight: 600; flex: 1; min-width: 0; }
-.carril > summary .cuenta { font-size: 13px; color: var(--tenue); font-variant-numeric: tabular-nums; white-space: nowrap; }
-.carril > summary::after { content: "＋"; color: var(--tenue); } .carril[open] > summary::after { content: "－"; }
-.carril .tareas { display: flex; flex-direction: column; padding: 0 0 14px 36px; }
-.tarea { border-top: 1px dashed var(--raya); }
-.tarea > summary { display: flex; gap: 10px; align-items: baseline; padding: 11px 0; }
-.tarea .id { font: 600 13px var(--texto); font-variant-numeric: tabular-nums; color: var(--tenue); width: 28px; flex: none; }
-.tarea .que { flex: 1; min-width: 0; }
-.estado { font-size: 12px; font-weight: 600; white-space: nowrap; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
-.estado.pend { color: var(--tenue); } .estado.medias { color: var(--aviso); } .estado.hecho { color: var(--bien); } .estado.pedido { color: var(--purpura); }
-.tarea.hecha .que { color: var(--tenue); }
-.tarea .cuerpo { display: flex; flex-direction: column; gap: 12px; padding: 0 0 16px 38px; font-size: 15px; }
+.ficha.toca { border-top: 3px solid var(--purpura); }
+.ficha.vigia { border: 1.5px solid var(--purpura); }
+.boton.grande { min-height: 52px; font-size: 16px; width: 100%; }
+.asunto { display: flex; gap: 10px; align-items: baseline; font-size: 17px; line-height: 1.3; }
+.asunto .num { flex: none; font: 700 15px var(--rotulo); color: var(--bronce); min-width: 22px; }
+.detalle > summary { cursor: pointer; list-style: none; color: var(--tenue); font-size: 15px; } .detalle > summary::-webkit-details-marker { display: none; }
+.detalle[open] > summary { display: none; }
 .cambio { display: flex; flex-direction: column; gap: 8px; }
+.mini { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
+.mini li { display: flex; gap: 8px; } .mini li b { flex: none; color: var(--purpura); }
+.mini:empty { display: none; }
 
-.sig { display: flex; align-items: center; gap: 10px; background: var(--tabla); border: 1px solid var(--raya); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+/* sesiones */
+.sig { display: flex; align-items: center; gap: 10px; background: var(--tabla); border: 1px solid var(--raya); border-radius: 12px; padding: 10px 12px; min-width: 0; }
 .sig .letra { font: 700 20px var(--rotulo); color: var(--purpura); width: 22px; flex: none; text-align: center; }
 .sig .id { font: 600 13px var(--texto); color: var(--tenue); flex: none; }
 .sig .que { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 15px; }
-.sig .que .nota { font-size: 13px; }
-.sig .boton { flex: none; }
-.boton.fino.lleno { border-color: var(--purpura); color: var(--sobre-purpura); }
-.hechas > summary { cursor: pointer; padding: 10px 0; color: var(--tenue); font-size: 14px; border-top: 1px dashed var(--raya); }
-section { scroll-margin-top: 12px; }
-.tira { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; }
-.tira figure { margin: 0; flex: none; display: flex; flex-direction: column; gap: 6px; scroll-snap-align: start; max-width: 78vw; }
-.tira img { height: 340px; width: auto; max-width: none; border-radius: 8px; border: 1px solid var(--raya); display: block; }
-.tira figure.ancha img { height: 170px; }
-.tira figcaption { font-size: 13px; color: var(--tenue); max-width: 220px; }
-.tira figcaption b { color: var(--tinta); display: block; }
-.tira .mal b { color: var(--mal); }
+.sig .que .nota { font-size: 13px; } .sig .boton { flex: none; }
+.ses { flex-wrap: wrap; } .ses .que { flex-basis: 60%; }
+.estado { font-size: 12px; font-weight: 600; white-space: nowrap; padding: 2px 8px; border-radius: 999px; border: 1px solid currentColor; }
+.estado.pend { color: var(--tenue); } .estado.medias { color: var(--aviso); } .estado.hecho { color: var(--bien); } .estado.pedido { color: var(--purpura); }
+.estado.pausa { color: var(--tenue); border-style: dashed; }
+.estado.trabaja { color: var(--purpura); } .estado.espera { color: var(--mal); } .estado.acabada { color: var(--bien); }
 
-.informe { border-top: 1px solid var(--raya); }
+/* mapa de carriles */
+.losas { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 8px; }
+.losa { font: inherit; text-align: left; background: var(--tabla); color: var(--tinta); border: 1.5px solid var(--raya); border-radius: 12px; padding: 9px 10px 10px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+button.losa { cursor: pointer; }
+.losa .cab { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.losa .letra { font: 700 18px var(--rotulo); color: var(--purpura); line-height: 1; }
+.losa .cp { white-space: nowrap; font-size: 12px; color: var(--tenue); font-variant-numeric: tabular-nums; }
+.losa .cn { font-size: 13px; font-weight: 500; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.losa.hecha { border-style: dashed; } .losa.hecha .letra, .losa.hecha .cp { color: var(--bien); }
+.losa[aria-pressed="true"] { border-color: var(--purpura); background: var(--purpura); color: var(--sobre-purpura); }
+.losa[aria-pressed="true"] .letra, .losa[aria-pressed="true"] .cp { color: inherit; }
+.barra { display: flex; height: 6px; border-radius: 999px; overflow: hidden; background: var(--raya); gap: 1px; }
+.barra i { display: block; min-width: 2px; }
+.b-hecho { background: var(--bien); } .b-marcha { background: var(--purpura); } .b-falta { background: var(--bronce); opacity: .5; } .b-pausa { background: var(--tenue); opacity: .4; }
+.losa[aria-pressed="true"] .barra { background: color-mix(in srgb, var(--sobre-purpura) 30%, transparent); } .losa[aria-pressed="true"] .b-hecho { background: var(--sobre-purpura); }
+
+/* lista de tareas */
+.filtros { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; }
+.chip { flex: none; font: 500 13px var(--texto); min-height: 36px; padding: 4px 12px; border-radius: 999px; border: 1.5px solid var(--raya); background: var(--tabla); color: var(--tinta); cursor: pointer; }
+.chip b { color: var(--tenue); margin-left: 3px; }
+.chip[aria-pressed="true"] { background: var(--purpura); border-color: var(--purpura); color: var(--sobre-purpura); } .chip[aria-pressed="true"] b { color: inherit; }
+.tarea > summary, .carril > summary { list-style: none; cursor: pointer; }
+.tarea > summary::-webkit-details-marker, .carril > summary::-webkit-details-marker { display: none; }
+.tarea { border-top: 1px dashed var(--raya); }
+.tarea > summary { display: flex; gap: 10px; align-items: center; padding: 11px 0; }
+.tarea .id { font: 600 13px var(--texto); font-variant-numeric: tabular-nums; color: var(--bronce); min-width: 30px; flex: none; }
+.tarea .que { flex: 1; min-width: 0; } .tarea .que small { display: block; font-size: 12px; color: var(--tenue); }
+.tarea.hecha .que { color: var(--tenue); }
+.tarea .cuerpo { display: flex; flex-direction: column; gap: 12px; padding: 0 0 16px; font-size: 15px; }
+.tarea .sel { width: 22px; height: 22px; flex: none; accent-color: var(--purpura); margin: 0; }
+#pendiente > .tarea { border: 1px solid var(--raya); border-radius: 12px; background: var(--tabla); margin-bottom: 8px; padding: 0 12px; }
+.tarea:has(.sel:checked) { border-color: var(--purpura); }
+.carril { border-top: 1px solid var(--raya); }
+.carril > summary { display: flex; align-items: baseline; gap: 10px; padding: 13px 0; }
+.carril > summary .letra { font: 700 20px var(--rotulo); color: var(--purpura); width: 30px; flex: none; }
+.carril > summary .nombre { font-weight: 600; flex: 1; min-width: 0; }
+.carril > summary .cuenta { font-size: 13px; color: var(--tenue); white-space: nowrap; }
+.carril .tareas { display: flex; flex-direction: column; padding: 0 0 12px; }
+.plegable > summary { cursor: pointer; font-weight: 600; padding: 12px 14px; border: 1px solid var(--raya); border-radius: 12px; background: var(--tabla); }
+.plegable[open] > summary { margin-bottom: 10px; }
+.hechos { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 12px 0 0; padding: 0; }
+.hechos li { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--tabla); border: 1px solid var(--raya); }
+
+/* capturas e informes */
+.tira { display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scroll-snap-type: x proximity; margin-right: -16px; padding-right: 16px; }
+.tira figure { margin: 0; flex: none; display: flex; flex-direction: column; gap: 6px; scroll-snap-align: start; max-width: 78vw; }
+.tira img { height: 380px; width: auto; max-width: none; border-radius: 12px; border: 1px solid var(--raya); display: block; }
+.tira figure.ancha img { height: 180px; }
+.tira figcaption { font-size: 13px; color: var(--tenue); max-width: 230px; }
+.tira figcaption b { color: var(--tinta); display: block; } .tira .mal b { color: var(--mal); }
+.informe { border: 1px solid var(--raya); border-radius: 12px; background: var(--tabla); padding: 0 14px; }
+.informes { display: flex; flex-direction: column; gap: 8px; }
 .informe > summary { cursor: pointer; padding: 12px 0; font-weight: 600; }
 .informe .md { font-size: 15px; padding-bottom: 14px; display: flex; flex-direction: column; gap: 8px; }
 .informe .md h3 { font: 700 15px var(--rotulo); margin: 8px 0 0; color: var(--bronce); }
-.informe .md ul { margin: 0; padding-left: 20px; }
-.informe .md .rollo { overflow-x: auto; }
+.informe .md ul { margin: 0; padding-left: 20px; } .informe .md .rollo { overflow-x: auto; }
 .informe .md table { border-collapse: collapse; font-size: 13px; }
 .informe .md td, .informe .md th { border: 1px solid var(--raya); padding: 4px 8px; text-align: left; vertical-align: top; min-width: 90px; }
-.hechos { display: flex; flex-wrap: wrap; gap: 6px; list-style: none; margin: 0; padding: 0; }
-.hechos li { font-size: 13px; padding: 3px 10px; border-radius: 999px; background: var(--tabla); border: 1px solid var(--raya); }
+.ordenes { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
+.ordenes .boton { background: var(--tabla); border-color: var(--raya); color: var(--tinta); text-align: center; min-height: 56px; font-weight: 500; }
 
-/* resumen, filtros y selección en lote */
-.progreso .pct { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
-.progreso .pct b { font: 700 40px var(--rotulo); color: var(--purpura); line-height: 1; font-variant-numeric: tabular-nums; }
-.progreso .pct span { color: var(--tenue); font-size: 14px; }
-.barra { display: flex; height: 12px; border-radius: 999px; overflow: hidden; background: var(--raya); gap: 2px; min-width: 60px; }
-.barra i { display: block; min-width: 3px; }
-.b-hecho { background: var(--bien); } .b-marcha { background: var(--purpura); } .b-falta { background: var(--bronce); opacity: .55; } .b-pausa { background: var(--tenue); opacity: .4; }
-.leyenda { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--tenue); }
-.leyenda i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; }
-.porcarril > summary { cursor: pointer; font-weight: 600; font-size: 14px; padding: 6px 0; }
-.porcarril ul { list-style: none; margin: 0; padding: 4px 0 0; display: flex; flex-direction: column; gap: 8px; }
-.porcarril li { display: grid; grid-template-columns: 116px 1fr 44px; align-items: center; gap: 8px; font-size: 13px; }
-.porcarril .cn { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .porcarril .cp { text-align: right; font-variant-numeric: tabular-nums; color: var(--tenue); }
-.mini { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px; }
-.mini li { display: flex; gap: 8px; } .mini li b { flex: none; color: var(--purpura); font-weight: 600; }
-.mini:empty { display: none; }
-.ficha.toca { border-left: 4px solid var(--purpura); }
-.asunto { display: flex; gap: 10px; align-items: baseline; font-size: 17px; line-height: 1.3; }
-.asunto .num { flex: none; font: 700 13px var(--texto); color: var(--sobre-purpura); background: var(--purpura); border-radius: 999px; padding: 2px 8px; }
-.detalle > summary { cursor: pointer; list-style: none; color: var(--tenue); font-size: 15px; } .detalle > summary::-webkit-details-marker { display: none; }
-.detalle[open] > summary { display: none; }
-.ses { flex-wrap: wrap; } .ses .que { flex-basis: 60%; }
-.estado.trabaja { color: var(--purpura); } .estado.espera { color: var(--mal); } .estado.acabada { color: var(--bien); }
-.fichas { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 8px; }
-.ficha-num { background: var(--tabla); border: 1px solid var(--raya); border-radius: 10px; padding: 10px 8px; text-align: center; text-decoration: none; color: var(--tinta); display: flex; flex-direction: column; gap: 2px; }
-.ficha-num b { font: 700 26px var(--rotulo); color: var(--purpura); line-height: 1; font-variant-numeric: tabular-nums; }
-.ficha-num span { font-size: 12px; color: var(--tenue); }
-.ficha-num.alerta b { color: var(--mal); }
-.filtros { display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { font: 500 13px var(--texto); min-height: 36px; padding: 4px 11px; border-radius: 999px; border: 1.5px solid var(--raya); background: var(--tabla); color: var(--tinta); cursor: pointer; }
-.chip b { color: var(--tenue); font-weight: 600; margin-left: 3px; }
-.chip[aria-pressed="true"] { background: var(--purpura); border-color: var(--purpura); color: var(--sobre-purpura); }
-.chip[aria-pressed="true"] b { color: inherit; }
-#buscar { font: 16px var(--texto); width: 100%; box-sizing: border-box; min-height: 44px; padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--raya); background: var(--fondo); color: var(--tinta); }
-#pendiente > .tarea { border: 1px solid var(--raya); border-radius: 10px; background: var(--tabla); margin-bottom: 8px; padding: 0 12px; }
-#pendiente > .tarea > summary { align-items: center; }
-#pendiente .cuerpo { padding-left: 0; }
-.tarea .que small { display: block; font-size: 12px; color: var(--tenue); }
-.tarea .sel { width: 22px; height: 22px; flex: none; accent-color: var(--purpura); margin: 0; }
-.tarea .id { width: auto; min-width: 28px; }
-.estado.pausa { color: var(--tenue); border-style: dashed; }
-.tarea:has(.sel:checked) { border-color: var(--purpura); }
-#lote { position: fixed; left: 0; right: 0; bottom: 0; z-index: 4; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; padding: 10px max(16px, env(safe-area-inset-right, 0px)) calc(10px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--tabla); border-top: 2px solid var(--purpura); }
+/* barras fijas */
+.pestanas { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--tabla); border-top: 1px solid var(--raya); padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+.pestanas a { position: relative; min-height: var(--barra); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; color: var(--tenue); font-size: 12px; font-weight: 500; }
+.pestanas svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.pestanas a[aria-current="page"] { color: var(--purpura); font-weight: 600; }
+.pestanas a[aria-current="page"]::before { content: ""; position: absolute; top: -1px; left: 26%; right: 26%; height: 3px; border-radius: 0 0 3px 3px; background: var(--purpura); }
+.pestanas .n { position: absolute; top: 7px; left: calc(50% + 6px); font: 600 11px var(--texto); min-width: 17px; text-align: center; padding: 0 4px; box-sizing: border-box; border-radius: 999px; background: var(--mal); color: var(--tabla); }
+#lote, #aviso { position: fixed; left: 0; right: 0; bottom: calc(var(--barra) + env(safe-area-inset-bottom, 0px)); padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); }
+#lote { z-index: 4; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; background: var(--tabla); border-top: 2px solid var(--purpura); }
 #lote .cuenta { font-weight: 600; font-variant-numeric: tabular-nums; }
-.plegable > summary { cursor: pointer; font: 700 15px var(--rotulo); letter-spacing: .12em; text-transform: uppercase; color: var(--bronce); padding: 4px 0; }
-#aviso { position: fixed; left: 0; right: 0; bottom: 0; padding: 12px max(16px, env(safe-area-inset-right, 0px)) calc(12px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--tinta); color: var(--fondo); text-align: center; font-weight: 500; z-index: 6; }
-@media (prefers-reduced-motion: no-preference) { .boton { transition: background .15s, color .15s; } }
+#aviso { background: var(--tinta); color: var(--fondo); text-align: center; font-weight: 500; z-index: 6; }
+@media (prefers-reduced-motion: no-preference) { .boton, .losa, .chip { transition: background .15s, color .15s, border-color .15s; } }
 </style>
 
 <div class="hoja">
-  <header class="cabeza">
-    <h1>AQVILA</h1>
-    <p class="sub">Cuadro de mando · actualizado el {{FECHA}}</p>
-    <div class="fila">
-      <a class="boton lleno" href="{{JUEGO}}" target="_blank" rel="noopener">Jugar ahora</a>
-      <span class="veredicto {{VEREDICTO_CLASE}}">{{VEREDICTO}}</span>
-    </div>
-    <nav class="fila" aria-label="Ir a">
-      <a class="boton fino" href="#t-espera">Decides tú {{N_ESPERA}}</a>
-      <a class="boton fino" href="#t-pend">Pendiente {{N_ACTIVAS}}</a>
-      <a class="boton fino" href="#t-pedidos">Tus pedidos</a>
-      <a class="boton fino" href="#t-ensenar">Capturas</a>
-    </nav>
-  </header>
 
-  <section aria-label="Resumen" class="fichas">
-    <a class="ficha-num alerta" href="#t-espera"><b>{{N_ESPERA}}</b><span>decides tú</span></a>
-    <a class="ficha-num" href="#t-pend"><b>{{N_ACTIVAS}}</b><span>por hacer</span></a>
-    <a class="ficha-num" href="#t-pend"><b>{{N_PAUSA}}</b><span>en pausa</span></a>
-    <a class="ficha-num" href="#t-marcha"><b id="n-marcha">{{N_MARCHA}}</b><span>sesiones abiertas</span></a>
-    <a class="ficha-num" href="#t-tablero"><b>{{N_HECHAS}}</b><span>hechas</span></a>
-  </section>
+  <div class="vista" data-vista="hoy" id="hoy">
+    <header class="estandarte">
+      <div class="arriba">
+        <div class="lema">
+          <h1>AQVILA</h1>
+          <p class="sub">Cuadro de mando · {{FECHA}}</p>
+          <span class="veredicto {{VEREDICTO_CLASE}}">{{VEREDICTO}}</span>
+        </div>
+        <div class="anillo" role="img" aria-label="{{PCT}} por ciento del tablero hecho">
+          <svg viewBox="0 0 120 120"><circle class="pista" cx="60" cy="60" r="52"/><circle class="arco" cx="60" cy="60" r="52" stroke-dasharray="{{ARCO}} 327"/></svg>
+          <div class="cifra"><b>{{PCT}} %</b><span>{{HECHAS_DE}}</span></div>
+        </div>
+      </div>
+      <a class="jugar" href="{{JUEGO}}" target="_blank" rel="noopener">Jugar ahora</a>
+      <div>
+        <nav class="cifras" aria-label="Resumen">
+          <a class="alerta" href="#t-espera"><b>{{N_ESPERA}}</b><span>decides tú</span></a>
+          <a href="#tareas"><b>{{N_ACTIVAS}}</b><span>por hacer</span></a>
+          <a href="#t-marcha"><b id="n-marcha">{{N_MARCHA}}</b><span>sesiones</span></a>
+        </nav>
+        <div class="greca" aria-hidden="true"></div>
+      </div>
+    </header>
 
-  <section id="porap" class="ficha toca" aria-live="polite">
-    <p class="asunto"><b id="porap-t">Lo que pulses en esta página lo aplica el vigía</b></p>
-    <ul id="porap-l" class="mini"></ul>
-    <div class="fila"><button class="boton lleno" id="llamar">Llamar al vigía ahora</button><a class="boton fino" href="#t-pedidos">Ver mis pedidos</a></div>
-    <p class="nota" id="llamar-estado">El vigía pasa solo cada tres horas. Con el botón arranca ya; tarda unos minutos en aplicar lo pulsado y abrir las sesiones.</p>
-  </section>
+    <section id="porap" aria-live="polite">
+      <div class="ficha vigia">
+        <p class="quien">El vigía · aplica lo que pulsas y abre las sesiones</p>
+        <p><b id="porap-t">Todo lo que has pulsado está aplicado</b></p>
+        <ul id="porap-l" class="mini"></ul>
+        <button class="boton lleno grande" id="llamar">Llamar al vigía ahora</button>
+        <p class="nota" id="llamar-estado">El vigía no pasa solo: trabaja cuando lo llamas con este botón. Tarda unos minutos.</p>
+      </div>
+    </section>
 
-  <section aria-labelledby="t-avance" class="progreso">
-    <h2 id="t-avance">Cómo va el proyecto</h2>
-    {{PROGRESO}}
-  </section>
+    <section aria-labelledby="t-espera">
+      <h2 id="t-espera">Decides tú <span class="n">{{N_ESPERA}}</span></h2>
+      <ul class="lista">{{ESPERA}}{{PROPUESTAS}}</ul>
+    </section>
 
-  <section aria-labelledby="t-espera">
-    <h2 id="t-espera">Decides tú · {{N_ESP}} preguntas</h2>
-    <p class="nota">Lo que está parado hasta que contestes. Un toque basta; el detalle se despliega.</p>
-    <ul class="lista">{{ESPERA}}</ul>
-  </section>
+    <section aria-labelledby="t-marcha">
+      <h2 id="t-marcha">Sesiones abiertas</h2>
+      <p class="nota" id="ses-nota">Qué sesiones de Claude hay abiertas para el juego y qué hace cada una.</p>
+      <ul class="lista" id="sesiones">{{MARCHA}}</ul>
+      <div class="fila"><button class="boton fino" data-pedir="orden" data-ref="limpiar" data-titulo="Cerrar las sesiones que ya han acabado" id="ses-limpiar">Cerrar las que ya han acabado</button><button class="boton fino" data-pedir="orden" data-ref="refrescar" data-titulo="Refrescar la lista de sesiones">Refrescar la lista</button></div>
+    </section>
+  </div>
 
-  <section aria-labelledby="t-prop">
-    <h2 id="t-prop">Decides tú · {{N_PROP}} propuestas</h2>
-    <ul class="lista">{{PROPUESTAS}}</ul>
-  </section>
+  <div class="vista" data-vista="tareas" id="tareas">
+    <p class="titulo">Tareas</p>
+    <section aria-labelledby="t-avance">
+      <h2 id="t-avance">Carriles</h2>
+      <p class="nota">{{LEYENDA}} Toca un carril para ver solo lo suyo.</p>
+      <div class="losas">{{LOSAS}}</div>
+    </section>
 
-  <section aria-labelledby="t-marcha">
-    <h2 id="t-marcha">Sesiones abiertas</h2>
-    <p class="nota" id="ses-nota">Qué sesiones de Claude hay abiertas para el juego y qué hace cada una. La lista la refresca el vigía en cada pasada.</p>
-    <ul class="lista" id="sesiones">{{MARCHA}}</ul>
-    <div class="fila"><button class="boton" data-pedir="orden" data-ref="limpiar" data-titulo="Cerrar las sesiones que ya han acabado" id="ses-limpiar">Cerrar las que ya han acabado</button><button class="boton" data-pedir="orden" data-ref="refrescar" data-titulo="Refrescar la lista de sesiones">Refrescar la lista</button></div>
-  </section>
+    <section aria-labelledby="t-pend" id="lista-pend">
+      <h2 id="t-pend">Por hacer <span class="n">{{N_TODAS}}</span></h2>
+      <input id="buscar" type="search" placeholder="Buscar: «general», «Q7», «arte»…" aria-label="Buscar tareas">
+      <div class="filtros" id="filtros"><button class="chip" data-filtro="todas" aria-pressed="true">Todas <b>{{N_TODAS}}</b></button><button class="chip" data-filtro="activas" aria-pressed="false">Sin pausa <b>{{N_ACTIVAS}}</b></button><button class="chip" data-filtro="pausa" aria-pressed="false">En pausa <b>{{N_PAUSA}}</b></button>{{CHIPS}}</div>
+      <div class="fila"><span class="nota" id="vistas"></span><button class="boton fino" id="selvis">Marcar las visibles</button></div>
+      <div id="pendiente">{{PENDIENTE}}</div>
+    </section>
 
-  <section aria-labelledby="t-pend">
-    <h2 id="t-pend">Todo lo pendiente</h2>
-    <p class="nota">Toca una tarea para leerla. Marca varias con la casilla y usa la barra de abajo para abrir sesión o dar prioridad de una vez. El vigía lo aplica en su próxima pasada (cada tres horas).</p>
-    <input id="buscar" type="search" placeholder="Buscar: «general», «Q7», «arte»…" aria-label="Buscar tareas">
-    <div class="filtros" id="filtros"><button class="chip" data-filtro="todas" aria-pressed="true">Todas <b>{{N_TODAS}}</b></button><button class="chip" data-filtro="activas" aria-pressed="false">Por hacer <b>{{N_ACTIVAS}}</b></button><button class="chip" data-filtro="pausa" aria-pressed="false">En pausa <b>{{N_PAUSA}}</b></button>{{CHIPS}}</div>
-    <div class="fila"><span class="nota" id="vistas"></span><button class="boton fino" id="selvis">Marcar las visibles</button></div>
-    <div id="pendiente">{{PENDIENTE}}</div>
-  </section>
+    <section aria-labelledby="t-tablero">
+      <h2 id="t-tablero">Ya hecho <span class="n">{{N_HECHAS}}</span></h2>
+      <details class="plegable"><summary>Ver lo hecho, por carril</summary>
+        <div>{{CARRILES}}</div>
+        <ul class="hechos">{{HECHOS}}</ul>
+      </details>
+    </section>
+  </div>
 
-  <section aria-labelledby="t-pedidos">
-    <h2 id="t-pedidos">Tus pedidos</h2>
-    <p class="nota" id="pedidos-nota">Lo que pulses aquí queda guardado. Un vigía mira el cuadro cada tres horas y lo aplica (abre las sesiones que pidas). Si lo quieres ya, escribe en el chat de Claude: «aplica el cuadro».</p>
-    <ul class="lista" id="pedidos"><li class="nota" id="pedidos-vacio">Aún no has pedido nada. Abre una tarea y pulsa un botón, o escribe abajo.</li></ul>
-    <div class="ficha">
-      <span class="quien">Órdenes de un toque</span>
-      <div class="fila">
-        <button class="boton" data-pedir="orden" data-ref="limpiar" data-titulo="Cerrar las sesiones que ya han acabado">Cerrar sesiones acabadas</button>
+  <div class="vista" data-vista="ver" id="ver">
+    <p class="titulo">Ver</p>
+    <section aria-labelledby="t-ensenar">
+      <h2 id="t-ensenar">Lo nuevo</h2>
+      <p class="nota">Capturas que han dejado las sesiones al cerrar. Desliza hacia un lado.</p>
+      <div class="tira">{{ENSENAR}}</div>
+    </section>
+    <section aria-labelledby="t-capturas">
+      <h2 id="t-capturas">Recorrido de los jueces</h2>
+      <p class="nota">{{CAPTURAS_NOTA}}</p>
+      <div class="tira">{{CAPTURAS}}</div>
+    </section>
+    <section aria-labelledby="t-informes">
+      <h2 id="t-informes">Informes</h2>
+      <div class="informes">{{INFORMES}}</div>
+    </section>
+  </div>
+
+  <div class="vista" data-vista="pedir" id="pedir">
+    <p class="titulo">Pedir</p>
+    <section aria-labelledby="t-nuevo">
+      <h2 id="t-nuevo">Algo nuevo</h2>
+      <label class="nota" for="nuevo-texto">Escribe lo que quieres, con tus palabras.</label>
+      <textarea id="nuevo-texto" placeholder="Por ejemplo: quiero que los barcos se vean en el puerto"></textarea>
+      <div class="fila"><button class="boton lleno" data-pedir="nuevo" data-texto="nuevo-texto">Enviar pedido</button></div>
+    </section>
+    <section aria-labelledby="t-ordenes">
+      <h2 id="t-ordenes">Órdenes de un toque</h2>
+      <div class="ordenes">
         <button class="boton" data-pedir="orden" data-ref="seguir" data-titulo="Que cada carril siga con su siguiente tarea">Que sigan los carriles</button>
         <button class="boton" data-pedir="orden" data-ref="parar" data-titulo="Parar todas las sesiones al acabar su tarea">Parar al acabar la tarea</button>
+        <button class="boton" data-pedir="orden" data-ref="limpiar" data-titulo="Cerrar las sesiones que ya han acabado">Cerrar sesiones acabadas</button>
         <button class="boton" data-pedir="orden" data-ref="capturas" data-titulo="Pasar los jueces y enseñarme capturas nuevas">Enséñame capturas nuevas</button>
         <button class="boton" data-pedir="orden" data-ref="informe" data-titulo="Informe: a dónde vamos y qué queda">Informe: ¿a dónde vamos?</button>
       </div>
-    </div>
-    <div class="ficha">
-      <label class="quien" for="nuevo-texto">Pedir algo nuevo</label>
-      <textarea id="nuevo-texto" placeholder="Por ejemplo: quiero que los barcos se vean en el puerto"></textarea>
-      <div class="fila"><button class="boton lleno" data-pedir="nuevo" data-texto="nuevo-texto">Enviar pedido</button></div>
-    </div>
-  </section>
-
-  <section aria-labelledby="t-tablero">
-    <h2 id="t-tablero">Historial: lo ya hecho</h2>
-    <p class="nota">{{RESUMEN}} Por carril; toca uno para abrirlo.</p>
-    <div>{{CARRILES}}</div>
-  </section>
-
-  <section aria-labelledby="t-capturas">
-    <h2 id="t-capturas">Últimas capturas</h2>
-    <p class="nota">{{CAPTURAS_NOTA}}</p>
-    <div class="tira">{{CAPTURAS}}</div>
-  </section>
-
-  <section aria-labelledby="t-ensenar">
-    <h2 id="t-ensenar">Para enseñarte</h2>
-    <p class="nota">Lo que han dejado las sesiones al cerrar: capturas de lo nuevo e informes para leer.</p>
-    <div class="tira">{{ENSENAR}}</div>
-    <div>{{INFORMES}}</div>
-  </section>
-
-  <section aria-labelledby="t-hecho">
-    <h2 id="t-hecho">Ya está hecho</h2>
-    <ul class="hechos">{{HECHOS}}</ul>
-  </section>
+    </section>
+    <section aria-labelledby="t-pedidos">
+      <h2 id="t-pedidos">Tus pedidos</h2>
+      <p class="nota" id="pedidos-nota">Lo que pulses queda guardado aquí hasta que se aplique. Para que se aplique, llama al vigía (pestaña Hoy) o escribe «aplica el cuadro» en el chat de Claude.</p>
+      <ul class="lista" id="pedidos"><li class="nota" id="pedidos-vacio">Aún no has pedido nada.</li></ul>
+    </section>
+  </div>
 </div>
+
+<nav class="pestanas" aria-label="Vistas">
+  <a href="#hoy"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6h-6v6H5a1 1 0 0 1-1-1z"/></svg>Hoy<span class="n" {{TAB_HOY_OCULTO}}>{{N_ESPERA}}</span></a>
+  <a href="#tareas"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>Tareas</a>
+  <a href="#ver"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 16l5-5 4 4 3-3 6 6"/><circle cx="15.5" cy="9.5" r="1.3"/></svg>Ver</a>
+  <a href="#pedir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-4L16 5l3 3L8 19zM14 7l3 3"/></svg>Pedir<span class="n" id="tab-n-pedir" hidden>0</span></a>
+</nav>
 <div id="lote" hidden><span class="cuenta" id="lote-n"></span><button class="boton lleno fino" data-lote="abrir">Abrir sesión</button><button class="boton fino" data-lote="priorizar">Dar prioridad</button><button class="boton fino" data-lote="quitar">Quitar marcas</button></div>
 <div id="aviso" role="status" hidden></div>
 
@@ -297,6 +346,7 @@ section { scroll-margin-top: 12px; }
     var pendientes = filas.filter(function (x) { return x.estado !== 'aplicado'; });
     var aplicados = filas.filter(function (x) { return x.estado === 'aplicado'; }).slice(0, 5);
     var np = pendientes.length, lista = $('porap-l'); lista.textContent = '';
+    var cp = $('tab-n-pedir'); cp.textContent = np; cp.hidden = !np;
     $('porap-t').textContent = np ? 'Has pulsado ' + np + (np === 1 ? ' cosa que aún no se ha aplicado' : ' cosas que aún no se han aplicado') : 'Todo lo que has pulsado está aplicado';
     pendientes.slice(0, 8).forEach(function (x) { var li = document.createElement('li'), k = document.createElement('b'), t = document.createElement('span'); k.textContent = (ROTULO[x.tipo] || 'Pedido') + (x.ref && x.tipo !== 'respuesta' ? ' · ' + x.ref : ''); t.textContent = (x.titulo || '') + (x.tipo === 'respuesta' && x.texto ? ': ' + x.texto : ''); li.appendChild(k); li.appendChild(t); lista.appendChild(li); });
     if (np > 8) { var mas = document.createElement('li'); mas.textContent = 'y ' + (np - 8) + ' más, abajo en «Tus pedidos».'; lista.appendChild(mas); }
@@ -333,9 +383,10 @@ section { scroll-margin-top: 12px; }
   function marcadas() { return Array.prototype.slice.call(document.querySelectorAll('.sel:checked')); }
   function lote() { var n = marcadas().length; $('lote').hidden = !n; $('lote-n').textContent = n + (n === 1 ? ' elegida' : ' elegidas'); }
   $('buscar').addEventListener('input', aplicar);
-  $('filtros').addEventListener('click', function (ev) {
-    var b = ev.target.closest('.chip'); if (!b) return; filtro = b.dataset.filtro;
-    document.querySelectorAll('#filtros .chip').forEach(function (c) { c.setAttribute('aria-pressed', c === b ? 'true' : 'false'); }); aplicar();
+  document.addEventListener('click', function (ev) {
+    var b = ev.target.closest('[data-filtro]'); if (!b) return; filtro = b.dataset.filtro;
+    document.querySelectorAll('[data-filtro]').forEach(function (c) { c.setAttribute('aria-pressed', c.dataset.filtro === filtro ? 'true' : 'false'); }); aplicar();
+    if (b.classList.contains('losa')) { var l = $('lista-pend'); if (l && l.scrollIntoView) l.scrollIntoView({ block: 'start' }); }
   });
   $('selvis').addEventListener('click', function () {
     var vis = tareas.filter(function (t) { return !t.hidden; }).map(function (t) { return t.querySelector('.sel'); });
@@ -344,6 +395,17 @@ section { scroll-margin-top: 12px; }
   });
   document.addEventListener('change', function (ev) { if (ev.target.classList && ev.target.classList.contains('sel')) lote(); });
   aplicar();
+
+  // pestañas: una vista cada vez, con la dirección en el # para poder volver
+  var VISTAS = ['hoy', 'tareas', 'ver', 'pedir'];
+  function vista() {
+    var h = (location.hash || '').slice(1), el = h && /^[\w-]+$/.test(h) ? document.getElementById(h) : null, dentro = el && el.closest('[data-vista]');
+    var v = dentro ? dentro.dataset.vista : 'hoy';
+    document.querySelectorAll('[data-vista]').forEach(function (s) { s.hidden = s.dataset.vista !== v; });
+    document.querySelectorAll('.pestanas a').forEach(function (a) { if (a.getAttribute('href') === '#' + v) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current'); });
+    if (dentro && el !== dentro && el.scrollIntoView) el.scrollIntoView({ block: 'start' }); else window.scrollTo(0, 0);
+  }
+  window.addEventListener('hashchange', vista); vista();
 
   var mcp = null, VIGIA = '{{VIGIA}}';
   function llamar(b) {
@@ -367,7 +429,7 @@ section { scroll-margin-top: 12px; }
     var ll = new Date(v.llamado || v.empezado || 0).getTime(), fin = new Date(v.terminado || 0).getTime() || 0;
     var enCurso = (v.trabajando || ll > fin) && Date.now() - ll < 20 * 60000 && ll > fin;
     if (enCurso) { b.disabled = true; b.textContent = 'El vigía está trabajando…'; e.textContent = 'Lo llamaste ' + hace(v.llamado || v.empezado) + '. Tarda de 5 a 10 minutos; esta página se pone al día sola cuando acabe.'; }
-    else { b.disabled = false; b.textContent = 'Llamar al vigía ahora'; if (fin) e.textContent = 'Última pasada del vigía: ' + hace(v.terminado) + '.' + (v.resumen ? ' ' + v.resumen : ''); }
+    else { b.disabled = false; b.textContent = 'Llamar al vigía ahora'; if (fin) e.textContent = 'Última vuelta del vigía: ' + hace(v.terminado) + '.' + (v.resumen ? ' ' + v.resumen : ''); }
   }
   function pedir(b) {
     var tipo = b.dataset.pedir, ref = b.dataset.ref || '', caja = b.dataset.texto ? $(b.dataset.texto) : null, texto = caja ? caja.value.trim() : (b.dataset.valor || '');
@@ -378,7 +440,7 @@ section { scroll-margin-top: 12px; }
     var unico = tipo === 'priorizar' || tipo === 'aprobar' || tipo === 'rechazar' || tipo === 'abrir' || tipo === 'orden';
     var destino = unico ? col.doc((tipo === 'priorizar' ? 'priorizar-' : tipo === 'abrir' ? 'abrir-' : tipo === 'orden' ? 'orden-' : 'decision-') + ref.replace(/[^A-Za-z0-9_-]/g, '-')) : col.doc();
     b.disabled = true;
-    destino.set(doc).then(function () { aviso('Apuntado. El vigía lo aplica en su próxima pasada.'); if (caja) caja.value = ''; })
+    destino.set(doc).then(function () { aviso('Apuntado. Llama al vigía para que lo aplique.'); if (caja) caja.value = ''; })
       .catch(function (e) { aviso(e && e.code === 'invalid_argument' ? 'No tienes permiso para guardar aquí. Dilo en el chat.' : 'No se pudo guardar. Prueba otra vez.'); })
       .then(function () { b.disabled = false; });
   }
@@ -391,7 +453,7 @@ section { scroll-margin-top: 12px; }
       if (!db) { aviso('Aquí no se pueden guardar pedidos. Dilo en el chat.'); return; }
       var tipo = b.dataset.lote, sel = marcadas(), col = db.collection('pedidos'), pre = tipo === 'priorizar' ? 'priorizar-' : 'abrir-'; b.disabled = true;
       Promise.all(sel.map(function (c) { return col.doc(pre + c.dataset.sel).set({ tipo: tipo, ref: c.dataset.sel, texto: '', titulo: c.dataset.titulo || '', creado: new Date().toISOString(), estado: 'pendiente' }); }))
-        .then(function () { aviso('Apuntadas ' + sel.length + '. El vigía las aplica en su próxima pasada.'); sel.forEach(function (c) { c.checked = false; }); lote(); })
+        .then(function () { aviso('Apuntadas ' + sel.length + '. Llama al vigía para que las aplique.'); sel.forEach(function (c) { c.checked = false; }); lote(); })
         .catch(function () { aviso('No se pudo guardar todo. Prueba otra vez.'); }).then(function () { b.disabled = false; });
       return;
     }
@@ -403,13 +465,13 @@ section { scroll-margin-top: 12px; }
 
   var sinUso = 'Aquí no se pueden guardar pedidos (hace falta abrir la página con tu sesión de Claude). Mientras tanto, dilo en el chat.';
   if (!window.claude || !window.claude.use) { apagar(sinUso); return; }
-  window.claude.use('mcp').then(function (m) { mcp = m; if (!m) $('llamar-estado').textContent = 'En esta pantalla no se puede llamar al vigía con el botón. Pasa solo cada tres horas, o escribe «aplica el cuadro» en el chat.'; });
+  window.claude.use('mcp').then(function (m) { mcp = m; if (!m) $('llamar-estado').textContent = 'En esta pantalla no se puede llamar al vigía con el botón. Escribe «aplica el cuadro» en el chat de Claude.'; });
   window.claude.use('db').then(function (d) {
     if (!d) { apagar(sinUso); return; }
     db = d;
     var reloj = setTimeout(function () { $('pedidos-nota').textContent = 'No se pueden leer tus pedidos ahora mismo; puede que la lista no esté al día.'; }, 10000);
     db.collection('pedidos').onSnapshot(function (snap) {
-      if (!snap.metadata.fromCache) { clearTimeout(reloj); $('pedidos-nota').textContent = 'Lo que pulses aquí queda guardado. Un vigía mira el cuadro cada tres horas y lo aplica (abre las sesiones que pidas). Si lo quieres ya, escribe en el chat de Claude: «aplica el cuadro».'; }
+      if (!snap.metadata.fromCache) { clearTimeout(reloj); $('pedidos-nota').textContent = 'Lo que pulses aquí queda guardado. Para que se aplique, llama al vigía (pestaña Hoy) o escribe en el chat de Claude: «aplica el cuadro».'; }
       pintar(snap.docs);
     }, function () { clearTimeout(reloj); apagar('Se ha perdido la conexión con tus pedidos. Dilo en el chat o vuelve a abrir la página.'); });
     try { db.collection('estado').onSnapshot(function (snap) { snap.docs.forEach(function (d) { if (d.id === 'vigia') pintarVigia(d.data()); }); }, function () { }); } catch (e) { }

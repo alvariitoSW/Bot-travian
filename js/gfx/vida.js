@@ -10,7 +10,7 @@ import { THREE } from './models.js';
 import * as UN from './units.js';
 
 export const VIDA_GENTE = true, VIDA_HUMO = true, VIDA_CARROS = true, VIDA_GUARNICION_LIGERA = true;
-export const GUARN_REAL_MAX = 70, GUARN_R_IN = 105, GUARN_R_OUT = 135, GUARN_CAP = 430;   // topes máximos de la guarnición (los lee gobierno/arte.mjs)
+export const GUARN_REAL_MAX = 50, GUARN_R_IN = 105, GUARN_R_OUT = 135, GUARN_CAP = 130, GUARN_TORRES_MAX = 10;   // topes máximos de la guarnición (los lee gobierno/arte.mjs)
 const N_GENTE = 56, N_CARROS = 5, CAM_GENTE = 560, NP = 9;
 
 let C = null;                                       // contexto que pasa city3d: { scene, U, HORIZ, altura, azar, carros (lote), pedirReparto }
@@ -116,32 +116,49 @@ function guMallas(k, n) {
   if (VIDA_GUARNICION_LIGERA) { const lm = new THREE.InstancedMesh(UN.lightGeometry(u, col), UN.lightMaterial(), n); lm.frustumCulled = false; lm.count = 0; lm.instanceMatrix.setUsage(THREE.DynamicDrawUsage); C.scene.add(lm); m.lig = lm; m.L = lm.instanceMatrix.array; }
   return m;
 }
-function guQuita() { if (!gu) return; for (const m of gu.mallas.values()) { C.scene.remove(m.real); m.real.geometry.dispose(); if (m.lig) { C.scene.remove(m.lig); m.lig.geometry.dispose(); } } gu = null; }
+let texT = null;      // CN16p: tierra pisada procedural (canvas pequeño, sin arte nuevo)
+function texTierra() { if (texT) return texT; const N = 128, cv = document.createElement('canvas'); cv.width = cv.height = N; const g = cv.getContext('2d'); g.fillStyle = '#7a6444'; g.fillRect(0, 0, N, N);
+  for (let i = 0; i < 900; i++) { const x = guHash(i * 1.7) * N, y = guHash(i * 3.1 + 9) * N, l = 40 + guHash(i * 5.9) * 40, a = guHash(i * 2.3) * 0.3; g.fillStyle = 'hsla(34,' + (22 + guHash(i) * 14) + '%,' + l + '%,' + a + ')'; const r = 1 + guHash(i * 7.1) * 4; for (const dx of [-N, 0, N]) for (const dy of [-N, 0, N]) { g.beginPath(); g.ellipse(x + dx, y + dy, r * 1.6, r, guHash(i * 4.4) * 3, 0, 7); g.fill(); } }
+  for (let i = 0; i < 400; i++) { g.fillStyle = 'rgba(40,30,18,' + (0.15 + guHash(i * 8.8) * 0.25) + ')'; g.fillRect(guHash(i * 6.1) * N, guHash(i * 9.7) * N, 1.5, 1.5); }
+  texT = new THREE.CanvasTexture(cv); texT.wrapS = texT.wrapT = THREE.RepeatWrapping; texT.colorSpace = THREE.SRGBColorSpace; return texT; }
+function guQuita() { if (!gu) return; if (gu.campo) { C.scene.remove(gu.campo); gu.campo.geometry.dispose(); gu.campo.material.dispose(); } for (const m of gu.mallas.values()) { C.scene.remove(m.real); m.real.geometry.dispose(); if (m.lig) { C.scene.remove(m.lig); m.lig.geometry.dispose(); } } gu = null; }
 function ponM(M, o, x, y, z, yaw, k) { const c = Math.cos(yaw) * k, s = Math.sin(yaw) * k; M[o] = c; M[o + 1] = 0; M[o + 2] = -s; M[o + 3] = 0; M[o + 4] = 0; M[o + 5] = k; M[o + 6] = 0; M[o + 7] = 0; M[o + 8] = s; M[o + 9] = 0; M[o + 10] = c; M[o + 11] = 0; M[o + 12] = x; M[o + 13] = y; M[o + 14] = z; M[o + 15] = 1; }
 export function guarnicion(E, units, camPos, t, o) {
   const PK = o.PK, f = E && E.foro; let men = 0; for (const k in units) men += units[k];
-  const sig = f && men > 0 ? JSON.stringify(units) + '|' + f.x + '|' + f.z + '|' + (E.puertas && E.puertas[0] ? E.puertas[0].x + ',' + E.puertas[0].z : '') + '|' + VIDA_GUARNICION_LIGERA : '';
+  const sig = f && men > 0 ? JSON.stringify(units) + '|' + f.x + '|' + f.z + '|' + (E.puertas && E.puertas[0] ? E.puertas[0].x + ',' + E.puertas[0].z : '') + '|' + VIDA_GUARNICION_LIGERA + '|' + (E.muralla ? E.muralla.fase || 0 : 0) + '|' + ((E.surco && E.surco.length) || 0) : '';
   if (!sig) { if (gu) for (const m of gu.mallas.values()) { m.real.count = 0; if (m.lig) m.lig.count = 0; } return { men, x: 0, z: 0, hay: false }; }
   if (!gu || gu.sig !== sig) {
     guQuita(); const pu = E.puertas && E.puertas[0]; let ox = 0, oz = 1, ax = f.x, az = f.z + 46;
     if (pu) { const d = Math.hypot(pu.x - f.x, pu.z - f.z) || 1; ox = (pu.x - f.x) / d; oz = (pu.z - f.z) / d; ax = pu.x + ox * 26; az = pu.z + oz * 26; }
-    const lx = -oz, lz = ox, yaw = Math.atan2(ox, oz), ratio = Math.max(1, men / 420), blocks = []; let width = 0;
-    for (const k in units) { const cls = o.D.UNITS[k].cls, cnt = units[k]; if (cnt <= 0 || !UN.getUnit(k)) continue; const n = cls === 'ele' ? Math.min(cnt, 20) : Math.max(1, Math.round(cnt / ratio)), sp = (cls === 'ele' ? 11 : cls === 'cav' ? 5.6 : 2.9) * PK, cols = cls === 'ele' ? 5 : cls === 'cav' ? 8 : 10; blocks.push({ k, f: n, sp, cols, w: Math.min(cols, n) * sp }); width += Math.min(cols, n) * sp + 8; }
+    const lx = -oz, lz = ox, yaw = Math.atan2(ox, oz), ratio = Math.max(1, men / (GUARN_CAP - 14)), blocks = []; let width = 0;
+    for (const k in units) { const cls = o.D.UNITS[k].cls, cnt = units[k]; if (cnt <= 0 || !UN.getUnit(k)) continue; const n = cls === 'ele' ? Math.min(cnt, 20) : Math.max(1, Math.round(cnt / ratio)), sp = (cls === 'ele' ? 11 : cls === 'cav' ? 6.4 : 3.5) * PK, cols = cls === 'ele' ? 5 : Math.min(cls === 'cav' ? 8 : 10, Math.max(4, Math.ceil(n / 4))); blocks.push({ k, f: n, sp, cols, w: Math.min(cols, n) * sp }); width += Math.min(cols, n) * sp + 8; }
     const slots = [], mallas = new Map(); let x0 = -width / 2 + 4;
     for (const B of blocks) {
-      for (let j = 0; j < B.f; j++) { const cx = j % B.cols, cy = Math.floor(j / B.cols), u = x0 + cx * B.sp + (guHash(j * 3.1) - 0.5) * 0.5, w = cy * B.sp * 1.1 + (guHash(j * 7.7) - 0.5) * 0.5;
+      for (let j = 0; j < B.f; j++) { const cx = j % B.cols, cy = Math.floor(j / B.cols), u = x0 + cx * B.sp + (guHash(j * 3.1) - 0.5) * 0.5, w = cy * B.sp * 1.35 + (guHash(j * 7.7) - 0.5) * 0.5;
         const x = ax + lx * u + ox * w, z = az + lz * u + oz * w; slots.push({ k: B.k, x, z, y: C.altura(x, z) + 0.1, yaw, ph: guHash(j * 1.9 + B.cols) * 6, real: false }); }
       x0 += B.w + 8; }
+    /* CN16a: explanada del Campo de Marte (un plano de tierra batida bajo la formación) y guardias en torres y puertas si hay muralla */
+    const prof = Math.max(...blocks.map(B => (Math.ceil(B.f / B.cols) - 1) * B.sp * 1.35), 0), hw = width / 2 + 7, w0 = -7, w1 = prof + 7, cg = new THREE.BufferGeometry(), v = [], uv = [];
+    const per = []; for (let i = 0; i < 28; i++) { const a = i / 28 * Math.PI * 2, c = Math.cos(a), sn = Math.sin(a), e = 1 / Math.pow(Math.pow(Math.abs(c), 4) + Math.pow(Math.abs(sn), 4), 0.25), rr = e * (1 + (guHash(i * 5.3) - 0.5) * 0.09); per.push([c * rr * hw, (w0 + w1) / 2 + sn * rr * (w1 - w0) / 2]); }
+    const pv = (u, w) => { const x = ax + lx * u + ox * w, z = az + lz * u + oz * w; v.push(x, C.altura(x, z) + 0.35, z); uv.push(x / 26, z / 26); };
+    for (let i = 0; i < 28; i++) { const q = per[i], q2 = per[(i + 1) % 28]; pv(0, (w0 + w1) / 2); pv(q[0], q[1]); pv(q2[0], q2[1]); }
+    cg.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); cg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); const campo = new THREE.Mesh(cg, new THREE.MeshBasicMaterial({ map: texTierra(), color: 0xd9c9a6, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 })); campo.frustumCulled = false; C.scene.add(campo);
+    const fase = E.muralla ? E.muralla.fase || 0 : 0, mayor = blocks.filter(B => B.cols >= 4 && UN.getUnit(B.k) && o.D.UNITS[B.k].cls !== 'ele' && o.D.UNITS[B.k].cls !== 'cav').sort((p, q) => q.f - p.f)[0];
+    if (fase > 0 && mayor && E.surco && E.surco.length) {
+      const nG = Math.min(GUARN_TORRES_MAX, Math.max(2, Math.ceil(men / 20))), alto = fase >= 2 ? 9 : 7.5, pts = [];
+      for (const q of E.puertas || []) for (const sg of [1, -1]) pts.push([q.x + Math.cos(q.ang) * 9 * sg, q.z + Math.sin(q.ang) * 9 * sg, Math.atan2(q.x - f.x, q.z - f.z)]);
+      const S = E.surco, paso = Math.max(1, Math.floor(S.length / 6)); for (let i = 0; i < S.length && pts.length < nG; i += paso) pts.push([S[i][0], S[i][1], Math.atan2(S[i][0] - f.x, S[i][1] - f.z)]);
+      pts.slice(0, nG).forEach((q, j) => slots.push({ k: mayor.k, x: q[0], z: q[1], y: C.altura(q[0], q[1]) + alto, yaw: q[2], ph: guHash(j * 2.3) * 6, real: false, torre: true })); }
     const n = {}; for (const s of slots) n[s.k] = (n[s.k] || 0) + 1; for (const k in n) { const m = guMallas(k, n[k]); if (m) mallas.set(k, m); }
-    gu = { sig, slots, mallas, ax, az };
+    gu = { sig, slots, mallas, ax, az, campo };
   }
   for (const m of gu.mallas.values()) { m.ir = 0; m.il = 0; }
-  const RI = GUARN_R_IN * GUARN_R_IN, RO = GUARN_R_OUT * GUARN_R_OUT, cand = [];
-  for (const s of gu.slots) { const dx = s.x - camPos.x, dy = s.y - camPos.y, dz = s.z - camPos.z, d2 = dx * dx + dy * dy + dz * dz; s.d2 = d2; s.real = !VIDA_GUARNICION_LIGERA || (s.real ? d2 < RO : d2 < RI); if (s.real && VIDA_GUARNICION_LIGERA) cand.push(s); }
+  const RI = GUARN_R_IN * GUARN_R_IN, RO = GUARN_R_OUT * GUARN_R_OUT, TI = 190 * 190, TO = 230 * 230, cand = [];
+  for (const s of gu.slots) { const dx = s.x - camPos.x, dy = s.y - camPos.y, dz = s.z - camPos.z, d2 = dx * dx + dy * dy + dz * dz; s.d2 = s.torre ? d2 * 0.2 : d2; s.real = !VIDA_GUARNICION_LIGERA || (s.torre ? (s.real ? d2 < TO : d2 < TI) : (s.real ? d2 < RO : d2 < RI)); if (s.real && VIDA_GUARNICION_LIGERA) cand.push(s); }
   if (VIDA_GUARNICION_LIGERA && cand.length > GUARN_REAL_MAX) { cand.sort((a, b) => a.d2 - b.d2); for (let i = GUARN_REAL_MAX; i < cand.length; i++) cand[i].real = false; }
   for (const s of gu.slots) { const m = gu.mallas.get(s.k); if (!m) continue;
-    if (s.real && m.ir < m.cap) { ponM(m.R, m.ir * 16, s.x, s.y, s.z, s.yaw, PK); m.A.array[m.ir] = UN.frameOf(m.u.clips.idle, t + s.ph); m.ir++; }
-    else if (m.lig) { ponM(m.L, m.il * 16, s.x, s.y, s.z, s.yaw, PK); m.il++; } }
+    if (s.real && m.ir < m.cap) { ponM(m.R, m.ir * 16, s.x, s.y, s.z, s.yaw, s.torre ? PK * 1.6 : PK); m.A.array[m.ir] = UN.frameOf(m.u.clips.idle, t + s.ph); m.ir++; }
+    else if (m.lig) { ponM(m.L, m.il * 16, s.x, s.y, s.z, s.yaw, s.torre ? PK * 1.6 : PK); m.il++; } }
   for (const m of gu.mallas.values()) { m.real.count = m.ir; m.real.instanceMatrix.needsUpdate = true; m.A.needsUpdate = true; if (m.lig) { m.lig.count = m.il; m.lig.instanceMatrix.needsUpdate = true; } }
   return { men, x: gu.ax, z: gu.az, hay: true, reales: [...gu.mallas.values()].reduce((a, m) => a + m.ir, 0), ligeras: [...gu.mallas.values()].reduce((a, m) => a + m.il, 0) };
 }

@@ -65,3 +65,7 @@
   #man .m-choque { width: auto; right: 8px; top: auto; bottom: 8px; max-height: 52%; } #man .m-campo { left: 30px; right: 30px; } #man .m-top > span { display: none; }
   #man .m-pt em { width: 70px; font-size: 10.5px; }
 }
+
+/* GC8: salida de toda la maniobra */
+#man .m-sale { position: absolute; right: 8px; top: calc(var(--pt) + 8px); z-index: 7; min-height: 40px; padding: 0 14px; border-radius: 20px; background: rgba(11, 16, 22, .88); border: 1px solid var(--gold2, #b8862b); color: var(--gold, #e9c063); font-weight: 600; }
+#man .m-sale.on { background: var(--bad, #d9764a); color: #fff; border-color: transparent; }

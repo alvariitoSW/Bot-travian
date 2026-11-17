@@ -1,0 +1,107 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8">
+<!-- «¿Por qué no está ya la 1.0?» · AQVILA, 17/11/2026. Contrato de la fábrica de La Moncloa: window.TOTAL y window.render(t).
+     Todo depende de t. Regla de color: púrpura = cifra o lo que falta; verde = hecho; gris = previsto. -->
+<style>
+*{box-sizing:border-box;margin:0}
+body{width:720px;height:1280px;overflow:hidden;background:#ecebe6;color:#1f1d24;font-family:Inter,"Helvetica Neue",Arial,sans-serif}
+#cab{position:absolute;left:0;top:0;width:720px;height:86px;background:#4f1239;color:#f9eef4;display:flex;align-items:center;justify-content:space-between;padding:0 36px}
+#cab b{font:700 38px Georgia,serif;letter-spacing:6px;color:#e9c877}#cab span{font-size:30px}
+#avance{position:absolute;left:0;top:86px;height:8px;background:#e9c877;width:0}
+.plano{position:absolute;left:36px;top:120px;width:648px;height:850px;opacity:0}
+.rot{font:700 30px Inter,Arial,sans-serif;letter-spacing:4px;text-transform:uppercase;color:#8a6a2c}
+h1{font:700 76px/1.05 Georgia,serif;margin-top:14px}
+h2{font:700 58px/1.08 Georgia,serif;margin-top:10px}
+.e{opacity:0}
+.cifra{font:700 150px/1 Georgia,serif;color:#6b1f4f;font-variant-numeric:tabular-nums}
+.cifra small{font:600 40px Inter,Arial,sans-serif;color:#1f1d24;margin-left:12px}
+.cuadros{display:grid;grid-template-columns:repeat(10,1fr);gap:8px;margin-top:22px}
+.cuadros i{height:54px;background:#cfccc4;display:block}
+.fotos{display:flex;gap:12px;margin-top:26px}.fotos img{width:153px;height:330px;object-fit:cover;object-position:top;border:2px solid #1f1d24;display:block}
+.fotos.dos img{width:318px;height:400px}
+.lista{margin-top:24px;display:flex;flex-direction:column;gap:14px}
+.lista div{font:600 40px/1.15 Inter,Arial,sans-serif;padding:16px 20px;background:#f8f7f3;border-left:10px solid #6b1f4f}
+.par{display:flex;gap:28px;margin-top:30px;align-items:flex-end}
+.par .cifra{font-size:120px}.par .gris{color:#7b8194}
+.fila{margin-top:26px}.fila p{font:600 34px Inter,Arial,sans-serif;margin-bottom:8px}
+.barra{height:64px;background:#6b1f4f;width:0}.barra.gris{background:#8d93a3}
+.bn{font:700 60px Georgia,serif;font-variant-numeric:tabular-nums;margin-top:4px}
+.puntos{display:flex;flex-wrap:wrap;gap:7px;margin-top:16px}.puntos i{width:28px;height:28px;border-radius:50%;background:#2f6b4a;display:block}.puntos i.r{background:#a1332b}
+.ses{display:flex;gap:10px;margin-top:16px}.ses i{flex:1;height:70px;background:#cfccc4;display:block}.ses i.v{background:#6b1f4f}
+#sello{position:absolute;left:60px;top:300px;width:600px;padding:44px 30px;background:#4f1239;color:#f9eef4;text-align:center;opacity:0;border:8px solid #e9c877}
+#sello b{display:block;font:700 170px/1 Georgia,serif;color:#e9c877}#sello span{font:600 44px/1.2 Inter,Arial,sans-serif;display:block;margin-top:10px}
+#sub{position:absolute;left:30px;width:660px;bottom:70px;min-height:230px;background:#1f1d24;color:#f3f1f6;padding:22px 26px 26px;display:flex;flex-direction:column;gap:8px}
+#quien{font:700 30px Inter,Arial,sans-serif;letter-spacing:3px;color:#e9c877}
+#txt{font:600 58px/1.14 Inter,Arial,sans-serif}#txt .on{color:#e9c877}
+</style></head><body>
+<div id="cab"><b>AQVILA</b><span>Consejo · 17 nov 2026</span></div><div id="avance"></div>
+
+<div class="plano" data-de="gancho" data-a="hechas">
+  <p class="rot">Estado del proyecto</p><h1>¿Por qué no está ya la 1.0?</h1>
+  <div class="e" data-en="faltan"><p class="cifra" style="margin-top:22px">4<small>tareas faltan</small></p></div>
+  <div class="e" data-en="hechas"><div class="cuadros" id="cu"></div>
+    <div class="fotos"><img src="img/MR2c-1-menu.jpg"><img src="img/SN2-1-sala.jpg"><img src="img/CN26-cuartel-ficha.jpg"><img src="img/GM34-vertical.jpg"></div></div>
+</div>
+
+<div class="plano" data-de="q_queda" data-a="coste">
+  <p class="rot">Qué queda</p><h2>Cuatro tareas</h2>
+  <div class="lista e" data-en="queda"><div>Primera fila que lucha</div><div>Escaramuzas</div><div>Equilibrio con el bot</div><div>Tu prueba en el móvil</div></div>
+  <div class="par e" data-en="coste"><p class="cifra gris">2,8<small>previsto</small></p><p class="cifra">5<small>M real</small></p></div>
+</div>
+
+<div class="plano" data-de="q_cierra" data-a="sesiones">
+  <p class="rot">Por qué no se cierra</p><h2>La lista creció</h2>
+  <div class="par e" data-en="lista" style="margin-top:14px"><p class="cifra gris">12</p><p class="cifra">+10</p><p class="cifra gris">−2</p></div>
+  <div class="e fila" data-en="jueces"><p>Jueces: 35 de 37</p><div class="puntos" id="pu"></div></div>
+  <div class="e fila" data-en="sesiones"><p>Sesiones abiertas: 2 de 8 en la 1.0</p><div class="ses"><i class="v"></i><i class="v"></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div>
+</div>
+
+<div class="plano" data-de="q_tarda" data-a="hoy">
+  <p class="rot">Por qué tarda</p><h2>Cuesta casi el doble</h2>
+  <div class="e fila" data-en="doble"><p>Previsto esta semana</p><div class="barra gris" data-w="444"></div><p class="bn">174 M</p>
+    <p style="margin-top:14px">Gastado</p><div class="barra" data-w="648"></div><p class="bn">254 M</p></div>
+  <div class="e" data-en="hoy"><p class="cifra" style="margin-top:12px">+79 %<small>hoy</small></p></div>
+</div>
+
+<div class="plano" data-de="q_desvia" data-a="toda">
+  <p class="rot">Por qué se desvía</p><h2>Maquetas que no llegan al juego</h2>
+  <div class="e" data-en="maquetas"><div class="fotos dos"><img src="img/GM44r-1-romano.jpg"><img src="img/GM43c-v-3-testudo.jpg"></div>
+    <div class="fila" style="margin-top:18px"><div class="barra" data-w="648" style="height:44px"></div><p class="bn">17 M en maquetas</p></div></div>
+  <div class="e fila" data-en="toda" style="margin-top:8px"><div class="barra gris" data-w="282" style="height:44px"></div><p class="bn">7,4 M toda la 1.0</p></div>
+</div>
+
+<div class="plano" data-de="decide" data-a="final">
+  <p class="rot">Decides tú</p><h2>Cinco cosas</h2>
+  <div class="lista"><div class="e" data-en="d1">Soldado nuevo, a la 1.1</div><div class="e" data-en="d2">Parar lo que no es 1.0</div><div class="e" data-en="d3">Lo nuevo, a la nevera</div><div class="e" data-en="d4">Jueces en verde primero</div><div class="e" data-en="d5">Tope de gasto que corta</div></div>
+</div>
+<div id="sello"><b>4</b><span>sesiones para la 1.0, con cinco síes</span></div>
+
+<div id="sub"><p id="quien"></p><p id="txt"></p></div>
+<script src="timeline.js"></script>
+<script>
+const TL=window.TL, C=TL.clips, E={}; C.forEach((c,i)=>{c.i=i;E[c.esc]=c});
+const QUIEN={tra:'PORTAVOZ',hac:'HACIENDA',jus:'JUSTICIA',p1:'PRENSA'};
+const cu=document.getElementById('cu'); for(let i=0;i<20;i++){const x=document.createElement('i');x.style.background=i<13?'#2f6b4a':i<14?'#a8741a':i<18?'#6b1f4f':'#cfccc4';cu.appendChild(x)}
+const pu=document.getElementById('pu'); for(let i=0;i<37;i++){const x=document.createElement('i');if(i>=35)x.className='r';pu.appendChild(x)}
+const cl=(x,a,b)=>Math.max(a,Math.min(b,x)), suave=x=>{x=cl(x,0,1);return 1-Math.pow(1-x,3)};
+const planos=[...document.querySelectorAll('.plano')], els=[...document.querySelectorAll('.e')], barras=[...document.querySelectorAll('.barra')];
+const TOTAL=TL.total; window.TOTAL=TOTAL;
+window.render=function(t){
+  document.getElementById('avance').style.width=(720*t/TOTAL)+'px';
+  const sello=suave((t-TL.sello)/0.35);
+  planos.forEach((p,n)=>{const a=n===0?0:E[p.dataset.de].t0-0.3, b=n===planos.length-1?TL.sello:E[planos[n+1].dataset.de].t0-0.3;
+    const o=t<a||t>=b?0:Math.min(suave((t-a)/0.3),suave((b-t)/0.18)); p.style.opacity=o; p.style.visibility=o>0.01?'visible':'hidden'; p.style.transform='translateX('+((1-suave((t-a)/0.3))*40)+'px)'});
+  els.forEach(e=>{const k=suave((t-E[e.dataset.en].t0)/0.4); e.style.opacity=k; e.style.transform='translateY('+((1-k)*24)+'px)'});
+  barras.forEach(b=>{const e=b.closest('.e'); b.style.width=(b.dataset.w*suave((t-E[e.dataset.en].t0-0.2)/1.2))+'px'});
+  const s=document.getElementById('sello'); s.style.opacity=sello; s.style.transform='scale('+(1.25-0.25*sello)+')';
+  let c=null; for(const x of C) if(t>=x.t0-0.05) c=x;
+  const q=document.getElementById('quien'), tx=document.getElementById('txt');
+  if(!c||t>c.t0+c.d+0.5&&c.i===C.length-1){q.textContent=c?QUIEN[c.k]:'';tx.innerHTML=c?c.sub:'';return}
+  q.textContent=QUIEN[c.k];
+  const ws=c.sub.split(' '), tot=c.sub.length, f=cl((t-c.t0)/c.d,0,1); let ac=0, on=-1;
+  for(let i=0;i<ws.length;i++){ if(f*tot>=ac) on=i; ac+=ws[i].length+1 }
+  // grupos de unas 6 palabras para que el subtítulo no pase de tres líneas
+  const G=6, g=Math.floor(Math.max(on,0)/G);
+  tx.innerHTML=ws.slice(g*G,g*G+G).map((w,i)=>'<span'+(g*G+i===on&&f<1?' class="on"':'')+'>'+w+'</span>').join(' ');
+};
+window.render(0);
+</script></body></html>

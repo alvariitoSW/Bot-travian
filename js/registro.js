@@ -37,7 +37,7 @@
     vigiles: f(uni('vigiles', { provisional: true, nota: 'la tropa es un anacronismo; el modelo es un jabalinero romano' }), h('Regla de juego: guardia genérica; los Vigiles son de Augusto (Dión Casio 55.26; Suetonio, Augusto 30; Livio 39.14)', 'licencia de juego', 'renombrada «Guardia urbana» (H5): los Vigiles de verdad son de Augusto (Dión 55.26; Suetonio, Augusto 30); aquí es una guardia genérica', 'En el juego es una tropa de vigilancia de la ciudad. Los Vigiles de verdad son de Augusto, siglos después. En la República, de noche vigilaban unos magistrados con ayudantes, según Livio.')),
     milicia: f(uni('milicia'), h('Regla de juego: leva genérica, no es una tropa de las fuentes', 'licencia de juego', 'leva ciudadana genérica', 'Ciudadanos armados deprisa. Las fuentes cuentan que las ciudades armaban a su gente en apuros, pero no describen una tropa así. Es una pieza del juego para tener un soldado barato.')),
     hoplitas: f(uni('hoplitas'), h("Plutarco, Filopemén 9.1-2", "probable", "reconstrucción razonada: el pasaje habla del rearme aqueo, no describe al hoplita clásico", "Soldado griego de línea, con lanza, escudo grande, casco, coraza y grebas. Plutarco cuenta que Filopemén rearmó a los aqueos con pica larga y escudo pesado en lugar de lanza corta y escudo ligero. La ficha es una reconstrucción razonada.")),
-    falange: f(uni('falange'), h('Polibio 18.29; Plutarco, Pirro 15.1', 'historico', null, 'Masa de infantes con lanza larguísima, la sarisa. Según Polibio, la sarisa se diseñaba de 16 codos y en la práctica medía 14. Pirro pasó a Italia con 20.000 infantes, según Plutarco.')),
+    falange: f(uni('falange'), h('Polibio 18.29-32; Plutarco, Pirro 15.1', 'historico', 'GC5 (16/11/2026): su manera de luchar en la batalla (firme de frente, se hunde más de flanco que otras tropas) sale de Polibio 18.29-32, que dice que la falange es irresistible de frente y en llano y inútil de flanco o en terreno desigual; pasaje recordado, sin cotejar con el texto. Las cifras (cuánto más se hunde) son licencia de juego', 'Masa de infantes con lanza larguísima, la sarisa. Según Polibio, la sarisa se diseñaba de 16 codos y en la práctica medía 14. Pirro pasó a Italia con 20.000 infantes, según Plutarco. De frente es muy difícil de romper; de flanco se hunde, como en Cinoscéfalas.')),
     peltastas: f(uni('peltastas'), h('Livio 44.41', 'probable', 'Livio no usa la palabra «peltastas» (caetrati y chalcaspides, 44.41); el nombre es del juego', 'Infantería ligera griega con escudo pequeño. Livio habla de «caetrati» y «chalcaspides» en la Macedonia de Pidna, pero no usa la palabra peltastas. El nombre del juego es una etiqueta cómoda.')),
     honderos: f(uni('honderos'), h("Diodoro 5.18; Livio 28.37", "historico", "las «tres hondas» no se pudieron confirmar y se quitaron", "Famosos por la honda. Según Diodoro, los baleares lanzaban piedras mucho mayores que otros honderos y se entrenaban de niños con pan como blanco. Livio dice que la honda era su única arma.")),
     libios: f(uni('libios'), h('Polibio 3.87; Polibio 3.114', 'historico', null, 'Tras Trasimeno, Aníbal cambió sus armas por las romanas capturadas, según Polibio. En Cannas formaban con armadura romana. Era la infantería pesada y de confianza de su ejército.')),
@@ -47,7 +47,7 @@
     jinetes: f(uni('jinetes'), h('Regla de juego: caballería genérica, no es una tropa de las fuentes', 'licencia de juego', 'caballería local genérica', 'Una caballería genérica para que todas las facciones tengan jinetes. Las fuentes describen caballerías concretas, como los équites o los númidas, pero no esta pieza.')),
     numidas: f(uni('numidas'), h("Livio 35.11; Polibio 15.5", "historico", null, "Jinetes ligeros con jabalinas. Según Livio, montaban sin bridas, y en 193 había unos 800 al servicio de Roma. En Zama, Masinisa aportó unos 4.000, según Polibio.")),
     tesalios: f(uni('tesalios'), h("Plutarco, Pirro 17.3; Livio 42.58.13", "historico", "Heraclea y 171 salen del contexto, no del pasaje; en Pidna (168) no consta", "Caballería de Tesalia, famosa en Grecia. Según Plutarco, Pirro lanzó a sus jinetes tesalios contra los romanos cuando los elefantes los habían desordenado, en Heraclea (280). Livio coloca a 400 tesalios junto a los romanos en Calínico, en 171.")),
-    elefantes: f(uni('elefantes', { provisional: true, nota: 'un solo modelo cartaginés; no encaja para los elefantes asiáticos de Pirro' }), h('Plutarco, Pirro 15.1; Polibio 1.40; Polibio 5.84', 'historico', null, 'Pirro trajo 20 a Italia, según Plutarco. En Panormus los de Asdrúbal fueron derrotados, según Polibio. Asustaban al enemigo, pero también podían volverse contra los suyos.')),
+    elefantes: f(uni('elefantes', { provisional: true, nota: 'un solo modelo cartaginés; no encaja para los elefantes asiáticos de Pirro' }), h('Plutarco, Pirro 15.1 y 17; Polibio 1.40; Polibio 5.84', 'historico', 'GC5 (16/11/2026): que arrollen al chocar y que heridos se desboquen contra los suyos sale de Plutarco, Pirro 17 (Heraclea) y Polibio 1.40 (Panormus), recordados y sin cotejar con el texto. Que formen un cuerpo propio delante en el centro, su cansancio y cuánto pierden al desbocarse son licencia de juego', 'Pirro trajo 20 a Italia, según Plutarco. En Panormus los de Asdrúbal fueron derrotados, según Polibio. Asustaban al enemigo y arrollaban al chocar, pero heridos podían volverse contra los suyos.')),
     general: f(uni('general', { provisional: true, nota: 'modelo único de Escipión para todos los generales' }), h('Regla de juego: el general es una pieza propia del juego', 'licencia de juego', 'cada bando tuvo generales distintos', 'El jefe del ejército, un personaje de juego que mejora tus tropas. Representa a los grandes mandos de la época, pero no es un cargo concreto de las fuentes.'))
   };
 
@@ -71,7 +71,15 @@
     ambracia: f(SIN_C, h("Estrabón 7.7.6; Livio 38.4.7-9", "historico", null, "Fue residencia real de Pirro, según Estrabón, que la adornó mucho. En 189 el cónsul romano la sitió y, según Livio, los etolios acudieron en su defensa: Eupólemo entró en la ciudad con mil soldados ligeros.")),
     pella: f(SIN_C, h("Livio 44.45.5; Livio 45.29.8-9", "historico", "«capital del reino» queda sin fuente (Justino 24.5 y Pausanias 10.19.7 sin abrir)", "Ciudad de Macedonia. Tras la victoria romana de Pidna, en 168, se rindió con casi todo el país, según Livio. Roma dividió Macedonia en cuatro distritos y Pella fue la capital del tercero.")),
     corinthus: f(SIN_C, h("Polibio 2.41; Polibio 2.43.4; Plutarco, Arato 16-24; Livio, Períocas 52", "probable", "guarnición macedonia en 280: probable (consta solo cuando Arato la toma, 243). Livio, Períocas 52 (Mumio, 146) sin abrir", "Según Polibio, Corinto no estaba entre las primeras ciudades de la Liga Aquea: Arato tomó la ciudadela, que tenía Antígono, y la incorporó a la Liga. No sabemos si ya había guarnición macedonia en 280. Mumio la saqueó en 146.")),
-    carthago: f(SIN_C, h("Livio, Períocas 51.1-5", "historico", "sin general con nombre en 280 (H6); «Asdrúbal el Beotarca» es de 149-146. Apiano, Libyca 127-132 sin abrir: los «seis días» y los «50.000» se quitaron", "Gran potencia del mar. En 146 cayó ante Escipión Emiliano tras un asedio largo, según las Períocas de Livio, que la dan capturada «por partes» y en el año setecientos desde su fundación. La mujer de su jefe Asdrúbal se arrojó a las llamas con sus hijos."))
+    carthago: f(SIN_C, h("Livio, Períocas 51.1-5", "historico", "sin general con nombre en 280 (H6); «Asdrúbal el Beotarca» es de 149-146. Apiano, Libyca 127-132 sin abrir: los «seis días» y los «50.000» se quitaron", "Gran potencia del mar. En 146 cayó ante Escipión Emiliano tras un asedio largo, según las Períocas de Livio, que la dan capturada «por partes» y en el año setecientos desde su fundación. La mujer de su jefe Asdrúbal se arrojó a las llamas con sus hijos.")),
+    perusia: f(SIN_C, h('Livio 28.45.18; Livio 10.30-37', 'probable', 'en 280 es etrusca e independiente en el juego: licencia de juego (su sumisión a Roma fue hacia 295) Cita de memoria, sin cotejar con el pasaje.', 'Ciudad etrusca sobre un monte. Según Livio, en 205 a.C. Perusia, Clusium y Rusellae ofrecieron abeto para construir las naves de Escipión.')),
+    clusium: f(SIN_C, h('Livio 28.45.18; Livio 2.9', 'probable', 'el abeto de 205 es de Livio 28.45; que Porsenna fuera de Clusium es tradición, no historia sólida Cita de memoria, sin cotejar con el pasaje.', 'Ciudad etrusca del interior. Según Livio, en 205 a.C. dio abeto para las naves de Escipión junto con Perusia y Rusellae.')),
+    rusellae: f(SIN_C, h('Livio 28.45.18; Livio 10.37', 'probable', 'el abeto de 205 es de Livio 28.45; la toma de 294 es de Livio 10.37 y se cita sin cotejar Cita de memoria, sin cotejar con el pasaje.', 'Ciudad etrusca cercana a la costa. Según Livio, Roma la tomó hacia 294 a.C.; en 205 dio abeto para las naves de Escipión.')),
+    neapolis: f(SIN_C, h('Livio 8.25-26; Livio 35.16', 'probable', 'dueño «Colonos griegos» en 280: licencia de juego (era ciudad griega aliada de Roma con pacto propio) Cita de memoria, sin cotejar con el pasaje.', 'Colonia griega de la bahía de Campania. Según Livio, en 326 a.C. hizo con Roma un pacto de igual a igual y, más tarde, aportó naves a su flota.')),
+    massalia: f(SIN_C, h('Polibio 3.95; Estrabón 4.1.5', 'probable', 'dueño «Colonos griegos»: licencia de juego (Massalia era ciudad libre y aliada de Roma) Cita de memoria, sin cotejar con el pasaje.', 'Colonia focense de la Galia. Según Polibio, fue aliada fiel de Roma y los romanos recibieron noticias de Aníbal por ella.')),
+    tarraco: f(SIN_C, h('Livio 21.61; Estrabón 3.4.7', 'probable', 'dueño «Íberos»: licencia de juego (el nombre y la base romana son de 218; antes era una población ibera) Cita de memoria, sin cotejar con el pasaje.', 'Puerto de la costa ibera. Según Livio, Cneo Escipión desembarcó en 218 a.C. y de aquí salió su campaña; Estrabón la llama fondeadero natural.')),
+    gades: f(SIN_C, h('Livio 28.37; Estrabón 3.5.3', 'probable', 'la rendición de 206 es de Livio 28.37; aquí es cartaginesa desde 280, licencia de juego Cita de memoria, sin cotejar con el pasaje.', 'Colonia fenicia fuera del Estrecho. Según Livio, se entregó a Roma en 206 a.C. tras la derrota púnica en Ilipa.')),
+    hadrumetum: f(SIN_C, h('Livio 30.25; Polibio 15.5', 'probable', 'el desembarco de Aníbal en 203 es de Livio 30.25; la riqueza y la guarnición son licencia de juego Cita de memoria, sin cotejar con el pasaje.', 'Puerto cartaginés del sur. Según Livio, Aníbal desembarcó aquí en 203 a.C. al volver de Italia y reunió tropas antes de Zama.')),
   };
 
   // ---- Hechos (D.EVENTS). D.EVENTS es una lista sin id. El id de la ficha es «<año>-<clave>» y se casa por el AÑO (cada año sale una sola vez).
@@ -138,6 +146,25 @@
     "ciudadania-capua": f(SIN_LEY, h("Livio, 8.14", "historico", "cifras y efectos: licencia de juego", "En 338 a.C. Roma da a Capua la ciudadanía sin voto (civitas sine suffragio): cargas romanas sin voto en Roma."))
   };
 
+  // ---- CN17: encargos del Senado y hitos (D.ENCARGOS, D.HITOS). Son mecánicas de juego: sin fuente antigua; cifras y plazos, licencia de juego. ----
+  const SIN_ENC = { sin: 'un encargo no tiene modelo 3D' };
+  const LIC = 'encargo inventado para jugar: cifras, plazos y premios son licencia de juego';
+  const encargo = {
+    'techo-30': f(SIN_ENC, h('Vitruvio 2.8 (casas de Roma); Livio 5.55 (reconstrucción tras los galos)', 'probable', LIC, 'Roma se amontona en casas altas y estrechas; el Senado quiere más hogares.')),
+    'agua-2': f(SIN_ENC, h('Frontino, Acueductos 4-5 (Apio Claudio, 312)', 'historico', LIC, 'Roma ya lleva agua con acueductos y fuentes; el pueblo la pide en sus calles.')),
+    'segundo-barrio': f(SIN_ENC, h('Varrón, Lengua latina 5.45-56 (las regiones y los vici)', 'probable', LIC, 'La ciudad se ordena en barrios (vici) con su capilla de cruce (compitum).')),
+    'barrio-sano': f(SIN_ENC, h('Varrón, Lengua latina 5.45-56', 'probable', LIC, 'Un barrio con agua, grano y cobijo prospera.')),
+    'arcas-300': f(SIN_ENC, h('Polibio 6.13 (el Senado y el tesoro)', 'probable', LIC, 'El Senado vigila el tesoro de la República.')),
+    'techo-80': f(SIN_ENC, h('Vitruvio 2.8', 'probable', LIC, 'Una ciudad grande necesita muchas viviendas.')),
+    'barrio-rico': f(SIN_ENC, h('sin fuente antigua: es una meta de juego', 'licencia de juego', LIC, 'Los barrios ricos tienen casas de buena posición, con patio, agua y comercio cerca. Es una meta de juego.'))
+  };
+  const hito = {
+    'casas-50': f(SIN_ENC, h('Vitruvio 2.8', 'probable', LIC, 'Medio centenar de hogares marca el paso de aldea a villa.')),
+    'barrio-3': f(SIN_ENC, h('Varrón, Lengua latina 5.45-56', 'probable', LIC, 'Un barrio de buena posición abre encargos mayores.')),
+    'tres-barrios': f(SIN_ENC, h('Varrón, Lengua latina 5.45-56', 'probable', LIC, 'Tu ciudad ya tiene tres barrios con nombre propio, cada uno con su capilla de cruce.')),
+    'primer-encargo': f(SIN_ENC, h('Polibio 6.13', 'probable', LIC, 'Has cumplido tu primer encargo: el Senado empieza a fiarse de ti.'))
+  };
+
   // ---- Facciones (D.FACTIONS). Sin modelo: solo un nombre y un color. Fuente: H1-ciudades.md y H1-hechos.md ----
   const SIN_F = { sin: 'sin modelo: la facción es un nombre y un color' };
   const faccion = {
@@ -175,7 +202,7 @@
     plata: f(SIN_T, h("Estrabón 3.2.10 (= Polibio 34.9.8-9)", "historico", "Polibio, citado por Estrabón, cuenta que las minas de plata de Cartago Nova empleaban a 40.000 obreros y daban al tesoro romano 25.000 dracmas al día; la cifra es ya de época romana" + MEC)),
     marmol: f(SIN_T, h("Estrabón 9.1.23; Estrabón 10.5.7", "probable", "Estrabón, hacia el cambio de era, describe las canteras del Pentélico y el Himeto junto a Atenas y la piedra de Paros, la mejor para escultura. Es testimonio posterior, pero las canteras son antiguas. Corinto y Pella: licencia de juego. El mármol de Luna (Carrara) es del siglo I a.C. y no se usa" + MEC)),
     purpura: f(SIN_T, h('Plinio, NH 9.127', 'por cotejar', 'tinte fenicio de Cartago' + MEC)),
-    maderanaval: f(SIN_T, h('', 'por cotejar', 'astilleros de Siracusa y Panormus sin cotejar' + MEC)),
+    maderanaval: f(SIN_T, h('Livio 28.45.18', 'probable', 'Livio cuenta que Perusia, Clusium y Rusellae dieron abeto para las naves de Escipión en 205 a.C. (H11c: el bien salió de Siracusa y Panormus, que no tienen fuente). Los efectos son licencia de juego.' + MEC)),
     pieles: f(SIN_T, h("Estrabón 5.1.8; Estrabón 5.1.12", "licencia de juego", "Estrabón cuenta que en Aquileya se comerciaban esclavos, ganado y pieles (5.1.8) y que la llanura del Po era rica en ganado (5.1.12). No nombra pieles de Mediolanum ni de Ambracia" + MEC))
   };
 
@@ -196,6 +223,8 @@
   // ---- Zonas del mapa (D.ZONAS, C6). Se casan por id. Los límites son agrupación de juego. ----
   const SIN_ZONA = { sin: 'una zona es una ficha de datos; no tiene modelo 3D' };
   const zona = {
+    etruria: f(SIN_ZONA, h('Livio 28.45; Estrabón 5.2', 'licencia de juego', 'Etruria es el país de los etruscos; su capital en el juego (Volsinii) y los límites son agrupación de juego')),
+    gallia: f(SIN_ZONA, h('Polibio 3.41-43; Estrabón 4.1', 'licencia de juego', 'Gallia agrupa aquí solo Massalia, la costa gala; la zona y su capital son agrupación de juego')),
     italia: f(SIN_ZONA, h('Polibio 2.14-35 (descripción de Italia); Estrabón 5', 'licencia de juego', 'Italia es el nombre romano de la península; los límites de la zona son agrupación de juego, licencia de juego (Mediolanum, gala en la época, entra por cercanía)')),
     sicilia: f(SIN_ZONA, h('Polibio 1.8-11 y 1.38-44; Estrabón 6.2', 'licencia de juego', 'Sicilia es el nombre antiguo de la isla; sus ciudades se agrupan por geografía y los límites de la zona son licencia de juego')),
     sardinia: f(SIN_ZONA, h('Estrabón 5.2; Polibio 1.79', 'licencia de juego', 'Sardinia es el nombre latino de Cerdeña; la zona es agrupación de juego, licencia de juego')),
@@ -210,7 +239,7 @@
     griego: f(SIN_I, h("Suetonio, De grammaticis 1; Cicerón, Bruto 72: Livio Andronico, griego de Tarento, enseña hacia 272 a.C.", "probable", "La Escuela como edificio es licencia de juego.")),
     apio: f(SIN_I, h("Livio 9.29; Frontino, De aquaeductu 4-6: Vía Apia y Aqua Appia (312 a.C.).", "probable", "Cifras: licencia de juego.")),
     castra: f(SIN_I, h("Polibio 6.27-39: campamento, castigos y premios.", "probable")),
-    quinque: f(SIN_I, h("Polibio 1.20: Roma copia una nave cartaginesa varada (260 a.C.); Tarento y otros aliados prestan naves (1.20.14).", "historico", "Cifra: licencia de juego.")),
+    quinque: f(SIN_I, h("Polibio 1.20: Roma copia una nave cartaginesa varada (260 a.C.); Tarento y otros aliados prestan naves (1.20.14).", "historico", "I5d: el apartado .14 es de memoria, por cotejar. Cifra: licencia de juego.")),
     corvus: f(SIN_I, h("Polibio 1.22: pasarela de abordaje (cotejado en H1).", "historico", "Cifra: licencia de juego.")),
     remeros: f(SIN_I, h("Polibio 1.21: remeros adiestrados en bancos sobre la arena.", "historico", "Cifra: licencia de juego.")),
     fasti: f(SIN_I, h("Livio 9.46: Cneo Flavio publica el derecho y el calendario (304 a.C.).", "probable")),
@@ -225,10 +254,10 @@
     derrota: f(SIN_I, h("Polibio 3.22-25: tratados de comercio Roma-Cartago (ya citado en D.RUTA).", "historico", "Cifras: licencia de juego.")),
     medicina: f(SIN_I, h("Plinio, NH 29.12-14: Arcágato, primer médico griego, 219 a.C.; apodado «verdugo»; Catón desconfiaba.", "probable", "Cifras: licencia de juego.")),
     magon: f(SIN_I, h("Plinio, NH 18.22-23 (y Varrón, RR 1.1.10): el Senado manda traducir los 28 libros de Magón tras 146 a.C.", "probable")),
-    perseo: f(SIN_I, h("Plutarco, Emilio Paulo 28; Polibio 31.23-25: los libros de Perseo pasan a los hijos de Paulo, entre ellos Escipión Emiliano (168 a.C.).", "probable")),
+    perseo: f(SIN_I, h("Plutarco, Emilio Paulo 28: los libros de Perseo pasan a los hijos de Paulo, entre ellos Escipión Emiliano (168 a.C.).", "probable", "I5d (17/11/2026): el pasaje de Plutarco se da por bueno de memoria. Polibio 31.23-25 se quitó de la cita: habla de Escipión y Paulo, pero no se pudo comprobar que mencione los libros; por cotejar.")),
     acoger: f(SIN_I, h("Plutarco, Catón 22; Gelio 6.14: embajada de Carnéades (155 a.C.).", "probable")),
     expulsar: f(SIN_I, h("Suetonio, De rhetoribus 1; Gelio 15.11: expulsión de 161 a.C.", "probable")),
-    hormigon: f(SIN_I, h("Livio 35.10: Pórtico Emilio (193 a.C.), primeros usos del hormigón.", "probable", "Cifra: licencia de juego."))
+    hormigon: f(SIN_I, h("Livio 35.10: Pórtico Emilio (193 a.C.).", "por cotejar", "I5d (17/11/2026): Livio solo da por seguro el pórtico y el muelle de 193; que fueran «primeros usos del hormigón» no está en Livio, es lectura moderna del opus caementicium (por cotejar). Cifra: licencia de juego."))
   };
   const edades = {
     E2: f(SIN_I, h("Polibio 1.5-6 (periodización de 264 a 219 a.C.).", "licencia de juego", "La división en edades es licencia de juego.")),
@@ -250,17 +279,28 @@
     aesernia: f(SIN_COL, h('Veleyo Patérculo 1.14.7', 'por cotejar', '263 a.C., latina: fecha y colonos (2.500, sin fuente, licencia de juego) por cotejar' + LJ))
   };
 
+  // ---- Leva y Campo de Marte (D.LEVA_FICHAS, CN16a). Cotejo: gobierno/historia/CN16-cotejo.md ----
+  const SIN_LEVA = { sin: 'la leva es una acción y el campo es una explanada: se dibujan con figuras de soldados y un suelo liso, sin modelo propio' };
+  const leva = {
+    dilectus: f(SIN_LEVA, h('Polibio 6.19-21 (cotejado 16/11/2026 en LacusCurtius, penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/6*.html); Livio 22.57.9-11 (cotejado en Perseus, 1999.02.0144)', 'licencia de juego', 'Polibio 6.19-21: cada año los cónsules convocan a los ciudadanos en edad militar; los tribunos militares los reparten en cuatro legiones y eligen por tribus, de cuatro en cuatro; el censo decide (los de menos de 400 dracmas van a la flota) y se jura. Es histórico, pero el alistamiento lo dirigen cónsules y tribunos, no un voto del Senado. Livio 22.57.9-11 (216 a.C., tras Cannas): leva desde los 17 años y 8.000 esclavos armados a costa del erario. Aquí la leva es un botón que se paga con grano y oro y alista milicia al momento, con tope por población: regla de juego.', 'En Roma los cónsules convocaban cada año a los ciudadanos en edad de servir y los tribunos los repartían en legiones, según su fortuna (Polibio 6.19-21). Aquí, cuando pulsas, un grupo de aldeanos toma las armas a cambio de grano y oro.')),
+    campo_marte: f(SIN_LEVA, h('Livio 2.5.2 (cotejado 16/11/2026 en Perseus, 1999.02.0026); Polibio 6.19.3-4 (leva en el Capitolio, no en el Campo)', 'licencia de juego', 'Livio 2.5.2: las tierras de los Tarquinios, entre la ciudad y el Tíber, quedaron consagradas a Marte y se llamaron Campo de Marte. Ese pasaje no dice que allí se reuniera o adiestrara a la tropa, y Polibio sitúa el alistamiento en el Capitolio. Ponerlo ante la puerta de cada ciudad, con una muestra de la guarnición, es licencia de juego.', 'El Campo de Marte era la gran llanura junto al Tíber, consagrada a Marte según Livio. Aquí, ante la puerta, ves una muestra de tu guarnición.')),
+    puertas: f(SIN_LEVA, h('Regla de juego; sin fuente cotejada para esta época (por cotejar: Livio 26.10, Aníbal ante Roma en 211 a.C.)', 'licencia de juego', 'Cerrar las puertas ante el enemigo es lo obvio en una ciudad amurallada, pero no se ha cotejado un pasaje de 280-146 a.C. Las cifras (+15 % de defensa, −20 % de oro del foro y del puerto, marchas un 25 % más lentas) son de equilibrio.', 'Con el enemigo cerca, una ciudad amurallada cerraba sus puertas: aguantaba mejor un asalto, pero el comercio y el paso de tropas se frenaban.')),
+    evocati: f(SIN_LEVA, h('Polibio 6.19.2 (cotejado 17/11/2026 en LacusCurtius, penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/6*.html)', 'licencia de juego', 'Polibio 6.19.2: el infante debe servir dieciséis campañas antes de los 46 años (veinte en caso de gran peligro); el jinete, diez. Que los soldados se licencien tras tres batallas y se asienten en la ciudad con grano es licencia de juego; el reparto de tierras a veteranos es sobre todo posterior (fin del siglo II a.C.).', 'Según Polibio, un infante romano servía hasta dieciséis campañas. Después volvía a su tierra: el juego deja que los veteranos se licencien y se asienten como vecinos.')),
+    triumphus: f(SIN_LEVA, h('Polibio 6.15.7-8 (cotejado 17/11/2026 en LacusCurtius, penelope.uchicago.edu/Thayer/E/Roman/Texts/Polybius/6*.html)', 'historico', 'Polibio 6.15.7-8: el triunfo, procesión en la que el general muestra sus logros a los ciudadanos, no puede celebrarse sin el consentimiento del Senado y los fondos que este da. Histórico. El umbral (200 bajas enemigas y tres veces más que las propias, o una ciudad conquistada), el coste en oro y la felicidad durante seis meses son licencia de juego.', 'El triunfo era el desfile del general vencedor por Roma. Según Polibio, sin el permiso del Senado y su dinero no había triunfo.'))
+  };
+
   // ---- Fiestas del Foro y del Templo (D.FIESTAS, CN13a). Se casan por id. Cotejo: gobierno/historia/CN13-cotejo.md ----
   const SIN_FIESTA = { sin: 'una fiesta no tiene modelo 3D propio; la ciudad solo cambia el aspecto del arca (CN15)' };
   const fiesta = {
-    ofrenda: f(SIN_FIESTA, h('Livio 22.9-10 (cotejado); pistas por comprobar: Livio 25.12 y 29.14, Ovidio, Fastos 4', 'licencia de juego', 'El Senado votó ofrendas y ritos tras el Trasimeno (Livio 22.9-10): eso es histórico. Pagarlas con lo que sobra, una al mes, y duplicar el don de un dios son reglas de juego.', 'Tras el desastre del Trasimeno, el Senado votó ofrendas y ritos a los dioses (Livio 22.9-10). Aquí puedes hacer una al mes, y el templo de tu ciudad favorece más a su dios.')),
-    juegos: f(SIN_FIESTA, h('Livio 22.9-10 (los ludi magni votados en 217); pistas por comprobar: Livio 25.12 (ludi Apollinares), Livio 29.14, Ovidio, Fastos 4', 'licencia de juego', 'Los ludi eran fiestas públicas reales; su precio ligado al ingreso, el reposo de seis meses y el calmar a una ciudad conquistada son reglas de juego. Los pasajes marcados como pista no se han comprobado.', 'Los ludi eran juegos públicos que pagaban los magistrados o el erario por voto del Senado (Livio 22.9-10). Aquí calman al pueblo y a una ciudad conquistada.'))
+    ofrenda: f(SIN_FIESTA, h('Livio 22.9-10; Livio 25.12; Livio 29.14.14 (cotejados 16/11/2026 en Perseus, 1999.02.0144); Ovidio, Fastos 4 por cotejar (no se pudo abrir)', 'licencia de juego', 'El Senado votó ofrendas y ritos tras el Trasimeno (Livio 22.9-10) y fundó los juegos de Apolo en 212 por consejo de los libros sibilinos (25.12): eso es histórico. Pagarlas con lo que sobra, una al mes, y duplicar el don de un dios son reglas de juego.', 'Tras el desastre del Trasimeno, el Senado votó ofrendas y ritos a los dioses (Livio 22.9-10). Aquí puedes hacer una al mes, y el templo de tu ciudad favorece más a su dios.')),
+    juegos: f(SIN_FIESTA, h('Livio 22.9-10 (ludi magni, 217); Livio 25.12.12-15 (ludi Apollinares, 212: el Senado vota los juegos y da al pretor 12.000 ases y dos reses); Livio 29.14.14 (Megalesias, 12 de abril de 204 a.C.); cotejados 16/11/2026 en Perseus (1999.02.0144); Ovidio, Fastos 4 por cotejar (no se pudo abrir)', 'licencia de juego', 'Los ludi eran fiestas públicas reales que el Senado votaba y el erario pagaba en parte (25.12.12), con aportación voluntaria del pueblo (25.12.14). Su precio ligado al ingreso, el reposo de seis meses y el calmar a una ciudad conquistada son reglas de juego. Ovidio no se ha comprobado y no se usa para nada.', 'Los ludi eran juegos públicos que pagaban los magistrados o el erario por voto del Senado (Livio 22.9-10). Aquí calman al pueblo y a una ciudad conquistada.'))
   };
 
   const SIN_REM = { sin: 'un remedio no tiene modelo 3D propio: el dique usa el muro de 0 A.D. como figura provisional (js/gfx/city3d.js, CN13b) y el tejado lo pintará CN15' };
   const remedio = {
-    dique: f(SIN_REM, h('Livio 24.9; Livio 30.38 (crecidas del Tíber, por cotejar); sin fuente abierta de diques en 280-146', 'licencia de juego', 'Las crecidas del Tíber están en Livio, pero no se ha comprobado que Roma levantara diques o malecones en esta época: los grandes muros de contención son posteriores. Es una regla de juego para dar remedio a la ribera baja.', 'El Tíber se desbordaba a menudo y anegaba la parte baja de Roma; Livio lo cuenta varias veces. Aquí puedes levantar un dique en la orilla para guardar las casas, aunque no consta que se hiciera así entonces.')),
-    tejas: f(SIN_REM, h('Plinio, Historia natural 16.36 (por cotejar: Roma cubierta con tablillas de madera hasta la guerra de Pirro)', 'por cotejar', 'Se cita la pista de Plinio, sin abrir aquí: según ella Roma se cubrió con tablillas de madera hasta la guerra de Pirro (280-275) y después vendrían las tejas. Techar por barrios, su coste y su plazo son reglas de juego.'))
+    dique: f(SIN_REM, h('Livio 24.9.6 (214 a.C.) y 30.38.10 (201 a.C.), cotejados 16/11/2026 en Perseus (1999.02.0144); sin fuente de diques en 280-146', 'licencia de juego', 'Livio 24.9.6: dos grandes crecidas ese año; el Tíber inundó los campos con muchas pérdidas de edificios, ganado y vidas. Livio 30.38.10: lluvia extraordinaria, el Tíber anegó el Circo y los juegos apolinares casi se trasladan al templo de Venus Ericina. Las crecidas son históricas; que Roma levantara diques o malecones en esta época no consta y los grandes muros de contención son posteriores. Es una regla de juego para dar remedio a la ribera baja.', 'El Tíber se desbordaba a menudo y anegaba la parte baja de Roma; Livio lo cuenta varias veces. Aquí puedes levantar un dique en la orilla para guardar las casas, aunque no consta que se hiciera así entonces.')),
+    tejas: f(SIN_REM, h('Plinio, Historia natural 16.36 (numeración Loeb; 16.15 en la de Bostock), cotejado 16/11/2026 en Perseus, 1999.02.0137, citando a Cornelio Nepote', 'probable', 'Plinio dice, según Cornelio Nepote, que Roma se cubrió solo con tablillas de madera hasta la guerra de Pirro, unos 470 años desde la fundación. El pasaje no dice que después vinieran las tejas ni que hubiera remedios contra incendios, y no se ha contrastado con la arqueología: por eso, probable y no histórico. Techar por barrios, su coste y su plazo son reglas de juego.')),
+    cubos: f(SIN_REM, h('Livio 39.14.10 (186 a.C.) y 9.46.3, cotejados 16/11/2026 en Perseus; Digesto 1.15 (vigiles, época imperial) por cotejar. Livio 5.7 no sirve: cuenta el incendio de las obras de asedio de Veyes', 'licencia de juego', 'Livio 39.14.10: en 186 a.C. los triunviros de policía ponen vigilancia en la ciudad y cinco hombres ayudan a prevenir incendios. Livio 9.46.3 nombra a un triunviro nocturno. Eso apoya que había vigilancia contra el fuego, no que se apagara con cubos y vecinos; eso es plausible, no consta. Los vigiles de Augusto son posteriores a 146 a.C. y que los ayudaran esclavos públicos no se ha comprobado. Las probabilidades, el coste en oro y la distancia al agua son una regla de juego.', 'Sin bomberos como los de hoy: Roma tenía magistrados de vigilancia nocturna (Livio 39.14), y es de suponer que ante un incendio acudían los vecinos con cubos de agua del río o las fuentes. Aquí puedes mandar cubos y salvarás más casas cuanto más cerca esté el agua; la guardia urbana de los vigiles llegaría mucho más tarde.')),
   };
 
   // ---- Pueblos (D.PUEBLO_TIPOS, J3). Sin modelo. La vida rural (aldeas, villas, pesca) existió; el pueblo como hueco que se funda y sube de nivel es invención del juego ----
@@ -290,7 +330,75 @@
     zanja: f(SIN_PZ, h('Livio 1.38.6; Livio 1.56.2; Vitruvio 1.4.11-12', 'probable', 'Livio atribuye a Tarquinio Prisco el desagüe del Foro con cloacas; Vitruvio recomienda sanear los sitios encharcados. Que reduzca la ruina de la crecida es licencia de juego'))
   };
 
-  R.fichas = { terreno, piezaTerreno, edificio, tropa, fiesta, remedio, ciudad, hecho, mision, ley, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+
+  // ---- Sitios de los caminos (D.SITIOS, GM15b). Fuente: gobierno/historia/sitios-de-los-caminos.md (ficha GM15a). Sin `texto`: las citas no cotejadas NO se enseñan, en pantalla solo el nombre ----
+  const SIN_SIT = { sin: 'un sitio del camino es un dato de terreno; no tiene modelo 3D propio' };
+  const LJ_SIT = ' · licencia de juego: el camino es una recta entre ciudades y el punto del sitio es su proyección sobre ella';
+  // s(fuente, etiqueta del estudio ('h' histórico, 'p' probable), cotejada, nota). Histórico sin pasaje cotejado queda «por cotejar» (la regla del registro: «historico» = cotejado)
+  const s = (fuente, et, cot, nota) => f(SIN_SIT, h(fuente, et === 'p' ? 'probable' : cot ? 'historico' : 'por cotejar', (nota ? nota + ' · ' : '') + 'estudio GM15a: ' + (et === 'p' ? 'probable' : 'histórico') + (cot ? ', pasaje cotejado' : ', pasaje de memoria, sin cotejar') + LJ_SIT));
+  const BA = 'Barrington Atlas 2000 (de memoria, no se pudo abrir)';
+  const sitio = {
+    tiber: s(BA + ', mapa 43', 'p', false, 'vado del valle del Tíber; ningún combate del periodo localizado aquí'),
+    vadimon: s('Polibio 2.20; Livio, Per. 12 (de memoria)', 'p', false, 'Polibio 2.20 solo menciona la derrota de boyos y etruscos en 283; el lugar exacto del lago se discute'),
+    ciminio: s('Livio 9.36-37 (de memoria)', 'h', false, 'Fabio Ruliano lo cruzó en 310, antes del periodo: vale como terreno'),
+    albanos: s(BA, 'p', false, 'colinas volcánicas; sin batalla del periodo conocida'),
+    liris: s('Livio 22.13-15 (de memoria)', 'p', false, 'Aníbal lo dejó atrás en 217; la identificación del vado es de memoria'),
+    massico: s('Polibio 3.90-94', 'h', true, 'Fabio guardó los pasos en 217; Aníbal salió con la argucia de los bueyes con fuego'),
+    trasimeno: s('Polibio 3.82-85', 'h', true, 'emboscada de Aníbal, 217: franja estrecha entre colinas y lago, con niebla'),
+    arno: s('Polibio 3.78-79', 'p', true, 'marcha de tres días por marismas en 217; que fuera el Arno lo da la tradición, lo cotejado es la marisma'),
+    trebia: s('Polibio 3.67-74', 'h', true, 'batalla del Trebia, 218; el cauce de orillas empinadas escondió la emboscada (3.71)'),
+    ticino: s('Polibio 3.64-65', 'h', true, 'choque de caballería, 218; Polibio no da el lugar exacto'),
+    alpes: s('Polibio 3.47-56', 'h', true, 'marcha de Aníbal, 218; las lomas del juego suavizan los Alpes'),
+    rodano: s('Polibio 3.42-43', 'h', true, 'cruce con balsas, 218; el vado exacto se discute'),
+    benevento: s('Plutarco, Pirro 25 (de memoria)', 'h', false, 'batalla de Benevento, 275: Curio Dentato vence a Pirro'),
+    ausculum: s('Plutarco, Pirro 21 (cotejado vía la ficha heraclea-280)', 'p', true, 'batalla de Ausculum, 279; el lugar exacto se discute y queda lejos de la recta (más de 0,5 grados)'),
+    siris: s('Plutarco, Pirro 16-17 (cotejado vía la ficha heraclea-280)', 'h', true, 'batalla de Heraclea, 280, vado del Siris; llanura de trigo'),
+    silaro: s('Livio 25.19-20 (de memoria)', 'p', false, 'combate de Aníbal con Centenio, 212; la identificación con el Sele es de memoria; el camino 6 es licencia de estrecho'),
+    sila: s('Estrabón 6.1.9 (de memoria)', 'p', false, 'bosque de pino para la brea; sin batalla del periodo'),
+    aspromonte: s(BA, 'p', false, 'sierra que acaba en el estrecho; sin batalla del periodo'),
+    longano: s('Polibio 1.9', 'h', true, 'Hierón derrotó a los mamertinos junto al Longano (hacia 269); llano de trigo'),
+    simeto: s('Estrabón 6.2.3 (de memoria)', 'p', false, 'llanura de Catania, vado grande; trigal'),
+    anapo: s('Livio 24.35 (de memoria)', 'p', false, 'cartagineses e Himilcón lucharon cerca en 213; el sitio es de memoria'),
+    nebrodi: s(BA, 'p', false, 'selva interior de Sicilia; sin batalla del periodo conocida'),
+    himera: s('Polibio 1.24', 'h', true, 'campamento romano entre el Paropo y las termas de Himera, 258'),
+    panormus: s('Polibio 1.40', 'h', true, 'batalla de Panormus, 250: Metelo atrae a Hasdrúbal al otro lado del río y captura diez elefantes'),
+    hibleos: s(BA, 'p', false, 'mesetas calizas; sin batalla del periodo'),
+    gela: s('Diodoro 13.108-111 (de memoria)', 'p', false, 'batalla de Gela, 405, antes del periodo: vale como terreno; trigal'),
+    salso: s('Diodoro 19.109 (de memoria)', 'p', false, 'Agátocles vencido allí en 311, antes del periodo: vale como terreno'),
+    toro: s('Polibio 1.17-19', 'h', true, 'asedio romano de Agrigento, 262; Hanón ocupó la colina Toro (1.19.5)'),
+    halico: s('Diodoro (sin capítulo; de memoria)', 'p', false, 'frontera clásica sicula y cartaginesa; sin batalla del periodo'),
+    lilybaeum: s('Polibio 1.42-45', 'h', true, 'asedio romano, 250-249: fosos y empalizada entre campamentos'),
+    hercte: s('Polibio 1.56 (de memoria)', 'h', false, 'campamento de Amílcar, hacia 247-244; el pasaje no se cotejó'),
+    erice: s('Polibio 1.55-58 (de memoria)', 'h', false, 'ocupado por Amílcar contra Roma en 244; cotejo no logrado'),
+    drepana: s('Polibio 1.46-55 (de memoria)', 'p', false, 'zona de la batalla naval de Drepana, 249; la tierra es llana'),
+    tarraco: s('Polibio 3.76; Livio 21.60-61 (de memoria)', 'h', false, 'Cneo Escipión vence a Hannón en Cissa, 218, y hace de Tarraco su base'),
+    ebro: s('Livio 23.28-29 (de memoria)', 'h', false, 'batalla de Dertosa, 215; el resultado se discute (victoria romana o inconcluyente)'),
+    valencia: s('Estrabón 3.4.6 (de memoria)', 'p', false, 'huerta fértil; sin batalla del periodo localizada'),
+    sucro: s('Estrabón 3.4.6 (de memoria)', 'p', false, 'motín de las tropas de Escipión junto al Sucro, 206 (Livio 28.24, de memoria); la batalla del Sucro es del 75 a.C., posterior al periodo'),
+    esparto: s('Estrabón 3.4.9 (de memoria)', 'h', false, 'llanura de esparto al interior de Cartagena'),
+    tader: s('Plinio, NH 3.19; Livio (de memoria)', 'p', false, 'combates menores de la guerra de Iberia; nada cotejado'),
+    aous: s('Livio 32.10-12; Plutarco, Flaminino 3-5 (de memoria)', 'h', false, 'batalla del Aous, 198 (Filipo V y Flaminino); el lugar exacto se discute y queda lejos de la recta (más de 1 grado)'),
+    cinoscefalas14: s('Polibio 18.19-27', 'h', true, 'batalla de Cinoscéfalas, 197: colinas «cabezas de perro» rotas y ásperas (18.22.9); queda lejos de la recta (medio grado)'),
+    tempe14: s('Polibio 18.27', 'h', true, 'Filipo se retira hacia Tempe tras Cinoscéfalas'),
+    termopilas15: s('Livio 36.15-19; Apiano, Siria 17-20 (de memoria)', 'h', false, 'batalla de las Termópilas, 191: Acilio Glabrión supera a Antíoco III rodeando por el monte'),
+    parnaso: s(BA, 'p', false, 'sierras entre Fócida y Beocia; sin batalla del periodo'),
+    beocia: s(BA, 'p', false, 'llanura y trigal; Beocia es llano de trigo notable'),
+    tempe16: s('Polibio 18.27; Livio 44.6 (de memoria)', 'h', true, 'paso clásico entre Macedonia y Tesalia (lo cotejado es Polibio 18.27)'),
+    cinoscefalas16: s('Polibio 18.19-27', 'h', true, 'batalla de 197; ver el camino 14'),
+    termopilas16: s('Livio 36.15-19; Apiano, Siria 17-20 (de memoria)', 'h', false, 'batalla de 191; ver el camino 15')
+  };
+
+  // ---- Monumentos del mapa (D.MONUMENTOS, C9). Dibujados por código, sin archivo de arte; ficha larga en gobierno/historia/C9-egipto.md ----
+  const POR_CODIGO = { sin: 'dibujado por código en js/gfx/map3d.js (formas simples, sin archivo de arte ni licencia ajena)' };
+  const LJ_MON = ' · licencia de juego: muy agrandado para que se vea en el mapa';
+  const monumento = {
+    giza: f(POR_CODIGO, h('Heródoto, Historias 2.124-127 y 2.134; Diodoro Sículo 1.63-64; Estrabón, Geografía 17.1.33', 'historico', 'C9: pasajes cotejados en Perseus y LacusCurtius el 17/11/2026; la fecha moderna (h. 2600-2500 a.C.) es de memoria' + LJ_MON,
+      'Las tres grandes pirámides de Giza, de Keops, Kefrén y Micerino, ya tenían más de dos mil años cuando Roma luchaba contra Pirro. Los griegos viajaban a verlas y las contaban entre las maravillas del mundo. En el mapa se dibujan enormes para que se vean: en la realidad serían apenas un punto.')),
+    faro: f(POR_CODIGO, h('Estrabón, Geografía 17.1.6; Plinio, Historia Natural 36.83 (36.18 en la numeración de Bostock); Luciano, Cómo debe escribirse la historia 62 (sin cotejar); forma de tres cuerpos por Ibn al-Shaykh y monedas romanas', 'probable', 'C9: Estrabón y Plinio cotejados el 17/11/2026; la fecha de acabado se discute entre 283 y 279; la forma de tres cuerpos y el fuego en lo alto son reconstrucción posterior' + LJ_MON,
+      'El Faro de Alejandría, obra del arquitecto Sóstrato de Cnidos, se acabó hacia 280 a.C. (las fuentes discuten entre 283 y 279). Era una torre blanca y de varios pisos que guiaba a los barcos hacia el puerto. Su forma de tres cuerpos es una reconstrucción hecha con descripciones árabes y monedas romanas posteriores.'))
+  };
+
+  R.fichas = { monumento, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -302,11 +410,14 @@
     zona: { tabla: 'ZONAS', numericos: [], textos: ['n'] },
     region: { tabla: 'REGIONES', numericos: ['hasta'], textos: ['n', 'capitalRival'] },
     modo: { tabla: 'MODOS', numericos: [], textos: ['n'] },
+    sitio: { tabla: 'SITIOS', numericos: ['c', 'p'], textos: ['n', 'r'] },
     terreno: { tabla: 'TERRENOS', numericos: [], textos: ['n', 'd'] },
     piezaTerreno: { tabla: 'PIEZAS_TERRENO', numericos: [], textos: ['n', 'd'] },
     colonia: { tabla: 'COLONIAS', numericos: ['lon', 'lat', 'anio', 'colonos'], textos: ['n', 'h', 'tipo'] },
     mision: { tabla: 'MISIONES', numericos: ['desde', 'plazo'], textos: ['n', 'texto'] },
     ley: { tabla: 'LEYES', numericos: [], textos: ['n', 'texto'] },
+    encargo: { tabla: 'ENCARGOS', numericos: ['plazo'], textos: ['n', 'texto'] },
+    hito: { tabla: 'HITOS', numericos: [], textos: ['n', 'texto'] },
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },
     mejora: { tabla: 'FORJA', numericos: ['time'], mapas: ['cost'], textos: ['n', 'ef'] },
     tipo: { tabla: 'TIPOS', numericos: [], textos: ['n', 'i', 'd'] },
@@ -315,7 +426,9 @@
     invest: { tabla: 'INVEST', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n', 'i', 'rama'] },
     edad: { tabla: 'EDADES', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n'] },
     fiesta: { tabla: 'FIESTAS', numericos: ['mult', 'min', 'dura', 'reposo'], textos: ['n', 'i', 'd'] },
-    remedio: { tabla: 'REMEDIOS', numericos: [], textos: ['n', 'i', 'd'] }
+    leva: { tabla: 'LEVA_FICHAS', numericos: [], textos: ['n', 'i', 'd'] },
+    remedio: { tabla: 'REMEDIOS', numericos: [], textos: ['n', 'i', 'd'] },
+    monumento: { tabla: 'MONUMENTOS', numericos: ['lon', 'lat'], textos: ['n'] }
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */

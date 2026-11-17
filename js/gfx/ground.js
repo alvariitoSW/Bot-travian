@@ -1,6 +1,6 @@
 /* AQVILA — suelo con texturas reales mezcladas (hierba, hierba seca, tierra, empedrado) y agua animada.
    Texturas de 0 A.D. (Wildfire Games, CC BY-SA 3.0). */
-import { THREE } from './models.js';
+import { THREE, uTime } from './models.js';
 import { loadStaticIndex } from './statics.js';
 import { azar, fbm, altura, RIO, NIVEL_RIO } from './mundo.js';
 import { X0, Z0, LADO, N_CALOR } from '../ciudad.js';
@@ -54,18 +54,35 @@ export function waterMesh(w, h, rep) {
 
 /* Terreno del mapa de campaña: los colores de vértice siguen mandando (llanura, sequedad, roca, nieve) y la textura de hierba o
    de hierba seca (0 A.D.) solo añade el grano, normalizado por su media para no oscurecer ni cambiar el tono del conjunto.
-   El atributo aT = (sequedad, fuerza). Sin texturas cargadas (uOn = 0) se ve igual que antes. */
-export function mapaMaterial() {
-  const m = new THREE.MeshLambertMaterial({ vertexColors: true }), U = { tA: { value: null }, tB: { value: null }, uOn: { value: 0 }, uS: { value: 0.42 } };
+   El atributo aT = (sequedad, fuerza, distancia firmada a la costa en casillas). Sin texturas cargadas (uOn = 0) se ve igual que antes.
+   C4: tW es la máscara de agua (ríos y lagos, 255 = agua, ~60 = ribera) a doble resolución de la malla; uW = (ancho de casilla, alto, ancho y alto de tW).
+   Con ella y con la distancia a la costa el sombreador pinta ríos, lagos, riberas y playa sin añadir triángulos. */
+export function mapaMaterial(tW, uW, uO) {   // uO: esquina del marco del mapa en x, z (C9; sin ella, 0,0)
+  const m = new THREE.MeshLambertMaterial({ vertexColors: true }), U = { tA: { value: null }, tB: { value: null }, uOn: { value: 0 }, uS: { value: 0.42 }, tW: { value: tW || null }, uW: { value: uW || new THREE.Vector4(1, 1, 1, 1) }, uO: { value: uO || new THREE.Vector2(0, 0) }, uTime };
   m.userData.U = U;
   m.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, U);
-    sh.vertexShader = 'attribute vec2 aT; varying vec2 vT; varying vec2 vXZ;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vT = aT; vXZ = (modelMatrix * vec4(position, 1.0)).xz;');
-    sh.fragmentShader = 'uniform sampler2D tA, tB; uniform float uOn, uS; varying vec2 vT; varying vec2 vXZ;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+    sh.vertexShader = 'attribute vec3 aT; varying vec3 vT; varying vec2 vXZ;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vT = aT; vXZ = (modelMatrix * vec4(position, 1.0)).xz;');
+    sh.fragmentShader = 'uniform sampler2D tA, tB, tW; uniform float uOn, uS, uTime; uniform vec4 uW; uniform vec2 uO; varying vec3 vT; varying vec2 vXZ;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
       if (uOn > 0.5) {
         vec2 u = vXZ * uS;
         vec3 d = mix(texture2D(tA, u).rgb, texture2D(tB, u * 0.8 + 0.37).rgb, vT.x), mu = mix(texture2D(tA, u, 12.0).rgb, texture2D(tB, u * 0.8, 12.0).rgb, vT.x);
         diffuseColor.rgb *= mix(vec3(1.0), clamp(d / max(mu, vec3(0.05)), 0.55, 1.6), vT.y * 0.85);
+      }
+      {
+        float rz = sin(vXZ.x * 7.3 + vXZ.y * 3.1) * sin(vXZ.y * 9.1 - vXZ.x * 2.3) * 0.5 + 0.5;
+        float sd = vT.z;
+        float pl = smoothstep(0.0, 0.1, sd) * (1.0 - smoothstep(0.5, 1.05, sd + (rz - 0.5) * 0.35));
+        vec3 arena = mix(vec3(0.93, 0.85, 0.65), vec3(0.78, 0.69, 0.50), 1.0 - smoothstep(0.04, 0.4, sd));
+        diffuseColor.rgb = mix(diffuseColor.rgb, arena, pl * 0.9);
+        vec2 uvw = vec2(((vXZ.x - uO.x) / uW.x * 2.0 + 0.5) / uW.z, ((vXZ.y - uO.y) / uW.y * 2.0 + 0.5) / uW.w);
+        float mw = texture2D(tW, clamp(uvw, 0.0, 1.0)).r;
+        float agua = smoothstep(0.36, 0.56, mw), rib = smoothstep(0.07, 0.2, mw) * (1.0 - agua);
+        diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(0.43, 0.50, 0.27), vec3(0.58, 0.50, 0.33), rz), rib * 0.75);
+        float orilla = agua * (1.0 - smoothstep(0.56, 0.9, mw));
+        float brillo = sin(vXZ.x * 55.0 + vXZ.y * 31.0 + uTime * 1.5) * sin(vXZ.y * 47.0 - vXZ.x * 23.0 - uTime * 1.1);
+        vec3 aguaC = mix(vec3(0.17, 0.46, 0.64), vec3(0.42, 0.74, 0.80), orilla * 0.8) + vec3(0.07) * smoothstep(0.35, 1.0, brillo);
+        diffuseColor.rgb = mix(diffuseColor.rgb, aguaC, agua * 0.94);
       }`);
   };
   return m;

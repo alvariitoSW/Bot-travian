@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Aqvila · Hoja inferior</title>
+<style>
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a;--panel:#141c26;--panel2:#1c2735}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--noche);color:var(--marmol);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;overflow:hidden;-webkit-user-select:none;user-select:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;min-height:44px;min-width:44px;touch-action:manipulation}
+#app{position:fixed;inset:0;max-width:390px;margin:0 auto}
+/* MAPA */
+#mapa{position:absolute;inset:0;width:100%;height:100%}
+#barra{position:absolute;top:0;left:0;right:0;display:flex;align-items:center;gap:8px;padding:8px 10px;background:linear-gradient(#0b1016ee,#0b101600);z-index:5}
+#barra .titulo{flex:1;font-size:13px;color:var(--oro);font-weight:700;letter-spacing:.04em}
+.pill{background:var(--panel2);border:1px solid #2a3850;border-radius:8px;padding:0 10px;font-size:12px;color:var(--marmol);display:flex;align-items:center;min-height:44px}
+.pill b{color:var(--oro);margin-left:4px}
+.nodo{cursor:pointer}
+.nodo circle.halo{fill:none;stroke:var(--oro);stroke-width:2;opacity:0}
+.nodo.sel circle.halo{opacity:1}
+.nodo text{font-size:11px;fill:var(--marmol);paint-order:stroke;stroke:#0b1016;stroke-width:3px;pointer-events:none}
+.ruta{fill:none;stroke-linecap:round;cursor:pointer}
+.ruta.ok{stroke:var(--bronce);stroke-width:3;stroke-dasharray:6 5;animation:flujo 1.2s linear infinite}
+.ruta.cortada{stroke:#5a4a4a;stroke-width:2;stroke-dasharray:2 6}
+.ruta.sel{stroke:var(--oro);stroke-width:4}
+.ruta.protegida{stroke:var(--oliva)}
+@keyframes flujo{to{stroke-dashoffset:-22}}
+.marcha{cursor:pointer}
+.marcha .cuerpo{fill:var(--rojo);stroke:var(--marmol);stroke-width:1.2}
+.marcha.enemiga .cuerpo{fill:var(--terra)}
+.marcha.sel .cuerpo{stroke:var(--oro);stroke-width:2.5}
+/* HOJA INFERIOR */
+#hoja{position:absolute;left:0;right:0;bottom:0;background:var(--panel);border-radius:8px 8px 0 0;box-shadow:0 -6px 24px #000a;z-index:10;transition:height .25s ease;height:0;display:flex;flex-direction:column;overflow:hidden;border-top:1px solid #2a3850}
+#hoja.oculta{display:none}
+#agarre{height:44px;display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none;flex-shrink:0}
+#agarre i{display:block;width:56px;height:5px;border-radius:3px;background:var(--piedra)}
+#hoja .cab{display:flex;align-items:center;gap:8px;padding:0 14px 8px;flex-shrink:0}
+#hoja .cab h2{flex:1;font-size:16px;color:var(--oro)}
+#hoja .cab .x{font-size:20px;color:var(--piedra)}
+#hoja .cuerpo{flex:1;overflow-y:auto;padding:0 14px 20px;-webkit-overflow-scrolling:touch}
+.fila{display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid #22304a;font-size:13px}
+.fila .k{color:var(--piedra);flex:1}
+.fila .v{font-weight:700}
+.v.pos{color:var(--oliva)} .v.neg{color:var(--terra)}
+.btns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.btn{background:var(--panel2);border:1px solid #2f4262;border-radius:8px;padding:10px;font-size:13px;text-align:left;display:flex;gap:8px;align-items:center;min-height:48px}
+.btn svg{width:22px;height:22px;flex-shrink:0;stroke:var(--oro);fill:none;stroke-width:1.8}
+.btn.rojo{border-color:var(--rojo);background:#2a1214}
+.btn.principal{background:var(--rojo);border-color:var(--rojo);font-weight:700;justify-content:center;grid-column:1/-1;text-align:center}
+.sub{font-size:12px;color:var(--piedra);margin:4px 0 2px}
+.nota{font-size:12px;color:var(--piedra);line-height:1.4;margin-top:8px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:12px;background:#0b1016;border:1px solid #2a3850;border-radius:6px;padding:4px 8px;margin:2px}
+/* CIUDAD (pantalla completa) */
+#ciudad{position:absolute;inset:0;background:var(--noche);z-index:20;display:none;flex-direction:column}
+#ciudad.abierta{display:flex}
+#ciudad .top{display:flex;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid #22304a;flex-shrink:0}
+#ciudad .top h1{flex:1;font-size:16px;color:var(--oro)}
+#ciudad .salir{background:var(--rojo);border-radius:8px;padding:0 14px;font-weight:700;font-size:13px;color:var(--marmol);min-height:44px}
+#ciudad .cuerpo{flex:1;overflow-y:auto;padding:12px 14px 24px}
+.solares{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.solar{background:var(--panel);border:1px solid #2a3850;border-radius:8px;min-height:72px;padding:8px;font-size:12px;display:flex;flex-direction:column;justify-content:space-between}
+.solar b{color:var(--oro);font-size:13px}
+.solar.vacio{color:var(--piedra);border-style:dashed}
+.solar svg{width:26px;height:26px;stroke:var(--oro);fill:none;stroke-width:1.8}
+.resumen{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.resumen span{background:var(--panel);border-radius:6px;padding:6px 8px;font-size:12px}
+.resumen b{color:var(--oro)}
+h3{font-size:13px;color:var(--oro);margin:14px 0 6px}
+/* AVISO */
+#aviso{position:absolute;left:12px;right:12px;top:64px;background:#0b1016;border:1px solid var(--oro);border-radius:8px;padding:10px 12px;font-size:13px;z-index:30;display:none}
+#aviso.on{display:block}
+#aviso.bajo{top:auto;bottom:12px}
+/* Senado */
+.votos{display:flex;gap:6px;margin-top:6px}
+.votos span{flex:1;text-align:center;padding:6px;border-radius:6px;background:#0b1016;font-size:12px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <!-- MAPA: ocupa toda la pantalla -->
+  <svg id="mapa" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" aria-label="Mapa de Italia y el Mediterráneo">
+    <defs>
+      <pattern id="pmar" width="26" height="26" patternUnits="userSpaceOnUse"><path d="M0 13h26" stroke="#15202d" stroke-width="1"/></pattern>
+    </defs>
+    <rect width="390" height="844" fill="#0b1016"/>
+    <rect width="390" height="844" fill="url(#pmar)"/>
+    <!-- Tierra (mar y costa, en trazo sencillo) -->
+    <path d="M40 300 Q120 250 170 280 Q200 320 190 380 Q210 430 230 470 Q250 520 235 560 Q215 600 190 640 Q175 700 200 760 L160 780 Q130 720 140 650 Q120 600 110 550 Q70 500 80 440 Q50 380 40 300Z" fill="#17222e" stroke="#2a3850" stroke-width="1"/>
+    <path d="M200 60 Q250 90 260 150 Q300 200 330 260 L390 260 L390 40 L200 40Z" fill="#17222e" stroke="#2a3850" stroke-width="1"/>
+    <text x="300" y="120" fill="#2c3d55" font-size="13" letter-spacing="4">MARE NOSTRUM</text>
+    <text x="40" y="200" fill="#2c3d55" font-size="11" letter-spacing="3">GALIA</text>
+    <text x="250" y="700" fill="#2c3d55" font-size="11" letter-spacing="3">MAR JÓNICO</text>
+    <!-- Rutas (se dibujan por encima con las marchas) -->
+    <g id="rutas"></g>
+    <g id="nodos"></g>
+    <g id="marchas"></g>
+  </svg>
+
+  <!-- Barra superior -->
+  <div id="barra">
+    <div class="titulo" id="tituloMapa">MAPA · Roma</div>
+    <div class="pill">Oro<b id="oro">1.240</b></div>
+    <div class="pill">Mes<b id="mes">III</b></div>
+  </div>
+
+  <div id="aviso" role="status"></div>
+
+  <!-- HOJA INFERIOR: objeto seleccionado -->
+  <div id="hoja" class="oculta" aria-label="Acciones del objeto">
+    <div id="agarre" title="Arrastra para cambiar la altura"><i></i></div>
+    <div class="cab"><h2 id="hojaTitulo"></h2><button class="x" id="hojaCerrar" aria-label="Cerrar">✕</button></div>
+    <div class="cuerpo" id="hojaCuerpo"></div>
+  </div>
+
+  <!-- CIUDAD: pantalla completa -->
+  <div id="ciudad" role="dialog" aria-label="Ciudad">
+    <div class="top">
+      <h1 id="ciudadTitulo">Roma</h1>
+      <button class="salir" id="salirMapa">Salir al mapa</button>
+    </div>
+    <div class="cuerpo">
+      <div class="resumen">
+        <span>Oro <b id="cOro">+18</b>/mes</span>
+        <span>Mercado <b>3</b></span>
+        <span>Rutas <b id="cRutas">1/2</b></span>
+      </div>
+      <h3>Solares</h3>
+      <div class="solares" id="solares"></div>
+      <h3>Rutas que salen de aquí</h3>
+      <div id="cRutasLista"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* ---------- Datos de mentira, con ciudades reales ---------- */
+  var CIUDADES = {
+    roma:      { n: "Roma",       x: 150, y: 400, estrellas: 3, mercado: 3, duenio: "yo",     solares: ["Foro", "Mercado", "Templo", "", "", ""] },
+    capua:     { n: "Capua",      x: 185, y: 470, estrellas: 3, mercado: 3, duenio: "aliada",  solares: ["Mercado", "Cuartel", "", "", "", ""] },
+    tarentum:  { n: "Tarentum",   x: 245, y: 560, estrellas: 3, mercado: 2, duenio: "neutral", solares: ["Puerto", "", "", "", "", ""] },
+    messana:   { n: "Messana",    x: 215, y: 680, estrellas: 2, mercado: 2, duenio: "neutral", solares: ["", "", "", "", "", ""] },
+    syracusae: { n: "Syracusae",  x: 260, y: 735, estrellas: 4, mercado: 4, duenio: "enemiga", solares: ["Astillero", "Muralla", "", "", "", ""] },
+    carthago:  { n: "Carthago",   x: 90,  y: 745, estrellas: 5, mercado: 6, duenio: "enemiga", solares: ["Puerto", "Templo", "", "", "", ""] }
+  };
+  var COLOR_DUENIO = { yo: "#e9c063", aliada: "#8fae5a", neutral: "#9aa6b4", enemiga: "#d9764a" };
+
+  /* Rutas: origen, destino, abierta, protegida (escolta o patrulla) */
+  var RUTAS = [
+    { id: "r1", a: "roma", b: "capua",     abierta: true,  proteccion: "escolta" },
+    { id: "r2", a: "roma", b: "tarentum",  abierta: true,  proteccion: null },
+    { id: "r3", a: "roma", b: "syracusae", abierta: false, proteccion: null }
+  ];
+
+  /* Marchas de tropas: de una ciudad a otra, con progreso 0..1 */
+  var MARCHAS = [
+    { id: "m1", de: "roma", a: "tarentum", tropas: "12 cohortes", dueno: "yo", t: 0.35, velocidad: 0.0025, mision: "mover" },
+    { id: "m2", de: "carthago", a: "messana", tropas: "Caballería númida, 40", dueno: "enemiga", t: 0.6, velocidad: 0.0018, mision: "enemiga" }
+  ];
+
+  var estado = { oro: 1240, mes: 3, seleccion: null, ciudadAbierta: null, senado: null };
+  var NIVELES = [0.14, 0.5, 0.9]; /* alturas de la hoja, en fracción de la pantalla */
+
+  /* ---------- Ayudas ---------- */
+  var NS = "http://www.w3.org/2000/svg";
+  function el(tag, attrs, parent) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) e.setAttribute(k, attrs[k]);
+    if (parent) parent.appendChild(e);
+    return e;
+  }
+  function $(id) { return document.getElementById(id); }
+  function avisar(texto, abajo) {
+    try {
+      var a = $("aviso");
+      a.textContent = texto;
+      a.className = "on" + (abajo ? " bajo" : "");
+      clearTimeout(avisar._t);
+      avisar._t = setTimeout(function () { a.className = ""; }, 2600);
+    } catch (e) { /* aviso sin pantalla: no pasa nada */ }
+  }
+  function rutaPorId(id) { for (var i = 0; i < RUTAS.length; i++) if (RUTAS[i].id === id) return RUTAS[i]; return null; }
+  function marchaPorId(id) { for (var i = 0; i < MARCHAS.length; i++) if (MARCHAS[i].id === id) return MARCHAS[i]; return null; }
+  function renta(ciudadId) {
+    /* Renta mensual: (4 + mercado de cada extremo si es tuya, o 1 por estrella si es ajena) x 1,5 por mar */
+    return 0; /* el cálculo se muestra en la hoja de la ruta */
+  }
+  function rentaRuta(r) {
+    var total = 4;
+    [r.a, r.b].forEach(function (id) {
+      var c = CIUDADES[id];
+      total += c.duenio === "yo" ? c.mercado : c.estrellas;
+    });
+    return Math.round(total * 1.5);
+  }
+  function icono(d) {
+    return '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + d + '"/></svg>';
+  }
+  var I = {
+    flujo: "M4 12h13M13 6l6 6-6 6",
+    escudo: "M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z",
+    cortar: "M6 6l12 12M18 6L6 18",
+    espada: "M14 4l6 6-9 9-6-6zM5 19l-1 1",
+    tributo: "M12 4v12M7 11l5 5 5-5M5 20h14",
+    tratado: "M4 8h16M4 16h16M8 4v16",
+    senado: "M3 20h18M5 20V10M10 20V10M14 20V10M19 20V10M3 10l9-6 9 6",
+    saquear: "M5 10h14l-1 10H6zM9 10V6h6v4",
+    marcha: "M4 12h12M12 6l6 6-6 6",
+    interceptar: "M12 3v4M12 17v4M3 12h4M17 12h4M12 8a4 4 0 100 8 4 4 0 000-8z",
+    volver: "M10 6l-6 6 6 6M4 12h16",
+    ciudad: "M3 20h18M5 20V9l4-3 4 3 4-3 4 3v11"
+  };
+
+  /* ---------- Mapa ---------- */
+  function dibujarMapa() {
+    var rutas = $("rutas"), nodos = $("nodos");
+    rutas.innerHTML = ""; nodos.innerHTML = "";
+    RUTAS.forEach(function (r) {
+      var A = CIUDADES[r.a], B = CIUDADES[r.b];
+      var mx = (A.x + B.x) / 2 + 14, my = (A.y + B.y) / 2 - 10; /* curva suave */
+      var cls = "ruta " + (r.abierta ? "ok" : "cortada") + (r.proteccion ? " protegida" : "") + (estado.seleccion && estado.seleccion.tipo === "ruta" && estado.seleccion.id === r.id ? " sel" : "");
+      var p = el("path", { d: "M" + A.x + " " + A.y + " Q" + mx + " " + my + " " + B.x + " " + B.y, class: cls, "data-ruta": r.id, "stroke-width": "3", fill: "none" }, rutas);
+      p.addEventListener("click", function () { abrirRuta(r.id); });
+      p.style.cursor = "pointer";
+      /* área tocable amplia por debajo del trazo */
+      var hit = el("path", { d: p.getAttribute("d"), fill: "none", stroke: "transparent", "stroke-width": "34", "data-ruta": r.id }, rutas);
+      hit.addEventListener("click", function () { abrirRuta(r.id); });
+    });
+    Object.keys(CIUDADES).forEach(function (id) {
+      var c = CIUDADES[id];
+      var g = el("g", { class: "nodo" + (estado.seleccion && estado.seleccion.id === id ? " sel" : ""), "data-ciudad": id, transform: "translate(" + c.x + "," + c.y + ")" }, nodos);
+      el("circle", { r: 22, fill: "transparent" }, g); /* zona de toque de 44 px */
+      el("circle", { r: 17, class: "halo" }, g);
+      el("circle", { r: 11, fill: COLOR_DUENIO[c.duenio], stroke: "#0b1016", "stroke-width": "2" }, g);
+      var t = el("text", { x: 0, y: 30, "text-anchor": "middle" }, g);
+      t.textContent = c.n;
+      g.addEventListener("click", function () { tocarCiudad(id); });
+    });
+    /* Marchas */
+    var mg = $("marchas"); mg.innerHTML = "";
+    MARCHAS.forEach(function (m) {
+      var A = CIUDADES[m.de], B = CIUDADES[m.a];
+      var x = A.x + (B.x - A.x) * m.t, y = A.y + (B.y - A.y) * m.t;
+      var g = el("g", { class: "marcha" + (m.dueno === "enemiga" ? " enemiga" : "") + (estado.seleccion && estado.seleccion.id === m.id ? " sel" : ""), transform: "translate(" + x + "," + y + ")", "data-marcha": m.id }, mg);
+      el("circle", { r: 22, fill: "transparent" }, g);
+      el("rect", { x: -8, y: -6, width: 16, height: 12, rx: 3, class: "cuerpo" }, g);
+      g.addEventListener("click", function () { abrirMarcha(m.id); });
+    });
+    $("oro").textContent = estado.oro.toLocaleString("es-ES");
+    $("mes").textContent = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"][estado.mes - 1] || "I";
+  }
+
+  /* Avanza las marchas cada cuadro, sin reconstruir el mapa entero */
+  var ultimo = 0;
+  function animar(ts) {
+    var dt = ts - ultimo; ultimo = ts;
+    if (dt > 100) dt = 16;
+    var cambio = false;
+    MARCHAS.forEach(function (m) {
+      if (m.t < 1) { m.t = Math.min(1, m.t + m.velocidad * dt); cambio = true; }
+    });
+    if (cambio) {
+      MARCHAS.forEach(function (m) {
+        var g = document.querySelector('[data-marcha="' + m.id + '"]');
+        if (!g) return;
+        var A = CIUDADES[m.de], B = CIUDADES[m.a];
+        g.setAttribute("transform", "translate(" + (A.x + (B.x - A.x) * m.t) + "," + (A.y + (B.y - A.y) * m.t) + ")");
+      });
+    }
+    requestAnimationFrame(animar);
+  }
+
+  /* ---------- Hoja inferior (3 alturas, arrastrable) ---------- */
+  var hoja = $("hoja");
+  var altura = 0.5; /* índice fijo en NIVELES */
+  var nivelActual = 1;
+  function fijarAltura(nivel) {
+    nivelActual = nivel;
+    hoja.style.height = Math.round(window.innerHeight * NIVELES[nivel]) + "px";
+  }
+  function abrirHoja(titulo, html, nivel) {
+    $("hojaTitulo").textContent = titulo;
+    $("hojaCuerpo").innerHTML = html;
+    hoja.classList.remove("oculta");
+    fijarAltura(nivel === undefined ? 1 : nivel);
+  }
+  function cerrarHoja() {
+    hoja.classList.add("oculta");
+    estado.seleccion = null;
+    dibujarMapa();
+  }
+  $("hojaCerrar").addEventListener("click", cerrarHoja);
+
+  /* Arrastre: se suelta cerca de la altura más próxima */
+  (function () {
+    var agarre = $("agarre");
+    var y0 = 0, h0 = 0, arrastrando = false;
+    agarre.addEventListener("pointerdown", function (e) {
+      arrastrando = true; y0 = e.clientY; h0 = hoja.getBoundingClientRect().height;
+      hoja.style.transition = "none";
+      agarre.setPointerCapture(e.pointerId);
+    });
+    agarre.addEventListener("pointermove", function (e) {
+      if (!arrastrando) return;
+      var nuevo = Math.max(60, Math.min(window.innerHeight * 0.92, h0 + (y0 - e.clientY)));
+      hoja.style.height = nuevo + "px";
+    });
+    function soltar() {
+      if (!arrastrando) return;
+      arrastrando = false;
+      hoja.style.transition = "";
+      var h = hoja.getBoundingClientRect().height, mejor = 0, dist = 1e9;
+      NIVELES.forEach(function (f, i) {
+        var d = Math.abs(window.innerHeight * f - h);
+        if (d < dist) { dist = d; mejor = i; }
+      });
+      fijarAltura(mejor);
+    }
+    agarre.addEventListener("pointerup", soltar);
+    agarre.addEventListener("pointercancel", soltar);
+  })();
+
+  /* ---------- Selección ---------- */
+  function tocarCiudad(id) {
+    estado.seleccion = { tipo: "ciudad", id: id };
+    dibujarMapa();
+    var c = CIUDADES[id];
+    var html = '' +
+      '<p class="sub">' + (c.duenio === "yo" ? "Tu ciudad" : c.duenio === "aliada" ? "Aliada de Roma" : c.duenio === "enemiga" ? "Enemiga" : "Neutral") + " · " + c.estrellas + " estrellas</p>" +
+      '<div class="btns">' +
+        '<button class="btn principal" data-accion="entrar">Entrar en la ciudad</button>' +
+        '<button class="btn" data-accion="ruta">' + icono(I.flujo) + 'Abrir ruta (100 d.)</button>' +
+        '<button class="btn" data-accion="marchar">' + icono(I.marcha) + 'Enviar tropas</button>' +
+        '<button class="btn" data-accion="tributo">' + icono(I.tributo) + 'Pedir tributo</button>' +
+        '<button class="btn" data-accion="tratado">' + icono(I.tratado) + 'Tratado</button>' +
+      '</div>' +
+      '<p class="nota">Enviar tropas: marcha a pie o a caballo. Puedes verla avanzar en el mapa.</p>';
+    abrirHoja(c.n, html, 1);
+    hoja.dataset.ciudad = id;
+  }
+
+  function abrirRuta(rid) {
+    var r = rutaPorId(rid);
+    if (!r) return;
+    estado.seleccion = { tipo: "ruta", id: rid };
+    dibujarMapa();
+    var A = CIUDADES[r.a].n, B = CIUDADES[r.b].n;
+    var renta = rentaRuta(r);
+    var html = '' +
+      '<p class="sub">' + (r.abierta ? "Ruta abierta" : "Ruta cortada") + ' · máx. ' + (1 + Math.floor(CIUDADES[r.a].mercado / 3)) + " rutas desde aquí</p>" +
+      '<div class="fila"><span class="k">Sale de ' + A + '</span><span class="v">oro, lana</span></div>' +
+      '<div class="fila"><span class="k">Entra en ' + A + '</span><span class="v">vino, aceite</span></div>' +
+      '<div class="fila"><span class="k">Renta al mes</span><span class="v pos">+' + renta + ' d.</span></div>' +
+      '<div class="fila"><span class="k">Protección</span><span class="v">' + (r.proteccion ? "Escolta" : "Ninguna") + "</span></div>" +
+      '<div class="btns">' +
+        (r.abierta
+          ? '<button class="btn rojo" data-accion="cortar">' + icono(I.cortar) + 'Cortar ruta</button>'
+          : '<button class="btn" data-accion="reabrir">' + icono(I.flujo) + 'Reabrir (100 d.)</button>') +
+        '<button class="btn" data-accion="proteger">' + icono(I.escudo) + (r.proteccion ? "Quitar escolta" : "Poner escolta") + "</button>" +
+        '<button class="btn" data-accion="interceptar">' + icono(I.interceptar) + "Ver riesgo</button>" +
+        '<button class="btn" data-accion="ver-ciudad">' + icono(I.ciudad) + "Ver " + A + "</button>" +
+      "</div>" +
+      '<p class="nota">La escolta cuesta 20 d. al mes y protege la ruta de los bandidos.</p>';
+    abrirHoja("Ruta " + A + " – " + B, html, 1);
+    hoja.dataset.ruta = rid;
+  }
+
+  function abrirMarcha(mid) {
+    var m = marchaPorId(mid);
+    if (!m) return;
+    estado.seleccion = { tipo: "marcha", id: mid };
+    dibujarMapa();
+    var destino = CIUDADES[m.a].n;
+    var enemiga = m.dueno === "enemiga";
+    var faltan = Math.max(1, Math.round((1 - m.t) / m.velocidad / 1000)); /* segundos aprox. */
+    var html = '' +
+      '<p class="sub">' + m.tropas + " · hacia " + destino + "</p>" +
+      '<div class="fila"><span class="k">Llega en</span><span class="v">' + faltan + " s</span></div>" +
+      '<div class="fila"><span class="k">Progreso</span><span class="v">' + Math.round(m.t * 100) + "%</span></div>" +
+      '<div class="btns">' +
+        (enemiga
+          ? '<button class="btn principal" data-accion="interceptar-marcha">' + icono(I.interceptar) + "Interceptar</button>"
+          : '<button class="btn" data-accion="volver-marcha">' + icono(I.volver) + "Hacer volver</button>" +
+            '<button class="btn" data-accion="saquear">' + icono(I.saquear) + "Saquear</button>") +
+        '<button class="btn" data-accion="ver-destino">' + icono(I.ciudad) + "Ver " + destino + "</button>" +
+      "</div>" +
+      '<p class="nota">' + (enemiga ? "Una marcha enemiga viene hacia " + destino + ". Puedes salir a su encuentro." : "Tus tropas van a " + destino + ".") + "</p>";
+    abrirHoja("Marcha · " + m.tropas, html, 1);
+    hoja.dataset.marcha = mid;
+  }
+
+  /* ---------- Acciones ---------- */
+  function avanzarMes() { estado.mes = estado.mes >= 12 ? 1 : estado.mes + 1; }
+
+  function proponerSenado(texto, cerrar) {
+    var r = Math.random() < 0.7 ? "aprobada" : "rechazada";
+    estado.senado = r;
+    abrirHoja("Senado", '' +
+      '<p class="sub">Propuesta: ' + texto + "</p>" +
+      '<div class="votos"><span>A favor 180</span><span>En contra 92</span></div>' +
+      '<p class="nota">El Senado ha <b>' + (r === "aprobada" ? "aprobado" : "rechazado") + '</b> la propuesta. ' +
+      (r === "aprobada" ? "El tratado entra en vigor." : "No hay tratado este mes.") + "</p>" +
+      '<div class="btns"><button class="btn principal" data-accion="cerrar-senado">Entendido</button></div>', 1);
+    if (cerrar) cerrar();
+  }
+
+  function accion(nombre) {
+    var sel = estado.seleccion;
+    switch (nombre) {
+      case "entrar":
+      case "ver-ciudad":
+        abrirCiudad(sel && sel.tipo === "ruta" ? rutaPorId(sel.id).a : (hoja.dataset.ciudad || "roma"));
+        break;
+      case "ver-destino":
+        abrirCiudad(marchaPorId(sel.id).a);
+        break;
+      case "ruta":
+        if (estado.oro < 100) return avisar("No hay oro para abrir la ruta.", true);
+        estado.oro -= 100;
+        RUTAS.push({ id: "r" + (RUTAS.length + 1), a: "roma", b: hoja.dataset.ciudad, abierta: true, proteccion: null });
+        avisar("Ruta abierta: 100 denarios.", true);
+        dibujarMapa(); tocarCiudad(hoja.dataset.ciudad);
+        break;
+      case "reabrir":
+        if (estado.oro < 100) return avisar("No hay oro para reabrir.", true);
+        estado.oro -= 100; rutaPorId(sel.id).abierta = true;
+        abrirRuta(sel.id); avisar("Ruta reabierta.", true);
+        break;
+      case "cortar":
+        rutaPorId(sel.id).abierta = false;
+        avisar("Ruta cortada. Ya no llega renta.", true);
+        abrirRuta(sel.id);
+        break;
+      case "proteger":
+        var r = rutaPorId(sel.id);
+        r.proteccion = r.proteccion ? null : "escolta";
+        if (r.proteccion) estado.oro -= 20;
+        abrirRuta(sel.id);
+        avisar(r.proteccion ? "Escolta puesta: 20 d. al mes." : "Escolta retirada.", true);
+        break;
+      case "interceptar":
+        abrirHoja("Riesgo de la ruta", '' +
+          '<p class="sub">Bandidos vistos en el camino</p>' +
+          '<div class="fila"><span class="k">Riesgo este mes</span><span class="v neg">Medio</span></div>' +
+          '<div class="btns"><button class="btn principal" data-accion="senado-ruta">Proponer al Senado: patrulla</button>' +
+          '<button class="btn" data-accion="ver-ruta">' + icono(I.volver) + "Volver</button></div>", 1);
+        break;
+      case "ver-ruta":
+        abrirRuta(sel.id);
+        break;
+      case "senado-ruta":
+        proponerSenado("patrulla militar en la ruta de " + CIUDADES[rutaPorId(sel.id).a].n);
+        break;
+      case "marchar":
+        estado.seleccion = null;
+        cerrarHoja();
+        avisar("Toca otra ciudad para enviar tropas.", true);
+        break;
+      case "tributo":
+        abrirHoja("Tributo", '<p class="sub">Esta ciudad paga a Roma según su estado.</p>' +
+          '<div class="btns"><button class="btn principal" data-accion="senado-tributo">Proponer al Senado</button></div>', 1);
+        break;
+      case "senado-tributo":
+        proponerSenado("tributo anual de " + CIUDADES[hoja.dataset.ciudad].n);
+        break;
+      case "tratado":
+        abrirHoja("Tratado", '<p class="sub">Paz o comercio con ' + CIUDADES[hoja.dataset.ciudad].n + '.</p>' +
+          '<div class="btns"><button class="btn principal" data-accion="senado-tratado">Proponer al Senado</button></div>', 1);
+        break;
+      case "senado-tratado":
+        proponerSenado("tratado de paz y comercio con " + CIUDADES[hoja.dataset.ciudad].n);
+        break;
+      case "volver-marcha":
+        MARCHAS = MARCHAS.filter(function (m) { return m.id !== sel.id; });
+        cerrarHoja();
+        avisar("Tropas de vuelta a casa.", true);
+        break;
+      case "saquear":
+        estado.oro += 60;
+        cerrarHoja();
+        avisar("Saqueo: +60 d. Tus tropas vuelven.", true);
+        break;
+      case "interceptar-marcha":
+        cerrarHoja();
+        avisar("Batalla en el camino (vista en maqueta).", true);
+        break;
+      case "cerrar-senado":
+        cerrarHoja();
+        break;
+    }
+    dibujarMapa();
+  }
+
+  /* Un solo punto de entrada para todos los botones de la hoja */
+  hoja.addEventListener("click", function (e) {
+    var b = e.target.closest("[data-accion]");
+    if (!b) return;
+    accion(b.getAttribute("data-accion"));
+  });
+
+  /* ---------- Ciudad: pantalla completa ---------- */
+  function abrirCiudad(id) {
+    var c = CIUDADES[id];
+    if (!c) return;
+    estado.ciudadAbierta = id;
+    $("ciudadTitulo").textContent = c.n;
+    var s = $("solares"); s.innerHTML = "";
+    c.solares.forEach(function (nombre, i) {
+      var d = document.createElement("div");
+      d.className = "solar" + (nombre ? "" : " vacio");
+      d.innerHTML = nombre ? "<b>" + nombre + "</b>" + icono(I.ciudad) : "<span>Solar libre</span>";
+      s.appendChild(d);
+    });
+    var lista = $("cRutasLista"); lista.innerHTML = "";
+    RUTAS.filter(function (r) { return r.a === id || r.b === id; }).forEach(function (r) {
+      var b = document.createElement("button");
+      b.className = "btn"; b.style.width = "100%"; b.style.marginBottom = "8px";
+      b.textContent = "Ruta a " + CIUDADES[r.a === id ? r.b : r.a].n + (r.abierta ? "" : " (cortada)");
+      b.addEventListener("click", function () { salirAlMapa(); abrirRuta(r.id); });
+      lista.appendChild(b);
+    });
+    $("cRutas").textContent = RUTAS.filter(function (r) { return r.a === id && r.abierta; }).length + "/" + (1 + Math.floor(c.mercado / 3));
+    $("cOro").textContent = "+" + (c.duenio === "yo" ? 18 : 0);
+    $("ciudad").classList.add("abierta");
+    hoja.classList.add("oculta");
+  }
+  function salirAlMapa() {
+    $("ciudad").classList.remove("abierta");
+    estado.ciudadAbierta = null;
+    $("tituloMapa").textContent = "MAPA";
+    dibujarMapa();
+  }
+  $("salirMapa").addEventListener("click", salirAlMapa);
+
+  /* ---------- Arranque ---------- */
+  try { dibujarMapa(); } catch (e) { /* el mapa base siempre aparece */ }
+  window.addEventListener("resize", function () { if (!hoja.classList.contains("oculta")) fijarAltura(nivelActual); });
+  requestAnimationFrame(function (t) { ultimo = t; requestAnimationFrame(animar); });
+})();
+</script>
+</body>
+</html>

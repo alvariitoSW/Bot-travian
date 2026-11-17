@@ -1,0 +1,446 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Estandartes y señales</title>
+<style>
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--noche);color:var(--marmol);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+#campo{position:fixed;inset:0;width:100vw;height:100vh;display:block}
+button{font:inherit;color:var(--marmol);background:rgba(11,16,22,.8);border:1.5px solid var(--piedra);border-radius:10px;min-height:44px;min-width:44px;padding:0 12px;cursor:pointer}
+button[aria-pressed="true"]{border-color:var(--oro);background:rgba(233,192,99,.2);color:var(--oro)}
+button:disabled{opacity:.4}
+.sup{position:fixed;top:0;left:0;right:0;height:50px;display:flex;align-items:center;gap:8px;padding:0 8px;background:linear-gradient(rgba(11,16,22,.92),rgba(11,16,22,0))}
+.sup .tit{flex:1;font-size:13px;color:var(--piedra);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sup .cuenta{font-size:13px;white-space:nowrap}
+.pie{position:fixed;left:0;right:0;bottom:0;padding:14px 8px 8px;background:linear-gradient(rgba(11,16,22,0),rgba(11,16,22,.94) 35%)}
+.pista{margin:0 2px 6px;font-size:13px;min-height:18px;color:var(--marmol)}
+.senales{display:flex;gap:6px}
+.senales button{flex:1;height:54px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:12px;padding:2px 4px}
+.senales svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.senales button.inactivo{opacity:.55}
+#ficha{position:fixed;top:56px;left:8px;width:236px;padding:8px 10px;border:1px solid rgba(154,166,180,.35);border-radius:10px;background:rgba(11,16,22,.75);font-size:13px;line-height:1.4;pointer-events:none;display:none}
+#ficha.on{display:block}
+#ficha b{color:var(--oro);font-size:15px}
+.barra{height:6px;margin:4px 0;background:#263240;border-radius:3px;overflow:hidden}
+.barra i{display:block;height:100%}
+#giro{display:none;position:fixed;inset:0;z-index:9;background:var(--noche);align-items:center;justify-content:center;text-align:center;padding:0 16px;font-size:16px;line-height:1.5}
+@media (orientation:portrait){#giro{display:flex}}
+</style>
+</head>
+<body>
+<svg id="campo" viewBox="0 0 844 390" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Campo de batalla">
+  <defs>
+    <linearGradient id="suelo" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#121a22"/>
+      <stop offset="1" stop-color="#1c2630"/>
+    </linearGradient>
+    <radialGradient id="sol" cx="0.5" cy="0.5" r="0.5">
+      <stop offset="0" stop-color="#e9c063" stop-opacity="0.3"/>
+      <stop offset="1" stop-color="#e9c063" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="hierba" width="26" height="16" patternUnits="userSpaceOnUse">
+      <path d="M3 13l2-6 2 6M15 8l2-6 2 6" fill="none" stroke="#8fae5a" stroke-opacity="0.16" stroke-width="1.2"/>
+    </pattern>
+  </defs>
+  <rect width="844" height="390" fill="url(#suelo)"/>
+  <rect width="844" height="390" fill="url(#hierba)"/>
+  <circle cx="720" cy="40" r="230" fill="url(#sol)"/>
+  <line x1="420" y1="50" x2="420" y2="330" stroke="#d9764a" stroke-opacity="0.18" stroke-dasharray="6 8"/>
+  <g id="tropas"></g>
+  <g id="efectos" pointer-events="none"></g>
+</svg>
+
+<header class="sup">
+  <div class="tit">Heraclea, 280 a. C. · maqueta</div>
+  <div class="cuenta" id="cuenta"></div>
+  <button id="btnTodos">Todos</button>
+  <button id="btnPausa">Pausa</button>
+</header>
+
+<div id="ficha"></div>
+
+<footer class="pie">
+  <p class="pista" id="pista"></p>
+  <div class="senales" id="senales"></div>
+</footer>
+
+<div id="giro">Gira el móvil a lo ancho para ver la batalla.</div>
+
+<script>
+(()=>{
+'use strict';
+const NS='http://www.w3.org/2000/svg';
+const $=s=>document.querySelector(s);
+const svg=$('#campo'), capa=$('#tropas'), efx=$('#efectos');
+const COL={roma:'#c0281f',pirro:'#8fae5a'};
+const GRIS='#4a5461';
+const TIPOS={
+  hastati:{nom:'Hastati',emb:'lanza',unidad:'hombres',fuerza:1,vel:0.9,max:1000},
+  principes:{nom:'Príncipes',emb:'escudo',unidad:'hombres',fuerza:1.1,vel:0.9,max:1000},
+  triarios:{nom:'Triarios',emb:'pica',unidad:'hombres',fuerza:1.2,vel:0.7,max:800},
+  velites:{nom:'Vélites',emb:'dardo',unidad:'hombres',fuerza:0.6,vel:1.2,max:500},
+  caballeria:{nom:'Caballería',emb:'caballo',unidad:'jinetes',fuerza:1.3,vel:1.8,max:400,carga:true},
+  falange:{nom:'Falange',emb:'pica',unidad:'hombres',fuerza:1.2,vel:0.8,max:1000},
+  peltastas:{nom:'Peltastas',emb:'dardo',unidad:'hombres',fuerza:0.6,vel:1.2,max:500},
+  elefantes:{nom:'Elefantes',emb:'torre',unidad:'elefantes',fuerza:1.2,vel:0.5,max:8,carga:true}
+};
+const EMB={
+  lanza:'M0,-9V9M-3,-6L0,-10L3,-6',
+  escudo:'M-5,-8H5V2Q5,7 0,9Q-5,7 -5,2Z',
+  pica:'M-2,-10V10M2,-10V10M-3.5,-10L0,-13.5L3.5,-10',
+  dardo:'M-8,6L7,-7M4,-8L8,-8L8,-4',
+  caballo:'M-4,9L-2,2L-4,-3L0,-8L4,-7L6,-2L4,9Z',
+  torre:'M-7,8H7V-3H4V-7H1V-3H-1V-7H-4V-3H-7Z'
+};
+const SENAL=[
+  {id:'mover',nom:'Mover',pide:true,ic:'<path d="M5 9v6M5 10c5 0 8-4 14-6v12c-6-2-9-6-14-6"/>'},
+  {id:'atacar',nom:'Atacar',pide:true,ic:'<path d="M3 10h4l10-5v14l-10-5H3zM7 15l-1.5 5"/>'},
+  {id:'aguantar',nom:'Aguantar',pide:false,ic:'<path d="M3 5h18v14H3zM3 10h18M3 15h18M9 5v5M15 5v5M6 10v5M12 10v5M18 10v5"/>'},
+  {id:'relevar',nom:'Relevar',pide:false,ic:'<path d="M4 8h13l-3-3M20 16H7l3 3"/>'},
+  {id:'cargar',nom:'Cargar',pide:true,ic:'<path d="M5 19L9 13L8 8L11 4L16 5L19 9L17 19Z"/>'},
+  {id:'retirar',nom:'Retirarse',pide:false,ic:'<path d="M20 12H6M11 7l-5 5 5 5M14 19c4 0 6-2 6-7"/>'}
+];
+const PIDE={
+  mover:'Toca el campo: ahí marchan los estandartes.',
+  atacar:'Toca un enemigo para atacarlo.',
+  cargar:'Toca el campo o un enemigo: cargan la caballería y los elefantes.'
+};
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const palabra=m=>m>=70?'alta':m>=40?'media':'baja';
+function mezcla(a,b,t){
+  const p=h=>[1,3,5].map(i=>parseInt(h.substr(i,2),16));
+  const A=p(a), B=p(b);
+  return '#'+A.map((v,i)=>Math.round(v+(B[i]-v)*t).toString(16).padStart(2,'0')).join('');
+}
+
+const U=[]; let nid=0;
+let pend=null, mira=null, pausado=false, fin=false, finTxt='', efectos=[], ahora=0, acc=0, last=0, avisoT=0;
+
+function crea(equipo,tipo,x,y){
+  const T=TIPOS[tipo];
+  const u={id:++nid,equipo,tipo,x,y,tx:x,ty:y,dir:equipo==='roma'?1:-1,hombres:T.max,max:T.max,moral:82,fatiga:0,modo:'quieto',obj:null,contacto:null,vivo:true,elegido:false,cargo:false,enCombate:false,rodeado:false,fase:Math.random()*6.28};
+  const remate=equipo==='roma'?'#e9c063':'#f1ead9';
+  u.g=document.createElementNS(NS,'g');
+  u.g.innerHTML=`<ellipse cx="0" cy="2" rx="15" ry="4" fill="#000" fill-opacity=".35"/>
+<ellipse class="sel" cx="0" cy="2" rx="23" ry="8" fill="none" stroke="#e9c063" stroke-width="2" stroke-dasharray="4 3" opacity="0" pointer-events="none"/>
+<ellipse class="ring" cx="0" cy="2" rx="31" ry="11" fill="none" stroke="#d9764a" stroke-width="2" stroke-dasharray="3 3" opacity="0" pointer-events="none"/>
+<line x1="0" y1="0" x2="0" y2="-46" stroke="#b8862b" stroke-width="2.4" stroke-linecap="round"/>
+<circle cx="0" cy="-47.5" r="3.2" fill="${remate}"/>
+<path class="tela" stroke="#b8862b" stroke-width="1" fill="${COL[equipo]}"/>
+<path class="emb" d="${EMB[T.emb]}" fill="none" stroke="#f1ead9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" transform="translate(16 -32)"/>
+<text class="num" x="0" y="17" text-anchor="middle" font-size="12" fill="#9aa6b4"></text>
+<circle class="hit" data-id="${u.id}" cx="0" cy="-22" r="30" fill="#000" fill-opacity=".001"/>`;
+  u.d={tela:u.g.querySelector('.tela'),emb:u.g.querySelector('.emb'),num:u.g.querySelector('.num'),sel:u.g.querySelector('.sel'),ring:u.g.querySelector('.ring')};
+  capa.appendChild(u.g);
+  U.push(u);
+  return u;
+}
+
+function tela(u,ts){
+  const m=clamp(u.moral/100,0,1), amp=0.8+4*m, ph=ts*0.004+u.fase;
+  const rag=m<0.4?(0.4-m)*30:0;
+  const pts=[];
+  for(let i=0;i<=4;i++){ pts.push([2+28*i/4, -42+Math.sin(ph+i*0.9)*amp*0.2*(i/4)]); }
+  for(let i=1;i<=4;i++){ pts.push([30+Math.sin(ph+i*1.3)*amp*0.6+((i%2)&&rag?-rag:0), -42+20*i/4]); }
+  pts.push([2,-22]);
+  return 'M'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L')+'Z';
+}
+
+function cerca(u,r){
+  let mejor=null, md=r;
+  for(const o of U){
+    if(!o.vivo||o.equipo===u.equipo||o.modo==='huyendo') continue;
+    const d=Math.hypot(o.x-u.x,o.y-u.y);
+    if(d<=md){ md=d; mejor=o; }
+  }
+  return mejor;
+}
+function cuenta(u,r){
+  let n=0;
+  for(const o of U){
+    if(!o.vivo||o.equipo===u.equipo||o.modo==='huyendo') continue;
+    if(Math.hypot(o.x-u.x,o.y-u.y)<=r) n++;
+  }
+  return n;
+}
+function etiqueta(u,txt,col){ efectos.push({k:'t',x:u.x,y:u.y-60,txt,col,t0:ahora}); }
+function polvo(x,y){ efectos.push({k:'p',x,y,t0:ahora}); }
+
+function choque(a,b){
+  const detras=(a.x-b.x)*b.dir<0;
+  const flanco=Math.abs(a.y-b.y)>18;
+  if(a.modo==='cargar'){ b.moral-=14; etiqueta(b,'¡Carga! −14','#e9c063'); }
+  else if(detras){ b.moral-=14; etiqueta(b,'Por detrás −14','#d9764a'); }
+  else if(flanco){ b.moral-=9; etiqueta(b,'Flanco −9','#e9c063'); }
+  polvo((a.x+b.x)/2,(a.y+b.y)/2);
+  a.contacto=b.id; b.contacto=a.id;
+}
+
+function mueve(u){
+  if(u.modo==='huyendo'){ u.x+=-u.dir*1.4; if(u.x<-40||u.x>884) u.vivo=false; return; }
+  const T=TIPOS[u.tipo];
+  let dx, dy, parar=1.5, v=T.vel;
+  if(u.modo==='cargar') v*=2.2;
+  if(u.modo==='retirar') v*=1.3;
+  if((u.modo==='atacar'||u.modo==='cargar')&&u.obj){ dx=u.obj.x; dy=u.obj.y; parar=26; }
+  else if(u.modo==='atacar'){ u.modo='quieto'; return; }
+  else if(u.modo==='cargar'||u.modo==='mover'||u.modo==='relevo'||u.modo==='retirar'){ dx=u.tx; dy=u.ty; }
+  else return;
+  const d=Math.hypot(dx-u.x,dy-u.y);
+  if(d>parar){ const s=Math.min(v,d-parar); u.x+=(dx-u.x)/d*s; u.y+=(dy-u.y)/d*s; }
+  else if(u.modo==='mover'||u.modo==='relevo'||u.modo==='retirar'||(u.modo==='cargar'&&!u.obj)) u.modo='quieto';
+}
+
+function paso(){
+  for(const u of U){
+    if(!u.vivo||u.equipo==='roma'||u.modo==='huyendo') continue;
+    if(!u.obj||!u.obj.vivo||u.obj.modo==='huyendo'){ u.obj=cerca(u,1e9); if(u.modo!=='cargar') u.modo='atacar'; }
+    if(TIPOS[u.tipo].carga&&!u.cargo&&u.obj&&Math.hypot(u.obj.x-u.x,u.obj.y-u.y)<150){ u.modo='cargar'; u.cargo=true; }
+  }
+  for(const u of U){ if(u.vivo){ if(u.obj&&!u.obj.vivo) u.obj=null; mueve(u); } }
+
+  for(const u of U) u.enCombate=false;
+  const vistos=new Set();
+  for(const u of U){
+    if(!u.vivo||u.modo==='huyendo'||u.modo==='mover'||u.modo==='retirar'||u.modo==='relevo') continue;
+    const o=u.obj;
+    const r=(o&&o.vivo&&o.modo!=='huyendo'&&o.equipo!==u.equipo&&Math.hypot(o.x-u.x,o.y-u.y)<=34)?o:cerca(u,34);
+    if(!r){ u.contacto=null; continue; }
+    const clave=u.id<r.id?u.id+'_'+r.id:r.id+'_'+u.id;
+    if(vistos.has(clave)) continue;
+    vistos.add(clave);
+    if(u.contacto!==r.id) choque(u,r);
+    const Tu=TIPOS[u.tipo], Tr=TIPOS[r.tipo];
+    r.hombres-=0.012*Tu.fuerza*(1-u.fatiga/200)*r.max;
+    u.hombres-=0.012*Tr.fuerza*(1-r.fatiga/200)*u.max;
+    r.moral-=0.45+(u.tipo==='elefantes'?0.6:0);
+    u.moral-=0.45+(r.tipo==='elefantes'?0.6:0);
+    if(u.modo==='aguantar') u.moral+=0.3;
+    if(r.modo==='aguantar') r.moral+=0.3;
+    u.fatiga=Math.min(100,u.fatiga+0.4); r.fatiga=Math.min(100,r.fatiga+0.4);
+    if(u.modo==='cargar') u.modo='atacar';
+    if(r.modo==='cargar') r.modo='atacar';
+    u.obj=r;
+    if(!r.obj||!r.obj.vivo||r.obj.modo==='huyendo') r.obj=u;
+    u.enCombate=true; r.enCombate=true;
+    for(const z of [u,r]){
+      if(z.hombres<=0){ z.hombres=0; z.vivo=false; polvo(z.x,z.y); }
+      else if(z.moral<=15&&z.modo!=='huyendo'){ z.modo='huyendo'; z.obj=null; z.contacto=null; etiqueta(z,'Huye','#f1ead9'); }
+    }
+  }
+
+  for(const u of U){
+    if(!u.vivo) continue;
+    if(!u.enCombate&&u.modo!=='huyendo'){ if(u.moral<82) u.moral+=0.03; u.fatiga=Math.max(0,u.fatiga-0.06); }
+    u.moral=clamp(u.moral,0,100);
+  }
+
+  if(!fin){
+    const rv=U.filter(u=>u.vivo&&u.modo!=='huyendo'&&u.equipo==='roma').length;
+    const pv=U.filter(u=>u.vivo&&u.modo!=='huyendo'&&u.equipo!=='roma').length;
+    if(!rv||!pv){
+      fin=true; pausado=true; pend=null;
+      finTxt=rv?'Fin de la batalla: ganan los romanos.':'Fin de la batalla: gana Pirro.';
+      $('#btnPausa').disabled=true;
+      refresca();
+    }
+  }
+}
+
+function fichaUnidad(u){
+  const T=TIPOS[u.tipo], m=Math.round(u.moral);
+  const est=u.modo==='huyendo'?'Huye':u.rodeado?'Rodeado':u.fatiga>60?'Cansado':u.enCombate?'En combate':'Firme';
+  return `<div><svg viewBox="-12 -14 24 24" width="22" height="22" fill="none" stroke="#f1ead9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:middle"><path d="${EMB[T.emb]}"/></svg> <b>${T.nom}</b> · ${u.equipo==='roma'?'Roma':'Pirro'}</div>
+<div>${Math.round(u.hombres)} ${T.unidad} de ${u.max}</div>
+<div>Moral ${palabra(m)} (${m})</div>
+<div class="barra"><i style="width:${m}%;background:${m<40?'#d9764a':'#e9c063'}"></i></div>
+<div>${est}</div>`;
+}
+function ficha(){
+  const f=$('#ficha');
+  const sel=U.filter(u=>u.elegido&&u.vivo);
+  let h='';
+  if(mira&&mira.vivo) h=fichaUnidad(mira);
+  else if(sel.length===1) h=fichaUnidad(sel[0]);
+  else if(sel.length>1){
+    const hombres=sel.reduce((s,u)=>s+u.hombres,0);
+    const mo=sel.reduce((s,u)=>s+u.moral,0)/sel.length;
+    h=`<div><b>${sel.length} elegidos</b></div><div>${Math.round(hombres)} hombres</div><div>Moral ${palabra(mo)}</div>`;
+  }
+  f.innerHTML=h;
+  f.classList.toggle('on',!!h);
+}
+
+function dibuja(ts){
+  let rv=0, pv=0;
+  for(const u of U){
+    u.g.style.display=u.vivo?'':'none';
+    if(!u.vivo) continue;
+    if(u.modo!=='huyendo'){ if(u.equipo==='roma') rv++; else pv++; }
+    const m=clamp(u.moral/100,0,1);
+    const rot=u.modo==='huyendo'?78:(u.fatiga>60?-9*(u.fatiga-60)/40:0);
+    const sc=0.82+0.3*clamp(u.hombres/u.max,0,1);
+    u.g.setAttribute('transform',`translate(${u.x.toFixed(1)} ${u.y.toFixed(1)}) rotate(${rot.toFixed(1)}) scale(${sc.toFixed(3)})`);
+    u.d.tela.setAttribute('d',tela(u,ts));
+    u.d.tela.setAttribute('fill',mezcla(GRIS,COL[u.equipo],m));
+    u.d.emb.setAttribute('stroke-opacity',(0.35+0.65*m).toFixed(2));
+    u.d.num.textContent=Math.max(0,Math.round(u.hombres));
+    u.d.sel.setAttribute('opacity',u.elegido?1:0);
+    u.rodeado=u.modo!=='huyendo'&&cuenta(u,60)>=2;
+    u.d.ring.setAttribute('opacity',u.rodeado?1:0);
+  }
+  $('#cuenta').textContent=`Roma ${rv} · Pirro ${pv}`;
+  efectos=efectos.filter(e=>ts-e.t0<1500);
+  efx.innerHTML=efectos.map(e=>{
+    const a=ts-e.t0, op=(1-a/1500).toFixed(2);
+    return e.k==='p'
+      ? `<circle cx="${e.x.toFixed(1)}" cy="${e.y.toFixed(1)}" r="${(6+a*0.02).toFixed(1)}" fill="#9aa6b4" opacity="${op}"/>`
+      : `<text x="${e.x.toFixed(1)}" y="${(e.y-a*0.03).toFixed(1)}" text-anchor="middle" font-size="13" font-weight="700" fill="${e.col}" stroke="#0b1016" stroke-width="3" paint-order="stroke" opacity="${op}">${e.txt}</text>`;
+  }).join('');
+  ficha();
+}
+
+function refresca(){
+  const n=U.filter(u=>u.elegido&&u.vivo).length;
+  $('#pista').textContent=fin?finTxt:pend?PIDE[pend]:n?`Elegidos: ${n}. Ahora toca una señal.`:'Toca un estandarte romano. Luego, una señal.';
+  document.querySelectorAll('#senales button').forEach(b=>{
+    b.setAttribute('aria-pressed',String(pend===b.dataset.id));
+    b.classList.toggle('inactivo',!n);
+  });
+}
+function avisa(t){
+  $('#pista').textContent=t;
+  clearTimeout(avisoT);
+  avisoT=setTimeout(refresca,2600);
+}
+
+function fila(p,i,n){ return {x:p.x,y:clamp(p.y+(i-(n-1)/2)*30,60,280)}; }
+
+function ordena(sig,p,obj){
+  const sel=U.filter(u=>u.elegido&&u.vivo);
+  if(!sel.length){ avisa('Primero toca un estandarte romano.'); return; }
+  const n=sel.length;
+  if(sig==='mover'){
+    sel.forEach((u,i)=>{ const q=fila(p,i,n); u.modo='mover'; u.obj=null; u.tx=q.x; u.ty=q.y; });
+    pend=null;
+  }
+  else if(sig==='atacar'){
+    if(!obj){ avisa(PIDE.atacar); return; }
+    sel.forEach(u=>{ u.modo='atacar'; u.obj=obj; });
+    pend=null;
+  }
+  else if(sig==='cargar'){
+    const cargan=sel.filter(u=>TIPOS[u.tipo].carga);
+    if(!cargan.length){ avisa('Solo la caballería y los elefantes cargan.'); return; }
+    cargan.forEach((u,i)=>{
+      u.modo='cargar'; u.obj=obj||null;
+      if(obj){ u.tx=u.x; u.ty=u.y; }
+      else { const q=fila(p,i,cargan.length); u.tx=q.x; u.ty=q.y; }
+    });
+    pend=null;
+  }
+  else if(sig==='aguantar'){ sel.forEach(u=>{ u.modo='aguantar'; u.obj=null; }); }
+  else if(sig==='relevar'){
+    sel.forEach(u=>{
+      u.modo='relevo'; u.obj=null;
+      u.tx=clamp(u.x-u.dir*70,60,780); u.ty=u.y;
+      u.fatiga=0; u.moral=Math.min(100,u.moral+10);
+      etiqueta(u,'Relevo +10','#8fae5a');
+    });
+  }
+  else if(sig==='retirar'){ sel.forEach(u=>{ u.modo='retirar'; u.obj=null; u.tx=u.dir>0?40:804; u.ty=u.y; }); }
+  refresca();
+}
+
+function senal(s){
+  if(!U.some(u=>u.elegido&&u.vivo)){ avisa('Primero toca un estandarte romano.'); return; }
+  if(s.pide){ pend=pend===s.id?null:s.id; refresca(); }
+  else ordena(s.id,null,null);
+}
+
+function tocaUnidad(u){
+  if(u.equipo!=='roma'){
+    if(pend==='atacar'||pend==='cargar') ordena(pend,null,u);
+    else { mira=u; refresca(); }
+    return;
+  }
+  mira=null;
+  u.elegido=!u.elegido;
+  refresca();
+}
+function tocaCampo(p){
+  mira=null;
+  if(pend){ ordena(pend,p,null); return; }
+  U.forEach(u=>{ u.elegido=false; });
+  refresca();
+}
+
+const punto=svg.createSVGPoint();
+function aCampo(e){
+  punto.x=e.clientX; punto.y=e.clientY;
+  const q=punto.matrixTransform(svg.getScreenCTM().inverse());
+  return {x:q.x,y:q.y};
+}
+svg.addEventListener('pointerdown',e=>{
+  const el=e.target.closest&&e.target.closest('[data-id]');
+  if(el){
+    const u=U.find(v=>v.id===Number(el.dataset.id));
+    if(u) tocaUnidad(u);
+    return;
+  }
+  tocaCampo(aCampo(e));
+});
+
+function frame(ts){
+  const dt=last?Math.min(120,ts-last):0;
+  last=ts; ahora=ts;
+  if(!pausado&&!fin){
+    acc+=dt;
+    while(acc>=100&&!fin){ paso(); acc-=100; }
+  }
+  dibuja(ts);
+  requestAnimationFrame(frame);
+}
+
+const SEN=$('#senales');
+SENAL.forEach(s=>{
+  const b=document.createElement('button');
+  b.dataset.id=s.id;
+  b.innerHTML=`<svg viewBox="0 0 24 24" aria-hidden="true">${s.ic}</svg><span>${s.nom}</span>`;
+  b.addEventListener('click',()=>senal(s));
+  SEN.appendChild(b);
+});
+
+[
+  ['roma','hastati',240,110],['roma','hastati',240,160],['roma','hastati',240,210],['roma','hastati',240,260],
+  ['roma','principes',190,135],['roma','principes',190,235],['roma','triarios',140,185],
+  ['roma','velites',300,280],['roma','velites',300,75],
+  ['roma','caballeria',100,150],['roma','caballeria',100,240],
+  ['pirro','falange',600,110],['pirro','falange',600,170],['pirro','falange',600,230],['pirro','falange',600,280],
+  ['pirro','elefantes',650,140],['pirro','elefantes',650,250],
+  ['pirro','caballeria',720,100],['pirro','caballeria',725,240],
+  ['pirro','peltastas',690,285],['pirro','peltastas',690,70]
+].forEach(a=>crea(a[0],a[1],a[2],a[3]));
+
+$('#btnTodos').addEventListener('click',()=>{
+  const rom=U.filter(u=>u.vivo&&u.equipo==='roma');
+  const todos=rom.every(u=>u.elegido);
+  rom.forEach(u=>{ u.elegido=!todos; });
+  mira=null;
+  refresca();
+});
+$('#btnPausa').addEventListener('click',()=>{
+  if(fin) return;
+  pausado=!pausado;
+  $('#btnPausa').textContent=pausado?'Seguir':'Pausa';
+});
+
+refresca();
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

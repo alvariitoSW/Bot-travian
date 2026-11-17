@@ -65,10 +65,30 @@
     ofrenda: { n: 'Ofrenda al templo', i: '🏺', mult: 2, min: 60, dura: 1, reposo: 1, fel: 4, pueblo: 2, inq: 0, dios: 2, pago: 'arca', templo: true, d: 'Duplica un mes el don del dios del templo.' },
     juegos: { n: 'Juegos públicos', i: '🎭', mult: 4, min: 150, dura: 3, reposo: 6, fel: 10, pueblo: 5, inq: 4, dios: 1, pago: 'oro', templo: false, d: 'Calman al pueblo y a una ciudad conquistada.' }
   };
+  /* CN16a: la leva del Foro (dilectus). Los aldeanos libres se alistan como milicia a cambio de grano y oro; sin cola ni reloj, solo cuando el jugador pulsa. n = soldados por pulsación; tope = parte de la población libre que puede estar bajo armas por leva (el resto sigue en el campo). Licencia de juego: el coste es de equilibrio, no sale de las fuentes. */
+  D.LEVA = { unidad: 'milicia', n: 10, grano: 6, oro: 4, tope: 0.35, d: 'Alista aldeanos como milicia.' };
+  /* CN16b: cerrar el ejército en la ciudad. Todo es licencia de juego en las cifras (equilibrio, no fuentes); fichas en registro.js (puertas, evocati, triumphus).
+     PUERTAS: con muralla, el jugador cierra las puertas de una ciudad. def = multiplica la defensa de la guarnición al defenderla; comercio = multiplica el oro del foro y del puerto
+     de esa ciudad; viaje = multiplica la duración de las marchas propias que salen o entran en ella. Se guarda en c.puertas (true = cerradas).
+     VETERANOS: cada batalla que libra la tropa de una ciudad suma 1 a c.vetB. Con c.vetB >= batallas se pueden licenciar hasta n soldados (no la milicia):
+     vuelven a la población, traen grano (por hombre) y suben el favor del pueblo. Cada licencia gasta «batallas» del contador.
+     TRIUNFO: una victoria con al menos «bajas» enemigas y «ratio» veces más bajas enemigas que propias, o una ciudad conquistada, ofrece UN triunfo durante «plazo» meses.
+     Cuesta oro; da favor del pueblo y felicidad en todas tus ciudades durante «dura» meses. */
+  D.PUERTAS = { def: 1.15, comercio: 0.8, viaje: 1.25 };
+  D.VETERANOS = { batallas: 3, n: 20, grano: 4, pueblo: 2 };
+  D.TRIUNFO = { bajas: 200, ratio: 3, oro: 250, pueblo: 8, fel: 6, dura: 6, plazo: 12 };
+  D.LEVA_FICHAS = {
+    dilectus: { n: 'Leva (dilectus)', i: '⚔️', d: 'Los ciudadanos libres se alistan como soldados cuando el Senado lo manda.' },
+    campo_marte: { n: 'Campo de Marte', i: '🏟️', d: 'Explanada junto a la puerta donde la tropa se forma y se instruye.' },
+    puertas: { n: 'Cerrar puertas', i: '🚪', d: 'La ciudad cierra sus puertas ante el enemigo: resiste mejor, pero el comercio y las marchas se frenan.' },
+    evocati: { n: 'Veteranos licenciados', i: '🎖️', d: 'Soldados curtidos en varias campañas que dejan las armas y se asientan como colonos.' },
+    triumphus: { n: 'Triunfo', i: '🎺', d: 'Desfile del general vencedor por Roma, que el Senado concede tras una gran victoria.' }
+  };
   /* Remedios contra los sucesos de la ciudad (CN13b): solo nombre y texto. Reglas y cifras viven en ciudad.js (EDIF.dique, techarBarrio); aquí van para que tengan ficha histórica. */
   D.REMEDIOS = {
     dique: { n: 'Dique contra la crecida', i: '🌊', d: 'Un dique en la orilla guarda de la crecida las casas de su alrededor.' },
-    tejas: { n: 'Techos de teja', i: '🏠', d: 'Un barrio techado con tejas no se incendia de casa en casa.' }
+    tejas: { n: 'Techos de teja', i: '🏠', d: 'Un barrio techado con tejas no se incendia de casa en casa.' },
+    cubos: { n: 'Cubos contra el fuego', i: '🪣', d: 'Cuando prende un incendio, mandas cubos: cada casa en llamas se salva según lo cerca que esté el agua (fuente o río).' }
   };
   /* Racionar el grano (CN13a): gasta menos y el pueblo lo nota. Es la ración de la ciudad (c.rac); no es el «hambre» del invierno (E.hambre) ni la de G.tick (grano agotado). */
   D.RACION = { normal: { n: 'Ración normal', grano: 1, f: 0, d: 'Come todo el mundo.' }, escasa: { n: 'Ración escasa', grano: 0.7, f: -8, d: 'Un 30 % menos de grano; el pueblo se queja.' } };
@@ -248,9 +268,9 @@
     tarentum: { n: 'Tarentum', lon: 17.2, lat: 40.6, f: 'epiro', esp: 'caballos', tipo: 'naval', w: 3, wl: 2, g: { falange: 120, hoplitas: 80, peltastas: 50, tesalios: 40, elefantes: 6 }, gen: { n: 'Pirro de Epiro', mando: 4, disc: 3, until: 272 }, h: 'Colonia espartana que llamó en su ayuda al rey Pirro. Cayó ante Roma en 272 a.C.' },
     mediolanum: { n: 'Mediolanum', lon: 9.2, lat: 45.4, f: 'galos', esp: 'pieles', tipo: 'militar', w: 2, wl: 0, g: { galos: 260, jinetes: 40 }, h: 'Capital de los galos ínsubres. Tomada por Marcelo y Escipión Calvo en 222 a.C.' },
     messana: { n: 'Messana', lon: 15.55, lat: 38.3, f: 'mamertinos', esp: 'vino', tipo: 'naval', w: 2, wl: 1, g: { milicia: 60, hoplitas: 60, peltastas: 30 }, h: 'Ocupada por los mamertinos, mercenarios campanos de Agatocles (Polibio 1.7-8). Su petición de auxilio desató la Primera Guerra Púnica (264 a.C.).' },
-    syracusae: { n: 'Syracusae', lon: 15.3, lat: 37.0, f: 'siracusa', esp: 'maderanaval', tipo: 'emporio', w: 4, wl: 4, g: { hoplitas: 180, peltastas: 80, jinetes: 40 }, h: 'La mayor ciudad griega de Occidente. Defendida por las máquinas de Arquímedes, cayó ante Marcelo en 212 a.C.' },
+    syracusae: { n: 'Syracusae', lon: 15.3, lat: 37.0, f: 'siracusa', esp: 'marmol', tipo: 'emporio', w: 4, wl: 4, g: { hoplitas: 180, peltastas: 80, jinetes: 40 }, h: 'La mayor ciudad griega de Occidente. Defendida por las máquinas de Arquímedes, cayó ante Marcelo en 212 a.C.' },
     agrigentum: { n: 'Agrigentum', lon: 13.55, lat: 37.25, f: 'akragas', esp: 'vino', tipo: 'agraria', w: 3, wl: 2, g: { hoplitas: 120, peltastas: 60, jinetes: 30 }, post: { cartago: { libios: 140, iberos: 60, honderos: 40, numidas: 30 } }, h: 'Ciudad griega e independiente en 280 a.C. Cartago la hizo su base en 262 a.C. y Roma la tomó ese mismo año (Polibio 1.17-19).' },
-    panormus: { n: 'Panormus', lon: 13.35, lat: 38.2, f: 'cartago', esp: 'maderanaval', tipo: 'emporio', w: 3, wl: 2, g: { libios: 160, honderos: 50, numidas: 40, elefantes: 5 }, h: 'Puerto púnico. En 250 a.C. Metelo capturó aquí los elefantes de Asdrúbal.' },
+    panormus: { n: 'Panormus', lon: 13.35, lat: 38.2, f: 'cartago', esp: 'sal', tipo: 'emporio', w: 3, wl: 2, g: { libios: 160, honderos: 50, numidas: 40, elefantes: 5 }, h: 'Puerto púnico. En 250 a.C. Metelo capturó aquí los elefantes de Asdrúbal.' },
     lilybaeum: { n: 'Lilybaeum', lon: 12.3, lat: 37.75, f: 'cartago', esp: 'sal', tipo: 'militar', w: 3, wl: 4, g: { libios: 200, iberos: 80, honderos: 50, numidas: 40 }, h: 'Fortaleza cartaginesa que resistió nueve años de asedio romano (250–241 a.C.).' },
     carales: { n: 'Carales', lon: 9.1, lat: 39.25, f: 'cartago', esp: 'sal', w: 2, wl: 1, g: { libios: 100, honderos: 40, milicia: 40 }, h: 'Puerto púnico de Cerdeña. Roma se anexionó la isla en 238 a.C.' },
     emporion: { n: 'Emporion', lon: 3.1, lat: 42.15, f: 'griegos', esp: 'vino', tipo: 'emporio', w: 2, wl: 1, g: { hoplitas: 70, peltastas: 30, milicia: 30 }, h: 'Colonia focense. Aquí desembarcó Cneo Escipión en 218 a.C. para iniciar la conquista de Hispania.' },
@@ -259,7 +279,16 @@
     ambracia: { n: 'Ambracia', lon: 20.9, lat: 39.2, f: 'epiro', esp: 'pieles', w: 2, wl: 2, g: { falange: 140, peltastas: 60, tesalios: 40 }, h: 'Capital del rey Pirro de Epiro. Saqueada por Roma en 189 a.C.' },
     pella: { n: 'Pella', lon: 22.5, lat: 40.8, f: 'macedonia', esp: 'marmol', tipo: 'militar', w: 4, wl: 3, g: { falange: 320, peltastas: 100, tesalios: 100 }, h: 'Capital de Macedonia, cuna de Alejandro. El reino cayó tras Pidna (168 a.C.).' },
     corinthus: { n: 'Corinthus', lon: 22.9, lat: 37.9, f: 'macedonia', esp: 'marmol', tipo: 'emporio', w: 4, wl: 3, g: { falange: 200, peltastas: 100, tesalios: 50 }, post: { aquea: { hoplitas: 300, peltastas: 100, jinetes: 50 } }, h: 'Con guarnición macedonia (probable ya en 280 a.C.). Arato la liberó hacia 243 a.C. y entró en la Liga Aquea (Polibio 2.43). Arrasada por Lucio Mumio en 146 a.C., el mismo año que Cartago.' },
-    carthago: { n: 'Carthago', lon: 10.3, lat: 36.85, f: 'cartago', esp: 'purpura', tipo: 'emporio', w: 5, wl: 6, g: { sagrada: 300, libios: 400, iberos: 150, honderos: 120, numidas: 120, elefantes: 20 }, gen: { n: 'Asdrúbal el Beotarca', mando: 3, disc: 4, from: 149, until: 0 }, h: 'La gran rival de Roma. Escipión Emiliano la destruyó en 146 a.C.' }
+    carthago: { n: 'Carthago', lon: 10.3, lat: 36.85, f: 'cartago', esp: 'purpura', tipo: 'emporio', w: 5, wl: 6, g: { sagrada: 300, libios: 400, iberos: 150, honderos: 120, numidas: 120, elefantes: 20 }, gen: { n: 'Asdrúbal el Beotarca', mando: 3, disc: 4, from: 149, until: 0 }, h: 'La gran rival de Roma. Escipión Emiliano la destruyó en 146 a.C.' },
+    // --- J4a: ciudades nuevas por región (fuentes y dictamen en js/registro.js). Etruria (H11c: Livio 28.45), Campania, Galia, Hispania y África ---
+    perusia: { n: 'Perusia', lon: 12.39, lat: 43.11, f: 'etruscos', esp: 'maderanaval', tipo: 'militar', w: 2, wl: 2, g: { hoplitas: 50, milicia: 50, peltastas: 20 }, h: 'Ciudad etrusca en lo alto de un monte. Livio cuenta que en 205 a.C. ofreció abeto para las naves de Escipión (28.45).' },
+    clusium: { n: 'Clusium', lon: 11.95, lat: 43.02, f: 'etruscos', esp: 'maderanaval', w: 2, wl: 1, g: { hoplitas: 40, milicia: 50, peltastas: 20 }, h: 'Ciudad etrusca de la que se contaba que Porsenna fue rey. En 205 a.C. dio abeto para las naves de Escipión (Livio 28.45).' },
+    rusellae: { n: 'Rusellae', lon: 11.15, lat: 42.76, f: 'etruscos', esp: 'maderanaval', w: 1, wl: 1, g: { hoplitas: 30, milicia: 40, peltastas: 10 }, h: 'Ciudad etrusca cercana a la costa. Roma la tomó hacia 294 a.C. y en 205 dio abeto para las naves de Escipión (Livio 28.45).' },
+    neapolis: { n: 'Neapolis', lon: 14.25, lat: 40.85, f: 'griegos', esp: 'sal', tipo: 'naval', w: 3, wl: 2, g: { hoplitas: 60, milicia: 60, peltastas: 20 }, h: 'Colonia griega de la bahía de Campania, aliada de Roma desde 326 a.C. con un pacto igual para ambas (Livio 8.26). Aportaba naves a Roma.' },
+    massalia: { n: 'Massalia', lon: 5.37, lat: 43.3, f: 'griegos', esp: 'vino', tipo: 'emporio', w: 3, wl: 3, g: { hoplitas: 100, peltastas: 40, milicia: 60 }, h: 'Colonia focense de la costa gala, fiel aliada de Roma (Polibio 3.95). Dio informes a Roma sobre el avance de Aníbal.' },
+    tarraco: { n: 'Tarraco', lon: 1.25, lat: 41.12, f: 'iberos', esp: 'vino', w: 1, wl: 1, g: { iberos: 60, honderos: 20, jinetes: 10 }, h: 'Puerto de la costa ibera. En 218 a.C. Cneo Escipión lo hizo base de Roma en Hispania (Livio 21.61).' },
+    gades: { n: 'Gades', lon: -6.29, lat: 36.53, f: 'cartago', esp: 'sal', tipo: 'emporio', w: 3, wl: 2, g: { libios: 100, iberos: 80, honderos: 40, numidas: 20 }, h: 'Colonia fenicia en el extremo occidental. Fue base de Cartago hasta que se rindió a Roma en 206 a.C. (Livio 28.37).' },
+    hadrumetum: { n: 'Hadrumetum', lon: 10.64, lat: 35.83, f: 'cartago', esp: 'sal', tipo: 'naval', w: 2, wl: 2, g: { libios: 100, honderos: 30, numidas: 40 }, h: 'Segundo puerto de Cartago en África. Aníbal desembarcó aquí al volver de Italia en 203 a.C. (Livio 30.25).' }
   };
 
   /* Nombre según la fecha. `n` es el NOMBRE ACTUAL de la ciudad: en las ciudades con `antes` es un getter que mira D.anio
@@ -278,10 +307,56 @@
     ['messana', 'syracusae'], ['messana', 'panormus'], ['syracusae', 'agrigentum'], ['agrigentum', 'lilybaeum'], ['panormus', 'lilybaeum'],
     ['lilybaeum', 'carthago', 1], ['carales', 'carthago', 1], ['carales', 'emporion', 1],
     ['emporion', 'saguntum'], ['saguntum', 'carthagonova'], ['carthagonova', 'carthago', 1],
-    ['ambracia', 'pella'], ['ambracia', 'corinthus'], ['pella', 'corinthus']
+    ['ambracia', 'pella'], ['ambracia', 'corinthus'], ['pella', 'corinthus'],
+    // J4a: rutas nuevas, AL FINAL para no cambiar el número de los caminos 1 a 16 (sus sitios van por número)
+    ['volsinii', 'perusia'], ['volsinii', 'clusium'], ['volsinii', 'rusellae'], ['capua', 'neapolis'],
+    ['emporion', 'tarraco'], ['tarraco', 'saguntum'], ['carthago', 'hadrumetum'],
+    ['roma', 'massalia', 1], ['emporion', 'massalia', 1], ['carthagonova', 'gades', 1], ['neapolis', 'messana', 1], ['hadrumetum', 'lilybaeum', 1]
   ];
 
   for (const e of D.EDGES) if (e[2]) { D.CITIES[e[0]].sea = true; D.CITIES[e[1]].sea = true; }   // ciudades con salida al mar
+
+  /* ---------- GM15b: sitios de los caminos de tierra (gobierno/historia/sitios-de-los-caminos.md, ficha GM15a) ----------
+     Camino c = el c-ésimo trayecto de TIERRA de D.EDGES (1 a 16); su punto 0 es la ciudad e[0] y el 1, la e[1].
+     Cada sitio: [camino, altura (0 a 1 en el camino), rasgo, id, nombre, trigal?]. Rasgo: rio | loma | bosque | llano. «Trigal» es una variante de llano
+     (cuenta como llano para el terreno; esconde como el bosque cuando se escriba esa regla). La altura es la proyección del sitio sobre la recta del camino:
+     licencia de juego (los caminos del juego son rectas entre ciudades). Cada sitio tiene su ficha en js/registro.js; las citas no cotejadas NO salen en pantalla. */
+  const SITIOS_FILAS = [
+    [1, 0.10, 'rio', 'tiber', 'Tíber'], [1, 0.40, 'llano', 'vadimon', 'Lago Vadimón'], [1, 0.50, 'bosque', 'ciminio', 'Bosque Ciminio'],
+    [2, 0.25, 'loma', 'albanos', 'Montes Albanos'], [2, 0.55, 'rio', 'liris', 'Río Liris'], [2, 0.85, 'loma', 'massico', 'Monte Massico'],
+    [3, 0.10, 'loma', 'trasimeno', 'Lago Trasimeno'], [3, 0.30, 'rio', 'arno', 'Valle del Arno'], [3, 0.85, 'rio', 'trebia', 'Río Trebia'],
+    [4, 0.05, 'rio', 'ticino', 'Río Ticino'], [4, 0.35, 'loma', 'alpes', 'Alpes'], [4, 0.70, 'rio', 'rodano', 'Río Ródano'],
+    [5, 0.15, 'loma', 'benevento', 'Beneventum'], [5, 0.35, 'rio', 'ausculum', 'Ausculum'], [5, 0.85, 'rio', 'siris', 'Río Siris', 1],
+    [6, 0.20, 'rio', 'silaro', 'Río Silaro'], [6, 0.60, 'bosque', 'sila', 'Selva de la Sila'], [6, 0.85, 'loma', 'aspromonte', 'Aspromonte'],
+    [7, 0.10, 'llano', 'longano', 'Llano del Longano', 1], [7, 0.60, 'rio', 'simeto', 'Río Símeto', 1], [7, 0.95, 'rio', 'anapo', 'Río Anapo'],
+    [8, 0.30, 'bosque', 'nebrodi', 'Montes Nebrodi'], [8, 0.65, 'rio', 'himera', 'Río Himera'], [8, 0.95, 'llano', 'panormus', 'Llano de Panormus'],
+    [9, 0.25, 'loma', 'hibleos', 'Montes Hibleos'], [9, 0.55, 'rio', 'gela', 'Río Gela', 1], [9, 0.85, 'rio', 'salso', 'Río Salso'],
+    [10, 0.05, 'loma', 'toro', 'Colina Toro'], [10, 0.35, 'rio', 'halico', 'Río Hálico'], [10, 0.95, 'llano', 'lilybaeum', 'Llano de Lilybaeum'],
+    [11, 0.05, 'loma', 'hercte', 'Monte Hercte'], [11, 0.55, 'loma', 'erice', 'Monte Érice'], [11, 0.80, 'llano', 'drepana', 'Llanos de Drepana'],
+    [12, 0.50, 'loma', 'tarraco', 'Tarraco y Cissa'], [12, 0.70, 'rio', 'ebro', 'Río Ebro'], [12, 0.90, 'llano', 'valencia', 'Llano de Valencia'],
+    [13, 0.20, 'rio', 'sucro', 'Río Sucro'], [13, 0.70, 'llano', 'esparto', 'Campo del Esparto'], [13, 0.85, 'rio', 'tader', 'Río Tader'],
+    [14, 0.15, 'rio', 'aous', 'Río Aous'], [14, 0.55, 'loma', 'cinoscefalas14', 'Cinoscéfalas'], [14, 0.75, 'rio', 'tempe14', 'Valle de Tempe'],
+    [15, 0.45, 'loma', 'termopilas15', 'Termópilas'], [15, 0.65, 'loma', 'parnaso', 'Parnaso'], [15, 0.85, 'llano', 'beocia', 'Llanura de Beocia', 1],
+    [16, 0.30, 'rio', 'tempe16', 'Valle de Tempe'], [16, 0.50, 'loma', 'cinoscefalas16', 'Cinoscéfalas'], [16, 0.70, 'loma', 'termopilas16', 'Termópilas']
+  ];
+  D.CAMINOS = D.EDGES.filter(e => !e[2]);   // camino c = D.CAMINOS[c - 1]
+  D.SITIOS = {};
+  SITIOS_FILAS.forEach(r => { D.SITIOS[r[3]] = { c: r[0], p: r[1], r: r[2], n: r[4], trigal: !!r[5] }; });
+  D.RASGOS = { rio: 'río', loma: 'loma', bosque: 'bosque', llano: 'llano' };
+  D.HORAS = { amanecer: 'Amanecer', mediodia: 'Mediodía', atardecer: 'Atardecer', noche: 'Noche' };
+  /* Toparse y apostarse. Licencia de juego en todas las cifras.
+     radio: lo lejos (en fracción del camino) que puede estar un sitio del punto del encuentro para mandar; si no hay, llano.
+     retraso: meses que pierde el ganador. descubre: probabilidad de que el enemigo descubra a un ejército apostado (con buena caballería / sin ella).
+     apostar: meses que aguanta un ejército apostado (3 días). cab: fracción de caballería que cuenta como «buena caballería».
+     rioCruza: en un sitio de río, si el enemigo tiene menos de esta parte de tu fuerza, no fuerza el paso: no hay batalla y cada uno vuelve. */
+  D.CAMPO = { radio: 0.15, retraso: 0.25, descubre: { conCab: 0.7, sinCab: 0.3 }, apostar: 0.1, cab: 0.15, niebla: 0.5, rioCruza: 0.6, apostables: ['bosque', 'loma'] };
+  // rasgo del sitio → el terreno de batalla y la zona de maniobra que el juego YA sabe dibujar (llano: sin zona propia, sale por semilla)
+  D.TERRENO_CAMPO = { rio: 'rio', loma: 'colina', bosque: 'bosque', llano: 'llano' };
+  D.ZONA_CAMPO = { rio: 'rio', loma: 'cerro', bosque: 'bosque' };
+  // el camino de tierra entre dos ciudades: { c, sentido } (sentido 1 si a es el extremo 0), o null si es mar o no hay ruta
+  D.caminoDe = (a, b) => { for (let i = 0; i < D.CAMINOS.length; i++) { const e = D.CAMINOS[i]; if (e[0] === a && e[1] === b) return { c: i + 1, sentido: 1 }; if (e[0] === b && e[1] === a) return { c: i + 1, sentido: -1 }; } return null; };
+  D.sitiosDe = c => Object.keys(D.SITIOS).filter(id => D.SITIOS[id].c === c).map(id => Object.assign({ id: id }, D.SITIOS[id])).sort((x, y) => x.p - y.p);
+  D.sitioCerca = (c, punto) => { let m = null, dm = D.CAMPO.radio + 1e-9; for (const s of D.sitiosDe(c)) { const d = Math.abs(s.p - punto); if (d <= dm) { dm = d; m = s; } } return m; };
 
   /* ---------- Pueblos (J3): satélites productivos de cada capital. Cifras = licencia de juego ----------
      Cada ciudad de D.CITIES es la capital de su territorio (gobierna, recluta y comercia). Sus pueblos PRODUCEN.
@@ -332,6 +407,12 @@
     [[2.4, 39.6], [3.1, 39.9], [3.4, 39.6], [3.0, 39.3]]
   ];
   D.LABELS = [['HISPANIA', -3.5, 40.5], ['GALLIA', 3, 45.5], ['ITALIA', 13.2, 42.9], ['AFRICA', 5, 35.6], ['GRAECIA', 21.6, 38.9], ['MACEDONIA', 22, 41.6], ['ILLYRICVM', 17.5, 44.2], ['MARE NOSTRVM', 6, 38.6], ['SICILIA', 14.2, 37.7]];
+  /* C9 · Monumentos del mapa de campaña: solo se ven, no cambian el juego. Se dibujan por código en js/gfx/map3d.js, muy agrandados
+     (licencia de juego). Ficha con fuente y dictamen en js/registro.js (tipo monumento) y gobierno/historia/C9-egipto.md. */
+  D.MONUMENTOS = {
+    giza: { n: 'Pirámides de Giza', lon: 31.13, lat: 29.98 },
+    faro: { n: 'Faro de Alejandría', lon: 29.885, lat: 31.214 }
+  };
 
   // Hechos históricos. fx: clave interpretada por game.js (o varias separadas por comas, en ese orden). k: clave opcional para distinguir dos hechos del mismo año (id de ficha «<año>-<k>»)
   // H13b, licencia de juego: Roma empieza con más tropas para la llegada temprana de Pirro (no es un dato histórico)
@@ -413,12 +494,14 @@
   /* Zonas del mapa (C6, escalones). Agrupan las ciudades de D.CITIES por id para los nombres grandes de Mare Nostrum.
      Cada ciudad está en una sola zona. Los límites son agrupación de juego, no fronteras de la época. */
   D.ZONAS = {
-    italia: { n: 'Italia', ciudades: ['roma', 'volsinii', 'capua', 'tarentum', 'mediolanum'] },
-    sicilia: { n: 'Sicilia', ciudades: ['messana', 'syracusae', 'agrigentum', 'panormus', 'lilybaeum'] },
-    sardinia: { n: 'Sardinia', ciudades: ['carales'] },
-    hispania: { n: 'Hispania', ciudades: ['emporion', 'saguntum', 'carthagonova'] },
-    graecia: { n: 'Graecia', ciudades: ['ambracia', 'pella', 'corinthus'] },
-    africa: { n: 'Africa', ciudades: ['carthago'] }
+    italia: { n: 'Italia', capital: 'roma', ciudades: ['roma', 'capua', 'neapolis', 'tarentum', 'mediolanum'] },
+    etruria: { n: 'Etruria', capital: 'volsinii', ciudades: ['volsinii', 'perusia', 'clusium', 'rusellae'] },
+    sicilia: { n: 'Sicilia', capital: 'syracusae', ciudades: ['messana', 'syracusae', 'agrigentum', 'panormus', 'lilybaeum'] },
+    sardinia: { n: 'Sardinia', capital: 'carales', ciudades: ['carales'] },
+    gallia: { n: 'Gallia', capital: 'massalia', ciudades: ['massalia'] },
+    hispania: { n: 'Hispania', capital: 'carthagonova', ciudades: ['emporion', 'tarraco', 'saguntum', 'carthagonova', 'gades'] },
+    graecia: { n: 'Graecia', capital: 'corinthus', ciudades: ['ambracia', 'pella', 'corinthus'] },
+    africa: { n: 'Africa', capital: 'carthago', ciudades: ['carthago', 'hadrumetum'] }
   };
   D.zonaDe = id => Object.keys(D.ZONAS).find(z => D.ZONAS[z].ciudades.indexOf(id) >= 0) || null;
 
@@ -558,6 +641,27 @@
     { id: 'ciudadania-sabinos', tipo: 'ciudadania', n: 'Ciudadanía a los sabinos', texto: 'Los sabinos reciben la ciudadanía romana. Más votantes y más soldados para ti.', h: 'En 268 a.C. Roma concede la ciudadanía a los sabinos, que pasan a votar y a servir en las legiones.', fuente: 'Veleyo Patérculo, Historia romana, 1.14', dictamen: 'probable', postura: { ter: -1, mer: 0, mil: 1 }, efecto: { ciudadania: 'roma' }, chips: { ciu: 4, ple: -2 } },
     { id: 'ciudadania-capua', tipo: 'ciudadania', n: 'Ciudadanía a Capua', texto: 'Capua recibe la ciudadanía sin voto. Paga y sirve en tus legiones; no vota.', h: 'En 338 a.C. Roma da a Capua la ciudadanía sin voto (civitas sine suffragio): cargas romanas sin voto en Roma.', fuente: 'Livio, 8.14', dictamen: 'historico', postura: { ter: -1, mer: 1, mil: -1 }, efecto: { ciudadania: 'capua' }, chips: { ciu: 4, ple: -2 } }
   ].forEach(l => { D.LEYES[l.id] = l; D.LEYES_ORDEN.push(l.id); });
+  /* CN17: encargos cortos del Senado (de una sola vez, uno activo cada vez; no son las misiones históricas ni los consejos del asesor).
+     cond.tipo: casas | barrios | barrioNivel | fuentes | oro (mide G.MEDIDAS). req: hito que los abre. Todas las cifras son licencia de juego. */
+  D.ENCARGOS = {};
+  [
+    { id: 'techo-30', n: 'Techo para el pueblo', texto: 'Roma pide hogares: ten 30 casas en tus ciudades.', cond: { tipo: 'casas', n: 30 }, plazo: 12, premio: { oro: 120, favorSenado: 3 } },
+    { id: 'agua-2', n: 'Agua para las calles', texto: 'Levanta 2 fuentes públicas.', cond: { tipo: 'fuentes', n: 2 }, plazo: 10, premio: { oro: 100, favorPueblo: 4 } },
+    { id: 'segundo-barrio', n: 'Un barrio más', texto: 'Abre un segundo barrio en tu ciudad.', cond: { tipo: 'barrios', n: 2 }, plazo: 14, premio: { oro: 150, favorSenado: 4 } },
+    { id: 'barrio-sano', n: 'Un barrio con medios', texto: 'Haz que un barrio llegue al nivel 2.', cond: { tipo: 'barrioNivel', n: 2 }, plazo: 14, premio: { oro: 140, favorPueblo: 3 } },
+    { id: 'arcas-300', n: 'Arcas llenas', texto: 'Reúne 300 de oro para lo que venga.', cond: { tipo: 'oro', n: 300 }, plazo: 12, premio: { favorSenado: 5 } },
+    { id: 'techo-80', n: 'La ciudad crece', texto: 'Ten 80 casas en tus ciudades.', cond: { tipo: 'casas', n: 80 }, plazo: 18, req: 'barrio-3', premio: { oro: 250, favorSenado: 5 } },
+    { id: 'barrio-rico', n: 'Un barrio con lujo', texto: 'Haz que un barrio llegue al nivel 4.', cond: { tipo: 'barrioNivel', n: 4 }, plazo: 24, req: 'barrio-3', premio: { oro: 300, favorSenado: 6, favorPueblo: 4 } }
+  ].forEach(e => { D.ENCARGOS[e.id] = e; });
+  D.ENCARGO_PAUSA = 2;   // meses entre un encargo y el siguiente
+  /* CN17: hitos. Al lograrlos se gana favor (el oro de los hitos descuadraba al bot de la partida corta) y, si lo dice «abre», se abre una serie de encargos nuevos (los que piden ese hito en req). */
+  D.HITOS = {};
+  [
+    { id: 'casas-50', n: 'Cincuenta hogares', texto: 'Ya hay 50 casas en tus ciudades.', cond: { tipo: 'casas', n: 50 }, premio: { favorPueblo: 4 } },
+    { id: 'barrio-3', n: 'Un barrio de buena posición', texto: 'Un barrio ha llegado al nivel 3. El Senado te confía encargos mayores.', cond: { tipo: 'barrioNivel', n: 3 }, premio: { favorSenado: 5 }, abre: 'encargos mayores' },
+    { id: 'tres-barrios', n: 'Tres barrios', texto: 'Tu ciudad tiene tres barrios con nombre propio.', cond: { tipo: 'barrios', n: 3 }, premio: { favorSenado: 3, favorPueblo: 3 } },
+    { id: 'primer-encargo', n: 'Servidor del Senado', texto: 'Has cumplido tu primer encargo.', cond: { tipo: 'encargos', n: 1 }, premio: { favorSenado: 2 } }
+  ].forEach(h => { D.HITOS[h.id] = h; });
 
   /* NB5 — plantillas de zona para la maniobra previa (js/maniobra.js). Cada una: 9 a 10 puntos (x, y de 0 a 100; Roma entra por la izquierda)
      con tipo Castra / Cerro / Vado / Puente / Pinar / Cruce / Llano, y caminos entre ellos. ini = [punto del bando 0, punto del bando 1]; centro = punto central.

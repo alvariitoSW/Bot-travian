@@ -1,13 +1,39 @@
 {
   "provisional": false,
-  "descargaMB": 37,
+  "descargaMB": 50,
   "triangulosPorUnidad": 4500,
   "triangulosPorEdificio": 12000,
   "escenas": {
     "triangulosPorBatalla": 1100000,
     "triangulosPorCiudad": 300000,
-    "ejercitoRomano": { "hastati": 400, "principes": 300, "triarii": 150, "velites": 250, "equites": 120 },
+    "ejercitoRomano": {
+      "hastati": 400,
+      "principes": 300,
+      "triarii": 150,
+      "velites": 250,
+      "equites": 120
+    },
     "nivelCiudad": 5,
-    "arboles": { "pino": 30, "cipres": 60, "algarrobo": 60, "olivo": 15 }
-  }
+    "arboles": {
+      "pino": 30,
+      "cipres": 60,
+      "algarrobo": 60,
+      "olivo": 15
+    },
+    "batallaGrande": {
+      "nota": "maqueta GM1 (gobierno/maquetas/guerra-grande): un cartón de 2 triángulos por hombre; figuras completas solo junto a la cámara",
+      "hombresPorBandoMax": 10000,
+      "figurasCompletasMax": 220,
+      "triangulosDeLejos": 150000,
+      "triangulosDeCerca": 650000,
+      "memoriaCartonesMB": 32,
+      "descargaExtraMB": 0
+    }
+  },
+  "soldadoCercano": {
+    "cuantos": 40,
+    "triangulosMax": 14000,
+    "nota": "Decidido por el usuario el 17/11/2026 («Si subimos el tope incluso a 14000»): los 40 soldados más cercanos a la cámara pueden llegar a 14 000 triángulos; el resto sigue en triangulosPorUnidad. 40 × 14 000 = 560 000 de los 650 000 de triangulosDeCerca: medir fluidez en el móvil antes de dejarlo fijo (GM4b, GM44)."
+  },
+  "notaDescarga": "Subido de 37 a 50 MB por el usuario el 17/11/2026 (respuesta al plan P167)."
 }

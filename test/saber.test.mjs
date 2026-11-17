@@ -441,5 +441,21 @@ t('I5c-B: partida vieja sin s.inv.copia funciona', () => {
   const base = nueva(), e = tierra(); delete base.inv.copia; G.state = base; assert.strictEqual(G.copiaDe('cartago'), 0); assert.ok(G.battleInfo({ kind: 'attack', m: { from: e[0], to: e[1], id: 1, hero: false, units: { hastati: 5 } } }).cfg);
 });
 
+t('I5d: reformar cambia el saber, cobra el coste completo y no se puede sin alternativa', () => {
+  const base = nueva(); G.state = base; hecho(base, ['trigo']); base.inv.edad = 2;
+  assert.ok(!G.invReformaInfo('griego').ok, 'sin alternativa no');
+  const m0 = G.invMul('grano'), r0 = base.res.oro, c = G.invCoste('vina');
+  const r = G.invReforma('trigo'); assert.ok(r.ok, r.motivo);
+  assert.strictEqual(base.inv.hechas.trigo, undefined); assert.strictEqual(base.inv.cola.id, 'vina'); assert.ok(G.invMul('grano') < m0);
+  assert.ok(Math.abs((r0 - base.res.oro) - c.oro) < 1e-6, 'paga el coste del nuevo'); assert.strictEqual(base.inv.reformas, 1);
+  assert.ok(!G.invReforma('trigo').ok, 'ya no lo sabes');
+});
+t('I5d: reformar falla con la cola ocupada o sin dinero y no pierde nada', () => {
+  const base = nueva(); G.state = base; hecho(base, ['trigo']); base.inv.edad = 2; base.inv.cola = { id: 'castra', p: 0, P: 9, t0: 0 };
+  assert.ok(!G.invReforma('trigo').ok && base.inv.hechas.trigo !== undefined); base.inv.cola = null;
+  for (const r of D.RES) base.res[r] = 0; assert.ok(!G.invReforma('trigo').ok && base.inv.hechas.trigo !== undefined && base.inv.reformas === 0);
+});
+t('I5d: partida vieja sin reformas se migra', () => { const s = nueva(); delete s.inv.reformas; G.migrarInv(s); assert.strictEqual(s.inv.reformas, 0); });
+
 console.log('\n' + (n - fallos.length) + '/' + n + ' pruebas del Saber' + (fallos.length ? ' — FALLAN: ' + fallos.join(', ') : ' — APTO'));
 process.exit(fallos.length ? 1 : 0);

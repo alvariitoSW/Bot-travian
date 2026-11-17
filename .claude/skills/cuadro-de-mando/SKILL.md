@@ -35,7 +35,7 @@ Una página para el móvil del usuario: enlace al juego, lo que espera algo suyo
 4. Dale al usuario el enlace.
 
 ## Vigía
-Es una **sesión fija**, «AQVILA · vigía del cuadro (sesión fija)», con el repositorio y las herramientas de sesiones; no se archiva. La despierta la tarea programada del mismo nombre (cada tres horas; su id está en `vigia` de `cuadro.json`) y el botón «Llamar al vigía ahora». Sus instrucciones están en su primer mensaje. Lección del 12/11/2026: una tarea programada que crea una sesión nueva en cada pasada arranca sin repositorio autorizado (el `git push` da 403) y sin `list_sessions` ni `create_session`: no sirve para esto. Si la sesión fija se pierde, se crea otra con `create_session` (con `source_url`) y una tarea programada nueva con `persistent_session_id`.
+Es una **sesión fija**, «AQVILA · vigía del cuadro (sesión fija 2)» (creada el 16/11; la primera se archivó el 13/11 y por eso el botón dejó de servir). No se archiva. La despierta el botón «Llamar al vigía ahora», arriba en la pestaña Hoy, que dispara una tarea programada sin reloj (su id está en `vigia` de `cuadro.json`). **No hay reloj**: el vigía solo trabaja cuando el usuario lo llama (el 13/11 pidió pararlo; el 16/11 pidió poder activarlo desde el cuadro). Sus instrucciones están en su primer mensaje. Lección del 12/11/2026: una tarea programada que crea una sesión nueva en cada pasada arranca sin repositorio autorizado (el `git push` da 403) y sin `list_sessions` ni `create_session`: no sirve para esto. Si la sesión fija se pierde, se crea otra con `create_session` (con `source_url`) y una tarea programada nueva con `persistent_session_id`, y se cambia `vigia` en `cuadro.json`.
 
 ## Órdenes de un toque (`tipo: "orden"`)
 | `ref` | Qué se hace |
@@ -47,6 +47,13 @@ Es una **sesión fija**, «AQVILA · vigía del cuadro (sesión fija)», con el 
 | `pausar:<ID>` / `reanudar:<ID>` | Poner o quitar `(en pausa desde <fecha>)` al principio de esa tarea en el tablero. |
 | `capturas` | Abrir una sesión Sonnet que pase los jueces completos, mire las capturas y publique el cuadro. |
 | `informe` | Informe «¿a dónde vamos?» (skill `bitacora`) en `gobierno/estudios/`, añadido a `informes` de `cuadro.json`. |
+
+## Antes de archivar una sesión (regla del 17/11)
+El 17/11 se cerró la sesión del Consejo, abierta por el usuario a mano, y él preguntó por qué y si quedaba algo. Para que no se repita, valga para la orden `limpiar` y para cualquier «cierra las acabadas» dicho en un chat:
+1. **Nunca** se archiva una sesión que abrió el usuario a mano (en la lista sale con origen `android`, `web` o `ios`, sin sesión madre), ni la del vigía, ni la propia. Esas las cierra él.
+2. No se archiva una sesión cuyo documento en `sesiones` diga `estado: "esperando"` o tenga `pendiente`, ni una cuyo último resumen pida algo al usuario o diga que queda algo sin subir.
+3. Cada sesión, al acabar un turno con algo por hacer, lo escribe en su documento de `sesiones`: `pendiente` (una frase) y `actualizado`. Si no queda nada, `estado: "terminada"` y sin `pendiente`. Un documento con más de un día sin tocar no dice nada: se mira el último mensaje de la sesión.
+4. Quien archiva apunta en la bitácora, en una línea, qué sesiones cerró. Si luego falta algo, se sabe quién y cuándo.
 
 ## Sesiones abiertas (colección `sesiones` del Artifact)
 La página pinta en vivo la colección `sesiones`: un documento por sesión de AQVILA sin archivar, con id = id de la sesión y `{titulo, estado, hace, url, actualizado}`; `estado` es `trabajando`, `esperando` (pide algo al usuario) o `terminada`; `hace` es una frase llana. La escribe el vigía en cada pasada y cualquier sesión que abra o cierre otra. Si la colección está vacía, la página enseña `sesiones` de `cuadro.json`.
@@ -67,8 +74,12 @@ Arriba del cuadro hay un aviso con lo pulsado y sin aplicar y un botón que disp
 - Apunta la sesión en `sesiones` de `cuadro.json` (`{tarea, titulo, nota, url}`; la dirección es `https://claude.ai/code/<id de sesión>`): sale en «Trabajando ahora». Cada sesión quita la suya al cerrar y añade la que abra.
 - Como mucho tres o cuatro a la vez, y nunca dos que toquen los mismos archivos.
 
-## Qué enseña la página (de arriba abajo)
-Espera algo tuyo (con botones de respuesta rápida: opciones «(A) … (B) …» del texto, o Sí / No) · Propuestas · Trabajando ahora · Siguiente paso de cada carril (la primera tarea ⬜ sin «(en pausa» y sin sesión, con «Abrir sesión») · Tus pedidos · Tablero (carriles con pendiente arriba; dentro, lo pendiente primero y lo hecho plegado) · capturas e informes.
+## Qué enseña la página (rediseño del 16/11, pedido por el usuario)
+Cuatro vistas con pestañas fijas abajo (la dirección lleva `#hoy`, `#tareas`, `#ver` o `#pedir`):
+- **Hoy**: estandarte púrpura (anillo de avance, veredicto de los jueces, «Jugar ahora», tres cifras), «Decides tú» (preguntas con números romanos y respuestas rápidas, más las propuestas), sesiones abiertas y el vigía.
+- **Tareas**: mapa de carriles en losas (tocar una filtra la lista), lo pendiente con búsqueda y selección en lote, y lo hecho plegado.
+- **Ver**: capturas nuevas, recorrido de los jueces e informes.
+- **Pedir**: pedido libre, órdenes de un toque y la lista de pedidos.
 Para que las respuestas rápidas salgan bien, escribe cada asunto de «Esperando algo del usuario» como una sola pregunta, con sus opciones entre paréntesis: `(A) …; (B) …`. Para aparcar una tarea, empieza su texto por `(en pausa`.
 
 ## Lo que hay que enseñar al usuario

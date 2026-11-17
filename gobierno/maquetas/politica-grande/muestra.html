@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Muestra del dibujo de línea</title>
+<style>
+ body{margin:0;background:#0b1016;color:#f1ead9;font:13px system-ui,sans-serif;padding:0 16px 40px}
+ h2{font-size:14px;color:#e9c063;margin:22px 0 8px;font-weight:600}
+ .rej{display:flex;flex-wrap:wrap;gap:8px}
+ .c{width:96px;text-align:center;font-size:11px;color:#9aa6b4}
+ .par{display:flex;gap:4px;align-items:center;justify-content:center}
+ svg{display:block;max-width:100%}
+ .w{position:relative;width:390px;margin:0 -16px}
+ .w>svg{width:390px}
+ .w .s{position:absolute;line-height:0}
+ .ic{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;color:#e9c063;text-align:center;font-size:10px}
+ .ic div{display:flex;flex-direction:column;align-items:center;gap:3px}
+ .ic .p{color:#b8862b}
+ .sen{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+</style></head><body>
+<h2>Las quince caras (96 y 44 px)</h2><div class="rej" id="c15"></div>
+<h2>Caras por hash</h2><div class="rej" id="ch"></div>
+<h2>Senadores: voto y bando</h2><div id="sen"></div>
+<h2>Ciudad: 0 obras</h2><div class="w" id="v0"></div>
+<h2>Ciudad: 4 obras (2 nuevas, otoño)</h2><div class="w" id="v4"></div>
+<h2>Ciudad: 8 obras (2 nuevas, invierno)</h2><div class="w" id="v8"></div>
+<h2>Ciudad: verano y primavera</h2><div class="w" id="v1"></div><div class="w" id="v2"></div>
+<h2>Foro</h2><div class="w" id="foro"></div>
+<h2>Curia (30 senadores)</h2><div class="w" id="cur"></div>
+<h2>Casa</h2><div class="w" id="casa"></div>
+<h2>Iconos</h2><div class="ic" id="ic"></div>
+<script type="module">
+import * as A from './arte.js';
+const $ = (i) => document.getElementById(i);
+$('c15').innerHTML = A.IDS_CARA.map((id) => `<div class="c"><div class="par">${A.cara(id)}${A.cara(id,{tam:44})}</div>${id}</div>`).join('');
+$('ch').innerHTML = ['sen-17','sen-3','plebe-9','x','Cayo Mario','quinto'].map((id) => `<div class="c"><div class="par">${A.cara(id)}${A.cara(id,{tam:44})}</div>${id}</div>`).join('');
+let h = '';
+for (const b of ['ter','mer','mil']) { h += '<div class="sen" style="margin-bottom:8px">'; for (const v of ['si','no','duda',null]) h += A.senador({bando:b,voto:v,tam:48}); h += A.cara('apio',{tam:44,bando:b}) + '</div>'; }
+$('sen').innerHTML = h;
+const nu = ['templo','mercado'];
+$('v0').innerHTML = A.vistaCiudad({estacion:0});
+$('v4').innerHTML = A.vistaCiudad({obras:['calzada','fuente','graneros','casas'],nuevas:['mercado','templo'],estacion:2});
+$('v8').innerHTML = A.vistaCiudad({obras:['calzada','fuente','graneros','casas','muralla','muelle'],nuevas:nu,estacion:3});
+$('v1').innerHTML = A.vistaCiudad({obras:['calzada','fuente'],nuevas:['graneros'],estacion:1});
+$('v2').innerHTML = A.vistaCiudad({obras:['muralla','muelle','casas'],estacion:0});
+$('foro').innerHTML = A.foro();
+const as = A.asientosCuria(), vv = ['si','no','duda',null], bb = ['ter','mer','mil'];
+$('cur').innerHTML = A.curia() + as.map((p,i) => `<div class="s" style="left:${p.x-13}px;top:${p.y-26}px">${A.senador({bando:bb[i%3],voto:vv[(i*7)%4],tam:26,banco:false})}</div>`).join('');
+$('casa').innerHTML = A.casa();
+$('ic').innerHTML = A.NOMBRES_ICONO.map((n) => `<div>${A.icono(n,28)}${n}<span class="p">${A.icono(n,20)}</span></div>`).join('');
+</script></body></html>

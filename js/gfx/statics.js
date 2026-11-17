@@ -31,16 +31,35 @@ function material(file, mode, color, p) {
   mats.set(id, m); return m;
 }
 
+/* Formato antiguo (sin índices, a 32 bits): lo siguen usando las piezas hechas con build_static.mjs sin pasar por indexar_static.mjs */
+function partesAntiguas(buf, u) {
+  const n = u.verts, P = new Float32Array(buf, u.off[0], n * 3), N = new Int8Array(buf, u.off[1], n * 3), UV = new Float32Array(buf, u.off[2], n * 2), UV1 = u.off[3] !== undefined ? new Float32Array(buf, u.off[3], n * 2) : null;
+  return u.groups.map(g => { const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(P.subarray(g.start * 3, (g.start + g.count) * 3), 3)); geo.setAttribute('normal', new THREE.BufferAttribute(N.subarray(g.start * 3, (g.start + g.count) * 3), 3, true)); geo.setAttribute('uv', new THREE.BufferAttribute(UV.subarray(g.start * 2, (g.start + g.count) * 2), 2)); if (UV1 && g.aoFile) geo.setAttribute('uv1', new THREE.BufferAttribute(UV1.subarray(g.start * 2, (g.start + g.count) * 2), 2));
+    geo.computeBoundingSphere(); return { geo: geo, file: g.file, mode: g.mode, maps: { ao: UV1 && g.aoFile, norm: g.normFile, spec: g.specFile } }; });
+}
+/* Formato indexado (tools/indexar_static.mjs): vértices únicos a 16 bits dentro de la caja de la pieza + índices. Se desescalan una vez a decimales. */
+function partesIndexadas(buf, u) {
+  const nv = u.nv, q = u.q, O = u.off, tieneUV1 = O.length > 4;
+  const P16 = new Uint16Array(buf, O[0], nv * 3), N = new Int8Array(buf, O[1], nv * 3), T16 = new Uint16Array(buf, O[2], nv * 2), T1 = tieneUV1 ? new Uint16Array(buf, O[3], nv * 2) : null;
+  const I = u.i32 ? new Uint32Array(buf, O[O.length - 1]) : new Uint16Array(buf, O[O.length - 1]);
+  const P = new Float32Array(nv * 3), UV = new Float32Array(nv * 2), UV1 = T1 ? new Float32Array(nv * 2) : null, k = 1 / 65535;
+  for (let i = 0; i < nv * 3; i++) P[i] = q[i % 3] + P16[i] * k * q[3 + i % 3];
+  for (let i = 0; i < nv * 2; i++) { UV[i] = q[6 + i % 2] + T16[i] * k * q[8 + i % 2]; if (T1) UV1[i] = q[10 + i % 2] + T1[i] * k * q[12 + i % 2]; }
+  const pos = new THREE.BufferAttribute(P, 3), nor = new THREE.BufferAttribute(N, 3, true), uv = new THREE.BufferAttribute(UV, 2), uv1 = UV1 ? new THREE.BufferAttribute(UV1, 2) : null;
+  return u.groups.map(g => { const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', pos); geo.setAttribute('normal', nor); geo.setAttribute('uv', uv); if (uv1 && g.aoFile) geo.setAttribute('uv1', uv1);
+    geo.setIndex(new THREE.BufferAttribute(I.subarray(g.start, g.start + g.count), 1)); geo.computeBoundingSphere();
+    return { geo: geo, file: g.file, mode: g.mode, maps: { ao: uv1 && g.aoFile, norm: g.normFile, spec: g.specFile } }; });
+}
+
 export function loadStatic(key) {
   if (loaded.has(key)) return Promise.resolve(loaded.get(key));
   if (pending.has(key)) return pending.get(key);
   const p = (async () => {
     await loadStaticIndex(); const u = index[key]; if (!u) return null;
-    const buf = await fetch(BASE + key + '.bin').then(r => r.arrayBuffer()), n = u.verts;
-    const P = new Float32Array(buf, u.off[0], n * 3), N = new Int8Array(buf, u.off[1], n * 3), UV = new Float32Array(buf, u.off[2], n * 2), UV1 = u.off[3] !== undefined ? new Float32Array(buf, u.off[3], n * 2) : null;
-    const parts = u.groups.map(g => { const geo = new THREE.BufferGeometry();
-      geo.setAttribute('position', new THREE.BufferAttribute(P.subarray(g.start * 3, (g.start + g.count) * 3), 3)); geo.setAttribute('normal', new THREE.BufferAttribute(N.subarray(g.start * 3, (g.start + g.count) * 3), 3, true)); geo.setAttribute('uv', new THREE.BufferAttribute(UV.subarray(g.start * 2, (g.start + g.count) * 2), 2)); if (UV1 && g.aoFile) geo.setAttribute('uv1', new THREE.BufferAttribute(UV1.subarray(g.start * 2, (g.start + g.count) * 2), 2));
-      geo.computeBoundingSphere(); return { geo: geo, file: g.file, mode: g.mode, maps: { ao: UV1 && g.aoFile, norm: g.normFile, spec: g.specFile } }; });
+    const buf = await fetch(BASE + key + '.bin').then(r => r.arrayBuffer());
+    const parts = u.nv === undefined ? partesAntiguas(buf, u) : partesIndexadas(buf, u);
     const st = { key: key, parts: parts, bb: u.bb }; loaded.set(key, st); return st;
   })().catch(e => { console.warn('No se pudo cargar ' + key, e); return null; });
   pending.set(key, p); return p;
