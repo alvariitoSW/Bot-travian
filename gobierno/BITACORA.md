@@ -265,6 +265,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 ## Propuestas por aprobar
 
 ## Después de la 1.0 (nevera: ideas nuevas sin estudio ni maqueta; no se abren hasta la 1.0)
+- I8b deja dos detalles: con el mapa alejado se esconde también el sitio con colonos esperando; la fecha se parte en dos líneas con nombres largos (Beneventum). La edad III en «Fundar» sale en 4 de 10 partidas del bot (para V10a).
 - Que el cuadro de mando enseñe solo el avance de la 1.0 («n de 12») y pliegue lo demás (pequeño; puede ir con V10b).
 
 

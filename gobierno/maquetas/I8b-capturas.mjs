@@ -1,4 +1,4 @@
-// I8b Pulir la partida corta: capturas a 390x844 en gobierno/capturas-tarea/I8b-{1-fundar,2-arando,3-fundada,4-mapa-italia}.jpg
+// I8b Pulir la partida corta: capturas a 390x844 en gobierno/capturas-tarea/I8b-{1-fundar,3-fundada,4-mapa-italia}.jpg
 // Uso: node gobierno/maquetas/I8b-capturas.mjs  (necesita playwright). Comprueba también que el reloj espera al arado.
 import { createRequire } from 'module';
 import { createServer } from 'http';
@@ -29,7 +29,6 @@ await page.evaluate(() => { window.__t0 = Game.state.t; Game.state.speed = 1; do
 await page.waitForTimeout(3500);
 const ar = await page.evaluate(() => ({ fase: Game.modoFase(), t: Game.state.t, t0: window.__t0, ciudades: Game.myCities() }));
 console.log('arando:', ar); if (ar.fase !== 'arando' || ar.t !== ar.t0) { console.log('FALLO: el reloj corre mientras ara'); process.exitCode = 1; }
-await foto('I8b-2-arando');
 await page.waitForFunction(() => !UI.fundar && Game.myCities().length === 1, null, { timeout: 30000 });
 await page.waitForTimeout(1500); await cierra();
 await page.evaluate(() => { Game.state.speed = 1; }); await page.waitForTimeout(2500); await cierra();

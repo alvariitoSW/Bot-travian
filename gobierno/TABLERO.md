@@ -26,7 +26,7 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
 - ⬜ GM5 **Batalla mejorada en el juego, lo mínimo** (≈1,2 M): solo lo ya aprobado en las maquetas de guerra; si se atasca o pasa de gasto, se para y se pregunta (la 1.0 sigue sin ella).
 - ⬜ GM23 **Ritmo: batallas de 4 a 6 minutos, pausa y velocidad** (≈0,4 M).
 - ✅ CN16b **Cerrar el ejército en la ciudad** (17/11): botones «Cerrar puertas» (+15 % defensa, −20 % comercio, +25 % de tiempo en marchas), «Licenciar veteranos» (3 batallas, hasta 20, +grano y favor) y «Celebrar el triunfo» (250 de oro, una vez por gran victoria). Restos sin dueño aún: dibujo de las hojas de puerta cerradas (hoy solo texto) y que las marchas enemigas también se frenen; van a «Después de la 1.0».
-- ⬜ I8b **Pulir la partida corta** (≈0,4 M): etiquetas de colonias que tapan Roma, recursos vacíos al fundar, edad 3 con el bot, arado.
+- ✅ I8b **Pulir la partida corta** (17/11): barra con recursos al fundar; el reloj espera al arado; el bot que investiga llega a la edad III (en pie 10/10, fundar 4/10); las etiquetas ya no tapan Roma (lo resolvió J4b). Parte: `gobierno/partes/2026-11-17-I8b.md`.
 - ⬜ V10a **Equilibrio con el bot** (≈0,5 M): campaña larga y partida corta de principio a fin.
 - ⬜ V10b **Tu prueba en el móvil, arreglos y publicar la 1.0** (≈0,5 M).
 
