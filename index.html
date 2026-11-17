@@ -70,12 +70,24 @@
   <div id="pausa" hidden><span id="p-txt"></span><button data-act="seguir">Continuar</button></div>
   <div id="toasts"></div>
   <div id="menu"></div>
+  <!-- MR3b: pantalla de carga. Se ve desde el primer instante; js/carga.js pone el dato y mueve la barra -->
+  <div id="carga" role="status" aria-live="polite">
+    <div class="cg-centro"><svg class="cg-aguila" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="cg-br" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0bd"/><stop offset=".35" stop-color="#e9c063"/><stop offset=".7" stop-color="#a8781f"/><stop offset="1" stop-color="#6b4a12"/></linearGradient></defs><g fill="url(#cg-br)" stroke="#3a2405" stroke-width="1" stroke-linejoin="round"><path id="cg-ala" d="M45 47C40 36 30 22 14 8c1 6 3 9 6 12l-8-1c4 4 7 7 11 8l-8 1c5 4 9 6 14 6l-7 3c5 2 10 3 14 2l-5 4c4 1 8 1 12 0l-3 4c3 1 6 1 9 0z"/><use href="#cg-ala" transform="matrix(-1 0 0 1 100 0)"/><path d="M42 62l8 13 8-13c-3 2-5 3-8 3s-5-1-8-3z"/><path d="M40 44c0-6 4-9 10-9s10 3 10 9l-4 15c-1 3-3 5-6 5s-5-2-6-5z"/><path d="M46 34c0-5 3-8 6-8 3 0 5 1 6 3 3 0 5 1 6 3-2 0-3 0-4 1l-1 2c-1 3-3 4-6 4-4 0-7-2-7-5z"/><rect x="30" y="74" width="40" height="5" rx="1"/><rect x="48" y="79" width="4" height="21"/></g><g fill="none" stroke="#3a2405" stroke-width=".7"><path d="M46 46q4 3 8 0M46 51q4 3 8 0M46 56q4 3 8 0"/></g><circle cx="55.5" cy="30.5" r="1.1" fill="#2a1a06"/><g fill="#5f7d2d" stroke="#2f4214" stroke-width=".5"><ellipse cx="38" cy="86" rx="2" ry="4.5" transform="rotate(-50 38 86)"/><ellipse cx="42" cy="91" rx="2" ry="4.5" transform="rotate(-25 42 91)"/><ellipse cx="62" cy="86" rx="2" ry="4.5" transform="rotate(50 62 86)"/><ellipse cx="58" cy="91" rx="2" ry="4.5" transform="rotate(25 58 91)"/></g></svg>
+      <div class="cg-nom">AQVILA</div>
+      <div class="cg-sub">El ascenso de Roma · 280–146 a.C.</div>
+      <div class="cg-tubo"><div id="cg-barra"></div></div>
+      <div class="cg-linea"><span id="cg-fase">Abriendo el juego</span> · <span id="cg-pct">5 %</span></div>
+    </div>
+    <div id="cg-dato" class="cg-dato" hidden><p class="cg-q">¿Sabías que…?</p><p class="cg-dt" id="cg-dt"></p><p class="cg-dx" id="cg-dx"></p><p class="cg-df" id="cg-df"></p></div>
+    <div class="cg-cred">Soldados y edificios: 0 A.D. © Wildfire Games, CC BY-SA 3.0</div>
+  </div>
 
   <script src="js/data.js"></script>
   <script src="js/asesor.js"></script>
   <script src="js/diplomacia.js"></script>
   <script src="js/codice.js"></script>
   <script src="js/registro.js"></script>
+  <script src="js/carga.js"></script>
   <script src="js/battle.js"></script>
   <script src="js/game.js"></script>
   <script src="js/maniobra.js"></script>
