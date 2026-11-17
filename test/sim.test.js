@@ -1964,3 +1964,43 @@ console.log('OK — todas las pruebas superadas');
   assert(!/G\.leva\(/.test(require('fs').readFileSync(__filename, 'utf8').split('{ // CN16a')[0]), 'el bot no usa la leva');
   console.log('CN16a: leva OK (coste, tope por población, motivos, guardado, bot sin leva)');
 }
+
+{ // CN16b: puertas (cierran, abren, se guardan, defensa y marchas), veteranos (cuentan y topan), triunfo (uno por victoria) y el bot sin usarlas
+  G.usarCiudad(null); G.turnos = false; G.autoVivo = true;
+  const s = G.newGame('Puertas', 'mediterraneo', {}); G.state = s; const c = s.cities.roma;
+  for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; }
+  assert(c.puertas === false && c.vetB === 0 && s.triunfo === null && s.triunfoFin === 0, 'valores por defecto en partida nueva');
+  const sinMur = G.faseMuralla(c) === 0;
+  if (sinMur) assert(G.puertas('roma', true) === false && /muralla/.test(G.puertasInfo('roma').motivo), 'sin muralla no se cierran');
+  c.b.muralla = Math.max(c.b.muralla || 0, 3); assert(G.faseMuralla(c) > 0, 'con muralla');
+  const p0 = G.prod().det.foro; assert(G.puertas('roma', true) === true && c.puertas === true, 'se cierran'); assert(G.puertas('roma', true) === false, 'ya cerradas');
+  assert(G.prod().det.foro < p0 - 1e-6, 'con puertas cerradas el foro rinde menos');
+  assert(G.puertasViaje('roma', 'capua') === D.PUERTAS.viaje && G.puertasViaje('capua', 'capua') === 1, 'las marchas propias desde la ciudad cerrada tardan más');
+  { const pb = { kind: 'defend', m: { id: 1, from: 'capua', to: 'roma', owner: 'cartago', units: { hastati: 10 } } }; const a = G.battleInfo(pb).cfg.sides[0].defMul; c.puertas = false; const b = G.battleInfo(pb).cfg.sides[0].defMul; c.puertas = true;
+    assert(Math.abs(a / b - D.PUERTAS.def) < 1e-9, 'la guarnición defiende mejor con puertas cerradas'); }
+  const copia = JSON.parse(JSON.stringify(s)); assert(copia.cities.roma.puertas === true, 'las puertas cerradas se guardan');
+  assert(G.puertas('roma', false) === true && c.puertas === false, 'se abren');
+  // partida vieja sin campos: cargar pone los valores por defecto
+  { const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+    const v = JSON.parse(JSON.stringify(s)); delete v.triunfo; delete v.triunfoFin; for (const id in v.cities) { delete v.cities[id].puertas; delete v.cities[id].vetB; }
+    store['aqvila-save-v1'] = JSON.stringify(v); assert(G.load(), 'carga la partida vieja'); const L = G.state;
+    assert(L.cities.roma.puertas === false && L.cities.roma.vetB === 0 && L.triunfo === null && L.triunfoFin === 0, 'migración de puertas, veteranos y triunfo'); delete global.localStorage; G.state = s; }
+  // veteranos
+  c.units = { hastati: 30, milicia: 50 }; c.vetB = 0; const vi = G.veteranosInfo('roma'); assert(vi.motivo && vi.faltan === D.VETERANOS.batallas, 'sin batallas no hay veteranos');
+  for (let i = 0; i < D.VETERANOS.batallas; i++) G.vetCuenta('roma'); assert(c.vetB === D.VETERANOS.batallas, 'cuenta las batallas');
+  const pop0 = c.pop, gr0 = s.res.grano, pu0 = G.favor().pueblo; assert(G.licenciar('roma') === true, 'licencia');
+  assert(c.units.hastati === 30 - D.VETERANOS.n && c.units.milicia === 50 && c.pop === pop0 + D.VETERANOS.n && s.res.grano === gr0 + D.VETERANOS.n * D.VETERANOS.grano, 'licencia n soldados (no la milicia) y los asienta');
+  assert(c.vetB === 0 && G.licenciar('roma') === false, 'gasta el contador: topa'); assert(G.favor().pueblo >= pu0, 'el pueblo no pierde favor');
+  c.vetB = 99; c.units = { milicia: 50 }; assert(G.licenciar('roma') === false && /soldados/.test(G.veteranosInfo('roma').motivo), 'sin soldados no hay licencia');
+  // triunfo
+  assert(G.triunfo() === false && G.triunfoInfo().motivo, 'sin victoria no hay triunfo'); const f0 = G.felicidadBase(c);
+  const out = { lines: [] }; G.triunfoOfrece('Heraclea', out); assert(out.lines.length === 1 && G.triunfoInfo().oferta === 'Heraclea', 'una gran victoria ofrece un triunfo');
+  const oro0 = s.res.oro; assert(G.triunfo() === true && s.res.oro === oro0 - D.TRIUNFO.oro, 'el triunfo cuesta oro');
+  assert(G.triunfo() === false && G.felicidadBase(c) === Math.min(100, f0 + D.TRIUNFO.fel), 'uno por victoria, y da felicidad');
+  s.t += D.TRIUNFO.dura; assert(G.felicidadBase(c) === f0, 'la felicidad del triunfo se acaba');
+  G.triunfoOfrece('Zama', null); s.t += D.TRIUNFO.plazo; assert(!G.triunfoInfo().oferta, 'la oferta caduca');
+  // el bot no usa puertas, licencias ni triunfos
+  const txt = require('fs').readFileSync(__filename, 'utf8').split('{ // CN16b')[0];
+  assert(!/G\.(puertas|licenciar|triunfo)\(/.test(txt), 'el bot no usa puertas, licencias ni triunfos');
+  console.log('CN16b: puertas, veteranos y triunfo OK');
+}

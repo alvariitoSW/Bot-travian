@@ -67,9 +67,22 @@
   };
   /* CN16a: la leva del Foro (dilectus). Los aldeanos libres se alistan como milicia a cambio de grano y oro; sin cola ni reloj, solo cuando el jugador pulsa. n = soldados por pulsación; tope = parte de la población libre que puede estar bajo armas por leva (el resto sigue en el campo). Licencia de juego: el coste es de equilibrio, no sale de las fuentes. */
   D.LEVA = { unidad: 'milicia', n: 10, grano: 6, oro: 4, tope: 0.35, d: 'Alista aldeanos como milicia.' };
+  /* CN16b: cerrar el ejército en la ciudad. Todo es licencia de juego en las cifras (equilibrio, no fuentes); fichas en registro.js (puertas, evocati, triumphus).
+     PUERTAS: con muralla, el jugador cierra las puertas de una ciudad. def = multiplica la defensa de la guarnición al defenderla; comercio = multiplica el oro del foro y del puerto
+     de esa ciudad; viaje = multiplica la duración de las marchas propias que salen o entran en ella. Se guarda en c.puertas (true = cerradas).
+     VETERANOS: cada batalla que libra la tropa de una ciudad suma 1 a c.vetB. Con c.vetB >= batallas se pueden licenciar hasta n soldados (no la milicia):
+     vuelven a la población, traen grano (por hombre) y suben el favor del pueblo. Cada licencia gasta «batallas» del contador.
+     TRIUNFO: una victoria con al menos «bajas» enemigas y «ratio» veces más bajas enemigas que propias, o una ciudad conquistada, ofrece UN triunfo durante «plazo» meses.
+     Cuesta oro; da favor del pueblo y felicidad en todas tus ciudades durante «dura» meses. */
+  D.PUERTAS = { def: 1.15, comercio: 0.8, viaje: 1.25 };
+  D.VETERANOS = { batallas: 3, n: 20, grano: 4, pueblo: 2 };
+  D.TRIUNFO = { bajas: 200, ratio: 3, oro: 250, pueblo: 8, fel: 6, dura: 6, plazo: 12 };
   D.LEVA_FICHAS = {
     dilectus: { n: 'Leva (dilectus)', i: '⚔️', d: 'Los ciudadanos libres se alistan como soldados cuando el Senado lo manda.' },
-    campo_marte: { n: 'Campo de Marte', i: '🏟️', d: 'Explanada junto a la puerta donde la tropa se forma y se instruye.' }
+    campo_marte: { n: 'Campo de Marte', i: '🏟️', d: 'Explanada junto a la puerta donde la tropa se forma y se instruye.' },
+    puertas: { n: 'Cerrar puertas', i: '🚪', d: 'La ciudad cierra sus puertas ante el enemigo: resiste mejor, pero el comercio y las marchas se frenan.' },
+    evocati: { n: 'Veteranos licenciados', i: '🎖️', d: 'Soldados curtidos en varias campañas que dejan las armas y se asientan como colonos.' },
+    triumphus: { n: 'Triunfo', i: '🎺', d: 'Desfile del general vencedor por Roma, que el Senado concede tras una gran victoria.' }
   };
   /* Remedios contra los sucesos de la ciudad (CN13b): solo nombre y texto. Reglas y cifras viven en ciudad.js (EDIF.dique, techarBarrio); aquí van para que tengan ficha histórica. */
   D.REMEDIOS = {

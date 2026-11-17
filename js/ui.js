@@ -452,10 +452,21 @@ const levaBtn = cid => {
   return '<button class="btn fiesta leva' + (on ? '' : ' no') + '" data-act="leva"' + (on ? '' : ' disabled') + '>⚔️ Reclutar ' + lv.n + ' · ' + D.RES_ICON.grano + fmt(lv.coste.grano) + ' ' + D.RES_ICON.oro + fmt(lv.coste.oro) + '</button>' +
     '<small class="fi-n">' + esc(lv.motivo || 'Aldeanos libres: ' + fmt(lv.libres) + '. La milicia guarnece la ciudad.') + '</small>';
 };
+/* CN16b: puertas, veteranos y triunfo, bajo la leva. Leen G.puertasInfo / G.veteranosInfo / G.triunfoInfo; el motivo sale en letra pequeña */
+const ejCiudadHtml = cid => {
+  const pu = G.puertasInfo(cid), ve = G.veteranosInfo(cid), tr = G.triunfoInfo(), P = D.PUERTAS, pct = x => Math.round(Math.abs(x - 1) * 100) + ' %';
+  const bPu = '<button class="btn fiesta puertas' + (pu.motivo ? ' no' : '') + '" data-act="puertas" data-v="' + (pu.cerradas ? 'abrir' : 'cerrar') + '"' + (pu.motivo ? ' disabled' : '') + '>🚪 ' + (pu.cerradas ? 'Abrir puertas' : 'Cerrar puertas') + '</button>' +
+    '<small class="fi-n">' + esc(pu.motivo || (pu.cerradas ? 'Puertas cerradas: ' : 'Si las cierras: ') + 'defensa +' + pct(P.def) + ', comercio −' + pct(P.comercio) + ', marchas +' + pct(P.viaje) + ' de tiempo.') + '</small>';
+  const bVe = '<button class="btn fiesta licenciar' + (ve.motivo ? ' no' : '') + '" data-act="licenciar"' + (ve.motivo ? ' disabled' : '') + '>🎖️ Licenciar ' + (ve.n || D.VETERANOS.n) + ' veteranos · +' + D.RES_ICON.grano + fmt(ve.grano || D.VETERANOS.n * D.VETERANOS.grano) + '</button>' +
+    '<small class="fi-n">' + esc((ve.motivo ? ve.motivo + ' ' : '') + 'Batallas de esta tropa: ' + ve.batallas + '. Se asientan como vecinos y sube el favor del pueblo.') + '</small>';
+  const bTr = !tr.oferta && !tr.activo ? '' : '<button class="btn fiesta triunfo' + (tr.motivo ? ' no' : '') + '" data-act="triunfo"' + (tr.motivo ? ' disabled' : '') + '>🎺 Celebrar el triunfo · ' + D.RES_ICON.oro + fmt(tr.oro) + '</button>' +
+    '<small class="fi-n">' + esc((tr.activo ? 'Triunfo en marcha: +' + D.TRIUNFO.fel + ' de felicidad ' + tr.quedan + (tr.quedan === 1 ? ' mes. ' : ' meses. ') : '') + (tr.oferta ? (tr.motivo === 'Falta oro.' ? 'Falta oro. ' : '') + 'Por la victoria de ' + tr.oferta + ': favor del pueblo y felicidad ' + D.TRIUNFO.dura + ' meses.' : '')) + '</small>';
+  return bPu + bVe + bTr;
+};
 const arcaHtml = c => {
   const cid = UI.city, a = G.arca(cid), pips = [1, 2, 3, 4].map(i => '<i class="' + (a.nivel >= i ? 'on' : '') + '"></i>').join(''), sob = Object.keys(a.sobra);
   return '<div class="arca"><div class="ar-top"><b>Arca</b><span class="ar-med" title="Lo que el almacén va a perder este mes">' + pips + '</span><em>' + (sob.length ? 'sobra ' + sob.map(r => D.RES_ICON[r] + fmt(a.sobra[r])).join(' ') : 'no se pierde nada') + '</em></div>' +
-    '<div class="ar-fi">' + fiestaBtn(cid, 'juegos') + '</div><div class="ar-leva" data-hueco="leva">' + levaBtn(cid) + '</div></div>';   // el hueco de la leva (CN16) cuelga de .ar-leva
+    '<div class="ar-fi">' + fiestaBtn(cid, 'juegos') + '</div><div class="ar-leva" data-hueco="leva">' + levaBtn(cid) + ejCiudadHtml(cid) + '</div></div>';   // el hueco de la leva (CN16) cuelga de .ar-leva
 };
 const graneroHtml = c => {
   const cid = UI.city, g = G.graneroInfo(cid), rc = c.rac || 'normal', rac = Object.keys(D.RACION).map(k => '<button class="chip ' + (rc === k ? 'on' : '') + '" data-act="racion" data-v="' + k + '" title="' + esc(D.RACION[k].d) + '">' + D.RACION[k].n + '</button>').join('');
@@ -1262,7 +1273,7 @@ function showPicker(from, to) {
   const s = S(), c = s.cities[from], own = s.cities[to].owner === 'roma', hero = G.heroAvailable(from);
   if (G.edge(from, to)[2] && !(c.b.puerto > 0)) { modal('<div class="yr">RUTA MARÍTIMA</div><h2>Hace falta un puerto</h2><p>Para embarcar un ejército desde ' + D.CITIES[from].n + ' hacia ' + D.CITIES[to].n + ' necesitas construir antes un <b>Puerto</b> en ' + D.CITIES[from].n + '.</p><div class="acts"><button class="btn ghost" data-act="close">Cerrar</button><button class="btn gold" data-act="goport" data-v="' + from + '">Ir a la ciudad</button></div>'); return; }
   const ks = Object.keys(c.units).filter(k => c.units[k] > 0);
-  let h = '<div class="yr">DESDE ' + D.CITIES[from].n.toUpperCase() + ' · ' + (G.turnos ? ('LLEGAN ' + turnosTxt(Math.max(1, Math.ceil((G.llegada(s.t + G.travel(from, to, false)) - s.t) / D.TURNO_MESES - 1e-9)))).toUpperCase() : months(G.travel(from, to, false)).toUpperCase()) + '</div><h2>' + (own ? 'Reforzar ' : 'Atacar ') + D.CITIES[to].n + '</h2>';
+  let h = '<div class="yr">DESDE ' + D.CITIES[from].n.toUpperCase() + ' · ' + (G.turnos ? ('LLEGAN ' + turnosTxt(Math.max(1, Math.ceil((G.llegada(s.t + G.travel(from, to, false) * G.puertasViaje(from, to)) - s.t) / D.TURNO_MESES - 1e-9)))).toUpperCase() : months(G.travel(from, to, false) * G.puertasViaje(from, to)).toUpperCase()) + '</div><h2>' + (own ? 'Reforzar ' : 'Atacar ') + D.CITIES[to].n + '</h2>';
   if (!ks.length && !hero) h += '<p>No hay tropas en ' + D.CITIES[from].n + '. Recluta en la pestaña Ejército.</p>';
   h += ks.map(k => '<div class="pick"><div class="pt">' + pt(k) + '</div><div><label><span>' + D.UNITS[k].n + '</span><span><b id="pv-' + k + '">' + c.units[k] + '</b> / ' + c.units[k] + '</span></label><input type="range" min="0" max="' + c.units[k] + '" value="' + c.units[k] + '" data-k="' + k + '"></div></div>').join('');
   { const tl = G.tribunos().filter(t => t.libre), lib = tl[0]; h += '<div class="pw">' + (lib ? 'Sin el general, manda el tribuno <b>' + esc(lib.n) + '</b> (' + esc(lib.car) + '). Tribunos libres: ' + tl.length + ' de ' + G.maxEjercitos() + '.' : (hero ? 'No quedan tribunos libres: solo puede partir el ejército con el general.' : 'No quedan tribunos libres: ningún ejército más puede partir.')) + '</div>'; }
@@ -1394,6 +1405,9 @@ document.addEventListener('click', function (e) {
     case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; if (UI.tab === 'map' && UI.map) UI.map.center(v); render(); tickUI(); break;
     case 'rep': if (G.reparto(UI.city, el.dataset.r, +el.dataset.d)) render(); break;
     case 'leva': if (G.leva(UI.city, D.LEVA.n)) { render(); renderCuentas(true); } break;
+    case 'puertas': if (G.puertas(UI.city, v === 'cerrar')) { render(); renderCuentas(true); } break;
+    case 'licenciar': if (G.licenciar(UI.city)) { render(); renderCuentas(true); } break;
+    case 'triunfo': if (G.triunfo()) { render(); renderCuentas(true); } break;
     case 'fiesta': if (G.hacerFiesta(UI.city, v)) { render(); renderCuentas(true); } break;
     case 'racion': if (G.setRacion(UI.city, v)) render(); break;
     case 'techar': if (G.techarBarrio(UI.city, +v)) render(); break;
