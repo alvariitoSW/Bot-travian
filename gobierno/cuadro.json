@@ -1671,6 +1671,21 @@
       "tarea": "MR3",
       "archivo": "gobierno/capturas-tarea/MR3-10-opciones.jpg",
       "pie": "MR3: opciones en papiro"
+    },
+    {
+      "tarea": "P167",
+      "archivo": "gobierno/capturas-tarea/P167-1-colina.jpg",
+      "pie": "Roma hoy, vista desde una colina: se ve una aldea, no una ciudad"
+    },
+    {
+      "tarea": "P167",
+      "archivo": "gobierno/capturas-tarea/P167-2-colina-cerca.jpg",
+      "pie": "Roma hoy, a media distancia: suelo marrón y pocas casas"
+    },
+    {
+      "tarea": "P167",
+      "archivo": "gobierno/capturas-tarea/P167-3-calle.jpg",
+      "pie": "Roma hoy, a pie de calle: paredes borrosas y antorchas como bolas de luz"
     }
   ],
   "informes": [
@@ -1889,6 +1904,10 @@
     {
       "titulo": "¿A dónde vamos y qué queda? (17/11, mediodía)",
       "archivo": "gobierno/estudios/ADV-2026-11-17.md"
+    },
+    {
+      "titulo": "P167 · Plan para una Roma 3D realista",
+      "archivo": "gobierno/estudios/P167-roma-3d-realista.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
