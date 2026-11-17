@@ -1954,6 +1954,12 @@
       "titulo": "Versión 1.0 · JU1 Dos jueces en rojo: «Construir aquí» y guerra atascada (Opus)",
       "nota": "diagnóstico: ¿fallo real o del juez?; gobierno/*.mjs",
       "url": "https://claude.ai/code/session_01QiKC37gQPtkdN7X53tu66G"
+    },
+    {
+      "tarea": "GM44b",
+      "titulo": "GM44b Soldado nuevo: seguir puliendo, mismo detalle para todos (Fable)",
+      "nota": "solo maqueta y estudio; sin tocar js/",
+      "url": "https://claude.ai/code/session_01QiKC38JACzrz9hXD3ncfDK"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
