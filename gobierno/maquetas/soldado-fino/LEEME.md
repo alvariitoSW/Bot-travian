@@ -19,7 +19,7 @@ Arrastra para girar, pellizca para acercar. Botones: Quieto, Andar, Lanzar, «Co
 ## Dictamen histórico: APTO CON NOTAS
 - **Licencia de juego**: el color rojo de la túnica y del escudo (no se conoce el de la época), las sandalias de
   correas (no documentadas tan pronto) y la greba solo en la pierna izquierda (probable, no seguro).
-- Las miniaturas de libros modernos (Connolly, Osprey) tienen derechos: no se han usado ni mirado aquí.
+- **Pendiente (pedido del usuario, 17/11)**: él quería cuadros y láminas de libros de historia como referencia. Esta primera versión no los usó. Visto después: Henri Motte, «Batalla de Zama» (1890, dominio público): vélites con escudo redondo y venablos frente a los elefantes. Las láminas modernas (Connolly, Osprey) tienen derechos: se pueden mirar para aprender el equipo, no copiar ni meter en el juego.
 
 ## Medidas
 8 698 triángulos, 19 huesos, 10 materiales, 0 MB de descarga de arte (todo se genera al abrir; el código pesa 34 KB).
