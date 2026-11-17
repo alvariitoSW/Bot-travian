@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0b1016">
-<title>AQVILA · Testudo a pie (maqueta GM43c)</title>
+<title>AQVILA · Testudo a pie (concurso GM43d · A, luz de cine)</title>
 <base href="../../../../">
 <style>
 @font-face{font-family:Cinzel;font-weight:700;src:url("assets/fuentes/cinzel-700.woff2") format("woff2")}
@@ -18,9 +18,15 @@ button{font:inherit;color:inherit;border:0;cursor:pointer;pointer-events:auto;to
 svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 
 /* la sombra del testudo: oscuro arriba (techo) y abajo (pared de escudos), luz solo por la rendija */
-#sombra{position:absolute;inset:0;opacity:0;transition:opacity .45s;background:linear-gradient(to top,rgba(8,5,3,.4) 0,rgba(8,5,3,.18) calc(var(--ri) - 6%),rgba(8,5,3,0) var(--ri),rgba(8,5,3,0) var(--rs),rgba(8,5,3,.18) calc(var(--rs) + 7%),rgba(8,5,3,.35) 100%)}
+/* (luz de cine: la penumbra ya la hacen las sombras de verdad; este velo queda suave, solo para los bordes) */
+#sombra{position:absolute;inset:0;opacity:0;transition:opacity .45s;background:linear-gradient(to top,rgba(8,5,3,.22) 0,rgba(8,5,3,.08) calc(var(--ri) - 6%),rgba(8,5,3,0) var(--ri),rgba(8,5,3,0) var(--rs),rgba(8,5,3,.1) calc(var(--rs) + 7%),rgba(8,5,3,.25) 100%)}
 #sombra.ve{opacity:1}
-#temblor{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 55%,rgba(0,0,0,0) 55%,rgba(0,0,0,.45) 100%)}
+/* luz de cine: viñeta cálida, un velo de sol arriba y grano de película (capas fijas, sin pasadas de WebGL) */
+#temblor{position:absolute;inset:0;background:radial-gradient(ellipse 115% 85% at 50% 46%,rgba(0,0,0,0) 48%,rgba(26,14,6,.32) 78%,rgba(14,7,3,.62) 100%)}
+#velo{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,196,120,.10),rgba(255,196,120,0) 38%,rgba(0,0,0,0) 70%,rgba(20,12,6,.18))}
+#grano{position:absolute;inset:-64px;opacity:.06;background-size:128px 128px;animation:grano .5s steps(4) infinite}
+@keyframes grano{25%{transform:translate(-31px,17px)}50%{transform:translate(23px,-41px)}75%{transform:translate(-13px,-29px)}}
+@media (prefers-reduced-motion:reduce){#grano{animation:none}}
 
 #arriba{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);top:calc(env(safe-area-inset-top) + 8px);display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
 .pildora{height:44px;padding:0 14px 0 10px;display:flex;align-items:center;gap:6px;border-radius:22px;background:var(--vidrio);border:1px solid var(--fil);font-weight:600;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.4)}
@@ -71,6 +77,8 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 <body>
 <canvas id="lienzo"></canvas>
 <div id="hud">
+  <div id="velo"></div>
+  <div id="grano"></div>
   <div id="temblor"></div>
   <div id="sombra"></div>
   <div id="cinta"></div>
@@ -96,7 +104,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
     <h1 id="fin-t">¡Choque!</h1>
     <p id="fin-p"></p>
     <button class="gordo" id="otra">Otra vez</button>
-    <div id="creditos">Maqueta GM43c · Soldados y escudos de 0 A.D. (Wildfire Games, CC BY-SA 3.0) · Venablos, pila y sonido hechos por código</div>
+    <div id="creditos">Maqueta GM43d · A · Soldados y escudos de 0 A.D. (Wildfire Games, CC BY-SA 3.0) · Cielo: Kloppenheim 06 de Poly Haven (Greg Zaal y Jarod Guest, CC0) · Venablos, pila, luz y sonido hechos por código</div>
   </div>
   <div id="carga" class="velo"><h1>AQVILA</h1><p>Formando el manípulo…</p></div>
 </div>

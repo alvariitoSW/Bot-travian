@@ -15,7 +15,41 @@ import * as Son from './sonido.js';
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), MARCAS = Q.get('marcas');
 const $ = id => document.getElementById(id);
 const lerp = (a, b, t) => a + (b - a) * t, suave = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+/* ---------- luz de cine: dos retoques a los sombreadores de three, solo en esta página ----------
+   1) gradación de color dentro del tonemapping (ACES y luego: algo más de contraste y de color, sombras frías y luces cálidas).
+      Va en cada material, así que no hace falta ninguna pasada de pantalla completa.
+   2) Lambert con borde de contraluz (el sol de frente enciende el canto de cascos, hombros y escudos; como sale de la luz del
+      sol ya sombreada, bajo el techo no hay borde salvo donde entra el sol por la rendija) y con la luz del cielo
+      multiplicada por uAmb (bajo los escudos el cielo no llega: penumbra de verdad, no un velo por encima). */
+THREE.ShaderChunk.tonemapping_pars_fragment = THREE.ShaderChunk.tonemapping_pars_fragment.replace('vec3 CustomToneMapping( vec3 color ) { return color; }', `vec3 CustomToneMapping( vec3 color ) {
+  vec3 p = sqrt( ACESFilmicToneMapping( color ) );
+  float l = dot( p, vec3( 0.299, 0.587, 0.114 ) );
+  p = mix( vec3( l ), p, 1.18 );
+  p = mix( p, p * p * ( 3.0 - 2.0 * p ), 0.45 );
+  p += vec3( -0.012, 0.004, 0.022 ) * ( 1.0 - l ) * ( 1.0 - l ) + vec3( 0.03, 0.012, -0.03 ) * l * l;
+  p = clamp( p, 0.0, 1.0 );
+  return p * p;
+}`);
+const LAMBERT_CINE = THREE.ShaderChunk.lights_lambert_pars_fragment
+  .replace('varying vec3 vViewPosition;', 'varying vec3 vViewPosition;\nuniform float uBorde;\nuniform float uAmb;\nuniform float uTrasluz;')
+  .replace('vec3 irradiance = dotNL * directLight.color;', `vec3 irradiance = dotNL * directLight.color;
+	/* piezas finas de dos caras (escudos, telas): la cara que se ve solo recibe sol si el sol está de su lado (la normal del modelo a veces miente) */
+	vec3 caraV = normalize( cross( dFdx( vViewPosition ), dFdy( vViewPosition ) ) ); caraV *= sign( dot( caraV, geometryViewDir ) );
+	float lado = max( smoothstep( -0.08, 0.1, dot( caraV, directLight.direction ) ), uTrasluz ); irradiance *= lado;`)
+  .replace('reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );\n}', `reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );
+	float fr = pow( 1.0 - saturate( dot( geometryNormal, geometryViewDir ) ), 2.2 ), tras = pow( saturate( dot( - geometryViewDir, directLight.direction ) ), 1.5 ) * smoothstep( -0.3, 0.25, dot( geometryNormal, directLight.direction ) );
+	reflectedLight.directDiffuse += directLight.color * lado * fr * tras * uBorde * ( material.diffuseColor * 0.6 + vec3( 0.16, 0.12, 0.08 ) );
+}`)
+  .replace('reflectedLight.indirectDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );', 'reflectedLight.indirectDiffuse += irradiance * uAmb * BRDF_Lambert( material.diffuseColor );');
+/* AMB: cuánto cielo llega a los hombres (1 fuera, poco bajo el techo) */
+const AMB = { value: 1 }, AMB_FUERA = { value: 1 };
+function cine(sh, borde, amb) {
+  sh.uniforms.uBorde = { value: borde }; sh.uniforms.uAmb = amb || AMB_FUERA; sh.uniforms.uTrasluz = { value: 0 };
+  sh.fragmentShader = sh.fragmentShader.replace('#include <lights_lambert_pars_fragment>', LAMBERT_CINE);
+}
 let semilla = 43; const azar = () => { semilla = (semilla * 16807) % 2147483647; return (semilla - 1) / 2147483646; };
+/* azar aparte para la luz y el polvo: así no cambia lo que pasa en la partida (dónde caen los venablos) */
+let semillaV = 7; const azarV = () => { semillaV = (semillaV * 16807) % 2147483647; return (semillaV - 1) / 2147483646; };
 
 /* ---------- números de la maqueta ----------
    OJO A LA ESCALA: las figuras de 0 A.D. miden 2,15 «metros» con UNIT_SCALE (se eligió para verlas de lejos en el mapa de
@@ -43,17 +77,49 @@ const H = (x, z) => 3.4 * suave(-70, -103, z) * (1 + 0.06 * Math.sin(x * 0.07)) 
 const lienzo = $('lienzo');
 const renderer = new THREE.WebGLRenderer({ canvas: lienzo, antialias: true });
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.05;
-const HORIZ = '#c8c0a6';
-const escena = new THREE.Scene(); escena.background = new THREE.Color(HORIZ); escena.fog = new THREE.Fog(HORIZ, 45, 380);
+/* GM43d-A «Luz de cine»: tarde baja con el sol de frente (contraluz), sombras de verdad ceñidas al manípulo, polvo en el aire,
+   rayos por la rendija y una gradación de color hecha dentro del propio tonemapping (sin pasadas de pantalla extra) */
+renderer.toneMapping = THREE.CustomToneMapping; renderer.toneMappingExposure = 1.08;
+renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const HORIZ = '#dcb888';
+const escena = new THREE.Scene(); escena.background = new THREE.Color(HORIZ); escena.fog = new THREE.Fog('#c9a77a', 26, 320);
 const camara = new THREE.PerspectiveCamera(55, 1, 0.06, 12000); camara.rotation.order = 'YXZ';
-const SOL = new THREE.Vector3(-0.45, 0.5, 0.75).normalize();
-escena.add(new THREE.HemisphereLight(0xe4e8ee, 0x6a5636, 1.25));
-const luz = new THREE.DirectionalLight(0xffeccc, 2.1); luz.position.copy(SOL).multiplyScalar(100); escena.add(luz);
+/* el sol: bajo (19 grados), delante y algo a la derecha. Se mira siempre hacia él: los hombres salen recortados y con el borde encendido */
+const SOL = new THREE.Vector3(0.13, 0.33, -0.94).normalize();
+const cieloLuz = new THREE.HemisphereLight(0xa9bcd8, 0x5e4a2e, 0.8); escena.add(cieloLuz);
+const luz = new THREE.DirectionalLight(0xffcb90, 4.3); luz.position.copy(SOL).multiplyScalar(40); escena.add(luz); escena.add(luz.target);
+/* sombras: un mapa pequeño (1024) que va con la formación y solo la cubre a ella; con el sol bajo, 9 m de alto en el mapa son 40 m de suelo */
+luz.castShadow = true; luz.shadow.mapSize.set(1024, 1024); luz.shadow.bias = -0.0006; luz.shadow.normalBias = 0.025; luz.shadow.radius = 2.5;
+Object.assign(luz.shadow.camera, { left: -8, right: 8, top: 4.5, bottom: -4.5, near: 5, far: 90 }); luz.shadow.camera.updateProjectionMatrix();
+/* luz de relleno desde detrás de la cámara (el cielo que rebota): sin ella las espaldas, a contraluz, quedarían negras */
+const relleno = new THREE.DirectionalLight(0x9fb2cf, 0.55); relleno.position.set(-0.4, 0.6, 1); escena.add(relleno);
 /* luz cálida bajo el testudo: el techo y el escudo de delante se ven de madera, no negros */
-const dentro = new THREE.PointLight(0xffd6a0, 0, 5, 1.1); escena.add(dentro);
+const dentro = new THREE.PointLight(0xf0c8a0, 0, 5, 1.1); escena.add(dentro);
 const U = { uRuido: { value: texturaRuido() } };
-escena.add(crearCielo(SOL.clone().setY(0.25), HORIZ, U));
+const montes = crearCielo(SOL.clone().setY(0.25), HORIZ, U); montes.children[0].visible = false; escena.add(montes);
+/* montes a contraluz: más oscuros y fríos, con la bruma cálida al pie */
+montes.children.slice(1).forEach((m, k) => { m.material.uniforms.uC.value.multiplyScalar(0.72 - k * 0.05).lerp(new THREE.Color('#4c5466'), 0.25); });
+/* el cielo: foto panorámica CC0 de Poly Haven (Kloppenheim 06, cielo puro), girada para que su sol caiga donde está el nuestro */
+const texCielo = new THREE.TextureLoader().load('gobierno/maquetas/testudo-concurso/a/cielo.jpg'); texCielo.colorSpace = THREE.SRGBColorSpace; texCielo.wrapS = THREE.RepeatWrapping;
+const cielo = new THREE.Mesh(new THREE.SphereGeometry(9000, 48, 24), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
+  uniforms: { uCielo: { value: texCielo }, uSol: { value: SOL }, uH: { value: new THREE.Color(HORIZ) } },
+  vertexShader: 'varying vec3 vD; void main(){ vD = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
+  fragmentShader: `varying vec3 vD; uniform sampler2D uCielo; uniform vec3 uSol, uH;
+  void main(){ vec3 d = normalize(vD); float e = asin(clamp(d.y, -1.0, 1.0));
+    float az = atan(d.x, -d.z), azS = atan(uSol.x, -uSol.z), eS = asin(uSol.y);
+    /* el sol de la foto está a 4,7 grados; el nuestro, más alto: se sube un poco la foto (más, y el cielo bajo quedaría liso) */
+    float et = max(e - 0.05 * (1.0 - e / 1.5708), 0.0);
+    vec3 c = texture2D(uCielo, vec2(fract((az - azS) / 6.2831853 + 0.6128), et / 1.5708 + 0.003)).rgb; c = pow(c, vec3(1.25)) * 1.05;
+    float s = max(dot(d, uSol), 0.0);
+    c *= mix(vec3(0.82, 0.9, 1.04), vec3(1.22, 0.98, 0.72), pow(s, 2.0)) * mix(vec3(1.12, 0.95, 0.76), vec3(1.0), smoothstep(0.02, 0.4, e));
+    c = mix(c, c * vec3(0.6, 0.76, 1.0), smoothstep(0.06, 0.5, e) * (1.0 - pow(s, 2.0)));
+    c = mix(uH, c, smoothstep(-0.01, 0.1, e));
+    c += vec3(1.0, 0.72, 0.42) * (pow(s, 8.0) * 0.55 + pow(s, 90.0) * 1.2) + vec3(1.0, 0.95, 0.85) * smoothstep(0.9993, 0.9997, s) * 6.0;
+    gl_FragColor = vec4(c, 1.0);
+ #include <tonemapping_fragment>
+ #include <colorspace_fragment>
+  }` }));
+cielo.renderOrder = -10; escena.add(cielo);
 let vertical = false;
 function medir() {
   const w = innerWidth, h = innerHeight; vertical = h > w;
@@ -61,10 +127,14 @@ function medir() {
 }
 addEventListener('resize', medir); medir();
 /* luz que entra por la rendija, de frente: perfila la cara y el hombro de los de la primera fila */
-const rendija = new THREE.PointLight(0xfff0d0, 0, 4.5, 1.4); escena.add(rendija);
+const rendija = new THREE.PointLight(0xffd9a8, 0, 4.5, 1.4); escena.add(rendija);
 const LUZ = { value: 1 }, DANIO = { value: null };
 
 /* ---------- lienzos pintados por código ---------- */
+/* grano de película: ruido pintado una vez, puesto de fondo en una capa fija (el CSS lo mueve a saltos) */
+{ const c = document.createElement('canvas'); c.width = c.height = 128; const g = c.getContext('2d'), im = g.createImageData(128, 128);
+  for (let i = 0; i < im.data.length; i += 4) { const v = azarV() < 0.5 ? 0 : 255; im.data[i] = im.data[i + 1] = im.data[i + 2] = v; im.data[i + 3] = azarV() * 255; }
+  g.putImageData(im, 0, 0); $('grano').style.backgroundImage = 'url(' + c.toDataURL() + ')'; }
 function lienzoTex(w, h, pinta, repetir) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; pinta(c.getContext('2d'), w, h);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
@@ -88,6 +158,16 @@ const texChispa = sprite((g) => { g.translate(32, 32); for (let i = 0; i < 8; i+
 const texPolvo = sprite((g) => { const r = g.createRadialGradient(32, 32, 2, 32, 32, 31); r.addColorStop(0, 'rgba(170,150,115,.75)'); r.addColorStop(1, 'rgba(150,130,100,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); });
 
 /* ---------- suelo ---------- */
+/* penumbra en el suelo bajo la formación: más honda con el testudo cerrado (el cielo no entra) y algo de pisado en marcha */
+const FORMA = { value: new THREE.Vector4(-3, -2, 3, 12) }, FORMA_K = { value: 0 };
+function sueloCine(sh, instanciado) {
+  cine(sh, 0.0); sh.uniforms.uForma = FORMA; sh.uniforms.uFormaK = FORMA_K;
+  sh.vertexShader = 'varying vec3 vWP;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vWP = (modelMatrix * ' + (instanciado ? 'instanceMatrix * ' : '') + 'vec4(transformed, 1.0)).xyz;');
+  sh.fragmentShader = 'varying vec3 vWP;\nuniform vec4 uForma;\nuniform float uFormaK;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+  vec2 cF = (uForma.xy + uForma.zw) * 0.5, mF = (uForma.zw - uForma.xy) * 0.5;
+  float dF = length(max(abs(vWP.xz - cF) - mF, 0.0));
+  diffuseColor.rgb *= 1.0 - (0.14 + 0.5 * uFormaK) * (1.0 - smoothstep(0.0, 0.9 + 1.6 * (1.0 - uFormaK), dF));`);
+}
 {
   const g = new THREE.PlaneGeometry(700, 700, 175, 175); g.rotateX(-Math.PI / 2); g.translate(0, 0, -80);
   const p = g.attributes.position, col = [], c = new THREE.Color(), verde = new THREE.Color('#6f8a3c'), seco = new THREE.Color('#a99d5a'), oscuro = new THREE.Color('#4d6a2f');
@@ -97,14 +177,14 @@ const texPolvo = sprite((g) => { const r = g.createRadialGradient(32, 32, 2, 32,
     c.copy(verde).lerp(seco, suave(0.1, 0.9, n)).lerp(oscuro, suave(-0.3, -1.0, n) * 0.8); col.push(c.r, c.g, c.b);
   }
   g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.computeVertexNormals();
-  escena.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({ map: texHierba, vertexColors: true })));
+  const suelo = new THREE.Mesh(g, new THREE.MeshLambertMaterial({ map: texHierba, vertexColors: true })); suelo.material.onBeforeCompile = sh => sueloCine(sh, false); suelo.receiveShadow = true; escena.add(suelo);
   /* matas de hierba cerca de la marcha: dan suelo a la cámara baja */
   const mg = new THREE.PlaneGeometry(0.7, 0.42); mg.translate(0, 0.2, 0);
   const m2 = mg.clone().rotateY(Math.PI / 2); const pos = [...mg.attributes.position.array, ...m2.attributes.position.array], uv = [...mg.attributes.uv.array, ...m2.attributes.uv.array];
   const cruz = new THREE.BufferGeometry(); cruz.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); cruz.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); cruz.setAttribute('normal', new THREE.Float32BufferAttribute(new Array(pos.length).fill(0).map((_, i) => i % 3 === 1 ? 1 : 0), 3)); cruz.setIndex([0, 2, 1, 2, 3, 1, 4, 6, 5, 6, 7, 5]);
-  const N = 3200, matas = new THREE.InstancedMesh(cruz, new THREE.MeshBasicMaterial({ map: texMata, alphaTest: 0.4, side: THREE.DoubleSide }), N), o = new THREE.Object3D();
+  const N = 3200, matas = new THREE.InstancedMesh(cruz, new THREE.MeshLambertMaterial({ map: texMata, alphaTest: 0.4, side: THREE.DoubleSide }), N), o = new THREE.Object3D();
   for (let i = 0; i < N; i++) { const x = (azar() - 0.5) * 50, z = 12 - azar() * 130; o.position.set(x, H(x, z) - 0.03, z); o.rotation.y = azar() * 3; const t = 0.5 + azar() * 1.1; o.scale.set(t * (0.7 + azar() * 0.6), t * (0.6 + azar() * 0.8), t); o.updateMatrix(); matas.setMatrixAt(i, o.matrix); matas.setColorAt(i, new THREE.Color().setHSL(0.17 + azar() * 0.08, 0.3 + azar() * 0.25, 0.3 + azar() * 0.2)); }
-  matas.frustumCulled = false; escena.add(matas);
+  matas.frustumCulled = false; matas.receiveShadow = true; matas.material.color.setRGB(0.52, 0.64, 0.46); matas.material.onBeforeCompile = sh => { sueloCine(sh, true); sh.uniforms.uBorde.value = 0.35; sh.uniforms.uTrasluz.value = 0.55; sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_begin>', '#include <normal_fragment_begin>\n normal = normalize((viewMatrix * vec4(0.0, 1.0, 0.0, 0.0)).xyz);'); }; escena.add(matas);
 }
 
 /* ---------- astiles hechos por código: piezas [radio atrás, radio delante, largo, centro en z, color]; el eje va por +z y la punta delante ---------- */
@@ -118,16 +198,16 @@ function geoAsta(piezas) {
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   g.scale(1.1, 1.1, GRANDE); return g;
 }
-const matAsta = new THREE.MeshLambertMaterial({ vertexColors: true });
+const matAsta = new THREE.MeshLambertMaterial({ vertexColors: true }); matAsta.onBeforeCompile = sh => cine(sh, 0.9);
 /* lo que llevan los tuyos en la mano se oscurece con ellos bajo el techo */
 const matAstaMia = new THREE.MeshLambertMaterial({ vertexColors: true });
-matAstaMia.onBeforeCompile = sh => { sh.uniforms.uLuz = LUZ; sh.fragmentShader = 'uniform float uLuz;\n' + sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\n diffuseColor.rgb *= uLuz;'); };
+matAstaMia.onBeforeCompile = sh => { cine(sh, 0.7, AMB); sh.uniforms.uLuz = LUZ; sh.fragmentShader = 'uniform float uLuz;\n' + sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\n diffuseColor.rgb *= uLuz;'); };
 /* venablo: astil fino de madera clara y punta de hierro pequeña */
 const geoVenablo = geoAsta([[0.011, 0.011, 1.48, -0.06, '#c8a678'], [0.012, 0.012, 0.06, 0.70, '#4a4a48'], [0.014, 0, 0.1, 0.78, '#5c5c5a']]);
 /* pilum: astil de madera, hierro largo y fino con su punta */
 const geoPilum = geoAsta([[0.015, 0.015, 1.2, -0.45, '#b48a5a'], [0.019, 0.013, 0.12, 0.2, '#3d3d3b'], [0.0085, 0.0075, 0.62, 0.56, '#77777a'], [0.017, 0, 0.1, 0.92, '#5e5e60']]);
 const PUNTA = 0.83 * GRANDE;
-const NFL = 260, flechas = new THREE.InstancedMesh(geoVenablo, matAsta, NFL); flechas.frustumCulled = false; escena.add(flechas);
+const NFL = 260, flechas = new THREE.InstancedMesh(geoVenablo, matAsta, NFL); flechas.frustumCulled = false; flechas.castShadow = true; escena.add(flechas);
 const FL = []; for (let i = 0; i < NFL; i++) FL.push({ est: 0, p: new THREE.Vector3(), q: new THREE.Quaternion(), ql: new THREE.Quaternion(), rel: new THREE.Vector3() });
 /* astillas del escudo roto */
 const ASTILLAS = Array.from({ length: 9 }, (_, i) => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.06 + (i % 3) * 0.05, 0.14 + (i % 2) * 0.14, 0.02), new THREE.MeshLambertMaterial({ color: i % 2 ? 0x8a6238 : 0x8e2a20 })); m.visible = false; escena.add(m); return { m, v: new THREE.Vector3(), w: new THREE.Vector3(), t: -9 }; });
@@ -149,12 +229,19 @@ const SK_NORMAL = `int ra = int(aFrame + 0.5), rb = int(aFrame2 + 0.5);
 const FRAG = `vec4 tx = texture2D(map, vMapUv);
   if (vMode > 1.5 && tx.a < 0.5) discard;
   if (vMode > 0.5 && vMode < 1.5) tx.rgb = mix(uTeam, tx.rgb, tx.a);
+  tx.rgb = mix(vec3(0.15, 0.1, 0.065), tx.rgb, smoothstep(0.015, 0.07, max(tx.r, max(tx.g, tx.b))));   /* el negro liso del modelo (nuca, pelo) pasa a pelo castaño oscuro: así recibe luz */
   diffuseColor.rgb *= tx.rgb * uLuz;`;
+/* su sombra: la pasada de profundidad del sol con el mismo esqueleto, si no la sombra sería la de la figura quieta */
+function matSombra(huesosTex) {
+  const m = new THREE.MeshDepthMaterial({ depthPacking: THREE.RGBADepthPacking, side: THREE.DoubleSide });
+  m.onBeforeCompile = sh => { sh.uniforms.uBones = { value: huesosTex }; sh.vertexShader = SK_CAB + sh.vertexShader.replace('#include <begin_vertex>', SK_NORMAL.split('\n').slice(0, 2).join('\n') + '\n vec3 transformed = (sk * vec4(position, 1.0)).xyz;'); };
+  m.customProgramCacheKey = () => 'testudo-cuerpo-sombra'; return m;
+}
 /* la figura: cada hombre mezcla dos filas de la tabla de huesos (así los gestos no dan saltos) */
 function matCuerpo(tex, huesosTex, color) {
   const m = new THREE.MeshLambertMaterial({ map: tex, side: THREE.DoubleSide }), team = new THREE.Color(color);
   m.onBeforeCompile = sh => {
-    sh.uniforms.uBones = { value: huesosTex }; sh.uniforms.uTeam = { value: team }; sh.uniforms.uLuz = LUZ;
+    cine(sh, 1.0, AMB); sh.uniforms.uBones = { value: huesosTex }; sh.uniforms.uTeam = { value: team }; sh.uniforms.uLuz = LUZ;
     sh.vertexShader = SK_CAB + sh.vertexShader.replace('#include <beginnormal_vertex>', SK_NORMAL).replace('#include <begin_vertex>', 'vec3 transformed = (sk * vec4(position, 1.0)).xyz;');
     sh.fragmentShader = 'uniform vec3 uTeam;\nuniform float uLuz;\nvarying float vMode;\n' + sh.fragmentShader.replace('#include <map_fragment>', FRAG);
   };
@@ -164,7 +251,7 @@ function matCuerpo(tex, huesosTex, color) {
 function matPieza(tex, color, danio) {
   const m = new THREE.MeshLambertMaterial({ map: tex, side: THREE.DoubleSide }), team = new THREE.Color(color);
   m.onBeforeCompile = sh => {
-    sh.uniforms.uTeam = { value: team }; sh.uniforms.uLuz = LUZ; sh.uniforms.tDanio = DANIO;
+    cine(sh, 0.85, AMB); sh.uniforms.uTeam = { value: team }; sh.uniforms.uLuz = LUZ; sh.uniforms.tDanio = DANIO;
     sh.vertexShader = 'attribute float aMode;\nvarying float vMode;\nvarying vec2 vDan;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vMode = aMode; vDan = vec2(position.x / 1.62 + 0.5, position.z / 3.1 + 0.5);');
     sh.fragmentShader = 'uniform vec3 uTeam;\nuniform float uLuz;\nuniform sampler2D tDanio;\nvarying float vMode;\nvarying vec2 vDan;\n' + sh.fragmentShader.replace('#include <map_fragment>', FRAG + (danio ? '\n vec4 dn = texture2D(tDanio, vDan); if (dn.a < 0.5) discard; diffuseColor.rgb *= dn.rgb;' : ''));
   };
@@ -248,6 +335,9 @@ async function creaHombres() {
   const gEsc = parte(u.geo, CELL, [5, 6], false), escudos = inst(gEsc, matPieza(u.tex, ROJO, false), M);
   const mio = new THREE.Mesh(gEsc, matPieza(u.tex, ROJO, true)); mio.matrixAutoUpdate = false; mio.frustumCulled = false; escena.add(mio);
   const espadas = inst(parte(u.geo, CELL, [4], false), matPieza(u.tex, ROJO, false), M), pila = inst(geoPilum, matAstaMia, M);
+  /* todos dan sombra y la reciben (la figura, con su esqueleto también en la sombra) */
+  cuerpos.customDepthMaterial = matSombra(tex);
+  for (const o of [cuerpos, escudos, mio, espadas, pila]) { o.castShadow = true; o.receiveShadow = true; }
   HOM = { ...tab, u, C: u.clips, cuerpos, fr, fr2, mx, escudos, mio, espadas, pila };
 }
 
@@ -260,7 +350,7 @@ function reinicia() {
   S.tiradores = []; for (let i = 0; i < 10; i++) S.tiradores.push({ x: (i - 4.5) * 1.7 + (azar() - 0.5) * 0.5, z: Z_TIRADORES + (azar() - 0.5) * 1.2, vivo: true, muere: 0, huye: false, yaw: 0, fase: azar() * 4 });
   S.galos = []; for (let i = 0; i < 16; i++) S.galos.push({ x: ((i % 8) - 3.5) * 1.25 + (azar() - 0.5) * 0.3, z: Z_GALOS - Math.floor(i / 8) * 1.6 + (azar() - 0.5) * 0.4, vivo: true, muere: 0, fila: Math.floor(i / 8), fase: azar() * 3 });
   for (const f of FL) f.est = 0; for (const a of ASTILLAS) { a.t = -9; a.m.visible = false; } for (const p of PILA) { p.est = 0; p.g.visible = false; }
-  for (const c of CHISPAS) c.t = -9; for (const p of POLVO) p.t = -9;
+  for (const c of CHISPAS) c.t = -9; for (const p of POLVO) p.t = -9; for (const p of PIES) p.t = -9; S.restoPolvo = 0;
   $('fin').hidden = true; $('accion').hidden = true; cinta('', false); DANIO.value = TEX_DANIO[0];
   for (const h of S.romanos) sitio(h); actualiza();
 }
@@ -534,12 +624,91 @@ function paso(dt) {
   /* los tiradores que quedan huyen tras los pila */
   if (S.fase === 'cargar' || S.fase === 'carga' || S.fase === 'fin') for (const t of S.tiradores) if (t.vivo) { t.huye = true; if (t.z > -122) t.z -= 4 * dt; }
   S.sacude = Math.max(0, S.sacude - dt);
+  polvoPies(dt);
+}
+
+/* ---------- luz de cine: rayos por la rendija, motas en el aire y polvo de los pies (una llamada de dibujo cada uno) ---------- */
+const DIR_LUZ = SOL.clone().negate();   /* hacia dónde va la luz del sol: hacia la cámara y algo abajo */
+const TONO = '\n #include <tonemapping_fragment>\n #include <colorspace_fragment>\n';
+/* rayos: cintas que miran siempre a la cámara, desde la rendija hacia atrás, a lo largo del sol */
+const NRAYOS = 11, RAYOS_U = { uBase: { value: new THREE.Vector3() }, uDir: { value: DIR_LUZ }, uCam: { value: new THREE.Vector3() }, uT: { value: 0 }, uI: { value: 0 } };
+const rayos = (() => {
+  const g = new THREE.InstancedBufferGeometry().copy(new THREE.PlaneGeometry(1, 1, 1, 6)); g.instanceCount = NRAYOS;
+  const a = [], f = []; for (let i = 0; i < NRAYOS; i++) { a.push(-2.1 + 4.2 * (i + azarV() * 0.6) / NRAYOS, 1.6 + azarV() * 0.32, 2.6 + azarV() * 1.6, 0.05 + azarV() * 0.14); f.push(azarV()); }
+  g.setAttribute('aRayo', new THREE.InstancedBufferAttribute(new Float32Array(a), 4)); g.setAttribute('aFase', new THREE.InstancedBufferAttribute(new Float32Array(f), 1));
+  const m = new THREE.Mesh(g, new THREE.ShaderMaterial({ uniforms: RAYOS_U, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false,
+    vertexShader: `attribute vec4 aRayo; attribute float aFase; uniform vec3 uBase, uDir, uCam; uniform float uT, uI; varying vec2 vUv; varying float vA;
+      void main(){ float t = position.y + 0.5; vec3 o = uBase + vec3(aRayo.x, aRayo.y, 0.0), p0 = o + uDir * t * aRayo.z;
+        vec3 lado = normalize(cross(uDir, uCam - p0)); vec3 p = p0 + lado * position.x * aRayo.w * (1.0 + t * 0.6);
+        vUv = vec2(position.x * 2.0, t); vA = uI * (0.7 + 0.3 * sin(uT * 1.3 + aFase * 6.28)) * smoothstep(0.7, 1.8, distance(p, uCam));
+        gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0); }`,
+    fragmentShader: `varying vec2 vUv; varying float vA; void main(){ float a = 1.0 - vUv.x * vUv.x; a *= a * smoothstep(0.0, 0.12, vUv.y) * pow(1.0 - vUv.y, 1.4);
+      gl_FragColor = vec4(vec3(1.0, 0.78, 0.5) * a * vA, 1.0);` + TONO + `}` }));
+  m.frustumCulled = false; m.renderOrder = 5; m.visible = false; escena.add(m); return m;
+})();
+/* motas de polvo en el aire alrededor de la cámara: brillan mirando al sol; bajo el techo, solo dentro del haz de la rendija */
+const MOTAS_U = { uCam: { value: new THREE.Vector3() }, uSol: { value: SOL }, uT: { value: 0 }, uK: { value: 0 }, uEsc: { value: 400 }, uRay: { value: new THREE.Vector2() } };
+const motas = (() => {
+  const n = 520, pos = new Float32Array(n * 3), tam = new Float32Array(n); for (let i = 0; i < n; i++) { pos[i * 3] = azarV(); pos[i * 3 + 1] = azarV(); pos[i * 3 + 2] = azarV(); tam[i] = 0.006 + azarV() * azarV() * 0.022; }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('aTam', new THREE.BufferAttribute(tam, 1));
+  const m = new THREE.Points(g, new THREE.ShaderMaterial({ uniforms: MOTAS_U, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false,
+    vertexShader: `attribute float aTam; uniform vec3 uCam, uSol; uniform float uT, uK, uEsc; uniform vec2 uRay; varying float vB;
+      void main(){ vec3 caja = vec3(8.0, 3.6, 11.0), c = uCam + vec3(0.0, 0.2, -4.5);
+        vec3 q = position * caja + vec3(sin(uT * 0.35 + aTam * 300.0) * 0.25, uT * 0.04 + sin(uT * 0.5 + position.x * 20.0) * 0.08, uT * 0.18);
+        vec3 p = c + (fract((q - c) / caja + 0.5) - 0.5) * caja; float d = distance(p, uCam);
+        float b = pow(max(dot(normalize(p - uCam), uSol), 0.0), 5.0) * 1.7 + 0.1;
+        float haz = (1.0 - smoothstep(0.1, 0.32, abs(p.y - (uRay.x + (p.z - uRay.y) * -0.35)))) * step(uRay.y, p.z);
+        vB = b * mix(1.0, haz * 1.4, uK) * smoothstep(0.12, 0.5, d) * (1.0 - smoothstep(6.0, 9.0, d));
+        vec4 mv = viewMatrix * vec4(p, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = clamp(aTam * uEsc / -mv.z, 1.0, 14.0); }`,
+    fragmentShader: `varying float vB; void main(){ vec2 c = gl_PointCoord - 0.5; float a = 1.0 - smoothstep(0.15, 0.5, length(c));
+      gl_FragColor = vec4(vec3(1.0, 0.86, 0.62) * a * vB * 0.35, 1.0);` + TONO + `}` }));
+  m.frustumCulled = false; m.renderOrder = 6; escena.add(m); return m;
+})();
+/* polvo que levantan los pies: nubecillas que nacen a ras de suelo, suben, se abren y se van; a contraluz se doran */
+const NPIES = 200, PIES_U = { ...THREE.UniformsUtils.clone(THREE.UniformsLib.fog), uSol: { value: SOL }, uCam: { value: new THREE.Vector3() }, uEsc: { value: 400 } };
+const PIES = Array.from({ length: NPIES }, () => ({ t: -9, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0, s: 1 }));
+const pies = (() => {
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(new Float32Array(NPIES * 3), 3).setUsage(THREE.DynamicDrawUsage)); g.setAttribute('aVida', new THREE.BufferAttribute(new Float32Array(NPIES * 2), 2).setUsage(THREE.DynamicDrawUsage));
+  const m = new THREE.Points(g, new THREE.ShaderMaterial({ uniforms: PIES_U, transparent: true, depthWrite: false, fog: true,
+    vertexShader: `attribute vec2 aVida; uniform vec3 uSol, uCam; uniform float uEsc; varying float vA, vB;
+      #include <fog_pars_vertex>
+      void main(){ float e = aVida.x; vec4 mv = viewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv;
+        gl_PointSize = e > 0.999 ? 0.0 : clamp((0.8 + e * 1.6) * aVida.y * uEsc / -mv.z, 1.0, 300.0);
+        vA = smoothstep(0.0, 0.12, e) * (1.0 - e) * (1.0 - e) * smoothstep(1.0, 3.5, -mv.z); vB = pow(max(dot(normalize(position - uCam), uSol), 0.0), 2.0);
+        vec4 mvPosition = mv;
+        #include <fog_vertex>
+      }`,
+    fragmentShader: `varying float vA, vB;
+      #include <fog_pars_fragment>
+      void main(){ vec2 c = gl_PointCoord - 0.5; float r = length(c); float a = (1.0 - smoothstep(0.0, 0.5, r)) * (1.0 - smoothstep(0.0, 0.5, r)) * vA * 0.6;
+        gl_FragColor = vec4(mix(vec3(0.56, 0.47, 0.35), vec3(1.05, 0.82, 0.55), vB), a);
+        #include <fog_fragment>
+      ` + TONO + `}` }));
+  m.frustumCulled = false; m.renderOrder = 4; escena.add(m); return m;
+})();
+function polvoPies(dt) {
+  const v = S.vel;
+  const tasa = v <= 0 ? 0 : (v > 3 ? 75 : 36) * (1 - S.k * 0.5);
+  let nace = tasa * dt + (S.restoPolvo || 0); const vivosR = S.romanos.filter(h => h.vivo && h.z < CAM.z - 1.2);   /* solo los que tiene delante la cámara */
+  while (nace >= 1 && vivosR.length) {
+    nace--; const p = PIES.find(p => S.T - p.t > 1.8); if (!p) break; const h = vivosR[Math.floor(azarV() * vivosR.length)];
+    p.t = S.T - azarV() * 0.3; p.x = h.x + (azarV() - 0.5) * 0.9; p.z = h.z - 0.2 + azarV() * 0.8; p.y = H(p.x, p.z) + 0.3 + azarV() * 0.15; p.vx = (azarV() - 0.5) * 0.3; p.vy = 0.15 + azarV() * 0.25; p.vz = 0.3 + azarV() * 0.5 + v * 0.15; p.s = 0.6 + azarV() * 0.8;
+  }
+  S.restoPolvo = nace;
+  for (const p of PIES) { const a = S.T - p.t; if (a < 0 || a > 1.8) continue; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; p.vy *= 1 - dt * 0.8; p.vz *= 1 - dt * 0.6; }
+}
+function dibujaPolvo() {
+  const pa = pies.geometry.attributes.position, va = pies.geometry.attributes.aVida;
+  PIES.forEach((p, i) => { const a = (S.T - p.t) / 1.8; pa.setXYZ(i, p.x, p.y, p.z); va.setXY(i, a >= 0 && a < 1 ? a : 1, p.s); });
+  pa.needsUpdate = va.needsUpdate = true;
 }
 
 /* ---------- dibujo ---------- */
 const figuras = {};
 function malla(tipo, n, color) {
-  const u = getUnit(tipo), g = instancedGeometry(u, n), m = new THREE.InstancedMesh(g, unitMaterialReal(u, color), n);
+  const u = getUnit(tipo), g = instancedGeometry(u, n), mat = unitMaterialReal(u, color), antes = mat.onBeforeCompile;
+  mat.onBeforeCompile = (sh, r) => { antes(sh, r); cine(sh, 1.3); }; mat.customProgramCacheKey = () => 'aqvila-real-cine';
+  const m = new THREE.InstancedMesh(g, mat, n);
   m.frustumCulled = false; escena.add(m); figuras[tipo] = { m, u, fr: g.attributes.aFrame }; return figuras[tipo];
 }
 const O = new THREE.Object3D(), CERO = m4().makeScale(0, 0, 0);
@@ -600,10 +769,20 @@ function dibuja() {
   cx += (Math.random() - 0.5) * sac; cy += (Math.random() - 0.5) * sac - sc * sc * 0.12;
   camara.position.set(cx, cy, CAM.z);
   /* luz: dentro, penumbra cálida; por la rendija entra el sol de frente */
-  LUZ.value = lerp(1, 0.5, k);
+  LUZ.value = lerp(1, 0.82, k); AMB.value = lerp(1, 0.3, k); relleno.intensity = lerp(0.55, 0.12, k);
+  {
+    const dx = lerp(ABIERTO.dx, CERRADO.dx, k), dz = lerp(ABIERTO.dz, CERRADO.dz, k), cz = S.zF + FILAS * dz * 0.4;
+    luz.target.position.set(0, H(0, cz), cz); luz.position.copy(luz.target.position).addScaledVector(SOL, 45);
+    FORMA.value.set(-FILES / 2 * dx - 0.25, S.zF - 0.55, FILES / 2 * dx + 0.25, S.zF + (FILAS - 0.5) * dz); FORMA_K.value = k;
+    const esc = renderer.domElement.height * camara.projectionMatrix.elements[5] / 2, yR = H(0, S.zF) + 1.62;
+    RAYOS_U.uBase.value.set((yo.x + co.x) / 2 - 0.1, H(0, S.zF), S.zF - MURO_Z - 0.15); RAYOS_U.uCam.value.copy(camara.position); RAYOS_U.uT.value = T; RAYOS_U.uI.value = 0.5 * suave(0.6, 1, k);
+    rayos.visible = k > 0.6;
+    MOTAS_U.uCam.value.copy(camara.position); MOTAS_U.uT.value = T; MOTAS_U.uK.value = suave(0.4, 1, k); MOTAS_U.uEsc.value = esc; MOTAS_U.uRay.value.set(yR + 0.15, S.zF - MURO_Z);
+    PIES_U.uCam.value.copy(camara.position); PIES_U.uEsc.value = esc; dibujaPolvo();
+  }
   const yF = H(CAM.x, S.zF);
-  dentro.position.set(cx, cy + 0.05, CAM.z + 0.2); dentro.intensity = 0.9 * k + S.destello * 22;
-  rendija.position.set((yo.x + co.x) / 2, yF + 1.85, S.zF - 0.75); rendija.intensity = 7 * k;
+  dentro.position.set(cx, cy + 0.05, CAM.z + 0.2); dentro.intensity = 0.5 * k + S.destello * 22;
+  rendija.position.set((yo.x + co.x) / 2, yF + 1.6, S.zF - 0.75); rendija.intensity = (0.8 + 1.6 * suave(0, 1, yo.mira)) * k;   /* cuando se vuelve, la rendija le da en la cara */
   const cerca = lerp(0.08, 0.05, k);
   if (camara.fov !== CAM.fov || camara.near !== cerca) { camara.fov = CAM.fov; camara.near = cerca; camara.updateProjectionMatrix(); }
   camara.rotation.set(CAM.pitch + Math.sin(ph * 2) * 0.005 * andar + Math.sin(T * 47) * sc * 0.06 - sc * sc * 0.1, CAM.yaw + Math.sin(ph) * 0.004 * andar + Math.sin(T * 39) * sc * 0.03, Math.sin(T * 31) * sc * 0.1);
@@ -681,7 +860,7 @@ function bucle(t) {
 /* para las pruebas: el estado y dónde caen en pantalla (0 a 1) tu cabeza, la de tu compañero, la rendija y el enemigo */
 const enPantalla = v => { v.project(camara); return { x: +((v.x + 1) / 2).toFixed(3), y: +((1 - v.y) / 2).toFixed(3), delante: v.z < 1 }; };
 window.__tp = {
-  lista: false, S, CAM, camara, Son, salta: s => salta(s), parar: v => { parado = v; },
+  lista: false, S, CAM, camara, Son, luz, renderer, escena, cine: { rayos, motas, pies, cielo, PIES }, salta: s => salta(s), parar: v => { parado = v; },
   estado: () => ({ golpes: S.golpes, roto: S.roto, clavados: FL.filter(f => f.est === 2).length, enHombre: FL.filter(f => f.est === 2 && f.h.k < 0.7).length, andando: S.andando, corriendo: S.corriendo, vel: S.vel, fase: S.fase, zF: S.zF, k: S.k, vivos: vivos(), flechas: FL.filter(f => f.est).length, mira: S.romanos[YO].mira, enc: S.romanos[YO].enc }),
   encuadre: () => { const R = S.romanos, yF = H(CAM.x, S.zF); return { yo: enPantalla(ancla(R[YO], HU.cara, [0, 0, 0.25], new THREE.Vector3())), comp: enPantalla(ancla(R[CMP], HU.cara, [0, 0, 0.25], new THREE.Vector3())), rendija: enPantalla(new THREE.Vector3((R[YO].x + R[CMP].x) / 2, yF + 1.8, S.zF - MURO_Z)), enemigo: enPantalla(new THREE.Vector3(0, H(0, Z_TIRADORES) + 1, Z_TIRADORES)), muro: enPantalla(new THREE.Vector3(CAM.x, yF + MURO_Y + 0.72, S.zF - MURO_Z)), techo: enPantalla(new THREE.Vector3(CAM.x, yF + TECHO_Y + 0.03, S.zF + CERRADO.dz - TECHO_Z - 0.72)) }; },
   /* para comprobar las cuentas: dónde están de verdad cabeza y manos de un hombre */

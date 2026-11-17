@@ -1,4 +1,4 @@
-/* Maqueta GM43c «Testudo a pie»: un manípulo de hastati cruza el campo bajo los venablos, visto a pie y, con los escudos
+/* Concurso GM43d, participante C «Hombres y hierro» (copia de la maqueta GM43c «Testudo a pie»): un manípulo de hastati cruza el campo bajo los venablos, visto a pie y, con los escudos
    arriba, desde dentro del testudo. Idea de cámara tomada de Ryse: Son of Rome (solo la idea; nada de su arte ni de su código).
    Soldados y escudos: arte de 0 A.D. (Wildfire Games, CC BY-SA 3.0). El escudo de cada hombre es el suyo de verdad: se
    separa de la figura y se coloca en el muro o en el techo; el brazo llega hasta el asa (ver esqueleto.js).
@@ -63,6 +63,43 @@ addEventListener('resize', medir); medir();
 /* luz que entra por la rendija, de frente: perfila la cara y el hombro de los de la primera fila */
 const rendija = new THREE.PointLight(0xfff0d0, 0, 4.5, 1.4); escena.add(rendija);
 const LUZ = { value: 1 }, DANIO = { value: null };
+/* ---------- concurso GM43d · C «Hombres y hierro»: relieve, brillo, desgaste y un hombre distinto de otro ----------
+   detalle.png: cuatro mapas de gris en una sola textura de 512 (una sola lectura por píxel):
+   R trama de lino (Poly Haven «Rough Linen», CC0) · G veta de madera (Poly Haven «Fine Grained Wood», CC0)
+   B manchas (de Poly Haven «Rusty Metal 02», CC0: sirven de barro, salpicadura y pátina) · A arañazos (hechos por código) */
+const DET = { value: null };
+/* GLSL común: relieve desde un mapa de alturas (derivadas de pantalla, sin tangentes), cielo y suelo que se reflejan en
+   el metal, y el brillo: especular del sol, reflejo del entorno y borde de luz en el contorno */
+const GL_COMUN = `uniform sampler2D tDet;
+#define SL(c) pow(c, vec3(2.2))   /* los colores de aquí van escritos en sRGB, como en un programa de dibujo */
+float lumi(vec3 c) { return dot(c, vec3(0.299, 0.587, 0.114)); }
+vec3 relieve(vec3 n, float h, float s) {
+  vec3 p = -vViewPosition, sx = dFdx(p), sy = dFdy(p); vec2 d = vec2(dFdx(h), dFdy(h)) * s * 0.0025;   /* s en «mm» aprox.: la altura del relieve va en metros */
+  vec3 r1 = cross(sy, n), r2 = cross(n, sx); float det = dot(sx, r1);
+  vec3 g = sign(det) * (d.x * r1 + d.y * r2); return normalize(abs(det) * n - g);
+}
+vec3 entorno(vec3 r) {
+  vec3 cielo = mix(vec3(1.0, 0.93, 0.78), vec3(0.58, 0.68, 0.82), smoothstep(0.05, 0.8, r.y));
+  vec3 suelo = mix(vec3(0.20, 0.19, 0.11), vec3(0.62, 0.58, 0.44), smoothstep(-0.45, 0.0, r.y));
+  return r.y > 0.0 ? cielo : suelo;
+}
+`;
+/* va donde three pondría el mapa de entorno: suma brillo de metal, un poco de brillo a lo demás y el borde de luz */
+const GL_BRILLO = `{
+  vec3 Vv = normalize(vViewPosition); float ndv = clamp(dot(normal, Vv), 0.0, 1.0);
+  vec3 rw = inverseTransformDirection(reflect(-Vv, normal), viewMatrix), ent = entorno(rw);
+  vec3 sol = vec3(0.0), Ls = vec3(0.0, 1.0, 0.0);
+  #if NUM_DIR_LIGHTS > 0
+  sol = directionalLights[0].color; Ls = directionalLights[0].direction;
+  #endif
+  float nl = clamp(dot(normal, Ls), 0.0, 1.0), nh = clamp(dot(normal, normalize(Ls + Vv)), 0.0, 1.0);
+  float esp = pow(nh, mix(10.0, 70.0, brillo)) * nl;
+  float fres = pow(1.0 - ndv, 4.0);
+  outgoingLight += metal * colMetal * (ent * (0.5 + 0.5 * fres) * uLuz * 0.75 + sol * esp * mix(0.6, 2.2, brillo));
+  outgoingLight += (1.0 - metal) * sol * esp * brillo * 0.12;
+  outgoingLight += vec3(1.0, 0.82, 0.6) * pow(1.0 - ndv, 3.0) * borde * uLuz * (0.4 + 0.6 * nl + 0.3 * smoothstep(0.0, 0.6, rw.y));
+}`;
+
 
 /* ---------- lienzos pintados por código ---------- */
 function lienzoTex(w, h, pinta, repetir) {
@@ -118,16 +155,51 @@ function geoAsta(piezas) {
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
   g.scale(1.1, 1.1, GRANDE); return g;
 }
-const matAsta = new THREE.MeshLambertMaterial({ vertexColors: true });
+/* el astil: madera con veta (canal G de detalle.png) y el hierro con brillo; se distingue por el color del vértice */
+function matAstil(propio) {
+  const m = new THREE.MeshLambertMaterial({ vertexColors: true });
+  m.onBeforeCompile = sh => {
+    sh.uniforms.uLuz = propio ? LUZ : { value: 1 }; sh.uniforms.tDet = DET;
+    sh.vertexShader = 'varying vec3 vLoc;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vLoc = position;');
+    sh.fragmentShader = 'uniform float uLuz;\nvarying vec3 vLoc;\n' + sh.fragmentShader.replace('#include <color_fragment>', `float metal = 0.0, brillo = 0.1, borde = 0.2, hDet = 0.5, sDet = 0.0; vec3 colMetal = vec3(0.0);
+  vec3 c = vColor, cs = pow(c, vec3(0.4545)); float sat = max(cs.r, max(cs.g, cs.b)) - min(cs.r, min(cs.g, cs.b));
+  float ang = atan(vLoc.y, vLoc.x) * 0.16; vec2 gz = vec2(0.0, dFdx(vLoc.z)), hz = vec2(0.0, dFdy(vLoc.z));
+  borde = 0.04; if (sat > 0.1 && cs.r > 0.6) { float v = textureGrad(tDet, vec2(ang, vLoc.z * 0.22), gz * 0.22, hz * 0.22).g; c *= SL(vec3(0.92, 0.86, 0.8)) * (0.55 + 0.5 * v); hDet = v; sDet = 0.4; brillo = 0.2; }
+  else if (sat < 0.06) { metal = 1.0; colMetal = c * 1.25 + 0.1; brillo = 0.75; float r = textureGrad(tDet, vec2(ang * 3.0, vLoc.z * 0.9), gz * 0.9, hz * 0.9).b; c = mix(c * 0.5, SL(vec3(0.28, 0.17, 0.1)), r * 0.45); colMetal *= 1.0 - r * 0.5; }
+  diffuseColor.rgb *= c * uLuz;`)
+      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n if (sDet > 0.0) normal = relieve(normal, hDet, sDet);')
+      .replace('#include <envmap_fragment>', GL_BRILLO).replace('#include <lights_lambert_pars_fragment>', '#include <lights_lambert_pars_fragment>\n' + GL_COMUN);
+  };
+  m.customProgramCacheKey = () => 'testudo-astil' + (propio ? '-p' : ''); return m;
+}
+const matAsta = matAstil(false);
 /* lo que llevan los tuyos en la mano se oscurece con ellos bajo el techo */
-const matAstaMia = new THREE.MeshLambertMaterial({ vertexColors: true });
-matAstaMia.onBeforeCompile = sh => { sh.uniforms.uLuz = LUZ; sh.fragmentShader = 'uniform float uLuz;\n' + sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\n diffuseColor.rgb *= uLuz;'); };
+const matAstaMia = matAstil(true);
 /* venablo: astil fino de madera clara y punta de hierro pequeña */
-const geoVenablo = geoAsta([[0.011, 0.011, 1.48, -0.06, '#c8a678'], [0.012, 0.012, 0.06, 0.70, '#4a4a48'], [0.014, 0, 0.1, 0.78, '#5c5c5a']]);
+/* GM43d-C: con la correa de lanzar (amentum, de cuero oscuro) un poco por delante del centro. Plumas no: el venablo no las llevaba */
+const geoVenablo = geoAsta([[0.011, 0.011, 1.48, -0.06, '#c8a678'], [0.0135, 0.0135, 0.07, 0.02, '#4b3322'], [0.0125, 0.0125, 0.012, 0.075, '#4b3322'], [0.007, 0.011, 0.03, -0.815, '#a88a62'], [0.012, 0.012, 0.06, 0.70, '#4a4a48'], [0.014, 0, 0.1, 0.78, '#5c5c5a']]);
 /* pilum: astil de madera, hierro largo y fino con su punta */
-const geoPilum = geoAsta([[0.015, 0.015, 1.2, -0.45, '#b48a5a'], [0.019, 0.013, 0.12, 0.2, '#3d3d3b'], [0.0085, 0.0075, 0.62, 0.56, '#77777a'], [0.017, 0, 0.1, 0.92, '#5e5e60']]);
+/* GM43d-C: con dos virolas de hierro que sujetan la lengüeta al astil (Polibio 6.23: el hierro va clavado hasta media asta) y regatón atrás */
+const geoPilum = geoAsta([[0.015, 0.015, 1.2, -0.45, '#b48a5a'], [0.0185, 0.0185, 0.022, 0.125, '#58585a'], [0.0175, 0.0175, 0.02, 0.0, '#58585a'], [0.006, 0.0155, 0.09, -1.09, '#505052'], [0.019, 0.013, 0.12, 0.2, '#3d3d3b'], [0.0085, 0.0075, 0.62, 0.56, '#77777a'], [0.017, 0, 0.1, 0.92, '#5e5e60']]);
 const PUNTA = 0.83 * GRANDE;
 const NFL = 260, flechas = new THREE.InstancedMesh(geoVenablo, matAsta, NFL); flechas.frustumCulled = false; escena.add(flechas);
+/* GM43d-C: la sombra de cada venablo en el suelo, en una sola llamada: una tira oscura entre donde el sol echa la cola y
+   la punta. Se ensancha y se aclara cuanto más alto va (y desaparece arriba); los clavados en tierra la tienen pegada */
+const texSombra = lienzoTex(32, 32, (g, w, h) => { const r = g.createRadialGradient(16, 16, 1, 16, 16, 16); r.addColorStop(0, 'rgba(255,255,255,1)'); r.addColorStop(0.55, 'rgba(255,255,255,.55)'); r.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = r; g.fillRect(0, 0, w, h); });
+const sombras = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x1a1408, alphaMap: texSombra, transparent: true, opacity: 0.5, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), NFL);
+sombras.frustumCulled = false; sombras.renderOrder = 1; escena.add(sombras);
+const SA1 = new THREE.Vector3(), SA2 = new THREE.Vector3(), SDIR = new THREE.Vector3();
+/* y la de cada hombre (romanos y enemigos, otra sola llamada): una mancha alargada hacia donde el sol la echa, que los
+   asienta en el suelo. No es una sombra de verdad (no hay mapa de sombras): es barata y vale para el móvil */
+const NSH = 30 + 10 + 16, sombrasH = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: 0x0c0a04, alphaMap: texSombra, transparent: true, opacity: 0.62, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), NSH);
+sombrasH.frustumCulled = false; sombrasH.renderOrder = 1; escena.add(sombrasH);
+const SOL_YAW = -Math.atan2(-SOL.z, -SOL.x), SOL_X = -SOL.x / Math.hypot(SOL.x, SOL.z), SOL_Z = -SOL.z / Math.hypot(SOL.x, SOL.z);
+function sombraH(i, x, z, largo, ancho) {
+  if (!largo) { sombrasH.setMatrixAt(i, CERO); return; }
+  const cx = x + SOL_X * largo * 0.38, cz = z + SOL_Z * largo * 0.38;
+  O.position.set(cx, H(cx, cz) + 0.015, cz); O.rotation.set(0, SOL_YAW, 0); O.scale.set(largo, 1, ancho); O.updateMatrix(); sombrasH.setMatrixAt(i, O.matrix);
+}
+const alSueloSol = v => { const alto = v.y - H(v.x, v.z); v.addScaledVector(SOL, -alto / SOL.y); return alto; };
 const FL = []; for (let i = 0; i < NFL; i++) FL.push({ est: 0, p: new THREE.Vector3(), q: new THREE.Quaternion(), ql: new THREE.Quaternion(), rel: new THREE.Vector3() });
 /* astillas del escudo roto */
 const ASTILLAS = Array.from({ length: 9 }, (_, i) => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.06 + (i % 3) * 0.05, 0.14 + (i % 2) * 0.14, 0.02), new THREE.MeshLambertMaterial({ color: i % 2 ? 0x8a6238 : 0x8e2a20 })); m.visible = false; escena.add(m); return { m, v: new THREE.Vector3(), w: new THREE.Vector3(), t: -9 }; });
@@ -146,29 +218,138 @@ mat4 boneD(float slot, int ra, int rb) { mat4 m = boneM(slot, ra); if (aMix > 0.
 const SK_NORMAL = `int ra = int(aFrame + 0.5), rb = int(aFrame2 + 0.5);
   mat4 sk = boneD(aSkinI.x, ra, rb) * aSkinW.x; if (aSkinW.y > 0.0) sk += boneD(aSkinI.y, ra, rb) * aSkinW.y; if (aSkinW.z > 0.0) sk += boneD(aSkinI.z, ra, rb) * aSkinW.z; if (aSkinW.w > 0.0) sk += boneD(aSkinI.w, ra, rb) * aSkinW.w;
   vec3 objectNormal = normalize(mat3(sk) * normal); vMode = aMode;`;
-const FRAG = `vec4 tx = texture2D(map, vMapUv);
+const FRAG0 = `vec4 tx = texture2D(map, vMapUv);
   if (vMode > 1.5 && tx.a < 0.5) discard;
   if (vMode > 0.5 && vMode < 1.5) tx.rgb = mix(uTeam, tx.rgb, tx.a);
   diffuseColor.rgb *= tx.rgb * uLuz;`;
+const FRAG = 'float metal = 0.0, brillo = 0.0, borde = 0.0, hDet = 0.5, sDet = 0.0; vec3 colMetal = vec3(0.0);\n' + FRAG0;
+/* la figura: cada celda del atlas es una pieza (0 cuerpo, 1 cabeza, 2 casco, 3 vaina). vVar = piel, túnica, pelo, desgaste */
+const FRAG_HOMBRE = `vec4 tx = texture2D(map, vMapUv); vec2 gx = dFdx(vMapUv), gy = dFdy(vMapUv); vec3 gp = dFdx(vPos), hp = dFdy(vPos);
+  float metal = 0.0, brillo = 0.15, borde = 0.32, hDet = 0.5, sDet = 0.0; vec3 colMetal = vec3(0.0);
+  if (vMode > 1.5 && tx.a < 0.5) discard;
+  vec2 uv = vMapUv; vec3 c = tx.rgb, cs = pow(c, vec3(0.4545)); float L = lumi(cs);
+  vec3 piel = mix(vec3(1.04, 1.0, 0.96), vec3(0.80, 0.67, 0.55), vVar.x);
+  if (uv.x < 0.5 && uv.y < 0.5) {
+    vec2 q = uv * 2.0, gq = gx * 2.0, hq = gy * 2.0; vec4 dA = textureGrad(tDet, q * vec2(9.0, 9.0), gq * vec2(9.0, 9.0), hq * vec2(9.0, 9.0)), dB = textureGrad(tDet, q * 2.3 + vVar.yz, gq * 2.3, hq * 2.3);
+    if (vMode > 0.5 && vMode < 1.5 && tx.a < 0.6) {
+      /* túnica de lana: rojo de rubia, ladrillo o desvaído según el hombre; trama, manchas de sudor y polvo */
+      vec3 t0 = mix(SL(vec3(0.60, 0.17, 0.12)), SL(vec3(0.55, 0.25, 0.14)), smoothstep(0.0, 0.6, vVar.y));
+      t0 = mix(t0, SL(vec3(0.60, 0.36, 0.27)), smoothstep(0.55, 1.0, vVar.y));
+      vec3 tela = mix(uTeam * 0.55 + t0 * 0.45, c, tx.a) * (0.84 + 0.32 * dA.r) * (1.0 - 0.18 * dB.b);
+      c = tela; hDet = dA.r; sDet = 0.9; borde = 0.22;
+    } else if (cs.b < cs.r * 0.4 && L > 0.3) {
+      /* las placas del pectoral: bronce (suavizado, como el casco) */
+      c = textureGrad(map, vMapUv, gx * 2.5, gy * 2.5).rgb;
+      metal = 1.0; colMetal = c * vec3(1.15, 0.95, 0.7); c *= 0.42; brillo = 0.5 - 0.3 * vVar.w; hDet = dB.a; sDet = 0.6;
+      c = mix(c, SL(vec3(0.17, 0.17, 0.11)), dB.b * 0.5 * vVar.w); colMetal *= 1.0 - 0.55 * dB.b * vVar.w;
+    } else if (cs.r > cs.b * 1.2 && L > 0.38) {
+      /* piel: tono de cada uno, poros y algo de rojez */
+      c *= piel * (0.94 + 0.12 * dB.g); brillo = 0.3; hDet = dB.b; sDet = 0.25; borde = 0.2;
+    } else {
+      /* cuero de correas y sandalias */
+      c *= 0.9 + 0.25 * dA.g; hDet = dA.g; sDet = 0.7; brillo = 0.3;
+    }
+    /* barro y polvo de las rodillas para abajo, más en unos que en otros */
+    float b = (1.0 - smoothstep(0.1, 1.5, vAlto)) * (0.55 + 0.45 * vVar.w);
+    float mancha = smoothstep(0.2, 0.65, textureGrad(tDet, q * 3.1 + vVar.xw, gq * 3.1, hq * 3.1).b + b * 0.7);
+    c = mix(c, SL(vec3(0.33, 0.26, 0.17)) * (0.8 + 0.3 * dA.r), clamp(b * mancha * 1.2, 0.0, 0.88));
+    metal *= 1.0 - b * mancha;
+  } else if (uv.y < 0.25 && uv.x < 0.75) {
+    /* la cabeza: lo negro del atlas (nuca y pelo) pasa a pelo con mechones y, abajo, a cuello */
+    vec2 q = (uv - vec2(0.5, 0.0)) * 4.0, gq = gx * 4.0, hq = gy * 4.0;
+    vec3 pelo = mix(SL(vec3(0.17, 0.12, 0.08)), SL(vec3(0.34, 0.23, 0.13)), vVar.z);
+    vec2 k = vec2(9.0, 2.2), hp2 = vec2(vPos.x + vPos.y, vPos.z) * k + vVar.zy; float mech = textureGrad(tDet, hp2, vec2(gp.x + gp.y, gp.z) * k, vec2(hp.x + hp.y, hp.z) * k).g, rizo = textureGrad(tDet, q * 3.0, gq * 3.0, hq * 3.0).b;
+    float esPelo = 1.0 - smoothstep(0.1, 0.25, L);
+    vec3 cp = pelo * (0.68 + 0.65 * mech) * (0.9 + 0.2 * rizo);
+    vec3 cuello = SL(vec3(0.62, 0.44, 0.33)) * piel * (0.75 + 0.2 * rizo);
+    cp = mix(cuello, cp, smoothstep(0.08, 0.14, vAlto + 0.05 * rizo - 0.03 * mech));
+    c = mix(c * piel, cp, esPelo);
+    brillo = mix(0.3, 0.45, esPelo); hDet = mix(rizo, mech, esPelo); sDet = mix(0.25, 1.6, esPelo);
+  } else if (uv.y < 0.25) {
+    /* casco montefortino de bronce: más o menos gastado, pátina en los huecos y rayas brillantes */
+    vec2 q = (uv - vec2(0.75, 0.0)) * 4.0, gq = gx * 4.0, hq = gy * 4.0; vec4 d = textureGrad(tDet, q * 2.0 + vVar.wx, gq * 2.0, hq * 2.0); d.b = textureGrad(tDet, q * 0.5 + vVar.xw, gq * 3.0, hq * 3.0).b;   /* la pátina, en manchas grandes y suaves */
+    if (L > 0.04) {
+      float gasto = vVar.w; vec3 cb = textureGrad(map, vMapUv, gx * 2.0, gy * 2.0).rgb; c = mix(c, cb, step(0.2, lumi(pow(cb, vec3(0.4545)))));   /* el bronce del atlas es de 64 px con grano: más suave, que el brillo no lo pique */
+      metal = 1.0; colMetal = mix(c, SL(vec3(0.72, 0.52, 0.26)) * (0.6 + 0.8 * L), 0.55) * vec3(1.2, 1.0, 0.75) * (1.0 + 0.25 * d.a);
+      float pat = smoothstep(0.45, 0.95, d.b) * (0.25 + 0.75 * gasto);
+      colMetal = mix(colMetal, SL(vec3(0.22, 0.28, 0.2)), pat * 0.7);
+      c = mix(c * 0.38, SL(vec3(0.20, 0.24, 0.17)), pat * 0.6);
+      brillo = mix(0.85, 0.45, gasto) * (1.0 - pat); hDet = d.b; sDet = 0.8; borde = 0.4;
+    }
+  } else if (uv.x < 0.75) {
+    /* vaina: guarniciones de bronce */
+    if (cs.b < cs.r * 0.4 && L > 0.3) { metal = 1.0; colMetal = c * 1.1; c *= 0.45; brillo = 0.55; }
+  }
+  if (vMode > 0.5 && vMode < 1.5 && !(uv.x < 0.5 && uv.y < 0.5)) c = mix(uTeam, c, tx.a);
+  diffuseColor.rgb *= c * uLuz;`;
 /* la figura: cada hombre mezcla dos filas de la tabla de huesos (así los gestos no dan saltos) */
 function matCuerpo(tex, huesosTex, color) {
   const m = new THREE.MeshLambertMaterial({ map: tex, side: THREE.DoubleSide }), team = new THREE.Color(color);
   m.onBeforeCompile = sh => {
     sh.uniforms.uBones = { value: huesosTex }; sh.uniforms.uTeam = { value: team }; sh.uniforms.uLuz = LUZ;
     sh.vertexShader = SK_CAB + sh.vertexShader.replace('#include <beginnormal_vertex>', SK_NORMAL).replace('#include <begin_vertex>', 'vec3 transformed = (sk * vec4(position, 1.0)).xyz;');
-    sh.fragmentShader = 'uniform vec3 uTeam;\nuniform float uLuz;\nvarying float vMode;\n' + sh.fragmentShader.replace('#include <map_fragment>', FRAG);
+    sh.uniforms.tDet = DET;
+    sh.vertexShader = 'attribute vec4 aVar;\nvarying vec4 vVar;\nvarying float vAlto;\nvarying vec3 vPos;\n' + sh.vertexShader.replace('vec3 transformed = (sk * vec4(position, 1.0)).xyz;', 'vec3 transformed = (sk * vec4(position, 1.0)).xyz;\n vVar = aVar; vAlto = position.z; vPos = position;');
+    sh.fragmentShader = 'uniform vec3 uTeam;\nuniform float uLuz;\nvarying float vMode;\nvarying vec4 vVar;\nvarying float vAlto;\nvarying vec3 vPos;\n' + sh.fragmentShader.replace('#include <map_fragment>', FRAG_HOMBRE)
+      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n if (sDet > 0.0) normal = relieve(normal, hDet, sDet);')
+      .replace('#include <envmap_fragment>', GL_BRILLO).replace('#include <lights_lambert_pars_fragment>', '#include <lights_lambert_pars_fragment>\n' + GL_COMUN);
   };
-  m.customProgramCacheKey = () => 'testudo-cuerpo'; return m;
+  m.customProgramCacheKey = () => 'testudo-cuerpo-c'; return m;
 }
+/* escudo (celda 5 cara, 6 dorso) y espada (celda 4). vVarE = tono de la pintura, desgaste, barro, semilla.
+   Polibio (6.23) cuenta que el escudo era de dos capas de tabla encoladas, forradas de lienzo y luego de piel de becerro,
+   con canto de hierro: por eso la cara lleva trama de tela, rayas y desconchones, y el dorso veta de madera */
+const FRAG_PIEZA = `vec4 tx = texture2D(map, vMapUv); vec2 gx = dFdx(vMapUv), gy = dFdy(vMapUv);
+  float metal = 0.0, brillo = 0.12, borde = 0.25, hDet = 0.5, sDet = 0.0; vec3 colMetal = vec3(0.0);
+  if (vMode > 1.5 && tx.a < 0.5) discard;
+  vec2 uv = vMapUv; vec3 c = tx.rgb, cs = pow(c, vec3(0.4545)); float L = lumi(cs);
+  if (uv.y > 0.5 && uv.x < 0.75) {
+    vec2 q = (uv - vec2(0.5, 0.5)) * 4.0, gq = gx * 4.0, hq = gy * 4.0; vec2 o = vVarE.ww * vec2(3.7, 5.3);
+    vec4 d1 = textureGrad(tDet, q * 1.6 + o, gq * 1.6, hq * 1.6), d2 = textureGrad(tDet, q * 6.0 + o, gq * 6.0, hq * 6.0);
+    float filo = 1.0 - smoothstep(0.0, 0.16, min(min(q.x, 1.0 - q.x), min(q.y, 1.0 - q.y) * 1.6));
+    if (tx.a < 0.6) {
+      /* la piel pintada: rojo de cada escudo, trama del lienzo, rayas que dejan ver el cuero y desconchones en el canto */
+      vec3 pin = mix(uTeam * vec3(0.92, 0.85, 0.85), SL(vec3(0.58, 0.2, 0.13)), vVarE.x) * mix(1.0, 0.82, vVarE.y);
+      pin = mix(c * pin, pin, 0.35) * (0.9 + 0.2 * d2.r);
+      float raya = smoothstep(0.35, 0.8, d1.a) * (0.35 + 0.65 * vVarE.y);
+      float desc = smoothstep(0.62, 0.9, d1.b + filo * 0.55 * vVarE.y);
+      c = mix(pin, SL(vec3(0.42, 0.31, 0.21)), max(raya * 0.7, desc * 0.85));
+      hDet = d2.r * 0.5 + raya * 0.6 - desc * 0.4; sDet = 0.9; brillo = 0.22;
+    } else if (cs.b < cs.r * 0.45 && L > 0.25) {
+      /* canto y refuerzos de metal */
+      metal = 1.0; colMetal = c * vec3(1.15, 1.0, 0.75); c *= 0.45; brillo = 0.55 - 0.3 * vVarE.y; hDet = d1.a; sDet = 1.2;
+      c = mix(c, SL(vec3(0.18, 0.2, 0.14)), d1.b * 0.5 * vVarE.y);
+    }
+    /* barro salpicado desde abajo (el canto que va al suelo) */
+    float bajo = 1.0 - smoothstep(0.0, 0.45, q.y), sal = smoothstep(0.55, 0.8, textureGrad(tDet, q * vec2(2.2, 3.4) + o.yx, gq * vec2(2.2, 3.4), hq * vec2(2.2, 3.4)).b + bajo * 0.45 * vVarE.z - 0.15);
+    c = mix(c, SL(vec3(0.34, 0.27, 0.18)), sal * bajo * 0.9); metal *= 1.0 - sal * bajo;
+  } else if (uv.y > 0.5) {
+    /* dorso: tablas con veta, más oscuras de manos y de sudor hacia el centro, cada escudo de un tono */
+    vec2 q = (uv - vec2(0.75, 0.5)) * 4.0, gq = gx * 4.0, hq = gy * 4.0; vec2 o = vVarE.ww * vec2(2.1, 4.3);
+    float veta = textureGrad(tDet, q * vec2(2.4, 0.7) + o, gq * vec2(2.4, 0.7), hq * vec2(2.4, 0.7)).g, man = textureGrad(tDet, q * 1.3 + o, gq * 1.3, hq * 1.3).b;
+    float centro = 1.0 - smoothstep(0.05, 0.42, length(q - 0.5));
+    c *= mix(vec3(1.06, 1.0, 0.92), vec3(0.8, 0.72, 0.64), vVarE.x) * (0.78 + 0.42 * veta) * (1.0 - 0.25 * centro * man);
+    if (cs.b < cs.r * 0.4 && L > 0.35) { metal = 0.6; colMetal = c; brillo = 0.4; }
+    hDet = veta; sDet = 1.3; brillo = max(brillo, 0.18);
+  } else if (L > 0.3 && abs(cs.r - cs.b) < 0.1) {
+    /* hoja de hierro */
+    metal = 1.0; colMetal = c * 0.9; c *= 0.4; brillo = 0.7;
+  }
+  if (vMode > 0.5 && vMode < 1.5 && !(uv.y > 0.5 && uv.x < 0.75)) c = mix(uTeam, c, tx.a);
+  diffuseColor.rgb *= c * uLuz;`;
 /* una pieza suelta (escudo, espada); con «danio», lleva encima las grietas y el trozo que falta */
 function matPieza(tex, color, danio) {
   const m = new THREE.MeshLambertMaterial({ map: tex, side: THREE.DoubleSide }), team = new THREE.Color(color);
   m.onBeforeCompile = sh => {
     sh.uniforms.uTeam = { value: team }; sh.uniforms.uLuz = LUZ; sh.uniforms.tDanio = DANIO;
     sh.vertexShader = 'attribute float aMode;\nvarying float vMode;\nvarying vec2 vDan;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vMode = aMode; vDan = vec2(position.x / 1.62 + 0.5, position.z / 3.1 + 0.5);');
-    sh.fragmentShader = 'uniform vec3 uTeam;\nuniform float uLuz;\nuniform sampler2D tDanio;\nvarying float vMode;\nvarying vec2 vDan;\n' + sh.fragmentShader.replace('#include <map_fragment>', FRAG + (danio ? '\n vec4 dn = texture2D(tDanio, vDan); if (dn.a < 0.5) discard; diffuseColor.rgb *= dn.rgb;' : ''));
+    sh.uniforms.tDet = DET;
+    sh.vertexShader = '#ifdef USE_INSTANCING\nattribute vec4 aVarE;\n#endif\nvarying vec4 vVarE;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n#ifdef USE_INSTANCING\n vVarE = aVarE;\n#else\n vVarE = vec4(0.35, 0.3, 0.55, 0.5);\n#endif');
+    sh.fragmentShader = 'uniform vec3 uTeam;\nuniform float uLuz;\nuniform sampler2D tDanio;\nvarying float vMode;\nvarying vec2 vDan;\nvarying vec4 vVarE;\n' + sh.fragmentShader.replace('#include <map_fragment>', FRAG_PIEZA + (danio ? '\n vec4 dn = texture2D(tDanio, vDan); if (dn.a < 0.5) discard; diffuseColor.rgb *= dn.rgb;' : ''))
+      .replace('#include <normal_fragment_maps>', '#include <normal_fragment_maps>\n if (sDet > 0.0) normal = relieve(normal, hDet, sDet);')
+      .replace('#include <envmap_fragment>', GL_BRILLO).replace('#include <lights_lambert_pars_fragment>', '#include <lights_lambert_pars_fragment>\n' + GL_COMUN);
   };
-  m.customProgramCacheKey = () => 'testudo-pieza' + (danio ? '-d' : ''); return m;
+  m.customProgramCacheKey = () => 'testudo-pieza-c' + (danio ? '-d' : ''); return m;
 }
 /* los vértices de unas piezas del modelo (cada vértice sabe de qué pieza es: cuerpo, cabeza, casco, vaina, espada, escudo) */
 function parte(geo, CELL, celdas, conHuesos) {
@@ -243,11 +424,16 @@ async function creaHombres() {
   const tex = new THREE.DataTexture(tab.T, tab.hues * 3, tab.total, THREE.RGBAFormat, THREE.FloatType); tex.minFilter = tex.magFilter = THREE.NearestFilter; tex.generateMipmaps = false; tex.needsUpdate = true;
   const gc = parte(u.geo, CELL, [0, 1, 2, 3], true), ia = () => { const a = new THREE.InstancedBufferAttribute(new Float32Array(M), 1); a.setUsage(THREE.DynamicDrawUsage); return a; };
   const fr = ia(), fr2 = ia(), mx = ia(); gc.setAttribute('aFrame', fr); gc.setAttribute('aFrame2', fr2); gc.setAttribute('aMix', mx);
+  /* GM43d-C: cada hombre, el suyo: piel, túnica, pelo y desgaste (y su escudo: pintura, gasto, barro y semilla). Azar fijo. */
+  let sv = 7; const az = () => { sv = (sv * 16807) % 2147483647; return (sv - 1) / 2147483646; };
+  const vh = new Float32Array(M * 4), ve = new Float32Array(M * 4);
+  for (let i = 0; i < M; i++) { vh.set([az(), az(), az(), 0.25 + 0.75 * az()], i * 4); ve.set([az(), 0.25 + 0.75 * az(), 0.3 + 0.7 * az(), az()], i * 4); }
+  gc.setAttribute('aVar', new THREE.InstancedBufferAttribute(vh, 4));
   const ROJO = '#c23a2e', inst = (g, mat, n) => { const m = new THREE.InstancedMesh(g, mat, n); m.frustumCulled = false; escena.add(m); return m; };
   const cuerpos = inst(gc, matCuerpo(u.tex, tex, ROJO), M);
-  const gEsc = parte(u.geo, CELL, [5, 6], false), escudos = inst(gEsc, matPieza(u.tex, ROJO, false), M);
+  const gEsc = parte(u.geo, CELL, [5, 6], false); gEsc.setAttribute('aVarE', new THREE.InstancedBufferAttribute(ve, 4)); const escudos = inst(gEsc, matPieza(u.tex, ROJO, false), M);
   const mio = new THREE.Mesh(gEsc, matPieza(u.tex, ROJO, true)); mio.matrixAutoUpdate = false; mio.frustumCulled = false; escena.add(mio);
-  const espadas = inst(parte(u.geo, CELL, [4], false), matPieza(u.tex, ROJO, false), M), pila = inst(geoPilum, matAstaMia, M);
+  const gEsp = parte(u.geo, CELL, [4], false); gEsp.setAttribute('aVarE', new THREE.InstancedBufferAttribute(ve, 4)); const espadas = inst(gEsp, matPieza(u.tex, ROJO, false), M), pila = inst(geoPilum, matAstaMia, M);
   HOM = { ...tab, u, C: u.clips, cuerpos, fr, fr2, mx, escudos, mio, espadas, pila };
 }
 
@@ -554,6 +740,7 @@ function dibuja() {
     const i = h.i;
     HOM.cuerpos.setMatrixAt(i, h.oculto ? CERO : h.inst); HOM.fr.array[i] = h.A; HOM.fr2.array[i] = h.B; HOM.mx.array[i] = h.mx;
     HOM.escudos.setMatrixAt(i, h === yo ? CERO : h.mEsc);
+    sombraH(i, h.x, h.z, h.oculto ? 0 : h.vivo ? 2.4 : 1.4, h.vivo ? 0.85 : 1);
     const mano = S.armas === 'espada' || !h.vivo || h.tiro;
     HOM.espadas.setMatrixAt(i, mano && !h.oculto ? MA.multiplyMatrices(h.inst, hueso(HU.espada, h.A, h.B, h.mx, MB)) : CERO);
     if (S.armas === 'pilum' && h.vivo && !h.tiro && !h.oculto) {
@@ -574,22 +761,30 @@ function dibuja() {
     else if (t.huye) { fr = frameOf(CP.run, T + t.fase); yaw = Math.PI; }
     else if (t.tira !== undefined && T - t.tira < 2.4 && T - t.tira > -1.5) fr = frameOnce(CP.attack_ranged, (T - t.tira + 1.5) * 1.3);
     else fr = frameOf(CP.idle, T + t.fase);
-    pon(P, i, t.x, H(t.x, t.z), t.z, yaw, fr);
+    pon(P, i, t.x, H(t.x, t.z), t.z, yaw, fr); sombraH(30 + i, t.x, t.z, t.vivo ? 2.6 : 1.4, t.vivo ? 0.75 : 1);
   });
   P.m.instanceMatrix.needsUpdate = true; P.fr.needsUpdate = true;
   const G = figuras.galos, CG = G.u.clips;
   S.galos.forEach((g, i) => {
     const fr = !g.vivo ? frameOnce(CG.death, Math.max(0, T - g.muere)) : S.choque && g.fila === 0 ? frameOf(CG.attack_melee, T + g.fase) : frameOf(CG.idle, T + g.fase);
-    pon(G, i, g.x, H(g.x, g.z), g.z, 0, fr);
+    pon(G, i, g.x, H(g.x, g.z), g.z, 0, fr); sombraH(40 + i, g.x, g.z, g.vivo ? 2.6 : 1.4, g.vivo ? 0.8 : 1);
   });
+  sombrasH.instanceMatrix.needsUpdate = true;
   G.m.instanceMatrix.needsUpdate = true; G.fr.needsUpdate = true;
   /* venablos: en vuelo, clavados en un escudo (van con él) o en tierra */
   FL.forEach((f, i) => {
-    if (f.est === 0 || (f.est === 1 && T < f.t0)) { flechas.setMatrixAt(i, CERO); return; }
+    if (f.est === 0 || (f.est === 1 && T < f.t0)) { flechas.setMatrixAt(i, CERO); sombras.setMatrixAt(i, CERO); return; }
     if (f.est === 2) { f.q.copy(f.h.qEsc).multiply(f.ql); V3.set(0, 0, 1).applyQuaternion(f.q); f.p.copy(f.rel).applyMatrix4(f.h.mEsc).addScaledVector(V3, -PUNTA); }
     O.position.copy(f.p); O.quaternion.copy(f.q); O.scale.setScalar(1); O.updateMatrix(); flechas.setMatrixAt(i, O.matrix);
+    if (f.est === 2) { sombras.setMatrixAt(i, CERO); return; }
+    SDIR.set(0, 0, 1).applyQuaternion(f.q); SA1.copy(f.p).addScaledVector(SDIR, -0.8 * GRANDE); SA2.copy(f.p).addScaledVector(SDIR, 0.8 * GRANDE);
+    const alto = Math.max(0, (alSueloSol(SA1) + alSueloSol(SA2)) / 2);
+    if (alto > 9) { sombras.setMatrixAt(i, CERO); return; }
+    const dx = SA2.x - SA1.x, dz = SA2.z - SA1.z, mx = (SA1.x + SA2.x) / 2, mz = (SA1.z + SA2.z) / 2;
+    O.position.set(mx, H(mx, mz) + 0.02, mz); O.rotation.set(0, -Math.atan2(dz, dx), 0);
+    O.scale.set(Math.hypot(dx, dz) + 0.08 + alto * 0.04, 1, (0.05 + alto * 0.025) * (1 - alto / 10)); O.updateMatrix(); sombras.setMatrixAt(i, O.matrix);
   });
-  flechas.instanceMatrix.needsUpdate = true;
+  flechas.instanceMatrix.needsUpdate = true; sombras.instanceMatrix.needsUpdate = true;
   for (const c of CHISPAS) { const a = T - c.t; c.s.visible = a >= 0 && a < 0.25; if (c.s.visible) { c.s.scale.setScalar((c.e || 1) * (0.6 + a * 5)); c.s.material.opacity = 1 - a / 0.25; } }
   for (const p of POLVO) { const a = T - p.t; p.s.visible = a >= 0 && a < 3; if (p.s.visible) { const e = p.e || 1; p.s.scale.setScalar(e * (1.2 + a * 1.6)); p.s.material.opacity = 0.85 * (1 - a / 3) * (e < 1 ? Math.max(0, 1 - a) : 1); } }
   for (const p of PILA) p.g.visible = p.est === 1 ? T >= p.t0 : p.est === 2;
@@ -681,7 +876,7 @@ function bucle(t) {
 /* para las pruebas: el estado y dónde caen en pantalla (0 a 1) tu cabeza, la de tu compañero, la rendija y el enemigo */
 const enPantalla = v => { v.project(camara); return { x: +((v.x + 1) / 2).toFixed(3), y: +((1 - v.y) / 2).toFixed(3), delante: v.z < 1 }; };
 window.__tp = {
-  lista: false, S, CAM, camara, Son, salta: s => salta(s), parar: v => { parado = v; },
+  lista: false, S, CAM, camara, renderer, Son, salta: s => salta(s), parar: v => { parado = v; },
   estado: () => ({ golpes: S.golpes, roto: S.roto, clavados: FL.filter(f => f.est === 2).length, enHombre: FL.filter(f => f.est === 2 && f.h.k < 0.7).length, andando: S.andando, corriendo: S.corriendo, vel: S.vel, fase: S.fase, zF: S.zF, k: S.k, vivos: vivos(), flechas: FL.filter(f => f.est).length, mira: S.romanos[YO].mira, enc: S.romanos[YO].enc }),
   encuadre: () => { const R = S.romanos, yF = H(CAM.x, S.zF); return { yo: enPantalla(ancla(R[YO], HU.cara, [0, 0, 0.25], new THREE.Vector3())), comp: enPantalla(ancla(R[CMP], HU.cara, [0, 0, 0.25], new THREE.Vector3())), rendija: enPantalla(new THREE.Vector3((R[YO].x + R[CMP].x) / 2, yF + 1.8, S.zF - MURO_Z)), enemigo: enPantalla(new THREE.Vector3(0, H(0, Z_TIRADORES) + 1, Z_TIRADORES)), muro: enPantalla(new THREE.Vector3(CAM.x, yF + MURO_Y + 0.72, S.zF - MURO_Z)), techo: enPantalla(new THREE.Vector3(CAM.x, yF + TECHO_Y + 0.03, S.zF + CERRADO.dz - TECHO_Z - 0.72)) }; },
   /* para comprobar las cuentas: dónde están de verdad cabeza y manos de un hombre */
@@ -690,6 +885,7 @@ window.__tp = {
 (async () => {
   await preload(['hastati', 'peltastas', 'galos']);
   if (!getUnit('hastati') || !getUnit('peltastas') || !getUnit('galos')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
+  const td = await new THREE.TextureLoader().loadAsync('gobierno/maquetas/testudo-concurso/c/detalle.png'); td.wrapS = td.wrapT = THREE.RepeatWrapping; td.anisotropy = 4; DET.value = td;
   await creaHombres(); malla('peltastas', 10, '#3456a8'); malla('galos', 16, '#3456a8');
   reinicia();
   if (FASE) prepara(FASE);

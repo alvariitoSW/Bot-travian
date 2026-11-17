@@ -1,0 +1,13 @@
+Concurso GM43d · participante B «Campo de batalla» — arte traído de fuera
+(licencia comprobada en la fuente el 17/11/2026: https://polyhaven.com/license — todo Poly Haven es CC0)
+
+arte/cielo.jpg — cielo «Kloofendal 48d Partly Cloudy (Pure Sky)», mitad de arriba recortada y reducida a 2048×1024 — Greg Zaal (original) y Jarod Guest (cielo) — CC0 1.0 — https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky
+arte/hierba_seca.jpg — textura «Grass Ground» (color, 1024) — Charlotte Baglioni — CC0 1.0 — https://polyhaven.com/a/grass_ground
+arte/hierba_verde.jpg — textura «Sparse Grass» (color, 1024) — Amal Kumar — CC0 1.0 — https://polyhaven.com/a/sparse_grass
+arte/tierra.jpg — textura «Brown Mud Dry» (color, 1024) — Rob Tuytel — CC0 1.0 — https://polyhaven.com/a/brown_mud_dry
+arte/roca.jpg — textura «Rock Boulder Dry» (color, reducida a 512) — Dimitrios Savva (foto) y Rico Cilliers (proceso) — CC0 1.0 — https://polyhaven.com/a/rock_boulder_dry
+
+Ya estaba en el juego y solo se carga (no se copia ni se cambia):
+assets/static/{cipres,pino,olivo}.bin y sus texturas — árboles de 0 A.D., Wildfire Games — CC BY-SA 3.0 — https://play0ad.com (ver assets/static/LICENSE.txt)
+
+Hecho por código en campo.js (sin arte de fuera): matas de hierba, flores, forma de las piedras, montes, sombras de contacto y la mezcla del suelo.

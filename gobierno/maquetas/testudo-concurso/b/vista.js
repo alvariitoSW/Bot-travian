@@ -8,7 +8,8 @@
    ?marcas=1 pinta puntos donde las cuentas dicen que están cabeza y manos (para comprobar que casan con el dibujo). */
 import { THREE } from '../../../../js/gfx/models.js';
 import { preload, getUnit, loadIndex, unitMaterialReal, instancedGeometry, frameOf, frameOnce, UNIT_SCALE } from '../../../../js/gfx/units.js';
-import { crearCielo, texturaRuido } from '../../../../js/gfx/ground.js';
+import { texturaRuido } from '../../../../js/gfx/ground.js';
+import { crearCampo } from './campo.js';
 import { crearEsqueleto, H as HU } from './esqueleto.js';
 import * as Son from './sonido.js';
 
@@ -53,7 +54,6 @@ const luz = new THREE.DirectionalLight(0xffeccc, 2.1); luz.position.copy(SOL).mu
 /* luz cálida bajo el testudo: el techo y el escudo de delante se ven de madera, no negros */
 const dentro = new THREE.PointLight(0xffd6a0, 0, 5, 1.1); escena.add(dentro);
 const U = { uRuido: { value: texturaRuido() } };
-escena.add(crearCielo(SOL.clone().setY(0.25), HORIZ, U));
 let vertical = false;
 function medir() {
   const w = innerWidth, h = innerHeight; vertical = h > w;
@@ -71,41 +71,12 @@ function lienzoTex(w, h, pinta, repetir) {
   if (repetir) { t.wrapS = t.wrapT = THREE.RepeatWrapping; }
   return t;
 }
-/* hierba: base clara (el color lo pone el vértice) con trazos */
-const texHierba = lienzoTex(256, 256, (g, w, h) => {
-  g.fillStyle = '#b9b9a6'; g.fillRect(0, 0, w, h);
-  for (let i = 0; i < 2600; i++) { const x = azar() * w, y = azar() * h, l = 3 + azar() * 7, v = azar(); g.strokeStyle = v < 0.5 ? `rgba(70,80,40,${0.25 + v * 0.4})` : `rgba(235,228,190,${(v - 0.5) * 0.5})`; g.lineWidth = 1 + azar(); g.beginPath(); g.moveTo(x, y); g.lineTo(x + (azar() - 0.5) * 3, y - l); g.stroke(); }
-}, true);
-texHierba.repeat.set(150, 150);
-/* mata de hierba con alfa */
-const texMata = lienzoTex(128, 96, (g, w, h) => {
-  for (let i = 0; i < 46; i++) { const x = 10 + azar() * (w - 20), a = (azar() - 0.5) * 0.7, l = h * (0.45 + azar() * 0.55), v = azar(); g.strokeStyle = `rgb(${150 + v * 60 | 0},${165 + v * 50 | 0},${70 + v * 40 | 0})`; g.lineWidth = 3 + azar() * 2.5; g.beginPath(); g.moveTo(x, h); g.quadraticCurveTo(x + a * 20, h - l * 0.6, x + a * l, h - l); g.stroke(); }
-});
-texMata.generateMipmaps = false; texMata.minFilter = THREE.LinearFilter;
 const sprite = (pinta) => lienzoTex(64, 64, pinta);
 const texLlama = sprite((g) => { const r = g.createRadialGradient(32, 36, 2, 32, 32, 30); r.addColorStop(0, 'rgba(255,250,210,1)'); r.addColorStop(0.3, 'rgba(255,170,40,.9)'); r.addColorStop(1, 'rgba(200,40,0,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); });
 const texChispa = sprite((g) => { g.translate(32, 32); for (let i = 0; i < 8; i++) { g.rotate(Math.PI / 4); const l = i % 2 ? 14 : 28; const r = g.createLinearGradient(0, 0, l, 0); r.addColorStop(0, 'rgba(255,255,220,1)'); r.addColorStop(1, 'rgba(255,190,60,0)'); g.fillStyle = r; g.fillRect(0, -1.5, l, 3); } });
 const texPolvo = sprite((g) => { const r = g.createRadialGradient(32, 32, 2, 32, 32, 31); r.addColorStop(0, 'rgba(170,150,115,.75)'); r.addColorStop(1, 'rgba(150,130,100,0)'); g.fillStyle = r; g.fillRect(0, 0, 64, 64); });
 
-/* ---------- suelo ---------- */
-{
-  const g = new THREE.PlaneGeometry(700, 700, 175, 175); g.rotateX(-Math.PI / 2); g.translate(0, 0, -80);
-  const p = g.attributes.position, col = [], c = new THREE.Color(), verde = new THREE.Color('#6f8a3c'), seco = new THREE.Color('#a99d5a'), oscuro = new THREE.Color('#4d6a2f');
-  for (let i = 0; i < p.count; i++) {
-    const x = p.getX(i), z = p.getZ(i); p.setY(i, H(x, z));
-    const n = Math.sin(x * 0.09 + Math.sin(z * 0.05) * 2) * Math.sin(z * 0.08 - x * 0.03) + 0.5 * Math.sin(x * 0.31 + z * 0.23);
-    c.copy(verde).lerp(seco, suave(0.1, 0.9, n)).lerp(oscuro, suave(-0.3, -1.0, n) * 0.8); col.push(c.r, c.g, c.b);
-  }
-  g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.computeVertexNormals();
-  escena.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({ map: texHierba, vertexColors: true })));
-  /* matas de hierba cerca de la marcha: dan suelo a la cámara baja */
-  const mg = new THREE.PlaneGeometry(0.7, 0.42); mg.translate(0, 0.2, 0);
-  const m2 = mg.clone().rotateY(Math.PI / 2); const pos = [...mg.attributes.position.array, ...m2.attributes.position.array], uv = [...mg.attributes.uv.array, ...m2.attributes.uv.array];
-  const cruz = new THREE.BufferGeometry(); cruz.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); cruz.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); cruz.setAttribute('normal', new THREE.Float32BufferAttribute(new Array(pos.length).fill(0).map((_, i) => i % 3 === 1 ? 1 : 0), 3)); cruz.setIndex([0, 2, 1, 2, 3, 1, 4, 6, 5, 6, 7, 5]);
-  const N = 3200, matas = new THREE.InstancedMesh(cruz, new THREE.MeshBasicMaterial({ map: texMata, alphaTest: 0.4, side: THREE.DoubleSide }), N), o = new THREE.Object3D();
-  for (let i = 0; i < N; i++) { const x = (azar() - 0.5) * 50, z = 12 - azar() * 130; o.position.set(x, H(x, z) - 0.03, z); o.rotation.y = azar() * 3; const t = 0.5 + azar() * 1.1; o.scale.set(t * (0.7 + azar() * 0.6), t * (0.6 + azar() * 0.8), t); o.updateMatrix(); matas.setMatrixAt(i, o.matrix); matas.setColorAt(i, new THREE.Color().setHSL(0.17 + azar() * 0.08, 0.3 + azar() * 0.25, 0.3 + azar() * 0.2)); }
-  matas.frustumCulled = false; escena.add(matas);
-}
+/* ---------- suelo, hierba, cielo y montes: campo.js (concurso GM43d-B) ---------- */
 
 /* ---------- astiles hechos por código: piezas [radio atrás, radio delante, largo, centro en z, color]; el eje va por +z y la punta delante ---------- */
 function geoAsta(piezas) {
@@ -566,6 +537,8 @@ function dibuja() {
   for (const m of [HOM.cuerpos, HOM.escudos, HOM.espadas, HOM.pila]) m.instanceMatrix.needsUpdate = true;
   HOM.fr.needsUpdate = HOM.fr2.needsUpdate = HOM.mx.needsUpdate = true;
   HOM.mio.visible = !S.roto; HOM.mio.matrix.copy(yo.mEsc); HOM.mio.matrixWorld.copy(yo.mEsc);
+  /* sombras de contacto (campo.js) */
+  if (CAMPO) { for (const h of R) if (!h.oculto) CAMPO.sombra(h.x, h.z, !h.vivo); for (const t of S.tiradores) CAMPO.sombra(t.x, t.z, !t.vivo); for (const g of S.galos) CAMPO.sombra(g.x, g.z, !g.vivo); CAMPO.sombrasFin(); }
   /* enemigos */
   const P = figuras.peltastas, CP = P.u.clips;
   S.tiradores.forEach((t, i) => {
@@ -672,10 +645,11 @@ function prepara(f) {
 }
 
 /* ---------- arranque ---------- */
-let ultimo = 0;
+let ultimo = 0, CAMPO = null;
 function bucle(t) {
   const dt = Math.min(0.05, (t - ultimo) / 1000 || 0); ultimo = t;
   if (!parado) paso(dt);
+  if (CAMPO) CAMPO.tick(t / 1000);
   dibuja(); hud(); requestAnimationFrame(bucle);
 }
 /* para las pruebas: el estado y dónde caen en pantalla (0 a 1) tu cabeza, la de tu compañero, la rendija y el enemigo */
@@ -690,6 +664,7 @@ window.__tp = {
 (async () => {
   await preload(['hastati', 'peltastas', 'galos']);
   if (!getUnit('hastati') || !getUnit('peltastas') || !getUnit('galos')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
+  CAMPO = await crearCampo(escena, { H, SOL });
   await creaHombres(); malla('peltastas', 10, '#3456a8'); malla('galos', 16, '#3456a8');
   reinicia();
   if (FASE) prepara(FASE);
