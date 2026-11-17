@@ -1037,3 +1037,10 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 .mos-sab .sv-ed .btn, .mos-sab .sv-det .btn, .mos-sab .sv-aviso .btn { color: #f6e7bd; background: linear-gradient(#8f2a22, #5f1712); border: 1px solid #3b0d09; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); }
 .mos-sab .prog { background: rgba(60, 35, 10, .25); }
 .mos-sab .sv-r, .mos-sab .sv-r b, .mos-sab .sv-cola .rem, .mos-sab .sv-cola span, .mos-sab .sv-t b, .mos-sab .sv-t .sv-i { color: #2b1c0a; opacity: 1; } .mos-sab .sv-cola .rem { font-weight: 600; }
+
+/* K7a: marca de relación con Roma en la etiqueta de ciudad (aliada, tributaria, en guerra) */
+.mlabel .marca { font-style: normal; font-size: 12px; line-height: 16px; min-width: 16px; text-align: center; border-radius: 50%; flex: none; }
+.mlabel .marca[hidden] { display: none; }
+.mlabel[data-rel="guerra"] { border-color: #e0584a; } .mlabel[data-rel="guerra"] .marca { background: #7d1712; color: #fff; }
+.mlabel[data-rel="alianza"] { border-color: #7fd060; } .mlabel[data-rel="alianza"] .marca { background: #1f4d1a; }
+.mlabel[data-rel="tributo"] { border-color: #e9c063; } .mlabel[data-rel="tributo"] .marca { background: #4a3a10; }

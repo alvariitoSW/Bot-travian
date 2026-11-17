@@ -30,6 +30,11 @@ await cierra();
 await page.evaluate(() => { const b = document.createElement('button'); b.dataset.act = 'modo'; b.dataset.v = 'guerra'; document.body.appendChild(b); b.click(); b.remove(); });
 await page.waitForFunction(() => window.UI && UI.map, null, { timeout: 60000 });
 await page.waitForTimeout(12000); await cierra();
+if (op.rutas) await page.evaluate(() => {   // K7a: rutas de prueba con rentas distintas y relaciones con Roma, para ver grosor y marcas
+  const G = window.Game, s = G.state, par = [['roma', 'capua'], ['roma', 'neapolis'], ['roma', 'volsinii'], ['roma', 'clusium'], ['neapolis', 'tarentum'], ['roma', 'syracusae']];
+  for (const [a, b] of par) if (s.cities[a] && s.cities[b] && !G.rutaDe(a, b)) s.rutas.push({ a: a, b: b, f: s.cities[b].owner });
+  if (s.cities.roma) s.cities.roma.b.mercado = 6; s.dip = s.dip || {}; if (s.cities.tarentum) s.dip[s.cities.tarentum.owner] = { estado: 'alianza', desde: s.t }; if (s.cities.syracusae) s.dip[s.cities.syracusae.owner] = { estado: 'tributo', desde: s.t };
+});
 await mkdir(join(RAIZ, 'gobierno/capturas-tarea'), { recursive: true });
 const medir = () => page.evaluate(() => { const i = UI.map.r.info.render; return i.triangles + ' triángulos, ' + i.calls + ' llamadas'; });
 for (const v of vistas) {

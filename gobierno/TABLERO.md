@@ -190,7 +190,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 
 ## Carril KJ — Puerta de la ciudad al juego (K7a a K7e, aprobadas por el usuario el 17/11/2026; informe `estudios/K7-concurso.md`, maqueta ganadora `maquetas/concurso9/D`)
 - ✅ K7c Miga «Roma › Camino» y botón único de volver (17/11/2026): `#miga` en `js/ui.js`/`css/style.css`; paso nuevo en los jueces.
-- ⬜ K7a **Mapa con grosor de ruta según renta y marcas de aliada y guerra** (≈0,4 M): solo mapa de campaña (`js/gfx/map3d.js`). Después de K7c.
+- ✅ K7a Mapa con grosor de ruta según renta y marcas 🤝/💰/⚔ en las ciudades (17/11/2026): `js/gfx/map3d.js` (`cinta`, `anchoRuta`), `css/style.css`.
 - ⬜ K7b **Tarjeta de ruta en el juego** (≈0,8 M): flujo sale y entra, renta desglosada, Proteger y Cortar con la consecuencia de cada protección; datos `D.RUTA_*` y lógica en `js/game.js`. Después de K7a.
 - ⬜ K7d **Interceptar con comparación de fuerzas antes de confirmar** (≈0,5 M): marchas, `js/ui.js` y `js/game.js`. Después de K7b.
 - ⬜ K7e **Tratados como ley del Senado desde el Foro** (≈0,6 M): enlaza con el informe de política `estudios/EV1-politica.md`, sin rehacerlo. Después de K7d.

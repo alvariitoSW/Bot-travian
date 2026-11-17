@@ -58,6 +58,15 @@ function trazo(vista, pa, pb, alto) {
   return pts;
 }
 
+/* Cinta plana sobre el relieve (K7a): como trazo(), pero con grosor, que las líneas de WebGL miden siempre 1 px */
+function cinta(vista, pa, pb, alto, ancho) {
+  const pts = trazo(vista, pa, pb, alto), dx = pb[0] - pa[0], dz = pb[1] - pa[1], l = Math.hypot(dx, dz) || 1, nx = -dz / l * ancho / 2, nz = dx / l * ancho / 2, pos = [], idx = [];
+  pts.forEach((q, i) => { pos.push(q.x + nx, q.y, q.z + nz, q.x - nx, q.y, q.z - nz); if (i) { const a = (i - 1) * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); } });
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); return g;
+}
+/* grosor según la renta mensual: de 0,14 (ruta pobre) a 0,5 (ruta de 30 o más) */
+const anchoRuta = renta => Math.round((0.14 + Math.min(1, Math.max(0, (renta - 4) / 26)) * 0.36) * 20) / 20;
+
 function inPoly(x, y, poly) { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; }
 function segDist(px, py, a, b) { const dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy, t = l ? Math.max(0, Math.min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / l)) : 0; return Math.hypot(px - a[0] - dx * t, py - a[1] - dy * t); }
 
@@ -194,10 +203,10 @@ export class MapView3D {
       const fm = new THREE.MeshLambertMaterial({ color: '#fff', side: THREE.DoubleSide }), flag = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.6), fm); flag.position.set(0.5, 1.95, 0); grp.add(flag); grp.userData.pole = pole;
       const ring = new THREE.Mesh(new THREE.RingGeometry(1.35, 1.6, 28), new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, opacity: 0.85, depthWrite: false })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.05; ring.visible = false; grp.add(ring);
       grp.scale.setScalar(s); grp.position.set(x, Math.max(0.05, this.hAt(x, z)), z); sc.add(grp);
-      const el = document.createElement('button'); el.className = 'mlabel'; el.innerHTML = '<i></i><span>' + d.n + '</span><em></em>';
+      const el = document.createElement('button'); el.className = 'mlabel'; el.innerHTML = '<i></i><b class="marca" hidden></b><span>' + d.n + '</span><em></em>';
       el.addEventListener('click', ev => { ev.stopPropagation(); if (this.opts.onSelect) this.opts.onSelect(id); });
       this.labels.appendChild(el);
-      this.cities[id] = { casas: casas, pole: pole, flag: fm, flagMesh: flag, centro: null, quiere: null, grp: grp, ring: ring, el: el, dot: el.querySelector('i'), em: el.querySelector('em'), owner: null, x: x, z: z, top: 2.6 * s };
+      this.cities[id] = { marca: el.querySelector('b'), rel: null, casas: casas, pole: pole, flag: fm, flagMesh: flag, centro: null, quiere: null, grp: grp, ring: ring, el: el, dot: el.querySelector('i'), em: el.querySelector('em'), owner: null, x: x, z: z, top: 2.6 * s };
     }
   }
 
@@ -333,6 +342,8 @@ export class MapView3D {
       if (!st) { c.grp.visible = false; c.el.style.display = 'none'; continue; }   // ciudad que no es de esta región: ni modelo ni etiqueta
       c.grp.visible = true;
       if (c.owner !== st.owner) { c.owner = st.owner; c.quiere = claveCentro(st.owner); const col = D.FACTIONS[st.owner].col; c.flag.color.set(col); c.dot.style.background = col; c.el.classList.toggle('mine', st.owner === 'roma'); }
+      const rel = st.owner === 'roma' ? '' : (G.dipEstado(st.owner) || 'guerra');   // K7a: aliada, tributaria o en guerra con Roma
+      if (c.rel !== rel) { c.rel = rel; c.el.dataset.rel = rel; c.marca.hidden = !rel; c.marca.textContent = rel === 'alianza' ? '🤝' : rel === 'tributo' ? '💰' : rel ? '⚔' : ''; c.marca.title = rel === 'alianza' ? 'Aliada de Roma' : rel === 'tributo' ? 'Paga tributo a Roma' : 'En guerra con Roma'; }
       if (c.quiere !== c.puesto) this.ponerCentro(c);
       this.guarnicion(c, st, !mare && this.c.dist < 95 && !(this.opts.ocupado && this.opts.ocupado()) && Math.hypot(c.x - this.c.x, c.z - this.c.z) < this.c.dist * 1.3);   // C1: guarnición visible solo de media distancia a cerca
       c.ring.visible = sel === id; if (sel === id) c.ring.rotation.z = this.t * 0.8;
@@ -344,18 +355,19 @@ export class MapView3D {
     const ar = new Set(G.aristas().map(e => e[0] + '|' + e[1]));
     for (const e of this.aristas) e.line.visible = ar.has(e.a + '|' + e.b) && !!state.cities[e.a] && !!state.cities[e.b];
     // rutas comerciales: trazo dorado y un mercante que va y viene (una malla por ruta)
-    if (!this.rutaObj) { this.rutaObj = new Map(); this.rutaMat = { oro: new THREE.LineBasicMaterial({ color: '#f2c14e' }), casco: new THREE.MeshLambertMaterial({ color: '#7a4a22', flatShading: true }), vela: new THREE.MeshLambertMaterial({ color: '#f1e6c8', side: THREE.DoubleSide, flatShading: true }), carro: new THREE.MeshLambertMaterial({ color: '#b98a3c', flatShading: true }) }; }
+    if (!this.rutaObj) { this.rutaObj = new Map(); this.rutaMat = { oro: new THREE.MeshBasicMaterial({ color: '#f2c14e', side: THREE.DoubleSide, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), casco: new THREE.MeshLambertMaterial({ color: '#7a4a22', flatShading: true }), vela: new THREE.MeshLambertMaterial({ color: '#f1e6c8', side: THREE.DoubleSide, flatShading: true }), carro: new THREE.MeshLambertMaterial({ color: '#b98a3c', flatShading: true }) }; }
     const vistas = new Set();
     for (const r of (state.rutas || [])) {
       if (!state.cities[r.a] || !state.cities[r.b]) continue;
       const k = r.a + '|' + r.b; vistas.add(k); let o = this.rutaObj.get(k);
       if (!o) {
-        const mar = G.rutaMar(r), pa = G.pos(r.a), pb = G.pos(r.b), pts = trazo(this, pa, pb, 0.11);
-        const linea = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), this.rutaMat.oro), g = new THREE.Group();
+        const mar = G.rutaMar(r), pa = G.pos(r.a), pb = G.pos(r.b), w = anchoRuta(G.rutaRenta(r));
+        const linea = new THREE.Mesh(cinta(this, pa, pb, 0.11, w), this.rutaMat.oro), g = new THREE.Group();
         if (mar) { const c = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.14, 0.9), this.rutaMat.casco); c.position.y = 0.1; const v = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.6), this.rutaMat.vela); v.position.y = 0.55; v.rotation.y = Math.PI / 2; g.add(c, v); }
         else { const c = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.2, 0.55), this.rutaMat.carro); c.position.y = 0.2; const b = new THREE.Mesh(new THREE.BoxGeometry(0.26, 0.16, 0.3), this.rutaMat.vela); b.position.y = 0.38; g.add(c, b); }
-        this.scene.add(linea, g); o = { linea: linea, g: g, pa: pa, pb: pb, ph: (r.a.length + r.b.length) * 0.37 }; this.rutaObj.set(k, o);
+        this.scene.add(linea, g); o = { linea: linea, g: g, pa: pa, pb: pb, w: w, ph: (r.a.length + r.b.length) * 0.37 }; this.rutaObj.set(k, o);
       }
+      const w2 = anchoRuta(G.rutaRenta(r)); if (w2 !== o.w) { o.w = w2; o.linea.geometry.dispose(); o.linea.geometry = cinta(this, o.pa, o.pb, 0.11, w2); }   // la renta cambió (mercado, tipo de ciudad)
       const u = (this.t * 0.06 + o.ph) % 2, f = u < 1 ? u : 2 - u, x = (o.pa[0] + (o.pb[0] - o.pa[0]) * f) * K, z = (o.pa[1] + (o.pb[1] - o.pa[1]) * f) * K;
       o.g.position.set(x, Math.max(0.04, this.hAt(x, z)) + 0.05, z); o.g.rotation.y = Math.atan2(o.pb[0] - o.pa[0], o.pb[1] - o.pa[1]) + (u < 1 ? 0 : Math.PI);
     }
