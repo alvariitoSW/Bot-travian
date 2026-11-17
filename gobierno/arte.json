@@ -29,5 +29,10 @@
       "memoriaCartonesMB": 32,
       "descargaExtraMB": 0
     }
+  },
+  "soldadoCercano": {
+    "cuantos": 40,
+    "triangulosMax": 14000,
+    "nota": "Decidido por el usuario el 17/11/2026 («Si subimos el tope incluso a 14000»): los 40 soldados más cercanos a la cámara pueden llegar a 14 000 triángulos; el resto sigue en triangulosPorUnidad. 40 × 14 000 = 560 000 de los 650 000 de triangulosDeCerca: medir fluidez en el móvil antes de dejarlo fijo (GM4b, GM44)."
   }
 }

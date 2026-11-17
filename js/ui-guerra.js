@@ -76,7 +76,7 @@
     let dpr = Math.min(window.devicePixelRatio || 1, 2); renderer.setPixelRatio(dpr);
     renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.12;
     const escena = new THREE.Scene(), HORIZ = '#d9d2b8';
-    escena.fog = new THREE.Fog(HORIZ, 90, 520);
+    escena.fog = new THREE.Fog(HORIZ, 110, 860);
     const camara = new THREE.PerspectiveCamera(50, 1, 0.5, 12000);
     escena.add(new THREE.HemisphereLight('#cfe2ff', '#7a6238', 1.3));
     const sol = new THREE.DirectionalLight('#ffe6b8', 3.0); sol.position.set(-90, 95, 60); escena.add(sol);
@@ -129,13 +129,46 @@
       const cuenta = {}; for (const f of figs) { const id = f.key + f.lado; f.slot = cuenta[id] = (cuenta[id] || 0) + 1; f.slot--; }
       for (const id in cuenta) {
         const key = id.slice(0, -1), lado = +id.slice(-1), u = getUnit(key); if (!u) continue;
-        const g = instancedGeometry(u, cuenta[id]), malla = new THREE.InstancedMesh(g, unitMaterialReal(u, COLOR[lado]), cuenta[id]); malla.frustumCulled = false; escena.add(malla);
+        const g = instancedGeometry(u, cuenta[id]), malla = new THREE.InstancedMesh(g, gentio(u, COLOR[lado]), cuenta[id]); malla.frustumCulled = false; escena.add(malla);
         mallas.set(id, { malla, fr: g.attributes.aFrame, u });
       }
       if (sombras) { escena.remove(sombras); sombras.geometry.dispose(); }
       sombras = new THREE.InstancedMesh(new THREE.CircleGeometry(0.62, 10).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#1a1408', transparent: true, opacity: 0.3, depthWrite: false }), figs.length); sombras.frustumCulled = false; sombras.renderOrder = 1; escena.add(sombras);
       for (const f of figs) { f.x = f.ptx = f.tx; f.z = f.ptz = f.tz; }
       nEv = B.eventos.length; pintarCartas(true);
+    }
+
+    /* ---------- GM5 · el gentío (GM33): cada hombre con su piel, su túnica y su bronce; el bando, en escudo y penacho ----------
+       Es una copia del material de la unidad (el de la ciudad y el mapa no cambia). La variación sale del número del hombre en su malla
+       (gl_InstanceID): sin atributos nuevos, sin llamadas de dibujo nuevas. De lejos el bloque se tiñe un poco de su color para leerse. */
+    const GENTIO_V = `vP = transformed; { float id = float(gl_InstanceID) + 1.0; vH = fract(sin(vec4(id * 12.9898, id * 78.233, id * 37.719, id * 93.989)) * 43758.5453); }
+  #include <project_vertex>`;
+    const GENTIO_F = `{ const vec3 L = vec3(0.3, 0.59, 0.11);
+    vec3 c0 = tx.rgb; float l = dot(c0, L), mk = (vMode > 0.5 && vMode < 1.5) ? 1.0 - tx.a : 0.0;
+    float esc = smoothstep(0.82, 0.95, mk) * smoothstep(0.30, 0.50, abs(vP.x)), cab = smoothstep(0.80, 0.90, vP.y / 5.3), ft = clamp(max(esc, cab), 0.0, 1.0);
+    float k = floor(vH.y * 2.999); vec3 tela = k < 0.5 ? vec3(0.66, 0.54, 0.34) : (k < 1.5 ? vec3(0.52, 0.27, 0.05) : vec3(0.22, 0.13, 0.06));
+    tela *= (0.86 + 0.28 * vH.z) * clamp(l / 0.45, 0.7, 1.3) * 1.25;
+    float tv = fract(vH.w * 5.0 + vH.y * 3.0); vec3 tono = tv < 0.33 ? vec3(0.78) : (tv < 0.66 ? vec3(1.0) : vec3(1.18, 1.1, 1.0));
+    tx.rgb = mix(c0, mix(tela, uTeam * tono, ft), smoothstep(0.15, 0.4, mk));
+    float mxc = max(c0.r, max(c0.g, c0.b)), mnc = min(c0.r, min(c0.g, c0.b)), br = c0.b / max(c0.r, 0.004), gr = c0.g / max(c0.r, 0.004), fuera = 1.0 - smoothstep(0.15, 0.4, mk);
+    float wS = smoothstep(0.50, 0.58, br) * (1.0 - smoothstep(0.80, 0.92, br)) * smoothstep(0.68, 0.76, gr) * (1.0 - smoothstep(0.92, 1.0, gr)) * smoothstep(0.03, 0.08, l) * fuera;
+    vec3 piel = mix(vec3(1.14, 1.08, 1.04), vec3(0.70, 0.50, 0.38), smoothstep(0.05, 0.95, fract(vH.x * 5.7 + vH.w * 3.3)));
+    float wB = (1.0 - smoothstep(0.42, 0.52, br)) * smoothstep(0.50, 0.62, (mxc - mnc) / max(mxc, 0.004)) * smoothstep(0.08, 0.2, l) * fuera;
+    vec3 bronce = mix(vec3(1.18, 1.04, 0.82), vec3(0.78, 0.66, 0.56), fract(vH.z * 4.1 + vH.x * 2.3));
+    tx.rgb = mix(tx.rgb, tx.rgb * piel, wS); tx.rgb = mix(tx.rgb, tx.rgb * bronce, wB * (1.0 - wS));
+    float lejos = smoothstep(45.0, 120.0, length(vViewPosition)), lt = dot(tx.rgb, L);
+    tx.rgb = mix(tx.rgb, uTeam * (0.35 + 1.6 * lt), lejos * clamp(0.3 + ft * 0.6, 0.0, 1.0)); }`;
+    const gentios = new Map();
+    function gentio(u, color) {
+      const id = u.key + color; if (gentios.has(id)) return gentios.get(id);
+      const base = unitMaterialReal(u, color), m = base.clone();
+      m.onBeforeCompile = sh => {
+        base.onBeforeCompile(sh);
+        sh.vertexShader = 'varying vec4 vH; varying vec3 vP;\n' + sh.vertexShader.replace('#include <project_vertex>', GENTIO_V);
+        sh.fragmentShader = 'varying vec4 vH; varying vec3 vP;\n' + sh.fragmentShader.replace('if (vMode > 0.5 && vMode < 1.5) tx.rgb = mix(uTeam, tx.rgb, tx.a);', GENTIO_F);
+      };
+      m.customProgramCacheKey = () => 'aqvila-gentio';
+      gentios.set(id, m); salidas.push(() => m.dispose()); return m;
     }
 
     /* ---------- dónde debe estar cada soldado ---------- */
@@ -291,14 +324,24 @@
     }
 
     /* ---------- campo: suelo, cielo, árboles, estandartes, polvo ---------- */
+    /* GM5 · relieve (GM29): el campo de lucha es llano (las figuras van a ras de suelo); fuera salen lomas suaves y, lejos, un horizonte de colinas.
+       Solo aspecto: no hay regla de la loma. El llano cubre también de dónde salen la caballería y los númidas. */
+    const suave = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+    const REL = { xc: 62, za: -132, zb: 52, zc: -40, r0: 330 };
+    function alt(x, z) {
+      const dx = Math.max(0, Math.abs(x) - REL.xc), dz = Math.max(0, REL.za - z, z - REL.zb), d = Math.hypot(dx, dz), f = suave(0, 110, d);
+      let h = f * (1.4 + 1.8 * Math.sin(x * 0.021 + 1.7) * Math.cos(z * 0.017 - 0.6) + 0.9 * Math.sin(x * 0.047 + z * 0.031)) * (1 + d / 220);
+      const r = Math.hypot(x, z - REL.zc); h += 70 * suave(REL.r0, REL.r0 + 260, r) * (0.65 + 0.35 * Math.sin(Math.atan2(x, z - REL.zc) * 4 + 1));
+      return Math.max(0, h);
+    }
     function campo() {
       const rnd = (() => { let s = 99; return () => { s = (s * 1664525 + 1013904223) >>> 0; return s / 4294967296; }; })();
-      const g = new THREE.PlaneGeometry(900, 900, 90, 90).rotateX(-Math.PI / 2), P = g.attributes.position, W = new Float32Array(P.count * 3);
+      const g = new THREE.PlaneGeometry(1500, 1500, 120, 120).rotateX(-Math.PI / 2), P = g.attributes.position, W = new Float32Array(P.count * 3);
       for (let i = 0; i < P.count; i++) {
         const x = P.getX(i), z = P.getZ(i), n = 0.5 + 0.5 * Math.sin(x * 0.045 + 1.3) * Math.cos(z * 0.06 - 0.4) + 0.25 * Math.sin(x * 0.13 + z * 0.09);
         const pis = 0.55 * Math.exp(-(z * z) / 190) * Math.exp(-(x * x) / 2200);                       // tierra pisada donde se lucha
         W[i * 3] = Math.max(0, Math.min(0.75, 0.3 + 0.4 * n) * (1 - pis)); W[i * 3 + 1] = pis + 0.08 * Math.max(0, Math.sin(x * 0.21) * Math.sin(z * 0.17)); W[i * 3 + 2] = 0;
-        const lejos = Math.hypot(x, z); if (lejos > 70) P.setY(i, Math.max(0, (lejos - 70) * 0.05 * (0.5 + 0.5 * Math.sin(x * 0.021 + 2) * Math.cos(z * 0.017))));
+        P.setY(i, alt(x, z));
       }
       const suelo = new THREE.Mesh(g, applyGround(g, W, 0.09)); escena.add(suelo);
       try { escena.add(crearCielo(sol.position.clone(), HORIZ, { uRuido: { value: texturaRuido() } })); } catch (e) { escena.background = new THREE.Color(HORIZ); console.warn('sin cielo', e); }
@@ -306,17 +349,18 @@
       for (let k = 0; k < 150; k++) {
         const a = rnd() * Math.PI * 2, r = 42 + rnd() * 150, x = Math.cos(a) * r * 1.25, z = Math.sin(a) * r - 20; if (Math.abs(x) < 34 && z > -34 && z < 60) continue;
         const tipo = rnd() < 0.45 ? 'olivo' : rnd() < 0.6 ? 'cipres' : 'pino', e = UNIT_SCALE * (0.75 + rnd() * 0.6) * (tipo === 'pino' ? 0.8 : 1);
-        arboles[tipo].push(new THREE.Matrix4().compose(V.set(x, 0, z), Q.setFromEuler(E.set(0, rnd() * 6.28, 0)), SC.set(e, e, e)));
+        arboles[tipo].push(new THREE.Matrix4().compose(V.set(x, alt(x, z) - 0.2, z), Q.setFromEuler(E.set(0, rnd() * 6.28, 0)), SC.set(e, e, e)));
       }
       for (const t in arboles) { const m = staticInstances(t, arboles[t]); if (m) escena.add(m); }
       /* un estandarte por cuerpo: es lo que se mira para saber cómo va */
       for (let l = 0; l < 2; l++) for (let i = 0; i < 3; i++) {
-        const gr = new THREE.Group(), palo = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 4.6, 6), new THREE.MeshLambertMaterial({ color: '#6b4a22' })); palo.position.y = 2.3; gr.add(palo);
-        const tela = new THREE.Mesh(new THREE.PlaneGeometry(1.25, 1.35), new THREE.MeshLambertMaterial({ color: l === 0 ? '#c0281d' : '#6a45a8', side: THREE.DoubleSide })); tela.position.y = 3.75; gr.add(tela);
-        const orla = new THREE.Mesh(new THREE.PlaneGeometry(1.45, 0.14), new THREE.MeshLambertMaterial({ color: '#e9c063', side: THREE.DoubleSide })); orla.position.y = 4.5; gr.add(orla);
-        escena.add(gr); estand.push({ gr, tela, l, i });
+        /* GM5 (GM-K6d): estandarte alto con el icono de su tropa; la tela encoge con la moral */
+        const gr = new THREE.Group(), palo = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, EST.palo, 6), new THREE.MeshLambertMaterial({ color: '#6b4a22' })); palo.position.y = EST.palo / 2; gr.add(palo);
+        const tela = new THREE.Mesh(new THREE.PlaneGeometry(EST.ancho, EST.alto), new THREE.MeshBasicMaterial({ map: lienzoEstandarte(l, 'espada'), side: THREE.DoubleSide, transparent: true, toneMapped: false })); gr.add(tela);
+        const orla = new THREE.Mesh(new THREE.PlaneGeometry(EST.ancho + 0.3, 0.16), new THREE.MeshLambertMaterial({ color: '#e9c063', side: THREE.DoubleSide })); orla.position.y = EST.palo - 0.1; gr.add(orla);
+        escena.add(gr); estand.push({ gr, tela, l, i, ico: 'espada' });
       }
-      marca = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ffd76a', transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending })); marca.position.y = 0.05; marca.renderOrder = 2; escena.add(marca);
+      marca = new THREE.Mesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ffd76a', map: texturaBrillo(), transparent: true, opacity: 0.2, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })); marca.position.y = 0.05; marca.renderOrder = 2; escena.add(marca);
       const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(polvoN * 3), 3)); pg.setAttribute('aV', new THREE.BufferAttribute(new Float32Array(polvoN), 1));
       polvo = new THREE.Points(pg, new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uT: { value: 300 } },
         vertexShader: 'attribute float aV; varying float vA; uniform float uT; void main(){ vA = aV; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_PointSize = uT * (0.6 + aV) / -mv.z; gl_Position = projectionMatrix * mv; }',
@@ -324,15 +368,91 @@
       polvo.frustumCulled = false; polvo.renderOrder = 3; polvo.userData.p = Array.from({ length: polvoN }, (_, k) => ({ s: k % 3, v: Math.random(), x: Math.random() - 0.5, z: Math.random() - 0.5 })); escena.add(polvo);
       for (let i = 0; i < 3; i++) { const d = document.createElement('div'); d.className = 'pend'; d.innerHTML = '<span></span><i><b></b></i>'; $('pendones').appendChild(d); pend.push(d); }
     }
+    /* ---------- GM5: estandartes con icono, brillo bajo el cuerpo elegido y flecha de la orden ---------- */
+    const EST = { palo: 6.2, ancho: 1.9, alto: 2.3 }, escEst = () => Math.max(1, Math.min(2.4, cam.d / 48));
+    const ICONO = { inf: 'espada', spear: 'lanza', rng: 'arco', cav: 'caballo', ele: 'elefante' };
+    const icono = t => { const u = t && root.DATA && root.DATA.UNITS && root.DATA.UNITS[t]; return (u && ICONO[u.cls]) || 'espada'; };
+    const telas = new Map();
+    /* la tela: color del bando, orla de oro e icono claro con borde oscuro, dibujado con código (sin arte nuevo) */
+    function lienzoEstandarte(l, ico) {
+      const id = l + ico; if (telas.has(id)) return telas.get(id);
+      const W = 128, H = 156, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const x = cv.getContext('2d');
+      const fondo = x.createLinearGradient(0, 0, 0, H); fondo.addColorStop(0, l === 0 ? '#d23224' : '#7a52bf'); fondo.addColorStop(1, l === 0 ? '#8e1a12' : '#45297a');
+      x.beginPath(); x.moveTo(0, 0); x.lineTo(W, 0); x.lineTo(W, H - 22); x.lineTo(W * 0.75, H); x.lineTo(W / 2, H - 22); x.lineTo(W * 0.25, H); x.lineTo(0, H - 22); x.closePath();
+      x.fillStyle = fondo; x.fill(); x.lineWidth = 7; x.strokeStyle = '#e9c063'; x.stroke();
+      x.save(); x.translate(W / 2, 66); x.lineCap = 'round'; x.lineJoin = 'round';
+      const p = new Path2D();
+      if (ico === 'espada') { p.moveTo(0, -50); p.lineTo(13, -34); p.lineTo(11, 14); p.lineTo(-11, 14); p.lineTo(-13, -34); p.closePath(); p.rect(-28, 14, 56, 11); p.rect(-7, 25, 14, 16); p.arc(0, 46, 9, 0, 7); }
+      else if (ico === 'lanza') { p.moveTo(0, -54); p.quadraticCurveTo(22, -30, 0, -10); p.quadraticCurveTo(-22, -30, 0, -54); p.rect(-6, -12, 12, 64); p.rect(-14, -14, 28, 8); }
+      else if (ico === 'arco') { p.moveTo(-6, -46); p.quadraticCurveTo(46, 0, -6, 46); p.lineTo(-11, 41); p.quadraticCurveTo(34, 0, -11, -41); p.closePath(); p.rect(-31, -2.5, 52, 5); p.moveTo(21, -11); p.lineTo(36, 0); p.lineTo(21, 11); p.closePath(); p.rect(-38, -7, 9, 14); }
+      else if (ico === 'caballo') { p.moveTo(-26, 46); p.lineTo(-24, 14); p.quadraticCurveTo(-30, -14, -10, -34); p.lineTo(-12, -48); p.lineTo(0, -38); p.lineTo(4, -48); p.lineTo(10, -34); p.quadraticCurveTo(36, -18, 38, 6); p.lineTo(32, 14); p.quadraticCurveTo(20, 6, 10, 0); p.quadraticCurveTo(4, 22, 22, 46); p.closePath(); }
+      else { p.ellipse(4, 0, 34, 22, 0, 0, 7); p.rect(-24, 10, 11, 32); p.rect(-4, 10, 11, 32); p.rect(18, 10, 11, 30); p.arc(-30, -10, 17, 0, 7); p.moveTo(-44, -6); p.quadraticCurveTo(-52, 22, -40, 40); p.lineTo(-33, 37); p.quadraticCurveTo(-42, 22, -34, 2); p.closePath(); p.moveTo(-46, 4); p.lineTo(-58, 12); p.lineTo(-48, 14); p.closePath(); }
+      x.lineWidth = 8; x.strokeStyle = 'rgba(30,14,6,0.85)'; x.stroke(p); x.fillStyle = '#f6ecd2'; x.fill(p, 'nonzero');
+      x.restore();
+      const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; telas.set(id, t); salidas.push(() => t.dispose()); return t;
+    }
+    /* el brillo del cuerpo elegido: un rectángulo de bordes difuminados */
+    function texturaBrillo() {
+      const N = 64, cv = document.createElement('canvas'); cv.width = cv.height = N; const x = cv.getContext('2d'), im = x.createImageData(N, N);
+      for (let j = 0; j < N; j++) for (let i = 0; i < N; i++) {
+        const u = Math.abs((i + 0.5) / N * 2 - 1), v = Math.abs((j + 0.5) / N * 2 - 1), d = Math.max(0, Math.hypot(Math.max(0, u - 0.45), Math.max(0, v - 0.55)) / 0.48), a = Math.max(0, 1 - d), q = (j * N + i) * 4;
+        im.data[q] = im.data[q + 1] = im.data[q + 2] = Math.round(255 * a * a * (3 - 2 * a)); im.data[q + 3] = 255;
+      }
+      x.putImageData(im, 0, 0); const t = new THREE.CanvasTexture(cv); salidas.push(() => t.dispose()); return t;
+    }
+    /* la orden pintada en el suelo (GM29): una flecha roja del cuerpo hacia su objetivo que se desvanece en unos 4 s */
+    const flechas = [], FLECHA_SEG = 4;
+    const MAT_FLECHA = color => new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    function flecha(pts) {
+      for (const f of flechas.splice(0)) for (const m of [f.borde, f.cuerpo]) { escena.remove(m); m.geometry.dispose(); m.material.dispose(); }   // una sola a la vez
+      const w = Math.max(0.7, cam.d * 0.009), P = [];   // fina: que no tape a la tropa
+      for (let k = 0; k < pts.length - 1; k++) { const [x0, z0] = pts[k], [x1, z1] = pts[k + 1], n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, z1 - z0) / 4)); for (let j = k ? 1 : 0; j <= n; j++) P.push([x0 + (x1 - x0) * j / n, z0 + (z1 - z0) * j / n]); }
+      const cab = w * 2.2, tot = P.reduce((a, p, k) => a + (k ? Math.hypot(p[0] - P[k - 1][0], p[1] - P[k - 1][1]) : 0), 0);
+      if (tot < cab * 1.4) return;
+      const Q = [P[0]]; let dd = 0;
+      for (let k = 1; k < P.length; k++) { const l = Math.hypot(P[k][0] - P[k - 1][0], P[k][1] - P[k - 1][1]); if (dd + l >= tot - cab) { const f = (tot - cab - dd) / l; Q.push([P[k - 1][0] + (P[k][0] - P[k - 1][0]) * f, P[k - 1][1] + (P[k][1] - P[k - 1][1]) * f]); break; } dd += l; Q.push(P[k]); }
+      const fin = P[P.length - 1], ult = Q[Q.length - 1], dx = fin[0] - ult[0], dz = fin[1] - ult[1], dl = Math.hypot(dx, dz) || 1, y = 0.12;
+      const nor = (a, b) => { const l = Math.hypot(b[0] - a[0], b[1] - a[1]) || 1; return [-(b[1] - a[1]) / l, (b[0] - a[0]) / l]; };
+      const geo = (m, mas) => {
+        const pos = [], idx = [];
+        for (let k = 0; k < Q.length; k++) {
+          const a = Q[Math.max(0, k - 1)], b = Q[Math.min(Q.length - 1, k + 1)], [nx, nz] = nor(a, b), ws = w * m * (0.55 + 0.45 * Math.min(1, k / 2)) * 0.5;
+          pos.push(Q[k][0] + nx * ws, y, Q[k][1] + nz * ws, Q[k][0] - nx * ws, y, Q[k][1] - nz * ws); if (k) { const i = (k - 1) * 2; idx.push(i, i + 1, i + 2, i + 1, i + 3, i + 2); }
+        }
+        const nx = -dz / dl, nz = dx / dl, b0 = pos.length / 3;
+        pos.push(ult[0] + nx * w * 1.15 * m, y, ult[1] + nz * w * 1.15 * m, ult[0] - nx * w * 1.15 * m, y, ult[1] - nz * w * 1.15 * m, fin[0] + dx / dl * mas, y, fin[1] + dz / dl * mas); idx.push(b0, b0 + 1, b0 + 2);
+        const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setIndex(idx); return g;
+      };
+      const mk = (g, color, orden) => { const m = new THREE.Mesh(g, MAT_FLECHA(color)); m.frustumCulled = false; m.renderOrder = orden; escena.add(m); return m; };
+      flechas.push({ borde: mk(geo(1.4, w * 0.5), '#2a0504', 40), cuerpo: mk(geo(1, 0), '#d8231a', 41), edad: 0 });
+    }
+    /* de qué cuerpo a qué sitio va la flecha de cada orden («Aguantar» y «Relevo» no mueven a nadie: sin flecha) */
+    function pintarOrden(o, i) {
+      const s = B.sect[i], c = s.c[0], e = s.c[1], x = xs(i), z0 = zFrente(s) + hueco(c) + 0.3, z1 = zFrente(s) - hueco(e) - 1.5;
+      if (o === 'caballeria') {
+        const sg = i === 0 ? -1 : 1, vivos = cab.filter(f => f.est === 0); if (!vivos.length) return;
+        const cx = vivos.reduce((a, f) => a + f.x, 0) / vivos.length, cz = vivos.reduce((a, f) => a + f.z, 0) / vivos.length, xg = x + sg * (S / 2 + 2.5);
+        flecha([[cx, cz], [xg, Math.max(zFrente(s) + 8, Math.min(cz, z0 + 6))], [xg, zFrente(s) - 2], [x + sg * 2.5, z1 - 2]]);
+      } else if (o === 'avanzar' || o === 'escudos' || o === 'testudo' || o === 'empujar') flecha([[x, z0], [x, Math.min(z1, z0 - 14)]]);
+    }
+    function animarFlechas(dt) {
+      for (let k = flechas.length - 1; k >= 0; k--) {
+        const f = flechas[k]; f.edad += dt; const a = Math.min(1, f.edad / 0.18) * Math.max(0, Math.min(1, (FLECHA_SEG - f.edad) / 1.6));
+        f.cuerpo.material.opacity = 0.88 * a; f.borde.material.opacity = 0.7 * a;
+        if (f.edad >= FLECHA_SEG) { for (const m of [f.borde, f.cuerpo]) { escena.remove(m); m.geometry.dispose(); m.material.dispose(); } flechas.splice(k, 1); }
+      }
+    }
     function adornos(dt) {
       for (const e of estand) {
         const s = B.sect[e.i], c = s.c[e.l], dir = e.l === 0 ? 1 : -1; e.gr.visible = !c.roto && !(B.resultado && (B.resultado.como === 'victoria') === (e.l === 1));
         const fr = c.lineas[0], lv = lineas.get(fr), filas = lv ? Math.ceil(lv.fs.length / FILAS) : 1;
         const zz = zFrente(s) + dir * (0.8 + hueco(c) + filas * 1.25 + 0.5); e.gr.position.x += (xs(e.i) - e.gr.position.x) * 0.2; e.gr.position.z += (zz - e.gr.position.z) * Math.min(1, dt * 3);
-        e.gr.rotation.z = Math.sin(T * 1.7 + e.i) * 0.03 + (1 - c.moral) * 0.22 * Math.sin(T * 3 + e.i); e.tela.scale.y = 0.35 + 0.65 * Math.max(0, c.moral); e.tela.position.y = 4.43 - 0.675 * e.tela.scale.y;
+        e.gr.rotation.z = Math.sin(T * 1.7 + e.i) * 0.03 + (1 - c.moral) * 0.22 * Math.sin(T * 3 + e.i); e.tela.scale.y = 0.35 + 0.65 * Math.max(0, c.moral); e.tela.position.y = EST.palo - 0.18 - EST.alto / 2 * e.tela.scale.y;
+        e.gr.scale.setScalar(escEst()); const ico = icono(fr && fr.tipo); if (ico !== e.ico) { e.ico = ico; e.tela.material.map = lienzoEstandarte(e.l, ico); }
       }
       const c = B.sect[sel].c[0]; marca.visible = !c.roto && B.fase !== 'fin';
-      if (marca.visible) { const a = ini.get(c) || 0.8, f = Math.max(2, (c.fondo || 10) - a + 0.8); marca.scale.set(FILAS * PASO + 1.4, 1, f); marca.position.x = xs(sel); marca.position.z = zFrente(B.sect[sel]) + a - 0.8 + f / 2 + 0.2; marca.material.opacity = 0.16 + 0.07 * Math.sin(T * 4); }
+      if (marca.visible) { const a = ini.get(c) || 0.8, f = Math.max(2, (c.fondo || 10) - a + 0.8); marca.scale.set(FILAS * PASO + 5, 1, f + 4.5); marca.position.x = xs(sel); marca.position.z = zFrente(B.sect[sel]) + a - 0.8 + f / 2 + 0.2; marca.material.opacity = 0.24 + 0.06 * Math.sin(T * 3); }
+      animarFlechas(dt);
       const P = polvo.geometry.attributes.position.array, A = polvo.geometry.attributes.aV.array; polvo.material.uniforms.uT.value = alto * 1.6;
       polvo.userData.p.forEach((p, k) => {
         const s = B.sect[p.s], vivo = B.fase === 'lucha' && !R.lejos(s) && !s.c[0].roto && !s.c[1].roto, fuerza = vivo ? (s.c[0].postura === 'empujar' || s.c[1].postura === 'empujar' ? 1 : 0.5) : 0;
@@ -392,7 +512,7 @@
     function pintarPendones() {
       B.sect.forEach((s, i) => {
         const e = s.c[1], d = pend[i]; if (e.roto || B.fase === 'fin') { d.hidden = true; return; } d.hidden = false;
-        const lj = R.lejos(s); V3.set(xs(i), 5.6, lj ? zFrente(s) - hueco(e) - 3 : zFrente(s) - (e.fondo || 6) + 1).project(camara);
+        const lj = R.lejos(s); V3.set(xs(i), (EST.palo + 0.6) * escEst(), lj ? zFrente(s) - hueco(e) - 3 : zFrente(s) - (e.fondo || 6) + 1).project(camara);
         const x = (V3.x * 0.5 + 0.5) * ancho, y = (-V3.y * 0.5 + 0.5) * alto - 30; d.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(Math.max(54, y)) + 'px)';
         const fl = R.frente(e).fatiga > 0.6, cls = 'pend' + (e.postura === 'empujar' ? ' carga' : fl ? ' flaquea' : ''), txt = lj ? (e.tir && e.tir.estado === 'tira' ? 'tiran' : 'avanzan') : e.postura === 'empujar' ? 'cargan' : fl ? 'flaquean' : 'aguantan';
         if (d.className !== cls) d.className = cls; if (d.firstChild.textContent !== txt) d.firstChild.textContent = txt; d.lastChild.firstChild.style.width = Math.round(100 * Math.max(0, e.moral)) + '%';
@@ -439,7 +559,7 @@
     }
     function ordenar(o) {
       const no = R.ordenar(B, sel, o); tocado = true;
-      if (no) cinta(no); else if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) { /* sin vibración */ } }
+      if (no) cinta(no); else { pintarOrden(o, sel); if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) { /* sin vibración */ } } }
       pintarCartas();
     }
     function elegir(i) { if (i === sel || B.fase === 'fin') return; sel = i; pintarCartas(); }
@@ -552,7 +672,7 @@
     /* ganchos para las pruebas y las capturas */
     window.__gc = {
       terminar, get cerrado() { return cerrado; },
-      get lista() { return lista; }, get B() { return B; }, R,
+      get lista() { return lista; }, get B() { return B; }, R, get flechas() { return flechas.length; },
       ordenar: (i, o) => { sel = i; ordenar(o); }, elegir,
       pausa: v => { pausa = v; },
       salta: seg => { for (let k = 0; k < seg * 20 && B.fase !== 'fin'; k++) avanza(0.05); },
