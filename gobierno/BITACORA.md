@@ -230,6 +230,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 ## Esperando algo del usuario
 
 ## Propuestas por aprobar
+- P151 Probar `mcp-for-blender` (MIT, solo con Poly Haven CC0) como herramienta de arte en una tarea aparte; no se usa arte generado con IA por ahora (estudio `estudios/RD3-repos-ia-3d.md`, pedido del 17/11). Hunyuan3D-2 queda descartado (excluye la UE) y MeshAnything también (no comercial).
 
 
 
