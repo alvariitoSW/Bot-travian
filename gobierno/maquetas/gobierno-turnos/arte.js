@@ -1,217 +1,373 @@
-// EV7 · arte propio en SVG (dibujado a mano en código, sin copiar nada de otros juegos).
-// Roma de 264 a.C. a pleno día: los siete montes, el Tíber con la isla, la muralla Serviana de toba,
-// el Foro con sus tabernae, el templo toscano de Júpiter (toba, madera y terracota: nada de mármol),
+// EV7-EV8 · arte propio en SVG (dibujado a mano en código, sin copiar nada de otros juegos).
+// EV8: Roma de 264 a.C. vista desde el Janículo, por capas: montes con bruma, el Lacio y sus granjas, el Tíber, el Campo de Marte,
+// la muralla Serviana y la ciudad con sus siete edificios (tres aspectos cada uno: madera y adobe, toba y teja, estuco y terracota).
 // el Campo de Marte con las legiones, los campos del Lacio que cambian con la estación.
 // Aquí solo se dibuja: no se toca el estado del juego.
 
 const r1 = n => Math.round(n * 10) / 10;
 function azar(s) { let a = s >>> 0 || 1; return () => (a = (Math.imul(a, 1103515245) + 12345) >>> 0) / 4294967296; }
 
-/* ---------- estaciones: cielo, luz y color de los campos ---------- */
+/* ---------- estaciones: cielo, luz y color del campo ---------- */
 export const ESTACION = [
-  { id: 'primavera', cielo: ['#9fcbe0', '#f1ead0'], sol: [332, 24, '#fff3c4', 1], monte: '#9fb3a6', hierba: '#8fae58', hierba2: '#7c9c48', campoA: '#a9c766', campoB: '#86a94c', surco: 'rgba(60,85,25,.35)', copa: '#56783a', hoja: '#8db35a', ciudad: '#cdbb8e', monteC: '#b2ae76', tinte: null },
-  { id: 'verano', cielo: ['#86bfdc', '#f6edc9'], sol: [205, 18, '#fff8da', 1.25], monte: '#a9ad96', hierba: '#a6ad5a', hierba2: '#959f4c', campoA: '#e6c55e', campoB: '#cfa443', surco: 'rgba(120,80,20,.35)', copa: '#58733a', hoja: '#9aa845', ciudad: '#d6c08e', monteC: '#bdb072', tinte: ['#ffd890', .07] },
-  { id: 'otono', cielo: ['#bfc6c2', '#efd6a6'], sol: [86, 32, '#ffe2a8', .9], monte: '#a89c86', hierba: '#a39a58', hierba2: '#8e8446', campoA: '#c78b46', campoB: '#a8703a', surco: 'rgba(80,45,15,.38)', copa: '#5b6c34', hoja: '#c9782c', ciudad: '#cdb488', monteC: '#b49c66', tinte: ['#f0a050', .09] },
-  { id: 'invierno', cielo: ['#aebcc6', '#e3e6e3'], sol: [60, 46, '#f3f1e6', .55], monte: '#bfc6ca', hierba: '#b9bfac', hierba2: '#a7ae9a', campoA: '#eff1ec', campoB: '#dde3de', surco: 'rgba(110,120,125,.35)', copa: '#4d6440', hoja: '#8e806c', ciudad: '#d9d4c4', monteC: '#d4d6cc', nieve: true, tinte: ['#dfe9f2', .18] },
+  { id: 'primavera', cielo: ['#8cc2e2', '#f5edd4'], sol: [318, 46, '#fff4c8', 1], lejos: '#a7b9c9', medio: '#8aa58c', hierba: '#93b25a', hierba2: '#7c9e48', campoA: '#b3cd6a', campoB: '#8fb050', surco: 'rgba(60,85,25,.32)', copa: '#4f7434', cipres: '#2f4a28', hoja: '#8db35a', flor: '#f4f0f6', suelo: '#cfbb8e', luz: ['#fff2c0', .1] },
+  { id: 'verano', cielo: ['#74b3dc', '#f8ebc4'], sol: [206, 44, '#fffbe0', 1.3], lejos: '#adb7bf', medio: '#98a682', hierba: '#b0ab5c', hierba2: '#999a4c', campoA: '#e8c65a', campoB: '#d2a444', surco: 'rgba(120,80,20,.32)', copa: '#4f6a30', cipres: '#2c4423', hoja: '#93a240', suelo: '#d9c391', luz: ['#ffd27a', .08] },
+  { id: 'otono', cielo: ['#b2bcc2', '#f2cd94'], sol: [80, 42, '#ffdca0', 1], lejos: '#a69c9a', medio: '#9a8f70', hierba: '#a39858', hierba2: '#8b8044', campoA: '#c58a46', campoB: '#9f6c38', surco: 'rgba(80,45,15,.36)', copa: '#55663a', cipres: '#2f4226', hoja: '#d07a2a', suelo: '#cdb284', luz: ['#f3a050', .07] },
+  { id: 'invierno', cielo: ['#a2b3c2', '#e8eae8'], sol: [60, 50, '#f4f2ea', .6], lejos: '#dde3e9', medio: '#b6c0c3', hierba: '#c6cbbd', hierba2: '#b3baa8', campoA: '#eff1ec', campoB: '#dde2dc', surco: 'rgba(110,120,125,.32)', copa: '#45603c', cipres: '#2a3f2a', hoja: '#8e806c', suelo: '#dbd7c8', luz: ['#d6e4f2', .18], nieve: true },
 ];
 
 /* ---------- piezas ---------- */
 const ROJO = '#a3231a', TOBA = '#b89a6c', TOBA2 = '#8a6d48', MADERA = '#7a5228', TEJA = '#b5562f', TERRACOTA = '#cf7a3c', ESTUCO = '#e2d2aa';
+const TINTA = '#3b2a16', OX = .55, OY = -.36;
+const P = pts => 'M' + pts.map(([x, y]) => r1(x) + ' ' + r1(y)).join(' L') + 'Z';
+const pol = (pts, f, s, w = .35) => `<path d="${P(pts)}" fill="${f}"${s ? ` stroke="${s}" stroke-width="${w}"` : ''}/>`;
+const lin = (x1, y1, x2, y2, c, w = .5, ex = '') => `<path d="M${r1(x1)} ${r1(y1)} L${r1(x2)} ${r1(y2)}" stroke="${c}" stroke-width="${w}"${ex}/>`;
+const elip = (x, y, rx, ry, f, ex = '') => `<ellipse cx="${r1(x)}" cy="${r1(y)}" rx="${r1(rx)}" ry="${r1(ry)}" fill="${f}"${ex}/>`;
+const rect = (x, y, w, h, f, ex = '') => `<rect x="${r1(x)}" y="${r1(y)}" width="${r1(w)}" height="${r1(h)}" fill="${f}"${ex}/>`;
+const MAT = {
+  adobe: { f: '#cba878', l: '#9c7e52', t: '#b8994f', tl: '#7a6230' },
+  madera: { f: '#9b6c3a', l: '#6e4b25', t: '#b0904c', tl: '#6e5528' },
+  toba: { f: '#c9a877', l: '#94764a', t: '#b4552e', tl: '#76331a' },
+  estuco: { f: '#f2e4c0', l: '#c9b28a', t: '#c4643a', tl: '#76331a', banda: ROJO, friso: '#2f5e6e' },
+};
+const hueco = m => Object.assign({}, m, { f: '#5a4229', banda: null });
 
-function defs(S) {
-  const tej = S.nieve ? '#f4f5f1' : TEJA, tejB = S.nieve ? '#b9c0c0' : '#7a3518';
-  return `<defs>
-  <linearGradient id="c-cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${S.cielo[0]}"/><stop offset="1" stop-color="${S.cielo[1]}"/></linearGradient>
-  <linearGradient id="c-rio" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7fa4a0"/><stop offset="1" stop-color="#4f7a78"/></linearGradient>
-  <radialGradient id="c-sol"><stop offset="0" stop-color="${S.sol[2]}"/><stop offset=".45" stop-color="${S.sol[2]}" stop-opacity=".55"/><stop offset="1" stop-color="${S.sol[2]}" stop-opacity="0"/></radialGradient>
-  <g id="c-casa"><path d="M-4.5 -2.5h9v6h-9z" fill="${ESTUCO}" stroke="#6e5536" stroke-width=".4"/><path d="M4.5 -2.5l2 -1.5v5.5l-2 1.5z" fill="#b9a47c"/><path d="M-5.5 -2.5 L-3 -6 H5 L6.8 -4 L4.5 -2.5Z" fill="${tej}" stroke="${tejB}" stroke-width=".4"/><rect x="-1" y=".5" width="2" height="3" fill="#5a4024"/></g>
-  <g id="c-casa2"><path d="M-4 -2h8v5.5h-8z" fill="${TOBA}" stroke="#5e4a30" stroke-width=".4"/><path d="M4 -2l1.8 -1.3v5.3l-1.8 1.5z" fill="${TOBA2}"/><path d="M-5 -2 L-2.6 -5.4 H4.4 L6 -3.4 L4 -2Z" fill="${tej}" stroke="${tejB}" stroke-width=".4"/><rect x="-2.6" y="-.4" width="1.6" height="1.6" fill="#4a3119"/><rect x="1" y="-.4" width="1.6" height="1.6" fill="#4a3119"/></g>
-  <g id="c-domus"><path d="M-8 -3h16v6.5h-16z" fill="${ESTUCO}" stroke="#6e5536" stroke-width=".4"/><path d="M-9 -3 L-6 -8 H6 L9 -3Z" fill="${tej}" stroke="${tejB}" stroke-width=".4"/><path d="M-2.4 -6.6 H2.4 L3 -4.4 H-3Z" fill="#4f6f78"/><rect x="-1.2" y="0" width="2.4" height="3.5" fill="#5a4024"/><path d="M-6 0h2.5M3.5 0H6" stroke="#8a7350" stroke-width=".8"/></g>
-  <g id="c-insula"><path d="M-4 -11h8v14.5h-8z" fill="#cdb48a" stroke="#5e4a30" stroke-width=".4"/><path d="M4 -11l2 -1.5v14l-2 2z" fill="#a98e66"/>${[-8.5, -5, -1.5].map(y => `<rect x="-2.8" y="${y}" width="1.6" height="1.8" fill="#4a3119"/><rect x="1.2" y="${y}" width="1.6" height="1.8" fill="#4a3119"/>`).join('')}<path d="M-4.8 -11 L-2.6 -13.6 H5 L6.6 -12.5 L4 -11Z" fill="${tej}" stroke="${tejB}" stroke-width=".4"/><rect x="-1" y=".5" width="2" height="3" fill="#5a4024"/></g>
-  <g id="c-pino"><path d="M0 0v-7" stroke="#5a4024" stroke-width="1.1"/><ellipse cy="-8.5" rx="6" ry="2.8" fill="${S.copa}"/><ellipse cy="-9.4" rx="4.2" ry="1.6" fill="#ffffff" opacity="${S.nieve ? .7 : .12}"/></g>
-  <g id="c-cipres"><path d="M0 0v-2" stroke="#5a4024" stroke-width="1"/><path d="M0 -12 C2.4 -8 2.4 -4 0 -1.5 C-2.4 -4 -2.4 -8 0 -12Z" fill="${S.copa}"/></g>
-  <g id="c-arbol"><path d="M0 0v-5" stroke="#5a4024" stroke-width="1"/><circle cy="-7" r="3.6" fill="${S.hoja}"/><circle cx="2.4" cy="-5.5" r="2.4" fill="${S.hoja}"/>${S.nieve ? '<path d="M-3 -9h6" stroke="#fff" stroke-width="1" opacity=".7"/>' : ''}</g>
-  <g id="c-tienda"><path d="M-7.5 3 L0 -6 L3 3Z" fill="#f4ecd6" stroke="#6e5838" stroke-width=".6"/><path d="M0 -6 L9 -6.8 L12 2.4 L3 3Z" fill="#cdbd98" stroke="#6e5838" stroke-width=".6"/><path d="M-1.6 3 L0 -1.4 L1.2 3Z" fill="#5a4024"/></g>
-  <g id="c-legion"><ellipse cx="0" cy="11.4" rx="8" ry="1.8" fill="rgba(40,25,10,.28)"/><path d="M0 -1 V-15" stroke="#3a2614" stroke-width="1.1"/><rect x="0" y="-15" width="7" height="5.4" fill="${ROJO}" stroke="#4a0d08" stroke-width=".5"/><path d="M0 -12.3 h7" stroke="#e2b13c" stroke-width=".8"/><path d="M1 -10 v2 M3.5 -10 v2 M6 -10 v2" stroke="#e2b13c" stroke-width=".6"/><circle cx="0" cy="-15.8" r="1.3" fill="#e2b13c"/><rect x="-7" y="-2" width="14" height="13" rx="1.2" fill="#4a0d08"/><g fill="${ROJO}">${[0, 1, 2].map(f => [0, 1, 2].map(c => `<rect x="${r1(c * 4.3 - 6.1)}" y="${r1(f * 4.2 - 1.2)}" width="3.6" height="3.6" rx=".6"/>`).join('')).join('')}</g><g fill="#e2b13c">${[0, 1, 2].map(f => [0, 1, 2].map(c => `<circle cx="${r1(c * 4.3 - 4.3)}" cy="${r1(f * 4.2 - 1)}" r=".9"/>`).join('')).join('')}</g></g>
-  <g id="c-pila">${[0, 1, 2].map(c => `<path d="M${r1(c * 4.3 - 3.6)} -1.6 l1.6 -6" stroke="#5a4024" stroke-width=".7"/><path d="M${r1(c * 4.3 - 2)} -7.6 l.4 -1.6" stroke="#9aa0a0" stroke-width=".9"/>`).join('')}</g>
-  <g id="c-barca"><path d="M-6 0 Q0 3 6 0 L5 -1.2 H-5Z" fill="#5e3f1f" stroke="#2e1d0c" stroke-width=".4"/><circle cx="0" cy="-2.4" r=".9" fill="#c98a5a"/><path d="M-1 -1.4 L-4 1.6" stroke="#4a3119" stroke-width=".5"/></g>
-  <g id="c-trirreme"><path d="M-13 0 Q0 4 13 0 L11 -2 H-11Z" fill="#5e3f1f" stroke="#2e1d0c" stroke-width=".4"/><path d="M13 -.4 l3 .8" stroke="#8a6034" stroke-width="1"/>${[-9, -6, -3, 0, 3, 6, 9].map(c => `<path d="M${c} 1.6 l-1.4 2.6" stroke="#2e1d0c" stroke-width=".45"/>`).join('')}<path d="M0 -2 V-12" stroke="#2e1d0c" stroke-width=".7"/><path d="M-4.5 -11 H4.5 L4 -4.5 H-4Z" fill="#efe6cf" stroke="#7a6444" stroke-width=".3"/></g>
-  </defs>`;
-}
-
-/* andamio con grúa de madera (rueda de pisar): x,y = pie de la obra; p = cuánto lleva (0 a 1) */
-function andamio(x, y, w, h, p) {
-  const bx = x - w / 2, by = y - h, hp = Math.max(1.5, h * p);
-  let g = `<g class="andamio"><ellipse cx="${x}" cy="${y + 1}" rx="${w / 2 + 3}" ry="2" fill="rgba(60,40,15,.25)"/><rect x="${bx}" y="${r1(y - hp)}" width="${w}" height="${r1(hp)}" fill="${TOBA}" stroke="#5e4a30" stroke-width=".5"/>`;
-  g += [0, .5, 1].map(k => `<path d="M${r1(bx + w * k)} ${y} V${by - 2}" stroke="${MADERA}" stroke-width="1"/>`).join('');
-  g += [1 / 3, 2 / 3].map(k => `<path d="M${bx - 1} ${r1(y - h * k)} H${bx + w + 1}" stroke="${MADERA}" stroke-width=".9"/>`).join('');
-  g += `<path d="M${bx} ${y} L${r1(bx + w / 2)} ${by - 2} M${r1(bx + w / 2)} ${y} L${bx + w} ${by - 2}" stroke="${MADERA}" stroke-width=".5"/>`;
-  const ax = bx + w + 3, ay = by - 9;
-  g += `<path d="M${ax + 3} ${y} L${ax - 2} ${ay} L${ax + 8} ${y}" fill="none" stroke="#5a3a18" stroke-width="1.2"/><path d="M${ax - 2} ${ay} V${r1(y - hp - 3)}" stroke="#3a2a14" stroke-width=".5"/><rect x="${ax - 3.5}" y="${r1(y - hp - 3.4)}" width="3" height="2.4" fill="${TOBA2}"/>`;
-  g += `<circle cx="${ax + 6}" cy="${y - 4}" r="4" fill="none" stroke="#5a3a18" stroke-width="1"/><path d="M${ax + 2} ${y - 4}h8M${ax + 6} ${y - 8}v8" stroke="#5a3a18" stroke-width=".5"/></g>`;
+/* caja en perspectiva caballera: x,y = centro del pie delantero; w ancho, h alto, d fondo.
+   techo: 'dos' (a dos aguas, cumbrera paralela al frente), 'frente' (frontón hacia nosotros), 'plano' o nada */
+function caja(x, y, w, h, d, m, techo, S) {
+  const dx = d * OX, dy = d * OY, a = x - w / 2, b = x + w / 2, t = y - h, nv = S && S.nieve;
+  const tf = nv ? '#f2f3ef' : m.t, tl = nv ? '#bfc8cc' : m.tl;
+  let g = elip(x + dx / 2 + 2.5, y + dy / 2 + 1.4, w / 2 + d * .45 + 2, d * .32 + 1.8, 'rgba(45,30,12,.2)');
+  g += pol([[b, y], [b + dx, y + dy], [b + dx, t + dy], [b, t]], m.l, TINTA) + pol([[a, y], [b, y], [b, t], [a, t]], m.f, TINTA);
+  if (m.banda) g += lin(a, y - .9, b, y - .9, m.banda, 1.5) + lin(a, t + .9, b, t + .9, m.friso, 1.1);
+  if (techo === 'dos') {
+    const rh = d * .3 + 1.6, rx = dx / 2, ry = dy / 2 - rh;
+    g += pol([[b, t], [b + dx, t + dy], [b + rx, t + ry]], m.l, TINTA) + pol([[a - 1, t + .5], [b + 1, t + .5], [b + rx + 1, t + ry], [a + rx - 1, t + ry]], tf, tl);
+    for (let k = a + 1; k < b; k += 1.7) g += lin(k, t + .5, k + rx, t + ry, tl, .3, ' opacity=".6"');
+  } else if (techo === 'frente') {
+    const rh = Math.min(w * .22, 8);
+    g += pol([[b + .8, t], [x, t - rh], [x + dx, t - rh + dy], [b + .8 + dx, t + dy]], tf, tl) + pol([[a - .8, t], [b + .8, t], [x, t - rh]], m.f, TINTA);
+    for (let k = .2; k < 1; k += .2) g += lin(b + .8 - (b - x) * k, t - rh * k, b + .8 - (b - x) * k + dx, t - rh * k + dy, tl, .3);
+  } else if (techo === 'plano') g += pol([[a, t], [b, t], [b + dx, t + dy], [a + dx, t + dy]], nv ? '#f2f3ef' : m.f, TINTA);
   return g;
 }
-const destello = (x, y, r = 16) => `<g transform="translate(${r1(x)} ${r1(y)})"><g class="destello"><circle r="${r}" fill="rgba(255,236,150,.35)" stroke="#f3c64a" stroke-width="2"/>${[0, 45, 90, 135, 180, 225, 270, 315].map(a => `<path d="M0 ${-r - 2} V${-r - 7}" stroke="#f7d35c" stroke-width="2" stroke-linecap="round" transform="rotate(${a})"/>`).join('')}</g></g>`;
+const cols = (a, b, y, h, n, c, pie) => { let g = ''; for (let i = 0; i < n; i++) { const x = a + (b - a) * i / (n - 1); g += rect(x - .85, y - h, 1.7, h, c, ` stroke="${TINTA}" stroke-width=".22"`) + rect(x - 1.3, y - h, 2.6, .9, c) + (pie ? rect(x - .85, y - h * .32, 1.7, h * .32, pie) : ''); } return g; };
+const antef = (a, b, y) => { let g = ''; for (let x = a; x <= b; x += 2.4) g += `<path d="M${r1(x - .9)} ${r1(y)} a.9 .9 0 0 1 1.8 0Z" fill="${TERRACOTA}"/>`; return g; };
+const puerta = (x, y, w = 1.8, h = 3) => rect(x - w / 2, y - h, w, h, '#3c2914');
+const ventana = (x, y) => rect(x - .6, y - .7, 1.2, 1.4, '#3c2914');
+const persona = (x, y, c) => `<path d="M${r1(x - 1)} ${r1(y)} L${r1(x)} ${r1(y - 2.8)} L${r1(x + 1)} ${r1(y)}Z" fill="${c}"/><circle cx="${r1(x)}" cy="${r1(y - 3.3)}" r=".75" fill="#c98a5a"/>`;
+const ROPA = ['#f1e8d2', ROJO, '#6b4a26', '#7d9a45', '#e8dcc0', '#4f6f78', '#c98a3a'];
+const humo = (x, y) => `<path class="c8-humo" d="M${r1(x)} ${r1(y)} q-2 -3 0 -5 q2 -2.6 -.6 -5" fill="none" stroke="rgba(236,234,228,.42)" stroke-width="2.2" stroke-linecap="round"/>`;
+const vexilo = (x, y, h = 10) => lin(x, y, x, y - h, '#3a2614', .6) + `<path d="M${r1(x)} ${r1(y - h + .6)} h4.4 v3.4 l-2.2 -1 l-2.2 1Z" fill="${ROJO}" stroke="#4a0d08" stroke-width=".2"/>` + `<circle cx="${r1(x)}" cy="${r1(y - h)}" r=".7" fill="#e2b13c"/>`;
+
+/* árboles: pino piñonero (copa en sombrilla), ciprés, árbol de hoja (u olivo) */
+const pino = (x, y, s, S) => `<g transform="translate(${r1(x)} ${r1(y)}) scale(${s})"><ellipse cx="3" cy=".4" rx="6" ry="1.5" fill="rgba(40,30,10,.22)"/><path d="M0 0 C.6 -4 -.8 -7 .8 -10.5 M.2 -7.6 L-3 -10 M.6 -8.6 L3.4 -10.6" stroke="#5a3d22" stroke-width="1" fill="none"/><ellipse cy="-11.4" rx="7.6" ry="2.9" fill="${S.copa}"/><ellipse cy="-10.6" rx="7" ry="1.8" fill="rgba(20,30,10,.3)"/><ellipse cx="-1.6" cy="-12.6" rx="4.4" ry="1.4" fill="#fff" opacity="${S.nieve ? .8 : .18}"/></g>`;
+const cipres = (x, y, s, S) => `<g transform="translate(${r1(x)} ${r1(y)}) scale(${s})"><ellipse cx="2" cy=".3" rx="3" ry=".9" fill="rgba(40,30,10,.22)"/><path d="M0 -16 C2.8 -10 3 -4 0 -1 C-3 -4 -2.8 -10 0 -16Z" fill="${S.cipres}"/><path d="M0 -16 C-2.8 -10 -3 -4 0 -1Z" fill="#fff" opacity="${S.nieve ? .45 : .14}"/></g>`;
+const arbol = (x, y, s, S, c) => `<g transform="translate(${r1(x)} ${r1(y)}) scale(${s})"><ellipse cx="2" cy=".3" rx="4" ry="1" fill="rgba(40,30,10,.22)"/><path d="M0 0 V-4" stroke="#5a3d22" stroke-width=".9"/><circle cy="-6" r="3.4" fill="${c || S.hoja}"/><circle cx="2.4" cy="-4.6" r="2.4" fill="${c || S.hoja}"/><circle cx="-1" cy="-7" r="1.6" fill="#fff" opacity="${S.nieve ? .6 : .15}"/></g>`;
+const ARB = [pino, cipres, arbol];
+
+/* barcas y naves */
+const barca = (x, y, s = 1, vela) => `<g transform="translate(${r1(x)} ${r1(y)}) scale(${s})"><ellipse cy="1.4" rx="8" ry="1.3" fill="rgba(20,40,40,.25)"/><path d="M-7 -1 Q0 3 7 -1 L6 -2.4 H-6Z" fill="#6b4520" stroke="#2e1d0c" stroke-width=".35"/>${vela ? `<path d="M0 -2.4 V-13" stroke="#2e1d0c" stroke-width=".5"/><path d="M-4.4 -12 H4.4 L4 -4 H-4Z" fill="#efe3c6" stroke="#7a6444" stroke-width=".3"/>` : `<circle cx="1" cy="-3.6" r=".8" fill="#c98a5a"/><path d="M0 -2.4 L1 -3 2 -2.4Z" fill="#8a5a30"/><path d="M-1 -2.6 L-5 1.4" stroke="#4a3119" stroke-width=".45"/>`}</g>`;
+function nave(x, y, s) {
+  let g = `<g transform="translate(${r1(x)} ${r1(y)}) scale(${s})"><ellipse cy="2.4" rx="22" ry="2" fill="rgba(20,40,40,.28)"/><path d="M-19 -1 Q0 4 19 -1 L16 -4 H-17 L-20 -6Z" fill="#4e3317" stroke="#24160a" stroke-width=".5"/><path d="M19 -.8 l6 1.4 -6 1z" fill="#a8803a"/><circle cx="14" cy="-2" r=".8" fill="#e8d8b0"/>`;
+  for (let k = 0; k < 3; k++) for (let c = -14; c <= 10; c += 4) g += lin(c + k, 1 + k * .6, c + k - 1.6, 4 - k * .2, '#24160a', .4);
+  for (let c = -13; c <= 11; c += 3.2) g += `<circle cx="${r1(c)}" cy="-4.6" r="1.1" fill="${c % 2 ? ROJO : '#c9a64a'}"/>`;
+  return g + `<path d="M1 -4 V-20" stroke="#24160a" stroke-width=".9"/><path d="M-6 -19 H8 L7 -7 H-5Z" fill="#efe6cf" stroke="#7a6444" stroke-width=".35"/><path d="M-5.6 -13 H7.6" stroke="${ROJO}" stroke-width="1.6"/></g>`;
+}
+
+/* solar con estacas y cuerda (nivel 0) */
+function estacas(x, y, w, d) {
+  const dx = d * OX, dy = d * OY, c = [[x - w / 2, y], [x + w / 2, y], [x + w / 2 + dx, y + dy], [x - w / 2 + dx, y + dy]];
+  return pol(c, 'rgba(120,90,50,.2)') + `<path d="${P(c)}" fill="none" stroke="#efe4c8" stroke-width=".45" stroke-dasharray="1.4 .8"/>` + c.map(([a, b]) => lin(a, b + .6, a, b - 3.4, MADERA, 1)).join('') + `<g fill="#a89070">${[[0, 0], [1.8, .3], [.9, -1.1]].map(([a, b]) => elip(x + a + 2, y + dy / 2 + b, 1.2, .8, '#a89070')).join('')}</g>`;
+}
+
+/* obra: andamio de madera y grúa de dos mástiles con polipasto y rueda de pisar */
+function obra(x, y, w, h) {
+  const a = x - w / 2, b = x + w / 2, top = y - h - 3, M = '#6e4a22';
+  let g = '<g class="c8-obra" pointer-events="none">';
+  for (let i = 0; i <= 3; i++) g += lin(a + w * i / 3, y, a + w * i / 3, top, M, .9);
+  for (let k = 1; k <= 3; k++) g += lin(a - 1.5, y - (h + 3) * k / 3, b + 1.5, y - (h + 3) * k / 3, '#b0844c', 1.2);
+  g += lin(a, y, a + w / 3, top, M, .4) + lin(b - w / 3, y, b, top, M, .4);
+  const ax = b - 3, ay = top - 15, sy = top - 3;
+  g += `<path d="M${r1(b + 2)} ${r1(y)} L${r1(ax)} ${r1(ay)} L${r1(b + 9)} ${r1(y)}" fill="none" stroke="#5a3a18" stroke-width="1.5" stroke-linejoin="round"/>` + lin(ax, ay, b + 20, y, '#3a2a14', .35);
+  g += lin(ax, ay, ax, sy - 2.6, '#2a1d0e', .45) + lin(ax + .8, ay, ax + .8, sy - 2.6, '#2a1d0e', .35) + `<circle cx="${r1(ax)}" cy="${r1(ay)}" r="1.3" fill="#4a3119"/>` + rect(ax - 1, sy - 3.4, 2.4, 1.6, '#4a3119') + rect(ax - 2.6, sy - 1.8, 5.2, 3.4, TOBA, ` stroke="${TINTA}" stroke-width=".3"`);
+  g += lin(ax, ay, b + 13, y - 5, '#2a1d0e', .4) + `<circle cx="${r1(b + 13)}" cy="${r1(y - 5)}" r="5" fill="none" stroke="#5a3a18" stroke-width="1.1"/>` + [0, 60, 120].map(k => `<path d="M${r1(b + 8)} ${r1(y - 5)} h10" stroke="#5a3a18" stroke-width=".4" transform="rotate(${k} ${r1(b + 13)} ${r1(y - 5)})"/>`).join('') + persona(b + 13, y - 1.4, '#e8dcc0') + persona(a + w / 3 + 2, y - (h + 3) * 2 / 3, '#8a5a30');
+  return g + '</g>';
+}
+
+/* ---------- geografía ---------- */
+const CX = 272, CY = 200, RX = 120, RY = 86, PUERTA = 1.22;
+const pe = (t, k = 1) => [CX + RX * k * Math.cos(t), CY + RY * k * Math.sin(t)];
+const RIO = 'M64 78 C44 110 20 140 26 178 C32 214 104 224 100 260 C96 292 52 302 34 330';
+// dónde se señala cada sitio (aro y etiqueta) y su área tocable [x, y, rx, ry]
+export const SITIO = { foro: [252, 194], templo: [184, 132], mercado: [212, 240], muelle: [122, 254], cuartel: [96, 132], granja: [322, 92], muralla: [310, 274], campo: [98, 190], plebe: [332, 220], tiber: [44, 226] };
+const TOQUE = { foro: [254, 200, 42, 20], templo: [184, 140, 28, 24], mercado: [212, 244, 30, 15], muelle: [120, 262, 28, 17], cuartel: [96, 138, 44, 22], granja: [322, 98, 76, 13], muralla: [310, 280, 26, 15] };
+const OBRA = { foro: [240, 200, 30, 16], templo: [184, 152, 26, 22], mercado: [212, 251, 26, 10], muelle: [136, 262, 20, 10], cuartel: [96, 140, 20, 12], granja: [330, 98, 16, 8], muralla: [348, 268, 14, 10] };
+const MONTES = [[182, 172, 34, 20], [262, 134, 46, 8], [350, 172, 38, 12], [264, 262, 36, 11], [340, 252, 30, 9]];
+const LIBRE = [[252, 202, 46, 17], [184, 158, 34, 22], [212, 250, 32, 13], [310, 280, 24, 14], [184, 132, 18, 16]];
+const CASAS = (() => {
+  const r = azar(264), out = [];
+  for (let n = 0; n < 4000 && out.length < 120; n++) {
+    const t = r() * Math.PI * 2, q = Math.sqrt(r()) * .9, x = CX + RX * q * Math.cos(t), y = CY + RY * q * Math.sin(t) + 5;
+    if (LIBRE.some(([a, b, rx, ry]) => ((x - a) / rx) ** 2 + ((y - b) / ry) ** 2 < 1) || out.some(p => Math.abs(p[0] - x) < 9.5 && Math.abs(p[1] - y) < 6.5)) continue;
+    out.push([r1(x), r1(y), r()]);
+  }
+  return out.sort((a, b) => Math.hypot(a[0] - 252, (a[1] - 205) * 1.4) - Math.hypot(b[0] - 252, (b[1] - 205) * 1.4));
+})();
+function casa(x, y, h, i, plebe, S) {
+  const p = plebe / 100;
+  let g;
+  if (h < .1 + .2 * p && i > 6) g = caja(x, y, 7, 12, 6, h < .1 ? MAT.estuco : MAT.toba, 'dos', S) + [3.2, 6.6, 10].map(k => ventana(x - 1.8, y - k) + ventana(x + 1.8, y - k)).join('');
+  else if (h < .5 - .25 * p) g = caja(x, y, 7, 4.4, 5, MAT.adobe, 'dos', S) + puerta(x, y, 1.6, 2.6);
+  else if (h < .82) g = caja(x, y, 8, 5.6, 6, MAT.toba, 'dos', S) + puerta(x - 1, y) + ventana(x + 2, y - 3.6);
+  else g = caja(x, y, 11, 5, 8, MAT.estuco, 'dos', S) + puerta(x, y, 2, 3.2) + ventana(x - 3.4, y - 3) + ventana(x + 3.4, y - 3);
+  if ((h * 1000 | 0) % (S.nieve ? 5 : 9) === 0) g += humo(x + 2.6, y - 9);
+  return g;
+}
+
+/* ---------- los siete edificios: (nivel, estación, edad) -> SVG; x,y fijos ---------- */
+function foro(n, S, edad) {
+  const x = 252, y = 208, w = 70, d = 28, dx = d * OX, dy = d * OY;
+  const pl = [[x - w / 2, y], [x + w / 2, y], [x + w / 2 + dx, y + dy], [x - w / 2 + dx, y + dy]];
+  if (!n) return estacas(x, y, 44, 20);
+  let g = pol(pl, n === 1 ? '#bfa57a' : n === 2 ? '#d3c39c' : '#e0d4b2', '#8a7350', .5);
+  if (n > 1) for (let k = 1; k < 6; k++) g += lin(x - w / 2 + w * k / 6, y, x - w / 2 + w * k / 6 + dx, y + dy, 'rgba(110,90,60,.35)', .3) + (k < 4 ? lin(x - w / 2 + dx * k / 4, y + dy * k / 4, x + w / 2 + dx * k / 4, y + dy * k / 4, 'rgba(110,90,60,.35)', .3) : '');
+  if (n === 1) {
+    g += caja(x - 16, y - 12, 14, 7, 8, MAT.adobe, 'dos', S) + puerta(x - 16, y - 12, 2.4, 3.6) + humo(x - 6, y - 24);
+    for (const [a, b, c] of [[x + 8, y - 5, '#c9b07a'], [x + 22, y - 3, '#a3231a']]) g += lin(a - 4, b, a - 4, b - 6, MADERA, .7) + lin(a + 4, b, a + 4, b - 6, MADERA, .7) + pol([[a - 5, b - 6], [a + 5, b - 6], [a + 4, b - 8], [a - 4, b - 8]], c) + elip(a, b - 1, 3, 1, '#7d9a45');
+  } else {
+    const m = n === 3 ? MAT.estuco : MAT.toba;
+    if (n === 3) g += caja(x + 10, y - 14, 46, 10, 6, hueco(m), 'dos', S) + cols(x - 12, x + 32, y - 14, 10, 9, '#f3e8c8', ROJO) + antef(x - 13, x + 33, y - 24.4);
+    else g += caja(x + 12, y - 14, 34, 6, 5, MAT.toba, 'dos', S) + [0, 1, 2, 3, 4].map(k => `<path d="M${x + k * 6.4} ${y - 14} v-3.4 a1.3 1.3 0 0 1 2.6 0 v3.4Z" fill="#3c2914"/>`).join('');
+    g += caja(x - 20, y - 10, n === 3 ? 20 : 15, n === 3 ? 14 : 10, 10, m, 'frente', S) + puerta(x - 20, y - 10, 3, 5);
+    if (n === 3) g += antef(x - 31, x - 9, y - 24) + `<path d="M${x - 24} ${y - 26} L${x - 20} ${y - 28.6} L${x - 16} ${y - 26}Z" fill="#2f5e6e"/>`;
+    g += elip(x - 18, y - 3, 9, 3, 'rgba(120,95,60,.35)') + elip(x - 18, y - 3, 6, 2, n === 3 ? '#d7c79f' : '#c7b48a', ` stroke="#8a7350" stroke-width=".4"`);
+    g += caja(x + 4, y - 2, 10, 2.4, 4, m, 'plano', S) + [x + 1, x + 7].map(k => `<path d="M${k} ${y - 4.4} l-1.6 -.8 v1.6Z" fill="#5a3a18"/>`).join('');
+    g += rect(x + 24, y - 16, 2, 12, n === 3 ? '#f3e8c8' : TOBA, ` stroke="${TINTA}" stroke-width=".25"`) + persona(x + 25, y - 16, n === 3 ? '#cf7a3c' : '#8a6d48');
+    if (n === 3 || edad > 1) g += vexilo(x - 30, y - 1, 13) + vexilo(x + 33, y - 1, 13);
+  }
+  for (let i = 0; i < 4 + n * 4; i++) { const k = (i * 0.618) % 1, j = (i * 0.37) % 1; g += persona(x - 28 + k * 56 + j * dx, y - 1 + j * dy, ROPA[i % 7]); }
+  return g;
+}
+function templo(n, S, edad) {
+  const x = 184, y = 156;
+  if (!n) return estacas(x, y, 22, 14) + caja(x - 2, y + 6, 4, 2.4, 3, MAT.toba, 'plano', S);
+  let g = '';
+  if (n === 1) g += caja(x, y, 13, 8, 9, MAT.madera, 'frente', S) + puerta(x, y, 3, 5) + cols(x - 5.6, x + 5.6, y, 8, 2, '#8a5a30');
+  else if (n === 2) g += caja(x, y + 1, 26, 3.4, 16, MAT.toba, 'plano', S) + caja(x, y - 2.4, 20, 11, 13, hueco(MAT.toba), 'frente', S) + cols(x - 8.6, x + 8.6, y - 2.4, 11, 4, '#c9a877') + antef(x - 10, x + 10, y - 13.4);
+  else {
+    g += caja(x, y + 2, 38, 5, 20, MAT.toba, 'plano', S) + [1, 2, 3].map(k => lin(x - 7 + k, y + 2 - k * 1.6, x + 7 - k, y + 2 - k * 1.6, '#8a6d48', .5)).join('');
+    g += caja(x, y - 3, 32, 15, 16, hueco(MAT.estuco), 'frente', S) + cols(x - 14.4, x + 14.4, y - 3, 15, 6, '#f3e8c8', ROJO);
+    g += `<path d="M${x - 12} ${y - 19.4} L${x + 12} ${y - 19.4} L${x} ${y - 24.6}Z" fill="#2f5e6e"/>` + [-6, 0, 6].map(k => `<circle cx="${x + k}" cy="${y - 20.6}" r="1" fill="${TERRACOTA}"/>`).join('') + antef(x - 16, x + 16, y - 18.2);
+    g += `<g fill="${TERRACOTA}" stroke="#7a3518" stroke-width=".25"><path d="M${x - 4} ${y - 25.6} l1 -2.6 h4.6 l1.4 -1.6 .6 1.2 -1 .8 v2.2Z"/><path d="M${x + 1.6} ${y - 25.6} l1.6 -3.6 h1 l-.8 3.6Z"/></g>` + `<circle cx="${x - 17}" cy="${y - 20}" r="1.1" fill="${TERRACOTA}"/><circle cx="${x + 17}" cy="${y - 20}" r="1.1" fill="${TERRACOTA}"/>`;
+  }
+  g += caja(x - 4, y + 9, 4, 2.6, 3, MAT.toba, 'plano', S) + `<path d="M${x - 4.4} ${y + 6.2} q1 -2 2 0" fill="#f3a03a"/>` + humo(x - 3.4, y + 5) + persona(x + 2, y + 10, '#f1e8d2') + persona(x + 5, y + 10.4, ROJO);
+  if (n > 1 && edad > 1) g += vexilo(x - 18, y + 4, 12) + vexilo(x + 20, y + 4, 12);
+  return g;
+}
+function mercado(n, S) {
+  const x = 212, y = 252;
+  if (!n) return estacas(x, y, 30, 12);
+  let g = '';
+  const puesto = (a, b, c) => lin(a - 4, b, a - 4, b - 5.5, MADERA, .7) + lin(a + 4, b, a + 4, b - 5.5, MADERA, .7) + pol([[a - 5, b - 5.5], [a + 5, b - 5.5], [a + 4, b - 8], [a - 4, b - 8]], c, '#5a3a18', .25) + lin(a - 3, b - 7, a + 3, b - 7, '#f3ead6', .8, ' stroke-dasharray="1 1"') + rect(a - 4, b - 2.4, 8, 2.4, '#8a6034') + [[-2, '#d9a43a'], [0, '#7d9a45'], [2, ROJO]].map(([k, c2]) => elip(a + k, b - 2.8, 1, .7, c2)).join('');
+  if (n === 1) g += puesto(x - 12, y, '#c9a87a') + puesto(x, y - 3, ROJO) + puesto(x + 12, y, '#d9c79a');
+  else if (n === 2) { g += caja(x, y - 2, 40, 8, 6, MAT.toba, 'dos', S) + [0, 1, 2, 3, 4, 5].map(k => `<path d="M${r1(x - 17 + k * 6.6)} ${y - 2} v-4 a1.6 1.6 0 0 1 3.2 0 v4Z" fill="#3c2914"/>`).join(''); g += puesto(x - 10, y + 4, '#c9a87a') + puesto(x + 10, y + 4, ROJO); }
+  else {
+    g += caja(x, y - 6, 48, 15, 7, hueco(MAT.estuco), 'dos', S) + cols(x - 22, x + 22, y - 6, 7.4, 9, '#f3e8c8', ROJO) + lin(x - 24, y - 13.6, x + 24, y - 13.6, '#2f5e6e', 1.2) + [-18, -10, -2, 6, 14].map(k => ventana(x + k + 2, y - 17.6)).join('') + antef(x - 24, x + 24, y - 21.4);
+    g += elip(x, y + 4, 7, 2.2, 'rgba(45,30,12,.25)') + rect(x - 6, y - 4, 12, 7, '#f2e4c0', ` stroke="${TINTA}" stroke-width=".3"`) + cols(x - 5, x + 5, y + 3, 7, 5, '#f8efd6', ROJO) + `<path d="M${x - 7} ${y - 4} L${x} ${y - 10} L${x + 7} ${y - 4}Z" fill="${S.nieve ? '#f2f3ef' : MAT.estuco.t}" stroke="#76331a" stroke-width=".3"/>`;
+    g += puesto(x - 17, y + 5, '#c9a87a') + puesto(x + 17, y + 5, ROJO);
+  }
+  for (let i = 0; i < 3 + n * 3; i++) g += persona(x - 20 + (i * 7.3) % 40, y + 3 + (i % 3) * 1.6, ROPA[(i + 2) % 7]);
+  return g;
+}
+function muelle(n, S) {
+  const x = 126, y = 264;
+  if (!n) return estacas(x + 6, y, 18, 10) + lin(x - 6, y + 2, x - 6, y - 8, MADERA, 1);
+  let g = '';
+  g += pol([[x - 2, y], [x - 26, y + 5], [x - 27, y + 2], [x - 3, y - 3]], '#8a6034', '#3a2614') + [6, 12, 18, 24].map(k => lin(x - 2 - k, y + k * .2, x - 2 - k, y + k * .2 + 3, '#3a2614', .8)).join('');
+  if (n > 1) g += pol([[x - 4, y + 4], [x + 30, y + 2], [x + 30, y - 2], [x - 4, y]], '#a88d64', '#5e4a30') + caja(x + 14, y - 1, 20, 8, 8, MAT.toba, 'dos', S) + [0, 1, 2].map(k => puerta(x + 8 + k * 6, y - 1, 2, 4)).join('');
+  if (n > 2) g += caja(x + 20, y - 10, 30, 10, 7, hueco(MAT.estuco), 'dos', S) + cols(x + 7, x + 33, y - 10, 10, 6, '#f3e8c8', ROJO) + antef(x + 5, x + 35, y - 21.2) + `<path d="M${x - 6} ${y} L${x - 2} ${y - 16} L${x + 1} ${y}" fill="none" stroke="#5a3a18" stroke-width="1.2"/>` + lin(x - 2, y - 16, x - 8, y - 6, '#2a1d0e', .4) + rect(x - 9.4, y - 6, 3, 2.4, '#b8693a');
+  g += `<g fill="#b8693a" stroke="#5e2c10" stroke-width=".25">${[[2, -2], [4, -2.4], [3, -4.2], [6, -1.6], [8, -2.2]].slice(0, n + 2).map(([a, b]) => elip(x + a, y + b, .9, 1.5, '#b8693a')).join('')}</g>`;
+  const B = [[x - 20, y + 9, 0], [x - 34, y + 1, 1], [x - 36, y + 16, 0], [x - 46, y + 8, 1]];
+  g += B.slice(0, n + (n > 2 ? 1 : 0)).map(([a, b, v]) => barca(a, b, 1, v)).join('');
+  for (let i = 0; i < n * 2; i++) g += persona(x - 8 + i * 4.4, y - 1 + (i % 2), ROPA[(i + 4) % 7]);
+  return g;
+}
+function cuartel(n, S, edad) {
+  const x = 96, y = 142;
+  if (!n) return estacas(x, y, 40, 20);
+  let g = '';
+  if (n > 1) { const c = [[x - 40, y + 14], [x + 34, y + 14], [x + 44, y - 6], [x - 30, y - 6]]; g += `<path d="${P(c)}" fill="rgba(160,130,80,.18)" stroke="#6e4a22" stroke-width="1.2" stroke-dasharray=".8 .7"/>`; }
+  const T = []; for (let f = 0; f < 3; f++) for (let k = 0; k < 6; k++) T.push([x - 30 + k * 11 + f * 5, y - 2 + f * 6]);
+  const tienda = (a, b) => pol([[a - 4, b], [a, b - 5], [a + 1.6, b]], '#f4ecd6', '#6e5838', .3) + pol([[a, b - 5], [a + 6, b - 6.2], [a + 7.4, b - 1.2], [a + 1.6, b]], '#cdbd98', '#6e5838', .3) + pol([[a - 1, b], [a, b - 2.6], [a + .7, b]], '#5a4024');
+  g += T.slice(0, n === 1 ? 6 : n === 2 ? 12 : 18).map(([a, b]) => tienda(a, b)).join('');
+  if (n > 1) g += caja(x + 40, y + 8, 5, 16, 5, MAT.madera, 'plano', S) + vexilo(x + 41, y - 8, 7) + humo(x - 34, y + 6);
+  if (n > 2) g += caja(x - 4, y - 8, 18, 8, 8, MAT.estuco, 'dos', S) + puerta(x - 4, y - 8, 2.4, 4) + caja(x - 34, y + 12, 5, 14, 5, MAT.madera, 'plano', S) + vexilo(x - 33, y - 2, 7) + [0, 1, 2].map(k => lin(x + 20 + k * 4, y + 12, x + 20 + k * 4, y + 8, MADERA, .9)).join('');
+  if (edad > 1) g += vexilo(x + 2, y - 18, 10);
+  return g;
+}
+function granja(n, S) {
+  let g = '';
+  const F = [[332, 99], [268, 95], [384, 104]];
+  for (let i = 0; i < Math.max(1, n); i++) {
+    const [x, y] = F[i];
+    if (!n) { g += estacas(x, y, 16, 8); continue; }
+    const t = n - i;
+    g += `<path d="M${x - 12} ${y + 1} h22 l3 -5 h-22Z" fill="none" stroke="#7a5a30" stroke-width=".5" stroke-dasharray="1 .6"/>`;
+    if (t >= 3) g += caja(x, y, 18, 7, 8, MAT.estuco, 'dos', S) + cols(x - 7.6, x + 7.6, y, 4.4, 5, '#f3e8c8') + caja(x + 13, y - 2, 7, 6, 5, MAT.toba, 'dos', S);
+    else if (t === 2) g += caja(x, y, 12, 6, 7, MAT.toba, 'dos', S) + puerta(x - 2, y) + caja(x + 10, y - 1, 7, 4, 4, MAT.adobe, 'dos', S);
+    else g += caja(x, y, 8, 4.4, 5, MAT.adobe, 'dos', S) + puerta(x, y, 1.6, 2.6);
+    if (!S.nieve && S.id !== 'primavera') g += `<path d="M${x - 11} ${y} q2 -6 4 0z" fill="#d9b04a" stroke="#8a6a20" stroke-width=".3"/>`;
+    g += humo(x + 2, y - 8) + elip(x - 16, y + 2, 1.8, .9, '#6b4a26') + persona(x - 20, y + 3, '#e8dcc0');
+    if (t >= 3) g += [0, 1, 2, 3].map(k => arbol(x + 20 + k * 4, y + 2 - k * .6, .5, S, '#7d8f5a')).join('');
+  }
+  return g;
+}
+function campos(n, S) {
+  // parcelas del Lacio en abanico (perspectiva): más cultivadas cuanto mayor la granja
+  let g = '', k = 0;
+  const filas = [[82, 89], [89, 98], [98, 112]];
+  for (let f = 0; f < 3; f++) {
+    const [y0, y1] = filas[f]; let x = -16 + f * 9;
+    while (x < 404) {
+      const w = 20 + ((k * 37) % 19) + f * 6, h = ((k * 0.618 + f * .3) % 1), cult = x > 150 ? h < .3 + n * .22 : h < .55;
+      const sk = v => v + (v - 200) * (y1 - y0) / 110, c = !cult ? S.hierba2 : k % 2 ? S.campoA : S.campoB;
+      g += pol([[x, y0], [x + w, y0], [sk(x + w), y1], [sk(x), y1]], c, 'rgba(70,60,30,.35)', .35);
+      if (cult) for (let s = 3; s < w; s += 3.4) g += lin(x + s, y0, sk(x + s), y1, S.surco, .35);
+      else if (n > 1 && x > 220 && (k % 3 === 0)) for (let s = 2; s < w; s += 3) g += lin(x + s, y0 + 1, sk(x + s), y1 - 1, '#5f6e2c', .8, ' stroke-dasharray=".8 .9"');
+      x += w; k++;
+    }
+  }
+  for (let x = 6; x < 400; x += 26) g += cipres(x + (x * 7) % 9, 89 + (x % 3) * 1.4, .45, S);
+  return g;
+}
+/* muralla Serviana: tramo de atrás (cara interior) o de delante (cara exterior) */
+function muro(n, frente, S, edad) {
+  const hw = [1.6, 4.2, 7, 10][n], N = 44, t0 = frente ? 0 : Math.PI, nv = S.nieve;
+  let g = '';
+  for (let i = 0; i < N; i++) {
+    const ta = t0 + Math.PI * i / N, tb = t0 + Math.PI * (i + 1) / N, tm = (ta + tb) / 2;
+    if (frente && Math.abs(tm - PUERTA) < .08) continue;
+    const [x1, y1] = pe(ta), [x2, y2] = pe(tb);
+    if (!n) { g += lin(x1, y1, x2, y2, '#9a7a4a', 3, ' stroke-linecap="round"') + (i % 4 ? '' : lin(x1, y1, x1, y1 - 3, MADERA, .8)); continue; }
+    const c = n === 1 ? '#8a6236' : frente ? '#c4a473' : '#a88d64', sh = frente ? Math.max(0, Math.cos(tm)) * .3 : .12;
+    g += pol([[x1, y1], [x2, y2], [x2, y2 - hw], [x1, y1 - hw]], c, frente ? TINTA : null, .25) + (sh ? pol([[x1, y1], [x2, y2], [x2, y2 - hw], [x1, y1 - hw]], `rgba(40,25,10,${r1(sh * 10) / 10})`) : '');
+    if (n === 1) g += lin(x1, y1, x1, y1 - hw - 1.2, '#5a3a18', .6) + lin((x1 + x2) / 2, (y1 + y2) / 2, (x1 + x2) / 2, (y1 + y2) / 2 - hw - 1.2, '#5a3a18', .6);
+    else { g += lin(x1, y1 - hw * .5, x2, y2 - hw * .5, 'rgba(60,40,20,.35)', .3) + lin(x1, y1 - hw, x2, y2 - hw, nv ? '#f4f5f1' : '#d8c08e', 1); if (n === 3 && i % 2) g += rect(x1 - .9, y1 - hw - 1.8, 1.8, 1.8, '#b89a6c', ` stroke="${TINTA}" stroke-width=".2"`); }
+  }
+  if (n >= 2) {
+    const TT = frente ? (n === 3 ? [.25, .7, 1.85, 2.3, 2.75] : [.5, 2.3]) : (n === 3 ? [3.5, 3.95, 4.4, 4.85, 5.3, 5.75] : [3.8, 4.6, 5.5]);
+    for (const t of TT) { const [x, y] = pe(t); g += caja(x, y, 7, hw + 6, 6, MAT.toba, n === 3 ? 'dos' : 'plano', S) + ventana(x, y - hw - 2.6) + (edad > 1 && frente ? vexilo(x + 2, y - hw - 9, 7) : ''); }
+  }
+  if (frente) {
+    const [x, y] = pe(PUERTA);
+    if (!n) g += lin(x - 5, y, x - 5, y - 5, MADERA, 1.2) + lin(x + 5, y, x + 5, y - 5, MADERA, 1.2);
+    else if (n === 1) g += lin(x - 6, y + 1, x - 6, y - 9, '#5a3a18', 1.4) + lin(x + 6, y + 1, x + 6, y - 9, '#5a3a18', 1.4) + lin(x - 7.5, y - 8.5, x + 7.5, y - 8.5, '#5a3a18', 1.6) + rect(x - 5, y - 7, 4.6, 7, '#8a6236', ` stroke="${TINTA}" stroke-width=".3"`);
+    else {
+      const w = n === 3 ? 26 : 18, h = hw + (n === 3 ? 9 : 6);
+      g += caja(x, y + 2, w, h, 8, n === 3 ? MAT.estuco : MAT.toba, n === 3 ? 'dos' : 'plano', S) + `<path d="M${x - 3.4} ${y + 2} v-5.6 a3.4 3.4 0 0 1 6.8 0 v5.6Z" fill="#2c1e0e"/>`;
+      if (n === 3) g += `<path d="M${x - 10} ${y + 2} v-4 a2 2 0 0 1 4 0 v4Z M${x + 6} ${y + 2} v-4 a2 2 0 0 1 4 0 v4Z" fill="#2c1e0e"/>` + antef(x - 13, x + 13, y + 1.6 - h);
+      if (edad > 1) g += vexilo(x - w / 2 + 1, y + 2 - h, 9) + vexilo(x + w / 2 - 1, y + 2 - h, 9);
+    }
+    g += persona(x - 1, y + 6, '#8a6d48') + persona(x + 3, y + 7, '#f1e8d2');
+  }
+  return g;
+}
+function legion(x, y) {
+  let g = elip(x + 3, y + 1.2, 12, 3.2, 'rgba(40,25,10,.22)');
+  for (let f = 0; f < 3; f++) for (let c = 0; c < 5; c++) { const px = x - 8 + c * 3.4 + f * 1.3, py = y - 4.4 + f * 2.5; g += rect(px - 1, py - 2.6, 2, 2.6, ROJO, ' stroke="#4a0d08" stroke-width=".2"') + `<circle cx="${r1(px)}" cy="${r1(py - 3.1)}" r=".7" fill="#9aa0a0"/>`; }
+  return g + vexilo(x + 10, y + 1, 12);
+}
+
+const ESTILO = '<style>.c8-aro{transform-box:fill-box;transform-origin:center;animation:c8a 1.8s ease-out infinite}@keyframes c8a{0%{transform:scale(.7);opacity:1}100%{transform:scale(2.1);opacity:0}}.c8-humo{animation:c8h 4s ease-in-out infinite alternate}@keyframes c8h{to{transform:translate(1.5px,-2px);opacity:.3}}.c8-brillo{transform-box:fill-box;transform-origin:center;animation:c8b 1.2s ease-in-out infinite alternate}@keyframes c8b{from{opacity:.35;transform:scale(.85)}to{opacity:1;transform:scale(1.1)}}.edif{cursor:pointer}@media (prefers-reduced-motion:reduce){.c8-aro,.c8-humo,.c8-brillo{animation:none}}</style>';
+const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const sierra = (y0, amp, f, ph) => { let d = `M-4 ${y0 + 20}`; for (let x = -4; x <= 404; x += 8) d += ` L${x} ${r1(y0 - amp * (.55 + .45 * Math.sin(x * f + ph)) * (.65 + .35 * Math.sin(x * f * 2.7 + ph * 1.9)))}`; return d + ` L404 ${y0 + 20}Z`; };
+
+/* ---------- la ciudad ----------
+   v = {edif:{foro,granja,mercado,muelle,cuartel,templo,muralla} (0–3), legiones, edad, estacion, obras:[ids], plebe 0–100}
+   opciones = {marcas:[{sitio, texto}], nuevo:[ids con destello], sel: id}. Devuelve el SVG (texto). */
+export function ciudad(v = {}, opciones = {}) {
+  const S = ESTACION.find(s => s.id === v.estacion) || ESTACION[0], edad = v.edad || 1, plebe = Math.max(0, Math.min(100, v.plebe ?? 50));
+  const E = {}; for (const k of Object.keys(TOQUE)) E[k] = Math.max(0, Math.min(3, (v.edif || {})[k] | 0));
+  const obras = v.obras || [], { marcas = [], nuevo = [], sel = null } = opciones;
+  const [sx, sy, sc, sr] = S.sol;
+  let g = `${ESTILO}<defs><linearGradient id="c8-cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${S.cielo[0]}"/><stop offset="1" stop-color="${S.cielo[1]}"/></linearGradient>
+<radialGradient id="c8-sol"><stop offset="0" stop-color="${sc}"/><stop offset=".4" stop-color="${sc}" stop-opacity=".5"/><stop offset="1" stop-color="${sc}" stop-opacity="0"/></radialGradient>
+<linearGradient id="c8-rio" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${S.nieve ? '#9fb4b6' : '#86aaa4'}"/><stop offset="1" stop-color="#4c7472"/></linearGradient>
+<linearGradient id="c8-bruma" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${S.cielo[1]}" stop-opacity="0"/><stop offset="1" stop-color="${S.cielo[1]}" stop-opacity=".75"/></linearGradient>
+<linearGradient id="c8-llano" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${S.hierba2}"/><stop offset="1" stop-color="${S.hierba}"/></linearGradient>
+<radialGradient id="c8-monte" cx=".35" cy=".3" r=".75"><stop offset="0" stop-color="#fffbe0" stop-opacity=".45"/><stop offset=".6" stop-color="#fffbe0" stop-opacity="0"/><stop offset="1" stop-color="#3a2810" stop-opacity=".28"/></radialGradient>
+<linearGradient id="c8-luz" x1="${sx < 200 ? 0 : 1}" y1="0" x2="${sx < 200 ? 1 : 0}" y2=".6"><stop offset="0" stop-color="${S.luz[0]}" stop-opacity="${S.luz[1] * 2}"/><stop offset="1" stop-color="${S.luz[0]}" stop-opacity="0"/></linearGradient>
+<radialGradient id="c8-vin" cx=".5" cy=".55" r=".75"><stop offset=".6" stop-color="#2a1a08" stop-opacity="0"/><stop offset="1" stop-color="#2a1a08" stop-opacity=".22"/></radialGradient></defs>`;
+  // cielo, sol, nubes y aves
+  g += `<rect width="400" height="320" fill="url(#c8-cielo)"/><circle cx="${sx}" cy="${sy}" r="${r1(34 * sr)}" fill="url(#c8-sol)"/><circle cx="${sx}" cy="${sy}" r="${r1(7 * sr + 3)}" fill="${sc}"/>`;
+  for (const [cx, cy, s] of [[96, 42, 1], [250, 36, 1.2], [360, 50, .8], [170, 54, .6]]) g += `<g transform="translate(${cx} ${cy}) scale(${s})" opacity="${S.nieve ? .95 : .85}"><ellipse cx="0" cy="2" rx="26" ry="4" fill="${S.nieve ? '#d8dcdf' : '#e9e6e0'}"/><ellipse cx="-8" cy="-1" rx="10" ry="5" fill="#fff"/><ellipse cx="5" cy="-3" rx="12" ry="7" fill="#fff"/><ellipse cx="16" cy="0" rx="8" ry="4" fill="#fff"/></g>`;
+  if (!S.nieve) g += [[130, 50], [138, 46], [146, 52]].map(([a, b]) => `<path d="M${a - 2.4} ${b - 1} q1.2 -1 2.4 0 q1.2 -1 2.4 0" fill="none" stroke="#4a4038" stroke-width=".6"/>`).join('');
+  // tres capas de montes (Sabinos y Albanos) con bruma; nieve en lo alto en invierno
+  g += S.nieve ? `<path d="${sierra(58, 18, .021, 1)}" fill="#fbfbf8"/><path d="${sierra(58, 18, .021, 1)}" fill="${S.lejos}" transform="translate(0 5)"/>` : `<path d="${sierra(58, 18, .021, 1)}" fill="${S.lejos}"/>`;
+  g += `<rect y="40" width="400" height="40" fill="url(#c8-bruma)"/><path d="${sierra(72, 11, .034, 4)}" fill="${S.medio}"/><rect y="62" width="400" height="22" fill="url(#c8-bruma)" opacity=".6"/>`;
+  g += `<rect y="80" width="400" height="240" fill="url(#c8-llano)"/>`;
+  // el Lacio con sus granjas
+  g += campos(E.granja, S) + grupo('granja', granja(E.granja, S));
+  // Janículo (orilla de enfrente), Tíber, isla y Campo de Marte
+  { const r = azar(31); let c = ''; for (let i = 0; i < 160; i++) { const x = 40 + r() * 360, y = 116 + r() * 204, q = ((x - CX) / RX) ** 2 + ((y - CY) / RY) ** 2; if (q < 1.08) continue; c += i % 9 ? `<path d="M${r1(x - 1.4)} ${r1(y)} l1.4 -1.8 l1.4 1.8" fill="none" stroke="rgba(50,70,20,.35)" stroke-width=".5"/>` : (i % 2 ? arbol : pino)(x, y, .6 + r() * .3, S); } g += c; }
+  g += `<path d="M0 132 Q22 142 30 190 Q44 250 24 320 H0Z" fill="${S.cipres}" opacity=".55"/><path d="M0 132 Q22 142 30 190 Q44 250 24 320 H0Z" fill="url(#c8-monte)"/>` + [0, 1, 2, 3, 4, 5, 6, 7].map(i => (i % 3 ? pino : cipres)(4 + (i * 7) % 18, 150 + i * 21, .8 + i * .07, S)).join('');
+  g += `<path d="M44 120 Q90 108 148 126 Q150 170 140 214 Q100 214 70 204 Q50 170 44 120Z" fill="${S.nieve ? '#d0d4c6' : '#a9bd6c'}" opacity=".55"/>`;
+  g += `<path d="${RIO}" fill="none" stroke="${S.nieve ? '#9aa7a2' : '#9b8a5e'}" stroke-width="27" stroke-linecap="round"/><path d="${RIO}" fill="none" stroke="url(#c8-rio)" stroke-width="22" stroke-linecap="round"/><path d="${RIO}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width=".8" stroke-dasharray="6 9" transform="translate(-4 1)"/><path d="${RIO}" fill="none" stroke="rgba(255,255,255,.22)" stroke-width=".7" stroke-dasharray="3 14" transform="translate(4 -1)"/>`;
+  g += barca(34, 150, .9) + (edad > 1 ? nave(56, 300, .8) + nave(30, 196, .6) : barca(62, 300, 1, 1));
+  // tierra de dentro de la muralla y tramo de atrás
+  g += `<ellipse cx="${CX}" cy="${CY}" rx="${RX}" ry="${RY}" fill="${S.suelo}"/><ellipse cx="${CX}" cy="${CY}" rx="${RX}" ry="${RY}" fill="url(#c8-monte)" opacity=".5"/>`;
+  g += grupo('muralla', muro(E.muralla, false, S, edad), true);
+  // montes de la ciudad: Capitolio, Quirinal, Esquilino, Palatino, Celio
+  for (const [x, y, rx, h] of MONTES) g += `<path d="M${x - rx} ${y} Q${x - rx * .4} ${y - h * 1.6} ${x} ${y - h * 1.5} Q${x + rx * .5} ${y - h * 1.5} ${x + rx} ${y}Z" fill="${S.hierba2}" opacity=".7"/><path d="M${x - rx} ${y} Q${x - rx * .4} ${y - h * 1.6} ${x} ${y - h * 1.5} Q${x + rx * .5} ${y - h * 1.5} ${x + rx} ${y}Z" fill="url(#c8-monte)"/>`;
+  g += `<path d="M[310 284] Q290 240 262 214 M240 204 Q214 186 190 166 M300 210 Q340 200 388 196" fill="none" stroke="#e6d8b2" stroke-width="2.2" stroke-linecap="round" opacity=".7"/>`.replace('[310 284]', `${r1(pe(PUERTA)[0])} ${r1(pe(PUERTA)[1])}`);
+  // barrio de la plebe, árboles y edificios, de atrás adelante
+  const total = Object.values(E).reduce((a, b) => a + b, 0), nc = Math.min(CASAS.length, Math.round(16 + plebe * .62 + (edad - 1) * 14 + total * 1.2));
+  const piezas = CASAS.slice(0, nc).map(([x, y, h], i) => [y, casa(x, y, h, i, plebe, S)]);
+  for (const [x, y, t, s] of [[160, 172, 1, .8], [204, 172, 0, .8], [298, 128, 0, .8], [362, 170, 1, .8], [346, 254, 0, .7], [274, 266, 1, .7], [228, 128, 1, .7], [380, 210, 2, .8], [158, 150, 1, .7]]) piezas.push([y, ARB[t](x, y, s, S)]);
+  piezas.push([208, grupo('foro', foro(E.foro, S, edad))], [158, grupo('templo', templo(E.templo, S, edad))], [252, grupo('mercado', mercado(E.mercado, S))]);
+  piezas.sort((a, b) => a[0] - b[0]); g += piezas.map(p => p[1]).join('');
+  // Campo de Marte: campamento y una formación por legión
+  g += grupo('cuartel', cuartel(E.cuartel, S, edad));
+  const L = Math.max(0, v.legiones | 0), Lv = Math.min(L, 8);
+  for (let i = 0; i < Lv; i++) g += legion(70 + (i % 4) * 20 - Math.floor(i / 4) * 6, 180 + Math.floor(i / 4) * 18);
+  if (L > 8) g += `<text x="140" y="214" font-size="12" font-weight="700" fill="#4a0d08" text-anchor="end" font-family="system-ui,sans-serif">+${L - 8}</text>`;
+  g += grupo('muelle', muelle(E.muelle, S));
+  { const [x, y] = pe(PUERTA); g += `<path d="M${r1(x)} ${r1(y)} Q330 300 350 330" fill="none" stroke="#d9c9a0" stroke-width="4" opacity=".8"/>`; }
+  // tramo de delante de la muralla y arrabales de la Edad II
+  g += grupo('muralla', muro(E.muralla, true, S, edad));
+  if (edad > 1) g += [[350, 300], [366, 307], [384, 298], [334, 312], [156, 290], [170, 298], [396, 312]].map(([x, y], i) => casa(x, y, (i * .29) % 1, i, plebe, S)).join('');
+  // primer plano: pinos que enmarcan
+  g += pino(22, 324, 2.6, S) + pino(392, 326, 2.4, S) + cipres(44, 322, 1.9, S) + cipres(368, 324, 1.6, S);
+  // luz de la estación y viñeta
+  g += `<rect width="400" height="320" fill="url(#c8-luz)" pointer-events="none"/><rect width="400" height="320" fill="${S.luz[0]}" opacity="${S.luz[1]}" pointer-events="none"/><rect width="400" height="320" fill="url(#c8-vin)" pointer-events="none"/>`;
+  if (S.nieve) { const r = azar(9); let c = ''; for (let i = 0; i < 70; i++) c += `<circle cx="${r1(r() * 400)}" cy="${r1(r() * 320)}" r="${r1(.5 + r() * .8)}"/>`; g += `<g fill="#fff" opacity=".8" pointer-events="none">${c}</g>`; }
+  // destellos de lo nuevo y marcas con etiqueta
+  for (const id of nuevo) { const p = SITIO[id]; if (p) g += `<g transform="translate(${p[0]} ${p[1]})" pointer-events="none"><g class="c8-brillo"><circle r="14" fill="rgba(255,236,150,.3)" stroke="#f3c64a" stroke-width="1.6"/>${[0, 45, 90, 135, 180, 225, 270, 315].map(a => `<path d="M0 -16 V-21" stroke="#f7d35c" stroke-width="1.8" stroke-linecap="round" transform="rotate(${a})"/>`).join('')}</g></g>`; }
+  const cajas = [];
+  for (const { sitio, texto } of marcas) {
+    const p = SITIO[sitio]; if (!p) continue;
+    const t = esc(String(texto || '').slice(0, 30)), w = String(texto || '').slice(0, 30).length * 7 + 14, lx = Math.max(w / 2 + 17, Math.min(397 - w / 2, p[0]));
+    let ly = p[1] - 30;
+    for (let k = 0; k < 6 && cajas.some(([a, b, c]) => Math.abs(a - lx) < (c + w) / 2 + 2 && Math.abs(b - ly) < 20); k++) ly -= 21;
+    if (ly < 40) ly = p[1] + 30;
+    cajas.push([lx, ly, w]);
+    g += `<g class="c8-marca" pointer-events="none"><circle cx="${p[0]}" cy="${p[1]}" r="10" fill="none" stroke="#fff3b0" stroke-width="2.4" class="c8-aro"/><circle cx="${p[0]}" cy="${p[1]}" r="9" fill="rgba(255,225,120,.28)" stroke="#d9a520" stroke-width="1.8"/>${lin(p[0], p[1] + (ly > p[1] ? 9 : -9), lx, ly + (ly > p[1] ? -9 : 9), '#7a1f14', 1.2)}<rect x="${r1(lx - w / 2)}" y="${ly - 10}" width="${w}" height="19" rx="5" fill="#fffaf0" stroke="#7a1f14" stroke-width="1.3"/><text x="${r1(lx)}" y="${r1(ly + 4.2)}" font-size="12.6" font-weight="700" text-anchor="middle" fill="#3a1a0c" font-family="system-ui,sans-serif">${t}</text></g>`;
+  }
+  return `<svg viewBox="14 28 386 292" role="img" aria-label="Roma en ${S.id}, vista desde el Janículo">${g}</svg>`;
+
+  // cada edificio, en su grupo tocable; con halo si está elegido y andamio si está en obra
+  function grupo(id, cuerpo, sinToque) {
+    const [hx, hy, rx, ry] = TOQUE[id], o = OBRA[id];
+    const halo = sel === id && !sinToque ? elip(hx, hy + 4, rx, ry, 'rgba(255,214,90,.3)', ' stroke="#f3c64a" stroke-width="2" stroke-dasharray="4 2"') : '';
+    const andamio = obras.includes(id) && !sinToque ? obra(o[0], o[1], o[2], o[3]) : '';
+    return `<g data-edif="${id}" class="edif${sel === id ? ' sel' : ''}">${halo}${cuerpo}${andamio}${sinToque ? '' : elip(hx, hy, rx, ry, '#000', ' fill-opacity="0"')}</g>`;
+  }
+}
 
 /* templo toscano de Júpiter Óptimo Máximo: podio de toba, columnas de madera estucada, frontón bajo de terracota y la cuadriga de Vulca */
 function tJupiter(x, y) {
   return `<g transform="translate(${x} ${y})"><path d="M-17 0 H17 L19 -1.5 V-5 H-15 L-17 -4Z" fill="${TOBA}" stroke="#5e4a30" stroke-width=".5"/><path d="M-6 0 h12 l1 -4 h-14z" fill="#9c8058"/>${[-13, -7.8, -2.6, 2.6, 7.8, 13].map(c => `<rect x="${c - 1.1}" y="-14" width="2.2" height="9" fill="${ESTUCO}" stroke="#7a6444" stroke-width=".35"/>`).join('')}<rect x="-15" y="-15.6" width="31" height="2" fill="#c79a5a" stroke="#6e5536" stroke-width=".35"/><path d="M-17 -15.6 L0 -22 L17 -15.6Z" fill="${TEJA}" stroke="#6e2a12" stroke-width=".5"/><path d="M17 -15.6 L19 -16.8 L2 -23 L0 -22Z" fill="#8f3f20"/><path d="M-10 -16.6 L0 -20.4 L10 -16.6" fill="none" stroke="${TERRACOTA}" stroke-width=".8"/>${[-15, -11, -7, 7, 11, 15].map(c => `<circle cx="${c}" cy="-15.4" r=".7" fill="${TERRACOTA}"/>`).join('')}<path d="M-2.6 -22.4 h4 l.8 -1.6 h-2 l-.8 -1.4 h-1.4z M-1.2 -22.3 a.9 .9 0 1 0 .1 0" fill="${TERRACOTA}" stroke="#6e2a12" stroke-width=".3"/></g>`;
 }
-function templo(x, y, s = .72) {
-  return `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-13 0 H13 V-4 H-13Z" fill="${TOBA}" stroke="#5e4a30" stroke-width=".6"/>${[-9.5, -3.2, 3.2, 9.5].map(c => `<rect x="${c - 1.2}" y="-13" width="2.4" height="9" fill="${ESTUCO}" stroke="#7a6444" stroke-width=".4"/>`).join('')}<rect x="-12" y="-14.6" width="24" height="2" fill="#c79a5a"/><path d="M-14 -14.6 L0 -20 L14 -14.6Z" fill="${TEJA}" stroke="#6e2a12" stroke-width=".6"/><circle cx="0" cy="-16.4" r="1.2" fill="${TERRACOTA}"/></g>`;
-}
-const curia = (x, y) => `<g transform="translate(${x} ${y})"><path d="M-6 0 V-7 H6 V0Z" fill="${TOBA}" stroke="#5e4a30" stroke-width=".5"/><path d="M-7 -7 L0 -11 L7 -7Z" fill="${TEJA}" stroke="#6e2a12" stroke-width=".4"/><rect x="-1.4" y="-4.4" width="2.8" height="4.4" fill="#4a3119"/><path d="M-8 1.5 H8" stroke="#9c8058" stroke-width="1.4"/></g>`;
-/* tabernae: fila de tiendas con toldos a rayas y mercancía */
-function tabernae(x, y, n = 4) {
-  let g = `<g transform="translate(${x} ${y})">`;
-  for (let i = 0; i < n; i++) { const tx = (i - (n - 1) / 2) * 6.4; g += `<rect x="${r1(tx - 3)}" y="-6" width="6" height="6" fill="${TOBA}" stroke="#5e4a30" stroke-width=".35"/><rect x="${r1(tx - 2)}" y="-4" width="4" height="4" fill="#3a2a18"/><path d="M${r1(tx - 3.4)} -6 h6.8 l-1 -2.6 h-4.8z" fill="${i % 2 ? '#e9dcc0' : '#c4402a'}" stroke="#6e2a12" stroke-width=".25"/><circle cx="${r1(tx - 1)}" cy="1.4" r=".9" fill="${['#7d9a45', '#c9733e', '#e0b54a', '#8a5a9a'][i % 4]}"/><circle cx="${r1(tx + 1.2)}" cy="1.6" r=".8" fill="#c9733e"/>`; }
-  return g + '</g>';
-}
-/* escuela de preceptores griegos: pórtico con un maestro y su tablilla ΑΒΓ */
-const escuela = (x, y) => `<g transform="translate(${x} ${y})"><rect x="-11" y="-2" width="22" height="3" fill="#c7b38c" stroke="#6e5536" stroke-width=".4"/>${[-8, -2.6, 2.6, 8].map(c => `<rect x="${c - .8}" y="-10" width="1.6" height="8" fill="${ESTUCO}" stroke="#7a6444" stroke-width=".3"/>`).join('')}<path d="M-12 -10 H12 L10 -13 H-10Z" fill="${TEJA}" stroke="#6e2a12" stroke-width=".4"/><rect x="-6" y="-8.2" width="7" height="4.6" fill="#2e3a2a" stroke="#6e5536" stroke-width=".3"/><text x="-2.5" y="-4.6" font-size="3.4" text-anchor="middle" fill="#f3ecd6" font-family="serif">ΑΒΓ</text><circle cx="4.4" cy="-6.6" r="1.1" fill="#c98a5a"/><path d="M2.6 -2 C2.6 -5 6.2 -5 6.2 -2Z" fill="#f3ecd6"/></g>`;
-/* muelle del Tíber: pasarela de tablas, ánforas y, en el nivel 2, un almacén (horreum) */
-function muelle(x, y, n) {
-  let g = `<g transform="translate(${x} ${y}) scale(1.45)"><path d="M0 0 L-14 -6 L-12 -9 L2 -3Z" fill="#8a6034" stroke="#4a3119" stroke-width=".4"/>${[-12, -8, -4].map(c => `<path d="M${c} ${r1(c * .43 - 1)} v3" stroke="#4a3119" stroke-width=".8"/>`).join('')}`;
-  g += `<g fill="#b8693a" stroke="#5e2c10" stroke-width=".25">${[[3, -3], [5, -3], [4, -5.2], [7, -2.6]].map(([a, b]) => `<ellipse cx="${a}" cy="${b}" rx=".9" ry="1.4"/>`).join('')}</g>`;
-  if (n > 1) g += `<path d="M6 -6 h14 v6 h-14z" fill="${TOBA}" stroke="#5e4a30" stroke-width=".4"/><path d="M5 -6 L8 -9.4 H21 L20 -6Z" fill="${TEJA}" stroke="#6e2a12" stroke-width=".4"/>${[9, 13, 17].map(c => `<rect x="${c}" y="-4" width="2" height="4" fill="#4a3119"/>`).join('')}`;
-  return g + '</g>';
-}
-/* granja del Lacio: casa de campo con patio, era y almiar según la estación */
-function granja(x, y, S) {
-  return `<g transform="translate(${x} ${y})"><path d="M-14 -2 L14 -2 L16 4 L-12 4Z" fill="${S.campoA}" stroke="${S.surco}" stroke-width=".6"/>${[-9, -4, 1, 6, 11].map(c => `<path d="M${c} -2 l1.4 6" stroke="${S.surco}" stroke-width=".6"/>`).join('')}<path d="M-4 -9 h14 v6 h-14z" fill="none" stroke="#9c8058" stroke-width=".8"/><use href="#c-casa2" x="0" y="-5"/><use href="#c-casa" x="7" y="-6"/>${S.id === 'verano' || S.id === 'otono' ? '<path d="M-10 -3 q2 -6 4 0z" fill="#d9b04a" stroke="#8a6a20" stroke-width=".3"/>' : ''}${S.id === 'primavera' ? '<circle cx="-9" cy="-4" r="1.2" fill="#fff"/><circle cx="-6.5" cy="-3.6" r="1.2" fill="#fff"/>' : ''}</g>`;
-}
-/* quinquerreme copiada de la nave púnica (tres hileras de remos), con corvus si se sabe */
-function quinquerreme(x, y, corvus) {
-  let g = `<g transform="translate(${x} ${y})"><path d="M-19 0 Q0 5 19 0 L16 -3 H-16Z" fill="#4e3317" stroke="#24160a" stroke-width=".5"/><path d="M19 -.6 l5 1.2 -5 1z" fill="#a8803a"/><circle cx="14" cy="-1.2" r=".8" fill="#e8d8b0"/>`;
-  for (let k = 0; k < 3; k++) g += [-14, -10, -6, -2, 2, 6, 10].map(c => `<path d="M${c + k} ${1.8 + k * .6} l-1.6 ${3 - k * .4}" stroke="#24160a" stroke-width=".4"/>`).join('');
-  g += `<path d="M2 -3 V-18" stroke="#24160a" stroke-width=".9"/><path d="M-5 -17 H9 L8 -6 H-4Z" fill="#efe6cf" stroke="#7a6444" stroke-width=".35"/><path d="M-4 -12 H8" stroke="${ROJO}" stroke-width="1.2"/>`;
-  if (corvus) g += `<path d="M13 -3 V-13" stroke="#5a3a18" stroke-width="1"/><path d="M13 -12 L23 -16" stroke="#7a5228" stroke-width="2"/><path d="M23 -16 l1.2 3" stroke="#3a2a14" stroke-width="1"/>`;
-  return g + '</g>';
-}
-
-/* ---------- geografía fija ---------- */
-const MURO = [[160, 108], [230, 92], [300, 86], [352, 96], [388, 126], [391, 192], [372, 252], [300, 276], [220, 278], [160, 258], [141, 206], [146, 150]];
-const MURO_D = 'M160 108 Q190 92 230 92 Q270 82 300 86 Q332 86 352 96 Q384 106 388 126 Q394 160 391 192 Q392 236 372 252 Q340 274 300 276 Q258 282 220 278 Q180 274 160 258 Q140 240 141 206 Q138 170 146 150 Q150 122 160 108Z';
-const MONTES = [['Capitolio', 172, 136, 19, 10], ['Quirinal', 234, 112, 30, 10], ['Viminal', 292, 110, 22, 8], ['Esquilino', 350, 136, 30, 13], ['Palatino', 240, 200, 28, 12], ['Celio', 336, 222, 32, 12], ['Aventino', 178, 244, 22, 11]];
-// arboledas sobre los montes: [dx, dy] en radios del monte; 1 = ciprés, 0 = pino
-const ARBOLEDA = { Aventino: [[-.75, .3, 0], [-.45, .75, 1], [.7, .5, 0]], Celio: [[.72, .2, 1], [.5, .7, 0], [-.6, .7, 1]], Esquilino: [[.78, .4, 0], [.55, .8, 1]], Quirinal: [[-.8, .5, 1], [.82, .3, 0]], Viminal: [[.7, .6, 1]], Palatino: [[-.8, .4, 0], [-.55, .85, 1]] };
-const RIO = 'M78 54 C50 78 14 104 20 146 C26 186 92 182 112 212 C126 234 112 256 80 270 C50 282 20 286 -6 292';
-export const SITIO = {
-  granja: [[208, 74], [266, 68], [324, 72], [376, 78]],
-  mercado: [[210, 192], [204, 160], [156, 218]],
-  templo: [[178, 240], [238, 106]],
-  muelle: [[124, 252], [100, 278]],
-  muralla: [300, 90], cuartel: [96, 106], escuela: [268, 172], apio: [300, 288],
-  quinque: [46, 282], corvus: [46, 282], legiones: [100, 146], castra: [100, 146], pilum: [100, 146], griego: [268, 168], edad: [70, 276],
-};
-const EVITA = [[176, 128, 20], [210, 172, 26], [225, 228, 24], [178, 238, 14], [238, 104, 14], [268, 168, 15], [156, 216, 12], [300, 92, 10], [262, 276, 10], [390, 160, 8], [144, 232, 8], [334, 222, 10]];
-function dentro(x, y) {
-  let c = false; const cx = 268, cy = 184;
-  const P = MURO.map(([a, b]) => [cx + (a - cx) * .9, cy + (b - cy) * .88]);
-  for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const [xi, yi] = P[i], [xj, yj] = P[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; }
-  return c;
-}
-const HOGARES = (() => {
-  const r = azar(2640), out = [];
-  for (let n = 0; n < 4000 && out.length < 90; n++) {
-    const x = 146 + r() * 246, y = 96 + r() * 182;
-    if (!dentro(x, y) || EVITA.some(([a, b, rr]) => Math.hypot(x - a, y - b) < rr) || out.some(p => Math.abs(p[0] - x) < 11 && Math.abs(p[1] - y) < 8)) continue;
-    const enMonte = MONTES.some(([, a, b, rx, ry]) => ((x - a) / rx) ** 2 + ((y - b) / ry) ** 2 < 1);
-    const k = r(); out.push([r1(x), r1(y), enMonte ? (k < .5 ? 'c-domus' : 'c-casa') : k < .3 ? 'c-insula' : k < .65 ? 'c-casa2' : k < .85 ? 'c-casa' : 'c-domus']);
-  }
-  return out;
-})();
-
-/* ---------- la ciudad ----------
-   nuevo: cambios del último cierre ({que:'edif'|'saber'|'legiones'|'edad', obj, n}); nombres: {edif:{id:nombre}, saber:{id:nombre}}.
-   Devuelve {svg, focos:[{x, y, nombre}]} para el zoom sobre lo recién cumplido. */
-export function ciudad(e, nuevo = [], nombres = {}) {
-  const S = ESTACION.find(x => x.id === nombres.estacion) || ESTACION[e.turno % 4], d = e.edif, focos = [];
-  const sab = id => e.saberes.includes(id);
-  const enCola = (t, o) => e.ordenes.find(x => x.ley.tipo === t && (o == null || x.ley.obj === o));
-  const prog = o => o ? Math.min(1, (o.hecho + .5) / o.dura) : 0;
-  const nv = (q, o) => nuevo.some(c => c.que === q && (o == null || c.obj === o) && (q !== 'legiones' || c.n > 0));
-  const marca = (x, y, nombre, r) => { focos.push({ x, y, nombre }); return destello(x, y, r); };
-  const [sx, sy, , sr] = S.sol;
-  let g = defs(S) + `<rect width="400" height="300" fill="url(#c-cielo)"/><circle cx="${sx}" cy="${sy}" r="${r1(26 * sr)}" fill="url(#c-sol)"/><circle cx="${sx}" cy="${sy}" r="${r1(8 * sr + 3)}" fill="${S.sol[2]}"/>`;
-  g += S.id === 'invierno' ? '<g fill="#eef0f0" opacity=".85"><ellipse cx="150" cy="24" rx="60" ry="9"/><ellipse cx="300" cy="18" rx="70" ry="10"/><ellipse cx="230" cy="34" rx="50" ry="7"/></g>'
-    : `<g fill="#fff" opacity=".8"><ellipse cx="96" cy="22" rx="30" ry="6"/><ellipse cx="112" cy="18" rx="16" ry="6"/><ellipse cx="262" cy="30" rx="24" ry="5"/>${S.id === 'otono' ? '<ellipse cx="200" cy="14" rx="40" ry="6" fill="#e6e2da"/>' : ''}</g>`;
-  // montes del fondo: Sabinos y Albanos
-  g += `<path d="M0 60 L30 44 L56 52 L92 34 L128 48 L170 38 L214 50 L250 36 L290 46 L330 30 L366 44 L400 38 V70 H0Z" fill="${S.monte}"/>`;
-  if (S.nieve) g += '<path d="M86 37 L92 34 L98 37 L94 38Z M164 40 L170 38 L176 40Z M244 39 L250 36 L257 39 L251 40Z M322 33 L330 30 L338 34 L330 35Z" fill="#fff"/>';
-  g += `<path d="M0 66 Q100 56 200 62 T400 60 V300 H0Z" fill="${S.hierba}"/>`;
-  // el Lacio: parcelas en perspectiva
-  for (let i = 0; i < 10; i++) { const x0 = i * 44 - 12; g += `<path d="M${x0} 62 L${x0 + 42} 61 L${x0 + 46} ${i % 2 ? 84 : 80} L${x0 - 2} ${i % 2 ? 80 : 86}Z" fill="${i % 3 === 1 ? S.hierba2 : i % 2 ? S.campoA : S.campoB}" stroke="${S.surco}" stroke-width=".5"/>${i % 3 !== 1 ? [8, 16, 24, 32].map(k => `<path d="M${x0 + k} 62 l2 20" stroke="${S.surco}" stroke-width=".5"/>`).join('') : ''}`; }
-  g += [[20, 66], [60, 70], [140, 64], [186, 68], [292, 64], [396, 66]].map(([x, y]) => `<use href="#c-cipres" x="${x}" y="${y}"/>`).join('');
-  // Janículo y Trastévere, al otro lado del río
-  g += `<path d="M0 150 Q20 160 40 196 Q60 236 50 262 Q30 280 0 284Z" fill="${S.hierba2}"/>` + [[8, 176], [18, 196], [10, 214], [30, 222], [22, 244], [40, 240], [6, 252]].map(([x, y], i) => `<use href="#${i % 3 ? 'c-pino' : 'c-cipres'}" x="${x}" y="${y}"/>`).join('');
-  // Campo de Marte en la curva del río
-  g += `<path d="M30 96 Q70 86 150 104 L146 150 Q140 176 124 200 Q90 178 46 176 Q20 150 30 96Z" fill="${S.nieve ? '#c8ccbc' : '#a9bd6c'}" opacity=".75"/>`;
-  // el Tíber, la isla Tiberina con el templo de Esculapio (291 a.C.) y las barcas
-  g += `<path d="${RIO}" fill="none" stroke="${S.nieve ? '#9aa7a2' : '#9b8a5e'}" stroke-width="27" stroke-linecap="round"/><path d="${RIO}" fill="none" stroke="url(#c-rio)" stroke-width="22" stroke-linecap="round"/><path d="${RIO}" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="1" stroke-dasharray="7 11" transform="translate(-3 1)"/>`;
-  g += `<g transform="translate(114 214) rotate(28)"><ellipse rx="5" ry="12" fill="${S.hierba2}" stroke="#7d6a44" stroke-width=".7"/><path d="M0 -12 l1.8 -3" stroke="#7d6a44" stroke-width="1.2"/></g>${templo(114, 214, .32)}`;
-  g += `<use href="#c-barca" x="28" y="118"/><use href="#c-barca" x="92" y="190"/><use href="#c-barca" x="24" y="286"/>`;
-  // dentro de la muralla: tierra, montes, Foro, Circo Máximo
-  g += `<path d="${MURO_D}" fill="${S.ciudad}"/>`;
-  for (const [nom, x, y, rx, ry] of MONTES) {
-    // relieve: sombra a la derecha (la luz viene de la izquierda), ladera iluminada y cresta clara
-    g += `<ellipse cx="${x + 2}" cy="${y + 3}" rx="${rx + 1.5}" ry="${ry + .5}" fill="rgba(70,50,25,.25)"/><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${S.monteC}"/><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="rgba(60,42,20,.28)"/>`;
-    g += `<ellipse cx="${r1(x - rx * .14)}" cy="${r1(y - ry * .16)}" rx="${r1(rx * .84)}" ry="${r1(ry * .8)}" fill="${S.monteC}"/><ellipse cx="${r1(x - rx * .32)}" cy="${r1(y - ry * .36)}" rx="${r1(rx * .5)}" ry="${r1(ry * .4)}" fill="rgba(255,250,215,.3)"/><path d="M${r1(x - rx * .7)} ${r1(y - ry * .3)} Q${x} ${r1(y - ry * 1.05)} ${r1(x + rx * .6)} ${r1(y - ry * .45)}" fill="none" stroke="rgba(255,250,220,.4)" stroke-width="1"/>`;
-    const bosque = ARBOLEDA[nom] || [];
-    g += bosque.map(([dx, dy, t]) => `<use href="#${t ? 'c-cipres' : 'c-pino'}" transform="translate(${r1(x + dx * rx)} ${r1(y + dy * ry)}) scale(.8)"/>`).join('');
-  }
-  g += `<path d="M186 158 L234 160 L232 188 L188 186Z" fill="#dfd2ae" stroke="#8a7350" stroke-width=".6"/><path d="M188 172 L232 174" stroke="#b8a47a" stroke-width="1.6"/><rect x="200" y="165" width="9" height="3" fill="#a88d64"/><g>${[[194,178,'#f1e8d2'],[199,181,'#a3231a'],[214,179,'#f1e8d2'],[221,182,'#6b4a26'],[226,177,'#f1e8d2'],[206,183,'#7d9a45']].map(([x,y,c])=>`<circle cx="${x}" cy="${y - 2}" r=".9" fill="#c98a5a"/><path d="M${x - 1.2} ${y + 1} L${x} ${y - 1.4} L${x + 1.2} ${y + 1}Z" fill="${c}"/>`).join('')}</g><g transform="translate(225 229) rotate(-6)"><rect x="-24" y="-5" width="48" height="10" rx="5" fill="#d8c7a0" stroke="#8a7350" stroke-width=".6"/><path d="M-15 0 H15" stroke="#8a7350" stroke-width="1.4"/></g>`;
-  g += `<path d="M232 174 Q280 176 330 166 L388 160" fill="none" stroke="#c9b791" stroke-width="2"/><path d="M234 186 Q250 240 262 276" fill="none" stroke="#c9b791" stroke-width="2"/>`;
-  // Vía Apia (saber «apio»): calzada de losas que sale por la Puerta Capena, con miliarios
-  if (sab('apio')) { g += '<path d="M262 280 L330 300" stroke="#8a826c" stroke-width="7"/><path d="M262 280 L330 300" stroke="#cfc6ac" stroke-width="5" stroke-dasharray="3 1"/><rect x="290" y="282" width="2" height="5" fill="#e6dfc8"/><rect x="314" y="289" width="2" height="5" fill="#e6dfc8"/><g transform="translate(270 256)"><rect x="-5" y="-2" width="10" height="4" rx="1" fill="#7fa4a0" stroke="#5e4a30" stroke-width=".5"/></g>'; if (nv('saber', 'apio')) g += marca(300, 288, nombres.saber?.apio || 'Vía Apia', 16); }
-  else if (enCola('estudiar', 'apio')) g += andamio(300, 292, 16, 6, prog(enCola('estudiar', 'apio')));
-  // muralla Serviana de toba: más gruesa por nivel; torres desde el 2; puertas dobles y terraplén (agger) en el 3
-  const mu = d.muralla, an = 2.6 + mu * 1.4;
-  if (mu >= 3) g += '<path d="M352 98 Q384 106 388 126 Q394 160 391 192" fill="none" stroke="#8e9a58" stroke-width="7" transform="translate(-5 0)"/>';
-  g += `<path d="${MURO_D}" fill="none" stroke="#5e4a30" stroke-width="${an + 1.6}"/><path d="${MURO_D}" fill="none" stroke="${TOBA}" stroke-width="${an}"/><path d="${MURO_D}" fill="none" stroke="#7a6040" stroke-width="${r1(an * .5)}" stroke-dasharray="1 2.6" opacity=".6"/>`;
-  if (mu >= 2) for (const [x, y] of MURO) g += `<rect x="${x - 3.5}" y="${y - 7}" width="7" height="9" fill="${TOBA}" stroke="#5e4a30" stroke-width=".5"/><path d="M${x - 4} ${y - 7} h8" stroke="${S.nieve ? '#f4f5f1' : TEJA}" stroke-width="1.6"/>`;
-  for (const [x, y] of [[300, 88], [390, 160], [262, 278], [144, 232]]) { const w = mu >= 3 ? 14 : 10; g += `<rect x="${x - w / 2}" y="${y - 6}" width="${w}" height="9" fill="#a88d64" stroke="#5e4a30" stroke-width=".6"/><path d="M${x - 2.4} ${y + 3} v-4 a2.4 2.4 0 0 1 4.8 0 v4" fill="#3a2a18"/>${mu >= 3 ? `<path d="M${x - 6} ${y + 3} v-3 a1.4 1.4 0 0 1 2.8 0 v3 M${x + 3.2} ${y + 3} v-3 a1.4 1.4 0 0 1 2.8 0 v3" fill="#3a2a18"/>` : ''}`; }
-  if (nv('edif', 'muralla')) g += marca(300, 90, nombres.edif?.muralla || 'Muralla', 18);
-  if (enCola('ampliar', 'muralla')) g += andamio(372, 250, 12, 12, prog(enCola('ampliar', 'muralla')));
-  // casas: insulae, domus y casas de toba; crecen con la población, las obras y la edad
-  const total = Object.values(d).reduce((a, b) => a + b, 0);
-  const nCasas = Math.max(26, Math.min(HOGARES.length, Math.round(26 + (e.pob - 90) * .9 + (e.edad - 1) * 16 + total * 1.4)));
-  const casas = HOGARES.slice(0, nCasas);
-  // monumentos que se ordenan con las casas por altura (lo de atrás primero)
-  const piezas = casas.map(([x, y, t]) => [y, `<use href="#${t}" x="${x}" y="${y}"/>`]);
-  piezas.push([128, tJupiter(176, 128)], [160, curia(222, 160)]);
-  for (let i = 0; i < 2; i++) { const [x, y] = SITIO.templo[i]; if (i < d.templo) piezas.push([y, templo(x, y) + (nv('edif', 'templo') && i === d.templo - 1 ? marca(x, y - 8, nombres.edif?.templo || 'Templo', 15) : '')]); else if (i === d.templo && enCola('ampliar', 'templo')) piezas.push([y, andamio(x, y, 16, 12, prog(enCola('ampliar', 'templo')))]); }
-  for (let i = 0; i < 3; i++) { const [x, y] = SITIO.mercado[i]; if (i < d.mercado) piezas.push([y, tabernae(x, y, i === 2 ? 3 : 5) + (nv('edif', 'mercado') && i === d.mercado - 1 ? marca(x, y - 3, nombres.edif?.mercado || 'Mercado', 15) : '')]); else if (i === d.mercado && enCola('ampliar', 'mercado')) piezas.push([y, andamio(x, y, 20, 8, prog(enCola('ampliar', 'mercado')))]); }
-  { const [x, y] = SITIO.escuela; if (sab('griego')) piezas.push([y, escuela(x, y) + (nv('saber', 'griego') ? marca(x, y - 5, nombres.saber?.griego || 'Escuela griega', 15) : '')]); else if (enCola('estudiar', 'griego')) piezas.push([y, andamio(x, y, 18, 10, prog(enCola('estudiar', 'griego')))]); }
-  piezas.sort((a, b) => a[0] - b[0]); g += piezas.map(p => p[1]).join('');
-  // arrabales: en la Edad II Roma desborda la muralla (Puerta Capena, Puerta Colina y junto al Emporio)
-  if (e.edad >= 2) { const A2 = [[284, 290, 'c-casa'], [246, 292, 'c-casa2'], [318, 292, 'c-casa'], [272, 82, 'c-casa2'], [330, 86, 'c-casa'], [150, 276, 'c-insula'], [166, 286, 'c-casa2'], [138, 290, 'c-casa'], [394, 214, 'c-casa2'], [226, 294, 'c-casa']]; g += A2.slice(0, e.edad >= 3 ? 10 : 7).map(([x, y, t]) => `<use href="#${t}" x="${x}" y="${y}"/>`).join(''); }
-  // granjas del Lacio (fuera de la muralla)
-  for (let i = 0; i < 4; i++) { const [x, y] = SITIO.granja[i]; if (i < d.granja) g += granja(x, y, S) + (nv('edif', 'granja') && i === d.granja - 1 ? marca(x, y - 3, nombres.edif?.granja || 'Granja', 15) : ''); else if (i === d.granja && enCola('ampliar', 'granja')) g += andamio(x, y + 2, 18, 8, prog(enCola('ampliar', 'granja'))); }
-  // muelles del Tíber
-  for (let i = 0; i < 2; i++) { const [x, y] = SITIO.muelle[i]; if (i < d.muelle) g += muelle(x, y, i + 1 + (e.edad >= 2 ? 1 : 0)) + (nv('edif', 'muelle') && i === d.muelle - 1 ? marca(x, y - 3, nombres.edif?.muelle || 'Muelle', 14) : ''); else if (i === d.muelle && enCola('ampliar', 'muelle')) g += andamio(x + 4, y, 14, 8, prog(enCola('ampliar', 'muelle'))); }
-  // flota: quinquerreme (y corvus); en la Edad II, más naves en el puerto
-  if (sab('quinque')) g += quinquerreme(46, 282, sab('corvus')) + (nv('saber', 'quinque') ? marca(46, 276, nombres.saber?.quinque || 'Quinquerreme', 18) : '') + (nv('saber', 'corvus') ? marca(60, 270, nombres.saber?.corvus || 'Corvus', 14) : '');
-  else if (enCola('estudiar', 'quinque')) g += andamio(112, 268, 18, 6, prog(enCola('estudiar', 'quinque')));
-  if (!sab('corvus') && sab('quinque') && enCola('estudiar', 'corvus')) g += andamio(62, 276, 8, 10, prog(enCola('estudiar', 'corvus')));
-  if (e.edad >= 2) { g += '<use href="#c-trirreme" x="86" y="266"/><use href="#c-trirreme" x="10" y="290"/>' + (e.edad >= 3 ? '<use href="#c-trirreme" x="60" y="250"/>' : ''); if (nv('edad')) g += marca(70, 268, 'Edad II: Roma sale al mar', 20); }
-  // Campo de Marte: barracones (tiendas) por nivel, campamento si «castra», legiones en manípulos
-  for (let n = 0; n < d.cuartel; n++) for (let k = 0; k < 5; k++) g += `<use href="#c-tienda" x="${54 + k * 17 + (n % 2) * 7}" y="${97 + n * 9}"/>`;
-  if (nv('edif', 'cuartel')) g += marca(94, 96 + (d.cuartel - 1) * 9, nombres.edif?.cuartel || 'Campo de Marte', 16);
-  if (enCola('ampliar', 'cuartel')) g += andamio(100, 100 + d.cuartel * 9, 18, 7, prog(enCola('ampliar', 'cuartel')));
-  const L = Math.min(e.legiones, 10), lx = i => 58 + (i % 5) * 18, ly = i => 136 + Math.floor(i / 5) * 28;
-  if (sab('castra')) { const f = Math.max(1, Math.ceil(L / 5)); g += `<rect x="47" y="117" width="92" height="${f * 28 + 4}" fill="rgba(122,82,40,.08)" stroke="#7a5228" stroke-width="1.6" stroke-dasharray="1.6 1"/><path d="M90 ${117 + f * 28 + 4} h8" stroke="${S.ciudad}" stroke-width="2.4"/>`; if (nv('saber', 'castra')) g += marca(100, 140, nombres.saber?.castra || 'Campamento', 18); }
-  const nuevasL = nuevo.filter(c => c.que === 'legiones' && c.n > 0).reduce((a, c) => a + c.n, 0);
-  for (let i = 0; i < L; i++) { const leg = `<use href="#c-legion" x="${lx(i)}" y="${ly(i)}"/>` + (sab('pilum') ? `<use href="#c-pila" x="${lx(i)}" y="${ly(i)}"/>` : ''); g += i >= L - nuevasL ? `<g class="marcha">${leg}</g>` : leg; }
-  if (e.legiones > 10) g += `<text x="146" y="178" font-size="10" font-weight="700" fill="#4a0d08" text-anchor="end">+${e.legiones - 10}</text>`;
-  if (nuevasL > 0 && L) g += marca(lx(L - 1), ly(L - 1) + 2, nuevasL > 1 ? nuevasL + ' legiones nuevas' : 'Legión nueva', 13);
-  if (nv('saber', 'pilum')) g += marca(lx(0), ly(0) - 4, nombres.saber?.pilum || 'Pilum', 13);
-  { const o = (!sab('castra') && enCola('estudiar', 'castra')) || (!sab('pilum') && enCola('estudiar', 'pilum')); if (o) g += andamio(134, 112, 12, 9, prog(o)); }
-  { const o = enCola('reclutar') || enCola('leva'); if (o && L < 10) g += `<g opacity=".8">${andamio(lx(L), ly(L) + 10, 13, 12, prog(o))}</g>`; }
-  if (S.tinte) g += `<rect width="400" height="300" fill="${S.tinte[0]}" opacity="${S.tinte[1]}" pointer-events="none"/>`;
-  return { svg: `<svg viewBox="0 0 400 300" role="img" aria-label="Roma en ${S.id}, vista desde el Janículo">${g}</svg>`, focos };
-}
-
 /* ---------- escaño: silla curul con un senador togado del color del bando ---------- */
 export function asiento(color, clase) {
   const silla = '<path d="M-5 4.5 L5 9.5 M5 4.5 L-5 9.5" stroke="#5a3a18" stroke-width="1.3"/><path d="M-6 4.5 H6" stroke="#7a5228" stroke-width="1.6"/>';
