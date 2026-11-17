@@ -11,6 +11,7 @@
    Qué habría que llevar a js/gfx/units.js: normales suavizadas (suavizadas()), mipmaps y anisotropía de la textura de la figura,
    y la luz envolvente + contraluz de materialFigura (ver «LLEVAR A units.js» más abajo). */
 import { THREE } from '../../../js/gfx/models.js';
+import * as GE from './gentio.js';   /* GM33 */
 import { getUnit, unitMaterialReal, instancedGeometry, UNIT_SCALE } from '../../../js/gfx/units.js';
 
 export const COLS = 11, DIRS = 8, INCL = 0.38, STEP = Math.PI * 2 / DIRS;
@@ -33,7 +34,8 @@ vec3 varC(vec4 h, vec3 c) {
   float br = 1.0 + (h.x - 0.5) * 0.24; float d = h.y - 0.5; vec3 tinte = vec3(1.0 + d * 0.16, 1.0 + d * 0.02, 1.0 - d * 0.16);
   float l = dot(c, vec3(0.3, 0.59, 0.11)); c = mix(vec3(l), c, 0.88 + 0.3 * h.z); return c * br * tinte;
 }
-float ruidoPantalla(vec2 f) { return fract(52.9829189 * fract(dot(f, vec2(0.06711056, 0.00583715)))); }`;
+float ruidoPantalla(vec2 f) { return fract(52.9829189 * fract(dot(f, vec2(0.06711056, 0.00583715)))); }
+${GE.ON ? GE.GLSL : ''}`;
 
 /* ---------- normales suavizadas (copia de la geometría de la unidad; la original no se toca) ---------- */
 function suavizadas(u) {
@@ -74,7 +76,8 @@ export function materialFigura(u, color, horneo) {
           ${horneo ? '' : 'outgoingLight = varC(vH, outgoingLight);'} }
         #include <opaque_fragment>`);
   };
-  m.customProgramCacheKey = () => 'arte-fig' + (horneo ? 'h' : ''); mats.set(id, m); return m;
+  if (GE.ON) { const ob = m.onBeforeCompile; m.onBeforeCompile = (sh, r) => { ob(sh, r); GE.retocaFigura(sh, horneo, RUIDO); }; }   /* GM33 */
+  m.customProgramCacheKey = () => 'arte-fig' + (horneo ? 'h' : '') + (GE.ON ? 'G' : ''); mats.set(id, m); return m;
 }
 /* Pone la figura al día: material nuevo, normales suavizadas y atributo de variación. m = { malla, fr, u } de vista.js */
 function equipa(m, color) {
@@ -171,7 +174,7 @@ void main() {
   vec2 f = gl_FragCoord.xy;
   if (vFade < 1.0 && ruidoPantalla(f + 17.0) >= vFade) discard;
   vec4 t = texture2D(uMap, vUv); if (t.a < mix(0.5, 0.16, vLejos)) discard;
-  vec3 c = t.rgb / max(t.a, 0.06); c = varC(vH, c); { float l = dot(c, vec3(0.3, 0.59, 0.11)); c = mix(c, uBando * (0.25 + 1.8 * l), vLejos * 0.42); }   /* de lejos el bando se sigue leyendo */
+  vec3 c = t.rgb / max(t.a, 0.06); c = varC(vH, c); ${GE.ON ? 'c = gentio(c, vH, uBando, vLejos);' : '{ float l = dot(c, vec3(0.3, 0.59, 0.11)); c = mix(c, uBando * (0.25 + 1.8 * l), vLejos * 0.42); }'}   /* de lejos el bando se sigue leyendo */
   gl_FragColor = vec4(mix(c, uNieblaC, vNiebla), 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -264,13 +267,13 @@ const UT = { value: 0 };
 function lienzoPano(lado) {
   const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
   if (lado === 0) {                                              // paño romano: rojo con orla de oro y corona de laurel
-    x.fillStyle = '#a8231c'; x.fillRect(0, 0, 128, 128); x.fillStyle = '#7e1812'; for (let i = 0; i < 128; i += 8) x.fillRect(i, 0, 3, 128);
+    x.fillStyle = GE.pano ? GE.pano.rojo : '#a8231c'; x.fillRect(0, 0, 128, 128); x.fillStyle = GE.pano ? GE.pano.rojo2 : '#7e1812'; for (let i = 0; i < 128; i += 8) x.fillRect(i, 0, 3, 128);
     x.strokeStyle = '#e2b24f'; x.lineWidth = 7; x.strokeRect(5, 5, 118, 110); x.lineWidth = 4; x.beginPath(); x.arc(64, 58, 28, 0, 7); x.stroke();
     for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; x.fillStyle = '#e2b24f'; x.beginPath(); x.ellipse(64 + Math.cos(a) * 28, 58 + Math.sin(a) * 28, 6, 3, a + 1.57, 0, 7); x.fill(); }
     x.fillStyle = '#e2b24f'; x.fillRect(58, 40, 12, 36); x.fillRect(46, 52, 36, 10);
     x.clearRect(0, 116, 128, 12); x.fillStyle = '#e2b24f'; for (let i = 0; i < 128; i += 16) { x.fillRect(i + 2, 114, 10, 14); }   // flecos
   } else {                                                       // enseña enemiga: banderola morada con creciente
-    x.fillStyle = '#5b3a8c'; x.fillRect(0, 0, 128, 128); x.fillStyle = '#42286b'; for (let i = 0; i < 128; i += 16) x.fillRect(0, i, 128, 6);
+    x.fillStyle = GE.pano ? GE.pano.azul : '#5b3a8c'; x.fillRect(0, 0, 128, 128); x.fillStyle = GE.pano ? GE.pano.azul2 : '#42286b'; for (let i = 0; i < 128; i += 16) x.fillRect(0, i, 128, 6);
     x.fillStyle = '#d9d2bd'; x.fillRect(0, 0, 128, 8); x.fillRect(0, 120, 128, 8); x.strokeStyle = '#d9d2bd'; x.lineWidth = 9; x.beginPath(); x.arc(56, 64, 28, 0.6, 5.7); x.stroke();
     x.fillStyle = '#d9d2bd'; x.beginPath(); x.arc(96, 64, 9, 0, 7); x.fill();
     x.globalCompositeOperation = 'destination-out'; x.beginPath(); x.moveTo(128, 0); x.lineTo(92, 64); x.lineTo(128, 128); x.fill();   // cola de golondrina
