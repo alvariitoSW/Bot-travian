@@ -1935,6 +1935,12 @@
       "titulo": "Política · EV7 Gobierno por turnos: el Senado manda y la ciudad obedece (maqueta, Opus)",
       "nota": "solo gobierno/maquetas/; excepción a la 1.0; tope 2 M",
       "url": "https://claude.ai/code/session_01QiKC39GcxgHwQm5q2GKUGc"
+    },
+    {
+      "tarea": "GM44r",
+      "titulo": "GM44 Soldados nuevos al nivel de Rome II · rediseño (Fable construye)",
+      "nota": "solo maqueta y estudio; sin tocar js/",
+      "url": "https://claude.ai/code/session_01QiKC392bMLyNZs82CksoEg"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
