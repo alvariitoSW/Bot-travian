@@ -226,6 +226,16 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ MR1 **Diseño de menús romanos** (17/11): papiro = leer, tablilla de cera = elegir, bronce = títulos e «ir a», sello rojo = la acción. Maqueta de Imperio (A y B), Gobierno, Senado e informe; capturas `capturas-tarea/MR1-*.jpg`.
 - ✅ MR3 **Diseño del menú principal** (17/11, pedido del usuario): portada, menú con la partida guardada, nueva campaña, carga y opciones; maqueta `maquetas/menus-romanos/principal.html`, capturas `capturas-tarea/MR3-*.jpg`.
 
+## Carril RM — Roma 3D realista (P167, aprobada entera por el usuario el 17/11/2026 como excepción a la 1.0; plan `estudios/P167-roma-3d-realista.md`, donde se llaman R1 a R6)
+Todo en maqueta aparte (`gobierno/maquetas/roma-colina/`) hasta RM6. Dirige Fable, construye Opus. Sin pagar nada: edificios y fondo por código, con imágenes de dominio público como referencia. Si una tarea pasa de su cifra en un 30 %, se para y se pregunta.
+- ⬜ RM1 **Mirador** (≈1,2 M): Roma con sus colinas y el Tíber, cámara desde el Janículo, luz y bruma nuevas, con el arte de hoy; contador de imágenes por segundo para que el usuario lo pruebe en el móvil.
+- ⬜ RM2 **Ciudad densa** (≈1,3 M): de 30 casas a varios cientos, ínsulas, calles torcidas, huertos; lo lejano simplificado. Después de RM1.
+- ⬜ RM3 **Texturas reales** (≈1,0 M): toba, estuco, teja, tierra, hierba y empedrado CC0 (ambientCG, Poly Haven), con ficha y crédito. Después de RM2.
+- ⬜ RM4 **Historia de Roma** (≈0,4 M, agente Sonnet): ficha `gobierno/historia/roma-ciudad.md` con las fuentes cotejadas, plano de dónde va cada cosa y láminas de dominio público de referencia (Roma, Grecia y otras ciudades antiguas). Puede ir en paralelo a RM1.
+- ⬜ RM5 **Edificios únicos y fondo** (≈1,4 M): templo de Júpiter, puerta de la muralla serviana, puente Sublicio, Foro con puestos; horizonte (montes Albanos, campiña). Por código. Después de RM3 y RM4.
+- ⬜ RM6 **Al juego** (≈1,5 M): pasarlo a `js/gfx/city3d.js` con interruptor «calidad alta / normal»; jueces en APTO. Después de RM5 y de que el usuario dé por buena la maqueta.
+- ⬜ RM7 **Roma que cambia con la partida** (≈1,5 M): en 280 a.C. más madera y tablilla; hacia 150 a.C., basílicas y puente de piedra. Después de RM6.
+
 ## Carril MG — Modo Grecia y mitología (P142, aprobada por el usuario el 17/11/2026)
 - ⬜ (en pausa: después de la 1.0) MG1 **Grecia y mitología como modo aparte** (P142, pedido del 16/11 «más adelante»): no se abre hasta que la batalla romana esté cerrada. Al abrirla hay que decidir cómo queda la regla de fidelidad histórica; la campaña romana no se toca. Idea guardada del 17/11 (de Nova Roma, `estudios/NR0-ciudad-nova-roma.md`): dioses que piden y premian o castigan, y que aparecen gigantes sobre la ciudad.
 
