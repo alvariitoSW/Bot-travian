@@ -1918,6 +1918,18 @@
       "titulo": "Versión 1.0 · MR2b Menús romanos: Senado, avisos y barras (Opus)",
       "nota": "Carril V; css/style.css y js/ui.js (no map3d.js)",
       "url": "https://claude.ai/code/session_01QiKC36i5pShko1q8HsiYum"
+    },
+    {
+      "tarea": "GM5",
+      "titulo": "Versión 1.0 · GM5 Batalla mejorada en el juego, lo mínimo (Opus)",
+      "nota": "Carril V; motor de guerra (js/guerra.js, ui-guerra, battle3d)",
+      "url": "https://claude.ai/code/session_01QiKC38w2VptqxNBmxqFpVp"
+    },
+    {
+      "tarea": "I8b",
+      "titulo": "Versión 1.0 · I8b Pulir la partida corta (Opus)",
+      "nota": "Carril V; js/game.js y datos; las etiquetas esperan a C8",
+      "url": "https://claude.ai/code/session_01QiKC377wWmKESaumEbS9hB"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
