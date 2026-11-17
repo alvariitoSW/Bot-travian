@@ -276,9 +276,16 @@ function hudDock() {
   document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3)); $('app').dataset.tab = t3; $('app').dataset.vista = UI.tab;
   setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
 }
+/* I8b: con el reloj parado antes de fundar, la barra muestra lo que traen los colonos (sin producción ni almacén aún) */
+function hudFundando(s) {
+  for (const r of D.RES) { $('r-' + r).textContent = fmt(s.res[r]); $('ra-' + r).textContent = 'alm ' + fmt(s.alm[r] || 0); $('rb-' + r).title = (RES_NOM[r] || r) + ': ' + fmt(s.res[r]) + ' que traen los colonos'; }
+  $('app').dataset.modo = 'gobierno'; $('date').textContent = G.dateStr(s.t); $('speed').textContent = 'II'; $('speed').title = 'El reloj espera a que fundes';
+  const sitio = G.modo().inicio.fundar.sitio; setTxt('citybtn', '<b>' + (D.COLONIAS[sitio] || D.CITIES[sitio]).n.toUpperCase() + '</b>'); setTxt('bpill', '🏛️ Colonos esperando');
+}
 function tickUI() {
   const s = S(); if (UI.pausa) { if (s && s.speed > 0) UI.pausa = null; pausaPon(); }   // R3: si el reloj corre por otra vía, la línea sobra
-  if (!s || G.fundando()) return;   // I8: sin ciudad aún no hay cuentas que pintar
+  if (!s) return;
+  if (G.fundando()) { hudFundando(s); return; }   // I8: sin ciudad aún no hay cuentas; I8b: la barra enseña lo que traen los colonos
   if (UI.map && UI.map.cities) for (const id in UI.map.cities) { if (!D.CITIES[id] || !D.CITIES[id].antes) continue; const sp = UI.map.cities[id].el.querySelector('span'); if (sp && sp.textContent !== D.CITIES[id].n) sp.textContent = D.CITIES[id].n; }   // H14: el nombre del mapa cambia con la fecha (Poblado íbero → Carthago Nova)
   const p = G.prod(), cap = G.cap(), pr = G.previsionCierre(), aviso = G.fraccionMes() >= D.AVISO_CIERRE;
   for (const r of D.RES) {
@@ -1184,7 +1191,7 @@ function moverFundar(x, z) {
 }
 function fundarAqui() {
   const F = UI.fundar; if (!F || F.fase !== 'elegir' || !F.vale) return;
-  const r = G.fundarColonia(F.sitio, F.x, F.z);
+  const r = G.fundarColonia(F.sitio, F.x, F.z, true);   // I8b: en «fundar de la nada» el reloj espera a que el arado acabe el surco
   if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); return; }
   F.fase = 'arando'; F.t0 = performance.now(); UI.cityV.calor(null); UI.cityV.ponerGroma(null); UI.cityV.surcar();
   lineaPon('El arado traza el surco sagrado: dentro nacerá la ciudad.', 'aviso'); $('csheet').hidden = true; pintaBotonesFundar();
@@ -1196,6 +1203,7 @@ function fundarCuadro(now) {
 }
 function cerrarFundar(sinTab) {
   const F = UI.fundar; UI.fundar = null; UI.modo3 = 'mirar'; UI.sel3 = null;
+  G.finArado();   // I8b: al cerrar la pantalla (acabe o no el surco) el reloj vuelve a correr
   if (UI.cityV) { UI.cityV.ponerGroma(null); UI.cityV.calor(null); }
   $('csheet').dataset.m = ''; lineaPon(''); if (!sinTab) setTab(UI.tab);
 }

@@ -261,6 +261,15 @@ function campaign(aggressive, seed, region, opciones) {
   const rndOrig = Math.random; if (seed) Math.random = mulberry32(seed);
   try { return campaign1(aggressive, region, opciones); } finally { Math.random = rndOrig; }
 }
+// I8b: el bot que investiga (opciones.investiga): sube de edad en cuanto puede y estudia el saber más barato de una rama nueva, solo si le sobra el doble de lo que cuesta (si no, gasta lo del ejército y pierde ciudades)
+function investigarBot(s) {
+  if (s.inv.cola) return; const holgado = id => { const c = G.invCoste(id); return D.RES.every(r => G.disponible(r) >= 2 * (c[r] || 0)); };
+  const sigE = 'E' + (s.inv.edad + 1); if (D.EDADES[sigE] && holgado(sigE) && G.edadUp().ok) return;
+  const ramas = {}; for (const k in s.inv.hechas) if (D.INVEST[k]) ramas[D.INVEST[k].rama] = 1;
+  const coste = id => { const c = G.invCoste(id); return D.RES.reduce((a, r) => a + (c[r] || 0), 0); };
+  const l = Object.keys(D.INVEST).filter(id => G.invEstado(id).e === 'ok' && holgado(id)).sort((a, b) => (ramas[D.INVEST[a].rama] ? 1 : 0) - (ramas[D.INVEST[b].rama] ? 1 : 0) || coste(a) - coste(b));
+  if (l.length) G.invUp(l[0]);
+}
 function campaign1(aggressive, region, opciones) {
   const s = G.newGame('Test', region, opciones); const meta = G.capitalRival(); const events = [];
   G.onEvent = (t, p) => { events.push(t); if (process.env.V && t === 'log' && /⚠|🔥|🏆|💀|rechaza|📜/.test(p.x)) console.log('  ', G.yearOf(s.t), p.x); };
@@ -271,6 +280,7 @@ function campaign1(aggressive, region, opciones) {
     G.tick(0.25);
     while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); if (process.env.DBG) console.log(G.yearOf(s.t), JSON.stringify(info.cfg.sides.map(x => x.units)), 'def', info.cfg.defender, 'wall', info.cfg.wall, '->', b.result().winner, Math.round(b.t)); G.applyBattle(b.result()); }
     if (guard % 8) continue;
+    if (opciones && opciones.investiga) investigarBot(s);
     if (D.SENADO.sala && s.senado && s.senado.votacion) G.votar(G.tratos(s.senado.votacion.id).filter(t => t.etiqueta === 'Favorable'));   // SN1: el bot vota con la tarjeta Favorable (o deja pasar)
     for (const id of G.myCities()) {
       const c = s.cities[id];
@@ -1731,6 +1741,24 @@ console.log('OK — todas las pruebas superadas');
   }
   console.log('Partida corta (' + du.segPorTurno + ' s por turno):'); for (const f of tabla) console.log('  ' + f[0].padEnd(7) + f[1].padEnd(9) + 'gana ' + f[2].padEnd(6) + 'victorias ' + f[3].padEnd(15) + 'media ' + f[4] + '  ' + f[5]);
   assert(todas.agr.some(s => !s.over.win), 'el agresivo debe poder perder alguna'); assert(todas.agr.some(s => s.over.win && s.over.resumen.edad >= 1));
+
+  // I8b: con un bot que investiga, la corta llega a la edad III (su tope) y no pasa de ahí
+  { const tE = [];
+    for (const ini of ['enPie', 'fundar']) { const l = []; for (let sd = 1; sd <= 10; sd++) l.push(campaign(true, sd, null, { modo: 'corta', inicio: ini, investiga: true }));
+      for (const s of l) assert(s.inv.edad <= 3 && s.inv.hechas.E4 === undefined && s.over.resumen.edad === s.inv.edad, 'la edad del resumen es la alcanzada y no pasa de III');
+      const e3 = l.filter(s => s.inv.edad === 3), w = l.filter(s => s.over.win);
+      tE.push('  ' + ini.padEnd(7) + 'edad III ' + e3.length + '/10 (en ' + (e3.length ? Math.max(...e3.map(s => G.yearOf(s.inv.hechas.E3))) + '-' + Math.min(...e3.map(s => G.yearOf(s.inv.hechas.E3))) + ' a.C.' : '-') + ') · gana ' + w.length + '/10  ' + l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t) + '·e' + s.inv.edad).join(' '));
+      assert(e3.length >= (ini === 'enPie' ? 8 : 3), 'partida corta ' + ini + ': el bot que investiga llega a la edad III (' + e3.length + '/10)');
+      assert(w.length >= (ini === 'enPie' ? 6 : 4), 'partida corta ' + ini + ': investigar no hunde al bot (' + w.length + '/10)'); }
+    console.log('Partida corta con bot que investiga:'); for (const x of tE) console.log(x); }
+
+  // I8b: el arado. Con la pantalla de fundar (conArado) la ciudad nace pero el reloj espera a G.finArado(); el bot (sin arado) juega en el acto
+  { const s = G.newGame('Arado', null, { modo: 'corta', inicio: 'fundar' }); let pt = null; for (let x = -300; x <= 300 && !pt; x += 20) for (let z = -300; z <= 300 && !pt; z += 20) if (G.notaFundar(sitio, x, z).vale) pt = [x, z];
+    assert(G.fundarColonia(sitio, pt[0], pt[1], true).ok && G.arando() && !G.fundando() && G.modoFase() === 'arando' && s.capital === sitio && G.myCities().length === 1, 'fundada y arando');
+    const t0 = s.t; G.tick(1); assert.strictEqual(s.t, t0, 'mientras ara el reloj no corre');
+    G.save(); assert(G.load() && G.state.modo.fase === 'jugando', 'guardada a medio arar, carga jugando'); G.state.modo.fase = 'arando';
+    G.finArado(); assert(!G.arando() && G.modoFase() === 'jugando'); G.tick(1); assert(G.state.t > t0, 'tras el surco el reloj corre');
+    G.finArado(); assert.strictEqual(G.modoFase(), 'jugando', 'finArado sin arado no hace nada'); }
 
   // (d) migración: partida vieja = campaña; una corta guarda y carga igual
   { const raw = fs.readFileSync(__dirname + '/partida-vieja.json', 'utf8'); assert(JSON.parse(raw).modo === undefined); store['aqvila-save-v1'] = raw;
