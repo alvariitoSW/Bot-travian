@@ -206,6 +206,105 @@ function adornosMalla() {
   m.renderOrder = 4; m.userData.piezas = piezas.length; return m;
 }
 
+/* C11 · Pueblos y tribus (D.TRIBUS) en las tierras sin ciudad. Dos mallas para todos: los poblados (cabañas, castros, casas íberas y
+   mapalia, unidos en UNA geometría con color por vértice) y los nombres (cintas a tinta en un lienzo, como C10). Dos llamadas de
+   dibujo; los poblados solo se pintan de cerca y las cintas se desvanecen al alejarse (ver update). Ficha en js/registro.js (tipo tribu). */
+const GENTES = {   // color sobrio de cada familia de pueblos: cinta y detalles del poblado
+  celta: '#4e6a3c', castreno: '#5d5a52', celtibero: '#7a5434', ibero: '#93472b', ligur: '#5f6b4a', italico: '#7a6234',
+  ilirio: '#47607a', tracio: '#5e4c72', anatolio: '#7b5a5a', libio: '#a0703a'
+};
+function tribusMallas(vista, aguaXZ) {
+  const T = D.TRIBUS || {}, P = 30, ANCHO_AT = 2048, piezas = [], fl = px => '600 ' + px + 'px Georgia, "Times New Roman", serif', fs = px => 'italic ' + px + 'px Georgia, "Times New Roman", serif';
+  // --- nombres: cinta con el nombre latino y, debajo, el nombre en español ---
+  const cv = document.createElement('canvas'), ctx = cv.getContext('2d'), LX = 0.95;   // LX: alto de letra latina en unidades del mapa
+  for (const id in T) {
+    const t = T[id], px = Math.round(LX * P), txt = latino(t.la); ctx.font = fl(px); const wl = anchoLetras(ctx, txt, px, 0.22);
+    ctx.font = fs(Math.round(px * 0.8)); const we = ctx.measureText(t.n).width;
+    piezas.push({ id, t, txt, px, wl, wpx: Math.ceil(Math.max(wl + px * 2.4, we + px)), hpx: Math.ceil(px * 2.7) });
+  }
+  let x = 0, y = 0;
+  for (const q of piezas) { if (x + q.wpx + 2 > ANCHO_AT) { x = 0; y += piezas[0].hpx + 2; } q.ax = x; q.ay = y; x += q.wpx + 2; }
+  cv.width = ANCHO_AT; cv.height = Math.max(4, y + (piezas[0] ? piezas[0].hpx : 2));
+  for (const q of piezas) {
+    const px = q.px, cx = q.ax + q.wpx / 2, w = q.wl + px * 1.3, x0 = cx - w / 2, x1 = cx + w / 2, y0 = q.ay + px * 0.12, y1 = y0 + px * 1.25, col = GENTES[q.t.gente] || '#6b5a40';
+    ctx.save(); ctx.lineJoin = 'round';
+    // cola de la cinta (dos picos plegados a cada lado), más oscura
+    ctx.fillStyle = col; ctx.strokeStyle = TINTA; ctx.lineWidth = 1.6;
+    for (const s of [-1, 1]) { const xe = s < 0 ? x0 : x1, xo = xe - s * px * 0.25; ctx.beginPath(); ctx.moveTo(xo, y0 + px * 0.28); ctx.lineTo(xe + s * px * 0.5, y0 + px * 0.28);
+      ctx.lineTo(xe + s * px * 0.28, y0 + px * 0.86); ctx.lineTo(xe + s * px * 0.5, y1 + px * 0.16); ctx.lineTo(xo, y1 + px * 0.16); ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.fillStyle = 'rgba(0,0,0,0.3)'; ctx.fill(); ctx.fillStyle = col; }
+    // cuerpo de la cinta, algo curvado como un pergamino
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo(cx, y0 - px * 0.18, x1, y0); ctx.lineTo(x1, y1); ctx.quadraticCurveTo(cx, y1 - px * 0.18, x0, y1); ctx.closePath();
+    ctx.fillStyle = col; ctx.fill(); ctx.lineWidth = 1.8; ctx.stroke();
+    ctx.strokeStyle = 'rgba(240,226,190,0.55)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(x0 + 3, y0 + 3); ctx.quadraticCurveTo(cx, y0 - px * 0.18 + 3, x1 - 3, y0 + 3); ctx.stroke();
+    ctx.font = fl(px); ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = '#f4e6c4'; ctx.strokeStyle = 'rgba(30,18,6,0.85)'; ctx.lineWidth = px * 0.14;
+    letras(ctx, q.txt, cx, y1 - px * 0.3, px, 0.22);
+    const pe = Math.round(px * 0.8); ctx.font = fs(pe); ctx.textAlign = 'center'; ctx.fillStyle = TINTA; ctx.strokeStyle = HALO; ctx.lineWidth = pe * 0.28;
+    ctx.strokeText(q.t.n, cx, q.ay + q.hpx - pe * 0.25); ctx.fillText(q.t.n, cx, q.ay + q.hpx - pe * 0.25);
+    ctx.restore();
+  }
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const pos = [], uv = [], idx = [];
+  for (const q of piezas) {
+    const p = D.proj(q.t.lon, q.t.lat), cx = p[0] * K, cz = p[1] * K + 2.0, w = q.wpx / P, h = q.hpx / P, b = pos.length / 3;   // la cinta, al sur del poblado
+    let alto = 0; for (const [u, v] of [[0, 0], [1, 0], [0.5, 0.5], [0, 1], [1, 1]]) alto = Math.max(alto, vista.hAt(cx + (u - 0.5) * w, cz + (v - 0.5) * h));
+    for (const [u, v] of [[0, 0], [1, 0], [1, 1], [0, 1]]) { pos.push(cx + (u - 0.5) * w, Math.max(0.15, alto + 0.12), cz + (v - 0.5) * h); uv.push((q.ax + u * q.wpx) / cv.width, 1 - (q.ay + v * q.hpx) / cv.height); }
+    idx.push(b, b + 2, b + 1, b, b + 3, b + 2);
+  }
+  const gN = new THREE.BufferGeometry(); gN.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); gN.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); gN.setIndex(idx); gN.computeBoundingSphere();
+  const nombres = new THREE.Mesh(gN, new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false }));
+  nombres.renderOrder = 4; nombres.userData.piezas = piezas.length;
+  // --- poblados: piezas base (sin índices, con color por vértice) que se copian giradas y escaladas en una sola geometría ---
+  const base = (g, col) => { g = g.index ? g.toNonIndexed() : g; const c = new THREE.Color(col), n = g.attributes.position.count, a = new Float32Array(n * 3); for (let k = 0; k < n; k++) { a[k * 3] = c.r; a[k * 3 + 1] = c.g; a[k * 3 + 2] = c.b; } g.setAttribute('color', new THREE.BufferAttribute(a, 3)); g.deleteAttribute('uv'); return g; };
+  const pieza = (...gs) => gs;   // una forma = lista de geometrías base
+  const cil = (r, h, n, col) => { const g = new THREE.CylinderGeometry(r, r * 1.05, h, n, 1, true); g.translate(0, h / 2, 0); return base(g, col); };
+  const cono = (r, h, y0, n, col) => { const g = new THREE.ConeGeometry(r, h, n, 1, true); g.translate(0, y0 + h / 2, 0); return base(g, col); };
+  const caja = (w, h, d, col) => { const g = new THREE.BoxGeometry(w, h, d); g.translate(0, h / 2, 0); return base(g, col); };
+  const PAJA = '#b99a5c', BARRO = '#a88a63', PIEDRA = '#9c968a', ADOBE = '#c8ab80', CUERO = '#8a6a48', MADERA = '#5e4126';
+  const FORMAS = {
+    redonda: pieza(cil(0.13, 0.13, 7, BARRO), cono(0.17, 0.2, 0.13, 7, PAJA)),
+    castro: pieza(cil(0.12, 0.12, 7, PIEDRA), cono(0.155, 0.17, 0.12, 7, PAJA)),
+    ibera: pieza(caja(0.24, 0.15, 0.2, ADOBE), caja(0.27, 0.025, 0.23, '#8d6b4c').translate(0, 0.15, 0)),
+    mapalia: pieza((() => { const g = new THREE.CylinderGeometry(0.11, 0.11, 0.34, 6, 1, false, 0, Math.PI); g.rotateZ(Math.PI / 2); return base(g, CUERO); })())
+  };
+  const MUROS = { redonda: [MADERA, 0.15], castro: [PIEDRA, 0.11], ibera: [PIEDRA, 0.11] };   // empalizada de madera o muro de piedra
+  const P3 = [], N3 = [], C3 = [], M = new THREE.Matrix4(), Q = new THREE.Quaternion(), V = new THREE.Vector3(), S = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0), nm = new THREE.Matrix3();
+  const poner = (gs, x, z, giro, esc, tinte) => {
+    const hy = vista.hAt(x, z); M.compose(V.set(x, Math.max(0.03, hy) - 0.015, z), Q.setFromAxisAngle(Y, giro), S.set(esc, esc, esc)); nm.getNormalMatrix(M);
+    for (const g of gs) {
+      const pa = g.attributes.position, na = g.attributes.normal, ca = g.attributes.color;
+      for (let k = 0; k < pa.count; k++) {
+        V.fromBufferAttribute(pa, k).applyMatrix4(M); P3.push(V.x, V.y, V.z); V.fromBufferAttribute(na, k).applyMatrix3(nm).normalize(); N3.push(V.x, V.y, V.z);
+        C3.push(ca.getX(k) * tinte, ca.getY(k) * tinte, ca.getZ(k) * tinte);
+      }
+    }
+  };
+  let casas = 0;
+  for (const id in T) {
+    const t = T[id], p = D.proj(t.lon, t.lat), x0 = p[0] * K, z0 = p[1] * K, E = 1.7, sem = t.lon * 13.1 + t.lat * 7.7, forma = FORMAS[t.casa] || FORMAS.redonda, n = t.casa === 'mapalia' ? 7 : 6;
+    for (let i = 0; i < n; i++) {
+      const a = i / n * 6.283 + hash(sem + i) * 0.6, r = i === 0 ? 0 : (0.28 + hash(sem + i * 3.3) * 0.22) * E, x = x0 + Math.cos(a) * r, z = z0 + Math.sin(a) * r;
+      if (aguaXZ(x, z) > 0.05) continue;
+      poner(forma, x, z, t.casa === 'ibera' ? hash(sem) * 0.5 : hash(sem + i * 5.1) * 6.28, (i === 0 ? 1.3 : 0.85 + hash(sem + i * 2.2) * 0.3) * E, 0.88 + hash(sem + i * 7.9) * 0.24); casas++;
+    }
+    const muro = MUROS[t.casa];
+    if (muro && aguaXZ(x0, z0) < 0.05) {   // el recinto: anillo bajo de 16 lados; la piedra va algo más baja y un poco irregular
+      const R = 0.68 * E, h = muro[1] * E, col = new THREE.Color(muro[0]), cg = new THREE.Color(GENTES[t.gente] || '#6b5a40');
+      for (let k = 0; k < 16; k++) {
+        const a0 = k / 16 * 6.283, a1 = (k + 1) / 16 * 6.283, xa = x0 + Math.cos(a0) * R, za = z0 + Math.sin(a0) * R, xb = x0 + Math.cos(a1) * R, zb = z0 + Math.sin(a1) * R;
+        const ya = Math.max(0.03, vista.hAt(xa, za)) - 0.02, yb = Math.max(0.03, vista.hAt(xb, zb)) - 0.02, ha = h * (0.85 + hash(sem + k) * 0.3), hb = h * (0.85 + hash(sem + k + 1) * 0.3);
+        const nx = Math.cos((a0 + a1) / 2), nz = Math.sin((a0 + a1) / 2), c = k === 4 ? cg : col;   // un tramo con el color del pueblo (la puerta)
+        for (const [px, py, pz] of [[xa, ya, za], [xb, yb, zb], [xb, yb + hb, zb], [xa, ya, za], [xb, yb + hb, zb], [xa, ya + ha, za]]) { P3.push(px, py, pz); N3.push(nx, 0.3, nz); C3.push(c.r, c.g, c.b); }
+      }
+    }
+  }
+  const gA = new THREE.BufferGeometry(); gA.setAttribute('position', new THREE.Float32BufferAttribute(P3, 3)); gA.setAttribute('normal', new THREE.Float32BufferAttribute(N3, 3)); gA.setAttribute('color', new THREE.Float32BufferAttribute(C3, 3)); gA.computeBoundingSphere();
+  for (const k in FORMAS) for (const g of FORMAS[k]) g.dispose();
+  const aldeas = new THREE.Mesh(gA, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide, flatShading: true }));
+  aldeas.userData.casas = casas;
+  return { nombres, aldeas };
+}
+
 function aguaMask() {
   const cv = document.createElement('canvas'); cv.width = AW; cv.height = AH; const g = cv.getContext('2d', { willReadFrequently: true }), px = lo => (lo - LON0) / DLON * 2 + 0.5, py = la => (LAT1 - la) / DLAT * 2 + 0.5;
   g.fillStyle = '#000'; g.fillRect(0, 0, AW, AH); g.globalCompositeOperation = 'lighten'; g.lineJoin = g.lineCap = 'round';
@@ -454,6 +553,8 @@ export class MapView3D {
     }
     // --- C10: adornos de carta en el mar (D.ADORNOS) ---
     this.adornos = adornosMalla(); sc.add(this.adornos);
+    // --- C11: pueblos y tribus (D.TRIBUS): poblados y cintas con su nombre ---
+    { const tm = tribusMallas(this, aguaXZ); this.tribus = tm.nombres; this.aldeas = tm.aldeas; sc.add(this.tribus); sc.add(this.aldeas); }
     // --- rutas ---
     this.aristas = [];
     for (const e of D.EDGES) {
@@ -679,6 +780,8 @@ export class MapView3D {
     this.marco.value = Math.max(0, Math.min(1, (c.dist - 40) / 90));
     this.adornos.material.opacity = 0.92 * ss(16, 42, c.dist);   // C10: los adornos de carta se desvanecen al acercarse
     this.adornos.visible = this.adornos.material.opacity > 0.01;   // C5a: viñeta del marco solo en vistas lejanas
+    this.tribus.material.opacity = 0.95 * ss(170, 125, c.dist) * ss(13, 24, c.dist); this.tribus.visible = this.tribus.material.opacity > 0.01;   // C11: cintas de los pueblos a media distancia (de muy cerca se ve el poblado)
+    this.aldeas.visible = c.dist < 135;   // C11: de lejos, los poblados no se distinguen: no se dibujan
     this.scene.fog.near = Math.max(90, c.dist * 0.6); this.scene.fog.far = Math.max(260, c.dist * 1.75);   // C6: a más distancia, más bruma lejana
     this.cam.position.set(c.x, Math.sin(c.pitch) * c.dist, c.z + cp * c.dist); this.cam.lookAt(c.x, 0, c.z);
     this.r.render(this.scene, this.cam);
