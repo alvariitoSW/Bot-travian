@@ -1792,7 +1792,7 @@
   };
   // GC4: un bot sencillo para el bando 0 (es el de la prueba «con cabeza» de test/guerra.test.mjs). Lo usan «Delegar» y la campaña de pruebas
   G.botGuerra = function (B) {
-    const R = GU(); if (B.fase !== 'lucha') return;
+    const R = GU(); if (R.cubrirse) R.cubrirse(B); if (B.fase !== 'lucha') return;   // GM5: de lejos, escudos bajo los proyectiles
     for (let i = 0; i < 3; i++) {
       const s = B.sect[i], c = s.c[0], e = s.c[1]; if (c.roto || e.roto) continue;
       const fe = R.frente(e).fatiga, fr = R.frente(c).fatiga;
