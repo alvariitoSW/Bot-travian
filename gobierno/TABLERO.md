@@ -60,7 +60,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ I5 **Saber: investigación y edades** (12/11): 22 saberes, 3 edades, cola, techos, ganchos de economía y pestaña «Saber»; precio fijo con tope. Parte: `partes/2026-11-12-I5.md`.
 - ✅ I5b **Escuela y sabios** (P93): la Escuela se abre con «Preceptores griegos», destinas plebeyos, ciudadanos o esclavos a estudiar; ritmo real de estudio, paga mensual que sube con el total de sabios, script de calibración. Parte `partes/2026-11-12-I5b.md`.
 - ✅ I5c **Ciencia en combate y rival**: moral, ataque, muralla, brecha y herida cableados; el rival copia por bando (techos bajados tras medir 4.16). Parte `partes/2026-11-12-I5c.md`.
-- ⬜ I5d **Reformar y afinado** (opcional, ≈1 M; tras jugar el sistema): cambiar de saber pagando el coste completo; afinado con medida real y cotejo de citas.
+- ✅ I5d **Reformar y afinado** (17/11): en la pestaña «Saber» se puede cambiar un saber elegido por su par pagando el coste completo (con aviso); medido con el bot, ningún saber domina; citas dudosas marcadas. Parte `partes/2026-11-17-I5d.md`.
 - ✅ I6 **Región de Italia** montada solo con fichas (12/11): `D.REGIONES`, `G.newGame(nombre, región)`, mapa que oculta lo de fuera, botón «Región de Italia». Cómo definir una región: parte I6.
 - ✅ I7 Fundida en J3 (capital y pueblos; decisión del 11/11).
 - ✅ I8 **Partida corta** (P49): menú con «Roma y Capua en pie» y «Fundar de la nada», Italia, un rival, final con resumen (D.MODOS). Parte: gobierno/partes/2026-11-13-I8.md

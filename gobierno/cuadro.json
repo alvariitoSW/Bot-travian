@@ -1556,6 +1556,21 @@
       "tarea": "J4b",
       "archivo": "gobierno/capturas-tarea/J4b-despues-etruriaLejos.jpg",
       "pie": "De lejos, sin contador de tropas ni sitios"
+    },
+    {
+      "tarea": "I5d",
+      "archivo": "gobierno/capturas-tarea/I5d-1-saber-hecho.jpg",
+      "pie": "Saber ya elegido: botón «Cambiar de saber…»"
+    },
+    {
+      "tarea": "I5d",
+      "archivo": "gobierno/capturas-tarea/I5d-2-aviso.jpg",
+      "pie": "Aviso: lo que pierdes, el coste completo del nuevo y los meses de estudio"
+    },
+    {
+      "tarea": "I5d",
+      "archivo": "gobierno/capturas-tarea/I5d-3-cambiado.jpg",
+      "pie": "Tras cambiar: Viña y olivar en estudio, Trigo abandonado"
     }
   ],
   "informes": [
@@ -1778,12 +1793,6 @@
       "titulo": "Batalla mejorada · GM31 Tablilla de mando y ajustes del manejo (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-manejo/; no toca js/",
       "url": "https://claude.ai/code/session_01QiKC37zLtSEbgCEXGMSZdg"
-    },
-    {
-      "tarea": "I5d",
-      "titulo": "Saber · I5d Reformar y afinado",
-      "nota": "js/data.js, js/game.js, pestaña Saber",
-      "url": "https://claude.ai/code/session_01QiKC38hwC1KcxKqH4AGPNZ"
     },
     {
       "tarea": "J4b",

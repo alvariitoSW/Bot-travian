@@ -1019,3 +1019,21 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 
 /* J4b: de lejos, las etiquetas de ciudad sin el contador de tropas para que quepan sin pisarse */
 .mlabels.comp .mlabel:not(.army):not(.zona) em { display: none; }
+.sv-aviso { margin-top: 8px; padding: 8px 10px; border: 1px solid #ffb74d; border-radius: 8px; background: rgba(255,183,77,.12); font-size: 13px; } .sv-aviso p { margin: 4px 0; }
+/* Saber en pergamino (I5d, a petición del usuario 17/11): sin cuadrícula de cuaderno; papel crema, tinta parda y filete de color por rama */
+.mos-sab .sv-ed, .mos-sab .sv-cola, .mos-sab .sv-forja, .mos-sab .sv-guia, .mos-sab .sv-det, .mos-sab .sv-t, .mos-sab .sv-r {
+  --papel: #ecd9a8; color: #2b1c0a; border-radius: 6px; background-color: var(--papel);
+  background-image: radial-gradient(ellipse at 15% 10%, rgba(255, 244, 205, .75), transparent 55%), radial-gradient(ellipse at 90% 95%, rgba(150, 100, 40, .30), transparent 60%), linear-gradient(#e8d29b, #d8bd82);
+  background-size: auto; border: 1px solid #8a6528; border-left: 5px solid var(--c, #7a1f1a);
+  box-shadow: inset 0 0 14px rgba(120, 80, 30, .35), 0 2px 0 rgba(0, 0, 0, .45); }
+.mos-sab .sv-ed { --c: #7a1f1a; } .mos-sab .sv-cola, .mos-sab .sv-guia { --c: #b8862b; } .mos-sab .sv-forja { --c: #4a3a22; } .mos-sab .sv-det { --c: #7a1f1a; }
+.mos-sab .sv-r:nth-child(1) { --c: #a8431f; } .mos-sab .sv-r:nth-child(2) { --c: #2a5f80; } .mos-sab .sv-r:nth-child(3) { --c: #4f6f25; } .mos-sab .sv-r:nth-child(4) { --c: #7a5a1a; }
+.mos-sab .sv-t.sel { box-shadow: inset 0 0 0 2px #7a1f1a, 0 2px 0 rgba(0, 0, 0, .45); } .mos-sab .sv-t.hecha { background-image: linear-gradient(#d4dea6, #b9c783); }
+.mos-sab .sv-t.excl, .mos-sab .sv-t.req, .mos-sab .sv-t.edad { filter: saturate(.55) brightness(.9); }
+.mos-sab .sv-t b, .mos-sab .sv-ed > b, .mos-sab .sv-cola > b { color: #3b1208; letter-spacing: .02em; } .mos-sab .sv-t small, .mos-sab .sv-m, .mos-sab small { color: #4a3416; opacity: 1; }
+.mos-sab .sv-no { color: #8a1c10; font-weight: 600; } .mos-sab .sv-ok { color: #2f5a14; } .mos-sab .sv-eu { color: #6b3f0a; }
+.mos-sab .sv-ch { background: rgba(60, 35, 10, .10); border: 1px solid #8a6528; color: #2b1c0a; } .mos-sab .sv-ch.ok { color: #2f5a14; } .mos-sab .sv-ch.no { color: #8a1c10; }
+.mos-sab .sv-o { color: #3b1208; } .mos-sab .sv-aviso { background: rgba(122, 31, 26, .10); border: 1px solid #7a1f1a; color: #2b1c0a; }
+.mos-sab .sv-ed .btn, .mos-sab .sv-det .btn, .mos-sab .sv-aviso .btn { color: #f6e7bd; background: linear-gradient(#8f2a22, #5f1712); border: 1px solid #3b0d09; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); }
+.mos-sab .prog { background: rgba(60, 35, 10, .25); }
+.mos-sab .sv-r, .mos-sab .sv-r b, .mos-sab .sv-cola .rem, .mos-sab .sv-cola span, .mos-sab .sv-t b, .mos-sab .sv-t .sv-i { color: #2b1c0a; opacity: 1; } .mos-sab .sv-cola .rem { font-weight: 600; }

@@ -2104,8 +2104,8 @@
   /* Saber (I5): estado de investigación. Solo datos; las reglas (G.inv*) llegan en I5-B. */
   G.migrarInv = function (s) {
     const i = s.inv;
-    if (!i || typeof i !== 'object') { s.inv = { v: 1, edad: 1, hechas: {}, cola: null, copia: {}, rev: 0 }; return; }
-    if (!i.v) i.v = 1; if (!(i.edad >= 1)) i.edad = 1; if (!i.hechas) i.hechas = {}; if (i.cola === undefined) i.cola = null; if (!i.copia) i.copia = {}; if (!(i.rev >= 0)) i.rev = 0;
+    if (!i || typeof i !== 'object') { s.inv = { v: 1, edad: 1, hechas: {}, cola: null, copia: {}, rev: 0, reformas: 0 }; return; }
+    if (!i.v) i.v = 1; if (!(i.edad >= 1)) i.edad = 1; if (!i.hechas) i.hechas = {}; if (i.cola === undefined) i.cola = null; if (!i.copia) i.copia = {}; if (!(i.rev >= 0)) i.rev = 0; if (!(i.reformas >= 0)) i.reformas = 0;
   };
   /* Clases con las sustituciones (ef.cl) de los saberes hechos (Villa esclavista, Colonos). Sin saberes: D.CLASES tal cual. */
   let cacheK = null;
@@ -2240,6 +2240,27 @@
     const s = G.state, st = G.invEstado(id); if (st.e !== 'ok') return { ok: false, motivo: st.motivo };
     pay(G.invCoste(id)); const P = G.invTiempo(id); s.inv.cola = { id: id, p: 0, P: P, t0: s.t };
     G.log((D.EDADES[id] ? '🏛️ Empiezas la ' + D.EDADES[id].n : '📜 Empiezas a estudiar ' + D.INVEST[id].n) + ' (' + Math.round(P) + ' meses).'); emit('dirty'); return { ok: true, motivo: '' };
+  };
+  /* Reformar (I5d): abandonar un saber elegido de un par excluyente y estudiar el otro, pagando su coste completo.
+     Lo pagado antes no se devuelve. Se pierden sus efectos; los puntos de gloria se descuentan y el favor ya recibido se queda. */
+  G.invReformaInfo = function (id) {
+    const s = G.state, i = s.inv, d = D.INVEST[id]; if (!d || i.hechas[id] === undefined) return { ok: false, motivo: 'No lo sabes' };
+    const alt = (d.excl || []).find(x => D.INVEST[x]); if (!alt) return { ok: false, motivo: 'Este saber no se puede cambiar: no tiene alternativa' };
+    if (i.cola) return { ok: false, motivo: 'Ya estudias ' + invDe(i.cola.id).n + ': espera a que acabe' };
+    const dep = Object.keys(i.hechas).find(k => k !== id && D.INVEST[k] && D.INVEST[k].req.some(r => r.inv && r.inv.includes(id)));
+    if (dep) return { ok: false, motivo: 'Lo necesita ' + D.INVEST[dep].n };
+    const h0 = i.hechas[id]; delete i.hechas[id]; i.rev++;
+    let st; try { st = G.invEstado(alt); } finally { i.hechas[id] = h0; i.rev++; }
+    return { ok: st.e === 'ok', motivo: st.e === 'ok' ? '' : st.motivo, alt: alt, coste: G.invCoste(alt), tiempo: G.invTiempo(alt), pierde: d.ef.pts ? d.ef.pts : 0 };
+  };
+  G.invReforma = function (id) {
+    const s = G.state, r = G.invReformaInfo(id); if (!r.ok) return { ok: false, motivo: r.motivo };
+    const d = D.INVEST[id]; delete s.inv.hechas[id]; s.inv.rev++;
+    if (d.ef.pts) s.hero.pts = Math.max(0, s.hero.pts - d.ef.pts);
+    s.inv.reformas = (s.inv.reformas || 0) + 1;
+    const u = G.invUp(r.alt);
+    if (!u.ok) { s.inv.hechas[id] = Math.floor(s.t); s.inv.rev++; if (d.ef.pts) s.hero.pts += d.ef.pts; s.inv.reformas--; return u; }
+    G.log('🔄 Abandonas ' + d.n + ' y pasas a ' + D.INVEST[r.alt].n + '.'); return { ok: true, motivo: '' };
   };
   G.edadUp = function () { const e = G.state.inv.edad; if (e >= G.edadMax()) return { ok: false, motivo: 'Ya estás en la última edad' }; return G.invUp('E' + (e + 1)); };
   G.eurekaMul = function (id) { const d = D.INVEST[id], e = d && d.eureka; if (!e) return 1; const l = Array.isArray(e) ? e : [e]; return l.some(c => G.state.cities[c] && G.state.cities[c].owner === 'roma') ? 4 / 3 : 1; };

@@ -239,7 +239,7 @@
     griego: f(SIN_I, h("Suetonio, De grammaticis 1; Cicerón, Bruto 72: Livio Andronico, griego de Tarento, enseña hacia 272 a.C.", "probable", "La Escuela como edificio es licencia de juego.")),
     apio: f(SIN_I, h("Livio 9.29; Frontino, De aquaeductu 4-6: Vía Apia y Aqua Appia (312 a.C.).", "probable", "Cifras: licencia de juego.")),
     castra: f(SIN_I, h("Polibio 6.27-39: campamento, castigos y premios.", "probable")),
-    quinque: f(SIN_I, h("Polibio 1.20: Roma copia una nave cartaginesa varada (260 a.C.); Tarento y otros aliados prestan naves (1.20.14).", "historico", "Cifra: licencia de juego.")),
+    quinque: f(SIN_I, h("Polibio 1.20: Roma copia una nave cartaginesa varada (260 a.C.); Tarento y otros aliados prestan naves (1.20.14).", "historico", "I5d: el apartado .14 es de memoria, por cotejar. Cifra: licencia de juego.")),
     corvus: f(SIN_I, h("Polibio 1.22: pasarela de abordaje (cotejado en H1).", "historico", "Cifra: licencia de juego.")),
     remeros: f(SIN_I, h("Polibio 1.21: remeros adiestrados en bancos sobre la arena.", "historico", "Cifra: licencia de juego.")),
     fasti: f(SIN_I, h("Livio 9.46: Cneo Flavio publica el derecho y el calendario (304 a.C.).", "probable")),
@@ -254,10 +254,10 @@
     derrota: f(SIN_I, h("Polibio 3.22-25: tratados de comercio Roma-Cartago (ya citado en D.RUTA).", "historico", "Cifras: licencia de juego.")),
     medicina: f(SIN_I, h("Plinio, NH 29.12-14: Arcágato, primer médico griego, 219 a.C.; apodado «verdugo»; Catón desconfiaba.", "probable", "Cifras: licencia de juego.")),
     magon: f(SIN_I, h("Plinio, NH 18.22-23 (y Varrón, RR 1.1.10): el Senado manda traducir los 28 libros de Magón tras 146 a.C.", "probable")),
-    perseo: f(SIN_I, h("Plutarco, Emilio Paulo 28; Polibio 31.23-25: los libros de Perseo pasan a los hijos de Paulo, entre ellos Escipión Emiliano (168 a.C.).", "probable")),
+    perseo: f(SIN_I, h("Plutarco, Emilio Paulo 28: los libros de Perseo pasan a los hijos de Paulo, entre ellos Escipión Emiliano (168 a.C.).", "probable", "I5d (17/11/2026): el pasaje de Plutarco se da por bueno de memoria. Polibio 31.23-25 se quitó de la cita: habla de Escipión y Paulo, pero no se pudo comprobar que mencione los libros; por cotejar.")),
     acoger: f(SIN_I, h("Plutarco, Catón 22; Gelio 6.14: embajada de Carnéades (155 a.C.).", "probable")),
     expulsar: f(SIN_I, h("Suetonio, De rhetoribus 1; Gelio 15.11: expulsión de 161 a.C.", "probable")),
-    hormigon: f(SIN_I, h("Livio 35.10: Pórtico Emilio (193 a.C.), primeros usos del hormigón.", "probable", "Cifra: licencia de juego."))
+    hormigon: f(SIN_I, h("Livio 35.10: Pórtico Emilio (193 a.C.).", "por cotejar", "I5d (17/11/2026): Livio solo da por seguro el pórtico y el muelle de 193; que fueran «primeros usos del hormigón» no está en Livio, es lectura moderna del opus caementicium (por cotejar). Cifra: licencia de juego."))
   };
   const edades = {
     E2: f(SIN_I, h("Polibio 1.5-6 (periodización de 264 a 219 a.C.).", "licencia de juego", "La división en edades es licencia de juego.")),

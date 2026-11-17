@@ -1055,7 +1055,10 @@ function svCoste(id) { const c = G.invCoste(id); return '<div class="sv-chips">'
 function svEureka(id) { const d = D.INVEST[id]; if (!d || !d.eureka || G.eurekaMul(id) <= 1) return ''; const ids = [].concat(d.eureka), mia = ids.find(c => G.myCities().includes(c)); return '<div class="sv-eu">💡 Eureka: posees ' + esc(D.CITIES[mia || ids[0]].n) + ', ritmo ×1,33</div>'; }
 function svDetalle(id) {
   const d = D.INVEST[id], st = G.invEstado(id); let h = '<div class="sv-det"><p>' + esc(efTxt(d.ef)) + '</p>';
-  if (st.e === 'hecha') return h + '<div class="sv-ok">✔ Ya lo sabes.</div></div>';
+  if (st.e === 'hecha') { h += '<div class="sv-ok">✔ Ya lo sabes.</div>'; const rf = G.invReformaInfo(id);
+    if (d.excl && d.excl.length) { if (UI.svRef === id && rf.alt) { const c = rf.coste; h += '<div class="sv-aviso"><b>Cambiar a ' + esc(D.INVEST[rf.alt].n) + '</b><p>Pierdes ya: ' + esc(efTxt(d.ef)) + '. Lo que pagaste no vuelve' + (rf.pierde ? ' y se restan ' + rf.pierde + ' puntos de gloria' : '') + '. Pagas el coste completo del nuevo y estudias ' + months(rf.tiempo) + ' sin él:</p>' + svCoste(rf.alt) + (rf.ok ? '<button class="btn" data-act="saberreformar" data-v="' + id + '">Sí, cambiar de saber</button> ' : '<div class="sv-no">' + esc(rf.motivo) + '</div>') + '<button class="btn" data-act="saberreformano">Mejor no</button></div>'; }
+      else h += rf.motivo && !rf.alt ? '<div class="sv-no">' + esc(rf.motivo) + '</div>' : '<button class="btn" data-act="saberreforma" data-v="' + id + '">Cambiar de saber…</button>'; }
+    return h + '</div>'; }
   h += svCoste(id) + '<div class="sv-m">' + months(G.invTiempo(id)) + ' de estudio</div>' + svEureka(id);
   if (st.e === 'ok') h += '<button class="btn" data-act="saber" data-v="' + id + '">Estudiar</button>';
   else h += '<div class="sv-no">' + esc(st.motivo) + '</div>';
@@ -1583,6 +1586,9 @@ document.addEventListener('click', function (e) {
     case 'cclose': UI.bsel = null; renderCity3D(); tickUI(); break;
     case 'saber': { const r = G.invUp(v); if (r.ok) { toast('Empiezas a estudiar: ' + D.INVEST[v].n); UI.svSel = null; UI.svDown = false; render(); } else toast(r.motivo, 'bad'); break; }
     case 'saberedad': { const r = G.edadUp(); if (r.ok) { toast('Empiezas a subir de edad'); UI.svDown = false; render(); } else toast(r.motivo, 'bad'); break; }
+    case 'saberreforma': UI.svRef = v; UI.svDown = false; render(); break;
+    case 'saberreformano': UI.svRef = null; UI.svDown = false; render(); break;
+    case 'saberreformar': { const r = G.invReforma(v); UI.svRef = null; if (r.ok) { toast('Cambias de saber'); UI.svSel = null; } else toast(r.motivo, 'bad'); UI.svDown = false; render(); break; }
     case 'sabersel': UI.svSel = UI.svSel === v ? null : v; UI.svDown = false; render(); break;
     case 'dotsab': case 'clasab': { const x = G.sabiosDe(s.cities[UI.city]), r = a === 'dotsab' ? G.setSabios(UI.city, +v, x.clase) : G.setSabios(UI.city, x.dot, v); if (!r.ok) toast(r.motivo + '.', 'bad'); render(); break; }
     case 'pueblo': if (G.puebloMejorar(UI.city, +v)) render(); else toast(G.state.cities[UI.city].pobra ? 'Ya hay una obra de pueblo en curso.' : 'Faltan recursos.', 'bad'); break;
