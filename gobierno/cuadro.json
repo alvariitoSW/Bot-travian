@@ -1871,22 +1871,16 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "GM17",
-      "titulo": "Batalla mejorada · GM17 Estudio de Heraclea, 280 a.C. (ficha de historia)",
-      "nota": "solo gobierno/historia/; sin código",
-      "url": "https://claude.ai/code/session_01QiKC372EDu3vvuRKGFQWoE"
+      "tarea": "MR2a",
+      "titulo": "Versión 1.0 · MR2a Menús romanos: materiales, Imperio y Gobierno (Fable dirige, Opus construye)",
+      "nota": "css/style.css y clases en js/ui.js",
+      "url": "https://claude.ai/code/session_01QiKC38MrhvKcf8A9xyWrQs"
     },
     {
-      "tarea": "GM31",
-      "titulo": "Batalla mejorada · GM31 Tablilla de mando y ajustes del manejo (maqueta)",
-      "nota": "solo gobierno/maquetas/guerra-manejo/; no toca js/",
-      "url": "https://claude.ai/code/session_01QiKC37zLtSEbgCEXGMSZdg"
-    },
-    {
-      "tarea": "J4b",
-      "titulo": "Mapa por regiones · J4b Dibujar las ciudades nuevas",
-      "nota": "js/gfx/map3d.js",
-      "url": "https://claude.ai/code/session_01QiKC36ZkGZyQfbnZdoNWfT"
+      "tarea": "GC7",
+      "titulo": "Versión 1.0 · GC7 a GC9 y GC6 Fallos de la batalla y quitar la clásica",
+      "nota": "batalla",
+      "url": "https://claude.ai/code/session_01QiKC3AXEa5xZ9aJP5skXgw"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
