@@ -119,6 +119,10 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ⬜ GR3 **Oficio en las reglas, sin pantalla** (≈1,3 M; tras GR2): el oficio sustituye a los tipos de ciudad (decisión 17/11); puertas de comida, armas y aliados; migrar en `G.load`. `js/data.js`, `js/game.js`, pruebas.
 - ⬜ GR4 **Entregar y recuperar una ciudad; tope en Ajustes** (≈1,0 M; tras GR3): lo construido se conserva y fija el rango; tope de ciudades a mano corta 3, larga 6, Ajustes de 1 a 12.
 - ⬜ GR5 **Pantalla «Región»** (≈1,0 M; tras GR4): todas tus ciudades en una lista, un toque cada una, como la maqueta `maquetas/provincias/`.
+- ⬜ GR6 **Decretos por ciudad y su lazo con las leyes del Senado** (P152, aprobada 17/11; ≈1,0 M): cierra Q10. Detalle en `estudios/GR1-gobierno-de-provincias.md` §8. Tras GR5.
+- ⬜ GR7 **La partida de exportación sobre el puerto que ya existe** (P152; ≈0,9 M). Tras GR6.
+- ⬜ GR8 **El ejército sale de los oficios** (P152; ≈1,5 M): reclutar por ejército; va detrás de la batalla nueva en el juego.
+- ⬜ GR9 **Equilibrio con el bot y con tus partidas** (P152; ≈1,0 M). Al final.
 
 ## Carril GM — Batalla mejorada (P108 a P112, aprobadas por el usuario el 16/11/2026; todo parte de la maqueta GC1, que es la base)
 - ✅ GM1 **Ejércitos grandes sin miles de figuras** (P109): probada por el usuario el 16/11, «sí, con cambios» (los cambios son GM7 y GM8). Maqueta `gobierno/maquetas/guerra-grande/`; estudio `estudios/GM1-ejercitos-grandes.md`.
@@ -249,10 +253,10 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ Q1l **Lluvia de ideas e informe de competencia para la ciudad nueva** (12/11): 84 ideas de seis modelos baratos, ordenadas en nueve paquetes (`estudios/Q1l-lluvia-de-ideas.md`), e informe de competencia con diez palancas (`estudios/Q1l-competencia.md`). Salen como P83 a P91, por aprobar. El usuario aprobó la manera de jugar de la maqueta Q1k.
 - ⬜ (sustituida por CN3/CN4, 12/11) Q1e **Casco denso con casas reales y muralla irregular** (2,5 M): las casas nuevas pasan a `assets/` (tope de descarga 37 MB), manzanas pegadas a las calles, arrabales, tumbas y granjas.
 - ⬜ (sustituida por CN4, 12/11) Q1f **Los solares del juego dentro de la ciudad nueva** (1,5 M): dónde se construye, cómo se toca un edificio, etiquetas.
-- ⬜ (en pausa desde el 12/11) Q1g **Edificios de época** (1,2 M): fuera anfiteatro, termas y acueducto de arcos; sus sustitutos y sus fichas.
-- ⬜ (en pausa desde el 12/11) Q1h **Culturas** (1 M): griega y púnica con sus casas sin pisarse, y muralla, mercado y stoa propios (retoque pedido).
+- ✅ Q1g (17/11: hecha dentro de CN10, que la fundió; se marca hecha para que deje de salir en el cuadro) **Edificios de época** (1,2 M): fuera anfiteatro, termas y acueducto de arcos; sus sustitutos y sus fichas.
+- ✅ Q1h (17/11: hecha dentro de CN9, que la fundió; se marca hecha para que deje de salir en el cuadro) **Culturas** (1 M): griega y púnica con sus casas sin pisarse, y muralla, mercado y stoa propios (retoque pedido).
 - ⬜ (sustituida por CN11, 12/11) Q1i **Vida** (0,8 M): gente, humo, toldos, carros, ganado, pájaros, sombra de nubes.
-- ⬜ (en pausa desde el 12/11) Q1j **Revisión histórica** (0,6 M): cotejar las citas pendientes.
+- ✅ Q1j (17/11: hecha dentro de CN10, que la fundió; se marca hecha para que deje de salir en el cuadro) **Revisión histórica** (0,6 M): cotejar las citas pendientes.
 - ✅ Q2 **Caja del mes y cierre** (12/11): la caja es lo gastable del mes; al cerrar el mes lo que sobra va al almacén hasta su tope y el resto se pierde (con aviso); del almacén solo se saca un cuarto al mes; informe de la estación al pasar turno. Migrado en `G.load`. Parte `partes/2026-11-12-Q2.md`.
 - ✅ Q3 **Cuentas del mes en pantalla** (12/11): ficha «Cuentas» (barras por material, oro con ingresos y gastos, aviso con «Vender en el mercado» y «Adelantar obra»), colchón inicial de 200 en el almacén, aviso de pérdida al empezar la estación. Parte `partes/2026-11-12-Q3.md`.
 - ✅ Q4 **Obras y reclutas a plazos** (12/11): una obra o recluta de varios meses paga una cuota por mes (la 1ª al empezar, el resto al cierre de mes, de la caja); si no alcanza, se detiene hasta que haya. Comprometido y fila «Obras y tropas» reflejan los plazos; «Adelantar cuotas» paga las que faltan. Parte `partes/2026-11-12-Q4.md`.
