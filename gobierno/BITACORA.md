@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 17/11/2026 — **Más imagen en los menús** (tras MR2b): «Veo que le falta más parte visual, o sea habría que acompañar a las partes de los eventos o cosas que pasen o cosas de política con más imágenes aunque sean generadas con IA, pero le falta imagen a los menús». (Lectura de Claude: propuesta P158. Choca con dos reglas: la 1.0 está cerrada a cosas nuevas, y el arte solo entra con licencia libre verificada; las imágenes de IA no tienen licencia clara y aquí no hay generador. Alternativa sin ese problema: piezas antiguas de dominio público (monedas, relieves, frescos, mosaicos, fotos de museos con licencia CC0).)
 - 17/11/2026 — **Herramientas de arte (Blender, polyform) y su ordenador** (enlaces del usuario: `EL4CTEO/blender-skills`, `EliCDavis/polyform` y una publicación de X que no se pudo abrir, error 402; preguntas «¿nos puede venir bien?», «¿lo de Blender nos va a ayudar mucho?»). Dijo: «Sí tengo el ordenador pero apenas tengo tiempo para usarlo». (Lectura de Claude: nada entra antes de la 1.0. `polyform` (MIT, Go; corre en la nube sin ordenador) queda en «Después de la 1.0» como prueba con una pieza, si el usuario lo aprueba. Blender (RD3 y RD4) solo si la preparación en su ordenador es de una sola vez y cada sesión le pide como mucho un toque de «Permitir»; hoy `list_computer_folders` no muestra ninguna carpeta suya, así que el ordenador no está conectado todavía.)
 - 17/11/2026 — **Meta visual del mapa: Rome II** (cuatro capturas de Total War: Rome II en el chat: Sicilia, Lacio, Alesia y Alejandría): «Así me gustaría llegar a que se vea el mapamundi». Aprobadas en el chat C15 cámara con horizonte, C16 ciudades grandes, C17 ejército estandarte y C18 cintas y minimapa. (Lectura de Claude: solo ideas; el arte sigue siendo 0 A.D. o dibujado por código. Rasgos: cámara inclinada con horizonte y bruma, ciudades en racimo con muralla, general con estandarte alto, bosques densos, caminos claros, aguas someras color arena, rótulos en cinta y minimapa.)
 - 17/11/2026 — **Menú del mapa: «(B) Cinco cosas», «(A) Justo tras C8», orden «(A) Regiones (C9)»** (respuestas en el chat). (Lectura de Claude: sale de MR2b como **C8b**: en el mapa solo quedan la tira fina de recursos y fecha, «Pasar turno», Tropas, Guerra y ☰; fuera + y −, la miga suelta y «Entrar en la ciudad» (se entra tocando Roma). Va tras C8 y antes de C9.)
@@ -258,8 +259,10 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
+- P158: ¿(A) a «Después de la 1.0», (B) dentro de la 1.0 cambiándola por otra tarea (¿cuál?)? ¿Y de dónde salen: (1) piezas antiguas de dominio público, (2) IA aceptando el riesgo de licencia, (3) las dos?
 
 ## Propuestas por aprobar
+- P158 Una imagen de época en cada suceso histórico, en el informe y en el Senado (moneda, relieve o fresco recortado en el papiro), con su ficha de licencia y fuente (pedido del 17/11).
 
 ## Después de la 1.0 (nevera: ideas nuevas sin estudio ni maqueta; no se abren hasta la 1.0)
 - (MR2b, 17/11) El Senado de la maqueta `MR1-4` lleva hemiciclo, votos y propuestas que el juego no tiene: hoy solo se viste lo que hay (favor, encargo, hitos, misión). Si se quieren votaciones, es mecánica nueva.
