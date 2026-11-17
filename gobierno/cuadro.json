@@ -1906,6 +1906,12 @@
       "titulo": "Decisiones delegadas en Fable 5.2 (Nilo y mapamundi)",
       "nota": "solo decide y avisa; no construye",
       "url": "https://claude.ai/code/session_01QiKC3AR2FzqYL23coZ3gBE"
+    },
+    {
+      "tarea": "C8",
+      "titulo": "Mapa · C8 Mapamundi que se ve mayor (excepción a la 1.0; primera de C8 a C14)",
+      "nota": "js/gfx/map3d.js",
+      "url": "https://claude.ai/code/session_01QiKC37JEPaDYRqYGUeCHXp"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
