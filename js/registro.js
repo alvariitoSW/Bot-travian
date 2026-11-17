@@ -398,7 +398,40 @@
       'El Faro de Alejandría, obra del arquitecto Sóstrato de Cnidos, se acabó hacia 280 a.C. (las fuentes discuten entre 283 y 279). Era una torre blanca y de varios pisos que guiaba a los barcos hacia el puerto. Su forma de tres cuerpos es una reconstrucción hecha con descripciones árabes y monedas romanas posteriores.'))
   };
 
-  R.fichas = { monumento, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+  // ---- Adornos de carta del mapa (D.ADORNOS, C10). Dibujados por código; ficha larga en gobierno/historia/C10-mares.md ----
+  const POR_CODIGO_C10 = { sin: 'dibujado por código en js/gfx/map3d.js (tinta sobre un lienzo, sin archivo de arte ni licencia ajena)' };
+  const EST = 'Estrabón, Geografía 2.5.19-22 (las partes del mar interior)', PLI = 'Plinio, Historia Natural 3.74-75', C10 = 'C10: citado de memoria el 17/11/2026, sin cotejar el pasaje';
+  const mar = (fuente, texto, nota) => f(POR_CODIGO_C10, h(fuente, 'historico', C10 + (nota ? '; ' + nota : '') + ' · licencia de juego: letra muy grande y puesta a ojo', texto));
+  const LJ_ADORNO = 'Las cartas antiguas que conocemos no llevan barcos ni monstruos dibujados en el mar: es costumbre de las cartas del Renacimiento (Olao Magno, 1539). Aquí es adorno.';
+  const adorno = {
+    internum: mar('Pomponio Mela 1.6-7; Plinio, Historia Natural 3.3-5; Salustio, Yugurta 17-18 («mare nostrum»)', 'Mare Internum, «el mar de dentro»: así llamaban los romanos al Mediterráneo, y también «mare nostrum», nuestro mar. La palabra «Mediterráneo» llegó mucho después.', 'Mela y Plinio usan «internum» y «nostrum»'),
+    tyrrhenum: mar(EST + '; ' + PLI, 'Mare Tyrrhenum, el mar de los tirrenos, que es como los griegos llamaban a los etruscos. Los romanos lo llamaban también Mare Inferum, el mar de abajo.'),
+    hadriaticum: mar('Livio 5.33.7-8; Plinio, Historia Natural 3.150; ' + EST, 'Mare Hadriaticum, por la ciudad de Adria, en la desembocadura del Po. Los romanos lo llamaban también Mare Superum, el mar de arriba.'),
+    ionium: mar(EST + '; Polibio 2.14', 'Mare Ionium, el mar entre el sur de Italia y Grecia. En tiempos de Pirro era el paso de Epiro a Tarento.'),
+    aegaeum: mar(EST + '; Plinio, Historia Natural 4.51', 'Mare Aegaeum, el mar de las islas griegas, entre Grecia y Asia.'),
+    libycum: mar(EST, 'Mare Libycum, el mar al sur de Creta, frente a la costa de Libia (Cirenaica).'),
+    aegyptium: mar(EST, 'Mare Aegyptium, el mar frente a Egipto, hacia Chipre.'),
+    sardoum: mar(EST + '; ' + PLI, 'Mare Sardoum, el mar al oeste de Cerdeña.'),
+    balearicum: mar(PLI + ' («Baliaricum»); Estrabón, Geografía 2.5.19 (mar ibérico)', 'Mare Balearicum, el mar de las islas Baleares, entre Hispania y África. Estrabón lo llama mar ibérico.'),
+    ligusticum: mar(EST + '; ' + PLI, 'Mare Ligusticum, el golfo de los ligures, hoy golfo de Génova.'),
+    pontus: mar('Estrabón, Geografía 7.3.6; Plinio, Historia Natural 4.76', 'Pontus Euxinus, el Mar Negro. «Euxinos» quiere decir «hospitalario»: según Estrabón, antes se llamó «Axenos», el inhóspito.'),
+    oceanus: mar('Plinio, Historia Natural 4.109-110 (océano gálico); Estrabón, Geografía 2.5.26', 'Oceanus: para griegos y romanos, el mar exterior que rodeaba la tierra, más allá de las Columnas de Hércules.'),
+    rosa: f(POR_CODIGO_C10, h('Vitruvio, De architectura 1.6.4-10 (ocho vientos: septentrio, aquilo, solanus, eurus, auster, africus, favonius, caurus); Aristóteles, Meteorológica 2.6 (doce vientos); Torre de los Vientos de Atenas (s. I a.C.)', 'licencia de juego', C10 + '. La rosa dibujada en estrella es de las cartas náuticas medievales (portulanos); los nombres de los vientos sí son antiguos; Vitruvio escribe hacia el 25 a.C., algo después de la época del juego',
+      'Los antiguos no tenían brújula, pero sí nombraban los vientos: Vitruvio cuenta ocho, cuatro de ellos en esta rosa (Septentrio, el norte; Solanus, el este; Auster, el sur; Favonius, el oeste). La estrella es adorno de cartas posteriores.')),
+    navis1: null, navis2: null, navis3: null, navis4: null, navis5: null,
+    ketos1: f(POR_CODIGO_C10, h('Iconografía griega del ceto (κῆτος): vasos y mosaicos de Perseo y Andrómeda y de Heracles y Hesíone; Homero, Odisea 12.96-97 (los cetos que pesca Escila)', 'licencia de juego', C10 + '. ' + LJ_ADORNO,
+      'El ceto (en griego, kêtos) era el monstruo marino de los mitos griegos, como el que iba a devorar a Andrómeda. Los griegos lo pintaban como una serpiente con cabeza de dragón y cola de pez. Ponerlo en un mapa es adorno, no historia.')),
+    delphini: f(POR_CODIGO_C10, h('Plinio, Historia Natural 9.20-33; Heródoto 1.23-24 (Arión y el delfín)', 'licencia de juego', C10 + '. ' + LJ_ADORNO,
+      'Los delfines abundan en el Mediterráneo y los antiguos los querían: Heródoto cuenta que uno salvó al músico Arión, y Plinio les dedica muchas páginas. Dibujarlos en el mapa es adorno.')),
+    physeter: f(POR_CODIGO_C10, h('Plinio, Historia Natural 9.8 (el «physeter» del océano gálico)', 'licencia de juego', C10 + '. ' + LJ_ADORNO,
+      'Plinio cuenta que en el océano de la Galia vive el físeter, una bestia enorme que se alza como una columna y escupe agua que podría hundir un barco. Era seguramente un cachalote. Dibujarlo en el mapa es adorno.'))
+  };
+  const GALERA = f(POR_CODIGO_C10, h('Polibio 1.20-21 (la primera flota romana, 260 a.C., copiada de un quinquerreme cartaginés); Casson, Ships and Seamanship in the Ancient World (1971)', 'probable', C10 + '. Galera de guerra con espolón, vela cuadra y ojo en la proa, como en vasos y relieves; los remos y el tamaño son a ojo. ' + LJ_ADORNO,
+    'Las galeras de guerra de la época iban a remo y llevaban una vela cuadrada para navegar con viento a favor. Atacaban con el espolón de bronce de la proa. Roma construyó su primera gran flota en 260 a.C., copiando un barco cartaginés varado, según Polibio.'));
+  for (const id of ['navis1', 'navis2', 'navis3', 'navis4', 'navis5']) adorno[id] = GALERA;
+  adorno.ketos2 = adorno.ketos1;
+
+  R.fichas = { monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -428,7 +461,8 @@
     fiesta: { tabla: 'FIESTAS', numericos: ['mult', 'min', 'dura', 'reposo'], textos: ['n', 'i', 'd'] },
     leva: { tabla: 'LEVA_FICHAS', numericos: [], textos: ['n', 'i', 'd'] },
     remedio: { tabla: 'REMEDIOS', numericos: [], textos: ['n', 'i', 'd'] },
-    monumento: { tabla: 'MONUMENTOS', numericos: ['lon', 'lat'], textos: ['n'] }
+    monumento: { tabla: 'MONUMENTOS', numericos: ['lon', 'lat'], textos: ['n'] },
+    adorno: { tabla: 'ADORNOS', numericos: ['lon', 'lat', 't'], textos: ['n', 'clase'] }
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */

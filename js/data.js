@@ -413,6 +413,34 @@
     giza: { n: 'Pirámides de Giza', lon: 31.13, lat: 29.98 },
     faro: { n: 'Faro de Alejandría', lon: 29.885, lat: 31.214 }
   };
+  /* C10 · Adornos de carta en el mar del mapa de campaña: nombres latinos de los mares, rosa de los vientos, barcos y criaturas.
+     Solo se ven; se dibujan por código en js/gfx/map3d.js (un lienzo, una sola malla). clase: mar, rosa, barco o bestia.
+     t: alto de letra o tamaño en unidades del mapa · rot: giro en grados (horario) · izq: barco o bestia mirando a la izquierda.
+     Ficha con fuente y dictamen en js/registro.js (tipo adorno) y gobierno/historia/C10-mares.md. */
+  D.ADORNOS = {
+    internum: { n: 'Mare Internum', clase: 'mar', lon: 15.0, lat: 34.6, t: 2.4 },
+    tyrrhenum: { n: 'Mare Tyrrhenum', clase: 'mar', lon: 11.9, lat: 40.1, t: 2.1 },
+    hadriaticum: { n: 'Mare Hadriaticum', clase: 'mar', lon: 14.9, lat: 43.35, t: 1.4, rot: 38 },
+    ionium: { n: 'Mare Ionium', clase: 'mar', lon: 18.7, lat: 37.7, t: 1.96 },
+    aegaeum: { n: 'Mare Aegaeum', clase: 'mar', lon: 25.0, lat: 39.35, t: 1.19 },
+    libycum: { n: 'Mare Libycum', clase: 'mar', lon: 24.6, lat: 34, t: 1.68 },
+    aegyptium: { n: 'Mare Aegyptium', clase: 'mar', lon: 30.6, lat: 33, t: 1.68 },
+    sardoum: { n: 'Mare Sardoum', clase: 'mar', lon: 6.5, lat: 39.6, t: 1.54 },
+    balearicum: { n: 'Mare Balearicum', clase: 'mar', lon: 2.4, lat: 37.9, t: 1.4 },
+    ligusticum: { n: 'Mare Ligusticum', clase: 'mar', lon: 8.2, lat: 43.55, t: 1.05 },
+    pontus: { n: 'Pontus Euxinus', clase: 'mar', lon: 33.0, lat: 43.4, t: 1.96 },
+    oceanus: { n: 'Oceanus', clase: 'mar', lon: -5.6, lat: 45.2, t: 2.52 },
+    rosa: { n: 'Rosa de los vientos', clase: 'rosa', lon: 20.5, lat: 33.85, t: 10 },
+    navis1: { n: 'Galera', clase: 'barco', lon: 13.0, lat: 39.15, t: 4.2 },
+    navis2: { n: 'Galera', clase: 'barco', lon: 10.3, lat: 38.55, t: 3.8, izq: 1 },
+    navis3: { n: 'Galera', clase: 'barco', lon: 0.8, lat: 37.35, t: 4.0 },
+    navis4: { n: 'Galera', clase: 'barco', lon: 27.6, lat: 34.2, t: 4.0, izq: 1 },
+    navis5: { n: 'Galera', clase: 'barco', lon: 19.4, lat: 36.6, t: 3.8 },
+    ketos1: { n: 'Ceto', clase: 'bestia', lon: 16.6, lat: 36.35, t: 6 },
+    ketos2: { n: 'Ceto', clase: 'bestia', lon: 33.0, lat: 33.8, t: 5.5, izq: 1 },
+    delphini: { n: 'Delfines', clase: 'bestia', lon: 10.7, lat: 41.2, t: 4.5 },
+    physeter: { n: 'Físeter', clase: 'bestia', lon: -7.0, lat: 46.4, t: 6, izq: 1 }
+  };
 
   // Hechos históricos. fx: clave interpretada por game.js (o varias separadas por comas, en ese orden). k: clave opcional para distinguir dos hechos del mismo año (id de ficha «<año>-<k>»)
   // H13b, licencia de juego: Roma empieza con más tropas para la llegada temprana de Pirro (no es un dato histórico)

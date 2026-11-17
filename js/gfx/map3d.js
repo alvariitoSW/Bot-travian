@@ -91,6 +91,121 @@ function monumento(id) {
   }
   return grp;
 }
+/* C10 · Adornos de carta (D.ADORNOS): nombres latinos de los mares, rosa de los vientos, galeras y criaturas, dibujados a tinta en un
+   lienzo (un atlas) y puestos en el mar como rectángulos planos de UNA sola malla: una llamada de dibujo y dos triángulos por adorno.
+   Sin arte de fuera. Se desvanecen al acercarse (ver update). Ficha histórica en js/registro.js (tipo adorno). */
+const TINTA = '#3a230e', HALO = 'rgba(247,234,204,0.82)';
+function letras(ctx, txt, x, y, px, esp) {   // texto con letras espaciadas (aire de inscripción); x es el centro
+  const w = [...txt].map(ch => ctx.measureText(ch).width), tot = w.reduce((a, b) => a + b, 0) + esp * px * (txt.length - 1);
+  let cx = x - tot / 2;
+  for (let pas = 0; pas < 2; pas++) { cx = x - tot / 2; [...txt].forEach((ch, i) => { if (pas === 0) ctx.strokeText(ch, cx, y); else ctx.fillText(ch, cx, y); cx += w[i] + esp * px; }); }
+  return tot;
+}
+function anchoLetras(ctx, txt, px, esp) { return [...txt].reduce((a, ch) => a + ctx.measureText(ch).width, 0) + esp * px * (txt.length - 1); }
+const latino = n => n.toUpperCase().replace(/U/g, 'V');
+function olas(ctx, x0, x1, y, a) { ctx.beginPath(); for (let x = x0; x < x1; x += a * 2) { ctx.moveTo(x, y); ctx.quadraticCurveTo(x + a / 2, y - a * 0.7, x + a, y); ctx.quadraticCurveTo(x + a * 1.5, y + a * 0.5, x + a * 2, y); } ctx.stroke(); }
+/* cada dibujo se hace en una caja de 100 de ancho (alto según la forma) */
+const DIBUJO = {
+  barco: { alto: 72, f(c) {
+    c.lineWidth = 2.2; c.strokeStyle = TINTA; c.lineJoin = c.lineCap = 'round';
+    c.beginPath(); c.moveTo(50, 44); c.lineTo(50, 6); c.stroke();                                            // mástil
+    c.beginPath(); c.moveTo(30, 10); c.quadraticCurveTo(50, 7, 70, 10); c.lineTo(68, 36); c.quadraticCurveTo(50, 40, 32, 36); c.closePath();   // vela cuadra
+    c.fillStyle = '#f1e3c0'; c.fill(); c.stroke();
+    c.fillStyle = 'rgba(150,42,28,0.85)'; for (const x of [40, 50, 60]) c.fillRect(x - 2.5, 10, 5, 27);
+    c.beginPath(); c.moveTo(4, 30); c.quadraticCurveTo(4, 40, 14, 44); c.lineTo(86, 44); c.lineTo(99, 50); c.lineTo(86, 52);   // casco con espolón
+    c.quadraticCurveTo(50, 60, 18, 54); c.quadraticCurveTo(8, 50, 4, 30); c.closePath(); c.fillStyle = '#5b3517'; c.fill(); c.stroke();
+    c.strokeStyle = '#e6cf9c'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(16, 48); c.lineTo(84, 48); c.stroke();
+    c.fillStyle = '#f4e8cc'; c.beginPath(); c.arc(84, 47.5, 1.8, 0, 7); c.fill();                                   // el ojo de la proa
+    c.strokeStyle = TINTA; c.lineWidth = 1.6; c.beginPath(); for (let i = 0; i < 9; i++) { c.moveTo(24 + i * 6.5, 54); c.lineTo(17 + i * 6.5, 64); } c.stroke();   // remos
+    c.lineWidth = 1.4; c.strokeStyle = 'rgba(58,35,14,0.75)'; olas(c, 6, 94, 67, 5);
+  } },
+  ketos: { alto: 62, f(c) {
+    c.lineJoin = c.lineCap = 'round'; const cuerpo = () => { c.beginPath(); c.moveTo(22, 30); c.bezierCurveTo(28, 8, 42, 6, 46, 36); c.moveTo(54, 38); c.bezierCurveTo(58, 12, 72, 12, 76, 38); c.moveTo(82, 36); c.bezierCurveTo(86, 24, 90, 20, 94, 22); };
+    c.strokeStyle = TINTA; c.lineWidth = 11; cuerpo(); c.stroke(); c.strokeStyle = '#4f7466'; c.lineWidth = 7; cuerpo(); c.stroke();
+    c.fillStyle = '#4f7466'; c.strokeStyle = TINTA; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(94, 22); c.lineTo(99, 10); c.lineTo(96, 24); c.lineTo(100, 30); c.closePath(); c.fill(); c.stroke();   // aleta de la cola
+    for (const [x, y] of [[31, 13], [37, 12], [63, 16], [69, 16]]) { c.beginPath(); c.moveTo(x - 3, y + 2); c.lineTo(x, y - 6); c.lineTo(x + 3, y + 2); c.closePath(); c.fill(); c.stroke(); }   // cresta
+    c.beginPath(); c.moveTo(24, 26); c.quadraticCurveTo(14, 16, 4, 24); c.lineTo(12, 27); c.lineTo(3, 31); c.quadraticCurveTo(14, 36, 24, 33); c.closePath(); c.fill(); c.stroke();   // cabeza con las fauces abiertas
+    c.fillStyle = '#f4e8cc'; c.beginPath(); c.arc(15, 22.5, 1.8, 0, 7); c.fill();
+    c.fillStyle = 'rgba(255,255,255,0.9)'; c.beginPath(); c.moveTo(20, 21); c.lineTo(23, 15); c.lineTo(22, 22); c.fill();
+    c.lineWidth = 1.5; c.strokeStyle = 'rgba(58,35,14,0.8)'; olas(c, 10, 96, 40, 5); olas(c, 24, 80, 48, 4);
+  } },
+  delphini: { alto: 56, f(c) {
+    c.lineJoin = c.lineCap = 'round';
+    const delfin = (x, y, s) => { c.save(); c.translate(x, y); c.scale(s, s);
+      c.beginPath(); c.moveTo(-26, 10); c.quadraticCurveTo(-10, -20, 18, -4); c.lineTo(28, -2); c.lineTo(18, 2); c.quadraticCurveTo(-6, -10, -20, 14); c.closePath();
+      c.fillStyle = '#5d7b86'; c.fill(); c.strokeStyle = TINTA; c.lineWidth = 2; c.stroke();
+      c.beginPath(); c.moveTo(-4, -10); c.lineTo(-10, -20); c.lineTo(2, -11); c.fill(); c.stroke();               // aleta del lomo
+      c.beginPath(); c.moveTo(-23, 12); c.lineTo(-32, 8); c.lineTo(-26, 18); c.lineTo(-18, 18); c.closePath(); c.fill(); c.stroke();   // cola
+      c.fillStyle = '#f4e8cc'; c.beginPath(); c.arc(14, -4, 1.5, 0, 7); c.fill(); c.restore(); };
+    delfin(34, 26, 1); delfin(72, 32, 0.8);
+    c.lineWidth = 1.5; c.strokeStyle = 'rgba(58,35,14,0.8)'; olas(c, 4, 96, 44, 5);
+  } },
+  physeter: { alto: 64, f(c) {
+    c.lineJoin = c.lineCap = 'round'; c.strokeStyle = 'rgba(58,35,14,0.85)'; c.lineWidth = 1.8;
+    c.beginPath(); for (const a of [-0.5, -0.2, 0.1, 0.4]) { c.moveTo(28, 20); c.quadraticCurveTo(28 + a * 20, 4, 28 + a * 34, 8); } c.stroke();   // el chorro
+    c.beginPath(); c.moveTo(6, 44); c.quadraticCurveTo(8, 20, 34, 20); c.quadraticCurveTo(70, 18, 84, 38); c.lineTo(90, 30); c.lineTo(98, 28); c.lineTo(92, 38); c.lineTo(98, 46); c.lineTo(86, 44); c.lineTo(80, 44); c.closePath();
+    c.fillStyle = '#4a4e52'; c.fill(); c.strokeStyle = TINTA; c.lineWidth = 2.2; c.stroke();
+    c.strokeStyle = 'rgba(244,232,204,0.7)'; c.lineWidth = 1.2; c.beginPath(); c.moveTo(14, 36); c.quadraticCurveTo(40, 30, 70, 34); c.stroke();
+    c.fillStyle = '#f4e8cc'; c.beginPath(); c.arc(16, 33, 1.8, 0, 7); c.fill();
+    c.strokeStyle = 'rgba(58,35,14,0.8)'; c.lineWidth = 1.5; olas(c, 2, 98, 46, 5); olas(c, 16, 86, 54, 4);
+  } },
+  rosa: { alto: 100, f(c) {
+    c.lineJoin = 'round'; c.strokeStyle = TINTA; c.lineWidth = 1.2;
+    for (const r of [33, 30.5]) { c.beginPath(); c.arc(50, 50, r, 0, 7); c.stroke(); }
+    c.fillStyle = 'rgba(247,234,204,0.35)'; c.beginPath(); c.arc(50, 50, 30.5, 0, 7); c.fill();
+    const punta = (ang, largo, ancho) => { const ux = Math.sin(ang), uy = -Math.cos(ang), px = -uy * ancho, py = ux * ancho, tx = 50 + ux * largo, ty = 50 + uy * largo;
+      c.beginPath(); c.moveTo(50, 50); c.lineTo(tx, ty); c.lineTo(50 + px, 50 + py); c.closePath(); c.fillStyle = '#efe0bd'; c.fill(); c.stroke();
+      c.beginPath(); c.moveTo(50, 50); c.lineTo(tx, ty); c.lineTo(50 - px, 50 - py); c.closePath(); c.fillStyle = TINTA; c.fill(); c.stroke(); };
+    for (let k = 0; k < 4; k++) punta(Math.PI / 4 + k * Math.PI / 2, 24, 5);
+    for (let k = 0; k < 4; k++) punta(k * Math.PI / 2, 38, 6.5);
+    c.fillStyle = '#962a1c'; c.beginPath(); c.arc(50, 50, 2.6, 0, 7); c.fill();
+    c.font = 'italic 600 7px Georgia, "Times New Roman", serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = TINTA; c.strokeStyle = HALO; c.lineWidth = 2;
+    for (const [t, x, y, r] of [['SEPTENTRIO', 50, 7, 0], ['AVSTER', 50, 94, 0], ['SOLANVS', 94, 50, Math.PI / 2], ['FAVONIVS', 6, 50, -Math.PI / 2]]) {   // los cuatro vientos de Vitruvio 1.6
+      c.save(); c.translate(x, y); c.rotate(r); c.strokeText(t, 0, 0); c.fillText(t, 0, 0); c.restore(); }
+  } }
+};
+function adornosMalla() {
+  const A = D.ADORNOS || {}, P = 26, ANCHO_AT = 2048, piezas = [], fuente = px => 'italic 600 ' + px + 'px Georgia, "Times New Roman", serif';
+  const cv = document.createElement('canvas'), ctx = cv.getContext('2d');
+  for (const id in A) {   // medir cada pieza (en unidades del mapa y en píxeles del atlas)
+    const a = A[id], forma = a.clase === 'mar' ? 'mar' : a.clase === 'rosa' ? 'rosa' : a.clase === 'barco' ? 'barco' : id.replace(/\d+$/, '');
+    if (forma === 'mar') {
+      const px = Math.round(a.t * P), txt = latino(a.n), dos = /^MARE /.test(txt) && id !== 'internum', nombre = dos ? txt.slice(5) : txt;
+      ctx.font = fuente(px); const w = anchoLetras(ctx, nombre, px, 0.28) + px * 0.8;
+      piezas.push({ a, forma, txt: nombre, dos, px, wpx: Math.ceil(w), hpx: Math.ceil(px * (dos ? 1.95 : 1.4)) });
+    } else { const d = DIBUJO[forma]; if (!d) continue; const wpx = Math.round(a.t * P); piezas.push({ a, forma, d, wpx, hpx: Math.round(wpx * d.alto / 100) }); }
+  }
+  let x = 0, y = 0, fila = 0;   // atlas en estantes
+  for (const q of piezas.slice().sort((p, r) => r.hpx - p.hpx)) { if (x + q.wpx + 2 > ANCHO_AT) { x = 0; y += fila + 2; fila = 0; } q.ax = x; q.ay = y; x += q.wpx + 2; fila = Math.max(fila, q.hpx); }
+  cv.width = ANCHO_AT; cv.height = Math.max(4, y + fila);
+  for (const q of piezas) {
+    ctx.save(); ctx.beginPath(); ctx.rect(q.ax, q.ay, q.wpx, q.hpx); ctx.clip();
+    if (q.forma === 'mar') {
+      ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillStyle = TINTA; ctx.strokeStyle = HALO; ctx.lineJoin = 'round';
+      const cx = q.ax + q.wpx / 2;
+      if (q.dos) { const pc = Math.round(q.px * 0.55); ctx.font = fuente(pc); ctx.lineWidth = pc * 0.2; letras(ctx, 'MARE', cx, q.ay + pc * 1.05, pc, 0.45); }
+      ctx.font = fuente(q.px); ctx.lineWidth = q.px * 0.2; letras(ctx, q.txt, cx, q.ay + q.hpx - q.px * 0.32, q.px, 0.28);
+    } else {
+      const s = q.wpx / 100; ctx.translate(q.ax + (q.a.izq ? q.wpx : 0), q.ay); ctx.scale(q.a.izq ? -s : s, s); q.d.f(ctx);
+    }
+    ctx.restore();
+  }
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const pos = [], uv = [], idx = [];
+  for (const q of piezas) {
+    const p = D.proj(q.a.lon, q.a.lat), cx = p[0] * K, cz = p[1] * K, w = q.wpx / P, h = q.hpx / P, r = (q.a.rot || 0) * Math.PI / 180, co = Math.cos(r), si = Math.sin(r), b = pos.length / 3;
+    for (const [u, v] of [[0, 0], [1, 0], [1, 1], [0, 1]]) {   // u: izquierda→derecha, v: arriba (norte)→abajo
+      const lx = (u - 0.5) * w, lz = (v - 0.5) * h; pos.push(cx + lx * co - lz * si, 0.15, cz + lx * si + lz * co);
+      uv.push((q.ax + u * q.wpx) / cv.width, 1 - (q.ay + v * q.hpx) / cv.height);
+    }
+    idx.push(b, b + 2, b + 1, b, b + 3, b + 2);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.setIndex(idx); g.computeBoundingSphere();
+  const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, side: THREE.DoubleSide }));
+  m.renderOrder = 4; m.userData.piezas = piezas.length; return m;
+}
+
 function aguaMask() {
   const cv = document.createElement('canvas'); cv.width = AW; cv.height = AH; const g = cv.getContext('2d', { willReadFrequently: true }), px = lo => (lo - LON0) / DLON * 2 + 0.5, py = la => (LAT1 - la) / DLAT * 2 + 0.5;
   g.fillStyle = '#000'; g.fillRect(0, 0, AW, AH); g.globalCompositeOperation = 'lighten'; g.lineJoin = g.lineCap = 'round';
@@ -337,6 +452,8 @@ export class MapView3D {
       const el = document.createElement('div'); el.className = 'mlabel'; el.style.cssText = 'pointer-events:none;font-size:10px;padding:2px 7px;opacity:.88;background:rgba(58,40,16,.78)'; el.textContent = d.n; el.style.display = 'none'; this.labels.appendChild(el);
       this.monumentos[id] = { grp: m, el: el, x: x, z: z, top: id === 'faro' ? 2.1 : 1.0 };
     }
+    // --- C10: adornos de carta en el mar (D.ADORNOS) ---
+    this.adornos = adornosMalla(); sc.add(this.adornos);
     // --- rutas ---
     this.aristas = [];
     for (const e of D.EDGES) {
@@ -559,7 +676,9 @@ export class MapView3D {
     }
     for (const [id, a] of this.armies) if (!seen.has(id)) { this.scene.remove(a.grp); a.grp.traverse(o => { if (o.geometry && !o.userData.real) o.geometry.dispose(); }); a.el.remove(); this.armies.delete(id); }
     const c = this.c, cp = Math.cos(c.pitch);
-    this.marco.value = Math.max(0, Math.min(1, (c.dist - 40) / 90));   // C5a: viñeta del marco solo en vistas lejanas
+    this.marco.value = Math.max(0, Math.min(1, (c.dist - 40) / 90));
+    this.adornos.material.opacity = 0.92 * ss(16, 42, c.dist);   // C10: los adornos de carta se desvanecen al acercarse
+    this.adornos.visible = this.adornos.material.opacity > 0.01;   // C5a: viñeta del marco solo en vistas lejanas
     this.scene.fog.near = Math.max(90, c.dist * 0.6); this.scene.fog.far = Math.max(260, c.dist * 1.75);   // C6: a más distancia, más bruma lejana
     this.cam.position.set(c.x, Math.sin(c.pitch) * c.dist, c.z + cp * c.dist); this.cam.lookAt(c.x, 0, c.z);
     this.r.render(this.scene, this.cam);
