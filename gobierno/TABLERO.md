@@ -85,7 +85,7 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ K5 **Concurso Gobierno 2** (11/11): Ciudad 61, Tabularium 60, Lentes 56, Domus 52, Foro 44.
 - ⬜ V1 **Informe en vídeo: menús del juego** (pedido 12/11): cómo hacer los menús legibles, que no ocupen toda la pantalla, que quepan en el móvil para usarlos con los pulgares y sin mil cosas a la vez. Sesión barata (Haiku) con la maquinaria de /moncloa del repositorio de fiebres. Solo informe; no toca el juego.
 - ⬜ K6 **Concurso de arte: batalla y manejo de tropas** (pedido 12/11): cinco maquetas en Haiku (esfuerzo alto) y jurado ciego, sobre cómo se ve y se manejan las tropas. Solo `gobierno/maquetas/`; no toca `js/`.
-- ✅ K7 Concurso de ciudades, rutas, diplomacia y tropas: hecha, espera prueba del usuario (ganó D «Puerta de la ciudad»; informe `estudios/K7-concurso.md`, maquetas en `maquetas/concurso9/`). Propuestas K7a–K7f sin aprobar.
+- ✅ K7 Concurso de ciudades, rutas, diplomacia y tropas: hecha, espera prueba del usuario (ganó D «Puerta de la ciudad»; informe `estudios/K7-concurso.md`, maquetas en `maquetas/concurso9/`). K7a a K7e aprobadas el 17/11 («llevar la D al juego»); K7f (saquear) sin aprobar.
 - ⬜ K8 (13/11: el Senado sale de aquí, lo hace el carril SN; queda solo la economía) **Concurso: Senado, política y economía** (pedido 12/11, aprobado «igual que K6»; ≈2 a 3 M): ocho maquetas rivales en Haiku (esfuerzo alto) y jurado ciego, sobre el diseño y la jugabilidad del Senado, la política y la economía (incluye avisos de «Cierre de mes» e informe de estación que hoy tapan la pantalla, y construir y conseguir recursos, conservando lo que va bien). Solo `gobierno/maquetas/`; no toca `js/`. Después de K6 y K7.
 - 🔶 K10 **Concurso de arte de la batalla** (13/11, pedido del usuario): piezas P1 a P5 en cuatro rondas, Opus y Sonnet sin Fable, jurado ciego y voto del usuario. Solo `gobierno/maquetas/piezas-batalla/`; no toca `js/`. Tope duro 4 M.
 - ✅ K11 **Concurso de menús y pantallas** (13/11): cuatro maquetas y jurado ciego; 1.º B Hojas (118/150), 2.º D Códice (102), 3.º C Mosaico (100), 4.º A Mármol (99). Informe `estudios/K11-concurso.md`. Elige el usuario. Gasto 3,45 M (tope 3).
@@ -178,6 +178,13 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ⬜ GM39 **Detalle junto a la cámara** (P147, aprobada 17/11; ≈0,5 M): matas, piedras y arboledas; la fluidez de cerca va justa. Después de GM35.
 - ⬜ GM40 **Polvo que queda colgado y estela de proyectiles** (P148, aprobada 17/11; ≈0,4 M).
 - ⬜ GM41 **Tono por región y hora del día** (P149, aprobada 17/11; ≈0,3 M; pasa por Arte, skill `arte`). Coordinar con GM29 y GM30.
+
+## Carril KJ — Puerta de la ciudad al juego (K7a a K7e, aprobadas por el usuario el 17/11/2026; informe `estudios/K7-concurso.md`, maqueta ganadora `maquetas/concurso9/D`)
+- ⬜ K7c **Miga «Roma › Camino» y botón único de volver, ciudad⇄mapa** (≈0,3 M): primera del carril. Sonnet. `js/ui.js`. Sesión abierta el 17/11.
+- ⬜ K7a **Mapa con grosor de ruta según renta y marcas de aliada y guerra** (≈0,4 M): solo mapa de campaña (`js/gfx/map3d.js`). Después de K7c.
+- ⬜ K7b **Tarjeta de ruta en el juego** (≈0,8 M): flujo sale y entra, renta desglosada, Proteger y Cortar con la consecuencia de cada protección; datos `D.RUTA_*` y lógica en `js/game.js`. Después de K7a.
+- ⬜ K7d **Interceptar con comparación de fuerzas antes de confirmar** (≈0,5 M): marchas, `js/ui.js` y `js/game.js`. Después de K7b.
+- ⬜ K7e **Tratados como ley del Senado desde el Foro** (≈0,6 M): enlaza con el informe de política `estudios/EV1-politica.md`, sin rehacerlo. Después de K7d.
 
 ## Carril RD — Radar de repositorios (P114, aprobada por el usuario el 16/11/2026)
 - ✅ RD1 Leídos, sin copiar, procedural-graphics-engine, wesnoth y unknown-horizons, y medido glTF-Transform (16/11/2026): informes en `gobierno/estudios/RD1-*.md`. Licencias de Kenney, Quaternius y OpenGameArt: NO verificadas (red bloqueada), pendientes en `repositorios.md`.
