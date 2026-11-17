@@ -8,7 +8,8 @@ import AGUA from '../../assets/mapa/agua.js';
 import { getUnit, unitMaterialReal, instancedGeometry, frameOf, UNIT_SCALE } from './units.js';
 
 const D = window.DATA, G = window.Game;
-const MARE_DIST = 130;   // C6: desde esta distancia de cámara el mapa está en el escalón Mare Nostrum
+const MARE_DIST = 130;   // C6: distancia de Mare Nostrum de reserva (C8: la real se calcula según la pantalla en ajustarMare)
+const pitchDe = d => 0.62 + Math.min(1, Math.max(0, (d - 14) / 110)) * 0.6;   // inclinación de la cámara según la distancia
 const K = 0.1;                                   // mundo 2D (1600x800) -> unidades 3D
 const NX = 420, NZ = 210, CW = D.WORLD.w * K / NX, CH = D.WORLD.h * K / NZ;
 const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
@@ -388,6 +389,7 @@ export class MapView3D {
   update(state, sel) {
     if (!this.terrOn && mapaTexturas(this.terr)) this.terrOn = true;           // las texturas llegan después de crear el mapa
     const W = this.host.clientWidth, Hh = this.host.clientHeight, v = new THREE.Vector3(), now = performance.now(), dt = Math.min(0.1, (now - this.last) / 1000); this.last = now; this.t += dt; uTime.value = this.t;
+    if (W && Hh && (W !== this.mW || Hh !== this.mH)) { this.mW = W; this.mH = Hh; this.ajustarMare(); }   // C8: el encuadre de Mare Nostrum sigue al tamaño real
     const place = (el, x, y, z) => { v.set(x, y, z).project(this.cam); if (v.z > 1 || v.x < -1.2 || v.x > 1.2 || v.y < -1.2 || v.y > 1.2) { el.style.display = 'none'; return; } el.style.display = ''; el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * Hh).toFixed(1) + 'px) translate(-50%,-100%)'; };
     if (this.labels.scrollLeft || this.labels.scrollTop) { this.labels.scrollLeft = 0; this.labels.scrollTop = 0; }
     this.escalon(state, dt, place);
@@ -485,7 +487,7 @@ export class MapView3D {
     const st = this.esc; if (!G.state || !D.ZONAS[z]) return;
     const ids = this.zonaCiudades(z, G.state); if (!ids.length) return;
     let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const id of ids) { const c = this.cities[id]; x0 = Math.min(x0, c.x); x1 = Math.max(x1, c.x); z0 = Math.min(z0, c.z); z1 = Math.max(z1, c.z); }
-    const c = this.c, dist = Math.max(24, Math.min(MARE_DIST - 8, Math.max((x1 - x0) * 3.3 + 12, (z1 - z0) * 2 + 12)));
+    const c = this.c, dist = Math.max(24, Math.min(this.umbralMare() * 0.6, Math.max((x1 - x0) * 3.3 + 12, (z1 - z0) * 2 + 12)));
     st.pila.push({ x: c.x, z: c.z, dist: c.dist, pitch: c.pitch, zona: st.zona }); st.zona = z;
     st.anim = { d: 0.6, de: { x: c.x, z: c.z, dist: c.dist }, a: { x: (x0 + x1) / 2, z: (z0 + z1) / 2, dist: dist } };
   }
@@ -514,8 +516,12 @@ export class MapView3D {
       const a = st.anim; if (a.t0 === undefined) a.t0 = performance.now(); const u = Math.min(1, (performance.now() - a.t0) / 1000 / a.d), e = u * u * (3 - 2 * u);
       c.x = a.de.x + (a.a.x - a.de.x) * e; c.z = a.de.z + (a.a.z - a.de.z) * e; c.dist = a.de.dist + (a.a.dist - a.de.dist) * e; this.clamp();
       if (u >= 1) { st.anim = null; if (a.fin) a.fin(); }
-    } else if (st.zona && c.dist >= MARE_DIST) { st.zona = null; st.pila = []; }   // se aleja a mano: vuelve a Mare Nostrum
-    st.mare = med && !st.zona && c.dist >= MARE_DIST && !st.anim;
+    } else if (st.zona && c.dist >= this.umbralMare()) { st.zona = null; st.pila = []; }   // se aleja a mano: vuelve a Mare Nostrum
+    st.mare = med && !st.zona && c.dist >= this.umbralMare() && !st.anim;
+    // C8: al llegar a Mare Nostrum alejando a mano (pellizco o rueda) la vista se desliza hasta Italia; «volver» no la mueve; arrastrar lo corta
+    if (st.mare && !st.eraMare && st.aMano && performance.now() - st.aMano < 1500) st.aRoma = G.pos('roma')[0] * K;
+    st.eraMare = st.mare;
+    if (st.aRoma !== undefined) { if (!st.mare) st.aRoma = undefined; else { const f = Math.min(1, dt * 6); c.x += (st.aRoma - c.x) * f; c.z += (this.mareZ - c.z) * f; this.clamp(); if (Math.abs(st.aRoma - c.x) < 0.05) st.aRoma = undefined; } }
     const clave = med ? (st.zona || '') + '|' + st.pila.length : '-';
     if (clave !== st.clave) {
       st.clave = clave;
@@ -528,30 +534,55 @@ export class MapView3D {
       const ids = med && st.mare ? this.zonaCiudades(z, state) : [];
       if (!ids.length) { el.style.display = 'none'; continue; }
       let x = 0, zz = 0; for (const id of ids) { x += this.cities[id].x; zz += this.cities[id].z; }
-      place(el, x / ids.length, 0.3, zz / ids.length);
+      // C8: en vertical el mundo no cabe a lo ancho; la zona que queda fuera se nombra en el borde con una flecha hacia ella (tocarla acerca igual)
+      const v = this.vZona || (this.vZona = new THREE.Vector3()), W = this.host.clientWidth, H = this.host.clientHeight; v.set(x / ids.length, 0.3, zz / ids.length).project(this.cam);
+      const vx = Math.max(-0.8, Math.min(0.8, v.x)), txt = (v.x < -0.8 ? '← ' : '') + D.ZONAS[z].n + (v.x > 0.8 ? ' →' : ''); if (el.textContent !== txt) el.textContent = txt;
+      el.style.display = ''; el.style.transform = 'translate(' + ((vx + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * H).toFixed(1) + 'px) translate(-50%,-100%)';
       const y = zz / ids.length, ancla = y < 62 ? '-100%' : '0%';   // las del norte cuelgan hacia arriba y las del sur hacia abajo, para no pisarse
       el.style.transform = el.style.transform.replace('translate(-50%,-100%)', 'translate(-50%,' + ancla + ')');
+      const fuera = v.x < -0.8 || v.x > 0.8; el.style.opacity = fuera ? '0.72' : ''; el.style.fontSize = fuera ? '11px' : ''; el.style.padding = fuera ? '2px 8px' : '';   // C8: las de fuera, pequeñas y pegadas al borde (brújula), sin tapar el mapa
+      if (fuera) { const yy = Math.max(-0.75, Math.min(0.75, v.y)); el.style.transform = 'translate(' + (v.x < 0 ? 4 : W - 4).toFixed(1) + 'px,' + ((1 - yy) / 2 * H).toFixed(1) + 'px) translate(' + (v.x < 0 ? '0%' : '-100%') + ',-50%)'; }
     }
     // los nombres no se pisan: si dos se solapan en pantalla, el de abajo baja lo justo
     const vis = Object.values(st.zEls).filter(e => e.style.display !== 'none').map(e => ({ e: e, r: e.getBoundingClientRect() })).sort((p, q) => p.r.top - q.r.top), hechos = [];
     for (const o of vis) { let dy = 0; for (const q of hechos) if (o.r.left < q.right && o.r.right > q.left && o.r.top + dy < q.bottom && o.r.bottom + dy > q.top) dy = q.bottom - o.r.top + 3; if (dy) o.e.style.transform += ' translateY(' + dy.toFixed(0) + 'px)'; hechos.push({ left: o.r.left, right: o.r.right, top: o.r.top + dy, bottom: o.r.bottom + dy }); }
     // y no se salen por los lados ni quedan bajo los botones de zoom de la derecha
     const caja = this.labels.getBoundingClientRect(), izq = caja.left + 6, der = caja.right - 62;
-    for (const o of vis) { const r = o.e.getBoundingClientRect(); let dx = 0; if (r.left < izq) dx = izq - r.left; else if (r.right > der) dx = der - r.right; if (dx) o.e.style.transform += ' translateX(' + dx.toFixed(0) + 'px)'; }
+    for (const o of vis) { if (o.e.style.opacity) continue; const r = o.e.getBoundingClientRect(); let dx = 0; if (r.left < izq) dx = izq - r.left; else if (r.right > der) dx = der - r.right; if (dx) o.e.style.transform += ' translateX(' + dx.toFixed(0) + 'px)'; }
   }
 
   /* Centra y acerca la cámara según la ficha de la región (lon, lat, zoom) */
   encuadre() { const r = G.region(), cm = r && r.camara; if (!cm) return; const p = D.proj(cm.lon, cm.lat); this.c.x = p[0] * K; this.c.z = p[1] * K; this.c.dist = 46 * (cm.zoom || 1); this.clamp(); }
   center(id) { const p = G.pos(id); this.c.x = p[0] * K; this.c.z = p[1] * K; this.clamp(); }
   zoom(f) { this.c.dist /= f; this.clamp(); }
-  clamp() { const c = this.c; c.dist = Math.max(14, Math.min(330, c.dist)); c.pitch = 0.62 + Math.min(1, (c.dist - 14) / 110) * 0.6; c.x = Math.max(4, Math.min(156, c.x)); c.z = Math.max(4, Math.min(80, c.z)); }
+  /* C8 · límites de la cámara. La distancia máxima es la de Mare Nostrum (el mundo llena el alto útil); el centro no deja ver
+     más de un margen corto de pergamino fuera del mundo (160×80), y de lejos el alto queda casi fijo en el encuadre de Mare Nostrum. */
+  clamp() {
+    const c = this.c, D = this.mareD || 330, m = 5; c.dist = Math.max(14, Math.min(D, c.dist)); c.pitch = pitchDe(c.dist);
+    const medio = c.dist * Math.tan(this.cam.fov * Math.PI / 360) * this.cam.aspect;   // medio ancho de suelo visible en el centro
+    let x0 = Math.max(4, medio - m), x1 = Math.min(156, 160 - medio + m); if (x0 > x1) x0 = x1 = 80;
+    c.x = Math.max(x0, Math.min(x1, c.x));
+    const t = Math.max(0, Math.min(1, (c.dist - D * 0.55) / (D * 0.45))), zM = this.mareZ === undefined ? 42 : this.mareZ;
+    c.z = Math.max(4 + (zM - 8) * t, Math.min(80 + (zM - 76) * t, c.z));
+  }
+  umbralMare() { return (this.mareD || MARE_DIST / 0.93) * 0.93; }
+  /* C8 · distancia y centro de Mare Nostrum: el mundo (alto 80) llena la banda entre la cabecera (~200 px) y la barra de abajo (~80 px) */
+  ajustarMare() {
+    const w = this.host.clientWidth, h = this.host.clientHeight; if (!w || !h) return;
+    const arriba = Math.min(200, h * 0.24), abajo = Math.min(80, h * 0.1), banda = h - arriba - abajo - 12, centro = arriba + 6 + banda / 2;
+    const cam = this.cam.clone(), v = new THREE.Vector3();
+    const y = (zt, d, zz) => { const p = pitchDe(d); cam.position.set(80, Math.sin(p) * d, zt + Math.cos(p) * d); cam.lookAt(80, 0, zt); cam.updateMatrixWorld(); v.set(80, 0, zz).project(cam); return (1 - v.y) / 2 * h; };
+    let a = 40, b = 600; for (let i = 0; i < 30; i++) { const d = (a + b) / 2; if (y(40, d, 80) - y(40, d, 0) > banda) a = d; else b = d; }
+    const d = b; a = -40; b = 120; for (let i = 0; i < 30; i++) { const zt = (a + b) / 2; if ((y(zt, d, 0) + y(zt, d, 80)) / 2 > centro) a = zt; else b = zt; }
+    this.mareD = d; this.mareZ = (a + b) / 2; this.clamp();
+  }
   bind() {
     const P = new Map(), cv = this.cv; let st = null;
     cv.addEventListener('pointerdown', e => { this.esc.anim = null; cv.setPointerCapture(e.pointerId); P.set(e.pointerId, [e.clientX, e.clientY]); if (P.size === 1) st = { mv: 0, d: 0 }; else if (st) { st.mv = 99; st.d = 0; } });
     cv.addEventListener('pointermove', e => {
       if (!P.has(e.pointerId)) return; const pr = P.get(e.pointerId), dx = e.clientX - pr[0], dy = e.clientY - pr[1]; P.set(e.pointerId, [e.clientX, e.clientY]);
-      if (P.size === 1 && st) { st.mv += Math.abs(dx) + Math.abs(dy); const k = this.c.dist * 0.0019; this.c.x -= dx * k; this.c.z -= dy * k * 1.25; }
-      else if (P.size === 2 && st) { const v = [...P.values()], d = Math.hypot(v[0][0] - v[1][0], v[0][1] - v[1][1]); if (st.d) this.c.dist *= st.d / d; st.d = d; }
+      if (P.size === 1 && st) { this.esc.aRoma = undefined; st.mv += Math.abs(dx) + Math.abs(dy); const k = this.c.dist * 0.0019; this.c.x -= dx * k; this.c.z -= dy * k * 1.25; }
+      else if (P.size === 2 && st) { const v = [...P.values()], d = Math.hypot(v[0][0] - v[1][0], v[0][1] - v[1][1]); if (st.d) { this.c.dist *= st.d / d; this.esc.aMano = performance.now(); } st.d = d; }
       this.clamp();
     });
     const up = e => {
@@ -566,7 +597,7 @@ export class MapView3D {
       if (!P.size) st = null; else if (st) st.d = 0;
     };
     cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
-    cv.addEventListener('wheel', e => { this.c.dist *= e.deltaY > 0 ? 1.1 : 0.9; this.clamp(); e.preventDefault(); }, { passive: false });
+    cv.addEventListener('wheel', e => { this.esc.aMano = performance.now(); this.c.dist *= e.deltaY > 0 ? 1.1 : 0.9; this.clamp(); e.preventDefault(); }, { passive: false });
   }
-  resize() { const w = this.host.clientWidth || 1, h = this.host.clientHeight || 1; this.r.setSize(w, h, false); this.cam.aspect = w / h; this.cam.fov = w < h ? 50 : 36; this.cam.updateProjectionMatrix(); }
+  resize() { const w = this.host.clientWidth || 1, h = this.host.clientHeight || 1; this.r.setSize(w, h, false); this.cam.aspect = w / h; this.cam.fov = w < h ? 50 : 36; this.cam.updateProjectionMatrix(); this.ajustarMare(); }
 }

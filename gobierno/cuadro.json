@@ -3,6 +3,11 @@
   "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
   "capturas": [
     {
+      "tarea": "C8",
+      "archivo": "gobierno/capturas-tarea/c8-mare.jpg",
+      "pie": "Mapamundi: el mundo llena la pantalla; zonas de fuera con flecha en el borde"
+    },
+    {
       "tarea": "MR2a",
       "archivo": "gobierno/capturas-tarea/MR2a-1-imperio.jpg",
       "pie": "Imperio en el juego: rollo de papiro, filtros en tablilla de cera"
@@ -1906,12 +1911,6 @@
       "titulo": "Decisiones delegadas en Fable 5.2 (Nilo y mapamundi)",
       "nota": "solo decide y avisa; no construye",
       "url": "https://claude.ai/code/session_01QiKC3AR2FzqYL23coZ3gBE"
-    },
-    {
-      "tarea": "C8",
-      "titulo": "Mapa · C8 Mapamundi que se ve mayor (excepción a la 1.0; primera de C8 a C14)",
-      "nota": "js/gfx/map3d.js",
-      "url": "https://claude.ai/code/session_01QiKC37JEPaDYRqYGUeCHXp"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
