@@ -1913,28 +1913,28 @@
       "url": "https://claude.ai/code/session_01QiKC3AR2FzqYL23coZ3gBE"
     },
     {
-      "tarea": "GM5",
-      "titulo": "Versión 1.0 · GM5 Batalla mejorada en el juego, lo mínimo (Opus)",
-      "nota": "Carril V; motor de guerra (js/guerra.js, ui-guerra, battle3d)",
-      "url": "https://claude.ai/code/session_01QiKC38w2VptqxNBmxqFpVp"
-    },
-    {
-      "tarea": "I8b",
-      "titulo": "Versión 1.0 · I8b Pulir la partida corta (Opus)",
-      "nota": "Carril V; js/game.js y datos; las etiquetas esperan a C8",
-      "url": "https://claude.ai/code/session_01QiKC377wWmKESaumEbS9hB"
-    },
-    {
-      "tarea": "MR2c",
-      "titulo": "Versión 1.0 · MR2c Menús romanos: el resto e iconos de tinta (Opus)",
-      "nota": "Carril V; css/style.css y js/ui.js (no el menú del mapa)",
-      "url": "https://claude.ai/code/session_01QiKC387BAJdWijwGzxDWcJ"
-    },
-    {
       "tarea": "C9",
       "titulo": "Mapa · C9 Más mundo: Hispania, Galia, Egipto y Asia Menor (Opus)",
       "nota": "js/gfx/map3d.js y datos del mapa; excepción a la 1.0",
       "url": "https://claude.ai/code/session_01QiKC36ud6xQvc5zQpCZY2D"
+    },
+    {
+      "tarea": "C8b",
+      "titulo": "Mapa · C8b Menú del mapa minimalista (Opus)",
+      "nota": "js/ui.js y css/style.css; excepción a la 1.0",
+      "url": "https://claude.ai/code/session_01QiKC3AgCZrsvTXpSie236w"
+    },
+    {
+      "tarea": "GM34",
+      "titulo": "GM34 Movimiento vivo (en el juego, Opus)",
+      "nota": "js/ui-guerra.js; GM36 y GM44 esperan detrás",
+      "url": "https://claude.ai/code/session_01QiKC39A5oXAjaoSVPiCeHJ"
+    },
+    {
+      "tarea": "GM4b",
+      "titulo": "GM4b Prueba de un soldado nuevo (solo en maqueta)",
+      "nota": "sin tocar js/ del juego",
+      "url": "https://claude.ai/code/session_01QiKC37RrnQxSttBPjaM5jk"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
