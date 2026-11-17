@@ -1674,6 +1674,18 @@
       "titulo": "Batalla mejorada · GM31 Tablilla de mando y ajustes del manejo (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-manejo/; no toca js/",
       "url": "https://claude.ai/code/session_01QiKC37zLtSEbgCEXGMSZdg"
+    },
+    {
+      "tarea": "GM4c",
+      "titulo": "Batalla mejorada · GM4c Arte, segunda vuelta",
+      "nota": "solo gobierno/maquetas/guerra-arte/",
+      "url": "https://claude.ai/code/session_01QiKC37uKmcrjQVjLBZwnM7"
+    },
+    {
+      "tarea": "K7c",
+      "titulo": "Puerta de la ciudad · K7c Miga y botón único de volver",
+      "nota": "js/ui.js y su CSS",
+      "url": "https://claude.ai/code/session_01QiKC36YDFabWChvfmTtfkm"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
