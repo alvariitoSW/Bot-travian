@@ -39,7 +39,7 @@ async function foto(fase, nombre, w, h) {
 
 const H = [844, 390], V = [390, 844];
 let e = await foto('avance', 'h-1-avance', ...H); bien(e.vivos === 30 && e.k === 0, 'avance: los 30 en pie y sin testudo');
-e = await foto('flechas', 'h-2-flechas', ...H); bien(e.flechas > 20, 'flechas: hay flechas en el aire (' + e.flechas + ')');
+e = await foto('flechas', 'h-2-flechas', ...H); bien(e.flechas > 20, 'flechas: hay venablos en el aire (' + e.flechas + ')');
 e = await foto('testudo', 'h-3-testudo', ...H); bien(e.k > 0.99 && e.vivos < 30, 'testudo: escudos arriba y ya hubo bajas de antes (' + e.vivos + ' en pie)');
 e = await foto('pila', 'h-4-pila', ...H); bien(e.fase === 'lanzando', 'pila: los pila están en el aire');
 e = await foto('final', 'h-5-final', ...H); bien(e.fase === 'fin', 'final: sale la tarjeta');
@@ -54,7 +54,7 @@ await foto('testudo', 'v-3-testudo', ...V);
   const b = await page.locator('#avanzar').boundingBox(); await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await page.mouse.down();
   await page.waitForTimeout(2500); const e1 = await page.evaluate(() => window.__tp.estado()); await page.mouse.up();
   bien(e1.andando && e1.zF < 0, 'en vivo: mantener «Avanzar» pone el cuerpo en marcha (' + e1.zF.toFixed(1) + ' m con render por software)');
-  await page.tap('#escudos'); await page.waitForTimeout(1500); const e2 = await page.evaluate(() => window.__tp.estado());
+  await page.tap('#escudos'); await page.waitForFunction('window.__tp.estado().k > 0.9', null, { timeout: 15000 }).catch(() => {}); const e2 = await page.evaluate(() => window.__tp.estado());
   bien(e2.k > 0.9, 'en vivo: «Escudos» forma el testudo');
   await ctx.close();
 }
