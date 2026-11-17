@@ -1919,12 +1919,6 @@
       "url": "https://claude.ai/code/session_01QiKC36ud6xQvc5zQpCZY2D"
     },
     {
-      "tarea": "C8b",
-      "titulo": "Mapa · C8b Menú del mapa minimalista (Opus)",
-      "nota": "js/ui.js y css/style.css; excepción a la 1.0",
-      "url": "https://claude.ai/code/session_01QiKC3AgCZrsvTXpSie236w"
-    },
-    {
       "tarea": "GM34",
       "titulo": "GM34 Movimiento vivo (en el juego, Opus)",
       "nota": "js/ui-guerra.js; GM36 y GM44 esperan detrás",
@@ -1941,6 +1935,12 @@
       "titulo": "GM44 Soldados nuevos al nivel de Rome II · rediseño (Fable construye)",
       "nota": "solo maqueta y estudio; sin tocar js/",
       "url": "https://claude.ai/code/session_01QiKC392bMLyNZs82CksoEg"
+    },
+    {
+      "tarea": "MR3b",
+      "titulo": "Versión 1.0 · MR3b Menú principal, carga y opciones (Opus)",
+      "nota": "Carril V; index.html, css/style.css y js/ui.js",
+      "url": "https://claude.ai/code/session_01QiKC36y5xjHswJQxSjnYGb"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
