@@ -135,6 +135,9 @@ export async function crearCampo(escena, { H, SOL }) {
       c = mix(c, tierra, max(max(senda * 0.85, calva * 0.6), orilla * 0.3));
       #endif
       c = mix(c, seca * vec3(1.08, 1.0, 0.86), smoothstep(0.97, 0.85, vNy) * 0.5);   /* laderas, más secas */
+      /* lejos, matorral mediterráneo: manchas de verde oscuro por las lomas */
+      { float mq = texture2D(uRuido, p * 0.0093 + 0.71).g, lj = smoothstep(80.0, 220.0, max(abs(p.x), -p.y - 60.0));
+        c = mix(c, vec3(0.2, 0.25, 0.12), smoothstep(0.52, 0.68, mq) * 0.65 * lj); }
       c *= mix(0.84, 1.1, n1);
       diffuseColor.rgb *= c * 1.08;`);
     if (lejos) sh.fragmentShader = '#define LEJOS\n' + sh.fragmentShader;
@@ -227,7 +230,7 @@ export async function crearCampo(escena, { H, SOL }) {
 
   /* ---------- piedras: guijarros en la senda, piedras sueltas y algún peñasco lejos de la marcha ---------- */
   {
-    const g = new THREE.IcosahedronGeometry(1, 2), p = g.attributes.position, uv = [], col = [], P = new THREE.Vector3();
+    const g = new THREE.IcosahedronGeometry(1, 1), p = g.attributes.position, uv = [], col = [], P = new THREE.Vector3();
     for (let i = 0; i < p.count; i++) {
       P.fromBufferAttribute(p, i); const n = ruido(P.x * 0.21 + 0.5, P.z * 0.21 + P.y * 0.13, 1), f = 0.78 + 0.42 * n;
       P.multiplyScalar(f); P.y *= 0.62; if (P.y < -0.15) P.y = -0.15 + (P.y + 0.15) * 0.3; p.setXYZ(i, P.x, P.y, P.z);
