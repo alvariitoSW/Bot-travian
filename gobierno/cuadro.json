@@ -1671,6 +1671,26 @@
       "tarea": "MR3",
       "archivo": "gobierno/capturas-tarea/MR3-10-opciones.jpg",
       "pie": "MR3: opciones en papiro"
+    },
+    {
+      "tarea": "P167",
+      "archivo": "gobierno/capturas-tarea/P167-1-colina.jpg",
+      "pie": "Roma hoy, vista desde una colina: se ve una aldea, no una ciudad"
+    },
+    {
+      "tarea": "P167",
+      "archivo": "gobierno/capturas-tarea/P167-2-colina-cerca.jpg",
+      "pie": "Roma hoy, a media distancia: suelo marrón y pocas casas"
+    },
+    {
+      "tarea": "P167",
+      "archivo": "gobierno/capturas-tarea/P167-3-calle.jpg",
+      "pie": "Roma hoy, a pie de calle: paredes borrosas y antorchas como bolas de luz"
+    },
+    {
+      "tarea": "RM4",
+      "archivo": "gobierno/capturas-tarea/RM4-laminas-hoja.jpg",
+      "pie": "Láminas de dominio público encontradas: Atenas, hoplitas, templo dórico, Foro, puerto de Roma, Siracusa"
     }
   ],
   "informes": [
@@ -1889,6 +1909,18 @@
     {
       "titulo": "¿A dónde vamos y qué queda? (17/11, mediodía)",
       "archivo": "gobierno/estudios/ADV-2026-11-17.md"
+    },
+    {
+      "titulo": "P167 · Plan para una Roma 3D realista",
+      "archivo": "gobierno/estudios/P167-roma-3d-realista.md"
+    },
+    {
+      "titulo": "Estado del proyecto (17/11, noche): qué queda para la 1.0, por qué no se cierra y cinco decisiones",
+      "archivo": "gobierno/estudios/estado-proyecto-17-11.md"
+    },
+    {
+      "titulo": "Láminas de referencia · Roma y Grecia",
+      "archivo": "gobierno/historia/laminas-roma-grecia.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1913,34 +1945,28 @@
       "url": "https://claude.ai/code/session_01QiKC3AR2FzqYL23coZ3gBE"
     },
     {
-      "tarea": "C9",
-      "titulo": "Mapa · C9 Más mundo: Hispania, Galia, Egipto y Asia Menor (Opus)",
-      "nota": "js/gfx/map3d.js y datos del mapa; excepción a la 1.0",
-      "url": "https://claude.ai/code/session_01QiKC36ud6xQvc5zQpCZY2D"
-    },
-    {
-      "tarea": "C8b",
-      "titulo": "Mapa · C8b Menú del mapa minimalista (Opus)",
-      "nota": "js/ui.js y css/style.css; excepción a la 1.0",
-      "url": "https://claude.ai/code/session_01QiKC3AgCZrsvTXpSie236w"
-    },
-    {
-      "tarea": "GM34",
-      "titulo": "GM34 Movimiento vivo (en el juego, Opus)",
-      "nota": "js/ui-guerra.js; GM36 y GM44 esperan detrás",
-      "url": "https://claude.ai/code/session_01QiKC39A5oXAjaoSVPiCeHJ"
-    },
-    {
       "tarea": "EV7",
       "titulo": "Política · EV7 Gobierno por turnos: el Senado manda y la ciudad obedece (maqueta, Opus)",
       "nota": "solo gobierno/maquetas/; excepción a la 1.0; tope 2 M",
       "url": "https://claude.ai/code/session_01QiKC39GcxgHwQm5q2GKUGc"
     },
     {
-      "tarea": "GM44r",
-      "titulo": "GM44 Soldados nuevos al nivel de Rome II · rediseño (Fable construye)",
-      "nota": "solo maqueta y estudio; sin tocar js/",
-      "url": "https://claude.ai/code/session_01QiKC392bMLyNZs82CksoEg"
+      "tarea": "JU1",
+      "titulo": "Versión 1.0 · JU1 Dos jueces en rojo: «Construir aquí» y guerra atascada (Opus)",
+      "nota": "diagnóstico: ¿fallo real o del juez?; gobierno/*.mjs",
+      "url": "https://claude.ai/code/session_01QiKC37gQPtkdN7X53tu66G"
+    },
+    {
+      "tarea": "MR3b",
+      "titulo": "Versión 1.0 · MR3b Menú principal, Escaramuzas y carga «tipo Rome 2» (Opus)",
+      "nota": "Carril V; index.html, css/style.css, js/ui.js; estudio corto de Rome 2 primero",
+      "url": "https://claude.ai/code/session_01QiKC39De8KJbZCEhAZgEbW"
+    },
+    {
+      "tarea": "C11",
+      "titulo": "Mapa · C11 Pueblos y tribus (Opus)",
+      "nota": "js/gfx/map3d.js, datos y fichas; excepción a la 1.0 (sin pausa)",
+      "url": "https://claude.ai/code/session_01QiKC36Sf8FpkrQKepPr7TU"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

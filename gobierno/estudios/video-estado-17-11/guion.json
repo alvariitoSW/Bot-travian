@@ -1,0 +1,268 @@
+{
+ "huella": "a5c41c3b4cab",
+ "llega": 0.55,
+ "plantilla": null,
+ "filas": [
+  {
+   "k": "tra",
+   "plano": "gancho",
+   "tx": "¿Por qué no está ya la uno punto cero?",
+   "sub": "¿Por qué no está ya la 1.0?",
+   "p": 0.35
+  },
+  {
+   "k": "tra",
+   "plano": "faltan",
+   "tx": "Porque faltan cuatro tareas, y hoy casi nadie está en ellas.",
+   "sub": "Porque faltan 4 tareas, y hoy casi nadie está en ellas.",
+   "p": 0.35
+  },
+  {
+   "k": "tra",
+   "plano": "hechas",
+   "tx": "Hechas, trece de veinte: menús romanos, Senado, cuartel y la batalla nueva.",
+   "sub": "Hechas, 13 de 20: menús romanos, Senado, cuartel y la batalla nueva.",
+   "p": 0.5
+  },
+  {
+   "k": "p1",
+   "plano": "q_queda",
+   "tx": "¿Qué queda?",
+   "sub": "¿Qué queda?",
+   "p": 0.3
+  },
+  {
+   "k": "tra",
+   "plano": "queda",
+   "tx": "La primera fila que lucha, las escaramuzas, el equilibrio con el bot y tu prueba en el móvil.",
+   "sub": "La primera fila que lucha, las escaramuzas, el equilibrio con el bot y tu prueba en el móvil.",
+   "p": 0.35
+  },
+  {
+   "k": "hac",
+   "plano": "coste",
+   "tx": "Previsto, dos coma ocho millones. Realista, unos cinco.",
+   "sub": "Previsto, 2,8 millones. Realista, unos 5.",
+   "p": 0.5
+  },
+  {
+   "k": "p1",
+   "plano": "q_cierra",
+   "tx": "¿Y por qué no se cierra ya?",
+   "sub": "¿Y por qué no se cierra ya?",
+   "p": 0.3
+  },
+  {
+   "k": "tra",
+   "plano": "lista",
+   "tx": "Porque la lista creció. Eran doce tareas: entraron diez y salieron dos.",
+   "sub": "Porque la lista creció. Eran 12 tareas: entraron 10 y salieron 2.",
+   "p": 0.35
+  },
+  {
+   "k": "jus",
+   "plano": "jueces",
+   "tx": "Los jueces siguen en rojo: treinta y cinco de treinta y siete.",
+   "sub": "Los jueces siguen en rojo: 35 de 37.",
+   "p": 0.35
+  },
+  {
+   "k": "tra",
+   "plano": "sesiones",
+   "tx": "Y de ocho sesiones abiertas, solo dos son de la uno punto cero.",
+   "sub": "Y de 8 sesiones abiertas, solo 2 son de la 1.0.",
+   "p": 0.5
+  },
+  {
+   "k": "p1",
+   "plano": "q_tarda",
+   "tx": "¿Por qué tarda tanto?",
+   "sub": "¿Por qué tarda tanto?",
+   "p": 0.3
+  },
+  {
+   "k": "hac",
+   "plano": "doble",
+   "tx": "Porque cada tarea cuesta casi el doble. Esta semana se previeron ciento setenta y cuatro millones, y se gastaron doscientos cincuenta y cuatro.",
+   "sub": "Porque cada tarea cuesta casi el doble. Esta semana se previeron 174 millones, y se gastaron 254.",
+   "p": 0.35
+  },
+  {
+   "k": "hac",
+   "plano": "hoy",
+   "tx": "Hoy, un setenta y nueve por ciento de más. Casi todo, esperando a los jueces.",
+   "sub": "Hoy, un 79 % de más. Casi todo, esperando a los jueces.",
+   "p": 0.5
+  },
+  {
+   "k": "p1",
+   "plano": "q_desvia",
+   "tx": "¿Y por qué se desvía?",
+   "sub": "¿Y por qué se desvía?",
+   "p": 0.3
+  },
+  {
+   "k": "tra",
+   "plano": "maquetas",
+   "tx": "Porque lo que gusta no llega al juego. Hoy, diecisiete millones en maquetas.",
+   "sub": "Porque lo que gusta no llega al juego. Hoy, 17 millones en maquetas.",
+   "p": 0.3
+  },
+  {
+   "k": "tra",
+   "plano": "toda",
+   "tx": "Toda la uno punto cero costaba siete coma cuatro.",
+   "sub": "Toda la 1.0 costaba 7,4.",
+   "p": 0.55
+  },
+  {
+   "k": "tra",
+   "plano": "decide",
+   "tx": "Te toca decidir cinco cosas.",
+   "sub": "Te toca decidir cinco cosas.",
+   "p": 0.3
+  },
+  {
+   "k": "tra",
+   "plano": "d1",
+   "tx": "Sacar el soldado nuevo a la uno punto uno.",
+   "sub": "Sacar el soldado nuevo a la 1.1.",
+   "p": 0.25
+  },
+  {
+   "k": "tra",
+   "plano": "d2",
+   "tx": "Parar lo que no es uno punto cero.",
+   "sub": "Parar lo que no es 1.0.",
+   "p": 0.25
+  },
+  {
+   "k": "tra",
+   "plano": "d3",
+   "tx": "Que lo nuevo espere en la nevera.",
+   "sub": "Que lo nuevo espere en la nevera.",
+   "p": 0.25
+  },
+  {
+   "k": "tra",
+   "plano": "d4",
+   "tx": "Jueces en verde antes de subir nada.",
+   "sub": "Jueces en verde antes de subir nada.",
+   "p": 0.25
+  },
+  {
+   "k": "tra",
+   "plano": "d5",
+   "tx": "Y un tope de gasto que corte.",
+   "sub": "Y un tope de gasto que corte.",
+   "p": 0.45
+  },
+  {
+   "k": "tra",
+   "plano": "final",
+   "tx": "Con cinco síes, la uno punto cero sale en cuatro sesiones.",
+   "sub": "Con cinco síes, la 1.0 sale en 4 sesiones.",
+   "p": 2.6
+  }
+ ],
+ "revision": {
+  "bloquea": [],
+  "avisos": [],
+  "gancho": "pregunta",
+  "segundos": [
+   {
+    "t0": 0.6,
+    "d": 3.1
+   },
+   {
+    "t0": 4.0,
+    "d": 3.8
+   },
+   {
+    "t0": 8.1,
+    "d": 4.1
+   },
+   {
+    "t0": 12.8,
+    "d": 0.7
+   },
+   {
+    "t0": 13.8,
+    "d": 6.2
+   },
+   {
+    "t0": 20.3,
+    "d": 2.8
+   },
+   {
+    "t0": 23.6,
+    "d": 2.4
+   },
+   {
+    "t0": 26.3,
+    "d": 4.1
+   },
+   {
+    "t0": 30.8,
+    "d": 4.1
+   },
+   {
+    "t0": 35.3,
+    "d": 4.5
+   },
+   {
+    "t0": 40.3,
+    "d": 1.4
+   },
+   {
+    "t0": 41.9,
+    "d": 7.9
+   },
+   {
+    "t0": 50.2,
+    "d": 5.2
+   },
+   {
+    "t0": 55.9,
+    "d": 1.7
+   },
+   {
+    "t0": 57.9,
+    "d": 4.5
+   },
+   {
+    "t0": 62.7,
+    "d": 3.1
+   },
+   {
+    "t0": 66.4,
+    "d": 1.7
+   },
+   {
+    "t0": 68.4,
+    "d": 3.1
+   },
+   {
+    "t0": 71.7,
+    "d": 2.8
+   },
+   {
+    "t0": 74.7,
+    "d": 2.4
+   },
+   {
+    "t0": 77.4,
+    "d": 2.4
+   },
+   {
+    "t0": 80.1,
+    "d": 2.4
+   },
+   {
+    "t0": 82.9,
+    "d": 3.8
+   }
+  ],
+  "total": 89.3
+ }
+}

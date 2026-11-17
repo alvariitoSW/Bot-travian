@@ -131,7 +131,7 @@ G.onEvent = function (type, p) {
   else if (type === 'log') { if (!p.mudo) { if (p.k === 'good') toast(p.x, '', null, true); else if (p.k === 'bad') toast(p.x, 'bad', null, true); } UI.dirty = true; }
   else if (type === 'dirty') UI.dirty = true;
   else if (type === 'colonos') { const d = D.COLONIAS[p.sitio]; if (d) carta('<div class="yr">COLONOS</div><h2>Han llegado a ' + esc(d.n) + '</h2><p>Los colonos esperan tu orden. Elige el lugar del foro y el arado trazará el surco sagrado.</p><div class="acts"><button class="btn ghost" data-act="close">Más tarde</button><button class="btn gold" data-act="fundar" data-v="' + p.sitio + '">Fundar ' + esc(d.n) + '</button></div>'); }
-  else if (type === 'turno') { const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.vivo && !s.over) consejoModal(); UI.dirty = true; }
+  else if (type === 'turno') { const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.vivo && !s.over) setTimeout(() => { const q = S(); if (q && !q.pending.length && !q.vivo && !q.over) consejoModal(); }, 0); UI.dirty = true; }   // SN2: tras pasarTurno, que ya ha abierto la votación del Senado
   else if (type === 'over') { if (!UI.binfo) showOver(); }
 };
 
@@ -160,6 +160,37 @@ function cortaHtml() {
   const b = (k, act) => '<button class="btn corta" data-act="' + act + '">' + esc(m.inicio[k].n) + '</button><small class="cortad">' + esc(m.inicio[k].d) + '</small>';
   return '<div class="cortab"><b>Partida corta (Italia, ' + m.duracion.horasMin + ' a ' + m.duracion.horasMax + ' horas)</b>' + b('enPie', 'cortaen') + b('fundar', 'cortafun') + '</div>';
 }
+/* ES1 «Escaramuzas»: batalla suelta desde el menú, con el motor de guerra (Guerra y UIGuerra) y sin campaña: no lee ni escribe la partida guardada.
+   Se elige en tablillas de cera; «Empezar la batalla» (sello) abre la guerra; al acabar, la hoja «escfin» con el resultado. */
+UI.esc = { mio: 'mediano', fac: 'cartago', ene: 'mediano', campo: 'llano', dif: 'normal' };
+const milesTxt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+function escHtml() {
+  const E = G.ESCARAMUZA, o = UI.esc, e = G.escaramuza(Object.assign({ semilla: 1 }, o)), nombre = id => D.FACTIONS[id] ? D.FACTIONS[id].n : id;
+  const suma = u => Object.values(u).reduce((x, y) => x + y, 0), tropas = u => Object.keys(u).sort((x, y) => u[y] - u[x]).map(t => D.UNITS[t] ? D.UNITS[t].n : t).join(', ');
+  const fila = (tit, k, ops) => '<p class="ro-rubrica esc-r">' + tit + '</p><div class="ro-tablilla esc-t' + (ops.length > 4 ? ' esc-tres' : '') + '">' + ops.map(([v, n]) => '<button class="' + (o[k] === v ? 'on' : '') + '" data-act="escel" data-v="' + k + ':' + v + '">' + esc(n) + '</button>').join('') + '</div>';
+  const tam = Object.keys(E.tamanos).map(k => [k, E.tamanos[k].n]);
+  return '<div class="esc">' + fila('Tu ejército', 'mio', tam) + '<p class="esc-d">Legión de Roma: ' + milesTxt(suma(e.ejercitos[0])) + ' hombres (' + esc(tropas(e.ejercitos[0])) + ').</p>' +
+    fila('Enemigo', 'fac', E.facciones.map(f => [f, nombre(f)])) + fila('Tamaño del enemigo', 'ene', tam) +
+    '<p class="esc-d">' + esc(nombre(e.fac)) + ': ' + milesTxt(suma(e.ejercitos[1])) + ' hombres (' + esc(tropas(e.ejercitos[1])) + ').</p>' +
+    fila('Campo', 'campo', Object.keys(E.campos).map(k => [k, E.campos[k]])) + fila('Dificultad', 'dif', Object.keys(E.dificultad).map(k => [k, E.dificultad[k].n])) +
+    '<p class="esc-d">El campo cambia el paisaje; la pelea aún no depende de él. La dificultad cambia cuántos hombres trae el enemigo.</p>' +
+    '<button class="btn ro-sello esc-go" data-act="escempieza">Empezar la batalla</button></div>';
+}
+function escFinHtml() {
+  const x = UI.escRes; if (!x) return '<div class="empty">Sin resultado.</div>';
+  const R = x.res, t = { victoria: 'Victoria', derrota: 'Derrota', retirada: 'Retirada' }[R.como] || 'Fin', m = Math.floor(R.t / 60), sg = Math.round(R.t % 60);
+  return '<div class="esc esc-fin"><h3 class="esc-res ' + R.como + '">' + t + '</h3><p class="esc-d">' + esc(R.motivo || '') + '</p>' +
+    '<div class="esc-cif"><span>Tus bajas</span><b>' + milesTxt(R.bajas[0]) + ' de ' + milesTxt(R.inicial[0]) + '</b><span>Bajas de ' + esc(D.FACTIONS[x.fac] ? D.FACTIONS[x.fac].n : '') + '</span><b>' + milesTxt(R.bajas[1]) + ' de ' + milesTxt(R.inicial[1]) + '</b><span>Duración</span><b>' + m + ' min ' + sg + ' s</b></div>' +
+    '<button class="btn ro-sello esc-go" data-act="hoja" data-v="escaramuza">Otra escaramuza</button><button class="btn ghost esc-go" data-act="hojax">Volver al menú</button></div>';
+}
+function escEmpieza() {
+  if (!window.UIGuerra || !window.Guerra) { toast('No se ha podido cargar la batalla.', 'bad'); return; }
+  const e = G.escaramuza(UI.esc); hojaCierra(true); UI.escRes = null;
+  window.UIGuerra.abrir({ estado: window.Guerra.crear({ semilla: e.semilla, ejercitos: e.ejercitos }), campo: e.campo }, r => {   // sin guardar: no toca aqvila-save-v1 ni aqvila-guerra-v1
+    const B = r && r.estado; UI.escRes = { res: (B && B.resultado) || { como: 'retirada', motivo: '', t: 0, bajas: [0, 0], inicial: [0, 0] }, fac: e.fac };
+    setTimeout(() => { if (UI.menu) hojaAbre('escfin'); }, 0);   // después del toque en «Ver el resultado»: el oyente general cierra las hojas
+  });
+}
 /* K12a-B «Hojas»: menú principal. Arriba emblema y nombre; abajo, al alcance del pulgar, lo que se usa. Partida corta y Sonido/fluidez viven en hojas */
 const EMBLEMA = '<svg class="emb" viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 12c-4 0-7 3-7 6l-9-4 3 9-8 3 9 4-4 8 9-3 7 9 7-9 9 3-4-8 9-4-8-3 3-9-9 4c0-3-3-6-7-6z"/><path d="M32 18v22M26 52h12"/></svg>';
 const ICO_GLOBO = svgIco('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'), ICO_ESC = svgIco('<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>');
@@ -175,6 +206,7 @@ function showMenu() {
     '<div class="mcab">' + EMBLEMA + '<h1>AQVILA</h1><div class="sub">EL ASCENSO DE ROMA</div><p>280 a.C. Gobierna tus ciudades, levanta legiones y lleva las águilas hasta Cartago.</p></div>' +
     '<input id="hname" maxlength="28" placeholder="Nombre de tu general" aria-label="Nombre de tu general" value="Lucio Cornelio Escipión">' + difFila('m') +
     '<div class="mabajo">' + (sv ? '<button class="btn gold mcont" data-act="continue">Continuar campaña' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button><button class="btn" data-act="new">Nueva campaña</button>' : '<button class="btn gold mcont" data-act="new">Nueva campaña</button>') +
+    '<button class="btn ro-bronce mesc" data-act="hoja" data-v="escaramuza">Escaramuzas<small>Batallas sueltas, sin campaña</small></button>' +
     '<div class="mtrio">' + tile('newregion', 'italia', ICO_GLOBO, 'Región de Italia') + tile('hoja', 'corta', ICO_ESC, 'Partida corta') + tile('hoja', 'sonmenu', ICO_FLU, 'Sonido y fluidez') + '</div>' +
     '<div class="mcred">' + CREDITOS + '</div><div class="spqr">S·P·Q·R</div></div>';
 }
@@ -253,9 +285,10 @@ function consejoModal() {
   UI.infoPrev = todo.map(q => q.x);
   const rec = l[l.length - 1];
   const lineas = (mostrar.length ? mostrar : [{ k: '', x: 'Sin novedades este trimestre.' }]).concat(rec ? [rec] : []);
+  const sen = D.SENADO.sala && G.senadoSala() ? '<button class="btn ro-bronce" data-act="inf-senado" id="inf-senado">Ir al Senado</button>' : '';   // SN2
   let el = document.getElementById('inf'); if (el) el.remove();
   el = document.createElement('div'); el.id = 'inf'; el.className = 'inf ro-carta';
-  const corta = '<i class="inf-sello">' + RO_LACRE + '</i><div class="inf-t">' + esc(l[0].x) + '</div>' + lineas.map(q => '<div class="inf-l" style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</div>').join('') + '<div class="inf-b"><button class="btn ro-tinta" data-act="inf-mas" id="inf-mas">Ver más</button><button class="btn ro-sello" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
+  const corta = '<i class="inf-sello">' + RO_LACRE + '</i><div class="inf-t">' + esc(l[0].x) + '</div>' + lineas.map(q => '<div class="inf-l" style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</div>').join('') + '<div class="inf-b"><button class="btn ro-tinta" data-act="inf-mas" id="inf-mas">Ver más</button>' + sen + '<button class="btn ro-sello" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
   const larga = '<i class="inf-sello">' + RO_LACRE + '</i><div class="inf-d">' + detalle + '</div><div class="inf-b"><button class="btn ro-tinta" data-act="inf-mas" id="inf-mas">Cerrar detalle</button><button class="btn ro-sello" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
   el._corta = corta; el._larga = larga; el.innerHTML = corta; document.body.appendChild(el);
 }
@@ -266,7 +299,7 @@ const ICO_GOB = svgIco('<path d="M3 20h18M5 20V9h14v11M3 9h18M9 20v-6h6v6M12 4v5
 function cityOk() { const my = G.myCities(); if (!my.includes(UI.city)) UI.city = my[0] || 'roma'; return UI.city; }
 function setTxt(id, v) { const e = $(id); if (e && e.dataset.k !== v) { e.dataset.k = v; e.innerHTML = v; } }
 function hudDock() {
-  const s = S(); if (!s || G.fundando()) return; const g = UI.modo !== 'guerra', c = s.cities[cityOk()], open = !$('hoja').hidden;
+  const s = S(); if (!s || G.fundando()) return; const g = UI.modo !== 'guerra', c = s.cities[cityOk()], open = !$('hoja').hidden && !!UI.hoja && UI.hoja.id === 'guerra';
   const f = Math.round(G.felicidad(c)), cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠', nm = s.marches.filter(m => m.owner === 'roma').length;
   $('app').dataset.modo = g ? 'gobierno' : 'guerra';
   $('bact').className = 'rd ' + (g ? 'oro' : 'rojo'); $('bmodo').className = 'rd ' + (open ? 'cierra' : g ? 'oro' : 'rojo'); $('bpill').className = g ? '' : 'w';
@@ -274,22 +307,24 @@ function hudDock() {
   setTxt('bmodo', open ? '<span class="em">✕</span><small>Cerrar</small>' : (g ? ICO_GOB : D.GUERRA_ICON.espadas) + '<small>' + (g ? 'Gobierno' : 'Guerra') + '</small>');
   setTxt('bpill', g ? D.POP_ICON + ' ' + Math.floor(c.pop) + '/' + G.popCap(c) + ' · ' + cara + ' ' + f : '🚩 ' + (nm === 1 ? '1 marcha en curso' : nm + ' marchas en curso'));
   const t3 = UI.tab === 'imperio' || UI.tab === 'senado' || UI.tab === 'saber' ? 'imperio' : UI.tab === 'city' ? (UI.cityList || !UI.cityV ? 'gobierno' : 'ciudad') : '';
-  document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3)); $('app').dataset.tab = t3; $('app').dataset.vista = UI.tab;
+  document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3)); $('app').dataset.tab = t3; $('app').dataset.vista = UI.tab; $('app').toggleAttribute('data-sala', UI.tab === 'senado' && !!G.senadoSala());   // SN2: en la sala, Votar y Dejar pasar sustituyen a «Pasar turno»
   setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
   migaPon();
 }
-/* K7c: miga «Roma › Camino» + botón único para pasar de la ciudad al mapa y volver */
+/* K7c: miga «Roma › Ciudad» con «Salir al mapa». C8b: en el mapa ya no sale; a la ciudad se entra tocando Roma */
 function migaPon() {
-  const enMapa = UI.tab === 'map', enCiudad = UI.tab === 'city' && !!UI.cityV && !UI.cityList && !UI.fundar, ver = (enMapa || enCiudad) && !G.fundando();
+  const enMapa = UI.tab === 'map', enCiudad = UI.tab === 'city' && !!UI.cityV && !UI.cityList && !UI.fundar, ver = enCiudad && !G.fundando();
   $('miga').hidden = !ver; $('app').dataset.miga = ver ? '1' : '';
   if (!ver) return;
   setTxt('miga-t', '<b>' + esc(D.CITIES[UI.city].n) + '</b><i>›</i>' + (enMapa ? 'Camino' : 'Ciudad'));
   setTxt('miga-b', enMapa ? 'Entrar en la ciudad' : 'Salir al mapa');
 }
 function migaVa() {
-  if (UI.tab === 'map') { const id = UI.city; if (UI.map && propiaEntrable(id) && !UI.map.esc.entrando) { UI.sel = id; UI.map.entrarCiudad(id); } else { UI.cityList = false; setTab('city'); } }
+  if (UI.tab === 'map') entrarEn(UI.city);
   else if (UI.deMapa && UI.map) volverAlMapa(); else setModo('guerra');
 }
+/* Entrar en una ciudad propia desde el mapa: con el vuelo de cámara si se puede */
+function entrarEn(id) { UI.city = id; if (UI.map && propiaEntrable(id) && !UI.map.esc.entrando) { UI.sel = id; UI.map.entrarCiudad(id); } else { UI.cityList = false; setTab('city'); } }
 /* I8b: con el reloj parado antes de fundar, la barra muestra lo que traen los colonos (sin producción ni almacén aún) */
 function hudFundando(s) {
   for (const r of D.RES) { $('r-' + r).textContent = fmt(s.res[r]); $('ra-' + r).textContent = 'alm ' + fmt(s.alm[r] || 0); $('rb-' + r).title = (RES_NOM[r] || r) + ': ' + fmt(s.res[r]) + ' que traen los colonos'; }
@@ -391,9 +426,21 @@ function ajustesHoja() {
     sw.map(q => tog(q[1], 'data-act="suceso" data-v="' + q[0] + '"', !!a.suc[q[0]], q[0] === 'hambre' && !((D.DIFICULTAD[a.dif] || {}).hambre || {}).meses ? 'Sin efecto en Tranquila' : '')).join('') +
     '<div class="hsep"></div>' + tog('Ambiente', 'id="aj-ambiente" data-act="ambiente"', G.ambiente(), 'Tono por estación, viñeta y contorno dorado en la ciudad') + '<div id="aj-sonido">' + tog('Sonido', 'data-act="sonido"', sonidoOn()) + '</div></div>';
 }
+/* C8b: el botón «Guerra» abre lo de la guerra; el resto vive en ☰ */
+function guerraHoja() {
+  const s = S(); if (!s) return '<div class="empty">Aún no hay partida.</div>';
+  const nom = id => esc(((D.CITIES[id] || (D.COLONIAS && D.COLONIAS[id])) || { n: id }).n), ms = s.marches.filter(m => m.owner === 'roma');
+  const f = (act, v, ico, txt) => '<button class="hf" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span>' + txt + '</span></button>';
+  return '<b class="hrot">' + (ms.length ? (ms.length === 1 ? '1 marcha en curso' : ms.length + ' marchas en curso') : 'Ninguna marcha en curso') + '</b>' +
+    ms.map(m => f('vera', m.to, '🚩', 'De ' + nom(m.from) + ' a ' + nom(m.to) + ' · llega ' + (G.turnos ? turnosTxt(G.turnosFaltan(m)) : 'en ' + months(Math.max(0, m.t1 - s.t))))).join('') +
+    '<div class="hsep"></div>' + f('home', null, D.GUERRA_ICON.aguila, 'Ir a mi general') + f('modo', 'gobierno', ICO_GOB, 'Pasar a Gobierno');
+}
 const HOJAS = {
   menu: { titulo: 'Menú', alt: 1, html: menuHoja },
+  guerra: { titulo: 'Guerra', alt: 0, html: guerraHoja },
   ajustes: { titulo: 'Ajustes', alt: 2, html: ajustesHoja },
+  escaramuza: { titulo: 'Escaramuzas', alt: 2, html: () => escHtml() },   // ES1
+  escfin: { titulo: 'Escaramuza', alt: 1, html: () => escFinHtml() },
   corta: { titulo: 'Partida corta', alt: 1, html: () => cortaHtml() || '<div class="empty">No disponible.</div>' },
   sonmenu: { titulo: 'Sonido y fluidez', alt: 0, html: () => '<button class="hf" data-act="sonido">' + ICO_INFO + '<span>' + sonidoTxt() + '</span></button><button class="hf" data-act="fluidez">' + ICO_FLU + '<span>' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</span></button>' + copiasHtml() },
   movil: { titulo: 'Postal y copias', alt: 1, html: () => '<button class="hf" data-act="postal">' + ICO_FOTO + '<span>Postal de la ciudad (imagen)</span></button><button class="hf" data-act="contemplar">' + ICO_FOTO + '<span>Contemplar la ciudad</span></button><button class="hf" data-act="hoja" data-v="cronicac">' + ICO_CRON + '<span>Crónica de la ciudad (texto)</span></button>' + copiasHtml() },
@@ -918,7 +965,7 @@ function fichaHtml(c, sd) {
       } else cuerpo += '<div class="nota">Una capilla de cruce no se derriba.</div>';
     }
   }
-  const bid = P && P.bid, extra = (bid === 'templo' ? diosBloque(c, 'templo') : '') + (bid === 'mercado' ? marketHtml() : '') + (bid === 'herreria' ? forjaHtml(c) : '') + (bid === 'escuela' ? escuelaHtml(c) : '') + (e && e.tipo === 'granero' && c.owner === 'roma' ? graneroHtml(c) : '');
+  const bid = P && P.bid, extra = (bid === 'templo' ? diosBloque(c, 'templo') : '') + (bid === 'mercado' ? marketHtml() : '') + (bid === 'herreria' ? forjaHtml(c) : '') + (bid === 'escuela' ? escuelaHtml(c) : '') + (e && e.tipo === 'granero' && c.owner === 'roma' ? graneroHtml(c) : '') + (bid && e && !e.ruina && c.owner === 'roma' && reclutaDe(bid).length ? reclutarHtml(c, bid) : '');
   return '<div class="ficha"><div class="greca"></div><div class="cab"><span class="ic">' + ico + '</span><div class="cn"><h2>' + esc(nom) + '</h2><p>' + esc(sub) + '</p></div><button class="x" data-act="cclose" aria-label="Cerrar la ficha">' + ICO_X + '</button></div>' +
     '<div class="cuerpo">' + (que ? '<div class="efecto"><span class="nv">' + nv + '</span><span>' + esc(que) + '</span></div>' : '') + cuerpo + (extra ? '<div class="fxd">' + extra + '</div>' : '') + '</div></div>';
 }
@@ -1082,24 +1129,31 @@ const gestosCiudad = {
 };
 const bar = (label, v, max) => '<span>' + label + '</span><u><s style="width:' + Math.min(100, v / max * 100) + '%"></s></u>';
 const avisoMo = (c, n) => { const z = Math.round(G.manoObraDe(c, Math.max(0, (c.pop || 0) - n)) * 100); return z < 100 ? '<div class="ds" style="color:#e0a030">Los campos quedarán al ' + z + ' % (+' + n + ')</div>' : ''; };
-function viewArmy() {
-  const s = S(), c = s.cities[UI.city], p = G.prod();
-  let h = cityChips() + '<div class="sec">Guarnición de ' + D.CITIES[UI.city].n + ' · ' + G.men(c.units) + ' hombres</div>' + troopsHtml(c.units);
-  h += '<div class="empty">' + popHtml(c) + '</div>';
-  h += '<div class="empty">🌾 Consumo de todas tus tropas: ' + Math.round(p.upkeep) + ' grano/mes · 🪙 Mantenimiento: −' + Math.round(p.mant.total) + ' oro (edificios ' + Math.round(p.mant.edificios) + ', paga ' + Math.round(p.mant.tropas) + ') · ⚖️ Rutas: +' + Math.round(p.rutas) + ' oro · 🧱 Guardia urbana al defender: ' + (20 + 20 * G.nivelMuralla(c)) + '<br>Para enviarlas a la guerra, toca una ciudad vecina en el mapa.</div>';
+/* CN26: cola «En instrucción» y tarjetas de reclutar. Sin bid, todas las unidades (pestaña Ejército); con bid, solo las que pide ese edificio (ficha del Cuartel, del Establo…) */
+const reclutaDe = bid => Object.keys(D.UNITS).filter(k => D.UNITS[k].cost && (!bid || Object.keys(D.UNITS[k].req)[0] === bid));
+function reclutarHtml(c, bid) {
+  const ks = reclutaDe(bid); let h = '';
   if (c.train.length) {
     h += '<div class="sec">En instrucción</div>';
     h += c.train.map(q => '<div class="row"><div style="display:flex;justify-content:space-between"><span>' + q.n + ' × ' + D.UNITS[q.u].n + '</span><span class="rem"></span></div><div class="prog" data-t0="' + q.t0 + '" data-t1="' + q.t1 + '"><i></i></div>' + (plazoTxt(q) ? '<div class="plz' + (q.pausa ? ' pausa' : '') + '">' + plazoTxt(q) + '</div>' : '') + '</div>').join('');
   }
   h += '<div class="sec">Reclutar</div>';
-  for (const k in D.UNITS) {
-    const u = D.UNITS[k]; if (!u.cost) continue;
+  for (const k of ks) {
+    const u = D.UNITS[k];
     const ok = G.unitOk(c, k), rb = Object.keys(u.req)[0], n = cohort(k), fe = (c.b[rb] || 0) >= u.req[rb] ? G.faltaEspecial('tropa', k) : null;
     h += '<div class="card ' + (ok ? '' : 'locked') + '"><div class="pt">' + pt(k) + '</div><div class="bd"><div class="tt">' + u.n + '</div><div class="ds">' + u.d + '</div>' + licHtml(u) +
       '<div class="bars">' + bar('Ataque', u.ratk || u.atk, 16) + bar('Defensa', u.def, 16) + bar('Moral', u.mor, 100) + bar('Velocidad', u.spd, 85) + '</div>' + costPlanHtml(G.planPago(G.unitCost(k, n), G.trainDur(c, k, n))) + (ok ? avisoMo(c, n) : '') + '</div>' +
       (ok ? '<div class="btns"><button class="btn" data-act="train" data-v="' + k + '" data-n="' + n + '" data-need=\'' + JSON.stringify(G.planPago(G.unitCost(k, n), G.trainDur(c, k, n)).primera) + '\'>+' + n + '</button><button class="btn" data-act="train" data-v="' + k + '" data-n="' + n * 3 + '" data-need=\'' + JSON.stringify(G.planPago(G.unitCost(k, n * 3), G.trainDur(c, k, n * 3)).primera) + '\'>+' + n * 3 + '</button></div>'
         : fe ? faltaBtn(fe) : '<button class="btn no">' + D.BUILD[rb].n + '<small>nivel ' + u.req[rb] + '</small></button>') + '</div>';
   }
+  return h;
+}
+function viewArmy() {
+  const s = S(), c = s.cities[UI.city], p = G.prod();
+  let h = cityChips() + '<div class="sec">Guarnición de ' + D.CITIES[UI.city].n + ' · ' + G.men(c.units) + ' hombres</div>' + troopsHtml(c.units);
+  h += '<div class="empty">' + popHtml(c) + '</div>';
+  h += '<div class="empty">🌾 Consumo de todas tus tropas: ' + Math.round(p.upkeep) + ' grano/mes · 🪙 Mantenimiento: −' + Math.round(p.mant.total) + ' oro (edificios ' + Math.round(p.mant.edificios) + ', paga ' + Math.round(p.mant.tropas) + ') · ⚖️ Rutas: +' + Math.round(p.rutas) + ' oro · 🧱 Guardia urbana al defender: ' + (20 + 20 * G.nivelMuralla(c)) + '<br>Para enviarlas a la guerra, toca una ciudad vecina en el mapa.</div>';
+  h += reclutarHtml(c);
   return h;
 }
 /* Senado (Q7) */
@@ -1187,7 +1241,71 @@ function encargoHtml() {
   if (en) o += '<div class="sec ro-rubrica">Encargo del Senado</div><div class="card sn-mi ro-tabla"><div class="tt">' + esc(en.e.n) + '</div><div class="ds">' + esc(en.e.texto) + '</div><div class="sn-fa"><b>Llevas</b> ' + Math.min(en.tiene, en.pide) + ' de ' + en.pide + ' · quedan ' + en.quedan + ' meses</div></div>';
   return o + '<div class="sec ro-rubrica">Hitos</div><div class="sn-ex sn-hitos">' + hs.map(x => (x.logrado ? '✔ ' : '▫ ') + esc(x.h.n)).join(' · ') + '</div>';
 }
+/* SN2: sala del Senado. Ley de la estación, hemiciclo de 30 escaños en tres bandos, tratos, tribuno y voto.
+   Lee el motor de SN1 (G.senadoSala, G.votos, G.tratos, G.veto); la elección de tratos vive solo en UI.sn2 (no se guarda). */
+const SN2_COL = { ter: '#46661f', mer: '#2c6f8c', mil: '#9b2a1a' };   // tinta de cada bando sobre papiro (más oscura que D.BANDOS.col)
+const SN2_DICT = { historico: 'histórico', probable: 'probable' };
+function sn2Hemiciclo(v) {
+  const cx = 195, cy = 186, filas = [[8, 74], [10, 106], [12, 138]], es = [];
+  filas.forEach(([n, r]) => { for (let i = 0; i < n; i++) { const a = Math.PI * (1 - (i + .5) / n); es.push({ a, x: cx + r * Math.cos(a), y: cy - r * Math.sin(a) }); } });
+  es.sort((p, q) => q.a - p.a);
+  let h = '<path d="M30 186A165 165 0 0 1 360 186Z" class="sn2-arco"/><path d="M150 186A45 45 0 0 1 240 186Z" class="sn2-cons"/>', k = 0;
+  for (const b of ['ter', 'mer', 'mil']) {
+    const x = v.porBando[b], col = SN2_COL[b], g = es.slice(k, k + x.escanos); k += x.escanos;
+    g.sort((p, q) => Math.hypot(p.x - cx, p.y - cy) - Math.hypot(q.x - cx, q.y - cy));
+    g.forEach((s, i) => {
+      const X = s.x.toFixed(1), Y = s.y.toFixed(1);
+      if (i < x.si) h += '<circle cx="' + X + '" cy="' + Y + '" r="10" fill="' + col + '" stroke="#2b1c0a" stroke-width="1.5"/>';
+      else if (i < x.si + x.duda) h += '<circle cx="' + X + '" cy="' + Y + '" r="9" fill="none" stroke="' + col + '" stroke-width="2.5" stroke-dasharray="4 3"/><text x="' + X + '" y="' + (s.y + 4).toFixed(1) + '" text-anchor="middle" font-size="11" font-weight="700" fill="' + col + '">?</text>';
+      else h += '<circle cx="' + X + '" cy="' + Y + '" r="9" fill="rgba(60,35,10,.12)" stroke="rgba(60,35,10,.5)" stroke-width="1.5"/><path d="M' + (s.x - 4).toFixed(1) + ' ' + (s.y - 4).toFixed(1) + 'l8 8m0-8l-8 8" stroke="' + col + '" stroke-width="2" opacity=".8"/>';
+    });
+  }
+  [[66, 50, 'ter'], [195, 16, 'mer'], [324, 50, 'mil']].forEach(([x, y, b]) => { h += '<text x="' + x + '" y="' + y + '" text-anchor="middle" class="sn2-ban" fill="' + SN2_COL[b] + '">' + D.BANDOS[b].n.toUpperCase() + '</text>'; });
+  return '<svg class="sn2-sala" viewBox="0 6 390 188" role="img" aria-label="Sala del Senado: ' + v.si + ' sí, ' + v.duda + ' dudan, ' + v.no + ' no">' + h + '<text x="195" y="178" text-anchor="middle" class="sn2-ban" fill="#e9c063">CÓNSULES</text></svg>';
+}
+function sn2Titulo(t) {
+  if (t.tipo === 'si') return 'Ya votan sí';
+  if (t.tipo === 'pago') return 'Pagar ' + t.coste + ' de oro por sus votos';
+  return t.promesa && t.promesa.tipo === 'sinLeva' ? 'Prometer: sin leva en ' + D.CITIES[t.promesa.ciudad].n : 'Prometer: ' + (t.promesa ? t.promesa.n : 0) + ' hombres en armas';
+}
+function viewSala(sala) {
+  const s = S(), S2 = D.SENADO, l = sala.ley, f = G.favor();
+  if (!UI.sn2 || UI.sn2.ley !== l.id) UI.sn2 = { ley: l.id, b: {} };
+  const tr = G.tratos(l), elegidos = tr.filter(t => t.tipo !== 'si' && UI.sn2.b[t.bando]), v = G.votos(l, elegidos), vet = G.veto(l), falta = S2.mayoria;
+  const barra = (n, x, c) => '<div class="sn2-f"><span>' + n + '</span><div class="sn-bar"><i class="' + c + '" style="width:' + Math.round(x) + '%"></i></div><b>' + Math.round(x) + '</b></div>';
+  const fu = l.fuente ? '<div class="sn2-fu">' + esc(l.fuente) + (l.dictamen ? ' · ' + esc(SN2_DICT[l.dictamen] || l.dictamen) : '') + '</div>' : '';
+  let o = '<div class="ro ro-sen"><div class="ro-palo"></div><div class="ro-papiro sn sn2' + (l.n.length + l.texto.length > 90 ? ' larga' : '') + '">' +
+    '<div class="sn2-fav">' + barra('Senado', f.senado, 'sen') + barra('Pueblo', f.pueblo, 'pue') + '</div>' +
+    '<div class="sn2-ley ro-tabla"><div class="sn2-lc"><small>' + (sala.cambiada ? 'La propones tú' : 'Propone el Senado') + '</small>' + (sala.cambiada ? '' : '<button class="btn ro-bronce sn2-cam" data-act="sn2-cambiar">Cambiar ley</button>') + '</div><h3>' + esc(l.n) + '</h3><p>' + esc(l.texto) + '</p>' + fu +
+    '</div>' +
+    sn2Hemiciclo(v) +
+    '<div class="sn2-cuenta"><b class="si">' + v.si + ' sí</b> · <b class="du">' + v.duda + (v.duda === 1 ? ' duda' : ' dudan') + '</b> · <b class="no">' + v.no + ' no</b> <em>· hacen falta ' + falta + '</em></div><div class="sn2-tratos">';
+  for (const t of tr) {
+    const on = t.tipo !== 'si' && !!UI.sn2.b[t.bando], cls = t.etiqueta === 'Favorable' ? 'fav' : t.etiqueta === 'Dudoso' ? 'dud' : 'arr';
+    const vt = 'Te dan <b>' + t.extra + (t.extra === 1 ? ' voto' : ' votos') + '</b>. ', txt = t.tipo === 'si' ? 'No piden nada.' : t.tipo === 'pago' ? vt + S2.pagoVoto + ' de oro cada uno.' : vt + 'Romperla: ' + S2.romper + ' de favor.';
+    o += '<button class="sn2-trato' + (on ? ' on' : '') + (t.tipo === 'si' ? ' ya' : '') + '"' + (t.tipo === 'si' ? ' disabled' : ' data-act="sn2-trato" data-v="' + t.bando + '"') + ' data-b="' + t.bando + '" aria-pressed="' + on + '">' +
+      '<span class="sn2-th"><u style="background:' + D.BANDOS[t.bando].col + '"></u><span>' + D.BANDOS[t.bando].n + ' · ' + t.escanos + ' escaños</span><s class="' + cls + '">' + (t.tipo === 'si' ? 'Ya votan sí' : t.etiqueta) + '</s></span>' + (t.tipo === 'si' ? '' : '<b class="sn2-tt">' + sn2Titulo(t) + '</b><span class="sn2-tx">' + txt + '</span>') + '</button>';
+  }
+  const ple = ((l.chips || {}).ple || 0);
+  o += '</div><div class="sn2-tri"><b>Tribuno de la plebe</b>' + (vet.veta ? 'Vetará: el pueblo está a ' + vet.pueblo + ' y pide ' + vet.umbral + '.' : ple < 0 ? 'No veta: la plebe está contenta.' : 'No veta: esta ley no daña a la plebe.') +
+    '</div></div><div class="ro-palo"></div>';
+  const con = elegidos.length === 1 ? (elegidos[0].tipo === 'pago' ? 'Con el pago' : 'Con la promesa') : elegidos.length ? 'Con ' + elegidos.length + ' tratos' : 'Sin tratos';
+  const pie = v.si >= falta ? con + ': ' + v.si + ' de ' + falta : 'Saldría que no: ' + v.si + ' de ' + falta;
+  return o + '<div class="ro-pie sn2-pie"><button class="btn ro-bronce sn2-pasar" data-act="sn2-pasar">Dejar pasar</button>' + (vet.veta ? '<button class="btn ro-sello sn2-votar sn2-jue" data-act="sn2-juegos"><b>Juegos en el Foro</b><span>' + S2.juegos.oro + ' de oro: +' + S2.juegos.pueblo + ' al pueblo</span></button>' : '<button class="btn ro-sello sn2-votar" data-act="sn2-votar"><b>Votar</b><span>' + pie + '</span></button>') + '</div></div>';
+}
+function sn2Resultado(r) {
+  if (!r || !r.ok) { toast((r && r.motivo) || 'No se pudo votar.', 'bad'); return; }
+  UI.sn2 = null; UI.codice = null; UI.vistas = false; UI.cityList = false; setTab('city'); toast(r.linea, r.sale ? 'good' : 'bad');
+}
+function sn2Cambiar() {
+  const alt = G.propuestasAlternativas();
+  if (!alt.length) { toast('No hay otra ley que proponer ahora.', 'bad'); return; }
+  carta('<div class="yr">CAMBIAR LA PROPUESTA</div><h2>¿Qué ley propones?</h2><p>Cambiarla cuesta ' + (-D.SENADO.cambiar) + ' de favor con los tres bandos. Solo una vez por estación.</p>' +
+    alt.map(id => { const l = G.leyDe(id), v = G.votos(l, []); return '<div class="card sn2-alt"><div class="bd"><div class="tt">' + esc(l.n) + '</div><div class="ds">' + esc(l.texto) + '</div><div class="ds">Hoy: ' + v.si + ' sí · ' + v.duda + ' dudan · ' + v.no + ' no</div></div><button class="btn gold" data-act="sn2-proponer" data-v="' + esc(id) + '">Proponer</button></div>'; }).join('') +
+    '<div class="acts"><button class="btn ghost" data-act="close">No cambiar</button></div>');
+}
 function viewSenado() {
+  const sala = G.senadoSala && G.senadoSala(); if (sala) return viewSala(sala);   // SN2: con votación abierta, la sala
   const f = G.favor(), mi = G.misionActual(), mot = G.senadoMotivo();
   const barra = (n, v, c) => '<div class="sn-b"><span>' + n + '</span><div class="sn-bar"><i class="' + c + '" style="width:' + v + '%"></i></div><b>' + v + '</b></div>';
   const efecto = e => { const a = []; if (e.oro) a.push((e.oro > 0 ? '+' : '') + e.oro + ' de oro'); if (e.favorSenado) a.push((e.favorSenado > 0 ? '+' : '') + e.favorSenado + ' favor del Senado'); if (e.favorPueblo) a.push((e.favorPueblo > 0 ? '+' : '') + e.favorPueblo + ' favor del pueblo'); return a.join(', ') || 'nada'; };
@@ -1196,6 +1314,7 @@ function viewSenado() {
   let o = '<div class="ro ro-sen"><div class="ro-palo"></div><div class="ro-papiro sn"><h2 class="ro-ansata">Senado</h2>' + barra('Senado', f.senado, 'sen') + barra('Pueblo', f.pueblo, 'pue') +
     '<p class="sn-ex">El pueblo sigue el ánimo de tus ciudades. El Senado sube con las misiones cumplidas y baja con las falladas o con el oro en rojo a fin de mes.</p>';
   if (mot) o += '<div class="sn-av">' + esc(mot) + '</div>';
+  if (D.SENADO.sala) o += '<p class="sn-ex">El Senado no vota nada esta estación. Al pasar turno propondrá una ley.</p>';
   o += encargoHtml();
   if (!mi) return o + RO_HIEDRA + '<div class="empty sn-nada">El Senado no te pide nada por ahora.</div>' + pie;
   const m = mi.m, tot = Math.max(1, mi.t1 - mi.t0);
@@ -1323,7 +1442,7 @@ function renderSheet() {
   h += '<div class="acts">';
   h += sal.map(x => '<button class="btn" data-act="salir" data-v="' + id + '" data-m="' + x.m.id + '">⚔️ Salir al encuentro de ' + esc(D.FACTIONS[x.m.owner].n) + '</button>').join('');
   h += esp.map(m => (D.CAMPO.apostables.includes(m.sitio.r) && !m.postura ? '<button class="btn" data-act="apostar" data-m="' + m.id + '">🌿 Apostar en ' + esc(m.sitio.n) + '</button>' : '') + '<button class="btn ghost" data-act="dejarsitio" data-m="' + m.id + '">Volver a ' + esc(D.CITIES[id].n) + '</button>').join('');
-  if (mine) h += '<button class="btn gold" data-act="goto" data-v="' + id + '">Gestionar</button>';
+  if (mine) h += '<button class="btn gold" data-act="entrar" data-v="' + id + '">Entrar en ' + esc(d.n) + '</button>';
   if (src.length) h += src.map(n => '<button class="btn" data-act="pick" data-from="' + n + '" data-to="' + id + '">' + (mine ? 'Reforzar' : 'Atacar') + ' desde ' + D.CITIES[n].n + (G.edge(n, id)[2] ? ' ⚓' : '') + '</button>').join('');
   else if (!mine) h += '<div class="empty">Sin ruta: conquista antes una ciudad vecina (' + G.neighbors(id).map(n => D.CITIES[n].n).join(', ') + ').</div>';
   const st = sh.scrollTop; sh.innerHTML = h + '</div>'; sh.hidden = false; sh.scrollTop = st;
@@ -1412,7 +1531,7 @@ document.addEventListener('click', function (e) {
   if (!el && e.target.closest('#cuentas')) return;
   if (!el) { $('cuentas').hidden = true; if (!e.target.closest('#hoja')) hojaCierra(true); $('citymenu').hidden = true; $('popsheet').hidden = true; if (e.target.id === 'modal' && !UI.sticky) closeModal(); hudDock(); return; }
   const a = el.dataset.act, v = el.dataset.v, s = S();
-  if (el.closest('#hoja')) UI.hjDown = false; if (a !== 'menumodo' && a !== 'hoja' && !el.closest('#hoja')) hojaCierra(true); if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true; if (a !== 'cuentas' && a !== 'imp' && a !== 'cuvender' && a !== 'cuadelantar') $('cuentas').hidden = true;
+  if (el.closest('#hoja')) UI.hjDown = false; if (a !== 'menumodo' && a !== 'hguerra' && a !== 'hoja' && !el.closest('#hoja')) hojaCierra(true); if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true; if (a !== 'cuentas' && a !== 'imp' && a !== 'cuvender' && a !== 'cuadelantar') $('cuentas').hidden = true;
   if (a !== 'derr') UI.derr = null;
   switch (a) {
     case 'dif': if (el.dataset.d === 'm') { UI.difSel = v; const nm = $('hname') ? $('hname').value : ''; showMenu(); if (nm && $('hname')) $('hname').value = nm; } else { const r = G.ponerAjustes({ dif: v }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); toast('Dificultad ' + (DIF_NOM[v] || v) + ': vale desde el mes siguiente.'); } render(); } break;
@@ -1437,6 +1556,13 @@ document.addEventListener('click', function (e) {
     case 'copiacargar': { if (S() && !UI.menu && !confirm('Cargar una copia reemplaza la partida de este móvil. ¿Seguir?')) break; cargarCopia(G).then(r => { if (r.nada) return; if (!r.ok) { toast(r.motivo, 'bad'); return; } hojaCierra(true); UI.overShown = false; startGame(); toast('Copia cargada: ' + G.dateStr(S().t) + '.'); }); break; }
     case 'tomenu': G.save(); UI.modalQ = []; closeModal(); showMenu(); break;
     case 'tab': UI.codice = null; setTab(v); break;
+    case 'sn2-trato': if (UI.sn2) { UI.sn2.b[v] = !UI.sn2.b[v]; render(); } break;
+    case 'sn2-cambiar': sn2Cambiar(); break;
+    case 'sn2-proponer': { const r = G.cambiarPropuesta(v); closeModal(); if (!r.ok) toast(r.motivo, 'bad'); else { UI.sn2 = null; toast('Propones: ' + G.leyDe(v).n + '.'); } render(); break; }
+    case 'sn2-juegos': { const r = G.juegos(); toast(r.ok ? 'Juegos en el Foro: la plebe lo celebra.' : r.motivo, r.ok ? 'good' : 'bad'); render(); break; }
+    case 'sn2-votar': { const sl = G.senadoSala(); if (!sl) break; const tr = G.tratos(sl.ley).filter(t => t.tipo !== 'si' && UI.sn2 && UI.sn2.b[t.bando]); sn2Resultado(G.votar(tr)); break; }
+    case 'sn2-pasar': sn2Resultado(G.dejarPasar()); break;
+    case 'inf-senado': UI.infoCierra(); UI.codice = null; setTab('senado'); break;
     case 'codice': UI.codice = v || null; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;
     case 'turno': if (!G.turnos || s.over || s.pending.length || s.vivo || UI.modalOpen) break; AV.acum = []; try { G.pasarTurno(); } finally { const l = AV.acum; AV.acum = null; toastResumen(l); } UI.dirty = true; tickUI(); break;
     case 'seguir': seguirPausa(); break;
@@ -1444,7 +1570,12 @@ document.addEventListener('click', function (e) {
     case 'modo': setModo(v); break;
     case 'citymenu': { const m = $('citymenu'); m.hidden = !m.hidden; if (!m.hidden) m.innerHTML = cityMenuHtml(); break; }
     case 'menumodo': if (UI.hoja && UI.hoja.id === 'menu' && !$('hoja').hidden) hojaCierra(); else hojaAbre('menu'); break;
+    case 'hguerra': if (UI.hoja && UI.hoja.id === 'guerra' && !$('hoja').hidden) hojaCierra(); else hojaAbre('guerra'); break;
+    case 'entrar': entrarEn(v); break;
+    case 'vera': hojaCierra(true); try { if (UI.map) UI.map.center(v); } catch (e) { } break;
     case 'hoja': hojaAbre(v); break;
+    case 'escel': { const i = v.indexOf(':'); UI.esc[v.slice(0, i)] = v.slice(i + 1); hojaPinta(true); break; }
+    case 'escempieza': escEmpieza(); break;
     case 'hojax': hojaCierra(); break;
     case 'menuconf': UI.hojaConf = true; hojaPinta(true); break;
     case 'accion': if (UI.modo === 'guerra') setTab('army'); else { UI.cityList = true; setTab('city'); } break;

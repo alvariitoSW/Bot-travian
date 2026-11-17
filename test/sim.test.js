@@ -2032,3 +2032,17 @@ console.log('OK — todas las pruebas superadas');
   assert(!/G\.(puertas|licenciar|triunfo)\(/.test(txt), 'el bot no usa puertas, licencias ni triunfos');
   console.log('CN16b: puertas, veteranos y triunfo OK');
 }
+{ // ES1: escaramuzas. Ejércitos válidos para el motor de guerra, sin tocar la partida
+  const GU = require('../js/guerra.js'), E = G.ESCARAMUZA, antes = JSON.stringify(G.state);
+  for (const fac of E.facciones) for (const t of Object.keys(E.tamanos)) {
+    const e = G.escaramuza({ mio: t, ene: t, fac, campo: 'bosque', dif: 'dificil', semilla: 5 });
+    assert(e.fac === fac && e.campo === 'bosque' && e.ejercitos[0].hastati > 0, 'escaramuza: ' + fac + ' ' + t);
+    for (const u of e.ejercitos) for (const k in u) assert(D.UNITS[k] && u[k] > 0 && Number.isInteger(u[k]), 'escaramuza: tropa válida ' + k);
+    const B = G.jugarGuerra(GU.crear({ semilla: e.semilla, ejercitos: e.ejercitos }), 1.5); assert(B.fase === 'fin', 'escaramuza: la batalla termina (' + fac + ' ' + t + ')');
+  }
+  const f = G.escaramuza({ fac: 'epiro', dif: 'facil', semilla: 1 }), d = G.escaramuza({ fac: 'epiro', dif: 'dificil', semilla: 1 }), n = u => Object.values(u).reduce((a, b) => a + b, 0);
+  assert(n(d.ejercitos[1]) > n(f.ejercitos[1]), 'escaramuza: en difícil el enemigo trae más hombres');
+  assert(G.escaramuza({ fac: 'nadie', campo: 'mar' }).fac === 'cartago', 'escaramuza: valores raros caen en los de siempre');
+  assert(JSON.stringify(G.state) === antes, 'escaramuza: no toca el estado de la partida');
+  console.log('ES1: escaramuzas OK');
+}
