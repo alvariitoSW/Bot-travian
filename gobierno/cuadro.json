@@ -1912,6 +1912,12 @@
       "titulo": "Mapa · C8 Mapamundi que se ve mayor (excepción a la 1.0; primera de C8 a C14)",
       "nota": "js/gfx/map3d.js",
       "url": "https://claude.ai/code/session_01QiKC37JEPaDYRqYGUeCHXp"
+    },
+    {
+      "tarea": "MR2b",
+      "titulo": "Versión 1.0 · MR2b Menús romanos: Senado, avisos y barras (Opus)",
+      "nota": "Carril V; css/style.css y js/ui.js (no map3d.js)",
+      "url": "https://claude.ai/code/session_01QiKC36i5pShko1q8HsiYum"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
