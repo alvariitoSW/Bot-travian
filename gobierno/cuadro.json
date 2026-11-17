@@ -1670,12 +1670,6 @@
       "url": "https://claude.ai/code/session_01QiKC372EDu3vvuRKGFQWoE"
     },
     {
-      "tarea": "J4a",
-      "titulo": "Mapa por regiones · J4a Ciudades y regiones con fuente (datos)",
-      "nota": "js/data.js, js/registro.js, js/game.js (migración)",
-      "url": "https://claude.ai/code/session_01QiKC3AS42L9NVHoCFknGML"
-    },
-    {
       "tarea": "GM31",
       "titulo": "Batalla mejorada · GM31 Tablilla de mando y ajustes del manejo (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-manejo/; no toca js/",
