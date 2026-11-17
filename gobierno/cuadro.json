@@ -1891,6 +1891,12 @@
       "titulo": "Mapa y campaña · C5a Mapamundi lleno (excepción a la 1.0; sin vacío arriba y abajo, marco de carta antigua)",
       "nota": "js/gfx/map3d.js",
       "url": "https://claude.ai/code/session_01QiKC37JEPaDYRqYGUeCHXp"
+    },
+    {
+      "tarea": "DEC",
+      "titulo": "Decisiones delegadas en Fable 5.2 (Nilo y mapamundi)",
+      "nota": "solo decide y avisa; no construye",
+      "url": "https://claude.ai/code/session_01QiKC3AR2FzqYL23coZ3gBE"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
