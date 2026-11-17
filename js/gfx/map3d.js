@@ -305,6 +305,104 @@ function tribusMallas(vista, aguaXZ) {
   return { nombres, aldeas };
 }
 
+/* C12 · Calzadas, puertos y rutas de mar (D.CALZADAS, D.PUERTOS, D.RUMBOS) como en una carta antigua. SOLO SE VEN: no tocan D.EDGES
+   ni las rutas de comercio. Tres mallas para todo: (1) los trazos, en UNA geometría con color por vértice (rgba): cada calzada es una
+   cinta de tinta roja con el alma color pergamino y rayitas de miliario; cada ruta de mar, trazos de tinta sobre el agua;
+   (2) los nombres de las calzadas con su año y (3) las anclas de los puertos con su nombre, en un lienzo-atlas como C10 y C11.
+   La calzada que aún no existe en el año de la partida se ve pálida (ver calzadasAnio). Ficha en js/registro.js (calzada, puerto, rumbo). */
+const ROJO = [0.55, 0.13, 0.07], ALMA = [0.93, 0.84, 0.64], RUMBO = [0.14, 0.09, 0.05];
+function calzadasMallas(vista) {
+  const C = D.CALZADAS || {}, PU = D.PUERTOS || {}, RU = D.RUMBOS || {}, pos = [], col = [], tramos = {};
+  const pr = (lo, la) => { const p = D.proj(lo, la); return [p[0] * K, p[1] * K]; };
+  const quad = (a, b, c, d, y, rgb, al) => { for (const [x, z] of [a, b, c, a, c, d]) { pos.push(x, y(x, z), z); col.push(rgb[0], rgb[1], rgb[2], al); } };
+  // muestrea una polilínea cada ~paso unidades: [x, z, dx, dz] (dirección unitaria)
+  const muestras = (p, paso) => {
+    const out = [];
+    for (let i = 0; i + 1 < p.length; i++) {
+      const [ax, az] = pr(p[i][0], p[i][1]), [bx, bz] = pr(p[i + 1][0], p[i + 1][1]), l = Math.hypot(bx - ax, bz - az) || 1, n = Math.max(1, Math.ceil(l / paso));
+      for (let k = i ? 1 : 0; k <= n; k++) out.push([ax + (bx - ax) * k / n, az + (bz - az) * k / n, (bx - ax) / l, (bz - az) / l]);
+    }
+    for (let k = 1; k + 1 < out.length; k++) if (out[k + 1][0] !== out[k][0] || out[k + 1][1] !== out[k][1]) { const dx = out[k - 1][2] + out[k + 1][2], dz = out[k - 1][3] + out[k + 1][3], l = Math.hypot(dx, dz) || 1; out[k][2] = dx / l; out[k][3] = dz / l; }   // esquinas suaves
+    return out;
+  };
+  const sobre = alto => (x, z) => Math.max(0.03, vista.hAt(x, z)) + alto;
+  for (const id in C) {
+    const c = C[id], m = muestras(c.p, 0.4), i0 = col.length;
+    for (const [ancho, alto, rgb] of [[0.42, 0.1, ROJO], [0.13, 0.104, ALMA]]) {
+      const y = sobre(alto), w = ancho / 2;
+      for (let k = 0; k + 1 < m.length; k++) { const a = m[k], b = m[k + 1]; quad([a[0] - a[3] * w, a[1] + a[2] * w], [b[0] - b[3] * w, b[1] + b[2] * w], [b[0] + b[3] * w, b[1] - b[2] * w], [a[0] + a[3] * w, a[1] - a[2] * w], y, rgb, 1); }
+    }
+    const y = sobre(0.106);   // rayitas de miliario cada ~1,6 unidades (≈ cada 30 km): la trama de las cartas
+    for (let k = 2; k + 2 < m.length; k += 4) { const [x, z, dx, dz] = m[k], L = 0.36, e = 0.06; quad([x - dz * L - dx * e, z + dx * L - dz * e], [x - dz * L + dx * e, z + dx * L + dz * e], [x + dz * L + dx * e, z - dx * L + dz * e], [x + dz * L - dx * e, z - dx * L - dz * e], y, ROJO, 1); }
+    tramos[id] = [i0 / 4, col.length / 4];
+  }
+  const llano = () => 0.13;
+  for (const id in RU) {   // trazos de 0,5 con huecos de 0,35 sobre el agua: un rectángulo por trazo
+    const p = RU[id].p.map(q => pr(q[0], q[1])), w = 0.11, DASH = 0.7, HUECO = 0.45; let resto = 0;
+    for (let i = 0; i + 1 < p.length; i++) {
+      const [ax, az] = p[i], [bx, bz] = p[i + 1], l = Math.hypot(bx - ax, bz - az) || 1, dx = (bx - ax) / l, dz = (bz - az) / l;
+      for (let t = resto; t < l; t += DASH + HUECO) {
+        const t1 = Math.min(l, t + DASH), x0 = ax + dx * t, z0 = az + dz * t, x1 = ax + dx * t1, z1 = az + dz * t1;
+        quad([x0 - dz * w, z0 + dx * w], [x1 - dz * w, z1 + dx * w], [x1 + dz * w, z1 - dx * w], [x0 + dz * w, z0 - dx * w], llano, RUMBO, 0.92);
+        resto = t + DASH + HUECO - l;
+      }
+    }
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 4)); g.computeBoundingSphere();
+  const trazos = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, depthWrite: false, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }));
+  trazos.renderOrder = 3; trazos.userData.tramos = tramos;
+  // --- nombres: atlas con las calzadas (nombre latino y año) y los puertos (ancla y nombre) ---
+  const P = 30, ANCHO_AT = 2048, fl = px => '600 ' + px + 'px Georgia, "Times New Roman", serif', fs = px => 'italic ' + px + 'px Georgia, "Times New Roman", serif';
+  const cv = document.createElement('canvas'), ctx = cv.getContext('2d'), piezas = [];
+  for (const id in C) {
+    const c = C[id], px = Math.round(0.46 * P), txt = latino(c.la), fecha = c.anio ? (c.hacia ? 'hacia ' : 'año ') + c.anio + ' a.C.' : 'camino antiguo';
+    ctx.font = fl(px); const w1 = anchoLetras(ctx, txt, px, 0.2); ctx.font = fs(Math.round(px * 0.78)); const w2 = ctx.measureText(fecha).width;
+    const q = c.p[Math.min(c.et || 0, c.p.length - 1)]; piezas.push({ clase: 'via', txt, fecha, px, lon: q[0], lat: q[1], wpx: Math.ceil(Math.max(w1, w2) + px), hpx: Math.ceil(px * 2.3) });
+  }
+  for (const id in PU) {
+    const u = PU[id], px = Math.round(0.68 * P), txt = u.ciudad ? '' : latino(u.la); ctx.font = fl(px); const w = txt ? anchoLetras(ctx, txt, px, 0.2) : 0;
+    piezas.push({ clase: 'puerto', txt, px, lon: u.lon, lat: u.lat, wpx: Math.ceil(Math.max(px * 2.2, w + px)), hpx: Math.ceil(px * (txt ? 3.4 : 2.2)) });
+  }
+  let x = 0, y = 0, fila = 0;
+  for (const q of piezas) { if (x + q.wpx + 2 > ANCHO_AT) { x = 0; y += fila + 2; fila = 0; } q.ax = x; q.ay = y; x += q.wpx + 2; fila = Math.max(fila, q.hpx); }
+  cv.width = ANCHO_AT; cv.height = Math.max(4, y + fila);
+  for (const q of piezas) {
+    const cx = q.ax + q.wpx / 2, px = q.px; ctx.save(); ctx.lineJoin = 'round'; ctx.textBaseline = 'alphabetic';
+    if (q.clase === 'via') {
+      ctx.font = fl(px); ctx.textAlign = 'left'; ctx.fillStyle = '#7a1f12'; ctx.strokeStyle = HALO; ctx.lineWidth = px * 0.26; letras(ctx, q.txt, cx, q.ay + px * 1.05, px, 0.2);
+      const pe = Math.round(px * 0.78); ctx.font = fs(pe); ctx.textAlign = 'center'; ctx.fillStyle = TINTA; ctx.lineWidth = pe * 0.3; ctx.strokeText(q.fecha, cx, q.ay + q.hpx - pe * 0.3); ctx.fillText(q.fecha, cx, q.ay + q.hpx - pe * 0.3);
+    } else {   // ancla a tinta: anilla, caña, cepo y brazos curvos
+      const s = px * 0.9, ay = q.ay + px * 0.25; ctx.translate(cx, ay); ctx.strokeStyle = HALO; ctx.lineCap = 'round';
+      const ancla = () => { ctx.beginPath(); ctx.arc(0, s * 0.18, s * 0.14, 0, 7); ctx.moveTo(0, s * 0.32); ctx.lineTo(0, s * 1.75); ctx.moveTo(-s * 0.42, s * 0.6); ctx.lineTo(s * 0.42, s * 0.6);
+        ctx.moveTo(-s * 0.72, s * 1.2); ctx.quadraticCurveTo(-s * 0.6, s * 1.78, 0, s * 1.78); ctx.quadraticCurveTo(s * 0.6, s * 1.78, s * 0.72, s * 1.2); ctx.stroke(); };
+      ctx.lineWidth = s * 0.34; ancla(); ctx.strokeStyle = '#1f3a4f'; ctx.lineWidth = s * 0.15; ancla();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      if (q.txt) { ctx.font = fl(px); ctx.textAlign = 'left'; ctx.fillStyle = '#1f3a4f'; ctx.strokeStyle = HALO; ctx.lineWidth = px * 0.28; letras(ctx, q.txt, cx, q.ay + q.hpx - px * 0.3, px, 0.2); }
+    }
+    ctx.restore();
+  }
+  const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const malla = clase => {
+    const p3 = [], uv = [], idx = [];
+    for (const q of piezas) {
+      if (q.clase !== clase) continue;
+      const [x0, z0] = pr(q.lon, q.lat), w = q.wpx / P, h = q.hpx / P, cx = x0, cz = clase === 'via' ? z0 + h * 0.5 + 0.25 : z0 + h * 0.5 - 0.3, b = p3.length / 3;
+      let alto = 0.15; if (clase === 'via') for (const [u, v] of [[0, 0], [1, 0], [0.5, 0.5], [0, 1], [1, 1]]) alto = Math.max(alto, vista.hAt(cx + (u - 0.5) * w, cz + (v - 0.5) * h) + 0.12);
+      for (const [u, v] of [[0, 0], [1, 0], [1, 1], [0, 1]]) { p3.push(cx + (u - 0.5) * w, alto, cz + (v - 0.5) * h); uv.push((q.ax + u * q.wpx) / cv.width, 1 - (q.ay + v * q.hpx) / cv.height); }
+      idx.push(b, b + 2, b + 1, b, b + 3, b + 2);
+    }
+    const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.Float32BufferAttribute(p3, 3)); gg.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); gg.setIndex(idx); gg.computeBoundingSphere();
+    const me = new THREE.Mesh(gg, new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, depthTest: false })); me.renderOrder = 4; return me;
+  };
+  return { trazos, vias: malla('via'), puertos: malla('puerto') };
+}
+/* C12 · la calzada que aún no se ha construido en el año de la partida (D.anio, en años a.C.) se ve pálida */
+function calzadasAnio(trazos, anio) {
+  const C = D.CALZADAS || {}, a = trazos.geometry.attributes.color;
+  for (const id in trazos.userData.tramos) { const [i0, i1] = trazos.userData.tramos[id], al = !C[id].anio || anio <= C[id].anio ? 1 : 0.3; for (let i = i0; i < i1; i++) a.setW(i, al); }
+  a.needsUpdate = true;
+}
+
 function aguaMask() {
   const cv = document.createElement('canvas'); cv.width = AW; cv.height = AH; const g = cv.getContext('2d', { willReadFrequently: true }), px = lo => (lo - LON0) / DLON * 2 + 0.5, py = la => (LAT1 - la) / DLAT * 2 + 0.5;
   g.fillStyle = '#000'; g.fillRect(0, 0, AW, AH); g.globalCompositeOperation = 'lighten'; g.lineJoin = g.lineCap = 'round';
@@ -555,6 +653,8 @@ export class MapView3D {
     this.adornos = adornosMalla(); sc.add(this.adornos);
     // --- C11: pueblos y tribus (D.TRIBUS): poblados y cintas con su nombre ---
     { const tm = tribusMallas(this, aguaXZ); this.tribus = tm.nombres; this.aldeas = tm.aldeas; sc.add(this.tribus); sc.add(this.aldeas); }
+    // --- C12: calzadas, puertos y rutas de mar (D.CALZADAS, D.PUERTOS, D.RUMBOS): solo se ven ---
+    { const cm = calzadasMallas(this); this.calzadas = cm.trazos; this.vias = cm.vias; this.puertos = cm.puertos; this.calzAnio = null; sc.add(this.calzadas); sc.add(this.vias); sc.add(this.puertos); }
     // --- rutas ---
     this.aristas = [];
     for (const e of D.EDGES) {
@@ -781,6 +881,9 @@ export class MapView3D {
     this.adornos.material.opacity = 0.92 * ss(16, 42, c.dist);   // C10: los adornos de carta se desvanecen al acercarse
     this.adornos.visible = this.adornos.material.opacity > 0.01;   // C5a: viñeta del marco solo en vistas lejanas
     this.tribus.material.opacity = 0.95 * ss(170, 125, c.dist) * ss(13, 24, c.dist); this.tribus.visible = this.tribus.material.opacity > 0.01;   // C11: cintas de los pueblos a media distancia (de muy cerca se ve el poblado)
+    if (D.anio !== this.calzAnio) { this.calzAnio = D.anio; calzadasAnio(this.calzadas, D.anio || D.START_YEAR || 280); }   // C12: calzadas pálidas hasta su año
+    this.vias.material.opacity = 0.95 * ss(120, 80, c.dist) * ss(8, 14, c.dist); this.vias.visible = this.vias.material.opacity > 0.01;   // C12: nombres de calzadas a media distancia
+    this.puertos.material.opacity = 0.95 * ss(260, 190, c.dist) * ss(6, 11, c.dist); this.puertos.visible = this.puertos.material.opacity > 0.01;   // C12: anclas de los puertos
     this.aldeas.visible = c.dist < 135;   // C11: de lejos, los poblados no se distinguen: no se dibujan
     this.scene.fog.near = Math.max(90, c.dist * 0.6); this.scene.fog.far = Math.max(260, c.dist * 1.75);   // C6: a más distancia, más bruma lejana
     this.cam.position.set(c.x, Math.sin(c.pitch) * c.dist, c.z + cp * c.dist); this.cam.lookAt(c.x, 0, c.z);
