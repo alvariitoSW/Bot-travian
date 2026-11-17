@@ -3,6 +3,16 @@
   "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
   "capturas": [
     {
+      "tarea": "K7c",
+      "archivo": "gobierno/capturas-tarea/K7c-miga-mapa.jpg",
+      "pie": "Mapa: miga «Roma › Camino» y botón rojo «Entrar en la ciudad»"
+    },
+    {
+      "tarea": "K7c",
+      "archivo": "gobierno/capturas-tarea/K7c-miga-ciudad.jpg",
+      "pie": "Ciudad: miga «Roma › Ciudad» y botón rojo «Salir al mapa»"
+    },
+    {
       "tarea": "GM4c",
       "archivo": "gobierno/capturas-tarea/GM4c-3-todo-lejos.jpg",
       "pie": "Arte nuevo, de lejos: suelo oscuro con tierra pisada, estandartes grandes, enemigo en azul"
@@ -1753,12 +1763,6 @@
       "titulo": "Batalla mejorada · GM31 Tablilla de mando y ajustes del manejo (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-manejo/; no toca js/",
       "url": "https://claude.ai/code/session_01QiKC37zLtSEbgCEXGMSZdg"
-    },
-    {
-      "tarea": "K7c",
-      "titulo": "Puerta de la ciudad · K7c Miga y botón único de volver",
-      "nota": "js/ui.js y su CSS",
-      "url": "https://claude.ai/code/session_01QiKC36YDFabWChvfmTtfkm"
     },
     {
       "tarea": "I5d",

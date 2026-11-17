@@ -275,6 +275,19 @@ function hudDock() {
   const t3 = UI.tab === 'imperio' || UI.tab === 'senado' || UI.tab === 'saber' ? 'imperio' : UI.tab === 'city' ? (UI.cityList || !UI.cityV ? 'gobierno' : 'ciudad') : '';
   document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3)); $('app').dataset.tab = t3; $('app').dataset.vista = UI.tab;
   setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
+  migaPon();
+}
+/* K7c: miga «Roma › Camino» + botón único para pasar de la ciudad al mapa y volver */
+function migaPon() {
+  const enMapa = UI.tab === 'map', enCiudad = UI.tab === 'city' && !!UI.cityV && !UI.cityList && !UI.fundar, ver = (enMapa || enCiudad) && !G.fundando();
+  $('miga').hidden = !ver; $('app').dataset.miga = ver ? '1' : '';
+  if (!ver) return;
+  setTxt('miga-t', '<b>' + esc(D.CITIES[UI.city].n) + '</b><i>›</i>' + (enMapa ? 'Camino' : 'Ciudad'));
+  setTxt('miga-b', enMapa ? 'Entrar en la ciudad' : 'Salir al mapa');
+}
+function migaVa() {
+  if (UI.tab === 'map') { const id = UI.city; if (UI.map && propiaEntrable(id) && !UI.map.esc.entrando) { UI.sel = id; UI.map.entrarCiudad(id); } else { UI.cityList = false; setTab('city'); } }
+  else if (UI.deMapa && UI.map) volverAlMapa(); else setModo('guerra');
 }
 function tickUI() {
   const s = S(); if (UI.pausa) { if (s && s.speed > 0) UI.pausa = null; pausaPon(); }   // R3: si el reloj corre por otra vía, la línea sobra
@@ -320,7 +333,7 @@ function setTab(t) {
   const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D (o en lista si se prefiere)
   $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3; UI.linK = null; if (!c3) $('linea').hidden = true;
   if (c3) { UI.cityV.resize(); renderCity3D(); }
-  { let b = $('bmapa'); if (!b) { b = document.createElement('button'); b.id = 'bmapa'; b.type = 'button'; b.dataset.act = 'almapa'; b.textContent = '← Mapa'; b.style.cssText = 'position:absolute;left:8px;top:64px;z-index:6;padding:6px 12px;border-radius:14px;border:1px solid #e9c063;background:#1b2430cc;color:#f1e6c8;font:600 13px system-ui'; $('citywrap').appendChild(b); } if (t !== 'city') UI.deMapa = false; b.hidden = !(c3 && UI.deMapa); }
+  if (t !== 'city') UI.deMapa = false;
   if (t === 'map') renderSheet(); else { $('sheet').hidden = true; $('view').scrollTop = 0; render(); }
   hudDock();
 }
@@ -1582,7 +1595,7 @@ document.addEventListener('click', function (e) {
     case 'skill': if (G.skill(v)) render(); break;
     case 'ev': { const ev = D.EVENTS[+v]; modal('<div class="yr">' + ev.y + ' A.C.</div><h2>' + esc(ev.t) + '</h2><p>' + esc(ev.x) + '</p>' + licHtml(ev) + '<div class="acts"><button class="btn" data-act="close">Cerrar</button></div>'); break; }
     case 'zoom': if (UI.map) UI.map.zoom(+v); break;
-    case 'almapa': volverAlMapa(); break;
+    case 'miga': migaVa(); break;
     case 'home': if (UI.map) UI.map.center(s.hero.city || 'roma'); break;
     case 'unsel': UI.sel = null; renderSheet(); break;
     case 'goto': UI.city = v; setTab('city'); break;

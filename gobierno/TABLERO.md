@@ -189,7 +189,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ⬜ GM41 **Tono por región y hora del día** (P149, aprobada 17/11; ≈0,3 M; pasa por Arte, skill `arte`). Coordinar con GM29 y GM30.
 
 ## Carril KJ — Puerta de la ciudad al juego (K7a a K7e, aprobadas por el usuario el 17/11/2026; informe `estudios/K7-concurso.md`, maqueta ganadora `maquetas/concurso9/D`)
-- ⬜ K7c **Miga «Roma › Camino» y botón único de volver, ciudad⇄mapa** (≈0,3 M): primera del carril. Sonnet. `js/ui.js`. Sesión abierta el 17/11.
+- ✅ K7c Miga «Roma › Camino» y botón único de volver (17/11/2026): `#miga` en `js/ui.js`/`css/style.css`; paso nuevo en los jueces.
 - ⬜ K7a **Mapa con grosor de ruta según renta y marcas de aliada y guerra** (≈0,4 M): solo mapa de campaña (`js/gfx/map3d.js`). Después de K7c.
 - ⬜ K7b **Tarjeta de ruta en el juego** (≈0,8 M): flujo sale y entra, renta desglosada, Proteger y Cortar con la consecuencia de cada protección; datos `D.RUTA_*` y lógica en `js/game.js`. Después de K7a.
 - ⬜ K7d **Interceptar con comparación de fuerzas antes de confirmar** (≈0,5 M): marchas, `js/ui.js` y `js/game.js`. Después de K7b.

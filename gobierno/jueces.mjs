@@ -389,6 +389,19 @@ async function navegador() {
       return { ok, detalle: ok ? 'ocho zonas; Italia acerca la cámara (' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ') y «← volver» la devuelve' : 'zonas ' + antes.zonas + ', dist ' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ', migas «' + dentro.migas + '», volver ' + dentro.volver + ', igual ' + igual + ', migas finales «' + fin.migas + '»', captura: fotoZona, detalle2: fotoMare };
     });
 
+    await paso('K7c miga «Roma › Camino» y botón único de volver (≥44 px, ≥11 px)', async () => {
+      await estado(() => { Game.state.speed = 0; UI.dirty = true; const b = document.createElement('button'); b.dataset.act = 'modo'; b.dataset.v = 'guerra'; document.body.appendChild(b); b.click(); b.remove(); const m = document.getElementById('modal'); if (m) m.hidden = true; });
+      await espera(1500);
+      const medir = () => estado(() => { const m = document.getElementById('miga'), b = document.getElementById('miga-b'), t = document.getElementById('miga-t'); if (!m || m.hidden) return { vis: false, tab: UI.tab }; const r = b.getBoundingClientRect(), d = document.getElementById('tabs3').getBoundingClientRect(); return { vis: true, tab: UI.tab, t: t.innerText.replace(/\s+/g, ' '), b: b.innerText, alto: r.height, fuente: parseFloat(getComputedStyle(b).fontSize), dentro: r.left >= 0 && r.right <= innerWidth, sinTapar: r.bottom < innerHeight - 100 }; });
+      const mapa = await medir(); await foto('miga-mapa');
+      await page.click('#miga-b'); await espera(3500);
+      const ciu = await medir(); await foto('miga-ciudad');
+      await page.click('#miga-b'); await espera(2500);
+      const vuelta = await medir();
+      const ok = mapa.vis && /Camino/.test(mapa.t) && /Entrar/.test(mapa.b) && ciu.vis && /Ciudad/.test(ciu.t) && /Salir/.test(ciu.b) && vuelta.tab === 'map' && [mapa, ciu].every(x => x.alto >= 44 && x.fuente >= 11 && x.dentro && x.sinTapar);
+      return { ok, detalle: ok ? 'mapa «' + mapa.t + '» con «' + mapa.b + '», ciudad «' + ciu.t + '» con «' + ciu.b + '», y vuelve al mapa' : JSON.stringify({ mapa, ciu, vuelta }) };
+    });
+
     await paso('CN22 avisos: máx. 2 avisos y tarjeta de estación baja', async () => {
       await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; Game.state.speed = 0; });
       await cierraAvisos();
