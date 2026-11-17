@@ -21,7 +21,7 @@ await mkdir(SALIDA, { recursive: true });
 const dpr = +(op.dpr || 2), prefijo = op.prefijo || join(SALIDA, 'GM43-'), errores = [];
 const bien = (ok, texto) => { console.log((ok ? '  bien: ' : '  MAL: ') + texto); if (!ok) errores.push('PRUEBA: ' + texto); };
 
-async function foto(fase, nombre, w, h) {
+async function foto(fase, nombre, w, h, pre) {
   const ctx = await br.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dpr, hasTouch: true, isMobile: true }), page = await ctx.newPage();
   page.on('console', m => { if ((m.type() === 'error' || m.type() === 'warning') && !/GPU stall|GL Driver|willReadFrequently/.test(m.text())) { errores.push(m.text().slice(0, 300)); console.log('  [' + m.type() + '] ' + m.text().slice(0, 300)); } });
   page.on('pageerror', e => { errores.push(e.message); console.log('  [error de página] ' + e.message.slice(0, 400)); });
@@ -32,8 +32,9 @@ async function foto(fase, nombre, w, h) {
   const cajas = await page.evaluate(() => [...document.querySelectorAll('.boton,.pildora,.gordo')].filter(b => b.offsetParent).map(b => { const r = b.getBoundingClientRect(); return { id: b.id, l: r.left, r: r.right, t: r.top, b: r.bottom, h: r.height }; }));
   bien(cajas.every(c => c.l >= 0 && c.r <= w && c.t >= 0 && c.b <= h && c.h >= 44), `${nombre}: los botones caben enteros y miden al menos 44 px (${cajas.map(c => c.id).join(', ')})`);
   bien(cajas.filter(c => c.id !== 'otra').every(c => c.t > h * 0.55 || c.b < h * 0.2), `${nombre}: ningún botón tapa el centro`);
-  await page.screenshot({ path: prefijo + nombre + '.jpg', type: 'jpeg', quality: 82, timeout: 240000 });
+  await page.screenshot({ path: (pre && !op.prefijo ? join(SALIDA, pre) : prefijo) + nombre + '.jpg', type: 'jpeg', quality: 82, timeout: 240000 });
   console.log(`${nombre}: ${JSON.stringify(e)}`);
+  bien(e.clavadosCerca === 0, `${nombre}: ningún venablo clavado a menos de 1 m de la cámara`);
   await ctx.close(); return e;
 }
 
@@ -45,6 +46,10 @@ e = await foto('pila', 'h-4-pila', ...H); bien(e.fase === 'lanzando', 'pila: los
 e = await foto('final', 'h-5-final', ...H); bien(e.fase === 'fin', 'final: sale la tarjeta');
 await foto('avance', 'v-1-avance', ...V);
 await foto('testudo', 'v-3-testudo', ...V);
+e = await foto('cara', 'h-cara', ...H, 'GM43b-'); bien(e.k > 0.99, 'cara: en testudo con la salva cayendo');
+await foto('cara', 'v-cara', ...V, 'GM43b-');
+e = await foto('roto', 'v-roto', ...V, 'GM43b-'); bien(e.roto, 'roto: tu escudo ya está partido (' + e.golpes + ' golpes)');
+e = await foto('carga', 'v-carga', ...V, 'GM43b-'); bien(e.fase === 'carga' && e.enHombre === 0, 'carga: nadie lleva venablos clavados');
 /* partida en vivo, sin fase: mantener «Avanzar» con el ratón, pulsar «Escudos» con el dedo */
 {
   const ctx = await br.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1, hasTouch: true }), page = await ctx.newPage();

@@ -16,8 +16,9 @@ let semilla = 43; const azar = () => { semilla = (semilla * 16807) % 2147483647;
 /* ---------- números de la maqueta ---------- */
 const FILES = 6, FILAS = 5, M = FILES * FILAS;
 const Z_TIRADORES = -100, Z_GALOS = -106, Z_PILA = -75, Z_CHOQUE = -104.2;
-const V_PASO = 1.8, V_TESTUDO = 0.9, V_CARGA = 5.5, VUELO = 2.2, CADA = 8;
+const V_CORRE = 5, V_PASO = 1.8, V_TESTUDO = 0.9, V_CARGA = 5.5, VUELO = 2.2, CADA = 8;
 const ABIERTO = { dx: 1.25, dz: 2.3 }, CERRADO = { dx: 0.62, dz: 1.0 };
+const APARTA = 0.14;   /* en testudo, el compañero de tu derecha se aparta un poco: su escudo no entra en la cámara */
 const TECHO = 1.68, MURO = 0.775, HUECO = 0, BAJA = 0.2;   /* BAJA: en testudo la figura se agacha y baja, para que el penacho no pase el techo */
 const YO = 3;   /* en testudo, la cámara es el hombre 3 (primera fila, cuarto por la izquierda): se oculta su figura y quedan sus escudos */
 
@@ -83,15 +84,17 @@ const texEscudo = lienzoTex(256, 448, (g, w, h) => {
 const texDentro = lienzoTex(256, 448, (g, w, h) => {
   const cx = w / 2, cy = h / 2, rx = w / 2 - 4, ry = h / 2 - 4;
   g.save(); g.beginPath(); g.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); g.clip();
-  const tonos = ['#b88a56', '#a87a48', '#c29662', '#9f7242', '#b58550', '#a77b4a', '#bd8f5b'];
+  const tonos = ['#8a6238', '#7b5630', '#93693e', '#73502c', '#866036', '#7a5532', '#8f663b'];
   for (let i = 0; i < 7; i++) { const x0 = i * w / 7; g.fillStyle = tonos[i]; g.fillRect(x0, 0, w / 7 + 1, h);
     for (let k = 0; k < 14; k++) { g.strokeStyle = `rgba(70,40,15,${0.12 + azar() * 0.18})`; g.lineWidth = 1; g.beginPath(); const xx = x0 + 3 + azar() * (w / 7 - 6); g.moveTo(xx, 0); g.bezierCurveTo(xx + 3, h * 0.3, xx - 3, h * 0.6, xx + 2, h); g.stroke(); }
     g.fillStyle = 'rgba(40,22,8,.85)'; g.fillRect(x0 - 1.5, 0, 3, h); }
-  g.fillStyle = '#6e4826'; g.fillRect(0, cy - 22, w, 44); g.fillStyle = 'rgba(255,220,170,.18)'; g.fillRect(0, cy - 22, w, 6); g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, cy + 18, w, 4);
+  for (let i = 0; i < 26; i++) { const m = g.createRadialGradient(0, 0, 1, 0, 0, 8 + azar() * 26); m.addColorStop(0, `rgba(30,16,6,${0.15 + azar() * 0.25})`); m.addColorStop(1, 'rgba(30,16,6,0)'); g.save(); g.translate(azar() * w, azar() * h); g.scale(1, 1.5 + azar() * 2); g.fillStyle = m; g.fillRect(-40, -40, 80, 80); g.restore(); }
+  g.fillStyle = '#4e3119'; g.fillRect(0, cy - 22, w, 44); g.fillStyle = 'rgba(255,220,170,.18)'; g.fillRect(0, cy - 22, w, 6); g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(0, cy + 18, w, 4);
   g.fillStyle = '#2c1a0e'; g.beginPath(); g.ellipse(cx, cy, 34, 40, 0, 0, Math.PI * 2); g.fill();
   g.fillStyle = '#3b2414'; g.fillRect(cx - 46, cy - 9, 92, 18); g.fillStyle = 'rgba(255,220,170,.22)'; g.fillRect(cx - 46, cy - 9, 92, 4);
+  const sb = g.createRadialGradient(cx, cy, Math.min(rx, ry) * 0.5, cx, cy, ry); sb.addColorStop(0, 'rgba(0,0,0,0)'); sb.addColorStop(0.7, 'rgba(10,5,2,.2)'); sb.addColorStop(1, 'rgba(10,5,2,.65)'); g.fillStyle = sb; g.fillRect(0, 0, w, h);
   g.restore();
-  g.lineWidth = 12; g.strokeStyle = '#4a2e18'; g.beginPath(); g.ellipse(cx, cy, rx - 6, ry - 6, 0, 0, Math.PI * 2); g.stroke();
+  g.lineWidth = 12; g.strokeStyle = '#3a2312'; g.beginPath(); g.ellipse(cx, cy, rx - 6, ry - 6, 0, 0, Math.PI * 2); g.stroke();
   g.lineWidth = 3; g.strokeStyle = '#b8862b'; g.beginPath(); g.ellipse(cx, cy, rx - 1.5, ry - 1.5, 0, 0, Math.PI * 2); g.stroke();
   g.fillStyle = '#d6a440';
   for (let i = 0; i < 22; i++) { const a = i / 22 * Math.PI * 2; g.beginPath(); g.arc(cx + Math.cos(a) * (rx - 7), cy + Math.sin(a) * (ry - 7), 3, 0, 7); g.fill(); }
@@ -128,37 +131,67 @@ const geoEscudo = (() => {
   for (let i = 0; i < p.count; i++) { const x = p.getX(i), a = x / R; p.setX(i, R * Math.sin(a)); p.setZ(i, R * (Math.cos(a) - 1)); }
   g.computeVertexNormals(); return g;
 })();
-const matEscudo = new THREE.MeshLambertMaterial({ map: texEscudo, alphaTest: 0.5, side: THREE.DoubleSide });
-/* por dentro el escudo es madera y cuero: oscuro */
-matEscudo.onBeforeCompile = sh => { sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n if (!gl_FrontFacing) diffuseColor.rgb = texture2D(tDentro, vMapUv).rgb;').replace('void main() {', 'uniform sampler2D tDentro;\nvoid main() {'); sh.uniforms.tDentro = { value: texDentro }; };
+/* por fuera, rojo y bronce; por dentro, madera (tDentro) */
+function matEscudoDe(fuera, dentroTex) {
+  const m = new THREE.MeshLambertMaterial({ map: fuera, alphaTest: 0.5, side: THREE.DoubleSide });
+  m.onBeforeCompile = sh => { sh.uniforms.tDentro = { value: dentroTex }; sh.fragmentShader = sh.fragmentShader.replace('#include <map_fragment>', '#include <map_fragment>\n if (!gl_FrontFacing) diffuseColor.rgb = texture2D(tDentro, vMapUv).rgb;').replace('void main() {', 'uniform sampler2D tDentro;\nvoid main() {'); };
+  return m;
+}
+const matEscudo = matEscudoDe(texEscudo, texDentro);
+/* tu escudo de delante, con su daño: 0 entero, 1 astillas y grieta, 2 grieta grande y un trozo fuera */
+function conDanio(tex, estado) {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 448; const g = c.getContext('2d'); g.drawImage(tex.image, 0, 0);
+  const grieta = (pts, ancho) => { g.strokeStyle = 'rgba(12,6,2,.95)'; g.lineWidth = ancho; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); g.strokeStyle = 'rgba(230,200,150,.5)'; g.lineWidth = 1.5; g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x + 2, y + 1) : g.moveTo(x + 2, y + 1)); g.stroke(); };
+  grieta([[96, 12], [104, 60], [92, 110], [110, 170]], 4);
+  for (let i = 0; i < 10; i++) { const x = 70 + i * 9, y = 20 + (i % 3) * 30; g.strokeStyle = 'rgba(235,205,160,.75)'; g.lineWidth = 2; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 6, y + 14); g.stroke(); }
+  if (estado >= 2) {
+    grieta([[110, 170], [128, 240], [116, 300], [140, 380], [132, 440]], 7); grieta([[128, 240], [180, 262], [230, 250]], 5);
+    g.globalCompositeOperation = 'destination-out'; g.beginPath(); g.moveTo(150, 0); g.lineTo(256, 0); g.lineTo(256, 150); g.lineTo(200, 120); g.lineTo(184, 70); g.lineTo(160, 46); g.closePath(); g.fill(); g.globalCompositeOperation = 'source-over';
+  }
+  const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; return t;
+}
+const MATS_MIO = [matEscudo, matEscudoDe(conDanio(texEscudo, 1), conDanio(texDentro, 1)), matEscudoDe(conDanio(texEscudo, 2), conDanio(texDentro, 2))];
+const miEscudo = new THREE.Mesh(geoEscudo, matEscudo); miEscudo.visible = false; escena.add(miEscudo);
+const VIDA_ESCUDO = 4;
 const NESC = M * 2 + FILAS * 2, escudos = new THREE.InstancedMesh(geoEscudo, matEscudo, NESC); escudos.frustumCulled = false; escena.add(escudos);
 
-const geoFlecha = new THREE.CylinderGeometry(0.02, 0.022, 1.45, 5, 1); geoFlecha.rotateX(Math.PI / 2);
-const NFL = 260, flechas = new THREE.InstancedMesh(geoFlecha, new THREE.MeshLambertMaterial({ color: 0x3a2a18 }), NFL); flechas.frustumCulled = false; escena.add(flechas);
-const FL = []; for (let i = 0; i < NFL; i++) FL.push({ est: 0 });
+/* astiles hechos por código: piezas [radio atrás, radio delante, largo, centro en z, color]; el eje va por +z y la punta delante */
+function geoAsta(piezas) {
+  const pos = [], nor = [], col = [];
+  for (const [r0, r1, l, zc, c] of piezas) {
+    const g = new THREE.CylinderGeometry(r1, r0, l, 6, 1).toNonIndexed(); g.rotateX(Math.PI / 2); g.translate(0, 0, zc);
+    pos.push(...g.attributes.position.array); nor.push(...g.attributes.normal.array); const cc = new THREE.Color(c);
+    for (let i = 0; i < g.attributes.position.count; i++) col.push(cc.r, cc.g, cc.b);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); return g;
+}
+const matAsta = new THREE.MeshLambertMaterial({ vertexColors: true });
+/* venablo: astil de 2,2 cm y 1,6 m, madera clara, punta de hierro pequeña (punta en z = +0,8) */
+const geoVenablo = geoAsta([[0.011, 0.011, 1.48, -0.06, '#c8a678'], [0.012, 0.012, 0.06, 0.70, '#4a4a48'], [0.014, 0, 0.1, 0.78, '#5c5c5a']]);
+/* pilum: astil de madera y hierro largo y fino con su punta (punta en z = +0,95) */
+const geoPilum = geoAsta([[0.015, 0.015, 1.2, -0.45, '#b48a5a'], [0.018, 0.012, 0.12, 0.2, '#3d3d3b'], [0.0055, 0.0055, 0.62, 0.56, '#6a6a68'], [0.011, 0, 0.08, 0.91, '#555553']]);
+const PUNTA = 0.8;
+const NFL = 260, flechas = new THREE.InstancedMesh(geoVenablo, matAsta, NFL); flechas.frustumCulled = false; escena.add(flechas);
+const FL = []; for (let i = 0; i < NFL; i++) FL.push({ est: 0, p: new THREE.Vector3(), q: new THREE.Quaternion() });
+/* astillas del escudo roto */
+const ASTILLAS = Array.from({ length: 7 }, (_, i) => { const m = new THREE.Mesh(new THREE.BoxGeometry(0.06 + (i % 3) * 0.04, 0.12 + (i % 2) * 0.12, 0.02), new THREE.MeshLambertMaterial({ color: i % 2 ? 0x7b5632 : 0x6e1a12 })); m.visible = false; escena.add(m); return { m, v: new THREE.Vector3(), w: new THREE.Vector3(), t: -9 }; });
 
 function nuevoSprite(tex, aditivo) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, blending: aditivo ? THREE.AdditiveBlending : THREE.NormalBlending })); s.visible = false; escena.add(s); return s; }
-const LLAMAS = Array.from({ length: 30 }, () => nuevoSprite(texLlama, true));
 const CHISPAS = Array.from({ length: 40 }, () => ({ s: nuevoSprite(texChispa, true), t: -9 }));
 const POLVO = Array.from({ length: 36 }, () => ({ s: nuevoSprite(texPolvo, false), t: -9, v: new THREE.Vector3() }));
 
-function nuevoPilum() {
-  const g = new THREE.Group();
-  const asta = new THREE.Mesh(new THREE.CylinderGeometry(0.024, 0.024, 1.3, 5), new THREE.MeshLambertMaterial({ color: 0x6b4a2a })); asta.rotation.x = Math.PI / 2; asta.position.z = -0.45;
-  const hierro = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.012, 0.75, 4), new THREE.MeshLambertMaterial({ color: 0x8a8a88 })); hierro.rotation.x = Math.PI / 2; hierro.position.z = 0.55;
-  g.add(asta, hierro); g.visible = false; escena.add(g); return g;
-}
+function nuevoPilum() { const g = new THREE.Mesh(geoPilum, matAsta); g.visible = false; escena.add(g); return g; }
 const PILA = Array.from({ length: FILES * 2 }, () => ({ g: nuevoPilum(), est: 0 }));
 
 /* ---------- estado de la partida ---------- */
 const S = {};
 function reinicia() {
   semilla = 43;
-  Object.assign(S, { T: 0, zF: 0, k: 0, escudos: false, andando: false, fase: 'avance', proxima: 4, aviso: false, impacto: -1, paso: 0, tCinta: 0, tFin: -1, choque: false, llegaron: 0, sacude: 0, vel: 0 });
+  Object.assign(S, { T: 0, zF: 0, k: 0, escudos: false, andando: false, fase: 'avance', proxima: 4, aviso: false, impacto: -1, paso: 0, tCinta: 0, tFin: -1, choque: false, llegaron: 0, sacude: 0, vel: 0, golpes: 0, roto: false, encoge: -9, destello: 0, corre: false, corriendo: false, aliento: 1, tGrito: -9 });
   S.romanos = []; for (let i = 0; i < M; i++) S.romanos.push({ f: i % FILES, r: Math.floor(i / FILES), vivo: true, muere: 0, lanza: -9, x: 0, z: 0, jx: (azar() - 0.5) * 0.18, jz: (azar() - 0.5) * 0.22, fase: azar() * 2 });
   S.tiradores = []; for (let i = 0; i < 10; i++) S.tiradores.push({ x: (i - 4.5) * 1.7 + (azar() - 0.5) * 0.5, z: Z_TIRADORES + (azar() - 0.5) * 1.2, vivo: true, muere: 0, huye: false, yaw: 0, fase: azar() * 4 });
   S.galos = []; for (let i = 0; i < 16; i++) S.galos.push({ x: ((i % 8) - 3.5) * 1.25 + (azar() - 0.5) * 0.3, z: Z_GALOS - Math.floor(i / 8) * 1.6 + (azar() - 0.5) * 0.4, vivo: true, muere: 0, fila: Math.floor(i / 8), fase: azar() * 3 });
-  for (const f of FL) f.est = 0; for (const p of PILA) { p.est = 0; p.g.visible = false; }
+  for (const f of FL) f.est = 0; for (const a of ASTILLAS) { a.t = -9; a.m.visible = false; } for (const p of PILA) { p.est = 0; p.g.visible = false; }
   for (const c of CHISPAS) c.t = -9; for (const p of POLVO) p.t = -9;
   $('fin').hidden = true; $('accion').hidden = true; cinta('', false);
 }
@@ -168,7 +201,7 @@ const vivos = () => S.romanos.filter(h => h.vivo).length;
 function sitio(h) {
   if (!h.vivo) return;
   const k = S.k, dx = lerp(ABIERTO.dx, CERRADO.dx, k), dz = lerp(ABIERTO.dz, CERRADO.dz, k);
-  h.x = (h.f - (FILES - 1) / 2) * dx + h.jx * (1 - k) + (h.r === 0 && (h.f === 2 || h.f === 3) ? (h.f === 2 ? -1 : 1) * HUECO * k : 0); h.z = S.zF + h.r * dz + h.jz * (1 - k);
+  h.x = (h.f - (FILES - 1) / 2) * dx + h.jx * (1 - k) + (h.r === 0 && h.f === YO + 1 ? APARTA * k : 0); h.z = S.zF + h.r * dz + h.jz * (1 - k);
 }
 
 /* ---------- avisos ---------- */
@@ -184,42 +217,94 @@ function ruido(dur, frec, vol, tipo) {
 }
 addEventListener('pointerdown', () => { if (!audio) { try { audio = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { audio = null; } } }, { once: true });
 
-/* ---------- descargas enemigas ---------- */
+/* ---------- la cámara: al hombro en la marcha; bajo los escudos, al lado de tu soldado (idea de Ryse) ---------- */
+const CAM = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0 };
+function camBase() {
+  const k = S.k, zc = S.zF + lerp(2.0, 0.42, k), xt = (YO - (FILES - 1) / 2) * CERRADO.dx + 0.30;
+  CAM.x = xt * k; CAM.z = zc; CAM.y = H(CAM.x, zc) + lerp(2.2, 1.40, k);
+  const dist = Math.max(8, zc - Z_TIRADORES), sube = Math.atan2(H(0, Z_TIRADORES) + 1.2 - CAM.y, dist);
+  CAM.pitch = lerp(vertical ? -0.1 : -0.06, vertical ? -0.1 : 0, k) + sube * 0.6 * (1 - k); CAM.yaw = lerp(0, vertical ? 0.3 : 0.17, k);
+  return CAM;
+}
+const lejos = (pt, d) => Math.hypot(pt.x - CAM.x, pt.y - CAM.y, pt.z - CAM.z) >= d;
+
+/* ---------- descargas enemigas: venablos de los peltastas ---------- */
+const enCierre = (h, z0) => ({ x: (h.f - (FILES - 1) / 2) * CERRADO.dx + (h.r === 0 && h.f === YO + 1 ? APARTA : 0), z: z0 + h.r * CERRADO.dz });
 function descarga() {
   const tir = S.tiradores.filter(t => t.vivo && !t.huye); if (!tir.length) return;
-  const v = S.andando ? (S.escudos ? V_TESTUDO : V_PASO) : 0, zPrev = Math.max(Z_PILA, S.zF - v * VUELO), vivosR = S.romanos.filter(h => h.vivo);
+  const v = S.corriendo ? V_CORRE : S.andando ? (S.escudos ? V_TESTUDO : V_PASO) : 0, zPrev = Math.max(Z_PILA, S.zF - v * VUELO), vivosR = S.romanos.filter(h => h.vivo);
+  const fondo = FILAS * lerp(ABIERTO.dz, CERRADO.dz, S.k), yo = S.romanos[YO];
   let n = 0;
   for (const f of FL) {
-    if (f.est !== 0 || n >= 34) continue; n++;
-    const t = tir[n % tir.length], sale = S.T + azar() * 0.35;
+    if (f.est !== 0 || n >= 30) continue; n++;
+    const t = tir[n % tir.length]; f.t0 = S.T + azar() * 0.35;
     f.p0 = new THREE.Vector3(t.x + (azar() - 0.5) * 0.6, H(t.x, t.z) + 1.7, t.z);
-    f.fijo = n <= 5;
-    if (n <= 3) { const x = (YO + (n % 2 ? -1 : 1) - (FILES - 1) / 2) * CERRADO.dx + (azar() - 0.5) * 0.3, z = zPrev - 0.1 + (azar() - 0.5) * 0.5; f.p1 = new THREE.Vector3(x, H(x, z) + TECHO + 0.05, z); f.blanco = true; f.muro = false; }
-    else if (n <= 5) { const x = (YO - (FILES - 1) / 2) * CERRADO.dx + (n === 4 ? -0.27 : 0.25) + (azar() - 0.5) * 0.06, z = zPrev - 0.5; f.p1 = new THREE.Vector3(x, H(x, z) + MURO + 0.35, z); f.blanco = true; f.muro = true; }
-    else if (n % 10 < 7 && vivosR.length) {
-      const h = vivosR[Math.floor(azar() * vivosR.length)], dz = lerp(ABIERTO.dz, CERRADO.dz, 1);
-      const x = (h.f - (FILES - 1) / 2) * CERRADO.dx + (azar() - 0.5) * 0.5, z = zPrev + h.r * dz + (azar() - 0.5) * 0.7;
-      f.muro = azar() < 0.3; f.blanco = true;
-      if (f.muro) { const x2 = ((n % FILES) - (FILES - 1) / 2) * CERRADO.dx + (azar() - 0.5) * 0.3, z2 = zPrev - 0.5; f.p1 = new THREE.Vector3(x2, H(x2, z2) + MURO + 0.25, z2); }
-      else f.p1 = new THREE.Vector3(x, H(x, z) + TECHO + 0.05, z);
+    let x, y, z; f.h = null; f.tipo = 'fallo';
+    /* uno a tu escudo de delante y dos a los techos que se ven: así se nota cada salva */
+    const fijo = n === 1 ? yo : n === 2 ? S.romanos[YO - 1] : n === 3 ? S.romanos[YO - 2] : null;
+    if (fijo || (azar() < 0.6 && vivosR.length)) {
+      const h = fijo || vivosR[Math.floor(azar() * vivosR.length)], c = enCierre(h, zPrev); f.h = h;
+      if ((n === 1 || (h.r === 0 && azar() < 0.35)) && h.vivo) { f.tipo = 'muro'; x = c.x + (h === yo ? -0.12 - azar() * 0.12 : (azar() - 0.5) * 0.3); y = MURO + 0.05 + azar() * 0.3; z = c.z - 0.47; }
+      else { f.tipo = 'techo'; x = c.x + (azar() - 0.5) * 0.3; y = TECHO + h.r * 0.035 + 0.03; z = c.z - (fijo ? 0.35 : 0.05) + (azar() - 0.5) * 0.3; }
     } else {
-      const x = (azar() - 0.5) * 16, z = zPrev - 6 + azar() * 16; f.p1 = new THREE.Vector3(x, H(x, z) + 0.3, z); f.blanco = false;
+      /* falla: corta, larga o a un lado */
+      const lado = azar(); if (lado < 0.4) { x = (azar() - 0.5) * 10; z = zPrev - 3 - azar() * 12; } else if (lado < 0.7) { x = (azar() - 0.5) * 8; z = zPrev + fondo + 1 + azar() * 8; } else { x = (azar() < 0.5 ? -1 : 1) * (3 + azar() * 5); z = zPrev + azar() * fondo; }
+      y = 0;
     }
-    f.t0 = sale; f.dur = VUELO + (azar() - 0.5) * 0.3; f.alto = 0.12 * f.p0.distanceTo(f.p1) + 4; f.fuego = false; f.est = 1; f.q = new THREE.Quaternion(); f.p = f.p0.clone();
+    f.p1 = new THREE.Vector3(x, H(x, z) + y, z);
+    f.dur = VUELO + (azar() - 0.5) * 0.3; f.alto = 0.12 * f.p0.distanceTo(f.p1) + 4; f.est = 1; f.p.copy(f.p0);
   }
   S.impacto = S.T + VUELO; for (const t of tir) t.tira = S.T;
 }
-/* los hombres que caen cuando llegan las flechas sin escudos */
+/* el venablo en tierra: clavado inclinado o rebotado y tumbado; nunca pegado a la cámara */
+function alSuelo(f, x, z, tumbado) {
+  camBase();
+  if (tumbado) { f.q.setFromEuler(new THREE.Euler(0, azar() * 6.28, 0)); f.p.set(x, H(x, z) + 0.03, z); }
+  else { V3.set(0, 0, 1).applyQuaternion(f.q); f.p.set(x, H(x, z), z).addScaledVector(V3, -(PUNTA - 0.2)); }
+  f.est = lejos(f.p, 1.3) ? 3 : 0;
+}
+/* llega un venablo */
+function aterriza(f) {
+  const h = f.h; V3.set(0, 0, 1).applyQuaternion(f.q);
+  if (f.tipo === 'fallo') { alSuelo(f, f.p1.x, f.p1.z, azar() < 0.3); if (f.est === 3 && azar() < 0.3) chispa(f.p1, 0.5); return; }
+  const roto = f.tipo === 'muro' && h === S.romanos[YO] && S.roto;
+  if (S.k > 0.7 && h && h.vivo && !roto) {
+    /* se clava en el escudo: solo entra la punta */
+    camBase(); const c = f.p1.clone().addScaledVector(V3, -(PUNTA - 0.07)), cola = c.clone().addScaledVector(V3, -0.8);
+    chispa(f.p1, 1); ruido(0.1, 240, 0.25);
+    if (f.tipo === 'muro' && h === S.romanos[YO]) golpeEscudo();
+    if (!lejos(c, 1.1) || !lejos(cola, 1.1) || !lejos(f.p1, 0.75) || azar() < 0.2) { f.est = 0; return; }
+    const b = enCierre(h, S.zF); f.est = 2; f.rel = new THREE.Vector3(c.x - h.x, c.y - H(h.x, h.z), c.z - h.z);
+    return;
+  }
+  /* sin escudo: el hombre cae (lo decide la salva) y el venablo queda tirado */
+  alSuelo(f, f.p1.x + (azar() - 0.5) * 0.6, f.p1.z + (azar() - 0.5) * 0.6, true);
+}
+function golpeEscudo() {
+  if (S.roto) return; S.golpes++;
+  if (S.golpes >= VIDA_ESCUDO) {
+    S.roto = true; ruido(0.5, 1800, 0.8, 'bandpass'); ruido(0.3, 300, 0.8); grita('¡Mi escudo!');
+    const yo = S.romanos[YO], y0 = H(yo.x, yo.z);
+    ASTILLAS.forEach((a, i) => { a.t = S.T; a.m.visible = true; a.m.position.set(yo.x + (azar() - 0.5) * 0.4, y0 + MURO + (azar() - 0.5) * 0.6, yo.z - 0.5); a.v.set((azar() - 0.5) * 2.4, 1 + azar() * 1.5, 0.6 + azar() * 1.8); a.w.set(azar() * 9, azar() * 9, azar() * 9); });
+  }
+}
+/* los hombres que caen cuando llegan los venablos sin escudos (nunca tú ni los dos de tu lado) */
 function bajas(n) {
   const cand = S.romanos.filter((h, i) => h.vivo && Math.abs(i - YO) > 1).sort((a, b) => (a.r + azar() * 2.5) - (b.r + azar() * 2.5));
   for (let i = 0; i < n && i < cand.length; i++) { const h = cand[i]; h.vivo = false; h.muere = S.T + azar() * 0.25; }
 }
+const GRITOS = { aguante: ['¡Aguantad!', '¡Firmes!', '¡Juntos!', '¡No os mováis!'], aviso: ['¡Escudos!', '¡Arriba los escudos!', '¡Ahí vienen!'], paso: ['¡Ya casi!', '¡Paso a paso!', '¡Adelante, juntos!'] };
+function grita(t) { if (Array.isArray(t)) t = t[Math.floor(azar() * t.length)]; const g = $('grito'); g.textContent = t; g.classList.add('ve'); S.tGrito = S.T; }
 function llegaDescarga() {
   S.impacto = -1;
-  if (S.k > 0.7) { cinta('¡Aguantan! Los venablos no pasan', true); ruido(0.25, 300, 0.6); S.sacude = 0.25; }
-  else { const n = S.k > 0.3 ? 1 : 2 + Math.floor(azar() * 3); bajas(n); cinta(`¡Sin escudos! Caen ${n} hombres`, false); ruido(0.3, 900, 0.5, 'bandpass'); }
+  if (S.k > 0.7) {
+    S.encoge = S.T; S.sacude = 0.38; S.destello = 0.14; ruido(0.3, 200, 0.8); grita(GRITOS.aguante);
+    camBase(); for (let i = 0; i < 8; i++) { const q = POLVO.find(q => S.T - q.t > 3); if (!q) break; q.t = S.T + azar() * 0.2; q.e = 0.1 + azar() * 0.08; q.s.position.set(CAM.x + (azar() - 0.6) * 1.4, CAM.y + 0.22, CAM.z - 0.4 - azar() * 0.9); q.v.set(0, -0.45 - azar() * 0.3, 0); }
+    if (S.roto) { bajas(1); cinta('Sin tu escudo, cae un hombre', false); } else cinta('¡Aguantan! Los venablos no pasan', true);
+  }
+  else { const n = S.k > 0.3 ? 1 : 2 + Math.floor(azar() * 3); bajas(n); S.sacude = 0.18; cinta(`¡Sin escudos! Caen ${n} hombres`, false); ruido(0.3, 900, 0.5, 'bandpass'); }
 }
-function chispa(p) { const c = CHISPAS.find(c => S.T - c.t > 0.3); if (!c) return; c.t = S.T; c.s.position.copy(p); c.s.visible = true; const q = POLVO.find(q => S.T - q.t > 3); if (q) { q.t = S.T; q.e = 0.25; q.s.position.copy(p); } }
+function chispa(p, e) { const c = CHISPAS.find(c => S.T - c.t > 0.3); if (!c) return; c.t = S.T; c.s.position.copy(p); c.s.visible = true; c.e = e; const q = POLVO.find(q => S.T - q.t > 3); if (q) { q.t = S.T; q.e = 0.3 * e; q.s.position.copy(p); q.v.set(0, 0.25, 0); } }
 
 /* ---------- órdenes ---------- */
 function lanzarPila() {
@@ -245,7 +330,9 @@ function paso(dt) {
   S.k += Math.sign((S.escudos ? 1 : 0) - S.k) * Math.min(Math.abs((S.escudos ? 1 : 0) - S.k), dt * 2);
   /* marcha */
   let v = 0;
-  if (S.fase === 'avance' && S.andando) v = lerp(V_PASO, V_TESTUDO, S.k);
+  S.corriendo = S.fase === 'avance' && S.corre && S.aliento > 0.02 && !S.escudos;
+  if (S.corriendo) { S.aliento = Math.max(0, S.aliento - dt / 3); v = V_CORRE * (1 - S.k); } else S.aliento = Math.min(1, S.aliento + dt * 0.12);
+  if (S.fase === 'avance' && S.andando && !S.corriendo) v = lerp(V_PASO, V_TESTUDO, S.k);
   if (S.fase === 'carga' && !S.choque) v = V_CARGA;
   S.vel = v; S.zF -= v * dt; S.paso += v * dt;
   if (S.fase === 'avance' && S.zF <= Z_PILA) { S.zF = Z_PILA; S.fase = 'pila'; S.andando = false; cinta('¡A tiro de pilum! Lanza', true); }
@@ -260,7 +347,7 @@ function paso(dt) {
   for (const h of S.romanos) sitio(h);
   /* descargas: aviso 1,2 s antes de soltar */
   if (S.fase === 'avance') {
-    if (!S.aviso && T >= S.proxima - 1.2) { S.aviso = true; cinta('¡Venablos! Escudos arriba', false); }
+    if (!S.aviso && T >= S.proxima - 1.2) { S.aviso = true; cinta('¡Venablos! Escudos arriba', false); if (S.k > 0.3) grita(GRITOS.aviso); }
     if (T >= S.proxima) { S.aviso = false; S.proxima = T + CADA; descarga(); }
   }
   if (S.impacto > 0 && T >= S.impacto) llegaDescarga();
@@ -269,24 +356,27 @@ function paso(dt) {
   for (const f of FL) {
     if (f.est !== 1 || T < f.t0) continue;
     const s = (T - f.t0) / f.dur;
-    if (s >= 1) {
-      if (f.blanco && S.k > 0.7) {
-        let mejor = null, d = 9; for (const h of S.romanos) if (h.vivo) { const e = Math.hypot(h.x - f.p1.x, h.z - f.p1.z); if (e < d) { d = e; mejor = h; } }
-        if (mejor && d > 0.9) { f.est = 3; f.p.set(f.p1.x, H(f.p1.x, f.p1.z) + 0.5, f.p1.z); }
-        else if (mejor) { f.est = 2; f.h = mejor; f.rel = new THREE.Vector3(f.p1.x - mejor.x, f.muro ? MURO + 0.35 : TECHO + 0.16, f.p1.z - mejor.z); if (f.muro) f.rel.add(V3.set(0, 0, 1).applyQuaternion(f.q).multiplyScalar(-0.64)); if (!f.fijo && azar() < 0.6) { f.est = 0; } chispa(f.p1); ruido(0.12, 260, 0.25); }
-        else f.est = 0;
-      } else if (f.blanco) { f.est = 3; f.p.set(f.p1.x, H(f.p1.x, f.p1.z) + 0.3, f.p1.z); }
-      else { f.est = 3; f.p.copy(f.p1); }
-      continue;
-    }
+    if (s >= 1) { aterriza(f); continue; }
     f.p.lerpVectors(f.p0, f.p1, s); f.p.y += f.alto * 4 * s * (1 - s);
     V3.subVectors(f.p1, f.p0); V3.y += f.alto * 4 * (1 - 2 * s); f.q.setFromUnitVectors(new THREE.Vector3(0, 0, 1), V3.normalize());
   }
+  /* los clavados en escudos caen al bajar los escudos o si cae su hombre */
+  for (const f of FL) if (f.est === 2 && (S.k < 0.7 || !f.h.vivo)) alSuelo(f, f.h.x + f.rel.x, f.h.z + f.rel.z, true);
+  /* polvo que cae o sube, astillas que saltan */
+  for (const q of POLVO) if (T - q.t >= 0 && T - q.t < 3) q.s.position.addScaledVector(q.v, dt);
+  for (const a of ASTILLAS) { if (T - a.t > 1.4 || a.t < 0) continue; a.v.y -= 9.8 * dt; a.m.position.addScaledVector(a.v, dt); a.m.rotation.x += a.w.x * dt; a.m.rotation.y += a.w.y * dt; const yg = H(a.m.position.x, a.m.position.z) + 0.02; if (a.m.position.y < yg) { a.m.position.y = yg; a.v.set(0, 0, 0); a.w.set(0, 0, 0); } }
+  if (S.tGrito > 0 && T - S.tGrito > 1.7) { $('grito').classList.remove('ve'); S.tGrito = -9; }
+  S.destello = Math.max(0, S.destello - dt);
   /* pila */
   for (const p of PILA) {
     if (p.est !== 1 || T < p.t0) continue;
     const s = (T - p.t0) / p.dur;
-    if (s >= 1) { p.est = 2; if (p.blanco && p.blanco.vivo) { p.blanco.vivo = false; p.blanco.muere = T; } continue; }
+    if (s >= 1) {
+      p.est = 2; const x = p.p1.x, z = p.p1.z;
+      if (p.blanco && p.blanco.vivo) { p.blanco.vivo = false; p.blanco.muere = T; p.g.quaternion.setFromEuler(new THREE.Euler(0, azar() * 6.28, 0)); p.g.position.set(x + 0.5, H(x, z) + 0.03, z + 0.4); }
+      else { V3.set(0, 0, 1).applyQuaternion(p.g.quaternion); p.g.position.set(x, H(x, z), z).addScaledVector(V3, -0.7); }
+      continue;
+    }
     p.g.position.lerpVectors(p.p0, p.p1, s); p.g.position.y += p.alto * 4 * s * (1 - s);
     V3.subVectors(p.p1, p.p0); V3.y += p.alto * 4 * (1 - 2 * s); p.g.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), V3.normalize());
   }
@@ -305,8 +395,8 @@ const O = new THREE.Object3D(), QA = new THREE.Quaternion(), QB = new THREE.Quat
 const giroY = a => new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), a);
 const Q_FRENTE = giroY(Math.PI), Q_IZQ = giroY(-Math.PI / 2), Q_DER = giroY(Math.PI / 2);
 const Q_TECHO = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2 - 0.12);
-function pon(fig, i, x, y, z, yaw, frame, agacha) {
-  O.position.set(x, y, z); O.rotation.set(0, yaw, 0); O.scale.set(UNIT_SCALE, UNIT_SCALE * (1 - agacha), UNIT_SCALE); O.updateMatrix();
+function pon(fig, i, x, y, z, yaw, frame, agacha, inclina) {
+  O.position.set(x, y, z); O.rotation.set(-(inclina || 0), yaw, 0); O.scale.set(UNIT_SCALE, UNIT_SCALE * (1 - agacha), UNIT_SCALE); O.updateMatrix();
   fig.m.setMatrixAt(i, O.matrix); fig.fr.array[i] = frame;
 }
 function dibuja() {
@@ -318,23 +408,28 @@ function dibuja() {
     else if (T >= h.lanza && T - h.lanza < 1) fr = frameOnce(C.attack_melee, T - h.lanza);
     else if (S.fase === 'carga' && !S.choque) fr = frameOf(C.run, T + h.fase);
     else if (S.choque && h.r === 0) fr = frameOf(C.attack_melee, T + h.fase);
+    else if (S.corriendo && h.vivo) fr = frameOf(C.run, T + h.fase);
     else if (S.vel > 0) fr = frameOf(C.walk, S.paso / lerp(V_PASO, V_TESTUDO * 1.4, k) + h.fase);
     else fr = frameOf(C.idle, T + h.fase);
     if (!h.vivo && !h.fijo) { h.fijo = true; }
-    pon(R, i, h.x, H(h.x, h.z) - 0.03 - (h.vivo ? BAJA * k : 0), h.z, Math.PI, fr, h.vivo ? 0.15 * k : 0);
-    if (i === YO && k > 0.6) R.m.setMatrixAt(i, CERO);
+    /* al caer la salva se encogen y agachan la cabeza, tú primero y los demás con desfase */
+    const te = T - S.encoge - (i === YO ? 0 : 0.05 + (i % 5) * 0.04), en = h.vivo && te > 0 && te < 0.5 ? Math.sin(Math.PI * te / 0.5) : 0;
+    pon(R, i, h.x, H(h.x, h.z) - 0.03 - (h.vivo ? BAJA * k + 0.09 * en : 0), h.z, Math.PI + (i === YO ? 0.25 * en : 0), fr, h.vivo ? 0.15 * k : 0, 0.3 * en);
   });
   R.m.instanceMatrix.needsUpdate = true; R.fr.needsUpdate = true;
   /* escudos del testudo: suben y bajan en medio segundo */
   let e = 0;
-  const escudo = (h, ox, oy, oz, q) => {
+  const yo = S.romanos[YO]; miEscudo.visible = false;
+  const escudo = (h, ox, oy, oz, q, muro) => {
     if (!h.vivo || k < 0.02) { escudos.setMatrixAt(e++, CERO); return; }
     const y0 = H(h.x, h.z);
     PA.set(h.x - 0.32, y0 + 0.85, h.z - 0.3); PB.set(h.x + ox, y0 + oy, h.z + oz); PA.lerp(PB, k);
-    QA.copy(Q_FRENTE).slerp(q, k); O.position.copy(PA); O.quaternion.copy(QA); O.scale.setScalar(1); O.updateMatrix(); escudos.setMatrixAt(e++, O.matrix);
+    QA.copy(Q_FRENTE).slerp(q, k); O.position.copy(PA); O.quaternion.copy(QA); O.scale.setScalar(1); O.updateMatrix();
+    if (muro && h === yo) { escudos.setMatrixAt(e++, CERO); miEscudo.visible = !S.roto; miEscudo.position.copy(O.position); miEscudo.quaternion.copy(O.quaternion); miEscudo.material = MATS_MIO[S.golpes <= 0 ? 0 : S.golpes <= 2 ? 1 : 2]; return; }
+    escudos.setMatrixAt(e++, O.matrix);
   };
   for (const h of S.romanos) escudo(h, 0, TECHO + h.r * 0.035, -0.05, Q_TECHO);
-  for (const h of S.romanos) { if (h.r === 0) escudo(h, h.f === 2 ? HUECO * k : h.f === 3 ? -HUECO * k : 0, MURO, -0.45, Q_FRENTE); else escudos.setMatrixAt(e++, CERO); }
+  for (const h of S.romanos) { if (h.r === 0) escudo(h, 0, MURO, -0.45, Q_FRENTE, true); else escudos.setMatrixAt(e++, CERO); }
   for (const h of S.romanos) { if (h.f === 0) escudo(h, -0.36, 0.8, 0, Q_IZQ); if (h.f === FILES - 1) escudo(h, 0.36, 0.8, 0, Q_DER); }
   escudos.count = e; escudos.instanceMatrix.needsUpdate = true;
   /* enemigos */
@@ -354,33 +449,30 @@ function dibuja() {
     pon(G, i, g.x, H(g.x, g.z), g.z, 0, fr, 0);
   });
   G.m.instanceMatrix.needsUpdate = true; G.fr.needsUpdate = true;
-  /* flechas y llamas */
-  let nl = 0;
+  /* venablos: en vuelo, clavados en escudos (siguen a su hombre) o en tierra */
   FL.forEach((f, i) => {
-    if (f.est === 0 || (f.est === 1 && T < f.t0) || (f.est === 2 && !f.h.vivo)) { flechas.setMatrixAt(i, CERO); return; }
-    if (f.est === 2) f.p.set(f.h.x + f.rel.x, H(f.h.x, f.h.z) + f.rel.y - 0.2 * (1 - k), f.h.z + f.rel.z);
-    O.position.copy(f.p); O.quaternion.copy(f.q); if (f.est === 1) O.scale.set(2, 2, 1.3); else O.scale.setScalar(1); O.updateMatrix(); flechas.setMatrixAt(i, O.matrix);
-    if (f.fuego && f.est === 1 && nl < LLAMAS.length) { const l = LLAMAS[nl++]; l.visible = true; V3.set(0, 0, 0.5).applyQuaternion(f.q); l.position.copy(f.p).add(V3); l.scale.setScalar(1.1 + 0.25 * Math.sin(T * 40 + i)); }
+    if (f.est === 0 || (f.est === 1 && T < f.t0)) { flechas.setMatrixAt(i, CERO); return; }
+    if (f.est === 2) f.p.set(f.h.x + f.rel.x, H(f.h.x, f.h.z) + f.rel.y, f.h.z + f.rel.z);
+    O.position.copy(f.p); O.quaternion.copy(f.q); O.scale.setScalar(1); O.updateMatrix(); flechas.setMatrixAt(i, O.matrix);
   });
-  for (; nl < LLAMAS.length; nl++) LLAMAS[nl].visible = false;
   flechas.instanceMatrix.needsUpdate = true;
-  for (const c of CHISPAS) { const a = T - c.t; c.s.visible = a >= 0 && a < 0.25; if (c.s.visible) { c.s.scale.setScalar(0.5 + a * 4); c.s.material.opacity = 1 - a / 0.25; } }
+  for (const c of CHISPAS) { const a = T - c.t; c.s.visible = a >= 0 && a < 0.25; if (c.s.visible) { c.s.scale.setScalar((c.e || 1) * (0.6 + a * 5)); c.s.material.opacity = 1 - a / 0.25; } }
   for (const p of POLVO) { const a = T - p.t; p.s.visible = a >= 0 && a < 3; if (p.s.visible) { const e = p.e || 1; p.s.scale.setScalar(e * (1.2 + a * 1.6)); p.s.material.opacity = 0.85 * (1 - a / 3) * (e < 1 ? Math.max(0, 1 - a) : 1); } }
   for (const p of PILA) p.g.visible = p.est === 1 ? T >= p.t0 : p.est === 2;
-  /* la cámara: a pie, entre la fila 1 y la 2, al hombro */
-  const zc = S.zF + lerp(2.0, 0.5, k), andar = S.vel > 0 ? 1 : 0, ph = S.paso / 0.85 * Math.PI;
-  let cy = H(0, zc) + lerp(2.2, 1.45, k) + Math.abs(Math.sin(ph)) * 0.05 * andar, cx = Math.sin(ph) * 0.03 * andar + 0.5 * CERRADO.dx * k;
-  const sac = S.fase === 'carga' && !S.choque ? 0.06 : 0; const golpe = S.sacude * 0.12;
+  /* la cámara (ver camBase), con cabeceo al paso, temblor al correr y sacudida con giro al llegar cada salva */
+  camBase(); const andar = S.vel > 0 ? (S.corriendo ? 2.5 : 1) : 0, ph = S.paso / 0.85 * Math.PI;
+  let cx = CAM.x + Math.sin(ph) * 0.03 * andar, cy = CAM.y + Math.abs(Math.sin(ph)) * 0.05 * andar;
+  const sac = (S.fase === 'carga' && !S.choque ? 0.06 : 0) + (S.corriendo ? 0.02 : 0), golpe = S.sacude * 0.1;
   cx += (Math.random() - 0.5) * (sac + golpe); cy += (Math.random() - 0.5) * (sac + golpe);
-  camara.position.set(cx, cy, zc); dentro.position.set(cx, cy + 0.05, zc - 0.45); dentro.intensity = 3 * k;
-  const fov = vertical ? lerp(76, 80, k) : lerp(62, 66, k); if (camara.fov !== fov) { camara.fov = fov; camara.updateProjectionMatrix(); }
-  const dist = Math.max(8, zc - Z_TIRADORES), sube = Math.atan2(H(0, Z_TIRADORES) + 1.2 - cy, dist);
-  camara.rotation.set(lerp(vertical ? -0.1 : -0.06, vertical ? -0.14 : 0, k) + sube * 0.6 * (1 - k) + Math.sin(ph * 2) * 0.006 * andar, Math.sin(ph) * 0.004 * andar, 0);
+  camara.position.set(cx, cy, CAM.z); dentro.position.set(cx - 0.2, cy + 0.12, CAM.z - 0.5); dentro.intensity = 3 * k + S.destello * 30;
+  const fov = vertical ? lerp(76, 82, k) : lerp(62, 70, k), cerca = lerp(0.06, 0.24, k);
+  if (camara.fov !== fov || camara.near !== cerca) { camara.fov = fov; camara.near = cerca; camara.updateProjectionMatrix(); }
+  camara.rotation.set(CAM.pitch + Math.sin(ph * 2) * 0.006 * andar + Math.sin(T * 47) * S.sacude * 0.05, CAM.yaw + Math.sin(ph) * 0.004 * andar, Math.sin(T * 31) * S.sacude * 0.09);
   camara.updateMatrixWorld();
   /* la rendija: oscuro por encima del techo y por debajo del muro */
   $('sombra').classList.toggle('ve', k > 0.5);
   if (k > 0.02) {
-    const yF = H(0, S.zF), a = new THREE.Vector3(cx, yF + MURO + 0.56, S.zF - 0.45).project(camara), b = new THREE.Vector3(cx, yF + TECHO - 0.07, S.zF - 0.62).project(camara);
+    const yF = H(0, S.zF), a = new THREE.Vector3(cx - 0.2, yF + MURO + 0.56, S.zF - 0.45).project(camara), b = new THREE.Vector3(cx - 0.2, yF + TECHO - 0.07, S.zF - 0.62).project(camara);
     const ri = Math.max(2, Math.min(95, (a.y + 1) * 50)), rs = Math.max(ri + 4, Math.min(98, (b.y + 1) * 50));
     document.documentElement.style.setProperty('--ri', ri.toFixed(1) + '%'); document.documentElement.style.setProperty('--rs', rs.toFixed(1) + '%');
   }
@@ -391,7 +483,9 @@ function dibuja() {
 function hud() {
   const n = vivos(), f = n / M, b = $('barra').firstElementChild;
   $('cuenta').textContent = n + '/' + M; b.style.width = (f * 100).toFixed(0) + '%'; b.style.background = f > 0.7 ? 'var(--verde)' : f > 0.45 ? '#e6ac3c' : 'var(--rojo)';
-  const av = $('avanzar'), es = $('escudos'), ac = $('accion');
+  const av = $('avanzar'), es = $('escudos'), ac = $('accion'), co = $('correr');
+  co.hidden = S.fase !== 'avance'; co.classList.toggle('activa', S.corriendo); $('aliento').style.width = (S.aliento * 100).toFixed(0) + '%';
+  const me = $('miescudo'); me.className = S.roto ? 'roto' : 'e' + (S.golpes <= 0 ? 0 : S.golpes <= 2 ? 1 : 2); me.title = S.roto ? 'Tu escudo está roto' : 'Tu escudo';
   av.hidden = S.fase !== 'avance'; av.classList.toggle('activa', S.andando);
   es.hidden = !(S.fase === 'avance' || S.fase === 'pila'); es.classList.toggle('activa', S.escudos); es.classList.toggle('pide', S.aviso && !S.escudos);
   $('escudos-t').textContent = S.escudos ? 'Bajar escudos' : 'Escudos';
@@ -407,7 +501,10 @@ function muestraFin() {
 const avanzar = $('avanzar');
 avanzar.addEventListener('pointerdown', e => { e.preventDefault(); try { avanzar.setPointerCapture(e.pointerId); } catch (x) { /* nada */ } S.andando = true; });
 for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) avanzar.addEventListener(ev, () => { S.andando = false; });
-$('escudos').addEventListener('pointerdown', e => { e.preventDefault(); S.escudos = !S.escudos; ruido(0.18, 220, 0.5); });
+const correr = $('correr');
+correr.addEventListener('pointerdown', e => { e.preventDefault(); try { correr.setPointerCapture(e.pointerId); } catch (x) { /* nada */ } S.corre = true; S.escudos = false; });
+for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) correr.addEventListener(ev, () => { S.corre = false; });
+$('escudos').addEventListener('pointerdown', e => { e.preventDefault(); S.escudos = !S.escudos; if (S.escudos) S.corre = false; ruido(0.18, 220, 0.5); });
 $('accion').addEventListener('pointerdown', e => { e.preventDefault(); if (S.fase === 'pila') lanzarPila(); else cargar(); });
 $('otra').addEventListener('click', () => { location.href = location.pathname; });
 $('salir').addEventListener('click', () => { location.href = document.baseURI; });
@@ -418,14 +515,17 @@ const salta = s => { for (let t = 0; t < s; t += 1 / 30) paso(1 / 30); };
 function prepara(f) {
   if (f === 'avance') { S.zF = -14; S.proxima = 99; S.andando = true; salta(1.3); }
   if (f === 'flechas') { S.zF = -28; S.andando = true; S.proxima = S.T + 1.25; salta(1.25 + 0.8); }
-  if (f === 'testudo' || f === 'pila' || f === 'final') {
+  if (['testudo', 'cara', 'roto', 'pila', 'final', 'carga'].includes(f)) {
     S.zF = -30; S.andando = true; S.proxima = S.T + 0.5; salta(3.2);
     S.escudos = true; S.proxima = S.T + 0.6; salta(3.4);
-    S.zF = f === 'testudo' ? -50 : S.zF; S.proxima = S.T + 0.5; salta(f === 'testudo' ? 0.5 + 2.25 : 3);
+    if (f === 'roto') for (let i = 0; i < 3; i++) { S.proxima = S.T + 0.3; salta(2.9); }
+    if (f === 'testudo' || f === 'cara' || f === 'roto') S.zF = -50;
+    S.proxima = S.T + 0.5; salta(f === 'testudo' ? 0.5 + 2.25 : f === 'cara' || f === 'roto' ? 0.5 + 2.2 + 0.27 : 3);
   }
-  if (f === 'pila' || f === 'final') { S.zF = Z_PILA + 0.5; salta(1); S.escudos = false; salta(0.6); lanzarPila(); salta(f === 'pila' ? 0.95 : 2.6); }
+  if (f === 'pila' || f === 'final' || f === 'carga') { S.zF = Z_PILA + 0.5; salta(1); S.escudos = false; salta(0.6); lanzarPila(); salta(f === 'pila' ? 0.95 : 2.6); }
   if (f === 'final') { cargar(); salta(8); }
-  if (f === 'testudo') S.andando = true;
+  if (f === 'carga') { cargar(); salta(2.6); }
+  if (['testudo', 'cara', 'roto'].includes(f)) S.andando = true;
   parado = true;
 }
 
@@ -436,7 +536,7 @@ function bucle(t) {
   if (!parado) paso(dt);
   dibuja(); hud(); requestAnimationFrame(bucle);
 }
-window.__tp = { lista: false, S, salta: s => salta(s), estado: () => ({ andando: S.andando, fase: S.fase, zF: S.zF, k: S.k, vivos: vivos(), flechas: FL.filter(f => f.est).length }) };
+window.__tp = { lista: false, S, salta: s => salta(s), estado: () => ({ golpes: S.golpes, roto: S.roto, clavadosCerca: FL.filter(f => f.est >= 2 && (camBase(), !lejos(f.p, 1.0))).length, enHombre: FL.filter(f => f.est === 2 && S.k < 0.7).length, andando: S.andando, fase: S.fase, zF: S.zF, k: S.k, vivos: vivos(), flechas: FL.filter(f => f.est).length }) };
 (async () => {
   await preload(['hastati', 'peltastas', 'galos']);
   if (!getUnit('hastati') || !getUnit('peltastas') || !getUnit('galos')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }

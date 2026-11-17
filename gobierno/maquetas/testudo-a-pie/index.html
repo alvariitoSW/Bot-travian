@@ -37,7 +37,15 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 
 /* abajo: avanzar a la izquierda; escudos y la orden del momento a la derecha. El centro, libre */
 #abajo{position:absolute;left:calc(env(safe-area-inset-left) + 10px);right:calc(env(safe-area-inset-right) + 10px);bottom:calc(env(safe-area-inset-bottom) + 10px);display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
-#derecha{display:flex;gap:10px;align-items:flex-end}
+#derecha,#izquierda{display:flex;gap:10px;align-items:flex-end}
+#aliento-c{position:absolute;left:12px;right:12px;bottom:6px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);overflow:clip}
+#aliento{display:block;height:100%;width:100%;background:#8fd0e8;border-radius:2px}
+#correr{position:relative}
+#miescudo{width:16px;height:19px;flex:none;color:var(--verde)}
+#miescudo.e1{color:#e6ac3c}#miescudo.e2{color:var(--rojo)}#miescudo.roto{color:#8d846f}
+#miescudo .x{display:none}#miescudo.roto .x{display:block}#miescudo .g1{display:none}#miescudo.e1 .g1,#miescudo.e2 .g1{display:block}#miescudo .g2{display:none}#miescudo.e2 .g2{display:block}
+#grito{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 22px);transform:translateX(-50%);max-width:36%;font:700 20px Cinzel,Georgia,serif;letter-spacing:.04em;color:#fff3dc;text-shadow:0 2px 6px #000,0 0 12px rgba(0,0,0,.9);text-align:center;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .2s}
+#grito.ve{opacity:1}
 .boton{min-width:128px;height:58px;padding:0 16px;border-radius:14px;background:linear-gradient(#3a2c14,#241b0d);border:1.5px solid var(--bronce);display:flex;align-items:center;justify-content:center;gap:8px;font:700 15px Cinzel,Georgia,serif;letter-spacing:.03em;white-space:nowrap;box-shadow:0 3px 12px rgba(0,0,0,.5);overflow:clip}
 .boton svg{width:22px;height:22px;color:var(--oro)}
 .boton.activa{background:linear-gradient(#8a2a20,#5c1b15);border-color:var(--oro)}
@@ -45,7 +53,8 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 .boton.roja{background:linear-gradient(#8a2a20,#5c1b15);border-color:var(--oro)}
 @keyframes pide{50%{border-color:#fff;box-shadow:0 0 0 3px rgba(233,192,99,.6)}}
 @media (orientation:portrait){
-  #derecha{flex-direction:column-reverse}
+  #derecha,#izquierda{flex-direction:column-reverse}
+  #grito{bottom:calc(env(safe-area-inset-bottom) + 150px);max-width:90%}
   .boton{min-width:136px}
   #cinta{top:calc(env(safe-area-inset-top) + 118px)}
 }
@@ -64,15 +73,19 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
   <div id="temblor"></div>
   <div id="sombra"></div>
   <div id="cinta"></div>
+  <div id="grito"></div>
   <div id="arriba">
     <button id="salir" class="pildora"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Salir</button>
     <div id="mision">
       <div id="objetivo">Lleva el cuerpo hasta la loma</div>
-      <div id="forma"><span>Formación</span><span id="barra"><b></b></span><span id="cuenta">30/30</span></div>
+      <div id="forma"><span>Formación</span><span id="barra"><b></b></span><span id="cuenta">30/30</span><svg id="miescudo" viewBox="0 0 16 19" aria-label="Tu escudo"><ellipse cx="8" cy="9.5" rx="6.5" ry="8.3" fill="currentColor" fill-opacity=".25"/><ellipse cx="8" cy="9.5" rx="6.5" ry="8.3"/><path class="g1" d="M6 2l1.5 4-1 3 1.5 3"/><path class="g2" d="M10 3l-1 5 2 3M7.5 12l1 5"/><path class="x" d="M3 4l10 11M13 4L3 15"/></svg></div>
     </div>
   </div>
   <div id="abajo">
-    <button id="avanzar" class="boton"><svg viewBox="0 0 24 24"><path d="M12 20V5M12 5l-6 6M12 5l6 6"/></svg>Avanzar</button>
+    <div id="izquierda">
+      <button id="avanzar" class="boton"><svg viewBox="0 0 24 24"><path d="M12 20V5M12 5l-6 6M12 5l6 6"/></svg>Avanzar</button>
+      <button id="correr" class="boton"><svg viewBox="0 0 24 24"><path d="M13 4.5a1.5 1.5 0 1 0 0 .1M9 20l3-6 3 2v5M7 11l3-3 4 1 2 3 3 1"/></svg>Correr<span id="aliento-c"><b id="aliento"></b></span></button>
+    </div>
     <div id="derecha">
       <button id="escudos" class="boton"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg><span id="escudos-t">Escudos</span></button>
       <button id="accion" class="boton roja" hidden><span id="accion-t">Lanzar pila</span></button>
