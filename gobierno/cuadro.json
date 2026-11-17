@@ -1908,6 +1908,10 @@
     {
       "titulo": "P167 · Plan para una Roma 3D realista",
       "archivo": "gobierno/estudios/P167-roma-3d-realista.md"
+    },
+    {
+      "titulo": "Estado del proyecto (17/11, noche): qué queda para la 1.0, por qué no se cierra y cinco decisiones",
+      "archivo": "gobierno/estudios/estado-proyecto-17-11.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
