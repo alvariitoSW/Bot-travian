@@ -2,11 +2,11 @@ costa.js: contorno de costas derivado de Natural Earth (ne_50m_land, https://www
 dominio público (Tom Patterson, Nathaniel Vaughn Kelso y colaboradores). Recortado, simplificado y con la orilla
 empujada junto a algunas ciudades del juego. Se genera con generar-costa.mjs.
 
-alturas.js: alturas del terreno remuestreadas (malla de 421x211 nodos, un byte por nodo) de las Terrain Tiles en formato Terrarium,
-nivel 6 (teselas x 30..36, y 22..25), de Mapzen/Tilezen, alojadas en AWS Open Data (https://registry.opendata.aws/terrain-tiles/;
+alturas.js: alturas del terreno remuestreadas (C9: malla de 621x397 nodos, lon -10..37,24 y lat 27,93..51,5; un byte por nodo) de las
+Terrain Tiles en formato Terrarium, nivel 6 (teselas x 30..38, y 21..26), de Mapzen/Tilezen, alojadas en AWS Open Data (https://registry.opendata.aws/terrain-tiles/;
 atribución: https://github.com/tilezen/joerd/blob/master/docs/attribution.md). Fuentes que declara la cabecera
-x-amz-meta-x-imagery-sources de esas 28 teselas (y solo estas):
-  - GMTED2010 (gmted/30N000E_20101117_gmted_mea075.tif y gmted/30N030W_20101117_gmted_mea075.tif): Global Multi-resolution Terrain
+x-amz-meta-x-imagery-sources de esas teselas (y solo estas):
+  - GMTED2010 (gmted/10N030W, 10N000E, 10N030E, 30N030W, 30N000E, 30N030E, 50N030W, 50N000E y 50N030E, _20101117_gmted_mea075.tif): Global Multi-resolution Terrain
     Elevation Data 2010, U.S. Geological Survey y National Geospatial-Intelligence Agency. Dominio público; se pide citar la fuente.
   - ETOPO1 (etopo1/ETOPO1_Bed_g.tif): ETOPO1 1 Arc-Minute Global Relief Model, NOAA National Centers for Environmental Information
     (Amante y Eakins, 2009). Dominio público; se pide citar la fuente.
