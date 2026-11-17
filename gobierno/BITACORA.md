@@ -259,12 +259,11 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
-- P158: ¿(A) a «Después de la 1.0», (B) dentro de la 1.0 cambiándola por otra tarea (¿cuál?)? ¿Y de dónde salen: (1) piezas antiguas de dominio público, (2) IA aceptando el riesgo de licencia, (3) las dos?
 
 ## Propuestas por aprobar
-- P158 Una imagen de época en cada suceso histórico, en el informe y en el Senado (moneda, relieve o fresco recortado en el papiro), con su ficha de licencia y fuente (pedido del 17/11).
 
 ## Después de la 1.0 (nevera: ideas nuevas sin estudio ni maqueta; no se abren hasta la 1.0)
+- P158 (decidido 17/11: «Después de la 1.0» y «Piezas antiguas libres»): una imagen de época en cada suceso, en el informe y en el Senado (moneda, relieve, fresco o mosaico de museo con licencia libre, recortado en el papiro), con ficha de licencia y fuente. Nada de IA.
 - (MR2b, 17/11) El Senado de la maqueta `MR1-4` lleva hemiciclo, votos y propuestas que el juego no tiene: hoy solo se viste lo que hay (favor, encargo, hitos, misión). Si se quieren votaciones, es mecánica nueva.
 - (MR2b, 17/11) Los avisos de batalla (choque y resultado) siguen en el modal oscuro; los demás avisos ya son carta de papiro.
 - Que el cuadro de mando enseñe solo el avance de la 1.0 («n de 12») y pliegue lo demás (pequeño; puede ir con V10b).
