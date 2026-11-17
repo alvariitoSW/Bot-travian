@@ -17,10 +17,11 @@ export const DONDE = ['por la izquierda', 'en el centro', 'por la derecha'];
 /* ARMAS. alcance en metros · tiro = bajas por tirador y segundo contra tropa sin cubrir · salva = parte de la primera
    línea rival que cae de una sola descarga al chocar · vuelo = cómo se pinta el proyectil (segundos, altura, largo, grosor, color) */
 export const ARMAS = {
-  espada:   { n: 'espada',   alcance: 0 },
+  espada:   { n: 'espada',   alcance: 0, contra: 0.45 },     // contra = cuánto hiere a una bestia (1 = de verdad)
+  bestia:   { n: 'colmillos', alcance: 0 },
   lanza:    { n: 'lanza',    alcance: 0, frena: true },   // frena = clavada en tierra: para una carga y aguanta mejor al esperar
   jabalina: { n: 'jabalinas', alcance: 30,  tiro: 0.032, vuelo: { seg: 1.3, alto: 5,  largo: 0.07, grueso: 1.8, color: '#2b1d0e' } },
-  honda:    { n: 'piedras',   alcance: 80,  tiro: 0.15, vuelo: { seg: 2.0, alto: 13, largo: 0.03, grueso: 2.8, color: '#ffffff' } },
+  honda:    { n: 'piedras',   alcance: 80, contra: 0.7,  tiro: 0.15, vuelo: { seg: 2.0, alto: 13, largo: 0.03, grueso: 2.8, color: '#ffffff' } },
   arco:     { n: 'flechas',   alcance: 110, tiro: 0.110, vuelo: { seg: 2.4, alto: 20, largo: 0.07, grueso: 1.8, color: '#efe2c0' } },
   pilum:    { n: 'pila',      alcance: 14,  salva: 0.05, vuelo: { seg: 0.9, alto: 3,  largo: 0.1,  grueso: 1.7, color: '#2e2010' } },
 };
@@ -36,6 +37,7 @@ export const FORMACIONES = {
   ligera:    { n: 'tropa ligera',  px: 1.5, pz: 1.8,  marcha: 3.6, frente: 0.5, recibe: 1.3, flanco: 1.1, delante: true, adelanto: 34 },
   tiro:      { n: 'línea de tiro', px: 1.5, pz: 1.9,  marcha: 3.0, frente: 0.3, recibe: 1.7, flanco: 1.4, delante: true, adelanto: 34 },
   escuadron: { n: 'escuadrón',     px: 1.7, pz: 2.0,  marcha: 9 },
+  bestias:   { n: 'bestias',       px: 7,   pz: 8,    marcha: 2.6, frente: 1, recibe: 1, flanco: 1 },
 };
 
 /* POSTURAS mientras se acercan. paso = metros por segundo · recibe = parte de los proyectiles que hacen baja
@@ -50,28 +52,30 @@ export const POSTURAS = {
    cubre = sabe formar escudos y testudo · arroja = arma que lanza justo antes de chocar · mun = segundos de tiro que lleva
    genio = cómo decide sola (furia, firme, alterno) · carton = modelo que se fotografía · montado = va a caballo */
 export const TROPAS = {
-  velites:   { n: 'vélites',   uno: 'los vélites',   arma: 'jabalina', forma: 'ligera',    carton: 'velites',   cal: 0.5,  cansa: 1,    blanco: 0.3, hombres: 40, mun: 15 },
-  hastati:   { n: 'hastati',   uno: 'los hastati',   arma: 'espada',   forma: 'manipulos', carton: 'hastati',   cal: 1.00, cansa: 1.00, blanco: 0.8,  hombres: 120, cubre: true, arroja: 'pilum' },
-  principes: { n: 'príncipes', uno: 'los príncipes', arma: 'espada',   forma: 'manipulos', carton: 'principes', cal: 1.14, cansa: 0.90, blanco: 0.75, hombres: 120, cubre: true, arroja: 'pilum' },
-  triarii:   { n: 'triarios',  uno: 'los triarios',  arma: 'lanza',    forma: 'manipulos', carton: 'triarii',   cal: 1.12, cansa: 0.80, blanco: 0.7,  hombres: 60, cubre: true, firme: true },
-  galos:     { n: 'galos',     uno: 'los galos',     arma: 'espada',   forma: 'tropel',    carton: 'galos',     cal: 1.45, cansa: 1.75, blanco: 1.0,  hombres: 230, genio: 'furia' },
-  libios:    { n: 'libios',    uno: 'los libios',    arma: 'lanza',    forma: 'cerrada',   carton: 'libios',    cal: 1.31, cansa: 0.72, blanco: 0.6,  hombres: 260, genio: 'firme' },
-  iberos:    { n: 'iberos',    uno: 'los iberos',    arma: 'espada',   forma: 'tropel',    carton: 'iberos',    cal: 1.22, cansa: 1.05, blanco: 0.75, hombres: 230, genio: 'alterno', arroja: 'pilum' },
-  honderos:  { n: 'honderos',  uno: 'los honderos',  arma: 'honda',    forma: 'tiro',      carton: 'honderos',  cal: 0.4,  cansa: 1,    blanco: 0.7,  hombres: 30, mun: 24 },
-  equites:   { n: 'équites',   uno: 'los équites',   arma: 'lanza',    forma: 'escuadron', carton: 'equites',   montado: true, hombres: 66 },
-  numidas:   { n: 'númidas',   uno: 'los númidas',   arma: 'jabalina', forma: 'escuadron', carton: 'numidas',   montado: true, hombres: 66 },
+  velites:   { n: 'vélites',   uno: 'los vélites',   arma: 'jabalina', forma: 'ligera',    carton: 'velites', peso: 0.8, cal: 0.5,  cansa: 1,    blanco: 0.3, hombres: 40, mun: 15 },
+  hastati:   { n: 'hastati',   uno: 'los hastati',   arma: 'espada',   forma: 'manipulos', carton: 'hastati', peso: 1.5, cal: 1.00, cansa: 1.00, blanco: 0.8,  hombres: 120, cubre: true, arroja: 'pilum' },
+  principes: { n: 'príncipes', uno: 'los príncipes', arma: 'espada',   forma: 'manipulos', carton: 'principes', peso: 1.6, cal: 1.14, cansa: 0.90, blanco: 0.75, hombres: 120, cubre: true, arroja: 'pilum' },
+  triarii:   { n: 'triarios',  uno: 'los triarios',  arma: 'lanza',    forma: 'manipulos', carton: 'triarii', peso: 1.5, cal: 1.12, cansa: 0.80, blanco: 0.7,  hombres: 60, cubre: true, firme: true },
+  galos:     { n: 'galos',     uno: 'los galos',     arma: 'espada',   forma: 'tropel',    carton: 'galos', peso: 1.3, cal: 1.45, cansa: 1.75, blanco: 1.0,  hombres: 230, genio: 'furia' },
+  libios:    { n: 'libios',    uno: 'los libios',    arma: 'lanza',    forma: 'cerrada',   carton: 'libios', peso: 1.5, cal: 1.31, cansa: 0.72, blanco: 0.6,  hombres: 260, genio: 'firme' },
+  iberos:    { n: 'iberos',    uno: 'los iberos',    arma: 'espada',   forma: 'tropel',    carton: 'iberos', peso: 1.2, cal: 1.22, cansa: 1.05, blanco: 0.75, hombres: 230, genio: 'alterno', arroja: 'pilum' },
+  honderos:  { n: 'honderos',  uno: 'los honderos',  arma: 'honda',    forma: 'tiro',      carton: 'honderos', peso: 0.8, cal: 0.4,  cansa: 1,    blanco: 0.7,  hombres: 30, mun: 24 },
+  equites:   { n: 'équites',   uno: 'los équites',   arma: 'lanza',    forma: 'escuadron', carton: 'equites', peso: 3.0, montado: true, hombres: 66 },
+  numidas:   { n: 'númidas',   uno: 'los númidas',   arma: 'jabalina', forma: 'escuadron', carton: 'numidas', peso: 1.6, montado: true, hombres: 66 },
   /* fichas de muestra para el segundo rival: prueban que añadir tropas es añadir líneas. Los arqueros no tienen modelo propio todavía */
-  arqueros:  { n: 'arqueros',  uno: 'los arqueros',  arma: 'arco',     forma: 'tiro',      carton: 'honderos',  cal: 0.4,  cansa: 1,    blanco: 0.8,  hombres: 30, mun: 30 },
-  falange:   { n: 'falange',   uno: 'la falange',    arma: 'lanza',    forma: 'falange',   carton: 'falange',   cal: 1.22, cansa: 0.8,  blanco: 0.55, hombres: 260, genio: 'firme' },
-  hoplitas:  { n: 'hoplitas',  uno: 'los hoplitas',  arma: 'lanza',    forma: 'cerrada',   carton: 'hoplitas',  cal: 1.12, cansa: 1.0,  blanco: 0.6,  hombres: 230, genio: 'alterno' },
-  tesalios:  { n: 'tesalios',  uno: 'los tesalios',  arma: 'lanza',    forma: 'escuadron', carton: 'tesalios',  montado: true, hombres: 66 },
+  arqueros:  { n: 'arqueros',  uno: 'los arqueros',  arma: 'arco',     forma: 'tiro',      carton: 'honderos', peso: 0.8, cal: 0.4,  cansa: 1,    blanco: 0.8,  hombres: 30, mun: 30 },
+  falange:   { n: 'falange',   uno: 'la falange',    arma: 'lanza',    forma: 'falange',   carton: 'falange', peso: 1.8, cal: 1.22, cansa: 0.8,  blanco: 0.55, hombres: 260, genio: 'firme' },
+  hoplitas:  { n: 'hoplitas',  uno: 'los hoplitas',  arma: 'lanza',    forma: 'cerrada',   carton: 'hoplitas', peso: 1.6, cal: 1.12, cansa: 1.0,  blanco: 0.6,  hombres: 230, genio: 'alterno' },
+  elefantes: { n: 'elefantes', uno: 'los elefantes', arma: 'bestia', forma: 'bestias', carton: 'libios', peso: 6, cal: 1.6, cansa: 0.5, blanco: 1.0, hombres: 3, vida: 13, bestia: true, genio: 'furia' },   // hombres = bestias · vida = cuántos hombres de golpe aguanta cada una · sin modelo propio todavía
+  tesalios:  { n: 'tesalios',  uno: 'los tesalios',  arma: 'lanza',    forma: 'escuadron', carton: 'tesalios', peso: 3.6, montado: true, hombres: 66 },
 };
 
 /* EJÉRCITOS. Tres cuerpos, de izquierda a derecha vistos desde Roma. La tropa «delante» sale a tirar; las demás son las líneas */
 export const EJERCITOS = {
   roma:    { n: 'Roma',           jinetes: 'equites',  cuerpos: [['velites', 'hastati', 'principes', 'triarii'], ['velites', 'hastati', 'principes', 'triarii'], ['velites', 'hastati', 'principes', 'triarii']] },
   cartago: { n: 'Cartago',        jinetes: 'numidas',  cuerpos: [['galos'], ['honderos', 'libios'], ['honderos', 'iberos']] },
-  pirro:   { n: 'Pirro de Epiro', jinetes: 'tesalios', cuerpos: [['arqueros', 'hoplitas'], ['falange'], ['arqueros', 'hoplitas']] },
+  zama:    { n: 'Cartago (elefantes)', jinetes: 'numidas', cuerpos: [['elefantes', 'galos'], ['honderos', 'libios'], ['honderos', 'iberos']] },
+  pirro:   { n: 'Pirro de Epiro', guardia: 0.6, jinetes: 'tesalios', cuerpos: [['arqueros', 'hoplitas'], ['falange'], ['arqueros', 'hoplitas']] },
 };
 
 /* LOS BOTONES. Cuatro huecos; dicen una cosa lejos y otra luchando */
@@ -133,6 +137,8 @@ export const DIST0 = 150;         // metros entre las dos líneas al empezar
 const CONTACTO = 1;               // a esta distancia ya se lucha cuerpo a cuerpo
 export const T_RELEVO = 3.2;             // lo que tarda una línea en pasar por los huecos de la otra
 const T_CABALLERIA = 24;          // descanso de los équites entre cargas
+const T_SALE = 2, T_RODEA = 4, T_ENTRA = 2, T_GOLPE = 3;   // segundos de cada fase del rodeo (el centro tarda el doble en rodear)
+const CARRERA = 70;               // metros de arranque para pegar entero
 const BASE_FATIGA = 1 / 46;       // empujando sin parar, una línea se agota en unos 45 s
 const DESCANSO = 1 / 120;         // una línea en retaguardia recobra el aliento despacio
 const K_BAJAS = 1.36;
@@ -154,8 +160,9 @@ export function nueva(semilla, hombresRoma, rival, cuerpos, plan) {   // cuerpos
   const k = Math.max(0.3, (hombresRoma || BASE_HOMBRES) / BASE_HOMBRES), lejos = 2.2 * (Math.sqrt(Math.max(1, k)) - 1);   // el campo crece: los jinetes tardan más en llegar
   const yo = EJERCITOS.roma, el = EJERCITOS[rival] || EJERCITOS.cartago;
   const B = { k, lejos, t: 0, fase: 'lejos', rnd: azar(semilla || 7), sect: [], eventos: [], animo: 0.5, mando: { bien: 0, mal: 0 }, fijo: false, dt: 0, resultado: null, ordenes: 0, rival: el.n, porTiro: [0, 0], porTiroLinea: [0, 0],
-    cab: { tipo: yo.jinetes, estado: 'lista', sect: -1, t: 0, total: 3, mitad: 1, hombres: Math.round(TROPAS[yo.jinetes].hombres * k) },
-    num: { tipo: el.jinetes, estado: 'lejos', sect: -1, t: 0, veces: 0, proxima: 1e9, hombres: Math.round(TROPAS[el.jinetes].hombres * k) } };
+    cab: { tipo: yo.jinetes, estado: 'lista', fase: null, ala: -1, lado: null, obj: -1, doble: false, carrera: 0, espanto: 0, sect: -1, t: 0, total: 3, mitad: 1, hombres: Math.round(TROPAS[yo.jinetes].hombres * k), max: Math.round(TROPAS[yo.jinetes].hombres * k) },
+    num: { tipo: el.jinetes, estado: 'lejos', fase: null, ala: -1, lado: null, sect: -1, t: 0, dur: 0, veces: 0, proxima: 1e9, hombres: Math.round(TROPAS[el.jinetes].hombres * k), max: Math.round(TROPAS[el.jinetes].hombres * k), guarda: [0, 0, 0] } };
+  const ga = Math.round(B.num.hombres * (el.guardia || 0.5)); B.num.guarda = [ga, 0, ga];   // los jinetes enemigos viven en las alas
   for (let i = 0; i < 3; i++) { B.sect.push({ i, frente: 0, dist: DIST0, tChoque: -1, c: [cuerpo(0, i, (cuerpos ? cuerpos[0] : yo.cuerpos)[i], k), cuerpo(1, i, (cuerpos ? cuerpos[1] : el.cuerpos)[i], k)] }); B.sect[i].c[1].brio = 1 + BRIO * (2 * B.rnd() - 1); }
   B.plan = planNormal(plan); aplicarPlan(B);
   return B;
@@ -188,7 +195,7 @@ function ev(B, tipo, sect, texto, mas) { B.eventos.push(Object.assign({ tipo, se
 export function fuerza(c, rival) {
   const l = frente(c), T = TROPAS[l.tipo], F = FORMACIONES[T.forma], R = rival && TROPAS[frente(rival).tipo], clavada = R && ARMAS[R.arma].frena && rival.postura === 'aguantar';
   const fondo = Math.max(0.3, Math.min(1, l.hombres / (0.4 * l.max)));          // pega con todo hasta que la línea se queda en el 40 %
-  return T.cal * fondo * (1 - 0.55 * l.fatiga) * (c.postura === 'empujar' ? 1.25 : 0.8) * (c.relevo > 0 ? 0.7 : 1) * (0.7 + 0.3 * c.moral) * (c.impulso > 0 && !clavada ? 1.15 : 1) * F.frente * (R && T.arma === 'espada' && R.forma === 'falange' ? 0.8 : 1) * (c.frenada > 0 ? 0.8 : 1) * (c.brio || 1) * c.ff.frente * (c.empuje > 0 ? MANDO.empujeFuerza : 1) * (1 - 0.15 * c.flanco.costado - 0.25 * c.flanco.espalda);   // quien se vuelve a mirar atrás no pega delante
+  return T.cal * fondo * (1 - 0.55 * l.fatiga) * (c.postura === 'empujar' ? 1.25 : 0.8) * (c.relevo > 0 ? 0.7 : 1) * (0.7 + 0.3 * c.moral) * (c.impulso > 0 && !clavada ? 1.15 : 1) * F.frente * (R && T.arma === 'espada' && R.forma === 'falange' ? 0.8 : 1) * (c.frenada > 0 ? 0.8 : 1) * (c.desboca > 0 ? 0.3 : 1) * (c.brio || 1) * c.ff.frente * (c.empuje > 0 ? MANDO.empujeFuerza : 1) * (1 - 0.15 * c.flanco.costado - 0.25 * c.flanco.espalda);   // quien se vuelve a mirar atrás no pega delante
 }
 
 /* Cuánto agrava el daño lo que le llega por el costado o la espalda (1 = nada). La reserva que se vuelve lo rebaja */
@@ -242,7 +249,7 @@ function flancos(B) {
         if (cedido > CEDE - u && mas > 0.35 - u) hueco = true;
       }
       c.hueco = hueco; if (hueco) { costado = 1; causa = causa || 'hueco'; }
-      if (c.golpe > 0 && c.golpePor) { costado = 1; causa = 'jinetes'; }
+      if (c.golpe > 0 && c.golpePor) { costado = 1; causa = 'jinetes'; }       // lo de los jinetes, de costado o de espalda, se cuenta como costado (GM2)
       const o = s.c[1 - c.lado];                                      // DESBORDE: el frente de enfrente es un 25 % más largo que el mío y ya llevan 6 s luchando
       if (!lejos(s) && s.tChoque >= 0 && B.t - s.tChoque >= DESBORDE.desde && !o.roto && o.anch >= c.anch * DESBORDE.razon && costado < DESBORDE.peso) { costado = DESBORDE.peso; causa = 'desborde'; }
     }
@@ -268,7 +275,11 @@ export function puede(B, i, orden) {
   if (B.fase === 'fin') return 'La batalla ha terminado';
   if (orden === 'caballeria') {
     if (B.cab.estado !== 'lista') return 'Los jinetes se están rehaciendo';
+    if (B.t < B.cab.espanto) return 'Los caballos están espantados por las bestias';
     if (s.c[1].roto) return 'Ahí ya no queda enemigo';
+    if (TROPAS[frente(s.c[1]).tipo].bestia && frente(s.c[1]).hombres > 0) return 'Los caballos no se acercan a las bestias';
+    const ru = rutaCab(B, i); if (!ru) return 'no hay paso: los jinetes enemigos guardan las dos alas';
+    if (ru.ala !== i && TROPAS[frente(B.sect[ru.ala].c[1]).tipo].bestia) return 'no hay paso: las bestias cierran el ala';
     return '';
   }
   if (c.roto) return 'Ese cuerpo ha huido';
@@ -284,6 +295,13 @@ export function puede(B, i, orden) {
   return 'Orden desconocida';
 }
 
+/* Por dónde rodean los jinetes. Ala (0/2): por su ala. Centro: solo por un ala enemiga despejada (rota o sin jinetes rivales), y tardan el doble */
+const guardada = (B, a) => !B.sect[a].c[1].roto && B.num.guarda[a] > 0;
+export function rutaCab(B, i) {
+  if (i !== 1) return { ala: i, doble: false };
+  const libres = [0, 2].filter(a => !guardada(B, a)).sort((a, b) => (B.sect[b].c[1].roto ? 1 : 0) - (B.sect[a].c[1].roto ? 1 : 0) || B.num.guarda[a] - B.num.guarda[b]);
+  return libres.length ? { ala: libres[0], doble: true } : null;
+}
 export function ordenar(B, i, orden) {
   const no = puede(B, i, orden); if (no) return no;
   const s = B.sect[i], c = s.c[0]; B.ordenes++;
@@ -308,9 +326,12 @@ export function ordenar(B, i, orden) {
     else if (j === 'bajo-carga') mando(B, i, false, 'Relevo bajo la carga: se desordenan', MANDO.relevoMal);
     else if (j === 'sin-aliento') mando(B, i, false, 'Entran ' + entran + ' sin aliento', MANDO.relevoMal / 2);
   } else if (orden === 'caballeria') {
-    const t = tirando(s.c[1]);                                             // si sus tiradores siguen delante, la carga va a por ellos
-    const SC = SITIOS_CABALLERIA[B.plan.caballeria]; B.cab.estado = 'yendo'; B.cab.sect = i; B.cab.t = Math.max(0.8, 3 + B.lejos + (lejos(s) ? 2.5 : 0) + SC.llega[i]); B.cab.total = B.cab.t; B.cab.mitad = SC.mitad ? 0.5 : 1;
-    ev(B, 'caballeria', i, t ? 'Los jinetes van a por ' + TROPAS[t.tipo].uno : 'Los jinetes cargan ' + DONDE[i], { orden });
+    const t = tirando(s.c[1]), ru = rutaCab(B, i), cab = B.cab, SC = SITIOS_CABALLERIA[B.plan.caballeria];       // si sus tiradores siguen delante, la carga va a por ellos
+    const ts = Math.max(0.8, T_SALE + SC.llega[i]);
+    Object.assign(cab, { estado: 'yendo', fase: 'sale', sect: i, obj: i, ala: ru.ala, doble: ru.doble, lado: null, carrera: CARRERA, t: ts, mitad: SC.mitad ? 0.5 : 1 });
+    cab.total = ts + (T_RODEA + B.lejos) * (ru.doble ? 2 : 1) + T_ENTRA;
+    ev(B, 'caballeria', i, t ? 'Los jinetes van a por ' + TROPAS[t.tipo].uno : ru.doble ? 'Los jinetes rodean ' + DONDE[ru.ala] + ' para entrar por detrás' : 'Los jinetes rodean ' + DONDE[i], { orden });
+    ev(B, 'cab-sale', i, 'Los jinetes salen ' + DONDE[ru.ala], { bando: 0, ala: ru.ala, doble: ru.doble });
   }
   return '';
 }
@@ -332,8 +353,9 @@ export function vecino(B, i, ladoRival) {
   return null;
 }
 
-function bajas(c, n) {
-  const l = frente(c); l.hombres = Math.max(0, l.hombres - n);
+function bajas(c, n, arma) {
+  const l = frente(c), V = TROPAS[l.tipo].vida; if (V) n *= (arma && ARMAS[arma] && ARMAS[arma].contra || (arma === 'espada' ? 0.45 : 1)) / V;   // las bestias aguantan: solo las hieren de verdad proyectiles y lanzas
+  l.hombres = Math.max(0, l.hombres - n);
   if (l.hombres < 0.15 * l.max && c.lineas.length > 1) { c.lineas.shift(); c.relevo = Math.max(c.relevo, 1.5); return true; }   // la línea deshecha se retira sola
   return false;
 }
@@ -371,7 +393,7 @@ function tirar(B, s, c, dt) {
   if (parteTir < 1 && !o.roto) {
     const l = frente(o), P = TROPAS[l.tipo].cubre ? postura(o) : POSTURAS.avanzar, n = d * (1 - parteTir) * TROPAS[l.tipo].blanco * P.recibe;
     o.fuego = B.t; o.moral -= n / o.inicial * 1.5 + (P.recibe >= 1 ? SUSTO : 0) * dt; B.porTiro[o.lado] += n; B.porTiroLinea[o.lado] += n;
-    if (bajas(o, n) && o.lado === 0) ev(B, 'linea-deshecha', s.i, 'Línea deshecha: entran ' + TROPAS[frente(o).tipo].uno);
+    if (bajas(o, n, T.arma) && o.lado === 0) ev(B, 'linea-deshecha', s.i, 'Línea deshecha: entran ' + TROPAS[frente(o).tipo].uno);
     if (o.moral <= 0) romper(B, s, o.lado);
   }
 }
@@ -382,7 +404,6 @@ function acercar(B, s, dt) {
     const l = frente(c), T = TROPAS[l.tipo], P = T.cubre ? postura(c) : POSTURAS.avanzar;
     c.z -= (T.cubre ? P.paso : FORMACIONES[T.forma].marcha) * dt;
     if (P.cansa) for (const q of c.lineas) q.fatiga = Math.min(1, q.fatiga + P.cansa * TROPAS[q.tipo].cansa * dt + (q === l ? 0 : DESCANSO * dt));   // el escudo en alto cansa a las tres líneas, no solo a la primera
-    if (c.flanqueado) c.moral -= 0.028 * dt;
   }
   s.dist = Math.max(0, s.c[0].z + s.c[1].z);
   for (const c of s.c) tirar(B, s, c, dt);
@@ -392,10 +413,64 @@ function acercar(B, s, dt) {
     const T = TROPAS[frente(c).tipo], A = ARMAS[T.arroja]; if (!A || c.pila || s.dist > A.alcance) continue; c.pila = true;
     if (c.postura === 'testudo') continue;
     const o = s.c[1 - c.lado], l = frente(o), P = TROPAS[l.tipo].cubre ? postura(o) : POSTURAS.avanzar, n = A.salva * frente(c).hombres * TROPAS[l.tipo].blanco * (P.recibe < 1 ? 0.45 : 1);
-    bajas(o, n); o.moral -= n / o.inicial * 1.5; o.frenada = 5; B.porTiro[o.lado] += n; B.porTiroLinea[o.lado] += n;
+    bajas(o, n, T.arroja); o.moral -= n / o.inicial * 1.5; o.frenada = 5; B.porTiro[o.lado] += n; B.porTiroLinea[o.lado] += n;
     ev(B, 'pila', s.i, c.lado === 0 ? 'Tus ' + T.n + ' arrojan los pila' : May(T.uno) + ' arrojan sus jabalinas', { lado: c.lado, arma: T.arroja });
   }
   if (s.dist <= CONTACTO) chocar(B, s);
+}
+
+/* Los elefantes cargan: bajan el ánimo del cuerpo de enfrente y de los vecinos, lo desordenan y espantan a los caballos cercanos */
+function terror(B, s, c) {
+  const o = s.c[1 - c.lado]; if (o.roto) return;
+  o.moral -= TROPAS[frente(o).tipo].firme ? 0.12 : 0.2; o.golpe = Math.max(o.golpe, 5); o.deshecho = true;
+  for (const v of B.sect) if (v !== s && !v.c[1 - c.lado].roto) v.c[1 - c.lado].moral -= 0.05;
+  ev(B, 'elefantes-cargan', s.i, c.lado === 0 ? 'Tus elefantes cargan' : '¡Elefantes ' + DONDE[s.i] + '!', { bando: c.lado });
+  if (c.lado === 1) { const cab = B.cab; if (cab.estado === 'lista' || Math.abs(cab.obj - s.i) <= 1) { cab.espanto = B.t + 14; if (cab.estado !== 'lista' && cab.fase !== 'vuelve') huirCab(B, 'Los caballos se espantan ante las bestias', 0.12); } }
+}
+/* Las bestias heridas se desbocan: arrollan al que tengan delante y a los suyos de detrás */
+function desbocar(B, s, dt) {
+  for (const c of s.c) {
+    const l = frente(c); if (!TROPAS[l.tipo].bestia) continue;
+    if (!(c.desboca > 0) && l.hombres > 0 && l.hombres < 0.5 * l.max) { c.desboca = 7; ev(B, 'bestias-desbocadas', s.i, c.lado === 0 ? 'Tus elefantes se desbocan' : '¡Los elefantes se desbocan ' + DONDE[s.i] + '!', { bando: c.lado }); }
+    if (!(c.desboca > 0)) continue;
+    const o = s.c[1 - c.lado]; c.desboca -= dt;
+    if (!o.roto) { bajas(o, 3.5 * B.k * dt, 'bestia'); o.moral -= 0.025 * dt; }
+    const d = c.lineas[1]; if (d) d.hombres = Math.max(0, d.hombres - 3 * B.k * dt); c.moral -= 0.02 * dt;
+    if (c.desboca <= 0) { c.desboca = 0; if (c.lineas.length > 1) { c.lineas.shift(); c.relevo = Math.max(c.relevo, 1.5); } else l.hombres = 0; }
+  }
+}
+
+/* Los jinetes se retiran (duelo perdido, bestias): pierden hombres y se rehacen */
+function huirCab(B, texto, perdida) {
+  const cab = B.cab; cab.hombres = Math.max(1, Math.round(cab.hombres * (1 - perdida))); cab.fase = 'vuelve'; cab.estado = 'volviendo'; cab.lado = null; cab.t = T_CABALLERIA - 6;
+  ev(B, 'cab-huye', cab.obj, texto, { bando: 0, ala: cab.ala });
+}
+/* Duelo de jinetes en el ala: pesa el peso, el número y el ánimo del cuerpo. El vencedor queda libre; el perdedor se retira */
+function dueloCab(B) {
+  const cab = B.cab, nu = B.num, a = cab.ala, c = B.sect[a].c[0], e = B.sect[a].c[1], g = nu.guarda[a];
+  const fr = cab.hombres * TROPAS[cab.tipo].peso * (0.6 + 0.4 * c.moral) * (0.85 + 0.3 * B.rnd()), fe = g * TROPAS[nu.tipo].peso * (0.6 + 0.4 * e.moral) * (0.85 + 0.3 * B.rnd()), q = fr / (fr + fe);
+  if (fr >= fe) {
+    cab.hombres = Math.max(1, Math.round(cab.hombres * (1 - 0.3 * (1 - q)))); nu.guarda[a] = 0; nu.hombres = Math.max(0, nu.hombres - g); cab.carrera = CARRERA * 0.45;
+    if (!c.roto) c.moral = Math.min(1, c.moral + 0.05);
+    if ((nu.estado === 'hostiga' || nu.estado === 'llega') && nu.sect === a) { nu.estado = 'lejos'; nu.fase = 'vuelve'; nu.proxima = B.t + 34 + B.rnd() * 10; }
+    ev(B, 'cab-huye', a, 'Tus jinetes echan a ' + TROPAS[nu.tipo].uno + ' ' + DONDE[a], { bando: 1, ala: a });
+  } else {
+    nu.guarda[a] = Math.round(g * 0.75); if (!c.roto) c.moral -= 0.06;
+    huirCab(B, 'Tus jinetes pierden el duelo ' + DONDE[a] + ' y se retiran', 0.4);
+  }
+}
+/* El golpe: vale según la carrera y por dónde entra. Espalda de tropa trabada, mucho; costado, poco (menos contra lanzas); de frente, nada y se estrellan. Con el plan «repartida» vale la mitad */
+function golpeCab(B) {
+  const cab = B.cab, s = B.sect[cab.obj], e = s.c[1], T = TROPAS[cab.tipo], t = tirando(e);
+  const f = cab.hombres / cab.max * T.peso / 3, arr = Math.max(0.15, Math.min(1, cab.carrera / CARRERA)), lanza = TROPAS[frente(e).tipo].arma === 'lanza';
+  const lado = e.roto ? 'frente' : t ? 'costado' : !lejos(s) ? (cab.obj === 1 ? 'costado' : 'espalda') : 'frente';
+  const v = e.roto ? 0 : lado === 'espalda' ? (lanza ? 0.8 : 1) : lado === 'costado' ? (t ? 0.6 : lanza ? 0.25 : 0.6) : 0, perdida = lado === 'espalda' ? (lanza ? 0.06 : 0.02) : lado === 'costado' ? (lanza && !t ? 0.1 : 0.03) : (lanza ? 0.3 : 0.12);
+  cab.lado = lado; const valor = v * arr * Math.min(1.3, f) * cab.mitad;
+  if (t && !e.roto) { t.hombres *= 1 - 0.55 * Math.min(1, arr * f * cab.mitad); t.estado = 'fuera'; t.huido = true; t.blanco = null; e.moral -= 0.06 * arr * cab.mitad; ev(B, 'impacto', cab.obj, 'Tus jinetes barren a ' + TROPAS[t.tipo].uno, { a: 'tir' }); }
+  else if (valor > 0 && !e.roto) { e.moral -= 0.26 * valor; bajas(e, 26 * B.k * valor, 'jinete'); if (valor > 0.3) { e.golpe = 6; e.golpePor = lado; } ev(B, 'impacto', cab.obj, lado === 'espalda' ? 'Carga por la espalda enemiga' : 'Carga de costado'); if (e.moral <= 0) romper(B, s, 1); }
+  else ev(B, 'impacto', cab.obj, 'La carga se estrella contra las lanzas', { a: 'nada' });
+  cab.hombres = Math.max(1, Math.round(cab.hombres * (1 - perdida)));
+  ev(B, 'cab-golpe', cab.obj, lado === 'frente' ? 'Los jinetes chocan de frente' : 'Los jinetes golpean ' + (lado === 'espalda' ? 'por la espalda' : 'de costado'), { bando: 0, lado, ala: cab.ala, valor });
 }
 
 function chocar(B, s) {
@@ -406,6 +481,7 @@ function chocar(B, s) {
   if (r.postura === 'avanzar') { r.postura = 'empujar'; r.impulso = 5; } else r.postura = 'aguantar';
   e.tPost = 0; e.postura = (TROPAS[frente(e).tipo].genio === 'furia') ? 'empujar' : 'aguantar';
   if (e.postura === 'empujar') { e.impulso = 5; ev(B, 'carga-enemiga', s.i, May(TROPAS[frente(e).tipo].uno) + ' cargan ' + DONDE[s.i]); }
+  for (const c of s.c) if (TROPAS[frente(c).tipo].bestia) terror(B, s, c);
   if (primero) B.num.proxima = B.t + 28 + B.rnd() * 8;
 }
 
@@ -424,7 +500,7 @@ export function paso(B, dt) {
       frente(v).fatiga = Math.max(0, frente(v).fatiga - DESCANSO * dt); continue;
     }
     if (lejos(s)) { acercar(B, s, dt); continue; }
-    mente(B, s, dt);
+    mente(B, s, dt); desbocar(B, s, dt);
     const fr = fuerza(r, e) * (1 + MANDO.fuerza * (B.animo - 0.5)), fe = fuerza(e, r), ruido = 0.9 + 0.2 * B.rnd();
     for (const [c, f, rival] of [[r, fe, e], [e, fr, r]]) {
       const l = frente(c), T = TROPAS[l.tipo];
@@ -435,43 +511,40 @@ export function paso(B, dt) {
       if (c.postura === 'aguantar' && !fl.costado && !fl.espalda) c.moral += 0.004 * dt;
       c.desorden = Math.max(0, Math.min(1, c.desorden + ((c.postura === 'empujar' ? 0.03 : -0.05) + 0.07 * (fl.costado + fl.espalda) * kc) * dt));   // el orden de las filas se abre al avanzar y con peligro de lado; se rehace a pie firme
       l.fatiga = Math.max(0, Math.min(1, l.fatiga + (c.postura === 'empujar' ? BASE_FATIGA * T.cansa : -BASE_FATIGA * 0.22) * dt));
-      const cayo = bajas(c, d);
+      const cayo = bajas(c, d, TROPAS[frente(rival).tipo].arma);
       if (cayo && c.lado === 0) { ev(B, 'linea-deshecha', s.i, 'Línea deshecha: entran ' + TROPAS[frente(c).tipo].uno); mando(B, s.i, false, 'Línea deshecha sin relevo ' + DONDE[s.i], MANDO.deshecha); }
       if (c.lado === 0) c.moral += MANDO.moral * (B.animo - 0.5) * dt;      // el ánimo de la legión sostiene o hunde a cada cuerpo
       c.moral = Math.min(1, c.moral);
     }
-    s.frente = Math.max(-1, Math.min(1, s.frente + (fr - fe) * 0.045 * dt));
+    s.frente = Math.max(-1, Math.min(1, s.frente + ((fr - fe) * 0.045 + (TROPAS[frente(r).tipo].peso - TROPAS[frente(e).tipo].peso) * 0.012) * dt));
     if (Math.abs(s.frente) >= 1) (s.frente > 0 ? e : r).moral -= 0.02 * dt;      // sin sitio para ceder más
     for (const c of s.c) { const l = frente(c); if (c.moral <= 0 || (c.lineas.length === 1 && l.hombres < 0.15 * l.max)) romper(B, s, c.lado); }
     if (!r.roto && !r.avisado && frente(r).fatiga > 0.8 && r.lineas.length > 1 && r.relevo <= 0) { r.avisado = B.t; ev(B, 'cansados', s.i, 'Tus ' + TROPAS[frente(r).tipo].n + ' están agotados ' + DONDE[s.i]); }
     if (r.avisado && (frente(r).fatiga < 0.6)) r.avisado = 0;
   }
 
-  /* Caballería romana: va, golpea (a los tiradores si siguen delante, al flanco si no, o espanta a los jinetes rivales) y vuelve a rehacerse */
+  /* Caballería romana: sale por su ala, rodea por fuera, se mide con los jinetes enemigos del ala, entra por donde puede, golpea y vuelve a rehacerse */
   const cab = B.cab, num = B.num;
   if (cab.estado !== 'lista') {
     cab.t -= dt;
     if (cab.t <= 0) {
-      if (cab.estado === 'yendo') {
-        const s = B.sect[cab.sect], e = s.c[1], t = tirando(e);
-        if ((num.estado === 'hostiga' || num.estado === 'llega') && num.sect === cab.sect) { num.estado = 'lejos'; num.proxima = B.t + 34 + B.rnd() * 10; ev(B, 'numidas-fuera', cab.sect, 'Tus jinetes espantan a ' + TROPAS[num.tipo].uno); }
-        else if (t) { t.hombres *= 1 - 0.55 * cab.mitad; t.estado = 'fuera'; t.huido = true; t.blanco = null; e.moral -= 0.06 * cab.mitad; ev(B, 'impacto', cab.sect, 'Tus jinetes barren a ' + TROPAS[t.tipo].uno, { a: 'tir' }); }
-        else if (!e.roto) { e.moral -= 0.2 * cab.mitad; bajas(e, 22 * B.k * cab.mitad); e.golpe = 6; e.golpePor = 'costado'; ev(B, 'impacto', cab.sect, 'Carga en el flanco enemigo'); if (e.moral <= 0) romper(B, s, 1); }
-        cab.estado = 'cargando'; cab.t = 4;
-      } else if (cab.estado === 'cargando') { cab.estado = 'volviendo'; cab.t = T_CABALLERIA - 7; }
-      else { cab.estado = 'lista'; cab.sect = -1; ev(B, 'caballeria-lista', -1, 'Jinetes listos'); }
+      if (cab.fase === 'sale') { cab.fase = 'rodea'; cab.t = (T_RODEA + B.lejos) * (cab.doble ? 2 : 1); }
+      else if (cab.fase === 'rodea') { cab.fase = 'entra'; cab.t = T_ENTRA; if (guardada(B, cab.ala)) dueloCab(B); }
+      else if (cab.fase === 'entra') { golpeCab(B); cab.fase = 'golpe'; cab.estado = 'cargando'; cab.t = T_GOLPE; }
+      else if (cab.fase === 'golpe') { cab.fase = 'vuelve'; cab.estado = 'volviendo'; cab.t = T_CABALLERIA - (T_SALE + T_RODEA + T_ENTRA + T_GOLPE); }
+      else { cab.estado = 'lista'; cab.fase = null; cab.sect = -1; cab.obj = -1; cab.ala = -1; cab.lado = null; ev(B, 'caballeria-lista', -1, 'Jinetes listos'); }
     }
   }
-  /* Jinetes rivales: avisan, rodean un ala y la hostigan hasta que alguien los eche o se cansen. Solo cuando ya se lucha */
+  /* Jinetes rivales: viven en sus alas. Avisan, rodean un ala nuestra y la hostigan hasta que alguien los eche o se cansen. Solo cuando ya se lucha */
   if (num.estado === 'lejos' && B.t >= num.proxima && num.veces < 3) {
-    const alas = [0, 2].filter(i => !B.sect[i].c[0].roto);
-    if (alas.length) { alas.sort((a, b) => B.sect[a].c[0].moral - B.sect[b].c[0].moral); num.sect = B.rnd() < 0.7 ? alas[0] : alas[alas.length - 1]; num.estado = 'llega'; num.t = (5 + B.lejos) * ((B.plan.caballeria === 'izquierda' && num.sect === 0) || (B.plan.caballeria === 'derecha' && num.sect === 2) ? 2 : 1); num.veces++; ev(B, 'numidas-aviso', num.sect, '¡' + May(TROPAS[num.tipo].n) + ' ' + DONDE[num.sect] + '!'); }
+    const alas = [0, 2].filter(i => !B.sect[i].c[0].roto && num.guarda[i] > 0);
+    if (alas.length) { alas.sort((a, b) => B.sect[a].c[0].moral - B.sect[b].c[0].moral); num.sect = B.rnd() < 0.7 ? alas[0] : alas[alas.length - 1]; num.estado = 'llega'; num.dur = num.t = (5 + B.lejos) * ((B.plan.caballeria === 'izquierda' && num.sect === 0) || (B.plan.caballeria === 'derecha' && num.sect === 2) ? 2 : 1); num.ala = num.sect; num.lado = 'costado'; num.fase = 'sale'; num.veces++; ev(B, 'numidas-aviso', num.sect, '¡' + May(TROPAS[num.tipo].n) + ' ' + DONDE[num.sect] + '!'); ev(B, 'cab-sale', num.sect, '¡' + May(TROPAS[num.tipo].n) + ' ' + DONDE[num.sect] + '!', { bando: 1, ala: num.sect }); }
     else num.proxima = B.t + 20;
-  } else if (num.estado === 'llega') { num.t -= dt; if (num.t <= 0) { num.estado = 'hostiga'; num.t = 15; } }
+  } else if (num.estado === 'llega') { num.t -= dt; num.fase = num.dur - num.t < 1.5 ? 'sale' : num.t < 1.5 ? 'entra' : 'rodea'; if (num.t <= 0) { num.estado = 'hostiga'; num.fase = 'golpe'; num.t = 15; ev(B, 'cab-golpe', num.sect, May(TROPAS[num.tipo].uno) + ' caen sobre tu ala', { bando: 1, lado: 'costado', ala: num.sect }); } }
   else if (num.estado === 'hostiga') {
-    num.t -= dt; const s = B.sect[num.sect], r = s.c[0];
-    if (!r.roto) { const m = (frente(r).tipo === 'triarii' && r.postura === 'aguantar') || r.postura === 'escudos' || r.postura === 'testudo' ? 0.35 : 1; r.moral -= 0.024 * m * dt; bajas(r, 1.3 * B.k * m * dt); if (r.moral <= 0) romper(B, s, 0); }
-    if (num.t <= 0 || r.roto) { num.estado = 'lejos'; num.proxima = B.t + 30 + B.rnd() * 10; if (!r.roto) ev(B, 'numidas-fuera', num.sect, May(TROPAS[num.tipo].uno) + ' se alejan'); }
+    num.t -= dt; const s = B.sect[num.sect], r = s.c[0], gf = Math.min(1, num.guarda[num.sect] / Math.max(1, num.max / 2));
+    if (!r.roto) { const m = ((frente(r).tipo === 'triarii' && r.postura === 'aguantar') || r.postura === 'escudos' || r.postura === 'testudo' ? 0.35 : 1) * gf; r.moral -= 0.024 * m * dt; bajas(r, 1.3 * B.k * m * dt, 'jabalina'); if (r.moral <= 0) romper(B, s, 0); }
+    if (num.t <= 0 || r.roto) { num.estado = 'lejos'; num.fase = 'vuelve'; num.proxima = B.t + 30 + B.rnd() * 10; if (!r.roto) ev(B, 'numidas-fuera', num.sect, May(TROPAS[num.tipo].uno) + ' se alejan'); }
   }
 
   const rotos = [0, 1].map(l => B.sect.filter(s => s.c[l].roto).length);

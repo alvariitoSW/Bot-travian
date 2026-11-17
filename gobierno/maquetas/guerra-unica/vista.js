@@ -116,19 +116,20 @@ void main() {
   vNiebla = smoothstep(uNiebla.x, uNiebla.y, -mv.z);
 }`;
 const FS = `
-uniform sampler2D uMap; uniform vec3 uNieblaC, uBando;
+uniform sampler2D uMap; uniform vec3 uNieblaC, uBando, uTinte;
 varying vec2 vUv; varying float vLejos, vNiebla;
 void main() {
   vec4 t = texture2D(uMap, vUv); if (t.a < mix(0.5, 0.16, vLejos)) discard;
-  vec3 c = t.rgb / max(t.a, 0.06); c = mix(c, uBando, vLejos * 0.3);
+  vec3 c = t.rgb / max(t.a, 0.06) * uTinte; c = mix(c, uBando, vLejos * 0.3);
   gl_FragColor = vec4(mix(c, uNieblaC, vNiebla), 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
 }`;
-const QUAD = new THREE.PlaneGeometry(1, 1);
-function carton(at, lado, propios, caido) {
+const QUAD = new THREE.PlaneGeometry(1, 1), ESC_BESTIA = 3.2;
+function carton(at, lado, propios, caido, bestia) {
   const g = new THREE.InstancedBufferGeometry(); g.index = QUAD.index.clone(); g.setAttribute('position', QUAD.attributes.position.clone()); g.setAttribute('uv', QUAD.attributes.uv.clone());   // copias propias: al deshacer un regimiento no se lleva los datos de los demás
-  const un = Object.assign({ uMap: { value: at.tex }, uTam: { value: new THREE.Vector2(at.W, at.H) }, uAlto: { value: at.yc }, uBando: { value: new THREE.Color(COLOR[lado]) } }, propios, COMUN);
+  const un = Object.assign({ uMap: { value: at.tex }, uTam: { value: new THREE.Vector2(at.W, at.H) }, uAlto: { value: at.yc }, uBando: { value: new THREE.Color(COLOR[lado]) }, uTinte: { value: new THREE.Color(1, 1, 1) } }, propios, COMUN);
+  if (bestia) { un.uTam.value.multiplyScalar(ESC_BESTIA); un.uAlto.value *= ESC_BESTIA; un.uTinte.value.setRGB(1.5, 0.8, 0.4); }      // los elefantes: el mismo cartón de libios, pero enormes y de otro color (no hay modelo propio)
   const malla = new THREE.Mesh(g, new THREE.ShaderMaterial({ uniforms: un, vertexShader: (caido ? '#define CAIDO\n' : '') + VS, fragmentShader: FS })); malla.frustumCulled = false; escena.add(malla);
   return { g, un, malla };
 }
@@ -143,7 +144,7 @@ const estand = [], pend = [], polvoN = 240, figM = new Map(), caidos = new Map()
 function regimiento(tipo, lado, cap, files) {
   const mont = montado(tipo), px = forma(tipo).px, pz = forma(tipo).pz;
   const c = carton(atlasDe(tipo, lado), lado, { uCentro: { value: new THREE.Vector2() }, uYaw: { value: 0 }, uFiles: { value: files }, uVivos: { value: cap }, uRev: { value: 0 }, uPaso: { value: new THREE.Vector2(px, pz) }, uAnim: { value: 0 }, uAtaca: { value: 0 }, uCalma: { value: 0.1 },
-    uHuida: { value: -1 }, uFuga: { value: new THREE.Vector2(0, 1) }, uOrden: { value: 1 }, uGiro: { value: 0 }, uVida: { value: 0 }, uCalle: { value: 0 }, uCM: { value: 2.4 }, uEmb: { value: 0 }, uLane: { value: 8 }, uJit: { value: 0 } });
+    uHuida: { value: -1 }, uFuga: { value: new THREE.Vector2(0, 1) }, uOrden: { value: 1 }, uGiro: { value: 0 }, uVida: { value: 0 }, uCalle: { value: 0 }, uCM: { value: 2.4 }, uEmb: { value: 0 }, uLane: { value: 8 }, uJit: { value: 0 } }, false, !!ficha(tipo).bestia);
   const manto = new THREE.Mesh(MANTO, new THREE.MeshBasicMaterial({ color: '#1a1408', transparent: true, opacity: 0.2, depthWrite: false })); manto.renderOrder = 1; escena.add(manto);   // sombra del bloque
   const rg = { tipo, lado, cap, n: cap, files, px, pz, px0: px, pz0: pz, pxQ: px, pzQ: pz, cubre: 0, cubreQ: 0, x: 0, z: 0, yaw: lado === 0 ? Math.PI : 0, tx: 0, tz: 0, tyaw: 0, est: 0, tH: 0, anim: 0, ataca: 0, calma: 0.1, giro: 0, vQ: 0, rel: null, snap: false, mont, manto, ...c };
   if (ficha(tipo).cubre) rg.techo = tejado();
@@ -153,7 +154,7 @@ const MANTO = new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2).translate(0, 0
 function caidosDe(rg) {
   const id = rg.tipo + rg.lado; if (caidos.has(id)) return caidos.get(id);
   const cap = 140, a = new THREE.InstancedBufferAttribute(new Float32Array(cap * 4).fill(-999), 4); a.setUsage(THREE.DynamicDrawUsage);
-  const c = carton(atlasDe(rg.tipo, rg.lado), rg.lado, { uVida: { value: 45 }, uRev: { value: 0 }, uVivos: { value: 0 } }, true); c.g.setAttribute('aC', a); c.g.instanceCount = cap; c.malla.renderOrder = 60;
+  const c = carton(atlasDe(rg.tipo, rg.lado), rg.lado, { uVida: { value: 45 }, uRev: { value: 0 }, uVivos: { value: 0 } }, true, !!ficha(rg.tipo).bestia); c.g.setAttribute('aC', a); c.g.instanceCount = cap; c.malla.renderOrder = 60;
   const p = { a, cap, k: 0, ...c }; caidos.set(id, p); return p;
 }
 const O = {};
@@ -258,28 +259,57 @@ function sitio(rg, id, T, out) {
 }
 function huir(rg, dir, orden) { if (rg.est === 3) return; rg.est = 3; rg.tH = 0; rg.un.uFuga.value.set(0, dir); rg.un.uOrden.value = orden ? 0.55 : 1; }
 
-/* GM8: aquí se cambia cómo carga la caballería (arranque, galope, choque, vuelta, persecución). El motor solo dice
-   B.cab.estado (lista, yendo, cargando, volviendo), B.cab.sect y si va a por los tiradores */
+/* GM8: los jinetes siguen una trayectoria por FUERA de las líneas: salen por el extremo del ala, rodean, entran por detrás y vuelven por el mismo exterior.
+   Cada fase parte de donde estaba el regimiento al empezarla (ini) y recorre una poligonal; nunca cruza el ancho de ninguna línea.
+   GM9: si el ala enemiga está guardada, los jinetes rivales salen a su encuentro y se ve el duelo antes de entrar */
+const pol = { ini: null, fase: null, tot: 1 }, polN = { ini: null, fase: null, tot: 1 };
+const lerpPol = (pts, u) => {                                            // punto a la fracción u (0..1) del largo de la poligonal
+  let L = 0; const seg = []; for (let k = 1; k < pts.length; k++) { const d = Math.hypot(pts[k][0] - pts[k - 1][0], pts[k][1] - pts[k - 1][1]); seg.push(d); L += d; }
+  let r = Math.max(0, Math.min(1, u)) * L; for (let k = 0; k < seg.length; k++) { if (r <= seg[k] || k === seg.length - 1) { const f = seg[k] ? Math.min(1, r / seg[k]) : 1; return [pts[k][0] + (pts[k + 1][0] - pts[k][0]) * f, pts[k][1] + (pts[k + 1][1] - pts[k][1]) * f, Math.atan2(pts[k + 1][0] - pts[k][0], pts[k + 1][1] - pts[k][1])]; } r -= seg[k]; }
+  return [pts[0][0], pts[0][1], 0];
+};
+const sigue = c => c.estado !== 'lista';
+let sigueCab = false;
 function jinetes() {
-  const c = B.cab, lado = i => i === 0 ? -1 : 1, llegar = (q, x, z, yaw, seg) => { q.tx = x; q.tz = z; q.tyaw = yaw; q.vQ = Math.max(6, Math.hypot(x - q.x, z - q.z) / Math.max(0.25, seg)); };
+  const c = B.cab, lado = i => i === 0 ? -1 : 1;
   const zRoma = s => zFrente(s) + hueco(s) / 2;
-  rc.giro = 0; rc.ataca = 0;
-  if (c.estado === 'yendo' || c.estado === 'cargando') {
-    const s = B.sect[c.sect], sg = lado(c.sect), e = s.c[1], rt = e.tir && regs.get(e.tir), aTir = rt && (R.tirando(e) || (e.tir.huido && c.estado === 'cargando'));
-    const mx = aTir ? xs(c.sect) + sg * 2 : xs(c.sect) + sg * (mitad(c.sect) + 1.2), mz = aTir ? rt.z - 2 : zFrente(s) - hueco(s) / 2 - Math.min(rc.ancho, e.fondo || FONDO_E) / 2 - 1, total = c.total;
-    if (c.estado === 'yendo' && c.t > total * 0.5) llegar(rc, xs(c.sect) + sg * (mitad(c.sect) + 1.2 + rc.ancho * 0.5), zRoma(s) + 2, Math.PI, c.t - total * 0.5);      // primero corren por el costado de los suyos
-    else llegar(rc, mx, mz, -sg * Math.PI / 2, c.estado === 'yendo' ? c.t : 0.3);
-    if (c.estado === 'cargando') { rc.ataca = 3; rc.calma = -2; }
-  } else {                                                        // esperan donde dice el plan: tras el centro, o junto a un ala (la repartida se dibuja entera junto a la izquierda)
-    const sit = B.plan.caballeria, ala = sit === 'derecha' ? 2 : sit === 'reserva' ? -1 : 0;
-    if (ala < 0) { rc.tx = xs(1); rc.tz = zRoma(B.sect[1]) + ZCAB; } else { const sg = ala === 0 ? -1 : 1; rc.tx = xs(ala) + sg * (mitad(ala) + 1.2 + rc.ancho * 0.5); rc.tz = zRoma(B.sect[ala]) + 2; }
-    rc.tyaw = Math.PI; rc.vQ = 14;
+  const zR = Math.max(...B.sect.map(s => zRoma(s) + (s.c[0].fondo || FONDO_R))) + rc.hondo / 2 + 2;              // por detrás del último romano
+  const zE = Math.min(...B.sect.map(s => zFrente(s) - hueco(s) / 2 - (s.c[1].fondo || FONDO_E))) - rc.hondo / 2 - 1.5;   // por detrás del último enemigo
+  const sit = B.plan.caballeria, alaR = sit === 'derecha' ? 2 : sit === 'reserva' ? -1 : 0, sgR = alaR === 0 ? -1 : 1;
+  const reposo = alaR < 0 ? [xs(1), zRoma(B.sect[1]) + ZCAB] : [xs(alaR) + sgR * (mitad(alaR) + 1.2 + rc.ancho * 0.5), zRoma(B.sect[alaR]) + 2];
+  rc.giro = 0; rc.ataca = 0; rc.calma = 0.1; rc.mont = true;
+  if (!sigue(c)) { pol.fase = null; sigueCab = false; rc.tx = reposo[0]; rc.tz = reposo[1]; rc.tyaw = Math.PI; rc.vQ = 14; }
+  else {
+    const a = c.ala >= 0 ? c.ala : 0, sg = lado(a), xo = xs(a) + sg * (mitad(a) + 1.5 + rc.ancho / 2), s = B.sect[c.obj >= 0 ? c.obj : a], e = s.c[1];
+    const rt = e.tir && regs.get(e.tir), aTir = rt && (R.tirando(e) || (e.tir.huido && c.estado === 'cargando'));
+    const meta = aTir ? [c.obj !== 1 ? xo : xs(c.obj) + sg * 2, rt.z - 2] : [xs(c.obj >= 0 ? c.obj : a), zFrente(s) - hueco(s) / 2 - (e.fondo || FONDO_E) - rc.hondo / 2 - 1];
+    if (pol.fase !== c.fase) { pol.fase = c.fase; pol.ini = [rc.x, rc.z]; pol.tot = Math.max(0.3, c.t); }
+    const u = 1 - c.t / pol.tot, ini = pol.ini;
+    const duelo = c.fase === 'rodea' && B.num.guarda[a] > 0 && !B.sect[a].c[1].roto, zD = zE + (zR - zE) * 0.3;
+    let p;
+    if (c.fase === 'sale') p = lerpPol([ini, [xo, zR]], u * u);                                                         // arranque: al paso y acelerando
+    else if (c.fase === 'rodea') p = lerpPol([ini, duelo ? [xo, zD] : [xo, zE]], Math.pow(Math.max(0, u), 1.25));        // galope por fuera
+    else if (c.fase === 'entra') p = lerpPol([ini, [xo, zE], meta], 0.2 + 0.8 * u * u);                                  // entran por la espalda
+    else if (c.fase === 'golpe') { const pers = e.roto || (aTir && e.tir.huido); p = [meta[0], meta[1] - (pers ? 9 * u : 0) + Math.sin(T * 9) * 0.5, pers ? Math.PI : 0]; }
+    else p = lerpPol([ini, [xo, zE], [xo, zR], reposo], u);                                                              // vuelven despacio por el mismo exterior
+    rc.tx = p[0]; rc.tz = p[1]; rc.tyaw = p[2]; rc.vQ = c.fase === 'golpe' ? 6 : 90;
+    if (c.fase === 'rodea' || c.fase === 'entra') rc.calma = -1;
+    if (c.fase === 'golpe' || (duelo && u > 0.7)) { rc.ataca = 3; rc.calma = -2; }
+    if (c.fase === 'golpe' && c.t > 2.9) temblor = Math.max(temblor, 0.8);
   }
   const n = B.num;
-  if (n.estado === 'llega' || n.estado === 'hostiga') {
-    const s = B.sect[n.sect], sg = lado(n.sect);
-    llegar(rn, xs(n.sect) + sg * (mitad(n.sect) + 3.5 + ((B.plan.caballeria === 'izquierda' || B.plan.caballeria === 'repartida') && n.sect === 0 || B.plan.caballeria === 'derecha' && n.sect === 2 ? rc.ancho + 2 : 0)), zRoma(s) + rn.ancho / 2 + 2, -sg * Math.PI / 2, n.estado === 'llega' ? n.t : 0.3); rn.giro = n.estado === 'hostiga' ? 1 : 0;
-  } else { const sg = n.sect === 0 ? -1 : 1; rn.tx = XC + sg * (MEDIO + 45); rn.tz = -(FONDO_E + LEJOS / 2 + 70); rn.tyaw = 0; rn.vQ = 16; rn.giro = 0; }
+  if (n.estado === 'llega' || n.estado === 'hostiga' || (sigue(c) && c.fase === 'rodea' && B.num.guarda[c.ala] > 0 && !B.sect[c.ala].c[1].roto)) {
+    const sg = n.sect === 0 ? -1 : 1, ns = n.sect >= 0 ? n.sect : c.ala, s = B.sect[ns], xo = xs(ns) + (ns === 0 ? -1 : 1) * (mitad(ns) + 3.5 + rn.ancho / 2), zEn = Math.min(...B.sect.map(q => zFrente(q) - hueco(q) / 2 - (q.c[1].fondo || FONDO_E))) - rn.hondo / 2 - 2;
+    const dRc = (sit === 'izquierda' || sit === 'repartida') && ns === 0 || sit === 'derecha' && ns === 2 ? rc.ancho + 2 : 0;
+    const fin = [xs(ns) + sg * (mitad(ns) + 3.5 + dRc), zRoma(s) + rn.ancho / 2 + 2];
+    if (polN.fase !== n.fase) { polN.fase = n.fase; polN.ini = [rn.x, rn.z]; polN.tot = Math.max(0.3, n.t); }
+    const u = 1 - n.t / polN.tot; let p;
+    const duelo = sigue(c) && c.fase === 'rodea' && B.num.guarda[c.ala] > 0 && n.estado !== 'llega' && n.estado !== 'hostiga';
+    if (duelo) { const sgc = lado(c.ala), zD = zE + (zR - zE) * 0.3; p = [xs(c.ala) + sgc * (mitad(c.ala) + 1.5 + rc.ancho / 2), zD - rc.hondo / 2 - rn.hondo / 2 - 1, 0]; rn.ataca = 3; }
+    else if (n.estado === 'hostiga') p = [fin[0], fin[1], 0];
+    else p = n.fase === 'sale' ? lerpPol([polN.ini, [xo, zEn]], u) : n.fase === 'rodea' ? lerpPol([polN.ini, [xo, zEn], [xo, fin[1]]], u) : lerpPol([polN.ini, fin], u);
+    rn.tx = p[0]; rn.tz = p[1]; rn.tyaw = n.estado === 'hostiga' ? -sg * Math.PI / 2 : p[2]; rn.vQ = duelo ? 80 : 35; rn.giro = n.estado === 'hostiga' ? 1 : 0; if (!duelo) rn.ataca = 0;
+  } else { polN.fase = null; const sg = n.sect === 0 ? -1 : 1; rn.tx = XC + sg * (MEDIO + 45); rn.tz = -(FONDO_E + LEJOS / 2 + 70); rn.tyaw = 0; rn.vQ = 16; rn.giro = 0; rn.ataca = 0; }
 }
 
 /* ---------- mover: una cuenta por regimiento, no por hombre ---------- */
@@ -480,6 +510,7 @@ function adornos(dt) {
 /* ---------- cámara: vista general a la medida del ejército; baja sola a donde pasa algo, o cuando se pide «De cerca» ---------- */
 /* GM8: la cámara que sigue a los jinetes va aquí: otra rama de camaraMeta que mire a (rc.x, rc.z) mientras B.cab no esté 'lista' */
 function camaraMeta() {
+  if (sigueCab && B.cab.estado !== 'lista' && B.fase !== 'fin') { const duelo = B.cab.fase === 'rodea' && B.num.guarda[B.cab.ala] > 0, juntos = duelo && Math.hypot(rn.z - rc.z, rn.x - rc.x) < 70, zc = juntos ? (rc.z + rn.z) / 2 : rc.z - 6, xc = juntos ? (rc.x + rn.x) / 2 : rc.x; return { x: xc, y: 1.2, z: zc, d: Math.max(vertical ? 48 : 34, rc.ancho * (vertical ? 2.4 : 1.8)) + 14, p: 0.55, a: 0.3 }; }
   const i = foco.i >= 0 && T < foco.hasta ? foco.i : cerca ? sel : -1;
   if (i >= 0 && B.fase !== 'fin') { const s = B.sect[i], h = hueco(s) / 2, rv = relv.get(s.c[0]), rel = rv && rv.an ? 1 : 0; return { x: xs(i), y: 1.2, z: zFrente(s) + 1.5 + h * 0.8 + rel * 8, d: (vertical ? 30 : 21) + Math.min(26, h * 0.5) + rel * 8, p: 0.3 + Math.min(0.1, h * 0.004), a: (1 - i) * 0.3 + 0.28 }; }
   const tanV = Math.tan(camara.fov * Math.PI / 360), tanH = tanV * camara.aspect, p = vertical ? 0.48 : 0.42, hm = Math.max(...B.sect.map(hueco)), zm = B.sect.reduce((a, s) => a + zFrente(s), 0) / 3, hondo = (FONDO_R + FONDO_E + hm) / 2 + 6;
@@ -533,7 +564,9 @@ function pintarCartas(fuerza) {
     b.classList.toggle('pide', !no && ((o === 'relevo' && (c.alerta || (!lej && R.juicioRelevo(B, sel) === 'a-tiempo'))) || (o === 'caballeria' && c.acoso) || (o === 'escudos' && leTiran && c.postura === 'avanzar') || (o === 'avanzar' && ((c.postura !== 'avanzar' && !leTiran && s.dist > 25) || (c.postura === 'testudo' && s.dist < 34))) || (!tocado && !lej && o === 'empujar')));
     if (o === 'testudo') sub.textContent = c.cambio > 0 ? 'deshaciéndolo…' : R.ORDENES[o].sub;
     if (o === 'relevo') sub.textContent = c.roto || c.lineas.length < 2 ? 'no queda nadie' : c.relevo > 0 ? 'relevando…' : ({ 'a-tiempo': 'buen momento', 'sin-necesidad': 'aún están enteros', 'bajo-carga': '¡te cargan!', 'sin-aliento': 'reserva sin aliento' }[R.juicioRelevo(B, sel)] || 'entran ' + R.TROPAS[c.lineas[1].tipo].n);
-    if (o === 'caballeria') { const k = B.cab, falta = k.estado === 'yendo' ? k.t + 21 : k.estado === 'cargando' ? k.t + 17 : k.t; sub.textContent = k.estado === 'lista' ? (et ? 'a sus ' + R.TROPAS[et.tipo].n : 'carga al flanco') : k.estado === 'volviendo' || k.estado === 'cargando' ? 'vuelve en ' + Math.ceil(falta) + ' s' : 'cargando…'; }
+    if (o === 'caballeria') { const k = B.cab, fs = { sale: 'salen…', rodea: 'rodean…', entra: 'entran…', golpe: '¡golpean!', vuelve: 'vuelven…' };
+      const razon = k.estado === 'lista' && no ? (/no hay paso/.test(no) ? 'no hay paso' : no.replace(/^Los caballos /, '').replace(/^Los jinetes /, '')) : '';
+      sub.textContent = k.estado === 'lista' ? (razon || (et ? 'a sus ' + R.TROPAS[et.tipo].n : 'carga al flanco')) : (fs[k.fase] || 'cargando…') + (k.fase === 'vuelve' ? ' ' + Math.ceil(k.t) + ' s' : ''); b.title = no || ''; }
   });
   $('cuenta').textContent = 'Roma ' + miles(R.hombresLado(B, 0)) + ' · Enemigo ' + miles(R.hombresLado(B, 1)) + ' · Ánimo ' + Math.round(100 * B.animo) + ' %' + (fps ? ' · ' + Math.round(fps) + ' img/s' : '');
 }
@@ -557,10 +590,10 @@ function eventos() {
     if (e.tipo === 'pila') salva(e);
     if (e.tipo === 'tir-vuelven' || (e.tipo === 'lluvia' && !e.linea && avisoTir++) || (e.tipo === 'tir-tiran' && avisoTir2++)) continue;      // lo que se ve solo no hace falta decirlo cada vez
     if (e.tipo === 'relevo') B.sect[e.sect].c[0].vj = e.juicio || '';
-    const mala = e.tipo === 'mando' ? e.juicio === 'mal' : e.tipo === 'flanco' ? e.lado === 0 : ['carga-enemiga', 'numidas-aviso', 'cansados', 'linea-deshecha', 'lluvia', 'testudo-roto'].includes(e.tipo) || (e.tipo === 'roto' && e.lado === 0) || (e.tipo === 'envuelve' && e.lado === 1);
+    const mala = e.tipo === 'mando' ? e.juicio === 'mal' : e.tipo === 'flanco' ? e.lado === 0 : ['carga-enemiga', 'numidas-aviso', 'elefantes-cargan', 'bestias-desbocadas', 'cansados', 'linea-deshecha', 'lluvia', 'testudo-roto'].includes(e.tipo) || (e.tipo === 'roto' && e.lado === 0) || (e.tipo === 'envuelve' && e.lado === 1);
     const buena = e.tipo === 'mando' ? e.juicio === 'bien' : e.tipo === 'cubre' || ['enemigo-cede', 'impacto', 'numidas-fuera', 'calma', 'tir-tiran'].includes(e.tipo) || (e.tipo === 'pila' && e.lado === 0) || (e.tipo === 'roto' && e.lado === 1) || (e.tipo === 'envuelve' && e.lado === 0);
     cinta(e.texto, mala ? 'mala' : buena ? 'buena' : '');
-    if (e.tipo === 'impacto' || e.tipo === 'choque') temblor = 1;
+    if (e.tipo === 'impacto' || e.tipo === 'choque' || e.tipo === 'cab-golpe') temblor = 1;
     if (e.tipo === 'roto' || e.tipo === 'impacto' || e.tipo === 'relevo' || e.tipo === 'caballeria') mirar(e.sect, e.tipo === 'caballeria' ? 6.5 + B.lejos : 3.2, true);
     else if (e.tipo === 'flanco' || e.tipo === 'cubre') mirar(e.sect, 3.2, true);
     else if (e.tipo === 'carga-enemiga' || e.tipo === 'envuelve' || e.tipo === 'numidas-aviso' || (e.tipo === 'lluvia' && e.linea) || e.tipo === 'choque' || e.tipo === 'pila') mirar(e.sect, 2.8, false);
@@ -619,7 +652,7 @@ const rayo = new THREE.Raycaster(), plano = new THREE.Plane(new THREE.Vector3(0,
 lienzo.addEventListener('pointerdown', e => { toque.x = e.clientX; toque.y = e.clientY; toque.t = performance.now(); });
 lienzo.addEventListener('pointerup', e => {
   if (!lista || pausa || desplegando || Math.hypot(e.clientX - toque.x, e.clientY - toque.y) > 12 || performance.now() - toque.t > 600) return;
-  rayo.setFromCamera(new THREE.Vector2(e.clientX / ancho * 2 - 1, -(e.clientY / alto) * 2 + 1), camara); const p = rayo.ray.intersectPlane(plano, V3); if (!p || Math.abs(p.x - XC) > MEDIO + 3 || p.z > ZCAB + LEJOS + 20 || p.z < -(FONDO_E + LEJOS + 10)) return;
+  rayo.setFromCamera(new THREE.Vector2(e.clientX / ancho * 2 - 1, -(e.clientY / alto) * 2 + 1), camara); const p = rayo.ray.intersectPlane(plano, V3); if (p && B.cab.estado !== 'lista' && Math.hypot(p.x - rc.x, p.z - rc.z) < Math.max(6, rc.ancho * 0.7)) { sigueCab = !sigueCab; return; } if (sigueCab) { sigueCab = false; return; } if (!p || Math.abs(p.x - XC) > MEDIO + 3 || p.z > ZCAB + LEJOS + 20 || p.z < -(FONDO_E + LEJOS + 10)) return;
   elegir([0, 1, 2].sort((a, b) => Math.abs(p.x - XS[a]) - Math.abs(p.x - XS[b]))[0]);
 });
 
@@ -659,7 +692,8 @@ requestAnimationFrame(cuadro); arrancar();
 window.__gc = {
   get lista() { return lista; }, get B() { return B; }, R, get desplegando() { return desplegando; },
   plan: () => JSON.parse(JSON.stringify(PLAN)), planear, marchar, files: () => B.sect.map(s => regs.get(s.c[0].lineas[0]).files), anchos: () => SW.slice(), xs: () => XS.slice(), medio: () => [XC, MEDIO],
-  ordenar: (i, o) => { sel = i; ordenar(o); }, elegir, cerca: verCerca,
+  ordenar: (i, o) => { sel = i; ordenar(o); }, elegir, sigue: v => { sigueCab = v; }, get siguiendo() { return sigueCab; },
+  cab: () => ({ rn: { x: rn.x, z: rn.z }, x: rc.x, z: rc.z, ancho: rc.ancho, hondo: rc.hondo, regs: [...regs.values()].filter(r => r.est !== 3 && Math.ceil(r.n) > 0 && r !== rc && r !== rn).map(r => ({ x: r.x, z: r.z, lado: r.lado, w: r.files * r.px, h: F.filasDe(Math.ceil(r.n), r.files) * r.pz })) }), cerca: verCerca,
   pausa: v => { pausa = v; },
   salta: seg => { for (let k = 0; k < seg * 20 && B.fase !== 'fin'; k++) avanza(0.05); },
   mirar: (i, seg) => { foco = { i, hasta: i < 0 ? 0 : T + seg, ultimo: T }; moverCamara(0, true); },
