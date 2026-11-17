@@ -258,7 +258,9 @@ async function navegador() {
         const pt = await estado(() => { const E = Game.ciudadE('roma'), pz = UI.bsel && UI.bsel.id || 'granja'; let m = null; for (let x = E.foro.x - 250; x <= E.foro.x + 250; x += 10) for (let z = E.foro.z - 250; z <= E.foro.z + 250; z += 10) { const n = Game.notaSitio('roma', pz, x, z); if (n && n.vale && (!m || n.nota > m.n)) m = { n: n.nota, x, z }; } if (!m) return null; UI.cityV.mirar(m.x, m.z, 300, 0); return UI.cityV.aPantalla(m.x, m.z, 0); });
         if (pt) { await espera(800); await page.touchscreen.tap(pt.x, pt.y); await espera(700); } else fallos.push('no hay ningún sitio verde');
       }
-      await page.click('#b-si', { timeout: 5000 }).catch(() => fallos.push('«Construir aquí» no se puede pulsar')); await espera(1500);
+      /* JU1: con fotogramas lentos (render por software) el botón desaparece al pulsarlo antes de que Playwright reciba el acuse del clic:
+         se comprueba el efecto (la obra entra en la cola), no el acuse. Si no entró, sigue siendo fallo. */
+      await page.click('#b-si', { timeout: 5000 }).catch(async () => { await espera(1500); if (!(await estado(() => Game.state.cities.roma.obras.length))) fallos.push('«Construir aquí» no se puede pulsar'); }); await espera(1500);
       const obra = await estado(() => { const c = Game.state.cities.roma.obras[0]; return c ? { n: Game.state.cities.roma.obras.length, t: c.b ? DATA.BUILD[c.b].n : c.pieza } : null; });
       if (!obra || obra.n !== 1) fallos.push('la obra no entró en la cola (' + (obra ? obra.n : 0) + ' obras)');
       // ficha de una pieza ya colocada
