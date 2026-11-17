@@ -80,6 +80,12 @@ const INFO = {
   legion: () => `Legiones: ${e.legiones}. Cada una suma ${R.fuerzaLegion(e)} de fuerza.`,
   ...Object.fromEntries(R.ORDEN_EDIF.map(k => [k, () => `${EDIFICIOS[k].nombre}: ${e.edif[k]} de ${EDIFICIOS[k].max}. Da escaños a los ${BANDOS[EDIFICIOS[k].bando].nombre.toLowerCase()}.`])),
 };
+/* consejo de lo que más aprieta: solo cuando la ciudad tiene hueco (sin obras y con pocos saberes); la primera frase */
+function consejoCiudad(cola) {
+  if (cola || e.saberes.length > 1 || !R.consejo || e.fase === 'fin') return '';
+  const t = R.consejo(e), corto = t.split(/(?<=\.) /)[0];
+  return `<p class="consejo-ciudad"><b>Lo que más aprieta:</b> ${corto}</p>`;
+}
 function pantallaCiudad() {
   const nuevo = recienCambios(), dib = A.ciudad(e, nuevo, Object.assign({ estacion: R.estacionVisual ? R.estacionVisual(e) : null }, NOMBRES)); focos = dib.focos;
   const nv = (q, o) => nuevo.some(c => c.que === q && (o == null || c.obj === o) && (q !== 'legiones' || c.n > 0));
@@ -90,8 +96,8 @@ function pantallaCiudad() {
   return `<section class="ca"><div class="lienzo o2" id="lienzo">${dib.svg}<div class="rotulo" hidden></div></div></section>
   <section class="cb"><div class="o0">${guia('ciudad')}${bandaSuceso()}</div><div class="ro-rubrica sub">Lo que tiene Roma · ${Math.round(e.pob)} 000 vecinos</div><div class="iconos">${fila}</div>
   <p class="leyenda">${ui.info && INFO[ui.info] ? INFO[ui.info]() : 'Toca un icono para ver qué es.'}</p>
-  <div class="fichas">${sabs || '<span class="vacio">Sin saberes todavía: el Senado puede votar estudiar uno.</span>'}</div>
-  ${cola ? `<div class="ro-rubrica sub">En obra</div><div class="fichas">${cola}</div>` : ''}</section>`;
+  <div class="fichas">${sabs || '<span class="vacio">Sin saberes todavía.</span>'}</div>
+  ${cola ? `<div class="ro-rubrica sub">En obra</div><div class="fichas">${cola}</div>` : ''}${consejoCiudad(cola)}</section>`;
 }
 /* zoom suave y destello sobre lo recién cumplido, con su nombre encima */
 function zoomNuevo() {

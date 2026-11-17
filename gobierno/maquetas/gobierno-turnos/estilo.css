@@ -206,6 +206,8 @@ h2.ro-ansata { font-size: 16px; height: 34px; margin: 4px 22px 8px; }
 .orden svg { width: 24px; height: 24px; grid-row: span 2; }
 .orden small { grid-column: 2; color: var(--tinta2); font-size: 13px; }
 .orden .tarde { color: var(--minio); font-weight: 700; }
+.consejo-ciudad { margin: 8px 0 0; font-size: 14px; line-height: 1.35; padding: 6px 10px; border-left: 3px solid var(--minio); background: rgba(255,250,235,.55); border-radius: 0 6px 6px 0; }
+.consejo-ciudad b { color: var(--minio); }
 .vacio { color: var(--tinta2); font-style: italic; font-size: 14px; }
 .req li { font-size: 14px; } .req { margin: 4px 0 0; padding-left: 20px; }
 .req li.ok { color: var(--oliva); } .req li.ok::marker { content: '✓ '; } .req li.no::marker { content: '✗ '; color: var(--minio); }
@@ -283,7 +285,8 @@ h2.ro-ansata { font-size: 16px; height: 34px; margin: 4px 22px 8px; }
   #cuerpo { grid-column: 1 / -1; display: grid; grid-template-columns: 1.05fr 1fr; gap: 10px; overflow: hidden; padding: 6px 10px; }
   #cuerpo > section { display: flex; flex-direction: column; min-height: 0; overflow-y: auto; overflow-x: clip; }
   #cuerpo.p-ciudad .lienzo { width: 100%; max-width: calc((100dvh - 132px) * 4 / 3); margin: 3px auto; }
-  #cuerpo.p-senado .hemi { width: 100%; max-width: 330px; margin: 0 auto; }
+  #cuerpo.p-senado .hemi { width: 100%; max-width: min(330px, calc((100dvh - 268px) * 2.1)); margin: 0 auto; flex: none; }
+  #cuerpo.p-senado .nota-trato { line-height: 1.25; margin-top: 2px; flex: none; }
   #cuerpo.p-senado .tratos { margin-top: 2px; }
   .portada-svg.de-pie { display: none; } .portada-svg.tumbada { display: block; }
   #cuerpo .guia { font-size: 13px; padding: 5px 10px; }

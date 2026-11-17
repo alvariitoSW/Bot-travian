@@ -31,9 +31,9 @@ function defs(S) {
   <g id="c-pino"><path d="M0 0v-7" stroke="#5a4024" stroke-width="1.1"/><ellipse cy="-8.5" rx="6" ry="2.8" fill="${S.copa}"/><ellipse cy="-9.4" rx="4.2" ry="1.6" fill="#ffffff" opacity="${S.nieve ? .7 : .12}"/></g>
   <g id="c-cipres"><path d="M0 0v-2" stroke="#5a4024" stroke-width="1"/><path d="M0 -12 C2.4 -8 2.4 -4 0 -1.5 C-2.4 -4 -2.4 -8 0 -12Z" fill="${S.copa}"/></g>
   <g id="c-arbol"><path d="M0 0v-5" stroke="#5a4024" stroke-width="1"/><circle cy="-7" r="3.6" fill="${S.hoja}"/><circle cx="2.4" cy="-5.5" r="2.4" fill="${S.hoja}"/>${S.nieve ? '<path d="M-3 -9h6" stroke="#fff" stroke-width="1" opacity=".7"/>' : ''}</g>
-  <g id="c-tienda"><path d="M-5 2 L0 -4 L2 2Z" fill="#efe6cf" stroke="#7a6444" stroke-width=".4"/><path d="M0 -4 L6 -4.6 L8 1.6 L2 2Z" fill="#d7c9a8" stroke="#7a6444" stroke-width=".4"/></g>
-  <g id="c-legion"><g fill="${ROJO}" stroke="#4a0d08" stroke-width=".35">${[0, 1, 2].map(f => [0, 1, 2, 3].map(c => `<rect x="${r1(c * 3.4 - 6)}" y="${r1(f * 4 - 4)}" width="2.6" height="3.2" rx=".5"/>`).join('')).join('')}</g><g fill="#c9a24a">${[0, 1, 2].map(f => [0, 1, 2, 3].map(c => `<circle cx="${r1(c * 3.4 - 4.7)}" cy="${r1(f * 4 - 4.6)}" r=".75"/>`).join('')).join('')}</g><path d="M8.6 8 V-10" stroke="#4a3119" stroke-width=".9"/><rect x="8.6" y="-10" width="5" height="4" fill="${ROJO}" stroke="#4a0d08" stroke-width=".3"/><path d="M8.6 -6h5" stroke="#e2b13c" stroke-width=".7"/><circle cx="8.6" cy="-10.6" r=".9" fill="#e2b13c"/></g>
-  <g id="c-pila">${[0, 1, 2, 3].map(c => `<path d="M${r1(c * 3.4 - 4.6)} -5.2 l1 -4" stroke="#5a4024" stroke-width=".55"/>`).join('')}</g>
+  <g id="c-tienda"><path d="M-7.5 3 L0 -6 L3 3Z" fill="#f4ecd6" stroke="#6e5838" stroke-width=".6"/><path d="M0 -6 L9 -6.8 L12 2.4 L3 3Z" fill="#cdbd98" stroke="#6e5838" stroke-width=".6"/><path d="M-1.6 3 L0 -1.4 L1.2 3Z" fill="#5a4024"/></g>
+  <g id="c-legion"><ellipse cx="0" cy="11.4" rx="8" ry="1.8" fill="rgba(40,25,10,.28)"/><path d="M0 -1 V-15" stroke="#3a2614" stroke-width="1.1"/><rect x="0" y="-15" width="7" height="5.4" fill="${ROJO}" stroke="#4a0d08" stroke-width=".5"/><path d="M0 -12.3 h7" stroke="#e2b13c" stroke-width=".8"/><path d="M1 -10 v2 M3.5 -10 v2 M6 -10 v2" stroke="#e2b13c" stroke-width=".6"/><circle cx="0" cy="-15.8" r="1.3" fill="#e2b13c"/><rect x="-7" y="-2" width="14" height="13" rx="1.2" fill="#4a0d08"/><g fill="${ROJO}">${[0, 1, 2].map(f => [0, 1, 2].map(c => `<rect x="${r1(c * 4.3 - 6.1)}" y="${r1(f * 4.2 - 1.2)}" width="3.6" height="3.6" rx=".6"/>`).join('')).join('')}</g><g fill="#e2b13c">${[0, 1, 2].map(f => [0, 1, 2].map(c => `<circle cx="${r1(c * 4.3 - 4.3)}" cy="${r1(f * 4.2 - 1)}" r=".9"/>`).join('')).join('')}</g></g>
+  <g id="c-pila">${[0, 1, 2].map(c => `<path d="M${r1(c * 4.3 - 3.6)} -1.6 l1.6 -6" stroke="#5a4024" stroke-width=".7"/><path d="M${r1(c * 4.3 - 2)} -7.6 l.4 -1.6" stroke="#9aa0a0" stroke-width=".9"/>`).join('')}</g>
   <g id="c-barca"><path d="M-6 0 Q0 3 6 0 L5 -1.2 H-5Z" fill="#5e3f1f" stroke="#2e1d0c" stroke-width=".4"/><circle cx="0" cy="-2.4" r=".9" fill="#c98a5a"/><path d="M-1 -1.4 L-4 1.6" stroke="#4a3119" stroke-width=".5"/></g>
   <g id="c-trirreme"><path d="M-13 0 Q0 4 13 0 L11 -2 H-11Z" fill="#5e3f1f" stroke="#2e1d0c" stroke-width=".4"/><path d="M13 -.4 l3 .8" stroke="#8a6034" stroke-width="1"/>${[-9, -6, -3, 0, 3, 6, 9].map(c => `<path d="M${c} 1.6 l-1.4 2.6" stroke="#2e1d0c" stroke-width=".45"/>`).join('')}<path d="M0 -2 V-12" stroke="#2e1d0c" stroke-width=".7"/><path d="M-4.5 -11 H4.5 L4 -4.5 H-4Z" fill="#efe6cf" stroke="#7a6444" stroke-width=".3"/></g>
   </defs>`;
@@ -93,6 +93,8 @@ function quinquerreme(x, y, corvus) {
 const MURO = [[160, 108], [230, 92], [300, 86], [352, 96], [388, 126], [391, 192], [372, 252], [300, 276], [220, 278], [160, 258], [141, 206], [146, 150]];
 const MURO_D = 'M160 108 Q190 92 230 92 Q270 82 300 86 Q332 86 352 96 Q384 106 388 126 Q394 160 391 192 Q392 236 372 252 Q340 274 300 276 Q258 282 220 278 Q180 274 160 258 Q140 240 141 206 Q138 170 146 150 Q150 122 160 108Z';
 const MONTES = [['Capitolio', 172, 136, 19, 10], ['Quirinal', 234, 112, 30, 10], ['Viminal', 292, 110, 22, 8], ['Esquilino', 350, 136, 30, 13], ['Palatino', 240, 200, 28, 12], ['Celio', 336, 222, 32, 12], ['Aventino', 178, 244, 22, 11]];
+// arboledas sobre los montes: [dx, dy] en radios del monte; 1 = ciprés, 0 = pino
+const ARBOLEDA = { Aventino: [[-.75, .3, 0], [-.45, .75, 1], [.7, .5, 0]], Celio: [[.72, .2, 1], [.5, .7, 0], [-.6, .7, 1]], Esquilino: [[.78, .4, 0], [.55, .8, 1]], Quirinal: [[-.8, .5, 1], [.82, .3, 0]], Viminal: [[.7, .6, 1]], Palatino: [[-.8, .4, 0], [-.55, .85, 1]] };
 const RIO = 'M78 54 C50 78 14 104 20 146 C26 186 92 182 112 212 C126 234 112 256 80 270 C50 282 20 286 -6 292';
 export const SITIO = {
   granja: [[208, 74], [266, 68], [324, 72], [376, 78]],
@@ -151,7 +153,13 @@ export function ciudad(e, nuevo = [], nombres = {}) {
   g += `<use href="#c-barca" x="28" y="118"/><use href="#c-barca" x="92" y="190"/><use href="#c-barca" x="24" y="286"/>`;
   // dentro de la muralla: tierra, montes, Foro, Circo Máximo
   g += `<path d="${MURO_D}" fill="${S.ciudad}"/>`;
-  for (const [, x, y, rx, ry] of MONTES) g += `<ellipse cx="${x}" cy="${y + 3}" rx="${rx + 1}" ry="${ry}" fill="rgba(80,60,30,.22)"/><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${S.monteC}"/><ellipse cx="${x - rx * .2}" cy="${y - ry * .3}" rx="${rx * .6}" ry="${ry * .45}" fill="rgba(255,255,230,.18)"/>`;
+  for (const [nom, x, y, rx, ry] of MONTES) {
+    // relieve: sombra a la derecha (la luz viene de la izquierda), ladera iluminada y cresta clara
+    g += `<ellipse cx="${x + 2}" cy="${y + 3}" rx="${rx + 1.5}" ry="${ry + .5}" fill="rgba(70,50,25,.25)"/><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${S.monteC}"/><ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="rgba(60,42,20,.28)"/>`;
+    g += `<ellipse cx="${r1(x - rx * .14)}" cy="${r1(y - ry * .16)}" rx="${r1(rx * .84)}" ry="${r1(ry * .8)}" fill="${S.monteC}"/><ellipse cx="${r1(x - rx * .32)}" cy="${r1(y - ry * .36)}" rx="${r1(rx * .5)}" ry="${r1(ry * .4)}" fill="rgba(255,250,215,.3)"/><path d="M${r1(x - rx * .7)} ${r1(y - ry * .3)} Q${x} ${r1(y - ry * 1.05)} ${r1(x + rx * .6)} ${r1(y - ry * .45)}" fill="none" stroke="rgba(255,250,220,.4)" stroke-width="1"/>`;
+    const bosque = ARBOLEDA[nom] || [];
+    g += bosque.map(([dx, dy, t]) => `<use href="#${t ? 'c-cipres' : 'c-pino'}" transform="translate(${r1(x + dx * rx)} ${r1(y + dy * ry)}) scale(.8)"/>`).join('');
+  }
   g += `<path d="M186 158 L234 160 L232 188 L188 186Z" fill="#dfd2ae" stroke="#8a7350" stroke-width=".6"/><path d="M188 172 L232 174" stroke="#b8a47a" stroke-width="1.6"/><rect x="200" y="165" width="9" height="3" fill="#a88d64"/><g>${[[194,178,'#f1e8d2'],[199,181,'#a3231a'],[214,179,'#f1e8d2'],[221,182,'#6b4a26'],[226,177,'#f1e8d2'],[206,183,'#7d9a45']].map(([x,y,c])=>`<circle cx="${x}" cy="${y - 2}" r=".9" fill="#c98a5a"/><path d="M${x - 1.2} ${y + 1} L${x} ${y - 1.4} L${x + 1.2} ${y + 1}Z" fill="${c}"/>`).join('')}</g><g transform="translate(225 229) rotate(-6)"><rect x="-24" y="-5" width="48" height="10" rx="5" fill="#d8c7a0" stroke="#8a7350" stroke-width=".6"/><path d="M-15 0 H15" stroke="#8a7350" stroke-width="1.4"/></g>`;
   g += `<path d="M232 174 Q280 176 330 166 L388 160" fill="none" stroke="#c9b791" stroke-width="2"/><path d="M234 186 Q250 240 262 276" fill="none" stroke="#c9b791" stroke-width="2"/>`;
   // Vía Apia (saber «apio»): calzada de losas que sale por la Puerta Capena, con miliarios
@@ -188,18 +196,18 @@ export function ciudad(e, nuevo = [], nombres = {}) {
   if (!sab('corvus') && sab('quinque') && enCola('estudiar', 'corvus')) g += andamio(62, 276, 8, 10, prog(enCola('estudiar', 'corvus')));
   if (e.edad >= 2) { g += '<use href="#c-trirreme" x="86" y="266"/><use href="#c-trirreme" x="10" y="290"/>' + (e.edad >= 3 ? '<use href="#c-trirreme" x="60" y="250"/>' : ''); if (nv('edad')) g += marca(70, 268, 'Edad II: Roma sale al mar', 20); }
   // Campo de Marte: barracones (tiendas) por nivel, campamento si «castra», legiones en manípulos
-  for (let n = 0; n < d.cuartel; n++) for (let k = 0; k < 5; k++) g += `<use href="#c-tienda" x="${58 + k * 15 + (n % 2) * 6}" y="${100 + n * 9}"/>`;
-  if (nv('edif', 'cuartel')) g += marca(90, 100 + (d.cuartel - 1) * 9, nombres.edif?.cuartel || 'Campo de Marte', 16);
-  if (enCola('ampliar', 'cuartel')) g += andamio(96, 104 + d.cuartel * 9, 16, 6, prog(enCola('ampliar', 'cuartel')));
-  const L = Math.min(e.legiones, 10), lx = i => 60 + (i % 5) * 19, ly = i => 134 + Math.floor(i / 5) * 21;
-  if (sab('castra')) { const f = Math.max(1, Math.ceil(L / 5)); g += `<rect x="47" y="119" width="104" height="${f * 21 + 6}" fill="rgba(122,82,40,.08)" stroke="#7a5228" stroke-width="1.6" stroke-dasharray="1.6 1"/><path d="M96 ${119 + f * 21 + 6} h8" stroke="${S.ciudad}" stroke-width="2.4"/>`; if (nv('saber', 'castra')) g += marca(100, 140, nombres.saber?.castra || 'Campamento', 18); }
+  for (let n = 0; n < d.cuartel; n++) for (let k = 0; k < 5; k++) g += `<use href="#c-tienda" x="${54 + k * 17 + (n % 2) * 7}" y="${97 + n * 9}"/>`;
+  if (nv('edif', 'cuartel')) g += marca(94, 96 + (d.cuartel - 1) * 9, nombres.edif?.cuartel || 'Campo de Marte', 16);
+  if (enCola('ampliar', 'cuartel')) g += andamio(100, 100 + d.cuartel * 9, 18, 7, prog(enCola('ampliar', 'cuartel')));
+  const L = Math.min(e.legiones, 10), lx = i => 58 + (i % 5) * 18, ly = i => 136 + Math.floor(i / 5) * 28;
+  if (sab('castra')) { const f = Math.max(1, Math.ceil(L / 5)); g += `<rect x="47" y="117" width="92" height="${f * 28 + 4}" fill="rgba(122,82,40,.08)" stroke="#7a5228" stroke-width="1.6" stroke-dasharray="1.6 1"/><path d="M90 ${117 + f * 28 + 4} h8" stroke="${S.ciudad}" stroke-width="2.4"/>`; if (nv('saber', 'castra')) g += marca(100, 140, nombres.saber?.castra || 'Campamento', 18); }
   const nuevasL = nuevo.filter(c => c.que === 'legiones' && c.n > 0).reduce((a, c) => a + c.n, 0);
   for (let i = 0; i < L; i++) { const leg = `<use href="#c-legion" x="${lx(i)}" y="${ly(i)}"/>` + (sab('pilum') ? `<use href="#c-pila" x="${lx(i)}" y="${ly(i)}"/>` : ''); g += i >= L - nuevasL ? `<g class="marcha">${leg}</g>` : leg; }
-  if (e.legiones > 10) g += `<text x="150" y="176" font-size="8" font-weight="700" fill="#4a0d08" text-anchor="end">+${e.legiones - 10}</text>`;
-  if (nuevasL > 0 && L) g += marca(lx(L - 1) + 2, ly(L - 1) - 1, nuevasL > 1 ? nuevasL + ' legiones nuevas' : 'Legión nueva', 13);
-  if (nv('saber', 'pilum')) g += marca(lx(0) + 2, ly(0) - 4, nombres.saber?.pilum || 'Pilum', 13);
-  { const o = (!sab('castra') && enCola('estudiar', 'castra')) || (!sab('pilum') && enCola('estudiar', 'pilum')); if (o) g += andamio(132, 124, 12, 9, prog(o)); }
-  { const o = enCola('reclutar') || enCola('leva'); if (o && L < 10) g += `<g opacity=".8">${andamio(lx(L) + 2, ly(L) + 7, 12, 10, prog(o))}</g>`; }
+  if (e.legiones > 10) g += `<text x="146" y="178" font-size="10" font-weight="700" fill="#4a0d08" text-anchor="end">+${e.legiones - 10}</text>`;
+  if (nuevasL > 0 && L) g += marca(lx(L - 1), ly(L - 1) + 2, nuevasL > 1 ? nuevasL + ' legiones nuevas' : 'Legión nueva', 13);
+  if (nv('saber', 'pilum')) g += marca(lx(0), ly(0) - 4, nombres.saber?.pilum || 'Pilum', 13);
+  { const o = (!sab('castra') && enCola('estudiar', 'castra')) || (!sab('pilum') && enCola('estudiar', 'pilum')); if (o) g += andamio(134, 112, 12, 9, prog(o)); }
+  { const o = enCola('reclutar') || enCola('leva'); if (o && L < 10) g += `<g opacity=".8">${andamio(lx(L), ly(L) + 10, 13, 12, prog(o))}</g>`; }
   if (S.tinte) g += `<rect width="400" height="300" fill="${S.tinte[0]}" opacity="${S.tinte[1]}" pointer-events="none"/>`;
   return { svg: `<svg viewBox="0 0 400 300" role="img" aria-label="Roma en ${S.id}, vista desde el Janículo">${g}</svg>`, focos };
 }
@@ -209,8 +217,7 @@ export function asiento(color, clase) {
   const silla = '<path d="M-5 4.5 L5 9.5 M5 4.5 L-5 9.5" stroke="#5a3a18" stroke-width="1.3"/><path d="M-6 4.5 H6" stroke="#7a5228" stroke-width="1.6"/>';
   const toga = { seguro: color, si: color, dudoso: '#f6ead0', contra: '#9a8e7a', no: '#6e6252', espera: '#e8dcbf', '': color }[clase] ?? color;
   const borde = clase === 'dudoso' ? color : '#2b1c0a', ancho = clase === 'dudoso' ? 1.6 : .7, op = clase === '' ? .6 : clase === 'espera' ? .7 : 1;
-  let g = `<g opacity="${op}">${silla}<path d="M-6.5 5 C-6.5 -1 -3.5 -2.5 0 -2.5 C3.5 -2.5 6.5 -1 6.5 5Z" fill="${toga}" stroke="${borde}" stroke-width="${ancho}"/><path d="M-4.5 -1.4 L3 4.6" stroke="rgba(255,255,255,.45)" stroke-width="1.2"/><circle cy="-5.6" r="3.4" fill="#d6a274" stroke="#5a3418" stroke-width=".6"/></g>`;
-  if (clase === 'dudoso') g += `<circle cx="6" cy="-8" r="4.4" fill="#fffaf0" stroke="${color}" stroke-width="1"/><text x="6" y="-5.6" font-size="7" font-weight="700" text-anchor="middle" fill="${color}">?</text>`;
+  let g = `<g opacity="${op}">${silla}<path d="M-6.5 5 C-6.5 -1 -3.5 -2.5 0 -2.5 C3.5 -2.5 6.5 -1 6.5 5Z" fill="${toga}" stroke="${borde}" stroke-width="${ancho}"${clase === 'dudoso' ? ' stroke-dasharray="1.8 1.3"' : ''}/>${clase === 'dudoso' ? `<path d="M-6.5 5 C-6.5 -1 -3.5 -2.5 0 -2.5 C3.5 -2.5 6.5 -1 6.5 5Z" fill="${color}" fill-opacity=".3"/>` : ''}<path d="M-4.5 -1.4 L3 4.6" stroke="rgba(255,255,255,.45)" stroke-width="1.2"/><circle cy="-5.6" r="3.4" fill="${clase === 'dudoso' ? '#ead2b8' : '#d6a274'}" stroke="${clase === 'dudoso' ? color : '#5a3418'}" stroke-width="${clase === 'dudoso' ? 1 : .6}"${clase === 'dudoso' ? ' stroke-dasharray="1.4 1"' : ''}/></g>`;
   if (clase === 'si') g += '<circle cx="6" cy="-7" r="4" fill="#46661f"/><path d="M4 -7 l1.6 1.6 l2.6 -3" stroke="#fff" stroke-width="1.3" fill="none"/>';
   if (clase === 'no' || clase === 'contra') g += `<circle cx="6" cy="-7" r="4" fill="${clase === 'no' ? '#9b2a1a' : '#6e6252'}"/><path d="M4.4 -8.6 l3.2 3.2 m0 -3.2 l-3.2 3.2" stroke="#fff" stroke-width="1.2"/>`;
   return g;
@@ -266,12 +273,24 @@ export function ilustracionFin(fin) {
     g += '<path d="M150 104 L156 84 H186 L192 104Z" fill="#c7a56a" stroke="#6e5536" stroke-width="1.2"/><path d="M153 94 H189" stroke="#6e5536"/>' + [[160, 108], [168, 112], [176, 109]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="2" ry="1.2" fill="#e0b54a"/>`).join('');
   } else if (/arca/i.test(t)) {
     g = '<rect width="240" height="130" fill="#e9dcc0"/><path d="M0 104 H240 V130 H0Z" fill="#c2ab84"/><path d="M76 66 H164 V108 H76Z" fill="#7a5228" stroke="#3a2a14" stroke-width="1.6"/><path d="M76 66 L84 30 H172 L164 66" fill="#8a6034" stroke="#3a2a14" stroke-width="1.6"/><path d="M82 72 H158 V102 H82Z" fill="#2e2214"/><path d="M76 80 H164 M76 96 H164" stroke="#b8862b" stroke-width="2.4"/><path d="M86 74 L100 88 M100 74 L86 88 M93 74 V88" stroke="#d8d0c0" stroke-width=".5"/><circle cx="130" cy="98" r="4" fill="#e2b13c" stroke="#7a5212"/>';
+  } else if (/sin triunfo/i.test(t)) {
+    // la Puerta Triunfal cerrada, la corona de laurel a medio trenzar y el general que vuelve a pie
+    g = `<rect width="240" height="130" fill="#d9d6cc"/><ellipse cx="60" cy="26" rx="44" ry="8" fill="#eceae4"/><path d="M0 112 H240 V130 H0Z" fill="#b9a982"/>`;
+    g += `<g stroke="#6e5536" stroke-width="1.2"><path d="M70 112 V40 H170 V112 H142 V76 A22 22 0 0 0 98 76 V112Z" fill="#d8c7a0"/><path d="M64 40 H176 V30 H64Z" fill="#c7b38c"/><path d="M98 112 V76 A22 22 0 0 1 142 76 V112Z" fill="#5a4024"/><path d="M120 54 V112" stroke="#2e1d0c" stroke-width="1.6"/></g><path d="M100 82 H140 M100 96 H140" stroke="#3a2a14" stroke-width="2"/><circle cx="114" cy="90" r="1.6" fill="#c9a24a"/><circle cx="126" cy="90" r="1.6" fill="#c9a24a"/>`;
+    g += `<g transform="translate(194 110) scale(1.8)"><path d="M-16 0 A16 7 0 0 1 16 0" fill="none" stroke="#5e7a2e" stroke-width="2"/>${[-14, -10, -6, -2].map((x, i) => `<ellipse cx="${x}" cy="${r1(-4 - i * .9)}" rx="3.4" ry="1.5" fill="#6f8f3a" transform="rotate(${-30 + i * 10} ${x} ${r1(-4 - i * .9)})"/>`).join('')}${[8, 12].map(x => `<ellipse cx="${x}" cy="2" rx="3.2" ry="1.3" fill="#7d9a45" opacity=".8"/>`).join('')}</g>`;
+    g += `<g transform="translate(38 112)"><circle cy="-30" r="5" fill="#d9a77a" stroke="#5a3418"/><path d="M-8 0 L-5 -24 H5 L8 0Z" fill="${ROJO}" stroke="#4a0d08"/><path d="M-5 -24 L-9 -4 M5 -24 L6 -10" stroke="#4a0d08" stroke-width="1.6"/><path d="M-4 -36 Q0 -42 4 -36" fill="#9aa0a0" stroke="#4a4a4a"/><path d="M6 -14 L14 -40" stroke="#5a4024" stroke-width="1.4"/></g>`;
   } else {
     g = `<rect width="240" height="130" fill="#d3d8d2"/><ellipse cx="190" cy="30" rx="40" ry="9" fill="#eef0ee"/>${SILUETA('#a08868')}<path d="M0 118 H240" stroke="#7d6a44" stroke-width="2"/><g transform="translate(120 100)"><circle cy="-30" r="6" fill="#d9a77a" stroke="#5a3418"/><path d="M-6 -33 q6 -9 12 0z" fill="#9aa0a6" stroke="#4a4a4a"/><path d="M-8 -22 H8 L7 0 H-7Z" fill="${ROJO}" stroke="#4a0d08"/><path d="M-6 0 V16 M6 0 V16" stroke="#5a3418" stroke-width="3"/><rect x="-20" y="-24" width="13" height="26" rx="3" fill="${ROJO}" stroke="#4a0d08" stroke-width="1.2"/><circle cx="-13.5" cy="-11" r="2.4" fill="#e2b13c"/><path d="M12 -26 V18" stroke="#5a4024" stroke-width="2"/><path d="M12 -26 l-2 -8 h4z" fill="#9aa0a6"/></g>`;
   }
   return `<svg viewBox="0 0 240 130" class="ilus-fin" role="img" aria-label="${t}">${g}</svg>`;
 }
 
+/* ala del águila: plumas escalonadas (remeras largas, secundarias y coberteras) que nacen del hombro */
+const pluma = (bx, by, ang, L, w) => { const a = ang * Math.PI / 180, ux = Math.cos(a), uy = Math.sin(a), tx = bx + ux * L, ty = by + uy * L, mx = bx + ux * L * .55, my = by + uy * L * .55;
+  return `<path d="M${r1(bx)} ${r1(by)} Q${r1(mx - uy * w)} ${r1(my + ux * w)} ${r1(tx)} ${r1(ty)} Q${r1(mx + uy * w * .7)} ${r1(my - ux * w * .7)} ${r1(bx)} ${r1(by)}Z"/>`; };
+const ALA = [0, 1, 2, 3, 4, 5].map(i => pluma(-12 - i * .8, 28 + i * 3.4, 238 - i * 8.5, 52 - i * 2.6, 7)).join('')
+  + [0, 1, 2, 3, 4].map(i => pluma(-8 - i * .5, 32 + i * 3.6, 226 - i * 8, 32 - i * 1.4, 6.5)).join('')
+  + '<path d="M-4 34 C-8 22 -18 10 -30 2 C-29 14 -26 26 -20 36 C-15 44 -9 49 -5 50Z"/><path d="M-9 26 C-14 22 -20 16 -25 10 M-8 34 C-14 32 -19 28 -23 22" fill="none" stroke-width=".8"/>';
 /* ---------- portada: el Capitolio y el águila de la legión al atardecer; W×H según el móvil esté de pie o tumbado ---------- */
 export function portada(W = 390, H = 844) {
   const tumbada = W > H, suelo = H * (tumbada ? .74 : .76), ax = tumbada ? W * .13 : W / 2, ay = tumbada ? H * .16 : H * .3, as = tumbada ? H / 300 : H / 380;
@@ -284,7 +303,7 @@ export function portada(W = 390, H = 844) {
   <g transform="translate(${ax.toFixed(1)} ${ay.toFixed(1)}) scale(${as.toFixed(2)})"><path d="M0 40 V${(H / as).toFixed(0)}" stroke="#4a3010" stroke-width="5"/><path d="M0 40 V${(H / as).toFixed(0)}" stroke="url(#p-bronce${W})" stroke-width="3"/>
   <circle cx="0" cy="96" r="17" fill="none" stroke="#46661f" stroke-width="5"/>${[...Array(16)].map((_, k) => { const a = k * Math.PI / 8; return `<ellipse cx="${(Math.cos(a) * 17).toFixed(1)}" cy="${(96 + Math.sin(a) * 17).toFixed(1)}" rx="4" ry="1.8" fill="#7d9a45" transform="rotate(${(k * 22.5 + 60).toFixed(0)} ${(Math.cos(a) * 17).toFixed(1)} ${(96 + Math.sin(a) * 17).toFixed(1)})"/>`; }).join('')}
   <rect x="-22" y="128" width="44" height="16" rx="2" fill="url(#p-bronce${W})" stroke="#5a3c10"/><text x="0" y="140.5" font-size="11" font-weight="700" text-anchor="middle" fill="#3a2405" font-family="serif" letter-spacing="1">SPQR</text>
-  <g fill="url(#p-bronce${W})" stroke="#4a3010" stroke-width="1.1" stroke-linejoin="round"><path id="p-ala${W}" d="M-5 38 C-14 26 -26 8 -44 -12 C-42 -2 -48 2 -54 4 C-46 12 -48 16 -54 20 C-45 25 -44 30 -47 35 C-34 38 -20 44 -7 50Z"/><use href="#p-ala${W}" transform="scale(-1 1)"/><path d="M-7 52 C-9 40 -5 30 0 26 C5 30 9 40 7 52 L4 62 H-4Z"/><path d="M0 27 C-3 18 2 10 8 12 L15 15 L9 18 C7 21 5 24 3 28Z"/><path d="M-12 66 H12 M-4 62 L-6 66 M4 62 L6 66" fill="none" stroke-width="2"/></g><circle cx="9" cy="14.6" r=".9" fill="#2b1c0a"/></g></svg>`;
+  <g fill="url(#p-bronce${W})" stroke="#4a3010" stroke-width="1.1" stroke-linejoin="round"><g id="p-ala${W}">${ALA}</g><use href="#p-ala${W}" transform="scale(-1 1)"/><path d="M-7 52 C-9 40 -5 30 0 26 C5 30 9 40 7 52 L4 62 H-4Z"/><path d="M0 27 C-3 18 2 10 8 12 L15 15 L9 18 C7 21 5 24 3 28Z"/><path d="M-12 66 H12 M-4 62 L-6 66 M4 62 L6 66" fill="none" stroke-width="2"/></g><circle cx="9" cy="14.6" r=".9" fill="#2b1c0a"/></g></svg>`;
 }
 
 /* ---------- iconos de edificios y saberes (24×24) ---------- */
