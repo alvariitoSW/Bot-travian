@@ -224,7 +224,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ MR3 **Diseño del menú principal** (17/11, pedido del usuario): portada, menú con la partida guardada, nueva campaña, carga y opciones; maqueta `maquetas/menus-romanos/principal.html`, capturas `capturas-tarea/MR3-*.jpg`.
 
 ## Carril MG — Modo Grecia y mitología (P142, aprobada por el usuario el 17/11/2026)
-- ⬜ (en pausa: después de la 1.0) MG1 **Grecia y mitología como modo aparte** (P142, pedido del 16/11 «más adelante»): no se abre hasta que la batalla romana esté cerrada. Al abrirla hay que decidir cómo queda la regla de fidelidad histórica; la campaña romana no se toca.
+- ⬜ (en pausa: después de la 1.0) MG1 **Grecia y mitología como modo aparte** (P142, pedido del 16/11 «más adelante»): no se abre hasta que la batalla romana esté cerrada. Al abrirla hay que decidir cómo queda la regla de fidelidad histórica; la campaña romana no se toca. Idea guardada del 17/11 (de Nova Roma, `estudios/NR0-ciudad-nova-roma.md`): dioses que piden y premian o castigan, y que aparecen gigantes sobre la ciudad.
 
 ## Carril RD — Radar de repositorios (P114, aprobada por el usuario el 16/11/2026)
 - ✅ RD1 Leídos, sin copiar, procedural-graphics-engine, wesnoth y unknown-horizons, y medido glTF-Transform (16/11/2026): informes en `gobierno/estudios/RD1-*.md`. Licencias de Kenney, Quaternius y OpenGameArt: NO verificadas (red bloqueada), pendientes en `repositorios.md`.

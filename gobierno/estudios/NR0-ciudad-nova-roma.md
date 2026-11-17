@@ -56,12 +56,12 @@ Lo más aprovechable en un móvil a 390 px, por orden: la ficha de la casa con l
 tejados; el dios que aparece gigante cuando premia o castiga; las tarjetas de construir con dibujo.
 
 Qué cambia en el plan: NR2 añade mejorar camino a calzada; NR3 añade el almacén como punto de entrega; NR4 enseña la
-pendiente al tender el acueducto; NR5 hace que el Favor abra saberes y que el dios aparezca gigante sobre la ciudad;
+pendiente al tender el acueducto; los dioses (favor, aparición gigante) quedan para Grecia;
 NR3 incluye la ficha de la casa con lo que le falta y los cartelitos sobre los tejados. Desviar ríos y presas siguen fuera.
 
 ## Qué se verá distinto en el móvil al terminar
 Trazas las calles con el dedo. Ves el grano ir de la granja al granero y al horno a lomos de porteadores. El agua llega
-por un acueducto que tú tiendes hasta las fuentes. Cada dios pide algo y premia o castiga. Sigue siendo a 390 px.
+por un acueducto que tú tiendes hasta las fuentes. Tocas una casa y te dice qué le falta. Sigue siendo a 390 px.
 
 ## De dónde se parte (ya está en el juego, `js/ciudad.js`)
 - Colocas tú cada edificio, con mapa de calor y nota de sitio (`notaSitio`, `colocar`).
@@ -77,21 +77,22 @@ por un acueducto que tú tiendes hasta las fuentes. Cada dios pide algo y premia
 | Agua como red (acueducto) | Fuente con radio, sin origen |
 | Dioses con peticiones | Un templo por ciudad, efecto fijo |
 
-## Tareas, en orden (una sesión cada una)
+## Tareas, en orden (una sesión cada una; cuatro y ni una más)
+Corregido el 17/11 por el usuario: «que no empiece a diverger en mil tareas, hay que converger». Los dioses salen de
+aquí y van a Grecia (MG1). En Roma quien pide y premia es el Senado, que ya tiene su tarea (SN2): no se crea otra.
+El equilibrio no es tarea aparte: cada una cierra con su pasada del bot. Lo que no quepa, se recorta; no se añade.
 Dirige y diseña Fable; construye Opus (regla del 17/11). Tope por tarea: 1,5 M.
 
 | ID | Tarea | Tamaño y reparto | M |
 |---|---|---|---|
-| NR1 | **Estudio y maqueta**: skill `ingenieria-reversa` sobre Nova Roma; maqueta a 390 px de trazar calle y tender acueducto con el dedo. El usuario la prueba y decide. | Media: constructor | 1,0 |
-| NR2 | **Calles con el dedo** en el juego: trazar, borrar, coste; los edificios piden calle. Migrar partidas guardadas. | Grande: constructor → revisor | 1,2 |
-| NR3 | **Mercancía que se ve**: dos cadenas cortas (grano → pan; hierro → armas) y porteadores que la llevan. Skill `historia`. | Grande: constructor → revisor → verificador | 1,4 |
-| NR4 | **Agua por acueducto**: toma en el río o manantial, tramos, fuentes que solo dan agua si están unidas. Skills `arte` e `historia` (Aqua Appia, 312 a.C.; Anio Vetus, 272 a.C.). | Grande: constructor → revisor | 1,2 |
-| NR5 | **Dioses que piden**: cada templo pide algo cada cierto tiempo (fiesta, ofrenda) y da favor o castigo. Skill `historia`. | Media: constructor | 0,8 |
-| NR6 | **Equilibrio**: campaña con el bot; las ciudades que no miras se llevan solas. | Media: constructor | 0,6 |
-| | **Total** (Opus ≈4,7 M · Fable ≈1,5 M) | 6 sesiones | **6,2** |
+| NR1 | **Maqueta** a 390 px de trazar calle y tender acueducto con el dedo. El usuario la prueba y decide. | Media: constructor | 1,0 |
+| NR2 | **Calles con el dedo** en el juego: trazar, borrar, mejorar a calzada; los edificios piden calle. Migrar partidas. | Grande: constructor → revisor | 1,2 |
+| NR3 | **Mercancía que se ve**: dos cadenas cortas (grano → pan; hierro → armas), almacén como punto de entrega, porteadores, ficha de la casa con lo que le falta y cartelitos sobre los tejados. Skill `historia`. | Grande: constructor → revisor → verificador | 1,4 |
+| NR4 | **Agua por acueducto**: toma, tramos con la pendiente a la vista, fuentes que solo dan agua si están unidas. Skills `arte` e `historia` (Aqua Appia, 312 a.C.; Anio Vetus, 272 a.C.). | Grande: constructor → revisor | 1,2 |
+| | **Total** (Opus ≈3,6 M · Fable ≈1,2 M) | 4 sesiones | **4,8** |
 
-Hacienda: presas e inundaciones con agua que corre quedan **fuera** (lo más caro y lo que peor va en móvil). Si NR1
-sale mal en el dedo, se para ahí y solo se han gastado 1,0 M.
+Hacienda: presas e inundaciones con agua que corre quedan **fuera**. Si NR1 sale mal en el dedo, se para ahí y solo se
+han gastado 1,0 M.
 
 ## Reglas de reparto
 - Constructor: la tarea literal, los archivos que puede tocar (`js/ciudad.js`, `js/game.js`, `js/ui.js`, `js/gfx/city3d.js`,
