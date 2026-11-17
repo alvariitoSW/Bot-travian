@@ -89,7 +89,7 @@ function repartir() { const p = cam.position, clave = [p.x, p.y, p.z, giro, elev
 await montar();
 function botones() { abajo.innerHTML = ''; const b = (txt, on, f) => { const e = document.createElement('button'); e.textContent = txt; if (on) e.className = 'on'; e.onclick = async () => { await f(); botones(); }; abajo.appendChild(e); };
   for (const [k, n] of [['quieto', 'Quieto'], ['andar', 'Andar'], ['guardia', 'En guardia'], ['lanzar', 'Lanzar'], ['golpear', 'Golpear'], ['cubrirse', 'Cubrirse'], ['morir', 'Caer']]) b(n, modo === k, () => { modo = k; t0 = performance.now(); });
-  for (const [k, n] of [['uno', 'Uno'], ['cara', 'La cara'], ['pareja', 'Romano y galo'], ['cuarenta', 'Ver 40'], ['linea', 'La línea']]) b(n, vista === k, () => { vista = k; return montar(); });
+  for (const [k, n] of [['uno', 'Uno'], ['cara', 'La cara'], ['pareja', 'Romano y galo'], ['cuarenta', 'Ver 40'], ['linea', 'La línea'], ['niveles', 'Comparar niveles']]) b(n, vista === k, () => { vista = k; return montar(); });
   if (QUIEN.length > 1 && (vista === 'uno' || vista === 'cara')) b(quienUno ? 'Ver al romano' : 'Ver al galo', false, () => { quienUno = 1 - quienUno; return montar(); }); }
 const dedos = new Map(); let d0 = 0; const lim = () => { dist = Math.max(0.5, Math.min(60, dist)); elev = Math.max(-0.08, Math.min(1.3, elev)); };
 lienzo.addEventListener('pointerdown', e => { dedos.set(e.pointerId, [e.clientX, e.clientY]); lienzo.setPointerCapture(e.pointerId); });
