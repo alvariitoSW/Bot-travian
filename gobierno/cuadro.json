@@ -1913,12 +1913,6 @@
       "url": "https://claude.ai/code/session_01QiKC3AR2FzqYL23coZ3gBE"
     },
     {
-      "tarea": "C9",
-      "titulo": "Mapa · C9 Más mundo: Hispania, Galia, Egipto y Asia Menor (Opus)",
-      "nota": "js/gfx/map3d.js y datos del mapa; excepción a la 1.0",
-      "url": "https://claude.ai/code/session_01QiKC36ud6xQvc5zQpCZY2D"
-    },
-    {
       "tarea": "GM34",
       "titulo": "GM34 Movimiento vivo (en el juego, Opus)",
       "nota": "js/ui-guerra.js; GM36 y GM44 esperan detrás",
@@ -1941,6 +1935,12 @@
       "titulo": "Versión 1.0 · SN2 Pantalla del Senado (Opus)",
       "nota": "Carril V; js/ui.js y css/style.css; ES1 va detrás",
       "url": "https://claude.ai/code/session_01QiKC3A3Eq5dLcsmgPhep26"
+    },
+    {
+      "tarea": "C10",
+      "titulo": "Mapa · C10 Adornos de carta (Opus)",
+      "nota": "js/gfx/map3d.js; excepción a la 1.0",
+      "url": "https://claude.ai/code/session_01QiKC36cUDqd5eZ6evx8RuA"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
