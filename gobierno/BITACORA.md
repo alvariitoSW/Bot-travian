@@ -230,6 +230,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
+- **GM4c: probar el arte nuevo de la batalla** (https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/guerra-arte/, botón «Arte: nuevo / de antes», móvil en horizontal, 10 000 por bando). ¿Se ve mejor? (A) sí, así; (B) sí, pero arregla al romano de cerca (túnica con más color y escudo rojo); (C) no, vuelve al de antes. Y di las imágenes por segundo que marca, de lejos y de cerca.
 
 ## Propuestas por aprobar
 - P152 **Resto del gobierno de provincias (GR6 a GR9)**: decretos por ciudad (cierra Q10), la partida de exportación, el ejército sale de los oficios y equilibrio con el bot. Unos 4,4 M. Detalle en `estudios/GR1-gobierno-de-provincias.md` §8. Mejor decidirlo tras probar GR3 a GR5.

@@ -3,6 +3,31 @@
   "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
   "capturas": [
     {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-3-todo-lejos.jpg",
+      "pie": "Arte nuevo, de lejos: suelo oscuro con tierra pisada, estandartes grandes, enemigo en azul"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-0-antes-lejos.jpg",
+      "pie": "De antes, de lejos (lo que se probó el 16/11)"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-3-todo-cerca.jpg",
+      "pie": "Arte nuevo, de cerca: bronce y luz mejor, pero el romano queda de color hueso (por arreglar)"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-0-antes-cerca.jpg",
+      "pie": "De antes, de cerca: rojo de pies a cabeza"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-3-todo-vertical.jpg",
+      "pie": "Arte nuevo en vertical"
+    },
+    {
       "tarea": "J4a",
       "archivo": "gobierno/capturas-tarea/J4a-mare-nostrum-8-zonas.jpg",
       "pie": "Mare Nostrum con 8 zonas: aparecen Etruria y Gallia"
@@ -1728,12 +1753,6 @@
       "titulo": "Batalla mejorada · GM31 Tablilla de mando y ajustes del manejo (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-manejo/; no toca js/",
       "url": "https://claude.ai/code/session_01QiKC37zLtSEbgCEXGMSZdg"
-    },
-    {
-      "tarea": "GM4c",
-      "titulo": "Batalla mejorada · GM4c Arte, segunda vuelta",
-      "nota": "solo gobierno/maquetas/guerra-arte/",
-      "url": "https://claude.ai/code/session_01QiKC37uKmcrjQVjLBZwnM7"
     },
     {
       "tarea": "K7c",
