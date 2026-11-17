@@ -18,3 +18,6 @@ La presentación se miró a 390 px: sin desborde.
 **Cuentas**: presupuesto 1,0 M (tope 1,2 M) · gastado unos 0,8 M · todo Fable, director solo. Lo caro: leer las
 reglas y la fábrica de Moncloa (dos repositorios) y la guía de páginas. Próxima vez: comprobar el permiso del
 instalador antes de leer la fábrica entera.
+**Añadido (21:20 UTC)**: el usuario pidió de nuevo el vídeo y esta vez el instalador pasó. Vídeo hecho con la
+fábrica de Moncloa: `estudios/video-estado-17-11/estado-proyecto-17-11.mp4` (61 s, voces de España, controles
+APROBADO, sin «oído» ni espectador en frío). Gasto total de la sesión: ver `node gobierno/gasto.mjs`.
