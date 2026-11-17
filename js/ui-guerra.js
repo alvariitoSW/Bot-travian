@@ -285,7 +285,7 @@
       const tanH = Math.tan(camara.fov * Math.PI / 360) * camara.aspect, medio = S * 1.5 + 1.5;
       /* GM5: mientras se acercan, la cámara se aleja lo justo para ver a los dos ejércitos */
       let g0 = 0, g1 = 0; for (const s of B.sect) if (R.lejos(s)) { g0 = Math.max(g0, hueco(s.c[0])); g1 = Math.max(g1, hueco(s.c[1])); }
-      if (g0 + g1 > 4 && B.fase !== 'fin') { const z = (g0 - g1) / 2 + (vertical ? 7 : 4.5), d = Math.max(vertical ? 46 : 40, (g0 + g1 + 26) * (vertical ? 1.05 : 0.8)); return { x: 0, y: 0, z, d, p: vertical ? 0.62 : 0.5, a: 0 }; }
+      if (g0 + g1 > 4 && B.fase !== 'fin') { const z = (g0 - g1) / 2 + (vertical ? 7 : 4.5), d = Math.max(vertical ? 46 : 40, (g0 + g1 + 26) * (vertical ? 1.05 : 1.15)); return { x: 0, y: 0, z, d, p: vertical ? 0.62 : 0.5, a: 0 }; }
       if (vertical) return { x: 0, y: 0, z: 7, d: Math.max(46, medio * 1.04 / tanH), p: 0.4, a: 0 };
       return { x: 0, y: 0, z: 4.5, d: Math.max(40, medio * 1.25 / tanH), p: 0.4, a: 0 };
     }
@@ -319,7 +319,7 @@
         b.classList.toggle('activa', activa); b.classList.toggle('no', !!no && !activa);
         b.classList.toggle('pide', !no && ((o === 'relevo' && c.alerta) || (o === 'caballeria' && c.acoso) || (o === 'escudos' && fuego && c.postura === 'avanzar') || (!tocado && !lj && B.t > 2 && o === 'empujar')));
         if (o === 'relevo') sub.textContent = c.roto || c.lineas.length < 2 ? 'no queda nadie' : c.relevo > 0 ? 'relevando…' : 'entran ' + nombreTropa(c.lineas[1].tipo);
-        if (o === 'caballeria' && lj && B.cab.estado === 'lista') { sub.textContent = R.tirando(B.sect[sel].c[1]) ? 'a por sus tiradores' : 'tras el choque'; return; }
+        if (o === 'caballeria' && lj && B.cab.estado === 'lista') { sub.textContent = B.cab.h < 0.5 ? 'no tienes' : R.tirando(B.sect[sel].c[1]) ? 'a por sus tiradores' : 'tras el choque'; return; }
         if (o === 'caballeria') { const k = B.cab, falta = k.estado === 'yendo' ? k.t + 21 : k.estado === 'cargando' ? k.t + 17 : k.t; sub.textContent = k.estado === 'lista' ? 'carga al flanco' : k.estado === 'volviendo' || k.estado === 'cargando' ? 'vuelve en ' + Math.ceil(falta) + ' s' : 'cargando…'; }
       });
     }
@@ -329,7 +329,7 @@
         const e = s.c[1], d = pend[i]; if (e.roto || B.fase === 'fin') { d.hidden = true; return; } d.hidden = false;
         const lj = R.lejos(s); V3.set(xs(i), 5.6, lj ? zFrente(s) - hueco(e) - 3 : zFrente(s) - (e.fondo || 6) + 1).project(camara);
         const x = (V3.x * 0.5 + 0.5) * ancho, y = (-V3.y * 0.5 + 0.5) * alto - 30; d.style.transform = 'translate(' + Math.round(x) + 'px,' + Math.round(Math.max(54, y)) + 'px)';
-        const fl = R.frente(e).fatiga > 0.6, cls = 'pend' + (e.postura === 'empujar' ? ' carga' : fl ? ' flaquea' : ''), txt = lj ? (R.tirando(e) ? 'tiran' : 'avanzan') : e.postura === 'empujar' ? 'cargan' : fl ? 'flaquean' : 'aguantan';
+        const fl = R.frente(e).fatiga > 0.6, cls = 'pend' + (e.postura === 'empujar' ? ' carga' : fl ? ' flaquea' : ''), txt = lj ? (e.tir && e.tir.estado === 'tira' ? 'tiran' : 'avanzan') : e.postura === 'empujar' ? 'cargan' : fl ? 'flaquean' : 'aguantan';
         if (d.className !== cls) d.className = cls; if (d.firstChild.textContent !== txt) d.firstChild.textContent = txt; d.lastChild.firstChild.style.width = Math.round(100 * Math.max(0, e.moral)) + '%';
       });
     }
@@ -354,7 +354,7 @@
         if (e.tipo === 'orden') { mirar(e.sect, 2.2, true); continue; }
         if (e.tipo === 'fin') { fin(); continue; }
         if (e.tipo === 'caballeria-lista') { if (performance.now() > cintaHasta) cinta(e.texto); continue; }
-        if (e.tipo === 'pila') { rafaga(e.sect, e.lado, 26, 0.9, 1.6, '#2e2010'); if (e.lado === 1 && performance.now() < cintaHasta) continue; }
+        if (e.tipo === 'pila') { rafaga(e.sect, e.lado, 26, 0.9, 1.6, '#efe3bf'); if (e.lado === 1 && performance.now() < cintaHasta) continue; }
         const mala = ['carga-enemiga', 'numidas-aviso', 'cansados', 'linea-deshecha', 'lluvia', 'testudo-roto'].includes(e.tipo) || (e.tipo === 'roto' && e.lado === 0) || (e.tipo === 'envuelve' && e.lado === 1) || (e.tipo === 'pila' && e.lado === 1);
         const buena = ['enemigo-cede', 'impacto', 'numidas-fuera', 'tir-tiran'].includes(e.tipo) || (e.tipo === 'roto' && e.lado === 1) || (e.tipo === 'envuelve' && e.lado === 0) || (e.tipo === 'pila' && e.lado === 0);
         cinta(e.texto, mala ? 'mala' : buena ? 'buena' : '');
@@ -407,7 +407,7 @@
     pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3)); pGeo.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
     const pMalla = new THREE.LineSegments(pGeo, new THREE.LineBasicMaterial({ vertexColors: true })); pMalla.frustumCulled = false; escena.add(pMalla);
     for (let k = 0; k < NP; k++) proy.push({ on: false }); let kP = 0; const COLP = new THREE.Color();
-    const VUELO = { jabalinas: { seg: 1.3, alto: 2.6, color: '#2b1d0e' }, piedras: { seg: 1.9, alto: 6, color: '#f4efe2' } };
+    const VUELO = { jabalinas: { seg: 1.3, alto: 2.6, color: '#efe3bf' }, piedras: { seg: 1.9, alto: 6, color: '#f4efe2' } };
     const alAzar = fs => fs.length ? fs[Math.floor(Math.random() * fs.length)] : null;
     function lanza(a, b, seg, alto, color) {
       if (!a || !b) return; const p = proy[kP]; kP = (kP + 1) % NP;
