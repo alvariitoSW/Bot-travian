@@ -100,7 +100,7 @@
        ti/ri = reloj y ritmo del reposo; fila/sect = sitio en su cuerpo (lo pone colocar); salida = cuándo arranca (ola por filas);
        quieto = segundos parado; ve = velocidad real suavizada; marcha = 0 quieto, 1 anda, 2 corre, -1 cede andando hacia atrás;
        golpe = {clip, t0} del golpe en curso; prox = cuándo lanza el siguiente; nGolpe = cuántos lleva; gesto = {tipo, t0, dur, amp}; vObj = velocidad para llegar a la vez */
-    function vivo(f) { Object.assign(f, { fase: Math.random(), ritmo: 0.91 + Math.random() * 0.18, ti: Math.random() * 5, ri: 0.85 + Math.random() * 0.3, fila: 0, sect: -1, salida: -1, quieto: 9, ve: 0, marcha: 0, golpe: null, prox: 0, nGolpe: Math.random() < 0.5 ? 0 : 1, guardia: false, gesto: null, proxGesto: 2 + Math.random() * 16, gy: 0, gr: 0, vObj: 0, ptx: f.x, ptz: f.z }); }
+    function vivo(f) { Object.assign(f, { fase: Math.random(), ritmo: 0.91 + Math.random() * 0.18, ti: Math.random() * 5, ri: 0.85 + Math.random() * 0.3, fila: 0, sect: -1, salida: -1, quieto: 9, ve: 0, marcha: 0, golpe: null, prox: 0, nGolpe: Math.random() < 0.5 ? 0 : 1, guardia: false, gesto: null, proxGesto: 2 + Math.random() * 16, gy: 0, gr: 0, vObj: 0, ptx: f.x, ptz: f.z, duelo: null, ox: 0, gp: 0, parada: 0, retro: 0 }); }
     /* velocidades naturales de cada tropa (m/s de campo): la del clip sin patinar = zancada / duración */
     const pasos = new Map();
     function paso(key) {
@@ -171,10 +171,83 @@
       gentios.set(id, m); salidas.push(() => m.dispose()); return m;
     }
 
+    /* ---------- GM36: la primera fila lucha por parejas y los caídos se quedan ----------
+       Solo vista: el motor dice cuántos caen; aquí se ve cómo. Cada hombre de la primera fila se empareja con el enemigo que tiene
+       delante. Por turnos uno golpea y el otro para: se cubre (se encoge, gira el escudo hacia el golpe y se echa atrás); a veces
+       el golpe le hace retroceder un paso o dos y vuelve. Cuando el motor quita a un hombre de la primera fila, su pareja le da
+       el golpe y él cae animado y se queda en el suelo. Sin animaciones nuevas: los fotogramas de 0 A.D. y el giro del cuerpo. */
+    const frentes = new Map();
+    const PARADA = 0.18;                                               // la parada: el fotograma de alzar el escudo al empezar el golpe
+    function emparejar() {
+      for (const f of figs) if (f.duelo) f.duelo.viva = false;
+      for (const [, fr] of frentes) {
+        const [A, Bf] = fr; if (!A || !Bf || !A.length || !Bf.length) continue;
+        const usados = new Set(), [pocos, muchos] = A.length <= Bf.length ? [A, Bf] : [Bf, A];
+        for (const f of pocos) {
+          if (f.est !== 0) continue;
+          let mejor = null, dm = 2.4; for (const g of muchos) { if (usados.has(g) || g.est !== 0) continue; const d = Math.abs(g.tx - f.tx); if (d < dm) { dm = d; mejor = g; } }
+          if (!mejor) continue; usados.add(mejor);
+          const [a, b] = f.lado === 0 ? [f, mejor] : [mejor, f];
+          if (a.duelo && a.duelo === b.duelo) { a.duelo.viva = true; continue; }
+          const d = { a, b, viva: true, golpe: null, prox: T + 0.3 + Math.random() * 1.2 }; a.duelo = b.duelo = d;
+        }
+      }
+      for (const f of figs) if (f.duelo && !f.duelo.viva && !(f.duelo.golpe && f.duelo.golpe.mata)) { f.duelo = null; f.ox = f.gp = f.parada = f.retro = 0; }
+    }
+    function golpeDe(f) {
+      const m = mallas.get(f.key + f.lado), cl = m && m.u.clips; if (!cl || !cl.attack_melee) return null;
+      f.nGolpe++; return cl.attack_melee2 && f.nGolpe % 2 === 0 ? cl.attack_melee2 : cl.attack_melee;
+    }
+    /* empieza un cruce: at golpea a df. El golpe llega al 42 % del clip */
+    function cruce(d, at, df, mata) {
+      const clip = golpeDe(at); if (!clip) return null;
+      const dur = clip.dur / at.ritmo, imp = T + dur * 0.42, emp = B.sect[at.sect] && B.sect[at.sect].c[at.lado].postura === 'empujar';
+      at.golpe = { clip, t0: T }; at.gesto = null; df.gesto = null;
+      const fuerte = !mata && Math.random() < (emp ? 0.38 : 0.2);
+      d.golpe = { at, df, imp, fin: T + Math.max(dur, (imp - T) + (fuerte ? 2.0 : 0.7)), fuerte, mata };
+      return d.golpe;
+    }
+    function matar(f) {
+      f.est = 1; f.t0 = T; f.caida = (Math.random() - 0.5) * 0.9; f.gp = f.gy = f.gr = 0;
+      const d = f.duelo, r = d && (d.a === f ? d.b : d.a);
+      if (r && r.est === 0) {
+        const g = d.golpe && d.golpe.at === r && d.golpe.imp > T ? d.golpe : cruce(d, r, f, true);
+        if (g) { g.mata = true; g.fuerte = false; f.t0 = g.imp; return; }
+      }
+      f.ox = f.parada = f.retro = 0; if (d) { d.a.duelo = d.b.duelo = null; }
+    }
+    const campana = (t, w) => { const u = t / w; return Math.abs(u) >= 1 ? 0 : 0.5 + 0.5 * Math.cos(u * Math.PI); };
+    function duelos() {
+      for (const f of figs) {
+        const d = f.duelo; if (!d || d.a !== f) continue;
+        const a = d.a, b = d.b;
+        if (d.golpe && T > d.golpe.fin) {
+          const g = d.golpe; d.golpe = null; d.prox = T + 0.25 + Math.random() * 1.1;
+          if (g.mata) { a.duelo = b.duelo = null; for (const h of [a, b]) { if (h.est === 0) h.ox = h.gp = h.parada = h.retro = 0; } continue; }
+        }
+        if (!d.golpe && T >= d.prox && a.est === 0 && b.est === 0 && a.ve < 0.6 && b.ve < 0.6 && !a.golpe && !b.golpe) {
+          const pa = 0.5 + (B.sect[a.sect].c[0].postura === 'empujar' ? 0.15 : 0) - (B.sect[b.sect].c[1].postura === 'empujar' ? 0.15 : 0);
+          if (Math.random() < pa) cruce(d, a, b, false); else cruce(d, b, a, false);
+          if (!d.golpe) d.prox = T + 1;
+        }
+        for (const h of [a, b]) { if (h.est === 0 || h.t0 > T) { h.ox = 0; h.gp = 0; h.parada = 0; h.retro = 0; h.gy = h.gesto ? h.gy : 0; } }
+        const g = d.golpe; if (!g) continue;
+        const ti = T - g.imp, at = g.at, df = g.df;
+        if (at.est === 0) { at.ox = -0.32 * campana(ti + 0.05, 0.45); at.gp = 0.07 * campana(ti, 0.4); }          // se tira hacia delante al golpear
+        if (df.est === 0 || df.t0 > T) {
+          const p = campana(ti + 0.05, 0.42); df.parada = g.mata ? 0 : p; df.gp = -0.13 * p; df.gy = (df.lado === 0 ? 1 : -1) * 0.32 * p;
+          /* el empujón: echa atrás medio paso; si es fuerte, retrocede dos pasos de verdad y vuelve a su sitio */
+          const amp = g.fuerte ? 1.05 : 0.28, sube = g.fuerte ? 0.45 : 0.14, queda = g.fuerte ? 0.35 : 0, baja = g.fuerte ? 1.1 : 0.45;
+          const e = ti < 0 ? 0 : ti < sube ? Math.sin(ti / sube * Math.PI / 2) : ti < sube + queda ? 1 : Math.max(0, 1 - (ti - sube - queda) / baja);
+          df.ox = amp * (e * e * (3 - 2 * e)); df.retro = g.fuerte ? 1 : 0;
+        }
+      }
+    }
+
     /* ---------- dónde debe estar cada soldado ---------- */
     const zFrente = s => -s.frente * CAMPO;
     function colocar(dt, inicio) {
-      const vistas = new Set();
+      const vistas = new Set(); frentes.clear();
       for (const s of B.sect) for (const c of s.c) {
         const dir = c.lado === 0 ? 1 : -1, rival = s.c[1 - c.lado];
         const r = B.resultado, vencido = r && (r.como === 'victoria') === (c.lado === 1);                 // al acabar, el bando vencido deja el campo
@@ -188,7 +261,7 @@
         c.lineas.forEach((l, k) => {
           const lv = lineas.get(l); if (!lv) return; vistas.add(lv);
           const quiere = l.hombres <= 0 ? 0 : Math.max(1, Math.round(l.hombres / porFig));
-          while (!inicio && lv.fs.length > quiere) { const j = Math.floor(Math.random() * Math.min(FILAS, lv.fs.length)), f = lv.fs.splice(j, 1)[0]; f.est = 1; f.t0 = T; }
+          while (!inicio && lv.fs.length > quiere) { const j = Math.floor(Math.random() * Math.min(FILAS, lv.fs.length)), f = lv.fs.splice(j, 1)[0]; matar(f); }
           const n = lv.fs.length, rs = (k === 0 && c.postura === 'empujar' ? 1.0 : 1.25) * ap, filas = Math.ceil(n / FILAS);
           lv.fs.forEach((f, j) => {
             const r = Math.floor(j / FILAS), col = j % FILAS, enFila = Math.min(FILAS, n - r * FILAS), lx = (col - (enFila - 1) / 2) * PASO * ap, lz = d + r * rs; f.vm = vm; f.fila = r; f.sect = s.i;
@@ -197,6 +270,7 @@
             f.ataca = lucha && k === 0 && r < (c.postura === 'empujar' ? 2 : 1) && (c.postura === 'empujar' || Math.sin(T * 0.8 + f.ph * 3) > 0.1);
           });
           if (!inicio) aLaVez(lv.fs);
+          if (k === 0 && lucha && !fl) { const fr = frentes.get(s) || [null, null]; fr[c.lado] = lv.fs.filter(f => f.fila === 0); frentes.set(s, fr); }
           d += filas * rs + HUECO;
         });
         c.fondo = d;
@@ -205,7 +279,7 @@
         if (tv) {
           vistas.add(tv);
           const quiere = t.hombres <= 0 ? 0 : Math.max(1, Math.round(t.hombres / porFig));
-          while (!inicio && tv.fs.length > quiere) { const f = tv.fs.splice(Math.floor(Math.random() * tv.fs.length), 1)[0]; f.est = 1; f.t0 = T; }
+          while (!inicio && tv.fs.length > quiere) { const f = tv.fs.splice(Math.floor(Math.random() * tv.fs.length), 1)[0]; matar(f); }
           const fuera = t.estado === 'fuera' || t.estado === 'vuelve', FT = 9, base = fuera ? d + 0.5 : ini.get(c) - t.av * ESCV - 1.2;
           tv.fs.forEach((f, j) => {
             const r = Math.floor(j / FT), col = j % FT, enFila = Math.min(FT, tv.fs.length - r * FT); f.fila = r; f.sect = s.i; const lx = (col - (enFila - 1) / 2) * PASO * 1.5 + Math.sin(f.ph * 7) * 0.3;
@@ -215,7 +289,7 @@
         }
       }
       for (const [l, lv] of lineas) if (!vistas.has(lv) && lv.fs.length && !lv.c.roto) { huir(lv.fs, lv.c.lado === 0 ? 1 : -1, true); lv.fs = []; }   // línea deshecha: se retira
-      jinetes();
+      jinetes(); emparejar();
     }
     function huir(fs, dir, orden) { for (const f of fs) { f.est = 3; f.tx = f.x + (Math.random() - 0.5) * (orden ? 3 : 14); f.tz = dir * (orden ? 34 : 75); f.ataca = false; } }
 
@@ -295,29 +369,37 @@
         f.gy = f.gesto && f.gesto.tipo === 0 ? f.gesto.amp * en : 0; f.gr = f.gesto && f.gesto.tipo === 1 ? f.gesto.amp * en : 0;
         /* el golpe: cada hombre a su tiempo, con pausas al azar en guardia, alternando los dos golpes si los hay */
         if (f.golpe && T - f.golpe.t0 > f.golpe.clip.dur / f.ritmo) { f.prox = T + (f.golpe.tiro ? 0.2 + Math.random() * 0.7 : 0.25 + Math.random() * 1.3); f.golpe = null; }
-        if (f.ataca && f.est === 0 && f.ve < 0.6) {
+        if (f.ataca && f.est === 0 && f.ve < 0.6 && !f.duelo) {
           if (!f.guardia) { f.guardia = true; f.prox = T + Math.random() * 1.2; }
           if (!f.golpe && T >= f.prox) { const C = mallas.get(f.key + f.lado); const cl = C && C.u.clips; if (cl) { f.nGolpe++; const clip = cl.attack_melee2 && f.nGolpe % 2 === 0 ? cl.attack_melee2 : cl.attack_melee || cl.attack_ranged; if (clip) { f.golpe = { clip, t0: T, tiro: clip === cl.attack_ranged }; f.gesto = null; } } }
         } else if (!f.ataca) f.guardia = false;
         if (f.golpe && f.ve > 0.6) f.golpe = null;                          // si echa a andar de veras, deja el golpe
       }
+      duelos();
     }
     const fila = (clip, k) => clip.start + Math.min(clip.frames - 1, Math.floor((k - Math.floor(k)) * clip.frames));
     function pintarFiguras() {
       const sm = sombras.instanceMatrix.array;
       for (const f of figs) {
         const m = mallas.get(f.key + f.lado); if (!m) continue; const C = m.u.clips, o = f.slot * 16, a = m.malla.instanceMatrix.array;
-        let sc = UNIT_SCALE, fr;
+        let sc = UNIT_SCALE, fr, ox = f.ox || 0, yaw = f.yaw + (f.gy || 0), gp = f.gp || 0;
+        const tm = T - f.t0;
         if (f.est === 2) sc = 0;
-        else if (f.est === 1) { const t = T - f.t0; fr = frameOnce(C.death, t); if (t > 16) f.est = 2; else if (t > 14) sc *= (16 - t) / 2; }
+        else if (f.est === 1 && tm >= 0) { fr = frameOnce(C.death, tm); ox = 0.45 * Math.min(1, tm / 0.35) + (f.oxm || 0); yaw = f.yaw + (f.caida || 0); gp = 0; }   // GM36: cae empujado y se queda
+        else if (f.parada > 0.05) fr = f.golpe ? frameOnce(f.golpe.clip, (T - f.golpe.t0) * f.ritmo) : (C.attack_melee ? fila(C.attack_melee, PARADA) : frameOf(C.idle, f.ti));
+        else if (f.retro && ox > 0.08) fr = fila(C.walk, f.fase - ox / paso(f.key).zw);              // retrocede andando hacia atrás
         else if (f.marcha !== 0 && !f.golpe) fr = fila(f.marcha === 2 && C.run ? C.run : C.walk, f.fase);
         else if (f.golpe) fr = frameOnce(f.golpe.clip, (T - f.golpe.t0) * f.ritmo);
         else fr = frameOf(C.idle, f.ti);
-        const yaw = f.yaw + (f.gy || 0), c = Math.cos(yaw) * sc, s = Math.sin(yaw) * sc, cr = Math.cos(f.gr || 0), sr = Math.sin(f.gr || 0);
-        a[o] = c * cr; a[o + 1] = sr * sc; a[o + 2] = -s * cr; a[o + 3] = 0; a[o + 4] = -c * sr; a[o + 5] = cr * sc; a[o + 6] = s * sr; a[o + 7] = 0; a[o + 8] = s; a[o + 9] = 0; a[o + 10] = c; a[o + 11] = 0; a[o + 12] = f.x; a[o + 13] = 0; a[o + 14] = f.z; a[o + 15] = 1;
+        if (f.est === 1 && tm < 0) f.oxm = ox;                                                       // lo que ya había retrocedido al recibir
+        const c = Math.cos(yaw) * sc, s = Math.sin(yaw) * sc, cy = Math.cos(yaw), sy = Math.sin(yaw), cr = Math.cos(f.gr || 0), sr = Math.sin(f.gr || 0), cp = Math.cos(gp), sp = Math.sin(gp);
+        const px = f.x - Math.sin(f.yaw) * ox, pz = f.z - Math.cos(f.yaw) * ox;
+        a[o] = (cy * cr + sy * sp * sr) * sc; a[o + 1] = cp * sr * sc; a[o + 2] = (-sy * cr + cy * sp * sr) * sc; a[o + 3] = 0;
+        a[o + 4] = (-cy * sr + sy * sp * cr) * sc; a[o + 5] = cp * cr * sc; a[o + 6] = (sy * sr + cy * sp * cr) * sc; a[o + 7] = 0;
+        a[o + 8] = s * cp; a[o + 9] = -sp * sc; a[o + 10] = c * cp; a[o + 11] = 0; a[o + 12] = px; a[o + 13] = 0; a[o + 14] = pz; a[o + 15] = 1;
         m.fr.array[f.slot] = fr || 0;
         const q = f.idx * 16, e = f.est === 0 || f.est === 3 ? (f.key === 'equites' || f.key === 'numidas' ? 1.5 : 1) : 0;
-        sm[q] = e; sm[q + 1] = 0; sm[q + 2] = 0; sm[q + 3] = 0; sm[q + 4] = 0; sm[q + 5] = 1; sm[q + 6] = 0; sm[q + 7] = 0; sm[q + 8] = 0; sm[q + 9] = 0; sm[q + 10] = e; sm[q + 11] = 0; sm[q + 12] = f.x; sm[q + 13] = 0.03; sm[q + 14] = f.z; sm[q + 15] = 1;
+        sm[q] = e; sm[q + 1] = 0; sm[q + 2] = 0; sm[q + 3] = 0; sm[q + 4] = 0; sm[q + 5] = 1; sm[q + 6] = 0; sm[q + 7] = 0; sm[q + 8] = 0; sm[q + 9] = 0; sm[q + 10] = e; sm[q + 11] = 0; sm[q + 12] = f.x - Math.sin(f.yaw) * (f.ox || 0); sm[q + 13] = 0.03; sm[q + 14] = f.z - Math.cos(f.yaw) * (f.ox || 0); sm[q + 15] = 1;
       }
       for (const m of mallas.values()) { m.malla.instanceMatrix.needsUpdate = true; m.fr.needsUpdate = true; }
       sombras.instanceMatrix.needsUpdate = true;

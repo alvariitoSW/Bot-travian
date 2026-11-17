@@ -1686,6 +1686,11 @@
       "tarea": "P167",
       "archivo": "gobierno/capturas-tarea/P167-3-calle.jpg",
       "pie": "Roma hoy, a pie de calle: paredes borrosas y antorchas como bolas de luz"
+    },
+    {
+      "tarea": "RM4",
+      "archivo": "gobierno/capturas-tarea/RM4-laminas-hoja.jpg",
+      "pie": "Láminas de dominio público encontradas: Atenas, hoplitas, templo dórico, Foro, puerto de Roma, Siracusa"
     }
   ],
   "informes": [
@@ -1908,6 +1913,14 @@
     {
       "titulo": "P167 · Plan para una Roma 3D realista",
       "archivo": "gobierno/estudios/P167-roma-3d-realista.md"
+    },
+    {
+      "titulo": "Estado del proyecto (17/11, noche): qué queda para la 1.0, por qué no se cierra y cinco decisiones",
+      "archivo": "gobierno/estudios/estado-proyecto-17-11.md"
+    },
+    {
+      "titulo": "Láminas de referencia · Roma y Grecia",
+      "archivo": "gobierno/historia/laminas-roma-grecia.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1944,12 +1957,6 @@
       "url": "https://claude.ai/code/session_01QiKC36cUDqd5eZ6evx8RuA"
     },
     {
-      "tarea": "GM36",
-      "titulo": "Versión 1.0 · GM36 Primera fila que lucha y caídos de verdad (Opus)",
-      "nota": "motor de guerra; ES1 va detrás",
-      "url": "https://claude.ai/code/session_01QiKC37oJNYGuGwHb72CWUR"
-    },
-    {
       "tarea": "JU1",
       "titulo": "Versión 1.0 · JU1 Dos jueces en rojo: «Construir aquí» y guerra atascada (Opus)",
       "nota": "diagnóstico: ¿fallo real o del juez?; gobierno/*.mjs",
@@ -1960,6 +1967,12 @@
       "titulo": "GM44b Soldado nuevo: seguir puliendo, mismo detalle para todos (Fable)",
       "nota": "solo maqueta y estudio; sin tocar js/",
       "url": "https://claude.ai/code/session_01QiKC38JACzrz9hXD3ncfDK"
+    },
+    {
+      "tarea": "ES1",
+      "titulo": "Versión 1.0 · ES1 Escaramuzas: batallas sueltas desde el menú (Opus)",
+      "nota": "Carril V; js/ui.js, js/game.js (montar ejércitos), js/ui-guerra.js",
+      "url": "https://claude.ai/code/session_01QiKC37ZhZvnuUQQ1zNnxfi"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
