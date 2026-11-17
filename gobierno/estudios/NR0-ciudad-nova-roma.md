@@ -3,8 +3,32 @@
 Pedido del usuario (17/11): que la parte de construir la ciudad se parezca a Nova Roma. Está en la nevera como **P164**:
 no se abre hasta publicar la 1.0. Este papel es solo el plan: tareas, reparto y presupuesto. No se ha construido nada.
 
-Aviso: el vídeo no se pudo abrir desde la nube (solo su título). Lo que se dice de Nova Roma es conocimiento general
-del juego; NR1 lo comprueba con el usuario. Se toman ideas; su código y su arte, nunca. El arte sigue siendo de 0 A.D.
+Aviso: los vídeos no se pueden ver desde la nube (no hay reproductor, y la red de la sesión bloquea las páginas de
+análisis). Lo de abajo sale del buscador el 17/11: resúmenes de reseñas y guías de jugadores, sin leer las páginas
+enteras. NR1 lo repasa con el usuario delante del vídeo. Se toman ideas; su código y su arte, nunca.
+
+## Cómo funciona Nova Roma (lo hallado el 17/11)
+Constructor de ciudades romano de Lion Shield (los de Kingdoms and Castles), editado por Hooded Horse. Acceso anticipado
+desde el 26/3/2026; cerca del 95 % de reseñas positivas en Steam. Fiabilidad: **R** = reseñas, coinciden; **G** = solo
+guías de jugadores, cifras dudosas.
+- **Agua (R)**: es el sistema estrella. El agua corre cuesta abajo de verdad; puedes desviar un río y ahogar media ciudad.
+  (G) Toma de agua en el río por encima de la ciudad; el acueducto enseña la pendiente al tenderlo y no deja construir si
+  es demasiada; depósito (castellum) en la ciudad; pieza que reparte un acueducto en varios ramales; presas con aliviadero
+  y un «modo plano» que enseña qué hará el agua antes de construir; el agua sucia contamina los baños.
+- **Dioses (R)**: eliges a qué dios servir y levantas templos. Cumplir sus encargos da **Favor**, y el Favor abre
+  técnicas y edificios. (G) Cinco dioses; cada uno bendice (Ceres: granjas cercanas; Júpiter: felicidad alrededor;
+  Neptuno: pesca; Marte: torres) y, si su Honor baja de lo «esperado», castiga (rayos e incendios, malas cosechas,
+  crecidas). Templo pequeño para activar la bendición, templo grande para fiestas. Qué pide cada dios varía según la guía.
+- **Cadenas y acarreo (R)**: cadenas de producción para cubrir lo que pide la gente. (G) Almacén junto a la industria y
+  granero junto a las casas; sin punto de entrega cerca, los obreros rinden la mitad; caminos de tierra que se mejoran a
+  calzada (se anda y se acarrea más deprisa); orden de cadenas: cerámica, vino, hierro; la industria que ensucia, lejos.
+- **Casas y gente (G)**: niveles de vivienda de choza a villa; las de patricios piden vino; impuestos por oficina de
+  recaudación; el invierno hunde ciudades nuevas; hacen falta varios tipos de ocio (teatro).
+- **Lo demás (R)**: cada estación llegan barcos con colonos; consejeros y senadores que guían; milicia, empalizada y
+  torres contra incursiones, que al final aprietan. Críticas: faltan dioses y hondura; pide mucho procesador.
+
+Qué cambia en el plan: NR2 añade mejorar camino a calzada; NR3 añade el almacén como punto de entrega; NR4 enseña la
+pendiente al tender el acueducto; NR5 hace que el Favor abra saberes. Desviar ríos y presas siguen fuera.
 
 ## Qué se verá distinto en el móvil al terminar
 Trazas las calles con el dedo. Ves el grano ir de la granja al granero y al horno a lomos de porteadores. El agua llega
