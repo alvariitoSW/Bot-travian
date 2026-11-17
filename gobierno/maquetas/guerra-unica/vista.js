@@ -618,7 +618,7 @@ $('plan').addEventListener('click', e => {
 const rayo = new THREE.Raycaster(), plano = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0), toque = { x: 0, y: 0, t: 0 };
 lienzo.addEventListener('pointerdown', e => { toque.x = e.clientX; toque.y = e.clientY; toque.t = performance.now(); });
 lienzo.addEventListener('pointerup', e => {
-  if (!lista || pausa || Math.hypot(e.clientX - toque.x, e.clientY - toque.y) > 12 || performance.now() - toque.t > 600) return;
+  if (!lista || pausa || desplegando || Math.hypot(e.clientX - toque.x, e.clientY - toque.y) > 12 || performance.now() - toque.t > 600) return;
   rayo.setFromCamera(new THREE.Vector2(e.clientX / ancho * 2 - 1, -(e.clientY / alto) * 2 + 1), camara); const p = rayo.ray.intersectPlane(plano, V3); if (!p || Math.abs(p.x - XC) > MEDIO + 3 || p.z > ZCAB + LEJOS + 20 || p.z < -(FONDO_E + LEJOS + 10)) return;
   elegir([0, 1, 2].sort((a, b) => Math.abs(p.x - XS[a]) - Math.abs(p.x - XS[b]))[0]);
 });

@@ -167,7 +167,7 @@ function aplicarPlan(B) {
   cs.forEach((c, i) => { c.nf = P.fondo[i]; c.ff = FONDOS[c.nf]; c.anch = c.ff.anchura; });
   const cede = cs.map((c, i) => tropas(c).map(l => Math.round(l.max * D.pasa[i])));      // lo que cede cada tropa de cada cuerpo, calculado antes de mover a nadie
   const dest = P.disposicion === 'centro-fuerte' ? [1, 1, 1] : P.disposicion === 'ala-izquierda' ? [0, 0, 0] : P.disposicion === 'ala-derecha' ? [2, 2, 2] : null;
-  if (dest) cs.forEach((c, i) => { if (dest[i] === i) return; tropas(c).forEach((l, j) => { const m = cede[i][j]; l.max -= m; l.hombres -= m; const z = tropas(cs[dest[i]])[j]; z.max += m; z.hombres += m; }); });
+  if (dest) cs.forEach((c, i) => { if (dest[i] === i) return; tropas(c).forEach((l, j) => { const m = cede[i][j], z = tropas(cs[dest[i]])[j]; if (!z) return; l.max -= m; l.hombres -= m; z.max += m; z.hombres += m; }); });
   cs.forEach((c, i) => { c.z += D.atras[i]; c.inicial = tropas(c).reduce((a, l) => a + l.max, 0); B.sect[i].dist = c.z + B.sect[i].c[1].z; });
   if (!P.velites) for (const c of cs) if (c.tir) { c.tir.estado = 'fuera'; c.tir.av = 0; c.tir.atras = true; }       // se quedan detrás: ni tiran ni los alcanzan
 }
