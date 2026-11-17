@@ -266,7 +266,7 @@ const ICO_GOB = svgIco('<path d="M3 20h18M5 20V9h14v11M3 9h18M9 20v-6h6v6M12 4v5
 function cityOk() { const my = G.myCities(); if (!my.includes(UI.city)) UI.city = my[0] || 'roma'; return UI.city; }
 function setTxt(id, v) { const e = $(id); if (e && e.dataset.k !== v) { e.dataset.k = v; e.innerHTML = v; } }
 function hudDock() {
-  const s = S(); if (!s || G.fundando()) return; const g = UI.modo !== 'guerra', c = s.cities[cityOk()], open = !$('hoja').hidden;
+  const s = S(); if (!s || G.fundando()) return; const g = UI.modo !== 'guerra', c = s.cities[cityOk()], open = !$('hoja').hidden && !!UI.hoja && UI.hoja.id === 'guerra';
   const f = Math.round(G.felicidad(c)), cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠', nm = s.marches.filter(m => m.owner === 'roma').length;
   $('app').dataset.modo = g ? 'gobierno' : 'guerra';
   $('bact').className = 'rd ' + (g ? 'oro' : 'rojo'); $('bmodo').className = 'rd ' + (open ? 'cierra' : g ? 'oro' : 'rojo'); $('bpill').className = g ? '' : 'w';
@@ -278,18 +278,20 @@ function hudDock() {
   setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
   migaPon();
 }
-/* K7c: miga «Roma › Camino» + botón único para pasar de la ciudad al mapa y volver */
+/* K7c: miga «Roma › Ciudad» con «Salir al mapa». C8b: en el mapa ya no sale; a la ciudad se entra tocando Roma */
 function migaPon() {
-  const enMapa = UI.tab === 'map', enCiudad = UI.tab === 'city' && !!UI.cityV && !UI.cityList && !UI.fundar, ver = (enMapa || enCiudad) && !G.fundando();
+  const enMapa = UI.tab === 'map', enCiudad = UI.tab === 'city' && !!UI.cityV && !UI.cityList && !UI.fundar, ver = enCiudad && !G.fundando();
   $('miga').hidden = !ver; $('app').dataset.miga = ver ? '1' : '';
   if (!ver) return;
   setTxt('miga-t', '<b>' + esc(D.CITIES[UI.city].n) + '</b><i>›</i>' + (enMapa ? 'Camino' : 'Ciudad'));
   setTxt('miga-b', enMapa ? 'Entrar en la ciudad' : 'Salir al mapa');
 }
 function migaVa() {
-  if (UI.tab === 'map') { const id = UI.city; if (UI.map && propiaEntrable(id) && !UI.map.esc.entrando) { UI.sel = id; UI.map.entrarCiudad(id); } else { UI.cityList = false; setTab('city'); } }
+  if (UI.tab === 'map') entrarEn(UI.city);
   else if (UI.deMapa && UI.map) volverAlMapa(); else setModo('guerra');
 }
+/* Entrar en una ciudad propia desde el mapa: con el vuelo de cámara si se puede */
+function entrarEn(id) { UI.city = id; if (UI.map && propiaEntrable(id) && !UI.map.esc.entrando) { UI.sel = id; UI.map.entrarCiudad(id); } else { UI.cityList = false; setTab('city'); } }
 /* I8b: con el reloj parado antes de fundar, la barra muestra lo que traen los colonos (sin producción ni almacén aún) */
 function hudFundando(s) {
   for (const r of D.RES) { $('r-' + r).textContent = fmt(s.res[r]); $('ra-' + r).textContent = 'alm ' + fmt(s.alm[r] || 0); $('rb-' + r).title = (RES_NOM[r] || r) + ': ' + fmt(s.res[r]) + ' que traen los colonos'; }
@@ -391,8 +393,18 @@ function ajustesHoja() {
     sw.map(q => tog(q[1], 'data-act="suceso" data-v="' + q[0] + '"', !!a.suc[q[0]], q[0] === 'hambre' && !((D.DIFICULTAD[a.dif] || {}).hambre || {}).meses ? 'Sin efecto en Tranquila' : '')).join('') +
     '<div class="hsep"></div>' + tog('Ambiente', 'id="aj-ambiente" data-act="ambiente"', G.ambiente(), 'Tono por estación, viñeta y contorno dorado en la ciudad') + '<div id="aj-sonido">' + tog('Sonido', 'data-act="sonido"', sonidoOn()) + '</div></div>';
 }
+/* C8b: el botón «Guerra» abre lo de la guerra; el resto vive en ☰ */
+function guerraHoja() {
+  const s = S(); if (!s) return '<div class="empty">Aún no hay partida.</div>';
+  const nom = id => esc(((D.CITIES[id] || (D.COLONIAS && D.COLONIAS[id])) || { n: id }).n), ms = s.marches.filter(m => m.owner === 'roma');
+  const f = (act, v, ico, txt) => '<button class="hf" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span>' + txt + '</span></button>';
+  return '<b class="hrot">' + (ms.length ? (ms.length === 1 ? '1 marcha en curso' : ms.length + ' marchas en curso') : 'Ninguna marcha en curso') + '</b>' +
+    ms.map(m => f('vera', m.to, '🚩', 'De ' + nom(m.from) + ' a ' + nom(m.to) + ' · llega ' + (G.turnos ? turnosTxt(G.turnosFaltan(m)) : 'en ' + months(Math.max(0, m.t1 - s.t))))).join('') +
+    '<div class="hsep"></div>' + f('home', null, D.GUERRA_ICON.aguila, 'Ir a mi general') + f('modo', 'gobierno', ICO_GOB, 'Pasar a Gobierno');
+}
 const HOJAS = {
   menu: { titulo: 'Menú', alt: 1, html: menuHoja },
+  guerra: { titulo: 'Guerra', alt: 0, html: guerraHoja },
   ajustes: { titulo: 'Ajustes', alt: 2, html: ajustesHoja },
   corta: { titulo: 'Partida corta', alt: 1, html: () => cortaHtml() || '<div class="empty">No disponible.</div>' },
   sonmenu: { titulo: 'Sonido y fluidez', alt: 0, html: () => '<button class="hf" data-act="sonido">' + ICO_INFO + '<span>' + sonidoTxt() + '</span></button><button class="hf" data-act="fluidez">' + ICO_FLU + '<span>' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</span></button>' + copiasHtml() },
@@ -1323,7 +1335,7 @@ function renderSheet() {
   h += '<div class="acts">';
   h += sal.map(x => '<button class="btn" data-act="salir" data-v="' + id + '" data-m="' + x.m.id + '">⚔️ Salir al encuentro de ' + esc(D.FACTIONS[x.m.owner].n) + '</button>').join('');
   h += esp.map(m => (D.CAMPO.apostables.includes(m.sitio.r) && !m.postura ? '<button class="btn" data-act="apostar" data-m="' + m.id + '">🌿 Apostar en ' + esc(m.sitio.n) + '</button>' : '') + '<button class="btn ghost" data-act="dejarsitio" data-m="' + m.id + '">Volver a ' + esc(D.CITIES[id].n) + '</button>').join('');
-  if (mine) h += '<button class="btn gold" data-act="goto" data-v="' + id + '">Gestionar</button>';
+  if (mine) h += '<button class="btn gold" data-act="entrar" data-v="' + id + '">Entrar en ' + esc(d.n) + '</button>';
   if (src.length) h += src.map(n => '<button class="btn" data-act="pick" data-from="' + n + '" data-to="' + id + '">' + (mine ? 'Reforzar' : 'Atacar') + ' desde ' + D.CITIES[n].n + (G.edge(n, id)[2] ? ' ⚓' : '') + '</button>').join('');
   else if (!mine) h += '<div class="empty">Sin ruta: conquista antes una ciudad vecina (' + G.neighbors(id).map(n => D.CITIES[n].n).join(', ') + ').</div>';
   const st = sh.scrollTop; sh.innerHTML = h + '</div>'; sh.hidden = false; sh.scrollTop = st;
@@ -1412,7 +1424,7 @@ document.addEventListener('click', function (e) {
   if (!el && e.target.closest('#cuentas')) return;
   if (!el) { $('cuentas').hidden = true; if (!e.target.closest('#hoja')) hojaCierra(true); $('citymenu').hidden = true; $('popsheet').hidden = true; if (e.target.id === 'modal' && !UI.sticky) closeModal(); hudDock(); return; }
   const a = el.dataset.act, v = el.dataset.v, s = S();
-  if (el.closest('#hoja')) UI.hjDown = false; if (a !== 'menumodo' && a !== 'hoja' && !el.closest('#hoja')) hojaCierra(true); if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true; if (a !== 'cuentas' && a !== 'imp' && a !== 'cuvender' && a !== 'cuadelantar') $('cuentas').hidden = true;
+  if (el.closest('#hoja')) UI.hjDown = false; if (a !== 'menumodo' && a !== 'hguerra' && a !== 'hoja' && !el.closest('#hoja')) hojaCierra(true); if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true; if (a !== 'cuentas' && a !== 'imp' && a !== 'cuvender' && a !== 'cuadelantar') $('cuentas').hidden = true;
   if (a !== 'derr') UI.derr = null;
   switch (a) {
     case 'dif': if (el.dataset.d === 'm') { UI.difSel = v; const nm = $('hname') ? $('hname').value : ''; showMenu(); if (nm && $('hname')) $('hname').value = nm; } else { const r = G.ponerAjustes({ dif: v }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); toast('Dificultad ' + (DIF_NOM[v] || v) + ': vale desde el mes siguiente.'); } render(); } break;
@@ -1444,6 +1456,9 @@ document.addEventListener('click', function (e) {
     case 'modo': setModo(v); break;
     case 'citymenu': { const m = $('citymenu'); m.hidden = !m.hidden; if (!m.hidden) m.innerHTML = cityMenuHtml(); break; }
     case 'menumodo': if (UI.hoja && UI.hoja.id === 'menu' && !$('hoja').hidden) hojaCierra(); else hojaAbre('menu'); break;
+    case 'hguerra': if (UI.hoja && UI.hoja.id === 'guerra' && !$('hoja').hidden) hojaCierra(); else hojaAbre('guerra'); break;
+    case 'entrar': entrarEn(v); break;
+    case 'vera': hojaCierra(true); try { if (UI.map) UI.map.center(v); } catch (e) { } break;
     case 'hoja': hojaAbre(v); break;
     case 'hojax': hojaCierra(); break;
     case 'menuconf': UI.hojaConf = true; hojaPinta(true); break;

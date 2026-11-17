@@ -1468,3 +1468,23 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 .ro-mos .mos-sab .sv-t.excl b, .ro-mos .mos-sab .sv-t.req b, .ro-mos .mos-sab .sv-t.edad b, .ro-mos .mos-sab .sv-t.falta b { color: rgba(243, 226, 180, .8); }
 .ro-mos .mos-sab .sv-fila.lejos { opacity: .8; }
 .ro-mos .mos-sab .sv-t small, .ro-mos .mos-sab .sv-t .sv-m { color: inherit; opacity: 1; font-size: 14px; }
+/* C8b · Menú del mapa en cinco cosas: tira de recursos y fecha con ☰, «Pasar turno» con sello abajo, Tropas y Guerra.
+   Fuera ＋ y − (se pellizca), la ciudad desplegable y la miga: a la ciudad se entra tocando Roma. */
+#app[data-modo="guerra"] #bmas { display: grid; }
+#zoom { display: none !important; }
+#app[data-vista="map"] #citybtn { display: none; }
+#app[data-vista="map"] #bar2 { margin-top: 4px; justify-content: flex-end; }
+#app[data-vista="map"] #res, #app[data-vista="map"] #res .r { height: 34px; }
+#app[data-vista="map"] #datebox, #app[data-vista="map"] #speed { height: 34px; }
+#app[data-vista="map"] #datebox { font-size: 12px; }
+#app[data-vista="map"] #bmas { width: 34px; height: 34px; }
+#app[data-vista="map"] #bmas .ico { width: 20px; height: 20px; }
+#app[data-vista="map"] .mmigas { top: calc(90px + env(safe-area-inset-top)); }
+#app[data-vista="map"] #turno { position: fixed; left: 84px; right: 84px; bottom: calc(14px + env(safe-area-inset-bottom)); width: auto; max-width: 300px; height: 56px; margin: 0 auto; padding: 0 10px; z-index: 8;
+  display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 8px; color: #fbe9c7; font: 700 16px var(--serif); letter-spacing: .04em; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); border: 1px solid var(--sello2); white-space: nowrap;
+  background: var(--martillado), radial-gradient(ellipse at 30% 0%, rgba(255, 190, 160, .3), transparent 60%), linear-gradient(#b8321f, #7e1910 70%, #6a140c);
+  box-shadow: 0 0 0 2px #6a4a18, 0 0 0 3px rgba(233, 192, 99, .55), 0 6px 16px rgba(0, 0, 0, .65), inset 0 1px 0 rgba(255, 220, 200, .4), inset 0 -2px 0 rgba(50, 5, 0, .4); }
+#app[data-vista="map"] #turno[hidden] { display: none; }
+#app[data-vista="map"] #turno .tu-lacre { display: block; flex: none; width: 34px; height: 34px; margin-left: -4px; }
+#app[data-vista="map"] #turno .tu-est { display: none; }
+#app[data-vista="map"]:has(#turno:not([hidden])) #bpill { display: none; }
