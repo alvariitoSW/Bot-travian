@@ -1937,10 +1937,10 @@
       "url": "https://claude.ai/code/session_01QiKC392bMLyNZs82CksoEg"
     },
     {
-      "tarea": "MR3b",
-      "titulo": "Versión 1.0 · MR3b Menú principal, carga y opciones (Opus)",
-      "nota": "Carril V; index.html, css/style.css y js/ui.js",
-      "url": "https://claude.ai/code/session_01QiKC36y5xjHswJQxSjnYGb"
+      "tarea": "SN2",
+      "titulo": "Versión 1.0 · SN2 Pantalla del Senado (Opus)",
+      "nota": "Carril V; js/ui.js y css/style.css; ES1 va detrás",
+      "url": "https://claude.ai/code/session_01QiKC3A3Eq5dLcsmgPhep26"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
