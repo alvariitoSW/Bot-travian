@@ -27,8 +27,37 @@ guías de jugadores, cifras dudosas.
 - **Lo demás (R)**: cada estación llegan barcos con colonos; consejeros y senadores que guían; milicia, empalizada y
   torres contra incursiones, que al final aprietan. Críticas: faltan dioses y hondura; pide mucho procesador.
 
+## Lo visto con mis ojos (17/11, tarde)
+Fuente: las 10 capturas y el tráiler oficiales de la ficha de Steam (un fotograma cada 3 s) y 4 miniaturas del vídeo del
+usuario. Las imágenes no se guardan en el repositorio: son de un juego comercial. YouTube y TikTok no dejan pasar a la
+máquina de la nube (piden «no soy un robot»), así que el vídeo entero sigue sin verse.
+- **Aspecto**: 3D de pocos polígonos y colores vivos; isla con monte, río y mar. Tejados rojos, ínsulas de tres pisos con
+  patio, luces en las ventanas de noche, nieve en invierno. La ciudad crece en ladera, no en un llano.
+- **Colocar**: libre y con giro; los edificios se pegan a la calle. Calles de tierra y de losa. Plazas con columnata de
+  forma libre (se dibuja el contorno). Circo, anfiteatro, teatro, termas con piscina, panteón.
+- **Acueducto**: tramos de arcos que tú tiendes, con torres de reparto en los quiebros y canal azul por arriba; se ve el
+  andamio mientras se construye. Baja de un embalse cerrado con presa.
+- **Presas**: «modo plano de presa»: arrastras bloques, añades aliviaderos, marca la altura (75 m) y simula el agua sin
+  daño antes de empezar la obra.
+- **Ficha de una casa**: «Apartamentos pequeños, 12 vecinos, 2 cabezas de familia que van a por comida». Aviso rojo:
+  «quieren cerámica». De dónde sacan el agua (pozo). Casillas de pan, uva, vino y pescado (2/6, 0/6…). Lista de vecinos
+  con nombre. Arcos blancos en el suelo enseñan a qué edificios va la casa a buscar cosas.
+- **Avisos sobre los tejados**: un cartelito por casa con lo que le falta (gota de agua, acueducto).
+- **Menú de construir**: barra abajo con seis categorías; al tocar una, tarjetas con dibujo del edificio (granja, viñas,
+  lagar, granero, panadería, pesca, mercado) y ficha con obreros, qué produce y coste.
+- **Barra de arriba**: recursos, nombre de la ciudad, vecinos/camas/empleos, tres medidores (ánimo, salud, fe). Abajo:
+  estación y año con pausa y velocidades; un cónsul con nombre y «le quedan 2 años de mandato».
+- **Dioses**: ocho figuras gigantes y translúcidas de pie sobre la ciudad; eliges a cuál dedicas el templo. Luego
+  aparecen en persona: Ceres entre los trigales da «+5 de favor»; Vulcano prende fuego a un barrio; Neptuno anega campos.
+- **Árbol de mejoras**: mapa de edificios enlazados que se abren con favor (ínsula mediana, teatro, termas, acueducto…).
+- **Peligros**: incendios, crecidas, invierno, y barcos enemigos que desembarcan y queman.
+
+Lo más aprovechable en un móvil a 390 px, por orden: la ficha de la casa con lo que le falta; los cartelitos sobre los
+tejados; el dios que aparece gigante cuando premia o castiga; las tarjetas de construir con dibujo.
+
 Qué cambia en el plan: NR2 añade mejorar camino a calzada; NR3 añade el almacén como punto de entrega; NR4 enseña la
-pendiente al tender el acueducto; NR5 hace que el Favor abra saberes. Desviar ríos y presas siguen fuera.
+pendiente al tender el acueducto; NR5 hace que el Favor abra saberes y que el dios aparezca gigante sobre la ciudad;
+NR3 incluye la ficha de la casa con lo que le falta y los cartelitos sobre los tejados. Desviar ríos y presas siguen fuera.
 
 ## Qué se verá distinto en el móvil al terminar
 Trazas las calles con el dedo. Ves el grano ir de la granja al granero y al horno a lomos de porteadores. El agua llega
