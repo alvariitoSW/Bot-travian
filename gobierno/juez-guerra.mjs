@@ -5,9 +5,9 @@
    Sale con código 1 si hay errores de consola o falla una comprobación.
    FALLO CONOCIDO (parte GC4): durante la carga el cartel #gu-carga tapa «Retirarse». Mientras FALLO_CARGA_ARREGLADO sea false,
    se imprime como AVISO y no tumba el recorrido. Cuando se arregle en el juego, ponerlo a true (o pasar arregladoCarga=1): pasa a obligatorio. */
-const FALLO_CARGA_ARREGLADO = false;
+const FALLO_CARGA_ARREGLADO = true;
 /* FALLO CONOCIDO 2 (hallado por este juez): la maniobra no tiene salida hasta el choque (solo allí sale «Retirarse»). Igual: AVISO hasta que se ponga a true. */
-const FALLO_SALIDA_MANIOBRA_ARREGLADO = false;
+const FALLO_SALIDA_MANIOBRA_ARREGLADO = true;
 import { createRequire } from 'node:module';
 import { createServer } from 'node:http';
 import { readFile, mkdir } from 'node:fs/promises';
@@ -45,7 +45,7 @@ const arregladoSalida = FALLO_SALIDA_MANIOBRA_ARREGLADO || op.arregladoSalida ==
 const avisos = [];
 const aviso = t => { console.log('  AVISO (fallo conocido): ' + t); avisos.push(t); };
 const dentro = () => page.evaluate(() => [...document.querySelectorAll('#gu .orden,#gu .cuerpo,#gu #gu-retirar')].every(b => { const r = b.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight && r.height >= 40; }));
-const cierraFin = async () => { await pulsa('#gu-seguir'); await esp(1500); const b = page.locator('#modal:not([hidden]) [data-act="bdone"]'); if (await b.count()) { await b.click(); await esp(600); } };
+const cierraFin = async () => { try { await page.tap('#gu-seguir', { timeout: 10000 }); } catch (e) { /* Playwright a veces no recibe el acuse del toque porque el botón desaparece al pulsarlo: se comprueba el efecto, no el acuse */ if (await page.locator('#gu-seguir').count()) throw e; } await esp(1500); const b = page.locator('#modal:not([hidden]) [data-act="bdone"]'); if (await b.count()) { await b.click(); await esp(600); } };
 
 /* ejército grande a Capua: más de 600 hombres, así que pasa antes por la maniobra */
 async function provocaGrande() {
@@ -132,7 +132,7 @@ console.log('  CIFRAS lienzo: ' + px.tonos + ' tonos distintos, luz media ' + px
 bien(px.tonos >= 12 && px.luz > 25, 'el campo tiene contenido (no vacío ni negro)');
 bien(arte.creditos, 'los créditos de 0 A.D. (CC BY-SA 3.0) están en la pantalla de la batalla');
 
-/* defensa: se prueba si el juego permite provocar un ataque contra Roma */
+/* defensa: GC9 — G.send solo manda ejércitos romanos; el ataque rival se provoca poniendo una marcha enemiga (como hace la IA con spawn) */
 await page.setViewportSize({ width: 844, height: 390 }); await esp(900);
 bien(await page.evaluate(() => [...document.querySelectorAll('#gu .orden,#gu .cuerpo,#gu #gu-retirar')].every(b => { const r = b.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight && r.height >= 40; })), 'en horizontal todo cabe y mide al menos 40 px');
 await foto('A3-horizontal');
@@ -150,11 +150,12 @@ await cierraFin(); await page.setViewportSize({ width: 390, height: 844 }); awai
 
 /* ---- C · defensa ---- */
 console.log('C · defensa');
-const hayDef = await page.evaluate(() => { try { const G = Game, s = G.state; s.marches = []; s.cities.capua.owner = 'campanos'; s.cities.capua.units = { hoplitas: 150, milicia: 100 }; s.cities.roma.units = { hastati: 200, principes: 100 }; G.send('capua', 'roma', { hoplitas: 150, milicia: 100 }, false); if (!s.marches.length) return false; s.marches[0].t1 = s.t + 0.01; G.tick(G.turnos ? Math.max(0.02, G.finTurno() - s.t) : 0.05); return true; } catch (e) { return false; } });
+const hayDef = await page.evaluate(() => { try { const G = Game, s = G.state; s.marches = []; s.cities.capua.owner = 'campanos'; s.cities.capua.units = { hoplitas: 150, milicia: 100 }; s.cities.roma.units = { hastati: 200, principes: 100 }; s.marches.push({ id: s.mid++, owner: 'campanos', from: 'capua', to: 'roma', units: { hoplitas: 150, milicia: 100 }, hero: false, t0: s.t, t1: s.t + 0.01 }); G.tick(G.turnos ? Math.max(0.02, G.finTurno() - s.t) : 0.05); return true; } catch (e) { return false; } });
 let defendido = false;
-if (hayDef) { for (let i = 0; i < 8 && !(await page.locator('#modal:not([hidden]) [data-act="bview"]').count()); i++) { await esp(900); const b = page.locator('#modal:not([hidden]) .btn').first(); if (await b.count()) await b.click(); }
+if (hayDef) { /* GC9: primero sale el aviso histórico («Pirro marcha sobre Roma», botón «close») y luego la defensa; no se pulsa el primer botón si ya está «bview» (sería abrir la batalla sin querer) */
+  for (let i = 0; i < 10; i++) { await esp(900); if (await page.locator('#modal:not([hidden]) [data-act="bview"]').count()) break; const b = page.locator('#modal:not([hidden]) .btn').first(); if (await b.count()) await b.click(); }
   if (await page.locator('#modal:not([hidden]) [data-act="bview"]').count()) { await abreBatalla(); defendido = true; } }
-if (defendido) { await gc('pausa', true); bien(await page.locator('#gu .orden').count() === 4 && await page.isVisible('#gu-retirar'), 'la defensa muestra las mismas cuatro órdenes y «Retirarse»'); bien(await dentro(), 'defensa: todo cabe y mide ≥ 40 px'); await foto('C1-defensa'); await gc('pausa', false); await pulsa('#gu-retirar'); await pulsa('#gu-salir-si'); await esp(900); await cierraFin(); }
+if (defendido) { await gc('pausa', true); bien(await page.locator('#gu .orden').count() === 4 && await page.isVisible('#gu-retirar'), 'la defensa muestra las mismas cuatro órdenes y «Retirarse»'); bien(await dentro(), 'defensa: todo cabe y mide ≥ 40 px'); await foto('C1-defensa'); await gc('pausa', false); /* no se retira: retirarse de la defensa de Roma perdería la capital; se juega con el bot hasta el final */ await page.evaluate(() => { const G = window.Game, g = window.__gc; let n = 0; while (g.B.fase !== 'fin' && n++ < 400) { G.botGuerra(g.B); g.salta(1.5); } }); await esp(2500); await cierraFin(); }
 else console.log('  (no se pudo provocar una defensa en el juego real: no se juzga; ver informe)');
 
 /* ---- D · maniobra (más de 600 hombres) ---- */
@@ -165,7 +166,7 @@ const bat0 = await page.evaluate(() => Game.state.stats.battles);
 await page.click('#modal [data-act="bview"]'); await esp(2500);
 bien(await page.locator('#man').count() > 0 && await page.locator('[data-a="pasar"]').count() > 0, 'con más de 600 hombres se abre primero la maniobra');
 await foto('D1-maniobra');
-const salidaTemprana = await page.locator('#man [data-a="retirar"], #man [data-a="salir"], #man [data-a="fin"]').count() > 0;
+const salidaTemprana = await page.locator('#man [data-a="salir"], #man [data-a="fin"]').count() > 0;
 if (salidaTemprana) bien(true, 'la maniobra tiene salida a la vista desde el primer día');
 else if (arregladoSalida) bien(false, 'la maniobra debería tener «Retirarse» a la vista desde el primer día');
 else aviso('la maniobra no tiene salida antes del choque: «Retirarse» solo sale en el panel del choque (js/ui-maniobra.js línea 67).');

@@ -58,6 +58,7 @@
       h += '<div class="m-pie">' + S.consejo.map((c, i) => '<button class="m-tar' + (!S.mano && S.eleg === i ? ' on' : '') + '" data-c="' + i + '"><small><span>' + esc(c.tribuno.split(' ')[0] + ' ' + c.tribuno.split(' ')[1].charAt(0) + '. · ' + c.caracter.toLowerCase()) + '</span><u class="' + c.etiqueta + '">' + c.etiqueta + '</u></small><div><strong>' + esc(c.resumen) + '</strong><span>' + esc(c.motivo) + '</span></div></button>').join('') +
         '<button class="m-mano' + (S.mano ? ' on' : '') + '" data-a="mano">A mano</button><button class="m-pasar" data-a="pasar">Pasar el día<small>' + (S.mano ? 'órdenes a mano' : esc((S.consejo[S.eleg] || { tribuno: '' }).tribuno.split(' ')[0])) + '</small></button></div>';
     }
+    if (!e.terminado) h += '<button class="m-sale' + (S.saliendo ? ' on' : '') + '" data-a="salir">' + (S.saliendo ? '¿Seguro? Toca otra vez' : 'Retirarse') + '</button>';   // GC8: salida en toda la maniobra; cuenta como derrota
     S.el.innerHTML = h;
     if (S.avisos.length) { const q = S.avisos; setTimeout(() => { if (S && S.avisos === q) { S.avisos = []; const a = S.el.querySelector('.m-avisos'); if (a) a.innerHTML = ''; } }, 6200); }
   }
@@ -73,13 +74,18 @@
 
   function onClick(ev) {
     if (!S) return; const b = ev.target.closest('button'); if (!b) return; const e = S.e;
-    if (b.dataset.c != null) { S.mano = false; elegir(+b.dataset.c); pintar(); return; }
+    if (b.dataset.c != null) { S.saliendo = false; S.mano = false; elegir(+b.dataset.c); pintar(); return; }
     if (b.dataset.l) { if (e.terminado) return; S.mano = true; S.sel = S.sel === b.dataset.l ? null : b.dataset.l; pintar(); return; }
     if (b.dataset.p) {
       if (S.mano && S.sel) { const l = mias().find(x => x.id === S.sel); if (b.dataset.p === l.punto || vec(l.punto).includes(b.dataset.p)) { S.ordenes[l.id] = b.dataset.p; S.sel = null; pintar(); } }
       return;
     }
     const a = b.dataset.a;
+    if (a === 'salir') {
+      if (!S.saliendo) { S.saliendo = true; pintar(); clearTimeout(S.tSal); S.tSal = setTimeout(() => { if (S) { S.saliendo = false; pintar(); } }, 4000); return; }
+      clearTimeout(S.tSal); S.e.terminado = true; S.e.fin = { tipo: 'retirada', bando: 0 };
+      const r = { accion: 'fin', estado: S.e, fin: S.e.fin }, f = S.fin; cerrar(); f(r); return;
+    }
     if (a === 'mano') { S.mano = !S.mano; if (S.mano) { S.eleg = -1; } else elegir(0); S.sel = null; pintar(); }
     else if (a === 'pasar') pasar();
     else if (a === 'batalla') { const r = { accion: 'batalla', estado: S.e, choque: S.e.choque }, f = S.fin; cerrar(); f(r); }

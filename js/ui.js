@@ -1,6 +1,5 @@
 /* AQVILA — interfaz: mapa 3D como pantalla principal, paneles, modales y pantalla de batalla */
 import { MapView3D } from './gfx/map3d.js';
-import { BattleView3D, recomendada, ALAS, TIPOS_ORDEN, tipoOrden } from './gfx/battle3d.js';
 import { portrait } from './gfx/models.js';
 import { preload, loadIndex, realPortrait } from './gfx/units.js';
 import { preloadStatic, loadStaticIndex } from './gfx/statics.js';
@@ -114,7 +113,7 @@ function pausaPon() {
   if (AV.cur) avPon();
 }
 function pausar(p) {
-  const s = S(); if (!s || s.over || AV.acum || UI.menu || UI.battle) return;
+  const s = S(); if (!s || s.over || AV.acum || UI.menu) return;
   if (!UI.pausa) { if (!(s.speed > 0)) return; UI.velPrev = s.speed; UI.pausa = { txt: p.motivo, n: 1, grave: !!p.grave }; }
   else { UI.pausa.n++; if (p.grave && !UI.pausa.grave) { UI.pausa.txt = p.motivo; UI.pausa.grave = true; } }
   s.speed = 0; pausaPon(); UI.dirty = true;
@@ -131,7 +130,7 @@ G.onEvent = function (type, p) {
   else if (type === 'dirty') UI.dirty = true;
   else if (type === 'colonos') { const d = D.COLONIAS[p.sitio]; if (d) modal('<div class="yr">COLONOS</div><h2>Han llegado a ' + esc(d.n) + '</h2><p>Los colonos esperan tu orden. Elige el lugar del foro y el arado trazará el surco sagrado.</p><div class="acts"><button class="btn ghost" data-act="close">Más tarde</button><button class="btn gold" data-act="fundar" data-v="' + p.sitio + '">Fundar ' + esc(d.n) + '</button></div>'); }
   else if (type === 'turno') { const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.vivo && !s.over) consejoModal(); UI.dirty = true; }
-  else if (type === 'over') { if (!UI.battle && !UI.binfo) showOver(); }
+  else if (type === 'over') { if (!UI.binfo) showOver(); }
 };
 
 /* ---------- menú ---------- */
@@ -858,7 +857,7 @@ function leccionHoy() {
 const conSigno = n => (n < 0 ? '\u2212' : '+') + Math.abs(n);
 /* CN13c: fuego por decidir. El reloj está parado (s.vivo); la tarjeta dice cuántas casas arden, el coste y la suerte esperada. Solo la muestra si no hay batalla pendiente. */
 function vivoPinta() {
-  const el = $('cubos'), s = S(), v = s && !s.over && !s.pending.length && !UI.battle ? G.vivo() : null, inf = v && G.vivoInfo();
+  const el = $('cubos'), s = S(), v = s && !s.over && !s.pending.length ? G.vivo() : null, inf = v && G.vivoInfo();
   if (!inf) { if (!el.hidden) el.hidden = true; UI.vivoK = ''; return; }
   const pl = inf.plan, n = pl.casas.length, k = v.cid + '|' + v.t0 + '|' + (inf.puede ? 1 : 0);
   if (UI.vivoK === k && !el.hidden) return;
@@ -1296,190 +1295,6 @@ function battlePrompt() {
 }
 // GM15b: la hora del encuentro en una línea («Amanecer con niebla»)
 function horaTxt(K) { return (D.HORAS[K.hora] || 'Día') + (K.niebla ? ' con niebla' : ''); }
-// N15: la dificultad ya no se elige; el motor la explica por contexto (b.dif = { nivel, texto, factores:[{n,txt,v}] })
-function rivalHtml(b) {
-  const s1 = b.cfg.sides[1], ca = window.Battle.CARACTER[b.ia ? b.ia.car : window.Battle.caracterDe(b.cfg)], d = b.dif, pr = b.progresoObjetivo ? b.progresoObjetivo() : null;
-  const fac = d && d.factores && d.factores.length ? '<div class="fac" hidden>' + d.factores.map(f => '<div><i class="' + (f.v > 0 ? 'up' : f.v < 0 ? 'dn' : '') + '">' + (f.v > 0 ? '▲' : f.v < 0 ? '▼' : '•') + '</i> ' + esc(f.txt) + '</div>').join('') + '</div>' : '';
-  return '<div class="rv"' + (fac ? ' data-act="bfac" role="button"' : '') + '>Rival: <b>' + esc(s1.gen && s1.gen.n || s1.name) + '</b> · ' + esc(ca.n.toLowerCase()) + (d && d.texto ? ' · ' + esc(d.texto.replace(/^Rival:\s*/, '')) : '') + (fac ? ' ▾' : '') + '</div>' + fac +
-    (pr && pr.texto ? '<div class="ob">Objetivo: ' + esc(pr.texto) + '</div>' : '');
-}
-// objetivo de la batalla: una línea fina bajo el cabezal con barra mínima
-function objetivoHud(B) {
-  const b = B.b, pr = b.cfg.objetivo && b.progresoObjetivo ? b.progresoObjetivo() : null; let el = $('bobj');
-  if (!pr || !pr.texto || b.fase === 'despliegue') { if (el) el.remove(); return; }
-  if (!el) { el = document.createElement('div'); el.id = 'bobj'; $('battle').appendChild(el); }
-  const k = pr.texto + '|' + Math.round((pr.frac || 0) * 50); if (el.dataset.k !== k) { el.dataset.k = k; el.innerHTML = '<span>' + esc(pr.texto) + '</span><i><u style="width:' + Math.round(Math.max(0, Math.min(1, pr.frac || 0)) * 100) + '%"></u></i>'; }
-}
-function startBattle() {
-  closeModal();
-  $('battle').hidden = false;
-  const cfg = Object.assign({}, UI.binfo.cfg, { fh: 1000, despliegue: true, rondas: true, dificultad: 'normal' }), b = new window.Battle(cfg), B = { b: b, speed: 1, paused: false, acc: 0, endT: 0 };
-  try { B.view = new BattleView3D($('bfield'), b, { aviso: (t, k) => toast(t, k), cards: $('bcards'), speed: () => (B.paused || b.over ? 0 : B.speed) }); }
-  catch (e) { // sin WebGL: vista 2D de reserva
-    console.warn('WebGL no disponible, usando vista 2D', e);
-    const cv = document.createElement('canvas'); cv.className = 'c2d'; $('bfield').appendChild(cv); B.view = new window.BattleView(cv, b); B.flat = cv;
-    cv.addEventListener('pointerdown', ev => { if (!b.over) B.view.down(ev); });
-    cv.addEventListener('pointermove', ev => B.view.move(ev)); cv.addEventListener('pointerup', ev => B.view.up(ev)); cv.addEventListener('pointercancel', ev => B.view.up(ev));
-  }
-  UI.battle = B;
-  { const dv = document.createElement('div'); dv.id = 'bdif'; dv.innerHTML = rivalHtml(b); $('battle').appendChild(dv); }
-  montaMandoL1(B);
-  $('bauto').classList.add('on'); $('bspeed').textContent = 'x1'; $('bpause').textContent = 'II';
-  // despliegue: la barra de mando cambia hasta pulsar «Empezar batalla»
-  B.barra = $('bctl').innerHTML; B.hint = $('bhint').innerHTML;
-  // 6 formaciones + «Empezar batalla»: en 390 px no caben en una fila, así que la barra se parte en dos filas
-  $('bctl').style.flexWrap = 'wrap'; $('bctl').classList.add('desp'); $('battle').classList.add('desp');
-  $('bctl').innerHTML = Battle.PLANTILLAS.map(p => '<button style="flex:1 1 11%;min-width:0;padding:0 2px;font-size:12px;white-space:nowrap" data-act="bform" data-v="' + p[0] + '"' + (p[0] === 'clasica' ? ' class="on"' : '') + '>' + (Battle.CORTOS[p[0]] || p[1]) + '</button>').join('') + '<button style="flex:2 1 18%;padding:0 4px" data-act="bstart" class="on">Empezar batalla</button>';
-  $('bhint').textContent = 'Coloca tus tropas: arrastra un regimiento por el campo, o toca uno y luego el campo. Después, Empezar batalla.' + (b.tr && !b.tr.plano ? ' Campo: ' + b.tr.nombre.toLowerCase() + ' (contorno en tu zona: ocre = colina, verde = bosque).' : ' Campo: llano.'); $('bhint').style.opacity = 1;
-}
-// repone la barra de mando y el texto de ayuda de antes del despliegue
-function reponerBarra(B) { if (!B || B.barra == null) return; const dv = $('bdif'); if (dv) dv.remove(); $('bctl').style.flexWrap = ''; $('bctl').classList.remove('desp'); $('battle').classList.remove('desp'); $('bctl').innerHTML = B.barra; $('bhint').innerHTML = B.hint; B.barra = null; }
-function stopBattle() { const B = UI.battle; if (B) { const dv = $('bdif'); if (dv) dv.remove(); const ob = $('bobj'); if (ob) ob.remove(); const gs = $('bgesto'); if (gs) gs.remove(); $('battle').classList.remove('ronda'); const pn = $('bpanel'); if (pn) pn.remove(); quitaMandoL1(B); reponerBarra(B); if (B.view.dispose) B.view.dispose(); if (B.flat) B.flat.remove(); } $('battle').hidden = true; UI.battle = null; UI.binfo = null; if (UI.map) UI.map.resize(); }
-// L1: mando con el dedo: botón dorado de orden recomendada, minimapa táctil y grupos por clase
-const GRUPOS_L1 = [['inf', 'Infantería', ['inf', 'spear', 'ele']], ['rng', 'Tiradores', ['rng']], ['cav', 'Caballería', ['cav', 'gen']]];
-function montaMandoL1(B) {
-  if (!B.view || !B.view.ordenRecomendada) return; // vista 2D de reserva: sin esto
-  const bt = $('battle'), mk = (tag, id, cls, html) => { const e = document.createElement(tag); e.id = id; e.className = cls; e.innerHTML = html || ''; bt.appendChild(e); return e; };
-  const oro = mk('button', 'bgold', 'l1 off', '<i>⚔</i><b>Orden</b>'); oro.dataset.act = 'bgold'; oro.disabled = true;
-  const mini = mk('canvas', 'bmini', 'l1'), anch = Math.max(66, Math.min(120, Math.round(60 * B.b.W / B.b.H))); mini.width = anch * 2; mini.height = 120; mini.style.width = anch + 'px';   // el recuadro sigue la proporción del campo (N14)
-  const grp = mk('div', 'bgrp', 'l1', GRUPOS_L1.map(g => '<button data-act="bgrp" data-v="' + g[0] + '">' + g[1] + '</button>').join(''));
-  mini.addEventListener('pointerdown', ev => {
-    const rc = mini.getBoundingClientRect(), b = B.b, x = (ev.clientX - rc.left) / rc.width * b.W, y = (ev.clientY - rc.top) / rc.height * b.H;
-    if (b.fase !== 'despliegue' && B.view.moverSel(x, y)) toast('Tropas en marcha.'); else B.view.centrarEn(x, y); ev.stopPropagation();
-  });
-  mini.addEventListener('pointermove', ev => { if (ev.buttons !== 1 || B.view.sel.size && B.b.fase !== 'despliegue') return; const rc = mini.getBoundingClientRect(); B.view.centrarEn((ev.clientX - rc.left) / rc.width * B.b.W, (ev.clientY - rc.top) / rc.height * B.b.H); ev.stopPropagation(); });
-  const alas = mk('div', 'balas', 'l1', ALAS.map(a => '<button data-act="bala" data-v="' + a[0] + '">' + a[1] + '<small></small></button>').join(''));
-  alas.querySelectorAll('button').forEach(bn => {   // toque corto: elige el ala; toque largo: mete en ella los regimientos elegidos (o los saca si ya están)
-    let tm = null, largo = false;
-    bn.addEventListener('pointerdown', () => { largo = false; clearTimeout(tm); tm = setTimeout(() => { largo = true; const id = bn.dataset.v, v = B.view; const n = v.moverAAla(id); toast(n ? n + (n === 1 ? ' regimiento pasa' : ' regimientos pasan') + ' al ala «' + bn.firstChild.textContent + '».' : 'Elige antes un regimiento y mantén pulsada el ala.'); }, 550); });
-    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) bn.addEventListener(ev, () => clearTimeout(tm));
-    bn.addEventListener('click', ev => { if (largo) { ev.stopPropagation(); ev.preventDefault(); largo = false; } });
-    bn.addEventListener('contextmenu', ev => ev.preventDefault());
-  });
-  B.l1 = { oro: oro, mini: mini, grp: grp, alas: alas, txt: '' };
-}
-function quitaMandoL1(B) { if (B.l1) { for (const k of ['oro', 'mini', 'grp', 'alas']) B.l1[k].remove(); B.l1 = null; } }
-function actualizaL1(B) {
-  const L = B.l1; if (!L) return; const v = B.view, b = B.b, desp = b.fase === 'despliegue';
-  const sel = [...v.sel].filter(r => r.st === 'ok'), rec = !desp && sel.length ? recomendada(sel[0], b) : null;
-  const txt = rec ? rec.ic + '|' + rec.txt : ''; if (txt !== L.txt) { L.txt = txt; L.oro.disabled = !rec; L.oro.classList.toggle('off', !rec); L.oro.innerHTML = '<i>' + (rec ? rec.ic : '⚔') + '</i><b>' + (rec ? rec.txt : 'Orden') + '</b>'; }
-  const act = v.alaActiva ? v.alaActiva() : null;
-  L.alas.querySelectorAll('button').forEach(bn => { const m = v.miembros(bn.dataset.v).length; bn.classList.toggle('on', act === bn.dataset.v); bn.classList.toggle('vacia', !m); const sm = bn.lastChild; if (sm.textContent !== String(m)) sm.textContent = m; });
-  const x = L.mini.getContext('2d'), W = L.mini.width, H = L.mini.height; x.clearRect(0, 0, W, H); x.fillStyle = 'rgba(12,16,22,.7)'; x.fillRect(0, 0, W, H);
-  const kx = W / b.W, ky = H / b.H; window.Battle.pintaTerreno(x, b, kx, ky);
-  for (const r of b.regs) { if (r.st !== 'ok') continue; const px = r.x * kx, py = r.y * ky; x.fillStyle = b.cfg.sides[r.side].col; x.beginPath(); x.arc(px, py, r.u.cls === 'gen' ? 5 : 4, 0, 7); x.fill(); if (v.sel.has(r)) { x.strokeStyle = '#f2cf72'; x.lineWidth = 2.5; x.beginPath(); x.arc(px, py, 8, 0, 7); x.stroke(); } }
-  if (v.vista) { const p = v.vista(); x.strokeStyle = '#fff'; x.lineWidth = 2; x.beginPath(); p.forEach((q, i) => i ? x.lineTo(q[0] * kx, q[1] * ky) : x.moveTo(q[0] * kx, q[1] * ky)); x.closePath(); x.stroke(); }   // lo que ve la cámara
-  x.strokeStyle = '#e3b54a99'; x.lineWidth = 2; x.strokeRect(1, 1, W - 2, H - 2);
-}
-function battleHud() {
-  if (rondaHud()) return;
-  const b = UI.battle.b, s0 = b.cfg.sides[0], s1 = b.cfg.sides[1], n0 = b.men(0), n1 = b.men(1), mo = sd => { let a = 0, t = 0; for (const r of b.regs) if (r.side === sd && r.st === 'ok') { a += r.mor / r.morMax * r.men; t += r.men; } return t ? Math.round(a / t * 100) : 0; }, m0 = mo(0), m1 = mo(1), key = n0 + '|' + n1 + '|' + m0 + '|' + m1; actualizaL1(UI.battle); if (key === UI.hudKey) return; UI.hudKey = key;
-  $('bhud').innerHTML = '<div class="nm"><span style="color:#ff9c8c">' + esc(s0.name) + ' · ' + n0 + ' <small>moral ' + m0 + '%</small></span><span><small>moral ' + m1 + '%</small> ' + n1 + ' · ' + esc(s1.name) + '</span></div><div class="bar"><i style="width:' + n0 / Math.max(1, n0 + n1) * 100 + '%;background:' + s0.col + '"></i><i style="flex:1;background:' + s1.col + '"></i></div>';
-}
-/* ---------- rondas (N2): plan, ejecución e informe ---------- */
-// iconos de línea de las órdenes (trazo, sin relleno)
-const ICO_ORD = {
-  aguantar: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 7.8 7.5 9.5 4.3-1.7 7.5-4.9 7.5-9.5V6z"/>',
-  avanzar: '<path d="m6 12 6-6 6 6M6 19l6-6 6 6"/>',
-  cargar: '<path d="M5 19 19 5M10 5h9v9"/><path d="M5 14l5 5"/>',
-  hostigar: '<path d="M4 17c3-9 8-9 14-6M14 6l5 5-6 3"/><path d="M4 21h4"/>',
-  relevar: '<path d="M4 8h14m-4-4 4 4-4 4M20 16H6m4-4-4 4 4 4"/>',
-  retirarse: '<path d="M9 7 4 12l5 5M4 12h10a6 6 0 0 1 0 8h-3"/>',
-  sig: '<path d="m9 5 7 7-7 7"/>',
-  mas: '<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>'
-};
-const icoOrd = k => '<svg class="io" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICO_ORD[k] + '</svg>';
-// fila única de botones de abajo, según el momento de la ronda
-function filaRonda(B) {
-  const C = window.Battle.CONDICIONES, sel = condSel(B), act = c => sel.length && sel.every(r => (r.order.cond || '') === c);
-  switch (B.modo) {
-    case 'ejec': return '<button data-act="bpause" id="bpause">' + (B.paused ? '▶' : 'II') + '</button><button data-act="bspeed" id="bspeed">x' + B.speed + '</button><button data-act="bcam">Cámara</button><button data-act="bskip">Resolver</button>';
-    case 'informe': return '<button data-act="brepetir">Ver otra vez</button><button class="go on" data-act="bseguir">Seguir planeando</button>';
-    case 'cond': return Object.keys(C).map(k => '<button data-act="bcnd" data-v="' + k + '"' + (act(k) ? ' class="on"' : '') + '>' + C[k] + '</button>').join('') + '<button data-act="bcnd" data-v="">Sin condición</button><button class="on" data-act="bcondok">Listo</button>';
-    default: {
-      if (!B.aMano && B.b.consejo && !B.b.over) { const cs = tarjetasConsejo(B); if (cs) return cs; }
-      const ps = B.view && B.view.propios ? B.view.propios() : [], tp = ps.length && ps.every(r => tipoOrden(r) === tipoOrden(ps[0])) ? tipoOrden(ps[0]) : null;
-      return '<div class="ord' + (ps.length ? '' : ' sinsel') + '">' + TIPOS_ORDEN.map(t => '<button class="ob o-' + t[0] + (tp === t[0] ? ' on' : '') + '" data-act="bord" data-v="' + t[0] + '"' + (t[0] === 'aguantar' ? ' title="Aguantar: recibe un tercio menos de daño. Si te quedas quieto mucho rato el rival te toma la medida y el efecto se pierde."' : '') + '>' + icoOrd(t[0]) + '<span>' + t[1] + '</span></button>').join('') + '</div>' +
-        '<button class="mini" data-act="bsig" aria-label="Siguiente regimiento">' + icoOrd('sig') + '<span>Siguiente</span></button><button class="mini' + (B.mas ? ' on' : '') + '" data-act="bmas" aria-label="Más opciones">' + icoOrd('mas') + '<span>Más</span></button>' + chipMando(B) + '<button class="go on" data-act="bejec">Ver la ronda</button>';
-    }
-  }
-}
-// R2: tres tarjetas, cada una con un plan completo de un tribuno y su etiqueta; «A mano» devuelve la fila de órdenes
-function tarjetasConsejo(B) {
-  const cs = B.b.consejo(); if (!cs.length) return '';
-  return '<div class="tarjs">' + cs.map((c, i) => '<button class="tarj t-' + c.etiqueta.toLowerCase() + (B.consejoSel === i ? ' on' : '') + '" data-act="btarj" data-v="' + i + '"><small>' + esc(c.tribuno) + ' · ' + c.rasgo + '</small><b>' + esc(c.titulo) + '</b><em>' + esc(c.motivo) + '</em><i class="et">' + c.etiqueta + '</i></button>').join('') + '</div>' +
-    '<button class="mini" data-act="bamano" aria-label="Dar las órdenes a mano"><span>A mano</span></button><button class="go on" data-act="bejec">Ver la ronda</button>';
-}
-// N5: puntos de mando junto al botón de ejecutar (rojo si te pasas) y fila de cartas de táctica
-const CARTAS_TXT = { arenga: ['Arenga', 'Sube la moral (+15 %) de las tropas dentro del radio de mando, en la ronda siguiente'], paso: ['Paso doble', 'Velocidad x1,25 la ronda siguiente, dentro del radio de mando'], cerrada: ['Cerrada', 'Reciben x0,85 de daño la ronda siguiente, dentro del radio de mando'] };
-function chipMando(B) { const m = B.b.mandoPuntos(); return '<span class="mando' + (m.usados > m.max ? ' mal' : '') + '" title="Cada orden activa gasta un punto; Aguantar no gasta">Mando<b>' + m.usados + '/' + m.max + '</b></span>'; }
-function filaCartas(B) {
-  const b = B.b, ok = !!b.generalVivo(0) && b.cartaRonda !== b.ronda;
-  return Object.keys(CARTAS_TXT).map(id => { const libre = b.cartas.indexOf(id) >= 0, use = libre && ok; return '<button class="carta' + (use ? '' : ' off') + (b.cartaPlan === id ? ' on' : '') + '" data-act="bcarta" data-v="' + id + '" title="' + CARTAS_TXT[id][1] + '">' + CARTAS_TXT[id][0] + '</button>'; }).join('');
-}
-function condSel(B) { return B.view && B.view.sel ? [...B.view.sel].filter(r => r.st === 'ok' && r.side === 0 && r.order && r.order.k !== 'quieto') : []; }
-function rondaModo(B, m) {
-  B.modo = m; B.filaKey = ''; if (m === 'plan') B.consejoSel = null; B.mas = false; B.atajoTx = null; B.formVer = null; if (B.view && B.view.ponTPrev) { B.view.ponTPrev(0); B.view.activaFrente && B.view.activaFrente(false); } B.pmin = false; B.panelTx = null; if (m === 'plan' || m === 'informe') B.paused = false;
-  if (m !== 'plan') B.choque = null;
-}
-function textoRonda(B) {
-  const b = B.b, v = B.view, C = window.Battle.CONDICIONES;
-  if (B.modo === 'ejec') return '';
-  if (B.modo === 'informe') return '<div class="pt" data-act="bpmin">Lo que pasó · ronda ' + (b.ronda - 1) + '<i></i></div><ul>' + b.hechos.map(h => '<li>' + esc(h) + '</li>').join('') + '</ul>';
-  if (B.modo === 'cond') { const sel = condSel(B); if (!sel.length) return 'Elige un regimiento con orden y vuelve a pulsar «Más» y «Condición».'; const r = sel[0], c = r.order.cond; return '<b>' + esc(r.name || r.u.n) + (sel.length > 1 ? ' y ' + (sel.length - 1) + ' más' : '') + '</b>: ' + (c ? esc(C[c]) + '.' : 'sin condición. Elige una (solo una por orden).'); }
-  if (v && v.modoFrente) return '<div class="pt" data-act="bfrente">Frente<i></i></div>Arrastra el dedo sobre el campo, de un extremo a otro del frente. Pulsa aquí para cancelar.';
-  if (B.mas === 'form' || B.mas === 'atajos' || B.mas === 'tiempo') return panelN7(B);
-  if (B.mas) { const w = B.b, ex = (c, a, t) => c ? '<button data-act="' + a + '">' + t + '</button>' : ''; return '<div class="pt" data-act="bmas">Más<i></i></div><div class="pbt p3"><button data-act="bcond">Condición</button><button data-act="bchoque">Prever choque</button><button data-act="ball">Todas</button><button data-act="bskip">Resolver</button>' + ex(w.consejo, 'btarjetas', 'Tarjetas') + '<button data-act="bsonido">' + (window.Sonido && !window.Sonido.activo ? '🔇 Sonido apagado' : '🔊 Sonido activado') + '</button>' + ex(w.formacionesPosibles, 'bformas', 'Formación') + ex(w.fijarFrente && B.view.activaFrente, 'bfrente', 'Frente') + ex(w.agrupar, 'bjuntos', 'Marchar juntos') + ex(w.relevarLinea, 'brelevar', 'Relevar línea') + ex(w.atajo, 'batajos', 'Atajos') + ex(w.prevision && B.view.ponTPrev, 'btiempo', 'Ver futuro') + '</div>'; }
-  if (B.choque && performance.now() < B.choqueT) return B.choque;
-  if (!B.aMano && b.consejo) return B.consejoSel != null && B.tarjTx ? B.tarjTx : 'Tres tribunos te aconsejan. Toca una tarjeta para ver su plan. Las cartas y las órdenes sueltas están en «A mano».';
-  if (condSel(B).length) return 'Orden dada. En «Más» puedes añadirle una condición.';
-  if (v && v.propios && v.propios().length) return 'Elige una orden abajo o dibuja el recorrido sobre el campo. Toca otro estandarte para cambiar de regimiento.';
-  if (v && v.haySombras) return 'Las siluetas marcan dónde acabarían tus tropas si el enemigo se queda quieto. <b>El enemigo puede moverse.</b>';
-  return 'Toca un estandarte (o los soldados) para elegir un regimiento.';
-}
-/* ---------- N7: formaciones, atajos y fantasmas con tiempo (paneles de «Más») ---------- */
-const ATAJOS = [['testudo', 'Testudo'], ['carga', 'Carga'], ['retirada', 'Retirada'], ['refuerzo', 'Refuerzo']];
-function panelN7(B) {
-  const b = B.b, v = B.view, F = window.Battle.FORM || {}, sel = v && v.propios ? v.propios() : [], volver = '<div class="pt" data-act="bmas">';
-  if (B.mas === 'atajos') return volver + 'Atajos<i></i></div><div class="pbt p4">' + ATAJOS.map(a => '<button data-act="bataj" data-v="' + a[0] + '">' + a[1] + '</button>').join('') + '</div>' + (B.atajoTx ? '<div class="fi">' + esc(B.atajoTx) + '</div>' : '<div class="fi">Actúan sobre lo elegido (o todo tu ejército si no hay nada elegido).</div>');
-  if (B.mas === 'tiempo') { const i = [0, 10, 20, 30].indexOf(v && v.tPrev || 0); return volver + 'Ver futuro<i></i></div><input id="btslider" type="range" min="0" max="3" step="1" value="' + Math.max(0, i) + '"><div class="tk"><span>Final</span><span>10 s</span><span>20 s</span><span>30 s</span></div><div class="fi">Dónde estarían tus tropas pasado ese tiempo, si el enemigo se queda quieto.</div>'; }
-  if (!sel.length) return volver + 'Formación<i></i></div>Elige antes un regimiento: toca su estandarte.';
-  let ks = null; for (const r of sel) { const k = b.formacionesPosibles ? (b.formacionesPosibles(r) || []) : []; ks = ks ? ks.filter(x => k.indexOf(x) >= 0) : k.slice(); }
-  ks = ks || []; const act = k => sel.every(r => (r.form || 'normal') === k), cur = ks.find(act) || B.formVer, d = cur && F[cur];
-  return volver + 'Formación · ' + esc(sel[0].name || sel[0].u.n) + (sel.length > 1 ? ' +' + (sel.length - 1) : '') + '<i></i></div><div class="pbt pf">' + ks.map(k => '<button data-act="bformsel" data-v="' + k + '"' + (act(k) ? ' class="on"' : '') + '>' + esc(F[k] ? F[k].n : k) + '</button>').join('') + '</div>' +
-    (d ? '<div class="fi"><b>' + esc(d.n) + '</b>: gana ' + esc(d.gana || '—') + ' · pierde ' + esc(d.pierde || '—') + '</div>' : '<div class="fi">Pulsa una formación para ver lo que da y lo que quita.</div>');
-}
-function entraPlan(B) {
-  const bt = $('battle'); bt.classList.add('ronda');
-  if (!$('bpanel')) { const pn = document.createElement('div'); pn.id = 'bpanel'; bt.appendChild(pn); }
-  if (B.view && B.view.cycleCam && !B.camPlan) { B.camPlan = true; B.view.cycleCam(); const c = B.view.c; if (c) { c.dist = 270; c.z = B.view.halfD * 0.1; } }   // vista alta para planear
-  rondaModo(B, 'plan');
-}
-// una sola línea arriba: ronda y momento, fuerzas de los dos bandos. Devuelve true si pintó la del modo rondas.
-function rondaHud() {
-  const B = UI.battle, b = B.b; if (!b.rondas || !B.modo) return false;
-  actualizaL1(B);
-  { let gs = $('bgesto'); if (!gs) { gs = document.createElement('div'); gs.id = 'bgesto'; $('battle').appendChild(gs); } const tg = B.modo === 'ejec' && b.gesto ? '⚑ ' + b.gesto : ''; if (gs.textContent !== tg) gs.textContent = tg; gs.style.display = tg ? '' : 'none'; }
-  if (!b.over) {
-    if (b.fase === 'ejecucion' && B.modo !== 'ejec') rondaModo(B, 'ejec');
-    else if (b.fase === 'plan' && B.modo === 'ejec') rondaModo(B, 'informe');
-  }
-  const s0 = b.cfg.sides[0], s1 = b.cfg.sides[1], n0 = b.men(0), n1 = b.men(1), ej = b.fase === 'ejecucion';
-  const seg = Math.max(0, Math.ceil(window.Battle.RONDA_SEG - b.tRonda)), tit = ej ? (b.repite ? 'Repetición' : 'Ronda ' + b.ronda) + ' · ' + seg + ' s' : 'Ronda ' + b.ronda + ' · Plan';
-  const key = tit + '|' + n0 + '|' + n1; if (key !== UI.hudKey) { UI.hudKey = key;
-    $('bhud').innerHTML = '<div class="r1"><b class="rt">' + tit + '</b><span class="n0" style="color:#ff9c8c">' + esc(s0.name) + ' ' + n0 + '</span><div class="bar"><i style="width:' + n0 / Math.max(1, n0 + n1) * 100 + '%;background:' + s0.col + '"></i><i style="flex:1;background:' + s1.col + '"></i></div><span class="n1">' + n1 + ' ' + esc(s1.name) + '</span><span class="alj"><button data-act="bsalto" data-v="-1">Ala izq.</button><button data-act="bsalto" data-v="0">Centro</button><button data-act="bsalto" data-v="1">Ala der.</button></span></div>'; }
-  { let cr = $('bcartas'); if (!cr) { cr = document.createElement('div'); cr.id = 'bcartas'; $('bctl').parentNode.insertBefore(cr, $('bctl')); }
-    const ver = B.modo === 'plan' && !b.over && (B.aMano || !b.consejo), ck = ver ? filaCartas(B) : ''; if (cr.dataset.k !== ck) { cr.dataset.k = ck; cr.innerHTML = ck; } cr.style.display = ver ? '' : 'none';
-    if (ver && B.avisoGen !== b.ronda && b.genDown[0]) { B.avisoGen = b.ronda; toast('Cayó tu general: solo ' + b.mandoPuntos().max + ' órdenes por ronda.', 'bad'); } }
-  const mp = b.mandoPuntos(), fk = mp.usados + '/' + mp.max + b.cartas.join() + b.cartaPlan + b.cartaRonda + '|' + B.modo + '|' + B.speed + '|' + B.paused + '|' + (B.mas ? 'm' + B.mas : '') + '|' + (B.aMano ? 'a' : 't' + B.consejoSel + 'r' + b.ronda) + '|' + (B.modo === 'cond' ? condSel(B).map(r => r.id + (r.order.cond || '')).join() : B.modo === 'plan' && B.view && B.view.propios ? B.view.propios().map(r => r.id + (tipoOrden(r) || '-')).join() : '');
-  if (fk !== B.filaKey) { B.filaKey = fk; $('bctl').innerHTML = filaRonda(B); }
-  const pn = $('bpanel'), tx = textoRonda(B); if (pn) {
-    if (tx !== B.panelTx) { B.panelTx = tx; B.panelT = performance.now(); pn.innerHTML = tx; }
-    pn.className = (B.modo === 'informe' || B.mas || B.modo === 'cond' ? 'act' : '') + (B.pmin ? ' min' : '');
-    // los consejos de plan se apagan solos a los 7 s para no tapar el campo; el informe y «Más» se quedan hasta cerrarlos
-    pn.style.display = tx && (B.modo !== 'plan' || B.mas || performance.now() - B.panelT < 7000 || (B.choque && performance.now() < B.choqueT)) ? '' : 'none'; }
-  return true;
-}
 /* NB7: la batalla nueva. Maniobra (si hay más de 600 hombres) y luego el choque; al acabar se devuelve a la campaña lo mismo que la clásica. */
 function iniciaNueva(info, pl, resto) {
   closeModal(); UI.nueva = true; UI.sheetKey = '';
@@ -1506,7 +1321,7 @@ document.addEventListener('click', function (e) {
   const el = e.target.closest('[data-act]');
   if (!el && e.target.closest('#cuentas')) return;
   if (!el) { $('cuentas').hidden = true; if (!e.target.closest('#hoja')) hojaCierra(true); $('citymenu').hidden = true; $('popsheet').hidden = true; if (e.target.id === 'modal' && !UI.sticky) closeModal(); hudDock(); return; }
-  const a = el.dataset.act, v = el.dataset.v, s = S(), B = UI.battle;
+  const a = el.dataset.act, v = el.dataset.v, s = S();
   if (el.closest('#hoja')) UI.hjDown = false; if (a !== 'menumodo' && a !== 'hoja' && !el.closest('#hoja')) hojaCierra(true); if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true; if (a !== 'cuentas' && a !== 'imp' && a !== 'cuvender' && a !== 'cuadelantar') $('cuentas').hidden = true;
   if (a !== 'derr') UI.derr = null;
   switch (a) {
@@ -1530,7 +1345,7 @@ document.addEventListener('click', function (e) {
     case 'crondescargar': descargar('cronica-' + cityOk() + '.txt', G.cronicaTexto(cityOk())); toast('Crónica guardada en tus descargas.'); break;
     case 'copiaguardar': if (!S() || UI.menu && !G.hasSave()) toast('Aún no hay partida que copiar.', 'bad'); else { if (UI.menu) G.load(); toast(guardarCopia(G) ? 'Copia guardada en tus descargas.' : 'No se pudo guardar la copia.'); } break;
     case 'copiacargar': { if (S() && !UI.menu && !confirm('Cargar una copia reemplaza la partida de este móvil. ¿Seguir?')) break; cargarCopia(G).then(r => { if (r.nada) return; if (!r.ok) { toast(r.motivo, 'bad'); return; } hojaCierra(true); UI.overShown = false; startGame(); toast('Copia cargada: ' + G.dateStr(S().t) + '.'); }); break; }
-    case 'tomenu': G.save(); UI.modalQ = []; closeModal(); stopBattle(); showMenu(); break;
+    case 'tomenu': G.save(); UI.modalQ = []; closeModal(); showMenu(); break;
     case 'tab': UI.codice = null; setTab(v); break;
     case 'codice': UI.codice = v || null; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;
     case 'turno': if (!G.turnos || s.over || s.pending.length || s.vivo || UI.modalOpen) break; AV.acum = []; try { G.pasarTurno(); } finally { const l = AV.acum; AV.acum = null; toastResumen(l); } UI.dirty = true; tickUI(); break;
@@ -1631,44 +1446,7 @@ document.addEventListener('click', function (e) {
     case 'bview': { const pl = G.planBatalla(UI.binfo); iniciaNueva(UI.binfo, pl); break; }
     case 'bcont': { const resto = G.guerraGuardada(UI.binfo); if (resto) iniciaNueva(UI.binfo, G.planBatalla(UI.binfo), resto); break; }   // retoma la batalla guardada a mitad
     case 'bquick': { closeModal(); const pl = G.planBatalla(UI.binfo); G.borrarGuerra(); endBattle(G.jugarNueva(UI.binfo, { bono0: pl.via === 'sola' ? 1 : 0.92 })); break; }
-    case 'bdone': closeModal(); stopBattle(); UI.sheetKey = ''; render(); if (S().over) showOver(); break;
-    case 'bpause': B.paused = !B.paused; el.textContent = B.paused ? '▶' : 'II'; break;
-    case 'bspeed': B.speed = B.speed === 1 ? 2 : B.speed === 2 ? 4 : 1; el.textContent = 'x' + B.speed; break;
-    case 'bauto': B.b.auto = !B.b.auto; el.classList.toggle('on', B.b.auto); toast(B.b.auto ? 'Tus tropas atacan por iniciativa propia.' : 'Tus tropas mantienen la posición hasta recibir órdenes.'); break;
-    case 'ball': B.view.selectAll(); B.mas = false; B.panelTx = null; B.filaKey = ''; break;
-    case 'bgold': { const o = B.view.ordenRecomendada(); if (o) toast(o.txt + '.'); break; }
-    case 'bala': B.view.selAla(v); break;
-    case 'bgrp': { const g = GRUPOS_L1.find(q => q[0] === v); if (g) B.view.selPorClase(g[2]); break; }
-    case 'bord': { const t = B.view.darOrden(v); if (t) { B.filaKey = ''; B.panelTx = null; } else toast(B.view.propios().length ? 'Ese regimiento no puede recibir esa orden ahora.' : 'Elige antes un regimiento: toca su estandarte.'); break; }
-    case 'bsig': { const r = B.view.siguienteReg(1); if (r) { B.view.centrarEn(r.x, r.y); B.filaKey = ''; B.panelTx = null; } break; }
-    case 'bformas': B.mas = 'form'; B.panelTx = null; break;
-    case 'btiempo': B.mas = 'tiempo'; B.panelTx = null; break;
-    case 'batajos': B.mas = 'atajos'; B.atajoTx = null; B.panelTx = null; break;
-    case 'bformsel': { const sel = B.view.propios(); B.formVer = v; let fallo = null; for (const r of sel) if (!B.b.ponerFormacion(r, v)) fallo = fallo || B.b.motivo || 'No se puede ahora.'; if (fallo) toast(fallo, 'bad'); B.panelTx = null; B.filaKey = ''; break; }
-    case 'bfrente': { const on = B.view.activaFrente(); B.mas = false; B.panelTx = null; if (on && !B.view.propios().length) { B.view.activaFrente(false); toast('Elige antes un regimiento: toca su estandarte.'); } else if (on) toast('Arrastra el dedo sobre el campo, de un extremo a otro del frente.'); break; }
-    case 'bjuntos': { const sel = B.view.propios(); if (sel.length < 2) { toast('Elige varios regimientos (botón «Todas») para que marchen juntos.'); break; } const n = B.b.agrupar(sel); toast(n === false || n === 0 ? (B.b.motivo || 'No pueden marchar juntos ahora.') : 'Marchan juntos, a la velocidad del más lento.', n === false || n === 0 ? 'bad' : undefined); B.mas = false; B.panelTx = null; break; }
-    case 'brelevar': { const r = B.view.propios().find(q => q.linea); if (!r) { toast('Elige un regimiento romano con su línea (I, II o III).'); break; } const n = B.b.relevarLinea(0, r.linea); toast(n ? 'Relevo: ' + n + (n === 1 ? ' regimiento cambia' : ' regimientos cambian') + ' de línea.' : 'No hay relevo posible ahora.', n ? undefined : 'bad'); B.mas = false; B.panelTx = null; break; }
-    case 'bataj': { const sel = B.view.propios(), regs = sel.length ? sel : B.b.regs.filter(q => q.side === 0 && q.st === 'ok'), q = B.b.atajo(v, regs); B.atajoTx = q ? q.txt : (B.b.motivo || 'Ahora no sirve.'); if (q) toast(q.txt); B.panelTx = null; B.filaKey = ''; break; }
-    case 'btarj': { const c = B.b.aplicarConsejo(+v); if (c) { B.consejoSel = +v; B.view.sel.clear(); B.filaKey = ''; B.panelTx = null; B.panelT = performance.now(); B.tarjTx = c.tribuno + ': ' + c.titulo + '. Mira el plan sobre el campo y pulsa «Ver la ronda».'; } break; }
-    case 'bamano': B.aMano = true; B.mas = false; B.filaKey = ''; B.panelTx = null; break;
-    case 'btarjetas': B.aMano = false; B.mas = false; B.filaKey = ''; B.panelTx = null; break;
-    case 'bmas': B.mas = !B.mas; B.choque = null; B.panelTx = null; B.filaKey = ''; break;
-    case 'bpmin': B.pmin = !B.pmin; break;
-    case 'bsalto': B.view.saltoAla(+v); break;
-    case 'bcam': if (B.view.cycleCam) B.view.cycleCam(); break;
-    case 'bsonido': if (window.Sonido) { if (window.Sonido.activo) window.Sonido.off(); else window.Sonido.on(); } B.filaKey = ''; B.panelTx = null; break;
-    case 'bfac': { const f = document.querySelector('#bdif .fac'); if (f) f.hidden = !f.hidden; break; }
-    case 'bform': B.b.formar(0, v); document.querySelectorAll('#bctl [data-act="bform"]').forEach(x => x.classList.toggle('on', x === el)); break;
-    case 'bejec': B.b.manual = true; if (B.b.ejecutar()) { B.view.sel.clear(); B.mas = false; B.speed = 1; rondaModo(B, 'ejec'); } else if (B.b.motivo) toast(B.b.motivo, 'bad'); break;   // (N15c) manual: el relevo sin órdenes no actúa
-    case 'bcarta': if (B.b.jugarCarta(v)) { toast('Carta jugada: ' + CARTAS_TXT[v][0] + '. Vale para la ronda que viene.'); B.filaKey = ''; } else toast(B.b.generalVivo(0) ? 'Solo una carta por ronda.' : 'Sin general no hay cartas.', 'bad'); break;
-    case 'bchoque': { const q = B.b.preverChoque(), n = B.b.cfg.sides, p = x => Math.round(x * 100) + ' %'; B.choque = 'Si chocan ya (aproximado): ' + (q.gana < 0 ? 'empate.' : q.claro ? 'ventaja de <b>' + esc(n[q.gana].name) + '</b>.' : 'muy igualado, algo mejor para <b>' + esc(n[q.gana].name) + '</b>.') + ' Conservarían ' + esc(n[0].name) + ' ' + p(q.f0) + ' y ' + esc(n[1].name) + ' ' + p(q.f1) + '.'; B.choqueT = performance.now() + 9000; B.mas = false; B.panelTx = null; B.filaKey = ''; break; }
-    case 'bcond': if (condSel(B).length) rondaModo(B, 'cond'); else toast('Elige un regimiento con orden: toca su estandarte y dale una orden.'); break;
-    case 'bcnd': for (const r of condSel(B)) B.b.condicion(r, v || null); B.filaKey = ''; break;
-    case 'bcondok': rondaModo(B, 'plan'); break;
-    case 'bseguir': rondaModo(B, 'plan'); break;
-    case 'brepetir': if (B.b.repetir()) { if (B.view.reiniciaFiguras) B.view.reiniciaFiguras(); B.speed = 1; rondaModo(B, 'ejec'); } break;
-    case 'bstart': B.b.empezar(); reponerBarra(B); if (B.b.rondas) { B.speed = 1; B.paused = false; entraPlan(B); break; } $('bauto').classList.add('on'); $('bspeed').textContent = 'x1'; $('bpause').textContent = 'II'; B.speed = 1; B.paused = false; $('bhint').style.opacity = 1; setTimeout(() => { $('bhint').style.opacity = 0; }, 7000); break;
-    case 'bskip': reponerBarra(B); B.b.finish(); break;
+    case 'bdone': closeModal(); UI.sheetKey = ''; render(); if (S().over) showOver(); break;
   }
 });
 
@@ -1676,12 +1454,7 @@ document.addEventListener('click', function (e) {
 function frame(now) {
   const dt = Math.min(0.25, (now - UI.last) / 1000 || 0); UI.last = now;
   const s = S();
-  if (UI.battle) {
-    const B = UI.battle, b = B.b;
-    if (!B.paused && !b.over) { B.acc += dt * B.speed; let n = 0; while (B.acc >= 0.05 && n++ < 12) { b.step(0.05); B.acc -= 0.05; } }
-    battleHud(); objetivoHud(B); B.view.draw();
-    if (b.over && !B.done) { B.endT += dt; if (B.endT > 2.2) { B.done = true; endBattle(b.result()); } }
-  } else if (s && !UI.menu) {
+  if (s && !UI.menu) {
     if (!UI.modalOpen && !s.over && !UI.nueva) {
       if (s.pending.length) battlePrompt();
       else if (s.speed > 0 && !s.vivo) G.tick(dt * s.speed / 4);
@@ -1697,7 +1470,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-window.addEventListener('resize', () => { if (UI.map) UI.map.resize(); if (UI.cityV && !$('citywrap').hidden) UI.cityV.resize(); if (UI.battle && UI.battle.view.resize) UI.battle.view.resize(); });
+window.addEventListener('resize', () => { if (UI.map) UI.map.resize(); if (UI.cityV && !$('citywrap').hidden) UI.cityV.resize(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && S() && !UI.menu) G.save(); });
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
 
@@ -1713,5 +1486,3 @@ loadStaticIndex().then(idx => Promise.all([preloadStatic(Object.keys(idx)), load
 });
 window.UI = UI; UI.maniobra = window.UIManiobra; UI.guerra = window.UIGuerra; UI.consejoModal = consejoModal; UI.toast = toast; UI.toastResumen = toastResumen;   // CN22: la cola de avisos, para quien la necesite desde fuera
 
-// N7: el deslizador de tiempo de «Ver futuro» (4 posiciones: final, 10, 20, 30 s)
-document.addEventListener('input', ev => { const t = ev.target; if (!t || t.id !== 'btslider' || !UI.battle || !UI.battle.view || !UI.battle.view.ponTPrev) return; UI.battle.view.ponTPrev([0, 10, 20, 30][+t.value] || 0); });

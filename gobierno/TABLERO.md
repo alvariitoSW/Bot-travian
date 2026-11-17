@@ -23,9 +23,7 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
 - ⬜ MR2b **Menús romanos: Senado, avisos y barras** (≈0,8 M): Senado como `MR1-4`, informe y confirmaciones como `MR1-5`, barras de abajo en bronce y «Pasar turno» con sello.
 - ⬜ MR2c **Menús romanos: el resto e iconos de tinta** (≈0,8 M): Mercado, Rutas, Pueblo, Ajustes, ☰, General, Crónica y Saber con la misma gramática; ningún emoji en los menús (opción A).
 - ⬜ MR3b **Menú principal, carga y opciones** (≈0,7 M): como `capturas-tarea/MR3-6` a `MR3-10` (`maquetas/menus-romanos/principal.html`); toca `index.html`, `css/style.css` y el menú de `js/ui.js`.
-- ⬜ GC7 a GC9 **Fallos de la batalla** (≈0,5 M): «Retirarse» tapado por el cartel de carga; la maniobra sin salida hasta el choque; la defensa que no se puede provocar en el juez.
 - ⬜ GM5 **Batalla mejorada en el juego, lo mínimo** (≈1,2 M): solo lo ya aprobado en las maquetas de guerra; si se atasca o pasa de gasto, se para y se pregunta (la 1.0 sigue sin ella).
-- ⬜ GC6 **Quitar la batalla clásica muerta** (≈0,5 M).
 - ⬜ GM23 **Ritmo: batallas de 4 a 6 minutos, pausa y velocidad** (≈0,4 M).
 - ⬜ CN16b **Cerrar el ejército en la ciudad** (≈0,4 M): lo que queda de CN16.
 - ⬜ I8b **Pulir la partida corta** (≈0,4 M): etiquetas de colonias que tapan Roma, recursos vacíos al fundar, edad 3 con el bot, arado.
@@ -128,6 +126,11 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ GC3 **Reglas de la batalla nueva dentro del juego** (16/11): motor `js/guerra.js` (sin pantalla, azar y estado guardables, reparto de tropas de la campaña, bajas por tipo en la forma de `G.resumenBatalla2`) y su prueba `test/guerra.test.mjs`, enganchada como «Juez 1h». El jugador aún no ve nada distinto.
 - ✅ GC4 **Pantalla de la batalla nueva en el juego** (16/11): la vista de la maqueta (`js/ui-guerra.js`, `css/guerra.css`) es la única batalla que sale al atacar o defender, en vertical y horizontal, con «Retirarse» arriba; se guarda y se retoma a mitad. Borradas la batalla vieja (`batalla2`, `choque3d`) y su pantalla.
 - ✅ GC5 **Sonido y rivales con carácter** (P106): cuernos, carga y choque suenan; la falange se hunde de flanco y los elefantes arremeten y se desbocan; avisos que cuadran con cada rival.
+- ✅ GC7 **«Retirarse» ya no lo tapa el cartel de carga** (17/11): el botón queda por encima y, si se pulsa mientras carga, se sale como retirada. Interruptor del juez en `true`.
+- ✅ GC8 **Salida en toda la maniobra** (17/11, opción A): botón «Retirarse» (pide confirmar con un segundo toque) desde el día 1; cuenta como derrota. Interruptor del juez en `true`.
+- ✅ GC9 **La defensa se provoca en el juez** (17/11): no era fallo del juego; `G.send` solo manda ejércitos romanos. El juez pone una marcha rival y espera al aviso histórico antes de la defensa; juega la defensa con el bot hasta el final.
+- ✅ GC6 **Batalla clásica muerta quitada** (17/11): `startBattle`, `UI.battle` y su HUD fuera de `js/ui.js` (−228 líneas), `BattleView` fuera de `js/battle.js` (−168; la clase `Battle` se queda: la usan `game.js`, `maniobra.js` y las pruebas). Sin cambio visible.
+- ⬜ GC10 **Restos de la batalla clásica**: `js/gfx/battle3d.js` (nadie lo importa; sale de `sw.js` y `arte.mjs`), el DOM `#battle` de `index.html` y los estilos del HUD clásico en `css/style.css`. Pequeña.
 
 ## Carril GR — Gobierno de región (P104, aprobada por el usuario el 16/11/2026)
 - ✅ GR1 **Gobierno de provincias: diseño y maqueta** (17/11, 0,9 M): aprobada por el usuario el 17/11. Informe `estudios/GR1-gobierno-de-provincias.md`; maqueta `maquetas/provincias/` (225 a.C., cuatro ciudades, oficio y decreto). No tocó `js/`.

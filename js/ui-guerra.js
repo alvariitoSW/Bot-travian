@@ -45,11 +45,14 @@
     const a = activa = { el, cerrar: () => {} };
     const $ = id => el.querySelector('#gu-' + id);
     $('carga-no').addEventListener('click', () => { cerrar(); if (alTerminar) alTerminar(root.Guerra.resumen(cfg.estado)); });
+    // GC7: «Retirarse» también vale mientras carga la pantalla (resumen() lo cuenta como retirada); al cargar, este oyente se quita y lo gestiona pantalla()
+    const retiraCarga = () => { if (activa !== a) return; cerrar(); if (alTerminar) alTerminar(root.Guerra.resumen(cfg.estado)); };
+    $('retirar').addEventListener('click', retiraCarga);
     try {
       const [M, U, Gr, St] = await Promise.all([import('./gfx/models.js'), import('./gfx/units.js'), import('./gfx/ground.js'), import('./gfx/statics.js'), import('./gfx/sonido.js')]);
       if (activa !== a) return;
       const fin = r => { if (activa === a) { activa = null; el.remove(); } if (alTerminar) alTerminar(r); };
-      const P = pantalla(M, U, Gr, St, el, $, cfg, fin); a.cerrar = P.cerrarTodo;
+      const P = pantalla(M, U, Gr, St, el, $, cfg, fin); a.cerrar = P.cerrarTodo; $('retirar').removeEventListener('click', retiraCarga);
     } catch (e) { console.error(e); const p = $('carga-p'); if (p) p.textContent = 'No se ha podido cargar la batalla.'; const s = $('carga-s'); if (s) s.hidden = false; }
     return el;
   }

@@ -8,7 +8,7 @@
 #gu button{font:inherit;color:inherit;border:0;cursor:pointer;pointer-events:auto;touch-action:manipulation;margin:0}
 #gu svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 /* salir, siempre a la vista */
-#gu #gu-retirar{position:absolute;left:calc(env(safe-area-inset-left) + 8px);top:calc(env(safe-area-inset-top) + 8px);height:40px;padding:0 14px 0 10px;display:flex;align-items:center;gap:7px;border-radius:20px;background:var(--vidrio);border:1px solid var(--fil);font-weight:600;box-shadow:0 3px 10px rgba(0,0,0,.4)}
+#gu #gu-retirar{z-index:5;position:absolute;left:calc(env(safe-area-inset-left) + 8px);top:calc(env(safe-area-inset-top) + 8px);height:40px;padding:0 14px 0 10px;display:flex;align-items:center;gap:7px;border-radius:20px;background:var(--vidrio);border:1px solid var(--fil);font-weight:600;box-shadow:0 3px 10px rgba(0,0,0,.4)}
 #gu #gu-retirar svg{width:18px;height:18px}
 /* una sola línea de aviso, que se va sola */
 #gu #gu-cinta{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 58px);transform:translateX(-50%);max-width:calc(100% - 24px);padding:8px 16px;border-radius:18px;background:rgba(14,12,9,.78);border:1px solid var(--fil);font:700 14px Cinzel,Georgia,serif;letter-spacing:.03em;color:var(--oro);white-space:nowrap;overflow:clip;text-overflow:ellipsis;opacity:0;transition:opacity .35s}
@@ -51,8 +51,8 @@
 @keyframes late{50%{border-color:var(--rojo);box-shadow:0 0 0 2px rgba(221,90,67,.4)}}
 @keyframes pide{50%{border-color:#fff;box-shadow:0 0 0 3px rgba(233,192,99,.55)}}
 /* carteles a pantalla completa: carga, retirada y final */
-#gu .velo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:rgba(10,8,6,.72);pointer-events:auto}
-#gu #gu-carga{background:#15130f}
+#gu .velo{z-index:6;position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:rgba(10,8,6,.72);pointer-events:auto}
+#gu #gu-carga{background:#15130f;z-index:4;pointer-events:none}#gu #gu-carga .fila{pointer-events:auto}
 #gu .velo h1{margin:0;font:700 34px Cinzel,Georgia,serif;letter-spacing:.08em;color:var(--oro)}
 #gu .velo p{margin:0;max-width:330px;font-size:15px;line-height:1.4}
 #gu .velo .cifras{display:grid;grid-template-columns:auto auto;gap:4px 18px;font-size:14px;color:#cdbf9d;text-align:left}
