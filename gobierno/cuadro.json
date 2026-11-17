@@ -1913,12 +1913,6 @@
       "url": "https://claude.ai/code/session_01QiKC3AR2FzqYL23coZ3gBE"
     },
     {
-      "tarea": "GM34",
-      "titulo": "GM34 Movimiento vivo (en el juego, Opus)",
-      "nota": "js/ui-guerra.js; GM36 y GM44 esperan detrás",
-      "url": "https://claude.ai/code/session_01QiKC39A5oXAjaoSVPiCeHJ"
-    },
-    {
       "tarea": "EV7",
       "titulo": "Política · EV7 Gobierno por turnos: el Senado manda y la ciudad obedece (maqueta, Opus)",
       "nota": "solo gobierno/maquetas/; excepción a la 1.0; tope 2 M",
@@ -1941,6 +1935,18 @@
       "titulo": "Versión 1.0 · CN26 Reclutar desde el cuartel (Opus)",
       "nota": "Carril V; js/ui.js (ficha del edificio); orden directa del usuario",
       "url": "https://claude.ai/code/session_01QiKC3A7fyPQqSW7ya2tEi2"
+    },
+    {
+      "tarea": "GM36",
+      "titulo": "Versión 1.0 · GM36 Primera fila que lucha y caídos de verdad (Opus)",
+      "nota": "motor de guerra; ES1 va detrás",
+      "url": "https://claude.ai/code/session_01QiKC37oJNYGuGwHb72CWUR"
+    },
+    {
+      "tarea": "JU1",
+      "titulo": "Versión 1.0 · JU1 Dos jueces en rojo: «Construir aquí» y guerra atascada (Opus)",
+      "nota": "diagnóstico: ¿fallo real o del juez?; gobierno/*.mjs",
+      "url": "https://claude.ai/code/session_01QiKC37gQPtkdN7X53tu66G"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
