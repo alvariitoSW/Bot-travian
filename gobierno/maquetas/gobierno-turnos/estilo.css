@@ -1,0 +1,199 @@
+/* EV7 · «Gobierno por turnos». Materiales copiados de css/style.css (MR2a, clases .ro-*): papiro = leer, tablilla = elegir, bronce = títulos, sello rojo = la acción. */
+:root {
+  --papiro: #e8d4a2; --papiro2: #d9bd84; --minio: #9b2a1a; --cera: #2e2214; --cera2: #3d2d1a; --rasgado: #ead9b0;
+  --madera: #6b4a26; --madera2: #4a3119; --sello: #a3231a; --sello2: #6e130d; --bronce2: #7a5a1f; --bronce3: #4a3512; --oro-ro: #e9c063;
+  --libro: Georgia, 'Noto Serif', 'DejaVu Serif', serif;
+  /* fibras del papiro: dos capas cruzadas, tenues */
+  --fibras:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9 .045' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .23 0 0 0 0 .08 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.04 .8' numOctaves='2' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .23 0 0 0 0 .08 0 0 0 .28 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* uniones de las hojas del rollo (kollesis) y manchas de uso */
+  --kollesis: repeating-linear-gradient(90deg, transparent 0 146px, rgba(120, 78, 28, .10) 146px 148px, rgba(255, 245, 215, .18) 148px 150px, transparent 150px 300px);
+  --manchas: radial-gradient(circle at 78% 22%, rgba(130, 85, 30, .16) 0 18px, transparent 34px), radial-gradient(circle at 12% 64%, rgba(130, 85, 30, .12) 0 10px, transparent 26px), radial-gradient(ellipse at 60% 92%, rgba(120, 75, 25, .14), transparent 40%);
+  /* bordes laterales rotos (máscara) */
+  --borde-izq: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='64' preserveAspectRatio='none'%3E%3Cpath d='M8 0H3L5 6 2 11l3 6-4 7 3 5-2 7 4 6-3 8 2 6-3 8h8z'/%3E%3C/svg%3E");
+  --borde-der: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='64' preserveAspectRatio='none'%3E%3Cpath d='M0 0h5L3 5l3 6-2 7 4 5-3 7 3 6-2 8 3 6-4 7 3 7H0z'/%3E%3C/svg%3E");
+  /* bronce martillado y veta de la madera */
+  --martillado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='turbulence' baseFrequency='.18' numOctaves='2' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .85 0 0 0 0 .5 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='90' height='90' filter='url(%23m)'/%3E%3C/svg%3E");
+  --veta: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0) 0 7px, rgba(30, 15, 5, .22) 7px 8px, rgba(0, 0, 0, 0) 8px 19px, rgba(255, 210, 150, .10) 19px 20px);
+  /* remache de bronce (para placas) */
+  --remache: radial-gradient(circle, #e6c070 0 1.6px, #5a3c10 2.2px, transparent 2.8px);
+}
+/* dentro del papiro la tinta es la de la maqueta; los colores de estado pasan a tinta (oliva, minio) */
+.ro, .ro-papiro { --tinta: #2b1c0a; --tinta2: #5a4220; --oliva: #46661f; --good: var(--oliva); --bad: var(--minio); }
+
+/* ---- PAPIRO: rollo abierto entre dos palos (.ro-rollo o .ro > .ro-palo + .ro-papiro + .ro-palo) ---- */
+.ro { height: 100%; display: flex; flex-direction: column; padding: 0 8px; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .55)); }
+.ro-palo { position: relative; flex: none; height: 18px; margin: 0 -2px; border-radius: 8px; z-index: 1;
+  background: var(--veta), linear-gradient(#9a6c38, #6a4520 40%, #3a230c); box-shadow: 0 3px 5px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 220, 160, .35); }
+.ro-palo::before, .ro-palo::after { content: ''; position: absolute; top: -5px; width: 16px; height: 28px; border-radius: 6px / 10px;
+  background: radial-gradient(ellipse at 40% 28%, #fff1c0 0 8%, #e2b860 22%, #a8781f 55%, #4e3409 100%);
+  box-shadow: inset 0 0 0 1px rgba(60, 35, 5, .7), inset 0 6px 0 -4px rgba(255, 235, 180, .5), inset 0 -6px 0 -4px rgba(40, 20, 0, .6), 0 2px 3px #000; }
+.ro-palo::before { left: -8px; } .ro-palo::after { right: -8px; }
+.ro-papiro { position: relative; flex: 1; min-height: 0; margin: -3px 4px; padding: 14px 16px 10px; color: var(--tinta); font-family: var(--libro); text-align: left;
+  background-color: var(--papiro); background-image: var(--fibras), var(--kollesis), var(--manchas), radial-gradient(ellipse at 20% 0%, rgba(255, 246, 214, .7), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(140, 92, 36, .38), transparent 60%);
+  box-shadow: inset 14px 0 18px -12px rgba(100, 60, 18, .85), inset -14px 0 18px -12px rgba(100, 60, 18, .85), inset 0 10px 14px -10px rgba(60, 35, 10, .7), inset 0 -10px 14px -10px rgba(60, 35, 10, .7);
+  -webkit-mask: linear-gradient(#000, #000) center / calc(100% - 14px) 100% no-repeat, var(--borde-izq) left top / 8px 64px repeat-y, var(--borde-der) right top / 8px 64px repeat-y;
+  mask: linear-gradient(#000, #000) center / calc(100% - 14px) 100% no-repeat, var(--borde-izq) left top / 8px 64px repeat-y, var(--borde-der) right top / 8px 64px repeat-y; }
+
+/* ---- BRONCE: título en tabula ansata (placa con asas de cola de milano y remaches) ---- */
+.ro-ansata { position: relative; display: flex; align-items: center; justify-content: center; height: 40px; margin: 0 22px 8px; padding: 0 6px; color: #3a2405; font: 700 19px var(--serif); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; overflow: visible;
+  background: var(--martillado), linear-gradient(#ecc977, #c2913a 45%, #8c6520 75%, #a77b2c);
+  text-shadow: 0 1px 0 rgba(255, 238, 190, .7), 0 -1px 0 rgba(60, 35, 5, .55);
+  box-shadow: inset 0 0 0 2px rgba(80, 50, 10, .55), inset 0 0 0 4px rgba(255, 232, 170, .35), inset 0 0 0 5px rgba(80, 50, 10, .35), 0 3px 4px rgba(0, 0, 0, .45); }
+.ro-ansata::before, .ro-ansata::after { content: ''; position: absolute; top: 4px; bottom: 4px; width: 20px;
+  background: var(--martillado), radial-gradient(circle at 50% 50%, #3a2405 0 2px, rgba(255, 230, 160, .7) 2.5px 3.2px, transparent 3.6px), linear-gradient(#d6aa55, #8c6520); }
+.ro-ansata::before { left: -18px; clip-path: polygon(100% 0, 0 30%, 30% 50%, 0 70%, 100% 100%); }
+.ro-ansata::after { right: -18px; clip-path: polygon(0 0, 100% 30%, 70% 50%, 100% 70%, 0 100%); }
+
+/* ---- rúbrica: rótulo en tinta roja (minio), versalitas ---- */
+.ro-rubrica { color: var(--minio); font: 700 13px var(--serif); letter-spacing: .08em; text-transform: uppercase; }
+/* ---- separador de hiedra (hedera distinguens) ---- */
+.ro-hiedra { display: flex; align-items: center; gap: 8px; margin: 8px 0; color: var(--minio); }
+.ro-hiedra::before, .ro-hiedra::after { content: ''; flex: 1; height: 4px; border-top: 1px solid rgba(60, 35, 10, .55); border-bottom: 1px solid rgba(60, 35, 10, .3); }
+.ro-hiedra svg { width: 22px; height: 14px; fill: currentColor; }
+/* ---- punto de color (ánimo) y flecha de separación ---- */
+.ro-punto { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; background: var(--oliva); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35); }
+.ro-punto.med { background: #b8862b; } .ro-punto.mal { background: var(--minio); }
+.ro-flecha { display: inline-block; width: 0; height: 0; margin: 0 .45em; vertical-align: .2em; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid currentColor; }
+
+/* ---- TABLILLA DE CERA: lo que eliges. Marco de madera, cera oscura; lo elegido, alisado en crema con borde rojo ---- */
+.ro-tablilla { display: flex; gap: 3px; padding: 5px; border-radius: 6px; background: var(--veta), linear-gradient(#8a6034, #5a3b1b);
+  box-shadow: inset 0 0 0 1px rgba(30, 15, 5, .6), inset 0 1px 0 rgba(255, 220, 160, .4), 0 3px 5px rgba(0, 0, 0, .45); }
+.ro-tablilla > button { flex: 1; min-width: 0; min-height: 52px; border: 0; border-radius: 3px; padding: 2px 1px; color: var(--rasgado); font: 600 15px/1.1 var(--libro);
+  background: repeating-linear-gradient(-28deg, transparent 0 9px, rgba(255, 230, 190, .05) 9px 10px), linear-gradient(#3f2e1b, #2a1e10);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, .7), inset 0 -1px 0 rgba(255, 220, 160, .12); text-shadow: 0 -1px 0 rgba(0, 0, 0, .6); }
+.ro-tablilla > button.on { color: var(--tinta); background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--minio), 0 0 0 1px rgba(255, 230, 170, .4); text-shadow: none; }
+
+/* ---- BRONCE oscuro martillado con remaches: atajos («ir a») ---- */
+.ro-bronce { position: relative; border-radius: 6px; color: #ecd9a8; font: 700 15px var(--serif); letter-spacing: .04em;
+  background: var(--martillado), radial-gradient(ellipse at 50% 0%, rgba(233, 192, 99, .22), transparent 70%), linear-gradient(#3e2e16, #1f160a);
+  border: 1px solid var(--bronce); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6), inset 0 0 0 3px rgba(184, 134, 43, .28), 0 3px 5px rgba(0, 0, 0, .5); }
+.ro-bronce::before { content: ''; position: absolute; inset: 4px; pointer-events: none;
+  background: var(--remache) left top / 6px 6px no-repeat, var(--remache) right top / 6px 6px no-repeat, var(--remache) left bottom / 6px 6px no-repeat, var(--remache) right bottom / 6px 6px no-repeat; }
+.ro-bronce .ico { stroke: var(--oro-ro); filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .8)) drop-shadow(0 -1px 0 rgba(255, 230, 160, .25)); }
+
+/* ---- SELLO de cera roja: la acción que compromete (aún sin usar aquí; la usará MR2b) ---- */
+.ro-sello { position: relative; color: #fbe9c7; font: 700 17px var(--serif); letter-spacing: .06em; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); border-radius: 8px; border: 1px solid var(--sello2);
+  background: var(--martillado), radial-gradient(ellipse at 30% 0%, rgba(255, 190, 160, .3), transparent 60%), linear-gradient(#b8321f, #7e1910 70%, #6a140c);
+  box-shadow: 0 0 0 2px #6a4a18, 0 0 0 3px rgba(233, 192, 99, .55), 0 5px 14px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 220, 200, .4), inset 0 -2px 0 rgba(50, 5, 0, .4); }
+
+/* ===== EV7 · propio de esta maqueta ===== */
+:root { --serif: 'Palatino Linotype', 'Book Antiqua', Georgia, serif; --bronce: #b8862b; --toba: #a98a66; --teja: #b5562f; --lacio: #7d9a45; --tiber: #6f8f7a;
+  --oliva: #46661f; --tinta: #2b1c0a; --tinta2: #5a4220; --ter: #5d7a2a; --mer: #b8862b; --mil: #a3231a; --fondo: #e6d5ae; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: #cdb88a; color: var(--tinta); font: 15px/1.3 var(--libro); overflow: hidden; }
+button { font-family: inherit; cursor: pointer; touch-action: manipulation; }
+#app { position: relative; max-width: 430px; height: 100%; margin: 0 auto; display: flex; flex-direction: column; overflow: clip;
+  background: var(--fibras), linear-gradient(#efe1bd, #e2cc9a); }
+
+/* cabecera: estación y cifras con nombre e icono */
+#cab { flex: none; padding: 6px 8px 6px; color: #f3e4bf; background: var(--veta), linear-gradient(#6b4a26, #4a3119); box-shadow: 0 2px 6px rgba(0,0,0,.45); z-index: 2; }
+#cab .fila { display: flex; align-items: center; justify-content: space-between; gap: 6px; font: 700 14px var(--serif); letter-spacing: .03em; }
+#cab .fila .edad { padding: 2px 8px; border-radius: 10px; background: rgba(233,192,99,.18); border: 1px solid rgba(233,192,99,.5); font-size: 13px; white-space: nowrap; }
+#cifras { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-top: 5px; }
+.cifra { display: flex; align-items: center; gap: 5px; min-width: 0; padding: 3px 5px; border-radius: 5px; background: rgba(0,0,0,.22); box-shadow: inset 0 0 0 1px rgba(233,192,99,.25); }
+.cifra svg { flex: none; width: 20px; height: 20px; }
+.cifra span { flex: 1; min-width: 0; font-size: 13px; color: #e5d2a6; white-space: nowrap; overflow: clip; text-overflow: ellipsis; }
+.cifra b { font: 700 15px var(--libro); color: #fff3d2; }
+.cifra.mal b { color: #ffb19a; } .cifra.mal { box-shadow: inset 0 0 0 1px #e0603c; }
+
+/* cuerpo */
+#cuerpo { flex: 1; min-height: 0; overflow-y: auto; overflow-x: clip; padding: 8px 8px 12px; }
+.guia { margin: 0 0 8px; padding: 8px 12px; border-radius: 6px; background: var(--fibras), #f6e8c2; border-left: 4px solid var(--minio); font-size: 15px; box-shadow: 0 1px 3px rgba(0,0,0,.25); }
+.banda { display: flex; gap: 8px; align-items: center; margin: 0 0 8px; padding: 6px 10px; border-radius: 6px; background: rgba(255,250,235,.6); box-shadow: inset 0 0 0 1px rgba(90,60,20,.3); font-size: 14px; }
+.banda svg { flex: none; width: 26px; height: 26px; }
+.banda b { display: block; font: 700 14px var(--serif); color: var(--minio); }
+h2.ro-ansata { font-size: 16px; height: 34px; margin: 4px 22px 8px; }
+.sub { margin: 10px 0 4px; }
+
+/* ciudad */
+.lienzo { position: relative; border-radius: 8px; overflow: clip; box-shadow: 0 0 0 3px #6b4a26, 0 0 0 4px #e9c063, 0 4px 10px rgba(0,0,0,.4); margin: 4px 2px 10px; }
+.lienzo svg { display: block; width: 100%; height: auto; }
+.fichas { display: flex; flex-wrap: wrap; gap: 5px; }
+.ficha { display: inline-flex; align-items: center; gap: 4px; min-height: 30px; padding: 3px 8px; border-radius: 15px; background: rgba(255,250,235,.75); box-shadow: inset 0 0 0 1px rgba(90,60,20,.35); font-size: 14px; }
+.ficha svg { width: 18px; height: 18px; flex: none; }
+.ficha.obra { background: repeating-linear-gradient(-45deg, rgba(185,140,60,.25) 0 6px, rgba(255,250,235,.8) 6px 12px); }
+.ficha.nueva { box-shadow: inset 0 0 0 2px var(--oliva); background: #eef3d8; }
+
+/* senado: hemiciclo, cartas, tratos */
+.hemi { position: relative; margin: 0 0 4px; }
+.hemi svg { display: block; width: 100%; height: auto; }
+.cuenta { display: flex; justify-content: center; gap: 6px; font-size: 13px; margin: 0 0 6px; flex-wrap: wrap; white-space: nowrap; }
+.cuenta b { font-size: 16px; }
+.cartas { display: flex; flex-direction: column; gap: 6px; padding: 5px; }
+.cartas > button.carta { display: grid; grid-template-columns: 34px 1fr; column-gap: 8px; align-items: start; text-align: left; min-height: 64px; padding: 6px 8px; }
+.carta svg.ic { width: 32px; height: 32px; grid-row: span 3; margin-top: 2px; }
+.carta .t { font: 700 15px/1.15 var(--serif); }
+.carta .x { font: 14px/1.2 var(--libro); opacity: .95; margin-top: 2px; }
+.carta .g { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 3px; font: 13px var(--libro); }
+.carta .g i { font-style: normal; white-space: nowrap; }
+.carta .g i.si { color: #9fd36a; } .carta .g i.no { color: #ff9b85; }
+.carta.on .g i.si { color: var(--oliva); } .carta.on .g i.no { color: var(--minio); }
+.carta .f { grid-column: 2; font: italic 13px var(--libro); opacity: .8; margin-top: 2px; }
+.ro-tablilla.cartas { flex-direction: column; }
+.ro-tablilla.cartas > button { flex: none; }
+.tratos { display: flex; gap: 4px; margin-top: 8px; }
+.tratos > button { min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 14px; }
+.tratos > button small { font-size: 13px; opacity: .9; }
+.tratos > button .pt { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: 0; }
+.nota-trato { font-size: 13px; margin: 4px 2px 0; color: var(--tinta2); }
+.pasar { display: block; margin: 8px auto 0; min-height: 44px; padding: 0 16px; border: 1px dashed rgba(90,60,20,.6); border-radius: 6px; background: transparent; color: var(--tinta2); font-size: 14px; }
+.veto { margin: 4px 0; padding: 6px 10px; border-radius: 6px; background: #f6d6c8; color: var(--minio); font-size: 14px; box-shadow: inset 0 0 0 1px var(--minio); }
+
+/* mando */
+.amenaza { padding: 8px 10px; border-radius: 6px; background: rgba(255,250,235,.7); box-shadow: inset 0 0 0 1px rgba(90,60,20,.35); font-size: 14px; }
+.barra { position: relative; height: 14px; border-radius: 7px; background: rgba(60,35,10,.18); overflow: clip; margin: 4px 0; }
+.barra i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 7px; background: linear-gradient(#7fa046, #4d6b1f); }
+.barra.roja i { background: linear-gradient(#d0583c, #8e2414); }
+.barra .marca { position: absolute; top: -2px; bottom: -2px; width: 3px; background: var(--minio); }
+.bloque { margin-top: 10px; padding: 8px 10px; border-radius: 6px; background: rgba(255,250,235,.6); box-shadow: inset 0 0 0 1px rgba(90,60,20,.3); }
+.bloque h3 { margin: 0 0 6px; display: flex; align-items: center; gap: 6px; }
+.bloque h3 svg { width: 20px; height: 20px; }
+.orden { display: grid; grid-template-columns: 26px 1fr; gap: 2px 8px; align-items: center; padding: 5px 0; border-top: 1px solid rgba(90,60,20,.18); font-size: 14px; }
+.orden:first-of-type { border-top: 0; }
+.orden svg { width: 24px; height: 24px; grid-row: span 2; }
+.orden small { grid-column: 2; color: var(--tinta2); font-size: 13px; }
+.orden .tarde { color: var(--minio); font-weight: 700; }
+.vacio { color: var(--tinta2); font-style: italic; font-size: 14px; }
+.req li { font-size: 14px; } .req { margin: 4px 0 0; padding-left: 20px; }
+.req li.ok { color: var(--oliva); } .req li.ok::marker { content: '✓ '; } .req li.no::marker { content: '✗ '; color: var(--minio); }
+
+/* pie: botón sello y pestañas */
+#pie { flex: none; padding: 8px 12px 6px; background: linear-gradient(rgba(230,210,170,0), rgba(160,120,70,.35)); }
+#principal { display: block; width: 100%; min-height: 54px; }
+#principal.apagado { filter: saturate(.35) brightness(.9); }
+#nav { flex: none; display: flex; gap: 3px; padding: 4px 6px calc(4px + env(safe-area-inset-bottom)); background: var(--veta), linear-gradient(#8a6034, #5a3b1b); }
+#nav > button { flex: 1; min-height: 50px; border: 0; border-radius: 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font: 700 14px var(--serif); color: var(--rasgado);
+  background: linear-gradient(#3f2e1b, #2a1e10); box-shadow: inset 0 3px 5px rgba(0,0,0,.6); }
+#nav > button svg { width: 22px; height: 22px; }
+#nav > button.on { color: var(--tinta); background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--minio); }
+#nav > button .aviso { position: absolute; }
+
+/* capa: suceso, recuento, veredicto */
+#capa { position: absolute; inset: 0; z-index: 10; display: flex; flex-direction: column; justify-content: center; padding: 14px 10px; background: rgba(40,25,10,.55); }
+#capa[hidden] { display: none; }
+#capa .hoja { max-height: 100%; overflow-y: auto; overflow-x: clip; padding: 14px 14px 12px; border-radius: 8px; background: var(--fibras), var(--manchas), linear-gradient(#f3e3ba, #dcc28a); box-shadow: 0 10px 30px rgba(0,0,0,.6), inset 0 0 0 2px rgba(110,70,25,.5); }
+#capa .hoja h2.ro-ansata { margin-top: 0; }
+#capa .boton { display: block; width: 100%; min-height: 54px; margin-top: 12px; }
+#capa .boton2 { display: block; width: 100%; min-height: 46px; margin-top: 8px; border: 1px solid rgba(90,60,20,.6); border-radius: 6px; background: rgba(255,250,235,.6); color: var(--tinta); font: 700 15px var(--serif); }
+.marcador { display: flex; justify-content: center; gap: 22px; font: 700 26px var(--libro); margin: 4px 0; }
+.marcador .si { color: var(--oliva); } .marcador .no { color: var(--minio); }
+.resultado { text-align: center; font: 700 18px var(--serif); margin: 6px 0 0; min-height: 26px; }
+.resultado.bien { color: var(--oliva); } .resultado.mal { color: var(--minio); }
+.veredicto { text-align: center; }
+.veredicto .titulo { font: 700 30px var(--serif); letter-spacing: .06em; margin: 4px 0; }
+.veredicto .titulo.gana { color: #6a4a10; } .veredicto .titulo.pierde { color: var(--minio); }
+.veredicto .nota { font: 700 20px var(--libro); }
+.veredicto ul { text-align: left; font-size: 15px; padding-left: 20px; }
+.cambio { display: flex; align-items: center; gap: 6px; font-size: 14px; padding: 3px 0; }
+.cambio svg { width: 18px; height: 18px; flex: none; }
+.cambio .n { margin-left: auto; font-weight: 700; white-space: nowrap; }
+.cambio .n.b { color: var(--oliva); } .cambio .n.m { color: var(--minio); }
+@keyframes aparece { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.nuevo { animation: aparece .6s ease-out both; }
+[hidden] { display: none !important; }
+/* senado compacto: la carta elegida se abre; las otras, dos líneas */
+.cartas > button.carta:not(.on) .x, .cartas > button.carta:not(.on) .f { display: none; }
+.cartas > button.carta:not(.on) { min-height: 56px; }
+.carta .g i.cos { color: inherit; opacity: .85; }
