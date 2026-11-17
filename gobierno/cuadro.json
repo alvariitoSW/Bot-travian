@@ -1929,12 +1929,6 @@
       "titulo": "GM34 Movimiento vivo (en el juego, Opus)",
       "nota": "js/ui-guerra.js; GM36 y GM44 esperan detrás",
       "url": "https://claude.ai/code/session_01QiKC39A5oXAjaoSVPiCeHJ"
-    },
-    {
-      "tarea": "GM4b",
-      "titulo": "GM4b Prueba de un soldado nuevo (solo en maqueta)",
-      "nota": "sin tocar js/ del juego",
-      "url": "https://claude.ai/code/session_01QiKC37RrnQxSttBPjaM5jk"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
