@@ -54,8 +54,10 @@
   G.ciudadesRegion = () => D.regionCiudades(G.regionId(), !!(G.state && G.state.modo));
   /* ---------- modos de partida (I8): todo número viene de D.MODOS; sin modo (campaña histórica) nada cambia ---------- */
   G.modo = () => { const m = G.state && G.state.modo; return m && D.MODOS[m.id] && m.id !== 'campana' ? D.MODOS[m.id] : null; };
-  G.modoFase = () => { const m = G.state && G.state.modo; return m && D.MODOS[m.id] && m.id !== 'campana' ? (m.fase || 'jugando') : null; };   // null (campaña) | 'fundando' | 'jugando'
+  G.modoFase = () => { const m = G.state && G.state.modo; return m && D.MODOS[m.id] && m.id !== 'campana' ? (m.fase || 'jugando') : null; };   // null (campaña) | 'fundando' | 'arando' | 'jugando'
   G.fundando = () => G.modoFase() === 'fundando';
+  G.arando = () => G.modoFase() === 'arando';   // I8b: ciudad ya fundada, el arado aún traza el surco: el reloj sigue parado
+  G.finArado = () => { if (G.arando()) { G.state.modo.fase = 'jugando'; emit('dirty'); } };
   // factor del modo para una clave de D.MODOS[id].factores (el de la variante de inicio pisa al general); 1 sin modo
   G.factor = k => { const md = G.modo(); if (!md) return 1; const v = md.inicio && md.inicio[G.state.modo.inicio] && md.inicio[G.state.modo.inicio].factores; const x = v && v[k] !== undefined ? v[k] : (md.factores || {})[k]; return x === undefined ? 1 : x; };
   const escalaCoste = o => { const f = G.factor('costes'); if (f === 1) return o; const r = {}; for (const k in o) r[k] = Math.max(1, Math.round(o[k] * f / 5) * 5); return r; };
@@ -1215,7 +1217,7 @@
   };
   G.notaFundar = function (sitio, x, z) { const E = G.ciudadPendiente(sitio); return E ? CI.notaFundar(E, x, z) : null; };
   G.mapaCalorFundar = function (sitio) { const E = G.ciudadPendiente(sitio); return E ? CI.mapaCalor(E, 'fundar') : null; };
-  G.fundarColonia = function (sitio, x, z) {
+  G.fundarColonia = function (sitio, x, z, conArado) {   // I8b: conArado (la pantalla de fundar) deja la partida en fase 'arando' hasta G.finArado()
     const s = G.state, k = s.colonias && s.colonias[sitio]; if (!k || k.estado !== 'pendiente') return { ok: false, motivo: 'Los colonos aún no han llegado' };
     if (!isFinite(x) || !isFinite(z)) return { ok: false, motivo: 'Sitio no válido' };
     const E = G.ciudadPendiente(sitio); if (!E) return { ok: false, motivo: 'No se puede fundar sin la ciudad nueva' };
@@ -1229,7 +1231,7 @@
     incorporar(c, {}, false); c.heredado = {}; c.foroMin = 1;
     const r = regE.get(c); if (r) { c.pop = Math.max(c.pop, CI.poblacion(r.E)); ponerDatos(c, r); }
     k.estado = 'fundada'; delete k.E; k.cuando = s.t;
-    if (G.fundando()) { s.modo.fase = 'jugando'; s.capital = sitio; s.hero.city = sitio; for (const q in D.LEVA_INICIAL) c.units[q] = (c.units[q] || 0) + D.LEVA_INICIAL[q]; }   // I8: la primera ciudad fundada es tu capital y arranca la partida
+    if (G.fundando()) { s.modo.fase = conArado ? 'arando' : 'jugando'; s.capital = sitio; s.hero.city = sitio; for (const q in D.LEVA_INICIAL) c.units[q] = (c.units[q] || 0) + D.LEVA_INICIAL[q]; }   // I8: la primera ciudad fundada es tu capital y arranca la partida
     aristasC = null; G.log('🏛️ Has fundado ' + D.CITIES[sitio].n + '.', 'good'); emit('dirty'); G.rutasRevisar();
     return { ok: true, motivo: '' };
   };
@@ -1361,7 +1363,7 @@
   /* ---------- bucle ---------- */
   G.tick = function (dm) {
     const s = G.state; if (s) D.anio = G.yearOf(s.t);   // nombres según la fecha (D.nombreCiudad)
-    if (!s || s.over || s.pending.length || s.vivo || G.fundando()) return;   // I8: sin ciudad (fase 'fundando') el tiempo no corre
+    if (!s || s.over || s.pending.length || s.vivo || G.fundando() || G.arando()) return;   // I8: sin ciudad (fase 'fundando') el tiempo no corre; I8b: ni mientras el arado traza el surco
     if (dm > 1 && !G.turnos) { let n = 0; while (dm > 1e-9 && n++ < 400 && !s.over && !s.pending.length && !s.vivo) { const d = Math.min(1, dm); G.tick(d); dm -= d; } return; }   // un salto largo se trocea mes a mes para cerrar cada cuenta
     const y0 = G.yearOf(s.t), m0 = Math.floor(s.t);
     let B = null;   // modo turnos: si llegamos al final de la estación, B es ese instante exacto
@@ -1790,7 +1792,7 @@
   };
   // GC4: un bot sencillo para el bando 0 (es el de la prueba «con cabeza» de test/guerra.test.mjs). Lo usan «Delegar» y la campaña de pruebas
   G.botGuerra = function (B) {
-    const R = GU(); if (B.fase !== 'lucha') return;
+    const R = GU(); if (R.cubrirse) R.cubrirse(B); if (B.fase !== 'lucha') return;   // GM5: de lejos, escudos bajo los proyectiles
     for (let i = 0; i < 3; i++) {
       const s = B.sect[i], c = s.c[0], e = s.c[1]; if (c.roto || e.roto) continue;
       const fe = R.frente(e).fatiga, fr = R.frente(c).fatiga;
@@ -2091,7 +2093,7 @@
     if (!md) { s.modo = null; delete s.capital; return; }
     if (!md.inicio[m.inicio]) m.inicio = 'enPie';
     const tiene = Object.keys(s.cities).some(id => s.cities[id].owner === 'roma');
-    m.fase = m.inicio === 'fundar' && !tiene ? 'fundando' : 'jugando';
+    m.fase = m.inicio === 'fundar' && !tiene ? 'fundando' : 'jugando';   // I8b: una partida guardada a medio arar ('arando') sigue jugando
     if (m.fase === 'jugando' && !(s.capital && s.cities[s.capital])) s.capital = m.inicio === 'enPie' && s.cities.roma ? 'roma' : (m.inicio === 'fundar' ? md.inicio.fundar.sitio : undefined);
     if (m.fase === 'fundando') { const k = s.colonias && s.colonias[md.inicio.fundar.sitio]; if (k && k.estado === 'libre') s.colonias[md.inicio.fundar.sitio] = { estado: 'pendiente', desde: null }; }
   };

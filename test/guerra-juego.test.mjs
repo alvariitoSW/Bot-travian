@@ -12,7 +12,7 @@ G.newGame('T');
 
 t('estadoGuerra: reparte los ejércitos de la ciudad y es la misma batalla con la misma semilla', () => {
   const a = G.estadoGuerra(info(ROMA, ENEM), null), b = G.estadoGuerra(info(ROMA, ENEM), null);
-  assert.strictEqual(a.fase, 'marcha'); assert.deepStrictEqual(a.n0[0], ROMA); assert.deepStrictEqual(a.n0[1], ENEM);
+  assert.strictEqual(a.fase, 'lejos'); assert.deepStrictEqual(a.n0[0], ROMA); assert.deepStrictEqual(a.n0[1], ENEM);
   assert.strictEqual(R.guardar(a), R.guardar(b));
   assert.notStrictEqual(R.guardar(a), R.guardar(G.estadoGuerra(info(ROMA, ENEM, 78), null)));
 });
