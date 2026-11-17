@@ -1686,6 +1686,12 @@
       "titulo": "Puerta de la ciudad · K7c Miga y botón único de volver",
       "nota": "js/ui.js y su CSS",
       "url": "https://claude.ai/code/session_01QiKC36YDFabWChvfmTtfkm"
+    },
+    {
+      "tarea": "GR1",
+      "titulo": "Gobierno de provincias · GR1 Informe y maqueta",
+      "nota": "solo gobierno/maquetas/provincias/ y estudios",
+      "url": "https://claude.ai/code/session_01QiKC36PGUYDhaGioPB4jhq"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
