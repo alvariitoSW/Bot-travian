@@ -41,6 +41,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 #aliento-c{position:absolute;left:12px;right:12px;bottom:6px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);overflow:clip}
 #aliento{display:block;height:100%;width:100%;background:#8fd0e8;border-radius:2px}
 #correr{position:relative}
+#correr.cansado{opacity:.6}#correr.cansado #aliento{background:var(--rojo)}
 #miescudo{width:16px;height:19px;flex:none;color:var(--verde)}
 #miescudo.e1{color:#e6ac3c}#miescudo.e2{color:var(--rojo)}#miescudo.roto{color:#8d846f}
 #miescudo .x{display:none}#miescudo.roto .x{display:block}#miescudo .g1{display:none}#miescudo.e1 .g1,#miescudo.e2 .g1{display:block}#miescudo .g2{display:none}#miescudo.e2 .g2{display:block}
@@ -84,7 +85,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
   <div id="abajo">
     <div id="izquierda">
       <button id="avanzar" class="boton"><svg viewBox="0 0 24 24"><path d="M12 20V5M12 5l-6 6M12 5l6 6"/></svg>Avanzar</button>
-      <button id="correr" class="boton"><svg viewBox="0 0 24 24"><path d="M13 4.5a1.5 1.5 0 1 0 0 .1M9 20l3-6 3 2v5M7 11l3-3 4 1 2 3 3 1"/></svg>Correr<span id="aliento-c"><b id="aliento"></b></span></button>
+      <button id="correr" class="boton"><svg viewBox="0 0 24 24"><path d="M13 4.5a1.5 1.5 0 1 0 0 .1M9 20l3-6 3 2v5M7 11l3-3 4 1 2 3 3 1"/></svg><span id="correr-t">Correr</span><span id="aliento-c"><b id="aliento"></b></span></button>
     </div>
     <div id="derecha">
       <button id="escudos" class="boton"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg><span id="escudos-t">Escudos</span></button>

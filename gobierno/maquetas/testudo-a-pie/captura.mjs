@@ -90,6 +90,16 @@ e = await foto('mira', 'h-5-cara', ...Hz); bien(e.mira > 0.9, 'cara en horizonta
   bien(e5.fase === 'fin' && await page.locator('#fin').isVisible(), 'partida: carga, choque y tarjeta final');
   await ctx.close();
 }
+/* «Correr» mantenido diez segundos: corre, se queda sin aliento, sigue al paso y vuelve a correr; nunca se para ni va a tirones */
+{
+  const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true }), page = await ctx.newPage(); escucha(page);
+  await page.goto(URL0); await lista(page);
+  const b = await page.locator('#correr').boundingBox(); await page.mouse.move(b.x + b.width / 2, b.y + b.height / 2); await page.mouse.down();
+  const r = await page.evaluate(() => { const t = window.__tp, S = t.S; t.parar(true); S.proxima = 999; let cambios = 0, antes = S.corriendo, parado = 0, corrio = 0; for (let i = 0; i < 300; i++) { t.salta(1 / 30); if (antes !== S.corriendo) cambios++; antes = S.corriendo; if (S.vel <= 0) parado++; if (S.corriendo) corrio++; } return { cambios, parado, corrio, zF: S.zF }; });
+  await page.mouse.up();
+  bien(r.corrio > 100 && r.parado === 0 && r.cambios <= 5, `correr: diez segundos con el botón pulsado, corre ${(r.corrio / 30).toFixed(1)} s, no se para nunca y cambia de correr a andar ${r.cambios} veces (avanza ${(-r.zF).toFixed(0)} m)`);
+  await ctx.close();
+}
 /* cada sonido, tocado sin altavoz: tiene que oírse (pico por encima del viento) y no saturar */
 {
   const page = await br.newPage(); escucha(page); await page.goto(URL0 + 'sonido.js');
