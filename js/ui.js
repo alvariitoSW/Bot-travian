@@ -131,7 +131,7 @@ G.onEvent = function (type, p) {
   else if (type === 'log') { if (!p.mudo) { if (p.k === 'good') toast(p.x, '', null, true); else if (p.k === 'bad') toast(p.x, 'bad', null, true); } UI.dirty = true; }
   else if (type === 'dirty') UI.dirty = true;
   else if (type === 'colonos') { const d = D.COLONIAS[p.sitio]; if (d) carta('<div class="yr">COLONOS</div><h2>Han llegado a ' + esc(d.n) + '</h2><p>Los colonos esperan tu orden. Elige el lugar del foro y el arado trazará el surco sagrado.</p><div class="acts"><button class="btn ghost" data-act="close">Más tarde</button><button class="btn gold" data-act="fundar" data-v="' + p.sitio + '">Fundar ' + esc(d.n) + '</button></div>'); }
-  else if (type === 'turno') { const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.vivo && !s.over) consejoModal(); UI.dirty = true; }
+  else if (type === 'turno') { const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.vivo && !s.over) setTimeout(() => { const q = S(); if (q && !q.pending.length && !q.vivo && !q.over) consejoModal(); }, 0); UI.dirty = true; }   // SN2: tras pasarTurno, que ya ha abierto la votación del Senado
   else if (type === 'over') { if (!UI.binfo) showOver(); }
 };
 
@@ -253,9 +253,10 @@ function consejoModal() {
   UI.infoPrev = todo.map(q => q.x);
   const rec = l[l.length - 1];
   const lineas = (mostrar.length ? mostrar : [{ k: '', x: 'Sin novedades este trimestre.' }]).concat(rec ? [rec] : []);
+  const sen = D.SENADO.sala && G.senadoSala() ? '<button class="btn ro-bronce" data-act="inf-senado" id="inf-senado">Ir al Senado</button>' : '';   // SN2
   let el = document.getElementById('inf'); if (el) el.remove();
   el = document.createElement('div'); el.id = 'inf'; el.className = 'inf ro-carta';
-  const corta = '<i class="inf-sello">' + RO_LACRE + '</i><div class="inf-t">' + esc(l[0].x) + '</div>' + lineas.map(q => '<div class="inf-l" style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</div>').join('') + '<div class="inf-b"><button class="btn ro-tinta" data-act="inf-mas" id="inf-mas">Ver más</button><button class="btn ro-sello" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
+  const corta = '<i class="inf-sello">' + RO_LACRE + '</i><div class="inf-t">' + esc(l[0].x) + '</div>' + lineas.map(q => '<div class="inf-l" style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</div>').join('') + '<div class="inf-b"><button class="btn ro-tinta" data-act="inf-mas" id="inf-mas">Ver más</button>' + sen + '<button class="btn ro-sello" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
   const larga = '<i class="inf-sello">' + RO_LACRE + '</i><div class="inf-d">' + detalle + '</div><div class="inf-b"><button class="btn ro-tinta" data-act="inf-mas" id="inf-mas">Cerrar detalle</button><button class="btn ro-sello" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
   el._corta = corta; el._larga = larga; el.innerHTML = corta; document.body.appendChild(el);
 }
@@ -274,7 +275,7 @@ function hudDock() {
   setTxt('bmodo', open ? '<span class="em">✕</span><small>Cerrar</small>' : (g ? ICO_GOB : D.GUERRA_ICON.espadas) + '<small>' + (g ? 'Gobierno' : 'Guerra') + '</small>');
   setTxt('bpill', g ? D.POP_ICON + ' ' + Math.floor(c.pop) + '/' + G.popCap(c) + ' · ' + cara + ' ' + f : '🚩 ' + (nm === 1 ? '1 marcha en curso' : nm + ' marchas en curso'));
   const t3 = UI.tab === 'imperio' || UI.tab === 'senado' || UI.tab === 'saber' ? 'imperio' : UI.tab === 'city' ? (UI.cityList || !UI.cityV ? 'gobierno' : 'ciudad') : '';
-  document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3)); $('app').dataset.tab = t3; $('app').dataset.vista = UI.tab;
+  document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3)); $('app').dataset.tab = t3; $('app').dataset.vista = UI.tab; $('app').toggleAttribute('data-sala', UI.tab === 'senado' && !!G.senadoSala());   // SN2: en la sala, Votar y Dejar pasar sustituyen a «Pasar turno»
   setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
   migaPon();
 }
@@ -1199,7 +1200,71 @@ function encargoHtml() {
   if (en) o += '<div class="sec ro-rubrica">Encargo del Senado</div><div class="card sn-mi ro-tabla"><div class="tt">' + esc(en.e.n) + '</div><div class="ds">' + esc(en.e.texto) + '</div><div class="sn-fa"><b>Llevas</b> ' + Math.min(en.tiene, en.pide) + ' de ' + en.pide + ' · quedan ' + en.quedan + ' meses</div></div>';
   return o + '<div class="sec ro-rubrica">Hitos</div><div class="sn-ex sn-hitos">' + hs.map(x => (x.logrado ? '✔ ' : '▫ ') + esc(x.h.n)).join(' · ') + '</div>';
 }
+/* SN2: sala del Senado. Ley de la estación, hemiciclo de 30 escaños en tres bandos, tratos, tribuno y voto.
+   Lee el motor de SN1 (G.senadoSala, G.votos, G.tratos, G.veto); la elección de tratos vive solo en UI.sn2 (no se guarda). */
+const SN2_COL = { ter: '#46661f', mer: '#2c6f8c', mil: '#9b2a1a' };   // tinta de cada bando sobre papiro (más oscura que D.BANDOS.col)
+const SN2_DICT = { historico: 'histórico', probable: 'probable' };
+function sn2Hemiciclo(v) {
+  const cx = 195, cy = 186, filas = [[8, 74], [10, 106], [12, 138]], es = [];
+  filas.forEach(([n, r]) => { for (let i = 0; i < n; i++) { const a = Math.PI * (1 - (i + .5) / n); es.push({ a, x: cx + r * Math.cos(a), y: cy - r * Math.sin(a) }); } });
+  es.sort((p, q) => q.a - p.a);
+  let h = '<path d="M30 186A165 165 0 0 1 360 186Z" class="sn2-arco"/><path d="M150 186A45 45 0 0 1 240 186Z" class="sn2-cons"/>', k = 0;
+  for (const b of ['ter', 'mer', 'mil']) {
+    const x = v.porBando[b], col = SN2_COL[b], g = es.slice(k, k + x.escanos); k += x.escanos;
+    g.sort((p, q) => Math.hypot(p.x - cx, p.y - cy) - Math.hypot(q.x - cx, q.y - cy));
+    g.forEach((s, i) => {
+      const X = s.x.toFixed(1), Y = s.y.toFixed(1);
+      if (i < x.si) h += '<circle cx="' + X + '" cy="' + Y + '" r="10" fill="' + col + '" stroke="#2b1c0a" stroke-width="1.5"/>';
+      else if (i < x.si + x.duda) h += '<circle cx="' + X + '" cy="' + Y + '" r="9" fill="none" stroke="' + col + '" stroke-width="2.5" stroke-dasharray="4 3"/><text x="' + X + '" y="' + (s.y + 4).toFixed(1) + '" text-anchor="middle" font-size="11" font-weight="700" fill="' + col + '">?</text>';
+      else h += '<circle cx="' + X + '" cy="' + Y + '" r="9" fill="rgba(60,35,10,.12)" stroke="rgba(60,35,10,.5)" stroke-width="1.5"/><path d="M' + (s.x - 4).toFixed(1) + ' ' + (s.y - 4).toFixed(1) + 'l8 8m0-8l-8 8" stroke="' + col + '" stroke-width="2" opacity=".8"/>';
+    });
+  }
+  [[66, 50, 'ter'], [195, 16, 'mer'], [324, 50, 'mil']].forEach(([x, y, b]) => { h += '<text x="' + x + '" y="' + y + '" text-anchor="middle" class="sn2-ban" fill="' + SN2_COL[b] + '">' + D.BANDOS[b].n.toUpperCase() + '</text>'; });
+  return '<svg class="sn2-sala" viewBox="0 6 390 188" role="img" aria-label="Sala del Senado: ' + v.si + ' sí, ' + v.duda + ' dudan, ' + v.no + ' no">' + h + '<text x="195" y="178" text-anchor="middle" class="sn2-ban" fill="#e9c063">CÓNSULES</text></svg>';
+}
+function sn2Titulo(t) {
+  if (t.tipo === 'si') return 'Ya votan sí';
+  if (t.tipo === 'pago') return 'Pagar ' + t.coste + ' de oro por sus votos';
+  return t.promesa && t.promesa.tipo === 'sinLeva' ? 'Prometer: sin leva en ' + D.CITIES[t.promesa.ciudad].n : 'Prometer: ' + (t.promesa ? t.promesa.n : 0) + ' hombres en armas';
+}
+function viewSala(sala) {
+  const s = S(), S2 = D.SENADO, l = sala.ley, f = G.favor();
+  if (!UI.sn2 || UI.sn2.ley !== l.id) UI.sn2 = { ley: l.id, b: {} };
+  const tr = G.tratos(l), elegidos = tr.filter(t => t.tipo !== 'si' && UI.sn2.b[t.bando]), v = G.votos(l, elegidos), vet = G.veto(l), falta = S2.mayoria;
+  const barra = (n, x, c) => '<div class="sn2-f"><span>' + n + '</span><div class="sn-bar"><i class="' + c + '" style="width:' + Math.round(x) + '%"></i></div><b>' + Math.round(x) + '</b></div>';
+  const fu = l.fuente ? '<div class="sn2-fu">' + esc(l.fuente) + (l.dictamen ? ' · ' + esc(SN2_DICT[l.dictamen] || l.dictamen) : '') + '</div>' : '';
+  let o = '<div class="ro ro-sen"><div class="ro-palo"></div><div class="ro-papiro sn sn2' + (l.n.length + l.texto.length > 90 ? ' larga' : '') + '">' +
+    '<div class="sn2-fav">' + barra('Senado', f.senado, 'sen') + barra('Pueblo', f.pueblo, 'pue') + '</div>' +
+    '<div class="sn2-ley ro-tabla"><div class="sn2-lc"><small>' + (sala.cambiada ? 'La propones tú' : 'Propone el Senado') + '</small>' + (sala.cambiada ? '' : '<button class="btn ro-bronce sn2-cam" data-act="sn2-cambiar">Cambiar ley</button>') + '</div><h3>' + esc(l.n) + '</h3><p>' + esc(l.texto) + '</p>' + fu +
+    '</div>' +
+    sn2Hemiciclo(v) +
+    '<div class="sn2-cuenta"><b class="si">' + v.si + ' sí</b> · <b class="du">' + v.duda + (v.duda === 1 ? ' duda' : ' dudan') + '</b> · <b class="no">' + v.no + ' no</b> <em>· hacen falta ' + falta + '</em></div><div class="sn2-tratos">';
+  for (const t of tr) {
+    const on = t.tipo !== 'si' && !!UI.sn2.b[t.bando], cls = t.etiqueta === 'Favorable' ? 'fav' : t.etiqueta === 'Dudoso' ? 'dud' : 'arr';
+    const vt = 'Te dan <b>' + t.extra + (t.extra === 1 ? ' voto' : ' votos') + '</b>. ', txt = t.tipo === 'si' ? 'No piden nada.' : t.tipo === 'pago' ? vt + S2.pagoVoto + ' de oro cada uno.' : vt + 'Romperla: ' + S2.romper + ' de favor.';
+    o += '<button class="sn2-trato' + (on ? ' on' : '') + (t.tipo === 'si' ? ' ya' : '') + '"' + (t.tipo === 'si' ? ' disabled' : ' data-act="sn2-trato" data-v="' + t.bando + '"') + ' data-b="' + t.bando + '" aria-pressed="' + on + '">' +
+      '<span class="sn2-th"><u style="background:' + D.BANDOS[t.bando].col + '"></u><span>' + D.BANDOS[t.bando].n + ' · ' + t.escanos + ' escaños</span><s class="' + cls + '">' + (t.tipo === 'si' ? 'Ya votan sí' : t.etiqueta) + '</s></span>' + (t.tipo === 'si' ? '' : '<b class="sn2-tt">' + sn2Titulo(t) + '</b><span class="sn2-tx">' + txt + '</span>') + '</button>';
+  }
+  const ple = ((l.chips || {}).ple || 0);
+  o += '</div><div class="sn2-tri"><b>Tribuno de la plebe</b>' + (vet.veta ? 'Vetará: el pueblo está a ' + vet.pueblo + ' y pide ' + vet.umbral + '.' : ple < 0 ? 'No veta: la plebe está contenta.' : 'No veta: esta ley no daña a la plebe.') +
+    '</div></div><div class="ro-palo"></div>';
+  const con = elegidos.length === 1 ? (elegidos[0].tipo === 'pago' ? 'Con el pago' : 'Con la promesa') : elegidos.length ? 'Con ' + elegidos.length + ' tratos' : 'Sin tratos';
+  const pie = v.si >= falta ? con + ': ' + v.si + ' de ' + falta : 'Saldría que no: ' + v.si + ' de ' + falta;
+  return o + '<div class="ro-pie sn2-pie"><button class="btn ro-bronce sn2-pasar" data-act="sn2-pasar">Dejar pasar</button>' + (vet.veta ? '<button class="btn ro-sello sn2-votar sn2-jue" data-act="sn2-juegos"><b>Juegos en el Foro</b><span>' + S2.juegos.oro + ' de oro: +' + S2.juegos.pueblo + ' al pueblo</span></button>' : '<button class="btn ro-sello sn2-votar" data-act="sn2-votar"><b>Votar</b><span>' + pie + '</span></button>') + '</div></div>';
+}
+function sn2Resultado(r) {
+  if (!r || !r.ok) { toast((r && r.motivo) || 'No se pudo votar.', 'bad'); return; }
+  UI.sn2 = null; UI.codice = null; UI.vistas = false; UI.cityList = false; setTab('city'); toast(r.linea, r.sale ? 'good' : 'bad');
+}
+function sn2Cambiar() {
+  const alt = G.propuestasAlternativas();
+  if (!alt.length) { toast('No hay otra ley que proponer ahora.', 'bad'); return; }
+  carta('<div class="yr">CAMBIAR LA PROPUESTA</div><h2>¿Qué ley propones?</h2><p>Cambiarla cuesta ' + (-D.SENADO.cambiar) + ' de favor con los tres bandos. Solo una vez por estación.</p>' +
+    alt.map(id => { const l = G.leyDe(id), v = G.votos(l, []); return '<div class="card sn2-alt"><div class="bd"><div class="tt">' + esc(l.n) + '</div><div class="ds">' + esc(l.texto) + '</div><div class="ds">Hoy: ' + v.si + ' sí · ' + v.duda + ' dudan · ' + v.no + ' no</div></div><button class="btn gold" data-act="sn2-proponer" data-v="' + esc(id) + '">Proponer</button></div>'; }).join('') +
+    '<div class="acts"><button class="btn ghost" data-act="close">No cambiar</button></div>');
+}
 function viewSenado() {
+  const sala = G.senadoSala && G.senadoSala(); if (sala) return viewSala(sala);   // SN2: con votación abierta, la sala
   const f = G.favor(), mi = G.misionActual(), mot = G.senadoMotivo();
   const barra = (n, v, c) => '<div class="sn-b"><span>' + n + '</span><div class="sn-bar"><i class="' + c + '" style="width:' + v + '%"></i></div><b>' + v + '</b></div>';
   const efecto = e => { const a = []; if (e.oro) a.push((e.oro > 0 ? '+' : '') + e.oro + ' de oro'); if (e.favorSenado) a.push((e.favorSenado > 0 ? '+' : '') + e.favorSenado + ' favor del Senado'); if (e.favorPueblo) a.push((e.favorPueblo > 0 ? '+' : '') + e.favorPueblo + ' favor del pueblo'); return a.join(', ') || 'nada'; };
@@ -1208,6 +1273,7 @@ function viewSenado() {
   let o = '<div class="ro ro-sen"><div class="ro-palo"></div><div class="ro-papiro sn"><h2 class="ro-ansata">Senado</h2>' + barra('Senado', f.senado, 'sen') + barra('Pueblo', f.pueblo, 'pue') +
     '<p class="sn-ex">El pueblo sigue el ánimo de tus ciudades. El Senado sube con las misiones cumplidas y baja con las falladas o con el oro en rojo a fin de mes.</p>';
   if (mot) o += '<div class="sn-av">' + esc(mot) + '</div>';
+  if (D.SENADO.sala) o += '<p class="sn-ex">El Senado no vota nada esta estación. Al pasar turno propondrá una ley.</p>';
   o += encargoHtml();
   if (!mi) return o + RO_HIEDRA + '<div class="empty sn-nada">El Senado no te pide nada por ahora.</div>' + pie;
   const m = mi.m, tot = Math.max(1, mi.t1 - mi.t0);
@@ -1449,6 +1515,13 @@ document.addEventListener('click', function (e) {
     case 'copiacargar': { if (S() && !UI.menu && !confirm('Cargar una copia reemplaza la partida de este móvil. ¿Seguir?')) break; cargarCopia(G).then(r => { if (r.nada) return; if (!r.ok) { toast(r.motivo, 'bad'); return; } hojaCierra(true); UI.overShown = false; startGame(); toast('Copia cargada: ' + G.dateStr(S().t) + '.'); }); break; }
     case 'tomenu': G.save(); UI.modalQ = []; closeModal(); showMenu(); break;
     case 'tab': UI.codice = null; setTab(v); break;
+    case 'sn2-trato': if (UI.sn2) { UI.sn2.b[v] = !UI.sn2.b[v]; render(); } break;
+    case 'sn2-cambiar': sn2Cambiar(); break;
+    case 'sn2-proponer': { const r = G.cambiarPropuesta(v); closeModal(); if (!r.ok) toast(r.motivo, 'bad'); else { UI.sn2 = null; toast('Propones: ' + G.leyDe(v).n + '.'); } render(); break; }
+    case 'sn2-juegos': { const r = G.juegos(); toast(r.ok ? 'Juegos en el Foro: la plebe lo celebra.' : r.motivo, r.ok ? 'good' : 'bad'); render(); break; }
+    case 'sn2-votar': { const sl = G.senadoSala(); if (!sl) break; const tr = G.tratos(sl.ley).filter(t => t.tipo !== 'si' && UI.sn2 && UI.sn2.b[t.bando]); sn2Resultado(G.votar(tr)); break; }
+    case 'sn2-pasar': sn2Resultado(G.dejarPasar()); break;
+    case 'inf-senado': UI.infoCierra(); UI.codice = null; setTab('senado'); break;
     case 'codice': UI.codice = v || null; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;
     case 'turno': if (!G.turnos || s.over || s.pending.length || s.vivo || UI.modalOpen) break; AV.acum = []; try { G.pasarTurno(); } finally { const l = AV.acum; AV.acum = null; toastResumen(l); } UI.dirty = true; tickUI(); break;
     case 'seguir': seguirPausa(); break;
