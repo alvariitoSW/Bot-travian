@@ -410,10 +410,10 @@ function hojaAlt(i) { if (!UI.hoja) return; UI.hoja.alt = Math.max(0, Math.min(2
 function hojaPinta(forzar) {
   const h = $('hoja'), d = UI.hoja && HOJAS[UI.hoja.id]; if (h.hidden || !d || (!S() && !UI.menu) || (UI.hjDown && !forzar)) return;
   const titulo = UI.hojaConf ? 'Volver al menú' : d.titulo, cuerpo = d.html();
-  if (h.dataset.id !== UI.hoja.id) { h.dataset.id = UI.hoja.id; h.dataset.k = ''; h.innerHTML = '<div class="hasa" role="button" aria-label="Cambiar la altura de la hoja"><i></i></div><div class="hcab"><h2 class="ht"></h2><button class="hx" data-act="hojax" aria-label="Cerrar">✕</button></div><div class="hcuerpo"></div>'; }
+  if (h.dataset.id !== UI.hoja.id) { h.dataset.id = UI.hoja.id; h.dataset.k = ''; h.innerHTML = '<div class="hasa" role="button" aria-label="Cambiar la altura de la hoja"><i></i></div><div class="hcab"><h2 class="ht ro-ansata"></h2><button class="hx" data-act="hojax" aria-label="Cerrar">' + ICO_X + '</button></div><div class="hcuerpo"></div>'; }
   const k = titulo + '|' + cuerpo; if (h.dataset.k === k) return; h.dataset.k = k;
   h.querySelector('.ht').textContent = titulo;
-  const b = h.querySelector('.hcuerpo'), st = b.scrollTop; b.innerHTML = cuerpo; b.scrollTop = st;
+  const b = h.querySelector('.hcuerpo'), st = b.scrollTop; b.innerHTML = cuerpo; tintaDom(b); b.scrollTop = st;
 }
 function hojaAbre(id, alt) {
   if (!HOJAS[id] || (!S() && !UI.menu)) return; UI.hoja = { id, alt: 1 }; UI.hojaConf = false; const h = $('hoja'); if (UI.menu) { document.body.append($('hscrim'), h); h.classList.add('enmenu'); $('hscrim').classList.add('enmenu'); } h.dataset.id = ''; h.hidden = false; $('hscrim').hidden = false; document.body.classList.add('conhoja');
@@ -440,6 +440,7 @@ function render() {
   if (UI.tab === 'saber' && UI.svDown) { UI.dirty = true; return; }   // no repintar entre pulsar y soltar: se perderían los toques
   const v = $('view'), st = v.scrollTop;
   v.innerHTML = UI.tab === 'imperio' ? viewImperio() : UI.tab === 'city' ? viewCity() : UI.tab === 'army' ? viewArmy() : UI.tab === 'hero' ? viewHero() : UI.tab === 'senado' ? viewSenado() : UI.tab === 'saber' ? viewSaber() : viewLog();
+  if (UI.tab !== 'army') tintaDom(v);   // MR2c: iconos de tinta en los menús (la guerra no se toca)
   v.scrollTop = st; tickUI();
 }
 const dondeEsp = k => G.dondeEspecial(k).slice(0, 3).map(i => D.CITIES[i].n).join(', ');
@@ -695,6 +696,47 @@ const ICO_ALERTA = svgIco('<path d="M12 4l9.5 16h-19zM12 10v4.5M12 17.2v.3"/>');
 const ICO_VER = svgIco('<path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/>');
 const ICO_MUNDO = svgIco('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>');
 const ICO_MAS = svgIco('<path d="M4 7h16M4 12h16M4 17h16"/>');
+/* MR2c · ICONOS DE TINTA (opción A): en los menús, cada emoji se pinta como un dibujo de línea. data.js no cambia: se sustituye
+   en pantalla (tintaDom) al pintar la hoja inferior y las vistas. Caritas y bolas de color → punto de color (.ro-punto) */
+const tin = d => svgIco(d), PUNTO = c => '<i class="ro-punto' + (c ? ' ' + c : '') + '" aria-hidden="true"></i>';
+const TINTA = (() => {
+  const B = D.BUILD_ICON, R = D.RES_ICON, W = D.GUERRA_ICON, casa = B.viviendas, libro = B.escuela, mart = ICO_OBRA, medalla = tin('<circle cx="12" cy="15" r="5"/><path d="M8 3l4 7 4-7"/>'),
+    tienda = tin('<path d="M3 20L12 4l9 16zM12 20v-6l-3 6M12 14l3 6"/>'), hoja = tin('<path d="M5 20C5 11 11 5 20 4c-1 9-7 15-15 16zM5 20l9-9"/>');
+  const t = {
+    '🏛': B.foro, '🏟': tin('<ellipse cx="12" cy="9" rx="9" ry="4"/><path d="M3 9v6c0 2 4 4 9 4s9-2 9-4V9M7 12v5M12 13v6M17 12v5"/>'),
+    '⚔': W.espadas, '🗡': tin('<path d="M5 19l10-10M15 9l4-5-5 4M7 13l4 4M4 20l2-2"/>'), '🛡': W.escudo, '🦅': W.aguila, '🎖': medalla, '🏅': medalla, '🏆': medalla,
+    '⚖': B.mercado, '💰': R.oro, '🪙': R.oro, '🌾': R.grano, '🥖': R.grano, '🍞': R.grano, '🪵': R.madera, '🧱': R.piedra, '🪨': R.piedra, '⛏': tin('<path d="M4 9c4-4 12-4 16 0M12 6v15"/>'),
+    '🔨': mart, '⚒': mart, '🪓': mart, '🏗': mart, '📜': tin('<path d="M8 4h10a2 2 0 0 1 2 2v1h-3M8 4a2 2 0 0 0-2 2v12a2 2 0 0 1-2 2h11a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2M9 9h5M9 13h5"/>'),
+    '📖': libro, '📚': libro, '🎓': libro, '🔥': tin('<path d="M12 21c-4 0-6-3-6-6 0-4 4-6 3-10 3 2 4 4 4 6 1-1 2-2 2-4 2 2 3 5 3 8 0 3-2 6-6 6z"/>'),
+    '🎺': tin('<path d="M3 10v4h3l11 5V5L6 10zM20 9v6"/>'), '💀': tin('<path d="M5 11a7 7 0 0 1 14 0v3l-2 1v4H7v-4l-2-1z"/><circle cx="9.5" cy="11.5" r="1.5"/><circle cx="14.5" cy="11.5" r="1.5"/>'),
+    '⚓': B.puerto, '🚪': tin('<path d="M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16M4 21h16M14 12v1"/>'), '⚠': ICO_ALERTA, '✔': tin('<path d="M5 12.5l4.5 4.5L19 7"/>'), '✖': ICO_X,
+    '🚩': tin('<path d="M6 21V4M6 4h11l-2 4 2 4H6"/>'), '🩸': tin('<path d="M12 3c3 5 6 8 6 11a6 6 0 0 1-12 0c0-3 3-6 6-11z"/>'),
+    '⛓': tin('<path d="M9 15l6-6M10.5 6.5l2-2a3.5 3.5 0 0 1 5 5l-2 2M13.5 17.5l-2 2a3.5 3.5 0 0 1-5-5l2-2"/>'), '🤝': tin('<path d="M2 11l4-4 6 3 6-3 4 4M6 7l-1 7 7 6 7-6-1-7M9 13l3 3M12 11l3 3"/>'),
+    '♞': B.establo, '🐎': B.establo, '🌊': tin('<path d="M3 9c3-2 6 2 9 0s6 2 9 0M3 15c3-2 6 2 9 0s6 2 9 0"/>'), '🌿': hoja, '🌲': tin('<path d="M12 3l6 9h-4l5 6H5l5-6H6zM12 18v3"/>'),
+    '🍇': tin('<circle cx="9" cy="10" r="2.2"/><circle cx="14" cy="10" r="2.2"/><circle cx="11.5" cy="14" r="2.2"/><circle cx="11.5" cy="18.5" r="2"/><path d="M12 8V4l3-1"/>'),
+    '🍷': tin('<path d="M7 3h10c0 5-2 8-5 8s-5-3-5-8zM12 11v8M8 21h8"/>'), '👥': D.POP_ICON, '🏺': B.almacen, '📦': tin('<path d="M3 8l9-4 9 4v9l-9 4-9-4zM3 8l9 4 9-4M12 12v9"/>'),
+    '🎭': tin('<path d="M4 5c5 2 11 2 16 0v6c0 5-4 9-8 9s-8-4-8-9z"/><path d="M8 10h2M14 10h2M9 15c2 1.5 4 1.5 6 0"/>'), '🧭': tin('<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>'),
+    '💡': tin('<path d="M3 14c0-2 3-3 8-3h4l5-3-1 5c-1 2-4 4-8 4H8c-3 0-5-1-5-3zM12 11c-1-2 0-4 1-6"/>'), '🏚': casa, '🏘': casa, '🏠': casa, '🏡': casa,
+    '🔱': tin('<path d="M12 21V5M6 4v4a6 6 0 0 0 12 0V4M10 21h4"/>'), '🪣': tin('<path d="M5 8h14l-2 12H7zM5 8a7 5 0 0 1 14 0"/>'), '🛣': ICO_RUTA, '⛺': tienda, '🏕': tienda,
+    '🪝': tin('<path d="M12 3v10a4 4 0 1 1-6-3.5M10 3h4"/>'), '🚣': tin('<path d="M3 15h18l-3 4H6zM12 15V4l6 8h-6"/>'), '🪜': tin('<path d="M7 3v18M17 3v18M7 7h10M7 12h10M7 17h10"/>'),
+    '🔭': ICO_VER, '👁': ICO_VER, '⚕': tin('<path d="M12 3v18M8 7c0-2 8-2 8 1s-8 3-8 6 8 3 8 5"/>'), '🐟': tin('<path d="M3 12c4-5 10-5 14 0-4 5-10 5-14 0zM17 12l4-3v6z"/>'),
+    '🐘': tin('<path d="M5 19v-6a6 6 0 0 1 6-6h3a6 6 0 0 1 6 6v6M9 19v-4M15 19v-4M20 13c1 2 1 5-1 6M8 11h.5"/>'), '🚚': tin('<circle cx="7" cy="18" r="2.5"/><circle cx="17" cy="18" r="2.5"/><path d="M3 15h18V9H3zM3 9l2-3"/>'),
+    '🔒': tin('<rect x="5" y="11" width="14" height="10" rx="1"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'), '📍': tin('<path d="M12 21s-6-6-6-11a6 6 0 0 1 12 0c0 5-6 11-6 11z"/><circle cx="12" cy="10" r="2"/>'),
+    '⏳': tin('<path d="M6 3h12M6 21h12M7 3c0 4 5 6 5 9s-5 5-5 9M17 3c0 4-5 6-5 9s5 5 5 9"/>'), '⏸': tin('<path d="M9 5v14M15 5v14"/>'),
+    '🔄': tin('<path d="M4 12a8 8 0 0 1 14-5l2 2M20 12a8 8 0 0 1-14 5l-2-2M20 4v5h-5M4 20v-5h5"/>'), '🧂': tin('<path d="M4 19h16M6 19c1-5 4-9 6-9s5 4 6 9M10 6v1M14 5v1M12 3v1"/>'),
+    '🦌': tin('<path d="M8 21v-6l-3-3 2-2 3 2h4l3-2 2 2-3 3v6M9 8L6 3M15 8l3-5M7 5L5 6M17 5l2 1"/>'), '⛰': tin('<path d="M3 20l6-11 4 6 2-3 6 8z"/>'), '★': ICO_CRED,
+    '😊': PUNTO(''), '🙂': PUNTO(''), '😐': PUNTO('med'), '😠': PUNTO('mal'), '😡': PUNTO('mal'), '⚪': PUNTO('blanco'), '🟣': PUNTO('purpura'), '🔴': PUNTO('mal'), '🟢': PUNTO(''), '🟡': PUNTO('med')
+  };
+  return t;
+})();
+const TINTA_RE = /(\p{Extended_Pictographic})️?|️/gu, TINTA_LIBRES = '©®™↔↕←→↑↓✕', TINTA_OTRO = tin('<path d="M12 5l6 7-6 7-6-7z"/>');
+const tintaTxt = s => esc(s).replace(TINTA_RE, (m, e) => !e ? '' : TINTA_LIBRES.includes(e) ? e : (TINTA[e] || TINTA_OTRO).replace('class="', 'class="tin '));
+function tintaDom(raiz) {   // recorre solo el texto (nunca atributos) y cambia cada emoji por su dibujo
+  if (!raiz || !/\p{Extended_Pictographic}/u.test(raiz.textContent)) return;
+  const w = document.createTreeWalker(raiz, NodeFilter.SHOW_TEXT), lis = [];
+  for (let n = w.nextNode(); n; n = w.nextNode()) { TINTA_RE.lastIndex = 0; if (TINTA_RE.test(n.data) && !n.parentNode.closest('svg, textarea')) lis.push(n); }
+  for (const n of lis) { const tpl = document.createElement('template'); tpl.innerHTML = tintaTxt(n.data); n.replaceWith(tpl.content); }
+}
 /* ---------- Imperio: libro de cuentas de todas tus ciudades ---------- */
 const IMP_FILTROS = [['todas', 'Todas'], ['urgentes', 'Urgentes'], ['sinobra', 'Sin obra'], ['obras', 'En obras'], ['animo', 'Ánimo bajo']];
 const nomObra = q => q.b ? D.BUILD[q.b].n : (q.pieza || 'Obra');
@@ -1114,7 +1156,7 @@ function svTarjeta(id) {
 }
 function viewSaber() {
   const s = S(), V = G.invVista();
-  let h = '<div class="sv mos mos-sab"><div class="mos-cab"><h2>📚 Saber</h2>', gu = '';   // K12c: cabecera fija, cuerpo con scroll, «volver» abajo
+  let h = '<div class="ro ro-mos"><div class="ro-palo"></div><div class="ro-papiro sv mos mos-sab"><div class="mos-cab"><h2 class="ro-ansata">Saber</h2>', gu = '';   // K12c: cabecera fija, cuerpo con scroll, «volver» abajo
   if (!V.nHechas && !V.cola) gu += '<div class="sv-guia"><b>Primera vez</b><ol><li>Investiga Preceptores griegos.</li><li>Construye la Escuela y pon gente a estudiar desde su ficha.</li><li>En cada par elige uno: el otro se cierra.</li></ol></div>';
   const hc = h; h = '';
   h += '<div class="sv-ed"><b>Edad ' + ['I', 'II', 'III', 'IV'][V.edad - 1] + ' · ' + esc(V.edadNombre) + '</b>';
@@ -1137,7 +1179,7 @@ function viewSaber() {
     }
     h += '</div>';
   }
-  return h + '</div><div class="mos-pie"><button class="btn mos-vol" data-act="tab" data-v="imperio">← Volver al Imperio</button></div></div>';
+  return h + '</div></div>' + RO_PIE_VOL;
 }
 /* CN17: encargo corto del Senado (uno cada vez) y hitos */
 function encargoHtml() {
@@ -1162,14 +1204,15 @@ function viewSenado() {
     '<div class="sn-fa"><b>Qué falta</b> ' + esc(String(mi.falta)) + '</div><div class="sn-pr"><b>Premio</b> ' + efecto(m.premio || {}) + '</div><div class="sn-ca"><b>Si fallas</b> ' + efecto(m.castigo || {}) + '</div></div>' + pie;
   return o;
 }
+const RO_PIE_VOL = '<div class="ro-palo"></div><div class="ro-pie"><button class="btn ro-bronce ro-vol mos-vol" data-act="tab" data-v="imperio">← Volver al Imperio</button></div></div>';   // MR2c: cierre del rollo con «volver» en bronce
 function viewHero() {
   const s = S(), h = s.hero, need = G.xpNeed(h.lvl);
   const where = h.wound > s.t ? '🩸 Herido — se recupera en ' + months(h.wound - s.t) : h.march ? '🚩 En marcha con el ejército' : '📍 En ' + D.CITIES[h.city].n;
   const SK = { mando: [D.GUERRA_ICON.espadas + ' Mando', '+4 % de ataque de tu ejército por nivel'], disc: [D.GUERRA_ICON.escudo + ' Disciplina', '+3 % de defensa y +4 de moral por nivel'], log: ['🧭 Logística', '+8 % de velocidad de marcha y +10 % de botín por nivel'] };
-  let o = '<div class="mos mos-gen"><div class="mos-cab"><div class="head"><div class="pt">' + pt('general') + '</div><h2>' + esc(h.name) + '</h2><p>General de la República · Nivel ' + h.lvl + '</p>' + '<div class="xp"><i style="width:' + Math.min(100, h.xp / need * 100) + '%"></i></div><p>Experiencia ' + h.xp + ' / ' + need + '<br>' + where + '</p></div></div><div class="mos-cuerpo">';
-  o += '<div class="sec">Habilidades · ' + h.pts + ' punto' + (h.pts === 1 ? '' : 's') + '</div>';
-  for (const k in SK) o += '<div class="card"><div class="bd"><div class="tt">' + SK[k][0] + '<span class="lv">Nv ' + h.sk[k] + '</span></div><div class="ds">' + SK[k][1] + '</div></div><button class="btn ' + (h.pts > 0 && h.sk[k] < 10 ? 'gold' : 'no') + '" data-act="skill" data-v="' + k + '">＋</button></div>';
-  return o + '<div class="empty mos-nota">Tu general combate con su guardia de caballería cuando acompaña a un ejército o defiende la ciudad en la que está. Gana experiencia en cada batalla; si su guardia es aniquilada, quedará herido hasta dos años.</div></div><div class="mos-pie"><button class="btn mos-vol" data-act="tab" data-v="imperio">← Volver al Imperio</button></div></div>';
+  let o = '<div class="ro ro-mos"><div class="ro-palo"></div><div class="ro-papiro mos mos-gen"><div class="mos-cab"><div class="head ro-tabla"><div class="pt">' + pt('general') + '</div><h2>' + esc(h.name) + '</h2><p>General de la República · Nivel ' + h.lvl + '</p>' + '<div class="xp"><i style="width:' + Math.min(100, h.xp / need * 100) + '%"></i></div><p>Experiencia ' + h.xp + ' / ' + need + '<br>' + where + '</p></div></div><div class="mos-cuerpo">';
+  o += '<div class="sec ro-rubrica">Habilidades · ' + h.pts + ' punto' + (h.pts === 1 ? '' : 's') + '</div>';
+  for (const k in SK) o += '<div class="card"><div class="bd"><div class="tt">' + SK[k][0] + '<span class="lv">Nv ' + h.sk[k] + '</span></div><div class="ds">' + SK[k][1] + '</div></div><button class="btn ' + (h.pts > 0 && h.sk[k] < 10 ? 'gold ro-sello' : 'no') + '" data-act="skill" data-v="' + k + '" aria-label="Subir ' + k + '">+</button></div>';
+  return o + '<div class="empty mos-nota">Tu general combate con su guardia de caballería cuando acompaña a un ejército o defiende la ciudad en la que está. Gana experiencia en cada batalla; si su guardia es aniquilada, quedará herido hasta dos años.</div></div></div>' + RO_PIE_VOL;
 }
 function viewCodice() {
   const K = window.CODICE, sec = UI.codice, N = { tropas: 'Tropas', ciudades: 'Ciudades', hechos: 'Hechos' };
@@ -1181,10 +1224,10 @@ function viewLog() {
   if (UI.codice && window.CODICE) return viewCodice();
   // K12b: Crónica en estilo Códice. Tres folios con scroll-snap horizontal (sin scroll infinito): Campaña, Línea del tiempo y Crónica reciente.
   const s = S(), year = G.yearOf(s.t), left = year - D.END_YEAR + 1, cap = ch => '<span class="cod-cap">' + ch + '</span>';
-  const f1 = '<section class="cod-f"><div class="cod-h">' + cap('C') + '<div><h2>' + (G.regionId() === 'mediterraneo' ? 'Carthago delenda est' : 'Dominar ' + esc(G.region().n)) + '</h2><i>Folio I · La campaña</i></div></div><p>Conquista <b>' + D.CITIES[G.region().capitalRival].n + '</b> antes de que termine el año ' + G.region().hasta + ' a.C. Si Roma cae, la campaña termina.</p><p class="cod-st">⏳ Quedan <b>' + left + '</b> años · 🏛️ ' + G.myCities().length + '/' + G.ciudadesRegion().length + ' ciudades · ' + D.GUERRA_ICON.espadas + ' ' + s.stats.wins + '/' + s.stats.battles + ' batallas</p>' + (window.CODICE ? '<button class="btn gold cod-b" data-act="codice" data-v="tropas">📖 Abrir el Códice</button>' : '') + '<button class="btn ghost cod-b" data-act="tomenu">Guardar y salir al menú</button></section>';
+  const f1 = '<section class="cod-f"><div class="cod-h">' + cap('C') + '<div><h2>' + (G.regionId() === 'mediterraneo' ? 'Carthago delenda est' : 'Dominar ' + esc(G.region().n)) + '</h2><i>Folio I · La campaña</i></div></div><p>Conquista <b>' + D.CITIES[G.region().capitalRival].n + '</b> antes de que termine el año ' + G.region().hasta + ' a.C. Si Roma cae, la campaña termina.</p><p class="cod-st">⏳ Quedan <b>' + left + '</b> años · 🏛️ ' + G.myCities().length + '/' + G.ciudadesRegion().length + ' ciudades · ' + D.GUERRA_ICON.espadas + ' ' + s.stats.wins + '/' + s.stats.battles + ' batallas</p>' + (window.CODICE ? '<button class="btn ro-bronce cod-b" data-act="codice" data-v="tropas">' + D.BUILD_ICON.escuela + ' Abrir el Códice</button>' : '') + '<button class="btn ro-tinta cod-b" data-act="tomenu">Guardar y salir al menú</button></section>';
   const f2 = '<section class="cod-f"><div class="cod-h">' + cap('L') + '<div><h2>Línea del tiempo</h2><i>Folio II · Lo que fue y lo que viene</i></div></div><div class="tl cod-tl">' + D.EVENTS.map((e, i) => '<div class="' + (s.ev[i] ? 'done' : '') + '"' + (s.ev[i] ? ' data-act="ev" data-v="' + i + '"' : '') + '><b>' + e.y + ' a.C.</b>' + (s.ev[i] ? esc(e.t) : '···') + '</div>').join('') + '</div></section>';
   const f3 = '<section class="cod-f"><div class="cod-h">' + cap('A') + '<div><h2>Anales</h2><i>Folio III · Lo último que ocurrió</i></div></div>' + (s.log.length ? '<div class="cod-an">' + s.log.slice(0, 10).map(l => '<div class="logl ' + l.k + '"><small>' + D.MONTHS[Math.floor(l.t) % 12] + ' · ' + G.yearOf(l.t) + ' a.C.</small>' + esc(l.x) + '</div>').join('') + '</div>' : '<div class="empty">Aún no ha ocurrido nada.</div>') + '</section>';
-  return '<div class="cod"><div class="cod-fs">' + f1 + f2 + f3 + '</div><div class="cod-pie">Tres folios · desliza ↔</div></div>';
+  return '<div class="cod ro-cod"><div class="cod-fs">' + f1 + f2 + f3 + '</div><div class="cod-pie">Tres folios · desliza ↔</div></div>';
 }
 
 /* ---------- ficha de ciudad sobre el mapa ---------- */

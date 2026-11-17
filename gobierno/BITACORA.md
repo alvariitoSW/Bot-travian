@@ -289,6 +289,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - P160 **Más civilizaciones, jugables** (pedido del 17/11; «jugables por supuesto»): primero Cartago como prueba; luego Macedonia, Seléucidas, Ptolomeos, Esparta/Atenas, íberos y galos, una por tanda (0 A.D. tiene arte de todas). Detalle en `estudios/GM42-guerra-como-rome2.md`.
 - P161 **Batalla dentro de la ciudad** (captura del 17/11): asalto con murallas, calles y plaza usando la ciudad 3D que ya existe. Grande; antes, diseño y maqueta.
 - P162 **Tarjetas de tropa con dibujo de tinta propio** (captura del 17/11): una tarjeta por tropa con silueta al estilo de la cerámica, dibujada por nosotros; va con GM-K6 y los iconos de tinta de MR2c.
+- MR2c (17/11): vestir de papiro el Códice (Tropas, Ciudades, Hechos, dentro de la Crónica); hoy sigue oscuro, ya sin emojis.
 - P158 (decidido 17/11: «Después de la 1.0» y «Piezas antiguas libres»): una imagen de época en cada suceso, en el informe y en el Senado (moneda, relieve, fresco o mosaico de museo con licencia libre, recortado en el papiro), con ficha de licencia y fuente. Nada de IA.
 - (MR2b, 17/11) El Senado de la maqueta `MR1-4` lleva hemiciclo, votos y propuestas que el juego no tiene: hoy solo se viste lo que hay (favor, encargo, hitos, misión). Si se quieren votaciones, es mecánica nueva.
 - (MR2b, 17/11) Los avisos de batalla (choque y resultado) siguen en el modal oscuro; los demás avisos ya son carta de papiro.
@@ -311,6 +312,8 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+**Sigue SN2, la pantalla del Senado (17/11: entra en la 1.0 a cambio de MR3b).** `viewSenado` en `js/ui.js` como `capturas-tarea/senado-1-votacion.png`, con los materiales de papiro y bronce de MR2b y MR2c; funciones del motor en la línea SN1 del tablero; aviso «El Senado vota» en el consejo de estación. Hoy el Senado vota solo cada estación (`G.dejarPasar`) y el jugador no lo ve. MR3b queda para después de la 1.0.
+
 **GM5 a medias (17/11): hecho «empezar lejos».** La batalla del juego empieza de lejos (240 m), con Avanzar/Escudos/Testudo, tiradores delante con proyectiles y la descarga de pila. `js/guerra.js` da `cubrirse(B)` (el bot de «Delegar» la llama en `G.botGuerra`), `ordenesDe`, `lejos`, `tirando`; los tiradores viven en `c.tir`; las batallas guardadas antes se cargan ya juntas. Falta lo demás de GM5 según GM42 (gentío, lomas, estandarte con icono, brillo y flecha, despliegue); no tocar reglas para eso. Después **GM23** (ritmo): la batalla bien jugada dura ahora unos 3 min (180 s), el acercamiento incluido. Parte `partes/2026-11-17-GM5.md`.
 
 **CN16b hecha (17/11).** `G.puertas`/`G.puertasInfo`, `c.puertas`, `c.vetB`, `G.licenciar…`, `s.triunfo`; datos en `D.PUERTAS`, `D.VETERANOS`, `D.TRIUNFO` (licencia de juego salvo el triunfo, cotejado en Polibio 6.15). Después de la 1.0: hojas de puerta dibujadas y marchas enemigas frenadas; cotejar Livio 26.10 (puertas). Parte `partes/2026-11-17-CN16b.md`.

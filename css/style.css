@@ -1318,3 +1318,153 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #hoja .hconf .hdisc.ro-tinta { border: 1px solid rgba(60, 35, 10, .7); background: var(--fibras), linear-gradient(#f5e6bd, #e3cc94); }
 #inf.ro-carta .inf-b .btn { letter-spacing: .02em; padding: 6px 8px; }
 #mbox.ro-carta { background-color: var(--papiro); background-image: var(--fibras), var(--manchas), radial-gradient(ellipse at 20% 0%, rgba(255, 246, 214, .7), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(140, 92, 36, .38), transparent 60%); }
+
+/* ===== MR2c · Menús romanos: hoja inferior (Menú, Ajustes, Mercado, Rutas, Pueblo…), General, Crónica, Saber e iconos de tinta ===== */
+/* iconos de tinta (tintaDom en ui.js): el emoji se pinta como dibujo de línea del color del texto */
+.ico.tin { width: 1.15em; height: 1.15em; vertical-align: -.2em; stroke: currentColor; }
+.ro-punto.blanco { background: #efe6d0; box-shadow: inset 0 0 0 1px rgba(60, 35, 10, .5); } .ro-punto.purpura { background: #6a2a6a; }
+/* ---- la hoja: carta de papiro que sube desde abajo, con su palo de madera arriba (el asa) ---- */
+#hoja { --tinta: #2b1c0a; --tinta2: #5a4220; --oliva: #46661f; --good: var(--oliva); --bad: var(--minio); --ink: var(--tinta); --mute: var(--tinta2); --gold: #8a5a12;
+  --lin: rgba(60, 35, 10, .3); --line: rgba(60, 35, 10, .28); --line2: rgba(60, 35, 10, .45); --glass2: rgba(255, 246, 214, .3);
+  color: var(--tinta); font-family: var(--libro); border: 0; border-radius: 4px 4px 0 0; padding-top: 0;
+  background-color: var(--papiro); background-image: var(--fibras), var(--manchas), radial-gradient(ellipse at 20% 0%, rgba(255, 246, 214, .7), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(140, 92, 36, .38), transparent 60%);
+  box-shadow: inset 14px 0 18px -12px rgba(100, 60, 18, .8), inset -14px 0 18px -12px rgba(100, 60, 18, .8), 0 -14px 40px #000c; }
+#hoja .hasa { position: relative; height: 22px; min-height: 22px; margin: 0 -14px 4px; border-radius: 9px;
+  background: var(--veta), linear-gradient(#9a6c38, #6a4520 40%, #3a230c); box-shadow: 0 3px 5px rgba(0, 0, 0, .55), inset 0 1px 0 rgba(255, 220, 160, .35); }
+#hoja .hasa i { background: rgba(255, 225, 160, .55); height: 4px; }
+#hoja .hasa::before, #hoja .hasa::after { content: ''; position: absolute; top: -4px; width: 16px; height: 30px; border-radius: 6px / 10px;
+  background: radial-gradient(ellipse at 40% 28%, #fff1c0 0 8%, #e2b860 22%, #a8781f 55%, #4e3409 100%); box-shadow: inset 0 0 0 1px rgba(60, 35, 5, .7), 0 2px 3px #000; }
+#hoja .hasa::before { left: -6px; } #hoja .hasa::after { right: -6px; }
+#hoja .hcab { gap: 6px; }
+#hoja .ht.ro-ansata { flex: 1; min-width: 0; height: 40px; margin: 0 22px 0 20px; font-size: 18px; letter-spacing: .1em; overflow: visible; }
+#hoja .hx { flex: none; width: 46px; height: 46px; color: var(--tinta); border: 1px solid rgba(60, 35, 10, .6); background: var(--fibras), linear-gradient(#f5e6bd, #e3cc94); box-shadow: 0 2px 3px rgba(0, 0, 0, .25); }
+#hoja .hx .ico { width: 20px; height: 20px; stroke: var(--tinta); stroke-width: 2; }
+#hoja .ico { stroke: var(--tinta2); }
+#hoja .hsep { height: 4px; margin: 12px 0; background: none; border-top: 1px solid rgba(60, 35, 10, .5); border-bottom: 1px solid rgba(60, 35, 10, .25); }
+#hoja .hrot, #hoja .sec { color: var(--minio); font: 700 13px var(--serif); letter-spacing: .08em; }
+#hoja .sec::after { background: rgba(60, 35, 10, .35); }
+#hoja .empty, #hoja .stat, #hoja .ajf small, #hoja .htog small { color: var(--tinta2); font-size: 14px; }
+#hoja .stat b, #hoja .empty b { color: var(--tinta); }
+/* ---- Menú (☰): Gobierno/Guerra en tablilla de cera (eliges); el resto, placas de bronce (vas a otro sitio) ---- */
+#hoja .hdos { gap: 3px; padding: 5px; border-radius: 6px; background: var(--veta), linear-gradient(#8a6034, #5a3b1b); box-shadow: inset 0 0 0 1px rgba(30, 15, 5, .6), inset 0 1px 0 rgba(255, 220, 160, .4), 0 3px 5px rgba(0, 0, 0, .35); }
+#hoja .hdos .hf, #hoja .hdos .hf.oro, #hoja .hdos .hf.rojo { justify-content: center; min-height: 52px; border: 0; border-radius: 3px; color: var(--rasgado); font: 600 16px var(--libro); letter-spacing: 0;
+  background: repeating-linear-gradient(-28deg, transparent 0 9px, rgba(255, 230, 190, .05) 9px 10px), linear-gradient(#3f2e1b, #2a1e10); box-shadow: inset 0 3px 5px rgba(0, 0, 0, .7); }
+#hoja .hdos .hf::before { content: none; }
+#hoja .hdos .hf .ico { stroke: var(--rasgado); }
+#hoja .hdos .hf.on { color: var(--tinta); background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--minio); }
+#hoja .hdos .hf.on .ico { stroke: var(--minio); }
+#hoja .hf { position: relative; min-height: 52px; margin-bottom: 7px; border-radius: 6px; color: #ecd9a8; font: 700 16px var(--serif); letter-spacing: .03em; border: 1px solid var(--bronce);
+  background: var(--martillado), radial-gradient(ellipse at 50% 0%, rgba(233, 192, 99, .22), transparent 70%), linear-gradient(#3e2e16, #1f160a);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6), inset 0 0 0 3px rgba(184, 134, 43, .28), 0 2px 4px rgba(0, 0, 0, .35); }
+#hoja .hf::before { content: ''; position: absolute; inset: 4px; pointer-events: none;
+  background: var(--remache) left top / 6px 6px no-repeat, var(--remache) right top / 6px 6px no-repeat, var(--remache) left bottom / 6px 6px no-repeat, var(--remache) right bottom / 6px 6px no-repeat; }
+#hoja .hf .ico { stroke: var(--oro-ro, #e2b860); }
+#hoja .hdisc, #hoja .hbtn { color: var(--tinta); font: 700 15px var(--serif); letter-spacing: .04em; border-radius: 8px; border: 1px solid rgba(60, 35, 10, .7);
+  background: var(--fibras), linear-gradient(#f5e6bd, #e3cc94); box-shadow: inset 0 1px 0 rgba(255, 250, 230, .8), 0 2px 3px rgba(0, 0, 0, .2); }
+/* ---- Ajustes: dificultad y pausas en tablilla; interruptores de tinta ---- */
+#hoja .hseg { gap: 3px; padding: 5px; border-radius: 6px; background: var(--veta), linear-gradient(#8a6034, #5a3b1b); box-shadow: inset 0 0 0 1px rgba(30, 15, 5, .6), 0 2px 4px rgba(0, 0, 0, .3); }
+#hoja .hseg .chip { border-radius: 3px; color: var(--rasgado); font: 600 15px var(--libro); background: linear-gradient(#3f2e1b, #2a1e10); box-shadow: inset 0 3px 5px rgba(0, 0, 0, .7); }
+#hoja .hseg .chip.on { color: var(--tinta); font-weight: 700; background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--minio); }
+#hoja .htog { color: var(--tinta); font-size: 16px; border-bottom: 1px solid rgba(60, 35, 10, .15); }
+#hoja .htog input { background: rgba(60, 35, 10, .28); box-shadow: inset 0 1px 3px rgba(40, 20, 5, .5); }
+#hoja .htog input::after { background: #f8ecc8; box-shadow: 0 1px 2px rgba(40, 20, 5, .6); }
+#hoja .htog input:checked { background: var(--oliva); }
+/* ---- Mercado: rótulo en tinta roja, recursos en tablilla, el cambio con sello ---- */
+#hoja .mar-merc .tt { padding: 0 0 2px; background: none; border: 0; box-shadow: none; color: var(--minio); font: 700 15px var(--serif); letter-spacing: .08em; text-transform: uppercase; }
+#hoja .mar-merc .mrow { padding: 5px; border: 0; border-radius: 6px; background: var(--veta), linear-gradient(#8a6034, #5a3b1b); box-shadow: inset 0 0 0 1px rgba(30, 15, 5, .6), 0 2px 4px rgba(0, 0, 0, .3); gap: 3px; }
+#hoja .mar-merc .mrow span { padding: 0 2px 2px; color: var(--rasgado); font-size: 13px; }
+#hoja .mar-merc .mrow .chip { border: 0; border-radius: 3px; background: linear-gradient(#3f2e1b, #2a1e10); box-shadow: inset 0 3px 5px rgba(0, 0, 0, .7); }
+#hoja .mar-merc .mrow .chip .ico { stroke: var(--rasgado); width: 24px; height: 24px; }
+#hoja .mar-merc .mrow .chip.on { background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--minio); }
+#hoja .mar-merc .mrow .chip.on .ico { stroke: var(--minio); }
+#hoja .mar-merc .btns { margin-top: 4px; }
+/* acciones que comprometen en la hoja (cambiar, firmar tratado, abrir ruta, dar ciudadanía…): sello rojo */
+#hoja .btn:not(.no):not(:disabled):not(.ghost):not(.chip), #hoja .mar-merc .btn:not(.no):not(:disabled) { color: #fbe9c7; font-family: var(--serif); letter-spacing: .03em; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); border-radius: 8px; border: 1px solid var(--sello2);
+  background: var(--martillado), radial-gradient(ellipse at 30% 0%, rgba(255, 190, 160, .3), transparent 60%), linear-gradient(#b8321f, #7e1910 70%, #6a140c);
+  box-shadow: 0 0 0 2px #6a4a18, 0 0 0 3px rgba(233, 192, 99, .45), 0 3px 8px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 220, 200, .4); }
+#hoja .btn:not(.no):not(:disabled) .ico, #hoja .mar-merc .btn:not(.no):not(:disabled) .ico, #hoja .mar-merc .btn:not(.no):not(:disabled) svg { stroke: #fbe0b0; }
+#hoja .btn.ghost { color: var(--tinta); border: 1px solid rgba(60, 35, 10, .7); background: var(--fibras), linear-gradient(#f5e6bd, #e3cc94); box-shadow: none; }
+#hoja .btn.no, #hoja .btn:disabled, #hoja .mar-merc .btn.no, #hoja .mar-merc .btn:disabled { color: rgba(60, 35, 10, .55); background: rgba(60, 35, 10, .1); border: 1px dashed rgba(60, 35, 10, .45); box-shadow: none; }
+#hoja .btn.no .ico, #hoja .btn:disabled .ico { stroke: rgba(60, 35, 10, .5); }
+/* ---- Rutas y fichas en la hoja: renglones sobre el papiro, sin cajas de mármol ---- */
+#hoja .mar-card, #hoja .card { color: var(--tinta); background: rgba(255, 246, 214, .25); border: 0; border-top: 1px solid rgba(60, 35, 10, .35); border-bottom: 1px solid rgba(60, 35, 10, .2); border-radius: 0; box-shadow: none; }
+#hoja .mar-card b, #hoja .card .tt { color: var(--tinta); } #hoja .mar-card .ds, #hoja .card .ds { color: var(--tinta2); font-size: 14px; }
+#hoja .mar-rut .sec.mar-t { color: var(--minio); }
+/* ---- Pueblo: clases, barrio y reparto en tinta ---- */
+#hoja .empty > div, #hoja [class^="barr"], #hoja .clases, #hoja .cls { border-color: rgba(60, 35, 10, .35); }
+#hoja .chip { color: var(--tinta); background: rgba(255, 246, 214, .4); border: 1px solid rgba(60, 35, 10, .45); }
+#hoja .chip.on { color: var(--tinta); background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); border: 0; box-shadow: inset 0 0 0 2px var(--minio); font-weight: 700; }
+#hoja .prog { background: rgba(60, 35, 10, .18); border: 0; box-shadow: inset 0 1px 1px rgba(60, 35, 10, .35); }
+#hoja .hcred, #hoja .hcron { color: var(--tinta); }
+
+/* ======== General y Saber: rollo de papiro entre dos palos; «volver» en bronce (como el Senado) ======== */
+#view > .ro-mos { padding: 0 8px; }
+.ro-mos > .ro-papiro.mos { height: auto; flex: 1; min-height: 0; max-width: none; display: flex; flex-direction: column; padding: 12px 14px 8px; --mb: #8a6d2f; }
+.ro-mos .mos-cab h2.ro-ansata { margin: 0 22px 8px; color: #3a2405; font-size: 19px; }
+.ro-mos .mos-cuerpo { padding-bottom: 6px; }
+.ro-mos .ico { stroke: var(--tinta2); }
+.ro-mos .sec.ro-rubrica { margin: 10px 0 6px; color: var(--minio); }
+.ro-mos .sec.ro-rubrica::after { background: rgba(60, 35, 10, .35); }
+/* General: cabecera en tabla de bronce con el retrato; habilidades como renglones; «+» con sello */
+.ro-mos.ro-mos:has(.mos-gen) { padding-top: 46px; } .ro-mos .mos-gen { padding-top: 12px; }
+.ro-mos .mos-gen .head.ro-tabla { margin: 0 0 4px; padding: 12px 14px; min-height: 0; color: #2a1a06; --c: transparent; }
+.ro-mos .mos-gen .head h2 { color: #2a1a06; font-size: 19px; text-shadow: 0 1px 0 rgba(255, 238, 190, .6); }
+.ro-mos .mos-gen .head p { color: #2a1a06; font-size: 15px; }
+.ro-mos .mos-gen .head .xp { background: rgba(40, 25, 5, .25); } .ro-mos .mos-gen .head .xp i { background: linear-gradient(90deg, #7a1d12, var(--minio)); }
+.ro-mos .mos-gen .head .ico { stroke: #2a1a06; }
+.ro-mos .mos-gen .mos-cuerpo > .card { min-height: 72px; padding: 8px 2px; background: none; border: 0; border-bottom: 1px solid rgba(60, 35, 10, .3); border-radius: 0; box-shadow: none; }
+.ro-mos .mos-gen .card .tt { color: var(--tinta); font-size: 17px; } .ro-mos .mos-gen .card .tt .ico { stroke: var(--minio); }
+.ro-mos .mos-gen .card .ds { color: var(--tinta2); font-size: 15px; }
+.ro-mos .mos-gen .card .lv { color: var(--minio); border-color: rgba(155, 42, 26, .5); background: none; }
+.ro-mos .mos-gen .card .btn.ro-sello { color: #fbe9c7; font-size: 26px; border: 1px solid var(--sello2); }
+.ro-mos .mos-gen .card .btn.no { color: rgba(60, 35, 10, .45); background: rgba(60, 35, 10, .08); border: 1px dashed rgba(60, 35, 10, .4); font-size: 26px; }
+.ro-mos .mos-gen .mos-nota { color: var(--tinta2); font-size: 15px; line-height: 1.4; }
+/* Saber: lo que se lee en papiro; las ramas en bronce; cada saber, tablilla de cera (eliges uno del par) */
+.ro-mos .mos-sab .sv-guia, .ro-mos .mos-sab .sv-ed, .ro-mos .mos-sab .sv-forja, .ro-mos .mos-sab .sv-cola, .ro-mos .mos-sab .sv-det { color: var(--tinta); background: rgba(255, 246, 214, .3); border: 0; border-top: 1px solid rgba(60, 35, 10, .4); border-bottom: 1px solid rgba(60, 35, 10, .2); border-radius: 0; box-shadow: none; }
+.ro-mos .mos-sab .sv-guia b, .ro-mos .mos-sab .sv-ed > b, .ro-mos .mos-sab .sv-cola > b { color: var(--minio); font: 700 14px var(--serif); letter-spacing: .06em; text-transform: uppercase; }
+.ro-mos .mos-sab .sv-ed small, .ro-mos .mos-sab .sv-m, .ro-mos .mos-sab .sv-forja, .ro-mos .mos-sab .sv-guia, .ro-mos .mos-sab .sv-det, .ro-mos .mos-sab .sv-cola { font-size: 15px; color: var(--tinta); }
+.ro-mos .mos-sab .sv-no { color: var(--minio); } .ro-mos .mos-sab .sv-ok { color: var(--oliva); }
+.ro-mos .mos-sab .sv-eh { color: var(--minio); }
+.ro-mos .mos-sab .sv-r { color: #ecd9a8; border: 1px solid var(--bronce); border-radius: 6px; font: 700 13px var(--serif);
+  background: var(--martillado), radial-gradient(ellipse at 50% 0%, rgba(233, 192, 99, .22), transparent 70%), linear-gradient(#3e2e16, #1f160a); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6), 0 2px 3px rgba(0, 0, 0, .35); }
+.ro-mos .mos-sab .sv-r .ico { stroke: var(--oro-ro, #e2b860); } .ro-mos .mos-sab .sv-r b { color: #f3e2b4; }
+.ro-mos .mos-sab .sv-t { color: var(--rasgado); border: 0; border-radius: 4px; background: repeating-linear-gradient(-28deg, transparent 0 9px, rgba(255, 230, 190, .05) 9px 10px), linear-gradient(#3f2e1b, #2a1e10);
+  box-shadow: 0 0 0 3px #7a5530, inset 0 3px 6px rgba(0, 0, 0, .7); }
+.ro-mos .mos-sab .sv-t .ico { stroke: var(--rasgado); } .ro-mos .mos-sab .sv-t b { color: #f3e2b4; }
+.ro-mos .mos-sab .sv-t.hecha { color: var(--tinta); background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: 0 0 0 3px #7a5530, inset 0 0 0 2px var(--oliva); }
+.ro-mos .mos-sab .sv-t.hecha b { color: var(--tinta); } .ro-mos .mos-sab .sv-t.hecha .ico { stroke: var(--oliva); }
+.ro-mos .mos-sab .sv-t.curso { color: var(--tinta); background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: 0 0 0 3px #7a5530, inset 0 0 0 2px #b8862b; }
+.ro-mos .mos-sab .sv-t.curso b { color: var(--tinta); }
+.ro-mos .mos-sab .sv-t.sel { outline: 3px solid var(--minio); outline-offset: 2px; }
+.ro-mos .mos-sab .sv-o { background: var(--papiro); border-color: var(--minio); color: var(--minio); font-family: var(--serif); }
+.ro-mos .mos-sab .sv-ed .btn, .ro-mos .mos-sab .sv-det .btn:not(.no):not(:disabled) { color: #fbe9c7; border: 1px solid var(--sello2); background: var(--martillado), linear-gradient(#b8321f, #7e1910 70%, #6a140c); box-shadow: 0 0 0 2px #6a4a18, 0 3px 8px rgba(0, 0, 0, .35); }
+.ro-mos .mos-sab .sv-ch, .ro-mos .mos-sab .chip { color: var(--tinta); background: rgba(255, 246, 214, .4); border-color: rgba(60, 35, 10, .45); }
+.ro-mos .prog { background: rgba(60, 35, 10, .18); border: 0; } .ro-mos .prog i { background: linear-gradient(90deg, #5f7d2e, var(--oliva)); }
+
+/* ======== Crónica: los tres folios en papiro (ya no oscuros); capitular en bronce ======== */
+.ro-cod .cod-f { color: var(--tinta); font-family: var(--libro); border: 0; border-radius: 2px; --tinta: #2b1c0a; --tinta2: #5a4220;
+  background-color: var(--papiro); background-image: var(--fibras), var(--manchas), radial-gradient(ellipse at 20% 0%, rgba(255, 246, 214, .7), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(140, 92, 36, .38), transparent 60%);
+  box-shadow: inset 0 0 18px rgba(100, 60, 18, .55), 0 8px 20px rgba(0, 0, 0, .6); }
+.ro-cod .cod-h { border-bottom: 1px solid rgba(60, 35, 10, .45); }
+.ro-cod .cod-h h2 { color: var(--tinta); font-size: 18px; } .ro-cod .cod-h i { color: var(--minio); font-size: 14px; }
+.ro-cod .cod-f p { font-size: 16px; line-height: 1.4; } .ro-cod .cod-f p b { color: var(--minio); }
+.ro-cod .cod-st { color: var(--tinta2); font-size: 15px; } .ro-cod .ico { stroke: var(--tinta2); }
+.ro-cod .cod-b.ro-bronce { display: flex; align-items: center; justify-content: center; gap: 8px; color: #ecd9a8; font: 700 16px var(--serif); border: 1px solid var(--bronce); }
+.ro-cod .cod-b.ro-bronce .ico { stroke: var(--oro-ro, #e2b860); }
+.ro-cod .cod-b.ro-tinta { font-size: 15px; }
+.ro-cod .cod-tl { border-left-color: rgba(60, 35, 10, .5); } .ro-cod .cod-tl div { color: rgba(60, 35, 10, .5); font-size: 15px; } .ro-cod .cod-tl div.done { color: var(--tinta); }
+.ro-cod .cod-tl div b { color: var(--minio); } .ro-cod .cod-tl div.done::before { background: var(--minio); box-shadow: none; }
+.ro-cod .cod-an .logl { color: var(--tinta); font-size: 15px; border-bottom-color: rgba(60, 35, 10, .3); } .ro-cod .cod-an .logl small { color: var(--minio); }
+.ro-cod .cod-pie { color: var(--rasgado); font-size: 14px; }
+/* MR2c · ajustes tras mirar la captura: cabecera del General en bronce verdoso (sin mosaico) y «+» con sello */
+.ro-mos .mos-gen .head.ro-tabla { border-radius: 4px; border: 1px solid #5a4214; background-size: auto;
+  background-image: var(--martillado), radial-gradient(ellipse at 85% 100%, rgba(70, 140, 110, .55), transparent 60%), radial-gradient(ellipse at 0% 0%, rgba(255, 236, 180, .45), transparent 55%), linear-gradient(160deg, #cfa95a, #a98439 55%, #7f8a55);
+  box-shadow: inset 0 0 0 2px rgba(255, 232, 170, .35), inset 0 0 0 3px rgba(80, 50, 10, .35), 0 3px 6px rgba(60, 35, 10, .45); }
+.ro-mos .mos-gen .head p { padding-right: 96px; }
+.ro-mos .mos-gen .card .btn.gold.ro-sello { color: #fbe9c7; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); background: var(--martillado), radial-gradient(ellipse at 30% 0%, rgba(255, 190, 160, .3), transparent 60%), linear-gradient(#b8321f, #7e1910 70%, #6a140c);
+  box-shadow: 0 0 0 2px #6a4a18, 0 0 0 3px rgba(233, 192, 99, .45), 0 3px 8px rgba(0, 0, 0, .35); }
+#view > .ro-mos:has(.mos-gen) { padding-top: 46px; }
+.ro-mos .mos-sab .sv-t.excl, .ro-mos .mos-sab .sv-t.req, .ro-mos .mos-sab .sv-t.edad, .ro-mos .mos-sab .sv-t.falta { opacity: 1; color: rgba(234, 217, 176, .72); }
+.ro-mos .mos-sab .sv-t.excl b, .ro-mos .mos-sab .sv-t.req b, .ro-mos .mos-sab .sv-t.edad b, .ro-mos .mos-sab .sv-t.falta b { color: rgba(243, 226, 180, .8); }
+.ro-mos .mos-sab .sv-fila.lejos { opacity: .8; }
+.ro-mos .mos-sab .sv-t small, .ro-mos .mos-sab .sv-t .sv-m { color: inherit; opacity: 1; font-size: 14px; }
