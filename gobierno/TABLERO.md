@@ -114,7 +114,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ⬜ GC6 **Quitar la batalla clásica muerta** (GC4): `startBattle`, `UI.battle` y su HUD en `js/ui.js`, y lo que `js/battle.js` solo usaba para ella (conservar el terreno de la ciudad y el carácter del enemigo). Un archivo grande, sin cambio visible. Pequeña-media.
 
 ## Carril GR — Gobierno de región (P104, aprobada por el usuario el 16/11/2026)
-- ⬜ GR1 **Gobierno de provincias: diseño corto y maqueta jugable** (P104): que la segunda y la décima ciudad no obliguen a repetir todo desde cero y que el oficio de cada una cambie de verdad cómo se juega; se conserva la construcción a mano. Espera a que el usuario diga si vale el formato de `gobierno/estudios/FJ-formato-de-juego.md`. No toca `js/`.
+- ⬜ GR1 **Gobierno de provincias: diseño corto y maqueta jugable** (P104): que la segunda y la décima ciudad no obliguen a repetir todo desde cero y que el oficio de cada una cambie de verdad cómo se juega; se conserva la construcción a mano. El formato ya está decidido (P113 «A+» con tope variable de ciudades a mano). Sesión abierta el 17/11 (pedido «Abrir sesión» del usuario). No toca `js/`.
 
 ## Carril GM — Batalla mejorada (P108 a P112, aprobadas por el usuario el 16/11/2026; todo parte de la maqueta GC1, que es la base)
 - ✅ GM1 **Ejércitos grandes sin miles de figuras** (P109): probada por el usuario el 16/11, «sí, con cambios» (los cambios son GM7 y GM8). Maqueta `gobierno/maquetas/guerra-grande/`; estudio `estudios/GM1-ejercitos-grandes.md`.
@@ -186,9 +186,14 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ⬜ K7d **Interceptar con comparación de fuerzas antes de confirmar** (≈0,5 M): marchas, `js/ui.js` y `js/game.js`. Después de K7b.
 - ⬜ K7e **Tratados como ley del Senado desde el Foro** (≈0,6 M): enlaza con el informe de política `estudios/EV1-politica.md`, sin rehacerlo. Después de K7d.
 
+## Carril MG — Modo Grecia y mitología (P142, aprobada por el usuario el 17/11/2026)
+- ⬜ MG1 **Grecia y mitología como modo aparte** (P142, pedido del 16/11 «más adelante»): no se abre hasta que la batalla romana esté cerrada. Al abrirla hay que decidir cómo queda la regla de fidelidad histórica; la campaña romana no se toca.
+
 ## Carril RD — Radar de repositorios (P114, aprobada por el usuario el 16/11/2026)
 - ✅ RD1 Leídos, sin copiar, procedural-graphics-engine, wesnoth y unknown-horizons, y medido glTF-Transform (16/11/2026): informes en `gobierno/estudios/RD1-*.md`. Licencias de Kenney, Quaternius y OpenGameArt: NO verificadas (red bloqueada), pendientes en `repositorios.md`.
 - ✅ RD2 **Leer en su fuente las licencias de Kenney, Quaternius y OpenGameArt** (P116 A, aprobada 16/11): abrir `kenney.nl/support`, `quaternius.com/faq.html` y `opengameart.org/content/faq` (ya permitidos en el entorno), apuntar en `gobierno/repositorios.md` licencia, crédito y límites con texto exacto y enlace; lo que no se lea, «no verificado». Solo documentos. Sonnet.
+
+- ⬜ RD3 **Copiar tres skills de Blender de `EL4CTEO/blender-skills`** (P150, aprobada el 17/11/2026; MIT): `blender-game-optimization`, `blender-export-pipelines` y `blender-asset-qa`, solo cuando haya un ordenador con Blender 5.2+ conectado y probándolas antes en Blender real. No se abre sin ese ordenador.
 
 ## Carril FJ — Formato de juego (P107, aprobada por el usuario el 16/11/2026)
 - ✅ FJ1 (16/11, informe `estudios/FJ1-tropico.md`; propuesta P113) **Estudio de Tropico 6 y 7 para una ciudad romana** (P107): skill `ingenieria-reversa`. Cómo funcionan su economía (presupuesto, edictos, exportaciones), su construcción y la gestión de la ciudad, y cómo adaptarlo a una ciudad de 280–146 a.C. Sale un informe de una página en `gobierno/estudios/FJ1-tropico.md` con fuentes y una propuesta de formato de juego centrado en ciudades (entre las opciones A y B de `gobierno/estudios/FJ-formato-de-juego.md`), con versión mínima. Solo ideas: nunca código, arte, sonido ni textos. No toca `js/`. Al terminar, aviso al usuario.
