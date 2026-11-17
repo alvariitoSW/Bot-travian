@@ -172,6 +172,13 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ⬜ GM7b **Empezar aún más separados** (respuesta del usuario 16/11 a «¿qué cambiarías al empezar?»: «Más separación»): en la maqueta `guerra-lejos/`, los cuerpos empiezan más lejos y el acercamiento dura más de 40 s (también pedido); la testudo se queda como licencia de juego. Sobre GM7; antes de llevarlo al juego (GM5).
 - ⬜ GM4c **Arte de la batalla, segunda vuelta** (el usuario dijo el 16/11 que le falla lo primero, lo segundo y lo tercero: «1,2,3»): (1) figuras aún poligonales; (2) suelo, relieve y luz; (3) colores y estandartes. Sobre `guerra-arte/`. Una mejora por sesión y tope duro de 40 pasos (GM4 costó 5,6 M sobre 1,5 M). No sube el peso hasta el estudio GM4b. Pendiente de abrir: pregunta al usuario si se abre ya.
 
+- ⬜ GM36 **Primera fila que lucha y caídos de verdad** (P144, aprobada 17/11; ≈1,5 M): parejas que golpean, paran y retroceden; el que cae, cae animado y se queda. Lo más caro de pintar de cerca. Estudio `estudios/GM32-como-se-ve-total-war.md`. Después de GM34 (movimiento vivo).
+- ⬜ GM37 **Lo muy lejano como masa** (P145, aprobada 17/11; ≈0,8 M): sin centelleo; mancha con lanzas y cascos en vez de puntos. Después de GM33.
+- ⬜ GM38 **Carteles discretos** (P146, aprobada 17/11; ≈0,6 M): cartel pequeño pegado al estandarte, números al tocar, marca de selección en el suelo. Toca el manejo de GM10 y GM31.
+- ⬜ GM39 **Detalle junto a la cámara** (P147, aprobada 17/11; ≈0,5 M): matas, piedras y arboledas; la fluidez de cerca va justa. Después de GM35.
+- ⬜ GM40 **Polvo que queda colgado y estela de proyectiles** (P148, aprobada 17/11; ≈0,4 M).
+- ⬜ GM41 **Tono por región y hora del día** (P149, aprobada 17/11; ≈0,3 M; pasa por Arte, skill `arte`). Coordinar con GM29 y GM30.
+
 ## Carril RD — Radar de repositorios (P114, aprobada por el usuario el 16/11/2026)
 - ✅ RD1 Leídos, sin copiar, procedural-graphics-engine, wesnoth y unknown-horizons, y medido glTF-Transform (16/11/2026): informes en `gobierno/estudios/RD1-*.md`. Licencias de Kenney, Quaternius y OpenGameArt: NO verificadas (red bloqueada), pendientes en `repositorios.md`.
 - ✅ RD2 **Leer en su fuente las licencias de Kenney, Quaternius y OpenGameArt** (P116 A, aprobada 16/11): abrir `kenney.nl/support`, `quaternius.com/faq.html` y `opengameart.org/content/faq` (ya permitidos en el entorno), apuntar en `gobierno/repositorios.md` licencia, crédito y límites con texto exacto y enlace; lo que no se lea, «no verificado». Solo documentos. Sonnet.
