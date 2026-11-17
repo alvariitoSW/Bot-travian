@@ -1,0 +1,17 @@
+Maqueta GM43e «Testudo: luz de A y campo de B» · arte traído de fuera y su licencia
+(junta los LICENSE.txt de GM43d-A y GM43d-B; licencia de Poly Haven comprobada el 17/11/2026: https://polyhaven.com/license — todo Poly Haven es CC0)
+
+De fuera (Poly Haven, CC0 1.0, dominio público), traído por B:
+arte/cielo.jpg — cielo «Kloofendal 48d Partly Cloudy (Pure Sky)», mitad de arriba recortada y reducida a 2048×1024 — Greg Zaal (original) y Jarod Guest (cielo) — https://polyhaven.com/a/kloofendal_48d_partly_cloudy_puresky
+arte/hierba_seca.jpg — textura «Grass Ground» (color, 1024) — Charlotte Baglioni — https://polyhaven.com/a/grass_ground
+arte/hierba_verde.jpg — textura «Sparse Grass» (color, 1024) — Amal Kumar — https://polyhaven.com/a/sparse_grass
+arte/tierra.jpg — textura «Brown Mud Dry» (color, 1024) — Rob Tuytel — https://polyhaven.com/a/brown_mud_dry
+arte/roca.jpg — textura «Rock Boulder Dry» (color, reducida a 512) — Dimitrios Savva (foto) y Rico Cilliers (proceso) — https://polyhaven.com/a/rock_boulder_dry
+(El cielo de A, «Kloppenheim 06», ya no se usa aquí: se quedó el de B, con nubes, pintado con la luz de A.)
+
+De 0 A.D. (Wildfire Games), CC BY-SA 3.0, https://play0ad.com · https://creativecommons.org/licenses/by-sa/3.0/ — ya estaban en el juego y solo se cargan:
+- Soldados, escudos y espadas (assets/units/), y árboles assets/static/{cipres,pino,olivo}.bin con sus texturas (ver assets/*/LICENSE.txt).
+  Lo que aquí cambia su aspecto (pelo negro pasado a castaño, borde de contraluz, luz de A) se hace en el sombreador, sin tocar sus archivos; lo derivado hereda CC BY-SA 3.0.
+
+Hecho por código en esta carpeta (sin arte de fuera): luz, sombras, rayos, motas, polvo de los pies, gradación de color, viñeta y grano (de A);
+matas de hierba, flores, forma de las piedras, montes, sombras de contacto y la mezcla del suelo (de B).
