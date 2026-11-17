@@ -388,7 +388,17 @@
     termopilas16: s('Livio 36.15-19; Apiano, Siria 17-20 (de memoria)', 'h', false, 'batalla de 191; ver el camino 15')
   };
 
-  R.fichas = { sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+  // ---- Monumentos del mapa (D.MONUMENTOS, C9). Dibujados por código, sin archivo de arte; ficha larga en gobierno/historia/C9-egipto.md ----
+  const POR_CODIGO = { sin: 'dibujado por código en js/gfx/map3d.js (formas simples, sin archivo de arte ni licencia ajena)' };
+  const LJ_MON = ' · licencia de juego: muy agrandado para que se vea en el mapa';
+  const monumento = {
+    giza: f(POR_CODIGO, h('Heródoto, Historias 2.124-127 y 2.134; Diodoro Sículo 1.63-64; Estrabón, Geografía 17.1.33', 'historico', 'C9: pasajes cotejados en Perseus y LacusCurtius el 17/11/2026; la fecha moderna (h. 2600-2500 a.C.) es de memoria' + LJ_MON,
+      'Las tres grandes pirámides de Giza, de Keops, Kefrén y Micerino, ya tenían más de dos mil años cuando Roma luchaba contra Pirro. Los griegos viajaban a verlas y las contaban entre las maravillas del mundo. En el mapa se dibujan enormes para que se vean: en la realidad serían apenas un punto.')),
+    faro: f(POR_CODIGO, h('Estrabón, Geografía 17.1.6; Plinio, Historia Natural 36.83 (36.18 en la numeración de Bostock); Luciano, Cómo debe escribirse la historia 62 (sin cotejar); forma de tres cuerpos por Ibn al-Shaykh y monedas romanas', 'probable', 'C9: Estrabón y Plinio cotejados el 17/11/2026; la fecha de acabado se discute entre 283 y 279; la forma de tres cuerpos y el fuego en lo alto son reconstrucción posterior' + LJ_MON,
+      'El Faro de Alejandría, obra del arquitecto Sóstrato de Cnidos, se acabó hacia 280 a.C. (las fuentes discuten entre 283 y 279). Era una torre blanca y de varios pisos que guiaba a los barcos hacia el puerto. Su forma de tres cuerpos es una reconstrucción hecha con descripciones árabes y monedas romanas posteriores.'))
+  };
+
+  R.fichas = { monumento, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -417,7 +427,8 @@
     edad: { tabla: 'EDADES', numericos: ['edad', 'time'], mapas: ['cost'], textos: ['n'] },
     fiesta: { tabla: 'FIESTAS', numericos: ['mult', 'min', 'dura', 'reposo'], textos: ['n', 'i', 'd'] },
     leva: { tabla: 'LEVA_FICHAS', numericos: [], textos: ['n', 'i', 'd'] },
-    remedio: { tabla: 'REMEDIOS', numericos: [], textos: ['n', 'i', 'd'] }
+    remedio: { tabla: 'REMEDIOS', numericos: [], textos: ['n', 'i', 'd'] },
+    monumento: { tabla: 'MONUMENTOS', numericos: ['lon', 'lat'], textos: ['n'] }
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */

@@ -57,13 +57,13 @@ export function waterMesh(w, h, rep) {
    El atributo aT = (sequedad, fuerza, distancia firmada a la costa en casillas). Sin texturas cargadas (uOn = 0) se ve igual que antes.
    C4: tW es la máscara de agua (ríos y lagos, 255 = agua, ~60 = ribera) a doble resolución de la malla; uW = (ancho de casilla, alto, ancho y alto de tW).
    Con ella y con la distancia a la costa el sombreador pinta ríos, lagos, riberas y playa sin añadir triángulos. */
-export function mapaMaterial(tW, uW) {
-  const m = new THREE.MeshLambertMaterial({ vertexColors: true }), U = { tA: { value: null }, tB: { value: null }, uOn: { value: 0 }, uS: { value: 0.42 }, tW: { value: tW || null }, uW: { value: uW || new THREE.Vector4(1, 1, 1, 1) }, uTime };
+export function mapaMaterial(tW, uW, uO) {   // uO: esquina del marco del mapa en x, z (C9; sin ella, 0,0)
+  const m = new THREE.MeshLambertMaterial({ vertexColors: true }), U = { tA: { value: null }, tB: { value: null }, uOn: { value: 0 }, uS: { value: 0.42 }, tW: { value: tW || null }, uW: { value: uW || new THREE.Vector4(1, 1, 1, 1) }, uO: { value: uO || new THREE.Vector2(0, 0) }, uTime };
   m.userData.U = U;
   m.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, U);
     sh.vertexShader = 'attribute vec3 aT; varying vec3 vT; varying vec2 vXZ;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n vT = aT; vXZ = (modelMatrix * vec4(position, 1.0)).xz;');
-    sh.fragmentShader = 'uniform sampler2D tA, tB, tW; uniform float uOn, uS, uTime; uniform vec4 uW; varying vec3 vT; varying vec2 vXZ;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
+    sh.fragmentShader = 'uniform sampler2D tA, tB, tW; uniform float uOn, uS, uTime; uniform vec4 uW; uniform vec2 uO; varying vec3 vT; varying vec2 vXZ;\n' + sh.fragmentShader.replace('#include <color_fragment>', `#include <color_fragment>
       if (uOn > 0.5) {
         vec2 u = vXZ * uS;
         vec3 d = mix(texture2D(tA, u).rgb, texture2D(tB, u * 0.8 + 0.37).rgb, vT.x), mu = mix(texture2D(tA, u, 12.0).rgb, texture2D(tB, u * 0.8, 12.0).rgb, vT.x);
@@ -75,7 +75,7 @@ export function mapaMaterial(tW, uW) {
         float pl = smoothstep(0.0, 0.1, sd) * (1.0 - smoothstep(0.5, 1.05, sd + (rz - 0.5) * 0.35));
         vec3 arena = mix(vec3(0.93, 0.85, 0.65), vec3(0.78, 0.69, 0.50), 1.0 - smoothstep(0.04, 0.4, sd));
         diffuseColor.rgb = mix(diffuseColor.rgb, arena, pl * 0.9);
-        vec2 uvw = vec2((vXZ.x / uW.x * 2.0 + 0.5) / uW.z, (vXZ.y / uW.y * 2.0 + 0.5) / uW.w);
+        vec2 uvw = vec2(((vXZ.x - uO.x) / uW.x * 2.0 + 0.5) / uW.z, ((vXZ.y - uO.y) / uW.y * 2.0 + 0.5) / uW.w);
         float mw = texture2D(tW, clamp(uvw, 0.0, 1.0)).r;
         float agua = smoothstep(0.36, 0.56, mw), rib = smoothstep(0.07, 0.2, mw) * (1.0 - agua);
         diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(0.43, 0.50, 0.27), vec3(0.58, 0.50, 0.33), rz), rib * 0.75);
