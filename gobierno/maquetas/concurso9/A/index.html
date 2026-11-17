@@ -1,0 +1,861 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Aqvila · Mapa único</title>
+<style>
+:root{--noche:#0b1016;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terracota:#d9764a;--panel:#141c26;--borde:#2a3644}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;background:var(--noche);color:var(--marmol);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overflow:hidden;touch-action:none;user-select:none}
+#app{position:fixed;inset:0;max-width:430px;margin:0 auto}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+.btn{min-height:44px;min-width:44px;padding:0 14px;border-radius:8px;background:var(--panel);border:1px solid var(--borde);font-size:13px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.btn.primo{background:var(--rojo);border-color:var(--rojo);color:var(--marmol)}
+.btn.oro{background:var(--oro);border-color:var(--oro);color:var(--noche)}
+.btn:disabled{opacity:.4}
+svg.ic{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* barra superior */
+#top{position:absolute;top:0;left:0;right:0;height:56px;display:flex;align-items:center;gap:8px;padding:6px 10px;background:linear-gradient(var(--noche) 70%,transparent);z-index:20}
+#donde{flex:1;font-size:13px;line-height:1.2;min-width:0}
+#donde b{display:block;font-size:15px;color:var(--oro);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#donde span{color:var(--piedra)}
+#oro{font-size:13px;color:var(--oro);white-space:nowrap;padding:0 4px}
+
+/* escenario */
+#mapa,#ciudad{position:absolute;inset:0;overflow:hidden}
+#ciudad{display:none;background:#1a1f1a;z-index:5;padding:64px 16px 90px;overflow-y:auto;touch-action:pan-y}
+#mapa svg{width:100%;height:100%;display:block}
+.ciudad-pt{cursor:pointer}
+.ciudad-pt circle.nucleo{fill:var(--marmol);stroke:var(--noche);stroke-width:2}
+.ciudad-pt.mia circle.nucleo{fill:var(--oro)}
+.ciudad-pt.enemiga circle.nucleo{fill:var(--rojo)}
+.ciudad-pt.aliada circle.nucleo{fill:var(--oliva)}
+.ciudad-pt text{font-size:12px;fill:var(--marmol);paint-order:stroke;stroke:var(--noche);stroke-width:4px;pointer-events:none}
+.ruta{fill:none;stroke-linecap:round;cursor:pointer}
+.ruta.base{stroke:var(--bronce);stroke-width:4;opacity:.45}
+.ruta.flujo{stroke:var(--oro);stroke-width:3;stroke-dasharray:6 10;animation:corre 1.2s linear infinite}
+.ruta.flujo.cortada{stroke:var(--rojo);animation:none;stroke-dasharray:2 8}
+.ruta.sel{stroke:var(--oro);stroke-width:6;opacity:.35}
+.ruta.protegida{stroke:var(--oliva)}
+@keyframes corre{to{stroke-dashoffset:-32}}
+.marcha{cursor:pointer}
+.marcha .cuerpo{fill:var(--rojo);stroke:var(--marmol);stroke-width:1.5}
+.marcha.enemiga .cuerpo{fill:var(--terracota)}
+.marcha .rastro{fill:none;stroke-width:2;stroke-dasharray:3 5;opacity:.6}
+
+/* zoom y botones de vista */
+#zoom{position:absolute;right:10px;top:70px;display:flex;flex-direction:column;gap:6px;z-index:15}
+#zoom .btn{width:44px;height:44px;padding:0;font-size:22px;font-weight:700}
+#aviso{position:absolute;left:12px;right:12px;bottom:86px;text-align:center;font-size:12px;color:var(--piedra);z-index:12;pointer-events:none}
+#aviso b{color:var(--marmol)}
+
+/* barra inferior */
+#abajo{position:absolute;left:0;right:0;bottom:0;height:78px;display:flex;gap:6px;padding:8px 10px;background:linear-gradient(transparent,var(--noche) 35%);z-index:20}
+#abajo .btn{flex:1;flex-direction:column;gap:2px;font-size:11px;padding:4px 2px}
+
+/* hojas inferiores */
+.hoja{position:absolute;left:0;right:0;bottom:0;max-height:62%;overflow-y:auto;background:var(--panel);border-top:2px solid var(--bronce);border-radius:12px 12px 0 0;padding:14px 14px 18px;z-index:30;transform:translateY(105%);transition:transform .25s ease}
+.hoja.abierta{transform:none}
+.hoja h2{font-size:17px;color:var(--oro);margin-bottom:4px}
+.hoja p{font-size:13px;line-height:1.4;color:var(--marmol);margin:4px 0 10px}
+.hoja .peq{font-size:12px;color:var(--piedra)}
+.hoja .fila{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.hoja .fila .btn{flex:1 1 45%}
+.cerrar{position:absolute;top:8px;right:8px}
+.caja{background:var(--noche);border:1px solid var(--borde);border-radius:8px;padding:8px 10px;margin-top:8px;font-size:13px;display:flex;justify-content:space-between;gap:8px}
+.caja b{color:var(--oro)}
+.flechas{display:flex;align-items:center;justify-content:center;gap:6px;font-size:14px;color:var(--oliva);font-weight:700;margin:6px 0}
+
+/* vista ciudad */
+#ciudad h2{font-size:18px;color:var(--oro)}
+#ciudad .sub{font-size:12px;color:var(--piedra);margin-bottom:12px}
+.solar{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.edif{min-height:88px;border-radius:8px;background:#222a22;border:1px solid #3d4a3c;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:12px;text-align:center;padding:6px}
+.edif svg{width:30px;height:30px;stroke:var(--oro);fill:none;stroke-width:1.8}
+.edif.vacio{border-style:dashed;color:var(--piedra)}
+.edif.vacio svg{stroke:var(--piedra)}
+#ciudad .volver{position:fixed;top:10px;left:10px;right:10px;display:flex;gap:8px;z-index:40}
+#ciudad .volver .btn{flex:1}
+#ciudad .titulo{font-size:12px;color:var(--piedra);margin:14px 0 6px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <div id="top">
+    <div id="donde"><span>Estás en</span><b id="dondeTxt">Mapa de Italia</b></div>
+    <div id="oro">● 340 den.</div>
+  </div>
+
+  <div id="mapa"><svg id="svgMapa" viewBox="0 0 390 760" preserveAspectRatio="xMidYMid slice"></svg></div>
+
+  <div id="ciudad">
+  </div>
+
+  <div id="zoom">
+    <button class="btn" id="zMas" aria-label="Acercar">+</button>
+    <button class="btn" id="zMenos" aria-label="Alejar">−</button>
+  </div>
+
+  <div id="aviso"></div>
+
+  <div id="abajo">
+    <button class="btn" id="bRutas"><svg class="ic" viewBox="0 0 24 24"><path d="M4 18c4-8 8 4 12-6l4-4"/><circle cx="4" cy="18" r="2"/><circle cx="20" cy="8" r="2"/></svg>Rutas</button>
+    <button class="btn" id="bMarchas"><svg class="ic" viewBox="0 0 24 24"><path d="M5 12h12M13 6l6 6-6 6"/></svg>Marchas</button>
+    <button class="btn" id="bDipl"><svg class="ic" viewBox="0 0 24 24"><path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M2 10l10-6 10 6"/></svg>Diplomacia</button>
+    <button class="btn" id="bCiudad"><svg class="ic" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11"/><path d="M8 10V6h8v4M10 21v-5h4v5"/></svg>Entrar</button>
+  </div>
+
+  <!-- hojas -->
+  <div class="hoja" id="hRuta"><button class="btn cerrar" data-cerrar aria-label="Cerrar">✕</button><div id="hRutaCont"></div></div>
+  <div class="hoja" id="hMarcha"><button class="btn cerrar" data-cerrar aria-label="Cerrar">✕</button><div id="hMarchaCont"></div></div>
+  <div class="hoja" id="hDipl"><button class="btn cerrar" data-cerrar aria-label="Cerrar">✕</button><div id="hDiplCont"></div></div>
+  <div class="hoja" id="hEnviar"><button class="btn cerrar" data-cerrar aria-label="Cerrar">✕</button><div id="hEnviarCont"></div></div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = s => document.querySelector(s);
+const NS = 'http://www.w3.org/2000/svg';
+const W = 390, H = 760;
+
+/* ---------- Datos de mentira, con ciudades reales ---------- */
+const CIUDADES = {
+  roma:     {n:'Roma',     x:170, y:430, due:'mia',     mercado:3, estrellas:0, ejercito:{leg:6, cab:2}},
+  capua:    {n:'Capua',    x:203, y:458, due:'aliada',  mercado:2, estrellas:2},
+  neapolis: {n:'Neápolis', x:222, y:480, due:'neutral', mercado:0, estrellas:2},
+  tarento:  {n:'Tarento',  x:248, y:536, due:'enemiga', mercado:0, estrellas:3},
+  ravena:   {n:'Rávena',   x:182, y:345, due:'neutral', mercado:0, estrellas:1},
+  massalia: {n:'Massalia', x:92,  y:372, due:'neutral', mercado:0, estrellas:3},
+  siracusa: {n:'Siracusa', x:222, y:652, due:'aliada',  mercado:2, estrellas:4},
+  cartago:  {n:'Cartago',  x:122, y:712, due:'enemiga', mercado:0, estrellas:5, ejercito:{leg:9, cab:4}},
+};
+const EDIFICIOS = ['Foro', 'Mercado', 'Puerto', 'Cuartel', 'Templo', 'Granero'];
+const COSTE_MERCADO = 80;
+const COSTE_RUTA = 100;
+
+// Rutas: qué salen y qué entran (vista de Roma)
+let RUTAS = [
+  {id:'r1', a:'roma', b:'capua',   mar:false, cortada:false, escolta:false, sale:['aceite','vino'], entra:['trigo']},
+];
+let MARCHAS = [];
+let ORO = 340;
+let TRIBUTOS = {};           // id ciudad -> 30 den/mes
+let TRATADOS = {};           // id ciudad -> 'paz' | 'comercio'
+let TROPAS_CASA = {leg:6, cab:2};
+
+const S = {s:1, cx:195, cy:380, vista:'mapa', ciudad:null, dragO:null, moved:false};
+
+/* ---------- Costa simplificada (trazos a mano) ---------- */
+const TIERRA = [
+  'M150,300 L190,298 L200,340 L220,380 L232,420 L246,468 L256,520 L238,548 L218,522 L202,482 L190,452 L166,442 L160,416 L146,382 L140,340Z', // Italia
+  'M96,410 L118,398 L124,440 L108,472 L90,452Z',   // Cerdeña
+  'M40,700 Q120,682 200,692 T320,702 L320,760 L40,760Z' // África
+];
+const ISLA_SICILIA = {cx:205, cy:662, rx:34, ry:20};
+
+/* ---------- Helpers ---------- */
+const el = (tag, attrs = {}, parent) => {
+  const e = document.createElementNS(NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (parent) parent.appendChild(e);
+  return e;
+};
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const fmt = n => Math.round(n) + ' den.';
+
+function aviso(texto) {
+  $('#aviso').innerHTML = texto;
+}
+function ubicacion(texto) {
+  $('#dondeTxt').textContent = texto;
+}
+
+/* ---------- Mapa ---------- */
+const svg = $('#svgMapa');
+svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+const mundo = el('g', {}, svg);
+const capaTierra = el('g', {}, mundo);
+const capaRutas = el('g', {}, mundo);
+const capaCiudades = el('g', {}, mundo);
+const capaMarchas = el('g', {}, mundo);
+
+TIERRA.forEach(d => el('path', {d, fill:'#16202b', stroke:'#2a3644', 'stroke-width':1.2}, capaTierra));
+el('ellipse', {cx:ISLA_SICILIA.cx, cy:ISLA_SICILIA.cy, rx:ISLA_SICILIA.rx, ry:ISLA_SICILIA.ry, fill:'#16202b', stroke:'#2a3644'}, capaTierra);
+el('text', {x:200, y:600, fill:'#4a5868', 'font-size':11, 'text-anchor':'middle'}, capaTierra).textContent = 'MAR TIRRENO';
+el('text', {x:300, y:560, fill:'#4a5868', 'font-size':11, 'text-anchor':'middle'}, capaTierra).textContent = 'MAR JÓNICO';
+
+function aplicarVista() {
+  mundo.setAttribute('transform', `translate(${W/2} ${H/2}) scale(${S.s}) translate(${-S.cx} ${-S.cy})`);
+  // las etiquetas mantienen su tamaño en pantalla al acercar
+  document.querySelectorAll('.ciudad-pt text').forEach(t => {
+    t.style.fontSize = (13 / S.s) + 'px';
+    t.style.strokeWidth = (4 / S.s) + 'px';
+  });
+}
+
+/* Pinta ciudades */
+const puntosCiudad = {};
+function pintarCiudades() {
+  capaCiudades.innerHTML = '';
+  for (const id in CIUDADES) {
+    const c = CIUDADES[id];
+    const g = el('g', {class:'ciudad-pt ' + (c.due === 'mia' ? 'mia' : c.due === 'enemiga' ? 'enemiga' : c.due === 'aliada' ? 'aliada' : ''), 'data-id':id}, capaCiudades);
+    el('circle', {class:'nucleo', cx:c.x, cy:c.y, r:id === 'roma' ? 8 : 6}, g);
+    el('circle', {cx:c.x, cy:c.y, r:22, fill:'transparent'}, g); // área de toque
+    const t = el('text', {x:c.x + 10, y:c.y + 4}, g);
+    t.textContent = c.n;
+    g.addEventListener('click', e => {
+      e.stopPropagation();
+      if (S.moved || S.vista !== 'mapa') return;
+      fichaCiudad(id);
+    });
+    puntosCiudad[id] = g;
+  }
+}
+
+/* ---------- Zoom y paso de vista ---------- */
+function ciudadCercana() {
+  // la ciudad más cercana al centro de la pantalla, si está a menos de 45 unidades
+  let mejor = null, dmin = 45;
+  for (const id in CIUDADES) {
+    const d = Math.hypot(CIUDADES[id].x - S.cx, CIUDADES[id].y - S.cy);
+    if (d < dmin) { dmin = d; mejor = id; }
+  }
+  return mejor;
+}
+function actualizarAviso() {
+  if (S.vista !== 'mapa') return;
+  const cerca = ciudadCercana();
+  if (S.s >= 2.6 && cerca) aviso(`Sigue acercando para entrar en <b>${CIUDADES[cerca].n}</b>`);
+  else if (S.s >= 2.6) aviso('Arrastra un dedo hasta una ciudad y acércate para entrar');
+  else aviso('Toca una ciudad, una línea o una marcha · Pellizca para acercar');
+}
+function zoomA(nuevo) {
+  S.s = clamp(nuevo, 1, 4);
+  aplicarVista();
+  if (S.s >= 3.2 && S.vista === 'mapa') {
+    const cerca = ciudadCercana();
+    if (cerca) return entrarCiudad(cerca);
+  }
+  actualizarAviso();
+}
+$('#zMas').onclick = () => zoomA(S.s * 1.35);
+$('#zMenos').onclick = () => zoomA(S.s / 1.35);
+
+/* Gestos: un dedo arrastra, dos dedos pellizcan */
+const punteros = new Map();
+let distIni = 0, sIni = 1;
+const distancia = () => {
+  const [a, b] = [...punteros.values()];
+  return Math.hypot(a.x - b.x, a.y - b.y);
+};
+$('#mapa').addEventListener('pointerdown', e => {
+  punteros.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  S.moved = false;
+  if (punteros.size === 1) S.dragO = {x:e.clientX, y:e.clientY, cx:S.cx, cy:S.cy};
+  if (punteros.size === 2) { distIni = distancia(); sIni = S.s; }
+});
+$('#mapa').addEventListener('pointermove', e => {
+  if (!punteros.has(e.pointerId)) return;
+  punteros.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  if (punteros.size === 2) {
+    zoomA(sIni * distancia() / distIni);
+    S.moved = true;
+  } else if (S.dragO) {
+    const dx = e.clientX - S.dragO.x, dy = e.clientY - S.dragO.y;
+    if (Math.hypot(dx, dy) > 6) S.moved = true;
+    const k = W / svg.getBoundingClientRect().width / S.s;
+    S.cx = clamp(S.dragO.cx - dx * k, 0, W);
+    S.cy = clamp(S.dragO.cy - dy * k, 0, H);
+    aplicarVista();
+  }
+});
+const soltar = e => { punteros.delete(e.pointerId); if (punteros.size === 0) S.dragO = null; if (punteros.size === 1) S.dragO = null; };
+$('#mapa').addEventListener('pointerup', soltar);
+$('#mapa').addEventListener('pointercancel', soltar);
+
+/* ---------- Vista de ciudad ---------- */
+function entrarCiudad(id) {
+  S.vista = 'ciudad';
+  S.ciudad = id;
+  $('#mapa').style.display = 'none';
+  $('#zoom').style.display = 'none';
+  $('#ciudad').style.display = 'block';
+  $('#ciudad').scrollTop = 0;
+  ubicacion(CIUDADES[id].n + (CIUDADES[id].due === 'mia' ? ' · tu ciudad' : ' · ciudad ' + nombreDue(CIUDADES[id].due)));
+  pintarCiudad(id);
+  aviso('Pulsa un solar para construir. Junta dos dedos o toca <b>Mapa</b> para salir.');
+  $('#bCiudad').innerHTML = ICONO_MAPA + 'Mapa';
+}
+function salirCiudad() {
+  S.vista = 'mapa';
+  S.ciudad = null;
+  $('#ciudad').style.display = 'none';
+  $('#mapa').style.display = 'block';
+  $('#zoom').style.display = 'flex';
+  S.s = 2.2;
+  aplicarVista();
+  ubicacion('Mapa de Italia');
+  $('#bCiudad').innerHTML = ICONO_CIUDAD + 'Entrar';
+  actualizarAviso();
+}
+function nombreDue(d) { return {aliada:'aliada', enemiga:'enemiga', neutral:'independiente'}[d] || ''; }
+
+/* ---------- Hojas inferiores ---------- */
+function abrirHoja(id, html) {
+  cerrarHojas();
+  $('#' + id + 'Cont').innerHTML = html;
+  $('#' + id).classList.add('abierta');
+}
+function cerrarHojas() {
+  document.querySelectorAll('.hoja').forEach(h => h.classList.remove('abierta'));
+}
+document.querySelectorAll('[data-cerrar]').forEach(b => b.onclick = cerrarHojas);
+
+const ICONO_CIUDAD = '<svg class="ic" viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11"/><path d="M8 10V6h8v4M10 21v-5h4v5"/></svg>';
+const ICONO_MAPA = '<svg class="ic" viewBox="0 0 24 24"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2z"/></svg>';
+
+/* ---------- Rutas de comercio ---------- */
+// Renta mensual: 4 + mercado de cada extremo si es tuya (o 1 por estrella si es ajena); ×1,5 por mar
+function renta(r) {
+  let t = 4;
+  for (const id of [r.a, r.b]) {
+    const c = CIUDADES[id];
+    t += c.due === 'mia' ? c.mercado : c.estrellas;
+  }
+  if (r.mar) t *= 1.5;
+  return Math.round(t);
+}
+const rentaNeta = r => renta(r) - (r.proteccion === 'escolta' ? 10 : 0);
+const maxRutas = id => CIUDADES[id].due === 'mia' ? Math.floor(1 + CIUDADES[id].mercado / 3) : 1;
+const rutasDe = id => RUTAS.filter(r => r.a === id || r.b === id);
+const otro = (r, id) => r.a === id ? r.b : r.a;
+const coords = id => CIUDADES[id];
+
+function pintarRutas() {
+  capaRutas.innerHTML = '';
+  for (const r of RUTAS) {
+    const A = coords(r.a), B = coords(r.b);
+    // curva suave para que no se parezcan a reglas
+    const mx = (A.x + B.x) / 2 + (r.mar ? 22 : -10), my = (A.y + B.y) / 2;
+    const d = `M${A.x},${A.y} Q${mx},${my} ${B.x},${B.y}`;
+    const base = el('path', {class:'ruta base', d}, capaRutas);
+    if (r.mar) base.setAttribute('stroke-dasharray', '2 6');
+    const flujo = el('path', {class: 'ruta flujo' + (r.cortada ? ' cortada' : '') + (r.proteccion ? ' protegida' : ''), d}, capaRutas);
+    if (r.cortada) flujo.setAttribute('stroke-dasharray', '2 8');
+    // zona de toque ancha
+    const hit = el('path', {d, fill:'none', stroke:'transparent', 'stroke-width':26, class:'ruta'}, capaRutas);
+    hit.addEventListener('click', e => { e.stopPropagation(); if (!S.moved) abrirRuta(r.id); });
+  }
+}
+
+function abrirRuta(id) {
+  const r = RUTAS.find(x => x.id === id);
+  const estado = r.cortada ? '<b style="color:var(--rojo)">Cortada</b>' : 'Abierta';
+  const prot = r.proteccion === 'escolta' ? 'Escolta: −10 den./mes'
+             : r.proteccion === 'patrulla' ? 'Patrulla: 1 legión fija en la ruta'
+             : 'Sin protección: puede ser asaltada';
+  const html = `
+    <h2>Ruta ${CIUDADES[r.a].n} – ${CIUDADES[r.b].n}</h2>
+    <p class="peq">${r.mar ? 'Por mar · ×1,5 de renta' : 'Por tierra'} · ${estado}</p>
+    <div class="flechas">${CIUDADES[r.a].n} ⇄ ${CIUDADES[r.b].n}</div>
+    <div class="caja"><span>Sale de ${CIUDADES[r.a].n}</span><b>${r.sale.join(', ')}</b></div>
+    <div class="caja"><span>Entra en ${CIUDADES[r.a].n}</span><b>${r.entra.join(', ')}</b></div>
+    <div class="caja"><span>Renta neta</span><b>${rentaNeta(r) >= 0 ? '+' : ''}${rentaNeta(r)} den./mes</b></div>
+    <p class="peq" style="margin-top:8px">${prot}</p>
+    <div class="fila">
+      <button class="btn ${r.cortada ? 'primo' : ''}" id="rCortar">${r.cortada ? 'Reabrir ruta' : 'Cortar ruta'}</button>
+      <button class="btn" id="rEscolta" ${r.proteccion === 'patrulla' ? 'disabled' : ''}>${r.proteccion === 'escolta' ? 'Quitar escolta' : 'Escolta · 30 den.'}</button>
+      <button class="btn" id="rPatrulla" ${r.proteccion === 'escolta' ? 'disabled' : ''}>${r.proteccion === 'patrulla' ? 'Quitar patrulla' : 'Patrulla · 1 legión'}</button>
+    </div>`;
+  abrirHoja('hRuta', html);
+  $('#rCortar').onclick = () => { r.cortada = !r.cortada; pintarRutas(); abrirRuta(id); aviso(r.cortada ? 'Ruta cortada. No cobras renta.' : 'Ruta reabierta.'); };
+  $('#rEscolta').onclick = () => {
+    if (r.proteccion === 'escolta') { r.proteccion = null; }
+    else { if (ORO < 30) return aviso('Te faltan denarios para la escolta.'); ORO -= 30; r.proteccion = 'escolta'; }
+    pintarRutas(); pintarOro(); abrirRuta(id);
+  };
+  $('#rPatrulla').onclick = () => {
+    if (r.proteccion === 'patrulla') { r.proteccion = null; TROPAS_CASA.leg++; }
+    else { if (TROPAS_CASA.leg < 1) return aviso('No queda legión libre en Roma.'); TROPAS_CASA.leg--; r.proteccion = 'patrulla'; }
+    pintarRutas(); abrirRuta(id);
+  };
+}
+
+/* Abrir una ruta nueva: se toca el origen (Roma) y luego el destino */
+function confirmarRuta(origen, destino) {
+  const existe = RUTAS.find(r => (r.a === origen && r.b === destino) || (r.a === destino && r.b === origen));
+  if (existe) return aviso('Ya hay una ruta entre esas dos ciudades.');
+  const mar = ['siracusa', 'massalia', 'cartago', 'tarento'].includes(destino); // ciudades a las que se llega por mar
+  const r = {id:'r' + (RUTAS.length + 1), a:origen, b:destino, mar, cortada:false, proteccion:null, sale:['aceite','vino'], entra:['trigo']};
+  const html = `
+    <h2>Abrir ruta a ${CIUDADES[destino].n}</h2>
+    <p>Coste <b>${COSTE_RUTA} den.</b> una vez. Renta estimada: <b>+${renta(r)} den./mes</b>.</p>
+    <p class="peq">${mar ? 'Ruta por mar (×1,5).' : 'Ruta por tierra.'} Rutas abiertas en ${CIUDADES[origen].n}: ${rutasDe(origen).length} de ${maxRutas(origen)}.</p>
+    <div class="fila">
+      <button class="btn primo" id="rAbrir">Abrir ruta</button>
+      <button class="btn" id="rNo">Cancelar</button>
+    </div>`;
+  abrirHoja('hRuta', html);
+  const puede = rutasDe(origen).length < maxRutas(origen) && ORO >= COSTE_RUTA;
+  const b = $('#rAbrir');
+  if (!puede) { b.disabled = true; aviso(ORO < COSTE_RUTA ? 'No tienes 100 denarios para abrirla.' : 'Esta ciudad ya tiene todas sus rutas. Sube el mercado.'); }
+  b.onclick = () => {
+    ORO -= COSTE_RUTA; RUTAS.push(r); pintarRutas(); pintarOro(); cerrarHojas();
+    aviso(`Ruta abierta a <b>${CIUDADES[destino].n}</b>. Mira el flujo sobre el mapa.`);
+  };
+  $('#rNo').onclick = cerrarHojas;
+}
+
+/* ---------- Ficha de ciudad (al tocar en el mapa) ---------- */
+function fichaCiudad(id) {
+  const c = CIUDADES[id];
+  const estado = {mia:'Tu ciudad', aliada:'Aliada', enemiga:'Enemiga', neutral:'Independiente'}[c.due];
+  const esRoma = id === 'roma';
+  const html = `
+    <h2>${c.n}</h2>
+    <p class="peq">${estado}${c.due !== 'mia' ? ' · ' + c.estrellas + ' estrellas' : ' · mercado ' + c.mercado}</p>
+    <div class="fila">
+      <button class="btn primo" id="fEntrar">Entrar en la ciudad</button>
+      ${esRoma ? '<button class="btn" id="fRuta" disabled>Esta es tu ciudad</button>' : `<button class="btn" id="fRuta">Abrir ruta desde Roma</button>`}
+      <button class="btn" id="fTropas">${c.due === 'enemiga' ? 'Atacar con tropas' : 'Enviar tropas'}</button>
+      <button class="btn" id="fDipl">Diplomacia</button>
+    </div>`;
+  abrirHoja('hEnviar', html);
+  $('#fEntrar').onclick = () => { cerrarHojas(); entrarCiudad(id); };
+  if (!esRoma) $('#fRuta').onclick = () => { cerrarHojas(); confirmarRuta('roma', id); };
+  $('#fTropas').onclick = () => formTropas(id);
+  $('#fDipl').onclick = () => { cerrarHojas(); abrirDiplomacia(id); };
+}
+
+/* ---------- Tropas y marchas ---------- */
+let seqM = 0;
+const fuerza = t => t.leg + t.cab * 1.5;
+const restar = (t, f) => ({leg: Math.round(t.leg * (1 - f)), cab: Math.round(t.cab * (1 - f))});
+const volverTropas = t => { TROPAS_CASA.leg += t.leg; TROPAS_CASA.cab += t.cab; };
+
+function crearMarcha(o) {
+  const m = Object.assign({id:'m' + (++seqM), prog:0, dur:9000, tipo:'visita', bando:'mia'}, o);
+  m.g = el('g', {class:'marcha' + (m.bando === 'enemiga' ? ' enemiga' : '')}, capaMarchas);
+  m.trazo = el('line', {class:'rastro', stroke: m.bando === 'enemiga' ? '#d9764a' : '#e9c063'}, m.g);
+  const flecha = el('path', {class:'cuerpo', d:'M-8,-6 L9,0 L-8,6 Z'}, m.g);
+  m.flecha = flecha;
+  m.g.addEventListener('click', e => { e.stopPropagation(); if (!S.moved) abrirMarcha(m.id); });
+  MARCHAS.push(m);
+  dibujarMarchas();
+  return m;
+}
+function quitar(m) {
+  MARCHAS = MARCHAS.filter(x => x !== m);
+  m.g.remove();
+}
+// posición de una marcha: va de su origen a su destino (en una intercepción, al sitio donde está la otra marcha)
+function posicion(m) {
+  const o = CIUDADES[m.de];
+  let d = CIUDADES[m.a];
+  if (m.aMarcha) {
+    const obj = MARCHAS.find(x => x.id === m.aMarcha);
+    if (obj) d = posicion(obj);
+  }
+  return {
+    x: o.x + (d.x - o.x) * m.prog,
+    y: o.y + (d.y - o.y) * m.prog,
+    ax: d.x, ay: d.y, ox: o.x, oy: o.y,
+    ang: Math.atan2(d.y - o.y, d.x - o.x) * 180 / Math.PI
+  };
+}
+function dibujarMarchas() {
+  const k = Math.max(0.6, 1.3 / Math.sqrt(S.s));
+  for (const m of MARCHAS) {
+    const p = posicion(m);
+    m.trazo.setAttribute('x1', p.ox); m.trazo.setAttribute('y1', p.oy);
+    m.trazo.setAttribute('x2', p.ax); m.trazo.setAttribute('y2', p.ay);
+    m.trazo.setAttribute('stroke-width', 2 / S.s + 0.5);
+    m.g.setAttribute('transform', `translate(${p.x} ${p.y}) rotate(${p.ang}) scale(${k})`);
+  }
+}
+
+function formTropas(id) {
+  const c = CIUDADES[id];
+  const t = {leg: Math.min(2, TROPAS_CASA.leg), cab: 0};
+  const ataque = c.due === 'enemiga';
+  const fila = (nombre, clave) => `
+    <div class="caja"><span>${nombre}</span>
+      <span><button class="btn" data-menos="${clave}">−</button>
+      <b style="display:inline-block;min-width:28px;text-align:center">${t[clave]}</b>
+      <button class="btn" data-mas="${clave}">+</button></span></div>`;
+  const dibujar = () => {
+    abrirHoja('hEnviar', `
+      <h2>${ataque ? 'Atacar ' : 'Enviar tropas a '}${c.n}</h2>
+      <p class="peq">Libres en Roma: ${TROPAS_CASA.leg} legiones y ${TROPAS_CASA.cab} caballos.</p>
+      ${fila('Legiones', 'leg')}
+      ${fila('Caballería', 'cab')}
+      <div class="caja"><span>Llegan en</span><b>9 s</b></div>
+      <div class="fila">
+        <button class="btn primo" id="tEnviar" ${t.leg + t.cab === 0 ? 'disabled' : ''}>${ataque ? 'Lanzar ataque' : 'Enviar'}</button>
+        <button class="btn" id="tAtras">Volver</button>
+      </div>`);
+    const cont = $('#hEnviarCont');
+    cont.querySelectorAll('[data-mas]').forEach(b => b.onclick = () => { const k = b.dataset.mas; t[k] = Math.min(t[k] + 1, TROPAS_CASA[k]); dibujar(); });
+    cont.querySelectorAll('[data-menos]').forEach(b => b.onclick = () => { const k = b.dataset.menos; t[k] = Math.max(t[k] - 1, 0); dibujar(); });
+    $('#tAtras').onclick = () => fichaCiudad(id);
+    $('#tEnviar').onclick = () => {
+      TROPAS_CASA.leg -= t.leg; TROPAS_CASA.cab -= t.cab;
+      crearMarcha({de:'roma', a:id, tropas:{leg:t.leg, cab:t.cab}, tipo: ataque ? 'ataque' : 'visita', dur:9000});
+      cerrarHojas();
+      aviso(ataque ? `Marcha de ataque hacia <b>${c.n}</b>. Tócala para verla avanzar.` : `Tropas en camino a <b>${c.n}</b>.`);
+    };
+  };
+  dibujar();
+}
+
+function abrirMarcha(idM) {
+  const m = MARCHAS.find(x => x.id === idM);
+  if (!m) return;
+  const seg = Math.ceil((1 - m.prog) * m.dur / 1000);
+  const tot = m.tropas.leg + ' legiones y ' + m.tropas.cab + ' caballos';
+  if (m.bando === 'enemiga') {
+    const libres = TROPAS_CASA.leg + TROPAS_CASA.cab;
+    abrirHoja('hMarcha', `
+      <h2>Marcha enemiga</h2>
+      <p>Desde <b>${CIUDADES[m.de].n}</b> hacia <b>${CIUDADES[m.a].n}</b>: ${tot}.</p>
+      <div class="caja"><span>Llega en</span><b>${seg} s</b></div>
+      <p class="peq" style="margin-top:8px">Si la interceptas, tus tropas de Roma salen a su encuentro. Gana el que tiene más fuerza.</p>
+      <div class="fila">
+        <button class="btn primo" id="mInt" ${libres === 0 ? 'disabled' : ''}>Interceptar con todo lo libre</button>
+        <button class="btn" id="mNo">Dejarla pasar</button>
+      </div>`);
+    $('#mInt').onclick = () => {
+      const t = {...TROPAS_CASA};
+      TROPAS_CASA = {leg:0, cab:0};
+      crearMarcha({de:'roma', a:m.a, aMarcha:m.id, tropas:t, tipo:'interceptar', dur:7000});
+      cerrarHojas();
+      aviso('Tus tropas salen al encuentro de la marcha enemiga.');
+    };
+    $('#mNo').onclick = cerrarHojas;
+  } else {
+    abrirHoja('hMarcha', `
+      <h2>Tus tropas</h2>
+      <p>${tot}, en camino a <b>${CIUDADES[m.a].n}</b>.</p>
+      <div class="caja"><span>Llegan en</span><b>${seg} s</b></div>
+      <div class="fila">
+        <button class="btn" id="mVuelta">Dar la vuelta</button>
+        <button class="btn" id="mOk">Cerrar</button>
+      </div>`);
+    $('#mVuelta').onclick = () => { volverTropas(m.tropas); quitar(m); cerrarHojas(); aviso('Tropas de vuelta en Roma.'); };
+    $('#mOk').onclick = cerrarHojas;
+  }
+}
+
+function llegar(m) {
+  quitar(m);
+  if (m.bando === 'enemiga') {
+    const perdida = Math.min(ORO, 40);
+    ORO -= perdida; pintarOro();
+    aviso(`Asalto enemigo a <b>${CIUDADES[m.a].n}</b>: pierdes ${perdida} den.`);
+    return;
+  }
+  if (m.tipo === 'visita') {
+    volverTropas(m.tropas);
+    aviso(`Tus tropas llegan a ${CIUDADES[m.a].n} y vuelven a Roma. Sin combate.`);
+  } else if (m.tipo === 'ataque') {
+    const c = CIUDADES[m.a];
+    const g = c.ejercito || {leg:2, cab:0};
+    if (fuerza(m.tropas) > fuerza(g)) {
+      const botin = 60 + Math.floor(Math.random() * 40);
+      ORO += botin;
+      const vuelven = restar(m.tropas, 0.2);
+      volverTropas(vuelven);
+      if (c.ejercito) c.ejercito = {leg: Math.max(0, g.leg - 2), cab: g.cab};
+      aviso(`Saqueo en <b>${c.n}</b>: +${botin} den. Vuelven ${vuelven.leg} legiones.`);
+    } else {
+      const vuelven = restar(m.tropas, 0.6);
+      volverTropas(vuelven);
+      aviso(`Derrota ante <b>${c.n}</b>. Vuelven ${vuelven.leg} legiones.`);
+    }
+    pintarOro();
+  } else if (m.tipo === 'interceptar') {
+    const obj = MARCHAS.find(x => x.id === m.aMarcha);
+    if (!obj) { volverTropas(m.tropas); return aviso('La marcha enemiga ya llegó. Tus tropas vuelven.'); }
+    quitar(obj);
+    if (fuerza(m.tropas) >= fuerza(obj.tropas)) {
+      ORO += 25; volverTropas(restar(m.tropas, 0.2)); pintarOro();
+      aviso('<b>Interceptada.</b> Derrotas a la marcha enemiga. Botín +25 den.');
+    } else {
+      volverTropas(restar(m.tropas, 0.5));
+      aviso('Te superan. Pierdes la mitad de tus tropas en el choque.');
+    }
+  }
+}
+
+/* ---------- Tiempo: meses, marchas enemigas, asaltos a rutas ---------- */
+let MES = 0;
+function ingresoMes() {
+  let t = 0;
+  for (const r of RUTAS) if (!r.cortada) t += rentaNeta(r);
+  for (const id in TRIBUTOS) if (TRIBUTOS[id]) t += 30;      // ciudades que pagan tributo a Roma
+  for (const id in TRATADOS) if (TRATADOS[id] === 'comercio') t += 5;
+  return t;
+}
+function pintarOro() {
+  $('#oro').textContent = `● ${ORO} den. · ${ingresoMes() >= 0 ? '+' : ''}${ingresoMes()}/mes`;
+}
+setInterval(() => {
+  MES = ingresoMes();
+  ORO = Math.max(0, ORO + MES);
+  pintarOro();
+}, 6000);
+
+function enviarEnemiga() {
+  crearMarcha({bando:'enemiga', de:'cartago', a:'roma', tropas:{leg:3, cab:1}, tipo:'asalto', dur:14000});
+  aviso('Marcha enemiga desde <b>Cartago</b> hacia Roma. Tócala para interceptar.');
+}
+function asaltoRuta() {
+  const libres = RUTAS.filter(r => !r.cortada && !r.proteccion);
+  if (!libres.length || Math.random() < 0.4) return;
+  const r = libres[Math.floor(Math.random() * libres.length)];
+  r.cortada = true;
+  pintarRutas();
+  aviso(`Asaltan la ruta <b>${CIUDADES[r.a].n}–${CIUDADES[r.b].n}</b>. Está cortada. Protégela con escolta o patrulla.`);
+}
+
+/* ---------- Diplomacia y Senado ---------- */
+const TEXTO_PROPUESTA = {
+  alianza: 'alianza',
+  paz: 'paz',
+  comercio: 'tratado de comercio'
+};
+function abrirDiplomacia(foco) {
+  const ids = Object.keys(CIUDADES).filter(id => id !== 'roma');
+  const f = foco && CIUDADES[foco] && foco !== 'roma' ? foco : 'capua';
+  const c = CIUDADES[f];
+  const chips = ids.map(id => `<button class="btn ${id === f ? 'primo' : ''}" data-d="${id}" style="flex:1 1 30%;font-size:12px">${CIUDADES[id].n}</button>`).join('');
+  const estado = {aliada:'Aliada de Roma', enemiga:'En guerra con Roma', neutral:'Independiente'}[c.due];
+  const trib = TRIBUTOS[f] ? 'Paga tributo: +30 den./mes' : 'Sin tributo';
+  const trat = TRATADOS[f] === 'comercio' ? 'Tratado de comercio: +5 den./mes' : 'Sin tratado';
+  const botones = [];
+  if (c.due === 'neutral') botones.push(`<button class="btn primo" data-p="alianza">Proponer alianza al Senado</button>`);
+  if (c.due === 'enemiga') botones.push(`<button class="btn primo" data-p="paz">Proponer paz al Senado</button>`);
+  if (c.due !== 'enemiga' && TRATADOS[f] !== 'comercio') botones.push(`<button class="btn" data-p="comercio">Tratado de comercio al Senado</button>`);
+  if (c.due !== 'enemiga') botones.push(`<button class="btn" data-trib="1">${TRIBUTOS[f] ? 'Dejar de cobrar tributo' : 'Exigir tributo · +30/mes'}</button>`);
+  abrirHoja('hDipl', `
+    <h2>Diplomacia</h2>
+    <p class="peq">Toca una ciudad para ver su relación con Roma.</p>
+    <div class="fila" style="margin-top:4px">${chips}</div>
+    <div class="caja" style="margin-top:12px"><span>${c.n}</span><b>${estado}</b></div>
+    <p class="peq" style="margin-top:8px">${trib} · ${trat}</p>
+    <div class="fila">${botones.join('')}</div>`);
+  $('#hDiplCont').querySelectorAll('[data-d]').forEach(b => b.onclick = () => abrirDiplomacia(b.dataset.d));
+  $('#hDiplCont').querySelectorAll('[data-p]').forEach(b => b.onclick = () => votarSenado(b.dataset.p, f));
+  const tb = $('#hDiplCont [data-trib]');
+  if (tb) tb.onclick = () => {
+    TRIBUTOS[f] = !TRIBUTOS[f];
+    pintarOro(); abrirDiplomacia(f);
+    aviso(TRIBUTOS[f] ? `<b>${c.n}</b> pagará 30 den. al mes.` : `Ya no cobras tributo a <b>${c.n}</b>.`);
+  };
+}
+
+// Una propuesta es una ley: el Senado vota (diez senadores, mayoría de seis)
+function votarSenado(tipo, id) {
+  const c = CIUDADES[id];
+  const texto = TEXTO_PROPUESTA[tipo];
+  abrirHoja('hDipl', `
+    <h2>Senado de Roma</h2>
+    <p>Propuesta: <b>${texto}</b> con ${c.n}. Hace falta mayoría de 6 de 10 senadores.</p>
+    <div class="caja"><span>Votos a favor</span><b id="vFav">0</b></div>
+    <div class="caja"><span>Votos en contra</span><b id="vCon">0</b></div>
+    <div class="fila"><button class="btn primo" id="vVotar">Llevar a votación</button><button class="btn" id="vVolver">Volver</button></div>`);
+  $('#vVolver').onclick = () => abrirDiplomacia(id);
+  $('#vVotar').onclick = () => {
+    $('#vVotar').disabled = true;
+    const fav = 3 + Math.floor(Math.random() * 6); // 3 a 8 votos a favor
+    let n = 0;
+    const iv = setInterval(() => {
+      n++;
+      const a = Math.min(fav, n), b = Math.min(10 - fav, n);
+      $('#vFav').textContent = a; $('#vCon').textContent = b;
+      if (n >= 10) {
+        clearInterval(iv);
+        const aprobada = fav >= 6;
+        if (aprobada) {
+          if (tipo === 'alianza' || tipo === 'paz') CIUDADES[id].due = tipo === 'alianza' ? 'aliada' : 'neutral';
+          if (tipo === 'comercio') TRATADOS[id] = 'comercio';
+          pintarCiudades(); pintarRutas(); pintarOro();
+        }
+        const div = $('#hDiplCont');
+        div.insertAdjacentHTML('beforeend', `<p style="margin-top:10px"><b style="color:${aprobada ? 'var(--oliva)' : 'var(--rojo)'}">${aprobada ? 'Aprobado' : 'Rechazado'} ${fav} a ${10 - fav}.</b> ${aprobada ? 'Ya es ley.' : 'El Senado no quiere ese tratado.'}</p>`);
+        $('#vVotar').remove();
+        const bv = $('#vVolver'); bv.textContent = 'Seguir'; bv.className = 'btn primo';
+        bv.onclick = () => abrirDiplomacia(id);
+        aviso(aprobada ? `El Senado aprueba la ${texto} con <b>${c.n}</b>.` : `El Senado rechaza la ${texto} con <b>${c.n}</b>.`);
+      }
+    }, 90);
+  };
+}
+
+/* ---------- Vista de ciudad: solares y edificios ---------- */
+const EDIF = {};   // id ciudad -> {Foro:n, Puerto:n, ...}; el Mercado es CIUDADES[id].mercado
+const ICONOS_EDIF = {
+  Foro:'<path d="M3 21h18M5 21V10M9 21V10M15 21V10M19 21V10M2 10h20L12 3z"/>',
+  Mercado:'<path d="M3 9l2-5h14l2 5M4 9v11h16V9M9 20v-6h6v6"/>',
+  Puerto:'<path d="M12 3v15M5 12a7 7 0 0 0 14 0M8 18h8"/>',
+  Cuartel:'<path d="M4 21V9l8-5 8 5v12M9 21v-6h6v6"/>',
+  Templo:'<path d="M3 9l9-6 9 6M5 9v10M9 9v10M15 9v10M19 9v10M3 21h18"/>',
+  Granero:'<path d="M4 21V11l8-6 8 6v10M8 21v-6h8v6M8 11h8"/>'
+};
+function nivelEdif(id, nombre) {
+  if (nombre === 'Mercado') return CIUDADES[id].mercado;
+  EDIF[id] = EDIF[id] || {Foro:1, Puerto:0, Cuartel:1, Templo:0, Granero:0};
+  return EDIF[id][nombre];
+}
+function pintarCiudad(id) {
+  const c = CIUDADES[id];
+  const propia = c.due === 'mia';
+  const rutas = rutasDe(id);
+  const solares = EDIFICIOS.map(nombre => {
+    const n = nivelEdif(id, nombre);
+    const vacio = n === 0;
+    return `<button class="edif ${vacio ? 'vacio' : ''}" data-edif="${nombre}" aria-label="${nombre}">
+      <svg viewBox="0 0 24 24">${ICONOS_EDIF[nombre]}</svg>
+      <span>${nombre}</span><span style="color:var(--piedra);font-size:11px">${vacio ? 'Solar libre' : 'nivel ' + n}</span></button>`;
+  }).join('');
+  const lineas = rutas.length ? rutas.map(r => `
+      <button class="caja" data-ruta="${r.id}" style="width:100%;text-align:left;min-height:44px;align-items:center">
+        <span>${CIUDADES[otro(r, id)].n}${r.cortada ? ' · <b style="color:var(--rojo)">cortada</b>' : ''}</span>
+        <b>${rentaNeta(r) >= 0 ? '+' : ''}${rentaNeta(r)}/mes</b></button>`).join('')
+    : '<p class="peq">Sin rutas. Abre una desde el mapa.</p>';
+  $('#ciudad').innerHTML = `
+    <h2>${c.n}</h2>
+    <div class="sub">${propia ? 'Tu ciudad' : 'Ciudad ' + nombreDue(c.due)} · Mercado ${c.mercado} · Rutas ${rutas.length} de ${maxRutas(id)}</div>
+    <div class="solar">${solares}</div>
+    <div class="titulo">Rutas de esta ciudad</div>
+    ${lineas}
+    <div class="titulo">${propia ? 'Tropas en la ciudad' : 'Guarnición enemiga'}</div>
+    <div class="caja"><span>Legiones · caballos</span><b>${propia ? TROPAS_CASA.leg + ' · ' + TROPAS_CASA.cab : (c.ejercito ? c.ejercito.leg + ' · ' + c.ejercito.cab : '2 · 0')}</b></div>
+    <p class="peq" style="margin-top:12px">Toca un solar para construir o mejorar. Una ruta te lleva al mapa.</p>`;
+  $('#ciudad').querySelectorAll('[data-edif]').forEach(b => b.onclick = () => fichaEdificio(id, b.dataset.edif));
+  $('#ciudad').querySelectorAll('[data-ruta]').forEach(b => b.onclick = () => abrirRuta(b.dataset.ruta));
+}
+
+function fichaEdificio(id, nombre) {
+  const c = CIUDADES[id];
+  const n = nivelEdif(id, nombre);
+  if (c.due !== 'mia') { aviso('Solo puedes construir en tu ciudad.'); return; }
+  const coste = nombre === 'Mercado' ? COSTE_MERCADO : 40 + 40 * n;
+  let efecto;
+  if (nombre === 'Mercado') efecto = `Renta de cada ruta +1 por cada extremo tuyo. Rutas máximas: ${maxRutas(id)} → ${Math.floor(1 + (c.mercado + 1) / 3)}.`;
+  else efecto = {Foro:'Sube la moral de la ciudad.', Puerto:'Necesario para rutas por mar.', Cuartel:'Una legión más disponible.', Templo:'Mejora la fe y la diplomacia.', Granero:'Guarda comida para el ejército.'}[nombre];
+  abrirHoja('hEnviar', `
+    <h2>${nombre}</h2>
+    <p class="peq">${n === 0 ? 'Solar libre' : 'Nivel ' + n}</p>
+    <p>${efecto}</p>
+    <div class="caja"><span>Coste</span><b>${coste} den.</b></div>
+    <div class="fila">
+      <button class="btn primo" id="eSubir" ${ORO < coste ? 'disabled' : ''}>${n === 0 ? 'Construir' : 'Mejorar a nivel ' + (n + 1)}</button>
+      <button class="btn" id="eVolver">Volver</button>
+    </div>`);
+  $('#eVolver').onclick = cerrarHojas;
+  $('#eSubir').onclick = () => {
+    ORO -= coste;
+    if (nombre === 'Mercado') CIUDADES[id].mercado++;
+    else EDIF[id][nombre] = n + 1;
+    pintarOro(); pintarRutas(); pintarCiudad(id); cerrarHojas();
+    aviso(nombre === 'Mercado' ? `Mercado de ${c.n} en nivel <b>${c.mercado}</b>. Las rutas rinden más.` : `${nombre} mejorado en ${c.n}.`);
+  };
+}
+
+/* ---------- Barra inferior ---------- */
+function listaRutas() {
+  const filas = RUTAS.map(r => `
+    <button class="caja" data-r="${r.id}" style="width:100%;text-align:left;min-height:44px;align-items:center">
+      <span>${CIUDADES[r.a].n} – ${CIUDADES[r.b].n}${r.cortada ? ' · <b style="color:var(--rojo)">cortada</b>' : ''}${r.proteccion ? ' · protegida' : ''}</span>
+      <b>${rentaNeta(r)}/mes</b></button>`).join('');
+  abrirHoja('hRuta', `
+    <h2>Rutas de comercio</h2>
+    <p>Las líneas doradas son rutas abiertas: el flujo sale de Roma y entra en Roma. Toca una para cortarla o protegerla.</p>
+    ${filas}
+    <p class="peq" style="margin-top:10px">Renta total: <b>${ingresoMes()}/mes</b>. Para una ruta nueva, toca una ciudad y pulsa «Abrir ruta desde Roma».</p>`);
+  $('#hRutaCont').querySelectorAll('[data-r]').forEach(b => b.onclick = () => abrirRuta(b.dataset.r));
+}
+function listaMarchas() {
+  const propias = MARCHAS.filter(m => m.bando === 'mia');
+  const filas = MARCHAS.map(m => `
+    <button class="caja" data-m="${m.id}" style="width:100%;text-align:left;min-height:44px;align-items:center">
+      <span>${m.bando === 'enemiga' ? 'Enemiga' : 'Tuya'} → ${CIUDADES[m.a].n}</span>
+      <b>${Math.ceil((1 - m.prog) * m.dur / 1000)} s</b></button>`).join('');
+  abrirHoja('hMarcha', `
+    <h2>Marchas</h2>
+    <p>Las flechas avanzan sobre el mapa. Una flecha roja es enemiga: tócala para interceptarla.</p>
+    ${filas || '<p class="peq">No hay marchas en camino.</p>'}
+    <div class="caja" style="margin-top:10px"><span>Libres en Roma</span><b>${TROPAS_CASA.leg} legiones · ${TROPAS_CASA.cab} caballos</b></div>
+    <p class="peq" style="margin-top:8px">Propias en camino: ${propias.length}.</p>`);
+  $('#hMarchaCont').querySelectorAll('[data-m]').forEach(b => b.onclick = () => abrirMarcha(b.dataset.m));
+}
+$('#bRutas').onclick = listaRutas;
+$('#bMarchas').onclick = listaMarchas;
+$('#bDipl').onclick = () => abrirDiplomacia();
+$('#bCiudad').onclick = () => {
+  if (S.vista === 'ciudad') return salirCiudad();
+  cerrarHojas();
+  entrarCiudad(ciudadCercana() || 'roma');
+};
+
+/* ---------- Pellizcar dentro de la ciudad para volver al mapa ---------- */
+const punterosCiudad = new Map();
+let distCiudad0 = 0;
+const $ciudad = $('#ciudad');
+$ciudad.addEventListener('pointerdown', e => {
+  punterosCiudad.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  if (punterosCiudad.size === 2) {
+    const [a, b] = [...punterosCiudad.values()];
+    distCiudad0 = Math.hypot(a.x - b.x, a.y - b.y);
+  }
+});
+$ciudad.addEventListener('pointermove', e => {
+  if (!punterosCiudad.has(e.pointerId)) return;
+  punterosCiudad.set(e.pointerId, {x:e.clientX, y:e.clientY});
+  if (punterosCiudad.size === 2 && S.vista === 'ciudad') {
+    const [a, b] = [...punterosCiudad.values()];
+    const d = Math.hypot(a.x - b.x, a.y - b.y);
+    if (distCiudad0 > 0 && d / distCiudad0 < 0.6) {
+      punterosCiudad.clear();
+      salirCiudad();
+    }
+  }
+});
+const soltarCiudad = e => punterosCiudad.delete(e.pointerId);
+$ciudad.addEventListener('pointerup', soltarCiudad);
+$ciudad.addEventListener('pointercancel', soltarCiudad);
+
+/* ---------- Bucle de animación: marchas avanzan ---------- */
+let ultimo = performance.now();
+function frame(t) {
+  const dt = Math.min(64, t - ultimo);
+  ultimo = t;
+  for (const m of [...MARCHAS]) {
+    m.prog += dt / m.dur;
+    if (m.prog >= 1) { m.prog = 1; llegar(m); }
+  }
+  dibujarMarchas();
+  requestAnimationFrame(frame);
+}
+
+/* ---------- Arranque ---------- */
+S.s = 1.5; S.cx = 185; S.cy = 455;
+pintarCiudades();
+pintarRutas();
+aplicarVista();
+pintarOro();
+actualizarAviso();
+setTimeout(enviarEnemiga, 12000);
+setInterval(enviarEnemiga, 40000);
+setInterval(asaltoRuta, 30000);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

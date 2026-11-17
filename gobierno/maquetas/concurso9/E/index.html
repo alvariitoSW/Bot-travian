@@ -1,0 +1,752 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AQVILA · Esquema de metro</title>
+<style>
+:root{--noche:#0b1016;--noche2:#131c26;--noche3:#1b2733;--linea:#2a3847;--rojo:#c0281f;--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--piedra:#9aa6b4;--oliva:#8fae5a;--terra:#d9764a}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--noche);color:var(--marmol);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;display:flex;flex-direction:column;height:100vh;height:100dvh;overflow:hidden;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+button{font:inherit;color:var(--marmol);background:transparent;border:1px solid #3a4a5a;border-radius:7px;min-height:44px;min-width:44px;padding:8px 12px;cursor:pointer;touch-action:manipulation;text-align:center}
+button:disabled{opacity:.45;cursor:default}
+button.pri{background:var(--oro);border-color:var(--oro);color:var(--noche);font-weight:700}
+button.peligro{border-color:var(--rojo);color:#f4b3ad}
+button.on{background:var(--noche3);border-color:var(--oro);color:var(--oro)}
+button.grande{width:100%;min-height:52px;font-weight:700}
+.tabs{display:flex;gap:6px;padding:8px 12px;background:var(--noche2);border-bottom:1px solid var(--linea)}
+.tabs button{flex:1;font-weight:600}
+.tabs button.on{background:var(--oro);border-color:var(--oro);color:var(--noche)}
+.lugar{display:flex;align-items:center;gap:10px;padding:6px 12px;min-height:54px;background:var(--noche3);border-bottom:1px solid var(--linea);font-size:13px}
+.lugar .txt{flex:1;min-width:0}
+main{position:relative;flex:1;min-height:0}
+.vista{display:none;position:absolute;inset:0;overflow-y:auto;padding:12px 16px 24px}
+.vista.on{display:block}
+#v-mapa{padding:0;overflow:hidden}
+#mapa{width:100%;height:100%;display:block}
+.banner{position:absolute;left:10px;right:10px;top:8px;display:flex;align-items:center;gap:8px;padding:6px 8px;background:rgba(19,28,38,.96);border:1px solid var(--bronce);border-radius:8px;font-size:13px;z-index:5}
+.banner .txt{flex:1;min-width:0}
+.barra{display:flex;align-items:center;gap:6px;padding:8px 10px;background:var(--noche2);border-top:1px solid var(--linea)}
+.barra .din{flex:1;min-width:0;line-height:1.25}
+.barra .din small{display:block;color:var(--piedra);font-size:12px}
+.barra button{padding:6px 8px}
+.hoja{position:fixed;left:0;right:0;bottom:72px;max-height:56vh;overflow-y:auto;background:var(--noche2);border:1px solid var(--bronce);border-bottom:0;border-radius:10px 10px 0 0;padding:14px 16px 18px;z-index:20;box-shadow:0 -10px 30px rgba(0,0,0,.5)}
+.hoja .cerrar{position:absolute;top:6px;right:6px}
+h1{font-size:20px;margin:0 0 4px}
+h2{font-size:17px;margin:0 44px 6px 0}
+h3{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--piedra);margin:14px 0 6px}
+.sub{color:var(--piedra);font-size:13px;margin:0 0 8px}
+.aviso{color:#f4b3ad;font-size:13px;margin:8px 0}
+.noti{font-size:13px;margin:6px 0}
+.caja{background:var(--noche3);border-radius:8px;padding:10px 12px;margin:8px 0}
+.caja p{margin:4px 0}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.fila{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;margin:6px 0;min-height:52px;text-align:left;background:var(--noche3);border:1px solid var(--linea);padding:8px 12px;border-radius:7px}
+.fila small{display:block;color:var(--piedra);font-size:12px}
+.fila2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.fila2 button{width:100%}
+.paso{display:flex;align-items:center;justify-content:center;gap:10px;margin:8px 0}
+.paso button{min-width:56px}
+.edif{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.edf{display:flex;gap:8px;align-items:flex-start;padding:10px;background:var(--noche3);border-radius:8px;font-size:13px}
+.edf svg{color:var(--oro);flex:0 0 26px}
+.edf small{display:block;color:var(--piedra);font-size:12px}
+.barra-voto{height:10px;background:var(--noche);border-radius:5px;overflow:hidden;margin:8px 0}
+.barra-voto i{display:block;height:100%;background:var(--oro)}
+.toast{position:fixed;left:14px;right:14px;top:112px;background:var(--noche2);border:1px solid var(--oro);border-radius:8px;padding:10px 12px;font-size:14px;z-index:30;box-shadow:0 6px 20px rgba(0,0,0,.5)}
+.flujo{stroke-dasharray:4 10;animation:flujo 1.2s linear infinite}
+@keyframes flujo{to{stroke-dashoffset:-14}}
+.lab{font-size:13px;font-weight:600;fill:var(--marmol);paint-order:stroke;stroke:var(--noche);stroke-width:4px;stroke-linejoin:round}
+.renta{font-size:12px;font-weight:700;fill:var(--marmol);paint-order:stroke;stroke:var(--noche);stroke-width:4px}
+.badge text{font-size:11px;font-weight:800;fill:var(--noche);text-anchor:middle;dominant-baseline:central}
+.tok{cursor:pointer}
+.tok rect{fill:var(--marmol);stroke:var(--oro);stroke-width:2}
+.tok.en rect{fill:var(--rojo);stroke:var(--marmol)}
+.tok text{font-size:11px;font-weight:700;fill:var(--noche);text-anchor:middle;dominant-baseline:central}
+.tok.en text{fill:var(--marmol)}
+</style>
+</head>
+<body>
+<nav class="tabs" id="tabs">
+  <button data-act="vista" data-v="ciudad">Ciudad</button>
+  <button data-act="vista" data-v="mapa">Mapa</button>
+  <button data-act="vista" data-v="tratos">Tratos</button>
+</nav>
+<div class="lugar" id="lugar"></div>
+<main>
+  <section class="vista on" id="v-ciudad"></section>
+  <section class="vista" id="v-mapa">
+    <svg id="mapa" viewBox="0 0 390 600" role="img" aria-label="Mapa de rutas en forma de esquema de metro"></svg>
+    <div class="banner" id="banner"></div>
+  </section>
+  <section class="vista" id="v-tratos"></section>
+</main>
+<footer class="barra">
+  <div class="din"><b id="b-din"></b><small id="b-dia"></small></div>
+  <button id="b-pausa" data-act="pausa">Pausa</button>
+  <button id="b-v1" data-act="vel" data-v="1">×1</button>
+  <button id="b-v3" data-act="vel" data-v="3">×3</button>
+  <button data-act="mes">+1 mes</button>
+</footer>
+<div class="hoja" id="hoja" hidden><button class="cerrar" data-act="cerrar" aria-label="Cerrar">×</button><div id="hoja-cont"></div></div>
+<div class="toast" id="toast" hidden></div>
+<script>
+'use strict';
+/* ===== DATOS ===== */
+const NS='http://www.w3.org/2000/svg';
+const P={noche:'#0b1016',rojo:'#c0281f',oro:'#e9c063',bronce:'#b8862b',marmol:'#f1ead9',piedra:'#9aa6b4',oliva:'#8fae5a',terra:'#d9764a'};
+const PX_DIA=22, MES=30, COSTE=100, TRIBUTO=30, DEN_ESC=2, DEN_PAT=1;
+
+const ESTADO={
+  neutral:{n:'Sin tratos',l:'',c:''},
+  paz:{n:'En paz',l:'P',c:P.piedra},
+  comercio:{n:'Tratado de comercio',l:'C',c:P.oro},
+  aliada:{n:'Aliada',l:'A',c:P.oliva},
+  tributo:{n:'Paga tributo',l:'T',c:P.bronce},
+  guerra:{n:'En guerra',l:'G',c:P.rojo}
+};
+const OFERTAS={
+  alianza:{n:'Alianza',d:'Los aliados se ayudan: sus rutas no corren riesgo de piratas.',ok:['neutral','paz','comercio'],p:0.6,nuevo:'aliada'},
+  comercio:{n:'Tratado de comercio',d:'Las rutas con esta ciudad corren la mitad de riesgo.',ok:['neutral','paz'],p:0.8,nuevo:'comercio'},
+  paz:{n:'Paz',d:'Termina la guerra. Ya se puede abrir rutas.',ok:['guerra'],p:0.5,nuevo:'paz'},
+  tributo:{n:'Tributo',d:'La ciudad paga '+TRIBUTO+' denarios al mes y termina la guerra.',ok:['guerra'],p:0.3,nuevo:'tributo'}
+};
+/* Ciudades: estaciones. yo = tuya. mercado (tuyas) o estrellas (ajenas). da = lo que vende. */
+const CIUDADES={
+  roma:{n:'Roma',x:200,y:290,lab:[186,314,'end'],yo:true,mercado:3,guarn:4000,da:'vino',capital:true},
+  ariminum:{n:'Ariminum',x:270,y:150,lab:[288,154,'start'],yo:true,mercado:2,guarn:1000,da:'pescado'},
+  capua:{n:'Capua',x:220,y:410,lab:[206,414,'end'],yo:true,mercado:4,guarn:3000,da:'lana'},
+  cosa:{n:'Cosa',x:100,y:330,lab:[84,334,'end'],yo:true,mercado:1,guarn:1000,da:'sal'},
+  beneventum:{n:'Beneventum',x:290,y:395,lab:[306,390,'start'],yo:true,mercado:2,guarn:1000,da:'aceite'},
+  brundisium:{n:'Brundisium',x:330,y:520,lab:[314,530,'end'],yo:true,mercado:3,guarn:2000,da:'hierro'},
+  volsinii:{n:'Volsinii',x:110,y:200,lab:[96,196,'end'],yo:false,estrellas:2,da:'bronce',estado:'neutral'},
+  aesernia:{n:'Aesernia',x:270,y:310,lab:[288,314,'start'],yo:false,estrellas:2,da:'madera',estado:'aliada'},
+  siracusa:{n:'Siracusa',x:200,y:560,lab:[200,584,'middle'],yo:false,estrellas:3,da:'grano',estado:'aliada'},
+  cartago:{n:'Cartago',x:50,y:510,lab:[50,534,'middle'],yo:false,estrellas:3,da:'marfil',estado:'guerra'}
+};
+/* Caminos: la red de vías. ruta = ruta comercial abierta. mar = por mar. */
+const CAMINOS=[
+  {id:'c1',a:'roma',b:'ariminum',pts:[[200,290],[230,260],[230,190],[270,150]],ruta:true},
+  {id:'c2',a:'roma',b:'volsinii',pts:[[200,290],[160,250],[110,200]]},
+  {id:'c3',a:'roma',b:'cosa',pts:[[200,290],[100,290],[100,330]]},
+  {id:'c4',a:'roma',b:'aesernia',pts:[[200,290],[270,310]],ruta:true},
+  {id:'c5',a:'roma',b:'capua',pts:[[200,290],[200,350],[220,370],[220,410]]},
+  {id:'c6',a:'aesernia',b:'beneventum',pts:[[270,310],[290,340],[290,395]]},
+  {id:'c7',a:'capua',b:'beneventum',pts:[[220,410],[280,410],[290,395]]},
+  {id:'c8',a:'capua',b:'brundisium',pts:[[220,410],[260,450],[330,520]],ruta:true},
+  {id:'c9',a:'beneventum',b:'brundisium',pts:[[290,395],[330,435],[330,520]]},
+  {id:'c10',a:'brundisium',b:'siracusa',pts:[[330,520],[290,560],[200,560]],mar:true,ruta:true},
+  {id:'c11',a:'cosa',b:'cartago',pts:[[100,330],[100,380],[50,430],[50,510]],mar:true},
+  {id:'c12',a:'siracusa',b:'cartago',pts:[[200,560],[140,560],[90,510],[50,510]],mar:true},
+  {id:'c13',a:'ariminum',b:'aesernia',pts:[[270,150],[270,310]]}
+];
+const EDIF=[
+  {n:'Foro',ic:'M4 10l8-6 8 6M3 21h18M5 10h14M6 10v8M10 10v8M14 10v8M18 10v8',d:c=>'Centro de '+c.n+'.'},
+  {n:'Mercado',ic:'M4 9l2-5h12l2 5M4 9h16v3H4zM6 12v9h12v-9',d:c=>'Nivel '+c.mercado+'. Da '+(1+Math.floor(c.mercado/3))+' rutas.'},
+  {n:'Puerto',ic:'M12 3v14M7 10h10M5 14c0 3 3 5 7 5s7-2 7-5',d:()=>'Barcos para las rutas por mar.'},
+  {n:'Granero',ic:'M3 11l9-7 9 7v10H3zM9 21v-6h6v6',d:()=>'Grano para alimentar la ciudad.'},
+  {n:'Cuartel',ic:'M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z',d:c=>'Guarnición: '+fmtN(c.guarn)+' hombres.'},
+  {n:'Muralla',ic:'M3 21V9h3V6h3v3h3V6h3v3h3v12z',d:()=>'Protege la ciudad de los asaltos.'}
+];
+
+/* ===== ESTADO Y AYUDAS ===== */
+const S={vista:'ciudad',ciudad:'roma',oro:400,dia:0,mesCont:0,pausa:false,vel:1,marchas:[],modo:null,hoja:null,cons:null,voto:null,leyes:[],noticias:[],uid:0,proxEnemigo:6,ultimoToque:0};
+const L={};
+const grupos=new Map();
+const $=s=>document.querySelector(s);
+const nom=id=>CIUDADES[id].n;
+const fmtN=n=>String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const dinero=n=>Number.isInteger(n)?String(n):n.toFixed(1).replace('.',',');
+const nomRuta=r=>nom(r.a)+' – '+nom(r.b);
+const tocando=()=>performance.now()-S.ultimoToque<450;
+function poner(el,html){ if(el._h!==html){ el._h=html; el.innerHTML=html; } }
+const btn=(txt,act,id,cls,extra)=>'<button'+(cls?' class="'+cls+'"':'')+' data-act="'+act+'" data-id="'+id+'"'+(extra||'')+'>'+txt+'</button>';
+const svgIc=p=>'<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="'+p+'"/></svg>';
+let tT=null;
+function toast(t){ const el=$('#toast'); el.textContent=t; el.hidden=false; clearTimeout(tT); tT=setTimeout(()=>{el.hidden=true;},3200); }
+function noticia(t){ S.noticias.unshift(t); S.noticias.length=Math.min(S.noticias.length,12); }
+function aviso(t){ noticia(t); toast(t); }
+
+/* ===== GEOMETRIA Y RED ===== */
+const dist=(p,q)=>Math.hypot(q[0]-p[0],q[1]-p[1]);
+const longPts=pts=>{ let s=0; for(let i=0;i<pts.length-1;i++) s+=dist(pts[i],pts[i+1]); return s; };
+const desde=(r,from)=>r.a===from?r.pts:r.pts.slice().reverse();
+const trazo=pts=>'M'+pts.map(p=>p[0]+','+p[1]).join(' L');
+function trazoRuta(nodos){ let pts=[]; for(let i=0;i<nodos.length-1;i++){ const p=desde(caminoEntre(nodos[i],nodos[i+1]),nodos[i]); pts=pts.concat(i?p.slice(1):p); } return trazo(pts); }
+function caminoEntre(a,b){ return CAMINOS.find(r=>(r.a===a&&r.b===b)||(r.a===b&&r.b===a)); }
+function trayecto(de,a){
+  if(de===a) return null;
+  const dd={[de]:0}, prev={}, vis=new Set();
+  for(;;){
+    let u=null;
+    for(const k in dd) if(!vis.has(k)&&(u===null||dd[k]<dd[u])) u=k;
+    if(u===null) return null;
+    if(u===a) break;
+    vis.add(u);
+    for(const r of CAMINOS){
+      const v=r.a===u?r.b:(r.b===u?r.a:null);
+      if(v===null) continue;
+      const nd=dd[u]+r.len;
+      if(dd[v]===undefined||nd<dd[v]){ dd[v]=nd; prev[v]=u; }
+    }
+  }
+  const out=[a];
+  while(out[0]!==de) out.unshift(prev[out[0]]);
+  return out;
+}
+function longTrayecto(nodos){ let s=0; for(let i=0;i<nodos.length-1;i++) s+=caminoEntre(nodos[i],nodos[i+1]).len; return s; }
+const diasDe=nodos=>Math.max(1,Math.ceil(longTrayecto(nodos)/PX_DIA));
+function diasRest(m){ let px=-m.d; for(let i=m.idx;i<m.nodos.length-1;i++) px+=caminoEntre(m.nodos[i],m.nodos[i+1]).len; return Math.max(1,Math.ceil(px/PX_DIA)); }
+function origenMasCercano(dest){
+  let mejor=null, lm=Infinity;
+  for(const id in CIUDADES){
+    const c=CIUDADES[id];
+    if(!c.yo||c.guarn<500||id===dest) continue;
+    const n=trayecto(id,dest); if(!n) continue;
+    const l=longTrayecto(n); if(l<lm){ lm=l; mejor=id; }
+  }
+  return mejor;
+}
+
+/* ===== RENTA, RUTAS, RIESGO ===== */
+const maxRutas=id=>1+Math.floor(CIUDADES[id].mercado/3);
+const rutasDe=id=>CAMINOS.filter(r=>r.ruta&&(r.a===id||r.b===id)).length;
+const aporte=id=>CIUDADES[id].yo?CIUDADES[id].mercado:CIUDADES[id].estrellas;
+const renta=r=>(4+aporte(r.a)+aporte(r.b))*(r.mar?1.5:1);
+function riesgoDe(r){
+  if(r.prot==='escolta') return 0;
+  let p=r.mar?0.35:0.15;
+  if(r.prot==='patrulla') p*=0.5;
+  let k=1;
+  for(const id of [r.a,r.b]){
+    const C=CIUDADES[id];
+    if(!C.yo){ if(C.estado==='aliada') k=0; else if(C.estado==='comercio') k=Math.min(k,0.5); }
+  }
+  return p*k;
+}
+function motivoNoAbrir(r){
+  for(const id of [r.a,r.b]){ const C=CIUDADES[id]; if(!C.yo&&C.estado==='guerra') return C.n+' está en guerra contigo: no hay comercio. Propón paz en Tratos.'; }
+  for(const id of [r.a,r.b]){ const C=CIUDADES[id]; if(C.yo&&rutasDe(id)>=maxRutas(id)) return C.n+' ya tiene '+rutasDe(id)+' de '+maxRutas(id)+' rutas. Sube su mercado o corta una.'; }
+  if(S.oro<COSTE) return 'No tienes '+COSTE+' denarios.';
+  return '';
+}
+function declararGuerra(id){
+  CIUDADES[id].estado='guerra';
+  for(const r of CAMINOS) if(r.ruta&&(r.a===id||r.b===id)){ r.ruta=false; r.prot='ninguna'; }
+}
+
+/* ===== MARCHAS ===== */
+function posicion(m){
+  if(m.estado==='parada'){ const c=CIUDADES[m.destino]; return {x:c.x,y:c.y+26}; }
+  if(m.estado!=='camino') return null;
+  const a=m.nodos[m.idx], b=m.nodos[m.idx+1];
+  const r=caminoEntre(a,b);
+  const pts=desde(r,a);
+  let d=m.d;
+  for(let i=0;i<pts.length-1;i++){
+    const s=dist(pts[i],pts[i+1]);
+    if(d<=s){ const t=s?d/s:0; return {x:pts[i][0]+(pts[i+1][0]-pts[i][0])*t, y:pts[i][1]+(pts[i+1][1]-pts[i][1])*t}; }
+    d-=s;
+  }
+  const l=pts[pts.length-1]; return {x:l[0],y:l[1]};
+}
+function avanzar(m,dias){
+  let px=PX_DIA*dias*(m.kind==='interc'?1.6:1);
+  while(px>0&&m.estado==='camino'){
+    const r=caminoEntre(m.nodos[m.idx],m.nodos[m.idx+1]);
+    const falta=r.len-m.d;
+    if(px<falta){ m.d+=px; px=0; }
+    else{
+      px-=falta; m.d=0; m.idx++;
+      if(m.idx>=m.nodos.length-1){ m.idx=m.nodos.length-1; m.estado='llegada'; }
+    }
+  }
+  if(m.estado==='llegada') llegada(m);
+}
+function devolver(m){ CIUDADES[m.origen].guarn+=m.tropas; m.tropas=0; m.estado='fin'; }
+function llegada(m){
+  if(m.kind==='enemiga'){
+    const c=CIUDADES[m.destino];
+    if(c.guarn>=m.tropas*0.9){ c.guarn-=Math.round(m.tropas*0.2); aviso(c.n+' rechaza el asalto cartaginés.'); }
+    else { const p=Math.min(S.oro,60); S.oro-=p; aviso('Asaltan '+c.n+': pierdes '+p+' denarios.'); }
+    m.estado='fin'; return;
+  }
+  if(m.kind==='nuestra'){
+    const c=CIUDADES[m.destino];
+    if(c.yo){ c.guarn+=m.tropas; m.tropas=0; m.estado='fin'; aviso('Las tropas llegan a '+c.n+' y se quedan de guarnición.'); }
+    else { m.estado='parada'; aviso('Un ejército acampa ante '+c.n+'.'); }
+    return;
+  }
+  if(m.kind==='interc') aviso('No alcanzamos a la marcha enemiga.');
+  devolver(m);
+}
+function batalla(m,e){
+  const fn=m.tropas*(0.8+Math.random()*0.4), fe=e.tropas*(0.8+Math.random()*0.4);
+  const via=nomRuta({a:m.nodos[0],b:m.nodos[1]});
+  if(fn>=fe){
+    e.estado='fin'; m.tropas=Math.round(m.tropas*0.85); S.oro+=60;
+    aviso('Vencemos en '+via+': destruimos '+fmtN(e.tropas)+' cartagineses. Botín: 60 denarios.');
+  } else {
+    m.tropas=Math.round(m.tropas*0.3);
+    aviso('Perdemos en '+via+'. Quedan '+fmtN(m.tropas)+' hombres.');
+  }
+  devolver(m);
+}
+function revisarIntercepciones(){
+  for(const m of S.marchas){
+    if(m.kind!=='interc'||m.estado!=='camino') continue;
+    const e=S.marchas.find(x=>x.id===m.enemigo);
+    const via=caminoEntre(m.nodos[0],m.nodos[1]);
+    if(!e||e.estado!=='camino'){ aviso('La marcha enemiga ya no está en el camino.'); devolver(m); continue; }
+    if(caminoEntre(e.nodos[e.idx],e.nodos[e.idx+1])!==via){ aviso('La marcha enemiga ya no está en esa vía.'); devolver(m); continue; }
+    const se=e.nodos[e.idx]===m.nodos[0]?e.d:via.len-e.d;
+    const diff=m.d-se;
+    if(m.prev!==undefined&&(Math.sign(diff)!==Math.sign(m.prev)||Math.abs(diff)<4)) batalla(m,e);
+    else m.prev=diff;
+  }
+}
+function lanzarEnemigo(){
+  const obj=['cosa','brundisium','capua','roma'][Math.floor(Math.random()*4)];
+  const nodos=trayecto('cartago',obj); if(!nodos) return;
+  const t=1500+500*Math.floor(Math.random()*4);
+  S.marchas.push({id:'m'+(++S.uid),kind:'enemiga',nodos,idx:0,d:0,tropas:t,origen:'cartago',destino:obj,estado:'camino'});
+  aviso('Un ejército cartaginés ('+fmtN(t)+' hombres) sale hacia '+nom(obj)+'.');
+}
+function finDeMes(){
+  let neto=0;
+  const extra=[];
+  for(const r of CAMINOS){
+    if(!r.ruta) continue;
+    const base=renta(r);
+    const sup=r.prot==='escolta'?DEN_ESC:(r.prot==='patrulla'?DEN_PAT:0);
+    let cobro=base;
+    if(Math.random()<riesgoDe(r)){ cobro=0; extra.push('Piratas asaltan la ruta '+nomRuta(r)+': no entra renta este mes.'); }
+    neto+=cobro-sup;
+  }
+  for(const id in CIUDADES) if(CIUDADES[id].estado==='tributo') neto+=TRIBUTO;
+  S.oro=Math.round(S.oro+neto);
+  for(const t of extra) noticia(t);
+  aviso('Fin de mes: '+(neto>=0?'entran ':'salen ')+dinero(Math.abs(Math.round(neto*10)/10))+' denarios.');
+}
+function paso(dias){
+  S.dia+=dias;
+  while(S.mesCont<Math.floor(S.dia/MES)){ S.mesCont++; finDeMes(); }
+  if(S.dia>=S.proxEnemigo){ S.proxEnemigo=S.dia+14; if(CIUDADES.cartago.estado==='guerra') lanzarEnemigo(); }
+  for(const m of S.marchas) if(m.estado==='camino') avanzar(m,dias);
+  revisarIntercepciones();
+  S.marchas=S.marchas.filter(m=>m.estado!=='fin');
+}
+function pasarMes(){
+  const falta=MES-(S.dia%MES);
+  const n=Math.ceil(falta/0.25)+1;
+  for(let i=0;i<n;i++) paso(0.25);
+}
+
+/* ===== ACCIONES DE RUTAS, TROPAS Y TRATOS ===== */
+function abrirRuta(rid){
+  const r=CAMINOS.find(x=>x.id===rid); if(!r) return;
+  const m=motivoNoAbrir(r); if(m){ toast(m); return; }
+  S.oro-=COSTE; r.ruta=true; r.prot='ninguna';
+  aviso('Ruta abierta: '+nomRuta(r)+'. Renta: '+dinero(renta(r))+' denarios al mes.');
+}
+function cortar(rid){
+  const r=CAMINOS.find(x=>x.id===rid); if(!r) return;
+  r.ruta=false; r.prot='ninguna';
+  aviso('Cortas la ruta '+nomRuta(r)+'. Ya no entra renta.');
+}
+function protec(rid,p){
+  const r=CAMINOS.find(x=>x.id===rid); if(!r||!r.ruta) return;
+  r.prot=r.prot===p?'ninguna':p;
+  toast(r.prot==='ninguna'?'Ruta sin protección.':(p==='escolta'?'Escolta: no hay asaltos. Cuesta 2 denarios al mes.':'Patrulla: la mitad de asaltos. Cuesta 1 denario al mes.'));
+}
+function interceptar(eid){
+  const e=S.marchas.find(x=>x.id===eid); if(!e||e.estado!=='camino') return;
+  const via=caminoEntre(e.nodos[e.idx],e.nodos[e.idx+1]);
+  const x=[via.a,via.b].find(c=>CIUDADES[c].yo&&CIUDADES[c].guarn>=500);
+  if(!x){ toast('No tenemos tropas en esta vía.'); return; }
+  const y=via.a===x?via.b:via.a;
+  const t=Math.min(CIUDADES[x].guarn,3000);
+  CIUDADES[x].guarn-=t;
+  const m={id:'m'+(++S.uid),kind:'interc',nodos:[x,y],idx:0,d:0,tropas:t,origen:x,destino:y,enemigo:eid,estado:'camino',prev:undefined};
+  S.marchas.push(m);
+  aviso('Salen '+fmtN(t)+' hombres de '+nom(x)+' al encuentro de los cartagineses.');
+  S.hoja={tipo:'ejercito',id:m.id};
+}
+function volver(mid){
+  const m=S.marchas.find(x=>x.id===mid&&x.estado==='parada'); if(!m) return;
+  const n=trayecto(m.destino,m.origen);
+  if(!n){ toast('No hay camino de vuelta.'); return; }
+  m.nodos=n; m.idx=0; m.d=0; m.kind='vuelta'; m.estado='camino';
+  toast('Vuelven a '+nom(m.origen)+' en '+diasDe(n)+' días.');
+}
+function saquear(mid){
+  const m=S.marchas.find(x=>x.id===mid&&x.estado==='parada'); if(!m) return;
+  const C=CIUDADES[m.destino];
+  if(C.estado!=='neutral'&&C.estado!=='guerra'){ toast('Hay un tratado con '+C.n+': no se puede saquear.'); return; }
+  const botin=Math.round(m.tropas*0.02);
+  S.oro+=botin;
+  declararGuerra(m.destino);
+  aviso('Saqueamos '+C.n+': +'+botin+' denarios. Se cortan sus rutas y empieza la guerra.');
+  volver(mid);
+}
+function abrirConstructor(destino,origenPref){
+  const origen=origenPref||origenMasCercano(destino);
+  S.cons={destino:destino,origen:origen,tropas:origen?Math.min(CIUDADES[origen].guarn,2000):0};
+  S.vista='mapa';
+  S.hoja={tipo:'cons',id:null};
+}
+function marchar(){
+  const C=S.cons; if(!C||!C.origen) return;
+  const o=CIUDADES[C.origen], nodos=trayecto(C.origen,C.destino);
+  if(!nodos||C.tropas<500||C.tropas>o.guarn){ toast('No se puede marchar con esas tropas.'); return; }
+  o.guarn-=C.tropas;
+  S.marchas.push({id:'m'+(++S.uid),kind:'nuestra',nodos:nodos,idx:0,d:0,tropas:C.tropas,origen:C.origen,destino:C.destino,estado:'camino'});
+  aviso('Sale una legión de '+fmtN(C.tropas)+' hombres desde '+o.n+' hacia '+nom(C.destino)+'. Llega en '+diasDe(nodos)+' días.');
+  cerrarHoja();
+  S.vista='mapa';
+}
+function proponer(id,t){
+  const c=CIUDADES[id], o=OFERTAS[t];
+  if(!o||!o.ok.includes(c.estado)){ toast('Esa ley no vale ahora.'); return; }
+  const ok=Math.random()<o.p-(c.estrellas-2)*0.05;
+  const fav=ok?151+Math.floor(Math.random()*60):70+Math.floor(Math.random()*79);
+  const v={id:id,t:t,ok:ok,fav:fav,cont:300-fav,fase:'votando',ley:o.n+' con '+c.n};
+  S.voto=v;
+  S.hoja={tipo:'voto',id:null};
+  setTimeout(()=>{
+    v.fase='fin';
+    if(v.ok){ c.estado=o.nuevo; aviso('El Senado aprueba: '+v.ley+'.'); }
+    else toast('El Senado rechaza: '+v.ley+'.');
+    S.leyes.unshift({ley:v.ley,ok:v.ok});
+    renderAll();
+  },1200);
+}
+function cerrarHoja(){ S.hoja=null; S.cons=null; $('#hoja').hidden=true; }
+function abrirHoja(tipo,id){ S.hoja={tipo:tipo,id:id||null}; $('#hoja').hidden=false; }
+function irVista(v){ S.vista=v; if(v!=='mapa') S.modo=null; cerrarHoja(); }
+function tocarEstacion(id){
+  const m=S.modo;
+  if(m&&m.tipo==='ruta'){
+    if(id===m.de){ toast('Elige otra ciudad.'); return; }
+    const r=caminoEntre(m.de,id);
+    if(!r){ toast('No hay camino directo entre '+nom(m.de)+' y '+nom(id)+'. Elige otra ciudad.'); return; }
+    S.modo=null; abrirHoja('camino',r.id); return;
+  }
+  if(m&&m.tipo==='marcha'){
+    if(id===m.de){ toast('Elige otra ciudad.'); return; }
+    S.modo=null; abrirConstructor(id,m.de); return;
+  }
+  abrirHoja('estacion',id);
+}
+
+/* ===== TEXTOS DE VISTAS Y HOJAS ===== */
+function filaCamino(r){
+  return '<button class="fila" data-act="ver-camino" data-id="'+r.id+'"><span>'+nomRuta(r)+'<small>'+(r.ruta?'Ruta abierta · '+dinero(renta(r))+' denarios al mes':'Camino sin ruta')+'</small></span><span aria-hidden="true">›</span></button>';
+}
+function htmlCiudad(){
+  const c=CIUDADES[S.ciudad];
+  let h='<h1>'+c.n+(c.capital?' <small class="sub">capital</small>':'')+'</h1>';
+  h+='<p class="sub">Mercado '+c.mercado+' · '+rutasDe(S.ciudad)+' de '+maxRutas(S.ciudad)+' rutas · guarnición '+fmtN(c.guarn)+' hombres</p>';
+  h+='<div class="chips">'+Object.keys(CIUDADES).filter(id=>CIUDADES[id].yo).map(id=>btn(nom(id),'ciudad',id,id===S.ciudad?'on':'')).join('')+'</div>';
+  h+='<h3>Edificios</h3><div class="edif">'+EDIF.map(e=>'<div class="edf">'+svgIc(e.ic)+'<span><b>'+e.n+'</b><small>'+e.d(c)+'</small></span></div>').join('')+'</div>';
+  h+='<h3>Rutas de '+c.n+'</h3>'+CAMINOS.filter(r=>r.a===S.ciudad||r.b===S.ciudad).map(filaCamino).join('');
+  h+='<div class="fila2">'+btn('Enviar tropas desde aquí','modo-marcha','')+btn('Abrir ruta desde aquí','modo-ruta','')+'</div>';
+  h+='<button class="grande pri" data-act="vista" data-v="mapa">Salir al mapa</button>';
+  h+='<h3>Noticias</h3>'+(S.noticias.length?S.noticias.slice(0,5).map(n=>'<p class="noti">'+n+'</p>').join(''):'<p class="sub">Nada todavía.</p>');
+  return h;
+}
+function htmlTratos(){
+  let h='<h1>Tratos</h1><p class="sub">Un tratado es una ley: la vota el Senado. Cada ciudad ajena tiene estrellas. Cuantas más, más renta dan sus rutas.</p>';
+  for(const id in CIUDADES){
+    const c=CIUDADES[id]; if(c.yo) continue;
+    h+='<div class="fila"><span>'+c.n+'<small>'+c.estrellas+' estrellas · '+ESTADO[c.estado].n+'</small></span>'+btn('Negociar','negociar',id,'')+'</div>';
+  }
+  h+='<h3>Leyes votadas</h3>'+(S.leyes.length?S.leyes.slice(0,5).map(l=>'<p class="noti">'+l.ley+': <b>'+(l.ok?'aprobada':'rechazada')+'</b></p>').join(''):'<p class="sub">Aún no se ha votado nada.</p>');
+  return h;
+}
+function htmlBanner(){
+  const m=S.modo;
+  if(m&&m.tipo==='ruta') return '<span class="txt">Toca la ciudad a la que llega la ruta desde <b>'+nom(m.de)+'</b>.</span>'+btn('Cancelar','cancelar-modo','');
+  if(m&&m.tipo==='marcha') return '<span class="txt">Toca a dónde marchan las tropas desde <b>'+nom(m.de)+'</b>.</span>'+btn('Cancelar','cancelar-modo','');
+  return '<span class="txt">Toca una ciudad o una línea. Las líneas gruesas son rutas abiertas.</span>';
+}
+function htmlEstacion(id){
+  const c=CIUDADES[id];
+  let h='<h2>'+c.n+'</h2>';
+  if(c.yo){
+    h+='<p class="sub">Ciudad tuya'+(c.capital?' · capital':'')+' · mercado '+c.mercado+' · '+rutasDe(id)+' de '+maxRutas(id)+' rutas · guarnición '+fmtN(c.guarn)+' hombres</p>';
+    h+=btn('Ir a la ciudad','ir-ciudad',id,'pri grande');
+  } else {
+    h+='<p class="sub">Ciudad ajena · '+c.estrellas+' estrellas · '+ESTADO[c.estado].n+'</p>';
+    h+=btn('Tratos con '+c.n,'negociar',id,'grande');
+  }
+  h+='<div class="fila2">'+btn('Abrir ruta desde aquí','modo-ruta-de',id)+btn('Enviar tropas aquí','marcha-a',id)+'</div>';
+  h+='<h3>Caminos</h3>'+CAMINOS.filter(r=>r.a===id||r.b===id).map(filaCamino).join('');
+  return h;
+}
+function formula(r){
+  const t=id=>CIUDADES[id].yo?'mercado de '+nom(id)+' ('+CIUDADES[id].mercado+')':CIUDADES[id].estrellas+' estrellas de '+nom(id);
+  return 'Renta = (4 + '+t(r.a)+' + '+t(r.b)+')'+(r.mar?' × 1,5 por mar':'')+'.';
+}
+function htmlCamino(rid){
+  const r=CAMINOS.find(x=>x.id===rid); if(!r) return null;
+  let h='<h2>'+nomRuta(r)+'</h2><p class="sub">'+(r.mar?'Camino por mar.':'Camino por tierra.')+'</p>';
+  if(r.ruta){
+    h+='<div class="caja"><p><b>Renta: '+dinero(renta(r))+' denarios al mes</b></p><p class="sub">'+formula(r)+'</p>'
+      +'<p>Sale de '+nom(r.a)+': <b>'+CIUDADES[r.a].da+'</b>. Entra en '+nom(r.a)+': <b>'+CIUDADES[r.b].da+'</b>.</p>'
+      +'<p class="sub">Protección: '+r.prot+'. Riesgo de piratas: '+Math.round(riesgoDe(r)*100)+' % al mes.</p></div>';
+    h+='<div class="fila2">'+btn('Escolta · 2 den. al mes','prot',r.id,r.prot==='escolta'?'on':'',' data-p="escolta"')+btn('Patrulla · 1 den. al mes','prot',r.id,r.prot==='patrulla'?'on':'',' data-p="patrulla"')+'</div>';
+    h+=btn('Cortar la ruta','cortar',r.id,'peligro grande');
+    h+='<p class="sub">Escolta: no hay asaltos. Patrulla: la mitad de asaltos. Cortar: no entra renta.</p>';
+  } else {
+    const m=motivoNoAbrir(r);
+    h+='<div class="caja"><p>Este camino no paga nada. Abrir la ruta cuesta '+COSTE+' denarios.</p><p class="sub">Renta si se abre: '+dinero(renta(r))+' denarios al mes.</p><p class="sub">'+formula(r)+'</p></div>';
+    h+=btn('Abrir ruta · '+COSTE+' denarios','abrir-ruta',r.id,'pri grande',m?' disabled':'');
+    if(m) h+='<p class="aviso">'+m+'</p>';
+  }
+  return h;
+}
+function htmlEjercito(id){
+  const m=S.marchas.find(x=>x.id===id&&x.kind!=='enemiga'); if(!m) return null;
+  const fin=m.nodos[m.nodos.length-1];
+  let h='<h2>'+(m.kind==='interc'?'Tropas al encuentro':'Legión')+' · '+fmtN(m.tropas)+' hombres</h2>';
+  if(m.estado==='camino'){
+    h+='<p class="sub">'+(m.kind==='vuelta'?'Vuelve':'Va')+' hacia '+nom(fin)+'. Llega en '+diasRest(m)+' días.</p>';
+  } else {
+    const C=CIUDADES[m.destino];
+    h+='<p class="sub">Acampa ante '+C.n+'. Sus tropas están fuera de la guarnición.</p>';
+    if(!C.yo){
+      const ok=C.estado==='neutral'||C.estado==='guerra';
+      h+=btn('Saquear '+C.n+' · unos '+dinero(Math.round(m.tropas*0.02))+' denarios','saquear',id,'peligro grande',ok?'':' disabled');
+      if(!ok) h+='<p class="aviso">Hay un tratado con '+C.n+': no se puede saquear.</p>';
+    }
+    h+=btn('Volver a '+nom(m.origen),'volver',id,'pri grande');
+  }
+  return h;
+}
+function htmlEnemiga(id){
+  const e=S.marchas.find(x=>x.id===id&&x.kind==='enemiga'&&x.estado==='camino'); if(!e) return null;
+  const via=caminoEntre(e.nodos[e.idx],e.nodos[e.idx+1]);
+  let h='<h2>Ejército cartaginés</h2><p class="sub">'+fmtN(e.tropas)+' hombres hacia '+nom(e.destino)+'. Llega en '+diasRest(e)+' días. Va por la vía '+nomRuta(via)+'.</p>';
+  const x=[via.a,via.b].find(c=>CIUDADES[c].yo&&CIUDADES[c].guarn>=500);
+  if(x) h+=btn('Interceptar desde '+nom(x)+' · '+fmtN(Math.min(CIUDADES[x].guarn,3000))+' hombres','interceptar',id,'pri grande');
+  else h+='<p class="aviso">No tenemos tropas cerca de esta vía. Solo podemos defender '+nom(e.destino)+' con su guarnición.</p>';
+  return h;
+}
+function htmlCons(){
+  const C=S.cons; if(!C) return null;
+  const dest=CIUDADES[C.destino];
+  let h='<h2>Enviar tropas a '+dest.n+'</h2><h3>Desde qué ciudad</h3><div class="chips">';
+  for(const id in CIUDADES){
+    const c=CIUDADES[id];
+    if(c.yo&&c.guarn>0&&id!==C.destino) h+=btn(nom(id)+' · '+fmtN(c.guarn),'cons-origen',id,C.origen===id?'on':'');
+  }
+  h+='</div>';
+  if(!C.origen) return h+'<p class="aviso">No tenemos tropas que puedan llegar. Pon guarnición en una ciudad.</p>';
+  const o=CIUDADES[C.origen];
+  if(C.tropas>o.guarn) C.tropas=o.guarn;
+  const nodos=trayecto(C.origen,C.destino);
+  h+='<h3>Cuántos hombres</h3><div class="paso">'+btn('−','tropas','','',' data-d="-500"')+'<b>'+fmtN(C.tropas)+' hombres</b>'+btn('+','tropas','','',' data-d="500"')+'</div>';
+  h+='<div class="fila2">'+btn('Mitad','tropas','','',' data-d="mitad"')+btn('Todas','tropas','','',' data-d="todas"')+'</div>';
+  if(!nodos) h+='<p class="aviso">No hay camino hasta '+dest.n+' desde '+o.n+'.</p>';
+  else h+='<p class="sub">Camino: '+nodos.map(x=>nom(x)).join(' → ')+'. Tarda '+diasDe(nodos)+' días.</p>';
+  h+=btn('Marchar','marchar','','pri grande',(!nodos||C.tropas<500)?' disabled':'');
+  return h;
+}
+function htmlTrato(id){
+  const c=CIUDADES[id]; if(!c||c.yo) return null;
+  let h='<h2>'+c.n+'</h2><p class="sub">'+c.estrellas+' estrellas · '+ESTADO[c.estado].n+'</p><p class="sub">Propones el tratado al Senado. Si lo aprueba, rige al momento.</p>';
+  for(const t in OFERTAS){
+    const o=OFERTAS[t], ok=o.ok.includes(c.estado);
+    h+='<div class="caja"><b>'+o.n+'</b><p class="sub">'+o.d+'</p>'+btn(ok?'Proponer al Senado':'No vale ahora','proponer',id,ok?'pri grande':'grande',(ok?'':' disabled')+' data-t="'+t+'"')+'</div>';
+  }
+  return h;
+}
+function htmlVoto(){
+  const v=S.voto; if(!v) return null;
+  let h='<h2>Senado</h2><p><b>Ley:</b> '+v.ley+'</p>';
+  if(v.fase==='votando'){
+    h+='<p class="sub">Votan los 300 senadores…</p><div class="barra-voto"><i style="width:50%"></i></div>';
+  } else {
+    h+='<p class="sub">A favor: '+v.fav+' · en contra: '+v.cont+'</p><div class="barra-voto"><i style="width:'+(v.fav/3).toFixed(1)+'%"></i></div>'
+      +'<p><b>'+(v.ok?'Aprobada.':'Rechazada.')+'</b> '+(v.ok?'Ya rige: '+OFERTAS[v.t].d:'La ciudad sigue igual. Puedes volver a proponerla.')+'</p>';
+  }
+  return h;
+}
+
+/* ===== DIBUJO ===== */
+function nodosResalte(){
+  const h=S.hoja; if(!h) return null;
+  if(h.tipo==='cons'&&S.cons&&S.cons.origen&&S.cons.origen!==S.cons.destino) return trayecto(S.cons.origen,S.cons.destino);
+  if(h.tipo==='camino'){ const r=CAMINOS.find(x=>x.id===h.id); return r?[r.a,r.b]:null; }
+  if(h.tipo==='ejercito'||h.tipo==='enemiga'){ const m=S.marchas.find(x=>x.id===h.id); return m?m.nodos:null; }
+  return null;
+}
+function renderCapas(){
+  let base='',flu='',res='',est='';
+  for(const r of CAMINOS){
+    const d=trazo(r.pts);
+    if(r.ruta){
+      base+='<path d="'+d+'" fill="none" stroke="'+(r.mar?P.terra:P.oliva)+'" stroke-width="'+(3+renta(r)/2).toFixed(1)+'" stroke-linecap="round" stroke-linejoin="round"'+(r.mar?' stroke-dasharray="7 5"':'')+'/>';
+      flu+='<path d="'+d+'" fill="none" stroke="'+P.oro+'" stroke-width="2.5" stroke-linecap="round" class="flujo"/>';
+      const m=r.pts[Math.floor(r.pts.length/2)];
+      flu+='<text class="renta" x="'+m[0]+'" y="'+(m[1]-10)+'" text-anchor="middle">'+dinero(renta(r))+'</text>';
+    } else {
+      base+='<path d="'+d+'" fill="none" stroke="'+P.piedra+'" stroke-width="3" stroke-linecap="round" opacity=".45"'+(r.mar?' stroke-dasharray="3 6"':'')+'/>';
+    }
+  }
+  const nr=nodosResalte();
+  if(nr){
+    const dd=trazoRuta(nr);
+    res='<path d="'+dd+'" fill="none" stroke="'+P.marmol+'" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity=".18"/>'
+      +'<path d="'+dd+'" fill="none" stroke="'+P.marmol+'" stroke-width="2" stroke-dasharray="2 4" stroke-linecap="round" opacity=".9"/>';
+  }
+  for(const id in CIUDADES){
+    const c=CIUDADES[id];
+    const borde=c.yo?P.marmol:(c.estado==='guerra'?P.rojo:P.piedra);
+    let extra='';
+    if(c.yo&&id===S.ciudad) extra+='<circle cx="'+c.x+'" cy="'+c.y+'" r="16" fill="none" stroke="'+P.oro+'" stroke-width="1.5" stroke-dasharray="2 3"/>';
+    if(!c.yo&&ESTADO[c.estado].l) extra+='<g class="badge"><circle cx="'+(c.x+14)+'" cy="'+(c.y-13)+'" r="9" fill="'+ESTADO[c.estado].c+'" stroke="'+P.noche+'" stroke-width="2"/><text x="'+(c.x+14)+'" y="'+(c.y-13)+'">'+ESTADO[c.estado].l+'</text></g>';
+    est+='<g data-st="'+id+'" style="cursor:pointer"><circle cx="'+c.x+'" cy="'+c.y+'" r="20" fill="transparent"/>'+extra
+      +'<circle cx="'+c.x+'" cy="'+c.y+'" r="9" fill="'+(c.yo?P.oro:P.noche)+'" stroke="'+borde+'" stroke-width="3.5"/>'
+      +'<text class="lab" x="'+c.lab[0]+'" y="'+c.lab[1]+'" text-anchor="'+c.lab[2]+'">'+c.n+'</text></g>';
+  }
+  poner(L.caminos,base); poner(L.flujos,flu); poner(L.res,res); poner(L.est,est);
+}
+function renderDyn(){
+  const vivos=new Set();
+  for(const m of S.marchas){
+    const p=posicion(m); if(!p) continue;
+    let g=grupos.get(m.id);
+    if(!g){
+      g=document.createElementNS(NS,'g');
+      g.setAttribute('class','tok'+(m.kind==='enemiga'?' en':''));
+      g.setAttribute('data-mar',m.id);
+      g.innerHTML='<rect x="-30" y="-11" width="60" height="22" rx="6"/><text></text>';
+      L.dyn.appendChild(g); grupos.set(m.id,g);
+    }
+    g.setAttribute('transform','translate('+p.x.toFixed(1)+','+p.y.toFixed(1)+')');
+    const txt=(m.kind==='enemiga'?'C ':'L ')+fmtN(m.tropas);
+    const t=g.querySelector('text'); if(t.textContent!==txt) t.textContent=txt;
+    vivos.add(m.id);
+  }
+  for(const [id,g] of grupos) if(!vivos.has(id)){ g.remove(); grupos.delete(id); }
+}
+function renderStrip(){
+  let t,b;
+  if(S.vista==='ciudad'){ t='Estás en la <b>ciudad</b> de '+nom(S.ciudad); b=btn('Ir al mapa','vista','', '', ' data-v="mapa"'); }
+  else if(S.vista==='mapa'){ t='Estás en el <b>mapa</b> de Italia'; b=btn('Volver a '+nom(S.ciudad),'vista','', '', ' data-v="ciudad"'); }
+  else { t='Estás en <b>Tratos</b> con el Senado'; b=btn('Ir al mapa','vista','', '', ' data-v="mapa"'); }
+  poner($('#lugar'),'<div class="txt">'+t+'</div>'+b);
+}
+function renderVistas(){
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.v===S.vista));
+  for(const v of ['ciudad','mapa','tratos']) $('#v-'+v).classList.toggle('on',S.vista===v);
+  if(S.vista==='ciudad') poner($('#v-ciudad'),htmlCiudad());
+  else if(S.vista==='tratos') poner($('#v-tratos'),htmlTratos());
+  poner($('#banner'),htmlBanner());
+  renderStrip();
+}
+function renderHoja(){
+  const h=S.hoja;
+  if(!h){ $('#hoja').hidden=true; return; }
+  let html=null;
+  if(h.tipo==='estacion') html=htmlEstacion(h.id);
+  else if(h.tipo==='camino') html=htmlCamino(h.id);
+  else if(h.tipo==='ejercito') html=htmlEjercito(h.id);
+  else if(h.tipo==='enemiga') html=htmlEnemiga(h.id);
+  else if(h.tipo==='cons') html=htmlCons();
+  else if(h.tipo==='trato') html=htmlTrato(h.id);
+  else if(h.tipo==='voto') html=htmlVoto();
+  if(html===null){ S.hoja=null; $('#hoja').hidden=true; return; }
+  $('#hoja').hidden=false;
+  poner($('#hoja-cont'),html);
+}
+function renderBarra(){
+  const mes=Math.floor(S.dia/MES)+1, dia=Math.floor(S.dia%MES)+1;
+  $('#b-din').textContent=dinero(S.oro)+' denarios';
+  $('#b-dia').textContent='Mes '+mes+' · día '+dia;
+  $('#b-pausa').textContent=S.pausa?'Seguir':'Pausa';
+  $('#b-v1').classList.toggle('on',S.vel===1);
+  $('#b-v3').classList.toggle('on',S.vel===3);
+}
+function renderCapasYVistas(){ renderVistas(); renderCapas(); renderHoja(); renderDyn(); renderBarra(); }
+function renderAll(){ renderCapasYVistas(); }
+
+/* ===== ACCIONES ===== */
+function accion(act,d){
+  switch(act){
+    case 'vista': irVista(d.v); break;
+    case 'ciudad': S.ciudad=d.id; break;
+    case 'ir-ciudad': S.ciudad=d.id; S.vista='ciudad'; S.modo=null; cerrarHoja(); break;
+    case 'ver-camino': S.vista='mapa'; S.modo=null; abrirHoja('camino',d.id); break;
+    case 'modo-ruta': S.modo={tipo:'ruta',de:S.ciudad}; S.vista='mapa'; cerrarHoja(); break;
+    case 'modo-marcha': S.modo={tipo:'marcha',de:S.ciudad}; S.vista='mapa'; cerrarHoja(); break;
+    case 'modo-ruta-de': S.modo={tipo:'ruta',de:d.id}; cerrarHoja(); break;
+    case 'marcha-a': abrirConstructor(d.id); break;
+    case 'cancelar-modo': S.modo=null; break;
+    case 'cerrar': cerrarHoja(); break;
+    case 'abrir-ruta': abrirRuta(d.id); break;
+    case 'cortar': cortar(d.id); break;
+    case 'prot': protec(d.id,d.p); break;
+    case 'cons-origen': if(S.cons){ S.cons.origen=d.id; S.cons.tropas=Math.min(CIUDADES[d.id].guarn,2000); } break;
+    case 'tropas':
+      if(S.cons&&S.cons.origen){
+        const g=CIUDADES[S.cons.origen].guarn, C=S.cons;
+        if(d.d==='mitad') C.tropas=Math.floor(g/2/500)*500;
+        else if(d.d==='todas') C.tropas=g;
+        else C.tropas=Math.max(0,Math.min(g,C.tropas+Number(d.d)));
+      }
+      break;
+    case 'marchar': marchar(); break;
+    case 'volver': volver(d.id); break;
+    case 'saquear': saquear(d.id); break;
+    case 'interceptar': interceptar(d.id); break;
+    case 'negociar': abrirHoja('trato',d.id); break;
+    case 'proponer': proponer(d.id,d.t); break;
+    case 'pausa': S.pausa=!S.pausa; break;
+    case 'vel': S.vel=Number(d.v); break;
+    case 'mes': pasarMes(); break;
+  }
+  renderAll();
+}
+document.addEventListener('pointerdown',()=>{ S.ultimoToque=performance.now(); },{passive:true});
+document.addEventListener('click',e=>{
+  const t=e.target;
+  const st=t.closest('[data-st]'), cam=t.closest('[data-road]'), mar=t.closest('[data-mar]'), act=t.closest('[data-act]');
+  if(st){ tocarEstacion(st.dataset.st); }
+  else if(cam){ S.modo=null; abrirHoja('camino',cam.dataset.road); }
+  else if(mar){ const m=S.marchas.find(x=>x.id===mar.dataset.mar); if(m) abrirHoja(m.kind==='enemiga'?'enemiga':'ejercito',m.id); }
+  else if(act){ accion(act.dataset.act,act.dataset); }
+  else if(t.closest('#mapa')&&S.hoja&&S.hoja.tipo!=='cons'){ cerrarHoja(); }
+  else return;
+  renderAll();
+});
+
+/* ===== BUCLE E INICIO ===== */
+function init(){
+  for(const r of CAMINOS){ r.len=longPts(r.pts); r.prot='ninguna'; r.mar=!!r.mar; r.ruta=!!r.ruta; }
+  const svg=$('#mapa');
+  const grupo=()=>{ const g=document.createElementNS(NS,'g'); svg.appendChild(g); return g; };
+  L.caminos=grupo(); L.flujos=grupo(); L.res=grupo();
+  L.hit=grupo();
+  L.hit.innerHTML=CAMINOS.map(r=>'<path data-road="'+r.id+'" d="'+trazo(r.pts)+'" fill="none" stroke="transparent" stroke-width="28" stroke-linecap="round" style="cursor:pointer"/>').join('');
+  L.est=grupo(); L.dyn=grupo();
+  renderAll();
+}
+let ultimo=performance.now(), ultRender=0;
+function bucle(t){
+  const dt=Math.min(0.1,Math.max(0,(t-ultimo)/1000)); ultimo=t;
+  if(!S.pausa) paso(dt*S.vel);
+  renderDyn();
+  renderBarra();
+  if(t-ultRender>250&&!tocando()){ ultRender=t; renderCapasYVistas(); }
+  requestAnimationFrame(bucle);
+}
+init();
+requestAnimationFrame(bucle);
+</script>
+</body>
+</html>

@@ -1425,6 +1425,31 @@
       "archivo": "gobierno/capturas-tarea/GM32-despues-horizontal-2-choque.jpg",
       "pie": "Campo nuevo en horizontal (los soldados aún no cambian)",
       "ancha": true
+    },
+    {
+      "tarea": "K7",
+      "archivo": "gobierno/capturas-tarea/K7-A-1.png",
+      "pie": "Concurso K7, maqueta A (ciega; ganó la D)"
+    },
+    {
+      "tarea": "K7",
+      "archivo": "gobierno/capturas-tarea/K7-B-1.png",
+      "pie": "Concurso K7, maqueta B (ciega; ganó la D)"
+    },
+    {
+      "tarea": "K7",
+      "archivo": "gobierno/capturas-tarea/K7-C-1.png",
+      "pie": "Concurso K7, maqueta C (ciega; ganó la D)"
+    },
+    {
+      "tarea": "K7",
+      "archivo": "gobierno/capturas-tarea/K7-D-1.png",
+      "pie": "Concurso K7, maqueta D (ciega; ganó la D)"
+    },
+    {
+      "tarea": "K7",
+      "archivo": "gobierno/capturas-tarea/K7-E-1.png",
+      "pie": "Concurso K7, maqueta E (ciega; ganó la D)"
     }
   ],
   "informes": [
@@ -1619,6 +1644,10 @@
     {
       "titulo": "GM32 · Cómo se ve Total War y cómo acercarnos en el móvil",
       "archivo": "gobierno/estudios/GM32-como-se-ve-total-war.md"
+    },
+    {
+      "titulo": "K7 · Concurso de ciudades, rutas, diplomacia y tropas",
+      "archivo": "gobierno/estudios/K7-concurso.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1641,12 +1670,6 @@
       "titulo": "Batalla mejorada · GM31 Tablilla de mando y ajustes del manejo (maqueta)",
       "nota": "solo gobierno/maquetas/guerra-manejo/; no toca js/",
       "url": "https://claude.ai/code/session_01QiKC37zLtSEbgCEXGMSZdg"
-    },
-    {
-      "tarea": "K7",
-      "titulo": "Concurso K7 · Ciudades y fuera de ellas (rutas, diplomacia, tropas)",
-      "nota": "solo gobierno/maquetas/concurso9/ y estudios",
-      "url": "https://claude.ai/code/session_01QiKC38UTqKFjwmrHC9iifb"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
