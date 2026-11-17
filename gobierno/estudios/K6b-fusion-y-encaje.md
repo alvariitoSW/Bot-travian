@@ -1,7 +1,6 @@
 # K6b · Fusión del concurso y dónde encaja en el juego (17/11/2026)
-Solo estudio: no toca `js/`. Parte del voto «(C) mezcla A+B» de `K6-concurso.md`, que **aún no has dado**: si votas
-otra cosa, se rehace. Mirado: siete de las diez capturas K6 (A y B enteras; C, D y E tras tocar), `js/ui-guerra.js`, `js/guerra.js`, `css/guerra.css`, tablero,
-bitácora y las capturas GC5, GM21 y GM31. No comprobado: no he abierto ni el juego ni las maquetas en un navegador.
+Solo estudio: no toca `js/`. El gobierno ya decidió por el usuario: mezcla A+B, quitar las tarjetas y cuatro órdenes.
+Mirado: las diez capturas K6, el código de la batalla, tablero, bitácora y **el juego real en un navegador** (§6).
 
 ## Lo que hay hoy (importa para todo lo demás)
 - La batalla del juego es `js/ui-guerra.js` (GC4): campo 3D con soldados de 0 A.D., **tres cuerpos** (ala izquierda,
@@ -10,8 +9,8 @@ bitácora y las capturas GC5, GM21 y GM31. No comprobado: no he abierto ni el ju
   el motor**: en GM10 se decidió «cuatro piezas, no veinte» y tú elegiste el manejo «tocar y elegir».
 - Por eso K6 no sustituye la batalla: le presta **cómo se lee** y **cómo se ordena la franja de abajo**.
 - Ya está en el juego sin que se note: la tela del estandarte encoge con la moral (idea de D) y la franja fija de
-  botones (idea de B). En horizontal esa franja son 7 bloques de lado a lado: tapa un 17 % de la pantalla (cálculo
-  sobre el CSS, no medido en captura).
+  botones (idea de B). En horizontal esa franja son 7 bloques de lado a lado: tapa un 16,6 % de la pantalla (medido);
+  con los rótulos y «Retirarse», un 19,9 %.
 
 ## 1. Veredicto
 - **A bloques: fusionar su lectura.** Icono por tipo de tropa y anillo de moral, encogidos a un «sello» sobre cada
@@ -28,24 +27,24 @@ Horizontal, 844×390. El campo 3D ocupa toda la pantalla; el centro de abajo que
 ```
 [⚑ Retirarse]        «Los galos cargan por la izquierda»              [❚❚ Pausa]
 
-                 (◔)galos        (◕)libios        (◕)íberos        (◔)♞
-                 ▓▓▓▓▓▓▓         ▓▓▓▓▓▓▓          ▓▓▓▓▓▓▓      enemigo, 3D
-                 ░░░░░░░         ░░░░░░░          ░░░░░░░      tus tropas, 3D
-                 (◕)••           (◑)••            (◕)••            (◕)♞
-                                 [marca dorada en el suelo]
-
-[◀ CENTRO ▶           ]                         [Empujar][Aguantar][Relevo][Caballería]
-[1 020 h · moral ▮▮▮▯ ]      campo libre        [pega más][−bajas ][entran ][al flanco  ]
+                      (◔)      (◕)      (◕)              (◔)♞ jinetes enemigos
+                     ▓▓▓▓▓    ▓▓▓▓▓    ▓▓▓▓▓    enemigo, 3D
+                     ░░░░░    ░░░░░    ░░░░░    tus tropas, 3D
+                      (◕)••    (◑)••    (◕)••
+                             [marca dorada]                  [ Empujar ][Aguantar ]
+[◀ CENTRO ▶          ]         ♞♞♞♞ (◕)                      [ pega más][ −bajas  ]
+[1 020 h · moral ▮▮▮▯]     tus jinetes, a la vista           [ Relevo  ][Caballería]
  pulgar izquierdo                                              pulgar derecho
 ```
-- **En el campo (siempre):** un sello redondo por cuerpo, tuyo y enemigo, de unos 36 px. Dentro, el icono del tipo que
+- **En el campo (siempre):** un sello redondo de 36 px por cuerpo. Los del enemigo van **encima** de su tropa (donde
+  hoy están sus rótulos) y los tuyos **debajo** de la tuya: en el choque los dos bandos se tocan y no caben en medio. Dentro, el icono del tipo que
   lucha delante (escudo, lanza, jabalina, caballo, elefante). El borde es el anillo de moral: se vacía y pasa de verde
   a rojo. El aro exterior dice el bando (rojo Roma, morado rival). Debajo, un punto por cada línea de reserva, verde,
   ámbar o rojo según su cansancio. Sin nombre ni números.
 - **Palabra de estado:** solo cuando cambia y 3 segundos: «cargan», «flaquean», «cansados», «rodeado» (≥11 px).
 - **Fijo abajo:** a la izquierda, una ficha del cuerpo elegido (nombre, hombres, moral, líneas) con ◀ ▶ para cambiar.
-  A la derecha, las cuatro órdenes de hoy con su línea de «qué da y qué cuesta». Botones de 52 px de alto.
-  Lo tapado baja del 17 % al 9 % aproximadamente.
+  En la esquina derecha, las cuatro órdenes en dos filas de dos (100×48 px cada una) con su línea de «qué da y
+  qué cuesta». La franja baja del 16,6 % al 10 % (cálculo); todo lo fijo junto, del 19,9 % al 15 % aproximadamente.
 - **Al tocar:** la tropa en el suelo la elige (ya funciona así) y se enciende la marca dorada. Tocar un sello abre sus
   números 3 s (hombres por línea). Tocar un enemigo enseña su ficha. Nunca sale un menú encima de las tropas.
 - **Si otro cuerpo te necesita:** su sello late y la ficha avisa («◀ Ala izquierda pide relevo»). **Pausa:** botón
@@ -86,8 +85,8 @@ Lo que NO se mete:
 ## 4. Plan (cada tarea, una sesión de Sonnet)
 | Id | Qué | Archivos | Coste | «Se ve en el móvil» si… |
 |---|---|---|---|---|
-| **GM-K6a** (primera) | Sellos en el campo, con interruptor «Interfaz de batalla: nueva / de antes» en Ajustes | `js/ui-guerra.js`, `css/guerra.css`, una línea en `js/ui.js`, ajuste nuevo migrado en `G.load` (`js/game.js`), `gobierno/juez-guerra.mjs` | 0,6 M | Capturas en horizontal y vertical durante el choque: 8 sellos sin pisarse, se distingue el tipo sin leer, el anillo baja al caer la moral |
-| GM-K6b | Franja corta: ficha a la izquierda, órdenes a la derecha, centro libre (solo horizontal) | `js/ui-guerra.js`, `css/guerra.css`, `gobierno/juez-guerra.mjs`, `gobierno/jueces.mjs` | 0,6 M | El centro de abajo enseña campo; botones ≥44 px; se cambia de cuerpo con ◀ ▶ y tocando la tropa; el aviso de relevo se ve |
+| **GM-K6a** (primera) | Sellos en el campo, con interruptor «Interfaz de batalla: nueva / de antes» en Ajustes | `js/ui-guerra.js`, `css/guerra.css`, una línea en `js/ui.js`, ajuste nuevo migrado en `G.load` (`js/game.js`), `gobierno/juez-guerra.mjs` | 0,6 M | Capturas en horizontal y vertical, al empezar y en el choque: 8 sellos sin pisarse, se distingue el tipo sin leer, el anillo baja al caer la moral |
+| GM-K6b | Franja corta: ficha a la izquierda, órdenes en dos filas a la derecha, centro libre; cámara más cerca (solo horizontal); letra a 11 px y «Retirarse» a 44 px | `js/ui-guerra.js`, `css/guerra.css`, `gobierno/juez-guerra.mjs`, `gobierno/jueces.mjs` | 0,6 M | El centro de abajo enseña campo y tus jinetes; la batalla ocupa al menos la mitad del ancho; botones ≥44 px; se cambia de cuerpo con ◀ ▶ y tocando la tropa; el aviso de relevo se ve |
 | GM-K6c | Tocar un sello para ver números y botón Pausa que deja leer | `js/ui-guerra.js`, `css/guerra.css` | 0,4 M | En pausa se leen hombres y estado de los seis cuerpos y se puede dar una orden |
 | GM-K6d | Icono del tipo en la tela del estandarte y flecha de la orden en el suelo | `js/ui-guerra.js` | 0,5 M | De cerca se reconoce la tropa por su estandarte; tras «Caballería» se ve por dónde entran |
 | GM-K6e (parada) | Fichas para el despliegue | las que traiga GM5 | 0,8 M | No abrir hasta que el despliegue esté en el juego |
@@ -105,15 +104,22 @@ Lo que NO se mete:
    cansancio. No he comprobado que la maqueta dé esos mismos datos con los mismos nombres.
 2. **Los jueces cuentan piezas concretas** (tres rótulos enemigos, tres tarjetas, cuatro órdenes). Si la tarea no los
    actualiza, saldrá NO APTO aunque el juego esté bien.
-3. **Sellos sobre tropas apretadas:** con la cámara baja pueden montarse. Hay que mirarlo en captura, no fiarse.
+3. **Acercar la cámara cambia las distancias** entre sellos: repetir las capturas de §6 tras GM-K6b.
 4. **Pulgar izquierdo:** la ficha con ◀ ▶ es una apuesta; si no convence, se elige solo tocando el campo.
    Y la fluidez con 8 rótulos en vez de 3 no está medida en un móvil real.
 
-## Decides tú (dos preguntas; nada entra al tablero sin tu voto de K6 y tu «sí» a este plan)
-**1. Las tres tarjetas de abajo, en horizontal**
-- (A) Quitarlas: una ficha y sellos en el campo. Más campo. **Recomendada.**
-- (B) Dejarlas como hoy y añadir solo los sellos.
-
-**2. Las órdenes**
-- (A) Se quedan las cuatro de hoy. **Recomendada.**
-- (B) Las seis del concurso (Mover, Atacar, Cargar…): antes hay que escribir sus reglas; va después de GM5 y cuesta más.
+## 6. Comprobado en el navegador (17/11)
+Juego real, 300 romanos contra 240 campanos, a 844×390 y 390×844, sin errores de consola. Capturas
+`capturas-tarea/K6b-juego-{H1-lejos,H2-choque,H3-elegido-ala-izquierda,H4-cerca,H5-caballeria,V1-lejos,V2-choque,V4-cerca}.jpg`.
+- **La cifra del 17 % era buena** (16,6 %). C, D y E, vistas también antes de tocar: el veredicto sigue igual.
+- **La franja tapa a tus jinetes.** En horizontal la reserva de caballería queda detrás de «Ala derecha» y
+  «Empujar» (H1 a H3). Es la mejor razón para quitar las tarjetas: confirma la decisión 1A.
+- **En horizontal la batalla se ve pequeña:** ocupa unos 300 de los 844 px de ancho; el resto es hierba. Lo que más
+  campo da no es quitar marco sino **acercar la cámara**. Se añade a GM-K6b.
+- **Los rótulos de hoy ya se pisan:** miden 66×32 px y los cuerpos distan 51 px al empezar y 67 px en el choque.
+  Un sello de 36 px cabe en los dos casos (zona de toque de 44 px incluida). En vertical distan 97 px: sobra.
+- **Los 8 sellos caben con dos reglas:** enemigos arriba y tuyos abajo (corregido en §2), y el sello de los jinetes
+  se esconde mientras cargan, porque entran dentro del cuerpo del centro (H5).
+- **Dos faltas a tus reglas que ya están en el juego:** la línea pequeña de los botones mide 10,5 px (mínimo 11) y
+  «Retirarse» mide 40 px de alto (mínimo 44). Se arreglan en GM-K6b.
+- Sigue sin medir: fluidez en móvil real (aquí solo hay render por software).
