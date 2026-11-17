@@ -195,6 +195,16 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ⬜ K7d **Interceptar con comparación de fuerzas antes de confirmar** (≈0,5 M): marchas, `js/ui.js` y `js/game.js`. Después de K7b.
 - ⬜ K7e **Tratados como ley del Senado desde el Foro** (≈0,6 M): enlaza con el informe de política `estudios/EV1-politica.md`, sin rehacerlo. Después de K7d.
 
+## Carril MR — Menús al estilo romano (MR1 aprobada por el usuario el 17/11/2026; estudio `estudios/MR1-menus-romanos.md`, maqueta `maquetas/menus-romanos/`)
+- ✅ MR1 **Diseño de menús romanos** (17/11): papiro = leer, tablilla de cera = elegir, bronce = títulos e «ir a», sello rojo = la acción. Maqueta de Imperio (A y B), Gobierno, Senado e informe; capturas `capturas-tarea/MR1-*.jpg`.
+- ⬜ MR2a **Materiales + Imperio** (≈0,5 M, Sonnet; pendiente de aprobación): variables y clases en `css/style.css`; Imperio como `MR1-1` (o `MR1-2` si gana B).
+- ⬜ MR2b **Gobierno en papiro** (≈0,3 M; pendiente de aprobación): como `MR1-3`.
+- ⬜ MR2c **Senado: bronce, papiro y tablillas** (≈0,4 M; pendiente de aprobación): como `MR1-4`.
+- ⬜ MR2d **Avisos y modales con sello** (≈0,3 M; pendiente de aprobación): como `MR1-5`.
+- ⬜ MR2g **Barras en bronce y sello** (≈0,2 M; pendiente de aprobación).
+- ⬜ MR2e **Resto de menús** (Mercado, Rutas, Pueblo, Ajustes, ☰, General, Crónica, Saber) (≈0,5 M; pendiente de aprobación).
+- ⬜ MR2f **Iconos de tinta en vez de emojis** (≈0,4 M; pendiente de aprobación y de la pregunta 2 de MR1).
+
 ## Carril MG — Modo Grecia y mitología (P142, aprobada por el usuario el 17/11/2026)
 - ⬜ MG1 **Grecia y mitología como modo aparte** (P142, pedido del 16/11 «más adelante»): no se abre hasta que la batalla romana esté cerrada. Al abrirla hay que decidir cómo queda la regla de fidelidad histórica; la campaña romana no se toca.
 

@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 17/11/2026 — **MR1 hecha (diseño de menús romanos)**: estudio `estudios/MR1-menus-romanos.md` y maqueta `maquetas/menus-romanos/` (capturas `capturas-tarea/MR1-1…5`). Regla: papiro = leer, tablilla de cera = elegir, bronce = títulos, sello rojo = la acción. **Decide el usuario**: (1) fondo de las hojas (A) papiro entero enrollado [recomendado] o (B) marco oscuro con hojas de papiro; (2) iconos: (A) de tinta en vez de emojis [recomendado] o (B) dejar emojis; (3) aprobar las fases MR2a–MR2g (≈2,6 M en total, Sonnet). Parte `partes/2026-11-17-MR1.md`.
 - 17/11/2026 — **Menús al estilo romano** («No me gusta el formato, hazlo rollo pergaminos antiguos o pergaminos romanos, parece un cuaderno de un chaval de primaria» y «Quiero mejorar más los menús, hacerlos más acordes al juego y a la época y que lo piense Opus 5.5»). Hecho ya: la pestaña Saber pasa de cuadrícula de cuaderno a pergamino (crema, tinta parda, filete de color por rama). **Pedido nuevo, sin aprobar en el tablero**: revisar todos los menús (Imperio, Senado, General, ciudad…) con el mismo lenguaje romano; el diseño lo piensa Opus 5.5. Propuesta: tarea de diseño (estudio + maqueta, ≈1 M, modelo potente) y luego su construcción por Sonnet; esperar su OK.
 - 17/11/2026 — **I5d hecha (espera prueba)**: ya se puede cambiar de saber desde «Saber» (aviso + coste completo del nuevo); medido con el bot, ningún saber domina y no se retocó nada. Pendiente suyo: decir si reformar debe costar algo extra. Parte `partes/2026-11-17-I5d.md`.
 - 17/11/2026 — **Romano de color hueso: se arregla dentro de GM33** («Elegiría la opción B»). (Lectura de Claude: no se abre GM4d; GM33 añade túnica romana con más color, distinta de la piel, y escudo romano con el rojo del bando, partiendo de `guerra-arte/arte2.js`.)
@@ -237,6 +238,9 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
+- MR1 · ¿Cómo quieres las hojas de los menús? (A) papiro entero enrollado (recomendado, captura MR1-1); (B) marco oscuro de bronce con hojas de papiro dentro (captura MR1-2).
+- MR1 · ¿Iconos de los menús? (A) iconos de tinta dibujados en vez de emojis (recomendado); (B) dejar los emojis.
+- MR1 · ¿Apruebas construir los menús romanos por fases, MR2a a MR2g (≈2,6 M en Sonnet)? (A) Sí, todas; (B) solo Imperio, Gobierno y Senado de momento.
 
 ## Propuestas por aprobar
 
