@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /* AQVILA — genera assets/mapa/costa.js a partir de Natural Earth (ne_50m_land, dominio público).
    Uso: node assets/mapa/generar-costa.mjs ruta/a/ne_50m_land.geojson
-   Recorta al marco del mapa (lon -7..25, lat 34.5..47), simplifica y redondea a 2 decimales. */
+   Recorta al marco del mapa (C9: lon -10..37,24, lat 27,93..51,5; mismo marco que js/gfx/map3d.js), simplifica y redondea a 2 decimales. */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { createRequire } from 'node:module';
 import { fileURLToPath } from 'node:url';
-const X0 = -7, X1 = 25, Y0 = 34.5, Y1 = 47, TOL = 0.016, AREA_MIN = 0.004;
+const X0 = -10, X1 = 37.238095, Y0 = 27.928571, Y1 = 51.5, TOL = 0.016, AREA_MIN = 0.004;
 const gj = JSON.parse(readFileSync(process.argv[2], 'utf8'));
 const rings = [];
 for (const f of gj.features) { const g = f.geometry, polys = g.type === 'Polygon' ? [g.coordinates] : g.coordinates; for (const p of polys) for (const r of p) rings.push(r); }

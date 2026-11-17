@@ -144,3 +144,45 @@ export function lightGeometry(unit, color) {
 }
 const lightMat = new THREE.MeshLambertMaterial({ vertexColors: true });
 export const lightMaterial = () => lightMat;
+
+/* ---------- Zancada: cuánto avanza el soldado en un ciclo de andar o de correr ----------
+   Las animaciones andan en el sitio: el pie apoyado se desliza hacia atrás a la velocidad a la que el cuerpo avanzaría.
+   Se toma la malla con piel en el reposo, se eligen los vértices más bajos (los pies, o los cascos), se separan por lado
+   y, fotograma a fotograma, se mira cuánto retrocede el pie que está más abajo (el apoyado). La mediana de esa velocidad
+   por la duración del clip es la zancada, en unidades del modelo (por UNIT_SCALE para el campo). Si sale absurda
+   (p. ej. un caballo, cuyos cuatro cascos no se separan bien por lados) se estima por la altura o por el otro clip. */
+function piel(unit, i, f, A, out) {                            // posición del vértice i en el fotograma f (lo mismo que hace el sombreador)
+  const P = unit.geo.attributes.position.array, SI = unit.geo.attributes.aSkinI.array, SW = unit.geo.attributes.aSkinW.array, sl = unit.bones.image.width / 3;
+  out[0] = out[1] = out[2] = 0;
+  for (let k = 0; k < 4; k++) {
+    const w = SW[i * 4 + k] / 255; if (!w) continue; const s = SI[i * 4 + k];
+    for (let c = 0; c < 3; c++) { const q = ((f * sl + s) * 3 + c) * 4; out[c] += w * (A[q] * P[i * 3] + A[q + 1] * P[i * 3 + 1] + A[q + 2] * P[i * 3 + 2] + A[q + 3]); }
+  }
+  return out;
+}
+function medirZancada(unit, clip, bajos, lado, A) {
+  const p = [0, 0, 0], pies = [];
+  for (let f = 0; f < clip.frames; f++) {
+    const L = [0, 0, 0], R = [0, 0, 0];
+    for (let j = 0; j < bajos.length; j++) { piel(unit, bajos[j], clip.start + f, A, p); const t = lado[j] ? R : L; t[0] += p[1]; t[1] += p[2]; t[2]++; }
+    pies.push([L[0] / L[2], L[1] / L[2], R[0] / R[2], R[1] / R[2]]);
+  }
+  const dt = clip.dur / clip.frames, v = [];
+  for (let f = 0; f < clip.frames; f++) { const a = pies[f], b = pies[(f + 1) % clip.frames], izq = a[0] < a[2]; v.push(-(izq ? b[1] - a[1] : b[3] - a[3]) / dt); }
+  v.sort((x, y) => x - y); return v[Math.floor(v.length / 2)] * clip.dur;
+}
+export function zancadas(unit) {
+  const C = unit.clips; if (!C || !C.walk || C.walk.zancada) return C;
+  const h = unit.height / UNIT_SCALE, bien = z => z > h * 0.45 && z < h * 1.7;
+  let zw = 0, zr = 0;
+  try {
+    const A = unit.bones.image.data, n = unit.geo.attributes.position.count, p = [0, 0, 0], ys = new Float32Array(n), xs = new Float32Array(n); let my = 1e9;
+    for (let i = 0; i < n; i++) { piel(unit, i, C.idle ? C.idle.start : 0, A, p); xs[i] = p[0]; ys[i] = p[1]; my = Math.min(my, p[1]); }
+    const bajos = [], lado = []; for (let i = 0; i < n; i++) if (ys[i] < my + 0.35) { bajos.push(i); lado.push(xs[i] > 0); }
+    if (bajos.length > 8) { zw = medirZancada(unit, C.walk, bajos, lado, A); if (C.run) zr = medirZancada(unit, C.run, bajos, lado, A); }
+  } catch (e) { console.warn('zancada', unit.key, e); }
+  if (!bien(zw)) zw = bien(zr) ? zr * 0.62 : h * 0.8;
+  if (!bien(zr)) zr = zw * 1.5;
+  C.walk.zancada = zw; if (C.run) C.run.zancada = zr;
+  return C;
+}

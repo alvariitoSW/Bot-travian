@@ -291,7 +291,7 @@ async function navegador() {
     });
 
     await paso('Abrir el Códice', async () => {
-      await page.click('#bmodo'); await page.click('#hoja [data-act="tab"][data-v="log"]'); await espera(500);
+      await page.click('#bmas'); await page.click('#hoja [data-act="tab"][data-v="log"]'); await espera(500);
       await page.click('#view [data-act="codice"]'); await espera(500);
       const r = await page.evaluate(() => ({ n: document.querySelectorAll('#view .cdx').length, h: document.querySelectorAll('#view .lic-h').length, w: document.documentElement.scrollWidth }));
       const ok = r.n >= 15 && r.h > 0;
@@ -305,7 +305,7 @@ async function navegador() {
       objetivo = await estado(() => Game.neighbors('roma').filter(n => Game.state.cities[n].owner !== 'roma' && !Game.edge('roma', n)[2]).sort((a, b) => Game.power(Game.state.cities[a].units) - Game.power(Game.state.cities[b].units))[0] || '');
       if (!objetivo) return { ok: false, detalle: 'Roma no tiene vecina enemiga por tierra' };
       await page.evaluate(id => { UI.sel = id; UI.sheetKey = ''; }, objetivo);
-      await page.click('#bmodo'); await page.click('#hoja [data-act="modo"][data-v="guerra"]'); await espera(600);
+      await page.click('#bmas'); await page.click('#hoja [data-act="modo"][data-v="guerra"]'); await espera(600);
       await page.click('#sheet [data-act="pick"]'); await espera(500);
       const captura = await foto('atacar');
       await page.click('#mbox [data-act="send"]'); await espera(400);
@@ -390,17 +390,21 @@ async function navegador() {
       return { ok, detalle: ok ? 'ocho zonas; Italia acerca la cámara (' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ') y «← volver» la devuelve' : 'zonas ' + antes.zonas + ', dist ' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ', migas «' + dentro.migas + '», volver ' + dentro.volver + ', igual ' + igual + ', migas finales «' + fin.migas + '»', captura: fotoZona, detalle2: fotoMare };
     });
 
-    await paso('K7c miga «Roma › Camino» y botón único de volver (≥44 px, ≥11 px)', async () => {
+    await paso('C8b menú del mapa en cinco cosas; se entra tocando Roma y la miga devuelve al mapa (≥44 px, ≥11 px)', async () => {
       await estado(() => { Game.state.speed = 0; UI.dirty = true; const b = document.createElement('button'); b.dataset.act = 'modo'; b.dataset.v = 'guerra'; document.body.appendChild(b); b.click(); b.remove(); const m = document.getElementById('modal'); if (m) m.hidden = true; });
       await espera(1500);
-      const medir = () => estado(() => { const m = document.getElementById('miga'), b = document.getElementById('miga-b'), t = document.getElementById('miga-t'); if (!m || m.hidden) return { vis: false, tab: UI.tab }; const r = b.getBoundingClientRect(), d = document.getElementById('tabs3').getBoundingClientRect(); return { vis: true, tab: UI.tab, t: t.innerText.replace(/\s+/g, ' '), b: b.innerText, alto: r.height, fuente: parseFloat(getComputedStyle(b).fontSize), dentro: r.left >= 0 && r.right <= innerWidth, sinTapar: r.bottom < innerHeight - 100 }; });
-      const mapa = await medir(); await foto('miga-mapa');
-      await page.click('#miga-b'); await espera(3500);
+      const ves = () => estado(() => Object.fromEntries(['res', 'datebox', 'bmas', 'turno', 'bact', 'bmodo', 'citybtn', 'miga', 'zoom', 'bpill'].map(i => { const e = document.getElementById(i), r = e.getBoundingClientRect(), cs = getComputedStyle(e); return [i, !e.hidden && cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.bottom > 0 && r.top < innerHeight]; })));
+      const medir = () => estado(() => { const m = document.getElementById('miga'), b = document.getElementById('miga-b'), t = document.getElementById('miga-t'); if (!m || m.hidden) return { vis: false, tab: UI.tab }; const r = b.getBoundingClientRect(); return { vis: true, tab: UI.tab, t: t.innerText.replace(/\s+/g, ' '), b: b.innerText, alto: r.height, fuente: parseFloat(getComputedStyle(b).fontSize), dentro: r.left >= 0 && r.right <= innerWidth, sinTapar: r.bottom < innerHeight - 100 }; });
+      const v = await ves(); await foto('menu-mapa');
+      const cinco = v.res && v.datebox && v.bmas && v.turno && v.bact && v.bmodo, fuera = !v.citybtn && !v.miga && !v.zoom && !v.bpill;
+      await estado(() => UI.map.cities.roma.el.click()); await espera(800);
+      const ficha = await estado(() => { const b = document.querySelector('#sheet [data-act="entrar"]'); return b ? b.innerText : ''; });
+      await estado(() => UI.map.cities.roma.el.click()); await espera(3500);
       const ciu = await medir(); await foto('miga-ciudad');
       await page.click('#miga-b'); await espera(2500);
       const vuelta = await medir();
-      const ok = mapa.vis && /Camino/.test(mapa.t) && /Entrar/.test(mapa.b) && ciu.vis && /Ciudad/.test(ciu.t) && /Salir/.test(ciu.b) && vuelta.tab === 'map' && [mapa, ciu].every(x => x.alto >= 44 && x.fuente >= 11 && x.dentro && x.sinTapar);
-      return { ok, detalle: ok ? 'mapa «' + mapa.t + '» con «' + mapa.b + '», ciudad «' + ciu.t + '» con «' + ciu.b + '», y vuelve al mapa' : JSON.stringify({ mapa, ciu, vuelta }) };
+      const ok = cinco && fuera && /Entrar en Roma/.test(ficha) && ciu.vis && ciu.tab === 'city' && /Ciudad/.test(ciu.t) && /Salir/.test(ciu.b) && ciu.alto >= 44 && ciu.fuente >= 11 && ciu.dentro && ciu.sinTapar && vuelta.tab === 'map' && !vuelta.vis;
+      return { ok, detalle: ok ? 'en el mapa solo tira, ☰, «Pasar turno», Tropas y Guerra; la ficha dice «' + ficha + '»; tocar Roma entra y «' + ciu.b + '» vuelve al mapa' : JSON.stringify({ v, ficha, ciu, vuelta }) };
     });
 
     await paso('CN22 avisos: máx. 2 avisos y tarjeta de estación baja', async () => {

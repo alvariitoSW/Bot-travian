@@ -407,6 +407,12 @@
     [[2.4, 39.6], [3.1, 39.9], [3.4, 39.6], [3.0, 39.3]]
   ];
   D.LABELS = [['HISPANIA', -3.5, 40.5], ['GALLIA', 3, 45.5], ['ITALIA', 13.2, 42.9], ['AFRICA', 5, 35.6], ['GRAECIA', 21.6, 38.9], ['MACEDONIA', 22, 41.6], ['ILLYRICVM', 17.5, 44.2], ['MARE NOSTRVM', 6, 38.6], ['SICILIA', 14.2, 37.7]];
+  /* C9 · Monumentos del mapa de campaña: solo se ven, no cambian el juego. Se dibujan por código en js/gfx/map3d.js, muy agrandados
+     (licencia de juego). Ficha con fuente y dictamen en js/registro.js (tipo monumento) y gobierno/historia/C9-egipto.md. */
+  D.MONUMENTOS = {
+    giza: { n: 'Pirámides de Giza', lon: 31.13, lat: 29.98 },
+    faro: { n: 'Faro de Alejandría', lon: 29.885, lat: 31.214 }
+  };
 
   // Hechos históricos. fx: clave interpretada por game.js (o varias separadas por comas, en ese orden). k: clave opcional para distinguir dos hechos del mismo año (id de ficha «<año>-<k>»)
   // H13b, licencia de juego: Roma empieza con más tropas para la llegada temprana de Pirro (no es un dato histórico)
