@@ -1460,6 +1460,22 @@
       "tarea": "K7",
       "archivo": "gobierno/capturas-tarea/K7-E-1.png",
       "pie": "Concurso K7, maqueta E (ciega; ganó la D)"
+    },
+    {
+      "tarea": "GM21",
+      "archivo": "gobierno/capturas-tarea/GM21-vertical-2-todo-ancho.jpg",
+      "pie": "Despliegue: los tres cuerpos formados a lo ancho"
+    },
+    {
+      "tarea": "GM21",
+      "archivo": "gobierno/capturas-tarea/GM21-vertical-4-plan-caballeria-derecha.jpg",
+      "pie": "Plan: centro atrás y caballería en el ala derecha"
+    },
+    {
+      "tarea": "GM21",
+      "archivo": "gobierno/capturas-tarea/GM21-horizontal-7-batalla-ancho.jpg",
+      "pie": "Batalla con todo a lo ancho: Roma desborda",
+      "ancha": true
     }
   ],
   "informes": [
@@ -1658,6 +1674,10 @@
     {
       "titulo": "K7 · Concurso de ciudades, rutas, diplomacia y tropas",
       "archivo": "gobierno/estudios/K7-concurso.md"
+    },
+    {
+      "titulo": "Crítica independiente de la batalla (guerra-unica)",
+      "archivo": "gobierno/estudios/GM-critica-fable-guerra-unica.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
