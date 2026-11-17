@@ -230,7 +230,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - 16/11/2026 — **Probar el despliegue (GM21)**: https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/guerra-unica/ . (1) ¿Es lo que querías antes de marchar? (A) sí; (B) sí, con cambios; (C) no. (2) GM21 gastó el triple de lo previsto: ¿se pasa ahora el revisor y los jueces completos (unos 0,4 M más)? (A) sí; (B) no, esperar a mi prueba.
 
 ## Propuestas por aprobar
-- P150 Copiar solo tres skills de `EL4CTEO/blender-skills` (MIT) cuando haya un ordenador con Blender 5.2+ conectado: `blender-game-optimization` (presupuestos de triángulos y LODs), `blender-export-pipelines` (glTF para web) y `blender-asset-qa` (cazar fallos de modelos). Antes habría que probarlas en Blender real. Hoy no ayudan a nuestro arte, que sale de 0 A.D. por `tools/` (pedido del 17/11).
+- P150 Copiar solo tres skills de `EL4CTEO/blender-skills` (MIT) cuando haya un ordenador con Blender 5.2+ conectado: `blender-game-optimization` (presupuestos de triángulos y LODs), `blender-export-pipelines` (glTF para web) y `blender-asset-qa` (cazar fallos de modelos). Antes habría que probarlas en Blender real. Hoy no ayudan a nuestro arte, que sale de 0 A.D. por `tools/` (pedido del 17/11). **Guardada (17/11): el usuario dijo «Ok» a dejarla sin decidir hasta que haya un ordenador con Blender; no se vuelve a proponer hasta que él la saque.**
 - P142 **Grecia y mitología como modo aparte** (pedido del 16/11, «más adelante»; el usuario dijo sí a «aparte» el 16/11): no se abre hasta que la batalla romana esté cerrada. Al abrirla hay que decidir cómo queda la regla de fidelidad histórica; la campaña romana no se toca.
 
 
