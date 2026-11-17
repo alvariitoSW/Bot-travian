@@ -41,3 +41,53 @@ primeras capturas: «parecen muñecos de hojalata», «me da igual un diseño m�
   con espina, espada larga de La Tène y lanza.
 - **Licencias de juego**: rojo de túnica y escudo, sandalias, tres plumas iguales para todos, motivo pintado del
   escudo galo, cuadros del pantalón. Citas de Polibio y Diodoro de memoria, sin cotejar.
+
+## GM44b · Pulido y «el mismo detalle para todos» (17/11/2026, tarde)
+Respuestas del usuario: «Sí, sigue puliendo este» y, a los cartones de lejos, «No, quiero el mismo detalle».
+
+### Qué se ha pulido
+| Defecto visto en las capturas de GM44r | Arreglo |
+|---|---|
+| Cara y piel a facetas | La piel aligerada hereda las normales del cuerpo entero de MakeHuman; la sombra de rincones ya no va a escalones de 1 cm |
+| Yelmo de hojalata, con vetas de madera | Bronce más pardo y mate, sin rayas; más claro arriba, pátina en los rincones |
+| Escudo de plástico con rayas blancas | Pintura gastada en los cantos, barro abajo, roces discretos, hierro más oscuro |
+| Cota casi negra | Hierro más claro, anilla legible, menos manchas |
+| Túnica como un tubo | Pliegues de verdad en el faldón (más malla) y pintados; arrugas en las mangas |
+| Cuello y hombros hinchados | Menos músculo (0,36 en vez de 0,55) |
+| El escudo tapaba al hombre de frente | En reposo va más al costado y girado |
+| Todos con la misma cabeza | Cada hombre: cabeza algo más ancha, larga u honda; pelo de castaño a negro; barba de ninguna a cerrada; piel, túnica, escudo, talla y suciedad como antes |
+| Suelo chillón, matas verde neón, luz dura | Tierra y hierba seca más calladas, sol menos fuerte, más luz de cielo |
+
+### El mismo detalle para todos, sin cartones
+La idea: **cada hombre se dibuja con los triángulos que su tamaño en pantalla puede enseñar**. Un hombre que mide
+60 px en el móvil no puede enseñar 14 000 triángulos: la mayoría serían más pequeños que un punto de la pantalla.
+- Cuatro versiones del mismo soldado (13 796, 4 139, 1 033 y 442 triángulos). Todas salen del mismo modelo y del mismo
+  pintor: mismos colores, misma silueta, casco con pluma, escudo con su forma, pilum. Las ligeras heredan las normales
+  del fino (se sombrean igual) y llevan el detalle pintado en la textura y en el relieve.
+- La maqueta elige la versión por la altura en pantalla (200, 90 y 42 px), nunca más de 40 finos, y a los que quedan
+  fuera de la pantalla les deja solo lo justo para su sombra.
+- Una llamada de dibujo por tipo y nivel (de 8 a 13 en total con la escena).
+- Captura `GM44b-10-niveles-ancho.jpg`: los cuatro, uno al lado del otro, al tamaño real y ampliados.
+
+### Medidas reales (triángulos, con la escena)
+| Hombres | Sin sombras | Con sombras |
+|---|---|---|
+| 40 | 220 000 | 420 000 |
+| 160 | 270 000 | 475 000 |
+| 640 | 500 000 | 720 000 a 755 000 |
+| 1 280 | 800 000 | 1 060 000 |
+GM44r pintaba 1,45 M y 2,4 M para 640. El tope de batalla es 1,1 M (`arte.json`); el de la batalla grande, 650 000
+de cerca más 150 000 de lejos.
+
+### Franqueza
+- **Cabe**: 640 hombres sin cartones, con sombras, por debajo del tope. 1 280 caben sin sombras de los lejanos.
+- **No cabe**: los 10 000 por bando de la «batalla grande». A 442 triángulos serían 4,4 M. Ahí, quien mida menos de
+  unos 25 px (un hombre del tamaño de una letra) tendría que ser un cartón, como hace Rome II con las masas del fondo.
+  Es la única excepción y la decide el usuario; no está construida aquí (ya hay maqueta de cartones en GM33).
+- **No medido**: las imágenes por segundo. Aquí el render es por programa. Los triángulos son una señal, no la
+  respuesta: hay que probar «La línea» en el móvil.
+- **No hecho**: el relieve de las versiones ligeras no se ha horneado punto por punto desde el fino; heredan sus
+  normales en los vértices y repiten su pintura. A su tamaño de uso no se nota (captura 10); de cerca sí se notaría.
+- **Sigue sin ser Rome II**: una cara por pueblo, ropa pegada, nueve movimientos, sin duelos. La carrillera del yelmo
+  es tosca y a la cara, muy de cerca, aún se le ven planos.
+- El paso de un nivel a otro al acercar la cámara no se ha podido juzgar en movimiento (aquí solo hay capturas).
