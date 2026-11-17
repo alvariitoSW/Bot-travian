@@ -57,6 +57,8 @@ Tres avisos de licencia, en llano:
 usuario desde su móvil, con un encargo escrito por nosotros, y los subiría al repositorio o al chat.
 
 ## 3. Fidelidad histórica (qué había en 264–146 a.C.)
+Aviso: los pasajes van citados de memoria y **aún no están cotejados** con el texto; lo hace la tarea R4 antes de construir.
+
 **Roma** — una ciudad de toba, adobe, madera y teja; apretada, parda y rojiza. Nada de blanco imperial.
 - **Muralla serviana**: sillares de toba amarillenta de Grotta Oscura, unos 11 km, del siglo IV a.C. (Livio 6.32). `histórico`
 - **Templo de Júpiter en el Capitolio**: podio de toba, columnas y techo de madera, adornos de terracota pintada; la
