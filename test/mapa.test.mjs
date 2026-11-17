@@ -10,9 +10,9 @@ const cerca = (lon, lat, r) => { let m = -1e9; for (let y = lat - r; y <= lat + 
 let fallos = 0;
 const ok = (c, msg) => { if (!c) { fallos++; console.log('FALLA: ' + msg); } };
 const kb = statSync(fileURLToPath(new URL('../assets/mapa/alturas.js', import.meta.url))).size / 1024;
-ok(kb <= 250, 'alturas.js pesa ' + kb.toFixed(0) + ' KB (tope 250)');
+ok(kb <= 330, 'alturas.js pesa ' + kb.toFixed(0) + ' KB (tope 330; C9: marco 2,7 veces mayor)');
 ok(M.length === A.w * A.h, 'tamaño de la malla');
-const picos = { 'Mont Blanc': [6.87, 45.83, 2800], 'Etna': [15.0, 37.75, 2500], 'Gran Sasso': [13.57, 42.47, 1800], 'Olimpo': [22.35, 40.09, 2000], 'Sierra Nevada': [-3.2, 37.05, 2000] };
+const picos = { 'Mont Blanc': [6.87, 45.83, 2800], 'Etna': [15.0, 37.75, 2500], 'Gran Sasso': [13.57, 42.47, 1800], 'Olimpo': [22.35, 40.09, 2000], 'Sierra Nevada': [-3.2, 37.05, 2000], 'Aneto': [0.65, 42.63, 2500], 'Erciyes': [35.45, 38.53, 2800], 'Atlas': [-7.9, 31.06, 2800] };
 const val = {};
 for (const k in picos) { const [lo, la, min] = picos[k]; val[k] = Math.round(cerca(lo, la, 0.1)); ok(val[k] >= min, k + ' demasiado bajo: ' + val[k] + ' m (mínimo ' + min + ')'); }
 // en su sitio: el pico sale más alto que la llanura a unos grados de distancia
@@ -20,20 +20,26 @@ ok(cerca(6.87, 45.83, 0.1) > at(9.0, 45.0) + 3000, 'Mont Blanc no destaca');
 ok(cerca(15.0, 37.75, 0.1) > cerca(15.0, 37.0, 0.1) + 1200, 'Etna no destaca');
 ok(cerca(22.35, 40.09, 0.1) > at(22.35, 39.4) + 1200, 'Olimpo no destaca');
 const roma = at(12.5, 41.9); ok(roma < 150, 'Roma no es baja: ' + roma + ' m');
-const mares = { 'Tirreno': [11.5, 39.5], 'Jónico': [18.5, 37.5], 'Egeo': [25 - 0.5, 38.5], 'Adriático': [15.5, 43.3], 'Golfo de León': [4.5, 42.5] };
+const mares = { 'Tirreno': [11.5, 39.5], 'Jónico': [18.5, 37.5], 'Egeo': [25 - 0.5, 38.5], 'Adriático': [15.5, 43.3], 'Golfo de León': [4.5, 42.5], 'Vizcaya': [-4, 45.5], 'Levante': [33, 33.5], 'Atlántico': [-9.5, 33], 'Ponto Euxino': [33, 43] };
 for (const k in mares) ok(at(...mares[k]) < -50, 'mar no negativo en ' + k + ': ' + at(...mares[k]));
 // C4: ríos y lagos (assets/mapa/agua.js)
 import AG from '../assets/mapa/agua.js';
 const kbA = statSync(fileURLToPath(new URL('../assets/mapa/agua.js', import.meta.url))).size / 1024;
-ok(kbA <= 40, 'agua.js pesa ' + kbA.toFixed(0) + ' KB (tope 40)');
+ok(kbA <= 60, 'agua.js pesa ' + kbA.toFixed(0) + ' KB (tope 60; C9: marco 2,7 veces mayor)');
 const nr = AG.rios.map(r => r.n), nl = AG.lagos.map(l => l.n);
-for (const n of ['Po', 'Tíber', 'Ebro', 'Ródano', 'Danubio', 'Adigio', 'Tajo', 'Guadalquivir']) ok(nr.includes(n), 'falta el río ' + n);
+for (const n of ['Po', 'Tíber', 'Ebro', 'Ródano', 'Danubio', 'Adigio', 'Tajo', 'Guadalquivir', 'Nilo', 'Sena', 'Loira', 'Rin', 'Halis', 'Meandro']) ok(nr.includes(n), 'falta el río ' + n);
 for (const n of ['Garda', 'Como', 'Lemano']) ok(nl.includes(n), 'falta el lago ' + n);
-const fuera = [...AG.rios.flatMap(r => r.l.flat()), ...AG.lagos.flatMap(l => l.p)].filter(q => q[0] < -7 || q[0] > 25 || q[1] < 34.5 || q[1] > 47);
+const fuera = [...AG.rios.flatMap(r => r.l.flat()), ...AG.lagos.flatMap(l => l.p)].filter(q => q[0] < A.x0 - 0.01 || q[0] > A.x1 + 0.01 || q[1] < A.y0 - 0.01 || q[1] > A.y1 + 0.01);
 ok(!fuera.length, fuera.length + ' puntos de agua fuera del marco');
 const po = AG.rios.find(r => r.n === 'Po').l.flat(); ok(po.some(q => Math.abs(q[0] - 10.5) < 0.6 && Math.abs(q[1] - 45.0) < 0.4), 'el Po no pasa por la llanura padana');
 const tev = AG.rios.find(r => r.n === 'Tíber').l.flat(); ok(tev.some(q => Math.abs(q[0] - 12.4) < 0.3 && Math.abs(q[1] - 41.9) < 0.3), 'el Tíber no pasa por Roma');
+// C9: el Nilo baja de Menfis al mar por sus dos brazos (Rosetta y Damieta)
+const nilo = AG.rios.find(r => r.n === 'Nilo').l.flat();
+ok(nilo.some(q => Math.abs(q[0] - 31.2) < 0.3 && Math.abs(q[1] - 30.0) < 0.3), 'el Nilo no pasa por Menfis');
+ok(nilo.some(q => q[0] < 30.6 && q[1] > 31.3) && nilo.some(q => q[0] > 31.6 && q[1] > 31.3), 'faltan los brazos del delta');
+ok(Math.abs(A.x0 + 10) < 0.01 && A.x1 > 37 && A.y0 < 28 && A.y1 === 51.5 && A.w === 621 && A.h === 397, 'marco de alturas.js distinto del de map3d.js (C9: lon -10..37,24, lat 27,93..51,5, 621×397)');
+ok(at(31.13, 29.98) > 20, 'Giza no está en tierra: ' + at(31.13, 29.98));
 console.log('Agua: ' + nr.length + ' ríos, ' + nl.length + ' lagos, ' + kbA.toFixed(1) + ' KB');
-console.log('Alturas (m): ' + Object.entries(val).map(([k, v]) => k + ' ' + v).join(', ') + ', Roma ' + Math.round(roma) + ', máx ' + Math.round(Math.max(...M)) + '; archivo ' + kb.toFixed(0) + ' KB');
+console.log('Alturas (m): ' + Object.entries(val).map(([k, v]) => k + ' ' + v).join(', ') + ', Roma ' + Math.round(roma) + ', máx ' + Math.round(M.reduce((a, b) => Math.max(a, b), -1e9)) + '; archivo ' + kb.toFixed(0) + ' KB');
 console.log(fallos ? fallos + ' fallos' : 'APTO: alturas reales en su sitio');
 process.exit(fallos ? 1 : 0);

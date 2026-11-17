@@ -2,19 +2,21 @@
 """AQVILA — genera assets/mapa/alturas.js a partir de teselas de altura libres (Terrarium, z6).
 Datos: Mapzen/Tilezen Terrain Tiles en AWS (SRTM, GMTED2010, ETOPO1...; ver LICENSE.txt).
 Uso: python3 -I assets/mapa/generar-alturas.py <carpeta temporal FUERA del repo>
-Baja las 28 teselas x 30..36, y 22..25 (si no están ya), guarda la cabecera x-imagery-sources de cada una en
-fuentes.txt dentro de esa carpeta y remuestrea a la malla del mapa (421x211, mismo marco que generar-costa.mjs:
-lon -7..25, lat 34.5..47; si J4 agranda el mapa, cambiar X0..Y1 y NX/NZ aquí, en map3d.js y en la prueba).
+Baja las teselas que cubren el marco (C9: x 30..38, y 21..26; si no están ya), guarda la cabecera x-imagery-sources de cada una en
+fuentes.txt dentro de esa carpeta y remuestrea a la malla del mapa (621x397, mismo marco que generar-costa.mjs:
+lon -10..37,24, lat 27,93..51,5; si se agranda el mapa, cambiar X0..Y1 y NX/NZ aquí, en map3d.js y en la prueba).
 Alturas en metros = R*256 + G + B/256 - 32768. Se guardan como byte con escala de raíz cuadrada con signo
 (q = 128 + signo*127*sqrt(|m|/MAX)); así hay detalle fino cerca del nivel del mar y los picos no se aplastan."""
 import base64, math, os, sys, urllib.request
 import numpy as np
 from PIL import Image
 
-X0, X1, Y0, Y1 = -7.0, 25.0, 34.5, 47.0
-NX, NZ = 420, 210                 # la malla tiene (NX+1) x (NZ+1) nodos, como map3d.js
+X0, X1, Y0, Y1 = -10.0, -10.0 + 620 * 32 / 420, 51.5 - 396 * 12.5 / 210, 51.5   # C9: Hispania y Galia enteras, Egipto y Asia Menor
+NX, NZ = 620, 396                 # la malla tiene (NX+1) x (NZ+1) nodos, como map3d.js
 MAXM = 4800.0                     # fondo de la escala (m); por encima o por debajo se recorta
-Z, TX, TY = 6, range(30, 37), range(22, 26)
+Z = 6
+TX = range(int((X0 + 180) / 360 * 64), int((X1 + 180) / 360 * 64) + 1)
+TY = range(int((1 - math.log(math.tan(math.radians(Y1)) + 1 / math.cos(math.radians(Y1))) / math.pi) / 2 * 64), int((1 - math.log(math.tan(math.radians(Y0)) + 1 / math.cos(math.radians(Y0))) / math.pi) / 2 * 64) + 1)
 dest = sys.argv[1]
 os.makedirs(dest, exist_ok=True)
 fuentes = {}

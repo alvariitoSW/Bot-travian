@@ -1913,22 +1913,34 @@
       "url": "https://claude.ai/code/session_01QiKC3AR2FzqYL23coZ3gBE"
     },
     {
-      "tarea": "C9",
-      "titulo": "Mapa · C9 Más mundo: Hispania, Galia, Egipto y Asia Menor (Opus)",
-      "nota": "js/gfx/map3d.js y datos del mapa; excepción a la 1.0",
-      "url": "https://claude.ai/code/session_01QiKC36ud6xQvc5zQpCZY2D"
+      "tarea": "EV7",
+      "titulo": "Política · EV7 Gobierno por turnos: el Senado manda y la ciudad obedece (maqueta, Opus)",
+      "nota": "solo gobierno/maquetas/; excepción a la 1.0; tope 2 M",
+      "url": "https://claude.ai/code/session_01QiKC39GcxgHwQm5q2GKUGc"
     },
     {
-      "tarea": "C8b",
-      "titulo": "Mapa · C8b Menú del mapa minimalista (Opus)",
-      "nota": "js/ui.js y css/style.css; excepción a la 1.0",
-      "url": "https://claude.ai/code/session_01QiKC3AgCZrsvTXpSie236w"
+      "tarea": "GM44r",
+      "titulo": "GM44 Soldados nuevos al nivel de Rome II · rediseño (Fable construye)",
+      "nota": "solo maqueta y estudio; sin tocar js/",
+      "url": "https://claude.ai/code/session_01QiKC392bMLyNZs82CksoEg"
     },
     {
-      "tarea": "GM34",
-      "titulo": "GM34 Movimiento vivo (en el juego, Opus)",
-      "nota": "js/ui-guerra.js; GM36 y GM44 esperan detrás",
-      "url": "https://claude.ai/code/session_01QiKC39A5oXAjaoSVPiCeHJ"
+      "tarea": "C10",
+      "titulo": "Mapa · C10 Adornos de carta (Opus)",
+      "nota": "js/gfx/map3d.js; excepción a la 1.0",
+      "url": "https://claude.ai/code/session_01QiKC36cUDqd5eZ6evx8RuA"
+    },
+    {
+      "tarea": "GM36",
+      "titulo": "Versión 1.0 · GM36 Primera fila que lucha y caídos de verdad (Opus)",
+      "nota": "motor de guerra; ES1 va detrás",
+      "url": "https://claude.ai/code/session_01QiKC37oJNYGuGwHb72CWUR"
+    },
+    {
+      "tarea": "JU1",
+      "titulo": "Versión 1.0 · JU1 Dos jueces en rojo: «Construir aquí» y guerra atascada (Opus)",
+      "nota": "diagnóstico: ¿fallo real o del juez?; gobierno/*.mjs",
+      "url": "https://claude.ai/code/session_01QiKC37gQPtkdN7X53tu66G"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
