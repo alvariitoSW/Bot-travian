@@ -57,7 +57,7 @@ def suavizar(P, T, veces=2, k=0.5, fijo=None):
     return P
 
 # ---------- piezas rígidas ----------
-def escudo_oval(h, alto=1.16, ancho=0.66, R=0.46, n=3.0, mat='escudo', espina=True, cantos=True, nombre='escudo', hueso='wrist.L', umbo_hierro=True):
+def escudo_oval(h, alto=1.16, ancho=0.66, R=0.46, n=3.0, mat='escudo', espina=True, cantos=True, nombre='escudo', hueso='wrist.L', umbo_hierro=True, nu=12, nv=18, ne=26):
     """Escudo oval curvo, de agarre horizontal central. h = marco de la mano. Frente hacia N."""
     o = h['c']; Xa, Ya, Na = h['X'], h['Y'], h['N']; Z0 = 0.045
     def sup(u, v, dz=0.0):
@@ -65,9 +65,9 @@ def escudo_oval(h, alto=1.16, ancho=0.66, R=0.46, n=3.0, mat='escudo', espina=Tr
         return np.array([R * np.sin(al), vv * alto / 2, R * np.cos(al) - R + dz]), np.array([np.sin(al), 0, np.cos(al)])
     def M(p): return o + Xa * p[0] + Ya * p[1] + Na * (p[2] + Z0)
     out = []
-    P, UV, T = rej(lambda u, v: M(sup(u, v)[0]), 12, 18); loc = np.array([sup(u, v)[0][:2] for u, v in UV])
-    out.append(pieza(nombre + '_frente', P, T, UV, MAT[mat], (ancho, alto), hueso, prm=loc, aux=np.stack([UV[:, 1] * 2 - 1, UV[:, 0] * 2 - 1], 1), tinte=3))
-    P, UV, T = rej(lambda u, v: M(sup(u, v)[0] - sup(u, v)[1] * 0.012), 8, 12); loc = np.array([sup(u, v)[0][:2] for u, v in UV])
+    P, UV, T = rej(lambda u, v: M(sup(u, v)[0]), nu, nv); loc = np.array([sup(u, v)[0][:2] for u, v in UV])
+    out.append(pieza(nombre + '_frente', P, T, UV, MAT[mat], (ancho, alto), hueso, prm=loc, aux=np.stack([UV[:, 1] * 2 - 1, UV[:, 0] * 2 - 1], 1), tinte=3, prio=1.0 if nu == 12 else 1.5))
+    P, UV, T = rej(lambda u, v: M(sup(u, v)[0] - sup(u, v)[1] * 0.012), min(8, nu), min(12, nv)); loc = np.array([sup(u, v)[0][:2] for u, v in UV])
     out.append(pieza(nombre + '_dorso', P, T[:, ::-1], UV, MAT['tablas'], (ancho, alto), hueso, prm=loc, prio=0.55))
     # canto: tira alrededor del borde
     K = 44; ang = np.linspace(0, TAU, K + 1)
@@ -79,7 +79,7 @@ def escudo_oval(h, alto=1.16, ancho=0.66, R=0.46, n=3.0, mat='escudo', espina=Tr
         def esp(u, v):
             y = (v * 2 - 1) * alto * 0.46; g = np.exp(-(y / 0.105) ** 2); fin = np.clip((1 - abs(v * 2 - 1)) * 9, 0, 1); w = (0.012 + 0.043 * g) * (0.35 + 0.65 * fin); hh = (0.011 + 0.040 * g) * (0.3 + 0.7 * fin); a = (u - 0.5) * np.pi
             return M(np.array([np.sin(a) * w, y, np.cos(a) * hh - 0.002]))
-        P, UV, T = rej(esp, 6, 26); yy = (UV[:, 1] * 2 - 1) * alto * 0.46; m = np.where(np.abs(yy) < 0.075, MAT['hierro'], MAT[mat]) if umbo_hierro else MAT['madera']
+        P, UV, T = rej(esp, 6 if ne == 26 else 2, ne); yy = (UV[:, 1] * 2 - 1) * alto * 0.46; m = np.where(np.abs(yy) < 0.075, MAT['hierro'], MAT[mat]) if umbo_hierro else MAT['madera']
         out.append(pieza(nombre + '_espina', P, T, UV, m, (0.14, alto * 0.92), hueso, prm=np.stack([(UV[:, 0] - 0.5) * 0.14, yy], 1), aux=np.stack([np.abs(yy), UV[:, 0]], 1), tinte=3))
     # asa: barra horizontal en el hueco del umbo
     P, UV, T, tam = torno([(0.0, -0.07), (0.016, -0.07), (0.016, 0.07), (0.0, 0.07)], 8, o, Xa, Na); out.append(pieza(nombre + '_asa', P, T, UV, MAT['madera'], tam, hueso, prm=UV * tam, prio=0.5))
@@ -109,16 +109,24 @@ def vaina(boca, eje, plano_n, hueso, largo=0.66, ancho=0.062, nombre='vaina'):
     perf = [(0.0, 0.0), (ancho / 2, 0.0), (ancho / 2, 0.02), (ancho / 2 * 0.97, largo * 0.5), (ancho / 2 * 0.86, largo * 0.72), (ancho / 2 * 0.42, largo * 0.95), (0.014, largo), (0.0, largo + 0.012)]
     P, UV, T, tam = torno(perf, 10, boca, eje, a, 0.3); return [pieza(nombre, P, T, UV, MAT['cuero'], tam, hueso, prm=UV * tam, aux=np.stack([UV[:, 1], np.abs(np.cos(UV[:, 0] * TAU))], 1))]
 
-def pilum(agarre, eje, lado, hueso, conj, bajo=1.0, nombre='pilum'):
+def pilum(agarre, eje, lado, hueso, conj, bajo=1.0, nombre='pilum', simple=False):
     """Pilum pesado: asta de madera, taco piramidal con remaches, vástago de hierro y punta. eje = hacia la punta."""
     eje = np.asarray(eje, float); eje /= np.linalg.norm(eje); base = np.asarray(agarre) - eje * bajo; out = []
+    if simple:                                                 # de fondo: dos prismas de tres caras, algo más gruesos para que no se pierdan
+        P, UV, T, tam = torno([(0.016, -0.05), (0.019, 1.33)], 3, base, eje, lado); out.append(pieza(nombre + '_asta', P, T, UV, MAT['madera'], tam, hueso, conj=conj, prm=UV * tam, aux=np.stack([UV[:, 1] * 1.36, UV[:, 0]], 1)))
+        P, UV, T, tam = torno([(0.019, 1.33), (0.009, 1.45), (0.008, 1.95), (0.0, 2.035)], 3, base, eje, lado); out.append(pieza(nombre + '_hierro', P, T, UV, MAT['hierro'], tam, hueso, conj=conj, prm=UV * tam, aux=np.stack([UV[:, 1], UV[:, 0]], 1)))
+        return out
     P, UV, T, tam = torno([(0.0, -0.06), (0.006, -0.05), (0.0135, 0.0), (0.0145, 0.6), (0.0155, 1.22), (0.0165, 1.30)], 8, base, eje, lado); out.append(pieza(nombre + '_asta', P, T, UV, MAT['madera'], tam, hueso, conj=conj, prm=UV * tam, aux=np.stack([UV[:, 1] * 1.36, UV[:, 0]], 1)))
     P, UV, T, tam = torno([(0.0165, 1.30), (0.024, 1.305), (0.021, 1.36), (0.011, 1.43), (0.0075, 1.44)], 4, base, eje, lado, 0.62); out.append(pieza(nombre + '_taco', P, T, UV, MAT['madera'], tam, hueso, conj=conj, prm=UV * tam, aux=np.stack([1.36 + UV[:, 1] * 0.0, UV[:, 0]], 1), suave=False))
     P, UV, T, tam = torno([(0.0075, 1.44), (0.0055, 1.60), (0.0048, 1.96), (0.011, 1.975), (0.0, 2.035)], 4, base, eje, lado); out.append(pieza(nombre + '_hierro', P, T, UV, MAT['hierro'], tam, hueso, conj=conj, prm=UV * tam, aux=np.stack([UV[:, 1], UV[:, 0]], 1), suave=False))
     return out
 
-def lanza(agarre, eje, lado, hueso, conj, largo=2.3, bajo=1.05, nombre='lanza'):
+def lanza(agarre, eje, lado, hueso, conj, largo=2.3, bajo=1.05, nombre='lanza', simple=False):
     eje = np.asarray(eje, float); eje /= np.linalg.norm(eje); base = np.asarray(agarre) - eje * bajo; out = []
+    if simple:
+        P, UV, T, tam = torno([(0.015, 0.0), (0.015, largo - 0.30)], 3, base, eje, lado); out.append(pieza(nombre + '_asta', P, T, UV, MAT['madera'], tam, hueso, conj=conj, prm=UV * tam, aux=np.stack([UV[:, 1] * largo, UV[:, 0]], 1)))
+        P, UV, T, tam = torno([(0.015, largo - 0.30), (0.032, largo - 0.17), (0.0, largo)], 3, base, eje, lado, 0.3); out.append(pieza(nombre + '_punta', P, T, UV, MAT['hierro'], tam, hueso, conj=conj, prm=UV * tam, aux=np.stack([UV[:, 1], UV[:, 0]], 1)))
+        return out
     P, UV, T, tam = torno([(0.0, -0.03), (0.011, 0.0), (0.0135, 0.5), (0.0125, largo - 0.33)], 8, base, eje, lado); out.append(pieza(nombre + '_asta', P, T, UV, MAT['madera'], tam, hueso, conj=conj, prm=UV * tam, aux=np.stack([UV[:, 1] * largo, UV[:, 0]], 1)))
     P, UV, T, tam = torno([(0.0125, largo - 0.34), (0.014, largo - 0.26), (0.009, largo - 0.25), (0.030, largo - 0.17), (0.022, largo - 0.08), (0.0, largo)], 4, base, eje, lado, 0.18); out.append(pieza(nombre + '_punta', P, T, UV, MAT['hierro'], tam, hueso, conj=conj, prm=UV * tam, aux=np.stack([UV[:, 1], UV[:, 0]], 1)))
     return out
