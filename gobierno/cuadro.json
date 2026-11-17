@@ -1929,6 +1929,12 @@
       "titulo": "GM34 Movimiento vivo (en el juego, Opus)",
       "nota": "js/ui-guerra.js; GM36 y GM44 esperan detrás",
       "url": "https://claude.ai/code/session_01QiKC39A5oXAjaoSVPiCeHJ"
+    },
+    {
+      "tarea": "EV7",
+      "titulo": "Política · EV7 Gobierno por turnos: el Senado manda y la ciudad obedece (maqueta, Opus)",
+      "nota": "solo gobierno/maquetas/; excepción a la 1.0; tope 2 M",
+      "url": "https://claude.ai/code/session_01QiKC39GcxgHwQm5q2GKUGc"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
