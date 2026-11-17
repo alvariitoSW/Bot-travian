@@ -593,13 +593,13 @@ export class MapView3D {
     let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const id of ids) { const c = this.cities[id]; x0 = Math.min(x0, c.x); x1 = Math.max(x1, c.x); z0 = Math.min(z0, c.z); z1 = Math.max(z1, c.z); }
     const c = this.c, dist = Math.max(24, Math.min(this.umbralMare() * 0.6, Math.max((x1 - x0) * 3.3 + 12, (z1 - z0) * 2 + 12)));
     st.pila.push({ x: c.x, z: c.z, dist: c.dist, pitch: c.pitch, zona: st.zona }); st.zona = z;
-    st.anim = { d: 0.6, de: { x: c.x, z: c.z, dist: c.dist }, a: { x: (x0 + x1) / 2, z: (z0 + z1) / 2, dist: dist } };
+    st.anim = { d: 0.6, t0: performance.now(), de: { x: c.x, z: c.z, dist: c.dist }, a: { x: (x0 + x1) / 2, z: (z0 + z1) / 2, dist: dist } };
   }
   /* C1 · zoom continuo a la ciudad: guarda el encuadre exacto, acerca la cámara hasta ella y abre la vista de ciudad (opts.onEntrar). */
   entrarCiudad(id) {
     const st = this.esc, k = this.cities[id]; if (!k || !this.opts.onEntrar || st.entrando) return;
     const c = this.c; this.vuelta = { x: c.x, z: c.z, dist: c.dist, pitch: c.pitch, zona: st.zona, pila: st.pila.slice() }; st.entrando = true; st.dentro = true;
-    st.anim = { d: 0.7, de: { x: c.x, z: c.z, dist: c.dist }, a: { x: k.x, z: k.z, dist: ZOOM_CIUDAD - 3 }, fin: () => { st.entrando = false; this.opts.onEntrar(id); } };
+    st.anim = { d: 0.7, t0: performance.now(), de: { x: c.x, z: c.z, dist: c.dist }, a: { x: k.x, z: k.z, dist: ZOOM_CIUDAD - 3 }, fin: () => { st.entrando = false; this.opts.onEntrar(id); } };
   }
   /* «volver» desde la ciudad: el mapa queda en el encuadre exacto de antes */
   restaurar() { const v = this.vuelta, st = this.esc; st.entrando = false; if (!v) return; this.c.x = v.x; this.c.z = v.z; this.c.dist = v.dist; st.zona = v.zona; st.pila = v.pila; this.vuelta = null; st.dentro = true; this.clamp(); }
@@ -612,12 +612,12 @@ export class MapView3D {
   }
   volver() {
     const st = this.esc, g = st.pila.pop(); if (!g) return; const c = this.c;
-    st.zona = g.zona; st.anim = { d: 0.6, de: { x: c.x, z: c.z, dist: c.dist }, a: { x: g.x, z: g.z, dist: g.dist } };
+    st.zona = g.zona; st.anim = { d: 0.6, t0: performance.now(), de: { x: c.x, z: c.z, dist: c.dist }, a: { x: g.x, z: g.z, dist: g.dist } };
   }
   escalon(state, dt, place) {
     const st = this.esc, c = this.c, med = G.regionId() === 'mediterraneo'; this.autoEntrada();
     if (st.anim) {
-      const a = st.anim; if (a.t0 === undefined) a.t0 = performance.now(); const u = Math.min(1, (performance.now() - a.t0) / 1000 / a.d), e = u * u * (3 - 2 * u);
+      const a = st.anim; /* C9: t0 se pone al pedir la animación (con fotogramas lentos no se pierde el primero) */ if (a.t0 === undefined) a.t0 = performance.now(); const u = Math.min(1, (performance.now() - a.t0) / 1000 / a.d), e = u * u * (3 - 2 * u);
       c.x = a.de.x + (a.a.x - a.de.x) * e; c.z = a.de.z + (a.a.z - a.de.z) * e; c.dist = a.de.dist + (a.a.dist - a.de.dist) * e; this.clamp();
       if (u >= 1) { st.anim = null; if (a.fin) a.fin(); }
     } else if (st.zona && c.dist >= this.umbralMare()) { st.zona = null; st.pila = []; }   // se aleja a mano: vuelve a Mare Nostrum
