@@ -22,6 +22,18 @@ ok(cerca(22.35, 40.09, 0.1) > at(22.35, 39.4) + 1200, 'Olimpo no destaca');
 const roma = at(12.5, 41.9); ok(roma < 150, 'Roma no es baja: ' + roma + ' m');
 const mares = { 'Tirreno': [11.5, 39.5], 'Jónico': [18.5, 37.5], 'Egeo': [25 - 0.5, 38.5], 'Adriático': [15.5, 43.3], 'Golfo de León': [4.5, 42.5] };
 for (const k in mares) ok(at(...mares[k]) < -50, 'mar no negativo en ' + k + ': ' + at(...mares[k]));
+// C4: ríos y lagos (assets/mapa/agua.js)
+import AG from '../assets/mapa/agua.js';
+const kbA = statSync(fileURLToPath(new URL('../assets/mapa/agua.js', import.meta.url))).size / 1024;
+ok(kbA <= 40, 'agua.js pesa ' + kbA.toFixed(0) + ' KB (tope 40)');
+const nr = AG.rios.map(r => r.n), nl = AG.lagos.map(l => l.n);
+for (const n of ['Po', 'Tíber', 'Ebro', 'Ródano', 'Danubio', 'Adigio', 'Tajo', 'Guadalquivir']) ok(nr.includes(n), 'falta el río ' + n);
+for (const n of ['Garda', 'Como', 'Lemano']) ok(nl.includes(n), 'falta el lago ' + n);
+const fuera = [...AG.rios.flatMap(r => r.l.flat()), ...AG.lagos.flatMap(l => l.p)].filter(q => q[0] < -7 || q[0] > 25 || q[1] < 34.5 || q[1] > 47);
+ok(!fuera.length, fuera.length + ' puntos de agua fuera del marco');
+const po = AG.rios.find(r => r.n === 'Po').l.flat(); ok(po.some(q => Math.abs(q[0] - 10.5) < 0.6 && Math.abs(q[1] - 45.0) < 0.4), 'el Po no pasa por la llanura padana');
+const tev = AG.rios.find(r => r.n === 'Tíber').l.flat(); ok(tev.some(q => Math.abs(q[0] - 12.4) < 0.3 && Math.abs(q[1] - 41.9) < 0.3), 'el Tíber no pasa por Roma');
+console.log('Agua: ' + nr.length + ' ríos, ' + nl.length + ' lagos, ' + kbA.toFixed(1) + ' KB');
 console.log('Alturas (m): ' + Object.entries(val).map(([k, v]) => k + ' ' + v).join(', ') + ', Roma ' + Math.round(roma) + ', máx ' + Math.round(Math.max(...M)) + '; archivo ' + kb.toFixed(0) + ' KB');
 console.log(fallos ? fallos + ' fallos' : 'APTO: alturas reales en su sitio');
 process.exit(fallos ? 1 : 0);

@@ -4,6 +4,7 @@ import { staticMesh, getStatic, CULTURA } from './statics.js';
 import COSTA from '../../assets/mapa/costa.js';
 import { mapaMaterial, mapaTexturas, texturaRuido } from './ground.js';
 import ALTURAS from '../../assets/mapa/alturas.js';
+import AGUA from '../../assets/mapa/agua.js';
 import { getUnit, unitMaterialReal, instancedGeometry, frameOf, UNIT_SCALE } from './units.js';
 
 const D = window.DATA, G = window.Game;
@@ -17,6 +18,34 @@ const ESCALA_V = 0.0008, ARBOL_MAX = 1800;
 /* realce local de dos cumbres que la malla de alturas aplana (Etna 3330 m reales frente a 2630 en los datos; Olimpo 2917 frente a 2305): factor f en el pico, que baja hasta 1 a r grados. Licencia de juego para que se lean con roca y nieve */
 const PICOS_REALCE = [{ lo: 15.0, la: 37.75, r: 0.55, f: 1.4 }, { lo: 22.35, la: 40.09, r: 0.55, f: 1.4 }];
 const realce = (lo, la) => { let f = 1; for (const p of PICOS_REALCE) { const t = 1 - Math.hypot(lo - p.lo, la - p.la) / p.r; if (t > 0) f = Math.max(f, 1 + (p.f - 1) * t * t * (3 - 2 * t)); } return f; };
+/* C4 — ríos y lagos (assets/mapa/agua.js, Natural Earth) horneados en una máscara de 8 bits a DOBLE resolución, igual que la del mar:
+   255 = agua, ~60 = ribera (franja de barro y verde junto al río), 0 = nada. El sombreador del terreno la pinta y el relieve la usa para
+   bajar el cauce y aplanar los lagos; no añade triángulos. Se dibuja en un lienzo (trazos con borde suave) y se lee una sola vez. */
+const AW = 2 * NX + 1, AH = 2 * NZ + 1;
+const puntoEn = (x, y, p) => { let c = false; for (let i = 0, j = p.length - 1; i < p.length; j = i++) { const a = p[i], b = p[j]; if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; };
+/* C4 — terreno variado sin triángulos: pesos 0..1 de llanura padana, estepa, desierto y marisma en un punto (lon, lat, metros, distancia a la costa en casillas).
+   Cajas con borde suave, hechas a ojo sobre la geografía real; solo cambian el color y la textura de vértice. */
+const sbx = (x, a, b, f) => { const u = Math.max(0, Math.min(1, (x - (a - f)) / f)), v = Math.max(0, Math.min(1, (x - b) / f)); return u * u * (3 - 2 * u) * (1 - v * v * (3 - 2 * v)); };
+const ss = (a, b, x) => { const t = Math.max(0, Math.min(1, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+const MARISMAS = [[12.3, 44.95, 0.3], [4.55, 43.5, 0.32], [0.75, 40.7, 0.22], [-6.3, 37.0, 0.42], [12.95, 41.4, 0.3]];
+function bioma(lo, la, met, d) {
+  const baja = 1 - ss(150, 450, met), pad = sbx(lo, 7.6, 12.6, 0.6) * sbx(la, 44.55, 45.7, 0.35) * baja;
+  const est = Math.max(sbx(lo, -6.3, -1.0, 0.9) * sbx(la, 38.5, 42.3, 0.8) * ss(250, 550, met), sbx(lo, -2.2, 0.5, 0.5) * sbx(la, 41.0, 42.2, 0.4) * 0.8, sbx(lo, 16.3, 25, 0.9) * sbx(la, 44.0, 47, 0.7) * (1 - ss(250, 500, met)) * 0.9);
+  const africa = lo < 12 && la < (lo < -1 ? 35.95 : 37.45), des = africa ? ss(3, 14, d) * Math.max(0.55, ss(0, 1.8, 37.3 - la)) : 0;
+  let mar = 0; for (const m of MARISMAS) mar = Math.max(mar, 1 - ss(0.4, 1, Math.hypot(lo - m[0], (la - m[1]) * 1.28) / m[2]));
+  return { pad, est, des, mar, sinArbol: pad > 0.35 || des > 0.35 || mar > 0.3 || est > 0.7 };
+}
+function aguaMask() {
+  const cv = document.createElement('canvas'); cv.width = AW; cv.height = AH; const g = cv.getContext('2d', { willReadFrequently: true }), px = lo => (lo + 7) * 50 * K / CW * 2 + 0.5, py = la => (47 - la) * 64 * K / CH * 2 + 0.5;
+  g.fillStyle = '#000'; g.fillRect(0, 0, AW, AH); g.globalCompositeOperation = 'lighten'; g.lineJoin = g.lineCap = 'round';
+  const linea = (l, w, v) => { g.beginPath(); l.forEach((q, i) => i ? g.lineTo(px(q[0]), py(q[1])) : g.moveTo(px(q[0]), py(q[1]))); g.lineWidth = w; g.strokeStyle = 'rgb(' + v + ',' + v + ',' + v + ')'; g.stroke(); };
+  for (const r of AGUA.rios) for (const l of r.l) linea(l, 2 * r.w + 3.2, 62);
+  for (const lg of AGUA.lagos) { const p = lg.p.concat([lg.p[0]]); linea(p, 3.6, 62); }
+  for (const r of AGUA.rios) for (const l of r.l) linea(l, 2 * r.w + 0.9, 255);
+  for (const lg of AGUA.lagos) { g.beginPath(); lg.p.forEach((q, i) => i ? g.lineTo(px(q[0]), py(q[1])) : g.moveTo(px(q[0]), py(q[1]))); g.closePath(); g.fillStyle = '#fff'; g.fill(); }
+  const im = g.getImageData(0, 0, AW, AH).data, d = new Uint8Array(AW * AH); for (let k = 0; k < d.length; k++) d[k] = im[k * 4];
+  return d;
+}
 /* Mar con orillas: la distancia firmada a la costa (casillas; negativa en tierra) se hornea en una textura de 8 bits a DOBLE resolución
    (el campo se interpola entre nodos y el cruce por cero sigue la costa) y el sombreador del propio plano de mar dibuja con ella
    franjas de espuma que suben y bajan (más ruido y tiempo) y agua clara en el bajío. Sin triángulos nuevos. */
@@ -118,6 +147,10 @@ export class MapView3D {
     const BK = 0.5, bucket = new Map(), bkey = (u, v) => u * 1000 + v;                 // segmentos en casillas de 0,5° para no recorrerlos todos
     for (const sg of segs) { const u0 = Math.floor((Math.min(sg[0], sg[2]) - 0.3) / BK), u1 = Math.floor((Math.max(sg[0], sg[2]) + 0.3) / BK), v0 = Math.floor((Math.min(sg[1], sg[3]) - 0.3) / BK), v1 = Math.floor((Math.max(sg[1], sg[3]) + 0.3) / BK); for (let u = u0; u <= u1; u++) for (let v = v0; v <= v1; v++) { const kk = bkey(u, v); (bucket.get(kk) || bucket.set(kk, []).get(kk)).push(sg); } }
     for (let j = 0; j <= NZ; j++) for (let i = 0; i <= NX; i++) { const k = j * W1 + i; if (dist[k] > 3.2) continue; const lo = lonOf(i), la = latOf(j) * 1.28, near = bucket.get(bkey(Math.floor(lo / BK), Math.floor(la / BK))); let best = 9; if (near) for (const sgm of near) { const dd = segDist(lo, la, [sgm[0], sgm[1]], [sgm[2], sgm[3]]); if (dd < best) best = dd; } dist[k] = Math.min(dist[k] + 0.5, best / cellDeg); }
+    // --- C4: ríos y lagos (máscara de agua) ---
+    const AG = aguaMask(), agu = (i, j) => AG[(2 * j) * AW + 2 * i] / 255, aguaXZ = (x, z) => AG[Math.max(0, Math.min(AH - 1, Math.round(z / CH * 2))) * AW + Math.max(0, Math.min(AW - 1, Math.round(x / CW * 2)))] / 255;
+    for (const id in D.CITIES) { const c = D.CITIES[id], cx = (c.lon + 7) * 50 * K / CW * 2, cz = (47 - c.lat) * 64 * K / CH * 2; if (AG[Math.round(cz) * AW + Math.round(cx)] < 90) continue;   // ciudad dentro del agua: se aparta el agua en un disco de ~1 casilla
+      for (let b = -3; b <= 3; b++) for (let a = -3; a <= 3; a++) if (a * a + b * b <= 9) { const q = (Math.round(cz) + b) * AW + Math.round(cx) + a; if (q >= 0 && q < AG.length) AG[q] = 0; } }
     // --- alturas ---
     const H = this.H = new Float32Array(land.length), metros = ALTURAS.metros(), cities = Object.keys(D.CITIES).map(id => [D.CITIES[id].lon, D.CITIES[id].lat]);
     const sua = t => t * t * (3 - 2 * t);
@@ -138,26 +171,37 @@ export class MapView3D {
         if (cd < 0.5) { const t = (cd / 0.5) * (cd / 0.5); H[k] = hc + (H[k] - hc) * t; }
       }
     }
+    // C4: cauce un poco hundido junto a los ríos y lagos planos (nivel del nodo más bajo del lago); las ciudades conservan su meseta
+    for (let j = 0; j <= NZ; j++) for (let i = 0; i <= NX; i++) { const k = j * W1 + i, w = agu(i, j); if (w < 0.1 || !land[k] || dist[k] < 1) continue; let cd = 9; for (const c of cities) cd = Math.min(cd, Math.hypot(lonOf(i) - c[0], (latOf(j) - c[1]) * 1.28)); if (cd < 0.5) continue; H[k] = Math.max(0.045, H[k] - 0.06 * Math.min(1, w * 1.3)); }
+    for (const lg of AGUA.lagos) {
+      const xs = lg.p.map(q => q[0]), ys = lg.p.map(q => q[1]), nodos = []; let mn = 9;
+      for (let j = Math.max(0, Math.floor((47 - Math.max(...ys)) * 64 * K / CH)); j <= Math.min(NZ, Math.ceil((47 - Math.min(...ys)) * 64 * K / CH)); j++) for (let i = Math.max(0, Math.floor((Math.min(...xs) + 7) * 50 * K / CW)); i <= Math.min(NX, Math.ceil((Math.max(...xs) + 7) * 50 * K / CW)); i++) {
+        const k = j * W1 + i; if (!land[k] || !puntoEn(lonOf(i), latOf(j), lg.p)) continue; nodos.push(k); mn = Math.min(mn, H[k]); }
+      for (const k of nodos) H[k] = Math.max(0.045, mn - 0.02);
+    }
     this.metros = metros;
     // --- malla del terreno ---
     const g = new THREE.PlaneGeometry(D.WORLD.w * K, D.WORLD.h * K, NX, NZ); g.rotateX(-Math.PI / 2); g.translate(D.WORLD.w * K / 2, 0, D.WORLD.h * K / 2);
-    const pos = g.attributes.position, col = new Float32Array(pos.count * 3), aT = new Float32Array(pos.count * 2), c = new THREE.Color();
-    const cSand = new THREE.Color('#d9c48e'), cGrass = new THREE.Color('#7f9a4a'), cDry = new THREE.Color('#b3a25e'), cForest = new THREE.Color('#4f7438'), cRock = new THREE.Color('#8b7d66'), cSnow = new THREE.Color('#f4f4f0'), cBed = new THREE.Color('#c9b98a'), cDeep = new THREE.Color('#2b4a5e');
+    const pos = g.attributes.position, col = new Float32Array(pos.count * 3), aT = new Float32Array(pos.count * 3), c = new THREE.Color();
+    const cSand = new THREE.Color('#d9c48e'), cGrass = new THREE.Color('#7f9a4a'), cDry = new THREE.Color('#b3a25e'), cForest = new THREE.Color('#4f7438'), cRock = new THREE.Color('#8b7d66'), cSnow = new THREE.Color('#f4f4f0'), cPad = new THREE.Color('#93b252'), cEst = new THREE.Color('#cdb866'), cDes1 = new THREE.Color('#e2cd98'), cDes2 = new THREE.Color('#c9a467'), cMar = new THREE.Color('#6c8b5a'), cBed = new THREE.Color('#c9b98a'), cDeep = new THREE.Color('#2b4a5e');
     for (let k = 0; k < pos.count; k++) {
       const i = k % W1, j = Math.floor(k / W1), h = H[k], la = latOf(j), lo = lonOf(i); pos.setY(k, h);
       if (!land[k]) c.copy(cSand).lerp(cBed, Math.min(1, -h / 0.12)).lerp(cDeep, Math.min(1, -h / 0.55));
       else {
         const dry = Math.max(0, Math.min(1, (39.5 - la) / 4 + (lo < 0 ? 0.35 : 0))), f = 0.5 + 0.5 * Math.sin(lo * 5.3 + la * 7.1);
-        c.copy(cGrass).lerp(cForest, f * (1 - dry) * 0.7).lerp(cDry, dry * 0.85);
+        const B = bioma(lo, la, metros[k], dist[k]), seco = Math.min(1, dry * (1 - B.pad) + B.est * 0.8 + B.des);
+        c.copy(cGrass).lerp(cForest, f * (1 - seco) * 0.7 * (1 - B.pad)).lerp(cDry, dry * 0.85 * (1 - B.pad)).lerp(cPad, B.pad * 0.85).lerp(cEst, B.est * 0.75).lerp(cDes1, B.des * 0.9).lerp(cDes2, B.des * 0.8 * Math.max(0, Math.sin(lo * 13.1 + la * 6.7) * 0.5 + 0.5)).lerp(cMar, B.mar * 0.8);
         if (dist[k] < 1.6) c.lerp(cSand, 1 - dist[k] / 1.6);
         if (h > 0.9) c.lerp(cRock, Math.min(1, (h - 0.9) / 0.9)); if (h > 2.3) c.lerp(cSnow, Math.min(1, (h - 2.3) / 0.6));
         c.multiplyScalar(0.92 + hash(k) * 0.16);
-        aT[k * 2] = dry; aT[k * 2 + 1] = (1 - Math.min(1, Math.max(0, (h - 1.2) / 1.0))) * Math.min(1, dist[k] / 0.9);   // textura: más seca / fuerza (menos en roca, nieve y orilla)
+        aT[k * 3] = seco; aT[k * 3 + 1] = (1 - Math.min(1, Math.max(0, (h - 1.2) / 1.0))) * Math.min(1, dist[k] / 0.9);   // textura: más seca / fuerza (menos en roca, nieve y orilla)
       }
+      aT[k * 3 + 2] = land[k] ? dist[k] : -dist[k];   // distancia firmada a la costa: el sombreador pinta la playa con ella
       col[k * 3] = c.r; col[k * 3 + 1] = c.g; col[k * 3 + 2] = c.b;
     }
-    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('aT', new THREE.BufferAttribute(aT, 2)); g.computeVertexNormals();
-    this.terr = mapaMaterial(); sc.add(new THREE.Mesh(g, this.terr));
+    g.setAttribute('color', new THREE.BufferAttribute(col, 3)); g.setAttribute('aT', new THREE.BufferAttribute(aT, 3)); g.computeVertexNormals();
+    const tW = new THREE.DataTexture(AG, AW, AH, THREE.RedFormat, THREE.UnsignedByteType); tW.magFilter = tW.minFilter = THREE.LinearFilter; tW.wrapS = tW.wrapT = THREE.ClampToEdgeWrapping; tW.generateMipmaps = false; tW.needsUpdate = true;
+    this.terr = mapaMaterial(tW, new THREE.Vector4(CW, CH, AW, AH)); sc.add(new THREE.Mesh(g, this.terr));
     // --- mar ---
     const sea = new THREE.Mesh(new THREE.PlaneGeometry(900, 700), mar(dist, land));
     sea.rotation.x = -Math.PI / 2; sea.position.set(80, 0, 40); sc.add(sea);
@@ -165,11 +209,11 @@ export class MapView3D {
     // --- bosques ---
     const tg = new THREE.ConeGeometry(0.16, 0.5, 5); tg.translate(0, 0.25, 0);
     const trees = new THREE.InstancedMesh(tg, new THREE.MeshLambertMaterial({ color: '#3f6a30', flatShading: true }), 2600), M = new THREE.Matrix4(); let tn = 0;
-    for (let q = 0; q < 14000 && tn < 2600; q++) {
+    for (let q = 0; q < 40000 && tn < 2600; q++) {
       const i = Math.floor(hash(q * 1.3) * NX), j = Math.floor(hash(q * 2.7 + 5) * NZ), k = j * W1 + i;
-      if (!land[k] || dist[k] < 2 || metros[k] > ARBOL_MAX || latOf(j) < 37.5 - hash(q) * 2) continue;
-      if (Math.sin(lonOf(i) * 5.3 + latOf(j) * 7.1) < 0.1) continue;
-      const s = 0.7 + hash(q * 9.1) * 0.8; M.makeScale(s, s, s); { const tx = i * CW + (hash(q * 4.4) - 0.5) * CW, tz = j * CH + (hash(q * 6.6) - 0.5) * CH; M.setPosition(tx, this.hAt(tx, tz) - 0.02, tz); } trees.setMatrixAt(tn++, M);
+      if (!land[k] || dist[k] < 2 || agu(i, j) > 0.05 || metros[k] > ARBOL_MAX || latOf(j) < 37.5 - hash(q) * 2) continue;
+      if (Math.sin(lonOf(i) * 5.3 + latOf(j) * 7.1) < 0.1 || bioma(lonOf(i), latOf(j), metros[k], dist[k]).sinArbol) continue;
+      const s = 0.7 + hash(q * 9.1) * 0.8; M.makeScale(s, s, s); { const tx = i * CW + (hash(q * 4.4) - 0.5) * CW, tz = j * CH + (hash(q * 6.6) - 0.5) * CH; if (aguaXZ(tx, tz) > 0.05) continue; M.setPosition(tx, this.hAt(tx, tz) - 0.02, tz); } trees.setMatrixAt(tn++, M);
     }
     trees.count = tn; sc.add(trees);
     // --- rutas ---
