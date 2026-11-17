@@ -1222,3 +1222,99 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 .ro-gob .gat.ro-bronce { min-height: 58px; padding: 4px 2px; }
 .ro .mar-pie .cu-go.ro-bronce { padding: 6px 1px 9px; }
 .ro .imp-obra .rem { font-size: 15px; white-space: nowrap; }
+
+/* ===== MR2b · Menús romanos: Senado, avisos y barras (reutiliza los materiales .ro-* de MR2a) ===== */
+/* ---- lacre (SVG RO_LACRE) y botón de tinta: la acción que no compromete ---- */
+.ro-lacre { display: block; width: 100%; height: 100%; filter: drop-shadow(0 2px 2px rgba(0, 0, 0, .55)); }
+.ro-tinta { color: var(--tinta, #2b1c0a); font: 700 15px var(--serif); letter-spacing: .05em; border-radius: 8px; border: 1px solid rgba(60, 35, 10, .7);
+  background: var(--fibras), linear-gradient(#f5e6bd, #e3cc94); box-shadow: inset 0 1px 0 rgba(255, 250, 230, .8), 0 2px 3px rgba(0, 0, 0, .25); text-shadow: none; }
+.ro-sello.btn, .ro-tinta.btn { min-height: 48px; padding: 8px 12px; }
+/* ---- tabla de bronce verdoso con clavos: lo oficial (misión y encargo del Senado) ---- */
+.ro-tabla { position: relative; display: block; margin: 4px 0 10px; padding: 12px 14px 10px; border-radius: 4px; color: #2a1a06; font-family: var(--libro);
+  background: var(--martillado), radial-gradient(ellipse at 85% 100%, rgba(70, 140, 110, .55), transparent 60%), radial-gradient(ellipse at 0% 0%, rgba(255, 236, 180, .45), transparent 55%), linear-gradient(160deg, #cfa95a, #a98439 55%, #7f8a55);
+  border: 1px solid #5a4214; box-shadow: inset 0 0 0 2px rgba(255, 232, 170, .35), inset 0 0 0 3px rgba(80, 50, 10, .35), 0 3px 6px rgba(60, 35, 10, .45); }
+.ro-tabla::before { content: ''; position: absolute; inset: 4px; pointer-events: none;
+  background: var(--remache) left top / 7px 7px no-repeat, var(--remache) right top / 7px 7px no-repeat, var(--remache) left bottom / 7px 7px no-repeat, var(--remache) right bottom / 7px 7px no-repeat; }
+
+/* ======== Senado (MR1-4): rollo de papiro, ansata, barras en tinta, tablas de bronce, «volver» en placa ======== */
+#view > .ro-sen { padding: 0 8px; }
+.ro-sen > .ro-papiro { overflow-y: auto; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; padding: 14px 16px 12px; }
+.ro-sen h2.ro-ansata { margin: 2px 22px 12px; }
+.ro-sen .sn-b { margin: 8px 0; } .ro-sen .sn-b > span { width: 64px; font: 700 15px var(--serif); color: var(--tinta); } .ro-sen .sn-b > b { font: 700 17px var(--libro); color: var(--tinta); }
+.ro-sen .sn-bar { height: 10px; border-radius: 0; background: rgba(60, 35, 10, .18); box-shadow: inset 0 1px 2px rgba(60, 35, 10, .45); }
+.ro-sen .sn-bar .sen { background: linear-gradient(90deg, #7a1d12, var(--minio)); } .ro-sen .sn-bar .pue { background: linear-gradient(90deg, #3d5a1a, var(--oliva)); } .ro-sen .sn-bar .pla { background: linear-gradient(90deg, #6a4a18, #a27a2c); }
+.ro-sen .sn-ex { font-size: 15px; opacity: 1; color: var(--tinta2); line-height: 1.35; }
+.ro-sen .sn-hitos { color: var(--tinta); }
+.ro-sen .sn-av { background: rgba(155, 42, 26, .08); border: 1px solid var(--minio); border-radius: 4px; color: var(--minio); font-size: 15px; }
+.ro-sen .sec.ro-rubrica { margin: 12px 0 4px; padding: 0; border: 0; background: none; font-size: 13px; color: var(--minio); }
+.ro-sen .sec.ro-rubrica::after { content: none; }
+.ro-sen .ro-tabla .tt { font: 700 17px var(--serif); letter-spacing: .04em; color: #2a1a06; text-shadow: 0 1px 0 rgba(255, 238, 190, .6); }
+.ro-sen .ro-tabla .ds { margin-top: 4px; font-size: 15px; line-height: 1.35; color: #2a1a06; opacity: 1; }
+.ro-sen .ro-tabla .sn-pz, .ro-sen .ro-tabla .sn-fa, .ro-sen .ro-tabla .sn-pr, .ro-sen .ro-tabla .sn-ca { font-size: 15px; color: #2a1a06; }
+.ro-sen .ro-tabla .sn-bar { background: rgba(40, 25, 5, .25); }
+.ro-sen .ro-tabla b { color: #4a2a06; } .ro-sen .ro-tabla .sn-pr b { color: #2f4a10; } .ro-sen .ro-tabla .sn-ca b { color: #7a1d12; }
+.ro-sen .sn-nada { padding: 8px 0 4px; color: var(--tinta2); font-size: 15px; font-style: italic; text-align: center; }
+.ro-pie { flex: none; padding: 10px 2px 0; }
+.ro-vol.ro-bronce { width: 100%; min-height: 52px; color: #ecd9a8; }
+
+/* ======== Avisos (MR1-5): carta de papiro con lacre ======== */
+.ro-carta { --tinta: #2b1c0a; --tinta2: #5a4220; --oliva: #46661f; --good: var(--oliva); --bad: var(--minio); color: var(--tinta); font-family: var(--libro);
+  background-color: var(--papiro); background-image: var(--fibras), var(--manchas), radial-gradient(ellipse at 20% 0%, rgba(255, 246, 214, .7), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(140, 92, 36, .38), transparent 60%); }
+/* informe de estación (tarjeta baja #inf) */
+#inf.ro-carta { border: 0; border-radius: 2px; color: var(--tinta); background-color: var(--papiro);
+  background-image: var(--fibras), var(--manchas), radial-gradient(ellipse at 20% 0%, rgba(255, 246, 214, .7), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(140, 92, 36, .38), transparent 60%);
+  box-shadow: inset 0 0 18px rgba(100, 60, 18, .55), 0 10px 26px rgba(0, 0, 0, .7); }
+#inf.ro-carta .inf-t { color: var(--minio); font: 700 15px var(--serif); letter-spacing: .06em; text-transform: uppercase; }
+#inf.ro-carta .inf-l { font-size: 15px; color: var(--tinta); }
+#inf.ro-carta .inf-sello { top: 6px; right: 8px; width: 42px; height: 42px; background: none; border: 0; box-shadow: none; }
+#inf.ro-carta .inf-d h2 { color: var(--tinta); font: 700 17px var(--serif); letter-spacing: .04em; }
+#inf.ro-carta .inf-d .yr { color: var(--minio); font: 700 12px var(--serif); letter-spacing: .1em; }
+#inf.ro-carta .inf-d p, #inf.ro-carta .inf-d table { color: var(--tinta); font-size: 15px; }
+#inf.ro-carta .inf-d table { border-collapse: collapse; } #inf.ro-carta .inf-d table tr + tr td { border-top: 1px solid rgba(60, 35, 10, .22); }
+#inf.ro-carta .inf-d .ico { stroke: var(--tinta2); }
+#inf.ro-carta .inf-b .btn { min-height: 48px; font-size: 16px; }
+/* avisos con lacre (#mbox.ro-carta): sucesos, colonos, fin de partida, puerto… */
+#mbox.ro-carta { overflow-x: clip; padding: 50px 18px 18px; margin-top: 26px; border: 0; border-radius: 2px;
+  box-shadow: inset 0 0 22px rgba(100, 60, 18, .6), 0 20px 50px #000; overflow-y: auto; }
+#mbox.ro-carta::before { content: none; }
+#mbox.ro-carta .ro-carta-sello { position: absolute; left: 50%; top: 4px; width: 50px; height: 50px; margin-left: -25px; }
+#mbox.ro-carta h2 { color: var(--tinta); font: 700 21px var(--serif); letter-spacing: .06em; }
+#mbox.ro-carta .yr { color: var(--minio); font: 700 13px var(--serif); letter-spacing: .14em; }
+#mbox.ro-carta p { color: var(--tinta); font-size: 16px; line-height: 1.4; }
+#mbox.ro-carta p b { color: var(--minio); }
+#mbox.ro-carta .acts { gap: 10px; flex-wrap: nowrap; }
+#mbox.ro-carta .acts .btn { flex: 1 1 0; min-height: 50px; font-size: 16px; }
+#mbox.ro-carta .acts .btn:only-child { flex: 0 1 220px; }
+#mbox.ro-carta .resumen { background: rgba(255, 246, 214, .35); border: 1px solid rgba(60, 35, 10, .35); }
+#mbox.ro-carta .resumen .rs-t { color: var(--minio); } #mbox.ro-carta .resumen .rs-f { border-top-color: rgba(60, 35, 10, .22); font-size: 15px; }
+#mbox.ro-carta .resumen .rs-f span { color: var(--tinta2); } #mbox.ro-carta .resumen .nota b { color: var(--minio); }
+#mbox.ro-carta .lic { color: var(--tinta2); }
+/* confirmación «¿Volver al menú?» en la hoja inferior */
+#hoja .hconf.ro-carta { margin: 4px -6px 0; padding: 18px 16px 16px; border-radius: 2px; box-shadow: inset 0 0 18px rgba(100, 60, 18, .55); }
+#hoja .hconf.ro-carta .hq { color: var(--tinta); } #hoja .hconf.ro-carta .hs { color: var(--tinta2); }
+#hoja .hconf .hbig.ro-sello { border-radius: 8px; font-size: 19px; color: #fbe9c7; }
+#hoja .hconf .hdisc.ro-tinta { border-radius: 8px; font-size: 16px; color: var(--tinta); }
+/* Saber: «Sí, cambiar de saber» con sello y «Mejor no» en tinta */
+.mos-sab .sv-aviso .btn.ro-sello { color: #fbe9c7; border-color: var(--sello2); background: var(--martillado), radial-gradient(ellipse at 30% 0%, rgba(255, 190, 160, .3), transparent 60%), linear-gradient(#b8321f, #7e1910 70%, #6a140c); }
+.mos-sab .sv-aviso .btn.ro-tinta { color: var(--tinta); border: 1px solid rgba(60, 35, 10, .7); background: var(--fibras), linear-gradient(#f5e6bd, #e3cc94); text-shadow: none; }
+
+/* ======== Barras de abajo: pestañas en bronce y «Pasar turno» con sello ======== */
+#tabs3 { border-radius: 8px; padding: 4px; gap: 4px; border: 1px solid var(--bronce); backdrop-filter: none; -webkit-backdrop-filter: none;
+  background: var(--martillado), radial-gradient(ellipse at 50% 0%, rgba(233, 192, 99, .18), transparent 70%), linear-gradient(#3e2e16, #1f160a);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6), inset 0 0 0 3px rgba(184, 134, 43, .22), 0 6px 18px #000a; }
+#tabs3 button { flex-direction: column; gap: 1px; min-height: 50px; border-radius: 5px; color: #b9a67e; font: 700 13px var(--serif); letter-spacing: .06em; text-transform: uppercase; }
+#tabs3 button .ico { width: 22px; height: 22px; stroke: currentColor; }
+#tabs3 button.on { color: #2b1a05; background: var(--martillado), linear-gradient(#e2bd6c, #b98a35 55%, #8c6520); box-shadow: inset 0 0 0 1px rgba(80, 50, 10, .6), inset 0 1px 0 rgba(255, 240, 200, .6), 0 1px 3px rgba(0, 0, 0, .5); }
+#tabs3 button.on .ico { stroke: #2b1a05; }
+/* «Pasar turno» grande (Gobierno e Imperio): placa roja con lacre; arriba, sobre el mapa, sigue como estaba (C8b) */
+#turno .tu-lacre { display: none; }
+#app[data-tab="gobierno"] #turno, #app[data-tab="imperio"] #turno { display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 8px; color: #fbe9c7; font: 700 19px var(--serif); letter-spacing: .06em; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); border: 1px solid var(--sello2);
+  background: var(--martillado), radial-gradient(ellipse at 30% 0%, rgba(255, 190, 160, .3), transparent 60%), linear-gradient(#b8321f, #7e1910 70%, #6a140c);
+  box-shadow: 0 0 0 2px #6a4a18, 0 0 0 3px rgba(233, 192, 99, .55), 0 6px 16px rgba(0, 0, 0, .65), inset 0 1px 0 rgba(255, 220, 200, .4), inset 0 -2px 0 rgba(50, 5, 0, .4); }
+#app[data-tab="gobierno"] #turno[hidden], #app[data-tab="imperio"] #turno[hidden] { display: none; }
+#app[data-tab="gobierno"] #turno .tu-lacre, #app[data-tab="imperio"] #turno .tu-lacre { display: block; flex: none; width: 40px; height: 40px; margin-left: -6px; }
+#app[data-tab="gobierno"] #turno .tu-est, #app[data-tab="imperio"] #turno .tu-est { font: 400 15px var(--libro); letter-spacing: .04em; color: #f0cdb8; text-transform: none; }
+#hoja .hconf .hbig.ro-sello { border: 1px solid var(--sello2); background: var(--martillado), radial-gradient(ellipse at 30% 0%, rgba(255, 190, 160, .3), transparent 60%), linear-gradient(#b8321f, #7e1910 70%, #6a140c); }
+#hoja .hconf .hdisc.ro-tinta { border: 1px solid rgba(60, 35, 10, .7); background: var(--fibras), linear-gradient(#f5e6bd, #e3cc94); }
+#inf.ro-carta .inf-b .btn { letter-spacing: .02em; padding: 6px 8px; }
+#mbox.ro-carta { background-color: var(--papiro); background-image: var(--fibras), var(--manchas), radial-gradient(ellipse at 20% 0%, rgba(255, 246, 214, .7), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(140, 92, 36, .38), transparent 60%); }
