@@ -53,6 +53,8 @@ async function partida(nombre, w, h, completa, extra) {
   bien(await page.evaluate(() => document.querySelector('.orden[data-o="escudos"]').classList.contains('pide') || !window.__gc.R.tirando(window.__gc.B.sect[window.__gc.estado().sel].c[1])), 'el botón «Escudos» late cuando al cuerpo elegido le tiran y no se cubre');
   /* cubrirse: testudo en el centro, escudos en el ala derecha, nada en la izquierda (no le tiran) */
   await pulsa('.cuerpo[data-i="1"]'); await pulsa('.orden[data-o="testudo"]'); await pulsa('.cuerpo[data-i="2"]'); await pulsa('.orden[data-o="escudos"]');
+  bien(await page.evaluate(() => window.__gc.flechas) >= 2, 'GM29: al dar una orden se pinta una flecha en el suelo (' + await page.evaluate(() => window.__gc.flechas) + ' a la vista)');
+  bien(await page.evaluate(() => { const G = window.__gc, r = G.rel; return r && G.alt(r.lx, r.lz) > 4 && G.alt(0, 0) === 0 && G.alt(0, G.B.sect[1].dist) === 0; }), 'GM29: la loma sube y el campo de batalla es llano');
   const antes = await page.evaluate(() => window.__gc.B.sect.map(s => window.__gc.R.frente(s.c[0]).hombres));
   await g('salta', 5); await g('mirar', -1, 0);
   const e3 = await foto('3-cubiertos');
@@ -72,7 +74,7 @@ async function partida(nombre, w, h, completa, extra) {
     await hasta('B.sect.every(s => !R.lejos(s))', 60); await g('salta', 1.5); await g('mirar', -1, 0); await pulsa('.cuerpo[data-i="1"]');
     const e6 = await foto('6-choque');
     bien(e6.botones.join() === 'Empujar,Aguantar,Relevo,Caballería', 'al chocar, los mismos cuatro botones dicen Empujar, Aguantar, Relevo y Caballería');
-    bien(e6.t > 30 && e6.t < 70, 'acercarse dura entre medio minuto y un minuto (' + Math.round(e6.t) + ' s hasta que luchan los tres cuerpos)');
+    bien(e6.t > 45 && e6.t < 100, 'acercarse dura más de 45 s y menos de minuto y medio (' + Math.round(e6.t) + ' s hasta que luchan los tres cuerpos)');
     /* se juega con cabeza hasta el final (mismo criterio que el jugador de mentira de prueba.mjs) */
     await page.evaluate(() => { const G = window.__gc, R = G.R, B = G.B; let n = 0;
       while (B.fase !== 'fin' && n++ < 400) {
