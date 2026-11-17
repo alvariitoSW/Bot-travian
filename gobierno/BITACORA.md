@@ -4,6 +4,7 @@ Lo que el usuario ha pedido y decidido, y lo que espera algo suyo. Las tareas ya
 Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. Cómo se lleva: skill `bitacora`.
 
 ## Decisiones del usuario (literal o casi)
+- 17/11/2026 — **GR1: sí a lo recomendado**: «Si a lo recomendado». (Lectura de Claude: las cuatro preguntas de GR1 quedan en (A). La maqueta va por buen camino y se abre el carril con GR2 a GR5; el oficio lo limita el terreno, dos o tres por ciudad; tope de ciudades a mano: partida corta 3, larga 6, Ajustes de 1 a 12; los tipos de ciudad actuales desaparecen dentro del oficio. GR6 a GR9 (decretos, partida, ejército por oficios, equilibrio) siguen como propuesta P130.)
 - 17/11/2026 — **P151 aprobada y repositorios como biblioteca de ideas**: «Apruebo 1, y 2». (Lectura de Claude: (1) P151 pasa al tablero como RD4: probar `mcp-for-blender` (MIT) como herramienta de arte, solo con piezas CC0 de Poly Haven, sin tocar el juego. (2) Los repositorios de batalla, ciudad y mapa quedan como biblioteca de ideas: la sesión que lo necesite los lee, sin tarea nueva ni copiar código. Sigue descartado: Hunyuan3D-2 (excluye la UE), MeshAnything (no comercial) y el arte generado con IA. Estudio `estudios/RD4-repos-ia-3d.md`, que se renombró de RD3 porque RD3 ya es otra tarea.)
 - 16/11/2026 — **Aspecto de la batalla: «Haz lo recomendado»** (dicho en la sesión de GM10 justo después de explicarle que el estudio GM32 devolvería una lista de cambios para aprobar). (Lectura de Claude: no quiere esperar a otra ronda de aprobación. Los **tres primeros cambios que recomiende GM32** quedan aprobados de antemano y pasan al tablero al cerrar el estudio, cada uno como tarea de una sesión. No cubre: quitar cosas, subir el peso de la descarga con arte nuevo, tocar reglas, ni nada que pase de 1,5 M por tarea; eso se le pregunta. El resto de la lista de GM32 queda como propuestas. Cuando GM32 termine se le enseñan capturas antes de llevar nada a `js/`.)
 - 16/11/2026 — **Qué se ve mal y qué cambiar en las maniobras (contesta a GM10 y GM32)**: «1- haría animaciones realistas y le daría mejor estética visual y realismo no histórico sino a nivel de como si creáramos un simulador de batallas romanas con estrategia. 2- pues la estética entera, o sea se ve como muñecos y no parece un juego como el Rome 2 Total War». (Lectura de Claude: no pide cambiar las reglas de esperar, ceder y rehusar, sino que se vean: que el cuerpo retroceda, gire y espere con animaciones creíbles. Lo que falla es todo el aspecto: los soldados parecen muñecos. Quiere sensación de simulador de batallas, con Rome II como vara de medir. Esto orienta GM32, que ya está abierta; de ahí saldrán las tareas de aspecto y animación para aprobar. «Realismo no histórico» lo leo como realismo visual y de movimiento; la regla de fidelidad histórica del contenido no cambia.)
@@ -229,12 +230,9 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
-- **GR1 · Prueba la maqueta de gobierno de provincias** (https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/provincias/): ¿va por aquí? (A) sí, abre el carril con GR2 a GR5; (B) antes quiero cambios en la maqueta.
-- **GR1 · ¿El oficio de una ciudad lo limita el terreno?** (A) sí, dos o tres por ciudad; (B) libre.
-- **GR1 · ¿Tope de ciudades a mano?** (A) corta 3, larga 6, Ajustes de 1 a 12; (B) corta 5, larga 10, Ajustes hasta 15.
-- **GR1 · ¿Los tipos de ciudad actuales desaparecen dentro del oficio?** (A) sí; (B) se quedan los dos.
 
 ## Propuestas por aprobar
+- **P130 · Resto del gobierno de provincias (GR6 a GR9)**: decretos por ciudad (cierra Q10), la partida de exportación, el ejército sale de los oficios y equilibrio con el bot. Unos 4,4 M. Detalle en `estudios/GR1-gobierno-de-provincias.md` §8. Mejor decidirlo tras probar GR3 a GR5.
 
 
 

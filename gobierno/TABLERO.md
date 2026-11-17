@@ -114,7 +114,11 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ⬜ GC6 **Quitar la batalla clásica muerta** (GC4): `startBattle`, `UI.battle` y su HUD en `js/ui.js`, y lo que `js/battle.js` solo usaba para ella (conservar el terreno de la ciudad y el carácter del enemigo). Un archivo grande, sin cambio visible. Pequeña-media.
 
 ## Carril GR — Gobierno de región (P104, aprobada por el usuario el 16/11/2026)
-- ✅ GR1 **Gobierno de provincias: diseño y maqueta** (17/11, 0,9 M): hecha, espera prueba del usuario. Informe `estudios/GR1-gobierno-de-provincias.md`; maqueta `maquetas/provincias/` (225 a.C., cuatro ciudades, oficio y decreto). Propone GR2 a GR9, sin aprobar. No tocó `js/`.
+- ✅ GR1 **Gobierno de provincias: diseño y maqueta** (17/11, 0,9 M): aprobada por el usuario el 17/11. Informe `estudios/GR1-gobierno-de-provincias.md`; maqueta `maquetas/provincias/` (225 a.C., cuatro ciudades, oficio y decreto). No tocó `js/`.
+- ⬜ GR2 **Cotejo de fuentes y oficios por ciudad** (≈0,5 M): cotejar con el texto los pasajes de GR1 §4 y §7 y dejar en `gobierno/historia/` qué dos o tres oficios ofrece cada ciudad del mapa según su terreno. Solo `gobierno/`.
+- ⬜ GR3 **Oficio en las reglas, sin pantalla** (≈1,3 M; tras GR2): el oficio sustituye a los tipos de ciudad (decisión 17/11); puertas de comida, armas y aliados; migrar en `G.load`. `js/data.js`, `js/game.js`, pruebas.
+- ⬜ GR4 **Entregar y recuperar una ciudad; tope en Ajustes** (≈1,0 M; tras GR3): lo construido se conserva y fija el rango; tope de ciudades a mano corta 3, larga 6, Ajustes de 1 a 12.
+- ⬜ GR5 **Pantalla «Región»** (≈1,0 M; tras GR4): todas tus ciudades en una lista, un toque cada una, como la maqueta `maquetas/provincias/`.
 
 ## Carril GM — Batalla mejorada (P108 a P112, aprobadas por el usuario el 16/11/2026; todo parte de la maqueta GC1, que es la base)
 - ✅ GM1 **Ejércitos grandes sin miles de figuras** (P109): probada por el usuario el 16/11, «sí, con cambios» (los cambios son GM7 y GM8). Maqueta `gobierno/maquetas/guerra-grande/`; estudio `estudios/GM1-ejercitos-grandes.md`.
