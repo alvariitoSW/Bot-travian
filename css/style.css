@@ -1016,3 +1016,6 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #app[data-miga="1"] .mmigas { top: calc(154px + env(safe-area-inset-top)); }
 #app[data-miga="1"] #ctop { top: calc(242px + env(safe-area-inset-top)); }
 #app[data-miga="1"] #zoom { top: calc(354px + env(safe-area-inset-top)); }
+
+/* J4b: de lejos, las etiquetas de ciudad sin el contador de tropas para que quepan sin pisarse */
+.mlabels.comp .mlabel:not(.army):not(.zona) em { display: none; }

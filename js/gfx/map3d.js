@@ -328,8 +328,6 @@ export class MapView3D {
       if (q.est !== k.estado) { q.est = k.estado; q.flag.color.set(k.estado === 'libre' ? '#e9c063' : k.estado === 'camino' ? '#9aa4b0' : '#7fd060'); q.el.dataset.est = k.estado; q.em.textContent = k.estado === 'libre' ? D.COLONIAS[id].anio + ' a.C.' : k.estado === 'camino' ? 'colonos en camino' : '¡funda aquí!'; }
       q.el.classList.toggle('sel', sel === id); place(q.el, q.x, q.grp.position.y + q.top, q.z); if (mare) q.el.style.display = 'none';
     }
-    { const vs = Object.values(this.sitios).filter(q => q.el.style.display !== 'none').map(q => ({ e: q.el, r: q.el.getBoundingClientRect() })).sort((p, q) => p.r.top - q.r.top), hs = [];   // los nombres de sitios no se pisan entre sí
-      for (const o of vs) { let dy = 0; for (const q of hs) if (o.r.left < q.right && o.r.right > q.left && o.r.top + dy < q.bottom && o.r.bottom + dy > q.top) dy = q.bottom - o.r.top + 2; if (dy) o.e.style.transform += ' translateY(' + dy.toFixed(0) + 'px)'; hs.push({ left: o.r.left, right: o.r.right, top: o.r.top + dy, bottom: o.r.bottom + dy }); } }
     for (const id in this.cities) {
       const c = this.cities[id], st = state.cities[id];
       if (!st) { c.grp.visible = false; c.el.style.display = 'none'; continue; }   // ciudad que no es de esta región: ni modelo ni etiqueta
@@ -342,6 +340,7 @@ export class MapView3D {
       c.el.classList.toggle('sel', sel === id); place(c.el, c.x, c.grp.position.y + c.top, c.z);
       if (mare) c.el.style.display = 'none';   // C6: de lejos solo se leen los nombres de zona
     }
+    this.sinPisar(sel);
     const ar = new Set(G.aristas().map(e => e[0] + '|' + e[1]));
     for (const e of this.aristas) e.line.visible = ar.has(e.a + '|' + e.b) && !!state.cities[e.a] && !!state.cities[e.b];
     // rutas comerciales: trazo dorado y un mercante que va y viene (una malla por ruta)
@@ -381,6 +380,25 @@ export class MapView3D {
     this.scene.fog.near = Math.max(90, c.dist * 0.6); this.scene.fog.far = Math.max(260, c.dist * 1.75);   // C6: a más distancia, más bruma lejana
     this.cam.position.set(c.x, Math.sin(c.pitch) * c.dist, c.z + cp * c.dist); this.cam.lookAt(c.x, 0, c.z);
     this.r.render(this.scene, this.cam);
+  }
+
+  /* J4b · las etiquetas de ciudades y sitios no se pisan (Etruria tiene 4 ciudades juntas). Orden: elegida, Roma, ciudades, sitios.
+     Cada una prueba su sitio y, si choca, sube o baja una fila; de lejos se esconde el contador de tropas para que quepan. */
+  sinPisar(sel) {
+    const lejos = this.c.dist > 52; this.labels.classList.toggle('comp', lejos);
+    const todos = [];
+    for (const id in this.cities) { const c = this.cities[id]; if (c.el.style.display !== 'none') todos.push({ e: c.el, p: id === sel ? 0 : c.el.classList.contains('mine') ? 1 : 2 }); }
+    for (const id in this.sitios) { const q = this.sitios[id]; if (q.el.style.display !== 'none') { if (lejos && id !== sel) { q.el.style.display = 'none'; continue; } todos.push({ e: q.el, p: id === sel ? 0 : 3 }); } }
+    if (todos.length < 2) return;
+    for (const o of todos) o.r = o.e.getBoundingClientRect();
+    todos.sort((m, n) => m.p - n.p || m.r.top - n.r.top);
+    const puestos = [], choca = (r, dy) => puestos.some(q => r.left < q.right && r.right > q.left && r.top + dy < q.bottom && r.bottom + dy > q.top);
+    for (const o of todos) {
+      const h = o.r.height + 2; let dy = 0;
+      for (const k of [0, -1, 1, -2, 2, -3, 3]) { dy = k * h; if (!choca(o.r, dy)) break; }
+      if (dy) o.e.style.transform += ' translateY(' + dy.toFixed(0) + 'px)';
+      puestos.push({ left: o.r.left, right: o.r.right, top: o.r.top + dy, bottom: o.r.bottom + dy });
+    }
   }
 
   /* C6 · Escalones del mapa. Mare Nostrum (cámara lejos): solo nombres de zona. Zona: la cámara se acerca a sus ciudades y salen

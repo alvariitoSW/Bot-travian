@@ -1541,6 +1541,21 @@
       "tarea": "GR1",
       "archivo": "gobierno/capturas-tarea/GR1-7-cuentas.jpg",
       "pie": "Cuentas del invierno y lo que pasó de verdad"
+    },
+    {
+      "tarea": "J4b",
+      "archivo": "gobierno/capturas-tarea/J4b-antes-etruria.jpg",
+      "pie": "Antes: Volsinii, Clusium y Perusia se pisan"
+    },
+    {
+      "tarea": "J4b",
+      "archivo": "gobierno/capturas-tarea/J4b-despues-etruria.jpg",
+      "pie": "Después: cada nombre tiene su hueco, Roma libre"
+    },
+    {
+      "tarea": "J4b",
+      "archivo": "gobierno/capturas-tarea/J4b-despues-etruriaLejos.jpg",
+      "pie": "De lejos, sin contador de tropas ni sitios"
     }
   ],
   "informes": [
