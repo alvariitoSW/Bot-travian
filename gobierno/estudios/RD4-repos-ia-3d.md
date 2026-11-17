@@ -1,4 +1,4 @@
-# RD3 · Siete repositorios de IA y 3D (17/11/2026)
+# RD4 · Siete repositorios de IA y 3D (17/11/2026)
 Pedido: «Estudia los siguientes repositorios de GitHub» (lista pegada por el usuario desde un hilo de X que no se pudo abrir: error 402). Solo se leyeron `LICENSE` y `README` de cada uno (clon sin archivos, en el cuaderno de trabajo; nada entra en el proyecto). Skill `radar`. Fechas = último commit visto.
 
 ## Resumen en llano
