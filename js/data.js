@@ -441,6 +441,52 @@
     delphini: { n: 'Delfines', clase: 'bestia', lon: 10.7, lat: 41.2, t: 4.5 },
     physeter: { n: 'Físeter', clase: 'bestia', lon: -7.0, lat: 46.4, t: 6, izq: 1 }
   };
+  /* C11 · Pueblos y tribus del mapa de campaña, en las tierras sin ciudad del juego: solo se ven, no cambian el juego.
+     n: nombre en español · la: nombre latino (va en la cinta) · gente: familia (da el color y la forma del poblado en js/gfx/map3d.js)
+     · casa: redonda (cabañas de paja), castro (cabañas de piedra con muro), ibera (casas cuadradas con muro), mapalia (chozas alargadas
+     de los númidas). El sitio es aproximado y puesto a ojo (licencia de juego). Ficha con fuente y dictamen en js/registro.js (tipo
+     tribu) y gobierno/historia/C11-pueblos.md. */
+  D.TRIBUS = {
+    lusitani: { n: 'Lusitanos', la: 'Lusitani', gente: 'castreno', casa: 'castro', lon: -7.4, lat: 39.6 },
+    callaeci: { n: 'Galaicos', la: 'Callaeci', gente: 'castreno', casa: 'castro', lon: -7.8, lat: 42.6 },
+    cantabri: { n: 'Cántabros', la: 'Cantabri', gente: 'castreno', casa: 'castro', lon: -4.2, lat: 43.0 },
+    vaccaei: { n: 'Vacceos', la: 'Vaccaei', gente: 'celtibero', casa: 'castro', lon: -4.7, lat: 41.8 },
+    celtiberi: { n: 'Celtíberos', la: 'Celtiberi', gente: 'celtibero', casa: 'castro', lon: -2.4, lat: 41.4 },
+    carpetani: { n: 'Carpetanos', la: 'Carpetani', gente: 'celtibero', casa: 'castro', lon: -3.4, lat: 39.8 },
+    oretani: { n: 'Oretanos', la: 'Oretani', gente: 'ibero', casa: 'ibera', lon: -3.2, lat: 38.6 },
+    turdetani: { n: 'Turdetanos', la: 'Turdetani', gente: 'ibero', casa: 'ibera', lon: -5.4, lat: 37.6 },
+    contestani: { n: 'Contestanos', la: 'Contestani', gente: 'ibero', casa: 'ibera', lon: -0.8, lat: 38.6 },
+    ilergetes: { n: 'Ilergetes', la: 'Ilergetes', gente: 'ibero', casa: 'ibera', lon: 0.7, lat: 41.9 },
+    aquitani: { n: 'Aquitanos', la: 'Aquitani', gente: 'celta', casa: 'redonda', lon: -0.3, lat: 43.9 },
+    volcae: { n: 'Volcas', la: 'Volcae', gente: 'celta', casa: 'redonda', lon: 2.3, lat: 43.7 },
+    arverni: { n: 'Arvernos', la: 'Arverni', gente: 'celta', casa: 'redonda', lon: 3.0, lat: 45.6 },
+    aedui: { n: 'Eduos', la: 'Aedui', gente: 'celta', casa: 'redonda', lon: 4.1, lat: 46.9 },
+    belgae: { n: 'Belgas', la: 'Belgae', gente: 'celta', casa: 'redonda', lon: 3.0, lat: 49.8 },
+    allobroges: { n: 'Alóbroges', la: 'Allobroges', gente: 'celta', casa: 'redonda', lon: 5.4, lat: 45.4 },
+    taurini: { n: 'Taurinos', la: 'Taurini', gente: 'ligur', casa: 'redonda', lon: 7.6, lat: 45.0 },
+    ligures: { n: 'Ligures', la: 'Ligures', gente: 'ligur', casa: 'castro', lon: 8.5, lat: 44.35 },
+    cenomani: { n: 'Cenomanos', la: 'Cenomani', gente: 'celta', casa: 'redonda', lon: 10.9, lat: 45.35 },
+    boii: { n: 'Boyos', la: 'Boii', gente: 'celta', casa: 'redonda', lon: 10.6, lat: 44.4 },
+    veneti: { n: 'Vénetos', la: 'Veneti', gente: 'italico', casa: 'redonda', lon: 11.9, lat: 45.7 },
+    samnites: { n: 'Samnitas', la: 'Samnites', gente: 'italico', casa: 'castro', lon: 14.85, lat: 41.95 },
+    lucani: { n: 'Lucanos', la: 'Lucani', gente: 'italico', casa: 'castro', lon: 15.9, lat: 40.45 },
+    bruttii: { n: 'Brucios', la: 'Bruttii', gente: 'italico', casa: 'castro', lon: 16.4, lat: 39.3 },
+    dalmatae: { n: 'Dálmatas', la: 'Dalmatae', gente: 'ilirio', casa: 'castro', lon: 16.9, lat: 43.7 },
+    ardiaei: { n: 'Ilirios ardieos', la: 'Ardiaei', gente: 'ilirio', casa: 'redonda', lon: 19.6, lat: 42.75 },
+    dardani: { n: 'Dárdanos', la: 'Dardani', gente: 'ilirio', casa: 'redonda', lon: 21.3, lat: 42.5 },
+    scordisci: { n: 'Escordiscos', la: 'Scordisci', gente: 'celta', casa: 'redonda', lon: 21.0, lat: 44.3 },
+    odrysae: { n: 'Tracios odrisios', la: 'Odrysae', gente: 'tracio', casa: 'redonda', lon: 25.6, lat: 42.3 },
+    getae: { n: 'Getas', la: 'Getae', gente: 'tracio', casa: 'redonda', lon: 26.0, lat: 44.6 },
+    paphlagones: { n: 'Paflagonios', la: 'Paphlagones', gente: 'anatolio', casa: 'ibera', lon: 33.6, lat: 41.3 },
+    galatae: { n: 'Gálatas', la: 'Galatae', gente: 'celta', casa: 'redonda', lon: 32.9, lat: 39.7 },
+    pisidae: { n: 'Pisidios', la: 'Pisidae', gente: 'anatolio', casa: 'castro', lon: 30.7, lat: 37.3 },
+    mauri: { n: 'Mauros', la: 'Mauri', gente: 'libio', casa: 'mapalia', lon: -5.2, lat: 34.4 },
+    masaesyli: { n: 'Masesilos', la: 'Masaesyli', gente: 'libio', casa: 'mapalia', lon: 0.5, lat: 35.2 },
+    massyli: { n: 'Masilos', la: 'Massyli', gente: 'libio', casa: 'mapalia', lon: 7.3, lat: 36.0 },
+    gaetuli: { n: 'Gétulos', la: 'Gaetuli', gente: 'libio', casa: 'mapalia', lon: 5.0, lat: 33.3 },
+    libyes: { n: 'Libios', la: 'Libyes', gente: 'libio', casa: 'mapalia', lon: 9.6, lat: 35.2 },
+    nasamones: { n: 'Nasamones', la: 'Nasamones', gente: 'libio', casa: 'mapalia', lon: 17.8, lat: 29.9 }
+  };
 
   // Hechos históricos. fx: clave interpretada por game.js (o varias separadas por comas, en ese orden). k: clave opcional para distinguir dos hechos del mismo año (id de ficha «<año>-<k>»)
   // H13b, licencia de juego: Roma empieza con más tropas para la llegada temprana de Pirro (no es un dato histórico)

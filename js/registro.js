@@ -431,7 +431,55 @@
   for (const id of ['navis1', 'navis2', 'navis3', 'navis4', 'navis5']) adorno[id] = GALERA;
   adorno.ketos2 = adorno.ketos1;
 
-  R.fichas = { monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+  // ---- Pueblos y tribus del mapa (D.TRIBUS, C11). Dibujados por código; ficha larga en gobierno/historia/C11-pueblos.md ----
+  // Cotejado el 17/11/2026 en LacusCurtius y Perseus (traducciones inglesas). Lo no cotejado queda «por cotejar», con la fuente de memoria.
+  const POR_CODIGO_C11 = { sin: 'dibujado por código en js/gfx/map3d.js (cabañas, muros y cinta a tinta; sin archivo de arte ni licencia ajena)' };
+  const LJ_TRIBU = 'licencia de juego: el sitio es aproximado y puesto a ojo; el poblado es genérico de su familia, no un lugar concreto';
+  const COT = 'cotejado el 17/11/2026', MEM = 'citado de memoria, sin cotejar';
+  const tri = (fuente, dictamen, nota) => f(POR_CODIGO_C11, h(fuente, dictamen, nota + ' · ' + LJ_TRIBU));
+  const tribu = {
+    lusitani: tri('Estrabón, Geografía 3.3.3 y 3.3.5; Apiano, Iberia 56-75 (Viriato)', 'historico', COT + ': Estrabón 3.3.3 llama a Lusitania «la mayor de las naciones ibéricas», al norte del Tajo; Apiano, ' + MEM + '. Que vivieran en castros de piedra es lectura arqueológica (cultura castreña), no de ese pasaje: probable'),
+    callaeci: tri('Estrabón, Geografía 3.3.2-3; Apiano, Iberia 73-75 (Bruto, 137 a.C.)', 'por cotejar', MEM + '. Roma no llega hasta ellos hasta 137 a.C., después de la época del juego; el pueblo ya existía'),
+    cantabri: tri('Estrabón, Geografía 3.3.7-8 y 3.4.12', 'por cotejar', MEM + '. Sin guerra con Roma en la época del juego (sus guerras son de 29-19 a.C.)'),
+    vaccaei: tri('Polibio 3.14', 'historico', COT + ': Aníbal ataca a los vacceos y toma Hermandica al primer asalto, y luego Arbacala (220 a.C.)'),
+    celtiberi: tri('Estrabón, Geografía 3.4.12-13; Polibio 35.1 (la «guerra de fuego», 153 a.C., ' + MEM + ')', 'historico', COT + ': Estrabón 3.4.13 los divide en cuatro partes, la más fuerte los arévacos, con Numancia'),
+    carpetani: tri('Polibio 3.14', 'historico', COT + ': los carpetanos atacan a Aníbal junto al Tajo a la vuelta de los vacceos (220 a.C.)'),
+    oretani: tri('Polibio 3.33.9 (oretes íberos en las tropas de Aníbal); Livio 35.7', 'por cotejar', MEM),
+    turdetani: tri('Estrabón, Geografía 3.1.6 y 3.2.1-15; Livio 34.17-19', 'por cotejar', MEM + '. Estrabón los tiene por los más cultos de Iberia, con leyes escritas'),
+    contestani: tri('Plinio, Historia Natural 3.19-20; Ptolomeo, Geografía 2.6.14', 'por cotejar', MEM),
+    ilergetes: tri('Polibio 3.35; Livio 22.21 y 28.24-34 (Indíbil y Mandonio)', 'historico', COT + ': Polibio 3.35 escribe «Ilurgetes», sometidos por Aníbal al pasar el Ebro; Livio, ' + MEM),
+    aquitani: tri('Estrabón, Geografía 4.1.1 y 4.2.1-2; César, Guerra de las Galias 1.1', 'por cotejar', MEM + '. Las fuentes que los describen son algo posteriores a la época del juego'),
+    volcae: tri('Livio 21.26.6', 'historico', COT + ': los volcas pasan su gente a la otra orilla del Ródano para frenar a Aníbal (218 a.C.); aquí van hacia Tolosa (los volcas tectósages), ' + MEM),
+    arverni: tri('Estrabón, Geografía 4.2.3 (Bituito, 121 a.C.)', 'por cotejar', MEM + '. Su gran poder lo cuentan fuentes algo posteriores'),
+    aedui: tri('Estrabón, Geografía 4.3.2; César, Guerra de las Galias 1.10-11', 'por cotejar', MEM + '. «Amigos y hermanos» de Roma ya en el siglo II a.C. según fuentes posteriores'),
+    belgae: tri('Estrabón, Geografía 4.4.3; César, Guerra de las Galias 1.1', 'por cotejar', MEM + '. Fuentes del siglo I a.C.'),
+    allobroges: tri('Polibio 3.50', 'historico', COT + ': los jefes alóbroges ocupan las alturas del camino para atacar a Aníbal en los Alpes (3.49 no los nombra)'),
+    taurini: tri('Polibio 3.60.8-10', 'probable', COT + ' en parte: Aníbal toma en tres días su ciudad principal; en el extracto leído no salía el nombre del pueblo'),
+    ligures: tri('Polibio 2.16; Livio 39.1-2 y 40.38 (guerras ligures); Estrabón, Geografía 4.6.1-3', 'por cotejar', MEM + '. Sus castillos en las alturas (castella) los cita Livio'),
+    cenomani: tri('Polibio 2.17 y 2.23-24', 'historico', COT + ': Polibio 2.17 los pone tras los ínsubres en el valle del Po; en 225 a.C. se ponen del lado de Roma (2.23-24, ' + MEM + ')'),
+    boii: tri('Polibio 2.17.7, 2.20-31; Livio 21.25', 'historico', COT + ': Polibio 2.17 los pone en el valle del Po; la guerra de 225 y el ataque a Placentia y Cremona (Livio 21.25) son ' + MEM),
+    veneti: tri('Polibio 2.17.5-6 y 2.23-24', 'historico', COT + ': Polibio 2.17.5 los nombra; que hablaran otra lengua que los galos y fueran aliados de Roma en 225 queda ' + MEM),
+    samnites: tri('Plutarco, Pirro 13.6 y 17.5; Livio, Períocas 12-14', 'historico', COT + ': Pirro espera fuerzas del Samnio (13.6) y samnitas y lucanos se le unen tras Heraclea (17.5); Livio ' + MEM),
+    lucani: tri('Plutarco, Pirro 13.6 y 17.5', 'historico', COT + ': como los samnitas'),
+    bruttii: tri('Livio 22.61 y 23.30; Polibio 1.56 (de memoria); Estrabón, Geografía 6.1.4', 'por cotejar', MEM + '. Aliados de Pirro y luego de Aníbal'),
+    dalmatae: tri('Polibio 32.13 (32.9 en otras ediciones)', 'historico', COT + ': el Senado decide la guerra contra los dálmatas; el año (156 a.C.) sale de los cónsules de 32.10'),
+    ardiaei: tri('Polibio 2.4-12', 'historico', COT + ': la reina Teuta y la guerra de 229 a.C.; los ardieos se nombran en 2.11.10 y 2.12.2'),
+    dardani: tri('Polibio 2.6.4; Livio 40.57', 'por cotejar', MEM + '. Vecinos y enemigos de los reyes de Macedonia'),
+    scordisci: tri('Estrabón, Geografía 7.5.12; Livio 40.57 (de memoria)', 'por cotejar', MEM + '. Celtas que se quedaron en el Danubio tras la invasión de 279 a.C.: al empezar la partida (280) aún no estaban'),
+    odrysae: tri('Polibio 23.8; Livio 39.53 y 45.42 (Cotis)', 'por cotejar', MEM + '. El reino tracio de los odrisios'),
+    getae: tri('Estrabón, Geografía 7.3.13; Diodoro 21.12 (Dromiquetes captura a Lisímaco, h. 292 a.C.)', 'historico', COT + ': Estrabón 7.3.13 (getas y dacios hablan la misma lengua y cruzan el Istro); Diodoro, ' + MEM),
+    paphlagones: tri('Estrabón, Geografía 12.3.9-10 y 12.3.41', 'por cotejar', MEM),
+    galatae: tri('Livio 38.16.11-12; Estrabón, Geografía 12.5.1', 'historico', COT + ': las tres tribus (trocmos, tolistobogios, tectósages) se reparten Asia (Livio) y se gobiernan por tetrarquías (Estrabón). Pasan a Asia en 278-277 a.C.: al empezar la partida (280) aún no estaban'),
+    pisidae: tri('Polibio 5.72-76 (Selge); Estrabón, Geografía 12.7.1-3', 'por cotejar', MEM),
+    mauri: tri('Estrabón, Geografía 17.3.7; Salustio, Yugurta 18', 'historico', COT + ': Estrabón 17.3.7 los pinta casi todos nómadas, con el pelo trenzado y adornos de oro; Salustio 18 describe las mapalia, chozas alargadas «como quillas de barco», de los númidas'),
+    masaesyli: tri('Livio 29.31-32 (Sífax)', 'historico', COT + ': Livio 29.32.14 escribe «Masaesulii», el pueblo de Sífax, al oeste. Chozas: Salustio, Yugurta 18 (cotejado)'),
+    massyli: tri('Livio 29.29-32 (Masinisa)', 'historico', COT + ': Livio 29.32.13 escribe «Maesulii», el pueblo de Masinisa, al este; que Livio los diga expresamente pueblo de Masinisa en esos capítulos no se vio en lo leído. Chozas: Salustio, Yugurta 18 (cotejado)'),
+    gaetuli: tri('Salustio, Yugurta 18-19; Estrabón, Geografía 17.3.2', 'por cotejar', MEM + '. Nómadas del interior, al sur de los númidas'),
+    libyes: tri('Polibio 1.65-88 (la guerra de los mercenarios y los libios, 241-238 a.C.)', 'por cotejar', MEM + '. Los campesinos libios súbditos de Cartago'),
+    nasamones: tri('Heródoto 4.172-173', 'historico', COT + ': Heródoto 4.172 los pone al oeste de los auschisas, con rebaños junto al mar en verano; la Sirte la nombra en 4.169 y 4.173. Heródoto escribe dos siglos antes de la época del juego')
+  };
+
+  R.fichas = { tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -462,7 +510,8 @@
     leva: { tabla: 'LEVA_FICHAS', numericos: [], textos: ['n', 'i', 'd'] },
     remedio: { tabla: 'REMEDIOS', numericos: [], textos: ['n', 'i', 'd'] },
     monumento: { tabla: 'MONUMENTOS', numericos: ['lon', 'lat'], textos: ['n'] },
-    adorno: { tabla: 'ADORNOS', numericos: ['lon', 'lat', 't'], textos: ['n', 'clase'] }
+    adorno: { tabla: 'ADORNOS', numericos: ['lon', 'lat', 't'], textos: ['n', 'clase'] },
+    tribu: { tabla: 'TRIBUS', numericos: ['lon', 'lat'], textos: ['n', 'la', 'gente', 'casa'] }
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */
