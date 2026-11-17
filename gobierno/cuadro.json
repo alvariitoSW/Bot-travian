@@ -1671,6 +1671,21 @@
       "tarea": "MR3",
       "archivo": "gobierno/capturas-tarea/MR3-10-opciones.jpg",
       "pie": "MR3: opciones en papiro"
+    },
+    {
+      "tarea": "P167",
+      "archivo": "gobierno/capturas-tarea/P167-1-colina.jpg",
+      "pie": "Roma hoy, vista desde una colina: se ve una aldea, no una ciudad"
+    },
+    {
+      "tarea": "P167",
+      "archivo": "gobierno/capturas-tarea/P167-2-colina-cerca.jpg",
+      "pie": "Roma hoy, a media distancia: suelo marrón y pocas casas"
+    },
+    {
+      "tarea": "P167",
+      "archivo": "gobierno/capturas-tarea/P167-3-calle.jpg",
+      "pie": "Roma hoy, a pie de calle: paredes borrosas y antorchas como bolas de luz"
     }
   ],
   "informes": [
@@ -1889,6 +1904,14 @@
     {
       "titulo": "¿A dónde vamos y qué queda? (17/11, mediodía)",
       "archivo": "gobierno/estudios/ADV-2026-11-17.md"
+    },
+    {
+      "titulo": "P167 · Plan para una Roma 3D realista",
+      "archivo": "gobierno/estudios/P167-roma-3d-realista.md"
+    },
+    {
+      "titulo": "Estado del proyecto (17/11, noche): qué queda para la 1.0, por qué no se cierra y cinco decisiones",
+      "archivo": "gobierno/estudios/estado-proyecto-17-11.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1919,22 +1942,10 @@
       "url": "https://claude.ai/code/session_01QiKC39GcxgHwQm5q2GKUGc"
     },
     {
-      "tarea": "GM44r",
-      "titulo": "GM44 Soldados nuevos al nivel de Rome II · rediseño (Fable construye)",
-      "nota": "solo maqueta y estudio; sin tocar js/",
-      "url": "https://claude.ai/code/session_01QiKC392bMLyNZs82CksoEg"
-    },
-    {
       "tarea": "C10",
       "titulo": "Mapa · C10 Adornos de carta (Opus)",
       "nota": "js/gfx/map3d.js; excepción a la 1.0",
       "url": "https://claude.ai/code/session_01QiKC36cUDqd5eZ6evx8RuA"
-    },
-    {
-      "tarea": "CN26",
-      "titulo": "Versión 1.0 · CN26 Reclutar desde el cuartel (Opus)",
-      "nota": "Carril V; js/ui.js (ficha del edificio); orden directa del usuario",
-      "url": "https://claude.ai/code/session_01QiKC3A7fyPQqSW7ya2tEi2"
     },
     {
       "tarea": "GM36",
@@ -1947,6 +1958,12 @@
       "titulo": "Versión 1.0 · JU1 Dos jueces en rojo: «Construir aquí» y guerra atascada (Opus)",
       "nota": "diagnóstico: ¿fallo real o del juez?; gobierno/*.mjs",
       "url": "https://claude.ai/code/session_01QiKC37gQPtkdN7X53tu66G"
+    },
+    {
+      "tarea": "GM44b",
+      "titulo": "GM44b Soldado nuevo: seguir puliendo, mismo detalle para todos (Fable)",
+      "nota": "solo maqueta y estudio; sin tocar js/",
+      "url": "https://claude.ai/code/session_01QiKC38JACzrz9hXD3ncfDK"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
