@@ -114,7 +114,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ⬜ GC6 **Quitar la batalla clásica muerta** (GC4): `startBattle`, `UI.battle` y su HUD en `js/ui.js`, y lo que `js/battle.js` solo usaba para ella (conservar el terreno de la ciudad y el carácter del enemigo). Un archivo grande, sin cambio visible. Pequeña-media.
 
 ## Carril GR — Gobierno de región (P104, aprobada por el usuario el 16/11/2026)
-- ⬜ GR1 **Gobierno de provincias: diseño corto y maqueta jugable** (P104): que la segunda y la décima ciudad no obliguen a repetir todo desde cero y que el oficio de cada una cambie de verdad cómo se juega; se conserva la construcción a mano. El formato ya está decidido (P113 «A+» con tope variable de ciudades a mano). Sesión abierta el 17/11 (pedido «Abrir sesión» del usuario). No toca `js/`.
+- ✅ GR1 **Gobierno de provincias: diseño y maqueta** (17/11, 0,9 M): hecha, espera prueba del usuario. Informe `estudios/GR1-gobierno-de-provincias.md`; maqueta `maquetas/provincias/` (225 a.C., cuatro ciudades, oficio y decreto). Propone GR2 a GR9, sin aprobar. No tocó `js/`.
 
 ## Carril GM — Batalla mejorada (P108 a P112, aprobadas por el usuario el 16/11/2026; todo parte de la maqueta GC1, que es la base)
 - ✅ GM1 **Ejércitos grandes sin miles de figuras** (P109): probada por el usuario el 16/11, «sí, con cambios» (los cambios son GM7 y GM8). Maqueta `gobierno/maquetas/guerra-grande/`; estudio `estudios/GM1-ejercitos-grandes.md`.

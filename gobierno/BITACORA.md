@@ -229,6 +229,10 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
+- **GR1 · Prueba la maqueta de gobierno de provincias** (https://alvariitosw.github.io/Bot-travian/gobierno/maquetas/provincias/): ¿va por aquí? (A) sí, abre el carril con GR2 a GR5; (B) antes quiero cambios en la maqueta.
+- **GR1 · ¿El oficio de una ciudad lo limita el terreno?** (A) sí, dos o tres por ciudad; (B) libre.
+- **GR1 · ¿Tope de ciudades a mano?** (A) corta 3, larga 6, Ajustes de 1 a 12; (B) corta 5, larga 10, Ajustes hasta 15.
+- **GR1 · ¿Los tipos de ciudad actuales desaparecen dentro del oficio?** (A) sí; (B) se quedan los dos.
 
 ## Propuestas por aprobar
 

@@ -1476,6 +1476,36 @@
       "archivo": "gobierno/capturas-tarea/GM21-horizontal-7-batalla-ancho.jpg",
       "pie": "Batalla con todo a lo ancho: Roma desborda",
       "ancha": true
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-3-region.jpg",
+      "pie": "Gobierno de provincias: la región en una pantalla, con lo que hace falta para el otoño"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-2-oficio-capua.jpg",
+      "pie": "Dar un oficio a Capua: sus tres campos cuentan y nace en rango II"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-4-decreto.jpg",
+      "pie": "El decreto de Tarento: cada opción dice antes lo que da y lo que cuesta"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-5-partida.jpg",
+      "pie": "La partida de exportación: vender ahora o comprar fuera"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-6-batalla.jpg",
+      "pie": "Otoño: tu fuerza sale de los oficios que repartiste"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-7-cuentas.jpg",
+      "pie": "Cuentas del invierno y lo que pasó de verdad"
     }
   ],
   "informes": [
@@ -1678,6 +1708,10 @@
     {
       "titulo": "Crítica independiente de la batalla (guerra-unica)",
       "archivo": "gobierno/estudios/GM-critica-fable-guerra-unica.md"
+    },
+    {
+      "titulo": "GR1 · Gobierno de provincias: oficio, decreto y partida",
+      "archivo": "gobierno/estudios/GR1-gobierno-de-provincias.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1706,12 +1740,6 @@
       "titulo": "Puerta de la ciudad · K7c Miga y botón único de volver",
       "nota": "js/ui.js y su CSS",
       "url": "https://claude.ai/code/session_01QiKC36YDFabWChvfmTtfkm"
-    },
-    {
-      "tarea": "GR1",
-      "titulo": "Gobierno de provincias · GR1 Informe y maqueta",
-      "nota": "solo gobierno/maquetas/provincias/ y estudios",
-      "url": "https://claude.ai/code/session_01QiKC36PGUYDhaGioPB4jhq"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
