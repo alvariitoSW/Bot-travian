@@ -1601,6 +1601,31 @@
       "tarea": "MR1",
       "archivo": "gobierno/capturas-tarea/MR1-5-informe.jpg",
       "pie": "MR1 v2: informe de estación como carta con sello rojo"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-6-portada.jpg",
+      "pie": "MR3: portada con cartel del propio juego"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-7-menu-principal.jpg",
+      "pie": "MR3: menú principal con tu partida en papiro"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-8-nueva-campana.jpg",
+      "pie": "MR3: nueva campaña (escenario, general, dificultad)"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-9-carga.jpg",
+      "pie": "MR3: carga con un dato histórico"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-10-opciones.jpg",
+      "pie": "MR3: opciones en papiro"
     }
   ],
   "informes": [
@@ -1811,6 +1836,10 @@
     {
       "titulo": "MR1 · Menús al estilo romano (diseño)",
       "archivo": "gobierno/estudios/MR1-menus-romanos.md"
+    },
+    {
+      "titulo": "CV1 · Converger: plan para la versión 1.0",
+      "archivo": "gobierno/estudios/CV1-converger.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",

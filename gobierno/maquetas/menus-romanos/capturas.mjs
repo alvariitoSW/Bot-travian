@@ -11,5 +11,9 @@ for (const [p, n] of [['imperio', '1-imperio-A'], ['imperio-b', '2-imperio-B'], 
   await page.goto(pathToFileURL(join(D, 'index.html')).href + '?p=' + p); await page.waitForTimeout(500);
   await page.screenshot({ path: join(D, '..', '..', 'capturas-tarea', 'MR1-' + n + '.jpg'), type: 'jpeg', quality: 80 });
 }
+for (const [p, n] of [['portada', '6-portada'], ['principal', '7-menu-principal'], ['nueva', '8-nueva-campana'], ['carga', '9-carga'], ['opciones', '10-opciones']]) {
+  await page.goto(pathToFileURL(join(D, 'principal.html')).href + '?p=' + p); await page.waitForTimeout(600);
+  await page.screenshot({ path: join(D, '..', '..', 'capturas-tarea', 'MR3-' + n + '.jpg'), type: 'jpeg', quality: 80 });
+}
 console.log(err.length ? 'ERRORES: ' + err.join(' | ') : 'sin errores de consola');
 await br.close();

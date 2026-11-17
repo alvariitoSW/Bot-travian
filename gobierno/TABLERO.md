@@ -197,6 +197,8 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 
 ## Carril MR — Menús al estilo romano (MR1 aprobada por el usuario el 17/11/2026; estudio `estudios/MR1-menus-romanos.md`, maqueta `maquetas/menus-romanos/`)
 - ✅ MR1 **Diseño de menús romanos** (17/11): papiro = leer, tablilla de cera = elegir, bronce = títulos e «ir a», sello rojo = la acción. Maqueta de Imperio (A y B), Gobierno, Senado e informe; capturas `capturas-tarea/MR1-*.jpg`.
+- ✅ MR3 **Diseño del menú principal** (17/11, pedido del usuario): portada, menú con la partida guardada, nueva campaña, carga y opciones; maqueta `maquetas/menus-romanos/principal.html`, capturas `capturas-tarea/MR3-*.jpg`.
+- ⬜ MR3b **Construir el menú principal** (≈0,7 M, Sonnet; pedido por el usuario el 17/11): como `MR3-6` a `MR3-10`; toca `index.html`, `css/style.css` y el menú de `js/ui.js`.
 - ⬜ MR2a **Materiales + Imperio** (≈0,5 M, Sonnet; pendiente de aprobación): variables y clases en `css/style.css`; Imperio como `MR1-1` (o `MR1-2` si gana B).
 - ⬜ MR2b **Gobierno en papiro** (≈0,3 M; pendiente de aprobación): como `MR1-3`.
 - ⬜ MR2c **Senado: bronce, papiro y tablillas** (≈0,4 M; pendiente de aprobación): como `MR1-4`.
