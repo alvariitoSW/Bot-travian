@@ -3,6 +3,11 @@
   "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
   "capturas": [
     {
+      "tarea": "C5a",
+      "archivo": "gobierno/capturas-tarea/despues-mare.jpg",
+      "pie": "Mapamundi: pergamino y filete de tinta en vez del vacío azul"
+    },
+    {
       "tarea": "K7a",
       "archivo": "gobierno/capturas-tarea/K7a-despues-etruria.jpg",
       "pie": "Rutas con grosor según renta y marcas ⚔ de guerra en las ciudades"
@@ -1885,12 +1890,6 @@
       "titulo": "Versión 1.0 · GC7 a GC9 y GC6 Fallos de la batalla y quitar la clásica",
       "nota": "batalla",
       "url": "https://claude.ai/code/session_01QiKC3AXEa5xZ9aJP5skXgw"
-    },
-    {
-      "tarea": "C5a",
-      "titulo": "Mapa y campaña · C5a Mapamundi lleno (excepción a la 1.0; sin vacío arriba y abajo, marco de carta antigua)",
-      "nota": "js/gfx/map3d.js",
-      "url": "https://claude.ai/code/session_01QiKC37JEPaDYRqYGUeCHXp"
     },
     {
       "tarea": "DEC",

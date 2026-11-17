@@ -205,7 +205,27 @@ export class MapView3D {
     // --- mar ---
     const sea = new THREE.Mesh(new THREE.PlaneGeometry(900, 700), mar(dist, land));
     sea.rotation.x = -Math.PI / 2; sea.position.set(80, 0, 40); sc.add(sea);
-    const out = new THREE.Mesh(new THREE.PlaneGeometry(900, 700), new THREE.MeshBasicMaterial({ color: '#1d4a66' })); out.rotation.x = -Math.PI / 2; out.position.set(80, -0.9, 40); sc.add(out);
+    // C5a: marco de carta antigua. Fuera del mundo, pergamino; dentro, viñeta sepia en los bordes (más fuerte al alejarse)
+    this.marco = { value: 0 };
+    const marcoMat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uVig: this.marco, uAncho: { value: D.WORLD.w * K }, uAlto: { value: D.WORLD.h * K } },
+      vertexShader: 'varying vec2 vXZ; void main() { vec4 w = modelMatrix * vec4(position, 1.0); vXZ = w.xz; gl_Position = projectionMatrix * viewMatrix * w; }',
+      fragmentShader: `varying vec2 vXZ; uniform float uVig, uAncho, uAlto;
+        float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+        float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
+        void main() {
+          vec2 q = abs(vXZ - vec2(uAncho, uAlto) * 0.5) - vec2(uAncho, uAlto) * 0.5;
+          float d = max(q.x, q.y);                                   // <0 dentro del mundo, >0 fuera
+          float ruido = vn(vXZ * 0.35) * 0.6 + vn(vXZ * 1.7) * 0.4;
+          vec3 perg = mix(vec3(0.80, 0.68, 0.46), vec3(0.88, 0.77, 0.55), ruido);
+          perg = mix(perg, vec3(0.36, 0.24, 0.11), smoothstep(2.0, 60.0, d) * 0.75);   // bordes quemados lejos
+          float fuera = step(0.0, d);
+          float tinta = (1.0 - smoothstep(0.0, 0.5, abs(d - 0.2))) + (1.0 - smoothstep(0.0, 0.25, abs(d - 2.2))) * 0.6;   // filete doble
+          perg = mix(perg, vec3(0.25, 0.15, 0.06), clamp(tinta, 0.0, 1.0) * fuera);
+          float vig = smoothstep(-9.0, 0.0, d) * 0.7 * uVig;
+          float a = mix(vig, 1.0, fuera);
+          gl_FragColor = vec4(mix(vec3(0.30, 0.20, 0.09), perg, fuera), a);
+        }` });
+    const out = new THREE.Mesh(new THREE.PlaneGeometry(900, 700), marcoMat); out.rotation.x = -Math.PI / 2; out.position.set(80, 3, 40); out.renderOrder = 5; sc.add(out);
     // --- bosques ---
     const tg = new THREE.ConeGeometry(0.16, 0.5, 5); tg.translate(0, 0.25, 0);
     const trees = new THREE.InstancedMesh(tg, new THREE.MeshLambertMaterial({ color: '#3f6a30', flatShading: true }), 2600), M = new THREE.Matrix4(); let tn = 0;
@@ -433,6 +453,7 @@ export class MapView3D {
     }
     for (const [id, a] of this.armies) if (!seen.has(id)) { this.scene.remove(a.grp); a.grp.traverse(o => { if (o.geometry && !o.userData.real) o.geometry.dispose(); }); a.el.remove(); this.armies.delete(id); }
     const c = this.c, cp = Math.cos(c.pitch);
+    this.marco.value = Math.max(0, Math.min(1, (c.dist - 40) / 90));   // C5a: viñeta del marco solo en vistas lejanas
     this.scene.fog.near = Math.max(90, c.dist * 0.6); this.scene.fog.far = Math.max(260, c.dist * 1.75);   // C6: a más distancia, más bruma lejana
     this.cam.position.set(c.x, Math.sin(c.pitch) * c.dist, c.z + cp * c.dist); this.cam.lookAt(c.x, 0, c.z);
     this.r.render(this.scene, this.cam);
