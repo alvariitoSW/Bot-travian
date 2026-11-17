@@ -6,9 +6,9 @@
    Licencia de juego ya aprobada: el testudo en campo abierto.
    ?fase=avance|flechas|testudo|cara|mira|roto|pila|carga|final coloca la escena en ese momento y la congela (para las capturas).
    ?marcas=1 pinta puntos donde las cuentas dicen que están cabeza y manos (para comprobar que casan con el dibujo). */
-import { THREE } from '../../../js/gfx/models.js';
-import { preload, getUnit, loadIndex, unitMaterialReal, instancedGeometry, frameOf, frameOnce, UNIT_SCALE } from '../../../js/gfx/units.js';
-import { crearCielo, texturaRuido } from '../../../js/gfx/ground.js';
+import { THREE } from '../../../../js/gfx/models.js';
+import { preload, getUnit, loadIndex, unitMaterialReal, instancedGeometry, frameOf, frameOnce, UNIT_SCALE } from '../../../../js/gfx/units.js';
+import { crearCielo, texturaRuido } from '../../../../js/gfx/ground.js';
 import { crearEsqueleto, H as HU } from './esqueleto.js';
 import * as Son from './sonido.js';
 

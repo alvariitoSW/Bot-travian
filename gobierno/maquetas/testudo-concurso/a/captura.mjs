@@ -1,7 +1,7 @@
 // Maqueta GM43c «Testudo a pie»: deja las capturas en gobierno/capturas-tarea/ y falla si algo no cuadra o hay errores de consola.
-// Uso:  node gobierno/maquetas/testudo-a-pie/captura.mjs            -> GM43c-v-* (390x844, como juega el usuario) y GM43c-h-* (844x390), dpr 2
-//       node gobierno/maquetas/testudo-a-pie/captura.mjs dpr=1 prefijo=/ruta/p-   -> rápido, para iterar
-//       node gobierno/maquetas/testudo-a-pie/captura.mjs --servir                 -> solo sirve la página (puerto 8381)
+// Uso:  node gobierno/maquetas/testudo-concurso/a/captura.mjs            -> GM43d-a-v-* (390x844, como juega el usuario) y GM43d-a-h-* (844x390), dpr 2
+//       node gobierno/maquetas/testudo-concurso/a/captura.mjs dpr=1 prefijo=/ruta/p-   -> rápido, para iterar
+//       node gobierno/maquetas/testudo-concurso/a/captura.mjs --servir                 -> solo sirve la página (puerto 8381)
 // Cada captura abre la maqueta con ?fase=… : la escena se coloca en ese momento y se congela.
 // Además de las fotos comprueba con cifras: encuadre (tú a la izquierda, tu compañero a la derecha, el enemigo en la rendija),
 // que la mano llega al asa del escudo, los gestos, una partida entera y que cada sonido suena sin saturar.
@@ -10,6 +10,7 @@ import { createServer } from 'http';
 import { readFile, mkdir } from 'fs/promises';
 import { join, extname, normalize, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { tmpdir } from 'os';
 const AQUI = dirname(fileURLToPath(import.meta.url)), RAIZ = join(AQUI, '..', '..', '..', '..'), SALIDA = join(RAIZ, 'gobierno', 'capturas-tarea');
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.bin': 'application/octet-stream', '.woff2': 'font/woff2' };
 const args = process.argv.slice(2), op = Object.fromEntries(args.filter(a => a.includes('=')).map(a => a.split(/=(.*)/s).slice(0, 2)));
@@ -36,7 +37,7 @@ async function foto(fase, nombre, w, h) {
   const cajas = await page.evaluate(() => [...document.querySelectorAll('.boton,.pildora,.gordo')].filter(b => b.offsetParent).map(b => { const r = b.getBoundingClientRect(); return { id: b.id, l: r.left, r: r.right, t: r.top, b: r.bottom, h: r.height }; }));
   bien(cajas.every(c => c.l >= 0 && c.r <= w && c.t >= 0 && c.b <= h && c.h >= 44), `${nombre}: los botones caben enteros y miden al menos 44 px (${cajas.map(c => c.id).join(', ')})`);
   bien(cajas.filter(c => c.id !== 'otra').every(c => c.t > h * 0.55 || c.b < h * 0.2), `${nombre}: ningún botón tapa el centro`);
-  await page.screenshot({ path: prefijo + nombre + '.jpg', type: 'jpeg', quality: 84, timeout: 240000 });
+  await page.screenshot({ path: (nombre.startsWith('_') ? join(tmpdir(), 'GM43d-a' + nombre) : prefijo + nombre) + '.jpg', type: 'jpeg', quality: 84, timeout: 240000 });
   console.log(`${nombre}: k ${e.k.toFixed(2)}, ${e.vivos} en pie, fase ${e.fase}, tu cabeza en (${e.cuadro.yo.x}, ${e.cuadro.yo.y}), compañero en (${e.cuadro.comp.x}, ${e.cuadro.comp.y}), rendija de ${e.cuadro.techo.y} a ${e.cuadro.muro.y}, enemigo en (${e.cuadro.enemigo.x}, ${e.cuadro.enemigo.y})`);
   await ctx.close(); return e;
 }
@@ -54,19 +55,21 @@ function encuadre(e, nombre, vertical) {
 }
 
 const V = [390, 844], Hz = [844, 390];
+/* para iterar: solo=avance,testudo saca solo esas fases (en vertical; añade h para horizontal: solo=testudo,h) y no hace las pruebas largas */
+if (op.solo) { const fs = op.solo.split(','), d = fs.includes('h') ? Hz : V; for (const f of fs.filter(x => x !== 'h')) await foto(f, f, ...d); await br.close(); srv.close(); console.log(errores.length ? 'NO APTO\n' + errores.join('\n') : 'APTO (solo fotos)'); process.exit(errores.length ? 1 : 0); }
 let e = await foto('avance', 'v-1-marcha', ...V); bien(e.vivos === 30 && e.k === 0, 'marcha: los 30 en pie y sin testudo');
 bien(Math.abs(e.yo.cabeza[1] - 1.88) < 0.12, `marcha: la cabeza está donde dicen las cuentas, a ${e.yo.cabeza[1].toFixed(2)} m del suelo (las figuras miden 2,15)`);
 e = await foto('flechas', 'v-2-salva', ...V); bien(e.flechas > 20, 'salva: hay venablos en el aire (' + e.flechas + ')');
 e = await foto('testudo', 'v-3-testudo', ...V); bien(e.k > 0.99 && e.vivos < 30, 'testudo: escudos arriba y ya hubo bajas de antes (' + e.vivos + ' en pie)'); encuadre(e, 'testudo vertical', true);
 e = await foto('cara', 'v-4-golpe', ...V); bien(e.k > 0.99 && e.enc > 0.5 && e.clavados > 5, `golpe: cae la salva, tu soldado se encoge (${e.enc.toFixed(2)}) y hay venablos clavados en los escudos (${e.clavados})`);
 e = await foto('mira', 'v-5-cara', ...V); bien(e.mira > 0.9 && entre(e.cuadro.yo.x, 0.2, 0.6), 'cara: tu soldado se vuelve a los suyos y la cámara se le arrima (cabeza en ' + e.cuadro.yo.x + ')');
-e = await foto('roto', 'v-6-roto', ...V); bien(e.roto, 'roto: tu escudo ya está partido (' + e.golpes + ' golpes)');
-e = await foto('pila', 'v-7-pila', ...V); bien(e.fase === 'lanzando', 'pila: los pila están en el aire');
-e = await foto('carga', 'v-8-carga', ...V); bien(e.fase === 'carga' && e.enHombre === 0, 'carga: nadie lleva venablos clavados');
-e = await foto('final', 'v-9-final', ...V); bien(e.fase === 'fin', 'final: sale la tarjeta');
+e = await foto('roto', '_v-roto', ...V); bien(e.roto, 'roto: tu escudo ya está partido (' + e.golpes + ' golpes)');
+e = await foto('pila', '_v-pila', ...V); bien(e.fase === 'lanzando', 'pila: los pila están en el aire');
+e = await foto('carga', 'v-6-carga', ...V); bien(e.fase === 'carga' && e.enHombre === 0, 'carga: nadie lleva venablos clavados');
+e = await foto('final', '_v-final', ...V); bien(e.fase === 'fin', 'final: sale la tarjeta');
 await foto('avance', 'h-1-marcha', ...Hz);
 e = await foto('testudo', 'h-3-testudo', ...Hz); encuadre(e, 'testudo horizontal', false);
-e = await foto('mira', 'h-5-cara', ...Hz); bien(e.mira > 0.9, 'cara en horizontal: tu soldado vuelto');
+e = await foto('mira', '_h-cara', ...Hz); bien(e.mira > 0.9, 'cara en horizontal: tu soldado vuelto');
 
 /* partida entera en vertical, con los dedos: mantener «Avanzar», «Escudos» a cada aviso, lanzar y cargar. El reloj se adelanta a saltos. */
 {
