@@ -1759,6 +1759,18 @@
       "titulo": "Puerta de la ciudad · K7c Miga y botón único de volver",
       "nota": "js/ui.js y su CSS",
       "url": "https://claude.ai/code/session_01QiKC36YDFabWChvfmTtfkm"
+    },
+    {
+      "tarea": "I5d",
+      "titulo": "Saber · I5d Reformar y afinado",
+      "nota": "js/data.js, js/game.js, pestaña Saber",
+      "url": "https://claude.ai/code/session_01QiKC38hwC1KcxKqH4AGPNZ"
+    },
+    {
+      "tarea": "J4b",
+      "titulo": "Mapa por regiones · J4b Dibujar las ciudades nuevas",
+      "nota": "js/gfx/map3d.js",
+      "url": "https://claude.ai/code/session_01QiKC36ZkGZyQfbnZdoNWfT"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
