@@ -53,7 +53,7 @@ const masCalva = (x, z) => suave(0.72, 0.82, ruido(x * 0.013 + 0.3, z * 0.013 + 
 const masVerde = (x, z) => suave(0.32, 0.62, ruido(x * 0.0031, z * 0.0031, 0) + (ruido(x * 0.013 + 0.3, z * 0.013 + 0.3, 1) - 0.5) * 0.5);
 
 export async function crearCampo(escena, { H, SOL }) {
-  const SIN = (new URLSearchParams(location.search).get('sin') || '').split(',');
+  const SIN = (new URLSearchParams(location.search).get('sin') || '').split(',');   /* para medir: ?sin=hierba,arboles,lejos quita esas piezas */
   const cargar = n => new THREE.TextureLoader().loadAsync(ARTE(n)).then(t => { t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; });
   const [tSeca, tVerde, tTierra, tRoca, tCielo] = await Promise.all(['hierba_seca.jpg', 'hierba_verde.jpg', 'tierra.jpg', 'roca.jpg', 'cielo.jpg'].map(cargar));
   tCielo.generateMipmaps = false; tCielo.minFilter = THREE.LinearFilter;   /* sin mipmaps: si no, la costura del panorama sale como una raya */
@@ -202,19 +202,18 @@ export async function crearCampo(escena, { H, SOL }) {
     const q = (a, b, c2, d, cc, k) => { for (const p of [a, b, c2, d]) { pos.push(...p); col.push(...cc); nor.push(0, 1, 0); cab.push(k); } idx.push(v, v + 1, v + 2, v, v + 2, v + 3); v += 4; };
     const TALLO = [0.34, 0.45, 0.2];
     q([-0.006, 0, 0], [0.006, 0, 0], [0.006, 0.34, 0], [-0.006, 0.34, 0], TALLO, 0);
-    q([0, 0, -0.006], [0, 0, 0.006], [0, 0.34, 0.006], [0, 0.34, -0.006], TALLO, 0);
-    /* corola: seis pétalos en abanico, algo inclinada hacia arriba */
+    /* corola: cinco pétalos, algo inclinada hacia arriba */
     const R0 = 0.045; pos.push(0, 0.35, 0); col.push(0.7, 0.6, 0.2); nor.push(0, 1, 0); cab.push(1); const centro = v++;
-    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2, r = i % 2 ? R0 * 0.75 : R0; pos.push(Math.cos(a) * r, 0.35 + r * 0.35, Math.sin(a) * r); col.push(1, 1, 1); nor.push(0, 1, 0); cab.push(1); }
-    for (let i = 0; i < 12; i++) idx.push(centro, centro + 1 + i, centro + 1 + (i + 1) % 12);
-    v += 12;
+    for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2, r = i % 2 ? R0 * 0.75 : R0; pos.push(Math.cos(a) * r, 0.35 + r * 0.35, Math.sin(a) * r); col.push(1, 1, 1); nor.push(0, 1, 0); cab.push(1); }
+    for (let i = 0; i < 10; i++) idx.push(centro, centro + 1 + i, centro + 1 + (i + 1) % 10);
+    v += 10;
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(nor, 3)); g.setAttribute('aCab', new THREE.Float32BufferAttribute(cab, 1)); g.setIndex(idx);
     const mat = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide });
     mat.onBeforeCompile = sh => { sh.uniforms.uT = uT; sh.fragmentShader = sh.fragmentShader.replace('#include <normal_fragment_begin>', CARA_UNICA); sh.vertexShader = 'attribute float aCab; uniform float uT;\n' + sh.vertexShader.replace('#include <color_vertex>', 'vColor = vec3(1.0); vColor *= color; vColor *= mix(vec3(1.0), instanceColor.xyz, aCab);')
       .replace('#include <begin_vertex>', '#include <begin_vertex>\n { vec2 ip = vec2(instanceMatrix[3][0], instanceMatrix[3][2]); float w = sin(uT * 1.6 + ip.x * 0.31 + ip.y * 0.17); transformed.x += w * transformed.y * transformed.y * 0.25; }'); };
     const COLORES = [['#c0261b', 0.45], ['#efe9d6', 0.25], ['#e2b52a', 0.2], ['#5a63b5', 0.1]].map(([h, p]) => [new THREE.Color(h), p]);
     const lista = [], o = new THREE.Object3D();
-    for (let k = 0; k < 170; k++) {
+    for (let k = 0; k < 140; k++) {
       let cx = (azar() - 0.5) * 50, cz = 18 - azar() * 140; if (masSenda(cx, cz) > 0.3) cx += 6;
       let r = azar(), color = COLORES[0][0]; for (const [cc, p] of COLORES) { if (r < p) { color = cc; break; } r -= p; }
       const cuantas = 6 + Math.floor(azar() * 22), radio = 1 + azar() * 2.5;
@@ -254,10 +253,10 @@ export async function crearCampo(escena, { H, SOL }) {
     const L = { cipres: [], pino: [], olivo: [] }, Q = new THREE.Quaternion(), ARR = new THREE.Vector3(0, 1, 0);
     const arbol = (k, x, z, s) => { Q.setFromAxisAngle(ARR, azar() * 6.28); const e = s * (0.85 + azar() * 0.3); L[k].push(new THREE.Matrix4().compose(new THREE.Vector3(x, HF(x, z) - 0.3, z), Q, new THREE.Vector3(e, e * (0.9 + azar() * 0.25), e))); };
     for (let z = -6; z > -260; z -= 7 + azar() * 5) { if (azar() < 0.15) continue; arbol('cipres', 36 + z * 0.06 + (azar() - 0.5) * 1.5, z, 1.7); }
-    for (const [cx, cz, n] of [[-24, -182, 5], [30, -222, 6], [-70, -150, 4], [-130, -260, 7], [95, -175, 5], [-12, -300, 6], [60, -330, 6]]) for (let i = 0; i < n; i++) arbol('pino', cx + (azar() - 0.5) * 22, cz + (azar() - 0.5) * 18, 1.05);
+    for (const [cx, cz, n] of [[-24, -182, 4], [30, -222, 5], [-70, -150, 3], [-130, -260, 4], [95, -175, 4], [-12, -300, 4], [60, -330, 4]]) for (let i = 0; i < n; i++) arbol('pino', cx + (azar() - 0.5) * 22, cz + (azar() - 0.5) * 18, 1.05);
     for (let i = 0; i < 6; i++) for (let j = 0; j < 7; j++) { if (azar() < 0.12) continue; arbol('olivo', -62 - i * 11 + (azar() - 0.5) * 2, -40 - j * 12 + (azar() - 0.5) * 2, 0.62); }
-    /* bosquetes por las lomas: más olivos y cipreses (baratos) que pinos */
-    for (let i = 0; i < 450; i++) { const a = -Math.PI * (0.02 + azar() * 0.96), d = 230 + azar() * 950, x = Math.cos(a) * d * 1.3, z = Math.sin(a) * d - 60; if (ruido(x * 0.0035, z * 0.0035, 1) < 0.56) continue; const k = azar(); if (k < 0.55) arbol('olivo', x, z, 0.9); else if (k < 0.93) arbol('cipres', x, z, 1.9); else arbol('pino', x, z, 1.3); }
+    /* bosquetes por las lomas: olivos y cipreses, que son baratos (el pino tiene 1 000 triángulos) */
+    for (let i = 0; i < 450; i++) { const a = -Math.PI * (0.02 + azar() * 0.96), d = 230 + azar() * 950, x = Math.cos(a) * d * 1.3, z = Math.sin(a) * d - 60; if (ruido(x * 0.0035, z * 0.0035, 1) < 0.56) continue; const k = azar(); if (k < 0.6) arbol('olivo', x, z, 0.9); else arbol('cipres', x, z, 1.9); }
     /* material propio, más barato que el del juego (Lambert sin mapas de relieve ni brillo): las hojas son muchas tarjetas con recorte */
     const texA = new Map(), matA = f => { if (!texA.has(f)) { const t = new THREE.TextureLoader().load('assets/static/' + f); t.flipY = false; t.colorSpace = THREE.SRGBColorSpace; t.wrapS = t.wrapT = THREE.RepeatWrapping; texA.set(f, new THREE.MeshLambertMaterial({ map: t, alphaTest: 0.45, side: THREE.DoubleSide })); } return texA.get(f); };
     for (const k in L) { const st = getStatic(k); if (!st || !L[k].length || SIN.includes('arboles')) continue;
