@@ -1865,6 +1865,10 @@
     {
       "titulo": "CV1 · Converger: plan para la versión 1.0",
       "archivo": "gobierno/estudios/CV1-converger.md"
+    },
+    {
+      "titulo": "¿A dónde vamos y qué queda? (17/11, mediodía)",
+      "archivo": "gobierno/estudios/ADV-2026-11-17.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
