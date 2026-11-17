@@ -260,6 +260,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
+- **GM5 (17/11): prueba la batalla en tu móvil.** Ahora empieza de lejos (unos 50 s de acercamiento). Dos preguntas: (1) ¿te vale ese acercamiento, o lo quieres más corto? (2) ¿Sigo con lo aprobado que no cupo: reglas de GM2 (costado y espalda), premio y castigo del relevo (GM6) y el plan antes de marchar (GM21)? Hoy sería sacar otra de la 1.0.
 
 ## Propuestas por aprobar
 
@@ -283,6 +284,8 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+**GM5 hecha, lo mínimo (17/11).** La batalla del juego empieza de lejos (240 m), con Avanzar/Escudos/Testudo, tiradores delante con proyectiles y la descarga de pila. `js/guerra.js` da `cubrirse(B)` (el bot de «Delegar» la llama en `G.botGuerra`), `ordenesDe`, `lejos`, `tirando`; los tiradores viven en `c.tir`; las batallas guardadas antes se cargan ya juntas. Falta (aprobado, no cupo): GM2, GM6 y GM21. Sigue **GM23** (ritmo): la batalla bien jugada dura ahora unos 3 min (180 s), el acercamiento incluido. Parte `partes/2026-11-17-GM5.md`.
+
 **CN16b hecha (17/11).** `G.puertas`/`G.puertasInfo`, `c.puertas`, `c.vetB`, `G.licenciar…`, `s.triunfo`; datos en `D.PUERTAS`, `D.VETERANOS`, `D.TRIUNFO` (licencia de juego salvo el triunfo, cotejado en Polibio 6.15). Después de la 1.0: hojas de puerta dibujadas y marchas enemigas frenadas; cotejar Livio 26.10 (puertas). Parte `partes/2026-11-17-CN16b.md`.
 **Pendiente bloqueado por red (17/11).** Cotejo de Ovidio, Fastos 4 (Parilia, Megalesia, Cerialia) y Digesto 1.15: los sitios con el texto (thelatinlibrary, droitromain, wikisource, gutenberg, archive.org) no abren desde las sesiones. Se desbloquea si el usuario permite esos hosts en el entorno o pega el texto. Ninguna ficha usa Ovidio para una cifra. Regla nueva de cierre: «nada queda sin dueño» (skill `plan-socialista` §6).
 **MR2a hecha (17/11).** Imperio y Gobierno ya van en rollo de papiro (capturas `capturas-tarea/MR2a-*`). Materiales listos para reutilizar: `.ro`, `.ro-palo`, `.ro-papiro`, `.ro-ansata`, `.ro-rubrica`, `.ro-hiedra`, `.ro-punto`, `.ro-tablilla`, `.ro-bronce`, `.ro-sello` (al final de `css/style.css`). Siguiente: **MR2b** (Senado, avisos y barras: barra de arriba con greca, «Pasar turno» con sello, pestañas en bronce). Director en Fable, constructor en Opus. **Ojo al gasto**: MR2a costó 1,75 M sobre 0,7 M (el constructor Opus, 1,44 M); para MR2b, tope duro de 25 pasos, decirle las líneas exactas y que no pase él los jueces ni repita capturas. Texto bajo 15 px que no cabía: rótulos de cifras de Imperio y «Felicidad» (13 px), filtros (14 px). Sin probar: Gobierno con 7 atajos. Nada fuera del Carril V.
