@@ -3,6 +3,16 @@
   "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
   "capturas": [
     {
+      "tarea": "MR2a",
+      "archivo": "gobierno/capturas-tarea/MR2a-1-imperio.jpg",
+      "pie": "Imperio en el juego: rollo de papiro, filtros en tablilla de cera"
+    },
+    {
+      "tarea": "MR2a",
+      "archivo": "gobierno/capturas-tarea/MR2a-2-gobierno.jpg",
+      "pie": "Gobierno en el juego: laurel en la felicidad y atajos en placas de bronce"
+    },
+    {
       "tarea": "C5a",
       "archivo": "gobierno/capturas-tarea/despues-mare.jpg",
       "pie": "Mapamundi: pergamino y filete de tinta en vez del vacío azul"
@@ -1882,7 +1892,7 @@
     {
       "tarea": "MR2a",
       "titulo": "Versión 1.0 · MR2a Menús romanos: materiales, Imperio y Gobierno (Fable dirige, Opus construye)",
-      "nota": "css/style.css y clases en js/ui.js",
+      "nota": "Terminada el 17/11: subida y publicada",
       "url": "https://claude.ai/code/session_01QiKC38MrhvKcf8A9xyWrQs"
     },
     {

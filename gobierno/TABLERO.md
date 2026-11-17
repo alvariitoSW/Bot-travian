@@ -19,7 +19,7 @@ cuatro puertas) y edificios de materiales junto a bosque, ladera y campos · ✅
 
 ## Carril V — Versión 1.0 (aprobada por el usuario el 17/11/2026: «A en todo pero que piense Fable y trabaje Opus»; plan `estudios/CV1-converger.md`)
 Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo va a «Después de la 1.0» en la bitácora, o entra sacando otra. Orden de arriba abajo; como mucho dos sesiones a la vez y nunca en los mismos archivos. Dirige y diseña Fable; construye Opus. Todo lo demás del tablero está en pausa hasta la 1.0.
-- ⬜ MR2a **Menús romanos: materiales, Imperio y Gobierno** (≈0,7 M): variables y clases de papiro, tablilla, bronce y sello en `css/style.css`; Imperio como `capturas-tarea/MR1-1` (papiro entero, opción A) y Gobierno como `MR1-3`. Diseño en `estudios/MR1-menus-romanos.md` y `maquetas/menus-romanos/`.
+- ✅ MR2a **Menús romanos: materiales, Imperio y Gobierno** (17/11): clases `.ro-*` (papiro, tablilla, bronce, sello, hiedra) al final de `css/style.css`; Imperio y Gobierno en rollo de papiro. Parte `partes/2026-11-17-MR2a.md`.
 - ⬜ MR2b **Menús romanos: Senado, avisos y barras** (≈0,8 M): Senado como `MR1-4`, informe y confirmaciones como `MR1-5`, barras de abajo en bronce y «Pasar turno» con sello.
 - ⬜ MR2c **Menús romanos: el resto e iconos de tinta** (≈0,8 M): Mercado, Rutas, Pueblo, Ajustes, ☰, General, Crónica y Saber con la misma gramática; ningún emoji en los menús (opción A).
 - ⬜ MR3b **Menú principal, carga y opciones** (≈0,7 M): como `capturas-tarea/MR3-6` a `MR3-10` (`maquetas/menus-romanos/principal.html`); toca `index.html`, `css/style.css` y el menú de `js/ui.js`.

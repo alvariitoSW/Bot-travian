@@ -1043,3 +1043,182 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 .mlabel[data-rel="guerra"] { border-color: #e0584a; } .mlabel[data-rel="guerra"] .marca { background: #7d1712; color: #fff; }
 .mlabel[data-rel="alianza"] { border-color: #7fd060; } .mlabel[data-rel="alianza"] .marca { background: #1f4d1a; }
 .mlabel[data-rel="tributo"] { border-color: #e9c063; } .mlabel[data-rel="tributo"] .marca { background: #4a3a10; }
+
+/* ===== MR2a · Menús romanos: materiales, Imperio y Gobierno ===== */
+/* Gramática de materiales (estudio MR1): PAPIRO = lo que se lee · TABLILLA DE CERA = lo que eliges ·
+   BRONCE = títulos y «ir a» · SELLO DE CERA ROJA = la acción que compromete. Todas las clases llevan el prefijo .ro-
+   y se pueden reutilizar en otros menús (MR2b, MR2c). Solo CSS y SVG en línea; ninguna imagen. */
+:root {
+  --papiro: #e8d4a2; --papiro2: #d9bd84; --minio: #9b2a1a; --cera: #2e2214; --cera2: #3d2d1a; --rasgado: #ead9b0;
+  --madera: #6b4a26; --madera2: #4a3119; --sello: #a3231a; --sello2: #6e130d; --bronce2: #7a5a1f; --bronce3: #4a3512; --oro-ro: #e9c063;
+  --libro: Georgia, 'Noto Serif', 'DejaVu Serif', serif;
+  /* fibras del papiro: dos capas cruzadas, tenues */
+  --fibras:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9 .045' numOctaves='2' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .23 0 0 0 0 .08 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.04 .8' numOctaves='2' seed='9'/%3E%3CfeColorMatrix values='0 0 0 0 .35 0 0 0 0 .23 0 0 0 0 .08 0 0 0 .28 0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  /* uniones de las hojas del rollo (kollesis) y manchas de uso */
+  --kollesis: repeating-linear-gradient(90deg, transparent 0 146px, rgba(120, 78, 28, .10) 146px 148px, rgba(255, 245, 215, .18) 148px 150px, transparent 150px 300px);
+  --manchas: radial-gradient(circle at 78% 22%, rgba(130, 85, 30, .16) 0 18px, transparent 34px), radial-gradient(circle at 12% 64%, rgba(130, 85, 30, .12) 0 10px, transparent 26px), radial-gradient(ellipse at 60% 92%, rgba(120, 75, 25, .14), transparent 40%);
+  /* bordes laterales rotos (máscara) */
+  --borde-izq: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='64' preserveAspectRatio='none'%3E%3Cpath d='M8 0H3L5 6 2 11l3 6-4 7 3 5-2 7 4 6-3 8 2 6-3 8h8z'/%3E%3C/svg%3E");
+  --borde-der: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='64' preserveAspectRatio='none'%3E%3Cpath d='M0 0h5L3 5l3 6-2 7 4 5-3 7 3 6-2 8 3 6-4 7 3 7H0z'/%3E%3C/svg%3E");
+  /* bronce martillado y veta de la madera */
+  --martillado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='m'%3E%3CfeTurbulence type='turbulence' baseFrequency='.18' numOctaves='2' seed='3'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 .85 0 0 0 0 .5 0 0 0 .22 0'/%3E%3C/filter%3E%3Crect width='90' height='90' filter='url(%23m)'/%3E%3C/svg%3E");
+  --veta: repeating-linear-gradient(90deg, rgba(0, 0, 0, 0) 0 7px, rgba(30, 15, 5, .22) 7px 8px, rgba(0, 0, 0, 0) 8px 19px, rgba(255, 210, 150, .10) 19px 20px);
+  /* remache de bronce (para placas) */
+  --remache: radial-gradient(circle, #e6c070 0 1.6px, #5a3c10 2.2px, transparent 2.8px);
+}
+/* dentro del papiro la tinta es la de la maqueta; los colores de estado pasan a tinta (oliva, minio) */
+.ro, .ro-papiro { --tinta: #2b1c0a; --tinta2: #5a4220; --oliva: #46661f; --good: var(--oliva); --bad: var(--minio); }
+
+/* ---- PAPIRO: rollo abierto entre dos palos (.ro-rollo o .ro > .ro-palo + .ro-papiro + .ro-palo) ---- */
+.ro { height: 100%; display: flex; flex-direction: column; padding: 0 8px; filter: drop-shadow(0 8px 14px rgba(0, 0, 0, .55)); }
+.ro-palo { position: relative; flex: none; height: 18px; margin: 0 -2px; border-radius: 8px; z-index: 1;
+  background: var(--veta), linear-gradient(#9a6c38, #6a4520 40%, #3a230c); box-shadow: 0 3px 5px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 220, 160, .35); }
+.ro-palo::before, .ro-palo::after { content: ''; position: absolute; top: -5px; width: 16px; height: 28px; border-radius: 6px / 10px;
+  background: radial-gradient(ellipse at 40% 28%, #fff1c0 0 8%, #e2b860 22%, #a8781f 55%, #4e3409 100%);
+  box-shadow: inset 0 0 0 1px rgba(60, 35, 5, .7), inset 0 6px 0 -4px rgba(255, 235, 180, .5), inset 0 -6px 0 -4px rgba(40, 20, 0, .6), 0 2px 3px #000; }
+.ro-palo::before { left: -8px; } .ro-palo::after { right: -8px; }
+.ro-papiro { position: relative; flex: 1; min-height: 0; margin: -3px 4px; padding: 14px 16px 10px; color: var(--tinta); font-family: var(--libro); text-align: left;
+  background-color: var(--papiro); background-image: var(--fibras), var(--kollesis), var(--manchas), radial-gradient(ellipse at 20% 0%, rgba(255, 246, 214, .7), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(140, 92, 36, .38), transparent 60%);
+  box-shadow: inset 14px 0 18px -12px rgba(100, 60, 18, .85), inset -14px 0 18px -12px rgba(100, 60, 18, .85), inset 0 10px 14px -10px rgba(60, 35, 10, .7), inset 0 -10px 14px -10px rgba(60, 35, 10, .7);
+  -webkit-mask: linear-gradient(#000, #000) center / calc(100% - 14px) 100% no-repeat, var(--borde-izq) left top / 8px 64px repeat-y, var(--borde-der) right top / 8px 64px repeat-y;
+  mask: linear-gradient(#000, #000) center / calc(100% - 14px) 100% no-repeat, var(--borde-izq) left top / 8px 64px repeat-y, var(--borde-der) right top / 8px 64px repeat-y; }
+
+/* ---- BRONCE: título en tabula ansata (placa con asas de cola de milano y remaches) ---- */
+.ro-ansata { position: relative; display: flex; align-items: center; justify-content: center; height: 40px; margin: 0 22px 8px; padding: 0 6px; color: #3a2405; font: 700 19px var(--serif); letter-spacing: .12em; text-transform: uppercase; white-space: nowrap; overflow: visible;
+  background: var(--martillado), linear-gradient(#ecc977, #c2913a 45%, #8c6520 75%, #a77b2c);
+  text-shadow: 0 1px 0 rgba(255, 238, 190, .7), 0 -1px 0 rgba(60, 35, 5, .55);
+  box-shadow: inset 0 0 0 2px rgba(80, 50, 10, .55), inset 0 0 0 4px rgba(255, 232, 170, .35), inset 0 0 0 5px rgba(80, 50, 10, .35), 0 3px 4px rgba(0, 0, 0, .45); }
+.ro-ansata::before, .ro-ansata::after { content: ''; position: absolute; top: 4px; bottom: 4px; width: 20px;
+  background: var(--martillado), radial-gradient(circle at 50% 50%, #3a2405 0 2px, rgba(255, 230, 160, .7) 2.5px 3.2px, transparent 3.6px), linear-gradient(#d6aa55, #8c6520); }
+.ro-ansata::before { left: -18px; clip-path: polygon(100% 0, 0 30%, 30% 50%, 0 70%, 100% 100%); }
+.ro-ansata::after { right: -18px; clip-path: polygon(0 0, 100% 30%, 70% 50%, 100% 70%, 0 100%); }
+
+/* ---- rúbrica: rótulo en tinta roja (minio), versalitas ---- */
+.ro-rubrica { color: var(--minio); font: 700 13px var(--serif); letter-spacing: .08em; text-transform: uppercase; }
+/* ---- separador de hiedra (hedera distinguens) ---- */
+.ro-hiedra { display: flex; align-items: center; gap: 8px; margin: 8px 0; color: var(--minio); }
+.ro-hiedra::before, .ro-hiedra::after { content: ''; flex: 1; height: 4px; border-top: 1px solid rgba(60, 35, 10, .55); border-bottom: 1px solid rgba(60, 35, 10, .3); }
+.ro-hiedra svg { width: 22px; height: 14px; fill: currentColor; }
+/* ---- punto de color (ánimo) y flecha de separación ---- */
+.ro-punto { display: inline-block; width: 12px; height: 12px; border-radius: 50%; vertical-align: -1px; margin-right: 4px; background: var(--oliva); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .35); }
+.ro-punto.med { background: #b8862b; } .ro-punto.mal { background: var(--minio); }
+.ro-flecha { display: inline-block; width: 0; height: 0; margin: 0 .45em; vertical-align: .2em; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid currentColor; }
+
+/* ---- TABLILLA DE CERA: lo que eliges. Marco de madera, cera oscura; lo elegido, alisado en crema con borde rojo ---- */
+.ro-tablilla { display: flex; gap: 3px; padding: 5px; border-radius: 6px; background: var(--veta), linear-gradient(#8a6034, #5a3b1b);
+  box-shadow: inset 0 0 0 1px rgba(30, 15, 5, .6), inset 0 1px 0 rgba(255, 220, 160, .4), 0 3px 5px rgba(0, 0, 0, .45); }
+.ro-tablilla > button { flex: 1; min-width: 0; min-height: 52px; border: 0; border-radius: 3px; padding: 2px 1px; color: var(--rasgado); font: 600 15px/1.1 var(--libro);
+  background: repeating-linear-gradient(-28deg, transparent 0 9px, rgba(255, 230, 190, .05) 9px 10px), linear-gradient(#3f2e1b, #2a1e10);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, .7), inset 0 -1px 0 rgba(255, 220, 160, .12); text-shadow: 0 -1px 0 rgba(0, 0, 0, .6); }
+.ro-tablilla > button.on { color: var(--tinta); background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--minio), 0 0 0 1px rgba(255, 230, 170, .4); text-shadow: none; }
+
+/* ---- BRONCE oscuro martillado con remaches: atajos («ir a») ---- */
+.ro-bronce { position: relative; border-radius: 6px; color: #ecd9a8; font: 700 15px var(--serif); letter-spacing: .04em;
+  background: var(--martillado), radial-gradient(ellipse at 50% 0%, rgba(233, 192, 99, .22), transparent 70%), linear-gradient(#3e2e16, #1f160a);
+  border: 1px solid var(--bronce); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6), inset 0 0 0 3px rgba(184, 134, 43, .28), 0 3px 5px rgba(0, 0, 0, .5); }
+.ro-bronce::before { content: ''; position: absolute; inset: 4px; pointer-events: none;
+  background: var(--remache) left top / 6px 6px no-repeat, var(--remache) right top / 6px 6px no-repeat, var(--remache) left bottom / 6px 6px no-repeat, var(--remache) right bottom / 6px 6px no-repeat; }
+.ro-bronce .ico { stroke: var(--oro-ro); filter: drop-shadow(0 1px 0 rgba(0, 0, 0, .8)) drop-shadow(0 -1px 0 rgba(255, 230, 160, .25)); }
+
+/* ---- SELLO de cera roja: la acción que compromete (aún sin usar aquí; la usará MR2b) ---- */
+.ro-sello { position: relative; color: #fbe9c7; font: 700 17px var(--serif); letter-spacing: .06em; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); border-radius: 8px; border: 1px solid var(--sello2);
+  background: var(--martillado), radial-gradient(ellipse at 30% 0%, rgba(255, 190, 160, .3), transparent 60%), linear-gradient(#b8321f, #7e1910 70%, #6a140c);
+  box-shadow: 0 0 0 2px #6a4a18, 0 0 0 3px rgba(233, 192, 99, .55), 0 5px 14px rgba(0, 0, 0, .6), inset 0 1px 0 rgba(255, 220, 200, .4), inset 0 -2px 0 rgba(50, 5, 0, .4); }
+
+/* ======== Imperio (MR1-1): rollo, ansata, cifras, hiedra, tablilla y libro de cuentas ======== */
+#view > .ro-imp { padding: 0 8px; }
+.ro-imp > .ro-papiro { display: flex; flex-direction: column; padding: 14px 16px 8px; }
+.ro-imp .mar-top { flex: none; }
+.ro .imp-res { display: flex; gap: 0; margin: 0; padding: 0; background: none; border: 0; border-radius: 0; box-shadow: none; }
+.ro .imp-res > div { flex: 1 1 0; position: relative; padding: 0 2px; }
+.ro .imp-res > div + div::before { content: ''; position: absolute; left: 0; top: 4px; bottom: 4px; border-left: 1px solid rgba(60, 35, 10, .35); }
+.ro .imp-res b { display: block; font: 700 26px/1.1 var(--libro); color: var(--tinta); white-space: nowrap; }
+.ro .imp-res b small { font-size: 15px; font-weight: 400; color: var(--tinta2); }
+.ro .imp-res span { display: block; margin-top: 2px; color: var(--minio); font: 700 13px/1.15 var(--serif); letter-spacing: .04em; text-transform: uppercase; }
+.ro .imp-peor { margin: -2px 0 8px; text-align: center; color: var(--tinta2); font-size: 15px; } .ro .imp-peor b { color: var(--minio); }
+.ro .imp-chips.ro-tablilla { display: flex; overflow: visible; margin: 0 0 4px; padding: 5px; gap: 3px; }
+.ro .imp-chips.ro-tablilla > button { flex: 1 1 0; min-width: 0; min-height: 56px; margin: 0; padding: 2px 1px; border: 0; border-radius: 3px; display: flex; flex-direction: column; align-items: center; justify-content: center; font: 600 15px/1.1 var(--libro); letter-spacing: -.01em; color: var(--rasgado);
+  background: repeating-linear-gradient(-28deg, transparent 0 9px, rgba(255, 230, 190, .05) 9px 10px), linear-gradient(#3f2e1b, #2a1e10); box-shadow: inset 0 3px 5px rgba(0, 0, 0, .7), inset 0 -1px 0 rgba(255, 220, 160, .12); }
+.ro .imp-chips.ro-tablilla > button.on { color: var(--tinta); background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--minio), 0 0 0 1px rgba(255, 230, 170, .4); }
+.ro .imp-chips.ro-tablilla > button i { display: block; font: 700 17px/1.1 var(--libro); color: inherit; }
+/* libro de cuentas: sin cajas, una raya fina entre renglones; solo la lista se desplaza */
+.ro .mar-lista { gap: 0; padding: 0 0 6px; }
+.ro .imp-sw { border-radius: 0; border-bottom: 1px solid rgba(60, 35, 10, .28); }
+.ro .imp-fila { display: grid; grid-template-columns: minmax(0, 1fr) auto; column-gap: 10px; row-gap: 1px; align-items: center; min-height: 62px; padding: 7px 2px; color: var(--tinta); background: transparent; border: 0; border-radius: 0; box-shadow: none; }
+.ro .imp-fila.arr, .ro .imp-fila.abre { background-color: var(--papiro); background-image: var(--fibras); }
+.ro .imp-l1 { display: contents; }
+.ro .imp-l1 b { grid-column: 1; grid-row: 1; font: 700 17px var(--serif); letter-spacing: .05em; color: var(--tinta); text-shadow: 0 1px 0 rgba(255, 240, 200, .5); }
+.ro .imp-pop { grid-column: 2; grid-row: 1; text-align: right; font-size: 15px; color: var(--tinta2); white-space: nowrap; }
+.ro .imp-pop .ico { stroke: var(--tinta2); width: 17px; height: 17px; }
+.ro .imp-an { grid-column: 2; grid-row: 2; text-align: right; font: 700 15px var(--libro); color: var(--tinta); white-space: nowrap; }
+.ro .imp-fl { display: none; }
+.ro .imp-l2 { grid-column: 1; grid-row: 2; margin: 0; min-height: 0; gap: 2px 8px; }
+.ro .imp-sin { flex: none; font-size: 15px; color: var(--minio); }
+.ro .imp-sin:has(+ .imp-tag) { display: none; }
+.ro .imp-tag { flex: 0 1 auto; padding: 0; border: 0; border-radius: 0; background: none; font-size: 15px; font-style: normal; color: var(--minio); }
+.ro .imp-tag.ok { color: var(--oliva); }
+.ro .imp-obra { font-size: 15px; color: var(--oliva); gap: 6px; } .ro .imp-nb { max-width: 130px; }
+.ro .imp-obra .prog, .ro .imp-ob1 .prog { height: 6px; background: rgba(60, 35, 10, .18); border: 0; box-shadow: inset 0 1px 1px rgba(60, 35, 10, .35); }
+.ro .imp-obra .prog i, .ro .imp-ob1 .prog i { background: linear-gradient(90deg, #5f7d2e, var(--oliva)); }
+.ro .imp-obra .rem { color: var(--tinta2); }
+.ro .imp-vacio { color: var(--tinta2); font-size: 15px; }
+/* «Hacer lo mismo en…»: tablilla de cera que asoma al deslizar la fila */
+.ro .imp-izq { visibility: hidden; }
+.ro .imp-sw:has(.imp-fila.arr) .imp-izq, .ro .imp-sw:has(.imp-fila.abre) .imp-izq { visibility: visible; }
+.ro .imp-izq button { border-radius: 0; color: var(--rasgado); font: 600 15px/1.15 var(--libro); background: linear-gradient(#3f2e1b, #2a1e10); box-shadow: inset 0 3px 5px rgba(0, 0, 0, .7); }
+/* pie: placas de bronce a otros sitios */
+.ro .mar-pie { padding-top: 8px; gap: 6px; }
+.ro .mar-pie .cu-go.ro-bronce { min-height: 56px; margin: 0; padding: 4px 1px; border-radius: 6px; color: #ecd9a8; border: 1px solid var(--bronce);
+  background: var(--martillado), radial-gradient(ellipse at 50% 0%, rgba(233, 192, 99, .22), transparent 70%), linear-gradient(#3e2e16, #1f160a);
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6), inset 0 0 0 3px rgba(184, 134, 43, .28), 0 3px 5px rgba(0, 0, 0, .5); }
+.ro .mar-pie .cu-go.ro-bronce .ico { width: 22px; height: 22px; }
+.ro .mar-pie .cu-go.ro-bronce span { font: 700 14px var(--serif); letter-spacing: 0; }
+
+/* ======== Gobierno (MR1-3): rollo, ansata con la ciudad, anillo con corona de laurel, «Falta», placas de bronce ======== */
+.ro-gob > .ro-papiro.gob { height: auto; flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; justify-content: space-between; gap: 4px; padding: 12px 16px 6px; text-align: center; }
+.ro-gob .gnomb { width: 100%; }
+.ro-gob .gnomb h2.ro-ansata { margin: 0 22px; font-size: 19px; line-height: 1; }
+.ro-gob .gnomb p { margin: 5px 0 0; color: var(--tinta2); font-size: 15px; }
+.ro-gob .gani { width: 140px; height: 140px; margin: 16px 0 14px; border-radius: 50%; }
+.ro-gob .gani::before { content: ''; position: absolute; inset: -4px; border-radius: 50%; border: 1px solid rgba(60, 35, 10, .45); pointer-events: none; }
+.ro-gob .gani::after { content: ''; position: absolute; inset: 14px; border-radius: 50%; border: 1px solid rgba(60, 35, 10, .45); pointer-events: none; }
+.ro-gob .gani .gpista { stroke: rgba(60, 35, 10, .18); stroke-width: 11; }
+.ro-gob .gani .gval { stroke-width: 11; stroke-linecap: butt; }
+.ro-gob .gani svg.ro-laurel { position: absolute; left: -20px; top: -20px; width: calc(100% + 40px); height: calc(100% + 40px); pointer-events: none; overflow: visible; }
+.ro-gob .gcara { display: none; }
+.ro-gob .gcen b { font: 700 34px/1 var(--libro); color: var(--tinta); }
+.ro-gob .gcen small { margin-top: 4px; color: var(--tinta2); font: 700 15px var(--serif); letter-spacing: .1em; text-transform: uppercase; }
+.ro-gob .gfalta { gap: 6px; }
+.ro-gob .gfalta > span { color: var(--minio); font: 700 15px var(--serif); letter-spacing: .08em; text-transform: uppercase; }
+.ro-gob .gfalta em { color: var(--oliva); font-size: 15px; }
+.ro-gob .gfic { min-height: 48px; padding: 0 12px; border-radius: 24px; border: 1px solid var(--minio); background: rgba(155, 42, 26, .07); color: var(--minio); font: 15px var(--libro); }
+.ro-gob .gfic .ico { stroke: var(--minio); }
+.ro-gob .gatajos { gap: 8px; }
+.ro-gob .gat.ro-bronce { min-height: 64px; padding: 6px 2px; border-radius: 6px; gap: 2px; }
+.ro-gob .gat.ro-bronce b { font: 700 15px var(--serif); letter-spacing: .03em; color: #ecd9a8; }
+.ro-gob .gat.ro-bronce small { font: 15px/1 var(--libro); color: #c9b48a; }
+.ro-gob .gat.ro-bronce .ico { width: 24px; height: 24px; }
+.ro-gob .gat.off { opacity: .5; }
+.ro-gob .gver { min-height: 48px; border: 0; border-radius: 0; padding: 0 12px; background: none; color: var(--tinta); font: 15px var(--libro); text-decoration: underline; text-decoration-color: rgba(60, 35, 10, .5); text-underline-offset: 3px; }
+/* MR2a · ajustes tras mirar la captura: columnas de cifras, filtros que caben, tonos del estado, «Falta» más compacto */
+.ro-imp > .ro-papiro { padding-left: 14px; padding-right: 14px; }
+.ro .imp-res > div { min-width: 0; }
+.ro .imp-res b { font-size: 24px; } .ro .imp-res .ro-punto { display: none; }
+.ro .imp-chips.ro-tablilla > button { font-size: 14px; letter-spacing: -.02em; }
+.ro .imp-tag.mal, .ro .imp-tag.av { color: var(--minio); border: 0; background: none; }
+.ro-gob .gani { margin: 18px 0 20px; }
+.ro-gob .gcen small { font-size: 13px; letter-spacing: .06em; }
+.ro-gob .gfic { padding: 0 10px; gap: 5px; } .ro-gob .gfic .ico { width: 16px; height: 16px; }
+.ro .imp-res > div:first-child { flex-grow: 1.35; }
+.ro .imp-res span { letter-spacing: 0; }
+.ro .imp-chips.ro-tablilla > button { flex: 1 1 auto; min-width: min-content; padding: 2px 3px; }
+.ro-gob > .ro-papiro.gob { gap: 0; padding: 8px 10px 4px; }
+.ro-gob .gani { width: 128px; height: 128px; margin: 16px 0 18px; }
+.ro-gob .gani::after { inset: 13px; }
+.ro-gob .gcen b { font-size: 31px; }
+.ro-gob .gfalta { gap: 6px 5px; } .ro-gob .gfalta > span { letter-spacing: .03em; }
+.ro-gob .gat.ro-bronce { min-height: 58px; padding: 4px 2px; }
+.ro .mar-pie .cu-go.ro-bronce { padding: 6px 1px 9px; }
+.ro .imp-obra .rem { font-size: 15px; white-space: nowrap; }
