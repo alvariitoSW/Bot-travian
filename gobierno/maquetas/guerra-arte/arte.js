@@ -12,14 +12,15 @@
    y la luz envolvente + contraluz de materialFigura (ver «LLEVAR A units.js» más abajo). */
 import { THREE } from '../../../js/gfx/models.js';
 import { getUnit, unitMaterialReal, instancedGeometry, UNIT_SCALE } from '../../../js/gfx/units.js';
+import { ON, retocaFigura, suelo2, campo2, colores as colores2, VAR_BR, VAR_TI, LEJOS_BANDO, pano2 } from './arte2.js';   /* GM4c */
 
 export const COLS = 11, DIRS = 8, INCL = 0.38, STEP = Math.PI * 2 / DIRS;
 const COSI = Math.cos(INCL);
 /* El sol del mundo (de él salen la luz de la escena, la de los cartones y la dirección de las sombras) */
-const SOL = new THREE.Vector3(-90, 72, 60), SOL_H = Math.hypot(SOL.x, SOL.z), SOL_AZ = Math.atan2(SOL.x, SOL.z), SOL_EL = Math.atan2(SOL.y, SOL_H);
+const SOL = new THREE.Vector3(-90, ON.campo ? 50 : 72, 60) /* GM4c: sol más bajo */, SOL_H = Math.hypot(SOL.x, SOL.z), SOL_AZ = Math.atan2(SOL.x, SOL.z), SOL_EL = Math.atan2(SOL.y, SOL_H);
 export function luces() {
-  const s = new THREE.DirectionalLight('#ffe0b4', 3.0); s.position.copy(SOL);
-  return [new THREE.HemisphereLight('#c8dcfa', '#7d6a45', 1.2), s];
+  const s = new THREE.DirectionalLight(ON.campo ? '#ffcf9c' : '#ffe0b4', ON.campo ? 3.5 : 3.0); /* GM4c */ s.position.copy(SOL);
+  return [new THREE.HemisphereLight(ON.campo ? '#bcd4f2' : '#c8dcfa', ON.campo ? '#8a7048' : '#7d6a45', ON.campo ? 1.15 : 1.2), s];
 }
 /* Uniformes que comparten cartones, sombras y figuras */
 const UNI = { uSol: { value: new THREE.Vector4(Math.sin(SOL_AZ), Math.cos(SOL_AZ), SOL_AZ, 0) }, uBanda: { value: 3 }, uSolV: { value: new THREE.Vector3(SOL.x, SOL.y, SOL.z).normalize() } };
@@ -30,7 +31,7 @@ const fr = x => x - Math.floor(x);
 export const varDe = (id, out) => { out[0] = fr(id * 0.7548777); out[1] = fr(id * 0.5698403 + 0.3); out[2] = fr(id * 0.618034 + 0.11); out[3] = fr(id * 0.4142136 + 0.7); return out; };
 const GLSL_VAR = `
 vec3 varC(vec4 h, vec3 c) {
-  float br = 1.0 + (h.x - 0.5) * 0.24; float d = h.y - 0.5; vec3 tinte = vec3(1.0 + d * 0.16, 1.0 + d * 0.02, 1.0 - d * 0.16);
+  float br = 1.0 + (h.x - 0.5) * ${VAR_BR}; float d = h.y - 0.5; vec3 tinte = vec3(1.0 + d * ${VAR_TI}, 1.0 + d * 0.02, 1.0 - d * ${VAR_TI});
   float l = dot(c, vec3(0.3, 0.59, 0.11)); c = mix(vec3(l), c, 0.88 + 0.3 * h.z); return c * br * tinte;
 }
 float ruidoPantalla(vec2 f) { return fract(52.9829189 * fract(dot(f, vec2(0.06711056, 0.00583715)))); }`;
@@ -74,7 +75,8 @@ export function materialFigura(u, color, horneo) {
           ${horneo ? '' : 'outgoingLight = varC(vH, outgoingLight);'} }
         #include <opaque_fragment>`);
   };
-  m.customProgramCacheKey = () => 'arte-fig' + (horneo ? 'h' : ''); mats.set(id, m); return m;
+  if (ON.figuras || ON.color) { const ob = m.onBeforeCompile; m.onBeforeCompile = (sh, r) => { ob(sh, r); retocaFigura(sh, horneo, RUIDO); }; }   /* GM4c */
+  m.customProgramCacheKey = () => 'arte-fig' + (horneo ? 'h' : '') + (ON.figuras ? 'F' : '') + (ON.color ? 'C' : ''); mats.set(id, m); return m;
 }
 /* Pone la figura al día: material nuevo, normales suavizadas y atributo de variación. m = { malla, fr, u } de vista.js */
 function equipa(m, color) {
@@ -171,7 +173,7 @@ void main() {
   vec2 f = gl_FragCoord.xy;
   if (vFade < 1.0 && ruidoPantalla(f + 17.0) >= vFade) discard;
   vec4 t = texture2D(uMap, vUv); if (t.a < mix(0.5, 0.16, vLejos)) discard;
-  vec3 c = t.rgb / max(t.a, 0.06); c = varC(vH, c); { float l = dot(c, vec3(0.3, 0.59, 0.11)); c = mix(c, uBando * (0.25 + 1.8 * l), vLejos * 0.42); }   /* de lejos el bando se sigue leyendo */
+  vec3 c = t.rgb / max(t.a, 0.06); c = varC(vH, c); { float l = dot(c, vec3(0.3, 0.59, 0.11)); c = mix(c, uBando * (0.25 + 1.8 * l), vLejos * ${LEJOS_BANDO}); }   /* de lejos el bando se sigue leyendo */
   gl_FragColor = vec4(mix(c, uNieblaC, vNiebla), 1.0);
   #include <tonemapping_fragment>
   #include <colorspace_fragment>
@@ -264,13 +266,13 @@ const UT = { value: 0 };
 function lienzoPano(lado) {
   const c = document.createElement('canvas'); c.width = c.height = 128; const x = c.getContext('2d');
   if (lado === 0) {                                              // paño romano: rojo con orla de oro y corona de laurel
-    x.fillStyle = '#a8231c'; x.fillRect(0, 0, 128, 128); x.fillStyle = '#7e1812'; for (let i = 0; i < 128; i += 8) x.fillRect(i, 0, 3, 128);
+    x.fillStyle = pano2.rojo; x.fillRect(0, 0, 128, 128); x.fillStyle = pano2.rojo2; for (let i = 0; i < 128; i += 8) x.fillRect(i, 0, 3, 128);
     x.strokeStyle = '#e2b24f'; x.lineWidth = 7; x.strokeRect(5, 5, 118, 110); x.lineWidth = 4; x.beginPath(); x.arc(64, 58, 28, 0, 7); x.stroke();
     for (let i = 0; i < 12; i++) { const a = i / 12 * 6.283; x.fillStyle = '#e2b24f'; x.beginPath(); x.ellipse(64 + Math.cos(a) * 28, 58 + Math.sin(a) * 28, 6, 3, a + 1.57, 0, 7); x.fill(); }
     x.fillStyle = '#e2b24f'; x.fillRect(58, 40, 12, 36); x.fillRect(46, 52, 36, 10);
     x.clearRect(0, 116, 128, 12); x.fillStyle = '#e2b24f'; for (let i = 0; i < 128; i += 16) { x.fillRect(i + 2, 114, 10, 14); }   // flecos
   } else {                                                       // enseña enemiga: banderola morada con creciente
-    x.fillStyle = '#5b3a8c'; x.fillRect(0, 0, 128, 128); x.fillStyle = '#42286b'; for (let i = 0; i < 128; i += 16) x.fillRect(0, i, 128, 6);
+    x.fillStyle = pano2.azul; x.fillRect(0, 0, 128, 128); x.fillStyle = pano2.azul2; for (let i = 0; i < 128; i += 16) x.fillRect(0, i, 128, 6);
     x.fillStyle = '#d9d2bd'; x.fillRect(0, 0, 128, 8); x.fillRect(0, 120, 128, 8); x.strokeStyle = '#d9d2bd'; x.lineWidth = 9; x.beginPath(); x.arc(56, 64, 28, 0.6, 5.7); x.stroke();
     x.fillStyle = '#d9d2bd'; x.beginPath(); x.arc(96, 64, 9, 0, 7); x.fill();
     x.globalCompositeOperation = 'destination-out'; x.beginPath(); x.moveTo(128, 0); x.lineTo(92, 64); x.lineTo(128, 128); x.fill();   // cola de golondrina
@@ -311,7 +313,7 @@ function armarEstandarte(e) {
     partes.push([new THREE.TorusGeometry(0.24, 0.045, 6, 16, Math.PI * 1.35).rotateZ(Math.PI * 0.82).translate(0, 4.95, 0), BRONCE], [new THREE.SphereGeometry(0.09, 8, 6).translate(0, 4.85, 0), BRONCE]);
     const tela = new THREE.Mesh(new THREE.PlaneGeometry(1.7, 0.8, 12, 6).translate(0.85, 0, 0), pano); tela.position.set(0.04, 4.15, 0); g.add(tela); e.pano = tela;
   }
-  const fijo = new THREE.Mesh(fusionar(partes), FIJO); g.add(fijo); e.gr.add(g); e.arte = g;
+  const fijo = new THREE.Mesh(fusionar(partes), FIJO); g.add(fijo); if (ON.color) g.scale.setScalar(1.75); /* GM4c: estandartes más grandes */ e.gr.add(g); e.arte = g;
 }
 function estandartes(estand, B) {
   for (const e of estand) {
@@ -323,7 +325,7 @@ function estandartes(estand, B) {
 
 /* ---------- ganchos que usa vista.js ---------- */
 export function campo(o) {                                         // al final de campo() de vista.js
-  CO = o.COMUN; CAM = o.camara; const ge = o.suelo; if (ge) suelo(ge, o.zona);
+  CO = o.COMUN; CAM = o.camara; const ge = o.suelo; if (ge) (ON.campo ? suelo2(ge, o.zona, UNI, RUIDO) : suelo(ge, o.zona)); if (ON.campo) campo2(o);   /* GM4c */
   if (o.polvo) o.polvo.visible = false; if (o.sombras) o.sombras.visible = false;
   for (const m of o.figM.values()) equipa(m, o.COLOR[['galos', 'libios', 'iberos', 'numidas'].includes(m.u.key) ? 1 : 0]);
   crearPolvo(o.escena);
@@ -336,3 +338,4 @@ let ULT = null, CAM = null;
 const reloj = t => { UT.value = t / 1000;
   if (ULT && CAM) for (const rg of ULT) { const sm = rg.malla.children[0]; if (!sm) continue;      // sombras de cada hombre solo en los regimientos cercanos (presupuesto de triángulos de lejos); se decide con la cámara de este instante
     const h = Math.ceil(rg.n / rg.files) * rg.pz; sm.visible = rg.est !== 3 && Math.hypot(rg.x - CAM.position.x, rg.z - CAM.position.z) - 0.5 * Math.hypot(rg.files * rg.px, h) - h * 0.5 < 80; } if (CO) UNI.uBanda.value = window.__banda ?? 0.35; requestAnimationFrame(reloj); }; requestAnimationFrame(reloj);
+export const colores = colores2;   /* GM4c */

@@ -11,3 +11,6 @@ x-amz-meta-x-imagery-sources de esas 28 teselas (y solo estas):
   - ETOPO1 (etopo1/ETOPO1_Bed_g.tif): ETOPO1 1 Arc-Minute Global Relief Model, NOAA National Centers for Environmental Information
     (Amante y Eakins, 2009). Dominio público; se pide citar la fuente.
 No figuran SRTM ni EU-DEM (Copernicus) en estas teselas, por lo que no hace falta su frase de atribución. Se genera con generar-alturas.py.
+
+agua.js: ríos y lagos derivados de Natural Earth (ne_10m_rivers_lake_centerlines y ne_10m_lakes, https://www.naturalearthdata.com),
+dominio público (Tom Patterson, Nathaniel Vaughn Kelso y colaboradores). Recortados al marco del mapa y simplificados. Se genera con generar-agua.mjs.

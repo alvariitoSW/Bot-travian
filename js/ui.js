@@ -1,6 +1,5 @@
 /* AQVILA — interfaz: mapa 3D como pantalla principal, paneles, modales y pantalla de batalla */
 import { MapView3D } from './gfx/map3d.js';
-import { BattleView3D, recomendada, ALAS, TIPOS_ORDEN, tipoOrden } from './gfx/battle3d.js';
 import { portrait } from './gfx/models.js';
 import { preload, loadIndex, realPortrait } from './gfx/units.js';
 import { preloadStatic, loadStaticIndex } from './gfx/statics.js';
@@ -97,11 +96,13 @@ function toastResumen(lista) {
   const otros = lista.length - obras - graves; if (otros > 0 || !p.length) p.push(Math.max(otros, 0) + (otros === 1 ? ' aviso' : ' avisos'));
   toast(ASESOR.TEXTOS.turno(p.join(', ')), graves ? 'bad' : '', 'turno');
 }
-function modal(html, sticky) { UI.modalQ.push({ html: html, sticky: sticky }); pump(); }
+function modal(html, sticky, cls) { UI.modalQ.push({ html: html, sticky: sticky, cls: cls || '' }); pump(); }
+/* MR2b: aviso como carta de papiro con lacre; el botón que avanza va con sello, el otro en tinta */
+function carta(html, sticky) { modal('<i class="ro-carta-sello">' + RO_LACRE + '</i>' + html.replace(/class="btn( gold)?"/g, 'class="btn ro-sello"').replace(/class="btn ghost"/g, 'class="btn ro-tinta"'), sticky, 'ro-carta'); }
 function pump() {
   if (UI.modalOpen || !UI.modalQ.length) return;
   const m = UI.modalQ.shift(); UI.modalOpen = true; UI.sticky = m.sticky;
-  $('mbox').innerHTML = m.html; $('modal').hidden = false; $('mbox').scrollTop = 0;
+  $('mbox').innerHTML = m.html; $('mbox').className = m.cls || ''; $('modal').hidden = false; $('mbox').scrollTop = 0;
 }
 function closeModal() { UI.modalOpen = false; $('modal').hidden = true; pump(); }
 
@@ -114,7 +115,7 @@ function pausaPon() {
   if (AV.cur) avPon();
 }
 function pausar(p) {
-  const s = S(); if (!s || s.over || AV.acum || UI.menu || UI.battle) return;
+  const s = S(); if (!s || s.over || AV.acum || UI.menu) return;
   if (!UI.pausa) { if (!(s.speed > 0)) return; UI.velPrev = s.speed; UI.pausa = { txt: p.motivo, n: 1, grave: !!p.grave }; }
   else { UI.pausa.n++; if (p.grave && !UI.pausa.grave) { UI.pausa.txt = p.motivo; UI.pausa.grave = true; } }
   s.speed = 0; pausaPon(); UI.dirty = true;
@@ -125,13 +126,13 @@ function seguirPausa() {
 }
 G.onEvent = function (type, p) {
   if (type === 'parar') { pausar(p); return; }
-  if (type === 'event') modal('<div class="yr">' + p.y + ' A.C.</div><h2>' + esc(p.t) + '</h2><p>' + esc(p.x) + '</p><div class="acts"><button class="btn" data-act="close">Continuar</button></div>');
+  if (type === 'event') carta('<div class="yr">' + p.y + ' A.C.</div><h2>' + esc(p.t) + '</h2><p>' + esc(p.x) + '</p><div class="acts"><button class="btn" data-act="close">Continuar</button></div>');
   else if (type === 'alert') toast(p, 'bad', null, true);
   else if (type === 'log') { if (!p.mudo) { if (p.k === 'good') toast(p.x, '', null, true); else if (p.k === 'bad') toast(p.x, 'bad', null, true); } UI.dirty = true; }
   else if (type === 'dirty') UI.dirty = true;
-  else if (type === 'colonos') { const d = D.COLONIAS[p.sitio]; if (d) modal('<div class="yr">COLONOS</div><h2>Han llegado a ' + esc(d.n) + '</h2><p>Los colonos esperan tu orden. Elige el lugar del foro y el arado trazará el surco sagrado.</p><div class="acts"><button class="btn ghost" data-act="close">Más tarde</button><button class="btn gold" data-act="fundar" data-v="' + p.sitio + '">Fundar ' + esc(d.n) + '</button></div>'); }
+  else if (type === 'colonos') { const d = D.COLONIAS[p.sitio]; if (d) carta('<div class="yr">COLONOS</div><h2>Han llegado a ' + esc(d.n) + '</h2><p>Los colonos esperan tu orden. Elige el lugar del foro y el arado trazará el surco sagrado.</p><div class="acts"><button class="btn ghost" data-act="close">Más tarde</button><button class="btn gold" data-act="fundar" data-v="' + p.sitio + '">Fundar ' + esc(d.n) + '</button></div>'); }
   else if (type === 'turno') { const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.vivo && !s.over) consejoModal(); UI.dirty = true; }
-  else if (type === 'over') { if (!UI.battle && !UI.binfo) showOver(); }
+  else if (type === 'over') { if (!UI.binfo) showOver(); }
 };
 
 /* ---------- menú ---------- */
@@ -203,12 +204,12 @@ function iniciarFundar() {
 }
 function alFundarModo(sitio) { UI.city = sitio; UI.overShown = false; G.save(); setModo('gobierno'); toast('Has fundado ' + D.CITIES[sitio].n + ': es tu capital.', ''); }
 function fundarCancelado() {   // sin ciudad no hay partida a la que volver: se ofrece reabrir la pantalla o salir al menú (la partida queda guardada)
-  modal('<div class="yr">COLONOS</div><h2>Aún no has fundado</h2><p>Tus colonos esperan en ' + esc(D.COLONIAS[G.modo().inicio.fundar.sitio].n) + '. La partida no empieza hasta que elijas el lugar.</p><div class="acts"><button class="btn ghost" data-act="tomenu">Volver al menú</button><button class="btn gold" data-act="refundar">Elegir el lugar</button></div>', true);
+  carta('<div class="yr">COLONOS</div><h2>Aún no has fundado</h2><p>Tus colonos esperan en ' + esc(D.COLONIAS[G.modo().inicio.fundar.sitio].n) + '. La partida no empieza hasta que elijas el lugar.</p><div class="acts"><button class="btn ghost" data-act="tomenu">Volver al menú</button><button class="btn gold" data-act="refundar">Elegir el lugar</button></div>', true);
 }
 function showOver() {
   const s = S(), o = s.over; if (!o || UI.overShown) return; UI.overShown = true;
   if (o.resumen) { showOverCorta(o); return; }
-  modal('<div class="yr">' + (o.win ? 'VICTORIA' : 'DERROTA') + '</div><h2>' + (o.win ? 'Roma Victrix' : 'Vae victis') + '</h2><p>' + esc(o.why) + '</p>' +
+  carta('<div class="yr">' + (o.win ? 'VICTORIA' : 'DERROTA') + '</div><h2>' + (o.win ? 'Roma Victrix' : 'Vae victis') + '</h2><p>' + esc(o.why) + '</p>' +
     '<p>Ciudades: <b>' + G.myCities().length + '</b> de ' + G.ciudadesRegion().length + ' · Batallas: <b>' + s.stats.wins + '/' + s.stats.battles + '</b> ganadas\nEnemigos abatidos: <b>' + s.stats.kills + '</b> · Bajas propias: <b>' + s.stats.lost + '</b>\n' + esc(s.hero.name) + ', nivel <b>' + s.hero.lvl + '</b></p>' +
     '<div class="acts"><button class="btn" data-act="tomenu">Volver al menú</button></div>', true);
 }
@@ -218,7 +219,7 @@ function showOverCorta(o) {
   const r = o.resumen, md = D.MODOS[r.modo], ini = md && md.inicio && md.inicio[r.inicio], ed = r.edad || 1, edn = D.SABER.edadNombres[ed - 1] || '';
   const hr = r.horas, hTxt = hr < 0.95 ? 'menos de una hora' : hr < 1.05 ? 'una hora' : 'unas ' + String(Math.round(hr * 10) / 10).replace('.', ',') + ' horas';
   const f = (k, v) => '<div class="rs-f"><span>' + k + '</span><b>' + v + '</b></div>';
-  modal('<div class="yr">' + (o.win ? 'VICTORIA' : 'DERROTA') + '</div><h2>' + (o.win ? 'Roma Victrix' : 'Vae victis') + '</h2><p>' + esc(o.why) + '</p>' +
+  carta('<div class="yr">' + (o.win ? 'VICTORIA' : 'DERROTA') + '</div><h2>' + (o.win ? 'Roma Victrix' : 'Vae victis') + '</h2><p>' + esc(o.why) + '</p>' +
     '<div class="resumen"><div class="rs-t">' + esc(md ? md.n : 'Partida') + (ini ? ' · ' + esc(ini.n) : '') + '</div>' +
     f('Año al terminar', r.anio + ' a.C.') + f('Turnos jugados', r.turnos) + f('Tiempo de juego', hTxt + ' (estimado)') +
     f('Ciudades que tenías', r.ciudades + (r.fundadas ? ' (' + r.fundadas + (r.fundadas === 1 ? ' fundada' : ' fundadas') + ' por ti)' : '')) +
@@ -253,9 +254,9 @@ function consejoModal() {
   const rec = l[l.length - 1];
   const lineas = (mostrar.length ? mostrar : [{ k: '', x: 'Sin novedades este trimestre.' }]).concat(rec ? [rec] : []);
   let el = document.getElementById('inf'); if (el) el.remove();
-  el = document.createElement('div'); el.id = 'inf'; el.className = 'inf';
-  const corta = '<i class="inf-sello">S</i><div class="inf-t">' + esc(l[0].x) + '</div>' + lineas.map(q => '<div class="inf-l" style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</div>').join('') + '<div class="inf-b"><button class="btn ghost" data-act="inf-mas" id="inf-mas">Ver más</button><button class="btn gold" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
-  const larga = '<i class="inf-sello">S</i><div class="inf-d">' + detalle + '</div><div class="inf-b"><button class="btn ghost" data-act="inf-mas" id="inf-mas">Cerrar detalle</button><button class="btn gold" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
+  el = document.createElement('div'); el.id = 'inf'; el.className = 'inf ro-carta';
+  const corta = '<i class="inf-sello">' + RO_LACRE + '</i><div class="inf-t">' + esc(l[0].x) + '</div>' + lineas.map(q => '<div class="inf-l" style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</div>').join('') + '<div class="inf-b"><button class="btn ro-tinta" data-act="inf-mas" id="inf-mas">Ver más</button><button class="btn ro-sello" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
+  const larga = '<i class="inf-sello">' + RO_LACRE + '</i><div class="inf-d">' + detalle + '</div><div class="inf-b"><button class="btn ro-tinta" data-act="inf-mas" id="inf-mas">Cerrar detalle</button><button class="btn ro-sello" data-act="inf-cierra" id="inf-seguir">Seguir</button></div>';
   el._corta = corta; el._larga = larga; el.innerHTML = corta; document.body.appendChild(el);
 }
 UI.infoMas = function () { const el = document.getElementById('inf'); if (!el) return; const m = el.classList.toggle('mas'); el.innerHTML = m ? el._larga : el._corta; };
@@ -275,10 +276,30 @@ function hudDock() {
   const t3 = UI.tab === 'imperio' || UI.tab === 'senado' || UI.tab === 'saber' ? 'imperio' : UI.tab === 'city' ? (UI.cityList || !UI.cityV ? 'gobierno' : 'ciudad') : '';
   document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3)); $('app').dataset.tab = t3; $('app').dataset.vista = UI.tab;
   setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
+  migaPon();
+}
+/* K7c: miga «Roma › Camino» + botón único para pasar de la ciudad al mapa y volver */
+function migaPon() {
+  const enMapa = UI.tab === 'map', enCiudad = UI.tab === 'city' && !!UI.cityV && !UI.cityList && !UI.fundar, ver = (enMapa || enCiudad) && !G.fundando();
+  $('miga').hidden = !ver; $('app').dataset.miga = ver ? '1' : '';
+  if (!ver) return;
+  setTxt('miga-t', '<b>' + esc(D.CITIES[UI.city].n) + '</b><i>›</i>' + (enMapa ? 'Camino' : 'Ciudad'));
+  setTxt('miga-b', enMapa ? 'Entrar en la ciudad' : 'Salir al mapa');
+}
+function migaVa() {
+  if (UI.tab === 'map') { const id = UI.city; if (UI.map && propiaEntrable(id) && !UI.map.esc.entrando) { UI.sel = id; UI.map.entrarCiudad(id); } else { UI.cityList = false; setTab('city'); } }
+  else if (UI.deMapa && UI.map) volverAlMapa(); else setModo('guerra');
+}
+/* I8b: con el reloj parado antes de fundar, la barra muestra lo que traen los colonos (sin producción ni almacén aún) */
+function hudFundando(s) {
+  for (const r of D.RES) { $('r-' + r).textContent = fmt(s.res[r]); $('ra-' + r).textContent = 'alm ' + fmt(s.alm[r] || 0); $('rb-' + r).title = (RES_NOM[r] || r) + ': ' + fmt(s.res[r]) + ' que traen los colonos'; }
+  $('app').dataset.modo = 'gobierno'; $('date').textContent = G.dateStr(s.t); $('speed').textContent = 'II'; $('speed').title = 'El reloj espera a que fundes';
+  const sitio = G.modo().inicio.fundar.sitio; setTxt('citybtn', '<b>' + (D.COLONIAS[sitio] || D.CITIES[sitio]).n.toUpperCase() + '</b>'); setTxt('bpill', '🏛️ Colonos esperando');
 }
 function tickUI() {
   const s = S(); if (UI.pausa) { if (s && s.speed > 0) UI.pausa = null; pausaPon(); }   // R3: si el reloj corre por otra vía, la línea sobra
-  if (!s || G.fundando()) return;   // I8: sin ciudad aún no hay cuentas que pintar
+  if (!s) return;
+  if (G.fundando()) { hudFundando(s); return; }   // I8: sin ciudad aún no hay cuentas; I8b: la barra enseña lo que traen los colonos
   if (UI.map && UI.map.cities) for (const id in UI.map.cities) { if (!D.CITIES[id] || !D.CITIES[id].antes) continue; const sp = UI.map.cities[id].el.querySelector('span'); if (sp && sp.textContent !== D.CITIES[id].n) sp.textContent = D.CITIES[id].n; }   // H14: el nombre del mapa cambia con la fecha (Poblado íbero → Carthago Nova)
   const p = G.prod(), cap = G.cap(), pr = G.previsionCierre(), aviso = G.fraccionMes() >= D.AVISO_CIERRE;
   for (const r of D.RES) {
@@ -297,7 +318,7 @@ function tickUI() {
   $('date').textContent = G.dateStr(s.t);
   if (G.turnos) {
     $('speed').textContent = s.speed > 0 ? 'II' : '▶'; $('speed').title = s.speed > 0 ? 'Pausar el tiempo de la ciudad' : 'Dejar correr el tiempo de la ciudad'; $('speed').classList.remove('on');
-    $('turno').hidden = false; setTxt('turno', '<b>Pasar turno</b> · ' + G.estacion(s.t));
+    $('turno').hidden = false; setTxt('turno', '<i class="tu-lacre">' + RO_LACRE + '</i><b>Pasar turno</b><span class="tu-est"> · ' + G.estacion(s.t) + '</span>');
   } else { $('turno').hidden = true; $('speed').textContent = VEL[s.speed] || '▶'; $('speed').classList.toggle('on', s.speed === 0); }
   document.querySelectorAll('[data-t1]').forEach(e => {
     const t0 = +e.dataset.t0, t1 = +e.dataset.t1, f = Math.max(0, Math.min(1, (s.t - t0) / (t1 - t0)));
@@ -320,7 +341,7 @@ function setTab(t) {
   const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D (o en lista si se prefiere)
   $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3; UI.linK = null; if (!c3) $('linea').hidden = true;
   if (c3) { UI.cityV.resize(); renderCity3D(); }
-  { let b = $('bmapa'); if (!b) { b = document.createElement('button'); b.id = 'bmapa'; b.type = 'button'; b.dataset.act = 'almapa'; b.textContent = '← Mapa'; b.style.cssText = 'position:absolute;left:8px;top:64px;z-index:6;padding:6px 12px;border-radius:14px;border:1px solid #e9c063;background:#1b2430cc;color:#f1e6c8;font:600 13px system-ui'; $('citywrap').appendChild(b); } if (t !== 'city') UI.deMapa = false; b.hidden = !(c3 && UI.deMapa); }
+  if (t !== 'city') UI.deMapa = false;
   if (t === 'map') renderSheet(); else { $('sheet').hidden = true; $('view').scrollTop = 0; render(); }
   hudDock();
 }
@@ -351,7 +372,7 @@ const ICO_AJ = svgIco('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" c
 const ICO_FOTO = svgIco('<rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/>');   // CN18
 const copiasHtml = () => '<button class="hf" data-act="copiaguardar">' + ICO_CRON + '<span>Guardar copia en un archivo</span></button><button class="hf" data-act="copiacargar">' + ICO_CRON + '<span>Cargar copia de un archivo</span></button>';
 function menuHoja() {
-  if (UI.hojaConf) return '<div class="hconf"><p class="hq">¿Volver al menú principal?</p><p class="hs">Tu partida se guarda sola.</p><button class="hbig" data-act="hojax">Seguir jugando</button><button class="hdisc" data-act="menu">Sí, volver al menú</button></div>';
+  if (UI.hojaConf) return '<div class="hconf ro-carta"><p class="hq">¿Volver al menú principal?</p><p class="hs">Tu partida se guarda sola.</p><button class="hbig ro-sello" data-act="hojax">Seguir jugando</button><button class="hdisc ro-tinta" data-act="menu">Sí, volver al menú</button></div>';
   const g = UI.modo !== 'guerra', on = (m, c) => (UI.tab === 'city' || UI.tab === 'map' || UI.tab === 'army') && (m === 'g' ? g : !g) ? ' ' + c : '';
   const f = (act, v, ico, txt, cls) => '<button class="hf' + (cls ? ' ' + cls : '') + '" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span>' + txt + '</span></button>';
   return '<div class="hdos">' + f('modo', 'gobierno', ICO_GOB, 'Gobierno', 'oro' + on('g', 'on')) + f('modo', 'guerra', D.GUERRA_ICON.espadas, 'Guerra', 'rojo' + on('w', 'on')) + '</div>' +
@@ -440,10 +461,21 @@ const levaBtn = cid => {
   return '<button class="btn fiesta leva' + (on ? '' : ' no') + '" data-act="leva"' + (on ? '' : ' disabled') + '>⚔️ Reclutar ' + lv.n + ' · ' + D.RES_ICON.grano + fmt(lv.coste.grano) + ' ' + D.RES_ICON.oro + fmt(lv.coste.oro) + '</button>' +
     '<small class="fi-n">' + esc(lv.motivo || 'Aldeanos libres: ' + fmt(lv.libres) + '. La milicia guarnece la ciudad.') + '</small>';
 };
+/* CN16b: puertas, veteranos y triunfo, bajo la leva. Leen G.puertasInfo / G.veteranosInfo / G.triunfoInfo; el motivo sale en letra pequeña */
+const ejCiudadHtml = cid => {
+  const pu = G.puertasInfo(cid), ve = G.veteranosInfo(cid), tr = G.triunfoInfo(), P = D.PUERTAS, pct = x => Math.round(Math.abs(x - 1) * 100) + ' %';
+  const bPu = '<button class="btn fiesta puertas' + (pu.motivo ? ' no' : '') + '" data-act="puertas" data-v="' + (pu.cerradas ? 'abrir' : 'cerrar') + '"' + (pu.motivo ? ' disabled' : '') + '>🚪 ' + (pu.cerradas ? 'Abrir puertas' : 'Cerrar puertas') + '</button>' +
+    '<small class="fi-n">' + esc(pu.motivo || (pu.cerradas ? 'Puertas cerradas: ' : 'Si las cierras: ') + 'defensa +' + pct(P.def) + ', comercio −' + pct(P.comercio) + ', marchas +' + pct(P.viaje) + ' de tiempo.') + '</small>';
+  const bVe = '<button class="btn fiesta licenciar' + (ve.motivo ? ' no' : '') + '" data-act="licenciar"' + (ve.motivo ? ' disabled' : '') + '>🎖️ Licenciar ' + (ve.n || D.VETERANOS.n) + ' veteranos · +' + D.RES_ICON.grano + fmt(ve.grano || D.VETERANOS.n * D.VETERANOS.grano) + '</button>' +
+    '<small class="fi-n">' + esc((ve.motivo ? ve.motivo + ' ' : '') + 'Batallas de esta tropa: ' + ve.batallas + '. Se asientan como vecinos y sube el favor del pueblo.') + '</small>';
+  const bTr = !tr.oferta && !tr.activo ? '' : '<button class="btn fiesta triunfo' + (tr.motivo ? ' no' : '') + '" data-act="triunfo"' + (tr.motivo ? ' disabled' : '') + '>🎺 Celebrar el triunfo · ' + D.RES_ICON.oro + fmt(tr.oro) + '</button>' +
+    '<small class="fi-n">' + esc((tr.activo ? 'Triunfo en marcha: +' + D.TRIUNFO.fel + ' de felicidad ' + tr.quedan + (tr.quedan === 1 ? ' mes. ' : ' meses. ') : '') + (tr.oferta ? (tr.motivo === 'Falta oro.' ? 'Falta oro. ' : '') + 'Por la victoria de ' + tr.oferta + ': favor del pueblo y felicidad ' + D.TRIUNFO.dura + ' meses.' : '')) + '</small>';
+  return bPu + bVe + bTr;
+};
 const arcaHtml = c => {
   const cid = UI.city, a = G.arca(cid), pips = [1, 2, 3, 4].map(i => '<i class="' + (a.nivel >= i ? 'on' : '') + '"></i>').join(''), sob = Object.keys(a.sobra);
   return '<div class="arca"><div class="ar-top"><b>Arca</b><span class="ar-med" title="Lo que el almacén va a perder este mes">' + pips + '</span><em>' + (sob.length ? 'sobra ' + sob.map(r => D.RES_ICON[r] + fmt(a.sobra[r])).join(' ') : 'no se pierde nada') + '</em></div>' +
-    '<div class="ar-fi">' + fiestaBtn(cid, 'juegos') + '</div><div class="ar-leva" data-hueco="leva">' + levaBtn(cid) + '</div></div>';   // el hueco de la leva (CN16) cuelga de .ar-leva
+    '<div class="ar-fi">' + fiestaBtn(cid, 'juegos') + '</div><div class="ar-leva" data-hueco="leva">' + levaBtn(cid) + ejCiudadHtml(cid) + '</div></div>';   // el hueco de la leva (CN16) cuelga de .ar-leva
 };
 const graneroHtml = c => {
   const cid = UI.city, g = G.graneroInfo(cid), rc = c.rac || 'normal', rac = Object.keys(D.RACION).map(k => '<button class="chip ' + (rc === k ? 'on' : '') + '" data-act="racion" data-v="' + k + '" title="' + esc(D.RACION[k].d) + '">' + D.RACION[k].n + '</button>').join('');
@@ -621,16 +653,40 @@ function dipHtml(c) {
   return h + '';
 }
 const espFalta = () => { const t = G.especiales(); return Object.keys(D.ESPECIAL).filter(k => !t[k]); };
+/* MR2a · corona de laurel (dos ramas desde abajo, atadas con cinta roja) y hoja de hiedra para separar; SVG en línea */
+const RO_LAUREL = (function () {
+  const c = 100, r = 92, P = a => [c + r * Math.cos(a), c + r * Math.sin(a)];
+  let l = '<svg class="ro-laurel" viewBox="0 0 200 200" aria-hidden="true">';
+  for (const lado of [-1, 1]) {
+    const a0 = Math.PI / 2 + lado * 0.2, a1 = Math.PI / 2 + lado * 2.75, p0 = P(a0), p1 = P(a1);
+    l += '<path d="M' + p0[0].toFixed(1) + ' ' + p0[1].toFixed(1) + ' A' + r + ' ' + r + ' 0 0 ' + (lado > 0 ? 1 : 0) + ' ' + p1[0].toFixed(1) + ' ' + p1[1].toFixed(1) + '" fill="none" stroke="#3d5418" stroke-width="1.6"/>';
+    for (let k = 0; k < 11; k++) {
+      const a = a0 + lado * (k + .5) * (2.55 / 11), q = P(a), dir = a + lado * Math.PI / 2;
+      for (const o of [-1, 1]) {
+        const g = dir + o * 0.75, lx = (q[0] + 6.5 * Math.cos(g)).toFixed(1), ly = (q[1] + 6.5 * Math.sin(g)).toFixed(1), deg = (g * 180 / Math.PI + 90).toFixed(1);
+        l += '<ellipse cx="' + lx + '" cy="' + ly + '" rx="2.6" ry="7" transform="rotate(' + deg + ' ' + lx + ' ' + ly + ')" fill="' + ((k + o) % 2 ? '#5f7d2d' : '#4a6522') + '" stroke="#2f4214" stroke-width=".5"/>';
+      }
+    }
+  }
+  return l + '<path d="M86 192q14-8 28 0M92 192l-6 8M108 192l6 8" fill="none" stroke="#9b2a1a" stroke-width="2.4"/></svg>';
+})();
+/* MR2b: sello de lacre (borde irregular, anillo impreso y corona de hojas). Solo SVG en línea. */
+const RO_LACRE = (function () {
+  let d = ''; for (let i = 0; i < 18; i++) { const a = i / 18 * Math.PI * 2, r = i % 2 ? 17.2 : 19; d += (i ? 'L' : 'M') + (20 + r * Math.cos(a)).toFixed(1) + ' ' + (20 + r * Math.sin(a)).toFixed(1); }
+  let h = ''; for (let i = 0; i < 12; i++) { const a = (i / 12 * 300 + 120) * Math.PI / 180, x = 20 + 8.2 * Math.cos(a), y = 20 + 8.2 * Math.sin(a); h += '<ellipse cx="' + x.toFixed(1) + '" cy="' + y.toFixed(1) + '" rx="2.3" ry="1" transform="rotate(' + ((i / 12 * 300 + 120) + 90 + (i < 6 ? 30 : -30)).toFixed(0) + ' ' + x.toFixed(1) + ' ' + y.toFixed(1) + ')"/>'; }
+  return '<svg class="ro-lacre" viewBox="0 0 40 40" aria-hidden="true"><defs><radialGradient id="roLacreG" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="#e2523f"/><stop offset=".55" stop-color="#a3231a"/><stop offset="1" stop-color="#5e0f09"/></radialGradient></defs><path d="' + d + 'Z" fill="url(#roLacreG)" stroke="#4a0a05" stroke-width=".8"/><circle cx="20" cy="20" r="12.5" fill="none" stroke="#5e0f09" stroke-width="1.6"/><circle cx="20" cy="20" r="12.5" fill="none" stroke="#e8705e" stroke-width=".5" transform="translate(.5 .7)" opacity=".6"/><g fill="#6a120b">' + h + '</g></svg>';
+})();
+const RO_HIEDRA = '<div class="ro-hiedra" aria-hidden="true"><svg viewBox="0 0 22 14"><path d="M3 7C3 3 6 1.5 8.5 3.5 10 1 14 1 15 4c1.5 1 1.5 2 1 3 .5 1 .5 2-1 3-1 3-5 3-6.5.5C6 12.5 3 11 3 7z"/><path d="M16 7h5" stroke="currentColor" stroke-width="1.4" fill="none"/></svg></div>';
 function viewCity() {   // Gobierno (K12a): ciudad, felicidad, lo que falta y atajos; sin scroll de página. Lo demás vive en hojas (HOJAS)
   const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city], roma = c.owner === 'roma', f = Math.round(G.felicidad(c)), cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠', R = 52, C = 2 * Math.PI * R;
   const falta = roma ? espFalta() : [], fic = falta.slice(0, 3).map(k => '<button class="gfic" data-act="hoja" data-v="estado">' + ICO_ALERTA + '<span>' + D.ESPECIAL[k].n + '</span></button>').join('') + (falta.length > 3 ? '<button class="gfic" data-act="hoja" data-v="estado"><span>+' + (falta.length - 3) + '</span></button>' : '');
-  const at = (id, ico, nom, sub, off) => '<button class="gat' + (off ? ' off' : '') + '"' + (off ? ' disabled' : ' data-act="' + (id === 'cron' ? 'tab" data-v="log' : 'hoja" data-v="' + id) + '"') + '>' + ico + '<b>' + nom + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</button>';
+  const at = (id, ico, nom, sub, off) => '<button class="gat ro-bronce' + (off ? ' off' : '') + '"' + (off ? ' disabled' : ' data-act="' + (id === 'cron' ? 'tab" data-v="log' : 'hoja" data-v="' + id) + '"') + '>' + ico + '<b>' + nom + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</button>';
   const mer = G.tradeRate() > 0;
-  return '<div class="gob"><div class="gnomb"><h2>' + d.n + '</h2><p>' + (UI.city === 'roma' ? 'Capital' : esc(G.tipoDe(c).n)) + ' · ' + Math.floor(c.pop) + ' habitantes</p></div>' +
-    '<button class="gani" data-act="hoja" data-v="estado" aria-label="Felicidad ' + f + ' por ciento: ver el estado"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="gpista" cx="60" cy="60" r="' + R + '"/><circle class="gval" cx="60" cy="60" r="' + R + '" style="stroke:' + (f >= 60 ? 'var(--good)' : f >= 40 ? 'var(--gold)' : 'var(--bad)') + '" stroke-dasharray="' + (C * Math.max(0, Math.min(100, f)) / 100).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 60 60)"/></svg><span class="gcen"><span class="gcara">' + cara + '</span><b>' + f + ' %</b><small>Felicidad</small></span></button>' +
+  return '<div class="ro ro-gob"><div class="ro-palo"></div><div class="ro-papiro gob"><div class="gnomb"><h2 class="ro-ansata">' + d.n + '</h2><p>' + (UI.city === 'roma' ? 'Capital' : esc(G.tipoDe(c).n)) + ' <span class="ro-flecha"></span> ' + Math.floor(c.pop) + ' habitantes</p></div>' +
+    '<button class="gani" data-act="hoja" data-v="estado" aria-label="Felicidad ' + f + ' por ciento: ver el estado"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="gpista" cx="60" cy="60" r="' + R + '"/><circle class="gval" cx="60" cy="60" r="' + R + '" style="stroke:' + (f >= 60 ? 'var(--good)' : f >= 40 ? 'var(--gold)' : 'var(--bad)') + '" stroke-dasharray="' + (C * Math.max(0, Math.min(100, f)) / 100).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 60 60)"/></svg><span class="gcen"><span class="gcara">' + cara + '</span><b>' + f + ' %</b><small>Felicidad</small></span>' + RO_LAUREL + '</button>' +
     '<div class="gfalta"><span>Falta:</span>' + (fic || '<em>No falta nada</em>') + '</div>' +
     '<div class="gatajos">' + at('mercado', ICO_MERC, 'Mercado', mer ? '' : 'Sin mercado', !mer) + (roma ? at('rutas', ICO_RUTA, 'Rutas', G.rutasDeCiudad(UI.city) + '/' + G.rutaMax(c)) : '') + at('pueblo', ICO_PUEB, 'Pueblo') + (roma ? at('aldeas', ICO_PUEB, 'Pueblos', G.pueblosDe(UI.city).filter(p => p.nivel > 0).length + '/' + G.pueblosDe(UI.city).length) : '') + at('ajustes', ICO_AJ, 'Ajustes') + at('cron', ICO_CRON, 'Crónica') + (roma && (c.b.templo > 0 || c.b.herreria > 0) ? at('servicios', ICO_TEMPLO, 'Templo y forja') : '') + '</div>' +
-    (UI.cityV ? '<button class="gver" data-act="clist">Ver la ciudad en 3D</button>' : '') + dipHtml(c) + '</div>';
+    (UI.cityV ? '<button class="gver" data-act="clist">Ver la ciudad en 3D</button>' : '') + dipHtml(c) + '</div><div class="ro-palo"></div></div>';
 }
 /* ---------- J6 · Ciudad como pantalla principal ---------- */
 const ICO_X = svgIco('<path d="M6 6l12 12M18 6L6 18"/>');
@@ -664,10 +720,10 @@ function viewImperio() {
   const F = UI.impF || 'todas', cuenta = { todas: n, urgentes: filas.filter(r => r.urg).length, sinobra: sin, obras, animo: filas.filter(r => r.f < 40).length };
   const ok = { todas: () => true, urgentes: r => r.urg, sinobra: r => !r.ob.length, obras: r => !!r.ob.length, animo: r => r.f < 40 }[F] || (() => true);
   const lista = filas.filter(ok).sort((a, b) => b.pts - a.pts || b.c.pop - a.c.pop);
-  const cara = f => f >= 60 ? '😊' : f >= 40 ? '😐' : '😠';
-  let h = '<div class="imp mar mar-imp"><div class="mar-top"><div class="imp-res mar-placa"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div>' +
+  const cara = f => '<span class="ro-punto ' + (f >= 60 ? 'bien' : f >= 40 ? 'med' : 'mal') + '"></span>';
+  let h = '<div class="imp mar mar-imp ro ro-imp"><div class="ro-palo"></div><div class="ro-papiro"><div class="mar-top"><h2 class="ro-ansata">Imperio</h2><div class="imp-res ro-cifras"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div>' + RO_HIEDRA +
     (peor && n > 1 ? '<div class="imp-peor">Peor ánimo: <b>' + D.CITIES[peor.id].n + '</b> ' + cara(peor.f) + ' ' + peor.f + '</div>' : '') +
-    '<div class="imp-chips">' + IMP_FILTROS.map(x => '<button class="' + (F === x[0] ? 'on' : '') + '" data-act="impf" data-v="' + x[0] + '">' + x[1] + ' <i>' + cuenta[x[0]] + '</i></button>').join('') + '</div></div><div class="imp-lista mar-lista">';
+    '<div class="imp-chips ro-tablilla">' + IMP_FILTROS.map(x => '<button class="' + (F === x[0] ? 'on' : '') + '" data-act="impf" data-v="' + x[0] + '">' + x[1] + ' <i>' + cuenta[x[0]] + '</i></button>').join('') + '</div></div><div class="imp-lista mar-lista">';
   if (!lista.length) h += '<div class="imp-vacio">Ninguna ciudad cumple este filtro.</div>';
   for (const r of lista) {
     const c = r.c;
@@ -675,8 +731,8 @@ function viewImperio() {
       '<div class="imp-l2">' + (r.ob.length ? '<div class="imp-obs">' + r.ob.map(q => impObraHtml(q, 'imp-obra')).join('') + '</div>' : '<span class="imp-sin">sin obra</span>') +
       (r.causa ? '<em class="imp-tag ' + r.tono + '">' + r.causa + '</em>' : '') + '</div></div></div>';
   }
-  h += '</div><div class="mar-pie"><button class="btn cu-go" data-act="cuentas">📊<span>Cuentas</span></button><button class="btn cu-go" data-act="tab" data-v="senado">🏛️<span>Senado</span></button><button class="btn cu-go" data-act="tab" data-v="saber">📚<span>Saber</span></button><button class="btn cu-go" data-act="tab" data-v="hero">🛡️<span>General</span></button></div>';
-  return h + '</div>';
+  h += '</div><div class="mar-pie"><button class="btn cu-go ro-bronce" data-act="cuentas">' + svgIco('<path d="M5 4h12l2 2v14H5zM8 9h8M8 13h8M8 17h5"/>') + '<span>Cuentas</span></button><button class="btn cu-go ro-bronce" data-act="tab" data-v="senado">' + ICO_GOB + '<span>Senado</span></button><button class="btn cu-go ro-bronce" data-act="tab" data-v="saber">' + svgIco('<path d="M6 4h11a2 2 0 0 1 0 4H6M6 4a2 2 0 0 0 0 4v12h11a2 2 0 0 0 0-4H8M9 11h6M9 14h4"/>') + '<span>Saber</span></button><button class="btn cu-go ro-bronce" data-act="tab" data-v="hero">' + svgIco('<path d="M5 15c0-5 3-9 7-9s7 4 7 9v3h-4v-3H9v3H5zM12 6V3M9 3h6"/>') + '<span>General</span></button></div>';
+  return h + '</div><div class="ro-palo"></div></div>';
 }
 /* pone una pieza en una ciudad: la mejora (op.mej = id de la pieza) o una nueva en su mejor sitio. Devuelve {ok, motivo, obra} */
 function ponPieza(cid, op) {
@@ -845,7 +901,7 @@ function leccionHoy() {
 const conSigno = n => (n < 0 ? '\u2212' : '+') + Math.abs(n);
 /* CN13c: fuego por decidir. El reloj está parado (s.vivo); la tarjeta dice cuántas casas arden, el coste y la suerte esperada. Solo la muestra si no hay batalla pendiente. */
 function vivoPinta() {
-  const el = $('cubos'), s = S(), v = s && !s.over && !s.pending.length && !UI.battle ? G.vivo() : null, inf = v && G.vivoInfo();
+  const el = $('cubos'), s = S(), v = s && !s.over && !s.pending.length ? G.vivo() : null, inf = v && G.vivoInfo();
   if (!inf) { if (!el.hidden) el.hidden = true; UI.vivoK = ''; return; }
   const pl = inf.plan, n = pl.casas.length, k = v.cid + '|' + v.t0 + '|' + (inf.puede ? 1 : 0);
   if (UI.vivoK === k && !el.hidden) return;
@@ -1042,7 +1098,10 @@ function svCoste(id) { const c = G.invCoste(id); return '<div class="sv-chips">'
 function svEureka(id) { const d = D.INVEST[id]; if (!d || !d.eureka || G.eurekaMul(id) <= 1) return ''; const ids = [].concat(d.eureka), mia = ids.find(c => G.myCities().includes(c)); return '<div class="sv-eu">💡 Eureka: posees ' + esc(D.CITIES[mia || ids[0]].n) + ', ritmo ×1,33</div>'; }
 function svDetalle(id) {
   const d = D.INVEST[id], st = G.invEstado(id); let h = '<div class="sv-det"><p>' + esc(efTxt(d.ef)) + '</p>';
-  if (st.e === 'hecha') return h + '<div class="sv-ok">✔ Ya lo sabes.</div></div>';
+  if (st.e === 'hecha') { h += '<div class="sv-ok">✔ Ya lo sabes.</div>'; const rf = G.invReformaInfo(id);
+    if (d.excl && d.excl.length) { if (UI.svRef === id && rf.alt) { const c = rf.coste; h += '<div class="sv-aviso"><b>Cambiar a ' + esc(D.INVEST[rf.alt].n) + '</b><p>Pierdes ya: ' + esc(efTxt(d.ef)) + '. Lo que pagaste no vuelve' + (rf.pierde ? ' y se restan ' + rf.pierde + ' puntos de gloria' : '') + '. Pagas el coste completo del nuevo y estudias ' + months(rf.tiempo) + ' sin él:</p>' + svCoste(rf.alt) + (rf.ok ? '<button class="btn ro-sello" data-act="saberreformar" data-v="' + id + '">Sí, cambiar de saber</button> ' : '<div class="sv-no">' + esc(rf.motivo) + '</div>') + '<button class="btn ro-tinta" data-act="saberreformano">Mejor no</button></div>'; }
+      else h += rf.motivo && !rf.alt ? '<div class="sv-no">' + esc(rf.motivo) + '</div>' : '<button class="btn" data-act="saberreforma" data-v="' + id + '">Cambiar de saber…</button>'; }
+    return h + '</div>'; }
   h += svCoste(id) + '<div class="sv-m">' + months(G.invTiempo(id)) + ' de estudio</div>' + svEureka(id);
   if (st.e === 'ok') h += '<button class="btn" data-act="saber" data-v="' + id + '">Estudiar</button>';
   else h += '<div class="sv-no">' + esc(st.motivo) + '</div>';
@@ -1083,22 +1142,24 @@ function viewSaber() {
 /* CN17: encargo corto del Senado (uno cada vez) y hitos */
 function encargoHtml() {
   const en = G.encargoActual(), hs = G.hitosVista(); let o = '';
-  if (en) o += '<div class="sec">Encargo del Senado</div><div class="card sn-mi"><div class="tt">' + esc(en.e.n) + '</div><div class="ds">' + esc(en.e.texto) + '</div><div class="sn-fa"><b>Llevas</b> ' + Math.min(en.tiene, en.pide) + ' de ' + en.pide + ' · quedan ' + en.quedan + ' meses</div></div>';
-  return o + '<div class="sec">Hitos</div><div class="sn-ex">' + hs.map(x => (x.logrado ? '✔ ' : '▫ ') + esc(x.h.n)).join(' · ') + '</div>';
+  if (en) o += '<div class="sec ro-rubrica">Encargo del Senado</div><div class="card sn-mi ro-tabla"><div class="tt">' + esc(en.e.n) + '</div><div class="ds">' + esc(en.e.texto) + '</div><div class="sn-fa"><b>Llevas</b> ' + Math.min(en.tiene, en.pide) + ' de ' + en.pide + ' · quedan ' + en.quedan + ' meses</div></div>';
+  return o + '<div class="sec ro-rubrica">Hitos</div><div class="sn-ex sn-hitos">' + hs.map(x => (x.logrado ? '✔ ' : '▫ ') + esc(x.h.n)).join(' · ') + '</div>';
 }
 function viewSenado() {
   const f = G.favor(), mi = G.misionActual(), mot = G.senadoMotivo();
   const barra = (n, v, c) => '<div class="sn-b"><span>' + n + '</span><div class="sn-bar"><i class="' + c + '" style="width:' + v + '%"></i></div><b>' + v + '</b></div>';
   const efecto = e => { const a = []; if (e.oro) a.push((e.oro > 0 ? '+' : '') + e.oro + ' de oro'); if (e.favorSenado) a.push((e.favorSenado > 0 ? '+' : '') + e.favorSenado + ' favor del Senado'); if (e.favorPueblo) a.push((e.favorPueblo > 0 ? '+' : '') + e.favorPueblo + ' favor del pueblo'); return a.join(', ') || 'nada'; };
-  let o = '<div class="acts"><button class="btn ghost" data-act="tab" data-v="imperio">← Volver al Imperio</button></div><div class="sn"><h2>🏛️ El Senado</h2>' + barra('Senado', f.senado, 'sen') + barra('Pueblo', f.pueblo, 'pue') +
+  // MR2b: rollo de papiro (como Imperio); misión y encargo en tabla de bronce; «volver» en placa de bronce, abajo
+  const pie = '</div><div class="ro-palo"></div><div class="ro-pie"><button class="btn ro-bronce ro-vol" data-act="tab" data-v="imperio">← Volver al Imperio</button></div></div>';
+  let o = '<div class="ro ro-sen"><div class="ro-palo"></div><div class="ro-papiro sn"><h2 class="ro-ansata">Senado</h2>' + barra('Senado', f.senado, 'sen') + barra('Pueblo', f.pueblo, 'pue') +
     '<p class="sn-ex">El pueblo sigue el ánimo de tus ciudades. El Senado sube con las misiones cumplidas y baja con las falladas o con el oro en rojo a fin de mes.</p>';
   if (mot) o += '<div class="sn-av">' + esc(mot) + '</div>';
   o += encargoHtml();
-  if (!mi) return o + '<div class="empty">El Senado no te pide nada por ahora.</div></div>';
+  if (!mi) return o + RO_HIEDRA + '<div class="empty sn-nada">El Senado no te pide nada por ahora.</div>' + pie;
   const m = mi.m, tot = Math.max(1, mi.t1 - mi.t0);
-  o += '<div class="sec">Misión en curso</div><div class="card sn-mi"><div class="tt">' + esc(m.n) + '</div><div class="ds">' + esc(m.texto) + '</div>' +
+  o += '<div class="sec ro-rubrica">Misión en curso</div><div class="card sn-mi ro-tabla"><div class="tt">' + esc(m.n) + '</div><div class="ds">' + esc(m.texto) + '</div>' +
     '<div class="sn-pz"><span>Plazo: quedan ' + mi.quedan + (mi.quedan === 1 ? ' mes' : ' meses') + '</span><div class="sn-bar"><i class="pla" style="width:' + Math.max(0, Math.min(100, mi.quedan / tot * 100)) + '%"></i></div></div>' +
-    '<div class="sn-fa"><b>Qué falta</b> ' + esc(String(mi.falta)) + '</div><div class="sn-pr"><b>Premio</b> ' + efecto(m.premio || {}) + '</div><div class="sn-ca"><b>Si fallas</b> ' + efecto(m.castigo || {}) + '</div></div></div>';
+    '<div class="sn-fa"><b>Qué falta</b> ' + esc(String(mi.falta)) + '</div><div class="sn-pr"><b>Premio</b> ' + efecto(m.premio || {}) + '</div><div class="sn-ca"><b>Si fallas</b> ' + efecto(m.castigo || {}) + '</div></div>' + pie;
   return o;
 }
 function viewHero() {
@@ -1184,7 +1245,7 @@ function moverFundar(x, z) {
 }
 function fundarAqui() {
   const F = UI.fundar; if (!F || F.fase !== 'elegir' || !F.vale) return;
-  const r = G.fundarColonia(F.sitio, F.x, F.z);
+  const r = G.fundarColonia(F.sitio, F.x, F.z, true);   // I8b: en «fundar de la nada» el reloj espera a que el arado acabe el surco
   if (!r.ok) { lineaPon(r.motivo, 'aviso malo', '', 4); toast(r.motivo, 'bad'); return; }
   F.fase = 'arando'; F.t0 = performance.now(); UI.cityV.calor(null); UI.cityV.ponerGroma(null); UI.cityV.surcar();
   lineaPon('El arado traza el surco sagrado: dentro nacerá la ciudad.', 'aviso'); $('csheet').hidden = true; pintaBotonesFundar();
@@ -1196,6 +1257,7 @@ function fundarCuadro(now) {
 }
 function cerrarFundar(sinTab) {
   const F = UI.fundar; UI.fundar = null; UI.modo3 = 'mirar'; UI.sel3 = null;
+  G.finArado();   // I8b: al cerrar la pantalla (acabe o no el surco) el reloj vuelve a correr
   if (UI.cityV) { UI.cityV.ponerGroma(null); UI.cityV.calor(null); }
   $('csheet').dataset.m = ''; lineaPon(''); if (!sinTab) setTab(UI.tab);
 }
@@ -1227,9 +1289,9 @@ function renderSheet() {
 /* ---------- envío de tropas ---------- */
 function showPicker(from, to) {
   const s = S(), c = s.cities[from], own = s.cities[to].owner === 'roma', hero = G.heroAvailable(from);
-  if (G.edge(from, to)[2] && !(c.b.puerto > 0)) { modal('<div class="yr">RUTA MARÍTIMA</div><h2>Hace falta un puerto</h2><p>Para embarcar un ejército desde ' + D.CITIES[from].n + ' hacia ' + D.CITIES[to].n + ' necesitas construir antes un <b>Puerto</b> en ' + D.CITIES[from].n + '.</p><div class="acts"><button class="btn ghost" data-act="close">Cerrar</button><button class="btn gold" data-act="goport" data-v="' + from + '">Ir a la ciudad</button></div>'); return; }
+  if (G.edge(from, to)[2] && !(c.b.puerto > 0)) { carta('<div class="yr">RUTA MARÍTIMA</div><h2>Hace falta un puerto</h2><p>Para embarcar un ejército desde ' + D.CITIES[from].n + ' hacia ' + D.CITIES[to].n + ' necesitas construir antes un <b>Puerto</b> en ' + D.CITIES[from].n + '.</p><div class="acts"><button class="btn ghost" data-act="close">Cerrar</button><button class="btn gold" data-act="goport" data-v="' + from + '">Ir a la ciudad</button></div>'); return; }
   const ks = Object.keys(c.units).filter(k => c.units[k] > 0);
-  let h = '<div class="yr">DESDE ' + D.CITIES[from].n.toUpperCase() + ' · ' + (G.turnos ? ('LLEGAN ' + turnosTxt(Math.max(1, Math.ceil((G.llegada(s.t + G.travel(from, to, false)) - s.t) / D.TURNO_MESES - 1e-9)))).toUpperCase() : months(G.travel(from, to, false)).toUpperCase()) + '</div><h2>' + (own ? 'Reforzar ' : 'Atacar ') + D.CITIES[to].n + '</h2>';
+  let h = '<div class="yr">DESDE ' + D.CITIES[from].n.toUpperCase() + ' · ' + (G.turnos ? ('LLEGAN ' + turnosTxt(Math.max(1, Math.ceil((G.llegada(s.t + G.travel(from, to, false) * G.puertasViaje(from, to)) - s.t) / D.TURNO_MESES - 1e-9)))).toUpperCase() : months(G.travel(from, to, false) * G.puertasViaje(from, to)).toUpperCase()) + '</div><h2>' + (own ? 'Reforzar ' : 'Atacar ') + D.CITIES[to].n + '</h2>';
   if (!ks.length && !hero) h += '<p>No hay tropas en ' + D.CITIES[from].n + '. Recluta en la pestaña Ejército.</p>';
   h += ks.map(k => '<div class="pick"><div class="pt">' + pt(k) + '</div><div><label><span>' + D.UNITS[k].n + '</span><span><b id="pv-' + k + '">' + c.units[k] + '</b> / ' + c.units[k] + '</span></label><input type="range" min="0" max="' + c.units[k] + '" value="' + c.units[k] + '" data-k="' + k + '"></div></div>').join('');
   { const tl = G.tribunos().filter(t => t.libre), lib = tl[0]; h += '<div class="pw">' + (lib ? 'Sin el general, manda el tribuno <b>' + esc(lib.n) + '</b> (' + esc(lib.car) + '). Tribunos libres: ' + tl.length + ' de ' + G.maxEjercitos() + '.' : (hero ? 'No quedan tribunos libres: solo puede partir el ejército con el general.' : 'No quedan tribunos libres: ningún ejército más puede partir.')) + '</div>'; }
@@ -1280,190 +1342,6 @@ function battlePrompt() {
 }
 // GM15b: la hora del encuentro en una línea («Amanecer con niebla»)
 function horaTxt(K) { return (D.HORAS[K.hora] || 'Día') + (K.niebla ? ' con niebla' : ''); }
-// N15: la dificultad ya no se elige; el motor la explica por contexto (b.dif = { nivel, texto, factores:[{n,txt,v}] })
-function rivalHtml(b) {
-  const s1 = b.cfg.sides[1], ca = window.Battle.CARACTER[b.ia ? b.ia.car : window.Battle.caracterDe(b.cfg)], d = b.dif, pr = b.progresoObjetivo ? b.progresoObjetivo() : null;
-  const fac = d && d.factores && d.factores.length ? '<div class="fac" hidden>' + d.factores.map(f => '<div><i class="' + (f.v > 0 ? 'up' : f.v < 0 ? 'dn' : '') + '">' + (f.v > 0 ? '▲' : f.v < 0 ? '▼' : '•') + '</i> ' + esc(f.txt) + '</div>').join('') + '</div>' : '';
-  return '<div class="rv"' + (fac ? ' data-act="bfac" role="button"' : '') + '>Rival: <b>' + esc(s1.gen && s1.gen.n || s1.name) + '</b> · ' + esc(ca.n.toLowerCase()) + (d && d.texto ? ' · ' + esc(d.texto.replace(/^Rival:\s*/, '')) : '') + (fac ? ' ▾' : '') + '</div>' + fac +
-    (pr && pr.texto ? '<div class="ob">Objetivo: ' + esc(pr.texto) + '</div>' : '');
-}
-// objetivo de la batalla: una línea fina bajo el cabezal con barra mínima
-function objetivoHud(B) {
-  const b = B.b, pr = b.cfg.objetivo && b.progresoObjetivo ? b.progresoObjetivo() : null; let el = $('bobj');
-  if (!pr || !pr.texto || b.fase === 'despliegue') { if (el) el.remove(); return; }
-  if (!el) { el = document.createElement('div'); el.id = 'bobj'; $('battle').appendChild(el); }
-  const k = pr.texto + '|' + Math.round((pr.frac || 0) * 50); if (el.dataset.k !== k) { el.dataset.k = k; el.innerHTML = '<span>' + esc(pr.texto) + '</span><i><u style="width:' + Math.round(Math.max(0, Math.min(1, pr.frac || 0)) * 100) + '%"></u></i>'; }
-}
-function startBattle() {
-  closeModal();
-  $('battle').hidden = false;
-  const cfg = Object.assign({}, UI.binfo.cfg, { fh: 1000, despliegue: true, rondas: true, dificultad: 'normal' }), b = new window.Battle(cfg), B = { b: b, speed: 1, paused: false, acc: 0, endT: 0 };
-  try { B.view = new BattleView3D($('bfield'), b, { aviso: (t, k) => toast(t, k), cards: $('bcards'), speed: () => (B.paused || b.over ? 0 : B.speed) }); }
-  catch (e) { // sin WebGL: vista 2D de reserva
-    console.warn('WebGL no disponible, usando vista 2D', e);
-    const cv = document.createElement('canvas'); cv.className = 'c2d'; $('bfield').appendChild(cv); B.view = new window.BattleView(cv, b); B.flat = cv;
-    cv.addEventListener('pointerdown', ev => { if (!b.over) B.view.down(ev); });
-    cv.addEventListener('pointermove', ev => B.view.move(ev)); cv.addEventListener('pointerup', ev => B.view.up(ev)); cv.addEventListener('pointercancel', ev => B.view.up(ev));
-  }
-  UI.battle = B;
-  { const dv = document.createElement('div'); dv.id = 'bdif'; dv.innerHTML = rivalHtml(b); $('battle').appendChild(dv); }
-  montaMandoL1(B);
-  $('bauto').classList.add('on'); $('bspeed').textContent = 'x1'; $('bpause').textContent = 'II';
-  // despliegue: la barra de mando cambia hasta pulsar «Empezar batalla»
-  B.barra = $('bctl').innerHTML; B.hint = $('bhint').innerHTML;
-  // 6 formaciones + «Empezar batalla»: en 390 px no caben en una fila, así que la barra se parte en dos filas
-  $('bctl').style.flexWrap = 'wrap'; $('bctl').classList.add('desp'); $('battle').classList.add('desp');
-  $('bctl').innerHTML = Battle.PLANTILLAS.map(p => '<button style="flex:1 1 11%;min-width:0;padding:0 2px;font-size:12px;white-space:nowrap" data-act="bform" data-v="' + p[0] + '"' + (p[0] === 'clasica' ? ' class="on"' : '') + '>' + (Battle.CORTOS[p[0]] || p[1]) + '</button>').join('') + '<button style="flex:2 1 18%;padding:0 4px" data-act="bstart" class="on">Empezar batalla</button>';
-  $('bhint').textContent = 'Coloca tus tropas: arrastra un regimiento por el campo, o toca uno y luego el campo. Después, Empezar batalla.' + (b.tr && !b.tr.plano ? ' Campo: ' + b.tr.nombre.toLowerCase() + ' (contorno en tu zona: ocre = colina, verde = bosque).' : ' Campo: llano.'); $('bhint').style.opacity = 1;
-}
-// repone la barra de mando y el texto de ayuda de antes del despliegue
-function reponerBarra(B) { if (!B || B.barra == null) return; const dv = $('bdif'); if (dv) dv.remove(); $('bctl').style.flexWrap = ''; $('bctl').classList.remove('desp'); $('battle').classList.remove('desp'); $('bctl').innerHTML = B.barra; $('bhint').innerHTML = B.hint; B.barra = null; }
-function stopBattle() { const B = UI.battle; if (B) { const dv = $('bdif'); if (dv) dv.remove(); const ob = $('bobj'); if (ob) ob.remove(); const gs = $('bgesto'); if (gs) gs.remove(); $('battle').classList.remove('ronda'); const pn = $('bpanel'); if (pn) pn.remove(); quitaMandoL1(B); reponerBarra(B); if (B.view.dispose) B.view.dispose(); if (B.flat) B.flat.remove(); } $('battle').hidden = true; UI.battle = null; UI.binfo = null; if (UI.map) UI.map.resize(); }
-// L1: mando con el dedo: botón dorado de orden recomendada, minimapa táctil y grupos por clase
-const GRUPOS_L1 = [['inf', 'Infantería', ['inf', 'spear', 'ele']], ['rng', 'Tiradores', ['rng']], ['cav', 'Caballería', ['cav', 'gen']]];
-function montaMandoL1(B) {
-  if (!B.view || !B.view.ordenRecomendada) return; // vista 2D de reserva: sin esto
-  const bt = $('battle'), mk = (tag, id, cls, html) => { const e = document.createElement(tag); e.id = id; e.className = cls; e.innerHTML = html || ''; bt.appendChild(e); return e; };
-  const oro = mk('button', 'bgold', 'l1 off', '<i>⚔</i><b>Orden</b>'); oro.dataset.act = 'bgold'; oro.disabled = true;
-  const mini = mk('canvas', 'bmini', 'l1'), anch = Math.max(66, Math.min(120, Math.round(60 * B.b.W / B.b.H))); mini.width = anch * 2; mini.height = 120; mini.style.width = anch + 'px';   // el recuadro sigue la proporción del campo (N14)
-  const grp = mk('div', 'bgrp', 'l1', GRUPOS_L1.map(g => '<button data-act="bgrp" data-v="' + g[0] + '">' + g[1] + '</button>').join(''));
-  mini.addEventListener('pointerdown', ev => {
-    const rc = mini.getBoundingClientRect(), b = B.b, x = (ev.clientX - rc.left) / rc.width * b.W, y = (ev.clientY - rc.top) / rc.height * b.H;
-    if (b.fase !== 'despliegue' && B.view.moverSel(x, y)) toast('Tropas en marcha.'); else B.view.centrarEn(x, y); ev.stopPropagation();
-  });
-  mini.addEventListener('pointermove', ev => { if (ev.buttons !== 1 || B.view.sel.size && B.b.fase !== 'despliegue') return; const rc = mini.getBoundingClientRect(); B.view.centrarEn((ev.clientX - rc.left) / rc.width * B.b.W, (ev.clientY - rc.top) / rc.height * B.b.H); ev.stopPropagation(); });
-  const alas = mk('div', 'balas', 'l1', ALAS.map(a => '<button data-act="bala" data-v="' + a[0] + '">' + a[1] + '<small></small></button>').join(''));
-  alas.querySelectorAll('button').forEach(bn => {   // toque corto: elige el ala; toque largo: mete en ella los regimientos elegidos (o los saca si ya están)
-    let tm = null, largo = false;
-    bn.addEventListener('pointerdown', () => { largo = false; clearTimeout(tm); tm = setTimeout(() => { largo = true; const id = bn.dataset.v, v = B.view; const n = v.moverAAla(id); toast(n ? n + (n === 1 ? ' regimiento pasa' : ' regimientos pasan') + ' al ala «' + bn.firstChild.textContent + '».' : 'Elige antes un regimiento y mantén pulsada el ala.'); }, 550); });
-    for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) bn.addEventListener(ev, () => clearTimeout(tm));
-    bn.addEventListener('click', ev => { if (largo) { ev.stopPropagation(); ev.preventDefault(); largo = false; } });
-    bn.addEventListener('contextmenu', ev => ev.preventDefault());
-  });
-  B.l1 = { oro: oro, mini: mini, grp: grp, alas: alas, txt: '' };
-}
-function quitaMandoL1(B) { if (B.l1) { for (const k of ['oro', 'mini', 'grp', 'alas']) B.l1[k].remove(); B.l1 = null; } }
-function actualizaL1(B) {
-  const L = B.l1; if (!L) return; const v = B.view, b = B.b, desp = b.fase === 'despliegue';
-  const sel = [...v.sel].filter(r => r.st === 'ok'), rec = !desp && sel.length ? recomendada(sel[0], b) : null;
-  const txt = rec ? rec.ic + '|' + rec.txt : ''; if (txt !== L.txt) { L.txt = txt; L.oro.disabled = !rec; L.oro.classList.toggle('off', !rec); L.oro.innerHTML = '<i>' + (rec ? rec.ic : '⚔') + '</i><b>' + (rec ? rec.txt : 'Orden') + '</b>'; }
-  const act = v.alaActiva ? v.alaActiva() : null;
-  L.alas.querySelectorAll('button').forEach(bn => { const m = v.miembros(bn.dataset.v).length; bn.classList.toggle('on', act === bn.dataset.v); bn.classList.toggle('vacia', !m); const sm = bn.lastChild; if (sm.textContent !== String(m)) sm.textContent = m; });
-  const x = L.mini.getContext('2d'), W = L.mini.width, H = L.mini.height; x.clearRect(0, 0, W, H); x.fillStyle = 'rgba(12,16,22,.7)'; x.fillRect(0, 0, W, H);
-  const kx = W / b.W, ky = H / b.H; window.Battle.pintaTerreno(x, b, kx, ky);
-  for (const r of b.regs) { if (r.st !== 'ok') continue; const px = r.x * kx, py = r.y * ky; x.fillStyle = b.cfg.sides[r.side].col; x.beginPath(); x.arc(px, py, r.u.cls === 'gen' ? 5 : 4, 0, 7); x.fill(); if (v.sel.has(r)) { x.strokeStyle = '#f2cf72'; x.lineWidth = 2.5; x.beginPath(); x.arc(px, py, 8, 0, 7); x.stroke(); } }
-  if (v.vista) { const p = v.vista(); x.strokeStyle = '#fff'; x.lineWidth = 2; x.beginPath(); p.forEach((q, i) => i ? x.lineTo(q[0] * kx, q[1] * ky) : x.moveTo(q[0] * kx, q[1] * ky)); x.closePath(); x.stroke(); }   // lo que ve la cámara
-  x.strokeStyle = '#e3b54a99'; x.lineWidth = 2; x.strokeRect(1, 1, W - 2, H - 2);
-}
-function battleHud() {
-  if (rondaHud()) return;
-  const b = UI.battle.b, s0 = b.cfg.sides[0], s1 = b.cfg.sides[1], n0 = b.men(0), n1 = b.men(1), mo = sd => { let a = 0, t = 0; for (const r of b.regs) if (r.side === sd && r.st === 'ok') { a += r.mor / r.morMax * r.men; t += r.men; } return t ? Math.round(a / t * 100) : 0; }, m0 = mo(0), m1 = mo(1), key = n0 + '|' + n1 + '|' + m0 + '|' + m1; actualizaL1(UI.battle); if (key === UI.hudKey) return; UI.hudKey = key;
-  $('bhud').innerHTML = '<div class="nm"><span style="color:#ff9c8c">' + esc(s0.name) + ' · ' + n0 + ' <small>moral ' + m0 + '%</small></span><span><small>moral ' + m1 + '%</small> ' + n1 + ' · ' + esc(s1.name) + '</span></div><div class="bar"><i style="width:' + n0 / Math.max(1, n0 + n1) * 100 + '%;background:' + s0.col + '"></i><i style="flex:1;background:' + s1.col + '"></i></div>';
-}
-/* ---------- rondas (N2): plan, ejecución e informe ---------- */
-// iconos de línea de las órdenes (trazo, sin relleno)
-const ICO_ORD = {
-  aguantar: '<path d="M12 3 4.5 6v5.5c0 4.6 3.2 7.8 7.5 9.5 4.3-1.7 7.5-4.9 7.5-9.5V6z"/>',
-  avanzar: '<path d="m6 12 6-6 6 6M6 19l6-6 6 6"/>',
-  cargar: '<path d="M5 19 19 5M10 5h9v9"/><path d="M5 14l5 5"/>',
-  hostigar: '<path d="M4 17c3-9 8-9 14-6M14 6l5 5-6 3"/><path d="M4 21h4"/>',
-  relevar: '<path d="M4 8h14m-4-4 4 4-4 4M20 16H6m4-4-4 4 4 4"/>',
-  retirarse: '<path d="M9 7 4 12l5 5M4 12h10a6 6 0 0 1 0 8h-3"/>',
-  sig: '<path d="m9 5 7 7-7 7"/>',
-  mas: '<circle cx="5" cy="12" r="1.4"/><circle cx="12" cy="12" r="1.4"/><circle cx="19" cy="12" r="1.4"/>'
-};
-const icoOrd = k => '<svg class="io" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICO_ORD[k] + '</svg>';
-// fila única de botones de abajo, según el momento de la ronda
-function filaRonda(B) {
-  const C = window.Battle.CONDICIONES, sel = condSel(B), act = c => sel.length && sel.every(r => (r.order.cond || '') === c);
-  switch (B.modo) {
-    case 'ejec': return '<button data-act="bpause" id="bpause">' + (B.paused ? '▶' : 'II') + '</button><button data-act="bspeed" id="bspeed">x' + B.speed + '</button><button data-act="bcam">Cámara</button><button data-act="bskip">Resolver</button>';
-    case 'informe': return '<button data-act="brepetir">Ver otra vez</button><button class="go on" data-act="bseguir">Seguir planeando</button>';
-    case 'cond': return Object.keys(C).map(k => '<button data-act="bcnd" data-v="' + k + '"' + (act(k) ? ' class="on"' : '') + '>' + C[k] + '</button>').join('') + '<button data-act="bcnd" data-v="">Sin condición</button><button class="on" data-act="bcondok">Listo</button>';
-    default: {
-      if (!B.aMano && B.b.consejo && !B.b.over) { const cs = tarjetasConsejo(B); if (cs) return cs; }
-      const ps = B.view && B.view.propios ? B.view.propios() : [], tp = ps.length && ps.every(r => tipoOrden(r) === tipoOrden(ps[0])) ? tipoOrden(ps[0]) : null;
-      return '<div class="ord' + (ps.length ? '' : ' sinsel') + '">' + TIPOS_ORDEN.map(t => '<button class="ob o-' + t[0] + (tp === t[0] ? ' on' : '') + '" data-act="bord" data-v="' + t[0] + '"' + (t[0] === 'aguantar' ? ' title="Aguantar: recibe un tercio menos de daño. Si te quedas quieto mucho rato el rival te toma la medida y el efecto se pierde."' : '') + '>' + icoOrd(t[0]) + '<span>' + t[1] + '</span></button>').join('') + '</div>' +
-        '<button class="mini" data-act="bsig" aria-label="Siguiente regimiento">' + icoOrd('sig') + '<span>Siguiente</span></button><button class="mini' + (B.mas ? ' on' : '') + '" data-act="bmas" aria-label="Más opciones">' + icoOrd('mas') + '<span>Más</span></button>' + chipMando(B) + '<button class="go on" data-act="bejec">Ver la ronda</button>';
-    }
-  }
-}
-// R2: tres tarjetas, cada una con un plan completo de un tribuno y su etiqueta; «A mano» devuelve la fila de órdenes
-function tarjetasConsejo(B) {
-  const cs = B.b.consejo(); if (!cs.length) return '';
-  return '<div class="tarjs">' + cs.map((c, i) => '<button class="tarj t-' + c.etiqueta.toLowerCase() + (B.consejoSel === i ? ' on' : '') + '" data-act="btarj" data-v="' + i + '"><small>' + esc(c.tribuno) + ' · ' + c.rasgo + '</small><b>' + esc(c.titulo) + '</b><em>' + esc(c.motivo) + '</em><i class="et">' + c.etiqueta + '</i></button>').join('') + '</div>' +
-    '<button class="mini" data-act="bamano" aria-label="Dar las órdenes a mano"><span>A mano</span></button><button class="go on" data-act="bejec">Ver la ronda</button>';
-}
-// N5: puntos de mando junto al botón de ejecutar (rojo si te pasas) y fila de cartas de táctica
-const CARTAS_TXT = { arenga: ['Arenga', 'Sube la moral (+15 %) de las tropas dentro del radio de mando, en la ronda siguiente'], paso: ['Paso doble', 'Velocidad x1,25 la ronda siguiente, dentro del radio de mando'], cerrada: ['Cerrada', 'Reciben x0,85 de daño la ronda siguiente, dentro del radio de mando'] };
-function chipMando(B) { const m = B.b.mandoPuntos(); return '<span class="mando' + (m.usados > m.max ? ' mal' : '') + '" title="Cada orden activa gasta un punto; Aguantar no gasta">Mando<b>' + m.usados + '/' + m.max + '</b></span>'; }
-function filaCartas(B) {
-  const b = B.b, ok = !!b.generalVivo(0) && b.cartaRonda !== b.ronda;
-  return Object.keys(CARTAS_TXT).map(id => { const libre = b.cartas.indexOf(id) >= 0, use = libre && ok; return '<button class="carta' + (use ? '' : ' off') + (b.cartaPlan === id ? ' on' : '') + '" data-act="bcarta" data-v="' + id + '" title="' + CARTAS_TXT[id][1] + '">' + CARTAS_TXT[id][0] + '</button>'; }).join('');
-}
-function condSel(B) { return B.view && B.view.sel ? [...B.view.sel].filter(r => r.st === 'ok' && r.side === 0 && r.order && r.order.k !== 'quieto') : []; }
-function rondaModo(B, m) {
-  B.modo = m; B.filaKey = ''; if (m === 'plan') B.consejoSel = null; B.mas = false; B.atajoTx = null; B.formVer = null; if (B.view && B.view.ponTPrev) { B.view.ponTPrev(0); B.view.activaFrente && B.view.activaFrente(false); } B.pmin = false; B.panelTx = null; if (m === 'plan' || m === 'informe') B.paused = false;
-  if (m !== 'plan') B.choque = null;
-}
-function textoRonda(B) {
-  const b = B.b, v = B.view, C = window.Battle.CONDICIONES;
-  if (B.modo === 'ejec') return '';
-  if (B.modo === 'informe') return '<div class="pt" data-act="bpmin">Lo que pasó · ronda ' + (b.ronda - 1) + '<i></i></div><ul>' + b.hechos.map(h => '<li>' + esc(h) + '</li>').join('') + '</ul>';
-  if (B.modo === 'cond') { const sel = condSel(B); if (!sel.length) return 'Elige un regimiento con orden y vuelve a pulsar «Más» y «Condición».'; const r = sel[0], c = r.order.cond; return '<b>' + esc(r.name || r.u.n) + (sel.length > 1 ? ' y ' + (sel.length - 1) + ' más' : '') + '</b>: ' + (c ? esc(C[c]) + '.' : 'sin condición. Elige una (solo una por orden).'); }
-  if (v && v.modoFrente) return '<div class="pt" data-act="bfrente">Frente<i></i></div>Arrastra el dedo sobre el campo, de un extremo a otro del frente. Pulsa aquí para cancelar.';
-  if (B.mas === 'form' || B.mas === 'atajos' || B.mas === 'tiempo') return panelN7(B);
-  if (B.mas) { const w = B.b, ex = (c, a, t) => c ? '<button data-act="' + a + '">' + t + '</button>' : ''; return '<div class="pt" data-act="bmas">Más<i></i></div><div class="pbt p3"><button data-act="bcond">Condición</button><button data-act="bchoque">Prever choque</button><button data-act="ball">Todas</button><button data-act="bskip">Resolver</button>' + ex(w.consejo, 'btarjetas', 'Tarjetas') + '<button data-act="bsonido">' + (window.Sonido && !window.Sonido.activo ? '🔇 Sonido apagado' : '🔊 Sonido activado') + '</button>' + ex(w.formacionesPosibles, 'bformas', 'Formación') + ex(w.fijarFrente && B.view.activaFrente, 'bfrente', 'Frente') + ex(w.agrupar, 'bjuntos', 'Marchar juntos') + ex(w.relevarLinea, 'brelevar', 'Relevar línea') + ex(w.atajo, 'batajos', 'Atajos') + ex(w.prevision && B.view.ponTPrev, 'btiempo', 'Ver futuro') + '</div>'; }
-  if (B.choque && performance.now() < B.choqueT) return B.choque;
-  if (!B.aMano && b.consejo) return B.consejoSel != null && B.tarjTx ? B.tarjTx : 'Tres tribunos te aconsejan. Toca una tarjeta para ver su plan. Las cartas y las órdenes sueltas están en «A mano».';
-  if (condSel(B).length) return 'Orden dada. En «Más» puedes añadirle una condición.';
-  if (v && v.propios && v.propios().length) return 'Elige una orden abajo o dibuja el recorrido sobre el campo. Toca otro estandarte para cambiar de regimiento.';
-  if (v && v.haySombras) return 'Las siluetas marcan dónde acabarían tus tropas si el enemigo se queda quieto. <b>El enemigo puede moverse.</b>';
-  return 'Toca un estandarte (o los soldados) para elegir un regimiento.';
-}
-/* ---------- N7: formaciones, atajos y fantasmas con tiempo (paneles de «Más») ---------- */
-const ATAJOS = [['testudo', 'Testudo'], ['carga', 'Carga'], ['retirada', 'Retirada'], ['refuerzo', 'Refuerzo']];
-function panelN7(B) {
-  const b = B.b, v = B.view, F = window.Battle.FORM || {}, sel = v && v.propios ? v.propios() : [], volver = '<div class="pt" data-act="bmas">';
-  if (B.mas === 'atajos') return volver + 'Atajos<i></i></div><div class="pbt p4">' + ATAJOS.map(a => '<button data-act="bataj" data-v="' + a[0] + '">' + a[1] + '</button>').join('') + '</div>' + (B.atajoTx ? '<div class="fi">' + esc(B.atajoTx) + '</div>' : '<div class="fi">Actúan sobre lo elegido (o todo tu ejército si no hay nada elegido).</div>');
-  if (B.mas === 'tiempo') { const i = [0, 10, 20, 30].indexOf(v && v.tPrev || 0); return volver + 'Ver futuro<i></i></div><input id="btslider" type="range" min="0" max="3" step="1" value="' + Math.max(0, i) + '"><div class="tk"><span>Final</span><span>10 s</span><span>20 s</span><span>30 s</span></div><div class="fi">Dónde estarían tus tropas pasado ese tiempo, si el enemigo se queda quieto.</div>'; }
-  if (!sel.length) return volver + 'Formación<i></i></div>Elige antes un regimiento: toca su estandarte.';
-  let ks = null; for (const r of sel) { const k = b.formacionesPosibles ? (b.formacionesPosibles(r) || []) : []; ks = ks ? ks.filter(x => k.indexOf(x) >= 0) : k.slice(); }
-  ks = ks || []; const act = k => sel.every(r => (r.form || 'normal') === k), cur = ks.find(act) || B.formVer, d = cur && F[cur];
-  return volver + 'Formación · ' + esc(sel[0].name || sel[0].u.n) + (sel.length > 1 ? ' +' + (sel.length - 1) : '') + '<i></i></div><div class="pbt pf">' + ks.map(k => '<button data-act="bformsel" data-v="' + k + '"' + (act(k) ? ' class="on"' : '') + '>' + esc(F[k] ? F[k].n : k) + '</button>').join('') + '</div>' +
-    (d ? '<div class="fi"><b>' + esc(d.n) + '</b>: gana ' + esc(d.gana || '—') + ' · pierde ' + esc(d.pierde || '—') + '</div>' : '<div class="fi">Pulsa una formación para ver lo que da y lo que quita.</div>');
-}
-function entraPlan(B) {
-  const bt = $('battle'); bt.classList.add('ronda');
-  if (!$('bpanel')) { const pn = document.createElement('div'); pn.id = 'bpanel'; bt.appendChild(pn); }
-  if (B.view && B.view.cycleCam && !B.camPlan) { B.camPlan = true; B.view.cycleCam(); const c = B.view.c; if (c) { c.dist = 270; c.z = B.view.halfD * 0.1; } }   // vista alta para planear
-  rondaModo(B, 'plan');
-}
-// una sola línea arriba: ronda y momento, fuerzas de los dos bandos. Devuelve true si pintó la del modo rondas.
-function rondaHud() {
-  const B = UI.battle, b = B.b; if (!b.rondas || !B.modo) return false;
-  actualizaL1(B);
-  { let gs = $('bgesto'); if (!gs) { gs = document.createElement('div'); gs.id = 'bgesto'; $('battle').appendChild(gs); } const tg = B.modo === 'ejec' && b.gesto ? '⚑ ' + b.gesto : ''; if (gs.textContent !== tg) gs.textContent = tg; gs.style.display = tg ? '' : 'none'; }
-  if (!b.over) {
-    if (b.fase === 'ejecucion' && B.modo !== 'ejec') rondaModo(B, 'ejec');
-    else if (b.fase === 'plan' && B.modo === 'ejec') rondaModo(B, 'informe');
-  }
-  const s0 = b.cfg.sides[0], s1 = b.cfg.sides[1], n0 = b.men(0), n1 = b.men(1), ej = b.fase === 'ejecucion';
-  const seg = Math.max(0, Math.ceil(window.Battle.RONDA_SEG - b.tRonda)), tit = ej ? (b.repite ? 'Repetición' : 'Ronda ' + b.ronda) + ' · ' + seg + ' s' : 'Ronda ' + b.ronda + ' · Plan';
-  const key = tit + '|' + n0 + '|' + n1; if (key !== UI.hudKey) { UI.hudKey = key;
-    $('bhud').innerHTML = '<div class="r1"><b class="rt">' + tit + '</b><span class="n0" style="color:#ff9c8c">' + esc(s0.name) + ' ' + n0 + '</span><div class="bar"><i style="width:' + n0 / Math.max(1, n0 + n1) * 100 + '%;background:' + s0.col + '"></i><i style="flex:1;background:' + s1.col + '"></i></div><span class="n1">' + n1 + ' ' + esc(s1.name) + '</span><span class="alj"><button data-act="bsalto" data-v="-1">Ala izq.</button><button data-act="bsalto" data-v="0">Centro</button><button data-act="bsalto" data-v="1">Ala der.</button></span></div>'; }
-  { let cr = $('bcartas'); if (!cr) { cr = document.createElement('div'); cr.id = 'bcartas'; $('bctl').parentNode.insertBefore(cr, $('bctl')); }
-    const ver = B.modo === 'plan' && !b.over && (B.aMano || !b.consejo), ck = ver ? filaCartas(B) : ''; if (cr.dataset.k !== ck) { cr.dataset.k = ck; cr.innerHTML = ck; } cr.style.display = ver ? '' : 'none';
-    if (ver && B.avisoGen !== b.ronda && b.genDown[0]) { B.avisoGen = b.ronda; toast('Cayó tu general: solo ' + b.mandoPuntos().max + ' órdenes por ronda.', 'bad'); } }
-  const mp = b.mandoPuntos(), fk = mp.usados + '/' + mp.max + b.cartas.join() + b.cartaPlan + b.cartaRonda + '|' + B.modo + '|' + B.speed + '|' + B.paused + '|' + (B.mas ? 'm' + B.mas : '') + '|' + (B.aMano ? 'a' : 't' + B.consejoSel + 'r' + b.ronda) + '|' + (B.modo === 'cond' ? condSel(B).map(r => r.id + (r.order.cond || '')).join() : B.modo === 'plan' && B.view && B.view.propios ? B.view.propios().map(r => r.id + (tipoOrden(r) || '-')).join() : '');
-  if (fk !== B.filaKey) { B.filaKey = fk; $('bctl').innerHTML = filaRonda(B); }
-  const pn = $('bpanel'), tx = textoRonda(B); if (pn) {
-    if (tx !== B.panelTx) { B.panelTx = tx; B.panelT = performance.now(); pn.innerHTML = tx; }
-    pn.className = (B.modo === 'informe' || B.mas || B.modo === 'cond' ? 'act' : '') + (B.pmin ? ' min' : '');
-    // los consejos de plan se apagan solos a los 7 s para no tapar el campo; el informe y «Más» se quedan hasta cerrarlos
-    pn.style.display = tx && (B.modo !== 'plan' || B.mas || performance.now() - B.panelT < 7000 || (B.choque && performance.now() < B.choqueT)) ? '' : 'none'; }
-  return true;
-}
 /* NB7: la batalla nueva. Maniobra (si hay más de 600 hombres) y luego el choque; al acabar se devuelve a la campaña lo mismo que la clásica. */
 function iniciaNueva(info, pl, resto) {
   closeModal(); UI.nueva = true; UI.sheetKey = '';
@@ -1490,7 +1368,7 @@ document.addEventListener('click', function (e) {
   const el = e.target.closest('[data-act]');
   if (!el && e.target.closest('#cuentas')) return;
   if (!el) { $('cuentas').hidden = true; if (!e.target.closest('#hoja')) hojaCierra(true); $('citymenu').hidden = true; $('popsheet').hidden = true; if (e.target.id === 'modal' && !UI.sticky) closeModal(); hudDock(); return; }
-  const a = el.dataset.act, v = el.dataset.v, s = S(), B = UI.battle;
+  const a = el.dataset.act, v = el.dataset.v, s = S();
   if (el.closest('#hoja')) UI.hjDown = false; if (a !== 'menumodo' && a !== 'hoja' && !el.closest('#hoja')) hojaCierra(true); if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true; if (a !== 'cuentas' && a !== 'imp' && a !== 'cuvender' && a !== 'cuadelantar') $('cuentas').hidden = true;
   if (a !== 'derr') UI.derr = null;
   switch (a) {
@@ -1507,14 +1385,14 @@ document.addEventListener('click', function (e) {
     case 'new': case 'newregion': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'cortaen': case 'cortafun': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', null, { modo: 'corta', inicio: a === 'cortafun' ? 'fundar' : 'enPie', dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'refundar': closeModal(); iniciarFundar(); break;
-    case 'continue': if (G.load()) { const pa = S().parada; UI.overShown = false; startGame(); if (S().over) showOver(); else if (pa) modal('<div class="yr">DÓNDE LO DEJASTE</div><h2>' + esc(pa.fecha || '') + '</h2><p>' + esc(pa.texto) + '</p><div class="acts"><button class="btn" data-act="close">Seguir jugando</button></div>'); } break;
+    case 'continue': if (G.load()) { const pa = S().parada; UI.overShown = false; startGame(); if (S().over) showOver(); else if (pa) carta('<div class="yr">DÓNDE LO DEJASTE</div><h2>' + esc(pa.fecha || '') + '</h2><p>' + esc(pa.texto) + '</p><div class="acts"><button class="btn" data-act="close">Seguir jugando</button></div>'); } break;
     case 'postal': if (UI.tab !== 'city' || UI.menu || !UI.cityV || !UI.cityV.listo) toast('Abre una ciudad para sacar la postal.', 'bad'); else hacerPostal(UI.cityV, G, D, cityOk()).then(ok => toast(ok ? 'Postal guardada en tus descargas.' : 'No se pudo hacer la postal.', ok ? '' : 'bad')); break;
     case 'contemplar': if (UI.tab !== 'city' || UI.menu || !UI.cityV || !UI.cityV.listo) toast('Abre una ciudad para contemplarla.', 'bad'); else { hojaCierra(); contemplar(UI.cityV); } break;
     case 'croncopiar': copiar(G.cronicaTexto(cityOk())).then(ok => toast(ok ? 'Crónica copiada.' : 'No se pudo copiar.', ok ? '' : 'bad')); break;
     case 'crondescargar': descargar('cronica-' + cityOk() + '.txt', G.cronicaTexto(cityOk())); toast('Crónica guardada en tus descargas.'); break;
     case 'copiaguardar': if (!S() || UI.menu && !G.hasSave()) toast('Aún no hay partida que copiar.', 'bad'); else { if (UI.menu) G.load(); toast(guardarCopia(G) ? 'Copia guardada en tus descargas.' : 'No se pudo guardar la copia.'); } break;
     case 'copiacargar': { if (S() && !UI.menu && !confirm('Cargar una copia reemplaza la partida de este móvil. ¿Seguir?')) break; cargarCopia(G).then(r => { if (r.nada) return; if (!r.ok) { toast(r.motivo, 'bad'); return; } hojaCierra(true); UI.overShown = false; startGame(); toast('Copia cargada: ' + G.dateStr(S().t) + '.'); }); break; }
-    case 'tomenu': G.save(); UI.modalQ = []; closeModal(); stopBattle(); showMenu(); break;
+    case 'tomenu': G.save(); UI.modalQ = []; closeModal(); showMenu(); break;
     case 'tab': UI.codice = null; setTab(v); break;
     case 'codice': UI.codice = v || null; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;
     case 'turno': if (!G.turnos || s.over || s.pending.length || s.vivo || UI.modalOpen) break; AV.acum = []; try { G.pasarTurno(); } finally { const l = AV.acum; AV.acum = null; toastResumen(l); } UI.dirty = true; tickUI(); break;
@@ -1545,6 +1423,9 @@ document.addEventListener('click', function (e) {
     case 'city': UI.city = v; UI.bsel = null; $('view').scrollTop = 0; if (UI.tab === 'map' && UI.map) UI.map.center(v); render(); tickUI(); break;
     case 'rep': if (G.reparto(UI.city, el.dataset.r, +el.dataset.d)) render(); break;
     case 'leva': if (G.leva(UI.city, D.LEVA.n)) { render(); renderCuentas(true); } break;
+    case 'puertas': if (G.puertas(UI.city, v === 'cerrar')) { render(); renderCuentas(true); } break;
+    case 'licenciar': if (G.licenciar(UI.city)) { render(); renderCuentas(true); } break;
+    case 'triunfo': if (G.triunfo()) { render(); renderCuentas(true); } break;
     case 'fiesta': if (G.hacerFiesta(UI.city, v)) { render(); renderCuentas(true); } break;
     case 'racion': if (G.setRacion(UI.city, v)) render(); break;
     case 'techar': if (G.techarBarrio(UI.city, +v)) render(); break;
@@ -1570,6 +1451,9 @@ document.addEventListener('click', function (e) {
     case 'cclose': UI.bsel = null; renderCity3D(); tickUI(); break;
     case 'saber': { const r = G.invUp(v); if (r.ok) { toast('Empiezas a estudiar: ' + D.INVEST[v].n); UI.svSel = null; UI.svDown = false; render(); } else toast(r.motivo, 'bad'); break; }
     case 'saberedad': { const r = G.edadUp(); if (r.ok) { toast('Empiezas a subir de edad'); UI.svDown = false; render(); } else toast(r.motivo, 'bad'); break; }
+    case 'saberreforma': UI.svRef = v; UI.svDown = false; render(); break;
+    case 'saberreformano': UI.svRef = null; UI.svDown = false; render(); break;
+    case 'saberreformar': { const r = G.invReforma(v); UI.svRef = null; if (r.ok) { toast('Cambias de saber'); UI.svSel = null; } else toast(r.motivo, 'bad'); UI.svDown = false; render(); break; }
     case 'sabersel': UI.svSel = UI.svSel === v ? null : v; UI.svDown = false; render(); break;
     case 'dotsab': case 'clasab': { const x = G.sabiosDe(s.cities[UI.city]), r = a === 'dotsab' ? G.setSabios(UI.city, +v, x.clase) : G.setSabios(UI.city, x.dot, v); if (!r.ok) toast(r.motivo + '.', 'bad'); render(); break; }
     case 'pueblo': if (G.puebloMejorar(UI.city, +v)) render(); else toast(G.state.cities[UI.city].pobra ? 'Ya hay una obra de pueblo en curso.' : 'Faltan recursos.', 'bad'); break;
@@ -1580,9 +1464,9 @@ document.addEventListener('click', function (e) {
     case 'mto': UI.mt = v; if (UI.mf === v) UI.mf = v === 'oro' ? 'madera' : 'oro'; render(); break;
     case 'trade': { const got = G.trade(UI.mf, UI.mt, +el.dataset.n); if (got) { toast('⚖️ Recibes ' + got + ' de ' + (RES_NOM[UI.mt] || 'Denarios').toLowerCase()); render(); } else toast('No se puede hacer ese cambio (faltan recursos o el almacén está lleno).', 'bad'); break; }
     case 'skill': if (G.skill(v)) render(); break;
-    case 'ev': { const ev = D.EVENTS[+v]; modal('<div class="yr">' + ev.y + ' A.C.</div><h2>' + esc(ev.t) + '</h2><p>' + esc(ev.x) + '</p>' + licHtml(ev) + '<div class="acts"><button class="btn" data-act="close">Cerrar</button></div>'); break; }
+    case 'ev': { const ev = D.EVENTS[+v]; carta('<div class="yr">' + ev.y + ' A.C.</div><h2>' + esc(ev.t) + '</h2><p>' + esc(ev.x) + '</p>' + licHtml(ev) + '<div class="acts"><button class="btn" data-act="close">Cerrar</button></div>'); break; }
     case 'zoom': if (UI.map) UI.map.zoom(+v); break;
-    case 'almapa': volverAlMapa(); break;
+    case 'miga': migaVa(); break;
     case 'home': if (UI.map) UI.map.center(s.hero.city || 'roma'); break;
     case 'unsel': UI.sel = null; renderSheet(); break;
     case 'goto': UI.city = v; setTab('city'); break;
@@ -1612,44 +1496,7 @@ document.addEventListener('click', function (e) {
     case 'bview': { const pl = G.planBatalla(UI.binfo); iniciaNueva(UI.binfo, pl); break; }
     case 'bcont': { const resto = G.guerraGuardada(UI.binfo); if (resto) iniciaNueva(UI.binfo, G.planBatalla(UI.binfo), resto); break; }   // retoma la batalla guardada a mitad
     case 'bquick': { closeModal(); const pl = G.planBatalla(UI.binfo); G.borrarGuerra(); endBattle(G.jugarNueva(UI.binfo, { bono0: pl.via === 'sola' ? 1 : 0.92 })); break; }
-    case 'bdone': closeModal(); stopBattle(); UI.sheetKey = ''; render(); if (S().over) showOver(); break;
-    case 'bpause': B.paused = !B.paused; el.textContent = B.paused ? '▶' : 'II'; break;
-    case 'bspeed': B.speed = B.speed === 1 ? 2 : B.speed === 2 ? 4 : 1; el.textContent = 'x' + B.speed; break;
-    case 'bauto': B.b.auto = !B.b.auto; el.classList.toggle('on', B.b.auto); toast(B.b.auto ? 'Tus tropas atacan por iniciativa propia.' : 'Tus tropas mantienen la posición hasta recibir órdenes.'); break;
-    case 'ball': B.view.selectAll(); B.mas = false; B.panelTx = null; B.filaKey = ''; break;
-    case 'bgold': { const o = B.view.ordenRecomendada(); if (o) toast(o.txt + '.'); break; }
-    case 'bala': B.view.selAla(v); break;
-    case 'bgrp': { const g = GRUPOS_L1.find(q => q[0] === v); if (g) B.view.selPorClase(g[2]); break; }
-    case 'bord': { const t = B.view.darOrden(v); if (t) { B.filaKey = ''; B.panelTx = null; } else toast(B.view.propios().length ? 'Ese regimiento no puede recibir esa orden ahora.' : 'Elige antes un regimiento: toca su estandarte.'); break; }
-    case 'bsig': { const r = B.view.siguienteReg(1); if (r) { B.view.centrarEn(r.x, r.y); B.filaKey = ''; B.panelTx = null; } break; }
-    case 'bformas': B.mas = 'form'; B.panelTx = null; break;
-    case 'btiempo': B.mas = 'tiempo'; B.panelTx = null; break;
-    case 'batajos': B.mas = 'atajos'; B.atajoTx = null; B.panelTx = null; break;
-    case 'bformsel': { const sel = B.view.propios(); B.formVer = v; let fallo = null; for (const r of sel) if (!B.b.ponerFormacion(r, v)) fallo = fallo || B.b.motivo || 'No se puede ahora.'; if (fallo) toast(fallo, 'bad'); B.panelTx = null; B.filaKey = ''; break; }
-    case 'bfrente': { const on = B.view.activaFrente(); B.mas = false; B.panelTx = null; if (on && !B.view.propios().length) { B.view.activaFrente(false); toast('Elige antes un regimiento: toca su estandarte.'); } else if (on) toast('Arrastra el dedo sobre el campo, de un extremo a otro del frente.'); break; }
-    case 'bjuntos': { const sel = B.view.propios(); if (sel.length < 2) { toast('Elige varios regimientos (botón «Todas») para que marchen juntos.'); break; } const n = B.b.agrupar(sel); toast(n === false || n === 0 ? (B.b.motivo || 'No pueden marchar juntos ahora.') : 'Marchan juntos, a la velocidad del más lento.', n === false || n === 0 ? 'bad' : undefined); B.mas = false; B.panelTx = null; break; }
-    case 'brelevar': { const r = B.view.propios().find(q => q.linea); if (!r) { toast('Elige un regimiento romano con su línea (I, II o III).'); break; } const n = B.b.relevarLinea(0, r.linea); toast(n ? 'Relevo: ' + n + (n === 1 ? ' regimiento cambia' : ' regimientos cambian') + ' de línea.' : 'No hay relevo posible ahora.', n ? undefined : 'bad'); B.mas = false; B.panelTx = null; break; }
-    case 'bataj': { const sel = B.view.propios(), regs = sel.length ? sel : B.b.regs.filter(q => q.side === 0 && q.st === 'ok'), q = B.b.atajo(v, regs); B.atajoTx = q ? q.txt : (B.b.motivo || 'Ahora no sirve.'); if (q) toast(q.txt); B.panelTx = null; B.filaKey = ''; break; }
-    case 'btarj': { const c = B.b.aplicarConsejo(+v); if (c) { B.consejoSel = +v; B.view.sel.clear(); B.filaKey = ''; B.panelTx = null; B.panelT = performance.now(); B.tarjTx = c.tribuno + ': ' + c.titulo + '. Mira el plan sobre el campo y pulsa «Ver la ronda».'; } break; }
-    case 'bamano': B.aMano = true; B.mas = false; B.filaKey = ''; B.panelTx = null; break;
-    case 'btarjetas': B.aMano = false; B.mas = false; B.filaKey = ''; B.panelTx = null; break;
-    case 'bmas': B.mas = !B.mas; B.choque = null; B.panelTx = null; B.filaKey = ''; break;
-    case 'bpmin': B.pmin = !B.pmin; break;
-    case 'bsalto': B.view.saltoAla(+v); break;
-    case 'bcam': if (B.view.cycleCam) B.view.cycleCam(); break;
-    case 'bsonido': if (window.Sonido) { if (window.Sonido.activo) window.Sonido.off(); else window.Sonido.on(); } B.filaKey = ''; B.panelTx = null; break;
-    case 'bfac': { const f = document.querySelector('#bdif .fac'); if (f) f.hidden = !f.hidden; break; }
-    case 'bform': B.b.formar(0, v); document.querySelectorAll('#bctl [data-act="bform"]').forEach(x => x.classList.toggle('on', x === el)); break;
-    case 'bejec': B.b.manual = true; if (B.b.ejecutar()) { B.view.sel.clear(); B.mas = false; B.speed = 1; rondaModo(B, 'ejec'); } else if (B.b.motivo) toast(B.b.motivo, 'bad'); break;   // (N15c) manual: el relevo sin órdenes no actúa
-    case 'bcarta': if (B.b.jugarCarta(v)) { toast('Carta jugada: ' + CARTAS_TXT[v][0] + '. Vale para la ronda que viene.'); B.filaKey = ''; } else toast(B.b.generalVivo(0) ? 'Solo una carta por ronda.' : 'Sin general no hay cartas.', 'bad'); break;
-    case 'bchoque': { const q = B.b.preverChoque(), n = B.b.cfg.sides, p = x => Math.round(x * 100) + ' %'; B.choque = 'Si chocan ya (aproximado): ' + (q.gana < 0 ? 'empate.' : q.claro ? 'ventaja de <b>' + esc(n[q.gana].name) + '</b>.' : 'muy igualado, algo mejor para <b>' + esc(n[q.gana].name) + '</b>.') + ' Conservarían ' + esc(n[0].name) + ' ' + p(q.f0) + ' y ' + esc(n[1].name) + ' ' + p(q.f1) + '.'; B.choqueT = performance.now() + 9000; B.mas = false; B.panelTx = null; B.filaKey = ''; break; }
-    case 'bcond': if (condSel(B).length) rondaModo(B, 'cond'); else toast('Elige un regimiento con orden: toca su estandarte y dale una orden.'); break;
-    case 'bcnd': for (const r of condSel(B)) B.b.condicion(r, v || null); B.filaKey = ''; break;
-    case 'bcondok': rondaModo(B, 'plan'); break;
-    case 'bseguir': rondaModo(B, 'plan'); break;
-    case 'brepetir': if (B.b.repetir()) { if (B.view.reiniciaFiguras) B.view.reiniciaFiguras(); B.speed = 1; rondaModo(B, 'ejec'); } break;
-    case 'bstart': B.b.empezar(); reponerBarra(B); if (B.b.rondas) { B.speed = 1; B.paused = false; entraPlan(B); break; } $('bauto').classList.add('on'); $('bspeed').textContent = 'x1'; $('bpause').textContent = 'II'; B.speed = 1; B.paused = false; $('bhint').style.opacity = 1; setTimeout(() => { $('bhint').style.opacity = 0; }, 7000); break;
-    case 'bskip': reponerBarra(B); B.b.finish(); break;
+    case 'bdone': closeModal(); UI.sheetKey = ''; render(); if (S().over) showOver(); break;
   }
 });
 
@@ -1657,12 +1504,7 @@ document.addEventListener('click', function (e) {
 function frame(now) {
   const dt = Math.min(0.25, (now - UI.last) / 1000 || 0); UI.last = now;
   const s = S();
-  if (UI.battle) {
-    const B = UI.battle, b = B.b;
-    if (!B.paused && !b.over) { B.acc += dt * B.speed; let n = 0; while (B.acc >= 0.05 && n++ < 12) { b.step(0.05); B.acc -= 0.05; } }
-    battleHud(); objetivoHud(B); B.view.draw();
-    if (b.over && !B.done) { B.endT += dt; if (B.endT > 2.2) { B.done = true; endBattle(b.result()); } }
-  } else if (s && !UI.menu) {
+  if (s && !UI.menu) {
     if (!UI.modalOpen && !s.over && !UI.nueva) {
       if (s.pending.length) battlePrompt();
       else if (s.speed > 0 && !s.vivo) G.tick(dt * s.speed / 4);
@@ -1678,7 +1520,7 @@ function frame(now) {
   requestAnimationFrame(frame);
 }
 
-window.addEventListener('resize', () => { if (UI.map) UI.map.resize(); if (UI.cityV && !$('citywrap').hidden) UI.cityV.resize(); if (UI.battle && UI.battle.view.resize) UI.battle.view.resize(); });
+window.addEventListener('resize', () => { if (UI.map) UI.map.resize(); if (UI.cityV && !$('citywrap').hidden) UI.cityV.resize(); });
 document.addEventListener('visibilitychange', () => { if (document.hidden && S() && !UI.menu) G.save(); });
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
 
@@ -1694,5 +1536,3 @@ loadStaticIndex().then(idx => Promise.all([preloadStatic(Object.keys(idx)), load
 });
 window.UI = UI; UI.maniobra = window.UIManiobra; UI.guerra = window.UIGuerra; UI.consejoModal = consejoModal; UI.toast = toast; UI.toastResumen = toastResumen;   // CN22: la cola de avisos, para quien la necesite desde fuera
 
-// N7: el deslizador de tiempo de «Ver futuro» (4 posiciones: final, 10, 20, 30 s)
-document.addEventListener('input', ev => { const t = ev.target; if (!t || t.id !== 'btslider' || !UI.battle || !UI.battle.view || !UI.battle.view.ponTPrev) return; UI.battle.view.ponTPrev([0, 10, 20, 30][+t.value] || 0); });

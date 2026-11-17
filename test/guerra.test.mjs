@@ -17,6 +17,7 @@ const bots = {
   'solo aguantar y relevar': (B) => { for (let i = 0; i < 3; i++) { const c = B.sect[i].c[0]; if (!c.roto && R.frente(c).fatiga > 0.75 && c.lineas.length > 1 && c.lineas[1].fatiga < 0.4) R.ordenar(B, i, 'relevo'); } },
   'empujar y relevar siempre': (B) => { for (let i = 0; i < 3; i++) { const c = B.sect[i].c[0]; if (c.roto) continue; R.ordenar(B, i, 'empujar'); if (R.frente(c).fatiga > 0.7 && c.lineas.length > 1 && c.lineas[1].fatiga < 0.45) R.ordenar(B, i, 'relevo'); } },
   'con cabeza': (B) => {
+    R.cubrirse(B);                     /* GM5: escudos bajo los proyectiles, avanzar para el choque */
     if (B.fase !== 'lucha') return;
     for (let i = 0; i < 3; i++) {
       const s = B.sect[i], c = s.c[0], e = s.c[1]; if (c.roto || e.roto) continue;
@@ -52,7 +53,7 @@ for (const [nombre, bot] of Object.entries(bots)) {
   console.log(`   ${nombre.padEnd(26)} gana ${String(s.pct).padStart(3)} %  ·  dura ${s.dur} s (${Math.round(s.min)}–${Math.round(s.max)})`);
   if (pide[nombre]) t('parejos · ' + nombre + ' gana ' + s.pct + ' %', () => assert(pide[nombre](s.pct), 'no cumple lo pedido'));
 }
-t('parejos · la batalla bien jugada dura entre 60 y 185 s', () => { const s = SER['con cabeza']; assert(s.min >= 60 && s.max <= 185, s.min + '–' + s.max); });
+t('parejos · la batalla bien jugada dura entre 100 y 245 s (GM5: más unos 50 s de acercamiento)', () => { const s = SER['con cabeza']; assert(s.min >= 100 && s.max <= 245, s.min + '–' + s.max); });
 
 // (b) ejércitos desiguales
 t('desiguales · Roma el doble de grande gana con claridad aun sin tocar mucho', () => {
@@ -103,21 +104,23 @@ t('guardar y cargar a mitad da lo mismo que no guardar; el estado no tiene funci
 // (e) reparto y bajas por tipo
 const total = o => Object.values(o).reduce((a, x) => a + x, 0);
 const compCuerpo = c => c.lineas.map(l => l.tipo + ':' + Math.round(total(l.comp)));
-t('reparto de Roma: tres líneas, vélites en la primera, caballería fuera', () => {
+t('reparto de Roma: tres líneas, vélites delante tirando (GM5), caballería fuera', () => {
   const B = R.crear({ semilla: 1, ejercitos: [{ hastati: 360, principes: 360, triarii: 180, velites: 90, equites: 60 }, ENEM] });
-  for (const s of B.sect) { const c = s.c[0]; assert.deepStrictEqual(c.lineas.map(l => l.tipo), ['hastati', 'principes', 'triarii']); assert.strictEqual(c.lineas[0].comp.velites, 30); assert.strictEqual(c.lineas[0].hombres, 150); }
+  for (const s of B.sect) { const c = s.c[0]; assert.deepStrictEqual(c.lineas.map(l => l.tipo), ['hastati', 'principes', 'triarii']); assert.strictEqual(c.tir.comp.velites, 30); assert.strictEqual(c.lineas[0].hombres, 120); assert.strictEqual(R.hombres(c), 330); }
   assert.strictEqual(B.cab.h, 60); assert(!B.sect.some(s => s.c[0].lineas.some(l => l.comp.equites)));
   const B2 = R.crear({ semilla: 1, ejercitos: [{ hastati: 100, principes: 10 }, ENEM] }); assert.deepStrictEqual(compCuerpo(B2.sect[1].c[0]), ['hastati:34', 'principes:4']); assert.deepStrictEqual(compCuerpo(B2.sect[0].c[0]), ['hastati:33', 'principes:3']);
-  const B3 = R.crear({ semilla: 1, ejercitos: [{ velites: 90, milicia: 30 }, ENEM] }); assert.deepStrictEqual(B3.sect[0].c[0].lineas.map(l => l.tipo), ['hastati']); assert.strictEqual(B3.sect[0].c[0].lineas[0].hombres, 40);
+  const B3 = R.crear({ semilla: 1, ejercitos: [{ velites: 90, milicia: 30 }, ENEM] }); assert.deepStrictEqual(B3.sect[0].c[0].lineas.map(l => l.tipo), ['hastati']); assert.strictEqual(B3.sect[0].c[0].lineas[0].hombres, 10); assert.strictEqual(B3.sect[0].c[0].tir.hombres, 30);
+  const B4 = R.crear({ semilla: 1, ejercitos: [{ velites: 90 }, ENEM] }); assert.strictEqual(B4.sect[0].c[0].lineas[0].hombres, 30, 'solo vélites: forman la línea'); assert.strictEqual(B4.sect[0].c[0].tir, null);
 });
 t('reparto del enemigo: cuatro tipos, dos tipos y tipo desconocido', () => {
   const B = R.crear({ semilla: 1, ejercitos: [ROMA, { galos: 690, libios: 780, iberos: 600, honderos: 90, numidas: 60 }] });
   assert.strictEqual(B.sect[1].c[1].lineas[0].tipo, 'libios'); assert.strictEqual(B.sect[0].c[1].lineas[0].tipo, 'galos'); assert.strictEqual(B.sect[2].c[1].lineas[0].tipo, 'iberos');
-  assert.strictEqual(B.sect[2].c[1].lineas.length, 2, 'refresco en el cuerpo más flojo'); assert.strictEqual(B.sect[2].c[1].lineas[1].tipo, 'honderos'); assert.strictEqual(B.num.h, 60);
+  for (const s of B.sect) assert.strictEqual(s.c[1].tir.tipo, 'honderos', 'honderos delante (GM5)'); assert.strictEqual(B.num.h, 60);
+  const B5 = R.crear({ semilla: 1, ejercitos: [ROMA, { galos: 690, libios: 780, iberos: 600, sagrada: 90 }] }); assert.strictEqual(B5.sect[2].c[1].lineas.length, 2, 'refresco en el cuerpo más flojo');
   const D2 = R.crear({ semilla: 1, ejercitos: [ROMA, { hoplitas: 300, peltastas: 90 }] });
-  for (const s of D2.sect) assert.deepStrictEqual(s.c[1].lineas.map(l => l.tipo + ':' + l.hombres), ['hoplitas:100', 'peltastas:30']);
+  for (const s of D2.sect) { assert.deepStrictEqual(s.c[1].lineas.map(l => l.tipo + ':' + l.hombres), ['hoplitas:100']); assert.strictEqual(s.c[1].tir.hombres, 30); }
   const G = R.crear({ semilla: 1, ejercitos: [ROMA, { quimeras: 300 }] });
-  assert.strictEqual(G.sect[0].c[1].lineas[0].tipo, 'quimeras'); R.paso(G, 8); assert.strictEqual(G.fase, 'lucha');
+  assert.strictEqual(G.sect[0].c[1].lineas[0].tipo, 'quimeras'); for (let k = 0; k < 120 && G.fase === 'lejos'; k++) R.paso(G, 1); assert.strictEqual(G.fase, 'lucha');
   const T = R.CARACTER; assert(T.galos.cal === 1.34 && T.libios.cansa === 0.72 && T.galos.mente === 'furia' && T.libios.mente === 'paciencia' && R.GENERICO.mente === 'media');
 });
 t('las bajas por tipo suman las del total y no superan lo que había', () => {

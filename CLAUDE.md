@@ -41,7 +41,7 @@ Cómo se trabaja cada sesión: §7 (gobierno).
 | `tools/` | Conversión de arte de 0 A.D. (ver README) |
 
 ## 4. Cómo probar (obligatorio antes de dar algo por hecho)
-- **Un solo comando: `node gobierno/jueces.mjs`** (unos 3 minutos). Pasa la lógica, recorre el juego en un navegador a
+- **Un solo comando: `node gobierno/jueces.mjs`** (de 15 a 20 minutos en la nube, medido el 16/11; lánzalo en segundo plano con margen de 30). Pasa la lógica, recorre el juego en un navegador a
   390×844 y deja capturas e informe en `gobierno/capturas/`. Debe decir APTO. `--rapido` pasa solo la lógica.
 - `node test/sim.test.js` — batallas, campaña completa con un bot, economía.
 - A mano, para lo que el recorrido no cubre: servir con `python3 -m http.server` y conducir con Playwright a 390×844 (Chromium con
@@ -72,6 +72,9 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
   jugar se marca como licencia de juego.
 - **Mirar fuera**: skills `ingenieria-reversa` (una mecánica de otro juego) y `radar` (arte libre, técnica, historia).
   Ideas sí; código y arte de juegos comerciales, nunca.
-- **Gasto**: presupuesto antes de empezar y `node gobierno/gasto.mjs` al cerrar. El director no construye; los
-  agentes van en Sonnet. La skill `ahorro` revisa los partes y propone recortes.
+- **Gasto**: presupuesto antes de empezar y `node gobierno/gasto.mjs` al cerrar. El director no construye.
+  **Hasta la 1.0** (usuario, 17/11): dirige y diseña **Fable**; los agentes que construyen van en **Opus**. La skill
+  `ahorro` revisa los partes y propone recortes.
+- **Meta: la 1.0** (usuario, 17/11). Solo se trabaja en el Carril V del tablero, en orden. Nada nuevo entra; lo nuevo
+  va a «Después de la 1.0» en la bitácora, o entra sacando otra. Sin concursos ni estudios hasta la 1.0.
 - **Cuadro de mando** (Artifact para el móvil del usuario): dirección en `gobierno/cuadro.json`; skill `cuadro-de-mando`.

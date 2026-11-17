@@ -6,6 +6,7 @@
       despacio) o testudo (casi inmune, agota, casi no anda, y si le chocan dentro se deshace).
    3) UNA FICHA POR TROPA. Cada tropa es una línea de TROPAS que dice su arma (ARMAS), su formación (FORMACIONES) y su
       cartón. Un ejército es una lista de nombres (EJERCITOS). Para añadir una tropa o un arma no se toca el motor ni el dibujo.
+   4) UNA LOMA (GM29): quien la ocupa tira más lejos y carga mejor (LOMA).
    El jugador da las mismas pocas órdenes; los cuatro botones dicen otra cosa según el cuerpo esté lejos o luchando. */
 
 export const LADO_ROMA = 0, LADO_ENEMIGO = 1;
@@ -41,7 +42,7 @@ export const FORMACIONES = {
    cansa = fatiga por segundo de todas las líneas del cuerpo · aprieta = cuánto se juntan los hombres · techo = se pinta el tejado de escudos */
 export const POSTURAS = {
   avanzar: { paso: 2.4,  recibe: 1,    cansa: 0,      aprieta: 1 },
-  escudos: { paso: 1.3,  recibe: 0.42, cansa: 1 / 90, aprieta: 0.82 },
+  escudos: { paso: 1.3,  recibe: 0.42, cansa: 1 / 125, aprieta: 0.82 },
   testudo: { paso: 0.35, recibe: 0.1,  cansa: 1 / 40, aprieta: 0.62, techo: true },
 };
 
@@ -87,7 +88,10 @@ export const ORDENES = {
 };
 
 const BRIO = 0.05;                 // cada cuerpo enemigo llega un poco mejor o peor según el día (±7 %)
-export const DIST0 = 150;         // metros entre las dos líneas al empezar
+export const DIST0 = 240;         // metros entre las dos líneas al empezar (GM7b: antes 150; el acercamiento pasa de 40 s)
+/* LA LOMA (GM29). Un solo cuerpo la ocupa: arriba se tira más lejos y se carga mejor. Está junto al ala derecha de Roma.
+   Regla pequeña: alcance de los tiradores x 1,25 y fuerza de choque x 1,12 mientras se defiende la loma. */
+export const LOMA = { sect: 2, lado: LADO_ROMA, alcance: 1.25, carga: 1.12 };
 const CONTACTO = 1;               // a esta distancia ya se lucha cuerpo a cuerpo
 const T_RELEVO = 3.2;             // lo que tarda una línea en pasar por los huecos de la otra
 const T_CABALLERIA = 24;          // descanso de los équites entre cargas
@@ -105,7 +109,7 @@ function cuerpo(lado, i, tipos, k) {
   const linea = t => { const h = Math.round(TROPAS[t].hombres * k); return { tipo: t, hombres: h, max: h, fatiga: 0 }; };
   const del = tipos.filter(t => FORMACIONES[TROPAS[t].forma].delante)[0], lineas = tipos.filter(t => t !== del).map(linea);
   const tir = del ? Object.assign(linea(del), { estado: 'sale', av: 3, mun: TROPAS[del].mun, blanco: null }) : null;   // los que van delante a tirar
-  return { lado, i, lineas, tir, z: DIST0 / 2, postura: 'avanzar', moral: 1, roto: false, relevo: 0, golpe: 0, impulso: 0, frenada: 0, fuego: -9, pila: false, flanqueado: false, libre: 0, tPost: 0,
+  return { lado, i, lineas, tir, z: DIST0 / 2, arriba: false, postura: 'avanzar', moral: 1, roto: false, relevo: 0, golpe: 0, impulso: 0, frenada: 0, fuego: -9, pila: false, flanqueado: false, libre: 0, tPost: 0,
     inicial: lineas.reduce((a, l) => a + l.max, 0) + (tir ? tir.max : 0) };
 }
 
@@ -118,6 +122,7 @@ export function nueva(semilla, hombresRoma, rival) {
     num: { tipo: el.jinetes, estado: 'lejos', fase: null, ala: -1, lado: null, sect: -1, t: 0, dur: 0, veces: 0, proxima: 1e9, hombres: Math.round(TROPAS[el.jinetes].hombres * k), max: Math.round(TROPAS[el.jinetes].hombres * k), guarda: [0, 0, 0] } };
   const ga = Math.round(B.num.hombres * (el.guardia || 0.5)); B.num.guarda = [ga, 0, ga];   // los jinetes enemigos viven en las alas
   for (let i = 0; i < 3; i++) { B.sect.push({ i, frente: 0, dist: DIST0, tChoque: -1, c: [cuerpo(0, i, yo.cuerpos[i], k), cuerpo(1, i, el.cuerpos[i], k)] }); B.sect[i].c[1].brio = 1 + BRIO * (2 * B.rnd() - 1); }
+  B.loma = LOMA; B.sect[LOMA.sect].c[LOMA.lado].arriba = true;      // quien la ocupa; para probar sin loma: c.arriba = false
   return B;
 }
 
@@ -137,7 +142,7 @@ function ev(B, tipo, sect, texto, mas) { B.eventos.push(Object.assign({ tipo, se
 function fuerza(c) {
   const l = frente(c), T = TROPAS[l.tipo];
   const fondo = Math.max(0.3, Math.min(1, l.hombres / (0.4 * l.max)));          // pega con todo hasta que la línea se queda en el 40 %
-  return T.cal * fondo * (1 - 0.55 * l.fatiga) * (c.postura === 'empujar' ? 1.25 : 0.8) * (c.relevo > 0 ? 0.7 : 1) * (0.7 + 0.3 * c.moral) * (c.impulso > 0 ? 1.15 : 1) * (c.frenada > 0 ? 0.8 : 1) * (c.desboca > 0 ? 0.3 : 1) * (c.brio || 1);
+  return T.cal * fondo * (1 - 0.55 * l.fatiga) * (c.postura === 'empujar' ? 1.25 : 0.8) * (c.relevo > 0 ? 0.7 : 1) * (0.7 + 0.3 * c.moral) * (c.impulso > 0 ? 1.15 : 1) * (c.arriba ? LOMA.carga : 1) * (c.frenada > 0 ? 0.8 : 1) * (c.desboca > 0 ? 0.3 : 1) * (c.brio || 1);
 }
 
 /* Qué puede hacer el jugador ahora mismo en un sector. Devuelve '' si se puede, o el motivo en llano. */
@@ -237,7 +242,7 @@ function tirar(B, s, c, dt) {
     t.estado = 'vuelve'; t.blanco = null;
     ev(B, c.lado === 0 ? 'tir-vuelven' : 'calma', s.i, c.lado === 0 ? 'Tus ' + T.n + ' se retiran tras las líneas' : May(T.uno) + ' se retiran ' + DONDE[s.i], { lado: c.lado }); return;
   }
-  const aLinea = s.dist - t.av <= A.alcance, aTir = ot && s.dist - t.av - ot.av <= A.alcance;
+  const alc = A.alcance * (c.arriba ? LOMA.alcance : 1), aLinea = s.dist - t.av <= alc, aTir = ot && s.dist - t.av - ot.av <= alc;   // arriba de la loma se tira más lejos
   t.blanco = aLinea ? (aTir ? 'ambos' : 'linea') : aTir ? 'tir' : null; if (!t.blanco) { t.estado = 'sale'; return; }
   t.estado = 'tira';
   if (c.lado === 0 && !t.dicho) { t.dicho = 1; ev(B, 'tir-tiran', s.i, 'Tus ' + T.n + ' lanzan sus ' + A.n, { lado: 0, arma: T.arma }); }

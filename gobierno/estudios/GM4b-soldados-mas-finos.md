@@ -92,7 +92,7 @@ compares en tu móvil y digas las imágenes por segundo). Cuesta 1,2 M y no toca
 
 **Franqueza**: 220 soldados de PS4 a un palmo de la cámara no caben en un móvil. Lo alcanzable es que los 30–40 de
 delante aguanten la mirada y que el resto se mueva como gente. Buena parte de «parecer PS4» es movimiento, relieve y
-brillo, no triángulos. Y lo de «todos iguales y a la vez» no lo arregla este estudio: es GM33 a GM36.
+brillo, no triángulos. Y lo de «todos iguales y a la vez» no lo arregla este estudio: son GM34 y GM36, ya en la 1.0.
 
 ## 4. Preguntas (una línea cada una)
 1. ¿Hago la **prueba de un soldado** con cuerpo y movimientos libres nuevos (1,2 M, solo maqueta)? (A) sí; (B) no,

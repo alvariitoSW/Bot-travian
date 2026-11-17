@@ -187,7 +187,7 @@ async function navegador() {
   let n = 0;
   const foto = async nombre => { const f = String(++n).padStart(2, '0') + '-' + nombre + '.jpg'; await page.screenshot({ path: join(CAPS, f), type: 'jpeg', quality: 72 }); return f; };
   const espera = ms => page.waitForTimeout(ms);
-  const estado = fn => page.evaluate(fn);
+  const estado = (fn, arg) => page.evaluate(fn, arg);
   // cierra los avisos históricos que tapen la pantalla (no los de batalla)
   const cierraAvisos = async () => { for (let i = 0; i < 12; i++) { const b = page.locator('#modal:not([hidden]) [data-act="close"]').first(); if (!(await b.count())) break; await b.click(); await espera(120); } };
   const paso = async (nombre, fn) => {
@@ -336,11 +336,12 @@ async function navegador() {
       if (!lista) return { ok: false, detalle: 'la pantalla de la batalla no llegó a estar lista' };
       await espera(2000);
       const retirar = await page.isVisible('#gu-retirar'), cuerpos = await page.locator('#gu .cuerpo').count(), ordenes = await page.locator('#gu .orden').count();
-      await page.tap('#gu .cuerpo[data-i="1"]'); await page.tap('#gu .orden[data-o="empujar"]'); await espera(500);
-      const empuja = await estado(() => window.__gc.B.sect[1].c[0].postura === 'empujar');
+      /* GM5: de lejos los botones son Avanzar/Escudos/Testudo; ya trabados, Empujar/Aguantar/Relevo. Se pulsa el segundo: Escudos o Aguantar */
+      await page.tap('#gu .cuerpo[data-i="1"]'); const o2 = await page.locator('#gu .orden').nth(1).getAttribute('data-o'); await page.tap('#gu .orden[data-o="' + o2 + '"]'); await espera(500);
+      const empuja = await estado(o => window.__gc.B.sect[1].c[0].postura === o, o2);
       const captura = await foto('batalla');
       const ok = retirar && cuerpos === 3 && ordenes === 4 && empuja;
-      return { ok, detalle: ok ? 'Retirarse, tres cuerpos, cuatro órdenes; «Empujar» obedece' : 'retirar ' + retirar + ', cuerpos ' + cuerpos + ', órdenes ' + ordenes + ', empuja ' + empuja, captura };
+      return { ok, detalle: ok ? 'Retirarse, tres cuerpos, cuatro órdenes; «' + o2 + '» obedece' : 'retirar ' + retirar + ', cuerpos ' + cuerpos + ', órdenes ' + ordenes + ', empuja ' + empuja, captura };
     });
 
     await paso('La batalla termina y se aplica el resultado', async () => {
@@ -387,6 +388,19 @@ async function navegador() {
       const igual = Math.abs(fin.x - antes.x) < 0.01 && Math.abs(fin.z - antes.z) < 0.01 && Math.abs(fin.dist - antes.dist) < 0.01;
       const ok = antes.zonas === 8 && dentro.dist < antes.dist * 0.6 && /Italia/.test(dentro.migas) && dentro.volver && igual && !/Italia/.test(fin.migas);
       return { ok, detalle: ok ? 'ocho zonas; Italia acerca la cámara (' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ') y «← volver» la devuelve' : 'zonas ' + antes.zonas + ', dist ' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ', migas «' + dentro.migas + '», volver ' + dentro.volver + ', igual ' + igual + ', migas finales «' + fin.migas + '»', captura: fotoZona, detalle2: fotoMare };
+    });
+
+    await paso('K7c miga «Roma › Camino» y botón único de volver (≥44 px, ≥11 px)', async () => {
+      await estado(() => { Game.state.speed = 0; UI.dirty = true; const b = document.createElement('button'); b.dataset.act = 'modo'; b.dataset.v = 'guerra'; document.body.appendChild(b); b.click(); b.remove(); const m = document.getElementById('modal'); if (m) m.hidden = true; });
+      await espera(1500);
+      const medir = () => estado(() => { const m = document.getElementById('miga'), b = document.getElementById('miga-b'), t = document.getElementById('miga-t'); if (!m || m.hidden) return { vis: false, tab: UI.tab }; const r = b.getBoundingClientRect(), d = document.getElementById('tabs3').getBoundingClientRect(); return { vis: true, tab: UI.tab, t: t.innerText.replace(/\s+/g, ' '), b: b.innerText, alto: r.height, fuente: parseFloat(getComputedStyle(b).fontSize), dentro: r.left >= 0 && r.right <= innerWidth, sinTapar: r.bottom < innerHeight - 100 }; });
+      const mapa = await medir(); await foto('miga-mapa');
+      await page.click('#miga-b'); await espera(3500);
+      const ciu = await medir(); await foto('miga-ciudad');
+      await page.click('#miga-b'); await espera(2500);
+      const vuelta = await medir();
+      const ok = mapa.vis && /Camino/.test(mapa.t) && /Entrar/.test(mapa.b) && ciu.vis && /Ciudad/.test(ciu.t) && /Salir/.test(ciu.b) && vuelta.tab === 'map' && [mapa, ciu].every(x => x.alto >= 44 && x.fuente >= 11 && x.dentro && x.sinTapar);
+      return { ok, detalle: ok ? 'mapa «' + mapa.t + '» con «' + mapa.b + '», ciudad «' + ciu.t + '» con «' + ciu.b + '», y vuelve al mapa' : JSON.stringify({ mapa, ciu, vuelta }) };
     });
 
     await paso('CN22 avisos: máx. 2 avisos y tarjeta de estación baja', async () => {

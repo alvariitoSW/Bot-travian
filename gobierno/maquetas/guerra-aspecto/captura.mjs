@@ -13,7 +13,7 @@ const AQUI = dirname(fileURLToPath(import.meta.url)), RAIZ = join(AQUI, '..', '.
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.bin': 'application/octet-stream', '.woff2': 'font/woff2' };
 const args = process.argv.slice(2), op = Object.fromEntries(args.filter(a => a.includes('=')).map(a => a.split(/=(.*)/s).slice(0, 2)));
 const srv = await new Promise(ok => { const s = createServer(async (req, res) => { try { let r = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^([/\\])+/, ''); if (r === '' || r.endsWith('/')) r += 'index.html'; if (r.startsWith('..')) throw new Error('fuera'); const d = await readFile(join(RAIZ, r)); res.writeHead(200, { 'Content-Type': TIPOS[extname(r)] || 'application/octet-stream' }); res.end(d); } catch (e) { res.writeHead(404); res.end(); } }); s.listen(args.includes('--servir') ? 8379 : 0, '127.0.0.1', () => ok(s)); });
-const BASE = 'http://127.0.0.1:' + srv.address().port + '/gobierno/maquetas/', URL0 = BASE + 'guerra-arte/';
+const BASE = 'http://127.0.0.1:' + srv.address().port + '/gobierno/maquetas/', URL0 = BASE + 'guerra-aspecto/';
 if (args.includes('--servir')) { console.log('Sirviendo en ' + URL0); await new Promise(() => {}); }
 
 const { chromium } = createRequire(join(RAIZ, 'x.js'))('playwright');
@@ -33,7 +33,7 @@ async function abrir(url, w, h) {
 const ritmo = page => page.evaluate(() => new Promise(ok => { let k = 0, t0 = 0; const f = t => { if (!t0) t0 = t; if (++k > 60) ok((t - t0) / 60); else requestAnimationFrame(f); }; requestAnimationFrame(f); }));
 
 async function partida(hombres, nombre, w, h, completa) {
-  const { ctx, page, carga } = await abrir(URL0 + '?semilla=4242&hombres=' + hombres, w, h), id = hombres + '-' + nombre;
+  const { ctx, page, carga } = await abrir(URL0 + '?semilla=4242&hombres=' + hombres + (op.extra ? '&' + op.extra : ''), w, h), id = hombres + '-' + nombre;
   const g = (f, ...a) => page.evaluate(([f, a]) => window.__gc[f](...a), [f, a]);
   const foto = async n => { await espera(page, 1500); for (let i = 0; ; i++) { try { await page.screenshot({ path: prefijo + id + '-' + n + '.jpg', type: 'jpeg', quality: 80, timeout: 240000 }); break; } catch (e) { if (i >= 2) throw e; } } const e = await g('estado'); console.log(`${id}-${n}: t=${e.t.toFixed(0)} s · ${e.hombres[0]} + ${e.hombres[1]} hombres · ${e.cartones} cartones · ${e.figs} figuras · ${e.tri} triángulos · ${e.llamadas} llamadas`); return e; };
   const pulsa = async sel => { await page.tap(sel); await espera(page, 250); };

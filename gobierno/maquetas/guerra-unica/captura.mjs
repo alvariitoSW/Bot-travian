@@ -31,8 +31,8 @@ async function abrir(url, w, h) {
 }
 
 /* Una partida a la medida de un móvil: de lejos, el choque, el relevo pasando, el aviso de flanco (si sale) y la comprobación de que el relevo dura lo que dicen las reglas. */
-async function partida(nombre, w, h, completa) {
-  const { ctx, page, carga } = await abrir(URL0 + '?directo=1&semilla=4242&hombres=5000', w, h), id = nombre;
+async function partida(nombre, w, h, completa, extra) {
+  const { ctx, page, carga } = await abrir(URL0 + '?directo=1&semilla=4242&hombres=5000' + (extra || ''), w, h), id = nombre;
   const g = (f, ...a) => page.evaluate(([f, a]) => window.__gc[f](...a), [f, a]);
   const foto = async n => { await espera(page, 1500); for (let i = 0; ; i++) { try { await page.screenshot({ path: prefijo + id + '-' + n + '.jpg', type: 'jpeg', quality: 80, timeout: 240000 }); break; } catch (e) { if (i >= 2) throw e; } } const e = await g('estado'); const cinta = await page.textContent('#cinta'); console.log(`${id}-${n}: t=${e.t.toFixed(0)} s · botones ${e.botones.join(', ')} · cinta «${cinta}»`); return { ...e, cinta }; };
   const pulsa = async sel => { await page.tap(sel); await espera(page, 250); };
@@ -69,6 +69,47 @@ async function partida(nombre, w, h, completa) {
   }
   await ctx.close();
 }
+/* GM11b: caballería (GM8/GM9) y elefantes en la maqueta única */
+async function jinetes(nombre, extra, hazlo) {
+  const { ctx, page, carga } = await abrir(URL0 + '?directo=1&semilla=4242&hombres=5000' + extra, 390, 844);
+  const g = (f, ...a) => page.evaluate(([f, a]) => window.__gc[f](...a), [f, a]);
+  const foto = async n => { await espera(page, 1500); for (let i = 0; ; i++) { try { await page.screenshot({ path: (op.prefijo || SALIDA + '/') + n + '.jpg', type: 'jpeg', quality: 80, timeout: 240000 }); break; } catch (e) { if (i >= 2) throw e; } } console.log(n + ' · cinta «' + await page.textContent('#cinta') + '»'); };
+  const pulsa = async sel => { await page.tap(sel); await espera(page, 250); };
+  const paso = async (cond, tope) => { for (let k = 0; k < tope * 4; k++) { if (await page.evaluate(c => { const G = window.__gc, B = G.B, R = G.R; return eval(c); }, cond)) return true; await g('salta', 0.25); } return false; };
+  console.log('\n== ' + nombre + ': cargada en ' + carga.toFixed(0) + ' s ==');
+  await g('pausa', true); await hazlo({ g, foto, pulsa, paso, page }); await ctx.close();
+}
+const solo = op.solo || 'todo';
+if (solo === 'todo' || solo === 'gm11b') {
+  await jinetes('rodea', '', async ({ g, foto, pulsa, paso, page }) => {
+    await g('salta', 2); await g('mirar', -1, 0); await pulsa('.cuerpo[data-i="0"]'); await pulsa('.orden[data-o="caballeria"]');
+    await g('sigue', true); await paso('B.cab.fase === "rodea"', 10); await g('salta', 3); await g('mirar', -1, 0);
+    const ya = await page.evaluate(() => { const G = window.__gc, c = G.cab(); return { fase: G.B.cab.fase, sig: G.siguiendo, solapa: c.regs.filter(q => Math.abs(c.x - q.x) < q.w / 2 && (q.lado === 0 ? c.z > q.z - 1 && c.z < q.z + q.h : c.z < q.z + 1 && c.z > q.z - q.h)).length, sub: document.querySelector('.orden[data-o="caballeria"] .sub').textContent }; });
+    bien(ya.fase === 'rodea' && ya.sig && ya.solapa === 0, 'los jinetes rodean por fuera sin pisar ninguna línea y la cámara los sigue (' + JSON.stringify(ya) + ')');
+    await foto('GM11b-a-rodeando');
+  });
+  await jinetes('duelo', '&rival=pirro', async ({ g, foto, pulsa, paso, page }) => {
+    await g('salta', 2); await g('mirar', -1, 0); await pulsa('.cuerpo[data-i="0"]'); await pulsa('.orden[data-o="caballeria"]');
+    await g('sigue', true); await paso('B.cab.fase === "rodea"', 10);
+    for (let k = 0; k < 40 && await page.evaluate(() => { const c = window.__gc.cab(); return Math.hypot(c.rn.x - c.x, c.rn.z - c.z) > 22 && window.__gc.B.cab.fase === 'rodea'; }); k++) await g('salta', 0.25);
+    await g('mirar', -1, 0);
+    console.log('  duelo: ' + await page.evaluate(() => { const G = window.__gc, B = G.B; return B.cab.fase + ' guarda ' + B.num.guarda + ' num ' + B.num.estado; }));
+    await foto('GM11b-b-duelo-de-jinetes');
+  });
+  await jinetes('elefantes', '&rival=zama', async ({ g, foto, pulsa, paso, page }) => {
+    await paso('B.sect[0].dist < 52', 80); await g('mirar', 0, 30);
+    const t = await page.evaluate(() => ({ b: window.__gc.B.sect[0].c[1].lineas.map(l => l.tipo) }));
+    console.log('  líneas del cuerpo izquierdo enemigo: ' + t.b.join(','));
+    await foto('GM11b-c-elefantes'); await paso('B.eventos.some(e => e.tipo === "elefantes-cargan")', 40); await g('salta', 1); await foto('GM11b-c2-elefantes-cargan');
+  });
+  await jinetes('no-hay-paso', '', async ({ g, foto, pulsa, paso, page }) => {
+    await g('salta', 2); await g('mirar', -1, 0); await pulsa('.cuerpo[data-i="1"]');
+    const sub = await page.textContent('.orden[data-o="caballeria"] .sub'), no = await page.evaluate(() => document.querySelector('.orden[data-o="caballeria"]').classList.contains('no'));
+    bien(/no hay paso/.test(sub) && no, 'con las dos alas guardadas el botón Caballería del centro dice «no hay paso» (dice «' + sub + '»)');
+    await pulsa('.orden[data-o="caballeria"]'); await foto('GM11b-d-no-hay-paso');
+  });
+}
+if (solo === 'gm11b') { console.log(errores.length ? 'NO APTO · ' + errores.join('\n') : 'APTO'); await br.close(); srv.close(); process.exit(errores.length ? 1 : 0); }
 if (op.solo !== 'horizontal') await partida('vertical', 390, 844, true);
 if (op.solo !== 'vertical') await partida('horizontal', 844, 390, false);
 console.log(errores.length ? 'NO APTO · ' + errores.length + ' fallos:\n' + errores.join('\n') : 'APTO · sin errores de consola');

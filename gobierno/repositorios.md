@@ -33,6 +33,13 @@ regiones aparte; hoy no).
 | `donmccurdy/glTF-Transform` | MIT | Comprimir y aligerar modelos en `tools/` | arte, GM4 |
 | Listas para seguir buscando: `AxiomeCG/awesome-threejs`, `michelpereira/awesome-open-source-games`, `Roobyx/awesome-game-design`, `devanshutak25/3d-resources`, `madjin/awesome-cc0` | CC0 o CC BY | Índices | radar |
 
+## Mirados el 17/11/2026 a petición del usuario (solo `LICENSE` y `README`; nada descargado al proyecto)
+| Repositorio | Licencia | Qué es | Veredicto |
+|---|---|---|---|
+| `EliCDavis/polyform` | MIT | Piezas y mallas 3D por código (Go, con editor en el navegador); saca glTF y OBJ | Útil **después de la 1.0**, como prueba con una pieza; corre en la nube sin ordenador. Falta un conversor a nuestro formato |
+| `EL4CTEO/blender-skills` | MIT | 28 habilidades de Blender con scripts | Ya aprobada como RD3; solo con un ordenador con Blender, después de la 1.0 |
+| `Kotohibi/ai-wide-area-modeling` | MIT | Habilidad que convierte fotos y nubes de puntos de lugares reales (cámara 360°, SfM, Gaussian Splatting) en modelos de Blender | **No nos sirve**: pide Blender, un ordenador y datos escaneados de sitios reales, y de la Roma de 280–146 a.C. no hay fotos. Escala y recetas pensadas para Japón; documentos en japonés. Idea que se guarda: comparar un dibujo del modelo con una referencia y corregir las diferencias, como método de revisión del arte |
+
 ## Licencias de bancos de arte — leídas en su fuente (16/11/2026, RD2)
 Leídas el 16/11/2026 en las tres páginas oficiales. Las citas están en inglés, tal como las pone cada página. Resumen para el usuario: **Kenney y Quaternius son CC0 (dominio público): se pueden usar sin pedir permiso y sin crédito.** **OpenGameArt no tiene una licencia: cada obra trae la suya**, y hay que mirarla obra por obra antes de usarla. Aun con CC0, antes de meter arte en el juego va su ficha en `js/registro.js` (de dónde viene y con qué licencia).
 

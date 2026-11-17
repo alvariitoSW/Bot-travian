@@ -3,6 +3,86 @@
   "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
   "capturas": [
     {
+      "tarea": "C8",
+      "archivo": "gobierno/capturas-tarea/c8-mare.jpg",
+      "pie": "Mapamundi: el mundo llena la pantalla; zonas de fuera con flecha en el borde"
+    },
+    {
+      "tarea": "MR2a",
+      "archivo": "gobierno/capturas-tarea/MR2a-1-imperio.jpg",
+      "pie": "Imperio en el juego: rollo de papiro, filtros en tablilla de cera"
+    },
+    {
+      "tarea": "MR2a",
+      "archivo": "gobierno/capturas-tarea/MR2a-2-gobierno.jpg",
+      "pie": "Gobierno en el juego: laurel en la felicidad y atajos en placas de bronce"
+    },
+    {
+      "tarea": "C5a",
+      "archivo": "gobierno/capturas-tarea/despues-mare.jpg",
+      "pie": "Mapamundi: pergamino y filete de tinta en vez del vacío azul"
+    },
+    {
+      "tarea": "K7a",
+      "archivo": "gobierno/capturas-tarea/K7a-despues-etruria.jpg",
+      "pie": "Rutas con grosor según renta y marcas ⚔ de guerra en las ciudades"
+    },
+    {
+      "tarea": "K7a",
+      "archivo": "gobierno/capturas-tarea/K7a-despues-etruriaLejos.jpg",
+      "pie": "Lo mismo, de lejos"
+    },
+    {
+      "tarea": "C4",
+      "archivo": "gobierno/capturas-tarea/C4-despues-tiber.jpg",
+      "pie": "El Tíber junto a Roma"
+    },
+    {
+      "tarea": "C4",
+      "archivo": "gobierno/capturas-tarea/C4-despues-padana.jpg",
+      "pie": "Llanura del Po y los Alpes con el Tesino"
+    },
+    {
+      "tarea": "C4",
+      "archivo": "gobierno/capturas-tarea/C4-despues-italia.jpg",
+      "pie": "Italia: ríos y lagos, playas nítidas"
+    },
+    {
+      "tarea": "K7c",
+      "archivo": "gobierno/capturas-tarea/K7c-miga-mapa.jpg",
+      "pie": "Mapa: miga «Roma › Camino» y botón rojo «Entrar en la ciudad»"
+    },
+    {
+      "tarea": "K7c",
+      "archivo": "gobierno/capturas-tarea/K7c-miga-ciudad.jpg",
+      "pie": "Ciudad: miga «Roma › Ciudad» y botón rojo «Salir al mapa»"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-3-todo-lejos.jpg",
+      "pie": "Arte nuevo, de lejos: suelo oscuro con tierra pisada, estandartes grandes, enemigo en azul"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-0-antes-lejos.jpg",
+      "pie": "De antes, de lejos (lo que se probó el 16/11)"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-3-todo-cerca.jpg",
+      "pie": "Arte nuevo, de cerca: bronce y luz mejor, pero el romano queda de color hueso (por arreglar)"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-0-antes-cerca.jpg",
+      "pie": "De antes, de cerca: rojo de pies a cabeza"
+    },
+    {
+      "tarea": "GM4c",
+      "archivo": "gobierno/capturas-tarea/GM4c-3-todo-vertical.jpg",
+      "pie": "Arte nuevo en vertical"
+    },
+    {
       "tarea": "J4a",
       "archivo": "gobierno/capturas-tarea/J4a-mare-nostrum-8-zonas.jpg",
       "pie": "Mare Nostrum con 8 zonas: aparecen Etruria y Gallia"
@@ -1460,6 +1540,137 @@
       "tarea": "K7",
       "archivo": "gobierno/capturas-tarea/K7-E-1.png",
       "pie": "Concurso K7, maqueta E (ciega; ganó la D)"
+    },
+    {
+      "tarea": "GM21",
+      "archivo": "gobierno/capturas-tarea/GM21-vertical-2-todo-ancho.jpg",
+      "pie": "Despliegue: los tres cuerpos formados a lo ancho"
+    },
+    {
+      "tarea": "GM21",
+      "archivo": "gobierno/capturas-tarea/GM21-vertical-4-plan-caballeria-derecha.jpg",
+      "pie": "Plan: centro atrás y caballería en el ala derecha"
+    },
+    {
+      "tarea": "GM21",
+      "archivo": "gobierno/capturas-tarea/GM21-horizontal-7-batalla-ancho.jpg",
+      "pie": "Batalla con todo a lo ancho: Roma desborda",
+      "ancha": true
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-3-region.jpg",
+      "pie": "Gobierno de provincias: la región en una pantalla, con lo que hace falta para el otoño"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-2-oficio-capua.jpg",
+      "pie": "Dar un oficio a Capua: sus tres campos cuentan y nace en rango II"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-4-decreto.jpg",
+      "pie": "El decreto de Tarento: cada opción dice antes lo que da y lo que cuesta"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-5-partida.jpg",
+      "pie": "La partida de exportación: vender ahora o comprar fuera"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-6-batalla.jpg",
+      "pie": "Otoño: tu fuerza sale de los oficios que repartiste"
+    },
+    {
+      "tarea": "GR1",
+      "archivo": "gobierno/capturas-tarea/GR1-7-cuentas.jpg",
+      "pie": "Cuentas del invierno y lo que pasó de verdad"
+    },
+    {
+      "tarea": "J4b",
+      "archivo": "gobierno/capturas-tarea/J4b-antes-etruria.jpg",
+      "pie": "Antes: Volsinii, Clusium y Perusia se pisan"
+    },
+    {
+      "tarea": "J4b",
+      "archivo": "gobierno/capturas-tarea/J4b-despues-etruria.jpg",
+      "pie": "Después: cada nombre tiene su hueco, Roma libre"
+    },
+    {
+      "tarea": "J4b",
+      "archivo": "gobierno/capturas-tarea/J4b-despues-etruriaLejos.jpg",
+      "pie": "De lejos, sin contador de tropas ni sitios"
+    },
+    {
+      "tarea": "I5d",
+      "archivo": "gobierno/capturas-tarea/I5d-1-saber-hecho.jpg",
+      "pie": "Saber ya elegido: botón «Cambiar de saber…»"
+    },
+    {
+      "tarea": "I5d",
+      "archivo": "gobierno/capturas-tarea/I5d-2-aviso.jpg",
+      "pie": "Aviso: lo que pierdes, el coste completo del nuevo y los meses de estudio"
+    },
+    {
+      "tarea": "I5d",
+      "archivo": "gobierno/capturas-tarea/I5d-3-cambiado.jpg",
+      "pie": "Tras cambiar: Viña y olivar en estudio, Trigo abandonado"
+    },
+    {
+      "tarea": "MR1",
+      "archivo": "gobierno/capturas-tarea/MR1-v1-3-gobierno.jpg",
+      "pie": "MR1 v1 (antes de la pasada artística): Gobierno"
+    },
+    {
+      "tarea": "MR1",
+      "archivo": "gobierno/capturas-tarea/MR1-1-imperio-A.jpg",
+      "pie": "MR1 v2 (A): Imperio en papiro enrollado, filtros en tablilla de cera"
+    },
+    {
+      "tarea": "MR1",
+      "archivo": "gobierno/capturas-tarea/MR1-2-imperio-B.jpg",
+      "pie": "MR1 v2 (B): Imperio en marco de bronce con hojas de papiro"
+    },
+    {
+      "tarea": "MR1",
+      "archivo": "gobierno/capturas-tarea/MR1-3-gobierno.jpg",
+      "pie": "MR1 v2: Gobierno en papiro, atajos en placas de bronce"
+    },
+    {
+      "tarea": "MR1",
+      "archivo": "gobierno/capturas-tarea/MR1-4-senado.jpg",
+      "pie": "MR1 v2: Senado con el hecho en tabla de bronce y propuestas en tablillas"
+    },
+    {
+      "tarea": "MR1",
+      "archivo": "gobierno/capturas-tarea/MR1-5-informe.jpg",
+      "pie": "MR1 v2: informe de estación como carta con sello rojo"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-6-portada.jpg",
+      "pie": "MR3: portada con cartel del propio juego"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-7-menu-principal.jpg",
+      "pie": "MR3: menú principal con tu partida en papiro"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-8-nueva-campana.jpg",
+      "pie": "MR3: nueva campaña (escenario, general, dificultad)"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-9-carga.jpg",
+      "pie": "MR3: carga con un dato histórico"
+    },
+    {
+      "tarea": "MR3",
+      "archivo": "gobierno/capturas-tarea/MR3-10-opciones.jpg",
+      "pie": "MR3: opciones en papiro"
     }
   ],
   "informes": [
@@ -1658,22 +1869,72 @@
     {
       "titulo": "K7 · Concurso de ciudades, rutas, diplomacia y tropas",
       "archivo": "gobierno/estudios/K7-concurso.md"
+    },
+    {
+      "titulo": "Crítica independiente de la batalla (guerra-unica)",
+      "archivo": "gobierno/estudios/GM-critica-fable-guerra-unica.md"
+    },
+    {
+      "titulo": "GR1 · Gobierno de provincias: oficio, decreto y partida",
+      "archivo": "gobierno/estudios/GR1-gobierno-de-provincias.md"
+    },
+    {
+      "titulo": "MR1 · Menús al estilo romano (diseño)",
+      "archivo": "gobierno/estudios/MR1-menus-romanos.md"
+    },
+    {
+      "titulo": "CV1 · Converger: plan para la versión 1.0",
+      "archivo": "gobierno/estudios/CV1-converger.md"
+    },
+    {
+      "titulo": "¿A dónde vamos y qué queda? (17/11, mediodía)",
+      "archivo": "gobierno/estudios/ADV-2026-11-17.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "GM17",
-      "titulo": "Batalla mejorada · GM17 Estudio de Heraclea, 280 a.C. (ficha de historia)",
-      "nota": "solo gobierno/historia/; sin código",
-      "url": "https://claude.ai/code/session_01QiKC372EDu3vvuRKGFQWoE"
+      "tarea": "MR2a",
+      "titulo": "Versión 1.0 · MR2a Menús romanos: materiales, Imperio y Gobierno (Fable dirige, Opus construye)",
+      "nota": "Terminada el 17/11: subida y publicada",
+      "url": "https://claude.ai/code/session_01QiKC38MrhvKcf8A9xyWrQs"
     },
     {
-      "tarea": "GM31",
-      "titulo": "Batalla mejorada · GM31 Tablilla de mando y ajustes del manejo (maqueta)",
-      "nota": "solo gobierno/maquetas/guerra-manejo/; no toca js/",
-      "url": "https://claude.ai/code/session_01QiKC37zLtSEbgCEXGMSZdg"
+      "tarea": "GC7",
+      "titulo": "Versión 1.0 · GC7 a GC9 y GC6 Fallos de la batalla y quitar la clásica",
+      "nota": "batalla",
+      "url": "https://claude.ai/code/session_01QiKC3AXEa5xZ9aJP5skXgw"
+    },
+    {
+      "tarea": "DEC",
+      "titulo": "Decisiones delegadas en Fable 5.2 (Nilo y mapamundi)",
+      "nota": "solo decide y avisa; no construye",
+      "url": "https://claude.ai/code/session_01QiKC3AR2FzqYL23coZ3gBE"
+    },
+    {
+      "tarea": "GM5",
+      "titulo": "Versión 1.0 · GM5 Batalla mejorada en el juego, lo mínimo (Opus)",
+      "nota": "Carril V; motor de guerra (js/guerra.js, ui-guerra, battle3d)",
+      "url": "https://claude.ai/code/session_01QiKC38w2VptqxNBmxqFpVp"
+    },
+    {
+      "tarea": "I8b",
+      "titulo": "Versión 1.0 · I8b Pulir la partida corta (Opus)",
+      "nota": "Carril V; js/game.js y datos; las etiquetas esperan a C8",
+      "url": "https://claude.ai/code/session_01QiKC377wWmKESaumEbS9hB"
+    },
+    {
+      "tarea": "MR2c",
+      "titulo": "Versión 1.0 · MR2c Menús romanos: el resto e iconos de tinta (Opus)",
+      "nota": "Carril V; css/style.css y js/ui.js (no el menú del mapa)",
+      "url": "https://claude.ai/code/session_01QiKC387BAJdWijwGzxDWcJ"
+    },
+    {
+      "tarea": "C9",
+      "titulo": "Mapa · C9 Más mundo: Hispania, Galia, Egipto y Asia Menor (Opus)",
+      "nota": "js/gfx/map3d.js y datos del mapa; excepción a la 1.0",
+      "url": "https://claude.ai/code/session_01QiKC36ud6xQvc5zQpCZY2D"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

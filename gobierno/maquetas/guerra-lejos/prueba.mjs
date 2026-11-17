@@ -50,18 +50,19 @@ let mal = 0;
 function tanda(H, rival, N, lista) {
   const res = {};
   for (const [nombre, bot] of Object.entries(lista || bots)) {
-    let gana = 0, dur = 0, bR = 0, bE = 0, min = 1e9, max = 0, choque = 0, bLejos = 0, tE = 0, bLin = 0;
+    let gana = 0, dur = 0, bR = 0, bE = 0, min = 1e9, max = 0, choque = 0, prim = 0, primMin = 1e9, bLejos = 0, tE = 0, bLin = 0;
     for (let k = 0; k < N; k++) {
-      const B = R.nueva(1000 + k * 7919, H, rival); let prox = 0, visto = false;
+      const B = R.nueva(1000 + k * 7919, H, rival); let prox = 0, visto = false, uno = false;
       while (B.fase !== 'fin') {
         if (B.t >= prox) { bot(B); prox = B.t + 1.5; }                      // el bot «toca» cada segundo y medio, como una persona
         R.paso(B, 0.1);
+        if (!uno && B.sect.some(s => !R.lejos(s))) { uno = true; prim += B.t; primMin = Math.min(primMin, B.t); }   // el primer choque
         if (!visto && B.sect.every(s => !R.lejos(s))) { visto = true; choque += B.t; }
       }
       const r = B.resultado; if (r.como === 'victoria') gana++; dur += r.t; min = Math.min(min, r.t); max = Math.max(max, r.t); bR += r.bajas[0] / r.inicial[0]; bE += r.bajas[1] / r.inicial[1]; bLejos += B.porTiro[0] / r.inicial[0]; bLin += B.porTiroLinea[0] / r.inicial[0]; tE += B.porTiro[1] / r.inicial[1];
     }
-    const o = res[nombre] = { pct: Math.round(100 * gana / N), dur: dur / N, min, max, bR: 100 * bR / N, bE: 100 * bE / N, choque: choque / N, bLejos: 100 * bLejos / N, tE: 100 * tE / N, bLin: 100 * bLin / N };
-    console.log(`${nombre.padEnd(33)} gana ${String(o.pct).padStart(3)} % · dura ${Math.round(o.dur)} s (${Math.round(min)}–${Math.round(max)}) · todos trabados a los ${Math.round(o.choque)} s · bajas Roma ${o.bR.toFixed(0)} % (por proyectil ${o.bLejos.toFixed(1)} %, en las líneas ${o.bLin.toFixed(1)} %) / enemigo ${o.bE.toFixed(0)} % (${o.tE.toFixed(1)} %)`);
+    const o = res[nombre] = { pct: Math.round(100 * gana / N), dur: dur / N, min, max, bR: 100 * bR / N, bE: 100 * bE / N, choque: choque / N, prim: prim / N, primMin, bLejos: 100 * bLejos / N, tE: 100 * tE / N, bLin: 100 * bLin / N };
+    console.log(`${nombre.padEnd(33)} gana ${String(o.pct).padStart(3)} % · dura ${Math.round(o.dur)} s (${Math.round(min)}–${Math.round(max)}) · primer choque a los ${Math.round(o.prim)} s · todos trabados a los ${Math.round(o.choque)} s · bajas Roma ${o.bR.toFixed(0)} % (por proyectil ${o.bLejos.toFixed(1)} %, en las líneas ${o.bLin.toFixed(1)} %) / enemigo ${o.bE.toFixed(0)} % (${o.tE.toFixed(1)} %)`);
   }
   return res;
 }
@@ -86,7 +87,9 @@ for (const H of [1000, 5000, 10000]) {
   const so = tanda(H, 'cartago', 20, solas);
   for (const [n, o] of Object.entries(so)) pide(o.pct <= 15, n + ' no debe ganar: ningún arma gana a todas');
   if (H !== 5000) { console.log(`-- ${H} contra Cartago con elefantes`); const zz = tanda(H, 'zama', 10); pide(zz['no toca nada'].pct <= 5 && zz['con cabeza, escudos a tiempo'].pct >= 50, `con ${H} hombres, contra elefantes: quien no hace nada pierde y quien manda con cabeza gana`); }
-  pide(cab.choque >= 30 && cab.choque <= 65, 'acercarse debe durar entre medio minuto y un minuto');
+  /* GM7b: más separados; el acercamiento hasta el primer choque pasa de 40 s a la velocidad normal, y todos trabados no se alarga sin fin */
+  for (const [n, o] of Object.entries(r)) pide(o.primMin > 40, `${n}: el primer choque debe tardar más de 40 s (más corto: ${o.primMin.toFixed(1)} s)`);
+  pide(cab.choque >= 45 && cab.choque <= 90, 'hasta que luchan los tres cuerpos deben pasar entre tres cuartos de minuto y minuto y medio');
 }
 /* un ejército hecho solo con fichas nuevas (arqueros, hoplitas, falange, tesalios) se juega sin tocar el motor */
 console.log('\n== 5000 por bando contra Pirro (solo fichas nuevas) ==');
@@ -153,5 +156,24 @@ pide(gana.con >= gana.sin, 'con jabalinas se gana al menos tanto como sin ellas'
 pide(gana.cab * 5 >= 60 && gana.cab * 5 <= 100, 'contra elefantes quien manda con cabeza gana, pero no es un paseo');
 pide(desb >= 3, 'los elefantes heridos deben desbocarse en bastantes batallas');
 const z = tanda(5000, 'zama', 20); pide(z['no toca nada'].pct <= 5, 'contra elefantes quien no toca nada pierde');
+/* ---- GM7b: la distancia de salida y el tiempo de acercarse ---- */
+console.log('\n== GM7b: empezar más separados ==');
+pide(R.DIST0 >= 200, 'las líneas deben salir a 200 m o más (hoy ' + R.DIST0 + ')');
+/* ---- GM29: la loma da ventaja ---- */
+console.log('\n== GM29: la loma ==');
+{ const A0 = R.ARMAS.honda.alcance, L = R.LOMA;
+  pide(L.alcance > 1 && L.carga > 1 && L.lado === R.LADO_ROMA && R.nueva(1, 5000).sect[L.sect].c[L.lado].arriba && R.nueva(1, 5000).sect.filter(s => s.c.some(c => c.arriba)).length === 1, 'una sola loma, y la ocupa un solo cuerpo');
+  const quita = B => { for (const s of B.sect) for (const c of s.c) c.arriba = false; return B; };
+  /* alcance: con la loma, el cuerpo de arriba empieza a tirar desde más lejos */
+  const primerTiro = (B, sect) => { const e = B.sect[sect].c[0]; let x = 0; while (!(e.tir && e.tir.estado === 'tira') && x++ < 4000) R.paso(B, 0.1); return B.sect[sect].dist; };
+  const dCon = primerTiro(R.nueva(5, 5000, 'cartago'), L.sect), dSin = primerTiro(quita(R.nueva(5, 5000, 'cartago')), L.sect);
+  console.log(`   los vélites de la loma empiezan a tirar a ${dCon.toFixed(0)} m; sin loma, a ${dSin.toFixed(0)} m`);
+  pide(dCon > dSin + 5, 'quien está arriba tira desde más lejos');
+  /* carga: misma batalla, mismos jugadores; arriba se gana mejor ese choque (más bajas enemigas, menos propias en ese cuerpo) */
+  const choque = (conLoma) => { let ganas = 0, bajE = 0, bajR = 0, N = 30; for (let k = 0; k < N; k++) { const B = R.nueva(400 + k * 13, 5000, 'cartago'); if (!conLoma) quita(B); bots['con cabeza, escudos a tiempo'](B); let prox = 0; while (B.fase !== 'fin' && B.t < 400) { if (B.t >= prox) { bots['con cabeza, escudos a tiempo'](B); prox = B.t + 1.5; } R.paso(B, 0.1); } const c = B.sect[L.sect].c, ini0 = c[0].inicial, ini1 = c[1].inicial; bajR += 1 - R.hombres(c[0]) / ini0; bajE += 1 - R.hombres(c[1]) / ini1; if (c[1].roto) ganas++; } return { ganas, bajE: bajE / N, bajR: bajR / N }; };
+  const con = choque(true), sin = choque(false);
+  console.log(`   ala derecha: con loma rompe al enemigo en ${con.ganas} de 30 (bajas propias ${(100 * con.bajR).toFixed(0)} %, suyas ${(100 * con.bajE).toFixed(0)} %); sin loma ${sin.ganas} de 30 (${(100 * sin.bajR).toFixed(0)} % / ${(100 * sin.bajE).toFixed(0)} %)`);
+  pide(con.bajE - con.bajR > sin.bajE - sin.bajR + 0.02, 'la loma debe notarse en el choque: mejor saldo de bajas para quien está arriba');
+  pide(con.bajE - con.bajR < sin.bajE - sin.bajR + 0.4, 'la loma ayuda, pero no decide sola la batalla'); }
 console.log(mal ? 'NO APTO' : 'APTO');
 process.exit(mal ? 1 : 0);

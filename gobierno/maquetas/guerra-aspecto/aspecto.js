@@ -2,6 +2,7 @@
    Interruptor: ?aspecto=0 lo apaga todo (igual que guerra-arte); ?sin=suelo,aire,filas,color,sombra,camara apaga una mejora sola.
    Botón «Aspecto: nuevo / de antes» arriba a la derecha: recarga con el otro valor. Arte: el mismo de 0 A.D. (Wildfire Games, CC BY-SA 3.0). */
 import { THREE } from '../../../js/gfx/models.js';
+import * as GE from './gentio.js';   /* GM33 */
 
 const Q = new URLSearchParams(location.search), TODO = ['suelo', 'aire', 'filas', 'color', 'sombra', 'camara'];
 const SIN = new Set((Q.get('sin') || '').split(',').map(s => s.trim()).filter(Boolean)), GENERAL = Q.get('aspecto') !== '0';
@@ -18,8 +19,9 @@ const parche = (txt, a, b) => { if (!txt.includes(a)) { console.warn('aspecto.js
 
 /* 4. color: el tinte de bando que se hornea en el atlas baja ~20 % de saturación (los estandartes siguen con su color vivo) */
 export function colores(COLOR) {
-  if (!ON.color) return;
+  if (!ON.color) { GE.colores(COLOR); return; }
   for (let i = 0; i < COLOR.length; i++) { const c = new THREE.Color(COLOR[i]), h = {}; c.getHSL(h); c.setHSL(h.h, h.s * 0.8, Math.min(0.62, h.l * 1.08)); COLOR[i] = '#' + c.getHexString(); }
+  GE.colores(COLOR);   /* GM33: rojo romano y azul cobalto, encima */
 }
 
 /* 3. filas (posición de cada hombre) y 4. color (por hombre) en los sombreadores del cartón y de su sombra */
@@ -34,7 +36,7 @@ export function carton(o, caido) {
   }
   if (ON.color) { const m = mats[0];
     m.fragmentShader = parche(m.fragmentShader, '(h.x - 0.5) * 0.24', '(h.x - 0.5) * 0.42');                        /* más variación de valor por hombre (±20 %) */
-    m.fragmentShader = parche(m.fragmentShader, 'vLejos * 0.42', 'vLejos * 0.28');                                  /* de lejos el tinte de bando pesa menos */
+    if (!GE.ON) m.fragmentShader = parche(m.fragmentShader, 'vLejos * 0.42', 'vLejos * 0.28');                                  /* de lejos el tinte de bando pesa menos */
     m.fragmentShader = parche(m.fragmentShader, 'gl_FragColor = vec4(mix(c, uNieblaC, vNiebla), 1.0);',
       `{ float ll = dot(c, vec3(0.3, 0.59, 0.11)); c = mix(vec3(ll), c, 0.84 - ${ON.aire ? '0.35' : '0.0'} * vNiebla); }
   gl_FragColor = vec4(mix(c, uNieblaC, vNiebla), 1.0);`); }
