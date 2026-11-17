@@ -3,6 +3,11 @@
   "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
   "capturas": [
     {
+      "tarea": "C8",
+      "archivo": "gobierno/capturas-tarea/c8-mare.jpg",
+      "pie": "Mapamundi: el mundo llena la pantalla; zonas de fuera con flecha en el borde"
+    },
+    {
       "tarea": "MR2a",
       "archivo": "gobierno/capturas-tarea/MR2a-1-imperio.jpg",
       "pie": "Imperio en el juego: rollo de papiro, filtros en tablilla de cera"
@@ -1908,10 +1913,22 @@
       "url": "https://claude.ai/code/session_01QiKC3AR2FzqYL23coZ3gBE"
     },
     {
-      "tarea": "C8",
-      "titulo": "Mapa · C8 Mapamundi que se ve mayor (excepción a la 1.0; primera de C8 a C14)",
-      "nota": "js/gfx/map3d.js",
-      "url": "https://claude.ai/code/session_01QiKC37JEPaDYRqYGUeCHXp"
+      "tarea": "MR2b",
+      "titulo": "Versión 1.0 · MR2b Menús romanos: Senado, avisos y barras (Opus)",
+      "nota": "Carril V; css/style.css y js/ui.js (no map3d.js)",
+      "url": "https://claude.ai/code/session_01QiKC36i5pShko1q8HsiYum"
+    },
+    {
+      "tarea": "GM5",
+      "titulo": "Versión 1.0 · GM5 Batalla mejorada en el juego, lo mínimo (Opus)",
+      "nota": "Carril V; motor de guerra (js/guerra.js, ui-guerra, battle3d)",
+      "url": "https://claude.ai/code/session_01QiKC38w2VptqxNBmxqFpVp"
+    },
+    {
+      "tarea": "I8b",
+      "titulo": "Versión 1.0 · I8b Pulir la partida corta (Opus)",
+      "nota": "Carril V; js/game.js y datos; las etiquetas esperan a C8",
+      "url": "https://claude.ai/code/session_01QiKC377wWmKESaumEbS9hB"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
