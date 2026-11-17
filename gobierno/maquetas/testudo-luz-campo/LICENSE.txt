@@ -7,11 +7,18 @@ arte/hierba_seca.jpg — textura «Grass Ground» (color, 1024) — Charlotte Ba
 arte/hierba_verde.jpg — textura «Sparse Grass» (color, 1024) — Amal Kumar — https://polyhaven.com/a/sparse_grass
 arte/tierra.jpg — textura «Brown Mud Dry» (color, 1024) — Rob Tuytel — https://polyhaven.com/a/brown_mud_dry
 arte/roca.jpg — textura «Rock Boulder Dry» (color, reducida a 512) — Dimitrios Savva (foto) y Rico Cilliers (proceso) — https://polyhaven.com/a/rock_boulder_dry
+De fuera (Poly Haven, CC0 1.0), traído por C (GM43d-C, «Hombres y hierro»):
+arte/detalle.png (512x512, RGBA): cuatro mapas de gris empaquetados, uno por canal, hechos con Python a partir de:
+  R · trama de lino: «Rough Linen» (desplazamiento) — colmass (foto) y Rico Cilliers (proceso) — https://polyhaven.com/a/rough_linen
+  G · veta de madera: «Fine Grained Wood» (color pasado a gris) — Rob Tuytel — https://polyhaven.com/a/fine_grained_wood
+  B · manchas (barro, salpicaduras, pátina): «Rusty Metal 02» — Rob Tuytel — https://polyhaven.com/a/rusty_metal_02
+  A · arañazos: dibujados por código (CC0).
 (El cielo de A, «Kloppenheim 06», ya no se usa aquí: se quedó el de B, con nubes, pintado con la luz de A.)
 
 De 0 A.D. (Wildfire Games), CC BY-SA 3.0, https://play0ad.com · https://creativecommons.org/licenses/by-sa/3.0/ — ya estaban en el juego y solo se cargan:
 - Soldados, escudos y espadas (assets/units/), y árboles assets/static/{cipres,pino,olivo}.bin con sus texturas (ver assets/*/LICENSE.txt).
-  Lo que aquí cambia su aspecto (pelo negro pasado a castaño, borde de contraluz, luz de A) se hace en el sombreador, sin tocar sus archivos; lo derivado hereda CC BY-SA 3.0.
+  Lo que aquí cambia su aspecto (pelo castaño con mechones y cuello, color de cada hombre, bronce con brillo y pátina, lino, barro, escudos gastados — de C —; borde de contraluz y luz de A) se hace en el sombreador, sin tocar sus archivos; lo derivado hereda CC BY-SA 3.0.
 
 Hecho por código en esta carpeta (sin arte de fuera): luz, sombras, rayos, motas, polvo de los pies, gradación de color, viñeta y grano (de A);
-matas de hierba, flores, forma de las piedras, montes, sombras de contacto y la mezcla del suelo (de B).
+matas de hierba, flores, forma de las piedras, montes, sombras de contacto y la mezcla del suelo (de B);
+venablos con correa, pilum con virolas y regatón, veta del astil y brillo del hierro (de C).
