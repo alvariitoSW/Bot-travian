@@ -5,7 +5,7 @@ actual del proyecto, qué queda para terminarlo, por qué no se hace ya cuando s
 hacerse bien y diverge tanto».
 
 Es un informe. No se ha tocado el juego. Presentación con capturas y guion:
-https://claude.ai/artifact/UbBHfUxAR7GxQ4SpqjRw14 (el vídeo no se pudo hacer; ver el final).
+https://claude.ai/artifact/UbBHfUxAR7GxQ4SpqjRw14 (y el vídeo, al final).
 
 ## En cinco frases
 1. La 1.0 está cerca: quedan **cuatro tareas** (ES1, GM36, V10a, V10b) y poner los jueces en verde; con lo que cuesta
@@ -126,9 +126,9 @@ mitad es que cada idea buena que tienes mientras pruebas se convierte al momento
 Con las cinco en (A): cuatro sesiones, unos 5 M, y la 1.0 publicada en cuanto hagas tu prueba de media hora en el móvil.
 
 ## El vídeo
-No se pudo hacer. La fábrica de Moncloa (`fiebres-neutropenias`, skill `moncloa`) se descargó bien y se leyó entera,
-pero su instalador (`autonomo/consejo/video/instalar.sh`: voces Piper de España y el «oído») fue **denegado dos veces
-por el control de permisos de esta sesión**. Sin voces no hay vídeo de Moncloa: su regla es «nunca un vídeo mudo».
-En su lugar va la presentación, con capturas reales, gráficos y el guion ya escrito (251 palabras, unos dos minutos) para grabarlo
-tal cual. Para tener el vídeo: una sesión que tenga permiso para ejecutar ese instalador, o lanzarlo desde el
-proyecto `fiebres-neutropenias`, donde ya está permitido.
+Hecho a la segunda, cuando el usuario lo pidió de nuevo («Quiero el video») y el instalador de voces de Moncloa pasó:
+`estudios/video-estado-17-11/estado-proyecto-17-11.mp4` (61 s, vertical, voces Piper de España, a 1,3, −14 LUFS;
+controles de la fábrica APROBADO; el «oído» no se pasó). Fuentes en la misma carpeta (`gen.py`, `escena.html`).
+Se rehace con `python3 gen.py` y `node <fábrica>/render.js . escena.html estado-proyecto-17-11.mp4 --sin-oido`.
+Sin mirar por nadie más: no se lanzó el espectador en frío ni se aprobó el guion gráfico antes de pintar.
+La presentación sigue publicada con las mismas cifras.

@@ -1,141 +1,123 @@
-// EV7 · juega «Gobierno por turnos» con toques en un móvil simulado (390×844, dpr 2) y deja las capturas EV7-*.jpg
-// en gobierno/capturas-tarea/. Falla si hay errores de consola o algo se sale de 390.
-// Uso: node gobierno/maquetas/gobierno-turnos/captura.mjs [semilla=3] [dpr=2] [--servir]
+// EV8 · juega «Gobierno y ciudad juntos» con toques en un móvil simulado (390×844, dpr 1) y deja las capturas EV8-*.jpg
+// en gobierno/capturas-tarea/. Elige plan, delega un cargo, mejora a mano, hace un acto, vota leyes y llega al final.
+// Falla si hay errores de consola o algo se sale de 390.  Uso: node gobierno/maquetas/gobierno-turnos/captura.mjs [semilla=3]
 import { createRequire } from 'module';
-import { createServer } from 'http';
-import { readFile, mkdir } from 'fs/promises';
-import { join, extname, normalize, dirname } from 'path';
+import { spawn } from 'child_process';
+import { mkdir } from 'fs/promises';
+import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 const AQUI = dirname(fileURLToPath(import.meta.url)), RAIZ = join(AQUI, '..', '..', '..'), SALIDA = join(RAIZ, 'gobierno', 'capturas-tarea');
-const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json' };
-const args = process.argv.slice(2), op = Object.fromEntries(args.filter(a => a.includes('=')).map(a => a.split(/=(.*)/s).slice(0, 2)));
-const srv = await new Promise(ok => { const s = createServer(async (req, res) => { try { let r = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^([/\\])+/, ''); if (r === '' || r.endsWith('/')) r += 'index.html'; if (r.startsWith('..')) throw new Error('fuera'); const d = await readFile(join(RAIZ, r)); res.writeHead(200, { 'Content-Type': TIPOS[extname(r)] || 'application/octet-stream' }); res.end(d); } catch (e) { res.writeHead(404); res.end(); } }); s.listen(args.includes('--servir') ? 8381 : 0, '127.0.0.1', () => ok(s)); });
-const URL0 = 'http://127.0.0.1:' + srv.address().port + '/gobierno/maquetas/gobierno-turnos/?semilla=' + (op.semilla || 3);
-if (args.includes('--servir')) { console.log('Sirviendo en ' + URL0); await new Promise(() => {}); }
+const op = Object.fromEntries(process.argv.slice(2).filter(a => a.includes('=')).map(a => a.split(/=(.*)/s).slice(0, 2)));
+const PUERTO = 8700 + Math.floor(Math.random() * 200);
+const srv = spawn('python3', ['-m', 'http.server', String(PUERTO), '--bind', '127.0.0.1'], { cwd: AQUI, stdio: 'ignore' });
+const fuera = c => { try { srv.kill(); } catch (_) { } process.exit(c); };
 const { chromium } = createRequire(join(RAIZ, 'x.js'))('playwright');
 const br = await chromium.launch();
 await mkdir(SALIDA, { recursive: true });
-const dpr = +(op.dpr || 2), prefijo = join(SALIDA, 'EV7-'), errores = [];
+const prefijo = join(SALIDA, 'EV8-'), errores = [];
 const bien = (ok, t) => { console.log((ok ? '  bien: ' : '  MAL: ') + t); if (!ok) errores.push('PRUEBA: ' + t); };
-
-const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: dpr, hasTouch: true, isMobile: true }), page = await ctx.newPage();
-page.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') { errores.push(m.text().slice(0, 300)); console.log('  [' + m.type() + '] ' + m.text().slice(0, 300)); } });
+const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true }), page = await ctx.newPage();
+page.on('console', m => {
+  if (m.type() !== 'error' && m.type() !== 'warning') return;
+  const url = (m.location() || {}).url || '';
+  if (/imagenes\//.test(url) && /404/.test(m.text())) { console.log('  (aviso: falta ' + url.split('/').pop() + ')'); return; }
+  errores.push(m.text().slice(0, 300)); console.log('  [' + m.type() + '] ' + m.text().slice(0, 300) + ' ' + url);
+});
 page.on('pageerror', e => { errores.push(e.message); console.log('  [error de página] ' + e.message.slice(0, 400)); });
-const ev = () => page.evaluate(() => window.__ev7.estado());
+const ev = () => page.evaluate(() => window.__ev8.estado());
 const espera = ms => page.waitForTimeout(ms);
-const toca = async sel => { await page.tap(sel); await espera(250); };
-const foto = async (n, ms = 400) => { await espera(ms); await page.screenshot({ path: prefijo + n + '.jpg', type: 'jpeg', quality: 85 }); console.log('  captura ' + n); };
-const revisa = async (t, pg = page, W = 390) => {
-  const r = await pg.evaluate(W => {
-    let fuera = 0, letra = 99, chico = 0; const malos = [];
-    for (const el of document.querySelectorAll('#app *')) {
-      if (el.closest('svg')) continue; const q = el.getBoundingClientRect(); if (!q.width) continue;
-      if (q.right > W + .5 || q.left < -0.5) { fuera++; malos.push(el.tagName + '.' + el.className); }
-      if (el.childNodes.length && [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim())) letra = Math.min(letra, parseFloat(getComputedStyle(el).fontSize));
-      if (el.tagName === 'BUTTON' && !el.hidden && q.height < 44) chico++;
-    }
-    const b = document.querySelector('#principal').getBoundingClientRect();
-    return { ancho: document.documentElement.scrollWidth, fuera, malos: malos.slice(0, 3), letra, chico, abajo: b.bottom <= innerHeight && b.height >= 44 };
-  }, W);
-  bien(r.ancho <= W && r.fuera === 0, `${t}: nada se sale de ${W} (ancho ${r.ancho}, fuera ${r.fuera} ${r.malos.join(' ')})`);
-  bien(r.letra >= 13, `${t}: letra mínima ${r.letra} px`); bien(r.chico === 0, `${t}: botones de 44 px o más (${r.chico} más pequeños)`); bien(r.abajo, `${t}: el botón principal se ve abajo`);
-};
-
-/* elige la ley con cabeza (lo que se lee en las cartas y en el mando) y compra los votos con toques */
-async function votarConCabeza() {
-  const plan = await page.evaluate(() => {
-    const R = window.__ev7.R, e = window.__ev7.estado();
-    const falta = R.amenazaFinal(e) - R.fuerza(e) - e.ordenes.filter(o => o.ley.tipo === 'reclutar').length * R.fuerzaLegion(e);
-    const cola = (t, o) => e.ordenes.filter(x => x.ley.tipo === t && (o == null || x.ley.obj === o)).length;
-    const valor = l => {
-      if (l.tipo === 'edad') return 100;
-      if (l.tipo === 'reclutar') return falta > 0 ? 40 + falta / 2 - (e.grano < 30 ? 25 : 0) : 5;
-      if (l.tipo === 'ampliar') return e.edad < 2 && R.EDADES[2].edif[l.obj] > e.edif[l.obj] + cola('ampliar', l.obj) ? 60 : l.obj === 'muralla' && falta > 0 ? 35 : l.obj === 'granja' && e.grano < 60 ? 45 : 15;
-      if (l.tipo === 'estudiar') return e.edad < 2 && e.saberes.length + cola('estudiar') < 2 ? 58 : l.obj === 'corvus' && falta > 0 ? 50 : 20;
-      if (l.tipo === 'impuestos') return e.oro < 60 ? 50 : 5;
-      return e.favor < 25 ? 70 : e.plebe < 40 ? 54 - e.plebe / 4 : 3;
-    };
-    let mejor = 0; e.cartas.forEach((c, i) => { if (valor(c) > valor(e.cartas[mejor]) && !R.prevision(e, i).veto) mejor = i; });
-    return mejor;
+const toca = async sel => { await page.tap(sel); await espera(220); };
+const clic = async sel => { await page.$eval(sel, el => el.dispatchEvent(new MouseEvent('click', { bubbles: true }))); await espera(220); };
+const fotos = [];
+const foto = async (n, ms = 350) => { await espera(ms); await page.screenshot({ path: prefijo + n + '.jpg', type: 'jpeg', quality: 85 }); fotos.push(n); console.log('  captura ' + n); };
+const revisa = async t => {
+  const r = await page.evaluate(() => {
+    let fuera = 0; const malos = [];
+    for (const el of document.querySelectorAll('#app *')) { if (el.closest('svg') || el.closest('.mapa')) continue; const q = el.getBoundingClientRect(); if (!q.width) continue; if (q.right > 390.5 || q.left < -0.5) { fuera++; malos.push(el.tagName + '.' + el.className); } }
+    return { ancho: document.documentElement.scrollWidth, fuera, malos: malos.slice(0, 3) };
   });
-  await toca(`[data-a="ley"][data-x="${plan}"]`);
-  for (let n = 0; n < 3; n++) {
-    const quiere = await page.evaluate(() => {
-      const R = window.__ev7.R, e = window.__ev7.estado(), pv = R.prevision(e); if (pv.esperado >= 21) return null;
-      const g = R.gustoLey(e.cartas[e.sel]);
-      const b = R.BS.filter(x => !e.tratos[x] && pv.bandos[x].seguros < e.escanos[x]).sort((a, c) => (pv.bandos[c].dudosos + pv.bandos[c].contra) - (pv.bandos[a].dudosos + pv.bandos[a].contra))[0];
-      if (!b) return null; const libre = !e.promesas.some(p => p.bando === b);
-      return { b, t: g[b] > 0.15 && libre ? 'promesa' : e.oro - R.costeTrato(e, b) > 50 ? 'oro' : libre && e.favor > 35 ? 'promesa' : null };
-    });
-    if (!quiere || !quiere.t) break;
-    for (let k = 0; k < 3 && (await ev()).tratos[quiere.b] !== quiere.t; k++) await toca(`[data-a="trato"][data-x="${quiere.b}"]`);
-  }
-}
+  bien(r.ancho <= 390 && r.fuera === 0, `${t}: nada se sale de 390 (fuera ${r.fuera} ${r.malos.join(' ')})`);
+};
+const arriba = () => page.evaluate(() => { document.getElementById('cuerpo').scrollTop = 0; });
 
-await page.goto(URL0); await page.waitForFunction('window.__ev7 && window.__ev7.lista === true');
-bien(await page.evaluate(() => window.__ev7.portada()), 'se abre la portada');
-await foto('00-portada', 300);
-await toca('#portada [data-a="nueva"]');
-bien(await page.evaluate(() => window.__ev7.lugar()) === 'ciudad' && !(await page.evaluate(() => window.__ev7.portada())), '«Nueva partida» lleva a la Ciudad');
-await revisa('Ciudad al empezar'); await foto('01-ciudad-inicio', 600);
-const inicial = await ev();
-let turnos = 0, destello = null;
-for (let t = 0; t < 12; t++) {
-  let e = await ev(); if (e.fase === 'fin') break;
-  await toca('#principal'); // «Ir al Senado a votar»
-  bien(await page.evaluate(() => window.__ev7.lugar()) === 'senado', `estación ${t + 1}: el botón lleva al Senado`);
-  await votarConCabeza();
-  if (t === 0) { await revisa('Senado antes de votar'); await foto('02-senado', 300); }
-  await toca('#principal'); // «Llamar a votar»
-  if (t === 0) { await foto('03-recuento-a-mitad', 1900); }
-  await page.evaluate(() => window.__ev7.saltar());
-  await espera(200);
-  if (t === 0) { await revisa('Recuento'); await foto('04-recuento-final', 200); }
-  await toca('#capa [data-a="al-mando"]');
-  if (t === 0 || t === 4) { await revisa('Mando'); await foto(t === 0 ? '05-mando' : '05b-mando-estacion5', 300); }
-  if (t === 4) { const L = await page.$('[data-a="leva"]'); bien(!!L, 'Mando: se ve el botón de leva pagada'); if (L && await L.isEnabled()) { const n = (await ev()).ordenes.length; await toca('[data-a="leva"]'); bien((await ev()).ordenes.length === n + 1, 'la leva pagada entra en la cola de mando'); } }
-  await toca('#principal'); // «Terminar la estación»
-  if (t === 0) { await revisa('Paso de estación'); await foto('06-paso-estacion', 300); }
-  e = await ev(); turnos++;
-  if (e.fase === 'fin') { await toca('#capa [data-a="veredicto"]'); break; }
-  await toca('#capa [data-a="a-ciudad"]');
-  const focos = await page.evaluate(() => window.__ev7.focos());
-  if (focos.length && !destello) { destello = focos[0].nombre; await foto('06b-destello-obra-nueva', 1400); await revisa('Destello de obra nueva'); }
-  if (t === 2) { await revisa('Ciudad en invierno'); await foto('07-ciudad-invierno', focos.length ? 6500 : 800); }
-  if (t === 4) { await foto('07b-ciudad-verano', focos.length ? 6500 : 800); }
-  if (t === 10) { await revisa('Ciudad en la estación 12'); await foto('08-ciudad-final', focos.length ? 6500 : 800); }
-}
-const fin = await ev();
-bien(turnos >= 10, `se juegan ${turnos} estaciones con toques`);
-bien(fin.fase === 'fin' && !!fin.fin, 'la partida acaba con veredicto: ' + (fin.fin && fin.fin.titulo));
-bien(fin.edif.mercado + fin.edif.muelle + fin.saberes.length + fin.legiones > inicial.edif.mercado + inicial.edif.muelle + inicial.saberes.length + inicial.legiones, 'la ciudad ha crecido (obras, saberes o legiones)');
-bien(!!destello, 'se ve el destello de una obra nueva con su nombre: ' + destello);
-await revisa('Veredicto'); await foto('09-veredicto', 400);
-/* al recargar con la partida terminada se ve el veredicto, no otra partida en silencio */
-await page.reload(); await page.waitForFunction('window.__ev7 && window.__ev7.lista === true');
-bien(await page.evaluate(() => !!document.querySelector('#capa:not([hidden]) .veredicto') && !window.__ev7.portada() && window.__ev7.estado().fase === 'fin'), 'al recargar se ve el veredicto de la partida terminada');
-await toca('#capa [data-a="cerrar"]'); await foto('10-ciudad-al-final', 800);
-/* jugar otra vez: otra semilla */
-await toca('#principal'); await toca('#capa [data-a="otra"]');
-const nueva = await ev(); bien(nueva.turno === 0 && nueva.semilla !== fin.semilla, '«Jugar otra vez» empieza otra partida con otra semilla');
-await ctx.close();
-/* vista tumbada: 844×390, dibujo a la izquierda y controles a la derecha */
-{
-  const c2 = await br.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: dpr, hasTouch: true, isMobile: true }), p2 = await c2.newPage();
-  p2.on('console', m => { if (m.type() === 'error' || m.type() === 'warning') errores.push('tumbada: ' + m.text().slice(0, 300)); });
-  p2.on('pageerror', e => errores.push('tumbada: ' + e.message));
-  await p2.goto(URL0); await p2.waitForFunction('window.__ev7 && window.__ev7.lista === true');
-  await p2.screenshot({ path: prefijo + 'T0-tumbada-portada.jpg', type: 'jpeg', quality: 85 });
-  await p2.tap('#portada [data-a="nueva"]'); await p2.waitForTimeout(600);
-  await revisa('Tumbada: Ciudad', p2, 844); await p2.screenshot({ path: prefijo + 'T1-tumbada-ciudad.jpg', type: 'jpeg', quality: 85 });
-  await p2.tap('#principal'); await p2.waitForTimeout(250); await p2.tap('[data-a="ley"][data-x="0"]'); await p2.waitForTimeout(300);
-  const lado = await p2.evaluate(() => { const h = document.querySelector('.hemi').getBoundingClientRect(), c = document.querySelector('.cartas').getBoundingClientRect(); return h.right <= c.left + 2; });
-  bien(lado, 'Tumbada: el hemiciclo a la izquierda y las cartas a la derecha');
-  await revisa('Tumbada: Senado', p2, 844); await p2.screenshot({ path: prefijo + 'T2-tumbada-senado.jpg', type: 'jpeg', quality: 85 });
-  await p2.tap('#principal'); await p2.waitForTimeout(1900); await p2.screenshot({ path: prefijo + 'T3-tumbada-recuento.jpg', type: 'jpeg', quality: 85 });
-  console.log('  capturas tumbadas T0-T3');
-  await c2.close();
-}
-await br.close(); srv.close();
-console.log(errores.length ? `\nNO APTO (${errores.length}):\n` + errores.join('\n') : '\nAPTO');
-process.exit(errores.length ? 1 : 0);
+try {
+  await page.goto(`http://127.0.0.1:${PUERTO}/?semilla=${op.semilla || 3}`);
+  await page.evaluate(() => localStorage.clear()); await page.reload();
+  await page.waitForFunction(() => window.__ev8 && window.__ev8.lista);
+  await toca('[data-a="nueva"]');
+  let hechoMano = false, hechoActo = false, fotoMarcas = false, fotoJuicio = false, delegado = false;
+  for (let vuelta = 0; vuelta < 14; vuelta++) {
+    let s = await ev(); if (s.fase === 'fin') break;
+    console.log(`Estación ${s.turno + 1} · fase ${s.fase}`);
+    // 1 · consejo del año
+    if (s.fase === 'consejo') {
+      if ((await page.evaluate(() => window.__ev8.lugar())) !== 'consejo') await toca('#principal');
+      const ids = await page.evaluate(() => { const R = window.__ev8.R, e = window.__ev8.estado(); const pr = x => x.tipo === 'obra' ? ({ granja: e.grano < 90 ? 95 : 20, foro: x.n === 2 ? 90 : 25, mercado: 85, muelle: 80, muralla: 50, templo: 40, cuartel: 20 })[x.obj] : x.tipo === 'saber' ? 74 : 30; return R.encargosPropuestos(e).filter(x => x.puede).sort((a, b) => pr(b) - pr(a)).map(x => x.id).slice(0, 3); });
+      for (const id of ids) await clic(`.encargo[data-x="${id}"]`);
+      if (!delegado) { await clic('.consejero [data-a="delegar"][data-x="edil"]'); delegado = true; }
+      if (s.turno === 0) { await arriba(); await foto('01-consejo'); await page.evaluate(() => document.querySelector('.consejero').scrollIntoView()); await foto('01b-consejeros'); await revisa('consejo'); }
+      await toca('#principal');
+      s = await ev(); bien(s.plan.length === ids.length, `plan del año con ${s.plan.length} encargos`);
+    }
+    // 2 · Senado: juicio y cuestión de Estado
+    if (await page.evaluate(() => window.__ev8.lugar()) !== 'senado') await toca('#principal');
+    if (!fotoJuicio && s.turno >= 1) { await foto('05-juicio'); await revisa('juicio'); fotoJuicio = true; }
+    await toca('#principal'); // a la cuestión de Estado
+    const mejor = await page.evaluate(() => { const R = window.__ev8.R, e = window.__ev8.estado(); let b = 0, m = -1; e.cartas.forEach((l, i) => { const p = R.prevision(e, i); const bon = { edad: 25, estudiar: 4, impuestos: e.oro < 60 ? 8 : -4, reclutar: e.grano < 80 ? -12 : 2, socios: e.grano < 80 ? -12 : 2, granoBarato: e.plebe < 45 ? 8 : -6 }[l.tipo] || 0; if (p && !p.veto && p.esperado + bon > m) { m = p.esperado + bon; b = i; } }); return b; });
+    await clic(`.carta[data-x="${mejor}"]`);
+    // tratos con oro a los bandos que dudan si hay oro de sobra
+    const tr = await page.evaluate(() => { const R = window.__ev8.R, e = window.__ev8.estado(), p = R.prevision(e); return p.esperado < 18 ? R.BS.filter(b => p.bandos[b].dudosos > 2 && !p.bandos[b].yaTeVotan && e.oro > 60) : []; });
+    for (const b of tr) await clic(`.tratos [data-x="${b}"]`);
+    if (s.turno === 1) { await arriba(); await foto('06-leyes'); await page.evaluate(() => document.querySelector('.cartas').scrollIntoView()); await foto('06b-leyes-ciudad'); await revisa('leyes'); }
+    await toca('#principal');
+    await espera(s.turno === 1 ? 2200 : 300);
+    if (s.turno === 1) await foto('07-recuento', 0);
+    await page.evaluate(() => window.__ev8.saltar()); await espera(300);
+    if (s.turno === 1) await foto('07b-recuento-fin', 200);
+    await toca('[data-a="a-ciudad"]');
+    // 3 · ciudad: ficha y obra a mano
+    if (!hechoMano) {
+      await arriba(); await foto('02-ciudad', 900); await revisa('ciudad');
+      await toca('[data-a="zoom"][data-x="1"]');
+      await foto('02b-ciudad-zoom');
+      await toca('[data-a="zoom"][data-x="0"]');
+      const id = await page.evaluate(() => { const R = window.__ev8.R, e = window.__ev8.estado(); return R.ORDEN_EDIF.find(k => R.fichaEdificio(e, k).puede) || 'templo'; });
+      await clic(`[data-edif="${id}"]`);
+      await foto('03-ficha'); await revisa('ficha');
+      const ok = await page.$(`[data-a="mejorar"][data-x="${id}"]:not([disabled])`);
+      if (ok) { await toca(`[data-a="mejorar"][data-x="${id}"]`); hechoMano = (await ev()).ordenes.some(o => o.mano); bien(hechoMano, 'mejora a mano: ' + id); await foto('03b-ficha-en-obra'); }
+      await toca('[data-a="cerrar"]');
+    }
+    // obras del plan que estén a mano y, si falta grano, las granjas
+    for (let k = 0; k < 3; k++) { const b = await page.$('[data-a="empezar"]:not([disabled])'); if (!b) break; await clic('[data-a="empezar"]:not([disabled])'); }
+    if ((await ev()).grano < 60) { await clic('[data-edif="granja"]'); if (await page.$('[data-a="mejorar"]:not([disabled])')) await clic('[data-a="mejorar"]:not([disabled])'); await clic('[data-a="cerrar"]'); }
+    // 4 · un acto
+    s = await ev();
+    if (!hechoActo && s.oro >= 30) {
+      await toca('[data-a="actos"]'); await foto('04-actos');
+      await toca('[data-a="acto"][data-x="juegos"]'); await foto('04b-acto', 600);
+      await toca('[data-a="aprende"]'); await foto('04c-aprendes', 800); await revisa('aprendes');
+      await toca('[data-a="cerrar"]'); hechoActo = true;
+    } else if (s.turno % 3 === 2 && s.oro >= 50) { await toca('[data-a="actos"]'); await toca('[data-a="acto"][data-b="ter"]'); await toca('[data-a="aprende"]'); await toca('[data-a="cerrar"]'); }
+    // 5 · terminar la estación
+    await page.evaluate(() => { document.getElementById('cuerpo').scrollTop = 0; });
+    await toca('#principal'); await espera(300);
+    const u = await page.evaluate(() => window.__ev8.ui());
+    if (!fotoMarcas && u.informe && u.informe.aprobadas.length && u.informe.cambiosCiudad.length) {
+      await foto('08-marcas', 600); await page.evaluate(() => document.querySelector('.cambios') && document.querySelector('.cambios').scrollIntoView()); await foto('08b-que-ha-cambiado'); await revisa('marcas'); fotoMarcas = true;
+    }
+    if ((await ev()).fase === 'fin') break;
+  }
+  const s = await ev();
+  bien(s.fase === 'fin', 'la partida llega al final: ' + (s.fin && s.fin.titulo));
+  await espera(1200); await foto('09-final', 300); await revisa('final');
+  await toca('[data-a="ver-ciudad"]'); await foto('09b-ciudad-final', 600);
+  // recargar no pierde la partida
+  await page.reload(); await page.waitForFunction(() => window.__ev8 && window.__ev8.lista);
+  bien((await ev()).turno === s.turno, 'recargar conserva la partida');
+  bien(fotoMarcas, 'hubo una ley aprobada con marcas en la ciudad');
+} catch (x) { errores.push('EXCEPCIÓN: ' + x.message); console.log(x); }
+await br.close();
+console.log('Capturas: ' + fotos.join(', '));
+if (errores.length) { console.log('FALLA:\n' + errores.join('\n')); fuera(1); }
+console.log('APTO'); fuera(0);

@@ -40,7 +40,12 @@ def oclusion(pz):
         for _ in range(2):
             c = np.cumsum(np.pad(G, [(3, 2) if k == ax else (0, 0) for k in range(3)]), axis=ax); G = (np.take(c, np.arange(5, c.shape[ax]), axis=ax) - np.take(c, np.arange(0, c.shape[ax] - 5), axis=ax)) / 5
     def mira(q):
-        i = np.clip(((q - o) / 0.01).astype(int), 0, np.array(dim) - 1); return G[i[:, 0], i[:, 1], i[:, 2]]
+        f = (q - o) / 0.01 - 0.5; i0 = np.floor(f).astype(int); t = f - i0; out = 0.0; lim = np.array(dim) - 1      # entre celdas, mezcla suave: sin escalones de 1 cm
+        for dx in (0, 1):
+            for dy in (0, 1):
+                for dz in (0, 1):
+                    i = np.clip(i0 + [dx, dy, dz], 0, lim); out = out + (t[:, 0] if dx else 1 - t[:, 0]) * (t[:, 1] if dy else 1 - t[:, 1]) * (t[:, 2] if dz else 1 - t[:, 2]) * G[i[:, 0], i[:, 1], i[:, 2]]
+        return out
     return mira
 
 ESTILO = dict(pelo=[0.13, 0.09, 0.065], calzado='caligae')
@@ -73,7 +78,7 @@ def pintar(pz, lado, ruta, m):
                  + 0.3 * (axs < 0.075) * sum(np.exp(-((ys - yy_) / 0.006) ** 2) for yy_ in (1.215, 1.16, 1.105)))
         c = mez(c, [0.52, 0.34, 0.27], np.clip(0.45 * surco, 0, 0.4)); vp = fr_ * (ys > 0.98) * (ys < 1.42) * (gau(q3, [0, 1.33, 0.1], [0.11, 0.07, 0.3]) + 0.6 * gau(q3, [0, 1.01, 0.1], [0.03, 0.06, 0.3])); c = mez(c, [0.40, 0.29, 0.23], 0.30 * vp * (fino[s] > 0.5))
         ojo = gau(np.stack([axs, ys, zs], 1), [0.030, 1.613, 0.135], [0.020, 0.011, 0.03]); c = mez(c, [0.50, 0.33, 0.28], 0.38 * ojo * cara)
-        barba = cara * sst(1.578, 1.556, ys) * sst(1.455, 1.485, ys) * (1 - sst(0.150, 0.162, zs) * sst(1.560, 1.570, ys)) * sst(0.03, 0.06, zs + 0.6 * axs); c = mez(c, [0.40, 0.34, 0.33], 0.42 * barba * (0.55 + 0.45 * fino[s]))
+        barba = cara * sst(1.578, 1.556, ys) * sst(1.455, 1.485, ys) * (1 - sst(0.150, 0.162, zs) * sst(1.560, 1.570, ys)) * sst(0.03, 0.06, zs + 0.6 * axs); c = mez(c, [0.40, 0.34, 0.33], 0.22 * barba * (0.55 + 0.45 * fino[s]))
         dx = axs / 0.0255; dy = ys - 1.5485; lab = (dx < 1) * (zs > 0.132) * sst(0.0, 0.0012, np.where(dy > 0, 0.0078 * np.sqrt(np.clip(1 - dx ** 2, 0, 1)) * (1 - 0.25 * np.exp(-(axs / 0.004) ** 2)) - dy, 0.0098 * np.sqrt(np.clip(1 - dx ** 2, 0, 1)) + dy))
         c = mez(c, [0.66, 0.40, 0.35], 0.6 * lab); c = mez(c, [0.25, 0.12, 0.11], 0.8 * (dx < 0.97) * (zs > 0.132) * np.exp(-(dy / 0.0008) ** 2))
         t = np.clip((axs - 0.010) / 0.046, 0, 1); yc = 1.6335 + 0.0042 * np.sin(np.pi * t * 0.8) - 0.011 * t ** 3; gro = 0.0034 * (1 - 0.6 * t ** 2); ceja = cara * (axs > 0.010) * (axs < 0.056) * np.exp(-((ys - yc) / gro) ** 2) * (0.55 + 0.45 * r2(xs * 1.0 + ys * 0.6, ys, 2400, 2.0))
@@ -87,7 +92,7 @@ def pintar(pz, lado, ruta, m):
         if ESTILO['calzado'] == 'zapato': cor = (pie * (ys < 0.118)).astype(float)
         c = mez(c, np.array([0.27, 0.17, 0.10]) * (0.8 + 0.4 * grano[s])[:, None] if ESTILO['calzado'] == 'zapato' else np.array([0.27, 0.17, 0.10]), cor * 0.96); H[s] += cor * 0.0016 + 0.00012 * fino[s] * (1 - cor)
         vello = (((axs > 0.33) & (ys < 1.2) & (ys > 1.05)) | ((ys < 0.47) & (ys > 0.15))) * (1 - cor); c = mez(c, [0.42, 0.30, 0.24], 0.16 * vello * (fino[s] > 0.55))
-        C[s] = c; R[s] = 0.56 - 0.13 * gau(p, [0, 1.6, 0.15], [0.05, 0.07, 0.05]) - 0.14 * lab + 0.2 * pelo + 0.1 * cor; TI[s, 1] = (1 - np.clip(pelo + cor + ceja, 0, 1)) * (1 - 0.6 * lab)
+        C[s] = c; R[s] = 0.56 - 0.13 * gau(p, [0, 1.6, 0.15], [0.05, 0.07, 0.05]) - 0.14 * lab + 0.2 * pelo + 0.1 * cor; TI[s, 1] = (1 - np.clip(pelo + cor + ceja, 0, 1)) * (1 - 0.6 * lab); pm = pelo > 0.5; TI[s, 0] = np.where(pm, 1.0, 0.5 * barba * (0.6 + 0.4 * fino[s])); TI[s, 2] = pm      # pelo: rojo y azul a la vez; barba: rojo sobre piel
     # ---------- ojos ----------
     s = MT == MAT['ojo']
     if s.any():
@@ -100,13 +105,15 @@ def pintar(pz, lado, ruta, m):
         u, v = PR[s].T; hilo = 0.5 + 0.25 * np.sin((u + v) * 2100) + 0.25 * np.sin((u - v) * 2100 * 0.93); arr = fbm(np.stack([u * 0.6, v * 2.2, z[s] * 0.3], 1), 14, 3, 5.0)
         falda = es('faldon_tunica')[s]; manga = es('manga')[s]; borde = np.where(falda, AX[s, 0], np.where(manga, AX[s, 0], 0)); dob = sst(0.90, 0.93, borde) * sst(1.0, 0.985, borde); cost = np.exp(-((borde - 0.915) / 0.008) ** 2)
         c = np.full((int(s.sum()), 3), 0.46) * (0.80 + 0.22 * arr + 0.08 * hilo)[:, None] * (1 - 0.18 * mancha[s] * sst(0.3, 1.0, borde))[:, None]; c *= (1 - 0.22 * cost * (np.sin(u * 900) > 0))[:, None]
-        C[s] = c; H[s] = 0.00025 * hilo + 0.0035 * (arr - 0.5) + 0.0009 * dob; R[s] = 0.93; TI[s, 0] = 1
+        tt = -np.pi + 2 * np.pi * AX[s, 1]; pli = 0.5 + 0.5 * np.sin(tt * 13 + 2 * np.sin(tt * 3)); prof = falda * sst(0.0, 0.55, AX[s, 0]); c = c * (1 - 0.42 * prof * (1 - pli) ** 1.5)[:, None] * (1 + 0.10 * prof * pli ** 3)[:, None]
+        arrm = manga * (0.5 + 0.5 * np.sin(u * 190 + 3 * np.sin(v * 40))) * sst(0.2, 0.7, AX[s, 0]); c = c * (1 - 0.22 * arrm)[:, None]
+        C[s] = c; H[s] = 0.00025 * hilo + 0.0035 * (arr - 0.5) + 0.0009 * dob + 0.002 * arrm; R[s] = 0.93; TI[s, 0] = 1
     # ---------- cota de malla ----------
     s = MT == MAT['malla']
     if s.any():
         u, v = PR[s].T; px_, py_ = 0.0088, 0.0066; fila = np.floor(v / py_); vv = v / py_ - fila - 0.5; uu = u / px_ + 0.5 * (fila % 2); uu = uu - np.floor(uu) - 0.5; sl = np.where(fila % 2 == 0, 0.55, -0.55); ur = uu + sl * vv
         d = np.sqrt((ur / 0.40) ** 2 + (vv / 0.60) ** 2); h = np.exp(-((d - 0.78) / 0.27) ** 2); ox = fbm(P[s], 22, 3, 7.0); oxi = sst(0.56, 0.72, ox) * 0.6
-        c = np.tile([0.33, 0.335, 0.35], (int(s.sum()), 1)) * (0.35 + 0.65 * h)[:, None] * (0.80 + 0.40 * mancha[s])[:, None]; c = mez(c, [0.30, 0.19, 0.12], oxi * (0.4 + 0.6 * h))
+        oxi = oxi * 0.6; c = np.tile([0.47, 0.48, 0.51], (int(s.sum()), 1)) * (0.40 + 0.60 * h)[:, None] * (0.90 + 0.20 * mancha[s])[:, None]; c = mez(c, [0.30, 0.19, 0.12], oxi * (0.4 + 0.6 * h))
         co = es('cota')[s]; xa = ax_[s]; ys = y[s]; zs = z[s]
         dent = np.maximum(sst(0.047, 0.056, xa) * sst(0.172, 0.163, xa) * sst(1.222, 1.232, ys + 0.10 * (xa - 0.10)) * (zs >= 0.0), sst(1.322, 1.332, ys) * (zs < 0.0)) * co * sst(1.452, 1.445, ys)
         bo = np.clip(4 * dent * (1 - dent) * 1.6, 0, 1); yc_ = ys - 0.02 * np.clip(-zs, -0.05, 0.1); tel = co * sst(1.4475, 1.4505, yc_); bo = np.maximum(bo, co * sst(1.434, 1.440, yc_)) * (1 - tel)
@@ -119,10 +126,10 @@ def pintar(pz, lado, ruta, m):
     s = MT == MAT['bronce']
     if s.any():
         v = AX[s, 0]; u = AX[s, 1]; cu = es('yelmo_cuenco')[s]; ca = es('yelmo_carrillera')[s]; gr = es('greba')[s]; pat = sst(0.45, 0.8, fbm(P[s], 30, 3, 2.0)); ray = sst(0.72, 0.9, r2(PR[s, 0] * 900, PR[s, 1] * 40, 1.0, 3.0))
-        c = np.tile([0.70, 0.50, 0.25], (int(s.sum()), 1)) * (0.8 + 0.4 * mancha[s])[:, None]; c = mez(c, [0.36, 0.30, 0.16], (0.45 * pat + 0.5 * (1 - AO[s]) ** 1.2) * (1 - 0.75 * gr)); c = c * (1 + 0.18 * gr)[:, None]; c = mez(c, [0.30, 0.42, 0.33], 0.16 * sst(0.75, 0.95, fbm(P[s], 55, 2, 8.0)))
+        c = np.tile([0.63, 0.44, 0.22], (int(s.sum()), 1)) * (0.92 + 0.16 * mancha[s])[:, None] * (1 + cu * (0.22 * sst(0.25, 0.9, v) - 0.10))[:, None]; c = mez(c, [0.33, 0.26, 0.14], (0.30 * pat + 0.55 * (1 - AO[s]) ** 1.2) * (1 - 0.75 * gr)); c = c * (1 + 0.18 * gr)[:, None]; c = mez(c, [0.30, 0.42, 0.33], 0.16 * sst(0.75, 0.95, fbm(P[s], 55, 2, 8.0)))
         soga = cu * (v < 0.062) * (v > 0.012) * (0.5 + 0.5 * np.sin(u * 2 * np.pi * 46 + v * 220)); escam = cu * (v > 0.9) * (0.5 + 0.5 * np.sin(u * 2 * np.pi * 12) * np.sin(v * 260)); filo = ca * (np.minimum(np.minimum(u, 1 - u), np.minimum(v, 1 - v) * 1.4) < 0.07) + gr * (np.minimum(v, 1 - v) < 0.03)
         nerv = gr * np.exp(-(x[s] - 0.0 - (0.15 + (y[s] - 0.5) * -0.105)) ** 2 / 0.006 ** 2) * 0
-        C[s] = c * (1 - 0.12 * soga)[:, None]; H[s] = 0.0007 * soga + 0.0025 * gr * np.exp(-((u - 0.5) / 0.05) ** 2) * 0 + 0.001 * escam + 0.0012 * filo + 0.0004 * (grano[s] - 0.5) - 0.0003 * ray; R[s] = 0.36 + 0.26 * pat * (1 - 0.6 * gr) + 0.12 * ray + 0.1 * grano[s]; ME[s] = 1.0
+        C[s] = c * (1 - 0.12 * soga)[:, None]; H[s] = 0.0007 * soga + 0.0025 * gr * np.exp(-((u - 0.5) / 0.05) ** 2) * 0 + 0.001 * escam + 0.0012 * filo + 0.00010 * (grano[s] - 0.5); R[s] = 0.47 + 0.20 * pat * (1 - 0.6 * gr) + 0.05 * grano[s]; ME[s] = 1.0
     # ---------- hierro ----------
     s = MT == MAT['hierro']
     if s.any():
@@ -150,10 +157,12 @@ def pintar(pz, lado, ruta, m):
     s = MT == MAT['escudo']
     if s.any():
         u, v = PR[s].T; fr = es('escudo_frente')[s]; vn = AX[s, 0]; ray = sst(0.80, 0.93, r2(u * 55 + v * 16, v * 9, 1.0, 5.0)) * sst(0.35, 0.7, mancha[s]) + sst(0.83, 0.95, r2(u * 300, v * 300, 1.0, 12.0)) * 0.7; ray = np.clip(ray, 0, 1) * fr
-        tabl = 0.5 + 0.5 * np.cos((u / 0.066) * 2 * np.pi); c = np.full((int(s.sum()), 3), 0.47) * (0.80 + 0.25 * fbm(P[s], 16, 3, 4.0) + 0.05 * (grano[s] - 0.5))[:, None]; c = c * (1 - 0.07 * (tabl < 0.04))[:, None]
+        tabl = 0.5 + 0.5 * np.cos((u / 0.066) * 2 * np.pi); c = np.full((int(s.sum()), 3), 0.56) * (0.80 + 0.25 * fbm(P[s], 16, 3, 4.0) + 0.05 * (grano[s] - 0.5))[:, None]; c = c * (1 - 0.07 * (tabl < 0.04))[:, None]
         banda = fr * (np.abs(vn) > 0.925); placa = fr * (np.abs(u) < 0.115) * (np.abs(v) < 0.070 - 0.02 * (np.abs(u) / 0.115) ** 2) ; rem = placa * (gau(np.stack([np.abs(u), np.abs(v), 0 * u], 1), [0.095, 0.045, 0], [0.007, 0.007, 1]) > 0.5); hi = np.clip(banda + placa, 0, 1)
-        c = mez(c, [0.62, 0.56, 0.46], 0.75 * ray * (1 - hi)); c = mez(c, np.array([0.62, 0.62, 0.64]), hi); c = c * (1 - 0.4 * sst(0.5, 0.8, fbm(P[s], 30, 3, 6.0)) * hi)[:, None]; c = mez(c, [0.75, 0.75, 0.78], rem * 1.0)
-        C[s] = c; H[s] = -0.0006 * ray + 0.0015 * hi + 0.002 * rem - 0.0004 * (tabl < 0.04) + 0.0002 * (grano[s] - 0.5); R[s] = np.where(hi > 0.5, 0.5, 0.74 - 0.1 * ray); ME[s] = hi; TI[s, 2] = (1 - hi) * (1 - 0.8 * ray)
+        ray = ray * 0.55; un = AX[s, 1]; ed = np.minimum(1 - np.abs(un), (1 - np.abs(vn)) * 1.6); gas = fr * np.clip(sst(0.16, 0.0, ed) * (0.35 + 0.9 * fbm(P[s], 34, 3, 21.0)) + 0.5 * sst(0.62, 0.8, fbm(P[s], 13, 3, 31.0)) * sst(0.3, 0.9, -vn + 0.3), 0, 1) * (1 - hi)
+        barro_ = fr * sst(-0.35, -1.0, vn) * (0.35 + 0.65 * fbm(P[s], 20, 3, 41.0)) * (1 - hi); c = c * (1 + 0.10 * sst(-0.2, 0.9, vn))[:, None]
+        c = mez(c, [0.52, 0.43, 0.33], 0.55 * ray * (1 - hi)); c = mez(c, [0.40, 0.31, 0.22], 0.42 * gas); c = mez(c, [0.30, 0.24, 0.17], 0.36 * barro_); c = mez(c, np.array([0.47, 0.47, 0.49]), hi); c = c * (1 - 0.4 * sst(0.5, 0.8, fbm(P[s], 30, 3, 6.0)) * hi)[:, None]; c = mez(c, [0.75, 0.75, 0.78], rem * 1.0)
+        C[s] = c; H[s] = -0.0006 * ray + 0.0015 * hi + 0.002 * rem - 0.0004 * (tabl < 0.04) + 0.0002 * (grano[s] - 0.5); R[s] = np.where(hi > 0.5, 0.58, 0.80 - 0.1 * ray); ME[s] = hi; TI[s, 2] = (1 - hi) * (1 - 0.8 * ray) * (1 - 0.6 * gas) * (1 - 0.5 * barro_)
     # ---------- plumas ----------
     s = MT == MAT['pluma']
     if s.any():
@@ -177,9 +186,9 @@ def pintar(pz, lado, ruta, m):
     s = MT == MAT['pelo']
     if s.any():
         u, v = AX[s].T; heb = r2(u * 300, v * 7, 1.0, 9.0); heb2 = r2(u * 900, v * 12, 1.0, 19.0); c = np.tile(ESTILO.get('melena', [0.74, 0.66, 0.47]), (int(s.sum()), 1)) * (0.50 + 0.45 * heb + 0.3 * heb2)[:, None]
-        C[s] = c; H[s] = 0.0022 * heb + 0.001 * heb2; R[s] = 0.6
+        C[s] = c; H[s] = 0.0022 * heb + 0.001 * heb2; R[s] = 0.6; TI[s, 0] = 1; TI[s, 2] = 1
     # ---------- salida ----------
-    C = np.clip(C * (0.58 + 0.42 * AO)[:, None], 0, 1)
+    C = np.clip(C * (0.52 + 0.48 * AO)[:, None] * (0.93 + 0.11 * Nn[:, 1])[:, None], 0, 1)
     def lienzo(v, k, fondo):
         a = np.full((N, N, k), fondo, np.float32); a[I] = v.reshape(n, k); return a
     col = lienzo(C, 3, 0.4); alt = lienzo(H, 1, 0.0); orm = lienzo(np.stack([AO, R, ME], 1), 3, 0.5); tin = lienzo(TI, 3, 0.0)
@@ -188,5 +197,5 @@ def pintar(pz, lado, ruta, m):
     capas = [col, nor, orm, tin]; geo.dilatar(M, capas, 20)
     b = lambda a: np.clip(a * 255 + 0.5, 0, 255).astype(np.uint8); base = ruta.split('/')[-1]
     Image.fromarray(b(col)).save(ruta + '_color.webp', quality=93, method=4); Image.fromarray(b(nor)).save(ruta + '_normal.webp', quality=92, method=4); Image.fromarray(b(orm)).save(ruta + '_orm.webp', quality=88, method=4)
-    Image.fromarray(b(tin)).resize((N // 2, N // 2), Image.LANCZOS).save(ruta + '_masc.webp', quality=88, method=4)
+    Image.fromarray(b(tin)).resize((N // 2, N // 2), Image.LANCZOS).save(ruta + '_masc.webp', quality=90, method=4)
     return dict(color=base + '_color.webp', normal=base + '_normal.webp', orm=base + '_orm.webp', masc=base + '_masc.webp')

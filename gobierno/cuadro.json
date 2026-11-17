@@ -1686,6 +1686,11 @@
       "tarea": "P167",
       "archivo": "gobierno/capturas-tarea/P167-3-calle.jpg",
       "pie": "Roma hoy, a pie de calle: paredes borrosas y antorchas como bolas de luz"
+    },
+    {
+      "tarea": "RM4",
+      "archivo": "gobierno/capturas-tarea/RM4-laminas-hoja.jpg",
+      "pie": "Láminas de dominio público encontradas: Atenas, hoplitas, templo dórico, Foro, puerto de Roma, Siracusa"
     }
   ],
   "informes": [
@@ -1912,6 +1917,10 @@
     {
       "titulo": "Estado del proyecto (17/11, noche): qué queda para la 1.0, por qué no se cierra y cinco decisiones",
       "archivo": "gobierno/estudios/estado-proyecto-17-11.md"
+    },
+    {
+      "titulo": "Láminas de referencia · Roma y Grecia",
+      "archivo": "gobierno/historia/laminas-roma-grecia.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -1952,12 +1961,6 @@
       "titulo": "Versión 1.0 · JU1 Dos jueces en rojo: «Construir aquí» y guerra atascada (Opus)",
       "nota": "diagnóstico: ¿fallo real o del juez?; gobierno/*.mjs",
       "url": "https://claude.ai/code/session_01QiKC37gQPtkdN7X53tu66G"
-    },
-    {
-      "tarea": "GM44b",
-      "titulo": "GM44b Soldado nuevo: seguir puliendo, mismo detalle para todos (Fable)",
-      "nota": "solo maqueta y estudio; sin tocar js/",
-      "url": "https://claude.ai/code/session_01QiKC38JACzrz9hXD3ncfDK"
     },
     {
       "tarea": "ES1",

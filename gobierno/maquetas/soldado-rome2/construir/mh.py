@@ -14,11 +14,16 @@ def leer_obj():
             F.append(p); G.append(g)
     return np.array(V), np.array(VT), F, G
 
+def _objetivo(nombre):
+    """Un deformador: del paquete targets.npz si está, o del archivo .target suelto (índice x y z, en decímetros)."""
+    if os.path.exists(D + '/targets.npz'):
+        T = np.load(D + '/targets.npz'); k = 'targets/' + nombre; return T[k + '.index'].astype(int), T[k + '.vector'].astype(np.float64) * 1e-3
+    a = np.loadtxt(D + '/targets/' + nombre + '.target', comments='#', ndmin=2).reshape(-1, 4); return a[:, 0].astype(int), a[:, 1:4]
+
 def deformar(V, receta):
-    T = np.load(D + '/targets.npz'); V = V.copy()
+    V = V.copy()
     for nombre, peso in receta.items():
-        k = 'targets/' + nombre
-        V[T[k + '.index'].astype(int)] += T[k + '.vector'].astype(np.float64) * 1e-3 * peso
+        i, v = _objetivo(nombre); V[i] += v * peso
     return V
 
 def esqueleto(V):
@@ -40,7 +45,7 @@ def pesos(nv):
         out[b] = a
     return out
 
-RECETA_SOLDADO = {'macrodetails/universal-male-young-maxmuscle-averageweight': 0.55, 'macrodetails/universal-male-young-averagemuscle-averageweight': 0.45,
+RECETA_SOLDADO = {'macrodetails/universal-male-young-maxmuscle-averageweight': 0.36, 'macrodetails/universal-male-young-averagemuscle-averageweight': 0.64,
                   'macrodetails/caucasian-male-young': 1.0}
 
 def construir(receta=RECETA_SOLDADO, altura=1.72):

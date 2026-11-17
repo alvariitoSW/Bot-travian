@@ -45,7 +45,7 @@ const arregladoSalida = FALLO_SALIDA_MANIOBRA_ARREGLADO || op.arregladoSalida ==
 const avisos = [];
 const aviso = t => { console.log('  AVISO (fallo conocido): ' + t); avisos.push(t); };
 const dentro = () => page.evaluate(() => [...document.querySelectorAll('#gu .orden,#gu .cuerpo,#gu #gu-retirar')].every(b => { const r = b.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.top >= 0 && r.bottom <= innerHeight && r.height >= 40; }));
-const cierraFin = async () => { try { await page.tap('#gu-seguir', { timeout: 10000 }); } catch (e) { /* Playwright a veces no recibe el acuse del toque porque el botón desaparece al pulsarlo: se comprueba el efecto, no el acuse */ if (await page.locator('#gu-seguir').count()) throw e; } await esp(1500); const b = page.locator('#modal:not([hidden]) [data-act="bdone"]'); if (await b.count()) { await b.click(); await esp(600); } };
+const cierraFin = async () => { try { await page.tap('#gu-seguir', { timeout: 60000 }); } catch (e) { /* Playwright a veces no recibe el acuse del toque porque el botón desaparece al pulsarlo: se comprueba el efecto, no el acuse */ if (!(await page.waitForFunction(() => !window.__gc || window.__gc.cerrado || !!document.querySelector('#modal:not([hidden]) [data-act="bdone"]'), null, { timeout: 30000 }).then(() => true, () => false))) throw e; }   /* JU1: el botón no se quita del DOM y, a ~1 fotograma/s, el toque llega tarde: se espera a que la batalla se cierre o salga el resultado */ await esp(1500); const b = page.locator('#modal:not([hidden]) [data-act="bdone"]'); if (await b.count()) { await b.click(); await esp(600); } };
 
 /* ejército grande a Capua: más de 600 hombres, así que pasa antes por la maniobra */
 async function provocaGrande() {
@@ -98,18 +98,18 @@ const pendones = await page.evaluate(() => [...document.querySelectorAll('#gu-pe
 bien(pendones.length === 3 && pendones.every(t => t.split(/\s+/).length <= 3 && t.length > 0), 'un único rótulo breve por cuerpo enemigo (' + pendones.join(' / ') + ')');
 bien(await dentro(), 'todos los botones caben enteros y miden al menos 40 px (vertical)');
 let toques = 0, efecto = false, tEfecto = 0, quien = '';
-const tLista = Date.now();
+const tLista = Date.now(), btLista = await page.evaluate(() => window.__gc.B.t);   /* JU1: el plazo se mide en tiempo de batalla; aquí el render por software va a ~1 fotograma/s y el reloj de pared no es lo que vive el jugador */
 const postura0 = await page.evaluate(() => window.__gc.B.sect.map(s => s.c[0].postura));
 for (let ronda = 0; ronda < 12 && !efecto; ronda++) {
   const pide = page.locator('#gu .orden.pide').first(), hay = await pide.count();
   if (hay || ronda >= 6) {
     const b = hay ? pide : page.locator('#gu .orden:not(.no):not(.activa)').first();
     quien = await b.evaluate(e => e.dataset.o + (e.classList.contains('pide') ? ' (late)' : ' (sin latir)')); await b.tap(); toques++; await esp(300);
-    efecto = await page.evaluate(p0 => window.__gc.B.sect.some((s, i) => s.c[0].postura !== p0[i]), postura0); tEfecto = (Date.now() - tLista) / 1000;
+    efecto = await page.evaluate(p0 => window.__gc.B.sect.some((s, i) => s.c[0].postura !== p0[i]), postura0); tEfecto = (await page.evaluate(() => window.__gc.B.t)) - btLista;
   } else await esp(700);
 }
 bien(efecto, 'una orden surte efecto con un solo toque: ' + quien);
-console.log('  CIFRA primer toque útil: ' + toques + ' toque(s), ' + tEfecto.toFixed(1) + ' s desde que la pantalla está lista, sin leer nada');
+console.log('  CIFRA primer toque útil: ' + toques + ' toque(s), ' + tEfecto.toFixed(1) + ' s de batalla (' + ((Date.now() - tLista) / 1000).toFixed(1) + ' s de reloj aquí) desde que la pantalla está lista, sin leer nada');
 bien(toques <= 2 && tEfecto <= 15, 'el primer efecto llega con pocos toques y pronto (límite razonable: 2 toques, 15 s)');
 await foto('A1-primer-efecto');
 

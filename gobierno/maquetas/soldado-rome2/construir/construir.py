@@ -6,6 +6,13 @@ AQUI = os.path.dirname(os.path.abspath(__file__)); SAL = os.path.join(AQUI, '..'
 CLIPS = {'quieto': (1, 'Idle_Loop', 1), 'andar': (1, 'Walk_Loop', 1), 'correr': (1, 'Jog_Fwd_Loop', 1), 'guardia': (1, 'Sword_Idle', 1), 'lanzar': (2, 'OverhandThrow', 0),
          'golpear': (1, 'Sword_Attack', 0), 'cubrirse': (2, 'Sword_Block', 0), 'encajar': (1, 'Hit_Chest', 0), 'morir': (1, 'Death01', 0)}
 
+_NB = {}
+def normales_cuerpo(m):
+    """Normales suaves del cuerpo entero de MakeHuman (sin aligerar): la piel aligerada las hereda y no se ve a facetas."""
+    if 'n' not in _NB:
+        T = [[f[0][0], f[i][0], f[i + 1][0]] for f, g in zip(m['F'], m['G']) if g == 'body' for i in range(1, len(f) - 1)]; _NB['n'] = X.normales(m['V'], np.array(T), False)
+    return _NB['n']
+
 def piel(m, B, oculto, objetivo, nombre='piel', torso=0.0):
     """Piel visible: quita lo tapado por la ropa, aligera y separa por islas de UV."""
     V, VT = m['V'], m['VT']; clave = {}; vid, tid, T = [], [], []
@@ -25,7 +32,7 @@ def piel(m, B, oculto, objetivo, nombre='piel', torso=0.0):
         Tk = T[isl == k]; vs = np.unique(Tk); mm = -np.ones(len(P), int); mm[vs] = np.arange(len(vs)); Pk = P[vs]; UVk = UV[vs]; Tk = mm[Tk]
         a3 = np.linalg.norm(np.cross(Pk[Tk[:, 1]] - Pk[Tk[:, 0]], Pk[Tk[:, 2]] - Pk[Tk[:, 0]]), axis=1).sum(); e1 = UVk[Tk[:, 1]] - UVk[Tk[:, 0]]; e2 = UVk[Tk[:, 2]] - UVk[Tk[:, 0]]; a2 = np.abs(e1[:, 0] * e2[:, 1] - e1[:, 1] * e2[:, 0]).sum()
         esc = np.sqrt(a3 / max(a2, 1e-12)); tam = (np.ptp(UVk[:, 0]) * esc, np.ptp(UVk[:, 1]) * esc); c = cabF[vid[vs]].mean(); mn = manF[vid[vs]].mean()
-        si, sw = B.w4(B.Wd[vid[vs]]); p = Z.pieza('%s%d' % (nombre, k), Pk, Tk, UVk, MAT['piel'], tam, W=(si, sw), prio=2.3 if c > 0.5 else 1.35 if mn > 0.5 else 1.0, tinte=2); p['vs'] = vid[vs]; out.append(p)
+        si, sw = B.w4(B.Wd[vid[vs]]); p = Z.pieza('%s%d' % (nombre, k), Pk, Tk, UVk, MAT['piel'], tam, W=(si, sw), prio=2.3 if c > 0.5 else 1.35 if mn > 0.5 else 1.0, tinte=2, N=normales_cuerpo(m)[vid[vs]]); p['vs'] = vid[vs]; out.append(p)
     return out
 
 def ojos(m, B):
@@ -43,7 +50,7 @@ def ojos(m, B):
         out.append(Z.pieza('ojo' + L, P, np.array(T), m['VT'][np.array(tid)] * [1, -1], MAT['ojo'], (0.03, 0.03), 'head', aux=aux, prio=2.5))
     return out
 
-def hastatus(m, B, lod=False, muy=False):
+def hastatus(m, B, lod=False, muy=False, fondo=False):
     V = m['V']; c = m['cab']; y = V[:, 1]; P = []
     torso = B.g('spine', 'clavicle', 'shoulder01', 'root', 'pelvis', 'breast'); brazo = {L: B.g('upperarm', 'shoulder01', lado=L) for L in 'LR'}; sb = {L: B.sbrazo(L) for L in 'LR'}
     HEM, HEM_M = 0.60, 0.755
@@ -51,7 +58,7 @@ def hastatus(m, B, lod=False, muy=False):
     oc = ((torso >= 0.5) & (y < 1.385)) | (B.g('upperleg', 'pelvis') >= 0.5) & (y > HEM + 0.035)
     for L in 'LR': oc |= ((brazo[L] + torso) >= 0.6) & (sb[L] < 0.36) & (y < 1.385)
     yf, yb = 1.664, 1.612; cab = B.g('head') > 0.5; cz = 0.045; th = np.arctan2(V[:, 0], V[:, 2] - cz); oc |= cab & (y > (yf + yb) / 2 + (yf - yb) / 2 * np.cos(th) + 0.018)
-    P += piel(m, B, oc, 420 if muy else 1500 if lod else 6900) + ([] if lod else ojos(m, B))
+    P += piel(m, B, oc, 170 if fondo else 420 if muy else 1500 if lod else 6900) + ([] if lod else ojos(m, B))
     # --- cota de malla: torso
     cen = np.array([0, 1.2, V[B.sv, 2].mean()])
     selm = (y > 0.985) & (y < 1.50) & ((torso >= 0.5) | ((brazo['L'] + torso >= 0.5) & (sb['L'] < 0.30)) | ((brazo['R'] + torso >= 0.5) & (sb['R'] < 0.30)))
@@ -66,28 +73,28 @@ def hastatus(m, B, lod=False, muy=False):
     # --- faldones: malla encima, túnica debajo; cinturón
         Q = V[B.sv]; top = Q[np.abs(Q[:, 1] - 1.0) < 0.03]; k0 = 1.0
     P.append(B.falda('faldon_malla', 1.04, HEM_M, 36, 6, MAT['malla'], lambda yy, t: 1.045 + 0.05 * (1.04 - yy), prio=1.15))
-    P.append(B.falda('faldon_tunica', HEM_M + 0.05, HEM, 54, 5, MAT['tela'], lambda yy, t: 1.0 + 0.02 * (1.04 - yy) + (0.03 + 0.10 * (HEM_M + 0.05 - yy)) * (0.5 + 0.5 * np.sin(t * 13 + 2 * np.sin(t * 3))) * 0.45, tinte=1))
+    P.append(B.falda('faldon_tunica', HEM_M + 0.05, HEM, 52 if muy else 78, 5, MAT['tela'], lambda yy, t: 1.0 + 0.02 * (1.04 - yy) + (0.015 + 0.50 * (HEM_M + 0.05 - yy)) * (0.5 + 0.5 * np.sin(t * 13 + 2 * np.sin(t * 3))) * 0.5, tinte=1))
     P.append(B.falda('cinturon', 1.052, 0.998, 36, 1, MAT['cuero'], lambda yy, t: 1.075, prio=1.3))
-    if not lod:
+    if not muy:
         gsel = (B.g('lowerleg', lado='L') >= 0.5) & (y > 0.125) & (y < 0.515) & (B.Nt[:, 2] > -0.25)
         P.append(B.cascara('greba', gsel, 0.007, MAT['bronce'], c['lowerleg01.L'], c['foot.L'] - c['lowerleg01.L'], [0, 0, -1], aux=np.stack([np.clip((y - 0.125) / 0.39, 0, 1), np.zeros(len(V))], 1), prio=1.2))
     # --- yelmo, escudo, armas
     P += Z.yelmo(m); hL = poses.mano(m, 'L'); hR = poses.mano(m, 'R')
-    P += Z.escudo_oval(hL)
-    P += Z.pilum(hR['c'], -hR['X'], hR['N'], 'wrist.R', 1, bajo=1.0)
+    P += Z.escudo_oval(hL, **(dict(nu=4, nv=6, ne=6) if fondo else dict(nu=6, nv=10, ne=10) if muy else {}))
+    P += Z.pilum(hR['c'], -hR['X'], hR['N'], 'wrist.R', 1, bajo=1.0, simple=muy)
     P += Z.espada(hR['c'], -hR['X'], hR['d'], 'wrist.R', 2)
     boca = np.array([-0.228, 1.005, 0.02]); ev = np.array([-0.13, -1, -0.16]); P += Z.vaina(boca, ev, [1, 0, 0], 'root') + Z.espada(boca - ev / np.linalg.norm(ev) * 0.058, ev, [0, 0, 1], 'root', 3, nombre='espada_env', solo_puno=True)
     P += Z.suela(m, 'L') + Z.suela(m, 'R')
     return P
 
-def galo(m, B, lod=False, muy=False):
+def galo(m, B, lod=False, muy=False, fondo=False):
     """Guerrero galo (La Tène, s. III a.C.): torso desnudo, bracae de cuadros, torques, pelo encalado, escudo plano."""
     V = m['V']; c = m['cab']; y = V[:, 1]; x = V[:, 0]; z = V[:, 2]; P = []; cz = V[B.sv, 2].mean()
     pierna = {L: B.g('upperleg', 'lowerleg', 'pelvis', lado=L) for L in 'LR'}; bajo = B.g('upperleg', 'lowerleg', 'pelvis', 'root', 'spine05')
     cab = B.g('head') > 0.5; oreja = (np.abs(x) > 0.070) & (z > -0.012) & (z < 0.062)
     linea = 1.562 + 0.118 * np.clip((z + 0.01) / 0.12, 0, 1) ** 1.3; linea = np.where(oreja, np.maximum(linea, 1.648), linea); cuero_cab = cab & (y > linea)
     oc = ((pierna['L'] + pierna['R'] + B.g('root', 'spine05') >= 0.5) & (y < 0.99) & (y > 0.125)) | (cuero_cab & (y > linea + 0.012))
-    P += piel(m, B, oc, 520 if muy else 2300 if lod else 9200, torso=3.0) + ([] if lod else ojos(m, B))
+    P += piel(m, B, oc, 230 if fondo else 520 if muy else 2300 if lod else 9200, torso=3.0) + ([] if lod else ojos(m, B))
     # --- melena: cáscara sobre el cuero cabelludo, peinada hacia atrás en mechones
     clave = {}; vid, T = [], []
     for f, g in zip(m['F'], m['G']):
@@ -118,8 +125,8 @@ def galo(m, B, lod=False, muy=False):
     Pt, UVt, Tt, tam = Z.torno(perf, 20, [0, 1.452, 0.012], [0, 1, 0.26], [0, 0, 1], 1.16); P.append(Z.pieza('torques', Pt, Tt, UVt, MAT['oro'], (0.45, 0.05), 'neck01', aux=np.stack([UVt[:, 1], UVt[:, 0]], 1), prio=1.3))
     # --- escudo, lanza, espada larga y vaina
     hL = poses.mano(m, 'L'); hR = poses.mano(m, 'R')
-    P += Z.escudo_oval(hL, alto=1.12, ancho=0.57, R=2.2, n=2.3, mat='escudo_galo', cantos=False)
-    P += Z.lanza(hR['c'], -hR['X'], hR['N'], 'wrist.R', 1) + Z.espada(hR['c'], -hR['X'], hR['d'], 'wrist.R', 2, largo=0.78, ancho=0.046, gala=True)
+    P += Z.escudo_oval(hL, alto=1.12, ancho=0.57, R=2.2, n=2.3, mat='escudo_galo', cantos=False, **(dict(nu=4, nv=6, ne=6) if fondo else dict(nu=6, nv=10, ne=10) if muy else {}))
+    P += Z.lanza(hR['c'], -hR['X'], hR['N'], 'wrist.R', 1, simple=muy) + Z.espada(hR['c'], -hR['X'], hR['d'], 'wrist.R', 2, largo=0.78, ancho=0.046, gala=True)
     boca = np.array([-0.215, 0.985, 0.02]); ev = np.array([-0.10, -1, -0.16]); pv = Z.vaina(boca, ev, [1, 0, 0], 'root', largo=0.81, ancho=0.054)
     for q in pv: q['mat'][:] = MAT['hierro']
     P += pv + Z.espada(boca - ev / np.linalg.norm(ev) * 0.058, ev, [0, 0, 1], 'root', 3, nombre='espada_env', solo_puno=True, gala=True)
@@ -127,7 +134,7 @@ def galo(m, B, lod=False, muy=False):
 
 def movimientos(m, util, cfg):
     G = {1: anim.Glb(anim.ARCH[1]), 2: anim.Glb(anim.ARCH[2])}; clips = {}; hL = poses.mano(m, 'L'); hR = poses.mano(m, 'R')
-    bajo = (np.array([0.30, 0.875, 0.265]), poses.girar_mano(hL['F'], [0.97, 0, -0.24], [0.24, 0, 0.97]), [0.6, 0.1, -1.0])
+    bajo = (np.array([0.335, 0.865, 0.235]), poses.girar_mano(hL['F'], [0.93, 0, -0.37], [0.37, 0, 0.93]), [0.6, 0.1, -1.0])
     alto = (np.array([0.20, 1.085, 0.36]), poses.girar_mano(hL['F'], [0.99, 0, -0.12], [0.12, 0, 0.99]), [0.9, -0.5, -0.4])
     porta = lambda yy, inc: (np.array([-0.265, yy, 0.25]), poses.girar_mano(hR['F'], [0.0, -1, -inc], [-1.0, 0, 0.18]), [-0.25, -0.5, -1.0])
     for k, (lib, src, bucle) in CLIPS.items():
@@ -157,14 +164,15 @@ CFG_HASTATUS = {'quieto': ('bajo', (1.07, 0.04)), 'andar': ('bajo', (1.13, 0.10)
                 'cubrirse': ('alto', None), 'encajar': ('alto', None), 'morir': (None, None)}
 MUESTRA_HASTATUS = {'quieto': [[0, 5]], 'quieto2': [[0, 5]], 'quieto3': [[0, 5]], 'andar': [[0, 5]], 'correr': [[0, 5]], 'guardia': [[0, 2]], 'lanzar': [[0, 5], [0.36, 4]], 'golpear': [[0, 2]], 'cubrirse': [[0, 2]], 'encajar': [[0, 2]], 'morir': [[0, 2]]}
 
-FUERA_LEJOS = ('bigote', 'escudo_asa', 'suela', 'espada_env', 'greba', 'torques', 'yelmo_nuca')
-def aligerar_piezas(pz, r=0.34, muy=False):
+FUERA_LEJOS = ('escudo_asa', 'suela', 'espada_env')
+def aligerar_piezas(pz, r=0.34, muy=False, fondo=False):
     out = []
     for p in pz:
         if any(p['nombre'].startswith(q) for q in FUERA_LEJOS): continue
-        if muy and p['nombre'].startswith(('manga', 'cinturon', 'yelmo_carrillera', 'yelmo_pluma', 'escudo_dorso', 'escudo_canto', 'vaina', 'espada_guarda', 'espada_puno', 'pilum_taco', 'calzon')): continue
-        if p['nombre'].startswith('piel') or len(p['T']) < 24: out.append(p); continue
-        k = (0.07 if muy else 0.22) if p['nombre'].startswith(('cota', 'yelmo_cuenco', 'escudo_espina', 'pernera')) else (0.16 if muy else r)
+        if muy and p['nombre'].startswith(('bigote', 'torques', 'manga', 'cinturon', 'yelmo_carrillera', 'yelmo_pluma1', 'yelmo_pluma2', 'yelmo_nuca', 'greba', 'escudo_canto', 'vaina', 'espada_guarda', 'espada_puno', 'pilum_taco', 'calzon')): continue
+        if fondo and p['nombre'].startswith(('escudo_dorso', 'espada')): continue
+        if p['nombre'].startswith('piel') or len(p['T']) < 24 or (muy and p['nombre'].startswith(('escudo_frente', 'escudo_espina'))): out.append(p); continue
+        k = (0.028 if fondo else 0.07 if muy else 0.22) if p['nombre'].startswith(('cota', 'yelmo_cuenco', 'escudo_espina', 'pernera')) else (0.06 if fondo else 0.16 if muy else r)
         T = geo.aligerar(p['P'], p['T'], max(8, int(len(p['T']) * k))); usados = np.unique(T); mm = -np.ones(len(p['P']), int); mm[usados] = np.arange(len(usados)); q = dict(p); q['T'] = mm[T]
         for c in ('P', 'UV', 'mat', 'prm', 'aux', 'N'): q[c] = p[c][usados]
         if p['W'] is not None: q['W'] = (p['W'][0][usados], p['W'][1][usados])
@@ -184,14 +192,14 @@ def montar(nombre, piezas_, m, util, clips, muestra, lado=2048, tex=True):
 
 if __name__ == '__main__':
     import texturas
-    quien = sys.argv[1] if len(sys.argv) > 1 else 'hastatus'; muy = '--lod2' in sys.argv; lod = '--lod' in sys.argv or muy; m = mh.construir(); util, a = X.huesos_utiles(m, sin_dedos=lod); B = ropa.Base(m, util, a)
-    if quien == 'galo': texturas.ESTILO = dict(pelo=[0.55, 0.47, 0.30], calzado='zapato', melena=[0.74, 0.66, 0.47]); pz = galo(m, B, lod, muy)
-    else: pz = hastatus(m, B, lod, muy)
+    quien = sys.argv[1] if len(sys.argv) > 1 else 'hastatus'; fondo = '--lod3' in sys.argv; muy = '--lod2' in sys.argv or fondo; lod = '--lod' in sys.argv or muy; m = mh.construir(); util, a = X.huesos_utiles(m, sin_dedos=lod); B = ropa.Base(m, util, a)
+    if quien == 'galo': texturas.ESTILO = dict(pelo=[0.55, 0.47, 0.30], calzado='zapato', melena=[0.74, 0.66, 0.47]); pz = galo(m, B, lod, muy, fondo)
+    else: pz = hastatus(m, B, lod, muy, fondo)
     if lod:                                                    # de lejos no hay huesos de dedos: el puño va ya cerrado en la malla
         utilF, aF = X.huesos_utiles(m); BF = ropa.Base(m, utilF, aF); D = np.tile(np.eye(3), (1, len(m['huesos']), 1, 1)); lib = np.zeros(len(m['huesos']), bool); poses.punos(m, D, lib)
         A = X.hornear(D, anim.fk(m, D, lib, m['cab']['root'][None]), m, utilF)[0].reshape(len(utilF), 3, 4)
         for p in pz:
-            if p['nombre'].startswith('piel'): p['P'] = np.einsum('vb,bij,vj->vi', BF.Wd[p['vs']], A, np.c_[p['P'], np.ones(len(p['P']))]); p['N'] = X.normales(p['P'], p['T'], True)
-        pz = aligerar_piezas(pz, muy=muy)
-    clips = movimientos(m, util, CFG_HASTATUS); nombre = quien + ('_muylejos' if muy else '_lejos' if lod else ''); j = montar(nombre, pz, m, util, clips, MUESTRA_HASTATUS, lado=512 if muy else 1024 if lod else 2048)
+            if p['nombre'].startswith('piel'): p['P'] = np.einsum('vb,bij,vj->vi', BF.Wd[p['vs']], A, np.c_[p['P'], np.ones(len(p['P']))]); p['N'] = np.einsum('vb,bij,vj->vi', BF.Wd[p['vs']], A[:, :, :3], p['N']); p['N'] /= np.maximum(np.linalg.norm(p['N'], axis=1, keepdims=True), 1e-9)
+        pz = aligerar_piezas(pz, muy=muy, fondo=fondo)
+    clips = movimientos(m, util, CFG_HASTATUS); nombre = quien + ('_fondo' if fondo else '_muylejos' if muy else '_lejos' if lod else ''); j = montar(nombre, pz, m, util, clips, MUESTRA_HASTATUS, lado=512 if muy else 1024 if lod else 2048)
     print(j['verts'], 'vértices', j['tris'], 'triángulos', len(util), 'huesos', j['cuadros'], 'cuadros'); print(j['piezas']); print({k: round(os.path.getsize(os.path.join(SAL, k)) / 1e6, 2) for k in sorted(os.listdir(SAL)) if k.startswith(nombre + '.') or k.startswith(nombre + '_')})
