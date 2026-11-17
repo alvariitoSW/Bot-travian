@@ -18,7 +18,7 @@ const FILES = 6, FILAS = 5, M = FILES * FILAS;
 const Z_TIRADORES = -100, Z_GALOS = -106, Z_PILA = -75, Z_CHOQUE = -104.2;
 const V_CORRE = 5, V_PASO = 1.8, V_TESTUDO = 0.9, V_CARGA = 5.5, VUELO = 2.2, CADA = 8;
 const ABIERTO = { dx: 1.25, dz: 2.3 }, CERRADO = { dx: 0.62, dz: 1.0 };
-const APARTA = 0.14;   /* en testudo, el compañero de tu derecha se aparta un poco: su escudo no entra en la cámara */
+const APARTA = 0.35, ATRAS = 0.3;   /* ATRAS: en testudo tu soldado va medio paso atrás de la fila (sus escudos no), para que la cámara le vea de lado */   /* en testudo, el compañero de tu derecha se aparta un poco: su escudo no entra en la cámara */
 const TECHO = 1.68, MURO = 0.775, HUECO = 0, BAJA = 0.2;   /* BAJA: en testudo la figura se agacha y baja, para que el penacho no pase el techo */
 const YO = 3;   /* en testudo, la cámara es el hombre 3 (primera fila, cuarto por la izquierda): se oculta su figura y quedan sus escudos */
 
@@ -37,7 +37,7 @@ const SOL = new THREE.Vector3(-0.45, 0.5, 0.75).normalize();
 escena.add(new THREE.HemisphereLight(0xe4e8ee, 0x6a5636, 1.25));
 const luz = new THREE.DirectionalLight(0xffeccc, 2.1); luz.position.copy(SOL).multiplyScalar(100); escena.add(luz);
 /* luz cálida bajo el testudo: el techo y el escudo de delante se ven de madera, no negros */
-const dentro = new THREE.PointLight(0xffd6a0, 0, 3.2, 1.2); escena.add(dentro);
+const dentro = new THREE.PointLight(0xffd6a0, 0, 5, 1.1); escena.add(dentro);
 const U = { uRuido: { value: texturaRuido() } };
 escena.add(crearCielo(SOL.clone().setY(0.25), HORIZ, U));
 let vertical = false;
@@ -201,7 +201,7 @@ const vivos = () => S.romanos.filter(h => h.vivo).length;
 function sitio(h) {
   if (!h.vivo) return;
   const k = S.k, dx = lerp(ABIERTO.dx, CERRADO.dx, k), dz = lerp(ABIERTO.dz, CERRADO.dz, k);
-  h.x = (h.f - (FILES - 1) / 2) * dx + h.jx * (1 - k) + (h.r === 0 && h.f === YO + 1 ? APARTA * k : 0); h.z = S.zF + h.r * dz + h.jz * (1 - k);
+  h.x = (h.f - (FILES - 1) / 2) * dx + h.jx * (1 - k) + (h.r === 0 && h.f === YO + 1 ? APARTA * k : 0); h.z = S.zF + h.r * dz + h.jz * (1 - k) + (h.r === 0 && h.f === YO ? ATRAS * k : 0);
 }
 
 /* ---------- avisos ---------- */
@@ -220,16 +220,16 @@ addEventListener('pointerdown', () => { if (!audio) { try { audio = new (window.
 /* ---------- la cámara: al hombro en la marcha; bajo los escudos, al lado de tu soldado (idea de Ryse) ---------- */
 const CAM = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0 };
 function camBase() {
-  const k = S.k, zc = S.zF + lerp(2.0, 0.42, k), xt = (YO - (FILES - 1) / 2) * CERRADO.dx + 0.30;
-  CAM.x = xt * k; CAM.z = zc; CAM.y = H(CAM.x, zc) + lerp(2.2, 1.40, k);
+  const k = S.k, zc = S.zF + lerp(2.0, ATRAS + 0.05, k), xt = (YO - (FILES - 1) / 2) * CERRADO.dx + 0.36;
+  CAM.x = xt * k; CAM.z = zc; CAM.y = H(CAM.x, zc) + lerp(2.2, 1.46, k);
   const dist = Math.max(8, zc - Z_TIRADORES), sube = Math.atan2(H(0, Z_TIRADORES) + 1.2 - CAM.y, dist);
-  CAM.pitch = lerp(vertical ? -0.1 : -0.06, vertical ? -0.1 : 0, k) + sube * 0.6 * (1 - k); CAM.yaw = lerp(0, vertical ? 0.3 : 0.17, k);
+  CAM.pitch = lerp(vertical ? -0.1 : -0.06, vertical ? -0.1 : 0, k) + sube * 0.6 * (1 - k); CAM.yaw = lerp(0, vertical ? 0.3 : 0.06, k);
   return CAM;
 }
 const lejos = (pt, d) => Math.hypot(pt.x - CAM.x, pt.y - CAM.y, pt.z - CAM.z) >= d;
 
 /* ---------- descargas enemigas: venablos de los peltastas ---------- */
-const enCierre = (h, z0) => ({ x: (h.f - (FILES - 1) / 2) * CERRADO.dx + (h.r === 0 && h.f === YO + 1 ? APARTA : 0), z: z0 + h.r * CERRADO.dz });
+const enCierre = (h, z0) => ({ x: (h.f - (FILES - 1) / 2) * CERRADO.dx, z: z0 + h.r * CERRADO.dz });
 function descarga() {
   const tir = S.tiradores.filter(t => t.vivo && !t.huye); if (!tir.length) return;
   const v = S.corriendo ? V_CORRE : S.andando ? (S.escudos ? V_TESTUDO : V_PASO) : 0, zPrev = Math.max(Z_PILA, S.zF - v * VUELO), vivosR = S.romanos.filter(h => h.vivo);
@@ -424,12 +424,12 @@ function dibuja() {
     if (!h.vivo || k < 0.02) { escudos.setMatrixAt(e++, CERO); return; }
     const y0 = H(h.x, h.z);
     PA.set(h.x - 0.32, y0 + 0.85, h.z - 0.3); PB.set(h.x + ox, y0 + oy, h.z + oz); PA.lerp(PB, k);
-    QA.copy(Q_FRENTE).slerp(q, k); O.position.copy(PA); O.quaternion.copy(QA); O.scale.setScalar(1); O.updateMatrix();
-    if (muro && h === yo) { escudos.setMatrixAt(e++, CERO); miEscudo.visible = !S.roto; miEscudo.position.copy(O.position); miEscudo.quaternion.copy(O.quaternion); miEscudo.material = MATS_MIO[S.golpes <= 0 ? 0 : S.golpes <= 2 ? 1 : 2]; return; }
+    QA.copy(Q_FRENTE).slerp(q, k); O.position.copy(PA); O.quaternion.copy(QA); O.scale.set(muro ? 1.14 : 1.06, 1, 1); O.updateMatrix();
+    if (muro && h === yo) { escudos.setMatrixAt(e++, CERO); miEscudo.visible = !S.roto; miEscudo.position.copy(O.position); miEscudo.quaternion.copy(O.quaternion); miEscudo.scale.copy(O.scale); miEscudo.material = MATS_MIO[S.golpes <= 0 ? 0 : S.golpes <= 2 ? 1 : 2]; return; }
     escudos.setMatrixAt(e++, O.matrix);
   };
-  for (const h of S.romanos) escudo(h, 0, TECHO + h.r * 0.035, -0.05, Q_TECHO);
-  for (const h of S.romanos) { if (h.r === 0) escudo(h, 0, MURO, -0.45, Q_FRENTE, true); else escudos.setMatrixAt(e++, CERO); }
+  for (const h of S.romanos) escudo(h, h.r === 0 && h.f === YO + 1 ? -APARTA : 0, TECHO + h.r * 0.035, -0.05 - (h === yo ? ATRAS : 0), Q_TECHO);
+  for (const h of S.romanos) { if (h.r === 0) escudo(h, h.f === YO + 1 ? -APARTA : 0, MURO, -0.45 - (h === yo ? ATRAS : 0), Q_FRENTE, true); else escudos.setMatrixAt(e++, CERO); }
   for (const h of S.romanos) { if (h.f === 0) escudo(h, -0.36, 0.8, 0, Q_IZQ); if (h.f === FILES - 1) escudo(h, 0.36, 0.8, 0, Q_DER); }
   escudos.count = e; escudos.instanceMatrix.needsUpdate = true;
   /* enemigos */
@@ -464,8 +464,8 @@ function dibuja() {
   let cx = CAM.x + Math.sin(ph) * 0.03 * andar, cy = CAM.y + Math.abs(Math.sin(ph)) * 0.05 * andar;
   const sac = (S.fase === 'carga' && !S.choque ? 0.06 : 0) + (S.corriendo ? 0.02 : 0), golpe = S.sacude * 0.1;
   cx += (Math.random() - 0.5) * (sac + golpe); cy += (Math.random() - 0.5) * (sac + golpe);
-  camara.position.set(cx, cy, CAM.z); dentro.position.set(cx - 0.2, cy + 0.12, CAM.z - 0.5); dentro.intensity = 3 * k + S.destello * 30;
-  const fov = vertical ? lerp(76, 82, k) : lerp(62, 70, k), cerca = lerp(0.06, 0.24, k);
+  camara.position.set(cx, cy, CAM.z); dentro.position.set(cx + 0.05, cy + 0.08, CAM.z - 0.4); dentro.intensity = 3 * k + S.destello * 30;
+  const fov = vertical ? lerp(76, 80, k) : lerp(62, 64, k), cerca = lerp(0.06, 0.24, k);
   if (camara.fov !== fov || camara.near !== cerca) { camara.fov = fov; camara.near = cerca; camara.updateProjectionMatrix(); }
   camara.rotation.set(CAM.pitch + Math.sin(ph * 2) * 0.006 * andar + Math.sin(T * 47) * S.sacude * 0.05, CAM.yaw + Math.sin(ph) * 0.004 * andar, Math.sin(T * 31) * S.sacude * 0.09);
   camara.updateMatrixWorld();
@@ -485,7 +485,7 @@ function hud() {
   $('cuenta').textContent = n + '/' + M; b.style.width = (f * 100).toFixed(0) + '%'; b.style.background = f > 0.7 ? 'var(--verde)' : f > 0.45 ? '#e6ac3c' : 'var(--rojo)';
   const av = $('avanzar'), es = $('escudos'), ac = $('accion'), co = $('correr');
   co.hidden = S.fase !== 'avance'; co.classList.toggle('activa', S.corriendo); $('aliento').style.width = (S.aliento * 100).toFixed(0) + '%';
-  const me = $('miescudo'); me.className = S.roto ? 'roto' : 'e' + (S.golpes <= 0 ? 0 : S.golpes <= 2 ? 1 : 2); me.title = S.roto ? 'Tu escudo está roto' : 'Tu escudo';
+  const me = $('miescudo'); me.setAttribute('class', S.roto ? 'roto' : 'e' + (S.golpes <= 0 ? 0 : S.golpes <= 2 ? 1 : 2)); me.title = S.roto ? 'Tu escudo está roto' : 'Tu escudo';
   av.hidden = S.fase !== 'avance'; av.classList.toggle('activa', S.andando);
   es.hidden = !(S.fase === 'avance' || S.fase === 'pila'); es.classList.toggle('activa', S.escudos); es.classList.toggle('pide', S.aviso && !S.escudos);
   $('escudos-t').textContent = S.escudos ? 'Bajar escudos' : 'Escudos';
@@ -536,7 +536,7 @@ function bucle(t) {
   if (!parado) paso(dt);
   dibuja(); hud(); requestAnimationFrame(bucle);
 }
-window.__tp = { lista: false, S, salta: s => salta(s), estado: () => ({ golpes: S.golpes, roto: S.roto, clavadosCerca: FL.filter(f => f.est >= 2 && (camBase(), !lejos(f.p, 1.0))).length, enHombre: FL.filter(f => f.est === 2 && S.k < 0.7).length, andando: S.andando, fase: S.fase, zF: S.zF, k: S.k, vivos: vivos(), flechas: FL.filter(f => f.est).length }) };
+window.__tp = { lista: false, S, CAM, camara, salta: s => salta(s), estado: () => ({ golpes: S.golpes, roto: S.roto, clavadosCerca: FL.filter(f => f.est >= 2 && (camBase(), !lejos(f.p, 1.0))).length, enHombre: FL.filter(f => f.est === 2 && S.k < 0.7).length, andando: S.andando, fase: S.fase, zF: S.zF, k: S.k, vivos: vivos(), flechas: FL.filter(f => f.est).length }) };
 (async () => {
   await preload(['hastati', 'peltastas', 'galos']);
   if (!getUnit('hastati') || !getUnit('peltastas') || !getUnit('galos')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
