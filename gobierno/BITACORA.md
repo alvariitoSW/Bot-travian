@@ -263,7 +263,7 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 - Delegar en tribunos da 0,92 del resultado. Cifras de muralla/atkMul sin ajustar con equilibrio.js.
 
 ## Esperando algo del usuario
-- **GM43 testudo a pie** (17/11): mira `capturas-tarea/GM43-h-*.jpg`. ¿(A) vuelta de arreglos ≈0,8 M (testudo por dentro con tablas y compañeros, cámara más abierta) · (B) dejarla así hasta después de la 1.0? ¿Y unirla a la rama del juego para probarla en el móvil?
+- **GM43 testudo a pie** (17/11; arreglos hechos tras su «1 primero»): pruébala en el móvil, en horizontal, y di si este es el camino (sí · sí con cambios · no). Lo que queda flojo está en GM43b.
 
 ## Propuestas por aprobar
 - P158 (orden aceptado el 17/11 con «lo que recomiendes»; el orden fino es la tabla «Guerra 1.1» de `estudios/GM42-guerra-como-rome2.md`) **Guerra «como Rome II» después de la 1.0, en este orden**: GM22 (muchos cuerpos con sitio y estandarte propios) → GM34 + GM33b (movimiento vivo, lanzas) → GM20 + GM25 (duelos y caídos) → GM24/GM30/GM35 (campo con arboledas, ruinas, casas y sombras) → GM-K6 (barra fina y sellos). Mientras, GM5 lleva a la 1.0 lo ya hecho en maqueta (gentío, campo ancho, lomas). (pedido del 17/11)
