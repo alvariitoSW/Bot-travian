@@ -3,6 +3,16 @@
   "artifact": "https://claude.ai/artifact/4MJcdCj3qAN5T76kixaw6W",
   "capturas": [
     {
+      "tarea": "J4a",
+      "archivo": "gobierno/capturas-tarea/J4a-mare-nostrum-8-zonas.jpg",
+      "pie": "Mare Nostrum con 8 zonas: aparecen Etruria y Gallia"
+    },
+    {
+      "tarea": "J4a",
+      "archivo": "gobierno/capturas-tarea/J4a-italia-ciudades-nuevas.jpg",
+      "pie": "Italia con Rusellae, Clusium y Neapolis; las etiquetas aún se pisan (J4b)"
+    },
+    {
       "tarea": "GM11",
       "archivo": "gobierno/capturas-tarea/GM11-vertical-1-lejos.jpg",
       "pie": "La batalla única empieza de lejos, con el aspecto de GM1"

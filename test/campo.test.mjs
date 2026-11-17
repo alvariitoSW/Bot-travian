@@ -16,8 +16,8 @@ const nueva = () => {
 const marcha = (s, owner, a, b, units, dur, extra) => { const m = Object.assign({ id: s.mid++, owner: owner, from: a, to: b, units: units, hero: false, t0: s.t, t1: s.t + dur }, extra || {}); s.marches.push(m); return m; };
 const corre = (s, meses) => { for (let i = 0; i < meses * 4 && !s.over && !s.pending.length; i++) G.tick(0.25); };
 
-t('la tabla de sitios: 48 sitios, 16 caminos de tierra, cuatro rasgos, alturas de 0 a 1, ficha de cada uno', () => {
-  const ids = Object.keys(D.SITIOS); assert.strictEqual(ids.length, 48); assert.strictEqual(D.CAMINOS.length, 16);
+t('la tabla de sitios: 48 sitios, 23 caminos de tierra (16 con sitios; los 7 de J4a, sin sitios aún), cuatro rasgos, alturas de 0 a 1, ficha de cada uno', () => {
+  const ids = Object.keys(D.SITIOS); assert.strictEqual(ids.length, 48); assert.strictEqual(D.CAMINOS.length, 23);
   for (const id of ids) { const x = D.SITIOS[id]; assert.ok(['rio', 'loma', 'bosque', 'llano'].includes(x.r), id); assert.ok(x.p > 0 && x.p < 1, id); assert.ok(x.c >= 1 && x.c <= 16, id); assert.ok(R.fichas.sitio[id], 'ficha de ' + id); assert.ok(!R.fichas.sitio[id].historia.texto, 'sin texto en pantalla: ' + id); }
   for (let c = 1; c <= 16; c++) assert.strictEqual(D.sitiosDe(c).length, 3, 'tres sitios en el camino ' + c);
   assert.strictEqual(D.sitioCerca(2, 0.5).id, 'liris'); assert.strictEqual(D.sitioCerca(1, 0.75), null, 'lejos de todo: llano'); { const K = G.fichaCampo(1, 0.75, { semilla: 1, t: 0 }); assert.strictEqual(K.rasgo, 'llano'); assert.ok(/Roma/.test(K.nombre) && /Volsinii/.test(K.nombre), K.nombre); }

@@ -332,7 +332,7 @@ const CIMOD = require('../js/ciudad.js'); G.usarCiudad(null);
 // 7. Bien especial por ciudad (B1): abre niveles altos y tropas de élite; los bonos cambian números
 { const s = G.newGame('Esp'), roma = s.cities.roma;
   for (const id in D.CITIES) assert(D.ESPECIAL[D.CITIES[id].esp], 'la ciudad ' + id + ' debe tener un bien válido');
-  for (const k in D.ESPECIAL) { assert(G.dondeEspecial(k).length >= 1, 'bien sin ciudad ' + k); if (D.ESPECIAL[k].abre.edificios || D.ESPECIAL[k].abre.tropas) assert(G.dondeEspecial(k).length >= 2 && (k === 'marmol' || G.dondeEspecial(k).some(i => ['roma', 'volsinii', 'capua', 'tarentum', 'messana', 'syracusae', 'agrigentum', 'panormus', 'lilybaeum'].includes(i))), 'bien ' + k + ': al menos dos ciudades y una en Italia o Sicilia (mármol es griego: excepción histórica)'); }
+  for (const k in D.ESPECIAL) { assert(G.dondeEspecial(k).length >= 1, 'bien sin ciudad ' + k); if (D.ESPECIAL[k].abre.edificios || D.ESPECIAL[k].abre.tropas) assert(G.dondeEspecial(k).length >= 2 && (k === 'marmol' || G.dondeEspecial(k).some(i => ['roma', 'volsinii', 'perusia', 'clusium', 'rusellae', 'capua', 'tarentum', 'messana', 'syracusae', 'agrigentum', 'panormus', 'lilybaeum'].includes(i))), 'bien ' + k + ': al menos dos ciudades y una en Italia o Sicilia (mármol es griego: excepción histórica)'); }
   assert(G.especiales().sal && !G.especiales().hierro, 'Roma tiene sal y aún no hierro');
   roma.b.cuartel = 5; roma.b.establo = 1; roma.b.foro = D.ESP_NIVEL; roma.b.puerto = D.ESP_NIVEL;
   assert(G.faltaEspecial('tropa', 'triarii') === 'hierro' && !G.unitOk(roma, 'triarii'), 'sin hierro no hay triarios');
@@ -1449,7 +1449,14 @@ console.log('OK — todas las pruebas superadas');
   const cuenta = {}; for (const z in D.ZONAS) for (const id of D.ZONAS[z].ciudades) { assert(D.CITIES[id], 'zona ' + z + ': la ciudad ' + id + ' no existe'); cuenta[id] = (cuenta[id] || 0) + 1; }
   for (const id in D.CITIES) assert.strictEqual(cuenta[id], 1, id + ' debe estar en una sola zona');
   assert.strictEqual(D.zonaDe('roma'), 'italia'); assert.strictEqual(D.zonaDe('carthago'), 'africa'); assert.strictEqual(D.zonaDe('nada'), null);
-  assert.strictEqual(Object.keys(D.ZONAS).length, 6, 'seis zonas');
+  assert.strictEqual(Object.keys(D.ZONAS).length, 8, 'ocho zonas (J4a)');
+  // J4a: cada zona tiene su capital dentro de ella; las tres ciudades etruscas dan la madera naval; las rutas nuevas cuelgan de ciudades que existen
+  for (const z in D.ZONAS) assert(D.ZONAS[z].ciudades.includes(D.ZONAS[z].capital), 'zona ' + z + ': la capital está en la zona');
+  for (const id of ['perusia', 'clusium', 'rusellae']) { assert.strictEqual(D.CITIES[id].esp, 'maderanaval'); assert.strictEqual(D.zonaDe(id), 'etruria'); }
+  assert(D.CITIES.syracusae.esp !== 'maderanaval' && D.CITIES.panormus.esp !== 'maderanaval', 'H11c: la madera naval salió de Sicilia');
+  for (const e of D.EDGES) assert(D.CITIES[e[0]] && D.CITIES[e[1]], 'ruta con ciudad inexistente ' + e);
+  for (const id in D.CITIES) assert(D.CITIES[id].pueblos.length >= 2, id + ' tiene pueblos');
+  console.log('J4a: ciudades nuevas OK');
   console.log('C6: zonas OK');
 }
 
@@ -1542,7 +1549,7 @@ console.log('OK — todas las pruebas superadas');
   assert(G.myCities().includes(sitio) && !G.state.over, 'a los 12 meses sigue siendo tuya'); assert(G.state.cities[sitio].b.aserradero >= 1 && G.prod().madera > pAntes, 'la colonia produce madera (' + pAntes + ' → ' + G.prod().madera + ')'); assert(G.state.cities[sitio].pop >= r0 * 0.8, 'vive');
   ciclo(); assert.strictEqual(G.enviarColonos('roma', sitio).ok, false);
   G.state.res.grano = 1000; G.state.res.oro = 1000; G.state.cities.roma.pop = Math.max(G.state.cities.roma.pop, 500);
-  assert(G.enviarColonos('roma', 'ariminum').ok); ciclo(); g = 0; while (G.state.colonias.ariminum.estado === 'camino' && g++ < 60) G.tick(1);
+  { const rc = G.enviarColonos('roma', 'ariminum'); assert(rc.ok, 'colonos a ariminum: ' + rc.motivo); } ciclo(); g = 0; while (G.state.colonias.ariminum.estado === 'camino' && g++ < 60) G.tick(1);
   assert.strictEqual(G.state.colonias.ariminum.estado, 'pendiente'); ciclo(); assert(G.ciudadPendiente('ariminum')); ciclo();
   G.newGame('Limpia'); assert(Object.keys(D.CITIES).length === n0 && !D.CITIES[sitio], 'newGame quita las colonias fundadas'); assert.strictEqual(G.coloniasFundadas(), 0); assert.strictEqual(G.coloniasLibres().length, ids.length);
   assert(!D.EDGES.some(e => e[0] === sitio || e[1] === sitio), 'sin aristas de colonias');

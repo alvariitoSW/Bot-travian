@@ -72,7 +72,9 @@ Orden: I1 primero y sola; después I2 a I5 (no se pisan si van de una en una); I
 - ✅ J7 **Parte densa: Imperio y Obras** (11/11): pestaña Imperio con ciudades por urgencia, filtros, resumen de población y ánimo, cola de obras, filas deslizables y «Hacer lo mismo en…». Parte `partes/2026-11-11-J7.md`.
 - ⬜ J7b **Pestañas también en el mapa de guerra** (sacada de J7; esperar a que I2 Mapa por turnos termine con `js/game.js` y el mapa).
 - ✅ J3 **Capital y pueblos** (13/11): cada ciudad es la capital de su territorio y tiene 2 a 4 pueblos que se fundan y mejoran (recursos, pesca, agro). API en `partes/2026-11-13-J3.md`. Pendiente: línea «Pueblos» en Imperio (J3b) y agrupar capitales por región en J4.
-- ⬜ J4 **Mapa más grande por regiones** (P62; amplía I6): más ciudades y territorios, cada región con su capital y sus núcleos pequeños; lista de ciudades con fuente histórica; vigilar la fluidez. 0,3 + 1,2 M, en dos o tres tareas. Después de J3. **Incluye** crear Perusia, Clusio y Rusellae (H11c, madera naval, Livio 28.45). Idea para bajar de nivel (Mare Nostrum › región › ciudad, con «volver»): `estudios/R20-niveles-de-mapa.md` (solo la idea, sin código del kit; 12/11).
+- ✅ J4a **Datos del mapa por regiones** (16/11): 8 ciudades nuevas (Perusia, Clusium, Rusellae, Neapolis, Massalia, Tarraco, Gades, Hadrumetum) con fuente y dictamen, 12 rutas, 8 zonas con capital (`D.ZONAS[z].capital`; nuevas Etruria y Gallia). Parte: `partes/2026-11-16-J4a.md`.
+- ⬜ J4b **Dibujar las ciudades nuevas en el mapa** (≈0,5 M, tras mirar la captura de J4a): etiquetas que no se pisen en Etruria, relieve y costas; vigilar la fluidez.
+- ⬜ J4c **Bajar de nivel con «volver»** (≈0,7 M): Mare Nostrum › región › ciudad (idea de `estudios/R20-niveles-de-mapa.md`). Después de J4b.
 - ➡️ J5 (absorbida por SN, 13/11) **Política territorial** (P61): apartado «Senado» con planes de infraestructuras, ciudadanía, ejército, diplomacia y mercado. Primero informe corto de diseño con fuentes; se une con I5 y C3. 0,3 + 1,0 M, en dos tareas.
 - ➡️ J8 (absorbida por SN, 13/11: chips por clase en las leyes y juegos del Foro) **Foro y chips** (P65, aprobada 11/11 desde el cuadro): discursos y revueltas en el Foro por clases sociales; chips verde/rojo con el efecto de cada decisión por clase. Va con J5, después de J6 y J7.
 
@@ -322,7 +324,7 @@ Una tarea por sesión, constructor en Sonnet. SN2 después de SN1. No tocar `js/
 - ✅ H3 Códice dentro del juego (11/11/2026): botón en «Crónica», 62 fichas de tropas, ciudades y hechos con etiqueta y fuente.
 - ✅ H11a (12/11) cotejo hecho: `estudios/H11-cotejo.md` (65 fichas; 8 errores a corregir, el peor Ambracia: 1.000, no 500).
 - ✅ H11b Cotejo aplicado en `js/registro.js` (38 fichas; Plinio y Apiano siguen «por cotejar»). Parte: `gobierno/partes/2026-11-12-H11b.md`.
-- ⬜ (decidido 12/11: va dentro de J4) H11c **Madera naval a Perusia, Clusio y Rusellae** (Livio 28.45): J4 (mapa más grande por regiones) crea esas tres ciudades con su fuente; entonces se mueve el bien en `data.js` y la ficha de Siracusa y Panormus. Mientras, la madera naval sigue donde estaba. Plinio NH 9.127/14.62/31.89 y Apiano Líbica por otra edición.
+- ✅ H11c **Madera naval** (16/11): ahora la dan Perusia, Clusium y Rusellae (Livio 28.45); salió de Siracusa y Panormus (que pasan a mármol y sal, licencia de juego).
 - ✅ H12 Capua se rebela en 216 si no tiene 150 hombres (Livio 23.2-7; la regla es licencia de juego).
 - ✅ H13 Pirro ataca en 280 (llega a los 56 meses; licencia de juego). Bot 10/10 y 0/10.
 - ✅ H14 «Poblado íbero» hasta 228 en el mapa y la Crónica; luego Carthago Nova.

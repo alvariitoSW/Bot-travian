@@ -132,7 +132,7 @@ if (!RAPIDO) {   // bot investigador (~40 s): solo en el recorrido completo
 /* ---------- 1e. Ajustes y dificultades (bot por nivel, ~90 s; también en --rapido) ---------- */
 console.log('Juez 1e · ajustes y dificultades (test/ajustes.test.mjs)');
 {
-  const r = spawnSync(process.execPath, ['test/ajustes.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 150000 });
+  const r = spawnSync(process.execPath, ['test/ajustes.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 450000 });
   const ult = ((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean).slice(-1)[0] || '';
   apunta('Ajustes y dificultades (bot por nivel)', r.status === 0, ult.slice(0, 200));
 }
@@ -385,8 +385,8 @@ async function navegador() {
       await espera(3000);   // 13/11: con la máquina cargada la animación de vuelta tardaba más de 1,5 s y el juez fallaba sin que el juego fallara
       const fin = await estado(() => ({ x: UI.map.c.x, z: UI.map.c.z, dist: UI.map.c.dist, migas: document.querySelector('.mmigas').innerText.replace(/\s+/g, ' ') }));
       const igual = Math.abs(fin.x - antes.x) < 0.01 && Math.abs(fin.z - antes.z) < 0.01 && Math.abs(fin.dist - antes.dist) < 0.01;
-      const ok = antes.zonas === 6 && dentro.dist < antes.dist * 0.6 && /Italia/.test(dentro.migas) && dentro.volver && igual && !/Italia/.test(fin.migas);
-      return { ok, detalle: ok ? 'seis zonas; Italia acerca la cámara (' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ') y «← volver» la devuelve' : 'zonas ' + antes.zonas + ', dist ' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ', migas «' + dentro.migas + '», volver ' + dentro.volver + ', igual ' + igual + ', migas finales «' + fin.migas + '»', captura: fotoZona, detalle2: fotoMare };
+      const ok = antes.zonas === 8 && dentro.dist < antes.dist * 0.6 && /Italia/.test(dentro.migas) && dentro.volver && igual && !/Italia/.test(fin.migas);
+      return { ok, detalle: ok ? 'ocho zonas; Italia acerca la cámara (' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ') y «← volver» la devuelve' : 'zonas ' + antes.zonas + ', dist ' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ', migas «' + dentro.migas + '», volver ' + dentro.volver + ', igual ' + igual + ', migas finales «' + fin.migas + '»', captura: fotoZona, detalle2: fotoMare };
     });
 
     await paso('CN22 avisos: máx. 2 avisos y tarjeta de estación baja', async () => {

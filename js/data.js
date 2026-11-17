@@ -255,9 +255,9 @@
     tarentum: { n: 'Tarentum', lon: 17.2, lat: 40.6, f: 'epiro', esp: 'caballos', tipo: 'naval', w: 3, wl: 2, g: { falange: 120, hoplitas: 80, peltastas: 50, tesalios: 40, elefantes: 6 }, gen: { n: 'Pirro de Epiro', mando: 4, disc: 3, until: 272 }, h: 'Colonia espartana que llamó en su ayuda al rey Pirro. Cayó ante Roma en 272 a.C.' },
     mediolanum: { n: 'Mediolanum', lon: 9.2, lat: 45.4, f: 'galos', esp: 'pieles', tipo: 'militar', w: 2, wl: 0, g: { galos: 260, jinetes: 40 }, h: 'Capital de los galos ínsubres. Tomada por Marcelo y Escipión Calvo en 222 a.C.' },
     messana: { n: 'Messana', lon: 15.55, lat: 38.3, f: 'mamertinos', esp: 'vino', tipo: 'naval', w: 2, wl: 1, g: { milicia: 60, hoplitas: 60, peltastas: 30 }, h: 'Ocupada por los mamertinos, mercenarios campanos de Agatocles (Polibio 1.7-8). Su petición de auxilio desató la Primera Guerra Púnica (264 a.C.).' },
-    syracusae: { n: 'Syracusae', lon: 15.3, lat: 37.0, f: 'siracusa', esp: 'maderanaval', tipo: 'emporio', w: 4, wl: 4, g: { hoplitas: 180, peltastas: 80, jinetes: 40 }, h: 'La mayor ciudad griega de Occidente. Defendida por las máquinas de Arquímedes, cayó ante Marcelo en 212 a.C.' },
+    syracusae: { n: 'Syracusae', lon: 15.3, lat: 37.0, f: 'siracusa', esp: 'marmol', tipo: 'emporio', w: 4, wl: 4, g: { hoplitas: 180, peltastas: 80, jinetes: 40 }, h: 'La mayor ciudad griega de Occidente. Defendida por las máquinas de Arquímedes, cayó ante Marcelo en 212 a.C.' },
     agrigentum: { n: 'Agrigentum', lon: 13.55, lat: 37.25, f: 'akragas', esp: 'vino', tipo: 'agraria', w: 3, wl: 2, g: { hoplitas: 120, peltastas: 60, jinetes: 30 }, post: { cartago: { libios: 140, iberos: 60, honderos: 40, numidas: 30 } }, h: 'Ciudad griega e independiente en 280 a.C. Cartago la hizo su base en 262 a.C. y Roma la tomó ese mismo año (Polibio 1.17-19).' },
-    panormus: { n: 'Panormus', lon: 13.35, lat: 38.2, f: 'cartago', esp: 'maderanaval', tipo: 'emporio', w: 3, wl: 2, g: { libios: 160, honderos: 50, numidas: 40, elefantes: 5 }, h: 'Puerto púnico. En 250 a.C. Metelo capturó aquí los elefantes de Asdrúbal.' },
+    panormus: { n: 'Panormus', lon: 13.35, lat: 38.2, f: 'cartago', esp: 'sal', tipo: 'emporio', w: 3, wl: 2, g: { libios: 160, honderos: 50, numidas: 40, elefantes: 5 }, h: 'Puerto púnico. En 250 a.C. Metelo capturó aquí los elefantes de Asdrúbal.' },
     lilybaeum: { n: 'Lilybaeum', lon: 12.3, lat: 37.75, f: 'cartago', esp: 'sal', tipo: 'militar', w: 3, wl: 4, g: { libios: 200, iberos: 80, honderos: 50, numidas: 40 }, h: 'Fortaleza cartaginesa que resistió nueve años de asedio romano (250–241 a.C.).' },
     carales: { n: 'Carales', lon: 9.1, lat: 39.25, f: 'cartago', esp: 'sal', w: 2, wl: 1, g: { libios: 100, honderos: 40, milicia: 40 }, h: 'Puerto púnico de Cerdeña. Roma se anexionó la isla en 238 a.C.' },
     emporion: { n: 'Emporion', lon: 3.1, lat: 42.15, f: 'griegos', esp: 'vino', tipo: 'emporio', w: 2, wl: 1, g: { hoplitas: 70, peltastas: 30, milicia: 30 }, h: 'Colonia focense. Aquí desembarcó Cneo Escipión en 218 a.C. para iniciar la conquista de Hispania.' },
@@ -266,7 +266,16 @@
     ambracia: { n: 'Ambracia', lon: 20.9, lat: 39.2, f: 'epiro', esp: 'pieles', w: 2, wl: 2, g: { falange: 140, peltastas: 60, tesalios: 40 }, h: 'Capital del rey Pirro de Epiro. Saqueada por Roma en 189 a.C.' },
     pella: { n: 'Pella', lon: 22.5, lat: 40.8, f: 'macedonia', esp: 'marmol', tipo: 'militar', w: 4, wl: 3, g: { falange: 320, peltastas: 100, tesalios: 100 }, h: 'Capital de Macedonia, cuna de Alejandro. El reino cayó tras Pidna (168 a.C.).' },
     corinthus: { n: 'Corinthus', lon: 22.9, lat: 37.9, f: 'macedonia', esp: 'marmol', tipo: 'emporio', w: 4, wl: 3, g: { falange: 200, peltastas: 100, tesalios: 50 }, post: { aquea: { hoplitas: 300, peltastas: 100, jinetes: 50 } }, h: 'Con guarnición macedonia (probable ya en 280 a.C.). Arato la liberó hacia 243 a.C. y entró en la Liga Aquea (Polibio 2.43). Arrasada por Lucio Mumio en 146 a.C., el mismo año que Cartago.' },
-    carthago: { n: 'Carthago', lon: 10.3, lat: 36.85, f: 'cartago', esp: 'purpura', tipo: 'emporio', w: 5, wl: 6, g: { sagrada: 300, libios: 400, iberos: 150, honderos: 120, numidas: 120, elefantes: 20 }, gen: { n: 'Asdrúbal el Beotarca', mando: 3, disc: 4, from: 149, until: 0 }, h: 'La gran rival de Roma. Escipión Emiliano la destruyó en 146 a.C.' }
+    carthago: { n: 'Carthago', lon: 10.3, lat: 36.85, f: 'cartago', esp: 'purpura', tipo: 'emporio', w: 5, wl: 6, g: { sagrada: 300, libios: 400, iberos: 150, honderos: 120, numidas: 120, elefantes: 20 }, gen: { n: 'Asdrúbal el Beotarca', mando: 3, disc: 4, from: 149, until: 0 }, h: 'La gran rival de Roma. Escipión Emiliano la destruyó en 146 a.C.' },
+    // --- J4a: ciudades nuevas por región (fuentes y dictamen en js/registro.js). Etruria (H11c: Livio 28.45), Campania, Galia, Hispania y África ---
+    perusia: { n: 'Perusia', lon: 12.39, lat: 43.11, f: 'etruscos', esp: 'maderanaval', tipo: 'militar', w: 2, wl: 2, g: { hoplitas: 50, milicia: 50, peltastas: 20 }, h: 'Ciudad etrusca en lo alto de un monte. Livio cuenta que en 205 a.C. ofreció abeto para las naves de Escipión (28.45).' },
+    clusium: { n: 'Clusium', lon: 11.95, lat: 43.02, f: 'etruscos', esp: 'maderanaval', w: 2, wl: 1, g: { hoplitas: 40, milicia: 50, peltastas: 20 }, h: 'Ciudad etrusca de la que se contaba que Porsenna fue rey. En 205 a.C. dio abeto para las naves de Escipión (Livio 28.45).' },
+    rusellae: { n: 'Rusellae', lon: 11.15, lat: 42.76, f: 'etruscos', esp: 'maderanaval', w: 1, wl: 1, g: { hoplitas: 30, milicia: 40, peltastas: 10 }, h: 'Ciudad etrusca cercana a la costa. Roma la tomó hacia 294 a.C. y en 205 dio abeto para las naves de Escipión (Livio 28.45).' },
+    neapolis: { n: 'Neapolis', lon: 14.25, lat: 40.85, f: 'griegos', esp: 'sal', tipo: 'naval', w: 3, wl: 2, g: { hoplitas: 60, milicia: 60, peltastas: 20 }, h: 'Colonia griega de la bahía de Campania, aliada de Roma desde 326 a.C. con un pacto igual para ambas (Livio 8.26). Aportaba naves a Roma.' },
+    massalia: { n: 'Massalia', lon: 5.37, lat: 43.3, f: 'griegos', esp: 'vino', tipo: 'emporio', w: 3, wl: 3, g: { hoplitas: 100, peltastas: 40, milicia: 60 }, h: 'Colonia focense de la costa gala, fiel aliada de Roma (Polibio 3.95). Dio informes a Roma sobre el avance de Aníbal.' },
+    tarraco: { n: 'Tarraco', lon: 1.25, lat: 41.12, f: 'iberos', esp: 'vino', w: 1, wl: 1, g: { iberos: 60, honderos: 20, jinetes: 10 }, h: 'Puerto de la costa ibera. En 218 a.C. Cneo Escipión lo hizo base de Roma en Hispania (Livio 21.61).' },
+    gades: { n: 'Gades', lon: -6.29, lat: 36.53, f: 'cartago', esp: 'sal', tipo: 'emporio', w: 3, wl: 2, g: { libios: 100, iberos: 80, honderos: 40, numidas: 20 }, h: 'Colonia fenicia en el extremo occidental. Fue base de Cartago hasta que se rindió a Roma en 206 a.C. (Livio 28.37).' },
+    hadrumetum: { n: 'Hadrumetum', lon: 10.64, lat: 35.83, f: 'cartago', esp: 'sal', tipo: 'naval', w: 2, wl: 2, g: { libios: 100, honderos: 30, numidas: 40 }, h: 'Segundo puerto de Cartago en África. Aníbal desembarcó aquí al volver de Italia en 203 a.C. (Livio 30.25).' }
   };
 
   /* Nombre según la fecha. `n` es el NOMBRE ACTUAL de la ciudad: en las ciudades con `antes` es un getter que mira D.anio
@@ -285,7 +294,11 @@
     ['messana', 'syracusae'], ['messana', 'panormus'], ['syracusae', 'agrigentum'], ['agrigentum', 'lilybaeum'], ['panormus', 'lilybaeum'],
     ['lilybaeum', 'carthago', 1], ['carales', 'carthago', 1], ['carales', 'emporion', 1],
     ['emporion', 'saguntum'], ['saguntum', 'carthagonova'], ['carthagonova', 'carthago', 1],
-    ['ambracia', 'pella'], ['ambracia', 'corinthus'], ['pella', 'corinthus']
+    ['ambracia', 'pella'], ['ambracia', 'corinthus'], ['pella', 'corinthus'],
+    // J4a: rutas nuevas, AL FINAL para no cambiar el número de los caminos 1 a 16 (sus sitios van por número)
+    ['volsinii', 'perusia'], ['volsinii', 'clusium'], ['volsinii', 'rusellae'], ['capua', 'neapolis'],
+    ['emporion', 'tarraco'], ['tarraco', 'saguntum'], ['carthago', 'hadrumetum'],
+    ['roma', 'massalia', 1], ['emporion', 'massalia', 1], ['carthagonova', 'gades', 1], ['neapolis', 'messana', 1], ['hadrumetum', 'lilybaeum', 1]
   ];
 
   for (const e of D.EDGES) if (e[2]) { D.CITIES[e[0]].sea = true; D.CITIES[e[1]].sea = true; }   // ciudades con salida al mar
@@ -462,12 +475,14 @@
   /* Zonas del mapa (C6, escalones). Agrupan las ciudades de D.CITIES por id para los nombres grandes de Mare Nostrum.
      Cada ciudad está en una sola zona. Los límites son agrupación de juego, no fronteras de la época. */
   D.ZONAS = {
-    italia: { n: 'Italia', ciudades: ['roma', 'volsinii', 'capua', 'tarentum', 'mediolanum'] },
-    sicilia: { n: 'Sicilia', ciudades: ['messana', 'syracusae', 'agrigentum', 'panormus', 'lilybaeum'] },
-    sardinia: { n: 'Sardinia', ciudades: ['carales'] },
-    hispania: { n: 'Hispania', ciudades: ['emporion', 'saguntum', 'carthagonova'] },
-    graecia: { n: 'Graecia', ciudades: ['ambracia', 'pella', 'corinthus'] },
-    africa: { n: 'Africa', ciudades: ['carthago'] }
+    italia: { n: 'Italia', capital: 'roma', ciudades: ['roma', 'capua', 'neapolis', 'tarentum', 'mediolanum'] },
+    etruria: { n: 'Etruria', capital: 'volsinii', ciudades: ['volsinii', 'perusia', 'clusium', 'rusellae'] },
+    sicilia: { n: 'Sicilia', capital: 'syracusae', ciudades: ['messana', 'syracusae', 'agrigentum', 'panormus', 'lilybaeum'] },
+    sardinia: { n: 'Sardinia', capital: 'carales', ciudades: ['carales'] },
+    gallia: { n: 'Gallia', capital: 'massalia', ciudades: ['massalia'] },
+    hispania: { n: 'Hispania', capital: 'carthagonova', ciudades: ['emporion', 'tarraco', 'saguntum', 'carthagonova', 'gades'] },
+    graecia: { n: 'Graecia', capital: 'corinthus', ciudades: ['ambracia', 'pella', 'corinthus'] },
+    africa: { n: 'Africa', capital: 'carthago', ciudades: ['carthago', 'hadrumetum'] }
   };
   D.zonaDe = id => Object.keys(D.ZONAS).find(z => D.ZONAS[z].ciudades.indexOf(id) >= 0) || null;
 
