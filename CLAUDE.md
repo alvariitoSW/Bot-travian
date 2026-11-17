@@ -41,7 +41,7 @@ Cómo se trabaja cada sesión: §7 (gobierno).
 | `tools/` | Conversión de arte de 0 A.D. (ver README) |
 
 ## 4. Cómo probar (obligatorio antes de dar algo por hecho)
-- **Un solo comando: `node gobierno/jueces.mjs`** (unos 3 minutos). Pasa la lógica, recorre el juego en un navegador a
+- **Un solo comando: `node gobierno/jueces.mjs`** (de 15 a 20 minutos en la nube, medido el 16/11; lánzalo en segundo plano con margen de 30). Pasa la lógica, recorre el juego en un navegador a
   390×844 y deja capturas e informe en `gobierno/capturas/`. Debe decir APTO. `--rapido` pasa solo la lógica.
 - `node test/sim.test.js` — batallas, campaña completa con un bot, economía.
 - A mano, para lo que el recorrido no cubre: servir con `python3 -m http.server` y conducir con Playwright a 390×844 (Chromium con
