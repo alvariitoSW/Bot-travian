@@ -13,7 +13,10 @@ const [pref = 'mapa', ...resto] = process.argv.slice(2), op = Object.fromEntries
 const VISTAS = { italia: { c: 'roma', dist: 120 }, alpes: { c: 'mediolanum', dist: 46 }, sicilia: { lon: 15.0, lat: 37.6, dist: 40 }, grecia: { lon: 22.4, lat: 40.0, dist: 40 }, costa: { c: 'roma', dist: 14 }, baja: { lon: 7.4, lat: 45.7, dist: 14 }, etruria: { c: 'clusium', dist: 30 }, etruriaLejos: { c: 'clusium', dist: 62 }, mare: { c: 'roma', dist: 200 }, izq: { c: 'roma', dist: 400, drag: 1 }, der: { c: 'roma', dist: 400, drag: -1 }, padana: { lon: 10.5, lat: 45.1, dist: 40 }, tiber: { c: 'roma', dist: 22 }, delta: { lon: 12.0, lat: 44.9, dist: 22 }, iberia: { lon: -3.5, lat: 39.5, dist: 60 }, africa: { lon: 8.5, lat: 36.2, dist: 45 },
   /* C9: el mundo ampliado */ egipto: { lon: 31.0, lat: 30.6, dist: 60 }, giza: { lon: 31.13, lat: 29.98, dist: 15 }, faro: { lon: 29.885, lat: 31.214, dist: 15 }, nilo: { lon: 31.0, lat: 30.7, dist: 30 }, asia: { lon: 31.0, lat: 38.5, dist: 100 }, galia: { lon: 1.5, lat: 47.5, dist: 100 }, hispania: { lon: -5.0, lat: 40.0, dist: 100 }, mareEgipto: { lon: 30.0, lat: 32.0, dist: 400 }, mareGalia: { lon: 2.0, lat: 48.5, dist: 400 },
   /* C10: adornos de carta */ tirreno: { lon: 12.0, lat: 39.8, dist: 60 }, rosa: { lon: 19.0, lat: 34.6, dist: 55 }, ponto: { lon: 31.5, lat: 42.5, dist: 90 }, golfo: { lon: -5.5, lat: 45.5, dist: 70 },
-  /* C11: pueblos y tribus */ celtiberia: { lon: -3.2, lat: 40.6, dist: 50 }, numidia: { lon: 5.5, lat: 34.8, dist: 50 }, aldea: { lon: -2.4, lat: 41.0, dist: 12 }, mapalia: { lon: 7.3, lat: 35.6, dist: 12 }, balcanes: { lon: 21.5, lat: 43.2, dist: 60 } };
+  /* C11: pueblos y tribus */ celtiberia: { lon: -3.2, lat: 40.6, dist: 50 }, numidia: { lon: 5.5, lat: 34.8, dist: 50 }, aldea: { lon: -2.4, lat: 41.0, dist: 12 }, mapalia: { lon: 7.3, lat: 35.6, dist: 12 }, balcanes: { lon: 21.5, lat: 43.2, dist: 60 },
+  /* C16: ciudades grandes */ cartago: { c: 'carthago', dist: 20 }, rusellae: { c: 'rusellae', dist: 14 }, romaCerca: { c: 'roma', dist: 12 }, siracusa: { c: 'syracusae', dist: 22 },
+  /* C17: ejércitos y flota de prueba (con marchas=1) */ ejRoma: { ej: 0, dist: 12 }, ejRomaMedio: { ej: 0, dist: 40 }, ejCart: { ej: 1, dist: 12 }, ejCartMedio: { ej: 1, dist: 40 }, flota: { ej: 2, dist: 12 }, flotaMedio: { ej: 2, dist: 40 },
+  /* C12: calzadas y puertos */ apia: { lon: 13.4, lat: 41.5, dist: 30 }, flaminia: { lon: 12.4, lat: 43.2, dist: 60 }, egeo: { lon: 26.0, lat: 35.5, dist: 110 }, ostia: { lon: 12.6, lat: 41.6, dist: 22 } };
 const vistas = (op.vistas || 'italia,alpes,sicilia,grecia,costa,baja').split(',');
 const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream' };
 const srv = createServer(async (q, r) => { try { let p = decodeURIComponent(q.url.split('?')[0]); if (p === '/') p = '/index.html'; if (p.includes('..')) throw 0; const d = await readFile(join(RAIZ, p)); r.writeHead(200, { 'content-type': TIPOS[extname(p)] || 'application/octet-stream', 'cache-control': 'no-store' }); r.end(d); } catch (e) { r.writeHead(404); r.end(); } });
@@ -38,10 +41,16 @@ if (op.rutas) await page.evaluate(() => {   // K7a: rutas de prueba con rentas d
   for (const [a, b] of par) if (s.cities[a] && s.cities[b] && !G.rutaDe(a, b)) s.rutas.push({ a: a, b: b, f: s.cities[b].owner });
   if (s.cities.roma) s.cities.roma.b.mercado = 6; s.dip = s.dip || {}; if (s.cities.tarentum) s.dip[s.cities.tarentum.owner] = { estado: 'alianza', desde: s.t }; if (s.cities.syracusae) s.dip[s.cities.syracusae.owner] = { estado: 'tributo', desde: s.t };
 });
+if (op.marchas) await page.evaluate(() => {   // C17: un ejército romano grande, uno cartaginés pequeño y una flota romana, a mitad de camino y quietos
+  const s = Game.state, T = 1e6; s.marches = s.marches.filter(m => m.owner !== 'roma' || m.colonos);
+  s.marches.push({ id: 9001, owner: 'roma', from: 'roma', to: 'capua', units: { hastati: 1200, principes: 1200, triarii: 600, velites: 1000, equites: 300 }, gen: 'Prueba', t0: s.t - T, t1: s.t + T });
+  s.marches.push({ id: 9002, owner: 'cartago', from: 'lilybaeum', to: 'panormus', units: { libios: 300, iberos: 200 }, t0: s.t - T, t1: s.t + T });
+  s.marches.push({ id: 9003, owner: 'roma', from: 'roma', to: 'carales', units: { hastati: 600, principes: 400 }, t0: s.t - T, t1: s.t + T });
+});
 await mkdir(join(RAIZ, 'gobierno/capturas-tarea'), { recursive: true });
 const medir = () => page.evaluate(() => { const i = UI.map.r.info.render; return i.triangles + ' triángulos, ' + i.calls + ' llamadas'; });
 for (const v of vistas) {
-  await page.evaluate(([v, V]) => { const m = UI.map; m.c.dist = V.dist; if (V.c) m.center(V.c); else { m.c.x = (V.lon + 7) * 5; m.c.z = (47 - V.lat) * 6.4; } m.clamp(); }, [v, VISTAS[v]]);
+  await page.evaluate(([v, V]) => { const m = UI.map; m.c.dist = V.dist; if (V.ej !== undefined) { const a = m.armies.get(9001 + V.ej); if (a) { m.c.x = a.grp.position.x; m.c.z = a.grp.position.z; } } else if (V.c) m.center(V.c); else { m.c.x = (V.lon + 7) * 5; m.c.z = (47 - V.lat) * 6.4; } m.clamp(); }, [v, VISTAS[v]]);
   await page.waitForTimeout(3500);
   if (VISTAS[v].drag) for (let i = 0; i < 3; i++) { const sx = 195 - VISTAS[v].drag * 140; await page.mouse.move(sx, 480); await page.mouse.down(); for (let k = 1; k <= 10; k++) await page.mouse.move(sx + VISTAS[v].drag * 28 * k, 480 + (k % 2)); await page.mouse.up(); await page.waitForTimeout(800); }
   if (VISTAS[v].drag) { await page.waitForTimeout(2000); console.log(v + ': c.x ' + (await page.evaluate(() => UI.map.c.x)).toFixed(1)); }

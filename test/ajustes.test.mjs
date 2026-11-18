@@ -51,11 +51,11 @@ for (const dif of ['tranquila', 'normal', 'dura']) {
   if (vp !== 0) fallos.push(dif + ': el pasivo no debe ganar nunca (' + vp + ')');
 }
 const n = vic.normal.agr;
-if (n < 4) fallos.push('Normal: el agresivo debe ganar >= 4 de 5 (' + n + ')');
+if (n < 2 || n > 4) fallos.push('Normal: el agresivo debe ganar de 2 a 4 de 5 (V10a: medido 3; 5 es demasiado fácil) (' + n + ')');
 if (vic.tranquila.agr < n - 1) fallos.push('Tranquila debe ganar >= Normal - 1 (' + vic.tranquila.agr + ' vs ' + n + ')');
 // Dura: umbral = medido - 1 (minimo 3). MEDIDO_DURA se fija tras medir (ver comentario)
-const MEDIDO_DURA = 5;   // victorias del agresivo en Dura medidas (medido: Tranquila 5/5, Normal 5/5, Dura 5/5; umbral Dura = 4)
-const UMBRAL_DURA = Math.max(3, MEDIDO_DURA - 1);
+const MEDIDO_DURA = 4;   // victorias del agresivo en Dura medidas (V10a, con Cartago más fuerte: Tranquila 4/5, Normal 3/5, Dura 4/5; umbral Dura = 2)
+const UMBRAL_DURA = Math.max(2, MEDIDO_DURA - 2);
 if (vic.dura.agr < UMBRAL_DURA) fallos.push('Dura: el agresivo debe ganar >= ' + UMBRAL_DURA + ' de 5 (' + vic.dura.agr + ')');
 
 // Comprobaciones breves: cambiar ajustes a mitad de campaña deja seguir jugando

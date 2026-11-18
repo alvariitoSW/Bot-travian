@@ -1957,16 +1957,10 @@
       "url": "https://claude.ai/code/session_01QiKC37gQPtkdN7X53tu66G"
     },
     {
-      "tarea": "C12",
-      "titulo": "Mapa · C12 Calzadas y puertos (Opus)",
-      "nota": "js/gfx/map3d.js, datos y fichas; excepción a la 1.0 (sin pausa)",
-      "url": "https://claude.ai/code/session_01QiKC3A5dScaGJDuyjCNUUJ"
-    },
-    {
-      "tarea": "V10a",
-      "titulo": "Versión 1.0 · V10a Equilibrio con el bot (Opus)",
-      "nota": "Carril V; solo números en js/data.js y js/game.js; no toca js/gfx/",
-      "url": "https://claude.ai/code/session_01QiKC37Er11SboFXfCVaV5o"
+      "tarea": "C18",
+      "titulo": "Mapa · C18 Cintas y minimapa (Opus)",
+      "nota": "js/gfx/map3d.js, js/ui.js y css/style.css; última de la cadena del mapa",
+      "url": "https://claude.ai/code/session_01QiKC39DxUDQhkBFFMy1Kdm"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
