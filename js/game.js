@@ -2223,9 +2223,9 @@
       }
     }
     if (!hubo) return null;
-    if (!s.alm) s.alm = {}; const antes = G.state; G.state = s; const cap = G.cap(); G.state = antes;
+    if (!s.alm) s.alm = {}; const antes = G.state; G.state = s; const capR = {}; for (const r in tot) capR[r] = G.capDe ? G.capDe(r) : G.cap(); G.state = antes;   // CE2: tope de cada recurso (los materiales caben el doble)
     const total = {};
-    for (const r in tot) { const ya = s.alm[r] || 0, pon = Math.max(0, Math.min(tot[r], cap - ya)); s.alm[r] = ya + pon; if (s.cuarto) s.cuarto[r] = (s.cuarto[r] || 0); total[r] = pon; if (tot[r] > pon) perdido[r] = tot[r] - pon; }
+    for (const r in tot) { const ya = s.alm[r] || 0, pon = Math.max(0, Math.min(tot[r], capR[r] - ya)); s.alm[r] = ya + pon; if (s.cuarto) s.cuarto[r] = (s.cuarto[r] || 0); total[r] = pon; if (tot[r] > pon) perdido[r] = tot[r] - pon; }
     s.devuelto = Object.assign({}, niv, { total: total, perdido: perdido }); G.ultimaMigracion = s.devuelto;
     return s.devuelto;
   };
