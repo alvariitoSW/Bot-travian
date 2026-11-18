@@ -213,7 +213,7 @@ async function navegador() {
       await a.scrollIntoViewIfNeeded(); await espera(300);
       const m = await a.evaluate(el => { const r = el.getBoundingClientRect(); return { h: Math.round(r.height), d: Math.round(r.right), t: el.textContent, url: el.href }; });
       const cap = await foto('escaramuzas-testudo');
-      if (m.h < 44 || m.d > 390 || !/Testudo a pie/.test(m.t) || !/\/gobierno\/maquetas\/testudo-luz-campo\/$/.test(m.url)) return { ok: false, detalle: 'entrada mal: alto ' + m.h + ' px, borde ' + m.d + ' px, ' + m.url, captura: cap };
+      if (m.h < 44 || m.d > 390 || !/Testudo a pie/.test(m.t) || !/\/gobierno\/maquetas\/a-pie\/$/.test(m.url)) return { ok: false, detalle: 'entrada mal: alto ' + m.h + ' px, borde ' + m.d + ' px, ' + m.url, captura: cap };
       await a.click(); await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
       const titulo = await page.title(); await espera(1500);
       await page.click('#salir'); await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });

@@ -1,0 +1,54 @@
+/* Pieza «cámara»: dónde va la cámara a pie. Detrás de ti y de tu compañero en la marcha; bajo los escudos con el testudo
+   cerrado (idea de Ryse, solo la idea); se arrima cuando te vuelves a los tuyos; a tiro, se echa atrás y sigue tu pilum;
+   en la lucha se aparta y sube (GP1); de costado para mirar los pies (TP1, ?costado=r|g).
+   Contrato: crearCamara(m) con m = { Q, S, H, suave, lerp, YO, CMP, Z_TIRADORES, COSTADO, vertical (lectura) } devuelve
+   { CAM, CAMS, camBase }: camBase() pone en CAM la posición, giro, cabeceo y abertura de ahora (el temblor va aparte). */
+export function crearCamara(m) {
+  const { Q, S, H, suave, lerp, YO, CMP, Z_TIRADORES } = m;
+  const CAMS = {
+    hm: { x: 0, d: 2.2, y: 2.0, pitch: -0.07, yaw: 0, fov: 58 }, ht: { x: 0, d: 0.85, y: 1.74, pitch: 0, yaw: 0, fov: 55 },
+    vm: { x: 0, d: 4.4, y: 2.85, pitch: -0.27, yaw: 0, fov: 74 }, vt: { x: 0, d: 1.45, y: 1.76, pitch: -0.2, yaw: 0, fov: 72 },
+  };
+  if (Q.get('cam')) { const c = Q.get('cam').split(',').map(Number), t = innerHeight > innerWidth ? CAMS.vt : CAMS.ht; ['d', 'y', 'pitch', 'yaw', 'fov', 'x'].forEach((n, i) => { if (isFinite(c[i])) t[n] = c[i]; }); }
+  if (Q.get('camm')) { const c = Q.get('camm').split(',').map(Number), t = innerHeight > innerWidth ? CAMS.vm : CAMS.hm; ['d', 'y', 'pitch', 'yaw', 'fov', 'x'].forEach((n, i) => { if (isFinite(c[i])) t[n] = c[i]; }); }
+  /* GM43h: lo que se mueve la cámara a tiro de pilum (se suma a la de marcha) */
+  const CAMP = { v: { x: -0.17, d: -2.1, y: -0.5, pitch: 0.1, fov: 0 }, h: { x: 0.1, d: -0.7, y: 0.15, pitch: 0.03, fov: 0 } };
+  const CAM = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, fov: 60 };
+    function camBase() {
+    const k = suave(0, 1, S.k), yo = S.romanos[YO], co = S.romanos[CMP], mx = (yo.x + co.x) / 2, a = m.vertical ? CAMS.vm : CAMS.hm, b = m.vertical ? CAMS.vt : CAMS.ht;
+    CAM.x = mx + lerp(a.x, b.x, k); CAM.z = S.zF + lerp(a.d, b.d, k); CAM.y = H(mx, S.zF) + lerp(a.y, b.y, k);
+    const dist = Math.max(8, CAM.z - Z_TIRADORES), sube = Math.atan2(H(0, Z_TIRADORES) + 1.2 - CAM.y, dist);
+    CAM.pitch = lerp(a.pitch, b.pitch, k) + sube * 0.6 * (1 - k); CAM.yaw = lerp(a.yaw, b.yaw, k); CAM.fov = lerp(a.fov, b.fov, k);
+    /* cuando tu soldado se vuelve a gritar a los suyos, la cámara se le arrima y le mira: se le ve la cara de perfil */
+    const g = suave(0, 1, yo.mira) * k; if (g > 0) { CAM.x -= 0.06 * g; CAM.z -= (m.vertical ? 0.35 : 0.15) * g; CAM.yaw += (m.vertical ? 0.12 : 0.1) * g; CAM.y -= 0.02 * g; }
+    /* GM43h: a tiro de pilum la cámara se echa algo atrás, sube y se arrima a tu lado: se ve tu brazo con el pilum y, al fondo, los galos */
+    const kp = suave(0, 1, S.kP) * (1 - k);
+    if (kp > 0) { const c = m.vertical ? CAMP.v : CAMP.h; CAM.x += c.x * kp; CAM.z += c.d * kp; CAM.y += c.y * kp; CAM.pitch += c.pitch * kp; CAM.fov += c.fov * kp; }
+    /* y sigue con la mirada tu pilum: cabecea arriba y luego abajo con él, gira un poco y cierra un pelo el encuadre */
+    const p = S.ojo;
+    if (p && p.est >= 2) {
+      const env = p.est === 2 ? suave(0, 0.35, S.T - p.t0) : 1 - suave(0.4, 1.6, S.T - p.tFin);
+      if (env > 0) {
+        const dx = p.p.x - CAM.x, dz = p.p.z - CAM.z, dh = Math.hypot(dx, dz) || 1;
+        CAM.pitch += (Math.atan2(p.p.y - CAM.y, dh) - CAM.pitch) * 0.4 * env; CAM.yaw += (Math.atan2(-dx, -dz) - CAM.yaw) * 0.25 * env; CAM.fov -= 5 * env;
+      }
+    }
+    /* GP1: en la lucha la cámara se aparta un poco a la derecha y sube, para ver los duelos de medio lado y no solo espaldas */
+    const w = S.choque ? suave(0, 1.4, S.T - S.tChoque) : 0;
+    if (w > 0) {
+    CAM.x += 1.6 * w; CAM.y += 1.0 * w; CAM.z -= 1.9 * w; CAM.yaw += 0.42 * w; CAM.pitch -= 0.36 * w;
+    /* TP1: y mira al duelo de tu columna (tu hombre o el que le releva, y su rival) */
+    const d = (S.duelos || []).find(d => d.activo && !d.sec && d.r.f === YO);
+    if (d) { const mx = (d.r.x + d.g.x) / 2, mz = (d.r.z + d.g.z) / 2; CAM.yaw = lerp(CAM.yaw, Math.atan2(-(mx - CAM.x), -(mz - CAM.z)), w); }
+  }
+    /* TP1: de costado (?costado=r o g), desde la izquierda y a la altura del pecho, para mirar si los pies pisan */
+    if (m.COSTADO) {
+      const gal = m.COSTADO === 'g', L = gal ? S.galos.filter(g => g.vivo) : S.romanos.filter(h => h.r <= 1);
+      const zc = L.reduce((a, h) => a + h.z, 0) / Math.max(1, L.length), x0 = Math.min(...L.map(h => h.x)) - (gal ? 7 : 6);
+      CAM.x = x0; CAM.z = zc; CAM.y = H(x0 + 4, zc) + 1.1; CAM.yaw = -Math.PI / 2; CAM.pitch = -0.06; CAM.fov = 40;
+    }
+    return CAM;
+  }
+  const lejos = (pt, d) => Math.hypot(pt.x - CAM.x, pt.y - CAM.y, pt.z - CAM.z) >= d;
+  return { CAM, CAMS, camBase, lejos };
+}

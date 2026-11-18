@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1016">
+<title>AQVILA · Testudo a pie</title>
+<base href="../../../">
+<style>
+@font-face{font-family:Cinzel;font-weight:700;src:url("assets/fuentes/cinzel-700.woff2") format("woff2")}
+:root{--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--vidrio:rgba(18,15,11,.82);--fil:rgba(184,134,43,.55);--roma:#c23a2e;--verde:#7cc65e;--rojo:#dd5a43;--ri:28%;--rs:58%}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#15130f;overflow:clip;overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font:14px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--marmol)}
+[hidden]{display:none!important}
+canvas#lienzo{position:fixed;inset:0;display:block;width:100vw;height:100vh;height:100dvh;touch-action:none}
+#hud{position:fixed;inset:0;pointer-events:none;overflow:clip}
+button{font:inherit;color:inherit;border:0;cursor:pointer;pointer-events:auto;touch-action:none;margin:0}
+svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* la sombra del testudo: oscuro arriba (techo) y abajo (pared de escudos), luz solo por la rendija */
+/* (luz de cine: la penumbra ya la hacen las sombras de verdad; este velo queda suave, solo para los bordes) */
+#sombra{position:absolute;inset:0;opacity:0;transition:opacity .45s;background:linear-gradient(to top,rgba(8,5,3,.22) 0,rgba(8,5,3,.08) calc(var(--ri) - 6%),rgba(8,5,3,0) var(--ri),rgba(8,5,3,0) var(--rs),rgba(8,5,3,.1) calc(var(--rs) + 7%),rgba(8,5,3,.25) 100%)}
+#sombra.ve{opacity:1}
+/* luz de cine: viñeta cálida, un velo de sol arriba y grano de película (capas fijas, sin pasadas de WebGL) */
+#temblor{position:absolute;inset:0;background:radial-gradient(ellipse 115% 85% at 50% 46%,rgba(0,0,0,0) 48%,rgba(26,14,6,.32) 78%,rgba(14,7,3,.62) 100%)}
+#velo{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(255,196,120,.10),rgba(255,196,120,0) 38%,rgba(0,0,0,0) 70%,rgba(20,12,6,.18))}
+#grano{position:absolute;inset:-64px;opacity:.06;background-size:128px 128px;animation:grano .5s steps(4) infinite}
+@keyframes grano{25%{transform:translate(-31px,17px)}50%{transform:translate(23px,-41px)}75%{transform:translate(-13px,-29px)}}
+@media (prefers-reduced-motion:reduce){#grano{animation:none}}
+
+#arriba{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);top:calc(env(safe-area-inset-top) + 8px);display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
+.pildora{height:44px;padding:0 14px 0 10px;display:flex;align-items:center;gap:6px;border-radius:22px;background:var(--vidrio);border:1px solid var(--fil);font-weight:600;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.4)}
+.pildora svg{width:18px;height:18px}
+#mision{max-width:250px;padding:7px 11px 8px;border-radius:12px;background:var(--vidrio);border:1px solid var(--fil);box-shadow:0 3px 10px rgba(0,0,0,.4);overflow:clip}
+#objetivo{font:700 12.5px Cinzel,Georgia,serif;letter-spacing:.02em;color:var(--oro);white-space:nowrap;overflow:clip;text-overflow:ellipsis}
+#forma{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:11.5px;color:#e6dcc3;white-space:nowrap;font-variant-numeric:tabular-nums}
+#barra{flex:1;min-width:90px;height:7px;border-radius:4px;background:rgba(255,255,255,.15);overflow:clip}
+#barra b{display:block;height:100%;width:100%;border-radius:4px;background:var(--verde);transition:width .5s,background .5s}
+
+#cinta{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 64px);transform:translateX(-50%);max-width:calc(100% - 24px);padding:9px 18px;border-radius:18px;background:rgba(14,12,9,.8);border:1px solid rgba(221,90,67,.75);font:700 16px Cinzel,Georgia,serif;letter-spacing:.04em;color:#ffb39e;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .25s}
+#cinta.ve{opacity:1}
+#cinta.buena{color:#c9ecae;border-color:rgba(124,198,94,.6)}
+
+/* abajo: avanzar a la izquierda; escudos y la orden del momento a la derecha. El centro, libre */
+#abajo{position:absolute;left:calc(env(safe-area-inset-left) + 10px);right:calc(env(safe-area-inset-right) + 10px);bottom:calc(env(safe-area-inset-bottom) + 10px);display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+#derecha,#izquierda{display:flex;gap:10px;align-items:flex-end}
+#aliento-c{position:absolute;left:12px;right:12px;bottom:6px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);overflow:clip}
+#aliento{display:block;height:100%;width:100%;background:#8fd0e8;border-radius:2px}
+#correr{position:relative}
+#correr.cansado{opacity:.6}#correr.cansado #aliento{background:var(--rojo)}
+#miescudo{width:16px;height:19px;flex:none;color:var(--verde)}
+#miescudo.e1{color:#e6ac3c}#miescudo.e2{color:var(--rojo)}#miescudo.roto{color:#8d846f}
+#miescudo .x{display:none}#miescudo.roto .x{display:block}#miescudo .g1{display:none}#miescudo.e1 .g1,#miescudo.e2 .g1{display:block}#miescudo .g2{display:none}#miescudo.e2 .g2{display:block}
+#grito{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 22px);transform:translateX(-50%);max-width:36%;font:700 20px Cinzel,Georgia,serif;letter-spacing:.04em;color:#fff3dc;text-shadow:0 2px 6px #000,0 0 12px rgba(0,0,0,.9);text-align:center;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .2s}
+#grito.ve{opacity:1}
+.boton{min-width:128px;height:58px;padding:0 16px;border-radius:14px;background:linear-gradient(#3a2c14,#241b0d);border:1.5px solid var(--bronce);display:flex;align-items:center;justify-content:center;gap:8px;font:700 15px Cinzel,Georgia,serif;letter-spacing:.03em;white-space:nowrap;box-shadow:0 3px 12px rgba(0,0,0,.5);overflow:clip}
+.boton svg{width:22px;height:22px;color:var(--oro)}
+.boton.activa{background:linear-gradient(#8a2a20,#5c1b15);border-color:var(--oro)}
+.boton.pide{animation:pide .8s infinite}
+.boton.roja{background:linear-gradient(#8a2a20,#5c1b15);border-color:var(--oro)}
+/* GM43h: «Lanzar» se mantiene pulsado; debajo, el medidor con la zona del buen tiro (verde) */
+#accion{position:relative;min-width:150px;padding-bottom:8px}
+#accion.espera{opacity:.62}
+#medidor{position:absolute;left:12px;right:12px;bottom:7px;height:8px;border-radius:4px;background:rgba(255,255,255,.16);overflow:clip}
+#zona{position:absolute;top:0;bottom:0;left:72%;right:0;background:rgba(124,198,94,.5)}
+#aguja{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--marmol);border-right:2px solid #fff}
+#aguja.buena{background:var(--verde)}
+#accion.espera #aguja{background:#8d846f;border-right-color:#8d846f}
+@keyframes pide{50%{border-color:#fff;box-shadow:0 0 0 3px rgba(233,192,99,.6)}}
+@media (orientation:portrait){
+  #derecha,#izquierda{flex-direction:column-reverse}
+  #grito{bottom:calc(env(safe-area-inset-bottom) + 150px);max-width:90%}
+  .boton{min-width:136px}
+  #cinta{top:calc(env(safe-area-inset-top) + 118px)}
+}
+
+.velo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:rgba(10,8,6,.66);pointer-events:auto}
+#carga{background:#15130f}
+.velo h1{margin:0;font:700 30px Cinzel,Georgia,serif;letter-spacing:.06em;color:var(--oro)}
+.velo p{margin:0;max-width:360px;font-size:15px;line-height:1.4}
+.gordo{min-width:150px;height:54px;padding:0 22px;border-radius:14px;background:linear-gradient(#8a2a20,#5c1b15);border:1.5px solid var(--oro);font:700 16px Cinzel,Georgia,serif;letter-spacing:.04em}
+#creditos{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 8px);font-size:10.5px;color:#8d846f;text-align:center;padding:0 16px}
+</style>
+</head>
+<body>
+<canvas id="lienzo"></canvas>
+<div id="hud">
+  <div id="velo"></div>
+  <div id="grano"></div>
+  <div id="temblor"></div>
+  <div id="sombra"></div>
+  <div id="cinta"></div>
+  <div id="grito"></div>
+  <div id="arriba">
+    <button id="salir" class="pildora"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Salir</button>
+    <div id="mision">
+      <div id="objetivo">Lleva el cuerpo hasta la loma</div>
+      <div id="forma"><span>Formación</span><span id="barra"><b></b></span><span id="cuenta">30/30</span><svg id="miescudo" viewBox="0 0 16 19" aria-label="Tu escudo"><ellipse cx="8" cy="9.5" rx="6.5" ry="8.3" fill="currentColor" fill-opacity=".25"/><ellipse cx="8" cy="9.5" rx="6.5" ry="8.3"/><path class="g1" d="M6 2l1.5 4-1 3 1.5 3"/><path class="g2" d="M10 3l-1 5 2 3M7.5 12l1 5"/><path class="x" d="M3 4l10 11M13 4L3 15"/></svg></div>
+    </div>
+  </div>
+  <div id="abajo">
+    <div id="izquierda">
+      <button id="avanzar" class="boton"><svg viewBox="0 0 24 24"><path d="M12 20V5M12 5l-6 6M12 5l6 6"/></svg>Avanzar</button>
+      <button id="correr" class="boton"><svg viewBox="0 0 24 24"><path d="M13 4.5a1.5 1.5 0 1 0 0 .1M9 20l3-6 3 2v5M7 11l3-3 4 1 2 3 3 1"/></svg><span id="correr-t">Correr</span><span id="aliento-c"><b id="aliento"></b></span></button>
+    </div>
+    <div id="derecha">
+      <button id="escudos" class="boton"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg><span id="escudos-t">Escudos</span></button>
+      <button id="accion" class="boton roja" hidden><span id="accion-t">Lanzar</span><span id="medidor"><i id="zona"></i><b id="aguja"></b></span></button>
+    </div>
+  </div>
+  <div id="fin" class="velo" hidden>
+    <h1 id="fin-t">¡Choque!</h1>
+    <p id="fin-p"></p>
+    <button class="gordo" id="otra">Otra vez</button>
+    <div id="creditos">Maqueta GM43e · Luz de A, campo de B, hombres y hierro de C · Soldados, escudos y árboles de 0 A.D. (Wildfire Games, CC BY-SA 3.0) · Cielo «Kloofendal 48d» (Greg Zaal y Jarod Guest) y suelos «Grass Ground» (Charlotte Baglioni), «Sparse Grass» (Amal Kumar), «Brown Mud Dry» (Rob Tuytel) y «Rock Boulder Dry» (Dimitrios Savva y Rico Cilliers), de Poly Haven (CC0) · Detalle de lino, madera y manchas de «Rough Linen» (colmass y Rico Cilliers), «Fine Grained Wood» y «Rusty Metal 02» (Rob Tuytel), de Poly Haven (CC0) · Venablos, pila, hierba, flores, luz y sonido hechos por código</div>
+  </div>
+  <div id="carga" class="velo"><h1>AQVILA</h1><p>Formando el manípulo…</p></div>
+</div>
+<script type="module" src="gobierno/maquetas/a-pie/escena.js"></script>
+</body>
+</html>
