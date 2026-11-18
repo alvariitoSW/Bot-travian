@@ -37,6 +37,12 @@ bajas a una unidad y la vives a pie, como su centurión. El testudo a pie es la 
   al correr se inclinan mucho hacia delante, con las piernas abiertas y el escudo botando; en Rome II la tropa que
   marcha no va alineada al centímetro: cuerpos, lanzas y escudos a distinta altura. Idea que se toma: paso de cada
   hombre propio y casado con lo que avanza, inclinación al correr, y cambios de paso suaves y escalonados por filas.
+- **Clips del usuario (18/11, seis de Rome II subidos al chat de TP1; «pueden servir para construir la falange de
+  picas y mejorar lo que ya hay de testudo»)**. Para el testudo (TP1): en la columna que marcha nadie pisa a la vez,
+  las cabezas botan a distinta altura, el escudo va quieto al costado y el brazo de la espada se mece. Para la
+  falange de picas (TP7): las primeras filas bajan la sarisa hacia delante y las de atrás la llevan alzada, en
+  abanico; cada asta oscila a su ritmo; filas muy prietas, escudo pequeño colgado al pecho; vista a ras de suelo desde
+  detrás, entre el bosque de astas, con sombras largas; los elefantes chocan contra el muro de picas.
 - **Norma (usuario, 18/11)**: antes de cada etapa se miran referencias reales de los juegos que él nombre y se apunta
   aquí qué idea se toma. Límite conocido: desde la nube YouTube no deja bajar vídeos (pide iniciar sesión); solo se ven
   sus imágenes fijas públicas. Lo que mejor funciona es que el usuario suba el clip al chat: de un clip suyo se sacan
