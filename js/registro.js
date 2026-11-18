@@ -479,7 +479,76 @@
     nasamones: tri('Heródoto 4.172-173', 'historico', COT + ': Heródoto 4.172 los pone al oeste de los auschisas, con rebaños junto al mar en verano; la Sirte la nombra en 4.169 y 4.173. Heródoto escribe dos siglos antes de la época del juego')
   };
 
-  R.fichas = { tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+
+  // ---- Calzadas, puertos y rutas de mar del mapa (D.CALZADAS, D.PUERTOS, D.RUMBOS, C12). Dibujados por código; ficha larga en
+  // gobierno/historia/C12-calzadas.md. Cotejado el 17/11/2026 en LacusCurtius (Estrabón, Polibio; trad. inglesas). Livio no cargó:
+  // lo que sale de Livio queda de memoria. «histórico» solo si el pasaje se ha leído; si el año no se ha leído, «probable».
+  const POR_CODIGO_C12 = { sin: 'dibujado por código en js/gfx/map3d.js (tinta roja, trazos y ancla; sin archivo de arte ni licencia ajena)' };
+  const LJ_VIA = 'licencia de juego: el trazado va a ojo por las ciudades de paso sobre el mapa moderno, y los extremos van a la ciudad del juego (Capua, Tarento)';
+  const LJ_PUERTO = 'licencia de juego: el ancla va en el agua junto al puerto; es adorno de carta';
+  const LJ_RUMBO = 'licencia de juego: el trazado por el mar va a ojo; las fuentes dan los puertos y alguna distancia, no la derrota';
+  const COT12 = 'cotejado el 17/11/2026', MEM12 = 'citado de memoria, sin cotejar';
+  const via = (fuente, dictamen, nota) => f(POR_CODIGO_C12, h(fuente, dictamen, nota + ' · ' + LJ_VIA));
+  const calzada = {
+    appia: via('Estrabón, Geografía 5.3.6 y 6.3.7; Livio 9.29.5-6', 'probable', COT12 + ' en Estrabón 5.3.6: la Vía Apia va de Roma a Brentesio (Brundisium) y es la más transitada; 6.3.7: de Benevento a Roma el camino común es la Apia. El año (312 a.C., censura de Apio Claudio) sale de Livio 9.29, ' + MEM12),
+    appiaB: via('Estrabón, Geografía 6.3.7; Veleyo Patérculo 1.14 (colonia de Brundisium)', 'probable', COT12 + ' en Estrabón 6.3.7: la Apia, por Venusia y Tarento, llega a Brentesio; de Roma a Brentesio, 360 millas. Ninguna fuente fecha la prolongación: se usa el año de la colonia latina de Brundisium (244 a.C., Veleyo 1.14, ' + MEM12 + '), marcado «hacia»: licencia de juego'),
+    latina: via('Livio 26.8-9 (Aníbal marcha sobre Roma por la Vía Latina, 211 a.C.); Estrabón, Geografía 5.3.9', 'por cotejar', MEM12 + '. Camino anterior a 280 a.C. sin fecha de construcción: el mapa lo marca «camino antiguo»'),
+    valeria: via('Livio 9.43.25 (censores de 307 a.C. hacen caminos por los campos); Estrabón, Geografía 5.3.11', 'por cotejar', MEM12 + '. Que el camino de los censores de 307 sea la Valeria (Tíbur-Alba Fucens-Corfinio) es lectura moderna: fecha marcada «hacia»'),
+    salaria: via('Estrabón, Geografía 5.3.1; Plinio, Historia Natural 31.89', 'por cotejar', MEM12 + '. El camino de la sal de los sabinos es muy anterior a 280 a.C.; sin fecha: «camino antiguo»'),
+    flaminia: via('Estrabón, Geografía 5.1.11; Livio, Períocas 20', 'probable', COT12 + ' en Estrabón 5.1.11: Flaminio hizo la Vía Flaminia de Roma, por Tirrenia y Umbría, hasta Ariminum. Estrabón lo hace cónsul con Lépido (187), confundiendo a dos Flaminios; el año 220 (censura de Gayo Flaminio) sale de Livio, Períocas 20, ' + MEM12),
+    aurelia: via('Sin pasaje antiguo que la feche', 'por cotejar', 'el año 241 a.C. (censura de Gayo Aurelio Cota) es atribución moderna, sin pasaje: marcado «hacia». Aquí llega hasta Cosa; su prolongación a Pisa es de 109 a.C., fuera del juego'),
+    aemilia: via('Estrabón, Geografía 5.1.11; Livio 39.2.10', 'probable', COT12 + ' en Estrabón 5.1.11: la Vía Emilia sigue a la Flaminia; de Placentia a Ariminum, 1.300 estadios. El año (187 a.C., cónsul Marco Emilio Lépido) sale de Livio 39.2.10, ' + MEM12),
+    postumia: via('Inscripciones (CIL); sin pasaje literario', 'por cotejar', 'de Génova a Aquilea por Placentia, Cremona y Verona; atribuida al cónsul Espurio Postumio Albino (148 a.C.) por miliarios, ' + MEM12 + '. Es de las últimas del juego (146 a.C.)')
+  };
+  const pto = (fuente, dictamen, nota) => f(POR_CODIGO_C12, h(fuente, dictamen, nota + ' · ' + LJ_PUERTO));
+  const puerto = {
+    ostia: pto('Estrabón, Geografía 5.3.5 y 5.2.1', 'historico', COT12 + ': Ostia «no tiene puerto» por el limo del Tíber; los mercantes fondean mar adentro y descargan en barcas, o suben el río hasta Roma (190 estadios). En 5.2.1, puerto de la flota romana'),
+    puteoli: pto('Livio 34.45.1 (colonia romana, 194 a.C.)', 'por cotejar', MEM12 + '. Antes de la colonia era la ciudad griega de Dicearquía'),
+    brundisium: pto('Estrabón, Geografía 6.3.8', 'historico', COT12 + ': de Brentesio se cruza a los montes Ceraunios o a Epidamno, la travesía habitual'),
+    tarentum: pto('Polibio 8.24-34 (Aníbal y el puerto de Tarento, 212 a.C.)', 'por cotejar', MEM12),
+    syracusae: pto('Livio 25.23-31 (sitio de Siracusa); Tucídides 7', 'por cotejar', MEM12),
+    messana: pto('Polibio 1.10-11 (los mamertinos piden ayuda a Roma)', 'por cotejar', MEM12),
+    lilybaeum: pto('Polibio 1.41-42', 'probable', 'leído en resumen el 17/11/2026, sin el texto palabra por palabra: el cabo de Lilibeo está bien situado para atacar los promontorios frente a Cartago, a unos 1.000 estadios'),
+    carthago: pto('Apiano, Líbica 96 (el puerto circular, el cotón)', 'por cotejar', MEM12),
+    utica: pto('Polibio 1.73-75 (guerra de los mercenarios)', 'por cotejar', MEM12 + '. La costa antigua estaba más cerca de Útica; hoy el río la ha rellenado'),
+    gades: pto('Estrabón, Geografía 3.5.3', 'por cotejar', MEM12),
+    carthagonova: pto('Polibio 10.10 (el puerto de Cartago Nova, 209 a.C.)', 'por cotejar', MEM12),
+    emporion: pto('Livio 34.9; Estrabón, Geografía 3.4.8', 'por cotejar', MEM12),
+    massalia: pto('Estrabón, Geografía 4.1.4-5', 'por cotejar', MEM12),
+    dyrrachium: pto('Estrabón, Geografía 6.3.8', 'historico', COT12 + ': Epidamno (Dirraquio) es la travesía habitual desde Brentesio. Que Epidamno y Dirraquio sean la misma ciudad lo dice Estrabón 7.5.8, ' + MEM12),
+    piraeus: pto('Estrabón, Geografía 9.1.15', 'por cotejar', MEM12),
+    rhodus: pto('Polibio 5.88-90 (el terremoto de Rodas y la ayuda de los reyes)', 'por cotejar', MEM12),
+    alexandria: pto('Estrabón, Geografía 17.1.6-7', 'por cotejar', 'el pasaje no cargó el 17/11/2026 (LacusCurtius, Strabo/17A1); ' + MEM12 + ': Faro y dos puertos; el mayor mercado del mundo habitado')
+  };
+  const rum = (fuente, dictamen, nota) => f(POR_CODIGO_C12, h(fuente, dictamen, nota + ' · ' + LJ_RUMBO));
+  const rumbo = {
+    tyrrhenus: rum('Estrabón, Geografía 5.3.5-6', 'por cotejar', 'Ostia y Putéolos son puertos de Roma; la costa entre ambos, ' + MEM12),
+    frumentarius: rum('Livio 23.38 y 27.5 (grano de Sicilia a Roma)', 'por cotejar', MEM12 + '. En el mapa el estrecho de Mesina sale cerrado (contorno simplificado): el trazo lo cruza'),
+    libycus: rum('Polibio 1.42', 'probable', 'leído en resumen: Lilibeo, base para pasar a África, a unos 1.000 estadios de Cartago'),
+    punicus: rum('Polibio 3.24 (tratado con Cartago: mares vedados a Roma); Estrabón, Geografía 3.5.5', 'por cotejar', MEM12),
+    ibericus: rum('Estrabón, Geografía 3.4.8 y 4.1.5 (colonias de Massalia en Iberia)', 'por cotejar', MEM12),
+    gallicus: rum('Polibio 3.41 (Publio Escipión navega a Massalia, 218 a.C.)', 'por cotejar', MEM12),
+    hadriaticus: rum('Estrabón, Geografía 6.3.8', 'historico', COT12 + ': de Brentesio a Epidamno, la travesía habitual. Estrabón da 1.800 estadios; el editor cree que es error por unos 800'),
+    ionius: rum('Tucídides 6-7 (Atenas y Siracusa); Polibio 5.101', 'por cotejar', MEM12),
+    aegyptius: rum('Estrabón, Geografía 17.1.6-7; Polibio 5.88-90', 'por cotejar', MEM12 + '. Rodas vivía del comercio con Alejandría')
+  };
+
+  // ---- Vida en el mapa (D.VIDA, C13). Dibujada por código; ficha larga en gobierno/historia/C13-vida.md ----
+  const POR_CODIGO_C13 = { sin: 'dibujado por código en js/gfx/map3d.js (formas sencillas con color; sin archivo de arte ni licencia ajena)' };
+  const MEM13 = 'citado de memoria el 18/11/2026, por cotejar', LJ_VIDA = 'licencia de juego: los animales, barcos y carros son mucho mayores que a escala para que se vean, y van donde cae bien a la vista';
+  const vid = (fuente, dictamen, nota, texto) => f(POR_CODIGO_C13, h(fuente, dictamen, nota + ' · ' + LJ_VIDA, texto));
+  const vida = {
+    ovis: vid('Varrón, De re rustica 2.1-2 y 2.2.9 (rebaños que pasan el verano en el Samnio y el invierno en Apulia); Polibio 2.15 (la Galia Cisalpina, rica en ganado)', 'por cotejar', MEM13 + '. Varrón escribe en 37 a.C., algo después de la época, pero cuenta costumbres antiguas'),
+    capra: vid('Varrón, De re rustica 2.3; Polibio 12.3-4 (las cabras de Córcega)', 'por cotejar', MEM13 + '. En el mapa van sobre todo en los montes y en las tierras secas'),
+    bos: vid('Catón, De agri cultura 10-11 (cuántos bueyes necesita una finca); Varrón, De re rustica 2.5', 'por cotejar', MEM13 + '. Catón escribe hacia 160 a.C., dentro de la época del juego'),
+    fumus: vid('Virgilio, Bucólicas 1.82 («ya humean a lo lejos los tejados de las granjas»)', 'licencia de juego', MEM13 + '. El humo de los hogares es de todas las épocas; Virgilio es posterior (h. 39 a.C.)',
+      'En las casas y cabañas antiguas el fuego del hogar ardía todo el día, para cocinar y calentarse, y el humo salía por el techo. De lejos, el humo era la señal de que un pueblo estaba vivo.'),
+    oneraria: vid('Pecio de Kyrenia (Chipre, h. 300 a.C.); Casson, Ships and Seamanship in the Ancient World (1971)', 'probable', MEM13 + '. Mercante de casco redondo y una vela cuadrada, sin remos ni espolón; tamaño y forma a ojo',
+      'Los barcos mercantes eran de casco ancho y redondo y navegaban a vela, sin remos. Llevaban ánforas de vino y aceite, grano y cerámica de puerto en puerto. El pecio de Kyrenia, hundido hacia 300 a.C. con su carga de ánforas, es uno de esa época.'),
+    plaustrum: vid('Catón, De agri cultura 10-11 (los carros de la finca); Varrón, De re rustica 1.22', 'por cotejar', MEM13 + '. En el juego, un carro por calzada construida')
+  };
+
+  R.fichas = { vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -511,7 +580,11 @@
     remedio: { tabla: 'REMEDIOS', numericos: [], textos: ['n', 'i', 'd'] },
     monumento: { tabla: 'MONUMENTOS', numericos: ['lon', 'lat'], textos: ['n'] },
     adorno: { tabla: 'ADORNOS', numericos: ['lon', 'lat', 't'], textos: ['n', 'clase'] },
-    tribu: { tabla: 'TRIBUS', numericos: ['lon', 'lat'], textos: ['n', 'la', 'gente', 'casa'] }
+    tribu: { tabla: 'TRIBUS', numericos: ['lon', 'lat'], textos: ['n', 'la', 'gente', 'casa'] },
+    calzada: { tabla: 'CALZADAS', numericos: [], textos: ['n', 'la'] },
+    puerto: { tabla: 'PUERTOS', numericos: ['lon', 'lat'], textos: ['n', 'la'] },
+    rumbo: { tabla: 'RUMBOS', numericos: [], textos: ['n'] },
+    vida: { tabla: 'VIDA', numericos: [], textos: ['n', 'la'] }
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */

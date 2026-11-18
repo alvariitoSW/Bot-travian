@@ -488,6 +488,65 @@
     libyes: { n: 'Libios', la: 'Libyes', gente: 'libio', casa: 'mapalia', lon: 9.6, lat: 35.2 },
     nasamones: { n: 'Nasamones', la: 'Nasamones', gente: 'libio', casa: 'mapalia', lon: 17.8, lat: 29.9 }
   };
+  /* C12 · Calzadas, puertos y rutas de mar del mapa de campaña. SOLO SE VEN: no cambian D.EDGES, las marchas ni las rutas de comercio.
+     Se dibujan por código en js/gfx/map3d.js como en una carta antigua (tinta roja para las calzadas, trazos para el mar, ancla en los puertos).
+     Calzadas: p = puntos [lon, lat] por las ciudades de paso (a ojo, sobre el mapa moderno); los extremos van a la ciudad del juego.
+     anio: año (a.C.) en que se hizo; la calzada se ve pálida mientras la partida no llega a ese año. hacia: fecha aproximada.
+     Sin anio: camino anterior a 280 a.C. sin fecha en las fuentes. et: punto donde va el nombre.
+     Puertos: lon/lat del ancla (en el agua, junto al puerto); ciudad: si coincide con una ciudad del juego no se repite el nombre.
+     Rutas de mar: p = puntos [lon, lat] por el agua; el trazado es a ojo (licencia de juego). Fichas en js/registro.js (tipos calzada,
+     puerto, rumbo) y gobierno/historia/C12-calzadas.md. */
+  D.CALZADAS = {
+    appia: { n: 'Vía Apia', la: 'Via Appia', anio: 312, et: 6, p: [[12.5, 41.9], [12.66, 41.72], [12.98, 41.47], [13.25, 41.29], [13.43, 41.36], [13.61, 41.26], [13.77, 41.24], [13.88, 41.17], [14.25, 41.08], [14.5, 40.95]] },
+    appiaB: { n: 'Vía Apia hasta Brundisium', la: 'Via Appia', anio: 244, hacia: true, et: 4, p: [[14.5, 40.95], [14.64, 41.06], [14.78, 41.13], [15.0, 41.05], [15.81, 40.96], [16.42, 40.82], [17.2, 40.6], [17.64, 40.5], [17.94, 40.64]] },
+    latina: { n: 'Vía Latina', la: 'Via Latina', et: 7, p: [[12.5, 41.9], [12.7, 41.8], [13.15, 41.74], [13.25, 41.69], [13.35, 41.64], [13.53, 41.55], [13.69, 41.49], [13.83, 41.49], [14.06, 41.25], [14.14, 41.21], [14.5, 40.95]] },
+    valeria: { n: 'Vía Valeria', la: 'Via Valeria', anio: 307, hacia: true, et: 5, p: [[12.5, 41.9], [12.8, 41.96], [12.94, 42.03], [13.09, 42.1], [13.41, 42.08], [13.6, 42.05], [13.84, 42.12]] },
+    salaria: { n: 'Vía Salaria', la: 'Via Salaria', et: 4, p: [[12.5, 41.9], [12.65, 42.1], [12.86, 42.4], [13.07, 42.47], [13.58, 42.85], [13.88, 42.9]] },
+    flaminia: { n: 'Vía Flaminia', la: 'Via Flaminia', anio: 220, et: 7, p: [[12.5, 41.9], [12.47, 42.41], [12.52, 42.52], [12.56, 42.64], [12.62, 42.93], [12.7, 43.0], [12.8, 43.11], [12.72, 43.32], [12.65, 43.55], [12.87, 43.69], [13.02, 43.84], [12.91, 43.91], [12.57, 44.06]] },
+    aurelia: { n: 'Vía Aurelia', la: 'Via Aurelia', anio: 241, hacia: true, et: 4, p: [[12.5, 41.9], [12.3, 41.9], [12.15, 41.95], [11.99, 42.01], [11.8, 42.09], [11.71, 42.22], [11.29, 42.41]] },
+    aemilia: { n: 'Vía Emilia', la: 'Via Aemilia', anio: 187, et: 5, p: [[12.57, 44.06], [12.24, 44.14], [12.04, 44.22], [11.88, 44.29], [11.71, 44.35], [11.34, 44.49], [10.93, 44.65], [10.63, 44.7], [10.33, 44.8], [10.06, 44.87], [9.69, 45.05]] },
+    postumia: { n: 'Vía Postumia', la: 'Via Postumia', anio: 148, et: 7, p: [[8.93, 44.41], [8.88, 44.65], [8.86, 44.9], [9.01, 45.0], [9.69, 45.05], [10.02, 45.13], [10.38, 45.12], [10.99, 45.44], [11.55, 45.55], [12.49, 45.78], [12.84, 45.75], [13.37, 45.77]] }
+  };
+  D.PUERTOS = {
+    ostia: { n: 'Ostia', la: 'Ostia', lon: 12.2, lat: 41.72 },
+    puteoli: { n: 'Putéolos', la: 'Puteoli', lon: 14.03, lat: 40.68 },
+    brundisium: { n: 'Brundisium', la: 'Brundisium', lon: 18.05, lat: 40.7 },
+    tarentum: { n: 'Tarento', la: 'Tarentum', ciudad: 'tarentum', lon: 17.12, lat: 40.36 },
+    syracusae: { n: 'Siracusa', la: 'Syracusae', ciudad: 'syracusae', lon: 15.51, lat: 36.95 },
+    messana: { n: 'Mesana', la: 'Messana', ciudad: 'messana', lon: 15.44, lat: 38.51 },
+    lilybaeum: { n: 'Lilibeo', la: 'Lilybaeum', ciudad: 'lilybaeum', lon: 12.1, lat: 37.8 },
+    carthago: { n: 'Cartago', la: 'Carthago', ciudad: 'carthago', lon: 10.55, lat: 37.08 },
+    utica: { n: 'Útica', la: 'Utica', lon: 10.35, lat: 37.12 },
+    gades: { n: 'Gades', la: 'Gades', ciudad: 'gades', lon: -6.48, lat: 36.45 },
+    carthagonova: { n: 'Cartago Nova', la: 'Carthago Nova', ciudad: 'carthagonova', lon: -0.98, lat: 37.36 },
+    emporion: { n: 'Ampurias', la: 'Emporiae', ciudad: 'emporion', lon: 3.38, lat: 42.0 },
+    massalia: { n: 'Marsella', la: 'Massalia', ciudad: 'massalia', lon: 5.2, lat: 43.1 },
+    dyrrachium: { n: 'Dirraquio', la: 'Dyrrachium', lon: 19.3, lat: 41.3 },
+    piraeus: { n: 'El Pireo', la: 'Piraeus', lon: 23.55, lat: 37.85 },
+    rhodus: { n: 'Rodas', la: 'Rhodus', lon: 28.3, lat: 36.5 },
+    alexandria: { n: 'Alejandría', la: 'Alexandria', lon: 29.75, lat: 31.4 }
+  };
+  D.RUMBOS = {
+    tyrrhenus: { n: 'De Ostia a Putéolos', p: [[12.2, 41.72], [12.55, 41.32], [13.3, 41.05], [13.75, 40.65], [14.03, 40.68]] },
+    frumentarius: { n: 'Del grano de Sicilia', p: [[14.03, 40.68], [14.2, 40.5], [14.9, 39.8], [15.45, 38.75], [15.62, 38.15], [15.65, 37.7], [15.51, 36.95]] },
+    libycus: { n: 'De Lilibeo a Cartago', p: [[12.1, 37.8], [11.7, 37.55], [11.1, 37.3], [10.6, 37.3], [10.55, 37.08]] },
+    punicus: { n: 'De Cartago a Gades', p: [[10.55, 37.08], [10.6, 37.3], [9.6, 37.5], [7.0, 37.3], [4.0, 37.0], [1.0, 36.6], [-2.0, 36.2], [-4.6, 36.15], [-5.5, 35.95], [-6.1, 35.95], [-6.5, 36.2], [-6.48, 36.45]] },
+    ibericus: { n: 'De Massalia a Cartago Nova', p: [[5.2, 43.1], [4.4, 42.95], [3.45, 42.45], [3.38, 42.0], [3.5, 41.95], [3.3, 41.7], [2.6, 41.25], [1.3, 40.75], [0.6, 39.9], [0.55, 38.7], [-0.3, 37.6], [-0.5, 37.35], [-0.98, 37.36]] },
+    gallicus: { n: 'De Ostia a Massalia', p: [[12.2, 41.72], [11.4, 42.15], [10.2, 42.55], [9.75, 43.25], [8.4, 43.55], [7.0, 43.35], [6.1, 42.95], [5.4, 42.95], [5.2, 43.1]] },
+    hadriaticus: { n: 'De Brundisium a Dirraquio', p: [[18.05, 40.7], [18.7, 40.95], [19.3, 41.3]] },
+    ionius: { n: 'De Siracusa al Pireo', p: [[15.51, 36.95], [17.5, 36.9], [20.5, 36.6], [22.6, 36.0], [23.4, 36.15], [23.75, 36.95], [23.55, 37.85]] },
+    aegyptius: { n: 'Del Pireo a Alejandría por Rodas', p: [[23.55, 37.85], [23.7, 37.6], [24.2, 37.45], [24.5, 37.0], [25.4, 36.5], [26.5, 36.3], [27.7, 36.3], [28.3, 36.5], [28.8, 34.5], [29.75, 31.4]] }
+  };
+  /* C13 · Vida en el mapa: ganado, humo de los poblados, mercantes por las rutas de mar y carros por las calzadas. Solo se ve
+     (js/gfx/map3d.js, dibujado por código); no toca la economía. Ficha en js/registro.js (tipo vida). */
+  D.VIDA = {
+    ovis: { n: 'Ovejas', la: 'Oves' },
+    capra: { n: 'Cabras', la: 'Caprae' },
+    bos: { n: 'Bueyes', la: 'Boves' },
+    fumus: { n: 'Humo de los hogares', la: 'Fumus' },
+    oneraria: { n: 'Barco mercante', la: 'Navis oneraria' },
+    plaustrum: { n: 'Carro de bueyes', la: 'Plaustrum' }
+  };
 
   // Hechos históricos. fx: clave interpretada por game.js (o varias separadas por comas, en ese orden). k: clave opcional para distinguir dos hechos del mismo año (id de ficha «<año>-<k>»)
   // H13b, licencia de juego: Roma empieza con más tropas para la llegada temprana de Pirro (no es un dato histórico)
