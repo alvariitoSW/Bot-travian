@@ -36,8 +36,8 @@ Regla del usuario (18/11): no se aparca lo que ya está en marcha para abrir otr
 - **Testudo a pie**: se queda en la 1.0. Se entra desde el juego. Sus soldados, su luz y su campo son también los de
   la batalla normal (GM43g).
 - **Formaciones en Escaramuzas** (pedido el 18/11): un modo propio donde, en las batallas que organice, pueda probar
-  testudo, muro hoplita, falange de picas o lucha normal por manípulos. Es parte del Corazón. **Falta decidir** si
-  entra en la 1.0 sacando otra línea o va justo después: es grande y hoy no tiene tareas.
+  testudo, muro hoplita, falange de picas o lucha normal por manípulos. Es parte del Corazón. **Decidido el 18/11** (usuario, «A»):
+  entra en la 1.0 y sale el papiro suelto del Códice y de los avisos de batalla (PA1 a PA3, en pausa). La falange de picas (TP7a) ya está en obra.
 
 ## Sin confirmar todavía
 - Una sola política: quedarse con el Senado del juego o con una de las maquetas de «Gobierno por turnos».

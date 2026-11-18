@@ -2024,6 +2024,18 @@
       "titulo": "Cerebro · CE2 Recursos nuevos (dirige y construye Opus)",
       "nota": "js/game.js, data.js, ui.js, bot y guardado migrado; 2,0 M declarado, unos 3,6 M esperables",
       "url": "https://claude.ai/code/session_01QiKC397z42u9YdbK1uWvE9"
+    },
+    {
+      "tarea": "GM44",
+      "titulo": "Corazón · GM44 Modelos de soldado nuevos para las demás tropas (dirige y construye Opus)",
+      "nota": "js/gfx/soldado.js, js/ui-guerra.js, assets/soldados/; plan y tamaño en la primera hora; 1,0 M hasta confirmar",
+      "url": "https://claude.ai/code/session_01QiKC3AgvUkgAmNioZYMQbp"
+    },
+    {
+      "tarea": "MN0",
+      "titulo": "Músculo · MN0 Objetivo final de los menús y encargo artístico, hablándolo con el usuario (dirige y construye Opus)",
+      "nota": "gobierno/estudios/MN0-*.md; conversación con el usuario; un plan cerrado y alcance congelado; 1,2 M",
+      "url": "https://claude.ai/code/session_01QiKC37MGCiWGfRg2ef3mGC"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

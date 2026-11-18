@@ -182,12 +182,11 @@
       "estado": "medias",
       "veras": "Entras desde el juego, avanzas bajo los escudos, lanzas el pilum y luchas cuerpo a cuerpo, con sonido de verdad.",
       "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas.",
-      "falta": "En obra: el paso 2 (centurión, cuatro órdenes, lucha fina) y la falange de picas. Faltan el soldado nuevo, el sonido y las caras.",
+      "falta": "En obra: el paso 2 (centurión, cuatro órdenes, lucha fina). Faltan el soldado nuevo, el sonido y las caras.",
       "captura": "gobierno/capturas-tarea/GM43f-2-escena.jpg",
       "tareas": [
         "TP1",
         "TP1b",
-        "TP7a",
         "GM43l",
         "GM43i",
         "GM43j"
@@ -202,21 +201,6 @@
       "hecho": "Botón en el menú principal, tres tamaños de ejército, campo y dificultad.",
       "captura": "gobierno/capturas-tarea/MR3b-5-escaramuzas.jpg",
       "tareas": []
-    },
-    {
-      "id": "L13",
-      "organo": "musculo",
-      "titulo": "Un solo aspecto antiguo en todos los menús",
-      "estado": "medias",
-      "veras": "Todas las pantallas en papiro, tablilla y bronce. Ninguna parece de otro juego.",
-      "hecho": "Menú principal, Imperio, Gobierno, Senado, avisos, Mercado, Rutas y Crónica.",
-      "falta": "El Códice y los avisos de batalla, que siguen oscuros.",
-      "captura": "gobierno/capturas-tarea/MR2c-1-menu.jpg",
-      "tareas": [
-        "PA1",
-        "PA2",
-        "PA3"
-      ]
     },
     {
       "id": "L14",
@@ -249,6 +233,19 @@
       "tareas": [
         "CE11"
       ]
+    },
+    {
+      "id": "L17",
+      "organo": "corazon",
+      "titulo": "Formaciones en Escaramuzas",
+      "estado": "falta",
+      "veras": "En Escaramuzas, en las batallas que organices, pruebas el testudo, el muro hoplita, la falange de picas y la línea de manípulos; los vecinos de tu unidad se ven y te avisan.",
+      "falta": "Tu «A» del 18/11: entra en la 1.0 y sale el papiro suelto del Códice y los avisos (antes L13). La falange de picas (TP7a) está en obra; faltan los vecinos y avisos del frente (TP4) y las demás formaciones, una ficha cada vez (TP7).",
+      "tareas": [
+        "TP7a",
+        "TP4",
+        "TP7"
+      ]
     }
   ],
   "reparto": {
@@ -258,6 +255,13 @@
         "tareas": [],
         "de": "Formaciones en Escaramuzas",
         "nota": "Son las otras escenas a pie: tiradores, muro de lanzas, caballería. Van donde vayan las formaciones."
+      },
+      {
+        "tareas": [
+          "MN0"
+        ],
+        "de": "Menús reinventados",
+        "nota": "Tu pedido del 18/11 sobre L13: reinventar y reordenar todos los menús, con un encargo artístico. Se piensa contigo en MN0; qué entra en la 1.0 y qué sale lo decides con su plan."
       }
     ],
     "despues": [
