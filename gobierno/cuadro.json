@@ -1984,6 +1984,10 @@
     {
       "titulo": "TP0 · Objetivo final de las batallas: general y a pie (borrador)",
       "archivo": "gobierno/estudios/TP0-objetivo-testudo-y-lucha.md"
+    },
+    {
+      "titulo": "PO1 · Política: ¿encaja y cómo convergemos? (una página y tres preguntas)",
+      "archivo": "gobierno/estudios/PO1-politica-converger.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
