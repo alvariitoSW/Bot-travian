@@ -32,6 +32,11 @@ bajas a una unidad y la vives a pie, como su centurión. El testudo a pie es la 
 - **De ahí pasan al objetivo**: tu centurión se distingue (cresta); objetivo y estado de la unidad siempre a la vista;
   el enemigo que te va a golpear se marca con claridad; cada golpe tuyo recibe respuesta («buen golpe», «parado»);
   al bajar a pie, un plano ancho breve que enseña dónde está tu unidad en la batalla.
+- **Para TP1, andar y correr** (imágenes fijas de cinco vídeos de Ryse y Rome II, miradas el 18/11): en el testudo de
+  Ryse los hombres avanzan encogidos tras el escudo, hombros juntos, y cada uno lleva su paso (nunca dos iguales);
+  al correr se inclinan mucho hacia delante, con las piernas abiertas y el escudo botando; en Rome II la tropa que
+  marcha no va alineada al centímetro: cuerpos, lanzas y escudos a distinta altura. Idea que se toma: paso de cada
+  hombre propio y casado con lo que avanza, inclinación al correr, y cambios de paso suaves y escalonados por filas.
 - **Norma (usuario, 18/11)**: antes de cada etapa se miran referencias reales de los juegos que él nombre y se apunta
   aquí qué idea se toma. Límite conocido: desde la nube YouTube no deja bajar vídeos (pide iniciar sesión); solo se ven
   sus imágenes fijas públicas. Lo que mejor funciona es que el usuario suba el clip al chat: de un clip suyo se sacan
