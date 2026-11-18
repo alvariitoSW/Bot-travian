@@ -1,6 +1,7 @@
 {
   "_ayuda": "Lista corta y cerrada de la 1.0 (gobierno/OBJETIVOS.md, regla 1). La pinta gobierno/cuadro.mjs. 'estado' de la lista: 'propuesta' (el usuario aún no la aprobó: el tablero no se toca) o 'aprobada'. Estado de cada línea: 'hecha', 'medias' o 'falta'. Nada entra sin sacar otra; solo la cambia el usuario.",
-  "estado": "propuesta",
+  "estado": "aprobada",
+  "aprobada": "18/11/2026, por el usuario en el cuadro: «A · Sí, aplícala al tablero». Aplicada al tablero por CM2.",
   "fecha": "18/11/2026",
   "frase": "Gobiernas una ciudad romana con sus clases y su Senado, levantas ejércitos y cambias la historia. Se gana por las armas, por el comercio o por la política.",
   "comprobaciones": [
@@ -26,11 +27,11 @@
       "veras": "Si desatiendes a los plebeyos o a los patricios, lo ves en la ciudad: protestas, gente que se va, obras paradas.",
       "hecho": "Cada ciudad tiene ya sus clases con su ánimo, y puedes dar la ciudadanía.",
       "falta": "Que el descuido tenga una consecuencia que se vea en pantalla, no solo una cifra.",
-      "captura": "gobierno/capturas-tarea/Q6-1-clases.jpg", "tareas": [] },
+      "captura": "gobierno/capturas-tarea/Q6-1-clases.jpg", "tareas": ["CS1", "CS2"] },
     { "id": "L4", "organo": "cerebro", "titulo": "Un solo Senado, con intrigas", "estado": "medias",
       "veras": "Una sala de votos con tres bandos: prometes, pactas y te vetan. Lo que se vota cambia tu partida.",
       "hecho": "Sala de votos con 30 escaños, tratos y tribuno, ya dentro del juego.",
-      "falta": "Tu decisión (pregunta abierta): este Senado o una maqueta de «Gobierno por turnos». Hoy conviven el Senado y tres maquetas de política; al elegir, las demás se cierran.",
+      "falta": "Espera el estudio PO1, que pediste el 18/11: cómo encajan el Senado del juego y las tres maquetas de política. Sin tareas hasta su resultado.",
       "captura": "gobierno/capturas-tarea/SN2-1-sala.jpg", "tareas": [] },
     { "id": "L5", "organo": "cerebro", "titulo": "Rutas y acuerdos comerciales", "estado": "medias",
       "veras": "Abres rutas, firmas acuerdos con otras ciudades y ves cuánto te renta cada uno.",
@@ -39,10 +40,10 @@
       "captura": "gobierno/capturas-tarea/MR2c-4-rutas.jpg", "tareas": ["K7b", "K7e"] },
     { "id": "L6", "organo": "cerebro", "titulo": "Ganar una campaña por el comercio", "estado": "falta",
       "veras": "Una meta de riqueza y acuerdos a la vista durante la partida. Al alcanzarla, pantalla de victoria sin haber tomado Cartago.",
-      "falta": "Todo. Hoy no tiene tareas: se escriben al aprobar la lista.", "tareas": [] },
+      "falta": "Todo. Tres tareas escritas: la meta, la meta a la vista con su pantalla de victoria y el equilibrio.", "tareas": ["VC1", "VC2", "VC3"] },
     { "id": "L7", "organo": "cerebro", "titulo": "Ganar una campaña por la política", "estado": "falta",
       "veras": "Una meta de poder en el Senado a la vista durante la partida. Al alcanzarla, pantalla de victoria.",
-      "falta": "Todo. Hoy no tiene tareas: se escriben al aprobar la lista.", "tareas": [] },
+      "falta": "Todo. Espera el estudio PO1 de la política; sus tareas se escriben con su resultado.", "tareas": [] },
 
     { "id": "L8", "organo": "corazon", "titulo": "Campaña en el mapa contra un enemigo que responde", "estado": "hecha",
       "veras": "Mueves ejércitos por Italia y el Mediterráneo, y Cartago, Epiro y los galos atacan y se defienden.",
@@ -56,7 +57,7 @@
       "veras": "Una única batalla, la misma en campaña y en Escaramuzas: maniobras, mandas y, si quieres, bajas a pie. Todas las tropas con el soldado nuevo y la luz y el campo del testudo.",
       "hecho": "Batalla con órdenes, proyectiles, duelos y caídos; va fluida en tu móvil. Hastati y galos llevan el soldado nuevo.",
       "falta": "Lo principal. Tú, el 18/11: «son 4 juegos diferentes en un juego y los gráficos son una mierda». Los cuatro son la maniobra, la batalla de mando, Escaramuzas y el testudo a pie: hay que unirlos en una sola batalla con un solo aspecto antes de pulir más piezas sueltas.",
-      "captura": "gobierno/capturas-tarea/GM44c-1-vertical-nuevo.jpg", "tareas": ["GM44", "GM43g", "GC10"] },
+      "captura": "gobierno/capturas-tarea/GM44c-1-vertical-nuevo.jpg", "tareas": ["GM44", "GM43g", "UB1", "UB3", "UB2", "GC10"] },
     { "id": "L11", "organo": "corazon", "titulo": "El testudo a pie, dentro del juego", "estado": "medias",
       "veras": "Entras desde el juego, avanzas bajo los escudos, lanzas el pilum y luchas cuerpo a cuerpo, con sonido de verdad.",
       "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas.",
@@ -71,7 +72,7 @@
       "veras": "Todas las pantallas en papiro, tablilla y bronce. Ninguna parece de otro juego.",
       "hecho": "Menú principal, Imperio, Gobierno, Senado, avisos, Mercado, Rutas y Crónica.",
       "falta": "El Códice y los avisos de batalla, que siguen oscuros.",
-      "captura": "gobierno/capturas-tarea/MR2c-1-menu.jpg", "tareas": [] },
+      "captura": "gobierno/capturas-tarea/MR2c-1-menu.jpg", "tareas": ["PA1", "PA2", "PA3"] },
     { "id": "L14", "organo": "musculo", "titulo": "Un mapa del Mediterráneo vivo", "estado": "hecha",
       "veras": "Ciudades que crecen, calzadas, barcos, rebaños, horizonte y un mapa pequeño en la esquina.",
       "hecho": "Toda la cadena del mapa, de las calzadas a las cintas de nombre.",
@@ -91,6 +92,7 @@
       { "tareas": ["GM-K6a", "GM-K6b", "GM-K6c", "GM-K6d"], "nota": "Sellos y franja de mando de la batalla." }
     ],
     "sobra": [],
+    "esperan": "L4 y L7 esperan el estudio PO1 (política). K7e, de L5, también: toca el Senado. Los restos de los concursos (K10, K1, K5, K8, EV4a, EV7, EV8, P166, P176) se resuelven dentro de L4 y L10, no como tareas sueltas.",
     "gobierno": ["CM1", "CM2"]
   }
 }
