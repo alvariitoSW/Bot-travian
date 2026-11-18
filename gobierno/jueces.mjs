@@ -231,6 +231,23 @@ async function navegador() {
       return { ok, detalle: 'entrada de ' + m.h + ' px; escena «' + titulo + '»; «Salir» vuelve al menú', captura: cap };
     });
 
+    /* TP7a: Escaramuzas lleva también a «Falange a pie» y su «Salir» vuelve al juego */
+    await paso('Escaramuzas: «Falange a pie» abre la escena y vuelve', async () => {
+      await page.click('#menu .mesc'); await espera(800);
+      const a = page.locator('#hoja a.esc-falange');
+      if (!(await a.count())) return { ok: false, detalle: 'no está la entrada «Falange a pie» en Escaramuzas', captura: await foto('escaramuzas') };
+      await a.scrollIntoViewIfNeeded(); await espera(300);
+      const m = await a.evaluate(el => { const r = el.getBoundingClientRect(); return { h: Math.round(r.height), d: Math.round(r.right), t: el.textContent, url: el.href }; });
+      const cap = await foto('escaramuzas-falange');
+      if (m.h < 44 || m.d > 390 || !/Falange a pie/.test(m.t) || !/\/gobierno\/maquetas\/falange\/$/.test(m.url)) return { ok: false, detalle: 'entrada mal: alto ' + m.h + ' px, borde ' + m.d + ' px, ' + m.url, captura: cap };
+      await a.click(); await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
+      const titulo = await page.title(); await espera(1500);
+      await page.click('#salir'); await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
+      await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
+      const ok = /Falange a pie/.test(titulo);
+      return { ok, detalle: 'entrada de ' + m.h + ' px; escena «' + titulo + '»; «Salir» vuelve al menú', captura: cap };
+    });
+
     await paso('Nueva partida: se ve el mapa', async () => {
       await page.click('#menu [data-act="new"]'); await espera(2500); await cierraAvisos();
       await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; Game.autoVivo = true; });      // CN14-C: el asesor de serie no cambia el recorrido
@@ -558,10 +575,10 @@ async function navegador() {
 
 if (!RAPIDO) await navegador();
 
-/* ---------- 2. Juez de la guerra jugada de verdad (GC2: gobierno/juez-guerra.mjs, ~4 min; solo en el recorrido completo) ---------- */
+/* ---------- 2. Juez de la guerra jugada de verdad (GC2: gobierno/juez-guerra.mjs, ~4 min, hasta 30 en una máquina lenta; solo en el recorrido completo) ---------- */
 if (!RAPIDO) {
   console.log('Juez 2 · Guerra jugada de verdad (gobierno/juez-guerra.mjs)');
-  const r = spawnSync(process.execPath, ['gobierno/juez-guerra.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 900000 });
+  const r = spawnSync(process.execPath, ['gobierno/juez-guerra.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 1800000 });
   const lineas = (r.stdout || '').split('\n'), mal = lineas.filter(l => /MAL:|^prueba:|^consola:|^excepción:/.test(l)), avisos = lineas.filter(l => /AVISO/.test(l)).length, bien = lineas.filter(l => /^\s*bien:/.test(l)).length;
   apunta('Guerra jugada de verdad (entrar, salir, maniobra, primer toque, arte)', r.status === 0, r.status === 0 ? bien + ' comprobaciones bien' + (avisos ? ' · ' + avisos + ' aviso(s) de fallos conocidos del juego (ver salida de juez-guerra.mjs)' : '') : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 400));
 }

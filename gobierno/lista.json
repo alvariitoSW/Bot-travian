@@ -45,12 +45,12 @@
       "titulo": "Una ciudad que construyes y ves crecer",
       "estado": "medias",
       "veras": "Colocas cada edificio donde quieres. Los barrios crecen solos alrededor y hay incendios y crecidas que atender.",
-      "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría.",
+      "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría. Roma con el aspecto de su siglo (CI1): templo toscano, muralla de toba lisa, ínsulas, foro con tabernas, más ciudad a la vista y campos por estaciones.",
       "captura": "gobierno/capturas-tarea/Q1k-5-barrios.jpg",
       "tareas": [
-        "CI1"
+        "CI1b"
       ],
-      "falta": "Tu «A» del 18/11: Roma con el aspecto de su siglo (CI1, abierta) y el gobierno visible en la ciudad (dentro de CS2). El objetivo está escrito (CI0): «tu ciudad es el espejo de cómo gobiernas»."
+      "falta": "Tu pedido: calles con sentido (CI1b, espera tu respuesta en el cuadro) y el gobierno visible en la ciudad (dentro de CS2). «Más ciudad de verdad» y dos mapas de la ciudad: tu decisión en el cuadro (hoy, después de la 1.0)."
     },
     {
       "id": "L2",
@@ -182,7 +182,7 @@
       "estado": "medias",
       "veras": "Bajas a pie desde un manípulo de la batalla, con la vista desde el hombro: te mueves, luchas y usas habilidades (el testudo, una más); si caes, sigues como otro soldado.",
       "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas.",
-      "falta": "En obra: el paso 2 de la escena a pie (TP1b). Después, «bajar a pie» dentro de la batalla (CG6), el sonido y las caras.",
+      "falta": "Hecho el paso 2 de la escena a pie (centurión, cuatro órdenes, lucha). Faltan «bajar a pie» dentro de la batalla (CG6), el sonido (GM43i) y las caras (GM43j).",
       "captura": "gobierno/capturas-tarea/GM43f-2-escena.jpg",
       "tareas": [
         "TP1",
@@ -240,12 +240,13 @@
       "titulo": "Formaciones en Escaramuzas",
       "estado": "falta",
       "veras": "En Escaramuzas eliges tus tropas con su dibujo, su coste y lo que saben hacer (testudo, picas, muro…) y pruebas las formaciones; las escenas a pie quedan como minijuegos.",
-      "falta": "Tu «A» del 18/11: entra en la 1.0. La falange de picas (TP7a) está en obra; las fichas de tropa son CG2 y los minijuegos CG7.",
+      "falta": "Faltan las fichas de tropa para elegir ejército (CG2) y los minijuegos (CG7).",
       "tareas": [
         "TP7a",
         "CG2",
         "CG7"
-      ]
+      ],
+      "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a)."
     },
     {
       "id": "L13",

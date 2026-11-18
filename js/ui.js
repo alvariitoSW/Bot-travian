@@ -195,7 +195,7 @@ function escHtml() {
     '<p class="ro-rubrica esc-r">Dificultad</p><div class="ro-tablilla esc-t esc-dif">' + Object.keys(E.dificultad).map(k => '<button class="' + (o.dif === k ? 'on' : '') + '" data-act="escel" data-v="dif:' + k + '">' + esc(E.dificultad[k].n) + '<small>' + (DIFD[k] || '') + '</small></button>').join('') + '</div>' +
     '<button class="btn ro-sello esc-go" data-act="escempieza">Empezar la batalla</button>' +
     /* GM43f: la escena «Testudo a pie» (GM43e) es una página aparte; ruta relativa porque el juego se sirve en un subdirectorio */
-    '<p class="ro-rubrica esc-r">Escena a pie</p><a class="esc-testudo" href="gobierno/maquetas/a-pie/"><span><b>Testudo a pie</b><small>Cruza el campo bajo los venablos con tu manípulo</small></span><i></i></a></div>';
+    '<p class="ro-rubrica esc-r">Escena a pie</p><a class="esc-testudo" href="gobierno/maquetas/a-pie/"><span><b>Testudo a pie</b><small>Cruza el campo bajo los venablos con tu manípulo</small></span><i></i></a><a class="esc-falange" href="gobierno/maquetas/falange/"><span><b>Falange a pie</b><small>Aguanta con las picas de Pirro el choque de un manípulo romano</small></span><i></i></a></div>';
 }
 function escFinHtml() {
   const x = UI.escRes; if (!x) return '<div class="empty">Sin resultado.</div>';

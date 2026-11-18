@@ -9,8 +9,8 @@ export function crearCamara(m) {
     hm: { x: 0, d: 2.2, y: 2.0, pitch: -0.07, yaw: 0, fov: 58 }, ht: { x: 0, d: 0.85, y: 1.74, pitch: 0, yaw: 0, fov: 55 },
     vm: { x: 0, d: 4.4, y: 2.85, pitch: -0.27, yaw: 0, fov: 74 }, vt: { x: 0, d: 1.45, y: 1.76, pitch: -0.2, yaw: 0, fov: 72 },
   };
-  if (Q.get('cam')) { const c = Q.get('cam').split(',').map(Number), t = innerHeight > innerWidth ? CAMS.vt : CAMS.ht; ['d', 'y', 'pitch', 'yaw', 'fov', 'x'].forEach((n, i) => { if (isFinite(c[i])) t[n] = c[i]; }); }
-  if (Q.get('camm')) { const c = Q.get('camm').split(',').map(Number), t = innerHeight > innerWidth ? CAMS.vm : CAMS.hm; ['d', 'y', 'pitch', 'yaw', 'fov', 'x'].forEach((n, i) => { if (isFinite(c[i])) t[n] = c[i]; }); }
+  if (Q.get('cam')) { const c = Q.get('cam').split(',').map(Number), t = m.vertical ? CAMS.vt : CAMS.ht; ['d', 'y', 'pitch', 'yaw', 'fov', 'x'].forEach((n, i) => { if (isFinite(c[i])) t[n] = c[i]; }); }
+  if (Q.get('camm')) { const c = Q.get('camm').split(',').map(Number), t = m.vertical ? CAMS.vm : CAMS.hm; ['d', 'y', 'pitch', 'yaw', 'fov', 'x'].forEach((n, i) => { if (isFinite(c[i])) t[n] = c[i]; }); }
   /* GM43h: lo que se mueve la cámara a tiro de pilum (se suma a la de marcha) */
   const CAMP = { v: { x: -0.17, d: -2.1, y: -0.5, pitch: 0.1, fov: 0 }, h: { x: 0.1, d: -0.7, y: 0.15, pitch: 0.03, fov: 0 } };
   const CAM = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, fov: 60 };
@@ -38,10 +38,18 @@ export function crearCamara(m) {
     if (w > 0) {
     CAM.x += 1.6 * w; CAM.y += 1.0 * w; CAM.z -= 1.9 * w; CAM.yaw += 0.42 * w; CAM.pitch -= 0.36 * w;
     /* TP1: y mira al duelo de tu columna (tu hombre o el que le releva, y su rival) */
-    const d = (S.duelos || []).find(d => d.activo && !d.sec && d.r.f === YO);
-    if (d) { const mx = (d.r.x + d.g.x) / 2, mz = (d.r.z + d.g.z) / 2; CAM.yaw = lerp(CAM.yaw, Math.atan2(-(mx - CAM.x), -(mz - CAM.z)), w); }
+    /* TP1b: tu duelo (el tuyo, o el de quien eres tras caer); si ya no hay duelo, se queda mirando donde miraba */
+    const ds = S.duelos || [], d = ds.find(d => d.activo && !d.sec && d.r === S.yo) || ds.find(d => d.activo && !d.sec && d.r.f === YO);
+    if (d) { S.miraCam = { x: (d.r.x + d.g.x) / 2, z: (d.r.z + d.g.z) / 2 }; }
+    const mc = S.miraCam; if (mc) CAM.yaw = lerp(CAM.yaw, Math.atan2(-(mc.x - CAM.x), -(mc.z - CAM.z)), w);
   }
     /* TP1: de costado (?costado=r o g), desde la izquierda y a la altura del pecho, para mirar si los pies pisan */
+    /* TP1b: desde fuera (?vista=fuera), delante y a la izquierda de la formación, a la altura de la cabeza, mirando al centurión */
+    if (m.FUERA) {
+      const c = S.romanos[YO], x0 = c.x - 2.4, z0 = (c.zd ?? c.z) - 3.4;
+      CAM.x = x0; CAM.z = z0; CAM.y = H(x0, z0) + 2.25; const dx = c.x - x0, dz = (c.zd ?? c.z) - z0;
+      CAM.yaw = Math.atan2(-dx, -dz); CAM.pitch = Math.atan2(H(c.x, c.z) + 1.85 - CAM.y, Math.hypot(dx, dz)); CAM.fov = 44;
+    }
     if (m.COSTADO) {
       const gal = m.COSTADO === 'g', L = gal ? S.galos.filter(g => g.vivo) : S.romanos.filter(h => h.r <= 1);
       const zc = L.reduce((a, h) => a + h.z, 0) / Math.max(1, L.length), x0 = Math.min(...L.map(h => h.x)) - (gal ? 7 : 6);
