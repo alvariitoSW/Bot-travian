@@ -1,85 +1,112 @@
-# TP0 · Objetivo final de las batallas: dos alturas, general y a pie (borrador 2 para el usuario, 18/11/2026)
+# Corazón · Objetivo final de las batallas: dos alturas, general y a pie (TP0, 18/11/2026)
 
-Esto no es una tarea: es la vara con la que se mide toda tarea de batalla y del testudo a pie. Borrador hasta que el
-usuario lo apruebe. Sale de sus palabras del 18/11:
+**Qué es esta página.** El detalle del órgano «Corazón» de `gobierno/OBJETIVOS.md` (que manda sobre todo). No es una
+tarea: es la vara con la que se mide toda tarea de batalla. Cada tarea dice a qué apartado sirve y, al cerrar, enseña
+capturas frente a la lista «Se ve en el móvil» de su etapa. Solo la cambia el usuario. Redactada por encargo suyo
+(«deberías dejarlo tú perfecto, para que nos guíe a construir y tener muy bien definidos los objetivos»).
+
+## 1. El objetivo, en una frase
+Hay **una sola batalla** y se juega a **dos alturas**: arriba eres el general y mandas al ejército; cuando quieres,
+bajas a una unidad y la vives a pie, como su centurión. El testudo a pie es la primera unidad de esa segunda altura.
+
+## 2. De dónde sale (palabras del usuario, 18/11)
+- «me gustaría que en las batallas pueda controlar una unidad como en testudo, o en falange de picas o muro hoplita… y esta parte de testudo que sea la evolución de las batallas que hay ahora en el juego».
 - «puedo ser o el romano de la fila o el centurión de la unidad; si el centurión cae y le estaba controlando, paso a ser otro soldado de la fila».
-- «me gustaría que en las batallas pueda controlar una unidad como en testudo, o en falange de picas o muro hoplita, etc., y esta parte de testudo que sea la evolución de las batallas que hay ahora en el juego».
 - «habría que reformular bien el objetivo final, que no parece claro en las batallas grandes, porque no tienen nada que ver con la parte que estamos creando de testudo».
-- Elegido de listas: batalla en «Dos alturas: general y a pie»; el resto de la batalla, a pie, «Se ve y cuenta»; lo primero, «La lucha»; terminado, «Cuando se parezca a Ryse»; versión del pilum, la mezcla (lanzar de A + lucha de B).
+- «hay partes que funcionan muy bien por haber intentado copiar el testudo del Ryse… hay que identificar muy bien el objetivo para no irnos por los cerros de Úbeda».
+- Elegido de listas: «Dos alturas: general y a pie» · el resto de la batalla «Se ve y cuenta» · lo primero «La lucha» · terminado «Cuando se parezca a Ryse» · pilum: la mezcla (mantener y soltar de A + lucha de B).
+- Nota por momentos: «La marcha y el correr sobre todo hay que mejorarlo, y el resto de cosas me parece bien».
 
-## El objetivo, en una frase
-Cada batalla del juego se juega a dos alturas: arriba eres el general y mandas al ejército; cuando quieres, bajas a una
-unidad y la vives a pie, como su centurión, con el aspecto y la sensación de Ryse hasta donde aguante un móvil.
-El testudo a pie de hoy es la primera unidad de esa segunda altura, no una escena aparte.
+## 3. Referencias (solo ideas; nunca su código ni su arte)
+- **Rome II Total War**, para la altura de general y para el enlace entre alturas. De los dos vídeos del usuario (18/11):
+  la unidad se lee como un bloque con su estandarte encima; el testudo es un modo que se enciende y se apaga; la ficha
+  de la unidad dice en palabras cómo está («fresca», «con ganas», «combate igualado», «agotada», «perdiendo») y la
+  batalla acaba con un veredicto («derrota por poco»). Además, Rome II deja bajar la cámara hasta el soldado.
+- **Ryse: Son of Rome**, para la altura a pie: cámara tras el hombro, testudo bajo proyectiles, peso en cada golpe.
+- **Fuentes de época**: Polibio 6.23 (dos pila) y 6.24 (centuriones), Livio 8.8 (relevo de líneas).
 
-## Altura 1 · General (lo que ya hay, y se queda)
-- Vista desde arriba: colocas los cuerpos y les das órdenes. Es el motor de guerra de hoy (`js/guerra.js`), que gustó.
-- Novedad: tocar un cuerpo propio y «Bajar a pie».
+## 4. Altura de general (lo que hay, y se queda)
+Vista desde arriba con el motor de guerra de hoy: colocas cuerpos y das órdenes. Cambia poco:
+- cada cuerpo enseña su **estado en palabras** (las mismas que a pie, §6);
+- tocar un cuerpo propio ofrece **«Bajar a pie»**.
 
-## Altura 2 · A pie (lo nuevo)
-- **Quién eres**: el centurión de esa unidad. Mandas (Escudos · Pila · Cargad · Relevo) y peleas tu duelo (lanzar, parar,
-  empujar con el escudo, estocada). Si caes, pasas a ser otro soldado de la fila y sigues; sin centurión, la unidad obedece peor.
-- **La unidad tiene formación**, y cada formación es una ficha: testudo (hecha), línea manipular; después falange de
-  picas, muro hoplita, vélites, caballería.
-- **El resto de la batalla se ve y cuenta**: las unidades vecinas pelean a tus lados (más sencillas de lejos), te llegan
-  avisos («el flanco izquierdo cede») y, si tu ala se hunde, te envuelven.
-- **Subir y bajar**: puedes volver a general o cambiar de unidad. Mientras estás a pie, el resto lo lleva el motor de guerra.
+## 5. Altura a pie
+- **Quién eres**: el centurión de la unidad. Mandas y peleas. Si caes, pasas a otro soldado de la fila y sigues; sin
+  centurión, la unidad tarda más en obedecer.
+- **Mandas** (un botón cada orden): Escudos (testudo) · Pila · Cargad · Relevo de filas.
+- **Peleas**: lanzar (mantener y soltar), parar con el escudo, empujar con él, estocada.
+- **Te mueves con tu unidad**, no suelto por el campo.
+- **El resto de la batalla se ve y cuenta**: unidades vecinas peleando a tus lados (más sencillas de lejos), avisos
+  («el flanco izquierdo cede») y, si tu ala se hunde, te envuelven.
+- **Subir**: en cualquier momento vuelves a general o cambias de unidad.
 
-## Cómo encajan (lo que hoy no estaba dicho)
-- Una sola batalla y una sola verdad: el motor de guerra lleva la cuenta de todos los cuerpos (hombres, ánimo, cansancio, posición).
-- Al bajar, la unidad elegida se despliega hombre a hombre con esos mismos números y su enemigo de enfrente.
-- Lo que haces a pie se devuelve al motor: bajas de los dos, ánimo y si rompe uno. Un buen centurión gana su trozo de línea; no gana solo la batalla.
-- La batalla sigue recibiendo dos ejércitos y devolviendo bajas: la economía no se entera (arquitectura de `CLAUDE.md` §2, intacta).
+## 6. Cómo encajan las dos alturas
+- **Una sola verdad**: el motor de guerra lleva la cuenta de todos los cuerpos. Al bajar, tu unidad se despliega hombre
+  a hombre con esos mismos números y con el enemigo que tiene enfrente.
+- **Mismas palabras arriba y abajo**: hombres en pie · ánimo (firme, duda, rompe) · cansancio (fresca, cansada, agotada) ·
+  combate (ganando, igualado, perdiendo).
+- **Lo que haces a pie vuelve arriba**: bajas de los dos bandos, ánimo y si alguien rompe. Un buen centurión gana su
+  trozo de línea; no gana él solo la batalla.
+- Mientras estás a pie, el resto lo lleva el motor de guerra, como hoy.
+- La batalla sigue recibiendo dos ejércitos y devolviendo bajas: la economía no se entera (`CLAUDE.md` §2, intacto).
 
-## Nota del usuario por momentos (18/11)
-«La marcha y el correr sobre todo hay que mejorarlo, y el resto de cosas me parece bien». Valen como base: salva de
-venablos, testudo, golpe en el escudo, lanzar el pilum, carga, choque y final. **Lo peor: andar y correr.**
+## 7. Qué tiene que verse y sentirse a pie
+**Andar y correr** (lo peor de hoy, según el usuario):
+- los pies pisan el suelo y no patinan; el paso casa con lo que se avanza;
+- cuerpo, brazos y escudo acompañan; al correr se inclinan y el equipo bota;
+- no van todos a la vez como un solo muñeco; pasar de quieto a andar, a correr y a parar, sin saltos.
 
-## Andar y correr (lo primero, con la lucha)
-- Los hombres pisan el suelo: el pie no patina y el paso casa con lo que avanzan.
-- El cuerpo acompaña: peso, brazos y escudo se mueven con el paso; al correr se inclinan y el equipo bota.
-- No van todos a la vez como un solo muñeco: cada uno con su desfase.
-- Pasar de quieto a andar, a correr y a parar se hace sin saltos.
-- La cámara acompaña el paso sin marear.
+**La lucha** (lo primero que pidió):
+- el enemigo de delante avisa su golpe con el cuerpo; si paras a tiempo queda abierto y tu estocada entra; el empujón
+  lo desequilibra; si fallas, te hiere, y a la tercera caes;
+- cada golpe llega a algo (escudo o cuerpo) y quien lo recibe reacciona; ninguna espada corta el aire ni atraviesa a nadie;
+- tu fila pelea por parejas; los caídos se quedan en el suelo; los huecos se cierran;
+- tus órdenes cambian la lucha: «Relevo» mete la fila fresca, «Escudos» aguanta y cansa al enemigo;
+- gana o pierde quien rompe, y se le ve huir.
 
-## La lucha a pie: qué tiene que verse y sentirse
-- **Tu duelo**: el enemigo de delante avisa su golpe con el cuerpo; si levantas el escudo a tiempo, para (madera, sacudida);
-  parado, queda abierto y tu estocada entra; el empujón de escudo lo desequilibra. Si fallas, te hiere: a la tercera caes.
-- **Golpes con peso**: cada golpe llega a algo (escudo o cuerpo) y el que lo recibe reacciona: retrocede, se dobla, cae.
-  Nada de espadas que cortan el aire ni de figuras que se atraviesan.
-- **Tu fila pelea de verdad**: por parejas; los caídos se quedan en el suelo; los huecos se cierran.
-- **Tus órdenes cambian la lucha**: «Relevo» mete la fila fresca; «Escudos» aguanta y cansa al enemigo; cargar a tiempo empuja.
-- **Se gana y se pierde por algo que se ve**: bajas y ánimo; el que rompe, huye, y se le ve huir.
-- **Cámara**: cerca, tras tu hombro; no pierde a tu enemigo ni la tapan los escudos.
+**Lo que ya vale y no se rehace**: salva de venablos, testudo y cámara bajo los escudos, golpe en el escudo, lanzar el
+pilum, carga y final. La luz y el campo, tampoco.
 
-## El listón «Ryse», dentro de un móvil
-Se toma la sensación, no su arte ni su código: cámara pegada al soldado, peso en cada impacto, formación cerrada, tensión
-bajo los proyectiles. Lo que un móvil no da (caras de miles de polígonos, ejecuciones de cine) se dice y no se promete.
-Medida: fluido en el móvil del usuario; si no, se recorta antes de darlo por bueno.
+**El listón «Ryse» en un móvil**: cámara pegada al soldado, peso en cada impacto, formación cerrada, tensión bajo los
+proyectiles. Lo que un móvil no da (caras de cine, ejecuciones) se dice y no se promete. Si no va fluido en el móvil
+del usuario, se recorta antes de darlo por bueno.
 
-## La base, para no construir trozos fijos
-Una sola «escena a pie» hecha de piezas que se cambian sin rehacer lo demás:
-- **Unidad** (entra y sale con los números del motor de guerra) · **Formación** (ficha) · **Soldado** (hoy el de 0 A.D.,
-  luego el nuevo con manos, brazos y caras) · **Acciones** (lanzar, parar, empujar, golpear, caer: fichas con gesto, tiempo y
-  efecto) · **Enemigo** (ficha) · **Vecinos y avisos** · **Cámara** · **Sonido**.
-- Cada mejora posterior entra en su pieza. El testudo de Escaramuzas es esa misma escena con una unidad de ejemplo.
+## 8. La base, para no construir trozos fijos
+Una sola «escena a pie» hecha de piezas; cada mejora entra en la suya sin rehacer las demás:
+| Pieza | Hoy | Después |
+|---|---|---|
+| Unidad | una de ejemplo, con los números del motor | cualquier cuerpo de la batalla |
+| Formación | testudo | línea manipular, falange de picas, muro hoplita, vélites, caballería |
+| Soldado | el de 0 A.D. | el nuevo (manos, brazos, movimientos; luego caras) |
+| Acciones | andar, correr, lanzar, parar, empujar, golpear, caer | más finas, mismas fichas |
+| Enemigo | galos | otros pueblos |
+| Vecinos y avisos | no hay | unidades a los lados y partes del frente |
+| Cámara · Sonido | las de hoy | sonido grabado |
 
-## Orden propuesto (una tarea cada vez; cada una se prueba en el móvil antes de la siguiente)
-1. **TP1 · La escena a pie sobre la base, con la lucha** (la única que se abre ahora): unir el lanzar de A y la lucha de B
-   sobre esas piezas; **andar y correr bien**; centurión con relevo a soldado; lucha como arriba; con los muñecos de hoy; se juega desde Escaramuzas.
-   La unidad ya entra y sale con los números del motor de guerra, aunque aún no se baje desde una batalla.
-   Presupuesto honrado: 4 a 5 M (solo el pilum costó 2,8 M).
-2. **TP2 · Bajar a pie desde la batalla grande**: botón en un cuerpo, despliegue, devolver el resultado, subir.
-3. **TP3 · Vecinos que se ven y avisos**; que te envuelvan si tu ala cede.
-4. **TP4 · Soldado nuevo** en la escena (manos, brazos, movimientos); luego caras.
-5. **TP5 · Sonido grabado**.
-6. **TP6 · Más formaciones**: falange de picas, muro hoplita, vélites, caballería (una ficha cada vez).
-Al aprobar este documento, GM43g a GM43l y GP1 a GP6 del tablero se funden en TP1 a TP6 (nada nuevo: son las mismas, ordenadas).
+## 9. Etapas (una tarea cada vez; cada una se prueba en el móvil antes de la siguiente)
+**Dentro de la 1.0** (sirven a la línea del Corazón: «una sola batalla, con el testudo a pie alcanzable desde el juego»):
+1. **TP1 · La escena a pie, sobre la base.** Se ve en el móvil: los hombres andan y corren como personas; lanzas
+   manteniendo y soltando; tras el choque peleas tu duelo y tu fila pelea a tu lado; das las cuatro órdenes; si caes,
+   sigues como otro soldado; gana quien rompe al otro; arriba se lee el estado de tu unidad en palabras. Con los muñecos
+   de hoy, desde Escaramuzas. Presupuesto honrado: 4 a 5 M (solo el pilum costó 2,8 M).
+2. **TP2 · Bajar a pie desde la batalla.** Se ve: en una batalla de la campaña tocas un cuerpo, «Bajar a pie», juegas
+   ese trozo y, al subir, la batalla recoge tus bajas y tu ánimo.
+3. **TP3 · Un mismo aspecto** (es GM43g y GM44c): los soldados, la luz y el campo del testudo son los de la batalla normal.
 
-## Lo que queda fuera (de momento)
-Moverte suelto por el campo fuera de tu unidad, campaña a pie, ejecuciones de cine, batallas navales a pie.
+**Justo después, o dentro si el usuario saca otra línea** (lo dice `OBJETIVOS.md`: falta decidir):
+4. **TP4 · Vecinos que se ven y avisos**; que te envuelvan si tu ala cede.
+5. **TP5 · Soldado nuevo a pie** (manos, brazos, movimientos; luego caras).
+6. **TP6 · Sonido grabado.**
+7. **TP7 · Más formaciones**, una ficha cada vez: línea manipular, muro hoplita, falange de picas, vélites, caballería;
+   con su modo en Escaramuzas para probarlas.
 
-## Historia
-Dos pila por hastatus (Polibio 6.23, cotejado). Centurión en primera fila y elegido por su firmeza (Polibio 6.24, cotejado).
-Relevo de filas: descrito para la legión manipular (Livio 8.8); el cómo exacto se discute: licencia de juego en el detalle.
-Empujón con el umbo: probable. Testudo contra proyectiles: histórico. Falange de picas y muro hoplita: históricos; se fichan al llegar.
+Con el visto bueno del usuario, GM43g a GM43l y GP1 a GP6 del tablero se funden en estas etapas (son las mismas, ordenadas).
+
+## 10. Lo que queda fuera
+Moverte suelto fuera de tu unidad, campaña a pie, ejecuciones de cine, batallas navales a pie.
+
+## 11. Historia (dictamen)
+Dos pila por hastatus: histórico (Polibio 6.23). Centurión en primera fila, elegido por su firmeza: histórico (Polibio 6.24).
+Relevo de líneas: histórico en lo general (Livio 8.8); el cómo, fila a fila, es licencia de juego. Empujón con el umbo:
+probable. Testudo contra proyectiles: histórico. Astil del pilum que se dobla en el escudo: de época posterior (César,
+BG 1.25): licencia de juego. Falange de picas y muro hoplita: históricos; se fichan al llegar.
