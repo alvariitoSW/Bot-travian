@@ -16,9 +16,12 @@ const lerp = (a, b, t) => a + (b - a) * t;
    0-3 muro (subiendo el escudo: 1/4, 2/4, 3/4 y arriba) · 4 muro encogido · 5-8 techo · 9 techo encogido
    10-11 muro mirando a su derecha (a medias y del todo) · 12-13 muro mirando a su izquierda
    GP1 · 14 brazo armado atrás · 15 guardia · 16 empujón de escudo · 17 cubrirse · 18 recibe el golpe · 19 los de detrás empujan
-   · 20 espada en alto. Después, 5 filas sueltas de lanzar (GM43h; la última, el brazo armado del todo, la que sostiene el
+   · 20 espada en alto · TP1b · 21 escudo quieto al costado (el brazo del escudo no se mece al andar). Después, 5 filas sueltas de lanzar (GM43h; la última, el brazo armado del todo, la que sostiene el
    dedo) y, al final (TP1), el clip «run» entero con el cuerpo inclinado hacia delante y la cabeza alzada. */
-export const CJ = { muro: 0, techo: 5, miraD: 10, miraI: 12, prep: 14, guardia: 15, empuje: 16, cubre: 17, recibe: 18, empuja: 19, alza: 20, lanza: 21 };
+export const CJ = { muro: 0, techo: 5, miraD: 10, miraI: 12, prep: 14, guardia: 15, empuje: 16, cubre: 17, recibe: 18, empuja: 19, alza: 20, quieto: 21, lanza: 22 };
+/* TP1b: en el testudo el paso es más corto. Las posturas del testudo se hacen sobre un andar «encogido»: cada fotograma de
+   andar mezclado con el reposo (CORTO de reposo); así la pierna barre menos y la zancada (medida aparte) sale más corta */
+export const CORTO = 0.38;
 /* las posturas de luchar (GP1), en metros (+x es la izquierda del hombre, +z delante; la mano derecha lleva el arma) */
 const POS = {
   prep: { tuerce: -0.55, dobla: -0.1, manoD: [-0.45, 1.85, -0.42], poloD: [-0.6, -0.6, -0.6], manoI: [0.22, 1.42, 0.5], poloI: [0.8, -0.6, 0], cabeza: [-0.05, 0.5] },
@@ -35,6 +38,12 @@ const CARRERA = { dobla: 0.3, cabeza: [-0.26, 0] };
 export function generaTabla(base, meta, geo, E) {
   const hues = meta.slots, N0 = meta.frames, run = meta.clips.run, total = N0 + CJ.lanza * 120 + 5 + run.frames, T = new Float32Array(total * hues * 12); T.set(base.subarray(0, N0 * hues * 12));
   const esq = crearEsqueleto(base, hues, N0, geo.attributes.position.array, geo.attributes.aSkinI.array, geo.attributes.aSkinW.array);
+  /* el andar encogido del testudo: los 50 fotogramas de andar, mezclados con el primero de reposo */
+  const W0 = meta.clips.walk.start, nW = meta.clips.walk.frames, baseC = base.slice(0, N0 * hues * 12), L12 = hues * 12, R0 = meta.clips.idle.start * L12;
+  for (let f = 0; f < nW; f++) { const o = (W0 + f) * L12; for (let i = 0; i < L12; i++) baseC[o + i] = base[o + i] * (1 - CORTO) + base[R0 + i] * CORTO; }
+  const esqC = crearEsqueleto(baseC, hues, N0, geo.attributes.position.array, geo.attributes.aSkinI.array, geo.attributes.aSkinW.array), ponC = (fila, q, b) => T.set(esqC.postura(b, q), fila * hues * 12);
+  /* el brazo del escudo al andar: la muñeca, quieta donde está en reposo (respecto al cuerpo) */
+  const mR = esq.en(meta.clips.idle.start, HU.anteI, 'munecaI');
   const u = v => v.map(x => x / E), pon = (fila, q, b) => T.set(esq.postura(b, q), fila * hues * 12);
   const enModelo = q => { const o = { ...q }; if (q.baja) o.baja = q.baja / E; for (const k of ['manoI', 'manoD']) if (q[k]) o[k] = u(q[k]); return o; };
   const ROL = [
@@ -46,13 +55,14 @@ export function generaTabla(base, meta, geo, E) {
     for (const R of ROL) {
       for (let j = 1; j <= 4; j++) {
         const p = j / 4, s = Math.sin(Math.PI * p), mano = [lerp(m0[0], R.mano[0], p) + 0.2 * s, lerp(m0[1], R.mano[1], p), lerp(m0[2], R.mano[2], p) + 0.18 * s];
-        pon(N0 + (R.c + j - 1) * 120 + b, { baja: R.baja * p / E, dobla: R.dobla * p, cabeza: [R.cab * p, 0], manoI: u(mano) }, b);
+        ponC(N0 + (R.c + j - 1) * 120 + b, { baja: R.baja * p / E, dobla: R.dobla * p, cabeza: [R.cab * p, 0], manoI: u(mano) }, b);
       }
-      pon(N0 + (R.c + 4) * 120 + b, { baja: (R.baja + 0.06) / E, dobla: R.dobla + 0.12, cabeza: [0.45, 0.22], manoI: u([R.mano[0] + R.enc[0], R.mano[1] + R.enc[1], R.mano[2] + R.enc[2]]) }, b);
+      ponC(N0 + (R.c + 4) * 120 + b, { baja: (R.baja + 0.06) / E, dobla: R.dobla + 0.12, cabeza: [0.45, 0.22], manoI: u([R.mano[0] + R.enc[0], R.mano[1] + R.enc[1], R.mano[2] + R.enc[2]]) }, b);
     }
     const W = ROL[0];
-    for (const [c, giro, tu] of [[CJ.miraD, -0.62, -0.12], [CJ.miraD + 1, -1.24, -0.24], [CJ.miraI, 0.55, 0.1], [CJ.miraI + 1, 1.1, 0.2]]) pon(N0 + c * 120 + b, { baja: W.baja / E, dobla: W.dobla, tuerce: tu, cabeza: [-0.05, giro], manoI: u(W.mano) }, b);
+    for (const [c, giro, tu] of [[CJ.miraD, -0.62, -0.12], [CJ.miraD + 1, -1.24, -0.24], [CJ.miraI, 0.55, 0.1], [CJ.miraI + 1, 1.1, 0.2]]) ponC(N0 + c * 120 + b, { baja: W.baja / E, dobla: W.dobla, tuerce: tu, cabeza: [-0.05, giro], manoI: u(W.mano) }, b);
     for (const k in POS) pon(N0 + CJ[k] * 120 + b, enModelo(POS[k]), b);
+    pon(N0 + CJ.quieto * 120 + b, { manoI: mR }, b);
   }
   const L = N0 + CJ.lanza * 120;
   pon(L, { tuerce: -0.45, dobla: -0.1, manoD: u([-0.36, 1.78, -0.3]), poloD: [-0.6, -0.6, -0.5] }, 0);

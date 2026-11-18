@@ -2038,16 +2038,10 @@
       "url": "https://claude.ai/code/session_01QiKC397z42u9YdbK1uWvE9"
     },
     {
-      "tarea": "GM44",
-      "titulo": "Corazón · GM44 Modelos de soldado nuevos para las demás tropas (dirige y construye Opus)",
-      "nota": "js/gfx/soldado.js, js/ui-guerra.js, assets/soldados/; plan y tamaño en la primera hora; 1,0 M hasta confirmar",
-      "url": "https://claude.ai/code/session_01QiKC3AgvUkgAmNioZYMQbp"
-    },
-    {
-      "tarea": "CG3",
-      "titulo": "Corazón · CG3 Simulador de batallas, solo lógica (dirige y construye Opus)",
-      "nota": "archivos nuevos y su prueba; aún no se ve en el juego; declarado 2,5 M, esperable 4,5 M",
-      "url": "https://claude.ai/code/session_01QiKC39wcF8Dqhq1fbYLXaW"
+      "tarea": "CG4",
+      "titulo": "Corazón · CG4 Mando en vivo con el simulador (dirige y construye Opus)",
+      "nota": "js/ui-guerra.js y gfx; paso A Escaramuzas, paso B campaña; techo 6,0 M",
+      "url": "https://claude.ai/code/session_01QiKC38ZAM3t3LR2vRpnHXh"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

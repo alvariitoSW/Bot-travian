@@ -26,10 +26,10 @@ for (const [carpeta, indice, tope, nombre] of [['assets/units', 'units.json', P.
   catch (e) { fallos.push('falta ' + carpeta + '/LICENSE.txt'); }
 }
 /* GM44c: los soldados nuevos de las batallas (assets/soldados, CC0). El nivel fino puede llegar a soldadoCercano.triangulosMax; los demás, al tope por unidad */
-{ const dir = join(RAIZ, 'assets', 'soldados'), b = await peso(dir); total += b; const js = (await readdir(dir)).filter(f => f.endsWith('.json'));
+{ const dir = join(RAIZ, 'assets', 'soldados'), b = await peso(dir); total += b; const todos = await readdir(dir), js = todos.filter(f => f.endsWith('.json') && !f.startsWith('movimientos_')), movs = todos.filter(f => f.startsWith('movimientos_'));   /* GM44d: los movimientos compartidos no son un nivel */
   for (const f of js) { const k = f.slice(0, -5), n = JSON.parse(await readFile(join(dir, f), 'utf8')).tris, fino = !k.includes('_'), tope = fino ? P.soldadoCercano.triangulosMax : P.triangulosPorUnidad; TRIS['soldado:' + k] = n;
     if (n > tope) fallos.push('soldado ' + k + ': ' + n + ' triángulos (tope ' + (fino ? 'del nivel fino' : 'por unidad') + ': ' + tope + ')'); }
-  console.log('assets/soldados · ' + MB(b) + ' · ' + js.length + ' niveles · ' + js.map(f => f.slice(0, -5) + ' ' + TRIS['soldado:' + f.slice(0, -5)]).join(', '));
+  console.log('assets/soldados · ' + MB(b) + ' · ' + js.length + ' niveles · ' + js.map(f => f.slice(0, -5) + ' ' + TRIS['soldado:' + f.slice(0, -5)]).join(', ') + ' · movimientos compartidos: ' + (movs.join(', ') || 'ninguno'));
   try { const l = await readFile(join(dir, 'LICENSE.txt'), 'utf8'); if (!/MakeHuman/.test(l) || !/Quaternius/.test(l) || !/CC0 1\.0/.test(l)) fallos.push('assets/soldados/LICENSE.txt no cita a MakeHuman, Quaternius y la CC0 1.0'); }
   catch (e) { fallos.push('falta assets/soldados/LICENSE.txt'); } }
 console.log('Descarga total de arte: ' + MB(total) + ' (tope: ' + P.descargaMB + ' MB)');
