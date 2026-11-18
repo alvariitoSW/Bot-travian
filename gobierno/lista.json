@@ -91,6 +91,6 @@
       { "tareas": ["GM-K6a", "GM-K6b", "GM-K6c", "GM-K6d"], "nota": "Sellos y franja de mando de la batalla." }
     ],
     "sobra": [],
-    "gobierno": ["CM1"]
+    "gobierno": ["CM1", "CM2"]
   }
 }
