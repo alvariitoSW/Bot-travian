@@ -2014,6 +2014,12 @@
       "titulo": "Cerebro · CI0 Objetivo final de la ciudad, con láminas (solo documentos; dirige y construye Opus)",
       "nota": "gobierno/estudios/CI0-objetivo-ciudad.md y gobierno/historia/laminas-ciudades/; sin tocar js/; 0,8 M",
       "url": "https://claude.ai/code/session_01QiKC36BmvfmQUDJ3LxdxQh"
+    },
+    {
+      "tarea": "CE1",
+      "titulo": "Cerebro · CE1 Objetivo final de política y economía, hablándolo con el usuario (dirige y construye Opus)",
+      "nota": "gobierno/estudios/CE1-objetivo-cerebro.md; conversación con Opus; un plan cerrado y alcance congelado; 1,5 M",
+      "url": "https://claude.ai/code/session_01QiKC3Ap9oPnEQ9sW14muQd"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

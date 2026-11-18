@@ -60,8 +60,10 @@
       "veras": "Sabes de un vistazo qué produces, qué gastas y qué te falta, y puedes comprar y vender.",
       "hecho": "Barra de recursos, hoja de cuentas, mercado, puerto y cola de obras.",
       "captura": "gobierno/capturas-tarea/Q3-1-cuentas.jpg",
-      "tareas": [],
-      "falta": "El objetivo ya está escrito (EC0, 18/11): «cada estación te falta algo y tienes que elegir». Faltan tus dos respuestas (cómo se siente la economía y si los precios cambian) y tu sí a cinco tareas propuestas (EC1 a EC5, ≈2,4 M)."
+      "tareas": [
+        "CE1"
+      ],
+      "falta": "Tu 18/11: reinventar la economía entera (recursos, mejorar edificios, tropas, comerciar). Se piensa contigo en CE1, antes de construir nada, y sale UN plan cerrado."
     },
     {
       "id": "L3",
@@ -84,9 +86,11 @@
       "estado": "medias",
       "veras": "Una sala de votos con tres bandos: prometes, pactas y te vetan. Lo que se vota cambia tu partida.",
       "hecho": "Sala de votos con 30 escaños, tratos y tribuno, ya dentro del juego.",
-      "falta": "Espera el estudio PO1, que pediste el 18/11: cómo encajan el Senado del juego y las tres maquetas de política. El estudio ya está hecho: faltan tus respuestas a sus tres preguntas. Sin tareas hasta entonces.",
+      "falta": "Se piensa contigo en CE1 (18/11): escaños por tamaño de provincia y por respeto o poder, Autoridad con cargos como peldaños, banquete y consejeros. Sin tareas hasta que cierre.",
       "captura": "gobierno/capturas-tarea/SN2-1-sala.jpg",
-      "tareas": []
+      "tareas": [
+        "CE1"
+      ]
     },
     {
       "id": "L5",
@@ -121,8 +125,10 @@
       "titulo": "Ganar una campaña por la política",
       "estado": "falta",
       "veras": "Una meta de poder en el Senado a la vista durante la partida. Al alcanzarla, pantalla de victoria.",
-      "falta": "Todo. Espera el estudio PO1 de la política; el estudio ya está hecho y sus tareas se escriben cuando contestes sus tres preguntas.",
-      "tareas": []
+      "falta": "Se piensa contigo en CE1 (18/11): escaños por tamaño de provincia y por respeto o poder, Autoridad con cargos como peldaños, banquete y consejeros. Sin tareas hasta que cierre.",
+      "tareas": [
+        "CE1"
+      ]
     },
     {
       "id": "L8",
