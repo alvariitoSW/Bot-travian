@@ -63,6 +63,7 @@
   G.factor = k => { const md = G.modo(); if (!md) return 1; const v = md.inicio && md.inicio[G.state.modo.inicio] && md.inicio[G.state.modo.inicio].factores; const x = v && v[k] !== undefined ? v[k] : (md.factores || {})[k]; return x === undefined ? 1 : x; };
   const escalaCoste = o => { o = D.costeNuevo(o, 'obra'); const f = G.factor('costes'); if (f === 1) return o;   // CE2: los costes de ciudad.js (claves viejas) se traducen aquí
     const r = {}; for (const k in o) r[k] = Math.max(1, Math.round(o[k] * f / 5) * 5); return r; };
+  G.escalaCoste = o => escalaCoste(o);   // CE2: la pantalla enseña el coste de una pieza de ciudad.js como se cobra (claves nuevas y factor del modo)
   G.hasta = () => { const md = G.modo(); return md && md.hasta !== undefined ? md.hasta : G.region().hasta; };
   G.capitalRival = () => { const md = G.modo(); return md && md.capitalRival ? md.capitalRival : G.region().capitalRival; };
   G.capital = () => { const s = G.state; return s && s.capital && s.cities[s.capital] ? s.capital : 'roma'; };
@@ -896,6 +897,7 @@
     if (b && (D.BUILD[b].sea && !D.CITIES[cid].sea)) return { ok: false, motivo: 'Aquí no hay mar' };
     if (b && G.faltaInv(b)) return { ok: false, motivo: G.faltaInv(b) };
     if (b && G.faltaEspecial('edificio', b, c.b[b] || 0)) return { ok: false, motivo: 'Falta un bien especial' };
+    if (b === 'mina' && !G.vetaHierro(cid)) return { ok: false, motivo: G.minaMotivo(cid) };   // CE2: sin veta, el motivo (no «Faltan recursos»)
     if (pz === 'escuela') { if (!E.abiertas.includes('escuela')) return { ok: false, motivo: 'La Escuela se abre con ' + CI.EDIF.escuela.desde + ' habitantes' }; if ((c.b.escuela || 0) >= 1 || E.edificios.some(q => q.tipo === 'escuela') || c.obras.some(o => o.pieza === 'escuela')) return { ok: false, motivo: 'Ya hay una Escuela en esta ciudad' }; }
     const n = CI.notaSitio(E, pz, x, z); if (!n.vale) return { ok: false, motivo: n.razones[0] };
     if (b === 'templo' && !G.diosDe(c)) c.dios = D.DIOSES[c.dios] && !(D.DIOSES[c.dios].sea && !D.CITIES[cid].sea) ? c.dios : 'marte';
@@ -909,6 +911,7 @@
     if (c.obras.some(q => q.eid === idPieza) || (CI.EDIF[e.tipo].bid && G.obraDe(c, CI.EDIF[e.tipo].bid))) return { ok: false, motivo: 'Ya se está mejorando' };
     if (e.obra || e.ruina) return { ok: false, motivo: 'Ahora no se puede mejorar' };
     const b = CI.EDIF[e.tipo].bid; if (b && G.faltaInv(b)) return { ok: false, motivo: G.faltaInv(b) }; if (b && G.faltaEspecial('edificio', b, c.b[b] || 0)) return { ok: false, motivo: 'Falta un bien especial' };
+    if (b === 'mina' && !G.vetaHierro(cid)) return { ok: false, motivo: G.minaMotivo(cid) };   // CE2: sin veta, el motivo
     const nq = empezar(c, especMejora(c, e)); if (!nq) return { ok: false, motivo: 'Faltan recursos' };
     return { ok: true, obra: nq };
   };
@@ -2254,7 +2257,7 @@
     rutas: { cumple: (s, c) => (s.rutas || []).length >= c.n, falta: (s, c) => 'Rutas comerciales: ' + (s.rutas || []).length + ' de ' + c.n + '.' },
     bien: { cumple: (s, c) => propias(s).some(id => D.CITIES[id].esp === c.bien), falta: (s, c) => 'Falta una ciudad propia con ' + D.ESPECIAL[c.bien].n.toLowerCase() + '.' },
     colonia: { cumple: (s, c) => G.coloniasFundadas(s) >= (c.n || 1), falta: (s, c) => 'Colonias fundadas: ' + G.coloniasFundadas(s) + ' de ' + (c.n || 1) + '.' },
-    denarios: { cumple: (s, c) => s.res.denarios + s.alm.denarios >= c.n, falta: (s, c) => 'Oro: ' + Math.floor(s.res.denarios + s.alm.denarios) + ' de ' + c.n + '.' }
+    denarios: { cumple: (s, c) => s.res.denarios + s.alm.denarios >= c.n, falta: (s, c) => 'Denarios: ' + Math.floor(s.res.denarios + s.alm.denarios) + ' de ' + c.n + '.' }
   };
   // partida nueva o vieja: favor 50/50 y sin misión
   /* Saber (I5): estado de investigación. Solo datos; las reglas (G.inv*) llegan en I5-B. */

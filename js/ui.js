@@ -18,18 +18,19 @@ const fmt = n => { n = Math.floor(n); return n >= 10000 ? (n / 1000).toFixed(1) 
 const months = m => m < 1 ? Math.max(1, Math.round(m * 30)) + ' días' : (m >= 12 ? (m / 12).toFixed(1).replace('.', ',') + ' años' : m.toFixed(1).replace('.', ',') + ' meses');
 /* Iconos de línea de la guía de arte (E1b), dibujados aquí en SVG: sustituyen en pantalla a los emojis de data.js */
 const svgIco = (d, oro) => '<svg class="ico' + (oro ? ' oro' : '') + '" viewBox="0 0 24 24" aria-hidden="true">' + d + '</svg>';
+/* CE2: cuatro recursos guardados (grano, denarios, materiales, hierro). Madera y piedra quedan como iconos de sus edificios */
+const ICO_MADERA = svgIco('<ellipse cx="6" cy="12" rx="2.6" ry="4.5"/><path d="M6 7.5h11.5c1.4 0 2.6 2 2.6 4.5s-1.2 4.5-2.6 4.5H6"/><path d="M6 11v2M11 10.5h4M12.5 13.5h3.5"/>'), ICO_PIEDRA = svgIco('<path d="M3 13.5h18v6.5H3zM12 13.5V20M6.5 13.5V7h11v6.5"/><path d="M9 10h2M14.5 16.8h2"/>');
 D.RES_ICON = {
-  madera: svgIco('<ellipse cx="6" cy="12" rx="2.6" ry="4.5"/><path d="M6 7.5h11.5c1.4 0 2.6 2 2.6 4.5s-1.2 4.5-2.6 4.5H6"/><path d="M6 11v2M11 10.5h4M12.5 13.5h3.5"/>'),
-  piedra: svgIco('<path d="M3 13.5h18v6.5H3zM12 13.5V20M6.5 13.5V7h11v6.5"/><path d="M9 10h2M14.5 16.8h2"/>'),
-  hierro: svgIco('<path d="M8.5 7.5h7l1.5 4.5h-10z"/><path d="M7 12l-3.5 5.5h17L17 12M8.5 7.5L3.5 17.5M15.5 7.5l5 10"/>'),
   grano: svgIco('<path d="M12 21.5V8"/><path d="M12 8c-1.6-1.7-1.6-3.8 0-5.5 1.6 1.7 1.6 3.8 0 5.5z"/><path d="M12 13c-2.6 0-3.8-1.6-3.8-3.8 2.6 0 3.8 1.6 3.8 3.8zM12 13c2.6 0 3.8-1.6 3.8-3.8-2.6 0-3.8 1.6-3.8 3.8zM12 18c-2.6 0-3.8-1.6-3.8-3.8 2.6 0 3.8 1.6 3.8 3.8zM12 18c2.6 0 3.8-1.6 3.8-3.8-2.6 0-3.8 1.6-3.8 3.8z"/>'),
-  oro: svgIco('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6.3" stroke-dasharray="1.2 2.1"/><path d="M10 9.2l4 5.6M14 9.2l-4 5.6"/>', true)
+  denarios: svgIco('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="6.3" stroke-dasharray="1.2 2.1"/><path d="M10 9.2l4 5.6M14 9.2l-4 5.6"/>', true),
+  materiales: svgIco('<path d="M3 14h18v6H3zM10 14v6M16 14v6"/><ellipse cx="6" cy="9.3" rx="2" ry="3"/><path d="M6 6.3h12c1.1 0 2 1.3 2 3s-.9 3-2 3H6"/>'),
+  hierro: svgIco('<path d="M8.5 7.5h7l1.5 4.5h-10z"/><path d="M7 12l-3.5 5.5h17L17 12M8.5 7.5L3.5 17.5M15.5 7.5l5 10"/>')
 };
 D.POP_ICON = svgIco('<circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.6 2.6-6 6-6s6 2.4 6 6"/><circle cx="16.8" cy="9" r="2.5"/><path d="M17.5 14.2c2.2.5 3.6 2.4 3.6 5"/>');
 /* Iconos de guerra y de edificios (E1c): dibujos de línea propios, como los de recursos */
 D.GUERRA_ICON = { espadas: svgIco('<path d="M5 19L17 7M14.5 5.5L18.5 9.5M3.5 17.5l3 3M7 17l-2.5 2.5"/><path d="M19 19L7 7M9.5 5.5L5.5 9.5M20.5 17.5l-3 3M17 17l2.5 2.5"/>'), escudo: svgIco('<path d="M12 3l7 2.5v6c0 4.5-3 7.8-7 9.5-4-1.7-7-5-7-9.5v-6z"/><path d="M12 3v18M5 11h14"/>'), aguila: svgIco('<circle cx="12" cy="5.5" r="2"/><path d="M12 7.5V17M12 10C9 9 5 9.5 2.5 12c2 .3 3.5.2 5 0-1.5 1.5-2.5 2.500-3 4 3-.5 5.500-2.500 7.500-6M12 10c3-1 7-.5 9.500 2-2 .3-3.500.2-5 0 1.500 1.500 2.500 2.500 3 4-3-.5-5.500-2.500-7.500-6"/><path d="M10 20.500l2-3.500 2 3.500"/>'), casco: svgIco('<path d="M4 15a8 8 0 0116 0v2H4z"/><path d="M12 7V4M8 17v3M16 17v3M4 17h16"/>') };
 D.BUILD_ICON = {
-  aserradero: D.RES_ICON.madera, cantera: D.RES_ICON.piedra, mina: D.RES_ICON.hierro, granja: D.RES_ICON.grano, cuartel: D.GUERRA_ICON.espadas,
+  aserradero: ICO_MADERA, cantera: ICO_PIEDRA, mina: D.RES_ICON.hierro, granja: D.RES_ICON.grano, cuartel: D.GUERRA_ICON.espadas,
   viviendas: svgIco('<path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10M10 20v-5h4v5"/>'),
   foro: svgIco('<path d="M3 20h18M5 20V9h14v11M3 9h18M9 20v-6h6v6M12 4v5"/>'),
   almacen: svgIco('<path d="M9 3h6M10 3v3c-3 1-4 4-4 7 0 4 2 7 6 7s6-3 6-7c0-3-1-6-4-7V3"/><path d="M6.5 11h-2M17.5 11h2"/>'),
@@ -42,7 +43,7 @@ D.BUILD_ICON = {
   templo: svgIco('<path d="M3 10l9-6 9 6zM6 12v6M10 12v6M14 12v6M18 12v6M3 20h18"/>')
 };
 const bIco = b => D.BUILD_ICON[b] || D.BUILD[b].i;
-// coste con plan de pago: «🪵 40/120» (cuota/total) si hay más de una cuota
+// coste con plan de pago: «🧱 40/120» (cuota/total) si hay más de una cuota
 const costPlanHtml = (pp) => pp.nc < 2 ? costHtml(pp.total) : '<div class="cost plazo">' + Object.keys(pp.total).map(r => '<span>' + D.RES_ICON[r] + ' ' + fmt(pp.primera[r]) + '<small>/' + fmt(pp.total[r]) + '</small></span>').join('') + '</div>';
 const sinHuecoTxt = c => G.huecosObra(c) === 1 ? 'Ya hay una obra en curso en esta ciudad' : 'Sube el foro para otra obra';
 const obrasTxt = c => 'Obras ' + c.obras.length + '/' + G.huecosObra(c);
@@ -325,9 +326,17 @@ const s_name = () => (S() && S().hero && S().hero.name) || 'General';
 
 /* ---------- HUD ---------- */
 function buildTop() {
-  $('res').innerHTML = D.RES.map(r => '<span class="r' + (r === 'oro' || r === 'grano' ? '' : ' g-only') + '" id="rb-' + r + '">' + D.RES_ICON[r] + '<b id="r-' + r + '"></b><small class="alm" id="ra-' + r + '"></small></span>').join('') +
+  $('res').innerHTML = D.RES.map(r => '<span class="r' + (r === 'denarios' || r === 'grano' ? '' : ' g-only') + '" id="rb-' + r + '">' + D.RES_ICON[r] + '<b id="r-' + r + '"></b><small class="alm" id="ra-' + r + '"></small></span>').join('') +
+    '<span class="r g-only" id="rb-hom" title="Hombres: reclutas libres de todas tus ciudades">' + D.POP_ICON + '<b id="r-hom"></b></span>' +   // CE2: hombres (no se guardan)
     '<span class="r w-only" id="rb-recl" title="Reclutas disponibles en la ciudad">' + D.GUERRA_ICON.casco + '<b id="r-recl"></b></span><span class="r w-only" id="rb-march" title="Marchas de tus ejércitos">' + D.GUERRA_ICON.espadas + '<b id="r-march"></b></span>';
   $('res').dataset.act = 'cuentas'; $('res').title = 'Cuentas del mes';
+  if (!$('bienes')) { const b = document.createElement('div'); b.id = 'bienes'; b.className = 'g-only'; b.dataset.act = 'cuentas'; b.title = 'Bienes guardados: toca para ver las cuentas'; $('res').after(b); }   // CE2: fila compacta de bienes
+}
+/* CE2: la fila de bienes bajo la barra: solo los que tienes, con aviso si van a pasar del tope */
+function bienesBarra() {
+  const e = $('bienes'); if (!e) return; const b = G.bienes(), pb = G.bienesPerdera(), ks = Object.keys(D.BIENES).filter(k => (b[k] || 0) >= 1);
+  const h = ks.map(k => '<span class="bn' + (pb[k] >= 1 ? ' pierde' : (b[k] || 0) >= D.BIEN_TOPE - 0.5 ? ' full' : '') + '" title="' + esc(D.ESPECIAL[k].n) + ': ' + Math.floor(b[k]) + ' de ' + D.BIEN_TOPE + '">' + D.ESPECIAL[k].i + '<b>' + Math.floor(b[k]) + '</b></span>').join('') + (S().lujoFalta ? '<span class="bn lujo" title="Tus ciudadanos ricos piden vino, púrpura o plata">⚠ lujo</span>' : '');
+  if (e.dataset.k !== h) { e.dataset.k = h; e.innerHTML = h; } e.hidden = !h;
 }
 const turnosTxt = n => 'en ' + n + (n === 1 ? ' turno' : ' turnos');
 /* CN22B: informe de estación compacto. Tarjeta baja (#inf, ≤ ⅓ de pantalla, no bloquea la ciudad); «Ver más» despliega el detalle completo. */
@@ -335,10 +344,10 @@ function consejoModal() {
   const l = G.consejo(), inf = G.informeEstacion(), ant = UI.infoPrev || [];
   const col = q => q.k === 'bad' ? 'color:var(--bad)' : q.k === 'good' ? 'color:var(--good)' : '';
   const fila = r => { const a = inf.r[r]; return '<tr><td>' + D.RES_ICON[r] + '</td><td>+' + fmt(a.gan) + '</td><td>' + fmt(a.gua) + '</td><td style="' + (a.per > 0 ? 'color:var(--bad)' : 'opacity:.5') + '">' + (a.per > 0 ? '-' : '') + fmt(a.per) + '</td></tr>'; };
-  const informe = inf.meses ? '<p style="margin:6px 0 2px"><b>Informe de la estación</b> (' + inf.meses + (inf.meses === 1 ? ' mes' : ' meses') + ')</p><table style="width:100%;text-align:center;font-size:13px"><tr style="opacity:.6;font-size:11px"><td></td><td>ganado</td><td>guardado</td><td>perdido</td></tr>' + D.RES.map(fila).join('') + '</table><p style="margin:2px 0 8px;color:' + (inf.r.denarios.gua >= 0 ? 'var(--good)' : 'var(--bad)') + '">Saldo de oro: ' + (inf.r.denarios.gua - 0) + ' al almacén.</p>' : '';
+  const informe = inf.meses ? '<p style="margin:6px 0 2px"><b>Informe de la estación</b> (' + inf.meses + (inf.meses === 1 ? ' mes' : ' meses') + ')</p><table style="width:100%;text-align:center;font-size:13px"><tr style="opacity:.6;font-size:11px"><td></td><td>ganado</td><td>guardado</td><td>perdido</td></tr>' + D.RES.map(fila).join('') + '</table><p style="margin:2px 0 8px;color:' + (inf.r.denarios.gua >= 0 ? 'var(--good)' : 'var(--bad)') + '">Saldo de denarios: ' + (inf.r.denarios.gua - 0) + ' al almacén.</p>' : '';
   const detalle = '<div class="yr">INFORME Y CONSEJO DE ESTACIÓN</div><h2>' + esc(l[0].x) + '</h2>' + informe + l.slice(1).map(q => '<p style="' + col(q) + '">' + (q.k === 'bad' ? '⚠️ ' : '• ') + esc(q.x) + '</p>').join('');
   // tarjeta: lo grave siempre; lo demás solo si cambió desde el trimestre anterior
-  const perd = D.RES.filter(r => inf.meses && inf.r[r].per > 0).map(r => r + ' -' + fmt(inf.r[r].per));
+  const perd = D.RES.filter(r => inf.meses && inf.r[r].per > 0).map(r => RES_NOM[r].toLowerCase() + ' -' + fmt(inf.r[r].per));
   const todo = l.slice(1, -1).concat(perd.length ? [{ k: 'bad', x: ASESOR.TEXTOS.perdido(perd.join(' ')) }] : []);
   const mostrar = todo.filter(q => q.k === 'bad' || ant.indexOf(q.x) < 0).slice(0, 3);
   UI.infoPrev = todo.map(q => q.x);
@@ -395,15 +404,17 @@ function tickUI() {
   if (!s) return;
   if (G.fundando()) { hudFundando(s); return; }   // I8: sin ciudad aún no hay cuentas; I8b: la barra enseña lo que traen los colonos
   if (UI.map && UI.map.cities) for (const id in UI.map.cities) { if (!D.CITIES[id] || !D.CITIES[id].antes) continue; const sp = UI.map.cities[id].el.querySelector('span'); if (sp && sp.textContent !== D.CITIES[id].n) sp.textContent = D.CITIES[id].n; }   // H14: el nombre del mapa cambia con la fecha (Poblado íbero → Carthago Nova)
-  const p = G.prod(), cap = G.cap(), pr = G.previsionCierre(), aviso = G.fraccionMes() >= D.AVISO_CIERRE;
-  for (const r of D.RES) {
+  const p = G.prod(), pr = G.previsionCierre(), aviso = G.fraccionMes() >= D.AVISO_CIERRE;
+  for (const r of D.RES) { const cap = G.capDe(r);   // CE2: tope propio de cada recurso
     $('r-' + r).textContent = fmt(s.res[r]);
     const v = Math.round(p[r]), pierde = pr[r].perdera >= 1 && aviso, lleno = s.alm[r] >= cap - 1;
     $('ra-' + r).textContent = 'alm ' + fmt(s.alm[r]); $('ra-' + r).style.color = pierde ? '#ff7060' : lleno ? 'var(--gold)' : '';
     $('r-' + r).style.color = pierde ? '#ff7060' : '';
     $('rb-' + r).title = (RES_NOM[r] || r) + ': caja del mes ' + fmt(s.res[r]) + ', almacén ' + fmt(s.alm[r]) + ' de ' + fmt(cap) + ', ' + (v >= 0 ? '+' : '') + v + ' al mes' + (pierde ? ' · se perderán ' + pr[r].perdera : lleno ? ' (almacén lleno)' : '');
-    $('rb-' + r).classList.toggle('full', lleno);
+    $('rb-' + r).classList.toggle('full', lleno); $('rb-' + r).classList.toggle('pierde', pierde);
+    $('rb-' + r).style.setProperty('--lleno', Math.min(100, Math.round(s.alm[r] / Math.max(1, cap) * 100)) + '%');   // CE2: rayita del almacén (cuánto falta para el tope)
   }
+  $('r-hom').textContent = fmt(G.hombres()); bienesBarra();
   if (aviso && UI.avisoMes !== Math.floor(s.t)) { UI.avisoMes = Math.floor(s.t); const av = G.avisoCierre(), firma = av.map(x => x.split(':')[0]).join('|'), nueva = av.length && firma !== UI.avisoFirma; UI.avisoFirma = firma; if (nueva) toast('Fin de mes: ' + av[0] + (av.length > 1 ? ' (y ' + (av.length - 1) + ' más)' : ''), 'bad', 'cierre', true); }
   renderCuentas(); hojaPinta();
   const c = s.cities[cityOk()]; $('r-recl').textContent = fmt(G.recruits(c));
@@ -446,15 +457,25 @@ const sg = (n, d) => (n >= 0 ? '+' : '−') + (Math.abs(n) >= 100 ? Math.round(M
 function cuentasHtml() {
   const s = S(), c = s.cities[cityOk()], cu = G.cuentas(), o = cu.denarios, mercado = G.tradeRate() > 0, avisos = [], om = G.obraMayor(), ob = om ? om.id : null, puedeAd = !!om && G.canAfford(G.cuotasRestantes(om.q)); const of = G.fiestaInfo(cityOk(), 'ofrenda');
   const fila = r => { const m = cu.mat[r], tope = Math.max(1, m.entra, m.comprometido + Math.max(0, m.queda)), pc = Math.min(100, Math.round(m.comprometido / tope * 100)), pq = Math.max(0, Math.min(100 - pc, Math.round(Math.max(0, m.queda) / tope * 100)));
-    if (m.perdera >= 1) avisos.push('<div class="cu-aviso" data-r="' + r + '">⚠ <span>' + RES_NOM[r] + ': sobran ' + Math.floor(m.queda) + ', caben ' + Math.floor(m.caben) + ', <b>se pierden ' + Math.floor(m.perdera) + '</b></span></div><div class="cu-btns"><button class="btn" data-act="cuvender" data-v="' + r + '"' + (mercado ? '' : ' disabled') + '>Vender en el mercado</button><button class="btn" data-act="cuobra"' + (ob ? ' data-v="' + ob + '"' : '') + '>' + (ob ? 'Ir a la obra de ' + esc(D.CITIES[ob].n) : 'Adelantar obra') + '</button>' + (ob && puedeAd ? '<button class="btn" data-act="cuadelantar" data-v="' + ob + '" data-i="' + om.i + '">Adelantar cuotas</button>' : '') + (of.motivo ? '' : '<button class="btn" data-act="fiesta" data-v="ofrenda">' + D.FIESTAS.ofrenda.i + ' Ofrenda con lo que sobra · ' + D.RES_ICON.oro + fmt(of.coste) + '</button>') + (mercado ? '' : '<small>Sin mercado: construye uno para vender.</small>') + '</div>');
+    if (m.perdera >= 1) avisos.push('<div class="cu-aviso" data-r="' + r + '">⚠ <span>' + RES_NOM[r] + ': sobran ' + Math.floor(m.queda) + ', caben ' + Math.floor(m.caben) + ', <b>se pierden ' + Math.floor(m.perdera) + '</b></span></div><div class="cu-btns"><button class="btn" data-act="cuvender" data-v="' + r + '"' + (mercado ? '' : ' disabled') + '>Vender en el mercado</button><button class="btn" data-act="cuobra"' + (ob ? ' data-v="' + ob + '"' : '') + '>' + (ob ? 'Ir a la obra de ' + esc(D.CITIES[ob].n) : 'Adelantar obra') + '</button>' + (ob && puedeAd ? '<button class="btn" data-act="cuadelantar" data-v="' + ob + '" data-i="' + om.i + '">Adelantar cuotas</button>' : '') + (of.motivo ? '' : '<button class="btn" data-act="fiesta" data-v="ofrenda">' + D.FIESTAS.ofrenda.i + ' Ofrenda con lo que sobra · ' + D.RES_ICON.denarios + fmt(of.coste) + '</button>') + (mercado ? '' : '<small>Sin mercado: construye uno para vender.</small>') + '</div>');
     return '<div class="cu-fila"><span class="cu-ic">' + D.RES_ICON[r] + '</span><div class="cu-cen"><div class="cu-l1"><b>' + RES_NOM[r] + '</b> <span>entra ' + Math.round(m.entra) + '</span><em>compr. ' + Math.round(m.comprometido) + '</em></div><div class="cu-bar"><i class="c" style="width:' + pc + '%"></i><i class="q" style="width:' + pq + '%"></i></div></div>' +
       '<div class="cu-der"><b class="' + (m.queda >= 0 ? 'ok' : 'mal') + '">' + sg(m.queda, 0) + '</b><span>al almacén ' + Math.floor(m.alAlmacen) + '</span></div></div>' + (m.perdera >= 1 ? avisos.pop() : ''); };
   const impu = Object.keys(D.IMPUESTOS).map(k => '<button class="chip ' + ((c.imp || 'normal') === k ? 'on' : '') + '" data-act="imp" data-v="' + k + '">' + D.IMPUESTOS[k].n + '</button>').join('');
   const l = (n, v, mal) => { const z = Math.abs(v) < 0.05; return '<div><span>' + n + '</span><b class="' + (z ? '' : mal ? 'mal' : 'ok') + '">' + (z ? '0' : sg(mal ? -v : v)) + '</b></div>'; };
   return '<div class="cu-top"><div class="tt">Cuentas de ' + G.estacion(s.t).toLowerCase() + '</div><button class="cu-x" data-act="cux" aria-label="Cerrar">✕</button></div>' +
-    '<div class="cu-sec"><span>MATERIALES</span><div class="cu-imp"><small>Impuestos de ' + esc(D.CITIES[c.id || UI.city].n) + '</small>' + impu + '</div></div>' + ['madera', 'piedra', 'hierro', 'grano'].map(fila).join('') +
-    '<div class="cu-sec"><span>ORO</span><i>' + D.RES_ICON.oro + '</i></div><div class="cu-oro"><div class="cu-col">' + l('Impuestos', o.impuestos) + l('Foro y comercio', o.foro) + l('Rutas · puerto', o.rutas) + '</div><div class="cu-col">' + l('Edificios', o.edificios, 1) + (o.sabios >= 0.05 ? l('Sabios', o.sabios, 1) : '') + l('Legiones', o.legiones, 1) + l('Obras y tropas', o.obras, 1) + (o.otros >= 0.05 ? l('Otros', o.otros, 1) : '') + '</div></div>' +
+    '<div class="cu-sec"><span>RECURSOS</span><div class="cu-imp"><small>Impuestos de ' + esc(D.CITIES[c.id || UI.city].n) + '</small>' + impu + '</div></div>' + ['materiales', 'hierro', 'grano'].map(fila).join('') + '<div class="cu-hom">' + D.POP_ICON + '<span>Hombres para reclutar en tus ciudades: <b>' + fmt(G.hombres()) + '</b></span></div>' + bienesCu(mercado) +
+    '<div class="cu-sec"><span>DENARIOS</span><i>' + D.RES_ICON.denarios + '</i></div><div class="cu-oro"><div class="cu-col">' + l('Impuestos', o.impuestos) + l('Foro y comercio', o.foro) + l('Rutas · puerto', o.rutas) + '</div><div class="cu-col">' + l('Edificios', o.edificios, 1) + (o.sabios >= 0.05 ? l('Sabios', o.sabios, 1) : '') + l('Legiones', o.legiones, 1) + l('Obras y tropas', o.obras, 1) + (o.otros >= 0.05 ? l('Otros', o.otros, 1) : '') + '</div></div>' +
     '<div class="cu-saldo ' + (o.saldo >= 0 ? 'ok' : 'mal') + '"><span>Saldo del mes</span><b>' + (o.saldo >= 0 ? '+ ' : '− ') + Math.round(Math.abs(o.saldo)) + '</b></div>';
+}
+/* CE2: bienes guardados en la hoja de cuentas: cuántos, cuánto entra al mes, el tope, el lujo y botones para venderlos */
+function bienesCu(mercado) {
+  const b = G.bienes(), m = G.bienesMes(), pb = G.bienesPerdera(), ks = Object.keys(D.BIENES).filter(k => (b[k] || 0) >= 1 || m[k]), pide = G.lujoPide();
+  if (!ks.length && pide < 0.05) return '';
+  const fila = k => { const n = Math.floor(b[k] || 0), p = G.precioBien(k), v = Math.min(n, 10);
+    return '<div class="cu-fila cu-bien"><span class="cu-ic">' + D.ESPECIAL[k].i + '</span><div class="cu-cen"><div class="cu-l1"><b>' + esc(D.ESPECIAL[k].n) + '</b> <span>' + n + ' de ' + D.BIEN_TOPE + '</span><em>+' + (m[k] || 0) + ' al mes' + (D.LUJO.indexOf(k) >= 0 ? ' · lujo' : '') + '</em></div><div class="cu-bar"><i class="q" style="width:' + Math.min(100, Math.round(n / D.BIEN_TOPE * 100)) + '%"></i></div></div>' +
+      '<div class="cu-der">' + (v >= 1 ? '<button class="btn cu-vb" data-act="cubien" data-v="' + k + '" data-n="' + v + '">Vender ' + v + '<small>+' + Math.round(v * p) + ' ' + D.RES_ICON.denarios + '</small></button>' : '<span>sin guardar</span>') + '</div></div>' +
+      (pb[k] >= 1 ? '<div class="cu-aviso" data-r="' + k + '">⚠ <span>' + esc(D.ESPECIAL[k].n) + ': no caben más de ' + D.BIEN_TOPE + ', <b>se pierden ' + pb[k] + '</b></span></div><div class="cu-btns"><button class="btn" data-act="cuvender" data-v="' + k + '">Vender lo que sobra</button></div>' : ''); };
+  return '<div class="cu-sec"><span>BIENES</span></div>' + ks.map(fila).join('') + (pide >= 0.05 ? '<div class="cu-lujo' + (S().lujoFalta ? ' mal' : '') + '">Tus ciudadanos ricos piden ' + String(Math.round(pide * 10) / 10).replace('.', ',') + ' de lujo al mes (vino, púrpura o plata)' + (S().lujoFalta ? ': <b>el mes pasado no hubo bastante</b>.' : '.') + '</div>' : '');
 }
 function renderCuentas(forzar) { const e = $('cuentas'); if (!e || e.hidden || !S() || (UI.cuDown && !forzar)) return; const h = cuentasHtml(); if (forzar || e.dataset.k !== h) { e.dataset.k = h; e.innerHTML = h; } }
 /* K12a: HOJA INFERIOR única (menú, ajustes, mercado, rutas, pueblo…). #hoja es el panel y #hscrim el telón que oscurece. Cuerpo = HOJAS[id].html() */
@@ -560,13 +581,13 @@ const espResumen = () => {
 /* CN13a: arca del foro, fiestas, ración y granero. Todo lee G.arca / G.fiestaInfo / G.graneroInfo y no guarda nada */
 const fiestaBtn = (cid, id, corto) => {
   const d = D.FIESTAS[id], fi = G.fiestaInfo(cid, id), on = !fi.motivo, estado = fi.activa ? 'En marcha: ' + fi.quedan + (fi.quedan === 1 ? ' mes' : ' meses') + '.' : '';
-  return '<button class="btn fiesta' + (on ? '' : ' no') + '" data-act="fiesta" data-v="' + id + '"' + (on ? '' : ' disabled') + '>' + d.i + ' ' + (corto || d.n) + ' · ' + D.RES_ICON.oro + fmt(fi.coste) + (d.pago === 'arca' ? ' en arca' : '') + '</button>' +
+  return '<button class="btn fiesta' + (on ? '' : ' no') + '" data-act="fiesta" data-v="' + id + '"' + (on ? '' : ' disabled') + '>' + d.i + ' ' + (corto || d.n) + ' · ' + D.RES_ICON.denarios + fmt(fi.coste) + (d.pago === 'arca' ? ' en arca' : '') + '</button>' +
     '<small class="fi-n">' + esc(estado + (estado && fi.motivo ? ' ' : '') + (fi.motivo || '')) + '</small>';
 };
 /* CN16a: botón de leva (dilectus). Lee G.levaInfo; el motivo sale en letra pequeña si no se puede */
 const levaBtn = cid => {
   const d = D.LEVA, lv = G.levaInfo(cid, d.n), on = !lv.motivo;
-  return '<button class="btn fiesta leva' + (on ? '' : ' no') + '" data-act="leva"' + (on ? '' : ' disabled') + '>⚔️ Reclutar ' + lv.n + ' · ' + D.RES_ICON.grano + fmt(lv.coste.grano) + ' ' + D.RES_ICON.oro + fmt(lv.coste.oro) + '</button>' +
+  return '<button class="btn fiesta leva' + (on ? '' : ' no') + '" data-act="leva"' + (on ? '' : ' disabled') + '>⚔️ Reclutar ' + lv.n + ' · ' + D.RES_ICON.grano + fmt(lv.coste.grano) + ' ' + D.RES_ICON.denarios + fmt(lv.coste.denarios) + '</button>' +
     '<small class="fi-n">' + esc(lv.motivo || 'Aldeanos libres: ' + fmt(lv.libres) + '. La milicia guarnece la ciudad.') + '</small>';
 };
 /* CN16b: puertas, veteranos y triunfo, bajo la leva. Leen G.puertasInfo / G.veteranosInfo / G.triunfoInfo; el motivo sale en letra pequeña */
@@ -576,8 +597,8 @@ const ejCiudadHtml = cid => {
     '<small class="fi-n">' + esc(pu.motivo || (pu.cerradas ? 'Puertas cerradas: ' : 'Si las cierras: ') + 'defensa +' + pct(P.def) + ', comercio −' + pct(P.comercio) + ', marchas +' + pct(P.viaje) + ' de tiempo.') + '</small>';
   const bVe = '<button class="btn fiesta licenciar' + (ve.motivo ? ' no' : '') + '" data-act="licenciar"' + (ve.motivo ? ' disabled' : '') + '>🎖️ Licenciar ' + (ve.n || D.VETERANOS.n) + ' veteranos · +' + D.RES_ICON.grano + fmt(ve.grano || D.VETERANOS.n * D.VETERANOS.grano) + '</button>' +
     '<small class="fi-n">' + esc((ve.motivo ? ve.motivo + ' ' : '') + 'Batallas de esta tropa: ' + ve.batallas + '. Se asientan como vecinos y sube el favor del pueblo.') + '</small>';
-  const bTr = !tr.oferta && !tr.activo ? '' : '<button class="btn fiesta triunfo' + (tr.motivo ? ' no' : '') + '" data-act="triunfo"' + (tr.motivo ? ' disabled' : '') + '>🎺 Celebrar el triunfo · ' + D.RES_ICON.oro + fmt(tr.oro) + '</button>' +
-    '<small class="fi-n">' + esc((tr.activo ? 'Triunfo en marcha: +' + D.TRIUNFO.fel + ' de felicidad ' + tr.quedan + (tr.quedan === 1 ? ' mes. ' : ' meses. ') : '') + (tr.oferta ? (tr.motivo === 'Falta oro.' ? 'Falta oro. ' : '') + 'Por la victoria de ' + tr.oferta + ': favor del pueblo y felicidad ' + D.TRIUNFO.dura + ' meses.' : '')) + '</small>';
+  const bTr = !tr.oferta && !tr.activo ? '' : '<button class="btn fiesta triunfo' + (tr.motivo ? ' no' : '') + '" data-act="triunfo"' + (tr.motivo ? ' disabled' : '') + '>🎺 Celebrar el triunfo · ' + D.RES_ICON.denarios + fmt(tr.denarios) + '</button>' +
+    '<small class="fi-n">' + esc((tr.activo ? 'Triunfo en marcha: +' + D.TRIUNFO.fel + ' de felicidad ' + tr.quedan + (tr.quedan === 1 ? ' mes. ' : ' meses. ') : '') + (tr.oferta ? (tr.motivo === 'Faltan denarios.' ? 'Faltan denarios. ' : '') + 'Por la victoria de ' + tr.oferta + ': favor del pueblo y felicidad ' + D.TRIUNFO.dura + ' meses.' : '')) + '</small>';
   return bPu + bVe + bTr;
 };
 const arcaHtml = c => {
@@ -651,11 +672,11 @@ const tipoHtml = c => {            // el tipo de ciudad: una línea propia en Go
 function tiposModal() {
   const c = S().cities[UI.city], coste = G.tipoCoste(c), sug = G.tipoSugerido(UI.city);
   let h = '<div class="yr">TIPO DE CIUDAD</div><h2>' + D.CITIES[UI.city].n + '</h2>' + licHtml({ lic: 'Colonia, municipio y emporio eran nombres o estatus reales, pero nadie «elegía» su oficio: el reparto es invención del juego.' }) +
-    '<p>' + (coste ? 'Cambiar de tipo cuesta ' + coste + ' ' + D.RES_ICON.oro + '.' : 'La primera elección es gratis.') + '</p>';
+    '<p>' + (coste ? 'Cambiar de tipo cuesta ' + coste + ' ' + D.RES_ICON.denarios + '.' : 'La primera elección es gratis.') + '</p>';
   for (const k in D.TIPOS) {
-    const t = D.TIPOS[k], act = c.tipo === k && c.tipoElegido, sinMar = !G.tipoOk(UI.city, k), sinOro = G.disponible('oro') < coste, no = act || sinMar || sinOro;
+    const t = D.TIPOS[k], act = c.tipo === k && c.tipoElegido, sinMar = !G.tipoOk(UI.city, k), sinOro = G.disponible('denarios') < coste, no = act || sinMar || sinOro;
     h += '<div class="card ' + (sinMar ? 'locked' : '') + '"><div class="ic">' + t.i + '</div><div class="bd"><div class="tt">' + t.n + (k === sug ? '<span class="lv">Sugerido</span>' : '') + '</div><div class="ds">' + esc(t.d) + '</div>' + (sinMar ? '<div class="ds" style="color:#e0a030">Esta ciudad no tiene mar.</div>' : '') + '</div>' +
-      '<button class="btn ' + (no ? 'no' : '') + '" ' + (no ? 'disabled' : 'data-act="tipo" data-v="' + k + '"') + '>' + (act ? 'Actual' : 'Elegir') + (coste && !act ? '<small>' + coste + ' ' + D.RES_ICON.oro + '</small>' : '') + '</button></div>';
+      '<button class="btn ' + (no ? 'no' : '') + '" ' + (no ? 'disabled' : 'data-act="tipo" data-v="' + k + '"') + '>' + (act ? 'Actual' : 'Elegir') + (coste && !act ? '<small>' + coste + ' ' + D.RES_ICON.denarios + '</small>' : '') + '</button></div>';
   }
   return h + '<div class="acts"><button class="btn ghost" data-act="close">Cerrar</button></div>';
 }
@@ -663,10 +684,16 @@ const inqHtml = c => c.owner === 'roma' && c.inq > 0 ? '<span class="stat" style
 const popHtml = c => '<span class="stat">' + D.POP_ICON + ' Población <b>' + Math.floor(c.pop) + '</b> / ' + G.popCap(c) + '</span><span class="stat">' + D.GUERRA_ICON.casco + ' Reclutas disponibles <b>' + G.recruits(c) + '</b></span>' + manoHtml(c) + inqHtml(c) + espLinea(c) + barrioHtml(c) + clasesHtml(c) + impHtml(c);
 function marketHtml() {
   const rate = G.tradeRate(); if (!rate) return '';
-  UI.mf = UI.mf || 'madera'; UI.mt = UI.mt || 'hierro';
+  UI.mf = UI.mf || 'denarios'; UI.mt = UI.mt || 'hierro';
   const chips = (act, cur) => D.RES.map(r => '<button class="chip ' + (r === cur ? 'on' : '') + '" data-act="' + act + '" data-v="' + r + '">' + D.RES_ICON[r] + '</button>').join('');
+  const r2 = rate * (UI.mt === 'hierro' ? D.HIERRO_COMPRA : 1);   // CE2: el hierro comprado rinde menos (escasea fuera de las vetas)
+  const pr = G.previsionCierre(), sobra = D.RES.filter(r => r !== 'denarios' && pr[r].perdera >= 1), b = G.bienes(), ks = Object.keys(D.BIENES).filter(k => (b[k] || 0) >= 1);
+  const sinVeta = !G.myCities().some(id => G.vetaHierro(id));
   return '<div class="market mar mar-merc"><div class="tt">⚖️ Mercado · cambio ' + Math.round(rate * 100) + ' %</div><div class="mrow"><span>Doy</span>' + chips('mfrom', UI.mf) + '</div><div class="mrow"><span>Recibo</span>' + chips('mto', UI.mt) + '</div>' +
-    '<div class="btns" style="flex-direction:row">' + [100, 500, 2000].map(n => '<button class="btn" data-act="trade" data-n="' + n + '" data-need=\'' + JSON.stringify({ [UI.mf]: n }) + '\'>' + n + ' ' + D.RES_ICON[UI.mf] + ' → ' + Math.floor(n * rate) + ' ' + D.RES_ICON[UI.mt] + '</button>').join('') + '</div></div>';
+    '<div class="btns" style="flex-direction:row">' + [100, 500, 2000].map(n => '<button class="btn" data-act="trade" data-n="' + n + '" data-need=\'' + JSON.stringify({ [UI.mf]: n }) + '\'>' + n + ' ' + D.RES_ICON[UI.mf] + ' → ' + Math.floor(n * r2) + ' ' + D.RES_ICON[UI.mt] + '</button>').join('') + '</div>' +
+    (UI.mt === 'hierro' ? '<div class="mnota">El hierro comprado sale caro: rinde el ' + Math.round(D.HIERRO_COMPRA * 100) + ' % del cambio.' + (sinVeta ? ' Solo hay vetas en Etruria y en Hispania.' : '') + '</div>' : '') +
+    (sobra.length ? '<div class="mrow msob"><span>Sobra</span>' + sobra.map(r => '<button class="btn" data-act="cuvender" data-v="' + r + '">Vender lo que sobra · ' + D.RES_ICON[r] + ' ' + pr[r].perdera + '</button>').join('') + '</div>' : '') +
+    (ks.length ? '<div class="mrow mbien"><span>Bienes</span>' + ks.map(k => { const n = Math.min(10, Math.floor(b[k])); return '<button class="btn" data-act="cubien" data-v="' + k + '" data-n="' + n + '">Vender ' + n + ' ' + D.ESPECIAL[k].i + ' → ' + Math.round(n * G.precioBien(k)) + ' ' + D.RES_ICON.denarios + '</button>'; }).join('') + '</div>' : '') + '</div>';
 }
 /* hueco del encargo C: tarjeta de los sabios en la ficha de la Escuela */
 const DOT_NOM = ['Cerrada', 'Un tercio', 'Dos tercios', 'Plena'], CLASE_SAB = { ple: 'Plebeyos', ciu: 'Ciudadanos', esc: 'Maestros esclavos' };
@@ -679,18 +706,18 @@ function escuelaHtml(c) {
   const cab = (t, ctx) => '<div class="esc-h">' + t + (ctx ? '<small>' + ctx + '</small>' : '') + '</div>';
   const dots = [0, 1, 2, 3].map(d => {
     const v = G.sabiosVista(cid, d, x.clase), dn = v.n - x.n, act = d === x.dot;
-    const ef = d === 0 && !c.sabios ? 'nadie estudia' : act ? 'puesta ahora' : (d === 0 ? 'quita ' + x.n + ' sabios' : (dn >= 0 ? '+' : '−') + Math.abs(dn) + ' sabios · ' + sgn(v.dVel) + ' ritmo · ' + sgn(v.dPaga) + ' oro/mes' + (v.alta > 0 ? ' · alta ' + Math.round(v.alta) + ' oro' : ''));
+    const ef = d === 0 && !c.sabios ? 'nadie estudia' : act ? 'puesta ahora' : (d === 0 ? 'quita ' + x.n + ' sabios' : (dn >= 0 ? '+' : '−') + Math.abs(dn) + ' sabios · ' + sgn(v.dVel) + ' ritmo · ' + sgn(v.dPaga) + ' denarios/mes' + (v.alta > 0 ? ' · alta ' + Math.round(v.alta) + ' denarios' : ''));
     return '<button class="esc-b' + (act ? ' on' : '') + '" data-act="dotsab" data-v="' + d + '" aria-pressed="' + act + '"><b>' + DOT_NOM[d] + '</b><small>' + ef + '</small></button>';
   }).join('');
   const clases = ['ple', 'ciu', 'esc'].map(k => {
     const off = k === 'esc' && !hayEsc, act = k === x.clase;
-    return '<button class="esc-b esc-c' + (act ? ' on' : '') + (off ? ' off' : '') + '" data-act="clasab" data-v="' + k + '"' + (off ? ' disabled' : '') + ' aria-pressed="' + act + '"><b>' + CLASE_SAB[k] + '</b><small>' + (off ? 'no tienes esclavos' : 'rinde ×' + SD.rinde[k].toString().replace('.', ',') + ' · ' + (Math.round(SD.pagaBase[k] * 100) / 100).toFixed(2).replace('.', ',') + ' oro') + '</small></button>';
+    return '<button class="esc-b esc-c' + (act ? ' on' : '') + (off ? ' off' : '') + '" data-act="clasab" data-v="' + k + '"' + (off ? ' disabled' : '') + ' aria-pressed="' + act + '"><b>' + CLASE_SAB[k] + '</b><small>' + (off ? 'no tienes esclavos' : 'rinde ×' + SD.rinde[k].toString().replace('.', ',') + ' · ' + (Math.round(SD.pagaBase[k] * 100) / 100).toFixed(2).replace('.', ',') + ' denarios') + '</small></button>';
   }).join('');
   const S_ = Math.max(G.sabiosTotal(), x.n), cab1 = SD.pagaBase[x.clase] * ed * (1 + S_ / SD.pagaDiv);
   let viva;
   if (!x.dot) viva = 'Nadie estudia. Plazas: ' + x.aforo + '.';
   else if (!x.n) viva = 'Nadie estudia: ' + (x.clase === 'esc' ? 'los esclavos están muy descontentos' : x.disp[x.clase] < 1 ? 'no hay ' + CLASE_SAB[x.clase].toLowerCase() + ' libres' : 'la ciudad está muy descontenta') + '.';
-  else viva = x.n + ' estudian de ' + x.aforo + ' plazas · rinde ' + dec1(x.R).replace(/,0$/, '') + ' · cuestan ' + dec1(x.n * cab1) + ' oro/mes (' + (Math.round(cab1 * 100) / 100).toFixed(2).replace('.', ',') + ' por cabeza) · quitan ' + x.n + ' reclutas';
+  else viva = x.n + ' estudian de ' + x.aforo + ' plazas · rinde ' + dec1(x.R).replace(/,0$/, '') + ' · cuestan ' + dec1(x.n * cab1) + ' denarios/mes (' + (Math.round(cab1 * 100) / 100).toFixed(2).replace('.', ',') + ' por cabeza) · quitan ' + x.n + ' reclutas';
   return '<div class="sec">Escuela · sabios</div><div class="esc">' + cab('Dotación', 'cuánta gente estudia') + '<div class="esc-g2">' + dots + '</div>' + cab('Quién estudia') + '<div class="esc-g3">' + clases + '</div>' +
     '<div class="esc-v">' + viva + '</div>' + (x.dot && x.ociosos > 0 ? '<div class="esc-av">Sacar gente del campo casi no baja la producción: sobran ' + x.ociosos + '.</div>' : '') + '</div>';
 }
@@ -716,19 +743,22 @@ function pueblosHtml(c) {
       (p.obra || max ? '' : '<button class="btn ' + (ok ? '' : 'no') + '" data-act="pueblo" data-v="' + p.i + '" ' + (ok ? "data-need='" + JSON.stringify(cost) + "'" : '') + '>' + (p.nivel ? 'Mejorar a ' + (p.nivel + 1) : 'Fundar') + '<small>' + months(G.puebloTiempo(cid, p.i)) + '</small></button>') + '</div>';
   }).join('');
 }
-const RES_NOM = { madera: 'Madera', piedra: 'Piedra', hierro: 'Hierro', grano: 'Grano', oro: 'Oro' };
+const RES_NOM = D.RES_NOM;   // CE2: grano, denarios, materiales, hierro
+const REP_NOM = { aserradero: ['Aserradero', 'al'], cantera: ['Cantera', 'a la'], mina: ['Mina', 'a la'], granja: ['Granja', 'a la'] };   // CE2: el reparto va por edificio
 function repartoHtml(c) {
   if (c.owner !== 'roma') return '';
-  const r = G.repartoDe(c), w = Math.max(0, (c.pop || 0) - G.MIN_POP), base = { madera: 4 + G.rate(c.b.aserradero), piedra: 4 + G.rate(c.b.cantera), hierro: 4 + G.rate(c.b.mina), grano: 6 + G.rate(c.b.granja) };
+  const id = c.id || UI.city, veta = G.vetaHierro(id), r = G.repartoDe(c), w = Math.max(0, (c.pop || 0) - G.MIN_POP);
+  const base = { aserradero: (4 + G.rate(c.b.aserradero)) * D.MAT_MUL, cantera: (4 + G.rate(c.b.cantera)) * D.MAT_MUL, mina: veta ? 4 + G.rate(c.b.mina) : G.rate(c.b.mina) * D.VETA_POBRE, granja: 6 + G.rate(c.b.granja) };
+  const ico = { aserradero: D.RES_ICON.materiales, cantera: D.RES_ICON.materiales, mina: D.RES_ICON.hierro, granja: D.RES_ICON.grano };
   const fila = k => {
-    const mas = r[k] < 11 && G.REPARTO_RES.some(o => o !== k && r[o] > 1), menos = r[k] > 1 && G.REPARTO_RES.some(o => o !== k && r[o] < 11);
-    return '<div class="ald"><span class="aln">' + D.RES_ICON[k] + ' ' + RES_NOM[k] + '</span>' +
-      '<button class="albtn" data-act="rep" data-r="' + k + '" data-d="-1" aria-label="Menos aldeanos a ' + (k === 'madera' ? 'la ' : 'el ') + k + '"' + (menos ? '' : ' disabled') + '>−</button>' +
+    const mas = r[k] < 11 && G.REPARTO_RES.some(o => o !== k && r[o] > 1), menos = r[k] > 1 && G.REPARTO_RES.some(o => o !== k && r[o] < 11), nm = REP_NOM[k];
+    return '<div class="ald"><span class="aln">' + ico[k] + ' ' + nm[0] + '</span>' +
+      '<button class="albtn" data-act="rep" data-r="' + k + '" data-d="-1" aria-label="Menos aldeanos ' + nm[1] + ' ' + nm[0].toLowerCase() + '"' + (menos ? '' : ' disabled') + '>−</button>' +
       '<b class="alnum">' + Math.round(r[k] * w / 20) + '</b>' +
-      '<button class="albtn" data-act="rep" data-r="' + k + '" data-d="1" aria-label="Más aldeanos a ' + (k === 'madera' ? 'la ' : 'el ') + k + '"' + (mas ? '' : ' disabled') + '>+</button>' +
+      '<button class="albtn" data-act="rep" data-r="' + k + '" data-d="1" aria-label="Más aldeanos ' + nm[1] + ' ' + nm[0].toLowerCase() + '"' + (mas ? '' : ' disabled') + '>+</button>' +
       '<span class="alp">' + fmt(base[k] * r[k] / 5) + '/mes</span></div>';
   };
-  return '<div class="sec">Aldeanos</div><div class="empty">Mueve aldeanos de un recurso a otro. El total no cambia.</div>' + G.REPARTO_RES.map(fila).join('');
+  return '<div class="sec">Aldeanos</div><div class="empty">Mueve aldeanos de un trabajo a otro. El total no cambia. Aserradero y cantera dan materiales.' + (veta ? '' : ' Aquí no hay vetas de hierro: la mina rinde poco.') + '</div>' + G.REPARTO_RES.map(fila).join('');
 }
 function rutasHtml(c, id) {
   if (c.owner !== 'roma') return '';
@@ -736,7 +766,7 @@ function rutasHtml(c, id) {
   let h = '<div class="mar mar-rut"><div class="sec mar-t">Rutas comerciales</div><div class="empty mar-card">Huecos: ' + G.rutasDeCiudad(id) + ' / ' + G.rutaMax(c) + '. Los tratados de Roma y Cartago ya repartían dónde comerciar (Polibio 3.22-25).</div>';
   for (const r of abiertas) {
     const o = r.a === id ? r.b : r.a;
-    h += '<div class="empty mar-card">⚖️ <b>' + cn(r.a) + ' ↔ ' + cn(r.b) + '</b> · +' + Math.round(G.rutaRenta(r)) + ' oro/mes · ' + (G.rutaMar(r) ? 'por mar' : 'por tierra') + (r.f !== 'roma' && D.ESPECIAL[D.CITIES[r.b].esp] ? ' · bien: ' + D.ESPECIAL[D.CITIES[r.b].esp].i + ' ' + D.ESPECIAL[D.CITIES[r.b].esp].n : '') +
+    h += '<div class="empty mar-card">⚖️ <b>' + cn(r.a) + ' ↔ ' + cn(r.b) + '</b> · +' + Math.round(G.rutaRenta(r)) + ' denarios/mes · ' + (G.rutaMar(r) ? 'por mar' : 'por tierra') + (r.f !== 'roma' && D.ESPECIAL[D.CITIES[r.b].esp] ? ' · bien: ' + D.ESPECIAL[D.CITIES[r.b].esp].i + ' ' + D.ESPECIAL[D.CITIES[r.b].esp].n : '') +
       (r.a === id ? '<div class="btns"><button class="btn ghost" data-act="rutacerrar" data-v="' + r.a + '>' + r.b + '">Cerrar ruta</button></div>' : '') + '</div>';
   }
   for (const o of G.neighbors(id)) {
@@ -744,7 +774,7 @@ function rutasHtml(c, id) {
     const mot = G.rutaPuede(id, o), ajena = s.cities[o].owner !== 'roma', e = D.ESPECIAL[D.CITIES[o].esp];
     const verbo = ajena ? 'Firmar tratado con ' + cn(o) : 'Abrir ruta con ' + cn(o);
     if (mot && !/^Faltan/.test(mot)) h += '<div class="empty mar-card mar-off">' + verbo + ' · ' + esc(mot) + '</div>';
-    else h += '<div class="empty mar-card"><div class="btns"><button class="btn ' + (mot ? 'no' : '') + '" data-act="ruta" data-v="' + id + '>' + o + '" data-need=\'' + JSON.stringify({ oro: D.RUTA_COSTE }) + '\'>' + verbo + ' · ' + D.RUTA_COSTE + ' ' + D.RES_ICON.oro + '</button></div>' + (ajena && e ? '<div class="ds">Aporta el bien: ' + e.i + ' ' + e.n + '</div>' : '') + '</div>';
+    else h += '<div class="empty mar-card"><div class="btns"><button class="btn ' + (mot ? 'no' : '') + '" data-act="ruta" data-v="' + id + '>' + o + '" data-need=\'' + JSON.stringify({ denarios: D.RUTA_COSTE }) + '\'>' + verbo + ' · ' + D.RUTA_COSTE + ' ' + D.RES_ICON.denarios + '</button></div>' + (ajena && e ? '<div class="ds">Aporta el bien: ' + e.i + ' ' + e.n + '</div>' : '') + '</div>';
   }
   return h + '</div>';
 }
@@ -753,7 +783,7 @@ function dipHtml(c) {
   if (c.owner === 'roma') return '';
   const f = c.owner, fn = D.FACTIONS[f].n, e = G.dipEstado(f);
   let h = '';
-  if (e) return h + '<div class="empty" style="margin:6px 0">' + (e === 'alianza' ? '🤝 <b>Aliado</b> de Roma: no os ataca y comercia (+20 oro/mes).' : '📜 <b>Tributario</b>: no os ataca y paga ' + G.dipIngreso() + ' oro/mes.') + '</div>';
+  if (e) return h + '<div class="empty" style="margin:6px 0">' + (e === 'alianza' ? '🤝 <b>Aliado</b> de Roma: no os ataca y comercia (+20 denarios/mes).' : '📜 <b>Tributario</b>: no os ataca y paga ' + G.dipIngreso() + ' denarios/mes.') + '</div>';
   const mA = G.dipMotivoAlianza(f), mT = G.dipMotivoTributo(f);
   h += '<div style="margin:6px 0"><div class="btns" style="display:flex;gap:8px;justify-content:center"><button class="btn ' + (mA ? 'no' : '') + '" data-act="dipalianza" data-v="' + f + '">Alianza (150)</button>' +
     '<button class="btn ' + (mT ? 'no' : '') + '" data-act="diptributo" data-v="' + f + '">Tributo</button></div>' +
@@ -812,7 +842,7 @@ const TINTA = (() => {
   const t = {
     '🏛': B.foro, '🏟': tin('<ellipse cx="12" cy="9" rx="9" ry="4"/><path d="M3 9v6c0 2 4 4 9 4s9-2 9-4V9M7 12v5M12 13v6M17 12v5"/>'),
     '⚔': W.espadas, '🗡': tin('<path d="M5 19l10-10M15 9l4-5-5 4M7 13l4 4M4 20l2-2"/>'), '🛡': W.escudo, '🦅': W.aguila, '🎖': medalla, '🏅': medalla, '🏆': medalla,
-    '⚖': B.mercado, '💰': R.oro, '🪙': R.oro, '🌾': R.grano, '🥖': R.grano, '🍞': R.grano, '🪵': R.madera, '🧱': R.piedra, '🪨': R.piedra, '⛏': tin('<path d="M4 9c4-4 12-4 16 0M12 6v15"/>'),
+    '⚖': B.mercado, '💰': R.denarios, '🪙': R.denarios, '🌾': R.grano, '🥖': R.grano, '🍞': R.grano, '🪵': R.materiales, '🧱': R.materiales, '🪨': R.materiales, '⛏': tin('<path d="M4 9c4-4 12-4 16 0M12 6v15"/>'),
     '🔨': mart, '⚒': mart, '🪓': mart, '🏗': mart, '📜': tin('<path d="M8 4h10a2 2 0 0 1 2 2v1h-3M8 4a2 2 0 0 0-2 2v12a2 2 0 0 1-2 2h11a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2M9 9h5M9 13h5"/>'),
     '📖': libro, '📚': libro, '🎓': libro, '🔥': tin('<path d="M12 21c-4 0-6-3-6-6 0-4 4-6 3-10 3 2 4 4 4 6 1-1 2-2 2-4 2 2 3 5 3 8 0 3-2 6-6 6z"/>'),
     '🎺': tin('<path d="M3 10v4h3l11 5V5L6 10zM20 9v6"/>'), '💀': tin('<path d="M5 11a7 7 0 0 1 14 0v3l-2 1v4H7v-4l-2-1z"/><circle cx="9.5" cy="11.5" r="1.5"/><circle cx="14.5" cy="11.5" r="1.5"/>'),
@@ -939,18 +969,19 @@ function buildTabs() {
 }
 /* ---------- consejo y piezas (CN4): el consejo habla de piezas, no de niveles de edificio ---------- */
 const ROM = Ciudad.ROMANOS;
-const sin0 = k => { const o = {}; for (const r in k) if (k[r] > 0) o[r] = k[r]; return o; };
+const cPz = k => k ? G.escalaCoste(k) : k;   // CE2: los costes de ciudad.js vienen con claves viejas; aquí, como se cobran
+const sin0 = k => { const o = {}; k = cPz(k); for (const r in k) if (k[r] > 0) o[r] = k[r]; return o; };
 const obraNom = o => o.b && D.BUILD[o.b] ? D.BUILD[o.b].n : o.pieza && Ciudad.EDIF[o.pieza] ? Ciudad.EDIF[o.pieza].nombre : 'una obra';
 const durPieza = (c, P, k) => P.bid ? G.buildTime(c, P.bid) : P.obra * (k || 1) * (1 - 0.04 * (c.b.foro || 0)) * G.bonoMul('obra');
 /* qué se puede hacer con una pieza en una ciudad propia: mejorar la de menor nivel, o colocar una nueva (si nueva, o si no hay nada que mejorar) */
 function opcionPieza(cid, pz, nueva) {
   const c = S().cities[cid], E = c && c.owner === 'roma' ? G.ciudadE(cid) : null, P = Ciudad.EDIF[pz];
   if (!E || !P || P.accion || !E.abiertas.includes(pz) || c.obras.length >= G.huecos(c)) return null;
-  if (P.bid && ((D.BUILD[P.bid].sea && !D.CITIES[cid].sea) || G.faltaEspecial('edificio', P.bid, c.b[P.bid] || 0))) return null;
+  if (P.bid && ((D.BUILD[P.bid].sea && !D.CITIES[cid].sea) || G.faltaEspecial('edificio', P.bid, c.b[P.bid] || 0) || (P.bid === 'mina' && !G.vetaHierro(cid)))) return null;   // CE2: sin veta no hay mina
   let e = null;
   if (!nueva) for (const q of E.edificios) if (q.tipo === pz && !q.ruina && !q.obra && !c.obras.some(o => o.eid === q.id) && Ciudad.mejoraSiguiente(E, q.id) && (!e || (q.mejora || 0) < (e.mejora || 0))) e = q;
-  if (e) { const m = Ciudad.mejoraSiguiente(E, e.id), k = (e.mejora || 0) + 1; return { pieza: pz, mej: e.id, nombre: m.nombre, coste: sin0(m.coste), lvl: k - 1, ini: G.planPago(m.coste, durPieza(c, P, k)).primera }; }
-  return { pieza: pz, mej: null, nombre: P.nombre, coste: sin0(P.coste), lvl: -1, ini: G.planPago(P.coste, durPieza(c, P, 1)).primera };
+  if (e) { const m = Ciudad.mejoraSiguiente(E, e.id), k = (e.mejora || 0) + 1; return { pieza: pz, mej: e.id, nombre: m.nombre, coste: sin0(m.coste), lvl: k - 1, ini: G.planPago(cPz(m.coste), durPieza(c, P, k)).primera }; }
+  return { pieza: pz, mej: null, nombre: P.nombre, coste: sin0(P.coste), lvl: -1, ini: G.planPago(cPz(P.coste), durPieza(c, P, 1)).primera };
 }
 /* La acción aconsejada: almacén lleno, granero, población al tope, servicio del barrio, o la obra más barata que se puede pagar.
    Devuelve {t, rec, b (id D.BUILD o null), pieza (id de pieza o null), mej (id de la pieza a mejorar o null), flags} */
@@ -962,7 +993,7 @@ function avisoArrabal(E) {
 }
 function consejo(c, id) {
   id = id || UI.city; const s = S(), cap = G.cap(), E = c.owner === 'roma' ? G.ciudadE(id) : null, flags = {};
-  const lleno = D.RES.filter(r => r !== 'oro').map(r => [r, s.res[r] / cap]).filter(x => x[1] >= 0.9).sort((x, y) => y[1] - x[1])[0];
+  const lleno = D.RES.filter(r => r !== 'denarios').map(r => [r, s.res[r] / G.capDe(r)]).filter(x => x[1] >= 0.9).sort((x, y) => y[1] - x[1])[0];
   const tope = c.pop >= G.popCap(c) - 1;
   if (E && lleno && E.abiertas.includes('almacen')) flags.almacen = 'alerta';
   if (E && tope) flags.viviendas = 'alerta';
@@ -995,7 +1026,7 @@ function selDe(c) {
 }
 function cityMeta(c) {
   const cons = consejo(c), sd = selDe(c);
-  const fk = c.obras.map(o => (o.eid || o.pieza || '') + (o.pausa ? 'p' : '')).join() + '|' + (sd ? sd.k + (sd.e ? sd.e.id + (sd.e.mejora || 0) + (sd.e.ruina ? 'r' : '') : '') + (sd.k === 'foro' ? c.b.foro : '') + (sd.k === 'foro' || (sd.e && (sd.e.tipo === 'granero' || sd.e.tipo === 'templo')) ? '|' + [c.rac, c.fiesta && c.fiesta.ofrenda, c.fiesta && c.fiesta.juegos, Math.floor(S().t), Math.round(S().res.oro / 10)].join() : '') : '');
+  const fk = c.obras.map(o => (o.eid || o.pieza || '') + (o.pausa ? 'p' : '')).join() + '|' + (sd ? sd.k + (sd.e ? sd.e.id + (sd.e.mejora || 0) + (sd.e.ruina ? 'r' : '') : '') + (sd.k === 'foro' ? c.b.foro : '') + (sd.k === 'foro' || (sd.e && (sd.e.tipo === 'granero' || sd.e.tipo === 'templo')) ? '|' + [c.rac, c.fiesta && c.fiesta.ofrenda, c.fiesta && c.fiesta.juegos, Math.floor(S().t), Math.round(S().res.denarios / 10)].join() : '') : '');
   return { cons, rec: cons.rec ? cons.b : null, flags: cons.flags, oculta: {}, fk };
 }
 const metaKey = m => JSON.stringify([m.cons.pieza, m.cons.mej, m.cons.rec, m.cons.t.replace(/Faltan .*$/, ''), m.flags, m.fk]);
@@ -1009,12 +1040,13 @@ function fichaHtml(c, sd) {
   } else {
     e = sd.e || null; ob = sd.o || c.obras.find(q => q.eid === e.id) || null; P = Ciudad.EDIF[e ? e.tipo : sd.o.pieza];
     const bid = P.bid, dg = bid === 'templo' ? G.diosDe(c) : null, k = e ? (e.mejora || 0) : 0;
-    ico = bid ? bIco(bid) : ICO_OBRA; nom = dg ? 'Templo de ' + dg.n : P.nombre; que = P.que || '';
+    ico = bid ? bIco(bid) : ICO_OBRA; nom = dg ? 'Templo de ' + dg.n : P.nombre; que = QUE_CE2[e ? e.tipo : sd.o.pieza] || P.que || '';
     nv = e ? 'NIVEL ' + ROM[k + 1] : 'EN OBRA'; sub = cn + (e ? ' · nivel ' + ROM[k + 1] + (e.ruina ? ' · en ruinas' : '') : ' · se está levantando');
     if (ob) cuerpo += '<div class="obra"><div class="prog" data-t0="' + ob.t0 + '" data-t1="' + ob.t1 + '"><i></i></div><span class="rem"></span></div>' + (plazoTxt(ob) ? '<div class="plz' + (ob.pausa ? ' pausa' : '') + '">' + plazoTxt(ob) + '</div>' : '') + (e ? '<div class="nota">Sube a nivel ' + ROM[ob.mejora + 1] + '. Mientras dura la obra no se puede mejorar ni derribar.</div>' : '');
     else if (e) {
-      const m = e.ruina ? null : Ciudad.mejoraSiguiente(E, e.id), fe = bid && !e.ruina ? G.faltaEspecial('edificio', bid, c.b[bid] || 0) : null;
-      if (m) {
+      const m = e.ruina ? null : Ciudad.mejoraSiguiente(E, e.id), fe = bid && !e.ruina ? G.faltaEspecial('edificio', bid, c.b[bid] || 0) : null, sinVeta = bid === 'mina' && !G.vetaHierro(UI.city);
+      if (m && sinVeta) cuerpo += '<div class="nota mina-no">⚠ ' + esc(G.minaMotivo(UI.city)) + ' Esta mina vieja rinde el ' + Math.round(D.VETA_POBRE * 100) + ' %.</div>';   // CE2: sin veta no se sube; dice por qué
+      else if (m) {
         const co = sin0(m.coste), pp = G.planPago(co, durPieza(c, P, k + 1)), need1 = pp.primera;
         cuerpo += '<div class="costes" style="--n:' + Object.keys(co).length + '">' + Object.keys(co).map(r => '<span class="cos" data-need=\'' + JSON.stringify({ [r]: need1[r] || 0 }) + '\'>' + D.RES_ICON[r] + '<b>' + fmt(need1[r] || 0) + '</b><small data-have="' + r + '"></small></span>').join('') + '</div>' + (pp.nc > 1 ? '<div class="plz">cuota inicial · total ' + Object.keys(co).map(r => D.RES_ICON[r] + ' ' + fmt(co[r])).join(' ') + ' en ' + pp.nc + ' cuotas</div>' : '');
         cuerpo += fe ? faltaBtn(fe) : '<div class="fila"><button class="bmain' + (lleno ? ' no' : '') + '" data-act="mejpz" data-v="' + e.id + '"' + (lleno ? '' : " data-need='" + JSON.stringify(need1) + "'") + '>' + ICO_OBRA + 'Mejorar a ' + ROM[k + 2] + '</button></div>' + '<div class="nota">' + (lleno ? sinHuecoTxt(c) + '. ' : '') + obrasTxt(c) + (lleno ? '.' : '') + '</div>';
@@ -1043,7 +1075,7 @@ function leccionHoy() {
   try { const rg = G.riesgos(UI.city) || []; riesgo = rg.some(r => r.meses <= G.avisoMeses()); } catch (e) { }
   try { arrabal = !!avisoArrabal(G.ciudadE(UI.city)); } catch (e) { }
   try { cuotas = !!(c && c.obras && c.obras.some(o => o.q)); } catch (e) { }
-  try { const cap = G.cap(); lleno = !!cap && D.RES.filter(r => r !== 'oro').some(r => s.res[r] / cap >= 0.9); } catch (e) { }
+  try { const cap = G.cap(); lleno = !!cap && D.RES.filter(r => r !== 'denarios').some(r => s.res[r] / G.capDe(r) >= 0.9); } catch (e) { }
   const ctx = { mes: Math.floor(s.t + 1e-9), ahora: Date.now(), colocando: (UI.modo3 || 'mirar') !== 'mirar', bandeja: !$('bandeja').hidden, cifra: !!$('l-cifra').textContent, cuotas, riesgo, barrioSube: false, almacenLleno: lleno, arrabal, turnos: !!s.turnos };
   const r = ASESOR.siguiente(s.ajustes, ctx); return r || null;
 }
@@ -1058,8 +1090,8 @@ function vivoPinta() {
   UI.vivoK = k; el.hidden = false;
   $('cu-t').textContent = '🔥 ' + (n === 1 ? 'Arde una casa' : 'Arden ' + n + ' casas') + ' en ' + inf.nombre;
   const cer = Math.min(...pl.casas.map(q => q.agua));
-  $('cu-x').textContent = 'Cubos: ' + pl.coste + ' de oro, salvarías unas ' + String(pl.esperadas).replace('.', ',') + (pl.casas.some(q => q.tejada) ? ' (el techo de teja ayuda)' : '') + '. Agua más cercana: ' + cer + ' pasos. El reloj está parado.';
-  const b = $('cu-si'); b.disabled = !inf.puede; b.textContent = inf.puede ? 'Mandar cubos' : 'Sin oro para cubos';
+  $('cu-x').textContent = 'Cubos: ' + pl.coste + ' denarios, salvarías unas ' + String(pl.esperadas).replace('.', ',') + (pl.casas.some(q => q.tejada) ? ' (el techo de teja ayuda)' : '') + '. Agua más cercana: ' + cer + ' pasos. El reloj está parado.';
+  const b = $('cu-si'); b.disabled = !inf.puede; b.textContent = inf.puede ? 'Mandar cubos' : 'Sin denarios para cubos';
 }
 function pintaLinea() {
   const l = $('linea'), m3 = UI.modo3 || 'mirar'; let x = UI.lin;
@@ -1081,11 +1113,13 @@ function pintaLinea() {
 /* datos de una ficha de la bandeja: nombre, coste total, lo que se paga al empezar y si ya hay obra */
 function piezaInfo(id) {
   const c = S().cities[UI.city], E = G.ciudadE(UI.city);
-  if (id === 'muralla') { const m = Ciudad.murallaSiguiente(E) || Ciudad.murallaAmpliar(E); return { nombre: E.muralla.rec ? 'Muralla ampliada' : E.muralla.ampl ? 'Muralla en ampliación' : E.muralla.fase ? 'Muralla de piedra' : 'Empalizada', coste: m && m.coste, ini: m && m.coste, enObra: !!E.muralla.obra || !!E.muralla.ampl, ya: !!E.muralla.rec, boton: m && m.nombre }; }
+  if (id === 'muralla') { const m = Ciudad.murallaSiguiente(E) || Ciudad.murallaAmpliar(E); return { nombre: E.muralla.rec ? 'Muralla ampliada' : E.muralla.ampl ? 'Muralla en ampliación' : E.muralla.fase ? 'Muralla de piedra' : 'Empalizada', coste: m && cPz(m.coste), ini: m && cPz(m.coste), enObra: !!E.muralla.obra || !!E.muralla.ampl, ya: !!E.muralla.rec, boton: m && m.nombre }; }
   const P = Ciudad.EDIF[id], dur = P.bid ? G.buildTime(c, P.bid) : P.obra * (1 - 0.04 * (c.b.foro || 0)) * G.bonoMul('obra');
-  return { nombre: P.nombre, coste: P.coste, ini: G.planPago(P.coste, dur).primera, cerrada: P.bid ? G.faltaInv(P.bid) : null };
+  return { nombre: P.nombre, coste: cPz(P.coste), ini: G.planPago(cPz(P.coste), dur).primera, cerrada: P.bid === 'mina' && !G.vetaHierro(UI.city) ? G.minaMotivo(UI.city).replace(/\.$/, '') : P.bid ? G.faltaInv(P.bid) : null };   // CE2: la mina sin veta, cerrada con su motivo
 }
-const PZ_EMO = { salinas: '🧂', zanja: '〰️' };   // icono provisional hasta que carguen las miniaturas
+const PZ_EMO = { salinas: '🧂', zanja: '〰️' };
+/* CE2: lo que dicen de sí las piezas de ciudad.js con recursos viejos, dicho con los nuevos (ciudad.js lo cambia otra sesión) */
+const QUE_CE2 = { aserradero: 'Da materiales (madera); va junto al bosque', cantera: 'Da materiales (piedra); va en una ladera de roca', salinas: 'Solo en la costa: da denarios, pero la sal estropea las granjas cercanas' };   // icono provisional hasta que carguen las miniaturas
 function bandejaIds() {
   const E = G.ciudadE(UI.city); if (!E) return [];
   const ids = E.abiertas.filter(id => id !== 'muralla' && Ciudad.EDIF[id] && !Ciudad.EDIF[id].accion);
@@ -1093,7 +1127,7 @@ function bandejaIds() {
 }
 function bandejaPinta() {
   const b = $('bandeja'), E = G.ciudadE(UI.city); if (!E || !E.fundada) { b.innerHTML = ''; UI.bandK = ''; return; }
-  const ids = bandejaIds(), k = UI.city + '|' + ids.join() + '|' + ids.map(q => Ciudad.EDIF[q] && Ciudad.EDIF[q].bid && G.faltaInv(Ciudad.EDIF[q].bid) ? 1 : 0).join('') + '|' + E.muralla.fase + E.muralla.obra + (E.muralla.rec || 0) + (E.muralla.ampl || 0) + '|' + (UI.minis ? 1 : 0);
+  const ids = bandejaIds(), k = UI.city + '|' + ids.join() + '|' + ids.map(q => piezaInfo(q).cerrada ? 1 : 0).join('') + '|' + E.muralla.fase + E.muralla.obra + (E.muralla.rec || 0) + (E.muralla.ampl || 0) + '|' + (UI.minis ? 1 : 0);
   if (k !== UI.bandK) {
     const antes = (UI.bandK || '').split('|')[1], viejas = antes ? antes.split(',') : []; UI.bandK = k;
     b.innerHTML = ids.map(id => { const i = piezaInfo(id);
@@ -1212,7 +1246,7 @@ function viewArmy() {
   const s = S(), c = s.cities[UI.city], p = G.prod();
   let h = cityChips() + '<div class="sec">Guarnición de ' + D.CITIES[UI.city].n + ' · ' + G.men(c.units) + ' hombres</div>' + troopsHtml(c.units);
   h += '<div class="empty">' + popHtml(c) + '</div>';
-  h += '<div class="empty">🌾 Consumo de todas tus tropas: ' + Math.round(p.upkeep) + ' grano/mes · 🪙 Mantenimiento: −' + Math.round(p.mant.total) + ' oro (edificios ' + Math.round(p.mant.edificios) + ', paga ' + Math.round(p.mant.tropas) + ') · ⚖️ Rutas: +' + Math.round(p.rutas) + ' oro · 🧱 Guardia urbana al defender: ' + (20 + 20 * G.nivelMuralla(c)) + '<br>Para enviarlas a la guerra, toca una ciudad vecina en el mapa.</div>';
+  h += '<div class="empty">🌾 Consumo de todas tus tropas: ' + Math.round(p.upkeep) + ' grano/mes · 🪙 Mantenimiento: −' + Math.round(p.mant.total) + ' denarios (edificios ' + Math.round(p.mant.edificios) + ', paga ' + Math.round(p.mant.tropas) + ') · ⚖️ Rutas: +' + Math.round(p.rutas) + ' denarios · 🛡️ Guardia urbana al defender: ' + (20 + 20 * G.nivelMuralla(c)) + '<br>Para enviarlas a la guerra, toca una ciudad vecina en el mapa.</div>';
   h += reclutarHtml(c);
   return h;
 }
@@ -1227,7 +1261,7 @@ function efTxt(ef) {
   if (k('grano')) a.push('grano ' + r('grano') + ' % más');
   if (k('crece')) a.push(ef.crece >= 1 ? 'población crece ' + r('crece') + ' % más rápido' : 'población crece ' + r('crece') + ' % más despacio');
   if (k('impuestos')) a.push('impuestos ' + r('impuestos') + ' % más');
-  if (k('oroCom')) a.push('comercio ' + r('oroCom') + ' % más oro');
+  if (k('oroCom')) a.push('comercio ' + r('oroCom') + ' % más denarios');
   if (k('rutaRenta')) a.push('rutas ' + r('rutaRenta') + ' % más rentables');
   if (k('rutas')) a.push('+' + ef.rutas + ' ruta comercial');
   if (k('paga')) a.push('paga de tropas ' + r('paga') + ' % menor');
@@ -1325,7 +1359,7 @@ function sn2Hemiciclo(v) {
 }
 function sn2Titulo(t) {
   if (t.tipo === 'si') return 'Ya votan sí';
-  if (t.tipo === 'pago') return 'Pagar ' + t.coste + ' de oro por sus votos';
+  if (t.tipo === 'pago') return 'Pagar ' + t.coste + ' denarios por sus votos';
   return t.promesa && t.promesa.tipo === 'sinLeva' ? 'Prometer: sin leva en ' + D.CITIES[t.promesa.ciudad].n : 'Prometer: ' + (t.promesa ? t.promesa.n : 0) + ' hombres en armas';
 }
 function viewSala(sala) {
@@ -1342,7 +1376,7 @@ function viewSala(sala) {
     '<div class="sn2-cuenta"><b class="si">' + v.si + ' sí</b> · <b class="du">' + v.duda + (v.duda === 1 ? ' duda' : ' dudan') + '</b> · <b class="no">' + v.no + ' no</b> <em>· hacen falta ' + falta + '</em></div><div class="sn2-tratos">';
   for (const t of tr) {
     const on = t.tipo !== 'si' && !!UI.sn2.b[t.bando], cls = t.etiqueta === 'Favorable' ? 'fav' : t.etiqueta === 'Dudoso' ? 'dud' : 'arr';
-    const vt = 'Te dan <b>' + t.extra + (t.extra === 1 ? ' voto' : ' votos') + '</b>. ', txt = t.tipo === 'si' ? 'No piden nada.' : t.tipo === 'pago' ? vt + S2.pagoVoto + ' de oro cada uno.' : vt + 'Romperla: ' + S2.romper + ' de favor.';
+    const vt = 'Te dan <b>' + t.extra + (t.extra === 1 ? ' voto' : ' votos') + '</b>. ', txt = t.tipo === 'si' ? 'No piden nada.' : t.tipo === 'pago' ? vt + S2.pagoVoto + ' denarios cada uno.' : vt + 'Romperla: ' + S2.romper + ' de favor.';
     o += '<button class="sn2-trato' + (on ? ' on' : '') + (t.tipo === 'si' ? ' ya' : '') + '"' + (t.tipo === 'si' ? ' disabled' : ' data-act="sn2-trato" data-v="' + t.bando + '"') + ' data-b="' + t.bando + '" aria-pressed="' + on + '">' +
       '<span class="sn2-th"><u style="background:' + D.BANDOS[t.bando].col + '"></u><span>' + D.BANDOS[t.bando].n + ' · ' + t.escanos + ' escaños</span><s class="' + cls + '">' + (t.tipo === 'si' ? 'Ya votan sí' : t.etiqueta) + '</s></span>' + (t.tipo === 'si' ? '' : '<b class="sn2-tt">' + sn2Titulo(t) + '</b><span class="sn2-tx">' + txt + '</span>') + '</button>';
   }
@@ -1351,7 +1385,7 @@ function viewSala(sala) {
     '</div></div><div class="ro-palo"></div>';
   const con = elegidos.length === 1 ? (elegidos[0].tipo === 'pago' ? 'Con el pago' : 'Con la promesa') : elegidos.length ? 'Con ' + elegidos.length + ' tratos' : 'Sin tratos';
   const pie = v.si >= falta ? con + ': ' + v.si + ' de ' + falta : 'Saldría que no: ' + v.si + ' de ' + falta;
-  return o + '<div class="ro-pie sn2-pie"><button class="btn ro-bronce sn2-pasar" data-act="sn2-pasar">Dejar pasar</button>' + (vet.veta ? '<button class="btn ro-sello sn2-votar sn2-jue" data-act="sn2-juegos"><b>Juegos en el Foro</b><span>' + S2.juegos.oro + ' de oro: +' + S2.juegos.pueblo + ' al pueblo</span></button>' : '<button class="btn ro-sello sn2-votar" data-act="sn2-votar"><b>Votar</b><span>' + pie + '</span></button>') + '</div></div>';
+  return o + '<div class="ro-pie sn2-pie"><button class="btn ro-bronce sn2-pasar" data-act="sn2-pasar">Dejar pasar</button>' + (vet.veta ? '<button class="btn ro-sello sn2-votar sn2-jue" data-act="sn2-juegos"><b>Juegos en el Foro</b><span>' + S2.juegos.denarios + ' denarios: +' + S2.juegos.pueblo + ' al pueblo</span></button>' : '<button class="btn ro-sello sn2-votar" data-act="sn2-votar"><b>Votar</b><span>' + pie + '</span></button>') + '</div></div>';
 }
 function sn2Resultado(r) {
   if (!r || !r.ok) { toast((r && r.motivo) || 'No se pudo votar.', 'bad'); return; }
@@ -1368,11 +1402,11 @@ function viewSenado() {
   const sala = G.senadoSala && G.senadoSala(); if (sala) return viewSala(sala);   // SN2: con votación abierta, la sala
   const f = G.favor(), mi = G.misionActual(), mot = G.senadoMotivo();
   const barra = (n, v, c) => '<div class="sn-b"><span>' + n + '</span><div class="sn-bar"><i class="' + c + '" style="width:' + v + '%"></i></div><b>' + v + '</b></div>';
-  const efecto = e => { const a = []; if (e.oro) a.push((e.oro > 0 ? '+' : '') + e.oro + ' de oro'); if (e.favorSenado) a.push((e.favorSenado > 0 ? '+' : '') + e.favorSenado + ' favor del Senado'); if (e.favorPueblo) a.push((e.favorPueblo > 0 ? '+' : '') + e.favorPueblo + ' favor del pueblo'); return a.join(', ') || 'nada'; };
+  const efecto = e => { const a = []; if (e.denarios) a.push((e.denarios > 0 ? '+' : '') + e.denarios + ' denarios'); if (e.favorSenado) a.push((e.favorSenado > 0 ? '+' : '') + e.favorSenado + ' favor del Senado'); if (e.favorPueblo) a.push((e.favorPueblo > 0 ? '+' : '') + e.favorPueblo + ' favor del pueblo'); return a.join(', ') || 'nada'; };
   // MR2b: rollo de papiro (como Imperio); misión y encargo en tabla de bronce; «volver» en placa de bronce, abajo
   const pie = '</div><div class="ro-palo"></div><div class="ro-pie"><button class="btn ro-bronce ro-vol" data-act="tab" data-v="imperio">← Volver al Imperio</button></div></div>';
   let o = '<div class="ro ro-sen"><div class="ro-palo"></div><div class="ro-papiro sn"><h2 class="ro-ansata">Senado</h2>' + barra('Senado', f.senado, 'sen') + barra('Pueblo', f.pueblo, 'pue') +
-    '<p class="sn-ex">El pueblo sigue el ánimo de tus ciudades. El Senado sube con las misiones cumplidas y baja con las falladas o con el oro en rojo a fin de mes.</p>';
+    '<p class="sn-ex">El pueblo sigue el ánimo de tus ciudades. El Senado sube con las misiones cumplidas y baja con las falladas o con los denarios en rojo a fin de mes.</p>';
   if (mot) o += '<div class="sn-av">' + esc(mot) + '</div>';
   if (D.SENADO.sala) o += '<p class="sn-ex">El Senado no vota nada esta estación. Al pasar turno propondrá una ley.</p>';
   o += encargoHtml();
@@ -1420,7 +1454,7 @@ function sheetSitio(id) {
   const mar = s.marches.find(m => m.colonos && m.to === id), v = k.estado === 'libre' && UI.colDesde ? G.puedeEnviarColonos(UI.colDesde, id) : { ok: false, motivo: '' };
   const key = 'sitio' + id + k.estado + UI.colDesde + orig.join() + v.ok + v.motivo + (mar ? (G.turnos ? G.turnosFaltan(mar) : Math.round((mar.t1 - s.t) * 2)) : '');
   if (key === UI.sheetKey && !sh.hidden) return; UI.sheetKey = key;
-  const K = G.COLONOS, coste = D.POP_ICON + ' ' + K.pop + ' · ' + coste5({ grano: K.grano, oro: K.oro });
+  const K = G.COLONOS, coste = D.POP_ICON + ' ' + K.pop + ' · ' + coste5({ grano: K.grano, denarios: K.denarios });
   let h = '<button class="x" data-act="unsel" aria-label="Cerrar la ficha">✕</button><h3>' + esc(d.n) + '<span class="tagf" style="background:#8a6a2c">' + (TIPO_COL[d.tipo] || 'Colonia') + '</span></h3><p>' + esc(d.h) + '</p>';
   { const T = D.TERRENOS && D.TERRENOS[D.terrenoDe(id)]; if (T) h += '<span class="stat">⛰️ ' + esc(T.n) + '</span><p>' + esc(T.d) + '</p>'; }
   h += '<span class="stat">📜 Fundada en ' + d.anio + ' a.C.</span><span class="stat">🏛️ ' + (k.estado === 'libre' ? 'Sitio libre' : k.estado === 'camino' ? 'Colonos en camino' : 'Colonos esperando') + '</span>';
@@ -1591,7 +1625,7 @@ document.addEventListener('click', function (e) {
   if (!el && e.target.closest('#cuentas')) return;
   if (!el) { $('cuentas').hidden = true; if (!e.target.closest('#hoja')) hojaCierra(true); $('citymenu').hidden = true; $('popsheet').hidden = true; if (e.target.id === 'modal' && !UI.sticky) closeModal(); hudDock(); return; }
   const a = el.dataset.act, v = el.dataset.v, s = S();
-  if (el.closest('#hoja')) UI.hjDown = false; if (a !== 'menumodo' && a !== 'hguerra' && a !== 'hoja' && !el.closest('#hoja')) hojaCierra(true); if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true; if (a !== 'cuentas' && a !== 'imp' && a !== 'cuvender' && a !== 'cuadelantar') $('cuentas').hidden = true;
+  if (el.closest('#hoja')) UI.hjDown = false; if (a !== 'menumodo' && a !== 'hguerra' && a !== 'hoja' && !el.closest('#hoja')) hojaCierra(true); if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true; if (a !== 'cuentas' && a !== 'imp' && a !== 'cuvender' && a !== 'cubien' && a !== 'cuadelantar') $('cuentas').hidden = true;
   if (a !== 'derr') UI.derr = null;
   switch (a) {
     case 'dif': if (el.dataset.d === 'm') { UI.difSel = v; const nm = $('hname') ? $('hname').value : ''; showMenu(); if (nm && $('hname')) $('hname').value = nm; } else { const r = G.ponerAjustes({ dif: v }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); toast('Dificultad ' + (DIF_NOM[v] || v) + ': vale desde el mes siguiente.'); } render(); } break;
@@ -1645,8 +1679,10 @@ document.addEventListener('click', function (e) {
     case 'popx': $('popsheet').hidden = true; break;
     case 'cuentas': { const cs = $('cuentas'); cs.hidden = !cs.hidden; if (!cs.hidden) { $('popsheet').hidden = true; renderCuentas(true); } break; }
     case 'cux': $('cuentas').hidden = true; break;
-    case 'cuvender': { const got = G.venderSobrante(v), U = G.ultimaVenta, n = RES_NOM[v].toLowerCase();
-      const msg = { ok: '⚖️ Vendes el sobrante de ' + n + ' y recibes ' + got + ' denarios.', parcial: '⚖️ Solo se pudo vender ' + U.vendido + ' de ' + n + ' (' + got + ' denarios); quedará ' + U.quedara + ' por perder.', orolleno: 'No se vende: el almacén de denarios está lleno y el cobro se perdería. Gasta oro antes.', sinmercado: 'No se puede vender: hace falta un mercado.', sinsobrante: 'No hay nada que se vaya a perder de ' + n + '.', sincaja: 'No hay ' + n + ' en la caja del mes para vender; lo que se perderá aún no se ha producido.', invalido: 'No se puede vender eso.' }[U.motivo] || 'No se pudo vender.';
+    case 'cubien': { const got = G.venderBien(v, +el.dataset.n || 0), nb = D.ESPECIAL[v] ? D.ESPECIAL[v].n.toLowerCase() : v;   // CE2: vender bienes a precio fijo
+      if (got) toast('⚖️ Vendes ' + nb + ' y recibes ' + got + ' denarios.'); else toast('No se vende: no hay ' + nb + ' o el almacén de denarios está lleno.', 'bad'); renderCuentas(true); render(); break; }
+    case 'cuvender': { const got = G.venderSobrante(v), U = G.ultimaVenta, n = (RES_NOM[v] || (D.ESPECIAL[v] && D.ESPECIAL[v].n) || v).toLowerCase();
+      const msg = { ok: '⚖️ Vendes el sobrante de ' + n + ' y recibes ' + got + ' denarios.', parcial: '⚖️ Solo se pudo vender ' + U.vendido + ' de ' + n + ' (' + got + ' denarios); quedará ' + U.quedara + ' por perder.', orolleno: 'No se vende: el almacén de denarios está lleno y el cobro se perdería. Gasta denarios antes.', sinmercado: 'No se puede vender: hace falta un mercado.', sinsobrante: 'No hay nada que se vaya a perder de ' + n + '.', sincaja: 'No hay ' + n + ' en la caja del mes para vender; lo que se perderá aún no se ha producido.', invalido: 'No se puede vender eso.' }[U.motivo] || 'No se pudo vender.';
       toast(msg, U.motivo === 'ok' ? '' : 'bad'); renderCuentas(true); break; }
     case 'cuobra': $('cuentas').hidden = true; if (v && s.cities[v]) { UI.city = v; UI.bsel = null; UI.cityList = false; } else UI.cityList = true; setTab('city'); break;
     case 'cuadelantar': { const nm = D.CITIES[v] ? D.CITIES[v].n : v; if (G.adelantarObra(v, el.dataset.i == null ? undefined : +el.dataset.i)) toast('🔨 ' + nm + ': pagas de golpe las cuotas que faltan.'); else toast('No alcanza para adelantar las cuotas de ' + nm + '.', 'bad'); renderCuentas(true); break; }
@@ -1668,7 +1704,7 @@ document.addEventListener('click', function (e) {
     case 'imp': if (G.setImp(UI.city, el.dataset.v)) render(); break;
     case 'ciud': if (G.darCiudadania(UI.city)) render(); break;
     case 'dipalianza': { const r = G.dipAlianza(v); if (r.ok) { toast('🤝 ' + D.FACTIONS[v].n + ' firma el foedus con Roma.', 'good'); render(); } else toast(r.motivo); break; }
-    case 'diptributo': { const r = G.dipTributo(v); if (r.ok) { toast('📜 ' + D.FACTIONS[v].n + ' pagará ' + r.mensual + ' oro al mes.', 'good'); render(); } else toast(r.motivo); break; }
+    case 'diptributo': { const r = G.dipTributo(v); if (r.ok) { toast('📜 ' + D.FACTIONS[v].n + ' pagará ' + r.mensual + ' denarios al mes.', 'good'); render(); } else toast(r.motivo); break; }
     case 'ruta': { const q = v.split('>'); if (G.rutaAbrir(q[0], q[1])) { toast('⚖️ Ruta abierta con ' + D.CITIES[q[1]].n + '.'); render(); } else toast(G.rutaPuede(q[0], q[1]) || 'No se puede abrir la ruta.', 'bad'); break; }
     case 'rutacerrar': { const q = v.split('>'); if (G.rutaCerrar(q[0], q[1])) { toast('Ruta cerrada.'); render(); } break; }
     case 'tipos': modal(tiposModal()); break;
@@ -1696,8 +1732,8 @@ document.addEventListener('click', function (e) {
     case 'forja': if (G.forjaUp(UI.city, v)) render(); else toast(S().forja.cola ? 'Ya hay una mejora en curso.' : 'Faltan recursos.', 'bad'); break;
     case 'mejpz': { const r = G.mejorarPieza(UI.city, +v); if (r.ok) toast('🔨 ' + obraNom(r.obra) + ': obra en marcha.', 'good'); else toast(r.motivo + '.', 'bad'); renderCity3D(); tickUI(); break; }
     case 'train': if (G.train(UI.city, v, +el.dataset.n)) render(); else toast(s.cities[UI.city].train.length >= 5 ? 'La cola de instrucción está llena.' : G.recruits(s.cities[UI.city]) < +el.dataset.n ? 'No hay población suficiente: construye Ínsulas o espera a que crezca.' : 'Faltan recursos.', 'bad'); break;
-    case 'mfrom': UI.mf = v; if (UI.mt === v) UI.mt = v === 'oro' ? 'madera' : 'oro'; render(); break;
-    case 'mto': UI.mt = v; if (UI.mf === v) UI.mf = v === 'oro' ? 'madera' : 'oro'; render(); break;
+    case 'mfrom': UI.mf = v; if (UI.mt === v) UI.mt = v === 'denarios' ? 'hierro' : 'denarios'; render(); break;
+    case 'mto': UI.mt = v; if (UI.mf === v) UI.mf = v === 'denarios' ? 'materiales' : 'denarios'; render(); break;
     case 'trade': { const got = G.trade(UI.mf, UI.mt, +el.dataset.n); if (got) { toast('⚖️ Recibes ' + got + ' de ' + (RES_NOM[UI.mt] || 'Denarios').toLowerCase()); render(); } else toast('No se puede hacer ese cambio (faltan recursos o el almacén está lleno).', 'bad'); break; }
     case 'skill': if (G.skill(v)) render(); break;
     case 'ev': { const ev = D.EVENTS[+v]; carta('<div class="yr">' + ev.y + ' A.C.</div><h2>' + esc(ev.t) + '</h2><p>' + esc(ev.x) + '</p>' + licHtml(ev) + '<div class="acts"><button class="btn" data-act="close">Cerrar</button></div>'); break; }

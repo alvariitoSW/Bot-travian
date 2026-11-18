@@ -2077,6 +2077,11 @@ console.log('OK — todas las pruebas superadas');
     assert(L > 0 && G.edificiosBase('volsinii', 2, 1).mina > 0 && G.edificiosBase('capua', 3, 1).mina === 0, 'solo nacen minas con veta');
     const c = s.cities.capua; c.b.mina = 3; const hP = G.prod().hierro; c.b.mina = 0; const h0 = G.prod().hierro; c.b.mina = 3; assert(hP > h0, 'una mina vieja fuera de las vetas sigue dando algo');
     const pob = c.reparto.mina; assert(Math.abs((hP - h0) - G.rateCampo(c, 'mina') * D.VETA_POBRE * pob / 5 * G.manoObraDe(c, G.popEfectiva(c, true)) * G.inqMul(c) * (G.tipoDe(c).rec || 1)) < 1e-6, 'al 25 %'); G.usarCiudad(CIMOD); }
+  // CE2 pieza B: con la ciudad nueva, la mina sin veta dice por qué (no «Faltan recursos»), y la pantalla ve los costes como se cobran
+  { const s = G.newGame('CE2m'); for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; } const E = G.ciudadE('roma');
+    const r1 = G.colocar('roma', 'mina', E.foro.x + 30, E.foro.z + 30); assert(!r1.ok && /vetas de hierro/.test(r1.motivo), 'colocar mina en Roma: ' + JSON.stringify(r1));
+    const mi = E.edificios.find(e => e.tipo === 'mina'); if (mi) { const r2 = G.mejorarPieza('roma', mi.id); assert(!r2.ok && /vetas de hierro/.test(r2.motivo), 'mejorar mina en Roma: ' + JSON.stringify(r2)); }
+    const ce = G.escalaCoste({ madera: 30, piedra: 50, hierro: 20, grano: 20, oro: 0 }); assert(!VIEJAS.test(JSON.stringify(ce)) && ce.materiales > 0, 'G.escalaCoste traduce claves viejas: ' + JSON.stringify(ce)); }
   // bienes: cada ciudad con bien guarda unidades al mes, con tope; los ricos gastan lujo; se venden por denarios
   { const s = G.newGame('CE2b'); G.turnos = false; assert.deepStrictEqual(s.bienes, {}, 'partida nueva sin bienes');
     const m = G.bienesMes(); assert(m.sal === D.BIEN_MES && m.caballos === D.BIEN_MES, 'Roma da sal y Capua caballos: ' + JSON.stringify(m));
