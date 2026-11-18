@@ -41,10 +41,9 @@ Chrome o Safari y elige **«Añadir a pantalla de inicio»**. Las batallas se ve
 | --- | --- |
 | `js/data.js` | Edificios, unidades, facciones, ciudades, mapa y hechos históricos |
 | `js/game.js` | Campaña: economía, colas, marchas, IA enemiga, eventos, guardado |
-| `js/battle.js` | Simulación de batalla (y vista 2D de reserva si no hay WebGL) |
+| `js/battle.js` | Simulación de la batalla clásica: de ella salen aún el carácter del rival y los planes de la maniobra |
 | `js/gfx/units.js` | Unidades reales: carga, animación horneada en textura y retratos |
 | `js/gfx/models.js` | Figuras de reserva generadas por código |
-| `js/gfx/battle3d.js` | Vista 3D de la batalla |
 | `js/gfx/map3d.js` | Mapa de campaña 3D |
 | `js/gfx/city3d.js` | Vista 3D de la ciudad (edificios, ciudadanos, guarnición) |
 | `js/gfx/statics.js` | Edificios, murallas, barcos y árboles reales |
