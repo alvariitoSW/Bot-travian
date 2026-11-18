@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0b1016">
-<title>AQVILA · Testudo a pie</title>
+<title>AQVILA · Testudo a pie (GM43e · luz y campo)</title>
 <base href="../../../">
 <style>
 @font-face{font-family:Cinzel;font-weight:700;src:url("assets/fuentes/cinzel-700.woff2") format("woff2")}
@@ -58,14 +58,6 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 .boton.activa{background:linear-gradient(#8a2a20,#5c1b15);border-color:var(--oro)}
 .boton.pide{animation:pide .8s infinite}
 .boton.roja{background:linear-gradient(#8a2a20,#5c1b15);border-color:var(--oro)}
-/* GM43h: «Lanzar» se mantiene pulsado; debajo, el medidor con la zona del buen tiro (verde) */
-#accion{position:relative;min-width:150px;padding-bottom:8px}
-#accion.espera{opacity:.62}
-#medidor{position:absolute;left:12px;right:12px;bottom:7px;height:8px;border-radius:4px;background:rgba(255,255,255,.16);overflow:clip}
-#zona{position:absolute;top:0;bottom:0;left:72%;right:0;background:rgba(124,198,94,.5)}
-#aguja{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--marmol);border-right:2px solid #fff}
-#aguja.buena{background:var(--verde)}
-#accion.espera #aguja{background:#8d846f;border-right-color:#8d846f}
 @keyframes pide{50%{border-color:#fff;box-shadow:0 0 0 3px rgba(233,192,99,.6)}}
 @media (orientation:portrait){
   #derecha,#izquierda{flex-direction:column-reverse}
@@ -105,7 +97,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
     </div>
     <div id="derecha">
       <button id="escudos" class="boton"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg><span id="escudos-t">Escudos</span></button>
-      <button id="accion" class="boton roja" hidden><span id="accion-t">Lanzar</span><span id="medidor"><i id="zona"></i><b id="aguja"></b></span></button>
+      <button id="accion" class="boton roja" hidden><span id="accion-t">Lanzar pila</span></button>
     </div>
   </div>
   <div id="fin" class="velo" hidden>

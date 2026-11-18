@@ -4,12 +4,10 @@
    separa de la figura y se coloca en el muro o en el techo; el brazo llega hasta el asa (ver esqueleto.js).
    Venablos, pila, suelo y hierba se hacen aquí por código. No toca nada de js/: solo lo importa.
    Licencia de juego ya aprobada: el testudo en campo abierto.
-   GM43h: a tiro, los galos se vienen cuesta abajo; tú armas el brazo con el dedo (mantén y suelta), tus dos filas lanzan contigo
-   y hay dos salvas (cada hastatus llevaba dos pila, Polibio 6.23). Luego, gladios y choque (alChocar: ahí enganchará la lucha).
-   ?fase=avance|flechas|testudo|cara|mira|roto|pila|armar|vuelo|impacto|carga|final coloca la escena en ese momento y la congela (para las capturas).
+   ?fase=avance|flechas|testudo|cara|mira|roto|pila|carga|final coloca la escena en ese momento y la congela (para las capturas).
    ?marcas=1 pinta puntos donde las cuentas dicen que están cabeza y manos (para comprobar que casan con el dibujo). */
 import { THREE } from '../../../js/gfx/models.js';
-import { preload, getUnit, loadIndex, unitMaterialReal, instancedGeometry, frameOf, frameOnce, zancadas, UNIT_SCALE } from '../../../js/gfx/units.js';
+import { preload, getUnit, loadIndex, unitMaterialReal, instancedGeometry, frameOf, frameOnce, UNIT_SCALE } from '../../../js/gfx/units.js';
 import { texturaRuido } from '../../../js/gfx/ground.js';
 import { crearCampo } from './campo.js';
 import { crearEsqueleto, H as HU } from './esqueleto.js';
@@ -62,10 +60,7 @@ let semillaV = 7; const azarV = () => { semillaV = (semillaV * 16807) % 21474836
    batalla), no 1,70. Todo lo de aquí (techo, muro, cámara, venablos) va en esa escala y se coloca desde los huesos de cada
    hombre, no a ojo. Ese era el desfase de la versión anterior: techo y cámara estaban puestos para hombres de 1,70. */
 const FILES = 6, FILAS = 5, M = FILES * FILAS, E = UNIT_SCALE, GRANDE = 1.26;
-const Z_TIRADORES = -100, Z_GALOS = -106, Z_PILA = -75;
-/* GM43h: los galos se vienen al paso vivo y, a 9 m, a la carrera; a esa distancia salen también los tuyos con el gladio.
-   El medidor del tiro sube en 0,9 s y vuelve a bajar; soltar con él por encima de ZONA es buen tiro. Entre salva y salva, 2 s */
-const V_GALO = 2.2, V_GALO_CORRE = 5, D_GLADIO = 9, T_MEDIDOR = 0.9, ZONA = 0.72, RECARGA = 2, VUELO_PILUM = 1.2;
+const Z_TIRADORES = -100, Z_GALOS = -106, Z_PILA = -75, Z_CHOQUE = -104.2;
 const V_CORRE = 5, V_PASO = 1.8, V_TESTUDO = 0.9, V_CARGA = 5.5, VUELO = 2.2, CADA = 8;
 const ABIERTO = { dx: 0.95, dz: 2.6 }, CERRADO = { dx: 0.68, dz: 0.7 };
 const YO = 2, CMP = 3;   /* tú eres el tercero de la primera fila; tu compañero, el cuarto. La cámara va detrás, entre los dos */
@@ -248,10 +243,8 @@ const ASTILLAS = Array.from({ length: 9 }, (_, i) => { const m = new THREE.Mesh(
 function nuevoSprite(tex, aditivo) { const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, blending: aditivo ? THREE.AdditiveBlending : THREE.NormalBlending })); s.visible = false; escena.add(s); return s; }
 const CHISPAS = Array.from({ length: 40 }, () => ({ s: nuevoSprite(texChispa, true), t: -9 }));
 const POLVO = Array.from({ length: 36 }, () => ({ s: nuevoSprite(texPolvo, false), t: -9, v: new THREE.Vector3() }));
-/* GM43h: los pila lanzados, todos en una sola malla de instancias (dos salvas de las dos primeras filas). est: 0 nada,
-   1 en la mano a punto de salir, 2 en el aire, 3 en tierra (clavado o tumbado), 4 clavado en el escudo de un galo */
-const NPILA = FILES * 4, pilaVuelo = new THREE.InstancedMesh(geoPilum, matAsta, NPILA); pilaVuelo.frustumCulled = false; pilaVuelo.castShadow = true; escena.add(pilaVuelo);
-const PILA = Array.from({ length: NPILA }, () => ({ est: 0, p: new THREE.Vector3(), q: new THREE.Quaternion(), m: new THREE.Matrix4(), rel: new THREE.Matrix4(), p0: new THREE.Vector3(), p1: new THREE.Vector3() }));
+function nuevoPilum() { const g = new THREE.Mesh(geoPilum, matAsta); g.visible = false; escena.add(g); return g; }
+const PILA = Array.from({ length: FILES * 2 }, () => ({ g: nuevoPilum(), est: 0 }));
 
 /* ---------- los hombres: figura sin su escudo ni su espada, y esas dos piezas sueltas ---------- */
 const SK_CAB = `attribute vec4 aSkinI;\nattribute vec4 aSkinW;\nattribute float aMode;\nattribute float aFrame;\nattribute float aFrame2;\nattribute float aMix;\nuniform sampler2D uBones;\nvarying float vMode;
@@ -420,11 +413,10 @@ const TEX_DANIO = [texDanio(0), texDanio(1), texDanio(2)]; DANIO.value = TEX_DAN
 /* la tabla de huesos, con las posturas nuevas detrás de las del modelo. Cada «conjunto» tiene 120 filas: una por cada
    fotograma de «idle» (70) y de «walk» (50), para que el hombre siga respirando o andando mientras hace el gesto.
    0-3 muro (subiendo el escudo: 1/4, 2/4, 3/4 y arriba) · 4 muro encogido · 5-8 techo · 9 techo encogido
-   10-11 muro mirando a su derecha (a medias y del todo) · 12-13 muro mirando a su izquierda · después, 4 filas de lanzar
-   y una más (GM43h): el brazo armado del todo, atrás y alto, que es la que se sostiene con el dedo */
+   10-11 muro mirando a su derecha (a medias y del todo) · 12-13 muro mirando a su izquierda · después, 4 filas de lanzar */
 const CJ = { muro: 0, techo: 5, miraD: 10, miraI: 12, lanza: 14 };
 function generaTabla(base, meta, geo) {
-  const hues = meta.slots, N0 = meta.frames, total = N0 + CJ.lanza * 120 + 5, T = new Float32Array(total * hues * 12); T.set(base.subarray(0, N0 * hues * 12));
+  const hues = meta.slots, N0 = meta.frames, total = N0 + CJ.lanza * 120 + 4, T = new Float32Array(total * hues * 12); T.set(base.subarray(0, N0 * hues * 12));
   const esq = crearEsqueleto(base, hues, N0, geo.attributes.position.array, geo.attributes.aSkinI.array, geo.attributes.aSkinW.array);
   const u = v => v.map(x => x / E), pon = (fila, q, b) => T.set(esq.postura(b, q), fila * hues * 12);
   const ROL = [
@@ -448,7 +440,6 @@ function generaTabla(base, meta, geo) {
   pon(L + 1, { tuerce: -0.1, dobla: 0.05, manoD: u([-0.3, 2.02, 0.05]), poloD: [-0.8, -0.4, -0.3] }, 0);
   pon(L + 2, { tuerce: 0.3, dobla: 0.22, manoD: u([-0.2, 1.85, 0.5]), poloD: [-0.8, -0.5, 0] }, 0);
   pon(L + 3, { tuerce: 0.45, dobla: 0.35, manoD: u([-0.02, 1.2, 0.5]) }, 0);
-  pon(L + 4, { tuerce: -0.62, dobla: -0.14, baja: 0.06 / E, manoD: u([-0.42, 1.74, -0.52]), poloD: [-0.7, -0.5, -0.6] }, 0);
   return { T, esq, N0, hues, total, L };
 }
 let HOM = null;   /* todo lo de los hastati: mallas, tabla y esqueleto */
@@ -486,13 +477,11 @@ async function creaHombres() {
 const S = {};
 function reinicia() {
   semilla = 43;
-  Object.assign(S, { T: 0, zF: 0, k: 0, escudos: false, andando: false, fase: 'avance', proxima: 4, aviso: false, impacto: -1, paso: 0, tCinta: 0, tFin: -1, choque: false, llegaron: 0, sacude: 0, vel: 0, golpes: 0, roto: false, encoge: -9, destello: 0, corre: false, corriendo: false, aliento: 1, tGrito: -9, armas: 'pilum', nPaso: 0, kSon: -1, agotado: false,
-    /* GM43h: salvas lanzadas, cuándo está listo el segundo pilum, el dedo en el botón, el medidor, los galos y tu pilum (la cámara lo sigue) */
-    salvas: 0, listo: 0, dedo: false, armando: false, tArma: -9, medidor: 0, tGalos: -1, corrida: false, caidos: 0, caidosSalva: [0, 0], buenoSalva: [false, false], buenos: 0, ojo: null, tOjo: -9, kP: 0, zChoque: 0, aviso2: false });
-  S.romanos = []; for (let i = 0; i < M; i++) { const r = Math.floor(i / FILES); S.romanos.push({ i, f: i % FILES, r, vivo: true, muere: 0, lanza: -9, tiro: false, x: 0, z: 0, jx: (azar() - 0.5) * 0.14, jz: (azar() - 0.5) * 0.22, fase: azar() * 2, k: 0, pilos: 2, sujeta: false, suelta: -9, ret: Math.min(0.4, r * 0.07 + azar() * 0.12), retEnc: i === YO ? 0 : 0.04 + azar() * 0.16, ampEnc: i === YO ? 1 : 0.55 + azar() * 0.45, golpe: -9, enc: 0, mira: 0, A: 0, B: 0, mx: 0, oculto: false, inst: m4(), mEsc: m4(), qEsc: new THREE.Quaternion() }); }
+  Object.assign(S, { T: 0, zF: 0, k: 0, escudos: false, andando: false, fase: 'avance', proxima: 4, aviso: false, impacto: -1, paso: 0, tCinta: 0, tFin: -1, choque: false, llegaron: 0, sacude: 0, vel: 0, golpes: 0, roto: false, encoge: -9, destello: 0, corre: false, corriendo: false, aliento: 1, tGrito: -9, armas: 'pilum', nPaso: 0, kSon: -1, agotado: false });
+  S.romanos = []; for (let i = 0; i < M; i++) { const r = Math.floor(i / FILES); S.romanos.push({ i, f: i % FILES, r, vivo: true, muere: 0, lanza: -9, tiro: false, x: 0, z: 0, jx: (azar() - 0.5) * 0.14, jz: (azar() - 0.5) * 0.22, fase: azar() * 2, k: 0, ret: Math.min(0.4, r * 0.07 + azar() * 0.12), retEnc: i === YO ? 0 : 0.04 + azar() * 0.16, ampEnc: i === YO ? 1 : 0.55 + azar() * 0.45, golpe: -9, enc: 0, mira: 0, A: 0, B: 0, mx: 0, oculto: false, inst: m4(), mEsc: m4(), qEsc: new THREE.Quaternion() }); }
   S.tiradores = []; for (let i = 0; i < 10; i++) S.tiradores.push({ x: (i - 4.5) * 1.7 + (azar() - 0.5) * 0.5, z: Z_TIRADORES + (azar() - 0.5) * 1.2, vivo: true, muere: 0, huye: false, yaw: 0, fase: azar() * 4 });
-  S.galos = []; for (let i = 0; i < 16; i++) S.galos.push({ x: ((i % 8) - 3.5) * 1.25 + (azar() - 0.5) * 0.3, z: Z_GALOS - Math.floor(i / 8) * 1.6 + (azar() - 0.5) * 0.4, vivo: true, muere: 0, fila: Math.floor(i / 8), fase: azar() * 3, v: 0, dist: (i * 1.37) % 3, sale: ((i * 7) % 5) * 0.1, marcado: false, frena: -9, fr: 0, porPila: false });
-  for (const f of FL) f.est = 0; for (const a of ASTILLAS) { a.t = -9; a.m.visible = false; } for (const p of PILA) p.est = 0;
+  S.galos = []; for (let i = 0; i < 16; i++) S.galos.push({ x: ((i % 8) - 3.5) * 1.25 + (azar() - 0.5) * 0.3, z: Z_GALOS - Math.floor(i / 8) * 1.6 + (azar() - 0.5) * 0.4, vivo: true, muere: 0, fila: Math.floor(i / 8), fase: azar() * 3 });
+  for (const f of FL) f.est = 0; for (const a of ASTILLAS) { a.t = -9; a.m.visible = false; } for (const p of PILA) { p.est = 0; p.g.visible = false; }
   for (const c of CHISPAS) c.t = -9; for (const p of POLVO) p.t = -9; for (const p of PIES) p.t = -9; S.restoPolvo = 0;
   $('fin').hidden = true; $('accion').hidden = true; cinta('', false); DANIO.value = TEX_DANIO[0];
   for (const h of S.romanos) sitio(h); actualiza();
@@ -522,8 +511,6 @@ const CAMS = {
 };
 if (Q.get('cam')) { const c = Q.get('cam').split(',').map(Number), t = innerHeight > innerWidth ? CAMS.vt : CAMS.ht; ['d', 'y', 'pitch', 'yaw', 'fov', 'x'].forEach((n, i) => { if (isFinite(c[i])) t[n] = c[i]; }); }
 if (Q.get('camm')) { const c = Q.get('camm').split(',').map(Number), t = innerHeight > innerWidth ? CAMS.vm : CAMS.hm; ['d', 'y', 'pitch', 'yaw', 'fov', 'x'].forEach((n, i) => { if (isFinite(c[i])) t[n] = c[i]; }); }
-/* GM43h: lo que se mueve la cámara a tiro de pilum (se suma a la de marcha) */
-const CAMP = { v: { x: -0.17, d: -2.1, y: -0.5, pitch: 0.1, fov: 0 }, h: { x: 0.1, d: -0.7, y: 0.15, pitch: 0.03, fov: 0 } };
 const CAM = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, fov: 60 };
 function camBase() {
   const k = suave(0, 1, S.k), yo = S.romanos[YO], co = S.romanos[CMP], mx = (yo.x + co.x) / 2, a = vertical ? CAMS.vm : CAMS.hm, b = vertical ? CAMS.vt : CAMS.ht;
@@ -532,18 +519,6 @@ function camBase() {
   CAM.pitch = lerp(a.pitch, b.pitch, k) + sube * 0.6 * (1 - k); CAM.yaw = lerp(a.yaw, b.yaw, k); CAM.fov = lerp(a.fov, b.fov, k);
   /* cuando tu soldado se vuelve a gritar a los suyos, la cámara se le arrima y le mira: se le ve la cara de perfil */
   const g = suave(0, 1, yo.mira) * k; if (g > 0) { CAM.x -= 0.06 * g; CAM.z -= (vertical ? 0.35 : 0.15) * g; CAM.yaw += (vertical ? 0.12 : 0.1) * g; CAM.y -= 0.02 * g; }
-  /* GM43h: a tiro de pilum la cámara se echa algo atrás, sube y se arrima a tu lado: se ve tu brazo con el pilum y, al fondo, los galos */
-  const kp = suave(0, 1, S.kP) * (1 - k);
-  if (kp > 0) { const c = vertical ? CAMP.v : CAMP.h; CAM.x += c.x * kp; CAM.z += c.d * kp; CAM.y += c.y * kp; CAM.pitch += c.pitch * kp; CAM.fov += c.fov * kp; }
-  /* y sigue con la mirada tu pilum: cabecea arriba y luego abajo con él, gira un poco y cierra un pelo el encuadre */
-  const p = S.ojo;
-  if (p && p.est >= 2) {
-    const env = p.est === 2 ? suave(0, 0.35, S.T - p.t0) : 1 - suave(0.4, 1.6, S.T - p.tFin);
-    if (env > 0) {
-      const dx = p.p.x - CAM.x, dz = p.p.z - CAM.z, dh = Math.hypot(dx, dz) || 1;
-      CAM.pitch += (Math.atan2(p.p.y - CAM.y, dh) - CAM.pitch) * 0.4 * env; CAM.yaw += (Math.atan2(-dx, -dz) - CAM.yaw) * 0.25 * env; CAM.fov -= 5 * env;
-    }
-  }
   return CAM;
 }
 const lejos = (pt, d) => Math.hypot(pt.x - CAM.x, pt.y - CAM.y, pt.z - CAM.z) >= d;
@@ -582,9 +557,8 @@ function actualiza() {
     const tl = T - h.lanza;
     if (!h.vivo) A = B = frameOnce(C.death, Math.max(0, T - h.muere));
     else if (tl >= 0 && tl < 1.1) {
-      /* GM43h: tu soldado arma más el brazo (atrás y alto, la postura que sostiene el dedo) */
-      const b = frameOf(C.idle, T + h.fase), L = HOM.L, L0 = h === yo ? L + 4 : L;
-      if (tl < 0.3) { A = b; B = L0; mx = suave(0, 0.3, tl); } else if (tl < 0.42) { A = L0; B = L + 1; mx = (tl - 0.3) / 0.12; } else if (tl < 0.52) { A = L + 1; B = L + 2; mx = (tl - 0.42) / 0.1; }
+      const b = frameOf(C.idle, T + h.fase), L = HOM.L;
+      if (tl < 0.3) { A = b; B = L; mx = suave(0, 0.3, tl); } else if (tl < 0.42) { A = L; B = L + 1; mx = (tl - 0.3) / 0.12; } else if (tl < 0.52) { A = L + 1; B = L + 2; mx = (tl - 0.42) / 0.1; }
       else if (tl < 0.7) { A = L + 2; B = L + 3; mx = (tl - 0.52) / 0.18; } else { A = L + 3; B = b; mx = suave(0.7, 1.1, tl); }
       if (tl > 0.47) h.tiro = true;
     }
@@ -696,154 +670,20 @@ function llegaDescarga() {
 function chispa(p, e) { const c = CHISPAS.find(c => S.T - c.t > 0.3); if (!c) return; c.t = S.T; c.s.position.copy(p); c.s.visible = true; c.e = e; const q = POLVO.find(q => S.T - q.t > 3); if (q) { q.t = S.T; q.e = 0.3 * e; q.s.position.copy(p); q.v.set(0, 0.25, 0); } }
 
 /* ---------- órdenes ---------- */
-/* GM43h: el pilum en la mano de un hombre (sitio y giro), el mismo que se dibuja: de ahí sale cuando lo lanza */
-function pilumEnMano(h, P, Qo) {
-  const tl = S.T - h.lanza, lz = tl > 0 ? suave(0, 0.3, tl) : 0;
-  ancla(h, HU.espada, [0, 0, 0], P); Qo.copy(Q_PIE).slerp(Q_TENDIDO, h.k); if (lz) Qo.slerp(Q_LANZA, lz);
-  V3.set(0, 0, 1).applyQuaternion(Qo); P.addScaledVector(V3, lerp(lerp(0.75, 0.25, h.k), 0.1, lz)); if (!lz) P.y += 0.04 * h.k;
-  return P;
-}
-/* el medidor del tiro: sube de 0 a 1 en T_MEDIDOR segundos y, si sigues, vuelve a bajar (y otra vez arriba) */
-const medidor = t => { const x = (Math.max(0, t) / T_MEDIDOR) % 2; return x < 1 ? x : 2 - x; };
-const puedeArmar = () => S.fase === 'pila' && S.salvas < 2 && S.T >= S.listo && !S.armando;
-/* los que lanzan: las dos primeras filas, vivos y con pilum */
-const lanzadores = () => S.romanos.filter(h => h.vivo && h.r <= 1 && h.pilos > 0);
-/* lo de delante de los galos: el más adelantado de los que siguen en pie, y cuánto le falta para llegar a tu primera fila */
-const frenteGalo = () => S.galos.reduce((z, g) => g.vivo ? Math.max(z, g.z) : z, -1e9);
-const hueco = () => S.zF - frenteGalo();
-
-/* ---------- el escudo de los galos: su hueso y el centro del escudo, para dejar clavados los pila ---------- */
-let GESC = null;
-const _gi = new THREE.Matrix4(), _gb = new THREE.Matrix4(), _gm = new THREE.Matrix4(), _gp = new THREE.Vector3(), Q_ID = new THREE.Quaternion(), UNO = new THREE.Vector3(1, 1, 1);
-async function escudoGalo() {
-  const meta = (await loadIndex()).galos, buf = await (await fetch('assets/units/galos.bin')).arrayBuffer(), n = meta.verts;
-  const P = new Float32Array(buf, meta.off[0], n * 3), SI = new Uint8Array(buf, meta.off[3], n * 4), SW = new Uint8Array(buf, meta.off[4], n * 4), CELL = new Uint8Array(buf, meta.off[6], n);
-  /* las piezas 3 y 4 del atlas de los galos son la cara y el canto del escudo; el hueso que más las mueve es el del escudo */
-  const esEscudo = i => CELL[i] === 3 || CELL[i] === 4, fuerte = i => { let b = 0; for (let k = 1; k < 4; k++) if (SW[i * 4 + k] > SW[i * 4 + b]) b = k; return SI[i * 4 + b]; };
-  const cuenta = new Map(); for (let i = 0; i < n; i++) if (esEscudo(i)) cuenta.set(fuerte(i), (cuenta.get(fuerte(i)) || 0) + 1);
-  if (!cuenta.size) return;
-  const slot = [...cuenta].sort((a, b) => b[1] - a[1])[0][0], c = new THREE.Vector3(); let k = 0;
-  for (let i = 0; i < n; i++) if (esEscudo(i) && fuerte(i) === slot) { c.x += P[i * 3]; c.y += P[i * 3 + 1]; c.z += P[i * 3 + 2]; k++; }
-  GESC = { slot, slots: meta.slots, c: c.divideScalar(k) };
-}
-/* la matriz del escudo de un galo en el mundo, en su fotograma de ahora */
-function huesoEscudoGalo(g, out) {
-  const A = getUnit('galos').bones.image.data, o = (g.fr * GESC.slots + GESC.slot) * 12;
-  _gb.set(A[o], A[o + 1], A[o + 2], A[o + 3], A[o + 4], A[o + 5], A[o + 6], A[o + 7], A[o + 8], A[o + 9], A[o + 10], A[o + 11], 0, 0, 0, 1);
-  _gi.compose(_gp.set(g.x, H(g.x, g.z), g.z), Q_ID, SB); return out.multiplyMatrices(_gi, _gb);
-}
-/* el fotograma de cada galo: espera, se viene al paso, a la carrera, cae o pelea */
-function frameGalo(g) {
-  const CG = figuras.galos.u.clips, T = S.T;
-  if (!g.vivo) return frameOnce(CG.death, Math.max(0, T - g.muere));
-  if (S.choque && g.fila === 0) return frameOf(CG.attack_melee, T + g.fase);
-  if (g.v > 3.2 && CG.run) return frameOf(CG.run, g.dist / ((CG.run.zancada || 2) * E) * CG.run.dur);
-  if (g.v > 0.25 && CG.walk) return frameOf(CG.walk, g.dist / ((CG.walk.zancada || 1.6) * E) * CG.walk.dur);
-  return frameOf(CG.idle, T + g.fase);
-}
-
-/* ---------- órdenes ---------- */
-/* a tiro: los tiradores que quedan huyen entre los galos y los galos se vienen cuesta abajo */
-function aTiro() {
-  S.zF = Z_PILA; S.fase = 'pila'; S.andando = false; S.corre = false; S.escudos = false; S.tGalos = S.T + 0.8; S.listo = S.T + 0.3;
-  for (const t of S.tiradores) if (t.vivo) t.huye = true;
-  cinta('¡A tiro! Mantén pulsado y suelta', true); grita('¡Ahí vienen!'); Son.trueno(0.35);
-}
-/* el dedo baja: tu soldado echa el brazo atrás y las dos primeras filas arman contigo */
-function armar() {
-  if (!puedeArmar()) return false;
-  S.armando = true; S.tArma = S.T; S.medidor = 0; S.escudos = false;
-  for (const h of lanzadores()) { h.sujeta = true; h.suelta = -9; h.tiro = false; h.lanza = S.T + (h.i === YO ? 0 : 0.04 + azar() * 0.18); }
-  return true;
-}
-/* el dedo sube: lanzas tú y, escalonados (0 a 0,35 s), los demás. Bueno si el medidor estaba en la zona */
-function soltar() {
-  if (!S.armando) return false;
-  S.armando = false; const m = medidor(S.T - S.tArma), bueno = m >= ZONA; S.medidor = m;
-  const quien = S.romanos.filter(h => h.sujeta && h.vivo);
-  for (const h of quien) h.suelta = h.i === YO ? S.T : S.T + azar() * 0.35;
-  planSalva(quien, bueno);
-  if (bueno) S.buenos++;
-  S.buenoSalva[S.salvas] = bueno; S.salvas++; S.listo = S.T + RECARGA; Son.lanza();
-  cinta(bueno ? (S.salvas === 1 ? '¡Pila! Buen brazo' : '¡Segundo pilum! Buen brazo') : (S.salvas === 1 ? '¡Pila!' : '¡Segundo pilum!'), bueno);
-  return bueno;
-}
-/* adónde va cada pilum de la salva y qué hace al llegar: mata (cae el galo y el pilum queda a su lado), escudo (se queda
-   clavado en su escudo) o falla (clavado en tierra). Buen tiro: 4 o 5 galos y el tuyo mata siempre al que tienes delante. Flojo: 2 */
-function planSalva(quien, bueno) {
-  const n = S.salvas, yo = S.romanos[YO], vivosG = () => S.galos.filter(g => g.vivo && !g.marcado);
-  let mata = bueno ? 4 + (azar() < 0.5 ? 1 : 0) : 2;
-  const otros = quien.filter(h => h !== yo); for (let i = otros.length - 1; i > 0; i--) { const j = Math.floor(azar() * (i + 1)); [otros[i], otros[j]] = [otros[j], otros[i]]; }
-  const orden = quien.includes(yo) ? [yo, ...otros] : otros;
-  for (const h of orden) {
-    const p = PILA.find(p => p.est === 0); if (!p) break;
-    h.pilos--; const mio = h === yo, libres = vivosG(); let g = null, tipo = 'falla';
-    if (libres.length && mata > 0 && (!mio || bueno)) {
-      /* el tuyo, al que tienes delante (el más cerca de tu línea de tiro); los demás, uno cualquiera */
-      g = mio ? libres.reduce((a, b) => Math.abs(b.x - yo.x) + b.fila * 1.5 < Math.abs(a.x - yo.x) + a.fila * 1.5 ? b : a) : libres[Math.floor(azar() * libres.length)];
-      tipo = 'mata'; g.marcado = true; mata--;
-    } else {
-      const todos = S.galos.filter(g => g.vivo); g = todos.length ? todos[Math.floor(azar() * todos.length)] : null;
-      tipo = g && azar() < (mio ? 0.6 : 0.5) ? 'escudo' : 'falla';
-    }
-    Object.assign(p, { est: 1, h, g, tipo, mio, salva: n, dur: mio ? VUELO_PILUM : VUELO_PILUM - 0.05 + azar() * 0.3, t0: -9, tFin: -9, dx: (azar() - 0.5) * 2.4, dz: (azar() < 0.5 ? -1 : 1) * (1.8 + azar() * 2.5) });
-    if (mio) S.ojo = p;
+function lanzarPila() {
+  if (S.fase !== 'pila') return; S.fase = 'lanzando'; S.escudos = false; cinta('¡Pila!', true); Son.lanza();
+  const blancos = S.tiradores.filter(t => t.vivo); let k = 0;
+  for (const h of S.romanos) {
+    if (!h.vivo || h.r > 1) continue; h.lanza = S.T + 0.45 + h.r * 0.25 + azar() * 0.1;
+    const p = PILA[k++]; if (!p) break; const b = blancos[(k * 3) % Math.max(1, blancos.length)];
+    p.est = 1; p.t0 = h.lanza + 0.47; p.dur = 1.3 + azar() * 0.2; p.p0 = new THREE.Vector3(h.x + 0.25, H(h.x, h.z) + 1.95, h.z - 0.45);
+    const bx = b ? b.x + (azar() - 0.5) * 0.6 : (azar() - 0.5) * 8, bz = b ? b.z + (azar() - 0.5) * 0.6 : Z_TIRADORES;
+    p.p1 = new THREE.Vector3(bx, H(bx, bz) + 0.5, bz); p.blanco = b; p.alto = 2.6 + azar() * 1.2;
   }
+  S.tFin = S.T + 3;
 }
-/* dónde estará el blanco de un pilum dentro de «quedan» segundos */
-function destino(p, quedan, out) {
-  const g = p.g; if (!g) return out.set(p.p0.x, H(p.p0.x, p.p0.z - 20), p.p0.z - 20);
-  const dz = g.vivo ? g.v * quedan : 0;
-  if (p.tipo === 'escudo' && GESC && g.vivo) { out.copy(GESC.c).applyMatrix4(huesoEscudoGalo(g, _gm)); out.z += dz; return out; }
-  if (p.tipo === 'mata' || p.tipo === 'escudo') return out.set(g.x, H(g.x, g.z + dz) + 1.25, g.z + dz);
-  const x = g.x + p.dx, z = g.z + dz + p.dz; return out.set(x, H(x, z), z);
-}
-/* una nube de polvo suelta (de las de POLVO) */
-function polvazo(x, y, z, e) { const q = POLVO.find(q => S.T - q.t > 3); if (!q) return; q.t = S.T; q.e = e; q.s.position.set(x, y, z); q.v.set((azarV() - 0.5) * 0.3, 0.3 + azarV() * 0.2, (azarV() - 0.5) * 0.3); }
-/* llega un pilum: tres finales que se distinguen a simple vista */
-function impactoPilum(p) {
-  const g = p.g, T = S.T, pan = panDe(p.p1.x); p.tFin = T; V3.set(0, 0, 1).applyQuaternion(p.q);
-  if (p.tipo === 'mata' && g && g.vivo) {
-    /* cae el galo en plena carrera; el pilum no atraviesa figuras: queda en tierra a su lado */
-    g.vivo = false; g.muere = T; g.porPila = true; S.caidos++; S.caidosSalva[p.salva]++;
-    const lado = azar() < 0.5 ? -1 : 1, x = g.x + lado * (0.45 + azar() * 0.3), z = g.z + 0.2 + azar() * 0.6;
-    p.q.setFromEuler(new THREE.Euler(0, azar() * 6.28, 0)); p.p.set(x, H(x, z) + 0.03, z); p.est = 3;
-    polvazo(g.x, H(g.x, g.z) + 0.3, g.z + 0.3, 0.55); Son.tierra(pan); Son.madera(0.3, pan, 0.05);
-  } else if (p.tipo === 'escudo' && g && g.vivo && GESC) {
-    /* se queda clavado en su escudo y va con él; el galo acusa el golpe (frena un instante) */
-    /* el hierro blando se dobla y el astil cuelga del escudo hacia un lado (César, Guerra de las Galias 1.25: los galos no
-       podían arrancarlos y soltaban el escudo). Así, además, se ve desde atrás: clavado de frente sería un punto */
-    const hz = Math.hypot(V3.x, V3.z), lado = azar() < 0.5 ? -1 : 1; V3.set(V3.x + lado * 0.65 * hz, 0.4 * hz, V3.z).normalize(); p.q.setFromUnitVectors(Z1, V3);
-    huesoEscudoGalo(g, _gm); PB.copy(GESC.c).applyMatrix4(_gm);
-    p.p.copy(PB).addScaledVector(V3, -(PUNTA - 0.14)); p.m.compose(p.p, p.q, UNO); p.rel.copy(_gm).invert().multiply(p.m); p.est = 4; g.frena = T;
-    chispa(PB, 0.7); Son.madera(0.7, pan); Son.hierro(pan, 0, 0.35);
-  } else {
-    /* falla (o su galo ya había caído): clavado en tierra, inclinado, con polvo */
-    const x = p.p1.x, z = p.p1.z; p.p.set(x, H(x, z), z).addScaledVector(V3, -0.9); p.est = 3;
-    polvazo(x, H(x, z) + 0.15, z, 0.4); Son.tierra(pan);
-  }
-  if (p.mio) S.sacude = Math.max(S.sacude, 0.22);
-  /* cuando ha llegado toda la salva, la cinta con lo que hizo */
-  if (!PILA.some(q => q.salva === p.salva && (q.est === 1 || q.est === 2))) {
-    const n = S.caidosSalva[p.salva], bueno = S.buenoSalva[p.salva], cae = n === 1 ? 'Cae 1' : `Caen ${n}`;
-    cinta(bueno ? `¡Buen tiro! ${cae} galo${n === 1 ? '' : 's'}` : `Tiro flojo. ${cae}`, bueno);
-  }
-}
-/* los galos a 9 m: gladios fuera y carrera corta. Si no dio tiempo a la segunda salva, se pierde */
-function alGladio() {
-  const tarde = S.salvas < 2;
-  S.armando = false; S.dedo = false;
-  for (const h of S.romanos) if (h.sujeta) { h.sujeta = false; h.lanza = -9; }
-  for (const p of PILA) if (p.est === 1) p.est = 0;
-  S.fase = 'carga'; S.armas = 'espada'; S.corrida = true; S.escudos = false;
-  cinta(tarde ? '¡Tarde! A las espadas' : '¡Gladios! ¡Cargad!', !tarde); grita('¡Cargad!'); Son.cuerno([[146.83, 0.35], [146.83, 0.35], [196, 1.1]]);
-}
-/* el choque, donde se encuentran las dos líneas (provisional: aquí enganchará la pieza 2, la lucha cuerpo a cuerpo) */
-function alChocar() {
-  const T = S.T, zc = S.zF - 1; S.zChoque = zc; S.choque = true; S.llegaron = vivos(); S.sacude = 0.9; Son.choque();
-  for (const p of POLVO) { p.e = 1; p.t = T + azar() * 0.4; const x = (azar() - 0.5) * 8; p.s.position.set(x, H(x, zc) + 0.4 + azar() * 0.6, zc - azar() * 2.5); p.v.set((azar() - 0.5) * 1.5, 0.6 + azar() * 0.6, (azar() - 0.5) * 1.5); }
-  S.galos.filter(g => g.vivo).sort((a, b) => b.z - a.z).slice(0, 8).forEach((g, i) => { if (i % 3 === 1) { g.vivo = false; g.muere = T + 0.2 + azar() * 0.6; } });
-  S.tFin = T + 1.8;
+function cargar() {
+  if (S.fase !== 'cargar') return; S.fase = 'carga'; S.escudos = false; S.armas = 'espada'; cinta('¡Cargad!', true); Son.cuerno([[146.83, 0.35], [146.83, 0.35], [196, 1.1]]);
 }
 
 /* ---------- el paso de la simulación ---------- */
@@ -862,27 +702,15 @@ function paso(dt) {
   S.vel = v; S.zF -= v * dt; S.paso += v * dt;
   const np = Math.floor(S.paso / (v > 3 ? 1.9 : lerp(1.5, 1.05, S.k))); if (np !== S.nPaso) { S.nPaso = np; Son.paso(v > 3 ? 1.3 : 0.8, S.k); }
   if (Math.abs(S.k - S.kSon) > 0.03 || (S.k === 0 || S.k === 1) && S.kSon !== S.k) { S.kSon = S.k; Son.bajoTecho(S.k); }
-  if (S.fase === 'avance' && S.zF <= Z_PILA) aTiro();
-  S.kP = Math.min(1, S.kP + (S.fase === 'avance' ? -1 : 1) * dt * 0.7); if (S.kP < 0) S.kP = 0;
-  /* GM43h: el dedo en el botón. Si se pulsó mientras pasaban el segundo pilum, arma en cuanto está listo */
-  if (S.dedo && puedeArmar()) armar();
-  if (S.armando) S.medidor = medidor(T - S.tArma);
-  for (const h of S.romanos) if (h.sujeta) { if (h.suelta > 0 && T >= h.suelta) h.sujeta = false; else if (T - h.lanza > 0.3) h.lanza = T - 0.3; }
-  /* el segundo pilum pasa a la mano derecha poco antes de estar listo */
-  if (S.fase === 'pila' && S.salvas === 1 && T >= S.listo - 0.8) for (const h of S.romanos) if (h.vivo && h.tiro && h.pilos > 0 && T - h.lanza > 1.1) h.tiro = false;
-  /* los galos: esperan, gritan y se vienen; a 9 m, a la carrera. El que cae sigue un poco con el impulso */
-  if (S.tGalos > 0) {
-    const vf = S.corrida ? V_GALO_CORRE : V_GALO;
-    for (const g of S.galos) {
-      if (!g.vivo) g.v *= Math.max(0, 1 - dt * 5);
-      else { const meta = S.choque || T < S.tGalos + g.sale ? 0 : T - g.frena < 0.5 ? vf * 0.15 : vf; g.v += (meta - g.v) * Math.min(1, dt * (meta < g.v ? 9 : 3)); }
-      g.z += g.v * dt; g.dist += g.v * dt;
-    }
+  if (S.fase === 'avance' && S.zF <= Z_PILA) { S.zF = Z_PILA; S.fase = 'pila'; S.andando = false; cinta('¡A tiro de pilum! Lanza', true); }
+  if (S.fase === 'carga' && S.zF <= Z_CHOQUE && !S.choque) {
+    S.zF = Z_CHOQUE; S.choque = true; S.llegaron = vivos(); S.sacude = 0.9; Son.choque();
+    for (const p of POLVO) { p.e = 1; p.t = T + azar() * 0.4; const x = (azar() - 0.5) * 8; p.s.position.set(x, H(x, Z_CHOQUE) + 0.4 + azar() * 0.6, Z_CHOQUE - 1 - azar() * 2.5); p.v.set((azar() - 0.5) * 1.5, 0.6 + azar() * 0.6, (azar() - 0.5) * 1.5); }
+    S.galos.filter(g => g.fila === 0).slice(0, 8).forEach((g, i) => { if (i % 3 === 1) { g.vivo = false; g.muere = T + 0.2 + azar() * 0.6; } });
+    S.tFin = T + 1.8;
   }
-  for (const g of S.galos) g.fr = frameGalo(g);
-  if (S.fase === 'pila' && S.tGalos > 0 && hueco() <= D_GLADIO) alGladio();
-  if (S.fase === 'carga' && !S.choque && hueco() <= 1.3) alChocar();
   if (S.fase === 'carga' && S.choque && T >= S.tFin) { S.fase = 'fin'; muestraFin(); }
+  if (S.fase === 'lanzando' && T >= S.tFin) { S.fase = 'cargar'; cinta('Los tiradores huyen. ¡Carga!', true); }
   /* descargas: aviso 1,2 s antes de soltar */
   if (S.fase === 'avance') {
     if (!S.aviso && T >= S.proxima - 1.2) { S.aviso = true; cinta('¡Venablos! Escudos arriba', false); if (S.k > 0.3) grita(GRITOS.aviso); }
@@ -911,22 +739,22 @@ function paso(dt) {
   for (const a of ASTILLAS) { if (T - a.t > 1.4 || a.t < 0) continue; a.v.y -= 9.8 * dt; a.m.position.addScaledVector(a.v, dt); a.m.rotation.x += a.w.x * dt; a.m.rotation.y += a.w.y * dt; const yg = H(a.m.position.x, a.m.position.z) + 0.02; if (a.m.position.y < yg) { a.m.position.y = yg; a.v.set(0, 0, 0); a.w.set(0, 0, 0); } }
   if (S.tGrito > 0 && T - S.tGrito > 1.7) { $('grito').classList.remove('ve'); S.tGrito = -9; }
   S.destello = Math.max(0, S.destello - dt);
-  /* pila propios: salen de la mano de cada hombre cuando suelta el brazo, vuelan en parábola tensa con el astil a lo largo
-     de la trayectoria (los que van a un galo siguen su carrera) y caen */
+  /* pila propios en el aire */
   for (const p of PILA) {
-    if (p.est === 1 && p.h.tiro) {
-      pilumEnMano(p.h, p.p0, p.q); p.p.copy(p.p0); p.t0 = T; p.est = 2;
-      destino(p, p.dur, p.p1); p.alto = 0.9 + 0.05 * p.p0.distanceTo(p.p1);
-    }
-    if (p.est !== 2) continue;
+    if (p.est !== 1 || T < p.t0) continue;
     const s = (T - p.t0) / p.dur;
-    if (p.tipo !== 'falla') destino(p, Math.max(0, p.t0 + p.dur - T), p.p1);
-    if (s >= 1) { p.p.copy(p.p1); impactoPilum(p); continue; }
-    p.p.lerpVectors(p.p0, p.p1, s); p.p.y += p.alto * 4 * s * (1 - s);
-    V3.subVectors(p.p1, p.p0); V3.y += p.alto * 4 * (1 - 2 * s); p.q.setFromUnitVectors(Z1, V3.normalize());
+    if (s >= 1) {
+      p.est = 2; const x = p.p1.x, z = p.p1.z;
+      if (p.blanco && p.blanco.vivo) { p.blanco.vivo = false; p.blanco.muere = T; p.g.quaternion.setFromEuler(new THREE.Euler(0, azar() * 6.28, 0)); p.g.position.set(x + 0.5, H(x, z) + 0.03, z + 0.4); }
+      else { V3.set(0, 0, 1).applyQuaternion(p.g.quaternion); p.g.position.set(x, H(x, z), z).addScaledVector(V3, -0.9); }
+      if (azar() < 0.4) Son.tierra(panDe(x), 0);
+      continue;
+    }
+    p.g.position.lerpVectors(p.p0, p.p1, s); p.g.position.y += p.alto * 4 * s * (1 - s);
+    V3.subVectors(p.p1, p.p0); V3.y += p.alto * 4 * (1 - 2 * s); p.g.quaternion.setFromUnitVectors(Z1, V3.normalize());
   }
-  /* los tiradores que quedan huyen loma arriba, entre los galos */
-  if (S.fase !== 'avance') for (const t of S.tiradores) if (t.vivo && t.huye && t.z > -150) t.z -= 4.5 * dt;
+  /* los tiradores que quedan huyen tras los pila */
+  if (S.fase === 'cargar' || S.fase === 'carga' || S.fase === 'fin') for (const t of S.tiradores) if (t.vivo) { t.huye = true; if (t.z > -122) t.z -= 4 * dt; }
   S.sacude = Math.max(0, S.sacude - dt);
   polvoPies(dt);
 }
@@ -1027,12 +855,14 @@ function dibuja() {
     const i = h.i;
     HOM.cuerpos.setMatrixAt(i, h.oculto ? CERO : h.inst); HOM.fr.array[i] = h.A; HOM.fr2.array[i] = h.B; HOM.mx.array[i] = h.mx;
     HOM.escudos.setMatrixAt(i, h === yo ? CERO : h.mEsc);
-    const mano = S.armas === 'espada' || !h.vivo || (h.tiro && h.pilos <= 0);   /* GM43h: entre salva y salva la mano queda libre */
+    const mano = S.armas === 'espada' || !h.vivo || h.tiro;
     HOM.espadas.setMatrixAt(i, mano && !h.oculto ? MA.multiplyMatrices(h.inst, hueso(HU.espada, h.A, h.B, h.mx, MB)) : CERO);
-    /* (el de detrás de ti, a tiro, queda a la altura de la cámara: su pilum en la mano no se pinta, que se cruzaría delante) */
-    const pegado = h.z > CAM.z - 0.6 && Math.abs(h.x - CAM.x) < 0.8;
-    if (S.armas === 'pilum' && h.vivo && !h.tiro && !h.oculto && !pegado) { pilumEnMano(h, PA, QA); HOM.pila.setMatrixAt(i, MA.compose(PA, QA, SA.set(1, 1, 1))); }
-    else HOM.pila.setMatrixAt(i, CERO);
+    if (S.armas === 'pilum' && h.vivo && !h.tiro && !h.oculto) {
+      const tl = T - h.lanza, lz = tl > 0 ? suave(0, 0.3, tl) : 0;
+      ancla(h, HU.espada, [0, 0, 0], PA); QA.copy(Q_PIE).slerp(Q_TENDIDO, h.k); if (lz) QA.slerp(Q_LANZA, lz);
+      V3.set(0, 0, 1).applyQuaternion(QA); PA.addScaledVector(V3, lerp(lerp(0.75, 0.25, h.k), 0.1, lz)); if (!lz) PA.y += 0.04 * h.k;
+      HOM.pila.setMatrixAt(i, MA.compose(PA, QA, SA.set(1, 1, 1)));
+    } else HOM.pila.setMatrixAt(i, CERO);
   }
   for (const m of [HOM.cuerpos, HOM.escudos, HOM.espadas, HOM.pila]) m.instanceMatrix.needsUpdate = true;
   HOM.fr.needsUpdate = HOM.fr2.needsUpdate = HOM.mx.needsUpdate = true;
@@ -1045,11 +875,14 @@ function dibuja() {
     else if (t.huye) { fr = frameOf(CP.run, T + t.fase); yaw = Math.PI; }
     else if (t.tira !== undefined && T - t.tira < 2.4 && T - t.tira > -1.5) fr = frameOnce(CP.attack_ranged, (T - t.tira + 1.5) * 1.3);
     else fr = frameOf(CP.idle, T + t.fase);
-    pon(P, i, t.x, H(t.x, t.z), t.z, yaw, fr); if (t.z <= -150) P.m.setMatrixAt(i, CERO);   /* GM43h: los que huyen se pierden loma arriba */
+    pon(P, i, t.x, H(t.x, t.z), t.z, yaw, fr);
   });
   P.m.instanceMatrix.needsUpdate = true; P.fr.needsUpdate = true;
-  const G = figuras.galos;
-  S.galos.forEach((g, i) => { g.fr = frameGalo(g); pon(G, i, g.x, H(g.x, g.z), g.z, 0, g.fr); });
+  const G = figuras.galos, CG = G.u.clips;
+  S.galos.forEach((g, i) => {
+    const fr = !g.vivo ? frameOnce(CG.death, Math.max(0, T - g.muere)) : S.choque && g.fila === 0 ? frameOf(CG.attack_melee, T + g.fase) : frameOf(CG.idle, T + g.fase);
+    pon(G, i, g.x, H(g.x, g.z), g.z, 0, fr);
+  });
   G.m.instanceMatrix.needsUpdate = true; G.fr.needsUpdate = true;
   /* venablos: en vuelo, clavados en un escudo (van con él) o en tierra */
   FL.forEach((f, i) => {
@@ -1060,13 +893,7 @@ function dibuja() {
   flechas.instanceMatrix.needsUpdate = true;
   for (const c of CHISPAS) { const a = T - c.t; c.s.visible = a >= 0 && a < 0.25; if (c.s.visible) { c.s.scale.setScalar((c.e || 1) * (0.6 + a * 5)); c.s.material.opacity = 1 - a / 0.25; } }
   for (const p of POLVO) { const a = T - p.t; p.s.visible = a >= 0 && a < 3; if (p.s.visible) { const e = p.e || 1; p.s.scale.setScalar(e * (1.2 + a * 1.6)); p.s.material.opacity = 0.85 * (1 - a / 3) * (e < 1 ? Math.max(0, 1 - a) : 1); } }
-  /* pila lanzados: en el aire, en tierra o clavados en el escudo de un galo (van con él aunque caiga) */
-  PILA.forEach((p, i) => {
-    if (p.est < 2) { pilaVuelo.setMatrixAt(i, CERO); return; }
-    if (p.est === 4) p.m.multiplyMatrices(huesoEscudoGalo(p.g, _gm), p.rel); else p.m.compose(p.p, p.q, UNO);
-    pilaVuelo.setMatrixAt(i, p.m);
-  });
-  pilaVuelo.instanceMatrix.needsUpdate = true;
+  for (const p of PILA) p.g.visible = p.est === 1 ? T >= p.t0 : p.est === 2;
   /* la cámara (ver camBase), con cabeceo al paso, temblor al correr y sacudida con giro cuando cae cada salva */
   camBase(); const andar = S.vel > 0 ? (S.corriendo ? 2.5 : 1) : 0, ph = S.paso / lerp(1.5, 1.05, k) * Math.PI, sc = S.sacude;
   let cx = CAM.x + Math.sin(ph) * 0.025 * andar, cy = CAM.y + Math.abs(Math.sin(ph)) * 0.04 * andar;
@@ -1111,19 +938,15 @@ function hud() {
   co.hidden = S.fase !== 'avance'; co.classList.toggle('activa', S.corriendo); co.classList.toggle('cansado', S.agotado); $('aliento').style.width = (S.aliento * 100).toFixed(0) + '%'; $('correr-t').textContent = S.agotado ? 'Sin aliento' : 'Correr';
   const me = $('miescudo'); me.setAttribute('class', S.roto ? 'roto' : 'e' + (S.golpes <= 0 ? 0 : S.golpes <= 2 ? 1 : 2)); me.title = S.roto ? 'Tu escudo está roto' : 'Tu escudo';
   av.hidden = S.fase !== 'avance'; av.classList.toggle('activa', S.andando);
-  es.hidden = S.fase !== 'avance'; es.classList.toggle('activa', S.escudos); es.classList.toggle('pide', S.aviso && !S.escudos);
+  es.hidden = !(S.fase === 'avance' || S.fase === 'pila'); es.classList.toggle('activa', S.escudos); es.classList.toggle('pide', S.aviso && !S.escudos);
   $('escudos-t').textContent = S.escudos ? 'Bajar escudos' : 'Escudos';
-  /* GM43h: «Lanzar» se mantiene pulsado; el medidor sube y baja y la zona verde es el buen tiro. Mientras pasan el segundo pilum, espera */
-  const enPila = S.fase === 'pila' && S.salvas < 2, espera = enPila && S.T < S.listo && !S.armando;
-  ac.hidden = !enPila; $('accion-t').textContent = S.salvas === 0 ? 'Lanzar' : 'Segundo pilum';
-  ac.classList.toggle('pide', enPila && !espera && !S.armando); ac.classList.toggle('activa', S.armando); ac.classList.toggle('espera', espera);
-  const ag = $('aguja'), m = S.armando ? S.medidor : espera && S.salvas === 1 ? 1 - (S.listo - S.T) / RECARGA : 0;
-  ag.style.width = (Math.max(0, Math.min(1, m)) * 100).toFixed(1) + '%'; ag.classList.toggle('buena', S.armando && m >= ZONA);
-  $('objetivo').textContent = S.fase === 'avance' ? 'Lleva el cuerpo hasta la loma' : S.fase === 'pila' ? (S.salvas === 0 ? 'Lanza los pila' : S.salvas === 1 ? 'Lanza el segundo pilum' : 'Aguanta, ya llegan') : 'Carga contra su línea';
+  ac.hidden = !(S.fase === 'pila' || S.fase === 'cargar'); $('accion-t').textContent = S.fase === 'cargar' ? '¡Cargar!' : 'Lanzar pila';
+  ac.classList.toggle('pide', !ac.hidden);
+  $('objetivo').textContent = S.fase === 'avance' ? 'Lleva el cuerpo hasta la loma' : S.fase === 'pila' || S.fase === 'lanzando' ? 'Lanza los pila' : 'Carga contra su línea';
 }
 function muestraFin() {
-  const n = S.llegaron, c = S.caidos; $('fin-t').textContent = n >= M * 0.8 ? '¡Choque!' : n >= M * 0.5 ? 'Llegasteis' : 'Llegasteis a duras penas';
-  $('fin-p').textContent = `Los pila tumbaron ${c} galo${c === 1 ? '' : 's'}. Quedan ${n} de ${M} hombres en pie. ` + (c < 7 ? 'Suelta el pilum con la aguja en la zona verde, y lanza los dos.' : n >= M * 0.8 ? 'El testudo aguantó y los pila hicieron su trabajo.' : 'Sube los escudos a tiempo cuando suene el aviso.');
+  const n = S.llegaron; $('fin-t').textContent = n >= M * 0.8 ? '¡Choque!' : n >= M * 0.5 ? 'Llegasteis' : 'Llegasteis a duras penas';
+  $('fin-p').textContent = `Llegaron ${n} de ${M} hombres. ` + (n >= M * 0.8 ? 'El testudo aguantó los venablos.' : 'Sube los escudos a tiempo cuando suene el aviso.');
   $('fin').hidden = false;
 }
 /* el sonido arranca con el primer toque (el navegador no deja antes) y lo abre el cuerno */
@@ -1135,11 +958,7 @@ const correr = $('correr');
 correr.addEventListener('pointerdown', e => { e.preventDefault(); try { correr.setPointerCapture(e.pointerId); } catch (x) { /* nada */ } S.corre = true; if (S.escudos) Son.clac(6); S.escudos = false; });
 for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) correr.addEventListener(ev, () => { S.corre = false; });
 $('escudos').addEventListener('pointerdown', e => { e.preventDefault(); S.escudos = !S.escudos; if (S.escudos) S.corre = false; Son.clac(S.escudos ? 10 : 6); });
-/* GM43h: «Lanzar» se mantiene: al bajar el dedo se arma el brazo, al soltarlo se lanza (un toque corto también lanza, flojo).
-   Si el navegador cancela el toque, se lanza igual: el botón nunca se queda enganchado */
-const accion = $('accion');
-accion.addEventListener('pointerdown', e => { e.preventDefault(); try { accion.setPointerCapture(e.pointerId); } catch (x) { /* nada */ } S.dedo = true; armar(); });
-for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) accion.addEventListener(ev, () => { S.dedo = false; soltar(); });
+$('accion').addEventListener('pointerdown', e => { e.preventDefault(); if (S.fase === 'pila') lanzarPila(); else cargar(); });
 $('otra').addEventListener('click', () => { location.href = location.pathname; });
 $('salir').addEventListener('click', () => { location.href = document.baseURI; });
 
@@ -1149,21 +968,16 @@ const salta = s => { for (let t = 0; t < s; t += 1 / 30) paso(1 / 30); };
 function prepara(f) {
   if (f === 'avance') { S.zF = -14; S.proxima = 99; S.andando = true; salta(1.3); }
   if (f === 'flechas') { S.zF = -28; S.andando = true; S.proxima = S.T + 1.25; salta(1.25 + 0.8); }
-  if (['testudo', 'cara', 'mira', 'roto', 'pila', 'armar', 'vuelo', 'impacto', 'final', 'carga'].includes(f)) {
+  if (['testudo', 'cara', 'mira', 'roto', 'pila', 'final', 'carga'].includes(f)) {
     S.zF = -30; S.andando = true; S.proxima = S.T + 0.5; salta(3.2);
     S.escudos = true; S.proxima = S.T + 0.6; salta(3.4);
     if (f === 'roto') for (let i = 0; i < 3; i++) { S.proxima = S.T + 0.3; salta(2.9); }
     if (f === 'testudo' || f === 'cara' || f === 'mira' || f === 'roto') S.zF = -50;
     S.proxima = S.T + 0.5; salta(f === 'testudo' ? 0.5 + 1.9 : f === 'mira' ? 0.5 + 2.2 + 1.5 : f === 'cara' || f === 'roto' ? 0.5 + 2.2 + 0.3 : 3);
   }
-  /* GM43h: a tiro, armar (medidor a medias), tu pilum en el aire, la segunda salva recién llegada, la carga y el final */
-  const tiro = (s) => { armar(); salta(s); soltar(); };
-  if (['pila', 'armar', 'vuelo', 'impacto', 'final', 'carga'].includes(f)) { S.zF = Z_PILA + 0.5; S.andando = true; salta(0.9); S.escudos = false; salta(f === 'pila' ? 2.5 : 1.2); }
-  if (f === 'armar') { armar(); salta(T_MEDIDOR / 2); }
-  if (f === 'vuelo') { tiro(T_MEDIDOR - 0.06); salta(0.17 + 0.55); }
-  if (f === 'impacto' || f === 'carga' || f === 'final') { tiro(T_MEDIDOR - 0.06); salta(RECARGA + 0.05 + (f === 'impacto' ? 1.8 : 0)); tiro(T_MEDIDOR - 0.06); salta(f === 'impacto' ? 0.17 + 1.3 + 0.9 : 0.5); }
-  if (f === 'carga') { for (let i = 0; i < 300 && S.fase !== 'carga'; i++) salta(0.1); salta(0.45); }
-  if (f === 'final') { for (let i = 0; i < 300 && S.fase !== 'fin'; i++) salta(0.1); salta(0.5); }
+  if (f === 'pila' || f === 'final' || f === 'carga') { S.zF = Z_PILA + 0.5; salta(1); S.escudos = false; salta(0.9); lanzarPila(); salta(f === 'pila' ? 1.45 : 3.2); }
+  if (f === 'final') { cargar(); salta(8); }
+  if (f === 'carga') { cargar(); salta(2.6); }
   if (['testudo', 'cara', 'mira', 'roto'].includes(f)) S.andando = true;
   parado = true;
 }
@@ -1179,12 +993,8 @@ function bucle(t) {
 /* para las pruebas: el estado y dónde caen en pantalla (0 a 1) tu cabeza, la de tu compañero, la rendija y el enemigo */
 const enPantalla = v => { v.project(camara); return { x: +((v.x + 1) / 2).toFixed(3), y: +((1 - v.y) / 2).toFixed(3), delante: v.z < 1 }; };
 window.__tp = {
-  lista: false, S, CAM, camara, Son, luz, renderer, escena, reinicia: () => reinicia(), Z_PILA, cine: { rayos, motas, pies, cielo, PIES }, salta: s => salta(s), parar: v => { parado = v; },
-  /* GM43h: el dedo en «Lanzar» (sin tocar la pantalla) y dónde caen en pantalla tu mano y la punta de tu pilum */
-  armar: () => armar(), soltar: () => soltar(), medidor: () => S.medidor,
-  gesto: () => { const yo = S.romanos[YO], P = new THREE.Vector3(), Qm = new THREE.Quaternion(); pilumEnMano(yo, P, Qm); const punta = P.clone().addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(Qm), PUNTA); return { mano: enPantalla(ancla(yo, HU.espada, [0, 0, 0], new THREE.Vector3())), punta: enPantalla(punta), conPilum: !yo.tiro, galo: enPantalla(new THREE.Vector3(0, H(0, frenteGalo()) + 1.2, frenteGalo())) }; },
-  galos: () => ({ vivos: S.galos.filter(g => g.vivo).length, porPila: S.caidos, hueco: +hueco().toFixed(2), clavados: PILA.filter(p => p.est === 4).length, enTierra: PILA.filter(p => p.est === 3).length, enAire: PILA.filter(p => p.est === 2).length, corren: S.galos.filter(g => g.vivo && g.v > 3).length, andan: S.galos.filter(g => g.vivo && g.v > 0.25 && g.v <= 3).length }),
-  estado: () => ({ salvas: S.salvas, buenos: S.buenos, caidos: S.caidos, choque: S.choque, armando: S.armando, dedo: S.dedo, golpes: S.golpes, roto: S.roto, clavados: FL.filter(f => f.est === 2).length, enHombre: FL.filter(f => f.est === 2 && f.h.k < 0.7).length, andando: S.andando, corriendo: S.corriendo, vel: S.vel, fase: S.fase, zF: S.zF, k: S.k, vivos: vivos(), flechas: FL.filter(f => f.est).length, mira: S.romanos[YO].mira, enc: S.romanos[YO].enc }),
+  lista: false, S, CAM, camara, Son, luz, renderer, escena, cine: { rayos, motas, pies, cielo, PIES }, salta: s => salta(s), parar: v => { parado = v; },
+  estado: () => ({ golpes: S.golpes, roto: S.roto, clavados: FL.filter(f => f.est === 2).length, enHombre: FL.filter(f => f.est === 2 && f.h.k < 0.7).length, andando: S.andando, corriendo: S.corriendo, vel: S.vel, fase: S.fase, zF: S.zF, k: S.k, vivos: vivos(), flechas: FL.filter(f => f.est).length, mira: S.romanos[YO].mira, enc: S.romanos[YO].enc }),
   encuadre: () => { const R = S.romanos, yF = H(CAM.x, S.zF); return { yo: enPantalla(ancla(R[YO], HU.cara, [0, 0, 0.25], new THREE.Vector3())), comp: enPantalla(ancla(R[CMP], HU.cara, [0, 0, 0.25], new THREE.Vector3())), rendija: enPantalla(new THREE.Vector3((R[YO].x + R[CMP].x) / 2, yF + 1.8, S.zF - MURO_Z)), enemigo: enPantalla(new THREE.Vector3(0, H(0, Z_TIRADORES) + 1, Z_TIRADORES)), muro: enPantalla(new THREE.Vector3(CAM.x, yF + MURO_Y + 0.72, S.zF - MURO_Z)), techo: enPantalla(new THREE.Vector3(CAM.x, yF + TECHO_Y + 0.03, S.zF + CERRADO.dz - TECHO_Z - 0.72)) }; },
   /* para comprobar las cuentas: dónde están de verdad cabeza y manos de un hombre */
   medidas: i => { const h = S.romanos[i], y0 = H(h.x, h.z), r = p => [+(p.x - h.x).toFixed(3), +(p.y - y0).toFixed(3), +(p.z - h.z).toFixed(3)]; return { cabeza: r(ancla(h, HU.cara, [0, 0, 0.25], new THREE.Vector3())), manoI: r(ancla(h, HU.escudo, [0, 0, 0], new THREE.Vector3())), escudo: r(new THREE.Vector3().setFromMatrixPosition(h.mEsc)), manoD: r(ancla(h, HU.espada, [0, 0, 0], new THREE.Vector3())) }; },
@@ -1194,8 +1004,7 @@ window.__tp = {
   { const td = await new THREE.TextureLoader().loadAsync('gobierno/maquetas/testudo-luz-campo/arte/detalle.png'); td.wrapS = td.wrapT = THREE.RepeatWrapping; td.anisotropy = 4; DET.value = td; }
   if (!getUnit('hastati') || !getUnit('peltastas') || !getUnit('galos')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
   CAMPO = await crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color });
-  await creaHombres(); malla('peltastas', 10, '#3456a8'); malla('galos', 16, '#3456a8'); zancadas(getUnit('galos'));
-  try { await escudoGalo(); } catch (e) { console.warn('Sin escudo galo para clavar pila', e); }
+  await creaHombres(); malla('peltastas', 10, '#3456a8'); malla('galos', 16, '#3456a8');
   reinicia();
   if (FASE) prepara(FASE);
   $('carga').hidden = true;

@@ -1,5 +1,5 @@
-// Maqueta «Testudo a pie» (GM43e luz y campo; GM43h lanzar el pilum): deja las capturas en gobierno/capturas-tarea/ y falla si algo no cuadra o hay errores de consola.
-// Uso:  node gobierno/maquetas/testudo-luz-campo/captura.mjs            -> GM43h-v-* (390x844, como juega el usuario) y GM43h-h-* (844x390), dpr 2
+// Maqueta GM43e «Testudo: luz de A y campo de B»: deja las capturas en gobierno/capturas-tarea/ y falla si algo no cuadra o hay errores de consola.
+// Uso:  node gobierno/maquetas/testudo-luz-campo/captura.mjs            -> GM43e-v-* (390x844, como juega el usuario) y GM43e-h-* (844x390), dpr 2
 //       node gobierno/maquetas/testudo-luz-campo/captura.mjs dpr=1 prefijo=/ruta/p-   -> rápido, para iterar
 //       node gobierno/maquetas/testudo-luz-campo/captura.mjs --servir                 -> solo sirve la página (puerto 8384)
 // Cada captura abre la maqueta con ?fase=… : la escena se coloca en ese momento y se congela.
@@ -21,7 +21,7 @@ if (args.includes('--servir')) { console.log('Sirviendo en ' + URL0); await new 
 const { chromium } = createRequire(join(RAIZ, 'x.js'))('playwright');
 const br = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 await mkdir(SALIDA, { recursive: true });
-const dpr = +(op.dpr || 2), prefijo = op.prefijo || join(SALIDA, 'GM43h-'), errores = [];
+const dpr = +(op.dpr || 2), prefijo = op.prefijo || join(SALIDA, 'GM43e-'), errores = [];
 const bien = (ok, texto) => { console.log((ok ? '  bien: ' : '  MAL: ') + texto); if (!ok) errores.push('PRUEBA: ' + texto); };
 const entre = (v, a, b) => v >= a && v <= b;
 function escucha(page) {
@@ -34,11 +34,11 @@ async function foto(fase, nombre, w, h) {
   const ctx = await br.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dpr, hasTouch: true, isMobile: true }), page = await ctx.newPage(); escucha(page);
   await page.goto(URL0 + (fase ? '?fase=' + fase : '')); await lista(page); await page.waitForTimeout(1500);
   const info = await page.evaluate(() => { const r = window.__tp.renderer.info.render; return { calls: r.calls, tri: r.triangles }; });   /* GM43e: coste del último fotograma (con la pasada de sombras) */
-  const e = await page.evaluate(() => ({ ...window.__tp.estado(), cuadro: window.__tp.encuadre(), yo: window.__tp.medidas(2), detras: window.__tp.medidas(9), gesto: window.__tp.gesto(), galos: window.__tp.galos(), medidor: window.__tp.medidor() }));
+  const e = await page.evaluate(() => ({ ...window.__tp.estado(), cuadro: window.__tp.encuadre(), yo: window.__tp.medidas(2), detras: window.__tp.medidas(9) }));
   const cajas = await page.evaluate(() => [...document.querySelectorAll('.boton,.pildora,.gordo')].filter(b => b.offsetParent).map(b => { const r = b.getBoundingClientRect(); return { id: b.id, l: r.left, r: r.right, t: r.top, b: r.bottom, h: r.height }; }));
   bien(cajas.every(c => c.l >= 0 && c.r <= w && c.t >= 0 && c.b <= h && c.h >= 44), `${nombre}: los botones caben enteros y miden al menos 44 px (${cajas.map(c => c.id).join(', ')})`);
   bien(cajas.filter(c => c.id !== 'otra').every(c => c.t > h * 0.55 || c.b < h * 0.2), `${nombre}: ningún botón tapa el centro`);
-  await page.screenshot({ path: (nombre.startsWith('_') ? join(tmpdir(), 'GM43h' + nombre) : prefijo + nombre) + '.jpg', type: 'jpeg', quality: 84, timeout: 240000 });
+  await page.screenshot({ path: (nombre.startsWith('_') ? join(tmpdir(), 'GM43e' + nombre) : prefijo + nombre) + '.jpg', type: 'jpeg', quality: 84, timeout: 240000 });
   console.log(`${nombre}: ${info.calls} llamadas, ${Math.round(info.tri / 1000)} mil triángulos, k ${e.k.toFixed(2)}, ${e.vivos} en pie, fase ${e.fase}, tu cabeza en (${e.cuadro.yo.x}, ${e.cuadro.yo.y}), compañero en (${e.cuadro.comp.x}, ${e.cuadro.comp.y}), rendija de ${e.cuadro.techo.y} a ${e.cuadro.muro.y}, enemigo en (${e.cuadro.enemigo.x}, ${e.cuadro.enemigo.y})`);
   await ctx.close(); return e;
 }
@@ -65,26 +65,12 @@ e = await foto('testudo', 'v-3-testudo', ...V); bien(e.k > 0.99 && e.vivos < 30,
 e = await foto('cara', 'v-4-golpe', ...V); bien(e.k > 0.99 && e.enc > 0.5 && e.clavados > 5, `golpe: cae la salva, tu soldado se encoge (${e.enc.toFixed(2)}) y hay venablos clavados en los escudos (${e.clavados})`);
 e = await foto('mira', 'v-5-cara', ...V); bien(e.mira > 0.9 && entre(e.cuadro.yo.x, 0.2, 0.6), 'cara: tu soldado se vuelve a los suyos y la cámara se le arrima (cabeza en ' + e.cuadro.yo.x + ')');
 e = await foto('roto', '_v-roto', ...V); bien(e.roto, 'roto: tu escudo ya está partido (' + e.golpes + ' golpes)');
-/* GM43h: el gesto se ve (mano y punta del pilum dentro de la pantalla) y los galos vienen */
-const dentro = (p, m = 0.02) => p.delante && entre(p.x, m, 1 - m) && entre(p.y, m, 1 - m);
-function gesto(e, nombre) {
-  const g = e.gesto;
-  bien(e.armando && g.conPilum && dentro(g.mano) && dentro(g.punta), `${nombre}: tu brazo armado con el pilum se ve (mano en ${g.mano.x}, ${g.mano.y}; punta en ${g.punta.x}, ${g.punta.y})`);
-  bien(entre(e.medidor, 0.3, 0.7), `${nombre}: el medidor va a medias (${e.medidor.toFixed(2)})`);
-  bien(e.galos.andan + e.galos.corren >= 12 && dentro(g.galo), `${nombre}: los galos vienen y se ven al fondo (${e.galos.andan} al paso, hueco ${e.galos.hueco} m)`);
-}
-e = await foto('pila', '_v-pila', ...V); bien(e.fase === 'pila' && e.galos.andan >= 12 && e.galos.hueco < 31, `a tiro: los galos se vienen cuesta abajo (hueco ${e.galos.hueco} m)`);
-e = await foto('armar', 'v-7-armar', ...V); gesto(e, 'armar vertical');
-e = await foto('vuelo', 'v-8-vuelo', ...V); bien(e.salvas === 1 && e.galos.enAire >= 6 && !e.gesto.conPilum, `vuelo: tu pilum ha salido de la mano y la salva está en el aire (${e.galos.enAire})`);
-e = await foto('impacto', 'v-9-impacto', ...V); bien(e.salvas === 2 && e.caidos >= 7 && e.galos.clavados >= 1 && e.galos.enTierra >= 4, `impacto: dos buenas salvas tumban ${e.caidos} galos; pila en escudos ${e.galos.clavados}, en tierra ${e.galos.enTierra}`);
-e = await foto('carga', 'v-6-carga', ...V); bien(e.fase === 'carga' && e.enHombre === 0, 'carga: gladios fuera y nadie lleva venablos clavados');
-e = await foto('final', '_v-final', ...V); bien(e.fase === 'fin' && e.choque, 'final: choque y tarjeta');
+e = await foto('pila', '_v-pila', ...V); bien(e.fase === 'lanzando', 'pila: los pila están en el aire');
+e = await foto('carga', 'v-6-carga', ...V); bien(e.fase === 'carga' && e.enHombre === 0, 'carga: nadie lleva venablos clavados');
+e = await foto('final', '_v-final', ...V); bien(e.fase === 'fin', 'final: sale la tarjeta');
 await foto('avance', 'h-1-marcha', ...Hz);
 e = await foto('testudo', 'h-3-testudo', ...Hz); encuadre(e, 'testudo horizontal', false);
 e = await foto('mira', '_h-cara', ...Hz); bien(e.mira > 0.9, 'cara en horizontal: tu soldado vuelto');
-e = await foto('armar', 'h-7-armar', ...Hz); gesto(e, 'armar horizontal');
-e = await foto('vuelo', 'h-8-vuelo', ...Hz);
-e = await foto('impacto', 'h-9-impacto', ...Hz);
 
 /* partida entera en vertical, con los dedos: mantener «Avanzar», «Escudos» a cada aviso, lanzar y cargar. El reloj se adelanta a saltos. */
 {
@@ -99,34 +85,13 @@ e = await foto('impacto', 'h-9-impacto', ...Hz);
   /* el resto, a saltos de reloj (el dedo sigue en «Avanzar»), jugando bien: escudos arriba con cada aviso y abajo cuando ya cayó la salva */
   const e3 = await page.evaluate(() => { const t = window.__tp, S = t.S; t.parar(true); for (let i = 0; i < 1500 && S.fase === 'avance'; i++) { S.escudos = S.aviso || S.impacto > 0; t.salta(0.1); } S.escudos = true; t.salta(1); return t.estado(); });
   bien(e3.fase === 'pila' && e3.vivos >= 25, `partida: llega a tiro de pilum con ${e3.vivos} de 30 subiendo los escudos a cada aviso (escudo propio: ${e3.golpes} golpes${e3.roto ? ', roto' : ''})`);
-  await page.mouse.up(); await page.evaluate(() => window.__tp.parar(false)); await page.waitForTimeout(400);
-  /* GM43h: «Lanzar» con el dedo: bajar arma el brazo, subir lanza; un pointercancel lanza igual y no deja el botón enganchado */
-  const toque = (tipo) => page.dispatchEvent('#accion', tipo, { pointerId: 7, pointerType: 'touch', isPrimary: true, bubbles: true });
-  bien(await page.locator('#accion').isVisible() && (await page.locator('#accion-t').textContent()) === 'Lanzar', 'en vivo: a tiro sale el botón «Lanzar»');
-  await toque('pointerdown'); const a1 = await page.evaluate(() => { const t = window.__tp; t.parar(true); t.salta(0.84); return t.estado(); });
-  await toque('pointerup'); const a2 = await page.evaluate(() => { const t = window.__tp; t.salta(0.2); return { ...t.estado(), m: t.medidor() }; });
-  bien(a1.armando && a1.dedo && !a2.armando && !a2.dedo && a2.salvas === 1 && a2.buenos === 1, `en vivo: mantener y soltar «Lanzar» lanza la primera salva (medidor ${a2.m.toFixed(2)}, buen tiro)`);
-  const a3 = await page.evaluate(() => { const t = window.__tp; t.salta(2.1); t.parar(false); return t.estado(); }); await page.waitForTimeout(300);
-  bien((await page.locator('#accion-t').textContent()) === 'Segundo pilum', 'en vivo: el botón pasa a «Segundo pilum»');
-  await toque('pointerdown'); const a4 = await page.evaluate(() => { const t = window.__tp; t.parar(true); t.salta(0.1); return t.estado(); });
-  await toque('pointercancel'); const a5 = await page.evaluate(() => { const t = window.__tp; t.salta(0.1); return t.estado(); });
-  bien(a4.armando && !a5.armando && !a5.dedo && a5.salvas === 2, 'en vivo: un toque cancelado por el navegador lanza el segundo pilum (flojo) y suelta el botón');
-  const e5 = await page.evaluate(() => { const t = window.__tp, S = t.S; for (let i = 0; i < 300 && S.fase !== 'fin'; i++) t.salta(0.1); t.parar(false); return t.estado(); });
+  await page.mouse.up(); await page.evaluate(() => window.__tp.parar(false)); await page.tap('#escudos'); await page.waitForTimeout(600); await page.tap('#accion');
+  const e4 = await page.evaluate(() => { const t = window.__tp; t.parar(true); t.salta(3.4); t.parar(false); return t.estado(); });
+  bien(e4.fase === 'cargar', 'partida: tras lanzar los pila toca cargar');
+  await page.waitForTimeout(600); await page.tap('#accion');
+  const e5 = await page.evaluate(() => { const t = window.__tp; t.parar(true); t.salta(9); t.parar(false); return t.estado(); });
   await page.waitForTimeout(800);
-  bien(e5.fase === 'fin' && e5.choque && await page.locator('#fin').isVisible(), `partida: gladios, choque y tarjeta final (${e5.caidos} galos caídos por los pila)`);
-  /* tres partidas desde «a tiro», a saltos de reloj: dos buenas salvas, dos flojas y sin lanzar */
-  const r = await page.evaluate(() => {
-    const t = window.__tp, S = t.S, juega = (sujeta) => {
-      t.reinicia(); S.zF = t.Z_PILA + 0.5; S.andando = true; t.salta(1.5);
-      for (const s of sujeta) { for (let i = 0; i < 60 && !t.armar(); i++) t.salta(0.05); t.salta(s); t.soltar(); }
-      for (let i = 0; i < 400 && S.fase !== 'fin'; i++) t.salta(0.1);
-      return { caidos: S.caidos, salvas: S.salvas, buenos: S.buenos, choque: S.choque, fase: S.fase };
-    };
-    t.parar(true); return { buenas: juega([0.84, 0.84]), flojas: juega([0.12, 0.12]), nada: juega([]) };
-  });
-  bien(r.buenas.salvas === 2 && r.buenas.buenos === 2 && r.buenas.caidos >= 7, `partida: dos salvas buenas tumban ${r.buenas.caidos} galos (7 o más)`);
-  bien(r.flojas.salvas === 2 && r.flojas.buenos === 0 && r.flojas.caidos <= 5, `partida: dos salvas flojas tumban ${r.flojas.caidos} (5 o menos)`);
-  bien(r.nada.salvas === 0 && r.nada.choque && r.nada.fase === 'fin', 'partida: sin lanzar, los galos llegan y hay choque igual');
+  bien(e5.fase === 'fin' && await page.locator('#fin').isVisible(), 'partida: carga, choque y tarjeta final');
   await ctx.close();
 }
 /* «Correr» mantenido diez segundos: corre, se queda sin aliento, sigue al paso y vuelve a correr; nunca se para ni va a tirones */

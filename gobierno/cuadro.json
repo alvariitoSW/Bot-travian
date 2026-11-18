@@ -1695,22 +1695,34 @@
     {
       "tarea": "GM43h",
       "archivo": "gobierno/capturas-tarea/GM43h-v-7-armar.jpg",
-      "pie": "Testudo a pie: mantienes «Lanzar», tu soldado arma el brazo y los galos se vienen"
+      "pie": "Versión A · Testudo a pie: mantienes «Lanzar», tu soldado arma el brazo y los galos se vienen"
     },
     {
       "tarea": "GM43h",
       "archivo": "gobierno/capturas-tarea/GM43h-v-8-vuelo.jpg",
-      "pie": "Los pila en el aire; el botón ya prepara el segundo"
+      "pie": "Versión A · Los pila en el aire; el botón ya prepara el segundo"
     },
     {
       "tarea": "GM43h",
       "archivo": "gobierno/capturas-tarea/GM43h-v-9-impacto.jpg",
-      "pie": "Impacto: caen cuatro galos y quedan pila clavados en tierra"
+      "pie": "Versión A · Impacto: caen cuatro galos y quedan pila clavados en tierra"
     },
     {
       "tarea": "GM43h",
       "archivo": "gobierno/capturas-tarea/GM43h-h-7-armar.jpg",
-      "pie": "Lo mismo en horizontal",
+      "pie": "Versión A · Lo mismo en horizontal",
+      "ancha": true
+    },
+    {
+      "tarea": "GM43h",
+      "archivo": "gobierno/capturas-tarea/GP1-tira-pilum.jpg",
+      "pie": "Versión B (GP1): el lanzamiento, paso a paso",
+      "ancha": true
+    },
+    {
+      "tarea": "GM43h",
+      "archivo": "gobierno/capturas-tarea/GP1-tira-choque.jpg",
+      "pie": "Versión B (GP1): el choque y la lucha por parejas",
       "ancha": true
     }
   ],
@@ -1986,7 +1998,7 @@
     {
       "tarea": "GM43h",
       "titulo": "Versión 1.0 · GM43h Testudo a pie: lanzar el pilum y la lucha (Fable dirige, Opus construye)",
-      "nota": "Terminada el 18/11: pilum hecho y subido; la lucha es GM43k",
+      "nota": "Hecha en maqueta el 18/11 (versión A); espera que elijas entre A y B",
       "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
     },
     {
