@@ -1988,6 +1988,10 @@
     {
       "titulo": "PO1 · Política: ¿encaja y cómo convergemos? (una página y tres preguntas)",
       "archivo": "gobierno/estudios/PO1-politica-converger.md"
+    },
+    {
+      "titulo": "EC0 · Objetivo final de la economía (medido con el bot)",
+      "archivo": "gobierno/estudios/EC0-objetivo-economia.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -2004,12 +2008,6 @@
       "titulo": "Corazón · TP1 La escena a pie, sobre la base (dirige y construye Opus)",
       "nota": "gobierno/maquetas/a-pie/ (carpeta nueva); une testudo-pilum-a y testudo-lucha; sin Fable",
       "url": "https://claude.ai/code/session_01QiKC36rueL1kwqzeVBKZqd"
-    },
-    {
-      "tarea": "EC0",
-      "titulo": "Cerebro · EC0 Objetivo final de la economía (solo documentos; dirige y construye Opus)",
-      "nota": "gobierno/estudios/EC0-objetivo-economia.md; mide el juego con el bot; sin tocar js/; 1,0 M",
-      "url": "https://claude.ai/code/session_01QiKC37Jy3fSXaHP4iSPnFT"
     },
     {
       "tarea": "CI0",
