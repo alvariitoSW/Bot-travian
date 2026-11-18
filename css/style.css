@@ -1651,3 +1651,27 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #hoja .esc-campo svg { width: 100%; height: auto; border-radius: 3px; display: block; }
 #hoja .esc-campo { padding: 4px; font-size: 14px; }
 #hoja .esc-dif > button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 56px; }
+
+/* ---- C18 · nombre de ciudad sobre cinta con el escudo del bando (mapa de campaña) ---- */
+.mlabel.cinta { background: none; border: 0; box-shadow: none; border-radius: 0; gap: 2px; padding: 0 13px 0 0; min-height: 26px; isolation: isolate; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .75)); }
+.mlabel.cinta::before { content: ''; position: absolute; z-index: -1; left: 11px; right: 0; top: 4px; bottom: 4px; background: linear-gradient(#f6e7bd, #dcc089);
+  clip-path: polygon(0 0, 100% 0, calc(100% - 7px) 50%, 100% 100%, 0 100%); box-shadow: inset 0 1.5px 0 #8a6034, inset 0 -2.5px 0 var(--cinta-pie, #8a6034); }
+.mlabel.cinta i.esc { width: 22px; height: 26px; border: 0; border-radius: 0; background: center / contain no-repeat; margin-right: 1px; }
+.mlabel.cinta span { color: #2b1c0a; font: 700 12.5px var(--serif); letter-spacing: .02em; }
+.mlabel.cinta em { color: #5a4220; font-weight: 600; }
+.mlabel.cinta.mine span { color: #8c1c13; }
+.mlabel.cinta.sel { background: none; } .mlabel.cinta.sel::before { background: linear-gradient(#fffaf0, #f1dfb2); }
+.mlabel.cinta.sel span { color: #111; } .mlabel.cinta.sel { filter: drop-shadow(0 0 3px #f6d77e) drop-shadow(0 1px 2px #000); }
+.mlabel.cinta[data-rel="guerra"] { --cinta-pie: #b3261e; } .mlabel.cinta[data-rel="alianza"] { --cinta-pie: #46661f; } .mlabel.cinta[data-rel="tributo"] { --cinta-pie: #b8862b; }
+.mlabel.cinta .marca { width: 16px; height: 16px; }
+
+/* ---- C18 · minimapa (se abre desde la hoja «Guerra») ---- */
+.mmini { position: absolute; left: 8px; bottom: calc(100px + env(safe-area-inset-bottom)); z-index: 4; width: 212px; padding: 4px 6px 5px; border-radius: 8px;
+  background: linear-gradient(#4a3216, #2c1d0b); border: 1px solid #c9a24f; box-shadow: 0 3px 12px #000a; color: #f4e6bd; touch-action: none; }
+.mmini[hidden] { display: none; }
+.mmini-c { display: flex; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 3px; }
+.mmini-c b { font: 700 12px var(--serif); letter-spacing: .06em; text-transform: uppercase; color: #f6d77e; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mmini-c button { min-height: 32px; padding: 0 10px; border-radius: 6px; border: 1px solid #c9a24f; background: #1c1206; color: #f4e6bd; font: 600 13px var(--libro, inherit); }
+.mmini canvas { display: block; width: 200px; height: 128px; border-radius: 3px; border: 1px solid #8a6034; cursor: pointer; }
+.mmini small { display: block; margin-top: 2px; font-size: 11px; color: #d8c79a; text-align: center; }
+#app[data-vista="city"] .mmini { display: none; }

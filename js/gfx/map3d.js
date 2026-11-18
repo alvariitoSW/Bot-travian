@@ -708,6 +708,36 @@ const JINETE = { cart: 'numidas', grie: 'tesalios', galo: 'jinetes', iber: 'jine
 const ORO = '#e0b24a', EJ_MAX = 64, SOLD_MAX = 64 * 15, ASTA_H = 3.3;
 const plano = (shape, prof) => { const g = new THREE.ExtrudeGeometry(shape, { depth: prof, bevelEnabled: false, curveSegments: 4 }); g.translate(0, 0, -prof / 2); return g.toNonIndexed(); };
 const forma = (pts, cerrar) => { const sh = new THREE.Shape(); sh.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) sh.lineTo(pts[i], pts[i + 1]); if (cerrar !== false) sh.closePath(); return sh; };
+/* C18 · escudo de la cinta del nombre de cada ciudad: color del bando, borde dorado y el emblema del estandarte (C17) en 2D.
+   Una imagen pequeña por facción, hecha una vez y guardada. */
+const ESCUDOS = {};
+function escudoURL(f) {
+  if (ESCUDOS[f]) return ESCUDOS[f];
+  const cv = document.createElement('canvas'); cv.width = 40; cv.height = 48; const g = cv.getContext('2d'), col = (D.FACTIONS[f] || {}).col || '#888';
+  const forma = () => { g.beginPath(); g.moveTo(4, 4); g.lineTo(36, 4); g.lineTo(36, 23); g.quadraticCurveTo(36, 39, 20, 46); g.quadraticCurveTo(4, 39, 4, 23); g.closePath(); };
+  forma(); g.fillStyle = col; g.fill();
+  const gr = g.createLinearGradient(0, 4, 0, 46); gr.addColorStop(0, 'rgba(255,255,255,.3)'); gr.addColorStop(0.45, 'rgba(255,255,255,0)'); gr.addColorStop(1, 'rgba(0,0,0,.35)'); g.fillStyle = gr; g.fill();
+  g.lineJoin = 'round'; g.lineWidth = 4; g.strokeStyle = '#3a2405'; g.stroke(); g.lineWidth = 2.2; g.strokeStyle = '#e9c063'; g.stroke();
+  g.fillStyle = '#f6d77e'; g.strokeStyle = '#f6d77e'; g.lineCap = 'round';
+  const t = EMBLEMA(f), P = pts => { g.beginPath(); pts.forEach((q, i) => i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1])); g.closePath(); g.fill(); };
+  if (t === 'aguila') {   // águila de alas abiertas
+    P([[20, 15], [17, 18], [6, 12], [8, 18], [5, 20], [10, 22], [7, 25], [17, 25], [17, 31], [14, 35], [26, 35], [23, 31], [23, 25], [33, 25], [30, 22], [35, 20], [32, 18], [34, 12], [23, 18]]);
+    g.beginPath(); g.arc(20, 13, 3, 0, 7); g.fill();
+  } else if (t === 'disco') {   // disco y creciente (estelas púnicas)
+    g.beginPath(); g.arc(20, 15, 5, 0, 7); g.fill(); g.lineWidth = 3; g.beginPath(); g.arc(20, 21, 9, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke();
+    P([[20, 30], [14, 39], [26, 39]]);
+  } else if (t === 'sol') {   // sol de rayos
+    g.beginPath(); g.arc(20, 23, 5, 0, 7); g.fill(); g.lineWidth = 2;
+    for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; g.beginPath(); g.moveTo(20 + Math.cos(a) * 7.5, 23 + Math.sin(a) * 7.5); g.lineTo(20 + Math.cos(a) * 12, 23 + Math.sin(a) * 12); g.stroke(); }
+  } else if (t === 'jabali') {   // jabalí
+    g.beginPath(); g.ellipse(21, 24, 10, 6, 0, 0, 7); g.fill(); P([[13, 20], [6, 26], [13, 28]]);
+    P([[14, 19], [17, 14], [20, 18], [23, 14], [26, 18], [29, 15], [30, 21]]);
+    g.fillRect(14, 28, 3, 7); g.fillRect(25, 28, 3, 7);
+  } else {   // punta de lanza
+    P([[20, 9], [27, 24], [20, 33], [13, 24]]); g.fillRect(19, 33, 2, 8);
+  }
+  return (ESCUDOS[f] = 'url(' + cv.toDataURL() + ')');
+}
 function emblemaGeo(tipo) {   // en el origen la punta del asta; el emblema crece hacia arriba (~0,7 de alto)
   const P = [];
   if (tipo === 'aguila') {
@@ -767,7 +797,74 @@ export class MapView3D {
     this.esc = { zona: null, pila: [], anim: null, zEls: {}, clave: '' };   // C6: escalón actual, pila de «volver» y animación de cámara
     this.migas = document.createElement('div'); this.migas.className = 'mmigas'; host.insertBefore(this.migas, this.labels.nextSibling);
     this.migas.addEventListener('click', ev => { if (ev.target.closest('[data-volver]')) { ev.stopPropagation(); this.volver(); } });
+    this.miniCrear();
     this.build(); this.bind(); this.resize(); this.armies = new Map(); this.t = 0; this.last = performance.now();
+  }
+  /* C18 · minimapa: un lienzo 2D pequeño en una esquina con el mundo entero, las ciudades (las tuyas, con anillo dorado), la zona en la
+     que estás y el encuadre de la cámara. Se abre y se cierra desde la hoja «Guerra». Tocarlo lleva a esa zona (como los nombres de zona
+     de C6). Solo se repinta si está abierto, cuatro veces por segundo; no añade nada a la escena 3D. */
+  miniCrear() {
+    const m = this.mini = document.createElement('div'); m.className = 'mmini'; m.hidden = true;
+    m.innerHTML = '<div class="mmini-c"><b>Mare Nostrum</b><button type="button" data-cerrar>Cerrar</button></div><canvas></canvas><small>Toca una zona para ir</small>';
+    this.host.appendChild(m); this.miniCv = m.querySelector('canvas'); this.miniOn = false;
+    for (const t of ['pointerdown', 'pointermove', 'click', 'wheel']) m.addEventListener(t, ev => ev.stopPropagation(), { passive: true });
+    m.querySelector('[data-cerrar]').addEventListener('click', () => this.minimapa(false));
+    this.miniCv.addEventListener('pointerup', ev => {
+      const r = this.miniCv.getBoundingClientRect(); if (!r.width) return;
+      this.irMinimapa(OX + (ev.clientX - r.left) / r.width * ANCHO, OZ + (ev.clientY - r.top) / r.height * ALTO);
+    });
+  }
+  miniDims() { return [OX, OZ, ANCHO, ALTO]; }   // para las capturas de prueba
+  minimapa(on) { this.miniOn = on === undefined ? !this.miniOn : !!on; this.mini.hidden = !this.miniOn; this.miniT = -1; if (this.opts.onMini) this.opts.onMini(this.miniOn); return this.miniOn; }
+  /* fondo del minimapa, una sola vez: mar y tierra por alturas (this.H) */
+  miniFondo() {
+    if (this.miniBase) return this.miniBase;
+    const W1 = NX + 1, w = 310, h = Math.round(w * NZ / NX), cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    const g = cv.getContext('2d'), im = g.createImageData(w, h), d = im.data, mez = (a, b, k) => a + (b - a) * k;
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const v = this.H[Math.round(y / (h - 1) * NZ) * W1 + Math.round(x / (w - 1) * NX)], o = (y * w + x) * 4;
+      if (v < 0) { const k = Math.min(1, -v / 0.5); d[o] = mez(108, 40, k); d[o + 1] = mez(168, 98, k); d[o + 2] = mez(184, 132, k); }
+      else { const k = Math.min(1, v / 1.6); d[o] = mez(170, 196, k); d[o + 1] = mez(160, 176, k); d[o + 2] = mez(104, 150, k); }
+      d[o + 3] = 255;
+    }
+    g.putImageData(im, 0, 0); return (this.miniBase = cv);
+  }
+  miniPinta(state) {
+    const cv = this.miniCv, dpr = Math.min(2, window.devicePixelRatio || 1), cw = cv.clientWidth, chh = cv.clientHeight; if (!cw) return;
+    if (cv.width !== Math.round(cw * dpr)) { cv.width = Math.round(cw * dpr); cv.height = Math.round(chh * dpr); }
+    const g = cv.getContext('2d'), w = cv.width, h = cv.height, X = x => (x - OX) / ANCHO * w, Z = z => (z - OZ) / ALTO * h, st = this.esc;
+    g.drawImage(this.miniFondo(), 0, 0, w, h);
+    // la zona en la que estás: recuadro dorado alrededor de sus ciudades
+    if (st.zona) {
+      let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const id of this.zonaCiudades(st.zona, state)) { const c = this.cities[id]; x0 = Math.min(x0, c.x); x1 = Math.max(x1, c.x); z0 = Math.min(z0, c.z); z1 = Math.max(z1, c.z); }
+      if (x0 < x1 + 1) { g.lineWidth = 1.5 * dpr; g.strokeStyle = '#e9c063'; g.setLineDash([3 * dpr, 2 * dpr]); g.strokeRect(X(x0) - 5 * dpr, Z(z0) - 5 * dpr, X(x1) - X(x0) + 10 * dpr, Z(z1) - Z(z0) + 10 * dpr); g.setLineDash([]); }
+    }
+    // ciudades: punto del color del bando; las tuyas, más grandes y con anillo dorado
+    for (const id in this.cities) {
+      const s = state.cities[id]; if (!s) continue; const c = this.cities[id], mia = s.owner === 'roma';
+      g.beginPath(); g.arc(X(c.x), Z(c.z), (mia ? 2.8 : 2) * dpr, 0, 7); g.fillStyle = D.FACTIONS[s.owner].col; g.fill();
+      g.lineWidth = (mia ? 1.4 : 0.8) * dpr; g.strokeStyle = mia ? '#f6d77e' : '#1b130a'; g.stroke();
+    }
+    // encuadre: lo que ve la cámara, proyectado sobre el suelo (con horizonte, se corta a 1,8 distancias)
+    const ray = this.miniRay || (this.miniRay = new THREE.Raycaster()), v2 = new THREE.Vector2(), pts = [];
+    for (const [a, b] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+      v2.set(a, b); ray.setFromCamera(v2, this.cam); const o = ray.ray.origin, dd = ray.ray.direction, lim = this.c.dist * 1.8;
+      const k = dd.y < -1e-3 ? Math.min(-o.y / dd.y, lim) : lim; pts.push([X(o.x + dd.x * k), Z(o.z + dd.z * k)]);
+    }
+    g.beginPath(); pts.forEach((q, i) => i ? g.lineTo(q[0], q[1]) : g.moveTo(q[0], q[1])); g.closePath();
+    g.fillStyle = 'rgba(255,255,255,.16)'; g.fill(); g.lineWidth = 1.6 * dpr; g.strokeStyle = '#fff'; g.stroke();
+    const t = st.zona ? D.ZONAS[st.zona].n : 'Mare Nostrum', b = this.mini.querySelector('b'); if (b.textContent !== t) b.textContent = t;
+  }
+  /* tocar el minimapa: la zona de la ciudad más cercana (C6); fuera de las zonas, la cámara se desliza hasta allí */
+  irMinimapa(x, z) {
+    const st = this.esc, c = this.c, state = G.state; if (!state || st.entrando) return;
+    let best = null, bd = 9; for (const id in this.cities) { if (!state.cities[id]) continue; const k = this.cities[id], d = Math.hypot(k.x - x, k.z - z); if (d < bd) { bd = d; best = id; } }
+    const zona = best && D.zonaDe(best);
+    if (G.regionId() === 'mediterraneo' && zona) {
+      if (zona === st.zona) return; const base = st.pila[0];
+      this.entrarZona(zona); if (base) st.pila = [base];   // «volver» sigue llevando a Mare Nostrum
+    } else st.anim = { d: 0.6, de: { x: c.x, z: c.z, dist: c.dist }, a: { x: x, z: z, dist: Math.min(c.dist, this.umbralMare() * 0.6) } };
+    this.miniT = -1;
   }
 
   build() {
@@ -953,7 +1050,7 @@ export class MapView3D {
       const fm = new THREE.MeshLambertMaterial({ color: '#fff', side: THREE.DoubleSide }), flag = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.6), fm); flag.position.set(0.5, 1.95, 0); grp.add(flag); grp.userData.pole = pole;
       const ring = new THREE.Mesh(new THREE.RingGeometry(1.35, 1.6, 28), new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, opacity: 0.85, depthWrite: false })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.05; ring.visible = false; grp.add(ring);
       grp.scale.setScalar(s); grp.position.set(x, Math.max(0.05, this.hAt(x, z)), z); sc.add(grp);
-      const el = document.createElement('button'); el.className = 'mlabel'; el.innerHTML = '<i></i><b class="marca" hidden></b><span>' + d.n + '</span><em></em>';
+      const el = document.createElement('button'); el.type = 'button'; el.className = 'mlabel cinta'; el.innerHTML = '<i class="esc"></i><b class="marca" hidden></b><span>' + d.n + '</span><em></em>';   // C18: nombre sobre cinta con el escudo del bando
       el.addEventListener('click', ev => { ev.stopPropagation(); if (this.opts.onSelect) this.opts.onSelect(id); });
       this.labels.appendChild(el);
       this.cities[id] = { s: s, marca: el.querySelector('b'), rel: null, casas: casas, pole: pole, flag: fm, flagMesh: flag, centro: null, quiere: null, grp: grp, ring: ring, el: el, dot: el.querySelector('i'), em: el.querySelector('em'), owner: null, x: x, z: z, top: 2.6 * s };
@@ -1148,6 +1245,7 @@ export class MapView3D {
     const cpos = this.cam.position, alc = this.alcance, place = (el, x, y, z) => { if (alc && Math.hypot(x - cpos.x, y - cpos.y, z - cpos.z) > alc) { el.style.display = 'none'; return; } v.set(x, y, z).project(this.cam); if (v.z > 1 || v.x < -1.2 || v.x > 1.2 || v.y < -1.2 || v.y > 1.2) { el.style.display = 'none'; return; } el.style.display = ''; el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * Hh).toFixed(1) + 'px) translate(-50%,-100%)'; };
     if (this.labels.scrollLeft || this.labels.scrollTop) { this.labels.scrollLeft = 0; this.labels.scrollTop = 0; }
     this.escalon(state, dt, place);
+    if (this.miniOn && (this.miniT < 0 || this.t - this.miniT > 0.25)) { this.miniT = this.t; this.miniPinta(state); }   // C18
     const mare = this.esc.mare;
     this.alDiaMundo();
     for (const id in this.sitios) {      // CN5: sitios libres, con colonos en camino o con colonos esperando; los de fuera de la región, ocultos (I6)
@@ -1166,7 +1264,7 @@ export class MapView3D {
       const c = this.cities[id], st = state.cities[id];
       if (!st) { c.grp.visible = false; c.el.style.display = 'none'; continue; }   // ciudad que no es de esta región: ni modelo ni etiqueta
       c.grp.visible = true;
-      if (c.owner !== st.owner) { c.owner = st.owner; c.quiere = claveCentro(st.owner); const col = D.FACTIONS[st.owner].col; c.flag.color.set(col); c.dot.style.background = col; c.el.classList.toggle('mine', st.owner === 'roma'); }
+      if (c.owner !== st.owner) { c.owner = st.owner; c.quiere = claveCentro(st.owner); const col = D.FACTIONS[st.owner].col; c.flag.color.set(col); c.dot.style.backgroundImage = escudoURL(st.owner); c.el.classList.toggle('mine', st.owner === 'roma'); }
       const rel = st.owner === 'roma' ? '' : (G.dipEstado(st.owner) || 'guerra');   // K7a: aliada, tributaria o en guerra con Roma
       if (c.rel !== rel) { c.rel = rel; c.el.dataset.rel = rel; c.marca.hidden = !rel; c.marca.textContent = rel === 'alianza' ? '🤝' : rel === 'tributo' ? '💰' : rel ? '⚔' : ''; c.marca.title = rel === 'alianza' ? 'Aliada de Roma' : rel === 'tributo' ? 'Paga tributo a Roma' : 'En guerra con Roma'; }
       if (c.quiere !== c.puesto) this.ponerCentro(c);
