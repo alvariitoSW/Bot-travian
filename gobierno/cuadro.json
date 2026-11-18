@@ -1996,6 +1996,18 @@
     {
       "titulo": "CI0 · Objetivo final de la ciudad, con 21 láminas de la época",
       "archivo": "gobierno/estudios/CI0-objetivo-ciudad.md"
+    },
+    {
+      "titulo": "MN0 · Objetivo final de los menús",
+      "archivo": "gobierno/estudios/MN0-objetivo-menus.md"
+    },
+    {
+      "titulo": "MN0 · Encargo artístico para la maqueta de menús",
+      "archivo": "gobierno/estudios/MN0-encargo-artistico.md"
+    },
+    {
+      "titulo": "CG1 · Objetivo final de la batalla: un simulador propio",
+      "archivo": "gobierno/estudios/CG1-objetivo-batalla.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -2024,6 +2036,24 @@
       "titulo": "Cerebro · CE2 Recursos nuevos (dirige y construye Opus)",
       "nota": "js/game.js, data.js, ui.js, bot y guardado migrado; 2,0 M declarado, unos 3,6 M esperables",
       "url": "https://claude.ai/code/session_01QiKC397z42u9YdbK1uWvE9"
+    },
+    {
+      "tarea": "GM44",
+      "titulo": "Corazón · GM44 Modelos de soldado nuevos para las demás tropas (dirige y construye Opus)",
+      "nota": "js/gfx/soldado.js, js/ui-guerra.js, assets/soldados/; plan y tamaño en la primera hora; 1,0 M hasta confirmar",
+      "url": "https://claude.ai/code/session_01QiKC3AgvUkgAmNioZYMQbp"
+    },
+    {
+      "tarea": "GC10",
+      "titulo": "Corazón · GC10 Quitar los restos de la batalla clásica (pequeña; Opus)",
+      "nota": "js/gfx/battle3d.js, #battle de index.html, estilos del HUD clásico; 0,4 M",
+      "url": "https://claude.ai/code/session_01QiKC36vAMHv9Rmi5MqfkAG"
+    },
+    {
+      "tarea": "CG3",
+      "titulo": "Corazón · CG3 Simulador de batallas, solo lógica (dirige y construye Opus)",
+      "nota": "archivos nuevos y su prueba; aún no se ve en el juego; declarado 2,5 M, esperable 4,5 M",
+      "url": "https://claude.ai/code/session_01QiKC39wcF8Dqhq1fbYLXaW"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

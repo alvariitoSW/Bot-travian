@@ -162,17 +162,17 @@
       "organo": "corazon",
       "titulo": "Una sola batalla, con un solo aspecto",
       "estado": "medias",
-      "veras": "Una única batalla, la misma en campaña y en Escaramuzas: maniobras, mandas y, si quieres, bajas a pie. Todas las tropas con el soldado nuevo y la luz y el campo del testudo.",
+      "veras": "Un simulador de batallas en tiempo real, el mismo en campaña y en Escaramuzas: plan previo que se puede saltar con «Ver cómo irá», mando en vivo por manípulos con tus tribunos, y batalla rápida si no quieres jugarla larga.",
       "hecho": "Batalla con órdenes, proyectiles, duelos y caídos; va fluida en tu móvil. Hastati y galos llevan el soldado nuevo.",
-      "falta": "Lo principal. Tú, el 18/11: «son 4 juegos diferentes en un juego y los gráficos son una mierda». Los cuatro son la maniobra, la batalla de mando, Escaramuzas y el testudo a pie: hay que unirlos en una sola batalla con un solo aspecto antes de pulir más piezas sueltas.",
+      "falta": "Tu 18/11 (CG1): «un simulador de batallas propio». Plan CG2 a CG7: simulador (CG3, en obra), mando en vivo (CG4), tribunos y plan previo (CG5), batalla rápida y minijuegos (CG7). De base, en obra: el soldado nuevo para las demás tropas (GM44) y la limpieza de la batalla antigua (GC10). Caballería y elefantes seguirán con el modelo de 0 A.D.",
       "captura": "gobierno/capturas-tarea/GM44c-1-vertical-nuevo.jpg",
       "tareas": [
         "GM44",
-        "GM43g",
-        "UB1",
-        "UB3",
-        "UB2",
-        "GC10"
+        "GC10",
+        "CG3",
+        "CG4",
+        "CG5",
+        "CG7"
       ]
     },
     {
@@ -180,15 +180,14 @@
       "organo": "corazon",
       "titulo": "El testudo a pie, dentro del juego",
       "estado": "medias",
-      "veras": "Entras desde el juego, avanzas bajo los escudos, lanzas el pilum y luchas cuerpo a cuerpo, con sonido de verdad.",
+      "veras": "Bajas a pie desde un manípulo de la batalla, con la vista desde el hombro: te mueves, luchas y usas habilidades (el testudo, una más); si caes, sigues como otro soldado.",
       "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas.",
-      "falta": "En obra: el paso 2 (centurión, cuatro órdenes, lucha fina) y la falange de picas. Faltan el soldado nuevo, el sonido y las caras.",
+      "falta": "En obra: el paso 2 de la escena a pie (TP1b). Después, «bajar a pie» dentro de la batalla (CG6), el sonido y las caras.",
       "captura": "gobierno/capturas-tarea/GM43f-2-escena.jpg",
       "tareas": [
         "TP1",
         "TP1b",
-        "TP7a",
-        "GM43l",
+        "CG6",
         "GM43i",
         "GM43j"
       ]
@@ -202,21 +201,6 @@
       "hecho": "Botón en el menú principal, tres tamaños de ejército, campo y dificultad.",
       "captura": "gobierno/capturas-tarea/MR3b-5-escaramuzas.jpg",
       "tareas": []
-    },
-    {
-      "id": "L13",
-      "organo": "musculo",
-      "titulo": "Un solo aspecto antiguo en todos los menús",
-      "estado": "medias",
-      "veras": "Todas las pantallas en papiro, tablilla y bronce. Ninguna parece de otro juego.",
-      "hecho": "Menú principal, Imperio, Gobierno, Senado, avisos, Mercado, Rutas y Crónica.",
-      "falta": "El Códice y los avisos de batalla, que siguen oscuros.",
-      "captura": "gobierno/capturas-tarea/MR2c-1-menu.jpg",
-      "tareas": [
-        "PA1",
-        "PA2",
-        "PA3"
-      ]
     },
     {
       "id": "L14",
@@ -248,6 +232,33 @@
       "falta": "Todo: lo hace CE11 (tras CE10).",
       "tareas": [
         "CE11"
+      ]
+    },
+    {
+      "id": "L17",
+      "organo": "corazon",
+      "titulo": "Formaciones en Escaramuzas",
+      "estado": "falta",
+      "veras": "En Escaramuzas eliges tus tropas con su dibujo, su coste y lo que saben hacer (testudo, picas, muro…) y pruebas las formaciones; las escenas a pie quedan como minijuegos.",
+      "falta": "Tu «A» del 18/11: entra en la 1.0. La falange de picas (TP7a) está en obra; las fichas de tropa son CG2 y los minijuegos CG7.",
+      "tareas": [
+        "TP7a",
+        "CG2",
+        "CG7"
+      ]
+    },
+    {
+      "id": "L13",
+      "organo": "musculo",
+      "titulo": "Menús reordenados y con un solo aspecto antiguo",
+      "estado": "falta",
+      "veras": "Una barra de seis (Ciudad · Senado · Saber · Tropas · Mapa · Imperio); llegas al Senado y a la política a un toque; construyes con «Lo hago yo · Encargar · Gobernador»; todo en papiro, tablilla y bronce.",
+      "falta": "Tu «A · Todo entra» del 18/11 en MN0: barra de seis y mapa nuevo (MN1), Senado e Imperio con su sitio (MN2), gobernador (MN3) y renovación artística con maqueta (MN4). Absorbe el papiro del Códice y de los avisos (PA1 a PA3), que habías sacado con la respuesta A de las formaciones.",
+      "tareas": [
+        "MN1",
+        "MN2",
+        "MN3",
+        "MN4"
       ]
     }
   ],
