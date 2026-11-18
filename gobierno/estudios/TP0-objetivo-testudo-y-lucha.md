@@ -31,7 +31,18 @@ El testudo a pie de hoy es la primera unidad de esa segunda altura, no una escen
 - Lo que haces a pie se devuelve al motor: bajas de los dos, ánimo y si rompe uno. Un buen centurión gana su trozo de línea; no gana solo la batalla.
 - La batalla sigue recibiendo dos ejércitos y devolviendo bajas: la economía no se entera (arquitectura de `CLAUDE.md` §2, intacta).
 
-## La lucha a pie: qué tiene que verse y sentirse (lo primero)
+## Nota del usuario por momentos (18/11)
+«La marcha y el correr sobre todo hay que mejorarlo, y el resto de cosas me parece bien». Valen como base: salva de
+venablos, testudo, golpe en el escudo, lanzar el pilum, carga, choque y final. **Lo peor: andar y correr.**
+
+## Andar y correr (lo primero, con la lucha)
+- Los hombres pisan el suelo: el pie no patina y el paso casa con lo que avanzan.
+- El cuerpo acompaña: peso, brazos y escudo se mueven con el paso; al correr se inclinan y el equipo bota.
+- No van todos a la vez como un solo muñeco: cada uno con su desfase.
+- Pasar de quieto a andar, a correr y a parar se hace sin saltos.
+- La cámara acompaña el paso sin marear.
+
+## La lucha a pie: qué tiene que verse y sentirse
 - **Tu duelo**: el enemigo de delante avisa su golpe con el cuerpo; si levantas el escudo a tiempo, para (madera, sacudida);
   parado, queda abierto y tu estocada entra; el empujón de escudo lo desequilibra. Si fallas, te hiere: a la tercera caes.
 - **Golpes con peso**: cada golpe llega a algo (escudo o cuerpo) y el que lo recibe reacciona: retrocede, se dobla, cae.
@@ -55,7 +66,7 @@ Una sola «escena a pie» hecha de piezas que se cambian sin rehacer lo demás:
 
 ## Orden propuesto (una tarea cada vez; cada una se prueba en el móvil antes de la siguiente)
 1. **TP1 · La escena a pie sobre la base, con la lucha** (la única que se abre ahora): unir el lanzar de A y la lucha de B
-   sobre esas piezas; centurión con relevo a soldado; lucha como arriba; con los muñecos de hoy; se juega desde Escaramuzas.
+   sobre esas piezas; **andar y correr bien**; centurión con relevo a soldado; lucha como arriba; con los muñecos de hoy; se juega desde Escaramuzas.
    La unidad ya entra y sale con los números del motor de guerra, aunque aún no se baje desde una batalla.
    Presupuesto honrado: 4 a 5 M (solo el pilum costó 2,8 M).
 2. **TP2 · Bajar a pie desde la batalla grande**: botón en un cuerpo, despliegue, devolver el resultado, subir.
