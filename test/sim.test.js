@@ -1698,7 +1698,7 @@ console.log('OK — todas las pruebas superadas');
   { const s = G.newGame('Pie', null, { modo: 'corta', inicio: 'enPie' });
     assert.deepStrictEqual(s.modo, { id: 'corta', inicio: 'enPie', fase: 'jugando' }); assert.strictEqual(s.region, 'italia'); assert.strictEqual(s.capital, 'roma'); assert.deepStrictEqual(G.myCities().sort(), ['capua', 'roma']);
     assert(G.modo() === M && G.hasta() === 232 && G.factor('instr') === 1.6 && G.factor('saber') === 1 && G.edadMax() === 3 && !G.fundando());
-    assert(G.bonoMul('instr') > 0 && G.factor('guarnicion') === 3 && s.cities.tarentum.units.falange === Math.round(D.CITIES.tarentum.g.falange * 3), 'el rival parte con la guarnición del modo'); }
+    assert(G.bonoMul('instr') > 0 && G.factor('guarnicion') === D.MODOS.corta.inicio.enPie.factores.guarnicion && s.cities.tarentum.units.falange === Math.round(D.CITIES.tarentum.g.falange * G.factor('guarnicion')), 'el rival parte con la guarnición del modo'); }
   // arranque «fundar de la nada»
   { const s = G.newGame('Nada', null, { modo: 'corta', inicio: 'fundar' });
     assert.deepStrictEqual(s.modo, { id: 'corta', inicio: 'fundar', fase: 'fundando' }); assert(G.fundando() && G.modoFase() === 'fundando');
