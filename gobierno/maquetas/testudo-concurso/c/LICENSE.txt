@@ -1,0 +1,18 @@
+Concurso GM43d · participante C «Hombres y hierro» · piezas de arte de esta carpeta
+
+detalle.png (512x512, RGBA, 0,7 MB): cuatro mapas de gris empaquetados, uno por canal. Hecho en esta sesión con
+Python a partir de estas texturas, reducidas a 512, pasadas a gris y normalizadas. El resultado se publica como CC0.
+  R · trama de lino: «Rough Linen», mapa de desplazamiento. Autor: colmass (foto) y Rico Cilliers (proceso), Poly Haven.
+      Licencia CC0 1.0. https://polyhaven.com/a/rough_linen
+  G · veta de madera: «Fine Grained Wood», color pasado a gris y filtrado. Autor: Rob Tuytel, Poly Haven.
+      Licencia CC0 1.0. https://polyhaven.com/a/fine_grained_wood
+  B · manchas (barro, salpicaduras, pátina): «Rusty Metal 02», lo anaranjado del color. Autor: Rob Tuytel, Poly Haven.
+      Licencia CC0 1.0. https://polyhaven.com/a/rusty_metal_02
+  A · arañazos: dibujados por código en esta sesión (azar con semilla fija). CC0.
+  Licencia de Poly Haven comprobada en su página: https://polyhaven.com/license («CC0 means absolute freedom»).
+
+Soldados, escudos y espadas: arte de 0 A.D. (Wildfire Games), CC BY-SA 3.0, cargado de assets/ sin cambiarlo.
+  https://play0ad.com · https://creativecommons.org/licenses/by-sa/3.0/
+  Su aspecto se cambia en el sombreador (color por hombre, pelo, barro, brillo); no hay texturas retocadas de 0 A.D.
+
+Venablos, pila, sombras de los venablos y de los hombres: hechos por código en vista.js.

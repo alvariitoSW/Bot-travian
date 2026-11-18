@@ -1,0 +1,7 @@
+Concurso GM43d · participante A («Luz de cine») · piezas de arte y su licencia
+
+- cielo.jpg: cielo panorámico «Kloppenheim 06 (Pure Sky)», de Greg Zaal (foto) y Jarod Guest (retoque del cielo), Poly Haven, CC0 1.0 (dominio público). https://polyhaven.com/a/kloppenheim_06_puresky · licencia: https://polyhaven.com/license
+  Bajado el .hdr de 2K, pasado aquí a JPG de 2048×512 (solo la mitad de arriba, con tonemapping propio). Comprobado CC0 en la página de licencia de Poly Haven el 17/11/2026.
+- Soldados, escudos y espadas: arte de 0 A.D. (Wildfire Games), CC BY-SA 3.0, https://play0ad.com · https://creativecommons.org/licenses/by-sa/3.0/
+  Lo que aquí se cambia de su aspecto (pelo negro liso pasado a castaño en el sombreador, borde de contraluz) se hace en el sombreador, sin tocar sus archivos; lo derivado hereda CC BY-SA 3.0.
+- Luz, sombras, rayos, motas de polvo, polvo de los pies, gradación de color, viñeta y grano: hechos por código en esta carpeta (sin arte de fuera).
