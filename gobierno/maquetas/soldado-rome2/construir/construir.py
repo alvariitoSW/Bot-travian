@@ -198,7 +198,14 @@ def montar(nombre, piezas_, m, util, clips, muestra, lado=2048, tex=True, juego=
 if __name__ == '__main__':
     import texturas
     quien = sys.argv[1] if len(sys.argv) > 1 else 'hastatus'; fondo = '--lod3' in sys.argv; muy = '--lod2' in sys.argv or fondo; lod = '--lod' in sys.argv or muy; m = mh.construir(); util, a = X.huesos_utiles(m, sin_dedos=lod); B = ropa.Base(m, util, a)
-    if quien == 'galo': texturas.ESTILO = dict(pelo=[0.55, 0.47, 0.30], calzado='zapato', melena=[0.74, 0.66, 0.47]); pz = galo(m, B, lod, muy, fondo)
+    # GM44d: equipos nuevos en módulos aparte (equipos_*.py), cada uno con EQUIPOS = {nombre: dict(fn, estilo, cfg, muestra, mov)}
+    import glob, importlib; EQ = {}
+    for f in sorted(glob.glob(os.path.join(AQUI, 'equipos_*.py'))): EQ.update(getattr(importlib.import_module(os.path.basename(f)[:-3]), 'EQUIPOS', {}))
+    cfg, muestra, movs = CFG_HASTATUS, MUESTRA_HASTATUS, movimientos
+    if quien in EQ:
+        e = EQ[quien]; texturas.RELIEVE_MAX = 1024; texturas.ESTILO = dict(texturas.ESTILO, **e.get('estilo', {})); pz = e['fn'](m, B, lod, muy, fondo); cfg = e.get('cfg', cfg); muestra = e.get('muestra', muestra); movs = e.get('movimientos', movs)
+        if MOV != 'no': MOV = e.get('mov', MOV)
+    elif quien == 'galo': texturas.ESTILO = dict(pelo=[0.55, 0.47, 0.30], calzado='zapato', melena=[0.74, 0.66, 0.47]); pz = galo(m, B, lod, muy, fondo)
     else: pz = hastatus(m, B, lod, muy, fondo)
     if lod:                                                    # de lejos no hay huesos de dedos: el puño va ya cerrado en la malla
         utilF, aF = X.huesos_utiles(m); BF = ropa.Base(m, utilF, aF); D = np.tile(np.eye(3), (1, len(m['huesos']), 1, 1)); lib = np.zeros(len(m['huesos']), bool); poses.punos(m, D, lib)
@@ -206,5 +213,5 @@ if __name__ == '__main__':
         for p in pz:
             if p['nombre'].startswith('piel'): p['P'] = np.einsum('vb,bij,vj->vi', BF.Wd[p['vs']], A, np.c_[p['P'], np.ones(len(p['P']))]); p['N'] = np.einsum('vb,bij,vj->vi', BF.Wd[p['vs']], A[:, :, :3], p['N']); p['N'] /= np.maximum(np.linalg.norm(p['N'], axis=1, keepdims=True), 1e-9)
         pz = aligerar_piezas(pz, muy=muy, fondo=fondo)
-    clips = movimientos(m, util, CFG_HASTATUS); nombre = quien + ('_fondo' if fondo else '_muylejos' if muy else '_lejos' if lod else ''); j = montar(nombre, pz, m, util, clips, MUESTRA_HASTATUS, lado=512 if muy else 1024 if lod else 2048, juego=None if MOV == 'no' else MOV)
+    clips = movs(m, util, cfg); nombre = quien + ('_fondo' if fondo else '_muylejos' if muy else '_lejos' if lod else ''); j = montar(nombre, pz, m, util, clips, muestra, lado=512 if muy else 1024 if lod else 2048, juego=None if MOV == 'no' else MOV)
     print(j['verts'], 'vértices', j['tris'], 'triángulos', len(util), 'huesos', j['cuadros'], 'cuadros'); print(j['piezas']); print({k: round(os.path.getsize(os.path.join(SAL, k)) / 1e6, 2) for k in sorted(os.listdir(SAL)) if k.startswith(nombre + '.') or k.startswith(nombre + '_')})

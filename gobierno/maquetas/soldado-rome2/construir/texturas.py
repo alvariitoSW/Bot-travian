@@ -49,6 +49,8 @@ def oclusion(pz):
     return mira
 
 ESTILO = dict(pelo=[0.13, 0.09, 0.065], calzado='caligae')
+PINTORES = []           # GM44d: [(lista de ids de MAT, fn(ctx))]; fn escribe en ctx['C'][s], ctx['H'][s]... como los bloques de abajo
+RELIEVE_MAX = None      # GM44d: si se pone (p. ej. 1024), relieve y brillo (normal, orm) se guardan a ese lado como mucho
 def pintar(pz, lado, ruta, m):
     N = lado; B = dict(pos=np.zeros((N, N, 3), np.float32), nor=np.zeros((N, N, 3), np.float32), prm=np.zeros((N, N, 2), np.float32), aux=np.zeros((N, N, 2), np.float32)); mat = np.zeros((N, N), np.int16); pid = -np.ones((N, N), np.int16); mpp = np.ones((N, N), np.float32); M = np.zeros((N, N), bool)
     for k, p in enumerate(pz):
@@ -187,6 +189,10 @@ def pintar(pz, lado, ruta, m):
     if s.any():
         u, v = AX[s].T; heb = r2(u * 300, v * 7, 1.0, 9.0); heb2 = r2(u * 900, v * 12, 1.0, 19.0); c = np.tile(ESTILO.get('melena', [0.74, 0.66, 0.47]), (int(s.sum()), 1)) * (0.50 + 0.45 * heb + 0.3 * heb2)[:, None]
         C[s] = c; H[s] = 0.0022 * heb + 0.001 * heb2; R[s] = 0.6; TI[s, 0] = 1; TI[s, 2] = 1
+    # ---------- GM44d: materiales nuevos (los registran los módulos equipos_*.py / piezas_*.py) ----------
+    for ids, fn in PINTORES:
+        s = np.isin(MT, ids)
+        if s.any(): fn(dict(s=s, P=P, Nn=Nn, PR=PR, AX=AX, MT=MT, PID=PID, es=es, C=C, H=H, R=R, ME=ME, TI=TI, AO=AO, grano=grano, mancha=mancha, fino=fino, m=m))
     # ---------- salida ----------
     C = np.clip(C * (0.52 + 0.48 * AO)[:, None] * (0.93 + 0.11 * Nn[:, 1])[:, None], 0, 1)
     def lienzo(v, k, fondo):
@@ -196,6 +202,6 @@ def pintar(pz, lado, ruta, m):
     gx[:, 1:] += dx * 0.5; gx[:, :-1] += dx * 0.5; gy[1:] += dy * 0.5; gy[:-1] += dy * 0.5; nx = -gx / mpp * 1.6; ny = -gy / mpp * 1.6; l = np.sqrt(nx * nx + ny * ny + 1); nor = np.stack([nx / l, ny / l, 1 / l], -1) * 0.5 + 0.5
     capas = [col, nor, orm, tin]; geo.dilatar(M, capas, 20)
     b = lambda a: np.clip(a * 255 + 0.5, 0, 255).astype(np.uint8); base = ruta.split('/')[-1]
-    Image.fromarray(b(col)).save(ruta + '_color.webp', quality=93, method=4); Image.fromarray(b(nor)).save(ruta + '_normal.webp', quality=92, method=4); Image.fromarray(b(orm)).save(ruta + '_orm.webp', quality=88, method=4)
+    Image.fromarray(b(col)).save(ruta + '_color.webp', quality=93, method=4); rl = (lambda im: im.resize((RELIEVE_MAX, RELIEVE_MAX), Image.LANCZOS) if RELIEVE_MAX and N > RELIEVE_MAX else im); rl(Image.fromarray(b(nor))).save(ruta + '_normal.webp', quality=92, method=4); rl(Image.fromarray(b(orm))).save(ruta + '_orm.webp', quality=88, method=4)
     Image.fromarray(b(tin)).resize((N // 2, N // 2), Image.LANCZOS).save(ruta + '_masc.webp', quality=90, method=4)
     return dict(color=base + '_color.webp', normal=base + '_normal.webp', orm=base + '_orm.webp', masc=base + '_masc.webp')
