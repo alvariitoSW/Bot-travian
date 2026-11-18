@@ -16,6 +16,7 @@ const VISTAS = { italia: { c: 'roma', dist: 120 }, alpes: { c: 'mediolanum', dis
   /* C11: pueblos y tribus */ celtiberia: { lon: -3.2, lat: 40.6, dist: 50 }, numidia: { lon: 5.5, lat: 34.8, dist: 50 }, aldea: { lon: -2.4, lat: 41.0, dist: 12 }, mapalia: { lon: 7.3, lat: 35.6, dist: 12 }, balcanes: { lon: 21.5, lat: 43.2, dist: 60 },
   /* C16: ciudades grandes */ cartago: { c: 'carthago', dist: 20 }, rusellae: { c: 'rusellae', dist: 14 }, romaCerca: { c: 'roma', dist: 12 }, siracusa: { c: 'syracusae', dist: 22 },
   /* C17: ejércitos y flota de prueba (con marchas=1) */ ejRoma: { ej: 0, dist: 12 }, ejRomaMedio: { ej: 0, dist: 40 }, ejCart: { ej: 1, dist: 12 }, ejCartMedio: { ej: 1, dist: 40 }, flota: { ej: 2, dist: 12 }, flotaMedio: { ej: 2, dist: 40 },
+  /* C18: hoja «Guerra» con «Ver minimapa», minimapa abierto (Mare Nostrum) y tocar Sicilia en el minimapa (toques de verdad) */ hojaGuerra: { c: 'roma', dist: 200, acc: 'hoja' }, mini: { c: 'roma', dist: 200, acc: 'mini' }, miniSicilia: { acc: 'toque', lon: 14.2, lat: 37.5 }, miniEtruria: { acc: 'toque', lon: 11.6, lat: 43.0 },
   /* C12: calzadas y puertos */ apia: { lon: 13.4, lat: 41.5, dist: 30 }, flaminia: { lon: 12.4, lat: 43.2, dist: 60 }, egeo: { lon: 26.0, lat: 35.5, dist: 110 }, ostia: { lon: 12.6, lat: 41.6, dist: 22 } };
 const vistas = (op.vistas || 'italia,alpes,sicilia,grecia,costa,baja').split(',');
 const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.glb': 'model/gltf-binary', '.bin': 'application/octet-stream' };
@@ -50,7 +51,16 @@ if (op.marchas) await page.evaluate(() => {   // C17: un ejército romano grande
 await mkdir(join(RAIZ, 'gobierno/capturas-tarea'), { recursive: true });
 const medir = () => page.evaluate(() => { const i = UI.map.r.info.render; return i.triangles + ' triángulos, ' + i.calls + ' llamadas'; });
 for (const v of vistas) {
-  await page.evaluate(([v, V]) => { const m = UI.map; m.c.dist = V.dist; if (V.ej !== undefined) { const a = m.armies.get(9001 + V.ej); if (a) { m.c.x = a.grp.position.x; m.c.z = a.grp.position.z; } } else if (V.c) m.center(V.c); else { m.c.x = (V.lon + 7) * 5; m.c.z = (47 - V.lat) * 6.4; } m.clamp(); }, [v, VISTAS[v]]);
+  if (VISTAS[v].acc === 'hoja') await page.click('#hguerra, [data-act="hguerra"]');
+  if (VISTAS[v].acc === 'mini') { if (!(await page.evaluate(() => !document.getElementById('hoja').hidden))) await page.click('[data-act="hguerra"]'); await page.waitForTimeout(800); await page.click('#hoja [data-act="minimapa"]'); }
+  if (VISTAS[v].acc === 'toque') {   // toca el minimapa en lon/lat: lleva a esa zona (C6) y no debe elegir ciudad
+    const r = await page.evaluate(() => { const b = UI.map.miniCv.getBoundingClientRect(); return [b.left, b.top, b.width, b.height]; }), V = VISTAS[v];
+    const [ox, oz, an, al] = await page.evaluate(() => UI.map.miniDims());
+    await page.mouse.click(r[0] + ((V.lon + 7) * 5 - ox) / an * r[2], r[1] + ((47 - V.lat) * 6.4 - oz) / al * r[3]); await page.waitForTimeout(3500);
+    console.log(v + ': zona ' + (await page.evaluate(() => UI.map.esc.zona + ' · elegida ' + UI.sel)));
+  }
+  if (!VISTAS[v].acc) await page.evaluate(([v, V]) => { const m = UI.map; m.c.dist = V.dist; if (V.ej !== undefined) { const a = m.armies.get(9001 + V.ej); if (a) { m.c.x = a.grp.position.x; m.c.z = a.grp.position.z; } } else if (V.c) m.center(V.c); else { m.c.x = (V.lon + 7) * 5; m.c.z = (47 - V.lat) * 6.4; } m.clamp(); }, [v, VISTAS[v]]);
+  if (VISTAS[v].acc === 'mini') await page.evaluate(([V]) => { const m = UI.map; m.c.dist = V.dist; m.center(V.c); m.clamp(); }, [VISTAS[v]]);
   await page.waitForTimeout(3500);
   if (VISTAS[v].drag) for (let i = 0; i < 3; i++) { const sx = 195 - VISTAS[v].drag * 140; await page.mouse.move(sx, 480); await page.mouse.down(); for (let k = 1; k <= 10; k++) await page.mouse.move(sx + VISTAS[v].drag * 28 * k, 480 + (k % 2)); await page.mouse.up(); await page.waitForTimeout(800); }
   if (VISTAS[v].drag) { await page.waitForTimeout(2000); console.log(v + ': c.x ' + (await page.evaluate(() => UI.map.c.x)).toFixed(1)); }

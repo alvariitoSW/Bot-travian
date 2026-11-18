@@ -486,13 +486,14 @@ function ajustesHoja() {
     '<div class="hsep"></div>' + tog('Ambiente', 'id="aj-ambiente" data-act="ambiente"', G.ambiente(), 'Tono por estación, viñeta y contorno dorado en la ciudad') + '<div id="aj-sonido">' + tog('Sonido', 'data-act="sonido"', sonidoOn()) + '</div></div>';
 }
 /* C8b: el botón «Guerra» abre lo de la guerra; el resto vive en ☰ */
+const ICO_MAPA = svgIco('<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/>');   // C18: minimapa
 function guerraHoja() {
   const s = S(); if (!s) return '<div class="empty">Aún no hay partida.</div>';
   const nom = id => esc(((D.CITIES[id] || (D.COLONIAS && D.COLONIAS[id])) || { n: id }).n), ms = s.marches.filter(m => m.owner === 'roma');
   const f = (act, v, ico, txt) => '<button class="hf" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span>' + txt + '</span></button>';
   return '<b class="hrot">' + (ms.length ? (ms.length === 1 ? '1 marcha en curso' : ms.length + ' marchas en curso') : 'Ninguna marcha en curso') + '</b>' +
     ms.map(m => f('vera', m.to, '🚩', 'De ' + nom(m.from) + ' a ' + nom(m.to) + ' · llega ' + (G.turnos ? turnosTxt(G.turnosFaltan(m)) : 'en ' + months(Math.max(0, m.t1 - s.t))))).join('') +
-    '<div class="hsep"></div>' + f('home', null, D.GUERRA_ICON.aguila, 'Ir a mi general') + f('modo', 'gobierno', ICO_GOB, 'Pasar a Gobierno');
+    '<div class="hsep"></div>' + f('minimapa', null, ICO_MAPA, UI.map && UI.map.miniOn ? 'Ocultar minimapa' : 'Ver minimapa') + f('home', null, D.GUERRA_ICON.aguila, 'Ir a mi general') + f('modo', 'gobierno', ICO_GOB, 'Pasar a Gobierno');
 }
 const HOJAS = {
   menu: { titulo: 'Menú', alt: 1, html: menuHoja },
@@ -1633,6 +1634,7 @@ document.addEventListener('click', function (e) {
     case 'entrar': entrarEn(v); break;
     case 'vera': hojaCierra(true); try { if (UI.map) UI.map.center(v); } catch (e) { } break;
     case 'hoja': hojaAbre(v); break;
+    case 'minimapa': if (UI.map) { UI.map.minimapa(); hojaCierra(); } break;   // C18: el minimapa se abre y se cierra desde la hoja «Guerra»
     case 'mpanel': { const nm = $('hname') ? $('hname').value : ''; UI.mPanel = v; showMenu(); if (nm && $('hname')) $('hname').value = nm; $('menu').scrollTop = 0; break; }
     case 'escel': { const i = v.indexOf(':'); UI.esc[v.slice(0, i)] = v.slice(i + 1); hojaPinta(true); break; }
     case 'escempieza': escEmpieza(); break;
