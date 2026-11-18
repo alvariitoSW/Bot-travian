@@ -418,7 +418,7 @@ const CIMOD = require('../js/ciudad.js'); G.usarCiudad(null);
   const v = JSON.parse(JSON.stringify(s)); G.state = s;
   const r = v.cities.roma, o = v.cities.volsinii; r.b.termas = 2; r.b.anfiteatro = 1; r.b.acueducto = 3; r.heredado = { acueducto: 1 }; o.b.termas = 4; o.owner = 'etruscos';
   r.obras = [{ b: 'termas', nc: 2, pag: 1, cuota: { denarios: 40 }, costo: { denarios: 80 }, t0: 0, t1: 5 }, { b: 'granja', nc: 1, pag: 1, cuota: {}, costo: {}, t0: 0, t1: 5 }];
-  const alm0 = v.alm.denarios, madera0 = v.alm.materiales, capAlm = (G.state = v, G.cap()); v.alm.materiales = capAlm - 100;
+  const alm0 = v.alm.denarios, madera0 = v.alm.materiales, capAlm = (G.state = v, G.capDe('materiales')); v.alm.materiales = capAlm - 100;   // CE2: los materiales tienen su tope (el doble)
   const mem = {}; global.localStorage = { getItem: k => mem[k] || null, setItem: (k, x) => { mem[k] = x; } };
   localStorage.setItem('aqvila-save-v1', JSON.stringify(v));
   assert(G.load(), 'la partida vieja carga'); const q = G.state;
@@ -427,7 +427,7 @@ const CIMOD = require('../js/ciudad.js'); G.usarCiudad(null);
   const rr = (b, n) => { let t = 0; for (let l = 0; l < n; l++) t += Math.round(D.RETIRADOS[b].denarios * Math.pow(1.5, l) / 5) * 5; return t; };
   const oroDev = rr('termas', 2) + rr('anfiteatro', 1) + rr('acueducto', 3) + 40;   // niveles de Roma + lo ya pagado de la obra
   assert(q.devuelto && q.devuelto.total.denarios === Math.min(oroDev, Math.max(0, G.cap() - alm0)), 'oro devuelto con tope (' + (q.devuelto && q.devuelto.total.denarios) + ' de ' + oroDev + ')');
-  assert.strictEqual(q.alm.materiales, G.cap(), 'la materiales no pasa del tope del almacén'); assert(q.devuelto.perdido.materiales > 0, 'se anota lo perdido por el tope');
+  assert.strictEqual(q.alm.materiales, G.capDe('materiales'), 'los materiales no pasan de su tope del almacén'); assert(q.devuelto.perdido.materiales > 0, 'se anota lo perdido por el tope');
   assert.strictEqual(q.devuelto.termas, 6, 'niveles quitados de termas (2 de Roma + 4 ajena)'); assert.strictEqual(G.ultimaMigracion, q.devuelto);
   // otro dueño: sin devolución
   assert.strictEqual(q.cities.volsinii.owner, 'etruscos');
