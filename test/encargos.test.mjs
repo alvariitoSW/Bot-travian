@@ -7,7 +7,7 @@ let n = 0, mal = 0;
 function t(nombre, f) { try { f(); n++; console.log('bien', nombre); } catch (e) { mal++; console.log('MAL', nombre, '—', e.message); } }
 const nueva = () => { const s = G.newGame('Test', 'mediterraneo', {}); G.onEvent = null; return s; };
 function con(med, f) { const a = {}; for (const k in med) { a[k] = G.MEDIDAS[k]; G.MEDIDAS[k] = typeof med[k] === 'function' ? med[k] : () => med[k]; } try { f(); } finally { Object.assign(G.MEDIDAS, a); } }
-const ceros = { casas: 0, barrios: 0, barrioNivel: 0, fuentes: 0, oro: 0, encargos: 0 };
+const ceros = { casas: 0, barrios: 0, barrioNivel: 0, fuentes: 0, denarios: 0, encargos: 0 };
 
 t('migración: partida sin encargos ni hitos los recibe', () => { const s = nueva(); delete s.encargos; delete s.hitos; G.migrarSenado(s); assert.ok(s.encargos && s.encargos.activo === null && s.hitos && typeof s.hitos === 'object'); });
 
@@ -18,9 +18,9 @@ t('se asigna un encargo, uno solo, y no se repite la casilla de las misiones', (
 });
 
 t('cumplir un encargo da el premio, queda hecho y no vuelve', () => {
-  const s = nueva(); s.encargos.activo = { id: 'techo-30', t0: 0, t1: 12 }; const oro = s.res.oro, fs = s.favor.senado;
+  const s = nueva(); s.encargos.activo = { id: 'techo-30', t0: 0, t1: 12 }; const oro = s.res.denarios, fs = s.favor.senado;
   con(Object.assign({}, ceros, { casas: 30 }), () => G.encargosMes(1));
-  assert.strictEqual(s.encargos.hechos['techo-30'], 'ok'); assert.strictEqual(s.res.oro, oro + 120); assert.ok(s.favor.senado > fs);
+  assert.strictEqual(s.encargos.hechos['techo-30'], 'ok'); assert.strictEqual(s.res.denarios, oro + 120); assert.ok(s.favor.senado > fs);
   assert.ok(s.log.some(l => /Encargo cumplido/.test(l.x)), 'aviso en el diario');
   const sinEnc = Object.assign({}, ceros, { casas: 30 }); delete sinEnc.encargos;
   con(sinEnc, () => { G.encargosMes(5); assert.notStrictEqual((G.encargoActual() || { e: {} }).e.id, 'techo-30'); });
