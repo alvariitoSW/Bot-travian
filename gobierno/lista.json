@@ -47,10 +47,8 @@
       "veras": "Colocas cada edificio donde quieres. Los barrios crecen solos alrededor y hay incendios y crecidas que atender.",
       "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría.",
       "captura": "gobierno/capturas-tarea/Q1k-5-barrios.jpg",
-      "tareas": [
-        "CI0"
-      ],
-      "falta": "Tu pedido del 18/11: la ciudad funciona pero no tiene relación con el gobierno y falta aspecto. Antes de construir, una página de objetivo con las láminas de ciudades de la época reunidas (CI0). Lo que salga se te propone."
+      "tareas": [],
+      "falta": "El objetivo ya está escrito (CI0, 18/11): «tu ciudad es el espejo de cómo gobiernas». Falta tu respuesta sobre qué entra en la 1.0 (el gobierno visible en la ciudad y Roma con el aspecto de su siglo, ≈1,3 M)."
     },
     {
       "id": "L2",

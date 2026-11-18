@@ -1992,6 +1992,10 @@
     {
       "titulo": "EC0 · Objetivo final de la economía (medido con el bot)",
       "archivo": "gobierno/estudios/EC0-objetivo-economia.md"
+    },
+    {
+      "titulo": "CI0 · Objetivo final de la ciudad, con 21 láminas de la época",
+      "archivo": "gobierno/estudios/CI0-objetivo-ciudad.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -2008,12 +2012,6 @@
       "titulo": "Corazón · TP1 La escena a pie, sobre la base (dirige y construye Opus)",
       "nota": "gobierno/maquetas/a-pie/ (carpeta nueva); une testudo-pilum-a y testudo-lucha; sin Fable",
       "url": "https://claude.ai/code/session_01QiKC36rueL1kwqzeVBKZqd"
-    },
-    {
-      "tarea": "CI0",
-      "titulo": "Cerebro · CI0 Objetivo final de la ciudad, con láminas (solo documentos; dirige y construye Opus)",
-      "nota": "gobierno/estudios/CI0-objetivo-ciudad.md y gobierno/historia/laminas-ciudades/; sin tocar js/; 0,8 M",
-      "url": "https://claude.ai/code/session_01QiKC36BmvfmQUDJ3LxdxQh"
     },
     {
       "tarea": "CE1",
