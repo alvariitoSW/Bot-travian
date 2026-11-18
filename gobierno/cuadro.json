@@ -2042,6 +2042,12 @@
       "titulo": "Corazón · GC10 Quitar los restos de la batalla clásica (pequeña; Opus)",
       "nota": "js/gfx/battle3d.js, #battle de index.html, estilos del HUD clásico; 0,4 M",
       "url": "https://claude.ai/code/session_01QiKC36vAMHv9Rmi5MqfkAG"
+    },
+    {
+      "tarea": "CG1",
+      "titulo": "Corazón · CG1 Objetivo final de la batalla única (hablándolo con el usuario; Opus)",
+      "nota": "gobierno/estudios/CG1-objetivo-batalla.md; plan previo, mando en vivo y primera persona; un plan cerrado; 1,5 M",
+      "url": "https://claude.ai/code/session_01QiKC37WmxPAdtLbYmWV84c"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
