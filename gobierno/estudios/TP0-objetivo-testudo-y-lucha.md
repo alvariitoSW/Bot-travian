@@ -22,7 +22,20 @@ bajas a una unidad y la vives a pie, como su centurión. El testudo a pie es la 
   la unidad se lee como un bloque con su estandarte encima; el testudo es un modo que se enciende y se apaga; la ficha
   de la unidad dice en palabras cómo está («fresca», «con ganas», «combate igualado», «agotada», «perdiendo») y la
   batalla acaba con un veredicto («derrota por poco»). Además, Rome II deja bajar la cámara hasta el soldado.
-- **Ryse: Son of Rome**, para la altura a pie: cámara tras el hombro, testudo bajo proyectiles, peso en cada golpe.
+- **Ryse: Son of Rome**, para la altura a pie. De imágenes fijas de cuatro vídeos de su testudo (miradas el 18/11):
+  la cámara va a la altura de la cabeza, pegada a una fila de cuatro espaldas; tú eres el de la cresta roja y se te
+  distingue de un vistazo; arriba hay siempre una línea con el objetivo («lleva la formación a la colina») y una barra
+  con la salud de la formación; en el duelo, el enemigo que va a recibir el golpe se marca con un color y el juego te
+  dice cómo fue tu golpe.
+- **Rome II a ras de suelo** (imágenes fijas de tres vídeos): antes de bajar, un plano ancho con los dos ejércitos; de
+  cerca, un muro de escudos que se solapan, sucios y golpeados; la refriega se ve entre la hierba, a la altura del soldado.
+- **De ahí pasan al objetivo**: tu centurión se distingue (cresta); objetivo y estado de la unidad siempre a la vista;
+  el enemigo que te va a golpear se marca con claridad; cada golpe tuyo recibe respuesta («buen golpe», «parado»);
+  al bajar a pie, un plano ancho breve que enseña dónde está tu unidad en la batalla.
+- **Norma (usuario, 18/11)**: antes de cada etapa se miran referencias reales de los juegos que él nombre y se apunta
+  aquí qué idea se toma. Límite conocido: desde la nube YouTube no deja bajar vídeos (pide iniciar sesión); solo se ven
+  sus imágenes fijas públicas. Lo que mejor funciona es que el usuario suba el clip al chat: de un clip suyo se sacan
+  todos los fotogramas que hagan falta. Nada de eso se guarda en el repositorio.
 - **Fuentes de época**: Polibio 6.23 (dos pila) y 6.24 (centuriones), Livio 8.8 (relevo de líneas).
 
 ## 4. Altura de general (lo que hay, y se queda)
