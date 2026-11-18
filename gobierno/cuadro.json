@@ -2004,6 +2004,10 @@
     {
       "titulo": "MN0 · Encargo artístico para la maqueta de menús",
       "archivo": "gobierno/estudios/MN0-encargo-artistico.md"
+    },
+    {
+      "titulo": "CG1 · Objetivo final de la batalla: un simulador propio",
+      "archivo": "gobierno/estudios/CG1-objetivo-batalla.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -2040,16 +2044,10 @@
       "url": "https://claude.ai/code/session_01QiKC3AgvUkgAmNioZYMQbp"
     },
     {
-      "tarea": "GC10",
-      "titulo": "Corazón · GC10 Quitar los restos de la batalla clásica (pequeña; Opus)",
-      "nota": "js/gfx/battle3d.js, #battle de index.html, estilos del HUD clásico; 0,4 M",
-      "url": "https://claude.ai/code/session_01QiKC36vAMHv9Rmi5MqfkAG"
-    },
-    {
-      "tarea": "CG1",
-      "titulo": "Corazón · CG1 Objetivo final de la batalla única (hablándolo con el usuario; Opus)",
-      "nota": "gobierno/estudios/CG1-objetivo-batalla.md; plan previo, mando en vivo y primera persona; un plan cerrado; 1,5 M",
-      "url": "https://claude.ai/code/session_01QiKC37WmxPAdtLbYmWV84c"
+      "tarea": "CG3",
+      "titulo": "Corazón · CG3 Simulador de batallas, solo lógica (dirige y construye Opus)",
+      "nota": "archivos nuevos y su prueba; aún no se ve en el juego; declarado 2,5 M, esperable 4,5 M",
+      "url": "https://claude.ai/code/session_01QiKC39wcF8Dqhq1fbYLXaW"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

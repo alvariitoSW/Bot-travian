@@ -95,7 +95,7 @@ export function realPortrait(key, color) {
 
 /* ---------- Nivel de detalle: figura ligera para los soldados lejanos ----------
    Mismas proporciones que la real (altura y anchura sacadas de su malla) y colores del equipo y de su textura,
-   en unos 40 triángulos y sin esqueleto. Se usa más allá de cierta distancia de la cámara (ver battle3d.js). */
+   en unos 40 triángulos y sin esqueleto. Se usaba más allá de cierta distancia de la cámara en la batalla clásica (quitada en GC10). */
 export const LIGHT_TRIS = 60;
 function colorMedio(unit) {                                    // color medio de la textura (solo píxeles opacos)
   if (unit.avg) return unit.avg;

@@ -32,10 +32,10 @@ Cómo se trabaja cada sesión: §7 (gobierno).
 | `js/data.js` | Edificios, unidades, facciones, ciudades, rutas, hechos históricos |
 | `js/registro.js` | Una ficha por pieza de `data.js`: arte (modelo, licencia) y fuente histórica con su dictamen. Sin números; casa por id. Juez: `node gobierno/fichas.mjs` |
 | `js/game.js` | Economía, población, mercado, puerto, colas, marchas, IA enemiga, eventos, guardado |
-| `js/battle.js` | Simulación de batalla (regimientos, moral, flanqueo, carga) + vista 2D de reserva |
+| `js/battle.js` | Simulación de la batalla clásica (regimientos, moral, flanqueo). Aún da el carácter del rival y los planes de la maniobra; la batalla jugada es `js/guerra.js` |
 | `js/gfx/units.js` | Unidades reales: animación horneada en textura de huesos, retratos |
 | `js/gfx/statics.js`, `ground.js` | Edificios, barcos, árboles; suelo con texturas y agua |
-| `js/gfx/battle3d.js`, `map3d.js`, `city3d.js` | Las tres vistas 3D |
+| `js/gfx/map3d.js`, `city3d.js` | Mapa y ciudad en 3D. La batalla la pinta `js/ui-guerra.js` |
 | `js/gfx/models.js` | Figuras sencillas de reserva si no cargan los modelos reales |
 | `js/ui.js` | Paneles, modales, bucle principal |
 | `tools/` | Conversión de arte de 0 A.D. (ver README) |
