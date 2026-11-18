@@ -1970,6 +1970,10 @@
     {
       "titulo": "Láminas de referencia · Roma y Grecia",
       "archivo": "gobierno/historia/laminas-roma-grecia.md"
+    },
+    {
+      "titulo": "TP0 · Objetivo final de las batallas: general y a pie (borrador)",
+      "archivo": "gobierno/estudios/TP0-objetivo-testudo-y-lucha.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
