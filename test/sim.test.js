@@ -309,7 +309,8 @@ for (const ag of [false, true]) for (let sd = 1; sd <= 10; sd++) { const s = cam
 const resumen = l => l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t)).join(' ');
 console.log('Bot pasivo   →', resumen(res.pas)); console.log('Bot agresivo →', resumen(res.agr));
 const ganaAgr = res.agr.filter(s => s.over.win).length, ganaPas = res.pas.filter(s => s.over.win).length;
-assert(ganaAgr >= 6, 'el bot agresivo debe tomar Carthago en al menos 6 de 10 semillas (' + ganaAgr + '/10)');
+assert(ganaAgr >= 5 && ganaAgr <= 8, 'V10a: el bot agresivo debe tomar Carthago en 5 a 8 de 10 semillas (medido 7/10; más es demasiado fácil) (' + ganaAgr + '/10)');
+assert(res.agr.filter(s => s.over.win).every(s => G.yearOf(s.t) <= 218), 'V10a: Cartago no cae antes de Aníbal (218 a.C.)');
 assert.strictEqual(ganaPas, 0, 'un bot pasivo no debe ganar nunca (' + ganaPas + '/10)');
 const active = activo;
 assert(JSON.parse(JSON.stringify(active)).v === 1, 'el estado debe ser serializable');
@@ -1748,7 +1749,8 @@ console.log('OK — todas las pruebas superadas');
       for (const s of l) assert(s.inv.edad <= 3 && s.inv.hechas.E4 === undefined && s.over.resumen.edad === s.inv.edad, 'la edad del resumen es la alcanzada y no pasa de III');
       const e3 = l.filter(s => s.inv.edad === 3), w = l.filter(s => s.over.win);
       tE.push('  ' + ini.padEnd(7) + 'edad III ' + e3.length + '/10 (en ' + (e3.length ? Math.max(...e3.map(s => G.yearOf(s.inv.hechas.E3))) + '-' + Math.min(...e3.map(s => G.yearOf(s.inv.hechas.E3))) + ' a.C.' : '-') + ') · gana ' + w.length + '/10  ' + l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t) + '·e' + s.inv.edad).join(' '));
-      assert(e3.length >= (ini === 'enPie' ? 8 : 3), 'partida corta ' + ini + ': el bot que investiga llega a la edad III (' + e3.length + '/10)');
+      assert(e3.length >= (ini === 'enPie' ? 8 : 5),   // V10a: fundar medido 7/10 con estudios ×0,7
+        'partida corta ' + ini + ': el bot que investiga llega a la edad III (' + e3.length + '/10)');
       assert(w.length >= (ini === 'enPie' ? 6 : 4), 'partida corta ' + ini + ': investigar no hunde al bot (' + w.length + '/10)'); }
     console.log('Partida corta con bot que investiga:'); for (const x of tE) console.log(x); }
 
