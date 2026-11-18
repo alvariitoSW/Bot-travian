@@ -163,7 +163,7 @@
       "titulo": "Una sola batalla, con un solo aspecto",
       "estado": "medias",
       "veras": "Una única batalla, la misma en campaña y en Escaramuzas: maniobras, mandas y, si quieres, bajas a pie. Todas las tropas con el soldado nuevo y la luz y el campo del testudo.",
-      "hecho": "Batalla con órdenes, proyectiles, duelos y caídos; va fluida en tu móvil. Hastati y galos llevan el soldado nuevo.",
+      "hecho": "Batalla con órdenes, proyectiles, duelos y caídos; va fluida en tu móvil. Hastati y galos llevan el soldado nuevo. La batalla antigua ya no deja restos en el código (GC10).",
       "falta": "Lo principal. Tú, el 18/11: «son 4 juegos diferentes en un juego y los gráficos son una mierda». Los cuatro son la maniobra, la batalla de mando, Escaramuzas y el testudo a pie: hay que unirlos en una sola batalla con un solo aspecto antes de pulir más piezas sueltas. Ojo: la caballería y los elefantes seguirán con el modelo de 0 A.D. (no hay jinete libre con movimientos); el soldado nuevo llega a las 12 tropas a pie que faltan (GM44, en obra).",
       "captura": "gobierno/capturas-tarea/GM44c-1-vertical-nuevo.jpg",
       "tareas": [
