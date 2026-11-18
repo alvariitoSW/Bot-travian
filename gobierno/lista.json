@@ -43,21 +43,27 @@
       "id": "L1",
       "organo": "cerebro",
       "titulo": "Una ciudad que construyes y ves crecer",
-      "estado": "hecha",
+      "estado": "medias",
       "veras": "Colocas cada edificio donde quieres. Los barrios crecen solos alrededor y hay incendios y crecidas que atender.",
       "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría.",
       "captura": "gobierno/capturas-tarea/Q1k-5-barrios.jpg",
-      "tareas": []
+      "tareas": [
+        "CI0"
+      ],
+      "falta": "Tu pedido del 18/11: la ciudad funciona pero no tiene relación con el gobierno y falta aspecto. Antes de construir, una página de objetivo con las láminas de ciudades de la época reunidas (CI0). Lo que salga se te propone."
     },
     {
       "id": "L2",
       "organo": "cerebro",
       "titulo": "Recursos, mercado y cuentas claras",
-      "estado": "hecha",
+      "estado": "medias",
       "veras": "Sabes de un vistazo qué produces, qué gastas y qué te falta, y puedes comprar y vender.",
       "hecho": "Barra de recursos, hoja de cuentas, mercado, puerto y cola de obras.",
       "captura": "gobierno/capturas-tarea/Q3-1-cuentas.jpg",
-      "tareas": []
+      "tareas": [
+        "EC0"
+      ],
+      "falta": "Tu pedido del 18/11: replantear la economía, medirla con los tiempos del juego y fijar su objetivo último. Antes de construir, una página de objetivo (EC0). Lo que salga se te propone."
     },
     {
       "id": "L3",
