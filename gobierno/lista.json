@@ -60,10 +60,8 @@
       "veras": "Sabes de un vistazo qué produces, qué gastas y qué te falta, y puedes comprar y vender.",
       "hecho": "Barra de recursos, hoja de cuentas, mercado, puerto y cola de obras.",
       "captura": "gobierno/capturas-tarea/Q3-1-cuentas.jpg",
-      "tareas": [
-        "EC0"
-      ],
-      "falta": "Tu pedido del 18/11: replantear la economía, medirla con los tiempos del juego y fijar su objetivo último. Antes de construir, una página de objetivo (EC0). Lo que salga se te propone."
+      "tareas": [],
+      "falta": "El objetivo ya está escrito (EC0, 18/11): «cada estación te falta algo y tienes que elegir». Faltan tus dos respuestas (cómo se siente la economía y si los precios cambian) y tu sí a cinco tareas propuestas (EC1 a EC5, ≈2,4 M)."
     },
     {
       "id": "L3",
