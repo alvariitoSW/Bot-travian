@@ -1996,8 +1996,14 @@
     {
       "tarea": "GM43h",
       "titulo": "Versión 1.0 · GM43h Testudo a pie: lanzar el pilum y la lucha (Fable dirige, Opus construye)",
-      "nota": "Hecha en maqueta el 18/11 (versión A); espera que elijas entre A y B",
+      "nota": "Terminada el 18/11: pilum en maqueta; fundida en TP1",
       "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
+    },
+    {
+      "tarea": "TP1",
+      "titulo": "Corazón · TP1 La escena a pie, sobre la base (dirige y construye Opus)",
+      "nota": "gobierno/maquetas/a-pie/ (carpeta nueva); une testudo-pilum-a y testudo-lucha; sin Fable",
+      "url": "https://claude.ai/code/session_01QiKC36rueL1kwqzeVBKZqd"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
