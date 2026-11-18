@@ -10,6 +10,8 @@
   const R = {};
   const CC = 'CC BY-SA 3.0', WG = 'Wildfire Games (0 A.D.)';
   const est = (m, extra) => Object.assign({ modelo: 'assets/static/' + m + '.bin', licencia: CC, credito: WG }, extra || {});   // edificio real de 0 A.D.
+  /* GM44c: soldado nuevo de las batallas (js/gfx/soldado.js): cuerpo de MakeHuman y movimientos de Quaternius, CC0 1.0 */
+  const nuevo = m => ({ modelo: 'assets/soldados/' + m + '.bin', licencia: 'CC0 1.0', credito: 'MakeHuman 1.3.2 (cuerpo, esqueleto y pesos) y Quaternius, Universal Animation Library 1 y 2 (movimientos); equipo, ropa y texturas hechos en AQVILA', nota: 'en las batallas; cuatro niveles de detalle (' + m + ', _lejos, _muylejos, _fondo)' });
   const uni = (m, extra) => Object.assign({ modelo: 'assets/units/' + m + '.bin', licencia: CC, credito: WG }, extra || {});   // tropa real de 0 A.D.
   const h = (fuente, dictamen, nota, texto) => Object.assign({ fuente, dictamen: dictamen || 'por cotejar' }, nota ? { nota } : {}, texto ? { texto } : {});   // texto: lo que lee el jugador en el Códice
   const f = (arte, historia) => ({ arte, historia });
@@ -29,7 +31,7 @@
 
   // ---- Tropas (D.UNITS). Modelo: assets/units/<id>.bin (el índice es el id). Fuente: H1-tropas.md ----
   const tropa = {
-    hastati: f(uni('hastati'), h('Polibio 6.21-23', 'historico', null, 'Era la primera línea de la legión. Según Polibio, llevaban escudo grande, espada corta de estilo hispano, dos jabalinas, casco de bronce con tres plumas y grebas. Los ricos vestían cota de malla.')),
+    hastati: f(uni('hastati', { batalla: nuevo('hastatus') }), h('Polibio 6.21-23', 'historico', null, 'Era la primera línea de la legión. Según Polibio, llevaban escudo grande, espada corta de estilo hispano, dos jabalinas, casco de bronce con tres plumas y grebas. Los ricos vestían cota de malla.')),
     velites: f(uni('velites'), h('Polibio 6.21-22; Livio 26.4; Livio 8.8', 'probable', 'Livio 26.4 ya los nombra en 211 a.C.; en 280 es probable, no seguro', 'Infantes ligeros: los más jóvenes y pobres, con espada, jabalinas y escudo redondo. Polibio los describe, y Livio ya los nombra en 211. En 340 todavía no existían, así que en 280 es probable, no seguro.')),
     principes: f(uni('principes'), h('Polibio 6.21; Polibio 6.23', 'historico', null, 'Hombres en plena edad, segunda línea de la legión. Según Polibio llevaban el mismo equipo que los hastati. Solo los triarios cambiaban las jabalinas pesadas por lanzas largas.')),
     triarii: f(uni('triarii'), h('Polibio 6.21-23; Livio 8.8', 'historico', null, 'Los veteranos, al fondo, con lanza larga en vez de jabalinas. Según Polibio eran 600 por legión. Livio cuenta que esperaban de rodillas; de ahí el dicho «la cosa ha llegado a los triarios».')),
@@ -42,7 +44,7 @@
     honderos: f(uni('honderos'), h("Diodoro 5.18; Livio 28.37", "historico", "las «tres hondas» no se pudieron confirmar y se quitaron", "Famosos por la honda. Según Diodoro, los baleares lanzaban piedras mucho mayores que otros honderos y se entrenaban de niños con pan como blanco. Livio dice que la honda era su única arma.")),
     libios: f(uni('libios'), h('Polibio 3.87; Polibio 3.114', 'historico', null, 'Tras Trasimeno, Aníbal cambió sus armas por las romanas capturadas, según Polibio. En Cannas formaban con armadura romana. Era la infantería pesada y de confianza de su ejército.')),
     iberos: f(uni('iberos'), h('Polibio 3.114', 'historico', null, 'Según Polibio, en Cannas vestían túnicas cortas con borde púrpura, un color que se veía de lejos. Cartago los reclutaba como mercenarios en Hispania, y en el juego también defienden Sagunto.')),
-    galos: f(uni('galos'), h('Polibio 2.28-30', 'historico', null, 'Según Polibio, algunos luchaban con calzas y capa y los gesatos, desnudos, por bravura. Los romanos los temían desde el saqueo de Roma. Fueron aniquilados en Telamón en 225.')),
+    galos: f(uni('galos', { batalla: nuevo('galo') }), h('Polibio 2.28-30', 'historico', null, 'Según Polibio, algunos luchaban con calzas y capa y los gesatos, desnudos, por bravura. Los romanos los temían desde el saqueo de Roma. Fueron aniquilados en Telamón en 225.')),
     sagrada: f(uni('sagrada'), h("Diodoro 16.80.4; Diodoro 20.11.1; Diodoro 20.12.3", "probable", "renombrada «Ciudadanos de Cartago» (H5): que no aparezca después de 310 es silencio de las fuentes abiertas, no prueba de que desapareciera", "Cartago solía pagar mercenarios, pero tenía una élite de ciudadanos ricos, el Batallón Sagrado: 2.500 hombres según Diodoro, que lo muestra en el Crimiso (339) y contra Agatocles (310). Después no lo hemos hallado en las fuentes que abrimos, lo que no prueba que desapareciera.")),
     jinetes: f(uni('jinetes'), h('Regla de juego: caballería genérica, no es una tropa de las fuentes', 'licencia de juego', 'caballería local genérica', 'Una caballería genérica para que todas las facciones tengan jinetes. Las fuentes describen caballerías concretas, como los équites o los númidas, pero no esta pieza.')),
     numidas: f(uni('numidas'), h("Livio 35.11; Polibio 15.5", "historico", null, "Jinetes ligeros con jabalinas. Según Livio, montaban sin bridas, y en 193 había unos 800 al servicio de Roma. En Zama, Masinisa aportó unos 4.000, según Polibio.")),

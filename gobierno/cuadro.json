@@ -1724,6 +1724,22 @@
       "archivo": "gobierno/capturas-tarea/GP1-tira-choque.jpg",
       "pie": "Versión B (GP1): el choque y la lucha por parejas",
       "ancha": true
+    },
+    {
+      "tarea": "GM44c",
+      "archivo": "gobierno/capturas-tarea/GM44c-1-vertical-nuevo.jpg",
+      "pie": "Batalla con el soldado nuevo: hastati y galos"
+    },
+    {
+      "tarea": "GM44c",
+      "archivo": "gobierno/capturas-tarea/GM44c-2-vertical-antes.jpg",
+      "pie": "La misma batalla con los soldados de antes"
+    },
+    {
+      "tarea": "GM44c",
+      "archivo": "gobierno/capturas-tarea/GM44c-3-ancho-nuevo.jpg",
+      "pie": "Soldado nuevo, móvil en horizontal",
+      "ancha": true
     }
   ],
   "informes": [
@@ -2000,12 +2016,6 @@
       "titulo": "Versión 1.0 · GM43h Testudo a pie: lanzar el pilum y la lucha (Fable dirige, Opus construye)",
       "nota": "Hecha en maqueta el 18/11 (versión A); espera que elijas entre A y B",
       "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
-    },
-    {
-      "tarea": "GM44c",
-      "titulo": "Versión 1.0 · GM44c Soldado nuevo, al juego (Fable dirige, Opus construye)",
-      "nota": "js/gfx/battle3d.js y el 3D de las batallas; detrás va GM43g",
-      "url": "https://claude.ai/code/session_01QiKC389SLc5VTAdbgym6De"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

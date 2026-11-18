@@ -2,7 +2,7 @@
    Sale de la maqueta gobierno/maquetas/guerra-cero (GC1) sin cambiar cómo se juega: tres cuerpos, cuatro órdenes, «Retirarse» siempre arriba.
    Uso: UIGuerra.abrir(cfg, alTerminar). cfg = { estado } (un estado de Guerra.crear o de Guerra.cargar) y, si se quiere guardar a mitad,
         guardar(estado) (se llama cada pocos segundos, al pausar y al salir de la app). alTerminar(r) recibe Guerra.resumen(estado). cfg.campo (ES1): llano, colina, bosque o mixto; solo cambia el paisaje.
-   Las vistas gfx son módulos: se cargan con import() al abrir. Arte de 0 A.D. (Wildfire Games, CC BY-SA 3.0). */
+   Las vistas gfx son módulos: se cargan con import() al abrir. Arte de 0 A.D. (Wildfire Games, CC BY-SA 3.0); hastatus y galo nuevos: MakeHuman y Quaternius (CC0 1.0), ver js/gfx/soldado.js. */
 (function (root) {
   'use strict';
   let activa = null;
@@ -31,9 +31,9 @@
     <p id="gu-fin-p"></p>
     <div class="cifras" id="gu-fin-c"></div>
     <div class="fila"><button class="gordo" id="gu-seguir" type="button">Ver el resultado</button></div>
-    <div class="creditos">Soldados y texturas de 0 A.D. (Wildfire Games, CC BY-SA 3.0)</div>
+    <div class="creditos">Soldados y texturas de 0 A.D. (Wildfire Games, CC BY-SA 3.0). Hastatus y galo: cuerpo de MakeHuman y movimientos de Quaternius (CC0)</div>
   </div>
-  <div id="gu-carga" class="velo"><h1>AQVILA</h1><p id="gu-carga-p">Formando la legión…</p><div class="fila" id="gu-carga-s" hidden><button class="gordo b" id="gu-carga-no" type="button">Volver</button></div><div class="creditos">Soldados y texturas de 0 A.D. (Wildfire Games, CC BY-SA 3.0)</div></div>
+  <div id="gu-carga" class="velo"><h1>AQVILA</h1><p id="gu-carga-p">Formando la legión…</p><div class="fila" id="gu-carga-s" hidden><button class="gordo b" id="gu-carga-no" type="button">Volver</button></div><div class="creditos">Soldados y texturas de 0 A.D. (Wildfire Games, CC BY-SA 3.0). Hastatus y galo: cuerpo de MakeHuman y movimientos de Quaternius (CC0)</div></div>
 </div>`;
 
   function cerrar() { if (activa) { const a = activa; activa = null; try { a.cerrar(); } catch (e) { /* ya cerrada */ } if (a.el) a.el.remove(); } }
@@ -62,6 +62,14 @@
     const { loadGroundTextures, applyGround, crearCielo, texturaRuido } = Gr, { preloadStatic, staticInstances } = St, R = root.Guerra;
     const S = 9, FILAS = 7, PASO = 1.15, HUECO = 2.4, CAMPO = 7; let porFig = 8.6;      // medidas del campo, en metros de juego
     const COLOR = ['#b3261e', '#5b3a8c'];
+    /* GM44c: el soldado nuevo (js/gfx/soldado.js, cuatro niveles de detalle) para estas tropas; las demás siguen con 0 A.D.
+       Si no carga, esa tropa sale con el modelo de 0 A.D. de siempre. Sin cartón plano: aquí no pasan de ~700 figuras (solo en batallas de miles). */
+    const NUEVO = { hastati: 'hastatus', galos: 'galo' };
+    const UMBRAL_N = [200, 90, 42];      /* alto en pantalla (px CSS) desde el que toca el nivel 0, 1 y 2; por debajo, el 3; fuera de pantalla, el 3 */
+    const CERCA_N = 40;                  /* como mucho, tantas figuras en el nivel fino (gobierno/arte.json); las más cercanas; el resto baja al 1 */
+    const PARADA_N = 0.55;               /* la parada del soldado nuevo: este punto del clip «cubrirse» (escudo arriba) */
+    const ALTO_HASTATUS = 2.11;          /* alto del hastatus nuevo con el penacho (m, medido en assets/soldados/hastatus.bin) */
+    let SOLD = null, escN = 0.84, altoN = 1.78; const soldados = new Map(), V3N = new THREE.Vector3();
     const nombreTropa = t => (root.DATA && root.DATA.UNITS && root.DATA.UNITS[t] && root.DATA.UNITS[t].n) || t;
     const xs = i => (i - 1) * S;
     /* GM5: de lejos. Los metros del motor se pintan a esta escala (240 m de separación caben en la pantalla) */
@@ -105,12 +113,17 @@
     const pasos = new Map();
     function paso(key) {
       let P = pasos.get(key); if (P) return P;
-      const u = getUnit(key), C = u && zancadas(u); if (!C || !C.walk) { P = { zw: 1.7, zr: 2.6, vw: 1.05, vr: 3.1 }; }
+      const u = getUnit(key), C = u && zancadas(u), N = soldados.get(key + '0') || soldados.get(key + '1');
+      if (N) { const h = N.alto * escN, ok = (z, a, b) => z > h * a && z < h * b, zw = ok(N.zw * escN, 0.4, 1.8) ? N.zw * escN : h * 0.8, zr = ok(N.zr * escN, 0.5, 2.6) ? N.zr * escN : zw * 1.5;   // GM44c: la del soldado nuevo
+        P = { zw, zr, vw: zw / N.dw, vr: zr / N.dr }; }
+      else if (!C || !C.walk) { P = { zw: 1.7, zr: 2.6, vw: 1.05, vr: 3.1 }; }
       else { const zw = C.walk.zancada * UNIT_SCALE, zr = (C.run || C.walk).zancada * UNIT_SCALE; P = { zw, zr, vw: zw / C.walk.dur, vr: zr / (C.run || C.walk).dur }; }
       P.umbral = Math.max(P.vw, (1.4 * P.vw + 0.6 * P.vr) / 2);          // por encima, corre; por debajo, anda
       pasos.set(key, P); return P;
     }
 
+    /* suelta una entrada de mallas: la malla de 0 A.D. o las cuatro tropas del soldado nuevo */
+    function soltarMalla(m) { if (m.nv) for (const t of m.nv) { escena.remove(t.malla); t.dispose(); } else { escena.remove(m.malla); m.malla.geometry.dispose(); } }
     function montar(estado, retomada) {
       B = estado; figs = []; lineas = new Map(); cab = []; num = []; nEv = 0; T = 0; sel = 1; foco = { i: -1, hasta: 0, ultimo: -99 }; tocado = false;
       let maxL = 1; for (const s of B.sect) for (const c of s.c) for (const l of c.lineas) maxL = Math.max(maxL, l.max);
@@ -125,10 +138,14 @@
       colocar(0, true);
       if (retomada) { colocar(0, false); for (const f of figs) if (f.est === 1 || f.est === 3) f.est = 2; }   // una batalla retomada: los caídos y los que huyeron ya no están
       /* una malla por tipo de tropa: todos sus soldados en una sola llamada */
-      for (const m of mallas.values()) { escena.remove(m.malla); m.malla.geometry.dispose(); } mallas.clear();
+      for (const m of mallas.values()) soltarMalla(m); mallas.clear();
       const cuenta = {}; for (const f of figs) { const id = f.key + f.lado; f.slot = cuenta[id] = (cuenta[id] || 0) + 1; f.slot--; }
+      /* GM44c: escala del soldado nuevo = la que le da el alto del hastatus de 0 A.D. */
+      { const ref = [...soldados.values()].find(S => S.nombre === 'hastatus'), uh = getUnit('hastati'); altoN = uh ? uh.height : 1.78; escN = altoN / (ref ? ref.alto : ALTO_HASTATUS); pasos.clear(); }   /* la zancada se vuelve a medir con la escala buena */
       for (const id in cuenta) {
         const key = id.slice(0, -1), lado = +id.slice(-1), u = getUnit(key); if (!u) continue;
+        const N = soldados.get(id);
+        if (N) { mallas.set(id, { u, N, nv: N.niveles.map(s => { const t = SOLD.tropa(s, cuenta[id]); escena.add(t.malla); return t; }) }); continue; }   // cuatro tropas, una por nivel
         const g = instancedGeometry(u, cuenta[id]), malla = new THREE.InstancedMesh(g, gentio(u, COLOR[lado]), cuenta[id]); malla.frustumCulled = false; escena.add(malla);
         mallas.set(id, { malla, fr: g.attributes.aFrame, u });
       }
@@ -378,11 +395,28 @@
       duelos();
     }
     const fila = (clip, k) => clip.start + Math.min(clip.frames - 1, Math.floor((k - Math.floor(k)) * clip.frames));
-    function pintarFiguras() {
-      const sm = sombras.instanceMatrix.array;
+    /* GM44c: nivel de detalle de cada figura nueva por su alto en pantalla (px CSS); fuera de pantalla, el 3; como mucho CERCA_N en el 0 */
+    function niveles() {
+      let hay = false; for (const m of mallas.values()) if (m.nv) { hay = true; for (const t of m.nv) t.limpiar(); } if (!hay) return;
+      const kpx = alto / (2 * Math.tan(camara.fov * Math.PI / 360)), cp = camara.position, finos = []; camara.updateMatrixWorld();
       for (const f of figs) {
-        const m = mallas.get(f.key + f.lado); if (!m) continue; const C = m.u.clips, o = f.slot * 16, a = m.malla.instanceMatrix.array;
-        let sc = UNIT_SCALE, fr, ox = f.ox || 0, yaw = f.yaw + (f.gy || 0), gp = f.gp || 0;
+        const m = mallas.get(f.key + f.lado); if (!m || !m.nv || f.est === 2) continue;
+        if (!f.vr) { const r = k => { const v = Math.sin((f.idx + 1) * 127.1 + k * 311.7) * 43758.5453; return v - Math.floor(v); }; f.vr = [r(1), r(2), r(3), r(4)]; f.talla = 0.97 + 0.06 * r(5); f.vq = ['quieto', 'quieto2', 'quieto3'][Math.floor(r(6) * 2.999)]; }
+        const d = Math.max(0.1, Math.hypot(f.x - cp.x, altoN / 2 - cp.y, f.z - cp.z)), px = altoN * kpx / d;
+        let nv = px >= UMBRAL_N[0] ? 0 : px >= UMBRAL_N[1] ? 1 : px >= UMBRAL_N[2] ? 2 : 3;
+        V3N.set(f.x, altoN / 2, f.z).project(camara); if (V3N.z > 1 || Math.abs(V3N.x) > 1 + 2 * px / ancho || Math.abs(V3N.y) > 1 + 2 * px / alto) nv = 3;
+        f.nv = nv; f.dc = d; if (nv === 0) finos.push(f);
+      }
+      if (finos.length > CERCA_N) { finos.sort((p, q) => p.dc - q.dc); for (let i = CERCA_N; i < finos.length; i++) finos[i].nv = 1; }
+    }
+    function pintarFiguras() {
+      const sm = sombras.instanceMatrix.array; niveles();
+      for (const f of figs) {
+        const m = mallas.get(f.key + f.lado); if (!m) continue; const C = m.u.clips, nueva = !!m.nv;
+        /* la figura nueva escribe en la tropa de su nivel, en el hueco siguiente; nc/np/nm = su clip, avance y modo (p fracción, c ciclo, s segundos) */
+        let o = f.slot * 16, a = nueva ? null : m.malla.instanceMatrix.array, tr = null, ii = -1, nc = 'quieto', np = 0, nm = 's';
+        if (nueva && f.est !== 2) { tr = m.nv[f.nv]; ii = tr.sig(); if (ii >= 0) { a = tr.malla.instanceMatrix.array; o = ii * 16; } }
+        let sc = nueva ? escN * f.talla : UNIT_SCALE, fr, ox = f.ox || 0, yaw = f.yaw + (f.gy || 0), gp = f.gp || 0;
         const tm = T - f.t0;
         if (f.est === 2) sc = 0;
         else if (f.est === 1 && tm >= 0) { fr = frameOnce(C.death, tm); ox = 0.45 * Math.min(1, tm / 0.35) + (f.oxm || 0); yaw = f.yaw + (f.caida || 0); gp = 0; }   // GM36: cae empujado y se queda
@@ -391,17 +425,28 @@
         else if (f.marcha !== 0 && !f.golpe) fr = fila(f.marcha === 2 && C.run ? C.run : C.walk, f.fase);
         else if (f.golpe) fr = frameOnce(f.golpe.clip, (T - f.golpe.t0) * f.ritmo);
         else fr = frameOf(C.idle, f.ti);
-        if (f.est === 1 && tm < 0) f.oxm = ox;                                                       // lo que ya había retrocedido al recibir
+        if (nueva) {   /* los mismos casos con los clips nuevos; golpes y caída duran lo mismo (misma fracción del clip viejo) */
+          const g = f.golpe, gn = g && (g.tiro ? 'lanzar' : 'golpear'), gt = g && (T - g.t0) * f.ritmo / g.clip.dur;
+          if (f.est === 1 && tm >= 0) { nc = 'morir'; np = tm / (C.death ? C.death.dur : 2); nm = 'p'; }
+          else if (f.parada > 0.05) { if (g) { nc = gn; np = gt; } else { nc = 'cubrirse'; np = PARADA_N; } nm = 'p'; }
+          else if (f.retro && ox > 0.08) { nc = 'andar'; np = f.fase - ox / paso(f.key).zw; nm = 'c'; }
+          else if (f.marcha !== 0 && !g) { nc = f.marcha === 2 ? 'correr' : 'andar'; np = f.fase; nm = 'c'; }
+          else if (g) { nc = gn; np = gt; nm = 'p'; }
+          else { nc = f.vq; np = f.ti; }
+        }
+        if (f.est === 1 && tm < 0) f.oxm = ox;                                                      // lo que ya había retrocedido al recibir
         const c = Math.cos(yaw) * sc, s = Math.sin(yaw) * sc, cy = Math.cos(yaw), sy = Math.sin(yaw), cr = Math.cos(f.gr || 0), sr = Math.sin(f.gr || 0), cp = Math.cos(gp), sp = Math.sin(gp);
         const px = f.x - Math.sin(f.yaw) * ox, pz = f.z - Math.cos(f.yaw) * ox;
-        a[o] = (cy * cr + sy * sp * sr) * sc; a[o + 1] = cp * sr * sc; a[o + 2] = (-sy * cr + cy * sp * sr) * sc; a[o + 3] = 0;
+        if (a) { a[o] = (cy * cr + sy * sp * sr) * sc; a[o + 1] = cp * sr * sc; a[o + 2] = (-sy * cr + cy * sp * sr) * sc; a[o + 3] = 0;
         a[o + 4] = (-cy * sr + sy * sp * cr) * sc; a[o + 5] = cp * cr * sc; a[o + 6] = (sy * sr + cy * sp * cr) * sc; a[o + 7] = 0;
-        a[o + 8] = s * cp; a[o + 9] = -sp * sc; a[o + 10] = c * cp; a[o + 11] = 0; a[o + 12] = px; a[o + 13] = 0; a[o + 14] = pz; a[o + 15] = 1;
-        m.fr.array[f.slot] = fr || 0;
+        a[o + 8] = s * cp; a[o + 9] = -sp * sc; a[o + 10] = c * cp; a[o + 11] = 0; a[o + 12] = px; a[o + 13] = 0; a[o + 14] = pz; a[o + 15] = 1; }
+        if (!nueva) m.fr.array[f.slot] = fr || 0;
+        else if (ii >= 0) { const k = tr.s.j.clips[nc] ? nc : 'quieto', c = tr.s.j.clips[k], dur = (c.n - 1) / c.fps, tt = nm === 's' ? np : nm === 'c' ? (np - Math.floor(np)) * dur : Math.min(1, Math.max(0, np)) * dur;
+          tr.vars(ii, f.vr); tr.pose(ii, k, tt, tr.muestra(k, tt)); }
         const q = f.idx * 16, e = f.est === 0 || f.est === 3 ? (f.key === 'equites' || f.key === 'numidas' ? 1.5 : 1) : 0;
         sm[q] = e; sm[q + 1] = 0; sm[q + 2] = 0; sm[q + 3] = 0; sm[q + 4] = 0; sm[q + 5] = 1; sm[q + 6] = 0; sm[q + 7] = 0; sm[q + 8] = 0; sm[q + 9] = 0; sm[q + 10] = e; sm[q + 11] = 0; sm[q + 12] = f.x - Math.sin(f.yaw) * (f.ox || 0); sm[q + 13] = 0.03; sm[q + 14] = f.z - Math.cos(f.yaw) * (f.ox || 0); sm[q + 15] = 1;
       }
-      for (const m of mallas.values()) { m.malla.instanceMatrix.needsUpdate = true; m.fr.needsUpdate = true; }
+      for (const m of mallas.values()) { if (m.nv) { for (const t of m.nv) t.malla.instanceMatrix.needsUpdate = true; continue; } m.malla.instanceMatrix.needsUpdate = true; m.fr.needsUpdate = true; }
       sombras.instanceMatrix.needsUpdate = true;
     }
 
@@ -725,13 +770,18 @@
       if (cuadros < 240) { cuadros++; if (real > 0.04) lentos++; if (cuadros === 240 && lentos > 120 && dpr > 1) { dpr = Math.max(1, dpr * 0.6); renderer.setPixelRatio(dpr); medir(); } }
     }
 
+    function soltarSoldados() { for (const S of soldados.values()) { try { SOLD.soltarSoldado(S); } catch (e) { /* ya suelto */ } } soldados.clear(); }
     async function arrancar() {
       try {
         const tipos = new Set(['hastati', 'principes', 'triarii', 'equites', 'galos', 'libios', 'iberos', 'numidas']);
         for (const s of cfg.estado.sect) for (const c of s.c) { for (const l of c.lineas) tipos.add(l.tipo); if (c.tir) tipos.add(c.tir.tipo); }
         for (const t in cfg.estado.cab.comp || {}) tipos.add(t); for (const t in cfg.estado.num.comp || {}) tipos.add(t);
-        await Promise.all([preload([...tipos]), loadGroundTextures().then(() => preloadStatic(['cipres', 'olivo', 'pino']))]);
-        if (cerrado) return;
+        /* GM44c: los soldados nuevos que hacen falta (tropa y bando), a la vez que lo demás; si fallan, esa tropa sale con 0 A.D. */
+        const quiero = new Set(); for (const s of cfg.estado.sect) for (const c of s.c) for (const l of c.tir ? c.lineas.concat([c.tir]) : c.lineas) if (NUEVO[l.tipo]) quiero.add(l.tipo + c.lado);
+        const nuevos = !quiero.size ? null : import('./gfx/soldado.js').then(Mod => { SOLD = Mod; return Promise.all([...quiero].map(id => { const lado = +id.slice(-1), nom = NUEVO[id.slice(0, -1)], propio = (nom === 'hastatus') === (lado === 0);
+          return Mod.cargarSoldado(nom, propio ? null : Mod.gama(COLOR[lado], Mod.PUEBLOS[nom])).then(S => { if (S) soldados.set(id, S); }); })); }).catch(() => { /* sin soldado nuevo: 0 A.D. */ });
+        await Promise.all([preload([...tipos]), loadGroundTextures().then(() => preloadStatic(['cipres', 'olivo', 'pino'])), nuevos]);
+        if (cerrado) { soltarSoldados(); return; }
         if (!getUnit('hastati')) throw new Error('No se han podido cargar los soldados');
         campo(); const retomada = cfg.estado.fase === 'fin' || cfg.estado.t > 0; retardo0 = retomada; montar(cfg.estado, retomada); moverCamara(0, true);
         lista = true; $('carga').hidden = true; $('mando').hidden = false;
@@ -747,7 +797,8 @@
     function cerrarTodo() {
       cerrado = true; cancelAnimationFrame(raf); clearInterval(tGuardar); clearTimeout(tFin); delete window.__gc;
       document.removeEventListener('visibilitychange', alOcultar); window.removeEventListener('pagehide', guardaYa); for (const f of salidas) f();
-      for (const m of mallas.values()) { try { m.malla.geometry.dispose(); } catch (e) { /* ya liberada */ } }
+      for (const m of mallas.values()) { try { soltarMalla(m); } catch (e) { /* ya liberada */ } }
+      soltarSoldados();
       try { renderer.dispose(); renderer.forceContextLoss(); } catch (e) { /* nada que liberar */ }
     }
     function terminar() { const r = R.resumen(B); cerrarTodo(); alTerminar(r); }

@@ -61,6 +61,10 @@ ataque, muerte) tomados del juego libre **[0 A.D.](https://play0ad.com)**, de **
 **[CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)** (ver `assets/units/LICENSE.txt` y `assets/static/LICENSE.txt`).
 Esa licencia obliga a citar a Wildfire Games y a compartir este arte y sus modificaciones con la misma licencia.
 
+En las batallas, el **hastatus** y el **galo** son soldados nuevos (`assets/soldados/`): cuerpo, esqueleto y pesos de
+**[MakeHuman](https://github.com/makehumancommunity/makehuman)** 1.3.2 y movimientos de **Quaternius** (Universal Animation Library 1 y 2),
+ambos con licencia **[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)**; el equipo, la ropa y las texturas se han hecho por código en el proyecto.
+
 La letra de los títulos es **Cinzel**, de The Cinzel Project Authors, con licencia **[SIL OFL 1.1](https://openfontlicense.org)**
 (ver `assets/fuentes/LICENSE.txt`). Va incluida en el juego para que se vea igual sin conexión.
 Los iconos de recursos son dibujos propios en SVG, dentro de `js/ui.js`.
