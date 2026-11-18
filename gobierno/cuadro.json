@@ -2036,6 +2036,12 @@
       "titulo": "Músculo · MN0 Objetivo final de los menús y encargo artístico, hablándolo con el usuario (dirige y construye Opus)",
       "nota": "gobierno/estudios/MN0-*.md; conversación con el usuario; un plan cerrado y alcance congelado; 1,2 M",
       "url": "https://claude.ai/code/session_01QiKC37MGCiWGfRg2ef3mGC"
+    },
+    {
+      "tarea": "GC10",
+      "titulo": "Corazón · GC10 Quitar los restos de la batalla clásica (pequeña; Opus)",
+      "nota": "js/gfx/battle3d.js, #battle de index.html, estilos del HUD clásico; 0,4 M",
+      "url": "https://claude.ai/code/session_01QiKC36vAMHv9Rmi5MqfkAG"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

@@ -189,7 +189,7 @@ Maquetas: `maquetas/concurso2/K2-guerra-B-legado.html` y `K2-guerra-D-estandarte
 - ✅ GC8 **Salida en toda la maniobra** (17/11, opción A): botón «Retirarse» (pide confirmar con un segundo toque) desde el día 1; cuenta como derrota. Interruptor del juez en `true`.
 - ✅ GC9 **La defensa se provoca en el juez** (17/11): no era fallo del juego; `G.send` solo manda ejércitos romanos. El juez pone una marcha rival y espera al aviso histórico antes de la defensa; juega la defensa con el bot hasta el final.
 - ✅ GC6 **Batalla clásica muerta quitada** (17/11): `startBattle`, `UI.battle` y su HUD fuera de `js/ui.js` (−228 líneas), `BattleView` fuera de `js/battle.js` (−168; la clase `Battle` se queda: la usan `game.js`, `maniobra.js` y las pruebas). Sin cambio visible.
-- ⬜ GC10 **Restos de la batalla clásica**: `js/gfx/battle3d.js` (nadie lo importa; sale de `sw.js` y `arte.mjs`), el DOM `#battle` de `index.html` y los estilos del HUD clásico en `css/style.css`. Pequeña.
+- ⬜ GC10 **Restos de la batalla clásica**: `js/gfx/battle3d.js` (nadie lo importa; sale de `sw.js` y `arte.mjs`), el DOM `#battle` de `index.html` y los estilos del HUD clásico en `css/style.css`. Pequeña. **Sesión abierta el 18/11 a las 18:54 UTC (Opus, ≈0,4 M; no toca `game.js`, `ui.js`, `ui-guerra.js`, `soldado.js`, ciudad ni maquetas).**
 
 ## Carril GR — Gobierno de región (P104, aprobada por el usuario el 16/11/2026)
 - ✅ GR1 **Gobierno de provincias: diseño y maqueta** (17/11, 0,9 M): aprobada por el usuario el 17/11. Informe `estudios/GR1-gobierno-de-provincias.md`; maqueta `maquetas/provincias/` (225 a.C., cuatro ciudades, oficio y decreto). No tocó `js/`.
