@@ -1,6 +1,6 @@
 /* AQVILA — mapa de campaña en 3D: relieve del Mediterráneo, ciudades, rutas y ejércitos en marcha */
 import { THREE, uTime, unitGeometry, unitMaterial } from './models.js';
-import { staticMesh, getStatic, CULTURA } from './statics.js';
+import { staticMesh, getStatic, CULTURA, staticInstancedVacio } from './statics.js';
 import COSTA from '../../assets/mapa/costa.js';
 import { mapaMaterial, mapaTexturas, texturaRuido } from './ground.js';
 import ALTURAS from '../../assets/mapa/alturas.js';
@@ -614,6 +614,54 @@ const anchoRuta = renta => Math.round((0.14 + Math.min(1, Math.max(0, (renta - 4
 function inPoly(x, y, poly) { let c = false; for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) { const a = poly[i], b = poly[j]; if ((a[1] > y) !== (b[1] > y) && x < (b[0] - a[0]) * (y - a[1]) / (b[1] - a[1]) + a[0]) c = !c; } return c; }
 function segDist(px, py, a, b) { const dx = b[0] - a[0], dy = b[1] - a[1], l = dx * dx + dy * dy, t = l ? Math.max(0, Math.min(1, ((px - a[0]) * dx + (py - a[1]) * dy) / l)) : 0; return Math.hypot(px - a[0] - dx * t, py - a[1] - dy * t); }
 
+/* C16 · Ciudades grandes. Cada ciudad del mapa es un racimo: muralla que crece con su población y con su nivel de muralla, y casas.
+   De lejos, una «mancha» de casitas dibujadas por código; de cerca, casas de 0 A.D. (Wildfire Games, CC BY-SA 3.0) de su cultura.
+   Todo va instanciado: una llamada por tipo de muralla, de mancha y de casa para TODAS las ciudades. */
+const RAC_MAX = 96, CASAS_MAX = 400, RAC_TRI_CIUDAD = 11000, RAC_TRI_TOTAL = 60000;   // ciudades; casas de un tipo a la vez; triángulos de casas por ciudad (tope de arte.json: 12 000 por edificio) y en pantalla
+const RAC_GRANDES = { roma: 1, carthago: 1, syracusae: 1, capua: 1 };
+const RAC_CASAS = { roma: ['casa_b', 'casa_c', 'casa_d'], grie: ['grie_casa', 'grie_casa_b', 'grie_casa_c', 'grie_casa_d', 'grie_casa_e'], cart: ['cart_casa', 'cart_casa_b', 'cart_casa_c'] };
+const RAC_MANCHA = { roma: 'tejas', grie: 'tejas', cart: 'plana', iber: 'plana', galo: 'choza' };
+const RAC_PIEDRA = { roma: '#d9cdb1', grie: '#e8e2d2', cart: '#dcc69c', iber: '#c9ad85', galo: '#8f6e48' };
+const RAC_TEJA = { roma: '#b0553a', grie: '#b86a48', cart: '#cdb98f', iber: '#a98a62', galo: '#8a7448' };   // tejados sobrios por cultura (las casas reales llevan este color donde 0 A.D. pone el del bando)
+const RAC_TRI = { roma: 780, grie: 500, cart: 330 };   // triángulos medios de una casa de 0 A.D. de cada cultura
+const culturaDe = dueno => dueno === 'roma' ? 'roma' : (CULTURA[dueno] || 'roma');
+/* tamaño de 0 (aldea) a 1 (gran ciudad): peso de la ciudad, población y, para Roma, Cartago, Siracusa y Capua, un plus */
+function racTam(id, st) {
+  const d = D.CITIES[id] || {}, g = RAC_GRANDES[id] ? 1 : 0, base = g ? 0.8 : 0.15 + 0.1 * Math.min(5, d.w || 1);
+  const pop = Math.max(1, st.pop || 0), pt = Math.max(0, Math.min(1, Math.log2(pop / 150) / 4));
+  return Math.max(0.05, Math.min(1, 0.55 * base + 0.45 * pt + 0.15 * g - (d.colonia ? 0.08 : 0)));
+}
+/* une piezas sueltas en una sola geometría sin índices, con color por vértice */
+function fundir(piezas) {
+  const P = [], N = [], C = [], col = new THREE.Color();
+  for (const [g0, hex] of piezas) {
+    const g = g0.index ? g0.toNonIndexed() : g0; g.computeVertexNormals(); col.set(hex); const p = g.attributes.position.array, n = g.attributes.normal.array;
+    for (let i = 0; i < p.length; i++) { P.push(p[i]); N.push(n[i]); } for (let i = 0; i < p.length / 3; i++) C.push(col.r, col.g, col.b);
+  }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3)); geo.setAttribute('normal', new THREE.Float32BufferAttribute(N, 3)); geo.setAttribute('color', new THREE.Float32BufferAttribute(C, 3)); return geo;
+}
+/* muralla de radio 1 y alto 1 (la instancia la escala): empalizada sin torres, muro con 6 torres o muro alto con 10 torres y puerta */
+function murallaGeo(tipo) {
+  const pz = [], seg = tipo === 'empalizada' ? 16 : 24, nt = tipo === 'muro' ? 6 : tipo === 'alto' ? 10 : 0;
+  const muro = new THREE.CylinderGeometry(1, 1.04, 1, seg, 1, true); muro.translate(0, 0.5, 0); pz.push([muro, tipo === 'empalizada' ? '#ffffff' : '#f4f1ea']);
+  if (tipo !== 'empalizada') { const paseo = new THREE.RingGeometry(0.93, 1, seg, 1); paseo.rotateX(-Math.PI / 2); paseo.translate(0, 1, 0); pz.push([paseo, '#cfc9bc']); }
+  for (let i = 0; i < nt; i++) { const a = (i + 0.5) / nt * 6.283, t = new THREE.BoxGeometry(0.13, 1.4, 0.13); t.translate(Math.cos(a) * 1.0, 0.7, Math.sin(a) * 1.0); pz.push([t, '#e2ddd2']); }
+  if (tipo === 'alto') for (const da of [-0.13, 0.13]) { const a = Math.PI / 2 + da, t = new THREE.BoxGeometry(0.17, 1.7, 0.17); t.translate(Math.cos(a), 0.85, Math.sin(a)); pz.push([t, '#d8d2c4']); }
+  return fundir(pz);
+}
+/* la mancha de lejos: casitas de radio 1 (sin el centro, donde va el edificio principal). tejas: casa y tejado a cuatro aguas; plana: azoteas; choza: redondas con paja */
+function manchaGeo(tipo) {
+  const pz = [], n = tipo === 'choza' ? 13 : 18;
+  for (let i = 0; i < n; i++) {
+    const rr = Math.sqrt(0.12 + (i + 0.5) / n * 0.6), a = i * 2.39996 + 0.4, x = Math.cos(a) * rr, z = Math.sin(a) * rr, w = 0.15 + hash(i * 3.3 + 1) * 0.1, h = 0.12 + hash(i * 5.1 + 2) * 0.16;
+    if (tipo === 'choza') { const m = new THREE.CylinderGeometry(w * 0.6, w * 0.6, h * 0.7, 6, 1, true); m.translate(x, h * 0.35, z); pz.push([m, '#bba987']); const t = new THREE.ConeGeometry(w * 0.75, h * 0.8, 6, 1, true); t.translate(x, h * 0.7 + h * 0.4, z); pz.push([t, '#a48c5c']); continue; }
+    const b = new THREE.BoxGeometry(w, h, w * (0.8 + hash(i * 1.7) * 0.5)); b.rotateY(a); b.translate(x, h / 2, z); pz.push([b, tipo === 'plana' ? '#ece2c9' : '#efe6d0']);
+    if (tipo === 'tejas') { const t = new THREE.ConeGeometry(w * 0.78, 0.09, 4, 1, true); t.rotateY(a + Math.PI / 4); t.translate(x, h + 0.045, z); pz.push([t, '#b4573a']); }
+    else if (hash(i * 9.3) > 0.55) { const t = new THREE.BoxGeometry(w * 0.45, 0.07, w * 0.45); t.rotateY(a); t.translate(x, h + 0.035, z); pz.push([t, '#d9cbaa']); }
+  }
+  return fundir(pz);
+}
+
 /* C9 · El terreno entero tiene ~460 mil triángulos: se parte en trozos de TROZO×TROZO casillas, cada uno un THREE.LOD con tres niveles
    (todas las casillas, una de cada dos, una de cada cuatro) que comparten los mismos vértices y solo cambian los índices. Los trozos
    fuera de pantalla no se dibujan y los lejanos van con menos detalle. Un faldón que baja 0,6 bajo el borde tapa las rendijas entre
@@ -831,6 +879,7 @@ export class MapView3D {
     }
     // --- ciudades (y, aparte, los sitios de colonia de CN5) ---
     this.cities = {}; this.sitios = {}; this.aristaSet = new Set(this.aristas.map(e => e.a + '|' + e.b)); this.firmaMundo = '';
+    this.racimosCrear();
     for (const id in D.CITIES) this.crearCiudad(id);
     this.crearSitios();
   }
@@ -840,15 +889,7 @@ export class MapView3D {
     const sc = this.scene;
     {
       const d = D.CITIES[id], p = G.pos(id), x = p[0] * K, z = p[1] * K, grp = new THREE.Group(), s = id === 'roma' || id === 'carthago' ? 1.5 : 0.95 + d.w * 0.09;
-      const stone = new THREE.MeshLambertMaterial({ color: '#cfc3a6', flatShading: true }), roof = new THREE.MeshLambertMaterial({ color: '#b5522f', flatShading: true }), plaster = new THREE.MeshLambertMaterial({ color: '#efe5cc', flatShading: true });
-      const wall = new THREE.Mesh(new THREE.CylinderGeometry(1.05, 1.1, 0.32, 14, 1, true), stone); wall.material.side = THREE.DoubleSide; wall.position.y = 0.16; grp.add(wall);
-      for (let i = 0; i < 7; i++) { const a = i / 7 * 6.283, t = new THREE.Mesh(new THREE.BoxGeometry(0.24, 0.52, 0.24), stone); t.position.set(Math.cos(a) * 1.07, 0.26, Math.sin(a) * 1.07); grp.add(t); }
-      const casas = [];
-      for (let i = 0; i < 5 + d.w * 2; i++) {
-        const a = hash(i * 3.1 + d.lon) * 6.283, rr = hash(i * 7.7 + d.lat) * 0.78, w = 0.22 + hash(i * 1.3) * 0.2, hh = 0.2 + hash(i * 5.9) * 0.28;
-        const bx = new THREE.Mesh(new THREE.BoxGeometry(w, hh, w), plaster); bx.position.set(Math.cos(a) * rr, hh / 2, Math.sin(a) * rr); grp.add(bx); casas.push(bx);
-        const rf = new THREE.Mesh(new THREE.ConeGeometry(w * 0.8, 0.16, 4), roof); rf.rotation.y = Math.PI / 4; rf.position.set(Math.cos(a) * rr, hh + 0.08, Math.sin(a) * rr); grp.add(rf); casas.push(rf);
-      }
+      const casas = [];   // C16: muralla y casas van en los racimos instanciados (ver racimos)
       const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.035, 0.035, 2.3, 5), new THREE.MeshLambertMaterial({ color: '#3a2a1a' })); pole.position.y = 1.15; grp.add(pole);
       const fm = new THREE.MeshLambertMaterial({ color: '#fff', side: THREE.DoubleSide }), flag = new THREE.Mesh(new THREE.PlaneGeometry(0.95, 0.6), fm); flag.position.set(0.5, 1.95, 0); grp.add(flag); grp.userData.pole = pole;
       const ring = new THREE.Mesh(new THREE.RingGeometry(1.35, 1.6, 28), new THREE.MeshBasicMaterial({ color: '#fff', transparent: true, opacity: 0.85, depthWrite: false })); ring.rotation.x = -Math.PI / 2; ring.position.y = 0.05; ring.visible = false; grp.add(ring);
@@ -856,8 +897,60 @@ export class MapView3D {
       const el = document.createElement('button'); el.className = 'mlabel'; el.innerHTML = '<i></i><b class="marca" hidden></b><span>' + d.n + '</span><em></em>';
       el.addEventListener('click', ev => { ev.stopPropagation(); if (this.opts.onSelect) this.opts.onSelect(id); });
       this.labels.appendChild(el);
-      this.cities[id] = { marca: el.querySelector('b'), rel: null, casas: casas, pole: pole, flag: fm, flagMesh: flag, centro: null, quiere: null, grp: grp, ring: ring, el: el, dot: el.querySelector('i'), em: el.querySelector('em'), owner: null, x: x, z: z, top: 2.6 * s };
+      this.cities[id] = { s: s, marca: el.querySelector('b'), rel: null, casas: casas, pole: pole, flag: fm, flagMesh: flag, centro: null, quiere: null, grp: grp, ring: ring, el: el, dot: el.querySelector('i'), em: el.querySelector('em'), owner: null, x: x, z: z, top: 2.6 * s };
     }
+  }
+
+  /* C16 · capas instanciadas de los racimos (murallas y manchas: 3 + 3 llamadas para todas las ciudades); las casas reales se crean al cargarse */
+  racimosCrear() {
+    const mat = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide }), capa = geo => { const im = new THREE.InstancedMesh(geo, mat, RAC_MAX); im.count = 0; im.frustumCulled = false; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.setColorAt(0, new THREE.Color('#fff')); this.scene.add(im); return im; };
+    this.rac = { firma: '', muros: {}, manchas: {}, casas: {}, M: new THREE.Matrix4(), Q: new THREE.Quaternion(), V: new THREE.Vector3(), E: new THREE.Vector3(), C: new THREE.Color(), F: new THREE.Color(), Y: new THREE.Vector3(0, 1, 0) };
+    for (const t of ['empalizada', 'muro', 'alto']) this.rac.muros[t] = capa(murallaGeo(t));
+    for (const t of ['tejas', 'plana', 'choza']) this.rac.manchas[t] = capa(manchaGeo(t));
+  }
+  /* rellena las capas según lo que se ve: solo se rehace cuando cambia algo (dueño, tamaño, muralla, cerca/lejos o una casa recién cargada) */
+  racimos(state) {
+    const R = this.rac, cam = this.cam.position, filas = []; let firma = '';
+    for (const id in this.cities) {
+      const c = this.cities[id], st = state.cities[id]; if (!st || !c.grp.visible) continue;
+      const cu = culturaDe(st.owner), t = Math.round(racTam(id, st) * 20) / 20, lv = Math.min(6, st.b ? st.b.muralla || 0 : 0), lista = RAC_CASAS[cu];
+      const dc = Math.hypot(c.x - cam.x, c.grp.position.y - cam.y, c.z - cam.z), n = lista ? Math.min(Math.round(6 + 16 * t), Math.floor(RAC_TRI_CIUDAD / RAC_TRI[cu])) : 0;
+      filas.push({ id, c, st, cu, t, lv, n, dc, cerca: !!lista && this.c.dist < 40 && dc < this.c.dist * 0.9 + 12 && lista.every(k => getStatic(k)) });
+    }
+    // de cerca, las casas reales van primero a las ciudades más próximas a la cámara, hasta el tope de triángulos en pantalla
+    let gasto = 0; for (const f of filas.filter(f => f.cerca).sort((a, b) => a.dc - b.dc)) { const g = f.n * RAC_TRI[f.cu]; if (gasto + g > RAC_TRI_TOTAL) f.cerca = false; else gasto += g; }
+    for (const f of filas) firma += f.id + f.st.owner + f.t + f.lv + (f.cerca ? 1 : 0) + '|';
+    if (firma === R.firma) return; R.firma = firma;
+    const { M, Q, V, E, C, F, Y } = R, nM = {}, nC = {}, cuenta = {};
+    for (const k in R.muros) nM[k] = 0; for (const k in R.manchas) nM[k] = 0;
+    for (const f of filas) {
+      const { c, st, cu, t, lv } = f, s = c.s, Rl = 0.75 + 0.9 * t, Rw = Rl * s, y = c.grp.position.y, rot = hash(c.x * 3.7 + c.z) * 6.283;
+      c.ring.scale.setScalar(Math.max(1, (Rl + 0.3) / 1.35));
+      F.set(D.FACTIONS[st.owner].col);
+      // muralla: radio con el tamaño; alto con el nivel de muralla del juego (sin muralla: empalizada baja)
+      const tm = lv <= 0 ? 'empalizada' : lv <= 2 ? 'muro' : 'alto', im = R.muros[tm], hm = s * (lv <= 0 ? 0.1 : 0.11 + 0.025 * lv);
+      M.compose(V.set(c.x, y - 0.03, c.z), Q.setFromAxisAngle(Y, rot), E.set(Rw, hm, Rw)); im.setMatrixAt(nM[tm], M); im.setColorAt(nM[tm], C.set(RAC_PIEDRA[cu]).lerp(F, 0.06)); nM[tm]++;
+      // mancha (de lejos, o siempre si su cultura no tiene casas de 0 A.D.)
+      if (!f.cerca) { const tp = RAC_MANCHA[cu], mm = R.manchas[tp]; M.compose(V.set(c.x, y, c.z), Q.setFromAxisAngle(Y, rot), E.set(Rw * 0.93, s * (0.8 + 0.5 * t), Rw * 0.93)); mm.setMatrixAt(nM[tp], M); mm.setColorAt(nM[tp], C.set('#ffffff').lerp(F, 0.1)); nM[tp]++; continue; }
+      // de cerca: casas de 0 A.D. en espiral entre el edificio central y la muralla
+      const lista = RAC_CASAS[cu], n = f.n, r0 = 0.7, r1 = Rl - 0.22;
+      for (let i = 0; i < n; i++) {
+        const k = lista[Math.floor(hash(i * 7.3 + c.x) * lista.length)], st0 = getStatic(k), b = st0.bb, g = this.racCasas(k, cu); if (!g || (cuenta[g.uuid] || 0) >= CASAS_MAX) continue;
+        const rr = Math.sqrt(r0 * r0 + (i + 0.5) / n * (r1 * r1 - r0 * r0)) * s, a = rot + i * 2.39996 + (hash(i + c.z) - 0.5) * 0.3, x = c.x + Math.cos(a) * rr, z = c.z + Math.sin(a) * rr;
+        const kk = s * (0.36 + hash(i * 2.9 + c.z) * 0.1) / Math.max(b[3] - b[0], b[5] - b[2]), giro = -a + Math.PI / 2 + Math.round(hash(i * 4.1) * 3) * Math.PI / 2;
+        Q.setFromAxisAngle(Y, giro); V.set(-(b[0] + b[3]) / 2 * kk, 0, -(b[2] + b[5]) / 2 * kk).applyQuaternion(Q);
+        M.compose(V.add(E.set(x, Math.min(this.hAt(x, z), y + 0.25) - 0.02, z)), Q, E.set(kk, kk, kk)); const j = cuenta[g.uuid] || 0;
+        for (const m of g.children) m.setMatrixAt(j, M); cuenta[g.uuid] = j + 1; nC[g.uuid] = g;
+      }
+    }
+    for (const k in R.muros) { const im = R.muros[k]; im.count = nM[k]; im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; }
+    for (const k in R.manchas) { const im = R.manchas[k]; im.count = nM[k]; im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; }
+    for (const k in R.casas) { const g = R.casas[k]; for (const m of g.children) { m.count = cuenta[g.uuid] || 0; m.instanceMatrix.needsUpdate = true; } }
+  }
+  /* un juego de casas reales por tipo y cultura (el tejado lleva el color sobrio de la cultura) */
+  racCasas(key, cu) {
+    const id = key + '|' + cu; if (this.rac.casas[id]) return this.rac.casas[id];
+    const g = staticInstancedVacio(key, CASAS_MAX, RAC_TEJA[cu]); if (!g) return null; this.scene.add(g); this.rac.casas[id] = g; return g;
   }
 
   /* CN5 · sitios de colonia: un mojón con banderín (sin muralla ni casas, para no parecer una ciudad). Se eligen al tocar como las ciudades. */
@@ -912,10 +1005,9 @@ export class MapView3D {
     if (c.centro) { c.grp.remove(c.centro); c.centro = null; }
     const m = clave && staticMesh(clave, D.FACTIONS[c.owner].col);
     if (m) {
-      const b = st.bb, k = 1.5 / Math.max(b[3] - b[0], b[5] - b[2], 1), cx = (b[0] + b[3]) / 2, cz = (b[2] + b[5]) / 2;
+      const b = st.bb, k = 1.2 / Math.max(b[3] - b[0], b[5] - b[2], 1), cx = (b[0] + b[3]) / 2, cz = (b[2] + b[5]) / 2;
       m.scale.setScalar(k); m.position.set(-cx * k, Math.max(0, -b[1] * k), -cz * k); c.grp.add(m); c.centro = m;
     }
-    for (const q of c.casas) q.visible = !m;
     c.pole.position.set(m ? 0.8 : 0, 1.15, m ? 0.8 : 0); c.flagMesh.position.set(m ? 1.3 : 0.5, 1.95, m ? 0.8 : 0);
     c.puesto = c.quiere;
   }
@@ -1006,6 +1098,7 @@ export class MapView3D {
       c.el.classList.toggle('sel', sel === id); place(c.el, c.x, c.grp.position.y + c.top, c.z);
       if (mare) c.el.style.display = 'none';   // C6: de lejos solo se leen los nombres de zona
     }
+    this.racimos(state);   // C16: murallas, manchas y casas de todas las ciudades
     this.sinPisar(sel);
     const ar = new Set(G.aristas().map(e => e[0] + '|' + e[1]));
     for (const e of this.aristas) e.line.visible = ar.has(e.a + '|' + e.b) && !!state.cities[e.a] && !!state.cities[e.b];
