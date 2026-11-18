@@ -2004,6 +2004,18 @@
       "titulo": "Corazón · TP1 La escena a pie, sobre la base (dirige y construye Opus)",
       "nota": "gobierno/maquetas/a-pie/ (carpeta nueva); une testudo-pilum-a y testudo-lucha; sin Fable",
       "url": "https://claude.ai/code/session_01QiKC36rueL1kwqzeVBKZqd"
+    },
+    {
+      "tarea": "EC0",
+      "titulo": "Cerebro · EC0 Objetivo final de la economía (solo documentos; dirige y construye Opus)",
+      "nota": "gobierno/estudios/EC0-objetivo-economia.md; mide el juego con el bot; sin tocar js/; 1,0 M",
+      "url": "https://claude.ai/code/session_01QiKC37Jy3fSXaHP4iSPnFT"
+    },
+    {
+      "tarea": "CI0",
+      "titulo": "Cerebro · CI0 Objetivo final de la ciudad, con láminas (solo documentos; dirige y construye Opus)",
+      "nota": "gobierno/estudios/CI0-objetivo-ciudad.md y gobierno/historia/laminas-ciudades/; sin tocar js/; 0,8 M",
+      "url": "https://claude.ai/code/session_01QiKC36BmvfmQUDJ3LxdxQh"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
