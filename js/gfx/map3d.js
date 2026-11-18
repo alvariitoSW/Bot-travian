@@ -9,7 +9,11 @@ import { getUnit, unitMaterialReal, instancedGeometry, frameOf, UNIT_SCALE } fro
 
 const D = window.DATA, G = window.Game;
 const MARE_DIST = 130;   // C6: distancia de Mare Nostrum de reserva (C8: la real se calcula según la pantalla en ajustarMare)
-const pitchDe = d => 0.62 + Math.min(1, Math.max(0, (d - 14) / 110)) * 0.6;   // inclinación de la cámara según la distancia
+/* C15 · cámara con horizonte: de cerca la cámara va baja (unos 20° en vertical, 13° en horizontal) y deja ver el mar y los montes a lo lejos, con cielo y bruma; al alejar
+   se endereza poco a poco hasta la vista de carta de siempre (70°), a la que llega a 115 de distancia (Mare Nostrum no cambia). */
+// b (this.pitchBajo) se ajusta a la pantalla en resize(): la mirada más alta queda unos 5° sobre el horizonte, en vertical y en horizontal
+const pitchDe = (d, b) => b + ss(30, 115, d) * (1.22 - b);   // inclinación de la cámara según la distancia
+const horizonte = d => 1 - ss(55, 112, d);           // C15: 1 = cámara baja con cielo y bruma clara; 0 = vista de carta
 const K = 0.1;                                   // mundo 2D (D.proj) -> unidades 3D
 /* C9 · marco del mundo: lon -10..37,24 y lat 27,93..51,5 (Hispania y Galia enteras, Egipto con el delta y Asia Menor), con las mismas
    casillas que el mapa antiguo (32/420 ° de longitud y 12,5/210 ° de latitud). Las coordenadas del juego (D.proj, partidas guardadas)
@@ -579,6 +583,7 @@ function mar(dist, land) {
         float n = texture2D(tN, vXZ * 0.23 + vec2(uTiempo * 0.012, -uTiempo * 0.008)).r, n2 = texture2D(tN, vXZ * 0.9 - vec2(uTiempo * 0.02, 0.0)).b;
         float baj = 1.0 - smoothstep(0.0, 3.4, sd);
         diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.40, 0.80, 0.82), baj * 0.65);
+        diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.86, 0.79, 0.58), (1.0 - smoothstep(0.2, 1.6, sd)) * 0.7);   // C15: aguas someras color arena junto a la orilla
         diffuseColor.a = mix(diffuseColor.a, 0.5, baj * baj);
         float borde = 0.4 + 0.5 * (0.5 + 0.5 * sin(uTiempo * 0.9 + n * 6.28));
         float f0 = (1.0 - smoothstep(borde - 0.3, borde, sd)) * (0.6 + 0.4 * n2);
@@ -746,9 +751,10 @@ export class MapView3D {
     sea.rotation.x = -Math.PI / 2; sea.position.set(OX + ANCHO / 2, 0, OZ + ALTO / 2); sc.add(sea);
     // C5a: marco de carta antigua. Fuera del mundo, pergamino; dentro, viñeta sepia en los bordes (más fuerte al alejarse)
     this.marco = { value: 0 };
-    const marcoMat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uVig: this.marco, uAncho: { value: ANCHO }, uAlto: { value: ALTO }, uO: { value: new THREE.Vector2(OX, OZ) } },
-      vertexShader: 'varying vec2 vXZ; void main() { vec4 w = modelMatrix * vec4(position, 1.0); vXZ = w.xz; gl_Position = projectionMatrix * viewMatrix * w; }',
-      fragmentShader: `varying vec2 vXZ; uniform float uVig, uAncho, uAlto; uniform vec2 uO;
+    this.nieblaMarco = { c: { value: new THREE.Color() }, d: { value: new THREE.Vector3(1e4, 2e4, 0) } };   // C15: color, cerca, lejos y fuerza de la bruma
+    const marcoMat = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uVig: this.marco, uAncho: { value: ANCHO }, uAlto: { value: ALTO }, uO: { value: new THREE.Vector2(OX, OZ) }, uNC: this.nieblaMarco.c, uND: this.nieblaMarco.d },
+      vertexShader: 'varying vec2 vXZ; varying float vDc; void main() { vec4 w = modelMatrix * vec4(position, 1.0); vXZ = w.xz; vec4 mv = viewMatrix * w; vDc = -mv.z; gl_Position = projectionMatrix * mv; }',
+      fragmentShader: `varying vec2 vXZ; varying float vDc; uniform float uVig, uAncho, uAlto; uniform vec2 uO; uniform vec3 uNC, uND;
         float h(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float vn(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
         void main() {
@@ -762,9 +768,23 @@ export class MapView3D {
           perg = mix(perg, vec3(0.25, 0.15, 0.06), clamp(tinta, 0.0, 1.0) * fuera);
           float vig = smoothstep(-9.0, 0.0, d) * 0.7 * uVig;
           float a = mix(vig, 1.0, fuera);
-          gl_FragColor = vec4(mix(vec3(0.30, 0.20, 0.09), perg, fuera), a);
+          // C15: con la cámara baja no hay pergamino: fuera del mundo todo es bruma, y la tierra se funde en ella en los últimos 35 de borde
+          float nb = max(smoothstep(uND.x, uND.y, vDc), max(fuera, smoothstep(-35.0, 0.0, d))) * uND.z;
+          gl_FragColor = vec4(mix(mix(vec3(0.30, 0.20, 0.09), perg, fuera), uNC, nb), mix(a, 1.0, nb));
         }` });
     const out = new THREE.Mesh(new THREE.PlaneGeometry(1000, 800), marcoMat); out.rotation.x = -Math.PI / 2; out.position.set(OX + ANCHO / 2, 3, OZ + ALTO / 2); out.renderOrder = 5; sc.add(out);
+    // C15: cielo. Una esfera que sigue a la cámara, pintada por la altura de la mirada: en el horizonte, el color de la bruma; arriba, azul;
+    // un brillo cálido hacia el sol. Se dibuja la primera y sin profundidad: el relieve la tapa. Solo con la cámara baja.
+    this.cielo = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 10), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, depthTest: false, fog: false,
+      uniforms: { uH: { value: new THREE.Color('#c9d6da') }, uZ: { value: new THREE.Color('#6f9fcc') }, uS: { value: new THREE.Vector3(-0.55, 0.25, -0.8).normalize() } },
+      vertexShader: 'varying vec3 vD; void main() { vD = (modelMatrix * vec4(position, 1.0)).xyz - cameraPosition; gl_Position = projectionMatrix * viewMatrix * modelMatrix * vec4(position, 1.0); }',
+      fragmentShader: `varying vec3 vD; uniform vec3 uH, uZ, uS;
+        void main() { vec3 d = normalize(vD); float e = max(d.y, 0.0);
+          vec3 c = mix(uH, uZ, smoothstep(0.0, 0.14, e));
+          c = mix(c, vec3(1.0, 0.93, 0.78), pow(max(dot(d, uS), 0.0), 6.0) * 0.35 * (1.0 - smoothstep(0.0, 0.5, e)));
+          gl_FragColor = vec4(c, 1.0); }` }));
+    this.cielo.renderOrder = -10; this.cielo.frustumCulled = false; this.cielo.visible = false; sc.add(this.cielo);
+    this.nieblaCarta = new THREE.Color('#27455c'); this.nieblaBaja = new THREE.Color('#c9d6da');
     // --- bosques ---
     const tg = new THREE.ConeGeometry(0.16, 0.5, 5); tg.translate(0, 0.25, 0);
     const trees = new THREE.InstancedMesh(tg, new THREE.MeshLambertMaterial({ color: '#3f6a30', flatShading: true }), 6000), M = new THREE.Matrix4(); let tn = 0;   // C9: el mundo es 2,7 veces mayor
@@ -955,7 +975,7 @@ export class MapView3D {
     if (!this.terrOn && mapaTexturas(this.terr)) this.terrOn = true;           // las texturas llegan después de crear el mapa
     const W = this.host.clientWidth, Hh = this.host.clientHeight, v = new THREE.Vector3(), now = performance.now(), dt = Math.min(0.1, (now - this.last) / 1000); this.last = now; this.t += dt; uTime.value = this.t;
     if (W && Hh && (W !== this.mW || Hh !== this.mH)) { this.mW = W; this.mH = Hh; this.ajustarMare(); }   // C8: el encuadre de Mare Nostrum sigue al tamaño real
-    const place = (el, x, y, z) => { v.set(x, y, z).project(this.cam); if (v.z > 1 || v.x < -1.2 || v.x > 1.2 || v.y < -1.2 || v.y > 1.2) { el.style.display = 'none'; return; } el.style.display = ''; el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * Hh).toFixed(1) + 'px) translate(-50%,-100%)'; };
+    const cpos = this.cam.position, alc = this.alcance, place = (el, x, y, z) => { if (alc && Math.hypot(x - cpos.x, y - cpos.y, z - cpos.z) > alc) { el.style.display = 'none'; return; } v.set(x, y, z).project(this.cam); if (v.z > 1 || v.x < -1.2 || v.x > 1.2 || v.y < -1.2 || v.y > 1.2) { el.style.display = 'none'; return; } el.style.display = ''; el.style.transform = 'translate(' + ((v.x + 1) / 2 * W).toFixed(1) + 'px,' + ((1 - v.y) / 2 * Hh).toFixed(1) + 'px) translate(-50%,-100%)'; };
     if (this.labels.scrollLeft || this.labels.scrollTop) { this.labels.scrollLeft = 0; this.labels.scrollTop = 0; }
     this.escalon(state, dt, place);
     const mare = this.esc.mare;
@@ -1025,7 +1045,7 @@ export class MapView3D {
     for (const [id, a] of this.armies) if (!seen.has(id)) { this.scene.remove(a.grp); a.grp.traverse(o => { if (o.geometry && !o.userData.real) o.geometry.dispose(); }); a.el.remove(); this.armies.delete(id); }
     const c = this.c, cp = Math.cos(c.pitch);
     this.marco.value = Math.max(0, Math.min(1, (c.dist - 40) / 90));
-    this.adornos.material.opacity = 0.92 * ss(16, 42, c.dist);   // C10: los adornos de carta se desvanecen al acercarse
+    this.adornos.material.opacity = 0.92 * ss(16, 42, c.dist) * (1 - horizonte(c.dist));   // C15: con la cámara baja, sin letras de carta   // C10: los adornos de carta se desvanecen al acercarse
     this.adornos.visible = this.adornos.material.opacity > 0.01;   // C5a: viñeta del marco solo en vistas lejanas
     this.tribus.material.opacity = 0.95 * ss(170, 125, c.dist) * ss(13, 24, c.dist); this.tribus.visible = this.tribus.material.opacity > 0.01;   // C11: cintas de los pueblos a media distancia (de muy cerca se ve el poblado)
     if (D.anio !== this.calzAnio) { this.calzAnio = D.anio; calzadasAnio(this.calzadas, D.anio || D.START_YEAR || 280); }   // C12: calzadas pálidas hasta su año
@@ -1033,8 +1053,19 @@ export class MapView3D {
     this.puertos.material.opacity = 0.95 * ss(260, 190, c.dist) * ss(6, 11, c.dist); this.puertos.visible = this.puertos.material.opacity > 0.01;   // C12: anclas de los puertos
     this.aldeas.visible = c.dist < 135;
     if (!(typeof document !== 'undefined' && document.hidden)) vidaMover(this, this.vida, this.t, state);   // C13: rebaños, humo, mercantes y carros; de lejos se apagan solos   // C11: de lejos, los poblados no se distinguen: no se dibujan
-    this.scene.fog.near = Math.max(90, c.dist * 0.6); this.scene.fog.far = Math.max(260, c.dist * 1.75);   // C6: a más distancia, más bruma lejana
-    this.cam.position.set(c.x, Math.sin(c.pitch) * c.dist, c.z + cp * c.dist); this.cam.lookAt(c.x, 0, c.z);
+    { // C6: a más distancia, más bruma lejana. C15: con la cámara baja la bruma es clara y cercana (oculta el borde del mundo) y la cámara
+      // no dibuja más allá de ella: los trozos de relieve que caen detrás se recortan y no suman triángulos.
+      const h = horizonte(c.dist), f = this.scene.fog, nc = Math.max(90, c.dist * 0.6), fc = Math.max(260, c.dist * 1.75), nh = 10 + c.dist * 1.1, fh = 40 + c.dist * 2.3;
+      f.near = nc + (nh - nc) * h; f.far = fc + (fh - fc) * h; f.color.copy(this.nieblaCarta).lerp(this.nieblaBaja, h);
+      const lejos = h > 0 ? Math.min(600, f.far * 1.04 + (1 - h) * 600) : 600; if (this.cam.far !== lejos) { this.cam.far = lejos; this.cam.updateProjectionMatrix(); }
+      const l1 = Math.round(58 - 20 * h); if (this.lodL1 !== l1) { this.lodL1 = l1; for (const lod of this.terreno.children) lod.levels[1].distance = l1; }   // C15: con la cámara baja, el detalle medio empieza antes
+      this.nieblaMarco.c.value.copy(f.color); this.nieblaMarco.d.value.set(f.near, f.far, h);
+      this.alcance = h > 0.3 ? f.near + (f.far - f.near) * 0.15 : 0;   // las etiquetas de lo que ya se pierde en la bruma no salen
+      const sobre = c.pitch - this.cam.fov * Math.PI / 360;   // la mirada más alta, en radianes bajo el horizonte
+      this.cielo.visible = h > 0.01 && sobre < 0.12;
+      if (this.cielo.visible) { this.cielo.position.set(c.x, Math.sin(c.pitch) * c.dist, c.z + cp * c.dist); this.cielo.scale.setScalar(lejos * 0.9); this.cielo.material.uniforms.uH.value.copy(f.color); }
+    }
+    { const cz = c.z + cp * c.dist; this.cam.position.set(c.x, Math.max(Math.sin(c.pitch) * c.dist, this.hAt(c.x, cz) + 1.2), cz); this.cam.lookAt(c.x, 0, c.z); }   // C15: la cámara baja nunca entra en un monte
     this.r.render(this.scene, this.cam);
   }
 
@@ -1136,7 +1167,7 @@ export class MapView3D {
      no deja ver más de un margen corto de pergamino fuera del mundo. C9: el mundo pasa del núcleo (160×80) al marco ancho (ANCHO×ALTO),
      así que de lejos también se arrastra arriba y abajo (Galia del norte, Egipto); el alto visible se estima con el de Mare Nostrum. */
   clamp() {
-    const c = this.c, D = this.mareD || 330, m = 5; c.dist = Math.max(14, Math.min(D, c.dist)); c.pitch = pitchDe(c.dist);
+    const c = this.c, D = this.mareD || 330, m = 5; c.dist = Math.max(14, Math.min(D, c.dist)); c.pitch = pitchDe(c.dist, this.pitchBajo || 0.35);
     const medio = c.dist * Math.tan(this.cam.fov * Math.PI / 360) * this.cam.aspect;   // medio ancho de suelo visible en el centro
     let x0 = OX + Math.max(4, medio - m), x1 = OX + Math.min(ANCHO - 4, ANCHO - medio + m); if (x0 > x1) x0 = x1 = OX + ANCHO / 2;
     c.x = Math.max(x0, Math.min(x1, c.x));
@@ -1150,7 +1181,7 @@ export class MapView3D {
     const w = this.host.clientWidth, h = this.host.clientHeight; if (!w || !h) return;
     const arriba = Math.min(200, h * 0.24), abajo = Math.min(80, h * 0.1), banda = h - arriba - abajo - 12, centro = arriba + 6 + banda / 2;
     const cam = this.cam.clone(), v = new THREE.Vector3();
-    const y = (zt, d, zz) => { const p = pitchDe(d); cam.position.set(80, Math.sin(p) * d, zt + Math.cos(p) * d); cam.lookAt(80, 0, zt); cam.updateMatrixWorld(); v.set(80, 0, zz).project(cam); return (1 - v.y) / 2 * h; };
+    const y = (zt, d, zz) => { const p = pitchDe(d, this.pitchBajo || 0.35); cam.position.set(80, Math.sin(p) * d, zt + Math.cos(p) * d); cam.lookAt(80, 0, zt); cam.updateMatrixWorld(); v.set(80, 0, zz).project(cam); return (1 - v.y) / 2 * h; };
     let a = 40, b = 600; for (let i = 0; i < 30; i++) { const d = (a + b) / 2; if (y(40, d, 80) - y(40, d, 0) > banda) a = d; else b = d; }
     const d = b; a = -40; b = 120; for (let i = 0; i < 30; i++) { const zt = (a + b) / 2; if ((y(zt, d, 0) + y(zt, d, 80)) / 2 > centro) a = zt; else b = zt; }
     this.mareD = d; this.mareZ = (a + b) / 2; this.clamp();
@@ -1178,5 +1209,5 @@ export class MapView3D {
     cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
     cv.addEventListener('wheel', e => { this.esc.aMano = performance.now(); this.c.dist *= e.deltaY > 0 ? 1.1 : 0.9; this.clamp(); e.preventDefault(); }, { passive: false });
   }
-  resize() { const w = this.host.clientWidth || 1, h = this.host.clientHeight || 1; this.r.setSize(w, h, false); this.cam.aspect = w / h; this.cam.fov = w < h ? 50 : 36; this.cam.updateProjectionMatrix(); this.ajustarMare(); }
+  resize() { const w = this.host.clientWidth || 1, h = this.host.clientHeight || 1; this.r.setSize(w, h, false); this.cam.aspect = w / h; this.cam.fov = w < h ? 50 : 36; this.cam.updateProjectionMatrix(); this.pitchBajo = Math.max(0.2, this.cam.fov * Math.PI / 360 - 0.09); this.ajustarMare(); }
 }
