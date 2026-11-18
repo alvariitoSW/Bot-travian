@@ -19,7 +19,7 @@
   const TEXTOS = {
     obras: (nom, mas, tiempo) => 'En obras: ' + nom + (mas ? ' y ' + mas + ' más' : '') + ', faltan ' + tiempo + '.',
     sinRecursos: () => 'Faltan recursos para nuevas obras: espera a que lleguen.',
-    almacen: (res, pct, hay) => 'Tu ' + res + ' llega al ' + pct + ' %: coloca ' + (hay ? 'otro almacén.' : 'un almacén.'),
+    almacen: (res, pct, hay) => ({ materiales: 'Tus materiales llegan', denarios: 'Tus denarios llegan' }[res] || 'Tu ' + res + ' llega') + ' al ' + pct + ' %: coloca ' + (hay ? 'otro almacén.' : 'un almacén.'),
     granero: () => 'Falta un granero: sin él hay hambre en invierno.',
     tope: () => 'La población está al tope: coloca una obra que traiga una calle.',
     barrio: (baja, nivel, falta) => (baja ? 'Para seguir siendo ' : 'Para ser ') + nivel + ' falta ' + falta + '.',
