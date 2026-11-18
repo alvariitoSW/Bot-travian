@@ -31,7 +31,7 @@
     { "id": "L4", "organo": "cerebro", "titulo": "Un solo Senado, con intrigas", "estado": "medias",
       "veras": "Una sala de votos con tres bandos: prometes, pactas y te vetan. Lo que se vota cambia tu partida.",
       "hecho": "Sala de votos con 30 escaños, tratos y tribuno, ya dentro del juego.",
-      "falta": "Espera el estudio PO1, que pediste el 18/11: cómo encajan el Senado del juego y las tres maquetas de política. Sin tareas hasta su resultado.",
+      "falta": "Espera el estudio PO1, que pediste el 18/11: cómo encajan el Senado del juego y las tres maquetas de política. El estudio ya está hecho: faltan tus respuestas a sus tres preguntas. Sin tareas hasta entonces.",
       "captura": "gobierno/capturas-tarea/SN2-1-sala.jpg", "tareas": [] },
     { "id": "L5", "organo": "cerebro", "titulo": "Rutas y acuerdos comerciales", "estado": "medias",
       "veras": "Abres rutas, firmas acuerdos con otras ciudades y ves cuánto te renta cada uno.",
@@ -43,7 +43,7 @@
       "falta": "Todo. Tres tareas escritas: la meta, la meta a la vista con su pantalla de victoria y el equilibrio.", "tareas": ["VC1", "VC2", "VC3"] },
     { "id": "L7", "organo": "cerebro", "titulo": "Ganar una campaña por la política", "estado": "falta",
       "veras": "Una meta de poder en el Senado a la vista durante la partida. Al alcanzarla, pantalla de victoria.",
-      "falta": "Todo. Espera el estudio PO1 de la política; sus tareas se escriben con su resultado.", "tareas": [] },
+      "falta": "Todo. Espera el estudio PO1 de la política; el estudio ya está hecho y sus tareas se escriben cuando contestes sus tres preguntas.", "tareas": [] },
 
     { "id": "L8", "organo": "corazon", "titulo": "Campaña en el mapa contra un enemigo que responde", "estado": "hecha",
       "veras": "Mueves ejércitos por Italia y el Mediterráneo, y Cartago, Epiro y los galos atacan y se defienden.",
