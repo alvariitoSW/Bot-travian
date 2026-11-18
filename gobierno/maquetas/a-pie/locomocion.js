@@ -15,8 +15,8 @@ export const MARCHA = {
   FUNDIDO: 0.3,     /* segundos para pasar de un modo al siguiente */
 };
 const lim = (x, a, b) => Math.max(a, Math.min(b, x));
-export function crearPaso({ zW, zR, fase = 0, retraso = 0, prisa = 1 }) {
-  return { zW, zR, fase, ciclos: fase, retraso, prisa, v: 0, vReal: 0, g: 0, acel: 0, quieto: 0, inclina: 0 };
+export function crearPaso({ zW, zR, zT = zW, fase = 0, retraso = 0, prisa = 1 }) {
+  return { zW, zR, zT, corto: 0, fase, ciclos: fase, retraso, prisa, v: 0, vReal: 0, g: 0, acel: 0, quieto: 0, inclina: 0 };
 }
 /* acelera o frena hacia la velocidad que le toca, sin cambios de golpe. «prisa» da a cada uno su poco de genio */
 export function velocidad(p, vObj, dt) {
@@ -25,7 +25,8 @@ export function velocidad(p, vObj, dt) {
   return p.v;
 }
 /* zancada del modo de ahora (metros por ciclo de dos pasos) */
-export const zancada = p => p.g <= 1 ? p.zW : p.zW + (p.zR - p.zW) * (p.g - 1);
+/* TP1b: «corto» (0 a 1) es lo cerrado del testudo: la zancada pasa de la de andar (zW) a la del paso corto del testudo (zT) */
+export const zancada = p => { const w = p.zW + (p.zT - p.zW) * p.corto; return p.g <= 1 ? w : w + (p.zR - w) * (p.g - 1); };
 /* el hombre ha avanzado d metros en dt segundos: la pierna avanza lo mismo, y el modo se va fundiendo hacia el que pide su velocidad */
 export function pisa(p, d, dt) {
   const vr = dt > 0 ? d / dt : 0; p.vReal += (vr - p.vReal) * Math.min(1, dt * 12);

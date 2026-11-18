@@ -15,7 +15,7 @@ import { preload, getUnit, loadIndex, unitMaterialReal, instancedGeometry, frame
 import { texturaRuido } from '../../../js/gfx/ground.js';
 import { crearCampo } from './campo.js';
 import { H as HU } from './esqueleto.js';
-import { crearUnidad } from './unidad.js';
+import { crearUnidad, palabras, veredicto } from './unidad.js';
 import { FILES, FILAS, M, ABIERTO, CERRADO, YO, CMP, ySup, MURO_Y, MURO_Z, TECHO_Y, TECHO_Z, TECHO_SUBE, ALERO, CORRE, puesto, holgura } from './formacion.js';
 import { crearPaso, velocidad, pisa, dispersion, MARCHA } from './locomocion.js';
 import { CJ, generaTabla, hueso as huesoT, datosPies, pieEn, faseCero, filasMarcha, filaEnFase, tablaPaso } from './soldado.js';
@@ -25,7 +25,7 @@ import { crearCamara } from './camara.js';
 import { crearHud } from './hud.js';
 import * as Son from './sonido.js';
 
-const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), MARCAS = Q.get('marcas'), ANTES = Q.get('antes') === '1', COSTADO = Q.get('costado');
+const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), MARCAS = Q.get('marcas'), ANTES = Q.get('antes') === '1', COSTADO = Q.get('costado'), FUERA = Q.get('vista') === 'fuera';
 const $ = id => document.getElementById(id);
 const lerp = (a, b, t) => a + (b - a) * t, suave = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 /* ---------- luz de cine: dos retoques a los sombreadores de three, solo en esta página ----------
@@ -454,7 +454,9 @@ async function creaHombres() {
   zancadas(u); HOM.pies = datosPies(tab.T, tab.hues, u.geo, u.clips.idle.start); HOM.corre0 = tab.LC;
   HOM.f0 = { anda: faseCero(tab.T, tab.hues, HOM.pies, u.clips.walk), corre: faseCero(tab.T, tab.hues, HOM.pies, u.clips.run, tab.LC) };
   HOM.paso = { anda: tablaPaso(tab.T, tab.hues, HOM.pies, u.clips.walk, u.clips.walk.start, HOM.f0.anda, u.clips.idle.start), corre: tablaPaso(tab.T, tab.hues, HOM.pies, u.clips.run, tab.LC, HOM.f0.corre, u.clips.idle.start) };
-  HOM.zan = { walk: HOM.paso.anda.total * E, run: HOM.paso.corre.total * E };
+  /* TP1b: la zancada del paso corto del testudo, medida en sus posturas (las del techo, cerradas del todo) */
+  const pT = tablaPaso(tab.T, tab.hues, HOM.pies, u.clips.walk, tab.N0 + (CJ.techo + 3) * 120 + u.clips.walk.start, HOM.f0.anda, u.clips.idle.start);
+  HOM.zan = { walk: HOM.paso.anda.total * E, run: HOM.paso.corre.total * E, testudo: pT.total * E };
 }
 /* TP1: lo mismo para los galos (su tabla es la del modelo; correr no tiene fila inclinada: se inclina la figura entera) */
 let FIG_G = null;
@@ -470,16 +472,20 @@ function reinicia() {
   semilla = 43; semillaP = 5; if (ACC) ACC.reinicia();
   Object.assign(S, { unidad: crearUnidad({ hombres: M }), velObj: 0, sueltas: [], duelos: [], tChoque: -9, T: 0, zF: 0, k: 0, escudos: false, andando: false, fase: 'avance', proxima: 4, aviso: false, impacto: -1, paso: 0, tCinta: 0, tFin: -1, choque: false, llegaron: 0, sacude: 0, vel: 0, golpes: 0, roto: false, encoge: -9, destello: 0, corre: false, corriendo: false, aliento: 1, tGrito: -9, armas: 'pilum', nPaso: 0, kSon: -1, agotado: false,
     /* GM43h: salvas lanzadas, cuándo está listo el segundo pilum, el dedo en el botón, el medidor, los galos y tu pilum (la cámara lo sigue) */
-    salvas: 0, listo: 0, dedo: false, armando: false, tArma: -9, medidor: 0, tGalos: -1, corrida: false, caidos: 0, caidosSalva: [0, 0], buenoSalva: [false, false], buenos: 0, ojo: null, tOjo: -9, kP: 0, zChoque: 0, aviso2: false });
+    salvas: 0, listo: 0, dedo: false, armando: false, tArma: -9, medidor: 0, tGalos: -1, corrida: false, caidos: 0, caidosSalva: [0, 0], buenoSalva: [false, false], buenos: 0, ojo: null, tOjo: -9, kP: 0, zChoque: 0, aviso2: false,
+    /* TP1b: los galos como unidad (sus palabras), tú (el centurión, o quien te releve), tus gestos en el duelo, las órdenes
+       pendientes (sin centurión tardan), «Escudos» y «Cargad» en la lucha, y quién rompe */
+    unidadG: crearUnidad({ hombres: 16, porBaja: 0.05 }), yo: null, miraCam: null, tParar: -9, tEmpR: -9, tEmpuja: 0, pide: null, eco: null, ordenes: [], muro: false, cargaHasta: -9, tCargad: -9, tRelevo: -9, nRelevos: 0, huida: 0, derrota: 0, ruptura: null, bajasR0: 0 });
   S.romanos = []; for (let i = 0; i < M; i++) { const r = Math.floor(i / FILES); S.romanos.push({ i, f: i % FILES, r, vivo: true, muere: 0, lanza: -9, tiro: false, x: 0, z: 0, jx: (azar() - 0.5) * 0.14, jz: (azar() - 0.5) * 0.22, fase: azar() * 2, k: 0, pilos: 2, sujeta: false, suelta: -9, ret: Math.min(0.4, r * 0.07 + azar() * 0.12), retEnc: i === YO ? 0 : 0.04 + azar() * 0.16, ampEnc: i === YO ? 1 : 0.55 + azar() * 0.45, golpe: -9, enc: 0, mira: 0, A: 0, B: 0, mx: 0, oculto: false, inst: m4(), mEsc: m4(), qEsc: new THREE.Quaternion(), golpes: 0, camino: 0, off: 0, jy: 0 }); }
   /* TP1: el paso de cada uno: su fase, su prisa, su talla (±1,5 %: más no, que el escudo del testudo va a su sitio) y su
      retraso al arrancar (la fila de delante antes; dentro de la fila, cada uno a su tiempo) */
-  for (const h of S.romanos) { const t = 0.985 + azarP() * 0.03; h.sv = new THREE.Vector3(E * t, E * t, E * t); h.dz = 0; h.ritmo = 0.97 + azarP() * 0.06; h.retMarcha = h.r * 0.17 + azarP() * 0.14; h.arranque = 0; h.paso = crearPaso({ zW: HOM.zan.walk * t, zR: HOM.zan.run * t, fase: azarP(), prisa: 0.85 + azarP() * 0.3 }); }
+  for (const h of S.romanos) { const t = 0.985 + azarP() * 0.03; h.sv = new THREE.Vector3(E * t, E * t, E * t); h.dz = 0; h.ritmo = 0.97 + azarP() * 0.06; h.retMarcha = h.r * 0.17 + azarP() * 0.14; h.arranque = 0; h.paso = crearPaso({ zW: HOM.zan.walk * t, zR: HOM.zan.run * t, zT: HOM.zan.testudo * t, fase: azarP(), prisa: 0.85 + azarP() * 0.3 }); }
+  S.yo = S.romanos[YO];
   S.tiradores = []; for (let i = 0; i < 10; i++) S.tiradores.push({ x: (i - 4.5) * 1.7 + (azar() - 0.5) * 0.5, z: Z_TIRADORES + (azar() - 0.5) * 1.2, vivo: true, muere: 0, huye: false, yaw: 0, fase: azar() * 4 });
   S.galos = creaGalos(azar, azarP, Z_GALOS, FIG_G.zan); for (const g of S.galos) { g.inst = m4(); g.sv = new THREE.Vector3(E * g.esc, E * g.esc, E * g.esc); }
   for (const f of FL) f.est = 0; for (const a of ASTILLAS) { a.t = -9; a.m.visible = false; } for (const p of PILA) p.est = 0;
   for (const c of CHISPAS) c.t = -9; for (const p of POLVO) p.t = -9; for (const p of PIES) p.t = -9; S.restoPolvo = 0;
-  $('fin').hidden = true; $('accion').hidden = true; cinta('', false); DANIO.value = TEX_DANIO[0];
+  $('fin').hidden = true; cinta('', false); DANIO.value = TEX_DANIO[0];
   for (const h of S.romanos) sitio(h); actualiza();
 }
 const vivos = () => S.romanos.filter(h => h.vivo).length;
@@ -500,7 +506,7 @@ function grita(t) { if (Array.isArray(t)) t = t[Math.floor(azar() * t.length)]; 
    Bajo los escudos (idea de Ryse): dentro y entre dos hombres. Tú a la izquierda, tu compañero a la derecha, y en medio,
    por encima del muro y por debajo del techo, la rendija con el enemigo. Cada juego de cifras: x a la derecha del punto
    medio entre los dos, d metros detrás de la primera fila, y de altura, cabeceo, giro y apertura. */
-const CAMARA = crearCamara({ Q, S, H, suave, lerp, YO, CMP, Z_TIRADORES, COSTADO, get vertical() { return vertical; } });
+const CAMARA = crearCamara({ Q, S, H, suave, lerp, YO, CMP, Z_TIRADORES, COSTADO, FUERA, get vertical() { return vertical; } });
 const { CAM, camBase, lejos } = CAMARA;
 /* ---------- escudos: dónde va el de cada hombre con el testudo cerrado ---------- */
 const giro = (x, y, z, a) => new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(x, y, z), a);
@@ -545,8 +551,10 @@ function actualiza() {
       if (ANTES) { ga = gb = S.vel > 0 ? frameOf(C.walk, S.paso / lerp(V_PASO, 1.26, S.k) + h.fase) : bI; gm = 0; }
       else [ga, gb, gm] = filasMarcha(HOM, h.paso, T + h.fase, frameOf);
       const c0 = h.r === 0 ? CJ.muro : CJ.techo, aSet = r => r < 120 ? r : filaEnFase(HOM.paso.anda, h.paso.fase), b = aSet(gm < 0.5 ? ga : gb);
-      if (h.k <= 0.001) { A = ga; B = gb; mx = gm; }
-      else if (h.k < 0.999) { const s = h.k * 4, i = Math.min(3, Math.floor(s)); A = i === 0 ? b : fila(c0 + i - 1, b); B = fila(c0 + i, b); mx = s - i; }
+      /* TP1b: andando sin testudo, el escudo va quieto al costado (filas «quieto»: el brazo del escudo no se mece) */
+      const qu = r => !ANTES && r >= C.walk.start && r < C.walk.start + C.walk.frames ? fila(CJ.quieto, r) : r;
+      if (h.k <= 0.001) { A = qu(ga); B = qu(gb); mx = gm; }
+      else if (h.k < 0.999) { const s = h.k * 4, i = Math.min(3, Math.floor(s)); A = i === 0 ? qu(b) : fila(c0 + i - 1, b); B = fila(c0 + i, b); mx = s - i; }
       else {
         const arriba = fila(c0 + 3, b);
         if (h.enc > 0.02) { A = arriba; B = fila(c0 + 4, b); mx = h.enc; }
@@ -698,13 +706,14 @@ function galoAhora(g) {
   const T = S.T, CG = FIG_G.C, e = g.est || { modo: 'guardia' };
   if (ANTES) { g.A = g.B = frameGalo(g); g.mx = 0; g.pitch = 0; }
   else filasGalo(g, FIG_G, T, frameOf, frameOnce);
-  if (S.choque && g.vivo) {
-    g.mx = 0; g.pitch = 0;
-    if (e.modo === 'ataca' && e.t >= e.d.tb && e.t < e.d.tb + e.d.clip.dur) g.A = g.B = Math.round(ACC.clipPos(e.d.clip, (e.t - e.d.tb) / e.d.clip.dur));
+  if (S.choque && g.vivo && !g.huye) {
+    g.mx = 0; g.pitch = 0; const sa = ACC.sAtaque(e);
+    if (sa !== null) g.A = g.B = Math.round(ACC.clipPos(e.d.clip, sa));
     else if (g.anda) g.A = g.B = frameOf(CG.walk, g.camino / FIG_G.zan.walk * CG.walk.dur);
     else g.A = g.B = frameOf(CG.idle, T + g.fase);
     if (e.modo === 'cubre') g.pitch = -0.1 * (suave(0, 0.3, e.t) - suave(0.45, 0.75, e.t));
     if (e.modo === 'recibe') g.pitch = (e.d.lado > 0 ? 0.24 : -0.16) * (suave(0, 0.12, e.t) - suave(0.35, 0.8, e.t));   /* se dobla o se echa atrás */
+    if (e.modo === 'ataca' && e.d.aviso && e.t < e.d.tb) g.pitch = -0.09 * suave(0, e.d.tb, e.t);   /* TP1b: al armar el golpe se echa atrás */
   }
   const x = S.choque && g.xd !== undefined ? g.xd : g.x, z = S.choque && g.zd !== undefined ? g.zd : g.z, yaw = S.choque && g.yaw !== undefined ? g.yaw + (g.jy || 0) : 0;
   g.inst.compose(PA.set(x, H(x, z), z), QG.setFromEuler(EUL.set(g.pitch, yaw, 0)), ANTES ? SB : g.sv);
@@ -811,7 +820,7 @@ function alChocar() {
   const T = S.T, zc = S.zF - 1; S.zChoque = zc; S.choque = true; S.vel = 0; for (const g of S.galos) g.v = 0;   /* TP1: en el choque se paran en seco: los mueve la lucha */
   S.llegaron = vivos(); S.sacude = 0.9; Son.choque();
   for (const p of POLVO) { p.e = 1; p.t = T + azar() * 0.4; const x = (azar() - 0.5) * 8; p.s.position.set(x, H(x, zc) + 0.4 + azar() * 0.6, zc - azar() * 2.5); p.v.set((azar() - 0.5) * 1.5, 0.6 + azar() * 0.6, (azar() - 0.5) * 1.5); }
-  ACC.empiezaLucha(); S.tFin = T + 7.5;   /* la lucha (acciones.js) dura unos segundos antes de la tarjeta, y sigue detrás */
+  ACC.empiezaLucha(); S.tFin = 1e9; S.muro = false;   /* TP1b: la lucha (acciones.js) dura hasta que un bando rompe */
 }
 
 /* ---------- el paso de la simulación ---------- */
@@ -837,6 +846,7 @@ function paso(dt) {
     const hol = holgura(S.k);
     for (const h of S.romanos) {
       if (!h.vivo) continue;
+      h.paso.corto = ANTES ? 0 : suave(h.ret, h.ret + 0.6, S.k);   /* el testudo cerrado acorta el paso (como h.k) */
       const vObj = Math.max(0, (T >= h.arranque ? S.vel * h.ritmo : 0) + 1.2 * h.dz);
       velocidad(h.paso, vObj, dt);
       const dz0 = h.dz; h.dz = Math.min(hol.atras, Math.max(-hol.delante, h.dz + (S.vel - h.paso.v) * dt));
@@ -859,6 +869,18 @@ function paso(dt) {
   if (ANTES) { if (S.tGalos > 0) for (const g of S.galos) { if (!g.vivo) g.v *= Math.max(0, 1 - dt * 5); else { const meta = S.choque || T < S.tGalos + g.sale ? 0 : T - g.frena < 0.5 ? vf * 0.15 : vf; g.v += (meta - g.v) * Math.min(1, dt * (meta < g.v ? 9 : 3)); } g.z += g.v * dt; g.dist += g.v * dt; } }
   else marchaGalos(S, dt, T, vf);
   if (S.choque) ACC.lucha(dt);
+  /* TP1b: las bajas pasan a las dos unidades (ánimo y cómo va la lucha); en la lucha, el cansancio y el ánimo de cada bando,
+     y el que rompe. Las órdenes se cumplen a su tiempo (sin centurión, tarde) */
+  { const UR = S.unidad, UG = S.unidadG, nr = vivos(), ng = S.galos.filter(g => g.vivo).length;
+    if (nr < UR.enPie) { const n = UR.enPie - nr; UR.baja(n); UG.mata(n); }
+    if (ng < UG.enPie) { const n = UG.enPie - ng; UG.baja(n); UR.mata(n); }
+    if (S.choque && !S.huida && !S.derrota) {
+      const rR = UR.lucha(dt, { muro: S.muro, carga: T < S.cargaHasta }), rG = UG.lucha(dt, { contraMuro: S.muro });
+      if (rG) { S.ruptura = 'galos'; ACC.huida(); S.tFin = T + 3.6; cinta('¡Rompen! Los galos huyen', true); grita('¡Victoria!'); Son.cuerno([[196, 0.4], [246.94, 0.4], [293.66, 1.2]]); }
+      else if (rR) { S.ruptura = 'romanos'; S.derrota = T; for (const d of S.duelos) d.activo = false; S.tFin = T + 2.4; cinta('¡Los tuyos rompen!', false); }
+    }
+    for (const o of S.ordenes) if (!o.hecha && T >= o.t) { o.hecha = true; cumple(o.n); }
+  }
   for (const g of S.galos) galoAhora(g);
   if (S.fase === 'pila' && S.tGalos > 0 && hueco() <= D_GLADIO) alGladio();
   if (S.fase === 'carga' && !S.choque && hueco() <= 1.3) alChocar();
@@ -1002,6 +1024,36 @@ function malla(tipo, n, color) {
   m.frustumCulled = false; escena.add(m); figuras[tipo] = { m, u, fr: g.attributes.aFrame, fr2, mx }; return figuras[tipo];
 }
 const O = new THREE.Object3D(), CERO = m4().makeScale(0, 0, 0);
+/* TP1b · la cresta del centurión: medio disco rojo, de oreja a oreja (transversal), sobre el casco. Pieza hecha por código,
+   anclada al punto del casco del modelo: va con la cabeza (también si cae). Y la marca del rival de delante: un aro en el suelo,
+   claro cuando solo te mira, ámbar cuando arma el golpe y verde cuando queda abierto */
+const OFS_CRESTA = (Q.get('cresta') || '0,0,0.21').split(',').map(Number), ROT_CRESTA = (Q.get('crestaR') || '1.5708,0,0').split(',').map(Number);
+let CRESTA = null, ARO = null, PICO = null;
+function creaCresta() {
+  const g = new THREE.CylinderGeometry(1, 1, 1, 16, 1, false, Math.PI / 2, Math.PI); g.rotateX(Math.PI / 2); g.scale(0.185, 0.16, 0.045);
+  const pelo = new THREE.MeshStandardMaterial({ color: '#b0201a', roughness: 0.92, metalness: 0 });
+  CRESTA = new THREE.Mesh(g, pelo); CRESTA.matrixAutoUpdate = false; CRESTA.frustumCulled = false; CRESTA.castShadow = true; escena.add(CRESTA);
+  CRESTA.userData.local = new THREE.Matrix4().compose(new THREE.Vector3(OFS_CRESTA[0] / E, OFS_CRESTA[1] / E, OFS_CRESTA[2] / E), new THREE.Quaternion().setFromEuler(new THREE.Euler(...ROT_CRESTA)), new THREE.Vector3(1 / E, 1 / E, 1 / E));
+  const ga = new THREE.RingGeometry(0.5, 0.64, 40); ga.rotateX(-Math.PI / 2);
+  ARO = new THREE.Mesh(ga, new THREE.MeshBasicMaterial({ color: '#f1ead9', transparent: true, opacity: 0.5, depthWrite: false })); ARO.visible = false; ARO.renderOrder = 2; escena.add(ARO);
+  /* y un pico sobre su cabeza, del mismo color (el aro solo se ve a ratos entre las piernas) */
+  const gp = new THREE.ConeGeometry(0.11, 0.24, 4); gp.rotateX(Math.PI);
+  PICO = new THREE.Mesh(gp, ARO.material); PICO.visible = false; PICO.renderOrder = 2; escena.add(PICO);
+}
+function dibujaMarcas() {
+  const c = S.romanos[YO];
+  CRESTA.matrix.multiplyMatrices(c.inst, hueso(HU.casco, c.A, c.B, c.mx, MB)).multiply(CRESTA.userData.local); CRESTA.matrixWorld.copy(CRESTA.matrix);
+  const d = S.yo && S.yo.vivo && S.yo.duelo, g = d && d.activo && !S.huida && !S.derrota ? d.g : null;
+  ARO.visible = !!(g && g.vivo && S.choque);
+  if (ARO.visible) {
+    const x = g.xd ?? g.x, z = g.zd ?? g.z, arma = d.aviso && d.t0 > 0 && S.T < d.ts + 0.15, abierto = S.T < (d.abierto || 0) || S.T < (d.deseq || 0);
+    ARO.position.set(x, H(x, z) + 0.05, z);
+    ARO.material.color.set(arma ? '#ffc93a' : abierto ? '#8ef07a' : '#f1ead9'); ARO.material.opacity = arma ? 0.75 + 0.25 * Math.sin(S.T * 18) : abierto ? 0.85 : 0.35;
+    ARO.scale.setScalar(arma ? 1 + 0.12 * (S.T - d.t0) : 1);
+    PICO.position.set(x, H(x, z) + 2.55 + (arma ? 0.06 * Math.sin(S.T * 18) : 0), z); PICO.rotation.y = S.T * 1.5;
+  }
+  PICO.visible = ARO.visible;
+}
 function pon(fig, i, x, y, z, yaw, frame) { O.position.set(x, y, z); O.rotation.set(0, yaw, 0); O.scale.setScalar(E); O.updateMatrix(); fig.m.setMatrixAt(i, O.matrix); fig.fr.array[i] = frame; }
 /* el pilum en la mano: de pie en la marcha, tendido hacia delante bajo los escudos, y al hombro para lanzar */
 const Q_PIE = giro(1, 0, 0, -Math.PI / 2 - 0.1), Q_TENDIDO = giro(1, 0, 0, 0.1).multiply(Q_PI), Q_LANZA = giro(1, 0, 0, 0.3).multiply(Q_PI);
@@ -1022,7 +1074,7 @@ function dibuja() {
   }
   for (const m of [HOM.cuerpos, HOM.escudos, HOM.espadas, HOM.pila]) m.instanceMatrix.needsUpdate = true;
   HOM.fr.needsUpdate = HOM.fr2.needsUpdate = HOM.mx.needsUpdate = true;
-  HOM.mio.visible = !S.roto; HOM.mio.matrix.copy(yo.mEsc); HOM.mio.matrixWorld.copy(yo.mEsc);
+  HOM.mio.visible = !S.roto; HOM.mio.matrix.copy(yo.mEsc); HOM.mio.matrixWorld.copy(yo.mEsc); dibujaMarcas();
   /* enemigos */
   const P = figuras.peltastas, CP = P.u.clips;
   S.tiradores.forEach((t, i) => {
@@ -1090,7 +1142,33 @@ function dibuja() {
 }
 
 /* ---------- interfaz ---------- */
-const HUD = crearHud({ S, Son, $, M, RECARGA, ZONA, vivos, armar: () => armar(), soltar: () => soltar() });
+/* TP1b · las órdenes (Escudos, Cargad, Relevo; «Pila» es el botón de lanzar). Sin centurión tardan en cumplirse */
+function puedeOrden(n) {
+  if (S.fase === 'fin' || S.huida || S.derrota) return false;
+  if (n === 'escudos') return S.fase === 'avance' || S.choque;
+  if (n === 'cargad') return S.fase === 'pila' || (S.choque && S.T >= S.tCargad);
+  if (n === 'relevo') return S.choque && S.T >= S.tRelevo;
+  return false;
+}
+function ordena(n) {
+  if (!puedeOrden(n)) return false;
+  const r = S.unidad.retraso(); S.ordenes.push({ n, t: S.T + r });
+  if (n === 'relevo') S.tRelevo = S.T + 7; if (n === 'cargad' && S.choque) S.tCargad = S.T + 7;
+  if (r) cinta('Sin centurión: tardan en obedecer', false);
+  return true;
+}
+function cumple(n) {
+  if (n === 'escudos') {
+    if (S.choque) { S.muro = !S.muro; Son.clac(S.muro ? 10 : 6); grita(S.muro ? '¡Escudos! ¡Aguantad!' : '¡A ellos!'); }
+    else if (S.fase === 'avance') { S.escudos = !S.escudos; if (S.escudos) S.corre = false; Son.clac(S.escudos ? 10 : 6); }
+  }
+  if (n === 'cargad') { if (S.fase === 'pila') alGladio(); else if (S.choque) { ACC.cargad(); S.muro = false; grita('¡Cargad!'); Son.choque(); } }
+  if (n === 'relevo' && S.choque) { ACC.relevoOrden(); grita('¡Relevo! ¡La segunda, adelante!'); Son.cuerno([[220, 0.25], [220, 0.5]]); }
+}
+/* el nombre de cada hombre, para decirte quién eres cuando caes */
+const NOMBRES = ['Marco', 'Tito', 'Lucio', 'Cayo', 'Quinto', 'Publio', 'Aulo', 'Sexto', 'Décimo', 'Gneo', 'Servio', 'Espurio', 'Numerio', 'Opiter', 'Vibio'];
+function nombre(h) { return NOMBRES[(h.i * 7) % NOMBRES.length] + ', de la ' + (h.r + 1) + '.ª fila'; }
+const HUD = crearHud({ S, Son, $, M, RECARGA, ZONA, vivos, armar: () => armar(), soltar: () => soltar(), ordena, puedeOrden });
 const { hud, muestraFin } = HUD;
 
 /* ---------- fases para las capturas: colocan la escena y la congelan ---------- */
@@ -1099,7 +1177,8 @@ const salta = s => { for (let t = 0; t < s; t += 1 / 30) paso(1 / 30); };
 function prepara(f) {
   if (f === 'avance') { S.zF = -14; S.proxima = 99; S.andando = true; salta(1.3); }
   if (f === 'flechas') { S.zF = -28; S.andando = true; S.proxima = S.T + 1.25; salta(1.25 + 0.8); }
-  if (['testudo', 'cara', 'mira', 'roto', 'pila', 'armar', 'vuelo', 'impacto', 'final', 'carga', 'lucha'].includes(f)) {
+  const LUCHA2 = ['aviso', 'parada', 'estocada', 'relevo', 'caido', 'huida'];
+  if (['testudo', 'cara', 'mira', 'roto', 'pila', 'armar', 'vuelo', 'impacto', 'final', 'carga', 'lucha', ...LUCHA2].includes(f)) {
     S.zF = -30; S.andando = true; S.proxima = S.T + 0.5; salta(3.2);
     S.escudos = true; S.proxima = S.T + 0.6; salta(3.4);
     if (f === 'roto') for (let i = 0; i < 3; i++) { S.proxima = S.T + 0.3; salta(2.9); }
@@ -1108,14 +1187,26 @@ function prepara(f) {
   }
   /* GM43h: a tiro, armar (medidor a medias), tu pilum en el aire, la segunda salva recién llegada, la carga y el final */
   const tiro = (s) => { armar(); salta(s); soltar(); };
-  if (['pila', 'armar', 'vuelo', 'impacto', 'final', 'carga', 'lucha'].includes(f)) { S.zF = Z_PILA + 0.5; S.andando = true; salta(0.9); S.escudos = false; salta(f === 'pila' ? 2.5 : 1.2); }
+  if (['pila', 'armar', 'vuelo', 'impacto', 'final', 'carga', 'lucha', ...LUCHA2].includes(f)) { S.zF = Z_PILA + 0.5; S.andando = true; salta(0.9); S.escudos = false; salta(f === 'pila' ? 2.5 : 1.2); }
   if (f === 'armar') { armar(); salta(T_MEDIDOR / 2); }
   if (f === 'vuelo') { tiro(T_MEDIDOR - 0.06); salta(0.17 + 0.55); }
   if (f === 'impacto' || f === 'carga' || f === 'final') { tiro(T_MEDIDOR - 0.06); salta(RECARGA + 0.05 + (f === 'impacto' ? 1.8 : 0)); tiro(T_MEDIDOR - 0.06); salta(f === 'impacto' ? 0.17 + 1.3 + 0.9 : 0.5); }
   if (f === 'carga') { for (let i = 0; i < 300 && S.fase !== 'carga'; i++) salta(0.1); salta(0.45); }
-  if (f === 'final') { for (let i = 0; i < 300 && S.fase !== 'fin'; i++) salta(0.1); salta(0.5); }
+  if (f === 'final') { for (let i = 0; i < 1200 && S.fase !== 'fin'; i++) salta(0.1); salta(0.5); }
   /* TP1: la lucha de B (duelos a la vez, caídos, relevo), unos segundos después del choque */
   if (f === 'lucha') { tiro(T_MEDIDOR - 0.06); salta(RECARGA + 0.05); tiro(T_MEDIDOR - 0.06); for (let i = 0; i < 300 && !S.choque; i++) salta(0.1); salta(3.6); }
+  /* TP1b: tu duelo y el final de la lucha. aviso: tu rival arma el golpe (marcado); parada: lo paras; estocada: tras parar,
+     tu golpe entra; relevo: la segunda fila pasa delante; caido: el centurión cae y eres otro; huida: los galos rompen */
+  if (LUCHA2.includes(f)) {
+    const hasta = (c, seg = 40) => { for (let i = 0; i < seg * 30 && !c(); i++) paso(1 / 30); }, tu = () => S.yo && S.yo.duelo, arma = (a = 0.55) => { const d = tu(); return d && d.aviso && d.t0 > 0 && S.T > d.t0 + a; };
+    tiro(T_MEDIDOR - 0.06); salta(RECARGA + 0.05); tiro(T_MEDIDOR - 0.06); hasta(() => S.choque, 30); salta(1.2);
+    if (f === 'aviso') hasta(() => arma(0.62));
+    if (f === 'parada' || f === 'estocada') { hasta(() => arma(0.6)); const d = tu(), ts = d.ts; S.pide = 'parar'; hasta(() => S.T > ts + 0.1); }
+    if (f === 'estocada') { salta(0.15); S.pide = 'estocada'; paso(1 / 30); const ts = tu().ts; hasta(() => S.T > ts + 0.12); }
+    if (f === 'relevo') { salta(1.5); ordena('relevo'); salta(1.0); }
+    if (f === 'caido') { S.yo.golpes = 2; hasta(() => !S.romanos[YO].vivo); hasta(() => S.yo && S.yo !== S.romanos[YO] && S.yo.duelo && S.yo.duelo.r === S.yo); salta(0.5); }
+    if (f === 'huida') { S.unidadG.animo = Math.min(S.unidadG.animo, 0.215); hasta(() => S.huida); salta(1.4); }
+  }
   /* TP1: andar y correr, para mirar los pies (con ?costado=r) */
   if (f === 'andar') { S.zF = -14; S.proxima = 99; S.andando = true; salta(3); }
   if (f === 'correr') { S.zF = -14; S.proxima = 99; S.corre = true; salta(2.5); }
@@ -1185,6 +1276,10 @@ window.__tp = {
   lista: false, S, CAM, camara, Son, luz, renderer, escena, reinicia: () => reinicia(), Z_PILA, cine: { rayos, motas, pies, cielo, PIES }, salta: s => salta(s), parar: v => { parado = v; },
   /* GM43h: el dedo en «Lanzar» (sin tocar la pantalla) y dónde caen en pantalla tu mano y la punta de tu pilum */
   armar: () => armar(), soltar: () => soltar(), medidor: () => S.medidor,
+  /* TP1b: tus gestos y órdenes (como los botones) y lo que se sabe de tu duelo y de los dos bandos */
+  pide: x => { S.pide = x; }, ordena: n => ordena(n), primera: () => ACC.primera(),
+  duelo: () => { const y = S.yo, d = y && y.duelo; return { yo: y ? y.i : -1, vivo: !!(y && y.vivo), centurion: S.unidad.centurion, heridas: y ? y.golpes : 0, eco: S.eco ? S.eco.texto : '', arma: !!(d && d.aviso && d.t0 > 0 && S.T < d.ts), tAviso: d && d.aviso ? +(d.ts - S.T).toFixed(2) : null, abierto: !!(d && (S.T < (d.abierto || 0) || S.T < (d.deseq || 0))), ocupado: !!(d && ACC.ocupado(d)), aro: ARO.visible, cresta: enPantalla(PA.setFromMatrixPosition(CRESTA.matrix)) }; },
+  bandos: () => ({ r: palabras(S.unidad), g: palabras(S.unidadG), animoR: +S.unidad.animo.toFixed(2), animoG: +S.unidadG.animo.toFixed(2), fatigaR: +S.unidad.fatiga.toFixed(2), fatigaG: +S.unidadG.fatiga.toFixed(2), ruptura: S.ruptura, huyen: S.galos.filter(g => g.vivo && g.huye && g.paso.v > 2.5).length, veredicto: veredicto(S.unidad, S.unidadG), T: +S.T.toFixed(1), tChoque: +S.tChoque.toFixed(1) }),
   /* TP1: el paso, la lucha y la tira de costado */
   interno: () => ({ HOM, FIG_G, piesMundo }), patinaje: (q, m, seg) => patinaje(q, m, seg), tira: (q, m, t) => tira(q, m, t), antes: ANTES,
   lucha: () => ({ ...ACC.medLucha(), relevos: S.duelos.filter(d => d.activo && !d.sec && d.r.j === 0 && d.r.r > 0).length, dibujadosCaidos: S.romanos.filter(h => !h.vivo).length }),
@@ -1200,9 +1295,9 @@ window.__tp = {
   { const td = await new THREE.TextureLoader().loadAsync('gobierno/maquetas/testudo-luz-campo/arte/detalle.png'); td.wrapS = td.wrapT = THREE.RepeatWrapping; td.anisotropy = 4; DET.value = td; }
   if (!getUnit('hastati') || !getUnit('peltastas') || !getUnit('galos')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
   CAMPO = await crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color });
-  await creaHombres(); malla('peltastas', 10, '#3456a8'); malla('galos', 16, '#3456a8'); preparaGalos();
+  await creaHombres(); creaCresta(); malla('peltastas', 10, '#3456a8'); malla('galos', 16, '#3456a8'); preparaGalos();
   try { await escudoGalo(); } catch (e) { console.warn('Sin escudo galo para clavar pila', e); }
-  ACC = crearAcciones({ S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave, E, figuras, get HOM() { return HOM; } });
+  ACC = crearAcciones({ S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave, E, figuras, cinta, nombre, get HOM() { return HOM; } });
   reinicia();
   if (FASE) prepara(FASE);
   $('carga').hidden = true;

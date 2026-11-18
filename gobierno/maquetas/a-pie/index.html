@@ -31,18 +31,34 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 #arriba{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);top:calc(env(safe-area-inset-top) + 8px);display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
 .pildora{height:44px;padding:0 14px 0 10px;display:flex;align-items:center;gap:6px;border-radius:22px;background:var(--vidrio);border:1px solid var(--fil);font-weight:600;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.4)}
 .pildora svg{width:18px;height:18px}
-#mision{max-width:250px;padding:7px 11px 8px;border-radius:12px;background:var(--vidrio);border:1px solid var(--fil);box-shadow:0 3px 10px rgba(0,0,0,.4);overflow:clip}
+#mision{flex:0 1 300px;min-width:0;padding:7px 11px 8px;border-radius:12px;background:var(--vidrio);border:1px solid var(--fil);box-shadow:0 3px 10px rgba(0,0,0,.4);overflow:clip}
 #objetivo{font:700 12.5px Cinzel,Georgia,serif;letter-spacing:.02em;color:var(--oro);white-space:nowrap;overflow:clip;text-overflow:ellipsis}
 #forma{display:flex;align-items:center;gap:8px;margin-top:6px;font-size:11.5px;color:#e6dcc3;white-space:nowrap;font-variant-numeric:tabular-nums}
 #barra{flex:1;min-width:90px;height:7px;border-radius:4px;background:rgba(255,255,255,.15);overflow:clip}
 #barra b{display:block;height:100%;width:100%;border-radius:4px;background:var(--verde);transition:width .5s,background .5s}
+/* TP1b: el estado de los dos bandos en palabras (las mismas del mapa de general) */
+#estado{margin-top:5px;font-size:11px;line-height:1.35;color:#e6dcc3;font-variant-numeric:tabular-nums}
+#estado div{white-space:nowrap;overflow:clip;text-overflow:ellipsis}
+#estado b{color:var(--oro);font-weight:700}
+#estado .mal{color:#ff9d86}#estado .bien{color:#b9e89c}
+/* la respuesta a cada golpe tuyo («buen golpe», «parado», «herido») */
+#eco{position:absolute;left:50%;top:31%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 24px);text-align:center;line-height:1.25;font:700 19px Cinzel,Georgia,serif;letter-spacing:.03em;color:#fff3dc;text-shadow:0 2px 6px #000,0 0 14px rgba(0,0,0,.9);white-space:normal;overflow:clip;opacity:0;transition:opacity .15s}
+#eco.ve{opacity:1}#eco.bien{color:#c9ecae}#eco.mal{color:#ffb39e}
 
-#cinta{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 64px);transform:translateX(-50%);max-width:calc(100% - 24px);padding:9px 18px;border-radius:18px;background:rgba(14,12,9,.8);border:1px solid rgba(221,90,67,.75);font:700 16px Cinzel,Georgia,serif;letter-spacing:.04em;color:#ffb39e;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .25s}
+#cinta{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 64px);transform:translateX(-50%);max-width:calc(100% - 24px);padding:9px 18px;border-radius:18px;background:rgba(14,12,9,.8);border:1px solid rgba(221,90,67,.75);font:700 16px Cinzel,Georgia,serif;letter-spacing:.04em;color:#ffb39e;width:max-content;text-align:center;line-height:1.3;white-space:normal;overflow:clip;opacity:0;transition:opacity .25s}
 #cinta.ve{opacity:1}
 #cinta.buena{color:#c9ecae;border-color:rgba(124,198,94,.6)}
 
 /* abajo: avanzar a la izquierda; escudos y la orden del momento a la derecha. El centro, libre */
-#abajo{position:absolute;left:calc(env(safe-area-inset-left) + 10px);right:calc(env(safe-area-inset-right) + 10px);bottom:calc(env(safe-area-inset-bottom) + 10px);display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+#abajo{position:absolute;left:calc(env(safe-area-inset-left) + 10px);right:calc(env(safe-area-inset-right) + 10px);bottom:calc(env(safe-area-inset-bottom) + 10px);display:flex;flex-direction:column;gap:8px}
+#mando{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
+/* TP1b: las cuatro órdenes, un botón cada una, en la fila de abajo. Las que no valen ahora se ven apagadas */
+#ordenes{display:flex;gap:6px;width:100%;max-width:440px;align-self:center}
+#ordenes .boton{flex:1 1 0;min-width:0;height:50px;padding:0 4px;font-size:12.5px;white-space:normal;line-height:1.05;text-align:center;gap:0}
+#ordenes #accion{flex-grow:1.35;min-width:0;padding-bottom:6px}
+#ordenes #medidor{left:8px;right:8px;bottom:5px;height:6px}
+.boton.apagada{opacity:.42;filter:saturate(.35)}
+#parar.pide{border-color:#ffd34d}
 #derecha,#izquierda{display:flex;gap:10px;align-items:flex-end}
 #aliento-c{position:absolute;left:12px;right:12px;bottom:6px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);overflow:clip}
 #aliento{display:block;height:100%;width:100%;background:#8fd0e8;border-radius:2px}
@@ -51,7 +67,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 #miescudo{width:16px;height:19px;flex:none;color:var(--verde)}
 #miescudo.e1{color:#e6ac3c}#miescudo.e2{color:var(--rojo)}#miescudo.roto{color:#8d846f}
 #miescudo .x{display:none}#miescudo.roto .x{display:block}#miescudo .g1{display:none}#miescudo.e1 .g1,#miescudo.e2 .g1{display:block}#miescudo .g2{display:none}#miescudo.e2 .g2{display:block}
-#grito{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 22px);transform:translateX(-50%);max-width:36%;font:700 20px Cinzel,Georgia,serif;letter-spacing:.04em;color:#fff3dc;text-shadow:0 2px 6px #000,0 0 12px rgba(0,0,0,.9);text-align:center;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .2s}
+#grito{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 140px);transform:translateX(-50%);max-width:36%;font:700 20px Cinzel,Georgia,serif;letter-spacing:.04em;color:#fff3dc;text-shadow:0 2px 6px #000,0 0 12px rgba(0,0,0,.9);text-align:center;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .2s}
 #grito.ve{opacity:1}
 .boton{min-width:128px;height:58px;padding:0 16px;border-radius:14px;background:linear-gradient(#3a2c14,#241b0d);border:1.5px solid var(--bronce);display:flex;align-items:center;justify-content:center;gap:8px;font:700 15px Cinzel,Georgia,serif;letter-spacing:.03em;white-space:nowrap;box-shadow:0 3px 12px rgba(0,0,0,.5);overflow:clip}
 .boton svg{width:22px;height:22px;color:var(--oro)}
@@ -69,7 +85,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 @keyframes pide{50%{border-color:#fff;box-shadow:0 0 0 3px rgba(233,192,99,.6)}}
 @media (orientation:portrait){
   #derecha,#izquierda{flex-direction:column-reverse}
-  #grito{bottom:calc(env(safe-area-inset-bottom) + 150px);max-width:90%}
+  #grito{bottom:calc(env(safe-area-inset-bottom) + 215px);max-width:90%;white-space:normal;line-height:1.2}
   .boton{min-width:136px}
   #cinta{top:calc(env(safe-area-inset-top) + 118px)}
 }
@@ -91,21 +107,32 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
   <div id="sombra"></div>
   <div id="cinta"></div>
   <div id="grito"></div>
+  <div id="eco"></div>
   <div id="arriba">
     <button id="salir" class="pildora"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Salir</button>
     <div id="mision">
       <div id="objetivo">Lleva el cuerpo hasta la loma</div>
       <div id="forma"><span>Formación</span><span id="barra"><b></b></span><span id="cuenta">30/30</span><svg id="miescudo" viewBox="0 0 16 19" aria-label="Tu escudo"><ellipse cx="8" cy="9.5" rx="6.5" ry="8.3" fill="currentColor" fill-opacity=".25"/><ellipse cx="8" cy="9.5" rx="6.5" ry="8.3"/><path class="g1" d="M6 2l1.5 4-1 3 1.5 3"/><path class="g2" d="M10 3l-1 5 2 3M7.5 12l1 5"/><path class="x" d="M3 4l10 11M13 4L3 15"/></svg></div>
+      <div id="estado"><div id="est-r"></div><div id="est-g"></div></div>
     </div>
   </div>
   <div id="abajo">
-    <div id="izquierda">
-      <button id="avanzar" class="boton"><svg viewBox="0 0 24 24"><path d="M12 20V5M12 5l-6 6M12 5l6 6"/></svg>Avanzar</button>
-      <button id="correr" class="boton"><svg viewBox="0 0 24 24"><path d="M13 4.5a1.5 1.5 0 1 0 0 .1M9 20l3-6 3 2v5M7 11l3-3 4 1 2 3 3 1"/></svg><span id="correr-t">Correr</span><span id="aliento-c"><b id="aliento"></b></span></button>
+    <div id="mando">
+      <div id="izquierda">
+        <button id="avanzar" class="boton"><svg viewBox="0 0 24 24"><path d="M12 20V5M12 5l-6 6M12 5l6 6"/></svg>Avanzar</button>
+        <button id="correr" class="boton"><svg viewBox="0 0 24 24"><path d="M13 4.5a1.5 1.5 0 1 0 0 .1M9 20l3-6 3 2v5M7 11l3-3 4 1 2 3 3 1"/></svg><span id="correr-t">Correr</span><span id="aliento-c"><b id="aliento"></b></span></button>
+        <button id="parar" class="boton" hidden><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>Parar</button>
+      </div>
+      <div id="derecha">
+        <button id="estocada" class="boton roja" hidden><svg viewBox="0 0 24 24"><path d="M4 20l11-11M15 9l5-5M13 7l4 4"/></svg>Estocada</button>
+        <button id="empujar" class="boton" hidden><svg viewBox="0 0 24 24"><path d="M5 12h11M12 7l5 5-5 5M19 5v14"/></svg>Empujar</button>
+      </div>
     </div>
-    <div id="derecha">
-      <button id="escudos" class="boton"><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg><span id="escudos-t">Escudos</span></button>
-      <button id="accion" class="boton roja" hidden><span id="accion-t">Lanzar</span><span id="medidor"><i id="zona"></i><b id="aguja"></b></span></button>
+    <div id="ordenes">
+      <button id="escudos" class="boton"><span id="escudos-t">Escudos</span></button>
+      <button id="accion" class="boton roja"><span id="accion-t">Pila</span><span id="medidor"><i id="zona"></i><b id="aguja"></b></span></button>
+      <button id="cargad" class="boton"><span id="cargad-t">Cargad</span></button>
+      <button id="relevo" class="boton"><span id="relevo-t">Relevo</span></button>
     </div>
   </div>
   <div id="fin" class="velo" hidden>
