@@ -162,14 +162,17 @@
       "organo": "corazon",
       "titulo": "Una sola batalla, con un solo aspecto",
       "estado": "medias",
-      "veras": "Una única batalla, la misma en campaña y en Escaramuzas: maniobras, mandas y, si quieres, bajas a pie. Todas las tropas con el soldado nuevo y la luz y el campo del testudo.",
+      "veras": "Un simulador de batallas en tiempo real, el mismo en campaña y en Escaramuzas: plan previo que se puede saltar con «Ver cómo irá», mando en vivo por manípulos con tus tribunos, y batalla rápida si no quieres jugarla larga.",
       "hecho": "Batalla con órdenes, proyectiles, duelos y caídos; va fluida en tu móvil. Hastati y galos llevan el soldado nuevo.",
-      "falta": "Tu 18/11 por la tarde, tras probarlas: «las batallas y Escaramuzas son una basura, hay que rehacerlo todo». Se piensa contigo en CG1: una sola batalla en tres tiempos (plan previo que se puede saltar, mando en vivo con tribunos y tú en primera persona desde el hombro). En obra, de base: el soldado nuevo para las demás tropas (GM44) y la limpieza de la batalla antigua (GC10). Caballería y elefantes seguirán con el modelo de 0 A.D.",
+      "falta": "Tu 18/11 (CG1): «un simulador de batallas propio». Plan CG2 a CG7: simulador (CG3, en obra), mando en vivo (CG4), tribunos y plan previo (CG5), batalla rápida y minijuegos (CG7). De base, en obra: el soldado nuevo para las demás tropas (GM44) y la limpieza de la batalla antigua (GC10). Caballería y elefantes seguirán con el modelo de 0 A.D.",
       "captura": "gobierno/capturas-tarea/GM44c-1-vertical-nuevo.jpg",
       "tareas": [
         "GM44",
         "GC10",
-        "CG1"
+        "CG3",
+        "CG4",
+        "CG5",
+        "CG7"
       ]
     },
     {
@@ -177,14 +180,14 @@
       "organo": "corazon",
       "titulo": "El testudo a pie, dentro del juego",
       "estado": "medias",
-      "veras": "Entras desde el juego, avanzas bajo los escudos, lanzas el pilum y luchas cuerpo a cuerpo, con sonido de verdad.",
+      "veras": "Bajas a pie desde un manípulo de la batalla, con la vista desde el hombro: te mueves, luchas y usas habilidades (el testudo, una más); si caes, sigues como otro soldado.",
       "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas.",
-      "falta": "En obra: el paso 2 (centurión, cuatro órdenes, lucha fina), que sirve de base a la primera persona de CG1. Faltan el soldado nuevo, el sonido y las caras.",
+      "falta": "En obra: el paso 2 de la escena a pie (TP1b). Después, «bajar a pie» dentro de la batalla (CG6), el sonido y las caras.",
       "captura": "gobierno/capturas-tarea/GM43f-2-escena.jpg",
       "tareas": [
         "TP1",
         "TP1b",
-        "GM43l",
+        "CG6",
         "GM43i",
         "GM43j"
       ]
@@ -236,11 +239,12 @@
       "organo": "corazon",
       "titulo": "Formaciones en Escaramuzas",
       "estado": "falta",
-      "veras": "En Escaramuzas, en las batallas que organices, pruebas el testudo, el muro hoplita, la falange de picas y la línea de manípulos; los vecinos de tu unidad se ven y te avisan.",
-      "falta": "Tu «A» del 18/11: entra en la 1.0. La falange de picas (TP7a) está en obra. Cómo se prueban las formaciones en el modo de batalla nuevo se decide en CG1; los vecinos y las demás formaciones (TP4, TP7) esperan a ese plan.",
+      "veras": "En Escaramuzas eliges tus tropas con su dibujo, su coste y lo que saben hacer (testudo, picas, muro…) y pruebas las formaciones; las escenas a pie quedan como minijuegos.",
+      "falta": "Tu «A» del 18/11: entra en la 1.0. La falange de picas (TP7a) está en obra; las fichas de tropa son CG2 y los minijuegos CG7.",
       "tareas": [
         "TP7a",
-        "CG1"
+        "CG2",
+        "CG7"
       ]
     },
     {
