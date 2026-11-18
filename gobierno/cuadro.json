@@ -2018,6 +2018,12 @@
       "titulo": "Cerebro · CE1 Objetivo final de política y economía, hablándolo con el usuario (dirige y construye Opus)",
       "nota": "gobierno/estudios/CE1-objetivo-cerebro.md; conversación con Opus; un plan cerrado y alcance congelado; 1,5 M",
       "url": "https://claude.ai/code/session_01QiKC3Ap9oPnEQ9sW14muQd"
+    },
+    {
+      "tarea": "CI1",
+      "titulo": "Cerebro · CI1 Roma de su siglo (la ciudad con el aspecto de su época; dirige y construye Opus)",
+      "nota": "js/ciudad.js, city3d.js, statics.js; capturas antes y después; 1,0 M con tope +25 %",
+      "url": "https://claude.ai/code/session_01QiKC39hKX8V8mRMAsoPzPT"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
