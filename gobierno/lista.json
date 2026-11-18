@@ -163,9 +163,9 @@
       "titulo": "Una sola batalla, con un solo aspecto",
       "estado": "medias",
       "veras": "Un simulador de batallas en tiempo real, el mismo en campaña y en Escaramuzas: plan previo que se puede saltar con «Ver cómo irá», mando en vivo por manípulos con tus tribunos, y batalla rápida si no quieres jugarla larga.",
-      "hecho": "Batalla con órdenes, proyectiles, duelos y caídos; va fluida en tu móvil. Hastati y galos llevan el soldado nuevo. La batalla antigua ya no deja restos en el código (GC10). Quitados los restos de la batalla antigua (≈120 KB menos). Por debajo ya está el simulador nuevo (CG3, 18/11): manípulos que se mueven, forman, se cansan, flanquean y se rompen, con tribunos; aún no se ve.",
-      "falta": "Tu 18/11 (CG1): «un simulador de batallas propio». Plan CG2 a CG7: simulador (CG3, hecho), mando en vivo (CG4), tribunos y plan previo (CG5), batalla rápida y minijuegos (CG7). De base: el soldado nuevo para las demás tropas (GM44, en obra; la limpieza de la batalla antigua, GC10, ya está hecha). Caballería y elefantes seguirán con el modelo de 0 A.D.",
-      "captura": "gobierno/capturas-tarea/GM44c-1-vertical-nuevo.jpg",
+      "hecho": "Batalla con órdenes, proyectiles, duelos y caídos; va fluida en tu móvil. Todas las tropas a pie llevan el soldado nuevo, cada una con su equipo de época (romanos, griegos, falange, íberos, galos, honderos y peltastas).",
+      "falta": "Lo principal. Tú, el 18/11: «son 4 juegos diferentes en un juego y los gráficos son una mierda». Hay que unir maniobra, batalla de mando, Escaramuzas y testudo a pie en una sola batalla con un solo aspecto. Caballería y elefantes siguen con el modelo viejo (no hay jinete libre).",
+      "captura": "gobierno/capturas-tarea/GM44d-4-despues-horizontal.jpg",
       "tareas": [
         "GM44",
         "GC10",
