@@ -1957,10 +1957,10 @@
       "url": "https://claude.ai/code/session_01QiKC37gQPtkdN7X53tu66G"
     },
     {
-      "tarea": "C16",
-      "titulo": "Mapa · C16 Ciudades grandes (Opus)",
-      "nota": "js/gfx/map3d.js (y statics.js mínimo); excepción a la 1.0 (sin pausa)",
-      "url": "https://claude.ai/code/session_01QiKC384KWVJWfbeEBPsrnQ"
+      "tarea": "C17",
+      "titulo": "Mapa · C17 Ejército con estandarte (Opus)",
+      "nota": "js/gfx/map3d.js; excepción a la 1.0 (sin pausa)",
+      "url": "https://claude.ai/code/session_01QiKC39Y9NDrYDWhUgNG89f"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
