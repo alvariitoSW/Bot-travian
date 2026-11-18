@@ -1961,6 +1961,18 @@
       "titulo": "Mapa · C18 Cintas y minimapa (Opus)",
       "nota": "js/gfx/map3d.js, js/ui.js y css/style.css; última de la cadena del mapa",
       "url": "https://claude.ai/code/session_01QiKC39DxUDQhkBFFMy1Kdm"
+    },
+    {
+      "tarea": "GM43h",
+      "titulo": "Versión 1.0 · GM43h Testudo a pie: lanzar el pilum y la lucha (Fable dirige, Opus construye)",
+      "nota": "solo gobierno/maquetas/testudo-luz-campo/; detrás van GM43i y GM43j",
+      "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
+    },
+    {
+      "tarea": "GM44c",
+      "titulo": "Versión 1.0 · GM44c Soldado nuevo, al juego (Fable dirige, Opus construye)",
+      "nota": "js/gfx/battle3d.js y el 3D de las batallas; detrás va GM43g",
+      "url": "https://claude.ai/code/session_01QiKC389SLc5VTAdbgym6De"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
