@@ -106,7 +106,7 @@ const U = { uRuido: { value: texturaRuido() } };
 /* GM43e: los montes son los de campo.js (B), oscurecidos a contraluz allí */
 /* el cielo (GM43e): la foto con nubes de B (Kloofendal 48d, Poly Haven, CC0) con el tratamiento de luz de A. El sol de la foto queda a la espalda
    de la cámara: delante solo brilla el nuestro, bajo y de frente */
-const texCielo = new THREE.TextureLoader().load('gobierno/maquetas/testudo-luz-campo/arte/cielo.jpg'); texCielo.colorSpace = THREE.SRGBColorSpace; texCielo.wrapS = THREE.RepeatWrapping; texCielo.generateMipmaps = false; texCielo.minFilter = THREE.LinearFilter;
+const texCielo = new THREE.TextureLoader().load('gobierno/maquetas/testudo-lucha/arte/cielo.jpg'); texCielo.colorSpace = THREE.SRGBColorSpace; texCielo.wrapS = THREE.RepeatWrapping; texCielo.generateMipmaps = false; texCielo.minFilter = THREE.LinearFilter;
 const cielo = new THREE.Mesh(new THREE.SphereGeometry(9000, 48, 24), new THREE.ShaderMaterial({ side: THREE.BackSide, depthWrite: false, fog: false,
   uniforms: { uCielo: { value: texCielo }, uSol: { value: SOL }, uH: { value: new THREE.Color(HORIZ) } },
   vertexShader: 'varying vec3 vD; void main(){ vD = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
@@ -1246,7 +1246,7 @@ window.__tp = {
 };
 (async () => {
   await preload(['hastati', 'peltastas', 'galos']);
-  { const td = await new THREE.TextureLoader().loadAsync('gobierno/maquetas/testudo-luz-campo/arte/detalle.png'); td.wrapS = td.wrapT = THREE.RepeatWrapping; td.anisotropy = 4; DET.value = td; }
+  { const td = await new THREE.TextureLoader().loadAsync('gobierno/maquetas/testudo-lucha/arte/detalle.png'); td.wrapS = td.wrapT = THREE.RepeatWrapping; td.anisotropy = 4; DET.value = td; }
   if (!getUnit('hastati') || !getUnit('peltastas') || !getUnit('galos')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
   CAMPO = await crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color });
   await creaHombres(); await creaTiradores(); malla('galos', 16, '#3456a8');

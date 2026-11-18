@@ -6,7 +6,7 @@
 import { THREE } from '../../../js/gfx/models.js';
 import { loadStaticIndex, loadStatic, getStatic } from '../../../js/gfx/statics.js';
 
-const ARTE = n => new URL('../testudo-luz-campo/arte/' + n, import.meta.url).href;
+const ARTE = n => new URL('./arte/' + n, import.meta.url).href;
 const suave = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 let semilla = 7; const azar = () => { semilla = (semilla * 16807) % 2147483647; return (semilla - 1) / 2147483646; };
 
