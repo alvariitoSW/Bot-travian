@@ -1996,6 +1996,14 @@
     {
       "titulo": "CI0 · Objetivo final de la ciudad, con 21 láminas de la época",
       "archivo": "gobierno/estudios/CI0-objetivo-ciudad.md"
+    },
+    {
+      "titulo": "MN0 · Objetivo final de los menús",
+      "archivo": "gobierno/estudios/MN0-objetivo-menus.md"
+    },
+    {
+      "titulo": "MN0 · Encargo artístico para la maqueta de menús",
+      "archivo": "gobierno/estudios/MN0-encargo-artistico.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -2030,12 +2038,6 @@
       "titulo": "Corazón · GM44 Modelos de soldado nuevos para las demás tropas (dirige y construye Opus)",
       "nota": "js/gfx/soldado.js, js/ui-guerra.js, assets/soldados/; plan y tamaño en la primera hora; 1,0 M hasta confirmar",
       "url": "https://claude.ai/code/session_01QiKC3AgvUkgAmNioZYMQbp"
-    },
-    {
-      "tarea": "MN0",
-      "titulo": "Músculo · MN0 Objetivo final de los menús y encargo artístico, hablándolo con el usuario (dirige y construye Opus)",
-      "nota": "gobierno/estudios/MN0-*.md; conversación con el usuario; un plan cerrado y alcance congelado; 1,2 M",
-      "url": "https://claude.ai/code/session_01QiKC37MGCiWGfRg2ef3mGC"
     },
     {
       "tarea": "GC10",
