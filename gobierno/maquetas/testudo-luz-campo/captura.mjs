@@ -7,7 +7,7 @@
 // que la mano llega al asa del escudo, los gestos, una partida entera y que cada sonido suena sin saturar.
 import { createRequire } from 'module';
 import { createServer } from 'http';
-import { readFile, mkdir, copyFile } from 'fs/promises';
+import { readFile, mkdir } from 'fs/promises';
 import { join, extname, normalize, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
@@ -34,7 +34,7 @@ async function foto(fase, nombre, w, h) {
   const ctx = await br.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dpr, hasTouch: true, isMobile: true }), page = await ctx.newPage(); escucha(page);
   await page.goto(URL0 + (fase ? '?fase=' + fase : '')); await lista(page); await page.waitForTimeout(1500);
   const info = await page.evaluate(() => { const r = window.__tp.renderer.info.render; return { calls: r.calls, tri: r.triangles }; });   /* GM43e: coste del último fotograma (con la pasada de sombras) */
-  const e = await page.evaluate(() => ({ ...window.__tp.estado(), lucha: window.__tp.lucha(), cuadro: window.__tp.encuadre(), yo: window.__tp.medidas(2), detras: window.__tp.medidas(9) }));
+  const e = await page.evaluate(() => ({ ...window.__tp.estado(), cuadro: window.__tp.encuadre(), yo: window.__tp.medidas(2), detras: window.__tp.medidas(9) }));
   const cajas = await page.evaluate(() => [...document.querySelectorAll('.boton,.pildora,.gordo')].filter(b => b.offsetParent).map(b => { const r = b.getBoundingClientRect(); return { id: b.id, l: r.left, r: r.right, t: r.top, b: r.bottom, h: r.height }; }));
   bien(cajas.every(c => c.l >= 0 && c.r <= w && c.t >= 0 && c.b <= h && c.h >= 44), `${nombre}: los botones caben enteros y miden al menos 44 px (${cajas.map(c => c.id).join(', ')})`);
   bien(cajas.filter(c => c.id !== 'otra').every(c => c.t > h * 0.55 || c.b < h * 0.2), `${nombre}: ningún botón tapa el centro`);
@@ -56,22 +56,6 @@ function encuadre(e, nombre, vertical) {
 }
 
 const V = [390, 844], Hz = [844, 390];
-/* GP1: tira de seis fotogramas (390x844 cada uno, pegados en fila) para ver un gesto entero: la escena arranca en «fase» y avanza a saltos */
-async function tira(fase, saltos, archivo) {
-  const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true }), page = await ctx.newPage(); escucha(page);
-  await page.goto(URL0 + '?fase=' + fase); await lista(page); await page.waitForTimeout(1200);
-  const fotos = [];
-  for (const s of saltos) { await page.evaluate(s => window.__tp.salta(s), s); const l = await page.evaluate(() => window.__tp.lucha()); console.log(`  +${s}s: ${l.duelos} duelos en ${l.fases} momentos, a ${l.dmin} m los más juntos, caídos ${l.caidosR}/${l.caidosG}, en el aire ${l.enAire}, brazo atrás ${l.armados}`); await page.waitForTimeout(700); fotos.push((await page.screenshot({ type: 'jpeg', quality: 80, timeout: 240000 })).toString('base64')); }
-  await ctx.close();
-  const p2 = await br.newPage({ viewport: { width: 390 * fotos.length, height: 844 } });
-  await p2.setContent('<body style="margin:0;display:flex">' + fotos.map(f => '<img style="width:390px;height:844px" src="data:image/jpeg;base64,' + f + '">').join('') + '</body>');
-  await p2.screenshot({ path: archivo, type: 'jpeg', quality: 80 }); await p2.close(); console.log('tira: ' + archivo);
-}
-if (op.tiras) {
-  if (op.tiras !== 'choque') await tira('lanza0', [0.55, 0.45, 0.4, 0.4, 0.6, 0.9], (op.prefijo || join(SALIDA, 'GP1-')) + 'tira-pilum.jpg');
-  if (op.tiras !== 'pilum') await tira('choque0', [0.3, 0.7, 0.7, 0.7, 0.8, 1.0], (op.prefijo || join(SALIDA, 'GP1-')) + 'tira-choque.jpg');
-  await br.close(); srv.close(); console.log(errores.length ? 'NO APTO\n' + errores.join('\n') : 'APTO (solo tiras)'); process.exit(errores.length ? 1 : 0);
-}
 /* para iterar: solo=avance,testudo saca solo esas fases (en vertical; añade h para horizontal: solo=testudo,h) y no hace las pruebas largas */
 if (op.solo) { const fs = op.solo.split(','), d = fs.includes('h') ? Hz : V; for (const f of fs.filter(x => x !== 'h')) await foto(f, f, ...d); await br.close(); srv.close(); console.log(errores.length ? 'NO APTO\n' + errores.join('\n') : 'APTO (solo fotos)'); process.exit(errores.length ? 1 : 0); }
 let e = await foto('avance', 'v-1-marcha', ...V); bien(e.vivos === 30 && e.k === 0, 'marcha: los 30 en pie y sin testudo');
@@ -83,25 +67,7 @@ e = await foto('mira', 'v-5-cara', ...V); bien(e.mira > 0.9 && entre(e.cuadro.yo
 e = await foto('roto', '_v-roto', ...V); bien(e.roto, 'roto: tu escudo ya está partido (' + e.golpes + ' golpes)');
 e = await foto('pila', '_v-pila', ...V); bien(e.fase === 'lanzando', 'pila: los pila están en el aire');
 e = await foto('carga', 'v-6-carga', ...V); bien(e.fase === 'carga' && e.enHombre === 0, 'carga: nadie lleva venablos clavados');
-bien(e.lucha.sueltas.length >= 8 && Math.max(...e.lucha.sueltas) - Math.min(...e.lucha.sueltas) >= 0.3, `pila: la salva no sale a la vez (${e.lucha.sueltas.length} pila sueltos en ${(Math.max(...e.lucha.sueltas) - Math.min(...e.lucha.sueltas)).toFixed(2)} s)`);
-bien(e.lucha.enEscudo >= 1 && e.lucha.enSuelo >= 1 && e.lucha.sinEscudo >= 1, `pila: hay pila clavados en escudos (${e.lucha.enEscudo}) y en el suelo (${e.lucha.enSuelo}); ${e.lucha.sinEscudo} tiradores sin escudo`);
 e = await foto('final', '_v-final', ...V); bien(e.fase === 'fin', 'final: sale la tarjeta');
-e = await foto('lanzando', 'v-7-lanzando', ...V); bien(e.lucha.enAire >= 3 && e.lucha.armados >= 2, `lanzando: pila en el aire (${e.lucha.enAire}) y brazos atrás (${e.lucha.armados})`);
-e = await foto('choque', 'v-8-choque', ...V); bien(e.lucha.duelos >= 4 && e.lucha.fases >= 4, `choque: ${e.lucha.duelos} duelos a la vez, en ${e.lucha.fases} momentos distintos del golpe (a más de 0,15 s)`);
-bien(e.lucha.dmin >= 0.35, `choque: nadie se atraviesa (los dos más juntos, a ${e.lucha.dmin} m)`);
-if (dpr === 2) await copyFile(prefijo + 'v-8-choque.jpg', join(SALIDA, 'GP1-v-choque.jpg'));
-/* GP1: la lucha entera, a saltos de reloj: nadie se atraviesa nunca, hay bajas de los dos lados, los caídos se quedan y acaba */
-{
-  const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 }), page = await ctx.newPage(); escucha(page);
-  await page.goto(URL0 + '?fase=choque0'); await lista(page);
-  const r = await page.evaluate(() => { const t = window.__tp; let dmin = 9, mejor = 0; for (let i = 0; i < 330; i++) { t.salta(1 / 30); const l = t.lucha(); dmin = Math.min(dmin, l.dmin); mejor = Math.max(mejor, Math.min(l.duelos, l.fases)); } return { ...t.lucha(), dminT: dmin, mejor, fase: t.S.fase }; });
-  bien(r.dminT >= 0.35, `lucha: en 11 s nadie se atraviesa (mínimo ${r.dminT.toFixed(2)} m)`);
-  bien(r.mejor >= 4, `lucha: llega a haber ${r.mejor} duelos a la vez en momentos distintos`);
-  bien(r.caidosR >= 1 && r.caidosG >= 2 && r.dibujadosCaidos, `lucha: caen de los dos lados (${r.caidosR} romanos, ${r.caidosG} galos) y los caídos siguen en el suelo`);
-  bien(r.fase === 'fin', 'lucha: acaba con la tarjeta');
-  await ctx.close();
-}
-if (dpr === 2) { await tira('lanza0', [0.55, 0.45, 0.4, 0.4, 0.6, 0.9], join(SALIDA, 'GP1-tira-pilum.jpg')); await tira('choque0', [0.3, 0.7, 0.7, 0.7, 0.8, 1.0], join(SALIDA, 'GP1-tira-choque.jpg')); }
 await foto('avance', 'h-1-marcha', ...Hz);
 e = await foto('testudo', 'h-3-testudo', ...Hz); encuadre(e, 'testudo horizontal', false);
 e = await foto('mira', '_h-cara', ...Hz); bien(e.mira > 0.9, 'cara en horizontal: tu soldado vuelto');
@@ -120,10 +86,10 @@ e = await foto('mira', '_h-cara', ...Hz); bien(e.mira > 0.9, 'cara en horizontal
   const e3 = await page.evaluate(() => { const t = window.__tp, S = t.S; t.parar(true); for (let i = 0; i < 1500 && S.fase === 'avance'; i++) { S.escudos = S.aviso || S.impacto > 0; t.salta(0.1); } S.escudos = true; t.salta(1); return t.estado(); });
   bien(e3.fase === 'pila' && e3.vivos >= 25, `partida: llega a tiro de pilum con ${e3.vivos} de 30 subiendo los escudos a cada aviso (escudo propio: ${e3.golpes} golpes${e3.roto ? ', roto' : ''})`);
   await page.mouse.up(); await page.evaluate(() => window.__tp.parar(false)); await page.tap('#escudos'); await page.waitForTimeout(600); await page.tap('#accion');
-  const e4 = await page.evaluate(() => { const t = window.__tp; t.parar(true); t.salta(4.2); t.parar(false); return t.estado(); });
+  const e4 = await page.evaluate(() => { const t = window.__tp; t.parar(true); t.salta(3.4); t.parar(false); return t.estado(); });
   bien(e4.fase === 'cargar', 'partida: tras lanzar los pila toca cargar');
   await page.waitForTimeout(600); await page.tap('#accion');
-  const e5 = await page.evaluate(() => { const t = window.__tp; t.parar(true); t.salta(15); t.parar(false); return t.estado(); });
+  const e5 = await page.evaluate(() => { const t = window.__tp; t.parar(true); t.salta(9); t.parar(false); return t.estado(); });
   await page.waitForTimeout(800);
   bien(e5.fase === 'fin' && await page.locator('#fin').isVisible(), 'partida: carga, choque y tarjeta final');
   await ctx.close();
