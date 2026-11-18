@@ -163,13 +163,14 @@
       "titulo": "Una sola batalla, con un solo aspecto",
       "estado": "medias",
       "veras": "Una única batalla, la misma en campaña y en Escaramuzas: maniobras, mandas y, si quieres, bajas a pie. Todas las tropas con el soldado nuevo y la luz y el campo del testudo.",
-      "hecho": "Batalla con órdenes, proyectiles, duelos y caídos; va fluida en tu móvil. Hastati y galos llevan el soldado nuevo.",
-      "falta": "Tu 18/11 por la tarde, tras probarlas: «las batallas y Escaramuzas son una basura, hay que rehacerlo todo». Se piensa contigo en CG1: una sola batalla en tres tiempos (plan previo que se puede saltar, mando en vivo con tribunos y tú en primera persona desde el hombro). En obra, de base: el soldado nuevo para las demás tropas (GM44) y la limpieza de la batalla antigua (GC10). Caballería y elefantes seguirán con el modelo de 0 A.D.",
+      "hecho": "Batalla con órdenes, proyectiles, duelos y caídos; va fluida en tu móvil. Hastati y galos llevan el soldado nuevo. Por debajo ya está el simulador nuevo (CG3, 18/11): manípulos que se mueven, forman, se cansan, flanquean y se rompen, con tribunos; aún no se ve.",
+      "falta": "Tu 18/11 por la tarde, tras probarlas: «las batallas y Escaramuzas son una basura, hay que rehacerlo todo». Plan CG1 aprobado: fichas de tropa (CG2), mando en vivo con el simulador nuevo (CG4, tras GM44 y GC10), tribunos y plan previo (CG5), a pie desde el hombro (CG6) y batalla rápida (CG7). Caballería y elefantes seguirán con el modelo de 0 A.D.",
       "captura": "gobierno/capturas-tarea/GM44c-1-vertical-nuevo.jpg",
       "tareas": [
         "GM44",
         "GC10",
-        "CG1"
+        "CG1",
+        "CG3"
       ]
     },
     {
