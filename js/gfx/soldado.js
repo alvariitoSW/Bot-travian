@@ -59,6 +59,18 @@ async function imagen(url, srgb) { try { const t = await new THREE.TextureLoader
 /* Colores por pueblo: telas, escudos, piel (de la más clara a la más morena), pelo y barba. Sin entrada: los de la legión. */
 export const PUEBLOS = { libio: { pelo: [[0.30, 0.27, 0.26], [0.95, 0.82, 0.70]], barba: [0.09, 0.07, 0.05], telas: ['#6a2c5a', '#7d3348', '#cfc3a4', '#8a3a2a', '#56284e', '#b8a070'], escudos: ['#5a2a5c', '#8a3a28', '#c8b88e', '#3e2c5c'], piel: [[0.96, 0.86, 0.78], [0.70, 0.57, 0.48]] },
   galo: { pelo: [[0.50, 0.42, 0.34], [1.12, 1.02, 0.92]], barba: [0.42, 0.33, 0.20], telas: ['#3f5f7a', '#5a7a4a', '#9a7a3a', '#8a4a30', '#6a5a7a', '#4a6a6a'], escudos: ['#2f5a84', '#3f7a4a', '#b08a2a', '#8f2f22'], piel: [[1.06, 0.99, 0.95], [0.88, 0.78, 0.72]] } };
+/* GM44d: más pueblos. Los colores son licencia de juego salvo lo que se dice; piel y pelo, de los mediterráneos (como el libio, algo más claros). */
+{ const MED = { pelo: [[0.34, 0.30, 0.28], [1.0, 0.86, 0.72]], barba: [0.10, 0.08, 0.06], piel: [[1.0, 0.91, 0.84], [0.76, 0.63, 0.54]] };
+  Object.assign(PUEBLOS, {
+    griego: { ...MED, telas: ['#8a3a2a', '#a8946c', '#3f4f7a', '#7a6a4a', '#9a4a2a', '#cfc3a4'], escudos: ['#b08a3a', '#9a7a3a', '#8a3a2a', '#3a4a6a'] },      /* aspis de bronce o pintada: licencia de juego */
+    sagrada: { ...MED, telas: ['#cfc3a4', '#e0d8c0', '#6a2c5a', '#b8a070', '#56284e', '#d8ccb0'], escudos: ['#5a2a5c', '#c8b88e', '#3e2c5c', '#b08a3a'] },  /* púrpura de Tiro y lino: licencia de juego */
+    milicia: { ...MED, telas: ['#7a6a52', '#8a7a5e', '#6a5a44', '#9a8a6a', '#5e5040', '#a8946c'], escudos: ['#6a5a40', '#7a6448', '#5a4a36', '#8a7454'] },  /* lana sin teñir: licencia de juego */
+    ibero: { ...MED, telas: ['#6a2c5a', '#7d3348', '#56284e', '#6a2c5a', '#7d3348', '#56284e'], escudos: ['#7a5a3a', '#8a3a28', '#5a4a3a', '#9a7a4a'] },   /* la túnica es blanca fija en la malla (Polibio 3.114); aquí solo orla y caetra */
+    hondero: { ...MED, telas: ['#a8946c', '#8a7a5e', '#cfc3a4', '#7a6a52', '#9a8a6a', '#b8a070'], escudos: ['#7a6448', '#6a5a40', '#8a7454', '#5a4a36'] },  /* baleares: lana parda, licencia de juego */
+    peltasta: { ...MED, telas: ['#8a3a2a', '#6a5a7a', '#a8946c', '#3f5f7a', '#9a7a3a', '#7a3a3a'], escudos: ['#9a7a4a', '#8a6a3a', '#a8885a', '#7a5a32'] } });  /* zeira de colores y pelte de mimbre: licencia de juego */
+  PUEBLOS.falangita = PUEBLOS.griego; PUEBLOS.hoplita = PUEBLOS.griego; }
+/* pueblos que forman con Roma: llevan su color en el bando del jugador */
+export const ROMANOS = new Set(['hastatus', 'triario', 'velite']);
 /* telas y escudos en la gama de un color de bando (para el pueblo que lucha en el otro bando) */
 export function gama(color, base = {}) {
   const c = new THREE.Color(color), t = k => '#' + c.clone().multiplyScalar(k).getHexString();
@@ -78,6 +90,8 @@ function tomarMov(nom, nb, cuadros) {
 }
 function soltarMov(m) { if (!m || --m.usos > 0) return; for (const [k, v] of MOVS) if (v === m) MOVS.delete(k); m.prom.then(v => v.tex.dispose(), () => {}); }
 
+/* GM44d: alto del hombre sin las armas largas (la sarisa pasa de 3,9 m): lo más alto por debajo de 2,3 m (un penacho no llega) */
+function altoCuerpo(po, y0) { let y = y0; for (let i = 0; i < po.count; i++) { const v = po.getY(i); if (v < 2.3 && v > y) y = v; } return y - y0; }
 async function uno(nombre, o) {
   const j = await (await fetch(AQUI + nombre + '.json')).json(), buf = await (await fetch(AQUI + nombre + '.bin')).arrayBuffer(), n = j.verts, off = j.off;
   const g = new THREE.BufferGeometry();
@@ -99,7 +113,7 @@ async function uno(nombre, o) {
   const mat = parche(new THREE.MeshStandardMaterial({ map: color || null, color: color ? '#ffffff' : '#b8926e', normalMap: normal || null, roughnessMap: orm || null, metalnessMap: orm || null, aoMap: orm || null,
     roughness: orm ? 1 : 0.75, metalness: orm ? 1 : 0, side: THREE.DoubleSide, alphaTest: 0.5 }), u);
   g.computeBoundingBox();
-  return { j, geo: g, mat, anim, mov, crudo, texs: [color, normal, orm, masc].filter(Boolean), alto: g.boundingBox.max.y - g.boundingBox.min.y };
+  return { j, geo: g, mat, anim, mov, crudo, texs: [color, normal, orm, masc].filter(Boolean), alto: altoCuerpo(g.attributes.position, g.boundingBox.min.y) };
   } catch (e) { g.dispose(); if (mov) soltarMov(mov); else anim.dispose(); throw e; }
 }
 

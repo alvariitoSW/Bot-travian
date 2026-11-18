@@ -7,7 +7,7 @@
 <script type="module">
 /* GM44d: desfile de los soldados del juego (assets/soldados, cargados con js/gfx/soldado.js, como en la batalla).
    ?t=hastatus,galo  ?lv=0..3 (nivel)  ?clip=quieto  ?t0=1.2 (segundo del clip)  ?dist=6 (metros de cámara)  ?alto=1.3  ?giro=0 (grados)
-   ?filas=1 (hombres por tropa en fondo)  ?pal=libio (paleta de PUEBLOS para todos). Pone window.__listo y window.__info(). */
+   ?filas=1 (hombres por tropa en fondo)  ?pal=libio (paleta de PUEBLOS para todos; t=hoplita:sagrada, solo para esa). Pone window.__listo y window.__info(). */
 import { THREE } from '../../../js/gfx/models.js';
 import { cargarSoldado, tropa, PUEBLOS } from '../../../js/gfx/soldado.js';
 const q = new URLSearchParams(location.search), tipos = (q.get('t') || 'hastatus,galo').split(','), lv = +(q.get('lv') || 0), clip = q.get('clip') || 'quieto';
@@ -18,7 +18,7 @@ const suelo = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshSt
 const cam = new THREE.PerspectiveCamera(35, 1, 0.1, 500); const info = { tipos: {}, tris: 0, llamadas: 0 };
 const sep = 1.6, x0 = -(tipos.length - 1) * sep / 2, nombres = [];
 for (let k = 0; k < tipos.length; k++) {
-  const S = await cargarSoldado(tipos[k], q.get('pal') ? PUEBLOS[q.get('pal')] : undefined); if (!S) { info.tipos[tipos[k]] = 'no carga'; continue; }
+  const [nom, pue] = tipos[k].split(':'), S = await cargarSoldado(nom, pue ? PUEBLOS[pue] : q.get('pal') ? PUEBLOS[q.get('pal')] : undefined);   /* GM44d: t=velite:milicia = malla:paleta */ if (!S) { info.tipos[tipos[k]] = 'no carga'; continue; }
   const s = S.niveles[lv], T = tropa(s, filas * filas); esc.add(T.malla); let n = 0;
   for (let a = 0; a < filas; a++) for (let b = 0; b < filas; b++) { const i = T.sig(); T.pon(i, x0 + k * sep + (b - (filas - 1) / 2) * 0.9, -a * 1.1, giro, 1 + k * 7 + n * 13); T.pose(i, clip, t0 + n * 0.37, T.muestra(clip, t0)); n++; }
   info.tipos[tipos[k]] = { tris: s.j.tris, alto: +S.alto.toFixed(2), clips: Object.keys(S.clips) }; nombres.push(tipos[k]);

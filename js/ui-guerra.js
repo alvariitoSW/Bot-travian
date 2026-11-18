@@ -64,7 +64,7 @@
     const COLOR = ['#b3261e', '#5b3a8c'];
     /* GM44c: el soldado nuevo (js/gfx/soldado.js, cuatro niveles de detalle) para estas tropas; las demás siguen con 0 A.D.
        Si no carga, esa tropa sale con el modelo de 0 A.D. de siempre. Sin cartón plano: aquí no pasan de ~700 figuras (solo en batallas de miles). */
-    const NUEVO = { hastati: 'hastatus', principes: 'hastatus', vigiles: 'hastatus', galos: 'galo', libios: 'hastatus:libio' };      /* 'malla:pueblo' = esa malla con la paleta de ese pueblo (PUEBLOS en soldado.js) */
+    const NUEVO = { hastati: 'hastatus', principes: 'hastatus', vigiles: 'hastatus', galos: 'galo', libios: 'hastatus:libio', triarii: 'triario', velites: 'velite', milicia: 'velite:milicia', honderos: 'hondero', peltastas: 'peltasta', hoplitas: 'hoplita:griego', sagrada: 'hoplita:sagrada', falange: 'falangita', iberos: 'ibero' };      /* 'malla:pueblo' = esa malla con la paleta de ese pueblo (PUEBLOS en soldado.js) */
     const UMBRAL_N = [200, 90, 42];      /* alto en pantalla (px CSS) desde el que toca el nivel 0, 1 y 2; por debajo, el 3; fuera de pantalla, el 3 */
     const CERCA_N = 40;                  /* como mucho, tantas figuras en el nivel fino (gobierno/arte.json); las más cercanas; el resto baja al 1 */
     const PARADA_N = 0.55;               /* la parada del soldado nuevo: este punto del clip «cubrirse» (escudo arriba) */
@@ -778,7 +778,7 @@
         for (const t in cfg.estado.cab.comp || {}) tipos.add(t); for (const t in cfg.estado.num.comp || {}) tipos.add(t);
         /* GM44c: los soldados nuevos que hacen falta (tropa y bando), a la vez que lo demás; si fallan, esa tropa sale con 0 A.D. */
         const quiero = new Set(); for (const s of cfg.estado.sect) for (const c of s.c) for (const l of c.tir ? c.lineas.concat([c.tir]) : c.lineas) if (NUEVO[l.tipo]) quiero.add(l.tipo + c.lado);
-        const nuevos = !quiero.size ? null : import('./gfx/soldado.js').then(Mod => { SOLD = Mod; return Promise.all([...quiero].map(id => { const lado = +id.slice(-1), [nom, pueblo = nom] = NUEVO[id.slice(0, -1)].split(':'), propio = (pueblo === 'hastatus') === (lado === 0), pal = Mod.PUEBLOS[pueblo];
+        const nuevos = !quiero.size ? null : import('./gfx/soldado.js').then(Mod => { SOLD = Mod; return Promise.all([...quiero].map(id => { const lado = +id.slice(-1), [nom, pueblo = nom] = NUEVO[id.slice(0, -1)].split(':'), propio = Mod.ROMANOS.has(pueblo) === (lado === 0), pal = Mod.PUEBLOS[pueblo];
           return Mod.cargarSoldado(nom, propio ? pal || null : Mod.gama(COLOR[lado], pal)).then(S => { if (S) soldados.set(id, S); }); })); }).catch(() => { /* sin soldado nuevo: 0 A.D. */ });
         await Promise.all([preload([...tipos]), loadGroundTextures().then(() => preloadStatic(['cipres', 'olivo', 'pino'])), nuevos]);
         if (cerrado) { soltarSoldados(); return; }
