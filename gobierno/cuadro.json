@@ -2008,22 +2008,22 @@
       "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
     },
     {
-      "tarea": "TP1",
-      "titulo": "Corazón · TP1 La escena a pie, sobre la base (dirige y construye Opus)",
-      "nota": "gobierno/maquetas/a-pie/ (carpeta nueva); une testudo-pilum-a y testudo-lucha; sin Fable",
-      "url": "https://claude.ai/code/session_01QiKC36rueL1kwqzeVBKZqd"
-    },
-    {
-      "tarea": "CE1",
-      "titulo": "Cerebro · CE1 Objetivo final de política y economía, hablándolo con el usuario (dirige y construye Opus)",
-      "nota": "gobierno/estudios/CE1-objetivo-cerebro.md; conversación con Opus; un plan cerrado y alcance congelado; 1,5 M",
-      "url": "https://claude.ai/code/session_01QiKC3Ap9oPnEQ9sW14muQd"
-    },
-    {
       "tarea": "CI1",
       "titulo": "Cerebro · CI1 Roma de su siglo (la ciudad con el aspecto de su época; dirige y construye Opus)",
       "nota": "js/ciudad.js, city3d.js, statics.js; capturas antes y después; 1,0 M con tope +25 %",
       "url": "https://claude.ai/code/session_01QiKC39hKX8V8mRMAsoPzPT"
+    },
+    {
+      "tarea": "TP1",
+      "titulo": "Corazón · TP1 y TP1b La escena a pie (Opus)",
+      "nota": "Paso 2 en obra (TP1b) y falange de picas (TP7a, maquetas/falange/)",
+      "url": "https://claude.ai/code/session_01QiKC36rueL1kwqzeVBKZqd"
+    },
+    {
+      "tarea": "CE2",
+      "titulo": "Cerebro · CE2 Recursos nuevos (dirige y construye Opus)",
+      "nota": "js/game.js, data.js, ui.js, bot y guardado migrado; 2,0 M declarado, unos 3,6 M esperables",
+      "url": "https://claude.ai/code/session_01QiKC397z42u9YdbK1uWvE9"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
