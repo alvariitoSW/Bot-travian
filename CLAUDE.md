@@ -75,6 +75,8 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
 - **Gasto**: presupuesto antes de empezar y `node gobierno/gasto.mjs` al cerrar. El director no construye.
   **Hasta la 1.0** (usuario, 17/11): dirige y diseña **Fable**; los agentes que construyen van en **Opus**. La skill
   `ahorro` revisa los partes y propone recortes.
+- **Objetivos finales** (usuario, 18/11): `gobierno/OBJETIVOS.md` manda sobre el tablero. Léela al empezar y di a qué línea
+  sirve tu tarea; si no sirve a ninguna, no se hace. Lo empezado se termina; nada entra sin sacar otra.
 - **Meta: la 1.0** (usuario, 17/11). Solo se trabaja en el Carril V del tablero, en orden. Nada nuevo entra; lo nuevo
   va a «Después de la 1.0» en la bitácora, o entra sacando otra. Sin concursos ni estudios hasta la 1.0.
 - **Cuadro de mando** (Artifact para el móvil del usuario): dirección en `gobierno/cuadro.json`; skill `cuadro-de-mando`.
