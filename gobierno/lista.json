@@ -163,8 +163,8 @@
       "titulo": "Una sola batalla, con un solo aspecto",
       "estado": "medias",
       "veras": "Un simulador de batallas en tiempo real, el mismo en campaña y en Escaramuzas: plan previo que se puede saltar con «Ver cómo irá», mando en vivo por manípulos con tus tribunos, y batalla rápida si no quieres jugarla larga.",
-      "hecho": "Batalla con órdenes, proyectiles, duelos y caídos; va fluida en tu móvil. Hastati y galos llevan el soldado nuevo. La batalla antigua ya no deja restos en el código (GC10).",
-      "falta": "Tu 18/11 (CG1): «un simulador de batallas propio». Plan CG2 a CG7: simulador (CG3, en obra), mando en vivo (CG4), tribunos y plan previo (CG5), batalla rápida y minijuegos (CG7). De base, en obra: el soldado nuevo para las demás tropas (GM44) y la limpieza de la batalla antigua (GC10). Caballería y elefantes seguirán con el modelo de 0 A.D.",
+      "hecho": "Batalla con órdenes, proyectiles, duelos y caídos; va fluida en tu móvil. Hastati y galos llevan el soldado nuevo. La batalla antigua ya no deja restos en el código (GC10). Quitados los restos de la batalla antigua (≈120 KB menos).",
+      "falta": "Tu 18/11 (CG1): «un simulador de batallas propio». Plan CG2 a CG7: simulador (CG3, en obra), mando en vivo (CG4), tribunos y plan previo (CG5), batalla rápida y minijuegos (CG7). De base: el soldado nuevo para las demás tropas (GM44, en obra; la limpieza de la batalla antigua, GC10, ya está hecha). Caballería y elefantes seguirán con el modelo de 0 A.D.",
       "captura": "gobierno/capturas-tarea/GM44c-1-vertical-nuevo.jpg",
       "tareas": [
         "GM44",
