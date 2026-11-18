@@ -381,7 +381,7 @@ async function navegador() {
       const antes = await estado(() => ({ x: UI.map.c.x, z: UI.map.c.z, dist: UI.map.c.dist, zonas: [...document.querySelectorAll('.mlabel.zona')].filter(e => e.style.display !== 'none').length }));
       const fotoMare = await foto('escalon-mare');
       await page.evaluate(() => [...document.querySelectorAll('.mlabel.zona')].find(e => e.textContent === 'Italia').click());
-      await espera(1500);
+      await espera(1500); await page.waitForFunction(() => !UI.map.esc.anim, null, { timeout: 20000 }).catch(() => {});   // C17: con ≈1 fotograma/s la animación de 0,6 s puede no haber acabado a los 1,5 s
       const dentro = await estado(() => ({ dist: UI.map.c.dist, migas: document.querySelector('.mmigas').innerText.replace(/\s+/g, ' '), volver: !!document.querySelector('.mmigas [data-volver]') }));
       const fotoZona = await foto('escalon-italia');
       await page.evaluate(() => document.querySelector('.mmigas [data-volver]').click());

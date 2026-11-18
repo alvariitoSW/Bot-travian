@@ -696,6 +696,65 @@ const CENTRO = { cart: 'cart_templo', grie: 'grie_templo', galo: 'galo_centro', 
 const claveCentro = dueno => CENTRO[dueno === 'roma' ? 'roma' : CULTURA[dueno]] || null;
 const claveBarco = dueno => (CULTURA[dueno] === 'cart' || CULTURA[dueno] === 'grie') ? CULTURA[dueno] + '_trirreme' : 'trirreme';
 
+/* C17 · Ejército con estandarte. Cada ejército: su general (figura real de 0 A.D., a caballo) y, en capas instanciadas
+   compartidas por TODOS los ejércitos (una llamada de dibujo por capa, no por ejército): disco del bando, soldados ligeros
+   (más cuanto mayor el ejército), escudos del color del bando, asta, paño del bando, un emblema por tipo y la estela de las flotas.
+   El estandarte mira siempre a la cámara (que nunca gira en horizontal) y crece al alejarse la cámara para leerse en la carta.
+   Emblemas dibujados por código: águila (Roma, Mario la hizo única en el 104 a.C.; antes era una de cinco insignias), disco y
+   creciente (Cartago, signo de las estelas púnicas), sol de rayos (reinos y ciudades griegas), jabalí (galos, como en las
+   monedas y el caldero de Gundestrup) y punta de lanza (los demás). Lo del disco y la punta es licencia de juego. */
+const EMBLEMA = f => f === 'roma' ? 'aguila' : CULTURA[f] === 'cart' ? 'disco' : CULTURA[f] === 'grie' ? 'sol' : CULTURA[f] === 'galo' ? 'jabali' : 'punta';
+const JINETE = { cart: 'numidas', grie: 'tesalios', galo: 'jinetes', iber: 'jinetes' };
+const ORO = '#e0b24a', EJ_MAX = 64, SOLD_MAX = 64 * 15, ASTA_H = 3.3;
+const plano = (shape, prof) => { const g = new THREE.ExtrudeGeometry(shape, { depth: prof, bevelEnabled: false, curveSegments: 4 }); g.translate(0, 0, -prof / 2); return g.toNonIndexed(); };
+const forma = (pts, cerrar) => { const sh = new THREE.Shape(); sh.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) sh.lineTo(pts[i], pts[i + 1]); if (cerrar !== false) sh.closePath(); return sh; };
+function emblemaGeo(tipo) {   // en el origen la punta del asta; el emblema crece hacia arriba (~0,7 de alto)
+  const P = [];
+  if (tipo === 'aguila') {
+    const ala = forma([0, 0.3, 0.12, 0.36, 0.3, 0.58, 0.42, 0.78, 0.36, 0.56, 0.44, 0.6, 0.34, 0.42, 0.4, 0.42, 0.24, 0.3, 0.1, 0.22]);
+    const izq = plano(ala, 0.05), der = plano(ala, 0.05); der.scale(-1, 1, 1);
+    const cuerpo = plano(forma([-0.08, 0.14, 0.08, 0.14, 0.1, 0.38, 0.06, 0.52, 0.1, 0.56, 0.02, 0.62, -0.06, 0.56, -0.08, 0.38]), 0.09);
+    const corona = new THREE.TorusGeometry(0.14, 0.03, 4, 10).toNonIndexed(); corona.translate(0, 0.07, 0);
+    P.push(izq, der, cuerpo, corona);
+  } else if (tipo === 'disco') {
+    const d = new THREE.CylinderGeometry(0.2, 0.2, 0.05, 12).toNonIndexed(); d.rotateX(Math.PI / 2); d.translate(0, 0.5, 0);
+    const c = new THREE.Shape(); c.absarc(0, 0, 0.24, Math.PI * 1.05, Math.PI * 1.95, false); c.absarc(0, 0.06, 0.2, Math.PI * 1.9, Math.PI * 1.1, true);
+    const cr = plano(c, 0.05); cr.translate(0, 0.42, 0); const b = plano(forma([-0.03, 0, 0.03, 0, 0.03, 0.2, -0.03, 0.2]), 0.05);
+    P.push(d, cr, b);
+  } else if (tipo === 'sol') {
+    const pts = []; for (let i = 0; i < 16; i++) { const a = i / 16 * Math.PI * 2, r = i % 2 ? 0.12 : 0.3; pts.push(Math.sin(a) * r, 0.42 + Math.cos(a) * r); }
+    P.push(plano(forma(pts), 0.05), plano(forma([-0.03, 0, 0.03, 0, 0.03, 0.14, -0.03, 0.14]), 0.05));
+  } else if (tipo === 'jabali') {
+    const j = plano(forma([-0.34, 0.3, -0.26, 0.42, -0.1, 0.5, 0.0, 0.62, 0.04, 0.5, 0.18, 0.5, 0.3, 0.44, 0.4, 0.36, 0.34, 0.3, 0.26, 0.3, 0.24, 0.2, 0.18, 0.2, 0.16, 0.28, -0.18, 0.28, -0.2, 0.2, -0.26, 0.2, -0.26, 0.28]), 0.08);
+    P.push(j, plano(forma([-0.03, 0, 0.03, 0, 0.03, 0.22, -0.03, 0.22]), 0.05));
+  } else {
+    P.push(plano(forma([0, 0.62, 0.1, 0.36, 0.05, 0.1, -0.05, 0.1, -0.1, 0.36]), 0.05), plano(forma([-0.14, 0.06, 0.14, 0.06, 0.14, 0.1, -0.14, 0.1]), 0.05));
+  }
+  return unir(P.map(g => { if (g.attributes.uv) g.deleteAttribute('uv'); g.computeVertexNormals(); return conColor(g, ORO); }));
+}
+function astaGeo() {   // asta de madera con travesaño (de él cuelga el paño)
+  const a = new THREE.CylinderGeometry(0.04, 0.05, ASTA_H, 5, 1, true); a.translate(0, ASTA_H / 2, 0);
+  const t = new THREE.BoxGeometry(0.95, 0.06, 0.06); t.translate(0, ASTA_H - 0.75, 0);
+  return unir([conColor(a, '#4a2e18'), conColor(t, '#4a2e18')]);
+}
+function panoGeo() {   // vexillum: paño cuadrado con flecos abajo (blanco: el color lo pone cada ejemplar)
+  const w = 0.88, h = 0.74, y1 = ASTA_H - 0.75, pos = [];
+  for (let i = 0; i < 4; i++) { const xa = -w / 2 + w * i / 4, xb = xa + w / 4, za = Math.sin(i * 1.4) * 0.05, zb = Math.sin((i + 1) * 1.4) * 0.05; pos.push(xa, y1, za, xa, y1 - h, za, xb, y1, zb, xb, y1, zb, xa, y1 - h, za, xb, y1 - h, zb); }
+  for (let i = 0; i < 6; i++) { const x = -w / 2 + w * (i + 0.5) / 6, z = Math.sin((x + w / 2) / w * 4 * 1.4) * 0.05; pos.push(x - 0.05, y1 - h, z, x, y1 - h - 0.12, z, x + 0.05, y1 - h, z); }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+  return conColor(g, '#ffffff');
+}
+function soldadoGeo(escudo) {   // soldado de marcha muy ligero (cuerpo 50 triángulos: piernas, túnica, cabeza, casco y lanza; escudo alto aparte, 10)
+  if (escudo) return conColor(cajaSin(0.06, 0.5, 0.32, 0.17, 0.16, 0.04), '#ffffff');
+  return unir([conColor(cajaSin(0.17, 0.36, 0.12, 0, 0, 0), '#6e5440'), conColor(cajaSin(0.26, 0.34, 0.16, 0, 0.36, 0), '#9c8a6a'), conColor(cajaSin(0.13, 0.13, 0.13, 0, 0.7, 0), '#c49a6c'),
+    conColor(cajaSin(0.16, 0.09, 0.16, 0, 0.8, 0), '#b08a3a'), conColor(cajaSin(0.035, 1.15, 0.035, -0.17, 0.12, 0.04), '#5a3a20')]);
+}
+function estelaGeo() {   // espuma en V detrás del barco (en el plano del agua, la proa hacia +z)
+  const pos = [], tri = (a, b, c) => pos.push(a[0], 0, a[1], b[0], 0, b[1], c[0], 0, c[1]);
+  tri([-0.08, 0], [0.08, 0], [0, -2.6]); tri([-0.18, -0.1], [-0.05, -0.1], [-1.2, -3.2]); tri([0.05, -0.1], [0.18, -0.1], [1.2, -3.2]); tri([-0.25, 0.9], [-0.15, 0.9], [-0.35, -0.2]); tri([0.15, 0.9], [0.25, 0.9], [0.35, -0.2]);
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals(); return g;
+}
+
 const ZOOM_CIUDAD = 19;   // C1: por debajo de esta distancia de cámara, sobre una ciudad propia, se abre la ciudad
 export class MapView3D {
   constructor(host, opts) {
@@ -1049,19 +1108,38 @@ export class MapView3D {
     if (c.gar) for (const an of c.gar.anims) { an.a.array[0] = frameOf(an.clip, this.t + an.ph); an.a.needsUpdate = true; }
   }
 
-  armyModel(m) {
+  armyModel(m) {   // C17: el general (o el barco) va en el grupo; el estandarte, el disco y la tropa van en las capas compartidas (estandartes)
     const grp = new THREE.Group(), mine = m.owner === 'roma', col = D.FACTIONS[m.owner].col, e = m.from && G.edge(m.from, m.to);
-    const ship = e && e[2] ? (staticMesh(claveBarco(m.owner), col) || staticMesh('trirreme', col)) : null;                    // por mar, el ejército viaja embarcado
-    if (ship) { ship.scale.setScalar(0.07); ship.position.y = -0.06; grp.add(ship); const el2 = document.createElement('div'); el2.className = 'mlabel army ' + (mine ? 'mine' : 'foe'); this.labels.appendChild(el2); this.scene.add(grp); return { grp: grp, el: el2, anims: [] }; }
-    let main = mine ? 'hastati' : 'milicia', best = 0; for (const k in m.units) if (m.units[k] > best && D.UNITS[k].cls !== 'ele') { best = m.units[k]; main = k; }
-    const anims = [], lead = m.hero || m.gen ? 'general' : (m.units.elefantes ? 'elefantes' : main), add = (key, x, z, s) => this.figura(grp, anims, key, col, x, z, s, 'walk');
-    add(lead, 0, 0.35, lead === 'elefantes' ? 0.3 : 0.62); add(main, -0.5, -0.25, 0.6); add(main, 0.5, -0.25, 0.6); add(main, 0, -0.7, 0.6);
-    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.95, 0.95, 0.06, 18), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.55 })); base.position.y = 0.03; grp.add(base);
-    const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 2.2, 5), new THREE.MeshLambertMaterial({ color: '#3a2a1a' })); pole.position.set(0, 1.1, -0.3); grp.add(pole);
-    const fl = new THREE.Mesh(new THREE.PlaneGeometry(0.7, 0.5), new THREE.MeshLambertMaterial({ color: col, side: THREE.DoubleSide })); fl.position.set(0.36, 1.95, -0.3); grp.add(fl);
+    const clave = e && e[2] ? (getStatic(claveBarco(m.owner)) ? claveBarco(m.owner) : 'trirreme') : null, ship = clave && staticMesh(clave, col);   // por mar, el ejército viaja embarcado
     const el = document.createElement('div'); el.className = 'mlabel army ' + (mine ? 'mine' : 'foe'); this.labels.appendChild(el);
-    this.scene.add(grp); return { grp: grp, el: el, anims: anims };
+    const a = { grp: grp, el: el, anims: [], col: new THREE.Color(col), emb: EMBLEMA(m.owner), ph: hash(m.id * 7.3) * 6 };
+    if (ship) {
+      const b = getStatic(clave).bb, k = 2.4 / Math.max(b[3] - b[0], b[5] - b[2], 1); ship.scale.setScalar(k); ship.position.y = -0.06; grp.add(ship);
+      a.barco = true; a.alto = Math.max(0.6, b[4] * k * 0.55); this.scene.add(grp); return a;
+    }
+    let main = mine ? 'hastati' : 'milicia', best = 0; for (const k in m.units) if (m.units[k] > best && D.UNITS[k].cls !== 'ele') { best = m.units[k]; main = k; }
+    const lead = m.units.elefantes ? 'elefantes' : mine ? 'equites' : (JINETE[CULTURA[m.owner]] || 'jinetes');
+    this.figura(grp, a.anims, getUnit(lead) ? lead : main, col, 0, 0.25, lead === 'elefantes' ? 0.42 : 0.95, 'walk');
+    const h = G.men(m.units); a.n = h < 150 ? 3 : h < 500 ? 6 : h < 1500 ? 9 : h < 4000 ? 12 : 15;   // la tropa que va detrás, según los hombres
+    this.scene.add(grp); return a;
   }
+  /* C17 · capas instanciadas de todos los ejércitos: se crean una vez y se rellenan en cada fotograma */
+  estandartes() {
+    if (this.ejCapas) return this.ejCapas;
+    const capa = (geo, mat, max, color) => { const im = new THREE.InstancedMesh(geo, mat, max); im.count = 0; im.frustumCulled = false; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); if (color) im.setColorAt(0, new THREE.Color('#fff')); this.scene.add(im); return im; };
+    const vc = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true }), vc2 = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide }), oro = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true, emissive: '#3a2600' });
+    const L = {
+      base: capa(new THREE.CircleGeometry(0.95, 18).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.5, depthWrite: false }), EJ_MAX, true),
+      cuerpo: capa(soldadoGeo(false), vc, SOLD_MAX), escudo: capa(soldadoGeo(true), vc, SOLD_MAX, true),
+      asta: capa(astaGeo(), vc, EJ_MAX), pano: capa(panoGeo(), vc2, EJ_MAX, true),
+      estela: capa(estelaGeo(), new THREE.MeshBasicMaterial({ color: '#f4fbff', transparent: true, opacity: 0.55, depthWrite: false, side: THREE.DoubleSide }), EJ_MAX),
+      emb: {}
+    };
+    for (const t of ['aguila', 'disco', 'sol', 'jabali', 'punta']) L.emb[t] = capa(emblemaGeo(t), oro, EJ_MAX);
+    return (this.ejCapas = L);
+  }
+  /* coloca un ejemplar: posición (x, y, z), giro en y, escala k y un leve balanceo en z */
+  ejPon(im, x, y, z, ry, k, rz, col) { _P.set(x, y, z); _E.set(0, ry, rz || 0); _Q.setFromEuler(_E); _S.set(k, k, k); _M.compose(_P, _Q, _S); const i = im.count++; im.setMatrixAt(i, _M); if (col) im.setColorAt(i, col); }
 
   update(state, sel) {
     if (!this.terrOn && mapaTexturas(this.terr)) this.terrOn = true;           // las texturas llegan después de crear el mapa
@@ -1120,7 +1198,8 @@ export class MapView3D {
       o.g.position.set(x, Math.max(0.04, this.hAt(x, z)) + 0.05, z); o.g.rotation.y = Math.atan2(o.pb[0] - o.pa[0], o.pb[1] - o.pa[1]) + (u < 1 ? 0 : Math.PI);
     }
     for (const [k, o] of this.rutaObj) if (!vistas.has(k)) { this.scene.remove(o.linea, o.g); o.linea.geometry.dispose(); o.g.traverse(m => { if (m.geometry) m.geometry.dispose(); }); this.rutaObj.delete(k); }
-    const seen = new Set();
+    const seen = new Set(), L = this.estandartes(), kEj = 1 + 3.4 * ss(28, 220, this.c.dist);   // C17: el ejército crece al alejar la cámara
+    for (const im of [L.base, L.cuerpo, L.escudo, L.asta, L.pano, L.estela, ...Object.values(L.emb)]) im.count = 0;
     for (const m of state.marches) {
       if (m.colonos ? !(state.cities[m.from] && this.sitioEnRegion(m.to, state)) : (!state.cities[m.to] || (m.from && !state.cities[m.from]))) continue;
       seen.add(m.id); let a = this.armies.get(m.id); if (!a) { a = m.colonos ? this.colonosModel(m) : this.armyModel(m); this.armies.set(m.id, a); }
@@ -1130,11 +1209,25 @@ export class MapView3D {
         f = Math.max(0, Math.min(1, (state.t - m.t0) / Math.max(1e-6, m.sitio.tLlega - m.t0)));
       }
       const x = (p0[0] + (p1[0] - p0[0]) * f) * K, z = (p0[1] + (p1[1] - p0[1]) * f) * K, y = Math.max(0.04, this.hAt(x, z));
-      a.grp.position.set(x, y, z); a.grp.rotation.y = Math.atan2(p1[0] - p0[0], p1[1] - p0[1]);
+      const ry = Math.atan2(p1[0] - p0[0], p1[1] - p0[1]), ka = m.colonos ? 1 : kEj;
+      a.grp.position.set(x, y, z); a.grp.rotation.y = ry; a.grp.scale.setScalar(ka);
       for (const an of a.anims) { an.a.array[0] = frameOf(an.clip, this.t + an.ph); an.a.needsUpdate = true; }
+      if (!m.colonos && L.asta.count < EJ_MAX) {   // C17: estandarte, disco, tropa y estela en las capas compartidas
+        const s = Math.sin(ry), c = Math.cos(ry), sx = a.barco ? 0 : 0.55, sz = a.barco ? -0.5 : 0.05, ax = x + (sx * c + sz * s) * ka, az = z + (-sx * s + sz * c) * ka, ay = y + (a.barco ? a.alto : 0) * ka, ba = 0.05 * Math.sin(this.t * 2.1 + a.ph);
+        this.ejPon(L.asta, ax, ay, az, 0, ka); this.ejPon(L.pano, ax, ay, az, 0.18 * Math.sin(this.t * 1.7 + a.ph), ka, ba, a.col); this.ejPon(L.emb[a.emb], ax, ay + ASTA_H * ka, az, 0, ka * 1.05);
+        if (a.barco) { this.ejPon(L.estela, x - s * 0.9 * ka, Math.max(0.05, y + 0.07), z - c * 0.9 * ka, ry, ka * (1 + 0.06 * Math.sin(this.t * 3 + a.ph))); }
+        else {
+          this.ejPon(L.base, x, y + 0.04, z, 0, ka, 0, a.col);
+          for (let i = 0; i < a.n && L.cuerpo.count < SOLD_MAX; i++) {   // filas de tres detrás del general
+            const fx = ((i % 3) - 1) * 0.38, fz = -0.8 - Math.floor(i / 3) * 0.38, px = x + (fx * c + fz * s) * ka, pz = z + (-fx * s + fz * c) * ka, py = Math.max(0.04, this.hAt(px, pz)) + Math.abs(Math.sin(this.t * 6 + i * 1.3 + a.ph)) * 0.04 * ka;
+            this.ejPon(L.cuerpo, px, py, pz, ry, ka * 0.85); this.ejPon(L.escudo, px, py, pz, ry, ka * 0.85, 0, a.col);
+          }
+        }
+      }
       const txt = m.colonos ? '🏛️ Colonos a ' + G.lugar(m.to).n : (m.owner === 'roma' ? '' : (m.label || D.FACTIONS[m.owner].n) + ' · ') + G.men(m.units); if (a.txt !== txt) { a.txt = txt; a.el.textContent = txt; }
-      place(a.el, x, y + 2.7, z);
+      place(a.el, x, y + (m.colonos ? 2.7 : ((a.barco ? a.alto : 0) + ASTA_H + 0.85) * ka), z);
     }
+    for (const im of [L.base, L.cuerpo, L.escudo, L.asta, L.pano, L.estela, ...Object.values(L.emb)]) { im.visible = im.count > 0; if (im.count) { im.instanceMatrix.needsUpdate = true; if (im.instanceColor) im.instanceColor.needsUpdate = true; } }
     for (const [id, a] of this.armies) if (!seen.has(id)) { this.scene.remove(a.grp); a.grp.traverse(o => { if (o.geometry && !o.userData.real) o.geometry.dispose(); }); a.el.remove(); this.armies.delete(id); }
     const c = this.c, cp = Math.cos(c.pitch);
     this.marco.value = Math.max(0, Math.min(1, (c.dist - 40) / 90));
