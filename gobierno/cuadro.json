@@ -1740,6 +1740,16 @@
       "archivo": "gobierno/capturas-tarea/GM44c-3-ancho-nuevo.jpg",
       "pie": "Soldado nuevo, móvil en horizontal",
       "ancha": true
+    },
+    {
+      "tarea": "CM1",
+      "archivo": "gobierno/capturas-tarea/CM1-1-juego.jpg",
+      "pie": "Cuadro nuevo: portada con los tres órganos"
+    },
+    {
+      "tarea": "CM1",
+      "archivo": "gobierno/capturas-tarea/CM1-4-decidir.jpg",
+      "pie": "Cuadro nuevo: tres preguntas con «Decide tú»"
     }
   ],
   "informes": [
@@ -1979,42 +1989,6 @@
   "repo": "https://github.com/alvariitosw/bot-travian",
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
-    {
-      "tarea": "MR2a",
-      "titulo": "Versión 1.0 · MR2a Menús romanos: materiales, Imperio y Gobierno (Fable dirige, Opus construye)",
-      "nota": "Terminada el 17/11: subida y publicada",
-      "url": "https://claude.ai/code/session_01QiKC38MrhvKcf8A9xyWrQs"
-    },
-    {
-      "tarea": "GC7",
-      "titulo": "Versión 1.0 · GC7 a GC9 y GC6 Fallos de la batalla y quitar la clásica",
-      "nota": "batalla",
-      "url": "https://claude.ai/code/session_01QiKC3AXEa5xZ9aJP5skXgw"
-    },
-    {
-      "tarea": "DEC",
-      "titulo": "Decisiones delegadas en Fable 5.2 (Nilo y mapamundi)",
-      "nota": "solo decide y avisa; no construye",
-      "url": "https://claude.ai/code/session_01QiKC3AR2FzqYL23coZ3gBE"
-    },
-    {
-      "tarea": "EV7",
-      "titulo": "Política · EV7 Gobierno por turnos: el Senado manda y la ciudad obedece (maqueta, Opus)",
-      "nota": "solo gobierno/maquetas/; excepción a la 1.0; tope 2 M",
-      "url": "https://claude.ai/code/session_01QiKC39GcxgHwQm5q2GKUGc"
-    },
-    {
-      "tarea": "JU1",
-      "titulo": "Versión 1.0 · JU1 Dos jueces en rojo: «Construir aquí» y guerra atascada (Opus)",
-      "nota": "diagnóstico: ¿fallo real o del juez?; gobierno/*.mjs",
-      "url": "https://claude.ai/code/session_01QiKC37gQPtkdN7X53tu66G"
-    },
-    {
-      "tarea": "C18",
-      "titulo": "Mapa · C18 Cintas y minimapa (Opus)",
-      "nota": "js/gfx/map3d.js, js/ui.js y css/style.css; última de la cadena del mapa",
-      "url": "https://claude.ai/code/session_01QiKC39DxUDQhkBFFMy1Kdm"
-    },
     {
       "tarea": "GM43h",
       "titulo": "Versión 1.0 · GM43h Testudo a pie: lanzar el pilum y la lucha (Fable dirige, Opus construye)",
