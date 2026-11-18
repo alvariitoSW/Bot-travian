@@ -2026,12 +2026,6 @@
       "url": "https://claude.ai/code/session_01QiKC39hKX8V8mRMAsoPzPT"
     },
     {
-      "tarea": "TP1",
-      "titulo": "Corazón · TP1 y TP1b La escena a pie (Opus)",
-      "nota": "TP1b y TP7a hechas y subidas; se archiva en la próxima vuelta",
-      "url": "https://claude.ai/code/session_01QiKC36rueL1kwqzeVBKZqd"
-    },
-    {
       "tarea": "CE2",
       "titulo": "Cerebro · CE2 Recursos nuevos (dirige y construye Opus)",
       "nota": "js/game.js, data.js, ui.js, bot y guardado migrado; 2,0 M declarado, unos 3,6 M esperables",
