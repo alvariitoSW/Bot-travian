@@ -255,7 +255,7 @@ async function creaHombres() {
 const S = {};
 function reinicia() {
   semilla = 43;
-  Object.assign(S, { T: 0, zF: 0, k: 0, escudos: false, andando: false, fase: 'avance', proxima: 4, aviso: false, impacto: -1, paso: 0, tCinta: 0, tFin: -1, choque: false, llegaron: 0, sacude: 0, vel: 0, golpes: 0, roto: false, encoge: -9, destello: 0, corre: false, corriendo: false, aliento: 1, tGrito: -9, armas: 'pilum', nPaso: 0, kSon: -1 });
+  Object.assign(S, { T: 0, zF: 0, k: 0, escudos: false, andando: false, fase: 'avance', proxima: 4, aviso: false, impacto: -1, paso: 0, tCinta: 0, tFin: -1, choque: false, llegaron: 0, sacude: 0, vel: 0, golpes: 0, roto: false, encoge: -9, destello: 0, corre: false, corriendo: false, aliento: 1, tGrito: -9, armas: 'pilum', nPaso: 0, kSon: -1, agotado: false });
   S.romanos = []; for (let i = 0; i < M; i++) { const r = Math.floor(i / FILES); S.romanos.push({ i, f: i % FILES, r, vivo: true, muere: 0, lanza: -9, tiro: false, x: 0, z: 0, jx: (azar() - 0.5) * 0.14, jz: (azar() - 0.5) * 0.22, fase: azar() * 2, k: 0, ret: Math.min(0.4, r * 0.07 + azar() * 0.12), retEnc: i === YO ? 0 : 0.04 + azar() * 0.16, ampEnc: i === YO ? 1 : 0.55 + azar() * 0.45, golpe: -9, enc: 0, mira: 0, A: 0, B: 0, mx: 0, oculto: false, inst: m4(), mEsc: m4(), qEsc: new THREE.Quaternion() }); }
   S.tiradores = []; for (let i = 0; i < 10; i++) S.tiradores.push({ x: (i - 4.5) * 1.7 + (azar() - 0.5) * 0.5, z: Z_TIRADORES + (azar() - 0.5) * 1.2, vivo: true, muere: 0, huye: false, yaw: 0, fase: azar() * 4 });
   S.galos = []; for (let i = 0; i < 16; i++) S.galos.push({ x: ((i % 8) - 3.5) * 1.25 + (azar() - 0.5) * 0.3, z: Z_GALOS - Math.floor(i / 8) * 1.6 + (azar() - 0.5) * 0.4, vivo: true, muere: 0, fila: Math.floor(i / 8), fase: azar() * 3 });
@@ -375,7 +375,7 @@ function ancla(h, slot, p, out) { return out.set(p[0], p[1], p[2]).applyMatrix4(
 /* ---------- descargas enemigas: venablos de los peltastas ---------- */
 function descarga() {
   const tir = S.tiradores.filter(t => t.vivo && !t.huye); if (!tir.length) return;
-  const v = S.corriendo ? V_CORRE : S.andando ? (S.escudos ? V_TESTUDO : V_PASO) : 0, zPrev = Math.max(Z_PILA, S.zF - v * VUELO), vivosR = S.romanos.filter(h => h.vivo);
+  const v = S.corriendo ? V_CORRE : S.andando || S.corre ? (S.escudos ? V_TESTUDO : V_PASO) : 0, zPrev = Math.max(Z_PILA, S.zF - v * VUELO), vivosR = S.romanos.filter(h => h.vivo);
   const fondo = FILAS * lerp(ABIERTO.dz, CERRADO.dz, S.k), R = S.romanos;
   let n = 0;
   for (const f of FL) {
@@ -470,9 +470,12 @@ function paso(dt) {
   S.k += Math.sign((S.escudos ? 1 : 0) - S.k) * Math.min(Math.abs((S.escudos ? 1 : 0) - S.k), dt * 1.6);
   /* marcha */
   let v = 0;
-  S.corriendo = S.fase === 'avance' && S.corre && S.aliento > 0.02 && !S.escudos;
-  if (S.corriendo) { S.aliento = Math.max(0, S.aliento - dt / 3); v = V_CORRE * (1 - S.k); } else S.aliento = Math.min(1, S.aliento + dt * 0.12);
-  if (S.fase === 'avance' && S.andando && !S.corriendo) v = lerp(V_PASO, V_TESTUDO, S.k);
+  /* correr gasta el aliento en 5 s; al acabarse siguen al paso (no se paran) y no vuelven a correr hasta recobrar la mitad.
+     Sin ese margen, con el botón pulsado, corrían y se paraban a cada instante: parecía que se quedaba pillado */
+  if (S.aliento <= 0.02) S.agotado = true; else if (S.aliento >= 0.5) S.agotado = false;
+  S.corriendo = S.fase === 'avance' && S.corre && !S.agotado && !S.escudos;
+  if (S.corriendo) { S.aliento = Math.max(0, S.aliento - dt / 5); v = V_CORRE * (1 - S.k); } else S.aliento = Math.min(1, S.aliento + dt * 0.2);
+  if (S.fase === 'avance' && (S.andando || S.corre) && !S.corriendo) v = lerp(V_PASO, V_TESTUDO, S.k);
   if (S.fase === 'carga' && !S.choque) v = V_CARGA;
   S.vel = v; S.zF -= v * dt; S.paso += v * dt;
   const np = Math.floor(S.paso / (v > 3 ? 1.9 : lerp(1.5, 1.05, S.k))); if (np !== S.nPaso) { S.nPaso = np; Son.paso(v > 3 ? 1.3 : 0.8, S.k); }
@@ -621,7 +624,7 @@ function hud() {
   const n = vivos(), f = n / M, b = $('barra').firstElementChild;
   $('cuenta').textContent = n + '/' + M; b.style.width = (f * 100).toFixed(0) + '%'; b.style.background = f > 0.7 ? 'var(--verde)' : f > 0.45 ? '#e6ac3c' : 'var(--rojo)';
   const av = $('avanzar'), es = $('escudos'), ac = $('accion'), co = $('correr');
-  co.hidden = S.fase !== 'avance'; co.classList.toggle('activa', S.corriendo); $('aliento').style.width = (S.aliento * 100).toFixed(0) + '%';
+  co.hidden = S.fase !== 'avance'; co.classList.toggle('activa', S.corriendo); co.classList.toggle('cansado', S.agotado); $('aliento').style.width = (S.aliento * 100).toFixed(0) + '%'; $('correr-t').textContent = S.agotado ? 'Sin aliento' : 'Correr';
   const me = $('miescudo'); me.setAttribute('class', S.roto ? 'roto' : 'e' + (S.golpes <= 0 ? 0 : S.golpes <= 2 ? 1 : 2)); me.title = S.roto ? 'Tu escudo está roto' : 'Tu escudo';
   av.hidden = S.fase !== 'avance'; av.classList.toggle('activa', S.andando);
   es.hidden = !(S.fase === 'avance' || S.fase === 'pila'); es.classList.toggle('activa', S.escudos); es.classList.toggle('pide', S.aviso && !S.escudos);
@@ -679,7 +682,7 @@ function bucle(t) {
 const enPantalla = v => { v.project(camara); return { x: +((v.x + 1) / 2).toFixed(3), y: +((1 - v.y) / 2).toFixed(3), delante: v.z < 1 }; };
 window.__tp = {
   lista: false, S, CAM, camara, Son, salta: s => salta(s), parar: v => { parado = v; },
-  estado: () => ({ golpes: S.golpes, roto: S.roto, clavados: FL.filter(f => f.est === 2).length, enHombre: FL.filter(f => f.est === 2 && f.h.k < 0.7).length, andando: S.andando, fase: S.fase, zF: S.zF, k: S.k, vivos: vivos(), flechas: FL.filter(f => f.est).length, mira: S.romanos[YO].mira, enc: S.romanos[YO].enc }),
+  estado: () => ({ golpes: S.golpes, roto: S.roto, clavados: FL.filter(f => f.est === 2).length, enHombre: FL.filter(f => f.est === 2 && f.h.k < 0.7).length, andando: S.andando, corriendo: S.corriendo, vel: S.vel, fase: S.fase, zF: S.zF, k: S.k, vivos: vivos(), flechas: FL.filter(f => f.est).length, mira: S.romanos[YO].mira, enc: S.romanos[YO].enc }),
   encuadre: () => { const R = S.romanos, yF = H(CAM.x, S.zF); return { yo: enPantalla(ancla(R[YO], HU.cara, [0, 0, 0.25], new THREE.Vector3())), comp: enPantalla(ancla(R[CMP], HU.cara, [0, 0, 0.25], new THREE.Vector3())), rendija: enPantalla(new THREE.Vector3((R[YO].x + R[CMP].x) / 2, yF + 1.8, S.zF - MURO_Z)), enemigo: enPantalla(new THREE.Vector3(0, H(0, Z_TIRADORES) + 1, Z_TIRADORES)), muro: enPantalla(new THREE.Vector3(CAM.x, yF + MURO_Y + 0.72, S.zF - MURO_Z)), techo: enPantalla(new THREE.Vector3(CAM.x, yF + TECHO_Y + 0.03, S.zF + CERRADO.dz - TECHO_Z - 0.72)) }; },
   /* para comprobar las cuentas: dónde están de verdad cabeza y manos de un hombre */
   medidas: i => { const h = S.romanos[i], y0 = H(h.x, h.z), r = p => [+(p.x - h.x).toFixed(3), +(p.y - y0).toFixed(3), +(p.z - h.z).toFixed(3)]; return { cabeza: r(ancla(h, HU.cara, [0, 0, 0.25], new THREE.Vector3())), manoI: r(ancla(h, HU.escudo, [0, 0, 0], new THREE.Vector3())), escudo: r(new THREE.Vector3().setFromMatrixPosition(h.mEsc)), manoD: r(ancla(h, HU.espada, [0, 0, 0], new THREE.Vector3())) }; },

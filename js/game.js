@@ -1811,6 +1811,34 @@
     for (let n = 0; B.fase !== 'fin' && n < 20000; n++) { if (B.t >= prox) { G.botGuerra(B); prox = B.t + (cada || 1.5); } R.paso(B, 0.1); }
     return B;
   };
+  /* ES1 «Escaramuzas»: los dos ejércitos de una batalla suelta, sin campaña ni guardado. No toca el estado de la partida.
+     Roma: una legión manipular en las proporciones de Polibio 6.21 (hastati y príncipes iguales, triarios la mitad, vélites
+     delante, un puñado de équites; Polibio 6.21, sin cotejar). El enemigo: la mezcla de tropas de las guarniciones de esa facción en D.CITIES (la misma
+     tabla de la campaña, con su dictamen). Tamaños y dificultad (el enemigo trae más o menos hombres): licencia de juego.
+     El «mediano» es la maqueta de la guerra (360 hastati frente a 2 160 infantes enemigos), que es lo que el motor da por parejo. */
+  G.ESCARAMUZA = {
+    tamanos: { pequeno: { n: 'Pequeño', k: 0.5 }, mediano: { n: 'Mediano', k: 1 }, grande: { n: 'Grande', k: 2 } },
+    facciones: ['cartago', 'epiro', 'macedonia', 'galos', 'iberos'],
+    campos: { llano: 'Llano', colina: 'Colina', bosque: 'Bosque', mixto: 'Mixto' },
+    dificultad: { facil: { n: 'Fácil', k: 0.8 }, normal: { n: 'Normal', k: 1 }, dificil: { n: 'Difícil', k: 1.2 } },
+    /* cuánto más o menos trae el enemigo en «Normal» para que la pelea quede pareja con el bot de pruebas (G.botGuerra, 16 semillas).
+       Medido el 17/11 con el motor de GM36; si cambian las reglas de guerra, se vuelve a medir. Licencia de juego. */
+    ajuste: { cartago: { pequeno: 0.8, mediano: 0.8, grande: 0.88 }, epiro: { pequeno: 1.23, mediano: 1.43, grande: 1.77 },
+      macedonia: { pequeno: 0.8, mediano: 1.03, grande: 1.06 }, galos: { pequeno: 1.76, mediano: 1.77, grande: 2.2 },
+      iberos: { pequeno: 0.79, mediano: 0.8, grande: 0.8 } }
+  };
+  G.escaramuza = function (op) {
+    op = op || {}; const E = G.ESCARAMUZA, km = (E.tamanos[op.mio] || E.tamanos.mediano).k;
+    const fac = E.facciones.includes(op.fac) ? op.fac : 'cartago', te = E.tamanos[op.ene] ? op.ene : 'mediano';
+    const aj = op.ajuste != null ? op.ajuste : ((E.ajuste[fac] || {})[te] || 1), ke = E.tamanos[te].k * aj * (E.dificultad[op.dif] || E.dificultad.normal).k;
+    const roma = { hastati: Math.round(360 * km), principes: Math.round(360 * km), triarii: Math.round(180 * km), velites: Math.round(240 * km), equites: Math.round(60 * km) };
+    const plan = {}; for (const id in D.CITIES) if (D.CITIES[id].f === fac) for (const t in D.CITIES[id].g) plan[t] = (plan[t] || 0) + D.CITIES[id].g[t];
+    let pie = 0; for (const t in plan) if (D.UNITS[t] && D.UNITS[t].cls !== 'cav' && D.UNITS[t].cls !== 'ele') pie += plan[t];
+    const f = pie > 0 ? 2160 * ke / pie : 0, ene = {};
+    for (const t in plan) { const q = Math.round(plan[t] * f); if (q > 0) ene[t] = q; else if (plan[t] > 0 && D.UNITS[t] && D.UNITS[t].cls === 'ele') ene[t] = 1; }
+    const semilla = op.semilla != null ? op.semilla >>> 0 : (Math.random() * 1e9) >>> 0;
+    return { semilla, campo: E.campos[op.campo] ? op.campo : 'llano', fac, ejercitos: [roma, ene] };
+  };
   // la partida a medias de la batalla (clave aparte en localStorage): sobrevive a recargar la página. clave = la batalla pendiente a la que pertenece
   const GUERRA_KEY = 'aqvila-guerra-v1';
   const claveGuerra = info => [info.city, info.cfg.seed, info.kind].join('|');

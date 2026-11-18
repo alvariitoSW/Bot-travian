@@ -270,16 +270,17 @@
     messana: { n: 'Messana', lon: 15.55, lat: 38.3, f: 'mamertinos', esp: 'vino', tipo: 'naval', w: 2, wl: 1, g: { milicia: 60, hoplitas: 60, peltastas: 30 }, h: 'Ocupada por los mamertinos, mercenarios campanos de Agatocles (Polibio 1.7-8). Su petición de auxilio desató la Primera Guerra Púnica (264 a.C.).' },
     syracusae: { n: 'Syracusae', lon: 15.3, lat: 37.0, f: 'siracusa', esp: 'marmol', tipo: 'emporio', w: 4, wl: 4, g: { hoplitas: 180, peltastas: 80, jinetes: 40 }, h: 'La mayor ciudad griega de Occidente. Defendida por las máquinas de Arquímedes, cayó ante Marcelo en 212 a.C.' },
     agrigentum: { n: 'Agrigentum', lon: 13.55, lat: 37.25, f: 'akragas', esp: 'vino', tipo: 'agraria', w: 3, wl: 2, g: { hoplitas: 120, peltastas: 60, jinetes: 30 }, post: { cartago: { libios: 140, iberos: 60, honderos: 40, numidas: 30 } }, h: 'Ciudad griega e independiente en 280 a.C. Cartago la hizo su base en 262 a.C. y Roma la tomó ese mismo año (Polibio 1.17-19).' },
-    panormus: { n: 'Panormus', lon: 13.35, lat: 38.2, f: 'cartago', esp: 'sal', tipo: 'emporio', w: 3, wl: 2, g: { libios: 160, honderos: 50, numidas: 40, elefantes: 5 }, h: 'Puerto púnico. En 250 a.C. Metelo capturó aquí los elefantes de Asdrúbal.' },
-    lilybaeum: { n: 'Lilybaeum', lon: 12.3, lat: 37.75, f: 'cartago', esp: 'sal', tipo: 'militar', w: 3, wl: 4, g: { libios: 200, iberos: 80, honderos: 50, numidas: 40 }, h: 'Fortaleza cartaginesa que resistió nueve años de asedio romano (250–241 a.C.).' },
-    carales: { n: 'Carales', lon: 9.1, lat: 39.25, f: 'cartago', esp: 'sal', w: 2, wl: 1, g: { libios: 100, honderos: 40, milicia: 40 }, h: 'Puerto púnico de Cerdeña. Roma se anexionó la isla en 238 a.C.' },
+    // V10a (licencia de juego): las guarniciones cartaginesas (g) van ×5. Con las de antes el bot tomaba Cartago 10 de 10 veces hacia el 250 a.C., antes de Aníbal; ahora 7 de 10, entre 199 y 147 a.C. Se suben todas a la vez para que la escaramuza contra Cartago (G.escaramuza, misma mezcla) no cambie.
+    panormus: { n: 'Panormus', lon: 13.35, lat: 38.2, f: 'cartago', esp: 'sal', tipo: 'emporio', w: 3, wl: 2, g: { libios: 800, honderos: 250, numidas: 200, elefantes: 25 }, h: 'Puerto púnico. En 250 a.C. Metelo capturó aquí los elefantes de Asdrúbal.' },
+    lilybaeum: { n: 'Lilybaeum', lon: 12.3, lat: 37.75, f: 'cartago', esp: 'sal', tipo: 'militar', w: 3, wl: 4, g: { libios: 1000, iberos: 400, honderos: 250, numidas: 200 }, h: 'Fortaleza cartaginesa que resistió nueve años de asedio romano (250–241 a.C.).' },
+    carales: { n: 'Carales', lon: 9.1, lat: 39.25, f: 'cartago', esp: 'sal', w: 2, wl: 1, g: { libios: 500, honderos: 200, milicia: 200 }, h: 'Puerto púnico de Cerdeña. Roma se anexionó la isla en 238 a.C.' },
     emporion: { n: 'Emporion', lon: 3.1, lat: 42.15, f: 'griegos', esp: 'vino', tipo: 'emporio', w: 2, wl: 1, g: { hoplitas: 70, peltastas: 30, milicia: 30 }, h: 'Colonia focense. Aquí desembarcó Cneo Escipión en 218 a.C. para iniciar la conquista de Hispania.' },
     saguntum: { n: 'Saguntum', lon: -0.3, lat: 39.7, f: 'iberos', esp: 'hierro', tipo: 'militar', w: 2, wl: 2, g: { iberos: 180, honderos: 40, jinetes: 20 }, h: 'Su asedio por Aníbal en 219 a.C. fue el casus belli de la Segunda Guerra Púnica.' },
     carthagonova: { n: 'Carthago Nova', antes: { n: 'Poblado íbero', hasta: 228 }, lon: -1.0, lat: 37.6, f: 'iberos', esp: 'plata', w: 1, wl: 1, g: { iberos: 60, honderos: 20, jinetes: 8 }, en228: { w: 4, wl: 3, g: { libios: 220, iberos: 160, honderos: 60, numidas: 60, elefantes: 8 } }, h: 'En 280 a.C. era un poblado íbero junto a la bahía (probable; su tamaño es licencia de juego). Hacia 228 a.C. Asdrúbal fundó aquí Carthago Nova, capital bárcida de Hispania y sus minas de plata. Escipión la tomó por sorpresa en 209 a.C.' },
     ambracia: { n: 'Ambracia', lon: 20.9, lat: 39.2, f: 'epiro', esp: 'pieles', w: 2, wl: 2, g: { falange: 140, peltastas: 60, tesalios: 40 }, h: 'Capital del rey Pirro de Epiro. Saqueada por Roma en 189 a.C.' },
     pella: { n: 'Pella', lon: 22.5, lat: 40.8, f: 'macedonia', esp: 'marmol', tipo: 'militar', w: 4, wl: 3, g: { falange: 320, peltastas: 100, tesalios: 100 }, h: 'Capital de Macedonia, cuna de Alejandro. El reino cayó tras Pidna (168 a.C.).' },
     corinthus: { n: 'Corinthus', lon: 22.9, lat: 37.9, f: 'macedonia', esp: 'marmol', tipo: 'emporio', w: 4, wl: 3, g: { falange: 200, peltastas: 100, tesalios: 50 }, post: { aquea: { hoplitas: 300, peltastas: 100, jinetes: 50 } }, h: 'Con guarnición macedonia (probable ya en 280 a.C.). Arato la liberó hacia 243 a.C. y entró en la Liga Aquea (Polibio 2.43). Arrasada por Lucio Mumio en 146 a.C., el mismo año que Cartago.' },
-    carthago: { n: 'Carthago', lon: 10.3, lat: 36.85, f: 'cartago', esp: 'purpura', tipo: 'emporio', w: 5, wl: 6, g: { sagrada: 300, libios: 400, iberos: 150, honderos: 120, numidas: 120, elefantes: 20 }, gen: { n: 'Asdrúbal el Beotarca', mando: 3, disc: 4, from: 149, until: 0 }, h: 'La gran rival de Roma. Escipión Emiliano la destruyó en 146 a.C.' },
+    carthago: { n: 'Carthago', lon: 10.3, lat: 36.85, f: 'cartago', esp: 'purpura', tipo: 'emporio', w: 5, wl: 6, g: { sagrada: 1500, libios: 2000, iberos: 750, honderos: 600, numidas: 600, elefantes: 100 }, gen: { n: 'Asdrúbal el Beotarca', mando: 3, disc: 4, from: 149, until: 0 }, h: 'La gran rival de Roma. Escipión Emiliano la destruyó en 146 a.C.' },
     // --- J4a: ciudades nuevas por región (fuentes y dictamen en js/registro.js). Etruria (H11c: Livio 28.45), Campania, Galia, Hispania y África ---
     perusia: { n: 'Perusia', lon: 12.39, lat: 43.11, f: 'etruscos', esp: 'maderanaval', tipo: 'militar', w: 2, wl: 2, g: { hoplitas: 50, milicia: 50, peltastas: 20 }, h: 'Ciudad etrusca en lo alto de un monte. Livio cuenta que en 205 a.C. ofreció abeto para las naves de Escipión (28.45).' },
     clusium: { n: 'Clusium', lon: 11.95, lat: 43.02, f: 'etruscos', esp: 'maderanaval', w: 2, wl: 1, g: { hoplitas: 40, milicia: 50, peltastas: 20 }, h: 'Ciudad etrusca de la que se contaba que Porsenna fue rey. En 205 a.C. dio abeto para las naves de Escipión (Livio 28.45).' },
@@ -287,8 +288,8 @@
     neapolis: { n: 'Neapolis', lon: 14.25, lat: 40.85, f: 'griegos', esp: 'sal', tipo: 'naval', w: 3, wl: 2, g: { hoplitas: 60, milicia: 60, peltastas: 20 }, h: 'Colonia griega de la bahía de Campania, aliada de Roma desde 326 a.C. con un pacto igual para ambas (Livio 8.26). Aportaba naves a Roma.' },
     massalia: { n: 'Massalia', lon: 5.37, lat: 43.3, f: 'griegos', esp: 'vino', tipo: 'emporio', w: 3, wl: 3, g: { hoplitas: 100, peltastas: 40, milicia: 60 }, h: 'Colonia focense de la costa gala, fiel aliada de Roma (Polibio 3.95). Dio informes a Roma sobre el avance de Aníbal.' },
     tarraco: { n: 'Tarraco', lon: 1.25, lat: 41.12, f: 'iberos', esp: 'vino', w: 1, wl: 1, g: { iberos: 60, honderos: 20, jinetes: 10 }, h: 'Puerto de la costa ibera. En 218 a.C. Cneo Escipión lo hizo base de Roma en Hispania (Livio 21.61).' },
-    gades: { n: 'Gades', lon: -6.29, lat: 36.53, f: 'cartago', esp: 'sal', tipo: 'emporio', w: 3, wl: 2, g: { libios: 100, iberos: 80, honderos: 40, numidas: 20 }, h: 'Colonia fenicia en el extremo occidental. Fue base de Cartago hasta que se rindió a Roma en 206 a.C. (Livio 28.37).' },
-    hadrumetum: { n: 'Hadrumetum', lon: 10.64, lat: 35.83, f: 'cartago', esp: 'sal', tipo: 'naval', w: 2, wl: 2, g: { libios: 100, honderos: 30, numidas: 40 }, h: 'Segundo puerto de Cartago en África. Aníbal desembarcó aquí al volver de Italia en 203 a.C. (Livio 30.25).' }
+    gades: { n: 'Gades', lon: -6.29, lat: 36.53, f: 'cartago', esp: 'sal', tipo: 'emporio', w: 3, wl: 2, g: { libios: 500, iberos: 400, honderos: 200, numidas: 100 }, h: 'Colonia fenicia en el extremo occidental. Fue base de Cartago hasta que se rindió a Roma en 206 a.C. (Livio 28.37).' },
+    hadrumetum: { n: 'Hadrumetum', lon: 10.64, lat: 35.83, f: 'cartago', esp: 'sal', tipo: 'naval', w: 2, wl: 2, g: { libios: 500, honderos: 150, numidas: 200 }, h: 'Segundo puerto de Cartago en África. Aníbal desembarcó aquí al volver de Italia en 203 a.C. (Livio 30.25).' }
   };
 
   /* Nombre según la fecha. `n` es el NOMBRE ACTUAL de la ciudad: en las ciudades con `antes` es un getter que mira D.anio
@@ -413,6 +414,139 @@
     giza: { n: 'Pirámides de Giza', lon: 31.13, lat: 29.98 },
     faro: { n: 'Faro de Alejandría', lon: 29.885, lat: 31.214 }
   };
+  /* C10 · Adornos de carta en el mar del mapa de campaña: nombres latinos de los mares, rosa de los vientos, barcos y criaturas.
+     Solo se ven; se dibujan por código en js/gfx/map3d.js (un lienzo, una sola malla). clase: mar, rosa, barco o bestia.
+     t: alto de letra o tamaño en unidades del mapa · rot: giro en grados (horario) · izq: barco o bestia mirando a la izquierda.
+     Ficha con fuente y dictamen en js/registro.js (tipo adorno) y gobierno/historia/C10-mares.md. */
+  D.ADORNOS = {
+    internum: { n: 'Mare Internum', clase: 'mar', lon: 15.0, lat: 34.6, t: 2.4 },
+    tyrrhenum: { n: 'Mare Tyrrhenum', clase: 'mar', lon: 11.9, lat: 40.1, t: 2.1 },
+    hadriaticum: { n: 'Mare Hadriaticum', clase: 'mar', lon: 14.9, lat: 43.35, t: 1.4, rot: 38 },
+    ionium: { n: 'Mare Ionium', clase: 'mar', lon: 18.7, lat: 37.7, t: 1.96 },
+    aegaeum: { n: 'Mare Aegaeum', clase: 'mar', lon: 25.0, lat: 39.35, t: 1.19 },
+    libycum: { n: 'Mare Libycum', clase: 'mar', lon: 24.6, lat: 34, t: 1.68 },
+    aegyptium: { n: 'Mare Aegyptium', clase: 'mar', lon: 30.6, lat: 33, t: 1.68 },
+    sardoum: { n: 'Mare Sardoum', clase: 'mar', lon: 6.5, lat: 39.6, t: 1.54 },
+    balearicum: { n: 'Mare Balearicum', clase: 'mar', lon: 2.4, lat: 37.9, t: 1.4 },
+    ligusticum: { n: 'Mare Ligusticum', clase: 'mar', lon: 8.2, lat: 43.55, t: 1.05 },
+    pontus: { n: 'Pontus Euxinus', clase: 'mar', lon: 33.0, lat: 43.4, t: 1.96 },
+    oceanus: { n: 'Oceanus', clase: 'mar', lon: -5.6, lat: 45.2, t: 2.52 },
+    rosa: { n: 'Rosa de los vientos', clase: 'rosa', lon: 20.5, lat: 33.85, t: 10 },
+    navis1: { n: 'Galera', clase: 'barco', lon: 13.0, lat: 39.15, t: 4.2 },
+    navis2: { n: 'Galera', clase: 'barco', lon: 10.3, lat: 38.55, t: 3.8, izq: 1 },
+    navis3: { n: 'Galera', clase: 'barco', lon: 0.8, lat: 37.35, t: 4.0 },
+    navis4: { n: 'Galera', clase: 'barco', lon: 27.6, lat: 34.2, t: 4.0, izq: 1 },
+    navis5: { n: 'Galera', clase: 'barco', lon: 19.4, lat: 36.6, t: 3.8 },
+    ketos1: { n: 'Ceto', clase: 'bestia', lon: 16.6, lat: 36.35, t: 6 },
+    ketos2: { n: 'Ceto', clase: 'bestia', lon: 33.0, lat: 33.8, t: 5.5, izq: 1 },
+    delphini: { n: 'Delfines', clase: 'bestia', lon: 10.7, lat: 41.2, t: 4.5 },
+    physeter: { n: 'Físeter', clase: 'bestia', lon: -7.0, lat: 46.4, t: 6, izq: 1 }
+  };
+  /* C11 · Pueblos y tribus del mapa de campaña, en las tierras sin ciudad del juego: solo se ven, no cambian el juego.
+     n: nombre en español · la: nombre latino (va en la cinta) · gente: familia (da el color y la forma del poblado en js/gfx/map3d.js)
+     · casa: redonda (cabañas de paja), castro (cabañas de piedra con muro), ibera (casas cuadradas con muro), mapalia (chozas alargadas
+     de los númidas). El sitio es aproximado y puesto a ojo (licencia de juego). Ficha con fuente y dictamen en js/registro.js (tipo
+     tribu) y gobierno/historia/C11-pueblos.md. */
+  D.TRIBUS = {
+    lusitani: { n: 'Lusitanos', la: 'Lusitani', gente: 'castreno', casa: 'castro', lon: -7.4, lat: 39.6 },
+    callaeci: { n: 'Galaicos', la: 'Callaeci', gente: 'castreno', casa: 'castro', lon: -7.8, lat: 42.6 },
+    cantabri: { n: 'Cántabros', la: 'Cantabri', gente: 'castreno', casa: 'castro', lon: -4.2, lat: 43.0 },
+    vaccaei: { n: 'Vacceos', la: 'Vaccaei', gente: 'celtibero', casa: 'castro', lon: -4.7, lat: 41.8 },
+    celtiberi: { n: 'Celtíberos', la: 'Celtiberi', gente: 'celtibero', casa: 'castro', lon: -2.4, lat: 41.4 },
+    carpetani: { n: 'Carpetanos', la: 'Carpetani', gente: 'celtibero', casa: 'castro', lon: -3.4, lat: 39.8 },
+    oretani: { n: 'Oretanos', la: 'Oretani', gente: 'ibero', casa: 'ibera', lon: -3.2, lat: 38.6 },
+    turdetani: { n: 'Turdetanos', la: 'Turdetani', gente: 'ibero', casa: 'ibera', lon: -5.4, lat: 37.6 },
+    contestani: { n: 'Contestanos', la: 'Contestani', gente: 'ibero', casa: 'ibera', lon: -0.8, lat: 38.6 },
+    ilergetes: { n: 'Ilergetes', la: 'Ilergetes', gente: 'ibero', casa: 'ibera', lon: 0.7, lat: 41.9 },
+    aquitani: { n: 'Aquitanos', la: 'Aquitani', gente: 'celta', casa: 'redonda', lon: -0.3, lat: 43.9 },
+    volcae: { n: 'Volcas', la: 'Volcae', gente: 'celta', casa: 'redonda', lon: 2.3, lat: 43.7 },
+    arverni: { n: 'Arvernos', la: 'Arverni', gente: 'celta', casa: 'redonda', lon: 3.0, lat: 45.6 },
+    aedui: { n: 'Eduos', la: 'Aedui', gente: 'celta', casa: 'redonda', lon: 4.1, lat: 46.9 },
+    belgae: { n: 'Belgas', la: 'Belgae', gente: 'celta', casa: 'redonda', lon: 3.0, lat: 49.8 },
+    allobroges: { n: 'Alóbroges', la: 'Allobroges', gente: 'celta', casa: 'redonda', lon: 5.4, lat: 45.4 },
+    taurini: { n: 'Taurinos', la: 'Taurini', gente: 'ligur', casa: 'redonda', lon: 7.6, lat: 45.0 },
+    ligures: { n: 'Ligures', la: 'Ligures', gente: 'ligur', casa: 'castro', lon: 8.5, lat: 44.35 },
+    cenomani: { n: 'Cenomanos', la: 'Cenomani', gente: 'celta', casa: 'redonda', lon: 10.9, lat: 45.35 },
+    boii: { n: 'Boyos', la: 'Boii', gente: 'celta', casa: 'redonda', lon: 10.6, lat: 44.4 },
+    veneti: { n: 'Vénetos', la: 'Veneti', gente: 'italico', casa: 'redonda', lon: 11.9, lat: 45.7 },
+    samnites: { n: 'Samnitas', la: 'Samnites', gente: 'italico', casa: 'castro', lon: 14.85, lat: 41.95 },
+    lucani: { n: 'Lucanos', la: 'Lucani', gente: 'italico', casa: 'castro', lon: 15.9, lat: 40.45 },
+    bruttii: { n: 'Brucios', la: 'Bruttii', gente: 'italico', casa: 'castro', lon: 16.4, lat: 39.3 },
+    dalmatae: { n: 'Dálmatas', la: 'Dalmatae', gente: 'ilirio', casa: 'castro', lon: 16.9, lat: 43.7 },
+    ardiaei: { n: 'Ilirios ardieos', la: 'Ardiaei', gente: 'ilirio', casa: 'redonda', lon: 19.6, lat: 42.75 },
+    dardani: { n: 'Dárdanos', la: 'Dardani', gente: 'ilirio', casa: 'redonda', lon: 21.3, lat: 42.5 },
+    scordisci: { n: 'Escordiscos', la: 'Scordisci', gente: 'celta', casa: 'redonda', lon: 21.0, lat: 44.3 },
+    odrysae: { n: 'Tracios odrisios', la: 'Odrysae', gente: 'tracio', casa: 'redonda', lon: 25.6, lat: 42.3 },
+    getae: { n: 'Getas', la: 'Getae', gente: 'tracio', casa: 'redonda', lon: 26.0, lat: 44.6 },
+    paphlagones: { n: 'Paflagonios', la: 'Paphlagones', gente: 'anatolio', casa: 'ibera', lon: 33.6, lat: 41.3 },
+    galatae: { n: 'Gálatas', la: 'Galatae', gente: 'celta', casa: 'redonda', lon: 32.9, lat: 39.7 },
+    pisidae: { n: 'Pisidios', la: 'Pisidae', gente: 'anatolio', casa: 'castro', lon: 30.7, lat: 37.3 },
+    mauri: { n: 'Mauros', la: 'Mauri', gente: 'libio', casa: 'mapalia', lon: -5.2, lat: 34.4 },
+    masaesyli: { n: 'Masesilos', la: 'Masaesyli', gente: 'libio', casa: 'mapalia', lon: 0.5, lat: 35.2 },
+    massyli: { n: 'Masilos', la: 'Massyli', gente: 'libio', casa: 'mapalia', lon: 7.3, lat: 36.0 },
+    gaetuli: { n: 'Gétulos', la: 'Gaetuli', gente: 'libio', casa: 'mapalia', lon: 5.0, lat: 33.3 },
+    libyes: { n: 'Libios', la: 'Libyes', gente: 'libio', casa: 'mapalia', lon: 9.6, lat: 35.2 },
+    nasamones: { n: 'Nasamones', la: 'Nasamones', gente: 'libio', casa: 'mapalia', lon: 17.8, lat: 29.9 }
+  };
+  /* C12 · Calzadas, puertos y rutas de mar del mapa de campaña. SOLO SE VEN: no cambian D.EDGES, las marchas ni las rutas de comercio.
+     Se dibujan por código en js/gfx/map3d.js como en una carta antigua (tinta roja para las calzadas, trazos para el mar, ancla en los puertos).
+     Calzadas: p = puntos [lon, lat] por las ciudades de paso (a ojo, sobre el mapa moderno); los extremos van a la ciudad del juego.
+     anio: año (a.C.) en que se hizo; la calzada se ve pálida mientras la partida no llega a ese año. hacia: fecha aproximada.
+     Sin anio: camino anterior a 280 a.C. sin fecha en las fuentes. et: punto donde va el nombre.
+     Puertos: lon/lat del ancla (en el agua, junto al puerto); ciudad: si coincide con una ciudad del juego no se repite el nombre.
+     Rutas de mar: p = puntos [lon, lat] por el agua; el trazado es a ojo (licencia de juego). Fichas en js/registro.js (tipos calzada,
+     puerto, rumbo) y gobierno/historia/C12-calzadas.md. */
+  D.CALZADAS = {
+    appia: { n: 'Vía Apia', la: 'Via Appia', anio: 312, et: 6, p: [[12.5, 41.9], [12.66, 41.72], [12.98, 41.47], [13.25, 41.29], [13.43, 41.36], [13.61, 41.26], [13.77, 41.24], [13.88, 41.17], [14.25, 41.08], [14.5, 40.95]] },
+    appiaB: { n: 'Vía Apia hasta Brundisium', la: 'Via Appia', anio: 244, hacia: true, et: 4, p: [[14.5, 40.95], [14.64, 41.06], [14.78, 41.13], [15.0, 41.05], [15.81, 40.96], [16.42, 40.82], [17.2, 40.6], [17.64, 40.5], [17.94, 40.64]] },
+    latina: { n: 'Vía Latina', la: 'Via Latina', et: 7, p: [[12.5, 41.9], [12.7, 41.8], [13.15, 41.74], [13.25, 41.69], [13.35, 41.64], [13.53, 41.55], [13.69, 41.49], [13.83, 41.49], [14.06, 41.25], [14.14, 41.21], [14.5, 40.95]] },
+    valeria: { n: 'Vía Valeria', la: 'Via Valeria', anio: 307, hacia: true, et: 5, p: [[12.5, 41.9], [12.8, 41.96], [12.94, 42.03], [13.09, 42.1], [13.41, 42.08], [13.6, 42.05], [13.84, 42.12]] },
+    salaria: { n: 'Vía Salaria', la: 'Via Salaria', et: 4, p: [[12.5, 41.9], [12.65, 42.1], [12.86, 42.4], [13.07, 42.47], [13.58, 42.85], [13.88, 42.9]] },
+    flaminia: { n: 'Vía Flaminia', la: 'Via Flaminia', anio: 220, et: 7, p: [[12.5, 41.9], [12.47, 42.41], [12.52, 42.52], [12.56, 42.64], [12.62, 42.93], [12.7, 43.0], [12.8, 43.11], [12.72, 43.32], [12.65, 43.55], [12.87, 43.69], [13.02, 43.84], [12.91, 43.91], [12.57, 44.06]] },
+    aurelia: { n: 'Vía Aurelia', la: 'Via Aurelia', anio: 241, hacia: true, et: 4, p: [[12.5, 41.9], [12.3, 41.9], [12.15, 41.95], [11.99, 42.01], [11.8, 42.09], [11.71, 42.22], [11.29, 42.41]] },
+    aemilia: { n: 'Vía Emilia', la: 'Via Aemilia', anio: 187, et: 5, p: [[12.57, 44.06], [12.24, 44.14], [12.04, 44.22], [11.88, 44.29], [11.71, 44.35], [11.34, 44.49], [10.93, 44.65], [10.63, 44.7], [10.33, 44.8], [10.06, 44.87], [9.69, 45.05]] },
+    postumia: { n: 'Vía Postumia', la: 'Via Postumia', anio: 148, et: 7, p: [[8.93, 44.41], [8.88, 44.65], [8.86, 44.9], [9.01, 45.0], [9.69, 45.05], [10.02, 45.13], [10.38, 45.12], [10.99, 45.44], [11.55, 45.55], [12.49, 45.78], [12.84, 45.75], [13.37, 45.77]] }
+  };
+  D.PUERTOS = {
+    ostia: { n: 'Ostia', la: 'Ostia', lon: 12.2, lat: 41.72 },
+    puteoli: { n: 'Putéolos', la: 'Puteoli', lon: 14.03, lat: 40.68 },
+    brundisium: { n: 'Brundisium', la: 'Brundisium', lon: 18.05, lat: 40.7 },
+    tarentum: { n: 'Tarento', la: 'Tarentum', ciudad: 'tarentum', lon: 17.12, lat: 40.36 },
+    syracusae: { n: 'Siracusa', la: 'Syracusae', ciudad: 'syracusae', lon: 15.51, lat: 36.95 },
+    messana: { n: 'Mesana', la: 'Messana', ciudad: 'messana', lon: 15.44, lat: 38.51 },
+    lilybaeum: { n: 'Lilibeo', la: 'Lilybaeum', ciudad: 'lilybaeum', lon: 12.1, lat: 37.8 },
+    carthago: { n: 'Cartago', la: 'Carthago', ciudad: 'carthago', lon: 10.55, lat: 37.08 },
+    utica: { n: 'Útica', la: 'Utica', lon: 10.35, lat: 37.12 },
+    gades: { n: 'Gades', la: 'Gades', ciudad: 'gades', lon: -6.48, lat: 36.45 },
+    carthagonova: { n: 'Cartago Nova', la: 'Carthago Nova', ciudad: 'carthagonova', lon: -0.98, lat: 37.36 },
+    emporion: { n: 'Ampurias', la: 'Emporiae', ciudad: 'emporion', lon: 3.38, lat: 42.0 },
+    massalia: { n: 'Marsella', la: 'Massalia', ciudad: 'massalia', lon: 5.2, lat: 43.1 },
+    dyrrachium: { n: 'Dirraquio', la: 'Dyrrachium', lon: 19.3, lat: 41.3 },
+    piraeus: { n: 'El Pireo', la: 'Piraeus', lon: 23.55, lat: 37.85 },
+    rhodus: { n: 'Rodas', la: 'Rhodus', lon: 28.3, lat: 36.5 },
+    alexandria: { n: 'Alejandría', la: 'Alexandria', lon: 29.75, lat: 31.4 }
+  };
+  D.RUMBOS = {
+    tyrrhenus: { n: 'De Ostia a Putéolos', p: [[12.2, 41.72], [12.55, 41.32], [13.3, 41.05], [13.75, 40.65], [14.03, 40.68]] },
+    frumentarius: { n: 'Del grano de Sicilia', p: [[14.03, 40.68], [14.2, 40.5], [14.9, 39.8], [15.45, 38.75], [15.62, 38.15], [15.65, 37.7], [15.51, 36.95]] },
+    libycus: { n: 'De Lilibeo a Cartago', p: [[12.1, 37.8], [11.7, 37.55], [11.1, 37.3], [10.6, 37.3], [10.55, 37.08]] },
+    punicus: { n: 'De Cartago a Gades', p: [[10.55, 37.08], [10.6, 37.3], [9.6, 37.5], [7.0, 37.3], [4.0, 37.0], [1.0, 36.6], [-2.0, 36.2], [-4.6, 36.15], [-5.5, 35.95], [-6.1, 35.95], [-6.5, 36.2], [-6.48, 36.45]] },
+    ibericus: { n: 'De Massalia a Cartago Nova', p: [[5.2, 43.1], [4.4, 42.95], [3.45, 42.45], [3.38, 42.0], [3.5, 41.95], [3.3, 41.7], [2.6, 41.25], [1.3, 40.75], [0.6, 39.9], [0.55, 38.7], [-0.3, 37.6], [-0.5, 37.35], [-0.98, 37.36]] },
+    gallicus: { n: 'De Ostia a Massalia', p: [[12.2, 41.72], [11.4, 42.15], [10.2, 42.55], [9.75, 43.25], [8.4, 43.55], [7.0, 43.35], [6.1, 42.95], [5.4, 42.95], [5.2, 43.1]] },
+    hadriaticus: { n: 'De Brundisium a Dirraquio', p: [[18.05, 40.7], [18.7, 40.95], [19.3, 41.3]] },
+    ionius: { n: 'De Siracusa al Pireo', p: [[15.51, 36.95], [17.5, 36.9], [20.5, 36.6], [22.6, 36.0], [23.4, 36.15], [23.75, 36.95], [23.55, 37.85]] },
+    aegyptius: { n: 'Del Pireo a Alejandría por Rodas', p: [[23.55, 37.85], [23.7, 37.6], [24.2, 37.45], [24.5, 37.0], [25.4, 36.5], [26.5, 36.3], [27.7, 36.3], [28.3, 36.5], [28.8, 34.5], [29.75, 31.4]] }
+  };
+  /* C13 · Vida en el mapa: ganado, humo de los poblados, mercantes por las rutas de mar y carros por las calzadas. Solo se ve
+     (js/gfx/map3d.js, dibujado por código); no toca la economía. Ficha en js/registro.js (tipo vida). */
+  D.VIDA = {
+    ovis: { n: 'Ovejas', la: 'Oves' },
+    capra: { n: 'Cabras', la: 'Caprae' },
+    bos: { n: 'Bueyes', la: 'Boves' },
+    fumus: { n: 'Humo de los hogares', la: 'Fumus' },
+    oneraria: { n: 'Barco mercante', la: 'Navis oneraria' },
+    plaustrum: { n: 'Carro de bueyes', la: 'Plaustrum' }
+  };
 
   // Hechos históricos. fx: clave interpretada por game.js (o varias separadas por comas, en ese orden). k: clave opcional para distinguir dos hechos del mismo año (id de ficha «<año>-<k>»)
   // H13b, licencia de juego: Roma empieza con más tropas para la llegada temprana de Pirro (no es un dato histórico)
@@ -478,8 +612,8 @@
       factores: { obra: 1, instr: 1, costes: 1, saber: 1, refuerzos: 1, guarnicion: 2 },
       duracion: { horasMin: 2, horasMax: 4, segReloj: 12, segDecision: 60, segPorTurno: 72 },
       inicio: {
-        enPie: { n: 'Roma y Capua en pie', d: 'Empiezas con Roma y Capua ya construidas, como en la campaña de Italia.', factores: { obra: 1.3, instr: 1.6, guarnicion: 3 } },   // con dos ciudades hechas el bot llega antes: se compensa con tropas más lentas y un Tarento más fuerte
-        fundar: { n: 'Fundar de la nada', d: 'Empiezas sin ciudad: funda tu primera colonia y de ella saldrá todo.', sitio: 'beneventum' }
+        enPie: { n: 'Roma y Capua en pie', d: 'Empiezas con Roma y Capua ya construidas, como en la campaña de Italia.', factores: { obra: 1.3, instr: 1.6, guarnicion: 4 } },   // con dos ciudades hechas el bot llega antes: se compensa con tropas más lentas y un Tarento más fuerte (V10a: guarnición 3 → 4; el bot ganaba 10 de 10, ahora 7 de 10)
+        fundar: { n: 'Fundar de la nada', d: 'Empiezas sin ciudad: funda tu primera colonia y de ella saldrá todo.', sitio: 'beneventum', factores: { saber: 0.7 } }   // V10a: estudios un 30 % más cortos al fundar (edad III del bot en 4 de 10 → 7 de 10)
       },
       final: {
         gana: 'Tarento ha caído en {anio} a.C. Toda la Italia peninsular reconoce tu poder: el Sur ya no tiene rey.',

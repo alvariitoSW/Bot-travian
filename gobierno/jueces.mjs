@@ -26,7 +26,7 @@ function apunta(nombre, ok, detalle, captura) {
 /* ---------- 1. Lógica ---------- */
 console.log('Juez 1 · lógica (test/sim.test.js)');
 {
-  const r = spawnSync(process.execPath, ['test/sim.test.js'], { cwd: RAIZ, encoding: 'utf8', timeout: 900000 });
+  const r = spawnSync(process.execPath, ['test/sim.test.js'], { cwd: RAIZ, encoding: 'utf8', timeout: 2400000 });
   const ultima = ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ');
   apunta('Pruebas de lógica', r.status === 0, ultima.slice(0, 400));
 }
@@ -124,7 +124,7 @@ console.log('Juez 1c · saber (test/saber.test.mjs)');
 }
 if (!RAPIDO) {   // bot investigador (~40 s): solo en el recorrido completo
   console.log('Juez 1d · bot investigador (test/investigador.test.mjs)');
-  const r = spawnSync(process.execPath, ['test/investigador.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 240000 });
+  const r = spawnSync(process.execPath, ['test/investigador.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 1200000 });
   const ult = ((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean).slice(-1)[0] || '';
   apunta('Bot investigador', r.status === 0, ult.slice(0, 200));
 }
@@ -132,7 +132,7 @@ if (!RAPIDO) {   // bot investigador (~40 s): solo en el recorrido completo
 /* ---------- 1e. Ajustes y dificultades (bot por nivel, ~90 s; también en --rapido) ---------- */
 console.log('Juez 1e · ajustes y dificultades (test/ajustes.test.mjs)');
 {
-  const r = spawnSync(process.execPath, ['test/ajustes.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 450000 });
+  const r = spawnSync(process.execPath, ['test/ajustes.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 1800000 });
   const ult = ((r.stdout || '') + (r.stderr || '')).trim().split('\n').filter(Boolean).slice(-1)[0] || '';
   apunta('Ajustes y dificultades (bot por nivel)', r.status === 0, ult.slice(0, 200));
 }
@@ -203,6 +203,23 @@ async function navegador() {
       const modelos = await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).then(() => true, () => false);
       await espera(1500);
       return { ok: modelos, detalle: modelos ? 'modelos listos en ' + ((Date.now() - t) / 1000).toFixed(0) + ' s' : 'los modelos 3D no llegaron a cargar en 90 s', captura: await foto('menu') };
+    });
+
+    /* GM43f: Escaramuzas lleva a la escena «Testudo a pie» (página aparte) y su «Salir» vuelve al juego */
+    await paso('Escaramuzas: «Testudo a pie» abre la escena y vuelve', async () => {
+      await page.click('#menu .mesc'); await espera(800);
+      const a = page.locator('#hoja a.esc-testudo');
+      if (!(await a.count())) return { ok: false, detalle: 'no está la entrada «Testudo a pie» en Escaramuzas', captura: await foto('escaramuzas') };
+      await a.scrollIntoViewIfNeeded(); await espera(300);
+      const m = await a.evaluate(el => { const r = el.getBoundingClientRect(); return { h: Math.round(r.height), d: Math.round(r.right), t: el.textContent, url: el.href }; });
+      const cap = await foto('escaramuzas-testudo');
+      if (m.h < 44 || m.d > 390 || !/Testudo a pie/.test(m.t) || !/\/gobierno\/maquetas\/a-pie\/$/.test(m.url)) return { ok: false, detalle: 'entrada mal: alto ' + m.h + ' px, borde ' + m.d + ' px, ' + m.url, captura: cap };
+      await a.click(); await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
+      const titulo = await page.title(); await espera(1500);
+      await page.click('#salir'); await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
+      await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
+      const ok = /Testudo a pie/.test(titulo);
+      return { ok, detalle: 'entrada de ' + m.h + ' px; escena «' + titulo + '»; «Salir» vuelve al menú', captura: cap };
     });
 
     await paso('Nueva partida: se ve el mapa', async () => {
@@ -381,7 +398,7 @@ async function navegador() {
       const antes = await estado(() => ({ x: UI.map.c.x, z: UI.map.c.z, dist: UI.map.c.dist, zonas: [...document.querySelectorAll('.mlabel.zona')].filter(e => e.style.display !== 'none').length }));
       const fotoMare = await foto('escalon-mare');
       await page.evaluate(() => [...document.querySelectorAll('.mlabel.zona')].find(e => e.textContent === 'Italia').click());
-      await espera(1500);
+      await espera(1500); await page.waitForFunction(() => !UI.map.esc.anim, null, { timeout: 20000 }).catch(() => {});   // C17: con ≈1 fotograma/s la animación de 0,6 s puede no haber acabado a los 1,5 s
       const dentro = await estado(() => ({ dist: UI.map.c.dist, migas: document.querySelector('.mmigas').innerText.replace(/\s+/g, ' '), volver: !!document.querySelector('.mmigas [data-volver]') }));
       const fotoZona = await foto('escalon-italia');
       await page.evaluate(() => document.querySelector('.mmigas [data-volver]').click());

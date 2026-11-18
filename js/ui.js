@@ -160,23 +160,113 @@ function cortaHtml() {
   const b = (k, act) => '<button class="btn corta" data-act="' + act + '">' + esc(m.inicio[k].n) + '</button><small class="cortad">' + esc(m.inicio[k].d) + '</small>';
   return '<div class="cortab"><b>Partida corta (Italia, ' + m.duracion.horasMin + ' a ' + m.duracion.horasMax + ' horas)</b>' + b('enPie', 'cortaen') + b('fundar', 'cortafun') + '</div>';
 }
-/* K12a-B «Hojas»: menú principal. Arriba emblema y nombre; abajo, al alcance del pulgar, lo que se usa. Partida corta y Sonido/fluidez viven en hojas */
-const EMBLEMA = '<svg class="emb" viewBox="0 0 64 64" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M32 12c-4 0-7 3-7 6l-9-4 3 9-8 3 9 4-4 8 9-3 7 9 7-9 9 3-4-8 9-4-8-3 3-9-9 4c0-3-3-6-7-6z"/><path d="M32 18v22M26 52h12"/></svg>';
-const ICO_GLOBO = svgIco('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'), ICO_ESC = svgIco('<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>');
-function subGuardada() {
-  try { const r = JSON.parse(localStorage.getItem('aqvila-save-v1') || 'null'), st = r && (r.t != null ? r : r.state || r.s); if (st && st.t != null) return G.dateStr(st.t); } catch (e) { }
-  return '';
+/* ES1 «Escaramuzas»: batalla suelta desde el menú, con el motor de guerra (Guerra y UIGuerra) y sin campaña: no lee ni escribe la partida guardada.
+   Se elige en tablillas de cera; «Empezar la batalla» (sello) abre la guerra; al acabar, la hoja «escfin» con el resultado. */
+UI.esc = { mio: 'mediano', fac: 'cartago', ene: 'mediano', campo: 'llano', dif: 'normal' };
+const milesTxt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+/* MR3b: Escaramuzas con ideas de la batalla personalizada de Rome II (estudios/MR3-menus-rome2.md): los dos bandos frente a frente
+   con su escudo, su color y sus hombres; facción en escudos; tamaños con las tropas en fichas; campo con vista previa dibujada; dificultad. */
+const escudoSvg = col => '<svg class="esc-esc" viewBox="0 0 40 48" aria-hidden="true"><path d="M20 2l17 6v14c0 13-8 21-17 24C11 43 3 35 3 22V8z" fill="' + col + '" stroke="#e9c063" stroke-width="2.4"/><path d="M20 8l11 4v10c0 9-5 15-11 17-6-2-11-8-11-17V12z" fill="none" stroke="rgba(255,240,200,.45)" stroke-width="1.4"/><path d="M20 14v20M13 22h14" stroke="rgba(255,240,200,.7)" stroke-width="2"/></svg>';
+const CAMPO_SVG = {
+  llano: '<path d="M0 26h80v18H0z" fill="#6f7d3a"/><path d="M0 26q40-3 80 0" fill="none" stroke="#8a9a4a" stroke-width="1"/>',
+  colina: '<path d="M0 30q22-2 34-12t46 10v16H0z" fill="#6a7838"/><path d="M0 34h80v10H0z" fill="#5d6a30"/>',
+  bosque: '<path d="M0 27h80v17H0z" fill="#5e6c32"/>' + [8, 18, 27, 52, 61, 70, 40].map((x, i) => '<path d="M' + x + ' ' + (14 + (i % 3) * 2) + 'l5 12h-10z" fill="#2f4420"/>').join(''),
+  mixto: '<path d="M0 30q18-1 28-8t30 6 22 2v14H0z" fill="#6a7838"/>' + [60, 68, 74].map(x => '<path d="M' + x + ' 16l4 11h-8z" fill="#2f4420"/>').join('')
+};
+const campoPrev = (k, colE) => '<svg viewBox="0 0 80 44" aria-hidden="true"><defs><linearGradient id="ecielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fb6c4"/><stop offset="1" stop-color="#e7d3a0"/></linearGradient></defs><rect width="80" height="44" fill="url(#ecielo)"/>' + (CAMPO_SVG[k] || CAMPO_SVG.llano) +
+  '<rect x="10" y="35" width="16" height="4" fill="#b3261e"/><rect x="54" y="35" width="16" height="4" fill="' + colE + '"/></svg>';
+function escHtml() {
+  const E = G.ESCARAMUZA, o = UI.esc, e = G.escaramuza(Object.assign({ semilla: 1 }, o)), F = id => D.FACTIONS[id] || { n: id, col: '#555' };
+  const suma = u => Object.values(u).reduce((x, y) => x + y, 0), n0 = suma(e.ejercitos[0]), n1 = suma(e.ejercitos[1]), fe = F(e.fac), roma = F('roma');
+  const fichas = u => '<div class="esc-fichas">' + Object.keys(u).filter(t => u[t] > 0).sort((x, y) => u[y] - u[x]).map(t => '<span><b>' + milesTxt(u[t]) + '</b> ' + esc(D.UNITS[t] ? D.UNITS[t].n : t) + '</span>').join('') + '</div>';
+  const tabl = (k, ops) => '<div class="ro-tablilla esc-t">' + ops.map(([v, n]) => '<button class="' + (o[k] === v ? 'on' : '') + '" data-act="escel" data-v="' + k + ':' + v + '">' + esc(n) + '</button>').join('') + '</div>';
+  const tam = Object.keys(E.tamanos).map(k => [k, E.tamanos[k].n]), pr = Math.round(100 * n0 / Math.max(1, n0 + n1));
+  const DIFD = { facil: 'Menos enemigos', normal: 'A la par', dificil: 'Más enemigos' };
+  return '<div class="esc">' +
+    '<div class="esc-ff"><div class="esc-lado">' + escudoSvg(roma.col) + '<b>Roma</b><small>' + milesTxt(n0) + ' hombres</small></div><div class="esc-vs">contra</div>' +
+    '<div class="esc-lado">' + escudoSvg(fe.col) + '<b>' + esc(fe.n) + '</b><small>' + milesTxt(n1) + ' hombres</small></div></div>' +
+    '<div class="esc-fz" role="img" aria-label="Fuerzas: ' + pr + ' % Roma"><i style="width:' + pr + '%;background:' + roma.col + '"></i><i style="background:' + fe.col + '"></i></div>' +
+    '<p class="ro-rubrica esc-r">Enemigo</p><div class="esc-facs">' + E.facciones.map(f => '<button class="esc-fac' + (o.fac === f ? ' on' : '') + '" data-act="escel" data-v="fac:' + f + '">' + escudoSvg(F(f).col) + '<span>' + esc(F(f).n) + '</span></button>').join('') + '</div>' +
+    '<p class="ro-rubrica esc-r">Tu ejército</p>' + tabl('mio', tam) + fichas(e.ejercitos[0]) +
+    '<p class="ro-rubrica esc-r">Ejército de ' + esc(fe.n) + '</p>' + tabl('ene', tam) + fichas(e.ejercitos[1]) +
+    '<p class="ro-rubrica esc-r">Campo</p><div class="esc-campos">' + Object.keys(E.campos).map(k => '<button class="esc-campo' + (o.campo === k ? ' on' : '') + '" data-act="escel" data-v="campo:' + k + '">' + campoPrev(k, fe.col) + '<span>' + esc(E.campos[k]) + '</span></button>').join('') + '</div>' +
+    '<p class="esc-d">El campo cambia el paisaje; la pelea aún no depende de él.</p>' +
+    '<p class="ro-rubrica esc-r">Dificultad</p><div class="ro-tablilla esc-t esc-dif">' + Object.keys(E.dificultad).map(k => '<button class="' + (o.dif === k ? 'on' : '') + '" data-act="escel" data-v="dif:' + k + '">' + esc(E.dificultad[k].n) + '<small>' + (DIFD[k] || '') + '</small></button>').join('') + '</div>' +
+    '<button class="btn ro-sello esc-go" data-act="escempieza">Empezar la batalla</button>' +
+    /* GM43f: la escena «Testudo a pie» (GM43e) es una página aparte; ruta relativa porque el juego se sirve en un subdirectorio */
+    '<p class="ro-rubrica esc-r">Escena a pie</p><a class="esc-testudo" href="gobierno/maquetas/a-pie/"><span><b>Testudo a pie</b><small>Cruza el campo bajo los venablos con tu manípulo</small></span><i></i></a></div>';
 }
+function escFinHtml() {
+  const x = UI.escRes; if (!x) return '<div class="empty">Sin resultado.</div>';
+  const R = x.res, t = { victoria: 'Victoria', derrota: 'Derrota', retirada: 'Retirada' }[R.como] || 'Fin', m = Math.floor(R.t / 60), sg = Math.round(R.t % 60);
+  return '<div class="esc esc-fin"><h3 class="esc-res ' + R.como + '">' + t + '</h3><p class="esc-d">' + esc(R.motivo || '') + '</p>' +
+    '<div class="esc-cif"><span>Tus bajas</span><b>' + milesTxt(R.bajas[0]) + ' de ' + milesTxt(R.inicial[0]) + '</b><span>Bajas de ' + esc(D.FACTIONS[x.fac] ? D.FACTIONS[x.fac].n : '') + '</span><b>' + milesTxt(R.bajas[1]) + ' de ' + milesTxt(R.inicial[1]) + '</b><span>Duración</span><b>' + m + ' min ' + sg + ' s</b></div>' +
+    '<button class="btn ro-sello esc-go" data-act="hoja" data-v="escaramuza">Otra escaramuza</button><button class="btn ghost esc-go" data-act="hojax">Volver al menú</button></div>';
+}
+function escEmpieza() {
+  if (!window.UIGuerra || !window.Guerra) { toast('No se ha podido cargar la batalla.', 'bad'); return; }
+  const e = G.escaramuza(UI.esc); hojaCierra(true); UI.escRes = null;
+  window.UIGuerra.abrir({ estado: window.Guerra.crear({ semilla: e.semilla, ejercitos: e.ejercitos }), campo: e.campo }, r => {   // sin guardar: no toca aqvila-save-v1 ni aqvila-guerra-v1
+    const B = r && r.estado; UI.escRes = { res: (B && B.resultado) || { como: 'retirada', motivo: '', t: 0, bajas: [0, 0], inicial: [0, 0] }, fac: e.fac };
+    setTimeout(() => { if (UI.menu) hojaAbre('escfin'); }, 0);   // después del toque en «Ver el resultado»: el oyente general cierra las hojas
+  });
+}
+/* MR3b «Menú principal tipo Rome 2» (estudios/MR3-menus-rome2.md, maqueta capturas-tarea/MR3-7): arriba águila y nombre; la campaña
+   guardada en papiro con «Continuar» en sello (lo más grande); sin partida, el papiro es «Nueva campaña» con el general y la dificultad;
+   debajo, filas de bronce con los destinos. Detrás, una escena dibujada en SVG (legión formada al atardecer): nada de imágenes. */
+const AGUILA = '<svg class="maguila" viewBox="0 0 100 100" aria-hidden="true"><defs><linearGradient id="m-br" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0bd"/><stop offset=".35" stop-color="#e9c063"/><stop offset=".7" stop-color="#a8781f"/><stop offset="1" stop-color="#6b4a12"/></linearGradient></defs><g fill="url(#m-br)" stroke="#3a2405" stroke-width="1" stroke-linejoin="round"><path id="m-ala" d="M45 47C40 36 30 22 14 8c1 6 3 9 6 12l-8-1c4 4 7 7 11 8l-8 1c5 4 9 6 14 6l-7 3c5 2 10 3 14 2l-5 4c4 1 8 1 12 0l-3 4c3 1 6 1 9 0z"/><use href="#m-ala" transform="matrix(-1 0 0 1 100 0)"/><path d="M42 62l8 13 8-13c-3 2-5 3-8 3s-5-1-8-3z"/><path d="M40 44c0-6 4-9 10-9s10 3 10 9l-4 15c-1 3-3 5-6 5s-5-2-6-5z"/><path d="M46 34c0-5 3-8 6-8 3 0 5 1 6 3 3 0 5 1 6 3-2 0-3 0-4 1l-1 2c-1 3-3 4-6 4-4 0-7-2-7-5z"/><rect x="30" y="74" width="40" height="5" rx="1"/><rect x="48" y="79" width="4" height="21"/></g><g fill="none" stroke="#3a2405" stroke-width=".7"><path d="M46 46q4 3 8 0M46 51q4 3 8 0M46 56q4 3 8 0"/></g><circle cx="55.5" cy="30.5" r="1.1" fill="#2a1a06"/><g fill="#5f7d2d" stroke="#2f4214" stroke-width=".5"><ellipse cx="38" cy="86" rx="2" ry="4.5" transform="rotate(-50 38 86)"/><ellipse cx="42" cy="91" rx="2" ry="4.5" transform="rotate(-25 42 91)"/><ellipse cx="62" cy="86" rx="2" ry="4.5" transform="rotate(50 62 86)"/><ellipse cx="58" cy="91" rx="2" ry="4.5" transform="rotate(25 58 91)"/></g></svg>';
+const ICO_GLOBO = svgIco('<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/>'), ICO_ESC = svgIco('<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z"/>'),
+  ICO_ESPADA = svgIco('<path d="M14 3h7v7L9 22l-3-3zM6 15l3 3M4 17l3 3M3 21l2-2"/>'), ICO_RELOJ = svgIco('<path d="M7 3h10M7 21h10M8 3c0 5 8 6 8 9s-8 4-8 9M16 3c0 5-8 6-8 9s8 4 8 9"/>'),
+  ICO_AJUS = svgIco('<path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/>');
+// escena del fondo: cielo de atardecer, colinas, templo en el monte y bloques de la legión con sus estandartes (perspectiva por filas)
+const MFONDO = (() => {
+  const bloques = (y, h, w, n, pat, sep) => { let s = ''; const x0 = 195 - (n * w + (n - 1) * sep) / 2; for (let i = 0; i < n; i++) { const x = x0 + i * (w + sep); s += '<rect x="' + x.toFixed(1) + '" y="' + y + '" width="' + w + '" height="' + h + '" fill="url(#' + pat + ')"/>'; if (i % 2 === 0) s += '<path d="M' + (x + w / 2).toFixed(1) + ' ' + (y + h * .4) + 'V' + (y - h * .9) + '" stroke="#3a2a14" stroke-width="' + (h / 14).toFixed(1) + '"/><rect x="' + (x + w / 2 - h * .18).toFixed(1) + '" y="' + (y - h * .85).toFixed(1) + '" width="' + (h * .36).toFixed(1) + '" height="' + (h * .42).toFixed(1) + '" fill="#a3231a"/>'; } return s; };
+  return '<svg id="mfondo" viewBox="0 0 390 844" preserveAspectRatio="xMidYMin slice" aria-hidden="true"><defs>' +
+    '<linearGradient id="mcielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#140f17"/><stop offset=".1" stop-color="#3a2530"/><stop offset=".17" stop-color="#9a5232"/><stop offset=".214" stop-color="#e2a457"/><stop offset=".222" stop-color="#6b4a2a"/><stop offset=".4" stop-color="#2a1d12"/><stop offset="1" stop-color="#0b0806"/></linearGradient>' +
+    '<radialGradient id="msol" cx="72%" cy="15%" r="30%"><stop offset="0" stop-color="#ffd98a" stop-opacity=".8"/><stop offset="1" stop-color="#ffd98a" stop-opacity="0"/></radialGradient>' +
+    '<pattern id="mt1" width="3" height="4" patternUnits="userSpaceOnUse"><rect width="2" height="4" fill="#3d1712"/><rect width="2" height="1" fill="#8a7a5a"/></pattern>' +
+    '<pattern id="mt2" width="4.5" height="6" patternUnits="userSpaceOnUse"><rect width="3" height="6" fill="#4a1a13"/><rect width="3" height="1.4" fill="#a08a5c"/></pattern>' +
+    '<pattern id="mt3" width="7" height="9" patternUnits="userSpaceOnUse"><rect width="5" height="9" fill="#5a1f16"/><rect width="5" height="2" fill="#b39a64"/><rect x="5" width="2" height="9" fill="#2a1a10"/></pattern>' +
+    '<linearGradient id="mbaja" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0b0806" stop-opacity="0"/><stop offset="1" stop-color="#0b0806"/></linearGradient></defs>' +
+    '<rect width="390" height="844" fill="url(#mcielo)"/><rect width="390" height="400" fill="url(#msol)"/><circle cx="282" cy="138" r="20" fill="#ffe2a0" opacity=".85"/>' +
+    '<path d="M0 172q60-26 130-14t120-10 140 6v40H0z" fill="#4a2c22"/><g fill="#2c1a14" transform="translate(0 -42)"><rect x="72" y="182" width="40" height="4"/><path d="M70 182l22-10 22 10z"/><rect x="75" y="186" width="3" height="14"/><rect x="83" y="186" width="3" height="14"/><rect x="91" y="186" width="3" height="14"/><rect x="99" y="186" width="3" height="14"/><rect x="107" y="186" width="3" height="14"/></g>' +
+    '<path d="M0 182q90-14 200-6t190-4v30H0z" fill="#33231a"/><rect y="194" width="390" height="650" fill="#2a1f14"/>' +
+    bloques(190, 8, 28, 8, 'mt1', 9) + bloques(205, 12, 42, 6, 'mt2', 11) + bloques(228, 18, 66, 4, 'mt3', 14) +
+    '<rect y="236" width="390" height="220" fill="url(#mbaja)"/><rect y="455" width="390" height="389" fill="#0b0806"/></svg>';
+})();
+// lo que se lee de la partida guardada sin cargarla (no toca el estado del juego)
+function infoGuardada() {
+  try {
+    const r = JSON.parse(localStorage.getItem('aqvila-save-v1') || 'null'), st = r && (r.t != null ? r : r.state || r.s); if (!st || st.t == null) return null;
+    const cs = st.cities || {}, ids = Object.keys(cs), mias = ids.filter(k => cs[k] && cs[k].owner === 'roma');
+    let hombres = 0; for (const k of mias) for (const u in (cs[k].units || {})) hombres += cs[k].units[u] || 0;
+    for (const m of (st.marches || [])) if (m.owner === 'roma') for (const u in (m.units || {})) hombres += m.units[u] || 0;
+    return { fecha: G.dateStr(st.t), gen: st.hero && st.hero.name || '', mias: mias.length, total: ids.length, hombres, fin: !!st.over };
+  } catch (e) { return null; }
+}
+function subGuardada() { const i = infoGuardada(); return i ? i.fecha : ''; }
+function mFila(act, v, ico, t, d, cls) { return '<button class="mfila' + (cls ? ' ' + cls : '') + '" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span><b>' + t + '</b><small>' + d + '</small></span><i class="mchev"></i></button>'; }
 function showMenu() {
   hojaCierra(true); UI.menu = true; $('menu').hidden = false;
-  const img = portrait('general', ROMA), sv = G.hasSave(), sub = sv ? subGuardada() : '';
-  const tile = (act, v, ico, txt) => '<button class="mt" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span>' + txt + '</span></button>';
-  $('menu').innerHTML = '<svg id="mfondo" viewBox="0 0 390 844" preserveAspectRatio="xMidYMax slice" aria-hidden="true"><defs><linearGradient id="mcielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#101a28"/><stop offset=".55" stop-color="#352b3a"/><stop offset=".75" stop-color="#8a4a33"/><stop offset="1" stop-color="#2a1a18"/></linearGradient></defs><rect width="390" height="844" fill="url(#mcielo)"/><circle cx="300" cy="470" r="50" fill="#e9c063" opacity=".14"/><path d="M0 640q80-50 170-15t220-15v234H0z" fill="#2a2630"/><g fill="#1a1a22"><path d="M30 612l60-30 60 30z"/><rect x="38" y="614" width="104" height="6"/><rect x="44" y="620" width="9" height="46"/><rect x="62" y="620" width="9" height="46"/><rect x="80" y="620" width="9" height="46"/><rect x="98" y="620" width="9" height="46"/><rect x="116" y="620" width="9" height="46"/><rect x="134" y="620" width="9" height="46"/><rect x="30" y="666" width="120" height="10"/><rect x="176" y="574" width="26" height="102"/><path d="M172 574h34l-17-18z"/><rect x="214" y="610" width="64" height="66"/><path d="M214 610a32 24 0 0164 0z"/><path d="M290 640h100v10H290zM296 650h12v26h-12zM322 650h12v26h-12zM348 650h12v26h-12zM374 650h12v26h-12z"/></g><rect y="676" width="390" height="168" fill="#10131a"/></svg>' +
-    '<div class="mcab">' + EMBLEMA + '<h1>AQVILA</h1><div class="sub">EL ASCENSO DE ROMA</div><p>280 a.C. Gobierna tus ciudades, levanta legiones y lleva las águilas hasta Cartago.</p></div>' +
-    '<input id="hname" maxlength="28" placeholder="Nombre de tu general" aria-label="Nombre de tu general" value="Lucio Cornelio Escipión">' + difFila('m') +
-    '<div class="mabajo">' + (sv ? '<button class="btn gold mcont" data-act="continue">Continuar campaña' + (sub ? '<small>' + esc(sub) + '</small>' : '') + '</button><button class="btn" data-act="new">Nueva campaña</button>' : '<button class="btn gold mcont" data-act="new">Nueva campaña</button>') +
-    '<div class="mtrio">' + tile('newregion', 'italia', ICO_GLOBO, 'Región de Italia') + tile('hoja', 'corta', ICO_ESC, 'Partida corta') + tile('hoja', 'sonmenu', ICO_FLU, 'Sonido y fluidez') + '</div>' +
-    '<div class="mcred">' + CREDITOS + '</div><div class="spqr">S·P·Q·R</div></div>';
+  const sv = G.hasSave(), inf = sv ? infoGuardada() : null, nueva = !inf || UI.mPanel === 'nueva', nombre = 'Lucio Cornelio Escipión';
+  const act = UI.difSel || 'normal', ase = UI.asesorSel !== false, DIFD = { tranquila: 'Casi sin incendios ni hambre', normal: 'Como se pensó el juego', dura: 'Más incendios, crecidas y hambre' };
+  const tarjeta = nueva
+    ? '<section class="mcarta ro-papiro mnueva"><div class="mct"><p class="ro-rubrica">Nueva campaña</p>' + (inf ? '<button class="mvolver" data-act="mpanel" data-v="">Volver</button>' : '') + '</div>' +
+      '<p class="mtit">Roma contra Cartago</p><p class="mmeta">De 280 a 146 a.C., por todo el Mediterráneo.' + (inf ? ' <b>Empezar borra la campaña guardada.</b>' : '') + '</p>' +
+      '<label class="mlab" for="hname">Tu general</label><input id="hname" maxlength="28" placeholder="Nombre de tu general" aria-label="Nombre de tu general" value="' + esc(nombre) + '">' +
+      '<p class="mlab">Dificultad de la ciudad</p><div class="ro-tablilla mdif" id="dif-m">' + Object.keys(D.DIFICULTAD).map(k => '<button class="' + (k === act ? 'on' : '') + '" data-act="dif" data-v="' + k + '" data-d="m">' + (DIF_NOM[k] || k) + '<small>' + (DIFD[k] || '') + '</small></button>').join('') + '</div>' +
+      '<label class="mase"><span>Consejos del asesor<small>Te avisa de lo que falta</small></span><input type="checkbox" id="ase-m" data-act="asesor" data-d="m"' + (ase ? ' checked' : '') + '><i></i></label>' +
+      '<button class="btn ro-sello mcont" data-act="new"><span class="msello"></span>Empezar la campaña</button></section>'
+    : '<section class="mcarta ro-papiro"><p class="ro-rubrica">Tu campaña</p><p class="mtit">' + esc(inf.fecha) + '</p>' +
+      '<p class="mmeta">' + (inf.gen ? esc(inf.gen) + ' · ' : '') + inf.mias + (inf.mias === 1 ? ' ciudad' : ' ciudades') + ' · ' + milesTxt(inf.hombres) + ' soldados' + (inf.fin ? ' · <b>terminada</b>' : '') + '</p>' +
+      '<div class="mprog"><i style="width:' + Math.round(100 * inf.mias / Math.max(1, inf.total)) + '%"></i></div><p class="mprogt"><span>Ciudades de Roma</span><b>' + inf.mias + ' de ' + inf.total + '</b></p>' +
+      '<button class="btn ro-sello mcont" data-act="continue"><span class="msello"></span>Continuar</button></section>';
+  $('menu').innerHTML = MFONDO +
+    '<header class="mtop">' + AGUILA + '<div><h1>AQVILA</h1><div class="sub">El ascenso de Roma · 280–146 a.C.</div></div></header>' + tarjeta +
+    '<nav class="mlista" aria-label="Menú principal">' + (nueva ? '' : mFila('mpanel', 'nueva', ICO_ESPADA, 'Nueva campaña', 'Roma contra Cartago, de 280 a 146 a.C.')) +
+    mFila('hoja', 'escaramuza', ICO_ESC, 'Escaramuzas', 'Una batalla suelta, sin campaña', 'mesc') + mFila('hoja', 'corta', ICO_RELOJ, 'Partida corta', 'Italia, de 3 a 5 horas, con final') +
+    mFila('newregion', 'italia', ICO_GLOBO, 'Región de Italia', 'Campaña solo en el mapa de Italia') + mFila('hoja', 'sonmenu', ICO_AJUS, 'Opciones', 'Sonido, fluidez y copias de la partida') + '</nav>' +
+    '<div class="mcred">' + CREDITOS + '</div><div class="spqr">S·P·Q·R</div>';
 }
 { let tv = 0; const sf = () => { clearTimeout(tv); tv = setTimeout(() => { UI.svDown = false; }, 150); };   // Saber: no repintar entre pulsar y soltar
   document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('.sv')) { UI.svDown = true; clearTimeout(tv); tv = setTimeout(() => { UI.svDown = false; }, 1500); } }, true);
@@ -186,6 +276,7 @@ function showMenu() {
   document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('#cuentas')) { UI.cuDown = true; clearTimeout(tm); tm = setTimeout(() => { UI.cuDown = false; }, 1500); } }, true);
   document.addEventListener('pointerup', fin, true); document.addEventListener('pointercancel', fin, true); }
 function startGame() {
+  UI.mPanel = ''; if (window.Carga) window.Carga.velo('Preparando las legiones');   // MR3b: si aún faltan soldados o edificios, la pantalla de carga tapa hasta que llegan (15 s como mucho)
   hojaCierra(true); UI.avisoFirma = ''; UI.pausa = null; pausaPon(); if (G.turnos && S()) S().speed = 0; UI.menu = false; $('menu').hidden = true; UI.sel = null; if (UI.map) UI.map.encuadre(); UI.cityList = false;
   const sitio = G.fundando() ? G.modo().inicio.fundar.sitio : null, cap = S() && S().capital;
   UI.city = sitio || (cap && S().cities[cap] ? cap : 'roma');   // I8: en «fundar de la nada» la ciudad es el sitio; con capital propia, esa
@@ -367,7 +458,7 @@ function cuentasHtml() {
 }
 function renderCuentas(forzar) { const e = $('cuentas'); if (!e || e.hidden || !S() || (UI.cuDown && !forzar)) return; const h = cuentasHtml(); if (forzar || e.dataset.k !== h) { e.dataset.k = h; e.innerHTML = h; } }
 /* K12a: HOJA INFERIOR única (menú, ajustes, mercado, rutas, pueblo…). #hoja es el panel y #hscrim el telón que oscurece. Cuerpo = HOJAS[id].html() */
-const CREDITOS = 'Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1';
+const CREDITOS = 'Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Hastatus y galo de las batallas: cuerpo y esqueleto de MakeHuman 1.3.2, movimientos de Quaternius (Universal Animation Library), licencia CC0 1.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1';
 const HOJA_ALT = [420, 600, 770];
 const ICO_AJ = svgIco('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'), ICO_MERC = svgIco('<path d="M4 8h15l-3-3M20 16H5l3 3"/>'), ICO_RUTA = svgIco('<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>'),
   ICO_PUEB = svgIco('<circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M18 14c2 1 3 3 3 6"/>'), ICO_CRON = svgIco('<path d="M7 4h11v13a3 3 0 0 1-3 3H6M7 4a2 2 0 0 0-2 2v2h2M7 4v12a3 3 0 0 1-3 3 2 2 0 0 0 2 1M10 9h5M10 13h5"/>'),
@@ -395,20 +486,23 @@ function ajustesHoja() {
     '<div class="hsep"></div>' + tog('Ambiente', 'id="aj-ambiente" data-act="ambiente"', G.ambiente(), 'Tono por estación, viñeta y contorno dorado en la ciudad') + '<div id="aj-sonido">' + tog('Sonido', 'data-act="sonido"', sonidoOn()) + '</div></div>';
 }
 /* C8b: el botón «Guerra» abre lo de la guerra; el resto vive en ☰ */
+const ICO_MAPA = svgIco('<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/>');   // C18: minimapa
 function guerraHoja() {
   const s = S(); if (!s) return '<div class="empty">Aún no hay partida.</div>';
   const nom = id => esc(((D.CITIES[id] || (D.COLONIAS && D.COLONIAS[id])) || { n: id }).n), ms = s.marches.filter(m => m.owner === 'roma');
   const f = (act, v, ico, txt) => '<button class="hf" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span>' + txt + '</span></button>';
   return '<b class="hrot">' + (ms.length ? (ms.length === 1 ? '1 marcha en curso' : ms.length + ' marchas en curso') : 'Ninguna marcha en curso') + '</b>' +
     ms.map(m => f('vera', m.to, '🚩', 'De ' + nom(m.from) + ' a ' + nom(m.to) + ' · llega ' + (G.turnos ? turnosTxt(G.turnosFaltan(m)) : 'en ' + months(Math.max(0, m.t1 - s.t))))).join('') +
-    '<div class="hsep"></div>' + f('home', null, D.GUERRA_ICON.aguila, 'Ir a mi general') + f('modo', 'gobierno', ICO_GOB, 'Pasar a Gobierno');
+    '<div class="hsep"></div>' + f('minimapa', null, ICO_MAPA, UI.map && UI.map.miniOn ? 'Ocultar minimapa' : 'Ver minimapa') + f('home', null, D.GUERRA_ICON.aguila, 'Ir a mi general') + f('modo', 'gobierno', ICO_GOB, 'Pasar a Gobierno');
 }
 const HOJAS = {
   menu: { titulo: 'Menú', alt: 1, html: menuHoja },
   guerra: { titulo: 'Guerra', alt: 0, html: guerraHoja },
   ajustes: { titulo: 'Ajustes', alt: 2, html: ajustesHoja },
+  escaramuza: { titulo: 'Escaramuzas', alt: 2, html: () => escHtml() },   // ES1
+  escfin: { titulo: 'Escaramuza', alt: 1, html: () => escFinHtml() },
   corta: { titulo: 'Partida corta', alt: 1, html: () => cortaHtml() || '<div class="empty">No disponible.</div>' },
-  sonmenu: { titulo: 'Sonido y fluidez', alt: 0, html: () => '<button class="hf" data-act="sonido">' + ICO_INFO + '<span>' + sonidoTxt() + '</span></button><button class="hf" data-act="fluidez">' + ICO_FLU + '<span>' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</span></button>' + copiasHtml() },
+  sonmenu: { titulo: 'Opciones', alt: 0, html: () => '<button class="hf" data-act="sonido">' + ICO_INFO + '<span>' + sonidoTxt() + '</span></button><button class="hf" data-act="fluidez">' + ICO_FLU + '<span>' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</span></button>' + copiasHtml() },
   movil: { titulo: 'Postal y copias', alt: 1, html: () => '<button class="hf" data-act="postal">' + ICO_FOTO + '<span>Postal de la ciudad (imagen)</span></button><button class="hf" data-act="contemplar">' + ICO_FOTO + '<span>Contemplar la ciudad</span></button><button class="hf" data-act="hoja" data-v="cronicac">' + ICO_CRON + '<span>Crónica de la ciudad (texto)</span></button>' + copiasHtml() },
   cronicac: { titulo: 'Crónica de la ciudad', alt: 2, html: () => S() ? '<pre class="hcron">' + esc(G.cronicaTexto(cityOk())) + '</pre><div class="hdos2"><button class="hf" data-act="croncopiar"><span>Copiar texto</span></button><button class="hf" data-act="crondescargar"><span>Bajar archivo .txt</span></button></div>' : '<div class="empty">Aún no hay partida.</div>' },
   creditos: { titulo: 'Créditos', alt: 0, html: () => '<div class="hcred">' + CREDITOS + '</div>' },
@@ -1510,8 +1604,8 @@ document.addEventListener('click', function (e) {
     case 'ambiente': { const nv = el.type === 'checkbox' ? el.checked : !G.ambiente(), r = G.ponerAjustes({ ambiente: nv }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); if (UI.cityV && UI.cityV.ponerAmbiente) UI.cityV.ponerAmbiente(nv); } render(); break; }
     case 'sonido': { const so = window.Sonido; if (so) { if (sonidoOn()) so.off(); else so.on(); } if (UI.menu) hojaPinta(true); else render(); break; }
     case 'fluidez': fijarFluidez(!fluidezOn()); hojaPinta(true); break;
-    case 'new': case 'newregion': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
-    case 'cortaen': case 'cortafun': G.newGame(($('hname').value || '').trim() || 'Lucio Cornelio Escipión', null, { modo: 'corta', inicio: a === 'cortafun' ? 'fundar' : 'enPie', dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
+    case 'new': case 'newregion': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
+    case 'cortaen': case 'cortafun': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', null, { modo: 'corta', inicio: a === 'cortafun' ? 'fundar' : 'enPie', dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'refundar': closeModal(); iniciarFundar(); break;
     case 'continue': if (G.load()) { const pa = S().parada; UI.overShown = false; startGame(); if (S().over) showOver(); else if (pa) carta('<div class="yr">DÓNDE LO DEJASTE</div><h2>' + esc(pa.fecha || '') + '</h2><p>' + esc(pa.texto) + '</p><div class="acts"><button class="btn" data-act="close">Seguir jugando</button></div>'); } break;
     case 'postal': if (UI.tab !== 'city' || UI.menu || !UI.cityV || !UI.cityV.listo) toast('Abre una ciudad para sacar la postal.', 'bad'); else hacerPostal(UI.cityV, G, D, cityOk()).then(ok => toast(ok ? 'Postal guardada en tus descargas.' : 'No se pudo hacer la postal.', ok ? '' : 'bad')); break;
@@ -1540,6 +1634,10 @@ document.addEventListener('click', function (e) {
     case 'entrar': entrarEn(v); break;
     case 'vera': hojaCierra(true); try { if (UI.map) UI.map.center(v); } catch (e) { } break;
     case 'hoja': hojaAbre(v); break;
+    case 'minimapa': if (UI.map) { UI.map.minimapa(); hojaCierra(); } break;   // C18: el minimapa se abre y se cierra desde la hoja «Guerra»
+    case 'mpanel': { const nm = $('hname') ? $('hname').value : ''; UI.mPanel = v; showMenu(); if (nm && $('hname')) $('hname').value = nm; $('menu').scrollTop = 0; break; }
+    case 'escel': { const i = v.indexOf(':'); UI.esc[v.slice(0, i)] = v.slice(i + 1); hojaPinta(true); break; }
+    case 'escempieza': escEmpieza(); break;
     case 'hojax': hojaCierra(); break;
     case 'menuconf': UI.hojaConf = true; hojaPinta(true); break;
     case 'accion': if (UI.modo === 'guerra') setTab('army'); else { UI.cityList = true; setTab('city'); } break;
@@ -1666,11 +1764,17 @@ buildTop(); buildTabs(); initBandeja();
 try { UI.map = new MapView3D($('mapwrap'), { onSelect: id => { const otra = id && id === UI.sel && propiaEntrable(id); UI.sel = id; UI.sheetKey = ''; renderSheet(); if (otra) UI.map.entrarCiudad(id); }, puedeEntrar: propiaEntrable, ocupado: () => !!UI.battle, onEntrar: id => { UI.city = id; UI.bsel = null; UI.cityList = false; UI.deMapa = true; setTab('city'); } }); }
 catch (e) { console.warn('WebGL no disponible para el mapa', e); $('mapwrap').innerHTML = '<div class="empty" style="padding:160px 24px;text-align:center">Tu dispositivo no puede mostrar el mapa 3D. Puedes jugar desde las pestañas Ciudad y Ejército.</div>'; }
 showMenu(); requestAnimationFrame(frame);
-// modelos reales (0 A.D.): se cargan en segundo plano; hasta entonces se usan los generados por código
-loadIndex().then(idx => preload(Object.keys(idx))).then(() => { UI.dirty = true; });
-loadStaticIndex().then(idx => Promise.all([preloadStatic(Object.keys(idx)), loadGroundTextures()])).then(() => {
+// modelos reales (0 A.D.): se cargan en segundo plano; hasta entonces se usan los generados por código.
+// MR3b: se cuentan uno a uno para la barra de la pantalla de carga (Carga, js/carga.js); la portada se va con el menú y los modelos
+const CG = window.Carga || { fase() { }, progreso() { }, menuListo() { }, todoListo() { } }, cuenta = { n: 0, t: 0, i: 0, u: false, c: false };
+const unoMas = () => { cuenta.n++; if (cuenta.i >= 2) CG.progreso(cuenta.n, cuenta.t); else CG.fase('Soldados y edificios', 60); };   // la cuenta, cuando se sabe el total (los dos índices)
+const finCarga = () => { if (cuenta.u && cuenta.c) CG.todoListo(); };
+CG.fase('Dibujando el mapa', 45); CG.menuListo();
+loadIndex().then(idx => { const ks = Object.keys(idx); cuenta.t += ks.length; cuenta.i++; return Promise.all(ks.map(k => preload([k]).then(unoMas, unoMas))); }).then(() => { UI.dirty = true; cuenta.u = true; finCarga(); }, () => { cuenta.u = true; finCarga(); });
+loadStaticIndex().then(idx => { const ks = Object.keys(idx).filter(k => !k.startsWith('__')); cuenta.t += ks.length + 1; cuenta.i++; return Promise.all([...ks.map(k => preloadStatic([k]).then(unoMas, unoMas)), loadGroundTextures().then(unoMas, unoMas)]); }).then(() => {
   try { $('citywrap').hidden = false; UI.cityV = new CityView3D($('citywrap'), Object.assign({ onPick: tocarCiudad }, gestosCiudad)); $('citywrap').hidden = true; if (UI.tab === 'city' && !UI.menu) setTab('city'); }
   catch (e) { console.warn('Sin vista 3D de ciudad', e); $('citywrap').hidden = true; }
-});
+  cuenta.c = true; finCarga();
+}, () => { cuenta.c = true; finCarga(); });
 window.UI = UI; UI.maniobra = window.UIManiobra; UI.guerra = window.UIGuerra; UI.consejoModal = consejoModal; UI.toast = toast; UI.toastResumen = toastResumen;   // CN22: la cola de avisos, para quien la necesite desde fuera
 

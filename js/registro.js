@@ -10,6 +10,8 @@
   const R = {};
   const CC = 'CC BY-SA 3.0', WG = 'Wildfire Games (0 A.D.)';
   const est = (m, extra) => Object.assign({ modelo: 'assets/static/' + m + '.bin', licencia: CC, credito: WG }, extra || {});   // edificio real de 0 A.D.
+  /* GM44c: soldado nuevo de las batallas (js/gfx/soldado.js): cuerpo de MakeHuman y movimientos de Quaternius, CC0 1.0 */
+  const nuevo = m => ({ modelo: 'assets/soldados/' + m + '.bin', licencia: 'CC0 1.0', credito: 'MakeHuman 1.3.2 (cuerpo, esqueleto y pesos) y Quaternius, Universal Animation Library 1 y 2 (movimientos); equipo, ropa y texturas hechos en AQVILA', nota: 'en las batallas; cuatro niveles de detalle (' + m + ', _lejos, _muylejos, _fondo)' });
   const uni = (m, extra) => Object.assign({ modelo: 'assets/units/' + m + '.bin', licencia: CC, credito: WG }, extra || {});   // tropa real de 0 A.D.
   const h = (fuente, dictamen, nota, texto) => Object.assign({ fuente, dictamen: dictamen || 'por cotejar' }, nota ? { nota } : {}, texto ? { texto } : {});   // texto: lo que lee el jugador en el Códice
   const f = (arte, historia) => ({ arte, historia });
@@ -29,7 +31,7 @@
 
   // ---- Tropas (D.UNITS). Modelo: assets/units/<id>.bin (el índice es el id). Fuente: H1-tropas.md ----
   const tropa = {
-    hastati: f(uni('hastati'), h('Polibio 6.21-23', 'historico', null, 'Era la primera línea de la legión. Según Polibio, llevaban escudo grande, espada corta de estilo hispano, dos jabalinas, casco de bronce con tres plumas y grebas. Los ricos vestían cota de malla.')),
+    hastati: f(uni('hastati', { batalla: nuevo('hastatus') }), h('Polibio 6.21-23', 'historico', null, 'Era la primera línea de la legión. Según Polibio, llevaban escudo grande, espada corta de estilo hispano, dos jabalinas, casco de bronce con tres plumas y grebas. Los ricos vestían cota de malla.')),
     velites: f(uni('velites'), h('Polibio 6.21-22; Livio 26.4; Livio 8.8', 'probable', 'Livio 26.4 ya los nombra en 211 a.C.; en 280 es probable, no seguro', 'Infantes ligeros: los más jóvenes y pobres, con espada, jabalinas y escudo redondo. Polibio los describe, y Livio ya los nombra en 211. En 340 todavía no existían, así que en 280 es probable, no seguro.')),
     principes: f(uni('principes'), h('Polibio 6.21; Polibio 6.23', 'historico', null, 'Hombres en plena edad, segunda línea de la legión. Según Polibio llevaban el mismo equipo que los hastati. Solo los triarios cambiaban las jabalinas pesadas por lanzas largas.')),
     triarii: f(uni('triarii'), h('Polibio 6.21-23; Livio 8.8', 'historico', null, 'Los veteranos, al fondo, con lanza larga en vez de jabalinas. Según Polibio eran 600 por legión. Livio cuenta que esperaban de rodillas; de ahí el dicho «la cosa ha llegado a los triarios».')),
@@ -42,7 +44,7 @@
     honderos: f(uni('honderos'), h("Diodoro 5.18; Livio 28.37", "historico", "las «tres hondas» no se pudieron confirmar y se quitaron", "Famosos por la honda. Según Diodoro, los baleares lanzaban piedras mucho mayores que otros honderos y se entrenaban de niños con pan como blanco. Livio dice que la honda era su única arma.")),
     libios: f(uni('libios'), h('Polibio 3.87; Polibio 3.114', 'historico', null, 'Tras Trasimeno, Aníbal cambió sus armas por las romanas capturadas, según Polibio. En Cannas formaban con armadura romana. Era la infantería pesada y de confianza de su ejército.')),
     iberos: f(uni('iberos'), h('Polibio 3.114', 'historico', null, 'Según Polibio, en Cannas vestían túnicas cortas con borde púrpura, un color que se veía de lejos. Cartago los reclutaba como mercenarios en Hispania, y en el juego también defienden Sagunto.')),
-    galos: f(uni('galos'), h('Polibio 2.28-30', 'historico', null, 'Según Polibio, algunos luchaban con calzas y capa y los gesatos, desnudos, por bravura. Los romanos los temían desde el saqueo de Roma. Fueron aniquilados en Telamón en 225.')),
+    galos: f(uni('galos', { batalla: nuevo('galo') }), h('Polibio 2.28-30', 'historico', null, 'Según Polibio, algunos luchaban con calzas y capa y los gesatos, desnudos, por bravura. Los romanos los temían desde el saqueo de Roma. Fueron aniquilados en Telamón en 225.')),
     sagrada: f(uni('sagrada'), h("Diodoro 16.80.4; Diodoro 20.11.1; Diodoro 20.12.3", "probable", "renombrada «Ciudadanos de Cartago» (H5): que no aparezca después de 310 es silencio de las fuentes abiertas, no prueba de que desapareciera", "Cartago solía pagar mercenarios, pero tenía una élite de ciudadanos ricos, el Batallón Sagrado: 2.500 hombres según Diodoro, que lo muestra en el Crimiso (339) y contra Agatocles (310). Después no lo hemos hallado en las fuentes que abrimos, lo que no prueba que desapareciera.")),
     jinetes: f(uni('jinetes'), h('Regla de juego: caballería genérica, no es una tropa de las fuentes', 'licencia de juego', 'caballería local genérica', 'Una caballería genérica para que todas las facciones tengan jinetes. Las fuentes describen caballerías concretas, como los équites o los númidas, pero no esta pieza.')),
     numidas: f(uni('numidas'), h("Livio 35.11; Polibio 15.5", "historico", null, "Jinetes ligeros con jabalinas. Según Livio, montaban sin bridas, y en 193 había unos 800 al servicio de Roma. En Zama, Masinisa aportó unos 4.000, según Polibio.")),
@@ -398,7 +400,157 @@
       'El Faro de Alejandría, obra del arquitecto Sóstrato de Cnidos, se acabó hacia 280 a.C. (las fuentes discuten entre 283 y 279). Era una torre blanca y de varios pisos que guiaba a los barcos hacia el puerto. Su forma de tres cuerpos es una reconstrucción hecha con descripciones árabes y monedas romanas posteriores.'))
   };
 
-  R.fichas = { monumento, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+  // ---- Adornos de carta del mapa (D.ADORNOS, C10). Dibujados por código; ficha larga en gobierno/historia/C10-mares.md ----
+  const POR_CODIGO_C10 = { sin: 'dibujado por código en js/gfx/map3d.js (tinta sobre un lienzo, sin archivo de arte ni licencia ajena)' };
+  const EST = 'Estrabón, Geografía 2.5.19-22 (las partes del mar interior)', PLI = 'Plinio, Historia Natural 3.74-75', C10 = 'C10: citado de memoria el 17/11/2026, sin cotejar el pasaje';
+  const mar = (fuente, texto, nota) => f(POR_CODIGO_C10, h(fuente, 'historico', C10 + (nota ? '; ' + nota : '') + ' · licencia de juego: letra muy grande y puesta a ojo', texto));
+  const LJ_ADORNO = 'Las cartas antiguas que conocemos no llevan barcos ni monstruos dibujados en el mar: es costumbre de las cartas del Renacimiento (Olao Magno, 1539). Aquí es adorno.';
+  const adorno = {
+    internum: mar('Pomponio Mela 1.6-7; Plinio, Historia Natural 3.3-5; Salustio, Yugurta 17-18 («mare nostrum»)', 'Mare Internum, «el mar de dentro»: así llamaban los romanos al Mediterráneo, y también «mare nostrum», nuestro mar. La palabra «Mediterráneo» llegó mucho después.', 'Mela y Plinio usan «internum» y «nostrum»'),
+    tyrrhenum: mar(EST + '; ' + PLI, 'Mare Tyrrhenum, el mar de los tirrenos, que es como los griegos llamaban a los etruscos. Los romanos lo llamaban también Mare Inferum, el mar de abajo.'),
+    hadriaticum: mar('Livio 5.33.7-8; Plinio, Historia Natural 3.150; ' + EST, 'Mare Hadriaticum, por la ciudad de Adria, en la desembocadura del Po. Los romanos lo llamaban también Mare Superum, el mar de arriba.'),
+    ionium: mar(EST + '; Polibio 2.14', 'Mare Ionium, el mar entre el sur de Italia y Grecia. En tiempos de Pirro era el paso de Epiro a Tarento.'),
+    aegaeum: mar(EST + '; Plinio, Historia Natural 4.51', 'Mare Aegaeum, el mar de las islas griegas, entre Grecia y Asia.'),
+    libycum: mar(EST, 'Mare Libycum, el mar al sur de Creta, frente a la costa de Libia (Cirenaica).'),
+    aegyptium: mar(EST, 'Mare Aegyptium, el mar frente a Egipto, hacia Chipre.'),
+    sardoum: mar(EST + '; ' + PLI, 'Mare Sardoum, el mar al oeste de Cerdeña.'),
+    balearicum: mar(PLI + ' («Baliaricum»); Estrabón, Geografía 2.5.19 (mar ibérico)', 'Mare Balearicum, el mar de las islas Baleares, entre Hispania y África. Estrabón lo llama mar ibérico.'),
+    ligusticum: mar(EST + '; ' + PLI, 'Mare Ligusticum, el golfo de los ligures, hoy golfo de Génova.'),
+    pontus: mar('Estrabón, Geografía 7.3.6; Plinio, Historia Natural 4.76', 'Pontus Euxinus, el Mar Negro. «Euxinos» quiere decir «hospitalario»: según Estrabón, antes se llamó «Axenos», el inhóspito.'),
+    oceanus: mar('Plinio, Historia Natural 4.109-110 (océano gálico); Estrabón, Geografía 2.5.26', 'Oceanus: para griegos y romanos, el mar exterior que rodeaba la tierra, más allá de las Columnas de Hércules.'),
+    rosa: f(POR_CODIGO_C10, h('Vitruvio, De architectura 1.6.4-10 (ocho vientos: septentrio, aquilo, solanus, eurus, auster, africus, favonius, caurus); Aristóteles, Meteorológica 2.6 (doce vientos); Torre de los Vientos de Atenas (s. I a.C.)', 'licencia de juego', C10 + '. La rosa dibujada en estrella es de las cartas náuticas medievales (portulanos); los nombres de los vientos sí son antiguos; Vitruvio escribe hacia el 25 a.C., algo después de la época del juego',
+      'Los antiguos no tenían brújula, pero sí nombraban los vientos: Vitruvio cuenta ocho, cuatro de ellos en esta rosa (Septentrio, el norte; Solanus, el este; Auster, el sur; Favonius, el oeste). La estrella es adorno de cartas posteriores.')),
+    navis1: null, navis2: null, navis3: null, navis4: null, navis5: null,
+    ketos1: f(POR_CODIGO_C10, h('Iconografía griega del ceto (κῆτος): vasos y mosaicos de Perseo y Andrómeda y de Heracles y Hesíone; Homero, Odisea 12.96-97 (los cetos que pesca Escila)', 'licencia de juego', C10 + '. ' + LJ_ADORNO,
+      'El ceto (en griego, kêtos) era el monstruo marino de los mitos griegos, como el que iba a devorar a Andrómeda. Los griegos lo pintaban como una serpiente con cabeza de dragón y cola de pez. Ponerlo en un mapa es adorno, no historia.')),
+    delphini: f(POR_CODIGO_C10, h('Plinio, Historia Natural 9.20-33; Heródoto 1.23-24 (Arión y el delfín)', 'licencia de juego', C10 + '. ' + LJ_ADORNO,
+      'Los delfines abundan en el Mediterráneo y los antiguos los querían: Heródoto cuenta que uno salvó al músico Arión, y Plinio les dedica muchas páginas. Dibujarlos en el mapa es adorno.')),
+    physeter: f(POR_CODIGO_C10, h('Plinio, Historia Natural 9.8 (el «physeter» del océano gálico)', 'licencia de juego', C10 + '. ' + LJ_ADORNO,
+      'Plinio cuenta que en el océano de la Galia vive el físeter, una bestia enorme que se alza como una columna y escupe agua que podría hundir un barco. Era seguramente un cachalote. Dibujarlo en el mapa es adorno.'))
+  };
+  const GALERA = f(POR_CODIGO_C10, h('Polibio 1.20-21 (la primera flota romana, 260 a.C., copiada de un quinquerreme cartaginés); Casson, Ships and Seamanship in the Ancient World (1971)', 'probable', C10 + '. Galera de guerra con espolón, vela cuadra y ojo en la proa, como en vasos y relieves; los remos y el tamaño son a ojo. ' + LJ_ADORNO,
+    'Las galeras de guerra de la época iban a remo y llevaban una vela cuadrada para navegar con viento a favor. Atacaban con el espolón de bronce de la proa. Roma construyó su primera gran flota en 260 a.C., copiando un barco cartaginés varado, según Polibio.'));
+  for (const id of ['navis1', 'navis2', 'navis3', 'navis4', 'navis5']) adorno[id] = GALERA;
+  adorno.ketos2 = adorno.ketos1;
+
+  // ---- Pueblos y tribus del mapa (D.TRIBUS, C11). Dibujados por código; ficha larga en gobierno/historia/C11-pueblos.md ----
+  // Cotejado el 17/11/2026 en LacusCurtius y Perseus (traducciones inglesas). Lo no cotejado queda «por cotejar», con la fuente de memoria.
+  const POR_CODIGO_C11 = { sin: 'dibujado por código en js/gfx/map3d.js (cabañas, muros y cinta a tinta; sin archivo de arte ni licencia ajena)' };
+  const LJ_TRIBU = 'licencia de juego: el sitio es aproximado y puesto a ojo; el poblado es genérico de su familia, no un lugar concreto';
+  const COT = 'cotejado el 17/11/2026', MEM = 'citado de memoria, sin cotejar';
+  const tri = (fuente, dictamen, nota) => f(POR_CODIGO_C11, h(fuente, dictamen, nota + ' · ' + LJ_TRIBU));
+  const tribu = {
+    lusitani: tri('Estrabón, Geografía 3.3.3 y 3.3.5; Apiano, Iberia 56-75 (Viriato)', 'historico', COT + ': Estrabón 3.3.3 llama a Lusitania «la mayor de las naciones ibéricas», al norte del Tajo; Apiano, ' + MEM + '. Que vivieran en castros de piedra es lectura arqueológica (cultura castreña), no de ese pasaje: probable'),
+    callaeci: tri('Estrabón, Geografía 3.3.2-3; Apiano, Iberia 73-75 (Bruto, 137 a.C.)', 'por cotejar', MEM + '. Roma no llega hasta ellos hasta 137 a.C., después de la época del juego; el pueblo ya existía'),
+    cantabri: tri('Estrabón, Geografía 3.3.7-8 y 3.4.12', 'por cotejar', MEM + '. Sin guerra con Roma en la época del juego (sus guerras son de 29-19 a.C.)'),
+    vaccaei: tri('Polibio 3.14', 'historico', COT + ': Aníbal ataca a los vacceos y toma Hermandica al primer asalto, y luego Arbacala (220 a.C.)'),
+    celtiberi: tri('Estrabón, Geografía 3.4.12-13; Polibio 35.1 (la «guerra de fuego», 153 a.C., ' + MEM + ')', 'historico', COT + ': Estrabón 3.4.13 los divide en cuatro partes, la más fuerte los arévacos, con Numancia'),
+    carpetani: tri('Polibio 3.14', 'historico', COT + ': los carpetanos atacan a Aníbal junto al Tajo a la vuelta de los vacceos (220 a.C.)'),
+    oretani: tri('Polibio 3.33.9 (oretes íberos en las tropas de Aníbal); Livio 35.7', 'por cotejar', MEM),
+    turdetani: tri('Estrabón, Geografía 3.1.6 y 3.2.1-15; Livio 34.17-19', 'por cotejar', MEM + '. Estrabón los tiene por los más cultos de Iberia, con leyes escritas'),
+    contestani: tri('Plinio, Historia Natural 3.19-20; Ptolomeo, Geografía 2.6.14', 'por cotejar', MEM),
+    ilergetes: tri('Polibio 3.35; Livio 22.21 y 28.24-34 (Indíbil y Mandonio)', 'historico', COT + ': Polibio 3.35 escribe «Ilurgetes», sometidos por Aníbal al pasar el Ebro; Livio, ' + MEM),
+    aquitani: tri('Estrabón, Geografía 4.1.1 y 4.2.1-2; César, Guerra de las Galias 1.1', 'por cotejar', MEM + '. Las fuentes que los describen son algo posteriores a la época del juego'),
+    volcae: tri('Livio 21.26.6', 'historico', COT + ': los volcas pasan su gente a la otra orilla del Ródano para frenar a Aníbal (218 a.C.); aquí van hacia Tolosa (los volcas tectósages), ' + MEM),
+    arverni: tri('Estrabón, Geografía 4.2.3 (Bituito, 121 a.C.)', 'por cotejar', MEM + '. Su gran poder lo cuentan fuentes algo posteriores'),
+    aedui: tri('Estrabón, Geografía 4.3.2; César, Guerra de las Galias 1.10-11', 'por cotejar', MEM + '. «Amigos y hermanos» de Roma ya en el siglo II a.C. según fuentes posteriores'),
+    belgae: tri('Estrabón, Geografía 4.4.3; César, Guerra de las Galias 1.1', 'por cotejar', MEM + '. Fuentes del siglo I a.C.'),
+    allobroges: tri('Polibio 3.50', 'historico', COT + ': los jefes alóbroges ocupan las alturas del camino para atacar a Aníbal en los Alpes (3.49 no los nombra)'),
+    taurini: tri('Polibio 3.60.8-10', 'probable', COT + ' en parte: Aníbal toma en tres días su ciudad principal; en el extracto leído no salía el nombre del pueblo'),
+    ligures: tri('Polibio 2.16; Livio 39.1-2 y 40.38 (guerras ligures); Estrabón, Geografía 4.6.1-3', 'por cotejar', MEM + '. Sus castillos en las alturas (castella) los cita Livio'),
+    cenomani: tri('Polibio 2.17 y 2.23-24', 'historico', COT + ': Polibio 2.17 los pone tras los ínsubres en el valle del Po; en 225 a.C. se ponen del lado de Roma (2.23-24, ' + MEM + ')'),
+    boii: tri('Polibio 2.17.7, 2.20-31; Livio 21.25', 'historico', COT + ': Polibio 2.17 los pone en el valle del Po; la guerra de 225 y el ataque a Placentia y Cremona (Livio 21.25) son ' + MEM),
+    veneti: tri('Polibio 2.17.5-6 y 2.23-24', 'historico', COT + ': Polibio 2.17.5 los nombra; que hablaran otra lengua que los galos y fueran aliados de Roma en 225 queda ' + MEM),
+    samnites: tri('Plutarco, Pirro 13.6 y 17.5; Livio, Períocas 12-14', 'historico', COT + ': Pirro espera fuerzas del Samnio (13.6) y samnitas y lucanos se le unen tras Heraclea (17.5); Livio ' + MEM),
+    lucani: tri('Plutarco, Pirro 13.6 y 17.5', 'historico', COT + ': como los samnitas'),
+    bruttii: tri('Livio 22.61 y 23.30; Polibio 1.56 (de memoria); Estrabón, Geografía 6.1.4', 'por cotejar', MEM + '. Aliados de Pirro y luego de Aníbal'),
+    dalmatae: tri('Polibio 32.13 (32.9 en otras ediciones)', 'historico', COT + ': el Senado decide la guerra contra los dálmatas; el año (156 a.C.) sale de los cónsules de 32.10'),
+    ardiaei: tri('Polibio 2.4-12', 'historico', COT + ': la reina Teuta y la guerra de 229 a.C.; los ardieos se nombran en 2.11.10 y 2.12.2'),
+    dardani: tri('Polibio 2.6.4; Livio 40.57', 'por cotejar', MEM + '. Vecinos y enemigos de los reyes de Macedonia'),
+    scordisci: tri('Estrabón, Geografía 7.5.12; Livio 40.57 (de memoria)', 'por cotejar', MEM + '. Celtas que se quedaron en el Danubio tras la invasión de 279 a.C.: al empezar la partida (280) aún no estaban'),
+    odrysae: tri('Polibio 23.8; Livio 39.53 y 45.42 (Cotis)', 'por cotejar', MEM + '. El reino tracio de los odrisios'),
+    getae: tri('Estrabón, Geografía 7.3.13; Diodoro 21.12 (Dromiquetes captura a Lisímaco, h. 292 a.C.)', 'historico', COT + ': Estrabón 7.3.13 (getas y dacios hablan la misma lengua y cruzan el Istro); Diodoro, ' + MEM),
+    paphlagones: tri('Estrabón, Geografía 12.3.9-10 y 12.3.41', 'por cotejar', MEM),
+    galatae: tri('Livio 38.16.11-12; Estrabón, Geografía 12.5.1', 'historico', COT + ': las tres tribus (trocmos, tolistobogios, tectósages) se reparten Asia (Livio) y se gobiernan por tetrarquías (Estrabón). Pasan a Asia en 278-277 a.C.: al empezar la partida (280) aún no estaban'),
+    pisidae: tri('Polibio 5.72-76 (Selge); Estrabón, Geografía 12.7.1-3', 'por cotejar', MEM),
+    mauri: tri('Estrabón, Geografía 17.3.7; Salustio, Yugurta 18', 'historico', COT + ': Estrabón 17.3.7 los pinta casi todos nómadas, con el pelo trenzado y adornos de oro; Salustio 18 describe las mapalia, chozas alargadas «como quillas de barco», de los númidas'),
+    masaesyli: tri('Livio 29.31-32 (Sífax)', 'historico', COT + ': Livio 29.32.14 escribe «Masaesulii», el pueblo de Sífax, al oeste. Chozas: Salustio, Yugurta 18 (cotejado)'),
+    massyli: tri('Livio 29.29-32 (Masinisa)', 'historico', COT + ': Livio 29.32.13 escribe «Maesulii», el pueblo de Masinisa, al este; que Livio los diga expresamente pueblo de Masinisa en esos capítulos no se vio en lo leído. Chozas: Salustio, Yugurta 18 (cotejado)'),
+    gaetuli: tri('Salustio, Yugurta 18-19; Estrabón, Geografía 17.3.2', 'por cotejar', MEM + '. Nómadas del interior, al sur de los númidas'),
+    libyes: tri('Polibio 1.65-88 (la guerra de los mercenarios y los libios, 241-238 a.C.)', 'por cotejar', MEM + '. Los campesinos libios súbditos de Cartago'),
+    nasamones: tri('Heródoto 4.172-173', 'historico', COT + ': Heródoto 4.172 los pone al oeste de los auschisas, con rebaños junto al mar en verano; la Sirte la nombra en 4.169 y 4.173. Heródoto escribe dos siglos antes de la época del juego')
+  };
+
+
+  // ---- Calzadas, puertos y rutas de mar del mapa (D.CALZADAS, D.PUERTOS, D.RUMBOS, C12). Dibujados por código; ficha larga en
+  // gobierno/historia/C12-calzadas.md. Cotejado el 17/11/2026 en LacusCurtius (Estrabón, Polibio; trad. inglesas). Livio no cargó:
+  // lo que sale de Livio queda de memoria. «histórico» solo si el pasaje se ha leído; si el año no se ha leído, «probable».
+  const POR_CODIGO_C12 = { sin: 'dibujado por código en js/gfx/map3d.js (tinta roja, trazos y ancla; sin archivo de arte ni licencia ajena)' };
+  const LJ_VIA = 'licencia de juego: el trazado va a ojo por las ciudades de paso sobre el mapa moderno, y los extremos van a la ciudad del juego (Capua, Tarento)';
+  const LJ_PUERTO = 'licencia de juego: el ancla va en el agua junto al puerto; es adorno de carta';
+  const LJ_RUMBO = 'licencia de juego: el trazado por el mar va a ojo; las fuentes dan los puertos y alguna distancia, no la derrota';
+  const COT12 = 'cotejado el 17/11/2026', MEM12 = 'citado de memoria, sin cotejar';
+  const via = (fuente, dictamen, nota) => f(POR_CODIGO_C12, h(fuente, dictamen, nota + ' · ' + LJ_VIA));
+  const calzada = {
+    appia: via('Estrabón, Geografía 5.3.6 y 6.3.7; Livio 9.29.5-6', 'probable', COT12 + ' en Estrabón 5.3.6: la Vía Apia va de Roma a Brentesio (Brundisium) y es la más transitada; 6.3.7: de Benevento a Roma el camino común es la Apia. El año (312 a.C., censura de Apio Claudio) sale de Livio 9.29, ' + MEM12),
+    appiaB: via('Estrabón, Geografía 6.3.7; Veleyo Patérculo 1.14 (colonia de Brundisium)', 'probable', COT12 + ' en Estrabón 6.3.7: la Apia, por Venusia y Tarento, llega a Brentesio; de Roma a Brentesio, 360 millas. Ninguna fuente fecha la prolongación: se usa el año de la colonia latina de Brundisium (244 a.C., Veleyo 1.14, ' + MEM12 + '), marcado «hacia»: licencia de juego'),
+    latina: via('Livio 26.8-9 (Aníbal marcha sobre Roma por la Vía Latina, 211 a.C.); Estrabón, Geografía 5.3.9', 'por cotejar', MEM12 + '. Camino anterior a 280 a.C. sin fecha de construcción: el mapa lo marca «camino antiguo»'),
+    valeria: via('Livio 9.43.25 (censores de 307 a.C. hacen caminos por los campos); Estrabón, Geografía 5.3.11', 'por cotejar', MEM12 + '. Que el camino de los censores de 307 sea la Valeria (Tíbur-Alba Fucens-Corfinio) es lectura moderna: fecha marcada «hacia»'),
+    salaria: via('Estrabón, Geografía 5.3.1; Plinio, Historia Natural 31.89', 'por cotejar', MEM12 + '. El camino de la sal de los sabinos es muy anterior a 280 a.C.; sin fecha: «camino antiguo»'),
+    flaminia: via('Estrabón, Geografía 5.1.11; Livio, Períocas 20', 'probable', COT12 + ' en Estrabón 5.1.11: Flaminio hizo la Vía Flaminia de Roma, por Tirrenia y Umbría, hasta Ariminum. Estrabón lo hace cónsul con Lépido (187), confundiendo a dos Flaminios; el año 220 (censura de Gayo Flaminio) sale de Livio, Períocas 20, ' + MEM12),
+    aurelia: via('Sin pasaje antiguo que la feche', 'por cotejar', 'el año 241 a.C. (censura de Gayo Aurelio Cota) es atribución moderna, sin pasaje: marcado «hacia». Aquí llega hasta Cosa; su prolongación a Pisa es de 109 a.C., fuera del juego'),
+    aemilia: via('Estrabón, Geografía 5.1.11; Livio 39.2.10', 'probable', COT12 + ' en Estrabón 5.1.11: la Vía Emilia sigue a la Flaminia; de Placentia a Ariminum, 1.300 estadios. El año (187 a.C., cónsul Marco Emilio Lépido) sale de Livio 39.2.10, ' + MEM12),
+    postumia: via('Inscripciones (CIL); sin pasaje literario', 'por cotejar', 'de Génova a Aquilea por Placentia, Cremona y Verona; atribuida al cónsul Espurio Postumio Albino (148 a.C.) por miliarios, ' + MEM12 + '. Es de las últimas del juego (146 a.C.)')
+  };
+  const pto = (fuente, dictamen, nota) => f(POR_CODIGO_C12, h(fuente, dictamen, nota + ' · ' + LJ_PUERTO));
+  const puerto = {
+    ostia: pto('Estrabón, Geografía 5.3.5 y 5.2.1', 'historico', COT12 + ': Ostia «no tiene puerto» por el limo del Tíber; los mercantes fondean mar adentro y descargan en barcas, o suben el río hasta Roma (190 estadios). En 5.2.1, puerto de la flota romana'),
+    puteoli: pto('Livio 34.45.1 (colonia romana, 194 a.C.)', 'por cotejar', MEM12 + '. Antes de la colonia era la ciudad griega de Dicearquía'),
+    brundisium: pto('Estrabón, Geografía 6.3.8', 'historico', COT12 + ': de Brentesio se cruza a los montes Ceraunios o a Epidamno, la travesía habitual'),
+    tarentum: pto('Polibio 8.24-34 (Aníbal y el puerto de Tarento, 212 a.C.)', 'por cotejar', MEM12),
+    syracusae: pto('Livio 25.23-31 (sitio de Siracusa); Tucídides 7', 'por cotejar', MEM12),
+    messana: pto('Polibio 1.10-11 (los mamertinos piden ayuda a Roma)', 'por cotejar', MEM12),
+    lilybaeum: pto('Polibio 1.41-42', 'probable', 'leído en resumen el 17/11/2026, sin el texto palabra por palabra: el cabo de Lilibeo está bien situado para atacar los promontorios frente a Cartago, a unos 1.000 estadios'),
+    carthago: pto('Apiano, Líbica 96 (el puerto circular, el cotón)', 'por cotejar', MEM12),
+    utica: pto('Polibio 1.73-75 (guerra de los mercenarios)', 'por cotejar', MEM12 + '. La costa antigua estaba más cerca de Útica; hoy el río la ha rellenado'),
+    gades: pto('Estrabón, Geografía 3.5.3', 'por cotejar', MEM12),
+    carthagonova: pto('Polibio 10.10 (el puerto de Cartago Nova, 209 a.C.)', 'por cotejar', MEM12),
+    emporion: pto('Livio 34.9; Estrabón, Geografía 3.4.8', 'por cotejar', MEM12),
+    massalia: pto('Estrabón, Geografía 4.1.4-5', 'por cotejar', MEM12),
+    dyrrachium: pto('Estrabón, Geografía 6.3.8', 'historico', COT12 + ': Epidamno (Dirraquio) es la travesía habitual desde Brentesio. Que Epidamno y Dirraquio sean la misma ciudad lo dice Estrabón 7.5.8, ' + MEM12),
+    piraeus: pto('Estrabón, Geografía 9.1.15', 'por cotejar', MEM12),
+    rhodus: pto('Polibio 5.88-90 (el terremoto de Rodas y la ayuda de los reyes)', 'por cotejar', MEM12),
+    alexandria: pto('Estrabón, Geografía 17.1.6-7', 'por cotejar', 'el pasaje no cargó el 17/11/2026 (LacusCurtius, Strabo/17A1); ' + MEM12 + ': Faro y dos puertos; el mayor mercado del mundo habitado')
+  };
+  const rum = (fuente, dictamen, nota) => f(POR_CODIGO_C12, h(fuente, dictamen, nota + ' · ' + LJ_RUMBO));
+  const rumbo = {
+    tyrrhenus: rum('Estrabón, Geografía 5.3.5-6', 'por cotejar', 'Ostia y Putéolos son puertos de Roma; la costa entre ambos, ' + MEM12),
+    frumentarius: rum('Livio 23.38 y 27.5 (grano de Sicilia a Roma)', 'por cotejar', MEM12 + '. En el mapa el estrecho de Mesina sale cerrado (contorno simplificado): el trazo lo cruza'),
+    libycus: rum('Polibio 1.42', 'probable', 'leído en resumen: Lilibeo, base para pasar a África, a unos 1.000 estadios de Cartago'),
+    punicus: rum('Polibio 3.24 (tratado con Cartago: mares vedados a Roma); Estrabón, Geografía 3.5.5', 'por cotejar', MEM12),
+    ibericus: rum('Estrabón, Geografía 3.4.8 y 4.1.5 (colonias de Massalia en Iberia)', 'por cotejar', MEM12),
+    gallicus: rum('Polibio 3.41 (Publio Escipión navega a Massalia, 218 a.C.)', 'por cotejar', MEM12),
+    hadriaticus: rum('Estrabón, Geografía 6.3.8', 'historico', COT12 + ': de Brentesio a Epidamno, la travesía habitual. Estrabón da 1.800 estadios; el editor cree que es error por unos 800'),
+    ionius: rum('Tucídides 6-7 (Atenas y Siracusa); Polibio 5.101', 'por cotejar', MEM12),
+    aegyptius: rum('Estrabón, Geografía 17.1.6-7; Polibio 5.88-90', 'por cotejar', MEM12 + '. Rodas vivía del comercio con Alejandría')
+  };
+
+  // ---- Vida en el mapa (D.VIDA, C13). Dibujada por código; ficha larga en gobierno/historia/C13-vida.md ----
+  const POR_CODIGO_C13 = { sin: 'dibujado por código en js/gfx/map3d.js (formas sencillas con color; sin archivo de arte ni licencia ajena)' };
+  const MEM13 = 'citado de memoria el 18/11/2026, por cotejar', LJ_VIDA = 'licencia de juego: los animales, barcos y carros son mucho mayores que a escala para que se vean, y van donde cae bien a la vista';
+  const vid = (fuente, dictamen, nota, texto) => f(POR_CODIGO_C13, h(fuente, dictamen, nota + ' · ' + LJ_VIDA, texto));
+  const vida = {
+    ovis: vid('Varrón, De re rustica 2.1-2 y 2.2.9 (rebaños que pasan el verano en el Samnio y el invierno en Apulia); Polibio 2.15 (la Galia Cisalpina, rica en ganado)', 'por cotejar', MEM13 + '. Varrón escribe en 37 a.C., algo después de la época, pero cuenta costumbres antiguas'),
+    capra: vid('Varrón, De re rustica 2.3; Polibio 12.3-4 (las cabras de Córcega)', 'por cotejar', MEM13 + '. En el mapa van sobre todo en los montes y en las tierras secas'),
+    bos: vid('Catón, De agri cultura 10-11 (cuántos bueyes necesita una finca); Varrón, De re rustica 2.5', 'por cotejar', MEM13 + '. Catón escribe hacia 160 a.C., dentro de la época del juego'),
+    fumus: vid('Virgilio, Bucólicas 1.82 («ya humean a lo lejos los tejados de las granjas»)', 'licencia de juego', MEM13 + '. El humo de los hogares es de todas las épocas; Virgilio es posterior (h. 39 a.C.)',
+      'En las casas y cabañas antiguas el fuego del hogar ardía todo el día, para cocinar y calentarse, y el humo salía por el techo. De lejos, el humo era la señal de que un pueblo estaba vivo.'),
+    oneraria: vid('Pecio de Kyrenia (Chipre, h. 300 a.C.); Casson, Ships and Seamanship in the Ancient World (1971)', 'probable', MEM13 + '. Mercante de casco redondo y una vela cuadrada, sin remos ni espolón; tamaño y forma a ojo',
+      'Los barcos mercantes eran de casco ancho y redondo y navegaban a vela, sin remos. Llevaban ánforas de vino y aceite, grano y cerámica de puerto en puerto. El pecio de Kyrenia, hundido hacia 300 a.C. con su carga de ánforas, es uno de esa época.'),
+    plaustrum: vid('Catón, De agri cultura 10-11 (los carros de la finca); Varrón, De re rustica 1.22', 'por cotejar', MEM13 + '. En el juego, un carro por calzada construida')
+  };
+
+  R.fichas = { vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -428,7 +580,13 @@
     fiesta: { tabla: 'FIESTAS', numericos: ['mult', 'min', 'dura', 'reposo'], textos: ['n', 'i', 'd'] },
     leva: { tabla: 'LEVA_FICHAS', numericos: [], textos: ['n', 'i', 'd'] },
     remedio: { tabla: 'REMEDIOS', numericos: [], textos: ['n', 'i', 'd'] },
-    monumento: { tabla: 'MONUMENTOS', numericos: ['lon', 'lat'], textos: ['n'] }
+    monumento: { tabla: 'MONUMENTOS', numericos: ['lon', 'lat'], textos: ['n'] },
+    adorno: { tabla: 'ADORNOS', numericos: ['lon', 'lat', 't'], textos: ['n', 'clase'] },
+    tribu: { tabla: 'TRIBUS', numericos: ['lon', 'lat'], textos: ['n', 'la', 'gente', 'casa'] },
+    calzada: { tabla: 'CALZADAS', numericos: [], textos: ['n', 'la'] },
+    puerto: { tabla: 'PUERTOS', numericos: ['lon', 'lat'], textos: ['n', 'la'] },
+    rumbo: { tabla: 'RUMBOS', numericos: [], textos: ['n'] },
+    vida: { tabla: 'VIDA', numericos: [], textos: ['n', 'la'] }
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */

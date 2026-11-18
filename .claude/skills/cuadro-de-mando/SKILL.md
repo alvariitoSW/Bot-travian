@@ -5,11 +5,32 @@ description: Lee lo que el usuario ha pulsado en el cuadro de mando de AQVILA (u
 
 # Cuadro de mando
 
-Una página para el móvil del usuario: enlace al juego, lo que espera algo suyo, propuestas, tablero por carriles y últimas capturas. Sus botones guardan **pedidos**; las sesiones los aplican.
+Una página para el móvil del usuario. Regla del 18/11 (`gobierno/OBJETIVOS.md`): **el cuadro enseña el juego, no las tareas**. Sus botones guardan **pedidos**; las sesiones los aplican.
 
 - Dirección: `gobierno/cuadro.json` → `artifact`.
-- Página: la genera `node gobierno/cuadro.mjs` desde `TABLERO.md`, `BITACORA.md` y `gobierno/capturas/`, con la plantilla `gobierno/cuadro.plantilla.html`. Escribe `gobierno/cuadro.html` (no va a git).
+- Página: la genera `node gobierno/cuadro.mjs` desde `gobierno/lista.json`, `TABLERO.md`, `BITACORA.md` y `gobierno/capturas/`, con la plantilla `gobierno/cuadro.plantilla.html`. Escribe `gobierno/cuadro.html` (no va a git). Avisa por consola (sin fallar) si una línea y el tablero no casan, o si queda una tarea pendiente sin colocar.
 - Pedidos: base de datos del Artifact, colección `pedidos`. Se leen y escriben con la herramienta `ArtifactData`.
+
+## Qué enseña la página (CM1, 18/11)
+Cuatro pestañas fijas abajo (`#juego`, `#lista`, `#decidir`, `#taller`; `#lista-cerebro` abre la lista en ese órgano):
+- **Juego**: estandarte (nombre, `frase`, «Jugar ahora», veredicto de los jueces), una tarjeta por órgano con su barra, las tres comprobaciones de «La 1.0 está terminada cuando…» y cuántas preguntas esperan. Ninguna cifra de tareas.
+- **Lista**: las líneas de la 1.0 por órgano; cada una con «Qué verás», «Qué se hizo» (con captura), «Qué falta», sus tareas, «Encárgala» y «Pedir un cambio». Al final, plegado, qué pasa con el resto del tablero (sirven, dependen, después, sobran, sin colocar) y la nevera con «A la nevera».
+- **Decidir**: solo las **tres primeras** viñetas de «Esperando algo del usuario». «Propuestas por aprobar» no se pinta.
+- **Taller**: sesiones abiertas, vigía, pedido libre, órdenes, «Tus pedidos», capturas nuevas, recorrido de los jueces, informes y, plegado, «Archivo: el tablero entero».
+Si hay pedidos sin aplicar, el aviso con «Llamar al vigía ahora» sale también en Juego y Decidir.
+
+## La lista de la 1.0 (`gobierno/lista.json`)
+- `estado`: `propuesta` (el usuario aún no la aprobó: el tablero no se toca) o `aprobada`. `frase`, `comprobaciones` (`texto`, `estado`, `nota`), `organos` (`id`, `nombre`, `que`).
+- `lineas`: `{id: "L1", organo, titulo, estado: "hecha"|"medias"|"falta", veras, hecho, falta, captura, tareas: [ids del tablero]}`. «Qué verás» en llano, antes de delegar.
+- `reparto`: lo pendiente que no sirve a ninguna línea: `depende` (`{tareas, de, nota}`), `despues` (`{tareas, nota}`; las tareas «en pausa» del tablero cuentan aquí solas), `sobra`, `gobierno` (ids).
+- **Solo la cambia el usuario.** Nada entra sin sacar otra. Para aparcar una tarea del tablero, su texto empieza por `(en pausa`.
+- Avance de cada órgano: un segmento por línea (verde hecha, ámbar a medias, gris falta) y «N de M hechas · K a medias». No se cuentan tareas.
+- **Al cerrar una tarea que sirve a una línea**: actualizar en `lista.json` su `estado`, `hecho`, `falta` y `captura` (y la `nota` de una comprobación si cambia).
+
+## Cómo se escribe una pregunta
+En «Esperando algo del usuario», una viñeta por pregunta, solo sobre lo que verá el jugador:
+`**Título**: pregunta (A) opción [recomendado]; (B) opción; (C) opción. Por qué: una frase.`
+Las opciones acaban en `;` o en el punto antes de «Por qué:». Sin opciones (A)/(B), una pregunta sale con Sí / No. Cada opción sale como un botón con su texto entero; la recomendada, resaltada, con «Decide tú» debajo. Solo se enseñan las tres primeras; las demás esperan en cola. **Lo técnico no llega al usuario**: lo decide el director y lo apunta en la bitácora.
 
 ## Al empezar la sesión: aplicar pedidos
 1. `ArtifactData` → `action: "list"`, `collection: "pedidos"`, con la dirección del cuadro.
@@ -18,12 +39,14 @@ Una página para el móvil del usuario: enlace al juego, lo que espera algo suyo
 | `tipo` | Qué significa | Qué se hace |
 |---|---|---|
 | `priorizar` | «Dar prioridad» a la tarea `ref` | Entra en la cola del «Encargo de la próxima sesión» de la bitácora. Si hay varias, propón un orden (primero lo que desbloquea a lo demás) y que el usuario lo confirme. |
-| `cambio` | Cambio pedido sobre la tarea o propuesta `ref` | Si es pequeño y claro, se reescribe la tarea. Si cambia el alcance, va a la bitácora como propuesta. |
+| `cambio` | Cambio pedido sobre la tarea, propuesta o línea `ref` | Tarea: si es pequeño y claro, se reescribe; si cambia el alcance, a la bitácora como propuesta. Línea (`ref` = `L…`): se propone el cambio de `lista.json` y solo se hace con su sí. |
 | `aprobar` / `rechazar` | Decisión sobre la propuesta `ref` | Skill `bitacora`: al tablero, o fuera con nota. |
 | `nuevo` | Pedido libre | Skill `bitacora`: decisión literal con fecha y propuesta `P<n>`. |
-| `abrir` | «Abrir sesión» para la tarea `ref` | Abrir una sesión nueva para esa tarea (ver «Abrir sesiones»). Si la tarea ya tiene sesión en `sesiones`, depende de otra sin hacer o choca en archivos con una sesión en marcha, no se abre: se dice por qué en la `nota`. |
+| `abrir` | «Encárgala» (o «Abrir sesión» del archivo) para la tarea `ref`; si viene de una línea, `linea` dice cuál y `ref` es su primera tarea pendiente | Abrir una sesión nueva para esa tarea (ver «Abrir sesiones»). Si la tarea ya tiene sesión en `sesiones`, depende de otra sin hacer o choca en archivos con una sesión en marcha, no se abre: se dice por qué en la `nota`. |
 | `orden` | Orden de un toque; `ref` dice cuál | Ver «Órdenes de un toque». |
-| `respuesta` | Contesta al asunto `ref` (`E1` es el primero de «Esperando algo del usuario»; como el orden cambia, casa por `titulo`). El `texto` puede ser una respuesta rápida: «Sí», «No», «A», «B»… | A «Decisiones del usuario», y se quita de la lista de espera. |
+| `respuesta` | Contesta al asunto `ref` (`E1` es el primero de «Esperando algo del usuario»; como el orden cambia, casa por `titulo`). `texto`: la opción entera («A · Sí, aplícala al tablero»), «Sí», «No» o lo que escribió | A «Decisiones del usuario», y se quita de la lista de espera. |
+| `respuesta` con `texto: "Decide tú"` | Delega; `recomendado` dice qué opción era | Se aplica la opción recomendada y se apunta en «Decisiones del usuario» como «delegado con el botón». Nunca se delega por silencio. |
+| `nevera` | Idea nueva (`texto`) | Una línea en «Después de la 1.0» de la bitácora, con fecha. Sin sesión, estudio ni maqueta. |
 
 3. Marca cada pedido aplicado: `action: "update"` con `{ "estado": "aplicado", "nota": "<qué se hizo, en una línea>" }` y `if_version` con la versión leída. No se borran: el usuario ve que se le hizo caso. Cuando haya más de veinte aplicados, borra los más antiguos.
 4. Lo que no se entienda no se inventa: queda pendiente y se pregunta en el chat.
@@ -35,7 +58,7 @@ Una página para el móvil del usuario: enlace al juego, lo que espera algo suyo
 4. Dale al usuario el enlace.
 
 ## Vigía
-Es una **sesión fija**, «AQVILA · vigía del cuadro (sesión fija 2)» (creada el 16/11; la primera se archivó el 13/11 y por eso el botón dejó de servir). No se archiva. La despierta el botón «Llamar al vigía ahora», arriba en la pestaña Hoy, que dispara una tarea programada sin reloj (su id está en `vigia` de `cuadro.json`). **No hay reloj**: el vigía solo trabaja cuando el usuario lo llama (el 13/11 pidió pararlo; el 16/11 pidió poder activarlo desde el cuadro). Sus instrucciones están en su primer mensaje. Lección del 12/11/2026: una tarea programada que crea una sesión nueva en cada pasada arranca sin repositorio autorizado (el `git push` da 403) y sin `list_sessions` ni `create_session`: no sirve para esto. Si la sesión fija se pierde, se crea otra con `create_session` (con `source_url`) y una tarea programada nueva con `persistent_session_id`, y se cambia `vigia` en `cuadro.json`.
+Es una **sesión fija**, «AQVILA · vigía del cuadro (sesión fija 2)» (creada el 16/11; la primera se archivó el 13/11 y por eso el botón dejó de servir). No se archiva. La despierta el botón «Llamar al vigía ahora» (pestaña Taller), que dispara una tarea programada sin reloj (su id está en `vigia` de `cuadro.json`). **No hay reloj**: el vigía solo trabaja cuando el usuario lo llama (el 13/11 pidió pararlo; el 16/11 pidió poder activarlo desde el cuadro). Sus instrucciones están en su primer mensaje. Lección del 12/11/2026: una tarea programada que crea una sesión nueva en cada pasada arranca sin repositorio autorizado (el `git push` da 403) y sin `list_sessions` ni `create_session`: no sirve para esto. Si la sesión fija se pierde, se crea otra con `create_session` (con `source_url`) y una tarea programada nueva con `persistent_session_id`, y se cambia `vigia` en `cuadro.json`.
 
 ## Órdenes de un toque (`tipo: "orden"`)
 | `ref` | Qué se hace |
@@ -58,11 +81,8 @@ El 17/11 se cerró la sesión del Consejo, abierta por el usuario a mano, y él 
 ## Sesiones abiertas (colección `sesiones` del Artifact)
 La página pinta en vivo la colección `sesiones`: un documento por sesión de AQVILA sin archivar, con id = id de la sesión y `{titulo, estado, hace, url, actualizado}`; `estado` es `trabajando`, `esperando` (pide algo al usuario) o `terminada`; `hace` es una frase llana. La escribe el vigía en cada pasada y cualquier sesión que abra o cierre otra. Si la colección está vacía, la página enseña `sesiones` de `cuadro.json`.
 
-## Avance en %
-`cuadro.mjs` lo calcula del tablero: hechas / total, contando una línea «N6 a N15» por diez tareas. Cuenta tareas, no esfuerzo. Para que no engañe: una tarea por línea y, si se agrupan, con la forma «<ID> a <ID>».
-
 ## Botón «Llamar al vigía ahora»
-Arriba del cuadro hay un aviso con lo pulsado y sin aplicar y un botón que dispara el vigía al momento (`fire_trigger` con el id de `vigia` en `cuadro.json`, por el conector «Claude Code Remote»). Por eso el cuadro se publica con `capabilities: {"db": {}, "mcp": {"servers": [{"server": "Claude Code Remote", "tools": ["fire_trigger"]}]}}`. Publicar sin `capabilities` las conserva; no pases `{}`.
+En Taller (y en Juego y Decidir cuando hay pedidos sin aplicar) hay un aviso con lo pulsado y sin aplicar y un botón que dispara el vigía al momento (`fire_trigger` con el id de `vigia` en `cuadro.json`, por el conector «Claude Code Remote»). Por eso el cuadro se publica con `capabilities: {"db": {}, "mcp": {"servers": [{"server": "Claude Code Remote", "tools": ["fire_trigger"]}]}}`. Publicar sin `capabilities` las conserva; no pases `{}`.
 
 ## Estado del vigía (documento `estado/vigia` del Artifact)
 `{trabajando, llamado, empezado, terminado, resumen}`. La página pone `llamado` al pulsar el botón. El vigía, al empezar: si `trabajando` es verdadero y `empezado` es de hace menos de 15 minutos, ya hay otro vigía: termina sin hacer nada. Si no, escribe `trabajando: true` y `empezado`. Al acabar: `trabajando: false`, `terminado` (hora ISO) y `resumen` (una frase llana: qué aplicó y qué sesiones abrió). Con eso la página enseña «El vigía está trabajando…» y luego la última pasada.
@@ -73,14 +93,6 @@ Arriba del cuadro hay un aviso con lo pulsado y sin aplicar y un botón que disp
 - Encargo: la tarea literal del tablero, dónde está su detalle (estudio, parte anterior), qué archivos tocan las demás sesiones en marcha, «empieza como manda `CLAUDE.md` §7», cierre normal, y «si necesitas una decisión, pregunta con opciones».
 - Apunta la sesión en `sesiones` de `cuadro.json` (`{tarea, titulo, nota, url}`; la dirección es `https://claude.ai/code/<id de sesión>`): sale en «Trabajando ahora». Cada sesión quita la suya al cerrar y añade la que abra.
 - Como mucho tres o cuatro a la vez, y nunca dos que toquen los mismos archivos.
-
-## Qué enseña la página (rediseño del 16/11, pedido por el usuario)
-Cuatro vistas con pestañas fijas abajo (la dirección lleva `#hoy`, `#tareas`, `#ver` o `#pedir`):
-- **Hoy**: estandarte púrpura (anillo de avance, veredicto de los jueces, «Jugar ahora», tres cifras), «Decides tú» (preguntas con números romanos y respuestas rápidas, más las propuestas), sesiones abiertas y el vigía.
-- **Tareas**: mapa de carriles en losas (tocar una filtra la lista), lo pendiente con búsqueda y selección en lote, y lo hecho plegado.
-- **Ver**: capturas nuevas, recorrido de los jueces e informes.
-- **Pedir**: pedido libre, órdenes de un toque y la lista de pedidos.
-Para que las respuestas rápidas salgan bien, escribe cada asunto de «Esperando algo del usuario» como una sola pregunta, con sus opciones entre paréntesis: `(A) …; (B) …`. Para aparcar una tarea, empieza su texto por `(en pausa`.
 
 ## Lo que hay que enseñar al usuario
 En `gobierno/cuadro.json`: `capturas` (`{tarea, archivo, pie, ancha}`; `archivo` es un JPG subido a git, p. ej. en

@@ -1691,6 +1691,65 @@
       "tarea": "RM4",
       "archivo": "gobierno/capturas-tarea/RM4-laminas-hoja.jpg",
       "pie": "Láminas de dominio público encontradas: Atenas, hoplitas, templo dórico, Foro, puerto de Roma, Siracusa"
+    },
+    {
+      "tarea": "GM43h",
+      "archivo": "gobierno/capturas-tarea/GM43h-v-7-armar.jpg",
+      "pie": "Versión A · Testudo a pie: mantienes «Lanzar», tu soldado arma el brazo y los galos se vienen"
+    },
+    {
+      "tarea": "GM43h",
+      "archivo": "gobierno/capturas-tarea/GM43h-v-8-vuelo.jpg",
+      "pie": "Versión A · Los pila en el aire; el botón ya prepara el segundo"
+    },
+    {
+      "tarea": "GM43h",
+      "archivo": "gobierno/capturas-tarea/GM43h-v-9-impacto.jpg",
+      "pie": "Versión A · Impacto: caen cuatro galos y quedan pila clavados en tierra"
+    },
+    {
+      "tarea": "GM43h",
+      "archivo": "gobierno/capturas-tarea/GM43h-h-7-armar.jpg",
+      "pie": "Versión A · Lo mismo en horizontal",
+      "ancha": true
+    },
+    {
+      "tarea": "GM43h",
+      "archivo": "gobierno/capturas-tarea/GP1-tira-pilum.jpg",
+      "pie": "Versión B (GP1): el lanzamiento, paso a paso",
+      "ancha": true
+    },
+    {
+      "tarea": "GM43h",
+      "archivo": "gobierno/capturas-tarea/GP1-tira-choque.jpg",
+      "pie": "Versión B (GP1): el choque y la lucha por parejas",
+      "ancha": true
+    },
+    {
+      "tarea": "GM44c",
+      "archivo": "gobierno/capturas-tarea/GM44c-1-vertical-nuevo.jpg",
+      "pie": "Batalla con el soldado nuevo: hastati y galos"
+    },
+    {
+      "tarea": "GM44c",
+      "archivo": "gobierno/capturas-tarea/GM44c-2-vertical-antes.jpg",
+      "pie": "La misma batalla con los soldados de antes"
+    },
+    {
+      "tarea": "GM44c",
+      "archivo": "gobierno/capturas-tarea/GM44c-3-ancho-nuevo.jpg",
+      "pie": "Soldado nuevo, móvil en horizontal",
+      "ancha": true
+    },
+    {
+      "tarea": "CM1",
+      "archivo": "gobierno/capturas-tarea/CM1-1-juego.jpg",
+      "pie": "Cuadro nuevo: portada con los tres órganos"
+    },
+    {
+      "tarea": "CM1",
+      "archivo": "gobierno/capturas-tarea/CM1-4-decidir.jpg",
+      "pie": "Cuadro nuevo: tres preguntas con «Decide tú»"
     }
   ],
   "informes": [
@@ -1921,52 +1980,62 @@
     {
       "titulo": "Láminas de referencia · Roma y Grecia",
       "archivo": "gobierno/historia/laminas-roma-grecia.md"
+    },
+    {
+      "titulo": "TP0 · Objetivo final de las batallas: general y a pie (borrador)",
+      "archivo": "gobierno/estudios/TP0-objetivo-testudo-y-lucha.md"
+    },
+    {
+      "titulo": "PO1 · Política: ¿encaja y cómo convergemos? (una página y tres preguntas)",
+      "archivo": "gobierno/estudios/PO1-politica-converger.md"
+    },
+    {
+      "titulo": "EC0 · Objetivo final de la economía (medido con el bot)",
+      "archivo": "gobierno/estudios/EC0-objetivo-economia.md"
+    },
+    {
+      "titulo": "CI0 · Objetivo final de la ciudad, con 21 láminas de la época",
+      "archivo": "gobierno/estudios/CI0-objetivo-ciudad.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "MR2a",
-      "titulo": "Versión 1.0 · MR2a Menús romanos: materiales, Imperio y Gobierno (Fable dirige, Opus construye)",
-      "nota": "Terminada el 17/11: subida y publicada",
-      "url": "https://claude.ai/code/session_01QiKC38MrhvKcf8A9xyWrQs"
+      "tarea": "GM43h",
+      "titulo": "Versión 1.0 · GM43h Testudo a pie: lanzar el pilum y la lucha (Fable dirige, Opus construye)",
+      "nota": "Terminada el 18/11: pilum en maqueta; fundida en TP1",
+      "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
     },
     {
-      "tarea": "GC7",
-      "titulo": "Versión 1.0 · GC7 a GC9 y GC6 Fallos de la batalla y quitar la clásica",
-      "nota": "batalla",
-      "url": "https://claude.ai/code/session_01QiKC3AXEa5xZ9aJP5skXgw"
+      "tarea": "CI1",
+      "titulo": "Cerebro · CI1 Roma de su siglo (la ciudad con el aspecto de su época; dirige y construye Opus)",
+      "nota": "js/ciudad.js, city3d.js, statics.js; capturas antes y después; 1,0 M con tope +25 %",
+      "url": "https://claude.ai/code/session_01QiKC39hKX8V8mRMAsoPzPT"
     },
     {
-      "tarea": "DEC",
-      "titulo": "Decisiones delegadas en Fable 5.2 (Nilo y mapamundi)",
-      "nota": "solo decide y avisa; no construye",
-      "url": "https://claude.ai/code/session_01QiKC3AR2FzqYL23coZ3gBE"
+      "tarea": "TP1",
+      "titulo": "Corazón · TP1 y TP1b La escena a pie (Opus)",
+      "nota": "Paso 2 en obra (TP1b) y falange de picas (TP7a, maquetas/falange/)",
+      "url": "https://claude.ai/code/session_01QiKC36rueL1kwqzeVBKZqd"
     },
     {
-      "tarea": "EV7",
-      "titulo": "Política · EV7 Gobierno por turnos: el Senado manda y la ciudad obedece (maqueta, Opus)",
-      "nota": "solo gobierno/maquetas/; excepción a la 1.0; tope 2 M",
-      "url": "https://claude.ai/code/session_01QiKC39GcxgHwQm5q2GKUGc"
+      "tarea": "CE2",
+      "titulo": "Cerebro · CE2 Recursos nuevos (dirige y construye Opus)",
+      "nota": "js/game.js, data.js, ui.js, bot y guardado migrado; 2,0 M declarado, unos 3,6 M esperables",
+      "url": "https://claude.ai/code/session_01QiKC397z42u9YdbK1uWvE9"
     },
     {
-      "tarea": "C10",
-      "titulo": "Mapa · C10 Adornos de carta (Opus)",
-      "nota": "js/gfx/map3d.js; excepción a la 1.0",
-      "url": "https://claude.ai/code/session_01QiKC36cUDqd5eZ6evx8RuA"
+      "tarea": "GM44",
+      "titulo": "Corazón · GM44 Modelos de soldado nuevos para las demás tropas (dirige y construye Opus)",
+      "nota": "js/gfx/soldado.js, js/ui-guerra.js, assets/soldados/; plan y tamaño en la primera hora; 1,0 M hasta confirmar",
+      "url": "https://claude.ai/code/session_01QiKC3AgvUkgAmNioZYMQbp"
     },
     {
-      "tarea": "JU1",
-      "titulo": "Versión 1.0 · JU1 Dos jueces en rojo: «Construir aquí» y guerra atascada (Opus)",
-      "nota": "diagnóstico: ¿fallo real o del juez?; gobierno/*.mjs",
-      "url": "https://claude.ai/code/session_01QiKC37gQPtkdN7X53tu66G"
-    },
-    {
-      "tarea": "ES1",
-      "titulo": "Versión 1.0 · ES1 Escaramuzas: batallas sueltas desde el menú (Opus)",
-      "nota": "Carril V; js/ui.js, js/game.js (montar ejércitos), js/ui-guerra.js",
-      "url": "https://claude.ai/code/session_01QiKC37ZhZvnuUQQ1zNnxfi"
+      "tarea": "MN0",
+      "titulo": "Músculo · MN0 Objetivo final de los menús y encargo artístico, hablándolo con el usuario (dirige y construye Opus)",
+      "nota": "gobierno/estudios/MN0-*.md; conversación con el usuario; un plan cerrado y alcance congelado; 1,2 M",
+      "url": "https://claude.ai/code/session_01QiKC37MGCiWGfRg2ef3mGC"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

@@ -84,3 +84,9 @@ export const CULTURA = { cartago: 'cart', epiro: 'grie', macedonia: 'grie', aque
 export const PIEZA_CULTURA = { cart: 'cart_templo', grie: 'grie_templo', galo: 'galo_centro', iber: 'iber_centro' };
 /* pieza central de la ciudad de un bando (por id de facción o por su nombre), o null si usa lo romano */
 export function piezaCultura(bando) { const D = window.DATA; let id = D.FACTIONS[bando] ? bando : Object.keys(D.FACTIONS).find(k => D.FACTIONS[k].n === bando); return PIEZA_CULTURA[CULTURA[id]] || null; }
+/* C16 · un juego de ejemplares vacío y reutilizable (casas de las ciudades del mapa): se rellenan las matrices y se fija .count cuando cambia lo que se ve */
+export function staticInstancedVacio(key, max, color) {
+  const st = loaded.get(key); if (!st) return null; const g = new THREE.Group();
+  for (const p of st.parts) { const im = new THREE.InstancedMesh(p.geo, material(p.file, p.mode, color, p.maps), max); im.count = 0; im.instanceMatrix.setUsage(THREE.DynamicDrawUsage); im.frustumCulled = false; g.add(im); }
+  return g;
+}
