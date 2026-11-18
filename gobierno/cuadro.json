@@ -1963,10 +1963,10 @@
       "url": "https://claude.ai/code/session_01QiKC37Er11SboFXfCVaV5o"
     },
     {
-      "tarea": "C15",
-      "titulo": "Mapa · C15 Cámara con horizonte (Opus)",
-      "nota": "js/gfx/map3d.js y ground.js; excepción a la 1.0 (sin pausa)",
-      "url": "https://claude.ai/code/session_01QiKC3987kGU55PsUABn1HX"
+      "tarea": "C16",
+      "titulo": "Mapa · C16 Ciudades grandes (Opus)",
+      "nota": "js/gfx/map3d.js (y statics.js mínimo); excepción a la 1.0 (sin pausa)",
+      "url": "https://claude.ai/code/session_01QiKC384KWVJWfbeEBPsrnQ"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
