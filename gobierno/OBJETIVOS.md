@@ -10,17 +10,19 @@ ciudades, ciudadanos y plebeyos y demás estratos sociales, vas creando tus sold
 el rumbo de la historia. Incluso puedes hacer crecer tu ciudad, llegar a muchos acuerdos comerciales y ganar la
 partida sin dedicarla a la guerra: ganarla por política y por economía.»
 
-Un solo juego, tres formas de ganar: **por las armas, por el comercio o por la política**.
+Un solo juego, **cuatro caminos de victoria: armas, comercio, política y ciencia**. Se gana con **dos tercios** de los que
+haya (hoy, 3 de 4); con uno solo no se gana. Sin plazo: se puede jugar siglos, y un camino logrado se puede perder
+(usuario, 18/11: «2/3 de lo que haya… y puede haber alguna forma más de ganar»; detalle en `estudios/CE1-objetivo-cerebro.md`).
 
 ## Tres órganos
 | Órgano | Qué es | Está terminado cuando |
 |---|---|---|
-| **Cerebro** | Ciudades y construcción, recursos, clases sociales, intrigas del Senado, comercio | Se puede ganar una campaña por economía y otra por política; descuidar a una clase social tiene consecuencias que se ven |
-| **Corazón** | Guerras, batallas y estrategia | Se puede ganar una campaña por las armas; hay una sola batalla, con el testudo a pie alcanzable desde el juego |
+| **Cerebro** | Ciudades y construcción, recursos, clases sociales, intrigas del Senado, comercio | Se pueden lograr los caminos del comercio, la política y la ciencia; descuidar a una clase social tiene consecuencias que se ven |
+| **Corazón** | Guerras, batallas y estrategia | Se puede lograr el camino de las armas; hay una sola batalla, con el testudo a pie alcanzable desde el juego |
 | **Músculo** | Gráficos, manejo y entretenimiento | Aspecto cuidado y coherente; fluido y sin conexión en el móvil del usuario |
 
 ## La 1.0 está terminada cuando el usuario, en su móvil
-1. Puede acabar una campaña ganando por guerra, por economía o por política.
+1. Puede ganar una campaña con 3 de los 4 caminos (armas, comercio, política y ciencia).
 2. Lo alcanza todo desde el mismo menú y la misma partida, con un aspecto cuidado y coherente.
 3. Juega fluido y sin conexión.
 
