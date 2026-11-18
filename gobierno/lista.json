@@ -3,12 +3,12 @@
   "estado": "aprobada",
   "aprobada": "18/11/2026, por el usuario en el cuadro: «A · Sí, aplícala al tablero». Aplicada al tablero por CM2.",
   "fecha": "18/11/2026",
-  "frase": "Gobiernas una ciudad romana con sus clases y su Senado, levantas ejércitos y cambias la historia. Se gana por las armas, por el comercio o por la política.",
+  "frase": "Gobiernas una ciudad romana con sus clases y su Senado, levantas ejércitos y cambias la historia. Se gana con tres de cuatro caminos: las armas, el comercio, la política y la ciencia.",
   "comprobaciones": [
     {
-      "texto": "Puedes acabar una campaña ganando por guerra, por economía o por política",
-      "estado": "medias",
-      "nota": "1 de 3. Hoy solo se gana tomando la capital enemiga."
+      "texto": "Puedes ganar una campaña con tres de los cuatro caminos: armas, comercio, política y ciencia",
+      "estado": "falta",
+      "nota": "Hoy solo existe el camino de las armas (tomar la capital). Faltan el comercio, la política, la ciencia y la regla de «tres de cuatro, sin plazo». Lo cierra CE1: plan CE2 a CE12."
     },
     {
       "texto": "Lo alcanzas todo desde el mismo menú y la misma partida, con un aspecto cuidado y coherente",
@@ -57,13 +57,16 @@
       "organo": "cerebro",
       "titulo": "Recursos, mercado y cuentas claras",
       "estado": "medias",
-      "veras": "Sabes de un vistazo qué produces, qué gastas y qué te falta, y puedes comprar y vender.",
+      "veras": "Una economía nueva: grano, denarios, materiales, hierro, hombres y un bien por región. Cada estación te falta algo y tienes que elegir.",
       "hecho": "Barra de recursos, hoja de cuentas, mercado, puerto y cola de obras.",
       "captura": "gobierno/capturas-tarea/Q3-1-cuentas.jpg",
       "tareas": [
-        "CE1"
+        "CE2",
+        "CE3",
+        "CE4",
+        "CE5"
       ],
-      "falta": "Tu 18/11: reinventar la economía entera (recursos, mejorar edificios, tropas, comerciar). Se piensa contigo en CE1, antes de construir nada, y sale UN plan cerrado."
+      "falta": "Reinventada entera (CE1, 18/11): recursos nuevos (CE2), edificios, tropas y tiempos (CE3), comercio con precios (CE4) y «Este año» con el tributo de guerra (CE5)."
     },
     {
       "id": "L3",
@@ -84,12 +87,14 @@
       "organo": "cerebro",
       "titulo": "Un solo Senado, con intrigas",
       "estado": "medias",
-      "veras": "Una sala de votos con tres bandos: prometes, pactas y te vetan. Lo que se vota cambia tu partida.",
+      "veras": "Una sala viva con hasta siete bandos, cada uno con su gran familia. Ves debatir a los senadores; los jefes de bando son tus consejeros; hay banquetes, juegos y ritos.",
       "hecho": "Sala de votos con 30 escaños, tratos y tribuno, ya dentro del juego.",
-      "falta": "Se piensa contigo en CE1 (18/11): escaños por tamaño de provincia y por respeto o poder, Autoridad con cargos como peldaños, banquete y consejeros. Sin tareas hasta que cierre.",
+      "falta": "Senado de familias (CE6), sala viva y jefes-consejeros (CE8), banquete, juegos y rito (CE9).",
       "captura": "gobierno/capturas-tarea/SN2-1-sala.jpg",
       "tareas": [
-        "CE1"
+        "CE6",
+        "CE8",
+        "CE9"
       ]
     },
     {
@@ -99,35 +104,33 @@
       "estado": "medias",
       "veras": "Abres rutas, firmas acuerdos con otras ciudades y ves cuánto te renta cada uno.",
       "hecho": "Mercado, puerto y rutas por tierra y mar dibujadas en el mapa.",
-      "falta": "La tarjeta de cada ruta con su renta y los acuerdos firmados en el Senado.",
+      "falta": "Se hace dentro del comercio nuevo (CE4): precios por ciudad y estación, rutas que tardan y acuerdos que vota el Senado. Absorbe la tarjeta de ruta (K7b).",
       "captura": "gobierno/capturas-tarea/MR2c-4-rutas.jpg",
       "tareas": [
-        "K7b",
-        "K7e"
+        "CE4"
       ]
     },
     {
       "id": "L6",
       "organo": "cerebro",
-      "titulo": "Ganar una campaña por el comercio",
+      "titulo": "Camino del comercio",
       "estado": "falta",
-      "veras": "Una meta de riqueza y acuerdos a la vista durante la partida. Al alcanzarla, pantalla de victoria sin haber tomado Cartago.",
-      "falta": "Todo. Tres tareas escritas: la meta, la meta a la vista con su pantalla de victoria y el equilibrio.",
+      "veras": "Un camino de victoria: riqueza y acuerdos con los reinos, a la vista en «Tus caminos».",
+      "falta": "Todo: la meta y «Tus caminos» (CE10) y el equilibrio con el bot (CE12). Absorbe VC1 a VC3.",
       "tareas": [
-        "VC1",
-        "VC2",
-        "VC3"
+        "CE10"
       ]
     },
     {
       "id": "L7",
       "organo": "cerebro",
-      "titulo": "Ganar una campaña por la política",
+      "titulo": "Camino de la política: Príncipe del Senado",
       "estado": "falta",
-      "veras": "Una meta de poder en el Senado a la vista durante la partida. Al alcanzarla, pantalla de victoria.",
-      "falta": "Se piensa contigo en CE1 (18/11): escaños por tamaño de provincia y por respeto o poder, Autoridad con cargos como peldaños, banquete y consejeros. Sin tareas hasta que cierre.",
+      "veras": "Edil, pretor, cónsul y Príncipe del Senado con la barra de Autoridad; alianza con los reinos, ningún bando hostil y ninguna clase en revuelta.",
+      "falta": "Autoridad y cargos (CE7) y la meta a la vista (CE10).",
       "tareas": [
-        "CE1"
+        "CE7",
+        "CE10"
       ]
     },
     {
@@ -143,12 +146,16 @@
     {
       "id": "L9",
       "organo": "corazon",
-      "titulo": "Ganar una campaña por las armas",
-      "estado": "hecha",
-      "veras": "Tomas la capital enemiga y la partida termina con tu victoria y tu nota.",
+      "titulo": "Camino de las armas",
+      "estado": "medias",
+      "veras": "Tomas la capital enemiga y eso cuenta como un camino logrado, no como el final de la partida.",
       "hecho": "Funciona y está equilibrado con partidas de prueba: Cartago cae en 7 de cada 10.",
       "captura": "gobierno/capturas-tarea/ES1-7-resultado.png",
-      "tareas": []
+      "tareas": [
+        "CE10",
+        "CE12"
+      ],
+      "falta": "Con la regla de «tres de cuatro, sin plazo», tomar Cartago ya no acaba la partida: lo cambia CE10; CE12 equilibra los cuatro caminos."
     },
     {
       "id": "L10",
@@ -175,10 +182,12 @@
       "estado": "medias",
       "veras": "Entras desde el juego, avanzas bajo los escudos, lanzas el pilum y luchas cuerpo a cuerpo, con sonido de verdad.",
       "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas.",
-      "falta": "Elegir maqueta del pilum, el soldado nuevo en la escena, pulir la lucha, el sonido y las caras.",
+      "falta": "En obra: el paso 2 (centurión, cuatro órdenes, lucha fina) y la falange de picas. Faltan el soldado nuevo, el sonido y las caras.",
       "captura": "gobierno/capturas-tarea/GM43f-2-escena.jpg",
       "tareas": [
         "TP1",
+        "TP1b",
+        "TP7a",
         "GM43l",
         "GM43i",
         "GM43j"
@@ -228,6 +237,17 @@
       "falta": "Tu prueba, los arreglos que salgan de ella y publicar.",
       "tareas": [
         "V10b"
+      ]
+    },
+    {
+      "id": "L16",
+      "organo": "cerebro",
+      "titulo": "Camino de la ciencia",
+      "estado": "falta",
+      "veras": "Un cuarto camino de victoria: todos los saberes de la última edad y tres grandes obras (acueducto, calzada y puerto de hormigón).",
+      "falta": "Todo: lo hace CE11 (tras CE10).",
+      "tareas": [
+        "CE11"
       ]
     }
   ],
