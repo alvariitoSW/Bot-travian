@@ -533,7 +533,22 @@
     aegyptius: rum('Estrabón, Geografía 17.1.6-7; Polibio 5.88-90', 'por cotejar', MEM12 + '. Rodas vivía del comercio con Alejandría')
   };
 
-  R.fichas = { calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+  // ---- Vida en el mapa (D.VIDA, C13). Dibujada por código; ficha larga en gobierno/historia/C13-vida.md ----
+  const POR_CODIGO_C13 = { sin: 'dibujado por código en js/gfx/map3d.js (formas sencillas con color; sin archivo de arte ni licencia ajena)' };
+  const MEM13 = 'citado de memoria el 18/11/2026, por cotejar', LJ_VIDA = 'licencia de juego: los animales, barcos y carros son mucho mayores que a escala para que se vean, y van donde cae bien a la vista';
+  const vid = (fuente, dictamen, nota, texto) => f(POR_CODIGO_C13, h(fuente, dictamen, nota + ' · ' + LJ_VIDA, texto));
+  const vida = {
+    ovis: vid('Varrón, De re rustica 2.1-2 y 2.2.9 (rebaños que pasan el verano en el Samnio y el invierno en Apulia); Polibio 2.15 (la Galia Cisalpina, rica en ganado)', 'por cotejar', MEM13 + '. Varrón escribe en 37 a.C., algo después de la época, pero cuenta costumbres antiguas'),
+    capra: vid('Varrón, De re rustica 2.3; Polibio 12.3-4 (las cabras de Córcega)', 'por cotejar', MEM13 + '. En el mapa van sobre todo en los montes y en las tierras secas'),
+    bos: vid('Catón, De agri cultura 10-11 (cuántos bueyes necesita una finca); Varrón, De re rustica 2.5', 'por cotejar', MEM13 + '. Catón escribe hacia 160 a.C., dentro de la época del juego'),
+    fumus: vid('Virgilio, Bucólicas 1.82 («ya humean a lo lejos los tejados de las granjas»)', 'licencia de juego', MEM13 + '. El humo de los hogares es de todas las épocas; Virgilio es posterior (h. 39 a.C.)',
+      'En las casas y cabañas antiguas el fuego del hogar ardía todo el día, para cocinar y calentarse, y el humo salía por el techo. De lejos, el humo era la señal de que un pueblo estaba vivo.'),
+    oneraria: vid('Pecio de Kyrenia (Chipre, h. 300 a.C.); Casson, Ships and Seamanship in the Ancient World (1971)', 'probable', MEM13 + '. Mercante de casco redondo y una vela cuadrada, sin remos ni espolón; tamaño y forma a ojo',
+      'Los barcos mercantes eran de casco ancho y redondo y navegaban a vela, sin remos. Llevaban ánforas de vino y aceite, grano y cerámica de puerto en puerto. El pecio de Kyrenia, hundido hacia 300 a.C. con su carga de ánforas, es uno de esa época.'),
+    plaustrum: vid('Catón, De agri cultura 10-11 (los carros de la finca); Varrón, De re rustica 1.22', 'por cotejar', MEM13 + '. En el juego, un carro por calzada construida')
+  };
+
+  R.fichas = { vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -568,7 +583,8 @@
     tribu: { tabla: 'TRIBUS', numericos: ['lon', 'lat'], textos: ['n', 'la', 'gente', 'casa'] },
     calzada: { tabla: 'CALZADAS', numericos: [], textos: ['n', 'la'] },
     puerto: { tabla: 'PUERTOS', numericos: ['lon', 'lat'], textos: ['n', 'la'] },
-    rumbo: { tabla: 'RUMBOS', numericos: [], textos: ['n'] }
+    rumbo: { tabla: 'RUMBOS', numericos: [], textos: ['n'] },
+    vida: { tabla: 'VIDA', numericos: [], textos: ['n', 'la'] }
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */

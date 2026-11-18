@@ -536,6 +536,16 @@
     ionius: { n: 'De Siracusa al Pireo', p: [[15.51, 36.95], [17.5, 36.9], [20.5, 36.6], [22.6, 36.0], [23.4, 36.15], [23.75, 36.95], [23.55, 37.85]] },
     aegyptius: { n: 'Del Pireo a Alejandría por Rodas', p: [[23.55, 37.85], [23.7, 37.6], [24.2, 37.45], [24.5, 37.0], [25.4, 36.5], [26.5, 36.3], [27.7, 36.3], [28.3, 36.5], [28.8, 34.5], [29.75, 31.4]] }
   };
+  /* C13 · Vida en el mapa: ganado, humo de los poblados, mercantes por las rutas de mar y carros por las calzadas. Solo se ve
+     (js/gfx/map3d.js, dibujado por código); no toca la economía. Ficha en js/registro.js (tipo vida). */
+  D.VIDA = {
+    ovis: { n: 'Ovejas', la: 'Oves' },
+    capra: { n: 'Cabras', la: 'Caprae' },
+    bos: { n: 'Bueyes', la: 'Boves' },
+    fumus: { n: 'Humo de los hogares', la: 'Fumus' },
+    oneraria: { n: 'Barco mercante', la: 'Navis oneraria' },
+    plaustrum: { n: 'Carro de bueyes', la: 'Plaustrum' }
+  };
 
   // Hechos históricos. fx: clave interpretada por game.js (o varias separadas por comas, en ese orden). k: clave opcional para distinguir dos hechos del mismo año (id de ficha «<año>-<k>»)
   // H13b, licencia de juego: Roma empieza con más tropas para la llegada temprana de Pirro (no es un dato histórico)

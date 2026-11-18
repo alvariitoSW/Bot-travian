@@ -403,6 +403,148 @@ function calzadasAnio(trazos, anio) {
   a.needsUpdate = true;
 }
 
+/* C13 · Vida en el mapa (D.VIDA): rebaños que pastan, humo de los hogares en poblados y ciudades, mercantes por las rutas de mar
+   (D.RUMBOS) y carros de bueyes por las calzadas (D.CALZADAS). Sin arte nuevo y barato: (1) el ganado, en UNA geometría pequeña
+   (13 triángulos) copiada con instancias, repartida en trozos del mapa para que solo se dibujen los que están en pantalla; pastan
+   y se mueven en el sombreador, sin tocar la CPU; (2) el humo, cintas de 12 triángulos que miran a la cámara y se mecen, todas en
+   una malla; (3) mercantes y (4) carros, una malla con instancias cada uno: la CPU mueve 18 + 11 matrices por fotograma, y solo
+   cuando se ven (barcos y carros van en una sola malla). Todo se apaga de lejos (ver update). Ficha en js/registro.js (tipo vida). */
+const PELO = { ovis: ['#e9e2d0', '#d8cfb8', '#cfc6ae'], capra: ['#6e5236', '#4a3a2a', '#8a6d4c'], bos: ['#8a6a4a', '#b39673', '#5d4632'] };
+const conColor = (g, col) => { g = g.index ? g.toNonIndexed() : g; const c = new THREE.Color(col), n = g.attributes.position.count, a = new Float32Array(n * 3); for (let k = 0; k < n; k++) { a[k * 3] = c.r; a[k * 3 + 1] = c.g; a[k * 3 + 2] = c.b; } g.setAttribute('color', new THREE.BufferAttribute(a, 3)); if (g.attributes.uv) g.deleteAttribute('uv'); return g; };
+const sinSuelo = (g, y0) => { g = g.toNonIndexed(); const p = g.attributes.position, keep = []; for (let t = 0; t < p.count; t += 3) { let abajo = true; for (let q = 0; q < 3; q++) if (p.getY(t + q) > y0 + 1e-4) abajo = false; if (!abajo) keep.push(t); } const out = new THREE.BufferGeometry(); for (const nm of ['position', 'normal']) { const a = g.attributes[nm], b = new Float32Array(keep.length * 9); keep.forEach((t, i) => { for (let q = 0; q < 9; q++) b[i * 9 + q] = a.array[t * 3 + q]; }); out.setAttribute(nm, new THREE.BufferAttribute(b, 3)); } return out; };
+const cajaSin = (w, h, d, x, y, z) => { const g = new THREE.BoxGeometry(w, h, d); g.translate(x, y + h / 2, z); return sinSuelo(g, y); };
+const unir = gs => { const n = gs.reduce((a, g) => a + g.attributes.position.count, 0), out = new THREE.BufferGeometry(); for (const nm of ['position', 'normal', 'color']) { const b = new Float32Array(n * 3); let o = 0; for (const g of gs) { b.set(g.attributes[nm].array, o); o += g.attributes[nm].array.length; } out.setAttribute(nm, new THREE.BufferAttribute(b, 3)); } out.computeBoundingSphere(); return out; };
+function animalGeo() {   // cuerpo sin suelo (10) y cabeza en punta (3): 13 triángulos; la cabeza va más oscura y es lo que baja al pastar
+  const cuerpo = conColor(cajaSin(0.09, 0.075, 0.2, 0, 0.04, 0), '#ffffff');
+  const ca = new THREE.ConeGeometry(0.04, 0.09, 3, 1, true); ca.rotateX(Math.PI / 2); ca.translate(0, 0.115, 0.135); const cabeza = conColor(ca, '#9a9a9a');
+  return unir([cuerpo, cabeza]);
+}
+function mercanteGeo() {   // casco ancho sin suelo, proa en cuña, mástil y vela cuadra (crema): 17 triángulos
+  const casco = conColor(cajaSin(0.32, 0.13, 0.62, 0, 0, -0.04), '#6b4423');
+  const pr = new THREE.ConeGeometry(0.16, 0.26, 3, 1, true); pr.rotateX(Math.PI / 2); pr.scale(1, 0.55, 1); pr.translate(0, 0.07, 0.4); const proa = conColor(pr, '#5a381c');
+  const ve = new THREE.PlaneGeometry(0.5, 0.42); ve.translate(0, 0.45, 0.04); const vela = conColor(ve, '#efe3c2');
+  const ma = new THREE.PlaneGeometry(0.03, 0.62); ma.rotateY(Math.PI / 2); ma.translate(0, 0.38, 0.03); const mastil = conColor(ma, '#4a3018');
+  return unir([casco, proa, vela, mastil]);
+}
+function carroGeo() {   // caja de tablas, dos ruedas macizas y el buey delante: 26 triángulos
+  const caja = conColor(cajaSin(0.17, 0.07, 0.24, 0, 0.06, -0.05), '#8c6a3c');
+  const ruedas = [-1, 1].map(s => { const r = new THREE.CircleGeometry(0.055, 5); r.rotateY(Math.PI / 2); r.translate(s * 0.095, 0.055, -0.05); return conColor(r, '#3e2a16'); });
+  const buey = conColor(cajaSin(0.08, 0.07, 0.17, 0, 0.035, 0.2), '#7d6248');
+  return unir([caja, ...ruedas, buey]);
+}
+/* el ganado pasta en el sombreador: cada animal (por su sitio) da pasos cortos adelante y atrás y baja la cabeza a ratos */
+function materialGanado() {
+  const m = new THREE.MeshLambertMaterial({ vertexColors: true, flatShading: true });
+  m.onBeforeCompile = sh => {
+    sh.uniforms.uTime = uTime;
+    sh.vertexShader = 'uniform float uTime;\n' + sh.vertexShader.replace('#include <begin_vertex>', `#include <begin_vertex>
+      vec3 ip = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
+      float hh = fract(sin(dot(ip.xz, vec2(12.9898, 78.233))) * 43758.5453), tt = uTime * 0.11 + hh * 40.0;
+      transformed.z += sin(tt) * 0.09 + sin(tt * 0.37) * 0.05; transformed.x += sin(tt * 0.23 + 1.0) * 0.03;
+      if (position.z > 0.09) transformed.y -= 0.045 * smoothstep(0.2, 0.8, 0.5 + 0.5 * sin(uTime * 0.5 + hh * 23.0));`);
+  };
+  return m;
+}
+function materialHumo() {
+  return new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uTime: uTime, uOp: { value: 1 } },
+    vertexShader: `uniform float uTime; varying vec2 vU; varying float vH;
+      void main() {
+        vec3 base = (modelMatrix * instanceMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz; float s = length(instanceMatrix[0].xyz), y = position.y;
+        vH = fract(sin(dot(base.xz, vec2(12.9898, 78.233))) * 43758.5453); vU = vec2(position.x * 2.0, y);
+        float vien = 0.35 + 0.25 * sin(uTime * 0.21 + vH * 6.28), mece = sin(uTime * 0.7 + vH * 9.0 + y * 3.0) * 0.12 * y;
+        vec3 der = vec3(viewMatrix[0][0], viewMatrix[1][0], viewMatrix[2][0]);
+        vec3 p = base + vec3((vien * y * y + mece) * s, y * 1.7 * s, (0.25 * y * y + mece * 0.5) * s) + der * position.x * mix(0.04, 0.24, y) * s;
+        gl_Position = projectionMatrix * viewMatrix * vec4(p, 1.0);
+      }`,
+    fragmentShader: `uniform float uTime, uOp; varying vec2 vU; varying float vH;
+      void main() {
+        float borde = 1.0 - smoothstep(0.35, 1.0, abs(vU.x)), bocanada = 0.75 + 0.25 * sin(vU.y * 11.0 - uTime * 1.3 + vH * 6.0);
+        float a = borde * bocanada * smoothstep(0.0, 0.08, vU.y) * (1.0 - smoothstep(0.35, 1.0, vU.y)) * 0.8 * uOp;
+        gl_FragColor = vec4(mix(vec3(0.27, 0.25, 0.23), vec3(0.6, 0.58, 0.56), vU.y), a);
+      }` });
+}
+/* recorrido de una polilínea (lon, lat) en el mundo 3D: puntos y longitudes acumuladas, para mover por ella a velocidad fija */
+function recorrido(p) { const pts = p.map(q => { const r = D.proj(q[0], q[1]); return [r[0] * K, r[1] * K]; }), ac = [0]; for (let i = 1; i < pts.length; i++) ac.push(ac[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1])); return { pts, ac, L: ac[ac.length - 1] }; }
+function enRecorrido(r, d, out) { let i = 1; while (i < r.ac.length - 1 && r.ac[i] < d) i++; const a = r.pts[i - 1], b = r.pts[i], l = (r.ac[i] - r.ac[i - 1]) || 1, f = Math.max(0, Math.min(1, (d - r.ac[i - 1]) / l)); out[0] = a[0] + (b[0] - a[0]) * f; out[1] = a[1] + (b[1] - a[1]) * f; out[2] = Math.atan2(b[0] - a[0], b[1] - a[1]); return out; }
+function vidaMallas(vista, sitioPasto) {
+  const V = D.VIDA || {}, M = new THREE.Matrix4(), Q = new THREE.Quaternion(), P = new THREE.Vector3(), S = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0), col = new THREE.Color();
+  const grupo = new THREE.Group(), r = { grupo, rebanos: [], humo: null, humoCiudad: [], viajeros: null, rutasMar: [], rutasTierra: [] };
+  // --- rebaños: centros junto a pueblos y ciudades, y sueltos en la estepa; 5 a 8 cabezas por rebaño ---
+  const centros = [];
+  for (const id in (D.TRIBUS || {})) { const t = D.TRIBUS[id], p = D.proj(t.lon, t.lat); for (let k = 0; k < 2; k++) { const a = hash(t.lon * 3.1 + k * 7.7) * 6.283, d = 2.6 + hash(t.lat * 5.3 + k) * 1.6; centros.push([p[0] * K + Math.cos(a) * d, p[1] * K + Math.sin(a) * d, t.lon * 1.7 + k]); } }
+  for (const id in D.CITIES) { const c = D.CITIES[id], p = D.proj(c.lon, c.lat); if (hash(c.lon * 9.1 + c.lat) < 0.35) continue; const a = hash(c.lat * 4.4) * 6.283, d = 2.4 + hash(c.lon * 2.2) * 1.4; centros.push([p[0] * K + Math.cos(a) * d, p[1] * K + Math.sin(a) * d, c.lon * 2.3]); }
+  for (let q = 0, n = 0; q < 4000 && n < 45; q++) { const x = OX + hash(q * 3.3 + 0.5) * ANCHO, z = OZ + hash(q * 7.1 + 0.2) * ALTO, s = sitioPasto(x, z); if (s && s.estepa) { centros.push([x, z, q * 0.37]); n++; } }
+  const trozos = new Map();
+  for (const [cx, cz, sem] of centros) {
+    const s = sitioPasto(cx, cz); if (!s) continue;
+    const u = hash(sem * 1.3), tipo = s.monte ? (u < 0.75 ? 'capra' : 'ovis') : s.estepa || s.seco ? (u < 0.7 ? 'ovis' : 'capra') : (u < 0.45 ? 'bos' : 'ovis');
+    if (!V[tipo]) continue;
+    const n = tipo === 'bos' ? 3 + Math.floor(hash(sem * 2.1) * 3) : 5 + Math.floor(hash(sem * 2.1) * 4), giro = hash(sem * 4.7) * 6.283, esc = tipo === 'bos' ? 1.15 : 0.85;
+    const key = Math.floor(cx / 30) + ',' + Math.floor(cz / 30); let tr = trozos.get(key); if (!tr) trozos.set(key, tr = []);
+    for (let i = 0; i < n; i++) {
+      const x = cx + (hash(sem + i * 1.7) - 0.5) * 0.9, z = cz + (hash(sem + i * 2.9) - 0.5) * 0.7; if (!sitioPasto(x, z)) continue;
+      const pel = PELO[tipo]; col.set(pel[Math.floor(hash(sem + i * 5.5) * pel.length)]);
+      M.compose(P.set(x, Math.max(0.03, vista.hAt(x, z)) - 0.01, z), Q.setFromAxisAngle(Y, giro + (hash(sem + i * 3.1) - 0.5) * 1.6), S.setScalar(esc * (0.9 + hash(sem + i) * 0.2)));
+      tr.push([M.clone(), col.clone()]);
+    }
+  }
+  const gA = animalGeo(), mA = materialGanado();
+  for (const tr of trozos.values()) {
+    if (!tr.length) continue; const im = new THREE.InstancedMesh(gA, mA, tr.length);
+    tr.forEach(([m, c], i) => { im.setMatrixAt(i, m); im.setColorAt(i, c); }); im.computeBoundingSphere(); grupo.add(im); r.rebanos.push(im);
+  }
+  r.cabezas = r.rebanos.reduce((a, m) => a + m.count, 0);
+  // --- humo: una columna en cada pueblo (dos en los grandes) y una en cada ciudad (escondida si la ciudad no está en la partida) ---
+  if (V.fumus) {
+    const sitios = [];
+    for (const id in (D.TRIBUS || {})) { const t = D.TRIBUS[id], p = D.proj(t.lon, t.lat), x = p[0] * K, z = p[1] * K; sitios.push([x + 0.15, z - 0.1, 1.0, null]); if (t.casa !== 'mapalia') sitios.push([x - 0.55, z + 0.35, 0.75, null]); }
+    for (const id in D.CITIES) { const c = D.CITIES[id], p = D.proj(c.lon, c.lat); sitios.push([p[0] * K + 0.55, p[1] * K - 0.35, 1.15, id]); }
+    const g = new THREE.PlaneGeometry(1, 1, 1, 6); g.translate(0, 0.5, 0); g.deleteAttribute('normal'); g.deleteAttribute('uv');
+    const im = new THREE.InstancedMesh(g, materialHumo(), sitios.length);
+    sitios.forEach(([x, z, s, id], i) => { M.compose(P.set(x, Math.max(0.05, vista.hAt(x, z)) + 0.3 * s, z), Q.identity(), S.setScalar(s)); im.setMatrixAt(i, M); if (id) r.humoCiudad.push([i, id, M.clone()]); });
+    im.computeBoundingSphere(); im.boundingSphere.radius += 3; im.renderOrder = 2; grupo.add(im); r.humo = im;
+  }
+  // --- mercantes (dos por ruta de mar, que van y vuelven) y carros (uno por calzada), en UNA malla: cada instancia lleva las dos
+  //     formas y el sombreador aplasta la que no le toca (aTipo 0 barco, 1 carro): una llamada de dibujo para todos ---
+  if (V.oneraria) for (const id in (D.RUMBOS || {})) { const rc = recorrido(D.RUMBOS[id].p); for (let k = 0; k < 2; k++) r.rutasMar.push({ rc, ph: rc.L * (k ? 0.95 : 0.15) + hash(rc.L) * 3 }); }
+  if (V.plaustrum) for (const id in (D.CALZADAS || {})) { const c = D.CALZADAS[id]; r.rutasTierra.push({ id, rc: recorrido(c.p), ph: hash(c.p.length * 3.3) * 40 }); }
+  const nV = r.rutasMar.length + r.rutasTierra.length;
+  if (nV) {
+    const gb = mercanteGeo(), gc = carroGeo(), g = unir([gb, gc]), pa = new Float32Array(g.attributes.position.count); pa.fill(1, gb.attributes.position.count); g.setAttribute('aParte', new THREE.BufferAttribute(pa, 1));
+    const ti = new Float32Array(nV); ti.fill(1, r.rutasMar.length); g.setAttribute('aTipo', new THREE.InstancedBufferAttribute(ti, 1));
+    const m = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide, flatShading: true });
+    m.onBeforeCompile = sh => { sh.vertexShader = 'attribute float aParte, aTipo;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n      if (abs(aParte - aTipo) > 0.5) transformed = vec3(0.0);'); };
+    const im = new THREE.InstancedMesh(g, m, nV); im.frustumCulled = false; grupo.add(im); r.viajeros = im;
+    r.rutasMar.forEach((o, i) => { o.i = i; }); r.rutasTierra.forEach((o, i) => { o.i = r.rutasMar.length + i; });
+  }
+  return r;
+}
+/* C13 · mueve mercantes y carros y ajusta el humo (solo lo que se ve; lo llama update) */
+const _vp = [0, 0, 0], _M = new THREE.Matrix4(), _Q = new THREE.Quaternion(), _E = new THREE.Euler(), _P = new THREE.Vector3(), _S = new THREE.Vector3();
+function vidaMover(vista, vd, t, state) {
+  const dist = vista.c.dist;
+  const vaiven = (o, vel, sobre, esc, hy, cab) => {   // ida y vuelta a velocidad fija; al volver, gira la proa
+    const L = o.rc.L, u = (t * vel + o.ph) % (2 * L), d = u < L ? u : 2 * L - u; enRecorrido(o.rc, d, _vp);
+    const x = _vp[0], z = _vp[1], y = sobre ? Math.max(0.03, vista.hAt(x, z)) + hy : hy;
+    _E.set(0, _vp[2] + (u < L ? 0 : Math.PI), cab ? Math.sin(t * 1.1 + o.ph) * 0.06 : 0); _M.compose(_P.set(x, y + (cab ? Math.sin(t * 1.4 + o.ph) * 0.015 : 0), z), _Q.setFromEuler(_E), _S.setScalar(esc)); return _M;
+  };
+  if (vd.viajeros) {   // los barcos se ven hasta Italia entera; los carros, solo de cerca (fuera de su distancia, o sin calzada aún, escala 0)
+    const barcos = dist < 175, carros = dist < 70; vd.viajeros.visible = barcos || carros;
+    if (vd.viajeros.visible) {
+      const eb = Math.min(2.6, Math.max(1, dist / 40)), ec = Math.min(2, Math.max(1, dist / 22)), anio = D.anio || D.START_YEAR || 280;
+      for (const o of vd.rutasMar) vd.viajeros.setMatrixAt(o.i, vaiven(o, 0.35, false, barcos ? eb : 0, 0.02, true));
+      for (const o of vd.rutasTierra) { const c = D.CALZADAS[o.id], hecha = !c.anio || anio <= c.anio; vd.viajeros.setMatrixAt(o.i, vaiven(o, 0.12, true, carros && hecha ? ec : 0, 0.1, false)); }
+      vd.viajeros.instanceMatrix.needsUpdate = true;
+    }
+  }
+  if (vd.humo) {
+    const op = ss(85, 55, dist) * ss(3, 6, dist); vd.humo.material.uniforms.uOp.value = op; vd.humo.visible = op > 0.01;
+    const firma = Object.keys(state.cities).length + '|' + vista.firmaMundo;
+    if (vd.humo.visible && vd.humoFirma !== firma) { vd.humoFirma = firma; for (const [i, id, m] of vd.humoCiudad) vd.humo.setMatrixAt(i, state.cities[id] ? m : _M.makeScale(0, 0, 0)); vd.humo.instanceMatrix.needsUpdate = true; }
+  }
+  for (const m of vd.rebanos) m.visible = dist < 48;
+}
+
 function aguaMask() {
   const cv = document.createElement('canvas'); cv.width = AW; cv.height = AH; const g = cv.getContext('2d', { willReadFrequently: true }), px = lo => (lo - LON0) / DLON * 2 + 0.5, py = la => (LAT1 - la) / DLAT * 2 + 0.5;
   g.fillStyle = '#000'; g.fillRect(0, 0, AW, AH); g.globalCompositeOperation = 'lighten'; g.lineJoin = g.lineCap = 'round';
@@ -655,6 +797,11 @@ export class MapView3D {
     { const tm = tribusMallas(this, aguaXZ); this.tribus = tm.nombres; this.aldeas = tm.aldeas; sc.add(this.tribus); sc.add(this.aldeas); }
     // --- C12: calzadas, puertos y rutas de mar (D.CALZADAS, D.PUERTOS, D.RUMBOS): solo se ven ---
     { const cm = calzadasMallas(this); this.calzadas = cm.trazos; this.vias = cm.vias; this.puertos = cm.puertos; this.calzAnio = null; sc.add(this.calzadas); sc.add(this.vias); sc.add(this.puertos); }
+    // --- C13: vida en el mapa (D.VIDA): rebaños, humo de los hogares, mercantes y carros ---
+    { const sitioPasto = (x, z) => { const i = Math.round((x - OX) / CW), j = Math.round((z - OZ) / CH); if (i < 0 || j < 0 || i > NX || j > NZ) return null; const k = j * W1 + i;
+        if (!land[k] || dist[k] < 1.5 || aguaXZ(x, z) > 0.05 || metros[k] > 1500) return null; const lo = lonOf(i), la = latOf(j), B = bioma(lo, la, metros[k], dist[k]);
+        if (B.des > 0.5 || B.mar > 0.5) return null; return { estepa: B.est > 0.4, monte: metros[k] > 1000, seco: la < 38.5 || B.est > 0.2 }; };
+      this.vida = vidaMallas(this, sitioPasto); sc.add(this.vida.grupo); }
     // --- rutas ---
     this.aristas = [];
     for (const e of D.EDGES) {
@@ -884,7 +1031,8 @@ export class MapView3D {
     if (D.anio !== this.calzAnio) { this.calzAnio = D.anio; calzadasAnio(this.calzadas, D.anio || D.START_YEAR || 280); }   // C12: calzadas pálidas hasta su año
     this.vias.material.opacity = 0.95 * ss(120, 80, c.dist) * ss(8, 14, c.dist); this.vias.visible = this.vias.material.opacity > 0.01;   // C12: nombres de calzadas a media distancia
     this.puertos.material.opacity = 0.95 * ss(260, 190, c.dist) * ss(6, 11, c.dist); this.puertos.visible = this.puertos.material.opacity > 0.01;   // C12: anclas de los puertos
-    this.aldeas.visible = c.dist < 135;   // C11: de lejos, los poblados no se distinguen: no se dibujan
+    this.aldeas.visible = c.dist < 135;
+    if (!(typeof document !== 'undefined' && document.hidden)) vidaMover(this, this.vida, this.t, state);   // C13: rebaños, humo, mercantes y carros; de lejos se apagan solos   // C11: de lejos, los poblados no se distinguen: no se dibujan
     this.scene.fog.near = Math.max(90, c.dist * 0.6); this.scene.fog.far = Math.max(260, c.dist * 1.75);   // C6: a más distancia, más bruma lejana
     this.cam.position.set(c.x, Math.sin(c.pitch) * c.dist, c.z + cp * c.dist); this.cam.lookAt(c.x, 0, c.z);
     this.r.render(this.scene, this.cam);
