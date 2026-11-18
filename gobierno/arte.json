@@ -5,6 +5,8 @@
   "triangulosPorEdificio": 12000,
   "escenas": {
     "triangulosPorBatalla": 1100000,
+    "recorteBatallaMovil": 1000000,
+    "figurasPorRegimiento": { "ele": 99, "cav": 30, "gen": 30, "rng": 50, "otras": 60 },
     "triangulosPorCiudad": 300000,
     "ejercitoRomano": {
       "hastati": 400,

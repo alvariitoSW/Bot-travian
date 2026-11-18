@@ -1996,6 +1996,18 @@
     {
       "titulo": "CI0 · Objetivo final de la ciudad, con 21 láminas de la época",
       "archivo": "gobierno/estudios/CI0-objetivo-ciudad.md"
+    },
+    {
+      "titulo": "MN0 · Objetivo final de los menús",
+      "archivo": "gobierno/estudios/MN0-objetivo-menus.md"
+    },
+    {
+      "titulo": "MN0 · Encargo artístico para la maqueta de menús",
+      "archivo": "gobierno/estudios/MN0-encargo-artistico.md"
+    },
+    {
+      "titulo": "CG1 · Objetivo final de la batalla: un simulador propio",
+      "archivo": "gobierno/estudios/CG1-objetivo-batalla.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -2024,6 +2036,12 @@
       "titulo": "Cerebro · CE2 Recursos nuevos (dirige y construye Opus)",
       "nota": "js/game.js, data.js, ui.js, bot y guardado migrado; 2,0 M declarado, unos 3,6 M esperables",
       "url": "https://claude.ai/code/session_01QiKC397z42u9YdbK1uWvE9"
+    },
+    {
+      "tarea": "CG4",
+      "titulo": "Corazón · CG4 Mando en vivo con el simulador (dirige y construye Opus)",
+      "nota": "js/ui-guerra.js y gfx; paso A Escaramuzas, paso B campaña; techo 6,0 M",
+      "url": "https://claude.ai/code/session_01QiKC38ZAM3t3LR2vRpnHXh"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

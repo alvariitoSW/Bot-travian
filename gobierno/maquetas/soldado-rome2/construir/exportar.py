@@ -1,5 +1,5 @@
 """Malla + huesos + movimientos horneados -> un .bin y un .json que lee soldado.js."""
-import json, numpy as np
+import json, os, numpy as np
 
 QUITA = ('levator', 'special', 'oris', 'orbicularis', 'risorius', 'temporalis', 'tongue', 'eye', 'toe', 'breast', 'zygomaticus', 'depressor', 'platysma', 'mentalis', 'buccinator', 'jaw', 'oculi', 'procerus', 'nasalis')
 def huesos_utiles(mh, sin_dedos=False):
@@ -43,7 +43,10 @@ def hornear(D, P, mh, util):
     ix = [mh['huesos'].index(b) for b in util]; r = np.stack([mh['cab'][b] for b in util]); Dk = D[:, ix]; t = P[:, ix] - np.einsum('fbij,bj->fbi', Dk, r)
     return np.concatenate([Dk, t[..., None]], -1).reshape(len(D), len(util), 12)
 
-def guardar(ruta, malla, clips, util, extra=None):
+def guardar(ruta, malla, clips, util, extra=None, juego=None):
+    """Con juego (p. ej. 'escudo'), los movimientos van aparte, en movimientos_<juego>_<huesos>.bin junto al soldado,
+    y el .json los nombra en 'anim': todos los soldados con el mismo juego y los mismos huesos comparten ese archivo.
+    Sin juego, como antes: los movimientos dentro del .bin del soldado (lo que lee el visor de la maqueta)."""
     P, N, UV, SI, SW, SET, T = malla.junta(); nv = len(P); partes = []; off = {}; o = 0
     def mete(k, a):
         nonlocal o; b = np.ascontiguousarray(a).tobytes(); pad = (-len(b)) % 4; partes.append(b + b'\0' * pad); off[k] = o; o += len(b) + pad
@@ -52,7 +55,12 @@ def guardar(ruta, malla, clips, util, extra=None):
     mete('idx', T.astype(np.uint32 if nv > 65535 else np.uint16))
     filas = []; cl = {}; f0 = 0
     for nombre, (A, fps, bucle) in clips.items(): cl[nombre] = dict(ini=f0, n=len(A), fps=fps, bucle=bucle); filas.append(A); f0 += len(A)
-    A = np.concatenate(filas); nb = A.shape[1]; tex = np.zeros((len(A), nb * 3, 4), np.float16); tex[:] = A.reshape(len(A), nb * 3, 4); mete('anim', tex)
+    A = np.concatenate(filas); nb = A.shape[1]; tex = np.zeros((len(A), nb * 3, 4), np.float16); tex[:] = A.reshape(len(A), nb * 3, 4); mov = {}
+    if juego:
+        nom = 'movimientos_%s_%d' % (juego, nb); rm = os.path.join(os.path.dirname(ruta), nom + '.bin'); b = tex.tobytes()
+        if os.path.exists(rm) and open(rm, 'rb').read() != b: print('aviso: %s cambia (lo usan todos los soldados de ese juego: regenéralos)' % rm)
+        open(rm, 'wb').write(b); mov = dict(anim=nom)
+    else: mete('anim', tex)
     open(ruta + '.bin', 'wb').write(b''.join(partes))
-    j = dict(verts=nv, tris=len(T), huesos=util, cuadros=len(A), clips=cl, off=off, idx32=nv > 65535, piezas=malla.cuenta, **(extra or {}))
+    j = dict(verts=nv, tris=len(T), huesos=util, cuadros=len(A), clips=cl, **mov, off=off, idx32=nv > 65535, piezas=malla.cuenta, **(extra or {}))
     json.dump(j, open(ruta + '.json', 'w'), separators=(',', ':')); return j

@@ -57,13 +57,41 @@ const TELAS = ['#8f2f22', '#a03a26', '#7a2a24', '#983624', '#a8946c', '#94452c']
 async function imagen(url, srgb) { try { const t = await new THREE.TextureLoader().loadAsync(url); t.flipY = false; t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace; t.anisotropy = 4; t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping; return t; } catch (e) { return null; } }
 
 /* Colores por pueblo: telas, escudos, piel (de la más clara a la más morena), pelo y barba. Sin entrada: los de la legión. */
-export const PUEBLOS = { galo: { pelo: [[0.50, 0.42, 0.34], [1.12, 1.02, 0.92]], barba: [0.42, 0.33, 0.20], telas: ['#3f5f7a', '#5a7a4a', '#9a7a3a', '#8a4a30', '#6a5a7a', '#4a6a6a'], escudos: ['#2f5a84', '#3f7a4a', '#b08a2a', '#8f2f22'], piel: [[1.06, 0.99, 0.95], [0.88, 0.78, 0.72]] } };
+export const PUEBLOS = { libio: { pelo: [[0.30, 0.27, 0.26], [0.95, 0.82, 0.70]], barba: [0.09, 0.07, 0.05], telas: ['#6a2c5a', '#7d3348', '#cfc3a4', '#8a3a2a', '#56284e', '#b8a070'], escudos: ['#5a2a5c', '#8a3a28', '#c8b88e', '#3e2c5c'], piel: [[0.96, 0.86, 0.78], [0.70, 0.57, 0.48]] },
+  galo: { pelo: [[0.50, 0.42, 0.34], [1.12, 1.02, 0.92]], barba: [0.42, 0.33, 0.20], telas: ['#3f5f7a', '#5a7a4a', '#9a7a3a', '#8a4a30', '#6a5a7a', '#4a6a6a'], escudos: ['#2f5a84', '#3f7a4a', '#b08a2a', '#8f2f22'], piel: [[1.06, 0.99, 0.95], [0.88, 0.78, 0.72]] } };
+/* GM44d: más pueblos. Los colores son licencia de juego salvo lo que se dice; piel y pelo, de los mediterráneos (como el libio, algo más claros). */
+{ const MED = { pelo: [[0.34, 0.30, 0.28], [1.0, 0.86, 0.72]], barba: [0.10, 0.08, 0.06], piel: [[1.0, 0.91, 0.84], [0.76, 0.63, 0.54]] };
+  Object.assign(PUEBLOS, {
+    griego: { ...MED, telas: ['#8a3a2a', '#a8946c', '#3f4f7a', '#7a6a4a', '#9a4a2a', '#cfc3a4'], escudos: ['#b08a3a', '#9a7a3a', '#8a3a2a', '#3a4a6a'] },      /* aspis de bronce o pintada: licencia de juego */
+    sagrada: { ...MED, telas: ['#cfc3a4', '#e0d8c0', '#6a2c5a', '#b8a070', '#56284e', '#d8ccb0'], escudos: ['#5a2a5c', '#c8b88e', '#3e2c5c', '#b08a3a'] },  /* púrpura de Tiro y lino: licencia de juego */
+    milicia: { ...MED, telas: ['#7a6a52', '#8a7a5e', '#6a5a44', '#9a8a6a', '#5e5040', '#a8946c'], escudos: ['#6a5a40', '#7a6448', '#5a4a36', '#8a7454'] },  /* lana sin teñir: licencia de juego */
+    ibero: { ...MED, telas: ['#6a2c5a', '#7d3348', '#56284e', '#6a2c5a', '#7d3348', '#56284e'], escudos: ['#7a5a3a', '#8a3a28', '#5a4a3a', '#9a7a4a'] },   /* la túnica es blanca fija en la malla (Polibio 3.114); aquí solo orla y caetra */
+    hondero: { ...MED, telas: ['#a8946c', '#8a7a5e', '#cfc3a4', '#7a6a52', '#9a8a6a', '#b8a070'], escudos: ['#7a6448', '#6a5a40', '#8a7454', '#5a4a36'] },  /* baleares: lana parda, licencia de juego */
+    peltasta: { ...MED, telas: ['#8a3a2a', '#6a5a7a', '#a8946c', '#3f5f7a', '#9a7a3a', '#7a3a3a'], escudos: ['#9a7a4a', '#8a6a3a', '#a8885a', '#7a5a32'] } });  /* zeira de colores y pelte de mimbre: licencia de juego */
+  PUEBLOS.falangita = PUEBLOS.griego; PUEBLOS.hoplita = PUEBLOS.griego; }
+/* pueblos que forman con Roma: llevan su color en el bando del jugador */
+export const ROMANOS = new Set(['hastatus', 'triario', 'velite']);
 /* telas y escudos en la gama de un color de bando (para el pueblo que lucha en el otro bando) */
 export function gama(color, base = {}) {
   const c = new THREE.Color(color), t = k => '#' + c.clone().multiplyScalar(k).getHexString();
   return Object.assign({}, base, { telas: [0.8, 0.9, 0.72, 0.85, 0.95, 0.68].map(t), escudos: [0.85, 0.95, 0.75, 0.9].map(t) });
 }
 
+/* GM44d: movimientos compartidos. Si el .json trae 'anim', los movimientos están en assets/soldados/<anim>.bin (los mismos para todos
+   los soldados con ese juego y esos huesos): se bajan una vez y todas las tropas y niveles usan UNA textura, con cuenta de usos. */
+const MOVS = new Map();      /* nombre -> { prom: Promise<{ crudo, tex }>, usos } */
+function tomarMov(nom, nb, cuadros) {
+  let m = MOVS.get(nom);
+  if (!m) { m = { usos: 0, prom: fetch(AQUI + nom + '.bin').then(r => { if (!r.ok) throw new Error(nom); return r.arrayBuffer(); }).then(buf => {
+      const crudo = new Uint16Array(buf), tex = new THREE.DataTexture(crudo, nb * 3, cuadros, THREE.RGBAFormat, THREE.HalfFloatType); if (crudo.length !== cuadros * nb * 12) throw new Error(nom + ': tamaño');
+      tex.minFilter = tex.magFilter = THREE.NearestFilter; tex.generateMipmaps = false; tex.needsUpdate = true; return { crudo, tex }; }) };
+    MOVS.set(nom, m); m.prom.catch(() => { if (MOVS.get(nom) === m) MOVS.delete(nom); }); }      /* si no baja, se podrá pedir otra vez */
+  return m.prom.then(v => { m.usos++; return { ...v, m }; });
+}
+function soltarMov(m) { if (!m || --m.usos > 0) return; for (const [k, v] of MOVS) if (v === m) MOVS.delete(k); m.prom.then(v => v.tex.dispose(), () => {}); }
+
+/* GM44d: alto del hombre sin las armas largas (la sarisa pasa de 3,9 m): lo más alto por debajo de 2,3 m (un penacho no llega) */
+function altoCuerpo(po, y0) { let y = y0; for (let i = 0; i < po.count; i++) { const v = po.getY(i); if (v < 2.3 && v > y) y = v; } return y - y0; }
 async function uno(nombre, o) {
   const j = await (await fetch(AQUI + nombre + '.json')).json(), buf = await (await fetch(AQUI + nombre + '.bin')).arrayBuffer(), n = j.verts, off = j.off;
   const g = new THREE.BufferGeometry();
@@ -72,8 +100,11 @@ async function uno(nombre, o) {
   g.setAttribute('aSkinI', new THREE.BufferAttribute(new Uint8Array(buf, off.si, n * 4), 4)); g.setAttribute('aSkinW', new THREE.BufferAttribute(new Uint8Array(buf, off.sw, n * 4), 4, true));
   g.setAttribute('aSet', new THREE.BufferAttribute(new Uint8Array(buf, off.set, n), 1));
   g.setIndex(new THREE.BufferAttribute(j.idx32 ? new Uint32Array(buf, off.idx, j.tris * 3) : new Uint16Array(buf, off.idx, j.tris * 3), 1));
-  const nb = j.huesos.length, crudo = new Uint16Array(buf, off.anim, j.cuadros * nb * 12), anim = new THREE.DataTexture(crudo, nb * 3, j.cuadros, THREE.RGBAFormat, THREE.HalfFloatType);
-  anim.minFilter = anim.magFilter = THREE.NearestFilter; anim.generateMipmaps = false; anim.needsUpdate = true;
+  const nb = j.huesos.length; let crudo, anim, mov = null;
+  if (j.anim) ({ crudo, tex: anim, m: mov } = await tomarMov(j.anim, nb, j.cuadros));      /* desde aquí cuenta un uso: lo devuelve soltarSoldado */
+  else { crudo = new Uint16Array(buf, off.anim, j.cuadros * nb * 12); anim = new THREE.DataTexture(crudo, nb * 3, j.cuadros, THREE.RGBAFormat, THREE.HalfFloatType);
+    anim.minFilter = anim.magFilter = THREE.NearestFilter; anim.generateMipmaps = false; anim.needsUpdate = true; }
+  try {
   const tx = j.texturas || {}, [color, normal, orm, masc] = await Promise.all([tx.color && imagen(AQUI + tx.color, true), tx.normal && imagen(AQUI + tx.normal), tx.orm && imagen(AQUI + tx.orm), tx.masc && imagen(AQUI + tx.masc)]);
   const u = { uHuesos: { value: anim }, uMasc: { value: masc || null }, uHayMasc: { value: masc ? 1 : 0 }, uTela: { value: (o.telas || TELAS).map(c => new THREE.Color(c)) }, uEscudo: { value: (o.escudos || ESCUDOS).map(c => new THREE.Color(c)) }, uPiel: { value: (o.piel || [[1.10, 1.02, 0.96], [0.76, 0.64, 0.57]]).map(c => new THREE.Vector3(...c)) },
     uPelo: { value: (o.pelo || [[0.45, 0.42, 0.42], [2.3, 1.9, 1.5]]).map(c => new THREE.Vector3(...c)) }, uBarba: { value: new THREE.Vector3(...(o.barba || [0.13, 0.095, 0.07])) }, uCab: { value: new THREE.Vector4(0, 1.5, 0, -9) } };
@@ -82,7 +113,8 @@ async function uno(nombre, o) {
   const mat = parche(new THREE.MeshStandardMaterial({ map: color || null, color: color ? '#ffffff' : '#b8926e', normalMap: normal || null, roughnessMap: orm || null, metalnessMap: orm || null, aoMap: orm || null,
     roughness: orm ? 1 : 0.75, metalness: orm ? 1 : 0, side: THREE.DoubleSide, alphaTest: 0.5 }), u);
   g.computeBoundingBox();
-  return { j, geo: g, mat, anim, crudo, texs: [color, normal, orm, masc].filter(Boolean), alto: g.boundingBox.max.y - g.boundingBox.min.y };
+  return { j, geo: g, mat, anim, mov, crudo, texs: [color, normal, orm, masc].filter(Boolean), alto: altoCuerpo(g.attributes.position, g.boundingBox.min.y) };
+  } catch (e) { g.dispose(); if (mov) soltarMov(mov); else anim.dispose(); throw e; }
 }
 
 /* Zancada de un clip cíclico (metros que avanza el cuerpo en un ciclo, a escala 1): se suma lo que el pie apoyado (el más bajo)
@@ -108,7 +140,7 @@ export async function cargarSoldado(nombre, paleta) {
     return { nombre, niveles, alto: s.alto, zw: zancada(s, 'andar'), zr: zancada(s, 'correr'), dw: dur('andar'), dr: dur('correr'), clips: c };
   } catch (e) { return null; }
 }
-export function soltarSoldado(S) { if (!S) return; for (const s of S.niveles) { s.geo.dispose(); s.mat.dispose(); s.anim.dispose(); for (const t of s.texs) t.dispose(); } }
+export function soltarSoldado(S) { if (!S) return; for (const s of S.niveles) { s.geo.dispose(); s.mat.dispose(); if (s.mov) soltarMov(s.mov); else s.anim.dispose(); for (const t of s.texs) t.dispose(); } }
 
 /* Una tropa: hasta cap hombres de un mismo soldado (un nivel) en una llamada. Cada cuadro: limpiar() y luego, por hombre,
    i = sig(), matriz en malla.instanceMatrix.array[i*16..], vars(i, [4 números 0–1]) y pose(i, clip, t, muestra). */

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Desfile de tropas</title>
+<style>html,body{margin:0;height:100%;background:#cfc6a8;overflow:hidden;font:13px sans-serif}canvas{display:block;width:100%;height:100%}
+#rot{position:fixed;left:0;right:0;bottom:6px;display:flex;justify-content:space-around;color:#2a2116;pointer-events:none}</style></head>
+<body><canvas id="c"></canvas><div id="rot"></div>
+<script type="module">
+/* GM44d: desfile de los soldados del juego (assets/soldados, cargados con js/gfx/soldado.js, como en la batalla).
+   ?t=hastatus,galo  ?lv=0..3 (nivel)  ?clip=quieto  ?t0=1.2 (segundo del clip)  ?dist=6 (metros de cámara)  ?alto=1.3  ?giro=0 (grados)
+   ?filas=1 (hombres por tropa en fondo)  ?pal=libio (paleta de PUEBLOS para todos; t=hoplita:sagrada, solo para esa). Pone window.__listo y window.__info(). */
+import { THREE } from '../../../js/gfx/models.js';
+import { cargarSoldado, tropa, PUEBLOS } from '../../../js/gfx/soldado.js';
+const q = new URLSearchParams(location.search), tipos = (q.get('t') || 'hastatus,galo').split(','), lv = +(q.get('lv') || 0), clip = q.get('clip') || 'quieto';
+const t0 = +(q.get('t0') || 0.8), dist = +(q.get('dist') || 3 + 1.6 * tipos.length), alto = +(q.get('alto') || 1.25), giro = +(q.get('giro') || 0) * Math.PI / 180, filas = +(q.get('filas') || 1);
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true }); r.setPixelRatio(Math.min(devicePixelRatio, 2)); r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.12;
+const esc = new THREE.Scene(); esc.background = new THREE.Color('#d9d2b8'); esc.add(new THREE.HemisphereLight('#cfe2ff', '#7a6238', 1.3)); const sol = new THREE.DirectionalLight('#ffe6b8', 3.0); sol.position.set(-9, 9.5, 6); esc.add(sol);
+const suelo = new THREE.Mesh(new THREE.PlaneGeometry(200, 200), new THREE.MeshStandardMaterial({ color: '#8a7a52', roughness: 1 })); suelo.rotation.x = -Math.PI / 2; esc.add(suelo);
+const cam = new THREE.PerspectiveCamera(35, 1, 0.1, 500); const info = { tipos: {}, tris: 0, llamadas: 0 };
+const sep = 1.6, x0 = -(tipos.length - 1) * sep / 2, nombres = [];
+for (let k = 0; k < tipos.length; k++) {
+  const [nom, pue] = tipos[k].split(':'), S = await cargarSoldado(nom, pue ? PUEBLOS[pue] : q.get('pal') ? PUEBLOS[q.get('pal')] : undefined);   /* GM44d: t=velite:milicia = malla:paleta */ if (!S) { info.tipos[tipos[k]] = 'no carga'; continue; }
+  const s = S.niveles[lv], T = tropa(s, filas * filas); esc.add(T.malla); let n = 0;
+  for (let a = 0; a < filas; a++) for (let b = 0; b < filas; b++) { const i = T.sig(); T.pon(i, x0 + k * sep + (b - (filas - 1) / 2) * 0.9, -a * 1.1, giro, 1 + k * 7 + n * 13); T.pose(i, clip, t0 + n * 0.37, T.muestra(clip, t0)); n++; }
+  info.tipos[tipos[k]] = { tris: s.j.tris, alto: +S.alto.toFixed(2), clips: Object.keys(S.clips) }; nombres.push(tipos[k]);
+}
+document.getElementById('rot').textContent = ''; for (const n of nombres) { const d = document.createElement('span'); d.textContent = n; document.getElementById('rot').append(d); }
+function pinta() { const w = innerWidth, h = innerHeight; r.setSize(w, h, false); cam.aspect = w / h; cam.position.set(Math.sin(giro * 0) * dist, alto + dist * 0.12, dist); cam.lookAt(0, alto * 0.75, 0); cam.updateProjectionMatrix(); r.render(esc, cam); info.tris = r.info.render.triangles; info.llamadas = r.info.render.calls; }
+pinta(); addEventListener('resize', pinta); window.__info = () => info; setTimeout(() => { pinta(); window.__listo = true; }, 300);
+</script></body></html>
