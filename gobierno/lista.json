@@ -58,15 +58,15 @@
       "titulo": "Recursos, mercado y cuentas claras",
       "estado": "medias",
       "veras": "Una economía nueva: grano, denarios, materiales, hierro, hombres y un bien por región. Cada estación te falta algo y tienes que elegir.",
-      "hecho": "Barra de recursos, hoja de cuentas, mercado, puerto y cola de obras.",
-      "captura": "gobierno/capturas-tarea/Q3-1-cuentas.jpg",
+      "hecho": "Recursos nuevos (CE2): grano, denarios, materiales, hierro, hombres y un bien por región, con barra, hoja de cuentas y mercado; las partidas viejas se convierten solas.",
+      "captura": "gobierno/capturas-tarea/CE2-cuentas-bienes.jpg",
       "tareas": [
         "CE2",
         "CE3",
         "CE4",
         "CE5"
       ],
-      "falta": "Reinventada entera (CE1, 18/11): recursos nuevos (CE2), edificios, tropas y tiempos (CE3), comercio con precios (CE4) y «Este año» con el tributo de guerra (CE5)."
+      "falta": "Reinventada entera (CE1, 18/11): edificios, tropas y tiempos (CE3), comercio con precios (CE4) y «Este año» con el tributo de guerra (CE5)."
     },
     {
       "id": "L3",
