@@ -2028,7 +2028,7 @@
     {
       "tarea": "CI1b",
       "titulo": "Cerebro · CI1b Calles con sentido y pulido de la ciudad romana (Opus; tope duro)",
-      "nota": "js/ciudad.js y gfx de la ciudad; corte duro 1,5 M",
+      "nota": "Parada por orden del usuario: ahora CI3a, la ciudad ×5 a la vista; corte duro absoluto 4,8 M; 7 commits locales sin subir",
       "url": "https://claude.ai/code/session_01QiKC3AfVQgWjdzHpMKkgYR"
     },
     {
