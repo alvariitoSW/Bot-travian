@@ -64,3 +64,15 @@ las batallas llegan en saltos grandes, con su «sube»; (4) si algo no se parece
 | Objetivo de las batallas | qué es una batalla «como Total War» en AQVILA | `estudios/CG1-objetivo-batalla.md`, `estudios/ES0-objetivo-escaramuzas.md` |
 
 *Nuevas fichas: añádelas debajo de esta tabla, con fecha, chat, qué se vio y qué idea se toma.*
+
+### Fichas de BG1 (19/11, chat de BG1): 21 vídeos de Rome II buscados por el director, **solo fotogramas públicos** (portada y tres imágenes; ninguno visto en movimiento ni oído)
+Detalle, enlaces y plan en `estudios/BG1-estudio-rome2-batalla-grande.md` (§2 y §5). Enlace: `youtube.com/watch?v=` + código.
+| Vídeo (código) | Qué se ve | Idea que se toma | Tarea | Se dice y no se promete |
+|---|---|---|---|---|
+| Mandos, oficial (EVLm16oV2k8); tutorial (7VCd-JllIPA); partida en línea (xlQ5cOfLl5M) | Altura de águila: estandarte alto por unidad que brilla al elegirla; línea amarilla al arrastrar que da el ancho; rutas y arcos de tiro pintados en el suelo; el campo ocupa casi toda la pantalla | Estandarte con icono en vez de cajita de barras; selección por luz; ruta en el suelo; arrastrar para dibujar la línea | CG8a, CG5a | La fila de 20 tarjetas y el mini-mapa no caben a 390 px |
+| Roma contra germanos (_y9BmvJ37Ns); Zama (KBMOKoVgJJ0); Roma contra Egipto (50ak6-6scq4) | Fila oblicua de escudos que se solapan; en una misma fila, escudos, túnicas y cascos distintos; decenas de bloques en rejilla con sus sombras; caídos por el campo | Bloques llenos y con sombra larga; variar escudos y ropa; los caídos se quedan | CG8a, CG8b, CG8d | Miles de hombres con detalle a la vez: solo los 40 de cerca |
+| Legión contra falange (C_GWi_O1iDc); Alesia (Nb87XbVikMs) | Masa a contraluz con polvo naranja; contrapicado desde la hierba con el estandarte contra un cielo de tormenta | Sol bajo de lado, polvo que separa planos, botón «De cerca» a ras de hierba | CG8b, CG8c | Caras de cine |
+| Dentro de la falange (3ATuk0J-fGM); carga contra picas (oimIMZHNRVI); Pidna ×2 (mJWpjVqI2gM, eGZVzc2Vqmo) | Astas en abanico sobre los cascos; enemigo visto entre ellas; alfombra de caídos delante del muro; bloques de picas con sombras largas | Lo ya apuntado en TP8b para las picas, llevado a la batalla grande | CG8d, CG6 | Duelos casados hombre a hombre |
+| Elefantes (uBN_u8lwkeU); testudo bajo flechas (SwLVS8zioIY); puente (WmjHKq4uPUI) | Elefantes con torre vistos desde detrás de la línea, hierba alta; testudo en columna desde arriba; un paso estrecho que decide la batalla | El testudo como techo de toda la unidad también visto desde arriba | CG8a, CG8d | Jinete y elefante con el soldado nuevo (después de la 1.0) |
+| Asedios ×4 (Ejn7LWnV5G8, sfEJlpgVGBs, Jf38wKE8UXI, ZdByF_5N8Hs) | Ejército formado ante la muralla; torres de asedio a contraluz; máquinas en fila; proyectiles con estela de fuego; calles con estandartes | Estelas en los proyectiles. El asedio entero, a «Después de la 1.0» | CG8b | Lucha en el adarve y por las calles |
+

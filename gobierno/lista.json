@@ -65,6 +65,7 @@
       "tareas": [
         "CE2",
         "CE3",
+        "CE3b",
         "CE4",
         "CE5"
       ],
@@ -170,6 +171,7 @@
       "falta": "Que la campaña use la misma batalla (CG4b) y retirar la vieja; tribunos y plan previo (CG5); batalla rápida (CG7). Caballería y elefantes siguen con el modelo viejo.",
       "captura": "gobierno/capturas-tarea/CG4-3-arrastre-h.jpg",
       "tareas": [
+        "BG1",
         "GM44",
         "GC10",
         "CG3",
