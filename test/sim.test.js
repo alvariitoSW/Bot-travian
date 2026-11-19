@@ -287,6 +287,9 @@ function campaign1(aggressive, region, opciones) {
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
+      { const E = G.ciudadE(id), bi = E && G.barrioInfo(c);      // CI1b: como un jugador, si a un barrio le falta agua pone una fuente (una por cada 25 casas como mucho)
+        if (bi && G.huecosLibres(c) > 0 && bi.barrios.some(x => /agua/.test(x.falta || '')) && E.edificios.filter(e => e.tipo === 'fuente').length < 1 + bi.barrios.reduce((n, x) => n + x.casas, 0) / 25) {
+          const q = require('../js/ciudad.js').mejorSitio(E, 'fuente'); if (q) G.colocar(id, 'fuente', q[0], q[1]); } }
       for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }
       G.levantarMuralla(id);   // CN7: la muralla de la guerra sale de la obra de ciudad, no de c.b.muralla
       if (!aggressive) continue;
