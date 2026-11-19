@@ -163,14 +163,15 @@
       "titulo": "Una sola batalla, con un solo aspecto",
       "estado": "medias",
       "veras": "Un simulador de batallas en tiempo real, el mismo en campaña y en Escaramuzas: plan previo que se puede saltar con «Ver cómo irá», mando en vivo por manípulos con tus tribunos, y batalla rápida si no quieres jugarla larga.",
-      "hecho": "Batalla con órdenes, proyectiles, duelos y caídos; va fluida en tu móvil. Todas las tropas a pie llevan el soldado nuevo, cada una con su equipo de época (romanos, griegos, falange, íberos, galos, honderos y peltastas).",
-      "falta": "Lo principal. Tú, el 18/11: «son 4 juegos diferentes en un juego y los gráficos son una mierda». Hay que unir maniobra, batalla de mando, Escaramuzas y testudo a pie en una sola batalla con un solo aspecto. Caballería y elefantes siguen con el modelo viejo (no hay jinete libre).",
-      "captura": "gobierno/capturas-tarea/GM44d-4-despues-horizontal.jpg",
+      "hecho": "Escaramuzas ya juega la batalla nueva: el simulador de manípulos, mando en vivo (tocar y arrastrar, formar, cargar, relevar, pausa), la luz y el campo elegidos y el soldado nuevo en todas las tropas a pie.",
+      "falta": "Que la campaña use la misma batalla (CG4b) y retirar la vieja; tribunos y plan previo (CG5); batalla rápida (CG7). Caballería y elefantes siguen con el modelo viejo.",
+      "captura": "gobierno/capturas-tarea/CG4-3-arrastre-h.jpg",
       "tareas": [
         "GM44",
         "GC10",
         "CG3",
         "CG4",
+        "CG4b",
         "CG5",
         "CG7"
       ]
