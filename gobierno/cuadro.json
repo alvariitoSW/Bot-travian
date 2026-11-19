@@ -2034,7 +2034,7 @@
     {
       "tarea": "CE3",
       "titulo": "Cerebro · CE3 Edificios, tropas y tiempos nuevos, en estaciones (Opus; tope duro)",
-      "nota": "js/game.js, data.js, ui.js; corte duro 3,0 M",
+      "nota": "Parada a 4,5 M sin subir; commits en la rama ce3; espera tu respuesta sobre el bot",
       "url": "https://claude.ai/code/session_01QiKC3Aw9VfHc42LQ8wLPsB"
     }
   ],
