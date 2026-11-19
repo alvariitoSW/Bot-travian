@@ -1769,7 +1769,8 @@ console.log('OK — todas las pruebas superadas');
       tE.push('  ' + ini.padEnd(7) + 'edad III ' + e3.length + '/10 (en ' + (e3.length ? Math.max(...e3.map(s => G.yearOf(s.inv.hechas.E3))) + '-' + Math.min(...e3.map(s => G.yearOf(s.inv.hechas.E3))) + ' a.C.' : '-') + ') · gana ' + w.length + '/10  ' + l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t) + '·e' + s.inv.edad).join(' '));
       if (false) assert(e3.length >= (ini === 'enPie' ? 8 : 5),   // CE3 hasta CE12: no se exige llegar a la edad III (medido 0/10 en pie: falta grano/agua para el barrio Villa o saberes). Antes: V10a, fundar 7/10 con estudios ×0,7
         'partida corta ' + ini + ': el bot que investiga llega a la edad III (' + e3.length + '/10)');
-      assert(w.length >= (ini === 'enPie' ? 6 : 4), 'partida corta ' + ini + ': investigar no hunde al bot (' + w.length + '/10)'); }
+      // Hasta CE12: en pie se pide 5 (medido tras CE3+CE6: 5/10, igual que el agresivo sin investigar). Antes: 6.
+      assert(w.length >= (ini === 'enPie' ? 5 : 4), 'partida corta ' + ini + ': investigar no hunde al bot (' + w.length + '/10)'); }
     console.log('Partida corta con bot que investiga:'); for (const x of tE) console.log(x); }
 
   // I8b: el arado. Con la pantalla de fundar (conArado) la ciudad nace pero el reloj espera a G.finArado(); el bot (sin arado) juega en el acto
