@@ -18,7 +18,7 @@ t('una obra terminada para con motivo', () => {
 });
 
 t('una leva lista para con motivo', () => {
-  const s = nueva(); const v = oyente(); s.res.grano = s.res.oro = s.res.madera = s.res.hierro = s.res.piedra = 5000;
+  const s = nueva(); const v = oyente(); s.res.grano = s.res.denarios = s.res.materiales = s.res.hierro = 5000;
   const k = ['hastati', 'principes', 'milicia'].find(u => G.unitOk(s.cities.roma, u)); assert.ok(k && G.train('roma', k, 10), 'recluta');
   correr(s, 30); assert.ok(v.some(p => /^Tropa lista/.test(p.motivo) && !p.grave), JSON.stringify(v.map(p => p.motivo)));
 });

@@ -33,12 +33,12 @@
     const c = s.dipConq[f];
     if (c !== undefined && s.t - c < DIP.MESES_SIN_CONQUISTA) return 'Roma le tomó una ciudad hace menos de 2 años.';
     if (hombres(s, f) < DIP.FUERZA_MIN * hombres(s, 'roma')) return 'Es demasiado débil: no ve provecho en pactar.';
-    if (G.disponible && G.disponible('oro') < DIP.COSTE_ALIANZA) return 'Faltan ' + DIP.COSTE_ALIANZA + ' denarios.';
+    if (G.disponible && G.disponible('denarios') < DIP.COSTE_ALIANZA) return 'Faltan ' + DIP.COSTE_ALIANZA + ' denarios.';
     return null;
   };
   DIP.proponerAlianza = (s, f, G, gasta) => {
     const m = DIP.motivoAlianza(s, f, G); if (m) return { ok: false, motivo: m };
-    gasta('oro', DIP.COSTE_ALIANZA); dip(s)[f] = { estado: 'alianza', desde: s.t };
+    gasta('denarios', DIP.COSTE_ALIANZA); dip(s)[f] = { estado: 'alianza', desde: s.t };
     return { ok: true };
   };
   DIP.motivoTributo = (s, f) => {

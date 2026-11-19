@@ -129,7 +129,7 @@
     'almacen-grano': f(SIN_MIS, h('Livio 22.37', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Hierón de Siracusa envía trigo y cebada. Almacén de nivel 4 en Roma para guardarlos.')),
     'muralla-roma': f(SIN_MIS, h('Livio 22.8 y 22.55', 'probable', 'plazos, premios, castigos y cifras: licencia de juego', 'Aníbal está en Italia. Muralla de nivel 4 en Roma.')),
     'armas-canas': f(SIN_MIS, h('Livio 22.57 y 23.14', 'probable', 'plazos, premios, castigos y cifras: licencia de juego', 'Tras Cannas faltan armas. Levanta una herrería de nivel 3 en cualquiera de tus ciudades.')),
-    'tributo-zama': f(SIN_MIS, h('Polibio 15.18; Livio 30.37', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Cartago pagará una indemnización tras Zama. Ten 600 de oro en las arcas.')),
+    'tributo-zama': f(SIN_MIS, h('Polibio 15.18; Livio 30.37', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'Cartago pagará una indemnización tras Zama. Ten 600 denarios en las arcas.')),
     'levas-macedonia': f(SIN_MIS, h('Livio 31.6 a 31.8; Polibio 6.19 a 6.21', 'historico', 'plazos, premios, castigos y cifras: licencia de juego', 'El Senado declara la guerra a Filipo V. Cuartel de nivel 5 en Roma para instruir legiones.')),
   };
 
@@ -552,7 +552,26 @@
     plaustrum: vid('Catón, De agri cultura 10-11 (los carros de la finca); Varrón, De re rustica 1.22', 'por cotejar', MEM13 + '. En el juego, un carro por calzada construida')
   };
 
-  R.fichas = { vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, invest, edad: edades, pueblo };
+  // ---- CE2: recursos guardados (D.RES_NOM), vetas de hierro (D.VETAS_HIERRO) y bienes guardados (D.BIENES). Sin arte propio: iconos de línea de ui.js ----
+  const SIN_R = { sin: 'recurso: se dibuja con un icono de línea propio (js/ui.js), sin modelo' };
+  const H_ETR = 'Diodoro 5.13 (hierro de Etalia, la isla de Elba, que se funde frente a Populonia); Estrabón 5.2.6 (Populonia y el hierro de Elba)';
+  const H_HIS = 'Estrabón 3.2.8-10 (minas de Turdetania y de Hispania); Plinio, NH 34.149 (hierro de Hispania)';
+  const recurso = {
+    grano: f(SIN_R, h('', 'licencia de juego', 'el trigo como recurso que se produce, se guarda y se gasta es una abstracción del juego; las cifras son nuestras')),
+    denarios: f(SIN_R, h('Crawford, Roman Republican Coinage (1974): el denario de plata se acuña desde h. 211 a.C.', 'licencia de juego', 'antes de h. 211 a.C. Roma pagaba con bronce (aes grave, piezas fundidas, y bronce a peso). El juego llama «denarios» a la moneda desde 280 a.C. para no cambiar de nombre a mitad de partida: licencia de juego')),
+    materiales: f(SIN_R, h('', 'licencia de juego', 'madera y piedra van juntas en un solo recurso para que la ciudad sea más fácil de llevar en el móvil; aserradero y cantera siguen siendo edificios distintos')),
+    hierro: f(SIN_R, h(H_ETR + '; ' + H_HIS, 'probable', 'Etruria (Elba y Populonia) e Hispania eran las grandes fuentes de hierro del Mediterráneo occidental; pasajes citados por el encargo CE2, por cotejar en Perseus. Que solo haya mina en esas ciudades y el precio del hierro comprado: licencia de juego'))
+  };
+  const vH = (fuente, nota) => f(SIN_R, h(fuente, 'licencia de juego', nota + '; qué ciudad concreta tiene veta es licencia de juego'));
+  const veta = {
+    volsinii: vH(H_ETR, 'ciudad etrusca: el hierro etrusco salía sobre todo de Elba y Populonia'), perusia: vH(H_ETR, 'ciudad etrusca: el hierro etrusco salía sobre todo de Elba y Populonia'),
+    clusium: vH(H_ETR, 'ciudad etrusca: el hierro etrusco salía sobre todo de Elba y Populonia'), rusellae: vH(H_ETR, 'ciudad etrusca de la costa, cerca de Populonia y Elba'),
+    emporion: vH(H_HIS, 'Hispania'), saguntum: vH(H_HIS, 'Hispania'), carthagonova: vH(H_HIS, 'Hispania; Carthago Nova es más famosa por sus minas de plata (Polibio 34.9, por cotejar)'), tarraco: vH(H_HIS, 'Hispania'), gades: vH(H_HIS, 'Hispania')
+  };
+  const BIEN_LIC = h('', 'licencia de juego', 'guardar el bien en almacén, su tope, su precio fijo y que los ricos lo consuman cada mes es regla del juego; de dónde salía cada bien está en su ficha de bien especial');
+  const bien = {}; for (const k of ['sal', 'vino', 'caballos', 'pieles', 'plata', 'marmol', 'purpura', 'maderanaval']) bien[k] = f(SIN_R, BIEN_LIC);
+
+  R.fichas = { vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, recurso, veta, bien, invest, edad: edades, pueblo };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -588,7 +607,10 @@
     calzada: { tabla: 'CALZADAS', numericos: [], textos: ['n', 'la'] },
     puerto: { tabla: 'PUERTOS', numericos: ['lon', 'lat'], textos: ['n', 'la'] },
     rumbo: { tabla: 'RUMBOS', numericos: [], textos: ['n'] },
-    vida: { tabla: 'VIDA', numericos: [], textos: ['n', 'la'] }
+    vida: { tabla: 'VIDA', numericos: [], textos: ['n', 'la'] },
+    recurso: { tabla: 'RES_NOM', numericos: [], textos: [] },   // CE2
+    veta: { tabla: 'VETAS_HIERRO', numericos: [], textos: [] },   // CE2: lista de ids de ciudad
+    bien: { tabla: 'BIENES', numericos: ['precio'], textos: [] }   // CE2: bienes guardados
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */

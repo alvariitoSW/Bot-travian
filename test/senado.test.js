@@ -32,13 +32,13 @@ t('pueblo en 20: ley con plebeyos negativos vetada; tras Juegos (pueblo > 35) ya
   const s = nueva(), q = s.senado; s.favor.pueblo = 20; assert(G.veto('guerra-cartago').veta, 'veta con pueblo 20');
   q.votacion = { id: 'guerra-cartago', turno: 1, cambiada: false }; q.escanos = { ter: 4, mer: 4, mil: 22 }; q.humor = { ter: 90, mer: 90, mil: 90 }; G.favor();
   const r = G.votar([]); assert(r.vetada && !r.sale, 'vetada pese a los votos');
-  s.favor.pueblo = 30; s.res.oro = 1000; assert(G.veto('guerra-cartago').veta); assert(G.juegos().ok); assert(s.favor.pueblo > 35, 'pueblo ' + s.favor.pueblo); assert(!G.veto('guerra-cartago').veta, 'ya no veta');
-  s.res.oro = 0; s.alm.oro = 0; assert(!G.juegos().ok, 'sin oro no hay juegos');
+  s.favor.pueblo = 30; s.res.denarios = 1000; assert(G.veto('guerra-cartago').veta); assert(G.juegos().ok); assert(s.favor.pueblo > 35, 'pueblo ' + s.favor.pueblo); assert(!G.veto('guerra-cartago').veta, 'ya no veta');
+  s.res.denarios = 0; s.alm.denarios = 0; assert(!G.juegos().ok, 'sin oro no hay juegos');
 });
 t('promesa rota: -15 al bando en el cierre de mes', () => {
   const s = nueva(), q = s.senado; s.t = 1; const h0 = G.humores().ter;
   q.promesas.push({ bando: 'ter', tipo: 'sinLeva', ciudad: 'roma', hasta: 40, rota: false });
-  s.res.hierro = s.res.madera = s.res.grano = s.res.oro = 5000; s.cities.roma.pop = 5000; const k = ['hastati', 'principes', 'milicia'].find(u => G.unitOk(s.cities.roma, u)); assert(G.train('roma', k, 5), 'recluta');
+  s.res.hierro = s.res.materiales = s.res.grano = s.res.denarios = 5000; s.cities.roma.pop = 5000; const k = ['hastati', 'principes', 'milicia'].find(u => G.unitOk(s.cities.roma, u)); assert(G.train('roma', k, 5), 'recluta');
   G.cierreMes(); assert(Math.abs(G.humores().ter - (h0 - 15)) < 1e-6, h0 + ' -> ' + G.humores().ter); assert.strictEqual(q.promesas.length, 0);
 });
 t('promesa cumplida: +5 al llegar su fecha', () => {

@@ -6,34 +6,74 @@
   D.ESTACIONES = ['Primavera', 'Verano', 'Otoño', 'Invierno']; // el año empieza en Ianuarius (invierno): ver G.estacion
   D.END_YEAR = 146;   // a.C. — destrucción histórica de Cartago
 
-  D.RES = ['madera', 'piedra', 'hierro', 'grano', 'oro'];
+  /* CE2: cuatro recursos guardados. Los hombres (👥) no se guardan: son los reclutas libres de tus ciudades (G.hombres).
+     Claves viejas (partidas de antes): oro → denarios; madera y piedra → materiales (se suman). Las traduce D.costeNuevo y G.migrarRecursos. */
+  D.RES = ['grano', 'denarios', 'materiales', 'hierro'];
   D.POP_ICON = '👥';
-  D.RES_ICON = { madera: '🪵', piedra: '🪨', hierro: '⚒️', grano: '🌾', oro: '🪙' };
+  D.RES_ICON = { grano: '🌾', denarios: '🪙', materiales: '🧱', hierro: '⚒️' };
+  D.RES_NOM = { grano: 'Grano', denarios: 'Denarios', materiales: 'Materiales', hierro: 'Hierro' };
+  D.RES_VIEJOS = ['madera', 'piedra', 'oro'];
+  /* Traducción mecánica de un coste viejo (madera, piedra, hierro, grano, oro) al nuevo. tipo:
+     - 'obra' (edificios, obras y piezas de ciudad, aldeas, muralla, grandes obras): materiales = madera + piedra + hierro; denarios = oro + grano × 0,5.
+     - 'tropa': hierro y grano los de antes; denarios = oro + madera × 0,5.
+     - 'saber' (forja y saberes): hierro el de antes; materiales = madera + piedra; denarios = oro.
+     Idempotente: un coste que ya trae materiales o denarios, o que no trae claves viejas, se copia tal cual. Licencia de juego (CE2). */
+  D.costeNuevo = function (o, tipo) {
+    if (!o || typeof o !== 'object') return o;
+    const viejo = 'madera' in o || 'piedra' in o || 'oro' in o, nuevo = 'materiales' in o || 'denarios' in o;
+    if (nuevo || !viejo) { if (!nuevo && tipo === 'obra' && ('hierro' in o || 'grano' in o)) { /* obra con solo hierro o grano: también se traduce */ } else return Object.assign({}, o); }
+    const g = k => +o[k] || 0, n = {};
+    if (tipo === 'tropa') { if (g('grano')) n.grano = g('grano'); if (g('hierro')) n.hierro = g('hierro'); n.denarios = Math.round(g('oro') + g('madera') * 0.5); }
+    else if (tipo === 'saber') { if (g('hierro')) n.hierro = g('hierro'); n.materiales = g('madera') + g('piedra'); n.denarios = g('oro'); }
+    else { n.materiales = g('madera') + g('piedra') + g('hierro'); n.denarios = Math.round(g('oro') + g('grano') * 0.5); }
+    for (const k in n) if (!n[k]) delete n[k];
+    return n;
+  };
+  // una cantidad suelta de recursos viejos (caja, almacén, botín...): se suman sin cambiar de valor (madera + piedra → materiales; oro → denarios)
+  D.recursosNuevos = function (o) {
+    if (!o || typeof o !== 'object') return o; const n = {};
+    for (const k in o) { const v = +o[k] || 0, d = k === 'oro' ? 'denarios' : (k === 'madera' || k === 'piedra') ? 'materiales' : k; n[d] = (n[d] || 0) + v; }
+    return n;
+  };
+  /* CE2: vetas de hierro. Solo en Etruria (ciudades de origen etrusco) y en Hispania. La mina solo se abre o sube aquí; una mina vieja fuera
+     sigue al VETA_POBRE de su rendimiento. Fuentes: Diodoro 5.13 (hierro de Etalia/Elba, frente a Populonia), Livio 28.45 (Populonia da hierro a
+     Escipión en 205 a.C.); Estrabón 3.2.8-10 (minas de Hispania). Qué ciudad tiene veta: licencia de juego. */
+  D.VETAS_HIERRO = ['volsinii', 'perusia', 'clusium', 'rusellae', 'emporion', 'saguntum', 'carthagonova', 'tarraco', 'gades'];
+  D.VETA_POBRE = 0.25;
+  /* CE2: bienes por región. Cada ciudad tuya con bien (D.CITIES[id].esp) guarda BIEN_MES unidades al mes en s.bienes[esp], hasta BIEN_TOPE.
+     Los ciudadanos ricos consumen LUJO_POR_CIU bienes de lujo (D.LUJO) al mes cada uno. Se venden por denarios a precio fijo (CE4 traerá precios
+     por ciudad); lo que sobra, a BIEN_SOBRA del precio. El hierro de calidad no se guarda como bien: sus ciudades ya tienen veta. Cifras: licencia de juego. */
+  D.BIENES = { sal: { precio: 4 }, vino: { precio: 6 }, caballos: { precio: 8 }, pieles: { precio: 5 }, plata: { precio: 10 }, marmol: { precio: 7 }, purpura: { precio: 12 }, maderanaval: { precio: 6 } };
+  D.SOBRA_MUL = 0.5;   // CE2: «Vender lo que sobra» paga la mitad del cambio del mercado (licencia de juego)
+  D.HIERRO_COMPRA = 0.6;   // CE2: el hierro comprado en el mercado rinde un 60 % del cambio (escasea fuera de Etruria e Hispania; licencia de juego)
+  D.CAP_MUL = { materiales: 2 };   // CE2: el almacén guarda el doble de materiales (antes eran dos recursos, madera y piedra; licencia de juego)
+  D.MAT_MUL = 0.8;   // CE2: multiplica los materiales de aserradero, cantera y aldeas (ajuste con el bot; licencia de juego)
+  D.BIEN_MES = 4; D.BIEN_TOPE = 60; D.LUJO_POR_CIU = 0.02; D.BIEN_SOBRA = 0.5;
   D.MONTHS = ['Ianuarius', 'Februarius', 'Martius', 'Aprilis', 'Maius', 'Iunius', 'Quintilis', 'Sextilis', 'September', 'October', 'November', 'December'];
 
   D.BUILD = {
-    aserradero: { n: 'Aserradero', i: '🪓', prod: 'madera', cost: { madera: 30, piedra: 50, hierro: 20, grano: 20 }, time: 1.5, d: 'Produce madera.' },
-    cantera: { n: 'Cantera', i: '⛏️', prod: 'piedra', cost: { madera: 50, piedra: 20, hierro: 30, grano: 20 }, time: 1.5, d: 'Produce piedra.' },
-    mina: { n: 'Mina de hierro', i: '⚒️', prod: 'hierro', cost: { madera: 50, piedra: 40, hierro: 15, grano: 25 }, time: 1.5, d: 'Produce hierro.' },
-    granja: { n: 'Granja', i: '🌾', prod: 'grano', cost: { madera: 40, piedra: 40, hierro: 20, grano: 10 }, time: 1.5, d: 'Produce grano. Las tropas lo consumen.' },
-    viviendas: { n: 'Ínsulas', i: '🏘️', solar: 1, cost: { madera: 60, piedra: 50, hierro: 10, grano: 30 }, time: 1.8, d: 'Viviendas: aumentan la población máxima. La población paga impuestos y de ella salen los reclutas.' },
-    foro: { n: 'Foro', i: '🏛️', solar: 1, prod: 'oro', cost: { madera: 80, piedra: 90, hierro: 40, grano: 40 }, time: 2.5, d: 'Recauda denarios, acelera las obras un 4 % por nivel y permite más población.' },
-    almacen: { n: 'Almacén', i: '🏺', solar: 1, cost: { madera: 70, piedra: 60, hierro: 30, grano: 20 }, time: 2, d: 'Aumenta la capacidad de almacenamiento.' },
-    mercado: { n: 'Mercado', i: '⚖️', solar: 1, cost: { madera: 80, piedra: 70, hierro: 30, grano: 30, oro: 40 }, time: 2.5, d: 'Permite cambiar unos recursos por otros. Cada nivel mejora el cambio, y da +2 de felicidad y +20 de población máxima.' },
-    puerto: { n: 'Puerto', i: '⚓', solar: 1, cost: { madera: 140, piedra: 80, hierro: 50, grano: 30, oro: 60 }, time: 3, sea: true, d: 'Necesario para embarcar ejércitos por rutas marítimas. Da ingresos por comercio y acorta las travesías.' },
-    cuartel: { n: 'Cuartel', i: '⚔️', solar: 1, cost: { madera: 90, piedra: 60, hierro: 70, grano: 40 }, time: 2.5, d: 'Recluta infantería. Nv 3: Príncipes. Nv 5: Triarios.' },
-    establo: { n: 'Establo', i: '🐎', solar: 1, cost: { madera: 110, piedra: 60, hierro: 80, grano: 70 }, time: 3, d: 'Recluta caballería (Équites).' },
-    muralla: { n: 'Muralla', i: '🧱', cost: { madera: 40, piedra: 120, hierro: 30, grano: 20 }, time: 3, d: '+10 % de defensa por nivel y más guardia urbana al defender.' },
-    herreria: { n: 'Herrería', i: '🔨', solar: 1, cost: { madera: 70, piedra: 60, hierro: 90, grano: 30, oro: 30 }, time: 2.5, d: 'Forja mejoras de armas y armaduras para todo el ejército. Cada mejora no puede pasar del nivel de la herrería.' },
-    escuela: { n: 'Escuela', i: '📜', solar: 1, cost: { madera: 70, piedra: 90, hierro: 10, grano: 40, oro: 60 }, time: 3, d: 'Aquí estudian los sabios: aceleran las investigaciones y cobran paga.' },
-    templo: { n: 'Templo', i: '🔥', solar: 1, cost: { madera: 80, piedra: 100, hierro: 30, grano: 60, oro: 50 }, time: 3, d: 'Un templo a un dios por ciudad (Marte, Ceres o Neptuno). Por nivel: +4 de felicidad, +10 de población máxima, +10 % de experiencia del héroe, calma antes a una ciudad conquistada y el don de su dios.' }
+    aserradero: { n: 'Aserradero', i: '🪓', prod: 'materiales', cost: { materiales: 100, denarios: 10 }, time: 1.5, d: 'Da materiales: madera.' },
+    cantera: { n: 'Cantera', i: '⛏️', prod: 'materiales', cost: { materiales: 100, denarios: 10 }, time: 1.5, d: 'Da materiales: piedra.' },
+    mina: { n: 'Mina de hierro', i: '⚒️', prod: 'hierro', cost: { materiales: 105, denarios: 13 }, time: 1.5, d: 'Produce hierro.' },
+    granja: { n: 'Granja', i: '🌾', prod: 'grano', cost: { materiales: 100, denarios: 5 }, time: 1.5, d: 'Produce grano. Las tropas lo consumen.' },
+    viviendas: { n: 'Ínsulas', i: '🏘️', solar: 1, cost: { materiales: 120, denarios: 15 }, time: 1.8, d: 'Viviendas: aumentan la población máxima. La población paga impuestos y de ella salen los reclutas.' },
+    foro: { n: 'Foro', i: '🏛️', solar: 1, prod: 'denarios', cost: { materiales: 210, denarios: 20 }, time: 2.5, d: 'Recauda denarios, acelera las obras un 4 % por nivel y permite más población.' },
+    almacen: { n: 'Almacén', i: '🏺', solar: 1, cost: { materiales: 160, denarios: 10 }, time: 2, d: 'Aumenta la capacidad de almacenamiento.' },
+    mercado: { n: 'Mercado', i: '⚖️', solar: 1, cost: { materiales: 180, denarios: 55 }, time: 2.5, d: 'Permite cambiar unos recursos por otros. Cada nivel mejora el cambio, y da +2 de felicidad y +20 de población máxima.' },
+    puerto: { n: 'Puerto', i: '⚓', solar: 1, cost: { materiales: 270, denarios: 75 }, time: 3, sea: true, d: 'Necesario para embarcar ejércitos por rutas marítimas. Da ingresos por comercio y acorta las travesías.' },
+    cuartel: { n: 'Cuartel', i: '⚔️', solar: 1, cost: { materiales: 220, denarios: 20 }, time: 2.5, d: 'Recluta infantería. Nv 3: Príncipes. Nv 5: Triarios.' },
+    establo: { n: 'Establo', i: '🐎', solar: 1, cost: { materiales: 250, denarios: 35 }, time: 3, d: 'Recluta caballería (Équites).' },
+    muralla: { n: 'Muralla', i: '🧱', cost: { materiales: 190, denarios: 10 }, time: 3, d: '+10 % de defensa por nivel y más guardia urbana al defender.' },
+    herreria: { n: 'Herrería', i: '🔨', solar: 1, cost: { materiales: 220, denarios: 45 }, time: 2.5, d: 'Forja mejoras de armas y armaduras para todo el ejército. Cada mejora no puede pasar del nivel de la herrería.' },
+    escuela: { n: 'Escuela', i: '📜', solar: 1, cost: { materiales: 170, denarios: 80 }, time: 3, d: 'Aquí estudian los sabios: aceleran las investigaciones y cobran paga.' },
+    templo: { n: 'Templo', i: '🔥', solar: 1, cost: { materiales: 210, denarios: 80 }, time: 3, d: 'Un templo a un dios por ciudad (Marte, Ceres o Neptuno). Por nivel: +4 de felicidad, +10 de población máxima, +10 % de experiencia del héroe, calma antes a una ciudad conquistada y el don de su dios.' }
   };
   /* Templos (F5): cada ciudad puede dedicar su templo a un dios. Los dones son por nivel de templo. Licencia de juego:
      los romanos no «elegían» un dios por ciudad, pero Marte, Ceres y Neptuno eran divinidades reales de Roma (Livio 2.41 para el templo de Ceres, 493 a.C.; Marte, Campo de Marte; Neptuno, Circo Flaminio). Dones inventados. */
   D.DIOSES = {
     marte: { n: 'Marte', i: '🔥', d: '+3 de moral de la guarnición al defender, por nivel.', mor: 3 },
     ceres: { n: 'Ceres', i: '🌾', d: '+8 % de grano de esa ciudad, por nivel.', grano: 0.08 },
-    neptuno: { n: 'Neptuno', i: '🔱', d: 'Solo con mar: viajes por mar un 4 % más rápidos y +2 de oro por nivel de puerto.', sea: true, mar: 0.04, oroPuerto: 2 }
+    neptuno: { n: 'Neptuno', i: '🔱', d: 'Solo con mar: viajes por mar un 4 % más rápidos y +2 denarios por nivel de puerto.', sea: true, mar: 0.04, oroPuerto: 2 }
   };
   // ciudad conquistada: meses de inquietud (producción reducida; con felicidad baja se rebela). El templo la calma INQ_TEMPLO meses extra por nivel
   // Licencia de juego (cifra mía, no histórica): en 216 Capua se pasa a Aníbal si no tiene al menos esta cantidad de hombres propios
@@ -49,34 +89,34 @@
   D.MAX_LVL = 10;
   /* CN10: edificios que no existían entre 280 y 146 a.C. Ya no están en D.BUILD; solo guardamos su coste base para devolverlo al cargar una partida vieja (G.migrarRetirados). */
   D.RETIRADOS = {
-    acueducto: { madera: 90, piedra: 160, hierro: 50, grano: 50, oro: 60 },
-    termas: { madera: 100, piedra: 140, hierro: 40, grano: 60, oro: 80 },
-    anfiteatro: { madera: 130, piedra: 180, hierro: 60, grano: 80, oro: 100 }
+    acueducto: { materiales: 300, denarios: 85 },
+    termas: { materiales: 280, denarios: 110 },
+    anfiteatro: { materiales: 370, denarios: 140 }
   };
   // mejoras de la herrería: globales, nivel 0 a FORJA_MAX, +5 % por nivel. Coste y tiempo base (nivel 0), crecen x1.5 y x1.4 por nivel
-  /* Impuestos: oro x mult, felicidad +/- f. Edificios que suben la felicidad: puntos por nivel (D.FELICIDAD_EDIF). */
+  /* Impuestos: denarios x mult, felicidad +/- f. Edificios que suben la felicidad: puntos por nivel (D.FELICIDAD_EDIF). */
   D.IMPUESTOS = { bajo: { n: 'Impuestos bajos', mult: 0.7, f: 15 }, normal: { n: 'Impuestos normales', mult: 1, f: 0 }, alto: { n: 'Impuestos altos', mult: 1.4, f: -25 } };
   /* CN13a: fiestas del Foro y del Templo. Licencia de juego en todas las cifras y en el reparto «una ofrenda al mes»; lo real: los ludi eran fiestas públicas pagadas
      por magistrados y las ofrendas a los dioses (supplicationes, ver sacrum) las ordenaba el Senado (Livio 22.9-10; fichas 'ofrenda' y 'juegos' de registro.js).
      coste = max(min, mult x ingreso bruto mensual del foro y los impuestos): sigue a la economía. dura = meses de efecto; reposo = meses hasta repetir; fel = felicidad mientras dura;
      pueblo = favor del pueblo al celebrarla; inq = meses de inquietud que calma en una ciudad conquistada; dios = multiplica el don del dios del templo mientras dura.
-     La ofrenda se paga con lo que el arca iba a perder por el tope (o con grano); los juegos, con oro. */
+     La ofrenda se paga con lo que el arca iba a perder por el tope (o con grano); los juegos, con denarios. */
   D.FIESTAS = {
     ofrenda: { n: 'Ofrenda al templo', i: '🏺', mult: 2, min: 60, dura: 1, reposo: 1, fel: 4, pueblo: 2, inq: 0, dios: 2, pago: 'arca', templo: true, d: 'Duplica un mes el don del dios del templo.' },
-    juegos: { n: 'Juegos públicos', i: '🎭', mult: 4, min: 150, dura: 3, reposo: 6, fel: 10, pueblo: 5, inq: 4, dios: 1, pago: 'oro', templo: false, d: 'Calman al pueblo y a una ciudad conquistada.' }
+    juegos: { n: 'Juegos públicos', i: '🎭', mult: 4, min: 150, dura: 3, reposo: 6, fel: 10, pueblo: 5, inq: 4, dios: 1, pago: 'denarios', templo: false, d: 'Calman al pueblo y a una ciudad conquistada.' }
   };
-  /* CN16a: la leva del Foro (dilectus). Los aldeanos libres se alistan como milicia a cambio de grano y oro; sin cola ni reloj, solo cuando el jugador pulsa. n = soldados por pulsación; tope = parte de la población libre que puede estar bajo armas por leva (el resto sigue en el campo). Licencia de juego: el coste es de equilibrio, no sale de las fuentes. */
-  D.LEVA = { unidad: 'milicia', n: 10, grano: 6, oro: 4, tope: 0.35, d: 'Alista aldeanos como milicia.' };
+  /* CN16a: la leva del Foro (dilectus). Los aldeanos libres se alistan como milicia a cambio de grano y denarios; sin cola ni reloj, solo cuando el jugador pulsa. n = soldados por pulsación; tope = parte de la población libre que puede estar bajo armas por leva (el resto sigue en el campo). Licencia de juego: el coste es de equilibrio, no sale de las fuentes. */
+  D.LEVA = { unidad: 'milicia', n: 10, grano: 6, denarios: 4, tope: 0.35, d: 'Alista aldeanos como milicia.' };
   /* CN16b: cerrar el ejército en la ciudad. Todo es licencia de juego en las cifras (equilibrio, no fuentes); fichas en registro.js (puertas, evocati, triumphus).
-     PUERTAS: con muralla, el jugador cierra las puertas de una ciudad. def = multiplica la defensa de la guarnición al defenderla; comercio = multiplica el oro del foro y del puerto
+     PUERTAS: con muralla, el jugador cierra las puertas de una ciudad. def = multiplica la defensa de la guarnición al defenderla; comercio = multiplica el denarios del foro y del puerto
      de esa ciudad; viaje = multiplica la duración de las marchas propias que salen o entran en ella. Se guarda en c.puertas (true = cerradas).
      VETERANOS: cada batalla que libra la tropa de una ciudad suma 1 a c.vetB. Con c.vetB >= batallas se pueden licenciar hasta n soldados (no la milicia):
      vuelven a la población, traen grano (por hombre) y suben el favor del pueblo. Cada licencia gasta «batallas» del contador.
      TRIUNFO: una victoria con al menos «bajas» enemigas y «ratio» veces más bajas enemigas que propias, o una ciudad conquistada, ofrece UN triunfo durante «plazo» meses.
-     Cuesta oro; da favor del pueblo y felicidad en todas tus ciudades durante «dura» meses. */
+     Cuesta denarios; da favor del pueblo y felicidad en todas tus ciudades durante «dura» meses. */
   D.PUERTAS = { def: 1.15, comercio: 0.8, viaje: 1.25 };
   D.VETERANOS = { batallas: 3, n: 20, grano: 4, pueblo: 2 };
-  D.TRIUNFO = { bajas: 200, ratio: 3, oro: 250, pueblo: 8, fel: 6, dura: 6, plazo: 12 };
+  D.TRIUNFO = { bajas: 200, ratio: 3, denarios: 250, pueblo: 8, fel: 6, dura: 6, plazo: 12 };
   D.LEVA_FICHAS = {
     dilectus: { n: 'Leva (dilectus)', i: '⚔️', d: 'Los ciudadanos libres se alistan como soldados cuando el Senado lo manda.' },
     campo_marte: { n: 'Campo de Marte', i: '🏟️', d: 'Explanada junto a la puerta donde la tropa se forma y se instruye.' },
@@ -92,8 +132,8 @@
   };
   /* Racionar el grano (CN13a): gasta menos y el pueblo lo nota. Es la ración de la ciudad (c.rac); no es el «hambre» del invierno (E.hambre) ni la de G.tick (grano agotado). */
   D.RACION = { normal: { n: 'Ración normal', grano: 1, f: 0, d: 'Come todo el mundo.' }, escasa: { n: 'Ración escasa', grano: 0.7, f: -8, d: 'Un 30 % menos de grano; el pueblo se queja.' } };
-  /* El arca del foro cuenta lo que el tope del almacén va a hacer perder. valor = oro que vale cada unidad (mercado); umbrales = fracción del tope (en oro) para los niveles 1 a 4. */
-  D.ARCA = { valor: { madera: 0.5, piedra: 0.6, hierro: 0.8, grano: 0.5, oro: 1 }, umbrales: [0.02, 0.1, 0.25, 0.5], pide: 3 };
+  /* El arca del foro cuenta lo que el tope del almacén va a hacer perder. valor = denarios que vale cada unidad (mercado); umbrales = fracción del tope (en denarios) para los niveles 1 a 4. */
+  D.ARCA = { valor: { materiales: 0.55, hierro: 0.8, grano: 0.5, denarios: 1 }, umbrales: [0.02, 0.1, 0.25, 0.5], pide: 3 };
   D.FELICIDAD_BASE = 55;   // + 5 del municipio (tipo por defecto) = 60, como antes de I4
   D.FELICIDAD_MIN_CRECER = 40;
   D.FELICIDAD_EDIF = { templo: 4, mercado: 2 };   // CN10: sin termas ni anfiteatro (no existían antes del 146 a.C.), su felicidad pasa al templo y al mercado
@@ -115,7 +155,7 @@
      c.pop es el total; plebeyos = pop - ciu - esc. */
   D.CLASES = {
     escConquista: 0.25,        // parte de la población de una ciudad conquistada que pasa a esclavos
-    escRenta: 0,               // oro/mes por esclavo (0 hasta que Villa esclavista lo cambie)
+    escRenta: 0,               // denarios/mes por esclavo (0 hasta que Villa esclavista lo cambie)
     escTrabajo: 0.3,           // cada esclavo trabaja 1,3 veces
     impCiu: 2.5,               // impuestos por ciudadano (plebeyo 1, esclavo 0)
     escAnimo: 0.15, escAnimoTope: 15,   // ánimo que pierden los plebeyos por cada punto de % de esclavos (con tope)
@@ -127,21 +167,21 @@
   D.BARRIO_SERV = { grano: 'Grano', agua: 'Agua', templo: 'Templo', mercado: 'Mercado', lujo: 'Lujo' };
   // mano de obra y mantenimiento (I3): puestos = base + por nivel de aserradero/cantera/mina/granja; la producción de recursos se multiplica por pop/puestos (con suelo)
   D.PUESTOS_BASE = 20; D.PUESTOS_NIVEL = 12; D.MANO_MIN = 0.25;
-  D.MANT_EDIF = 0.15; D.MANT_TROPA = 0.35;   // oro/mes por nivel de edificio no productivo y por punto de «up» de tropa (stipendium)
+  D.MANT_EDIF = 0.15; D.MANT_TROPA = 0.35;   // denarios/mes por nivel de edificio no productivo y por punto de «up» de tropa (stipendium)
   /* Solares (I4): los edificios urbanos (solar: 1 en D.BUILD) ocupan uno cuando su nivel es 1 o más; campos y muralla, no.
      Cada ciudad tiene los suyos: D.CITIES[id].solares o 7 + riqueza/2 (nunca más de SOLARES_MAX: ninguna ciudad lo tiene todo). */
   D.SOLARES_BASE = 7; D.SOLARES_MAX = 11;
   /* Tipos de ciudad (licencia de juego): uno por ciudad propia. Los números son multiplicadores que lee game.js.
-     rec = producción de madera, piedra, hierro y grano; fel = felicidad; instr = velocidad de instrucción; paga = coste de la paga de la guarnición;
-     oroCom = oro de foro y puerto; mercado = mejora del cambio; viajeMar = tiempo de los viajes por mar; oroPuerto = oro por nivel de puerto;
+     rec = producción de materiales, hierro y grano; fel = felicidad; instr = velocidad de instrucción; paga = coste de la paga de la guarnición;
+     oroCom = denarios de foro y puerto; mercado = mejora del cambio; viajeMar = tiempo de los viajes por mar; oroPuerto = denarios por nivel de puerto;
      forjaCoste / forjaTiempo = mejoras de la herrería encargadas desde la ciudad. */
   D.TIPO_CAMBIO = 250;
   D.TIPOS = {
     municipio: { n: 'Municipio', i: '🏛️', d: 'Hace de todo: +5 de felicidad.', fel: 5 },
-    agraria: { n: 'Colonia agraria', i: '🌾', d: '+25 % de madera, piedra, hierro y grano.', rec: 1.25, afin: 'ca' },
+    agraria: { n: 'Colonia agraria', i: '🌾', d: '+25 % de materiales, hierro y grano.', rec: 1.25, afin: 'ca' },
     militar: { n: 'Colonia militar', i: '⚔️', d: 'Instrucción un 25 % más rápida y la paga de su guarnición cuesta un 25 % menos.', instr: 0.8, paga: 0.75, afin: 'gu' },
-    emporio: { n: 'Emporio', i: '⚖️', d: '+50 % del oro de foro, puerto y rutas. Con mercado, cambias recursos a mejor precio. Una ruta comercial más.', oroCom: 1.5, mercado: 0.05, rutas: 1, afin: 'of' },
-    naval: { n: 'Base naval', i: '⚓', d: 'Solo en ciudades con mar: viajes por mar un 25 % más rápidos y +3 de oro por nivel de puerto.', mar: true, viajeMar: 0.75, oroPuerto: 3, afin: 'ma' },
+    emporio: { n: 'Emporio', i: '⚖️', d: '+50 % de los denarios de foro, puerto y rutas. Con mercado, cambias recursos a mejor precio. Una ruta comercial más.', oroCom: 1.5, mercado: 0.05, rutas: 1, afin: 'of' },
+    naval: { n: 'Base naval', i: '⚓', d: 'Solo en ciudades con mar: viajes por mar un 25 % más rápidos y +3 denarios por nivel de puerto.', mar: true, viajeMar: 0.75, oroPuerto: 3, afin: 'ma' },
     saber: { n: 'Ciudad de artesanos', i: '🔨', d: 'Las mejoras de la herrería y las investigaciones encargadas desde aquí cuestan y tardan un 25 % menos.', forjaCoste: 0.75, forjaTiempo: 0.75, invCoste: 0.75, invTiempo: 0.75 }
   };
   /* Investigación (I5). Licencia de juego: el árbol de «saberes» (4 ramas, 3 edades) es invención; las fuentes de cada saber son las de gobierno/estudios/P93-ciencia.md §3.
@@ -158,38 +198,38 @@
     dotFrac: [0, 1 / 3, 2 / 3, 1], aforoNivel: 10, calNivel: { 1: 1, 3: 1, 6: 1.1, 10: 1.2 }, rinde: { ple: 1, ciu: 1.6, esc: 1.3 }, pagaBase: { ple: 0.20, ciu: 0.45, esc: 0.10 },
     pagaEdad: [1, 1.25, 1.5, 1.75], pagaDiv: 50, alta: 6, topePob: 0.15, animoMin: 30, velK: 2.4, velR0: 60, velMax: 3, afinMul: 1.25, artesanosMul: 1.12
   };
-  const invC = (madera, piedra, hierro, grano, oro) => ({ madera, piedra, hierro, grano, oro });
+  const invC = (materiales, denarios, hierro) => ({ grano: 0, denarios, materiales, hierro: hierro || 0 });   // CE2: materiales = madera + piedra de antes, denarios = denarios, hierro el de antes; el grano ya no se pide
   const inv = (id, n, i, rama, edad, req, excl, cost, time, ef, eureka, fuente, dictamen) => { const o = { id, n, i, rama, edad, req, excl, cost, time, ef, fuente, dictamen }; if (eureka) o.eureka = eureka; return o; };
   const IV = [
-    inv('griego', 'Preceptores griegos', '📜', 'of', 1, [{ b: ['foro', 1] }], [], invC(40, 50, 10, 60, 50), 12, { abre: 'escuela' }, 0, 'Suetonio, De grammaticis 1; Cicerón, Bruto 72: Livio Andronico, griego de Tarento, enseña hacia 272 a.C. La Escuela como edificio es licencia de juego.', 'probable'),
-    inv('apio', 'Obras de Apio Claudio', '🛣️', 'of', 1, [{ b: ['foro', 1] }], [], invC(90, 140, 20, 40, 60), 20, { viajeTierra: { resta: 3, sobre: 3 }, popCap: 1.05 }, 0, 'Livio 9.29; Frontino, De aquaeductu 4-6: Vía Apia y Aqua Appia (312 a.C.). Cifras: licencia de juego.', 'probable'),
-    inv('castra', 'Campamento y disciplina', '⛺', 'gu', 1, [{ b: ['cuartel', 1] }], [], invC(60, 60, 110, 60, 50), 16, { mor: 3, paga: 0.95 }, 0, 'Polibio 6.27-39: campamento, castigos y premios.', 'probable'),
-    inv('quinque', 'Quinquerreme copiada', '⚓', 'ma', 2, [{ edad: 2 }, { b: ['puerto', 1] }], [], invC(280, 40, 90, 80, 110), 24, { viajeMar: { resta: 3, sobre: 3 } }, 'tarentum', 'Polibio 1.20: Roma copia una nave cartaginesa varada (260 a.C.); Tarento y otros aliados prestan naves (1.20.14). Cifra: licencia de juego.', 'historico'),
-    inv('corvus', 'Corvus', '🪝', 'ma', 2, [{ edad: 2 }, { inv: ['quinque'] }], ['remeros'], invC(220, 30, 200, 60, 130), 28, { atkMar: 1.05 }, 0, 'Polibio 1.22: pasarela de abordaje (cotejado en H1). Cifra: licencia de juego.', 'historico'),
-    inv('remeros', 'Remeros adiestrados en seco', '🚣', 'ma', 2, [{ edad: 2 }, { inv: ['quinque'] }], ['corvus'], invC(180, 40, 40, 120, 120), 28, { viajeMar: { resta: 3, sobre: 6 } }, 0, 'Polibio 1.21: remeros adiestrados en bancos sobre la arena. Cifra: licencia de juego.', 'historico'),
-    inv('fasti', 'Fasti y ley escrita', '⚖️', 'of', 2, [{ edad: 2 }, { b: ['escuela', 1] }], [], invC(50, 90, 10, 80, 130), 24, { inqMeses: 0.6, inqProd: 0.6 }, 0, 'Livio 9.46: Cneo Flavio publica el derecho y el calendario (304 a.C.).', 'probable'),
-    inv('vina', 'Viña y olivar', '🍇', 'ca', 2, [{ edad: 2 }, { b: ['granja', 3] }], ['trigo'], invC(140, 120, 20, 60, 130), 28, { oroCom: 1.25, impuestos: 1.08 }, 'agrigentum', 'Catón, De agri cultura 1.7: la viña, primera en rendimiento. Cifras: licencia de juego.', 'probable'),
-    inv('trigo', 'Trigo y diezmo de Sicilia', '🌾', 'ca', 2, [{ edad: 2 }, { b: ['granja', 3] }], ['vina'], invC(120, 60, 20, 140, 110), 28, { grano: 1.05, crece: 1.06 }, 0, 'Cicerón, Verrinas 3: lex Hieronica, el diezmo de Hierón que Roma conserva.', 'probable'),
-    inv('pilum', 'Pilum y manípulo', '🗡️', 'gu', 2, [{ edad: 2 }, { b: ['cuartel', 3] }], [], invC(80, 40, 200, 60, 140), 26, { atk: 1.03 }, 0, 'Polibio 6.23.9-11 (dentro del tramo 6.21-23 ya cotejado). Cifra: licencia de juego.', 'historico'),
-    inv('latif', 'Villa esclavista', '⛓️', 'ca', 3, [{ edad: 3 }, { b: ['granja', 6] }], ['colon'], invC(240, 100, 160, 200, 270), 44, { cl: { escConquista: 0.60, escRenta: 0.20, escAnimo: 0.25, escAnimoTope: 20, manumisionTasa: 0, inquietud: 35 } }, 0, 'Catón, De agri cultura 2.7 y 56-59; la crisis del pequeño campesino es tesis moderna (Toynbee). Cifras: licencia de juego.', 'probable'),
-    inv('colon', 'Colonos y asignaciones', '🏡', 'ca', 3, [{ edad: 3 }, { barrio: 2 }], ['latif'], invC(220, 160, 80, 240, 250), 44, { cl: { ciudadaniaCoste: 30, ciudadaniaMax: 0.55, impCiu: 2.9, escConquista: 0.10 }, instr: 0.94 }, 0, 'Polibio 2.21: ley de Flaminio, ager Gallicus (232 a.C.).', 'probable'),
-    inv('sambuca', 'Sambuca y arietes', '🪜', 'gu', 3, [{ edad: 3 }, { b: ['puerto', 1] }, { b: ['cuartel', 3] }], ['arquimedes'], invC(360, 60, 260, 100, 290), 44, { brecha: 1 }, 0, 'Polibio 8.4-6 (dentro del tramo 8.5-8 cotejado): Marcelo y las sambucas sobre barcos en Siracusa.', 'historico'),
-    inv('arquimedes', 'Máquinas de Arquímedes', '🔭', 'gu', 3, [{ edad: 3 }, { b: ['muralla', 3] }, { o: [{ tiene: ['syracusae'] }, { ciudades: 6 }] }], ['sambuca'], invC(160, 300, 300, 80, 320), 48, { defMuro: 0.025 }, 'syracusae', 'Polibio 8.5-8; Plutarco, Marcelo 15-17 (cotejados). Cifra: licencia de juego.', 'historico'),
-    inv('astilleros', 'Astilleros de ribera', '🏗️', 'ma', 3, [{ edad: 3 }, { b: ['puerto', 3] }], ['derrota'], invC(480, 140, 140, 100, 190), 40, { sinBien: 'puerto' }, ['panormus', 'lilybaeum'], 'Polibio 1.20-21: la flota se levanta desde cero. Que sustituya al bien especial: licencia de juego.', 'historico'),
-    inv('derrota', 'Derrota mercante', '🧭', 'ma', 3, [{ edad: 3 }, { b: ['mercado', 3] }, { b: ['puerto', 1] }], ['astilleros'], invC(480, 140, 140, 100, 190), 40, { rutas: 1, rutaRenta: 1.15 }, 0, 'Polibio 3.22-25: tratados de comercio Roma-Cartago (ya citado en D.RUTA). Cifras: licencia de juego.', 'historico'),
-    inv('medicina', 'Cirujanos griegos', '⚕️', 'of', 3, [{ edad: 3 }, { b: ['escuela', 1] }, { o: [{ y: 219 }, { ciudades: 5 }] }], [], invC(100, 60, 80, 260, 290), 38, { crece: 1.10, herida: -12, fel: -2, favor: { senado: -3, pueblo: 3 } }, 0, 'Plinio, NH 29.12-14: Arcágato, primer médico griego, 219 a.C.; apodado «verdugo»; Catón desconfiaba. Cifras: licencia de juego.', 'probable'),
-    inv('magon', 'Tratado de Magón', '📚', 'ca', 4, [{ edad: 4 }, { o: [{ fac: 'cartago' }, { ciudades: 7 }] }], [], invC(360, 140, 70, 360, 430), 68, { grano: 1.03, crece: 1.04, hambre: 0.5 }, 'carthago', 'Plinio, NH 18.22-23 (y Varrón, RR 1.1.10): el Senado manda traducir los 28 libros de Magón tras 146 a.C.', 'probable'),
-    inv('perseo', 'Biblioteca del rey Perseo', '🏛️', 'of', 4, [{ edad: 4 }, { b: ['escuela', 3] }, { o: [{ tiene: ['pella'] }, { ciudades: 7 }] }], [], invC(120, 160, 20, 300, 440), 58, { pts: 2, fel: 2 }, 'pella', 'Plutarco, Emilio Paulo 28; Polibio 31.23-25: los libros de Perseo pasan a los hijos de Paulo, entre ellos Escipión Emiliano (168 a.C.).', 'probable'),
-    inv('acoger', 'Acoger a los filósofos', '🤝', 'of', 4, [{ edad: 4 }, { b: ['escuela', 3] }], ['expulsar'], invC(40, 40, 10, 160, 360), 38, { impuestos: 1.08, crece: 1.04, pts: 1, fel: -2, favor: { senado: -4, pueblo: 3 } }, 0, 'Plutarco, Catón 22; Gelio 6.14: embajada de Carnéades (155 a.C.).', 'probable'),
-    inv('expulsar', 'Expulsar a los filósofos', '🚪', 'of', 4, [{ edad: 4 }, { b: ['escuela', 1] }], ['acoger'], invC(60, 60, 60, 160, 250), 28, { fel: 4, crece: 0.96, favor: { senado: 4, pueblo: -2 } }, 0, 'Suetonio, De rhetoribus 1; Gelio 15.11: expulsión de 161 a.C.', 'probable'),
-    inv('hormigon', 'Opus caementicium', '🧱', 'of', 4, [{ edad: 4 }, { b: ['escuela', 1] }], [], invC(200, 380, 60, 100, 300), 48, { obra: 0.88 }, 0, 'Livio 35.10: Pórtico Emilio (193 a.C.), primeros usos del hormigón. Cifra: licencia de juego.', 'probable')
+    inv('griego', 'Preceptores griegos', '📜', 'of', 1, [{ b: ['foro', 1] }], [], invC(90, 50, 10), 12, { abre: 'escuela' }, 0, 'Suetonio, De grammaticis 1; Cicerón, Bruto 72: Livio Andronico, griego de Tarento, enseña hacia 272 a.C. La Escuela como edificio es licencia de juego.', 'probable'),
+    inv('apio', 'Obras de Apio Claudio', '🛣️', 'of', 1, [{ b: ['foro', 1] }], [], invC(230, 60, 20), 20, { viajeTierra: { resta: 3, sobre: 3 }, popCap: 1.05 }, 0, 'Livio 9.29; Frontino, De aquaeductu 4-6: Vía Apia y Aqua Appia (312 a.C.). Cifras: licencia de juego.', 'probable'),
+    inv('castra', 'Campamento y disciplina', '⛺', 'gu', 1, [{ b: ['cuartel', 1] }], [], invC(120, 50, 110), 16, { mor: 3, paga: 0.95 }, 0, 'Polibio 6.27-39: campamento, castigos y premios.', 'probable'),
+    inv('quinque', 'Quinquerreme copiada', '⚓', 'ma', 2, [{ edad: 2 }, { b: ['puerto', 1] }], [], invC(320, 110, 90), 24, { viajeMar: { resta: 3, sobre: 3 } }, 'tarentum', 'Polibio 1.20: Roma copia una nave cartaginesa varada (260 a.C.); Tarento y otros aliados prestan naves (1.20.14). Cifra: licencia de juego.', 'historico'),
+    inv('corvus', 'Corvus', '🪝', 'ma', 2, [{ edad: 2 }, { inv: ['quinque'] }], ['remeros'], invC(250, 130, 200), 28, { atkMar: 1.05 }, 0, 'Polibio 1.22: pasarela de abordaje (cotejado en H1). Cifra: licencia de juego.', 'historico'),
+    inv('remeros', 'Remeros adiestrados en seco', '🚣', 'ma', 2, [{ edad: 2 }, { inv: ['quinque'] }], ['corvus'], invC(220, 120, 40), 28, { viajeMar: { resta: 3, sobre: 6 } }, 0, 'Polibio 1.21: remeros adiestrados en bancos sobre la arena. Cifra: licencia de juego.', 'historico'),
+    inv('fasti', 'Fasti y ley escrita', '⚖️', 'of', 2, [{ edad: 2 }, { b: ['escuela', 1] }], [], invC(140, 130, 10), 24, { inqMeses: 0.6, inqProd: 0.6 }, 0, 'Livio 9.46: Cneo Flavio publica el derecho y el calendario (304 a.C.).', 'probable'),
+    inv('vina', 'Viña y olivar', '🍇', 'ca', 2, [{ edad: 2 }, { b: ['granja', 3] }], ['trigo'], invC(260, 130, 20), 28, { oroCom: 1.25, impuestos: 1.08 }, 'agrigentum', 'Catón, De agri cultura 1.7: la viña, primera en rendimiento. Cifras: licencia de juego.', 'probable'),
+    inv('trigo', 'Trigo y diezmo de Sicilia', '🌾', 'ca', 2, [{ edad: 2 }, { b: ['granja', 3] }], ['vina'], invC(180, 110, 20), 28, { grano: 1.05, crece: 1.06 }, 0, 'Cicerón, Verrinas 3: lex Hieronica, el diezmo de Hierón que Roma conserva.', 'probable'),
+    inv('pilum', 'Pilum y manípulo', '🗡️', 'gu', 2, [{ edad: 2 }, { b: ['cuartel', 3] }], [], invC(120, 140, 200), 26, { atk: 1.03 }, 0, 'Polibio 6.23.9-11 (dentro del tramo 6.21-23 ya cotejado). Cifra: licencia de juego.', 'historico'),
+    inv('latif', 'Villa esclavista', '⛓️', 'ca', 3, [{ edad: 3 }, { b: ['granja', 6] }], ['colon'], invC(340, 270, 160), 44, { cl: { escConquista: 0.60, escRenta: 0.20, escAnimo: 0.25, escAnimoTope: 20, manumisionTasa: 0, inquietud: 35 } }, 0, 'Catón, De agri cultura 2.7 y 56-59; la crisis del pequeño campesino es tesis moderna (Toynbee). Cifras: licencia de juego.', 'probable'),
+    inv('colon', 'Colonos y asignaciones', '🏡', 'ca', 3, [{ edad: 3 }, { barrio: 2 }], ['latif'], invC(380, 250, 80), 44, { cl: { ciudadaniaCoste: 30, ciudadaniaMax: 0.55, impCiu: 2.9, escConquista: 0.10 }, instr: 0.94 }, 0, 'Polibio 2.21: ley de Flaminio, ager Gallicus (232 a.C.).', 'probable'),
+    inv('sambuca', 'Sambuca y arietes', '🪜', 'gu', 3, [{ edad: 3 }, { b: ['puerto', 1] }, { b: ['cuartel', 3] }], ['arquimedes'], invC(420, 290, 260), 44, { brecha: 1 }, 0, 'Polibio 8.4-6 (dentro del tramo 8.5-8 cotejado): Marcelo y las sambucas sobre barcos en Siracusa.', 'historico'),
+    inv('arquimedes', 'Máquinas de Arquímedes', '🔭', 'gu', 3, [{ edad: 3 }, { b: ['muralla', 3] }, { o: [{ tiene: ['syracusae'] }, { ciudades: 6 }] }], ['sambuca'], invC(460, 320, 300), 48, { defMuro: 0.025 }, 'syracusae', 'Polibio 8.5-8; Plutarco, Marcelo 15-17 (cotejados). Cifra: licencia de juego.', 'historico'),
+    inv('astilleros', 'Astilleros de ribera', '🏗️', 'ma', 3, [{ edad: 3 }, { b: ['puerto', 3] }], ['derrota'], invC(620, 190, 140), 40, { sinBien: 'puerto' }, ['panormus', 'lilybaeum'], 'Polibio 1.20-21: la flota se levanta desde cero. Que sustituya al bien especial: licencia de juego.', 'historico'),
+    inv('derrota', 'Derrota mercante', '🧭', 'ma', 3, [{ edad: 3 }, { b: ['mercado', 3] }, { b: ['puerto', 1] }], ['astilleros'], invC(620, 190, 140), 40, { rutas: 1, rutaRenta: 1.15 }, 0, 'Polibio 3.22-25: tratados de comercio Roma-Cartago (ya citado en D.RUTA). Cifras: licencia de juego.', 'historico'),
+    inv('medicina', 'Cirujanos griegos', '⚕️', 'of', 3, [{ edad: 3 }, { b: ['escuela', 1] }, { o: [{ y: 219 }, { ciudades: 5 }] }], [], invC(160, 290, 80), 38, { crece: 1.10, herida: -12, fel: -2, favor: { senado: -3, pueblo: 3 } }, 0, 'Plinio, NH 29.12-14: Arcágato, primer médico griego, 219 a.C.; apodado «verdugo»; Catón desconfiaba. Cifras: licencia de juego.', 'probable'),
+    inv('magon', 'Tratado de Magón', '📚', 'ca', 4, [{ edad: 4 }, { o: [{ fac: 'cartago' }, { ciudades: 7 }] }], [], invC(500, 430, 70), 68, { grano: 1.03, crece: 1.04, hambre: 0.5 }, 'carthago', 'Plinio, NH 18.22-23 (y Varrón, RR 1.1.10): el Senado manda traducir los 28 libros de Magón tras 146 a.C.', 'probable'),
+    inv('perseo', 'Biblioteca del rey Perseo', '🏛️', 'of', 4, [{ edad: 4 }, { b: ['escuela', 3] }, { o: [{ tiene: ['pella'] }, { ciudades: 7 }] }], [], invC(280, 440, 20), 58, { pts: 2, fel: 2 }, 'pella', 'Plutarco, Emilio Paulo 28; Polibio 31.23-25: los libros de Perseo pasan a los hijos de Paulo, entre ellos Escipión Emiliano (168 a.C.).', 'probable'),
+    inv('acoger', 'Acoger a los filósofos', '🤝', 'of', 4, [{ edad: 4 }, { b: ['escuela', 3] }], ['expulsar'], invC(80, 360, 10), 38, { impuestos: 1.08, crece: 1.04, pts: 1, fel: -2, favor: { senado: -4, pueblo: 3 } }, 0, 'Plutarco, Catón 22; Gelio 6.14: embajada de Carnéades (155 a.C.).', 'probable'),
+    inv('expulsar', 'Expulsar a los filósofos', '🚪', 'of', 4, [{ edad: 4 }, { b: ['escuela', 1] }], ['acoger'], invC(120, 250, 60), 28, { fel: 4, crece: 0.96, favor: { senado: 4, pueblo: -2 } }, 0, 'Suetonio, De rhetoribus 1; Gelio 15.11: expulsión de 161 a.C.', 'probable'),
+    inv('hormigon', 'Opus caementicium', '🧱', 'of', 4, [{ edad: 4 }, { b: ['escuela', 1] }], [], invC(580, 300, 60), 48, { obra: 0.88 }, 0, 'Livio 35.10: Pórtico Emilio (193 a.C.), primeros usos del hormigón. Cifra: licencia de juego.', 'probable')
   ];
   D.INVEST = {}; IV.forEach(x => { D.INVEST[x.id] = x; });
   const edad = (id, n, e, req, cost, time, fuente) => ({ id, n, edad: e, req, cost, time, fuente, dictamen: 'licencia de juego' });
   D.EDADES = {
-    E2: edad('E2', 'Roma sale al mar', 2, [{ saberes: 2 }, { b: ['foro', 2] }, { ciudades: 2 }], invC(150, 150, 60, 100, 100), 24, 'Polibio 1.5-6 (periodización de 264 a 219 a.C.). La división en edades es licencia de juego.'),
-    E3: edad('E3', 'Aníbal', 3, [{ edad: 2 }, { saberes: 5 }, { ramas: 3 }, { ciudades: 3 }, { b: ['mercado', 3] }, { barrio: 2 }], invC(300, 300, 150, 200, 240), 38, 'Hechos de D.EVENTS (218-201 a.C.). La división en edades es licencia de juego.'),
-    E4: edad('E4', 'Roma y los reinos griegos', 4, [{ edad: 3 }, { saberes: 9 }, { ramas: 4 }, { ciudades: 5 }, { b: ['templo', 3] }, { barrio: 2 }], invC(500, 500, 300, 350, 480), 58, 'Polibio 1.1-3 (200-146 a.C.). La división en edades es licencia de juego.')
+    E2: edad('E2', 'Roma sale al mar', 2, [{ saberes: 2 }, { b: ['foro', 2] }, { ciudades: 2 }], invC(300, 100, 60), 24, 'Polibio 1.5-6 (periodización de 264 a 219 a.C.). La división en edades es licencia de juego.'),
+    E3: edad('E3', 'Aníbal', 3, [{ edad: 2 }, { saberes: 5 }, { ramas: 3 }, { ciudades: 3 }, { b: ['mercado', 3] }, { barrio: 2 }], invC(600, 240, 150), 38, 'Hechos de D.EVENTS (218-201 a.C.). La división en edades es licencia de juego.'),
+    E4: edad('E4', 'Roma y los reinos griegos', 4, [{ edad: 3 }, { saberes: 9 }, { ramas: 4 }, { ciudades: 5 }, { b: ['templo', 3] }, { barrio: 2 }], invC(1000, 480, 300), 58, 'Polibio 1.1-3 (200-146 a.C.). La división en edades es licencia de juego.')
   };
   /* Bien especial por ciudad (B1). Licencia de juego: el mecanismo «tener acceso abre niveles y tropas» es invención.
      No se almacena: Roma «tiene acceso» a un bien si posee alguna ciudad que lo da (D.CITIES[id].esp), vea G.especiales.
@@ -206,26 +246,26 @@
     vino: { n: 'Vino', i: '🍷', d: '+5 de felicidad en tus ciudades.', abre: {}, bono: { fel: 5 } },
     caballos: { n: 'Caballos', i: '🐎', d: 'Abre los Équites y el establo desde el nivel 7. Instrucción un 10 % más rápida.', abre: { edificios: ['establo'], tropas: ['equites'] }, bono: { instr: 0.9 } },
     hierro: { n: 'Hierro de calidad', i: '⚒️', d: 'Abre los Triarios, y cuartel y herrería desde el nivel 7. Mejoras de la herrería un 10 % más baratas.', abre: { edificios: ['cuartel', 'herreria'], tropas: ['triarii'] }, bono: { forjaCoste: 0.9 } },
-    plata: { n: 'Plata', i: '⚪', d: '+10 % de oro de impuestos.', abre: {}, bono: { impuestos: 1.1 } },
+    plata: { n: 'Plata', i: '⚪', d: '+10 % de denarios de impuestos.', abre: {}, bono: { impuestos: 1.1 } },
     marmol: { n: 'Mármol', i: '🏛️', d: 'Abre foro y templo desde el nivel 7. Obras un 5 % más rápidas.', abre: { edificios: ['foro', 'templo'] }, bono: { obra: 0.95 } },
-    purpura: { n: 'Púrpura', i: '🟣', d: '+10 % del oro de foro y puerto.', abre: {}, bono: { oroCom: 1.1 } },
+    purpura: { n: 'Púrpura', i: '🟣', d: '+10 % de los denarios de foro y puerto.', abre: {}, bono: { oroCom: 1.1 } },
     maderanaval: { n: 'Madera naval', i: '🌲', d: 'Abre el puerto desde el nivel 7. Viajes por mar un 10 % más rápidos.', abre: { edificios: ['puerto'] }, bono: { viajeMar: 0.9 } },
     pieles: { n: 'Pieles', i: '🦌', d: 'La paga de las guarniciones cuesta un 10 % menos.', abre: {}, bono: { paga: 0.9 } }
   };
   D.FORJA_MAX = 5; D.FORJA_BONO = 0.05;
   D.FORJA = {
-    armas: { n: 'Armas', i: '🗡️', ef: 'ataque', cost: { hierro: 120, madera: 40, oro: 50 }, time: 3 },
-    armaduras: { n: 'Armaduras', i: '🛡️', ef: 'defensa', cost: { hierro: 140, piedra: 40, oro: 50 }, time: 3 }
+    armas: { n: 'Armas', i: '🗡️', ef: 'ataque', cost: { hierro: 120, materiales: 40, denarios: 50 }, time: 3 },
+    armaduras: { n: 'Armaduras', i: '🛡️', ef: 'defensa', cost: { hierro: 140, materiales: 40, denarios: 50 }, time: 3 }
   };
 
   // cls: inf, spear (anti-caballería), rng (a distancia), cav, ele, gen
   D.UNITS = {
     // --- Roma ---
-    hastati: { n: 'Hastati', g: '⚔', cls: 'inf', atk: 9, def: 9, spd: 32, mor: 60, up: 0.15, time: 0.05, cost: { madera: 15, hierro: 20, grano: 15, oro: 4 }, req: { cuartel: 1 }, d: 'Primera línea del manípulo. Jóvenes y baratos.' },
-    velites: { n: 'Vélites', g: '➶', cls: 'rng', atk: 4, ratk: 7, def: 4, spd: 40, mor: 45, range: 170, up: 0.1, time: 0.04, cost: { madera: 15, hierro: 8, grano: 10, oro: 2 }, req: { cuartel: 1 }, d: 'Hostigadores con jabalinas. Débiles cuerpo a cuerpo.' },
-    principes: { n: 'Príncipes', g: '⚔', cls: 'inf', atk: 12, def: 11, spd: 30, mor: 70, up: 0.2, time: 0.07, cost: { madera: 20, hierro: 35, grano: 20, oro: 8 }, req: { cuartel: 3 }, d: 'Veteranos de la segunda línea, bien acorazados.' },
-    triarii: { n: 'Triarios', g: '↟', cls: 'spear', atk: 11, def: 15, spd: 28, mor: 85, up: 0.25, time: 0.09, cost: { madera: 30, hierro: 40, grano: 25, oro: 12 }, req: { cuartel: 5 }, d: 'Lanceros de élite. «Res ad triarios venit». Frenan a la caballería.' },
-    equites: { n: 'Équites', g: '♞', cls: 'cav', atk: 14, def: 9, spd: 70, mor: 65, up: 0.4, time: 0.1, cost: { madera: 25, hierro: 30, grano: 45, oro: 15 }, req: { establo: 1 }, d: 'Caballería. Carga devastadora por flancos y retaguardia.' },
+    hastati: { n: 'Hastati', g: '⚔', cls: 'inf', atk: 9, def: 9, spd: 32, mor: 60, up: 0.15, time: 0.05, cost: { grano: 15, hierro: 20, denarios: 12 }, req: { cuartel: 1 }, d: 'Primera línea del manípulo. Jóvenes y baratos.' },
+    velites: { n: 'Vélites', g: '➶', cls: 'rng', atk: 4, ratk: 7, def: 4, spd: 40, mor: 45, range: 170, up: 0.1, time: 0.04, cost: { grano: 10, hierro: 8, denarios: 10 }, req: { cuartel: 1 }, d: 'Hostigadores con jabalinas. Débiles cuerpo a cuerpo.' },
+    principes: { n: 'Príncipes', g: '⚔', cls: 'inf', atk: 12, def: 11, spd: 30, mor: 70, up: 0.2, time: 0.07, cost: { grano: 20, hierro: 35, denarios: 18 }, req: { cuartel: 3 }, d: 'Veteranos de la segunda línea, bien acorazados.' },
+    triarii: { n: 'Triarios', g: '↟', cls: 'spear', atk: 11, def: 15, spd: 28, mor: 85, up: 0.25, time: 0.09, cost: { grano: 25, hierro: 40, denarios: 27 }, req: { cuartel: 5 }, d: 'Lanceros de élite. «Res ad triarios venit». Frenan a la caballería.' },
+    equites: { n: 'Équites', g: '♞', cls: 'cav', atk: 14, def: 9, spd: 70, mor: 65, up: 0.4, time: 0.1, cost: { grano: 45, hierro: 30, denarios: 28 }, req: { establo: 1 }, d: 'Caballería. Carga devastadora por flancos y retaguardia.' },
     vigiles: { n: 'Guardia urbana', lic: 'En la República no hubo un cuerpo con ese nombre; de noche vigilaban unos triunviros (Livio 9.46)', g: '⚔', cls: 'inf', atk: 6, def: 7, spd: 30, mor: 50, up: 0 },
     // --- otros pueblos ---
     milicia: { n: 'Milicia', lic: 'Leva genérica, no es una tropa concreta de las fuentes', g: '⚔', cls: 'inf', atk: 5, def: 5, spd: 30, mor: 40, up: 0.1 },
@@ -365,11 +405,11 @@
      D.CITIES[id].pueblos = tipos de sus huecos (el índice es el hueco). Los niveles nunca se guardan aquí: viven en la partida (c.pueblos). */
   D.PUEBLO_MAX = 5; D.PUEBLO_COSTE_NIVEL = 1.5; D.PUEBLO_TIEMPO_NIVEL = 1.35;
   D.PUEBLO_TIPOS = {
-    lenadores: { n: 'Leñadores', i: '🪓', d: 'Aldea de leñadores: aporta madera.', cat: 'recursos', prod: { madera: 0.5 }, pop: 0, cost: { madera: 60, piedra: 40, grano: 40 }, time: 2, mar: false },
-    canteros: { n: 'Canteros', i: '⛏️', d: 'Aldea de canteros: aporta piedra.', cat: 'recursos', prod: { piedra: 0.5 }, pop: 0, cost: { madera: 60, piedra: 40, grano: 40 }, time: 2, mar: false },
-    mineros: { n: 'Mineros', i: '⚒️', d: 'Aldea minera: aporta hierro.', cat: 'recursos', prod: { hierro: 0.5 }, pop: 0, cost: { madera: 60, piedra: 40, grano: 40 }, time: 2, mar: false },
-    pescadores: { n: 'Pescadores', i: '🐟', d: 'Puerto pesquero: aporta grano y algo de oro. Solo en ciudades de costa.', cat: 'pesca', prod: { grano: 0.4, oro: 0.15 }, pop: 0, cost: { madera: 70, piedra: 30, grano: 30, oro: 20 }, time: 2, mar: true },
-    agricolas: { n: 'Agrícolas', i: '🌾', d: 'Villas y aldeas de labradores: dan más grano y alojan más gente.', cat: 'agro', prod: { grano: 0.5 }, pop: 12, cost: { madera: 50, piedra: 30, grano: 60 }, time: 2, mar: false }
+    lenadores: { n: 'Leñadores', i: '🪓', d: 'Aldea de leñadores: da materiales (madera).', cat: 'recursos', prod: { materiales: 0.5 }, pop: 0, cost: { materiales: 100, denarios: 20 }, time: 2, mar: false },
+    canteros: { n: 'Canteros', i: '⛏️', d: 'Aldea de canteros: da materiales (piedra).', cat: 'recursos', prod: { materiales: 0.5 }, pop: 0, cost: { materiales: 100, denarios: 20 }, time: 2, mar: false },
+    mineros: { n: 'Mineros', i: '⚒️', d: 'Aldea minera: aporta hierro.', cat: 'recursos', prod: { hierro: 0.5 }, pop: 0, cost: { materiales: 100, denarios: 20 }, time: 2, mar: false },
+    pescadores: { n: 'Pescadores', i: '🐟', d: 'Puerto pesquero: aporta grano y algo de denarios. Solo en ciudades de costa.', cat: 'pesca', prod: { grano: 0.4, denarios: 0.15 }, pop: 0, cost: { materiales: 100, denarios: 35 }, time: 2, mar: true },
+    agricolas: { n: 'Agrícolas', i: '🌾', d: 'Villas y aldeas de labradores: dan más grano y alojan más gente.', cat: 'agro', prod: { grano: 0.5 }, pop: 12, cost: { materiales: 80, denarios: 30 }, time: 2, mar: false }
   };
   // Huecos por sitio: explícitos en Italia y Sicilia; el resto, por riqueza (w) y mar. Todas las ciudades tienen entre 2 y 4.
   const PUEBLOS_FIJOS = {
@@ -609,7 +649,7 @@
     campana: { id: 'campana', n: 'Campaña histórica', resumen: 'Roma contra el mundo, de 280 a 146 a.C., sin límite de horas.' },
     corta: {
       id: 'corta', n: 'Partida corta', region: 'italia', edades: 3, rival: 'epiro', capitalRival: 'tarentum', hasta: 232,
-      factores: { obra: 1, instr: 1, costes: 1, saber: 1, refuerzos: 1, guarnicion: 2 },
+      factores: { obra: 1, instr: 1, costes: 0.6, saber: 1, refuerzos: 1, guarnicion: 2 },   // CE2: costes 0,6 (antes 1): con los denarios como cuello de botella, la corta no daba para ganar a tiempo (medido con test/economia.js; licencia de juego)
       duracion: { horasMin: 2, horasMax: 4, segReloj: 12, segDecision: 60, segPorTurno: 72 },
       inicio: {
         enPie: { n: 'Roma y Capua en pie', d: 'Empiezas con Roma y Capua ya construidas, como en la campaña de Italia.', factores: { obra: 1.3, instr: 1.6, guarnicion: 4 } },   // con dos ciudades hechas el bot llega antes: se compensa con tropas más lentas y un Tarento más fuerte (V10a: guarnición 3 → 4; el bot ganaba 10 de 10, ahora 7 de 10)
@@ -655,18 +695,18 @@
   D.SENADO = {
     favorIni: 50, min: 0, max: 100, bajo: 25,
     inercia: 0.12,         // el pueblo se acerca esa fracción al ánimo medio cada mes
-    oroRojo: -2,           // favor del Senado por cada mes que cierra con obras o levas detenidas por falta de oro
+    oroRojo: -2,           // favor del Senado por cada mes que cierra con obras o levas detenidas por falta de denarios
     premio: 12, castigo: -10,   // favor del Senado por defecto al cumplir o fallar una misión
     pausa: 3,              // meses entre una misión y la siguiente
     ventana: 20,           // años que una misión sigue disponible desde su fecha
     levaMax: 4,            // con poco favor no se admite una leva más si ya hay tantas en cola
     // Senado nuevo (SN1): sala de votos con tres bandos. sala:false = comportamiento idéntico a Q7. Cifras: licencia de juego (gobierno/estudios/senado-nuevo.md)
-    sala: true, escanos: 30, mayoria: 16, minimo: 4, vetoPueblo: 35, juegos: { oro: 120, pueblo: 8 }, pagoVoto: 30,
+    sala: true, escanos: 30, mayoria: 16, minimo: 4, vetoPueblo: 35, juegos: { denarios: 120, pueblo: 8 }, pagoVoto: 30,
     romper: -15, cumplir: 5, pagar: 2, cambiar: -3, sinPermiso: -10, postura: 4, duracion: 4   // duracion = estaciones que dura un permiso, una promesa o un efecto
   };
   D.BANDOS = {
     ter: { n: 'Terratenientes', col: '#8FAE5A', peso: 'grano al mes / 10 + niveles de granja' },
-    mer: { n: 'Mercaderes', col: '#5AA6C4', peso: 'mercado y puerto x 3 + rutas x 5 + oro de rutas / 20' },
+    mer: { n: 'Mercaderes', col: '#5AA6C4', peso: 'mercado y puerto x 3 + rutas x 5 + denarios de rutas / 20' },
     mil: { n: 'Militares', col: '#D0443A', peso: 'hombres en armas / 100 + cuartel x 2 + victorias del año x 3' }
   };
   // desde: año (a.C.) en que el Senado puede encargarla; plazo en meses; las cifras son licencia de juego
@@ -689,7 +729,7 @@
      Las dos piezas nuevas (salinas, zanja) tienen su ficha en D.PIEZAS_TERRENO. */
   D.TERRENOS = {
     rio: { n: 'Valle del río', d: 'El sitio de siempre: un río con vega fértil y lomas. La crecida de primavera se lleva la ribera baja.' },
-    costa: { n: 'Costa', d: 'Mar a la vista. Se abren las salinas: dan oro, pero la sal estropea las granjas vecinas.' },
+    costa: { n: 'Costa', d: 'Mar a la vista. Se abren las salinas: dan denarios, pero la sal estropea las granjas vecinas.' },
     pantano: { n: 'Pantano', d: 'Tierra baja y encharcada: la crecida llega más lejos. Una zanja de desagüe protege las casas cercanas. Drenar o convivir.' },
     terrazas: { n: 'Terrazas de ladera', d: 'Se puede fundar en pendientes más fuertes, y las granjas rinden más en la ladera; las casas cuestan más obra.' },
     llanura: { n: 'Llanura abierta', d: 'Mucho sitio para crecer, pero sin defensa natural: la muralla sale más barata.' }
@@ -702,7 +742,7 @@
     llanura: { notaLlano: 1, desLlano: 14, notaDefensa: -2, murallaCoste: 0.75, surcoMul: 1.25 }
   };
   D.PIEZAS_TERRENO = {
-    salinas: { n: 'Salinas', d: 'Estanques para sacar sal del mar. Solo en la costa. Dan algo de oro; la sal estropea las granjas cercanas.' },
+    salinas: { n: 'Salinas', d: 'Estanques para sacar sal del mar. Solo en la costa. Dan algo de denarios; la sal estropea las granjas cercanas.' },
     zanja: { n: 'Zanja de desagüe', d: 'Canal para sacar el agua del pantano. Solo en el pantano. Las casas cercanas sufren menos con la crecida.' }
   };
   D.terrenoDe = id => (D.COLONIAS[id] && D.COLONIAS[id].terreno) || 'rio';
@@ -711,27 +751,27 @@
   [
     { id: 'levas-heraclea', n: 'Nuevas levas tras Heraclea', desde: 280, plazo: 12, cond: { tipo: 'tropas', n: 300 },
       texto: 'Pirro ha vencido en Heraclea. El Senado manda alistar nuevas legiones: reúne 300 hombres en armas.',
-      premio: { oro: 80, favorSenado: 12, favorPueblo: -3 }, castigo: { favorSenado: -10, favorPueblo: 3 },
+      premio: { denarios: 80, favorSenado: 12, favorPueblo: -3 }, castigo: { favorSenado: -10, favorPueblo: 3 },
       fuente: 'Plutarco, Pirro 17; Eutropio 2.11', dictamen: 'historico' },
     { id: 'presidio-regio', n: 'Presidio de la costa', desde: 279, plazo: 18, cond: { tipo: 'tropas_en', ciudad: 'capua', n: 100 },
       texto: 'Una guarnición romana ha de sostener la Campania. Mantén 100 hombres en Capua.',
-      premio: { oro: 60, favorSenado: 10 }, castigo: { favorSenado: -10 },
+      premio: { denarios: 60, favorSenado: 10 }, castigo: { favorSenado: -10 },
       fuente: 'Polibio 1.7; Livio, Períocas 12', dictamen: 'probable' },
     { id: 'colonias-latinas', n: 'Colonias latinas', desde: 273, plazo: 30, cond: { tipo: 'ciudades', n: 3 },
       texto: 'Roma asienta colonos en tierras conquistadas (Paestum, Cosa, Ariminum). Ten 3 ciudades propias.',
-      premio: { oro: 120, favorSenado: 15, favorPueblo: 8 }, castigo: { favorSenado: -8, favorPueblo: -5 },
+      premio: { denarios: 120, favorSenado: 15, favorPueblo: 8 }, castigo: { favorSenado: -8, favorPueblo: -5 },
       fuente: 'Livio, Períocas 14 y 15; Veleyo Patérculo 1.14', dictamen: 'historico' },
     { id: 'fundar-colonia', n: 'Una colonia para Roma', desde: 268, plazo: 30, cond: { tipo: 'colonia', n: 1 },
       texto: 'El Senado manda asentar colonos en tierras conquistadas. Envía colonos y funda una colonia.',
-      premio: { oro: 100, favorSenado: 12, favorPueblo: 8 }, castigo: { favorSenado: -8, favorPueblo: -5 },
+      premio: { denarios: 100, favorSenado: 12, favorPueblo: 8 }, castigo: { favorSenado: -8, favorPueblo: -5 },
       fuente: 'Veleyo Patérculo 1.14; Livio, Períocas 15 y 19', dictamen: 'historico' },
     { id: 'flota-260', n: 'Una flota para Roma', desde: 262, plazo: 14, cond: { tipo: 'edificio', b: 'puerto', n: 3 },
       texto: 'Roma no tiene flota contra Cartago. Levanta un puerto de nivel 3 (la flota de Mylae se botó en 260).',
-      premio: { oro: 150, favorSenado: 15, favorPueblo: 5 }, castigo: { favorSenado: -12, favorPueblo: -4 },
+      premio: { denarios: 150, favorSenado: 15, favorPueblo: 5 }, castigo: { favorSenado: -12, favorPueblo: -4 },
       fuente: 'Polibio 1.20 y 1.23', dictamen: 'historico' },
     { id: 'grano-sicilia', n: 'Grano de Sicilia', desde: 241, plazo: 24, cond: { tipo: 'rutas', n: 2 },
       texto: 'Sicilia alimenta a Roma con su diezmo de grano. Abre 2 rutas comerciales.',
-      premio: { oro: 100, favorSenado: 10, favorPueblo: 8 }, castigo: { favorSenado: -6, favorPueblo: -6 },
+      premio: { denarios: 100, favorSenado: 10, favorPueblo: 8 }, castigo: { favorSenado: -6, favorPueblo: -6 },
       fuente: 'Cicerón, Verrinas 3.12 (ley de Hierón); Polibio 1.16', dictamen: 'historico' },
     { id: 'templo-ver-sacrum', n: 'Voto de templos', desde: 217, plazo: 14, cond: { tipo: 'edificio', b: 'templo', n: 2, ciudad: 'roma' },
       texto: 'Tras el desastre del Trasimeno el Senado vota templos y ofrendas. Templo de nivel 2 en Roma.',
@@ -739,7 +779,7 @@
       fuente: 'Livio 22.9 y 22.10', dictamen: 'historico' },
     { id: 'almacen-grano', n: 'Graneros para la guerra', desde: 217, plazo: 16, cond: { tipo: 'edificio', b: 'almacen', n: 4, ciudad: 'roma' },
       texto: 'Hierón de Siracusa envía trigo y cebada. Almacén de nivel 4 en Roma para guardarlos.',
-      premio: { oro: 90, favorSenado: 10 }, castigo: { favorSenado: -8 },
+      premio: { denarios: 90, favorSenado: 10 }, castigo: { favorSenado: -8 },
       fuente: 'Livio 22.37', dictamen: 'historico' },
     { id: 'muralla-roma', n: 'Defensas de Roma', desde: 216, plazo: 12, cond: { tipo: 'edificio', b: 'muralla', n: 4, ciudad: 'roma' },
       texto: 'Aníbal está en Italia. Muralla de nivel 4 en Roma.',
@@ -747,15 +787,15 @@
       fuente: 'Livio 22.8 y 22.55', dictamen: 'probable' },
     { id: 'armas-canas', n: 'Armas tras Cannas', desde: 216, plazo: 14, cond: { tipo: 'edificio', b: 'herreria', n: 3 },
       texto: 'Tras Cannas faltan armas. Levanta una herrería de nivel 3 en cualquiera de tus ciudades.',
-      premio: { oro: 100, favorSenado: 12 }, castigo: { favorSenado: -10 },
+      premio: { denarios: 100, favorSenado: 12 }, castigo: { favorSenado: -10 },
       fuente: 'Livio 22.57 y 23.14', dictamen: 'probable' },
-    { id: 'tributo-zama', n: 'Tributo de Cartago', desde: 202, plazo: 18, cond: { tipo: 'oro', n: 600 },
-      texto: 'Cartago pagará una indemnización tras Zama. Ten 600 de oro en las arcas.',
-      premio: { oro: 150, favorSenado: 12, favorPueblo: 5 }, castigo: { favorSenado: -6 },
+    { id: 'tributo-zama', n: 'Tributo de Cartago', desde: 202, plazo: 18, cond: { tipo: 'denarios', n: 600 },
+      texto: 'Cartago pagará una indemnización tras Zama. Ten 600 denarios en las arcas.',
+      premio: { denarios: 150, favorSenado: 12, favorPueblo: 5 }, castigo: { favorSenado: -6 },
       fuente: 'Polibio 15.18; Livio 30.37', dictamen: 'historico' },
     { id: 'levas-macedonia', n: 'Legiones para Macedonia', desde: 200, plazo: 20, cond: { tipo: 'edificio', b: 'cuartel', n: 5, ciudad: 'roma' },
       texto: 'El Senado declara la guerra a Filipo V. Cuartel de nivel 5 en Roma para instruir legiones.',
-      premio: { oro: 120, favorSenado: 12, favorPueblo: -4 }, castigo: { favorSenado: -8, favorPueblo: 3 },
+      premio: { denarios: 120, favorSenado: 12, favorPueblo: -4 }, castigo: { favorSenado: -8, favorPueblo: 3 },
       fuente: 'Livio 31.6 a 31.8; Polibio 6.19 a 6.21', dictamen: 'historico' }
   ].forEach(m => { D.MISIONES[m.id] = m; });
   /* Leyes del Senado nuevo (SN1). Texto y fuente: gobierno/estudios/senado-leyes.md. postura = {ter,mer,mil} de -2 a +2; chips = efecto en el pueblo por clase;
@@ -770,25 +810,25 @@
     { id: 'leva-sin-bienes', tipo: 'leva', n: 'Leva de los sin propiedad', texto: 'Roma arma a los ciudadanos sin bienes. Ganas hombres ya; luego pesarán en la política.', h: 'Hacia 214 a.C., con Aníbal en Italia, el Senado arma a ciudadanos de la clase más baja del censo.', fuente: 'Livio, 24.11', dictamen: 'probable', postura: { ter: -2, mer: -1, mil: 1 }, efecto: { leva: 1 }, chips: { ple: -2 } },
     { id: 'ley-grano-barato', tipo: 'ley', n: 'Grano barato en Roma', texto: 'Una ley reparte grano barato en Roma. La plebe te lo agradece.', h: 'El reparto de grano llega después: la ley de Cayo Graco es de 123 a.C. Esta ley es licencia de juego.', fuente: 'Plutarco, Vida de Cayo Graco (referencia posterior)', dictamen: 'licencia de juego', postura: { ter: -1, mer: 1, mil: 0 }, efecto: { oroEstacion: -60 }, chips: { ple: 8, ciu: -2 } },
     { id: 'ley-claudia', tipo: 'ley', n: 'Ley Claudia', texto: 'Los senadores no pueden tener barcos grandes de comercio. El dinero queda en tierra.', h: 'En 218 a.C., la ley Claudia prohíbe a los senadores naves de más de 300 ánforas de carga.', fuente: 'Livio, 21.63', dictamen: 'historico', postura: { ter: 2, mer: -2, mil: 0 }, efecto: {}, chips: { ple: 2 } },
-    { id: 'obra-anio-vetus', tipo: 'obra', n: 'Acueducto Anio Vetus', texto: 'Un acueducto trae agua fresca a Roma. Más agua, más población y más baños.', h: 'Hacia 272 a.C. se construye el Anio Vetus, segundo acueducto de Roma, pagado con botín de la guerra de Pirro.', fuente: 'Frontino, Sobre los acueductos de Roma, 6', dictamen: 'historico', postura: { ter: 1, mer: 1, mil: 0 }, efecto: { oro: -80 }, chips: { ple: 4 } },
-    { id: 'obra-via-flaminia', tipo: 'obra', n: 'Vía Flaminia', texto: 'Una calzada nueva une Roma con el norte. Tus ejércitos llegan antes a la frontera.', h: 'En 220 a.C. el censor Cayo Flaminio abre la calzada que lleva su nombre hacia el norte de Italia.', fuente: 'Livio, Periocha 20', dictamen: 'probable', postura: { ter: 0, mer: 2, mil: 1 }, efecto: { oro: -100 }, chips: { ple: 1 } },
+    { id: 'obra-anio-vetus', tipo: 'obra', n: 'Acueducto Anio Vetus', texto: 'Un acueducto trae agua fresca a Roma. Más agua, más población y más baños.', h: 'Hacia 272 a.C. se construye el Anio Vetus, segundo acueducto de Roma, pagado con botín de la guerra de Pirro.', fuente: 'Frontino, Sobre los acueductos de Roma, 6', dictamen: 'historico', postura: { ter: 1, mer: 1, mil: 0 }, efecto: { denarios: -80 }, chips: { ple: 4 } },
+    { id: 'obra-via-flaminia', tipo: 'obra', n: 'Vía Flaminia', texto: 'Una calzada nueva une Roma con el norte. Tus ejércitos llegan antes a la frontera.', h: 'En 220 a.C. el censor Cayo Flaminio abre la calzada que lleva su nombre hacia el norte de Italia.', fuente: 'Livio, Periocha 20', dictamen: 'probable', postura: { ter: 0, mer: 2, mil: 1 }, efecto: { denarios: -100 }, chips: { ple: 1 } },
     { id: 'ciudadania-sabinos', tipo: 'ciudadania', n: 'Ciudadanía a los sabinos', texto: 'Los sabinos reciben la ciudadanía romana. Más votantes y más soldados para ti.', h: 'En 268 a.C. Roma concede la ciudadanía a los sabinos, que pasan a votar y a servir en las legiones.', fuente: 'Veleyo Patérculo, Historia romana, 1.14', dictamen: 'probable', postura: { ter: -1, mer: 0, mil: 1 }, efecto: { ciudadania: 'roma' }, chips: { ciu: 4, ple: -2 } },
     { id: 'ciudadania-capua', tipo: 'ciudadania', n: 'Ciudadanía a Capua', texto: 'Capua recibe la ciudadanía sin voto. Paga y sirve en tus legiones; no vota.', h: 'En 338 a.C. Roma da a Capua la ciudadanía sin voto (civitas sine suffragio): cargas romanas sin voto en Roma.', fuente: 'Livio, 8.14', dictamen: 'historico', postura: { ter: -1, mer: 1, mil: -1 }, efecto: { ciudadania: 'capua' }, chips: { ciu: 4, ple: -2 } }
   ].forEach(l => { D.LEYES[l.id] = l; D.LEYES_ORDEN.push(l.id); });
   /* CN17: encargos cortos del Senado (de una sola vez, uno activo cada vez; no son las misiones históricas ni los consejos del asesor).
-     cond.tipo: casas | barrios | barrioNivel | fuentes | oro (mide G.MEDIDAS). req: hito que los abre. Todas las cifras son licencia de juego. */
+     cond.tipo: casas | barrios | barrioNivel | fuentes | denarios (mide G.MEDIDAS). req: hito que los abre. Todas las cifras son licencia de juego. */
   D.ENCARGOS = {};
   [
-    { id: 'techo-30', n: 'Techo para el pueblo', texto: 'Roma pide hogares: ten 30 casas en tus ciudades.', cond: { tipo: 'casas', n: 30 }, plazo: 12, premio: { oro: 120, favorSenado: 3 } },
-    { id: 'agua-2', n: 'Agua para las calles', texto: 'Levanta 2 fuentes públicas.', cond: { tipo: 'fuentes', n: 2 }, plazo: 10, premio: { oro: 100, favorPueblo: 4 } },
-    { id: 'segundo-barrio', n: 'Un barrio más', texto: 'Abre un segundo barrio en tu ciudad.', cond: { tipo: 'barrios', n: 2 }, plazo: 14, premio: { oro: 150, favorSenado: 4 } },
-    { id: 'barrio-sano', n: 'Un barrio con medios', texto: 'Haz que un barrio llegue al nivel 2.', cond: { tipo: 'barrioNivel', n: 2 }, plazo: 14, premio: { oro: 140, favorPueblo: 3 } },
-    { id: 'arcas-300', n: 'Arcas llenas', texto: 'Reúne 300 de oro para lo que venga.', cond: { tipo: 'oro', n: 300 }, plazo: 12, premio: { favorSenado: 5 } },
-    { id: 'techo-80', n: 'La ciudad crece', texto: 'Ten 80 casas en tus ciudades.', cond: { tipo: 'casas', n: 80 }, plazo: 18, req: 'barrio-3', premio: { oro: 250, favorSenado: 5 } },
-    { id: 'barrio-rico', n: 'Un barrio con lujo', texto: 'Haz que un barrio llegue al nivel 4.', cond: { tipo: 'barrioNivel', n: 4 }, plazo: 24, req: 'barrio-3', premio: { oro: 300, favorSenado: 6, favorPueblo: 4 } }
+    { id: 'techo-30', n: 'Techo para el pueblo', texto: 'Roma pide hogares: ten 30 casas en tus ciudades.', cond: { tipo: 'casas', n: 30 }, plazo: 12, premio: { denarios: 120, favorSenado: 3 } },
+    { id: 'agua-2', n: 'Agua para las calles', texto: 'Levanta 2 fuentes públicas.', cond: { tipo: 'fuentes', n: 2 }, plazo: 10, premio: { denarios: 100, favorPueblo: 4 } },
+    { id: 'segundo-barrio', n: 'Un barrio más', texto: 'Abre un segundo barrio en tu ciudad.', cond: { tipo: 'barrios', n: 2 }, plazo: 14, premio: { denarios: 150, favorSenado: 4 } },
+    { id: 'barrio-sano', n: 'Un barrio con medios', texto: 'Haz que un barrio llegue al nivel 2.', cond: { tipo: 'barrioNivel', n: 2 }, plazo: 14, premio: { denarios: 140, favorPueblo: 3 } },
+    { id: 'arcas-300', n: 'Arcas llenas', texto: 'Reúne 300 denarios para lo que venga.', cond: { tipo: 'denarios', n: 300 }, plazo: 12, premio: { favorSenado: 5 } },
+    { id: 'techo-80', n: 'La ciudad crece', texto: 'Ten 80 casas en tus ciudades.', cond: { tipo: 'casas', n: 80 }, plazo: 18, req: 'barrio-3', premio: { denarios: 250, favorSenado: 5 } },
+    { id: 'barrio-rico', n: 'Un barrio con lujo', texto: 'Haz que un barrio llegue al nivel 4.', cond: { tipo: 'barrioNivel', n: 4 }, plazo: 24, req: 'barrio-3', premio: { denarios: 300, favorSenado: 6, favorPueblo: 4 } }
   ].forEach(e => { D.ENCARGOS[e.id] = e; });
   D.ENCARGO_PAUSA = 2;   // meses entre un encargo y el siguiente
-  /* CN17: hitos. Al lograrlos se gana favor (el oro de los hitos descuadraba al bot de la partida corta) y, si lo dice «abre», se abre una serie de encargos nuevos (los que piden ese hito en req). */
+  /* CN17: hitos. Al lograrlos se gana favor (el denarios de los hitos descuadraba al bot de la partida corta) y, si lo dice «abre», se abre una serie de encargos nuevos (los que piden ese hito en req). */
   D.HITOS = {};
   [
     { id: 'casas-50', n: 'Cincuenta hogares', texto: 'Ya hay 50 casas en tus ciudades.', cond: { tipo: 'casas', n: 50 }, premio: { favorPueblo: 4 } },

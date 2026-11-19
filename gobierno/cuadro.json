@@ -2026,16 +2026,16 @@
       "url": "https://claude.ai/code/session_01QiKC39hKX8V8mRMAsoPzPT"
     },
     {
-      "tarea": "CE2",
-      "titulo": "Cerebro · CE2 Recursos nuevos (dirige y construye Opus)",
-      "nota": "js/game.js, data.js, ui.js, bot y guardado migrado; 2,0 M declarado, unos 3,6 M esperables",
-      "url": "https://claude.ai/code/session_01QiKC397z42u9YdbK1uWvE9"
-    },
-    {
       "tarea": "CG4",
       "titulo": "Corazón · CG4 Mando en vivo con el simulador (dirige y construye Opus)",
       "nota": "js/ui-guerra.js y gfx; paso A Escaramuzas, paso B campaña; techo 6,0 M",
       "url": "https://claude.ai/code/session_01QiKC38ZAM3t3LR2vRpnHXh"
+    },
+    {
+      "tarea": "CE3",
+      "titulo": "Cerebro · CE3 Edificios, tropas y tiempos nuevos, en estaciones (Opus; tope duro)",
+      "nota": "Parada a 4,5 M sin subir; commits en la rama ce3; espera tu respuesta sobre el bot",
+      "url": "https://claude.ai/code/session_01QiKC3Aw9VfHc42LQ8wLPsB"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

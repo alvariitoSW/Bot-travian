@@ -238,7 +238,7 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 #res .r .ico { display: inline-block; width: 18px; height: 18px; margin: 0; }
 #res .r.full b { color: var(--gold); }
 #app[data-modo="gobierno"] .w-only, #app[data-modo="guerra"] .g-only, #app[data-modo="guerra"] #res .r.g-only { display: none !important; }
-#app[data-modo="guerra"] #rb-oro { order: -1; }
+#app[data-modo="guerra"] #rb-denarios { order: -1; }
 #bar2 { margin-top: 5px; align-items: flex-start; }
 #citybtn, #datebox { height: 38px; display: flex; align-items: center; gap: 6px; padding: 0 12px; background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--line2); border-radius: 8px; pointer-events: auto; font-size: 13px; }
 #citybtn b { color: var(--gold); font-family: var(--serif); letter-spacing: .06em; font-weight: 700; }
@@ -1503,3 +1503,27 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 .mmini canvas { display: block; width: 200px; height: 128px; border-radius: 3px; border: 1px solid #8a6034; cursor: pointer; }
 .mmini small { display: block; margin-top: 2px; font-size: 11px; color: #d8c79a; text-align: center; }
 #app[data-vista="city"] .mmini { display: none; }
+
+/* ===== CE2 · cuatro recursos, hombres y bienes ===== */
+/* rayita bajo cada recurso: cuánto del almacén está lleno (su tope); roja si algo se va a perder al cerrar el mes */
+#res #rb-grano, #res #rb-denarios, #res #rb-materiales, #res #rb-hierro { background-image: linear-gradient(to right, var(--rcol, rgba(233, 192, 99, .7)) var(--lleno, 0%), rgba(241, 234, 217, .12) 0); background-size: calc(100% - 26px) 2px; background-position: center bottom 5px; background-repeat: no-repeat; }
+#res .r.full { --rcol: var(--gold); }
+#res .r.pierde { --rcol: #ff7060; border-color: #ff7060; }
+#res .r.pierde b { color: #ff7060; }
+/* fila compacta de bienes guardados, bajo la barra */
+#bienes { display: flex; gap: 4px; margin-top: 4px; overflow: clip; pointer-events: auto; cursor: pointer; flex-wrap: nowrap; }
+#bienes[hidden] { display: none; }
+#bienes .bn { flex: none; display: flex; align-items: center; gap: 2px; height: 22px; padding: 0 7px; font-size: 12px; background: var(--cris, rgba(18, 26, 36, .72)); border: 1px solid var(--lin, rgba(241, 234, 217, .13)); border-radius: 99px; white-space: nowrap; }
+#bienes .bn b { font-weight: 600; font-variant-numeric: tabular-nums; }
+#bienes .bn.full b { color: var(--gold); } #bienes .bn.pierde { border-color: #ff7060; } #bienes .bn.pierde b, #bienes .bn.lujo { color: #ff8a70; }
+#app[data-modo="guerra"] #bienes { display: none; }
+/* hoja de cuentas: hombres, bienes y lujo */
+#cuentas .cu-hom { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; color: var(--mute); } #cuentas .cu-hom .ico { width: 22px; height: 22px; flex: none; } #cuentas .cu-hom b { color: var(--ink, #eee); }
+#cuentas .cu-bien .cu-ic { font-size: 18px; text-align: center; }
+#cuentas .cu-vb { font-size: 12px; padding: 6px 8px; line-height: 1.1; } #cuentas .cu-vb small { display: block; font-size: 11px; } #cuentas .cu-vb .ico { width: 12px; height: 12px; vertical-align: -1px; }
+#cuentas .cu-lujo { font-size: 12px; color: var(--mute); padding: 4px 0 6px; } #cuentas .cu-lujo.mal { color: #e07a50; }
+/* mercado: comprar hierro, vender lo que sobra y los bienes */
+.market .mnota { font-size: 11.5px; color: var(--mute); margin: -2px 0 6px; }
+.market .msob, .market .mbien { flex-wrap: wrap; }
+.market .msob .btn, .market .mbien .btn { flex: 1 1 40%; }
+.ficha .nota.mina-no { color: #e0a030; }

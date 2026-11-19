@@ -79,7 +79,7 @@ prueba('CN5: una colonia se funda desde el juego, guarda y recarga la misma ciud
   const rq = createRequire(import.meta.url), D = rq('../js/data.js'), G = rq('../js/game.js'); G.usarCiudad(R);
   const store = {}; globalThis.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
   try {
-    const s = G.newGame('CN5'); assert.ok(!D.CITIES.cosa, 'el sitio no es ciudad'); s.res.grano = 900; s.res.oro = 900; s.cities.roma.pop = 500;
+    const s = G.newGame('CN5'); assert.ok(!D.CITIES.cosa, 'el sitio no es ciudad'); s.res.grano = 900; s.res.denarios = 900; s.cities.roma.pop = 500;
     assert.ok(G.enviarColonos('roma', 'cosa').ok); let n = 0; while (G.state.colonias.cosa.estado === 'camino' && n++ < 60) G.tick(1);
     assert.equal(G.state.colonias.cosa.estado, 'pendiente'); assert.equal(G.fundarColonia('cosa', 100, -450).ok, false);
     assert.ok(G.fundarColonia('cosa', 172, -196).ok); const a = JSON.stringify(R.aDatos(G.ciudadE('cosa')));
@@ -132,7 +132,7 @@ prueba('CN8: el mismo mes llega en modo turnos, con un solo aviso por mes aunque
     for (let k = 0; k < 6; k++) G.pasarTurno();
     assert.ok(meses.length >= 1, 'llega la crecida en modo turnos'); assert.ok(meses.every(m => m === 2), 'siempre en marzo: ' + meses);
     const cr = alertas.filter(a => /Crecida/.test(a)); assert.ok(cr.every(a => (a.match(/🌊/g) || []).length === 1) && cr[0].includes(D.CITIES[ids[0]].n) && cr[0].includes(D.CITIES[ids[1]].n), 'una línea con todas las ciudades: ' + cr[0]);
-    const s = G.state; s.res.grano = 900; s.res.oro = 900; s.cities.roma.pop = 500; assert.ok(G.enviarColonos('roma', 'cosa').ok); let n = 0; while (G.state.colonias.cosa.estado === 'camino' && n++ < 80) G.tick(1);
+    const s = G.state; s.res.grano = 900; s.res.denarios = 900; s.cities.roma.pop = 500; assert.ok(G.enviarColonos('roma', 'cosa').ok); let n = 0; while (G.state.colonias.cosa.estado === 'camino' && n++ < 80) G.tick(1);
     assert.ok(G.fundarColonia('cosa', 172, -196).ok); assert.ok(Array.isArray(G.riesgos('cosa')) && G.ciudadE('cosa').fundada, 'la colonia tiene riesgos igual');
   } finally { delete globalThis.localStorage; G.onEvent = null; G.usarCiudad(null); } });
 
@@ -154,7 +154,7 @@ prueba('CN8: el mismo mes llega en modo turnos, con un solo aviso por mes aunque
   prueba('CN9a economía: Roma y Capua dan los mismos niveles que edificiosBase', () => {
     for (const id of ['roma', 'capua']) { const d = D9.CITIES[id], base = G9.edificiosBase(id, d.w, d.wl), E = R.desdePlantilla(id, d.f, d.w, { rapido: true }), suma = {};
       for (const e of E.edificios) { const b = R.EDIF[e.tipo].bid; if (b) suma[b] = (suma[b] || 0) + R.NIVEL_MEJORA[e.mejora || 0]; }
-      for (const b of ['almacen', 'templo', 'mercado', 'cuartel', 'establo', 'herreria', 'puerto', 'granja', 'aserradero', 'cantera', 'mina']) { const L = base[b] || 0, esp = L < 1 ? 0 : R.NIVEL_MEJORA[R.MEJORA_DE_NIVEL(L)]; assert.equal(suma[b] || 0, esp, id + ' ' + b); }
+      for (const b of ['almacen', 'templo', 'mercado', 'cuartel', 'establo', 'herreria', 'puerto', 'granja', 'aserradero', 'cantera']) {   /* CE2: la mina no: Roma no tiene veta y la plantilla trae una mina vieja */ const L = base[b] || 0, esp = L < 1 ? 0 : R.NIVEL_MEJORA[R.MEJORA_DE_NIVEL(L)]; assert.equal(suma[b] || 0, esp, id + ' ' + b); }
       assert.ok(E.edificios.some(e => e.tipo === 'granero'), id + ' granero'); } });
   prueba('CN9a determinismo: la misma id da la misma ciudad (normal y rápida)', () => {
     for (const rap of [false, true]) { const d = D9.CITIES.tarentum, a = R.desdePlantilla('tarentum', d.f, d.w, { rapido: rap }), b = R.desdePlantilla('tarentum', d.f, d.w, { rapido: rap }); assert.equal(firma(a), firma(b)); } });
