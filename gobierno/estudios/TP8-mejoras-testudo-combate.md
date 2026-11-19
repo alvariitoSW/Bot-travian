@@ -42,3 +42,20 @@ Caras de los soldados (GM43j, aparte). Andar y correr (vale hoy). Lo nuevo que p
   4. **4** Sonido grabado libre, con su crédito.
 - **Regla de encargo para TP8b**: cada encargo, una pieza y **30 pasos como máximo**, con corte por encargo; medir el
   gasto al volver cada uno. El render por software es lento: las capturas, una sola tanda al final del encargo.
+
+## TP8b · La vara y las referencias (19/11)
+- **Vara** (palabras del usuario en `BITACORA.md`, 19/11): las cuatro frases del testudo y las cuatro de las picas son
+  el suelo («eso es un 5… hazlo a ver cómo queda y después lo vuelvo a evaluar»); el 8 lo pone él al verlo.
+  De las picas de hoy: «muñecos sin gracia que pinchas y baja una línea q se supone que es la pica y encima se
+  atraviesan entre ellas»; echa de menos lo que sí tiene el testudo (voces, agachar la cabeza bajo la salva).
+- **Tres clips suyos** (Rome II, subidos al chat el 19/11; solo ideas, nada se guarda en el repositorio):
+  1. *Falange contra elefantes, desde detrás.* La cámara va **por encima de los cascos** (a unos 3 m, mirando hacia
+     abajo y al frente): se ve al enemigo entre las astas. Astas gruesas, de color madera clara, con sombra larga en
+     el suelo; las de atrás, alzadas en abanico; sol bajo y cálido; filas prietas con escudo redondo de bronce.
+  2. *Muro de picas de lado, contra caballería.* Cinco hileras de puntas asoman horizontales un buen trecho por
+     delante de la primera fila; el que carga muere en las puntas y los caídos se amontonan delante; polvo y sangre
+     en el suelo; estandarte grande sobre cada unidad.
+  3. *Cohortes romanas marchando.* Plano ancho con los bloques formados antes de bajar; de cerca, filas densas, escudos
+     que se solapan, hierba alta en primer plano.
+- **Qué se toma**: picas → cámara alta sobre los cascos, astas con cuerpo y sombra, cinco hileras de puntas, caídos
+  amontonados delante del muro; épica a pie → plano ancho de apertura, estandarte, hierba en primer plano, sol bajo.
