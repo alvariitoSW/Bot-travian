@@ -2028,14 +2028,8 @@
     {
       "tarea": "CG6",
       "titulo": "Corazón · CG6 A pie desde el hombro, dentro de la batalla nueva (Opus; tope duro)",
-      "nota": "Tanda 1 subida (bajar a pie desde el hombro, jueces 42/42; 2,55 M de 4,0); la tanda 2 espera a la lucha de TP8b",
+      "nota": "Tanda 2: integra la lucha nueva del testudo (de TP8b) dentro de la batalla y arregla el retraso al correr; corte duro 4,0 M (lleva 2,55)",
       "url": "https://claude.ai/code/session_01QiKC36XAVkKcrxxvx4cUCo"
-    },
-    {
-      "tarea": "MN1",
-      "titulo": "Cerebro · MN1 Barra de seis y mapa nuevo de los menús (Opus; tope duro)",
-      "nota": "Obra hecha (barra de seis, ROMA ▾, ☰ nuevo; capturas bien) pero sin subir: 1,95 M de 1,2 declarados; última prórroga 2,6 M para jueces y cierre",
-      "url": "https://claude.ai/code/session_01QiKC3ACB6gUUQAvqV6dh58"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
