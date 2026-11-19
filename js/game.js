@@ -734,7 +734,7 @@
     for (const b in CI.PIEZA_DE) if (b !== 'muralla') c.b[b] = Math.min(D.MAX_LVL, (suma[b] || 0) + (her[b] || 0));
     c.b.viviendas = 0;
     let casas = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && !l.fuera) casas++;
-    c.b.foro = Math.min(D.MAX_LVL, Math.max(c.foroMin || 1, 1 + Math.floor(casas / D.FORO_CASAS) + Math.max(0, E.barrios.length - 1)));   // foro derivado: 1 + una por cada 25 casas (D.FORO_CASAS) + una por barrio extra
+    c.b.foro = Math.min(D.MAX_LVL, Math.max(c.foroMin || 1, 1 + Math.floor(casas / D.FORO_CASAS) + Math.max(0, E.barrios.length - 1)));   // foro derivado: 1 + una por cada D.FORO_CASAS casas + una por barrio extra
     pantalla(c, r);
     r.rev = -1;
   }

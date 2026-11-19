@@ -144,7 +144,7 @@
   D.FELICIDAD_BASE = 55;   // + 5 del municipio (tipo por defecto) = 60, como antes de I4
   D.FELICIDAD_MIN_CRECER = 40;
   D.FELICIDAD_EDIF = { templo: 4, mercado: 2 };   // CN10: sin termas ni anfiteatro (no existían antes del 146 a.C.), su felicidad pasa al templo y al mercado
-  D.FORO_CASAS = 25;   // CN2b: el foro de una ciudad con ciudad nueva sube 1 nivel por cada 25 casas (más 1 por barrio extra)
+  D.FORO_CASAS = 15;   // CN2b: el foro de una ciudad con ciudad nueva sube 1 nivel por cada 15 casas (más 1 por barrio extra). CE3: era 25; con el Foro topando los edificios, Roma se quedaba en Foro 3 (61 casas) toda la partida y el bot agresivo no ganaba nunca. Con 15, Foro 5 hacia las 60 casas. Licencia de juego
   D.HUECOS_OBRA = [0, 1, 2, 3, 4, 5];   // Q4b/CE3: obras a la vez por ciudad según el nivel del foro (índice = nivel 1..5); el foro no tiene mejoras, su nivel es c.b.foro (casas y barrios)
   D.POP_EDIF = { viviendas: 130, foro: 30, mercado: 20, templo: 10 };   // población máxima por nivel de cada edificio (CN10: mercado y templo reparten lo que daban acueducto y termas)
   /* Barrios (P67). Licencia de juego: la idea de que un barrio crece al cubrir servicios viene de Caesar III (estudio R1); los niveles,
@@ -242,7 +242,7 @@
      No se almacena: Roma «tiene acceso» a un bien si posee alguna ciudad que lo da (D.CITIES[id].esp), vea G.especiales.
      abre.edificios: pasar del nivel D.ESP_NIVEL en esos edificios pide el bien; abre.tropas: esas tropas piden el bien.
      bono: se aplica una vez al tener acceso (no se acumula por tener dos ciudades). Lo lee game.js con G.bonoMul y G.bonoSum. */
-  D.ESP_NIVEL = 6;
+  D.ESP_NIVEL = 3;   // CE3: era 6 con diez niveles; con cinco, la mitad redondeada hacia arriba (como G.migrarNiveles)
   /* Rutas comerciales (B2). Licencia de juego: el mecanismo es invención; el trasfondo (los tratados de Roma y Cartago
      regulaban dónde comerciar, Polibio 3.22-25; Hierón II aliado de Roma desde 263, Polibio 1.16) es histórico.
      Renta mensual = (RUTA_BASE + mercado de a + mercado de b si es propia, o RUTA_W por estrella de la ciudad ajena) × 1,5 por mar × oroCom del tipo.
@@ -270,8 +270,8 @@
     // --- Roma ---
     hastati: { n: 'Hastati', g: '⚔', cls: 'inf', atk: 9, def: 9, spd: 32, mor: 60, up: 0.15, time: 0.05, cost: { grano: 15, hierro: 20, denarios: 12 }, req: { cuartel: 1 }, d: 'Primera línea del manípulo. Jóvenes y baratos.' },
     velites: { n: 'Vélites', g: '➶', cls: 'rng', atk: 4, ratk: 7, def: 4, spd: 40, mor: 45, range: 170, up: 0.1, time: 0.04, cost: { grano: 10, hierro: 8, denarios: 10 }, req: { cuartel: 1 }, d: 'Hostigadores con jabalinas. Débiles cuerpo a cuerpo.' },
-    principes: { n: 'Príncipes', g: '⚔', cls: 'inf', atk: 12, def: 11, spd: 30, mor: 70, up: 0.2, time: 0.07, cost: { grano: 20, hierro: 35, denarios: 18 }, req: { cuartel: 3 }, d: 'Veteranos de la segunda línea, bien acorazados.' },
-    triarii: { n: 'Triarios', g: '↟', cls: 'spear', atk: 11, def: 15, spd: 28, mor: 85, up: 0.25, time: 0.09, cost: { grano: 25, hierro: 40, denarios: 27 }, req: { cuartel: 5 }, d: 'Lanceros de élite. «Res ad triarios venit». Frenan a la caballería.' },
+    principes: { n: 'Príncipes', g: '⚔', cls: 'inf', atk: 12, def: 11, spd: 30, mor: 70, up: 0.2, time: 0.07, cost: { grano: 20, hierro: 35, denarios: 18 }, req: { cuartel: 2 }, d: 'Veteranos de la segunda línea, bien acorazados.' },   // CE3: cuartel 2 (era 3 de 10: ceil(3/2), traducción a cinco niveles)
+    triarii: { n: 'Triarios', g: '↟', cls: 'spear', atk: 11, def: 15, spd: 28, mor: 85, up: 0.25, time: 0.09, cost: { grano: 25, hierro: 40, denarios: 27 }, req: { cuartel: 3 }, d: 'Lanceros de élite. «Res ad triarios venit». Frenan a la caballería.' },   // CE3: cuartel 3 (era 5 de 10: ceil(5/2), traducción a cinco niveles)
     equites: { n: 'Équites', g: '♞', cls: 'cav', atk: 14, def: 9, spd: 70, mor: 65, up: 0.4, time: 0.1, cost: { grano: 45, hierro: 30, denarios: 28 }, req: { establo: 1 }, d: 'Caballería. Carga devastadora por flancos y retaguardia.' },
     vigiles: { n: 'Guardia urbana', lic: 'En la República no hubo un cuerpo con ese nombre; de noche vigilaban unos triunviros (Livio 9.46)', g: '⚔', cls: 'inf', atk: 6, def: 7, spd: 30, mor: 50, up: 0 },
     // --- otros pueblos ---
