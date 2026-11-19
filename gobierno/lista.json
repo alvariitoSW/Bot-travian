@@ -48,9 +48,11 @@
       "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría. Roma con el aspecto de su siglo (CI1): templo toscano, muralla de toba lisa, ínsulas, foro con tabernas, más ciudad a la vista y campos por estaciones.",
       "captura": "gobierno/capturas-tarea/Q1k-5-barrios.jpg",
       "tareas": [
-        "CI1b"
+        "CI1b",
+        "CI3a",
+        "CI3b"
       ],
-      "falta": "Tu pedido: calles con sentido (CI1b, espera tu respuesta en el cuadro) y el gobierno visible en la ciudad (dentro de CS2). «Más ciudad de verdad» y dos mapas de la ciudad: tu decisión en el cuadro (hoy, después de la 1.0)."
+      "falta": "Tus pedidos: calles con sentido (CI1b) y la ciudad ×5 a la vista (CI3a, a punto de cerrarse; luego CI3b, que cuente en la economía, tras CE3), y el gobierno visible en la ciudad (dentro de CS2). El pulido que queda de la ciudad romana: pregunta CI1c del cuadro."
     },
     {
       "id": "L2",
@@ -88,9 +90,9 @@
       "titulo": "Un solo Senado, con intrigas",
       "estado": "medias",
       "veras": "Una sala viva con hasta siete bandos, cada uno con su gran familia. Ves debatir a los senadores; los jefes de bando son tus consejeros; hay banquetes, juegos y ritos.",
-      "hecho": "Sala de votos con 30 escaños, tratos y tribuno, ya dentro del juego.",
-      "falta": "Senado de familias (CE6), sala viva y jefes-consejeros (CE8), banquete, juegos y rito (CE9).",
-      "captura": "gobierno/capturas-tarea/SN2-1-sala.jpg",
+      "hecho": "Senado de familias (CE6): hasta siete bandos con su familia (Fabios, Emilios, Escipiones; entran Valerios, Fulvios, Claudios y Sempronios al crecer Roma), de 30 a 300 escaños por población y provincia, humor por tus actos, una petición por bando y estación; tratos y tribuno.",
+      "falta": "Sala viva y jefes-consejeros (CE8), banquete, juegos y rito (CE9).",
+      "captura": "gobierno/capturas-tarea/CE6-crecida-sala.jpg",
       "tareas": [
         "CE6",
         "CE8",
@@ -173,7 +175,8 @@
         "CG4",
         "CG4b",
         "CG5",
-        "CG7"
+        "CG7",
+        "CG8"
       ]
     },
     {
@@ -190,7 +193,8 @@
         "TP1b",
         "CG6",
         "GM43i",
-        "GM43j"
+        "GM43j",
+        "TP8"
       ]
     },
     {

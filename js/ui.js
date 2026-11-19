@@ -1359,25 +1359,43 @@ function encargoHtml() {
 }
 /* SN2: sala del Senado. Ley de la estación, hemiciclo de 30 escaños en tres bandos, tratos, tribuno y voto.
    Lee el motor de SN1 (G.senadoSala, G.votos, G.tratos, G.veto); la elección de tratos vive solo en UI.sn2 (no se guarda). */
-const SN2_COL = { ter: '#46661f', mer: '#2c6f8c', mil: '#9b2a1a' };   // tinta de cada bando sobre papiro (más oscura que D.BANDOS.col)
+const SN2_COL = { ter: '#46661f', mer: '#2c6f8c', mil: '#9b2a1a', sac: '#7a5a08', ita: '#56397f', pro: '#9a4f12', pue: '#7a3424', fam: '#b8860b' };   // tinta de cada bando sobre papiro (más oscura que D.BANDOS.col); fam = tu familia
 const SN2_DICT = { historico: 'histórico', probable: 'probable' };
+// CE6: un asiento por escaño (de 30 a 300); filas según el total; bandos en su orden y tu familia, en dorado, al final
 function sn2Hemiciclo(v) {
-  const cx = 195, cy = 186, filas = [[8, 74], [10, 106], [12, 138]], es = [];
-  filas.forEach(([n, r]) => { for (let i = 0; i < n; i++) { const a = Math.PI * (1 - (i + .5) / n); es.push({ a, x: cx + r * Math.cos(a), y: cy - r * Math.sin(a) }); } });
+  const cx = 195, cy = 186, N = v.total || 30, R = N <= 40 ? 3 : N <= 100 ? 5 : N <= 200 ? 7 : 9, r0 = 62, r1 = 150, rr = [], es = [];
+  for (let i = 0; i < R; i++) rr.push(r0 + (r1 - r0) * i / Math.max(1, R - 1));
+  const sr = rr.reduce((a, b) => a + b, 0), filas = rr.map(r => Math.max(1, Math.round(N * r / sr)));
+  let d = N - filas.reduce((a, b) => a + b, 0); for (let i = R - 1; d !== 0; i = (i + R - 1) % R) { filas[i] += d > 0 ? 1 : -1; d += d > 0 ? -1 : 1; }
+  let rad = 10; filas.forEach((n, i) => { rad = Math.min(rad, Math.PI * rr[i] / n * 0.42); }); if (R > 1) rad = Math.min(rad, (rr[1] - rr[0]) * 0.45);
+  filas.forEach((n, i) => { const r = rr[i]; for (let k = 0; k < n; k++) { const a = Math.PI * (1 - (k + .5) / n); es.push({ a, x: cx + r * Math.cos(a), y: cy - r * Math.sin(a) }); } });
   es.sort((p, q) => q.a - p.a);
+  const grupos = Object.keys(v.porBando).map(b => Object.assign({ b }, v.porBando[b]));
+  if (v.familia) grupos.push({ b: 'fam', escanos: v.familia, si: v.familia, duda: 0, no: 0 });
+  const R1 = rad.toFixed(1), sw = Math.max(1, rad / 6).toFixed(1);
   let h = '<path d="M30 186A165 165 0 0 1 360 186Z" class="sn2-arco"/><path d="M150 186A45 45 0 0 1 240 186Z" class="sn2-cons"/>', k = 0;
-  for (const b of ['ter', 'mer', 'mil']) {
-    const x = v.porBando[b], col = SN2_COL[b], g = es.slice(k, k + x.escanos); k += x.escanos;
+  for (const x of grupos) {
+    const col = SN2_COL[x.b] || '#333', g = es.slice(k, k + x.escanos); k += x.escanos;
     g.sort((p, q) => Math.hypot(p.x - cx, p.y - cy) - Math.hypot(q.x - cx, q.y - cy));
     g.forEach((s, i) => {
       const X = s.x.toFixed(1), Y = s.y.toFixed(1);
-      if (i < x.si) h += '<circle cx="' + X + '" cy="' + Y + '" r="10" fill="' + col + '" stroke="#2b1c0a" stroke-width="1.5"/>';
-      else if (i < x.si + x.duda) h += '<circle cx="' + X + '" cy="' + Y + '" r="9" fill="none" stroke="' + col + '" stroke-width="2.5" stroke-dasharray="4 3"/><text x="' + X + '" y="' + (s.y + 4).toFixed(1) + '" text-anchor="middle" font-size="11" font-weight="700" fill="' + col + '">?</text>';
-      else h += '<circle cx="' + X + '" cy="' + Y + '" r="9" fill="rgba(60,35,10,.12)" stroke="rgba(60,35,10,.5)" stroke-width="1.5"/><path d="M' + (s.x - 4).toFixed(1) + ' ' + (s.y - 4).toFixed(1) + 'l8 8m0-8l-8 8" stroke="' + col + '" stroke-width="2" opacity=".8"/>';
+      if (i < x.si) h += '<circle cx="' + X + '" cy="' + Y + '" r="' + R1 + '" fill="' + col + '" stroke="#2b1c0a" stroke-width="' + sw + '"/>';
+      else if (i < x.si + x.duda) h += '<circle cx="' + X + '" cy="' + Y + '" r="' + (rad * .85).toFixed(1) + '" fill="none" stroke="' + col + '" stroke-width="' + (rad / 4).toFixed(1) + '" stroke-dasharray="' + (rad / 2.5).toFixed(1) + ' ' + (rad / 3.3).toFixed(1) + '"/>';
+      else h += '<circle cx="' + X + '" cy="' + Y + '" r="' + (rad * .85).toFixed(1) + '" fill="rgba(60,35,10,.12)" stroke="' + col + '" stroke-width="' + sw + '" opacity=".75"/>';
     });
   }
-  [[66, 50, 'ter'], [195, 16, 'mer'], [324, 50, 'mil']].forEach(([x, y, b]) => { h += '<text x="' + x + '" y="' + y + '" text-anchor="middle" class="sn2-ban" fill="' + SN2_COL[b] + '">' + D.BANDOS[b].n.toUpperCase() + '</text>'; });
-  return '<svg class="sn2-sala" viewBox="0 6 390 188" role="img" aria-label="Sala del Senado: ' + v.si + ' sí, ' + v.duda + ' dudan, ' + v.no + ' no">' + h + '<text x="195" y="178" text-anchor="middle" class="sn2-ban" fill="#e9c063">CÓNSULES</text></svg>';
+  return '<svg class="sn2-sala" viewBox="0 16 390 178" role="img" aria-label="Sala del Senado: ' + v.si + ' sí, ' + v.duda + ' dudan, ' + v.no + ' no, de ' + N + ' escaños">' + h + '<text x="195" y="178" text-anchor="middle" class="sn2-ban" fill="#e9c063">CÓNSULES</text></svg>';
+}
+// CE6: los bandos del Senado (familia, escaños, humor y lo que piden); los que aún no han entrado, al pie
+function sn2Bandos() {
+  const sb = G.senadoBandos && G.senadoBandos(); if (!sb) return '';
+  const on = sb.bandos.filter(b => b.activo), off = sb.bandos.filter(b => !b.activo);
+  let o = '<div class="sec ro-rubrica">Bandos · ' + sb.total + ' escaños</div><div class="sn6">';
+  for (const b of on) o += '<div class="sn6-b"><u style="background:' + b.col + '"></u><span class="sn6-n"><b>' + esc(b.fam) + '</b> · ' + esc(b.n.toLowerCase()) + '</span><span class="sn6-e">' + b.escanos + '</span>' +
+    '<div class="sn-bar sn6-h"><i style="width:' + b.humor + '%;background:' + b.col + '"></i></div><span class="sn6-hn">' + b.humor + '</span>' + (b.pide ? '<span class="sn6-p">Pide: ' + esc(b.pide) + '</span>' : '') + '</div>';
+  o += '<div class="sn6-b sn6-fam"><u style="background:' + SN2_COL.fam + '"></u><span class="sn6-n"><b>Tu familia</b> · vota contigo</span><span class="sn6-e">' + sb.familia + '</span></div>';
+  if (off.length) o += '<div class="sn6-fal">' + off.map(b => '<span><b>' + esc(b.fam) + '</b> (' + esc(b.n.toLowerCase()) + '): ' + esc(b.falta.charAt(0).toLowerCase() + b.falta.slice(1)) + '.</span>').join('') + '</div>';
+  return o + '<p class="sn-ex">Escaños: uno por cada 20 habitantes de tus ciudades (tope 300). Cada provincia los da a su bando afín. Mayoría: ' + sb.mayoria + '.</p></div>';
 }
 function sn2Titulo(t) {
   if (t.tipo === 'si') return 'Ya votan sí';
@@ -1387,7 +1405,7 @@ function sn2Titulo(t) {
 function viewSala(sala) {
   const s = S(), S2 = D.SENADO, l = sala.ley, f = G.favor();
   if (!UI.sn2 || UI.sn2.ley !== l.id) UI.sn2 = { ley: l.id, b: {} };
-  const tr = G.tratos(l), elegidos = tr.filter(t => t.tipo !== 'si' && UI.sn2.b[t.bando]), v = G.votos(l, elegidos), vet = G.veto(l), falta = S2.mayoria;
+  const tr = G.tratos(l), elegidos = tr.filter(t => t.tipo !== 'si' && UI.sn2.b[t.bando]), v = G.votos(l, elegidos), vet = G.veto(l), falta = v.mayoria || S2.mayoria;
   const barra = (n, x, c) => '<div class="sn2-f"><span>' + n + '</span><div class="sn-bar"><i class="' + c + '" style="width:' + Math.round(x) + '%"></i></div><b>' + Math.round(x) + '</b></div>';
   const fu = l.fuente ? '<div class="sn2-fu">' + esc(l.fuente) + (l.dictamen ? ' · ' + esc(SN2_DICT[l.dictamen] || l.dictamen) : '') + '</div>' : '';
   let o = '<div class="ro ro-sen"><div class="ro-palo"></div><div class="ro-papiro sn sn2' + (l.n.length + l.texto.length > 90 ? ' larga' : '') + '">' +
@@ -1398,9 +1416,9 @@ function viewSala(sala) {
     '<div class="sn2-cuenta"><b class="si">' + v.si + ' sí</b> · <b class="du">' + v.duda + (v.duda === 1 ? ' duda' : ' dudan') + '</b> · <b class="no">' + v.no + ' no</b> <em>· hacen falta ' + falta + '</em></div><div class="sn2-tratos">';
   for (const t of tr) {
     const on = t.tipo !== 'si' && !!UI.sn2.b[t.bando], cls = t.etiqueta === 'Favorable' ? 'fav' : t.etiqueta === 'Dudoso' ? 'dud' : 'arr';
-    const vt = 'Te dan <b>' + t.extra + (t.extra === 1 ? ' voto' : ' votos') + '</b>. ', txt = t.tipo === 'si' ? 'No piden nada.' : t.tipo === 'pago' ? vt + S2.pagoVoto + ' denarios cada uno.' : vt + 'Romperla: ' + S2.romper + ' de favor.';
+    const vt = 'Te dan <b>' + t.extra + (t.extra === 1 ? ' voto' : ' votos') + '</b>. ', txt = t.tipo === 'si' ? 'No piden nada.' : t.tipo === 'pago' ? vt + Math.round(t.coste / Math.max(1, t.extra)) + ' denarios cada uno.' : vt + 'Romperla: ' + S2.romper + ' de favor.';
     o += '<button class="sn2-trato' + (on ? ' on' : '') + (t.tipo === 'si' ? ' ya' : '') + '"' + (t.tipo === 'si' ? ' disabled' : ' data-act="sn2-trato" data-v="' + t.bando + '"') + ' data-b="' + t.bando + '" aria-pressed="' + on + '">' +
-      '<span class="sn2-th"><u style="background:' + D.BANDOS[t.bando].col + '"></u><span>' + D.BANDOS[t.bando].n + ' · ' + t.escanos + ' escaños</span><s class="' + cls + '">' + (t.tipo === 'si' ? 'Ya votan sí' : t.etiqueta) + '</s></span>' + (t.tipo === 'si' ? '' : '<b class="sn2-tt">' + sn2Titulo(t) + '</b><span class="sn2-tx">' + txt + '</span>') + '</button>';
+      '<span class="sn2-th"><u style="background:' + D.BANDOS[t.bando].col + '"></u><span>' + (D.BANDOS[t.bando].fam ? D.BANDOS[t.bando].fam + ' · ' : '') + D.BANDOS[t.bando].n.toLowerCase() + ' · ' + t.escanos + ' esc.</span><s class="' + cls + '">' + (t.tipo === 'si' ? 'Ya votan sí' : t.etiqueta) + '</s></span>' + (t.tipo === 'si' ? '' : '<b class="sn2-tt">' + sn2Titulo(t) + '</b><span class="sn2-tx">' + txt + '</span>') + '</button>';
   }
   const ple = ((l.chips || {}).ple || 0);
   o += '</div><div class="sn2-tri"><b>Tribuno de la plebe</b>' + (vet.veta ? 'Vetará: el pueblo está a ' + vet.pueblo + ' y pide ' + vet.umbral + '.' : ple < 0 ? 'No veta: la plebe está contenta.' : 'No veta: esta ley no daña a la plebe.') +
@@ -1431,6 +1449,7 @@ function viewSenado() {
     '<p class="sn-ex">El pueblo sigue el ánimo de tus ciudades. El Senado sube con las misiones cumplidas y baja con las falladas o con los denarios en rojo a fin de mes.</p>';
   if (mot) o += '<div class="sn-av">' + esc(mot) + '</div>';
   if (D.SENADO.sala) o += '<p class="sn-ex">El Senado no vota nada esta estación. Al pasar turno propondrá una ley.</p>';
+  if (D.SENADO.sala) o += sn2Bandos();   // CE6
   o += encargoHtml();
   if (!mi) return o + RO_HIEDRA + '<div class="empty sn-nada">El Senado no te pide nada por ahora.</div>' + pie;
   const m = mi.m, tot = Math.max(1, mi.t1 - mi.t0);
