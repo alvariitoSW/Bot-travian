@@ -64,3 +64,7 @@ Caras de los soldados (GM43j, aparte). Andar y correr (vale hoy). Lo nuevo que p
      asoman medio cuerpo por encima de los escudos para lanzar y vuelven a cubrirse; cielo oscuro, flechas con fuego
      y golpes secos en la madera. Se toma: plano corto al dar la orden, voces escritas y dichas, asomar para lanzar.
      Lo que un móvil no da (caras de cine) se dice y no se promete.
+  5. *Testudo de Ryse, otro corte (quinto clip, 19/11).* Antes de avanzar, **arenga**: el centurión alza la espada y
+     habla a los suyos; la vista alterna entre el plano de detrás (cascos asomando por el borde de los escudos, la
+     cresta roja en el centro) y el plano corto del centurión cubriéndose cuando llega la salva. Se toma: arenga
+     breve al empezar y el vaivén entre plano de detrás y plano corto en los momentos fuertes.
