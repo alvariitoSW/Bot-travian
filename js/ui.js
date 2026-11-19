@@ -142,7 +142,7 @@ G.onEvent = function (type, p) {
 };
 
 /* ---------- menú ---------- */
-/* CN14-C: dificultad (3 botones) y casilla del asesor; en el menú ('m') valen para la partida nueva, en Gobierno ('g') para la actual */
+/* CN14-C: dificultad (3 botones) y casilla del asesor; en el menú ('m') valen para la partida nueva, en Ajustes ('g') para la actual */
 const DIF_NOM = { tranquila: 'Tranquila', normal: 'Normal', dura: 'Dura' };
 function difFila(donde) {
   const act = donde === 'g' ? ((G.ajustes() || {}).dif || 'normal') : (UI.difSel || 'normal'), ase = donde === 'g' ? !!(G.ajustes() || {}).asesor : UI.asesorSel !== false;
@@ -290,7 +290,7 @@ function startGame() {
   hojaCierra(true); UI.avisoFirma = ''; UI.pausa = null; pausaPon(); if (G.turnos && S()) S().speed = 0; UI.menu = false; $('menu').hidden = true; UI.sel = null; if (UI.map) UI.map.encuadre(); UI.cityList = false;
   const sitio = G.fundando() ? G.modo().inicio.fundar.sitio : null, cap = S() && S().capital;
   UI.city = sitio || (cap && S().cities[cap] ? cap : 'roma');   // I8: en «fundar de la nada» la ciudad es el sitio; con capital propia, esa
-  if (sitio) { UI.modo = 'gobierno'; UI.tab = 'city'; iniciarFundar(); } else setModo('gobierno');
+  if (sitio) { UI.tab = 'city'; iniciarFundar(); } else { UI.cityList = false; setTab('city'); }
 }
 /* I8: «Fundar de la nada». Con el reloj parado (G.fundando) se abre la pantalla de fundar; si la vista 3D aún carga, se reintenta en 0,4 s. */
 function iniciarFundar() {
@@ -299,11 +299,11 @@ function iniciarFundar() {
   if (!UI.cityV || !UI.cityV.listo) { UI.fundarT = setTimeout(iniciarFundar, 400); return; }
   if (UI.fundar) return;
   if (UI.modalOpen || UI.modalQ.length) { UI.fundarT = setTimeout(iniciarFundar, 400); return; }   // primero los avisos de época que haya en cola
-  UI.city = sitio; UI.tab = 'city'; UI.modo = 'gobierno';
+  UI.city = sitio; UI.tab = 'city';
   if (UI.abrirFundar(sitio, alFundarModo)) lineaPon('Tus colonos han llegado a ' + D.COLONIAS[sitio].n + ': elige dónde fundar.', 'aviso');
   else UI.fundarT = setTimeout(iniciarFundar, 600);
 }
-function alFundarModo(sitio) { UI.city = sitio; UI.overShown = false; G.save(); setModo('gobierno'); toast('Has fundado ' + D.CITIES[sitio].n + ': es tu capital.', ''); }
+function alFundarModo(sitio) { UI.city = sitio; UI.overShown = false; G.save(); UI.cityList = false; setTab('city'); toast('Has fundado ' + D.CITIES[sitio].n + ': es tu capital.', ''); }
 function fundarCancelado() {   // sin ciudad no hay partida a la que volver: se ofrece reabrir la pantalla o salir al menú (la partida queda guardada)
   carta('<div class="yr">COLONOS</div><h2>Aún no has fundado</h2><p>Tus colonos esperan en ' + esc(D.COLONIAS[G.modo().inicio.fundar.sitio].n) + '. La partida no empieza hasta que elijas el lugar.</p><div class="acts"><button class="btn ghost" data-act="tomenu">Volver al menú</button><button class="btn gold" data-act="refundar">Elegir el lugar</button></div>', true);
 }
@@ -375,16 +375,14 @@ const VEL = { 0: 'II', 1: '▶', 2: '▶▶', 4: '▶▶▶' };
 const ICO_GOB = svgIco('<path d="M3 20h18M5 20V9h14v11M3 9h18M9 20v-6h6v6M12 4v5"/>');
 function cityOk() { const my = G.myCities(); if (!my.includes(UI.city)) UI.city = my[0] || 'roma'; return UI.city; }
 function setTxt(id, v) { const e = $(id); if (e && e.dataset.k !== v) { e.dataset.k = v; e.innerHTML = v; } }
+/* MN1: barra de seis (Ciudad · Senado · Saber · Tropas · Mapa · Imperio). Sin modos: cada pestaña marca su botón */
+const BARRA_DE = { city: 'ciudad', senado: 'senado', saber: 'saber', army: 'tropas', map: 'mapa', imperio: 'imperio', hero: 'imperio' };
 function hudDock() {
-  const s = S(); if (!s || G.fundando()) return; const g = UI.modo !== 'guerra', c = s.cities[cityOk()], open = !$('hoja').hidden && !!UI.hoja && UI.hoja.id === 'guerra';
-  const f = Math.round(G.felicidad(c)), cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠', nm = s.marches.filter(m => m.owner === 'roma').length;
-  $('app').dataset.modo = g ? 'gobierno' : 'guerra';
-  $('bact').className = 'rd ' + (g ? 'oro' : 'rojo'); $('bmodo').className = 'rd ' + (open ? 'cierra' : g ? 'oro' : 'rojo'); $('bpill').className = g ? '' : 'w';
-  setTxt('bact', g ? '<span class="em">🔨</span><small>Obras</small>' : D.GUERRA_ICON.casco + '<small>Tropas</small>');
-  setTxt('bmodo', open ? '<span class="em">✕</span><small>Cerrar</small>' : (g ? ICO_GOB : D.GUERRA_ICON.espadas) + '<small>' + (g ? 'Gobierno' : 'Guerra') + '</small>');
-  setTxt('bpill', g ? D.POP_ICON + ' ' + Math.floor(c.pop) + '/' + G.popCap(c) + ' · ' + cara + ' ' + f : '🚩 ' + (nm === 1 ? '1 marcha en curso' : nm + ' marchas en curso'));
-  const t3 = UI.tab === 'imperio' || UI.tab === 'senado' || UI.tab === 'saber' ? 'imperio' : UI.tab === 'city' ? (UI.cityList || !UI.cityV ? 'gobierno' : 'ciudad') : '';
-  document.querySelectorAll('#tabs3 button').forEach(b => b.classList.toggle('on', b.dataset.v === t3)); $('app').dataset.tab = t3; $('app').dataset.vista = UI.tab; $('app').toggleAttribute('data-sala', UI.tab === 'senado' && !!G.senadoSala());   // SN2: en la sala, Votar y Dejar pasar sustituyen a «Pasar turno»
+  const s = S(); if (!s || G.fundando()) return; cityOk(); const nm = s.marches.filter(m => m.owner === 'roma').length;
+  const t3 = UI.tab === 'city' && UI.cityList && UI.cityV ? '' : (BARRA_DE[UI.tab] || '');
+  document.querySelectorAll('#tabs3 button').forEach(b => { const on = b.dataset.v === t3; b.classList.toggle('on', on); if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }); $('app').dataset.tab = t3; $('app').dataset.vista = UI.tab; $('app').toggleAttribute('data-sala', UI.tab === 'senado' && !!G.senadoSala());   // SN2: en la sala, Votar y Dejar pasar sustituyen a «Pasar turno»
+  $('app').toggleAttribute('data-sello', t3 !== 'ciudad');   // «Pasar turno» grande sobre la barra (en la ciudad 3D no se ve)
+  const bm = $('bmarchas'); bm.hidden = UI.tab !== 'map'; setTxt('bmarchas', D.GUERRA_ICON.espadas + '<span>Marchas</span>' + (nm ? '<i>' + nm + '</i>' : ''));
   setTxt('citybtn', '<b>' + D.CITIES[UI.city].n.toUpperCase() + '</b> ▾');
   migaPon();
 }
@@ -398,15 +396,15 @@ function migaPon() {
 }
 function migaVa() {
   if (UI.tab === 'map') entrarEn(UI.city);
-  else if (UI.deMapa && UI.map) volverAlMapa(); else setModo('guerra');
+  else if (UI.deMapa && UI.map) volverAlMapa(); else setTab('map');
 }
 /* Entrar en una ciudad propia desde el mapa: con el vuelo de cámara si se puede */
 function entrarEn(id) { UI.city = id; if (UI.map && propiaEntrable(id) && !UI.map.esc.entrando) { UI.sel = id; UI.map.entrarCiudad(id); } else { UI.cityList = false; setTab('city'); } }
 /* I8b: con el reloj parado antes de fundar, la barra muestra lo que traen los colonos (sin producción ni almacén aún) */
 function hudFundando(s) {
   for (const r of D.RES) { $('r-' + r).textContent = fmt(s.res[r]); $('ra-' + r).textContent = 'alm ' + fmt(s.alm[r] || 0); $('rb-' + r).title = (RES_NOM[r] || r) + ': ' + fmt(s.res[r]) + ' que traen los colonos'; }
-  $('app').dataset.modo = 'gobierno'; $('date').textContent = G.dateStr(s.t); $('speed').textContent = 'II'; $('speed').title = 'El reloj espera a que fundes';
-  const sitio = G.modo().inicio.fundar.sitio; setTxt('citybtn', '<b>' + (D.COLONIAS[sitio] || D.CITIES[sitio]).n.toUpperCase() + '</b>'); setTxt('bpill', '🏛️ Colonos esperando');
+  $('date').textContent = G.dateStr(s.t); $('speed').textContent = 'II'; $('speed').title = 'El reloj espera a que fundes';
+  const sitio = G.modo().inicio.fundar.sitio; setTxt('citybtn', '<b>' + (D.COLONIAS[sitio] || D.CITIES[sitio]).n.toUpperCase() + '</b>'); 
 }
 function tickUI() {
   const s = S(); if (UI.pausa) { if (s && s.speed > 0) UI.pausa = null; pausaPon(); }   // R3: si el reloj corre por otra vía, la línea sobra
@@ -451,7 +449,7 @@ function volverAlMapa() { UI.deMapa = false; setTab('map'); if (UI.map) UI.map.r
 /* ---------- paneles ---------- */
 function setTab(t) {
   if (UI.fundar) cerrarFundar(true);
-  UI.tab = t; if (t === 'map' || t === 'army') UI.modo = 'guerra'; else if (t === 'city' || t === 'imperio' || t === 'senado' || t === 'saber') UI.modo = 'gobierno'; hojaCierra(true); $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
+  UI.tab = t; hojaCierra(true); $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
   const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D (o en lista si se prefiere)
   $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3; UI.linK = null; if (!c3) $('linea').hidden = true;
   if (c3) { UI.cityV.resize(); renderCity3D(); }
@@ -459,7 +457,6 @@ function setTab(t) {
   if (t === 'map') renderSheet(); else { $('sheet').hidden = true; $('view').scrollTop = 0; render(); }
   hudDock();
 }
-function setModo(m) { UI.modo = m; UI.codice = null; setTab(m === 'guerra' ? 'map' : 'city'); }
 function cityChips() { cityOk(); return ''; }      // el selector de ciudad ya no son fichas fijas: es el desplegable de arriba
 /* Cuentas del mes (Q3) */
 const sg = (n, d) => (n >= 0 ? '+' : '−') + (Math.abs(n) >= 100 ? Math.round(Math.abs(n)) : Math.abs(n).toFixed(d === undefined ? 1 : d));
@@ -493,15 +490,13 @@ const HOJA_ALT = [420, 600, 770];
 const ICO_AJ = svgIco('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'), ICO_MERC = svgIco('<path d="M4 8h15l-3-3M20 16H5l3 3"/>'), ICO_RUTA = svgIco('<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>'),
   ICO_PUEB = svgIco('<circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M18 14c2 1 3 3 3 6"/>'), ICO_CRON = svgIco('<path d="M7 4h11v13a3 3 0 0 1-3 3H6M7 4a2 2 0 0 0-2 2v2h2M7 4v12a3 3 0 0 1-3 3 2 2 0 0 0 2 1M10 9h5M10 13h5"/>'),
   ICO_TEMPLO = svgIco('<path d="M3 10l9-6 9 6M5 10v9M9 10v9M15 10v9M19 10v9M3 20h18"/>'), ICO_INFO = svgIco('<circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/>'), ICO_CRED = svgIco('<path d="M12 3l2.5 5.5 6 .7-4.4 4.1 1.2 5.9L12 16.3 6.7 19.2l1.2-5.9L3.5 9.2l6-.7z"/>'), ICO_FLU = svgIco('<path d="M3 17l5-6 4 4 4-7 5 6"/>');
+const ICO_LIBRO = svgIco('<path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v14c-3-1-6-1-8 1-2-2-5-2-8-1zM12 6v14"/>');   // MN1: Códice
 const ICO_FOTO = svgIco('<rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="12.5" r="3.5"/><path d="M8 6l1.5-2h5L16 6"/>');   // CN18
 const copiasHtml = () => '<button class="hf" data-act="copiaguardar">' + ICO_CRON + '<span>Guardar copia en un archivo</span></button><button class="hf" data-act="copiacargar">' + ICO_CRON + '<span>Cargar copia de un archivo</span></button>';
 function menuHoja() {
   if (UI.hojaConf) return '<div class="hconf ro-carta"><p class="hq">¿Volver al menú principal?</p><p class="hs">Tu partida se guarda sola.</p><button class="hbig ro-sello" data-act="hojax">Seguir jugando</button><button class="hdisc ro-tinta" data-act="menu">Sí, volver al menú</button></div>';
-  const g = UI.modo !== 'guerra', on = (m, c) => (UI.tab === 'city' || UI.tab === 'map' || UI.tab === 'army') && (m === 'g' ? g : !g) ? ' ' + c : '';
-  const f = (act, v, ico, txt, cls) => '<button class="hf' + (cls ? ' ' + cls : '') + '" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span>' + txt + '</span></button>';
-  return '<div class="hdos">' + f('modo', 'gobierno', ICO_GOB, 'Gobierno', 'oro' + on('g', 'on')) + f('modo', 'guerra', D.GUERRA_ICON.espadas, 'Guerra', 'rojo' + on('w', 'on')) + '</div>' +
-    f('tab', 'hero', D.GUERRA_ICON.aguila, 'General') + f('tab', 'log', ICO_CRON, 'Crónica') + f('ayuda', null, ICO_INFO, 'Ayuda') + f('hoja', 'ajustes', ICO_AJ, 'Ajustes') + f('hoja', 'movil', ICO_FOTO, 'Postal y copias') +
-    f('fluidez', null, ICO_FLU, fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + f('hoja', 'creditos', ICO_CRED, 'Créditos') +
+  const f = (act, v, ico, txt) => '<button class="hf" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span>' + txt + '</span></button>';
+  return (window.CODICE ? f('codicem', null, ICO_LIBRO, 'Códice') : '') + f('tab', 'log', ICO_CRON, 'Crónica') + f('ayuda', null, ICO_INFO, 'Ayuda') + f('hoja', 'ajustes', ICO_AJ, 'Ajustes') + f('hoja', 'movil', ICO_FOTO, 'Postal y copias') + f('hoja', 'creditos', ICO_CRED, 'Créditos') +
     '<div class="hsep"></div><button class="hdisc hfondo" data-act="menuconf">Volver al menú principal</button>';
 }
 function ajustesHoja() {
@@ -513,9 +508,9 @@ function ajustesHoja() {
     '<div class="ajf" id="aj-pausas"><b class="hrot">Pausas del reloj</b>' + seg([['todas', 'Todas'], ['graves', 'Solo graves'], ['ninguna', 'Ninguna']], G.pausas(), 'pausas') + '<small>' + frase + '</small></div><div class="hsep"></div>' +
     tog('Consejos del asesor', 'id="ase-g" data-act="asesor" data-d="g"', !!a.asesor) + '<button class="chip hbtn" data-act="repetirasesor">Repetir los consejos</button><div class="hsep"></div><b class="hrot">Sucesos</b>' +
     sw.map(q => tog(q[1], 'data-act="suceso" data-v="' + q[0] + '"', !!a.suc[q[0]], q[0] === 'hambre' && !((D.DIFICULTAD[a.dif] || {}).hambre || {}).meses ? 'Sin efecto en Tranquila' : '')).join('') +
-    '<div class="hsep"></div>' + tog('Ambiente', 'id="aj-ambiente" data-act="ambiente"', G.ambiente(), 'Tono por estación, viñeta y contorno dorado en la ciudad') + '<div id="aj-sonido">' + tog('Sonido', 'data-act="sonido"', sonidoOn()) + '</div></div>';
+    '<div class="hsep"></div><button class="chip hbtn" data-act="fluidez">' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</button><div class="hsep"></div>' + tog('Ambiente', 'id="aj-ambiente" data-act="ambiente"', G.ambiente(), 'Tono por estación, viñeta y contorno dorado en la ciudad') + '<div id="aj-sonido">' + tog('Sonido', 'data-act="sonido"', sonidoOn()) + '</div></div>';
 }
-/* C8b: el botón «Guerra» abre lo de la guerra; el resto vive en ☰ */
+/* MN1: el botón «Marchas» del mapa abre las marchas, el minimapa e «Ir a mi general» */
 const ICO_MAPA = svgIco('<path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14"/>');   // C18: minimapa
 function guerraHoja() {
   const s = S(); if (!s) return '<div class="empty">Aún no hay partida.</div>';
@@ -523,11 +518,12 @@ function guerraHoja() {
   const f = (act, v, ico, txt) => '<button class="hf" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span>' + txt + '</span></button>';
   return '<b class="hrot">' + (ms.length ? (ms.length === 1 ? '1 marcha en curso' : ms.length + ' marchas en curso') : 'Ninguna marcha en curso') + '</b>' +
     ms.map(m => f('vera', m.to, '🚩', 'De ' + nom(m.from) + ' a ' + nom(m.to) + ' · llega ' + llegaEn(m.t1))).join('') +
-    '<div class="hsep"></div>' + f('minimapa', null, ICO_MAPA, UI.map && UI.map.miniOn ? 'Ocultar minimapa' : 'Ver minimapa') + f('home', null, D.GUERRA_ICON.aguila, 'Ir a mi general') + f('modo', 'gobierno', ICO_GOB, 'Pasar a Gobierno');
+    '<div class="hsep"></div>' + f('minimapa', null, ICO_MAPA, UI.map && UI.map.miniOn ? 'Ocultar minimapa' : 'Ver minimapa') + f('home', null, D.GUERRA_ICON.aguila, 'Ir a mi general');
 }
 const HOJAS = {
   menu: { titulo: 'Menú', alt: 1, html: menuHoja },
-  guerra: { titulo: 'Guerra', alt: 0, html: guerraHoja },
+  marchas: { titulo: 'Marchas', alt: 0, html: guerraHoja },
+  ciudad: { get titulo() { return S() ? D.CITIES[cityOk()].n : 'Ciudad'; }, alt: 2, html: () => fichaCiudad() },   // MN1: ROMA ▾
   ajustes: { titulo: 'Ajustes', alt: 2, html: ajustesHoja },
   escaramuza: { titulo: 'Escaramuzas', alt: 2, html: () => escHtml() },   // ES1
   escfin: { titulo: 'Escaramuza', alt: 1, html: () => escFinHtml() },
@@ -673,7 +669,7 @@ const impHtml = c => {
     Object.keys(D.IMPUESTOS).map(k => '<button class="chip ' + ((c.imp || 'normal') === k ? 'on' : '') + '" data-act="imp" data-v="' + k + '">' + D.IMPUESTOS[k].n + '</button>').join('') + '</div></div>';
 };
 const manoHtml = c => { if (c.owner !== 'roma') return ''; const z = Math.round(G.manoObra(c) * 100); return '<span class="stat" style="' + (z < 80 ? 'color:#e0a030' : '') + '">⛏️ Mano de obra: <b>' + Math.min(Math.floor(c.pop), G.puestos(c)) + '</b> de ' + G.puestos(c) + ' puestos (' + z + ' %)</span>'; };
-const tipoHtml = c => {            // el tipo de ciudad: una línea propia en Gobierno (la primera elección es gratis)
+const tipoHtml = c => {            // el tipo de ciudad: una línea propia en la ficha de la ciudad (la primera elección es gratis)
   if (c.owner !== 'roma') return '';
   const t = G.tipoDe(c), sug = G.tipoSugerido(UI.city);
   return '<span class="stat">' + t.i + ' <b>' + t.n + '</b> · ' + esc(t.d) + (!c.tipoElegido && sug ? ' Sugerido: ' + D.TIPOS[sug].n + '.' : '') + ' <button class="chip" data-act="tipos">' + (c.tipoElegido ? 'Cambiar tipo' : 'Elegir tipo · gratis') + '</button></span>';
@@ -824,7 +820,7 @@ const RO_LACRE = (function () {
   return '<svg class="ro-lacre" viewBox="0 0 40 40" aria-hidden="true"><defs><radialGradient id="roLacreG" cx="38%" cy="32%" r="70%"><stop offset="0" stop-color="#e2523f"/><stop offset=".55" stop-color="#a3231a"/><stop offset="1" stop-color="#5e0f09"/></radialGradient></defs><path d="' + d + 'Z" fill="url(#roLacreG)" stroke="#4a0a05" stroke-width=".8"/><circle cx="20" cy="20" r="12.5" fill="none" stroke="#5e0f09" stroke-width="1.6"/><circle cx="20" cy="20" r="12.5" fill="none" stroke="#e8705e" stroke-width=".5" transform="translate(.5 .7)" opacity=".6"/><g fill="#6a120b">' + h + '</g></svg>';
 })();
 const RO_HIEDRA = '<div class="ro-hiedra" aria-hidden="true"><svg viewBox="0 0 22 14"><path d="M3 7C3 3 6 1.5 8.5 3.5 10 1 14 1 15 4c1.5 1 1.5 2 1 3 .5 1 .5 2-1 3-1 3-5 3-6.5.5C6 12.5 3 11 3 7z"/><path d="M16 7h5" stroke="currentColor" stroke-width="1.4" fill="none"/></svg></div>';
-function viewCity() {   // Gobierno (K12a): ciudad, felicidad, lo que falta y atajos; sin scroll de página. Lo demás vive en hojas (HOJAS)
+function viewCity(enHoja) {   // ficha de la ciudad (K12a): felicidad, lo que falta y atajos. MN1: va en la hoja de ROMA ▾ (enHoja) y, sin 3D, en la pestaña Ciudad
   const s = S(), c = s.cities[UI.city], d = D.CITIES[UI.city], roma = c.owner === 'roma', f = Math.round(G.felicidad(c)), cara = f >= 60 ? '😊' : f >= 40 ? '😐' : '😠', R = 52, C = 2 * Math.PI * R;
   const falta = roma ? espFalta() : [], fic = falta.slice(0, 3).map(k => '<button class="gfic" data-act="hoja" data-v="estado">' + ICO_ALERTA + '<span>' + D.ESPECIAL[k].n + '</span></button>').join('') + (falta.length > 3 ? '<button class="gfic" data-act="hoja" data-v="estado"><span>+' + (falta.length - 3) + '</span></button>' : '');
   const at = (id, ico, nom, sub, off) => '<button class="gat ro-bronce' + (off ? ' off' : '') + '"' + (off ? ' disabled' : ' data-act="' + (id === 'cron' ? 'tab" data-v="log' : 'hoja" data-v="' + id) + '"') + '>' + ico + '<b>' + nom + '</b>' + (sub ? '<small>' + sub + '</small>' : '') + '</button>';
@@ -832,8 +828,13 @@ function viewCity() {   // Gobierno (K12a): ciudad, felicidad, lo que falta y at
   return '<div class="ro ro-gob"><div class="ro-palo"></div><div class="ro-papiro gob"><div class="gnomb"><h2 class="ro-ansata">' + d.n + '</h2><p>' + (UI.city === 'roma' ? 'Capital' : esc(G.tipoDe(c).n)) + ' <span class="ro-flecha"></span> ' + Math.floor(c.pop) + ' habitantes</p></div>' +
     '<button class="gani" data-act="hoja" data-v="estado" aria-label="Felicidad ' + f + ' por ciento: ver el estado"><svg viewBox="0 0 120 120" aria-hidden="true"><circle class="gpista" cx="60" cy="60" r="' + R + '"/><circle class="gval" cx="60" cy="60" r="' + R + '" style="stroke:' + (f >= 60 ? 'var(--good)' : f >= 40 ? 'var(--gold)' : 'var(--bad)') + '" stroke-dasharray="' + (C * Math.max(0, Math.min(100, f)) / 100).toFixed(1) + ' ' + C.toFixed(1) + '" transform="rotate(-90 60 60)"/></svg><span class="gcen"><span class="gcara">' + cara + '</span><b>' + f + ' %</b><small>Felicidad</small></span>' + RO_LAUREL + '</button>' +
     '<div class="gfalta"><span>Falta:</span>' + (fic || '<em>No falta nada</em>') + '</div>' +
-    '<div class="gatajos">' + at('mercado', ICO_MERC, 'Mercado', mer ? '' : 'Sin mercado', !mer) + (roma ? at('rutas', ICO_RUTA, 'Rutas', G.rutasDeCiudad(UI.city) + '/' + G.rutaMax(c)) : '') + at('pueblo', ICO_PUEB, 'Pueblo') + (roma ? at('aldeas', ICO_PUEB, 'Pueblos', G.pueblosDe(UI.city).filter(p => p.nivel > 0).length + '/' + G.pueblosDe(UI.city).length) : '') + at('ajustes', ICO_AJ, 'Ajustes') + at('cron', ICO_CRON, 'Crónica') + (roma && (c.b.templo > 0 || c.b.herreria > 0) ? at('servicios', ICO_TEMPLO, 'Templo y forja') : '') + '</div>' +
-    (UI.cityV ? '<button class="gver" data-act="clist">Ver la ciudad en 3D</button>' : '') + dipHtml(c) + '</div><div class="ro-palo"></div></div>';
+    '<div class="gatajos">' + at('mercado', ICO_MERC, 'Mercado', mer ? '' : 'Sin mercado', !mer) + (roma ? at('rutas', ICO_RUTA, 'Rutas', G.rutasDeCiudad(UI.city) + '/' + G.rutaMax(c)) : '') + at('pueblo', ICO_PUEB, 'Pueblo') + (roma ? at('aldeas', ICO_PUEB, 'Pueblos', G.pueblosDe(UI.city).filter(p => p.nivel > 0).length + '/' + G.pueblosDe(UI.city).length) : '') + at('cron', ICO_CRON, 'Crónica') + (roma && (c.b.templo > 0 || c.b.herreria > 0) ? at('servicios', ICO_TEMPLO, 'Templo y forja') : '') + '</div>' +
+    (UI.cityV && enHoja && UI.tab !== 'city' ? '<button class="gver" data-act="barra" data-v="ciudad">Ver la ciudad</button>' : '') + dipHtml(c) + '</div><div class="ro-palo"></div></div>';
+}
+/* MN1: hoja de ROMA ▾: arriba la ficha de la ciudad; debajo, cambiar de ciudad */
+function fichaCiudad() {
+  if (!S()) return '<div class="empty">Aún no hay partida.</div>'; cityOk();
+  return '<div class="fciu">' + viewCity(true) + '</div>' + '<b class="hrot">Cambiar de ciudad</b><div class="fcam">' + cityMenuHtml() + '</div>';
 }
 /* ---------- J6 · Ciudad como pantalla principal ---------- */
 const ICO_X = svgIco('<path d="M6 6l12 12M18 6L6 18"/>');
@@ -909,7 +910,7 @@ function viewImperio() {
   const ok = { todas: () => true, urgentes: r => r.urg, sinobra: r => !r.ob.length, obras: r => !!r.ob.length, animo: r => r.f < 40 }[F] || (() => true);
   const lista = filas.filter(ok).sort((a, b) => b.pts - a.pts || b.c.pop - a.c.pop);
   const cara = f => '<span class="ro-punto ' + (f >= 60 ? 'bien' : f >= 40 ? 'med' : 'mal') + '"></span>';
-  let h = '<div class="imp mar mar-imp ro ro-imp"><div class="ro-palo"></div><div class="ro-papiro"><div class="mar-top"><h2 class="ro-ansata">Imperio</h2><div class="imp-res ro-cifras"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div>' + RO_HIEDRA +
+  let h = '<div class="imp mar mar-imp ro ro-imp"><div class="ro-palo"></div><div class="ro-papiro"><div class="mar-top"><h2 class="ro-ansata">Imperio</h2><div class="imp-cam"><b>Tus caminos</b><i></i></div><div class="imp-res ro-cifras"><div><b>' + pop + '<small>/' + cap + '</small></b><span>población</span></div><div><b>' + cara(fm) + ' ' + fm + '</b><span>ánimo medio</span></div><div><b>' + obras + '</b><span>en obras</span></div><div><b>' + sin + '</b><span>sin obra</span></div></div>' + RO_HIEDRA +
     (peor && n > 1 ? '<div class="imp-peor">Peor ánimo: <b>' + D.CITIES[peor.id].n + '</b> ' + cara(peor.f) + ' ' + peor.f + '</div>' : '') +
     '<div class="imp-chips ro-tablilla">' + IMP_FILTROS.map(x => '<button class="' + (F === x[0] ? 'on' : '') + '" data-act="impf" data-v="' + x[0] + '">' + x[1] + ' <i>' + cuenta[x[0]] + '</i></button>').join('') + '</div></div><div class="imp-lista mar-lista">';
   if (!lista.length) h += '<div class="imp-vacio">Ninguna ciudad cumple este filtro.</div>';
@@ -919,7 +920,7 @@ function viewImperio() {
       '<div class="imp-l2">' + (r.ob.length ? '<div class="imp-obs">' + r.ob.map(q => impObraHtml(q, 'imp-obra')).join('') + '</div>' : '<span class="imp-sin">sin obra</span>') +
       (r.causa ? '<em class="imp-tag ' + r.tono + '">' + r.causa + '</em>' : '') + '</div></div></div>';
   }
-  h += '</div><div class="mar-pie"><button class="btn cu-go ro-bronce" data-act="cuentas">' + svgIco('<path d="M5 4h12l2 2v14H5zM8 9h8M8 13h8M8 17h5"/>') + '<span>Cuentas</span></button><button class="btn cu-go ro-bronce" data-act="tab" data-v="senado">' + ICO_GOB + '<span>Senado</span></button><button class="btn cu-go ro-bronce" data-act="tab" data-v="saber">' + svgIco('<path d="M6 4h11a2 2 0 0 1 0 4H6M6 4a2 2 0 0 0 0 4v12h11a2 2 0 0 0 0-4H8M9 11h6M9 14h4"/>') + '<span>Saber</span></button><button class="btn cu-go ro-bronce" data-act="tab" data-v="hero">' + svgIco('<path d="M5 15c0-5 3-9 7-9s7 4 7 9v3h-4v-3H9v3H5zM12 6V3M9 3h6"/>') + '<span>General</span></button></div>';
+  h += '</div><div class="mar-pie"><button class="btn cu-go ro-bronce" data-act="cuentas">' + svgIco('<path d="M5 4h12l2 2v14H5zM8 9h8M8 13h8M8 17h5"/>') + '<span>Este año</span></button><button class="btn cu-go ro-bronce" data-act="tab" data-v="hero">' + svgIco('<path d="M5 15c0-5 3-9 7-9s7 4 7 9v3h-4v-3H9v3H5zM12 6V3M9 3h6"/>') + '<span>General</span></button></div>';
   return h + '</div><div class="ro-palo"></div></div>';
 }
 /* pone una pieza en una ciudad: la mejora (op.mej = id de la pieza) o una nueva en su mejor sitio. Devuelve {ok, motivo, obra} */
@@ -973,8 +974,10 @@ function mismoModal(id, pz, nueva) {
   document.addEventListener('click', e => { if (UI.swipeT && Date.now() - UI.swipeT < 400 && e.target.closest('.imp-fila')) { e.stopPropagation(); e.preventDefault(); UI.swipeT = 0; } }, true);
 })();
 function buildTabs() {
-  $('tabs3').innerHTML = [['ciudad', D.BUILD_ICON.viviendas, 'Ciudad'], ['gobierno', ICO_GOB, 'Gobierno'], ['imperio', ICO_MUNDO, 'Imperio']].map(t => '<button data-act="tab3" data-v="' + t[0] + '">' + t[1] + '<span>' + t[2] + '</span></button>').join('');
+  const ICO_SAB = svgIco('<path d="M6 4h11a2 2 0 0 1 0 4H6M6 4a2 2 0 0 0 0 4v12h11a2 2 0 0 0 0-4H8M9 11h6M9 14h4"/>');
+  $('tabs3').innerHTML = [['ciudad', ICO_TEMPLO, 'Ciudad'], ['senado', ICO_GOB, 'Senado'], ['saber', ICO_SAB, 'Saber'], ['tropas', D.GUERRA_ICON.casco, 'Tropas'], ['mapa', ICO_MUNDO, 'Mapa'], ['imperio', D.GUERRA_ICON.aguila, 'Imperio']].map(t => '<button data-act="barra" data-v="' + t[0] + '" title="' + t[2] + '" aria-label="' + t[2] + '">' + t[1] + '<span>' + t[2] + '</span></button>').join('');
   $('bmas').innerHTML = ICO_MAS;
+  $('bpest').innerHTML = [['yo', 'Lo hago yo'], ['encargar', 'Encargar'], ['gobernador', 'Gobernador']].map((t, i) => '<button role="tab" data-act="bpest" data-v="' + t[0] + '"' + (i ? ' class="off" aria-disabled="true"' : ' class="on" aria-selected="true"') + '>' + t[1] + '</button>').join('');   // MN1: «Encargar» (CE8) y «Gobernador» (MN3), aún huecos
 }
 /* ---------- consejo y piezas (CN4): el consejo habla de piezas, no de niveles de edificio ---------- */
 const ROM = Ciudad.ROMANOS;
@@ -1266,7 +1269,7 @@ function reclutarHtml(c, bid) {
 }
 function viewArmy() {
   const s = S(), c = s.cities[UI.city], p = G.prod();
-  let h = cityChips() + '<div class="sec">Guarnición de ' + D.CITIES[UI.city].n + ' · ' + G.men(c.units) + ' hombres</div>' + troopsHtml(c.units);
+  let h = '<h2 class="vtit">Tropas</h2>' + cityChips() + '<div class="sec">Guarnición de ' + D.CITIES[UI.city].n + ' · ' + G.men(c.units) + ' hombres</div>' + troopsHtml(c.units);
   h += '<div class="empty">' + popHtml(c) + '</div>';
   h += '<div class="empty">🌾 Consumo de todas tus tropas: ' + Math.round(p.upkeep) + ' grano/mes · 🪙 Mantenimiento: −' + Math.round(p.mant.total) + ' denarios (edificios ' + Math.round(p.mant.edificios) + ', paga ' + Math.round(p.mant.tropas) + ') · ⚖️ Rutas: +' + Math.round(p.rutas) + ' denarios · 🛡️ Guardia urbana al defender: ' + (20 + 20 * G.nivelMuralla(c)) + '<br>Para enviarlas a la guerra, toca una ciudad vecina en el mapa.</div>';
   h += reclutarHtml(c);
@@ -1666,7 +1669,7 @@ document.addEventListener('click', function (e) {
   if (!el && e.target.closest('#cuentas')) return;
   if (!el) { $('cuentas').hidden = true; if (!e.target.closest('#hoja')) hojaCierra(true); $('citymenu').hidden = true; $('popsheet').hidden = true; if (e.target.id === 'modal' && !UI.sticky) closeModal(); hudDock(); return; }
   const a = el.dataset.act, v = el.dataset.v, s = S();
-  if (el.closest('#hoja')) UI.hjDown = false; if (a !== 'menumodo' && a !== 'hguerra' && a !== 'hoja' && !el.closest('#hoja')) hojaCierra(true); if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true; if (a !== 'cuentas' && a !== 'imp' && a !== 'cuvender' && a !== 'cubien' && a !== 'cuadelantar') $('cuentas').hidden = true;
+  if (el.closest('#hoja')) UI.hjDown = false; if (a !== 'menumodo' && a !== 'marchas' && a !== 'citymenu' && a !== 'hoja' && !el.closest('#hoja')) hojaCierra(true); if (a !== 'citymenu') $('citymenu').hidden = true; if (a !== 'pill' && a !== 'imp' && a !== 'rep') $('popsheet').hidden = true; if (a !== 'cuentas' && a !== 'imp' && a !== 'cuvender' && a !== 'cubien' && a !== 'cuadelantar') $('cuentas').hidden = true;
   if (a !== 'derr') UI.derr = null;
   switch (a) {
     case 'dif': if (el.dataset.d === 'm') { UI.difSel = v; const nm = $('hname') ? $('hname').value : ''; showMenu(); if (nm && $('hname')) $('hname').value = nm; } else { const r = G.ponerAjustes({ dif: v }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); toast('Dificultad ' + (DIF_NOM[v] || v) + ': vale desde el mes siguiente.'); } render(); } break;
@@ -1702,10 +1705,11 @@ document.addEventListener('click', function (e) {
     case 'turno': if (!G.turnos || s.over || s.pending.length || s.vivo || UI.modalOpen) break; AV.acum = []; try { G.pasarTurno(); } finally { const l = AV.acum; AV.acum = null; toastResumen(l); } UI.dirty = true; tickUI(); break;
     case 'seguir': seguirPausa(); break;
     case 'speed': if (UI.pausa) { seguirPausa(); break; } if (G.turnos) { s.speed = s.speed ? 0 : 1; tickUI(); break; } s.speed = v === 'next' ? ({ 1: 2, 2: 4, 4: 0, 0: 1 }[s.speed] || 1) : +v; tickUI(); break;
-    case 'modo': setModo(v); break;
-    case 'citymenu': { const m = $('citymenu'); m.hidden = !m.hidden; if (!m.hidden) m.innerHTML = cityMenuHtml(); break; }
+    case 'citymenu': if (UI.hoja && UI.hoja.id === 'ciudad' && !$('hoja').hidden) hojaCierra(); else hojaAbre('ciudad'); break;
     case 'menumodo': if (UI.hoja && UI.hoja.id === 'menu' && !$('hoja').hidden) hojaCierra(); else hojaAbre('menu'); break;
-    case 'hguerra': if (UI.hoja && UI.hoja.id === 'guerra' && !$('hoja').hidden) hojaCierra(); else hojaAbre('guerra'); break;
+    case 'marchas': if (UI.hoja && UI.hoja.id === 'marchas' && !$('hoja').hidden) hojaCierra(); else hojaAbre('marchas'); break;
+    case 'codicem': UI.codice = 'hechos'; setTab('log'); break;
+    case 'bpest': if (v !== 'yo') toast('Llegará pronto'); break;
     case 'entrar': entrarEn(v); break;
     case 'vera': hojaCierra(true); try { if (UI.map) UI.map.center(v); } catch (e) { } break;
     case 'hoja': hojaAbre(v); break;
@@ -1715,8 +1719,6 @@ document.addEventListener('click', function (e) {
     case 'escempieza': escEmpieza(); break;
     case 'hojax': hojaCierra(); break;
     case 'menuconf': UI.hojaConf = true; hojaPinta(true); break;
-    case 'accion': if (UI.modo === 'guerra') setTab('army'); else { UI.cityList = true; setTab('city'); } break;
-    case 'pill': if (UI.modo !== 'guerra') { const ps = $('popsheet'); ps.hidden = !ps.hidden; renderPop(); } break;
     case 'popx': $('popsheet').hidden = true; break;
     case 'cuentas': { const cs = $('cuentas'); cs.hidden = !cs.hidden; if (!cs.hidden) { $('popsheet').hidden = true; renderCuentas(true); } break; }
     case 'cux': $('cuentas').hidden = true; break;
@@ -1725,7 +1727,7 @@ document.addEventListener('click', function (e) {
     case 'cuvender': { const got = G.venderSobrante(v), U = G.ultimaVenta, n = (RES_NOM[v] || (D.ESPECIAL[v] && D.ESPECIAL[v].n) || v).toLowerCase();
       const msg = { ok: '⚖️ Vendes el sobrante de ' + n + ' y recibes ' + got + ' denarios.', parcial: '⚖️ Solo se pudo vender ' + U.vendido + ' de ' + n + ' (' + got + ' denarios); quedará ' + U.quedara + ' por perder.', orolleno: 'No se vende: el almacén de denarios está lleno y el cobro se perdería. Gasta denarios antes.', sinmercado: 'No se puede vender: hace falta un mercado.', sinsobrante: 'No hay nada que se vaya a perder de ' + n + '.', sincaja: 'No hay ' + n + ' en la caja del mes para vender; lo que se perderá aún no se ha producido.', invalido: 'No se puede vender eso.' }[U.motivo] || 'No se pudo vender.';
       toast(msg, U.motivo === 'ok' ? '' : 'bad'); renderCuentas(true); break; }
-    case 'cuobra': $('cuentas').hidden = true; if (v && s.cities[v]) { UI.city = v; UI.bsel = null; UI.cityList = false; } else UI.cityList = true; setTab('city'); break;
+    case 'cuobra': $('cuentas').hidden = true; if (v && s.cities[v]) { UI.city = v; UI.bsel = null; UI.cityList = false; setTab('city'); } else { UI.cityList = false; setTab('city'); hojaAbre('ciudad'); } break;
     case 'cuadelantar': { const nm = D.CITIES[v] ? D.CITIES[v].n : v; if (G.adelantarObra(v, el.dataset.i == null ? undefined : +el.dataset.i)) toast('🔨 ' + nm + ': pagas de golpe las cuotas que faltan.'); else toast('No alcanza para adelantar las cuotas de ' + nm + '.', 'bad'); renderCuentas(true); break; }
     case 'ayuda': UI.codice = window.CODICE ? 'tropas' : null; setTab('log'); break;
     case 'menu': G.save(); hojaCierra(true); showMenu(); break;
@@ -1753,9 +1755,8 @@ document.addEventListener('click', function (e) {
     case 'tipo': if (G.setTipo(UI.city, v)) { closeModal(); toast(D.TIPOS[v].i + ' ' + D.CITIES[UI.city].n + ': ' + D.TIPOS[v].n + '.'); render(); } else toast('No se puede elegir ese tipo.', 'bad'); break;
     case 'mover': { const E = G.ciudadE(UI.city), e = E && E.edificios.find(q => q.id === +v); if (!e) break; elegir3(e.tipo, [e.x, e.z]); if (UI.sel3) UI.sel3.mover = e.id; break; }
     case 'derr': { const k = UI.city + ':' + v; if (UI.derr !== k) { UI.derr = k; renderCity3D(); break; } UI.derr = null; const r = G.derribarPieza(UI.city, +v); if (r.ok) { UI.bsel = null; toast('🧱 Pieza derribada.', 'good'); } else toast(r.motivo + '.', 'bad'); renderCity3D(); tickUI(); break; }
-    case 'clist': UI.cityList = !UI.cityList; setTab('city'); break;
     case 'cview': if (UI.cityV) { UI.bsel = null; UI.vistas = false; UI.cityV.view(v); renderCity3D(); } break;
-    case 'tab3': UI.codice = null; UI.vistas = false; UI.bsel = null; if (v === 'imperio') { UI.modo = 'gobierno'; setTab('imperio'); } else { UI.cityList = v === 'gobierno'; setTab('city'); } break;
+    case 'barra': UI.codice = null; UI.vistas = false; UI.bsel = null; UI.cityList = false; setTab({ ciudad: 'city', senado: 'senado', saber: 'saber', tropas: 'army', mapa: 'map', imperio: 'imperio' }[v] || 'city'); break;
     case 'cvistas': UI.vistas = !UI.vistas; renderCity3D(); break;
     case 'cbuild': construir3(); break;
     case 'fundar': closeModal(); UI.abrirFundar(v, G.fundando() ? alFundarModo : undefined); break;
