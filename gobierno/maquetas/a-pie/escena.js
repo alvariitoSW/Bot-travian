@@ -16,11 +16,11 @@ import { texturaRuido } from '../../../js/gfx/ground.js';
 import { crearCampo } from './campo.js';
 import { H as HU } from './esqueleto.js';
 import { crearUnidad, palabras, veredicto } from './unidad.js';
-import { FILES, FILAS, M, ABIERTO, CERRADO, YO, CMP, ySup, MURO_Y, MURO_Z, TECHO_Y, TECHO_Z, TECHO_SUBE, ALERO, CORRE, puesto, holgura } from './formacion.js';
+import { REF_R, FILES, FILAS, M, ABIERTO, CERRADO, YO, CMP, ySup, MURO_Y, MURO_Z, TECHO_Y, TECHO_Z, TECHO_SUBE, ALERO, CORRE, puesto, holgura } from './formacion.js';
 import { crearPaso, velocidad, pisa, dispersion, MARCHA } from './locomocion.js';
 import { CJ, generaTabla, hueso as huesoT, datosPies, pieEn, faseCero, filasMarcha, filaEnFase, tablaPaso } from './soldado.js';
 import { creaGalos, marchaGalos, filasGalo, conMezcla } from './enemigo.js';
-import { crearAcciones, RESERVA_G } from './acciones.js';
+import { crearAcciones, RESERVA_G, N_GF } from './acciones.js';
 import { crearCamara } from './camara.js';
 import { crearHud } from './hud.js';
 import * as Son from './sonido.js';
@@ -439,16 +439,20 @@ async function creaHombres() {
   let sv = 7; const az = () => { sv = (sv * 16807) % 2147483647; return (sv - 1) / 2147483646; };
   const vh = new Float32Array(M * 4), ve = new Float32Array(M * 4);
   for (let i = 0; i < M; i++) { vh.set([az(), az(), az(), 0.25 + 0.75 * az()], i * 4); ve.set([az(), 0.25 + 0.75 * az(), 0.3 + 0.7 * az(), az()], i * 4); }
-  gc.setAttribute('aVar', new THREE.InstancedBufferAttribute(vh, 4));
+  const vA = new THREE.InstancedBufferAttribute(new Float32Array(vh), 4); vA.setUsage(THREE.DynamicDrawUsage); gc.setAttribute('aVar', vA);
+  /* TP8b-E2: el cuerpo sencillo de los lejanos (lo de la falange): mismos huesos, vértices fundidos en rejilla */
+  const gL = sencillo(gc, REJILLA), LR = { fr: ia(), fr2: ia(), mx: ia(), vA: new THREE.InstancedBufferAttribute(new Float32Array(M * 4), 4), vh };
+  LR.vA.setUsage(THREE.DynamicDrawUsage); gL.setAttribute('aFrame', LR.fr); gL.setAttribute('aFrame2', LR.fr2); gL.setAttribute('aMix', LR.mx); gL.setAttribute('aVar', LR.vA);
   const ROJO = '#c23a2e', inst = (g, mat, n) => { const m = new THREE.InstancedMesh(g, mat, n); m.frustumCulled = false; escena.add(m); return m; };
   const cuerpos = inst(gc, matCuerpo(u.tex, tex, ROJO), M);
   const gEsc = parte(u.geo, CELL, [5, 6], false); gEsc.setAttribute('aVarE', new THREE.InstancedBufferAttribute(ve, 4)); const escudos = inst(gEsc, matPieza(u.tex, ROJO, false), M);
   const mio = new THREE.Mesh(gEsc, matPieza(u.tex, ROJO, true)); mio.matrixAutoUpdate = false; mio.frustumCulled = false; escena.add(mio);
   const gEsp = parte(u.geo, CELL, [4], false); gEsp.setAttribute('aVarE', new THREE.InstancedBufferAttribute(ve, 4)); const espadas = inst(gEsp, matPieza(u.tex, ROJO, false), M), pila = inst(geoPilum, matAstaMia, M);
   /* todos dan sombra y la reciben (la figura, con su esqueleto también en la sombra) */
-  cuerpos.customDepthMaterial = matSombra(tex);
+  cuerpos.customDepthMaterial = matSombra(tex); LR.m = inst(gL, cuerpos.material, M); LR.m.customDepthMaterial = cuerpos.customDepthMaterial; LR.m.castShadow = LR.m.receiveShadow = true;
+  console.log(`[E2] triángulos por romano: ${gc.attributes.position.count / 3} detallado / ${gL.attributes.position.count / 3} sencillo`);
   for (const o of [cuerpos, escudos, mio, espadas, pila]) { o.castShadow = true; o.receiveShadow = true; }
-  HOM = { ...tab, u, C: u.clips, cuerpos, fr, fr2, mx, escudos, mio, espadas, pila };
+  HOM = { ...tab, u, C: u.clips, cuerpos, fr, fr2, mx, escudos, mio, espadas, pila, D: { m: cuerpos, fr, fr2, mx, vA, vh }, L: LR };
   /* TP1: la zancada de andar y de correr (medida en el clip), dónde están los pies y en qué punto de cada clip va el pie
      izquierdo delante (la fase 0): así, al pasar de andar a correr, la pierna sigue donde iba */
   zancadas(u); HOM.pies = datosPies(tab.T, tab.hues, u.geo, u.clips.idle.start); HOM.corre0 = tab.LC;
@@ -470,19 +474,19 @@ function preparaGalos() {
 const S = {};
 function reinicia() {
   semilla = 43; semillaP = 5; if (ACC) ACC.reinicia();
-  Object.assign(S, { unidad: crearUnidad({ hombres: M }), velObj: 0, sueltas: [], duelos: [], tChoque: -9, T: 0, zF: 0, k: 0, escudos: false, andando: false, fase: 'avance', proxima: 4, aviso: false, impacto: -1, paso: 0, tCinta: 0, tFin: -1, choque: false, llegaron: 0, sacude: 0, vel: 0, golpes: 0, roto: false, encoge: -9, destello: 0, corre: false, corriendo: false, aliento: 1, tGrito: -9, armas: 'pilum', nPaso: 0, kSon: -1, agotado: false,
+  Object.assign(S, { unidad: crearUnidad({ hombres: M, ref: Math.min(M, REF_R) }), velObj: 0, sueltas: [], duelos: [], tChoque: -9, T: 0, zF: 0, k: 0, escudos: false, andando: false, fase: 'avance', proxima: 4, aviso: false, impacto: -1, paso: 0, tCinta: 0, tFin: -1, choque: false, llegaron: 0, sacude: 0, vel: 0, golpes: 0, roto: false, encoge: -9, destello: 0, corre: false, corriendo: false, aliento: 1, tGrito: -9, armas: 'pilum', nPaso: 0, kSon: -1, agotado: false,
     /* GM43h: salvas lanzadas, cuándo está listo el segundo pilum, el dedo en el botón, el medidor, los galos y tu pilum (la cámara lo sigue) */
     salvas: 0, listo: 0, dedo: false, armando: false, tArma: -9, medidor: 0, tGalos: -1, corrida: false, caidos: 0, caidosSalva: [0, 0], buenoSalva: [false, false], buenos: 0, ojo: null, tOjo: -9, kP: 0, zChoque: 0, aviso2: false,
     /* TP1b: los galos como unidad (sus palabras), tú (el centurión, o quien te releve), tus gestos en el duelo, las órdenes
        pendientes (sin centurión tardan), «Escudos» y «Cargad» en la lucha, y quién rompe */
-    unidadG: crearUnidad({ hombres: 16, porBaja: 0.05 }), yo: null, miraCam: null, tParar: -9, tEmpR: -9, tEmpuja: 0, pide: null, eco: null, ordenes: [], muro: false, cargaHasta: -9, tCargad: -9, tRelevo: -9, nRelevos: 0, huida: 0, derrota: 0, ruptura: null, bajasR0: 0 });
+    unidadG: crearUnidad({ hombres: N_GF, porBaja: 0.05, ref: Math.min(N_GF, 16) }), yo: null, miraCam: null, tParar: -9, tEmpR: -9, tEmpuja: 0, pide: null, eco: null, ordenes: [], muro: false, cargaHasta: -9, tCargad: -9, tRelevo: -9, nRelevos: 0, huida: 0, derrota: 0, ruptura: null, resAvanza: false, bajasR0: 0 });
   S.romanos = []; for (let i = 0; i < M; i++) { const r = Math.floor(i / FILES); S.romanos.push({ i, f: i % FILES, r, vivo: true, muere: 0, lanza: -9, tiro: false, x: 0, z: 0, jx: (azar() - 0.5) * 0.14, jz: (azar() - 0.5) * 0.22, fase: azar() * 2, k: 0, pilos: 2, sujeta: false, suelta: -9, ret: Math.min(0.4, r * 0.07 + azar() * 0.12), retEnc: i === YO ? 0 : 0.04 + azar() * 0.16, ampEnc: i === YO ? 1 : 0.55 + azar() * 0.45, golpe: -9, enc: 0, mira: 0, A: 0, B: 0, mx: 0, oculto: false, inst: m4(), mEsc: m4(), qEsc: new THREE.Quaternion(), golpes: 0, camino: 0, off: 0, jy: 0 }); }
   /* TP1: el paso de cada uno: su fase, su prisa, su talla (±1,5 %: más no, que el escudo del testudo va a su sitio) y su
      retraso al arrancar (la fila de delante antes; dentro de la fila, cada uno a su tiempo) */
   for (const h of S.romanos) { const t = 0.985 + azarP() * 0.03; h.sv = new THREE.Vector3(E * t, E * t, E * t); h.dz = 0; h.ritmo = 0.97 + azarP() * 0.06; h.retMarcha = h.r * 0.17 + azarP() * 0.14; h.arranque = 0; h.paso = crearPaso({ zW: HOM.zan.walk * t, zR: HOM.zan.run * t, zT: HOM.zan.testudo * t, fase: azarP(), prisa: 0.85 + azarP() * 0.3 }); }
   S.yo = S.romanos[YO];
   S.tiradores = []; for (let i = 0; i < 10; i++) S.tiradores.push({ x: (i - 4.5) * 1.7 + (azar() - 0.5) * 0.5, z: Z_TIRADORES + (azar() - 0.5) * 1.2, vivo: true, muere: 0, huye: false, yaw: 0, fase: azar() * 4 });
-  S.galos = creaGalos(azar, azarP, Z_GALOS, FIG_G.zan, RESERVA_G);   /* TP8b-L3: más los de refuerzo */ for (const g of S.galos) { g.inst = m4(); g.sv = new THREE.Vector3(E * g.esc, E * g.esc, E * g.esc); }
+  S.galos = creaGalos(azar, azarP, Z_GALOS, FIG_G.zan, RESERVA_G, FILES + 2);   /* TP8b-L3: más los de refuerzo */ for (const g of S.galos) { g.inst = m4(); g.sv = new THREE.Vector3(E * g.esc, E * g.esc, E * g.esc); }
   for (const f of FL) f.est = 0; for (const a of ASTILLAS) { a.t = -9; a.m.visible = false; } for (const p of PILA) p.est = 0;
   for (const c of CHISPAS) c.t = -9; for (const p of POLVO) p.t = -9; for (const p of PIES) p.t = -9; S.restoPolvo = 0; S.congela = 0; S.tiron = null; S.lento = 0; S.tuyo = null; S.tGotas = -9;
   $('fin').hidden = true; cinta('', false); DANIO.value = TEX_DANIO[0];
@@ -706,7 +710,11 @@ function frameGalo(g) {
 }
 /* TP1: las filas de cada galo (marcha, o la lucha de acciones.js) y su matriz en el mundo */
 function galoAhora(g) {
-  if (g.reserva) { g.inst.makeScale(0, 0, 0); return; }   /* TP8b-L3: refuerzo que aún no ha salido: no se ve */
+  if (g.reserva) {   /* TP8b-E2: la reserva se ve: anda detrás de los suyos y espera en masa (con ?antes=1, oculta como antes) */
+    if (ANTES || S.huida) { g.inst.makeScale(0, 0, 0); return; }
+    if (S.choque) { g.A = g.B = frameOf(FIG_G.C.idle, S.T + g.fase); g.mx = 0; g.pitch = 0; } else { g.vivo = true; filasGalo(g, FIG_G, S.T, frameOf, frameOnce); g.vivo = false; }
+    g.inst.compose(PA.set(g.x, H(g.x, g.z), g.z), QG.setFromEuler(EUL.set(g.pitch, 0, 0)), g.sv); return;
+  }
   const T = S.T, CG = FIG_G.C, e = g.est || { modo: 'guardia' }; let tw = 0;
   if (ANTES) { g.A = g.B = frameGalo(g); g.mx = 0; g.pitch = 0; }
   else filasGalo(g, FIG_G, T, frameOf, frameOnce);
@@ -888,7 +896,7 @@ function paso(dt) {
     if (S.choque && !S.huida && !S.derrota) {
       const rR = UR.lucha(dt, { muro: S.muro, carga: T < S.cargaHasta }), rG = UG.lucha(dt, { contraMuro: S.muro });
       if (rG) { S.ruptura = 'galos'; ACC.huida(); S.tFin = T + 3.6; cinta('¡Rompen! Los galos huyen', true); grita('¡Victoria!'); Son.cuerno([[196, 0.4], [246.94, 0.4], [293.66, 1.2]]); }
-      else if (rR) { S.ruptura = 'romanos'; S.derrota = T; for (const d of S.duelos) d.activo = false; S.tFin = T + 2.4; cinta('¡Los tuyos rompen!', false); }
+      else if (rR) { S.ruptura = 'romanos'; S.derrota = T; for (const d of S.duelos) d.activo = false; S.tFin = T + 2.4; cinta('¡Los tuyos rompen!', false); grita('¡Los galos se vienen gritando!'); }
     }
     for (const o of S.ordenes) if (!o.hecha && T >= o.t) { o.hecha = true; cumple(o.n); }
   }
@@ -1032,9 +1040,42 @@ function malla(tipo, n, color) {
     const ia = () => { const x = new THREE.InstancedBufferAttribute(new Float32Array(n), 1); x.setUsage(THREE.DynamicDrawUsage); return x; }; fr2 = ia(); mx = ia(); g.setAttribute('aFrame2', fr2); g.setAttribute('aMix', mx);
     mat.onBeforeCompile = (sh, r) => { antes(sh, r); sh.vertexShader = conMezcla(sh.vertexShader); cine(sh, 1.3); }; mat.customProgramCacheKey = () => 'apie-galos-mezcla';
   }
-  m.frustumCulled = false; escena.add(m); figuras[tipo] = { m, u, fr: g.attributes.aFrame, fr2, mx }; return figuras[tipo];
+  m.frustumCulled = false; escena.add(m); figuras[tipo] = { m, u, fr: g.attributes.aFrame, fr2, mx };
+  /* TP8b-E2: los galos lejanos, con el sencillo (mismo material y huesos) */
+  if (tipo === 'galos') { const gL = sencillo(g, REJILLA), ia = () => { const x = new THREE.InstancedBufferAttribute(new Float32Array(n), 1); x.setUsage(THREE.DynamicDrawUsage); return x; }, L = { fr: ia(), fr2: ia(), mx: ia() };
+    gL.setAttribute('aFrame', L.fr); gL.setAttribute('aFrame2', L.fr2); gL.setAttribute('aMix', L.mx); L.m = new THREE.InstancedMesh(gL, mat, n); L.m.frustumCulled = false; escena.add(L.m); figuras[tipo].L = L;
+    console.log(`[E2] triángulos por galo: ${g.attributes.position.count / 3} detallado / ${gL.attributes.position.count / 3} sencillo`); }
+  return figuras[tipo];
 }
 const O = new THREE.Object3D(), CERO = m4().makeScale(0, 0, 0);
+/* TP8b-E2 (la solución de la falange): el mismo soldado, sencillo, para los lejanos. Se juntan los vértices que caen en la
+   misma celda de una rejilla de n celdas a lo alto y se quitan los triángulos sin área: misma silueta, colores y huesos */
+const CERCA = 48, REJILLA = +(new URLSearchParams(location.search).get('rejilla') || 14);
+function sencillo(geo, n) {
+  const P = geo.attributes.position.array, V = P.length / 3, lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
+  for (let i = 0; i < V; i++) for (let c = 0; c < 3; c++) { lo[c] = Math.min(lo[c], P[i * 3 + c]); hi[c] = Math.max(hi[c], P[i * 3 + c]); }
+  const lado = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) / n, W = n + 2, clave = new Int32Array(V), suma = new Map();
+  for (let i = 0; i < V; i++) {
+    const q = [0, 1, 2].map(c => Math.floor((P[i * 3 + c] - lo[c]) / lado)), k = q[0] + W * (q[1] + W * q[2]); clave[i] = k;
+    const a = suma.get(k) || [0, 0, 0, 0]; a[0] += P[i * 3]; a[1] += P[i * 3 + 1]; a[2] += P[i * 3 + 2]; a[3]++; suma.set(k, a);
+  }
+  const quedan = []; for (let t = 0; t < V; t += 3) { const a = clave[t], b = clave[t + 1], c = clave[t + 2]; if (a !== b && b !== c && a !== c) quedan.push(t, t + 1, t + 2); }
+  const g = new THREE.BufferGeometry();
+  for (const k of Object.keys(geo.attributes)) {
+    const at = geo.attributes[k]; if (at.isInstancedBufferAttribute) continue;
+    const t = at.itemSize, arr = new at.array.constructor(quedan.length * t);
+    quedan.forEach((v, j) => { if (k === 'position') { const a = suma.get(clave[v]); arr[j * 3] = a[0] / a[3]; arr[j * 3 + 1] = a[1] / a[3]; arr[j * 3 + 2] = a[2] / a[3]; } else for (let c = 0; c < t; c++) arr[j * t + c] = at.array[v * t + c]; });
+    g.setAttribute(k, new THREE.BufferAttribute(arr, t, at.normalized));
+  }
+  g.boundingSphere = geo.boundingSphere ? geo.boundingSphere.clone() : new THREE.Sphere(new THREE.Vector3(0, 2, 0), 8); return g;
+}
+/* cada hombre, al hueco libre de su malla (la detallada D o la sencilla L): los K más cercanos a la cámara, detallados */
+function reparte(D, L, lista, K) {
+  const cp = camara.position; for (const h of lista) { const x = S.choque && h.xd !== undefined ? h.xd : h.x, z = S.choque && h.zd !== undefined ? h.zd : h.z; h.dCam = (x - cp.x) ** 2 + (z - cp.z) ** 2; }
+  const orden = lista.slice().sort((a, b) => a.dCam - b.dCam); D.n = 0; L.n = 0;
+  orden.forEach((h, j) => { const o = j < K ? D : L, s = o.n++; o.m.setMatrixAt(s, h.oculto ? CERO : h.inst); o.fr.array[s] = h.A; o.fr2.array[s] = h.B; o.mx.array[s] = h.mx; if (o.vA) o.vA.array.set(o.vh.subarray(h.i * 4, h.i * 4 + 4), s * 4); });
+  for (const o of [D, L]) { o.m.count = o.n; o.m.instanceMatrix.needsUpdate = true; o.fr.needsUpdate = o.fr2.needsUpdate = o.mx.needsUpdate = true; if (o.vA) o.vA.needsUpdate = true; }
+}
 /* TP1b · la cresta del centurión: medio disco rojo, de oreja a oreja (transversal), sobre el casco. Pieza hecha por código,
    anclada al punto del casco del modelo: va con la cabeza (también si cae). Y la marca del rival de delante: un aro en el suelo,
    claro cuando solo te mira, ámbar cuando arma el golpe y verde cuando queda abierto */
@@ -1097,7 +1138,6 @@ function dibuja() {
   /* romanos: figura, escudo y lo que llevan en la mano derecha */
   for (const h of R) {
     const i = h.i;
-    HOM.cuerpos.setMatrixAt(i, h.oculto ? CERO : h.inst); HOM.fr.array[i] = h.A; HOM.fr2.array[i] = h.B; HOM.mx.array[i] = h.mx;
     HOM.escudos.setMatrixAt(i, h === yo ? CERO : h.mEsc);
     const mano = S.armas === 'espada' || !h.vivo || (h.tiro && h.pilos <= 0);   /* GM43h: entre salva y salva la mano queda libre */
     HOM.espadas.setMatrixAt(i, mano && !h.oculto ? MA.multiplyMatrices(h.inst, hueso(HU.espada, h.A, h.B, h.mx, MB)) : CERO);
@@ -1106,8 +1146,8 @@ function dibuja() {
     if (S.armas === 'pilum' && h.vivo && !h.tiro && !h.oculto && !pegado) { pilumEnMano(h, PA, QA); HOM.pila.setMatrixAt(i, MA.compose(PA, QA, SA.set(1, 1, 1))); }
     else HOM.pila.setMatrixAt(i, CERO);
   }
-  for (const m of [HOM.cuerpos, HOM.escudos, HOM.espadas, HOM.pila]) m.instanceMatrix.needsUpdate = true;
-  HOM.fr.needsUpdate = HOM.fr2.needsUpdate = HOM.mx.needsUpdate = true;
+  for (const m of [HOM.escudos, HOM.espadas, HOM.pila]) m.instanceMatrix.needsUpdate = true;
+  reparte(HOM.D, HOM.L, R, CERCA);
   HOM.mio.visible = !S.roto; HOM.mio.matrix.copy(yo.mEsc); HOM.mio.matrixWorld.copy(yo.mEsc); dibujaMarcas();
   /* enemigos */
   const P = figuras.peltastas, CP = P.u.clips;
@@ -1121,8 +1161,7 @@ function dibuja() {
   });
   P.m.instanceMatrix.needsUpdate = true; P.fr.needsUpdate = true;
   const G = figuras.galos;
-  S.galos.forEach((g, i) => { G.m.setMatrixAt(i, g.inst); G.fr.array[i] = g.A; G.fr2.array[i] = g.B; G.mx.array[i] = g.mx; });
-  G.m.instanceMatrix.needsUpdate = true; G.fr.needsUpdate = G.fr2.needsUpdate = G.mx.needsUpdate = true;
+  reparte(G, G.L, S.galos, CERCA);
   /* venablos: en vuelo, clavados en un escudo (van con él) o en tierra */
   FL.forEach((f, i) => {
     if (f.est === 0 || (f.est === 1 && T < f.t0)) { flechas.setMatrixAt(i, CERO); return; }
@@ -1413,7 +1452,7 @@ window.__tp = {
   { const td = await new THREE.TextureLoader().loadAsync('gobierno/maquetas/testudo-luz-campo/arte/detalle.png'); td.wrapS = td.wrapT = THREE.RepeatWrapping; td.anisotropy = 4; DET.value = td; }
   if (!getUnit('hastati') || !getUnit('peltastas') || !getUnit('galos')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
   CAMPO = await crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color });
-  await creaHombres(); creaCresta(); malla('peltastas', 10, '#3456a8'); malla('galos', 16 + RESERVA_G, '#3456a8'); preparaGalos();
+  await creaHombres(); creaCresta(); malla('peltastas', 10, '#3456a8'); malla('galos', N_GF + RESERVA_G, '#3456a8'); preparaGalos();
   try { await escudoGalo(); } catch (e) { console.warn('Sin escudo galo para clavar pila', e); }
   ACC = crearAcciones({ S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave, E, figuras, cinta, nombre, get HOM() { return HOM; }, alcance: ANTES ? undefined : alcance, golpe: ANTES ? undefined : golpe, aliento: !ANTES });
   reinicia();

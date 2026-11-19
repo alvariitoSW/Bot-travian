@@ -19,11 +19,12 @@
      sus gestos y se recobra si no pulsas; la estocada sin abrir al galo te descubre y su contraataque no se para; tu duelo
      pesa en el ánimo de los dos bandos. Con S.roto (tu escudo se rompió) «Parar» es «Desviar» con la espada: ventana corta
      y el galo no queda abierto; el empujón es de hombro. S.tuyo añade fuelle, roto y lo que cuesta cada gesto. */
-import { FILES, YO, CMP } from './formacion.js';
+import { FILES, YO, CMP, HOMBRES } from './formacion.js';
 import { velocidad, pisa } from './locomocion.js';
 let semillaL = 11; const azarL = () => { semillaL = (semillaL * 16807) % 2147483647; return (semillaL - 1) / 2147483646; };
 /* TP8b-L3: cuántos galos de refuerzo guarda la escena (enemigo.js los crea; la lucha los trae) */
-export const RESERVA_G = 14;
+/* TP8b-E2: galos que cargan (dos filas de FILES + 2) y los de reserva, hasta HOMBRES (al menos 30, como antes) */
+export const N_GF = 2 * (FILES + 2), RESERVA_G = Math.max(14, HOMBRES - N_GF), W_REF = (1 + Math.min(1, 16 / N_GF)) / 2;
 export function crearAcciones(m) {
   const { S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave } = m, fns = {}, FX = !!m.golpe, L2 = !!m.aliento;   /* FX: TP8 1a, golpes con peso */
   /* TP8b-L2: lo que cuesta cada gesto (de 100 de aliento), lo que se recobra por segundo sin pulsar, y la ventana del desvío */
@@ -149,7 +150,7 @@ export function crearAcciones(m) {
       /* parado: su golpe da en tu escudo, se le va el brazo y recula un poco (queda abierto); su golpe acaba ahí */
       if (par) { d.res = 'cubre'; d.abierto = S.T + 1.4; d.empR = S.T; d.empOk = 'parada'; d.t0 = -9; eco('¡Parado!', 'bien'); }
       else { const n = Math.min(3, (def.golpes || 0) + 1), pronto = d.tipo === 'finta' && S.tParar > d.t0; d.res = n >= 3 ? 'muere' : 'recibe'; def.golpes = n - 1; eco(n >= 3 ? 'Herido de muerte' : d.imparable ? 'Te has descubierto: herido' : pronto ? 'Paraste pronto: herido' : 'Herido (' + n + ' de 3)', 'mal');
-        if (L2) S.unidad.anima(-0.05); }   /* TP8b-L2: cada herida tuya pesa en los tuyos */
+        if (L2) S.unidad.anima(-0.05 * S.unidad.peso); }   /* TP8b-L2: cada herida tuya pesa en los tuyos */
     }
     if (d.jEco) eco(d.jEco, d.res === 'cubre' ? '' : 'bien');
     /* TP8 1a: el golpe llega: la escena pone chispa o polvo en el sitio del impacto (y, en tu duelo, la pausa y el tirón) */
@@ -183,11 +184,13 @@ export function crearAcciones(m) {
   }
   /* TP8b-L3: no queda galo libre: sale uno de reserva lejos, tras su línea, y llega corriendo. 'espera' si ya corren dos */
   function refuerzo(muerto) {
-    const g = S.galos.find(x => x.reserva); if (!g || S.huida || S.derrota) return null;
+    const res = S.galos.filter(x => x.reserva); if (!res.length || S.huida || S.derrota) return null;
     if (S.galos.filter(x => x.vivo && x.corre).length >= 2 || S.T - S.tRefuerzo < R_CADA) return 'espera';
+    /* TP8b-E2: sale de la masa de reserva el que está más cerca del hueco (delante y a su altura) */
+    const g = res.sort((a, b) => (Math.abs(a.x - muerto.px) - 2 * a.z) - (Math.abs(b.x - muerto.px) - 2 * b.z))[0];
     Object.assign(g, { reserva: false, vivo: true, lado: 'g', duelo: null, corre: true, golpes: 0, jy: (azarL() - 0.5) * 0.1, rit: 0.5 + azarL() * 0.5, camino: 0, off: 0, v: 0, est: { modo: 'guardia' } });
-    g.x = g.xd = muerto.px + (azarL() - 0.5) * 3; g.z = g.zd = S.zF - 24 - azarL() * 4; g.yaw = 0;
-    S.tRefuerzo = S.T; S.nRefuerzos++; S.unidadG.hombres++; S.unidadG.enPie++; S.unidadG.anima(R_ANIMO); S.unidadG.balance *= 0.4;   /* ven llegar a los suyos: se rehacen */
+    g.xd = g.x; g.zd = g.z; g.yaw = 0;
+    S.tRefuerzo = S.T; S.nRefuerzos++; S.unidadG.hombres++; S.unidadG.enPie++; S.unidadG.anima(R_ANIMO * W_REF); S.unidadG.balance *= 1 - 0.6 * W_REF;   /* ven llegar a los suyos: se rehacen (TP8b-E2: con más galos, cada refuerzo pesa menos) */
     return g;
   }
   function estado(m, T) {
@@ -221,6 +224,8 @@ export function crearAcciones(m) {
   }
   function lucha(dt) {
     const T = S.T, pide = S.pide; S.pide = null;
+    /* TP8b-F1: si rompen los tuyos, la reserva gala se viene a la carrera hasta detrás de los suyos */
+    if (S.derrota && !S.resAvanza) { S.resAvanza = true; for (const g of S.galos) if (g.reserva) Object.assign(g, { reserva: false, vivo: true, lado: 'g', duelo: null, corre: true, golpes: 0, jy: 0, rit: 0.5, camino: 0, off: 0, v: 0, est: { modo: 'guardia' }, px: g.x, pz: Math.min(S.zF - 1.6 - (g.fila - 2) * 0.9, g.z + 6) }); }
     if (!S.huida && !S.derrota) for (const d of S.duelos) {
       if (!d.activo) continue;
       if (!d.resuelto && T >= d.ts) resuelve(d);
@@ -318,7 +323,7 @@ export function crearAcciones(m) {
   function pasaA(n, muerto) {
     if (!n) { const d = S.duelos.find(x => x.activo && !x.sec && x.r.vivo && x.r !== muerto); n = d ? d.r : null; }
     const eraCent = muerto.i === YO; if (eraCent) S.unidad.centurionCae();
-    if (L2) { S.misCaidas = (S.misCaidas || 0) + 1; S.unidad.anima(-0.08); S.fuelleY = 100; }   /* TP8b-L2: tu caída pesa en los tuyos */
+    if (L2) { S.misCaidas = (S.misCaidas || 0) + 1; S.unidad.anima(-0.08 * S.unidad.peso); S.fuelleY = 100; }   /* TP8b-L2: tu caída pesa en los tuyos */
     S.yo = n; if (!n) { m.cinta(eraCent ? 'El centurión ha caído' : 'Has caído', false); return; }
     n.golpes = 0; S.tParar = -9; S.tEmpR = -9;
     m.cinta((eraCent ? 'El centurión ha caído: ahora eres ' : 'Has caído: ahora eres ') + m.nombre(n), false);
@@ -340,7 +345,7 @@ export function crearAcciones(m) {
   }
   /* «Cargad» en la lucha: unos segundos de empuje con todo (golpean más, se cansan más; al galo le pesa) */
   function cargad() { S.cargaHasta = S.T + 4; S.unidadG.anima(-0.05); S.unidad.fatiga = Math.min(1, S.unidad.fatiga + 0.1); }
-  function huida() { S.huida = S.T; for (const d of S.duelos) d.activo = false; }
+  function huida() { S.huida = S.T; for (const d of S.duelos) d.activo = false; for (const g of S.galos) if (g.reserva) Object.assign(g, { reserva: false, vivo: true, lado: 'g', duelo: null, corre: false, yaw: 0, jy: 0, camino: 0, off: 0 }); }   /* TP8b-F1: la reserva también da la espalda y huye */
   function polvoEn(x, z, n) { for (let i = 0; i < n; i++) { const p = PIES.find(p => S.T - p.t > 1.8); if (!p) return; p.t = S.T; p.x = x + (azarV() - 0.5) * 0.8; p.z = z + (azarV() - 0.5) * 0.6; p.y = H(p.x, p.z) + 0.15; p.vx = (azarV() - 0.5) * 0.6; p.vy = 0.3 + azarV() * 0.3; p.vz = (azarV() - 0.5) * 0.6; p.s = 0.8 + azarV() * 0.8; } }
   /* para las pruebas: los luchadores en pie, los caídos y los duelos que están en marcha */
   function medLucha() {

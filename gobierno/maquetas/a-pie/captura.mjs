@@ -16,6 +16,7 @@ import { readFile, mkdir } from 'fs/promises';
 import { join, extname, normalize, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
+import { M, YO } from './formacion.js';   /* TP8b-F1: las cifras de la escena, no fijas */
 const AQUI = dirname(fileURLToPath(import.meta.url)), RAIZ = join(AQUI, '..', '..', '..'), SALIDA = join(RAIZ, 'gobierno', 'capturas-tarea');
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.bin': 'application/octet-stream', '.woff2': 'font/woff2' };
 const args = process.argv.slice(2), op = Object.fromEntries(args.filter(a => a.includes('=')).map(a => a.split(/=(.*)/s).slice(0, 2)));
@@ -132,12 +133,12 @@ async function tp1b() {
     await ctx.close();
   }
   e = await foto('caido', 'caido', ...V);
-  bien(!e.duelo.centurion && e.duelo.vivo && e.duelo.yo !== 2 && /El centurión ha caído: ahora eres/.test(e.textos[2]), `caído: «${e.textos[2]}» (ahora eres el n.º ${e.duelo.yo}) y sigues en tu duelo`);
+  bien(!e.duelo.centurion && e.duelo.vivo && e.duelo.yo !== YO && /El centurión ha caído: ahora eres/.test(e.textos[2]), `caído: «${e.textos[2]}» (ahora eres el n.º ${e.duelo.yo}) y sigues en tu duelo`);
   e = await foto('caido', 'caido-orden', ...V, prefijo, () => { const t = window.__tp; t.ordena('relevo'); t.salta(0.3); });
   bien(/tardan/.test(e.textos[2]), `sin centurión las órdenes tardan («${e.textos[2]}»)`);
   e = await foto('huida', 'huida', ...V); bien(e.bandos.ruptura === 'galos' && e.bandos.huyen >= 3, `huida: los galos rompen y ${e.bandos.huyen} huyen corriendo`);
   e = await foto('lucha', 'tarjeta', ...V, prefijo, BOT);
-  bien(e.fin && e.bandos.ruptura === 'galos' && /^Victoria/.test(e.textos[4]) && /Bajas: \d+ de tus 30 hombres; \d+ de 16 galos/.test(e.textos[5]), `partida jugando bien: gana quien rompe — «${e.textos[4]}»: ${e.textos[5]}`);
+  bien(e.fin && e.bandos.ruptura === 'galos' && /^Victoria/.test(e.textos[4]) && new RegExp(`Bajas: \\d+ de tus ${M} hombres; \\d+ de \\d+ galos`).test(e.textos[5]), `partida jugando bien: gana quien rompe — «${e.textos[4]}»: ${e.textos[5]}`);
   /* y jugando sin tocar nada también acaba, con un bando roto */
   { const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true }), page = await ctx.newPage(); escucha(page);
     await page.goto(URL0 + '?fase=lucha'); await lista(page);
@@ -167,7 +168,7 @@ if (op.parte === 'loco') {
         if (primera === null && S.misCaidas >= 1) primera = { muertes: S.misMuertes, seg: +(S.T - t0).toFixed(1) }; if (tRompe === null && S.ruptura) tRompe = +(S.T - t0).toFixed(1);
         if (aguanta && (S.misCaidas >= 1 || S.misMuertes >= 2 || S.T - t0 > 90)) break;
       }
-      return { modo, aguanta, tRompe, refuerzos: S.nRefuerzos || 0, primeraCaida: primera, muertes: S.misMuertes, caidas: S.misCaidas, ruptura: S.ruptura || 'ninguna', animoR: +S.unidad.animo.toFixed(2), animoG: +S.unidadG.animo.toFixed(2), bajasR: R0 - S.romanos.filter(h => h.vivo).length, bajasG: G0 - S.galos.filter(g => g.vivo).length, seg: +(S.T - t0).toFixed(1) };
+      return { modo, aguanta, tRompe, refuerzos: S.nRefuerzos || 0, primeraCaida: primera, muertes: S.misMuertes, caidas: S.misCaidas, ruptura: S.ruptura || 'ninguna', animoR: +S.unidad.animo.toFixed(2), animoG: +S.unidadG.animo.toFixed(2), bajasR: R0 - S.romanos.filter(h => h.vivo).length, bajasG: S.unidadG.hombres - S.unidadG.enPie, seg: +(S.T - t0).toFixed(1) };
     }, [modo, aguanta]);
     await ctx.close(); console.log('  ' + JSON.stringify(r)); return r;
   };
@@ -210,10 +211,10 @@ if (op.parte === 'pies') { await medidasPaso(); await tiras(); await br.close();
 
 /* para iterar: solo=avance,testudo saca solo esas fases (en vertical; añade h para horizontal: solo=testudo,h) y no hace las pruebas largas */
 if (op.solo) { const fs = op.solo.split(','), d = fs.includes('h') ? Hz : V; for (const f of fs.filter(x => x !== 'h')) await foto(f, f, ...d); await br.close(); srv.close(); console.log(errores.length ? 'NO APTO\n' + errores.join('\n') : 'APTO (solo fotos)'); process.exit(errores.length ? 1 : 0); }
-let e = await foto('avance', 'v-1-marcha', ...V); bien(e.vivos === 30 && e.k === 0, 'marcha: los 30 en pie y sin testudo');
+let e = await foto('avance', 'v-1-marcha', ...V); bien(e.vivos === M && e.k === 0, 'marcha: los ' + M + ' en pie y sin testudo');
 bien(Math.abs(e.yo.cabeza[1] - 1.88) < 0.12, `marcha: la cabeza está donde dicen las cuentas, a ${e.yo.cabeza[1].toFixed(2)} m del suelo (las figuras miden 2,15)`);
 e = await foto('flechas', 'v-2-salva', ...V); bien(e.flechas > 20, 'salva: hay venablos en el aire (' + e.flechas + ')');
-e = await foto('testudo', 'v-3-testudo', ...V); bien(e.k > 0.99 && e.vivos < 30, 'testudo: escudos arriba y ya hubo bajas de antes (' + e.vivos + ' en pie)'); encuadre(e, 'testudo vertical', true);
+e = await foto('testudo', 'v-3-testudo', ...V); bien(e.k > 0.99 && e.vivos < M, 'testudo: escudos arriba y ya hubo bajas de antes (' + e.vivos + ' en pie)'); encuadre(e, 'testudo vertical', true);
 e = await foto('cara', 'v-4-golpe', ...V); bien(e.k > 0.99 && e.enc > 0.5 && e.clavados > 5, `golpe: cae la salva, tu soldado se encoge (${e.enc.toFixed(2)}) y hay venablos clavados en los escudos (${e.clavados})`);
 e = await foto('mira', 'v-5-cara', ...V); bien(e.mira > 0.9 && entre(e.cuadro.yo.x, 0.2, 0.6), 'cara: tu soldado se vuelve a los suyos y la cámara se le arrima (cabeza en ' + e.cuadro.yo.x + ')');
 e = await foto('roto', '_v-roto', ...V); bien(e.roto, 'roto: tu escudo ya está partido (' + e.golpes + ' golpes)');
@@ -254,7 +255,7 @@ await medidasPaso(); await tiras(); await tp1b();
   bien(e2.k > 0.9, 'en vivo: «Escudos» forma el testudo');
   /* el resto, a saltos de reloj (el dedo sigue en «Avanzar»), jugando bien: escudos arriba con cada aviso y abajo cuando ya cayó la salva */
   const e3 = await page.evaluate(() => { const t = window.__tp, S = t.S; t.parar(true); for (let i = 0; i < 1500 && S.fase === 'avance'; i++) { S.escudos = S.aviso || S.impacto > 0; t.salta(0.1); } S.escudos = true; t.salta(1); return t.estado(); });
-  bien(e3.fase === 'pila' && e3.vivos >= 25, `partida: llega a tiro de pilum con ${e3.vivos} de 30 subiendo los escudos a cada aviso (escudo propio: ${e3.golpes} golpes${e3.roto ? ', roto' : ''})`);
+  bien(e3.fase === 'pila' && e3.vivos >= Math.round(M * 25 / 30), `partida: llega a tiro de pilum con ${e3.vivos} de ${M} subiendo los escudos a cada aviso (escudo propio: ${e3.golpes} golpes${e3.roto ? ', roto' : ''})`);
   await page.mouse.up(); await page.evaluate(() => window.__tp.parar(false)); await page.waitForTimeout(400);
   /* GM43h: «Lanzar» con el dedo: bajar arma el brazo, subir lanza; un pointercancel lanza igual y no deja el botón enganchado */
   const toque = (tipo) => page.dispatchEvent('#accion', tipo, { pointerId: 7, pointerType: 'touch', isPrimary: true, bubbles: true });

@@ -8,9 +8,9 @@ import { palabras, veredicto } from './unidad.js';
 export function crearHud(m) {
   const { S, Son, $, M, RECARGA, ZONA, vivos, armar, soltar, ordena, puedeOrden } = m;
   let textoR = '', textoG = '';
-  const linea = (quien, u) => {
+  const linea = (quien, u, n) => {
     const p = palabras(u), mal = { duda: 1, rompe: 1, cansada: 1, agotada: 1, perdiendo: 1 }, c = w => `<span class="${mal[w] ? 'mal' : w === 'ganando' ? 'bien' : ''}">${w}</span>`;
-    return `<b>${quien}</b> ${p.enPie} en pie · ${c(p.animo)} · ${c(p.cansancio)} · ${c(p.combate)}`;
+    return `<b>${quien}</b> ${n ?? p.enPie} en pie · ${c(p.animo)} · ${c(p.cansancio)} · ${c(p.combate)}`;
   };
   function hud() {
     const n = vivos(), f = n / M, b = $('barra').firstElementChild, lucha = S.choque && !S.huida && !S.derrota && S.fase !== 'fin';
@@ -39,6 +39,7 @@ export function crearHud(m) {
     /* TP8b-L2: con poco aliento el gesto se apaga (la barra fina de cada botón es tu aliento); sin escudo, «Parar» es «Desviar» */
     const tu = d && S.tuyo, fu = tu && tu.fuelle !== undefined ? tu.fuelle : null, falta = c => fu !== null && fu < c, est = !!(tu && tu.abierto && tu.estocada && !falta(tu.cS));
     $('parar-t').textContent = tu && tu.roto ? 'Desviar' : 'Parar';
+    { const pa = $('parar').querySelector('path'), dd = tu && tu.roto ? 'M20 20L9 9M9 9L4 4M11 7l-4 4' : 'M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z'; if (pa.getAttribute('d') !== dd) pa.setAttribute('d', dd); }   /* TP8b-F1: sin escudo, desvías con la espada */
     $('parar').classList.toggle('pide', !!(tu && tu.ventana && !falta(tu.cP))); $('parar').classList.toggle('apagada', !!(tu && (!tu.parar || falta(tu.cP))));
     $('estocada').classList.toggle('pide', est); $('estocada').classList.toggle('activa', est); $('estocada').classList.toggle('apagada', !!(tu && (!tu.estocada || falta(tu.cS))));
     $('empujar').classList.toggle('apagada', !!(tu && (!tu.empujar || falta(tu.cE))));
@@ -46,7 +47,7 @@ export function crearHud(m) {
     $('objetivo').textContent = S.fase === 'avance' ? 'Lleva el cuerpo hasta la loma' : S.fase === 'pila' ? (S.salvas === 0 ? 'Lanza los pila' : S.salvas === 1 ? 'Lanza el segundo pilum' : 'Aguanta, ya llegan')
       : !S.choque ? 'Carga contra su línea' : S.huida ? 'Huyen: la línea es tuya' : S.derrota ? 'Tu línea se rompe' : 'Rompe su línea: para, golpea, releva';
     /* el estado en palabras: tus hombres y, si caben, los galos */
-    const tr = linea('Tuyos', S.unidad), tg = linea('Galos', S.unidadG);
+    const tr = linea('Tuyos', S.unidad), tg = linea('Galos', S.unidadG, S.galos.filter(g => g.vivo || g.reserva).length);
     if (tr !== textoR) { $('est-r').innerHTML = tr; textoR = tr; }
     if (tg !== textoG) { $('est-g').innerHTML = tg; textoG = tg; }
     const ec = $('eco'), ve = S.eco && S.T - S.eco.t < 1.4 && S.T >= S.eco.t;
