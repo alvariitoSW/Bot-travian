@@ -3,6 +3,9 @@
   const D = {};
   D.START_YEAR = 280; // a.C.
   D.TURNO_MESES = 3; // una estación = un turno
+  /* CE3-A1: el tiempo se cuenta en estaciones (3 meses). Una obra dura 1 estación si sube a nivel 1-2 y 2 si sube a 3-5 (índice = nivel de destino).
+     Un lote de reclutas dura 1 estación, sea del tamaño que sea. Los bonos que antes acortaban obras e instrucción ahora las abaratan. Licencia de juego. */
+  D.ESTACION = 3; D.OBRA_ESTACIONES = [0, 1, 1, 2, 2, 2]; D.OBRA_ESTACIONES_MAX = 2;
   D.ESTACIONES = ['Primavera', 'Verano', 'Otoño', 'Invierno']; // el año empieza en Ianuarius (invierno): ver G.estacion
   D.END_YEAR = 146;   // a.C. — destrucción histórica de Cartago
 
@@ -86,7 +89,11 @@
   /* Caja del mes (Q2): lo que se gasta en el mes es lo que se gana en el mes. Al cerrar el mes lo que sobra va al almacén hasta su tope (lo que no cabe se pierde)
      y de él solo se puede sacar un cuarto cada mes. */
   D.CUARTO_ALMACEN = 0.25; D.AVISO_CIERRE = 0.75;
-  D.MAX_LVL = 10;
+  /* CE3-A2: cinco niveles, topados por el Foro. Subir al nivel L cuesta coste base x L (NIVEL_COSTE[L]); lo que añade cada nivel va con lo que costó,
+     así la producción total sigue 1, 3, 6, 10, 15 (NIVEL_PROD). PROD_NIVEL1 = 14: el nivel 1 rinde lo mismo que antes de CE3 (G.rate(1) era 14), así un
+     nivel se paga con lo que produce en unas 3 estaciones, como antes; con 8 estaciones (primer intento, PROD_NIVEL1 = 6) el bot ya no ganaba. Cada nivel
+     sube coste y producción en la misma proporción (L), así que todos se pagan igual. Licencia de juego. Una pieza de ciudad vale NIVEL_PIEZA[mejora] niveles (mejora 0..3). */
+  D.MAX_LVL = 5; D.NIVEL_COSTE = [0, 1, 2, 3, 4, 5]; D.NIVEL_PROD = [0, 1, 3, 6, 10, 15]; D.PROD_NIVEL1 = 14; D.NIVEL_PIEZA = [1, 2, 3, 4];
   /* CN10: edificios que no existían entre 280 y 146 a.C. Ya no están en D.BUILD; solo guardamos su coste base para devolverlo al cargar una partida vieja (G.migrarRetirados). */
   D.RETIRADOS = {
     acueducto: { materiales: 300, denarios: 85 },
@@ -138,7 +145,7 @@
   D.FELICIDAD_MIN_CRECER = 40;
   D.FELICIDAD_EDIF = { templo: 4, mercado: 2 };   // CN10: sin termas ni anfiteatro (no existían antes del 146 a.C.), su felicidad pasa al templo y al mercado
   D.FORO_CASAS = 25;   // CN2b: el foro de una ciudad con ciudad nueva sube 1 nivel por cada 25 casas (más 1 por barrio extra)
-  D.HUECOS_OBRA = [0, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4];   // Q4b: obras a la vez por ciudad según el nivel del foro (índice = nivel 1..10); el foro no tiene mejoras, su nivel es c.b.foro (casas y barrios)
+  D.HUECOS_OBRA = [0, 1, 2, 3, 4, 5];   // Q4b/CE3: obras a la vez por ciudad según el nivel del foro (índice = nivel 1..5); el foro no tiene mejoras, su nivel es c.b.foro (casas y barrios)
   D.POP_EDIF = { viviendas: 130, foro: 30, mercado: 20, templo: 10 };   // población máxima por nivel de cada edificio (CN10: mercado y templo reparten lo que daban acueducto y termas)
   /* Barrios (P67). Licencia de juego: la idea de que un barrio crece al cubrir servicios viene de Caesar III (estudio R1); los niveles,
      los servicios y todos los números son nuestros. Aldea no pide nada. D.LUJO: claves de D.ESPECIAL que cuentan como bien de lujo. */

@@ -367,7 +367,7 @@ const CIMOD = require('../js/ciudad.js'); G.usarCiudad(null);
   const o0 = G.prod().denarios; own('plata'); assert(G.prod().denarios > o0, 'plata: más oro de impuestos');
   roma.units = { hastati: 100 }; const m0 = G.mantenimiento().tropas; own('pieles'); assert(Math.abs(G.mantenimiento().tropas - m0 * 0.9) < 1e-9, 'pieles: la paga cuesta un 10 % menos');
   assert.strictEqual(G.bonoMul('crece'), 1.1, 'sal: +10 % de crecimiento');
-  const b0 = G.buildTime(roma, 'cantera'); own('marmol'); assert(G.buildTime(roma, 'cantera') < b0, 'mármol: obras más rápidas');
+  const b0 = G.costeObra(roma, 'cantera').materiales; own('marmol'); assert(G.costeObra(roma, 'cantera').materiales < b0, 'mármol: obras más baratas (CE3-A1)');
   const fc0 = G.forjaCost('armas', 0, 'roma').hierro; own('hierro'); assert(G.forjaCost('armas', 0, 'roma').hierro < fc0, 'hierro: forja más barata');
   assert(G.especiales().caballos && G.bonoMul('instr') === 0.9, 'caballos (Capua desde el inicio): instrucción un 10 % más rápida');
   own('maderanaval'); assert(G.bonoMul('viajeMar') === 0.9, 'madera naval: viajes por mar más rápidos');
@@ -570,8 +570,8 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   // municipio da +5 de felicidad; el resto, no
   assert.strictEqual(G.felicidad(base.c) - G.felicidad(ag.c), 5, 'municipio +5 de felicidad');
   // militar: instrucción 25 % más rápida y paga 25 % menor
-  const tr = tipo => { const s = G.newGame('M'); s.cities.roma.tipo = tipo; s.res.denarios = 1e5; G.train('roma', 'hastati', 20); const q = s.cities.roma.train[0]; return q.t1 - q.t0; };
-  assert(Math.abs(tr('militar') / tr('municipio') - 0.8) < 1e-9, 'militar entrena un 25 % más rápido');
+  const tr = tipo => { const s = G.newGame('M'); s.cities.roma.tipo = tipo; s.res.denarios = 1e5; G.train('roma', 'hastati', 20); const q = s.cities.roma.train[0]; assert.strictEqual(q.t1 - q.t0, 3, 'lote de 1 estación'); return G.instrMul(s.cities.roma, 'hastati'); };   // CE3-A1: el bono abarata el lote
+  assert(Math.abs(tr('militar') / tr('municipio') - 0.8) < 1e-9, 'militar: lote un 20 % más barato (antes, más rápido)');
   { const mi = tasa('militar'); let up = 0; for (const k in mi.c.units) up += mi.c.units[k] * D.UNITS[k].up; assert(Math.abs(base.p.mant.tropas - mi.p.mant.tropas - 0.25 * up * D.MANT_TROPA) < 1e-9, 'militar paga un 25 % menos'); }
   // emporio: más oro de foro y puerto, y cambio mejor con mercado
   const em = tasa('emporio'); assert(em.p.denarios > base.p.denarios, 'emporio gana más oro');
@@ -585,7 +585,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   // saber: herrería más barata y rápida
   { const s = G.newGame('S'); const c = s.cities.roma; c.b.herreria = 3; s.res = { materiales: 1e5, hierro: 1e5, grano: 1e5, denarios: 1e5 }; const c0 = G.forjaCost('armas', 0, 'roma'), t0 = G.forjaTime('armas', 0, 'roma'); c.tipo = 'saber';
     for (const r in c0) assert(G.forjaCost('armas', 0, 'roma')[r] <= Math.round(c0[r] * 0.75 / 5) * 5 + 5 && G.forjaCost('armas', 0, 'roma')[r] < c0[r], 'saber abarata la forja');
-    assert(Math.abs(G.forjaTime('armas', 0, 'roma') / t0 - 0.75) < 1e-9); assert(G.forjaUp('roma', 'armas') && Math.abs((s.forja.cola.t1 - s.forja.cola.t0) / t0 - 0.75) < 1e-9, 'saber acorta la forja'); }
+    assert.strictEqual(G.forjaTime('armas', 0, 'roma'), t0, 'CE3-A1: el tiempo no cambia'); for (const r in c0) assert(G.forjaCost('armas', 0, 'roma')[r] <= Math.round(c0[r] * 0.5625 / 5) * 5 + 5, 'saber: el bono de tiempo también abarata'); assert(G.forjaUp('roma', 'armas') && s.forja.cola.t1 - s.forja.cola.t0 === t0, 'forja en estaciones'); }
   // elegir: la primera vez gratis, después cobra
   { const s = G.newGame('Elegir'); s.res.denarios = 300; assert.strictEqual(s.cities.roma.tipo, 'municipio'); assert(!G.setTipo('roma', 'inexistente'));
     assert(G.setTipo('roma', 'militar') && s.res.denarios === 300 && s.cities.roma.tipoElegido, 'primera elección gratis');
@@ -772,7 +772,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   for (const r of ['materiales', 'hierro', 'grano', 'denarios']) { s.res[r] = 5000; s.alm[r] = 5000; s.cuarto[r] = 1250; }
   s.t = 10.2; let b = null;
   for (const k of Object.keys(D.BUILD)) { if (D.BUILD[k].sea || D.BUILD[k].solar || (c.b[k] || 0) < 1) continue; for (let L = 0; L < 5; L++) { c.b[k] = L; if (G.buildTime(c, k) >= 2.5 && G.buildTime(c, k) <= 3 && !G.faltaEspecial('edificio', k, L)) { b = k; break; } } if (b) break; }
-  assert(b, 'hay una obra de 3 meses'); const L0 = c.b[b], cost = G.cost(b, L0), dur = G.buildTime(c, b), n = Math.ceil(dur - 1e-9);
+  assert(b, 'hay una obra de 3 meses'); const L0 = c.b[b], cost = G.costeObra(c, b), dur = G.buildTime(c, b), n = Math.ceil(dur - 1e-9);
   const m0 = s.res.materiales + s.alm.materiales; assert(G.upgrade('roma', b));
   const q = c.queue; assert.strictEqual(q.nc, n); assert.strictEqual(q.pag, 1, 'se paga la primera cuota al empezar');
   const rest = G.cuotasRestantes(q), c1 = G.cuotaSig(q); for (const r in cost) assert.strictEqual(rest[r] + Math.floor(cost[r] / n), cost[r], 'cuotas suman el coste exacto ' + r);
@@ -790,7 +790,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
   // pausa y reanudación
   c.queue = null; c.b[b] = L0; G.upgrade('roma', b); const q2 = c.queue; for (const r of D.RES) { s.res[r] = 0; s.alm[r] = 0; s.cuarto[r] = 0; }
   s.t = Math.floor(s.t) + 0.9999; const t1a = q2.t1; G.tick(0.0002 + 0.001);
-  assert(q2.pausa, 'sin fondos la obra se pausa'); assert(q2.pag === 1); const t1b = q2.t1; G.tick(0.25); assert(Math.abs(q2.t1 - t1b - 0.25) < 1e-9, 'en pausa el plazo corre');
+  assert(q2.pausa, 'sin fondos la obra se pausa'); assert(q2.pag === 1); const t1b = q2.t1; for (const r of D.RES) { s.res[r] = 0; s.alm[r] = 0; s.cuarto[r] = 0; } G.tick(0.1); assert(Math.abs(q2.t1 - t1b - 0.1) < 1e-9, 'en pausa el plazo corre');   // CE3-A1: la cuota abaratada por el foro se pagaba con lo producido en 0,25 meses
   for (const r of D.RES) { s.res[r] = 5000; } G.tick(0.01); assert(!q2.pausa && q2.pag === 2, 'con fondos se reanuda y paga');
   // sin fondos: la previsión no resta un plazo que el cierre no cobrará (la obra se pausa)
   { c.queue = null; c.b[b] = L0; for (const r of D.RES) { s.res[r] = 5000; s.alm[r] = 5000; s.cuarto[r] = 1250; } s.t = Math.floor(s.t) + 0.1; G.upgrade('roma', b); const q3 = c.queue;
@@ -1855,7 +1855,7 @@ console.log('OK — todas las pruebas superadas');
   assert(!G.puebloMejorar('roma', ag) && !G.puebloOk('roma', ag), 'una obra de pueblo a la vez'); assert(G.pueblosDe('roma')[ag].obra, 'obra en curso');
   s.pending.length = 0; G.tick(0.01); assert.strictEqual(c.pueblos[ag], 0, 'tarda');
   s.t = c.pobra.t1; G.tick(0.01); assert.strictEqual(c.pueblos[ag], 1, 'termina en el tick'); assert(c.pobra === null);
-  const c2 = G.puebloCoste('roma', ag), t1 = G.puebloTiempo('roma', ag); assert(c2.materiales > c1.materiales && t1 > D.PUEBLO_TIPOS.agricolas.time, 'el siguiente nivel cuesta y tarda más');
+  const c2 = G.puebloCoste('roma', ag), t1 = G.puebloTiempo('roma', ag); assert(c2.materiales > c1.materiales && t1 === 3, 'el siguiente nivel cuesta más y dura 1 estación (CE3-A1)');
   const pp = G.puebloProd('roma'); assert(pp.grano > 0 && pp.materiales === 0, 'produce grano'); assert(G.prod().grano > p0.grano, 'G.prod lo suma');
   assert(G.puebloPop('roma') === D.PUEBLO_TIPOS.agricolas.pop && G.popCap(c) === cap0 + D.PUEBLO_TIPOS.agricolas.pop, 'sube la población máxima');
   assert(Math.abs(G.mantenimiento().total - m0 - D.MANT_EDIF * 0.5) < 1e-9, 'mantenimiento por nivel');
@@ -2110,4 +2110,59 @@ console.log('OK — todas las pruebas superadas');
     delete global.localStorage; }
   G.usarCiudad(null); G.turnos = false;
   console.log('CE2: cuatro recursos, hombres, vetas, bienes y migración OK');
+}
+
+{ // CE3-A2: cinco niveles topados por el Foro, coste x L, producción 1-3-6-10-15, piezas de 1 a 4 niveles y migración de partidas con diez niveles
+  const fs = require('fs'); G.usarCiudad(CIMOD); G.onEvent = null;
+  assert.strictEqual(D.MAX_LVL, 5); assert.deepStrictEqual([1, 2, 3, 4, 5].map(L => G.rate(L) / D.PROD_NIVEL1), [1, 3, 6, 10, 15], 'producción 1, 3, 6, 10, 15');
+  const base = D.BUILD.cantera.cost; for (let L = 0; L < 5; L++) { const c = G.cost('cantera', L); assert.strictEqual(c.materiales, Math.round(base.materiales * (L + 1) / 5) * 5, 'coste x ' + (L + 1)); }
+  assert.strictEqual(G.huecosObra({ b: { foro: 5 } }), 5, 'cinco obras con el foro a 5');
+  { const s = G.newGame('CE3a'); assert(s.niveles5, 'partida nueva ya marcada');
+    for (const id of G.myCities()) { const c = s.cities[id]; for (const b in c.b) assert(c.b[b] <= 5, id + ' ' + b + ' <= 5: ' + c.b[b]); assert(c.b.foro >= 1 && G.huecosObra(c) >= 1, 'hay foro y al menos una obra'); }
+    const c = s.cities.roma; for (const r of D.RES) { s.res[r] = 1e6; s.alm[r] = 1e6; s.cuarto[r] = 1e6; }
+    let tope = null; for (const b of Object.keys(D.BUILD)) if (!G.derivado(c, b) && (c.b[b] || 0) >= c.b.foro && c.b[b] < 5 && !D.BUILD[b].sea && !G.obraDe(c, b)) { tope = b; break; }
+    if (tope) { assert(!G.upgrade('roma', tope) && G.ultimoMotivo === 'Sube antes el Foro', 'topado por el foro: ' + tope + ' ' + G.ultimoMotivo); }
+    const hist = []; for (let i = 0; i < 4 * 12 * 3; i++) { G.tick(0.25); s.pending.length = 0; } hist.push(1); assert(!s.over || s.over); }
+  // migración: una partida vieja (diez niveles) y una de hoy migran una sola vez y juegan tres años
+  { const raw = fs.readFileSync(__dirname + '/partida-vieja.json', 'utf8'), vieja = JSON.parse(raw); assert(!vieja.niveles5); const store = { 'aqvila-save-v1': raw };
+    global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
+    assert(G.load(), 'carga la vieja'); const s = G.state; assert(s.niveles5, 'marcada');
+    for (const id in s.cities) { const c = s.cities[id]; for (const q of c.obras) assert(q.t1 <= s.t + 6 + 1e-9, 'obra acortada a 6 meses'); }
+    for (const id in s.cities) for (const b in vieja.cities[id].b) if (D.BUILD[b] && b !== 'foro' && b !== 'viviendas' && b !== 'muralla' && !G.ciudadE(id)) assert.strictEqual(s.cities[id].b[b], Math.ceil(vieja.cities[id].b[b] / 2), 'ceil(L/2) en ' + id + ' ' + b);
+    const una = JSON.stringify({ b: Object.keys(s.cities).map(k => s.cities[k].b), h: Object.keys(s.cities).map(k => s.cities[k].heredado), o: Object.keys(s.cities).map(k => s.cities[k].obras.map(q => q.t1)) }); G.migrarNiveles(s);
+    assert.strictEqual(JSON.stringify({ b: Object.keys(s.cities).map(k => s.cities[k].b), h: Object.keys(s.cities).map(k => s.cities[k].heredado), o: Object.keys(s.cities).map(k => s.cities[k].obras.map(q => q.t1)) }), una, 'migrarNiveles es idempotente');
+    for (let i = 0; i < 4 * 36; i++) { G.tick(0.25); s.pending.length = 0; } for (const r of D.RES) assert(Number.isFinite(s.res[r]), 'recurso ' + r);
+    G.save(); const antes = JSON.stringify(G.state.cities.roma.b); assert(G.load()); assert.strictEqual(JSON.stringify(G.state.cities.roma.b), antes, 'recargar no vuelve a migrar');
+    delete global.localStorage; }
+  G.usarCiudad(null); G.turnos = false;
+  console.log('CE3-A2: cinco niveles, Foro, coste, producción y migración OK');
+}
+{ // CE3-A1: tiempo en estaciones. Obra nv1-2 = 1 estación, nv3-5 = 2; lote de reclutas = 1 estación sea cual sea n, en paralelo; marchas al cierre de estación; migración recorta
+  G.usarCiudad(null); G.onEvent = null;
+  assert.strictEqual(D.ESTACION, 3); assert.deepStrictEqual([0.5, 3, 3.1, 7, 12].map(G.estaciones), [1, 1, 2, 3, 4], 'estaciones hacia arriba, mínimo 1');
+  const s = G.newGame('CE3t'); G.turnos = false; const c = s.cities.roma; for (const r of D.RES) { s.res[r] = 1e6; s.alm[r] = 1e6; s.cuarto[r] = 1e6; }
+  const L0 = c.b.cantera; c.b.cantera = 0; assert.strictEqual(G.buildTime(c, 'cantera'), 3, 'obra a nivel 1 = 3 meses'); assert.strictEqual(G.obraEstaciones(c, 'cantera'), 1);
+  c.b.cantera = 1; assert.strictEqual(G.buildTime(c, 'cantera'), 3, 'obra a nivel 2 = 3 meses');
+  c.b.cantera = 2; assert.strictEqual(G.buildTime(c, 'cantera'), 6, 'obra a nivel 3 = 6 meses'); c.b.cantera = 4; assert.strictEqual(G.obraEstaciones(c, 'cantera'), 2, 'obra a nivel 5 = 2 estaciones'); c.b.cantera = L0;
+  const f0 = c.b.foro; c.b.foro = 0; const caro = G.costeObra(c, 'cantera').materiales; c.b.foro = 5; const t5 = G.buildTime(c, 'cantera'); c.b.foro = 4; assert.strictEqual(G.buildTime(c, 'cantera'), t5, 'el foro no cambia el tiempo');
+  c.b.foro = 5; assert(G.costeObra(c, 'cantera').materiales < caro, 'el foro abarata la obra'); c.b.foro = f0;
+  assert.strictEqual(G.puebloTiempo('roma', 0), 3, 'pueblo nuevo = 1 estación'); assert.strictEqual(G.forjaTime('armas', 0, 'roma'), 3, 'forja a nivel 1 = 1 estación'); assert.strictEqual(G.forjaTime('armas', 3, 'roma'), 6, 'forja a nivel 4 = 2 estaciones');
+  for (const id of Object.keys(D.INVEST || {}).slice(0, 20)) { const t = G.invTiempo(id); assert(t > 0 && Math.abs(t / 3 - Math.round(t / 3)) < 1e-9, 'estudio en estaciones enteras: ' + id + ' ' + t); }
+  c.pop = 5000; c.train = [];
+  for (const n of [5, 60]) assert.strictEqual(G.trainDur(c, 'hastati', n), 3, 'lote de ' + n + ' = 3 meses');
+  assert(G.train('roma', 'hastati', 10) && G.train('roma', 'hastati', 200), 'dos lotes');
+  assert.strictEqual(c.train.length, 2); for (const l of c.train) assert(l.t0 === s.t && l.t1 === s.t + 3, 'en paralelo, 1 estación'); assert(c.train[1].nc === 3, 'se paga en 3 cuotas');
+  const mul = G.instrMul(c, 'hastati'), u = G.unitCost('hastati', 200), lc = G.loteCoste(c, 'hastati', 200); for (const r in u) assert.strictEqual(lc[r], Math.max(1, Math.round(u[r] * mul)), 'la instrucción abarata el lote');
+  const h0 = c.units.hastati || 0; for (let i = 0; i < 13; i++) G.tick(0.25); assert.strictEqual((c.units.hastati || 0) - h0, 210, 'los dos lotes acaban a la vez'); assert.strictEqual(c.train.length, 0);
+  s.t = 1.4; assert.strictEqual(G.llegada(2), 3, 'marcha al cierre de estación (tiempo continuo)'); assert.strictEqual(G.llegada(4), 6); s.t = 3.7;
+  assert.strictEqual(G.estacionesRestan({ t1: 9 }), 2, 'quedan 2 estaciones');
+  // migración: colas viejas (obra de 20 meses, lotes encadenados) se recortan una sola vez y conservan lo pagado
+  { const v = JSON.parse(JSON.stringify(s)); delete v.estaciones; v.t = 10; const cv = v.cities.roma;
+    cv.obras = [{ b: 'cantera', t0: 9, t1: 30, nc: 21, pag: 2, cuota: {}, costo: {}, pausa: false }]; cv.train = [{ u: 'hastati', n: 5, t0: 9, t1: 15, nc: 6, pag: 1 }, { u: 'hastati', n: 5, t0: 15, t1: 25, nc: 10, pag: 0 }];
+    cv.pobra = { i: 0, t0: 9, t1: 40 }; v.forja = v.forja || {}; v.forja.cola = { k: 'armas', t0: 9, t1: 40 };
+    assert(G.migrarEstaciones(v), 'migra'); assert(v.estaciones && cv.obras[0].t1 === 16 && cv.obras[0].pag === 2, 'obra <= 2 estaciones y lo pagado se queda');
+    assert(cv.train.every(l => l.t1 === 13 && l.t0 <= 10), 'lotes <= 1 estación desde ahora, en paralelo'); assert(cv.pobra.t1 === 16 && v.forja.cola.t1 === 16, 'pueblo y forja recortados');
+    assert(!G.migrarEstaciones(v), 'idempotente'); assert(s.estaciones, 'partida nueva marcada'); }
+  G.turnos = false;
+  console.log('CE3-A1: obras, lotes, estudios, marchas y migración en estaciones OK');
 }
