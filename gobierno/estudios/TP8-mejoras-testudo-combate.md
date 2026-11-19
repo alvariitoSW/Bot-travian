@@ -42,3 +42,35 @@ Caras de los soldados (GM43j, aparte). Andar y correr (vale hoy). Lo nuevo que p
   4. **4** Sonido grabado libre, con su crédito.
 - **Regla de encargo para TP8b**: cada encargo, una pieza y **30 pasos como máximo**, con corte por encargo; medir el
   gasto al volver cada uno. El render por software es lento: las capturas, una sola tanda al final del encargo.
+
+## TP8b · La vara y las referencias (19/11)
+- **Vara** (palabras del usuario en `BITACORA.md`, 19/11): las cuatro frases del testudo y las cuatro de las picas son
+  el suelo («eso es un 5… hazlo a ver cómo queda y después lo vuelvo a evaluar»); el 8 lo pone él al verlo.
+  De las picas de hoy: «muñecos sin gracia que pinchas y baja una línea q se supone que es la pica y encima se
+  atraviesan entre ellas»; echa de menos lo que sí tiene el testudo (voces, agachar la cabeza bajo la salva).
+- **Tres clips suyos** (Rome II, subidos al chat el 19/11; solo ideas, nada se guarda en el repositorio):
+  1. *Falange contra elefantes, desde detrás.* La cámara va **por encima de los cascos** (a unos 3 m, mirando hacia
+     abajo y al frente): se ve al enemigo entre las astas. Astas gruesas, de color madera clara, con sombra larga en
+     el suelo; las de atrás, alzadas en abanico; sol bajo y cálido; filas prietas con escudo redondo de bronce.
+  2. *Muro de picas de lado, contra caballería.* Cinco hileras de puntas asoman horizontales un buen trecho por
+     delante de la primera fila; el que carga muere en las puntas y los caídos se amontonan delante; polvo y sangre
+     en el suelo; estandarte grande sobre cada unidad.
+  3. *Cohortes romanas marchando.* Plano ancho con los bloques formados antes de bajar; de cerca, filas densas, escudos
+     que se solapan, hierba alta en primer plano.
+- **Qué se toma**: picas → cámara alta sobre los cascos, astas con cuerpo y sombra, cinco hileras de puntas, caídos
+  amontonados delante del muro; épica a pie → plano ancho de apertura, estandarte, hierba en primer plano, sol bajo.
+  4. *Testudo de Ryse (cuarto clip, 19/11).* Al dar la orden, la cámara se mete **dentro del testudo, pegada a la cara
+     del que grita**; cada orden sale escrita abajo («¡Escudos!», «¡Esperad! ¡Aguantad!», «¡Formad!»); los hombres
+     asoman medio cuerpo por encima de los escudos para lanzar y vuelven a cubrirse; cielo oscuro, flechas con fuego
+     y golpes secos en la madera. Se toma: plano corto al dar la orden, voces escritas y dichas, asomar para lanzar.
+     Lo que un móvil no da (caras de cine) se dice y no se promete.
+  5. *Testudo de Ryse, otro corte (quinto clip, 19/11).* Antes de avanzar, **arenga**: el centurión alza la espada y
+     habla a los suyos; la vista alterna entre el plano de detrás (cascos asomando por el borde de los escudos, la
+     cresta roja en el centro) y el plano corto del centurión cubriéndose cuando llega la salva. Se toma: arenga
+     breve al empezar y el vaivén entre plano de detrás y plano corto en los momentos fuertes.
+  6. *Testudo de Rome II ante una muralla (sexto clip, 19/11; el usuario aclara que es Rome II, no Ryse).* La cámara
+     va **a ras del techo de escudos de una cohorte entera** (más de cien hombres), mirando por encima hacia la
+     muralla; hierba alta y clara; proyectiles con estela de humo que caen en arco y humo donde pegan. Se toma: el
+     testudo visto como techo de toda la unidad, no de ocho hombres; estelas de humo en los proyectiles; objetivo
+     lejano siempre a la vista. **Pedido del usuario**: llevar esta forma de jugar y de verse a la batalla grande
+     (campaña y escaramuza normal). Eso es CG6 y CG8, no TP8b: pasado al vigía; TP8b mantiene las piezas para que sirvan allí.
