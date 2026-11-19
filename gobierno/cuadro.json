@@ -2020,12 +2020,6 @@
       "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
     },
     {
-      "tarea": "CE3c",
-      "titulo": "Cerebro · CE3c Cerrar CE3: dos fallos de jueces y subir (Opus; tope duro)",
-      "nota": "Trabajo de CE3 guardado en la rama ce3; arregla los dos fallos de jueces, une con el Senado nuevo y sube solo con APTO; corte duro 0,9 M",
-      "url": "https://claude.ai/code/session_01QiKC384Vg22mRs9aAgH8gu"
-    },
-    {
       "tarea": "CI1b",
       "titulo": "Cerebro · CI1b+CI3a Calles con sentido y ciudad ×5 a la vista (Opus; tope duro)",
       "nota": "Parada en el techo 6,4 M, sin subir (queda un fallo de sim.test); espera tu decisión en el cuadro. 11 commits solo en su contenedor",
@@ -2042,6 +2036,12 @@
       "titulo": "Corazón · TP8b Terminar el testudo a pie y la lucha con picas (Fable 5.2 dirige, Opus construye; tope duro)",
       "nota": "Va por 5,9 M (cierre previsto 7,5–7,8; corte 10,0): lucha lista en jueces, picas hechas, ahora 80–120 soldados por bando; brazos, épica y sonido no caben: elegirás tú",
       "url": "https://claude.ai/code/session_01QiKC387QJaRTWbZx6nurC2"
+    },
+    {
+      "tarea": "MN1",
+      "titulo": "Cerebro · MN1 Barra de seis y mapa nuevo de los menús (Opus; tope duro)",
+      "nota": "Ficha de la ciudad dentro de ROMA, fuera los modos Gobierno y Guerra, ☰ ordenado, vertical y horizontal; corte duro 2,2 M",
+      "url": "https://claude.ai/code/session_01QiKC3ACB6gUUQAvqV6dh58"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
