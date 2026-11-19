@@ -2022,13 +2022,13 @@
     {
       "tarea": "CE3",
       "titulo": "Cerebro · CE3 Edificios, tropas y tiempos nuevos, en estaciones (Opus; tope duro)",
-      "nota": "Última prórroga (techo 9,3 M): arreglar 2 fallos de jueces y subir solo con APTO; sus commits solo existen en su contenedor",
+      "nota": "Parada en 9,71 M, jueces 39/41 sin subir; espera tu decisión en el cuadro. Sus commits solo existen en su contenedor",
       "url": "https://claude.ai/code/session_01QiKC3Aw9VfHc42LQ8wLPsB"
     },
     {
       "tarea": "CI1b",
       "titulo": "Cerebro · CI1b+CI3a Calles con sentido y ciudad ×5 a la vista (Opus; tope duro)",
-      "nota": "Cierre final: techo 5,8 M. Ciudad grande arreglada; falta una pasada de jueces y las capturas. 9 commits sin subir: solo existen en su contenedor",
+      "nota": "Parada en el techo 6,4 M, sin subir (queda un fallo de sim.test); espera tu decisión en el cuadro. 11 commits solo en su contenedor",
       "url": "https://claude.ai/code/session_01QiKC3AfVQgWjdzHpMKkgYR"
     },
     {
