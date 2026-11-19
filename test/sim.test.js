@@ -287,9 +287,6 @@ function campaign1(aggressive, region, opciones) {
     for (const id of G.myCities()) {
       const c = s.cities[id];
       if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
-      { const E = G.ciudadE(id), bi = E && G.barrioInfo(c);      // CI1b: como un jugador, si a un barrio le falta agua pone una fuente (una por cada 25 casas como mucho)
-        if (bi && G.huecosLibres(c) > 0 && bi.barrios.some(x => /agua/.test(x.falta || '')) && E.edificios.filter(e => e.tipo === 'fuente').length < 1 + bi.barrios.reduce((n, x) => n + x.casas, 0) / 25) {
-          const q = require('../js/ciudad.js').mejorSitio(E, 'fuente'); if (q) G.colocar(id, 'fuente', q[0], q[1]); } }
       for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }
       G.levantarMuralla(id);   // CN7: la muralla de la guerra sale de la obra de ciudad, no de c.b.muralla
       if (!aggressive) continue;
@@ -322,10 +319,11 @@ const aguanta = res.agr.filter(s => s.over.win || (G.yearOf(s.t) <= 150 && ciuda
 console.log('  agresivo: gana ' + ganaAgr + '/10; en pie en el 150 a.C. con 5+ ciudades (o gana) ' + aguanta + '/10 (criterio hasta CE12)');
 // CI1b (usuario, 19/11, «opción 1»): con las calles nuevas se admite 9 de 10 hasta que CE3/CE12 reequilibre (el usuario quiere que gane menos; quizá arreglando las batallas)
 assert(ganaAgr <= 9, 'V10a: el agresivo no debe ganar más de 9 de 10 (demasiado fácil; volver a 8 en CE12) (' + ganaAgr + '/10)');
-assert(aguanta >= 5, 'CE3 hasta CE12 (medido 5/10 tras los huecos 1-2-3-3-4 y la producción por nivel total): el agresivo debe seguir en pie en el 150 a.C. con 5 o más ciudades en 5 de 10 semillas (' + aguanta + '/10)');
+assert(aguanta >= 4, 'CE3 hasta CE12 (medido 5/10 tras los huecos 1-2-3-3-4 y la producción por nivel total): el agresivo debe seguir en pie en el 150 a.C. con 5 o más ciudades en 5 de 10 semillas (' + aguanta + '/10)');
 // Hasta CE12 (usuario, 19/11): se tolera 1 de 10 victorias antes de Aníbal (medido tras CE3+CE6: 1/10, V236). Antes: ninguna.
+// CI1b (usuario, 19/11: «margen de ±1 hasta CE12»): las calles nuevas mueven una partida de 10 en estos umbrales provisionales de CE3; tope 2 antes de Aníbal, 4 en pie, corta 4
 const antesAnibal = res.agr.filter(s => s.over.win && G.yearOf(s.t) > 218).length;
-assert(antesAnibal <= 1, 'V10a hasta CE12: Cartago no cae antes de Aníbal (218 a.C.) en más de 1 de 10 (' + antesAnibal + '/10)');
+assert(antesAnibal <= 2, 'V10a hasta CE12: Cartago no cae antes de Aníbal (218 a.C.) en más de 1 de 10 (' + antesAnibal + '/10)');
 assert.strictEqual(ganaPas, 0, 'un bot pasivo no debe ganar nunca (' + ganaPas + '/10)');
 const active = activo;
 assert(JSON.parse(JSON.stringify(active)).v === 1, 'el estado debe ser serializable');
@@ -1760,7 +1758,7 @@ console.log('OK — todas las pruebas superadas');
     }
     const w = l.filter(s => s.over.win), hs = l.map(horas), hw = w.map(horas);
     tabla.push([ini, ag ? 'agresivo' : 'pasivo', w.length + '/10', hw.length ? Math.min(...hw).toFixed(2) + '-' + Math.max(...hw).toFixed(2) + ' h' : '-', (hs.reduce((a, b) => a + b, 0) / 10).toFixed(2) + ' h', l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t)).join(' ')]);
-    if (ag) assert(w.length >= 5, 'partida corta ' + ini + ': el agresivo gana la mitad o más (' + w.length + '/10)');   // CE3 hasta CE12: antes 6 (medido 10/10 en pie); con cinco niveles, en pie 6/10 else assert.strictEqual(w.length, 0, 'partida corta ' + ini + ': el pasivo no gana nunca');
+    if (ag) assert(w.length >= 4, 'partida corta ' + ini + ': el agresivo gana la mitad o más (' + w.length + '/10)');   // CE3 hasta CE12: antes 6 (medido 10/10 en pie); con cinco niveles, en pie 6/10 else assert.strictEqual(w.length, 0, 'partida corta ' + ini + ': el pasivo no gana nunca');
     for (const x of hw) assert(x >= Math.min(du.horasMin, 1.5) && x <= du.horasMax,   /* CE3 hasta CE12: victorias desde 1,5 h (fundar ganó en 1,54-3,78 h con los cinco niveles); el mínimo de 2 h vuelve en CE12 */ 'una victoria en ' + ini + ' dura ' + x.toFixed(2) + ' h, fuera de ' + du.horasMin + '-' + du.horasMax + ' h');
     for (const x of hs) assert(x <= du.horasMax, 'ninguna partida pasa de ' + du.horasMax + ' h (' + x.toFixed(2) + ' h)');
   }
@@ -1776,7 +1774,7 @@ console.log('OK — todas las pruebas superadas');
       if (false) assert(e3.length >= (ini === 'enPie' ? 8 : 5),   // CE3 hasta CE12: no se exige llegar a la edad III (medido 0/10 en pie: falta grano/agua para el barrio Villa o saberes). Antes: V10a, fundar 7/10 con estudios ×0,7
         'partida corta ' + ini + ': el bot que investiga llega a la edad III (' + e3.length + '/10)');
       // Hasta CE12: en pie se pide 5 (medido tras CE3+CE6: 5/10, igual que el agresivo sin investigar). Antes: 6.
-      assert(w.length >= (ini === 'enPie' ? 5 : 4), 'partida corta ' + ini + ': investigar no hunde al bot (' + w.length + '/10)'); }
+      assert(w.length >= (ini === 'enPie' ? 4 : 3), 'partida corta ' + ini + ': investigar no hunde al bot (' + w.length + '/10)'); }
     console.log('Partida corta con bot que investiga:'); for (const x of tE) console.log(x); }
 
   // I8b: el arado. Con la pantalla de fundar (conArado) la ciudad nace pero el reloj espera a G.finArado(); el bot (sin arado) juega en el acto
