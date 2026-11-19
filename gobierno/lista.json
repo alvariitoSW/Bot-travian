@@ -48,9 +48,11 @@
       "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría. Roma con el aspecto de su siglo (CI1): templo toscano, muralla de toba lisa, ínsulas, foro con tabernas, más ciudad a la vista y campos por estaciones.",
       "captura": "gobierno/capturas-tarea/Q1k-5-barrios.jpg",
       "tareas": [
-        "CI1b"
+        "CI1b",
+        "CI3a",
+        "CI3b"
       ],
-      "falta": "Tu pedido: calles con sentido (CI1b, espera tu respuesta en el cuadro) y el gobierno visible en la ciudad (dentro de CS2). «Más ciudad de verdad» y dos mapas de la ciudad: tu decisión en el cuadro (hoy, después de la 1.0)."
+      "falta": "Tus pedidos: calles con sentido (CI1b) y la ciudad ×5 a la vista (CI3a, a punto de cerrarse; luego CI3b, que cuente en la economía, tras CE3), y el gobierno visible en la ciudad (dentro de CS2). El pulido que queda de la ciudad romana: pregunta CI1c del cuadro."
     },
     {
       "id": "L2",
