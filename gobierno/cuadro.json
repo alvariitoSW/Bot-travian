@@ -2018,12 +2018,6 @@
       "titulo": "Versión 1.0 · GM43h Testudo a pie: lanzar el pilum y la lucha (Fable dirige, Opus construye)",
       "nota": "Terminada el 18/11: pilum en maqueta; fundida en TP1",
       "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
-    },
-    {
-      "tarea": "CI1b",
-      "titulo": "Cerebro · CI1b+CI3a Calles con sentido y ciudad ×5 a la vista (Opus; tope duro)",
-      "nota": "Parada en el techo 6,4 M, sin subir (queda un fallo de sim.test); espera tu decisión en el cuadro. 11 commits solo en su contenedor",
-      "url": "https://claude.ai/code/session_01QiKC3AfVQgWjdzHpMKkgYR"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
