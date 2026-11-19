@@ -164,9 +164,9 @@ t('medidas con y sin cada mejora', () => {
     if (ef.crece) { const a = med([], () => G.bonoMul('crece')), b = med(B, () => G.bonoMul('crece')); assert.ok(ef.crece > 1 ? b > a : b < a, 'crece ' + er); }
     if (ef.impuestos) { const a = med([], () => G.cuentas().denarios.impuestos), b = med(B, () => G.cuentas().denarios.impuestos); assert.ok(b > a, 'impuestos ' + er); }
     if (ef.oroCom) { const a = med([], () => G.cuentas().denarios.foro), b = med(B, () => G.cuentas().denarios.foro); assert.ok(b > a, 'oroCom ' + er); }
-    if (ef.obra) { const a = med([], () => G.buildTime(base.cities.roma, 'foro')), b = med(B, () => G.buildTime(base.cities.roma, 'foro')); assert.ok(b < a, 'obra ' + er); }
+    if (ef.obra) { const a = med([], () => G.obraMul(base.cities.roma)), b = med(B, () => G.obraMul(base.cities.roma));   /* CE3-A1: el bono de obra abarata, no acorta */ assert.ok(b < a, 'obra ' + er); }
     if (ef.paga) { const a = med([], () => G.mantenimiento().tropas), b = med(B, () => G.mantenimiento().tropas); assert.ok(b < a, 'paga ' + er); }
-    if (ef.instr) { const a = med([], () => G.trainDur(base.cities.roma, 'hastati', 10)), b = med(B, () => G.trainDur(base.cities.roma, 'hastati', 10)); assert.ok(b < a, 'instr ' + er); }
+    if (ef.instr) { const a = med([], () => G.instrMul(base.cities.roma, 'hastati')), b = med(B, () => G.instrMul(base.cities.roma, 'hastati'));   /* CE3-A1: abarata el lote */ assert.ok(b < a, 'instr ' + er); }
     if (ef.popCap) { const a = med([], () => G.popCap(base.cities.roma)), b = med(B, () => G.popCap(base.cities.roma)); assert.ok(b > a, 'popCap ' + er); }
     if (ef.fel) { const a = med([], () => G.felicidad(base.cities.roma)), b = med(B, () => G.felicidad(base.cities.roma)); assert.ok(ef.fel > 0 ? b > a : b < a, 'fel ' + er); }
     if (ef.rutas) { const a = med([], () => G.rutaMax(base.cities.roma)), b = med(B, () => G.rutaMax(base.cities.roma)); assert.strictEqual(b, a + 1, 'rutas ' + er); }
