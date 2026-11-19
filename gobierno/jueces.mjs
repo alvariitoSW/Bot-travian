@@ -345,7 +345,7 @@ async function navegador() {
         const e = await estado(() => { const E = Game.ciudadE('roma'), e = E.edificios.find(q => !q.obra && !q.ruina && DATA.BUILD[q.tipo] && q.x !== undefined); if (!e) return null; UI.cityV.mirar(e.x, e.z, 260, 0); return { x: e.x, z: e.z }; });
         if (!e) break; await espera(2500);
         const p = await page.evaluate(e => UI.cityV.aPantalla(e.x, e.z, 4), e); await page.touchscreen.tap(p.x, p.y); await espera(700);
-        fichaOk = await estado(() => !!document.querySelector('#fichab .ficha [data-act="mejpz"]'));
+        fichaOk = await estado(() => !!document.querySelector('#fichab .ficha [data-act="mejpz"], #fichab .ficha .nv5-no'));   // CE3: regla de CE1, ningún edificio pasa del Foro; al nivel del Foro la ficha enseña el aviso «⚠ Sube antes el Foro» en vez de «Mejorar»
       }
       if (!fichaOk) fallos.push('la ficha de una pieza no enseña «mejorar»');
       const captura2 = await foto('construir-ficha');
