@@ -85,3 +85,11 @@
 #mn .creditos{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 8px);font-size:10.5px;color:#8d846f;text-align:center;padding:0 16px}
 #mn-carga{background:#15130f!important}
 @media (max-height:420px){#mn .velo h1{font-size:26px}#mn .velo{gap:8px}#mn .creditos{position:static}}
+
+/* CG6: a pie, desde el hombro. Arriba: reloj, Pausa, el estado de tu manípulo en palabras y «Mando»; abajo a la izquierda, la palanca */
+#mn-estado{flex:1;min-width:0;padding:6px 10px;border-radius:10px;background:var(--vidrio);border:1px solid var(--fil);font-size:13px;font-weight:600;white-space:nowrap;overflow:clip;text-overflow:ellipsis}
+#mn-subir{margin-left:auto;border-color:var(--oro)!important;color:var(--oro)}
+#mn-palanca{position:absolute;left:calc(env(safe-area-inset-left) + 18px);bottom:calc(env(safe-area-inset-bottom) + 16px);width:128px;height:128px;border-radius:50%;background:rgba(18,15,11,.42);border:2px solid var(--fil);touch-action:none}
+#mn-palanca i{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px 0 0 -27px;border-radius:50%;background:rgba(233,192,99,.45);border:2px solid var(--oro);pointer-events:none}
+#mn:not(.apie) #mn-estado,#mn:not(.apie) #mn-subir,#mn:not(.apie) #mn-palanca{display:none!important}
+#mn.apie #mn-vel,#mn.apie #mn-retirar,#mn.apie #mn-abajo,#mn.apie .mn-e{display:none!important}
