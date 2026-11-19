@@ -290,7 +290,8 @@ async function navegador() {
       await page.setViewportSize({ width: 390, height: 844 }); await espera(800);
     } });
     async function bajarApie() {
-      if (!(await page.locator('#hoja .esc').count())) { await page.click('#menu .mesc'); await espera(800); }   /* el menú se toca en vertical, como en el paso anterior */
+      /* el menú se toca en vertical; tras el paso anterior la hoja del resultado (.esc-fin) sigue en la página, así que se mira el botón */
+      if (!(await page.locator('[data-act="escempieza"]').count())) { await page.click('#menu .mesc'); await espera(800); }
       await page.setViewportSize({ width: 844, height: 390 }); await espera(500);
       await page.click('[data-act="escempieza"]');
       await page.waitForFunction(() => window.__mn && window.__mn.lista === true, null, { timeout: 180000 }).catch(() => { });
