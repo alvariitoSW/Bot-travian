@@ -70,6 +70,9 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
 - **Arte**: skill `arte` y `node gobierno/arte.mjs` (peso, triángulos, licencias). Presupuesto en `gobierno/arte.json`.
 - **Historia**: skill `historia`. Todo contenido de época lleva fuente y dictamen histórico; lo cambiado para poder
   jugar se marca como licencia de juego.
+- **Vídeos y capturas de referencia que enseña el usuario** (usuario, 19/11): no se guardan en el repositorio (son de juegos
+  comerciales y todo lo del repositorio se publica con el juego). Quien los reciba escribe su ficha de ideas en
+  `gobierno/estudios/REF-batallas-referencias.md` antes de cerrar; quien diseñe batallas la lee primero y no le pide que repita.
 - **Mirar fuera**: skills `ingenieria-reversa` (una mecánica de otro juego) y `radar` (arte libre, técnica, historia).
   Ideas sí; código y arte de juegos comerciales, nunca.
 - **Gasto**: presupuesto antes de empezar y `node gobierno/gasto.mjs` al cerrar. El director no construye.
