@@ -28,6 +28,13 @@
     <button id="mn-subir" class="mn-b1" type="button">Mando</button>
   </div>
   <div id="mn-palanca"><i></i></div>
+  <div id="mn-apieo"></div>
+  <div id="mn-anillo"><b></b><span></span></div>
+  <div id="mn-lucha">
+    <div id="mn-fuelle"><span>Aliento</span><i><b></b></i><em id="mn-heridas"></em></div>
+    <button type="button" data-g="pilum">Pilum</button><button type="button" data-g="empujar">Empujar</button>
+    <button type="button" data-g="parar">Parar</button><button type="button" data-g="golpear">Golpear</button>
+  </div>
   <div id="mn-cinta"></div>
   <div id="mn-aviso" hidden></div>
   <div id="mn-abajo">
@@ -215,6 +222,7 @@
         const tira = u.tirando >= 0, rapido = /^(elefantes|equites|numidas|jinetes|tesalios|general)$/.test(u.tropa);
         for (let i = 0; i < n; i++) {
           if (apie && m.vivos[i] === apie.f) continue;   /* tú: te mueve la palanca */
+          if (duelo && m.vivos[i] === duelo.g) continue;   /* tu galo: lo pone el duelo */
           const f = m.vivos[i], [lx0, ly0, fila, su] = sitio(m, u, i, n, F, Df), lx = lx0 + f.jx * su * 2, ly = ly0 + f.jy * su * 2;
           const tx = px + lx * s + ly * c, ty = py - lx * c + ly * s, TX = tx, TZ = -ty;
           const k = salto || dt <= 0 ? (salto ? 1 : 0) : 1 - Math.exp(-dt * 5);
@@ -234,12 +242,14 @@
     /* qué movimiento hace cada figura: [clip, valor, modo] con modo 'c' ciclo (fase), 'p' fracción del clip (0–1), 's' segundos */
     function movimiento(f) {
       if (f.est === 1) return ['morir', (Tv - f.t0) / 2.4, 'p'];
+      if (f.dClip != null) return [f.dLanza ? 'lanzar' : 'golpear', f.dClip, 'p'];   /* CG6b: tu duelo */
+      if (f.dPara) return ['cubrirse', PARADA_N, 'p'];
       if (f.marcha === 2) return ['correr', f.fase, 'c'];
       if (f.marcha === 1) return ['andar', f.fase, 'c'];
       if (f.lucha) { const q = ((Tv * f.ritmo + f.ph) / 2.2) % 1; return q < 0.45 ? ['golpear', q / 0.45, 'p'] : q < 0.75 ? ['cubrirse', (q - 0.45) / 0.3 * PARADA_N, 'p'] : ['guardia', Tv + f.ph, 's']; }
       if (f.tira) { const q = ((Tv * f.ritmo + f.ph) / 2.8) % 1; return q < 0.62 ? ['lanzar', q / 0.62, 'p'] : [f.vq, Tv + f.ph, 's']; }
       if (f.forma === 'testudo' || f.forma === 'muro') return ['cubrirse', PARADA_N, 'p'];
-      if (f.aguanta) return ['guardia', Tv + f.ph, 's'];
+      if (f.aguanta || f.dGuardia) return ['guardia', Tv + f.ph, 's'];
       return [f.vq, Tv + f.ph, 's'];
     }
     const VIEJO = { quieto: 'idle', quieto2: 'idle', quieto3: 'idle', guardia: 'idle', andar: 'walk', correr: 'run', golpear: 'attack_melee', cubrirse: 'attack_melee', lanzar: 'attack_ranged', morir: 'death' };
@@ -335,6 +345,7 @@
       sel = sel.filter(i => S.man[i] && vivo(S.man[i]));
       const t = Math.floor(S.t), reloj = Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); if ($('reloj').textContent !== reloj) $('reloj').textContent = reloj;
       if (apie) { const u = S.man[apie.id], p = Sim.palabras(u, S), t = u.nom + ': ' + Math.round(u.n) + ' hombres, ' + p.animo + ', ' + p.cansancio + (p.combate ? ', ' + p.combate : ''); if ($('estado').textContent !== t) $('estado').textContent = t; }
+      if (apie) pintarApieo(fuerza);
       const ft = $('ficha-t'), od = $('ordenes');
       let html = '', ords = '';
       if (!sel.length) { html = '<span class="ayuda">Toca un manípulo tuyo (rojo) para mandarlo. Arrastra el campo para mirar; pellizca para acercar.</span>'; }
@@ -377,11 +388,31 @@
       ordenar(JSON.parse(b.dataset.o));
     });
     $('varios').addEventListener('click', () => { varios = !varios; pintarHud(true); });
+    /* CG6b: a pie, una fila de órdenes para TU manípulo: Cargad, Aguantar, Relevo y Formar (las formas de su tropa, Sim.ordenesDe) */
+    let apieForm = false, apieClave = '';
+    function pintarApieo(fuerza) {
+      const u = S.man[apie.id], os = Sim.ordenesDe(S, apie.id), no = t => (os.find(o => o.tipo === t) || {}).no || '';
+      const b = (o, txt, n, on) => '<button type="button" class="' + (n ? 'no' : '') + (on ? ' on' : '') + '" data-o="' + esc(JSON.stringify(o)) + '" data-no="' + esc(n) + '">' + esc(txt) + '</button>';
+      const h = apieForm ? os.filter(o => o.tipo === 'formar').map(o => b({ tipo: 'formar', forma: o.forma }, o.nombre, o.no, u.forma === o.forma)).join('') + '<button type="button" class="b" data-volver="1">Volver</button>'
+        : b({ tipo: 'cargar' }, 'Cargad', no('cargar')) + b({ tipo: 'aguantar' }, 'Aguantar', no('aguantar'), u.orden === 'aguantar') + b({ tipo: 'relevar' }, 'Relevo', no('relevar')) + '<button type="button" data-formas="1">Formar…</button>';
+      if (h !== apieClave || fuerza) { apieClave = h; $('apieo').innerHTML = h; }
+    }
+    $('apieo').addEventListener('pointerdown', e => e.stopPropagation());
+    $('apieo').addEventListener('click', e => {
+      const b = e.target.closest('button'); if (!b || !apie) return;
+      if (b.dataset.formas) { apieForm = true; pintarHud(true); return; }
+      if (b.dataset.volver) { apieForm = false; pintarHud(true); return; }
+      if (b.dataset.no) { aviso(b.dataset.no); return; }
+      const o = JSON.parse(b.dataset.o), no = Sim.ordenar(S, Object.assign({ lado: 0, ids: [apie.id] }, o));
+      if (no) aviso(no); else { if (o.tipo === 'formar') apieForm = false; aviso(o.tipo === 'formar' ? 'Formad: ' + FORMAS[o.forma].n : { cargar: '¡Cargad!', aguantar: '¡Aguantad!', relevar: 'Relevo: entra la línea de atrás' }[o.tipo]); }
+      pintarHud(true);
+    });
 
     /* ---------- CG6: a pie, desde el hombro (CG1 §5.3 y §7). Eres el centurión: una figura de la primera fila que mueve la palanca.
        El manípulo te sigue con órdenes «mover» del simulador (una sola verdad); no puedes alejarte más de 15 m de su frente.
        En esta tanda no hay lucha a pie: solo bajar, mirar, andar, correr y volver al mando. ---------- */
-    const V_ANDA = 1.6, V_CORRE = 5, LIBRE = 4, CORREA = 15, CAM_AP = { atras: 3.2, alto: 1.9, lado: 0.6, mira: 12 };
+    const V_ANDA = 1.6, V_CORRE = 5, LIBRE = 4, CORREA = 15, CAM_AP = { atras: 3.2, alto: 1.9, lado: 0.6, mira: 12 },
+      CAM_DU = { h: { atras: 4.2, alto: 2.3, lado: 1.5, mira: 5, mlado: 0.5, ly: 0.2 }, v: { atras: 6, alto: 2.8, lado: 1.6, mira: 4, mlado: 0.4, ly: 0.1 } };
     const palanca = { x: 0, y: 0 };
     const simA = yaw => Math.atan2(-Math.cos(yaw), Math.sin(yaw));      /* giro de figura → ángulo del simulador (inverso de yawDe) */
     function puedeBajar(id) {
@@ -411,7 +442,7 @@
       return '';
     }
     function subir(motivo) {
-      if (!apie) return; const { id, f } = apie; f.talla = apie.talla; apie = null; soltarPalanca(); gesto = null; dedos.clear();
+      if (!apie) return; acabaDuelo(); const { id, f } = apie; f.talla = apie.talla; apie = null; soltarPalanca(); gesto = null; dedos.clear();
       if (aro) aro.visible = false; el.classList.remove('apie'); medir();
       const u = S.man[id]; cam.x = u.x; cam.z = -u.y; ponCamara();
       sel = vivo(u) ? [id] : []; pintarHud(true); if (motivo) aviso(motivo);
@@ -424,7 +455,8 @@
       if (!vivo(u)) { subir(u.estado === 'caida' || u.n <= 0 ? 'Tu manípulo ha caído: vuelves al mando' : 'Tu manípulo ha roto: vuelves al mando'); return; }
       if (f.est !== 0) { subir('Has caído: vuelves al mando'); return; }
       if (dt <= 0) return;
-      const L = Math.min(1, Math.hypot(palanca.x, palanca.y)), vObj = L < 0.15 ? 0 : L > 0.8 ? V_CORRE : V_ANDA;
+      lucharApie(dt / vel); if (!apie) return;
+      const L = duelo ? 0 : Math.min(1, Math.hypot(palanca.x, palanca.y)), vObj = L < 0.15 ? 0 : L > 0.8 ? V_CORRE : V_ANDA;
       apie.v += Math.max(-6 * dt, Math.min((vObj > V_ANDA ? 4 : 3) * dt, vObj - apie.v));
       const cy = apie.yaw, fx = Math.sin(cy), fz = Math.cos(cy), rx = -Math.cos(cy), rz = Math.sin(cy);
       let dx = 0, dz = 0;
@@ -440,19 +472,73 @@
       f.yaw = mezclaAng(f.yaw, dd > 1e-3 ? Math.atan2(mx, mz) : apie.yaw, Math.min(1, dt * 6));
       if (aro) aro.position.set(f.x, 0.05, f.z);
       /* cada segundo de batalla: si te has ido de tu puesto (o miras a otro lado), el manípulo viene a ponerse detrás de ti */
-      if (S.t - apie.tSig >= 1) {
+      /* CG6b: cada 0,25 s, y con el destino adelantado medio segundo a tu paso, para que al correr vayan pegados (mover con vel) */
+      if (S.t - apie.tSig >= 0.25) {
         apie.tSig = S.t;
-        const a = simA(apie.yaw), giro = Math.abs(mezclaAng(u.a, a, 1) - u.a);
-        if (Math.hypot(f.x - p.x, -f.z - p.y) > LIBRE || giro > 0.7) {
-          const B = Sim.fondo(u) / 2 + 2; Sim.ordenar(S, { tipo: 'mover', lado: 0, ids: [apie.id], x: f.x - Math.cos(a) * B, y: -f.z - Math.sin(a) * B, a });
+        const a = simA(apie.yaw), giro = Math.abs(mezclaAng(u.a, a, 1) - u.a), anda = apie.v > 0.3, d = apie.dir || [0, 0];
+        const ocupado = (u.orden === 'cargar' || u.orden === 'aguantar' || u.relevo > 0) && !anda;   /* tu Cargad o Aguantar no lo pisa el seguirte */
+        if (!ocupado && (anda || Math.hypot(f.x - p.x, -f.z - p.y) > LIBRE || giro > 0.7)) {
+          const B = Sim.fondo(u) / 2 + 2, ade = anda ? apie.v * 0.5 : 0;
+          Sim.ordenar(S, { tipo: 'mover', lado: 0, ids: [apie.id], x: f.x + d[0] * ade - Math.cos(a) * B, y: -(f.z + d[1] * ade) - Math.sin(a) * B, a, vel: anda ? apie.v : 0 });
         }
       }
     }
+    /* ---------- CG6b: tu duelo a pie. Al tocar los tuyos al enemigo (S.cont), el galo más cercano viene a ponerse delante de ti.
+       Las reglas son las de la maqueta TP8b (Sim.duelo / Sim.dueloPaso, lógica pura); aquí solo se ve y se toca. ---------- */
+    let duelo = null, pide = null; const D_DUELO = 1.6;
+    function galoCerca(rid) { const m = mans[rid], f = apie.f; if (!m) return null; let g = null, d = 1e9; for (const x of m.vivos) { const e = Math.hypot(x.x - f.x, x.z - f.z); if (x.est === 0 && e < d) { d = e; g = x; } } return g; }
+    function sueltaFig(x) { if (x) { x.dClip = null; x.dPara = false; x.dGuardia = false; x.dLanza = false; } }
+    function acabaDuelo() { if (!duelo) return; sueltaFig(duelo.g); sueltaFig(apie && apie.f); duelo = null; pide = null; el.classList.remove('duelo'); }
+    function caeFig(id, x) { x.est = 1; x.t0 = Tv; sueltaFig(x); const v = mans[id].vivos, i = v.indexOf(x); if (i >= 0) v.splice(i, 1); }
+    function lucharApie(dt) {
+      const id = apie.id, c = (S.cont[id] || []).filter(k => vivo(S.man[k.id]) && Sim.aPie(S.man[k.id].tropa)), ce = c.find(k => k.cara === 'frente') || c[0];   /* CG6b: el duelo, solo contra infantes */
+      if (!ce) { acabaDuelo(); return; }
+      if (!duelo) {
+        const g = galoCerca(ce.id); if (!g) return;
+        duelo = { D: Sim.duelo(id * 131 + Math.round(S.t * 10)), rid: ce.id, g, visto: 0 };
+        apie.yaw = Math.atan2(g.x - apie.f.x, g.z - apie.f.z); el.classList.add('duelo'); aviso('¡Un galo viene a por ti!');
+      }
+      if (duelo.g.est !== 0 || !mans[duelo.rid].vivos.includes(duelo.g)) { const g = galoCerca(duelo.rid); if (!g) { acabaDuelo(); return; } duelo.g = g; }
+      const D = duelo.D, hechos = Sim.dueloPaso(D, dt, pide); pide = null;
+      for (const h of hechos) {
+        if (h === 'mata') { caeFig(duelo.rid, duelo.g); Sim.apie(S, id, { mata: 1 }); const g = galoCerca(duelo.rid); if (!g) { acabaDuelo(); return; } duelo.g = g; }
+        else if (h === 'herido') Sim.apie(S, id, { heridas: 1 });
+        else if (h === 'cae') {
+          Sim.apie(S, id, { cae: 1 }); const viejo = apie.f, v = mans[id].vivos.filter(x => x !== viejo && x.est === 0); viejo.talla = apie.talla; caeFig(id, viejo);
+          if (!v.length) { subir('No queda nadie en pie: vuelves al mando'); return; }
+          let nf = v[0], d = 1e9; for (const x of v) { const e = Math.hypot(x.x - viejo.x, x.z - viejo.z); if (e < d) { d = e; nf = x; } }
+          apie.f = nf; apie.talla = nf.talla; nf.talla *= 1.08; nf.lucha = nf.tira = nf.aguanta = false; nf.forma = 'linea'; nf.x = viejo.x; nf.z = viejo.z;
+        }
+      }
+      for (; duelo.visto < D.eco.length; duelo.visto++) aviso(D.eco[duelo.visto].texto);
+      /* tu galo: se acerca y se pone delante, de cara a ti; al empujarlo recula un paso */
+      const v = Sim.dueloVer(D), f = apie.f, g = duelo.g, yaw = apie.yaw, L = D_DUELO + (v.abierto && D.T < D.deseq ? 0.45 : 0);
+      const tx = f.x + Math.sin(yaw) * L, tz = f.z + Math.cos(yaw) * L, k = 1 - Math.exp(-dt * 3), ox = g.x, oz = g.z;
+      g.x += (tx - g.x) * k; g.z += (tz - g.z) * k; const dd = Math.hypot(g.x - ox, g.z - oz);
+      g.ve = dt > 0 ? dd / dt : 0; g.marcha = g.ve > 0.35 ? 1 : 0; if (g.marcha) g.fase += dd / 1.5 / TALLA; g.yaw = mezclaAng(g.yaw, yaw + Math.PI, Math.min(1, dt * 6));
+      g.dClip = g.marcha ? null : v.clipG; g.dGuardia = true; g.lucha = false;
+      f.dClip = v.clipR; f.dLanza = v.tuPilum; f.dPara = v.parando && v.clipR == null; f.dGuardia = true; f.yaw = mezclaAng(f.yaw, yaw, Math.min(1, dt * 6));
+      pintarLucha(v);
+    }
+    const anillo = $('anillo'), fuelleB = $('fuelle').querySelector('b');
+    function pintarLucha(v) {
+      fuelleB.style.width = v.fuelle + '%'; fuelleB.style.background = v.fuelle < v.costes.golpear ? '#c0452f' : '#e9c063';
+      $('heridas').textContent = 'Heridas ' + v.heridas + ' de 3';
+      for (const b of $('lucha').querySelectorAll('button')) { const q = b.dataset.g; b.classList.toggle('no', q === 'pilum' ? !v.pilum : v.fuelle < v.costes[q]); }
+      const a = v.aviso; anillo.hidden = !a; if (!a) return;
+      const g = duelo.g; V3.set(g.x, altoN * TALLA * 0.8, g.z).project(camara);
+      const fr = Math.min(1, a.frac), r = Math.round(240 - 30 * fr), gg = Math.round(176 - 140 * fr);
+      anillo.style.left = Math.round((V3.x + 1) / 2 * ancho) + 'px'; anillo.style.top = Math.round((1 - V3.y) / 2 * alto) + 'px';
+      anillo.firstElementChild.style.transform = 'scale(' + (1.7 - 1.2 * fr).toFixed(3) + ')'; anillo.firstElementChild.style.borderColor = a.ventana || a.imparable ? '#e8341f' : 'rgb(' + r + ',' + gg + ',40)';
+      anillo.lastElementChild.textContent = a.imparable ? '¡No se para!' : a.ventana ? '¡Para!' : '';
+    }
+    for (const b of $('lucha').querySelectorAll('button')) b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (duelo) pide = b.dataset.g; });
     /* la cámara al hombro: detrás y a la derecha, mirando 12 m delante; suavizada (dt real) */
     function camaraApie(dt, salto) {
       const f = apie.f, y = apie.yaw, fx = Math.sin(y), fz = Math.cos(y), rx = -Math.cos(y), rz = Math.sin(y), K = TALLA;
-      const tx = f.x - fx * CAM_AP.atras * K + rx * CAM_AP.lado * K, tz = f.z - fz * CAM_AP.atras * K + rz * CAM_AP.lado * K, ty = CAM_AP.alto * K;
-      const lx = f.x + fx * CAM_AP.mira, lz = f.z + fz * CAM_AP.mira, ly = 1.1;
+      const C = duelo ? (ancho < alto ? CAM_DU.v : CAM_DU.h) : CAM_AP;   /* CG6b: en duelo, más atrás y sobre el hombro derecho */
+      const tx = f.x - fx * C.atras * K + rx * C.lado * K, tz = f.z - fz * C.atras * K + rz * C.lado * K, ty = C.alto * K;
+      const lx = f.x + fx * C.mira + rx * (C.mlado || 0) * K, lz = f.z + fz * C.mira + rz * (C.mlado || 0) * K, ly = C.ly || 1.1;
       const k = salto ? 1 : 1 - Math.exp(-dt * 7), P = camara.position;
       if (!apie.look || salto) apie.look = { x: lx, y: ly, z: lz };
       P.set(P.x + (tx - P.x) * k, P.y + (ty - P.y) * k, P.z + (tz - P.z) * k);
@@ -649,7 +735,10 @@
       terminar, ver: () => verFormas,
       /* CG6: a pie. bajar(id) devuelve '' o el motivo; palanca(dx, dy) de −1 a 1 (dy −1 = adelante, como en pantalla; 0, 0 la suelta) */
       camaraY: () => camara.position.y,
-      bajar: id => bajar(id), subir: () => subir(), palanca: (dx, dy) => { if (!dx && !dy) soltarPalanca(); else ponPalanca(dx, dy); },
+      bajar: id => bajar(id), subir: () => subir(),
+      /* CG6b: tu duelo. golpe('golpear' | 'parar' | 'empujar' | 'pilum') lo hace en el siguiente cuadro; duelo() su estado o null */
+      golpe: que => { if (!duelo) return 'No hay duelo'; pide = que; return ''; },
+      duelo: () => { if (!duelo) return null; const v = Sim.dueloVer(duelo.D); return { rival: duelo.rid, aviso: v.aviso, fuelle: v.fuelle, heridas: v.heridas, mata: v.mata, caidas: v.caidas, abierto: v.abierto, pilum: v.pilum }; }, palanca: (dx, dy) => { if (!dx && !dy) soltarPalanca(); else ponPalanca(dx, dy); },
       apie: () => apie ? { id: apie.id, x: apie.f.x, y: -apie.f.z, yaw: apie.yaw, v: apie.v, camara: { x: camara.position.x, y: camara.position.y, z: camara.position.z } } : null,
       /* triángulos por pieza de la escena (para el presupuesto) */
       desglose: () => { const r = {}; escena.traverse(o => { if (!o.isMesh || !o.visible) return; const g = o.geometry, t = (g.index ? g.index.count : g.attributes.position.count) / 3, n = o.isInstancedMesh ? o.count : 1, k = o.name || (o.isInstancedMesh ? 'inst' : 'malla') + ':' + Math.round(t); r[k] = (r[k] || 0) + Math.round(t * n); }); return r; }

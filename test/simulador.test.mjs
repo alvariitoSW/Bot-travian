@@ -193,5 +193,34 @@ t('corre en el navegador: sin APIs solo de Node; vista y palabras para pintar', 
   assert.ok(['firme', 'duda', 'rompe'].includes(v.palabras.animo) && ['fresca', 'cansada', 'agotada'].includes(v.palabras.cansancio));
 });
 
+t('CG6b: tu duelo a pie (reglas de TP8b) y su peso en el simulador, con tope', () => {
+  /* parar a tiempo abre al galo y tu golpe entra: dos golpes, un galo abatido; sin heridas */
+  const bien = Z.duelo(7); let pide = null;
+  for (let i = 0; i < 1200; i++) { const v = Z.dueloVer(bien); pide = v.aviso && v.aviso.ventana && !v.parando ? 'parar' : v.abierto && v.clipR === null ? 'golpear' : null; Z.dueloPaso(bien, 0.05, pide); }
+  assert.ok(bien.mata >= 3 && bien.caidas === 0, 'bien llevado: ' + bien.mata + ' galos, ' + bien.caidas + ' caídas');
+  /* golpear sin abrir: te para y el contraataque no se para; sin parar, a la tercera herida caes */
+  const mal2 = Z.duelo(7); for (let i = 0; i < 1200; i++) Z.dueloPaso(mal2, 0.05, i % 30 === 0 ? 'golpear' : null);
+  assert.ok(mal2.caidas >= 2 && mal2.mata === 0, 'a lo loco: ' + mal2.caidas + ' caídas');
+  assert.ok(mal2.eco.some(e => /Te para/.test(e.texto)) && mal2.eco.some(e => /descubierto/.test(e.texto)));
+  /* aliento: cada gesto gasta; sin aliento no golpeas */
+  const f = Z.duelo(1); f.fuelle = 10; Z.dueloPaso(f, 0.01, 'golpear'); assert.ok(!f.tu && /aliento/.test(f.eco.at(-1).texto));
+  /* pilum: una vez, solo al empezar */
+  const p = Z.duelo(2); Z.dueloPaso(p, 0.1, 'pilum'); assert.ok(!p.pilum); Z.dueloPaso(p, 0.1, 'pilum'); assert.ok(/Ya lanzaste/.test(p.eco.at(-1).texto));
+  /* el gancho: resta al rival en contacto, con tope del 30 % de sus bajas; avisa; determinista */
+  const S = choque(frente2('hastati', 'galos'), alChoque, 25); const r = S.cont[0][0].id, n0 = S.man[r].n, m0 = S.man[r].moral;
+  const a = Z.apie(S, 0, { mata: 1 }); assert.equal(a.mata, 1); assert.equal(S.man[r].n, n0 - 1); assert.ok(S.man[r].moral < m0);
+  assert.ok(S.reg.some(e => e.tipo === 'apie' && /abate a un galo/.test(e.texto)));
+  let q = 0; for (let i = 0; i < 200; i++) q += Z.apie(S, 0, { mata: 1 }).mata; assert.ok(q + 1 <= Math.max(2, 0.3 * (S.man[r].n0 - S.man[r].n + 1)) + 1, 'tope: ' + q);
+  const nt = S.man[0].n; Z.apie(S, 0, { cae: 1 }); assert.equal(S.man[0].n, nt - 1);
+});
+
+t('CG6b: a pie, el manípulo sigue a su centurión a su paso (mover con vel) y el duelo es solo contra infantes', () => {
+  const ir = vel => { const S = Z.crear({ semilla: 3, manipulos: [{ lado: 0, tropa: 'hastati', x: 0, y: -100, mando: 'jugador' }, { lado: 1, tropa: 'galos', x: 0, y: 100, mando: 'jugador' }] });
+    const y0 = S.man[0].y; Z.ordenar(S, { tipo: 'mover', lado: 0, ids: [0], x: 0, y: y0 + 60, vel }); Z.avanzar(S, 4); return S.man[0].y - y0; };
+  const lento = ir(0), rapido = ir(5);
+  assert.ok(lento < 8 && rapido > 16, 'sin vel ' + lento.toFixed(1) + ' m, con vel 5: ' + rapido.toFixed(1) + ' m en 4 s');
+  assert.ok(Z.aPie('hastati') && Z.aPie('galos') && !Z.aPie('jinetes') && !Z.aPie('elefantes') && !Z.aPie('equites'));
+});
+
 console.log(`\n${n} bien, ${mal} mal`);
 if (mal) process.exit(1);

@@ -189,9 +189,9 @@
       "titulo": "El testudo a pie, dentro del juego",
       "estado": "medias",
       "veras": "Bajas a pie desde un manípulo de la batalla, con la vista desde el hombro: te mueves, luchas y usas habilidades (el testudo, una más); si caes, sigues como otro soldado.",
-      "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas. En la batalla nueva de Escaramuzas ya se baja a un manípulo («Bajar»): eres el centurión, con la cámara al hombro, andas y corres con la palanca, tu manípulo te sigue y la batalla sigue alrededor; «Mando» te sube (CG6, tanda 1).",
-      "falta": "A pie dentro de la batalla falta la lucha (Golpear, Parar, Empujar, caer y seguir como otro: CG6 tanda 2), el pilum, las órdenes y habilidades y que lo hecho a pie cuente en el simulador (CG6b), el sonido (GM43i) y las caras (GM43j).",
-      "captura": "gobierno/capturas-tarea/CG6-2-hombro.jpg",
+      "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas. En la batalla nueva de Escaramuzas ya se baja a un manípulo («Bajar»): eres el centurión, con la cámara al hombro, andas y corres con la palanca, tu manípulo te sigue y la batalla sigue alrededor; «Mando» te sube (CG6, tanda 1). A pie ya se lucha (Golpear, Parar, Empujar, Pilum; si caes, sigues como otro soldado), se dan órdenes y lo hecho cuenta en la batalla (CG6b).",
+      "falta": "El duelo de cerca dentro de la fila (CG6c), el sonido (GM43i) y las caras (GM43j).",
+      "captura": "gobierno/capturas-tarea/CG6b-2-duelo-h.jpg",
       "tareas": [
         "TP1",
         "TP1b",
