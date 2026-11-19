@@ -98,6 +98,8 @@
   const car = t => CARACTER[t] || GENERICO;
   const nombre = t => (UN[t] && UN[t].n) || t;
   const cls = t => (UN[t] && UN[t].cls) || 'inf';
+  const aPie = t => !esCab(t) && t !== 'elefantes' && cls(t) !== 'ele';   /* CG6b: tropa a pie (el duelo es solo contra infantes) */
+  const VEL_APIE = 3.4;   /* CG6b: lo más que corre un manípulo tras su centurión, en veces su paso (1,6 × 3,4 ≈ 5,4 m/s en hastati) */
   const esCab = t => cls(t) === 'cav';
   const esTiro = t => cls(t) === 'rng';
   const esEle = t => cls(t) === 'ele';
@@ -274,6 +276,7 @@
   function hacer(S, u, o, cx, cy) {
     if (o.tipo === 'mover') {
       u.dest = { x: o.x + (u.x - cx), y: o.y + (u.y - cy), a: o.a }; u.orden = 'mover'; u.obj = -1; u.carga = false;
+      if (o.vel > 0) u.dest.vel = o.vel;   /* CG6b: a pie, el manípulo sigue a su centurión a la velocidad que lleva (m/s; licencia de juego) */
     } else if (o.tipo === 'formar') {
       u.luego = o.forma; u.cambio = u.forma === 'testudo' ? T_DESHACER : FORMAS[o.forma].t;
     } else if (o.tipo === 'cargar') {
@@ -545,6 +548,7 @@
       if (D2.a !== undefined) { const e = angDif(u.a, D2.a); u.a += limita(e, -F.giro * dt, F.giro * dt); if (Math.abs(e) > 0.02) return; }
       u.dest = null; if (u.orden !== 'cargar') u.orden = 'quieto'; return;
     }
+    if (D2.vel) { const b = velBase(u.tropa) * F.vel * (1 - 0.4 * u.fatiga); ritmo = Math.max(ritmo, Math.min(VEL_APIE, D2.vel / b)); if (ritmo > 1.2) u.fatiga = Math.min(1, u.fatiga + dt / 40 * car(u.tropa).cansa); }
     const v = velBase(u.tropa) * F.vel * (1 - 0.4 * u.fatiga) * ritmo * dt;
     if (D2.atras) { u.x += dx / d * Math.min(v, d); u.y += dy / d * Math.min(v, d); return; }      /* marcha atrás mirando al enemigo */
     const quiere = Math.atan2(dy, dx), e = angDif(u.a, quiere);
@@ -686,8 +690,106 @@
     return r;
   }
 
+
+  /* ---------- CG6b: a pie, tu duelo (reglas y números de la maqueta TP8b, gobierno/maquetas/a-pie/acciones.js, tuDuelo).
+     El galo de delante avisa su golpe: arma el brazo (el anillo se cierra, ámbar → rojo) y suelta. Si paras dentro de la
+     ventana, da en tu escudo y queda abierto: tu golpe entra. El empujón lo desequilibra (y corta su golpe si aún arma).
+     Golpear sin abrirlo: te para y su contraataque no se para. Cada gesto gasta aliento (0–100) y se recobra si no pulsas.
+     A la tercera herida caes y otro soldado toma tu puesto. El pilum, una vez, al empezar el duelo. Lógica pura: ni pantalla
+     ni azar de fuera (semilla propia). El reloj D.T lo lleva quien llama, en segundos. ---------- */
+  const C_EST = 30, C_EMP = 25, C_PAR = 8, C_PIL = 20, RECOBRA = 14, CONTRA = 0.22;
+  const AVISO = 0.95, RAPIDO = 0.4, FINTA = 0.5, VENTANA = 0.45, CD_PARAR = 0.75, SUELTA = 0.32, TU_GOLPE = 0.34, PILUM_HASTA = 2.5;
+  function duelo(semilla) {
+    return { T: 0, sem: (semilla >>> 0) % 2147483646 + 1, fuelle: 100, heridas: 0, mata: 0, caidas: 0, gg: 0, pilum: true, t0: 0,
+      at: null, tu: null, abierto: 0, deseq: 0, next: 1.4, tParar: -9, tEmpuja: 0, tPulsa: -9, contraT: 0, eco: [], hechos: [] };
+  }
+  const azarD = D => { D.sem = (D.sem * 16807) % 2147483647; return (D.sem - 1) / 2147483646; };
+  const ecoD = (D, t, c) => D.eco.push({ t: D.T, texto: t, clase: c || '' });
+  const ocupadoD = D => !!(D.at && D.T <= D.at.ts + 0.05) || !!(D.tu && D.T <= D.tu.ts + 0.05);
+  function avisaD(D, forz) {
+    const r = azarD(D), tipo = forz || (r < 0.3 ? 'rapido' : r < 0.58 && !(D.at && D.at.tipo === 'finta') ? 'finta' : 'tajo');
+    const tA = tipo === 'rapido' ? RAPIDO : tipo === 'contra' ? 0.1 : AVISO, tb = tA + (tipo === 'finta' ? FINTA : 0);
+    D.at = { tipo, t0: D.T, tA, tb, ts: D.T + tb + SUELTA, imparable: tipo === 'contra', hecho: false, ecoF: false };
+    D.next = D.at.ts + 1.3 + azarD(D) * 1.3; D.contraT = 0;
+  }
+  function nuevoGalo(D) { D.gg = 0; D.at = null; D.abierto = 0; D.deseq = 0; D.next = D.T + 1.6; }
+  /* un paso del duelo: dt segundos; pide = 'golpear' | 'parar' | 'empujar' | 'pilum' | null. Devuelve los hechos nuevos */
+  function dueloPaso(D, dt, pide) {
+    D.T += Math.max(0, dt || 0); const T = D.T, hechos = []; D.hechos = hechos;
+    if (pide) D.tPulsa = T;
+    if (T - D.tPulsa > 0.35) D.fuelle = Math.min(100, D.fuelle + RECOBRA * (dt || 0));
+    if (D.contraT && T >= D.contraT) avisaD(D, 'contra');
+    const oc = ocupadoD(D), abierto = T < D.abierto || T < D.deseq;
+    if (pide === 'parar') { if (T - D.tParar >= CD_PARAR && D.fuelle >= C_PAR) { D.tParar = T; D.fuelle -= C_PAR; hechos.push('para'); } }
+    else if (pide === 'empujar') {
+      if (T < D.tEmpuja) ecoD(D, 'Aún no: recobra el escudo', 'mal'); else if (D.fuelle < C_EMP) ecoD(D, 'Sin aliento', 'mal');
+      else {
+        D.tEmpuja = T + 1.5; D.fuelle -= C_EMP; hechos.push('empuja');
+        const armando = D.at && !D.at.hecho && T - D.at.t0 < D.at.tb * 0.9;
+        if (!oc || armando) { if (armando) D.at = null; D.deseq = T + 1.5; D.next = Math.max(D.next, T + 2.4); ecoD(D, armando ? '¡Le cortas el golpe! Golpea' : 'Lo desequilibras: ¡golpea!', 'bien'); }
+        else ecoD(D, 'Tarde: para su golpe', 'mal');
+      }
+    } else if (pide === 'golpear') {
+      if (oc) ecoD(D, D.tu ? 'Ya golpeas' : 'Espera: para su golpe', 'mal'); else if (D.fuelle < C_EST) ecoD(D, 'Sin aliento', 'mal');
+      else { D.fuelle -= C_EST; D.tu = { t0: T, ts: T + TU_GOLPE, abierto, pilum: false, hecho: false }; D.abierto = 0; D.deseq = 0; D.next = Math.max(D.next, T + 1.6 + azarD(D) * 0.8); hechos.push('golpea'); }
+    } else if (pide === 'pilum') {
+      if (!D.pilum) ecoD(D, 'Ya lanzaste el pilum', 'mal'); else if (T - D.t0 > PILUM_HASTA) ecoD(D, 'Demasiado cerca para el pilum', 'mal');
+      else if (oc) ecoD(D, 'Espera: para su golpe', 'mal'); else if (D.fuelle < C_PIL) ecoD(D, 'Sin aliento', 'mal');
+      else { D.pilum = false; D.fuelle -= C_PIL; D.tu = { t0: T, ts: T + 0.5, abierto: abierto || azarD(D) < 0.5, pilum: true, hecho: false }; D.next = Math.max(D.next, T + 1.8); hechos.push('lanza'); }
+    }
+    /* tu golpe llega */
+    if (D.tu && !D.tu.hecho && T >= D.tu.ts) {
+      const g = D.tu; g.hecho = true;
+      if (g.pilum) { if (g.abierto) { D.mata++; hechos.push('mata'); ecoD(D, '¡El pilum lo abate!', 'bien'); nuevoGalo(D); } else { D.deseq = T + 2; ecoD(D, 'El pilum se clava en su escudo: ¡golpea!', 'bien'); } }
+      else if (g.abierto) { if (D.gg >= 1) { D.mata++; hechos.push('mata'); ecoD(D, '¡Buen golpe! Cae', 'bien'); nuevoGalo(D); } else { D.gg++; hechos.push('hiere'); ecoD(D, '¡Buen golpe!', 'bien'); } }
+      else { D.contraT = T + CONTRA; hechos.push('parado'); ecoD(D, 'Te para: ábrelo antes', 'mal'); }
+    }
+    /* su golpe llega */
+    if (D.at && !D.at.hecho && T >= D.at.ts) {
+      const a = D.at; a.hecho = true;
+      const par = !a.imparable && D.tParar > a.ts - VENTANA && D.tParar <= a.ts + 0.06;
+      if (par) { D.abierto = T + 1.4; hechos.push('parada'); ecoD(D, '¡Parado!', 'bien'); }
+      else {
+        D.heridas++; const pronto = a.tipo === 'finta' && D.tParar > a.t0;
+        if (D.heridas >= 3) { D.heridas = 0; D.caidas++; D.fuelle = 100; D.contraT = 0; D.tu = null; D.next = T + 2; hechos.push('cae'); ecoD(D, 'Has caído: otro soldado toma tu puesto', 'mal'); }
+        else { hechos.push('herido'); ecoD(D, a.imparable ? 'Te has descubierto: herido (' + D.heridas + ' de 3)' : pronto ? 'Paraste pronto: herido (' + D.heridas + ' de 3)' : 'Herido (' + D.heridas + ' de 3)', 'mal'); }
+      }
+    }
+    if (D.at && !D.at.hecho && a2Finta(D)) { D.at.ecoF = true; ecoD(D, '¡Finta!'); }
+    if (!ocupadoD(D) && T >= D.next && T >= D.deseq) avisaD(D);
+    return hechos;
+  }
+  const a2Finta = D => D.at.tipo === 'finta' && !D.at.ecoF && D.T - D.at.t0 > D.at.tA + 0.05;
+  /* lo que se ve: el aviso (fraccion 0 → 1 del anillo que se cierra; ventana = ahora es cuándo parar) y en qué punto del
+     clip de ataque va cada uno (null si no ataca). Arma despacio (hasta 0,4 del clip) y suelta deprisa */
+  function dueloVer(D) {
+    const T = D.T, a = D.at && !D.at.hecho ? D.at : null, u = D.tu && T <= D.tu.ts + 0.35 ? D.tu : null;
+    const aviso = a ? { tipo: a.tipo, frac: Math.min(1, (T - a.t0) / (a.ts - a.t0)), ventana: !a.imparable && T > a.ts - VENTANA, imparable: a.imparable } : null;
+    const clipG = D.at && T <= D.at.ts + 0.3 ? (T < D.at.t0 + D.at.tb ? 0.4 * (T - D.at.t0) / D.at.tb : 0.4 + 0.6 * Math.min(1, (T - D.at.t0 - D.at.tb) / (SUELTA + 0.3))) : null;
+    const clipR = u ? Math.min(1, (T - u.t0) / (u.ts - u.t0 + 0.35)) : null;
+    return { aviso, fuelle: Math.round(D.fuelle), heridas: D.heridas, mata: D.mata, caidas: D.caidas, abierto: T < D.abierto || T < D.deseq,
+      pilum: D.pilum && T - D.t0 <= PILUM_HASTA, parando: T - D.tParar < 0.5, clipG, clipR, tuPilum: !!(u && u.pilum),
+      costes: { golpear: C_EST, parar: C_PAR, empujar: C_EMP, pilum: C_PIL } };
+  }
+  /* lo hecho a pie pesa en el simulador: cada galo que abates quita 1 al rival en contacto y le baja la moral; cada vez que
+     caes quita 1 al tuyo; un duelo bien llevado anima a los tuyos. Tope: lo tuyo no pasa del 30 % de las bajas del rival
+     en ese contacto (licencia de juego: un hombre no gana la batalla) */
+  function apie(S, id, h) {
+    const u = S.man[id]; if (!u || !vivo(u)) return { mata: 0, cae: 0 };
+    h = h || {}; const c = (S.cont[id] || []).find(c => c.cara === 'frente' && vivo(S.man[c.id])) || (S.cont[id] || []).find(c => vivo(S.man[c.id]));
+    const r = { mata: 0, cae: 0 }; S.apie = S.apie || {};
+    if (c && h.mata > 0) {
+      const v = S.man[c.id], k = id + '-' + v.id, hechas = S.apie[k] || 0, tope = Math.max(2, Math.floor(0.3 * (v.n0 - v.n + 1)));
+      const q = Math.min(h.mata, Math.max(0, tope - hechas));
+      if (q > 0) { r.mata = quitar(S, v, q); S.apie[k] = hechas + r.mata; v.moral -= 0.012 * q; u.moral = Math.min(1, u.moral + 0.008 * q); ev(S, 'apie', u, 'Tu centurión abate a un galo'); }
+    }
+    if (h.heridas > 0) u.moral -= 0.004 * h.heridas;
+    if (h.cae > 0) { r.cae = quitar(S, u, h.cae); u.moral -= 0.01 * h.cae; ev(S, 'apie', u, 'Cae tu centurión: otro toma su puesto'); }
+    return r;
+  }
+
   const Simulador = { crear, paso, avanzar, ordenar, puede, retirarse, fin, resumen, guardar, cargar, vista, palabras, ordenesDe, rnd,
-    fuerza, frente, fondo, lado, PASO, FORMAS, SABE, TAM, TRIBUNOS, JEFES, CAR, PLANES, CAMPO, DIST0, LIMITE };
+    fuerza, frente, fondo, lado, duelo, dueloPaso, dueloVer, apie, aPie, PASO, FORMAS, SABE, TAM, TRIBUNOS, JEFES, CAR, PLANES, CAMPO, DIST0, LIMITE };
   root.Simulador = Simulador;
   if (typeof module !== 'undefined') module.exports = Simulador;
 })(typeof window !== 'undefined' ? window : globalThis);

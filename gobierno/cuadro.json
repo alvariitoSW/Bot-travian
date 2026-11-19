@@ -2024,24 +2024,6 @@
       "titulo": "Cerebro · CI1b+CI3a Calles con sentido y ciudad ×5 a la vista (Opus; tope duro)",
       "nota": "Parada en el techo 6,4 M, sin subir (queda un fallo de sim.test); espera tu decisión en el cuadro. 11 commits solo en su contenedor",
       "url": "https://claude.ai/code/session_01QiKC3AfVQgWjdzHpMKkgYR"
-    },
-    {
-      "tarea": "CG6",
-      "titulo": "Corazón · CG6 A pie desde el hombro, dentro de la batalla nueva (Opus; tope duro)",
-      "nota": "Tanda 1 subida (bajar a pie desde el hombro, jueces 42/42; 2,55 M de 4,0); la tanda 2 espera a la lucha de TP8b",
-      "url": "https://claude.ai/code/session_01QiKC36XAVkKcrxxvx4cUCo"
-    },
-    {
-      "tarea": "TP8b",
-      "titulo": "Corazón · TP8b Terminar el testudo a pie y la lucha con picas (Fable 5.2 dirige, Opus construye; tope duro)",
-      "nota": "Va por 7,4 M (cierre previsto 8,2–8,4; corte 10,0): lucha, picas y 96 contra 96 hechos; una sola subida al final; brazos, arenga y sonido quedan para que elijas",
-      "url": "https://claude.ai/code/session_01QiKC387QJaRTWbZx6nurC2"
-    },
-    {
-      "tarea": "MN1",
-      "titulo": "Cerebro · MN1 Barra de seis y mapa nuevo de los menús (Opus; tope duro)",
-      "nota": "Obra hecha (barra de seis, ROMA ▾, ☰ nuevo; capturas bien) pero sin subir: 1,95 M de 1,2 declarados; última prórroga 2,6 M para jueces y cierre",
-      "url": "https://claude.ai/code/session_01QiKC3ACB6gUUQAvqV6dh58"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

@@ -237,8 +237,9 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 #res .r b { display: inline; font-size: 14px; }
 #res .r .ico { display: inline-block; width: 18px; height: 18px; margin: 0; }
 #res .r.full b { color: var(--gold); }
-#app[data-modo="gobierno"] .w-only, #app[data-modo="guerra"] .g-only, #app[data-modo="guerra"] #res .r.g-only { display: none !important; }
-#app[data-modo="guerra"] #rb-denarios { order: -1; }
+/* MN1: sin modos; en el Mapa y en Tropas la tira enseña reclutas y marchas en vez de los bienes de la ciudad */
+#app:not([data-vista="map"]):not([data-vista="army"]) .w-only, #app[data-vista="map"] .g-only, #app[data-vista="army"] .g-only, #app[data-vista="map"] #res .r.g-only, #app[data-vista="army"] #res .r.g-only { display: none !important; }
+#app[data-vista="map"] #rb-denarios, #app[data-vista="army"] #rb-denarios { order: -1; }
 #bar2 { margin-top: 5px; align-items: flex-start; }
 #citybtn, #datebox { height: 38px; display: flex; align-items: center; gap: 6px; padding: 0 12px; background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--line2); border-radius: 8px; pointer-events: auto; font-size: 13px; }
 #citybtn b { color: var(--gold); font-family: var(--serif); letter-spacing: .06em; font-weight: 700; }
@@ -254,29 +255,17 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 #zoom, #ctop { position: absolute; right: 8px; left: auto; top: calc(260px + env(safe-area-inset-top)); display: flex; flex-direction: column; gap: 8px; z-index: 4; max-width: none; }
 #zoom button, #ctop .rd { position: static; width: 42px; height: 42px; border-radius: 50%; font-size: 18px; color: var(--gold); background: var(--glass); border: 1px solid rgba(184, 134, 43, .6); display: flex; align-items: center; justify-content: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 #ctop .rd .ico { width: 22px; height: 22px; }
-/* abajo: acción del modo, pastilla y botón de modo */
-#dock { position: absolute; left: 0; right: 0; bottom: calc(14px + env(safe-area-inset-bottom)); height: 58px; z-index: 7; pointer-events: none; }
-#dock .rd { position: absolute; bottom: 0; width: 62px; height: 62px; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; font-size: 13px; line-height: 1; pointer-events: auto; border: 1px solid rgba(184, 134, 43, .6); box-shadow: 0 4px 14px #000a; }
-#bact { left: 12px; } #bmodo { right: 12px; }
-#dock .rd .em { font-size: 24px; } #dock .rd small { font-size: 12px; font-weight: 700; letter-spacing: -.3px; } #dock .rd .ico { width: 24px; height: 24px; }
-#dock .oro { background: linear-gradient(#e9c063, #b8862b); color: #1a1205; border-color: var(--gold); } #dock .oro .ico { stroke: #1a1205; }
-#dock .rojo, #dock .cierra { background: var(--red); border-color: var(--gold); color: #fff; } #dock .rojo .ico { stroke: #fff; }
-#bpill { position: absolute; left: 88px; right: 88px; bottom: 14px; height: 34px; display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 13px; white-space: nowrap; background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--line2); border-radius: 8px; pointer-events: auto; }
-#bpill.w { border-color: rgba(192, 40, 31, .8); pointer-events: none; }
-#bpill .ico { width: 18px; height: 18px; }
 #popsheet { position: absolute; left: 8px; right: 8px; bottom: calc(84px + env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; z-index: 8; max-height: 62%; overflow-y: auto; padding: 12px; background: rgba(11, 16, 22, .96); border: 1px solid var(--gold2); border-radius: 10px; box-shadow: 0 10px 30px #000a; }
 #popsheet .tt { font-family: var(--serif); color: var(--gold); letter-spacing: .08em; margin-bottom: 6px; }
 #popsheet .acts { margin-top: 8px; }
 #sheet, #csheet { bottom: calc(84px + env(safe-area-inset-bottom)); }
 #view { padding-bottom: calc(92px + env(safe-area-inset-bottom)); padding-top: calc(100px + env(safe-area-inset-top)); }
-#app[data-modo="guerra"]::after { content: ''; position: absolute; inset: 0; box-shadow: inset 0 0 60px rgba(192, 40, 31, .6); pointer-events: none; z-index: 2; }
 
 /* J6 · Ciudad como pantalla principal (maqueta K2-gob-A): ciudad 3D a pantalla completa, medallas de bronce, una ficha inferior y tres pestañas. */
 :root { --noche: #17110d; --bronce: #b8862b; --tinta: #2b1d16; --tinta2: #6b5440; --oliva: #5f7d2e; --terra: #c4572b; --rojo3: #c0281f; }
 .bar2r { display: flex; gap: 6px; }
 #bmas { width: 38px; height: 38px; display: grid; place-items: center; background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid var(--line2); border-radius: 8px; pointer-events: auto; }
 #bmas .ico { width: 22px; height: 22px; stroke: var(--gold); }
-#app[data-modo="guerra"] #bmas, #app[data-modo="guerra"] #tabs3, #app[data-modo="gobierno"] #dock { display: none; }
 /* pestañas inferiores */
 #tabs3 { position: absolute; left: 0; right: 0; bottom: 0; height: calc(64px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); z-index: 6; display: grid; grid-template-columns: repeat(3, 1fr); background: linear-gradient(#3a2a1a, #17110d); border-top: 2px solid var(--bronce); box-shadow: 0 -6px 14px rgba(0, 0, 0, .4); }
 #tabs3 button { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: #b9a67e; font: 700 13px var(--serif); letter-spacing: .06em; }
@@ -615,8 +604,8 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 #tabs3 .ico { width: 24px; height: 24px; }
 #app #csheet { bottom: calc(80px + env(safe-area-inset-bottom)); }
 /* «Pasar turno»: grande, a todo el ancho, sobre las pestañas (Gobierno e Imperio); en ciudad 3D y guerra sigue como píldora arriba */
-#app[data-tab="gobierno"] #turno, #app[data-tab="imperio"] #turno { position: fixed; left: 0; right: 0; bottom: calc(78px + env(safe-area-inset-bottom)); width: calc(100% - 24px); max-width: 536px; margin: 0 auto; height: 56px; border-radius: 99px; font-size: 18px; box-shadow: 0 6px 22px rgba(233, 192, 99, .25), 0 4px 14px #000a; z-index: 6; }
-#app[data-tab="gobierno"] #view, #app[data-tab="imperio"] #view { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
+#app[data-sello] #turno, #app[data-sello] #turno { position: fixed; left: 0; right: 0; bottom: calc(78px + env(safe-area-inset-bottom)); width: calc(100% - 24px); max-width: 536px; margin: 0 auto; height: 56px; border-radius: 99px; font-size: 18px; box-shadow: 0 6px 22px rgba(233, 192, 99, .25), 0 4px 14px #000a; z-index: 6; }
+#app[data-sello] #view, #app[data-sello] #view { padding-bottom: calc(150px + env(safe-area-inset-bottom)); }
 /* hoja inferior */
 #hscrim { position: absolute; inset: 0; z-index: 19; background: rgba(3, 5, 8, .58); }
 #hoja { position: absolute; left: 0; right: 0; bottom: 0; top: auto; width: auto; max-width: 560px; margin: 0 auto; height: min(var(--ha, 420px), 92%); z-index: 20; display: flex; flex-direction: column; gap: 0; padding: 0 20px env(safe-area-inset-bottom); background: var(--hoja-bg); border: 1px solid var(--lin); border-bottom: 0; border-radius: 28px 28px 0 0; box-shadow: 0 -14px 40px #000c; transition: height .18s ease-out; }
@@ -1129,12 +1118,12 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #tabs3 button.on .ico { stroke: #2b1a05; }
 /* «Pasar turno» grande (Gobierno e Imperio): placa roja con lacre; arriba, sobre el mapa, sigue como estaba (C8b) */
 #turno .tu-lacre { display: none; }
-#app[data-tab="gobierno"] #turno, #app[data-tab="imperio"] #turno { display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 8px; color: #fbe9c7; font: 700 19px var(--serif); letter-spacing: .06em; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); border: 1px solid var(--sello2);
+#app[data-sello] #turno, #app[data-sello] #turno { display: flex; align-items: center; justify-content: center; gap: 10px; border-radius: 8px; color: #fbe9c7; font: 700 19px var(--serif); letter-spacing: .06em; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); border: 1px solid var(--sello2);
   background: var(--martillado), radial-gradient(ellipse at 30% 0%, rgba(255, 190, 160, .3), transparent 60%), linear-gradient(#b8321f, #7e1910 70%, #6a140c);
   box-shadow: 0 0 0 2px #6a4a18, 0 0 0 3px rgba(233, 192, 99, .55), 0 6px 16px rgba(0, 0, 0, .65), inset 0 1px 0 rgba(255, 220, 200, .4), inset 0 -2px 0 rgba(50, 5, 0, .4); }
-#app[data-tab="gobierno"] #turno[hidden], #app[data-tab="imperio"] #turno[hidden] { display: none; }
-#app[data-tab="gobierno"] #turno .tu-lacre, #app[data-tab="imperio"] #turno .tu-lacre { display: block; flex: none; width: 40px; height: 40px; margin-left: -6px; }
-#app[data-tab="gobierno"] #turno .tu-est, #app[data-tab="imperio"] #turno .tu-est { font: 400 15px var(--libro); letter-spacing: .04em; color: #f0cdb8; text-transform: none; }
+#app[data-sello] #turno[hidden], #app[data-sello] #turno[hidden] { display: none; }
+#app[data-sello] #turno .tu-lacre, #app[data-sello] #turno .tu-lacre { display: block; flex: none; width: 40px; height: 40px; margin-left: -6px; }
+#app[data-sello] #turno .tu-est, #app[data-sello] #turno .tu-est { font: 400 15px var(--libro); letter-spacing: .04em; color: #f0cdb8; text-transform: none; }
 #hoja .hconf .hbig.ro-sello { border: 1px solid var(--sello2); background: var(--martillado), radial-gradient(ellipse at 30% 0%, rgba(255, 190, 160, .3), transparent 60%), linear-gradient(#b8321f, #7e1910 70%, #6a140c); }
 #hoja .hconf .hdisc.ro-tinta { border: 1px solid rgba(60, 35, 10, .7); background: var(--fibras), linear-gradient(#f5e6bd, #e3cc94); }
 #inf.ro-carta .inf-b .btn { letter-spacing: .02em; padding: 6px 8px; }
@@ -1291,7 +1280,6 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 .ro-mos .mos-sab .sv-t small, .ro-mos .mos-sab .sv-t .sv-m { color: inherit; opacity: 1; font-size: 14px; }
 /* C8b · Menú del mapa en cinco cosas: tira de recursos y fecha con ☰, «Pasar turno» con sello abajo, Tropas y Guerra.
    Fuera ＋ y − (se pellizca), la ciudad desplegable y la miga: a la ciudad se entra tocando Roma. */
-#app[data-modo="guerra"] #bmas { display: grid; }
 #zoom { display: none !important; }
 #app[data-vista="map"] #citybtn { display: none; }
 #app[data-vista="map"] #bar2 { margin-top: 4px; justify-content: flex-end; }
@@ -1301,14 +1289,6 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #app[data-vista="map"] #bmas { width: 34px; height: 34px; }
 #app[data-vista="map"] #bmas .ico { width: 20px; height: 20px; }
 #app[data-vista="map"] .mmigas { top: calc(90px + env(safe-area-inset-top)); }
-#app[data-vista="map"] #turno { position: fixed; left: 84px; right: 84px; bottom: calc(14px + env(safe-area-inset-bottom)); width: auto; max-width: 300px; height: 56px; margin: 0 auto; padding: 0 10px; z-index: 8;
-  display: flex; align-items: center; justify-content: center; gap: 6px; border-radius: 8px; color: #fbe9c7; font: 700 16px var(--serif); letter-spacing: .04em; text-shadow: 0 1px 0 rgba(0, 0, 0, .5); border: 1px solid var(--sello2); white-space: nowrap;
-  background: var(--martillado), radial-gradient(ellipse at 30% 0%, rgba(255, 190, 160, .3), transparent 60%), linear-gradient(#b8321f, #7e1910 70%, #6a140c);
-  box-shadow: 0 0 0 2px #6a4a18, 0 0 0 3px rgba(233, 192, 99, .55), 0 6px 16px rgba(0, 0, 0, .65), inset 0 1px 0 rgba(255, 220, 200, .4), inset 0 -2px 0 rgba(50, 5, 0, .4); }
-#app[data-vista="map"] #turno[hidden] { display: none; }
-#app[data-vista="map"] #turno .tu-lacre { display: block; flex: none; width: 34px; height: 34px; margin-left: -4px; }
-#app[data-vista="map"] #turno .tu-est { display: none; }
-#app[data-vista="map"]:has(#turno:not([hidden])) #bpill { display: none; }
 
 /* ===== SN2 · Sala del Senado: ley, hemiciclo, tratos, tribuno y voto (sobre el rollo de papiro de MR2b) ===== */
 .ro-sen > .sn2 { padding: 6px 14px 6px; display: flex; flex-direction: column; gap: 4px; }
@@ -1516,7 +1496,7 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #bienes .bn { flex: none; display: flex; align-items: center; gap: 2px; height: 22px; padding: 0 7px; font-size: 12px; background: var(--cris, rgba(18, 26, 36, .72)); border: 1px solid var(--lin, rgba(241, 234, 217, .13)); border-radius: 99px; white-space: nowrap; }
 #bienes .bn b { font-weight: 600; font-variant-numeric: tabular-nums; }
 #bienes .bn.full b { color: var(--gold); } #bienes .bn.pierde { border-color: #ff7060; } #bienes .bn.pierde b, #bienes .bn.lujo { color: #ff8a70; }
-#app[data-modo="guerra"] #bienes { display: none; }
+#app[data-vista="map"] #bienes, #app[data-vista="army"] #bienes { display: none; }
 /* hoja de cuentas: hombres, bienes y lujo */
 #cuentas .cu-hom { display: flex; align-items: center; gap: 8px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13px; color: var(--mute); } #cuentas .cu-hom .ico { width: 22px; height: 22px; flex: none; } #cuentas .cu-hom b { color: var(--ink, #eee); }
 #cuentas .cu-bien .cu-ic { font-size: 18px; text-align: center; }
@@ -1546,3 +1526,68 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 .sn6-p { grid-area: p; font-size: 12.5px; color: #4a3416; }
 .sn6-fam { grid-template-areas: "u n e"; background: rgba(184, 134, 11, .14); }
 .sn6-fal { display: flex; flex-direction: column; gap: 1px; font-size: 12.5px; color: #4a3416; padding: 2px 4px; } .sn6-fal b { color: #2a1a06; }
+
+/* ======== MN1 · Barra de seis (Ciudad · Senado · Saber · Tropas · Mapa · Imperio). Sin modos ======== */
+#tabs3 { left: 0; right: 0; bottom: 0; top: auto; width: auto; max-width: none; margin: 0; height: calc(64px + env(safe-area-inset-bottom)); padding: 4px 4px calc(4px + env(safe-area-inset-bottom)); gap: 2px;
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); border-radius: 0; border: 0; border-top: 1px solid var(--bronce); z-index: 6; }
+#tabs3 button { min-width: 0; min-height: 56px; padding: 0; gap: 3px; border-radius: 5px; font: 700 11px var(--serif); letter-spacing: .01em; text-transform: none; white-space: nowrap; overflow: clip; }
+#tabs3 button .ico { width: 24px; height: 24px; flex: none; }
+#tabs3 button.on { color: var(--tinta); background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--minio), 0 1px 3px rgba(0, 0, 0, .5); }
+#tabs3 button.on .ico { stroke: var(--minio); }
+#app[data-sello] #turno { bottom: calc(72px + env(safe-area-inset-bottom)); }
+#app #csheet { bottom: calc(72px + env(safe-area-inset-bottom)); }
+#app[data-vista="map"] #sheet { bottom: calc(136px + env(safe-area-inset-bottom)); }
+#app[data-vista="map"]:not(:has(#turno:not([hidden]))) #sheet { bottom: calc(72px + env(safe-area-inset-bottom)); }
+#view { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+#app[data-sello] #view { padding-bottom: calc(142px + env(safe-area-inset-bottom)); }
+#app[data-sala] #view { padding-bottom: calc(80px + env(safe-area-inset-bottom)); }
+.vtit { margin: 4px 0 8px; text-align: center; font: 700 20px var(--serif); letter-spacing: .08em; color: var(--gold); }
+/* Marchas: botón discreto del mapa (abre marchas, minimapa e «Ir a mi general») */
+#bmarchas { position: absolute; left: 8px; top: calc(52px + env(safe-area-inset-top)); z-index: 5; display: flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 8px;
+  color: #ecd9a8; font: 700 13px var(--serif); letter-spacing: .04em; background: var(--glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(184, 134, 43, .6); }
+#bmarchas[hidden] { display: none; }
+#bmarchas .ico { width: 20px; height: 20px; stroke: #e2b860; }
+#bmarchas i { min-width: 20px; height: 20px; padding: 0 5px; border-radius: 10px; background: var(--minio); color: #fbe9c7; font: 700 12px/20px var(--libro); font-style: normal; text-align: center; }
+#app[data-vista="map"] .mmigas { top: calc(104px + env(safe-area-inset-top)); }
+/* pestañas de construir: «Lo hago yo» · «Encargar» · «Gobernador» (las dos últimas, apagadas hasta CE8 y MN3) */
+#bpest { display: flex; gap: 3px; padding: 4px; margin: 0 2px 2px; border-radius: 6px; background: var(--veta), linear-gradient(#8a6034, #5a3b1b); box-shadow: inset 0 0 0 1px rgba(30, 15, 5, .6), 0 2px 4px rgba(0, 0, 0, .35); }
+#bpest button { flex: 1; min-width: 0; min-height: 44px; padding: 0 4px; border-radius: 3px; color: var(--rasgado); font: 700 13px var(--serif); letter-spacing: .02em; white-space: nowrap; background: linear-gradient(#3f2e1b, #2a1e10); box-shadow: inset 0 3px 5px rgba(0, 0, 0, .7); }
+#bpest button.on { color: var(--tinta); background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--minio); }
+#bpest button.off { opacity: .5; }
+#csheet:not([data-m="mirar"]) #bpest { display: none; }
+/* Imperio: hueco de «Tus caminos» (MN2) */
+.imp-cam { margin: 8px 6px 4px; text-align: left; }
+.imp-cam b { display: block; color: var(--minio); font: 700 13px var(--serif); letter-spacing: .08em; text-transform: uppercase; }
+.imp-cam i { display: block; height: 26px; border-bottom: 1px solid rgba(60, 35, 10, .35); }
+/* ROMA ▾: ficha de la ciudad dentro de la hoja y lista para cambiar de ciudad */
+#hoja .fciu .ro-gob { display: block; } #hoja .fciu .ro-palo { display: none; }
+#hoja .fciu .ro-papiro.gob { height: auto; padding: 0; background: none; box-shadow: none; border: 0; }
+#hoja .fciu .gnomb h2 { display: none; } #hoja .fciu .gnomb p { margin: 0; text-align: center; }
+#hoja .fcam { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+#hoja .fcam button { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 48px; padding: 0 14px; border-radius: 6px; border: 1px solid rgba(60, 35, 10, .45); background: rgba(255, 246, 214, .4); color: var(--tinta); font: 700 15px var(--serif); text-align: left; }
+#hoja .fcam button.on { background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--minio); border-color: var(--minio); }
+#hoja .fcam small { color: var(--tinta2); font: 400 14px var(--libro); }
+
+/* Vertical: la hoja acaba justo encima de la barra de seis, que sigue visible y tocable */
+@media (orientation: portrait) {
+  #hoja { bottom: calc(64px + env(safe-area-inset-bottom)); height: min(var(--ha, 420px), calc(92% - 64px - env(safe-area-inset-bottom))); }
+  #hscrim:not(.enmenu) { bottom: calc(64px + env(safe-area-inset-bottom)); }
+}
+
+/* Horizontal: la barra pasa a una columna fina a la izquierda; las hojas, por la derecha y a media pantalla como mucho */
+@media (orientation: landscape) {
+  #tabs3 { top: 0; bottom: 0; right: auto; width: calc(56px + env(safe-area-inset-left)); height: auto; padding: calc(6px + env(safe-area-inset-top)) 4px calc(6px + env(safe-area-inset-bottom)) calc(4px + env(safe-area-inset-left));
+    grid-template-columns: 1fr; grid-template-rows: repeat(6, minmax(44px, 1fr)); align-content: center; border-top: 0; border-right: 1px solid var(--bronce); }
+  #tabs3 button { min-height: 44px; }
+  #tabs3 button span { display: none; }
+  #top, #sheet, #csheet, #app #csheet, #linea, #popsheet, #miga, #cuentas, .mmigas { margin-left: calc(56px + env(safe-area-inset-left)) !important; }
+  #bmarchas { left: calc(64px + env(safe-area-inset-left)); }
+  #view { left: calc(56px + env(safe-area-inset-left)); padding-bottom: calc(76px + env(safe-area-inset-bottom)); padding-top: calc(92px + env(safe-area-inset-top)); }
+  #app[data-sello] #view { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+  #app[data-sello] #turno { left: calc(56px + env(safe-area-inset-left)); bottom: calc(8px + env(safe-area-inset-bottom)); width: auto; max-width: 420px; margin: 0 auto; right: 0; height: 52px; }
+  #app #csheet, #app[data-vista="map"] #sheet, #app[data-vista="map"]:not(:has(#turno:not([hidden]))) #sheet { bottom: calc(8px + env(safe-area-inset-bottom)); }
+  #app[data-vista="map"]:has(#turno:not([hidden])) #sheet { bottom: calc(68px + env(safe-area-inset-bottom)); }
+  #hoja { left: auto; right: 0; top: 0; bottom: 0; width: min(50vw, 560px); max-width: 50vw; height: auto !important; margin: 0; border-radius: 14px 0 0 14px; }
+  #view > .ro, #view > .ro > .ro-papiro { height: auto; min-height: 0; }
+  #view > .ro-gob > .ro-papiro.gob { flex: none; }
+}

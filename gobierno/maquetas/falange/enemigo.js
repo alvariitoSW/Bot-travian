@@ -1,12 +1,15 @@
 /* Pieza «enemigo» (TP7a): el manípulo romano que ataca a la falange (hastati de 0 A.D., Wildfire Games, CC BY-SA 3.0).
    Sin pantalla: corre en Node.
-   · creaRomanos: tres filas de 8, cada uno con su columna, su paso propio (locomocion.js), su talla y su genio.
+   · creaRomanos: el manípulo en filas de 12, cada uno con su columna, su paso propio (locomocion.js), su talla y su genio.
    · filasRomano: qué dos filas de su tabla le tocan (quieto, andar, correr fundidos), o la de golpear o caer.
    · conMezcla: cambia el sombreador de figuras para que mezcle dos filas.
    Antes fueron los galos del testudo, con el mismo contrato. */
 import { crearPaso } from './locomocion.js';
 import { filasMarcha } from './soldado.js';
-export const COLS_R = 8, FILAS_R = 3, N_R = COLS_R * FILAS_R, DX_R = 1.0, DZ_R = 1.5;
+import { FILES, HOMBRES } from './formacion.js';
+/* TP8b-E1: el manípulo entero, tantas columnas como la falange y el fondo que salga (8 filas con 96) */
+export const COLS_R = FILES, FILAS_R = Math.max(2, Math.round(HOMBRES / COLS_R)), N_R = COLS_R * FILAS_R, DX_R = 0.85, DZ_R = 1.4;
+export const REF_R = 3 * COLS_R;   /* las 3 filas de antes: cada baja pesa en el ánimo como entonces */
 export function creaRomanos(azar, azarP, zancadas) {
   const R = [];
   for (let i = 0; i < N_R; i++) {
