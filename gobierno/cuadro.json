@@ -2020,22 +2020,34 @@
       "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
     },
     {
-      "tarea": "CE3",
-      "titulo": "Cerebro · CE3 Edificios, tropas y tiempos nuevos, en estaciones (Opus; tope duro)",
-      "nota": "Parada a 4,5 M sin subir; commits en la rama ce3; espera tu respuesta sobre el bot",
-      "url": "https://claude.ai/code/session_01QiKC3Aw9VfHc42LQ8wLPsB"
+      "tarea": "CE3c",
+      "titulo": "Cerebro · CE3c Cerrar CE3: dos fallos de jueces y subir (Opus; tope duro)",
+      "nota": "Trabajo de CE3 guardado en la rama ce3; arregla los dos fallos de jueces, une con el Senado nuevo y sube solo con APTO; corte duro 0,9 M",
+      "url": "https://claude.ai/code/session_01QiKC384Vg22mRs9aAgH8gu"
     },
     {
       "tarea": "CI1b",
-      "titulo": "Cerebro · CI1b Calles con sentido y pulido de la ciudad romana (Opus; tope duro)",
-      "nota": "js/ciudad.js y gfx de la ciudad; corte duro 1,5 M",
+      "titulo": "Cerebro · CI1b+CI3a Calles con sentido y ciudad ×5 a la vista (Opus; tope duro)",
+      "nota": "Parada en el techo 6,4 M, sin subir (queda un fallo de sim.test); espera tu decisión en el cuadro. 11 commits solo en su contenedor",
       "url": "https://claude.ai/code/session_01QiKC3AfVQgWjdzHpMKkgYR"
     },
     {
-      "tarea": "CE6",
-      "titulo": "Cerebro · CE6 Senado de familias (Opus; tope duro)",
-      "nota": "hasta 7 bandos y escaños por población y provincia; solo código del Senado; corte duro 3,3 M",
-      "url": "https://claude.ai/code/session_01QiKC36KEPujrcfjeAyVCoL"
+      "tarea": "CG6",
+      "titulo": "Corazón · CG6 A pie desde el hombro, dentro de la batalla nueva (Opus; tope duro)",
+      "nota": "Tanda 1 sin subir (cuarta pasada de jueces en marcha); 2,06 M de 4,0; tandas 3 y 4 pasarán a CG6b con tu visto bueno",
+      "url": "https://claude.ai/code/session_01QiKC36XAVkKcrxxvx4cUCo"
+    },
+    {
+      "tarea": "TP8",
+      "titulo": "Corazón · TP8 Mejoras del testudo y del combate, hablándolas con el usuario (Opus; tope duro)",
+      "nota": "Mejora 1a subida (jueces 41/41): pruébala en «Testudo a pie»; el resto (TP8b) espera tu visto bueno",
+      "url": "https://claude.ai/code/session_01QiKC37MiywH97s7ojcHQE6"
+    },
+    {
+      "tarea": "ES0",
+      "titulo": "Corazón · ES0 Objetivo final de Escaramuzas (conversación, Fable 5.2; tope duro)",
+      "nota": "Habla contigo para definir qué es Escaramuzas, qué se queda y qué se rehace; solo documento; corte duro 2,5 M",
+      "url": "https://claude.ai/code/session_01QiKC39wN7qMKGDmmgmjiSa"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
