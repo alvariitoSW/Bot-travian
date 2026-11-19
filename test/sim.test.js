@@ -1909,13 +1909,14 @@ console.log('OK — todas las pruebas superadas');
   assert(CT.notaFundar(P, pz[0], pz[1]).razones.some(t => /Suelo encharcado/.test(t)) && !CT.notaFundar(R, pz[0], pz[1]).razones.some(t => /encharcado/.test(t)));
   for (let x = -240; x <= 240; x += 16) for (let z = -400; z <= 220; z += 16) if (CT.inundable(x, z)) assert(CT.inundable(x, z, 'pantano'), 'la ribera del río siempre es ribera del pantano');
   // costa: salinas dan oro y restan a las granjas
-  { const E = K; assert(CT.fundar(E, 172, -196)); const g = CT.colocar(E, 'granja', 316, -148, true); assert(g.ok); g.e.obra = 0; E.mesN++;
+  // CI1b: granja en 320,-144 (en 316,-148 su campo pisaría una calle y con el plano 2 ya no vale)
+  { const E = K; assert(CT.fundar(E, 172, -196)); const g = CT.colocar(E, 'granja', 320, -144, true); assert(g.ok); g.e.obra = 0; E.mesN++;
     const i0 = CT.ingreso(E), r0 = CT.rindeGranja(E, g.e), vale = CT.notaSitio(E, 'salinas', 288, -200); assert(vale.vale && vale.efecto.n === -1 && vale.razones.some(t => /estropear/.test(t)), vale.razones.join(' · '));
     const s = CT.colocar(E, 'salinas', 288, -200, true); assert(s.ok); assert.strictEqual(CT.ingreso(E), i0, 'una obra sin terminar no rinde'); s.e.obra = 0;
     const r1 = CT.rindeGranja(E, g.e); assert(r1.prod === r0.prod - 1 && r1.fam === r0.fam - 0.5 && r1.mul < 1, 'la granja rinde menos junto a las salinas');
     assert.strictEqual(CT.oroTerreno(E), D.TERRENO_REGLAS.costa.salinasOro); assert.strictEqual(CT.ingreso(E), i0 + D.TERRENO_REGLAS.costa.salinasOro - 1, 'salinas: +' + D.TERRENO_REGLAS.costa.salinasOro + ' oro y -1 de la granja');
     let sec = null; for (let x = -240; x <= 240 && !sec; x += 16) for (let z = -400; z <= 220 && !sec; z += 16) { const q = CT.notaSitio(E, 'salinas', x, z); if (!q.vale && /junto al agua/.test(q.razones[0])) sec = [x, z]; } assert(sec, 'las salinas piden agua cerca (drio < ' + D.TERRENO_REGLAS.costa.salinasDrio + ')'); }
-  { const E = R; const g = CT.colocar(E, 'granja', 316, -148, true); assert(g.ok); g.e.obra = 0; assert(!CT.notaSitio(E, 'salinas', 288, -200).vale, 'sin costa no hay salinas'); }
+  { const E = R; const g = CT.colocar(E, 'granja', 320, -144, true); assert(g.ok); g.e.obra = 0; assert(!CT.notaSitio(E, 'salinas', 288, -200).vale, 'sin costa no hay salinas'); }
   // pantano: la zanja baja la ruina de la crecida de las casas cercanas
   { const crecida = zanja => { const E = mk('pantano'); assert(CT.fundar(E, pz[0], pz[1])); CT.sembrarCasas(E, 400); const bajas = CT.casas(E).filter(c => CT.ribera(E, c.x, c.z, 3));
       assert(bajas.length >= 3, 'casas en la ribera ancha: ' + bajas.length); const cx = bajas.reduce((a, c) => a + c.x, 0) / bajas.length, cz = bajas.reduce((a, c) => a + c.z, 0) / bajas.length;
