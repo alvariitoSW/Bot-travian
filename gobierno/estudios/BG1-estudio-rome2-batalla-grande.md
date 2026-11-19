@@ -8,9 +8,15 @@ gráficos y la jugabilidad para estudiarlo y poder meterlo en nuestro juego».
 `REF-batallas-referencias.md` y no repite GM32, GM42, R22, TP0 §3, CG1 ni ES0. Se toman **ideas**; nunca código, arte,
 sonido, textos ni interfaz del juego comercial. Nada suyo se ha guardado en el repositorio.
 
-**Estado**: primera pasada. **Falta la conversación con el usuario** (§6): sus correcciones mandan sobre esta página.
+**Estado**: segunda pasada (19/11, tarde). El usuario corrigió la primera: «esas fotos no me sirven, tienes que ver combates de verdad». Hecho: **dos partidas reales vistas de principio a fin** (§2 bis). Quedan sus tres respuestas (§6).
 
 ## 0. Qué he visto de verdad, qué he leído y qué es de memoria
+- **[P] Visto en partidas reales** (segunda pasada): dos vídeos enteros bajados de Internet Archive a una carpeta
+  temporal (borrados al acabar; nada en el repositorio) y mirados con su minuto marcado: el **recorrido oficial de
+  Teutoburgo** narrado por sus autores (10 min 45 s, una imagen cada 8 s) y **un asedio en línea de tres contra tres**
+  de un youtuber (28 min, una imagen cada 21 s). Además, **cuatro ráfagas** de dos imágenes por segundo (la carga, la
+  salva de pila, la bajada de cámara, el asalto a la torre) y el tráiler oficial de Steam (82 s). En total, unas 250
+  imágenes en orden. **Sigue sin sonido**: no puedo oír.
 - **[V] Visto**: 84 fotogramas públicos (portada y tres imágenes fijas) de **21 vídeos** de YouTube de Rome II (lista en
   §5). Son imágenes sueltas: **no he visto ninguno en movimiento ni lo he oído**. YouTube pide iniciar sesión para
   reproducir desde la nube. También nuestras capturas `CG4-*` y `CG6-*`.
@@ -22,7 +28,7 @@ sonido, textos ni interfaz del juego comercial. Nada suyo se ha guardado en el r
   GameSpot, GameWatcher y TheSixthAxis, guías de GamePressure.
 - **[M] De memoria**, sin poder comprobarlo aquí: casi todos los **números** (hombres por unidad, estados exactos de
   moral y cansancio) y el detalle de cómo suena. Va marcado. Si un número importa para construir, se comprueba antes.
-- **Sin ver**: movimiento, sonido, voces, ritmo real de una batalla, y cualquier clip que el usuario tenga en mente y no
+- **Sin ver**: sonido y voces; movimiento fino (animación de cada hombre) más allá de las ráfagas; y cualquier clip que el usuario tenga en mente y no
   haya subido a este chat. **Un clip suyo vale más que todo lo de arriba.**
 
 ## 1. Qué es la batalla de Rome II y cómo se juega, de principio a fin
@@ -160,6 +166,46 @@ mata más, sino quien **hace huir** al otro; y se gana con **dónde y cuándo** 
 - Selección: los hombres se tiñen o se rodean de luz y su estandarte brilla. Destinos: silueta del bloque en el suelo.
 - En los vídeos «de cine» **no hay interfaz**: se quita con una tecla. Parte de la épica es eso.
 
+## 2 bis. Lo que enseñan las partidas reales (y cambia lo de arriba)
+**La lección principal: una partida de verdad no se parece a los vídeos «de cine».**
+1. **Se juega casi todo el tiempo desde arriba.** En los 28 minutos del asedio, 9 de cada 10 imágenes son de águila o
+   de loma. Los hombres apenas se distinguen. Lo que llena la pantalla es **un bosque de estandartes** (rojos, morados,
+   verdes, amarillos) clavado sobre manchas de tropa. Bajar a ras de suelo ocurre cada dos o tres minutos y dura segundos.
+2. **El estandarte lo es todo.** Asta alta (sobresale por encima de los árboles y de las casas), pendón con el
+   emblema del bando y debajo una casilla con el dibujo o el número de la unidad. A los que huyen se les pone blanco.
+   Con sesenta unidades por bando amontonadas ante una muralla, **se sigue sabiendo quién es quién** solo por ellos.
+3. **La unidad elegida lleva un aro amarillo bajo cada hombre.** No hay alfombra ni rectángulo. Las no elegidas, nada.
+4. **Las órdenes son cintas en el suelo.** Amarilla y ancha de cada unidad a su destino (cuatro cohortes, cuatro
+   cintas paralelas); **roja** hasta el enemigo al que se ataca; el destino se marca con la huella de la formación.
+5. **La zambullida.** En el recorrido oficial la cámara baja de la vista de mando hasta quedar detrás de los hombros de
+   una cohorte que corre **en unos cuatro segundos y sin cortes**; al llegar, la interfaz desaparece; luego vuelve a
+   subir. Es el momento más fuerte del vídeo, y es **la misma escena**, no otra pantalla.
+6. **La luz hace el trabajo.** En el bosque, manchas de sol y sombra de árboles y nubes: la cohorte al sol es roja
+   viva y la que está a la sombra, casi negra. Bruma azulada al fondo. En el asedio, sol alto y **sombras largas de
+   cada bloque y cada torre**, visibles incluso desde muy arriba.
+7. **La salva de pila se ve**: rayas brillantes un segundo antes del choque. Las bolas de fuego dejan llamas en el suelo.
+8. **De cerca, la melé es un montón**, no una línea limpia: espaldas, escudos girados, hombres encarados cada uno a un
+   lado. Al correr, cada hombre lleva su zancada y el escudo le baila.
+9. **El panel de la unidad** (leído en una imagen grande): nombre; hombres que quedan y los que eran, «53 (160)»;
+   bajas causadas; y **cinco barras**: moral, ataque, defensa, carga y armadura. Debajo de las tarjetas, una fila de
+   botones redondos (las habilidades). Arriba a la izquierda, **el consejero**: una cara y una línea de texto cuando
+   pasa algo grave. Confirmado: **160 hombres por unidad**.
+10. **El asedio real**: muchas torres avanzando a la vez, despacio, empujadas por su tropa; la masa se agolpa al pie;
+    muralla de tierra y empalizada con poblado dentro; la lucha se desparrama por las calles. Acaba con una pantalla
+    de marcador: las tarjetas de los dos ejércitos y columnas de cifras.
+11. **Ritmo**: casi todo el tiempo es **maniobra** (acercar, rodear, esperar); los choques son cortos y deciden. Una
+    batalla grande dura unos 25 minutos; la guiada de Teutoburgo, 10.
+
+**Qué cambia en esta página**
+- §2.1 se queda, con un matiz: la altura de hierba es **el premio**, no el sitio donde se juega. Lo que hay que clavar
+  primero es la de águila: **CG8a es la tanda que más pesa**, y dentro de ella el estandarte, el aro y las cintas.
+- §3: lo épico número 1 se confirma con nombre propio: **la zambullida** en cuatro segundos, sin cambiar de pantalla.
+- §4.5: CG8c pasa a llamarse «La zambullida y el cine» y su primera pieza es esa bajada continua; **«Bajar» (CG6) debe
+  usar el mismo movimiento de cámara**, no un corte.
+- §4.2: nuestra alfombra roja o morada bajo el manípulo es justo lo que Rome II **no** hace.
+- El panel de cinco barras encaja con las cuatro barras de la tarjeta de ES0 §6: se añade la de carga o se deja en
+  cuatro; lo decide CG9.
+
 ## 3. Qué la hace épica y qué le da la jugabilidad
 
 **Épica (lo que se ve y se siente)**, por orden de peso:
@@ -241,10 +287,10 @@ protegía poco. Y un aviso de un vídeo crítico: una fila real no se deshace en
 | Orden | Tarea | Qué se ve al acabar (y qué referencia iguala) | M declarado (esperable) | 1.0 |
 |---|---|---|---|---|
 | 0 | CG2, CG6 tanda 2, CG9 | Como están (ES0, CG1). No se tocan | — | Sí |
-| 1 | **CG8a · El ejército se lee** | Estandarte alto por manípulo con el icono de su tropa, que se rompe al flaquear y cae al huir (sustituye a la cajita); selección por luz, sin alfombra; ruta y destino pintados en el suelo; bloques **llenos** con los tres escalones de detalle. Iguala: vídeo oficial de mandos y los planos de águila | 1,2 (2,0) | Sí |
+| 1 | **CG8a · El ejército se lee** | Estandarte de asta alta por manípulo con el emblema del bando y el icono de su tropa, que se rompe al flaquear y se pone blanco al huir (sustituye a la cajita); **aro bajo cada hombre** del manípulo elegido, sin alfombra; **cinta en el suelo** hasta el destino (amarilla) o hasta el enemigo (roja) y huella de la formación en el destino; bloques **llenos** con los tres escalones de detalle. Iguala: vídeo oficial de mandos y los planos de águila | 1,2 (2,0) | Sí |
 | 2 | **CG8b · Luz, suelo y aire** | Sol bajo de lado y sombra larga de cada bloque; paleta por región (Italia verde, África ocre); hierba alta junto a la cámara; polvo de marcha y de choque; estela de pila, piedras y flechas. Iguala: los planos a contraluz y los de falange con sombras | 0,9 (1,5) | Sí |
 | 3 | **CG5a · Despliegue** | Lo de ES0 §4, más dos ideas de aquí: **arrastrar para dibujar la línea** (el largo da el ancho) y **vuelo de cámara** sobre el campo al entrar | 0,8 (1,3) | Sí |
-| 4 | **CG8c · Tres alturas y cine** | Botones «Águila», «Loma» y «De cerca» (salta al choque más caliente, a ras de hierba, sin interfaz); la cámara sigue al choque; temblor en la carga; plano corto automático de dos segundos cuando un manípulo rompe (se puede apagar); pantalla final con veredicto por grados. Comparte cámara con CG6 | 0,9 (1,5) | Sí |
+| 4 | **CG8c · La zambullida y el cine** | **Bajada continua de cuatro segundos** del mando al hombro de un manípulo, sin corte y quitando la interfaz al llegar (la misma que usa «Bajar» de CG6); botones «Águila», «Loma» y «De cerca» (salta al choque más caliente, a ras de hierba, sin interfaz); la cámara sigue al choque; temblor en la carga; plano corto automático de dos segundos cuando un manípulo rompe (se puede apagar); pantalla final con veredicto por grados. Comparte cámara con CG6 | 0,9 (1,5) | Sí |
 | 5 | **CG4b · La campaña a la batalla nueva** | Lo de ES0, más: panel previo con **barra de fuerzas** y las tres salidas; el campo y la paleta salen del sitio del mapa; el veredicto vuelve a la campaña | 1,8 (2,5) | Sí |
 | 6 | **CG8d · El choque deja huella** | Caídos que se quedan (cartones tumbados, con tope); la primera fila empuja y golpea en vez de tocarse; picas bajadas y escudos solapados en el frente; el que huye da la espalda y corre; voces al dar la orden y rugido de masa según la altura (audio libre de TP8b). **Sin** duelos casados | 1,7 (3,0) | Sí, la última; si no cabe, se recorta por aquí |
 | 7 | **CG5b + CG7** | Como estaban (tribunos y plan; batalla rápida). CG7 usa la barra de fuerzas de CG4b | 0,7 + 0,6 | Sí |
@@ -303,6 +349,18 @@ Enlace: `youtube.com/watch?v=` + el código.
 | Jf38wKE8UXI, ZdByF_5N8Hs | Consejos de asedio (FightMe) | Máquinas en fila, estelas de fuego, ciudad con estandartes |
 | uIxNDCrXPc8, i5v6hPr6L7U | Tráilers de Teutoburgo y de Aníbal | Solo tono (bosque oscuro, barcos al atardecer); no son juego |
 
+### 5.1 bis Partidas reales vistas enteras (segunda pasada)
+| Dónde | Título | Qué se sacó |
+|---|---|---|
+| archive.org/details/youtube-lM_aYJbgA6M | «Total War Rome II Battle of Teutoburg Forest Walkthrough» (recorrido oficial narrado por Creative Assembly; 10:45) | La zambullida, cintas y aros, panel de cinco barras, luz del bosque, salva de pila, testudo desde arriba, consejero |
+| archive.org/details/youtube-qjygv9S_d4I | «An All Out BRUTAL Sally Out!! 3v3 – Total War Rome2» (asedio en línea de un youtuber; 28:16) | Cómo se juega de verdad: 9 de cada 10 imágenes desde arriba, bosque de estandartes, torres de asedio, ritmo, marcador final |
+| Steam (ficha del juego) | Tráiler oficial de Teutoburgo (1:22) | Solo tono; es cine, no partida |
+- **Sin acabar**: la partida comentada de 42 minutos de Giant Bomb (archive.org/details/gb-2300-7974-ID5GPK3) se
+  cortó al bajar y no se miró. Quedan en Internet Archive, sin mirar, un «let's play» de campaña y dos análisis en vídeo.
+- **Cómo repetirlo** (para otra sesión): YouTube sigue cerrado, pero **Internet Archive guarda copias de vídeos de
+  YouTube** y deja bajarlas. La red de la sesión necesita permiso para el servidor concreto al que redirige cada
+  enlace (el usuario aprobó nueve el 19/11). Se bajan a la carpeta temporal, se miran con `ffmpeg` y se borran.
+
 ### 5.2 Texto
 - **Leído**: wiki.totalwar.com: «Total War: Rome II – Teutoburg Forest», «Unit Spotlight (TWR2)», «Dev Diaries (TWR2)»
   (solo títulos), «Mastering Battles» (primer Rome), «Using Total War Gameplay Footage».
@@ -313,11 +371,17 @@ Enlace: `youtube.com/watch?v=` + el código.
 - **De casa**: GM32, GM42, R22, R21, TP0 §3, TP8 (seis clips), CG1, ES0, GM1, partes de CG4 y CG6, `arte.json`.
 
 ### 5.3 Qué quedó sin ver
-- Ningún vídeo en movimiento ni con sonido. Ritmo, animación, voces y música van de memoria.
+- **El sonido**: nada oído. Voces y música van de memoria. La animación fina de cada hombre, solo en cuatro ráfagas.
 - El manual oficial y la prensa, enteros (red cortada: harían falta r2enc.totalwar.com, academy.totalwar.com,
   pcgamer.com, gamespot.com en la lista de la sesión).
 - La serie técnica «Anatomy of the Total War Engine» (ya resumida en GM32).
 - **Los vídeos concretos que el usuario tiene en la cabeza**: se piden en §6.
 
 ## 6. Conversación con el usuario
-*Pendiente. Aquí van sus respuestas y lo que cambien.*
+- **19/11, tras la primera pasada** (literal): «Buscate Gameplays de youtubers y mirate varios, esas fotos no me
+  sirven, tienes que ver combates de verdad». → Hecha la segunda pasada (§2 bis). Lectura del director: tenía razón;
+  las portadas enseñan el cine y esconden cómo se juega.
+- **Pendiente de su respuesta** (apuntado en la bitácora): (1) ¿vale el orden de las cuatro tandas de CG8, con la
+  lectura desde arriba primero?; (2) el asedio entero, ¿después de la 1.0 (recomendado) o una versión corta ahora?;
+  (3) ¿sube dos o tres clips suyos, sobre todo con **sonido**, que es lo único que sigue sin verse ni oírse?
+- **Nada de §4.5 entra al tablero hasta que él lo apruebe.**
