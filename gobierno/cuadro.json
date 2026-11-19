@@ -2022,20 +2022,14 @@
     {
       "tarea": "CE3",
       "titulo": "Cerebro · CE3 Edificios, tropas y tiempos nuevos, en estaciones (Opus; tope duro)",
-      "nota": "Reanudada: termina la tanda 1 (pantalla de niveles) sin exigir al bot hasta CE12; corte duro 6,0 M en total",
+      "nota": "Última prórroga (techo 9,3 M): arreglar 2 fallos de jueces y subir solo con APTO; sus commits solo existen en su contenedor",
       "url": "https://claude.ai/code/session_01QiKC3Aw9VfHc42LQ8wLPsB"
     },
     {
       "tarea": "CI1b",
-      "titulo": "Cerebro · CI1b Calles con sentido y pulido de la ciudad romana (Opus; tope duro)",
-      "nota": "Parada por orden del usuario: ahora CI3a, la ciudad ×5 a la vista; corte duro absoluto 4,8 M; 7 commits locales sin subir",
+      "titulo": "Cerebro · CI1b+CI3a Calles con sentido y ciudad ×5 a la vista (Opus; tope duro)",
+      "nota": "Cierre final: techo 5,8 M. Ciudad grande arreglada; falta una pasada de jueces y las capturas. 9 commits sin subir: solo existen en su contenedor",
       "url": "https://claude.ai/code/session_01QiKC3AfVQgWjdzHpMKkgYR"
-    },
-    {
-      "tarea": "CE6",
-      "titulo": "Cerebro · CE6 Senado de familias (Opus; tope duro)",
-      "nota": "hasta 7 bandos y escaños por población y provincia; solo código del Senado; corte duro 3,3 M",
-      "url": "https://claude.ai/code/session_01QiKC36KEPujrcfjeAyVCoL"
     },
     {
       "tarea": "CG6",
@@ -2046,7 +2040,7 @@
     {
       "tarea": "TP8",
       "titulo": "Corazón · TP8 Mejoras del testudo y del combate, hablándolas con el usuario (Opus; tope duro)",
-      "nota": "conversación; escenas aparte, sonido y caras; corte duro 2,25 M",
+      "nota": "Mejora 1a construida sin subir; prórroga de 0,3 M (techo 3,3 M) para subirla con jueces; el resto (TP8b) espera tu visto bueno",
       "url": "https://claude.ai/code/session_01QiKC37MiywH97s7ojcHQE6"
     }
   ],

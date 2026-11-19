@@ -571,7 +571,24 @@
   const BIEN_LIC = h('', 'licencia de juego', 'guardar el bien en almacén, su tope, su precio fijo y que los ricos lo consuman cada mes es regla del juego; de dónde salía cada bien está en su ficha de bien especial');
   const bien = {}; for (const k of ['sal', 'vino', 'caballos', 'pieles', 'plata', 'marmol', 'purpura', 'maderanaval']) bien[k] = f(SIN_R, BIEN_LIC);
 
-  R.fichas = { vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, recurso, veta, bien, invest, edad: edades, pueblo };
+
+  // ---- Bandos del Senado de familias (D.BANDOS, CE6). Se casan por id. Bandos como grupos fijos dirigidos por una familia: licencia de juego
+  //      (no había partidos; Scullard, Roman Politics 220–150 B.C., 1951, habla de grupos de familias, matizado por Gruen y Brunt). ----
+  const SIN_BAN = { sin: 'un bando del Senado no tiene modelo 3D' }, LIC_BAN = 'grupo fijo, escaños por población y provincia, humor y cifras: licencia de juego';
+  const bando = {
+    ter: f(SIN_BAN, h('Livio 27.11 (Q. Fabio Máximo, princeps senatus, 209 a.C.); Plutarco, Fabio Máximo', 'historico', LIC_BAN, 'Los Fabios, gran familia patricia con tierras. Quinto Fabio Máximo, el Contemporizador, fue Príncipe del Senado.')),
+    mer: f(SIN_BAN, h('Plutarco, Emilio Paulo 28–38 (Pidna, 168 a.C., y el botín de Macedonia); Livio 21.63 (ley Claudia, 218 a.C.)', 'probable', LIC_BAN + '; los senadores no podían comerciar a lo grande (ley Claudia): Emilios con los mercaderes es licencia de juego', 'Los Emilios: Lucio Emilio Paulo venció en Pidna y trajo tanto botín que Roma dejó de cobrar tributo.')),
+    mil: f(SIN_BAN, h('Polibio 10.2–20; Livio 26–30 (Escipión en Hispania, 210–206 a.C., y en África, 204–202 a.C.)', 'historico', LIC_BAN, 'Los Escipiones: Publio Cornelio Escipión venció a Aníbal en Zama. Familia de generales.')),
+    sac: f(SIN_BAN, h('Livio 27.8 (C. Valerio Flaco, flamen de Júpiter, 209 a.C.)', 'probable', LIC_BAN + '; que los Valerios lleven a los sacerdotes es licencia de juego', 'Los Valerios: Cayo Valerio Flaco fue flamen de Júpiter, uno de los sacerdocios más altos de Roma.')),
+    ita: f(SIN_BAN, h('Cicerón, Pro Plancio 20 (los Fulvios, de Túsculo); Apiano, Guerras civiles 1.21 (M. Fulvio Flaco propone la ciudadanía para los itálicos, 125 a.C.)', 'probable', LIC_BAN + '; la propuesta de Flaco es de 125 a.C., fuera del periodo', 'Los Fulvios venían de Túsculo, ciudad latina. Uno de ellos pidió después la ciudadanía para los aliados itálicos.')),
+    pro: f(SIN_BAN, h('Cicerón, In Verrem 2.4.89 (los Claudios Marcelos, patronos de Sicilia desde la toma de Siracusa, 212 a.C.)', 'historico', LIC_BAN, 'Los Claudios Marcelos tomaron Siracusa en 212 a.C. y desde entonces fueron patronos de toda Sicilia.')),
+    pue: f(SIN_BAN, h('Livio 23–25 (Ti. Sempronio Graco, cónsul en 215 y 213 a.C.); Plutarco, Tiberio Graco (tribuno de la plebe en 133 a.C.)', 'probable', LIC_BAN + '; los Gracos, tribunos del pueblo, son de después del 146 a.C.', 'Los Sempronios: sus nietos, los Gracos, fueron los grandes tribunos de la plebe. Por eso aquí llevan al pueblo.'))
+  };
+  // ---- Provincias del Senado (D.PROVINCIAS, CE6): agrupan ciudades y dan sus escaños a un bando afín. El Senado no representaba territorios: licencia de juego. ----
+  const SIN_PRO = { sin: 'una provincia del Senado no tiene modelo 3D' }, LIC_PRO = 'agrupación de ciudades, bando afín y escaños: licencia de juego';
+  const provincia = {};
+  for (const id of ['lacio', 'campania', 'etruria', 'magnagrecia', 'cisalpina', 'sicilia', 'cerdena', 'hispania', 'grecia', 'galia', 'africa']) provincia[id] = f(SIN_PRO, h('Livio 23.23 (unos 300 senadores); Cicerón, In Verrem 2.2.2 (Sicilia, primera provincia)', 'licencia de juego', LIC_PRO));
+  R.fichas = { vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, recurso, veta, bien, invest, edad: edades, pueblo, bando, provincia };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -589,6 +606,8 @@
     colonia: { tabla: 'COLONIAS', numericos: ['lon', 'lat', 'anio', 'colonos'], textos: ['n', 'h', 'tipo'] },
     mision: { tabla: 'MISIONES', numericos: ['desde', 'plazo'], textos: ['n', 'texto'] },
     ley: { tabla: 'LEYES', numericos: [], textos: ['n', 'texto'] },
+    bando: { tabla: 'BANDOS', numericos: [], textos: ['n', 'fam'] },
+    provincia: { tabla: 'PROVINCIAS', numericos: [], textos: ['n'] },
     encargo: { tabla: 'ENCARGOS', numericos: ['plazo'], textos: ['n', 'texto'] },
     hito: { tabla: 'HITOS', numericos: [], textos: ['n', 'texto'] },
     faccion: { tabla: 'FACTIONS', numericos: [], textos: ['n', 'col'] },
