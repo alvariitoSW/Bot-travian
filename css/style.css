@@ -1568,6 +1568,12 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #hoja .fcam button.on { background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--minio); border-color: var(--minio); }
 #hoja .fcam small { color: var(--tinta2); font: 400 14px var(--libro); }
 
+/* Vertical: la hoja acaba justo encima de la barra de seis, que sigue visible y tocable */
+@media (orientation: portrait) {
+  #hoja { bottom: calc(64px + env(safe-area-inset-bottom)); height: min(var(--ha, 420px), calc(92% - 64px - env(safe-area-inset-bottom))); }
+  #hscrim:not(.enmenu) { bottom: calc(64px + env(safe-area-inset-bottom)); }
+}
+
 /* Horizontal: la barra pasa a una columna fina a la izquierda; las hojas, por la derecha y a media pantalla como mucho */
 @media (orientation: landscape) {
   #tabs3 { top: 0; bottom: 0; right: auto; width: calc(56px + env(safe-area-inset-left)); height: auto; padding: calc(6px + env(safe-area-inset-top)) 4px calc(6px + env(safe-area-inset-bottom)) calc(4px + env(safe-area-inset-left));
