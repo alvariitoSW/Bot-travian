@@ -176,7 +176,8 @@
         "CG4b",
         "CG5",
         "CG7",
-        "CG8"
+        "CG8",
+        "CG9"
       ]
     },
     {
@@ -202,11 +203,15 @@
       "id": "L12",
       "organo": "corazon",
       "titulo": "Escaramuzas: batallas sueltas desde el menú",
-      "estado": "hecha",
-      "veras": "Eliges tu ejército, el enemigo y el campo, y luchas sin empezar una campaña.",
-      "hecho": "Botón en el menú principal, tres tamaños de ejército, campo y dificultad.",
+      "estado": "falta",
+      "veras": "Eliges tu ejército con tu dinero, el enemigo y el campo, y luchas sin empezar una campaña; cada soldado tiene su vida y sus datos según su tropa y su cultura.",
+      "hecho": "Botón en el menú principal, tres tamaños de ejército, campo y dificultad; la batalla nueva de manípulos ya se juega aquí.",
       "captura": "gobierno/capturas-tarea/MR3b-5-escaramuzas.jpg",
-      "tareas": []
+      "tareas": [
+        "CG2",
+        "CG9"
+      ],
+      "falta": "Tu pedido del 19/11: menú rehecho desde cero con tus tropas y tu dinero y diseño propio (CG2), y vida y datos reales de cada soldado por tipo y cultura (CG9)."
     },
     {
       "id": "L14",

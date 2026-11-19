@@ -2020,10 +2020,10 @@
       "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
     },
     {
-      "tarea": "CE3",
-      "titulo": "Cerebro · CE3 Edificios, tropas y tiempos nuevos, en estaciones (Opus; tope duro)",
-      "nota": "Parada en 9,71 M, jueces 39/41 sin subir; espera tu decisión en el cuadro. Sus commits solo existen en su contenedor",
-      "url": "https://claude.ai/code/session_01QiKC3Aw9VfHc42LQ8wLPsB"
+      "tarea": "CE3c",
+      "titulo": "Cerebro · CE3c Cerrar CE3: dos fallos de jueces y subir (Opus; tope duro)",
+      "nota": "Trabajo de CE3 guardado en la rama ce3; arregla los dos fallos de jueces, une con el Senado nuevo y sube solo con APTO; corte duro 0,9 M",
+      "url": "https://claude.ai/code/session_01QiKC384Vg22mRs9aAgH8gu"
     },
     {
       "tarea": "CI1b",
