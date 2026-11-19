@@ -1605,7 +1605,7 @@ console.log('OK — todas las pruebas superadas');
   c.pop = 300; s.res.denarios = 500; s.alm.denarios = 0; c.barrio = 1; assert(G.motivoCiudadania(c), 'barrio I no puede'); c.barrio = 2; assert.strictEqual(G.motivoCiudadania(c), null, 'barrio 2 puede dar ciudadanía');
   const base = G.popCap(c); c.barrio = 4; assert(Math.abs(G.popCap(c) - base / 1.25 * 1.8) <= 1, 'popCap de Urbs x1,8'); assert.strictEqual(D.BARRIO[4].imp, 1.15, 'impuestos de Urbs x1,15'); c.barrio = 2;
   // retraso de 3 meses POR BARRIO: el que pierde servicios baja tras 3; el otro no se entera
-  E.barrios[1].nivel = 4; E.barrios[0].nivel = 1; E.barrios[0].bdef = 0; E.barrios[1].bdef = 0; E.edificios.forEach(e => { if (e.tipo === 'fuente') e.ruina = true; }); E.rev++;
+  E.barrios[1].nivel = 4; E.barrios[0].nivel = 1; E.barrios[0].bdef = 0; E.barrios[1].bdef = 0; E.edificios.forEach(e => { if (e.tipo === 'fuente') e.ruina = 12; }); E.rev++;   // CI3a: 12 meses (con true, mes() la deja en 0 al primer mes y, con las dos fuentes de arriba, el barrio recuperaba el agua)
   const ob1 = CIMOD.nivelBarrio(E, 1).nivel; assert(ob1 < 4 && CIMOD.nivelBarrio(E, 0).nivel >= 1);
   CIMOD.mes(E); CIMOD.mes(E); assert.strictEqual(E.barrios[1].nivel, 4, 'a los 2 meses sigue igual'); assert.strictEqual(E.barrios[1].bdef, 2); assert.strictEqual(G.barrioInfo(c).barrios[1].meses, 1);
   assert(/bajará en 1 mes\b/.test(CIMOD.textoBarrio(E, 1)), CIMOD.textoBarrio(E, 1)); CIMOD.mes(E); assert.strictEqual(E.barrios[1].nivel, 3, 'al tercer mes baja un nivel'); assert.strictEqual(E.barrios[1].bdef, 0);
