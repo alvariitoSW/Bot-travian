@@ -2024,12 +2024,6 @@
       "titulo": "Cerebro · CI1b+CI3a Calles con sentido y ciudad ×5 a la vista (Opus; tope duro)",
       "nota": "Parada en el techo 6,4 M, sin subir (queda un fallo de sim.test); espera tu decisión en el cuadro. 11 commits solo en su contenedor",
       "url": "https://claude.ai/code/session_01QiKC3AfVQgWjdzHpMKkgYR"
-    },
-    {
-      "tarea": "CG6b",
-      "titulo": "Corazón · CG6b Bajar a pie desde el hombro, tanda 2: la lucha dentro de la batalla (Opus; tope duro)",
-      "nota": "Mete dentro de la batalla la lucha nueva del testudo, arregla el retraso al correr y las órdenes; corte duro 3,5 M",
-      "url": "https://claude.ai/code/session_01QiKC36axwQcxbnKxJFmNBF"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
