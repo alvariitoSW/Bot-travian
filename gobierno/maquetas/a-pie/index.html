@@ -58,11 +58,12 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 #ordenes #accion{flex-grow:1.35;min-width:0;padding-bottom:6px}
 #ordenes #medidor{left:8px;right:8px;bottom:5px;height:6px}
 .boton.apagada{opacity:.42;filter:saturate(.35)}
-#parar.pide{border-color:#ffd34d}
+#parar.pide{border-color:#ff3020;animation:late .32s infinite}#estocada.pide{animation:late .45s infinite;box-shadow:0 0 16px rgba(255,90,50,.85);filter:brightness(1.3)}@keyframes late{50%{transform:scale(1.08);box-shadow:0 0 0 4px rgba(255,60,40,.7)}}
 #derecha,#izquierda{display:flex;gap:10px;align-items:flex-end}
 #aliento-c{position:absolute;left:12px;right:12px;bottom:6px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);overflow:clip}
+.fuelle-c{position:absolute;left:12px;right:12px;bottom:5px;height:5px;border-radius:3px;background:rgba(255,255,255,.18);overflow:clip}.fuelle-c b{display:block;height:100%;width:100%;background:#8fd0e8;border-radius:3px}.fuelle-c b.bajo{background:var(--rojo)}
 #aliento{display:block;height:100%;width:100%;background:#8fd0e8;border-radius:2px}
-#correr{position:relative}
+#correr,#parar,#estocada,#empujar{position:relative}
 #correr.cansado{opacity:.6}#correr.cansado #aliento{background:var(--rojo)}
 #miescudo{width:16px;height:19px;flex:none;color:var(--verde)}
 #miescudo.e1{color:#e6ac3c}#miescudo.e2{color:var(--rojo)}#miescudo.roto{color:#8d846f}
@@ -121,11 +122,11 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
       <div id="izquierda">
         <button id="avanzar" class="boton"><svg viewBox="0 0 24 24"><path d="M12 20V5M12 5l-6 6M12 5l6 6"/></svg>Avanzar</button>
         <button id="correr" class="boton"><svg viewBox="0 0 24 24"><path d="M13 4.5a1.5 1.5 0 1 0 0 .1M9 20l3-6 3 2v5M7 11l3-3 4 1 2 3 3 1"/></svg><span id="correr-t">Correr</span><span id="aliento-c"><b id="aliento"></b></span></button>
-        <button id="parar" class="boton" hidden><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg>Parar</button>
+        <button id="parar" class="boton" hidden><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6z"/></svg><span id="parar-t">Parar</span><span class="fuelle-c" title="Tu aliento" hidden><b id="fu-parar"></b></span></button>
       </div>
       <div id="derecha">
-        <button id="estocada" class="boton roja" hidden><svg viewBox="0 0 24 24"><path d="M4 20l11-11M15 9l5-5M13 7l4 4"/></svg>Estocada</button>
-        <button id="empujar" class="boton" hidden><svg viewBox="0 0 24 24"><path d="M5 12h11M12 7l5 5-5 5M19 5v14"/></svg>Empujar</button>
+        <button id="estocada" class="boton roja" hidden><svg viewBox="0 0 24 24"><path d="M4 20l11-11M15 9l5-5M13 7l4 4"/></svg>Estocada<span class="fuelle-c" title="Tu aliento" hidden><b id="fu-estocada"></b></span></button>
+        <button id="empujar" class="boton" hidden><svg viewBox="0 0 24 24"><path d="M5 12h11M12 7l5 5-5 5M19 5v14"/></svg>Empujar<span class="fuelle-c" title="Tu aliento" hidden><b id="fu-empujar"></b></span></button>
       </div>
     </div>
     <div id="ordenes">

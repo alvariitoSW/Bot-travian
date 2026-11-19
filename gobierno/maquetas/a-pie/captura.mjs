@@ -5,6 +5,8 @@
 //       node gobierno/maquetas/a-pie/captura.mjs dpr=1 parte=tp1b  -> solo lo de TP1b
 //       node gobierno/maquetas/a-pie/captura.mjs dpr=1 parte=pies  -> solo medidas del paso y tiras (rápido, para iterar)
 //       node gobierno/maquetas/a-pie/captura.mjs dpr=1 solo=lucha,carga -> solo esas fotos
+//       node gobierno/maquetas/a-pie/captura.mjs dpr=1 parte=loco    -> TP8b-L2: dos bots en tu duelo (a lo loco y bien), solo cifras
+//       node gobierno/maquetas/a-pie/captura.mjs dpr=1 parte=duelo etiqueta=L2 [vert=1] -> TP8b-L2-{1..6} (o TP8b-L2-v-{1..3} en vertical)
 //       node gobierno/maquetas/a-pie/captura.mjs --servir          -> solo sirve la página (puerto 8384)
 // Medidas del paso: mientras un pie es el más bajo (apoyado), cuánto se desliza; media y peor por apoyo, en cm,
 // andando y corriendo, romanos y galos, con el andar de A (?antes=1) y con el nuevo. Objetivo: media de 3 cm o menos.
@@ -14,6 +16,7 @@ import { readFile, mkdir } from 'fs/promises';
 import { join, extname, normalize, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
+import { M, YO } from './formacion.js';   /* TP8b-F1: las cifras de la escena, no fijas */
 const AQUI = dirname(fileURLToPath(import.meta.url)), RAIZ = join(AQUI, '..', '..', '..'), SALIDA = join(RAIZ, 'gobierno', 'capturas-tarea');
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.bin': 'application/octet-stream', '.woff2': 'font/woff2' };
 const args = process.argv.slice(2), op = Object.fromEntries(args.filter(a => a.includes('=')).map(a => a.split(/=(.*)/s).slice(0, 2)));
@@ -130,12 +133,12 @@ async function tp1b() {
     await ctx.close();
   }
   e = await foto('caido', 'caido', ...V);
-  bien(!e.duelo.centurion && e.duelo.vivo && e.duelo.yo !== 2 && /El centurión ha caído: ahora eres/.test(e.textos[2]), `caído: «${e.textos[2]}» (ahora eres el n.º ${e.duelo.yo}) y sigues en tu duelo`);
+  bien(!e.duelo.centurion && e.duelo.vivo && e.duelo.yo !== YO && /El centurión ha caído: ahora eres/.test(e.textos[2]), `caído: «${e.textos[2]}» (ahora eres el n.º ${e.duelo.yo}) y sigues en tu duelo`);
   e = await foto('caido', 'caido-orden', ...V, prefijo, () => { const t = window.__tp; t.ordena('relevo'); t.salta(0.3); });
   bien(/tardan/.test(e.textos[2]), `sin centurión las órdenes tardan («${e.textos[2]}»)`);
   e = await foto('huida', 'huida', ...V); bien(e.bandos.ruptura === 'galos' && e.bandos.huyen >= 3, `huida: los galos rompen y ${e.bandos.huyen} huyen corriendo`);
   e = await foto('lucha', 'tarjeta', ...V, prefijo, BOT);
-  bien(e.fin && e.bandos.ruptura === 'galos' && /^Victoria/.test(e.textos[4]) && /Bajas: \d+ de tus 30 hombres; \d+ de 16 galos/.test(e.textos[5]), `partida jugando bien: gana quien rompe — «${e.textos[4]}»: ${e.textos[5]}`);
+  bien(e.fin && e.bandos.ruptura === 'galos' && /^Victoria/.test(e.textos[4]) && new RegExp(`Bajas: \\d+ de tus ${M} hombres; \\d+ de \\d+ galos`).test(e.textos[5]), `partida jugando bien: gana quien rompe — «${e.textos[4]}»: ${e.textos[5]}`);
   /* y jugando sin tocar nada también acaba, con un bando roto */
   { const ctx = await br.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1, hasTouch: true }), page = await ctx.newPage(); escucha(page);
     await page.goto(URL0 + '?fase=lucha'); await lista(page);
@@ -145,14 +148,73 @@ async function tp1b() {
   e = await foto('aviso', 'h-aviso', ...Hz); mide(e, 'lucha horizontal');
 }
 if (op.parte === 'tp1b') { await tp1b(); await br.close(); srv.close(); console.log('\nCoste:\n  ' + COSTE.join('\n  ')); console.log(errores.length ? '\nNO APTO\n' + errores.join('\n') : '\nAPTO (TP1b)'); process.exit(errores.length ? 1 : 0); }
+/* TP8b-L1 · tu duelo en seis fotogramas, en horizontal (844×390): aviso empezando, aviso a punto, parada, galo abierto,
+   estocada entrando, galo doblado. dpr=1 parte=duelo etiqueta=antes|despues; con finta=1, tres de la finta (armar, aguanta, golpe) */
+/* TP8b-L2 · pulsar a lo loco pierde: un bot pulsa «Estocada» cada 0,25 s; otro para en la ventana y golpea con el galo abierto.
+   Sin fotos: la escena avanza a saltos (como ?fase=) hasta que acaba la lucha o pasan 150 s */
+if (op.parte === 'loco') {
+  const corre = async (modo, aguanta) => {
+    const ctx = await br.newContext({ viewport: { width: 844, height: 390 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true }), page = await ctx.newPage(); escucha(page);
+    await page.goto(URL0 + '?fase=lucha'); await lista(page);
+    const r = await page.evaluate(([modo, aguanta]) => { const t = window.__tp, S = t.S; t.parar(true); let tPide = -9, primera = null, tRompe = null; const t0 = S.T, R0 = S.romanos.filter(h => h.vivo).length, G0 = S.galos.filter(g => g.vivo).length;
+      for (let i = 0; i < 30 * 150 && S.fase !== 'fin'; i++) {
+        const y = S.yo, d = y && y.duelo;
+        if (!S.huida && !S.derrota && d && d.activo && y.vivo) {
+          if (modo === 'loco') { if (S.T - tPide >= 0.25) { tPide = S.T; S.pide = 'estocada'; } }
+          else { const ven = S.roto ? 0.18 : 0.45; if (d.aviso && d.t0 > 0 && !d.imparable && S.T > d.ts - Math.min(0.3, ven - 0.05) && S.T < d.ts && S.T - S.tParar > 0.8) S.pide = 'parar'; else if ((S.T < (d.abierto || 0) || S.T < (d.deseq || 0)) && !t.duelo().ocupado && S.fuelleY >= 30) S.pide = 'estocada'; }
+        }
+        if (aguanta) { S.unidad.animo = Math.max(S.unidad.animo, 0.35); S.unidadG.animo = Math.max(S.unidadG.animo, 0.35); }   /* solo el duelo: que la lucha no acabe antes */
+        t.salta(1 / 30);
+        if (primera === null && S.misCaidas >= 1) primera = { muertes: S.misMuertes, seg: +(S.T - t0).toFixed(1) }; if (tRompe === null && S.ruptura) tRompe = +(S.T - t0).toFixed(1);
+        if (aguanta && (S.misCaidas >= 1 || S.misMuertes >= 2 || S.T - t0 > 90)) break;
+      }
+      return { modo, aguanta, tRompe, refuerzos: S.nRefuerzos || 0, primeraCaida: primera, muertes: S.misMuertes, caidas: S.misCaidas, ruptura: S.ruptura || 'ninguna', animoR: +S.unidad.animo.toFixed(2), animoG: +S.unidadG.animo.toFixed(2), bajasR: R0 - S.romanos.filter(h => h.vivo).length, bajasG: S.unidadG.hombres - S.unidadG.enPie, seg: +(S.T - t0).toFixed(1) };
+    }, [modo, aguanta]);
+    await ctx.close(); console.log('  ' + JSON.stringify(r)); return r;
+  };
+  /* primero el duelo solo (el ánimo de los bandos sujeto, para que la lucha no acabe antes); luego la lucha entera, sin tocar */
+  /* TP8b-L3: la lucha entera, sin sostener el ánimo: jugando bien dura y se gana; a lo loco, se pierde */
+  const bu = await corre('bien', false), lo = await corre('loco', false);
+  const mb = bu.primeraCaida ? bu.primeraCaida.muertes : bu.muertes;
+  bien(mb >= 3 && bu.ruptura === 'galos' && bu.tRompe >= 35 && bu.tRompe <= 75, `bien: matas a ${mb} galos antes de caer (${bu.caidas} caídas) y rompen los galos a los ${bu.tRompe} s (${bu.refuerzos} refuerzos; ánimo tuyo ${bu.animoR})`);
+  bien(lo.primeraCaida && lo.primeraCaida.muertes < 2 && lo.ruptura !== 'galos', `a lo loco: caes tras matar a ${lo.primeraCaida ? lo.primeraCaida.muertes : '?'} (a los ${lo.primeraCaida ? lo.primeraCaida.seg : '?'} s) y ${lo.ruptura === 'romanos' ? 'rompen los tuyos a los ' + lo.tRompe + ' s' : 'no ganas'} (${lo.refuerzos} refuerzos)`);
+  await br.close(); srv.close(); console.log(errores.length ? 'NO APTO\n' + errores.join('\n') : 'APTO (loco)'); process.exit(errores.length ? 1 : 0);
+}
+if (op.parte === 'duelo') {
+  const et = op.etiqueta || 'despues', finta = op.finta === '1', vert = op.vert === '1';
+  const nom = n => finta ? `TP8b-L1-finta-${n}` : /^L\d/.test(et) ? `TP8b-${et}${vert ? '-v' : ''}-${n}` : `TP8b-L1-${et}-${n}`;
+  const ctx = await br.newContext({ viewport: vert ? { width: 390, height: 844 } : { width: 844, height: 390 }, deviceScaleFactor: 1, hasTouch: true, isMobile: true }), page = await ctx.newPage(); escucha(page);
+  await page.goto(URL0 + '?fase=lucha'); await lista(page);
+  const paso = async (cod, n) => { const r = await page.evaluate(cod); await page.waitForTimeout(1200); await page.screenshot({ path: join(SALIDA, nom(n) + '.jpg'), type: 'jpeg', quality: 84, timeout: 240000 }); console.log(`  ${n}: ${JSON.stringify(r)}`); };
+  const PRE = `const t = window.__tp, S = t.S; t.parar(true); const tu = () => S.yo && S.yo.duelo, hasta = (c, s = 30) => { for (let i = 0; i < s * 30 && !c(); i++) t.salta(1 / 30); }, info = () => { const d = tu(); return { T: +S.T.toFixed(2), ts: d && +d.ts.toFixed(2), eco: S.eco && S.eco.texto, tipo: d && d.tipo, abierto: !!(d && S.T < (d.abierto || 0)) }; };`;
+  const nuevo = `hasta(() => { const d = tu(); return d && d.aviso && d.t0 > 0 && S.T - d.t0 > 0.08 && S.T - d.t0 < 0.2; });`;
+  if (vert) {
+    /* en vertical: el aviso con su anillo, tu estocada entrando (tras parar) y «Desviar» sin escudo */
+    await paso(`(() => { ${PRE} S.forzarGolpe = 'tajo'; ${nuevo} const ts = tu().ts; hasta(() => S.T > ts - 0.4); return info(); })()`, 1);
+    await paso(`(() => { ${PRE} const ts = tu().ts; S.pide = 'parar'; hasta(() => S.T > ts + 0.3); S.pide = 'estocada'; t.salta(1 / 30); const t2 = tu().ts; hasta(() => S.T > t2 + 0.02); return info(); })()`, 2);
+    await paso(`(() => { ${PRE} S.roto = true; t.salta(1.2); ${nuevo} const ts = tu().ts; hasta(() => S.T > ts - 0.1); S.pide = 'parar'; hasta(() => S.T > ts + 0.03); return { ...info(), boton: document.getElementById('parar-t').textContent }; })()`, 3);
+  } else if (!finta) {
+    await paso(`(() => { ${PRE} S.forzarGolpe = 'tajo'; ${nuevo} return info(); })()`, 1);
+    await paso(`(() => { ${PRE} const ts = tu().ts; hasta(() => S.T > ts - 0.3); return info(); })()`, 2);
+    await paso(`(() => { ${PRE} const ts = tu().ts; S.pide = 'parar'; hasta(() => S.T > ts + 0.05); return info(); })()`, 3);
+    await paso(`(() => { ${PRE} t.salta(0.3); return info(); })()`, 4);
+    await paso(`(() => { ${PRE} S.pide = 'estocada'; t.salta(1 / 30); const ts = tu().ts; hasta(() => S.T > ts + 0.02); return info(); })()`, 5);
+    await paso(`(() => { ${PRE} t.salta(0.2); return info(); })()`, 6);
+  } else {
+    await paso(`(() => { ${PRE} S.forzarGolpe = 'finta'; ${nuevo} t.salta(0.5); S.pide = 'parar'; t.salta(1 / 30); return info(); })()`, 1);
+    await paso(`(() => { ${PRE} const ts = tu().ts; hasta(() => S.T > ts - 0.35); return info(); })()`, 2);
+    await paso(`(() => { ${PRE} const ts = tu().ts; hasta(() => S.T > ts + 0.06); return info(); })()`, 3);
+  }
+  await ctx.close(); await br.close(); srv.close(); console.log(errores.length ? 'NO APTO\n' + errores.join('\n') : 'APTO (duelo)'); process.exit(errores.length ? 1 : 0);
+}
 if (op.parte === 'pies') { await medidasPaso(); await tiras(); await br.close(); srv.close(); console.log(errores.length ? 'NO APTO\n' + errores.join('\n') : 'APTO (paso)'); process.exit(errores.length ? 1 : 0); }
 
 /* para iterar: solo=avance,testudo saca solo esas fases (en vertical; añade h para horizontal: solo=testudo,h) y no hace las pruebas largas */
 if (op.solo) { const fs = op.solo.split(','), d = fs.includes('h') ? Hz : V; for (const f of fs.filter(x => x !== 'h')) await foto(f, f, ...d); await br.close(); srv.close(); console.log(errores.length ? 'NO APTO\n' + errores.join('\n') : 'APTO (solo fotos)'); process.exit(errores.length ? 1 : 0); }
-let e = await foto('avance', 'v-1-marcha', ...V); bien(e.vivos === 30 && e.k === 0, 'marcha: los 30 en pie y sin testudo');
+let e = await foto('avance', 'v-1-marcha', ...V); bien(e.vivos === M && e.k === 0, 'marcha: los ' + M + ' en pie y sin testudo');
 bien(Math.abs(e.yo.cabeza[1] - 1.88) < 0.12, `marcha: la cabeza está donde dicen las cuentas, a ${e.yo.cabeza[1].toFixed(2)} m del suelo (las figuras miden 2,15)`);
 e = await foto('flechas', 'v-2-salva', ...V); bien(e.flechas > 20, 'salva: hay venablos en el aire (' + e.flechas + ')');
-e = await foto('testudo', 'v-3-testudo', ...V); bien(e.k > 0.99 && e.vivos < 30, 'testudo: escudos arriba y ya hubo bajas de antes (' + e.vivos + ' en pie)'); encuadre(e, 'testudo vertical', true);
+e = await foto('testudo', 'v-3-testudo', ...V); bien(e.k > 0.99 && e.vivos < M, 'testudo: escudos arriba y ya hubo bajas de antes (' + e.vivos + ' en pie)'); encuadre(e, 'testudo vertical', true);
 e = await foto('cara', 'v-4-golpe', ...V); bien(e.k > 0.99 && e.enc > 0.5 && e.clavados > 5, `golpe: cae la salva, tu soldado se encoge (${e.enc.toFixed(2)}) y hay venablos clavados en los escudos (${e.clavados})`);
 e = await foto('mira', 'v-5-cara', ...V); bien(e.mira > 0.9 && entre(e.cuadro.yo.x, 0.2, 0.6), 'cara: tu soldado se vuelve a los suyos y la cámara se le arrima (cabeza en ' + e.cuadro.yo.x + ')');
 e = await foto('roto', '_v-roto', ...V); bien(e.roto, 'roto: tu escudo ya está partido (' + e.golpes + ' golpes)');
@@ -193,7 +255,7 @@ await medidasPaso(); await tiras(); await tp1b();
   bien(e2.k > 0.9, 'en vivo: «Escudos» forma el testudo');
   /* el resto, a saltos de reloj (el dedo sigue en «Avanzar»), jugando bien: escudos arriba con cada aviso y abajo cuando ya cayó la salva */
   const e3 = await page.evaluate(() => { const t = window.__tp, S = t.S; t.parar(true); for (let i = 0; i < 1500 && S.fase === 'avance'; i++) { S.escudos = S.aviso || S.impacto > 0; t.salta(0.1); } S.escudos = true; t.salta(1); return t.estado(); });
-  bien(e3.fase === 'pila' && e3.vivos >= 25, `partida: llega a tiro de pilum con ${e3.vivos} de 30 subiendo los escudos a cada aviso (escudo propio: ${e3.golpes} golpes${e3.roto ? ', roto' : ''})`);
+  bien(e3.fase === 'pila' && e3.vivos >= Math.round(M * 25 / 30), `partida: llega a tiro de pilum con ${e3.vivos} de ${M} subiendo los escudos a cada aviso (escudo propio: ${e3.golpes} golpes${e3.roto ? ', roto' : ''})`);
   await page.mouse.up(); await page.evaluate(() => window.__tp.parar(false)); await page.waitForTimeout(400);
   /* GM43h: «Lanzar» con el dedo: bajar arma el brazo, subir lanza; un pointercancel lanza igual y no deja el botón enganchado */
   const toque = (tipo) => page.dispatchEvent('#accion', tipo, { pointerId: 7, pointerType: 'touch', isPrimary: true, bubbles: true });

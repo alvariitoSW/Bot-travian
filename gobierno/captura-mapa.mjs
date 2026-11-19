@@ -34,7 +34,7 @@ await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 
 await page.click('#menu [data-act="new"]'); await page.waitForTimeout(2500);
 const cierra = () => page.evaluate(() => { const m = document.getElementById('modal'); if (m) m.hidden = true; });
 await cierra();
-await page.evaluate(() => { const b = document.createElement('button'); b.dataset.act = 'modo'; b.dataset.v = 'guerra'; document.body.appendChild(b); b.click(); b.remove(); });
+await page.evaluate(() => { const b = document.createElement('button'); b.dataset.act = 'barra'; b.dataset.v = 'mapa'; document.body.appendChild(b); b.click(); b.remove(); });
 await page.waitForFunction(() => window.UI && UI.map, null, { timeout: 60000 });
 await page.waitForTimeout(12000); await cierra();
 if (op.rutas) await page.evaluate(() => {   // K7a: rutas de prueba con rentas distintas y relaciones con Roma, para ver grosor y marcas
@@ -51,8 +51,8 @@ if (op.marchas) await page.evaluate(() => {   // C17: un ejército romano grande
 await mkdir(join(RAIZ, 'gobierno/capturas-tarea'), { recursive: true });
 const medir = () => page.evaluate(() => { const i = UI.map.r.info.render; return i.triangles + ' triángulos, ' + i.calls + ' llamadas'; });
 for (const v of vistas) {
-  if (VISTAS[v].acc === 'hoja') await page.click('#hguerra, [data-act="hguerra"]');
-  if (VISTAS[v].acc === 'mini') { if (!(await page.evaluate(() => !document.getElementById('hoja').hidden))) await page.click('[data-act="hguerra"]'); await page.waitForTimeout(800); await page.click('#hoja [data-act="minimapa"]'); }
+  if (VISTAS[v].acc === 'hoja') await page.click('#bmarchas');
+  if (VISTAS[v].acc === 'mini') { if (!(await page.evaluate(() => !document.getElementById('hoja').hidden))) await page.click('#bmarchas'); await page.waitForTimeout(800); await page.click('#hoja [data-act="minimapa"]'); }
   if (VISTAS[v].acc === 'toque') {   // toca el minimapa en lon/lat: lleva a esa zona (C6) y no debe elegir ciudad
     const r = await page.evaluate(() => { const b = UI.map.miniCv.getBoundingClientRect(); return [b.left, b.top, b.width, b.height]; }), V = VISTAS[v];
     const [ox, oz, an, al] = await page.evaluate(() => UI.map.miniDims());

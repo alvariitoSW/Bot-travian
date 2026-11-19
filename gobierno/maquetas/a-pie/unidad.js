@@ -12,12 +12,14 @@
    y las funciones baja(n), mata(n), anima(x), esfuerzo(dt, corriendo), lucha(dt, { muro, carga, contra }),
    relevo(), centurionCae(), retraso(). Las palabras (TP0 §6, iguales arriba y abajo) las da palabras(u). */
 export const ROMPE = 0.2, DUDA = 0.45;
-export function crearUnidad({ hombres, porBaja = 0.04 }) {
+/* TP8b-E2: ref = los hombres con que se ajustó el ánimo (30 romanos, 16 galos). Con más hombres cada baja pesa ref/hombres */
+export function crearUnidad({ hombres, porBaja = 0.04, ref = hombres }) {
+  const w = ref / hombres;
   const u = {
-    hombres, enPie: hombres, animo: 0.8, cansancio: 0, agotado: false, fatiga: 0, balance: 0, centurion: true, rota: false, enLucha: false,
+    hombres, enPie: hombres, peso: Math.sqrt(w), animo: 0.8, cansancio: 0, agotado: false, fatiga: 0, balance: 0, centurion: true, rota: false, enLucha: false,
     get aliento() { return 1 - u.cansancio; },
-    baja(n = 1) { u.enPie = Math.max(0, u.enPie - n); u.animo = Math.max(0, u.animo - porBaja * n); if (u.enLucha) u.balance -= n; },
-    mata(n = 1) { if (!u.enLucha) return; u.balance += n; u.anima(0.01 * n); },
+    baja(n = 1) { u.enPie = Math.max(0, u.enPie - n); u.animo = Math.max(0, u.animo - porBaja * n * w); if (u.enLucha) u.balance -= n * w; },
+    mata(n = 1) { if (!u.enLucha) return; u.balance += n * w; u.anima(0.01 * n * w); },
     anima(x) { u.animo = Math.min(1, Math.max(0, u.animo + x)); },
     /* correr gasta el aliento en 5 s y se recobra al 20 % por segundo; sin el margen del «agotado», con el botón pulsado
        corrían y se paraban a cada instante */
@@ -38,7 +40,7 @@ export function crearUnidad({ hombres, porBaja = 0.04 }) {
     },
     /* la fila fresca entra delante: la fatiga de la primera fila se va; un poco de ánimo */
     relevo() { u.fatiga *= 0.35; u.anima(0.03); },
-    centurionCae() { if (!u.centurion) return; u.centurion = false; u.anima(-0.08); },
+    centurionCae() { if (!u.centurion) return; u.centurion = false; u.anima(-0.08 * u.peso); }   /* TP8b-F1: peso = raíz de ref/hombres: con 96, tu caída duele sin romper la centuria */,
     /* segundos que tarda en obedecer una orden */
     retraso() { return u.centurion ? 0 : 1.1; },
   };

@@ -1,5 +1,6 @@
 /* Pieza «enemigo»: los galos (arte de 0 A.D., Wildfire Games, CC BY-SA 3.0). Sin pantalla: corre en Node.
-   · creaGalos: dos filas de 8, cada uno con su sitio, su salida y su paso propio (locomocion.js).
+   · creaGalos: dos filas de 8, cada uno con su sitio, su salida y su paso propio (locomocion.js). TP8b-L3: y «reserva»
+     galos más, guardados (reserva: true, no se dibujan): son los refuerzos que la lucha (acciones.js) trae corriendo del fondo.
    · marchaGalos: esperan, gritan y se vienen; a 9 m, a la carrera. Cada uno acelera y frena a su aire (nada de golpe),
      y la pierna avanza por lo que recorre: los pies pisan.
    · filasGalo: qué dos filas de su tabla le tocan (quieto, andar, correr fundidos) o la de caer.
@@ -7,15 +8,23 @@
    Después: otros pueblos, con el mismo contrato. */
 import { crearPaso, velocidad, pisa } from './locomocion.js';
 import { filasMarcha } from './soldado.js';
-export function creaGalos(azar, azarP, Z_GALOS, zancadas) {
-  const G = [];
-  for (let i = 0; i < 16; i++) {
-    const fila = Math.floor(i / 8);
-    G.push({ i, x: ((i % 8) - 3.5) * 1.25 + (azar() - 0.5) * 0.3, z: Z_GALOS - fila * 1.6 + (azar() - 0.5) * 0.4, vivo: true, muere: 0, fila, fase: azar() * 3, v: 0, dist: (i * 1.37) % 3,
+/* TP8b-E2: ancho = galos por fila (8 con el manípulo de antes; 14 con la centuria). La reserva ya no se esconde: espera en
+   masa detrás, en filas al tresbolillo, sigue a los suyos al paso y se para a unos 8 m de la lucha. De ahí salen los refuerzos */
+export function creaGalos(azar, azarP, Z_GALOS, zancadas, reserva = 0, ancho = 8) {
+  const G = [], NF = 2 * ancho;
+  for (let i = 0; i < NF; i++) {
+    const fila = Math.floor(i / ancho);
+    G.push({ i, x: ((i % ancho) - (ancho - 1) / 2) * 1.25 + (azar() - 0.5) * 0.3, z: Z_GALOS - fila * 1.6 + (azar() - 0.5) * 0.4, vivo: true, muere: 0, fila, fase: azar() * 3, v: 0, dist: (i * 1.37) % 3,
       sale: ((i * 7) % 5) * 0.1 + fila * 0.25, marcado: false, frena: -9, fr: 0, A: 0, B: 0, mx: 0, pitch: 0, porPila: false, camino: 0, off: 0, golpes: 0,
       /* cada galo, su genio: unos salen con más prisa y corren algo más (±8 %); y su talla (±4 %), y con ella su zancada */
       vMas: 0.92 + azarP() * 0.16, esc: 0.96 + azarP() * 0.08 });
     const g = G[i]; g.paso = crearPaso({ zW: zancadas.walk * g.esc, zR: zancadas.run * g.esc, fase: azarP(), prisa: 0.8 + azarP() * 0.4 });
+  }
+  /* los de reserva no gastan azar: así la escena de siempre sale igual */
+  for (let k = 0; k < reserva; k++) {
+    const i = NF + k, fila = 2 + Math.floor(k / ancho), a = ((k * 7919) % 1000) / 1000, b = ((k * 4241) % 997) / 997;
+    G.push({ i, x: ((k % ancho) - (ancho - 1) / 2) * 1.25 + (fila % 2 ? 0.62 : 0) + (a - 0.5) * 0.5, z: Z_GALOS - fila * 1.5 + (b - 0.5) * 0.6, vivo: false, reserva: true, muere: 0, fila, fase: (k * 0.73) % 3, v: 0, dist: 0, sale: 0.5 + fila * 0.2 + a * 0.3, marcado: false, frena: -9, fr: 0, A: 0, B: 0, mx: 0, pitch: 0, porPila: false, camino: 0, off: 0, golpes: 0, vMas: 0.92 + b * 0.12, esc: 0.96 + a * 0.08 });
+    const g = G[i]; g.paso = crearPaso({ zW: zancadas.walk * g.esc, zR: zancadas.run * g.esc, fase: (k * 0.37) % 1, prisa: 1 });
   }
   return G;
 }
@@ -24,9 +33,11 @@ export function marchaGalos(S, dt, T, vf) {
   if (S.choque) return;   /* en la lucha los mueve acciones.js */
   for (const g of S.galos) {
     let d;
-    if (!g.vivo) { g.v *= Math.max(0, 1 - dt * 5); d = g.v * dt; }
+    if (!g.vivo && !g.reserva) { g.v *= Math.max(0, 1 - dt * 5); d = g.v * dt; }
     else {
-      const meta = S.choque || S.tGalos < 0 || T < S.tGalos + g.sale ? 0 : T - g.frena < 0.5 ? vf * 0.15 : vf * g.vMas;
+      let meta = S.choque || S.tGalos < 0 || T < S.tGalos + g.sale ? 0 : T - g.frena < 0.5 ? vf * 0.15 : vf * g.vMas;
+      /* la reserva va detrás y frena al llegar a su sitio, a unos 8 m del frente romano */
+      if (g.reserva) meta = Math.min(meta, Math.max(0, (S.zF - 8 - (g.fila - 2) * 1.5 - g.z) * 1.2));
       g.v = velocidad(g.paso, meta, dt); d = g.v * dt;
     }
     g.z += d; g.dist += d; pisa(g.paso, d, dt);

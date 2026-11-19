@@ -281,6 +281,46 @@ async function navegador() {
         : 'elegido ' + JSON.stringify(elegidos) + ', aviso mover «' + noMueve + '», aviso testudo «' + noForma + '», efecto ' + JSON.stringify(efecto) + ', guardada igual ' + (guardada === despues), captura: ok ? cap : capFin };
     });
 
+    /* CG6: a pie. Se baja con un hastati, se mira que la cámara va al hombro, se anda con la palanca y se vuelve al mando.
+       Se mira el EFECTO (posiciones, cámara, reloj del simulador). El dibujo va a ~1 fotograma/s: se avanza a mano con cuadro(0.1) */
+    await paso('Escaramuzas: bajar a pie y volver al mando', async () => { try { return await bajarApie(); } finally {
+      /* pase lo que pase, se deja la página como la encontró (en vertical, sin la pantalla de mando): si no, los pasos siguientes fallan */
+      await estado(() => { if (window.__mn && !window.__mn.cerrado && window.__mn.terminar) window.__mn.terminar(); }).catch(() => { }); await espera(800);
+      if (await page.locator('#hoja [data-act="hojax"]').count()) await page.click('#hoja [data-act="hojax"]').catch(() => { });
+      await page.setViewportSize({ width: 390, height: 844 }); await espera(800);
+    } });
+    async function bajarApie() {
+      /* el menú se toca en vertical; tras el paso anterior la hoja del resultado (.esc-fin) sigue en la página, así que se mira el botón */
+      if (!(await page.locator('[data-act="escempieza"]').count())) { await page.click('#menu .mesc'); await espera(800); }
+      await page.setViewportSize({ width: 844, height: 390 }); await espera(500);
+      await page.click('[data-act="escempieza"]');
+      await page.waitForFunction(() => window.__mn && window.__mn.lista === true, null, { timeout: 180000 }).catch(() => { });
+      if (!(await estado(() => !!(window.__mn && window.__mn.lista)))) return { ok: false, detalle: 'la pantalla de mando no llegó a estar lista', captura: await foto('apie-carga') };
+      await estado(() => window.__mn.pausa(false)); await espera(800);
+      const id = await estado(() => { const u = window.__mn.S.man.find(u => u.lado === 0 && u.tropa === 'hastati') || window.__mn.S.man.find(u => u.lado === 0); window.__mn.elegir([u.id]); return u.id; });
+      const no = await estado(i => window.__mn.bajar(i), id);
+      await espera(1500);
+      const a0 = await estado(() => window.__mn.apie());
+      const u0 = await estado(i => { const u = window.__mn.S.man[i]; return { x: u.x, y: u.y, t: window.__mn.S.t }; }, id);
+      if (no || !a0) return { ok: false, detalle: 'no baja: «' + no + '»', captura: await foto('apie-no') };
+      const dCam = Math.hypot(a0.camara.x - a0.x, a0.camara.z + a0.y);
+      await estado(() => { window.__mn.palanca(0, -1); for (let k = 0; k < 30; k++) window.__mn.cuadro(0.1); window.__mn.palanca(0, 0); });
+      const a1 = await estado(() => window.__mn.apie());
+      const anda = Math.hypot(a1.x - a0.x, a1.y - a0.y);
+      await estado(() => { for (let k = 0; k < 40; k++) window.__mn.cuadro(0.1); });
+      /* a pie, de cerca, el dibujo por programa puede tardar más de 30 s en dar un fotograma en un recorrido largo: se pausa, se espera más
+         y, si aun así no llega, el paso juzga el efecto sin la foto */
+      await estado(() => window.__mn.pausa(true));
+      const cap = await page.screenshot({ path: join(CAPS, String(++n).padStart(2, '0') + '-escaramuza-apie.jpg'), type: 'jpeg', quality: 72, timeout: 120000 }).then(() => String(n).padStart(2, '0') + '-escaramuza-apie.jpg').catch(() => null);
+      await estado(() => window.__mn.pausa(false));
+      const u1 = await estado(i => { const u = window.__mn.S.man[i]; return { x: u.x, y: u.y, t: window.__mn.S.t, oculto: getComputedStyle(document.getElementById('mn-abajo')).display === 'none' }; }, id);
+      const mueveMan = Math.hypot(u1.x - u0.x, u1.y - u0.y);
+      await estado(() => window.__mn.subir()); await espera(1500);
+      const arriba = await estado(() => ({ a: window.__mn.apie(), y: window.__mn.camaraY(), sel: window.__mn.estado().sel }));
+      const ok = dCam < 6 && a0.camara.y < 4 && anda > 2 && mueveMan > 1 && u1.t > u0.t + 5 && u1.oculto && !arriba.a && arriba.y > 30 && arriba.sel.includes(id);
+      return { ok, detalle: 'cámara a ' + dCam.toFixed(1) + ' m y ' + a0.camara.y.toFixed(1) + ' m de alto; el centurión anda ' + anda.toFixed(1) + ' m; el manípulo se mueve ' + mueveMan.toFixed(1) + ' m; reloj ' + u0.t.toFixed(1) + ' → ' + u1.t.toFixed(1) + ' s; arriba de nuevo a ' + (+arriba.y).toFixed(0) + ' m', captura: cap };
+    }
+
     await paso('Nueva partida: se ve el mapa', async () => {
       await page.click('#menu [data-act="new"]'); await espera(2500); await cierraAvisos();
       await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; Game.autoVivo = true; });      // CN14-C: el asesor de serie no cambia el recorrido
@@ -289,14 +329,14 @@ async function navegador() {
     });
 
     await paso('Ciudad en 3D', async () => {
-      await espera(3000);   // la partida nueva abre en Gobierno (ciudad)
+      await espera(3000);   // la partida nueva abre en la Ciudad
       const ok = await estado(() => !document.getElementById('citywrap').hidden && !!document.querySelector('#citywrap canvas'));
       return { ok, detalle: ok ? '' : 'no aparece la vista 3D de la ciudad', captura: await foto('ciudad') };
     });
 
-    await paso('Ajustes y asesor: dificultad en Gobierno', async () => {
-      await page.click('#tabs3 [data-v="gobierno"]'); await espera(500);
-      await page.click('#view [data-act="hoja"][data-v="ajustes"]'); await espera(400);   // K12a: Ajustes es una hoja inferior
+    await paso('Ajustes y asesor: dificultad en Ajustes (☰)', async () => {
+      await page.click('#bmas'); await espera(500);   // MN1: Ajustes se abre desde ☰, ya no hay pestaña «Gobierno»
+      await page.click('#hoja [data-act="hoja"][data-v="ajustes"]'); await espera(400);   // K12a: Ajustes es una hoja inferior
       const hay = await estado(() => !!document.getElementById('ajustes') && !!document.getElementById('dif-g') && !!document.getElementById('ase-g'));
       let dura = false, sigue = false, alto = 0;
       if (hay) {
@@ -345,24 +385,26 @@ async function navegador() {
         const e = await estado(() => { const E = Game.ciudadE('roma'), e = E.edificios.find(q => !q.obra && !q.ruina && DATA.BUILD[q.tipo] && q.x !== undefined); if (!e) return null; UI.cityV.mirar(e.x, e.z, 260, 0); return { x: e.x, z: e.z }; });
         if (!e) break; await espera(2500);
         const p = await page.evaluate(e => UI.cityV.aPantalla(e.x, e.z, 4), e); await page.touchscreen.tap(p.x, p.y); await espera(700);
-        fichaOk = await estado(() => !!document.querySelector('#fichab .ficha [data-act="mejpz"]'));
+        fichaOk = await estado(() => !!document.querySelector('#fichab .ficha [data-act="mejpz"], #fichab .ficha .nv5-no'));   // CE3: regla de CE1, ningún edificio pasa del Foro; al nivel del Foro la ficha enseña el aviso «⚠ Sube antes el Foro» en vez de «Mejorar»
       }
       if (!fichaOk) fallos.push('la ficha de una pieza no enseña «mejorar»');
       const captura2 = await foto('construir-ficha');
       await estado(() => { const c = document.querySelector('#fichab [data-act="cclose"]'); if (c) c.click(); });
-      await page.click('#tabs3 [data-v="gobierno"]'); await espera(1200);
-      const gob = await estado(() => ({ up: document.querySelectorAll('#view [data-act="up"]').length, solar: /solar/i.test(document.getElementById('view').innerText), anillo: !!document.querySelector('#view .gani'), atajos: document.querySelectorAll('#view .gatajos .gat').length, scroll: document.getElementById('view').scrollHeight - document.getElementById('view').clientHeight }));
-      if (gob.up) fallos.push('Gobierno aún tiene botones de subir edificio'); if (gob.solar) fallos.push('Gobierno aún dice «solar»');
-      if (!gob.anillo || gob.atajos < 4) fallos.push('Gobierno (K12a) sin anillo de felicidad o sin atajos'); if (gob.scroll > 2) fallos.push('Gobierno hace scroll de página (' + gob.scroll + ' px)');
-      const enObras = await estado(() => /obra|construy|hasta|⏳|🔨/i.test(document.getElementById('view').innerText));
+      await page.click('#citybtn'); await espera(1200);   // MN1: lo que era «Gobierno» es ahora la ficha de ROMA ▾ (#hoja .fciu)
+      const gob = await estado(() => { const f = document.querySelector('#hoja .fciu'), c = document.querySelector('#hoja .hcuerpo'); if (!f || !c) return { falta: true }; return { up: f.querySelectorAll('[data-act="up"]').length, solar: /solar/i.test(f.innerText), anillo: !!f.querySelector('.gani'), atajos: f.querySelectorAll('.gatajos .gat').length, scroll: Math.round(f.getBoundingClientRect().height - c.clientHeight) }; });
+      if (gob.falta) fallos.push('ROMA ▾ no abre la hoja con la ficha de la ciudad (.fciu)');
+      if (gob.up) fallos.push('la ficha de ROMA ▾ tiene botones de subir edificio'); if (gob.solar) fallos.push('la ficha de ROMA ▾ dice «solar»');
+      if (!gob.falta && (!gob.anillo || gob.atajos < 4)) fallos.push('la ficha de ROMA ▾ (K12a) sin anillo de felicidad o sin atajos (' + gob.atajos + ')'); if (gob.scroll > 2) fallos.push('la ficha de ROMA ▾ no cabe en la hoja: hace scroll (' + gob.scroll + ' px)');
+      const enObras = await estado(() => { const f = document.querySelector('#hoja .fciu'); return !!f && /obra|construy|hasta|⏳|🔨/i.test(f.innerText); });
+      await estado(() => { const x = document.querySelector('#hoja [data-act="hojax"]'); if (x) x.click(); }); await espera(300);
       await page.click('#tabs3 [data-v="imperio"]'); await espera(1000);
       const imp = await estado(() => document.getElementById('view').innerText.length > 40); if (!imp) fallos.push('Imperio no abre');
       await page.click('#tabs3 [data-v="ciudad"]'); await espera(500);
-      return { ok: !fallos.length, detalle: fallos.length ? fallos.join('; ') : 'en obras: ' + obra.t + ' · fantasma «' + lin.slice(0, 50) + '» · ficha con mejorar · Gobierno limpio' + (enObras ? '' : ' (sin texto de obra en Gobierno)'), captura };
+      return { ok: !fallos.length, detalle: fallos.length ? fallos.join('; ') : 'en obras: ' + obra.t + ' · fantasma «' + lin.slice(0, 50) + '» · ficha con mejorar · ficha de ROMA ▾ limpia' + (enObras ? '' : ' (sin texto de obra en la ficha de ROMA ▾)'), captura };
     });
 
     await paso('Reclutar tropas', async () => {
-      await page.click('#bmas'); await page.click('#hoja [data-act="modo"][data-v="guerra"]'); await espera(500); await page.click('#bact'); await espera(500);
+      await page.click('#tabs3 [data-v="mapa"]'); await espera(500); await page.click('#tabs3 [data-v="tropas"]'); await espera(500);   // MN1: sin modos; la barra lleva al mapa y a Tropas
       const b = page.locator('#view [data-act="train"]:not(.no)').first(); await b.scrollIntoViewIfNeeded(); await b.click(); await espera(500);
       const q = await estado(() => Game.state.cities.roma.train.map(t => t.n + ' ' + DATA.UNITS[t.u].n).join(', '));
       return { ok: !!q, detalle: q ? 'en instrucción: ' + q : 'no se reclutó nada', captura: await foto('reclutar') };
@@ -383,7 +425,7 @@ async function navegador() {
       objetivo = await estado(() => Game.neighbors('roma').filter(n => Game.state.cities[n].owner !== 'roma' && !Game.edge('roma', n)[2]).sort((a, b) => Game.power(Game.state.cities[a].units) - Game.power(Game.state.cities[b].units))[0] || '');
       if (!objetivo) return { ok: false, detalle: 'Roma no tiene vecina enemiga por tierra' };
       await page.evaluate(id => { UI.sel = id; UI.sheetKey = ''; }, objetivo);
-      await page.click('#bmas'); await page.click('#hoja [data-act="modo"][data-v="guerra"]'); await espera(600);
+      await page.click('#tabs3 [data-v="mapa"]'); await espera(600);
       await page.click('#sheet [data-act="pick"]'); await espera(500);
       const captura = await foto('atacar');
       await page.click('#mbox [data-act="send"]'); await espera(400);
@@ -452,7 +494,7 @@ async function navegador() {
     });
 
     await paso('Mapa por escalones: tocar Italia acerca y «← volver» devuelve', async () => {
-      await estado(() => { Game.state.speed = 0; UI.dirty = true; const b = document.createElement('button'); b.dataset.act = 'modo'; b.dataset.v = 'guerra'; document.body.appendChild(b); b.click(); b.remove(); const m = document.getElementById('modal'); if (m) m.hidden = true; UI.map.esc.anim = null; UI.map.esc.zona = null; UI.map.esc.pila = []; UI.map.c.x = 94; UI.map.c.z = 46; UI.map.c.dist = 330; UI.map.clamp(); });
+      await estado(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('#tabs3 [data-v="mapa"]').click(); const m = document.getElementById('modal'); if (m) m.hidden = true; UI.map.esc.anim = null; UI.map.esc.zona = null; UI.map.esc.pila = []; UI.map.c.x = 94; UI.map.c.z = 46; UI.map.c.dist = 330; UI.map.clamp(); });
       await espera(1500);
       const antes = await estado(() => ({ x: UI.map.c.x, z: UI.map.c.z, dist: UI.map.c.dist, zonas: [...document.querySelectorAll('.mlabel.zona')].filter(e => e.style.display !== 'none').length }));
       const fotoMare = await foto('escalon-mare');
@@ -469,20 +511,45 @@ async function navegador() {
     });
 
     await paso('C8b menú del mapa en cinco cosas; se entra tocando Roma y la miga devuelve al mapa (≥44 px, ≥11 px)', async () => {
-      await estado(() => { Game.state.speed = 0; UI.dirty = true; const b = document.createElement('button'); b.dataset.act = 'modo'; b.dataset.v = 'guerra'; document.body.appendChild(b); b.click(); b.remove(); const m = document.getElementById('modal'); if (m) m.hidden = true; });
+      await estado(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('#tabs3 [data-v="mapa"]').click(); const m = document.getElementById('modal'); if (m) m.hidden = true; });
       await espera(1500);
-      const ves = () => estado(() => Object.fromEntries(['res', 'datebox', 'bmas', 'turno', 'bact', 'bmodo', 'citybtn', 'miga', 'zoom', 'bpill'].map(i => { const e = document.getElementById(i), r = e.getBoundingClientRect(), cs = getComputedStyle(e); return [i, !e.hidden && cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.bottom > 0 && r.top < innerHeight]; })));
+      const ves = () => estado(() => Object.fromEntries(['res', 'datebox', 'bmas', 'turno', 'tabs3', 'citybtn', 'miga', 'zoom'].map(i => { const e = document.getElementById(i), r = e.getBoundingClientRect(), cs = getComputedStyle(e); return [i, !e.hidden && cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.bottom > 0 && r.top < innerHeight]; })));
       const medir = () => estado(() => { const m = document.getElementById('miga'), b = document.getElementById('miga-b'), t = document.getElementById('miga-t'); if (!m || m.hidden) return { vis: false, tab: UI.tab }; const r = b.getBoundingClientRect(); return { vis: true, tab: UI.tab, t: t.innerText.replace(/\s+/g, ' '), b: b.innerText, alto: r.height, fuente: parseFloat(getComputedStyle(b).fontSize), dentro: r.left >= 0 && r.right <= innerWidth, sinTapar: r.bottom < innerHeight - 100 }; });
       const v = await ves(); await foto('menu-mapa');
-      const cinco = v.res && v.datebox && v.bmas && v.turno && v.bact && v.bmodo, fuera = !v.citybtn && !v.miga && !v.zoom && !v.bpill;
+      const cinco = v.res && v.datebox && v.bmas && v.turno && v.tabs3, fuera = !v.citybtn && !v.miga && !v.zoom;
+      // MN1: en horizontal la barra de seis es una columna fina a la izquierda; tira, fecha, ☰ y «Pasar turno» siguen a la vista
+      await page.setViewportSize({ width: 844, height: 390 }); await espera(1200);
+      const vh = await ves(), col = await estado(() => { const r = document.getElementById('tabs3').getBoundingClientRect(); return { w: Math.round(r.width), l: Math.round(r.left), alto: Math.round(r.height) }; });
+      await foto('menu-mapa-h');
+      await page.setViewportSize({ width: 390, height: 844 }); await espera(1200);
+      const horiz = vh.res && vh.datebox && vh.bmas && vh.turno && vh.tabs3 && col.w < 90 && col.l < 10 && col.alto > col.w;
       await estado(() => UI.map.cities.roma.el.click()); await espera(800);
       const ficha = await estado(() => { const b = document.querySelector('#sheet [data-act="entrar"]'); return b ? b.innerText : ''; });
       await estado(() => UI.map.cities.roma.el.click()); await espera(3500);
       const ciu = await medir(); await foto('miga-ciudad');
       await page.click('#miga-b'); await espera(2500);
       const vuelta = await medir();
-      const ok = cinco && fuera && /Entrar en Roma/.test(ficha) && ciu.vis && ciu.tab === 'city' && /Ciudad/.test(ciu.t) && /Salir/.test(ciu.b) && ciu.alto >= 44 && ciu.fuente >= 11 && ciu.dentro && ciu.sinTapar && vuelta.tab === 'map' && !vuelta.vis;
-      return { ok, detalle: ok ? 'en el mapa solo tira, ☰, «Pasar turno», Tropas y Guerra; la ficha dice «' + ficha + '»; tocar Roma entra y «' + ciu.b + '» vuelve al mapa' : JSON.stringify({ v, ficha, ciu, vuelta }) };
+      const ok = cinco && fuera && horiz && /Entrar en Roma/.test(ficha) && ciu.vis && ciu.tab === 'city' && /Ciudad/.test(ciu.t) && /Salir/.test(ciu.b) && ciu.alto >= 44 && ciu.fuente >= 11 && ciu.dentro && ciu.sinTapar && vuelta.tab === 'map' && !vuelta.vis;
+      return { ok, detalle: ok ? 'en el mapa: tira, ☰, «Pasar turno» y la barra de seis (en horizontal, columna de ' + col.w + ' px a la izquierda); la ficha dice «' + ficha + '»; tocar Roma entra y «' + ciu.b + '» vuelve al mapa' : JSON.stringify({ v, vh, col, ficha, ciu, vuelta }) };
+    });
+
+    await paso('Barra de seis: Ciudad, Senado, Saber, Tropas, Mapa e Imperio (palabra entera, ≥44 px, cada toque a su vista)', async () => {
+      await estado(() => { Game.state.speed = 0; const m = document.getElementById('modal'); if (m) m.hidden = true; const x = document.querySelector('#hoja [data-act="hojax"]'); if (x && !document.getElementById('hoja').hidden) x.click(); }); await espera(400);
+      const VISTA = { ciudad: 'city', senado: 'senado', saber: 'saber', tropas: 'army', mapa: 'map', imperio: 'imperio' }, fallos = [];
+      const med = await estado(() => [...document.querySelectorAll('#tabs3 [data-act="barra"]')].map(b => { const r = b.getBoundingClientRect(), s = b.querySelector('span') || b, cs = getComputedStyle(b); return { v: b.dataset.v, t: s.textContent.trim(), vis: !b.hidden && cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.top >= 0 && r.bottom <= innerHeight + 1, alto: Math.round(r.height), corta: b.scrollWidth > b.clientWidth || s.scrollWidth > s.clientWidth || s.getBoundingClientRect().width > b.clientWidth + .5 }; }));
+      const vs = med.map(m => m.v).join(',');
+      if (vs !== Object.keys(VISTA).join(',')) fallos.push('la barra tiene «' + vs + '»');
+      for (const m of med) { if (!m.vis) fallos.push(m.v + ' no se ve'); if (m.alto < 44) fallos.push(m.v + ' mide ' + m.alto + ' px de alto'); if (m.corta || m.t.length < 4) fallos.push(m.v + ' con la palabra cortada («' + m.t + '»)'); }
+      let captura = '';
+      for (const v of Object.keys(VISTA)) {
+        await page.click('#tabs3 [data-act="barra"][data-v="' + v + '"]'); await espera(v === 'mapa' || v === 'ciudad' ? 1500 : 800);
+        await estado(() => { const m = document.getElementById('modal'); if (m && !m.hidden) m.hidden = true; });
+        const r = await estado(v => { const on = [...document.querySelectorAll('#tabs3 [data-act="barra"].on')].map(b => b.dataset.v); const malos = [...document.querySelectorAll('button, [data-act]')].filter(e => { const r = e.getBoundingClientRect(), cs = getComputedStyle(e); return r.width > 0 && r.height > 0 && cs.visibility !== 'hidden' && r.bottom > 0 && r.top < innerHeight && /^\s*(Gobierno|Guerra)\s*$/i.test(e.innerText || ''); }).map(e => e.innerText.trim()); return { vista: document.getElementById('app').dataset.vista, on, malos }; }, v);
+        if (r.vista !== VISTA[v]) fallos.push(v + ' lleva a «' + r.vista + '»'); if (r.on.join() !== v) fallos.push(v + ' marca .on en «' + r.on.join() + '»'); if (r.malos.length) fallos.push(v + ': botón visible «' + r.malos[0] + '»');
+        if (v === 'senado') captura = await foto('barra-seis');
+      }
+      await page.click('#tabs3 [data-act="barra"][data-v="ciudad"]'); await espera(1200);
+      return { ok: !fallos.length, detalle: fallos.length ? fallos.join('; ') : 'seis botones de ' + Math.min(...med.map(m => m.alto)) + ' px o más, palabras enteras (' + med.map(m => m.t).join(' · ') + '); cada toque abre su vista y se marca', captura };
     });
 
     await paso('CN22 avisos: máx. 2 avisos y tarjeta de estación baja', async () => {
@@ -521,8 +588,8 @@ async function navegador() {
       const ok1 = emp && salio && m.speed === 0 && /Obra terminada/.test(m.txt) && m.l >= 0 && m.r <= 390 && m.alto <= 70 && m.bt >= 32 && m.b < m.abajo && !m.modal && sigue.speed > 0 && sigue.oculto;
       // el ajuste
       await estado(() => { Game.state.speed = 0; });
-      await estado(() => document.querySelector('#tabs3 [data-v="gobierno"]').click()); await espera(600);
-      await page.click('#view [data-act="hoja"][data-v="ajustes"]'); await espera(400);   // K12a: Ajustes es una hoja inferior
+      await page.click('#bmas'); await espera(600);   // MN1: Ajustes, desde ☰
+      await page.click('#hoja [data-act="hoja"][data-v="ajustes"]'); await espera(400);   // K12a: Ajustes es una hoja inferior
       await estado(() => { const e = document.getElementById('aj-pausas'); if (e) e.scrollIntoView({ block: 'center' }); });
       await espera(300);
       const hay = await estado(() => !!document.getElementById('aj-pausas'));
@@ -561,7 +628,7 @@ async function navegador() {
       await page.waitForSelector('#menu [data-act="newregion"]', { timeout: 30000 });
       await page.waitForFunction(() => window.UI && window.UI.map, null, { timeout: 60000 }).catch(() => { });
       await page.click('#menu [data-act="newregion"]'); await espera(3500); await cierraAvisos();
-      await page.evaluate(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('[data-act="menumodo"]').click(); document.querySelector('[data-act="menumodo"]').click(); document.querySelector('[data-act="modo"][data-v="guerra"]').click(); }); await espera(2500);
+      await page.evaluate(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('#tabs3 [data-v="mapa"]').click(); }); await espera(2500);
       const r = await estado(() => ({ reg: Game.regionId(), vis: UI.map ? Object.keys(UI.map.cities).filter(i => UI.map.cities[i].grp.visible && Game.state.cities[i]).length : -1, fantasmas: UI.map ? Object.keys(UI.map.cities).filter(i => UI.map.cities[i].grp.visible && !Game.state.cities[i]).length : 0, rutas: UI.map ? UI.map.aristas.filter(e => e.line.visible).length : -1 }));
       const ok = r.reg === 'italia' && r.vis === 7 && r.fantasmas === 0;
       return { ok, detalle: ok ? '7 ciudades visibles, ' + r.rutas + ' rutas' : 'región ' + r.reg + ', visibles ' + r.vis + ', fantasmas ' + r.fantasmas, captura: await foto('italia') };

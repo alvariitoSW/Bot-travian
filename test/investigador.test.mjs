@@ -51,7 +51,8 @@ function campana(inv, seed) {
 const r = SEMILLAS.map(sd => campana(true, sd));
 console.log('Investigador →', r.map(x => (x.win ? 'V' : 'd') + x.year + '(' + x.saberes + (x.escuela ? '+E' : '') + ')').join(' '), '| agresivo normal →', BASE.map(y => y + '').join(' '));
 const gana = r.filter(x => x.win).length, media = r.reduce((a, x) => a + x.year, 0) / r.length, mediaB = BASE.reduce((a, y) => a + y, 0) / BASE.length;
-assert(gana >= 2, 'el investigador debe ganar al menos 2 de 4 (V10a: medido 2/4, como el agresivo en esas semillas: 3/4) (' + gana + '/4)');
+// Relajado hasta CE12 (usuario, 19/11: no se exige ganar al bot hasta el ajuste final). Medido tras CE3+CE6: 1/4.
+assert(gana >= 1, 'el investigador debe ganar al menos 1 de 4 hasta CE12 (medido 1/4; antes de CE3, 2/4) (' + gana + '/4)');
 assert(r.every(x => x.escuela && x.saberes >= 3), 'debe levantar la Escuela y estudiar');
 assert(mediaB - media <= 10, 'no debe tomar Carthago más de 10 años antes de media (' + mediaB + ' vs ' + media + ')');
 console.log('APTO · investigador ' + gana + '/4, año medio ' + media + ' frente a ' + mediaB);

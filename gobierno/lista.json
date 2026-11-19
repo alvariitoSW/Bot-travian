@@ -65,6 +65,7 @@
       "tareas": [
         "CE2",
         "CE3",
+        "CE3b",
         "CE4",
         "CE5"
       ],
@@ -170,6 +171,7 @@
       "falta": "Que la campaña use la misma batalla (CG4b) y retirar la vieja; tribunos y plan previo (CG5); batalla rápida (CG7). Caballería y elefantes siguen con el modelo viejo.",
       "captura": "gobierno/capturas-tarea/CG4-3-arrastre-h.jpg",
       "tareas": [
+        "BG1",
         "GM44",
         "GC10",
         "CG3",
@@ -187,9 +189,9 @@
       "titulo": "El testudo a pie, dentro del juego",
       "estado": "medias",
       "veras": "Bajas a pie desde un manípulo de la batalla, con la vista desde el hombro: te mueves, luchas y usas habilidades (el testudo, una más); si caes, sigues como otro soldado.",
-      "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas.",
-      "falta": "Hecho el paso 2 de la escena a pie (centurión, cuatro órdenes, lucha). Faltan «bajar a pie» dentro de la batalla (CG6), el sonido (GM43i) y las caras (GM43j).",
-      "captura": "gobierno/capturas-tarea/GM43f-2-escena.jpg",
+      "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas. En la batalla nueva de Escaramuzas ya se baja a un manípulo («Bajar»): eres el centurión, con la cámara al hombro, andas y corres con la palanca, tu manípulo te sigue y la batalla sigue alrededor; «Mando» te sube (CG6, tanda 1). A pie ya se lucha (Golpear, Parar, Empujar, Pilum; si caes, sigues como otro soldado), se dan órdenes y lo hecho cuenta en la batalla (CG6b).",
+      "falta": "El duelo de cerca dentro de la fila (CG6c), el sonido (GM43i) y las caras (GM43j).",
+      "captura": "gobierno/capturas-tarea/CG6b-2-duelo-h.jpg",
       "tareas": [
         "TP1",
         "TP1b",
@@ -197,7 +199,10 @@
         "GM43i",
         "GM43j",
         "TP8",
-        "TP8b"
+        "TP8b",
+        "TP8c",
+        "CG6b",
+        "CG6c"
       ]
     },
     {
@@ -257,7 +262,8 @@
       "tareas": [
         "TP7a",
         "CG2",
-        "CG7"
+        "CG7",
+        "CG6b"
       ],
       "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a)."
     },
@@ -267,7 +273,7 @@
       "titulo": "Menús reordenados y con un solo aspecto antiguo",
       "estado": "falta",
       "veras": "Una barra de seis (Ciudad · Senado · Saber · Tropas · Mapa · Imperio); llegas al Senado y a la política a un toque; construyes con «Lo hago yo · Encargar · Gobernador»; todo en papiro, tablilla y bronce.",
-      "falta": "Tu «A · Todo entra» del 18/11 en MN0: barra de seis y mapa nuevo (MN1), Senado e Imperio con su sitio (MN2), gobernador (MN3) y renovación artística con maqueta (MN4). Absorbe el papiro del Códice y de los avisos (PA1 a PA3), que habías sacado con la respuesta A de las formaciones.",
+      "falta": "MN1 hecha (19/11: barra de seis, ROMA ▾ con la ficha, fuera los modos). Quedan: Senado e Imperio con su sitio (MN2), gobernador (MN3) y renovación artística con maqueta (MN4). Absorbe el papiro del Códice y de los avisos (PA1 a PA3), que habías sacado con la respuesta A de las formaciones.",
       "tareas": [
         "MN1",
         "MN2",
