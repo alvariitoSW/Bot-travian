@@ -10,9 +10,10 @@
    Las palabras son las de TP0 §6, iguales arriba (general) y abajo (a pie):
      hombres en pie · ánimo firme / duda / rompe · cansancio fresca / cansada / agotada · combate ganando / igualado / perdiendo */
 export const ROMPE = 0.12;
-export function crearUnidad({ hombres, nombre = '' }) {
-  /* cada baja pesa según el tamaño: perder la mitad de los hombres, por sí solo, deja el ánimo en duda */
-  const peso = 0.75 / hombres;
+export function crearUnidad({ hombres, nombre = '', ref = hombres }) {
+  /* cada baja pesa según el tamaño: perder la mitad de los hombres, por sí solo, deja el ánimo en duda.
+     TP8b-E1: ref, el tamaño con el que se ajustó el ánimo (si la tropa crece, cada baja pesa igual que antes) */
+  const peso = 0.75 / ref;
   const u = {
     nombre, hombres, enPie: hombres, animo: 0.8, cansancio: 0, roto: false, tRoto: -1, hizo: 0, sufrio: 0, T: 0,
     get aliento() { return 1 - u.cansancio; },

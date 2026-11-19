@@ -44,6 +44,7 @@ Caras de los soldados (GM43j, aparte). Andar y correr (vale hoy). Lo nuevo que p
   gasto al volver cada uno. El render por software es lento: las capturas, una sola tanda al final del encargo.
 
 ## TP8b · La vara y las referencias (19/11)
+Índice común de todo lo que ha enseñado el usuario: `estudios/REF-batallas-referencias.md` (estas fichas son las de su fila «19/11, chat de TP8b»).
 - **Vara** (palabras del usuario en `BITACORA.md`, 19/11): las cuatro frases del testudo y las cuatro de las picas son
   el suelo («eso es un 5… hazlo a ver cómo queda y después lo vuelvo a evaluar»); el 8 lo pone él al verlo.
   De las picas de hoy: «muñecos sin gracia que pinchas y baja una línea q se supone que es la pica y encima se

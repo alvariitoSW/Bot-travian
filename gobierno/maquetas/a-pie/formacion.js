@@ -3,9 +3,16 @@
    Después: línea manipular, falange, muro hoplita… con el mismo contrato: puesto(f, r, k, zF, jx, jz) → { x, z }.
    OJO A LA ESCALA: las figuras de 0 A.D. miden 2,15 «metros» con UNIT_SCALE; todo va en esa escala. */
 const lerp = (a, b, t) => a + (b - a) * t;
-export const FILES = 6, FILAS = 5, M = FILES * FILAS;
+/* TP8b-E2: hombres por bando (?hombres=N, por defecto 96: una centuria completa; bájalo si en el móvil va a tirones).
+   Con 60 o más, 12 de frente y el fondo que salga (8 con 96); con menos, el manípulo de antes (6 de frente). En Node, 96.
+   Licencia de juego: la centuria de la época tenía 60–80 hombres en orden de 6 a 10 de fondo; aquí 12 × 8 */
+const PARAM = typeof location !== 'undefined' ? +new URLSearchParams(location.search).get('hombres') : 0;
+export const HOMBRES = Math.max(30, Math.min(160, Math.round(PARAM) || 96));
+export const FILES = HOMBRES >= 60 ? 12 : 6, FILAS = Math.max(2, Math.min(14, Math.round(HOMBRES / FILES))), M = FILES * FILAS;
+/* los hombres de la maqueta de antes (6 × 5): cada baja pesa en el ánimo como pesaba entonces */
+export const REF_R = 30;
 export const ABIERTO = { dx: 0.95, dz: 2.6 }, CERRADO = { dx: 0.68, dz: 0.7 };
-export const YO = 2, CMP = 3;   /* tú eres el tercero de la primera fila; tu compañero, el cuarto. La cámara va detrás, entre los dos */
+export const YO = FILES / 2 - 1, CMP = FILES / 2;   /* tú eres el tercero de la primera fila; tu compañero, el cuarto. La cámara va detrás, entre los dos */
 /* el escudo (medidas del modelo, en sus unidades): 1,58 de ancho, 2,98 de alto, curvo con radio 1,05 */
 export const R_ESC = 1.05, ySup = lx => R_ESC - Math.sqrt(Math.max(0.01, R_ESC * R_ESC - lx * lx));
 /* dónde va el centro de cada escudo respecto a su hombre (metros): muro delante, techo sobre la cabeza y algo adelantado,

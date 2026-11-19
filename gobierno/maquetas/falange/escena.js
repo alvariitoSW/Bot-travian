@@ -14,7 +14,7 @@ import { preload, getUnit, loadIndex, frameOf, frameOnce, zancadas, UNIT_SCALE }
 import { texturaRuido } from '../../../js/gfx/ground.js';
 import { crearCampo } from './campo.js';
 import { H_FALANGE as HF } from './esqueleto.js';
-import { FILES, M, DX, SARISA, AGARRE, alzada, bajada } from './formacion.js';
+import { FILES, M, DX, BAJAN, SARISA, AGARRE, CARRIL, alzada, bajada, YO } from './formacion.js';
 import { dispersion } from './locomocion.js';
 import { CJF, generaTablaFalange, hueso as huesoT, datosPies, pieEn, faseCero, filasMarcha, filaEnFase, tablaPaso } from './soldado.js';
 import { filasRomano, N_R } from './enemigo.js';
@@ -190,9 +190,28 @@ function geoPalo(piezas, lados = 5) {
 }
 function matPalo() { const m = new THREE.MeshLambertMaterial({ vertexColors: true }); m.onBeforeCompile = sh => cine(sh, 0.9); m.customProgramCacheKey = () => 'falange-palo'; return m; }
 /* la sarisa: contera de hierro, asta de fresno (dos tramos con el manguito del medio) y la punta de hoja */
-const geoSarisa = geoPalo([[0.01, 0.026, 0, 0.24, '#55524e'], [0.026, 0.025, 0.24, 3.05, '#9a7a52'], [0.032, 0.032, 3.05, 3.2, '#6b5a44'], [0.025, 0.022, 3.2, 5.98, '#a5845a'], [0.028, 0.03, 5.98, 6.06, '#4e4b48'], [0.04, 0.002, 6.06, SARISA, '#a9a6a0']]);
+/* TP8b: asta de 6 cm (a 390 px se lee como madera, no como línea), de fresno claro en doce tramos de tono algo distinto
+   (la veta), con el manguito de bronce del medio, regatón en punta atrás y la hoja de hierro plana delante */
+const geoSarisa = (() => {
+  const MAD = ['#a7a092', '#9f988a', '#aea799', '#a29b8d', '#999284', '#aaa395'], pz = [[0.005, 0.023, 0, 0.3, '#4c4945'], [0.034, 0.034, 0.3, 0.38, '#8c6a3a']];
+  for (let i = 0; i < 12; i++) { const z0 = 0.38 + i * 5.57 / 12, r = 0.031 - 0.005 * i / 12; pz.push([r, r - 0.0004, z0, z0 + 5.57 / 12, MAD[(i * 5) % 6]]); }
+  pz.push([0.035, 0.035, 3.06, 3.2, '#8c6a3a'], [0.021, 0.015, 5.95, 6.03, '#3d3b39'], [0.015, 0.052, 6.03, 6.15, '#b9b5ad'], [0.052, 0.002, 6.15, SARISA, '#d0cdc6']);
+  const g = geoPalo(pz, 6), p = g.attributes.position.array;
+  for (let i = 0; i < p.length; i += 3) if (p[i + 2] > 6.02) p[i + 1] *= 0.28;   /* la hoja, plana */
+  return g;
+})();
 const geoPilum = geoPalo([[0.016, 0.016, 0, 1.2, '#b48a5a'], [0.019, 0.019, 1.2, 1.26, '#58585a'], [0.006, 0.006, 1.26, 1.95, '#505052'], [0.013, 0.001, 1.95, 2.06, '#6a6a6c']], 4);
-const sarisas = new THREE.InstancedMesh(geoSarisa, matPalo(), M); sarisas.frustumCulled = false; sarisas.castShadow = true; escena.add(sarisas);
+const sarisas = new THREE.InstancedMesh(geoSarisa, matPalo(), M); sarisas.frustumCulled = false; sarisas.castShadow = false; escena.add(sarisas);
+/* TP8b: la sombra larga de cada asta en el suelo, una tira oscura proyectada según el sol (todas en una llamada) */
+const sombrasAsta = new THREE.InstancedMesh(new THREE.PlaneGeometry(1, 1).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#2b1d10', transparent: true, opacity: 0.36, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 }), M);
+sombrasAsta.frustumCulled = false; sombrasAsta.renderOrder = 1; escena.add(sombrasAsta);
+const SA = new THREE.Vector3(), SB = new THREE.Vector3(), O2 = new THREE.Object3D();
+const alSuelo = v => { const g = H(v.x, v.z), k = Math.max(0, v.y - g) / SOL.y; v.x -= SOL.x * k; v.z -= SOL.z * k; v.y = g; return v; };
+function sombraAsta(i, P, D) {
+  SA.copy(P); SB.copy(P).addScaledVector(D, SARISA - 0.3); alSuelo(SA); alSuelo(SB);
+  const dx = SB.x - SA.x, dz = SB.z - SA.z, l = Math.hypot(dx, dz), mx = (SA.x + SB.x) / 2, mz = (SA.z + SB.z) / 2;
+  O2.position.set(mx, Math.max(SA.y, SB.y, H(mx, mz)) + 0.06, mz); O2.rotation.set(0, Math.atan2(dx, dz), 0); O2.scale.set(0.075, 1, Math.max(0.01, l)); O2.updateMatrix(); sombrasAsta.setMatrixAt(i, O2.matrix);
+}
 const pila = new THREE.InstancedMesh(geoPilum, matPalo(), NPILA); pila.frustumCulled = false; pila.castShadow = true; escena.add(pila);
 /* tu cresta de oficial: crin roja sobre el casco, anclada al hueso del casco */
 const geoCresta = (() => { const g = new THREE.CylinderGeometry(0.13, 0.13, 0.03, 12, 1, false, 0, Math.PI); g.rotateZ(Math.PI / 2); return g; })();
@@ -201,6 +220,20 @@ cresta.castShadow = true; cresta.matrixAutoUpdate = false; cresta.frustumCulled 
 /* el enemigo marcado para tu golpe: un aro en el suelo */
 const aro = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.56, 28).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ff5a3c', transparent: true, opacity: 0.75, depthWrite: false, fog: false }));
 aro.visible = false; escena.add(aro);
+/* TP8b: polvo a los pies del frente (la idea de a-pie): motas que nacen en el choque, en cada empujón y en cada caída; una llamada */
+const NPOLVO = 160, polvoPos = new Float32Array(NPOLVO * 3), polvoVida = new Float32Array(NPOLVO), POLVO = [], ESC_P = { value: 400 };
+for (let i = 0; i < NPOLVO; i++) POLVO.push({ t0: -99, dur: 1, x: 0, y: 0, z: 0, vx: 0, vy: 0, vz: 0 });
+const geoPolvo = new THREE.BufferGeometry(); geoPolvo.setAttribute('position', new THREE.BufferAttribute(polvoPos, 3)); geoPolvo.setAttribute('aVida', new THREE.BufferAttribute(polvoVida, 1));
+const polvo = new THREE.Points(geoPolvo, new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { uEsc: ESC_P },
+  vertexShader: 'attribute float aVida; varying float vV; uniform float uEsc; void main(){ vV = aVida; vec4 mv = modelViewMatrix * vec4(position, 1.0); gl_Position = projectionMatrix * mv; gl_PointSize = aVida > 0.0 ? uEsc * (0.6 + 1.8 * (1.0 - aVida)) / max(0.3, -mv.z) : 0.0; }',
+  fragmentShader: 'varying float vV; void main(){ float d = length(gl_PointCoord - 0.5) * 2.0; if (vV <= 0.0 || d > 1.0) discard; float a = (1.0 - d) * (1.0 - d) * min(1.0, (1.0 - vV) * 6.0) * vV * 0.55; gl_FragColor = vec4(0.80, 0.66, 0.48, a); }' }));
+polvo.frustumCulled = false; polvo.renderOrder = 5; escena.add(polvo);
+let iPolvo = 0;
+function levantaPolvo(x, z, n = 4) { for (let k = 0; k < n; k++) { const p = POLVO[iPolvo++ % NPOLVO]; p.t0 = S.T || 0; p.dur = 1.8 + azarV() * 1.8; p.x = x + (azarV() - 0.5) * 0.9; p.z = z + (azarV() - 0.5) * 0.9; p.y = H(p.x, p.z) + 0.2 + azarV() * 0.3; p.vx = (azarV() - 0.5) * 0.8; p.vz = (azarV() - 0.5) * 0.8; p.vy = 0.25 + azarV() * 0.4; } }
+function muevePolvo() {
+  for (let i = 0; i < NPOLVO; i++) { const p = POLVO[i], a = S.T - p.t0, k = a / p.dur; if (a < 0 || k >= 1) { polvoVida[i] = 0; continue; } const e = 1 - Math.exp(-a * 1.1); polvoPos[i * 3] = p.x + p.vx * e; polvoPos[i * 3 + 1] = p.y + p.vy * e; polvoPos[i * 3 + 2] = p.z + p.vz * e; polvoVida[i] = 1 - k; }
+  geoPolvo.attributes.position.needsUpdate = geoPolvo.attributes.aVida.needsUpdate = true;
+}
 
 /* ---------- las figuras ---------- */
 let FIG_F = null, FIG_R = null, ACC = null;
@@ -224,8 +257,39 @@ async function creaFigs() {
   const f0R = { anda: faseCero(tR.T, tR.hues, piesR, CR.walk), corre: faseCero(tR.T, tR.hues, piesR, CR.run) }, pasoR = { anda: tablaPaso(tR.T, tR.hues, piesR, CR.walk, CR.walk.start, f0R.anda, CR.idle.start), corre: tablaPaso(tR.T, tR.hues, piesR, CR.run, CR.run.start, f0R.corre, CR.idle.start) };
   const gR = new THREE.BufferGeometry(); for (const k of ['position', 'normal', 'uv', 'aSkinI', 'aSkinW', 'aMode']) gR.setAttribute(k, uR.geo.attributes[k]); gR.boundingSphere = uR.geo.boundingSphere;
   FIG_R = { ...figura(gR, N_R, matFigura(uR.tex, uR.bones, '#c23a2e', 'r'), matSombra(uR.bones, 'r')), u: uR, C: CR, tab: tR, T: tR.T, hues: tR.hues, pies: piesR, paso: pasoR, zan: { walk: pasoR.anda.total * E, run: pasoR.corre.total * E } };
+  lejos(FIG_F, g, M); lejos(FIG_R, gR, N_R); console.log(`[E1] triángulos por hombre: falangita ${FIG_F.triCerca} / ${FIG_F.triLejos} sencillo; romano ${FIG_R.triCerca} / ${FIG_R.triLejos}`);
 }
 const hueso = (fig, slot, A, B, mx, out) => huesoT(fig.tab, slot, A, B, mx, out);
+/* TP8b-E1: el mismo soldado, sencillo, para los lejanos. Se juntan los vértices que caen en la misma celda de una rejilla
+   de n celdas a lo alto (en la postura de reposo) y se quitan los triángulos que se quedan sin área: la misma silueta
+   (casco, escudo, pica), los mismos colores y huesos, pero sin las piezas pequeñas. Respira, anda y cae como el detallado */
+function sencillo(geo, n) {
+  const P = geo.attributes.position.array, V = P.length / 3, lo = [1e9, 1e9, 1e9], hi = [-1e9, -1e9, -1e9];
+  for (let i = 0; i < V; i++) for (let c = 0; c < 3; c++) { lo[c] = Math.min(lo[c], P[i * 3 + c]); hi[c] = Math.max(hi[c], P[i * 3 + c]); }
+  const lado = Math.max(hi[0] - lo[0], hi[1] - lo[1], hi[2] - lo[2]) / n, W = n + 2, clave = new Int32Array(V), suma = new Map();
+  for (let i = 0; i < V; i++) {
+    const q = [0, 1, 2].map(c => Math.floor((P[i * 3 + c] - lo[c]) / lado)), k = q[0] + W * (q[1] + W * q[2]); clave[i] = k;
+    const a = suma.get(k) || [0, 0, 0, 0]; a[0] += P[i * 3]; a[1] += P[i * 3 + 1]; a[2] += P[i * 3 + 2]; a[3]++; suma.set(k, a);
+  }
+  const quedan = []; for (let t = 0; t < V; t += 3) { const a = clave[t], b = clave[t + 1], c = clave[t + 2]; if (a !== b && b !== c && a !== c) quedan.push(t, t + 1, t + 2); }
+  const g = new THREE.BufferGeometry();
+  for (const k of ['position', 'normal', 'uv', 'aSkinI', 'aSkinW', 'aMode']) {
+    const at = geo.attributes[k], t = at.itemSize, arr = new at.array.constructor(quedan.length * t);
+    quedan.forEach((v, j) => { if (k === 'position') { const a = suma.get(clave[v]); arr[j * 3] = a[0] / a[3]; arr[j * 3 + 1] = a[1] / a[3]; arr[j * 3 + 2] = a[2] / a[3]; } else for (let c = 0; c < t; c++) arr[j * t + c] = at.array[v * t + c]; });
+    g.setAttribute(k, new THREE.BufferAttribute(arr, t, at.normalized));
+  }
+  g.boundingSphere = geo.boundingSphere ? geo.boundingSphere.clone() : new THREE.Sphere(new THREE.Vector3(0, 2, 0), 8); return g;
+}
+/* cuántas filas por bando van con el soldado detallado (las más cercanas a la cámara) y la rejilla del sencillo */
+const CERCA = 4, REJILLA = +(Q.get('rejilla') || 14);
+const lejos = (fig, geo, n) => { const L = figura(sencillo(geo, REJILLA), n, fig.m.material, fig.m.customDepthMaterial); fig.L = L; fig.triCerca = geo.attributes.position.count / 3; fig.triLejos = L.m.geometry.attributes.position.count / 3; };
+/* cada hombre, al hueco libre de su malla (la detallada o la sencilla); los K más cercanos a la cámara van detallados */
+function reparte(fig, L, K) {
+  const cp = camara.position; L.forEach(h => { h.dCam = (h.x - cp.x) ** 2 + (h.z - cp.z) ** 2; }); const orden = L.slice().sort((a, b) => a.dCam - b.dCam);
+  fig.n = 0; fig.L.n = 0;
+  orden.forEach((h, j) => { const o = j < K ? fig : fig.L, i = o.n++; o.m.setMatrixAt(i, h.inst); o.fr.array[i] = h.A; o.fr2.array[i] = h.B; o.mx.array[i] = h.mx; });
+  for (const o of [fig, fig.L]) { o.m.count = o.n; o.m.instanceMatrix.needsUpdate = true; o.fr.needsUpdate = o.fr2.needsUpdate = o.mx.needsUpdate = true; }
+}
 
 /* ---------- estado ---------- */
 const S = {};
@@ -245,6 +309,20 @@ function avisa(tipo, d) {
   if (tipo === 'cae' && d.quien === 'f' && d.h.r <= 1) S.temblor = Math.max(S.temblor, 0.35);
   if (tipo === 'rompe') { cinta(d.ganador === 'falange' ? '¡El manípulo rompe! Huyen' : '¡Tu falange rompe!', d.ganador === 'falange'); Son.cuerno(); }
   if (tipo === 'fin' && HUD) HUD.muestraFin();
+  /* TP8b-P2: el tambor del compás, la estocada a una, el golpe a destiempo, el coro del empuje y el flanco */
+  if (tipo === 'pulso' && !parado) Son.paso(1.1);
+  if (tipo === 'estocada') { Son.clac(8); Son.hierro(0, 0, 1.3); S.temblor = Math.max(S.temblor, 0.5); grita('—¡Ha!'); for (const h of S.rom) if (h.vivo && h.r === 0) levantaPolvo(h.x, h.z + 0.2, 3); }
+  if (tipo === 'destiempo') Son.clac(4);
+  if (tipo === 'coro') { grita('—¡Ea! ¡A una!'); Son.paso(1.5); Son.trueno(0.25); }
+  if (tipo === 'flanco') { grita(d.texto); Son.cuerno([[123, 0.35], [123, 0.35], [164.8, 0.8]]); }
+  if (tipo === 'flancoEntra') { S.temblor = 1; Son.choque(); }
+  if (tipo === 'dentro') Son.crac();
+  /* TP8b: la ola de sarisas (golpes de madera fila a fila) y la respuesta de la tropa un momento después */
+  if (tipo === 'ola') { Son.clac(12); S.resp = { t: S.T + 0.8, texto: d.abajo ? '—¡Abajo! ¡Ha!' : '—¡Arriba!' }; }
+  if (tipo === 'choque') for (const h of S.rom) if (h.vivo && h.r === 0) levantaPolvo(h.x, h.z + 0.3, 4);
+  if (tipo === 'madera' && d.h) levantaPolvo(d.h.x, d.h.z, 3);
+  /* el romano que cae se queda delante del muro, bajo las puntas, amontonado con los de su columna */
+  if (tipo === 'cae' && d.quien === 'r') { const k = S.rom.filter(o => !o.vivo && o.c === d.h.c && o !== d.h).length; d.h.cz = 0.45 + 0.62 * k; d.h.cx = (azarV() - 0.5) * 0.5; d.h.cy = (azarV() - 0.5) * 1.4; levantaPolvo(d.h.x, d.h.z + 0.5, 5); }
 }
 function reinicia() { semilla = 43; semillaP = 5; ACC.reinicia(); $('fin').hidden = true; }
 
@@ -267,7 +345,7 @@ function filasFal(h, T) {
   const q = k * 3, i = Math.min(2, Math.floor(q)), f = q - i;
   h.A = i === 0 ? b : fila(c0 + i - 1, b); h.B = fila(c0 + i, b); h.mx = f;
 }
-const instDe = (h, fig, pitch = 0) => { O.position.set(h.x, H(h.x, h.z), h.z); O.rotation.set(pitch, h.yaw, 0, 'YXZ'); O.scale.setScalar(E * (h.esc || 1)); O.updateMatrix(); return O.matrix; };
+const instDe = (h, fig, pitch = 0, dx = 0, dz = 0, dyaw = 0) => { O.position.set(h.x + dx, H(h.x + dx, h.z + dz), h.z + dz); O.rotation.set(pitch, h.yaw + dyaw, 0, 'YXZ'); O.scale.setScalar(E * (h.esc || 1)); O.updateMatrix(); return O.matrix; };
 /* dónde está un punto de un hueso en el mundo (p en coordenadas del modelo en reposo) */
 const ancla = (h, fig, slot, p, out) => out.set(p[0], p[1], p[2]).applyMatrix4(MA.multiplyMatrices(h.inst, hueso(fig, slot, h.A, h.B, h.mx, MB)));
 /* la dirección de una sarisa: alzada (casi derecha, inclinada hacia delante y en abanico) o bajada (al frente), con su vaivén */
@@ -276,7 +354,7 @@ function dirSarisa(h, T, out) {
   const va = h.va, al = alzada(h.f, h.r, h.kA), anda = h.paso.g > 0.3 ? 0.025 * Math.sin(h.paso.ciclos * 4 * Math.PI) : 0;
   const del = al.delante + 0.05 * Math.sin(va.w * T + va.fi) + anda, lado = al.lado + 0.035 * Math.sin(va.w2 * T + va.fi2);
   DA.set(Math.sin(lado), Math.cos(del), -Math.sin(del)).normalize();
-  const pb = bajada(h.r) + 0.012 * Math.sin(va.w * T * 1.3 + va.fi), yb = 0.015 * Math.sin(va.w2 * T + va.fi2);
+  const pb = bajada(h.r) + 0.005 * Math.sin(va.w * T * 1.3 + va.fi), yb = 0.006 * Math.sin(va.w2 * T + va.fi2);
   DB.set(Math.sin(yb), Math.sin(pb), -Math.cos(pb)).normalize();
   return out.copy(DA).lerp(DB, suave(0, 1, h.kB)).normalize();
 }
@@ -288,19 +366,49 @@ function poseSarisa(h, T, P, D) {
   }
   ancla(h, FIG_F, HF.manoD, FIG_F.tab.esq.J.munecaD, PS); dirSarisa(h, T, D);
   P.copy(PS).addScaledVector(D, -AGARRE + 0.35 * h.kG);
+  /* TP8b: bajada, cada sarisa va por su carril (CARRIL de formacion.js): así no se cruzan */
+  const s = h.r < BAJAN ? suave(0, 1, h.kB) : 0;
+  /* las alzadas de detrás van algo a la izquierda de su mano: así no tocan la contera de las bajadas */
+  if (h.r >= BAJAN) P.x -= 0.16 * suave(0, 1, h.kA);
+  /* TP8b-P2: a media ola las filas 4.ª y 5.ª bajan por fuera (a la derecha) para no rozar las alzadas de detrás */
+  if (h.r >= 3 && h.r < BAJAN) P.x += 0.16 * Math.sin(Math.PI * Math.min(1, Math.max(0, h.kB)));
+  if (s > 0) { const c = CARRIL(h.r); PL.set(h.x + c.x, H(h.x, h.z) + c.y, PS.z).addScaledVector(D, -AGARRE + 0.35 * h.kG); P.lerp(PL, s); }
 }
-const MS = m4(), PP = new THREE.Vector3(), DD = new THREE.Vector3();
+const PL = new THREE.Vector3();
+/* medida para captura.mjs: la distancia mínima entre los ejes de dos sarisas cualesquiera (m); debe pasar del grosor */
+function distSeg(p1, q1, p2, q2) {
+  const d1 = q1.clone().sub(p1), d2 = q2.clone().sub(p2), r = p1.clone().sub(p2), a = d1.dot(d1), e = d2.dot(d2), f = d2.dot(r), c = d1.dot(r), b = d1.dot(d2), den = a * e - b * b, cl = v => Math.min(1, Math.max(0, v));
+  let s = den > 1e-9 ? cl((b * f - c * e) / den) : 0, t = (b * s + f) / e;
+  if (t < 0) { t = 0; s = cl(-c / a); } else if (t > 1) { t = 1; s = cl((b - c) / a); }
+  return p1.clone().addScaledVector(d1, s).distanceTo(p2.clone().addScaledVector(d2, t));
+}
+function astasMin() {
+  const L = S.fal.filter(h => h.vivo && !h.huye).map(h => { const P = new THREE.Vector3(), D = new THREE.Vector3(); poseSarisa(h, S.T, P, D); return [P, P.clone().addScaledVector(D, SARISA), h]; });
+  let min = 99, par = '';
+  for (let i = 0; i < L.length; i++) for (let j = i + 1; j < L.length; j++) { const d = distSeg(L[i][0], L[i][1], L[j][0], L[j][1]); if (d < min) { min = d; par = `col ${L[i][2].f} fila ${L[i][2].r} y col ${L[j][2].f} fila ${L[j][2].r}`; } }
+  return { min: +min.toFixed(3), par, grosor: 0.062 };
+}
+const MS = m4(), PP = new THREE.Vector3(), DD = new THREE.Vector3(), VF = new THREE.Vector3(), VG = new THREE.Vector3();
+/* TP8b-E1: un asta que pasa a menos de 1,5 m de la cámara se adelgaza hasta desaparecer (antes cruzaba la vista como un poste) */
+function finaCerca(P, D) {
+  const t = Math.min(SARISA, Math.max(0, VF.copy(camara.position).sub(P).dot(D))), d = VG.copy(P).addScaledVector(D, t).distanceTo(camara.position);
+  const k = suave(0.9, 1.5, d); return VF.set(k, k, k > 0 ? 1 : 0);
+}
 function dibuja(dt) {
   const T = S.T, F = FIG_F, R = FIG_R;
   for (const h of S.fal) {
-    filasFal(h, T); h.inst = (h.inst || m4()).copy(instDe(h, F)); F.m.setMatrixAt(h.i, h.inst); F.fr.array[h.i] = h.A; F.fr2.array[h.i] = h.B; F.mx.array[h.i] = h.mx;
-    poseSarisa(h, T, PP, DD); Q1.setFromUnitVectors(Z1, DD); sarisas.setMatrixAt(h.i, MS.compose(PP, Q1, UNO));
+    filasFal(h, T); const sB = h.vivo && !h.huye ? suave(0, 1, h.kB) : 0, ola = h.vivo && !h.huye ? Math.sin(Math.PI * Math.min(1, Math.max(0, h.kB))) : 0; h.inst = (h.inst || m4()).copy(instDe(h, F, 0.05 * sB + 0.07 * ola, 0, -0.12 * sB, 0.1 * sB + 0.08 * ola));
+    poseSarisa(h, T, PP, DD); Q1.setFromUnitVectors(Z1, DD); sarisas.setMatrixAt(h.i, MS.compose(PP, Q1, finaCerca(PP, DD))); sombraAsta(h.i, PP, DD);
+    /* el golpe sordo de cada asta al llegar abajo (o arriba): la ola se oye fila a fila */
+    if (h.vivo && !h.huye && h.r < BAJAN) { if (h.sonB === undefined) h.sonB = h.kB > 0.5 ? 1 : 0; if (h.kB > 0.93 && !h.sonB) { h.sonB = 1; if (!parado) Son.madera(0.16, (h.f - (FILES - 1) / 2) / (FILES / 2), 0); } if (h.kB < 0.07 && h.sonB) { h.sonB = 0; if (!parado) Son.madera(0.1, (h.f - (FILES - 1) / 2) / (FILES / 2), 0); } }
   }
   for (const h of S.rom) {
-    filasRomano(h, R, T, frameOf, frameOnce); h.inst = (h.inst || m4()).copy(instDe(h, R, h.pitch)); R.m.setMatrixAt(h.i, h.inst); R.fr.array[h.i] = h.A; R.fr2.array[h.i] = h.B; R.mx.array[h.i] = h.mx;
+    filasRomano(h, R, T, frameOf, frameOnce); const mu = !h.vivo && h.cz !== undefined; h.inst = (h.inst || m4()).copy(mu ? instDe(h, R, 0, h.cx, Math.min(h.cz, S.zF - 1.1 - h.z), h.cy) : instDe(h, R, h.pitch));
   }
-  for (const f of [F, R]) { f.m.instanceMatrix.needsUpdate = true; f.fr.needsUpdate = f.fr2.needsUpdate = f.mx.needsUpdate = true; }
-  sarisas.instanceMatrix.needsUpdate = true;
+  reparte(F, S.fal, CERCA * FILES); reparte(R, S.rom, CERCA * FILES);
+  sarisas.instanceMatrix.needsUpdate = true; sombrasAsta.instanceMatrix.needsUpdate = true;
+  if (S.resp && S.T >= S.resp.t) { grita(S.resp.texto); Son.trueno(0.35); S.resp = null; }
+  muevePolvo(); ESC_P.value = renderer.domElement.height / 2 / Math.tan(camara.fov * Math.PI / 360);
   /* los pila: en el aire, clavados en un asta (la siguen), en un escudo, en un hombre o en el suelo */
   S.PILA.forEach((P, i) => {
     if (!P.est || (P.est === 1 && T < P.t0)) { pila.setMatrixAt(i, MS.makeScale(0, 0, 0)); return; }
@@ -312,7 +420,7 @@ function dibuja(dt) {
   });
   pila.instanceMatrix.needsUpdate = true;
   /* tu cresta: en el casco del oficial (si cae, se queda con él) */
-  const of = S.fal[3]; ancla(of, F, HF.casco, F.cima, PP); Q1.setFromRotationMatrix(MA.extractRotation(MA.multiplyMatrices(of.inst, hueso(F, HF.casco, of.A, of.B, of.mx, MB))));
+  const of = S.fal[YO]; ancla(of, F, HF.casco, F.cima, PP); Q1.setFromRotationMatrix(MA.extractRotation(MA.multiplyMatrices(of.inst, hueso(F, HF.casco, of.A, of.B, of.mx, MB))));
   cresta.matrix.compose(PP, Q1.multiply(QC), UNO); cresta.matrixWorldNeedsUpdate = true;
   const r = ACC.marcado(); aro.visible = !!r; if (r) aro.position.set(r.x, H(r.x, r.z) + 0.04, r.z);
   /* la cámara, con su temblor en el choque */
@@ -337,6 +445,15 @@ function prepara(f) {
   if (f === 'golpe') { hasta(() => S.choque && S.T - S.tChoque > 3 && !!ACC.marcado()); S.tGolpe = -9; ACC.golpe(); salta(0.2, false); }
   if (f === 'huida') { hasta(() => !!S.ganador); salta(1.6); }
   if (f === 'final') { hasta(() => S.fase === 'fin'); salta(0.3); }
+  if (f === 'muro') { hasta(() => S.fase === 'carga' && S.T - S.tCarga > 1.4); }
+  if (f === 'caidos') { hasta(() => S.choque); salta(9); }
+  /* TP8b-P2: el compás, a destiempo, el colado, el flanco y el empuje */
+  const libre = () => S.choque && S.T - S.tChoque > 6 && !S.colado && !S.flanco && S.orden !== 'aguantar';
+  if (f === 'compas') { hasta(() => libre() && ACC.fasePulso() > 1.5); S.pulsoUsado = -99; salta(1.6 - ACC.fasePulso() - 0.03, false); S.tGolpe = -9; ACC.golpe(); salta(0.12, false); }
+  if (f === 'destiempo') { hasta(() => libre() && ACC.fasePulso() > 0.6 && ACC.fasePulso() < 0.7); S.orden = null; S.tGolpe = -9; ACC.golpe(); salta(0.3, false); }
+  if (f === 'colado') { hasta(libre); ACC.abreHueco(); salta(1.4, false); }
+  if (f === 'flanco') { hasta(() => S.flanco && S.T - S.flanco.t0 > 2.2); }
+  if (f === 'empuje') { hasta(() => S.orden === 'empujar' && S.ganado > 2.5); }
   parado = true;
 }
 
@@ -372,7 +489,7 @@ function astas() {
   return { dispersion: dispersion(fases), separacion: +(suma / Math.max(1, n) * 180 / Math.PI).toFixed(2) };
 }
 /* la partida entera con el «bot» (y sin hacer nada), sin dibujar */
-function partida(conBot) { reinicia(); parado = true; let k = 0; for (; k < 30 * 240 && S.fase !== 'fin'; k++) { if (conBot) ACC.bot(); ACC.paso(1 / 30); } return { fin: S.fase === 'fin', ganador: S.ganador, porRuptura: S.ganador === 'falange' ? S.R.roto : S.U.roto, segundos: +S.T.toFixed(1), bajasF: M - S.U.enPie, bajasR: N_R - S.R.enPie, golpes: S.golpes, pila: S.PILA.map(p => p.est) }; }
+function partida(conBot) { reinicia(); parado = true; let k = 0; for (; k < 30 * 240 && S.fase !== 'fin'; k++) { if (conBot) ACC.bot(conBot === true ? 'bien' : conBot); ACC.paso(1 / 30); } return { fin: S.fase === 'fin', ganador: S.ganador, tRoto: +S.tRoto.toFixed(1), ganado: +S.ganado.toFixed(1), coh: Math.round(S.coh), porRuptura: S.ganador === 'falange' ? S.R.roto : S.U.roto, segundos: +S.T.toFixed(1), bajasF: M - S.U.enPie, bajasR: N_R - S.R.enPie, golpes: S.golpes, pila: S.PILA.map(p => p.est) }; }
 
 /* ---------- arranque ---------- */
 let ultimo = 0, CAMPO = null;
@@ -390,8 +507,8 @@ lienzo.addEventListener('pointerdown', e => {
 });
 window.__tp = {
   lista: false, S, renderer, escena, camara, salta: (s, b) => salta(s, b), parar: v => { parado = v; }, orden: n => ACC.orden(n), golpe: () => ACC.golpe(),
-  patinaje: (q, m, s, c) => patinaje(q, m, s, c), astas: () => astas(), partida: b => partida(b),
-  estado: () => ({ T: +S.T.toFixed(2), fase: S.fase, choque: S.choque, picas: S.picas, kFrente: +S.kFrente.toFixed(2), orden: S.orden, ganador: S.ganador, yo: S.yo, nos: S.U.palabras(), ellos: S.R.palabras(), pila: S.PILA.map(p => p.est), cinta: $('cinta').textContent, kB: S.fal.map(h => +h.kB.toFixed(2)) }),
+  patinaje: (q, m, s, c) => patinaje(q, m, s, c), astas: () => astas(), astasMin: () => astasMin(), partida: b => partida(b),
+  estado: () => ({ T: +S.T.toFixed(2), fase: S.fase, choque: S.choque, picas: S.picas, kFrente: +S.kFrente.toFixed(2), orden: S.orden, ganador: S.ganador, yo: S.yo, coh: Math.round(S.coh), ganado: +S.ganado.toFixed(1), objetivo: $('objetivo').textContent, nos: S.U.palabras(), ellos: S.R.palabras(), pila: S.PILA.map(p => p.est), cinta: $('cinta').textContent, kB: S.fal.map(h => +h.kB.toFixed(2)) }),
   enPantalla: () => { const yo = S.fal[S.yo], r = ACC.marcado(); return { yo: enPantalla(new THREE.Vector3(yo.x, H(yo.x, yo.z) + 1.6, yo.z)), enemigo: r ? enPantalla(new THREE.Vector3(r.x, H(r.x, r.z) + 1.1, r.z)) : null }; },
 };
 (async () => {
@@ -401,7 +518,7 @@ window.__tp = {
   await creaFigs();
   ACC = crearAcciones({ S, H, azar, azarP, zanF: FIG_F.zan, zanR: FIG_R.zan, avisa });
   CAMARA = crearCamara({ Q, S, H, suave, lerp, DX, marcado: () => ACC.marcado(), get vertical() { return vertical; } });
-  HUD = crearHud({ S, Son, $, orden: n => ACC.orden(n), golpe: () => ACC.golpe() });
+  HUD = crearHud({ S, Son, $, orden: n => ACC.orden(n), golpe: () => ACC.golpe(), acc: ACC });
   reinicia();
   if (FASE) prepara(FASE);
   $('carga').hidden = true;
