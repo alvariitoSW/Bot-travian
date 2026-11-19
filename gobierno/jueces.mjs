@@ -308,7 +308,11 @@ async function navegador() {
       const a1 = await estado(() => window.__mn.apie());
       const anda = Math.hypot(a1.x - a0.x, a1.y - a0.y);
       await estado(() => { for (let k = 0; k < 40; k++) window.__mn.cuadro(0.1); });
-      const cap = await foto('escaramuza-apie');
+      /* a pie, de cerca, el dibujo por programa puede tardar más de 30 s en dar un fotograma en un recorrido largo: se pausa, se espera más
+         y, si aun así no llega, el paso juzga el efecto sin la foto */
+      await estado(() => window.__mn.pausa(true));
+      const cap = await page.screenshot({ path: join(CAPS, String(++n).padStart(2, '0') + '-escaramuza-apie.jpg'), type: 'jpeg', quality: 72, timeout: 120000 }).then(() => String(n).padStart(2, '0') + '-escaramuza-apie.jpg').catch(() => null);
+      await estado(() => window.__mn.pausa(false));
       const u1 = await estado(i => { const u = window.__mn.S.man[i]; return { x: u.x, y: u.y, t: window.__mn.S.t, oculto: getComputedStyle(document.getElementById('mn-abajo')).display === 'none' }; }, id);
       const mueveMan = Math.hypot(u1.x - u0.x, u1.y - u0.y);
       await estado(() => window.__mn.subir()); await espera(1500);
