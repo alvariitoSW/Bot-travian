@@ -681,7 +681,7 @@
     if (r.rev !== E.rev) {
       r.rev = E.rev; r.cap = poblacionE(E); let casas = 0; for (const l of E.parcelas) if (l.casa && !l.casa.ruina && !l.fuera) casas++; r.casas = casas;
       const her = c.heredado || {}, campo = {};
-      for (const b of G.CAMPOS) { let t = G.rate(her[b] || 0); const pz = CI.PIEZA_DE[b]; for (const e of E.edificios) if (e.tipo === pz && !e.ruina && !e.obra) t += G.rate(D.NIVEL_PIEZA[e.mejora || 0]) * bonoSitio(e.nota) * (b === 'granja' ? CI.rindeGranja(E, e).mul : 1); campo[b] = t; }
+      for (const b of G.CAMPOS) { let L = her[b] || 0, w = L; const pz = CI.PIEZA_DE[b]; for (const e of E.edificios) if (e.tipo === pz && !e.ruina && !e.obra) { const n = D.NIVEL_PIEZA[e.mejora || 0]; L += n; w += n * bonoSitio(e.nota) * (b === 'granja' ? CI.rindeGranja(E, e).mul : 1); } campo[b] = L > 0 ? G.rate(Math.min(D.MAX_LVL, L)) * w / L : 0; }   // CE3: rinde el nivel TOTAL (la curva 1-3-6-10-15 no se parte entre piezas); el sitio de cada pieza pesa según los niveles que aporta
       r.campo = campo; r.oroT = CI.oroTerreno(E);      // CN19-A: oro de las salinas
     }
     return r;

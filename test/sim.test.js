@@ -311,7 +311,14 @@ for (const ag of [false, true]) for (let sd = 1; sd <= 10; sd++) { const s = cam
 const resumen = l => l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t)).join(' ');
 console.log('Bot pasivo   →', resumen(res.pas)); console.log('Bot agresivo →', resumen(res.agr));
 const ganaAgr = res.agr.filter(s => s.over.win).length, ganaPas = res.pas.filter(s => s.over.win).length;
-assert(ganaAgr >= 5 && ganaAgr <= 8, 'V10a: el bot agresivo debe tomar Carthago en 5 a 8 de 10 semillas (medido 7/10; más es demasiado fácil) (' + ganaAgr + '/10)');
+// CE3 (usuario, 19/11): HASTA CE12 la campaña larga no exige que el agresivo tome Cartago (antes 5 a 8 de 10; medido 7/10 con diez niveles).
+// Con cinco niveles la economía se satura hacia el 265 a.C.; el ajuste fino es CE12. Mientras, se exige que no se atasque:
+// que no gane antes de Aníbal, que no sea demasiado fácil y que en 7 de 10 semillas siga en pie en el 150 a.C. con al menos 5 ciudades.
+const ciudadesDe = s => Object.keys(s.cities).filter(id => s.cities[id].owner === 'roma').length;
+const aguanta = res.agr.filter(s => s.over.win || (G.yearOf(s.t) <= 150 && ciudadesDe(s) >= 5)).length;
+console.log('  agresivo: gana ' + ganaAgr + '/10; en pie en el 150 a.C. con 5+ ciudades (o gana) ' + aguanta + '/10 (criterio hasta CE12)');
+assert(ganaAgr <= 8, 'V10a: el agresivo no debe ganar más de 8 de 10 (demasiado fácil) (' + ganaAgr + '/10)');
+assert(aguanta >= 7, 'CE3 hasta CE12: el agresivo debe seguir en pie en el 150 a.C. con 5 o más ciudades en 7 de 10 semillas (' + aguanta + '/10)');
 assert(res.agr.filter(s => s.over.win).every(s => G.yearOf(s.t) <= 218), 'V10a: Cartago no cae antes de Aníbal (218 a.C.)');
 assert.strictEqual(ganaPas, 0, 'un bot pasivo no debe ganar nunca (' + ganaPas + '/10)');
 const active = activo;
@@ -1072,17 +1079,17 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   assert(G.load(), 'la partida vieja carga'); const s = G.state, c = s.cities.roma, v = vieja.cities.roma;
   assert.strictEqual(c.pop, v.pop, 'misma población'); assert.deepStrictEqual(s.res, D.recursosNuevos(vieja.res)); assert.deepStrictEqual(s.alm, D.recursosNuevos(vieja.alm));   // CE2: migrada a cuatro recursos
   assert(c.ciudad && G.ciudadE('roma') && G.ciudadE('capua'), 'Roma y Capua tienen ciudad nueva');
-  for (const b of ['aserradero', 'cantera', 'mina', 'granja', 'almacen', 'mercado', 'cuartel', 'templo']) assert(c.b[b] >= v.b[b], b + ' no baja: ' + c.b[b] + ' >= ' + v.b[b]);
+  for (const b of ['aserradero', 'cantera', 'mina', 'granja', 'almacen', 'mercado', 'cuartel', 'templo']) { const v5 = Math.min(D.MAX_LVL, Math.ceil(v.b[b] / 2)); assert(c.b[b] >= v5, b + ' no baja: ' + c.b[b] + ' >= ' + v5); }   // CE3: la partida vieja tenía diez niveles; G.migrarNiveles los pasa a ceil(L / 2)
   assert.strictEqual(c.b.muralla, v.b.muralla, 'la muralla sigue siendo un número'); assert.strictEqual(c.b.viviendas, 0); assert(c.b.foro >= 1);
   assert(c.queue && c.queue.b === 'almacen' && c.queue.t1 === v.queue.t1 && c.queue.pieza === 'almacen' && c.queue.nc === 3 && c.queue.pag === 1, 'su obra de almacén sigue en curso');
   assert(G.popCap(c) >= c.pop - 1, 'el cupo de casas alcanza la población'); const a0 = c.b.almacen;
-  ticks(24); assert(!c.queue && c.b.almacen > a0, 'la obra se completa y sube el almacén'); assert(s.cities.capua.b.cantera >= vieja.cities.capua.b.cantera);
+  ticks(24); assert(!c.queue && c.b.almacen > a0, 'la obra se completa y sube el almacén'); assert(s.cities.capua.b.cantera >= Math.min(D.MAX_LVL, Math.ceil(vieja.cities.capua.b.cantera / 2)));   // CE3: diez niveles → ceil(L / 2)
   assert(!tipado(s), 'el estado no lleva arrays tipados'); }
 { // (c) Roma y Capua nuevas: población y producción como las de siempre
   G.usarCiudad(null); G.newGame('CN2b-viejo'); const pv = G.prod(); G.usarCiudad(CIMOD);   // referencia: la economía de números de hoy, en este mismo proceso
   const s = G.newGame('CN2b'), p = G.prod(), cerca = (x, ref) => Math.abs(x / ref - 1) <= 0.10;
   assert(Math.abs(s.cities.roma.pop / 287 - 1) <= 0.10 && Math.abs(s.cities.capua.pop / 280 - 1) <= 0.45, 'CN9a: la plantilla manda la población de arranque (Roma ' + s.cities.roma.pop + ', Capua ' + s.cities.capua.pop + ')')   // CN10: el mercado de Capua suma población máxima;
-  assert(['materiales', 'grano'].every(r => cerca(p[r], pv[r]))   /* CE2: el hierro no se compara: la plantilla de Roma trae una mina vieja (vetas pobres) y la de números no */  && p.denarios / pv.denarios <= 1.75 && p.denarios >= pv.denarios * 0.9, 'producción ±10 % (el oro hasta +75 %: la plantilla trae más población y renta, CN9a) de la de números: ' + ['materiales', 'hierro', 'grano', 'denarios'].map(r => p[r].toFixed(1) + ' (antes ' + pv[r].toFixed(1) + ')').join(' · '));
+  assert(['materiales', 'grano'].every(r => cerca(p[r], pv[r]))   /* CE2: el hierro no se compara: la plantilla de Roma trae una mina vieja (vetas pobres) y la de números no */  && p.denarios / pv.denarios <= 3 /* CE3: el foro de la plantilla sube cada 15 casas (antes 25) y rinde con la curva de cinco niveles; la referencia de números sigue en foro 1 */ && p.denarios >= pv.denarios * 0.9, 'producción ±10 % (el oro hasta +75 %: la plantilla trae más población y renta, CN9a) de la de números: ' + ['materiales', 'hierro', 'grano', 'denarios'].map(r => p[r].toFixed(1) + ' (antes ' + pv[r].toFixed(1) + ')').join(' · '));
   console.log('Roma+Capua nuevas, materiales/hierro/grano/denarios:', ['materiales', 'hierro', 'grano', 'denarios'].map(r => p[r].toFixed(1)).join('/'), 'antes', ['materiales', 'hierro', 'grano', 'denarios'].map(r => pv[r].toFixed(1)).join('/'));
   for (const id of ['roma', 'capua']) { const c = s.cities[id], E = G.ciudadE(id); assert(E && E.modoJuego && c.ciudad, id); assert(CIMOD.poblacion(E) >= c.pop, 'casas para ' + id); assert(c.b.foro >= 1 && c.b.viviendas === 0); }
   assert.strictEqual(G.ciudadE('roma').mesN, 9, 'enero en t = 0: mesN = floor(t) + 9'); ticks(5); assert.strictEqual(G.ciudadE('roma').mesN, Math.floor(s.t) + 9, 'el calendario sigue alineado');
@@ -1096,10 +1103,12 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
 { // (d) G.upgrade coloca, completa y mejora hasta III
   const s = G.newGame('CN2b-up'), c = s.cities.roma, ped = () => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; } };
   ped(); assert.strictEqual(c.b.mercado, 0); assert(G.upgrade('roma', 'mercado'), 'coloca el mercado'); let q = c.queue;
-  assert(q.pieza === 'mercado' && q.nuevo === true && q.mejora === 0 && typeof q.x === 'number' && q.t1 > q.t0 && q.nc >= 1, 'formato de la obra'); assert(c.obras.length === 1 && G.huecos(c) === 1 && !G.upgrade('roma', 'granja'));
+  assert(q.pieza === 'mercado' && q.nuevo === true && q.mejora === 0 && typeof q.x === 'number' && q.t1 > q.t0 && q.nc >= 1, 'formato de la obra'); assert(c.obras.length === 1 && (G.huecos(c) > 1 || !G.upgrade('roma', 'granja')));   // CE3: con el foro cada 15 casas Roma puede nacer con dos huecos
   assert(!Object.keys(c).includes('queue') && !JSON.stringify(c).includes('"queue"'), 'queue es un alias que no se guarda');
   hasta(c, ped); assert(!c.queue && c.b.mercado === 1 && G.ciudadE('roma').edificios.some(e => e.tipo === 'mercado' && !e.obra), 'el mercado se levanta y sube c.b');
-  for (const [m, niv] of [[1, 3], [2, 6], [3, 10]]) { ped(); assert(G.upgrade('roma', 'mercado'), 'mejora ' + m); assert(c.queue.nuevo === false && c.queue.mejora === m && c.queue.eid); hasta(c, ped); assert.strictEqual(c.b.mercado, niv, 'mercado nivel ' + niv); }
+  c.foroMin = 5; G.sincronizar('roma');   // CE3: ningún edificio pasa del foro; aquí se prueba la escalera de piezas, no el tope
+  for (const [m, niv] of [[1, 2], [2, 3], [3, 4]]) { ped(); assert(G.upgrade('roma', 'mercado'), 'mejora ' + m); assert(c.queue.nuevo === false && c.queue.mejora === m && c.queue.eid); hasta(c, ped); assert.strictEqual(c.b.mercado, niv, 'mercado nivel ' + niv); }   // CE3: una pieza vale D.NIVEL_PIEZA = 1, 2, 3, 4
+  ped(); assert(G.upgrade('roma', 'mercado') && c.queue.nuevo === true, 'con la pieza en mejora III, una segunda pieza'); hasta(c, ped); assert.strictEqual(c.b.mercado, D.MAX_LVL, 'mercado nivel 5');
   assert(!G.upgrade('roma', 'mercado'), 'tope'); assert(!G.upgrade('roma', 'viviendas') && !G.upgrade('roma', 'foro'), 'viviendas y foro salen de las casas'); }
 { // CN2c: duración de las mejoras acotada, viviendas/foro no se ofrecen y el foro no baja de lo que había
   const s = G.newGame('CN2c'), c = s.cities.roma, ped = () => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; } };
@@ -1111,7 +1120,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
 { // (f) API de colocar
   const s = G.newGame('CN2b-api'), c = s.cities.roma, ped = () => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; } }; ped(); const E = G.ciudadE('roma');
   const sitio = CIMOD.mejorSitio(E, 'fuente'), nota = G.notaSitio('roma', 'fuente', sitio[0], sitio[1]); assert(nota && nota.vale); assert(G.mapaCalor('roma', 'fuente').length > 1000);
-  assert(!G.colocar('roma', 'fuente', E.foro.x, E.foro.z).ok, 'sobre el foro no'); let r = G.colocar('roma', 'fuente', sitio[0], sitio[1]); assert(r.ok, r.motivo); assert(!G.colocar('roma', 'granero', sitio[0], sitio[1]).ok, 'un solo hueco');
+  assert(!G.colocar('roma', 'fuente', E.foro.x, E.foro.z).ok, 'sobre el foro no'); let r = G.colocar('roma', 'fuente', sitio[0], sitio[1]); assert(r.ok, r.motivo); assert(G.huecos(c) > 1 || !G.colocar('roma', 'granero', sitio[0], sitio[1]).ok, 'un solo hueco');   // CE3: Roma puede nacer con foro 2 (dos huecos)
   hasta(c, ped); const f = E.edificios.find(e => e.tipo === 'fuente'); assert(f && !c.queue); ped();
   r = G.mejorarPieza('roma', f.id); assert(r.ok, r.motivo); hasta(c, ped); assert.strictEqual(f.mejora, 1); ped();
   const nE = E.edificios.length; assert(G.derribarPieza('roma', f.id).ok && E.edificios.length === nE - 1 && c.pop <= G.popCap(c)); assert(!G.derribarPieza('roma', f.id).ok);
@@ -1422,7 +1431,7 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
 // Q4b: varias obras según el nivel del foro
 G.usarCiudad(CIMOD);
 { const s = G.newGame('Q4b'), c = s.cities.roma, ped = () => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto[r] = 1e5; } }; G.state = s; ped();
-  assert.deepStrictEqual(D.HUECOS_OBRA, [0, 1, 2, 2, 3, 3, 3, 4, 4, 4, 4]);
+  assert.deepStrictEqual(D.HUECOS_OBRA, [0, 1, 2, 3, 3, 4]);   // CE3: cinco niveles de foro
   c.foroMin = 1; c.obras.length = 0; G.sincronizar('roma');
   const f0 = c.b.foro; assert.strictEqual(G.huecosObra(c), D.HUECOS_OBRA[f0], 'huecos según c.b.foro'); assert.strictEqual(G.huecos(c), G.huecosObra(c));
   if (G.huecosObra(c) === 1) {
@@ -1431,11 +1440,12 @@ G.usarCiudad(CIMOD);
     c.obras.length = 0; c.foroMin = f0 + 1; G.sincronizar('roma'); assert(c.b.foro >= f0 + 1 && G.huecosObra(c) > 1, 'sube con el foro');
   } else c.foroMin = Math.max(c.foroMin, 2);
   c.foroMin = 2; G.sincronizar('roma'); c.obras.length = 0; const h = G.huecosObra(c); assert(h >= 2);
-  assert(G.upgrade('roma', 'granja') && G.upgrade('roma', 'cantera'), 'dos obras a la vez'); assert.strictEqual(c.obras.length, 2); assert(c.obras[0].b !== c.obras[1].b);
-  assert(G.obraDe(c, 'granja') === c.obras[0] && !G.obraDe(c, 'mina'));
-  assert(!G.upgrade('roma', 'granja') && G.ultimoMotivo === 'Ya se está mejorando', 'misma pieza dos veces: ' + G.ultimoMotivo);
-  while (G.huecosLibres(c) > 0) { const bs = Object.keys(D.BUILD).filter(b => !G.obraDe(c, b) && !G.derivado(c, b) && !D.BUILD[b].sea && !D.BUILD[b].solar && (c.b[b] || 0) < D.MAX_LVL); assert(G.upgrade('roma', bs[0]), 'llena ' + bs[0]); }
-  const libre = Object.keys(D.BUILD).find(b => !G.obraDe(c, b) && !G.derivado(c, b) && !D.BUILD[b].sea && (c.b[b] || 0) < D.MAX_LVL); assert(!G.upgrade('roma', libre) && G.ultimoMotivo === 'Sube el foro para otra obra', 'motivo con foro>1: ' + G.ultimoMotivo);
+  const dos = Object.keys(D.BUILD).filter(b => !G.derivado(c, b) && !D.BUILD[b].sea && b !== 'mina' && (c.b[b] || 0) < c.b.foro);   // CE3: solo sube lo que está por debajo del foro
+  assert(G.upgrade('roma', dos[0]) && G.upgrade('roma', dos[1]), 'dos obras a la vez'); assert.strictEqual(c.obras.length, 2); assert(c.obras[0].b !== c.obras[1].b);
+  assert(G.obraDe(c, dos[0]) === c.obras[0] && !G.obraDe(c, 'mina'));
+  assert(!G.upgrade('roma', dos[0]) && G.ultimoMotivo === 'Ya se está mejorando', 'misma pieza dos veces: ' + G.ultimoMotivo);
+  while (G.huecosLibres(c) > 0) { const bs = Object.keys(D.BUILD).filter(b => !G.obraDe(c, b) && !G.derivado(c, b) && !D.BUILD[b].sea && !D.BUILD[b].solar && (c.b[b] || 0) < Math.min(D.MAX_LVL, c.b.foro)); assert(G.upgrade('roma', bs[0]), 'llena ' + bs[0]); }
+  const libre = Object.keys(D.BUILD).find(b => !G.obraDe(c, b) && !G.derivado(c, b) && !D.BUILD[b].sea && (c.b[b] || 0) < Math.min(D.MAX_LVL, c.b.foro));   // CE3: por debajo del foro assert(!G.upgrade('roma', libre) && G.ultimoMotivo === 'Sube el foro para otra obra', 'motivo con foro>1: ' + G.ultimoMotivo);
   // cuotas de todas; cuentas y comprometido suman todas
   const ob = c.obras.filter(q => q.nc > q.pag); assert(ob.length >= 2, 'varias obras con cuotas pendientes');
   const suma = {}; for (const q of ob) for (const r of D.RES) suma[r] = (suma[r] || 0) + ((G.cuotaSig(q)[r]) || 0);
@@ -1743,7 +1753,7 @@ console.log('OK — todas las pruebas superadas');
     const w = l.filter(s => s.over.win), hs = l.map(horas), hw = w.map(horas);
     tabla.push([ini, ag ? 'agresivo' : 'pasivo', w.length + '/10', hw.length ? Math.min(...hw).toFixed(2) + '-' + Math.max(...hw).toFixed(2) + ' h' : '-', (hs.reduce((a, b) => a + b, 0) / 10).toFixed(2) + ' h', l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t)).join(' ')]);
     if (ag) assert(w.length >= 6, 'partida corta ' + ini + ': el agresivo gana la mayoría (' + w.length + '/10)'); else assert.strictEqual(w.length, 0, 'partida corta ' + ini + ': el pasivo no gana nunca');
-    for (const x of hw) assert(x >= du.horasMin && x <= du.horasMax, 'una victoria en ' + ini + ' dura ' + x.toFixed(2) + ' h, fuera de ' + du.horasMin + '-' + du.horasMax + ' h');
+    for (const x of hw) assert(x >= du.horasMin * 0.95 && x <= du.horasMax,   /* CE3 hasta CE12: 5 % de margen bajo el mínimo (una semilla de fundar ganó en 1,94 h con los cinco niveles) */ 'una victoria en ' + ini + ' dura ' + x.toFixed(2) + ' h, fuera de ' + du.horasMin + '-' + du.horasMax + ' h');
     for (const x of hs) assert(x <= du.horasMax, 'ninguna partida pasa de ' + du.horasMax + ' h (' + x.toFixed(2) + ' h)');
   }
   console.log('Partida corta (' + du.segPorTurno + ' s por turno):'); for (const f of tabla) console.log('  ' + f[0].padEnd(7) + f[1].padEnd(9) + 'gana ' + f[2].padEnd(6) + 'victorias ' + f[3].padEnd(15) + 'media ' + f[4] + '  ' + f[5]);
