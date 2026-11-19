@@ -2042,6 +2042,12 @@
       "titulo": "Cerebro · MN1 Barra de seis y mapa nuevo de los menús (Opus; tope duro)",
       "nota": "Ficha de la ciudad dentro de ROMA, fuera los modos Gobierno y Guerra, ☰ ordenado, vertical y horizontal; corte duro 2,2 M",
       "url": "https://claude.ai/code/session_01QiKC3ACB6gUUQAvqV6dh58"
+    },
+    {
+      "tarea": "BG1",
+      "titulo": "Corazón · BG1 Estudio de la batalla grande de Rome II (Fable 5.2, solo estudio; tope duro)",
+      "nota": "Estudia mecánicas, gráficos y jugabilidad de Rome II para llevarlo a tu juego; te pide enlaces y que subas clips a su chat; corte duro 2,5 M",
+      "url": "https://claude.ai/code/session_01QiKC36WBDBumnQL6XnEigc"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
