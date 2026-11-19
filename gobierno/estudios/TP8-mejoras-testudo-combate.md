@@ -59,3 +59,8 @@ Caras de los soldados (GM43j, aparte). Andar y correr (vale hoy). Lo nuevo que p
      que se solapan, hierba alta en primer plano.
 - **Qué se toma**: picas → cámara alta sobre los cascos, astas con cuerpo y sombra, cinco hileras de puntas, caídos
   amontonados delante del muro; épica a pie → plano ancho de apertura, estandarte, hierba en primer plano, sol bajo.
+  4. *Testudo de Ryse (cuarto clip, 19/11).* Al dar la orden, la cámara se mete **dentro del testudo, pegada a la cara
+     del que grita**; cada orden sale escrita abajo («¡Escudos!», «¡Esperad! ¡Aguantad!», «¡Formad!»); los hombres
+     asoman medio cuerpo por encima de los escudos para lanzar y vuelven a cubrirse; cielo oscuro, flechas con fuego
+     y golpes secos en la madera. Se toma: plano corto al dar la orden, voces escritas y dichas, asomar para lanzar.
+     Lo que un móvil no da (caras de cine) se dice y no se promete.
