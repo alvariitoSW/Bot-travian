@@ -68,3 +68,9 @@ Caras de los soldados (GM43j, aparte). Andar y correr (vale hoy). Lo nuevo que p
      habla a los suyos; la vista alterna entre el plano de detrás (cascos asomando por el borde de los escudos, la
      cresta roja en el centro) y el plano corto del centurión cubriéndose cuando llega la salva. Se toma: arenga
      breve al empezar y el vaivén entre plano de detrás y plano corto en los momentos fuertes.
+  6. *Testudo de Rome II ante una muralla (sexto clip, 19/11; el usuario aclara que es Rome II, no Ryse).* La cámara
+     va **a ras del techo de escudos de una cohorte entera** (más de cien hombres), mirando por encima hacia la
+     muralla; hierba alta y clara; proyectiles con estela de humo que caen en arco y humo donde pegan. Se toma: el
+     testudo visto como techo de toda la unidad, no de ocho hombres; estelas de humo en los proyectiles; objetivo
+     lejano siempre a la vista. **Pedido del usuario**: llevar esta forma de jugar y de verse a la batalla grande
+     (campaña y escaramuza normal). Eso es CG6 y CG8, no TP8b: pasado al vigía; TP8b mantiene las piezas para que sirvan allí.
