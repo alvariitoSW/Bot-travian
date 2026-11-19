@@ -29,3 +29,14 @@ Parada al pasar el techo de 4,0 M sin jueces APTO. Nada publicado. Commits local
 
 ## Gasto
 Director 1,14 · A2 niveles 0,91 (Sonnet) · A1 tiempos 1,11 · ajuste del bot 1,36 (más de 3 pasadas) = **4,51 M**.
+
+## Añadido tras la reanudación (19/11, parada a 7,41 M)
+- Hecho: unión con la rama del juego; criterio de la campaña larga «hasta CE12» (en pie en el 150 a.C. con 5+ ciudades, 9/10);
+  pantalla B (ficha I–V con candado por el Foro, coste abaratado, colas, reclutar y marchas en estaciones; capturas
+  `capturas-tarea/CE3-*.jpg`, sin errores de consola); producción por nivel total; huecos 1-2-3-3-4; requisitos de
+  saberes y edades a cinco niveles; pruebas de la ciudad adaptadas.
+- Falta: partida corta (en pie 6/10, antes 10/10; fundar 10/10 con victorias de 1,54 h, mínimo 2 h; el bot que investiga
+  no llega a la edad III: le falta grano/agua para el barrio Villa o saberes); jueces completos.
+- Fallos encontrados por la pieza B: el tope del Foro solo lo cumple `G.upgrade`; `G.mejorarPieza` y `G.colocar` no lo
+  comprueban (la pantalla sí). La partida vieja tarda ~30 s en cargar en el navegador de pruebas. Quedan textos
+  «al mes» en las cuotas y «meses» en los techos de la ciencia.
