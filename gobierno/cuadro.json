@@ -2020,22 +2020,22 @@
       "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
     },
     {
-      "tarea": "CI1",
-      "titulo": "Cerebro · CI1 Roma de su siglo (la ciudad con el aspecto de su época; dirige y construye Opus)",
-      "nota": "Hecha y subida; espera tus dos respuestas del cuadro (calles con sentido; más ciudad y dos mapas)",
-      "url": "https://claude.ai/code/session_01QiKC39hKX8V8mRMAsoPzPT"
-    },
-    {
-      "tarea": "CG4",
-      "titulo": "Corazón · CG4 Mando en vivo con el simulador (dirige y construye Opus)",
-      "nota": "js/ui-guerra.js y gfx; paso A Escaramuzas, paso B campaña; techo 6,0 M",
-      "url": "https://claude.ai/code/session_01QiKC38ZAM3t3LR2vRpnHXh"
-    },
-    {
       "tarea": "CE3",
       "titulo": "Cerebro · CE3 Edificios, tropas y tiempos nuevos, en estaciones (Opus; tope duro)",
-      "nota": "js/game.js, data.js, ui.js; corte duro 3,0 M",
+      "nota": "Parada a 4,5 M sin subir; commits en la rama ce3; espera tu respuesta sobre el bot",
       "url": "https://claude.ai/code/session_01QiKC3Aw9VfHc42LQ8wLPsB"
+    },
+    {
+      "tarea": "CI1b",
+      "titulo": "Cerebro · CI1b Calles con sentido y pulido de la ciudad romana (Opus; tope duro)",
+      "nota": "js/ciudad.js y gfx de la ciudad; corte duro 1,5 M",
+      "url": "https://claude.ai/code/session_01QiKC3AfVQgWjdzHpMKkgYR"
+    },
+    {
+      "tarea": "CE6",
+      "titulo": "Cerebro · CE6 Senado de familias (Opus; tope duro)",
+      "nota": "hasta 7 bandos y escaños por población y provincia; solo código del Senado; corte duro 3,3 M",
+      "url": "https://claude.ai/code/session_01QiKC36KEPujrcfjeAyVCoL"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

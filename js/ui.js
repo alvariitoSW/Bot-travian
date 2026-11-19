@@ -205,12 +205,16 @@ function escFinHtml() {
     '<button class="btn ro-sello esc-go" data-act="hoja" data-v="escaramuza">Otra escaramuza</button><button class="btn ghost esc-go" data-act="hojax">Volver al menú</button></div>';
 }
 function escEmpieza() {
-  if (!window.UIGuerra || !window.Guerra) { toast('No se ha podido cargar la batalla.', 'bad'); return; }
-  const e = G.escaramuza(UI.esc); hojaCierra(true); UI.escRes = null;
-  window.UIGuerra.abrir({ estado: window.Guerra.crear({ semilla: e.semilla, ejercitos: e.ejercitos }), campo: e.campo }, r => {   // sin guardar: no toca aqvila-save-v1 ni aqvila-guerra-v1
+  const e = G.escaramuza(UI.esc), alFin = r => {   // sin guardar: no toca aqvila-save-v1 ni aqvila-guerra-v1
     const B = r && r.estado; UI.escRes = { res: (B && B.resultado) || { como: 'retirada', motivo: '', t: 0, bajas: [0, 0], inicial: [0, 0] }, fac: e.fac };
     setTimeout(() => { if (UI.menu) hojaAbre('escfin'); }, 0);   // después del toque en «Ver el resultado»: el oyente general cierra las hojas
-  });
+  };
+  /* CG4: las escaramuzas van con el simulador de manípulos (js/simulador.js) y la pantalla de mando (js/ui-mando.js); su resumen trae
+     estado.resultado = {como, motivo, t, bajas, inicial}, lo mismo que espera escFinHtml. Si no cargan, la batalla vieja. */
+  if (window.UIMando && window.Simulador) { hojaCierra(true); UI.escRes = null; window.UIMando.abrir({ semilla: e.semilla, ejercitos: e.ejercitos, campo: e.campo }, alFin); return; }
+  if (!window.UIGuerra || !window.Guerra) { toast('No se ha podido cargar la batalla.', 'bad'); return; }
+  hojaCierra(true); UI.escRes = null;
+  window.UIGuerra.abrir({ estado: window.Guerra.crear({ semilla: e.semilla, ejercitos: e.ejercitos }), campo: e.campo }, alFin);
 }
 /* MR3b «Menú principal tipo Rome 2» (estudios/MR3-menus-rome2.md, maqueta capturas-tarea/MR3-7): arriba águila y nombre; la campaña
    guardada en papiro con «Continuar» en sello (lo más grande); sin partida, el papiro es «Nueva campaña» con el general y la dificultad;

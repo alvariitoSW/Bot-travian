@@ -248,6 +248,39 @@ async function navegador() {
       return { ok, detalle: 'entrada de ' + m.h + ' px; escena «' + titulo + '»; «Salir» vuelve al menú', captura: cap };
     });
 
+    /* CG4: «Empezar la batalla» de Escaramuzas abre la pantalla de mando (js/ui-mando.js, window.__mn); se ordena y se mira el efecto
+       en el simulador (no el aviso: con render por software va a ~1 fotograma/s); al acabar, la hoja del resultado; la partida guardada no cambia */
+    await paso('Escaramuzas: batalla nueva con mando en vivo', async () => {
+      await page.setViewportSize({ width: 844, height: 390 }); await espera(500);
+      const guardada = await estado(() => localStorage.getItem('aqvila-save-v1'));
+      if (!(await page.locator('#hoja .esc').count())) { await page.click('#menu .mesc'); await espera(800); }
+      await page.click('[data-act="escempieza"]');
+      await page.waitForFunction(() => window.__mn && window.__mn.lista === true, null, { timeout: 180000 }).catch(() => { });
+      if (!(await estado(() => !!(window.__mn && window.__mn.lista)))) return { ok: false, detalle: 'la pantalla de mando no llegó a estar lista', captura: await foto('escaramuza-carga') };
+      await estado(() => window.__mn.pausa(true)); await espera(1500);
+      const id = await estado(() => { const u = window.__mn.S.man.find(u => u.lado === 0 && u.tropa === 'hastati') || window.__mn.S.man.find(u => u.lado === 0); return u.id; });
+      const elegidos = await estado(i => window.__mn.elegir([i]), id);
+      const meta = await estado(i => { const u = window.__mn.S.man[i]; return { x: u.x + 25, y: u.y + 40 }; }, id);
+      const noMueve = await estado(m => window.__mn.ordenar({ tipo: 'mover', x: m.x, y: m.y }), meta);
+      const noForma = await estado(() => window.__mn.ordenar({ tipo: 'formar', forma: 'testudo' }));
+      await estado(() => { window.__mn.pausa(false); window.__mn.salta(12); window.__mn.cuadro(0.1); });
+      const efecto = await estado(i => { const u = window.__mn.S.man[i]; return { mueve: !!u.dest || u.orden === 'mover', testudo: u.forma === 'testudo' || u.luego === 'testudo', forma: u.forma, dest: u.dest }; }, id);
+      const cap = await foto('escaramuza-mando');
+      const cifras = await estado(() => { const e = window.__mn.estado(); return { tri: e.tri, llamadas: e.llamadas }; });
+      await estado(() => { let n = 0; while (window.__mn.S.fase !== 'fin' && n++ < 300) window.__mn.salta(10); });
+      await page.waitForSelector('#mn-seguir', { state: 'visible', timeout: 20000 });
+      await page.click('#mn-seguir');
+      await page.waitForSelector('#hoja .esc-res', { state: 'visible', timeout: 20000 });
+      const res = await estado(() => document.querySelector('#hoja .esc-res').textContent);
+      const capFin = await foto('escaramuza-resultado');
+      await page.click('#hoja [data-act="hojax"]'); await espera(800);
+      const despues = await estado(() => localStorage.getItem('aqvila-save-v1'));
+      await page.setViewportSize({ width: 390, height: 844 }); await espera(800);
+      const ok = elegidos.includes(id) && !noMueve && !noForma && efecto.mueve && efecto.testudo && guardada === despues && !(await page.locator('#mn').count());
+      return { ok, detalle: ok ? 'manípulo ' + id + ' en marcha y en testudo; «' + res + '»; ' + cifras.tri + ' triángulos, ' + cifras.llamadas + ' llamadas; partida guardada intacta'
+        : 'elegido ' + JSON.stringify(elegidos) + ', aviso mover «' + noMueve + '», aviso testudo «' + noForma + '», efecto ' + JSON.stringify(efecto) + ', guardada igual ' + (guardada === despues), captura: ok ? cap : capFin };
+    });
+
     await paso('Nueva partida: se ve el mapa', async () => {
       await page.click('#menu [data-act="new"]'); await espera(2500); await cierraAvisos();
       await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; Game.autoVivo = true; });      // CN14-C: el asesor de serie no cambia el recorrido
