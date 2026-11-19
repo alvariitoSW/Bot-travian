@@ -2042,6 +2042,12 @@
       "titulo": "Corazón · CG6 A pie desde el hombro, dentro de la batalla nueva (Opus; tope duro)",
       "nota": "cuatro tandas subidas con jueces; js/ui-guerra.js, simulador y módulos de a pie; corte duro 4,0 M",
       "url": "https://claude.ai/code/session_01QiKC36XAVkKcrxxvx4cUCo"
+    },
+    {
+      "tarea": "TP8",
+      "titulo": "Corazón · TP8 Mejoras del testudo y del combate, hablándolas con el usuario (Opus; tope duro)",
+      "nota": "conversación; escenas aparte, sonido y caras; corte duro 2,25 M",
+      "url": "https://claude.ai/code/session_01QiKC37MiywH97s7ojcHQE6"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
