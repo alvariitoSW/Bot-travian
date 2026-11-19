@@ -329,7 +329,7 @@ prueba('CN23: ampliar la muralla deja los barrios nuevos dentro; guardar y carga
   const dPoli = (P, x, z) => { let m = 1e9; for (let i = 1; i < P.length; i++) { const [ax, az] = P[i - 1], [bx, bz] = P[i], dx = bx - ax, dz = bz - az, L = dx * dx + dz * dz || 1, u = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L)); m = Math.min(m, Math.hypot(ax + dx * u - x, az + dz * u - z)); } return m; };
   const angD = (a, b) => Math.abs(((a - b) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI);
   prueba('CI1b al fundar hay un eje de puerta a puerta: sale del foro, cruza el surco y tiene puerta al lado opuesto', () => {
-    for (const sem of [1, 3]) { const F = R.crear(sem); R.fundar(F, 172, -196); assert.equal(F.plano, 2); const v = F.vias.find(q => q.id === F.eje); assert.ok(v, 'hay eje');
+    for (const sem of [1, 3]) { const F = R.crear(sem); R.fundar(F, 172, -196); assert.ok(F.plano >= 2); const v = F.vias.find(q => q.id === F.eje); assert.ok(v, 'hay eje');
       const f = F.foro, ini = v.p[0], fin = v.p[v.p.length - 1]; assert.ok(Math.hypot(ini[0] - f.x, ini[1] - f.z) < 30, 'empieza en el foro'); assert.ok(!R.cercado(F, fin[0], fin[1]), 'sale del surco');
       const aE = Math.atan2(fin[1] - f.z, fin[0] - f.x), pE = F.puertas.find(p => angD(Math.atan2(p.z - f.z, p.x - f.x), aE) < 0.5); assert.ok(pE, 'puerta del eje');
       assert.ok(F.puertas.some(p => angD(Math.atan2(p.z - f.z, p.x - f.x), aE) > 1.9), 'puerta al lado opuesto'); } });
@@ -346,6 +346,17 @@ prueba('CN23: ampliar la muralla deja los barrios nuevos dentro; guardar y carga
   prueba('CI1b datos viejos sin plano: se rehacen con los mismos edificios en el mismo sitio', () => {
     const F = R.crear(1); F.plano = 1; R.fundar(F, 172, -196); for (const id of ['granja', 'fuente', 'granja', 'aserradero', 'granero', 'cantera', 'granja', 'almacen']) { const s = R.mejorSitio(F, id); if (s) R.colocar(F, id, s[0], s[1], true); R.mes(F); }
     const d = R.aDatos(F); assert.equal(d.plano, 1); delete d.plano; const H = R.deDatos(d), q = E2 => E2.edificios.map(e => e.tipo + '@' + e.x.toFixed(1) + ',' + e.z.toFixed(1)).join(' ');
-    assert.equal(q(H), q(F)); const N2 = R.deDatos(R.aDatos(R.crear(2))); assert.equal(N2.plano, 2, 'una ciudad nueva guarda y carga el plano 2'); });
+    assert.equal(q(H), q(F)); const N2 = R.deDatos(R.aDatos(R.crear(2))); assert.equal(N2.plano, 3, 'una ciudad nueva guarda y carga el plano 3'); });
+  /* ---------- CI3a: la urbe a la vista (plano 3) ---------- */
+  prueba('CI3a con plano 3 la urbe tiene ≥3,4× el área del recinto del plano 2 y llega a 2,2× el radio donde el terreno deja', () => {
+    for (const sem of [1, 3, 7]) { const F = R.crear(sem); R.fundar(F, 172, -196); assert.equal(F.plano, 3); const D = R.crear(sem); D.plano = 2; R.fundar(D, 172, -196); assert.ok(!D.urbe, 'el plano 2 no tiene urbe');
+      const a2 = R.areaPolar(D.RS), a3 = F.urbe.area; assert.ok(a3 >= 3.4 * a2, 'área ' + a3 + ' frente a ' + Math.round(a2));
+      assert.ok(F.urbe.RU.filter((r, i) => r >= F.RS[i] * R.URBE_K * 0.95).length >= F.RS.length * 0.4, 'el 40 % de los rayos (los que no topan con el río) llega a 2,2×');
+      assert.equal(R.aDatos(D).plano, 2); assert.equal(JSON.stringify(D.ocup.slice ? Array.from(D.ocup) : D.ocup), JSON.stringify(Array.from(F.ocup)), 'la urbe no toca la rejilla');
+      for (const c of F.urbe.calles) for (const p of c.p) { const i = Math.floor((p[0] - R.X0) / R.C), j = Math.floor((p[1] - R.Z0) / R.C); assert.equal(F.ocup[j * R.N + i], 0, 'calle de adorno sobre algo'); } } });
+  prueba('CI3a datos del plano 2 se rehacen en el plano 3 con los mismos edificios en su sitio', () => {
+    const F = R.crear(4); F.plano = 2; R.fundar(F, 172, -196); for (const id of ['granja', 'fuente', 'granja', 'aserradero', 'granero', 'cantera', 'templo', 'almacen']) { const s = R.mejorSitio(F, id); if (s) R.colocar(F, id, s[0], s[1], true); R.mes(F); }
+    const d = R.aDatos(F); assert.equal(d.plano, 2); const H = R.deDatos(d), q = E2 => E2.edificios.map(e => e.tipo + '@' + e.x.toFixed(1) + ',' + e.z.toFixed(1)).join(' ');
+    assert.equal(H.plano, 3); assert.ok(H.urbe, 'tiene urbe'); assert.equal(q(H), q(F)); assert.equal(H.parcelas.filter(l => l.casa).length, F.parcelas.filter(l => l.casa).length, 'mismas casas'); });
 }
 process.exit(fallos.length ? 1 : 0);

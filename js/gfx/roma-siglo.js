@@ -264,6 +264,31 @@ function calcularRelleno(E, K) {
       const q = { x, z, giro, sy: 0.75 + 0.2 * t, tono: t, k }; if (t < 0.45) out.fondo.push(q); else out.huerto.push(Object.assign(q, { sy: 1 })); }
     for (let b = j - 1; b <= j + 2; b++) for (let a = i - 1; a <= i + 2; a++) out.celdas.add(b * N + a);
   }
-  for (const n of ['fondo', 'fondo3', 'patio', 'huerto']) if (out[n].length > 900) out[n].length = 900;
+  if (E.urbe) rellenoUrbe(E, K, out, h);
+  for (const n of ['fondo', 'fondo3', 'patio', 'huerto']) if (out[n].length > CUPO[n]) out[n].length = CUPO[n];
   return out;
+}
+/* CI3a: cupo de cada pieza de relleno (lo usa también city3d.js para sus lotes) */
+export const CUPO = { fondo: 2600, fondo3: 1500, patio: 1100, huerto: 900 };
+/* CI3a (plano 3): casas de relleno a los dos lados de las calles de adorno de la urbe (E.urbe.calles), en hilera, pared con pared y con
+   huecos sueltos; más ínsulas cerca del foro, patios y huertos hacia el borde. Nada pisa calles, parcelas, edificios ni campos (E.ocup), ni otra casa */
+function rellenoUrbe(E, K, out, h) {
+  const { X0, Z0, C, N } = K, O = E.ocup, f = E.foro, rmax = Math.max(...E.urbe.RU), usada = new Uint8Array(N * N);
+  const cel = (x, z) => { const i = Math.floor((x - X0) / C), j = Math.floor((z - Z0) / C); return i < 1 || j < 1 || i >= N - 1 || j >= N - 1 ? -1 : j * N + i; };
+  for (const k of out.celdas) usada[k] = 1;
+  /* las calles de adorno se marcan antes: ninguna casa las pisa */
+  for (const c of E.urbe.calles) for (let q = 1; q < c.p.length; q++) { const a = c.p[q - 1], b = c.p[q], L = Math.hypot(b[0] - a[0], b[1] - a[1]); for (let s = 0; s <= L; s += 1.5) for (const o of [-2.4, 0, 2.4]) { const u = (b[1] - a[1]) / L, v = -(b[0] - a[0]) / L, k = cel(a[0] + (b[0] - a[0]) * s / L + u * o, a[1] + (b[1] - a[1]) * s / L + v * o); if (k >= 0) usada[k] = 2; } }
+  let n = 0;
+  for (const c of E.urbe.calles) { const P = c.p; let paso = 4;
+    for (let q = 1; q < P.length; q++) { const a = P[q - 1], b = P[q], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz); if (!L) continue; const ux = dx / L, uz = dz / L, ang = Math.atan2(dz, dx);
+      let s = paso; for (; s < L; s += 8.6) { n++;
+        for (const lado of [1, -1]) { const r = h(n, lado + 5), t = h(lado + 9, n); if (r > 0.93) continue;            // algún solar vacío suelto
+          const o = 6.6 + (r * 13 % 1) * 0.8, x = a[0] + ux * s - uz * o * lado, z = a[1] + uz * s + ux * o * lado; let ok = true; const ks = [];
+          for (const [p1, p2] of [[0, 0], [-3.3, -3.3], [3.3, -3.3], [-3.3, 3.3], [3.3, 3.3]]) { const k = cel(x + ux * p1 - uz * p2, z + uz * p1 + ux * p2); if (k < 0 || O[k] || usada[k] || E.dVia[k] < 6) { ok = false; break; } ks.push(k); }
+          if (!ok || K.distRio(x, z) < 30 || K.altura(x, z) < K.NIVEL_RIO + 1.5) continue;
+          const y = [K.altura(x - 4, z - 4), K.altura(x + 4, z - 4), K.altura(x - 4, z + 4), K.altura(x + 4, z + 4)]; if (Math.max(...y) - Math.min(...y) > 2.8) continue;
+          for (const k of ks) { usada[k] = 1; out.celdas.add(k); }
+          const d = Math.hypot(x - f.x, z - f.z) / rmax, giro = -ang + (lado > 0 ? 0 : Math.PI), q0 = { x, z, giro, sx: 0.92 + 0.16 * t, sy: 0.8 + 0.45 * t, tono: t, k: ks[0] };
+          if (r < 0.5 - 0.4 * d) out.fondo3.push(Object.assign(q0, { sy: 0.85 + 0.3 * t })); else if (d > 0.82 && r < 0.75) out.huerto.push(Object.assign(q0, { sy: 1, sx: 0.85 })); else if (r < 0.84) out.fondo.push(q0); else out.patio.push(Object.assign(q0, { sy: 1 })); } }
+      paso = s - L; } }
 }

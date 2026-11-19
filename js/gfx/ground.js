@@ -216,6 +216,8 @@ function pintarCiudad3(M, T, E, fino) {
     if (c.emp) { trazo(M, c.p, c.w * 2 + 1, 1.2, fino ? '70,255,0' : '230,0,0'); trazo(T, c.p, c.w * 2, 1.4, '150,140,124', 0.6); }
     else { const w = c.t === 'via' ? c.w * 1.4 : c.w;      // CI1b: tierra clara que se lee contra el suelo; las vías del foro (el eje de puerta a puerta) algo más anchas
       trazo(M, c.p, w * 2 + (c.t === 'camino' ? 2 : 1.2), 1.4, '255,0,0'); trazo(T, c.p, w * 2, 1.6, '204,186,150', 0.9); trazo(T, c.p, w * 0.9, w * 0.4, '228,214,182', 0.8); } }
+  /* CI3a: calles de adorno de la urbe (solo vista; no cuentan en el juego): tierra batida, algo más oscura que las de verdad */
+  if (E.urbe) for (const c of E.urbe.calles) { trazo(M, c.p, c.w * 2 + 1.4, 1.4, '240,0,0'); trazo(T, c.p, c.w * 2, 1.6, '196,178,142', 0.85); }
   /* plaza del foro, enlosada */
   if (E.foro) { const f = E.foro, c = Math.cos(f.ang), s = Math.sin(f.ang), rect = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]) => [f.x + u * f.w / 2 * c - v * f.d / 2 * s, f.z + u * f.w / 2 * s + v * f.d / 2 * c]);
     M.fillStyle = fino ? 'rgb(40,255,0)' : 'rgb(230,0,0)'; poli(M, rect); M.fill(); trazo(M, rect, 1, 2, fino ? '40,255,0' : '230,0,0', 1, true); T.fillStyle = 'rgba(150,140,124,0.55)'; poli(T, rect); T.fill(); }

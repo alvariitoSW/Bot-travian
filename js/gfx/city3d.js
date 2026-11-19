@@ -248,7 +248,7 @@ export async function montar() {
   G.T = T;
   /* CI1: atlas pintado por código y lotes de las piezas romanas de su siglo */
   texs.set(RS.ATLAS, RS.atlas()); L.rs_templo = lote('rs_templo', 12); L.rs_dique = lote('rs_dique', 12, { sinTeja: true }); L.rs_tabernas = lote('rs_tabernas', 4); L.rs_insula = lote('rs_insula', 220);
-  L.rs_fondo = lote('rs_fondo', 900); L.rs_fondo3 = lote('rs_fondo3', 900); L.rs_patio = lote('rs_patio', 900, { sinTeja: true }); L.rs_huerto = lote('rs_huerto', 900, { sinTeja: true });      // CI1-7: relleno de manzanas y arrabal
+  L.rs_fondo = lote('rs_fondo', RS.CUPO.fondo); L.rs_fondo3 = lote('rs_fondo3', RS.CUPO.fondo3); L.rs_patio = lote('rs_patio', RS.CUPO.patio, { sinTeja: true }); L.rs_huerto = lote('rs_huerto', RS.CUPO.huerto, { sinTeja: true });      // CI1-7: relleno de manzanas y arrabal
   Campos.iniciar({ scene, altura, distRio, NIVEL_RIO, CI });
   L.rs_muro = lote('rs_muro', 64, { sinTeja: true }); L.rs_torre = lote('rs_torre', 96, { sinTeja: true }); L.rs_puerta = lote('rs_puerta', 12, { sinTeja: true });
   /* casas: cuatro piezas reales, con versiones ligeras de lejos */
@@ -318,7 +318,7 @@ let rellenoC = null, rellenoN = -1;
 function rellenoVista() {
   const r = romaS() && E ? RS.relleno(E, { X0: CI.X0, Z0: CI.Z0, C: CI.C, N: CI.N, barrioDe: CI.barrioDe, cercado: CI.cercado, altura, distRio, NIVEL_RIO }, fantasma, CI.EDIF) : null;
   const tm = q => { const v = 0.86 + 0.2 * q.tono; return { muro: [v, v * 0.96, v * 0.9], teja: [0.92 + 0.16 * q.tono, 0.95, 0.92, 0] }; };
-  for (const n of ['fondo', 'fondo3', 'patio', 'huerto']) L['rs_' + n].poner(r ? r[n].map(q => ({ m: matriz(q.x, suelo(q.x, q.z, 4) - 0.1, q.z, q.giro, 1, q.sy, 1), ...tm(q) })) : []);
+  for (const n of ['fondo', 'fondo3', 'patio', 'huerto']) L['rs_' + n].poner(r ? r[n].map(q => ({ m: matriz(q.x, suelo(q.x, q.z, 4) - 0.1, q.z, q.giro, q.sx || 1, q.sy, 1), ...tm(q) })) : []);
   const n = r ? r.fondo.length + r.fondo3.length + r.patio.length + r.huerto.length : 0; if ((r && r.celdas) !== rellenoC || n !== rellenoN) { rellenoC = r && r.celdas; rellenoN = n; nTalados = -1; }
 }
 
