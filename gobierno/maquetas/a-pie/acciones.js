@@ -10,12 +10,16 @@
      tercera caes (y pasas a ser el que te releva). Las órdenes cambian la lucha: «Escudos» aguanta y cansa al galo,
      «Cargad» aprieta unos segundos, «Relevo» pone delante la fila fresca. Cuando un bando rompe, los galos huyen corriendo.
    Contrato añadido: pide(que) deja un gesto tuyo ('parar' | 'estocada' | 'empujar'); relevoOrden(), cargad(), huida();
-     sAtaque(est) dice en qué punto del clip de ataque va un galo (con su aviso). Las palabras de respuesta van a S.eco. */
+     sAtaque(est) dice en qué punto del clip de ataque va un galo (con su aviso). Las palabras de respuesta van a S.eco.
+   TP8 1a · opciones del mundo (si no vienen, todo sigue como antes):
+     m.alcance(at, def, d) -> lista de 17 números: cuánto hay que apartar al que golpea (metros) a cada fracción del clip
+       (0 a 1) para que la hoja pare en el escudo o en el cuerpo del otro y no lo atraviese.
+     m.golpe(d, def, at, tipo, tuyo) -> el golpe llega ('escudo' o 'cuerpo'); tuyo si es tu duelo: chispa, polvo, pausa. */
 import { FILES, YO, CMP } from './formacion.js';
 import { velocidad, pisa } from './locomocion.js';
 let semillaL = 11; const azarL = () => { semillaL = (semillaL * 16807) % 2147483647; return (semillaL - 1) / 2147483646; };
 export function crearAcciones(m) {
-  const { S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave } = m, fns = {};
+  const { S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave } = m, fns = {}, FX = !!m.golpe;   /* FX: TP8 1a, golpes con peso */
   fns.reinicia = () => { semillaL = 11; };
   /* GM43h: el lanzamiento. Tu soldado arma más el brazo (atrás y alto, la postura que sostiene el dedo) */
   fns.poseLanza = function poseLanza(h, tl, b, esYo) {
@@ -99,6 +103,21 @@ export function crearAcciones(m) {
     d.res = !exito ? 'cubre' : !prot && !d.sec && (d.ataR ? def.golpes >= 1 || azarL() < 0.5 : def.golpes >= 2 || azarL() < 0.35) ? 'muere' : 'recibe';
     d.resuelto = false; d.lado = azarL() < 0.5 ? 1 : -1; d.next = T + d.P * (0.85 + azarL() * 0.3);
     if (d.ataR) Son.madera(0.35, panDe(d.r.x), 0.12);   /* el empujón de escudo */
+    alcanza(d);
+  }
+  /* TP8 1a: que nadie atraviese. Lo que hay que apartar al que golpea mientras dura su golpe (lo mide la escena) */
+  function alcanza(d) { d.alc = m.alcance ? m.alcance(d.ataR ? d.r : d.g, d.ataR ? d.g : d.r, d) : null; }
+  /* en qué fracción del clip va el golpe (s) y cuánto pesa aún (f: se apaga al volver a la guardia); null si no golpea */
+  function fracGolpe(d, T) {
+    const t = T - d.t0, fin = d.aviso ? d.tb + d.dr : d.tb + d.clip.dur;
+    if (t < 0 || t > fin + 0.4) return null;
+    if (d.aviso) return { s: t < d.tb ? d.w0 * suave(0, d.tb, t) : Math.min(1, d.w0 + (t - d.tb) / d.dr * (1 - d.w0)), f: 1 - suave(fin, fin + 0.3, t) };
+    return { s: t < d.tb ? 0 : Math.min(1, (t - d.tb) / d.clip.dur), f: 1 - suave(fin, fin + 0.3, t) };
+  }
+  function aparta(d, T) {
+    if (!d.alc) return 0; const q = fracGolpe(d, T); if (!q) return 0;
+    const x = q.s * (d.alc.length - 1), i = Math.min(d.alc.length - 2, Math.floor(x)), w = x - i;
+    return (d.alc[i] * (1 - w) + d.alc[i + 1] * w) * q.f;
   }
   function resuelve(d) {
     d.resuelto = true; const def = d.ataR ? d.g : d.r, at = d.ataR ? d.r : d.g;
@@ -112,7 +131,9 @@ export function crearAcciones(m) {
       else { const n = Math.min(3, (def.golpes || 0) + 1); d.res = n >= 3 ? 'muere' : 'recibe'; def.golpes = n - 1; eco(n >= 3 ? 'Herido de muerte' : 'Herido (' + n + ' de 3)', 'mal'); }
     }
     if (d.jEco) eco(d.jEco, d.res === 'cubre' ? '' : 'bien');
-    if (d.res === 'cubre') { Son.hierro(pan, 0, 0.5); Son.madera(0.45, pan); if (azarL() < 0.5) chispa(V3.set((def.x + at.x) / 2, H(def.x, def.z) + 1.2, (def.z + at.z) / 2), 0.35); return; }
+    /* TP8 1a: el golpe llega: la escena pone chispa o polvo en el sitio del impacto (y, en tu duelo, la pausa y el tirón) */
+    const tuyo = !d.sec && d.r === S.yo; if (m.golpe) { def.tGolpe = S.T; def.tipoGolpe = d.res === 'cubre' ? 'escudo' : 'cuerpo'; m.golpe(d, def, at, def.tipoGolpe, tuyo); }
+    if (d.res === 'cubre') { Son.hierro(pan, 0, 0.5); Son.madera(0.45, pan); if (!m.golpe && azarL() < 0.5) chispa(V3.set((def.x + at.x) / 2, H(def.x, def.z) + 1.2, (def.z + at.z) / 2), 0.35); return; }
     def.golpes++; Son.madera(0.3, pan); Son.tierra(pan); polvoEn(def.x, def.z, 5);
     if (d.res === 'muere') { def.vivo = false; def.muere = S.T + 0.12; Son.tierra(pan, 0.5); polvoEn(def.x, def.z, 8); }
   }
@@ -149,15 +170,17 @@ export function crearAcciones(m) {
   }
   /* medio paso atrás: el que golpea, después del golpe; el que lo recibe, en el acto */
   function retroceso(m, T) {
-    let o = 0;
+    let o = 0, ap = 0;
     for (const d of S.duelos) {
       if (!d.activo || d.t0 < 0 || (d.r !== m && d.g !== m)) continue;
-      if ((d.ataR ? d.r : d.g) === m) { const t = T - d.t0 - d.tb - d.clip.dur; o = Math.max(o, 0.32 * (suave(-0.1, 0.25, t) - suave(0.45, 1.0, t))); }
-      else if (d.res && d.res !== 'cubre') { const t = T - d.ts; o = Math.max(o, 0.3 * (suave(0, 0.22, t) - suave(0.5, 1.1, t))); }
+      if ((d.ataR ? d.r : d.g) === m) { const t = T - d.t0 - d.tb - d.clip.dur; o = Math.max(o, 0.32 * (suave(-0.1, 0.25, t) - suave(0.45, 1.0, t))); ap = Math.max(ap, aparta(d, T)); }
+      else if (d.res && d.res !== 'cubre') { const t = T - d.ts; o = Math.max(o, (FX ? 0.36 : 0.3) * (suave(0, FX ? 0.12 : 0.22, t) - suave(0.5, 1.1, t))); }
     }
     /* el empujón de tu escudo le hace recular */
     const de = m.duelo; if (m.lado === 'g' && de && de.empOk) { const t = T - de.empR; o = Math.max(o, (de.empOk === 'parada' ? 0.12 : 0.25) * (suave(0, 0.2, t) - suave(0.8, 1.4, t))); }
-    return o;
+    /* TP8 1a: el golpe en el escudo le echa atrás un palmo */
+    if (FX && m.tipoGolpe === 'escudo' && T - m.tGolpe < 0.6) { const t = T - m.tGolpe; o = Math.max(o, 0.1 * (suave(0, 0.07, t) - suave(0.15, 0.5, t))); }
+    return o + ap;
   }
   function lucha(dt) {
     const T = S.T, pide = S.pide; S.pide = null;
@@ -215,6 +238,7 @@ export function crearAcciones(m) {
     d.n++; d.t0 = T; d.ataR = false; d.aviso = true; d.jEco = null; d.empOk = false; d.clip = clipDe('g', d.n % 2 ? 'attack_melee2' : 'attack_melee'); d.tb = AVISO;
     const w0 = 0.6 * d.clip.golpe; d.w0 = w0; d.dr = d.clip.dur * (1 - w0); d.ts = T + d.tb + d.dr * (d.clip.golpe - w0) / (1 - w0);
     d.res = null; d.resuelto = false; d.lado = azarL() < 0.5 ? 1 : -1; d.next = T + d.tb + d.dr + 1.3 + azarL() * 1.3;
+    alcanza(d);
   }
   function estocada(d, T) {
     const abierto = T < (d.abierto || 0) || T < (d.deseq || 0);
@@ -222,6 +246,7 @@ export function crearAcciones(m) {
     d.res = abierto ? ((d.g.golpes || 0) >= 1 ? 'muere' : 'recibe') : 'cubre';
     d.jEco = abierto ? (d.res === 'muere' ? '¡Buen golpe! Cae' : '¡Buen golpe!') : 'Parado: ábrelo antes';
     d.resuelto = false; d.lado = azarL() < 0.5 ? 1 : -1; d.abierto = 0; d.deseq = 0; d.empOk = false; d.next = Math.max(d.next, T + 1.6 + azarL() * 0.8);
+    alcanza(d);
   }
   /* en qué punto (0 a 1) del clip de ataque va un galo; null si no ataca. Con aviso: arma despacio y suelta deprisa */
   function sAtaque(e) {
