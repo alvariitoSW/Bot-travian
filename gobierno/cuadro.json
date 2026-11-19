@@ -2022,7 +2022,7 @@
     {
       "tarea": "CE3",
       "titulo": "Cerebro · CE3 Edificios, tropas y tiempos nuevos, en estaciones (Opus; tope duro)",
-      "nota": "Parada a 4,5 M sin subir; commits en la rama ce3; espera tu respuesta sobre el bot",
+      "nota": "Reanudada: termina la tanda 1 (pantalla de niveles) sin exigir al bot hasta CE12; corte duro 6,0 M en total",
       "url": "https://claude.ai/code/session_01QiKC3Aw9VfHc42LQ8wLPsB"
     },
     {
@@ -2036,6 +2036,12 @@
       "titulo": "Cerebro · CE6 Senado de familias (Opus; tope duro)",
       "nota": "hasta 7 bandos y escaños por población y provincia; solo código del Senado; corte duro 3,3 M",
       "url": "https://claude.ai/code/session_01QiKC36KEPujrcfjeAyVCoL"
+    },
+    {
+      "tarea": "CG6",
+      "titulo": "Corazón · CG6 A pie desde el hombro, dentro de la batalla nueva (Opus; tope duro)",
+      "nota": "cuatro tandas subidas con jueces; js/ui-guerra.js, simulador y módulos de a pie; corte duro 4,0 M",
+      "url": "https://claude.ai/code/session_01QiKC36XAVkKcrxxvx4cUCo"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
