@@ -2,6 +2,7 @@
 import { createRequire } from 'node:module';
 import assert from 'node:assert';
 const require = createRequire(import.meta.url);
+const botMercado = require('./bot-mercado.js');   // CE2
 const D = require('../js/data.js'); const { Battle } = require('../js/battle.js'); const G = require('../js/game.js');
 const fallos = [];
 function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -17,6 +18,7 @@ function campaign1(aggressive, region, dif) {
   while (!s.over && guard++ < 200000) {
     G.tick(0.25);
     while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); if (process.env.DBG) console.log(G.yearOf(s.t), JSON.stringify(info.cfg.sides.map(x => x.units)), 'def', info.cfg.defender, 'wall', info.cfg.wall, '->', b.result().winner, Math.round(b.t)); G.applyBattle(b.result()); }
+    if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: el bot compra hierro y vende lo que sobra (test/bot-mercado.js)
     if (guard % 8) continue;
     for (const id of G.myCities()) {
       const c = s.cities[id];

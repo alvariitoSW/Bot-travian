@@ -91,6 +91,15 @@ console.log('Juez 1h · Guerra nueva (test/guerra.test.mjs)');
   apunta('Guerra nueva (motor sin pantalla)', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, 400));
 }
 
+/* ---------- 1h3. Simulador de batallas (CG3: manípulos, sin pantalla; aún no lo usa el juego) ---------- */
+console.log('Juez 1h3 · Simulador de batallas (test/simulador.test.mjs)');
+{
+  const r = spawnSync(process.execPath, ['test/simulador.test.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 120000 });
+  const lineas = (r.stdout || '').split('\n').filter(l => /^(bien|MAL)\s/.test(l));
+  const mal = lineas.filter(l => /^MAL/.test(l));
+  apunta('Simulador de batallas (manípulos)', r.status === 0, (r.status === 0 ? lineas.length + ' comprobaciones bien' : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | '))).slice(0, 400));
+}
+
 /* ---------- 1h2. Guerra en el juego (GC4: estadoGuerra, bot, guardar a mitad) ---------- */
 console.log('Juez 1h2 · Guerra en el juego (test/guerra-juego.test.mjs)');
 {
@@ -220,6 +229,56 @@ async function navegador() {
       await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
       const ok = /Testudo a pie/.test(titulo);
       return { ok, detalle: 'entrada de ' + m.h + ' px; escena «' + titulo + '»; «Salir» vuelve al menú', captura: cap };
+    });
+
+    /* TP7a: Escaramuzas lleva también a «Falange a pie» y su «Salir» vuelve al juego */
+    await paso('Escaramuzas: «Falange a pie» abre la escena y vuelve', async () => {
+      await page.click('#menu .mesc'); await espera(800);
+      const a = page.locator('#hoja a.esc-falange');
+      if (!(await a.count())) return { ok: false, detalle: 'no está la entrada «Falange a pie» en Escaramuzas', captura: await foto('escaramuzas') };
+      await a.scrollIntoViewIfNeeded(); await espera(300);
+      const m = await a.evaluate(el => { const r = el.getBoundingClientRect(); return { h: Math.round(r.height), d: Math.round(r.right), t: el.textContent, url: el.href }; });
+      const cap = await foto('escaramuzas-falange');
+      if (m.h < 44 || m.d > 390 || !/Falange a pie/.test(m.t) || !/\/gobierno\/maquetas\/falange\/$/.test(m.url)) return { ok: false, detalle: 'entrada mal: alto ' + m.h + ' px, borde ' + m.d + ' px, ' + m.url, captura: cap };
+      await a.click(); await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
+      const titulo = await page.title(); await espera(1500);
+      await page.click('#salir'); await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
+      await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
+      const ok = /Falange a pie/.test(titulo);
+      return { ok, detalle: 'entrada de ' + m.h + ' px; escena «' + titulo + '»; «Salir» vuelve al menú', captura: cap };
+    });
+
+    /* CG4: «Empezar la batalla» de Escaramuzas abre la pantalla de mando (js/ui-mando.js, window.__mn); se ordena y se mira el efecto
+       en el simulador (no el aviso: con render por software va a ~1 fotograma/s); al acabar, la hoja del resultado; la partida guardada no cambia */
+    await paso('Escaramuzas: batalla nueva con mando en vivo', async () => {
+      await page.setViewportSize({ width: 844, height: 390 }); await espera(500);
+      const guardada = await estado(() => localStorage.getItem('aqvila-save-v1'));
+      if (!(await page.locator('#hoja .esc').count())) { await page.click('#menu .mesc'); await espera(800); }
+      await page.click('[data-act="escempieza"]');
+      await page.waitForFunction(() => window.__mn && window.__mn.lista === true, null, { timeout: 180000 }).catch(() => { });
+      if (!(await estado(() => !!(window.__mn && window.__mn.lista)))) return { ok: false, detalle: 'la pantalla de mando no llegó a estar lista', captura: await foto('escaramuza-carga') };
+      await estado(() => window.__mn.pausa(true)); await espera(1500);
+      const id = await estado(() => { const u = window.__mn.S.man.find(u => u.lado === 0 && u.tropa === 'hastati') || window.__mn.S.man.find(u => u.lado === 0); return u.id; });
+      const elegidos = await estado(i => window.__mn.elegir([i]), id);
+      const meta = await estado(i => { const u = window.__mn.S.man[i]; return { x: u.x + 25, y: u.y + 40 }; }, id);
+      const noMueve = await estado(m => window.__mn.ordenar({ tipo: 'mover', x: m.x, y: m.y }), meta);
+      const noForma = await estado(() => window.__mn.ordenar({ tipo: 'formar', forma: 'testudo' }));
+      await estado(() => { window.__mn.pausa(false); window.__mn.salta(12); window.__mn.cuadro(0.1); });
+      const efecto = await estado(i => { const u = window.__mn.S.man[i]; return { mueve: !!u.dest || u.orden === 'mover', testudo: u.forma === 'testudo' || u.luego === 'testudo', forma: u.forma, dest: u.dest }; }, id);
+      const cap = await foto('escaramuza-mando');
+      const cifras = await estado(() => { const e = window.__mn.estado(); return { tri: e.tri, llamadas: e.llamadas }; });
+      await estado(() => { let n = 0; while (window.__mn.S.fase !== 'fin' && n++ < 300) window.__mn.salta(10); });
+      await page.waitForSelector('#mn-seguir', { state: 'visible', timeout: 20000 });
+      await page.click('#mn-seguir');
+      await page.waitForSelector('#hoja .esc-res', { state: 'visible', timeout: 20000 });
+      const res = await estado(() => document.querySelector('#hoja .esc-res').textContent);
+      const capFin = await foto('escaramuza-resultado');
+      await page.click('#hoja [data-act="hojax"]'); await espera(800);
+      const despues = await estado(() => localStorage.getItem('aqvila-save-v1'));
+      await page.setViewportSize({ width: 390, height: 844 }); await espera(800);
+      const ok = elegidos.includes(id) && !noMueve && !noForma && efecto.mueve && efecto.testudo && guardada === despues && !(await page.locator('#mn').count());
+      return { ok, detalle: ok ? 'manípulo ' + id + ' en marcha y en testudo; «' + res + '»; ' + cifras.tri + ' triángulos, ' + cifras.llamadas + ' llamadas; partida guardada intacta'
+        : 'elegido ' + JSON.stringify(elegidos) + ', aviso mover «' + noMueve + '», aviso testudo «' + noForma + '», efecto ' + JSON.stringify(efecto) + ', guardada igual ' + (guardada === despues), captura: ok ? cap : capFin };
     });
 
     await paso('Nueva partida: se ve el mapa', async () => {
@@ -549,10 +608,10 @@ async function navegador() {
 
 if (!RAPIDO) await navegador();
 
-/* ---------- 2. Juez de la guerra jugada de verdad (GC2: gobierno/juez-guerra.mjs, ~4 min; solo en el recorrido completo) ---------- */
+/* ---------- 2. Juez de la guerra jugada de verdad (GC2: gobierno/juez-guerra.mjs, ~4 min, hasta 30 en una máquina lenta; solo en el recorrido completo) ---------- */
 if (!RAPIDO) {
   console.log('Juez 2 · Guerra jugada de verdad (gobierno/juez-guerra.mjs)');
-  const r = spawnSync(process.execPath, ['gobierno/juez-guerra.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 900000 });
+  const r = spawnSync(process.execPath, ['gobierno/juez-guerra.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 1800000 });
   const lineas = (r.stdout || '').split('\n'), mal = lineas.filter(l => /MAL:|^prueba:|^consola:|^excepción:/.test(l)), avisos = lineas.filter(l => /AVISO/.test(l)).length, bien = lineas.filter(l => /^\s*bien:/.test(l)).length;
   apunta('Guerra jugada de verdad (entrar, salir, maniobra, primer toque, arte)', r.status === 0, r.status === 0 ? bien + ' comprobaciones bien' + (avisos ? ' · ' + avisos + ' aviso(s) de fallos conocidos del juego (ver salida de juez-guerra.mjs)' : '') : (mal.slice(0, 3).join(' | ') || (r.stderr || '').trim().split('\n').slice(-3).join(' | ')).slice(0, 400));
 }

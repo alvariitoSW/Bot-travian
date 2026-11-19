@@ -195,6 +195,7 @@ function pintarBase3(M, T, bosquetes, fino, rnd) {
 }
 
 /* lo que ha hecho el jugador (y lo que ha nacido solo) */
+export const OPC_SUELO = { apretado: false };          // CI1: lo pone city3d según la cultura (Roma de su siglo)
 function pintarCiudad3(M, T, E, fino) {
   const px = fino ? EC * 2 / TC3 : EP * 2 / TP3;
   M.globalCompositeOperation = 'source-over';
@@ -208,6 +209,8 @@ function pintarCiudad3(M, T, E, fino) {
   /* tierra pisada alrededor de cada casa y de cada edificio */
   for (const l of E.parcelas) if (l.casa && !l.fuera) mancha(M, l.x, l.z, 12, 12, 0, '225,0,0', 0.95);
   for (const e of E.edificios) mancha(M, e.x, e.z, 22, 22, 0, '215,0,0', 0.95);
+  /* CI1: barrio romano apretado: entre las casas, tierra batida y, en los barrios de III y IV, empedrado a trozos (no hierba suelta) */
+  if (OPC_SUELO.apretado) for (const l of E.parcelas) if (l.casa && !l.fuera && l.casa.nivel >= 2) mancha(M, l.x, l.z, 18, 18, 0, l.casa.nivel >= 3 && fino ? '150,200,0' : '235,0,0', 0.9);
   /* calles: tierra batida con el centro gastado; las de barrio alto, empedradas */
   for (const c of E.vias) { if (fino && (c.caja[2] < -EC - 20 || c.caja[0] > EC + 20 || c.caja[3] < CZ - EC - 20 || c.caja[1] > CZ + EC + 20)) continue;
     if (c.emp) { trazo(M, c.p, c.w * 2 + 1, 1.2, fino ? '70,255,0' : '230,0,0'); trazo(T, c.p, c.w * 2, 1.4, '150,140,124', 0.6); }
@@ -268,6 +271,8 @@ export function crearSuelo3(texs, U, bosquetes) {
       col = mix(col, lab, clamp(labor, 0.0, 1.0));
       col = mix(col, tie, smoothstep(0.35 - g3 * 0.25, 0.75, tierra));
       col = mix(col, pav, smoothstep(0.4, 0.7, losa + (g3 - 0.5) * 0.3));
+      /* CI1: manchas de color a gran escala (unos 700 m y 90 m) para que el suelo no se vea repetido */
+      float g5 = texture2D(uRuido, vWP.xz * 0.0014 + 0.63).g, g6 = texture2D(uRuido, vWP.xz * 0.011 + 0.17).r; col *= mix(vec3(1.07, 1.0, 0.84), vec3(0.9, 1.0, 0.97), smoothstep(0.3, 0.7, g5)) * (0.92 + 0.16 * g6);
       col *= tinte;
       float lejos = smoothstep(500.0, 2200.0, length(vWP.xz)); col = mix(col, vec3(dot(col, vec3(0.3, 0.5, 0.2))) * vec3(0.92, 1.0, 1.1), lejos * 0.42);
       float monte = smoothstep(0.36, 0.56, g2 * 0.55 + g1 * 0.6) * smoothstep(1100.0, 1900.0, length(vWP.xz)); col = mix(col, vec3(0.16, 0.20, 0.12) * (0.7 + 0.6 * g3), monte * 0.8); col *= mix(1.0, 0.8, lejos); col = mix(col, vec3(0.17, 0.21, 0.14) * (0.75 + 0.5 * g1), smoothstep(30.0, 170.0, vWP.y) * smoothstep(800.0, 1300.0, length(vWP.xz)) * 0.75);

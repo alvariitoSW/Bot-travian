@@ -13,15 +13,15 @@ t('exportar da el mismo JSON que se guarda, con ajustes', () => {
   assert.strictEqual(o.v, 1); assert.strictEqual(o.ajustes.dif, 'dura'); assert.ok(o.parada && o.parada.texto, 'lleva el punto de parada');
 });
 t('importar: lo exportado vuelve igual (ajustes, tiempo y ciudades)', () => {
-  const s = nueva(); G.ponerAjustes({ dif: 'dura', suc: { fuego: false } }); s.res.oro = 777; const txt = G.exportar(), t0 = s.t;
-  nueva(); G.state.res.oro = 5; const r = G.importar(txt);
-  assert.ok(r.ok, r.motivo); assert.strictEqual(G.state.res.oro, 777); assert.strictEqual(G.state.t, t0); assert.strictEqual(G.state.ajustes.dif, 'dura'); assert.strictEqual(G.state.ajustes.suc.fuego, false);
+  const s = nueva(); G.ponerAjustes({ dif: 'dura', suc: { fuego: false } }); s.res.denarios = 777; const txt = G.exportar(), t0 = s.t;
+  nueva(); G.state.res.denarios = 5; const r = G.importar(txt);
+  assert.ok(r.ok, r.motivo); assert.strictEqual(G.state.res.denarios, 777); assert.strictEqual(G.state.t, t0); assert.strictEqual(G.state.ajustes.dif, 'dura'); assert.strictEqual(G.state.ajustes.suc.fuego, false);
   assert.ok(G.myCities().length >= 1);
 });
 t('importar rechaza basura sin tocar la partida', () => {
-  nueva(); G.state.res.oro = 123; G.save(); const guardado = mem['aqvila-save-v1'];
+  nueva(); G.state.res.denarios = 123; G.save(); const guardado = mem['aqvila-save-v1'];
   for (const txt of ['no es json', '{"v":2}', '{"v":1}', '[]', 'null', JSON.stringify({ v: 1, t: 0, cities: {}, marches: [] })]) { const r = G.importar(txt); assert.ok(!r.ok, 'debió rechazar ' + txt.slice(0, 20)); assert.ok(r.motivo.length > 5); }
-  assert.strictEqual(G.state.res.oro, 123); assert.strictEqual(mem['aqvila-save-v1'], guardado, 'el guardado no cambia');
+  assert.strictEqual(G.state.res.denarios, 123); assert.strictEqual(mem['aqvila-save-v1'], guardado, 'el guardado no cambia');
 });
 t('importar una partida vieja pasa por las migraciones', () => {
   const s = nueva(); const o = JSON.parse(G.exportar()); delete o.ajustes; delete o.parada; delete o.encargos; delete o.hitos;
@@ -40,7 +40,7 @@ t('nota: la dificultad más dura usada cuenta aunque se baje después', () => {
   nueva({ dificultad: 'tranquila' }); assert.strictEqual(G.nota(true).dif, 'tranquila'); G.ponerAjustes({ dif: 'dura' }); assert.strictEqual(G.nota(true).dif, 'dura');
 });
 t('nota: Tranquila y sucesos apagados bajan; Dura sube', () => {
-  const base = (o) => { const s = nueva(o); s.res.oro = 1e5; for (const id of G.myCities()) { const c = s.cities[id]; c.pop = 900; for (const k of Object.keys(c.b)) c.b[k] = Math.max(c.b[k], 4); } return s; };
+  const base = (o) => { const s = nueva(o); s.res.denarios = 1e5; for (const id of G.myCities()) { const c = s.cities[id]; c.pop = 900; for (const k of Object.keys(c.b)) c.b[k] = Math.max(c.b[k], 4); } return s; };
   base(); const normal = G.nota(true);
   base({ dificultad: 'tranquila' }); const tr = G.nota(true);
   base(); G.ponerAjustes({ suc: { crecida: false, fuego: false } }); const sin = G.nota(true);

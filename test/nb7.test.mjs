@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import assert from 'node:assert';
 import fs from 'node:fs';
 const require = createRequire(import.meta.url);
+const botMercado = require('./bot-mercado.js');   // CE2
 const D = require('../js/data.js'); const G = require('../js/game.js'); require('../js/battle.js');
 let n = 0, mal = 0;
 function t(nombre, f) { try { f(); n++; console.log('bien', nombre); } catch (e) { mal++; console.log('MAL', nombre, '—', e.message); } }
@@ -48,6 +49,7 @@ function campana(modo, sem) {
     while (!s.over && guard++ < 200000) {
       G.tick(0.25);
       while (s.pending.length && !s.over) { const r = G.resolverPendiente(); cuenta[r.plan.via]++; assert(r.out && typeof r.out.win === 'boolean'); }
+      if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: el bot compra hierro y vende lo que sobra (test/bot-mercado.js)
       if (guard % 8) continue;
       for (const id of G.myCities()) {
         const c = s.cities[id];

@@ -4,6 +4,7 @@
 import { createRequire } from 'node:module';
 import assert from 'node:assert';
 const require = createRequire(import.meta.url);
+const botMercado = require('./bot-mercado.js');   // CE2
 const D = require('../js/data.js'); const G = require('../js/game.js'); const { Battle } = require('../js/battle.js');
 const mulberry32 = a => function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; };
 const CAMINO = ['griego', 'apio', 'castra', 'E2', 'quinque', 'corvus', 'fasti', 'vina', 'pilum', 'E3', 'latif', 'sambuca', 'astilleros', 'medicina', 'E4', 'magon', 'perseo', 'acoger', 'hormigon'];
@@ -18,6 +19,7 @@ function campana(inv, seed) {
     while (!s.over && guard++ < 200000) {
       G.tick(0.25);
       while (s.pending.length && !s.over) { const b = new Battle(G.battleInfo(s.pending[0]).cfg); b.finish(); G.applyBattle(b.result()); }
+      if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: el bot compra hierro y vende lo que sobra (test/bot-mercado.js)
       if (guard % 8) continue;
       if (inv) {
         if (!s.inv.cola && i < CAMINO.length) { const r = G.invUp(CAMINO[i]); if (r.ok) i++; else if (/Ya estás|Cerrada|Pide la Edad/.test(r.motivo) && !/Faltan|Pide:/.test(r.motivo)) i++; }

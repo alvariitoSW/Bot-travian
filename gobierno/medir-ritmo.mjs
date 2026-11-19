@@ -10,6 +10,7 @@ import { fileURLToPath } from 'node:url';
 const require = createRequire(import.meta.url);
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
 const D = require('../js/data.js'), G = require('../js/game.js'), { Battle } = require('../js/battle.js');
+const botMercado = require('../test/bot-mercado.js');   // CE2
 const RAPIDO = process.argv.includes('--rapido');
 const f1 = x => (Math.round(x * 10) / 10).toString().replace('.', ',');
 const tabla = (cab, filas) => ['| ' + cab.join(' | ') + ' |', '| ' + cab.map(() => '---').join(' | ') + ' |', ...filas.map(r => '| ' + r.join(' | ') + ' |')].join('\n');
@@ -93,7 +94,7 @@ function posibles(s) {
     const f = s.forja; if (f && !f.cola) for (const k in D.FORJA) { const L = f[k]; if (L < D.FORJA_MAX && (c.b.herreria || 0) > L && G.canAfford(G.forjaCost(k, L, id))) r.forja++; }
     if (G.men(c.units) >= 50 && !s.marches.some(m => m.owner === 'roma' && m.from === id)) for (const n of G.neighbors(id)) if (s.cities[n].owner !== 'roma') { r.marchar++; break; }
   }
-  if (G.tradeRate() > 0 && D.RES.filter(x => x !== 'oro').some(x => G.disponible(x) >= 100)) r.mercado = 1;
+  if (G.tradeRate() > 0 && D.RES.filter(x => x !== 'denarios').some(x => G.disponible(x) >= 100)) r.mercado = 1;
   return r;
 }
 function bot(s, dist, meta, perfil) {
@@ -121,6 +122,7 @@ function campana(perfil, seed, MESES) {
       const m0 = Math.floor(s.t + 1e-9); G.tick(0.25);
       while (s.pending.length && !s.over) { const b = new Battle(G.battleInfo(s.pending[0]).cfg); b.finish(); G.applyBattle(b.result()); }
       if (Math.floor(s.t + 1e-9) > m0) { mes++; foto(); }   // principio de mes: lo que ve el jugador antes de actuar
+      if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: compra hierro y vende lo que sobra, como el bot de las pruebas
       if (guard % cada === 0) bot(s, dist, meta, perfil);
     }
     return filas;

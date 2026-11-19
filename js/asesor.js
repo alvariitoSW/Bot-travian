@@ -5,7 +5,7 @@
   const LECCIONES = [
     { id: 'bandeja', texto: 'Toca una pieza de la bandeja para colocarla en la ciudad.', cuando: c => !!c.bandeja },
     { id: 'cifra', texto: 'La cifra grande dice cuánto mejora tu ciudad si colocas ahí: busca la mayor.', cuando: c => !!c.cifra },
-    { id: 'cuotas', texto: 'Las obras grandes se pagan en cuotas: si falta oro, se pausan hasta que haya.', cuando: c => !!c.cuotas },
+    { id: 'cuotas', texto: 'Las obras grandes se pagan en cuotas: si faltan denarios, se pausan.', cuando: c => !!c.cuotas },
     { id: 'riesgo', texto: 'Un riesgo se apaga al construir la pieza que lo remedia: la bandeja la resalta.', cuando: c => !!c.riesgo },
     { id: 'barrio', texto: 'Un barrio sube de nivel si recibe agua, grano y cobijo: no le dejes sin nada.', cuando: c => !!c.barrioSube },
     { id: 'almacen', texto: 'Lo que no cabe en el almacén se pierde cada mes: amplíalo.', cuando: c => !!c.almacenLleno },
@@ -19,7 +19,7 @@
   const TEXTOS = {
     obras: (nom, mas, tiempo) => 'En obras: ' + nom + (mas ? ' y ' + mas + ' más' : '') + ', faltan ' + tiempo + '.',
     sinRecursos: () => 'Faltan recursos para nuevas obras: espera a que lleguen.',
-    almacen: (res, pct, hay) => 'Tu ' + res + ' llega al ' + pct + ' %: coloca ' + (hay ? 'otro almacén.' : 'un almacén.'),
+    almacen: (res, pct, hay) => ({ materiales: 'Tus materiales llegan', denarios: 'Tus denarios llegan' }[res] || 'Tu ' + res + ' llega') + ' al ' + pct + ' %: coloca ' + (hay ? 'otro almacén.' : 'un almacén.'),
     granero: () => 'Falta un granero: sin él hay hambre en invierno.',
     tope: () => 'La población está al tope: coloca una obra que traiga una calle.',
     barrio: (baja, nivel, falta) => (baja ? 'Para seguir siendo ' : 'Para ser ') + nivel + ' falta ' + falta + '.',
@@ -30,7 +30,7 @@
     refuerza: ciudad => 'Refuerza ' + ciudad + ' antes de que acabe la estación.',
     llega: (fac, n, ciudad) => fac + ' (' + n + ' hombres) llega a ' + ciudad + ' al acabar este turno.',
     colonos: lugar => 'Los colonos han llegado a ' + lugar + ': funda la colonia.',
-    seAcaba: (grano, meses) => (grano ? 'El grano' : 'El oro') + ' se acaba en ' + meses + ' mes(es).',
+    seAcaba: (grano, meses) => (grano ? 'El grano' : 'Los denarios') + ' se acaban en ' + meses + ' mes(es).',
     sinObras: (lista, mas) => 'Sin obras en cola: ' + lista + (mas ? '…' : '') + '.',
     llenoAlm: lista => 'Almacén lleno (' + lista + '): gasta lo que sobra.',
     favor: () => 'Senado: favor bajo, sin tratados ajenos ni levas extra.',

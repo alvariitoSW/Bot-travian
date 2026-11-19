@@ -1,0 +1,87 @@
+/* AQVILA — CG4 (A1): pantalla de mando en vivo (js/ui-mando.js). Todo cuelga de #mn para no pisar el resto del juego.
+   Pensada para el pulgar: botones de 44 px o más, legibles a 390 px; en horizontal (844 × 390) y en vertical (390 × 844). */
+#mn{--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--vidrio:rgba(18,15,11,.84);--fil:rgba(184,134,43,.55);--roma:#c23a2e;--rival:#7b5bb5;--verde:#7cc65e;--ambar:#e6ac3c;--rojo:#dd5a43}
+#mn *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+#mn{position:fixed;inset:0;z-index:72;margin:0;background:#15130f;overflow:clip;overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font:14px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--marmol)}
+#mn [hidden]{display:none!important}
+#mn button{font:inherit;color:inherit;cursor:pointer}
+#mn-lienzo{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+#mn-capa{position:absolute;inset:0;pointer-events:none;overflow:clip;background:radial-gradient(ellipse 120% 90% at 50% 48%,rgba(0,0,0,0) 55%,rgba(26,14,6,.22) 82%,rgba(14,7,3,.42) 100%),linear-gradient(to bottom,rgba(255,196,120,.08),rgba(255,196,120,0) 36%)}
+/* CG4-A2: viñeta y velo cálido de la luz de GM43e, por debajo de etiquetas y barras (son hijas de esta capa) */
+#mn-hud{position:absolute;inset:0;pointer-events:none}
+#mn-hud>*{pointer-events:auto}
+#mn-hud>#mn-cinta,#mn-hud>#mn-aviso,#mn-hud>#mn-arriba,#mn-hud>#mn-abajo{pointer-events:none}
+#mn-arriba>*,#mn-abajo>*{pointer-events:auto}
+
+/* barras sobre cada manípulo: hombres, moral, cansancio (lleno = fresco) */
+#mn .mn-e{position:absolute;left:0;top:0;width:28px;margin:-15px 0 0 -14px;padding:2px;border-radius:3px;background:rgba(14,11,8,.72);border:1px solid #c23a2e;display:flex;flex-direction:column;gap:1px;will-change:transform}
+#mn .mn-e.ene{border-color:#8f6fd0;width:22px;margin-left:-11px}
+#mn .mn-e.sel{border-color:var(--oro);box-shadow:0 0 0 1px var(--oro)}
+#mn .mn-e.roto{opacity:.55}
+#mn .mn-e i{display:block;height:3px;background:rgba(255,255,255,.14);overflow:clip}
+#mn .mn-e i b{display:block;height:100%;width:100%}
+#mn .mn-e i.h b{background:#f1ead9}
+#mn .mn-e i.m b{background:var(--verde)}
+#mn .mn-e i.f b{background:var(--ambar)}
+
+/* arriba */
+#mn-arriba{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:6px;padding:calc(env(safe-area-inset-top) + 6px) 8px 0}
+#mn .mn-b1{min-height:44px;min-width:76px;padding:0 12px;border-radius:12px;background:var(--vidrio);border:1.5px solid var(--fil);font-weight:700;font-size:14px}
+#mn .mn-b1.on{border-color:var(--oro);color:var(--oro)}
+#mn-retirar{margin-left:auto;background:linear-gradient(#7a2219,#4e140f)!important;border-color:var(--oro)!important}
+#mn-vel{display:flex;border-radius:12px;overflow:clip;border:1.5px solid var(--fil);background:var(--vidrio)}
+#mn-vel button{min-width:44px;min-height:41px;border:0;background:transparent;font-weight:700;font-size:14px}
+#mn-vel button.on{background:rgba(233,192,99,.22);color:var(--oro)}
+#mn-reloj{min-width:44px;padding:4px 8px;border-radius:10px;background:var(--vidrio);font-variant-numeric:tabular-nums;font-weight:700}
+#mn-enpausa{padding:6px 10px;border-radius:10px;background:rgba(233,192,99,.2);border:1px solid var(--oro);color:var(--oro);font-size:12.5px;font-weight:700;white-space:nowrap;overflow:clip;text-overflow:ellipsis;min-width:0}
+
+/* avisos en palabras: cinta corta a la izquierda, bajo la barra de arriba; como mucho tres */
+#mn-cinta{position:absolute;left:8px;top:calc(env(safe-area-inset-top) + 58px);max-width:min(62%,380px);display:flex;flex-direction:column;gap:4px;overflow:clip}
+#mn-cinta div{padding:5px 9px;border-radius:9px;background:var(--vidrio);border-left:3px solid var(--oro);font-size:13px;line-height:1.25}
+#mn-cinta div.mal{border-left-color:var(--rojo)}
+#mn-cinta div.bien{border-left-color:var(--verde)}
+#mn-aviso{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 58px);transform:translateX(-50%);max-width:86%;padding:8px 14px;border-radius:12px;background:rgba(60,18,12,.92);border:1.5px solid var(--rojo);font-size:14px;font-weight:700;text-align:center}
+
+/* abajo: la ficha de la selección y sus órdenes */
+#mn-abajo{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:flex-end;gap:6px;padding:0 8px calc(env(safe-area-inset-bottom) + 6px)}
+#mn-ficha{flex:0 0 250px;display:flex;align-items:center;gap:6px;min-height:52px;padding:6px 6px 6px 10px;border-radius:12px;background:var(--vidrio);border:1.5px solid var(--fil)}
+#mn-ficha-t{flex:1;min-width:0;font-size:13px;line-height:1.35;overflow:clip}
+#mn-ficha-t b{font:700 14px Cinzel,Georgia,serif;color:var(--oro)}
+#mn-ficha-t small{color:#cdbf9d}
+#mn-ficha-t .ayuda{color:#e4dac2}
+#mn-ficha-t em{font-style:normal;font-weight:700;padding:0 5px;border-radius:6px;background:rgba(255,255,255,.08)}
+#mn-ficha-t em.bien{color:var(--verde)}
+#mn-ficha-t em.medio{color:var(--ambar)}
+#mn-ficha-t em.mal{color:var(--rojo)}
+#mn-varios{flex:0 0 auto;min-width:64px;min-height:44px;border-radius:10px;background:rgba(255,255,255,.06);border:1.5px solid var(--fil);font-weight:700;font-size:13px}
+#mn-varios.on{border-color:var(--oro);color:var(--oro);background:rgba(233,192,99,.18)}
+#mn-ordenes{flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:5px}
+#mn .mn-o{min-height:48px;padding:4px 6px;border-radius:11px;background:linear-gradient(#5e2118,#3b140f);border:1.5px solid var(--oro);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+#mn .mn-o span{font-weight:800;font-size:14px}
+#mn .mn-o small{font-size:10.5px;color:#e4d3ab;white-space:nowrap;overflow:clip;max-width:100%}
+#mn .mn-o.on{background:linear-gradient(#7c6020,#4a3910)}
+#mn .mn-o.b{background:linear-gradient(#3a2c14,#241b0d);border-color:var(--bronce)}
+#mn .mn-o.no{opacity:.42;border-color:#6d6150;background:#2a241c}
+
+/* en vertical: la ficha a lo ancho y las órdenes debajo, de tres en tres */
+@media (max-aspect-ratio:1/1){
+  #mn-abajo{flex-direction:column;align-items:stretch}
+  #mn-ficha{flex:0 0 auto}
+  #mn-ordenes{grid-template-columns:repeat(3,1fr)}
+  #mn .mn-b1{min-width:64px;padding:0 9px}
+  #mn-enpausa{display:none!important}
+  #mn-cinta{max-width:calc(100% - 16px)}
+}
+
+/* velos: carga, retirarse, fin (como los de ui-guerra) */
+#mn .velo{z-index:6;position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;text-align:center;background:rgba(10,8,6,.74);pointer-events:auto}
+#mn .velo h1{margin:0;font:700 30px Cinzel,Georgia,serif;letter-spacing:.08em;color:var(--oro)}
+#mn .velo p{margin:0;max-width:340px;font-size:15px;line-height:1.4}
+#mn .velo .cifras{display:grid;grid-template-columns:auto auto;gap:4px 18px;font-size:14px;color:#cdbf9d;text-align:left}
+#mn .velo .cifras b{color:var(--marmol);font-variant-numeric:tabular-nums}
+#mn .velo .fila{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:4px}
+#mn .gordo{min-width:150px;height:52px;padding:0 20px;border-radius:14px;background:linear-gradient(#8a2a20,#5c1b15);border:1.5px solid var(--oro);font:700 15px Cinzel,Georgia,serif;letter-spacing:.04em}
+#mn .gordo.b{background:linear-gradient(#3a2c14,#241b0d);border-color:var(--bronce)}
+#mn .creditos{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 8px);font-size:10.5px;color:#8d846f;text-align:center;padding:0 16px}
+#mn-carga{background:#15130f!important}
+@media (max-height:420px){#mn .velo h1{font-size:26px}#mn .velo{gap:8px}#mn .creditos{position:static}}

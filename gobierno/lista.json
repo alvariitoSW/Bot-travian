@@ -45,12 +45,14 @@
       "titulo": "Una ciudad que construyes y ves crecer",
       "estado": "medias",
       "veras": "Colocas cada edificio donde quieres. Los barrios crecen solos alrededor y hay incendios y crecidas que atender.",
-      "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría.",
+      "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría. Roma con el aspecto de su siglo (CI1): templo toscano, muralla de toba lisa, ínsulas, foro con tabernas, más ciudad a la vista y campos por estaciones.",
       "captura": "gobierno/capturas-tarea/Q1k-5-barrios.jpg",
       "tareas": [
-        "CI1"
+        "CI1b",
+        "CI3a",
+        "CI3b"
       ],
-      "falta": "Tu «A» del 18/11: Roma con el aspecto de su siglo (CI1, abierta) y el gobierno visible en la ciudad (dentro de CS2). El objetivo está escrito (CI0): «tu ciudad es el espejo de cómo gobiernas»."
+      "falta": "Tus pedidos: calles con sentido (CI1b) y la ciudad ×5 a la vista (CI3a, a punto de cerrarse; luego CI3b, que cuente en la economía, tras CE3), y el gobierno visible en la ciudad (dentro de CS2). El pulido que queda de la ciudad romana: pregunta CI1c del cuadro."
     },
     {
       "id": "L2",
@@ -58,15 +60,15 @@
       "titulo": "Recursos, mercado y cuentas claras",
       "estado": "medias",
       "veras": "Una economía nueva: grano, denarios, materiales, hierro, hombres y un bien por región. Cada estación te falta algo y tienes que elegir.",
-      "hecho": "Barra de recursos, hoja de cuentas, mercado, puerto y cola de obras.",
-      "captura": "gobierno/capturas-tarea/Q3-1-cuentas.jpg",
+      "hecho": "Recursos nuevos (CE2): grano, denarios, materiales, hierro, hombres y un bien por región, con barra, hoja de cuentas y mercado; las partidas viejas se convierten solas.",
+      "captura": "gobierno/capturas-tarea/CE2-cuentas-bienes.jpg",
       "tareas": [
         "CE2",
         "CE3",
         "CE4",
         "CE5"
       ],
-      "falta": "Reinventada entera (CE1, 18/11): recursos nuevos (CE2), edificios, tropas y tiempos (CE3), comercio con precios (CE4) y «Este año» con el tributo de guerra (CE5)."
+      "falta": "Reinventada entera (CE1, 18/11): edificios, tropas y tiempos (CE3), comercio con precios (CE4) y «Este año» con el tributo de guerra (CE5)."
     },
     {
       "id": "L3",
@@ -88,9 +90,9 @@
       "titulo": "Un solo Senado, con intrigas",
       "estado": "medias",
       "veras": "Una sala viva con hasta siete bandos, cada uno con su gran familia. Ves debatir a los senadores; los jefes de bando son tus consejeros; hay banquetes, juegos y ritos.",
-      "hecho": "Sala de votos con 30 escaños, tratos y tribuno, ya dentro del juego.",
-      "falta": "Senado de familias (CE6), sala viva y jefes-consejeros (CE8), banquete, juegos y rito (CE9).",
-      "captura": "gobierno/capturas-tarea/SN2-1-sala.jpg",
+      "hecho": "Senado de familias (CE6): hasta siete bandos con su familia (Fabios, Emilios, Escipiones; entran Valerios, Fulvios, Claudios y Sempronios al crecer Roma), de 30 a 300 escaños por población y provincia, humor por tus actos, una petición por bando y estación; tratos y tribuno.",
+      "falta": "Sala viva y jefes-consejeros (CE8), banquete, juegos y rito (CE9).",
+      "captura": "gobierno/capturas-tarea/CE6-crecida-sala.jpg",
       "tareas": [
         "CE6",
         "CE8",
@@ -137,11 +139,12 @@
       "id": "L8",
       "organo": "corazon",
       "titulo": "Campaña en el mapa contra un enemigo que responde",
-      "estado": "hecha",
+      "estado": "medias",
       "veras": "Mueves ejércitos por Italia y el Mediterráneo, y Cartago, Epiro y los galos atacan y se defienden.",
       "hecho": "Marchas, guarniciones, enemigo con iniciativa y partida corta o larga.",
       "captura": "gobierno/capturas-tarea/C18-italia.jpg",
-      "tareas": []
+      "tareas": [],
+      "falta": "Tu pedido del 19/11: muchas más culturas, regiones, ciudades y pueblos fuera de Roma (hoy 26 ciudades, 8 regiones, 20 tropas): propuesta P183, espera tu decisión en el cuadro."
     },
     {
       "id": "L9",
@@ -162,17 +165,20 @@
       "organo": "corazon",
       "titulo": "Una sola batalla, con un solo aspecto",
       "estado": "medias",
-      "veras": "Una única batalla, la misma en campaña y en Escaramuzas: maniobras, mandas y, si quieres, bajas a pie. Todas las tropas con el soldado nuevo y la luz y el campo del testudo.",
-      "hecho": "Batalla con órdenes, proyectiles, duelos y caídos; va fluida en tu móvil. Hastati y galos llevan el soldado nuevo.",
-      "falta": "Lo principal. Tú, el 18/11: «son 4 juegos diferentes en un juego y los gráficos son una mierda». Los cuatro son la maniobra, la batalla de mando, Escaramuzas y el testudo a pie: hay que unirlos en una sola batalla con un solo aspecto antes de pulir más piezas sueltas. Ojo: la caballería y los elefantes seguirán con el modelo de 0 A.D. (no hay jinete libre con movimientos); el soldado nuevo llega a las 12 tropas a pie que faltan (GM44, en obra).",
-      "captura": "gobierno/capturas-tarea/GM44c-1-vertical-nuevo.jpg",
+      "veras": "Un simulador de batallas en tiempo real, el mismo en campaña y en Escaramuzas: plan previo que se puede saltar con «Ver cómo irá», mando en vivo por manípulos con tus tribunos, y batalla rápida si no quieres jugarla larga.",
+      "hecho": "Escaramuzas ya juega la batalla nueva: el simulador de manípulos, mando en vivo (tocar y arrastrar, formar, cargar, relevar, pausa), la luz y el campo elegidos y el soldado nuevo en todas las tropas a pie.",
+      "falta": "Que la campaña use la misma batalla (CG4b) y retirar la vieja; tribunos y plan previo (CG5); batalla rápida (CG7). Caballería y elefantes siguen con el modelo viejo.",
+      "captura": "gobierno/capturas-tarea/CG4-3-arrastre-h.jpg",
       "tareas": [
         "GM44",
-        "GM43g",
-        "UB1",
-        "UB3",
-        "UB2",
-        "GC10"
+        "GC10",
+        "CG3",
+        "CG4",
+        "CG4b",
+        "CG5",
+        "CG7",
+        "CG8",
+        "CG9"
       ]
     },
     {
@@ -180,27 +186,34 @@
       "organo": "corazon",
       "titulo": "El testudo a pie, dentro del juego",
       "estado": "medias",
-      "veras": "Entras desde el juego, avanzas bajo los escudos, lanzas el pilum y luchas cuerpo a cuerpo, con sonido de verdad.",
+      "veras": "Bajas a pie desde un manípulo de la batalla, con la vista desde el hombro: te mueves, luchas y usas habilidades (el testudo, una más); si caes, sigues como otro soldado.",
       "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas.",
-      "falta": "En obra: el paso 2 (centurión, cuatro órdenes, lucha fina). Faltan el soldado nuevo, el sonido y las caras.",
+      "falta": "Hecho el paso 2 de la escena a pie (centurión, cuatro órdenes, lucha). Faltan «bajar a pie» dentro de la batalla (CG6), el sonido (GM43i) y las caras (GM43j).",
       "captura": "gobierno/capturas-tarea/GM43f-2-escena.jpg",
       "tareas": [
         "TP1",
         "TP1b",
-        "GM43l",
+        "CG6",
         "GM43i",
-        "GM43j"
+        "GM43j",
+        "TP8",
+        "TP8b"
       ]
     },
     {
       "id": "L12",
       "organo": "corazon",
       "titulo": "Escaramuzas: batallas sueltas desde el menú",
-      "estado": "hecha",
-      "veras": "Eliges tu ejército, el enemigo y el campo, y luchas sin empezar una campaña.",
-      "hecho": "Botón en el menú principal, tres tamaños de ejército, campo y dificultad.",
+      "estado": "falta",
+      "veras": "Eliges tu ejército con tu dinero, el enemigo y el campo, y luchas sin empezar una campaña; cada soldado tiene su vida y sus datos según su tropa y su cultura.",
+      "hecho": "Botón en el menú principal, tres tamaños de ejército, campo y dificultad; la batalla nueva de manípulos ya se juega aquí.",
       "captura": "gobierno/capturas-tarea/MR3b-5-escaramuzas.jpg",
-      "tareas": []
+      "tareas": [
+        "ES0",
+        "CG2",
+        "CG9"
+      ],
+      "falta": "Tu pedido del 19/11: menú rehecho desde cero con tus tropas y tu dinero y diseño propio (CG2), y vida y datos reales de cada soldado por tipo y cultura (CG9)."
     },
     {
       "id": "L14",
@@ -239,12 +252,27 @@
       "organo": "corazon",
       "titulo": "Formaciones en Escaramuzas",
       "estado": "falta",
-      "veras": "En Escaramuzas, en las batallas que organices, pruebas el testudo, el muro hoplita, la falange de picas y la línea de manípulos; los vecinos de tu unidad se ven y te avisan.",
-      "falta": "Tu «A» del 18/11: entra en la 1.0 y sale el papiro suelto del Códice y los avisos (antes L13). La falange de picas (TP7a) está en obra; faltan los vecinos y avisos del frente (TP4) y las demás formaciones, una ficha cada vez (TP7).",
+      "veras": "En Escaramuzas eliges tus tropas con su dibujo, su coste y lo que saben hacer (testudo, picas, muro…) y pruebas las formaciones; las escenas a pie quedan como minijuegos.",
+      "falta": "Faltan las fichas de tropa para elegir ejército (CG2) y los minijuegos (CG7).",
       "tareas": [
         "TP7a",
-        "TP4",
-        "TP7"
+        "CG2",
+        "CG7"
+      ],
+      "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a)."
+    },
+    {
+      "id": "L13",
+      "organo": "musculo",
+      "titulo": "Menús reordenados y con un solo aspecto antiguo",
+      "estado": "falta",
+      "veras": "Una barra de seis (Ciudad · Senado · Saber · Tropas · Mapa · Imperio); llegas al Senado y a la política a un toque; construyes con «Lo hago yo · Encargar · Gobernador»; todo en papiro, tablilla y bronce.",
+      "falta": "Tu «A · Todo entra» del 18/11 en MN0: barra de seis y mapa nuevo (MN1), Senado e Imperio con su sitio (MN2), gobernador (MN3) y renovación artística con maqueta (MN4). Absorbe el papiro del Códice y de los avisos (PA1 a PA3), que habías sacado con la respuesta A de las formaciones.",
+      "tareas": [
+        "MN1",
+        "MN2",
+        "MN3",
+        "MN4"
       ]
     }
   ],
@@ -255,13 +283,6 @@
         "tareas": [],
         "de": "Formaciones en Escaramuzas",
         "nota": "Son las otras escenas a pie: tiradores, muro de lanzas, caballería. Van donde vayan las formaciones."
-      },
-      {
-        "tareas": [
-          "MN0"
-        ],
-        "de": "Menús reinventados",
-        "nota": "Tu pedido del 18/11 sobre L13: reinventar y reordenar todos los menús, con un encargo artístico. Se piensa contigo en MN0; qué entra en la 1.0 y qué sale lo decides con su plan."
       }
     ],
     "despues": [

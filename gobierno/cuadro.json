@@ -1996,6 +1996,18 @@
     {
       "titulo": "CI0 · Objetivo final de la ciudad, con 21 láminas de la época",
       "archivo": "gobierno/estudios/CI0-objetivo-ciudad.md"
+    },
+    {
+      "titulo": "MN0 · Objetivo final de los menús",
+      "archivo": "gobierno/estudios/MN0-objetivo-menus.md"
+    },
+    {
+      "titulo": "MN0 · Encargo artístico para la maqueta de menús",
+      "archivo": "gobierno/estudios/MN0-encargo-artistico.md"
+    },
+    {
+      "titulo": "CG1 · Objetivo final de la batalla: un simulador propio",
+      "archivo": "gobierno/estudios/CG1-objetivo-batalla.md"
     }
   ],
   "repo": "https://github.com/alvariitosw/bot-travian",
@@ -2008,40 +2020,28 @@
       "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
     },
     {
-      "tarea": "CI1",
-      "titulo": "Cerebro · CI1 Roma de su siglo (la ciudad con el aspecto de su época; dirige y construye Opus)",
-      "nota": "js/ciudad.js, city3d.js, statics.js; capturas antes y después; 1,0 M con tope +25 %",
-      "url": "https://claude.ai/code/session_01QiKC39hKX8V8mRMAsoPzPT"
+      "tarea": "CE3c",
+      "titulo": "Cerebro · CE3c Cerrar CE3: dos fallos de jueces y subir (Opus; tope duro)",
+      "nota": "Trabajo de CE3 guardado en la rama ce3; arregla los dos fallos de jueces, une con el Senado nuevo y sube solo con APTO; corte duro 0,9 M",
+      "url": "https://claude.ai/code/session_01QiKC384Vg22mRs9aAgH8gu"
     },
     {
-      "tarea": "TP1",
-      "titulo": "Corazón · TP1 y TP1b La escena a pie (Opus)",
-      "nota": "Paso 2 en obra (TP1b) y falange de picas (TP7a, maquetas/falange/)",
-      "url": "https://claude.ai/code/session_01QiKC36rueL1kwqzeVBKZqd"
+      "tarea": "CI1b",
+      "titulo": "Cerebro · CI1b+CI3a Calles con sentido y ciudad ×5 a la vista (Opus; tope duro)",
+      "nota": "Parada en el techo 6,4 M, sin subir (queda un fallo de sim.test); espera tu decisión en el cuadro. 11 commits solo en su contenedor",
+      "url": "https://claude.ai/code/session_01QiKC3AfVQgWjdzHpMKkgYR"
     },
     {
-      "tarea": "CE2",
-      "titulo": "Cerebro · CE2 Recursos nuevos (dirige y construye Opus)",
-      "nota": "js/game.js, data.js, ui.js, bot y guardado migrado; 2,0 M declarado, unos 3,6 M esperables",
-      "url": "https://claude.ai/code/session_01QiKC397z42u9YdbK1uWvE9"
+      "tarea": "CG6",
+      "titulo": "Corazón · CG6 A pie desde el hombro, dentro de la batalla nueva (Opus; tope duro)",
+      "nota": "Tanda 1 sin subir (cuarta pasada de jueces en marcha); 2,06 M de 4,0; tandas 3 y 4 pasarán a CG6b con tu visto bueno",
+      "url": "https://claude.ai/code/session_01QiKC36XAVkKcrxxvx4cUCo"
     },
     {
-      "tarea": "GM44",
-      "titulo": "Corazón · GM44 Modelos de soldado nuevos para las demás tropas (dirige y construye Opus)",
-      "nota": "js/gfx/soldado.js, js/ui-guerra.js, assets/soldados/; plan y tamaño en la primera hora; 1,0 M hasta confirmar",
-      "url": "https://claude.ai/code/session_01QiKC3AgvUkgAmNioZYMQbp"
-    },
-    {
-      "tarea": "MN0",
-      "titulo": "Músculo · MN0 Objetivo final de los menús y encargo artístico, hablándolo con el usuario (dirige y construye Opus)",
-      "nota": "gobierno/estudios/MN0-*.md; conversación con el usuario; un plan cerrado y alcance congelado; 1,2 M",
-      "url": "https://claude.ai/code/session_01QiKC37MGCiWGfRg2ef3mGC"
-    },
-    {
-      "tarea": "GC10",
-      "titulo": "Corazón · GC10 Quitar los restos de la batalla clásica (pequeña; Opus)",
-      "nota": "js/gfx/battle3d.js, #battle de index.html, estilos del HUD clásico; 0,4 M",
-      "url": "https://claude.ai/code/session_01QiKC36vAMHv9Rmi5MqfkAG"
+      "tarea": "TP8b",
+      "titulo": "Corazón · TP8b Terminar el testudo a pie y la lucha con picas (Fable 5.2 dirige, Opus construye; tope duro)",
+      "nota": "Primero acuerda contigo qué es «un 8»; luego tandas subidas con jueces; declarado 7,0 M, corte duro 10,0 M",
+      "url": "https://claude.ai/code/session_01QiKC387QJaRTWbZx6nurC2"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

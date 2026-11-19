@@ -19,6 +19,7 @@ const esTxt = v => typeof v === 'string' && v.length > 0;
 function piezas(tipo) {
   const t = R.tipos[tipo], tabla = D[t.tabla];
   if (!tabla) { fallos.push(tipo + ': data.js ya no tiene D.' + t.tabla); return {}; }
+  if (Array.isArray(tabla) && !t.lista) { const o = {}; tabla.forEach(id => { o[id] = { id }; }); return o; }   // CE2: una lista de ids (D.VETAS_HIERRO)
   if (!t.lista) return tabla;
   const o = {};
   tabla.forEach(e => { const c = e.k ? e.y + '-' + e.k : String(e.y); if (o[c]) fallos.push('hecho: dos hechos con la misma clave ' + c + ' en data.js; añade `k` a uno (el registro casa por año y k)'); o[c] = e; });

@@ -5,11 +5,21 @@
      se queda en el suelo y el de detrás ocupa su hueco (relevo).
    Contrato: crearAcciones(m) recibe el mundo (m.S estado, m.HOM hombres, m.figuras, m.Son sonido y los efectos chispa,
    polvo, panDe, H, V3) y devuelve { poseLanza, poseLucha, empiezaLucha, lucha, medLucha, reinicia }.
-   Después: acciones más finas (parar, empujar, golpear, caer) con las mismas fichas. */
+   TP1b · tu duelo (TP0 §7): el galo que tienes delante avisa su golpe (arma el brazo despacio y se marca con un color);
+     si paras a tiempo queda abierto y tu estocada entra; el empujón de escudo lo desequilibra; si no paras te hiere y a la
+     tercera caes (y pasas a ser el que te releva). Las órdenes cambian la lucha: «Escudos» aguanta y cansa al galo,
+     «Cargad» aprieta unos segundos, «Relevo» pone delante la fila fresca. Cuando un bando rompe, los galos huyen corriendo.
+   Contrato añadido: pide(que) deja un gesto tuyo ('parar' | 'estocada' | 'empujar'); relevoOrden(), cargad(), huida();
+     sAtaque(est) dice en qué punto del clip de ataque va un galo (con su aviso). Las palabras de respuesta van a S.eco.
+   TP8 1a · opciones del mundo (si no vienen, todo sigue como antes):
+     m.alcance(at, def, d) -> lista de 17 números: cuánto hay que apartar al que golpea (metros) a cada fracción del clip
+       (0 a 1) para que la hoja pare en el escudo o en el cuerpo del otro y no lo atraviese.
+     m.golpe(d, def, at, tipo, tuyo) -> el golpe llega ('escudo' o 'cuerpo'); tuyo si es tu duelo: chispa, polvo, pausa. */
 import { FILES, YO, CMP } from './formacion.js';
+import { velocidad, pisa } from './locomocion.js';
 let semillaL = 11; const azarL = () => { semillaL = (semillaL * 16807) % 2147483647; return (semillaL - 1) / 2147483646; };
 export function crearAcciones(m) {
-  const { S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave } = m, fns = {};
+  const { S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave } = m, fns = {}, FX = !!m.golpe;   /* FX: TP8 1a, golpes con peso */
   fns.reinicia = () => { semillaL = 11; };
   /* GM43h: el lanzamiento. Tu soldado arma más el brazo (atrás y alto, la postura que sostiene el dedo) */
   fns.poseLanza = function poseLanza(h, tl, b, esYo) {
@@ -34,6 +44,9 @@ export function crearAcciones(m) {
       return [Math.round(clipPos(cl, 1)), G, suave(tb + cl.dur, tb + cl.dur + 0.25, t)];
     }
     if (e.modo === 'cubre') return [G, fila(CJ.cubre, b), e.t < 0.3 ? suave(0, 0.3, e.t) : 1 - suave(0.45, 0.75, e.t)];
+    if (e.modo === 'empuja') return [G, fila(CJ.empuje, b), e.t < 0.15 ? suave(0, 0.15, e.t) : 1 - suave(0.3, 0.6, e.t)];
+    /* «Escudos» en la lucha: la primera fila se queda medio cubierta tras la madera */
+    if (S.muro && h.duelo) return [G, fila(CJ.cubre, b), 0.65];
     if (e.modo === 'recibe') return [G, fila(CJ.recibe, b), e.t < 0.12 ? suave(0, 0.12, e.t) : 1 - suave(0.35, 0.8, e.t)];
     return [G, G, 0];
   }
@@ -74,27 +87,59 @@ export function crearAcciones(m) {
     orden.forEach(([, d], i) => { d.next = S.T + 0.3 + i * 0.27 + azarL() * 0.12; });
   }
   const listo = m => m.vivo && !m.anda && Math.hypot(m.px - m.x, m.pz - m.z) < 0.05;
+  const ocupado = (d, T) => d.t0 > 0 && T - d.t0 < d.tb + d.clip.dur + 0.3;
+  const eco = (texto, tipo = '') => { S.eco = { texto, tipo, t: S.T }; };
   function empiezaCiclo(d) {
-    const T = S.T; d.n++; d.t0 = T; d.ataR = !d.sec && d.n % 2 === 0;
+    const T = S.T, UR = S.unidad, UG = S.unidadG, carga = T < S.cargaHasta; d.n++; d.t0 = T; d.ataR = !d.sec && d.n % 2 === 0; d.aviso = false; d.jEco = null;
     d.clip = clipDe(d.ataR ? 'r' : 'g', (d.n >> 1) % 2 ? 'attack_melee2' : 'attack_melee'); d.tb = d.ataR ? 0.28 : 0.15;
     d.ts = T + d.tb + d.clip.dur * d.clip.golpe;
-    const def = d.ataR ? d.g : d.r, prot = def.i === YO || def.i === CMP;
-    const exito = azarL() < (d.ataR ? 0.55 : d.sec ? 0.22 : 0.3) * (def.i === YO ? 0.4 : 1);
-    d.res = !exito ? 'cubre' : !prot && !d.sec && (def.golpes >= 2 || azarL() < 0.35) ? 'muere' : 'recibe';
+    const def = d.ataR ? d.g : d.r, prot = def.lado === 'r' && def.i === CMP;
+    /* TP1b: lo que pesa en cada golpe: el cansancio de los dos, la carga y los escudos (tras ellos casi no entra nada, y
+       apenas se golpea: se empuja) */
+    const p = d.ataR ? (S.muro ? 0.12 : 0.5) * (1 - 0.4 * UR.fatiga) * (1 + 0.4 * UG.fatiga) * (carga ? 1.6 : 1)
+      : (d.sec ? 0.2 : 0.28) * (1 - 0.4 * UG.fatiga) * (1 + 0.4 * UR.fatiga) * (S.muro ? 0.3 : 1) * (carga ? 1.2 : 1);
+    const exito = azarL() < p;
+    /* el gladio remata antes (a la segunda herida, o la mitad de las veces) que la espada larga del galo (a la tercera) */
+    d.res = !exito ? 'cubre' : !prot && !d.sec && (d.ataR ? def.golpes >= 1 || azarL() < 0.5 : def.golpes >= 2 || azarL() < 0.35) ? 'muere' : 'recibe';
     d.resuelto = false; d.lado = azarL() < 0.5 ? 1 : -1; d.next = T + d.P * (0.85 + azarL() * 0.3);
     if (d.ataR) Son.madera(0.35, panDe(d.r.x), 0.12);   /* el empujón de escudo */
+    alcanza(d);
+  }
+  /* TP8 1a: que nadie atraviese. Lo que hay que apartar al que golpea mientras dura su golpe (lo mide la escena) */
+  function alcanza(d) { d.alc = m.alcance ? m.alcance(d.ataR ? d.r : d.g, d.ataR ? d.g : d.r, d) : null; }
+  /* en qué fracción del clip va el golpe (s) y cuánto pesa aún (f: se apaga al volver a la guardia); null si no golpea */
+  function fracGolpe(d, T) {
+    const t = T - d.t0, fin = d.aviso ? d.tb + d.dr : d.tb + d.clip.dur;
+    if (t < 0 || t > fin + 0.4) return null;
+    if (d.aviso) return { s: t < d.tb ? d.w0 * suave(0, d.tb, t) : Math.min(1, d.w0 + (t - d.tb) / d.dr * (1 - d.w0)), f: 1 - suave(fin, fin + 0.3, t) };
+    return { s: t < d.tb ? 0 : Math.min(1, (t - d.tb) / d.clip.dur), f: 1 - suave(fin, fin + 0.3, t) };
+  }
+  function aparta(d, T) {
+    if (!d.alc) return 0; const q = fracGolpe(d, T); if (!q) return 0;
+    const x = q.s * (d.alc.length - 1), i = Math.min(d.alc.length - 2, Math.floor(x)), w = x - i;
+    return (d.alc[i] * (1 - w) + d.alc[i + 1] * w) * q.f;
   }
   function resuelve(d) {
     d.resuelto = true; const def = d.ataR ? d.g : d.r, at = d.ataR ? d.r : d.g;
     if (!def.vivo || !at.vivo) return;
     const pan = panDe(def.x);
-    if (d.res === 'cubre') { Son.hierro(pan, 0, 0.5); Son.madera(0.45, pan); if (azarL() < 0.5) chispa(V3.set((def.x + at.x) / 2, H(def.x, def.z) + 1.2, (def.z + at.z) / 2), 0.35); return; }
+    /* TP1b: el golpe del galo a ti: si paraste a tiempo da en tu escudo y él queda abierto; si no, te hiere (a la tercera, caes) */
+    if (d.aviso) {
+      const par = S.tParar > d.ts - 0.78 && S.tParar <= d.ts + 0.06;
+      /* parado: su golpe da en tu escudo, se le va el brazo y recula un poco (queda abierto); su golpe acaba ahí */
+      if (par) { d.res = 'cubre'; d.abierto = S.T + 1.4; d.empR = S.T; d.empOk = 'parada'; d.t0 = -9; eco('¡Parado! Ahora, estocada', 'bien'); }
+      else { const n = Math.min(3, (def.golpes || 0) + 1); d.res = n >= 3 ? 'muere' : 'recibe'; def.golpes = n - 1; eco(n >= 3 ? 'Herido de muerte' : 'Herido (' + n + ' de 3)', 'mal'); }
+    }
+    if (d.jEco) eco(d.jEco, d.res === 'cubre' ? '' : 'bien');
+    /* TP8 1a: el golpe llega: la escena pone chispa o polvo en el sitio del impacto (y, en tu duelo, la pausa y el tirón) */
+    const tuyo = !d.sec && d.r === S.yo; if (m.golpe) { def.tGolpe = S.T; def.tipoGolpe = d.res === 'cubre' ? 'escudo' : 'cuerpo'; m.golpe(d, def, at, def.tipoGolpe, tuyo); }
+    if (d.res === 'cubre') { Son.hierro(pan, 0, 0.5); Son.madera(0.45, pan); if (!m.golpe && azarL() < 0.5) chispa(V3.set((def.x + at.x) / 2, H(def.x, def.z) + 1.2, (def.z + at.z) / 2), 0.35); return; }
     def.golpes++; Son.madera(0.3, pan); Son.tierra(pan); polvoEn(def.x, def.z, 5);
     if (d.res === 'muere') { def.vivo = false; def.muere = S.T + 0.12; Son.tierra(pan, 0.5); polvoEn(def.x, def.z, 8); }
   }
   /* el que cae deja hueco: lo ocupa el de detrás dando un paso al frente (un poco a un lado, para no pisar al caído) */
   function relevo(d) {
-    const muerto = !d.r.vivo ? d.r : d.g, lado = muerto.px < 0 ? 1 : -1;
+    const muerto = !d.r.vivo ? d.r : d.g, lado = muerto.px < 0 ? 1 : -1, eraYo = muerto === S.yo;
     let n = null;
     if (muerto.lado === 'r') {
       const col = S.romanos.filter(h => h.vivo && h.f === muerto.f && !h.duelo).sort((a, b) => a.j - b.j); n = col[0];
@@ -103,12 +148,17 @@ export function crearAcciones(m) {
       let dm = 1e9; for (const g of S.galos) if (g.vivo && !g.duelo) { const dd = Math.abs(g.x - muerto.px); if (dd < dm) { dm = dd; n = g; } }
       if (n) { d.g = n; n.duelo = d; }
     }
+    if (eraYo) pasaA(n, muerto);
     if (!n) { d.activo = false; return; }
     n.px = muerto.px + 0.3 * lado; n.pz = muerto.pz + (muerto.lado === 'r' ? 0.1 : -0.1);
     for (const x of S.duelos) if (x.sec && x.r === muerto) x.r = d.r;
     d.next = S.T + 0.6 + azarL() * 0.8; d.espera = 0; d.t0 = -9; d.ts = -9; d.resuelto = true;
   }
   function estado(m, T) {
+    /* TP1b: tus gestos se ven en el acto: subir el escudo al pulsar «Parar», el empujón */
+    if (m === S.yo && T - S.tParar < 0.75) return { modo: 'cubre', t: T - S.tParar };
+    if (m === S.yo && T - S.tEmpR < 0.6) return { modo: 'empuja', t: T - S.tEmpR };
+    const de = m.duelo; if (m.lado === 'g' && de && de.empOk && T - de.empR < 1.1) return { modo: 'recibe', t: (T - de.empR) * 0.75, d: { lado: -1 } };
     const ds = S.duelos.filter(d => d.activo && d.t0 > 0 && (d.r === m || d.g === m));
     for (const d of ds) if ((d.ataR ? d.r : d.g) === m && T - d.t0 < d.tb + d.clip.dur + 0.3) return { modo: 'ataca', t: T - d.t0, d };
     for (const d of ds) {
@@ -120,29 +170,44 @@ export function crearAcciones(m) {
   }
   /* medio paso atrás: el que golpea, después del golpe; el que lo recibe, en el acto */
   function retroceso(m, T) {
-    let o = 0;
+    let o = 0, ap = 0;
     for (const d of S.duelos) {
       if (!d.activo || d.t0 < 0 || (d.r !== m && d.g !== m)) continue;
-      if ((d.ataR ? d.r : d.g) === m) { const t = T - d.t0 - d.tb - d.clip.dur; o = Math.max(o, 0.32 * (suave(-0.1, 0.25, t) - suave(0.45, 1.0, t))); }
-      else if (d.res !== 'cubre') { const t = T - d.ts; o = Math.max(o, 0.3 * (suave(0, 0.22, t) - suave(0.5, 1.1, t))); }
+      if ((d.ataR ? d.r : d.g) === m) { const t = T - d.t0 - d.tb - d.clip.dur; o = Math.max(o, 0.32 * (suave(-0.1, 0.25, t) - suave(0.45, 1.0, t))); ap = Math.max(ap, aparta(d, T)); }
+      else if (d.res && d.res !== 'cubre') { const t = T - d.ts; o = Math.max(o, (FX ? 0.36 : 0.3) * (suave(0, FX ? 0.12 : 0.22, t) - suave(0.5, 1.1, t))); }
     }
-    return o;
+    /* el empujón de tu escudo le hace recular */
+    const de = m.duelo; if (m.lado === 'g' && de && de.empOk) { const t = T - de.empR; o = Math.max(o, (de.empOk === 'parada' ? 0.12 : 0.25) * (suave(0, 0.2, t) - suave(0.8, 1.4, t))); }
+    /* TP8 1a: el golpe en el escudo le echa atrás un palmo */
+    if (FX && m.tipoGolpe === 'escudo' && T - m.tGolpe < 0.6) { const t = T - m.tGolpe; o = Math.max(o, 0.1 * (suave(0, 0.07, t) - suave(0.15, 0.5, t))); }
+    return o + ap;
   }
   function lucha(dt) {
-    const T = S.T;
-    for (const d of S.duelos) {
+    const T = S.T, pide = S.pide; S.pide = null;
+    if (!S.huida && !S.derrota) for (const d of S.duelos) {
       if (!d.activo) continue;
       if (!d.resuelto && T >= d.ts) resuelve(d);
       if (!d.r.vivo || !d.g.vivo) { if (d.sec) { if (!d.g.vivo) d.activo = false; continue; } if (!d.espera) d.espera = T + 0.8 + azarL() * 0.5; if (T >= d.espera) relevo(d); continue; }
+      if (d.relevoPend && !ocupado(d, T)) cambiaFila(d);
+      if (!d.sec && d.r === S.yo) { tuDuelo(d, T, pide); continue; }
       if (T >= d.next && listo(d.r) && listo(d.g)) empiezaCiclo(d);
     }
+    /* el que rompe: los galos dan la espalda y huyen corriendo, cada uno a su tiempo (con su paso: locomocion.js) */
+    if (S.huida) for (const g of S.galos) {
+      if (!g.vivo) continue;
+      if (!g.huye) { g.huye = true; g.salHuye = T + azarL() * 0.7; g.px = undefined; g.duelo = null; g.vx = (azarL() - 0.5) * 0.8; g.giro = azarL() < 0.5 ? Math.PI : -Math.PI; }
+      const vObj = T >= g.salHuye ? 4.4 * g.vMas : 0; velocidad(g.paso, vObj, dt); const dd = g.paso.v * dt;
+      g.z -= dd; g.x += g.vx * dd * 0.25; pisa(g.paso, dd, dt); g.dist += dd;
+      if (T >= g.salHuye - 0.25) g.yaw += (g.giro - g.yaw) * Math.min(1, dt * 7);
+      g.xd = g.x; g.zd = g.z; g.jy = 0; g.anda = true; g.est = { modo: 'huye' };
+    }
     for (const m of [...S.romanos, ...S.galos]) {
-      if (!m.vivo || m.px === undefined) continue;
+      if (!m.vivo || m.px === undefined || m.huye) continue;
       const dx = m.px - m.x, dz = m.pz - m.z, dd = Math.hypot(dx, dz), v = Math.min(dd, V_PUESTO * dt);
       if (dd > 1e-4) { m.x += dx / dd * v; m.z += dz / dd * v; }
       const off = retroceso(m, T), doff = Math.abs(off - m.off); m.off = off; m.camino += v + doff; m.anda = dd > 0.03 || doff > 0.2 * dt;
       /* mira a su rival; los de detrás, al frente enemigo */
-      const d = m.duelo, riv = d && d.activo ? (m === d.r ? d.g : d.r) : null;
+      const d = m.duelo, riv = d && d.activo && !S.huida ? (m === d.r ? d.g : d.r) : null;
       const tx = riv && riv.vivo ? riv.x : m.x * 0.8, tz = riv && riv.vivo ? riv.z : m.lado === 'r' ? S.zF - 3 : S.zF + 2;
       m.yaw = Math.atan2(tx - m.x, tz - m.z); const yj = m.yaw + (m.jy || 0);
       m.xd = m.x - Math.sin(yj) * off; m.zd = m.z - Math.cos(yj) * off;
@@ -150,6 +215,72 @@ export function crearAcciones(m) {
       m.est = estado(m, T);
     }
   }
+  /* ---------- TP1b · tu duelo ----------
+     El galo de delante avisa: arma el brazo despacio (AVISO segundos) y se le marca; luego golpea deprisa. «Parar» a
+     tiempo (desde que empieza a armar hasta el golpe) lo deja abierto; «Estocada» entra si está abierto o desequilibrado
+     y, si no, la para él; «Empujar» lo desequilibra (y corta su golpe si aún está armando). */
+  const AVISO = 0.95;
+  function tuDuelo(d, T, pide) {
+    const oc = ocupado(d, T), pan = panDe(d.r.x);
+    if (pide === 'parar' && T - S.tParar > 0.9) { S.tParar = T; Son.madera(0.25, pan, 0.08); }
+    if (pide === 'empujar' && T >= S.tEmpuja) {
+      S.tEmpuja = T + 1.5; S.tEmpR = T; Son.madera(0.5, pan); S.unidad.fatiga = Math.min(1, S.unidad.fatiga + 0.01);
+      const armando = oc && d.aviso && T - d.t0 < d.tb * 0.9;
+      if (!oc || armando) {
+        if (armando) { d.t0 = -9; d.ts = -9; d.resuelto = true; }
+        d.empR = T; d.empOk = true; d.deseq = T + 1.5; d.next = Math.max(d.next, T + 2.4); eco(armando ? '¡Le cortas el golpe! Estocada' : 'Lo desequilibras: ¡estocada!', 'bien');
+      } else eco('Tarde: para su golpe', 'mal');
+    }
+    if (pide === 'estocada') { if (oc) eco(d.ataR ? 'Ya golpeas' : 'Espera: para su golpe', 'mal'); else { estocada(d, T); return; } }
+    if (!oc && T >= d.next && T >= (d.deseq || 0) && listo(d.r) && listo(d.g)) avisa(d, T);
+  }
+  function avisa(d, T) {
+    d.n++; d.t0 = T; d.ataR = false; d.aviso = true; d.jEco = null; d.empOk = false; d.clip = clipDe('g', d.n % 2 ? 'attack_melee2' : 'attack_melee'); d.tb = AVISO;
+    const w0 = 0.6 * d.clip.golpe; d.w0 = w0; d.dr = d.clip.dur * (1 - w0); d.ts = T + d.tb + d.dr * (d.clip.golpe - w0) / (1 - w0);
+    d.res = null; d.resuelto = false; d.lado = azarL() < 0.5 ? 1 : -1; d.next = T + d.tb + d.dr + 1.3 + azarL() * 1.3;
+    alcanza(d);
+  }
+  function estocada(d, T) {
+    const abierto = T < (d.abierto || 0) || T < (d.deseq || 0);
+    d.n++; d.t0 = T; d.ataR = true; d.aviso = false; d.clip = clipDe('r', 'attack_melee'); d.tb = 0.1; d.ts = T + d.tb + d.clip.dur * d.clip.golpe;
+    d.res = abierto ? ((d.g.golpes || 0) >= 1 ? 'muere' : 'recibe') : 'cubre';
+    d.jEco = abierto ? (d.res === 'muere' ? '¡Buen golpe! Cae' : '¡Buen golpe!') : 'Parado: ábrelo antes';
+    d.resuelto = false; d.lado = azarL() < 0.5 ? 1 : -1; d.abierto = 0; d.deseq = 0; d.empOk = false; d.next = Math.max(d.next, T + 1.6 + azarL() * 0.8);
+    alcanza(d);
+  }
+  /* en qué punto (0 a 1) del clip de ataque va un galo; null si no ataca. Con aviso: arma despacio y suelta deprisa */
+  function sAtaque(e) {
+    if (!e || e.modo !== 'ataca') return null; const d = e.d, t = e.t;
+    if (!d.aviso) return t >= d.tb && t < d.tb + d.clip.dur ? (t - d.tb) / d.clip.dur : null;
+    if (t < d.tb) return d.w0 * suave(0, d.tb, t);
+    return t < d.tb + d.dr ? d.w0 + (t - d.tb) / d.dr * (1 - d.w0) : null;
+  }
+  /* has caído: pasas a ser el que te releva (o, si no queda nadie en tu columna, otro de la primera fila) */
+  function pasaA(n, muerto) {
+    if (!n) { const d = S.duelos.find(x => x.activo && !x.sec && x.r.vivo && x.r !== muerto); n = d ? d.r : null; }
+    const eraCent = muerto.i === YO; if (eraCent) S.unidad.centurionCae();
+    S.yo = n; if (!n) { m.cinta(eraCent ? 'El centurión ha caído' : 'Has caído', false); return; }
+    n.golpes = 0; S.tParar = -9; S.tEmpR = -9;
+    m.cinta((eraCent ? 'El centurión ha caído: ahora eres ' : 'Has caído: ahora eres ') + m.nombre(n), false);
+  }
+  /* «Relevo»: en cada pareja de la primera fila (menos la tuya), el de detrás pasa delante y el cansado se queda detrás.
+     Se cruzan cada uno por un lado, para no pisarse. Si están en mitad de un golpe, en cuanto acaben */
+  function relevoOrden() {
+    let n = 0;
+    for (const d of S.duelos) { if (!d.activo || d.sec || !d.r.vivo || d.r === S.yo) continue; d.relevoPend = true; n++; }
+    S.unidad.relevo(); S.nRelevos = (S.nRelevos || 0) + 1; return n;
+  }
+  function cambiaFila(d) {
+    d.relevoPend = false; const viejo = d.r, col = S.romanos.filter(h => h.vivo && h.f === viejo.f && !h.duelo && h !== viejo).sort((a, b) => a.j - b.j), nu = col[0];
+    if (!nu) return;
+    nu.j = 0; viejo.j = 1; col.slice(1).forEach((h, k) => { h.j = k + 2; });
+    viejo.duelo = null; nu.duelo = d; d.r = nu; nu.golpes = 0;
+    const x0 = viejo.px, z0 = viejo.pz; nu.px = x0 + 0.26; nu.pz = z0; viejo.px = x0 - 0.26; viejo.pz = S.zF + 0.85;
+    d.next = S.T + 0.9 + azarL() * 0.9; d.t0 = -9; d.ts = -9; d.resuelto = true;
+  }
+  /* «Cargad» en la lucha: unos segundos de empuje con todo (golpean más, se cansan más; al galo le pesa) */
+  function cargad() { S.cargaHasta = S.T + 4; S.unidadG.anima(-0.05); S.unidad.fatiga = Math.min(1, S.unidad.fatiga + 0.1); }
+  function huida() { S.huida = S.T; for (const d of S.duelos) d.activo = false; }
   function polvoEn(x, z, n) { for (let i = 0; i < n; i++) { const p = PIES.find(p => S.T - p.t > 1.8); if (!p) return; p.t = S.T; p.x = x + (azarV() - 0.5) * 0.8; p.z = z + (azarV() - 0.5) * 0.6; p.y = H(p.x, p.z) + 0.15; p.vx = (azarV() - 0.5) * 0.6; p.vy = 0.3 + azarV() * 0.3; p.vz = (azarV() - 0.5) * 0.6; p.s = 0.8 + azarV() * 0.8; } }
   /* para las pruebas: los luchadores en pie, los caídos y los duelos que están en marcha */
   function medLucha() {
@@ -159,6 +290,8 @@ export function crearAcciones(m) {
     const fases = new Set(act.map(d => Math.floor((S.T - d.t0) / 0.15)));
     return { dmin: +dmin.toFixed(2), duelos: act.length, fases: fases.size, caidosR: S.romanos.filter(h => !h.vivo).length, caidosG: S.galos.filter(g => !g.vivo).length };
   }
-  Object.assign(fns, { clipPos, poseLucha, empiezaLucha, lucha, medLucha, polvoEn });
+  /* la primera fila de ahora (para las pruebas de «Relevo») */
+  const primera = () => S.duelos.filter(d => d.activo && !d.sec).map(d => d.r.i);
+  Object.assign(fns, { clipPos, poseLucha, empiezaLucha, lucha, medLucha, polvoEn, sAtaque, relevoOrden, cargad, huida, primera, ocupado: d => ocupado(d, S.T) });
   return fns;
 }

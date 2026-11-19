@@ -83,7 +83,7 @@ t('precio fijo: nada de pm/escala; tope 0.8 × G.cap(); tipo artesanos', () => {
   try { const c = G.invCoste('magon'); D.RES.forEach(r => assert.ok(c[r] <= Math.floor(0.1 * cap) && c[r] === Math.min(D.INVEST.magon.cost[r], Math.floor(0.1 * cap)), r));
     } finally { D.SABER.tope = old; }
   assert.strictEqual(old, 0.8); assert.ok(D.RES.every(r => G.invCoste('E4')[r] <= 0.8 * cap));
-  s.cities.roma.tipo = 'saber'; const c2 = G.invCoste('griego'); assert.strictEqual(c2.piedra, Math.round(50 * 0.75)); near(G.invTiempo('griego'), 12 * 0.75);
+  s.cities.roma.tipo = 'saber'; const c2 = G.invCoste('griego'); assert.strictEqual(c2.materiales, Math.round(90 * 0.75)); near(G.invTiempo('griego'), 12 * 0.75);
   hecho(s, ['griego', 'apio']); s.cities.roma.b.foro = 2; D.SABER.tope = 0.02; try { for (const k of D.RES) s.res[k] = 0; assert.strictEqual(G.invEstado('E2').e, 'almacen'); D.SABER.tope = old; assert.strictEqual(G.invEstado('E2').e, 'falta'); } finally { D.SABER.tope = old; }
 });
 
@@ -162,8 +162,8 @@ t('medidas con y sin cada mejora', () => {
     const ef = D.INVEST[id].ef, B = [id], er = '(' + id + ')';
     if (ef.grano) { const a = med([], () => G.prod().grano), b = med(B, () => G.prod().grano); assert.ok(b > a, 'grano ' + er); }
     if (ef.crece) { const a = med([], () => G.bonoMul('crece')), b = med(B, () => G.bonoMul('crece')); assert.ok(ef.crece > 1 ? b > a : b < a, 'crece ' + er); }
-    if (ef.impuestos) { const a = med([], () => G.cuentas().oro.impuestos), b = med(B, () => G.cuentas().oro.impuestos); assert.ok(b > a, 'impuestos ' + er); }
-    if (ef.oroCom) { const a = med([], () => G.cuentas().oro.foro), b = med(B, () => G.cuentas().oro.foro); assert.ok(b > a, 'oroCom ' + er); }
+    if (ef.impuestos) { const a = med([], () => G.cuentas().denarios.impuestos), b = med(B, () => G.cuentas().denarios.impuestos); assert.ok(b > a, 'impuestos ' + er); }
+    if (ef.oroCom) { const a = med([], () => G.cuentas().denarios.foro), b = med(B, () => G.cuentas().denarios.foro); assert.ok(b > a, 'oroCom ' + er); }
     if (ef.obra) { const a = med([], () => G.buildTime(base.cities.roma, 'foro')), b = med(B, () => G.buildTime(base.cities.roma, 'foro')); assert.ok(b < a, 'obra ' + er); }
     if (ef.paga) { const a = med([], () => G.mantenimiento().tropas), b = med(B, () => G.mantenimiento().tropas); assert.ok(b < a, 'paga ' + er); }
     if (ef.instr) { const a = med([], () => G.trainDur(base.cities.roma, 'hastati', 10)), b = med(B, () => G.trainDur(base.cities.roma, 'hastati', 10)); assert.ok(b < a, 'instr ' + er); }
@@ -241,9 +241,9 @@ t('partida vieja carga y G.prod no desborda la pila', () => {
   try {
     const raw = require('node:fs').readFileSync(new URL('./partida-vieja.json', import.meta.url), 'utf8'); store['aqvila-save-v1'] = raw;
     assert.ok(G.load(), 'carga'); const s = G.state; assert.ok(s.inv && s.inv.v === 1 && s.inv.edad === 1 && Object.keys(s.inv.hechas).length === 0 && s.inv.cola === null);
-    assert.ok(Number.isFinite(G.prod().oro)); for (let i = 0; i < 6; i++) G.tick(0.25); assert.ok(Number.isFinite(G.prod().grano));
+    assert.ok(Number.isFinite(G.prod().denarios)); for (let i = 0; i < 6; i++) G.tick(0.25); assert.ok(Number.isFinite(G.prod().grano));
     const f = JSON.parse(raw).forja; if (f) assert.deepStrictEqual(s.forja.armas, f.armas);
-    const s2 = nueva(); hecho(s2, Object.keys(D.INVEST)); s2.cities.roma.sabios = { dot: 100 }; assert.ok(Number.isFinite(G.prod().oro)); G.save(); assert.ok(G.load()); assert.ok(Number.isFinite(G.prod().oro));
+    const s2 = nueva(); hecho(s2, Object.keys(D.INVEST)); s2.cities.roma.sabios = { dot: 100 }; assert.ok(Number.isFinite(G.prod().denarios)); G.save(); assert.ok(G.load()); assert.ok(Number.isFinite(G.prod().denarios));
     assert.ok(Number.isFinite(G.invVista().techos.length));
   } finally { delete global.localStorage; }
 });
@@ -255,7 +255,7 @@ const sab = (c, dot, clase) => { c.sabios = { dot, clase: clase || 'ple' }; retu
 
 t('sabios: sin Escuela o sin campo no hay nada y no se crea el campo', () => {
   const s = nueva(), c = s.cities.roma; const x = G.sabiosDe(c); assert.strictEqual(x.n, 0); assert.strictEqual(x.R, 0); assert.strictEqual(G.saberVel(), 1); assert.strictEqual(G.pagaSabios(), 0);
-  G.recruits(c); G.prod(); G.cuentas(); assert.ok(!('sabios' in c), 'el campo no aparece'); assert.strictEqual(G.cuentas().oro.sabios, 0);
+  G.recruits(c); G.prod(); G.cuentas(); assert.ok(!('sabios' in c), 'el campo no aparece'); assert.strictEqual(G.cuentas().denarios.sabios, 0);
   c.sabios = { dot: 3, clase: 'ple' }; assert.strictEqual(G.sabiosDe(c).n, 0, 'sin Escuela no estudia');
 });
 
@@ -310,13 +310,13 @@ t('sabios: esclavo con ánimo < 30 rinde 0; con ánimo suficiente estudia', () =
 });
 
 t('sabios: setSabios cobra el alta, falla sin oro, bajar es gratis, clase nueva cuenta como nuevos', () => {
-  const s = nueva(), c = escuela(s, 3, 1000, { ciu: 200, esc: 100 }); const oro = () => s.res.oro + s.alm.oro;
+  const s = nueva(), c = escuela(s, 3, 1000, { ciu: 200, esc: 100 }); const oro = () => s.res.denarios + s.alm.denarios;
   let o = oro(), r = G.setSabios('roma', 2, 'ple'); assert.ok(r.ok); near(o - oro(), 120); assert.strictEqual(G.sabiosDe(c).n, 20);
   o = oro(); r = G.setSabios('roma', 3, 'ple'); assert.ok(r.ok); near(o - oro(), 60, 'solo los 10 nuevos');
   o = oro(); r = G.setSabios('roma', 1, 'ple'); assert.ok(r.ok); near(o - oro(), 0, 'bajar gratis');
   o = oro(); r = G.setSabios('roma', 1, 'ciu'); assert.ok(r.ok); near(o - oro(), 60, 'otra clase: 10 sabios nuevos');
   r = G.setSabios('roma', 2, 'esc'); assert.ok(r.ok);
-  s.res.oro = 5; s.alm.oro = 0; s.cuarto.oro = 0; const antes = JSON.stringify(c.sabios); r = G.setSabios('roma', 3, 'esc'); assert.ok(!r.ok && /Faltan \d+ denarios/.test(r.motivo), r.motivo); assert.strictEqual(JSON.stringify(c.sabios), antes);
+  s.res.denarios = 5; s.alm.denarios = 0; s.cuarto.denarios = 0; const antes = JSON.stringify(c.sabios); r = G.setSabios('roma', 3, 'esc'); assert.ok(!r.ok && /Faltan \d+ denarios/.test(r.motivo), r.motivo); assert.strictEqual(JSON.stringify(c.sabios), antes);
   assert.ok(!G.setSabios('capua', 1, 'ple').ok); c.esc = 0; assert.ok(!G.setSabios('roma', 1, 'esc').ok);
 });
 
@@ -327,24 +327,24 @@ t('sabios: sabiosVista no cambia nada y anuncia el efecto', () => {
 
 t('sabios: la paga se cobra al cerrar el mes; sin oro las escuelas se vacían, hay rojo y reabrir cuesta el alta', () => {
   const s = nueva(), c = escuela(s, 3, 1000); G.setSabios('roma', 3, 'ple'); const paga = G.pagaSabios(); assert.ok(paga > 0);
-  const o = s.res.oro + s.alm.oro; s.t = 1; G.cierreMes(); assert.ok(Math.abs(o - (s.res.oro + s.alm.oro) - paga) < 1e-6 || s.alm.oro > 0, 'cobra la paga'); assert.strictEqual(c.sabios.dot, 3);
-  for (const r of ['oro']) { s.res[r] = 0; s.alm[r] = 0; s.cuarto[r] = 0; }
+  const o = s.res.denarios + s.alm.denarios; s.t = 1; G.cierreMes(); assert.ok(Math.abs(o - (s.res.denarios + s.alm.denarios) - paga) < 1e-6 || s.alm.denarios > 0, 'cobra la paga'); assert.strictEqual(c.sabios.dot, 3);
+  for (const r of ['denarios']) { s.res[r] = 0; s.alm[r] = 0; s.cuarto[r] = 0; }
   const log0 = (s.log || []).length; s.t = 2; G.cierreMes(); assert.strictEqual(c.sabios.dot, 0, 'escuelas vacías'); assert.strictEqual(G.sabiosDe(c).n, 0); assert.strictEqual(G.pagaSabios(), 0);
-  assert.ok(JSON.stringify(s.log || []).includes('Sin oro para pagar a los sabios'));
-  s.res.oro = 1000; const r = G.setSabios('roma', 3, 'ple'); assert.ok(r.ok); assert.ok(s.res.oro < 1000 - 170, 'reabrir cuesta el alta');
+  assert.ok(JSON.stringify(s.log || []).includes('Sin denarios para pagar a los sabios'));
+  s.res.denarios = 1000; const r = G.setSabios('roma', 3, 'ple'); assert.ok(r.ok); assert.ok(s.res.denarios < 1000 - 170, 'reabrir cuesta el alta');
 });
 
 t('sabios: Cuentas suma la paga como línea «sabios»; con 0 sabios los totales no cambian', () => {
-  const s = nueva(), c = escuela(s, 3, 1000), a = G.cuentas(); assert.strictEqual(a.oro.sabios, 0);
-  G.setSabios('roma', 3, 'ple'); s.gastoMes.oro = 0; s.obrasMes = 0; const b = G.cuentas(), paga = G.pagaSabios(); near(b.oro.sabios, paga); near(b.oro.gastos - a.oro.gastos, paga + (b.oro.edificios - a.oro.edificios)); near(b.oro.saldo, b.oro.ingresos - b.oro.gastos);
-  assert.ok(b.oro.neto === G.prod().oro, 'p.oro no resta la paga'); near(G.prod().sabios, paga);
+  const s = nueva(), c = escuela(s, 3, 1000), a = G.cuentas(); assert.strictEqual(a.denarios.sabios, 0);
+  G.setSabios('roma', 3, 'ple'); s.gastoMes.denarios = 0; s.obrasMes = 0; const b = G.cuentas(), paga = G.pagaSabios(); near(b.denarios.sabios, paga); near(b.denarios.gastos - a.denarios.gastos, paga + (b.denarios.edificios - a.denarios.edificios)); near(b.denarios.saldo, b.denarios.ingresos - b.denarios.gastos);
+  assert.ok(b.denarios.neto === G.prod().denarios, 'p.denarios no resta la paga'); near(G.prod().sabios, paga);
 });
 
 t('sabios: sin recursión con 100 sabios esclavos (partida nueva y cargada)', () => {
   const s = nueva(), c = escuela(s, 10, 2000, { esc: 600, ciu: 0 }); G.clases(c); c.sabios = { dot: 3, clase: 'esc' };
-  assert.strictEqual(G.sabiosDe(c, true).n, 100); assert.ok(Number.isFinite(G.prod().oro)); assert.ok(Number.isFinite(G.saberVel())); assert.ok(Number.isFinite(G.pagaSabios())); assert.ok(Number.isFinite(G.recruits(c))); G.tick(0.25); G.cuentas(); G.invVista();
+  assert.strictEqual(G.sabiosDe(c, true).n, 100); assert.ok(Number.isFinite(G.prod().denarios)); assert.ok(Number.isFinite(G.saberVel())); assert.ok(Number.isFinite(G.pagaSabios())); assert.ok(Number.isFinite(G.recruits(c))); G.tick(0.25); G.cuentas(); G.invVista();
   const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
-  try { G.save(); assert.ok(G.load()); assert.ok(Number.isFinite(G.prod().oro)); assert.ok(G.sabiosTotal() > 0); G.tick(0.25); } finally { delete global.localStorage; }
+  try { G.save(); assert.ok(G.load()); assert.ok(Number.isFinite(G.prod().denarios)); assert.ok(G.sabiosTotal() > 0); G.tick(0.25); } finally { delete global.localStorage; }
 });
 
 t('sabios: soltarCiudad y rebelión limpian el campo', () => {
@@ -444,10 +444,10 @@ t('I5c-B: partida vieja sin s.inv.copia funciona', () => {
 t('I5d: reformar cambia el saber, cobra el coste completo y no se puede sin alternativa', () => {
   const base = nueva(); G.state = base; hecho(base, ['trigo']); base.inv.edad = 2;
   assert.ok(!G.invReformaInfo('griego').ok, 'sin alternativa no');
-  const m0 = G.invMul('grano'), r0 = base.res.oro, c = G.invCoste('vina');
+  const m0 = G.invMul('grano'), r0 = base.res.denarios, c = G.invCoste('vina');
   const r = G.invReforma('trigo'); assert.ok(r.ok, r.motivo);
   assert.strictEqual(base.inv.hechas.trigo, undefined); assert.strictEqual(base.inv.cola.id, 'vina'); assert.ok(G.invMul('grano') < m0);
-  assert.ok(Math.abs((r0 - base.res.oro) - c.oro) < 1e-6, 'paga el coste del nuevo'); assert.strictEqual(base.inv.reformas, 1);
+  assert.ok(Math.abs((r0 - base.res.denarios) - c.denarios) < 1e-6, 'paga el coste del nuevo'); assert.strictEqual(base.inv.reformas, 1);
   assert.ok(!G.invReforma('trigo').ok, 'ya no lo sabes');
 });
 t('I5d: reformar falla con la cola ocupada o sin dinero y no pierde nada', () => {
