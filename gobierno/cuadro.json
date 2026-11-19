@@ -2028,7 +2028,7 @@
     {
       "tarea": "CI1b",
       "titulo": "Cerebro · CI1b+CI3a Calles con sentido y ciudad ×5 a la vista (Opus; tope duro)",
-      "nota": "6,0 M: jueces 40/41 (una aserción de sim.test); última prórroga hasta 6,4 M. 9 commits sin subir: solo existen en su contenedor",
+      "nota": "Parada en el techo 6,4 M, sin subir (queda un fallo de sim.test); espera tu decisión en el cuadro. 11 commits solo en su contenedor",
       "url": "https://claude.ai/code/session_01QiKC3AfVQgWjdzHpMKkgYR"
     },
     {
