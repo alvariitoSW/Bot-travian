@@ -702,12 +702,43 @@
     levaMax: 4,            // con poco favor no se admite una leva más si ya hay tantas en cola
     // Senado nuevo (SN1): sala de votos con tres bandos. sala:false = comportamiento idéntico a Q7. Cifras: licencia de juego (gobierno/estudios/senado-nuevo.md)
     sala: true, escanos: 30, mayoria: 16, minimo: 4, vetoPueblo: 35, juegos: { denarios: 120, pueblo: 8 }, pagoVoto: 30,
-    romper: -15, cumplir: 5, pagar: 2, cambiar: -3, sinPermiso: -10, postura: 4, duracion: 4   // duracion = estaciones que dura un permiso, una promesa o un efecto
+    romper: -15, cumplir: 5, pagar: 2, cambiar: -3, sinPermiso: -10, postura: 4, duracion: 4,   // duracion = estaciones que dura un permiso, una promesa o un efecto
+    // CE6 (licencia de juego): escaños = población / porHab, entre totalMin y totalMax; tu familia 2 + 3 %; mínimo por bando max(2, 6 %); resto 60 % por provincias y 40 % por pesos
+    porHab: 20, totalMin: 30, totalMax: 300, familiaBase: 2, familiaPct: 0.03, minimoPct: 0.06, minimoAbs: 2, provPct: 0.6,
+    entrada: { templos: 2, italia: 4, fuera: 1, plebe: 1500 },   // umbrales de entrada de sac, ita, pro y pue
+    acto: { mas: 2, menos: -1, tope: 4 }, peticion: { si: 4, no: -4 },   // acto.tope = lo más que un bando gana por tus actos en una estación
+    // a quién contenta cada acto (sus rivales pierden la mitad)
+    actos: { granja: 'ter', almacen: 'ter', mercado: 'mer', puerto: 'mer', ruta: 'mer', cuartel: 'mil', herreria: 'mil', establo: 'mil', leva: 'mil', victoria: 'mil', templo: 'sac', tomadaFuera: 'pro', tomadaItalia: 'ita', ciudadania: 'ita', juegos: 'pue', grano: 'pue' },
+    // postura por tipo de ley para los bandos nuevos (si la ley no trae la suya); en 'ley' el Pueblo sigue a chips.ple
+    posturaTipo: { guerra: { sac: 0, ita: -1, pro: 1, pue: -1 }, paz: { sac: 1, ita: 1, pro: -1, pue: 1 }, leva: { sac: 0, ita: -2, pro: 0, pue: -1 }, obra: { sac: 1, ita: 0, pro: 0, pue: 1 }, ciudadania: { sac: -1, ita: 2, pro: 1, pue: -1 }, ley: { sac: 0, ita: 0, pro: 0 } },
+    // lo que pide cada bando: dos peticiones; cada estación toca una, por el número de turno
+    pide: { ter: ['sinLeva', 'granja'], mer: ['rutaMercado', 'denarios'], mil: ['leva', 'victoria'], sac: ['templo', 'paz'], ita: ['sinLevaItalia', 'ciudadania'], pro: ['victoriaFuera', 'guarnicion'], pue: ['grano', 'juegos'] }
   };
+  /* CE6: Senado de familias, siete bandos. Todas las cifras son licencia de juego (gobierno/estudios/CE6-encargo.md).
+     fam = familia que lo encabeza; entra = condición en texto llano; trato = lo que ofrece por sus dudosos; rival = bandos que pierden cuando este gana. */
   D.BANDOS = {
-    ter: { n: 'Terratenientes', col: '#8FAE5A', peso: 'grano al mes / 10 + niveles de granja' },
-    mer: { n: 'Mercaderes', col: '#5AA6C4', peso: 'mercado y puerto x 3 + rutas x 5 + denarios de rutas / 20' },
-    mil: { n: 'Militares', col: '#D0443A', peso: 'hombres en armas / 100 + cuartel x 2 + victorias del año x 3' }
+    ter: { n: 'Terratenientes', fam: 'Fabios', col: '#8FAE5A', entra: 'Desde el principio', trato: 'sinLeva', rival: ['mer'], peso: 'grano al mes / 10 + niveles de granja' },
+    mer: { n: 'Mercaderes', fam: 'Emilios', col: '#5AA6C4', entra: 'Desde el principio', trato: 'pago', rival: ['ter'], peso: 'mercado y puerto x 3 + rutas x 5 + denarios de rutas / 20' },
+    mil: { n: 'Militares', fam: 'Escipiones', col: '#D0443A', entra: 'Desde el principio', trato: 'guarnicion', rival: ['pue'], peso: 'hombres en armas / 100 + cuartel x 2 + victorias del año x 3' },
+    sac: { n: 'Sacerdotes', fam: 'Valerios', col: '#C9A24A', entra: 'Entran con 2 niveles de templo entre tus ciudades', trato: 'pago', rival: ['pro'], peso: 'niveles de templo x 3' },
+    ita: { n: 'Itálicos', fam: 'Fulvios', col: '#9B7BC4', entra: 'Entran con 4 ciudades tuyas en Italia', trato: 'sinLevaItalia', rival: ['pro'], peso: 'ciudades itálicas x 2' },
+    pro: { n: 'Provinciales', fam: 'Claudios', col: '#D98A3D', entra: 'Entran con tu primera ciudad fuera de Italia', trato: 'guarnicion', rival: ['ita', 'sac'], peso: 'ciudades fuera de Italia x 3' },
+    pue: { n: 'Pueblo', fam: 'Sempronios', col: '#B5654E', entra: 'Entran con 1500 plebeyos entre tus ciudades', trato: 'pago', rival: ['mil'], peso: 'plebe / 300' }
+  };
+  D.BANDOS_ORDEN = ['ter', 'mer', 'mil', 'sac', 'ita', 'pro', 'pue'];
+  // CE6: provincias y su bando afín. italia = cuenta como Italia (Itálicos, levas en Italia). Colonias: la provincia de la ciudad propia más cercana. Licencia de juego.
+  D.PROVINCIAS = {
+    lacio: { n: 'Lacio', afin: 'ter', italia: true, ciudades: ['roma'] },
+    campania: { n: 'Campania', afin: 'mer', italia: true, ciudades: ['capua', 'neapolis'] },
+    etruria: { n: 'Etruria', afin: 'sac', italia: true, ciudades: ['volsinii', 'perusia', 'clusium', 'rusellae'] },
+    magnagrecia: { n: 'Magna Grecia', afin: 'ita', italia: true, ciudades: ['tarentum'] },
+    cisalpina: { n: 'Galia Cisalpina', afin: 'mil', italia: true, ciudades: ['mediolanum'] },
+    sicilia: { n: 'Sicilia', afin: 'pro', italia: false, ciudades: ['messana', 'syracusae', 'agrigentum', 'panormus', 'lilybaeum'] },
+    cerdena: { n: 'Cerdeña', afin: 'pro', italia: false, ciudades: ['carales'] },
+    hispania: { n: 'Hispania', afin: 'mil', italia: false, ciudades: ['emporion', 'saguntum', 'carthagonova', 'tarraco', 'gades'] },
+    grecia: { n: 'Grecia', afin: 'mer', italia: false, ciudades: ['ambracia', 'pella', 'corinthus'] },
+    galia: { n: 'Galia', afin: 'mer', italia: false, ciudades: ['massalia'] },
+    africa: { n: 'África', afin: 'mil', italia: false, ciudades: ['carthago', 'hadrumetum'] }
   };
   // desde: año (a.C.) en que el Senado puede encargarla; plazo en meses; las cifras son licencia de juego
   /* Sitios de colonias (CN5-A). Aún no son ciudades: el jugador manda colonos y funda. Mismo sistema lon/lat que D.CITIES.
