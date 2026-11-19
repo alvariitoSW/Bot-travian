@@ -1586,7 +1586,8 @@ console.log('OK — todas las pruebas superadas');
   let bi = G.barrioInfo(c); assert(bi.barrios.length === 1 && bi.barrios[0].nivel === 1 && bi.nivel === 1 && bi.barrios[0].falta === 'agua (una fuente)', 'empieza con un barrio de nivel I');
   assert(/^Barrio del Foro · nivel I/.test(bi.barrios[0].texto) && bi.barrios[0].texto === CIMOD.textoBarrio(E, 0));
   // sube de uno en uno aunque el objetivo sea IV
-  assert(pon('fuente') && pon('templo') && pon('mercado')); assert.strictEqual(CIMOD.nivelBarrio(E, 0).nivel, 4, 'objetivo IV');
+  // CI3a: dos fuentes; con el plano 3 las casas nuevas del primer mes nacen lejos de una sola y el agua bajaba al 48 % (el objetivo caía a I)
+  assert(pon('fuente') && pon('fuente') && pon('templo') && pon('mercado')); assert.strictEqual(CIMOD.nivelBarrio(E, 0).nivel, 4, 'objetivo IV');
   assert(/subirá pronto/.test(CIMOD.textoBarrio(E, 0)) && G.barrioInfo(c).barrios[0].objetivo === 4);
   const sube = []; for (let i = 0; i < 4; i++) { CIMOD.mes(E); sube.push(E.barrios[0].nivel); } assert.deepStrictEqual(sube.slice(0, 3), [2, 3, 4], 'sube un nivel por mes'); assert.strictEqual(sube[3], 4);
   // segundo barrio con casas propias y otro nivel: la ciudad es la media por casas, redondeada
