@@ -311,7 +311,8 @@ for (const ag of [false, true]) for (let sd = 1; sd <= 10; sd++) { const s = cam
 const resumen = l => l.map(s => (s.over.win ? 'V' : 'd') + G.yearOf(s.t)).join(' ');
 console.log('Bot pasivo   →', resumen(res.pas)); console.log('Bot agresivo →', resumen(res.agr));
 const ganaAgr = res.agr.filter(s => s.over.win).length, ganaPas = res.pas.filter(s => s.over.win).length;
-assert(ganaAgr >= 5 && ganaAgr <= 8, 'V10a: el bot agresivo debe tomar Carthago en 5 a 8 de 10 semillas (medido 7/10; más es demasiado fácil) (' + ganaAgr + '/10)');
+// CI1b (usuario, 19/11, «opción 1»): con las calles nuevas los edificios caen en mejor sitio y el agresivo gana 9/10; se admite 9 hasta que CE3 reequilibre (el usuario quiere que gane menos; quizá arreglando las batallas)
+assert(ganaAgr >= 5 && ganaAgr <= 9, 'V10a: el bot agresivo debe tomar Carthago en 5 a 9 de 10 semillas (medido 9/10 con CI1b; volver a 5-8 en CE3) (') + ganaAgr + '/10)');
 assert(res.agr.filter(s => s.over.win).every(s => G.yearOf(s.t) <= 218), 'V10a: Cartago no cae antes de Aníbal (218 a.C.)');
 assert.strictEqual(ganaPas, 0, 'un bot pasivo no debe ganar nunca (' + ganaPas + '/10)');
 const active = activo;
