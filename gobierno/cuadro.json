@@ -2038,16 +2038,10 @@
       "url": "https://claude.ai/code/session_01QiKC36XAVkKcrxxvx4cUCo"
     },
     {
-      "tarea": "TP8",
-      "titulo": "Corazón · TP8 Mejoras del testudo y del combate, hablándolas con el usuario (Opus; tope duro)",
-      "nota": "Mejora 1a subida (jueces 41/41): pruébala en «Testudo a pie»; el resto (TP8b) espera tu visto bueno",
-      "url": "https://claude.ai/code/session_01QiKC37MiywH97s7ojcHQE6"
-    },
-    {
-      "tarea": "ES0",
-      "titulo": "Corazón · ES0 Objetivo final de Escaramuzas (conversación, Fable 5.2; tope duro)",
-      "nota": "Habla contigo para definir qué es Escaramuzas, qué se queda y qué se rehace; solo documento; corte duro 2,5 M",
-      "url": "https://claude.ai/code/session_01QiKC39wN7qMKGDmmgmjiSa"
+      "tarea": "TP8b",
+      "titulo": "Corazón · TP8b Terminar el testudo a pie y la lucha con picas (Fable 5.2 dirige, Opus construye; tope duro)",
+      "nota": "Primero acuerda contigo qué es «un 8»; luego tandas subidas con jueces; declarado 7,0 M, corte duro 10,0 M",
+      "url": "https://claude.ai/code/session_01QiKC387QJaRTWbZx6nurC2"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
