@@ -40,3 +40,8 @@ Director 1,14 · A2 niveles 0,91 (Sonnet) · A1 tiempos 1,11 · ajuste del bot 1
 - Fallos encontrados por la pieza B: el tope del Foro solo lo cumple `G.upgrade`; `G.mejorarPieza` y `G.colocar` no lo
   comprueban (la pantalla sí). La partida vieja tarda ~30 s en cargar en el navegador de pruebas. Quedan textos
   «al mes» en las cuotas y «meses» en los techos de la ciencia.
+
+## Pasa a CE3b (vigía, 19/11)
+1. **Primero, el tope del Foro en todas las vías**: `G.upgrade` lo cumple; `G.mejorarPieza` y `G.colocar` no lo comprueban. La pantalla sí lo impide (candado y «Sube antes el Foro»), pero la lógica y el bot pueden saltárselo. Arreglo en `js/game.js` con prueba.
+2. Textos «al mes» de las cuotas y «meses» de los techos de la ciencia, a estaciones.
+3. Tropas con hombres, hierro y denarios, y paga (§3 del encargo).
