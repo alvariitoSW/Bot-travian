@@ -319,7 +319,9 @@ const aguanta = res.agr.filter(s => s.over.win || (G.yearOf(s.t) <= 150 && ciuda
 console.log('  agresivo: gana ' + ganaAgr + '/10; en pie en el 150 a.C. con 5+ ciudades (o gana) ' + aguanta + '/10 (criterio hasta CE12)');
 assert(ganaAgr <= 8, 'V10a: el agresivo no debe ganar más de 8 de 10 (demasiado fácil) (' + ganaAgr + '/10)');
 assert(aguanta >= 5, 'CE3 hasta CE12 (medido 5/10 tras los huecos 1-2-3-3-4 y la producción por nivel total): el agresivo debe seguir en pie en el 150 a.C. con 5 o más ciudades en 5 de 10 semillas (' + aguanta + '/10)');
-assert(res.agr.filter(s => s.over.win).every(s => G.yearOf(s.t) <= 218), 'V10a: Cartago no cae antes de Aníbal (218 a.C.)');
+// Hasta CE12 (usuario, 19/11): se tolera 1 de 10 victorias antes de Aníbal (medido tras CE3+CE6: 1/10, V236). Antes: ninguna.
+const antesAnibal = res.agr.filter(s => s.over.win && G.yearOf(s.t) > 218).length;
+assert(antesAnibal <= 1, 'V10a hasta CE12: Cartago no cae antes de Aníbal (218 a.C.) en más de 1 de 10 (' + antesAnibal + '/10)');
 assert.strictEqual(ganaPas, 0, 'un bot pasivo no debe ganar nunca (' + ganaPas + '/10)');
 const active = activo;
 assert(JSON.parse(JSON.stringify(active)).v === 1, 'el estado debe ser serializable');
