@@ -6,6 +6,16 @@ picas, Escaramuzas, batalla de campaña, cámara, épica). El usuario ha enseña
 «He mandado muchos vídeos ya de cómo quiero las batallas, espero que se puedan guardar para que otros modelos los puedan
 ver y así no tengo que repetírselo».
 
+## 0. Criterio del usuario (19/11): construir hasta parecerse, no poner tiritas
+Literal: «Me parece perfecto lo de la página única para que no tenga que repetir, y así en vez de poner tiritas, construimos
+hasta que el [juego] sea muy parecido a aquellas referencias que os mando para crear este juego». **Consecuencias para todo
+el que toque batallas**: (1) la vara de «terminado» es **parecerse a las referencias de la sección 2**, no «un poco mejor que
+ayer» (el usuario puntuó lo anterior con un 0,5 y no quiere subir de medio punto en medio punto); (2) antes de construir una
+tanda se eligen **las referencias concretas** de la sección 3 que va a igualar y se escribe en una frase qué tiene que verse
+y sentirse; al entregar, se enseña **lado a lado** lo que hay y lo que dice la ficha, y lo que el móvil no da (caras de cine,
+miles de hombres con detalle) **se dice y no se promete**; (3) las tandas se suben a la rama una a una, pero a su `main`
+las batallas llegan en saltos grandes, con su «sube»; (4) si algo no se parece, se rehace la pieza, no se le pone un parche.
+
 ## 1. Dónde viven los vídeos y qué se guarda (norma)
 - **Los vídeos y capturas no pasan de un chat a otro.** Cada sesión solo ve lo que se subió en **su** chat. Por eso lo que
   importa es lo que la sesión **escribió** al verlos: la ficha de ideas.
