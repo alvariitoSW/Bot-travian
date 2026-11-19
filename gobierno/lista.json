@@ -45,14 +45,14 @@
       "titulo": "Una ciudad que construyes y ves crecer",
       "estado": "medias",
       "veras": "Colocas cada edificio donde quieres. Los barrios crecen solos alrededor y hay incendios y crecidas que atender.",
-      "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría. Roma con el aspecto de su siglo (CI1): templo toscano, muralla de toba lisa, ínsulas, foro con tabernas, más ciudad a la vista y campos por estaciones.",
-      "captura": "gobierno/capturas-tarea/Q1k-5-barrios.jpg",
+      "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría. Roma con el aspecto de su siglo (CI1): templo toscano, muralla de toba lisa, ínsulas, foro con tabernas, más ciudad a la vista y campos por estaciones. Calles con sentido (CI1b): eje de puerta a puerta por el foro y nada cruza casas ni campos. Ciudad mucho mayor a la vista (CI3a): urbe dibujada de 3,5 a 3,8 veces el área.",
+      "captura": "gobierno/capturas-tarea/CI3a-lejos.jpg",
       "tareas": [
         "CI1b",
         "CI3a",
         "CI3b"
       ],
-      "falta": "Tus pedidos: calles con sentido (CI1b) y la ciudad ×5 a la vista (CI3a, a punto de cerrarse; luego CI3b, que cuente en la economía, tras CE3), y el gobierno visible en la ciudad (dentro de CS2). El pulido que queda de la ciudad romana: pregunta CI1c del cuadro."
+      "falta": "Que la ciudad grande cuente en la economía (CI3b, tras CE3), el gobierno visible en la ciudad (dentro de CS2) y el pulido que queda de la ciudad romana (pregunta CI1c del cuadro)."
     },
     {
       "id": "L2",
