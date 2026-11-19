@@ -34,8 +34,15 @@ export function crearHud(m) {
     /* tu duelo: los tres gestos, mientras luchas y estás en pie; «Parar» llama cuando tu rival arma el golpe */
     const yoVivo = lucha && S.yo && S.yo.vivo && S.yo.duelo, d = yoVivo ? S.yo.duelo : null;
     for (const id of ['parar', 'estocada', 'empujar']) $(id).hidden = !yoVivo;
-    $('parar').classList.toggle('pide', !!(d && d.aviso && d.t0 > 0 && S.T < d.ts + 0.1));
-    $('estocada').classList.toggle('pide', !!(d && (S.T < (d.abierto || 0) || S.T < (d.deseq || 0))));
+    /* TP8b-L1: «Parar» late en la ventana de parada y se apaga si aún no puede; «Estocada» late y se enciende con el galo
+       abierto o desequilibrado, y se apaga mientras golpeas; «Empujar», apagado mientras recupera */
+    /* TP8b-L2: con poco aliento el gesto se apaga (la barra fina de cada botón es tu aliento); sin escudo, «Parar» es «Desviar» */
+    const tu = d && S.tuyo, fu = tu && tu.fuelle !== undefined ? tu.fuelle : null, falta = c => fu !== null && fu < c, est = !!(tu && tu.abierto && tu.estocada && !falta(tu.cS));
+    $('parar-t').textContent = tu && tu.roto ? 'Desviar' : 'Parar';
+    $('parar').classList.toggle('pide', !!(tu && tu.ventana && !falta(tu.cP))); $('parar').classList.toggle('apagada', !!(tu && (!tu.parar || falta(tu.cP))));
+    $('estocada').classList.toggle('pide', est); $('estocada').classList.toggle('activa', est); $('estocada').classList.toggle('apagada', !!(tu && (!tu.estocada || falta(tu.cS))));
+    $('empujar').classList.toggle('apagada', !!(tu && (!tu.empujar || falta(tu.cE))));
+    for (const id of ['parar', 'estocada', 'empujar']) { const b = $('fu-' + id); b.parentNode.hidden = fu === null; if (fu !== null) { b.style.width = Math.max(0, fu).toFixed(0) + '%'; b.classList.toggle('bajo', fu < 30); } }
     $('objetivo').textContent = S.fase === 'avance' ? 'Lleva el cuerpo hasta la loma' : S.fase === 'pila' ? (S.salvas === 0 ? 'Lanza los pila' : S.salvas === 1 ? 'Lanza el segundo pilum' : 'Aguanta, ya llegan')
       : !S.choque ? 'Carga contra su línea' : S.huida ? 'Huyen: la línea es tuya' : S.derrota ? 'Tu línea se rompe' : 'Rompe su línea: para, golpea, releva';
     /* el estado en palabras: tus hombres y, si caben, los galos */

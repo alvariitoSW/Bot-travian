@@ -1,5 +1,6 @@
 /* Pieza «enemigo»: los galos (arte de 0 A.D., Wildfire Games, CC BY-SA 3.0). Sin pantalla: corre en Node.
-   · creaGalos: dos filas de 8, cada uno con su sitio, su salida y su paso propio (locomocion.js).
+   · creaGalos: dos filas de 8, cada uno con su sitio, su salida y su paso propio (locomocion.js). TP8b-L3: y «reserva»
+     galos más, guardados (reserva: true, no se dibujan): son los refuerzos que la lucha (acciones.js) trae corriendo del fondo.
    · marchaGalos: esperan, gritan y se vienen; a 9 m, a la carrera. Cada uno acelera y frena a su aire (nada de golpe),
      y la pierna avanza por lo que recorre: los pies pisan.
    · filasGalo: qué dos filas de su tabla le tocan (quieto, andar, correr fundidos) o la de caer.
@@ -7,7 +8,7 @@
    Después: otros pueblos, con el mismo contrato. */
 import { crearPaso, velocidad, pisa } from './locomocion.js';
 import { filasMarcha } from './soldado.js';
-export function creaGalos(azar, azarP, Z_GALOS, zancadas) {
+export function creaGalos(azar, azarP, Z_GALOS, zancadas, reserva = 0) {
   const G = [];
   for (let i = 0; i < 16; i++) {
     const fila = Math.floor(i / 8);
@@ -16,6 +17,11 @@ export function creaGalos(azar, azarP, Z_GALOS, zancadas) {
       /* cada galo, su genio: unos salen con más prisa y corren algo más (±8 %); y su talla (±4 %), y con ella su zancada */
       vMas: 0.92 + azarP() * 0.16, esc: 0.96 + azarP() * 0.08 });
     const g = G[i]; g.paso = crearPaso({ zW: zancadas.walk * g.esc, zR: zancadas.run * g.esc, fase: azarP(), prisa: 0.8 + azarP() * 0.4 });
+  }
+  /* los de reserva no gastan azar: así la escena de siempre sale igual */
+  for (let k = 0; k < reserva; k++) {
+    const i = 16 + k; G.push({ i, x: 0, z: Z_GALOS - 40, vivo: false, reserva: true, muere: 0, fila: 2, fase: (k * 0.73) % 3, v: 0, dist: 0, sale: 99, marcado: false, frena: -9, fr: 0, A: 0, B: 0, mx: 0, pitch: 0, porPila: false, camino: 0, off: 0, golpes: 0, vMas: 1, esc: 0.97 + (k % 5) * 0.015 });
+    const g = G[i]; g.paso = crearPaso({ zW: zancadas.walk * g.esc, zR: zancadas.run * g.esc, fase: (k * 0.37) % 1, prisa: 1 });
   }
   return G;
 }

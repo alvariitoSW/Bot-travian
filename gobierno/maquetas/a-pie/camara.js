@@ -14,6 +14,9 @@ export function crearCamara(m) {
   /* GM43h: lo que se mueve la cámara a tiro de pilum (se suma a la de marcha) */
   const CAMP = { v: { x: -0.17, d: -2.1, y: -0.5, pitch: 0.1, fov: 0 }, h: { x: 0.1, d: -0.7, y: 0.15, pitch: 0.03, fov: 0 } };
   const CAM = { x: 0, y: 0, z: 0, yaw: 0, pitch: 0, fov: 60 };
+  /* TP8b-L2: la cámara de duelo, sobre tu hombro derecho: atrás, al lado y alto (m), abertura y dónde cae tu galo en pantalla (0 a 1) */
+  const CDH = { atras: 1.5, lado: 0.55, alto: 2.9, fov: 64, tx: 0.55, ty: 0.47 }, CDV = { atras: 2.4, lado: 0.9, alto: 2.5, fov: 70, tx: 0.6, ty: 0.44 }, CD = { k: 0, p: null, t: undefined };
+  if (Q.get('camd')) { const c = Q.get('camd').split(',').map(Number), t = m.vertical ? CDV : CDH; ['atras', 'lado', 'alto', 'fov', 'tx', 'ty'].forEach((n, i) => { if (isFinite(c[i])) t[n] = c[i]; }); }
     function camBase() {
     const k = suave(0, 1, S.k), yo = S.romanos[YO], co = S.romanos[CMP], mx = (yo.x + co.x) / 2, a = m.vertical ? CAMS.vm : CAMS.hm, b = m.vertical ? CAMS.vt : CAMS.ht;
     CAM.x = mx + lerp(a.x, b.x, k); CAM.z = S.zF + lerp(a.d, b.d, k); CAM.y = H(mx, S.zF) + lerp(a.y, b.y, k);
@@ -43,6 +46,22 @@ export function crearCamara(m) {
     if (d) { S.miraCam = { x: (d.r.x + d.g.x) / 2, z: (d.r.z + d.g.z) / 2 }; }
     const mc = S.miraCam; if (mc) CAM.yaw = lerp(CAM.yaw, Math.atan2(-(mc.x - CAM.x), -(mc.z - CAM.z)), w);
   }
+    /* TP8b-L2: en tu duelo, la cámara se pone sobre tu hombro derecho y más cerca: tu soldado a la izquierda y tu galo en el
+       centro libre (entre el cartel de arriba y los botones). Entra en 0,6 s al chocar y se desliza si cambia el rival */
+    {
+      const enLucha = S.choque && !S.huida && !S.derrota && !m.FUERA && !m.COSTADO, du = enLucha ? (S.duelos || []).find(x => x.activo && !x.sec && x.r === S.yo && x.r.vivo && x.g.vivo) : null;
+      const dtc = CD.t === undefined ? 9 : Math.max(0, S.T - CD.t); CD.t = S.T;
+      CD.k = enLucha && (du || CD.p) ? Math.min(1, CD.k + dtc / 0.6) : Math.max(0, CD.k - dtc / 0.6);
+      if (du) { const r = du.r, g = du.g, v = { rx: r.px ?? r.x, rz: r.pz ?? r.z, gx: g.px ?? g.x, gz: g.pz ?? g.z }, a = !CD.p || dtc > 0.5 ? 1 : 1 - Math.exp(-dtc * 5); if (!CD.p) CD.p = { ...v }; for (const n in v) CD.p[n] += (v[n] - CD.p[n]) * a; }
+      if (!S.choque) CD.p = null;
+      if (CD.k > 0 && CD.p) {
+        const c = m.vertical ? CDV : CDH, p = CD.p, l = Math.hypot(p.gx - p.rx, p.gz - p.rz) || 1, ux = (p.gx - p.rx) / l, uz = (p.gz - p.rz) / l;
+        const px = p.rx - ux * c.atras - uz * c.lado, pz = p.rz - uz * c.atras + ux * c.lado, py = H(p.rx, p.rz) + c.alto, gy = H(p.gx, p.gz) + 0.92, dx = p.gx - px, dz = p.gz - pz;
+        const tv = Math.tan(c.fov * Math.PI / 360), asp = typeof innerWidth !== 'undefined' ? innerWidth / innerHeight : m.vertical ? 390 / 844 : 844 / 390;
+        const yaw = Math.atan2(-dx, -dz) + Math.atan((c.tx - 0.5) * 2 * tv * asp), pitch = Math.atan2(gy - py, Math.hypot(dx, dz)) - Math.atan((0.5 - c.ty) * 2 * tv), k = suave(0, 1, CD.k);
+        CAM.x = lerp(CAM.x, px, k); CAM.y = lerp(CAM.y, py, k); CAM.z = lerp(CAM.z, pz, k); CAM.yaw = lerp(CAM.yaw, yaw, k); CAM.pitch = lerp(CAM.pitch, pitch, k); CAM.fov = lerp(CAM.fov, c.fov, k);
+      }
+    }
     /* TP1: de costado (?costado=r o g), desde la izquierda y a la altura del pecho, para mirar si los pies pisan */
     /* TP1b: desde fuera (?vista=fuera), delante y a la izquierda de la formación, a la altura de la cabeza, mirando al centurión */
     if (m.FUERA) {

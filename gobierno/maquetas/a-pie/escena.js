@@ -20,7 +20,7 @@ import { FILES, FILAS, M, ABIERTO, CERRADO, YO, CMP, ySup, MURO_Y, MURO_Z, TECHO
 import { crearPaso, velocidad, pisa, dispersion, MARCHA } from './locomocion.js';
 import { CJ, generaTabla, hueso as huesoT, datosPies, pieEn, faseCero, filasMarcha, filaEnFase, tablaPaso } from './soldado.js';
 import { creaGalos, marchaGalos, filasGalo, conMezcla } from './enemigo.js';
-import { crearAcciones } from './acciones.js';
+import { crearAcciones, RESERVA_G } from './acciones.js';
 import { crearCamara } from './camara.js';
 import { crearHud } from './hud.js';
 import * as Son from './sonido.js';
@@ -482,9 +482,9 @@ function reinicia() {
   for (const h of S.romanos) { const t = 0.985 + azarP() * 0.03; h.sv = new THREE.Vector3(E * t, E * t, E * t); h.dz = 0; h.ritmo = 0.97 + azarP() * 0.06; h.retMarcha = h.r * 0.17 + azarP() * 0.14; h.arranque = 0; h.paso = crearPaso({ zW: HOM.zan.walk * t, zR: HOM.zan.run * t, zT: HOM.zan.testudo * t, fase: azarP(), prisa: 0.85 + azarP() * 0.3 }); }
   S.yo = S.romanos[YO];
   S.tiradores = []; for (let i = 0; i < 10; i++) S.tiradores.push({ x: (i - 4.5) * 1.7 + (azar() - 0.5) * 0.5, z: Z_TIRADORES + (azar() - 0.5) * 1.2, vivo: true, muere: 0, huye: false, yaw: 0, fase: azar() * 4 });
-  S.galos = creaGalos(azar, azarP, Z_GALOS, FIG_G.zan); for (const g of S.galos) { g.inst = m4(); g.sv = new THREE.Vector3(E * g.esc, E * g.esc, E * g.esc); }
+  S.galos = creaGalos(azar, azarP, Z_GALOS, FIG_G.zan, RESERVA_G);   /* TP8b-L3: más los de refuerzo */ for (const g of S.galos) { g.inst = m4(); g.sv = new THREE.Vector3(E * g.esc, E * g.esc, E * g.esc); }
   for (const f of FL) f.est = 0; for (const a of ASTILLAS) { a.t = -9; a.m.visible = false; } for (const p of PILA) p.est = 0;
-  for (const c of CHISPAS) c.t = -9; for (const p of POLVO) p.t = -9; for (const p of PIES) p.t = -9; S.restoPolvo = 0; S.congela = 0; S.tiron = null;
+  for (const c of CHISPAS) c.t = -9; for (const p of POLVO) p.t = -9; for (const p of PIES) p.t = -9; S.restoPolvo = 0; S.congela = 0; S.tiron = null; S.lento = 0; S.tuyo = null; S.tGotas = -9;
   $('fin').hidden = true; cinta('', false); DANIO.value = TEX_DANIO[0];
   for (const h of S.romanos) sitio(h); actualiza();
 }
@@ -706,20 +706,27 @@ function frameGalo(g) {
 }
 /* TP1: las filas de cada galo (marcha, o la lucha de acciones.js) y su matriz en el mundo */
 function galoAhora(g) {
-  const T = S.T, CG = FIG_G.C, e = g.est || { modo: 'guardia' };
+  if (g.reserva) { g.inst.makeScale(0, 0, 0); return; }   /* TP8b-L3: refuerzo que aún no ha salido: no se ve */
+  const T = S.T, CG = FIG_G.C, e = g.est || { modo: 'guardia' }; let tw = 0;
   if (ANTES) { g.A = g.B = frameGalo(g); g.mx = 0; g.pitch = 0; }
   else filasGalo(g, FIG_G, T, frameOf, frameOnce);
   if (S.choque && g.vivo && !g.huye) {
     g.mx = 0; g.pitch = 0; const sa = ACC.sAtaque(e);
     if (sa !== null) g.A = g.B = Math.round(ACC.clipPos(e.d.clip, sa));
+    else if (g.anda && g.corre && CG.run) g.A = g.B = frameOf(CG.run, g.camino / FIG_G.zan.run * CG.run.dur);   /* TP8b-L3: el refuerzo llega corriendo */
     else if (g.anda) g.A = g.B = frameOf(CG.walk, g.camino / FIG_G.zan.walk * CG.walk.dur);
     else g.A = g.B = frameOf(CG.idle, T + g.fase);
     if (e.modo === 'cubre') g.pitch = -0.1 * (suave(0, 0.3, e.t) - suave(0.45, 0.75, e.t));
     if (e.modo === 'recibe') g.pitch = (e.d.lado > 0 ? 0.24 : -0.16) * (suave(0, 0.12, e.t) - suave(0.35, 0.8, e.t));   /* se dobla o se echa atrás */
-    if (e.modo === 'ataca' && e.d.aviso && e.t < e.d.tb) g.pitch = -0.09 * suave(0, e.d.tb, e.t);   /* TP1b: al armar el golpe se echa atrás */
+    if (e.modo === 'ataca' && e.d.aviso) {   /* TP8b-L1: arma con todo el cuerpo (se echa atrás y gira los hombros) y lo suelta de golpe hacia delante */
+      const d = e.d, ar = suave(0, d.tA || d.tb, e.t), su = suave(d.tb, d.tb + 0.12, e.t), va = 1 - suave(d.tb + 0.25, d.tb + 0.7, e.t);
+      g.pitch = -0.2 * ar * (1 - su) + 0.15 * su * va; tw = (d.lado || 1) * (-0.5 * ar * (1 - su) + 0.22 * su * va);
+      if (d.tipo === 'finta' && e.t > (d.tA || 0) && e.t < d.tb) tw += 0.03 * Math.sin(S.T * 40);   /* aguanta armado, temblando */
+    }
     if (g.tipoGolpe && S.T - g.tGolpe < 1) g.pitch = dobla(g);   /* TP8 1a: se encoge si le dan; si es en el escudo, se echa atrás */
   }
-  const x = S.choque && g.xd !== undefined ? g.xd : g.x, z = S.choque && g.zd !== undefined ? g.zd : g.z, yaw = S.choque && g.yaw !== undefined ? g.yaw + (g.jy || 0) : 0;
+  if (S.choque && !g.vivo && g.atras && !ANTES) g.pitch = -0.32 * suave(0, 0.5, T - g.muere);   /* TP8b-L1: tu estocada lo tumba hacia atrás */
+  const x = S.choque && g.xd !== undefined ? g.xd : g.x, z = S.choque && g.zd !== undefined ? g.zd : g.z, yaw = S.choque && g.yaw !== undefined ? g.yaw + (g.jy || 0) + tw : 0;
   g.inst.compose(PA.set(x, H(x, z), z), QG.setFromEuler(EUL.set(g.pitch, yaw, 0)), ANTES ? SB : g.sv);
 }
 
@@ -1032,7 +1039,7 @@ const O = new THREE.Object3D(), CERO = m4().makeScale(0, 0, 0);
    anclada al punto del casco del modelo: va con la cabeza (también si cae). Y la marca del rival de delante: un aro en el suelo,
    claro cuando solo te mira, ámbar cuando arma el golpe y verde cuando queda abierto */
 const OFS_CRESTA = (Q.get('cresta') || '0,0,0.21').split(',').map(Number), ROT_CRESTA = (Q.get('crestaR') || '1.5708,0,0').split(',').map(Number);
-let CRESTA = null, ARO = null, PICO = null;
+let CRESTA = null, ARO = null, PICO = null, ANILLO = null, DIANA = null, GOTAS = null;
 function creaCresta() {
   const g = new THREE.CylinderGeometry(1, 1, 1, 16, 1, false, Math.PI / 2, Math.PI); g.rotateX(Math.PI / 2); g.scale(0.185, 0.16, 0.045);
   const pelo = new THREE.MeshStandardMaterial({ color: '#b0201a', roughness: 0.92, metalness: 0 });
@@ -1043,6 +1050,12 @@ function creaCresta() {
   /* y un pico sobre su cabeza, del mismo color (el aro solo se ve a ratos entre las piernas) */
   const gp = new THREE.ConeGeometry(0.11, 0.24, 4); gp.rotateX(Math.PI);
   PICO = new THREE.Mesh(gp, ARO.material); PICO.visible = false; PICO.renderOrder = 2; escena.add(PICO);
+  /* TP8b-L1: el anillo que se cierra sobre el galo hasta el instante de parar (de cara a la cámara, por encima de todo) y la
+     diana fija donde acaba; y la salpicadura oscura de tu estocada (seis gotas que caen) */
+  const anillo = (r0, r1, c, o) => { const m = new THREE.Mesh(new THREE.RingGeometry(r0, r1, 56), new THREE.MeshBasicMaterial({ color: c, transparent: true, opacity: o, depthWrite: false, depthTest: false })); m.visible = false; m.renderOrder = 4; m.frustumCulled = false; escena.add(m); return m; };
+  ANILLO = anillo(0.4, 0.5, '#ffb020', 0.95); DIANA = anillo(0.45, 0.5, '#fff3dc', 0.7);
+  const gg = new THREE.BufferGeometry(); gg.setAttribute('position', new THREE.BufferAttribute(new Float32Array(6 * 3), 3).setUsage(THREE.DynamicDrawUsage));
+  GOTAS = new THREE.Points(gg, new THREE.PointsMaterial({ color: '#3a0906', size: 0.12, sizeAttenuation: true, transparent: true, opacity: 0.92, depthWrite: false })); GOTAS.visible = false; GOTAS.frustumCulled = false; GOTAS.userData.v = Array.from({ length: 6 }, () => new THREE.Vector3()); GOTAS.userData.p0 = new THREE.Vector3(); escena.add(GOTAS);
 }
 function dibujaMarcas() {
   const c = S.romanos[YO];
@@ -1057,6 +1070,23 @@ function dibujaMarcas() {
     PICO.position.set(x, H(x, z) + 2.55 + (arma ? 0.06 * Math.sin(S.T * 18) : 0), z); PICO.rotation.y = S.T * 1.5;
   }
   PICO.visible = ARO.visible;
+  /* TP8b-L1: el anillo se cierra hasta el golpe (ámbar; rojo en la ventana de parada). En la finta se queda a medias y aguanta.
+     Con el galo abierto o desequilibrado, la diana se pone verde: es tu momento */
+  const ve = ARO.visible && !ANTES, arma = ve && d.aviso && d.t0 > 0 && S.T < d.ts + 0.08, abierto = ve && (S.T < (d.abierto || 0) || S.T < (d.deseq || 0));
+  ANILLO.visible = arma; DIANA.visible = arma || abierto;
+  if (DIANA.visible) {
+    const x = g.xd ?? g.x, z = g.zd ?? g.z, y = H(x, z) + 1.25;
+    for (const a of [ANILLO, DIANA]) { a.position.set(x, y, z); a.quaternion.copy(camara.quaternion); }
+    if (arma) {
+      const t = S.T - d.t0, tot = d.ts - d.t0, tA = d.tA || d.tb, fin = d.tipo === 'finta' ? Math.min(0.8, t / (tot - (d.tb - tA))) : 0;
+      const p = d.tipo === 'finta' ? (t < tA ? fin : 0.8 + 0.2 * Math.min(1, (t - tA) / (tot - tA))) : Math.min(1, t / tot), ven = S.T > d.ts - ACC.VENTANA;
+      ANILLO.scale.setScalar(1 + 2.4 * (1 - p)); ANILLO.material.color.set(ven ? '#ff3020' : '#ffb020'); ANILLO.material.opacity = ven ? 1 : 0.9;
+      DIANA.scale.setScalar(1); DIANA.material.color.set(ven ? '#ff3020' : '#fff3dc'); DIANA.material.opacity = ven ? 0.9 : 0.55;
+    } else { DIANA.scale.setScalar(1.05 + 0.08 * Math.sin(S.T * 12)); DIANA.material.color.set('#8ef07a'); DIANA.material.opacity = 0.85; }
+  }
+  /* las gotas: salen del sitio del golpe hacia delante y caen (cuentas cerradas, sin dt) */
+  const tg = S.T - S.tGotas; GOTAS.visible = tg >= 0 && tg < 0.7;
+  if (GOTAS.visible) { const pa = GOTAS.geometry.attributes.position, p0 = GOTAS.userData.p0; GOTAS.userData.v.forEach((v, i) => { const px = p0.x + v.x * tg, pz = p0.z + v.z * tg; pa.setXYZ(i, px, Math.max(H(px, pz) + 0.02, p0.y + v.y * tg - 4.9 * tg * tg), pz); }); pa.needsUpdate = true; }
 }
 function pon(fig, i, x, y, z, yaw, frame) { O.position.set(x, y, z); O.rotation.set(0, yaw, 0); O.scale.setScalar(E); O.updateMatrix(); fig.m.setMatrixAt(i, O.matrix); fig.fr.array[i] = frame; }
 /* el pilum en la mano: de pie en la marcha, tendido hacia delante bajo los escudos, y al hombro para lanzar */
@@ -1205,9 +1235,9 @@ function prepara(f) {
      tu golpe entra; relevo: la segunda fila pasa delante; caido: el centurión cae y eres otro; huida: los galos rompen */
   if (LUCHA2.includes(f)) {
     const hasta = (c, seg = 40) => { for (let i = 0; i < seg * 30 && !c(); i++) paso(1 / 30); }, tu = () => S.yo && S.yo.duelo, arma = (a = 0.55) => { const d = tu(); return d && d.aviso && d.t0 > 0 && S.T > d.t0 + a; };
-    tiro(T_MEDIDOR - 0.06); salta(RECARGA + 0.05); tiro(T_MEDIDOR - 0.06); hasta(() => S.choque, 30); salta(1.2);
+    S.forzarGolpe = 'tajo'; tiro(T_MEDIDOR - 0.06); salta(RECARGA + 0.05); tiro(T_MEDIDOR - 0.06); hasta(() => S.choque, 30); salta(1.2);
     if (f === 'aviso') hasta(() => arma(0.62));
-    if (f === 'parada' || f === 'estocada') { hasta(() => arma(0.6)); const d = tu(), ts = d.ts; S.pide = 'parar'; hasta(() => S.T > ts + 0.1); }
+    if (f === 'parada' || f === 'estocada') { hasta(() => arma(0.1)); hasta(() => S.T > tu().ts - 0.3); const d = tu(), ts = d.ts; S.pide = 'parar'; hasta(() => S.T > ts + 0.1); }
     if (f === 'estocada') { salta(0.15); S.pide = 'estocada'; paso(1 / 30); const ts = tu().ts; hasta(() => S.T > ts + 0.12); }
     if (f === 'relevo') { salta(1.5); ordena('relevo'); salta(1.0); }
     if (f === 'caido') { S.yo.golpes = 2; hasta(() => !S.romanos[YO].vivo); hasta(() => S.yo && S.yo !== S.romanos[YO] && S.yo.duelo && S.yo.duelo.r === S.yo); salta(0.5); }
@@ -1273,7 +1303,7 @@ let ultimo = 0, CAMPO = null;
 function bucle(t) {
   if (CAMPO) CAMPO.tick(t / 1000);
   const dt = Math.min(0.05, (t - ultimo) / 1000 || 0); ultimo = t;
-  if (!parado) { if (S.congela > 0) S.congela -= dt; else paso(dt); }   /* TP8 1a: la pausa mínima al acertar en tu duelo */
+  if (!parado) { if (S.congela > 0) S.congela -= dt; else { const k = S.lento > 0 ? 0.4 : 1; if (S.lento > 0) S.lento -= dt; paso(dt * k); } }   /* TP8b-L1: y la cámara lenta al matarlo */   /* TP8 1a: la pausa mínima al acertar en tu duelo */
   dibuja(); hud(); requestAnimationFrame(bucle);
 }
 /* TP8 1a: el sitio donde para la hoja: el centro del escudo del que recibe o, si le dan, la cara de su pecho */
@@ -1315,11 +1345,19 @@ function golpe(d, def, at, tipo, tuyo) {
   blanco(def, at, tipo === 'escudo', PB); const dx = def.x - at.x, dz = def.z - at.z, l = Math.hypot(dx, dz) || 1;
   if (tipo === 'escudo') { PB.x -= dx / l * 0.12; PB.z -= dz / l * 0.12; chispa(PB, tuyo ? 0.9 : 0.5); }
   else { chispa(PB, tuyo ? 0.45 : 0.25); polvazo(PB.x, PB.y - 0.3, PB.z, tuyo ? 0.35 : 0.2); }
-  if (tuyo) { S.congela = tipo === 'cuerpo' ? 0.09 : 0.065; S.tiron = { t: S.T, x: dx / l, z: dz / l, e: tipo === 'cuerpo' ? 1 : 0.7 }; }
+  def.fuerte = tuyo && at.lado === 'r' && tipo === 'cuerpo';
+  if (tuyo) { S.congela = def.fuerte ? 0.11 : tipo === 'cuerpo' ? 0.09 : 0.065; S.tiron = { t: S.T, x: dx / l, z: dz / l, e: def.fuerte ? 1.8 : tipo === 'cuerpo' ? 1 : 0.7 }; }
+  /* TP8b-L1: tu estocada entra: salpicadura oscura corta, polvo en sus pies y, si lo mata, un instante a cámara lenta */
+  if (def.fuerte) {
+    S.tGotas = S.T; GOTAS.userData.p0.copy(PB); GOTAS.userData.v.forEach(v => v.set(dx / l * (0.6 + azarV() * 0.8) + (azarV() - 0.5) * 0.7, 0.6 + azarV() * 1.1, dz / l * (0.6 + azarV() * 0.8) + (azarV() - 0.5) * 0.7));
+    const fx = def.xd ?? def.x, fz = def.zd ?? def.z; polvazo(fx, H(fx, fz) + 0.2, fz, 0.6); polvazo(fx + 0.2, H(fx, fz) + 0.15, fz - 0.15, 0.45); S.sacude = Math.max(S.sacude, 0.2);
+    if (d.res === 'muere') S.lento = 0.35;
+  }
 }
 /* cuánto se dobla un hombre por el golpe: hacia delante si le dan en el cuerpo, atrás si es en el escudo */
 function dobla(m) {
   if (!m.tipoGolpe) return 0; const t = S.T - m.tGolpe; if (t < 0 || t > 1) return 0;
+  if (m.fuerte && m.tipoGolpe === 'cuerpo') return 0.5 * (suave(0, 0.07, t) - suave(0.4, 1, t));   /* tu estocada: se dobla sobre la hoja */
   return m.tipoGolpe === 'cuerpo' ? 0.26 * (suave(0, 0.08, t) - suave(0.35, 0.9, t)) : -0.1 * (suave(0, 0.06, t) - suave(0.12, 0.45, t));
 }
 /* TP8 1a: medida de «atraviesan» (ver window.__tp.contacto) */
@@ -1375,9 +1413,9 @@ window.__tp = {
   { const td = await new THREE.TextureLoader().loadAsync('gobierno/maquetas/testudo-luz-campo/arte/detalle.png'); td.wrapS = td.wrapT = THREE.RepeatWrapping; td.anisotropy = 4; DET.value = td; }
   if (!getUnit('hastati') || !getUnit('peltastas') || !getUnit('galos')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
   CAMPO = await crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color });
-  await creaHombres(); creaCresta(); malla('peltastas', 10, '#3456a8'); malla('galos', 16, '#3456a8'); preparaGalos();
+  await creaHombres(); creaCresta(); malla('peltastas', 10, '#3456a8'); malla('galos', 16 + RESERVA_G, '#3456a8'); preparaGalos();
   try { await escudoGalo(); } catch (e) { console.warn('Sin escudo galo para clavar pila', e); }
-  ACC = crearAcciones({ S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave, E, figuras, cinta, nombre, get HOM() { return HOM; }, alcance: ANTES ? undefined : alcance, golpe: ANTES ? undefined : golpe });
+  ACC = crearAcciones({ S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave, E, figuras, cinta, nombre, get HOM() { return HOM; }, alcance: ANTES ? undefined : alcance, golpe: ANTES ? undefined : golpe, aliento: !ANTES });
   reinicia();
   if (FASE) prepara(FASE);
   $('carga').hidden = true;
