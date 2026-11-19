@@ -1956,7 +1956,7 @@ console.log('OK — todas las pruebas superadas');
   const store = {}; global.localStorage = { getItem: k => store[k] || null, setItem: (k, v) => { store[k] = v; }, removeItem: k => { delete store[k]; } };
   const rico = s => { for (const r of D.RES) { s.res[r] = 1e5; s.alm[r] = 1e5; s.cuarto && (s.cuarto[r] = 1e5); } };
   const nuevo = (turnos, auto) => { const s = G.newGame('Fa', 'mediterraneo', {}); G.turnos = turnos; G.autoVivo = !!auto; s.speed = 0; s.ajustes.dif = 'dura'; rico(s); CIM.sembrarCasas(G.ciudadE('roma'), 400); return s; };
-  const hastaFuego = s => { let n = 0; while (!s.vivo && n++ < 120) { G.pasarTurno(); s.pending.length = 0; rico(s); if (s.t >= G.finTurno() - 1e-9) G.tick(0.01); s.pending.length = 0; } return !!s.vivo; };
+  const hastaFuego = s => { let n = 0; while ((!s.vivo || s.vivo.cid !== 'roma') && n++ < 120) { if (s.vivo) { G.dejarArder(s.vivo.cid); continue; } G.pasarTurno();   /* CI1b: con las calles nuevas el primer fuego puede prender en Capua: se deja arder y se espera al de Roma */ s.pending.length = 0; rico(s); if (s.t >= G.finTurno() - 1e-9) G.tick(0.01); s.pending.length = 0; } return !!s.vivo; };
   // (a) sin turnos: G.tick nunca queda parado y los fuegos se dejan arder (como antes)
   { const s = nuevo(false, false); let n = 0; while (s.t < 30 && n++ < 400) { G.tick(0.25); s.pending.length = 0; rico(s); } assert(s.t >= 30 && !s.vivo && G.autoVivoOn(), 'con G.turnos=false el reloj corre y no hay s.vivo'); }
   // (b) con turnos: pasarTurno se detiene en el fuego y sigue tras apagar
