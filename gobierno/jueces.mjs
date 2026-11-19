@@ -281,6 +281,41 @@ async function navegador() {
         : 'elegido ' + JSON.stringify(elegidos) + ', aviso mover «' + noMueve + '», aviso testudo «' + noForma + '», efecto ' + JSON.stringify(efecto) + ', guardada igual ' + (guardada === despues), captura: ok ? cap : capFin };
     });
 
+    /* CG6: a pie. Se baja con un hastati, se mira que la cámara va al hombro, se anda con la palanca y se vuelve al mando.
+       Se mira el EFECTO (posiciones, cámara, reloj del simulador). El dibujo va a ~1 fotograma/s: se avanza a mano con cuadro(0.1) */
+    await paso('Escaramuzas: bajar a pie y volver al mando', async () => { try { return await bajarApie(); } finally {
+      /* pase lo que pase, se deja la página como la encontró (en vertical, sin la pantalla de mando): si no, los pasos siguientes fallan */
+      await estado(() => { if (window.__mn && !window.__mn.cerrado && window.__mn.terminar) window.__mn.terminar(); }).catch(() => { }); await espera(800);
+      if (await page.locator('#hoja [data-act="hojax"]').count()) await page.click('#hoja [data-act="hojax"]').catch(() => { });
+      await page.setViewportSize({ width: 390, height: 844 }); await espera(800);
+    } });
+    async function bajarApie() {
+      if (!(await page.locator('#hoja .esc').count())) { await page.click('#menu .mesc'); await espera(800); }   /* el menú se toca en vertical, como en el paso anterior */
+      await page.setViewportSize({ width: 844, height: 390 }); await espera(500);
+      await page.click('[data-act="escempieza"]');
+      await page.waitForFunction(() => window.__mn && window.__mn.lista === true, null, { timeout: 180000 }).catch(() => { });
+      if (!(await estado(() => !!(window.__mn && window.__mn.lista)))) return { ok: false, detalle: 'la pantalla de mando no llegó a estar lista', captura: await foto('apie-carga') };
+      await estado(() => window.__mn.pausa(false)); await espera(800);
+      const id = await estado(() => { const u = window.__mn.S.man.find(u => u.lado === 0 && u.tropa === 'hastati') || window.__mn.S.man.find(u => u.lado === 0); window.__mn.elegir([u.id]); return u.id; });
+      const no = await estado(i => window.__mn.bajar(i), id);
+      await espera(1500);
+      const a0 = await estado(() => window.__mn.apie());
+      const u0 = await estado(i => { const u = window.__mn.S.man[i]; return { x: u.x, y: u.y, t: window.__mn.S.t }; }, id);
+      if (no || !a0) return { ok: false, detalle: 'no baja: «' + no + '»', captura: await foto('apie-no') };
+      const dCam = Math.hypot(a0.camara.x - a0.x, a0.camara.z + a0.y);
+      await estado(() => { window.__mn.palanca(0, -1); for (let k = 0; k < 30; k++) window.__mn.cuadro(0.1); window.__mn.palanca(0, 0); });
+      const a1 = await estado(() => window.__mn.apie());
+      const anda = Math.hypot(a1.x - a0.x, a1.y - a0.y);
+      await estado(() => { for (let k = 0; k < 40; k++) window.__mn.cuadro(0.1); });
+      const cap = await foto('escaramuza-apie');
+      const u1 = await estado(i => { const u = window.__mn.S.man[i]; return { x: u.x, y: u.y, t: window.__mn.S.t, oculto: getComputedStyle(document.getElementById('mn-abajo')).display === 'none' }; }, id);
+      const mueveMan = Math.hypot(u1.x - u0.x, u1.y - u0.y);
+      await estado(() => window.__mn.subir()); await espera(1500);
+      const arriba = await estado(() => ({ a: window.__mn.apie(), y: window.__mn.camaraY(), sel: window.__mn.estado().sel }));
+      const ok = dCam < 6 && a0.camara.y < 4 && anda > 2 && mueveMan > 1 && u1.t > u0.t + 5 && u1.oculto && !arriba.a && arriba.y > 30 && arriba.sel.includes(id);
+      return { ok, detalle: 'cámara a ' + dCam.toFixed(1) + ' m y ' + a0.camara.y.toFixed(1) + ' m de alto; el centurión anda ' + anda.toFixed(1) + ' m; el manípulo se mueve ' + mueveMan.toFixed(1) + ' m; reloj ' + u0.t.toFixed(1) + ' → ' + u1.t.toFixed(1) + ' s; arriba de nuevo a ' + (+arriba.y).toFixed(0) + ' m', captura: cap };
+    }
+
     await paso('Nueva partida: se ve el mapa', async () => {
       await page.click('#menu [data-act="new"]'); await espera(2500); await cierraAvisos();
       await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; Game.autoVivo = true; });      // CN14-C: el asesor de serie no cambia el recorrido
