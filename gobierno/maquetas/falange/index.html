@@ -54,7 +54,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 #miescudo{width:16px;height:19px;flex:none;color:var(--verde)}
 #miescudo.e1{color:#e6ac3c}#miescudo.e2{color:var(--rojo)}#miescudo.roto{color:#8d846f}
 #miescudo .x{display:none}#miescudo.roto .x{display:block}#miescudo .g1{display:none}#miescudo.e1 .g1,#miescudo.e2 .g1{display:block}#miescudo .g2{display:none}#miescudo.e2 .g2{display:block}
-#grito{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 22px);transform:translateX(-50%);max-width:36%;font:700 20px Cinzel,Georgia,serif;letter-spacing:.04em;color:#fff3dc;text-shadow:0 2px 6px #000,0 0 12px rgba(0,0,0,.9);text-align:center;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .2s}
+#grito{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 86px);transform:translateX(-50%);max-width:36%;font:700 20px Cinzel,Georgia,serif;letter-spacing:.04em;color:#fff3dc;text-shadow:0 2px 6px #000,0 0 12px rgba(0,0,0,.9);text-align:center;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .2s}
 #grito.ve{opacity:1}
 .boton{min-width:128px;height:58px;padding:0 16px;border-radius:14px;background:linear-gradient(#3a2c14,#241b0d);border:1.5px solid var(--bronce);display:flex;align-items:center;justify-content:center;gap:8px;font:700 15px Cinzel,Georgia,serif;letter-spacing:.03em;white-space:nowrap;box-shadow:0 3px 12px rgba(0,0,0,.5);overflow:clip}
 .boton svg{width:22px;height:22px;color:var(--oro)}
@@ -69,6 +69,21 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 #aguja{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--marmol);border-right:2px solid #fff}
 #aguja.buena{background:var(--verde)}
 #accion.espera #aguja{background:#8d846f;border-right-color:#8d846f}
+/* TP8b-P2: cohesión, compás y flanco */
+#forma{margin-top:5px}#forma b{transition:width .2s,background .3s}#cohn{min-width:22px;text-align:right;font-weight:700}
+#terreno{margin-top:4px;font-size:11px;color:#f1e3bd;white-space:nowrap;font-variant-numeric:tabular-nums}
+.boton.apagado{opacity:.38;filter:saturate(.3)}
+#golpe{position:relative;overflow:visible}
+#anillo{position:absolute;inset:-5px;border-radius:18px;border:3px solid #fff3dc;pointer-events:none;opacity:0;box-shadow:0 0 8px rgba(0,0,0,.6)}
+#golpe.ya{border-color:#c9ecae;box-shadow:0 0 0 4px rgba(124,198,94,.85),0 0 18px rgba(124,198,94,.9)}
+#golpe.ya #anillo{border-color:#9be37a}
+#golpe .ha{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font:700 20px Cinzel,Georgia,serif;color:#c9ecae;text-shadow:0 2px 5px #000;opacity:0}
+#golpe.ya .ha{opacity:1}
+#flanco{position:absolute;top:30%;right:10px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 14px 8px;border-radius:14px;background:rgba(122,22,14,.88);border:2px solid #ffd2a0;font:700 20px Cinzel,Georgia,serif;color:#fff3dc;text-shadow:0 2px 4px #000;animation:pide .6s infinite}
+#flanco.izq{right:auto;left:10px}
+#flanco svg{width:64px;height:64px;stroke-width:3;color:#ffd2a0}#flanco.izq svg{transform:scaleX(-1)}
+#flanco small{font:600 13px system-ui,sans-serif}
+@media (orientation:landscape){#cinta{top:calc(env(safe-area-inset-top) + 128px)}#flanco{top:33%}}
 @keyframes pide{50%{border-color:#fff;box-shadow:0 0 0 3px rgba(233,192,99,.6)}}
 @media (orientation:portrait){
   #derecha,#izquierda{flex-direction:column-reverse}
@@ -94,12 +109,15 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
   <div id="sombra"></div>
   <div id="cinta"></div>
   <div id="grito"></div>
+  <div id="flanco" hidden><svg viewBox="0 0 24 24"><path d="M3 12h16M13 5l7 7-7 7"/></svg><span id="flanco-t">¡Por la derecha!</span><small id="flanco-s">Aguantar · 5 s</small></div>
   <div id="arriba">
     <button id="salir" class="pildora"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Salir</button>
     <div id="mision">
       <div id="objetivo">Avanza hacia el manípulo romano</div>
-      <div id="nos">Falange · 56 en pie · firme · fresca · igualado</div>
-      <div id="ellos">Romanos · 24 en pie · firme · fresca · igualado</div>
+      <div id="forma">Cohesión <span id="barra"><b id="coh"></b></span><span id="cohn">100</span></div>
+      <div id="terreno">Terreno ganado: 0 de 15 m</div>
+      <div id="nos">Falange · 96 en pie · firme · fresca · igualado</div>
+      <div id="ellos">Romanos · 96 en pie · firme · fresca · igualado</div>
     </div>
   </div>
   <div id="abajo">
@@ -110,7 +128,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
     <div id="derecha">
       <button id="picas" class="boton"><svg viewBox="0 0 24 24"><path d="M4 19L20 7M17 5l4 1-2 3M3 14l14-9"/></svg><span id="picas-t">Picas abajo</span></button>
       <button id="empujad" class="boton" hidden><svg viewBox="0 0 24 24"><path d="M4 12h12M12 6l6 6-6 6M20 5v14"/></svg>Empujad</button>
-      <button id="golpe" class="boton roja" hidden><svg viewBox="0 0 24 24"><path d="M3 12h16M15 8l5 4-5 4"/></svg>Golpe</button>
+      <button id="golpe" class="boton roja" hidden><i id="anillo"></i><span class="ha">¡Ha!</span><svg viewBox="0 0 24 24"><path d="M3 12h16M15 8l5 4-5 4"/></svg>Golpe</button>
     </div>
   </div>
   <div id="fin" class="velo" hidden>

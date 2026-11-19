@@ -3,6 +3,7 @@
 // Uso:  node gobierno/maquetas/falange/captura.mjs                    -> todo (dpr 2)
 //       node gobierno/maquetas/falange/captura.mjs dpr=1 solo=marcha,choque -> solo esas fotos
 //       node gobierno/maquetas/falange/captura.mjs dpr=1 parte=medidas  -> solo las cifras (partida, astas, patinaje)
+//       node gobierno/maquetas/falange/captura.mjs dpr=1 parte=loco     -> TP8b-P2: los dos bots (a lo loco pierde; bien gana en 60–110 s)
 //       node gobierno/maquetas/falange/captura.mjs --servir             -> solo sirve la página
 import { createRequire } from 'module';
 import { createServer } from 'http';
@@ -18,7 +19,7 @@ if (args.includes('--servir')) { console.log('Sirviendo en ' + URL0); await new 
 const { chromium } = createRequire(join(RAIZ, 'x.js'))('playwright');
 const br = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
 await mkdir(SALIDA, { recursive: true });
-const dpr = +(op.dpr || 2), prefijo = join(SALIDA, 'TP7a-'), errores = [], COSTE = [];
+const dpr = +(op.dpr || 2), prefijo = join(SALIDA, (op.pref || 'TP7a') + '-'), errores = [], COSTE = [];
 const bien = (ok, texto) => { console.log((ok ? '  bien: ' : '  MAL: ') + texto); if (!ok) errores.push('PRUEBA: ' + texto); };
 function escucha(page) {
   page.on('console', m => { if ((m.type() === 'error' || m.type() === 'warning') && !/GPU stall|GL Driver|willReadFrequently/.test(m.text())) { errores.push(m.text().slice(0, 300)); console.log('  [' + m.type() + '] ' + m.text().slice(0, 300)); } });
@@ -38,11 +39,12 @@ async function botones(page, nombre, w, h) {
 async function foto(fase, nombre, w, h, extra = '') {
   const { ctx, page } = await abre('?fase=' + fase + extra, w, h);
   const info = await page.evaluate(() => { const r = window.__tp.renderer.info.render; return { calls: r.calls, tri: r.triangles }; });
-  const e = await page.evaluate(() => ({ ...window.__tp.estado(), pant: window.__tp.enPantalla(), astas: window.__tp.astas(), arriba: document.getElementById('nos').textContent + ' | ' + document.getElementById('ellos').textContent }));
+  const e = await page.evaluate(() => ({ ...window.__tp.estado(), pant: window.__tp.enPantalla(), astas: window.__tp.astas(), minAstas: window.__tp.astasMin(), arriba: document.getElementById('nos').textContent + ' | ' + document.getElementById('ellos').textContent }));
   COSTE.push({ nombre, calls: info.calls, tri: info.tri });
   await botones(page, nombre, w, h);
   await page.screenshot({ path: prefijo + nombre + '.jpg', type: 'jpeg', quality: 84, timeout: 240000 });
-  console.log(`${nombre}: ${info.calls} llamadas, ${Math.round(info.tri / 1000)} mil triángulos, fase ${e.fase}, picas ${e.kFrente}, cinta «${e.cinta}», arriba «${e.arriba}»`);
+  console.log(`${nombre}: ${info.calls} llamadas, ${Math.round(info.tri / 1000)} mil triángulos, fase ${e.fase}, picas ${e.kFrente}, cinta «${e.cinta}», arriba «${e.arriba}»; astas: separación mínima entre ejes ${e.minAstas.min} m (${e.minAstas.par}; grosor ${e.minAstas.grosor})`);
+  bien(e.minAstas.min > e.minAstas.grosor, `${nombre}: ninguna sarisa atraviesa a otra (mínimo ${e.minAstas.min} m > ${e.minAstas.grosor})`);
   await ctx.close(); return { ...e, info };
 }
 /* el paso a picas abajo: cinco fotogramas juntos en una tira */
@@ -70,18 +72,31 @@ async function medidas() {
   bien(a.alzadas.dispersion >= 0.5 && a.alzadas.separacion > 1 && a.bajas.separacion > 0.3, `las astas no van todas a la vez: dispersión de fase ${a.alzadas.dispersion}; separación media ${a.alzadas.separacion}° alzadas y ${a.bajas.separacion}° bajadas`);
   return { r, a };
 }
-const med = op.parte === 'medidas' || !op.solo ? await medidas() : null;
-if (op.parte !== 'medidas') {
+/* TP8b-P2: la partida entera (tiempo de la escena, sin dibujar) con dos bots: a lo loco debe perder; bien mandada, ganar en 60–110 s */
+async function loco() {
+  const { ctx, page } = await abre('', ...V, 1);
+  const r = await page.evaluate(() => { const t = window.__tp; t.parar(true); return { loco: t.partida('loco'), bien: t.partida('bien') }; });
+  await ctx.close();
+  for (const k of ['loco', 'bien']) console.log(`  bot «${k}»: gana ${r[k].ganador}; rompe a los ${r[k].tRoto} s; terreno ${r[k].ganado} m; cohesión ${r[k].coh}; bajas ${r[k].bajasF} tuyos y ${r[k].bajasR} romanos; golpes ${r[k].golpes.buenos} al compás y ${r[k].golpes.parados} a destiempo`);
+  bien(r.loco.fin && r.loco.ganador === 'romanos', `a lo loco pierde (gana ${r.loco.ganador} a los ${r.loco.tRoto} s)`);
+  bien(r.bien.ganador === 'falange' && r.bien.tRoto >= 60 && r.bien.tRoto <= 110, `bien mandada gana entre 60 y 110 s (${r.bien.ganador} a los ${r.bien.tRoto} s)`);
+}
+const LOCO = op.parte === 'loco';
+if (LOCO || (!op.solo && !op.parte)) await loco();
+const med = !LOCO && (op.parte === 'medidas' || !op.solo) ? await medidas() : null;
+if (op.parte !== 'medidas' && !LOCO) {
   const fases = op.solo ? op.solo.split(',').filter(f => f !== 'tira') : ['marcha', 'astas', 'pila', 'choque', 'golpe', 'huida', 'final', 'choque-h'];
   for (const f of fases) {
-    const hz = f.endsWith('-h'), fa = f.replace(/-h$/, ''), e = await foto(fa, (hz ? 'h-' : 'v-') + fa, ...(hz ? Hz : V));
+    /* TP8b: alias de foto: bajan (a media ola) y lado (de costado, horizontal) */
+    const ALIAS = { bajan: ['bajar', '&t=0.55'], lado: ['caidos', '&lado=1'] }, base = f.replace(/-h$/, ''), hz = f.endsWith('-h') || f === 'lado', [fa, extra] = ALIAS[base] || [base, ''];
+    const e = await foto(fa, f === 'lado' ? 'lado' : (hz ? 'h-' : 'v-') + base, ...(hz ? Hz : V), extra);
     if (fa === 'marcha') bien(e.kFrente === 0 && e.kB.every(k => k === 0), 'marcha: todas las picas alzadas');
     if (fa === 'pila') bien(e.pila.some(x => x === 1), 'pila: la salva está en el aire o llegando');
     if (fa === 'choque') bien(e.choque && e.kFrente > 0.9, 'choque: los romanos contra el muro de puntas, picas abajo (' + e.kFrente + ')');
-    if (fa === 'golpe') bien(/golpe|Parado|herido/i.test(e.cinta), 'golpe: respuesta en palabras («' + e.cinta + '»)');
+    if (fa === 'golpe') bien(/golpe|Parado|herido|Estocada|destiempo/i.test(e.cinta), 'golpe: respuesta en palabras («' + e.cinta + '»)');
     if (fa === 'huida') bien(!!e.ganador, 'huida: alguien rompe y huye (' + e.ganador + ')');
     if (fa === 'final') bien(e.fase === 'fin', 'final: tarjeta con veredicto');
-    if (['choque', 'golpe'].includes(fa)) { const c = e.info; bien(c.calls <= 45 && c.tri <= 600000, `${f}: ${c.calls} llamadas de dibujo (tope 45) y ${Math.round(c.tri / 1000)} mil triángulos (tope 600)`); }
+    if (['choque', 'golpe'].includes(fa)) { const c = e.info; bien(c.calls <= 30 && c.tri <= 750000, `${f}: ${c.calls} llamadas de dibujo (tope 30) y ${Math.round(c.tri / 1000)} mil triángulos (tope 750)`); }
     bien(/en pie · (firme|duda|rompe) · (fresca|cansada|agotada) · (ganando|igualado|perdiendo)/.test(e.arriba), `${f}: estado en palabras arriba («${e.arriba}»)`);
   }
   if (!op.solo || op.solo.includes('tira')) await tiraBajar();
