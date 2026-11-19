@@ -316,7 +316,8 @@ assert(res.agr.filter(s => s.over.win).every(s => G.yearOf(s.t) <= 218), 'V10a: 
 assert.strictEqual(ganaPas, 0, 'un bot pasivo no debe ganar nunca (' + ganaPas + '/10)');
 const active = activo;
 assert(JSON.parse(JSON.stringify(active)).v === 1, 'el estado debe ser serializable');
-assert(G.myCities().length >= 3, 'un bot agresivo debe poder conquistar ciudades');
+// CI1b: cuenta las ciudades de la campaña agresiva de la semilla 1 (`activo`), no las de la última simulada (G.state es la semilla 10)
+assert(Object.values(active.cities).filter(c => c.owner === 'roma').length >= 3, 'un bot agresivo debe poder conquistar ciudades');
 // I6: regiones. Italia es jugable (el agresivo gana alguna vez, el pasivo nunca) y se juega solo con sus ciudades
 { const ri = { pas: [], agr: [] };
   for (const ag of [false, true]) for (let sd = 1; sd <= 10; sd++) { const s = campaign(ag, sd, 'italia'); ri[ag ? 'agr' : 'pas'].push(s);
