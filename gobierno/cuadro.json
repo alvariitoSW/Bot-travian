@@ -2034,14 +2034,14 @@
     {
       "tarea": "CG6",
       "titulo": "Corazón · CG6 A pie desde el hombro, dentro de la batalla nueva (Opus; tope duro)",
-      "nota": "Tanda 1 sin subir (cuarta pasada de jueces en marcha); 2,06 M de 4,0; tandas 3 y 4 pasarán a CG6b con tu visto bueno",
+      "nota": "Tanda 1 subida (bajar a pie desde el hombro, jueces 42/42; 2,55 M de 4,0); la tanda 2 espera a la lucha de TP8b",
       "url": "https://claude.ai/code/session_01QiKC36XAVkKcrxxvx4cUCo"
     },
     {
-      "tarea": "TP8",
-      "titulo": "Corazón · TP8 Mejoras del testudo y del combate, hablándolas con el usuario (Opus; tope duro)",
-      "nota": "Mejora 1a subida (jueces 41/41): pruébala en «Testudo a pie»; el resto (TP8b) espera tu visto bueno",
-      "url": "https://claude.ai/code/session_01QiKC37MiywH97s7ojcHQE6"
+      "tarea": "TP8b",
+      "titulo": "Corazón · TP8b Terminar el testudo a pie y la lucha con picas (Fable 5.2 dirige, Opus construye; tope duro)",
+      "nota": "Primero acuerda contigo qué es «un 8»; luego tandas subidas con jueces; declarado 7,0 M, corte duro 10,0 M",
+      "url": "https://claude.ai/code/session_01QiKC387QJaRTWbZx6nurC2"
     }
   ],
   "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"

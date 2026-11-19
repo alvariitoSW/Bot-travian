@@ -24,7 +24,10 @@
     <span id="mn-reloj">0:00</span>
     <span id="mn-enpausa" hidden>En pausa: puedes dar órdenes</span>
     <button id="mn-retirar" class="mn-b1" type="button">Retirarse</button>
+    <span id="mn-estado"></span>
+    <button id="mn-subir" class="mn-b1" type="button">Mando</button>
   </div>
+  <div id="mn-palanca"><i></i></div>
   <div id="mn-cinta"></div>
   <div id="mn-aviso" hidden></div>
   <div id="mn-abajo">
@@ -94,9 +97,10 @@
     const escena = new THREE.Scene(), camara = new THREE.PerspectiveCamera(45, 1, 1, 12000);
     let entorno = null;
     let ancho = 0, alto = 0, vertical = true;
+    let apie = null;     /* CG6: a pie, { id, f, yaw, v, tSig, talla, look, dir }: f es tu figura (el centurión); la mueve la palanca, no colocar() */
     function medir() {
       ancho = window.innerWidth; alto = window.innerHeight; vertical = alto > ancho;
-      renderer.setSize(ancho, alto, false); camara.aspect = ancho / alto; camara.fov = vertical ? 54 : 40; camara.updateProjectionMatrix();
+      renderer.setSize(ancho, alto, false); camara.aspect = ancho / alto; camara.fov = apie ? (vertical ? 70 : 55) : vertical ? 54 : 40; camara.near = apie ? 0.1 : 1; camara.updateProjectionMatrix();
     }
     window.addEventListener('resize', medir); medir();
     const salidas = [() => window.removeEventListener('resize', medir)];
@@ -204,11 +208,13 @@
         while (m.vivos.length > quiero) {
           const cols = Math.max(1, Math.round(Math.sqrt(m.vivos.length * Sim.frente(u) / Math.max(1, Sim.fondo(u)))));
           const i = lucha ? Math.floor(Math.random() * Math.min(cols, m.vivos.length)) : Math.floor(Math.random() * m.vivos.length);
-          const f = m.vivos.splice(i, 1)[0]; f.est = 1; f.t0 = Tv; if (salto) f.t0 = Tv - 9;
+          let j = i; if (apie && m.vivos[j] === apie.f && m.vivos.length > 1) j = (j + 1) % m.vivos.length;
+          const f = m.vivos.splice(j, 1)[0]; f.est = 1; f.t0 = Tv; if (salto) f.t0 = Tv - 9;
         }
         const F = Sim.frente(u), Df = Sim.fondo(u), c = Math.cos(pa), s = Math.sin(pa), yaw = yawDe(pa), n = m.vivos.length, roto = !vivo(u);
         const tira = u.tirando >= 0, rapido = /^(elefantes|equites|numidas|jinetes|tesalios|general)$/.test(u.tropa);
         for (let i = 0; i < n; i++) {
+          if (apie && m.vivos[i] === apie.f) continue;   /* tú: te mueve la palanca */
           const f = m.vivos[i], [lx0, ly0, fila, su] = sitio(m, u, i, n, F, Df), lx = lx0 + f.jx * su * 2, ly = ly0 + f.jy * su * 2;
           const tx = px + lx * s + ly * c, ty = py - lx * c + ly * s, TX = tx, TZ = -ty;
           const k = salto || dt <= 0 ? (salto ? 1 : 0) : 1 - Math.exp(-dt * 5);
@@ -244,6 +250,7 @@
         if (f.est === 2) continue;
         const d = Math.max(0.1, Math.hypot(f.x - cp.x, h / 2 - cp.y, f.z - cp.z)), px = h * kpx / d;
         let nv = px >= UMBRAL_N[0] ? 0 : px >= UMBRAL_N[1] ? 1 : px >= UMBRAL_N[2] ? 2 : 3;
+        if (apie && f === apie.f) { f.nv = 0; f.dc = 0; cuenta[0].push(f); continue; }
         if (nv < 3) { V3.set(f.x, h / 2, f.z).project(camara); if (V3.z > 1 || Math.abs(V3.x) > 1.1 || Math.abs(V3.y) > 1.1) nv = 3; }
         f.nv = nv; f.dc = d; if (nv < 2) cuenta[nv].push(f);
       }
@@ -283,6 +290,7 @@
     function rect(malla, i, x, y, a, F, Df, h) { PT.set(x, h, -y); QT.setFromAxisAngle(YT, yawDe(a)); ST.set(F + 3, 1, Df + 3); MT.compose(PT, QT, ST); malla.setMatrixAt(i, MT); }
     let arrastre = null;      /* { dx, dy, a } mientras se arrastra una orden */
     function pintarSuelo() {
+      rects.visible = fantasmas.visible = !apie; if (apie) { flecha.visible = false; return; }
       const al = Math.max(0, Math.min(1, acum / PASO));
       for (const u of S.man) {
         const p0 = previo[u.id] || u, fuera = u.estado === 'fuera' || u.estado === 'caida';
@@ -303,6 +311,7 @@
 
     /* ---------- barras sobre cada manípulo: hombres, moral, cansancio ---------- */
     function pintarBarras() {
+      if (apie) return;   /* a pie no hay barras (las oculta también mando.css) */
       const al = Math.max(0, Math.min(1, acum / PASO)), y = altoN * TALLA * 1.9;
       for (const u of S.man) {
         const m = mans[u.id]; if (!m || !m.barra) continue; const b = m.barra;
@@ -325,6 +334,7 @@
     function pintarHud(fuerza) {
       sel = sel.filter(i => S.man[i] && vivo(S.man[i]));
       const t = Math.floor(S.t), reloj = Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); if ($('reloj').textContent !== reloj) $('reloj').textContent = reloj;
+      if (apie) { const u = S.man[apie.id], p = Sim.palabras(u, S), t = u.nom + ': ' + Math.round(u.n) + ' hombres, ' + p.animo + ', ' + p.cansancio + (p.combate ? ', ' + p.combate : ''); if ($('estado').textContent !== t) $('estado').textContent = t; }
       const ft = $('ficha-t'), od = $('ordenes');
       let html = '', ords = '';
       if (!sel.length) { html = '<span class="ayuda">Toca un manípulo tuyo (rojo) para mandarlo. Arrastra el campo para mirar; pellizca para acercar.</span>'; }
@@ -343,7 +353,8 @@
         } else {
           ords = ['cargar', 'relevar', 'retirar', 'aguantar'].map(k => boton({ tipo: k }, ORD[k][0], ORD[k][1])).join('') +
             '<button type="button" class="mn-o" data-formas="1"><span>' + ORD.formar[0] + '</span><small>' + ORD.formar[1] + '</small></button>' +
-            (us.some(u => u.mando === 'jugador') ? boton({ tipo: 'devolver' }, ORD.devolver[0], ORD.devolver[1]) : '');
+            (us.some(u => u.mando === 'jugador') ? boton({ tipo: 'devolver' }, ORD.devolver[0], ORD.devolver[1]) : '') +
+            (us.length === 1 ? (no => '<button type="button" class="mn-o' + (no ? ' no' : '') + '" data-bajar="1" data-no="' + esc(no) + '"><span>Bajar</span><small>a pie, con ellos</small></button>')(puedeBajar(us[0].id)) : '');
         }
       }
       const clave = html + '|' + ords + '|' + varios;
@@ -362,9 +373,101 @@
       if (b.dataset.formas) { verFormas = true; pintarHud(true); return; }
       if (b.dataset.volver) { verFormas = false; pintarHud(true); return; }
       if (b.dataset.no) { aviso(b.dataset.no); return; }
+      if (b.dataset.bajar) { bajar(sel[0]); return; }
       ordenar(JSON.parse(b.dataset.o));
     });
     $('varios').addEventListener('click', () => { varios = !varios; pintarHud(true); });
+
+    /* ---------- CG6: a pie, desde el hombro (CG1 §5.3 y §7). Eres el centurión: una figura de la primera fila que mueve la palanca.
+       El manípulo te sigue con órdenes «mover» del simulador (una sola verdad); no puedes alejarte más de 15 m de su frente.
+       En esta tanda no hay lucha a pie: solo bajar, mirar, andar, correr y volver al mando. ---------- */
+    const V_ANDA = 1.6, V_CORRE = 5, LIBRE = 4, CORREA = 15, CAM_AP = { atras: 3.2, alto: 1.9, lado: 0.6, mira: 12 };
+    const palanca = { x: 0, y: 0 };
+    const simA = yaw => Math.atan2(-Math.cos(yaw), Math.sin(yaw));      /* giro de figura → ángulo del simulador (inverso de yawDe) */
+    function puedeBajar(id) {
+      const u = S.man[id];
+      if (!lista) return 'Aún se están formando'; if (S.fase === 'fin') return 'La batalla ha terminado';
+      if (!u || u.lado !== 0) return 'Solo puedes bajar con los tuyos';
+      if (!vivo(u)) return 'Están rotos: no te seguirían';
+      const m = mallas.get(u.tropa + '0');
+      if (!NUEVO[u.tropa] || !m || !m.nv) return 'A pie, de momento, solo con la infantería';
+      if (!mans[id] || !mans[id].vivos.length) return 'No queda nadie en pie';
+      return '';
+    }
+    /* dónde te toca: delante del centro de su frente */
+    function puesto(u) { const L = Sim.fondo(u) / 2 + 2; return { x: u.x + Math.cos(u.a) * L, y: u.y + Math.sin(u.a) * L }; }
+    function bajar(id) {
+      const no = puedeBajar(id); if (no) { aviso(no); return no; }
+      const u = S.man[id], m = mans[id], F = Sim.frente(u), Df = Sim.fondo(u), n = m.vivos.length;
+      let f = m.vivos[0], mejor = 1e9;
+      for (let i = 0; i < n; i++) { const [lx, , fila] = sitio(m, u, i, n, F, Df); if (fila === 0 && Math.abs(lx) < mejor) { mejor = Math.abs(lx); f = m.vivos[i]; } }
+      apie = { id, f, yaw: yawDe(u.a), v: 0, tSig: S.t, talla: f.talla, camYaw: yawDe(u.a), look: null };
+      { const p = puesto(u); f.x = p.x; f.z = -p.y; f.yaw = apie.yaw; }   /* sales un paso por delante de tu primera fila */
+      f.talla = f.talla * 1.08; f.lucha = f.tira = false; f.aguanta = false; f.forma = 'linea';
+      if (!aro) { aro = new THREE.Mesh(new THREE.RingGeometry(0.6, 0.78, 28).rotateX(-Math.PI / 2), new THREE.MeshBasicMaterial({ color: '#ffd76a', transparent: true, opacity: 0.55, depthWrite: false, toneMapped: false })); aro.renderOrder = 3; escena.add(aro); salidas.push(() => { aro.geometry.dispose(); aro.material.dispose(); }); }
+      aro.visible = true; aro.position.set(f.x, 0.05, f.z);
+      arrastre = null; gesto = null; dedos.clear(); verFormas = false; sel = [id];
+      el.classList.add('apie'); medir(); camaraApie(0, true); pintarHud(true);
+      return '';
+    }
+    function subir(motivo) {
+      if (!apie) return; const { id, f } = apie; f.talla = apie.talla; apie = null; soltarPalanca(); gesto = null; dedos.clear();
+      if (aro) aro.visible = false; el.classList.remove('apie'); medir();
+      const u = S.man[id]; cam.x = u.x; cam.z = -u.y; ponCamara();
+      sel = vivo(u) ? [id] : []; pintarHud(true); if (motivo) aviso(motivo);
+    }
+    let aro = null;
+    /* la palanca: tú andas o corres (dt = segundos de batalla); el manípulo te sigue */
+    function andarApie(dt) {
+      const u = S.man[apie.id], f = apie.f;
+      if (S.fase === 'fin') { subir(); return; }
+      if (!vivo(u)) { subir(u.estado === 'caida' || u.n <= 0 ? 'Tu manípulo ha caído: vuelves al mando' : 'Tu manípulo ha roto: vuelves al mando'); return; }
+      if (f.est !== 0) { subir('Has caído: vuelves al mando'); return; }
+      if (dt <= 0) return;
+      const L = Math.min(1, Math.hypot(palanca.x, palanca.y)), vObj = L < 0.15 ? 0 : L > 0.8 ? V_CORRE : V_ANDA;
+      apie.v += Math.max(-6 * dt, Math.min((vObj > V_ANDA ? 4 : 3) * dt, vObj - apie.v));
+      const cy = apie.yaw, fx = Math.sin(cy), fz = Math.cos(cy), rx = -Math.cos(cy), rz = Math.sin(cy);
+      let dx = 0, dz = 0;
+      if (L > 0.15) { const k = 1 / L; dx = (fx * -palanca.y + rx * palanca.x) * k; dz = (fz * -palanca.y + rz * palanca.x) * k; }
+      const ox = f.x, oz = f.z;
+      if (apie.v > 0.01) { if (L > 0.15) apie.dir = [dx, dz]; const d = apie.dir || [fx, fz]; f.x += d[0] * apie.v * dt; f.z += d[1] * apie.v * dt; }
+      /* la correa: no te sueltas de los tuyos */
+      const p = puesto(u), ex = f.x - p.x, ey = -f.z - p.y, el2 = Math.hypot(ex, ey);
+      if (el2 > CORREA) { f.x = p.x + ex * CORREA / el2; f.z = -(p.y + ey * CORREA / el2); }
+      const mx = f.x - ox, mz = f.z - oz, dd = Math.hypot(mx, mz);
+      f.ve = dd / dt; f.marcha = f.ve < 0.35 ? 0 : f.ve > 2.6 ? 2 : 1; f.fila = 0;
+      if (f.marcha) f.fase += dd / (f.marcha === 2 ? 2.4 : 1.5) / TALLA;
+      f.yaw = mezclaAng(f.yaw, dd > 1e-3 ? Math.atan2(mx, mz) : apie.yaw, Math.min(1, dt * 6));
+      if (aro) aro.position.set(f.x, 0.05, f.z);
+      /* cada segundo de batalla: si te has ido de tu puesto (o miras a otro lado), el manípulo viene a ponerse detrás de ti */
+      if (S.t - apie.tSig >= 1) {
+        apie.tSig = S.t;
+        const a = simA(apie.yaw), giro = Math.abs(mezclaAng(u.a, a, 1) - u.a);
+        if (Math.hypot(f.x - p.x, -f.z - p.y) > LIBRE || giro > 0.7) {
+          const B = Sim.fondo(u) / 2 + 2; Sim.ordenar(S, { tipo: 'mover', lado: 0, ids: [apie.id], x: f.x - Math.cos(a) * B, y: -f.z - Math.sin(a) * B, a });
+        }
+      }
+    }
+    /* la cámara al hombro: detrás y a la derecha, mirando 12 m delante; suavizada (dt real) */
+    function camaraApie(dt, salto) {
+      const f = apie.f, y = apie.yaw, fx = Math.sin(y), fz = Math.cos(y), rx = -Math.cos(y), rz = Math.sin(y), K = TALLA;
+      const tx = f.x - fx * CAM_AP.atras * K + rx * CAM_AP.lado * K, tz = f.z - fz * CAM_AP.atras * K + rz * CAM_AP.lado * K, ty = CAM_AP.alto * K;
+      const lx = f.x + fx * CAM_AP.mira, lz = f.z + fz * CAM_AP.mira, ly = 1.1;
+      const k = salto ? 1 : 1 - Math.exp(-dt * 7), P = camara.position;
+      if (!apie.look || salto) apie.look = { x: lx, y: ly, z: lz };
+      P.set(P.x + (tx - P.x) * k, P.y + (ty - P.y) * k, P.z + (tz - P.z) * k);
+      const L = apie.look; L.x += (lx - L.x) * k; L.y += (ly - L.y) * k; L.z += (lz - L.z) * k;
+      camara.lookAt(L.x, L.y, L.z); camara.updateMatrixWorld();
+    }
+    /* la palanca del pulgar izquierdo (HTML): a fondo, correr; poco, andar */
+    const pal = $('palanca'), pomo = pal.firstElementChild; let dedoPal = null;
+    function ponPalanca(x, y) { const L = Math.hypot(x, y); if (L > 1) { x /= L; y /= L; } palanca.x = x; palanca.y = y; pomo.style.transform = 'translate(' + Math.round(x * 38) + 'px,' + Math.round(y * 38) + 'px)'; }
+    function soltarPalanca() { dedoPal = null; ponPalanca(0, 0); }
+    function dedoEnPalanca(e) { const r = pal.getBoundingClientRect(), R = r.width / 2 - 18; ponPalanca((e.clientX - r.left - r.width / 2) / R, (e.clientY - r.top - r.height / 2) / R); }
+    pal.addEventListener('pointerdown', e => { if (!apie) return; e.preventDefault(); dedoPal = e.pointerId; pal.setPointerCapture && pal.setPointerCapture(e.pointerId); dedoEnPalanca(e); });
+    pal.addEventListener('pointermove', e => { if (e.pointerId === dedoPal) dedoEnPalanca(e); });
+    for (const t of ['pointerup', 'pointercancel']) pal.addEventListener(t, e => { if (e.pointerId === dedoPal) soltarPalanca(); });
+    $('subir').addEventListener('click', () => subir());
 
     /* ---------- avisos en palabras, del registro S.reg ---------- */
     let nReg = 0, chocaron = false, nCuadros = 0; const cinta = [];
@@ -415,7 +518,8 @@
     }
     const dedos = new Map(); let gesto = null;
     function abajo(e) {
-      if (!lista) return; lienzo.setPointerCapture && lienzo.setPointerCapture(e.pointerId);
+      if (!lista) return;
+      if (apie) { if (e.clientX < ancho * 0.4) return; lienzo.setPointerCapture && lienzo.setPointerCapture(e.pointerId); dedos.set(e.pointerId, { x: e.clientX, y: e.clientY }); gesto = { tipo: 'giro', x0: e.clientX, yaw0: apie.yaw }; return; } lienzo.setPointerCapture && lienzo.setPointerCapture(e.pointerId);
       dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (dedos.size === 2) { const [a, b] = [...dedos.values()]; gesto = { tipo: 'pellizco', d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, cd: cam.d }; arrastre = null; return; }
       if (dedos.size > 2) return;
@@ -425,6 +529,7 @@
     }
     function mueve(e) {
       if (!dedos.has(e.pointerId) || !gesto) return; dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (gesto.tipo === 'giro') { if (apie) apie.yaw = gesto.yaw0 - (e.clientX - gesto.x0) * 0.0065; return; }
       if (gesto.tipo === 'pellizco') { if (dedos.size < 2) return; const [a, b] = [...dedos.values()]; cam.d = gesto.cd * gesto.d0 / (Math.hypot(a.x - b.x, a.y - b.y) || 1); ponCamara(); return; }
       if (!gesto.movido && Math.hypot(e.clientX - gesto.x0, e.clientY - gesto.y0) < 10) return; gesto.movido = true;
       if (gesto.tipo === 'camara') { if (!gesto.p0) return; const p = suelo(e.clientX, e.clientY); if (!p) return; cam.x += gesto.p0.x - p.x; cam.z -= gesto.p0.y - p.y; ponCamara(); return; }
@@ -436,7 +541,7 @@
     function arriba(e) {
       if (!dedos.has(e.pointerId)) return; dedos.delete(e.pointerId);
       const g = gesto; if (dedos.size > 0) { if (g && g.tipo === 'pellizco') gesto = null; return; }
-      gesto = null; if (!g) return;
+      gesto = null; if (!g || g.tipo === 'giro') return;
       if (g.tipo === 'orden' && g.movido && arrastre) {
         const ar = arrastre; arrastre = null;
         const ene = manipuloEn(e.clientX, e.clientY, 1);
@@ -457,7 +562,7 @@
       pintarHud(true);
     }
     lienzo.addEventListener('pointerdown', abajo); lienzo.addEventListener('pointermove', mueve); lienzo.addEventListener('pointerup', arriba); lienzo.addEventListener('pointercancel', arriba);
-    lienzo.addEventListener('wheel', e => { e.preventDefault(); cam.d *= Math.exp(e.deltaY * 0.0012); ponCamara(); }, { passive: false });
+    lienzo.addEventListener('wheel', e => { e.preventDefault(); if (apie) return; cam.d *= Math.exp(e.deltaY * 0.0012); ponCamara(); }, { passive: false });
 
     /* ---------- arriba: pausa, velocidad, retirarse ---------- */
     function pausa(v) { const p = v === undefined ? !S.pausa : !!v; if (p !== S.pausa && S.fase !== 'fin') Sim.ordenar(S, { tipo: 'pausa', valor: p }); $('pausa').textContent = S.pausa ? 'Seguir' : 'Pausa'; $('pausa').classList.toggle('on', S.pausa); $('enpausa').hidden = !S.pausa; }
@@ -478,7 +583,7 @@
       $('fin-p').textContent = R.motivo || '';
       const m = Math.floor(R.t / 60), s = Math.round(R.t % 60);
       $('fin-c').innerHTML = '<span>Tus bajas</span><b>' + mil(R.bajas[0]) + ' de ' + mil(R.inicial[0]) + '</b><span>Bajas del enemigo</span><b>' + mil(R.bajas[1]) + ' de ' + mil(R.inicial[1]) + '</b><span>Duración</span><b>' + m + ' min ' + s + ' s</b>';
-      $('fin').hidden = false; $('abajo').hidden = true; sel = [];
+      if (apie) subir(); $('fin').hidden = false; $('abajo').hidden = true; sel = [];
     }
 
     /* ---------- el tiempo: pasos fijos del simulador; dt acotado ---------- */
@@ -486,7 +591,7 @@
     function avanza(dtReal) {
       const dt = S.pausa || S.fase === 'fin' ? 0 : Math.min(0.1, dtReal) * vel;
       if (dt > 0) { acum += dt; let k = 0; while (acum >= PASO && k++ < 8) { acum -= PASO; pasoSim(); } if (acum > PASO) acum = PASO; }
-      Tv += dt; colocar(dt, false);
+      Tv += dt; colocar(dt, false); if (apie) andarApie(dt);
       if (S.fase === 'fin' && !finVisto && !tFin) tFin = setTimeout(finYa, 1500);
     }
     function pinta(dt) { nCuadros++; pintarSuelo(); pintarFiguras(); if (entorno) entorno.tick(dt || 0, S, Sim, camara, alto * dpr); renderer.render(escena, camara); pintarBarras(); }
@@ -495,7 +600,7 @@
       if (cerrado) return; raf = requestAnimationFrame(cuadro);
       const real = Math.max(0, (ahora - antes) / 1000 || 0); antes = ahora;
       if (!lista) return;
-      avanza(real); pinta(S.pausa || S.fase === 'fin' ? 0 : Math.min(0.1, real) * vel); avisos();
+      avanza(real); if (apie) camaraApie(Math.min(0.1, real)); pinta(S.pausa || S.fase === 'fin' ? 0 : Math.min(0.1, real) * vel); avisos();
       if (ahora - tHud > 250) { tHud = ahora; pintarHud(); }
     }
 
@@ -537,11 +642,15 @@
       ordenar: o => ordenar(o),
       pausa: v => pausa(v),
       salta: seg => { const hasta = S.t + seg; while (S.t < hasta - 1e-9 && S.fase !== 'fin' && !S.pausa) pasoSim(); acum = 0; previo = S.man.map(u => ({ x: u.x, y: u.y, a: u.a })); colocar(0, true); avisos(); pintarHud(true); if (S.fase === 'fin') finYa(); return S.t; },
-      cuadro: dt => { avanza(dt || 0); pinta(S.pausa ? 0 : Math.min(0.1, dt || 0) * vel); avisos(); pintarHud(); },
+      cuadro: dt => { avanza(dt || 0); if (apie) camaraApie(Math.min(0.1, dt || 0)); pinta(S.pausa ? 0 : Math.min(0.1, dt || 0) * vel); avisos(); pintarHud(); },
       camara: o => { if (o) Object.assign(cam, o); else camaraInicial(); ponCamara(); return Object.assign({}, cam); },
       /* para pruebas del dedo: el punto de pantalla (px CSS) de un manípulo */
       pantalla: id => { const u = S.man[id]; V3.set(u.x, 0, -u.y).project(camara); return { x: (V3.x + 1) / 2 * ancho, y: (1 - V3.y) / 2 * alto }; },
       terminar, ver: () => verFormas,
+      /* CG6: a pie. bajar(id) devuelve '' o el motivo; palanca(dx, dy) de −1 a 1 (dy −1 = adelante, como en pantalla; 0, 0 la suelta) */
+      camaraY: () => camara.position.y,
+      bajar: id => bajar(id), subir: () => subir(), palanca: (dx, dy) => { if (!dx && !dy) soltarPalanca(); else ponPalanca(dx, dy); },
+      apie: () => apie ? { id: apie.id, x: apie.f.x, y: -apie.f.z, yaw: apie.yaw, v: apie.v, camara: { x: camara.position.x, y: camara.position.y, z: camara.position.z } } : null,
       /* triángulos por pieza de la escena (para el presupuesto) */
       desglose: () => { const r = {}; escena.traverse(o => { if (!o.isMesh || !o.visible) return; const g = o.geometry, t = (g.index ? g.index.count : g.attributes.position.count) / 3, n = o.isInstancedMesh ? o.count : 1, k = o.name || (o.isInstancedMesh ? 'inst' : 'malla') + ':' + Math.round(t); r[k] = (r[k] || 0) + Math.round(t * n); }); return r; }
     };
