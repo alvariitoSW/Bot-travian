@@ -30,3 +30,15 @@ Si TP8 cambia una pieza compartida (acciones, soldado, cámara, enemigo, locomoc
 
 ## Fuera
 Caras de los soldados (GM43j, aparte). Andar y correr (vale hoy). Lo nuevo que pida va a la bitácora.
+
+## Estado al cerrar TP8 (19/11) y lo que queda: TP8b
+- **Hecha 1a** (en «Testudo a pie»): de 17 golpes atravesaban 7, ahora 1 (peor caso 6 cm, antes casi 1 m); chispa en el
+  escudo, polvo y chispa en el pecho; el herido se encoge y recula; en tu duelo, pausa de 65–90 ms y tirón de cámara.
+  Falta que el usuario la apruebe en su móvil. Duda: el galo, con lanza larga, se queda a unos 3 m al herirte.
+- **TP8b** (la abre el vigía; nada empieza sin que el usuario apruebe la 1a), en su orden:
+  1. **1b** Lucha que se lee y no es sosa (aviso claro, respuesta inmediata, galo que varía, fila viva); y el impacto de tu estocada, que quedó sin hacer.
+  2. **2** Manos, brazos y pilum.
+  3. **3** Más épica en las escenas a pie: 3a cámara de cine, 3b polvo, luz y suelo, 3c escudos y estandartes, 3d más gente.
+  4. **4** Sonido grabado libre, con su crédito.
+- **Regla de encargo para TP8b**: cada encargo, una pieza y **30 pasos como máximo**, con corte por encargo; medir el
+  gasto al volver cada uno. El render por software es lento: las capturas, una sola tanda al final del encargo.
