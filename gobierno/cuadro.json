@@ -2020,33 +2020,27 @@
       "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
     },
     {
-      "tarea": "CE3",
-      "titulo": "Cerebro · CE3 Edificios, tropas y tiempos nuevos, en estaciones (Opus; tope duro)",
-      "nota": "Última prórroga (techo 9,3 M): arreglar 2 fallos de jueces y subir solo con APTO; sus commits solo existen en su contenedor",
-      "url": "https://claude.ai/code/session_01QiKC3Aw9VfHc42LQ8wLPsB"
+      "tarea": "CE3c",
+      "titulo": "Cerebro · CE3c Cerrar CE3: dos fallos de jueces y subir (Opus; tope duro)",
+      "nota": "Trabajo de CE3 guardado en la rama ce3; arregla los dos fallos de jueces, une con el Senado nuevo y sube solo con APTO; corte duro 0,9 M",
+      "url": "https://claude.ai/code/session_01QiKC384Vg22mRs9aAgH8gu"
     },
     {
       "tarea": "CI1b",
       "titulo": "Cerebro · CI1b+CI3a Calles con sentido y ciudad ×5 a la vista (Opus; tope duro)",
-      "nota": "Parada en 4,72 M; última prórroga hasta 5,5 M solo para cerrar (la ciudad grande aún no sale en la partida). 8 commits sin subir: solo existen en su contenedor",
+      "nota": "Parada en el techo 6,4 M, sin subir (queda un fallo de sim.test); espera tu decisión en el cuadro. 11 commits solo en su contenedor",
       "url": "https://claude.ai/code/session_01QiKC3AfVQgWjdzHpMKkgYR"
-    },
-    {
-      "tarea": "CE6",
-      "titulo": "Cerebro · CE6 Senado de familias (Opus; tope duro)",
-      "nota": "hasta 7 bandos y escaños por población y provincia; solo código del Senado; corte duro 3,3 M",
-      "url": "https://claude.ai/code/session_01QiKC36KEPujrcfjeAyVCoL"
     },
     {
       "tarea": "CG6",
       "titulo": "Corazón · CG6 A pie desde el hombro, dentro de la batalla nueva (Opus; tope duro)",
-      "nota": "cuatro tandas subidas con jueces; js/ui-guerra.js, simulador y módulos de a pie; corte duro 4,0 M",
+      "nota": "Tanda 1 sin subir (cuarta pasada de jueces en marcha); 2,06 M de 4,0; tandas 3 y 4 pasarán a CG6b con tu visto bueno",
       "url": "https://claude.ai/code/session_01QiKC36XAVkKcrxxvx4cUCo"
     },
     {
       "tarea": "TP8",
       "titulo": "Corazón · TP8 Mejoras del testudo y del combate, hablándolas con el usuario (Opus; tope duro)",
-      "nota": "Mejora 1a construida sin subir; prórroga de 0,3 M (techo 3,3 M) para subirla con jueces; el resto (TP8b) espera tu visto bueno",
+      "nota": "Mejora 1a subida (jueces 41/41): pruébala en «Testudo a pie»; el resto (TP8b) espera tu visto bueno",
       "url": "https://claude.ai/code/session_01QiKC37MiywH97s7ojcHQE6"
     }
   ],

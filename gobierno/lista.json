@@ -139,11 +139,12 @@
       "id": "L8",
       "organo": "corazon",
       "titulo": "Campaña en el mapa contra un enemigo que responde",
-      "estado": "hecha",
+      "estado": "medias",
       "veras": "Mueves ejércitos por Italia y el Mediterráneo, y Cartago, Epiro y los galos atacan y se defienden.",
       "hecho": "Marchas, guarniciones, enemigo con iniciativa y partida corta o larga.",
       "captura": "gobierno/capturas-tarea/C18-italia.jpg",
-      "tareas": []
+      "tareas": [],
+      "falta": "Tu pedido del 19/11: muchas más culturas, regiones, ciudades y pueblos fuera de Roma (hoy 26 ciudades, 8 regiones, 20 tropas): propuesta P183, espera tu decisión en el cuadro."
     },
     {
       "id": "L9",
@@ -176,7 +177,8 @@
         "CG4b",
         "CG5",
         "CG7",
-        "CG8"
+        "CG8",
+        "CG9"
       ]
     },
     {
@@ -194,18 +196,23 @@
         "CG6",
         "GM43i",
         "GM43j",
-        "TP8"
+        "TP8",
+        "TP8b"
       ]
     },
     {
       "id": "L12",
       "organo": "corazon",
       "titulo": "Escaramuzas: batallas sueltas desde el menú",
-      "estado": "hecha",
-      "veras": "Eliges tu ejército, el enemigo y el campo, y luchas sin empezar una campaña.",
-      "hecho": "Botón en el menú principal, tres tamaños de ejército, campo y dificultad.",
+      "estado": "falta",
+      "veras": "Eliges tu ejército con tu dinero, el enemigo y el campo, y luchas sin empezar una campaña; cada soldado tiene su vida y sus datos según su tropa y su cultura.",
+      "hecho": "Botón en el menú principal, tres tamaños de ejército, campo y dificultad; la batalla nueva de manípulos ya se juega aquí.",
       "captura": "gobierno/capturas-tarea/MR3b-5-escaramuzas.jpg",
-      "tareas": []
+      "tareas": [
+        "CG2",
+        "CG9"
+      ],
+      "falta": "Tu pedido del 19/11: menú rehecho desde cero con tus tropas y tu dinero y diseño propio (CG2), y vida y datos reales de cada soldado por tipo y cultura (CG9)."
     },
     {
       "id": "L14",

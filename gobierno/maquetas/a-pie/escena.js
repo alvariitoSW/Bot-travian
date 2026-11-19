@@ -484,7 +484,7 @@ function reinicia() {
   S.tiradores = []; for (let i = 0; i < 10; i++) S.tiradores.push({ x: (i - 4.5) * 1.7 + (azar() - 0.5) * 0.5, z: Z_TIRADORES + (azar() - 0.5) * 1.2, vivo: true, muere: 0, huye: false, yaw: 0, fase: azar() * 4 });
   S.galos = creaGalos(azar, azarP, Z_GALOS, FIG_G.zan); for (const g of S.galos) { g.inst = m4(); g.sv = new THREE.Vector3(E * g.esc, E * g.esc, E * g.esc); }
   for (const f of FL) f.est = 0; for (const a of ASTILLAS) { a.t = -9; a.m.visible = false; } for (const p of PILA) p.est = 0;
-  for (const c of CHISPAS) c.t = -9; for (const p of POLVO) p.t = -9; for (const p of PIES) p.t = -9; S.restoPolvo = 0;
+  for (const c of CHISPAS) c.t = -9; for (const p of POLVO) p.t = -9; for (const p of PIES) p.t = -9; S.restoPolvo = 0; S.congela = 0; S.tiron = null;
   $('fin').hidden = true; cinta('', false); DANIO.value = TEX_DANIO[0];
   for (const h of S.romanos) sitio(h); actualiza();
 }
@@ -564,7 +564,7 @@ function actualiza() {
     }
     h.A = A; h.B = B; h.mx = mx;
     const xd = S.choque && h.xd !== undefined ? h.xd : h.x, zd = S.choque && h.zd !== undefined ? h.zd : h.z;
-    h.inst.compose(PA.set(xd, H(xd, zd), zd), S.choque || h.jy ? QY.setFromAxisAngle(EJE_Y, (S.choque ? h.yaw : Math.PI) + h.jy * (1 - h.k)) : Q_PI, ANTES ? SB : h.sv);
+    h.inst.compose(PA.set(xd, H(xd, zd), zd), S.choque && h.tipoGolpe && h.vivo ? QY.setFromEuler(EUL.set(dobla(h), h.yaw + h.jy * (1 - h.k), 0)) : S.choque || h.jy ? QY.setFromAxisAngle(EJE_Y, (S.choque ? h.yaw : Math.PI) + h.jy * (1 - h.k)) : Q_PI, ANTES ? SB : h.sv);
     /* los que quedan entre la cámara y vosotros dos, o pegados a ella, no se dibujan (su escudo sí) */
     h.oculto = h.vivo && S.k > 0.5 && h.r > 0 && (h.f === YO || h.f === CMP) && h.z < CAM.z + 0.5;
     /* escudo: en la mano (como lo trae el modelo) y, al cerrar, en su sitio del muro o del techo */
@@ -687,6 +687,9 @@ async function escudoGalo() {
   const slot = [...cuenta].sort((a, b) => b[1] - a[1])[0][0], c = new THREE.Vector3(); let k = 0;
   for (let i = 0; i < n; i++) if (esEscudo(i) && fuerte(i) === slot) { c.x += P[i * 3]; c.y += P[i * 3 + 1]; c.z += P[i * 3 + 2]; k++; }
   GESC = { slot, slots: meta.slots, c: c.divideScalar(k) };
+  /* TP8 1a: unos puntos de la espada del galo (pieza 2 del atlas, la de las armas), con su hueso: para medir si atraviesa */
+  const arma = []; for (let i = 0; i < n; i++) if (CELL[i] === 2) arma.push(i);
+  GESC.arma = arma.filter((_, j) => j % Math.max(1, Math.floor(arma.length / 40)) === 0).map(i => ({ p: new THREE.Vector3(P[i * 3], P[i * 3 + 1], P[i * 3 + 2]), slot: fuerte(i) }));
 }
 /* la matriz del escudo de un galo en el mundo, en su fotograma de ahora */
 function huesoEscudoGalo(g, out) {
@@ -714,6 +717,7 @@ function galoAhora(g) {
     if (e.modo === 'cubre') g.pitch = -0.1 * (suave(0, 0.3, e.t) - suave(0.45, 0.75, e.t));
     if (e.modo === 'recibe') g.pitch = (e.d.lado > 0 ? 0.24 : -0.16) * (suave(0, 0.12, e.t) - suave(0.35, 0.8, e.t));   /* se dobla o se echa atrás */
     if (e.modo === 'ataca' && e.d.aviso && e.t < e.d.tb) g.pitch = -0.09 * suave(0, e.d.tb, e.t);   /* TP1b: al armar el golpe se echa atrás */
+    if (g.tipoGolpe && S.T - g.tGolpe < 1) g.pitch = dobla(g);   /* TP8 1a: se encoge si le dan; si es en el escudo, se echa atrás */
   }
   const x = S.choque && g.xd !== undefined ? g.xd : g.x, z = S.choque && g.zd !== undefined ? g.zd : g.z, yaw = S.choque && g.yaw !== undefined ? g.yaw + (g.jy || 0) : 0;
   g.inst.compose(PA.set(x, H(x, z), z), QG.setFromEuler(EUL.set(g.pitch, yaw, 0)), ANTES ? SB : g.sv);
@@ -1110,7 +1114,9 @@ function dibuja() {
   let cx = CAM.x + Math.sin(ph) * 0.025 * andar, cy = CAM.y + Math.abs(Math.sin(ph)) * 0.04 * andar;
   const sac = (S.fase === 'carga' && !S.choque ? 0.06 : 0) + (S.corriendo ? 0.02 : 0) + sc * 0.09;
   cx += (Math.random() - 0.5) * sac; cy += (Math.random() - 0.5) * sac - sc * sc * 0.12;
-  camara.position.set(cx, cy, CAM.z);
+  /* TP8 1a: tirón corto de la cámara hacia donde va el golpe de tu duelo */
+  let cz = CAM.z; const tr = S.tiron, ta = tr ? S.T - tr.t : 9; if (ta >= 0 && ta < 0.3) { const a = 0.07 * tr.e * (1 - ta / 0.3) ** 2; cx += tr.x * a; cz += tr.z * a; cy -= 0.4 * a; }
+  camara.position.set(cx, cy, cz);
   /* luz: dentro, penumbra cálida; por la rendija entra el sol de frente */
   LUZ.value = lerp(1, 0.82, k); AMB.value = lerp(1, 0.3, k); relleno.intensity = lerp(0.55, 0.12, k);
   {
@@ -1267,8 +1273,79 @@ let ultimo = 0, CAMPO = null;
 function bucle(t) {
   if (CAMPO) CAMPO.tick(t / 1000);
   const dt = Math.min(0.05, (t - ultimo) / 1000 || 0); ultimo = t;
-  if (!parado) paso(dt);
+  if (!parado) { if (S.congela > 0) S.congela -= dt; else paso(dt); }   /* TP8 1a: la pausa mínima al acertar en tu duelo */
   dibuja(); hud(); requestAnimationFrame(bucle);
+}
+/* TP8 1a: el sitio donde para la hoja: el centro del escudo del que recibe o, si le dan, la cara de su pecho */
+let ESC_C = null;
+function blanco(def, at, escudo, out) {
+  if (escudo && def.lado === 'r') {
+    if (!ESC_C) { const g = HOM.escudos.geometry.attributes.position; ESC_C = new THREE.Vector3(); for (let i = 0; i < g.count; i++) ESC_C.add(_cP.fromBufferAttribute(g, i)); ESC_C.divideScalar(g.count); }
+    return out.copy(ESC_C).applyMatrix4(def.mEsc);
+  }
+  if (escudo && GESC) return out.copy(GESC.c).applyMatrix4(huesoEscudoGalo(def, _gm));
+  const x = def.xd ?? def.x, z = def.zd ?? def.z, dx = at.x - x, dz = at.z - z, l = Math.hypot(dx, dz) || 1;
+  return out.set(x + dx / l * 0.14, H(x, z) + 1.15, z + dz / l * 0.14);
+}
+/* lo que llega la hoja hacia delante (metros, sin escala) en cada fracción del clip: una vez por clip */
+const ALC = new Map();
+function llegaClip(lado, cl) {
+  const k = lado + cl.c.start + ':' + cl.s0 + ':' + cl.s1; if (ALC.has(k)) return ALC.get(k);
+  const R = [];
+  for (let j = 0; j <= 16; j++) {
+    const fr = Math.round(ACC.clipPos(cl, j / 16)); let mx = -9;
+    if (lado === 'r') { const g = HOM.espadas.geometry.attributes.position; hueso(HU.espada, fr, fr, 0, MB); for (let i = 0; i < g.count; i += 3) mx = Math.max(mx, _cP.fromBufferAttribute(g, i).applyMatrix4(MB).z); }
+    else if (GESC && GESC.arma) for (const a of GESC.arma) mx = Math.max(mx, _cP.copy(a.p).applyMatrix4(huesoT(FIG_G.tab, a.slot, fr, fr, 0, _gb)).z);
+    R.push(mx);
+  }
+  ALC.set(k, R); return R;
+}
+/* acciones.js pregunta, al empezar cada golpe, cuánto apartar al que golpea para que la hoja pare en el blanco (3 cm antes) */
+function alcance(at, def, d) {
+  if (lado0(at) && !GESC) return null;
+  const R = llegaClip(at.lado, d.clip), esc = at.sv.z, dx = at.x - def.x, dz = at.z - def.z, l = Math.hypot(dx, dz) || 1;
+  const escudo = d.res === 'cubre' || !d.res; blanco(def, at, escudo, _cC);
+  /* del que golpea al plano del blanco (el romano, al cubrirse, adelanta el escudo: un palmo más de margen) */
+  const hasta = ((_cC.x - at.x) * -dx + (_cC.z - at.z) * -dz) / l - (escudo && def.lado === 'r' ? 0.15 : 0.03);
+  return R.map(r => Math.max(0, r * esc - hasta));
+}
+const lado0 = h => h.lado === 'g';
+/* el golpe llega: chispa (escudo) o polvo (cuerpo) donde da; en tu duelo, además, pausa mínima y tirón de cámara */
+function golpe(d, def, at, tipo, tuyo) {
+  blanco(def, at, tipo === 'escudo', PB); const dx = def.x - at.x, dz = def.z - at.z, l = Math.hypot(dx, dz) || 1;
+  if (tipo === 'escudo') { PB.x -= dx / l * 0.12; PB.z -= dz / l * 0.12; chispa(PB, tuyo ? 0.9 : 0.5); }
+  else { chispa(PB, tuyo ? 0.45 : 0.25); polvazo(PB.x, PB.y - 0.3, PB.z, tuyo ? 0.35 : 0.2); }
+  if (tuyo) { S.congela = tipo === 'cuerpo' ? 0.09 : 0.065; S.tiron = { t: S.T, x: dx / l, z: dz / l, e: tipo === 'cuerpo' ? 1 : 0.7 }; }
+}
+/* cuánto se dobla un hombre por el golpe: hacia delante si le dan en el cuerpo, atrás si es en el escudo */
+function dobla(m) {
+  if (!m.tipoGolpe) return 0; const t = S.T - m.tGolpe; if (t < 0 || t > 1) return 0;
+  return m.tipoGolpe === 'cuerpo' ? 0.26 * (suave(0, 0.08, t) - suave(0.35, 0.9, t)) : -0.1 * (suave(0, 0.06, t) - suave(0.12, 0.45, t));
+}
+/* TP8 1a: medida de «atraviesan» (ver window.__tp.contacto) */
+const _cP = new THREE.Vector3(), _cC = new THREE.Vector3(), _cM = new THREE.Matrix4();
+function puntaPasa(at, def, C) {
+  const nx = at.xd - def.xd, nz = at.zd - def.zd, nl = Math.hypot(nx, nz) || 1; let mx = -9;
+  const pasa = p => { const s = -((p.x - C.x) * nx + (p.z - C.z) * nz) / nl; if (s > mx) mx = s; };
+  if (at.lado === 'r') {
+    const g = HOM.espadas.geometry.attributes.position; MA.multiplyMatrices(at.inst, hueso(HU.espada, at.A, at.B, at.mx, MB));
+    for (let i = 0; i < g.count; i += 3) pasa(_cP.fromBufferAttribute(g, i).applyMatrix4(MA));
+  } else if (GESC && GESC.arma) for (const a of GESC.arma) pasa(_cP.copy(a.p).applyMatrix4(_cM.multiplyMatrices(at.inst, huesoT(FIG_G.tab, a.slot, at.A, at.B, at.mx, _gb))));
+  return mx;
+}
+function contacto() {
+  const out = [];
+  for (const d of S.duelos || []) {
+    if (!d.activo || d.sec || !d.r.vivo || !d.g.vivo || d.r.xd === undefined || d.g.xd === undefined) continue;
+    const cad = Math.hypot(d.r.xd - d.g.xd, d.r.zd - d.g.zd), ataca = d.t0 > 0 && S.T - d.t0 < d.tb + d.clip.dur + 0.3;
+    let pasa = null;
+    if (ataca) {
+      const at = d.ataR ? d.r : d.g, def = d.ataR ? d.g : d.r;
+      blanco(def, at, d.res === 'cubre' || !d.res, _cC); pasa = +puntaPasa(at, def, _cC).toFixed(3);
+    }
+    out.push({ yo: d.r === S.yo, cad: +cad.toFixed(3), pasa, ataR: d.ataR, res: d.res });
+  }
+  return out;
 }
 /* para las pruebas: el estado y dónde caen en pantalla (0 a 1) tu cabeza, la de tu compañero, la rendija y el enemigo */
 const enPantalla = v => { v.project(camara); return { x: +((v.x + 1) / 2).toFixed(3), y: +((1 - v.y) / 2).toFixed(3), delante: v.z < 1 }; };
@@ -1282,6 +1359,9 @@ window.__tp = {
   bandos: () => ({ r: palabras(S.unidad), g: palabras(S.unidadG), animoR: +S.unidad.animo.toFixed(2), animoG: +S.unidadG.animo.toFixed(2), fatigaR: +S.unidad.fatiga.toFixed(2), fatigaG: +S.unidadG.fatiga.toFixed(2), ruptura: S.ruptura, huyen: S.galos.filter(g => g.vivo && g.huye && g.paso.v > 2.5).length, veredicto: veredicto(S.unidad, S.unidadG), T: +S.T.toFixed(1), tChoque: +S.tChoque.toFixed(1) }),
   /* TP1: el paso, la lucha y la tira de costado */
   interno: () => ({ HOM, FIG_G, piesMundo }), patinaje: (q, m, seg) => patinaje(q, m, seg), tira: (q, m, t) => tira(q, m, t), antes: ANTES,
+  /* TP8 1a: en cada duelo de la primera fila, la distancia entre caderas y cuánto pasa la punta del arma del que golpea al
+     otro lado del plano de su escudo (metros; negativo: no llega). El plano pasa por el centro del escudo y mira al rival */
+  contacto: () => contacto(),
   lucha: () => ({ ...ACC.medLucha(), relevos: S.duelos.filter(d => d.activo && !d.sec && d.r.j === 0 && d.r.r > 0).length, dibujadosCaidos: S.romanos.filter(h => !h.vivo).length }),
   gesto: () => { const yo = S.romanos[YO], P = new THREE.Vector3(), Qm = new THREE.Quaternion(); pilumEnMano(yo, P, Qm); const punta = P.clone().addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(Qm), PUNTA); return { mano: enPantalla(ancla(yo, HU.espada, [0, 0, 0], new THREE.Vector3())), punta: enPantalla(punta), conPilum: !yo.tiro, galo: enPantalla(new THREE.Vector3(0, H(0, frenteGalo()) + 1.2, frenteGalo())) }; },
   galos: () => ({ vivos: S.galos.filter(g => g.vivo).length, porPila: S.caidos, hueco: +hueco().toFixed(2), clavados: PILA.filter(p => p.est === 4).length, enTierra: PILA.filter(p => p.est === 3).length, enAire: PILA.filter(p => p.est === 2).length, corren: S.galos.filter(g => g.vivo && g.v > 3).length, andan: S.galos.filter(g => g.vivo && g.v > 0.25 && g.v <= 3).length }),
@@ -1297,7 +1377,7 @@ window.__tp = {
   CAMPO = await crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color });
   await creaHombres(); creaCresta(); malla('peltastas', 10, '#3456a8'); malla('galos', 16, '#3456a8'); preparaGalos();
   try { await escudoGalo(); } catch (e) { console.warn('Sin escudo galo para clavar pila', e); }
-  ACC = crearAcciones({ S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave, E, figuras, cinta, nombre, get HOM() { return HOM; } });
+  ACC = crearAcciones({ S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave, E, figuras, cinta, nombre, get HOM() { return HOM; }, alcance: ANTES ? undefined : alcance, golpe: ANTES ? undefined : golpe });
   reinicia();
   if (FASE) prepara(FASE);
   $('carga').hidden = true;
