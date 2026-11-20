@@ -32,6 +32,13 @@ for (const [carpeta, indice, tope, nombre] of [['assets/units', 'units.json', P.
   console.log('assets/soldados · ' + MB(b) + ' · ' + js.length + ' niveles · ' + js.map(f => f.slice(0, -5) + ' ' + TRIS['soldado:' + f.slice(0, -5)]).join(', ') + ' · movimientos compartidos: ' + (movs.join(', ') || 'ninguno'));
   try { const l = await readFile(join(dir, 'LICENSE.txt'), 'utf8'); if (!/MakeHuman/.test(l) || !/Quaternius/.test(l) || !/CC0 1\.0/.test(l)) fallos.push('assets/soldados/LICENSE.txt no cita a MakeHuman, Quaternius y la CC0 1.0'); }
   catch (e) { fallos.push('falta assets/soldados/LICENSE.txt'); } }
+/* GM43i: el sonido grabado (assets/sonido, CC0). Cada mp3 con su ficha en js/registro.js (R.sonidos) y su línea en LICENSE.txt */
+{ const dir = join(RAIZ, 'assets', 'sonido'), b = await peso(dir); total += b; const mp3 = (await readdir(dir)).filter(f => f.endsWith('.mp3')), REG = createRequire(import.meta.url)(join(RAIZ, 'js', 'registro.js'));
+  console.log('assets/sonido · ' + MB(b) + ' · ' + mp3.length + ' sonidos');
+  let l = ''; try { l = await readFile(join(dir, 'LICENSE.txt'), 'utf8'); if (!/CC0 1\.0/.test(l)) fallos.push('assets/sonido/LICENSE.txt no cita la CC0 1.0'); } catch (e) { fallos.push('falta assets/sonido/LICENSE.txt'); }
+  for (const f of mp3) { const k = f.slice(0, -4), r = (REG.sonidos || {})[k];
+    if (!r || r.licencia !== 'CC0 1.0' || !r.credito || !r.fuente) fallos.push('sonido ' + f + ': falta su ficha completa en js/registro.js (R.sonidos)');
+    if (!l.includes(f)) fallos.push('sonido ' + f + ': no está en assets/sonido/LICENSE.txt'); } }
 console.log('Descarga total de arte: ' + MB(total) + ' (tope: ' + P.descargaMB + ' MB)');
 if (total > P.descargaMB * 1048576) fallos.push('el arte pesa ' + MB(total) + ' y el tope es ' + P.descargaMB + ' MB');
 for (const [f, re] of [['README.md', /CC BY-SA 3\.0/], ['js/ui.js', /Wildfire Games/]]) if (!re.test(await readFile(join(RAIZ, f), 'utf8'))) fallos.push('falta el crédito de 0 A.D. en ' + f);
