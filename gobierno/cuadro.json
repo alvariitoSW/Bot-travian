@@ -2020,16 +2020,16 @@
       "url": "https://claude.ai/code/session_01QiKC36d5w3CmtpSKckGPja"
     },
     {
-      "tarea": "GM43i",
-      "titulo": "Corazón · GM43i Sonido grabado del testudo y la lucha a pie (Opus; tope duro)",
-      "nota": "Abierta el 20/11",
-      "url": "https://claude.ai/code/session_01QiKC37jnJHswyu9x1t9Avk"
-    },
-    {
       "tarea": "TP9-0",
       "titulo": "Corazón · TP9-0 Estudio de la lucha a pie (Fable, solo documento)",
       "nota": "Abierta el 20/11: habla contigo en su chat",
       "url": "https://claude.ai/code/session_01QiKC36xm7ZGUXDfQH8pXZR"
+    },
+    {
+      "tarea": "GM43i",
+      "titulo": "Corazón · GM43i-b Cerrar el sonido grabado del testudo (Opus; corte 0,5 M)",
+      "nota": "Abierta el 20/11; recoge la rama claude/gm43i-sonido",
+      "url": "https://claude.ai/code/session_01QiKC39dwcr8UniBFhTGkwh"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"
