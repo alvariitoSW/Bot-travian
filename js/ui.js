@@ -2,6 +2,7 @@
 import { MapView3D } from './gfx/map3d.js';
 import { portrait } from './gfx/models.js';
 import { preload, loadIndex, realPortrait } from './gfx/units.js';
+import * as ESC from './ui-escaramuza.js';   // CG2a: constructor de ejército de Escaramuzas
 import { preloadStatic, loadStaticIndex } from './gfx/statics.js';
 import { CityView3D } from './gfx/city3d.js';
 import { loadGroundTextures } from './gfx/ground.js';
@@ -168,7 +169,6 @@ function cortaHtml() {
 }
 /* ES1 «Escaramuzas»: batalla suelta desde el menú, con el motor de guerra (Guerra y UIGuerra) y sin campaña: no lee ni escribe la partida guardada.
    Se elige en tablillas de cera; «Empezar la batalla» (sello) abre la guerra; al acabar, la hoja «escfin» con el resultado. */
-UI.esc = { mio: 'mediano', fac: 'cartago', ene: 'mediano', campo: 'llano', dif: 'normal' };
 const milesTxt = n => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 /* MR3b: Escaramuzas con ideas de la batalla personalizada de Rome II (estudios/MR3-menus-rome2.md): los dos bandos frente a frente
    con su escudo, su color y sus hombres; facción en escudos; tamaños con las tropas en fichas; campo con vista previa dibujada; dificultad. */
@@ -181,27 +181,8 @@ const CAMPO_SVG = {
 };
 const campoPrev = (k, colE) => '<svg viewBox="0 0 80 44" aria-hidden="true"><defs><linearGradient id="ecielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#9fb6c4"/><stop offset="1" stop-color="#e7d3a0"/></linearGradient></defs><rect width="80" height="44" fill="url(#ecielo)"/>' + (CAMPO_SVG[k] || CAMPO_SVG.llano) +
   '<rect x="10" y="35" width="16" height="4" fill="#b3261e"/><rect x="54" y="35" width="16" height="4" fill="' + colE + '"/></svg>';
-function escHtml() {
-  const E = G.ESCARAMUZA, o = UI.esc, e = G.escaramuza(Object.assign({ semilla: 1 }, o)), F = id => D.FACTIONS[id] || { n: id, col: '#555' };
-  const suma = u => Object.values(u).reduce((x, y) => x + y, 0), n0 = suma(e.ejercitos[0]), n1 = suma(e.ejercitos[1]), fe = F(e.fac), roma = F('roma');
-  const fichas = u => '<div class="esc-fichas">' + Object.keys(u).filter(t => u[t] > 0).sort((x, y) => u[y] - u[x]).map(t => '<span><b>' + milesTxt(u[t]) + '</b> ' + esc(D.UNITS[t] ? D.UNITS[t].n : t) + '</span>').join('') + '</div>';
-  const tabl = (k, ops) => '<div class="ro-tablilla esc-t">' + ops.map(([v, n]) => '<button class="' + (o[k] === v ? 'on' : '') + '" data-act="escel" data-v="' + k + ':' + v + '">' + esc(n) + '</button>').join('') + '</div>';
-  const tam = Object.keys(E.tamanos).map(k => [k, E.tamanos[k].n]), pr = Math.round(100 * n0 / Math.max(1, n0 + n1));
-  const DIFD = { facil: 'Menos enemigos', normal: 'A la par', dificil: 'Más enemigos' };
-  return '<div class="esc">' +
-    '<div class="esc-ff"><div class="esc-lado">' + escudoSvg(roma.col) + '<b>Roma</b><small>' + milesTxt(n0) + ' hombres</small></div><div class="esc-vs">contra</div>' +
-    '<div class="esc-lado">' + escudoSvg(fe.col) + '<b>' + esc(fe.n) + '</b><small>' + milesTxt(n1) + ' hombres</small></div></div>' +
-    '<div class="esc-fz" role="img" aria-label="Fuerzas: ' + pr + ' % Roma"><i style="width:' + pr + '%;background:' + roma.col + '"></i><i style="background:' + fe.col + '"></i></div>' +
-    '<p class="ro-rubrica esc-r">Enemigo</p><div class="esc-facs">' + E.facciones.map(f => '<button class="esc-fac' + (o.fac === f ? ' on' : '') + '" data-act="escel" data-v="fac:' + f + '">' + escudoSvg(F(f).col) + '<span>' + esc(F(f).n) + '</span></button>').join('') + '</div>' +
-    '<p class="ro-rubrica esc-r">Tu ejército</p>' + tabl('mio', tam) + fichas(e.ejercitos[0]) +
-    '<p class="ro-rubrica esc-r">Ejército de ' + esc(fe.n) + '</p>' + tabl('ene', tam) + fichas(e.ejercitos[1]) +
-    '<p class="ro-rubrica esc-r">Campo</p><div class="esc-campos">' + Object.keys(E.campos).map(k => '<button class="esc-campo' + (o.campo === k ? ' on' : '') + '" data-act="escel" data-v="campo:' + k + '">' + campoPrev(k, fe.col) + '<span>' + esc(E.campos[k]) + '</span></button>').join('') + '</div>' +
-    '<p class="esc-d">El campo cambia el paisaje; la pelea aún no depende de él.</p>' +
-    '<p class="ro-rubrica esc-r">Dificultad</p><div class="ro-tablilla esc-t esc-dif">' + Object.keys(E.dificultad).map(k => '<button class="' + (o.dif === k ? 'on' : '') + '" data-act="escel" data-v="dif:' + k + '">' + esc(E.dificultad[k].n) + '<small>' + (DIFD[k] || '') + '</small></button>').join('') + '</div>' +
-    '<button class="btn ro-sello esc-go" data-act="escempieza">Empezar la batalla</button>' +
-    /* GM43f: la escena «Testudo a pie» (GM43e) es una página aparte; ruta relativa porque el juego se sirve en un subdirectorio */
-    '<p class="ro-rubrica esc-r">Escena a pie</p><a class="esc-testudo" href="gobierno/maquetas/a-pie/"><span><b>Testudo a pie</b><small>Cruza el campo bajo los venablos con tu manípulo</small></span><i></i></a><a class="esc-falange" href="gobierno/maquetas/falange/"><span><b>Falange a pie</b><small>Aguanta con las picas de Pirro el choque de un manípulo romano</small></span><i></i></a></div>';
-}
+/* CG2a: la pantalla de Escaramuzas es el constructor de ejército de js/ui-escaramuza.js; aquí solo el enganche */
+function escHtml() { ESC.init({ pt, escudoSvg, campoPrev }); return ESC.html(); }
 function escFinHtml() {
   const x = UI.escRes; if (!x) return '<div class="empty">Sin resultado.</div>';
   const R = x.res, t = { victoria: 'Victoria', derrota: 'Derrota', retirada: 'Retirada' }[R.como] || 'Fin', m = Math.floor(R.t / 60), sg = Math.round(R.t % 60);
@@ -210,7 +191,8 @@ function escFinHtml() {
     '<button class="btn ro-sello esc-go" data-act="hoja" data-v="escaramuza">Otra escaramuza</button><button class="btn ghost esc-go" data-act="hojax">Volver al menú</button></div>';
 }
 function escEmpieza() {
-  const e = G.escaramuza(UI.esc), alFin = r => {   // sin guardar: no toca aqvila-save-v1 ni aqvila-guerra-v1
+  if (!ESC.listo()) { toast('Pon al menos un manípulo en cada bando.', 'bad'); return; }
+  const e = ESC.batalla(), alFin = r => {   // sin guardar: no toca aqvila-save-v1 ni aqvila-guerra-v1
     const B = r && r.estado; UI.escRes = { res: (B && B.resultado) || { como: 'retirada', motivo: '', t: 0, bajas: [0, 0], inicial: [0, 0] }, fac: e.fac };
     setTimeout(() => { if (UI.menu) hojaAbre('escfin'); }, 0);   // después del toque en «Ver el resultado»: el oyente general cierra las hojas
   };
@@ -1744,7 +1726,7 @@ document.addEventListener('click', function (e) {
     case 'hoja': hojaAbre(v); break;
     case 'minimapa': if (UI.map) { UI.map.minimapa(); hojaCierra(); } break;   // C18: el minimapa se abre y se cierra desde la hoja «Guerra»
     case 'mpanel': { const nm = $('hname') ? $('hname').value : ''; UI.mPanel = v; showMenu(); if (nm && $('hname')) $('hname').value = nm; $('menu').scrollTop = 0; break; }
-    case 'escel': { const i = v.indexOf(':'); UI.esc[v.slice(0, i)] = v.slice(i + 1); hojaPinta(true); break; }
+    case 'escel': ESC.accion(v); hojaPinta(true); ESC.restaura(); break;   // CG2a
     case 'escempieza': escEmpieza(); break;
     case 'hojax': hojaCierra(); break;
     case 'menuconf': UI.hojaConf = true; hojaPinta(true); break;
