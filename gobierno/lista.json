@@ -144,8 +144,10 @@
       "veras": "Mueves ejércitos por Italia y el Mediterráneo, y Cartago, Epiro y los galos atacan y se defienden.",
       "hecho": "Marchas, guarniciones, enemigo con iniciativa y partida corta o larga.",
       "captura": "gobierno/capturas-tarea/C18-italia.jpg",
-      "tareas": [],
-      "falta": "Tu pedido del 19/11: muchas más culturas, regiones, ciudades y pueblos fuera de Roma (hoy 26 ciudades, 8 regiones, 20 tropas): propuesta P183, espera tu decisión en el cuadro."
+      "tareas": [
+        "P183"
+      ],
+      "falta": "Tu pedido del 19/11: muchas más culturas, regiones, ciudades y pueblos fuera de Roma (hoy 26 ciudades, 8 regiones, 20 tropas): aprobado el 20/11 como P183 (≈45 ciudades en las 8 regiones, tras CG9)."
     },
     {
       "id": "L9",
