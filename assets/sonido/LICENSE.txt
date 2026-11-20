@@ -1,0 +1,43 @@
+Sonido grabado de AQVILA (assets/sonido)
+
+Los 36 sonidos son CC0 1.0 (dominio público, https://creativecommons.org/publicdomain/zero/1.0/).
+No obligan a citar, pero se cita a cada autor por gratitud. Licencia comprobada en la página de cada fuente el 20/11/2026.
+AQVILA los cortó, igualó y comprimió (mp3 mono a 32 kHz) con tools/sonido.py; las fuentes se bajan con tools/sonido-fuentes.sh.
+
+archivo        autor                 fuente
+madera1.mp3    rubberduck            «100 CC0 SFX» — https://opengameart.org/content/100-cc0-sfx
+madera2.mp3    rubberduck            «100 CC0 SFX» — https://opengameart.org/content/100-cc0-sfx
+madera3.mp3    rubberduck            «80 CC0 RPG SFX» — https://opengameart.org/content/80-cc0-rpg-sfx
+madera4.mp3    rubberduck            «80 CC0 RPG SFX» — https://opengameart.org/content/80-cc0-rpg-sfx
+hierro1.mp3    rubberduck            «100 CC0 SFX» — https://opengameart.org/content/100-cc0-sfx
+hierro2.mp3    rubberduck            «100 CC0 SFX» — https://opengameart.org/content/100-cc0-sfx
+hierro3.mp3    rubberduck            «100 CC0 SFX» — https://opengameart.org/content/100-cc0-sfx
+hierro4.mp3    marchelonia           Freesound 588278 — https://freesound.org/s/588278/
+escudo1.mp3    marchelonia           Freesound 588278 — https://freesound.org/s/588278/
+escudo2.mp3    marchelonia           Freesound 588278 — https://freesound.org/s/588278/
+escudo3.mp3    rubberduck            «100 CC0 SFX» — https://opengameart.org/content/100-cc0-sfx
+escudo4.mp3    rubberduck            «100 CC0 SFX» — https://opengameart.org/content/100-cc0-sfx
+paso1.mp3      Kenney                «50 RPG sound effects» — https://opengameart.org/content/50-rpg-sound-effects
+paso2.mp3      Kenney                «50 RPG sound effects» — https://opengameart.org/content/50-rpg-sound-effects
+paso3.mp3      Kenney                «50 RPG sound effects» — https://opengameart.org/content/50-rpg-sound-effects
+paso4.mp3      Kenney                «50 RPG sound effects» — https://opengameart.org/content/50-rpg-sound-effects
+vuelo1.mp3     artisticdude          «Swishes sound pack» — https://opengameart.org/content/swishes-sound-pack
+vuelo2.mp3     artisticdude          «Swishes sound pack» — https://opengameart.org/content/swishes-sound-pack
+vuelo3.mp3     artisticdude          «Swishes sound pack» — https://opengameart.org/content/swishes-sound-pack
+esfuerzo1.mp3  ale-batec             Freesound 511023 — https://freesound.org/s/511023/
+esfuerzo2.mp3  ale-batec             Freesound 511023 — https://freesound.org/s/511023/
+esfuerzo3.mp3  ale-batec             Freesound 511023 — https://freesound.org/s/511023/
+esfuerzo4.mp3  ale-batec             Freesound 511023 — https://freesound.org/s/511023/
+herido1.mp3    salemaudio            Freesound 803168 — https://freesound.org/s/803168/
+herido2.mp3    salemaudio            Freesound 803168 — https://freesound.org/s/803168/
+coro1.mp3      Jace                  Freesound 57204 — https://freesound.org/s/57204/
+grito1.mp3     joelcarrsound         Freesound 521830 — https://freesound.org/s/521830/
+grito2.mp3     joelcarrsound         Freesound 521831 — https://freesound.org/s/521831/
+grito3.mp3     joelcarrsound         Freesound 521832 — https://freesound.org/s/521832/
+clamor1.mp3    WelvynZPorterSamples  Freesound 621374 — https://freesound.org/s/621374/
+clamor2.mp3    florianreichelt       Freesound 563011 — https://freesound.org/s/563011/
+cuerno1.mp3    adharca               Freesound 539956 — https://freesound.org/s/539956/
+cuerno2.mp3    DeVern                Freesound 512490 — https://freesound.org/s/512490/
+lucha1.mp3     DeadVDI               Freesound 376646 — https://freesound.org/s/376646/
+lucha2.mp3     mario1298             Freesound 177084 — https://freesound.org/s/177084/
+viento1.mp3    Globofonia            Freesound 553733 — https://freesound.org/s/553733/

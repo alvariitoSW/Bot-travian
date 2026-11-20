@@ -640,6 +640,46 @@
     return null;
   };
 
+  /* GM43i: sonido grabado (assets/sonido, todo CC0 1.0). Uno por archivo; lo comprueba gobierno/arte.mjs */
+  R.sonidos = {
+    madera1: { archivo: 'assets/sonido/madera1.mp3', licencia: 'CC0 1.0', credito: 'rubberduck', fuente: 'https://opengameart.org/content/100-cc0-sfx' },
+    madera2: { archivo: 'assets/sonido/madera2.mp3', licencia: 'CC0 1.0', credito: 'rubberduck', fuente: 'https://opengameart.org/content/100-cc0-sfx' },
+    madera3: { archivo: 'assets/sonido/madera3.mp3', licencia: 'CC0 1.0', credito: 'rubberduck', fuente: 'https://opengameart.org/content/80-cc0-rpg-sfx' },
+    madera4: { archivo: 'assets/sonido/madera4.mp3', licencia: 'CC0 1.0', credito: 'rubberduck', fuente: 'https://opengameart.org/content/80-cc0-rpg-sfx' },
+    hierro1: { archivo: 'assets/sonido/hierro1.mp3', licencia: 'CC0 1.0', credito: 'rubberduck', fuente: 'https://opengameart.org/content/100-cc0-sfx' },
+    hierro2: { archivo: 'assets/sonido/hierro2.mp3', licencia: 'CC0 1.0', credito: 'rubberduck', fuente: 'https://opengameart.org/content/100-cc0-sfx' },
+    hierro3: { archivo: 'assets/sonido/hierro3.mp3', licencia: 'CC0 1.0', credito: 'rubberduck', fuente: 'https://opengameart.org/content/100-cc0-sfx' },
+    hierro4: { archivo: 'assets/sonido/hierro4.mp3', licencia: 'CC0 1.0', credito: 'marchelonia', fuente: 'https://freesound.org/s/588278/' },
+    escudo1: { archivo: 'assets/sonido/escudo1.mp3', licencia: 'CC0 1.0', credito: 'marchelonia', fuente: 'https://freesound.org/s/588278/' },
+    escudo2: { archivo: 'assets/sonido/escudo2.mp3', licencia: 'CC0 1.0', credito: 'marchelonia', fuente: 'https://freesound.org/s/588278/' },
+    escudo3: { archivo: 'assets/sonido/escudo3.mp3', licencia: 'CC0 1.0', credito: 'rubberduck', fuente: 'https://opengameart.org/content/100-cc0-sfx' },
+    escudo4: { archivo: 'assets/sonido/escudo4.mp3', licencia: 'CC0 1.0', credito: 'rubberduck', fuente: 'https://opengameart.org/content/100-cc0-sfx' },
+    paso1: { archivo: 'assets/sonido/paso1.mp3', licencia: 'CC0 1.0', credito: 'Kenney', fuente: 'https://opengameart.org/content/50-rpg-sound-effects' },
+    paso2: { archivo: 'assets/sonido/paso2.mp3', licencia: 'CC0 1.0', credito: 'Kenney', fuente: 'https://opengameart.org/content/50-rpg-sound-effects' },
+    paso3: { archivo: 'assets/sonido/paso3.mp3', licencia: 'CC0 1.0', credito: 'Kenney', fuente: 'https://opengameart.org/content/50-rpg-sound-effects' },
+    paso4: { archivo: 'assets/sonido/paso4.mp3', licencia: 'CC0 1.0', credito: 'Kenney', fuente: 'https://opengameart.org/content/50-rpg-sound-effects' },
+    vuelo1: { archivo: 'assets/sonido/vuelo1.mp3', licencia: 'CC0 1.0', credito: 'artisticdude', fuente: 'https://opengameart.org/content/swishes-sound-pack' },
+    vuelo2: { archivo: 'assets/sonido/vuelo2.mp3', licencia: 'CC0 1.0', credito: 'artisticdude', fuente: 'https://opengameart.org/content/swishes-sound-pack' },
+    vuelo3: { archivo: 'assets/sonido/vuelo3.mp3', licencia: 'CC0 1.0', credito: 'artisticdude', fuente: 'https://opengameart.org/content/swishes-sound-pack' },
+    esfuerzo1: { archivo: 'assets/sonido/esfuerzo1.mp3', licencia: 'CC0 1.0', credito: 'ale-batec', fuente: 'https://freesound.org/s/511023/' },
+    esfuerzo2: { archivo: 'assets/sonido/esfuerzo2.mp3', licencia: 'CC0 1.0', credito: 'ale-batec', fuente: 'https://freesound.org/s/511023/' },
+    esfuerzo3: { archivo: 'assets/sonido/esfuerzo3.mp3', licencia: 'CC0 1.0', credito: 'ale-batec', fuente: 'https://freesound.org/s/511023/' },
+    esfuerzo4: { archivo: 'assets/sonido/esfuerzo4.mp3', licencia: 'CC0 1.0', credito: 'ale-batec', fuente: 'https://freesound.org/s/511023/' },
+    herido1: { archivo: 'assets/sonido/herido1.mp3', licencia: 'CC0 1.0', credito: 'salemaudio', fuente: 'https://freesound.org/s/803168/' },
+    herido2: { archivo: 'assets/sonido/herido2.mp3', licencia: 'CC0 1.0', credito: 'salemaudio', fuente: 'https://freesound.org/s/803168/' },
+    coro1: { archivo: 'assets/sonido/coro1.mp3', licencia: 'CC0 1.0', credito: 'Jace', fuente: 'https://freesound.org/s/57204/' },
+    grito1: { archivo: 'assets/sonido/grito1.mp3', licencia: 'CC0 1.0', credito: 'joelcarrsound', fuente: 'https://freesound.org/s/521830/' },
+    grito2: { archivo: 'assets/sonido/grito2.mp3', licencia: 'CC0 1.0', credito: 'joelcarrsound', fuente: 'https://freesound.org/s/521831/' },
+    grito3: { archivo: 'assets/sonido/grito3.mp3', licencia: 'CC0 1.0', credito: 'joelcarrsound', fuente: 'https://freesound.org/s/521832/' },
+    clamor1: { archivo: 'assets/sonido/clamor1.mp3', licencia: 'CC0 1.0', credito: 'WelvynZPorterSamples', fuente: 'https://freesound.org/s/621374/' },
+    clamor2: { archivo: 'assets/sonido/clamor2.mp3', licencia: 'CC0 1.0', credito: 'florianreichelt', fuente: 'https://freesound.org/s/563011/' },
+    cuerno1: { archivo: 'assets/sonido/cuerno1.mp3', licencia: 'CC0 1.0', credito: 'adharca', fuente: 'https://freesound.org/s/539956/' },
+    cuerno2: { archivo: 'assets/sonido/cuerno2.mp3', licencia: 'CC0 1.0', credito: 'DeVern', fuente: 'https://freesound.org/s/512490/' },
+    lucha1: { archivo: 'assets/sonido/lucha1.mp3', licencia: 'CC0 1.0', credito: 'DeadVDI', fuente: 'https://freesound.org/s/376646/' },
+    lucha2: { archivo: 'assets/sonido/lucha2.mp3', licencia: 'CC0 1.0', credito: 'mario1298', fuente: 'https://freesound.org/s/177084/' },
+    viento1: { archivo: 'assets/sonido/viento1.mp3', licencia: 'CC0 1.0', credito: 'Globofonia', fuente: 'https://freesound.org/s/553733/' }
+  };
+
   /* Fichas vacías para copiar y rellenar al añadir contenido nuevo. */
   const ARTE_TROPA = { modelo: 'assets/units/<id>.bin', licencia: 'CC BY-SA 3.0', credito: 'Wildfire Games (0 A.D.)' };   // o { sin: '<motivo>' }; añade provisional: true si el modelo es prestado
   R.plantillas = {
