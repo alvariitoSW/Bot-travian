@@ -138,6 +138,7 @@ y los coge de frente antes de que entren. Si no llegas a tiempo, entran por el f
 ## 9. Reparto en tareas (≤ 30 pasos cada una; Opus; un constructor por tarea; en este orden)
 | # | Tarea | Qué se verá | Archivos | Coste |
 |---|---|---|---|---|
+| 0 | **TP9-0 · Estudio antes de construir** (pedido del usuario: «antes de hacer nada») | Una página: cómo está hoy la lucha a pie (testudo, falange y «Bajar a pie»), con capturas y lo que falla frente a §3, §4 y §6; el objetivo final exacto, pieza a pieza; y qué hay que hacer para que sea **impresionante en lo artístico y perfecto** (animación de cada gesto, cámara, luz, impacto, sonido, interfaz), con lo que el móvil no da dicho claro. Revisa y afina el reparto TP9a–f. Fable y Opus; sin código | `gobierno/estudios/TP9-0-estudio-lucha.md` | ≈1,2 M |
 | 1 | **TP9a · Pilum sin pantalla en blanco** (independiente, primero) | Lanzas y no se para nada. Causa probable: el móvil prepara de golpe (compila) los efectos del pilum, astillas, gotas y anillos la primera vez que salen; se preparan durante la carga | `maquetas/a-pie/escena.js` (y `maquetas/falange/escena.js` si comparte la causa), `sw.js` | ≈0,3 M |
 | 2 | **TP9b · Lucha con los dedos** | Sin botones de golpe; palanca dentro de la fila; tocar, deslizar, mantener y empujar; golpes encadenados; órdenes en el estandarte | `maquetas/a-pie/acciones.js`, `hud.js`, `escena.js`, `camara.js` | ≈1,0 M |
 | 3 | **TP9c · Tu fila y el peligro** | Remate del compañero, huecos que se abren donde peleas, te rodean, escudo que se rompe, retirada a la segunda fila | `maquetas/a-pie/unidad.js`, `formacion.js`, `enemigo.js`, `escena.js` | ≈1,0 M |
@@ -146,10 +147,10 @@ y los coge de frente antes de que entren. Si no llegas a tiempo, entran por el f
 | 6 | **TP9f · La misma lucha al «Bajar a pie»** (tras el sí del usuario a 2–4) | En la batalla grande, la lucha de dedos sustituye al duelo de botones; incluye la cámara dentro de la fila (lo de CG6c) | `js/ui-mando.js`, `js/simulador.js` (solo el gancho), `css/mando.css`, `sw.js` | ≈0,9 M |
 
 **Quién (usuario, 20/11, al aprobar)**: «esta tarea deberían hacerla Fable y Opus, y que se piense muy bien cómo hacer el
-objetivo final». Excepción suya a «Sin Fable», solo para TP9a–f. Cada pieza empieza con un diseño corto de Fable frente a
+objetivo final». Excepción suya a «Sin Fable», solo para TP9-0 y TP9a–f. Y después (literal): «E incluso que antes de hacer nada hagan un estudio de como está el juego en eso, cual es el objetivo final exacto, y que habría que hacer para llevarlo a cabo de manera impresionantemente artística y perfecta» → TP9-0. Cada pieza empieza con un diseño corto de Fable frente a
 §3, §4 y §6 (qué gesto, qué se ve, cómo se mide) y lo construye Opus. El vigía decide el reparto exacto.
 
-**Total**: ≈5,2 M declarados; por lo medido en TP8b y CG6b (+23 % y +40 %), **esperable de 6,5 a 7,5 M**. Cada tarea cierra
+**Total**: ≈6,4 M declarados con el estudio; por lo medido en TP8b y CG6b (+23 % y +40 %), **esperable de 8 a 9 M**. Nada se construye (tampoco TP9a) hasta que el usuario apruebe el estudio TP9-0. Cada tarea cierra
 con jueces APTO y capturas frente al §6, y **el usuario la prueba en su móvil antes de abrir la siguiente**. Si no gusta,
 se rehace la pieza, no se le pone un parche (REF §0).
 
