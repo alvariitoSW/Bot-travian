@@ -62,6 +62,7 @@ las batallas llegan en saltos grandes, con su «sube»; (4) si algo no se parece
 | 19/11, chat de TP8 (archivada) | «te he pasado muchos vídeos ya, puedes usarlos» (los de arriba) | `estudios/TP8-mejoras-testudo-combate.md` |
 | Más ejércitos en pantalla | idea de ejércitos grandes sin miles de figuras | `estudios/GM1-ejercitos-grandes.md` |
 | Objetivo de las batallas | qué es una batalla «como Total War» en AQVILA | `estudios/CG1-objetivo-batalla.md`, `estudios/ES0-objetivo-escaramuzas.md` |
+| Objetivo de la lucha a pie | qué es luchar «libre en la formación» (testudo con dedos, falange con oficial); 20/11, chat de TP9, sin vídeos nuevos | `estudios/TP9-objetivo-lucha-a-pie.md` |
 
 *Nuevas fichas: añádelas debajo de esta tabla, con fecha, chat, qué se vio y qué idea se toma.*
 
