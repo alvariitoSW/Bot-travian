@@ -379,6 +379,8 @@ function arboles() { const n = E.arboles.reduce((s, a) => s + (a.talado ? 1 : 0)
    de fuera, abrazando todas las casas, y no por el surco de dentro. Solo vista: la fase, las puertas del juego y «dentro o fuera» siguen saliendo de ciudad.js.
    Puertas dibujadas: donde una vía ancha (camino o vía) cruza ese borde. Devuelve null si la ciudad no tiene urbe: entonces, el surco de siempre. */
 const CERCO_FUERA = true;
+/* La ribera queda abierta: a menos de RIBERA del eje del río no se dibuja muro ni puerta (junto al Tíber no consta muro continuo; el río hacía de defensa). */
+const RIBERA = 100;
 function cercoVista() {
   if (!CERCO_FUERA || !E.urbe || !E.foro) return null; const f = E.foro, RU = E.urbe.RU, NR = RU.length, K = 7, D2 = Math.PI * 2;
   const rad = (x, z) => { const q = ((Math.atan2(z - f.z, x - f.x) / D2) % 1 + 1) % 1 * NR, i = Math.floor(q), u = q - i; return RU[i % NR] * (1 - u) + RU[(i + 1) % NR] * u + K; }, den = (x, z) => Math.hypot(x - f.x, z - f.z) < rad(x, z);
@@ -388,7 +390,7 @@ function cercoVista() {
   for (const v of E.vias) { if (!(v.w >= 3) || !v.p) continue; for (let i = 1; i < v.p.length; i++) { let a = v.p[i - 1], b = v.p[i]; if (den(a[0], a[1]) === den(b[0], b[1])) continue; const da = den(a[0], a[1]);
       for (let k = 0; k < 12; k++) { const c = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; if (den(c[0], c[1]) === da) a = c; else b = c; }
       const t = Math.atan2(a[1] - f.z, a[0] - f.x), j = Math.round(((t / D2) % 1 + 1) % 1 * NR) % NR, p0 = S[(j + NR - 1) % NR], p1 = S[(j + 1) % NR];
-      if (!PU.some(p => Math.hypot(p.x - a[0], p.z - a[1]) < 40)) PU.push({ x: a[0], z: a[1], ang: Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) }); } }
+      if (distRio(a[0], a[1]) >= RIBERA && !PU.some(p => Math.hypot(p.x - a[0], p.z - a[1]) < 40)) PU.push({ x: a[0], z: a[1], ang: Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) }); } }
   return { S, PU };
 }
 /* muralla: por el surco; primero empalizada (por código), luego tramos de piedra reales con torres; puertas donde cruzan las calles */
@@ -404,7 +406,11 @@ function muralla(B) {
   /* piedra: tramos de 30,5 entre puertas */
   const tm = () => { const v = 0.62 + 0.18 * rr(); return { muro: [v, v * 0.94, v * 0.84], teja: [0.8, 0.76, 0.72, 0] }; }, muros = [], torres = [], puertasL = [];
   const nT = Math.round(largo / 30.5), paso = largo / nT;
-  for (let i = 0; i < nT; i++) { const q = en((i + 0.5) * paso), ini = en(i * paso); if (i / nT >= hechoPie) {            // empalizada: estacas
+  for (let i = 0; i < nT; i++) { const q = en((i + 0.5) * paso), ini = en(i * paso); if (CV && distRio(q[0], q[1]) < RIBERA) continue;
+    if (CV && rs && i / nT < hechoPie && !cerca(q[0], q[1], paso * 0.8)) { let nx = Math.sin(q[2]), nz = -Math.cos(q[2]); if (nx * (q[0] - E.foro.x) + nz * (q[1] - E.foro.z) < 0) { nx = -nx; nz = -nz; }      // UR1: agger (terraplén por dentro y foso por fuera) solo en llano
+      const hd = altura(q[0] - nx * 16, q[1] - nz * 16), hf = altura(q[0] + nx * 16, q[1] + nz * 16), h0 = altura(q[0], q[1]);
+      if (Math.abs(hd - hf) < 2.2) { B.caja(paso + 1.5, 6, 11, q[0] - nx * 6.5, h0 + 1.2, q[1] - nz * 6.5, '#7f744e', -q[2]); B.caja(paso + 1.5, 5, 7, q[0] - nx * 13, h0 + 0.2, q[1] - nz * 13, '#857a54', -q[2]); B.caja(paso + 1.5, 0.5, 8, q[0] + nx * 10, altura(q[0] + nx * 10, q[1] + nz * 10) + 0.05, q[1] + nz * 10, '#62563a', -q[2]); } }
+    if (i / nT >= hechoPie) {            // empalizada: estacas
       if (i / nT < hechoEmp) for (let s = i * paso; s < (i + 1) * paso; s += 1.7) { const e = en(s); if (cerca(e[0], e[1], 7)) continue; const h = (6.2 + rr() * 1.4) * (m.fase >= 1 ? 1 : 0.3 + 0.7 * hechoEmp); B.caja(1.5, h + 2, 1.2, e[0], altura(e[0], e[1]) + h / 2 - 1, e[1], rr() < 0.5 ? '#6b5338' : '#7a6042', -e[2]); }
       continue; }
     const pu = cerca(q[0], q[1], paso * 0.55);

@@ -699,6 +699,9 @@
   /* partida vieja: una ciudad propia con c.b.muralla = N y sin fase pasa a la fase que le toca y conserva su nivel exacto N hasta la próxima obra */
   function aplicarMur0(E, n) { E.mur0 = n || 0; if (E.mur0 > 0 && E.muralla.fase === 0 && !E.muralla.obra) { E.muralla.fase = CI.faseDeNivel(E.mur0); E.muralla.nivel = E.mur0; } else if (E.mur0 > 0 && E.muralla.fase === 0) { E.muralla.nivel = E.mur0; } if (E.muralla.geo) E.muralla.geo.fase = E.muralla.fase; }
   const ponerDatos = (c, r) => { c.ciudad = datosDe(r.E); };
+  /* UR1 (usuario, 20/11): Roma ya tenía su muralla de piedra en 280 a.C. (la Serviana, h. 378 a.C.; Livio 6.32). Nace con muralla 4 (D.CITIES.roma.wl);
+     una partida guardada con Roma en empalizada o sin muralla pasa a piedra al cargar, sin perder un nivel más alto. Se repite en cada carga y no hace daño. */
+  function murServiana(c, id, E) { if (id !== 'roma' || !E || E.muralla.fase >= 2) return; E.muralla.fase = 2; E.muralla.obra = 0; E.muralla.nivel = Math.max(4, E.mur0 || 0, c.b.muralla || 0); E.mur0 = E.muralla.nivel; c.b.muralla = Math.max(c.b.muralla || 0, 4); if (E.muralla.geo) E.muralla.geo.fase = 2; if (c.ciudad) c.ciudad.mur0 = E.mur0; }
 
   /* ciudad.crear tarda ~0,3 s (el bosque): se hace una vez por semilla y las demás ciudades con esa semilla copian la plantilla (misma ciudad, mismo azar). */
   const plantillas = {};
@@ -793,7 +796,7 @@
   function abrir(c) {                    // reconstruye (si hay datos) o convierte
     const id = idDe(c); if (!id) return null; let E = null;
     try {
-      if (c.ciudad) { if (c.ciudad.mur0 === undefined && c.b.muralla > 0) c.ciudad.mur0 = c.b.muralla; E = reconstruir(c.ciudad); regE.set(c, { E, id, rev: -1 }); const r = regE.get(c); sinc(c, r);
+      if (c.ciudad) { if (c.ciudad.mur0 === undefined && c.b.muralla > 0) c.ciudad.mur0 = c.b.muralla; E = reconstruir(c.ciudad); murServiana(c, id, E); regE.set(c, { E, id, rev: -1 }); const r = regE.get(c); sinc(c, r);
         const alin = mesAlin(); let n = 0; while (E.mesN < alin && n++ < 36) CI.mes(E);       // se pone al día (tope de meses)
         if (n) { sinc(c, r); ponerDatos(c, r); } }
       else { E = c.plantilla ? desdeP(c, id) : null; if (!E) { delete c.plantilla; E = convertir(c, id); } }
