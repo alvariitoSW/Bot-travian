@@ -161,8 +161,8 @@ export function crearAcciones(m) {
     if (L2 && tuyo && d.ataR && d.res === 'cubre') d.contraT = S.T + CONTRA;
     if (m.golpe) { def.tGolpe = S.T; def.tipoGolpe = d.res === 'cubre' ? 'escudo' : 'cuerpo'; m.golpe(d, def, at, def.tipoGolpe, tuyo); }
     if (d.res === 'cubre') { Son.hierro(pan, 0, tuyo ? 1 : 0.5); Son.madera(tuyo ? 0.9 : 0.45, pan); if (!m.golpe && azarL() < 0.5) chispa(V3.set((def.x + at.x) / 2, H(def.x, def.z) + 1.2, (def.z + at.z) / 2), 0.35); return; }
-    def.golpes++; Son.madera(tuyo ? 0.7 : 0.3, pan); Son.tierra(pan); if (tuyo) Son.trueno(d.ataR ? 0.45 : 0.3); polvoEn(def.x, def.z, tuyo ? 9 : 5);
-    if (d.res === 'muere') { def.vivo = false; def.muere = S.T + 0.12; Son.tierra(pan, 0.5); polvoEn(def.x, def.z, 8); }
+    def.golpes++; Son.madera(tuyo ? 0.7 : 0.3, pan); Son.tierra(pan); if (tuyo) Son.esfuerzo(pan, d.ataR ? 1 : 0.6); if (tuyo) Son.trueno(d.ataR ? 0.45 : 0.3); polvoEn(def.x, def.z, tuyo ? 9 : 5);
+    if (d.res === 'muere') { def.vivo = false; def.muere = S.T + 0.12; Son.tierra(pan, 0.5); Son.herido(pan, 0.1); polvoEn(def.x, def.z, 8); }
   }
   /* el que cae deja hueco: lo ocupa el de detrás dando un paso al frente (un poco a un lado, para no pisar al caído) */
   function relevo(d) {
@@ -282,7 +282,7 @@ export function crearAcciones(m) {
     /* TP8 duda: tras herirte se quedaba lejos; vuelve a distancia de duelo antes del siguiente golpe */
     if (!oc && d.g.px !== undefined) { const dx = d.g.px - d.r.px, dz = d.g.pz - d.r.pz, l = Math.hypot(dx, dz) || 1; if (Math.abs(l - D_DUELO) > 0.2) { d.g.px = d.r.px + dx / l * D_DUELO; d.g.pz = d.r.pz + dz / l * D_DUELO; } }
     if (pide === 'empujar' && T >= S.tEmpuja && F() >= cE) {
-      S.tEmpuja = T + 1.5; gasta(cE); S.tEmpR = T; Son.madera(0.5, pan); S.unidad.fatiga = Math.min(1, S.unidad.fatiga + 0.01);
+      S.tEmpuja = T + 1.5; gasta(cE); S.tEmpR = T; Son.madera(0.5, pan); Son.esfuerzo(pan, 0.8); S.unidad.fatiga = Math.min(1, S.unidad.fatiga + 0.01);
       const armando = oc && d.aviso && T - d.t0 < d.tb * 0.9;
       if (!oc || armando) {
         if (armando) { d.t0 = -9; d.ts = -9; d.resuelto = true; }
