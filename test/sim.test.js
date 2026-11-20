@@ -1129,7 +1129,6 @@ const tipado = o => { if (ArrayBuffer.isView(o)) return true; if (o && typeof o 
   hasta(c, ped); const f = E.edificios.find(e => e.tipo === 'fuente'); assert(f && !c.queue); ped();
   r = G.mejorarPieza('roma', f.id); assert(r.ok, r.motivo); hasta(c, ped); assert.strictEqual(f.mejora, 1); ped();
   const nE = E.edificios.length; assert(G.derribarPieza('roma', f.id).ok && E.edificios.length === nE - 1 && c.pop <= G.popCap(c)); assert(!G.derribarPieza('roma', f.id).ok);
-  E.muralla.fase = 1; delete E.muralla.nivel;      /* UR1: Roma nace ya con piedra; la prueba de la obra parte de empalizada */
   const m0 = c.b.muralla, ro = G.levantarMuralla('roma'); assert(ro.ok && c.b.muralla === m0 && E.muralla.obra > 0, 'la muralla de ciudad.js no cambia c.b.muralla');
   const E3 = G.ciudadE('roma'); ticks(3); assert.strictEqual(JSON.stringify(Object.assign(CIMOD.aDatos(E3), { n0: E3.n0 }, E3.mur0 ? { mur0: E3.mur0 } : {})), JSON.stringify(c.ciudad), 'c.ciudad siempre al día');
   const sa = JSON.parse(JSON.stringify(s)); global.localStorage = { getItem: () => JSON.stringify(sa), setItem: () => {}, removeItem: () => {} }; assert(G.load());

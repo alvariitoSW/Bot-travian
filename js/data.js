@@ -310,7 +310,7 @@
 
   // w = riqueza (1-5), wl = muralla, g = guarnición inicial
   D.CITIES = {
-    roma: { n: 'Roma', lon: 12.5, lat: 41.9, f: 'roma', esp: 'sal', tipo: 'municipio', solares: 10, w: 3, wl: 2, g: { hastati: 80, velites: 40 }, h: 'La ciudad de las siete colinas. En 280 a.C. domina el Lacio y mira hacia el sur de Italia.' },
+    roma: { n: 'Roma', lon: 12.5, lat: 41.9, f: 'roma', esp: 'sal', tipo: 'municipio', solares: 10, w: 3, wl: 1, g: { hastati: 80, velites: 40 }, h: 'La ciudad de las siete colinas. En 280 a.C. domina el Lacio y mira hacia el sur de Italia.' },
     volsinii: { n: 'Volsinii', lon: 11.6, lat: 43.0, f: 'etruscos', esp: 'hierro', tipo: 'militar', w: 2, wl: 1, g: { hoplitas: 60, milicia: 50, peltastas: 20 }, h: 'Última gran ciudad etrusca independiente. Roma la tomó en 264 a.C.' },
     capua: { n: 'Capua', lon: 14.5, lat: 40.95, f: 'roma', esp: 'caballos', tipo: 'agraria', w: 3, wl: 1, g: { hoplitas: 30, milicia: 30 }, post: { cartago: { hoplitas: 60, milicia: 60, jinetes: 30, libios: 60 } }, h: 'La ciudad más rica de Campania, aliada de Roma desde 338 a.C. (Livio 8.14). Se pasó a Aníbal tras Cannas (216 a.C.) y Roma la recuperó en 211 a.C.' },
     tarentum: { n: 'Tarentum', lon: 17.2, lat: 40.6, f: 'epiro', esp: 'caballos', tipo: 'naval', w: 3, wl: 2, g: { falange: 120, hoplitas: 80, peltastas: 50, tesalios: 40, elefantes: 6 }, gen: { n: 'Pirro de Epiro', mando: 4, disc: 3, until: 272 }, h: 'Colonia espartana que llamó en su ayuda al rey Pirro. Cayó ante Roma en 272 a.C.' },

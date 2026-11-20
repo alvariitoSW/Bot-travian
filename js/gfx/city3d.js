@@ -398,11 +398,14 @@ function muralla(B) {
   const m = E.muralla, rs = romaS(); for (const k of ['muro', 'torre', 'puerta', 'rs_muro', 'rs_torre', 'rs_puerta']) L[k].poner([]); if (!E.surco) return;
   const CV = cercoVista(), S = CV ? CV.S : (E.muralla.rec && E.muro) || E.surco, PU = CV ? CV.PU : E.puertas, n = S.length, cerca = (x, z, r) => PU.find(p => Math.hypot(p.x - x, p.z - z) < r);
   /* mojones en las puertas mientras no hay muralla de piedra */
-  if (m.fase < 2) for (const p of PU) for (const sg of [1, -1]) { const x = p.x + Math.cos(p.ang) * 7 * sg, z = p.z + Math.sin(p.ang) * 7 * sg, y = altura(x, z); if (m.fase === 1 || m.obra) { B.caja(1.1, 9, 1.1, x, y + 4.5, z, '#5c4630', -p.ang); if (sg > 0) B.caja(15.5, 1, 1, p.x, altura(p.x, p.z) + 8.6, p.z, '#5c4630', -p.ang); } else { B.caja(1.6, 3.4, 1.6, x, y + 1.7, z, '#b0a690', -p.ang); B.cono(1.2, 1.2, 4, x, y + 4, z, '#b0a690', 1, -p.ang + 0.785); } }
+  if (m.fase < 2 && !(rs && m.fase >= 1 && E.modoJuego && E.semilla === CI.semillaDe('roma'))) for (const p of PU) for (const sg of [1, -1]) { const x = p.x + Math.cos(p.ang) * 7 * sg, z = p.z + Math.sin(p.ang) * 7 * sg, y = altura(x, z); if (m.fase === 1 || m.obra) { B.caja(1.1, 9, 1.1, x, y + 4.5, z, '#5c4630', -p.ang); if (sg > 0) B.caja(15.5, 1, 1, p.x, altura(p.x, p.z) + 8.6, p.z, '#5c4630', -p.ang); } else { B.caja(1.6, 3.4, 1.6, x, y + 1.7, z, '#b0a690', -p.ang); B.cono(1.2, 1.2, 4, x, y + 4, z, '#b0a690', 1, -p.ang + 0.785); } }
   if (!m.fase && !m.obra) return;
   const per = []; let largo = 0; for (let i = 0; i < n; i++) { const a = S[i], b = S[(i + 1) % n]; per.push(largo); largo += Math.hypot(b[0] - a[0], b[1] - a[1]); }
   const en = s => { s = ((s % largo) + largo) % largo; let i = 0; while (i < n - 1 && per[i + 1] <= s) i++; const a = S[i], b = S[(i + 1) % n], u = (s - per[i]) / Math.hypot(b[0] - a[0], b[1] - a[1]); return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, Math.atan2(b[1] - a[1], b[0] - a[0])]; };
-  const hechoEmp = m.fase >= 1 ? 1 : (3 - m.obra) / 3, hechoPie = m.fase >= 2 ? 1 : m.fase === 1 && m.obra ? (3 - m.obra) / 3 : 0, rr = azar(5);
+  /* UR1 (usuario, 20/11, «sí a lo recomendado»): la Roma de 280 a.C. ya tenía su muralla de toba (Serviana, h. 378 a.C.; Livio 6.32). Solo vista: en Roma la fase 1 del juego
+     («empalizada») se dibuja ya de piedra; la defensa, el coste y la obra de la fase 2 no cambian (subir el nivel inicial descuadraba la campaña del bot). */
+  const vieja = rs && m.fase >= 1 && E.modoJuego && E.semilla === CI.semillaDe('roma');
+  const hechoEmp = m.fase >= 1 ? 1 : (3 - m.obra) / 3, hechoPie = m.fase >= 2 || vieja ? 1 : m.fase === 1 && m.obra ? (3 - m.obra) / 3 : 0, rr = azar(5);
   /* piedra: tramos de 30,5 entre puertas */
   const tm = () => { const v = 0.62 + 0.18 * rr(); return { muro: [v, v * 0.94, v * 0.84], teja: [0.8, 0.76, 0.72, 0] }; }, muros = [], torres = [], puertasL = [];
   const nT = Math.round(largo / 30.5), paso = largo / nT;
