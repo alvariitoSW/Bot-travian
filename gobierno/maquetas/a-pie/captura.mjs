@@ -18,7 +18,7 @@ import { fileURLToPath } from 'url';
 import { tmpdir } from 'os';
 import { M, YO } from './formacion.js';   /* TP8b-F1: las cifras de la escena, no fijas */
 const AQUI = dirname(fileURLToPath(import.meta.url)), RAIZ = join(AQUI, '..', '..', '..'), SALIDA = join(RAIZ, 'gobierno', 'capturas-tarea');
-const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.bin': 'application/octet-stream', '.woff2': 'font/woff2' };
+const TIPOS = { '.mp3': 'audio/mpeg', '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.bin': 'application/octet-stream', '.woff2': 'font/woff2' };
 const args = process.argv.slice(2), op = Object.fromEntries(args.filter(a => a.includes('=')).map(a => a.split(/=(.*)/s).slice(0, 2)));
 const srv = await new Promise(ok => { const s = createServer(async (req, res) => { try { let r = normalize(decodeURIComponent(new URL(req.url, 'http://x').pathname)).replace(/^([/\\])+/, ''); if (r === '' || r.endsWith('/')) r += 'index.html'; if (r.startsWith('..')) throw new Error('fuera'); const d = await readFile(join(RAIZ, r)); res.writeHead(200, { 'Content-Type': TIPOS[extname(r)] || 'application/octet-stream' }); res.end(d); } catch (e) { res.writeHead(404); res.end(); } }); s.listen(args.includes('--servir') ? 8384 : 0, '127.0.0.1', () => ok(s)); });
 const URL0 = 'http://127.0.0.1:' + srv.address().port + '/gobierno/maquetas/a-pie/';
@@ -300,16 +300,16 @@ await medidasPaso(); await tiras(); await tp1b();
 {
   const page = await br.newPage(); escucha(page); await page.goto(URL0 + 'sonido.js');
   const r = await page.evaluate(async base => {
-    const casos = { cuerno: S => S.cuerno(), salva: S => S.salva(2.2), madera: S => S.madera(1, 0), tierra: S => S.tierra(0), trueno: S => S.trueno(1), paso: S => S.paso(0.8, 1), escudos: S => S.clac(10), 'escudo roto': S => S.crac(), hierro: S => S.hierro(0), pila: S => S.lanza(), choque: S => S.choque() };
+    const casos = { cuerno: S => S.cuerno(), salva: S => S.salva(2.2), madera: S => S.madera(1, 0), tierra: S => S.tierra(0), trueno: S => S.trueno(1), paso: S => S.paso(0.8, 1), escudos: S => S.clac(10), 'escudo roto': S => S.crac(), hierro: S => S.hierro(0), pila: S => S.lanza(), choque: S => S.choque(), clamor: S => S.voz('¡Cargad!'), coro: S => S.voz('—¡Ha!'), grito: S => S.voz('¡Ahí vienen!'), esfuerzo: S => S.esfuerzo(0), herido: S => S.herido(0), lucha: S => S.lucha(1) };
     const out = {}; let n = 0;
     for (const [k, f] of Object.entries(casos)) {
-      const S = await import(base + 'sonido.js?n=' + (n++)), ctx = new OfflineAudioContext(2, 44100 * 3.2, 44100); S.inicia(ctx); f(S);
+      const S = await import(base + 'sonido.js?n=' + (n++)), ctx = new OfflineAudioContext(2, 44100 * 3.2, 44100); S.inicia(ctx); await S.carga(); f(S);   /* GM43i: sonido grabado: espera a que el banco esté descodificado */
       const b = await ctx.startRendering(); let pico = 0; for (const c of [0, 1]) { const d = b.getChannelData(c); for (let i = 0; i < d.length; i++) pico = Math.max(pico, Math.abs(d[i])); }
       out[k] = +pico.toFixed(2);
     }
     return out;
   }, URL0);
-  bien(Object.values(r).every(v => v > 0.08 && v < 1), 'sonido: los once ruidos suenan por encima del viento y sin saturar (' + Object.entries(r).map(([k, v]) => k + ' ' + v).join(', ') + ')');
+  bien(Object.values(r).every(v => v > 0.08 && v < 1), 'sonido: los dieciocho ruidos grabados suenan y no saturan (' + Object.entries(r).map(([k, v]) => k + ' ' + v).join(', ') + ')');
   await page.close();
 }
 console.log('\nCoste por fase (último fotograma, con sombras):\n  ' + COSTE.join('\n  '));
