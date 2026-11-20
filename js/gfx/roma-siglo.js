@@ -7,7 +7,7 @@
      rs_muro     tramo liso de la muralla Servia (sillares de toba, h. 378 a.C.): sin almenas, coronación plana. Largo en X, como 'muro'.
      rs_torre    bastión rectangular bajo y liso (o junta entre tramos, reducido). Sin almenas.
      rs_puerta   puerta: vano con arco entre dos machones lisos, tramos de muro a los lados. Largo en X, como 'puerta'.
-     rs_insula   ínsula de tres pisos (Livio 21.62): bajo de tiendas en arco con zócalo rojo, dos pisos de enlucido, tejado a cuatro aguas.
+     rs_insula   casa de vecinos de dos alturas: bajo de tiendas en arco con zócalo rojo y un piso de enlucido, tejado a cuatro aguas (UR1: antes tres pisos).
      rs_tabernas fila de tiendas del foro con pórtico de postes y tejado de teja. Frente hacia +Z.
    ROMA_SIGLO = false deja la ciudad romana como antes (piezas de 0 A.D.). */
 import { THREE } from './models.js';
@@ -42,7 +42,7 @@ function pintarAtlas() {
   sillares(R.toba, 5, 3, [182, 164, 124], 0.5);
   sillares(R.toba2, 2, 3, [198, 184, 148], 0.3);
   /* enlucido blanco, con algo de suciedad abajo */
-  const enlucido = Rg => { g.fillStyle = rgb([234, 228, 214]); g.fillRect(...Rg); ruido(Rg, 0.12, 2); const gr = g.createLinearGradient(0, Rg[1] + Rg[3] * 0.7, 0, Rg[1] + Rg[3]); gr.addColorStop(0, 'rgba(120,100,80,0)'); gr.addColorStop(1, 'rgba(120,100,80,0.18)'); g.fillStyle = gr; g.fillRect(...Rg); };
+  const enlucido = Rg => { g.fillStyle = rgb([220, 205, 176]); g.fillRect(...Rg); ruido(Rg, 0.16, 3); for (let i = 0; i < 7; i++) { g.fillStyle = `rgba(${rnd() < 0.5 ? '150,120,84' : '240,226,196'},${0.05 + 0.07 * rnd()})`; g.fillRect(Rg[0] + rnd() * Rg[2] * 0.8, Rg[1], 10 + rnd() * 50, Rg[3]); } /* UR1: cal sucia y cálida, con chorreones; el blanco puro parecía de cartón */ const gr = g.createLinearGradient(0, Rg[1] + Rg[3] * 0.7, 0, Rg[1] + Rg[3]); gr.addColorStop(0, 'rgba(120,100,80,0)'); gr.addColorStop(1, 'rgba(120,100,80,0.18)'); g.fillStyle = gr; g.fillRect(...Rg); };
   enlucido(R.cal);
   /* teja: tégulas en hileras y cobijas (ímbrices) en líneas que bajan por el faldón */
   clip(R.teja, () => { const [x0, y0, w, h] = R.teja; g.fillStyle = rgb([168, 78, 50]); g.fillRect(x0, y0, w, h);
@@ -52,10 +52,11 @@ function pintarAtlas() {
   /* zócalo rojo pintado */
   g.fillStyle = rgb([150, 46, 34]); g.fillRect(...R.zocalo); ruido(R.zocalo, 0.16, 2);
   /* ventana pequeña en enlucido (un vano de ínsula: 3,6 de ancho × 3,35 de alto) */
-  enlucido(R.ventana); { const [x0, y0, w, h] = R.ventana, ww = w * 0.26, wh = h * 0.34, wx = x0 + (w - ww) / 2, wy = y0 + h * 0.3;
-    g.fillStyle = rgb([92, 60, 36]); g.fillRect(wx - 12, wy - 6, ww + 24, wh + 12); g.fillStyle = rgb([34, 28, 24]); g.fillRect(wx, wy, ww, wh);
-    g.fillStyle = rgb([120, 80, 46]); g.fillRect(wx - 22, wy, 14, wh); g.fillRect(wx + ww + 8, wy, 14, wh); g.fillStyle = rgb([190, 178, 150]); g.fillRect(wx - 14, wy + wh + 4, ww + 28, 7);
-    g.fillStyle = 'rgba(70,50,30,0.25)'; g.fillRect(x0, y0 + h - 8, w, 8); }
+  enlucido(R.ventana); { const [x0, y0, w, h] = R.ventana, ww = w * 0.2, wh = h * 0.3, wx = x0 + (w - ww) / 2, wy = y0 + h * 0.3;      // UR1: vano pequeño y alto, con contraventana de tablas entornada
+    g.fillStyle = rgb([104, 74, 46]); g.fillRect(wx - 7, wy - 7, ww + 14, wh + 12); g.fillStyle = rgb([62, 48, 38]); g.fillRect(wx, wy, ww, wh);
+    g.fillStyle = rgb([126, 90, 54]); g.fillRect(wx, wy, ww * 0.56, wh); g.fillStyle = 'rgba(40,26,14,0.55)'; for (let k = 1; k < 3; k++) g.fillRect(wx + ww * 0.56 * k / 3, wy, 2, wh); g.fillRect(wx, wy + wh * 0.3, ww * 0.56, 3); g.fillRect(wx, wy + wh * 0.7, ww * 0.56, 3);
+    g.fillStyle = rgb([178, 160, 128]); g.fillRect(wx - 10, wy + wh + 4, ww + 20, 6); g.fillStyle = 'rgba(90,66,40,0.22)'; g.fillRect(wx - 4, wy + wh + 10, ww + 8, 40);
+    g.fillStyle = 'rgba(70,50,30,0.3)'; g.fillRect(x0, y0 + h - 8, w, 8); }
   /* taberna: vano en arco (tienda abierta a la calle) con zócalo rojo y mostrador; 3,6 × 4,2 */
   enlucido(R.taberna); { const [x0, y0, w, h] = R.taberna, zh = h * 0.2, ax = x0 + w * 0.16, aw = w * 0.68, top = y0 + h * 0.3, r = aw / 2;
     g.fillStyle = rgb([150, 46, 34]); g.fillRect(x0, y0 + h - zh, w, zh);
@@ -184,9 +185,8 @@ function insula() {
   m.caja(-X, -3, -Z, X, 0.05, Z, R.toba, 5, 3, 'fbxX');
   m.caja(-X, 0, -Z, X, 4.2, Z, R.taberna, 3.6, 4.2, 'fbxX');
   m.caja(-X - 0.25, 4.05, -Z - 0.25, X + 0.25, 4.45, Z + 0.25, R.toba2, 5, 0.4, 'fbxXt');
-  m.caja(-X, 4.45, -Z, X, 11.15, Z, R.ventana, 3.6, 3.35, 'fbxX');
-  m.caja(-X - 0.3, 10.9, -Z - 0.3, X + 0.3, 11.25, Z + 0.3, R.toba2, 5, 0.35, 'fbxX');
-  m.cuatroAguas(X + 0.9, Z + 0.9, 11.15, 3.2);
+  m.caja(-X, 4.45, -Z, X, 7.8, Z, R.ventana, 3.6, 3.35, 'fbxX');      // UR1: un piso sobre las tiendas (el tercer piso de Livio 21.62 es de 218 a.C. y fue noticia)
+  m.cuatroAguas(X + 1.3, Z + 1.3, 7.8, 2.6);
   return m.geo();
 }
 function tabernas() {
@@ -204,7 +204,7 @@ function tabernas() {
 }
 /* relleno de las manzanas (CI1-7): casas de fondo, de uno y de tres pisos, patios con tapia y huertos del arrabal; 8 × 8 (el huerto, 10 × 10) */
 function fondo() { const m = new Malla(); m.caja(-3.9, -2, -3.9, 3.9, 0.05, 3.9, R.toba, 5, 2, 'fbxX'); m.caja(-3.9, 0, -3.9, 3.9, 4.6, 3.9, { f: R.ventana, b: R.cal, x: R.ventana, X: R.cal }, 3.9, 4.6, 'fbxX'); m.cuatroAguas(4.5, 4.5, 4.6, 2.2); return m.geo(); }
-function fondo3() { const m = new Malla(); m.caja(-3.9, -2, -3.9, 3.9, 0.05, 3.9, R.toba, 5, 2, 'fbxX'); m.caja(-3.9, 0, -3.9, 3.9, 1.0, 3.9, R.zocalo, 4, 1, 'fbxX'); m.caja(-3.9, 1.0, -3.9, 3.9, 10.6, 3.9, R.ventana, 3.9, 3.2, 'fbxX'); m.caja(-4.1, 10.4, -4.1, 4.1, 10.7, 4.1, R.toba2, 5, 0.3, 'fbxX'); m.cuatroAguas(4.6, 4.6, 10.6, 2.4); return m.geo(); }
+function fondo3() { const m = new Malla(); m.caja(-3.9, -2, -3.9, 3.9, 0.05, 3.9, R.toba, 5, 2, 'fbxX'); m.caja(-3.9, 0, -3.9, 3.9, 1.0, 3.9, R.zocalo, 4, 1, 'fbxX'); m.caja(-3.9, 1.0, -3.9, 3.9, 7.4, 3.9, R.ventana, 3.9, 3.2, 'fbxX'); m.cuatroAguas(4.9, 4.9, 7.4, 2.2); return m.geo(); }
 function patio() { const m = new Malla(), h = 3.2, e = 0.5; m.caja(-3.9, -1.5, -3.9, 3.9, h, -3.9 + e, R.cal, 4, h + 1.5, 'fbxXt'); m.caja(-3.9, -1.5, 3.9 - e, 3.9, h, 3.9, R.cal, 4, h + 1.5, 'fbxXt'); m.caja(-3.9, -1.5, -3.4, -3.9 + e, h, 3.4, R.cal, 4, h + 1.5, 'xXt'); m.caja(3.9 - e, -1.5, -3.4, 3.9, h, 3.4, R.cal, 4, h + 1.5, 'xXt');
   m.cara([3.9, h + 0.9, -3.4], [0, 0, 6.8], [-2.6, -0.7, 0], R.teja, 4, 4); m.caja(-3.9, -1.5, -3.4, -2.2, 3.6, 3.4, R.ventana, 3.4, 3.6, 'X'); return m.geo(); }
 function huerto() { const m = new Malla(), h = 1.4, e = 0.45; m.caja(-5, -1.2, -5, 5, h, -5 + e, R.toba2, 5, 1.3, 'fbxXt'); m.caja(-5, -1.2, 5 - e, 5, h, 5, R.toba2, 5, 1.3, 'fbxXt'); m.caja(-5, -1.2, -4.5, -5 + e, h, 4.5, R.toba2, 5, 1.3, 'xXt'); m.caja(5 - e, -1.2, -4.5, 5, h, 1.5, R.toba2, 5, 1.3, 'xXt'); return m.geo(); }
@@ -289,6 +289,6 @@ function rellenoUrbe(E, K, out, h) {
           const y = [K.altura(x - 4, z - 4), K.altura(x + 4, z - 4), K.altura(x - 4, z + 4), K.altura(x + 4, z + 4)]; if (Math.max(...y) - Math.min(...y) > 2.8) continue;
           for (const k of ks) { usada[k] = 1; out.celdas.add(k); }
           const d = Math.hypot(x - f.x, z - f.z) / rmax, giro = -ang + (lado > 0 ? 0 : Math.PI), q0 = { x, z, giro, sx: 0.92 + 0.16 * t, sy: 0.8 + 0.45 * t, tono: t, k: ks[0] };
-          if (r < 0.5 - 0.4 * d) out.fondo3.push(Object.assign(q0, { sy: 0.85 + 0.3 * t })); else if (d > 0.82 && r < 0.75) out.huerto.push(Object.assign(q0, { sy: 1, sx: 0.85 })); else if (r < 0.84) out.fondo.push(q0); else out.patio.push(Object.assign(q0, { sy: 1 })); } }
+          if (r < 0.3 - 0.26 * d) out.fondo3.push(Object.assign(q0, { sy: 0.85 + 0.3 * t })); else if (d > 0.82 && r < 0.75) out.huerto.push(Object.assign(q0, { sy: 1, sx: 0.85 })); else if (r < 0.84) out.fondo.push(q0); else out.patio.push(Object.assign(q0, { sy: 1 })); } }
       paso = s - L; } }
 }

@@ -200,6 +200,9 @@ const SOL = new THREE.Vector3(-0.84, 0.49, 0.26).normalize();
 /* Q11: luz por estación. Cuatro anclas (primavera, verano, otoño, invierno) que se mezclan sin saltos según Game.state.t; el verano es el aspecto de siempre.
    La dirección del sol (y con ella las sombras) cambia solo al cambiar de estación; la tarde dorada solo tiñe y baja intensidad. */
 export const LUZ_ESTACIONAL = true;
+/* UR1 (usuario, 20/11: «las luces esas raras no tienen ningún sentido»): el mes ya no hace de día. Con el reloj parado (lo normal por turnos) la ciudad
+   quedaba siempre de noche, y en marcha anochecía cada 4 s. Ahora siempre es de día, con la luz de la estación; sin antorchas. true = como antes. */
+export const DIA_NOCHE = false;
 const ANCLAS = [
   { dir: [-0.82, 0.45, 0.30], sol: '#ffe6b8', si: 3.2, hc: '#b2cade', hg: '#80904c', hi: 1.5, h: '#c3cdb0', fog: 0.00029 },     // primavera: verde y limpia
   { dir: [-0.84, 0.52, 0.26], sol: '#ffdfb4', si: 3.3, hc: '#b6c6de', hg: '#927252', hi: 1.45, h: '#cdc3b2', fog: 0.00029 },     // verano: dorado (como siempre)
@@ -214,8 +217,8 @@ export function estacionActual() { return { k: estK, f: estF, ks: estSol < 0 ? e
 function luz() {
   const Gm = window.Game, t = Gm && Gm.state && typeof Gm.state.t === 'number' ? Gm.state.t : 7.5; if (t === luzT) return; luzT = t;
   const u = t / 3, a = u - 0.5, i0 = Math.floor(a), f = _sm(a - i0), A = ANCLAS[((i0 + 3) % 4 + 4) % 4], B = ANCLAS[((i0 + 4) % 4 + 4) % 4], ks = ((Math.floor(u) + 3) % 4 + 4) % 4; estK = ((i0 + 3) % 4 + 4) % 4; estF = f; Campos.estacion(estK, estF);
-  const fm = t - Math.floor(t), oro = Math.min(1, _sm((fm - 0.7) / 0.25) + 1 - _sm(fm / 0.12));          // tarde dorada: sube al final del mes y baja al empezar el siguiente
-  noche = Math.min(1, _sm((fm - 0.85) / 0.12) + 1 - _sm(fm / 0.08));
+  const fm = t - Math.floor(t), oro = DIA_NOCHE ? Math.min(1, _sm((fm - 0.7) / 0.25) + 1 - _sm(fm / 0.12)) : 0;          // tarde dorada: sube al final del mes y baja al empezar el siguiente
+  noche = DIA_NOCHE ? Math.min(1, _sm((fm - 0.85) / 0.12) + 1 - _sm(fm / 0.08)) : 0;
   if (ks !== estSol) { estSol = ks; SOL.copy(ANCLAS[ks].dir); sol.position.set(0, 0, -70).addScaledVector(SOL, 1500); if (cieloU) cieloU.uSol.value.copy(SOL); sombraPend = true; }
   sol.color.copy(A.sol).lerp(B.sol, f).lerp(ORO.sol, oro * 0.75); sol.intensity = (A.si + (B.si - A.si) * f) * (1 - 0.3 * oro);
   hemi.color.copy(A.hc).lerp(B.hc, f).lerp(ORO.hc, oro * 0.45); hemi.groundColor.copy(A.hg).lerp(B.hg, f); hemi.intensity = (A.hi + (B.hi - A.hi) * f) * (1 - 0.18 * oro);
@@ -285,9 +288,19 @@ export function mundo(estado) {
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(idx); g.computeVertexNormals();
     const mc = rio.material.clone(); mc.color.set('#78847e'); mc.opacity = 0.92; mc.onBeforeCompile = rio.material.onBeforeCompile; crecida = new THREE.Mesh(g, mc); crecida.receiveShadow = true; crecida.visible = false; crecida.position.y = NIVEL_RIO; scene.add(crecida); }
   /* fijo: puente de madera y cañas (de ciudad2) */
-  { const B = new Bulto(), rnd = azar(99), Rr = (a, b) => a + (b - a) * rnd(), P = PUENTE, c = Math.cos(P.ang), s = Math.sin(P.ang), Lp = 84, y = NIVEL_RIO + 4.2; B.caja(Lp, 0.5, 8.4, P.x, y, P.z, '#6e5a44', -P.ang);
-    for (const l of [-4, 4]) B.caja(Lp, 0.22, 0.22, P.x - s * l, y + 1.5, P.z + c * l, '#5c4a38', -P.ang);
-    for (let u = -Lp / 2 + 3; u <= Lp / 2 - 3; u += 7) for (const l of [-3.6, 3.6]) { const x = P.x + c * u - s * l, z = P.z + s * u + c * l; B.caja(0.5, 8.5, 0.5, x, y - 3.4, z, '#4e4032', -P.ang); B.caja(0.22, 1.6, 0.22, x - s * Math.sign(l) * 0.4, y + 0.8, z + c * Math.sign(l) * 0.4, '#5c4a38', -P.ang); }
+  { const B = new Bulto(), rnd = azar(99), Rr = (a, b) => a + (b - a) * rnd(), P = PUENTE, c = Math.cos(P.ang), s = Math.sin(P.ang), y = NIVEL_RIO + 5.2, AN = 9.6;
+    /* UR1: puente de pilotes, de orilla a orilla (antes medía 84 y el río 104: no llegaba). Tablero de tablas sobre caballetes de tres pilotes con riostras,
+       largueros, barandilla y una rampa de tierra en cada cabeza. Modelo: el pons Sublicius, todo de madera y sin hierro (Dionisio 3.45; Plinio 36.100). */
+    const orilla = sg => { let u = 20; while (u < 110 && altura(P.x + c * u * sg, P.z + s * u * sg) < NIVEL_RIO + 1.6) u += 1; return u + 2; }, u0 = -orilla(-1), u1 = orilla(1);
+    const en = (u, l) => [P.x + c * u - s * l, P.z + s * u + c * l];
+    for (let u = u0; u < u1; u += 1.6) { const q = en(u + 0.8, 0), k = rnd(); B.caja(1.52, 0.42, AN, q[0], y, q[1], k < 0.33 ? '#7a6347' : k < 0.66 ? '#6c573e' : '#84704f', -P.ang); }      // tablas
+    for (const l of [-3.9, 0, 3.9]) { const q = en((u0 + u1) / 2, l); B.caja(u1 - u0, 0.7, 0.6, q[0], y - 0.55, q[1], '#4f3f2e', -P.ang); }                                              // largueros
+    for (let u = u0 + 5; u <= u1 - 5; u += 9) { const fondo = Math.min(altura(...en(u, 0)), NIVEL_RIO) - 2.5, hp = y - 0.9 - fondo;                                                     // caballetes
+      for (const l of [-4.2, 0, 4.2]) { const q = en(u, l); B.caja(0.85, hp, 0.85, q[0], fondo + hp / 2, q[1], '#463829', -P.ang, 0, 0); }
+      { const q = en(u, 0); B.caja(1, 0.8, AN + 1.6, q[0], y - 1.25, q[1], '#54432f', -P.ang); B.caja(0.4, 0.4, 9.6, q[0], y - 3.4, q[1], '#463829', -P.ang, 0.42); B.caja(0.4, 0.4, 9.6, q[0], y - 3.4, q[1], '#463829', -P.ang, -0.42); } }
+    for (const l of [-AN / 2 + 0.3, AN / 2 - 0.3]) { { const q = en((u0 + u1) / 2, l); B.caja(u1 - u0, 0.3, 0.3, q[0], y + 2.3, q[1], '#5c4a38', -P.ang); B.caja(u1 - u0, 0.22, 0.22, q[0], y + 1.3, q[1], '#5c4a38', -P.ang); }      // barandilla
+      for (let u = u0 + 0.5; u <= u1 - 0.4; u += 4.5) { const q = en(u, l); B.caja(0.42, 2.5, 0.42, q[0], y + 1.2, q[1], '#4f3f2e', -P.ang); } }
+    for (const [u, sg] of [[u0, -1], [u1, 1]]) for (let k = 0; k < 40; k++) { const q = en(u + sg * (0.8 + k * 1.6), 0), ys = altura(q[0], q[1]), yt = y - 0.3 * (k + 1); if (yt < ys + 0.25) break; B.caja(1.56, 0.42, AN, q[0], yt, q[1], k % 2 ? '#7a6347' : '#6c573e', -P.ang, 0, 0); if (k % 3 === 0) for (const l of [-4.2, 4.2]) { const e = en(u + sg * (0.8 + k * 1.6), l); B.caja(0.7, yt - ys + 2, 0.7, e[0], (yt + ys - 2) / 2, e[1], '#463829', -P.ang); } }      // rampas de tablas hasta el suelo
     for (let i = 0; i < RIO.length - 1; i++) { const p = RIO[i], q = RIO[i + 1]; if (Math.abs(p[0]) > 900) continue; const ang = Math.atan2(q[1] - p[1], q[0] - p[0]);
       for (const l of [1, -1]) for (let k = 0; k < 3; k++) { if (rnd() < 0.45) continue; const r = Rr(17, 27), x = p[0] - Math.sin(ang) * r * l + Rr(-5, 5), z = p[1] + Math.cos(ang) * r * l + Rr(-5, 5), yy = altura(x, z); if (yy > NIVEL_RIO + 2.5 || yy < NIVEL_RIO - 1.2) continue; for (let j = 0; j < 4; j++) B.cono(Rr(0.5, 0.9), Rr(3, 5), 4, x + Rr(-1.6, 1.6), Math.max(yy, NIVEL_RIO) + 1.8, z + Rr(-1.6, 1.6), rnd() < 0.5 ? '#7c8448' : '#9a9050', 1, Rr(0, 3)); } }
     estM = new THREE.Mesh(B.geo(), matBulto); estM.castShadow = estM.receiveShadow = true; scene.add(estM); }
@@ -331,13 +344,14 @@ function casas(t) {
     const fm = c.nivel + '|' + (c.ruina ? 1 : 0); if (firma.get(l.id) !== fm) { firma.set(l.id, fm); tNace.set(l.id, Math.max(t, esperaSurco) + (E.mesN === 0 ? 0.3 + (l.id % 20) * 0.09 : (l.id % 7) * 0.06)); }
     const u = (t - tNace.get(l.id)) / 0.9, f = facil(u); if (u < 1) { anim = true; animHasta = Math.max(animHasta, tNace.get(l.id) + 1.2); /* CI1: aunque un cuadro tarde, la casa termina de crecer */ } const giro = -l.ang + (l.lado > 0 ? Math.PI : 0), sy = 0.12 + 0.88 * f, sx = u < 0 ? 0.001 : 0.8 + 0.2 * f;
     if (c.ruina) { const k = fam[fam.length - 1 - l.id % 2]; por[k].push({ m: matriz(l.x, suelo(l.x, l.z, 5) - 0.3, l.z, giro, 0.8 * EC, 0.22 * EC, 0.8 * EC), muro: c.arde ? [0.2, 0.17, 0.15] : [0.3, 0.27, 0.23], teja: [0.2, 0.18, 0.17, 0] }); continue; }
-    if (c.nivel === 1) { const tienda = c.desde === 0 && E.mesN < 8, i = tienda ? nt++ : nc++, e = tienda ? 0.82 + 0.3 * l.tono : 0.8 + 0.2 * l.tono; if (i < (tienda ? 40 : 220)) { const mm = matriz(l.x, suelo(l.x, l.z, 4) - 0.05, l.z, giro + (tienda ? l.tipo * 3 : Math.PI / 2 + (l.tipo - 0.5) * 0.5), e * sx, e * sy, e * sx), cc = _c.setScalar(0.8 + 0.34 * l.teja); for (const m of tienda ? [tiendaM] : chozaM) { m.setMatrixAt(i, mm); m.setColorAt(i, cc); } } continue; }
+    const n1 = c.nivel === 1 && rs && !!E.urbe;      // UR1: en la Roma en pie, la casa de nivel I es una casa baja de teja, no una choza de paja en mitad del foro
+    if (c.nivel === 1 && !n1) { const tienda = c.desde === 0 && E.mesN < 8, i = tienda ? nt++ : nc++, e = tienda ? 0.82 + 0.3 * l.tono : 0.8 + 0.2 * l.tono; if (i < (tienda ? 40 : 220)) { const mm = matriz(l.x, suelo(l.x, l.z, 4) - 0.05, l.z, giro + (tienda ? l.tipo * 3 : Math.PI / 2 + (l.tipo - 0.5) * 0.5), e * sx, e * sy, e * sx), cc = _c.setScalar(0.8 + 0.34 * l.teja); for (const m of tienda ? [tiendaM] : chozaM) { m.setMatrixAt(i, mm); m.setColorAt(i, cc); } } continue; }
     const nb = E.barrios && E.barrios[l.barrio] ? E.barrios[l.barrio].nivel : undefined;
     let k; if (fam === CASAS_C.roma) k = c.nivel === 2 ? (l.tipo < 0.5 ? 'casa_c' : 'casa_d') : c.nivel === 3 ? ['casa_b', 'casa_c', 'casa_d'][Math.floor(l.tipo * 3) % 3] : (l.tipo < 0.55 ? 'casa' : 'casa_b');
     else { const n = fam.length, lo = Math.max(1, Math.round(n * 0.4)), a = c.nivel === 2 ? 0 : c.nivel === 3 ? Math.floor(n * 0.25) : n - Math.max(2, Math.round(n * 0.5)), b = c.nivel === 2 ? lo : c.nivel === 3 ? Math.min(n, a + Math.max(2, Math.round(n * 0.6))) : n; k = fam[a + Math.floor(l.tipo * (b - a)) % (b - a)]; }
-    if (rs) k = c.nivel === 2 ? (l.tipo < 0.5 ? 'casa_c' : 'casa_d') : c.nivel === 3 ? ['casa_b', 'casa_c', 'casa_d'][Math.floor(l.tipo * 3) % 3] : (l.tipo < 0.55 ? 'casa_d' : 'casa_b');      // CI1: sin 'casa' (la de entramado de madera)
+    if (rs) k = c.nivel <= 2 ? (l.tipo < 0.5 ? 'casa_c' : 'casa_d') : c.nivel === 3 ? ['casa_b', 'casa_c', 'casa_d'][Math.floor(l.tipo * 3) % 3] : (l.tipo < 0.55 ? 'casa_d' : 'casa_b');      // CI1: sin 'casa' (la de entramado de madera)
     if (rs && RS.esInsula(l, nb)) k = 'rs_insula';
-    const e = c.nivel === 2 ? 0.64 : c.nivel === 3 ? 0.84 : 0.97, alto = c.nivel === 4 ? 1.3 : c.nivel === 3 ? 1 : 0.9, tn = c.nivel === 2 ? l.tono * 0.42 : c.nivel === 3 ? 0.3 + l.tono * 0.45 : 0.62 + l.tono * 0.38, tj = c.nivel === 2 ? 0.6 + l.teja * 0.4 : c.nivel === 4 ? l.teja * 0.6 : l.teja;
+    const e = n1 ? 0.56 : c.nivel === 2 ? 0.64 : c.nivel === 3 ? 0.84 : 0.97, alto = c.nivel === 4 ? 1.3 : c.nivel === 3 ? 1 : n1 ? 0.8 : 0.9, tn = c.nivel <= 2 ? l.tono * 0.42 : c.nivel === 3 ? 0.3 + l.tono * 0.45 : 0.62 + l.tono * 0.38, tj = c.nivel <= 2 ? 0.6 + l.teja * 0.4 : c.nivel === 4 ? l.teja * 0.6 : l.teja;
     /* CI1: pared con pared: se estira a lo largo de la calle hasta tocar a la vecina; la ínsula, a su tamaño */
     const ins = k === 'rs_insula', eX = ins ? 1 : e * EC, eY = ins ? (c.nivel === 4 ? 1 : 0.9) : e * EC * alto, vv = vec && vec.get(l.id), dv = vv ? Math.min(vv.iz || 99, vv.de || 99) : 0, kx = dv ? Math.min(1.45, Math.max(1, (dv + 0.6) / ((ins ? 14.4 : 15) * eX))) : 1;
     por[k].push({ m: matriz(l.x, suelo(l.x, l.z, 6 * e) - (ins ? 0.1 : 0.25), l.z, giro, eX * sx * kx, eY * sy, eX * sx), ...tinteK(tn, tj, E.barrios && E.barrios[l.barrio] ? E.barrios[l.barrio].nivel : undefined, l.arrabal, E.barrios && E.barrios[l.barrio] && E.barrios[l.barrio].tejas, E.barrios && E.barrios[l.barrio] ? CI.caracterBarrio(E, l.barrio) : undefined) }); }
@@ -361,12 +375,26 @@ function edificios() {
 function arboles() { const n = E.arboles.reduce((s, a) => s + (a.talado ? 1 : 0), 0), fa = ANDAMIO_NUEVO ? obrasF.filter(o => !o.pausa).map(o => o.x + ',' + o.z).join('|') : ''; if (n === nTalados && fa === firmaArb) return; nTalados = n; firmaArb = fa; const act = ANDAMIO_NUEVO ? obrasF.filter(o => !o.pausa) : []; const arb = {}, te = LUZ_ESTACIONAL ? tintesEstacion(estK, estQ / 8).arbol : [1, 1, 1];      // te: tinte de la estación (multiplica el color de cada árbol)
   for (const a of [...E.arboles, ...Campos.arbolesExtra()]) { if (a.talado) continue; if (act.length && act.some(o => Math.hypot(a.x - o.x, a.z - o.z) < 3.5)) continue; if (rellenoC && rellenoC.has(Math.floor((a.z - CI.Z0) / CI.C) * CI.N + Math.floor((a.x - CI.X0) / CI.C))) continue; if (Campos.tapa(a.x, a.z)) continue; const y = altura(a.x, a.z), v = 0.62 + 0.3 * a.tono, col = a.pieza === 'olivo' ? [v * 1.7, v * 1.7, v * 1.5] : a.pieza === 'cipres' ? [v * 1.5, v * 1.5, v * 1.2] : [v * 1.9, v * 1.75, v * 1.25]; (arb[a.pieza] = arb[a.pieza] || []).push({ m: matriz(a.x, y - 0.3, a.z, a.ang, a.esc, a.esc * (0.9 + 0.3 * a.tono), a.esc), muro: [col[0] * te[0], col[1] * te[1], col[2] * te[2]] }); }
   for (const k in L.arbol) L.arbol[k].poner(arb[k] || []); }
+/* UR1 (usuario, 20/11: «muralla de madera que la ciudad se la ha comido»): con la urbe grande a la vista (E.urbe, plano 3) la muralla se DIBUJA por el borde
+   de fuera, abrazando todas las casas, y no por el surco de dentro. Solo vista: la fase, las puertas del juego y «dentro o fuera» siguen saliendo de ciudad.js.
+   Puertas dibujadas: donde una vía ancha (camino o vía) cruza ese borde. Devuelve null si la ciudad no tiene urbe: entonces, el surco de siempre. */
+const CERCO_FUERA = true;
+function cercoVista() {
+  if (!CERCO_FUERA || !E.urbe || !E.foro) return null; const f = E.foro, RU = E.urbe.RU, NR = RU.length, K = 7, D2 = Math.PI * 2;
+  const rad = (x, z) => { const q = ((Math.atan2(z - f.z, x - f.x) / D2) % 1 + 1) % 1 * NR, i = Math.floor(q), u = q - i; return RU[i % NR] * (1 - u) + RU[(i + 1) % NR] * u + K; }, den = (x, z) => Math.hypot(x - f.x, z - f.z) < rad(x, z);
+  const S = RU.map((r, i) => [f.x + Math.cos(i / NR * D2) * (r + K), f.z + Math.sin(i / NR * D2) * (r + K)]), PU = [];
+  for (const v of E.vias) { if (!(v.w >= 3) || !v.p) continue; for (let i = 1; i < v.p.length; i++) { let a = v.p[i - 1], b = v.p[i]; if (den(a[0], a[1]) === den(b[0], b[1])) continue; const da = den(a[0], a[1]);
+      for (let k = 0; k < 12; k++) { const c = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; if (den(c[0], c[1]) === da) a = c; else b = c; }
+      const t = Math.atan2(a[1] - f.z, a[0] - f.x), j = Math.round(((t / D2) % 1 + 1) % 1 * NR) % NR, p0 = S[(j + NR - 1) % NR], p1 = S[(j + 1) % NR];
+      if (!PU.some(p => Math.hypot(p.x - a[0], p.z - a[1]) < 40)) PU.push({ x: a[0], z: a[1], ang: Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) }); } }
+  return { S, PU };
+}
 /* muralla: por el surco; primero empalizada (por código), luego tramos de piedra reales con torres; puertas donde cruzan las calles */
 function muralla(B) {
   const m = E.muralla, rs = romaS(); for (const k of ['muro', 'torre', 'puerta', 'rs_muro', 'rs_torre', 'rs_puerta']) L[k].poner([]); if (!E.surco) return;
-  const S = (E.muralla.rec && E.muro) || E.surco, n = S.length, cerca = (x, z, r) => E.puertas.find(p => Math.hypot(p.x - x, p.z - z) < r);
+  const CV = cercoVista(), S = CV ? CV.S : (E.muralla.rec && E.muro) || E.surco, PU = CV ? CV.PU : E.puertas, n = S.length, cerca = (x, z, r) => PU.find(p => Math.hypot(p.x - x, p.z - z) < r);
   /* mojones en las puertas mientras no hay muralla de piedra */
-  if (m.fase < 2) for (const p of E.puertas) for (const sg of [1, -1]) { const x = p.x + Math.cos(p.ang) * 7 * sg, z = p.z + Math.sin(p.ang) * 7 * sg, y = altura(x, z); if (m.fase === 1 || m.obra) { B.caja(1.1, 9, 1.1, x, y + 4.5, z, '#5c4630', -p.ang); if (sg > 0) B.caja(15.5, 1, 1, p.x, altura(p.x, p.z) + 8.6, p.z, '#5c4630', -p.ang); } else { B.caja(1.6, 3.4, 1.6, x, y + 1.7, z, '#b0a690', -p.ang); B.cono(1.2, 1.2, 4, x, y + 4, z, '#b0a690', 1, -p.ang + 0.785); } }
+  if (m.fase < 2) for (const p of PU) for (const sg of [1, -1]) { const x = p.x + Math.cos(p.ang) * 7 * sg, z = p.z + Math.sin(p.ang) * 7 * sg, y = altura(x, z); if (m.fase === 1 || m.obra) { B.caja(1.1, 9, 1.1, x, y + 4.5, z, '#5c4630', -p.ang); if (sg > 0) B.caja(15.5, 1, 1, p.x, altura(p.x, p.z) + 8.6, p.z, '#5c4630', -p.ang); } else { B.caja(1.6, 3.4, 1.6, x, y + 1.7, z, '#b0a690', -p.ang); B.cono(1.2, 1.2, 4, x, y + 4, z, '#b0a690', 1, -p.ang + 0.785); } }
   if (!m.fase && !m.obra) return;
   const per = []; let largo = 0; for (let i = 0; i < n; i++) { const a = S[i], b = S[(i + 1) % n]; per.push(largo); largo += Math.hypot(b[0] - a[0], b[1] - a[1]); }
   const en = s => { s = ((s % largo) + largo) % largo; let i = 0; while (i < n - 1 && per[i + 1] <= s) i++; const a = S[i], b = S[(i + 1) % n], u = (s - per[i]) / Math.hypot(b[0] - a[0], b[1] - a[1]); return [a[0] + (b[0] - a[0]) * u, a[1] + (b[1] - a[1]) * u, Math.atan2(b[1] - a[1], b[0] - a[0])]; };
@@ -383,7 +411,7 @@ function muralla(B) {
       if (J) torres.push({ m: i % 6 === 0 ? matriz(ini[0], suelo(ini[0], ini[1], 4) - 1.5, ini[1], -ini[2], 0.85, 0.72, 0.85) : matriz(ini[0], suelo(ini[0], ini[1], 4) - 1, ini[1], -ini[2], 0.62, 0.645, 0.62), ...tm() }); continue; }
     if (pu && !pu._hecha) { pu._hecha = true; puertasL.push({ m: matriz(pu.x, suelo(pu.x, pu.z, 8) - 1.2, pu.z, -pu.ang, 0.83, 0.86, 0.8), ...tm() }); torres.push({ m: matriz(ini[0], suelo(ini[0], ini[1], 4) - 1.5, ini[1], 0, 0.8, 0.72, 0.8), ...tm() }); }
     else if (!pu) { muros.push({ m: matriz(q[0], suelo(q[0], q[1], 10) - 1.5, q[1], -q[2], paso / 30.5 * 0.83, 0.86, 0.8), ...tm() }); if (i % 3 === 0) torres.push({ m: matriz(ini[0], suelo(ini[0], ini[1], 4) - 1.5, ini[1], rr() * 0.2, 0.8, 0.72, 0.8), ...tm() }); } }
-  for (const p of E.puertas) delete p._hecha;
+  for (const p of PU) delete p._hecha;
   if (rs) { L.rs_muro.poner(muros); L.rs_torre.poner(torres); L.rs_puerta.poner(puertasL); } else { L.muro.poner(muros); L.torre.poner(torres); L.puerta.poner(puertasL); }
 }
 /* andamio de obra (CN3): uno por cada entrada de Game.state.cities[id].obras. obrasAlDia() corre cada cuadro y solo reconstruye cuando el avance cambia un 5 % */
@@ -502,7 +530,7 @@ function antorchas() {
         ' else mv = modelViewMatrix * vec4(aP.xyz + position, 1.0); gl_Position = projectionMatrix * mv; }',
       fragmentShader: 'varying vec2 vQ; varying float vF, vPh; uniform float uTiempo, uNoche; void main(){ if (vF < 0.5) { gl_FragColor = vec4(0.22, 0.15, 0.09, 1.0); } else { float r = length(vQ); float a = exp(-r * r * 3.2) * uNoche; if (a < 0.01) discard; vec3 c = mix(vec3(1.0, 0.45, 0.1), vec3(1.0, 0.9, 0.5), exp(-r * r * 9.0)); gl_FragColor = vec4(c, min(1.0, a * 1.25)); }\n #include <tonemapping_fragment>\n #include <colorspace_fragment>\n }' });
     antM = new THREE.Mesh(g, m); antM.frustumCulled = false; antM.renderOrder = 5; scene.add(antM); }
-  antM.material.uniforms.uNoche.value = noche; antM.visible = LUZ_ESTACIONAL && E.fundada;
+  antM.material.uniforms.uNoche.value = noche; antM.visible = DIA_NOCHE && LUZ_ESTACIONAL && E.fundada;
 }
 
 /* ---------- cuadro ---------- */
@@ -636,7 +664,7 @@ export class CityView3D {
   sonar(city, id) {
     try {
       const S = window.SonidoCiudad; if (!S || !E || (window.Sonido && window.Sonido.activo === false)) return; const Gm = window.Game, st = Gm && Gm.state, ed = E.edificios || [], n = tp => ed.filter(q => q.tipo === tp && !q.obra && !q.ruina).length, ob = city && city.obras || [];
-      const fm = st && typeof st.t === 'number' ? st.t - Math.floor(st.t) : 0.45;      // el mes hace de día: 0,45 = mediodía, el final del mes es la noche (misma curva que la luz)
+      const fm = DIA_NOCHE && st && typeof st.t === 'number' ? st.t - Math.floor(st.t) : 0.45;      // el mes hace de día: 0,45 = mediodía, el final del mes es la noche (misma curva que la luz)
       S.actualizar({ camD: cam.d, camX: camara.position.x, camZ: camara.position.z, estacion: estacionActual().ks, hora: ((fm - 0.45) * 24 + 36) % 24,
         nObrasActivas: ob.filter(o => !o.pausa).length, forja: n('taller') + n('herreria'), mercado: n('mercado'), granjas: n('granja'),
         fuego: E.fuego && E.fuego.mes === E.mesN ? 1 : 0, hambre: E.hambre ? 1 : 0, crecida: E.crecida === E.mesN ? 1 : 0, dRio: distRio(cam.tx, cam.tz),
