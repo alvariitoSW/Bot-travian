@@ -294,7 +294,7 @@ function reparte(fig, L, K) {
 /* ---------- estado ---------- */
 const S = {};
 function cinta(texto, buena) { const c = $('cinta'); c.textContent = texto; c.classList.add('ve'); c.classList.toggle('buena', !!buena); S.tCinta = S.T || 0.001; }
-function grita(t) { const g = $('grito'); g.textContent = t; g.classList.add('ve'); S.tGrito = S.T || 0.001; }
+function grita(t) { Son.voz(t); const g = $('grito'); g.textContent = t; g.classList.add('ve'); S.tGrito = S.T || 0.001; }
 let HUD = null;
 function avisa(tipo, d) {
   if (tipo === 'cinta') cinta(d.texto, d.buena);
@@ -307,6 +307,7 @@ function avisa(tipo, d) {
   if (tipo === 'hierro') Son.hierro(0, 0, 1);
   if (tipo === 'madera') Son.madera(0.4, 0, 0);
   if (tipo === 'cae' && d.quien === 'f' && d.h.r <= 1) S.temblor = Math.max(S.temblor, 0.35);
+  if (tipo === 'cae' && d.h && d.h.r <= 1) Son.herido((d.h.f !== undefined ? (d.h.f - (FILES - 1) / 2) / (FILES / 2) : 0) || 0, 0.05);
   if (tipo === 'rompe') { cinta(d.ganador === 'falange' ? '¡El manípulo rompe! Huyen' : '¡Tu falange rompe!', d.ganador === 'falange'); Son.cuerno(); }
   if (tipo === 'fin' && HUD) HUD.muestraFin();
   /* TP8b-P2: el tambor del compás, la estocada a una, el golpe a destiempo, el coro del empuje y el flanco */
@@ -408,6 +409,8 @@ function dibuja(dt) {
   reparte(F, S.fal, CERCA * FILES); reparte(R, S.rom, CERCA * FILES);
   sarisas.instanceMatrix.needsUpdate = true; sombrasAsta.instanceMatrix.needsUpdate = true;
   if (S.resp && S.T >= S.resp.t) { grita(S.resp.texto); Son.trueno(0.35); S.resp = null; }
+  /* GM43i: el fragor grabado de la lucha mientras las líneas se tocan */
+  { const kL = S.choque && S.fase !== 'fin' && !parado ? 1 : 0; if (kL !== S.kLucha) { S.kLucha = kL; Son.lucha(kL); } }
   muevePolvo(); ESC_P.value = renderer.domElement.height / 2 / Math.tan(camara.fov * Math.PI / 360);
   /* los pila: en el aire, clavados en un asta (la siguen), en un escudo, en un hombre o en el suelo */
   S.PILA.forEach((P, i) => {

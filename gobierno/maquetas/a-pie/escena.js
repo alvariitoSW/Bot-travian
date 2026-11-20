@@ -503,7 +503,7 @@ function sitio(h) {
 /* ---------- avisos ---------- */
 function cinta(texto, buena) { const c = $('cinta'); c.textContent = texto; c.classList.toggle('ve', !!texto); c.classList.toggle('buena', !!buena); S.tCinta = texto ? S.T : 0; }
 const GRITOS = { aguante: ['¡Aguantad!', '¡Firmes!', '¡Juntos!', '¡No os mováis!'], aviso: ['¡Escudos!', '¡Arriba los escudos!', '¡Ahí vienen!'], paso: ['¡Ya casi!', '¡Paso a paso!', '¡Adelante, juntos!'] };
-function grita(t) { if (Array.isArray(t)) t = t[Math.floor(azar() * t.length)]; const g = $('grito'); g.textContent = t; g.classList.add('ve'); S.tGrito = S.T; }
+function grita(t) { if (Array.isArray(t)) t = t[Math.floor(azar() * t.length)]; Son.voz(t); const g = $('grito'); g.textContent = t; g.classList.add('ve'); S.tGrito = S.T; }
 
 /* ---------- la cámara ----------
    En marcha: detrás de la primera fila, a la altura de los hombros (en vertical, más atrás y más alta, por encima de la segunda).
@@ -875,6 +875,8 @@ function paso(dt) {
   const yoP = yo.paso, np = ANTES ? Math.floor(S.paso / (S.vel > 3 ? 1.9 : lerp(1.5, 1.05, S.k))) : Math.floor(yoP.ciclos * 2);
   if (np !== S.nPaso) { S.nPaso = np; if (S.vel > 0.2) Son.paso(S.vel > 3 ? 1.3 : 0.8, S.k); }
   if (Math.abs(S.k - S.kSon) > 0.03 || (S.k === 0 || S.k === 1) && S.kSon !== S.k) { S.kSon = S.k; Son.bajoTecho(S.k); }
+  /* GM43i: el fragor grabado de la lucha mientras dura el choque */
+  { const kL = S.choque && S.fase !== 'fin' ? (S.muro ? 0.6 : 1) : 0; if (kL !== S.kLucha) { S.kLucha = kL; Son.lucha(kL); } }
   if (S.fase === 'avance' && S.zF <= Z_PILA) aTiro();
   S.kP = Math.min(1, S.kP + (S.fase === 'avance' || S.choque ? -1 : 1) * dt * (S.choque ? 2 : 0.7)); if (S.kP < 0) S.kP = 0;
   /* GM43h: el dedo en el botón. Si se pulsó mientras pasaban el segundo pilum, arma en cuanto está listo */

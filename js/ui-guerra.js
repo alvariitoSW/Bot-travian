@@ -222,7 +222,17 @@
       at.golpe = { clip, t0: T }; at.gesto = null; df.gesto = null;
       const fuerte = !mata && Math.random() < (emp ? 0.38 : 0.2);
       d.golpe = { at, df, imp, fin: T + Math.max(dur, (imp - T) + (fuerte ? 2.0 : 0.7)), fuerte, mata };
+      sonGolpe(df, imp - T, mata, fuerte);
       return d.golpe;
+    }
+    /* GM43i: los duelos cerca de la cámara suenan grabados (escudo, madera o hierro; un quejido si mata). Como mucho uno cada 0,12 s */
+    let tSon = 0;
+    function sonGolpe(df, ret, mata, fuerte) {
+      const So = root.Sonido; if (!So || !So.tiene || !So.tiene('escudo') || T < tSon) return;
+      const cp = camara.position, v = So.cerca(Math.hypot(df.x - cp.x, cp.y, df.z - cp.z) * 1.6); if (v < 0.15) return; tSon = T + 0.12;
+      const r = Math.max(0, Math.min(1, ret)), o = { v: 0.55 * v, retraso: r, vel: 0.9 + Math.random() * 0.2 };
+      So.muestra(mata ? 'hierro' : Math.random() < 0.6 ? 'escudo' : 'madera', o);
+      if (mata) So.muestra('herido', { v: 0.35 * v, retraso: r + 0.12 }); else if (fuerte) So.muestra('esfuerzo', { v: 0.4 * v, retraso: Math.max(0, r - 0.1) });
     }
     function matar(f) {
       f.est = 1; f.t0 = T; f.caida = (Math.random() - 0.5) * 0.9; f.gp = f.gy = f.gr = 0;
@@ -712,8 +722,9 @@
     let tRuido = 0;
     /* Fragor de fondo: el choque suena cada poco, más fuerte cuantos más cuerpos empujan (Sonido limita las voces) */
     function ambiente(dt) {
-      if (B.fase !== 'lucha' || !root.Sonido) return; tRuido -= dt; if (tRuido > 0) return;
+      if (!root.Sonido) return; if (B.fase !== 'lucha') { if (root.Sonido.fondos && root.Sonido.fondos.lucha) root.Sonido.fondo('lucha', 0); return; } tRuido -= dt; if (tRuido > 0) return;
       const n = B.sect.filter(s => !s.c[0].roto && !s.c[1].roto), emp = n.filter(s => s.c[0].postura === 'empujar' || s.c[1].postura === 'empujar').length;
+      if (root.Sonido.fondo) root.Sonido.fondo('lucha', n.length ? 0.22 + 0.08 * emp : 0);   /* GM43i: fragor grabado de fondo */
       if (n.length) { root.Sonido.choque(0.25 + 0.2 * emp, 0.8); tRuido = 1.1 + Math.random() * 0.8 - 0.15 * emp; }
     }
     /* ---------- GM5: proyectiles que se ven (jabalinas, piedras, pila) ---------- */
@@ -795,7 +806,7 @@
     document.addEventListener('visibilitychange', alOcultar); window.addEventListener('pagehide', guardaYa);
     const tGuardar = setInterval(() => { if (lista && B && B.fase !== 'fin' && !pausa) guardaYa(); }, 4000);
     function cerrarTodo() {
-      cerrado = true; cancelAnimationFrame(raf); clearInterval(tGuardar); clearTimeout(tFin); delete window.__gc;
+      cerrado = true; cancelAnimationFrame(raf); if (root.Sonido && root.Sonido.callaFondos) root.Sonido.callaFondos(); clearInterval(tGuardar); clearTimeout(tFin); delete window.__gc;
       document.removeEventListener('visibilitychange', alOcultar); window.removeEventListener('pagehide', guardaYa); for (const f of salidas) f();
       for (const m of mallas.values()) { try { soltarMalla(m); } catch (e) { /* ya liberada */ } }
       soltarSoldados();
