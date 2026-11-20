@@ -2024,6 +2024,12 @@
       "titulo": "Corazón · GM43i Sonido grabado del testudo y la lucha a pie (Opus; tope duro)",
       "nota": "Abierta el 20/11",
       "url": "https://claude.ai/code/session_01QiKC37jnJHswyu9x1t9Avk"
+    },
+    {
+      "tarea": "TP9",
+      "titulo": "Corazón · TP9 Objetivo final de la lucha a pie, hablándolo con el usuario (Opus; solo documento)",
+      "nota": "Abierta el 20/11: habla contigo en su chat",
+      "url": "https://claude.ai/code/session_01QiKC36YTshQPWnvHmPu93z"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"
