@@ -123,7 +123,7 @@ export function accion(v) {
       const g = guardados(), n = NOMBRE[S.pueblo[0]] + ' · ' + den(gasto(0)) + ' ◎ · ' + cuenta(0) + ' manípulos';
       g.unshift({ n, pueblo: S.pueblo[0], m: Object.assign({}, S.ej[0]) }); guarda(g); S.aviso = 'Guardado: «' + n + '». Lo tienes en el paso 1.'; break;
     }
-    case 'carga': { const g = guardados()[+x]; if (g && PUEBLOS.includes(g.pueblo)) { if (g.pueblo === S.pueblo[1]) { S.pueblo[1] = S.pueblo[0]; S.rivMano = false; } S.pueblo[0] = g.pueblo; S.ej[0] = Object.assign({}, g.m); recorta(0); rehazRival(); S.aviso = 'Cargado. Míralo en «Tu ejército».'; } break; }
+    case 'carga': { const g = guardados()[+x]; if (g && PUEBLOS.includes(g.pueblo)) { if (g.pueblo === S.pueblo[1]) { S.pueblo[1] = S.pueblo[0]; S.rivMano = false; } S.pueblo[0] = g.pueblo; S.ej[0] = {}; let n = 0; for (const t in (g.m || {})) { const q = Math.min(TOPE - n, g.m[t] | 0); if (q > 0 && tropas(g.pueblo)[t]) { S.ej[0][t] = q; n += q; } } recorta(0); rehazRival(); S.aviso = 'Cargado. Míralo en «Tu ejército».'; } break; }
     case 'borra': { const g = guardados(); g.splice(+x, 1); guarda(g); break; }
   }
 }
@@ -133,7 +133,7 @@ export function restaura() { const c = document.querySelector('#hoja .cg2-cuerpo
 /* ---------- lo que necesita la batalla ---------- */
 export function listo() { asegura(); return cuenta(0) > 0 && cuenta(1) > 0; }
 export function batalla() {
-  asegura();
+  asegura(); S.paso = 1; S.ficha = null;   /* la próxima vez se abre en el paso 1 */
   const hom = l => { const r = {}; for (const t in S.ej[l]) if (S.ej[l][t] > 0) r[t] = S.ej[l][t] * tam(t); return r; };
   return { semilla: (Math.random() * 1e9) >>> 0, campo: S.campo, fac: S.pueblo[1], ejercitos: [hom(0), hom(1)] };
 }
