@@ -1555,10 +1555,6 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #bpest button.on { color: var(--tinta); background: var(--fibras), linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--minio); }
 #bpest button.off { opacity: .5; }
 #csheet:not([data-m="mirar"]) #bpest { display: none; }
-/* Imperio: hueco de «Tus caminos» (MN2) */
-.imp-cam { margin: 8px 6px 4px; text-align: left; }
-.imp-cam b { display: block; color: var(--minio); font: 700 13px var(--serif); letter-spacing: .08em; text-transform: uppercase; }
-.imp-cam i { display: block; height: 26px; border-bottom: 1px solid rgba(60, 35, 10, .35); }
 /* ROMA ▾: ficha de la ciudad dentro de la hoja y lista para cambiar de ciudad */
 #hoja .fciu .ro-gob { display: block; } #hoja .fciu .ro-palo { display: none; }
 #hoja .fciu .ro-papiro.gob { height: auto; padding: 0; background: none; box-shadow: none; border: 0; }
@@ -1590,4 +1586,46 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
   #hoja { left: auto; right: 0; top: 0; bottom: 0; width: min(50vw, 560px); max-width: 50vw; height: auto !important; margin: 0; border-radius: 14px 0 0 14px; }
   #view > .ro, #view > .ro > .ro-papiro { height: auto; min-height: 0; }
   #view > .ro-gob > .ro-papiro.gob { flex: none; }
+}
+
+/* ======== MN2: Senado en cuatro pestañas y huecos de Imperio ======== */
+.sen-tabs.ro-tablilla { margin: 0 0 10px; }
+.sen-tabs.ro-tablilla > button { position: relative; min-height: 48px; font: 700 13px/1.1 var(--serif); letter-spacing: .02em; padding: 2px 3px; }
+.sen-voto { position: absolute; top: 4px; right: 4px; width: 9px; height: 9px; border-radius: 50%; background: var(--sello); box-shadow: 0 0 0 1.5px #fbe9c7; }
+.sen-aut { display: grid; grid-template-columns: auto 1fr auto; gap: 8px; align-items: center; margin: 2px 0 8px; color: var(--tinta); font: 700 13px var(--serif); letter-spacing: .04em; }
+.sen-aut b { font: 700 15px var(--libro); color: var(--tinta2); }
+.sen-cinta { height: 10px; border-radius: 5px; background: rgba(60, 35, 10, .16); border: 1px solid var(--bronce2); overflow: hidden; }
+.sen-cinta i { display: block; width: 0; height: 100%; background: linear-gradient(#e9c063, #b8862b); }
+.sen-cursus { list-style: none; margin: 0 0 6px; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.sen-cursus li { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; padding: 4px 1px; color: var(--tinta2); }
+.sen-cursus li + li { border-left: 1px dashed rgba(60, 35, 10, .35); }
+.sen-med { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; font: 700 15px var(--serif); color: var(--tinta2);
+  background: radial-gradient(circle at 35% 30%, #efe0b6, #c9ab6c); border: 2px solid var(--bronce2); box-shadow: inset 0 0 0 2px rgba(255, 240, 200, .5); opacity: .75; }
+.sen-cursus b { font: 700 13px/1.1 var(--serif); color: var(--tinta); }
+.sen-cursus small { font-size: 11px; line-height: 1.2; }
+.sen-pronto { font-style: italic; }
+.sen-fi .tt { font: 700 16px var(--serif); }
+.sen-fb { margin-top: 6px; } .sen-fb .btn.fiesta { width: 100%; min-height: 44px; } .sen-fb .fi-n { display: block; margin-top: 3px; font-size: 13px; }
+.sen-fb .btn.fiesta { color: var(--oro-ro); font: 700 14px var(--serif); border: 1px solid var(--bronce); border-radius: 6px; background: var(--martillado), linear-gradient(#5c4318, #3a2a0e); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .6), 0 2px 4px rgba(0, 0, 0, .4); }
+.sen-fb .btn.fiesta.no { opacity: .6; }
+.ro .card.sen-hueco { display: block; color: var(--tinta); background: rgba(255, 245, 215, .35); border: 1.5px dashed var(--bronce2); box-shadow: none; }
+.ro .card.sen-hueco .ds { color: var(--tinta2); font-style: italic; }
+/* «Tus caminos»: cuatro cintas vacías (las llena CE10) */
+.ro .imp-cam { margin: 4px 0 6px; text-align: left; }
+.ro .imp-cam-t { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; }
+.ro .imp-cam-t b { color: var(--minio); font: 700 13px var(--serif); letter-spacing: .08em; text-transform: uppercase; }
+.ro .imp-cam-t span { color: var(--tinta2); font: italic 13px var(--libro); white-space: nowrap; }
+.ro .imp-cam-g { display: grid; grid-template-columns: repeat(2, 1fr); column-gap: 14px; row-gap: 4px; margin-top: 3px; }
+.ro .imp-cam-c { display: grid; grid-template-columns: auto 74px minmax(0, 1fr); align-items: center; column-gap: 4px; min-width: 0; min-height: 20px; }
+.ro .imp-cam-c .ico { width: 17px; height: 17px; stroke: var(--tinta2); fill: none; stroke-width: 1.7; }
+@media (orientation: landscape) { .ro .imp-cam-g { grid-template-columns: repeat(4, 1fr); } }
+.ro .imp-cam-c span { white-space: nowrap; font: 700 12px var(--serif); color: var(--tinta); letter-spacing: .02em; }
+.ro .imp-cam-c .sen-cinta { width: 100%; height: 8px; }
+.ro .imp-cam-p { display: block; margin-top: 3px; color: var(--tinta2); font: italic 13px var(--libro); text-align: center; }
+.mar-pie .cu-go small { font-size: 11px; opacity: .8; font-family: var(--libro); }
+/* Horizontal: la tira de recursos no tapa lo que se desplaza. El borde (transparente, con el fondo detrás) reserva su sitio
+   y el desplazamiento se recorta debajo de él */
+@media (orientation: landscape) {
+  #view { padding-top: 6px; border-top: calc(98px + env(safe-area-inset-top)) solid transparent; }
+  #app[data-sello]:not([data-sala]) #view { padding-bottom: 6px; border-bottom: calc(64px + env(safe-area-inset-bottom)) solid transparent; }
 }

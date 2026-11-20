@@ -91,7 +91,7 @@
       "titulo": "Un solo Senado, con intrigas",
       "estado": "medias",
       "veras": "Una sala viva con hasta siete bandos, cada uno con su gran familia. Ves debatir a los senadores; los jefes de bando son tus consejeros; hay banquetes, juegos y ritos.",
-      "hecho": "Senado de familias (CE6): hasta siete bandos con su familia (Fabios, Emilios, Escipiones; entran Valerios, Fulvios, Claudios y Sempronios al crecer Roma), de 30 a 300 escaños por población y provincia, humor por tus actos, una petición por bando y estación; tratos y tribuno.",
+      "hecho": "Senado de familias (CE6): hasta siete bandos con su familia (Fabios, Emilios, Escipiones; entran Valerios, Fulvios, Claudios y Sempronios al crecer Roma), de 30 a 300 escaños por población y provincia, humor por tus actos, una petición por bando y estación; tratos y tribuno. Desde MN2 (20/11) el Senado tiene cuatro pestañas: Hoy se vota, Bandos, Tu carrera y Fiestas.",
       "falta": "Sala viva y jefes-consejeros (CE8), banquete, juegos y rito (CE9).",
       "captura": "gobierno/capturas-tarea/CE6-crecida-sala.jpg",
       "tareas": [
@@ -289,9 +289,9 @@
       "id": "L13",
       "organo": "musculo",
       "titulo": "Menús reordenados y con un solo aspecto antiguo",
-      "estado": "falta",
+      "estado": "medias",
       "veras": "Una barra de seis (Ciudad · Senado · Saber · Tropas · Mapa · Imperio); llegas al Senado y a la política a un toque; construyes con «Lo hago yo · Encargar · Gobernador»; todo en papiro, tablilla y bronce.",
-      "falta": "MN1 hecha (19/11: barra de seis, ROMA ▾ con la ficha, fuera los modos). Quedan: Senado e Imperio con su sitio (MN2), gobernador (MN3) y renovación artística con maqueta (MN4). Absorbe el papiro del Códice y de los avisos (PA1 a PA3), que habías sacado con la respuesta A de las formaciones.",
+      "falta": "MN1 hecha (19/11: barra de seis, ROMA ▾ con la ficha, fuera los modos). MN2 hecha (20/11: Senado en cuatro pestañas, huecos de Imperio). Quedan: gobernador (MN3) y renovación artística con maqueta (MN4). Absorbe el papiro del Códice y de los avisos (PA1 a PA3), que habías sacado con la respuesta A de las formaciones.",
       "tareas": [
         "MN1",
         "MN2",
