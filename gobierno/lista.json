@@ -221,14 +221,14 @@
       "titulo": "Escaramuzas: batallas sueltas desde el menú",
       "estado": "falta",
       "veras": "Eliges tu ejército con tu dinero, el enemigo y el campo, y luchas sin empezar una campaña; cada soldado tiene su vida y sus datos según su tropa y su cultura.",
-      "hecho": "Botón en el menú principal, tres tamaños de ejército, campo y dificultad; la batalla nueva de manípulos ya se juega aquí.",
-      "captura": "gobierno/capturas-tarea/MR3b-5-escaramuzas.jpg",
+      "hecho": "Botón en el menú principal; desde CG2a (20/11) el constructor de ejército: cuatro pasos, seis pueblos, compras por manípulos con tope de denarios, dificultad = dinero del rival y «A mi gusto», rival retocable y hasta 5 ejércitos guardados. La batalla nueva de manípulos ya se juega aquí.",
+      "captura": "gobierno/capturas-tarea/CG2-v-2-ejercito.jpg",
       "tareas": [
         "ES0",
         "CG2",
         "CG9"
       ],
-      "falta": "Tu pedido del 19/11: menú rehecho desde cero con tus tropas y tu dinero y diseño propio (CG2), y vida y datos reales de cada soldado por tipo y cultura (CG9)."
+      "falta": "Precios y bolsas medidos con el bot, veteranía y los 12 datos por tropa y pueblo (CG9); vida real del soldado (CG9); despliegue (CG5a)."
     },
     {
       "id": "L14",
@@ -268,7 +268,7 @@
       "titulo": "Formaciones en Escaramuzas",
       "estado": "falta",
       "veras": "En Escaramuzas eliges tus tropas con su dibujo, su coste y lo que saben hacer (testudo, picas, muro…) y pruebas las formaciones; las escenas a pie quedan como minijuegos.",
-      "falta": "Faltan las fichas de tropa para elegir ejército (CG2) y los minijuegos (CG7).",
+      "falta": "Veteranía y los 12 datos en la ficha (CG9) y los minijuegos (CG7).",
       "tareas": [
         "TP7a",
         "CG2",
@@ -283,7 +283,7 @@
         "TP9f",
         "TP9-0"
       ],
-      "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a)."
+      "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a). Desde CG2a (20/11), cada tropa con su retrato, coste, barras, lo que sabe hacer (testudo, cuña, muro, falange, orden abierto, pilum) y su ficha."
     },
     {
       "id": "L13",
