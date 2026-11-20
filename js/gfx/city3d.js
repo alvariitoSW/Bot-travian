@@ -382,7 +382,9 @@ const CERCO_FUERA = true;
 function cercoVista() {
   if (!CERCO_FUERA || !E.urbe || !E.foro) return null; const f = E.foro, RU = E.urbe.RU, NR = RU.length, K = 7, D2 = Math.PI * 2;
   const rad = (x, z) => { const q = ((Math.atan2(z - f.z, x - f.x) / D2) % 1 + 1) % 1 * NR, i = Math.floor(q), u = q - i; return RU[i % NR] * (1 - u) + RU[(i + 1) % NR] * u + K; }, den = (x, z) => Math.hypot(x - f.x, z - f.z) < rad(x, z);
-  const S = RU.map((r, i) => [f.x + Math.cos(i / NR * D2) * (r + K), f.z + Math.sin(i / NR * D2) * (r + K)]), PU = [];
+  /* la muralla nunca pisa el agua: en la ribera se retira hacia dentro hasta quedar en tierra firme, a 12 de la orilla */
+  const seco = (x, z) => !CI.esAgua(x, z) && distRio(x, z) >= 64 && altura(x, z) > NIVEL_RIO + 1.6;
+  const S = RU.map((r, i) => { const c = Math.cos(i / NR * D2), z = Math.sin(i / NR * D2); let q = r + K; while (q > r - 30 && !seco(f.x + c * q, f.z + z * q)) q -= 1.5; return [f.x + c * q, f.z + z * q]; }), PU = [];
   for (const v of E.vias) { if (!(v.w >= 3) || !v.p) continue; for (let i = 1; i < v.p.length; i++) { let a = v.p[i - 1], b = v.p[i]; if (den(a[0], a[1]) === den(b[0], b[1])) continue; const da = den(a[0], a[1]);
       for (let k = 0; k < 12; k++) { const c = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; if (den(c[0], c[1]) === da) a = c; else b = c; }
       const t = Math.atan2(a[1] - f.z, a[0] - f.x), j = Math.round(((t / D2) % 1 + 1) % 1 * NR) % NR, p0 = S[(j + NR - 1) % NR], p1 = S[(j + 1) % NR];
