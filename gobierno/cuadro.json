@@ -2014,17 +2014,17 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "GM43h",
-      "titulo": "Versión 1.0 · GM43h Testudo a pie: lanzar el pilum y la lucha (Fable dirige, Opus construye)",
-      "nota": "Terminada el 18/11: pilum en maqueta; fundida en TP1",
-      "url": "https://claude.ai/code/session_01QiKC38E6dBfWEPw2B7HUwf"
+      "tarea": "TP9-0",
+      "titulo": "Corazón · TP9-0 Estudio de la lucha a pie (Fable, solo documento)",
+      "nota": "Abierta el 20/11: habla contigo en su chat",
+      "url": "https://claude.ai/code/session_01QiKC36xm7ZGUXDfQH8pXZR"
     },
     {
-      "tarea": "CI1b",
-      "titulo": "Cerebro · CI1b+CI3a Calles con sentido y ciudad ×5 a la vista (Opus; tope duro)",
-      "nota": "Parada en el techo 6,4 M, sin subir (queda un fallo de sim.test); espera tu decisión en el cuadro. 11 commits solo en su contenedor",
-      "url": "https://claude.ai/code/session_01QiKC3AfVQgWjdzHpMKkgYR"
+      "tarea": "CG2",
+      "titulo": "Corazón · CG2a Constructor de ejército de Escaramuzas (Opus; corte 2,0 M)",
+      "nota": "Abierta el 20/11 tras subir MN2",
+      "url": "https://claude.ai/code/session_01QiKC36ZiXPT2RBtNPZER29"
     }
   ],
-  "vigia": "trig_01NY6a1NUH95SsjX9sAsB5ZY"
+  "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"
 }

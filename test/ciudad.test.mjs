@@ -9,7 +9,7 @@ ok(loma.razones.some(t => /loma/.test(t)), 'en la loma se defiende mejor: ' + lo
 ok(ribera.razones.some(t => /inunda/.test(t)), 'la ribera baja se inunda: ' + ribera.razones.join(' · '));
 ok(!R.notaFundar(E, 100, -450).vale, 'en el agua no se funda');
 ok(R.fundar(E, 172, -196), 'se funda en ' + alto.razones.join(' · '));
-let e = R.estado(E); ok(e.casas === 20 && e.vias === 3 && e.puertas >= 2, `al fundar: ${e.casas} chozas, ${e.vias - 1} calles del foro, ${e.puertas} puertas`);
+let e = R.estado(E); ok(e.casas === 20 && e.vias >= 3 && e.puertas >= 2, `al fundar: ${e.casas} chozas, ${e.vias - 1} calles del foro, ${e.puertas} puertas`);
 const pon = id => { const s = R.mejorSitio(E, id); const r = s && R.colocar(E, id, s[0], s[1], true); return !!(r && r.ok); };
 ok(!R.notaSitio(E, 'granja', E.foro.x + 60, E.foro.z).vale, 'la granja no vale dentro del surco'); ok(!R.notaSitio(E, 'muelle', E.foro.x, E.foro.z + 40).vale, 'el muelle solo vale en la orilla');
 ok(pon('fuente') && pon('granero') && pon('granja'), 'fuente, granero y granja colocados'); const v0 = E.vias.length;
@@ -226,7 +226,7 @@ prueba('CN14-B (i): sembrar y mes() miran el mismo mes que al repetirlos al carg
 // esperas recogidas con el código SIN el efecto: [pieza, x, z, nota, vale, razones, radio, ang]
 const BASE_CN14A = [["fuente",-28,-296,0,true,["Sin casas con sed cerca"],85,0.4636476090008061],["fuente",-28,-136,0,true,["Sin casas con sed cerca"],85,1.3362003366203665],["templo",-28,-296,-1,true,["En llano: llega poco","No llega a ninguna casa −1"],100,0.4636476090008061],["templo",-28,-136,3,true,["En alto: se ve desde lejos +2","Llegaría a 5 casas +1"],230,1.3362003366203665],["mercado",-28,-296,-1,true,["Lejos del foro y de las calles principales −1","Sin casas cerca: no vende"],110,0.4636476090008061],["mercado",-28,-136,1,true,["En calle principal +1","Sin casas cerca: no vende"],110,1.3362003366203665],["taller",-28,-296,3,true,["Tiene agua +1","Lejos de las casas +2"],75,0.4636476090008061],["taller",-18,-316,0,true,["Tiene agua +1","Lejos de las casas +2","Se inunda en primavera −3"],75,0.5633162614919681],["herreria",82,-256,3,true,["Cerca del foro +1","Lejos de las casas +2"],0,0.5880026035475675],["herreria",92,-256,3,true,["Cerca del foro +1","Lejos de las casas +2"],0,0.6435011087932844],["granja",-28,-296,3,true,["En la vega: rinde más +3"],0,0.4636476090008061],["almacen",82,-256,0,true,["Lejos del foro"],0,0.5880026035475675],["aserradero",-28,-96,3,true,["Junto al bosque (8 árboles) +1","Junto a una calle: sale la madera +1","No lejos del foro +1"],0,-1.234754268501709],["fuente",122,-216,2,true,["Daría agua a 5 casas +2"],85,0.8242173143157],["fuente",82,-226,1,true,["Daría agua a 1 casas +1"],85,0.3217505543966422],["templo",-38,-166,3,true,["En alto: se ve desde lejos +2","Llegaría a 5 casas +1"],230,1.3241268386903564],["mercado",112,-256,3,true,["Junto al foro +2","9 casas comprarían aquí: +2 monedas al mes"],110,0.7853981633974483],["taller",152,-286,-1,true,["Tiene agua +1","Su humo molestaría a 5 casas −2"],75,-0.8209413422187883],["herreria",152,-296,-1,true,["Cerca del foro +1","Su humo molestaría a 3 casas −2"],0,-0.8171954604078939],["herreria",102,-76,-1,true,["Cerca del foro +1","Su humo molestaría a 1 casas −2"],0,-2.0983407969256316],["fuente",-330,-330,-5,true,["Aquí ya beben del río −2","Sin casas con sed cerca","Se inunda en primavera −3"],85,0.2608503461186542],["muelle",-450,-480,0,true,["En la orilla +1","Lejos de las calles −1"],0,1.7639999999999998]];
 prueba('CN14-A: nota, vale, razones, radio y ang no cambian; el efecto cuelga aparte', () => {
-  const F = R.crear(1); R.fundar(F, 172, -196);
+  const F = R.crear(1); F.plano = 1; R.fundar(F, 172, -196);      /* esperas grabadas con el plano 1 (antes del eje de CI1b) */
   for (const [id, x, z, nota, vale, razones, radio, ang] of BASE_CN14A) { const s = R.notaSitio(F, id, x, z);
     assert.equal(s.nota, nota, id + ' nota'); assert.equal(s.vale, vale, id + ' vale'); assert.deepEqual(s.razones, razones, id + ' razones'); assert.equal(s.radio, radio, id + ' radio'); assert.equal(s.ang, ang, id + ' ang'); } });
 prueba('CN14-A: efecto de fuente, templo, mercado, taller y herrería; el resto, null', () => {
@@ -323,5 +323,40 @@ prueba('CN23: ampliar la muralla deja los barrios nuevos dentro; guardar y carga
     const estado = E2 => E2.parcelas.map(l => l.casa ? l.casa.nivel + '.' + l.casa.ruina + '.' + (l.casa.arde ? 1 : 0) : '-').join(); assert.equal(estado(H), estado(F)); for (let i = 0; i < 8; i++) { R.mes(F); R.mes(H); } assert.equal(estado(H), estado(F), 'siguen igual 8 meses después'); });
   prueba('CN13c una casa salvada no vuelve a nivel 1 tras los meses de ruina', () => {
     const F = fuego(1), pl = R.cubosPlan(F), id = pl.casas[0].id, niv = F.parcelas[id].casa.nivel; R.apagarFuego(F, [id]); for (let i = 0; i < 6; i++) R.mes(F); assert.ok(F.parcelas[id].casa.nivel >= niv); });
+}
+/* ---------- CI1b: calles con sentido (plano 2) ---------- */
+{
+  const dPoli = (P, x, z) => { let m = 1e9; for (let i = 1; i < P.length; i++) { const [ax, az] = P[i - 1], [bx, bz] = P[i], dx = bx - ax, dz = bz - az, L = dx * dx + dz * dz || 1, u = Math.max(0, Math.min(1, ((x - ax) * dx + (z - az) * dz) / L)); m = Math.min(m, Math.hypot(ax + dx * u - x, az + dz * u - z)); } return m; };
+  const angD = (a, b) => Math.abs(((a - b) % (2 * Math.PI) + 3 * Math.PI) % (2 * Math.PI) - Math.PI);
+  prueba('CI1b al fundar hay un eje de puerta a puerta: sale del foro, cruza el surco y tiene puerta al lado opuesto', () => {
+    for (const sem of [1, 3]) { const F = R.crear(sem); R.fundar(F, 172, -196); assert.ok(F.plano >= 2); const v = F.vias.find(q => q.id === F.eje); assert.ok(v, 'hay eje');
+      const f = F.foro, ini = v.p[0], fin = v.p[v.p.length - 1]; assert.ok(Math.hypot(ini[0] - f.x, ini[1] - f.z) < 30, 'empieza en el foro'); assert.ok(!R.cercado(F, fin[0], fin[1]), 'sale del surco');
+      const aE = Math.atan2(fin[1] - f.z, fin[0] - f.x), pE = F.puertas.find(p => angD(Math.atan2(p.z - f.z, p.x - f.x), aE) < 0.5); assert.ok(pE, 'puerta del eje');
+      assert.ok(F.puertas.some(p => angD(Math.atan2(p.z - f.z, p.x - f.x), aE) > 1.9), 'puerta al lado opuesto'); } });
+  prueba('CI1b tras 60 meses con granjas: ninguna calle pisa campos ni edificios, y ninguna casa queda bajo una vía', () => {
+    const F = R.crear(5); R.fundar(F, 172, -196); const pon = id => { const s = R.mejorSitio(F, id); return s && R.colocar(F, id, s[0], s[1], true).ok; };
+    assert.ok(pon('granja') && pon('granja'), 'dos granjas'); pon('fuente'); pon('aserradero'); pon('cantera'); pon('granero');
+    for (let i = 0; i < 60; i++) { R.mes(F); if (i === 20) { pon('granja'); pon('almacen'); pon('templo'); } }
+    const dentroDe = (e, px, pz, f) => { const r = e.ang + Math.PI / 2, c = Math.cos(r), s = Math.sin(r), u = (px - e.x) * c + (pz - e.z) * s, t = -(px - e.x) * s + (pz - e.z) * c; return f(u, t); };
+    let n6 = 0; for (let k = 0; k < R.N * R.N; k++) { if (F.ocup[k] === 6) n6++; if (F.ocup[k] !== 1) continue; const px = R.X0 + (k % R.N + 0.5) * R.C, pz = R.Z0 + (Math.floor(k / R.N) + 0.5) * R.C;
+      for (const e of F.edificios) { assert.ok(!dentroDe(e, px, pz, (u, t) => Math.abs(u) < e.w / 2 - 2 && Math.abs(t) < e.d / 2 - 2), 'calle en la huella de ' + e.tipo);
+        if (e.tipo === 'granja') assert.ok(!dentroDe(e, px, pz, (u, t) => Math.abs(u) < 34 && t > 13 && t < 60), 'calle en el campo de una granja'); } }
+    assert.ok(n6 > 300, 'los campos están en la rejilla: ' + n6);
+    for (const l of F.parcelas) { if (!l.casa || l.fuera) continue; for (const v of F.vias) assert.ok(dPoli(v.p, l.x, l.z) > v.w + 3, 'casa bajo una vía (' + v.t + ')'); } });
+  prueba('CI1b datos viejos sin plano: se rehacen con los mismos edificios en el mismo sitio', () => {
+    const F = R.crear(1); F.plano = 1; R.fundar(F, 172, -196); for (const id of ['granja', 'fuente', 'granja', 'aserradero', 'granero', 'cantera', 'granja', 'almacen']) { const s = R.mejorSitio(F, id); if (s) R.colocar(F, id, s[0], s[1], true); R.mes(F); }
+    const d = R.aDatos(F); assert.equal(d.plano, 1); delete d.plano; const H = R.deDatos(d), q = E2 => E2.edificios.map(e => e.tipo + '@' + e.x.toFixed(1) + ',' + e.z.toFixed(1)).join(' ');
+    assert.equal(q(H), q(F)); const N2 = R.deDatos(R.aDatos(R.crear(2))); assert.equal(N2.plano, 3, 'una ciudad nueva guarda y carga el plano 3'); });
+  /* ---------- CI3a: la urbe a la vista (plano 3) ---------- */
+  prueba('CI3a con plano 3 la urbe tiene ≥3,4× el área del recinto del plano 2 y llega a 2,2× el radio donde el terreno deja', () => {
+    for (const sem of [1, 3, 7]) { const F = R.crear(sem); R.fundar(F, 172, -196); assert.equal(F.plano, 3); const D = R.crear(sem); D.plano = 2; R.fundar(D, 172, -196); assert.ok(!D.urbe, 'el plano 2 no tiene urbe');
+      const a2 = R.areaPolar(D.RS), a3 = F.urbe.area; assert.ok(a3 >= 3.4 * a2, 'área ' + a3 + ' frente a ' + Math.round(a2));
+      assert.ok(F.urbe.RU.filter((r, i) => r >= F.RS[i] * R.URBE_K * 0.95).length >= F.RS.length * 0.4, 'el 40 % de los rayos (los que no topan con el río) llega a 2,2×');
+      assert.equal(R.aDatos(D).plano, 2); assert.equal(JSON.stringify(D.ocup.slice ? Array.from(D.ocup) : D.ocup), JSON.stringify(Array.from(F.ocup)), 'la urbe no toca la rejilla');
+      for (const c of F.urbe.calles) for (const p of c.p) { const i = Math.floor((p[0] - R.X0) / R.C), j = Math.floor((p[1] - R.Z0) / R.C); assert.equal(F.ocup[j * R.N + i], 0, 'calle de adorno sobre algo'); } } });
+  prueba('CI3a datos del plano 2 se rehacen en el plano 3 con los mismos edificios en su sitio', () => {
+    const F = R.crear(4); F.plano = 2; R.fundar(F, 172, -196); for (const id of ['granja', 'fuente', 'granja', 'aserradero', 'granero', 'cantera', 'templo', 'almacen']) { const s = R.mejorSitio(F, id); if (s) R.colocar(F, id, s[0], s[1], true); R.mes(F); }
+    const d = R.aDatos(F); assert.equal(d.plano, 2); const H = R.deDatos(d), q = E2 => E2.edificios.map(e => e.tipo + '@' + e.x.toFixed(1) + ',' + e.z.toFixed(1)).join(' ');
+    assert.equal(H.plano, 3); assert.ok(H.urbe, 'tiene urbe'); assert.equal(q(H), q(F)); assert.equal(H.parcelas.filter(l => l.casa).length, F.parcelas.filter(l => l.casa).length, 'mismas casas'); });
 }
 process.exit(fallos.length ? 1 : 0);

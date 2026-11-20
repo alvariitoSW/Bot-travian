@@ -144,7 +144,7 @@ t('CE6: partidas v1 (vieja y fabricada) cargan, migran a v2 sin repetir y juegan
       const antes = JSON.stringify(q); G.migrarSala(s); assert.strictEqual(JSON.stringify(q), antes, 'idempotente');
       const t0 = s.t; for (let i = 0; i < 24 * 4 && !s.over; i++) { G.tick(0.25); s.pending = []; s.vivo = null; }
       assert(s.t >= t0 + 23 || s.over, 'juega 2 años: ' + (s.t - t0)); for (const b of q.bandos) assert(Number.isFinite(q.humor[b]), b);
-      const T = G.senadoTotal(); assert.strictEqual(sumaEsc(G.escanos(true)) + T.familia, T.total);
+      const E = G.escanos(true), T = G.senadoTotal(); assert.strictEqual(sumaEsc(E) + T.familia, T.total);   // CI1b: primero se recalcula y luego se lee el total (antes se leía el total viejo)
     } finally { delete global.localStorage; }
   }
 });

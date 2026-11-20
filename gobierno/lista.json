@@ -45,14 +45,14 @@
       "titulo": "Una ciudad que construyes y ves crecer",
       "estado": "medias",
       "veras": "Colocas cada edificio donde quieres. Los barrios crecen solos alrededor y hay incendios y crecidas que atender.",
-      "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría. Roma con el aspecto de su siglo (CI1): templo toscano, muralla de toba lisa, ínsulas, foro con tabernas, más ciudad a la vista y campos por estaciones.",
-      "captura": "gobierno/capturas-tarea/Q1k-5-barrios.jpg",
+      "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría. Roma con el aspecto de su siglo (CI1): templo toscano, muralla de toba lisa, ínsulas, foro con tabernas, más ciudad a la vista y campos por estaciones. Calles con sentido (CI1b): eje de puerta a puerta por el foro y nada cruza casas ni campos. Ciudad mucho mayor a la vista (CI3a): urbe dibujada de 3,5 a 3,8 veces el área.",
+      "captura": "gobierno/capturas-tarea/CI3a-lejos.jpg",
       "tareas": [
         "CI1b",
         "CI3a",
         "CI3b"
       ],
-      "falta": "Tus pedidos: calles con sentido (CI1b) y la ciudad ×5 a la vista (CI3a, a punto de cerrarse; luego CI3b, que cuente en la economía, tras CE3), y el gobierno visible en la ciudad (dentro de CS2). El pulido que queda de la ciudad romana: pregunta CI1c del cuadro."
+      "falta": "Que la ciudad grande cuente en la economía (CI3b, tras CE3), el gobierno visible en la ciudad (dentro de CS2) y el pulido que queda de la ciudad romana (pregunta CI1c del cuadro)."
     },
     {
       "id": "L2",
@@ -91,7 +91,7 @@
       "titulo": "Un solo Senado, con intrigas",
       "estado": "medias",
       "veras": "Una sala viva con hasta siete bandos, cada uno con su gran familia. Ves debatir a los senadores; los jefes de bando son tus consejeros; hay banquetes, juegos y ritos.",
-      "hecho": "Senado de familias (CE6): hasta siete bandos con su familia (Fabios, Emilios, Escipiones; entran Valerios, Fulvios, Claudios y Sempronios al crecer Roma), de 30 a 300 escaños por población y provincia, humor por tus actos, una petición por bando y estación; tratos y tribuno.",
+      "hecho": "Senado de familias (CE6): hasta siete bandos con su familia (Fabios, Emilios, Escipiones; entran Valerios, Fulvios, Claudios y Sempronios al crecer Roma), de 30 a 300 escaños por población y provincia, humor por tus actos, una petición por bando y estación; tratos y tribuno. Desde MN2 (20/11) el Senado tiene cuatro pestañas: Hoy se vota, Bandos, Tu carrera y Fiestas.",
       "falta": "Sala viva y jefes-consejeros (CE8), banquete, juegos y rito (CE9).",
       "captura": "gobierno/capturas-tarea/CE6-crecida-sala.jpg",
       "tareas": [
@@ -144,8 +144,10 @@
       "veras": "Mueves ejércitos por Italia y el Mediterráneo, y Cartago, Epiro y los galos atacan y se defienden.",
       "hecho": "Marchas, guarniciones, enemigo con iniciativa y partida corta o larga.",
       "captura": "gobierno/capturas-tarea/C18-italia.jpg",
-      "tareas": [],
-      "falta": "Tu pedido del 19/11: muchas más culturas, regiones, ciudades y pueblos fuera de Roma (hoy 26 ciudades, 8 regiones, 20 tropas): propuesta P183, espera tu decisión en el cuadro."
+      "tareas": [
+        "P183"
+      ],
+      "falta": "Tu pedido del 19/11: muchas más culturas, regiones, ciudades y pueblos fuera de Roma (hoy 26 ciudades, 8 regiones, 20 tropas): aprobado el 20/11 como P183 (≈45 ciudades en las 8 regiones, tras CG9)."
     },
     {
       "id": "L9",
@@ -189,8 +191,8 @@
       "titulo": "El testudo a pie, dentro del juego",
       "estado": "medias",
       "veras": "Bajas a pie desde un manípulo de la batalla, con la vista desde el hombro: te mueves, luchas y usas habilidades (el testudo, una más); si caes, sigues como otro soldado.",
-      "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas. En la batalla nueva de Escaramuzas ya se baja a un manípulo («Bajar»): eres el centurión, con la cámara al hombro, andas y corres con la palanca, tu manípulo te sigue y la batalla sigue alrededor; «Mando» te sube (CG6, tanda 1). A pie ya se lucha (Golpear, Parar, Empujar, Pilum; si caes, sigues como otro soldado), se dan órdenes y lo hecho cuenta en la batalla (CG6b).",
-      "falta": "El duelo de cerca dentro de la fila (CG6c), el sonido (GM43i) y las caras (GM43j).",
+      "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas. En la batalla nueva de Escaramuzas ya se baja a un manípulo («Bajar»): eres el centurión, con la cámara al hombro, andas y corres con la palanca, tu manípulo te sigue y la batalla sigue alrededor; «Mando» te sube (CG6, tanda 1). A pie ya se lucha (Golpear, Parar, Empujar, Pilum; si caes, sigues como otro soldado), se dan órdenes y lo hecho cuenta en la batalla (CG6b). Suena grabado: golpes en escudo, madera y hierro, pasos, gritos, cuernos y fragor de lucha (GM43i).",
+      "falta": "El duelo de cerca dentro de la fila (CG6c) y las caras (GM43j).",
       "captura": "gobierno/capturas-tarea/CG6b-2-duelo-h.jpg",
       "tareas": [
         "TP1",
@@ -202,7 +204,15 @@
         "TP8b",
         "TP8c",
         "CG6b",
-        "CG6c"
+        "CG6c",
+        "TP9",
+        "TP9a",
+        "TP9b",
+        "TP9c",
+        "TP9d",
+        "TP9e",
+        "TP9f",
+        "TP9-0"
       ]
     },
     {
@@ -211,14 +221,14 @@
       "titulo": "Escaramuzas: batallas sueltas desde el menú",
       "estado": "falta",
       "veras": "Eliges tu ejército con tu dinero, el enemigo y el campo, y luchas sin empezar una campaña; cada soldado tiene su vida y sus datos según su tropa y su cultura.",
-      "hecho": "Botón en el menú principal, tres tamaños de ejército, campo y dificultad; la batalla nueva de manípulos ya se juega aquí.",
-      "captura": "gobierno/capturas-tarea/MR3b-5-escaramuzas.jpg",
+      "hecho": "Botón en el menú principal; desde CG2a (20/11) el constructor de ejército: cuatro pasos, seis pueblos, compras por manípulos con tope de denarios, dificultad = dinero del rival y «A mi gusto», rival retocable y hasta 5 ejércitos guardados. La batalla nueva de manípulos ya se juega aquí.",
+      "captura": "gobierno/capturas-tarea/CG2-v-2-ejercito.jpg",
       "tareas": [
         "ES0",
         "CG2",
         "CG9"
       ],
-      "falta": "Tu pedido del 19/11: menú rehecho desde cero con tus tropas y tu dinero y diseño propio (CG2), y vida y datos reales de cada soldado por tipo y cultura (CG9)."
+      "falta": "Precios y bolsas medidos con el bot, veteranía y los 12 datos por tropa y pueblo (CG9); vida real del soldado (CG9); despliegue (CG5a)."
     },
     {
       "id": "L14",
@@ -258,22 +268,30 @@
       "titulo": "Formaciones en Escaramuzas",
       "estado": "falta",
       "veras": "En Escaramuzas eliges tus tropas con su dibujo, su coste y lo que saben hacer (testudo, picas, muro…) y pruebas las formaciones; las escenas a pie quedan como minijuegos.",
-      "falta": "Faltan las fichas de tropa para elegir ejército (CG2) y los minijuegos (CG7).",
+      "falta": "Veteranía y los 12 datos en la ficha (CG9) y los minijuegos (CG7).",
       "tareas": [
         "TP7a",
         "CG2",
         "CG7",
-        "CG6b"
+        "CG6b",
+        "TP9",
+        "TP9a",
+        "TP9b",
+        "TP9c",
+        "TP9d",
+        "TP9e",
+        "TP9f",
+        "TP9-0"
       ],
-      "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a)."
+      "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a). Desde CG2a (20/11), cada tropa con su retrato, coste, barras, lo que sabe hacer (testudo, cuña, muro, falange, orden abierto, pilum) y su ficha."
     },
     {
       "id": "L13",
       "organo": "musculo",
       "titulo": "Menús reordenados y con un solo aspecto antiguo",
-      "estado": "falta",
+      "estado": "medias",
       "veras": "Una barra de seis (Ciudad · Senado · Saber · Tropas · Mapa · Imperio); llegas al Senado y a la política a un toque; construyes con «Lo hago yo · Encargar · Gobernador»; todo en papiro, tablilla y bronce.",
-      "falta": "MN1 hecha (19/11: barra de seis, ROMA ▾ con la ficha, fuera los modos). Quedan: Senado e Imperio con su sitio (MN2), gobernador (MN3) y renovación artística con maqueta (MN4). Absorbe el papiro del Códice y de los avisos (PA1 a PA3), que habías sacado con la respuesta A de las formaciones.",
+      "falta": "MN1 hecha (19/11: barra de seis, ROMA ▾ con la ficha, fuera los modos). MN2 hecha (20/11: Senado en cuatro pestañas, huecos de Imperio). Quedan: gobernador (MN3) y renovación artística con maqueta (MN4). Absorbe el papiro del Códice y de los avisos (PA1 a PA3), que habías sacado con la respuesta A de las formaciones.",
       "tareas": [
         "MN1",
         "MN2",
