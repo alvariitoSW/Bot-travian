@@ -64,6 +64,12 @@ En las batallas, el **hastatus** y el **galo** son soldados nuevos (`assets/sold
 **[MakeHuman](https://github.com/makehumancommunity/makehuman)** 1.3.2 y movimientos de **Quaternius** (Universal Animation Library 1 y 2),
 ambos con licencia **[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)**; el equipo, la ropa y las texturas se han hecho por código en el proyecto.
 
+El **falangita**, el **oficial de la falange** y el **hastatus** de las batallas parten de modelos generados por el usuario con
+**[Meshy](https://www.meshy.ai)** (de texto e imagen a 3D, cuenta gratuita, 23/11/2026), con licencia
+**[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/)**, que obliga a citar a Meshy. En AQVILA se aligeraron a cuatro
+niveles de detalle, se les puso el esqueleto del juego, manos de MakeHuman, escudo, sarisa o armas propios y teñido por bando
+(`tools/blender/falangita_meshy_*.py`, `tools/blender/hastatus_meshy_*.py`; detalle en `assets/soldados/LICENSE.txt`).
+
 El sonido grabado de las batallas (`assets/sonido`, 36 sonidos) es todo **[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)**: de OpenGameArt (rubberduck, Kenney, artisticdude) y de Freesound (marchelonia, ale-batec, salemaudio, Jace, joelcarrsound, WelvynZPorterSamples, florianreichelt, adharca, DeVern, DeadVDI, mario1298, Globofonia). Cada archivo con su fuente en `assets/sonido/LICENSE.txt`; `tools/sonido-fuentes.sh` y `tools/sonido.py` lo rehacen.
 
 La letra de los títulos es **Cinzel**, de The Cinzel Project Authors, con licencia **[SIL OFL 1.1](https://openfontlicense.org)**
