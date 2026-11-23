@@ -4,7 +4,7 @@
    Las reglas no son de aquí: el bloque es js/bloque.js (LP1) y las órdenes y el enemigo, js/bloque-ia.js (LP2).
    Esta escena solo pinta y suena. Reutiliza el campo, el cielo y la luz de la falange (../falange/campo.js y su sombreado
    de cine, copiado), los soldados de js/gfx/soldado.js y el sonido de ../a-pie/sonido.js. Cámara detrás y arriba de tu
-   bloque (el pellizco hasta el oficial es LP4). Qué soldado pinta cada bando: soldados.js (punto único).
+   bloque; con un pellizco baja al hombro del centurión (camara.js, LP4). Qué soldado pinta cada bando: soldados.js (punto único).
    ?nivel=facil|normal|dificil empieza sin la tarjeta · ?semilla=N · ?fase=dibuja|gira|salva|testudo|carga|choque|flanco|relevo|datos|fin
    salta a ese momento con un jugador automático y congela (capturas) · ?cam=d,alto,adelante,abertura retoca la cámara.
    Gancho para pruebas: window.__bloque = { listo, C, S, dibuja(p0, p1), orden(n), estado() }. */
@@ -17,6 +17,7 @@ import { crearCombate, centro, NIVELES, SALVA_VUELO } from '../../../js/bloque-i
 import { crearTropas } from './tropas.js';
 import { crearHud } from './hud.js';
 import { crearDedos } from './dedos.js';
+import { crearCamara } from './camara.js';
 import { SOLDADOS } from './soldados.js';
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), $ = id => document.getElementById(id);
@@ -196,7 +197,7 @@ function pintaVuelos(dt) {
 }
 
 /* ---------- partida ---------- */
-let C = null, TR = null, hud = null, dedos = null, congelado = false, nivel = NIVELES.includes(Q.get('nivel')) ? Q.get('nivel') : null;
+let C = null, TR = null, hud = null, dedos = null, cam1 = null, congelado = false, nivel = NIVELES.includes(Q.get('nivel')) ? Q.get('nivel') : null;
 const semilla = +(Q.get('semilla') || (1 + Math.floor(Math.random() * 999)));
 let oyente = null;
 function avisa(tipo, d) {
@@ -265,7 +266,7 @@ function bucle(ahora) {
       const B = C.S.B; if (!dedos.activo()) { if (B && B.meta) dedos.muestra(B.meta.p0, B.meta.p1, B.meta.rumbo, false); else dedos.oculta(); }
       try { Son.lucha && Son.lucha(C.S.tuyo.contactos.length ? 1 : 0); } catch (e) { /* sin sonido */ }
     }
-    camaraSigue(congelado ? 5 : dt); camara.updateMatrixWorld();
+    camaraSigue(congelado ? 5 : dt); cam1 && cam1.aplica(congelado ? 5 : dt); camara.updateMatrixWorld();
     avanza(polvo, POLVO_N, mPolvo, congelado ? 0 : dt, -0.1); avanza(chispa, CHISPA_N, mChispa, congelado ? 0 : dt, 6); pintaVuelos(congelado ? 0 : dt);
     pintaSoldados(); hud.tick(dt); campo && campo.tick(ahora / 1000);
   }
@@ -279,7 +280,8 @@ window.__bloque = { listo: false, dibuja: (a, b) => C && frenteDesdeRaya(a, b), 
 
 async function arranca() {
   hud = crearHud({ $, proyecta, ladoEnPantalla, Son });
-  dedos = crearDedos({ lienzo, suelo, haciaDonde: (a, b) => haciaDonde(a, b), alSoltar: (a, b) => { if (C && nivel && !congelado) frenteDesdeRaya(a, b); }, H });
+  dedos = crearDedos({ lienzo, suelo, haciaDonde: (a, b) => haciaDonde(a, b), alSoltar: (a, b) => { if (C && nivel && !congelado) frenteDesdeRaya(a, b); }, H, libre: () => !cam1 || cam1.libre() });
+  cam1 = crearCamara({ camara, lienzo, H, estado: () => C && C.S, hud: $('hud'), inicial: Q.get('vista') === 'oficial' ? 'oficial' : 'arriba' }); window.__bloque.vista = cam1;
   escena.add(dedos.raya);
   creaSombras(); creaEfectos();
   $('carga-t').textContent = 'Formando el manípulo…';
