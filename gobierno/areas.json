@@ -138,8 +138,7 @@
           "test/nb7.test.mjs",
           "test/falange.test.mjs",
           "test/falange-rivales.test.mjs",
-          "test/bloque.test.mjs",
-          "test/bloque-ia.test.mjs"
+          "test/bloque.test.mjs"
         ],
         "navegador": [
           "gobierno/juez-guerra.mjs"
