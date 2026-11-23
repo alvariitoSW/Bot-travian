@@ -28,7 +28,12 @@ html,body{margin:0;height:100%;overflow:hidden;background:#1a130a url(../fondo-c
   s.ministros.avisos.mineria = 'Faltan 40 de hierro';
   if (!s.ministros.propuestas.mineria && !s.ministros.encargos.mineria) s.ministros.propuestas.mineria = M.proponer(s, 'mineria', 30);
   var q = new URLSearchParams(location.search);
-  window.MINISTROS_UI.abrir(s, { mes: 30, alCambiar: function () { window.CAMBIOS = (window.CAMBIOS || 0) + 1; } });
+  var EDIF = 'almacen aserradero cantera cuartel establo escuela foro fuente granero granja herreria mercado mina muralla taller templo'.split(' ');
+  var op = { mes: 30,
+    imagenes: { edificio: function (id) { return EDIF.indexOf(id) >= 0 ? 'img/edif-' + id + '.png' : ''; }, unidad: function (id) { return 'img/tropa-' + id + '.png'; } },
+    coste: function (b, L) { var o = {}, base = D.BUILD[b].cost, m = D.NIVEL_COSTE[L + 1] || L + 1; for (var r in base) o[r] = Math.round(base[r] * m / 5) * 5; return o; },
+    alCambiar: function () { window.CAMBIOS = (window.CAMBIOS || 0) + 1; } };
+  window.MINISTROS_UI.abrir(s, op);
   if (q.get('lista')) window.MINISTROS_UI.lista(q.get('lista')); else if (q.get('abre')) window.MINISTROS_UI.abre(q.get('abre'));
   if (q.get('abajo')) { var l = document.querySelector('.mn-lista'); l.scrollTop = l.scrollHeight; }
 })();
