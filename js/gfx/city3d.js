@@ -244,13 +244,13 @@ const tNace = new Map(), firma = new Map();
 const ahora = () => performance.now() / 1000;
 
 export async function montar() {
-  const claves = ['casa', 'almacen', 'aserradero', 'mercado', 'foro', 'vesta', 'templo', 'granja', 'puerto', 'cantera', 'mina', 'cuartel', 'establo', 'muro', 'torre', 'puerta', 'cipres', 'olivo', 'pino', 'algarrobo', 'casa_b', 'casa_c', 'casa_d', 'prop_paja', 'prop_pozo', 'prop_carreta', 'prop_mesa', 'prop_cesto', 'prop_sacos', 'prop_vaso', 'prop_caja', 'prop_cajas', 'prop_paja_grande', 'prop_puesto_cart', ...CASAS_C.grie, ...CASAS_C.cart, 'grie_templo', 'cart_templo'];
+  const claves = ['casa', 'almacen', 'aserradero', 'mercado', 'foro', 'vesta', 'templo', 'granja', 'puerto', 'cantera', 'mina', 'cuartel', 'establo', 'muro', 'torre', 'puerta', 'cipres', 'olivo', 'pino', 'algarrobo', 'casa_b', 'casa_c', 'casa_d', 'prop_paja', 'prop_pozo', 'prop_carreta', 'prop_mesa', 'prop_cesto', 'prop_sacos', 'prop_vaso', 'prop_caja', 'prop_cajas', 'prop_paja_grande', 'prop_puesto_cart', ...CASAS_C.grie, ...CASAS_C.cart, 'grie_templo', 'cart_templo', 'ur_cuartel'];
   await Promise.all([preloadStatic(claves), loadGroundTextures(), UN.preload(['ciudadana', 'sacerdote'])]);
   const T = texturasMundo();
   U.uRuido.value = texturaRuido(); ponerCamara(); ponerLuz(); { const cl = crearCielo(SOL, HORIZ, U); cieloU = cl.userData.luz; scene.add(cl); }
   G.T = T;
   /* CI1: atlas pintado por código y lotes de las piezas romanas de su siglo */
-  texs.set(RS.ATLAS, RS.atlas()); L.rs_templo = lote('rs_templo', 12); L.rs_dique = lote('rs_dique', 12, { sinTeja: true }); L.rs_tabernas = lote('rs_tabernas', 4); L.rs_insula = lote('rs_insula', 220);
+  texs.set(RS.ATLAS, RS.atlas()); L.rs_templo = lote('rs_templo', 12); L.rs_dique = lote('rs_dique', 12, { sinTeja: true }); L.rs_tabernas = lote('rs_tabernas', 4); L.ur_cuartel = lote('ur_cuartel', 12, { sinTeja: true });      /* UR2: cuartel propio, modelado en Blender */ L.rs_insula = lote('rs_insula', 220);
   L.rs_fondo = lote('rs_fondo', RS.CUPO.fondo); L.rs_fondo3 = lote('rs_fondo3', RS.CUPO.fondo3); L.rs_patio = lote('rs_patio', RS.CUPO.patio, { sinTeja: true }); L.rs_huerto = lote('rs_huerto', RS.CUPO.huerto, { sinTeja: true });      // CI1-7: relleno de manzanas y arrabal
   Campos.iniciar({ scene, altura, distRio, NIVEL_RIO, CI });
   L.rs_muro = lote('rs_muro', 64, { sinTeja: true }); L.rs_torre = lote('rs_torre', 96, { sinTeja: true }); L.rs_puerta = lote('rs_puerta', 12, { sinTeja: true });
@@ -360,10 +360,10 @@ function casas(t) {
   return anim;
 }
 /* CI1: pieza romana de su siglo para un tipo, o null. El templo toscano hasta 146 a.C.; desde entonces, el de mármol (Veleyo 1.11) */
-function piezaRS(tipo) { if (!romaS()) return null; if (tipo === 'templo' && CI.fecha(E).ano > 146) return ['rs_templo', 1, 0, 0.3]; if (tipo === 'dique') return ['rs_dique', 1.0, 0, 0.2]; return null; }
+function piezaRS(tipo) { if (!romaS()) return null; if (tipo === 'templo' && CI.fecha(E).ano > 146) return ['rs_templo', 1, 0, 0.3]; if (tipo === 'dique') return ['rs_dique', 1.0, 0, 0.2]; if (tipo === 'cuartel' && L.ur_cuartel && L.ur_cuartel.niv) return ['ur_cuartel', 1.0, 0, 0.3]; return null; }
 function edificios() {
   contornoSucio = true;      // E5: el contorno se rehace con las matrices nuevas
-  const por = {}; for (const t in PZ) por[PZ[t][0]] = []; for (const k of TEMPLO_PZ) por[k] = []; for (const k of ['rs_templo', 'rs_dique', 'rs_tabernas']) por[k] = [];
+  const por = {}; for (const t in PZ) por[PZ[t][0]] = []; for (const k of TEMPLO_PZ) por[k] = []; for (const k of ['rs_templo', 'rs_dique', 'rs_tabernas', 'ur_cuartel']) por[k] = [];
   const pon = (tipo, x, z, ang, sy, piel, dy = 0) => { let d = PZ[tipo]; if (!d) return; if (tipo === 'templo' && TEMPLO_C[cul] && L[TEMPLO_C[cul][0]]) d = [TEMPLO_C[cul][0], TEMPLO_C[cul][1], d[2], d[3]]; d = piezaRS(tipo) || d; const y = tipo === 'muelle' ? NIVEL_RIO + 1.4 : suelo(x, z, tipo === 'fuente' || tipo === 'compitum' ? 2 : 7) - d[3]; por[d[0]].push({ m: matriz(x, y + dy, z, Math.PI / 2 - ang + d[2], d[1], d[1] * sy, d[1]), ...piel }); };
   if (E.foro && ahora() >= esperaSurco) { const f = E.foro; pon('foro', f.x - Math.cos(f.ang) * 8, f.z - Math.sin(f.ang) * 8, f.ang, 1, PIEL_U); }
   for (const e of E.edificios) { const pr = e.obra ? 1 - e.obra / (e.total + 0.6) : 1; pon(e.tipo, e.x, e.z, e.ang, e.ruina ? 0.55 : 0.3 + 0.7 * pr, e.ruina ? { muro: [0.3, 0.27, 0.24], teja: [0.22, 0.2, 0.19, 0] } : e.obra ? { muro: [0.86, 0.82, 0.76], teja: [0.8, 0.76, 0.72, 0.3] } : PIEL_U); }
