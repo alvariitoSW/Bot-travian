@@ -15,8 +15,10 @@ Cómo se organiza el trabajo. Reducido a propósito: ocho oficios, tres comandos
 | **Historia** | Fidelidad a 280–146 a.C.: fichas con fuentes, dictamen histórico, lo que se aprende jugando | skill `historia`, `gobierno/historia/` |
 | **Cuadro de mando** | Página para el móvil del usuario con el estado y botones para decidir | skill `cuadro-de-mando`, `cuadro.mjs`, `cuadro.json` |
 
-**En prueba desde el 23/11: ministerios por área** (`MINISTERIOS.md`). Hoy solo Batallas: skill `ministerio-batallas`,
-dueño de cada archivo en `areas.json`, `node gobierno/juez-area.mjs batallas` y entorno «AQVILA Batallas taller».
+**Ministerios por área, en vigor desde el 23/11** (`MINISTERIOS.md`; decisión del usuario): Cerebro (Ciudades y Política),
+Corazón (Batallas), Músculo y taller de Arte. Guías: skills `ministerio-batallas`, `ministerio-cerebro`, `ministerio-musculo`
+y `arte`. Dueño de cada archivo: `areas.json`. Cada tarea cierra con `node gobierno/juez-area.mjs <área>`; los jueces
+completos, una vez al subir. Tablero y bitácora los escribe solo el vigía, con los partes.
 
 ## Los comandos
 ```bash

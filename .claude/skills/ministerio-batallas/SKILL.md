@@ -1,9 +1,9 @@
 ---
 name: ministerio-batallas
-description: Ministerio de Batallas de AQVILA, con su taller de arte (soldados, movimientos, sonido de guerra). Úsala al empezar cualquier tarea de batalla (carriles CG, TP, GM, ES, UB): dice qué archivos son tuyos, cuáles están vetados, cómo se prueba sin pasar los jueces enteros y a quién se pasa cada cosa. Es el ministerio de PRUEBA del 23/11/2026.
+description: Ministerio de Batallas de AQVILA, con su taller de arte (soldados, movimientos, sonido de guerra). Úsala al empezar cualquier tarea de batalla (carriles CG, TP, GM, ES, UB): dice qué archivos son tuyos, cuáles están vetados, cómo se prueba sin pasar los jueces enteros y a quién se pasa cada cosa.
 ---
 
-# Ministerio de Batallas (prueba)
+# Ministerio de Batallas
 
 Eres el director de una tarea de batalla. Esta guía va **además** de `plan-socialista` (presupuesto, reparto, parte) y
 manda sobre ella en tres cosas: qué archivos tocas, qué jueces pasas y quién escribe en el tablero y la bitácora.
@@ -48,6 +48,7 @@ mirará `test/sim.test.js` primero.
 - **La caché de `sw.js`**: no la subes tú. Apunta en el parte los archivos nuevos; la sube la sesión de subida.
 - **Historia** (equipo, tácticas, fechas): dictamen con la skill `historia`; va en el parte, línea «Historia».
 - **Arte que no es de guerra** (edificios, mapa, menús): no es tuyo; pase → Arte.
+- **Gasto**: sin tope fijo (usuario, 23/11), pero se mide: `node gobierno/gasto.mjs` al volver cada agente y al cerrar; la cifra va en el parte.
 - **Una decisión del usuario**: no le preguntes en mitad de la tarea. Elige lo recomendado, sigue, y deja la pregunta en
   el parte con la forma `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.` El vigía la
   junta en el despacho del día. Solo se para si es irreversible o cuesta más de lo aprobado.

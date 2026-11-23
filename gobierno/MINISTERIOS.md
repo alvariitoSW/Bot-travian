@@ -1,8 +1,15 @@
-# Ministerios por área — propuesta y prueba (23/11/2026, sesión MIN1)
+# Ministerios por área (en vigor desde el 23/11/2026)
 
 Pedido del usuario: reorganizar el gobierno en ministerios para quitar cuellos de botella. Es su excepción a «nada
-nuevo hasta la 1.0». **Hoy solo está en vigor un ministerio de prueba: Batallas con su taller de arte.** Lo demás es
-propuesta hasta que él elija el mapa. El código del juego no se ha tocado.
+nuevo hasta la 1.0». **Decidido por él el 23/11**: mapa **A**; las reglas valen para **todas** las sesiones desde hoy;
+sin tope de gasto para montarlo, pero midiendo. El código del juego no se ha tocado.
+
+| Área | Guía (skill) | Juez de área (medido el 23/11) | Entorno |
+|---|---|---|---|
+| **Corazón · Batallas**, con su taller | `ministerio-batallas` | lógica 48 s + navegador 12 min | «AQVILA Batallas taller» |
+| **Cerebro** (ramas Ciudades y Política) | `ministerio-cerebro` | lógica 63 s; sin juez de navegador propio todavía | el de siempre |
+| **Músculo** (mapa, menús, manejo, fluidez) | `ministerio-musculo` | lógica 10 s; sin juez de navegador propio todavía | el de siempre |
+| **Taller de Arte** común | `arte` | `arte.mjs` y `fichas.mjs`, segundos | «AQVILA Batallas taller» |
 
 ## 1. Lo medido antes de cambiar nada
 Página entera: `estudios/MIN1-medicion.md`. Resumen:
@@ -18,7 +25,7 @@ Página entera: `estudios/MIN1-medicion.md`. Resumen:
 **Qué dice la medición del pedido**: los ministerios ayudan en dos de los cuatro puntos (jueces y choques). Las esperas
 se arreglan con el despacho diario, no con más ministerios. Y más ministerios que cruzan archivos empeorarían los choques.
 
-## 2. El mapa de áreas: elige el usuario
+## 2. El mapa de áreas: el usuario eligió A (23/11)
 | | (A) Tres áreas y un taller **[recomendado]** | (B) Sus cinco ministerios |
 |---|---|---|
 | Áreas | **Cerebro** (ciudad, recursos, clases, Senado, comercio) · **Corazón** (batallas) · **Músculo** (mapa, menús, manejo, fluidez) · **taller de Arte** común | **Batallas** · **Ciudades** · **Política** · **Arte Visual** (ciudades, tropas, mapas, menús y ajustes) · **Jugabilidad** (batalla, política, ciudad) |
@@ -40,7 +47,7 @@ dentro de A así:
 Si elige B, la tabla de dueños se rehace con una regla añadida: en cada archivo manda la zona (Batallas, Ciudades,
 Política) y Arte Visual y Jugabilidad trabajan **por encargo** de ella, nunca por su cuenta.
 
-## 3. El ministerio de prueba: Batallas con su taller de arte
+## 3. El primero que se montó: Batallas con su taller de arte
 - **Guía**: skill `ministerio-batallas` (`.claude/skills/ministerio-batallas/SKILL.md`): objetivo final, archivos
   propios y vetados, cómo prueba y a quién pasa qué.
 - **Archivos**: `gobierno/areas.json` → `batallas`. 13 archivos de código, 3 de estilos, 6 pruebas, su juez de navegador,
@@ -67,12 +74,13 @@ como opción: su red está permitida y basta con que el usuario entre con su cue
 `tools/blender/cuartel_build.py` y, ya guardada allí (commit `f6f292d`), la prueba del pilum `tools/blender/pilum_tiro.py`
 con sus vídeos `capturas-tarea/PIL-*`. Son del taller de Batallas; se unen cuando el usuario apruebe UR2 o la primera tarea del taller.
 
-**Cómo se sabe si la prueba funciona** (tres tareas de batalla seguidas, comparadas con la medición del §1):
-1. Ninguna pasa los jueces completos; cada una cierra con el juez de área.
-2. Cero archivos vetados tocados y cero conflictos al unir.
-3. Ninguna para a esperar al usuario: sus preguntas llegan en el despacho del día.
-4. Ninguna reinstala herramientas: arranca con el taller puesto.
-Si se cumplen tres de cuatro, se montan las demás áreas igual. Si no, se corrige antes de extender.
+**Cómo se sabrá si funciona** (cuenta MIN2 del tablero, la lleva el vigía): en las cinco próximas tareas, comparar con
+el §1 los minutos de jueces por tarea, los archivos vetados tocados, los conflictos al unir, las paradas esperando al
+usuario y el gasto frente a lo declarado.
+
+**Límites conocidos**: (1) Cerebro y Músculo no tienen juez de navegador propio: cierran con lógica y capturas, y lo que
+se rompa en pantalla se ve al subir (propuesta MIN4). (2) Casi toda la economía y los menús viven en archivos comunes
+(`js/game.js`, `js/data.js`, `js/ui.js`): ahí sigue habiendo una sola sesión a la vez; el reparto no lo arregla, lo ordena.
 
 ## 4. Reglas contra cuellos de botella
 **R1 · Cada archivo tiene un dueño.** Tabla: `gobierno/areas.json`. Portero: `node gobierno/juez-area.mjs <área> --archivos`

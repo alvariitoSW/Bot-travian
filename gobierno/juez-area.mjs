@@ -29,7 +29,7 @@ function dueno(ruta) {
   for (const [id, a] of Object.entries(T.areas)) { prueba(a.propios, { clase: 'area', area: id }); prueba(a.taller, { clase: 'area', area: id, taller: true }); }
   return mejor;
 }
-const dice = d => d.clase === 'area' ? `de ${d.area}${d.taller ? ' (taller)' : ''}${T.areas[d.area].en_vigor ? '' : ' [propuesta, aún no obliga]'}`
+const dice = d => d.clase === 'area' ? `de ${d.area}${d.taller ? ' (taller)' : ''}${T.areas[d.area].en_vigor ? '' : ' [aún no en vigor]'}`
   : d.clase === 'comun' ? 'COMÚN: solo la sesión «de paso»' : d.clase === 'vigia' ? 'solo el vigía' : d.clase === 'libre' ? 'libre (archivos nuevos con tu ID)' : 'sin dueño: pregunta al vigía';
 
 if (args[0] === '--dueno') { for (const r of args.slice(1)) console.log(r + ' → ' + dice(dueno(r))); process.exit(0); }
