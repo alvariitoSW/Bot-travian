@@ -1732,3 +1732,20 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 }
 /* CV1: botón «Plano» bajo el ojo, con zona de toque de 44 px */
 #ctop .vo.plano { min-height: 44px; min-width: 76px; }
+
+/* ===== MD1 · ciudad despejada (usuario, 23/11: «más espacio en pantalla libre y no tan lleno de cosas») =====
+   Solo estilos, solo en la vista de ciudad. Gana unos 120 px de ciudad a la vista a 390×844 sin quitar nada que funcione:
+   1) la miga «Roma › Ciudad» repetía el nombre que ya está en la barra: su texto no se pinta y «Salir al mapa» cuelga a la derecha, bajo la barra;
+   2) el aviso y los botones redondos suben al hueco que deja;
+   3) las pestañas «Lo hago yo · Encargar · Gobernador» no se pintan mientras dos de las tres no hagan nada (vuelven con MN3);
+   4) fichas de la bandeja más bajas: caben cinco a la vista. La barra de seis no cambia (es la misma en todas las pantallas). */
+#app[data-vista="city"] #miga { position: absolute; right: 0; top: 100%; margin-top: 6px; }
+#app[data-vista="city"] #miga-t { position: absolute; width: 1px; height: 1px; padding: 0; border: 0; overflow: hidden; opacity: 0; pointer-events: none; }
+#app[data-vista="city"] #miga-b { padding: 0 13px; font-size: 13px; }
+#app[data-vista="city"][data-miga="1"] #linea, #app[data-vista="city"][data-miga="1"] #cubos { top: calc(150px + env(safe-area-inset-top)); }
+#app[data-vista="city"][data-miga="1"] #ctop { top: calc(150px + env(safe-area-inset-top)); }
+#app[data-vista="city"] #bpest { display: none; }
+#app[data-vista="city"] #bandeja { padding: 4px 2px 3px; gap: 6px; }
+#app[data-vista="city"] .pza { width: 70px; height: 68px; padding: 2px 2px 4px; border-radius: 10px; }
+#app[data-vista="city"] .pza img, #app[data-vista="city"] .pza i { width: 46px; height: 36px; line-height: 36px; font-size: 22px; }
+#app[data-vista="city"] .pza b, #app[data-vista="city"] .pza span { font-size: 11px; }
