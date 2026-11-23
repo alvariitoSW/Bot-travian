@@ -1747,3 +1747,5 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #app[data-vista="city"] .pza { width: 70px; height: 68px; padding: 2px 2px 4px; border-radius: 10px; }
 #app[data-vista="city"] .pza img, #app[data-vista="city"] .pza i { width: 46px; height: 36px; line-height: 36px; font-size: 22px; }
 #app[data-vista="city"] .pza b, #app[data-vista="city"] .pza span { font-size: 11px; }
+/* CV1: botón «Plano» bajo el ojo, con zona de toque de 44 px */
+#ctop .vo.plano { min-height: 44px; min-width: 76px; }

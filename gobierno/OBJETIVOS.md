@@ -39,6 +39,8 @@ Regla del usuario (18/11): no se aparca lo que ya está en marcha para abrir otr
   testudo, muro hoplita, falange de picas o lucha normal por manípulos. Es parte del Corazón. **Decidido el 18/11** (usuario, «A»):
   entra en la 1.0 y sale el papiro suelto del Códice y de los avisos de batalla (PA1 a PA3, en pausa). La falange de picas (TP7a) ya está en obra.
 
+- **La ciudad es un constructor de ciudades** (usuario, 23/11: «la ciudad tiene que tener necesidades, tiene su ritmo de juego, que no vale con darle a pasar estación»; «1-A 2-B 3-A» y «A»): dentro de la ciudad el tiempo corre solo, las casas piden y la gente trabaja; Roma primero, luego griega y púnica. Entra en la 1.0 (CV4a, CV4b, CB1 a CB4) y salen las tareas de ciudad que absorbe. Detalle: `estudios/CV-objetivo-ciudad-constructor.md`.
+
 ## Sin confirmar todavía
 - Una sola política: quedarse con el Senado del juego o con una de las maquetas de «Gobierno por turnos».
 - Roma 3D realista, modo Grecia y ampliar el mapa al Egeo: hoy están en el tablero para después de la 1.0.
