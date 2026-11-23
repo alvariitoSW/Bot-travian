@@ -74,7 +74,7 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
   - ✅ FA1 **Reglas de la falange sin pantalla** (hecha el 23/11: `js/falange.js` y `test/falange.test.mjs`; el bot que no gira pierde por el flanco 20/20 y el que gira gana 20/20; contrato común en `4d4d554`; subida `3c91cb1`; gasto 1,39 M de 1,2; parte `partes/2026-11-23-FA1.md`; pases para FA4 y FA5 en el parte).
   - ⬜ FA5 **Rivales nuevos sin pantalla** (≈1,2 M; ola 1): `js/falange-rivales.js`, `test/falange-rivales.test.mjs`; caballería, elefantes, falange rival y muro hoplita.
   - ⬜ FA2 **Falangita macedonio y oficial** (≈1,2 M; ola 1; taller): `tools/blender/*falang*`, `assets/soldados/falangita*`, `oficial-falange*`. No a la vez que TP9c.
-  - ⬜ FA3 **Dedos y pantalla limpia** (≈0,9 M; ola 1): `maquetas/falange/dedos.js`, `hud.js`, `index.html`, conexión en `escena.js`. Tras TP9a si TP9a toca `maquetas/falange/escena.js`.
+  - ✅ FA3 **Dedos y pantalla limpia** (hecha el 23/11: `maquetas/falange/dedos.js`, `hud.js`; gestos de pulgar y estandarte sin botones de golpe; prueba a 844×390 APTO; subida `943ac23`; gasto ≈1,4 M de 0,9; FA4 solo cambia `crearPuente`; parte `partes/2026-11-23-FA3.md`).
   - ⬜ FA4 **La escena nueva** (≈1,8 M; ola 2, tras la 1): la maqueta usa `js/falange.js` y `js/falange-rivales.js`.
   - ⬜ FA6 **Movimientos de sarisa** (≈1,5 M; ola 2, tras FA2; taller). No a la vez que TP9c.
   - ⬜ FA7 **Rivales en pantalla y su menú** (≈1,8 M; ola 2): `caballeria.js`, `elefante.js`, `rival.js` de la maqueta y elegir rival en `js/ui-escaramuza.js`.
