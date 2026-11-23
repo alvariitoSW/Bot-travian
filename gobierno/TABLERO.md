@@ -152,15 +152,23 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
   - **Carril CD — Ciudad nueva** (usuario, 23/11: sustituye a la cola de ciudad; orden «1-2 → 3 → 4 → 5»; área Cerebro, rama Ciudades. Precios: los pone CD0). Detrás quedan CE4, CE5, CE10, CE11 y CE12.
   - ✅ CD0 **La ciudad nueva en maqueta, hablada con el usuario** (23/11; parte `partes/2026-11-23-CD0.md`; página `estudios/CD0-ciudad-nueva.md`; ficha `estudios/REF-ciudad-iberus.md`; capturas `capturas-tarea/CD0-*`; ≈1,4 M). Siete familias (5 + Puerto + Viviendas; parques y jardines en Infraestructura (decisión final del 23/11)), 8 ministros con Culto y fiestas, más arquitecto y gobernador; cada ministro lidera un bando; plan «Obras + prioridad»; si el Senado lo rechaza, cambias y votas otra vez.
   - ✅ CD0b (23/11; gana «3D real con suelo pintado»; parte `partes/2026-11-23-CD0b.md`; ≈3,0 M) **Concurso de arte de la vista desde arriba** (usuario, 23/11: «Ahora, antes de CD1»; ≈1,2 M; solo maqueta): 3 estilos (plano pintado, 3D real desde arriba, mapa antiguo ilustrado) en maqueta a 390 px, con las skills `arte` e `historia`; elige el usuario.
-  - ⬜ CD1 **Vista desde arriba y «Construir» por familias** (estilo de `estudios/CD0b-concurso-arte.md`; templo y curia de 0 A.D., luego Meshy; ≈1,0 M; de paso; tras el ganador de CD0b y la subida del «Plano» de CV4a).
-  - ⬜ CD2a **Calles con el dedo y el arquitecto** (≈0,9 M).
-  - ⬜ CD2b **Las casas de la urbe grande cuentan** (≈0,6 M; de paso; migrar en `G.load`; bot de campaña).
-  - ⬜ CD3a **Ministros y encargos (reglas)**, tope del Foro en todas las vías, tropas con hierro y paga (≈1,0 M; de paso; bot de campaña).
-  - ⬜ CD3b **Pantalla «Tus ministros»** (≈0,7 M). Después va MN3 (gobernador).
-  - ⬜ CD4 **Plan del Senado a 4–8 estaciones** (≈1,0 M; de paso; bot de campaña).
-  - ⬜ CD5a **Necesidades por barrio y clase (reglas)**: 8 necesidades (alimentación, agua, limpieza, salud, trabajo, cultura, culto y ocio, orden); el barrio sube de nivel al cubrirlas; cubierta = 80 % de sus casas (usuario, 23/11); servicios que alcanzan por la calle, reglas en `estudios/CD0b-concurso-arte.md` «Ampliación» (≈0,7 M; de paso; bot de campaña).
-  - ⬜ CD5b **Capa «Necesidades» y consecuencias a la vista** (≈0,7 M).
-  - ⬜ CD6 **Embellecer** (≈1,0 M; pase a Arte: cuartel y grúa).
+  - **Olas** (usuario, 23/11: «Si aplícalo para hacerlo más rápido y mejor»). Las sesiones de una ola van a la vez; las reglas nuevas viven en archivos propios del Cerebro (`js/ministros.js`, `js/necesidades.js`, `js/plan-senado.js`) y no tocan `game.js`, `data.js` ni `ui.js`; al cerrar cada ola, **una** sesión «de paso» hace el enganche (llamadas en `game.js`, migración en `G.load`, fichas en `registro.js`, caché en `sw.js`), pasa los jueces y sube a `main` para que el usuario pruebe en el móvil. Opus dirige, Sonnet construye.
+    - **Ola 1**: CD1 (tras la subida de CV4a) · CD3a · CD5a, y MIN4 (juez de navegador de la ciudad) en cuanto se pueda → **CDe1** enganche de la ola 1 (de paso; ≈0,6 M).
+    - **Ola 2**: CD2a · CD3b · CD4 → **CDe2** enganche (de paso; ≈0,6 M).
+    - **Ola 3**: CD2b · CD5b · CD6 · MN3 → **CDe3** enganche (de paso; ≈0,6 M).
+    - **Ola 4**: CE4 · CE5 · CE10 · CE11 → CE12 equilibrio con el bot, la última.
+  - ⬜ CDe1 **Enganche de la ola 1** (de paso; ≈0,6 M): conecta ministros y necesidades al juego, tope del Foro en todas las vías, tropas con hierro y paga, migración, jueces, subida a `main`.
+  - ⬜ CDe2 **Enganche de la ola 2** (de paso; ≈0,6 M).
+  - ⬜ CDe3 **Enganche de la ola 3** (de paso; ≈0,6 M).
+  - ⬜ CD1 (ola 1) **Vista desde arriba y «Construir» por familias** (estilo de `estudios/CD0b-concurso-arte.md`; templo y curia de 0 A.D., luego Meshy; ≈1,0 M; de paso; tras el ganador de CD0b y la subida del «Plano» de CV4a).
+  - ⬜ CD2a (ola 2) **Calles con el dedo y el arquitecto** (≈0,9 M).
+  - ⬜ CD2b (ola 3) **Las casas de la urbe grande cuentan** (≈0,6 M; de paso; migrar en `G.load`; bot de campaña).
+  - ⬜ CD3a (ola 1) **Ministros y encargos (reglas)** en archivo propio `js/ministros.js` + `test/ministros.test.mjs`, sin tocar los comunes (funciones puras: reciben el estado y devuelven órdenes y efectos); el tope del Foro y tropas con hierro y paga quedan para el enganche (≈1,0 M; de paso; bot de campaña).
+  - ⬜ CD3b (ola 2) **Pantalla «Tus ministros»** (≈0,7 M). Después va MN3 (gobernador).
+  - ⬜ CD4 (ola 2) **Plan del Senado a 4–8 estaciones** en archivo propio `js/plan-senado.js` + `test/plan-senado.test.mjs` (≈1,0 M; bot de campaña en el enganche).
+  - ⬜ CD5a (ola 1) **Necesidades por barrio y clase (reglas)** en archivo propio `js/necesidades.js` + `test/necesidades.test.mjs`, sin tocar los comunes: 8 necesidades (alimentación, agua, limpieza, salud, trabajo, cultura, culto y ocio, orden); el barrio sube de nivel al cubrirlas; cubierta = 80 % de sus casas (usuario, 23/11); servicios que alcanzan por la calle, reglas en `estudios/CD0b-concurso-arte.md` «Ampliación» (≈0,7 M; de paso; bot de campaña).
+  - ⬜ CD5b (ola 3) **Capa «Necesidades» y consecuencias a la vista** (≈0,7 M).
+  - ⬜ CD6 (ola 3) **Embellecer** (≈1,0 M; pase a Arte: cuartel y grúa).
   - ✅ L4 y L7 ya no esperan PO1: su plan es CE6 a CE10 (CE1, 18/11). Maquetas EV8, EV7 y EV4a archivadas sin borrar; P166 y P176 cerradas; el plan del año, detrás de la 1.0.
   - Lo que ya servía a una línea sigue igual: L10 (GM44, GM43g, GC10), L11 (TP1; después GM43l, GM43i y GM43j), L15 (V10b), L5 (K7b; K7e espera PO1).
   - Pasan a «después de la 1.0», en pausa y con su texto intacto: RM1 a RM7 (Roma 3D), C14 (mapa libre) y GM-K6a a GM-K6d (sellos y franja de mando).

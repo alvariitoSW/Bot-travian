@@ -193,7 +193,15 @@
         "gobierno/maquetas/politica*/",
         "gobierno/maquetas/gobierno-turnos/",
         "gobierno/medidas-ciudad.json",
-        "gobierno/medir-ritmo.mjs"
+        "gobierno/medir-ritmo.mjs",
+        "js/ministros.js",
+        "js/necesidades.js",
+        "js/plan-senado.js",
+        "js/ciudad-menu.js",
+        "js/ministros-ui.js",
+        "test/ministros.test.mjs",
+        "test/necesidades.test.mjs",
+        "test/plan-senado.test.mjs"
       ],
       "taller": [],
       "juez": {
