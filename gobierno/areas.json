@@ -131,7 +131,8 @@
           "test/simulador.test.mjs",
           "test/maniobra.test.mjs",
           "test/campo.test.mjs",
-          "test/nb7.test.mjs"
+          "test/nb7.test.mjs",
+          "test/falange.test.mjs"
         ],
         "navegador": [
           "gobierno/juez-guerra.mjs"
