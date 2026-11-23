@@ -2032,16 +2032,34 @@
       "url": "https://claude.ai/code/session_01QiKC36kgb6ao39q19Nmj4o"
     },
     {
-      "tarea": "MS2",
-      "titulo": "Taller · MS2 Lote de soldados con la API de Meshy (Opus)",
-      "nota": "Abierta el 23/11; tope 500 créditos",
-      "url": "https://claude.ai/code/session_01QiKC38rZcgGDL9ZpFtXCsy"
-    },
-    {
       "tarea": "FI3",
       "titulo": "Corazón · FI3 Pilum que rebotan o se clavan (motor de físicas; Opus)",
       "nota": "Abierta el 23/11",
       "url": "https://claude.ai/code/session_01QiKC3ApnWHdiKqikYR9TJF"
+    },
+    {
+      "tarea": "AL1",
+      "titulo": "Taller · AL1 Aligerar y rigguear el galo grande de Meshy (Opus)",
+      "nota": "Abierta el 23/11",
+      "url": "https://claude.ai/code/session_01QiKC38XW9BDbBKU7CHDw1e"
+    },
+    {
+      "tarea": "AL2",
+      "titulo": "Taller · AL2 Aligerar y rigguear el galo rápido de Meshy (Opus)",
+      "nota": "Abierta el 23/11",
+      "url": "https://claude.ai/code/session_01QiKC37XAGWyytjM68odiy3"
+    },
+    {
+      "tarea": "AL3",
+      "titulo": "Taller · AL3 Aligerar y rigguear el centurión de Meshy (Opus)",
+      "nota": "Abierta el 23/11",
+      "url": "https://claude.ai/code/session_01QiKC36u8q4KwYFaiCWHA1W"
+    },
+    {
+      "tarea": "AL4",
+      "titulo": "Taller · AL4 Aligerar y rigguear el triario de Meshy (Opus)",
+      "nota": "Abierta el 23/11",
+      "url": "https://claude.ai/code/session_01QiKC377TF4vYWiQrMUFRfT"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"
