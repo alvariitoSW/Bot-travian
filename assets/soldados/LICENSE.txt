@@ -15,3 +15,5 @@ cuatro niveles de detalle cada uno; movimientos compartidos en movimientos_escud
 
 CC0 no obliga a citar, pero se cita. El detalle de la conversión está en gobierno/maquetas/soldado-rome2/LEEME.md.
 Esta licencia se aplica solo al contenido de assets/soldados/. El código del juego es independiente.
+- Movimiento «lanzar2» (lanzamiento de pilum, jabalina y venablo): hecho por código en el proyecto AQVILA con Blender
+  (tools/blender/pilum_tiro.py), sobre el esqueleto de Quaternius UAL2 (CC0). Arte propio del proyecto.

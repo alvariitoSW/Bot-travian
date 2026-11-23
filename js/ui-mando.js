@@ -277,7 +277,8 @@
         let a, o, sc;
         if (m.nv) {
           const tr = m.nv[f.nv], ii = tr.sig(); if (ii < 0) continue; a = tr.malla.instanceMatrix.array; o = ii * 16; sc = escN * f.talla * TALLA;
-          const k = tr.s.j.clips[clip] ? clip : 'quieto', cl = tr.s.j.clips[k], dur = (cl.n - 1) / cl.fps, tt = modo === 's' ? val : modo === 'c' ? (val - Math.floor(val)) * dur : Math.min(1, Math.max(0, val)) * dur;
+          const k0 = clip === 'lanzar' && tr.s.j.clips.lanzar2 && ((tr.s.j.muestra || {}).lanzar2 || []).length === 3 ? 'lanzar2' : clip;      /* lanzamiento nuevo (pilum, jabalina, venablo): quien lo trae lo usa; el hondero sigue con el suyo */
+          const k = tr.s.j.clips[k0] ? k0 : 'quieto', cl = tr.s.j.clips[k], dur = (cl.n - 1) / cl.fps, tt = modo === 's' ? val : modo === 'c' ? (val - Math.floor(val)) * dur : Math.min(1, Math.max(0, val)) * dur;
           tr.vars(ii, f.vr); tr.pose(ii, k, tt, tr.muestra(k, tt));
         } else {
           a = m.malla.instanceMatrix.array; o = f.slot * 16; sc = UNIT_SCALE * TALLA;

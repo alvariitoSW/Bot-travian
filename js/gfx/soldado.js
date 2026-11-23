@@ -11,7 +11,7 @@ export const NIVELES = ['', '_lejos', '_muylejos', '_fondo'];
 
 const V_CAB = `attribute vec4 aSkinI; attribute vec4 aSkinW; attribute float aSet;
 attribute vec3 aCuadro; attribute vec4 aVar; attribute float aMuestra;
-uniform sampler2D uHuesos; uniform vec4 uCab; varying vec4 vVar; varying vec3 vObj;
+uniform sampler2D uHuesos; uniform vec4 uCab; uniform vec3 uTiroC; uniform vec3 uTiroN; varying vec4 vVar; varying vec3 vObj;
 mat4 hueso(float h, int f) { int x = int(h + 0.5) * 3; vec4 a = texelFetch(uHuesos, ivec2(x, f), 0), b = texelFetch(uHuesos, ivec2(x + 1, f), 0), c = texelFetch(uHuesos, ivec2(x + 2, f), 0);
   return mat4(vec4(a.x, b.x, c.x, 0.0), vec4(a.y, b.y, c.y, 0.0), vec4(a.z, b.z, c.z, 0.0), vec4(a.w, b.w, c.w, 1.0)); }
 mat4 piel(int f) { mat4 m = hueso(aSkinI.x, f) * aSkinW.x; if (aSkinW.y > 0.0) m += hueso(aSkinI.y, f) * aSkinW.y; if (aSkinW.z > 0.0) m += hueso(aSkinI.z, f) * aSkinW.z; if (aSkinW.w > 0.0) m += hueso(aSkinI.w, f) * aSkinW.w; return m; }
@@ -20,6 +20,9 @@ const V_SK = `mat4 sk = piel(int(aCuadro.x + 0.5)); if (aCuadro.z > 0.001) { mat
   /* cada hombre, su cabeza: algo más ancha, más larga o más honda (el yelmo va con ella) */
   float wc = 0.0; if (abs(aSkinI.x - uCab.w) < 0.5) wc += aSkinW.x; if (abs(aSkinI.y - uCab.w) < 0.5) wc += aSkinW.y; if (abs(aSkinI.z - uCab.w) < 0.5) wc += aSkinW.z; if (abs(aSkinI.w - uCab.w) < 0.5) wc += aSkinW.w;
   vec3 fc = vec3(0.94 + 0.12 * fract(aVar.z * 23.7), 0.96 + 0.09 * fract(aVar.y * 31.3), 0.95 + 0.10 * fract(aVar.x * 17.9)); vec3 pcab = uCab.xyz + (position - uCab.xyz) * mix(vec3(1.0), fc, wc);
+  /* agarre de tiro (clip 'lanzar2'): con el bit 8 de la muestra, el arma de la mano (conjunto 1) gira media vuelta en la palma y queda con la punta hacia el meñique. Sin triángulos de más */
+  float gira = (abs(aSet - 1.0) < 0.5 && mod(floor(aMuestra / 8.0 + 0.001), 2.0) > 0.5) ? 1.0 : 0.0; vec3 n0 = normal;
+  if (gira > 0.5) { vec3 dq = pcab - uTiroC; pcab = uTiroC + 2.0 * uTiroN * dot(uTiroN, dq) - dq; n0 = 2.0 * uTiroN * dot(uTiroN, n0) - n0; }
   float oculto = (aSet > 0.5 && mod(floor(aMuestra / exp2(aSet - 1.0) + 0.001), 2.0) < 0.5) ? 0.0 : 1.0;`;
 const F_CAB = `varying vec4 vVar; varying vec3 vObj; uniform sampler2D uMasc; uniform float uHayMasc; uniform vec3 uTela[6]; uniform vec3 uEscudo[4]; uniform vec3 uPiel[2]; uniform vec3 uPelo[2]; uniform vec3 uBarba;
 float ruido(vec3 p) { vec3 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); float n = dot(i, vec3(1.0, 57.0, 113.0));
@@ -46,7 +49,7 @@ function parche(mat, u) {
   mat.onBeforeCompile = sh => {
     Object.assign(sh.uniforms, u);
     sh.vertexShader = V_CAB + sh.vertexShader
-      .replace('#include <beginnormal_vertex>', V_SK + '\n vec3 objectNormal = normalize(mat3(sk) * normal);')
+      .replace('#include <beginnormal_vertex>', V_SK + '\n vec3 objectNormal = normalize(mat3(sk) * n0);')
       .replace('#include <begin_vertex>', '\n vec3 transformed = (sk * vec4(pcab, 1.0)).xyz * oculto; vVar = aVar; vObj = transformed;');
     sh.fragmentShader = F_CAB + sh.fragmentShader.replace('#include <map_fragment>', F_COLOR);
   };
@@ -107,7 +110,8 @@ async function uno(nombre, o) {
   try {
   const tx = j.texturas || {}, [color, normal, orm, masc] = await Promise.all([tx.color && imagen(AQUI + tx.color, true), tx.normal && imagen(AQUI + tx.normal), tx.orm && imagen(AQUI + tx.orm), tx.masc && imagen(AQUI + tx.masc)]);
   const u = { uHuesos: { value: anim }, uMasc: { value: masc || null }, uHayMasc: { value: masc ? 1 : 0 }, uTela: { value: (o.telas || TELAS).map(c => new THREE.Color(c)) }, uEscudo: { value: (o.escudos || ESCUDOS).map(c => new THREE.Color(c)) }, uPiel: { value: (o.piel || [[1.10, 1.02, 0.96], [0.76, 0.64, 0.57]]).map(c => new THREE.Vector3(...c)) },
-    uPelo: { value: (o.pelo || [[0.45, 0.42, 0.42], [2.3, 1.9, 1.5]]).map(c => new THREE.Vector3(...c)) }, uBarba: { value: new THREE.Vector3(...(o.barba || [0.13, 0.095, 0.07])) }, uCab: { value: new THREE.Vector4(0, 1.5, 0, -9) } };
+    uPelo: { value: (o.pelo || [[0.45, 0.42, 0.42], [2.3, 1.9, 1.5]]).map(c => new THREE.Vector3(...c)) }, uBarba: { value: new THREE.Vector3(...(o.barba || [0.13, 0.095, 0.07])) }, uCab: { value: new THREE.Vector4(0, 1.5, 0, -9) },
+    uTiroC: { value: new THREE.Vector3(...((j.tiro && j.tiro.c) || [0, 0, 0])) }, uTiroN: { value: new THREE.Vector3(...((j.tiro && j.tiro.n) || [0, 1, 0])) } };
   { const ic = j.huesos.indexOf('head'), si = g.attributes.aSkinI, sw = g.attributes.aSkinW, po = g.attributes.position; let y0 = 9, z0 = 9, z1 = -9;      // pivote: la base del cráneo
     for (let i = 0; i < n; i++) if (si.getX(i) === ic && sw.getX(i) > 0.9) { y0 = Math.min(y0, po.getY(i)); z0 = Math.min(z0, po.getZ(i)); z1 = Math.max(z1, po.getZ(i)); } if (ic >= 0 && y0 < 9) u.uCab.value.set(0, y0 + 0.03, (z0 + z1) / 2 - 0.02, ic); }
   const mat = parche(new THREE.MeshStandardMaterial({ map: color || null, color: color ? '#ffffff' : '#b8926e', normalMap: normal || null, roughnessMap: orm || null, metalnessMap: orm || null, aoMap: orm || null,
