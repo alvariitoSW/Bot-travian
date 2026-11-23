@@ -1,0 +1,90 @@
+/* LP4 · Vista del oficial (diseño: gobierno/estudios/LP0-como-se-pelea-a-pie.md §3).
+   Un pellizco hacia fuera (o el botón «Oficial») baja la cámara desde el plano de mando hasta el hombro del centurión,
+   en la primera fila de tu manípulo, a su derecha (el puesto del centurión prior). Otro pellizco hacia dentro (o el botón
+   «Arriba») vuelve. Solo cámara: desde abajo se sigue dibujando el frente en el suelo y las cuatro órdenes siguen vivas.
+   Sin mareo: la bajada dura 1,4 s con arranque y llegada suaves; abajo la cámara no copia el paso ni el giro de cada
+   hombre, sigue al centurión y al rumbo del bloque con retraso (0,3 s y 0,9 s). En vertical se abre el ángulo de visión.
+   Escena: después de poner la vista de arriba en la cámara, llama a aplica(dt); la vista de arriba se mezcla con la del
+   oficial. Mientras hay dos dedos (o hasta que se levantan todos tras un pellizco), libre() es false y no se dibuja.
+   Contrato: crearCamara({ camara, lienzo, H, estado: () => S, hud }) → { aplica(dt), libre(), cerca(), pon(modo, ya), modo() }
+     modo 'arriba' | 'oficial' · ?vista=oficial empieza abajo (capturas).
+   Licencia de juego: el puesto exacto de la cámara, las duraciones y los ángulos. */
+import { THREE } from '../../../js/gfx/models.js';
+
+const DUR = 1.4, SIGUE = 0.3, GIRA = 0.9, UMBRAL = 1.22;
+/* el ojo: detrás del hombro derecho del centurión, algo más alto que él; mira al suelo a 16 m, un poco hacia dentro (su bloque) */
+const OF = { atras: 1.6, lado: 0.25, alto: 2.25, mira: 16, miraAlto: 0.2, dentro: 0.12, fovV: 78, fovH: 52 };
+const fr = a => ({ x: Math.sin(a), z: -Math.cos(a) }), de = a => ({ x: Math.cos(a), z: Math.sin(a) });
+const angDif = (a, b) => { let d = (a - b) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return d; };
+const suave = t => t * t * (3 - 2 * t);
+
+export function crearCamara({ camara, lienzo, H, estado, hud, inicial = 'arriba' }) {
+  let meta = inicial === 'oficial' ? 1 : 0, t = meta;
+  const O = { x: 0, z: 0, yaw: 0, listo: false, B: null, h: null };
+  const P0 = new THREE.Vector3(), Q0 = new THREE.Quaternion(), ojo = new THREE.PerspectiveCamera();   /* cámara: lookAt mira por −z */
+
+  /* ---------- el botón (lo crea este archivo: no toca index.html) ---------- */
+  const st = document.createElement('style');
+  st.textContent = `#vista{position:absolute;right:calc(env(safe-area-inset-right) + 8px);top:calc(env(safe-area-inset-top) + 76px);height:44px;padding:0 13px 0 9px;display:flex;align-items:center;gap:5px;border-radius:22px;background:rgba(18,15,11,.82);border:1px solid rgba(184,134,43,.55);font-weight:600;font-size:13px;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.4)}
+#vista svg{width:20px;height:20px}
+#vista.abajo{border-color:#e9c063;color:#e9c063}
+#hud:has(#datos:not([hidden])) #vista{top:calc(env(safe-area-inset-top) + 130px)}
+@media (orientation:landscape){#vista{top:calc(env(safe-area-inset-top) + 60px);right:calc(env(safe-area-inset-right) + 112px)}#hud:has(#datos:not([hidden])) #vista{top:calc(env(safe-area-inset-top) + 60px)}}`;
+  document.head.appendChild(st);
+  const boton = document.createElement('button'); boton.id = 'vista';
+  const OJO = '<svg viewBox="0 0 24 24"><path d="M2 12s3.6-6 10-6 10 6 10 6-3.6 6-10 6S2 12 2 12z"/><circle cx="12" cy="12" r="2.6"/></svg>';
+  const SUBE = '<svg viewBox="0 0 24 24"><path d="M6 14l6-6 6 6"/><path d="M12 8v12"/><path d="M4 4h16"/></svg>';
+  const rotula = () => { const ab = meta > 0.5; boton.innerHTML = ab ? SUBE + 'Arriba' : OJO + 'Oficial'; boton.classList.toggle('abajo', ab); boton.setAttribute('aria-label', ab ? 'Volver a la vista de arriba' : 'Bajar a la vista del oficial'); };
+  boton.addEventListener('click', () => pon(meta > 0.5 ? 'arriba' : 'oficial')); rotula();
+  (hud || document.body).appendChild(boton);
+
+  function pon(m, ya = false) { meta = m === 'oficial' ? 1 : 0; if (ya) t = meta; rotula(); }
+
+  /* ---------- el pellizco: dos dedos que se abren (bajar) o se cierran (subir); uno solo por gesto ---------- */
+  const dedos = new Map(); let d0 = 0, pellizco = false, usado = false;
+  const dist = () => { const [a, b] = [...dedos.values()]; return Math.hypot(a.x - b.x, a.y - b.y); };
+  /* en captura: se cuenta el dedo antes de que dedos.js decida si dibuja */
+  addEventListener('pointerdown', e => {
+    if (e.target !== lienzo) return;
+    dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (dedos.size === 2) { pellizco = true; usado = false; d0 = dist(); }
+  }, true);
+  addEventListener('pointermove', e => {
+    const p = dedos.get(e.pointerId); if (!p) return; p.x = e.clientX; p.y = e.clientY;
+    if (dedos.size !== 2 || usado || d0 < 1) return;
+    const r = dist() / d0;
+    if (r > UMBRAL) { pon('oficial'); usado = true; } else if (r < 1 / UMBRAL) { pon('arriba'); usado = true; }
+  }, true);
+  const quita = e => { dedos.delete(e.pointerId); if (!dedos.size) pellizco = false; else if (dedos.size < 2) d0 = 0; };
+  addEventListener('pointerup', quita, true); addEventListener('pointercancel', quita, true);
+  /* en el ordenador: la rueda */
+  addEventListener('wheel', e => { if (e.target === lienzo && Math.abs(e.deltaY) > 4) pon(e.deltaY < 0 ? 'oficial' : 'arriba'); }, { passive: true });
+
+  /* ---------- el centurión: el de la derecha de la primera fila, vivo ---------- */
+  function centurion(B) {
+    if (O.h && O.h.vivo && O.B === B && O.h.fila === 0) return O.h;
+    let m = null; for (const h of B.hombres) if (h.vivo && (!m || h.fila < m.fila || (h.fila === m.fila && h.col > m.col))) m = h;
+    O.h = m; O.B = B; return m;
+  }
+
+  function aplica(dt) {
+    const v = meta > t ? 1 : -1; if (t !== meta) t = Math.min(1, Math.max(0, t + v * dt / DUR));
+    const S = estado(), B = S && S.B; if (!B) return;
+    const h = centurion(B); if (!h) return;
+    /* sigue al centurión y al rumbo del bloque con retraso; siempre, para que al bajar ya esté en su sitio */
+    const rumbo = B.rumbo;
+    if (!O.listo || O.Bref !== B) { O.x = h.x; O.z = h.z; O.yaw = rumbo; O.listo = true; O.Bref = B; }
+    const k = 1 - Math.exp(-dt / SIGUE), ky = 1 - Math.exp(-dt / GIRA);
+    O.x += (h.x - O.x) * k; O.z += (h.z - O.z) * k; O.yaw += angDif(rumbo, O.yaw) * ky;
+    if (t <= 0) return;
+    const F = fr(O.yaw), D = de(O.yaw), x = O.x - F.x * OF.atras + D.x * OF.lado, z = O.z - F.z * OF.atras + D.z * OF.lado;
+    ojo.position.set(x, H(x, z) + OF.alto, z);
+    const mx = O.x + (F.x - D.x * OF.dentro) * OF.mira, mz = O.z + (F.z - D.z * OF.dentro) * OF.mira; ojo.lookAt(mx, H(mx, mz) + OF.miraAlto, mz);
+    const e = suave(t), fov1 = camara.aspect < 1 ? OF.fovV : OF.fovH;
+    P0.copy(camara.position); Q0.copy(camara.quaternion);
+    camara.position.lerpVectors(P0, ojo.position, e); camara.quaternion.slerpQuaternions(Q0, ojo.quaternion, e);
+    camara.fov = camara.fov + (fov1 - camara.fov) * e; camara.updateProjectionMatrix();
+  }
+
+  return { aplica, libre: () => !pellizco, cerca: () => t > 0.5, pon, modo: () => meta > 0.5 ? 'oficial' : 'arriba', t: () => t };
+}

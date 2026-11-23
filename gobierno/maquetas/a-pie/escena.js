@@ -25,6 +25,7 @@ import { crearCamara } from './camara.js';
 import { crearHud } from './hud.js';
 import * as Son from './sonido.js';
 import { crearFisicaEscena } from './fisica.js';   /* FI2 */
+import { crearProyectilesEscena } from './proyectiles.js';   /* FI3 */
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), MARCAS = Q.get('marcas'), ANTES = Q.get('antes') === '1', COSTADO = Q.get('costado'), FUERA = Q.get('vista') === 'fuera';
 const $ = id => document.getElementById(id);
@@ -845,6 +846,8 @@ function alChocar() {
 
 /* ---------- el paso de la simulación ---------- */
 const FIS = crearFisicaEscena({ H });   /* FI2: la física del dibujo (?fisica=0 la apaga) */
+const MF3 = new THREE.Matrix4(), FP = crearProyectilesEscena({ H, ySup, geoV: geoVenablo, geoP: geoPilum }), PF3 = new THREE.Vector3(), DF3 = new THREE.Vector3(), QF3 = new THREE.Quaternion();   /* FI3: venablos y pila con física */
+FP.conecta({ S, FL, PILA, M4: THREE.Matrix4, galoEsc: (g, o) => huesoEscudoGalo(g, o), gesc: () => GESC, galoHueso: (g, k, o) => o.multiplyMatrices(g.inst, huesoT(FIG_G.tab, k, g.A, g.B, g.mx, _gb)), figG: () => FIG_G, yo: () => S.romanos[YO], roto: () => S.roto });   /* FI3 */
 function paso(dt) {
   S.T += dt; const T = S.T, yo = S.romanos[YO], co = S.romanos[CMP];
   S.k += Math.sign((S.escudos ? 1 : 0) - S.k) * Math.min(Math.abs((S.escudos ? 1 : 0) - S.k), dt * 1.6);
@@ -955,6 +958,7 @@ function paso(dt) {
   if (S.fase !== 'avance') for (const t of S.tiradores) if (t.vivo && t.huye && t.z > -150) t.z -= 4.5 * dt;
   S.sacude = Math.max(0, S.sacude - dt);
   polvoPies(dt);
+  FP.paso(S, dt);   /* FI3: tras todas las reglas del paso */
 }
 
 /* ---------- luz de cine: rayos por la rendija, motas en el aire y polvo de los pies (una llamada de dibujo cada uno) ---------- */
@@ -1170,6 +1174,7 @@ function dibuja() {
   /* venablos: en vuelo, clavados en un escudo (van con él) o en tierra */
   FL.forEach((f, i) => {
     if (f.est === 0 || (f.est === 1 && T < f.t0)) { flechas.setMatrixAt(i, CERO); return; }
+    { const q = FP.pose(f, 'v'); if (q) { O.position.fromArray(q.o); O.quaternion.setFromUnitVectors(Z1, DF3.fromArray(q.dir)); O.scale.setScalar(1); O.updateMatrix(); flechas.setMatrixAt(i, O.matrix); return; } }   /* FI3 */
     if (f.est === 2) { f.q.copy(f.h.qEsc).multiply(f.ql); V3.set(0, 0, 1).applyQuaternion(f.q); f.p.copy(f.rel).applyMatrix4(f.h.mEsc).addScaledVector(V3, -PUNTA); }
     O.position.copy(f.p); O.quaternion.copy(f.q); O.scale.setScalar(1); O.updateMatrix(); flechas.setMatrixAt(i, O.matrix);
   });
@@ -1179,6 +1184,7 @@ function dibuja() {
   /* pila lanzados: en el aire, en tierra o clavados en el escudo de un galo (van con él aunque caiga) */
   PILA.forEach((p, i) => {
     if (p.est < 2) { pilaVuelo.setMatrixAt(i, CERO); return; }
+    { const q = FP.pose(p, 'p'); if (q) { pilaVuelo.setMatrixAt(i, MF3.compose(PF3.fromArray(q.o), QF3.setFromUnitVectors(Z1, DF3.fromArray(q.dir)), UNO)); return; } }   /* FI3 */
     if (p.est === 4) p.m.multiplyMatrices(huesoEscudoGalo(p.g, _gm), p.rel); else p.m.compose(p.p, p.q, UNO);
     pilaVuelo.setMatrixAt(i, p.m);
   });
@@ -1448,6 +1454,7 @@ window.__tp = {
      otro lado del plano de su escudo (metros; negativo: no llega). El plano pasa por el centro del escudo y mira al rival */
   contacto: () => contacto(),
   fisica: () => FIS.medida(), fisicaEmpieza: () => FIS.empieza(), fisicaActiva: FIS.activa,   /* FI2 */
+  proyectiles: () => FP.medida(), proyectilesMide: () => FP.mide(S), proyectilesActiva: FP.activa,   /* FI3: medida de venablos y pila */
   lucha: () => ({ ...ACC.medLucha(), relevos: S.duelos.filter(d => d.activo && !d.sec && d.r.j === 0 && d.r.r > 0).length, dibujadosCaidos: S.romanos.filter(h => !h.vivo).length }),
   gesto: () => { const yo = S.romanos[YO], P = new THREE.Vector3(), Qm = new THREE.Quaternion(); pilumEnMano(yo, P, Qm); const punta = P.clone().addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(Qm), PUNTA); return { mano: enPantalla(ancla(yo, HU.espada, [0, 0, 0], new THREE.Vector3())), punta: enPantalla(punta), conPilum: !yo.tiro, galo: enPantalla(new THREE.Vector3(0, H(0, frenteGalo()) + 1.2, frenteGalo())) }; },
   galos: () => ({ vivos: S.galos.filter(g => g.vivo).length, porPila: S.caidos, hueco: +hueco().toFixed(2), clavados: PILA.filter(p => p.est === 4).length, enTierra: PILA.filter(p => p.est === 3).length, enAire: PILA.filter(p => p.est === 2).length, corren: S.galos.filter(g => g.vivo && g.v > 3).length, andan: S.galos.filter(g => g.vivo && g.v > 0.25 && g.v <= 3).length }),

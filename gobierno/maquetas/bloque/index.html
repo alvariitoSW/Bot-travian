@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1016">
+<title>AQVILA · Manípulo a pie</title>
+<base href="../../../">
+<style>
+@font-face{font-family:Cinzel;font-weight:700;src:url("assets/fuentes/cinzel-700.woff2") format("woff2")}
+:root{--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--vidrio:rgba(18,15,11,.82);--fil:rgba(184,134,43,.55);--verde:#7cc65e;--ambar:#e6a93a;--rojo:#e0533c;--azul:#5fb4ff}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:#15130f;overflow:clip;overscroll-behavior:none;touch-action:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;font:14px/1.2 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--marmol)}
+[hidden]{display:none!important}
+canvas#lienzo{position:fixed;inset:0;display:block;width:100vw;height:100vh;height:100dvh;touch-action:none}
+#hud{position:fixed;inset:0;pointer-events:none;overflow:clip}
+button{font:inherit;color:inherit;border:0;cursor:pointer;pointer-events:auto;touch-action:manipulation;margin:0;background:none}
+svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#vineta{position:absolute;inset:0;background:radial-gradient(ellipse 120% 90% at 50% 45%,rgba(0,0,0,0) 55%,rgba(20,10,4,.35) 85%,rgba(10,5,2,.55) 100%)}
+
+/* arriba: salir, el objetivo en palabras y «Datos ▾» */
+#arriba{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);top:calc(env(safe-area-inset-top) + 8px);display:flex;gap:6px;align-items:flex-start}
+.pildora{height:44px;padding:0 12px 0 8px;display:flex;align-items:center;gap:4px;border-radius:22px;background:var(--vidrio);border:1px solid var(--fil);font-weight:600;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.4);flex:none}
+.pildora svg{width:18px;height:18px}
+#mision{flex:1;min-width:0;min-height:44px;padding:6px 10px 6px;border-radius:12px;background:var(--vidrio);border:1px solid var(--fil);box-shadow:0 3px 10px rgba(0,0,0,.4);overflow:clip}
+#objetivo{font:700 12px/1.25 Cinzel,Georgia,serif;letter-spacing:.01em;color:var(--oro)}
+#marcha{margin-top:4px;font-size:13px;font-weight:600;white-space:nowrap;overflow:clip;text-overflow:ellipsis}
+#marcha.bien{color:#c9ecae}#marcha.mal{color:#ffb39e}
+#datosB{padding:0 12px;font-size:13px}
+#datosB[aria-expanded="true"]{border-color:var(--oro);color:var(--oro)}
+#datos{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);top:calc(env(safe-area-inset-top) + 76px);padding:6px 10px;border-radius:10px;background:rgba(18,15,11,.72);border:1px solid rgba(184,134,43,.35);font-size:11.5px;line-height:1.45;font-variant-numeric:tabular-nums}
+#datos b{color:var(--oro);font-weight:700}
+#datos .g b{color:#9fc7ff}
+
+/* los estandartes sobre cada bloque: aro de color y una palabra */
+#ests{position:absolute;inset:0;overflow:clip}
+.est{position:absolute;left:0;top:0;display:flex;flex-direction:column;align-items:center;gap:1px;transform:translate(-50%,-100%);will-change:transform}
+.est i{display:block;width:22px;height:22px;border-radius:50%;border:3px solid var(--verde);background:radial-gradient(#7a2219,#3a0f0a);box-shadow:0 1px 4px rgba(0,0,0,.7)}
+.est.g i{background:radial-gradient(#2d4f78,#14243a)}
+.est.tuyo i{width:30px;height:30px;border-width:4px;background:radial-gradient(#b8862b,#5c3a10)}
+.est b{font:700 10.5px system-ui,sans-serif;color:#fff;text-shadow:0 1px 2px #000,0 0 4px #000;white-space:nowrap}
+.est.tuyo b{font-size:12px}
+.est.ambar i{border-color:var(--ambar)}.est.rojo i{border-color:var(--rojo)}
+.est.rojo b{color:#ffb39e}.est.ambar b{color:#ffe0a0}
+.est s{display:block;width:2px;height:10px;background:rgba(255,255,255,.7);text-decoration:none}
+/* LP4b: la placa «Trabados» sobre tu estandarte mientras estás en el choque */
+.est em{display:none;order:3;margin-top:3px;padding:2px 7px 3px;border-radius:9px;background:linear-gradient(#a3281c,#6a160f);border:1.5px solid var(--oro);font:700 11px Cinzel,Georgia,serif;font-style:normal;letter-spacing:.04em;color:#fff3dc;text-shadow:0 1px 2px #000;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.6)}
+.est.trabado em{display:block}
+.orden.cambia .aro{animation:cambia .6s}
+@keyframes cambia{0%{transform:scale(.8)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
+
+/* avisos en el borde: una franja roja del lado del peligro, con su frase */
+.borde{position:absolute;pointer-events:none;opacity:0;transition:opacity .35s;display:flex;align-items:center}
+.borde.ve{opacity:1}
+.borde span{font:700 13px Cinzel,Georgia,serif;color:#fff3dc;text-shadow:0 1px 3px #000,0 0 8px #000;line-height:1.25}
+#borde-i,#borde-d{top:20%;bottom:28%;width:92px}
+#borde-i{left:0;padding-left:8px;background:linear-gradient(to right,rgba(200,32,18,.6),rgba(200,32,18,0))}
+#borde-d{right:0;padding-right:8px;justify-content:flex-end;text-align:right;background:linear-gradient(to left,rgba(200,32,18,.6),rgba(200,32,18,0))}
+#borde-a{left:0;right:0;top:0;height:150px;justify-content:center;align-items:flex-end;padding-bottom:6px;background:linear-gradient(to bottom,rgba(200,32,18,.7),rgba(200,32,18,0))}
+#borde-a span{padding-top:110px}
+.borde.late{animation:late .8s infinite}
+@keyframes late{50%{opacity:.55}}
+
+/* la orden dicha */
+#grito{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 158px);transform:translateX(-50%);max-width:92%;font:700 21px Cinzel,Georgia,serif;letter-spacing:.03em;color:#fff3dc;text-shadow:0 2px 6px #000,0 0 12px rgba(0,0,0,.9);text-align:center;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .25s}
+#grito.ve{opacity:1}
+
+/* abajo: la raya del cansancio de la fila que pelea y las cuatro órdenes */
+#abajo{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);bottom:calc(env(safe-area-inset-bottom) + 8px);display:flex;flex-direction:column;gap:6px;align-items:stretch}
+#raya{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:10px;background:rgba(18,15,11,.6);font-size:12px;white-space:nowrap}
+#raya-t{flex:none;min-width:116px}
+#raya-t b{font-weight:700}
+#barra{flex:1;height:8px;border-radius:4px;background:rgba(255,255,255,.15);overflow:clip}
+#barra b{display:block;height:100%;width:100%;border-radius:4px;background:var(--verde);transition:width .4s,background .4s}
+#ordenes{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.orden{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 0 0;min-height:84px}
+.orden .aro{position:relative;width:60px;height:60px;border-radius:50%;background:radial-gradient(#3a2c14,#1f170b);border:2.5px solid var(--bronce);display:flex;align-items:center;justify-content:center;color:var(--marmol);box-shadow:0 3px 10px rgba(0,0,0,.55)}
+.orden .aro svg{width:32px;height:32px;stroke-width:2.2}
+.orden b{font:700 12.5px Cinzel,Georgia,serif;letter-spacing:.02em;color:#fff3dc;text-shadow:0 1px 3px #000,0 0 6px #000}
+.orden.vigente .aro{background:radial-gradient(#9a3024,#5c1b15);border-color:#f1ead9}
+.orden.luz .aro{border-color:var(--oro);color:#fff3dc;animation:luz .9s infinite}
+.orden.luz b{color:var(--oro)}
+.orden.apagada{opacity:.45}
+.orden small{position:absolute;top:0;right:calc(50% - 38px);min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:#1f170b;border:1.5px solid var(--bronce);font:700 11px/17px system-ui,sans-serif;color:#fff3dc;text-align:center}
+@keyframes luz{0%,100%{box-shadow:0 0 0 2px rgba(233,192,99,.9),0 0 12px 3px rgba(233,192,99,.75)}50%{box-shadow:0 0 0 7px rgba(233,192,99,.25),0 0 26px 8px rgba(233,192,99,.55)}}
+@media (prefers-reduced-motion:reduce){.orden.luz .aro{animation:none;box-shadow:0 0 0 4px rgba(233,192,99,.8)}}
+
+/* horizontal: órdenes a la derecha en columna, raya abajo a la izquierda */
+@media (orientation:landscape){
+  #abajo{left:auto;width:96px;top:calc(env(safe-area-inset-top) + 58px);justify-content:flex-end}
+  #ordenes{grid-template-columns:1fr;gap:0}
+  .orden{min-height:0;flex-direction:row;gap:0;justify-content:flex-end}
+  .orden .aro{width:52px;height:52px}
+  .orden .aro svg{width:28px;height:28px}
+  .orden b{position:absolute;right:58px;top:50%;transform:translateY(-50%);font-size:12px}
+  .orden small{top:-2px;right:-2px}
+  #raya{position:fixed;left:calc(env(safe-area-inset-left) + 8px);bottom:calc(env(safe-area-inset-bottom) + 8px);width:300px}
+  #grito{bottom:calc(env(safe-area-inset-bottom) + 50px)}
+  #borde-i,#borde-d{top:18%;bottom:14%}
+  #borde-d{right:176px}   /* que no pise los nombres de las órdenes */
+  #datos{right:auto;width:420px}
+  #mision{max-width:460px}
+}
+
+.velo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:rgba(10,8,6,.7);pointer-events:auto;overflow:auto}
+#carga{background:#15130f}
+.velo h1{margin:0;font:700 28px Cinzel,Georgia,serif;letter-spacing:.06em;color:var(--oro)}
+.velo p{margin:0;max-width:360px;font-size:15px;line-height:1.4}
+.velo .cuenta{max-width:360px;text-align:left;font-size:14px;line-height:1.45}
+.velo .cuenta b{color:var(--oro)}
+.niveles{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.gordo{min-width:104px;height:54px;padding:0 16px;border-radius:14px;background:linear-gradient(#8a2a20,#5c1b15);border:1.5px solid var(--oro);font:700 15px Cinzel,Georgia,serif;letter-spacing:.03em}
+.gordo.claro{background:linear-gradient(#3a2c14,#241b0d);border-color:var(--bronce)}
+.creditos{font-size:10.5px;color:#8d846f;max-width:380px;line-height:1.35}
+</style>
+</head>
+<body>
+<canvas id="lienzo"></canvas>
+<div id="hud">
+  <div id="vineta"></div>
+  <div id="ests"></div>
+  <div id="borde-i" class="borde"><span id="borde-i-t"></span></div>
+  <div id="borde-d" class="borde"><span id="borde-d-t"></span></div>
+  <div id="borde-a" class="borde"><span>¡Jabalinas!</span></div>
+  <div id="arriba">
+    <button id="salir" class="pildora"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Salir</button>
+    <div id="mision"><div id="objetivo">Rompe su centro antes de que llegue su jefe</div><div id="marcha">Arrastra en el suelo: ahí formará tu primera fila</div></div>
+    <button id="datosB" class="pildora" aria-expanded="false">Datos ▾</button>
+  </div>
+  <div id="datos" hidden><div id="datos-r"></div><div id="datos-g" class="g"></div></div>
+  <div id="grito"></div>
+  <div id="abajo">
+    <div id="raya"><span id="raya-t">Fila que pelea · <b>fresca</b></span><span id="barra"><b id="barra-b"></b></span></div>
+    <div id="ordenes">
+      <button class="orden" data-o="testudo" aria-label="Testudo"><span class="aro"><svg viewBox="0 0 32 32"><path d="M5 19c0-6 5-11 11-11s11 5 11 11"/><path d="M5 19h22M10 19v6M16 19v6M22 19v6M8.5 13.5h15M16 8v11"/></svg></span><b>Testudo</b></button>
+      <button class="orden" data-o="cargar" aria-label="Cargar"><span class="aro"><svg viewBox="0 0 32 32"><path d="M9 20l7-7 7 7"/><path d="M9 27l7-7 7 7"/><path d="M16 4v8"/><path d="M13 7l3-3 3 3"/></svg></span><b>Cargar</b></button>
+      <button class="orden" data-o="relevo" aria-label="Relevo"><span class="aro"><svg viewBox="0 0 32 32"><path d="M10 25V9M6 13l4-4 4 4"/><path d="M22 7v16M18 19l4 4 4-4"/></svg></span><b>Relevo</b><small id="relevos">3</small></button>
+      <button class="orden" data-o="alto" aria-label="Alto"><span class="aro"><svg viewBox="0 0 32 32"><path d="M7 11h18M7 16h18M7 21h18"/></svg></span><b>Alto</b></button>
+    </div>
+  </div>
+  <div id="inicio" class="velo" hidden>
+    <h1>Manípulo a pie</h1>
+    <p>Mandas tu manípulo, no a un hombre. <b>Arrastra el dedo por el suelo</b>: ahí formará tu primera fila, y el bloque girará como una puerta hasta llegar.</p>
+    <p>Abajo tienes cuatro órdenes. La que conviene en cada momento <b>se ilumina</b>. Trabado en el choque solo se gira, despacio; «Alto» se vuelve <b>«Retirada»</b>: sales formado, pero pagando.</p>
+    <p>Enfrente, los galos. Rompe su centro antes de que su jefe te alcance.</p>
+    <div class="niveles"><button class="gordo claro" data-nivel="facil">Fácil</button><button class="gordo" data-nivel="normal">Normal</button><button class="gordo claro" data-nivel="dificil">Difícil</button></div>
+  </div>
+  <div id="fin" class="velo" hidden>
+    <h1 id="fin-t">Victoria</h1>
+    <p id="fin-p"></p>
+    <div class="cuenta" id="fin-c"></div>
+    <div class="niveles"><button class="gordo" id="otra">Otra vez</button><button class="gordo claro" id="salir2">Salir</button></div>
+    <div class="creditos">LP3 · Un manípulo de hastati contra galos (Italia, 225 a.C.; Polibio 2.28–33 y 6.21–23). Romano: Meshy (CC BY 4.0) adaptado en AQVILA · Galo y movimientos: MakeHuman y Quaternius (CC0) · Árboles de 0 A.D. (Wildfire Games, CC BY-SA 3.0) · Cielo y suelos de Poly Haven (CC0) · Sonido CC0</div>
+  </div>
+  <div id="carga" class="velo"><h1>AQVILA</h1><p id="carga-t">Formando el manípulo…</p></div>
+</div>
+<script type="module" src="gobierno/maquetas/bloque/escena.js"></script>
+</body>
+</html>

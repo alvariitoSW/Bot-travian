@@ -1730,7 +1730,6 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
   .cg2-fcu > *:not(.cg2-fret) { grid-column: 2; }
   .cg2-fret { grid-row: 1 / span 12; height: 160px; }
 }
-
 /* CV1: botón «Plano» bajo el ojo, con zona de toque de 44 px */
 #ctop .vo.plano { min-height: 44px; min-width: 76px; }
 

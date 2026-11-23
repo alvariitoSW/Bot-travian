@@ -2020,28 +2020,22 @@
       "url": "https://claude.ai/code/session_01QiKC37EkYPrnF1g5nLbW5x"
     },
     {
-      "tarea": "FI1",
-      "titulo": "Corazón · FI1 Físicas en las batallas (Opus)",
-      "nota": "Abierta el 23/11 por orden del usuario desde FA4",
-      "url": "https://claude.ai/code/session_01QiKC38MwAapFqsQ21GofYS"
+      "tarea": "MIN5",
+      "titulo": "Gobierno · MIN5 Paso «Falange a pie» de jueces.mjs (Opus)",
+      "nota": "Abierta el 23/11; de paso en jueces.mjs",
+      "url": "https://claude.ai/code/session_01QiKC39HxLF4D3B1zUxMuEm"
     },
     {
-      "tarea": "SB1",
-      "titulo": "Subida · SB1 Jueces completos sobre todo unido (Opus)",
-      "nota": "Abierta el 23/11; con APTO se sube a main",
-      "url": "https://claude.ai/code/session_01QiKC37rTtBnh9B5VB63nBY"
+      "tarea": "AL11",
+      "titulo": "Gobierno · AL11 Pases de los soldados de Meshy y enganche en «Manípulo a pie» (Opus)",
+      "nota": "Abierta el 23/11; de paso en sw.js, registro.js y créditos",
+      "url": "https://claude.ai/code/session_01QiKC36gwMwPtQroFEAPQmA"
     },
     {
-      "tarea": "LP3",
-      "titulo": "Corazón · LP3 Maqueta «Manípulo a pie» en vertical (Opus)",
-      "nota": "Abierta el 23/11; de paso en ui.js y sw.js",
-      "url": "https://claude.ai/code/session_01QiKC36kgb6ao39q19Nmj4o"
-    },
-    {
-      "tarea": "MS2",
-      "titulo": "Taller · MS2 Lote de soldados con la API de Meshy (Opus)",
-      "nota": "Abierta el 23/11; tope 500 créditos",
-      "url": "https://claude.ai/code/session_01QiKC38rZcgGDL9ZpFtXCsy"
+      "tarea": "CD1",
+      "titulo": "Ciudad · CD1 Vista desde arriba y «Construir» por familias (de paso; Opus)",
+      "nota": "Abierta el 23/11 por la sesión de ciudad; de paso en ui.js, data.js, style.css",
+      "url": "https://claude.ai/code/session_01QiKC38igM1fUun2qBt4ReA"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"

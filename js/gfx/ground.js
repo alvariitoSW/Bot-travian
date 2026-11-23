@@ -217,10 +217,7 @@ function pintarCiudad3(M, T, E, fino) {
     else { const w = c.t === 'via' ? c.w * 1.4 : c.w;      // CI1b: tierra clara que se lee contra el suelo; las vías del foro (el eje de puerta a puerta) algo más anchas
       trazo(M, c.p, w * 2 + (c.t === 'camino' ? 2 : 1.2), 1.4, '255,0,0'); trazo(T, c.p, w * 2, 1.6, '204,186,150', 0.9); trazo(T, c.p, w * 0.9, w * 0.4, '228,214,182', 0.8); } }
   /* CI3a: calles de adorno de la urbe (solo vista; no cuentan en el juego): tierra batida, algo más oscura que las de verdad */
-  /* CV4a: manda la jerarquía: vías anchas legibles, calles más tenues y callejas apenas insinuadas entre las casas */
-  if (E.urbe) for (const c of E.urbe.calles) { if (c.plaza) { trazo(M, c.p, c.w * 2 + 1.4, 1.4, '240,0,0'); trazo(T, c.p, c.w * 2, 1.6, '190,172,138', 0.7); continue; }
-    const k = c.w >= 3 ? 0 : c.w >= 2 ? 1 : 2, an = [c.w * 1.7, c.w * 1.3, 1.9][k];
-    trazo(M, c.p, an + [1.2, 0.8, 0.4][k], 1.2, ['240,0,0', '200,0,0', '140,0,0'][k]); trazo(T, c.p, an, [1.4, 1.1, 0.8][k], ['192,174,140', '176,158,124', '160,142,110'][k], [0.75, 0.5, 0.32][k]); }
+  if (E.urbe) for (const c of E.urbe.calles) { trazo(M, c.p, c.w * 1.5 + 1, 1, '240,0,0'); trazo(T, c.p, c.w * 1.5, 1.1, '196,178,142', 0.85); }      /* CV4a: más estrechas (antes w·2): las casas van pegadas a la calle y el plano no se ve como una red blanca */
   /* plaza del foro, enlosada */
   if (E.foro) { const f = E.foro, c = Math.cos(f.ang), s = Math.sin(f.ang), rect = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]) => [f.x + u * f.w / 2 * c - v * f.d / 2 * s, f.z + u * f.w / 2 * s + v * f.d / 2 * c]);
     M.fillStyle = fino ? 'rgb(40,255,0)' : 'rgb(230,0,0)'; poli(M, rect); M.fill(); trazo(M, rect, 1, 2, fino ? '40,255,0' : '230,0,0', 1, true); T.fillStyle = 'rgba(150,140,124,0.55)'; poli(T, rect); T.fill(); }
@@ -228,7 +225,7 @@ function pintarCiudad3(M, T, E, fino) {
   const huella = (x, z, ang, w, d, m, a) => { T.save(); T.translate(x, z); T.rotate(ang); for (let k = 0; k < 3; k++) { const e = m * (1 - k / 3); T.fillStyle = `rgba(50,42,34,${a * [0.3, 0.45, 0.7][k]})`; T.beginPath(); T.roundRect(-w / 2 - e, -d / 2 - e, w + 2 * e, d + 2 * e, e + 0.5); T.fill(); } T.restore(); };
   if (fino) for (const l of E.parcelas) if (l.casa && !l.fuera) { const k = [0, 0.55, 0.66, 0.86, 0.98][l.casa.nivel]; huella(l.x, l.z, l.ang, 13.5 * k, 14 * k, 2.5, l.casa.ruina ? 0.8 : 0.55); }
   for (const e of E.edificios) huella(e.x, e.z, e.ang + Math.PI / 2, e.w, e.d, 3, 0.45);
-  if (E.muralla.fase && E.surco && !E.urbe) trazo(T, E.surco, 8, 5, '48,42,34', 0.5, true);      // CV4a: con la urbe la muralla va por fuera; la sombra del surco dibujaba una diana
+  if (E.muralla.fase && E.surco && !E.urbe) trazo(T, E.surco, 8, 5, '48,42,34', 0.5, true);      /* CV4a: con la urbe grande la muralla se dibuja por fuera (cercoVista): la franja oscura del surco dejaba un anillo en mitad del caserío */
 }
 
 /* CN15a: tintes por estación (primavera, verano, otoño, invierno). MULTIPLICADORES, no repintan texturas: así el terreno futuro (CN19) también los recibe.
@@ -256,9 +253,9 @@ export function crearSuelo3(texs, U, bosquetes) {
   const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
   const mat = new THREE.MeshLambertMaterial({ color: '#ffffff' });
   mat.onBeforeCompile = sh => {
-    Object.assign(sh.uniforms, { uMC: { value: Cj.m }, uTC: { value: Cj.t }, uMP: { value: Pj.m }, uTP: { value: Pj.t }, uCalor: { value: tCal }, uCal, tDry: { value: texs.terr_grass }, tGreen: { value: texs.terr_dry }, tDirt: { value: texs.terr_dirt }, tPav: { value: texs.terr_paving }, uRuido: U.uRuido, uTiempo: U.uTiempo, uEst, uTer });
+    Object.assign(sh.uniforms, { uMC: { value: Cj.m }, uTC: { value: Cj.t }, uMP: { value: Pj.m }, uTP: { value: Pj.t }, uCalor: { value: tCal }, uCal, tDry: { value: texs.terr_grass }, tGreen: { value: texs.terr_dry }, tDirt: { value: texs.terr_dirt }, tPav: { value: texs.terr_paving }, uRuido: U.uRuido, uTiempo: U.uTiempo, uEst, uTer, uPlano: U.uPlano || { value: 0 } });
     sh.vertexShader = 'varying vec3 vWP;\n' + sh.vertexShader.replace('#include <project_vertex>', '#include <project_vertex>\n vWP = (modelMatrix * vec4(transformed, 1.0)).xyz;');
-    sh.fragmentShader = `varying vec3 vWP; uniform sampler2D uMC, uTC, uMP, uTP, uCalor, tDry, tGreen, tDirt, tPav; uniform float uCal; uniform vec3 uEst, uTer;\n${GLSL_NUBES}\n` + sh.fragmentShader.replace('#include <map_fragment>', `
+    sh.fragmentShader = `varying vec3 vWP; uniform sampler2D uMC, uTC, uMP, uTP, uCalor, tDry, tGreen, tDirt, tPav; uniform float uCal, uPlano; uniform vec3 uEst, uTer;\n${GLSL_NUBES}\n` + sh.fragmentShader.replace('#include <map_fragment>', `
       vec2 uc = (vWP.xz - vec2(0.0, ${CZ.toFixed(1)})) / ${(EC * 2).toFixed(1)} + 0.5, up = clamp(vWP.xz / ${(EP * 2).toFixed(1)} + 0.5, 0.002, 0.998);
       vec2 dc = abs(uc - 0.5); float kc = 1.0 - smoothstep(0.42, 0.495, max(dc.x, dc.y));
       vec3 mc = texture2D(uMC, uc).rgb, mp = texture2D(uMP, up).rgb, tc = texture2D(uTC, uc).rgb, tp = texture2D(uTP, up).rgb;
@@ -286,7 +283,12 @@ export function crearSuelo3(texs, U, bosquetes) {
       col = mix(col, vec3(0.42, 0.40, 0.27) * (0.8 + 0.4 * g3), lj * smoothstep(0.45, 0.62, g4 + g2 * 0.3) * 0.7); col = mix(col, vec3(0.07, 0.10, 0.06), lj * smoothstep(0.40, 0.56, g1 * 0.75 + g4 * 0.4) * 0.8); col = mix(col, vec3(0.60, 0.57, 0.52), lj * smoothstep(0.62, 0.78, g3 * 0.55 + g4 * 0.6) * smoothstep(60.0, 220.0, vWP.y) * 0.7);
       vec2 uh = (vWP.xz - vec2(${X0.toFixed(1)}, ${Z0.toFixed(1)})) / ${LADO.toFixed(1)}; vec4 ca = texture2D(uCalor, clamp(uh, 0.0, 1.0));
       float lum = dot(col, vec3(0.3, 0.5, 0.2)); col = mix(col, ca.rgb * (0.55 + 0.9 * lum), ca.a * uCal * step(0.0, uh.x) * step(uh.x, 1.0) * step(0.0, uh.y) * step(uh.y, 1.0));
-      diffuseColor.rgb = col * uEst * uTer * nubes(vWP);`);
+      /* CV4a: en la vista de plano el suelo se lee como un mapa: prado verde oliva con color (no pardo lavado), calles claras y sin sombra de nubes. De cerca (uPlano = 0) no cambia nada */
+      float kCalle = max(smoothstep(0.35, 0.75, tierra), smoothstep(0.4, 0.7, losa)); float lp = dot(col, vec3(0.3, 0.5, 0.2));
+      vec3 prado = mix(vec3(lp), col, 1.4) * vec3(0.92, 1.02, 0.66); prado = mix(prado, mix(vec3(0.50, 0.50, 0.24), vec3(0.34, 0.45, 0.19), clamp(verde * 1.2 + g2 - 0.45, 0.0, 1.0)) * (0.55 + 1.1 * lp), 0.5);
+      vec3 calle = mix(col, vec3(0.84, 0.76, 0.58) * (0.6 + 0.8 * lp), 0.6);
+      col = mix(col, mix(prado, calle, kCalle), uPlano * (1.0 - ca.a * uCal));
+      diffuseColor.rgb = col * mix(uEst, vec3(1.0), uPlano * 0.6) * uTer * mix(nubes(vWP), 1.0, uPlano);`);
   };
   mat.customProgramCacheKey = () => 'q1k-suelo';
   const malla = new THREE.Mesh(geo, mat); malla.receiveShadow = true;

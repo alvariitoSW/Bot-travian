@@ -25,7 +25,7 @@ const D = window.DATA;
 const ASSETS = 'assets/static/', HORIZ = '#cdc3b2';
 let renderer = null, host = null;                  // el renderer y el contenedor los crea CityView3D
 const scene = new THREE.Scene(); scene.background = new THREE.Color(HORIZ); scene.fog = new THREE.FogExp2(HORIZ, 0.00029);
-const U = { uRuido: { value: null }, uTiempo: { value: 0 } };
+const U = { uRuido: { value: null }, uTiempo: { value: 0 }, uPlano: { value: 0 } };          /* CV4a: uPlano = 0 de cerca, 1 en la vista de plano */
 
 /* ---------- carga (copiado de ciudad2) ---------- */
 const esperas = [], texs = new Map();
@@ -47,11 +47,11 @@ function material(p, o = {}) {
   if (p.maps.ao) { m.aoMap = textura(p.maps.ao, true); m.aoMap.channel = 1; m.aoMapIntensity = 1.0; }
   const equipo = new THREE.Color(PIEL.equipo);
   m.onBeforeCompile = sh => {
-    Object.assign(sh.uniforms, { uEquipo: { value: equipo }, uRuido: U.uRuido, uTiempo: U.uTiempo });
+    Object.assign(sh.uniforms, { uEquipo: { value: equipo }, uRuido: U.uRuido, uTiempo: U.uTiempo, uPlano: U.uPlano });
     sh.vertexShader = 'attribute vec3 aMuro; attribute vec4 aTeja; varying vec3 vMuro; varying vec4 vTeja; varying float vAlt, vUp; varying vec3 vWP;\n' + sh.vertexShader
       .replace('#include <begin_vertex>', '#include <begin_vertex>\n vMuro = aMuro; vTeja = aTeja; vAlt = position.y; vUp = abs(normalize(mat3(instanceMatrix) * normal).y);')
       .replace('#include <project_vertex>', '#include <project_vertex>\n vWP = (modelMatrix * instanceMatrix * vec4(transformed, 1.0)).xyz;');
-    sh.fragmentShader = `uniform vec3 uEquipo; varying vec3 vMuro; varying vec4 vTeja; varying float vAlt, vUp; varying vec3 vWP;\n${GLSL_NUBES}\n` + sh.fragmentShader.replace('#include <map_fragment>', `
+    sh.fragmentShader = `uniform vec3 uEquipo; uniform float uPlano; varying vec3 vMuro; varying vec4 vTeja; varying float vAlt, vUp; varying vec3 vWP;\n${GLSL_NUBES}\n` + sh.fragmentShader.replace('#include <map_fragment>', `
       vec4 tx = texture2D(map, vMapUv);
       ${p.mode === 1 ? 'tx.rgb = mix(uEquipo, tx.rgb, tx.a);' : p.mode === 2 ? 'diffuseColor.a *= tx.a;' : ''}
       float lum = dot(tx.rgb, vec3(0.3, 0.59, 0.11));
@@ -61,9 +61,11 @@ function material(p, o = {}) {
       vec3 muro = mix(tx.rgb, vec3(lum), ${PIEL.desat.toFixed(2)});
       muro = mix(muro, vec3(0.30 + 0.62 * pow(lum, 0.7)), vTeja.a * (1.0 - rojo)) * vMuro;
       vec3 tj = mix(vec3(lum), tx.rgb, ${PIEL.tejaSat.toFixed(2)}) * vTeja.rgb;
+      tj = mix(tj, vec3(0.86, 0.36, 0.22) * (0.55 + 0.9 * lum) * (0.8 + 0.2 * vTeja.r), uPlano * 0.8);      /* CV4a: en plano, teja de barro viva (de cerca, la de siempre) */
+      muro = mix(muro, muro * vec3(1.12, 1.08, 0.98), uPlano);
       vec3 c = mix(muro, tj, teja);
       c *= mix(${PIEL.base.toFixed(2)}, 1.0, max(teja, smoothstep(-0.5, 5.5, vAlt + (lum - 0.5) * 2.0)));`}
-      diffuseColor.rgb *= c * nubes(vWP);`)
+      diffuseColor.rgb *= c * mix(nubes(vWP), 1.0, uPlano);`)
       .replace('#include <aomap_fragment>', '#include <aomap_fragment>\n #ifdef USE_AOMAP\n reflectedLight.directDiffuse *= mix(1.0, ambientOcclusion, 0.55);\n #endif');
   };
   m.customProgramCacheKey = () => 'q1k|' + id;
@@ -174,7 +176,7 @@ const matBulto = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE
 
 /* ---------- cámara: gira alrededor de un punto del suelo (de la maqueta; el tamaño es el del contenedor, no el de la ventana) ---------- */
 export const cam = { tx: 0, tz: -20, d: 640, az: 0, el: 0 };
-const PLANO_EL = 80;                               // CV1: elevación de la vista de plano, en grados
+const PLANO_EL = 80, PLANO_MARGEN = 1.22;          /* CV4a: margen 1,22 (antes 1,7): la urbe llena el ancho y deja una franja de campos */                               // CV1: elevación de la vista de plano, en grados
 const camara = new THREE.PerspectiveCamera(38, 1, 2, 20000);
 const vista = { w: 1, h: 1 };                      // tamaño del lienzo
 let desvio = 0;                                    // desplazamiento vertical de la imagen (para dejar sitio a la ficha)
@@ -216,11 +218,12 @@ let hemiBase = 1.45, solBase = 3.3, copasM = null, nieblaBase = 0.00029, nieblaK
 /* CN15a: estación actual para quien la necesite. k = ancla de la que se parte (0 primavera, 1 verano, 2 otoño, 3 invierno; el índice A de luz()), f = mezcla suave hacia la siguiente (0..1), ks = estación del calendario */
 export function estacionActual() { return { k: estK, f: estF, ks: estSol < 0 ? estK : estSol }; }
 /* CV1: el aspecto de plano (niebla, luz, exposición, río, copas de árbol) sale de un solo número, 0 de cerca y 1 en plano, derivado de nieblaK */
-/* CV4a: menos relleno de cielo y más sol: el suelo del plano no sale lavado */
-const PLANO_LUZ = { exposicion: 0.4, hemi: 0.7, sol: 0.5 }, AZUL_RIO = new THREE.Color('#2f7fae'), _rio0 = new THREE.Color('#6f8288');
+const PLANO_LUZ = { exposicion: 0.1, hemi: 0.75, sol: -0.1, sombra: 0.5 }, _solC = new THREE.Color('#ffdfb4'), _hemC = new THREE.Color('#b6c6de'), _hemG = new THREE.Color('#927252'), LUZ_PLANO = { sol: new THREE.Color('#fff4e0'), cielo: new THREE.Color('#f2f0e6'), suelo: new THREE.Color('#b8a880') }, AZUL_RIO = new THREE.Color('#2f7fae'), _rio0 = new THREE.Color('#6f8288');
 function ambientePlano() {
   const k = Math.max(0, Math.min(1, (1 - nieblaK) / 0.98)); scene.fog.density = nieblaBase * nieblaK;
   hemi.intensity = hemiBase * (1 + PLANO_LUZ.hemi * k); sol.intensity = solBase * (1 + PLANO_LUZ.sol * k); renderer.toneMappingExposure = 0.92 + PLANO_LUZ.exposicion * k;
+  /* CV4a: en plano la luz es clara y neutra (sin el tinte frío o dorado de la estación en tejados y suelo) y las sombras, más suaves; de cerca no cambia nada */
+  U.uPlano.value = k; sol.color.copy(_solC).lerp(LUZ_PLANO.sol, k * 0.85); hemi.color.copy(_hemC).lerp(LUZ_PLANO.cielo, k * 0.85); hemi.groundColor.copy(_hemG).lerp(LUZ_PLANO.suelo, k * 0.85); if (sol.shadow) sol.shadow.intensity = 1 - PLANO_LUZ.sombra * k;
   if (rio && rio.material) rio.material.color.copy(_rio0).lerp(AZUL_RIO, k);
   if (copasM) { copasM.visible = k > 0.02 && copasM.count > 0; copasM.material.opacity = k; }
 }
@@ -230,8 +233,8 @@ function luz() {
   const fm = t - Math.floor(t), oro = DIA_NOCHE ? Math.min(1, _sm((fm - 0.7) / 0.25) + 1 - _sm(fm / 0.12)) : 0;          // tarde dorada: sube al final del mes y baja al empezar el siguiente
   noche = DIA_NOCHE ? Math.min(1, _sm((fm - 0.85) / 0.12) + 1 - _sm(fm / 0.08)) : 0;
   if (ks !== estSol) { estSol = ks; SOL.copy(ANCLAS[ks].dir); sol.position.set(0, 0, -70).addScaledVector(SOL, 1500); if (cieloU) cieloU.uSol.value.copy(SOL); sombraPend = true; }
-  sol.color.copy(A.sol).lerp(B.sol, f).lerp(ORO.sol, oro * 0.75); solBase = (A.si + (B.si - A.si) * f) * (1 - 0.3 * oro);
-  hemi.color.copy(A.hc).lerp(B.hc, f).lerp(ORO.hc, oro * 0.45); hemi.groundColor.copy(A.hg).lerp(B.hg, f); hemiBase = (A.hi + (B.hi - A.hi) * f) * (1 - 0.18 * oro);
+  _solC.copy(A.sol).lerp(B.sol, f).lerp(ORO.sol, oro * 0.75); solBase = (A.si + (B.si - A.si) * f) * (1 - 0.3 * oro);
+  _hemC.copy(A.hc).lerp(B.hc, f).lerp(ORO.hc, oro * 0.45); _hemG.copy(A.hg).lerp(B.hg, f); hemiBase = (A.hi + (B.hi - A.hi) * f) * (1 - 0.18 * oro);
   _c1.copy(A.h).lerp(B.h, f).lerp(ORO.h, oro * 0.5); scene.background.copy(_c1); scene.fog.color.copy(_c1); nieblaBase = A.fog + (B.fog - A.fog) * f; ambientePlano();
   if (cieloU) for (const c of cieloU.uH) c.copy(_c1);
 }
@@ -262,7 +265,7 @@ export async function montar() {
   /* CI1: atlas pintado por código y lotes de las piezas romanas de su siglo */
   texs.set(RS.ATLAS, RS.atlas()); L.rs_templo = lote('rs_templo', 12); L.rs_dique = lote('rs_dique', 12, { sinTeja: true }); L.rs_tabernas = lote('rs_tabernas', 4); L.rs_insula = lote('rs_insula', 220);
   L.rs_fondo = lote('rs_fondo', RS.CUPO.fondo); L.rs_fondo3 = lote('rs_fondo3', RS.CUPO.fondo3); L.rs_patio = lote('rs_patio', RS.CUPO.patio, { sinTeja: true }); L.rs_huerto = lote('rs_huerto', RS.CUPO.huerto, { sinTeja: true });      // CI1-7: relleno de manzanas y arrabal
-  Campos.iniciar({ scene, altura, distRio, NIVEL_RIO, CI });
+  Campos.iniciar({ scene, altura, distRio, NIVEL_RIO, CI, uPlano: U.uPlano });
   L.rs_muro = lote('rs_muro', 64, { sinTeja: true }); L.rs_torre = lote('rs_torre', 96, { sinTeja: true }); L.rs_puerta = lote('rs_puerta', 12, { sinTeja: true });
   /* casas: cuatro piezas reales, con versiones ligeras de lejos */
   for (const k of ['casa', 'casa_b', 'casa_c', 'casa_d']) L[k] = lote(k, 220, { ligeras: [[3, 0], [6, 0]], cortes: [0.09, 0.05] });
@@ -394,7 +397,7 @@ function copas(te) {
   for (const a of [...E.arboles, ...Campos.arbolesExtra()]) { if (n >= 9000) break; if (a.talado || Campos.tapa(a.x, a.z)) continue; if (rellenoC && rellenoC.has(Math.floor((a.z - CI.Z0) / CI.C) * CI.N + Math.floor((a.x - CI.X0) / CI.C))) continue;
     const st = pieza(a.pieza); if (!st) continue; const b = st.bb, r = Math.max(b[3] - b[0], b[5] - b[2]) * 0.5 * a.esc * 0.8, y = altura(a.x, a.z) + (b[4] - b[1]) * a.esc * 0.8;
     copasM.setMatrixAt(n, m4.compose(new THREE.Vector3(a.x, y, a.z), _q.identity(), new THREE.Vector3(r, 1, r))); const v = 0.85 + 0.3 * a.tono;
-    copasM.setColorAt(n, col.setRGB(0.26 * v * te[0] * 1.6, 0.5 * v * te[1] * 1.3, 0.16 * v * te[2] * 1.4)); n++; }
+    copasM.setColorAt(n, col.setRGB(0.2 * v * te[0] * 1.6, 0.42 * v * te[1] * 1.3, 0.13 * v * te[2] * 1.4)); n++; }
   copasM.count = n; copasM.instanceMatrix.needsUpdate = true; if (copasM.instanceColor) copasM.instanceColor.needsUpdate = true; ambientePlano(); }
 /* UR1 (usuario, 20/11: «muralla de madera que la ciudad se la ha comido»): con la urbe grande a la vista (E.urbe, plano 3) la muralla se DIBUJA por el borde
    de fuera, abrazando todas las casas, y no por el surco de dentro. Solo vista: la fase, las puertas del juego y «dentro o fuera» siguen saliendo de ciudad.js.
@@ -412,9 +415,6 @@ function cercoVista() {
       for (let k = 0; k < 12; k++) { const c = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; if (den(c[0], c[1]) === da) a = c; else b = c; }
       const t = Math.atan2(a[1] - f.z, a[0] - f.x), j = Math.round(((t / D2) % 1 + 1) % 1 * NR) % NR, p0 = S[(j + NR - 1) % NR], p1 = S[(j + 1) % NR];
       if (distRio(a[0], a[1]) >= RIBERA && !PU.some(p => Math.hypot(p.x - a[0], p.z - a[1]) < 40)) PU.push({ x: a[0], z: a[1], ang: Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) }); } }
-  /* CV4a: también donde llegan las vías de adorno de la urbe (E.urbe.puertas), para que no mueran contra el muro */
-  for (const p of E.urbe.puertas || []) { const t = Math.atan2(p.z - f.z, p.x - f.x), j = Math.round(((t / D2) % 1 + 1) % 1 * NR) % NR, p0 = S[(j + NR - 1) % NR], p1 = S[(j + 1) % NR], q = S[j];
-    if (distRio(q[0], q[1]) >= RIBERA && !PU.some(o => Math.hypot(o.x - q[0], o.z - q[1]) < 40)) PU.push({ x: q[0], z: q[1], ang: Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) }); }
   return { S, PU };
 }
 /* muralla: por el surco; primero empalizada (por código), luego tramos de piedra reales con torres; puertas donde cruzan las calles */
@@ -528,7 +528,7 @@ let pedirReparto = false;
 export function sincronizar(forzar) {
   if (!E || (!forzar && E.rev === revVista) || ahora() < esperaSurco) return; revVista = E.rev;
   sueloJ.pintar(E); if (Campos.poner(E, estK, estF)) nTalados = -1; edificios(); rellenoVista(); arboles(); dinamico(); plazas();
-  if (surcoM) surcoM.visible = E.muralla.fase < 2;
+  if (surcoM) surcoM.visible = E.muralla.fase < 2 && !(E.urbe && E.muralla.fase >= 1);      /* CV4a: con muralla por fuera, la cinta del surco no deja un anillo dentro del caserío */
   if (casas(ahora())) animHasta = Math.max(animHasta, ahora() + 2.6);
   sombraPend = true; pedirReparto = true;
 }
@@ -794,11 +794,12 @@ export class CityView3D {
     let a;
     if (on) {
       this.camA = null; this._prev = { tx: cam.tx, tz: cam.tz, d: cam.d, az: cam.az, elF: cam.elF || 0 };
-      const u = E && E.urbe, f = E && E.foro, B = u && u.borde, bx = B ? B.map(q => q[0]) : null, bz = B ? B.map(q => q[1]) : null;
-      /* CV4a: centrado en la caja de la muralla (no en el foro: junto al río la urbe se encoge) y con poco aire */
-      const cx = B ? (Math.min(...bx) + Math.max(...bx)) / 2 : f ? f.x : 0, cz = B ? (Math.min(...bz) + Math.max(...bz)) / 2 : f ? f.z : -20, R = B ? Math.max(...B.map(q => Math.hypot(q[0] - cx, q[1] - cz))) + 9 : (u && u.RU ? Math.max(...u.RU) + 7 : 300), asp = vista.w / Math.max(1, vista.h), fov = vista.w < vista.h ? 50 : 38;
+      const u = E && E.urbe, f = E && E.foro; let R = (u && u.RU ? Math.max(...u.RU) + 7 : 300), cx = f ? f.x : 0, cz = f ? f.z : -20;
+      /* CV4a: se encuadra el contorno de la urbe (su centro y su radio de verdad), no un círculo alrededor del foro: junto al río la urbe queda descentrada y se veía pequeña */
+      if (u && u.borde && u.borde.length) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const q of u.borde) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); z0 = Math.min(z0, q[1]); z1 = Math.max(z1, q[1]); } cx = (x0 + x1) / 2; cz = (z0 + z1) / 2; R = 7; for (const q of u.borde) R = Math.max(R, Math.hypot(q[0] - cx, q[1] - cz) + 7); }
+      const asp = vista.w / Math.max(1, vista.h), fov = vista.w < vista.h ? 50 : 38;
       const tv = Math.tan(fov * Math.PI / 360), th = Math.min(tv, tv * asp);
-      a = { tx: cx, tz: cz, d: Math.min(4000, R * 1.08 / th), az: cam.az, el: PLANO_EL * Math.PI / 180, nk: 0.02 }; cam.dMax = 4000; this._plano = true;
+      a = { tx: cx, tz: cz, d: Math.min(4000, R * PLANO_MARGEN / th), az: cam.az, el: PLANO_EL * Math.PI / 180, nk: 0.02 }; cam.dMax = 4000; this._plano = true;
     } else {
       const P = hacia || this._prev || { tx: cam.tx, tz: cam.tz, d: Math.min(cam.d, 640), az: cam.az, elF: 0 }, efi = P.elF || 0;
       a = { tx: P.tx, tz: P.tz, d: P.d, az: P.az === undefined ? cam.az : P.az, el: efi || kEl(P.d), nk: 1, fin: true, elF: efi }; this._plano = false; this._prev = null;
