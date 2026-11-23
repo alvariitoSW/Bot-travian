@@ -11,6 +11,7 @@
 <div id="gu-hud">
   <div id="gu-pendones"></div>
   <div id="gu-cinta"></div>
+  <div id="gu-dialogo" aria-live="polite"><b></b> <i></i> <span></span></div>
   <button id="gu-retirar" type="button"><svg viewBox="0 0 24 24"><path d="M5 21V4M5 5h12l-3 4 3 4H5"/></svg>Retirarse</button>
   <div id="gu-mando" hidden>
     <div id="gu-cuerpos"></div>
@@ -662,6 +663,7 @@
     function suena(e) {
       const S = root.Sonido; if (!S) return;
       const tropa = e.tropa;
+      if (root.Musica && ((e.tipo === 'choque' && /^Las líneas/.test(e.texto)) || e.tipo === 'caballeria' || e.tipo === 'relevo' || e.tipo === 'numidas-aviso')) root.Musica.agacha();   /* SON1-b: suena un cuerno */
       if (e.tipo === 'choque') { if (/^Las líneas/.test(e.texto)) { S.cuerno(0.8); setTimeout(() => S.cuernoRival(0.6), 700); setTimeout(() => S.choque(1, 1), 1400); } else S.choque(1, 1); }
       else if (e.tipo === 'pila') S.choque(0.4, 1.3);
       else if (e.tipo === 'carga-enemiga') { if (tropa === 'elefantes') S.elefante(0.8); else if (tropa === 'falange') S.falange(0.7); else { S.carga(0.7); } }
@@ -675,14 +677,14 @@
     function eventos() {
       for (; nEv < B.eventos.length; nEv++) {
         const e = B.eventos[nEv];
-        if (e.tipo === 'orden') { mirar(e.sect, 2.2, true); continue; }
+        if (e.tipo === 'orden') { mirar(e.sect, 2.2, true); habla(e); continue; }
         if (e.tipo === 'fin') { fin(); continue; }
         if (e.tipo === 'caballeria-lista') { if (performance.now() > cintaHasta) cinta(e.texto); continue; }
         if (e.tipo === 'pila') { rafaga(e.sect, e.lado, 26, 0.9, 1.6, '#efe3bf'); if (e.lado === 1 && performance.now() < cintaHasta) continue; }
         const mala = ['carga-enemiga', 'numidas-aviso', 'cansados', 'linea-deshecha', 'lluvia', 'testudo-roto'].includes(e.tipo) || (e.tipo === 'roto' && e.lado === 0) || (e.tipo === 'envuelve' && e.lado === 1) || (e.tipo === 'pila' && e.lado === 1);
         const buena = ['enemigo-cede', 'impacto', 'numidas-fuera', 'tir-tiran'].includes(e.tipo) || (e.tipo === 'roto' && e.lado === 1) || (e.tipo === 'envuelve' && e.lado === 0) || (e.tipo === 'pila' && e.lado === 0);
         cinta(e.texto, mala ? 'mala' : buena ? 'buena' : '');
-        suena(e);
+        suena(e); habla(e);
         if (e.tipo === 'impacto' || e.tipo === 'choque') temblor = 1;
         if (e.tipo === 'roto' || e.tipo === 'impacto' || e.tipo === 'relevo' || e.tipo === 'caballeria' || e.tipo === 'choque') mirar(e.sect, e.tipo === 'caballeria' ? 6.5 : 3.2, true);
         else if (e.tipo === 'carga-enemiga' || e.tipo === 'envuelve' || e.tipo === 'numidas-aviso') mirar(e.sect, 2.8, false);
@@ -693,7 +695,7 @@
       const r = B.resultado, t = { victoria: 'Victoria', derrota: 'Derrota', retirada: 'Retirada' }[r.como], m = Math.floor(r.t / 60), s = Math.round(r.t % 60);
       $('fin-t').textContent = t; $('fin-t').style.color = r.como === 'victoria' ? 'var(--oro)' : '#e0937f'; $('fin-p').textContent = r.motivo;
       $('fin-c').innerHTML = '<span>Tus bajas</span><b>' + r.bajas[0] + ' de ' + r.inicial[0] + '</b><span>Bajas enemigas</span><b>' + r.bajas[1] + ' de ' + r.inicial[1] + '</b><span>Duración</span><b>' + m + ' min ' + s + ' s</b>';
-      guardaYa();
+      guardaYa(); finMusica(r.como);
       tFin = setTimeout(() => { $('fin').hidden = false; $('mando').hidden = true; $('retirar').hidden = true; $('cinta').className = ''; }, r.como === 'retirada' || retardo0 ? 0 : 1600);
     }
     function ordenar(o) {
@@ -718,6 +720,34 @@
       elegir(Math.max(0, Math.min(2, Math.round(p.x / S) + 1)));
     });
 
+    /* ---------- SON1-b: banda sonora adaptativa y voces de los soldados (js/gfx/musica.js, js/voces.js; licencia de juego) ---------- */
+    const vz = root.Voces ? root.Voces.nuevo() : null; let dialogoHasta = 0, tBanda = 0;
+    function dice(f, sect) {
+      if (!f) return; const d = $('dialogo'), So = root.Sonido;
+      d.className = 've ' + f.quien; d.children[0].textContent = root.Voces.NOMBRE[f.quien] + ':'; d.children[1].textContent = f.lat; d.children[2].textContent = f.es ? '— ' + f.es : ''; dialogoHasta = performance.now() + 3200;
+      if (!So || !So.muestra) return; let gr = f.grupo; if (gr === 'canto' && !(B.n0[1] && B.n0[1].galos)) gr = 'clamor';   /* el cántico es celta: solo los galos */
+      const g = root.Voces.grupoDisponible(gr, So.tiene), pan = sect >= 0 ? (sect - 1) * 0.5 : 0;
+      if (g) { if (f.grupo === 'orden' && root.Musica) root.Musica.agacha(); So.muestra(g, { v: g === 'panico' ? 0.5 : f.quien === 'centurion' ? 0.85 : f.quien === 'enemigo' ? 0.55 : 0.65, pan: g === 'panico' ? (pan || (Math.random() < 0.5 ? -0.7 : 0.7)) : pan, i: g === 'orden' && So.buf.orden && So.buf.orden[2] ? 3 + (Math.random() < 0.5 ? 1 : 0) : 0, vel: f.quien === 'enemigo' ? 0.88 + 0.08 * Math.random() : f.quien === 'centurion' ? 0.95 : 1 + 0.1 * Math.random(), retraso: 0.12 }); }
+    }
+    function habla(e) { if (!vz) return; const sit = root.Voces.deEvento(e); if (sit) dice(root.Voces.elige(sit, vz, Math.random), e.sect); }
+    function resumenMusica() {
+      const viv = i => B.sect.filter(s => s.c[i].inicial > 0), med = i => { const l = viv(i); return l.length ? l.reduce((a, s) => a + (s.c[i].roto ? 0 : Math.max(0, s.c[i].moral)), 0) / l.length : 1; };
+      let can = 0; for (const s of viv(0)) if (!s.c[0].roto && s.c[0].lineas.length) can = Math.max(can, R.frente(s.c[0]).fatiga);
+      return { fase: B.fase, moral: [med(0), med(1)], rotos: [viv(0).filter(s => s.c[0].roto).length, viv(1).filter(s => s.c[1].roto).length], cansancio: can, resultado: B.resultado && B.resultado.como };
+    }
+    /* cada segundo: la tensión de la música, y la charla suelta (en la espera y entre golpes) */
+    function banda(dt) {
+      tBanda -= dt; if (tBanda > 0) return; tBanda = 1;
+      const M = root.Musica, rs = resumenMusica(), ten = root.Musica ? M.tensionDe(rs) : 0.3;
+      if (M && M.activa) { M.tension(ten); M.estado(M.estadoDe(rs)); }
+      if (!vz) return; vz.t = B.t; vz.tension = ten;
+      dice(root.Voces.elige(B.fase === 'lucha' ? 'lucha' : 'espera', vz, Math.random), -1);
+      if (B.fase === 'lucha' && B.sect.some(s => s.c[0].inicial > 0 && !s.c[0].roto && s.c[0].moral < 0.3)) dice(root.Voces.elige('flaquea', vz, Math.random), -1);
+    }
+    function finMusica(como) {
+      if (root.Musica) root.Musica.final(como === 'victoria' ? 'victoria' : 'derrota');
+      if (vz) { vz.t = B.t; dice(root.Voces.elige(como === 'victoria' ? 'victoria' : 'derrota', vz, Math.random), -1); }
+    }
     /* ---------- bucle ---------- */
     let tRuido = 0;
     /* Fragor de fondo: el choque suena cada poco, más fuerte cuantos más cuerpos empujan (Sonido limita las voces) */
@@ -765,7 +795,7 @@
       }
       pGeo.attributes.position.needsUpdate = true; pGeo.attributes.color.needsUpdate = true;
     }
-    function avanza(dt) { T += dt; R.paso(B, dt); eventos(); ambiente(dt); colocar(dt); mover(dt); proyectiles(dt); }
+    function avanza(dt) { T += dt; R.paso(B, dt); if (vz) vz.t = B.t; eventos(); ambiente(dt); banda(dt); colocar(dt); mover(dt); proyectiles(dt); }
     let raf = 0, cerrado = false, tFin = 0, retardo0 = false, antes = 0, acum = 0, cuadros = 0, lentos = 0, tHud = 0;
     function cuadro(ahora) {
       if (cerrado) return; raf = requestAnimationFrame(cuadro);
@@ -776,7 +806,7 @@
         else { T += real; colocar(real); mover(real); }
       }
       adornos(real); moverCamara(real); pintarFiguras(); renderer.render(escena, camara); pintarPendones();
-      if (ahora - tHud > 200) { tHud = ahora; pintarCartas(); if (ahora > cintaHasta) $('cinta').classList.remove('ve'); }
+      if (ahora - tHud > 200) { tHud = ahora; pintarCartas(); if (ahora > cintaHasta) $('cinta').classList.remove('ve'); if (ahora > dialogoHasta) $('dialogo').classList.remove('ve'); }
       /* si el móvil no puede, se baja la nitidez antes que la fluidez */
       if (cuadros < 240) { cuadros++; if (real > 0.04) lentos++; if (cuadros === 240 && lentos > 120 && dpr > 1) { dpr = Math.max(1, dpr * 0.6); renderer.setPixelRatio(dpr); medir(); } }
     }
@@ -796,6 +826,7 @@
         if (!getUnit('hastati')) throw new Error('No se han podido cargar los soldados');
         campo(); const retomada = cfg.estado.fase === 'fin' || cfg.estado.t > 0; retardo0 = retomada; montar(cfg.estado, retomada); moverCamara(0, true);
         lista = true; $('carga').hidden = true; $('mando').hidden = false;
+        if (root.Musica && B.fase !== 'fin') root.Musica.iniciar({ semilla: B.sem });   /* SON1-b: la banda sonora, con fundido de entrada */
         if (B.fase === 'fin') fin(); else { cinta(retomada ? 'La batalla sigue donde la dejaste' : 'Se acercan. Si te tiran, pulsa «Escudos»'); cintaHasta = performance.now() + 6000; }
       } catch (e) { console.error(e); $('carga-p').textContent = 'No se ha podido cargar la batalla.'; $('carga-s').hidden = false; }
     }
@@ -806,7 +837,7 @@
     document.addEventListener('visibilitychange', alOcultar); window.addEventListener('pagehide', guardaYa);
     const tGuardar = setInterval(() => { if (lista && B && B.fase !== 'fin' && !pausa) guardaYa(); }, 4000);
     function cerrarTodo() {
-      cerrado = true; cancelAnimationFrame(raf); if (root.Sonido && root.Sonido.callaFondos) root.Sonido.callaFondos(); clearInterval(tGuardar); clearTimeout(tFin); delete window.__gc;
+      cerrado = true; cancelAnimationFrame(raf); if (root.Sonido && root.Sonido.callaFondos) root.Sonido.callaFondos(); if (root.Musica) root.Musica.parar(1.5); clearInterval(tGuardar); clearTimeout(tFin); delete window.__gc;
       document.removeEventListener('visibilitychange', alOcultar); window.removeEventListener('pagehide', guardaYa); for (const f of salidas) f();
       for (const m of mallas.values()) { try { soltarMalla(m); } catch (e) { /* ya liberada */ } }
       soltarSoldados();
