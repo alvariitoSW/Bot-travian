@@ -77,7 +77,7 @@ ok(!R.calmar(R.memoriaNueva(), 'juegos').ok && !R.calmar(e.mem, 'rezos').ok, 'ca
 // 7. avisos
 const un = R.estacion(R.memoriaNueva(), { ...nada, agua: 0.5 }, 10);
 const f1 = R.fichaBarrio({ cobertura: { ...nada, agua: 0.5 }, clases: { ple: 10, ciu: 5, esc: 5 }, mem: un.mem });
-ok(f1.avisos.some(t => /ministro de infraestructura/.test(t) && /estaci/.test(t)), 'tras 1 estación descontento: aviso antes de la consecuencia con ministro: ' + f1.avisos[0]);
+ok(f1.avisos.some(t => /ministro de agricultura/.test(t) && /estaci/.test(t)), 'tras 1 estación descontento: aviso antes de la consecuencia con ministro: ' + f1.avisos[0]);
 let mm = R.memoriaNueva();
 for (let i = 0; i < 3; i++) mm = R.estacion(mm, sinOrden, 90).mem;
 const f3 = R.fichaBarrio({ cobertura: sinOrden, clases: { ple: 10, ciu: 5, esc: 5 }, mem: mm });
