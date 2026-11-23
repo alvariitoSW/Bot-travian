@@ -137,13 +137,16 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
   - ❎ (sustituida por el carril CD el 23/11, «Sí, la sustituye») UR2 **Ciudad: lo que UR1 no tocó** (L1; ≈0,8 M): cuartel con entramado de aspecto medieval y taller con grúa en cantera y mina (piezas de 0 A.D. mal elegidas; cambiar con la skill `arte`), anillos de tierra alrededor del foro, yunta para que vuelvan los carros, remate de la muralla donde acaba junto al río, **que la muralla de piedra de Roma defienda más** (subir su nivel inicial tumbó al bot agresivo de 5/10 a 3/10 y, a nivel 4, el juez de guerra no abría la defensa: pide equilibrio), el botón de la obra de Roma aún dice «muralla de piedra» y repaso de las ciudades de otras culturas.
   - ❎ (sustituida por el carril CD el 23/11, «Sí, la sustituye») CI3b **La ciudad ×5 que cuenta** (L1; detrás de CE3): que las casas y la población de la urbe grande cuenten en la economía y la política.
   - **Carril CD — Ciudad nueva** (usuario, 23/11: sustituye a la cola de ciudad; orden «1-2 → 3 → 4 → 5»; área Cerebro, rama Ciudades. Precios: los pone CD0). Detrás quedan CE4, CE5, CE10, CE11 y CE12.
-  - ⬜ CD0 **La ciudad nueva en maqueta, hablada con el usuario** (solo documento y maqueta): ficha de ideas del juego de Iberia (`estudios/REF-…`, sin guardar sus vídeos), vista grande desde arriba, menú por familias (infraestructura, política, militar, parques y jardines, agricultura, minería, principales, secundarios…), lista de ministros y qué encarga cada uno; capturas a 390 px y precio de CD1 a CD6.
-  - ⬜ CD1 **Vista desde arriba como base** (puntos 1 y 2; sobre la vista «Plano» de CV4a): más grande, sin la bandeja de edificios; botón «Construir» que abre el mini menú por familias.
-  - ⬜ CD2 **Construir en vivo con el arquitecto** (punto 3): trazar calles y caminos con el dedo; el arquitecto las endereza y propone la cuadrícula; los edificios se ponen junto a las calles; las casas de la urbe grande cuentan (recoge CI3b).
-  - ⬜ CD3 **Ministros por área** (punto 3): ejército (nivel de herrería, tipos de tropa; recoge CE3b: tropas con hombres, hierro y paga, y el tope del Foro en todas las vías), ciencia, infraestructura (agua, termas, sanidad), hacienda (impuestos), agricultura, minería, artesanía…; les das encargos y los cumplen.
-  - ⬜ CD4 **Plan del Senado a 4–8 estaciones** (punto 4): desde el Senado decides qué se construye las próximas 4 a 8 estaciones y los ministros lo ejecutan mientras haces otra cosa (recoge CE7–CE9 en lo que sirva).
-  - ⬜ CD5 **Ciudad viva con necesidades** (punto 5): agua, comida, salud, ocio y orden por barrio y por clase; si faltan, hay consecuencia y se ve (recoge CS1 y CS2).
-  - ⬜ CD6 **Embellecer la vista desde arriba** (punto 5): gente y carros con sentido, jardines, detalle de época (recoge UR2).
+  - ✅ CD0 **La ciudad nueva en maqueta, hablada con el usuario** (23/11; parte `partes/2026-11-23-CD0.md`; página `estudios/CD0-ciudad-nueva.md`; ficha `estudios/REF-ciudad-iberus.md`; capturas `capturas-tarea/CD0-*`; ≈1,4 M). Siete familias (5 + Puerto + Viviendas; parques y jardines en Principales), 8 ministros con Culto y fiestas, más arquitecto y gobernador; cada ministro lidera un bando; plan «Obras + prioridad»; si el Senado lo rechaza, cambias y votas otra vez.
+  - ⬜ CD1 **Vista desde arriba y «Construir» por familias** (≈1,0 M; de paso; tras la subida del «Plano» de CV4a).
+  - ⬜ CD2a **Calles con el dedo y el arquitecto** (≈0,9 M).
+  - ⬜ CD2b **Las casas de la urbe grande cuentan** (≈0,6 M; de paso; migrar en `G.load`; bot de campaña).
+  - ⬜ CD3a **Ministros y encargos (reglas)**, tope del Foro en todas las vías, tropas con hierro y paga (≈1,0 M; de paso; bot de campaña).
+  - ⬜ CD3b **Pantalla «Tus ministros»** (≈0,7 M). Después va MN3 (gobernador).
+  - ⬜ CD4 **Plan del Senado a 4–8 estaciones** (≈1,0 M; de paso; bot de campaña).
+  - ⬜ CD5a **Necesidades por barrio y clase (reglas)** (≈0,7 M; de paso; bot de campaña).
+  - ⬜ CD5b **Capa «Necesidades» y consecuencias a la vista** (≈0,7 M).
+  - ⬜ CD6 **Embellecer** (≈1,0 M; pase a Arte: cuartel y grúa).
   - ✅ L4 y L7 ya no esperan PO1: su plan es CE6 a CE10 (CE1, 18/11). Maquetas EV8, EV7 y EV4a archivadas sin borrar; P166 y P176 cerradas; el plan del año, detrás de la 1.0.
   - Lo que ya servía a una línea sigue igual: L10 (GM44, GM43g, GC10), L11 (TP1; después GM43l, GM43i y GM43j), L15 (V10b), L5 (K7b; K7e espera PO1).
   - Pasan a «después de la 1.0», en pausa y con su texto intacto: RM1 a RM7 (Roma 3D), C14 (mapa libre) y GM-K6a a GM-K6d (sellos y franja de mando).
