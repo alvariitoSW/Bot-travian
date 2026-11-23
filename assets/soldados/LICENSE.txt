@@ -19,6 +19,14 @@ cuatro niveles de detalle cada uno; movimientos compartidos en movimientos_escud
   tools/blender/falangita_meshy_ligero.py y tools/blender/falangita_meshy_juego.py. El modelo original no está en el repositorio.
   Sus manos son de MakeHuman (CC0 1.0). Escudo, sarisa, correa, penacho y plumas son propios de AQVILA (código de
   tools/blender/falangita_macedonio.py). Estos ocho archivos de malla y sus texturas se comparten con CC BY 4.0.
+- Hastatus (hastatus*): el cuerpo, la ropa, la cota, el casco y la greba (con sus texturas) vienen de otro modelo
+  generado por el usuario con Meshy (meshy.ai), plan gratuito, crédito «Meshy». Licencia CC BY 4.0:
+  https://creativecommons.org/licenses/by/4.0/
+  Aligerado y adaptado en AQVILA: tools/blender/hastatus_meshy_ligero.py y tools/blender/hastatus_meshy_juego.py.
+  El modelo original no está en el repositorio. Sus manos son de MakeHuman (CC0 1.0). Escudo oval, pilum, espada,
+  vaina y espada envainada son propios de AQVILA (código de gobierno/maquetas/soldado-rome2/construir/piezas.py).
+  La túnica se pasó a gris para teñirla con el color de cada pueblo. Estos cuatro niveles y sus texturas se comparten
+  con CC BY 4.0. (Los movimientos compartidos movimientos_escudo_* siguen siendo CC0, de Quaternius.)
 
 CC0 no obliga a citar, pero se cita. El detalle de la conversión está en gobierno/maquetas/soldado-rome2/LEEME.md.
 Esta licencia se aplica solo al contenido de assets/soldados/. El código del juego es independiente.
