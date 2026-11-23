@@ -1,109 +1,121 @@
-Voces habladas de AQVILA (assets/voces) — SON2, 23/11/2026
+Voces habladas de AQVILA (assets/voces) — SON3-b, 23/11/2026
 
 Cada archivo es una frase de los soldados (js/voces.js, campo «pron») dicha en voz alta, o un grito griego del enemigo
 (griego1 = «Alalá», griego2 = «Eleleú», griego3 = peán «Yé, yé, paián»).
-Son 77 frases romanas (ids de js/voces.js, p. ej. choque-19.mp3) y 3 gritos griegos. Todas son sonido hecho por AQVILA
-(síntesis de voz, no grabación de nadie) y se publican con el juego bajo la licencia «propio» (derecho de AQVILA).
+Son 77 frases romanas (ids de js/voces.js, p. ej. choque-19.mp3) y 3 gritos griegos: 80 archivos de voz sintética.
+LICENCIA DEL AUDIO: CC BY 3.0 (https://creativecommons.org/licenses/by/3.0/), porque la voz se entrenó con datos CC BY 3.0 y
+exige citar a sus autores (el crédito está también en la pantalla de créditos del juego y en js/registro.js).
 
-Cómo se hicieron (tools/voces.py, se rehacen con: pip install piper-tts; python3 -I tools/voces.py <carpeta-de-la-voz> assets/voces)
-- Síntesis: Piper (https://github.com/OHF-Voice/piper1-gpl, versión 1.8.0). El motor es GPL-3.0-or-later; solo se usó para
-  fabricar los archivos y NO viaja con el juego. El sonido que produce no es código ni obra derivada del motor.
-- Voz: es_ES-davefx-medium (un hombre, español de España, 22 050 Hz).
-  Modelo: https://huggingface.co/rhasspy/piper-voices/tree/main/es/es_ES/davefx/medium (repositorio rhasspy/piper-voices, licencia MIT)
-  Datos de entrenamiento: https://github.com/OHF-Voice/voice-datasets — licencia CC0 (dice su MODEL_CARD).
-  Cadena de entrenamiento: «ajustada desde el modelo rdh» (neerlandés de Bélgica, un hombre), cuyos datos
-  (https://github.com/r-dh/dutch-vl-tts) son CC0 1.0 y que se entrenó desde cero. No hay datos de Lessac (de uso limitado) en la cadena.
-  El modelo (.onnx) no se distribuye con el juego: solo el audio sintetizado. Licencia comprobada el 23/11/2026 en la tarjeta de la voz
-  y en https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/LICENSING.md (el proyecto Piper no pone ninguna condición propia a las voces;
-  el derecho sobre el audio depende de los datos, aquí CC0 a lo largo de toda la cadena).
-- Probada y descartada: es_ES-carlfm-x_low (datos de dominio público; 16 000 Hz y calidad «x_low», más metálica); se eligió davefx
-  por su calidad media y su registro grave, que aguanta bien el tratamiento de grito.
-- Tratamiento (tools/voces.py): latín restituido con ortografía española (c y g duras, v como b entre vocales, ae como ai),
-  más rápida (length_scale 0,74-0,82), tono más grave en el centurión, saturación suave, compresión fuerte, banda 150-4000 Hz,
-  sala corta; el soldado y los gritos griegos van con 3 copias desfasadas de tono distinto (varios hombres).
-  mp3 mono a 32 kHz, volumen medio -17 dB, pico por debajo de -1 dB.
+Crédito obligatorio
+  Voz entrenada con el Corpus Sharvard: Vincent Aubanel, Maria Luisa García Lecumberri y Martin Cooke,
+  Universidad de Edimburgo (University of Edinburgh DataShare, https://datashare.ed.ac.uk/handle/10283/574), licencia
+  CC BY 3.0 (http://creativecommons.org/licenses/by/3.0/, según el MODEL_CARD de la voz).
+  Artículo del corpus: «The Sharvard Corpus: A phonemically-balanced Spanish sentence resource for audiology»,
+  International Journal of Audiology, 2014, https://doi.org/10.3109/14992027.2014.907507
+  Los datos son 700 frases leídas por un hombre (locutor 0) y una mujer (locutor 1). AQVILA usa solo el locutor 0 (hombre).
+  Se cambió: se sintetizaron frases nuevas (latín restituido con ortografía española), se les dio ritmo, volumen y una sala corta,
+  y se codificaron en mp3. No hay aval de los autores ni de la Universidad.
+  Nota: no se pudo abrir la página de DataShare desde el entorno de trabajo (el acceso estaba cerrado), así que la licencia
+  y los autores se comprobaron en el MODEL_CARD de la voz y en el artículo (Crossref); conviene cotejar con el texto de cita
+  de esa página en cuanto haya acceso.
+
+Cómo se hicieron (tools/voces.py; se rehacen con: pip install piper-tts; python3 -I tools/voces.py <carpeta-de-la-voz> assets/voces)
+- Motor: Piper (https://github.com/OHF-Voice/piper1-gpl, versión 1.8.0), GPL-3.0-or-later. Solo se usó para fabricar los
+  archivos y NO viaja con el juego (ni código ni el modelo .onnx): solo el audio sintetizado.
+- Voz: es_ES-sharvard-medium (español de España, 22 050 Hz, dos locutores; se usa el 0, un hombre).
+  Modelo: https://huggingface.co/rhasspy/piper-voices/tree/main/es/es_ES/sharvard/medium (repositorio rhasspy/piper-voices, licencia MIT).
+  Según su MODEL_CARD: ajustada («finetuned») desde la voz base inglesa de EE. UU. hifi_tts_92 (lectora 92 del corpus Hi-Fi TTS,
+  Cori Samuel). Hi-Fi TTS (NVIDIA) es CC BY 4.0 (https://www.openslr.org/109/): se cita aquí como origen de la voz base;
+  la licencia que manda para el audio es la de los datos de ajuste (Sharvard, CC BY 3.0).
+  Comprobado el 23/11/2026 en https://huggingface.co/rhasspy/piper-voices/raw/main/es/es_ES/sharvard/medium/MODEL_CARD
+  y en https://github.com/OHF-Voice/piper1-gpl/blob/main/docs/LICENSING.md.
+- Receta (elegida por el usuario el 23/11 entre varias muestras): noise_scale 0,8 y noise_w 0,9; paso alto de 90 Hz, compresión
+  suave 3:1 y sala corta; sin saturación, sin cambiar el tono, sin compresión fuerte y sin fragor de batalla mezclado (el juego
+  ya pone el fragor debajo). Centurión y optio: una toma, length_scale 0,9. Soldado: dos tomas del mismo locutor (length_scale
+  0,88 y 0,95), la segunda a −8 dB y desfasada 60 ms. Griegos: tres tomas (0,86 / 0,93 / 0,98) con desfases de 45 y 90 ms.
+  mp3 mono a 32 kHz, volumen medio −18 dB, pico por debajo de −1 dB.
 - Los gritos griegos son palabras atestiguadas en griego antiguo (ver gobierno/historia/SON1-voces.md).
+- Descartadas tras escuchar muestras: Kokoro, la voz davefx (CC0) con saturación y tomas de tono cambiado.
 
 archivos: ver la lista de js/registro.js (R.sonidos), una ficha por archivo.
-
-lista (todas: propio, voz es_ES-davefx-medium, Piper):
-espera-1.mp3
-espera-2.mp3
-espera-3.mp3
-espera-4.mp3
-espera-5.mp3
-espera-6.mp3
-espera-7.mp3
-espera-8.mp3
-espera-9.mp3
-pila-12.mp3
-pila-13.mp3
-pila-14.mp3
-pila-15.mp3
-pila-16.mp3
-choque-18.mp3
-choque-19.mp3
-choque-20.mp3
-choque-21.mp3
-choque-22.mp3
-choque-23.mp3
-empujar-26.mp3
-empujar-27.mp3
-empujar-28.mp3
-empujar-29.mp3
-empujar-30.mp3
-aguantar-31.mp3
-aguantar-32.mp3
-aguantar-33.mp3
-aguantar-34.mp3
-carga-enemiga-35.mp3
-carga-enemiga-36.mp3
-carga-enemiga-37.mp3
-elefantes-41.mp3
-elefantes-42.mp3
-elefantes-43.mp3
-elefantes-44.mp3
-caballeria-47.mp3
-caballeria-48.mp3
-caballeria-49.mp3
-caballeria-50.mp3
-flanco-52.mp3
-flanco-53.mp3
-flanco-54.mp3
-flanco-55.mp3
-cansancio-56.mp3
-cansancio-57.mp3
-cansancio-58.mp3
-cansancio-59.mp3
-flaquea-60.mp3
-flaquea-61.mp3
-flaquea-62.mp3
-flaquea-63.mp3
-flaquea-64.mp3
-roto-propio-65.mp3
-roto-propio-66.mp3
-roto-propio-67.mp3
-roto-propio-68.mp3
-roto-enemigo-69.mp3
-roto-enemigo-70.mp3
-roto-enemigo-71.mp3
-enemigo-cede-73.mp3
-enemigo-cede-74.mp3
-enemigo-cede-75.mp3
-relevo-77.mp3
-relevo-78.mp3
-relevo-79.mp3
-relevo-80.mp3
-victoria-81.mp3
-victoria-82.mp3
-victoria-83.mp3
-victoria-84.mp3
-derrota-85.mp3
-derrota-86.mp3
-derrota-87.mp3
-lucha-89.mp3
-lucha-90.mp3
-lucha-91.mp3
-griego1.mp3
-griego2.mp3
-griego3.mp3
+lista (todas: CC BY 3.0, voz es_ES-sharvard-medium, Piper):
+ aguantar-31.mp3
+ aguantar-32.mp3
+ aguantar-33.mp3
+ aguantar-34.mp3
+ caballeria-47.mp3
+ caballeria-48.mp3
+ caballeria-49.mp3
+ caballeria-50.mp3
+ cansancio-56.mp3
+ cansancio-57.mp3
+ cansancio-58.mp3
+ cansancio-59.mp3
+ carga-enemiga-35.mp3
+ carga-enemiga-36.mp3
+ carga-enemiga-37.mp3
+ choque-18.mp3
+ choque-19.mp3
+ choque-20.mp3
+ choque-21.mp3
+ choque-22.mp3
+ choque-23.mp3
+ derrota-85.mp3
+ derrota-86.mp3
+ derrota-87.mp3
+ elefantes-41.mp3
+ elefantes-42.mp3
+ elefantes-43.mp3
+ elefantes-44.mp3
+ empujar-26.mp3
+ empujar-27.mp3
+ empujar-28.mp3
+ empujar-29.mp3
+ empujar-30.mp3
+ enemigo-cede-73.mp3
+ enemigo-cede-74.mp3
+ enemigo-cede-75.mp3
+ espera-1.mp3
+ espera-2.mp3
+ espera-3.mp3
+ espera-4.mp3
+ espera-5.mp3
+ espera-6.mp3
+ espera-7.mp3
+ espera-8.mp3
+ espera-9.mp3
+ flanco-52.mp3
+ flanco-53.mp3
+ flanco-54.mp3
+ flanco-55.mp3
+ flaquea-60.mp3
+ flaquea-61.mp3
+ flaquea-62.mp3
+ flaquea-63.mp3
+ flaquea-64.mp3
+ griego1.mp3
+ griego2.mp3
+ griego3.mp3
+ lucha-89.mp3
+ lucha-90.mp3
+ lucha-91.mp3
+ pila-12.mp3
+ pila-13.mp3
+ pila-14.mp3
+ pila-15.mp3
+ pila-16.mp3
+ relevo-77.mp3
+ relevo-78.mp3
+ relevo-79.mp3
+ relevo-80.mp3
+ roto-enemigo-69.mp3
+ roto-enemigo-70.mp3
+ roto-enemigo-71.mp3
+ roto-propio-65.mp3
+ roto-propio-66.mp3
+ roto-propio-67.mp3
+ roto-propio-68.mp3
+ victoria-81.mp3
+ victoria-82.mp3
+ victoria-83.mp3
+ victoria-84.mp3

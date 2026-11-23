@@ -692,9 +692,9 @@
   };
 
   /* SON2: las frases habladas (assets/voces/<id>.mp3, id = el de la frase de js/voces.js; griego1-3 = gritos del enemigo griego).
-     Hechas por AQVILA con Piper (síntesis de voz libre) y la voz es_ES-davefx-medium (datos CC0); detalle en assets/voces/LICENSE.txt. */
+     Hechas por AQVILA con Piper (síntesis de voz libre) y la voz es_ES-sharvard-medium (datos Sharvard, CC BY 3.0, Univ. de Edimburgo); detalle en assets/voces/LICENSE.txt. */
   const VOCES_HABLADAS = 'espera-1 espera-2 espera-3 espera-4 espera-5 espera-6 espera-7 espera-8 espera-9 pila-12 pila-13 pila-14 pila-15 pila-16 choque-18 choque-19 choque-20 choque-21 choque-22 choque-23 empujar-26 empujar-27 empujar-28 empujar-29 empujar-30 aguantar-31 aguantar-32 aguantar-33 aguantar-34 carga-enemiga-35 carga-enemiga-36 carga-enemiga-37 elefantes-41 elefantes-42 elefantes-43 elefantes-44 caballeria-47 caballeria-48 caballeria-49 caballeria-50 flanco-52 flanco-53 flanco-54 flanco-55 cansancio-56 cansancio-57 cansancio-58 cansancio-59 flaquea-60 flaquea-61 flaquea-62 flaquea-63 flaquea-64 roto-propio-65 roto-propio-66 roto-propio-67 roto-propio-68 roto-enemigo-69 roto-enemigo-70 roto-enemigo-71 enemigo-cede-73 enemigo-cede-74 enemigo-cede-75 relevo-77 relevo-78 relevo-79 relevo-80 victoria-81 victoria-82 victoria-83 victoria-84 derrota-85 derrota-86 derrota-87 lucha-89 lucha-90 lucha-91 griego1 griego2 griego3'.split(' ');
-  for (const id of VOCES_HABLADAS) R.sonidos[id] = { archivo: 'assets/voces/' + id + '.mp3', licencia: 'propio', credito: 'AQVILA (síntesis con Piper, voz davefx, datos CC0)', fuente: 'https://huggingface.co/rhasspy/piper-voices/tree/main/es/es_ES/davefx/medium' };
+  for (const id of VOCES_HABLADAS) R.sonidos[id] = { archivo: 'assets/voces/' + id + '.mp3', licencia: 'CC BY 3.0', credito: 'Voz sintética hecha con Piper y es_ES-sharvard-medium; datos del Corpus Sharvard: Vincent Aubanel, Maria Luisa García Lecumberri, Martin Cooke (Univ. de Edimburgo)', fuente: 'https://datashare.ed.ac.uk/handle/10283/574' };
 
   /* Fichas vacías para copiar y rellenar al añadir contenido nuevo. */
   const ARTE_TROPA = { modelo: 'assets/units/<id>.bin', licencia: 'CC BY-SA 3.0', credito: 'Wildfire Games (0 A.D.)' };   // o { sin: '<motivo>' }; añade provisional: true si el modelo es prestado
