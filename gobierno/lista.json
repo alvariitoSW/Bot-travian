@@ -207,14 +207,14 @@
         "CG6c",
         "TP9",
         "TP9a",
-        "TP9b",
-        "TP9c",
-        "TP9d",
-        "TP9e",
         "TP9-0",
-        "FA10",
-        "TP9g",
-        "LP0"
+        "LP1",
+        "LP2",
+        "LP3",
+        "LP4",
+        "LP5",
+        "LP6",
+        "LP7"
       ]
     },
     {
@@ -278,9 +278,6 @@
         "CG6b",
         "TP9",
         "TP9a",
-        "TP9b",
-        "TP9c",
-        "TP9d",
         "TP9f",
         "TP9-0",
         "FA1",
@@ -288,13 +285,15 @@
         "FA3",
         "FA4",
         "FA5",
-        "FA6",
         "FA7",
-        "FA8",
-        "FA9",
-        "FA10",
         "FI1",
-        "LP0"
+        "LP1",
+        "LP2",
+        "LP3",
+        "LP4",
+        "LP5",
+        "LP6",
+        "LP7"
       ],
       "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a). Desde CG2a (20/11), cada tropa con su retrato, coste, barras, lo que sabe hacer (testudo, cuña, muro, falange, orden abierto, pilum) y su ficha."
     },
