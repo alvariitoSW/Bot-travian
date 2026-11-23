@@ -90,7 +90,12 @@ def hastatus(m, B, lod=False, muy=False, fondo=False):
     P += Z.pilum(hR['c'], -hR['X'], hR['N'], 'wrist.R', 1, bajo=1.0, simple=muy)
     if PILUM_GLB: P += Z.pilum(hR['c'], hR['X'], hR['N'], 'wrist.R', 4, bajo=1.0, nombre='pilumt', simple=muy)      # prueba «pilum»: agarre de lanzar, con la punta hacia el meñique (conjunto 4)
     P += Z.espada(hR['c'], -hR['X'], hR['d'], 'wrist.R', 2)
-    boca = np.array([-0.228, 1.005, 0.02]); ev = np.array([-0.13, -1, -0.16]); P += Z.vaina(boca, ev, [1, 0, 0], 'root') + Z.espada(boca - ev / np.linalg.norm(ev) * 0.058, ev, [0, 0, 1], 'root', 3, nombre='espada_env', solo_puno=True)
+    boca = np.array([-0.228, 1.005, 0.02]); ev = np.array([-0.13, -1, -0.16]); hv = 'spine05' if PILUM_GLB else 'root'      # prueba «pilum»: la vaina cuelga del cinturón (tramo bajo de la espalda), no de la raíz: así sigue al tronco cuando gira
+    pv = Z.vaina(boca, ev, [1, 0, 0], hv) + Z.espada(boca - ev / np.linalg.norm(ev) * 0.058, ev, [0, 0, 1], hv, 3, nombre='espada_env', solo_puno=True)
+    if PILUM_GLB:                                              # ese tramo va siempre ~15° inclinado respecto a la raíz (así salen los movimientos de UAL): se compensa para que en «quieto» cuelgue igual que colgando de la raíz
+        Dq = anim.retarget(m, 1, 'Idle_Loop', 30)[0][0]; ixh = {h: i for i, h in enumerate(m['huesos'])}; Rc = Dq[ixh['spine05']].T @ Dq[ixh['root']]; c5 = m['cab']['spine05']
+        for q in pv: q['P'] = c5 + (q['P'] - c5) @ Rc.T; q['N'] = q['N'] @ Rc.T
+    P += pv
     P += Z.suela(m, 'L') + Z.suela(m, 'R')
     return P
 
@@ -176,7 +181,7 @@ MUESTRA_HASTATUS = {'quieto': [[0, 5]], 'quieto2': [[0, 5]], 'quieto3': [[0, 5]]
 # Prueba «pilum» (23/11): con PILUM_GLB=<pilum_throw.glb> (hecho con tools/blender/pilum_tiro.py sobre el esqueleto de UAL2) se añade el clip 'lanzar2'
 # y un segundo pilum con el agarre de lanzar. Sin la variable, todo sale como siempre.
 if PILUM_GLB:
-    CLIPS['lanzar2'] = (3, 'Pilum_Throw', 0); CFG_HASTATUS['lanzar2'] = ('bajo', None); MUESTRA_HASTATUS['lanzar2'] = [[0, 12], [0.77, 4]]
+    CLIPS['lanzar2'] = (3, 'Pilum_Throw', 0); CFG_HASTATUS['lanzar2'] = ('bajo', None); MUESTRA_HASTATUS['lanzar2'] = [[0, 5], [0.23, 12], [1.10, 4]]      # porte (pilum de siempre) · cambio de agarre (pilum de tiro) · suelta
 FUERA_LEJOS = ('escudo_asa', 'suela', 'espada_env')
 def aligerar_piezas(pz, r=0.34, muy=False, fondo=False):
     out = []

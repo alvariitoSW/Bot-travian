@@ -1,6 +1,17 @@
-"""AQVILA · prueba «pilum»: lanzamiento de pilum hecho en Blender sobre el esqueleto de Quaternius UAL2 (CC0).
-Poses clave con cinemática inversa (manos, pies, pelvis, pecho), agarre de la mano y pilum que sale volando.
-El muñeco mira a -Y; su derecha es -X."""
+"""AQVILA · PLANTILLA para movimientos de soldado hechos en Blender (primer uso: el lanzamiento del pilum, 23/11/2026).
+Trabaja sobre el esqueleto de Quaternius UAL2 (CC0), el mismo del que salen los clips del juego. El muñeco mira a -Y; su derecha es -X.
+
+Cómo se usa (Blender en la nube de Patch, skills cloud-blender-skills):
+  cloud.py push UAL2.glb · cloud.py run importa.py (abre el .glb) ·
+  cloud.py run pilum_tiro.py -- vista=tres|der|frente|mano lente=62 w=400 cuadros=1,5,12,...   (fotos en fr/)
+  cloud.py run pilum_tiro.py -- --hornea --sin-render   (deja /work/pilum_throw.glb con la acción Pilum_Throw)
+  Luego, en gobierno/maquetas/soldado-rome2/construir: PILUM_GLB=<ese .glb> python3 construir.py hastatus ...
+
+Para otro movimiento (estocada, parar, caer): copiar el archivo y cambiar SOLO la tabla CL (una fila por pose clave) y los cuadros CAMBIO, SUELTA y FIN.
+Cada fila: cuadro · pelvis (dx, dy, dz, guiñada, cabeceo) · pecho (guiñada, cabeceo, alabeo) · muñeca derecha (x, y, z) · hacia dónde apunta el arma ·
+hacia dónde mira la palma · muñeca izquierda · tobillo izquierdo (posición, giro) · tobillo derecho (posición, giro, talón) · agarre (1 porte, 0 tiro).
+Lo demás lo hace solo: cinemática inversa de brazos y piernas, giro del tronco repartido por la espalda, dedos cerrados y horneado.
+Datos del esqueleto: en hand_r el eje Y va hacia los dedos, -X es la palma y Z va de meñique a pulgar; las falanges cierran con giro positivo sobre su X."""
 import bpy, math, json, sys
 from mathutils import Vector, Matrix, Euler
 
@@ -38,7 +49,11 @@ def copia(hueso, obj, loc=True, rot=True):
         c = P[hueso].constraints.new("COPY_ROTATION"); c.target = obj
 def ik(hueso, obj, polo, ang):
     c = P[hueso].constraints.new("IK"); c.target = obj; c.chain_count = 2; c.pole_target = polo; c.pole_angle = math.radians(ang)
-copia("pelvis", T["pelvis"]); copia("spine_03", T["pecho"], loc=False); copia("Head", T["cabeza"], loc=False)
+copia("pelvis", T["pelvis"])
+TRAMOS = (("spine_01", 0.34), ("spine_02", 0.67), ("spine_03", 1.0))      # el giro del tronco se reparte por la espalda: cada tramo va de la pelvis al pecho en su proporción, con su propia base de reposo
+for h, k in TRAMOS:
+    T[h] = T["pecho"] if h == "spine_03" else vacio("T_" + h, REST[h]); copia(h, T[h], loc=False)
+copia("Head", T["cabeza"], loc=False)
 ik("lowerarm_r", T["mano_r"], T["codo_r"], float(next((a.split("=")[1] for a in ARG if a.startswith("polo_r=")), -90)))
 ik("lowerarm_l", T["mano_l"], T["codo_l"], float(next((a.split("=")[1] for a in ARG if a.startswith("polo_l=")), -90)))
 ik("calf_l", T["pie_l"], T["rod_l"], float(next((a.split("=")[1] for a in ARG if a.startswith("polo_p=")), -90)))
@@ -76,16 +91,17 @@ def hacer_pilum(nombre):
         b = next(n for n in m.node_tree.nodes if n.type == "BSDF_PRINCIPLED"); b.inputs["Base Color"].default_value = col; b.inputs["Metallic"].default_value = met; b.inputs["Roughness"].default_value = 0.55; me.materials.append(m)
     o = bpy.data.objects.new(nombre, me); S.collection.objects.link(o); o.rotation_mode = "QUATERNION"; return o
 
-pil = hacer_pilum("Pilum_mano"); vuelo = hacer_pilum("Pilum_vuelo")
+pil = hacer_pilum("Pilum_mano"); vuelo = hacer_pilum("Pilum_vuelo"); porte = hacer_pilum("Pilum_porte")
 # en la mano: hijo del hueso; el asta va por el eje Z del hueso (de meñique a pulgar), la punta hacia el meñique (-Z); cruza la palma
 pil.parent = arm; pil.parent_type = "BONE"; pil.parent_bone = "hand_r"
 pil.matrix_parent_inverse = Matrix.Identity(4)
 pil.location = (-0.030, 0.045, 0.0); pil.rotation_quaternion = Euler((math.pi, 0, 0)).to_quaternion()      # el +Z de la malla (punta) queda en el -Z del hueso
+porte.parent = arm; porte.parent_type = "BONE"; porte.parent_bone = "hand_r"; porte.matrix_parent_inverse = Matrix.Identity(4); porte.location = (-0.030, 0.045, 0.0)      # porte: punta hacia el pulgar (+Z)
 
 # ---------- poses clave ----------
-def ejes_mano(punta, palma):
-    """orientación del hueso de la mano: su -Z es la punta del pilum; su -X es hacia donde mira la palma"""
-    z = -Vector(punta).normalized(); x = -Vector(palma); x = (x - z * x.dot(z)).normalized(); y = z.cross(x)
+def ejes_mano(punta, palma, porte=False):
+    """orientación del hueso de la mano: su -Z es la punta del pilum (agarre de tiro) o su +Z (agarre de porte); su -X es hacia donde mira la palma"""
+    z = Vector(punta).normalized() * (1 if porte else -1); x = -Vector(palma); x = (x - z * x.dot(z)).normalized(); y = z.cross(x)
     return Matrix((x, y, z)).transposed()
 def giro(base, guinada, cabeceo, alabeo=0.0):
     return (Matrix.Rotation(math.radians(guinada), 3, "Z") @ Matrix.Rotation(math.radians(cabeceo), 3, "X") @ Matrix.Rotation(math.radians(alabeo), 3, "Y") @ base.to_3x3())
@@ -95,33 +111,48 @@ def pon(obj, f, loc=None, rot=None):
 
 pel0 = REST["pelvis"].translation; R_PIE_L = REST["foot_l"]; R_PIE_R = REST["foot_r"]
 #   cuadro: pelvis(dx,dy,dz, guiñada, cabeceo) · pecho(guiñada, cabeceo, alabeo) · muñeca derecha · punta · palma · muñeca izquierda · tobillo izq (pos, giro) · tobillo der (pos, giro, talón)
+CAMBIO, SUELTA, FIN = 5, 27, 48          # último cuadro con agarre de porte · cuadro en que el pilum sale de la mano · último cuadro
 CL = [
- (1,  (0.00, 0.06, -0.05, -28,  0), (-38,  -2,  0), (-0.34, 0.22, 1.60), (0.00, -1, 0.10), (0.35, 0, 0.94), (0.26, -0.30, 1.12), ((0.11, -0.16, 0.104),  8), ((-0.14, 0.26, 0.104), -55, 0)),
- (10, (0.00, 0.17, -0.09, -52, -6), (-78, -10, -6), (-0.30, 0.66, 1.56), (0.00, -1, 0.20), (0.30, 0, 0.95), (0.16, -0.44, 1.30), ((0.11, -0.24, 0.20),  6), ((-0.14, 0.28, 0.104), -65, 0)),
- (15, (0.00, -0.02, -0.10, -32, 0), (-52,  -4, -4), (-0.36, 0.52, 1.66), (0.00, -1, 0.18), (0.32, 0, 0.95), (0.20, -0.52, 1.22), ((0.11, -0.56, 0.104),  4), ((-0.14, 0.26, 0.104), -55, 12)),
- (19, (0.00, -0.24, -0.07,  8,  9), (34,   16,  6), (-0.20, -0.62, 1.78), (0.00, -1, 0.06), (0.10, -0.3, 0.95), (0.34, -0.36, 1.02), ((0.11, -0.56, 0.104),  4), ((-0.14, 0.22, 0.15), -40, 38)),
- (24, (0.01, -0.31, -0.10, 20, 14), (48,   26,  6), (-0.06, -0.66, 1.22), (0.1, -0.7, -0.7), (0.6, 0.3, -0.7), (0.38, -0.20, 1.00), ((0.11, -0.56, 0.104),  4), ((-0.14, 0.18, 0.16), -35, 34)),
- (30, (0.00, -0.22, -0.09,  6,  8), (14,   12,  2), (-0.24, -0.46, 1.02), (0.0, -0.5, 0.86), (0.9, -0.2, 0.2), (0.32, -0.30, 1.05), ((0.11, -0.48, 0.15),  6), ((-0.14, 0.24, 0.104), -50, 6)),
- (36, (0.00, 0.00, -0.06, -20,  2), (-26,   2,  0), (-0.30, -0.16, 1.00), (0.0, -0.35, 0.94), (0.95, -0.2, 0.1), (0.27, -0.30, 1.10), ((0.11, -0.20, 0.13),  8), ((-0.14, 0.26, 0.104), -55, 0)),
- (40, (0.00, 0.06, -0.05, -28,  0), (-38,  -2,  0), (-0.31, -0.10, 1.00), (0.0, -0.3, 0.95), (0.95, -0.2, 0.1), (0.26, -0.30, 1.12), ((0.11, -0.16, 0.104),  8), ((-0.14, 0.26, 0.104), -55, 0)),
+ # porte: pilum vertical al costado, como en «quieto» y «andar»
+ (1,  (0.00, 0.03, -0.02, -10,  0), (-12,   0,  0), (-0.31, -0.10, 1.04), (0.00, -0.06, 1.0), (1.0, 0, 0.0), (0.26, -0.30, 1.12), ((0.11, -0.10, 0.104),  8), ((-0.13, 0.16, 0.104), -35, 0), 1),
+ # lo tumba hacia delante a la altura de la cadera; en el cuadro siguiente la mano cambia de agarre sin que el asta se mueva
+ (5,  (0.00, 0.04, -0.03, -16,  0), (-20,   0,  0), (-0.30, -0.26, 1.14), (0.00, -1, 0.10), (1.0, 0, 0.0), (0.26, -0.30, 1.12), ((0.11, -0.12, 0.104),  8), ((-0.13, 0.20, 0.104), -45, 0), 1),
+ (6,  (0.00, 0.04, -0.03, -17,  0), (-22,   0,  0), (-0.30, -0.26, 1.16), (0.00, -1, 0.10), (1.0, 0, 0.0), (0.26, -0.30, 1.12), ((0.11, -0.12, 0.104),  8), ((-0.13, 0.20, 0.104), -45, 0), 0),
+ # listo: pilum sobre el hombro, punta al frente
+ (12, (0.00, 0.06, -0.05, -28,  0), (-38,  -2,  0), (-0.40, 0.20, 1.63), (0.00, -1, 0.10), (0.35, 0, 0.94), (0.26, -0.30, 1.12), ((0.11, -0.16, 0.104),  8), ((-0.14, 0.26, 0.104), -55, 0), 0),
+ # armar: peso atrás, tronco girado, brazo atrás; el pie izquierdo se levanta
+ (19, (0.00, 0.17, -0.09, -52, -6), (-78, -10, -6), (-0.36, 0.66, 1.60), (0.00, -1, 0.20), (0.30, 0, 0.95), (0.16, -0.44, 1.30), ((0.11, -0.24, 0.20),  6), ((-0.14, 0.28, 0.104), -65, 0), 0),
+ # paso
+ (23, (0.00, -0.02, -0.10, -32, 0), (-52,  -4, -4), (-0.40, 0.52, 1.68), (0.00, -1, 0.18), (0.32, 0, 0.95), (0.20, -0.52, 1.22), ((0.11, -0.56, 0.104),  4), ((-0.14, 0.26, 0.104), -55, 12), 0),
+ # suelta
+ (27, (0.00, -0.24, -0.07,  8,  9), (34,   16,  6), (-0.20, -0.62, 1.78), (0.00, -1, 0.06), (0.10, -0.3, 0.95), (0.34, -0.36, 1.02), ((0.11, -0.56, 0.104),  4), ((-0.14, 0.22, 0.15), -40, 38), 0),
+ # remate y vuelta al sitio
+ (32, (0.01, -0.31, -0.10, 20, 14), (48,   26,  6), (-0.06, -0.66, 1.22), (0.1, -0.7, -0.7), (0.6, 0.3, -0.7), (0.38, -0.20, 1.00), ((0.11, -0.56, 0.104),  4), ((-0.14, 0.18, 0.16), -35, 34), 0),
+ (38, (0.00, -0.22, -0.09,  6,  8), (14,   12,  2), (-0.24, -0.46, 1.02), (0.0, -0.5, 0.86), (0.9, -0.2, 0.2), (0.32, -0.30, 1.05), ((0.11, -0.48, 0.15),  6), ((-0.14, 0.24, 0.104), -50, 6), 0),
+ (44, (0.00, 0.00, -0.05, -16,  2), (-20,   2,  0), (-0.30, -0.16, 1.00), (0.0, -0.35, 0.94), (0.95, -0.2, 0.1), (0.27, -0.30, 1.10), ((0.11, -0.18, 0.13),  8), ((-0.13, 0.20, 0.104), -45, 0), 0),
+ (48, (0.00, 0.03, -0.02, -10,  0), (-12,   0,  0), (-0.31, -0.10, 1.00), (0.0, -0.3, 0.95), (0.95, -0.2, 0.1), (0.26, -0.30, 1.12), ((0.11, -0.10, 0.104),  8), ((-0.13, 0.16, 0.104), -35, 0), 0),
 ]
-for f, pv, ch, mr, punta, palma, ml, pl, pr in CL:
+for f, pv, ch, mr, punta, palma, ml, pl, pr, ag in CL:
     Rp = giro(REST["pelvis"], pv[3], pv[4]); pon(T["pelvis"], f, pel0 + Vector(pv[:3]), Rp)
-    pon(T["pecho"], f, None, giro(REST["spine_03"], ch[0], ch[1], ch[2])); pon(T["cabeza"], f, None, giro(REST["Head"], ch[0] * 0.25, ch[1] * 0.3))
-    pon(T["mano_r"], f, Vector(mr), ejes_mano(punta, palma))
+    for h, k in TRAMOS: pon(T[h], f, None, giro(REST[h], pv[3] + (ch[0] - pv[3]) * k, pv[4] + (ch[1] - pv[4]) * k, ch[2] * k))
+    pon(T["cabeza"], f, None, giro(REST["Head"], ch[0] * 0.25, ch[1] * 0.3))
+    pon(T["mano_r"], f, Vector(mr), ejes_mano(punta, palma, bool(ag)))
     pon(T["mano_l"], f, Vector(ml), giro(REST["hand_l"], ch[0] * 0.6 - 70, 0, -70))
     pon(T["pie_l"], f, Vector(pl[0]), giro(R_PIE_L, pl[1], 0)); pon(T["pie_r"], f, Vector(pr[0]), giro(R_PIE_R, pr[1], pr[2]))
+# entre el cuadro de porte y el de tiro la mano gira media vuelta de golpe: sin curva entre los dos
+for fc in T["mano_r"].animation_data.action.fcurves if hasattr(T["mano_r"].animation_data.action, "fcurves") else []:
+    for k in fc.keyframe_points:
+        if abs(k.co.x - CAMBIO) < 0.01: k.interpolation = "CONSTANT"
 
 # ---------- el pilum sale de la mano en el cuadro 19 y vuela ----------
-SUELTA = 19
 S.frame_set(SUELTA); bpy.context.view_layer.update()
 m0 = pil.matrix_world.copy(); p0 = m0.translation.copy(); d0 = (m0.to_3x3() @ Vector((0, 0, 1))).normalized()
 v = Vector((0.0, -1.0, 0.14)).normalized() * 17.0; g = Vector((0, 0, -9.8))
-for f in range(SUELTA, 41):
+for f in range(SUELTA, FIN + 1):
     t = (f - SUELTA) / 24.0; pos = p0 + v * t + 0.5 * g * t * t; d = (v + g * t).normalized() if f > SUELTA else d0
     vuelo.location = pos; vuelo.rotation_quaternion = d.to_track_quat("Z", "Y"); vuelo.keyframe_insert("location", frame=f); vuelo.keyframe_insert("rotation_quaternion", frame=f)
-for o, antes, despues in ((pil, False, True), (vuelo, True, False)):
-    for f, oc in ((0, antes), (SUELTA - 1, antes), (SUELTA, despues)):
+for o, claves in ((porte, ((0, False), (CAMBIO, False), (CAMBIO + 1, True))), (pil, ((0, True), (CAMBIO, True), (CAMBIO + 1, False), (SUELTA - 1, False), (SUELTA, True))), (vuelo, ((0, True), (SUELTA - 1, True), (SUELTA, False)))):
+    for f, oc in claves:
         o.hide_render = oc; o.hide_viewport = oc; o.keyframe_insert("hide_render", frame=f); o.keyframe_insert("hide_viewport", frame=f)
 
 # ---------- cámara, luz y suelo ----------
@@ -145,7 +176,7 @@ if "--hornea" in ARG:
     for o in bpy.data.objects: o.select_set(o is arm)
     bpy.ops.object.mode_set(mode="POSE")
     bpy.ops.pose.select_all(action="SELECT")
-    r = bpy.ops.nla.bake(frame_start=1, frame_end=40, step=1, only_selected=False, visual_keying=True, clear_constraints=True, use_current_action=False, bake_types={"POSE"})
+    r = bpy.ops.nla.bake(frame_start=1, frame_end=FIN, step=1, only_selected=False, visual_keying=True, clear_constraints=True, use_current_action=False, bake_types={"POSE"})
     bpy.ops.object.mode_set(mode="OBJECT")
     acc = arm.animation_data.action; acc.name = "Pilum_Throw"
     for a in list(bpy.data.actions):
@@ -161,7 +192,7 @@ if RENDER:
     try: S.render.engine = "BLENDER_EEVEE"
     except TypeError: S.render.engine = "BLENDER_EEVEE_NEXT"
     S.render.resolution_x, S.render.resolution_y = (int(next((a.split("=")[1] for a in ARG if a.startswith("w=")), 440)), 520); S.render.image_settings.file_format = "JPEG"
-    cuadros = [int(x) for x in next((a.split("=")[1] for a in ARG if a.startswith("cuadros=")), "1,6,10,13,15,17,19,21,24,28,34,40").split(",")]
+    cuadros = [int(x) for x in next((a.split("=")[1] for a in ARG if a.startswith("cuadros=")), "1,4,5,6,9,12,16,19,23,25,27,29,32,38,44,48").split(",")]
     for f in cuadros:
         S.frame_set(f); S.render.filepath = f"/work/fr/{lado}_{f:02d}.jpg"; bpy.ops.render.render(write_still=True)
     info["cuadros"] = cuadros
