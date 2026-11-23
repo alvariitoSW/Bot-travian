@@ -53,3 +53,36 @@ El punto de partida (`plano-claro/`, el vector de CD0 mejorado) se dejó fuera d
   secesiones de la plebe (la última, en 287 a.C.; Livio, *Periochae* 11).
 - **Arte**: todo por código, sin imágenes externas. Ni Iberus, ni Nova Roma, ni ningún otro juego comercial: solo ideas
   (`REF-ciudad-iberus.md`).
+
+## Ampliación (usuario, 23/11): áreas de influencia y gente contenta
+Pedido: «mejorar las áreas de influencia de los barrios, y la mecánica de mantener la ciudadanía feliz construyendo en
+función de necesidades, y hacerlo estético». Eligió **«Maqueta ahora»**. Maqueta: `maquetas/ciudad-nueva-concurso/ganador/`
+(el estilo ganador ya montado). Capturas: `capturas-tarea/CD0b-ganador-*.jpg`. Reglas para **CD5a**; lo que se ve, para **CD5b**.
+
+### Reglas propuestas (CD5a)
+1. **Cada servicio cubre lo que alcanza andando por la calle**, no un círculo. Se mide en pasos de calle desde su puerta:
+   fuente, corto; termas y escuela, medio; templo, mercado y guardia, más; granero y teatro, largo. Sin calle, no llega.
+   (Idea de Caesar III y Nova Roma; ya está en `REF-ciudad-iberus.md`.)
+2. **Una casa tiene una necesidad cubierta** si la alcanza un servicio de esa necesidad. **Un barrio la tiene cubierta**
+   si llega al 70 % de sus casas; entre el 30 y el 70 %, «falta algo»; por debajo del 30 %, «mal».
+3. **Nivel del barrio según lo que tenga cubierto**: con 0 a 3 necesidades, chozas; con 4 o 5, casas de atrio; con 6 a 8,
+   ínsulas y casas ricas. Al subir, un par de casas salen con andamio durante una estación. Al bajar, se ven tapiadas y vacías.
+4. **Cada clase pesa distinto** las 8 necesidades: la plebe, alimentación, trabajo y ocio; los ciudadanos, agua,
+   limpieza, cultura y orden; todos, salud y culto. **Ánimo del barrio** = suma ponderada de su cobertura.
+5. **Ánimo y consecuencias** (dureza «Duro», usuario, 23/11): contento → más vecinos, impuestos y votos del bando del barrio;
+   descontento dos estaciones seguidas → la consecuencia de su necesidad (fiebres, gente que se va, protesta que para
+   obras); en «mal» mucho tiempo → **revuelta** (no paga ni obedece; se calma con tropas, grano o juegos).
+6. **Siempre se avisa antes y se ofrece el remedio**: la ficha del barrio dice qué servicio, dónde y cuántas casas cubriría,
+   con el botón para encargarlo al ministro que toca.
+
+### Lo que se ve (CD5b)
+- **Al colocar** un servicio: su zona, pintada como una mancha de acuarela del color de la necesidad, más la cuenta («agua
+  para 2 barrios, 180 casas») y qué barrio subiría.
+- **Capa de necesidades**: se elige una de las 8. Se ven sus zonas y una gota roja sobre cada casa a la que no llega.
+- **Barrios con forma propia**: una mancha de su color de estado que sigue sus casas, no un círculo.
+- **Ficha del barrio**: las 8 necesidades con su barra, el ánimo con su tendencia, qué pide su clase y el mejor remedio.
+- En three.js: zonas por búsqueda en la red de calles (BFS) calculada solo al construir; manchas pintadas en un canvas como
+  textura transparente sobre el suelo (una sola llamada de dibujo).
+- **Historia**: el servicio que llega por la calle es **licencia de juego**. Es verdad que el agua pública llegaba a las
+  fuentes de barrio (*lacus*) y que los ediles vigilaban calles, mercados y grano (Cicerón, *Leyes* 3.7; Frontino 1.5
+  para el Aqua Appia, del 312 a.C.).

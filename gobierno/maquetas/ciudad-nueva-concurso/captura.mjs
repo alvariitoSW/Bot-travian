@@ -8,6 +8,7 @@ const D = dirname(fileURLToPath(import.meta.url));
 const OUT = join(D, '..', '..', 'capturas-tarea');
 const { chromium } = createRequire(import.meta.url)('playwright');
 const modos = ['ciudad', 'construir', 'necesidades'];
+const EXTRA = { ganador: ['colocar', 'zonas', 'subir', 'barrio'] }; // modos que solo tiene un estilo
 let estilos = readdirSync(D, { withFileTypes: true }).filter(d => d.isDirectory() && !['comun', 'hoja'].includes(d.name) && existsSync(join(D, d.name, 'index.html'))).map(d => d.name).sort();
 if (process.argv.length > 2) estilos = estilos.filter(e => process.argv.slice(2).includes(e));
 // Servidor estático de la raíz del repo: los estilos con módulos ES (three.js) no cargan por file://
@@ -20,7 +21,7 @@ let errores = 0;
 const abrir = async (w, h, dsf) => { const p = await (await br.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: dsf })).newPage();
   p.on('console', m => { if (m.type() === 'error') { errores++; console.log('ERROR consola:', m.text()); } }); p.on('pageerror', e => { errores++; console.log('ERROR página:', e.message); }); return p; };
 const page = await abrir(390, 844, 2);
-for (const e of estilos) for (const m of modos) {
+for (const e of estilos) for (const m of [...modos, ...(EXTRA[e] || [])]) {
   await page.goto(BASE + e + '/index.html?p=' + m);
   await page.waitForFunction(() => window.listo === true, null, { timeout: 30000 }); await page.waitForTimeout(250);
   await page.screenshot({ path: join(OUT, `CD0b-${e}-${m}.jpg`), type: 'jpeg', quality: 82 });
