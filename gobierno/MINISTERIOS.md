@@ -95,7 +95,7 @@ después. Excepciones que sí paran: algo irreversible, quitar cosas del juego, 
 
 **R3 · Jueces por área.** Cada tarea cierra con el juez de su área (`juez-area.mjs`), no con los 43 pasos completos.
 Los jueces completos se pasan **una vez por subida a `main`**, en la sesión de subida, con todas las áreas unidas.
-Medido el 23/11 para Batallas: lógica 48 s. <!-- JUEZ -->
+Medido el 23/11 para Batallas: lógica 48 s y navegador 12 min (APTO): **≈13 min frente a ≈59** de los completos.
 
 **R4 · Ideas aparte.** Una idea nueva es una línea «Idea:» en el parte, o lo que el usuario diga en el chat. El vigía
 la copia a la nevera de la bitácora («Después de la 1.0») con su área. **Solo el vigía la convierte en tarea**, y solo

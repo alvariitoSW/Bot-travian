@@ -33,7 +33,7 @@ Antes de cada commit: `node gobierno/juez-area.mjs batallas --archivos`. «VETAD
 | Cuándo | Orden | Tarda (medido el 23/11) |
 |---|---|---|
 | Mientras construyes | `node gobierno/juez-area.mjs batallas --rapido` | 48 s |
-| Para cerrar la tarea | `node gobierno/juez-area.mjs batallas` (lógica + `juez-guerra` en navegador) y **mirar las capturas** | ver `gobierno/MINISTERIOS.md` §4 |
+| Para cerrar la tarea | `node gobierno/juez-area.mjs batallas` (lógica + `juez-guerra` en navegador) y **mirar las capturas** | ≈13 min |
 | Si tocaste arte | lo añade solo: `gobierno/arte.mjs` y `gobierno/fichas.mjs` | segundos |
 | Jueces completos (`jueces.mjs`) | **No los pasas tú.** Los pasa una vez la sesión de subida, sobre todas las áreas unidas | 45–75 min |
 
