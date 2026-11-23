@@ -61,10 +61,12 @@
      'recortado' { id } (la raya se salía del campo) · 'gira' { id, grados, bisagra } · 'marcha' { id, metros } ·
      'formado' { id, t } · 'desorden' { id, coh } (la cohesión baja de 50) · 'ordenado' { id, coh } (vuelve a 70)
 
-   HISTORIA (skill historia). Manípulo de 120 hombres (hastati y principes; los triarios, 60): histórico (Polibio 6.21–24).
-   Formación en filas con un hueco de unos 3 pies por hombre: histórico (Polibio 18.28–30). Girar el frente pivotando sobre
-   un extremo (la «conversio»): probable para la época, descrita en tratados tácticos posteriores (Asclepiódoto 10; Arriano,
-   Táctica). Licencia de juego: dibujar el frente con el dedo, todas las velocidades y cifras de este archivo, que el ancho
+   HISTORIA (skill historia). Manípulo de 120 hombres (hastati o principes; los triarios, 60): histórico (Polibio 6.21 y 6.24).
+   Falangitas a unos 3 pies por hombre en orden cerrado: histórico (Polibio 18.29). El romano pedía unos 6 pies para
+   esgrimir (Polibio 18.30): el hueco de 0,9 m del manípulo es licencia de juego (orden prieto, para que el bloque se lea).
+   Girar la unidad entera como una puerta sobre un extremo (la «epistrophé»): probable; la describen los tácticos griegos
+   (Asclepiódoto 10; Arriano, Táctica 21), algo posteriores a la época. Galos más sueltos y con más fondo: licencia de juego.
+   Licencia de juego: dibujar el frente con el dedo, todas las velocidades y cifras de este archivo, que el ancho
    del frente cambie solo con la raya y que los hombres corran a su hueco sin chocar entre sí (las físicas son de FI1). */
 
 import { V_GIRO, azarSemilla } from './falange.js';
