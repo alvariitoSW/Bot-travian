@@ -187,9 +187,10 @@ function paso1() {
     (g.length ? '<p class="ro-rubrica cg2-r">Mis ejércitos</p><div class="cg2-guard">' + g.map((x, i) => '<div><button class="chip" data-act="escel" data-v="carga:' + i + '">' + esc(x.n) + '</button><button class="cg2-bx" data-act="escel" data-v="borra:' + i + '" aria-label="Borrar">×</button></div>').join('') + '</div>' : '') +
     '<p class="ro-rubrica cg2-r">Pruebas rápidas</p><div class="cg2-pruebas"><a class="esc-testudo" href="gobierno/maquetas/a-pie/"><span><b>Testudo a pie</b><small>Cruza el campo bajo los venablos</small></span><i></i></a>' +
     '<button class="esc-falange' + (S.rivFal ? ' on' : '') + '" data-act="escel" data-v="rivfal:" aria-expanded="' + S.rivFal + '"><span><b>Falange a pie</b><small>Elige entre cuatro rivales</small></span><i></i></button>' + (S.rivFal ? rivalesFalange() : '') +
-    '<a class="esc-lucha" href="gobierno/maquetas/lucha/"><span><b>Lucha a pie</b><small>Pelea con los dedos en la primera fila</small></span><i></i></a></div>';
+    '<a class="esc-lucha esc-manipulo" href="gobierno/maquetas/bloque/"><span><b>Manípulo a pie</b><small>Dibuja el frente y manda el bloque</small></span><i></i></a></div>';
 }
-/* FA7: los cuatro rivales de la prueba Falange a pie; cada uno abre la maqueta con ?rival= */
+/* LP3: «Manípulo a pie» sustituye a «Lucha a pie» (aprobado por el usuario: «A, cuando salga LP3»); usa el estilo de esc-lucha.
+   FA7: los cuatro rivales de la prueba Falange a pie; cada uno abre la maqueta con ?rival= */
 const RIV_FAL = [['manipulos', 'Manípulos', 'Romanos con pila'], ['caballeria', 'Caballería', 'Busca tu flanco'], ['elefantes', 'Elefantes', 'Se estrellan o te abren'], ['falange', 'Falange', 'Muro contra muro']];
 const rivalesFalange = () => '<div class="esc-rv"><p class="esc-rv-t">Elige rival</p><div class="esc-rv-g">' + RIV_FAL.map(([k, n, d]) => '<a class="esc-rv-b" href="gobierno/maquetas/falange/?rival=' + k + '"><b>' + n + '</b><small>' + d + '</small></a>').join('') + '</div></div>';
 function paso3() {

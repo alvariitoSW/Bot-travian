@@ -2020,82 +2020,16 @@
       "url": "https://claude.ai/code/session_01QiKC37EkYPrnF1g5nLbW5x"
     },
     {
-      "tarea": "SB1",
-      "titulo": "Subida · SB1 Jueces completos sobre todo unido (Opus)",
-      "nota": "Abierta el 23/11; con APTO se sube a main",
-      "url": "https://claude.ai/code/session_01QiKC37rTtBnh9B5VB63nBY"
+      "tarea": "MIN5",
+      "titulo": "Gobierno · MIN5 Paso «Falange a pie» de jueces.mjs (Opus)",
+      "nota": "Abierta el 23/11; de paso en jueces.mjs",
+      "url": "https://claude.ai/code/session_01QiKC39HxLF4D3B1zUxMuEm"
     },
     {
-      "tarea": "LP3",
-      "titulo": "Corazón · LP3 Maqueta «Manípulo a pie» en vertical (Opus)",
-      "nota": "Abierta el 23/11; de paso en ui.js y sw.js",
-      "url": "https://claude.ai/code/session_01QiKC36kgb6ao39q19Nmj4o"
-    },
-    {
-      "tarea": "FI3",
-      "titulo": "Corazón · FI3 Pilum que rebotan o se clavan (motor de físicas; Opus)",
-      "nota": "Abierta el 23/11",
-      "url": "https://claude.ai/code/session_01QiKC3ApnWHdiKqikYR9TJF"
-    },
-    {
-      "tarea": "AL1",
-      "titulo": "Taller · AL1 Aligerar y rigguear el galo grande de Meshy (Opus)",
-      "nota": "Abierta el 23/11",
-      "url": "https://claude.ai/code/session_01QiKC38XW9BDbBKU7CHDw1e"
-    },
-    {
-      "tarea": "AL2",
-      "titulo": "Taller · AL2 Aligerar y rigguear el galo rápido de Meshy (Opus)",
-      "nota": "Abierta el 23/11",
-      "url": "https://claude.ai/code/session_01QiKC37XAGWyytjM68odiy3"
-    },
-    {
-      "tarea": "AL3",
-      "titulo": "Taller · AL3 Aligerar y rigguear el centurión de Meshy (Opus)",
-      "nota": "Abierta el 23/11",
-      "url": "https://claude.ai/code/session_01QiKC36u8q4KwYFaiCWHA1W"
-    },
-    {
-      "tarea": "AL4",
-      "titulo": "Taller · AL4 Aligerar y rigguear el triario de Meshy (Opus)",
-      "nota": "Abierta el 23/11",
-      "url": "https://claude.ai/code/session_01QiKC377TF4vYWiQrMUFRfT"
-    },
-    {
-      "tarea": "AL5",
-      "titulo": "Taller · AL5 Aligerar y rigguear el galo lancero de Meshy (Opus)",
-      "nota": "Abierta el 23/11",
-      "url": "https://claude.ai/code/session_01QiKC3Ax44byBieUuqNGSuX"
-    },
-    {
-      "tarea": "AL6",
-      "titulo": "Taller · AL6 Aligerar y rigguear el jefe galo de Meshy (Opus)",
-      "nota": "Abierta el 23/11",
-      "url": "https://claude.ai/code/session_01QiKC36wq46k4SS53RLXMZ2"
-    },
-    {
-      "tarea": "AL7",
-      "titulo": "Taller · AL7 Aligerar y rigguear el vélite de Meshy (Opus)",
-      "nota": "Abierta el 23/11",
-      "url": "https://claude.ai/code/session_01QiKC3Af2P8WAFpQCss7rW6"
-    },
-    {
-      "tarea": "AL8",
-      "titulo": "Taller · AL8 Aligerar y rigguear el galo rápido 1.º de Meshy (Opus)",
-      "nota": "Abierta el 23/11",
-      "url": "https://claude.ai/code/session_01QiKC39GDu6Ge33GYTMEABu"
-    },
-    {
-      "tarea": "AL9",
-      "titulo": "Taller · AL9 Aligerar y rigguear el galo grande v2 de Meshy (Opus)",
-      "nota": "Abierta el 23/11",
-      "url": "https://claude.ai/code/session_01QiKC3Akjfk9BeQpQWWyVrV"
-    },
-    {
-      "tarea": "AL10",
-      "titulo": "Taller · AL10 Aligerar y rigguear el galo grande v2b de Meshy (Opus)",
-      "nota": "Abierta el 23/11",
-      "url": "https://claude.ai/code/session_01QiKC38fjk4a8X1rvncVFnz"
+      "tarea": "AL11",
+      "titulo": "Gobierno · AL11 Pases de los soldados de Meshy y enganche en «Manípulo a pie» (Opus)",
+      "nota": "Abierta el 23/11; de paso en sw.js, registro.js y créditos",
+      "url": "https://claude.ai/code/session_01QiKC36gwMwPtQroFEAPQmA"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"

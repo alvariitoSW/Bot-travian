@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hoja del galo rápido</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;font:13px/1.25 sans-serif;color:#2a2116;background:#e9dfc4}
+canvas{display:block;position:fixed;inset:0;width:100%;height:100%}
+.sil canvas{filter:brightness(0)}
+.rot{position:fixed;padding:2px 6px;background:rgba(245,238,218,.88);border-radius:4px;white-space:nowrap;pointer-events:none;overflow:clip}
+.rot.osc{background:rgba(30,24,16,.72);color:#f3ead2}
+#aviso{position:fixed;right:6px;top:6px;padding:3px 7px;background:#a3261e;color:#fff;font-weight:bold;font-size:12px;border-radius:4px;display:none}
+</style></head>
+<body><canvas id="c"></canvas>
+<script>addEventListener('error', e => { window.__fallo = String(e.message || e.error); }); addEventListener('unhandledrejection', e => { window.__fallo = String(e.reason); });</script>
+<script type="module">
+/* AL2: hoja de fotos del galo rápido de Meshy (copia de hastatus_hoja.html). Sin armas: solo el cuerpo.
+   Carga los soldados con el cargador del juego (js/gfx/soldado.js). Pone window.__listo y window.__info(). Lo lanza tools/blender/galo-rapido_hoja.mjs. */
+import { THREE } from '../../js/gfx/models.js';
+const q = new URLSearchParams(location.search), toma = q.get('toma') || 'cerca', TROPA = q.get('tropa') || 'galo-rapido';
+const NV = +(q.get('nivel') || 0), CLIP = q.get('clip') || 'guardia';
+const info = { toma, sinOficial: false, tris: {} };
+window.__info = () => info;
+
+const { cargarSoldado, tropa, PUEBLOS } = await import('../../js/gfx/soldado.js');
+
+const sil = toma === '1';
+if (sil) document.body.classList.add('sil');
+const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true, alpha: sil, preserveDrawingBuffer: true });
+r.setPixelRatio(Math.min(devicePixelRatio, 2)); r.setSize(innerWidth, innerHeight, false); r.setScissorTest(true);
+r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.1; if (sil) r.setClearColor(0x000000, 0);
+const W = innerWidth, H = innerHeight, vert = H > W;
+
+const tr = await cargarSoldado(TROPA, PUEBLOS[TROPA] || PUEBLOS.galo); if (!tr) throw new Error('no carga la tropa: ' + TROPA);
+const pu = await cargarSoldado('galo', PUEBLOS.galo); if (!pu) throw new Error('no carga el galo de antes');
+info.tris.tropa = tr.niveles.map(s => s.j.tris);
+
+/* ---------- ayudas ---------- */
+function rotulo(txt, x, y, o = {}) { const d = document.createElement('div'); d.className = 'rot' + (o.osc ? ' osc' : ''); d.textContent = txt; d.style.left = x + 'px'; d.style.top = y + 'px'; if (o.size) d.style.fontSize = o.size + 'px'; if (o.centro) d.style.transform = 'translateX(-50%)'; document.body.append(d); return d; }
+function luces(esc, o = {}) {
+  esc.add(new THREE.HemisphereLight(o.cielo || '#d6e4f5', o.tierra || '#7a6238', o.hemi ?? 1.25));
+  const sol = new THREE.DirectionalLight(o.sol || '#ffe6b8', o.fuerza ?? 3.0); sol.position.set(...(o.dir || [-5, 7, 8])); esc.add(sol); esc.add(sol.target);
+}
+/* un hombre en su propia malla (pocas llamadas: aquí da igual) */
+function hombre(esc, S, lv, x, z, giro, clip, t, semilla) { const T = tropa(S.niveles[lv], 1); esc.add(T.malla); const i = T.sig(); T.pon(i, x, z, giro, semilla); T.pose(i, clip, t, T.muestra(clip, t)); return T; }
+/* caja del hombre ya posado (en la CPU, con la textura de huesos): para encuadrar sin adivinar */
+function caja(S, lv, clip, t, giro = 0, x = 0, z = 0) {
+  const s = S.niveles[lv], j = s.j, c = j.clips[clip] || j.clips.quieto, nb = j.huesos.length, h2f = THREE.DataUtils.fromHalfFloat;
+  let f = t * c.fps; f = c.bucle ? f % (c.n - 1) : Math.min(f, c.n - 1); f = c.ini + Math.floor(f);
+  const mu = (j.muestra || {})[clip] ? j.muestra[clip].reduce((v, [t1, k]) => t >= t1 ? k : v, 0) : 0, M = new Float32Array(nb * 12);
+  for (let i = 0; i < nb * 12; i++) M[i] = h2f(s.crudo[f * nb * 12 + i]);
+  const po = s.geo.attributes.position, si = s.geo.attributes.aSkinI.array, sw = s.geo.attributes.aSkinW.array, st = s.geo.attributes.aSet.array, cg = Math.cos(giro), sg = Math.sin(giro);
+  const b = { x0: 1e9, x1: -1e9, y0: 1e9, y1: -1e9, z0: 1e9, z1: -1e9 };
+  for (let v = 0; v < po.count; v++) {
+    if (st[v] > 0 && Math.floor(mu / 2 ** (st[v] - 1) + 0.001) % 2 < 1) continue;
+    const px = po.getX(v), py = po.getY(v), pz = po.getZ(v); let X = 0, Y = 0, Z = 0;
+    for (let k = 0; k < 4; k++) { const w = sw[v * 4 + k] / 255; if (!w) continue; const m = si[v * 4 + k] * 12;
+      X += w * (M[m] * px + M[m + 1] * py + M[m + 2] * pz + M[m + 3]); Y += w * (M[m + 4] * px + M[m + 5] * py + M[m + 6] * pz + M[m + 7]); Z += w * (M[m + 8] * px + M[m + 9] * py + M[m + 10] * pz + M[m + 11]); }
+    const wx = X * cg + Z * sg + x, wz = -X * sg + Z * cg + z;
+    b.x0 = Math.min(b.x0, wx); b.x1 = Math.max(b.x1, wx); b.y0 = Math.min(b.y0, Y); b.y1 = Math.max(b.y1, Y); b.z0 = Math.min(b.z0, wz); b.z1 = Math.max(b.z1, wz);
+  }
+  return b;
+}
+/* cámara ortográfica que mete la caja [x0,x1]×[y0,y1] en un panel de w×h px; pies abajo con margen */
+function orto(x0, x1, y0, y1, w, h, desdeZ, marg = 0.06) {
+  const cw = (x1 - x0) * (1 + 2 * marg), ch = (y1 - y0) * (1 + 2 * marg), esc = Math.max(cw / w, ch / h), aw = w * esc, ah = h * esc, cx = (x0 + x1) / 2, yb = y0 - (y1 - y0) * marg;
+  const cam = new THREE.OrthographicCamera(-aw / 2, aw / 2, ah, 0, 0.1, 200); cam.position.set(cx, yb, desdeZ); cam.lookAt(cx, yb, 0); return cam;
+}
+const paneles = [];
+function panel(esc, cam, x, y, w, h) { paneles.push({ esc, cam, x, y, w, h }); }
+function pinta() { for (const p of paneles) { const yb = H - p.y - p.h; r.setViewport(p.x, yb, p.w, p.h); r.setScissor(p.x, yb, p.w, p.h); r.render(p.esc, p.cam); } }
+
+/* ---------- tomas ---------- */
+const FONDO = new THREE.Color('#e9dfc4');
+if (toma === 'cerca') {
+  const fov = 30, cab = 24;
+  const uno = (S, nombre, x, y, w, h, giro, sem = 7) => {
+    const esc = new THREE.Scene(); esc.background = FONDO; luces(esc); hombre(esc, S, NV, 0, 0, giro, CLIP, 0.8, sem);
+    const a = S.alto, yc = a * 0.74, ext = a * 0.66, cam = new THREE.PerspectiveCamera(fov, w / h, 0.05, 100), tg = Math.tan(fov * Math.PI / 360);
+    const d = Math.max(ext / (2 * tg), 1.25 / (2 * tg * (w / h))); cam.position.set(0, yc + 0.12, d); cam.lookAt(0, yc, 0); panel(esc, cam, x, y, w, h); rotulo(nombre, x + 8, y - cab + 3);
+  };
+  if (vert) { const h = H / 2 - cab; uno(tr, 'Galo rápido · de frente', 0, cab, W, h, -0.5); uno(tr, 'Galo rápido · de espaldas', 0, cab * 2 + h, W, h, Math.PI - 0.6); }
+  else { const w = W / 2, h = H - cab; uno(tr, 'Galo rápido · de frente', 0, cab, w, h, -0.5); uno(tr, 'Galo rápido · de espaldas', w, cab, w, h, Math.PI - 0.6); }
+}
+else if (toma === 'fila') {
+  const esc = new THREE.Scene(), cielo = new THREE.Color('#c8cdc6'); esc.background = cielo; esc.fog = new THREE.Fog(cielo, 18, 70);
+  luces(esc, { sol: '#ffc98a', fuerza: 3.2, dir: [5, 6, 8], hemi: 1.05, cielo: '#c9d6e6', tierra: '#6a5434' });
+  const suelo = new THREE.Mesh(new THREE.PlaneGeometry(300, 300), new THREE.MeshStandardMaterial({ color: '#7d6646', roughness: 1 })); suelo.rotation.x = -Math.PI / 2; esc.add(suelo);
+  const sx = 0.9, sz = 1.1;
+  for (let f = 0; f < 3; f++) for (let k = 0; k < 9; k++) hombre(esc, (f === 0 || k % 3) ? tr : pu, 0, (k - 4) * sx + Math.sin(f * 7 + k * 3.1) * 0.05, -f * sz, 0, 'guardia', 0.3 + ((k * 7 + f * 3) % 9) * 0.11, 5 + f * 31 + k * 7);
+  const cam = new THREE.PerspectiveCamera(vert ? 55 : 40, W / H, 0.1, 300); cam.position.set(vert ? -4.5 : -5.5, 2.3, vert ? 7.5 : 6.5); cam.lookAt(0, 0.9, -1.1); panel(esc, cam, 0, 0, W, H);
+  rotulo('Galos rápidos en «guardia» (detrás, alguno del galo de antes)', 6, H - 24, { size: 12 });
+}
+else if (toma === 'lejos') {
+  const NIV = [['fino', 260], ['_lejos', 140], ['_muylejos', 70], ['_fondo', 36]], cab = 38, pesos = vert ? [150, 100, 75, 65] : [330, 240, 150, 124], suma = pesos.reduce((a, b) => a + b), fmt = n => n.toLocaleString('es-ES');
+  for (let lv = 0; lv < 4; lv++) {
+    const [nom, px] = NIV[lv], esc = new THREE.Scene(); esc.background = FONDO; luces(esc); const cw = W * pesos[lv] / suma, x = W * pesos.slice(0, lv).reduce((a, b) => a + b, 0) / suma, giro = 0.45, t = 0.8;
+    rotulo(nom, x + cw / 2, 2, { centro: true, size: 12 }); rotulo(fmt(tr.niveles[lv].j.tris) + ' tri', x + cw / 2, 19, { centro: true, size: 10 });
+    if (vert) { const h = (H - cab) / 2;
+      [[tr, -50], [pu, 50]].forEach(([S, cx], i) => { hombre(esc, S, lv, cx, 0, giro, 'guardia', t, 9); const mpp = S.alto / px, aw = cw * mpp, ah = h * mpp, bajo = 10 * mpp;
+        const cam = new THREE.OrthographicCamera(-aw / 2, aw / 2, ah - bajo, -bajo, 0.1, 200); cam.position.set(cx, 0, 30); cam.lookAt(cx, 0, 0); panel(esc, cam, x, cab + i * h, cw, h); });
+    } else { const h = H - cab, mpp = tr.alto / px, aw = cw * mpp, ah = h * mpp, bajo = 10 * mpp, d = aw / 4;
+      hombre(esc, tr, lv, -d, 0, giro, 'guardia', t, 9); hombre(esc, pu, lv, d, 0, -giro, 'guardia', t, 9);
+      const cam = new THREE.OrthographicCamera(-aw / 2, aw / 2, ah - bajo, -bajo, 0.1, 200); cam.position.set(0, 0, 30); cam.lookAt(0, 0, 0); panel(esc, cam, x, cab, cw, h); }
+  }
+  rotulo('En cada nivel: galo rápido (izq.) y galo de antes (der.)', 6, H - 22, { size: 11 });
+}
+else throw new Error('toma desconocida: ' + toma);
+
+pinta(); info.paneles = paneles.length;
+requestAnimationFrame(() => { pinta(); window.__listo = true; });
+</script></body></html>
