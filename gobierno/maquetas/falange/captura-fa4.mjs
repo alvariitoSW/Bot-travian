@@ -4,6 +4,7 @@
 // Uso:  node gobierno/maquetas/falange/captura-fa4.mjs              (todo)
 //       node gobierno/maquetas/falange/captura-fa4.mjs solo=h-giro,v-giro   (solo esas fotos, sin medidas)
 //       node gobierno/maquetas/falange/captura-fa4.mjs sinfotos         (solo las medidas)
+//       node gobierno/maquetas/falange/captura-fa4.mjs solo=picas,v-boton-picas,h-boton-picas   (el botón de las picas: medida y fotos)
 import { createRequire } from 'module';
 import { createServer } from 'http';
 import { readFile, mkdir } from 'fs/promises';
@@ -115,12 +116,52 @@ bien(g.triangulos <= 750000, `triángulos en el choque: ${g.triangulos} (≤ 750
 bien(!errores.some(e => !e.startsWith('PRUEBA')), 'sin errores de consola en la carga de medidas');
 await ctx.close();
 }
+/* el botón «Bajar picas»: con toque emulado a 390×844, baja y alza las cinco filas sin contar como toque de compás */
+async function tocaEn(page, sel) {
+  const cdp = await page.context().newCDPSession(page), b = await page.evaluate(q => { const r = document.querySelector(q).getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; }, sel);
+  const ts = Date.now() / 1000; await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: b.x, y: b.y, id: 1 }], timestamp: ts });
+  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [], timestamp: ts + 0.06 }); await cdp.detach();
+}
+const leePicas = page => page.evaluate(() => { const S = window.__tp.S, b = document.getElementById('picas').getBoundingClientRect(), rr = [...document.querySelectorAll('.raya')].map(r => r.getBoundingClientRect());
+  return { filas: S.filas.map(Number).join(''), texto: document.getElementById('picas').textContent.trim(), toques: S.toques.buenos + S.toques.malos, andando: !!S.andando, b: { w: Math.round(b.width), h: Math.round(b.height), t: Math.round(b.top), l: Math.round(b.left) }, raya: { w: Math.round(Math.min(...rr.map(r => r.width))), h: Math.round(Math.min(...rr.map(r => r.height))) } }; });
+const esperaTexto = (page, t) => page.waitForFunction(x => document.getElementById('picas').textContent.trim() === x, t, { timeout: 120000 }).catch(() => {});
+if (!solo || solo.includes('picas')) {
+  const [w, h] = V, { ctx, page } = await abre('?semilla=' + SEMILLA, w, h, 1);
+  await page.evaluate(() => window.__tp.parar(true));
+  const p0 = await leePicas(page); console.log('(p0) ' + JSON.stringify(p0));
+  bien(p0.filas === '00000' && p0.texto === 'Bajar picas', `al empezar: filas ${p0.filas} y el botón dice «${p0.texto}»`);
+  bien(p0.b.h >= 44 && p0.b.w >= 44 && p0.b.l >= 0 && p0.b.t >= 0, `botón de ${p0.b.w}×${p0.b.h} px dentro de pantalla (≥ 44)`);
+  bien(p0.raya.h >= 44 && p0.raya.w >= 120, `cada raya en vertical: ${p0.raya.w}×${p0.raya.h} px (≥ 120×44)`);
+  await tocaEn(page, '#picas'); await esperaTexto(page, 'Alzar picas');
+  const p1 = await leePicas(page); console.log('(p1) ' + JSON.stringify(p1));
+  bien(p1.filas === '11111' && p1.texto === 'Alzar picas', `tocar el botón: filas ${p1.filas} y dice «${p1.texto}»`);
+  bien(p1.toques === p0.toques && !p1.andando, `el toque del botón no es de compás: toques ${p0.toques} → ${p1.toques}, andando ${p1.andando}`);
+  await tocaEn(page, '#picas'); await esperaTexto(page, 'Bajar picas');
+  const p2 = await leePicas(page); console.log('(p2) ' + JSON.stringify(p2));
+  bien(p2.filas === '00000' && p2.texto === 'Bajar picas' && p2.toques === p0.toques, `tocar otra vez: filas ${p2.filas}, dice «${p2.texto}», toques ${p2.toques}`);
+  bien(!errores.some(e => !e.startsWith('PRUEBA')), 'sin errores de consola en la carga del botón de las picas');
+  await ctx.close();
+}
+/* sus dos fotos: en vertical tras tocar «Bajar picas» y dejar que bajen; en horizontal antes de tocar */
+for (const [nombre, [fw, fh], tocar] of [['v-boton-picas', V, true], ['h-boton-picas', Hz, false]]) {
+  if ((solo && !solo.includes(nombre)) || args.includes('sinfotos')) continue;
+  const t0 = Date.now();
+  try {
+    const { ctx, page } = await abre('?fase=marcha&semilla=' + SEMILLA, fw, fh, 2);
+    if (tocar) { await tocaEn(page, '#picas'); await esperaTexto(page, 'Alzar picas'); await page.evaluate(() => window.__tp.saltaDedos(2.6)); }
+    await cuadro(page); await cuadro(page);
+    await page.screenshot({ path: prefijo + nombre + '.jpg', type: 'jpeg', quality: 80, timeout: 300000 });
+    console.log(`  foto ${nombre}: ${JSON.stringify(await leePicas(page))} (${((Date.now() - t0) / 1000).toFixed(0)} s)`); await ctx.close();
+  } catch (e) { errores.push('foto ' + nombre + ': ' + e.message.slice(0, 200)); console.log('  MAL foto ' + nombre + ': ' + e.message.slice(0, 200)); }
+}
 /* las fotos: cada una en su carga, a dpr 2, con semilla fija */
 const FOTOS = {
   'h-marcha': ['marcha', Hz], 'h-filas': ['filas&n=3', Hz], 'h-flanco-viene': ['flanco-viene', Hz], 'h-giro': ['girofl', Hz], 'h-alto-giro': ['girofl&alto=1', Hz],
   'h-estocada': ['estocada', Hz], 'h-caidos': ['caidos', Hz], 'v-choque': ['choque', V], 'v-giro': ['girofl', V],
   /* el enchufe de FA7: con rival.js, al rival lo pinta su módulo */
   'h-rival-elefantes': ['choque&rival=elefantes', Hz], 'h-rival-caballeria': ['choque&rival=caballeria', Hz],
+  /* nota del usuario (23/11): al girar, los elefantes no giran contigo */
+  'h-alto-elefantes-giro': ['giro&rival=elefantes&alto=1', Hz],
 };
 if (!args.includes('sinfotos')) for (const [nombre, [fase, [fw, fh]]] of Object.entries(FOTOS)) {
   if (solo && !solo.includes(nombre)) continue;

@@ -50,7 +50,16 @@
       "tareas": [
         "CI1b",
         "CI3a",
-        "CI3b"
+        "CD0b",
+        "CD1",
+        "CD2a",
+        "CD2b",
+        "CD3a",
+        "CD3b",
+        "CD4",
+        "CD5a",
+        "CD5b",
+        "CD6"
       ],
       "falta": "Que la ciudad grande cuente en la economía (CI3b, tras CE3), el gobierno visible en la ciudad (dentro de CS2) y el pulido que queda de la ciudad romana (pregunta CI1c del cuadro)."
     },
@@ -65,7 +74,6 @@
       "tareas": [
         "CE2",
         "CE3",
-        "CE3b",
         "CE4",
         "CE5"
       ],
@@ -80,10 +88,7 @@
       "hecho": "Cada ciudad tiene ya sus clases con su ánimo, y puedes dar la ciudadanía.",
       "falta": "Que el descuido tenga una consecuencia que se vea en pantalla, no solo una cifra.",
       "captura": "gobierno/capturas-tarea/Q6-1-clases.jpg",
-      "tareas": [
-        "CS1",
-        "CS2"
-      ]
+      "tareas": []
     },
     {
       "id": "L4",
@@ -95,9 +100,7 @@
       "falta": "Sala viva y jefes-consejeros (CE8), banquete, juegos y rito (CE9).",
       "captura": "gobierno/capturas-tarea/CE6-crecida-sala.jpg",
       "tareas": [
-        "CE6",
-        "CE8",
-        "CE9"
+        "CE6"
       ]
     },
     {
@@ -132,7 +135,6 @@
       "veras": "Edil, pretor, cónsul y Príncipe del Senado con la barra de Autoridad; alianza con los reinos, ningún bando hostil y ninguna clase en revuelta.",
       "falta": "Autoridad y cargos (CE7) y la meta a la vista (CE10).",
       "tareas": [
-        "CE7",
         "CE10"
       ]
     },
@@ -207,13 +209,14 @@
         "CG6c",
         "TP9",
         "TP9a",
-        "TP9b",
-        "TP9c",
-        "TP9d",
-        "TP9e",
         "TP9-0",
-        "FA10",
-        "TP9g"
+        "LP1",
+        "LP2",
+        "LP3",
+        "LP4",
+        "LP5",
+        "LP6",
+        "LP7"
       ]
     },
     {
@@ -277,21 +280,21 @@
         "CG6b",
         "TP9",
         "TP9a",
-        "TP9b",
-        "TP9c",
-        "TP9d",
-        "TP9f",
         "TP9-0",
         "FA1",
         "FA2",
         "FA3",
         "FA4",
         "FA5",
-        "FA6",
         "FA7",
-        "FA8",
-        "FA9",
-        "FA10"
+        "FI1",
+        "LP1",
+        "LP2",
+        "LP3",
+        "LP4",
+        "LP5",
+        "LP6",
+        "LP7"
       ],
       "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a). Desde CG2a (20/11), cada tropa con su retrato, coste, barras, lo que sabe hacer (testudo, cuña, muro, falange, orden abierto, pilum) y su ficha."
     },

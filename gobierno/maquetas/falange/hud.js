@@ -1,7 +1,7 @@
 /* Pieza «hud» (FA3, falange): lo que se ve encima de la escena. Pantalla limpia: sin botones de golpe.
    Arriba: Salir, una línea con la situación (nunca un botón), la barra fina de cohesión y el terreno; al centro el
    estandarte (único botón de mando) con la orden vigente; al tocarlo, el abanico de cuatro órdenes y el tiempo a un tercio.
-   Abajo a la izquierda, las cinco rayas de filas. Las huellas de los pulgares; la derecha hace de aro del compás en el choque.
+   Abajo a la izquierda, las cinco rayas de filas con su rótulo y, encima, «Bajar picas» / «Alzar picas» para las cinco a la vez. Las huellas de los pulgares; la derecha hace de aro del compás en el choque.
    Flanco: el borde de ese lado en rojo. Las órdenes van por el puente de dedos.js (diseño FA3 §3).
    Contrato: crearHud(m) con m = { S, Son, $, puente, dedos, acc } devuelve { hud, muestraFin, lento, abierto }. */
 import { META, AVISO_FLANCO } from './acciones.js';
@@ -13,10 +13,19 @@ export function crearHud(m) {
   const linea = (nombre, u) => { const p = pal(u); return `${nombre} · ${p.enPie} en pie · ${p.animo} · ${p.cansancio} · ${p.combate}`; };
   let abierto = false, t0 = null, tPrev = -1;
   const ORDEN_T = { aguantar: 'Aguantar', empujar: 'Empujad', cerrar: 'Cerrar', retroceder: 'Atrás' };
+  /* metros desde tu primera fila hasta el rival más cercano que tienes delante (como lo mide el bot de dedos.js) */
+  function cerca() {
+    const M = S.motor; let d = 1e9; if (!M || !S.ene) return d;
+    for (const h of S.ene) if (h.vivo && h.est !== 'huye') { const l = M.local(h.x, h.z); if (Math.abs(l.lado) < 12 && l.delante > -1) d = Math.min(d, l.delante); }
+    return d;
+  }
+  /* el botón de las picas: baja las cinco si hay alguna alzada; si están todas bajadas, las alza */
+  const todasBajas = () => S.filas.every(Boolean);
+  function picas() { const bajar = !todasBajas(); for (let i = 0; i < 5; i++) puente.fila(i, bajar); }
   /* la situación, en pocas palabras */
   function situacion() {
     if (S.ganador) return S.ganador === 'falange' ? 'El manípulo rompe' : 'Tu falange rompe';
-    if (!S.choque) return S.filas.some(Boolean) ? 'Filas abajo: llega el choque' : 'Toca al compás para avanzar';   /* FA4 */
+    if (!S.choque) return S.filas.some(Boolean) ? 'Filas abajo: llega el choque' : cerca() < 25 ? 'Toca al compás · baja las picas' : 'Toca al compás para avanzar';   /* FA4 */
     if (S.flanco && S.flanco.estado === 'viene') return S.flanco.lado > 0 ? 'Entran por la derecha' : 'Entran por la izquierda';
     if (S.ene.some(h => h.vivo && h.est === 'dentro')) return 'Hay uno dentro: cerrad filas';
     if (S.orden === 'aguantar') return S.coh < 95 ? 'El muro se rehace' : 'Muro firme';
@@ -37,7 +46,8 @@ export function crearHud(m) {
     $('estandarte').classList.toggle('pide', !abierto && !fin && S.choque && !S.orden && S.coh < 50);
     for (const b of $('abanico').children) b.classList.toggle('vigente', (b.dataset.o === 'aguantar' && S.orden === 'aguantar') || (b.dataset.o === 'empujad' && S.orden === 'empujar') || (b.dataset.o === 'retroceder' && S.orden === 'retroceder') || (b.dataset.o === 'cerrar' && S.orden === 'cerrar'));
     /* las rayas */
-    $('rayas').hidden = fin;
+    $('filas').hidden = fin;
+    const alzar = todasBajas(); $('picas-t').textContent = alzar ? 'Alzar picas' : 'Bajar picas'; $('picas').classList.toggle('alzar', alzar);
     for (const r of $('rayas').children) r.classList.toggle('baja', !!L.filas[+r.dataset.i]);
     /* las huellas: donde está el pulgar o, si no, donde suele caer */
     const vert = Hh > W, yBase = vert ? Hh * 0.78 : Hh * 0.7;
@@ -52,7 +62,6 @@ export function crearHud(m) {
     /* la pista de los pulgares: 3 s al empezar */
     const pista = !fin && S.T - t0 < 3;
     $('pista-d').style.left = Math.min(dX, W - 100) + 'px'; $('pista-d').style.top = (dY - 50) + 'px'; $('pista-d').classList.toggle('ve', pista);
-    $('pista-i').style.left = (r0.left + r0.width / 2) + 'px'; $('pista-i').style.top = (r0.top - 14) + 'px'; $('pista-i').classList.toggle('ve', pista);
     /* el arco de grados mientras arrastras */
     const gira = D.der.activo && D.der.modo === 'arrastre';
     $('arco').hidden = !gira || fin;
@@ -75,6 +84,7 @@ export function crearHud(m) {
   /* con el abanico abierto, tocar fuera lo cierra y ese toque no es gesto */
   addEventListener('pointerdown', e => { if (abierto && !e.target.closest('#abanico,#estandarte')) { abre(false); e.aqvIgnora = true; } }, true);
   $('estandarte').addEventListener('click', () => abre(!abierto));
+  $('picas').addEventListener('click', picas);
   for (const b of $('abanico').children) b.addEventListener('click', () => { puente.estandarte(b.dataset.o); abre(false); });
   $('otra').addEventListener('click', () => { location.href = location.pathname; });
   $('salir').addEventListener('click', () => { location.href = document.baseURI; });

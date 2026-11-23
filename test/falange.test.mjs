@@ -172,3 +172,5 @@ t('i) Aguantar: el toque no hace nada y la cohesión sube', () => {
 
 console.log(`\n${n} bien, ${mal} mal`);
 if (mal) process.exit(1);
+/* FI1: la física de las batallas (capa de dibujo sobre estas reglas); si falla, falla esta prueba */
+{ const r = (await import('node:child_process')).spawnSync(process.execPath, [new URL('./fisica-batalla.test.mjs', import.meta.url).pathname], { stdio: 'inherit' }); if (r.status !== 0) process.exit(1); }

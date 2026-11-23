@@ -109,7 +109,11 @@
         "js/falange.js",
         "js/falange-rivales.js",
         "test/falange.test.mjs",
-        "test/falange-rivales.test.mjs"
+        "test/falange-rivales.test.mjs",
+        "js/bloque.js",
+        "js/bloque-ia.js",
+        "test/bloque.test.mjs",
+        "test/bloque-ia.test.mjs"
       ],
       "taller": [
         "assets/soldados/",
@@ -133,7 +137,8 @@
           "test/campo.test.mjs",
           "test/nb7.test.mjs",
           "test/falange.test.mjs",
-          "test/falange-rivales.test.mjs"
+          "test/falange-rivales.test.mjs",
+          "test/bloque.test.mjs"
         ],
         "navegador": [
           "gobierno/juez-guerra.mjs"

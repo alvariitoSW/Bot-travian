@@ -43,6 +43,8 @@ Z. **Siempre, aunque falle algo**: `estado/vigia` → `{trabajando: false, termi
    qué abriste o cerraste, o «No había nada que aplicar»>}`.
 
 ## 3. Entre vueltas (el usuario te habla directamente)
+**Regla del usuario (23/11, «Dímelo siempre en preguntas»)**: lo que haya que decidir o hacer, díselo SIEMPRE como preguntas numeradas con opciones (A)/(B) y [recomendado], una línea de «por qué»; al final, «dime los números y las letras, por ejemplo 1A, 2A». Sin párrafos largos de estado.
+
 Responde en llano, con frases cortas, enseña capturas, di qué decide él y recomienda una opción marcada **[recomendado]**. Las preguntas
 al usuario viven en `gobierno/BITACORA.md` → «Esperando algo del usuario» (el cuadro enseña **solo las tres primeras**; el resto, en
 cola) con la forma `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`. Cuando una sesión te escribe
@@ -50,8 +52,7 @@ cola) con la forma `**Título**: pregunta (A) opción [recomendado]; (B) opción
 
 ## 4. Abrir una sesión (`create_session`)
 Siempre con `source_url: https://github.com/alvariitosw/bot-travian`, `source_revision` y `outcome_branch` = la rama de trabajo, título
-«<Carril> · <ID> <nombre>», etiquetas `aqvila`, `tarea:<ID>`, **modelo `claude-opus-5-5`** (construye Opus). **Fable solo si el usuario lo
-pide expresamente** (regla del 18/11: «hay que dejar de usar Fable 5.2»; excepciones pedidas por él el 19/11: ES0, TP8b, BG1; apúntalas
+«<Carril> · <ID> <nombre>», etiquetas `aqvila`, `tarea:<ID>`, **modelo `claude-opus-5-5`** (construye Opus). **Fable ya no: el 23/11 el usuario dijo «a partir de ahora todas las sesiones con Opus, ya con Fable no»**; antes: Fable solo si lo pedía expresamente (regla del 18/11: «hay que dejar de usar Fable 5.2»; excepciones pedidas por él el 19/11: ES0, TP8b, BG1; apúntalas
 en la bitácora). El encargo (prompt) debe llevar, completo, porque la sesión empieza sin contexto: qué es la tarea y a qué línea de
 `gobierno/OBJETIVOS.md` sirve; qué leer (`CLAUDE.md`, `gobierno/LEEME.md`, la línea del tablero, los estudios pertinentes y
 `gobierno/estudios/REF-batallas-referencias.md` si toca batallas); qué hace y qué NO toca; **reglas de la casa**: un solo constructor

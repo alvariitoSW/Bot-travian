@@ -18,7 +18,8 @@ export function crearCamara(m) {
     const a = m.vertical ? CAMS.v : CAMS.h, yo = S.fal[S.yo.i], g = S.giro || 0, Fx = Math.sin(g), Fz = -Math.cos(g), Dx = Math.cos(g), Dz = Math.sin(g);
     if (LADO) {
       /* de costado, a la altura del pecho, a la derecha del muro: las puntas de perfil y los caídos delante */
-      CAM.x = S.xF + Dx * 9.5 + Fx * 3.4; CAM.z = S.zF + Dz * 9.5 + Fz * 3.4; CAM.y = H(CAM.x, CAM.z) + 1.7; CAM.yaw = Math.PI / 2 - g; CAM.pitch = -0.07; CAM.fov = 42; return CAM;
+      const C = Q.get('cerca') === '1', ad = C ? 4.6 : 3.4, ld = C ? 6 : 9.5;   /* FI1: ?cerca=1, plano bajo y más cerca, a ras de las puntas y los escudos */
+      CAM.x = S.xF + Dx * ld + Fx * ad; CAM.z = S.zF + Dz * ld + Fz * ad; CAM.y = H(CAM.x, CAM.z) + (C ? 1.1 : 1.7); CAM.yaw = Math.PI / 2 - g; CAM.pitch = C ? -0.02 : -0.07; CAM.fov = C ? 50 : 42; return CAM;
     }
     if (ALTO) {
       /* vista alta: 22 m sobre el pivote, mirando abajo unos 60°. No gira con el muro: así se ve cuánto ha girado, y el flanco */
