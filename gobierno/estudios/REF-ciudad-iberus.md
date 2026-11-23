@@ -2,7 +2,7 @@
 
 **Para qué sirve.** Primera página que lee quien diseñe o toque la ciudad (carril CD). El usuario enseñó tres vídeos cortos
 el 23/11 en la sesión CD0 («Este es el de iberia»). **No se guardan** (norma de `CLAUDE.md` §7: son de un juego ajeno y
-todo lo del repositorio se publica). Aquí queda lo aprendido de ellos. **Solo ideas**: ni su código, ni su arte, ni su metraje.
+todo lo del repositorio se publica). Aquí queda lo aprendido de ellos. **Los vídeos**: el usuario pidió guardarlos (23/11); van en la carpeta privada de su Google Drive «AQVILA · referencias privadas», no en el repositorio. El original está en la cuenta pública @iberusgame. **Solo ideas**: ni su código, ni su arte, ni su metraje.
 
 ## 1. Iberus (cuenta @iberusgame, juego en desarrollo de un autor independiente)
 Constructor de ciudades en la península ibérica, en la época en que «Roma y Cartago están a punto de pelear» (la nuestra).
