@@ -63,7 +63,7 @@ const tocaArte = cambiados('origin/claude/roman-strategy-mobile-game-bx9oq2').so
 const lista = [...A.juez.logica, ...(args.includes('--rapido') ? [] : A.juez.navegador), ...(tocaArte ? A.juez.si_toca_arte : [])];
 const t0 = Date.now(); let fallos = 0;
 for (const p of lista) {
-  const t = Date.now(), r = spawnSync(process.execPath, [p], { cwd: RAIZ, encoding: 'utf8', timeout: 2400000 });
+  const t = Date.now(), r = spawnSync(process.execPath, p.split(' '), { cwd: RAIZ, encoding: 'utf8', timeout: 2400000 });   // MIN4: «archivo --opción valor»
   const ok = r.status === 0; if (!ok) fallos++;
   console.log(`${ok ? '  ok  ' : ' FALLA'} ${p} (${Math.round((Date.now() - t) / 1000)} s)`);
   if (!ok) console.log(((r.stdout || '') + (r.stderr || '')).trim().split('\n').slice(-12).map(l => '        ' + l).join('\n'));
