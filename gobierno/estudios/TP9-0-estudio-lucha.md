@@ -10,7 +10,7 @@ impresionantemente artística y perfecta». Sirve a **L11** y **L17**. No cambia
 pequeña. (2) La lucha «es pulsar botones» porque está hecha así: ocho botones, un golpe que bloquea 1,2 s y un anillo que
 manda. (3) Para que sea impresionante hay que construirla con **el soldado nuevo** (el de «Bajar a pie»), no con los
 muñecos de las maquetas: es lo único que permite gestos de verdad, cuatro galos distintos y «una sola pieza». (4) Cuesta más
-de lo previsto (≈11 M declarados, esperable 13–15 M, frente a 6,4 M): abajo se dice por qué y la alternativa barata.
+de lo previsto (≈13 M declarados, esperable 15–17 M, frente a 6,4 M): abajo se dice por qué y la alternativa barata.
 
 ## 1. Cómo está hoy (medido el 20/11; capturas `gobierno/capturas-tarea/TP9-0-*.jpg`)
 
@@ -197,6 +197,92 @@ lanza y carga como hoy, y al chocar pasa por corte de cine a la lucha nueva.
 | Dos manos agarrando la sarisa con precisión | Agarre aproximado; no se nota desde la cámara alta |
 | Certeza de fluidez desde aquí | El medidor en pantalla, en su móvil, en cada entrega |
 
+### 3.4 Rediseño de soldados, movimientos y mecánicas (pedido del usuario el 23/11, con la skill `creature-artist`)
+**Cómo se usa la skill aquí.** Es un método para diseñar figuras creíbles: anatomía real, **silueta primero**, esqueleto que
+sostiene el movimiento, detalle donde se mira y prueba desde la cámara del juego. Sus herramientas son de Blender (esculpir
+a mano), que esta sesión no tiene; y nuestro soldado no se esculpe: **se fabrica por código** sobre un cuerpo humano libre
+(MakeHuman) que ya trae malla limpia, esqueleto de 74 huesos y cuatro niveles de detalle. Así que se toma el método, no la
+herramienta. Esto es diseño; lo construyen TP9b, c y e.
+
+**A. Silueta primero (la prueba que manda).** En la lucha, el rival mide unos 150 px de alto. Regla: **en negro, sin color,
+a 150 px, cada figura se reconoce**. Cada una tiene tres anclas de silueta: cabeza, escudo y línea del arma.
+| Figura | Cuerpo (altura · músculo · peso · edad) | Postura base | Cabeza | Escudo | Arma | Color que lo señala |
+|---|---|---|---|---|---|---|
+| **Tú, centurión** | 1,70 m · fuerte · medio · 35 | Erguido, pecho fuera, escudo adelantado | Cresta **atravesada** roja | Oval alto, de hombro a espinilla | Gladio corto, bajo, junto a la cadera | Rojo de la cresta |
+| **Compañero** (hastatus) | 1,65–1,72 · medio · 20–25 | Encogido tras el escudo, hombros juntos | Casco de botón con tres plumas | Oval alto | Gladio; pilum hasta el choque | Túnica cruda, escudo rojo |
+| **El de segunda fila** | igual | Escudo al hombro, empuja la espalda del de delante | igual | igual | Pilum en alto | — |
+| **Galo grande** | **1,92** · muy fuerte · pesado · 30 | Abierto, pies separados, espada alzada sobre el hombro | Melena encalada hacia atrás, sin casco | Ninguno o estrecho, caído | Espada **larga**, alta | Piel desnuda y torques |
+| **Galo rápido** | 1,66 · fibroso · ligero · 18 | Agachado, de puntillas, se balancea | Pelo corto, sin bigote | **Pequeño y redondo**, adelantado | Espada corta, baja | Calzón a cuadros claro |
+| **Galo que finta** | 1,76 · medio · 40 | De perfil, lanza a media altura | Bigote largo, gorro | Largo y estrecho, de pie | **Lanza**, línea diagonal | Capa oscura |
+| **Jefe** | 1,84 · fuerte · 45 | Erguido, quieto, detrás de dos guardias | **Casco con cimera** | Largo, pintado | Espada larga con vaina de bronce | Oro: torques, brazaletes, casco |
+| **Falangita** | 1,70 · medio | Medio perfil, pie izquierdo delante | Yelmo de cuenco alto | Pequeño, **colgado del cuello** | Sarisa a dos manos | Azul |
+| **Oficial de la falange** (tú) | igual | Igual, un paso más erguido | Yelmo con **penacho blanco** | Igual, con estrella | Sarisa | Blanco del penacho |
+- Variedad en la fila (REF: «en una misma fila, escudos, túnicas y cascos distintos»): talla ±4 %, tres tonos de túnica, tres
+  desgastes de escudo, plumas y barbas al azar. Los clones de hoy desaparecen.
+- **Detalle donde se mira**: tú y tu rival llevan el nivel fino (manos, cara, borde del escudo); la fila, el ligero; el fondo, bloques.
+
+**B. El esqueleto manda en el movimiento (anatomía real).**
+- **El escudo se agarra, no se ata.** El escudo romano y el galo se cogen con el puño por un asa horizontal tras el umbo.
+  Por eso el empujón es un **puñetazo con el escudo** que nace de la pierna de atrás, y el escudo sigue a la mano. El escudo
+  macedonio sí va colgado del cuello y del antebrazo, para dejar las dos manos en la sarisa. Hoy los dos van pegados a un hueso.
+- **La estocada del gladio nace de la cadera**: gira la cadera, luego el hombro, y el brazo sale bajo, **por el canto del
+  escudo**, sin descubrirse. El tajo galo es lo contrario: brazo arriba, cuerpo abierto, un arco grande. Uno pincha tapado;
+  el otro corta al descubierto. Esa diferencia se tiene que ver.
+- **Los pies pisan**: el talón se clava y el peso pasa de un pie al otro en cada golpe. Sin pies que patinen (ya era vara en TP0 §7).
+- **Los dedos cierran** sobre el puño de la espada y el asa. El soldado nuevo los tiene; hoy no los usa.
+- **Tres capas que se mezclan**: piernas (pasos de la palanca), torso (giro y peso) y brazos (golpe o escudo). Así golpeas
+  mientras te mueves. Encima, la reacción al golpe recibido, que se suma sin cortar lo que hacías.
+- **La punta llega**: la mano se corrige en el último tramo para que el gladio toque donde está el enemigo, y el escudo
+  sube hasta donde viene el arma. Ninguna espada corta el aire.
+
+**C. Tabla de movimientos** (anticipo · golpe · recobro, en fotogramas a 30 por segundo; el recobro se puede cortar)
+| Movimiento | Tiempos | Qué mueve el cuerpo | Origen |
+|---|---|---|---|
+| Guardia que respira | bucle | Rodillas flexionadas, escudo al frente; cansado, el escudo baja un palmo y el pecho jadea | Hay («guardia»); se le suma el cansancio por código |
+| Estocada baja | 2 · 3 · 6 | Cadera, hombro, brazo por el canto del escudo | **Nuevo** (hoy «golpear» es un tajo) |
+| Segunda y tercera estocada | 1 · 3 · 6 / 3 · 4 · 10 | La tercera adelanta el pie: pega más y te descubre | Nuevo, encadenado |
+| Tajo a derecha · a izquierda | 3 · 3 · 8 | Muñeca y codo; el cuerpo gira con él | Biblioteca libre, espejado |
+| Escudo arriba, sostenido | 3 · mantener · 4 | El puño sube el escudo; cabeza tras el borde | Hay («cubrirse»); falta sostenerlo |
+| Empujón con el umbo | 3 · 3 · 9 | Pierna de atrás, cadera, puño | Nuevo |
+| Paso lateral · adelante · ceder | 7 en total | Pie que cruza y talón que clava; el escudo no se abre | Nuevo, corto |
+| Retirada y relevo | 24 | Tú giras de lado y pasas atrás; el otro entra por tu hombro | Nuevo, dos hombres a la vez |
+| Encajar: en el escudo · en el cuerpo · tambalearse | 4 · 8 · 20 | El golpe empuja el hombro que lo recibe | Hay uno («encajar»); faltan dos |
+| Caer: hacia atrás · de rodillas · de lado | 45–70 | Según de dónde vino el golpe | Hay uno («morir»); faltan dos |
+| Rematar (el compañero) | 2 · 3 · 8 | Estocada hacia abajo al desequilibrado | Variante de la estocada |
+| Galo: armar el tajo alto · golpe doble · amago | 28 · 12 ×2 · 28 + 15 | El aviso es el propio cuerpo: brazo atrás y peso al pie trasero | Nuevos; base en la biblioteca |
+| Dudar y huir | bucle | Miran a los lados, un paso atrás; luego vuelven la espalda | Hay «correr»; falta la duda |
+| Alzar el gladio y gritar (momento épico) | 20 | Brazo arriba, pecho abierto | Nuevo |
+| Falange: recoger y clavar · girar el muro · alzar y bajar el asta | 6 · 4 · 10 | Pasos cortos de lado al girar; las dos manos guían el asta | Parte en «movimientos de sarisa»; el giro, nuevo |
+Son unos 22 movimientos nuevos o rehechos. Peso estimado: 1 a 1,5 MB de descarga (caben en los 6 MB libres).
+
+**D. Mecánicas que salen del cuerpo: la distancia.** Añado una regla que no estaba en TP9 y que nace de las armas reales.
+| Distancia | Manda | Qué pasa |
+|---|---|---|
+| **Lejos** (2 m) | La lanza | El que finta te alcanza; tú no. Hay que entrar |
+| **Media** (1,2 m) | La espada larga | El grande arma su tajo a gusto. Es donde más daño te hacen |
+| **Pegado** (0,6 m) | **El gladio** | La espada larga no tiene sitio para girar; tu estocada entra. Pero aquí te rodean antes |
+- Con la palanca hacia delante **te pegas**; hacia atrás, cedes. Así la palanca decide, no solo acompaña: pegarte al grande
+  lo desarma; pegarte demasiado tiempo te deja solo delante (§2.4). Leer al enemigo es leer **a qué distancia** quiere pelear.
+- **Historia**: los romanos se pegaban a los galos para quitarles el sitio del tajo, y la espada gala solo cortaba (Polibio
+  2.33; en Cannas, espadas galas largas y sin punta frente a las hispanas, cortas y de punta: Livio 22.46): **histórico** en
+  la idea; las tres distancias con sus cifras, **licencia de juego**. Pasajes a comprobar con la skill `historia` en TP9b.
+- **El cuerpo cuenta el estado**, sin barras: cansado, baja el escudo y jadea; herido, cojea o deja caer el hombro; con el
+  escudo rajado, se ve la raja; una línea que duda, mira a los lados. Las barras quedan como ayuda mínima (§2.8).
+
+**E. Varas del rediseño**
+| # | Qué | Cómo se mide |
+|---|---|---|
+| R1 | Siluetas | Hoja con las nueve figuras en negro a 150 px: el usuario las nombra sin ayuda |
+| R2 | Sin clones | Captura de la fila: no hay dos hombres contiguos iguales |
+| R3 | Estocada tapada | Foto de costado en el golpe: el brazo sale por el canto del escudo |
+| R4 | La punta llega | En 20 golpes del bot, la punta queda a menos de 10 cm del blanco |
+| R5 | Pies | En un paso lateral, el pie de apoyo se mueve menos de 3 cm |
+| R6 | Distancia | Bot que se pega al grande: recibe la mitad de tajos que el bot que se queda a media distancia |
+| R7 | Peso | Como mucho 40 finos, llamadas ≤ 30, triángulos ≤ 750 mil |
+
+**F. Lo que este rediseño no hace**: no esculpe caras nuevas (una por pueblo, como hoy), no hace telas que ondean y no cambia
+los soldados de la vista de general. Figuras esculpidas a mano en Blender serían otra obra, para después de la 1.0.
+
 ## 4. Reparto afinado
 **Qué cambia respecto a TP9 §9, y por qué**
 - **TP9a** ya no «prepara efectos»: corrige el fallo. Es pequeña. Lleva además el medidor de fluidez y la tarjeta final.
@@ -211,14 +297,14 @@ lanza y carga como hoy, y al chocar pasa por corte de cine a la lucha nueva.
 | # | Tarea | Qué verá el usuario en su móvil | Archivos | Diseña · construye | Encargos (≤ 30 pasos) | Coste |
 |---|---|---|---|---|---|---|
 | 1 | **TP9a · Pilum sin blanco** | Lanzas y ves volar los pila; un medidor pequeño de fluidez; la tarjeta final dice la verdad | `maquetas/a-pie/escena.js`, `acciones.js`, `hud.js`, `sw.js` | Opus solo | 1 de 12 | ≈0,3 M |
-| 2 | **TP9b · Luchar con los dedos** | Prueba rápida «Lucha a pie»: tú contra un galo, con tu fila al lado; tocar, deslizar, mantener, empujar, palanca; golpes encadenados; pantalla limpia | `js/lucha.js` (nuevo, sin pantalla), `test/lucha.test.mjs`, `gobierno/maquetas/lucha/*` (nuevo), `js/ui.js` (una entrada), `sw.js` | Fable · Opus | 2: reglas y bots (25); escena y dedos (30) | ≈2,2 M |
-| 3 | **TP9c · Que pese: animación, impacto y sonido** | Cada gesto con su movimiento; pausa, chispa, sangre que se queda, escudo que se raja; sonido grabado | `tools/` (movimientos), `assets/soldados/movimientos_*`, `maquetas/lucha/*`, sonido | Fable · Opus (skill `arte`) | 2: movimientos (30); impacto y sonido (25) | ≈2,0 M |
+| 2 | **TP9b · Luchar con los dedos** | Prueba rápida «Lucha a pie»: tú contra un galo, con tu fila al lado; tocar, deslizar, mantener, empujar, palanca; golpes encadenados; las tres distancias; pantalla limpia. Antes, la hoja de siluetas de tú, compañero y un galo (§3.4) | `js/lucha.js` (nuevo, sin pantalla), `test/lucha.test.mjs`, `gobierno/maquetas/lucha/*` (nuevo), `js/ui.js` (una entrada), `sw.js` | Fable · Opus | 2: reglas y bots (25); escena y dedos (30) | ≈2,4 M |
+| 3 | **TP9c · Que pese: animación, impacto y sonido** | Los 22 movimientos de §3.4: estocada tapada, tajos, escudo sostenido, empujón, pasos, tres caídas; la punta llega y los pies pisan; pausa, chispa, sangre que se queda, escudo que se raja; sonido grabado | `tools/` (movimientos), `assets/soldados/movimientos_*`, `maquetas/lucha/*`, sonido | Fable · Opus (skill `arte`) | 3: movimientos de lucha (30); capas, pies y punta (25); impacto y sonido (25) | ≈3,0 M |
 | 4 | **TP9d · Tu fila y el peligro** | Remates con nombre, huecos donde peleas, te rodean, retirada a segunda fila | `js/lucha.js`, `maquetas/lucha/*` | Fable · Opus | 1 de 30 | ≈1,5 M |
-| 5 | **TP9e · Cuatro galos, racha y momento épico** | Grande, rápido, el que finta y el jefe; arco, estandarte, plano corto y grito | `js/lucha.js`, piezas del galo por código, `maquetas/lucha/*` | Fable · Opus (skills `historia` y `arte`) | 2: galos (25); racha y cine (25) | ≈1,8 M |
+| 5 | **TP9e · Cuatro galos, racha y momento épico** | Grande, rápido, el que finta y el jefe, con su cuerpo, silueta y movimientos (§3.4); fila sin clones; arco, estandarte, plano corto y grito | `js/lucha.js`, piezas del galo por código, `maquetas/lucha/*` | Fable · Opus (skills `historia` y `arte`) | 2: galos y variedad (30); racha y cine (25) | ≈2,1 M |
 | 6 | **TP9f · Falange: el oficial en la fila** | Compás en el muro, giro arrastrando, filas, flanco que entra de verdad, abanico y caídos | `js/falange.js` (reglas, nuevo), `maquetas/falange/*` | Fable · Opus | 2: giro y flanco (30); compás, filas y aspecto (30) | ≈2,2 M |
 | 7 | **TP9g · La misma lucha en el juego** | En «Bajar a pie» peleas con los dedos, de cerca; «Testudo a pie» acaba en la lucha nueva | `js/ui-mando.js`, `js/simulador.js` (se quita la copia de reglas), `css/mando.css`, `maquetas/a-pie/*`, `sw.js` | Fable · Opus | 1 de 30 | ≈1,5 M |
 
-**Total declarado ≈11,5 M; esperable 13–15 M** (los partes de TP8b y CG6b se pasaron un 23 y un 40 %; este estudio, más).
+**Total declarado ≈13 M; esperable 15–17 M** (los partes de TP8b y CG6b se pasaron un 23 y un 40 %; este estudio, más).
 Antes: 6,4 M declarados, 8–9 esperables.
 
 **Reglas del reparto**
@@ -236,8 +322,9 @@ mismo con otra talla y otro color) y los gestos se rehacen cuando el testudo pas
 ## 5. Lo que decide el usuario
 1. **Soldado**: (A) soldado nuevo y prueba rápida «Lucha a pie» **[recomendado]**; (B) muñecos de hoy dentro de «Testudo a pie».
 2. **El grande**: (A) espada larga y torso desnudo, como cuentan las fuentes **[recomendado]**; (B) hacha, como licencia de juego.
-3. **El reparto y su coste** (§4): aprobar, o recortar piezas.
+3. **El rediseño de §3.4** (figuras, movimientos y la regla de la distancia): aprobar o corregir.
+4. **El reparto y su coste** (§4): aprobar, o recortar piezas.
 
 ## 6. Cuentas del estudio
-Declarado 1,2 M; corte 1,8 M. Medido al escribir: ≈3,8 M (Fable ≈0,6, Opus ≈3,2). Se fue en tres mediciones con navegador
+Declarado 1,2 M; corte 1,8 M. Medido el 23/11: ≈4,9 M (Fable ≈1,5, Opus ≈3,4). Se fue en tres mediciones con navegador
 sin tarjeta gráfica. El director lo midió tarde y no avisó en 0,6 ni en 1,2 M. El usuario amplió el tope a 10 M el 23/11.
