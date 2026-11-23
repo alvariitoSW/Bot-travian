@@ -1,0 +1,64 @@
+/* Capa de interfaz común. Cada estilo la tiñe con estas variables (definirlas después de cargar este archivo). */
+:root{
+  --ui-fondo:rgba(14,19,27,.86); --ui-fondo2:rgba(26,33,44,.9); --ui-texto:#f1ead9; --ui-acento:#e9c063; --ui-acento2:#b8862b;
+  --ui-borde:rgba(227,181,74,.5); --ui-linea:rgba(255,255,255,.14); --ui-tinta-acento:#1c1206;
+  --ui-papel:#eadcb4; --ui-papel2:#d9c68f; --ui-tinta:#3a2a14; --ui-rojo:#c0281f; --ui-rojo2:#7d1712;
+  --ui-bien:#6fb04a; --ui-falta:#e0a52e; --ui-mal:#d4402e;
+  --ui-fuente:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif; --ui-titulo:'Cinzel','Trajan Pro','Palatino Linotype',Georgia,serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:#05080b;color:var(--ui-texto);font:14px/1.35 var(--ui-fuente)}
+button{font:inherit;color:inherit;border:0;background:none;padding:0}
+#app{position:fixed;left:50%;top:0;width:390px;height:844px;margin-left:-195px;overflow:hidden;background:#05080b}
+#lienzo{position:absolute;inset:0;width:390px;height:844px}
+#lienzo>svg,#lienzo>canvas{width:390px;height:844px;display:block}
+#ui{position:absolute;inset:0;pointer-events:none}
+#ui>*{pointer-events:auto}
+#ui .vela{position:absolute;inset:0;background:#05080b;opacity:.2;pointer-events:none}
+.top{position:absolute;left:6px;right:6px;top:6px;height:30px;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;z-index:3}
+.top .r{background:var(--ui-fondo);border:1px solid var(--ui-linea);border-radius:10px;display:flex;align-items:center;justify-content:center;gap:4px;padding:0 2px}
+.top .r svg{width:15px;height:15px;flex:none;color:var(--ui-acento)}
+.top .r b{font-size:13px;color:var(--ui-acento);font-weight:700;white-space:nowrap}
+.fecha{position:absolute;left:50%;top:42px;transform:translateX(-50%);font-family:var(--ui-titulo);color:var(--ui-acento);font-size:13px;background:var(--ui-fondo);border:1px solid var(--ui-borde);border-radius:99px;padding:2px 14px;z-index:3;white-space:nowrap}
+.barra{position:absolute;left:8px;right:8px;bottom:8px;height:62px;display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:7px;z-index:6;background:var(--ui-fondo);border:1px solid var(--ui-linea);border-radius:20px;padding:6px}
+.barra button{border-radius:15px;background:var(--ui-fondo2);border:1px solid var(--ui-linea);font-size:14px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;line-height:1.1}
+.barra button svg{width:20px;height:20px}
+.barra button.gran{background:linear-gradient(var(--ui-acento),var(--ui-acento2));color:var(--ui-tinta-acento);font-size:16px;font-weight:800;border-color:var(--ui-acento);box-shadow:0 0 14px rgba(233,192,99,.4)}
+.etq{position:absolute;transform:translate(-50%,-50%);background:var(--ui-fondo);border:1px solid var(--ui-borde);border-radius:99px;padding:1px 8px;font-size:12px;white-space:nowrap;z-index:2;line-height:1.35}
+.etq b{color:var(--ui-acento);font-family:var(--ui-titulo)}
+.etq.foro{font-size:13px;padding:2px 12px}
+/* construir */
+.menu{position:absolute;left:8px;right:8px;bottom:78px;z-index:5;display:flex;flex-direction:column;gap:7px}
+.linea{align-self:center;background:var(--ui-fondo);border:1px solid var(--ui-borde);border-radius:99px;padding:5px 14px;font-size:13px;color:var(--ui-acento)}
+.tira{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;background:var(--ui-fondo);border:1px solid var(--ui-borde);border-radius:16px;padding:7px}
+.tira .t{display:flex;align-items:center;gap:6px;background:var(--ui-fondo2);border:1px solid var(--ui-linea);border-radius:12px;padding:5px 6px;min-height:48px}
+.tira .t svg{width:26px;height:26px;flex:none;color:var(--ui-acento)}
+.tira .t span{font-size:13px;font-weight:600;line-height:1.1}
+.tira .t small{display:block;font-size:13px;font-weight:400;color:var(--ui-acento)}
+.fam{display:grid;grid-template-columns:repeat(4,1fr);gap:6px 4px}
+.fam .f{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:13px;line-height:1.05;text-align:center}
+.fam .c{width:46px;height:46px;border-radius:50%;background:var(--ui-fondo2);border:2px solid var(--ui-borde);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px #0008;color:var(--ui-acento)}
+.fam .c svg{width:26px;height:26px}
+.fam .f.on .c{background:linear-gradient(var(--ui-acento),var(--ui-acento2));color:var(--ui-tinta-acento);border-color:var(--ui-acento)}
+.fam .f span{background:var(--ui-fondo);border-radius:8px;padding:0 5px}
+.fam .f.on span{color:var(--ui-acento)}
+/* necesidades */
+.leyenda{position:absolute;left:0;right:0;top:76px;display:flex;justify-content:center;gap:6px;z-index:3;font-size:13px}
+.leyenda span{background:var(--ui-fondo);border:1px solid var(--ui-borde);border-radius:99px;padding:3px 11px;display:flex;align-items:center;gap:6px}
+.leyenda i{width:11px;height:11px;border-radius:50%;display:block;border:1px solid #0006}
+.halo{position:absolute;border-radius:50%;border:3px solid;opacity:.55;pointer-events:none;z-index:1}
+.halo.sel{border-style:dashed;border-color:#fff;opacity:.95;background:none}
+.e-bien{background:var(--ui-bien);border-color:var(--ui-bien)}
+.e-falta{background:var(--ui-falta);border-color:var(--ui-falta)}
+.e-mal{background:var(--ui-mal);border-color:var(--ui-mal)}
+.iconos{position:absolute;display:flex;gap:1.5px;z-index:2;pointer-events:none}
+.ic{width:16px;height:16px;border-radius:50%;border:1.2px solid #1a120a;display:flex;align-items:center;justify-content:center;color:#fff}
+.ic svg{width:12px;height:12px;display:block}
+.ic.falta{color:#2a1a05}
+.ficha{position:absolute;left:8px;right:8px;bottom:78px;z-index:5;background:linear-gradient(var(--ui-papel),var(--ui-papel2));color:var(--ui-tinta);border:2px solid var(--ui-acento2);border-radius:18px;padding:10px 12px}
+.ficha h3{margin:0;font-family:var(--ui-titulo);font-weight:700;font-size:15px;color:#5a3a10}
+.ficha .vec{font-size:13px;margin:1px 0 5px}
+.ficha p{margin:0;font-size:14px;line-height:1.3}
+.ficha .btn{display:block;width:100%;margin-top:8px;border-radius:14px;padding:11px 8px;font-size:15px;font-weight:700;text-align:center;border:1px solid var(--ui-acento);background:linear-gradient(var(--ui-rojo),var(--ui-rojo2));color:#fff}
+.mal{color:#a02a1c;font-weight:700}
+.etq.bar{font-size:11px;padding:0 7px;opacity:.88}
