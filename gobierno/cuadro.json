@@ -2014,12 +2014,6 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "FA5",
-      "titulo": "Corazón · FA5 Rivales nuevos de la falange (Fable dirige, Opus construye)",
-      "nota": "Ola 1 de la falange, abierta el 23/11",
-      "url": "https://claude.ai/code/session_01QiKC36Ahw7LvpE4AaxFRud"
-    },
-    {
       "tarea": "FA2",
       "titulo": "Corazón · FA2 Falangita macedonio y oficial (Fable dirige, Opus construye)",
       "nota": "Ola 1 de la falange, abierta el 23/11",
@@ -2030,6 +2024,18 @@
       "titulo": "Corazón · TP9a Pilum sin pantalla en blanco y tarjeta final (Fable dirige, Opus construye)",
       "nota": "Abierta el 23/11",
       "url": "https://claude.ai/code/session_01QiKC3Agqmb74vaRwrUASi7"
+    },
+    {
+      "tarea": "FA4",
+      "titulo": "Corazón · FA4 La escena nueva de la falange (Fable dirige, Opus construye)",
+      "nota": "Ola 2 de la falange, abierta el 23/11",
+      "url": "https://claude.ai/code/session_01QiKC38a5RPoSLZyN1DyebM"
+    },
+    {
+      "tarea": "FA7",
+      "titulo": "Corazón · FA7 Rivales de la falange en pantalla y su menú (Fable dirige, Opus construye)",
+      "nota": "Ola 2 de la falange, abierta el 23/11",
+      "url": "https://claude.ai/code/session_01QiKC38HdTFqo1cQnBcHsTM"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"
