@@ -18,6 +18,7 @@ import { crearTropas } from './tropas.js';
 import { crearHud } from './hud.js';
 import { crearDedos } from './dedos.js';
 import { crearCamara } from './camara.js';
+import { separaEstandartes } from './rotulos.js';
 import { SOLDADOS } from './soldados.js';
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), $ = id => document.getElementById(id);
@@ -268,7 +269,7 @@ function bucle(ahora) {
     }
     camaraSigue(congelado ? 5 : dt); cam1 && cam1.aplica(congelado ? 5 : dt); camara.updateMatrixWorld();
     avanza(polvo, POLVO_N, mPolvo, congelado ? 0 : dt, -0.1); avanza(chispa, CHISPA_N, mChispa, congelado ? 0 : dt, 6); pintaVuelos(congelado ? 0 : dt);
-    pintaSoldados(); hud.tick(dt); campo && campo.tick(ahora / 1000);
+    pintaSoldados(); hud.tick(dt); separaEstandartes($('ests')); campo && campo.tick(ahora / 1000);
   }
   renderer.render(escena, camara);
   requestAnimationFrame(bucle);
@@ -280,7 +281,7 @@ window.__bloque = { listo: false, dibuja: (a, b) => C && frenteDesdeRaya(a, b), 
 
 async function arranca() {
   hud = crearHud({ $, proyecta, ladoEnPantalla, Son });
-  dedos = crearDedos({ lienzo, suelo, haciaDonde: (a, b) => haciaDonde(a, b), alSoltar: (a, b) => { if (C && nivel && !congelado) frenteDesdeRaya(a, b); }, H, libre: () => !cam1 || cam1.libre() });
+  dedos = crearDedos({ lienzo, suelo, haciaDonde: (a, b) => haciaDonde(a, b), alSoltar: (a, b) => { if (C && nivel && !congelado) frenteDesdeRaya(a, b); }, H, libre: () => !cam1 || cam1.libre(), escala: () => cam1 ? 1 - 0.6 * cam1.t() : 1 });
   cam1 = crearCamara({ camara, lienzo, H, estado: () => C && C.S, hud: $('hud'), inicial: Q.get('vista') === 'oficial' ? 'oficial' : 'arriba' }); window.__bloque.vista = cam1;
   escena.add(dedos.raya);
   creaSombras(); creaEfectos();
