@@ -11,6 +11,7 @@ MOV = next((a.split('=', 1)[1] for a in sys.argv if a.startswith('--mov=')), Non
 CLIPS = {'quieto': (1, 'Idle_Loop', 1), 'andar': (1, 'Walk_Loop', 1), 'correr': (1, 'Jog_Fwd_Loop', 1), 'guardia': (1, 'Sword_Idle', 1), 'lanzar': (2, 'OverhandThrow', 0),
          'golpear': (1, 'Sword_Attack', 0), 'cubrirse': (2, 'Sword_Block', 0), 'encajar': (1, 'Hit_Chest', 0), 'morir': (1, 'Death01', 0)}
 
+PILUM_GLB = os.environ.get('PILUM_GLB')
 _NB = {}
 def normales_cuerpo(m):
     """Normales suaves del cuerpo entero de MakeHuman (sin aligerar): la piel aligerada las hereda y no se ve a facetas."""
@@ -87,6 +88,7 @@ def hastatus(m, B, lod=False, muy=False, fondo=False):
     P += Z.yelmo(m); hL = poses.mano(m, 'L'); hR = poses.mano(m, 'R')
     P += Z.escudo_oval(hL, **(dict(nu=4, nv=6, ne=6) if fondo else dict(nu=6, nv=10, ne=10) if muy else {}))
     P += Z.pilum(hR['c'], -hR['X'], hR['N'], 'wrist.R', 1, bajo=1.0, simple=muy)
+    if PILUM_GLB: P += Z.pilum(hR['c'], hR['X'], hR['N'], 'wrist.R', 4, bajo=1.0, nombre='pilumt', simple=muy)      # prueba «pilum»: agarre de lanzar, con la punta hacia el meñique (conjunto 4)
     P += Z.espada(hR['c'], -hR['X'], hR['d'], 'wrist.R', 2)
     boca = np.array([-0.228, 1.005, 0.02]); ev = np.array([-0.13, -1, -0.16]); P += Z.vaina(boca, ev, [1, 0, 0], 'root') + Z.espada(boca - ev / np.linalg.norm(ev) * 0.058, ev, [0, 0, 1], 'root', 3, nombre='espada_env', solo_puno=True)
     P += Z.suela(m, 'L') + Z.suela(m, 'R')
@@ -138,7 +140,9 @@ def galo(m, B, lod=False, muy=False, fondo=False):
     return P
 
 def movimientos(m, util, cfg):
-    G = {1: anim.Glb(anim.ARCH[1]), 2: anim.Glb(anim.ARCH[2])}; clips = {}; hL = poses.mano(m, 'L'); hR = poses.mano(m, 'R')
+    G = {1: anim.Glb(anim.ARCH[1]), 2: anim.Glb(anim.ARCH[2])}; clips = {}
+    if PILUM_GLB: G[3] = anim.Glb(PILUM_GLB)
+    hL = poses.mano(m, 'L'); hR = poses.mano(m, 'R')
     bajo = (np.array([0.335, 0.865, 0.235]), poses.girar_mano(hL['F'], [0.93, 0, -0.37], [0.37, 0, 0.93]), [0.6, 0.1, -1.0])
     alto = (np.array([0.20, 1.085, 0.36]), poses.girar_mano(hL['F'], [0.99, 0, -0.12], [0.12, 0, 0.99]), [0.9, -0.5, -0.4])
     porta = lambda yy, inc: (np.array([-0.265, yy, 0.25]), poses.girar_mano(hR['F'], [0.0, -1, -inc], [-1.0, 0, 0.18]), [-0.25, -0.5, -1.0])
@@ -169,6 +173,10 @@ CFG_HASTATUS = {'quieto': ('bajo', (1.07, 0.04)), 'andar': ('bajo', (1.13, 0.10)
                 'cubrirse': ('alto', None), 'encajar': ('alto', None), 'morir': (None, None)}
 MUESTRA_HASTATUS = {'quieto': [[0, 5]], 'quieto2': [[0, 5]], 'quieto3': [[0, 5]], 'andar': [[0, 5]], 'correr': [[0, 5]], 'guardia': [[0, 2]], 'lanzar': [[0, 5], [0.36, 4]], 'golpear': [[0, 2]], 'cubrirse': [[0, 2]], 'encajar': [[0, 2]], 'morir': [[0, 2]]}
 
+# Prueba «pilum» (23/11): con PILUM_GLB=<pilum_throw.glb> (hecho con tools/blender/pilum_tiro.py sobre el esqueleto de UAL2) se añade el clip 'lanzar2'
+# y un segundo pilum con el agarre de lanzar. Sin la variable, todo sale como siempre.
+if PILUM_GLB:
+    CLIPS['lanzar2'] = (3, 'Pilum_Throw', 0); CFG_HASTATUS['lanzar2'] = ('bajo', None); MUESTRA_HASTATUS['lanzar2'] = [[0, 12], [0.77, 4]]
 FUERA_LEJOS = ('escudo_asa', 'suela', 'espada_env')
 def aligerar_piezas(pz, r=0.34, muy=False, fondo=False):
     out = []

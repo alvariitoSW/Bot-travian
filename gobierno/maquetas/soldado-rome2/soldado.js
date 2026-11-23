@@ -2,7 +2,7 @@
    textura) y lo pinta muchas veces en una sola llamada. Cada hombre lleva su cuadro, su tinte y su suciedad. */
 import * as THREE from '../../../js/vendor/three.module.min.js';
 export { THREE };
-const AQUI = new URL('./datos/', import.meta.url).href;
+const AQUI = new URL('./' + ((typeof location !== 'undefined' && new URLSearchParams(location.search).get('datos')) || 'datos').replace(/[^\w-]/g, '') + '/', import.meta.url).href;   /* ?datos=carpeta: otra carpeta de datos (prueba «pilum») */
 
 const V_CAB = `attribute vec4 aSkinI; attribute vec4 aSkinW; attribute float aSet;
 attribute vec3 aCuadro; attribute vec4 aVar; attribute float aMuestra;

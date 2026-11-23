@@ -100,8 +100,10 @@ CL = [
  (10, (0.00, 0.17, -0.09, -52, -6), (-78, -10, -6), (-0.30, 0.66, 1.56), (0.00, -1, 0.20), (0.30, 0, 0.95), (0.16, -0.44, 1.30), ((0.11, -0.24, 0.20),  6), ((-0.14, 0.28, 0.104), -65, 0)),
  (15, (0.00, -0.02, -0.10, -32, 0), (-52,  -4, -4), (-0.36, 0.52, 1.66), (0.00, -1, 0.18), (0.32, 0, 0.95), (0.20, -0.52, 1.22), ((0.11, -0.56, 0.104),  4), ((-0.14, 0.26, 0.104), -55, 12)),
  (19, (0.00, -0.24, -0.07,  8,  9), (34,   16,  6), (-0.20, -0.62, 1.78), (0.00, -1, 0.06), (0.10, -0.3, 0.95), (0.34, -0.36, 1.02), ((0.11, -0.56, 0.104),  4), ((-0.14, 0.22, 0.15), -40, 38)),
- (26, (0.02, -0.33, -0.11, 24, 16), (56,   30,  8), (0.14, -0.62, 0.96), (0.3, -0.5, -0.8), (0.9, 0.2, -0.3), (0.40, -0.16, 1.00), ((0.11, -0.56, 0.104),  4), ((-0.13, 0.02, 0.15), -20, 30)),
- (40, (0.00, -0.26, -0.05, -18, 2), (-22,   2,  0), (-0.30, -0.22, 1.02), (0.0, -0.3, 1), (0.95, -0.2, 0.1), (0.26, -0.62, 1.12), ((0.11, -0.56, 0.104),  6), ((-0.14, -0.14, 0.104), -45, 0)),
+ (24, (0.01, -0.31, -0.10, 20, 14), (48,   26,  6), (-0.06, -0.66, 1.22), (0.1, -0.7, -0.7), (0.6, 0.3, -0.7), (0.38, -0.20, 1.00), ((0.11, -0.56, 0.104),  4), ((-0.14, 0.18, 0.16), -35, 34)),
+ (30, (0.00, -0.22, -0.09,  6,  8), (14,   12,  2), (-0.24, -0.46, 1.02), (0.0, -0.5, 0.86), (0.9, -0.2, 0.2), (0.32, -0.30, 1.05), ((0.11, -0.48, 0.15),  6), ((-0.14, 0.24, 0.104), -50, 6)),
+ (36, (0.00, 0.00, -0.06, -20,  2), (-26,   2,  0), (-0.30, -0.16, 1.00), (0.0, -0.35, 0.94), (0.95, -0.2, 0.1), (0.27, -0.30, 1.10), ((0.11, -0.20, 0.13),  8), ((-0.14, 0.26, 0.104), -55, 0)),
+ (40, (0.00, 0.06, -0.05, -28,  0), (-38,  -2,  0), (-0.31, -0.10, 1.00), (0.0, -0.3, 0.95), (0.95, -0.2, 0.1), (0.26, -0.30, 1.12), ((0.11, -0.16, 0.104),  8), ((-0.14, 0.26, 0.104), -55, 0)),
 ]
 for f, pv, ch, mr, punta, palma, ml, pl, pr in CL:
     Rp = giro(REST["pelvis"], pv[3], pv[4]); pon(T["pelvis"], f, pel0 + Vector(pv[:3]), Rp)
@@ -137,6 +139,21 @@ me = bpy.data.meshes.new("Suelo"); me.from_pydata([(-9, -24, 0), (9, -24, 0), (9
 ms = bpy.data.materials.get("M_Suelo") or bpy.data.materials.new("M_Suelo"); ms.use_nodes = True; next(n for n in ms.node_tree.nodes if n.type == "BSDF_PRINCIPLED").inputs["Base Color"].default_value = (0.36, 0.33, 0.24, 1); me.materials.append(ms)
 
 info = {}
+if "--hornea" in ARG:
+    # la animación de los vacíos pasa a claves en los huesos (sin restricciones) y sale un .glb con el esqueleto y una sola acción
+    bpy.context.view_layer.objects.active = arm
+    for o in bpy.data.objects: o.select_set(o is arm)
+    bpy.ops.object.mode_set(mode="POSE")
+    bpy.ops.pose.select_all(action="SELECT")
+    r = bpy.ops.nla.bake(frame_start=1, frame_end=40, step=1, only_selected=False, visual_keying=True, clear_constraints=True, use_current_action=False, bake_types={"POSE"})
+    bpy.ops.object.mode_set(mode="OBJECT")
+    acc = arm.animation_data.action; acc.name = "Pilum_Throw"
+    for a in list(bpy.data.actions):
+        if a is not acc and a.users == 0 or (a is not acc and not a.name.startswith(("T_", "Pilum", "Cam", "Sol"))): bpy.data.actions.remove(a)
+    malla = bpy.data.objects.get("Mannequin")
+    for o in bpy.data.objects: o.select_set(o in (arm, malla))
+    e = bpy.ops.export_scene.gltf(filepath="/work/pilum_throw.glb", export_format="GLB", use_selection=True, export_animations=True, export_animation_mode="ACTIONS", export_force_sampling=True, export_frame_range=False, export_materials="NONE")
+    info["hornea"] = [list(r), list(e), acc.name, list(acc.frame_range)]
 S.frame_set(10); bpy.context.view_layer.update()
 info["muneca_10"] = [round(x, 3) for x in (arm.matrix_world @ P["hand_r"].head)]; info["punta_10"] = [round(x, 3) for x in (pil.matrix_world.to_3x3() @ Vector((0, 0, 1)))]
 info["codo_10"] = [round(x, 3) for x in (arm.matrix_world @ P["lowerarm_r"].head)]; info["rod_l_10"] = [round(x, 3) for x in (arm.matrix_world @ P["calf_l"].head)]

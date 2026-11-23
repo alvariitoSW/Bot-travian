@@ -111,4 +111,4 @@ function bucle(ahora) { const t = fijo ?? (ahora - t0) / 1000;
 function info() { const tr = n => (MOD[QUIEN[0]][n] || { j: { tris: 0 } }).j.tris, s = S[QUIEN[0]].j; return { tris: ultimo.tris, llamadas: ultimo.llamadas, porNivel: [0, 1, 2, 3].map(tr), reparto, huesos: s.huesos.length, hombres: hombres.length,
   texto: `${hombres.length} hombres · ${hombres.length > 1 ? 'por tamaño: ' + reparto.map((n, k) => n + '×' + tr(k).toLocaleString('es')).join(', ') : s.tris.toLocaleString('es') + ' triángulos'} · ${ultimo.tris.toLocaleString('es')} triángulos en pantalla · ${ultimo.llamadas} llamadas · ${fps.toFixed(0)} img/s` }; }
 const ultimo = { tris: 0, llamadas: 0 };
-window.__info = info; requestAnimationFrame(bucle);
+window.__info = info; window.__tiempo = t => { for (const h of hombres) if (h.tfijo !== undefined && h.tfijo !== null) h.tfijo = t; };   /* para grabar un movimiento cuadro a cuadro (prueba «pilum») */ requestAnimationFrame(bucle);
