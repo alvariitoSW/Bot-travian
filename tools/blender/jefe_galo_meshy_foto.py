@@ -91,7 +91,7 @@ def eti(txt, x, y, t=24):
     f = F(t); bb = d.textbbox((0, 0), txt, font=f); d.rounded_rectangle((x, y, x + bb[2] + 20, y + bb[3] + 14), 9, fill=(244, 236, 214)); d.text((x + 10, y + 5), txt, font=f, fill=(40, 30, 20))
 eti('Jefe galo (Meshy) · capa con el color del bando', 12, 10, 25)
 eti('de espaldas', 14, 950, 20)
-for i, (n, tr) in enumerate((('fino', 11212), ('lejos', 3415), ('muylejos', 776), ('fondo', 368))):
+for i, (n, tr) in enumerate((('fino', 7968), ('lejos', 3415), ('muylejos', 776), ('fondo', 368))):
     eti('%s · %d' % (n, tr), 8 + i * 193, H - 52, 18)
 d.line((0, 940, W, 940), fill=(180, 160, 120), width=2)
 img.resize((390, 844), Image.LANCZOS).save(SAL.replace('-v.jpg', '-v390.jpg'), quality=90)

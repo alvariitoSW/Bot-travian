@@ -52,7 +52,7 @@ def empaquetar_franja(pz, lado):
     for p, (px, py), (w, h) in zip(pz, pos, tam): p['uvpx'] = np.array([px, py]) + p['UV'] * [w, h]; p['rect'] = (px, py, w, h)
     return d
 #        nivel      sufijo       lod    muy    fondo  lado  tope (triángulos), manos (objetivo MakeHuman)
-NIVEL = {'fino': ('', False, False, False, 2048, 11820, 1500), 'lejos': ('_lejos', True, False, False, 1024, 3546, 320),
+NIVEL = {'fino': ('', False, False, False, 2048, 8330, 1500), 'lejos': ('_lejos', True, False, False, 1024, 3546, 320),
          'muylejos': ('_muylejos', True, True, False, 512, 788, 0), 'fondo': ('_fondo', True, True, True, 512, 374, 0)}
 SALIDA = {'fino': dict(color=(1024, 72), normal=(512, 66), orm=(256, 62), masc=(256, 80)), 'lejos': dict(color=(512, 72), normal=(256, 62), orm=(128, 60), masc=(128, 80)),   # peso: ≈0,5 MB el soldado
           'muylejos': dict(color=(256, 74), normal=(128, 60), orm=(64, 60), masc=(128, 80)), 'fondo': dict(color=(256, 72), normal=(128, 60), orm=(64, 60), masc=(128, 80))}
