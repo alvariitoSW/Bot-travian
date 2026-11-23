@@ -1,6 +1,6 @@
 /* AQVILA — FI1: la física de las batallas (js/fisica-batalla.js), sin pantalla. node test/fisica-batalla.test.mjs */
 import assert from 'node:assert';
-import { crearFisica, MIN_DIST, RADIO, RADIO_CAIDO, ESCUDO } from '../js/fisica-batalla.js';
+import { crearFisica, MIN_DIST, RADIO, RADIO_CAIDO, ESCUDO, PROYECTIL } from '../js/fisica-batalla.js';
 import { crearFalange, SARISA, AGARRE } from '../js/falange.js';
 let n = 0, mal = 0;
 function t(nombre, f) { try { f(); n++; console.log('bien', nombre); } catch (e) { mal++; console.log('MAL', nombre, '—', e.message); } }
@@ -84,6 +84,126 @@ t('coste: 200 cuerpos apiñados, menos de 1 ms por paso', () => {
   const S = mundo(fal, ene), Fi = crearFisica(); for (let i = 0; i < 30; i++) Fi.paso(S, DT);
   let ms = Infinity; for (let v = 0; v < 3; v++) { const a = performance.now(); for (let i = 0; i < 100; i++) { for (const h of ene) if (h.vivo) h.z += 0.01; Fi.paso(S, DT); } ms = Math.min(ms, (performance.now() - a) / 100); }   /* la mejor de tres tandas: menos ruido de la máquina */
   console.log(`   ${ms.toFixed(3)} ms por paso con 230 cuerpos`); assert.ok(ms < 1, ms);
+});
+
+
+/* ---------- FI3: proyectiles. Las varas se escribieron antes de medir (parte 2026-11-23-FI3) ---------- */
+/* un muro de 10 × 4 romanos mirando a +z (yaw 0), hombro con hombro (0,7 m; 0,9 m entre filas). Alzado (testudo): la 1.ª fila
+   con el escudo hasta los ojos, las de detrás con el escudo sobre la cabeza. Si no, todos con el escudo al frente */
+function muro(alzado) {
+  const fal = []; for (let r = 0; r < 4; r++) for (let f = 0; f < 10; f++) fal.push(hombre({ tipo: 'infante', x: (f - 4.5) * 0.7, z: -r * 0.9, f, r, guardia: alzado ? (r > 0 ? 'alto' : 'muro') : 'frente' }));
+  return mundo(fal, []);
+}
+/* tiro de y0 en (x0, z0) a la diana (x, y, z) con velocidad v: el ángulo bajo de la parábola (o 45° si no llega) */
+function tiro(x0, y0, z0, x, y, z, v) {
+  const dx = x - x0, dz = z - z0, R = Math.hypot(dx, dz), dy = y - y0, v2 = v * v, q = v2 * v2 - 9.81 * (9.81 * R * R + 2 * dy * v2);
+  const a = q < 0 ? Math.PI / 4 : Math.atan((v2 - Math.sqrt(q)) / (9.81 * R));
+  return [dx / R * v * Math.cos(a), v * Math.sin(a), dz / R * v * Math.cos(a)];
+}
+function rng(s) { return () => { s = (s + 0x6D2B79F5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+/* vuela hasta que nada vuele (como mucho 8 s) y junta los avisos */
+function hastaQuieto(Fi, S) { const av = []; for (let i = 0; i < 240 && Fi.proyectiles.some(p => p.est === 'vuela'); i++) av.push(...Fi.vuela(S, DT)); return av; }
+/* lluvia de N proyectiles contra el muro desde 15–25 m, uno a uno; cuenta el PRIMER impacto de cada uno en un hombre */
+function lluvia(tipo, alzado, N, sem) {
+  const S = muro(alzado), Fi = crearFisica({ semilla: sem }), R = rng(sem * 7 + 1), cuenta = { escudo: 0, casco: 0, cuerpo: 0, nadie: 0 }, avisos = {};
+  for (let i = 0; i < N; i++) {
+    for (const h of S.fal) h.pila = 0;
+    const x0 = (R() - 0.5) * 8, z0 = 15 + R() * 10, tx = (R() - 0.5) * 7, tz = -R() * 2.8, ty = 0.6 + R() * 1.2, v = PROYECTIL[tipo].v * (0.9 + 0.2 * R());
+    Fi.lanza(tipo, [x0, 1.9, z0], tiro(x0, 1.9, z0, tx, ty, tz, v));
+    const av = hastaQuieto(Fi, S), pr = av.find(a => a.h);
+    if (pr) cuenta[pr.en]++; else cuenta.nadie++;
+    for (const a of av) { const k = a.aviso + ' ' + a.en; avisos[k] = (avisos[k] || 0) + 1; }
+    Fi.limpia();
+  }
+  return { cuenta, avisos };
+}
+const pc = (a, b) => (100 * a / Math.max(1, b)).toFixed(0) + ' %';
+
+t('FI3: pilum contra un muro alzado (testudo): ≥ 60 % de los que dan en alguien, en el escudo', () => {
+  const { cuenta: c, avisos } = lluvia('pilum', true, 400, 3), dan = c.escudo + c.casco + c.cuerpo;
+  console.log(`   escudo ${pc(c.escudo, dan)} · casco ${pc(c.casco, dan)} · cuerpo ${pc(c.cuerpo, dan)} · al suelo ${c.nadie} de 400 ·`, JSON.stringify(avisos));
+  assert.ok(dan >= 200, 'dan pocos: ' + dan); assert.ok(c.escudo / dan >= 0.6, 'escudo ' + c.escudo / dan); assert.ok(c.cuerpo / dan <= 0.25, 'cuerpo ' + c.cuerpo / dan);
+});
+/* vara escrita antes: «al frente, escudo ≥ 50 %». Medido: 36 %, porque con el escudo al pecho las filas de detrás dan la cabeza
+   y los hombros a una salva que cae. Es lo que se quiere enseñar (por eso existe el testudo): la vara pasa a comparar los dos */
+t('FI3: el muro alzado para mucho más que los escudos al frente (≥ 20 puntos más en el escudo, la mitad o menos en el cuerpo)', () => {
+  const al = lluvia('pilum', true, 400, 4).cuenta, fr = lluvia('pilum', false, 400, 4).cuenta, d = c => c.escudo + c.casco + c.cuerpo;
+  console.log(`   al frente: escudo ${pc(fr.escudo, d(fr))} · casco ${pc(fr.casco, d(fr))} · cuerpo ${pc(fr.cuerpo, d(fr))}; alzado: escudo ${pc(al.escudo, d(al))} · cuerpo ${pc(al.cuerpo, d(al))}`);
+  assert.ok(al.escudo / d(al) >= fr.escudo / d(fr) + 0.2, 'escudo'); assert.ok(al.cuerpo / d(al) <= 0.5 * fr.cuerpo / d(fr), 'cuerpo');
+});
+/* un hombre solo, mirando a +z, y proyectiles a su escudo con un ángulo dado (grados desde la perpendicular), en horizontal */
+function alEscudo(tipo, ang, N, sem) {
+  const h = hombre({ tipo: 'infante' }), S = mundo([h], []), Fi = crearFisica({ semilla: sem }), R = rng(sem), r = { clava: 0, rebota: 0, dobla: 0, otro: 0 };
+  const c = ESCUDO.delante + ESCUDO.grueso / 2;
+  for (let i = 0; i < N; i++) {
+    h.pila = 0; const a = ang * Math.PI / 180, v = PROYECTIL[tipo].v, y = 0.6 + R() * 0.6, xs = ESCUDO.izq * -1 + (R() - 0.5) * 0.3;
+    /* llega a la cara del escudo por (xs + algo, y, c) desde 3 m, inclinado «a» hacia +x; la gravedad apenas cuenta en 3 m */
+    const dx = Math.sin(a), dz = -Math.cos(a); Fi.lanza(tipo, [-xs - dx * 3 + 0.1, y + 0.05, c - dz * 3], [dx * v, 0.5, dz * v]);
+    const av = hastaQuieto(Fi, S), p = av.find(x => x.h);
+    if (!p || p.en !== 'escudo') r.otro++; else if (p.aviso === 'clava') r.clava++; else if (p.aviso === 'rebota') r.rebota++;
+    if (av.some(x => x.aviso === 'dobla')) r.dobla++;
+    Fi.limpia();
+  }
+  return r;
+}
+t('FI3: pilum de frente al escudo se clava (≥ 95 %) y se dobla (≥ 80 %); rasante a 75°, rebota (≥ 85 %)', () => {
+  const f = alEscudo('pilum', 5, 100, 11), r = alEscudo('pilum', 75, 100, 12);
+  console.log('   de frente', JSON.stringify(f), '· rasante', JSON.stringify(r));
+  assert.ok(f.clava >= 95, 'clava ' + f.clava); assert.ok(f.dobla >= 80, 'dobla ' + f.dobla); assert.ok(r.rebota >= 85, 'rebota ' + r.rebota);
+});
+t('FI3: la flecha y la jabalina no se doblan; la flecha clavada no carga el escudo', () => {
+  const fl = alEscudo('flecha', 5, 60, 21), ja = alEscudo('jabalina', 5, 60, 22);
+  console.log('   flecha', JSON.stringify(fl), '· jabalina', JSON.stringify(ja));
+  assert.strictEqual(fl.dobla + ja.dobla, 0); assert.ok(fl.clava >= 54 && ja.clava >= 54, 'clavan poco');
+  const h = hombre({ tipo: 'infante' }), S = mundo([h], []), Fi = crearFisica(); Fi.lanza('flecha', [0, 1, 4], [0, 0.5, -45]); hastaQuieto(Fi, S); assert.ok(!(h.pila > 0), 'pila ' + h.pila);
+  Fi.lanza('pilum', [-0.1, 1, 4], [0, 0.5, -20]); hastaQuieto(Fi, S); assert.strictEqual(h.pila, 1);
+});
+t('FI3: el casco: de frente hiere; a la cabeza desde lejos, la mayoría rebota (≥ 50 %) y alguno hiere', () => {
+  const h = hombre({ tipo: 'infante', guardia: 'frente' }), S = mundo([h], []), Fi = crearFisica({ semilla: 5 });
+  Fi.lanza('pilum', [0, 1.66, 3], [0, 0.72, -20]);   /* la subida justa para que la gravedad lo deje a la altura del casco */ let av = hastaQuieto(Fi, S); assert.ok(av.some(a => a.aviso === 'hiere' && a.en === 'casco'), JSON.stringify(av.map(a => a.aviso + ' ' + a.en)));
+  Fi.limpia(); const R = rng(9); let casco = 0, reb = 0, hie = 0;
+  for (let i = 0; i < 400; i++) {
+    const x0 = (R() - 0.5) * 6, z0 = 12 + R() * 10; Fi.lanza(R() < 0.5 ? 'pilum' : 'jabalina', [x0, 1.9, z0], tiro(x0, 1.9, z0, (R() - 0.5) * 0.3, 1.62 + R() * 0.15, (R() - 0.5) * 0.3, 20));
+    av = hastaQuieto(Fi, S); const p = av.find(a => a.h); if (p && p.en === 'casco') { casco++; if (p.aviso === 'rebota') reb++; if (p.aviso === 'hiere') hie++; } Fi.limpia();
+  }
+  console.log(`   ${casco} al casco: rebotan ${pc(reb, casco)}, hieren ${pc(hie, casco)}`);
+  assert.ok(casco >= 40, 'casco ' + casco); assert.ok(reb / casco >= 0.5, 'rebota ' + reb / casco); assert.ok(hie >= 1, 'ninguno hiere');
+});
+t('FI3: una flecha que cae casi en vertical sobre el hombro se clava en el cuerpo (no rebota siempre)', () => {
+  /* hallado por el revisor: antes la normal de los hombros era de costado y todo rebotaba */
+  const h = hombre({ tipo: 'escaramuzador' }), S = mundo([h], []), Fi = crearFisica({ semilla: 4 }); let clava = 0;
+  for (let i = 0; i < 100; i++) { Fi.lanza('flecha', [0.2, 3, 0], [0.5, -30, 0]); const av = hastaQuieto(Fi, S); if (av.some(a => a.aviso === 'clava' && a.en === 'cuerpo')) clava++; Fi.limpia(); }
+  console.log(`   ${clava} de 100 clavadas en el hombro`); assert.ok(clava >= 90, 'clava ' + clava);
+});
+t('FI3: el suelo: empinado se clava de pie (≥ 95 %); rasante cae de plano (≥ 95 %)', () => {
+  const S = mundo([], []), Fi = crearFisica({ semilla: 6 }), R = rng(6); let pie = 0, plano = 0;
+  for (let i = 0; i < 100; i++) { const a = (55 + R() * 15) * Math.PI / 180, g = R() * 6.28; Fi.lanza('pilum', [0, 0.5, 0], [Math.cos(a) * 15 * Math.cos(g), -Math.sin(a) * 15, Math.cos(a) * 15 * Math.sin(g)]); const av = hastaQuieto(Fi, S); if (av.some(x => x.aviso === 'clava' && x.en === 'suelo')) pie++; Fi.limpia(); }
+  for (let i = 0; i < 100; i++) { const a = (5 + R() * 10) * Math.PI / 180, g = R() * 6.28; Fi.lanza('jabalina', [0, 0.3, 0], [Math.cos(a) * 9 * Math.cos(g), -Math.sin(a) * 9, Math.cos(a) * 9 * Math.sin(g)]); const av = hastaQuieto(Fi, S); if (av.some(x => x.aviso === 'cae') && Fi.proyectiles[0].plano) plano++; Fi.limpia(); }
+  console.log(`   de pie ${pie} de 100 · de plano ${plano} de 100`); assert.ok(pie >= 95, 'de pie ' + pie); assert.ok(plano >= 95, 'plano ' + plano);
+});
+t('FI3: todos acaban quietos (nada vuela tras 8 s), nadie bajo el suelo, con un suelo en cuesta', () => {
+  const H = (x, z) => 0.1 * x + 0.05 * z, S = muro(true), Fi = crearFisica({ H, semilla: 8 }), R = rng(8);
+  for (const h of S.fal) h.x += 0;
+  for (let i = 0; i < 300; i++) { const tp = ['pilum', 'jabalina', 'flecha'][i % 3], x0 = (R() - 0.5) * 10, z0 = 10 + R() * 20; Fi.lanza(tp, [x0, H(x0, z0) + 1.9, z0], tiro(x0, H(x0, z0) + 1.9, z0, (R() - 0.5) * 12, 1, -R() * 5, PROYECTIL[tp].v * (0.8 + 0.4 * R()))); }
+  hastaQuieto(Fi, S);
+  const vuelan = Fi.proyectiles.filter(p => p.est === 'vuela').length, bajo = Fi.proyectiles.filter(p => !p.fijo && p.y < H(p.x, p.z) - 0.01).length;
+  const est = {}; for (const p of Fi.proyectiles) { const k = p.est + ' ' + p.en; est[k] = (est[k] || 0) + 1; } console.log('   ', JSON.stringify(est));
+  assert.strictEqual(vuelan, 0); assert.strictEqual(bajo, 0);
+});
+t('FI3: lo clavado en un escudo sigue al hombre cuando se mueve y gira', () => {
+  const h = hombre({ tipo: 'infante' }), S = mundo([h], []), Fi = crearFisica(); const p = Fi.lanza('pilum', [-0.1, 1, 4], [0, 0.5, -20]); hastaQuieto(Fi, S);
+  assert.strictEqual(p.est, 'clavado'); const a = Fi.dondeP(p);
+  h.x += 1; h.yaw = Math.PI; const b = Fi.dondeP(p);
+  assert.ok(Math.abs((b.x - 1) + a.x) < 1e-6 && Math.abs(b.z + a.z) < 1e-6 && Math.abs(b.y - a.y) < 1e-9, JSON.stringify([a, b]));
+  assert.ok(Math.abs(b.dz + a.dz) < 1e-6, 'la dirección gira con él');
+});
+t('FI3: mismo resultado con la misma semilla; vuela no mueve a nadie; 200 proyectiles con 200 hombres, < 1 ms por paso', () => {
+  const una = () => JSON.stringify(lluvia('jabalina', true, 60, 31)); assert.strictEqual(una(), una());
+  const fal = []; for (let i = 0; i < 200; i++) fal.push(hombre({ tipo: 'infante', x: (i % 20) * 0.9, z: -Math.floor(i / 20), guardia: i >= 20 ? 'alto' : 'frente' }));
+  const S = mundo(fal, []), Fi = crearFisica({ semilla: 2 }), R = rng(2), lanza200 = () => { for (let i = 0; i < 200; i++) { const x0 = R() * 18, z0 = 18 + R() * 6; Fi.lanza('pilum', [x0, 1.9, z0], tiro(x0, 1.9, z0, R() * 18, 1, -R() * 9, 21)); } };
+  let ms = Infinity; for (let v = 0; v < 3; v++) { Fi.reinicia(); lanza200(); const a = performance.now(); for (let i = 0; i < 20; i++) Fi.vuela(S, DT); ms = Math.min(ms, (performance.now() - a) / 20); }
+  console.log(`   ${ms.toFixed(3)} ms por paso con 200 proyectiles en vuelo y 200 hombres`);
+  assert.ok(fal.every(h => !h.fx && !h.fz), 'vuela movió a alguien'); assert.ok(ms < 1, ms);
 });
 
 console.log(`\n${n} bien, ${mal} mal`);
