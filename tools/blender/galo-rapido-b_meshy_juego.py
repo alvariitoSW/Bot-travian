@@ -55,7 +55,7 @@ def empaquetar_franja(pz, lado):
 #        nivel      sufijo       lod    muy    fondo  lado  tope (triángulos), manos (objetivo MakeHuman)
 NIVEL = {'fino': ('', False, False, False, 2048, 13950, 700), 'lejos': ('_lejos', True, False, False, 1024, 4350, 200),   # AL8: manos más ligeras (1500 y 320 en el hastatus)
          'muylejos': ('_muylejos', True, True, False, 512, 1080, 0), 'fondo': ('_fondo', True, True, True, 512, 490, 0)}
-SALIDA = {'fino': dict(color=(1024, 62), normal=(512, 66), orm=(256, 66), masc=(256, 80)), 'lejos': dict(color=(512, 72), normal=(256, 64), orm=(128, 66), masc=(128, 80)),
+SALIDA = {'fino': dict(color=(1024, 62), normal=(512, 66), orm=(256, 66), masc=(512, 80)), 'lejos': dict(color=(512, 72), normal=(256, 64), orm=(128, 66), masc=(256, 80)),
           'muylejos': dict(color=(256, 74), normal=(128, 62), orm=(128, 64), masc=(128, 80)), 'fondo': dict(color=(128, 74), normal=(64, 62), orm=(64, 64), masc=(64, 80))}
 TELAS_GALAS = np.array([[0x3f, 0x5f, 0x7a], [0x5a, 0x7a, 0x4a], [0x9a, 0x7a, 0x3a], [0x8a, 0x4a, 0x30], [0x6a, 0x5a, 0x7a], [0x4a, 0x6a, 0x6a]]) / 255   # PUEBLOS.galo.telas de js/gfx/soldado.js
 
@@ -79,6 +79,9 @@ def quitar_moderno(col, orm, reg, x0):
     c = col[:, :x0]; o = orm[:, :x0]; g = reg[:, :x0]; mx_, mn_ = c.max(-1), c.min(-1); lum = c @ [0.299, 0.587, 0.114]
     sat = (mx_ - mn_) / np.maximum(mx_, 1e-3)
     k = (g == 1) * np.clip((0.26 - sat) / 0.08, 0, 1) * np.clip((lum - 0.10) / 0.06, 0, 1)     # gris verdoso de la camiseta, no la piel ni el cinturón
+    from PIL import ImageFilter                                  # ensanchar 3 px por las costuras de las islas (si no, rayas claras sin teñir)
+    kd = np.asarray(Image.fromarray((k * 255).astype(np.uint8)).filter(ImageFilter.MaxFilter(7)), np.float32) / 255
+    k = np.where((g == 1) | (g == 0), np.maximum(k, kd * (np.clip((lum - 0.10) / 0.06, 0, 1) * (sat < 0.34))), k)
     t = lin(TELAS_GALAS).mean(0); cl = lin(c); gl = np.clip((cl @ t) / (t @ t) / 2.2, 0, 1)
     gris = srgb(gl)[..., None] * np.ones(3); c[:] = c * (1 - k[..., None]) + gris * k[..., None]
     z = (g == 2) * np.clip((0.34 - lum) / 0.1, 0, 1)                                           # zapato negro y brillante
