@@ -32,3 +32,15 @@ no arches. Warm afternoon light, clean simple shapes, mobile game, low poly.
 - Curia Hostilia: sala rectangular junto al Comicio, tradición atribuida a Tulo Hostilio (Livio 1.30; Varrón, *Lengua
   latina* 5.155). Su aspecto exacto no se conoce: forma de la Curia Julia, más tardía, simplificada y sin mármol.
   **Licencia de juego** en los detalles.
+
+## Primer intento (23/11, por API con la clave del usuario)
+Salieron con aspecto griego tardío y neoclásico: el templo con capiteles corintios y una sola fila de seis columnas, la
+«curia» con pórtico y ventanas. **No sirven para Roma** del siglo III a.C. El usuario: «Me gusta puede servir para una
+ciudad griega». Se guardan para las ciudades griegas (Siracusa, Tarento, Neápolis…): el templo como templo griego y la
+curia como *bouleuterion* (sala del consejo). Los modelos quedan en la cuenta de Meshy del usuario; se bajan por API
+con su número de tarea (los enlaces de descarga caducan):
+- templo: vista previa `01a20a6e-0111-74ff-a408-2df19048ee06` (refinado: el último de la cuenta con ese texto)
+- curia: vista previa `01a20a6e-0f76-754e-be5a-220c7ab1f449`
+Pesan ≈4 MB cada uno sin aligerar: antes de entrar en `assets/` los aligera el taller de Arte (`node gobierno/arte.mjs`,
+crédito Meshy en LICENSE, README, menú y fichas). Roma sigue con el templo y la curia de 0 A.D. en CD1.
+Lección para el siguiente texto: Meshy entiende mal los «no»; describir solo lo que sí debe salir.
