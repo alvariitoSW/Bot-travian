@@ -15,7 +15,7 @@
   /* ---------- parte pura ---------- */
   function semilla(s) { let a = (s >>> 0) || 1; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
   const RE = 50;                                            // re3 (MIDI 50): la tónica de trabajo
-  const DORIO = [0, 2, 3, 5, 7, 9, 10], FRIGIO = [0, 1, 3, 5, 7, 8, 10];   // sobre re: re mi fa sol la si do / re mib fa sol la sib do
+  const DORIO = [0, 2, 3, 5, 7, 9, 10], FRIGIO = [0, 1, 3, 5, 7, 8, 10], MIXOLIDIO = [0, 2, 4, 5, 7, 9, 10];   // sobre re: re mi fa sol la si do / re mib fa sol la sib do / re mi fa# sol la si do
 
   /* resumen = { fase: 'lejos' | 'lucha' | 'fin', moral: [propia, enemiga] (0..1, media de los cuerpos), rotos: [propios, enemigos] (0..3), cansancio: 0..1 (opcional) } */
   function tensionDe(r) {
@@ -26,36 +26,40 @@
     t += 0.12 * clamp(ro[0], 0, 3) - 0.04 * clamp(ro[1], 0, 3) + 0.06 * clamp(r.cansancio || 0, 0, 1);
     return clamp(t, 0, 1);
   }
-  /* espera | lucha | peligro (vas perdiendo) | victoria | derrota */
+  /* espera | lucha | ventaja (vas ganando) | peligro (vas perdiendo) | victoria | derrota.
+     SON1 (usuario, 23/11: «en función de si voy ganando o perdiendo»): el carácter de la música lo da este estado. */
   function estadoDe(r) {
     r = r || {}; const mo = r.moral || [1, 1], ro = r.rotos || [0, 0];
     if (r.fase === 'fin') return r.resultado === 'victoria' ? 'victoria' : 'derrota';
     if (r.fase !== 'lucha') return 'espera';
-    if (ro[0] > 0 || mo[0] < 0.45 || mo[0] < mo[1] - 0.2) return 'peligro';
+    const mp = mo[0] === undefined ? 1 : mo[0], me = mo[1] === undefined ? 1 : mo[1];
+    if (ro[0] > ro[1] || mp < 0.45 || mp < me - 0.2) return 'peligro';
+    if (ro[1] > ro[0] || me < mp - 0.2) return 'ventaja';
     return 'lucha';
   }
   M.tensionDe = tensionDe; M.estadoDe = estadoDe;
 
   /* Un compás de 4 pulsos. Devuelve notas { t (pulsos desde el inicio), d (duración en pulsos), c (capa), n (nota MIDI), v (0..1) }.
      Capas: bordon, tambor, tibia, cornu. Determinista: misma tensión, compás y semilla → mismas notas. */
-  function patron(tension, compas, sem) {
+  function patron(tension, compas, sem, estado) {
     const ten = clamp(tension === undefined ? 0.3 : tension, 0, 1), r = semilla((sem || 1) * 7919 + compas * 104729 + 13), notas = [];
-    const peligro = ten > 0.72, esc = ten > 0.45 ? FRIGIO : DORIO;
+    // ganando: modo brillante (mixolidio), sin roces, marcha firme y el cornu que sube. Perdiendo: frigio, tritono y tambor insistente.
+    const gana = estado === 'ventaja', peligro = !gana && (estado === 'peligro' || ten > 0.72), esc = gana ? MIXOLIDIO : peligro || ten > 0.45 ? FRIGIO : DORIO;
     const grado = (g, oct) => RE + (oct || 0) + esc[((g % 7) + 7) % 7] + 12 * Math.floor(g / 7);
     // bordón: la tónica larga; con tensión, una segunda menor encima que roza (disonancia) y la quinta
     const baseB = RE;   // re3 (146 Hz): el altavoz del móvil no da más abajo
     notas.push({ t: 0, d: 4, c: 'bordon', n: baseB, v: 0.6 + 0.2 * ten });
     if (ten > 0.4) notas.push({ t: 0, d: 4, c: 'bordon', n: baseB + 7, v: 0.3 + 0.2 * ten });
-    if (ten > 0.6) notas.push({ t: compas % 2 ? 2 : 0, d: 2, c: 'bordon', n: baseB + 13, v: 0.18 + 0.3 * (ten - 0.6) });   // la segunda menor: roce
+    if (ten > 0.6 && !gana) notas.push({ t: compas % 2 ? 2 : 0, d: 2, c: 'bordon', n: baseB + 13, v: 0.18 + 0.3 * (ten - 0.6) });   // la segunda menor: roce
     if (peligro && compas % 2) notas.push({ t: 0, d: 4, c: 'bordon', n: baseB + 6, v: 0.16 });   // el tritono
     // tympanum: golpe grave en el 1; más golpes cuanto más tensión; si hay peligro, insistente (corcheas)
     for (let k = 0; k < (ten < 0.3 ? 4 : 8); k++) {
       const t = ten < 0.3 ? k : k / 2, fuerte = k === 0 || (ten >= 0.3 ? k === 4 : k === 2);
-      const p = fuerte ? 1 : ten < 0.3 ? 0.1 + 0.4 * ten : peligro ? 0.9 : 0.15 + 0.75 * ten;
+      const p = fuerte ? 1 : gana ? (k % 2 ? 0.25 : 0.95) : ten < 0.3 ? 0.1 + 0.4 * ten : peligro ? 0.9 : 0.15 + 0.75 * ten;   // ganando: paso de marcha, en los pulsos
       if (r() < p) notas.push({ t, d: 0.25, c: 'tambor', n: fuerte ? 41 : 48 + (r() < 0.3 ? 3 : 0), v: fuerte ? 0.9 : 0.3 + 0.35 * ten });
     }
     // tibia: la melodía en una frase de 4 compases (pregunta, respuesta, pregunta, cadencia a la tónica)
-    const f = compas % 4, reg = ten < 0.35 ? 12 : ten < 0.7 ? 19 : 24;   // registro: de re4 a re5 y más agudo
+    const f = compas % 4, reg = gana ? 19 : ten < 0.35 ? 12 : ten < 0.7 ? 19 : 24;   // registro: de re4 a re5 y más agudo
     const nn = Math.round(1 + 4 * ten + (r() < 0.5 ? 0 : 1)), pos = [0, 1, 1.5, 2, 2.5, 3, 3.5];
     if (ten < 0.15 && f % 2 === 1) { /* silencio: respira */ }
     else {
@@ -72,7 +76,9 @@
       });
     }
     // cornu: una llamada de dos notas cada ocho compases; más a menudo con tensión
-    if ((compas % 8 === 0 && compas > 0) || (ten > 0.6 && compas % 4 === 2 && r() < 0.5)) {
+    if (gana && compas % 4 === 2) {   // ganando: llamada que sube (re, la, re agudo)
+      notas.push({ t: 0, d: 1, c: 'cornu', n: RE, v: 0.75 }, { t: 1.25, d: 1, c: 'cornu', n: RE + 7, v: 0.75 }, { t: 2.5, d: 1.5, c: 'cornu', n: RE + 12, v: 0.8 });
+    } else if ((compas % 8 === 0 && compas > 0) || (ten > 0.6 && compas % 4 === 2 && r() < 0.5)) {
       notas.push({ t: 0, d: 1.5, c: 'cornu', n: RE, v: 0.75 }); notas.push({ t: 1.75, d: 2, c: 'cornu', n: RE + 7 - (ten > 0.5 ? 1 : 0), v: 0.7 });
     }
     return notas.sort((a, b) => a.t - b.t);
@@ -175,7 +181,7 @@
       if (!puedeSonar()) { S.proximo = Math.max(S.proximo, ahora + 0.1); S.pend = []; return; }   // en silencio no se acumula nada
       if (S.proximo < ahora) S.proximo = ahora + 0.05;
       while (S.proximo < ahora + 0.3) {
-        const bpm = tempoDe(S.ten), sp = 60 / bpm, notas = patron(S.ten, S.compas, S.sem);
+        const bpm = tempoDe(S.ten), sp = 60 / bpm, notas = patron(S.ten, S.compas, S.sem, M.estadoActual);
         for (const n of notas) toca(c, S.proximo, n, bpm);
         S.proximo += 4 * sp; S.compas++;
       }
@@ -196,9 +202,9 @@
       return true;
     } catch (e) { M.activa = false; return false; }
   };
-  /* tensión objetivo 0..1 (la música la sigue despacio) y estado nombrado (solo informa; el tempo y la densidad salen de la tensión) */
+  /* tensión objetivo 0..1 (la música la sigue despacio: tempo y densidad) y estado nombrado (carácter: ganando o perdiendo) */
   M.tension = function (x) { S.meta = clamp(x, 0, 1); };
-  M.estado = function (nombre) { M.estadoActual = nombre; };
+  M.estado = function (nombre) { M.estadoActual = nombre; };   // ventaja y peligro cambian el modo, el tambor y el cornu
   M.nivel = () => S.ten;
   /* al sonar un cuerno o una orden, la música baja ≈ 6 dB durante un segundo */
   M.agacha = function () {

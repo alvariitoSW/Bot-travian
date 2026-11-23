@@ -51,6 +51,6 @@ node gobierno/juez-sonido.mjs --carta
 5. Dictamen de `historia` si es un instrumento, un grito o una voz de un pueblo.
 
 ## Voces
-- Nada de palabras en idioma moderno reconocible. Latín corto si hace falta («Cede!», «Fortiter!»), con dictamen.
+- **Regla del usuario (23/11)**: toda palabra que se entienda debe ser **español, griego antiguo o latín**. Nada de inglés ni idiomas inventados (élfico, etc.). Gritos sin palabra, sí. Latín y griego con dictamen de `historia`.
 - Los pueblos se distinguen: romanos en orden y a golpe de cuerno; galos y celtíberos, gritos y carnyx; griegos, peán
   antes de cargar (dictamen de `historia`).

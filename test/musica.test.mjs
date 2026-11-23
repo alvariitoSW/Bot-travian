@@ -33,6 +33,14 @@ for (const r of ['victoria', 'derrota']) {
 }
 ok(M.fraseFinal('victoria').some(n => n.c === 'cornu') && !M.fraseFinal('derrota').every(n => n.c === 'cornu') && M.fraseFinal('derrota').filter(n => n.c === 'tibia').length >= 4, 'victoria con cornu; derrota con tibia sola que baja');
 ok(M.iniciar() === false && M.activa === false, 'sin audio no arranca ni falla');
+// SON1 (usuario: «en función de si voy ganando o perdiendo»): ganando suena distinto de perdiendo
+const gano = { fase: 'lucha', moral: [0.9, 0.4], rotos: [0, 1] };
+ok(M.estadoDe(gano) === 'ventaja', 'estado: ventaja cuando el enemigo flaquea o pierde cuerpos');
+const notasDe = (e, c) => { const l = []; for (let k = 0; k < 32; k++) for (const x of M.patron(0.6, k, 5, e)) if (!c || x.c === c) l.push(x); return l; };
+const roces = e => notasDe(e, 'bordon').filter(x => x.n === 50 + 13 || x.n === 50 + 6).length;
+ok(roces('ventaja') === 0 && roces('peligro') > 0, `ganando no hay roces; perdiendo sí (${roces('peligro')})`);
+ok(notasDe('ventaja', 'cornu').length > notasDe('peligro', 'cornu').length, 'ganando suena más el cornu');
+ok(notasDe('ventaja', 'tibia').some(x => (x.n - 50) % 12 === 4) && !notasDe('peligro', 'tibia').some(x => (x.n - 50) % 12 === 4), 'ganando, modo brillante (fa#); perdiendo, nunca');
 M.tension(0.5); M.agacha(); M.final('victoria'); M.parar(); ok(true, 'tension, agacha, final y parar sin audio no fallan');
 ok(Math.abs(M.hz(69) - 440) < 1e-9 && Math.abs(M.hz(57) - 220) < 1e-9, 'hz: la3 = 440 Hz');
 if (fallos.length) { console.log('\nFALLAN ' + fallos.length); process.exit(1); } else console.log('\nTodo bien');
