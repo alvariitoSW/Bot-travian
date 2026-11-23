@@ -11,7 +11,9 @@ MOV = next((a.split('=', 1)[1] for a in sys.argv if a.startswith('--mov=')), Non
 CLIPS = {'quieto': (1, 'Idle_Loop', 1), 'andar': (1, 'Walk_Loop', 1), 'correr': (1, 'Jog_Fwd_Loop', 1), 'guardia': (1, 'Sword_Idle', 1), 'lanzar': (2, 'OverhandThrow', 0),
          'golpear': (1, 'Sword_Attack', 0), 'cubrirse': (2, 'Sword_Block', 0), 'encajar': (1, 'Hit_Chest', 0), 'morir': (1, 'Death01', 0)}
 
-PILUM_GLB = os.environ.get('PILUM_GLB')
+# Lanzamiento nuevo (clip 'lanzar2'): hecho en Blender con tools/blender/pilum_tiro.py sobre el esqueleto de UAL2. PILUM_GLB=no lo apaga.
+PILUM_GLB = os.environ.get('PILUM_GLB') or os.path.join(AQUI, '..', '..', '..', '..', 'tools', 'blender', 'pilum_throw.glb')
+if PILUM_GLB == 'no' or not os.path.exists(PILUM_GLB): PILUM_GLB = None
 _NB = {}
 def normales_cuerpo(m):
     """Normales suaves del cuerpo entero de MakeHuman (sin aligerar): la piel aligerada las hereda y no se ve a facetas."""
@@ -88,14 +90,8 @@ def hastatus(m, B, lod=False, muy=False, fondo=False):
     P += Z.yelmo(m); hL = poses.mano(m, 'L'); hR = poses.mano(m, 'R')
     P += Z.escudo_oval(hL, **(dict(nu=4, nv=6, ne=6) if fondo else dict(nu=6, nv=10, ne=10) if muy else {}))
     P += Z.pilum(hR['c'], -hR['X'], hR['N'], 'wrist.R', 1, bajo=1.0, simple=muy)
-    if PILUM_GLB: P += Z.pilum(hR['c'], hR['X'], hR['N'], 'wrist.R', 4, bajo=1.0, nombre='pilumt', simple=muy)      # prueba «pilum»: agarre de lanzar, con la punta hacia el meñique (conjunto 4)
     P += Z.espada(hR['c'], -hR['X'], hR['d'], 'wrist.R', 2)
-    boca = np.array([-0.228, 1.005, 0.02]); ev = np.array([-0.13, -1, -0.16]); hv = 'spine05' if PILUM_GLB else 'root'      # prueba «pilum»: la vaina cuelga del cinturón (tramo bajo de la espalda), no de la raíz: así sigue al tronco cuando gira
-    pv = Z.vaina(boca, ev, [1, 0, 0], hv) + Z.espada(boca - ev / np.linalg.norm(ev) * 0.058, ev, [0, 0, 1], hv, 3, nombre='espada_env', solo_puno=True)
-    if PILUM_GLB:                                              # ese tramo va siempre ~15° inclinado respecto a la raíz (así salen los movimientos de UAL): se compensa para que en «quieto» cuelgue igual que colgando de la raíz
-        Dq = anim.retarget(m, 1, 'Idle_Loop', 30)[0][0]; ixh = {h: i for i, h in enumerate(m['huesos'])}; Rc = Dq[ixh['spine05']].T @ Dq[ixh['root']]; c5 = m['cab']['spine05']
-        for q in pv: q['P'] = c5 + (q['P'] - c5) @ Rc.T; q['N'] = q['N'] @ Rc.T
-    P += pv
+    boca = np.array([-0.228, 1.005, 0.02]); ev = np.array([-0.13, -1, -0.16]); P += Z.vaina(boca, ev, [1, 0, 0], 'root') + Z.espada(boca - ev / np.linalg.norm(ev) * 0.058, ev, [0, 0, 1], 'root', 3, nombre='espada_env', solo_puno=True)
     P += Z.suela(m, 'L') + Z.suela(m, 'R')
     return P
 
@@ -178,10 +174,25 @@ CFG_HASTATUS = {'quieto': ('bajo', (1.07, 0.04)), 'andar': ('bajo', (1.13, 0.10)
                 'cubrirse': ('alto', None), 'encajar': ('alto', None), 'morir': (None, None)}
 MUESTRA_HASTATUS = {'quieto': [[0, 5]], 'quieto2': [[0, 5]], 'quieto3': [[0, 5]], 'andar': [[0, 5]], 'correr': [[0, 5]], 'guardia': [[0, 2]], 'lanzar': [[0, 5], [0.36, 4]], 'golpear': [[0, 2]], 'cubrirse': [[0, 2]], 'encajar': [[0, 2]], 'morir': [[0, 2]]}
 
-# Prueba «pilum» (23/11): con PILUM_GLB=<pilum_throw.glb> (hecho con tools/blender/pilum_tiro.py sobre el esqueleto de UAL2) se añade el clip 'lanzar2'
-# y un segundo pilum con el agarre de lanzar. Sin la variable, todo sale como siempre.
-if PILUM_GLB:
-    CLIPS['lanzar2'] = (3, 'Pilum_Throw', 0); CFG_HASTATUS['lanzar2'] = ('bajo', None); MUESTRA_HASTATUS['lanzar2'] = [[0, 5], [0.23, 12], [1.10, 4]]      # porte (pilum de siempre) · cambio de agarre (pilum de tiro) · suelta
+# Lanzamiento nuevo (23/11): clip 'lanzar2' (porte → cambio de agarre → hombro → armar → suelta → vuelta), para todos los que llevan escudo.
+if PILUM_GLB: CLIPS['lanzar2'] = (3, 'Pilum_Throw', 0); CFG_HASTATUS['lanzar2'] = ('bajo', None)
+CAMBIO_S, SUELTA_S = 0.23, 1.10                                # segundos del clip en que la mano cambia de agarre y en que suelta el arma
+
+def lanzamiento_nuevo(pz, m, muestra):
+    """Lo que 'lanzar2' pide al equipo, para cualquier soldado:
+    · si lanza su arma (su muestra de 'lanzar' la esconde al soltarla), una copia del arma de la mano con el agarre de tiro (conjunto 4):
+      la misma arma girada media vuelta en la mano, con la punta hacia el meñique, y la muestra en tres tiempos (porte · tiro · suelta);
+    · la vaina y la espada envainada cuelgan del tramo bajo de la espalda (spine05) y no de la raíz, para seguir al tronco cuando gira;
+      ese tramo va siempre ~15° inclinado respecto a la raíz (así salen los movimientos de UAL): se compensa para que en «quieto» cuelguen igual."""
+    muestra = dict(muestra); ml = muestra.get('lanzar') or [[0, 5]]; lanza = len(ml) == 2 and ml[0][1] & 1 and not ml[1][1] & 1
+    muestra['lanzar2'] = [[0, ml[0][1]], [CAMBIO_S, (ml[0][1] & ~1) | 8], [SUELTA_S, ml[1][1]]] if lanza and len([p for p in pz if p.get('hueso') == 'wrist.R' and p['conj'] == 1]) else [list(x) for x in ml]
+    ixh = {h: i for i, h in enumerate(m['huesos'])}; hR = poses.mano(m, 'R'); c = hR['c']; R = anim.eje(hR['N'], np.pi); out = []
+    Dq = anim.retarget(m, 1, 'Idle_Loop', 30)[0][0]; Rc = Dq[ixh['spine05']].T @ Dq[ixh['root']]; c5 = m['cab']['spine05']
+    for p in pz:
+        if p.get('hueso') == 'root' and p['nombre'].startswith(('vaina', 'espada_env')): p['hueso'] = 'spine05'; p['P'] = c5 + (p['P'] - c5) @ Rc.T; p['N'] = p['N'] @ Rc.T
+        if len(muestra['lanzar2']) == 3 and p.get('hueso') == 'wrist.R' and p['conj'] == 1: q = dict(p); q['P'] = c + (p['P'] - c) @ R.T; q['N'] = p['N'] @ R.T; q['conj'] = 4; out.append(q)
+    return pz + out, muestra
+
 FUERA_LEJOS = ('escudo_asa', 'suela', 'espada_env')
 def aligerar_piezas(pz, r=0.34, muy=False, fondo=False):
     out = []
@@ -220,6 +231,7 @@ if __name__ == '__main__':
         if MOV != 'no': MOV = e.get('mov', MOV)
     elif quien == 'galo': texturas.ESTILO = dict(pelo=[0.55, 0.47, 0.30], calzado='zapato', melena=[0.74, 0.66, 0.47]); pz = galo(m, B, lod, muy, fondo)
     else: pz = hastatus(m, B, lod, muy, fondo)
+    if PILUM_GLB and 'lanzar2' in cfg: pz, muestra = lanzamiento_nuevo(pz, m, muestra)
     if lod:                                                    # de lejos no hay huesos de dedos: el puño va ya cerrado en la malla
         utilF, aF = X.huesos_utiles(m); BF = ropa.Base(m, utilF, aF); D = np.tile(np.eye(3), (1, len(m['huesos']), 1, 1)); lib = np.zeros(len(m['huesos']), bool); poses.punos(m, D, lib)
         A = X.hornear(D, anim.fk(m, D, lib, m['cab']['root'][None]), m, utilF)[0].reshape(len(utilF), 3, 4)
