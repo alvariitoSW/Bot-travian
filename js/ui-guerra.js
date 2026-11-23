@@ -727,7 +727,7 @@
       d.className = 've ' + f.quien; d.children[0].textContent = root.Voces.NOMBRE[f.quien] + ':'; d.children[1].textContent = f.lat; d.children[2].textContent = f.es ? '— ' + f.es : ''; dialogoHasta = performance.now() + 3200;
       if (!So || !So.muestra) return;
       /* SON2: la frase dicha en voz alta (assets/voces); si el enemigo es griego, su grito en griego antiguo. Si no está cargada, suena el grito del banco como antes */
-      const esGr = !!(B.n0[1] && (B.n0[1].falange > 0 || B.n0[1].hoplitas > 0)), gg = root.Voces.griegoDe(f, esGr), idv = gg ? gg.id : f.quien === 'enemigo' ? '' : f.id;
+      const esGr = root.Voces.esGriego(B.n0[1]), gg = root.Voces.griegoDe(f, esGr), idv = gg ? gg.id : f.quien === 'enemigo' ? '' : f.id;
       if (idv && So.vbuf && So.vbuf[idv]) {
         if (gg) d.children[1].textContent = gg.lat;
         const urg = root.Voces.URGENTES.includes(f.ev), sc = sect >= 0 ? (sect - 1) * 0.5 : 0;

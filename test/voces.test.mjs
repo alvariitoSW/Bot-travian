@@ -73,4 +73,8 @@ const sin = new Set(['grito', 'clamor']), tiene = g => sin.has(g);
 ok(V.grupoDisponible('orden', tiene) === 'grito' && V.grupoDisponible('aclamacion', tiene) === 'clamor' && V.grupoDisponible('cuerno', tiene) === null, 'grupo que falta: cae al parecido que haya');
 ok(V.grupoDisponible('orden', g => g === 'orden') === 'orden', 'si el grupo existe, se usa');
 const r = V.rotulo(F.find(f => f.quien === 'centurion')); ok(/^Centurión: .+ — .+$/.test(r), 'rótulo: «' + r + '»');
+// usuario, 23/11 («A»): solo los pueblos griegos gritan en griego
+ok(V.esGriego({ falange: 800, elefantes: 20 }) && V.esGriego({ hoplitas: 600, peltastas: 200 }), 'Macedonia, Epiro (con elefantes) y las polis gritan en griego');
+ok(!V.esGriego({ libios: 900, hoplitas: 300 }) && !V.esGriego({ sagrada: 400, hoplitas: 200 }), 'Cartago con hoplitas mercenarios no grita en griego');
+ok(!V.esGriego({ galos: 900 }) && !V.esGriego({}) && !V.esGriego(), 'galos y ejércitos sin falange ni hoplitas, tampoco');
 if (fallos.length) { console.log('\nFALLAN ' + fallos.length); process.exit(1); } else console.log('\nTodo bien');

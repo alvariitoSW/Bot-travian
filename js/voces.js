@@ -202,7 +202,15 @@
     return null;
   }
 
-  const Voces = { GRIEGO, griegoDe, FRASES, GRUPOS, SITUACIONES, URGENTES, NOMBRE, CAIDA, nuevo, elige, deEvento, rotulo, grupoDisponible, pausaMin };
+  /* ¿El rival es un pueblo griego? (usuario, 23/11: «A»: solo los pueblos griegos gritan en griego). Lleva falange u hoplitas
+     y no es Cartago: los libios y la tropa sagrada delatan un ejército cartaginés aunque lleve hoplitas mercenarios.
+     Epiro con elefantes (Pirro) sigue siendo griego. n0 = { tipo: hombres } del bando enemigo. */
+  const CARTAGO = ['libios', 'sagrada'];
+  function esGriego(n0) {
+    n0 = n0 || {}; const hay = t => (n0[t] || 0) > 0;
+    return (hay('falange') || hay('hoplitas')) && !CARTAGO.some(hay);
+  }
+  const Voces = { GRIEGO, griegoDe, esGriego, FRASES, GRUPOS, SITUACIONES, URGENTES, NOMBRE, CAIDA, nuevo, elige, deEvento, rotulo, grupoDisponible, pausaMin };
   raiz.Voces = Voces;
   if (typeof module !== 'undefined' && module.exports) module.exports = Voces;
 })(typeof window !== 'undefined' ? window : globalThis);
