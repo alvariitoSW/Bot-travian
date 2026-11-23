@@ -5,9 +5,9 @@
 
 export const NECESIDADES = [
   { id: 'alimento', nombre: 'Alimentación', ministro: 'agricultura', consecuencia: 'hambre' },
-  { id: 'agua', nombre: 'Agua', ministro: 'infraestructura', consecuencia: 'fiebres' },
-  { id: 'limpieza', nombre: 'Limpieza', ministro: 'infraestructura', consecuencia: 'fiebres' },
-  { id: 'salud', nombre: 'Salud', ministro: 'infraestructura', consecuencia: 'fiebres' },
+  { id: 'agua', nombre: 'Agua', ministro: 'infra', consecuencia: 'fiebres' },
+  { id: 'limpieza', nombre: 'Limpieza', ministro: 'infra', consecuencia: 'fiebres' },
+  { id: 'salud', nombre: 'Salud', ministro: 'infra', consecuencia: 'fiebres' },
   { id: 'trabajo', nombre: 'Trabajo', ministro: 'artesania', consecuencia: 'se_van' },
   { id: 'cultura', nombre: 'Cultura', ministro: 'ciencia', consecuencia: 'pierde_votos' },
   { id: 'culto', nombre: 'Culto y ocio', ministro: 'culto', consecuencia: 'protesta' },
@@ -215,11 +215,14 @@ const ARTICULO = { fuente: 'una fuente', cloaca: 'una cloaca', termas: 'unos ba�
 
 function fraseRemedio(r) {
   if (!r) return '';
-  const base = ' Encárgaselo al ministro de ' + r.ministro + ':';
+  const base = ' Encárgaselo al ministro de ' + (NOMBRE_MINISTRO[r.ministro] || r.ministro) + ':';
   if (!r.casas || !r.servicio) return base.slice(0, -1) + '.';
   const plural = r.servicio === 'termas';
   return base + ' ' + ARTICULO[r.servicio] + (plural ? ' cubrirían ' : ' cubriría ') + r.casas + (r.casas === 1 ? ' casa.' : ' casas.');
 }
+
+/* Nombre en pantalla de cada ministro (ids de js/ministros.js, CD3a). */
+export const NOMBRE_MINISTRO = { infra: 'infraestructura', agricultura: 'agricultura', artesania: 'artesanía y comercio', ciencia: 'ciencia', culto: 'culto y fiestas', ejercito: 'ejército', hacienda: 'hacienda', mineria: 'minería' };
 
 export function fichaBarrio({ cobertura, clases, mem, dureza = 'duro', remedios }) {
   const d = DUREZA[dureza] || DUREZA.duro, m = Object.assign(memoriaNueva(), mem || {}), mal = (mem && mem.mal) || {};
