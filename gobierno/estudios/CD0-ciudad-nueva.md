@@ -55,11 +55,14 @@ En el Senado eliges **cuántas estaciones** (4 a 8), una **prioridad** (crecer, 
 y **qué obras** entran en cada estación. Cada obra lleva el ministro que la hará. El Senado lo **vota** con los bandos de hoy;
 aprobado, los ministros lo cumplen solos mientras tú haces otra cosa, y te avisan si algo se tuerce. Captura `CD0-5-senado`.
 
-## 6. Una ciudad viva con necesidades (CD5)
-Cada barrio necesita **agua, comida, salud, ocio y orden**, y cada clase pide más de una (la plebe, grano y juegos; los
-ciudadanos, termas y orden). Con la capa «Necesidades» cada barrio sale verde, ámbar o rojo. Si falta algo dos estaciones:
-fiebres, gente que se marcha, protesta que para obras o patricios que retiran su oro. Siempre se avisa antes y se dice el
-remedio, con un botón para encargarlo al ministro que toca. Captura `CD0-6-necesidades`.
+## 6. Una ciudad viva con necesidades: los barrios suben según las cubras (CD5)
+Respuesta del usuario (23/11, tras ver la maqueta): «mejorar los barrios en función de necesidades» y **«8 necesidades»**:
+**alimentación, agua, limpieza, salud, trabajo, cultura, culto y ocio, orden**. Cada barrio sube de nivel (chozas → casas de
+atrio → ínsulas y casas ricas) según cuántas tenga cubiertas, y baja si las pierde. Cada clase pide más de unas (la plebe,
+grano, trabajo y juegos; los ciudadanos, termas, cultura y orden). Con la capa «Necesidades» cada barrio sale verde, ámbar
+o rojo con sus 8 iconos. Si falta algo dos estaciones: fiebres, gente que se marcha, protesta que para obras o patricios
+que retiran su oro. Siempre se avisa antes, se dice el remedio y hay un botón para encargarlo al ministro que toca.
+Captura `CD0-6-necesidades` (aún con 5 iconos; el concurso CD0b dibuja los 8).
 
 ## 7. Embellecer la vista desde arriba (CD6)
 Gente y carros que van **a algo** (al mercado, al granero, a la obra), jardines, campos en tiras, árboles que cambian de
@@ -78,11 +81,12 @@ grúa en cantera y mina, anillos de tierra del foro, carros sin yunta, remate de
 | UR2 (lo que UR1 no tocó) | CD6 |
 
 ## 9. Precio y partición (Opus dirige; constructor y revisor con Sonnet)
-Cada fila es una sesión corta. **CD1 empieza cuando CV4a haya subido la vista «Plano».** Los archivos comunes
+Cada fila es una sesión corta. **CD1 empieza cuando CV4a haya subido la vista «Plano» y el usuario haya elegido en el concurso CD0b.** Los archivos comunes
 (`js/ui.js`, `js/game.js`, `js/data.js`, `js/registro.js`, `css/style.css`, `sw.js`, `test/sim.test.js`) solo los toca una
 sesión nombrada «de paso» por el vigía.
 | Orden | Tarea | Archivos | M |
 |---|---|---|---|
+| 0 | **CD0b** Concurso de arte de la vista desde arriba (usuario, 23/11: «ahora, antes de CD1»; excepción a «sin concursos hasta la 1.0»): 3–4 estilos en maqueta a 390 px, con barrios en sus niveles y los 8 iconos de necesidades; elige el usuario | `gobierno/maquetas/ciudad-nueva/` y capturas; skills `arte` e `historia` | 1,2 |
 | 1 | **CD1** Vista desde arriba y «Construir» por familias | `js/gfx/city3d.js`, nuevo `js/ciudad-menu.js`; de paso: `js/ui.js` (quitar bandeja, tres botones), `js/data.js` (familia de cada edificio), `css/style.css` | 1,0 |
 | 2 | **CD2a** Calles con el dedo y el arquitecto | `js/ciudad.js`, `js/gfx/city3d.js`, `js/ciudad-menu.js`; prueba `test/ciudad.test.mjs` | 0,9 |
 | 3 | **CD2b** Las casas de la urbe grande cuentan | de paso: `js/game.js` (+ migrar en `G.load`); `js/ciudad.js`; `test/sim.test.js` | 0,6 |
@@ -92,7 +96,7 @@ sesión nombrada «de paso» por el vigía.
 | 7 | **CD5a** Necesidades por barrio y clase (reglas) | de paso: `js/game.js`, `js/data.js`, `js/registro.js` (fichas: secesiones de la plebe); prueba `test/ciudad` | 0,7 |
 | 8 | **CD5b** Capa «Necesidades» y consecuencias a la vista | `js/gfx/city3d.js`, `js/gfx/vida.js`, `js/ciudad-menu.js` | 0,7 |
 | 9 | **CD6** Embellecer | `js/gfx/vida.js`, `trajin.js`, `city3d.js`, `roma-siglo.js`; pase → Arte (cuartel, grúa) | 1,0 |
-| | **Total** | | **≈7,6** |
+| | **Total** | | **≈8,8** |
 Las que tocan reglas (CD2b, CD3a, CD4, CD5a) pasan además el bot de campaña (`sim.test.js`, ≈18 min). Después de CD3
 va **MN3** (gobernador), que ya está en el tablero.
 
