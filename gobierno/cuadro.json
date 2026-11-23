@@ -2036,6 +2036,12 @@
       "titulo": "Taller · MS1 Galo grande con la API de Meshy (prueba)",
       "nota": "Abierta el 23/11; tope 150 créditos",
       "url": "https://claude.ai/code/session_01QiKC38fe2oA8sGiYGxE8Ai"
+    },
+    {
+      "tarea": "LP3",
+      "titulo": "Corazón · LP3 Maqueta «Manípulo a pie» en vertical (Opus)",
+      "nota": "Abierta el 23/11; de paso en ui.js y sw.js",
+      "url": "https://claude.ai/code/session_01QiKC36kgb6ao39q19Nmj4o"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"
