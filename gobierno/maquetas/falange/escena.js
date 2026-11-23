@@ -24,6 +24,7 @@ import { crearCamara } from './camara.js';
 import { crearHud } from './hud.js';
 import { crearPuente, crearDedos, botDedos } from './dedos.js';
 import * as Son from './sonido.js';
+import { crearFisicaEscena } from './fisica.js';   /* FI1 */
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), MARCAS = Q.get('marcas'), ANTES = Q.get('antes') === '1', COSTADO = Q.get('costado');
 const $ = id => document.getElementById(id);
@@ -383,8 +384,8 @@ function filasFal(h, T) {
   h.A = i === 0 ? b : fila(c0 + i - 1, b); h.B = fila(c0 + i, b); h.mx = f;
 }
 /* FA4: el caído se queda donde cayó (h.caido: sitio y giro al azar, guardados al caer); no se recoloca ni se borra */
-const fijaCaido = h => { if (!h.vivo && !h.caido) h.caido = { x: h.x, z: h.z, yaw: h.yaw + (azarV() - 0.5) * 1.4, a: azarV() * 6.283 }; return h.caido; };
-const instDe = (h, fig, pitch = 0, dx = 0, dz = 0, dyaw = 0) => { const p = !h.vivo && h.caido ? h.caido : h; O.position.set(p.x + dx, H(p.x + dx, p.z + dz), p.z + dz); O.rotation.set(pitch, p.yaw + dyaw, 0, 'YXZ'); O.scale.setScalar(E * (h.esc || 1)); O.updateMatrix(); return O.matrix; };
+const fijaCaido = h => { if (!h.vivo && !h.caido) h.caido = { x: h.x, z: h.z, yaw: (g => h.fCae !== undefined ? h.fCae + Math.PI : h.yaw + g)((azarV() - 0.5) * 1.4) /* FI1: cae de espaldas hacia donde le empujan */, a: azarV() * 6.283 }; return h.caido; };
+const instDe = (h, fig, pitch = 0, dx = 0, dz = 0, dyaw = 0) => { const p = !h.vivo && h.caido ? h.caido : h; const fx = h.fx || 0, fz = h.fz || 0; O.position.set(p.x + dx + fx, H(p.x + dx + fx, p.z + dz + fz), p.z + dz + fz);   /* FI1 */ O.rotation.set(pitch, p.yaw + dyaw, 0, 'YXZ'); O.scale.setScalar(E * (h.esc || 1)); O.updateMatrix(); return O.matrix; };
 /* dónde está un punto de un hueso en el mundo (p en coordenadas del modelo en reposo) */
 const ancla = (h, fig, slot, p, out) => out.set(p[0], p[1], p[2]).applyMatrix4(MA.multiplyMatrices(h.inst, hueso(fig, slot, h.A, h.B, h.mx, MB)));
 /* la dirección de una sarisa: alzada (casi derecha, inclinada hacia delante y en abanico) o bajada (al frente), con su vaivén */
@@ -415,9 +416,11 @@ function poseSarisa(h, T, P, D) {
   P.addScaledVector(RG, -0.16 * (h.r >= BAJAN ? 1 : 1 - s));   /* FA4: también las de las cinco primeras cuando van alzadas */
   /* TP8b-P2: a media ola las filas 4.ª y 5.ª bajan por fuera (a la derecha) para no rozar las alzadas de detrás */
   if (h.r >= 3 && h.r < BAJAN) P.addScaledVector(RG, 0.16 * Math.sin(Math.PI * Math.min(1, Math.max(0, h.kB))));
-  if (s > 0) { const c = CARRIL(h.r), del = (PS.x - h.x) * FG.x + (PS.z - h.z) * FG.z; PL.set(h.x, 0, h.z).addScaledVector(RG, c.x).addScaledVector(FG, del); PL.y = H(h.x, h.z) + c.y; PL.addScaledVector(D, -AGARRE + empuje(h)); P.lerp(PL, s); }
+  if (s > 0) { const c = CARRIL(h.r), del = (PS.x - h.x) * FG.x + (PS.z - h.z) * FG.z; PL.set(h.x + (h.fx || 0), 0, h.z + (h.fz || 0)) /* FI1 */.addScaledVector(RG, c.x).addScaledVector(FG, del); PL.y = H(h.x, h.z) + c.y; PL.addScaledVector(D, -AGARRE + empuje(h)); P.lerp(PL, s); }
+  FIS.ajustaPica(h, P, D);   /* FI1: la punta se para en el escudo o el cuerpo; el asta resbala */
 }
 const PL = new THREE.Vector3();
+const FIS = crearFisicaEscena({ H, SARISA }), poseF = h => { const P = new THREE.Vector3(), D = new THREE.Vector3(); posaFal(h, S.T); poseSarisa(h, S.T, P, D); return [P.toArray(), D.toArray()]; };   /* FI1 */
 /* FA4: tu estocada (S.yo.tEstocada): el asta sale 0,9 m en 0,12 s y vuelve en 0,35 s; k da la forma (0–1) */
 const curvaEstocada = (t, ida, vuelta) => t < 0 || t > ida + vuelta ? 0 : t < ida ? suave(0, ida, t) : 1 - suave(ida, ida + vuelta, t);
 const empuje = h => S.yo && h.i === S.yo.i && h.vivo ? 0.9 * curvaEstocada(S.T - S.yo.tEstocada, 0.12, 0.35) : 0;
@@ -522,6 +525,7 @@ function prepara(f) {
     hasta(viene, 200, 'nogira');
     if (S.flanco) { baja(5); ACC.gira(S.flanco.lado); for (let i = 0; i < 200 && Math.abs(S.giro) < 50 * Math.PI / 180; i++) salta(0.1, false); ACC.gira(0); for (let i = 0; i < 60 && viene(); i++) salta(0.1, false); salta(0.4, false); }
   }
+  if (f === 'contacto') { hasta(() => S.choque, 200, 'compas'); const tc = +Q.get('t') || 0; for (let i = 0; i < 30 * 200 && S.T < tc - 1e-6; i++) { ACC.bot('compas'); ACC.paso(1 / 30); CAMARA.camBase(1 / 30); } }   /* FI1: el instante con más puntas tocando (?t= lo da captura-fi1.mjs) */
   if (f === 'estocada') { hasta(() => S.choque); salta(1.5); ACC.estocada(); salta(0.1, false); }
   parado = true;
 }
@@ -588,6 +592,7 @@ async function montaRival() {
   await creaFigs();
   ACC = crearAcciones({ H, avisa, hombres: M, zanF: FIG_F.zan });
   S = ACC.S; window.__tp.S = S; window.__tp.F = ACC.F;
+  { const p0 = ACC.paso, r0 = ACC.reinicia; ACC.paso = dt => { p0(dt); FIS.paso(ACC.S, dt); }; ACC.reinicia = () => { r0(); FIS.reinicia(ACC.S); }; window.__tp.fisica = () => FIS.medida(ACC.S, poseF); window.__tp.fisicaJuega = (n, bot) => FIS.juega(n, ACC, poseF, bot); }   /* FI1 */
   /* FA7: el dibujo de los demás rivales vive en rival.js (montaRivalDe). Si no está o falla, se pintan con el muñeco de hoy.
      Con RIV, la escena no pinta S.ene (lo pinta él) y le pasa cada paso y cada aviso */
   if (S.rival !== 'manipulos') RIV = await montaRival();
