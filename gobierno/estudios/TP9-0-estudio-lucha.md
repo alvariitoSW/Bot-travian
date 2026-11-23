@@ -258,6 +258,9 @@ pilum en **Blender en la nube**, sobre el mismo esqueleto libre de los clips del
 cinemática inversa que cierra los dedos sobre el asta (`tools/blender/pilum_tiro.py`, rama `ccr-eda89860-50oj5c`; al usuario
 le gustó; unos 30 céntimos la prueba). Ese es el método para estos movimientos: cada gesto, un guion así, visto en vídeo
 antes de entrar al juego. Corrige lo dicho arriba: Blender **sí** está al alcance, por la nube.
+La plantilla ya existe: para un movimiento nuevo se cambia solo la tabla de poses clave del guion; la cinemática inversa,
+el giro repartido por la espalda y el cierre de dedos van solos. Falta, para que entre al juego: los cuatro niveles de
+detalle y el formato de `movimientos_escudo_*.bin` (eso es de TP9c).
 Son unos 22 movimientos nuevos o rehechos. Peso estimado: 1 a 1,5 MB de descarga (caben en los 6 MB libres).
 
 **D. Mecánicas que salen del cuerpo: la distancia.** Añado una regla que no estaba en TP9 y que nace de las armas reales.
