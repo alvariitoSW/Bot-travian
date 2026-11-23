@@ -524,7 +524,7 @@ let pedirReparto = false;
 export function sincronizar(forzar) {
   if (!E || (!forzar && E.rev === revVista) || ahora() < esperaSurco) return; revVista = E.rev;
   sueloJ.pintar(E); if (Campos.poner(E, estK, estF)) nTalados = -1; edificios(); rellenoVista(); arboles(); dinamico(); plazas();
-  if (surcoM) surcoM.visible = E.muralla.fase < 2;
+  if (surcoM) surcoM.visible = E.muralla.fase < 2 && !(E.urbe && E.muralla.fase >= 1);      /* CV4a: con muralla por fuera, la cinta del surco no deja un anillo dentro del caserío */
   if (casas(ahora())) animHasta = Math.max(animHasta, ahora() + 2.6);
   sombraPend = true; pedirReparto = true;
 }

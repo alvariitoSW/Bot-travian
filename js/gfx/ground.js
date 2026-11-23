@@ -225,7 +225,7 @@ function pintarCiudad3(M, T, E, fino) {
   const huella = (x, z, ang, w, d, m, a) => { T.save(); T.translate(x, z); T.rotate(ang); for (let k = 0; k < 3; k++) { const e = m * (1 - k / 3); T.fillStyle = `rgba(50,42,34,${a * [0.3, 0.45, 0.7][k]})`; T.beginPath(); T.roundRect(-w / 2 - e, -d / 2 - e, w + 2 * e, d + 2 * e, e + 0.5); T.fill(); } T.restore(); };
   if (fino) for (const l of E.parcelas) if (l.casa && !l.fuera) { const k = [0, 0.55, 0.66, 0.86, 0.98][l.casa.nivel]; huella(l.x, l.z, l.ang, 13.5 * k, 14 * k, 2.5, l.casa.ruina ? 0.8 : 0.55); }
   for (const e of E.edificios) huella(e.x, e.z, e.ang + Math.PI / 2, e.w, e.d, 3, 0.45);
-  if (E.muralla.fase && E.surco) trazo(T, E.surco, 8, 5, '48,42,34', 0.5, true);
+  if (E.muralla.fase && E.surco && !E.urbe) trazo(T, E.surco, 8, 5, '48,42,34', 0.5, true);      /* CV4a: con la urbe grande la muralla se dibuja por fuera (cercoVista): la franja oscura del surco dejaba un anillo en mitad del caserío */
 }
 
 /* CN15a: tintes por estación (primavera, verano, otoño, invierno). MULTIPLICADORES, no repintan texturas: así el terreno futuro (CN19) también los recibe.

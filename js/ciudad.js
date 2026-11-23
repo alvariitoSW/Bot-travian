@@ -356,14 +356,52 @@ function urbe(E) {
   const h = (a, b) => { let v = Math.imul(a * 374761393 + b * 668265263 + (E.semilla | 0) * 2246822519, 1274126177); v = Math.imul(v ^ (v >>> 13), 1103515245); return ((v ^ (v >>> 16)) >>> 0) / 4294967296; };
   const libre = (px, pz) => { const k = ci(px, pz); return k >= 0 && E.ocup[k] === 0 && !malo(px, pz) && E.dVia[k] > 5; };
   const calles = [], corta = pts => { let t = []; for (const p of pts) { if (p && libre(p[0], p[1])) t.push(p); else { if (t.length > 3) calles.push({ p: t, w: 2 }); t = []; } } if (t.length > 3) calles.push({ p: t, w: 2 }); };
-  /* anillos: dentro del surco, a radio fijo; fuera, siguiendo el surco. Cada uno algo ondulado (sin cuadrícula a la vista) */
-  const anillos = [], rs = Math.max(...E.RS); for (let r = 62; r < rs - 14; r += 26) anillos.push({ R: () => r, dentro: true });
-  for (let k = 0; k < 9; k++) anillos.push({ R: t => rad(E.RS, t) + 16 + 26 * k, dentro: false });
-  anillos.forEach((A, k) => { const f = h(k, 7) * 6.28, pts = []; for (let t = 0; t <= Math.PI * 2 + 1e-6; t += 4 / Math.max(40, A.R(t))) { const r = A.R(t) + 3 * Math.sin(3 * t + f), ok = A.dentro ? r < rad(E.RS, t) - 12 : r < rad(RU, t) - 10; pts.push(ok ? [x + Math.cos(t) * r, z + Math.sin(t) * r] : null); } corta(pts); });
-  /* callejones entre un anillo y el siguiente, escalonados: cada franja empieza en otro ángulo y con otro paso */
-  for (let k = 0; k + 1 < anillos.length; k++) { const A = anillos[k].R, B = anillos[k + 1].R; let t = h(k, 3) * 6.28; const t1 = t + Math.PI * 2;
-    while (t < t1) { const ra = A(t), rb = B(t); if (rb > ra + 10) { const tor = (h(k, Math.round(t * 100)) - 0.5) * 8 / rb, pts = []; for (let r = ra; r <= rb; r += 4) { const tt = t + tor * (r - ra) / (rb - ra); pts.push(r < rad(RU, tt) - 4 ? [x + Math.cos(tt) * r, z + Math.sin(tt) * r] : null); } corta(pts); }
-      t += (40 + 34 * h(k, Math.round(t * 1000))) / Math.max(40, (ra + rb) / 2); } }
+  /* CV4a (usuario, 23/11: «sin diana»): la urbe ya no se traza en anillos; crece por ramas, como un casco viejo. Calles mayores salen torcidas del foro
+     hacia el borde; de ellas nacen calles laterales a un lado y a otro, que se curvan y mueren al topar con otra calle (acaban en T); y de estas,
+     callejones. Cada rama pide sitio antes de nacer (no hay dos calles pegadas) y ninguna cruza casas, obras ni campos del juego.
+     Livio 5.55: Roma se rehízo tras el incendio galo sin trazar calles, cada cual donde encontró sitio. Sigue siendo solo adorno: no toca la rejilla,
+     no gasta azar de la partida y E.urbe.RU no cambia. */
+  const TAU = Math.PI * 2, rmaxU = Math.max(...RU), G = 8, idx = new Map(), clave = (px, pz) => Math.floor(px / G) + ',' + Math.floor(pz / G);
+  const apunta = (px, pz, id) => { const k = clave(px, pz), a = idx.get(k); if (a) a.push(px, pz, id); else idx.set(k, [px, pz, id]); };
+  /* distancia a la calle más cercana que no sea `mia` ni `madre` (hasta `tope`) */
+  const cerca = (px, pz, tope, mia, madre) => { let m = tope; const i0 = Math.floor(px / G), j0 = Math.floor(pz / G), n = Math.ceil(tope / G);
+    for (let i = i0 - n; i <= i0 + n; i++) for (let j = j0 - n; j <= j0 + n; j++) { const a = idx.get(i + ',' + j); if (!a) continue; for (let q = 0; q < a.length; q += 3) { if (a[q + 2] === mia || a[q + 2] === madre) continue; const d = Math.hypot(a[q] - px, a[q + 1] - pz); if (d < m) m = d; } }
+    return m; };
+  const dentroU = (px, pz, m) => Math.hypot(px - x, pz - z) < rad(RU, Math.atan2(pz - z, px - x)) - m;
+  /* las vías de verdad (camino, vías, calles del juego) son calles como las demás: las de adorno mueren en ellas y también nacen de ellas */
+  /* junto a una vía de verdad la rejilla guarda una franja para sus casas; una calle de adorno que nace de la vía la cruza (solo exige suelo sin ocupar) */
+  const suelta = (px, pz) => { const k = ci(px, pz); return k >= 0 && E.ocup[k] === 0 && !malo(px, pz); };
+  let nid = 0; const cola = [];
+  E.vias.forEach((v, iv) => { const pts = []; for (let q = 1; q < v.p.length; q++) { const a = v.p[q - 1], b = v.p[q], L = Math.hypot(b[0] - a[0], b[1] - a[1]); if (!L || Math.hypot(a[0] - x, a[1] - z) > rmaxU + 40) continue;
+      for (let u = 0; u < L; u += 4) { const px = a[0] + (b[0] - a[0]) * u / L, pz = a[1] + (b[1] - a[1]) * u / L; apunta(px, pz, -1 - iv); if (dentroU(px, pz, 10)) pts.push([px, pz]); } }
+    if (pts.length > 6 && v.w >= 2.4) cola.push({ pts, id: -1 - iv, nivel: 0 }); });
+  /* hace crecer una calle desde (px, pz) con rumbo `dir`; `guia` (opcional) es el rumbo al que tiende (las mayores, hacia fuera) */
+  const crece = (px, pz, dir, largo, curva, w, nivel, madre, guia) => { const id = ++nid, pts = [[px, pz]]; let hecho = 0;
+    while (hecho < largo) { dir += curva * 4 + (h(id, 300 + pts.length) - 0.5) * (nivel ? 0.07 : 0.11); if (guia) { const g = Math.atan2(pz - z, px - x); dir += 0.09 * Math.atan2(Math.sin(g - dir), Math.cos(g - dir)); }
+      let nx = px + Math.cos(dir) * 4, nz = pz + Math.sin(dir) * 4; if (!dentroU(nx, nz, nivel ? 8 : 6)) break;
+      if (!(madre < 0 && hecho < 24 ? suelta(nx, nz) : libre(nx, nz))) {                                    // el surco sagrado está reservado en la rejilla: la calle lo salta (hasta 16) y sigue; cualquier otra cosa la para
+        if (Math.abs(Math.hypot(nx - x, nz - z) - rad(E.RS, Math.atan2(nz - z, nx - x))) > 12) break; let m = 8; for (; m <= 16; m += 4) if (libre(px + Math.cos(dir) * m, pz + Math.sin(dir) * m)) break; if (m > 16) break;
+        nx = px + Math.cos(dir) * m; nz = pz + Math.sin(dir) * m; hecho += m - 4; }
+      const d = cerca(nx, nz, 7, id, hecho < 14 ? madre : 0); px = nx; pz = nz; pts.push([px, pz]); hecho += 4; if (d < 6.5) break; }      // topa con otra calle: muere en T
+    if (pts.length < (nivel > 1 ? 4 : 5)) return; for (const q of pts) apunta(q[0], q[1], id); calles.push({ p: pts, w }); cola.push({ pts, id, nivel }); };
+  /* 1) calles mayores: de seis a ocho desde el borde de la plaza, repartidas con desorden y apartadas de las vías de verdad */
+  const reales = (E.puertas || []).map(p => Math.atan2(p.z - z, p.x - x)), nM = 6 + Math.floor(h(1, 21) * 3), a00 = h(1, 22) * TAU, angM = [];
+  for (let i = 0; i < nM; i++) { let a = a00 + (i + (h(i, 23) - 0.5) * 0.5) * TAU / nM;
+    for (const q of reales) { const d = Math.atan2(Math.sin(a - q), Math.cos(a - q)); if (Math.abs(d) < 0.24) a += (d >= 0 ? 0.24 - d : -0.24 - d); }
+    angM.push(a); let r0 = 44; while (r0 < 120 && !libre(x + Math.cos(a) * r0, z + Math.sin(a) * r0)) r0 += 4;
+    crece(x + Math.cos(a) * r0, z + Math.sin(a) * r0, a + (h(i, 24) - 0.5) * 0.5, rmaxU, 0, 2.6, 0, 0, true); }
+  /* otras que nacen más afuera, donde el hueco entre dos mayores es ancho */
+  angM.sort((p, q) => p - q); angM.forEach((a, i) => { const b = i + 1 < nM ? angM[i + 1] : angM[0] + TAU, hueco = b - a; if (hueco * 150 < 105) return; const n = hueco * 150 > 190 ? 2 : 1;
+    for (let k = 1; k <= n; k++) { const t = a + hueco * k / (n + 1) + (h(i, 25 + k) - 0.5) * 0.12, r0 = 105 + 60 * h(i, 27 + k), px = x + Math.cos(t) * r0, pz = z + Math.sin(t) * r0; if (libre(px, pz) && cerca(px, pz, 12, 0, 0) >= 12) crece(px, pz, t, rmaxU, 0, 2.3, 0, 0, true); } });
+  /* 2) ramas: cada calle echa laterales a un lado y a otro; las laterales, callejones */
+  const PASO = [[22, 9], [21, 9], [20, 8]], LARGO = [[60, 90], [30, 46], [18, 22]], PROB = [1, 0.92, 0.62], ANCHO = [2, 1.7, 1.5];
+  for (let c = 0; c < cola.length && calles.length < 640; c++) { const { pts, id, nivel } = cola[c]; if (nivel > 2) continue; let s = (PASO[nivel][0] + PASO[nivel][1] * h(id, 400)) * 0.6, lado = h(id, 401) < 0.5 ? 1 : -1;
+    for (; s < (pts.length - 1) * 4 - 6; s += PASO[nivel][0] + PASO[nivel][1] * h(id, 410 + Math.round(s))) { const k = Math.min(pts.length - 2, Math.floor(s / 4)), a = pts[k], b = pts[k + 1], rumbo = Math.atan2(b[1] - a[1], b[0] - a[0]); lado = -lado;
+      for (const ld of h(id, 430 + k) < 0.75 ? [lado, -lado] : [lado]) { if (h(id, 450 + k + ld) > PROB[nivel]) continue; const dir = rumbo + ld * (1.25 + 0.5 * h(id, 470 + k + ld));
+        /* pide sitio: a 14 y a 26 de la madre no debe haber otra calle a menos de 11 */
+        let sitio = true; for (const m of [14, 26]) { const qx = a[0] + Math.cos(dir) * m, qz = a[1] + Math.sin(dir) * m; if (!dentroU(qx, qz, 8) || !(id < 0 && m < 20 ? suelta(qx, qz) : libre(qx, qz)) || cerca(qx, qz, 10, 0, id) < 10) { sitio = false; break; } } if (!sitio) continue;
+        let sal = 0; if (id < 0) { sal = 6; while (sal <= 14 && !suelta(a[0] + Math.cos(dir) * sal, a[1] + Math.sin(dir) * sal)) sal += 2; if (sal > 14) continue; }      // la vía de verdad ocupa su franja en la rejilla: la rama arranca en su borde
+        crece(a[0] + Math.cos(dir) * sal, a[1] + Math.sin(dir) * sal, dir, LARGO[nivel][0] + LARGO[nivel][1] * h(id, 490 + k + ld), (h(id, 510 + k + ld) - 0.5) * 0.02, ANCHO[nivel], nivel + 1, id); } } }
   E.urbe = { RU, calles, borde: RU.map((r, i) => [x + Math.cos(i / NR * Math.PI * 2) * r, z + Math.sin(i / NR * Math.PI * 2) * r]), area: Math.round(areaPolar(RU)), areaSurco: Math.round(areaPolar(E.RS)) };
 }
 export const enUrbe = (E, x, z) => !!(E.urbe && E.foro) && Math.hypot(x - E.foro.x, z - E.foro.z) < radioDe(E.urbe.RU, E, x, z);
