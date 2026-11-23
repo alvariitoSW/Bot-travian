@@ -2020,12 +2020,6 @@
       "url": "https://claude.ai/code/session_01QiKC37EkYPrnF1g5nLbW5x"
     },
     {
-      "tarea": "FI1",
-      "titulo": "Corazón · FI1 Físicas en las batallas (Opus)",
-      "nota": "Abierta el 23/11 por orden del usuario desde FA4",
-      "url": "https://claude.ai/code/session_01QiKC38MwAapFqsQ21GofYS"
-    },
-    {
       "tarea": "SB1",
       "titulo": "Subida · SB1 Jueces completos sobre todo unido (Opus)",
       "nota": "Abierta el 23/11; con APTO se sube a main",
@@ -2042,6 +2036,12 @@
       "titulo": "Taller · MS2 Lote de soldados con la API de Meshy (Opus)",
       "nota": "Abierta el 23/11; tope 500 créditos",
       "url": "https://claude.ai/code/session_01QiKC38rZcgGDL9ZpFtXCsy"
+    },
+    {
+      "tarea": "FI3",
+      "titulo": "Corazón · FI3 Pilum que rebotan o se clavan (motor de físicas; Opus)",
+      "nota": "Abierta el 23/11",
+      "url": "https://claude.ai/code/session_01QiKC3ApnWHdiKqikYR9TJF"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"
