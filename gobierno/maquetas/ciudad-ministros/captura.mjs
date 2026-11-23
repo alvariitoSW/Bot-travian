@@ -38,9 +38,11 @@ await val.click();
 chk('Encargar crea el encargo', await p.evaluate(() => !!window.S.ministros.encargos.ciencia) && await p.evaluate(() => window.CAMBIOS > 0));
 // Candidato apagado muestra motivo
 await p.locator('[data-acc=abrir][data-mid=agricultura]').click(); await p.locator('[data-acc=encargar][data-mid=agricultura]').click();
-chk('candidatos apagados con motivo', await p.locator('.mn-o.no small').count() > 0);
+chk('candidatos apagados con motivo', await p.locator('.mn-o.no .m').count() > 0);
 const t = await p.evaluate(() => document.body.innerText); chk('nunca sale «termas»', !/termas/i.test(t));
 chk('sale «Baños»', /Baños/.test(await (await pag('?abre=infra')).evaluate(() => document.body.innerText)));
+const imgs = await (await pag('?abre=ejercito')).evaluate(() => [...document.images].filter(i => i.complete && i.naturalWidth > 0).length); chk('al menos 3 imágenes cargadas', imgs >= 3, String(imgs));
+const rej = await (await pag('?abre=infra&lista=infra')).evaluate(() => { const r = document.querySelector('.mn-rej'); return r ? getComputedStyle(r).gridTemplateColumns.trim().split(/\s+/).length : 0; }); chk('la lista es rejilla de 2 columnas', rej === 2, String(rej));
 // nada sobresale de 390
 const fuera = await p.evaluate(() => { const r = []; document.querySelectorAll('.mn-fondo *').forEach(e => { const b = e.getBoundingClientRect(); if (b.width && (b.right > 390.5 || b.left < -0.5) && !e.closest('.mn-asa')) r.push(e.className + ':' + Math.round(b.right)); }); return r.slice(0, 5); });
 chk('nada sobresale de 390', fuera.length === 0, fuera.join(' '));
