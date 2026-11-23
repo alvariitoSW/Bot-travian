@@ -39,8 +39,8 @@ Salieron con aspecto griego tardío y neoclásico: el templo con capiteles corin
 ciudad griega». Se guardan para las ciudades griegas (Siracusa, Tarento, Neápolis…): el templo como templo griego y la
 curia como *bouleuterion* (sala del consejo). Los modelos quedan en la cuenta de Meshy del usuario; se bajan por API
 con su número de tarea (los enlaces de descarga caducan):
-- templo: vista previa `01a20a6e-0111-74ff-a408-2df19048ee06` (refinado: el último de la cuenta con ese texto)
-- curia: vista previa `01a20a6e-0f76-754e-be5a-220c7ab1f449`
+- templo: vista previa `01a20a6e-0111-74ff-a408-2df19048ee06`, refinado `01a20a6f-e84a-7256-b8d7-996b733a8557`
+- curia: vista previa `01a20a6e-0f76-754e-be5a-220c7ab1f449`, refinado `01a20a6f-ec38-74b9-b649-c746e6abd64f`
 Pesan ≈4 MB cada uno sin aligerar: antes de entrar en `assets/` los aligera el taller de Arte (`node gobierno/arte.mjs`,
 crédito Meshy en LICENSE, README, menú y fichas). Roma sigue con el templo y la curia de 0 A.D. en CD1.
 Lección para el siguiente texto: Meshy entiende mal los «no»; describir solo lo que sí debe salir.
