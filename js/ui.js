@@ -8,6 +8,7 @@ import { CityView3D } from './gfx/city3d.js';
 import { loadGroundTextures } from './gfx/ground.js';
 import { fijar as fijarFluidez, estaEncendido as fluidezOn } from './gfx/fluidez.js';
 import * as Ciudad from './ciudad.js';
+import { crearMenu } from './ciudad-menu.js';   // CD1b: botón «Construir» y su menú por familias
 import { descargar, copiar, hacerPostal, guardarCopia, cargarCopia, contemplar } from './gfx/movil.js';   // CN18
 
 const D = window.DATA, G = window.Game, $ = id => document.getElementById(id);
@@ -1151,7 +1152,7 @@ function bandejaPinta() {
 }
 function cityPantalla() {
   const m3 = UI.bsel ? 'ficha' : (UI.modo3 || 'mirar'), cs = $('csheet'); if (cs.dataset.m !== m3) cs.dataset.m = m3;
-  if (m3 === 'mirar') bandejaPinta();
+  if (UI.menuC) { const Ef = G.ciudadE(UI.city); UI.menuC.sync(m3, !!(Ef && Ef.fundada)); }   // CD1b: la bandeja de fichas ya no se pinta
   const si = $('b-si'); if (!si || (m3 !== 'colocar' && m3 !== 'muralla')) return;
   const c = S().cities[UI.city], lleno = c.obras.length >= G.huecos(c); let t, off;
   if (m3 === 'colocar') { const i = piezaInfo(UI.sel3.id), x = UI.sel3; off = !x.vale || lleno || !G.canAfford(i.ini); t = !x.vale ? 'Aquí no se puede' : lleno ? (G.huecos(c) === 1 ? 'Ya hay una obra en curso' : 'Sube el foro para otra obra') : !G.canAfford(i.ini) ? 'Faltan recursos<small>' + coste5(i.ini) + '</small>' : 'Construir aquí' + '<small>' + coste5(i.ini) + '</small>'; }
@@ -1212,7 +1213,7 @@ function renderCity3D() {
   const s = S(), c = s.cities[UI.city], m = cityMeta(c); UI.metaK = metaKey(m);
   if (UI.cityV) UI.cityV.meta = m;
   $('ctop').innerHTML = '<button class="vb" data-act="cvistas" aria-label="Cambiar la vista de la ciudad" title="Cambiar la vista">' + ICO_VER + '</button>' +
-    '<button class="vo plano" data-act="cplano" aria-label="Vista de plano de la ciudad">' + (UI.cityV && UI.cityV.enPlano ? 'De cerca' : 'Plano') + '</button>' +
+    '<button class="vo plano" data-act="cplano" aria-label="Vista de plano de la ciudad">' + (UI.cityV && UI.cityV.enPlano ? 'De cerca' : 'Desde arriba') + '</button>' +
     (UI.vistas ? '<button class="vo" data-act="cview" data-v="ciudad">Ciudad entera</button><button class="vo" data-act="cview" data-v="calle">Calle</button><button class="vo" data-act="cview" data-v="ejercito">Tropas</button>' : '');
   const fb = $('fichab'), sd = UI.bsel ? selDe(c) : null; if (UI.bsel && !sd) UI.bsel = null; if (sd) { fb.hidden = false; fb.innerHTML = fichaHtml(c, sd); } else { fb.hidden = true; fb.innerHTML = ''; }
   cityPantalla(); pintaLinea();
@@ -1853,6 +1854,9 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && S()
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
 
 buildTop(); buildTabs(); initBandeja();
+UI.menuC = crearMenu({ D, ids: bandejaIds, info: piezaInfo, minis: () => UI.minis, coste5, puede: c => G.canAfford(c), elegir: id => elegir3(id), aviso: t => lineaPon(t, 'aviso', '', 5),
+  famDe: id => { const P = Ciudad.EDIF[id]; return (P && P.bid && D.BUILD[P.bid] && D.BUILD[P.bid].fam) || D.FAMILIA_PIEZA[id] || 'principales'; },
+  costa: () => { const c = D.CITIES[UI.city]; return !!(c && c.sea); } });
 try { UI.map = new MapView3D($('mapwrap'), { onSelect: id => { const otra = id && id === UI.sel && propiaEntrable(id); UI.sel = id; UI.sheetKey = ''; renderSheet(); if (otra) UI.map.entrarCiudad(id); }, puedeEntrar: propiaEntrable, ocupado: () => !!UI.battle, onEntrar: id => { UI.city = id; UI.bsel = null; UI.cityList = false; UI.deMapa = true; setTab('city'); } }); }
 catch (e) { console.warn('WebGL no disponible para el mapa', e); $('mapwrap').innerHTML = '<div class="empty" style="padding:160px 24px;text-align:center">Tu dispositivo no puede mostrar el mapa 3D. Puedes jugar desde las pestañas Ciudad y Ejército.</div>'; }
 showMenu(); requestAnimationFrame(frame);
@@ -1864,7 +1868,7 @@ const finCarga = () => { if (cuenta.u && cuenta.c) CG.todoListo(); };
 CG.fase('Dibujando el mapa', 45); CG.menuListo();
 loadIndex().then(idx => { const ks = Object.keys(idx); cuenta.t += ks.length; cuenta.i++; return Promise.all(ks.map(k => preload([k]).then(unoMas, unoMas))); }).then(() => { UI.dirty = true; cuenta.u = true; finCarga(); }, () => { cuenta.u = true; finCarga(); });
 loadStaticIndex().then(idx => { const ks = Object.keys(idx).filter(k => !k.startsWith('__')); cuenta.t += ks.length + 1; cuenta.i++; return Promise.all([...ks.map(k => preloadStatic([k]).then(unoMas, unoMas)), loadGroundTextures().then(unoMas, unoMas)]); }).then(() => {
-  try { $('citywrap').hidden = false; UI.cityV = new CityView3D($('citywrap'), Object.assign({ onPick: tocarCiudad, onPlano: () => { if (UI.tab === 'city') renderCity3D(); } }, gestosCiudad)); $('citywrap').hidden = true; if (UI.tab === 'city' && !UI.menu) setTab('city'); }
+  try { $('citywrap').hidden = false; UI.cityV = new CityView3D($('citywrap'), Object.assign({ planoBase: true, onPick: tocarCiudad, onPlano: () => { if (UI.tab === 'city') renderCity3D(); } }, gestosCiudad)); $('citywrap').hidden = true; if (UI.tab === 'city' && !UI.menu) setTab('city'); }
   catch (e) { console.warn('Sin vista 3D de ciudad', e); $('citywrap').hidden = true; }
   cuenta.c = true; finCarga();
 }, () => { cuenta.c = true; finCarga(); });
