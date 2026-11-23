@@ -147,6 +147,7 @@
           "test/fisica-batalla.test.mjs"
         ],
         "navegador": [
+          "gobierno/jueces.mjs --area batallas",
           "gobierno/juez-guerra.mjs"
         ],
         "si_toca_arte": [
@@ -212,7 +213,9 @@
           "test/diplomacia.test.mjs",
           "test/encargos.test.mjs"
         ],
-        "navegador": [],
+        "navegador": [
+          "gobierno/jueces.mjs --area cerebro"
+        ],
         "si_toca_arte": [
           "gobierno/arte.mjs",
           "gobierno/fichas.mjs"
@@ -257,7 +260,9 @@
           "test/avisos.test.mjs",
           "test/pausas.test.mjs"
         ],
-        "navegador": [],
+        "navegador": [
+          "gobierno/jueces.mjs --area musculo"
+        ],
         "si_toca_arte": [
           "gobierno/arte.mjs"
         ],
