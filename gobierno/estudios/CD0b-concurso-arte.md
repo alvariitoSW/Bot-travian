@@ -64,7 +64,7 @@ función de necesidades, y hacerlo estético». Eligió **«Maqueta ahora»**. M
    fuente, corto; termas y escuela, medio; templo, mercado y guardia, más; granero y teatro, largo. Sin calle, no llega.
    (Idea de Caesar III y Nova Roma; ya está en `REF-ciudad-iberus.md`.)
 2. **Una casa tiene una necesidad cubierta** si la alcanza un servicio de esa necesidad. **Un barrio la tiene cubierta**
-   si llega al 70 % de sus casas; entre el 30 y el 70 %, «falta algo»; por debajo del 30 %, «mal».
+   si llega al **80 %** de sus casas (usuario, 23/11: «80%»); entre el 30 y el 80 %, «falta algo»; por debajo del 30 %, «mal».
 3. **Nivel del barrio según lo que tenga cubierto**: con 0 a 3 necesidades, chozas; con 4 o 5, casas de atrio; con 6 a 8,
    ínsulas y casas ricas. Al subir, un par de casas salen con andamio durante una estación. Al bajar, se ven tapiadas y vacías.
 4. **Cada clase pesa distinto** las 8 necesidades: la plebe, alimentación, trabajo y ocio; los ciudadanos, agua,

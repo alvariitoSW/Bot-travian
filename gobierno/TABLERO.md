@@ -145,7 +145,7 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
   - ⬜ CD3a **Ministros y encargos (reglas)**, tope del Foro en todas las vías, tropas con hierro y paga (≈1,0 M; de paso; bot de campaña).
   - ⬜ CD3b **Pantalla «Tus ministros»** (≈0,7 M). Después va MN3 (gobernador).
   - ⬜ CD4 **Plan del Senado a 4–8 estaciones** (≈1,0 M; de paso; bot de campaña).
-  - ⬜ CD5a **Necesidades por barrio y clase (reglas)**: 8 necesidades (alimentación, agua, limpieza, salud, trabajo, cultura, culto y ocio, orden); el barrio sube de nivel al cubrirlas (≈0,7 M; de paso; bot de campaña).
+  - ⬜ CD5a **Necesidades por barrio y clase (reglas)**: 8 necesidades (alimentación, agua, limpieza, salud, trabajo, cultura, culto y ocio, orden); el barrio sube de nivel al cubrirlas; cubierta = 80 % de sus casas (usuario, 23/11); servicios que alcanzan por la calle, reglas en `estudios/CD0b-concurso-arte.md` «Ampliación» (≈0,7 M; de paso; bot de campaña).
   - ⬜ CD5b **Capa «Necesidades» y consecuencias a la vista** (≈0,7 M).
   - ⬜ CD6 **Embellecer** (≈1,0 M; pase a Arte: cuartel y grúa).
   - ✅ L4 y L7 ya no esperan PO1: su plan es CE6 a CE10 (CE1, 18/11). Maquetas EV8, EV7 y EV4a archivadas sin borrar; P166 y P176 cerradas; el plan del año, detrás de la 1.0.
