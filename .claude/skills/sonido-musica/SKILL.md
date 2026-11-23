@@ -27,8 +27,8 @@ de pop). Si se usa algo «de película» para que emocione, se marca **licencia 
 3. Nunca: música de juegos, películas o discos, ni «inspirada» calcando melodías.
 
 ## Peso (decirlo antes de meterla)
-mp3 estéreo 44,1 kHz a ≈ 96 kb/s ≈ 0,7 MB por minuto. Tope por pista 900 KB (≈ 75 s de bucle). Cinco pistas ≈ 4 MB:
-es todo el presupuesto de audio. Por eso: bucles cortos que encadenan bien, y lo largo por código.
+mp3 estéreo 44,1 kHz a ≈ 96 kb/s ≈ 0,7 MB por minuto. Tope por pista 2,5 MB (≈ 3,5 min). Todo el audio ≤ 10 MB (usuario, 23/11, «B»): unas cinco pistas largas
+y los efectos. Aun así: bucles que encadenan bien, y lo que se pueda, por código.
 Escribe la cuenta en el parte («+3,2 MB de descarga: de 41 a 44,2 MB») y espera su sí si pasa del tope.
 
 ## Cómo suena dentro del juego

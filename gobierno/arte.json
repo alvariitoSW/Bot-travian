@@ -1,6 +1,6 @@
 {
   "provisional": false,
-  "descargaMB": 50,
+  "descargaMB": 56,
   "triangulosPorUnidad": 4500,
   "triangulosPorEdificio": 12000,
   "escenas": {
@@ -37,11 +37,11 @@
     "triangulosMax": 14000,
     "nota": "Decidido por el usuario el 17/11/2026 («Si subimos el tope incluso a 14000»): los 40 soldados más cercanos a la cámara pueden llegar a 14 000 triángulos; el resto sigue en triangulosPorUnidad. 40 × 14 000 = 560 000 de los 650 000 de triangulosDeCerca: medir fluidez en el móvil antes de dejarlo fijo (GM4b, GM44)."
   },
-  "notaDescarga": "Subido de 37 a 50 MB por el usuario el 17/11/2026 (respuesta al plan P167).",
+  "notaDescarga": "Subido de 37 a 50 MB por el usuario el 17/11/2026 (respuesta al plan P167). De 50 a 56 MB el 23/11/2026 por la música grabada (el usuario eligió «B» en el presupuesto de sonido).",
   "sonido": {
-    "provisional": true,
-    "nota": "Taller de Sonido (usuario, 23/11: «un director de sonido para todo el proyecto»). Cifras propuestas por el director tras medir los 36 sonidos de GM43i (384 KB; medias de -12,6 a -25,4 dB). Provisional hasta que el usuario las apruebe; subir un tope lo decide él.",
-    "descargaKB": 4000,
+    "provisional": false,
+    "nota": "Taller de Sonido (usuario, 23/11: «un director de sonido para todo el proyecto»). Cifras propuestas por el director tras medir los 36 sonidos de GM43i (384 KB; medias de -12,6 a -25,4 dB). Provisional hasta que el usuario las apruebe; subir un tope lo decide él. 23/11: el usuario eligió «B» (más, para música larga grabada): audio hasta 10 MB y pista hasta 2,5 MB; la descarga total sube de 50 a 56 MB para que quepa.",
+    "descargaKB": 10000,
     "licencias": [
       "CC0 1.0",
       "CC BY 3.0",
@@ -64,7 +64,7 @@
       },
       "assets/musica/": {
         "uso": "banda sonora (aún no existe)",
-        "archivoKB": 900,
+        "archivoKB": 2500,
         "maxSeg": 240,
         "canales": 2,
         "hz": 44100

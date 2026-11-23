@@ -55,8 +55,8 @@ cuidado y coherente, y **suena sin conexión**. Lo que no sirva a esto no se hac
 - **Comunes** (`js/ui.js`, `js/registro.js`, `sw.js`, `index.html`…): solo como sesión «de paso» o por pase.
 - Dueño de un archivo: `node gobierno/juez-area.mjs --dueno <ruta>`.
 
-## Presupuesto (gobierno/arte.json → `sonido`; **provisional** hasta que el usuario lo apruebe)
-Todo el audio ≤ **4 MB** (hoy 384 KB). Efecto ≤ 64 KB y 10 s, mp3 mono a 32 kHz. Pista de música ≤ 900 KB y 4 min,
+## Presupuesto (gobierno/arte.json → `sonido`; aprobado por el usuario el 23/11)
+Todo el audio ≤ **10 MB** (hoy 384 KB; el usuario eligió «B» el 23/11 y la descarga total subió a 56 MB). Efecto ≤ 64 KB y 10 s, mp3 mono a 32 kHz. Pista de música ≤ 2,5 MB y 4 min,
 mp3 estéreo a 44,1 kHz. Antes de meter música, dile al usuario **cuánto sube la descarga** (P164). Subir un tope: decide él.
 
 ## Licencias (regla 1 de la skill `arte`, aplicada al sonido)
