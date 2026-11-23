@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Maqueta ciudad nueva</title><link rel="stylesheet" href="estilo.css"></head>
+<body><div id="app"></div>
+<script>
+const P=+(new URLSearchParams(location.search).get('p')||1);
+let s=7; const rnd=()=>{s=(s*16807)%2147483647;return s/2147483647};
+const pick=a=>a[Math.floor(rnd()*a.length)];
+const f=n=>Math.round(n*10)/10;
+/* ---------- plano cenital ---------- */
+function tree(x,y,r){return `<circle cx="${f(x+r*.35)}" cy="${f(y+r*.4)}" r="${r}" fill="#2c3a1a" opacity=".35"/><circle cx="${f(x)}" cy="${f(y)}" r="${r}" fill="#4f7a2c"/><circle cx="${f(x-r*.25)}" cy="${f(y-r*.25)}" r="${f(r*.6)}" fill="#7aa63f"/>`}
+function roof(x,y,w,h,col,col2){const cum=h>w;let l=cum?`<line x1="${x+w/2}" y1="${y+1}" x2="${x+w/2}" y2="${y+h-1}" stroke="${col2}" stroke-width="1.6"/>`:`<line x1="${x+1}" y1="${y+h/2}" x2="${x+w-1}" y2="${y+h/2}" stroke="${col2}" stroke-width="1.6"/>`;
+ let t='';if(!cum)for(let i=x+4;i<x+w-2;i+=4)t+=`M${i} ${y+1}v${h-2}`;else for(let i=y+4;i<y+h-2;i+=4)t+=`M${x+1} ${i}h${w-2}`;
+ return `<rect x="${x+2}" y="${y+2.5}" width="${w}" height="${h}" fill="#3a2410" opacity=".35"/><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="1.5" fill="${col}"/><path d="${t}" stroke="${col2}" stroke-width=".5" opacity=".5" fill="none"/>${l}`}
+function gente(n,x0,y0,x1,y1){let o='';for(let i=0;i<n;i++){const x=x0+rnd()*(x1-x0),y=y0+rnd()*(y1-y0);o+=`<circle cx="${f(x)}" cy="${f(y)}" r="1.9" fill="${pick(['#f1ead9','#c0281f','#2f5da8','#e9c063','#6b3a8a'])}" stroke="#2a1a08" stroke-width=".5"/>`}return o}
+const CX=195,CY=372,RX=165,RY=235;
+const inCity=(x,y,m=0)=>((x-CX)/(RX-m))**2+((y-CY)/(RY-m))**2<1;
+const rio=x=>690-.317*x; // eje del río
+function ciudad(opt={}){
+ let o=`<defs><pattern id="hier" width="14" height="14" patternUnits="userSpaceOnUse"><rect width="14" height="14" fill="#8fa24c"/><circle cx="3" cy="4" r="2.2" fill="#b3b755" opacity=".6"/><circle cx="10" cy="10" r="2" fill="#7b9340" opacity=".7"/></pattern>
+ <linearGradient id="agua" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4f86a8"/><stop offset="1" stop-color="#2f6384"/></linearGradient></defs>
+ <rect width="390" height="844" fill="url(#hier)"/>`;
+ // campos fuera de la muralla
+ const campos=[[4,70,100,62,-4,'#c9a44e'],[110,40,110,50,3,'#a9b55a'],[250,64,136,60,-3,'#d1b061'],[2,150,30,200,0,'#b8a050'],[352,150,36,190,0,'#a9b55a'],[8,640,110,80,5,'#c9a44e'],[260,720,126,100,-3,'#b6ad55'],[10,740,120,90,0,'#d1b061'],[150,740,100,90,2,'#a9b55a']];
+ for(const [ci,[x,y,w,h,r,c]] of campos.entries()){if(opt.libre&&ci<2)continue;o+=`<g transform="rotate(${r} ${x+w/2} ${y+h/2})"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="${c}"/>`;let k='';const vert=h>w;for(let i=4;i<(vert?w:h);i+=5)k+=vert?`M${x+i} ${y+2}v${h-4}`:`M${x+2} ${y+i}h${w-4}`;o+=`<path d="${k}" stroke="#7a5a22" stroke-width="1" opacity=".35" fill="none"/></g>`}
+ // caminos de tierra
+ const cam=(d,w=9)=>`<path d="${d}" stroke="#d8c89a" stroke-width="${w+3}" fill="none" stroke-linecap="round" opacity=".6"/><path d="${d}" stroke="#e8d9b0" stroke-width="${w}" fill="none" stroke-linecap="round"/>`;
+ o+=cam('M-10 352 H400',9)+cam('M195 -10 V610',9)+cam('M195 610 C190 700 170 780 140 860',8)+cam('M30 210 C10 230 10 330 -10 400',6)+cam('M360 330 C380 400 395 440 410 470',6);
+ // rio
+ o+=`<path d="M-10 ${rio(-10)-36} L400 ${rio(400)-36} L400 ${rio(400)+36} L-10 ${rio(-10)+36}Z" fill="#e3d6a6"/><path d="M-10 ${rio(-10)-27} L400 ${rio(400)-27} L400 ${rio(400)+27} L-10 ${rio(-10)+27}Z" fill="url(#agua)"/><path d="M20 ${rio(20)-6}l30 -9M120 ${rio(120)+8}l36 -11M220 ${rio(220)-9}l28 -8M310 ${rio(310)+7}l30 -10" stroke="#cfe7f2" stroke-width="2" stroke-linecap="round" opacity=".7"/>`;
+ // arboles fuera
+ for(let i=0;i<46;i++){const x=rnd()*390,y=rnd()*844;if(opt.libre&&y<130&&x<215)continue;if(inCity(x,y,-14)||Math.abs(y-rio(x))<45||(y>150&&y<200&&false))continue;o+=tree(x,y,4+rnd()*4)}
+ // casas sueltas junto a caminos
+ for(const [x,y] of [[220,640],[140,690],[240,730],[160,780],[20,330],[330,410],[345,300],[40,420],[300,150],...(opt.libre?[]:[[90,120]])])o+=roof(x,y,14,10,'#c4663a','#8f3f20');
+ // muralla
+ o+=`<ellipse cx="${CX}" cy="${CY}" rx="${RX+8}" ry="${RY+8}" fill="#cdbd8c" opacity=".55"/><ellipse cx="${CX}" cy="${CY}" rx="${RX}" ry="${RY}" fill="#d9c796"/>`;
+ // manzanas
+ const rects=[];const X=[],Y=[];
+ for(let i=0;i<7;i++){X.push(CX+5+31*i);X.push(CX-5-28-31*i)}for(let j=0;j<10;j++){Y.push(352+5+29*j);Y.push(352-5-26-29*j)}
+ const foro=[128,308,134,88];
+ for(const y of Y)for(const x of X){const w=28,h=26;
+  if(![[x,y],[x+w,y],[x,y+h],[x+w,y+h]].every(([a,b])=>inCity(a,b,7)))continue;
+  if(x<foro[0]+foro[2]+4&&x+w>foro[0]-4&&y<foro[1]+foro[3]+4&&y+h>foro[1]-4)continue;
+  if(y+h>rio(x+w/2)-36&&y<rio(x+w/2)+36)continue;
+  rects.push([x,y,w,h])}
+ for(const [x,y,w,h] of rects){const c=pick([['#c4663a','#8f3f20'],['#b85a32','#7f3519'],['#cf7444','#9a4a28'],['#a9502d','#703015']]);
+  if(rnd()<.07){o+=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="#e2d3a2"/><rect x="${x+7}" y="${y+6}" width="${w-14}" height="${h-12}" fill="#7fa04a"/>`+tree(x+w/2,y+h/2,5);continue}
+  const nuevo=rnd()<.5;
+  if(nuevo){o+=roof(x+1,y+1,w/2-2,h-2,c[0],c[1])+roof(x+w/2+1,y+1,w/2-2,h-2,c[0],c[1])}else{o+=roof(x+1,y+1,w-2,h/2-2,c[0],c[1])+roof(x+1,y+h/2+1,w-2,h/2-2,c[0],c[1])}}
+ // foro
+ const [fx,fy,fw,fh]=foro;
+ o+=`<rect x="${fx-5}" y="${fy-5}" width="${fw+10}" height="${fh+10}" fill="#bba877"/><rect x="${fx}" y="${fy}" width="${fw}" height="${fh}" fill="#efe3bd"/>`;
+ for(let i=0;i<=6;i++){o+=`<circle cx="${fx+6+i*(fw-12)/6}" cy="${fy+5}" r="2" fill="#f7f1da" stroke="#8a7a50" stroke-width=".6"/><circle cx="${fx+6+i*(fw-12)/6}" cy="${fy+fh-5}" r="2" fill="#f7f1da" stroke="#8a7a50" stroke-width=".6"/>`}
+ // templo
+ o+=`<rect x="${fx+10}" y="${fy+12}" width="40" height="28" fill="#3a2410" opacity=".3" transform="translate(2,3)"/><rect x="${fx+10}" y="${fy+12}" width="40" height="28" fill="#f5eede" stroke="#9a8a60" stroke-width="1"/><rect x="${fx+13}" y="${fy+15}" width="34" height="22" fill="#d97a4a"/><line x1="${fx+13}" y1="${fy+26}" x2="${fx+47}" y2="${fy+26}" stroke="#8f3f20" stroke-width="1.6"/>`;
+ // curia
+ o+=`<rect x="${fx+82}" y="${fy+12}" width="40" height="30" fill="#3a2410" opacity=".3" transform="translate(2,3)"/><rect x="${fx+82}" y="${fy+12}" width="40" height="30" fill="#e9dcb3" stroke="#9a8a60" stroke-width="1"/><rect x="${fx+86}" y="${fy+16}" width="32" height="22" fill="#b0562f"/><line x1="${fx+102}" y1="${fy+16}" x2="${fx+102}" y2="${fy+38}" stroke="#7f3519" stroke-width="1.6"/>`;
+ o+=`<circle cx="${fx+67}" cy="${fy+54}" r="6" fill="#8aa7b5" stroke="#6a8798" stroke-width="1.5"/>`;
+ o+=gente(opt.gente||26,fx+4,fy+44,fx+fw-4,fy+fh-4);
+ // jardines junto al foro
+ o+=`<rect x="262" y="310" width="30" height="34" fill="#7fa04a"/>`+tree(272,322,5)+tree(284,334,4.5)+`<rect x="98" y="360" width="26" height="26" fill="#7fa04a"/>`+tree(111,373,5.5);
+ // carro en la calle principal
+ o+=`<rect x="316" y="348" width="14" height="7" rx="1" fill="#8a5a22" stroke="#3a2410" stroke-width=".8"/><circle cx="333" cy="351.5" r="2.2" fill="#b0562f"/>`+gente(8,210,349,320,356)+gente(5,192,200,198,340)+gente(4,192,400,198,560);
+ // muralla trazo
+ o+=`<ellipse cx="${CX}" cy="${CY}" rx="${RX}" ry="${RY}" fill="none" stroke="#7a6a44" stroke-width="9" opacity=".35" transform="translate(2,3)"/><ellipse cx="${CX}" cy="${CY}" rx="${RX}" ry="${RY}" fill="none" stroke="#c7b27a" stroke-width="8"/><ellipse cx="${CX}" cy="${CY}" rx="${RX}" ry="${RY}" fill="none" stroke="#e6d6a2" stroke-width="3"/>`;
+ for(let a=0;a<360;a+=18){const r=a*Math.PI/180,x=CX+RX*Math.cos(r),y=CY+RY*Math.sin(r);o+=`<circle cx="${f(x+1.5)}" cy="${f(y+2)}" r="7" fill="#3a2410" opacity=".3"/><circle cx="${f(x)}" cy="${f(y)}" r="6.5" fill="#d6c38a" stroke="#8f7c4a" stroke-width="1.2"/><circle cx="${f(x)}" cy="${f(y)}" r="3.2" fill="#b0562f"/>`}
+ // puertas y puente
+ o+=`<rect x="186" y="${CY-RY-5}" width="18" height="12" fill="#9a8450"/><rect x="186" y="${CY+RY-6}" width="18" height="12" fill="#9a8450"/><rect x="${CX-RX-5}" y="346" width="12" height="14" fill="#9a8450"/><rect x="${CX+RX-7}" y="346" width="12" height="14" fill="#9a8450"/>`;
+ o+=`<rect x="186" y="${rio(195)-30}" width="18" height="60" fill="#b99f66" stroke="#6f5a30" stroke-width="1"/>`;
+ return o}
+const SVGFAM={
+ prin:'<path d="M4 20V10l8-6 8 6v10zM9 20v-6h6v6" fill="none" stroke="#e9c063" stroke-width="1.8"/>',
+ infra:'<path d="M3 17h18M3 11h18M6 11V7M12 11V7M18 11V7M3 21h18" fill="none" stroke="#e9c063" stroke-width="1.8"/>',
+ pol:'<path d="M3 20h18M5 20V9M10 20V9M14 20V9M19 20V9M3 9l9-6 9 6z" fill="none" stroke="#e9c063" stroke-width="1.8"/>',
+ mil:'<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z" fill="none" stroke="#e9c063" stroke-width="1.8"/><path d="M12 7v10" stroke="#e9c063" stroke-width="1.8"/>',
+ prod:'<path d="M4 20V9l5 3V9l5 3V6h6v14z" fill="none" stroke="#e9c063" stroke-width="1.8"/>',
+ viv:'<path d="M3 11l9-7 9 7M6 10v10h12V10M10 20v-5h4v5" fill="none" stroke="#e9c063" stroke-width="1.8"/>',
+ puer:'<circle cx="12" cy="6" r="2.4" fill="none" stroke="#e9c063" stroke-width="1.8"/><path d="M12 9v12M6 14c0 4 3 6 6 6s6-2 6-6M8 13H4M20 13h-4" fill="none" stroke="#e9c063" stroke-width="1.8"/>'};
+const sv=(d,vb='0 0 24 24')=>`<svg viewBox="${vb}">${d}</svg>`;
+const topbar=`<div class="top">${[['🌾','Grano','1 240'],['🪙','Denarios','860'],['🪵','Materiales','530'],['⛏','Hierro','210'],['👥','Población','4 870']].map(([i,n,v])=>`<div class="r"><i>${i}</i><b>${v}</b></div>`).join('')}</div><div class="fecha">Verano 278 a.C.</div>`;
+const ico={c:'<svg viewBox="0 0 24 24"><path d="M4 20V10l8-6 8 6v10z" fill="none" stroke="currentColor" stroke-width="2"/></svg>',m:'<svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 21c0-5 4-7 8-7s8 2 8 7" fill="none" stroke="currentColor" stroke-width="2"/></svg>',s:'<svg viewBox="0 0 24 24"><path d="M3 20h18M5 20V9M10 20V9M14 20V9M19 20V9M3 9l9-6 9 6z" fill="none" stroke="currentColor" stroke-width="2"/></svg>'};
+function barra(on){return `<div class="barra"><button class="${on==='c'?'on ':''}" style="display:none"></button><button class="ng">${ico.m}Ministros</button><button class="gran ${on==='c'?'on':''}">${ico.c}Construir</button><button>${ico.s}Senado</button></div>`}
+function barra3(on){return `<div class="barra" style="grid-template-columns:1fr 1.5fr 1fr"><button class="${on==='m'?'on':''}">${ico.m}Ministros</button><button class="gran">${ico.c}Construir</button><button class="${on==='s'?'on':''}">${ico.s}Senado</button></div>`}
+const etq=(x,y,h)=>`<div class="etq" style="left:${x}px;top:${y}px">${h}</div>`;
+const med=(t,c,cl='')=>`<div class="med ${cl}" style="background:${c}">${t}</div>`;
+let UI='',ex='',opt={libre:P===3};
+const A=document.getElementById('app');
+/* ---------- pantallas ---------- */
+if(P===1){UI=etq(195,330,'<b>Foro</b>')+etq(150,508,'Barrio del río · <b style="font-size:13px">plebe</b>')+barra3()}
+if(P===2){
+ const fam=[['prin','Principales'],['infra','Infra&shy;estructura'],['pol','Política y culto'],['mil','Militar'],['prod','Producción'],['viv','Viviendas'],['puer','Puerto']];
+ const pz=[['Calle','2 mat.','<path d="M8 3l-3 18M16 3l3 18M12 5v3M12 11v3M12 17v3" stroke="#e9c063" stroke-width="2" fill="none"/>'],['Fuente','60 mat.','<circle cx="12" cy="14" r="7" fill="none" stroke="#e9c063" stroke-width="2"/><path d="M12 12V4M9 7l3-3 3 3" stroke="#8fc4e0" stroke-width="2" fill="none"/>'],['Acueducto','240 mat.','<path d="M2 20h20M4 20v-9M10 20v-9M16 20v-9M22 20v-9M2 11h20M6 11a2 2 0 0 1 4 0M12 11a2 2 0 0 1 4 0" stroke="#e9c063" stroke-width="1.8" fill="none"/>'],['Termas','180 den.','<path d="M3 20h18M5 20v-8a7 7 0 0 1 14 0v8M9 20v-5h6v5" stroke="#e9c063" stroke-width="1.8" fill="none"/>'],['Cloaca','90 mat.','<path d="M2 14h20M4 14a8 8 0 0 0 16 0M7 9v5M12 8v6M17 9v5" stroke="#e9c063" stroke-width="1.8" fill="none"/>'],['Jardín','40 mat.','<circle cx="12" cy="9" r="5" fill="#7aa63f"/><path d="M12 14v7M8 21h8" stroke="#e9c063" stroke-width="2"/>']];
+ UI=`<div class="menu"><div class="linea">Elige familia y pieza. Luego toca la ciudad.</div>
+ <div class="tira">${pz.map(p=>`<div class="t">${sv(p[2])}<span>${p[0]}<small>${p[1]}</small></span></div>`).join('')}</div>
+ <div class="fam">${fam.map(([k,n])=>`<div class="f ${k==='infra'?'on':''}"><div class="c">${sv(SVGFAM[k].replace(/#e9c063/g,k==='infra'?'#1c1206':'#e9c063'))}</div><span>${n}</span></div>`).join('')}<div></div></div></div>`+barra3().replace('class="gran"','class="gran on"');
+ ex='<rect width="390" height="844" fill="#05080b" opacity=".18"/>'}
+if(P===3){
+ const mz=i=>`<rect x="${24+i*38}" y="74" width="34" height="28" fill="#e9c063" opacity=".32" stroke="#e9c063" stroke-width="1"/>`;
+ ex=`<g transform="translate(0,5)"><rect x="14" y="66" width="184" height="64" fill="#7fa04a" opacity=".0"/>${[0,1,2,3].map(mz).join('')}
+ <path d="M14 70H190M14 104H190M14 112H190M20 66V120M58 66V120M96 66V120M134 66V120M172 66V120" stroke="#fff3c0" stroke-width=".8" opacity=".85" fill="none"/>
+ <path d="M18 108H195" stroke="#e9c063" stroke-width="9" stroke-linecap="round" opacity=".95"/><path d="M18 108H195" stroke="#fff3c0" stroke-width="2" stroke-dasharray="2 8" stroke-linecap="round"/>
+ <path d="M18 110L52 104L84 113L120 103L152 112L190 107" stroke="#1a120a" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".7"/><path d="M18 110L52 104L84 113L120 103L152 112L190 107" stroke="#fff" stroke-width="3" stroke-dasharray="7 5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><circle cx="18" cy="108" r="5" fill="#fff"/><circle cx="195" cy="108" r="5" fill="#e9c063"/></g>`;
+ UI=`<div style="position:absolute;left:8px;right:8px;bottom:8px;z-index:6;background:var(--glass);border:1px solid var(--line2);border-radius:20px;padding:10px">
+ <div style="display:flex;gap:9px;align-items:flex-start">${med('Ar','#7a4a1a')}<div style="flex:1;background:var(--glass2);border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:7px 10px;font-size:14px"><b style="color:var(--gold);font-size:13px">Arquitecto</b><br>Te la enderezo. Y si quieres, sigo la cuadrícula: caben 4 manzanas de casas.</div></div>
+ <div style="text-align:center;color:var(--gold);font-size:13px;margin:7px 0">120 pasos · 40 materiales</div>
+ <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px"><button class="btn oro" style="padding:10px 2px;font-size:13px">Calle recta</button><button class="btn" style="padding:10px 2px;font-size:13px;background:var(--glass2);color:var(--ink);border-color:var(--line)">Como la tracé</button><button class="btn" style="padding:10px 2px;font-size:13px;background:var(--glass2);color:var(--ink);border-color:var(--line2)">Seguir cuadrícula</button></div></div>`}
+if(P===4){
+ const cols=['#7a4a1a','#8a2a22','#3a5f8a','#5a6e2c','#6b3a8a','#2f7a6a','#7a6a1a','#a0562a','#8a3a5a','#3a3a5a'];
+ const mini=[['Arq','Arquitecto','architectus · calles y manzanas','Trazar el barrio del río',.55],['Ej','Ejército','legado · Escipión','',.4],['Ci','Ciencia','sabio · Emilio','Investigar: hormigón',.3],['In','Infraestructura','censor · Claudio','Llevar el agua al barrio alto · termas',.2],['Ha','Hacienda','cuestor · Fabio','Impuestos: medios',1],['Ag','Agricultura','edil del grano · Fulvio','Granero lleno para el invierno',.7],['Mi','Minería','procurador de minas · Valerio','Cantera y mina de hierro',.45],['Ar','Artesanía y comercio','edil del mercado · Sempronio','Talleres de cerámica',.15],['Cu','Culto y fiestas','pontífice · Valerio','Juegos de septiembre',.6],['Go','Gobernador','otras ciudades','Capua: la lleva él',1]];
+ const card=(m,i)=>{const ab=i===1;return `<div style="background:#f3e8c5;border:1px solid ${ab?'#b8862b':'#c9b57a'};border-radius:14px;padding:9px 10px;margin-bottom:7px;${ab?'box-shadow:0 0 0 2px #e9c06366':''}"><div style="display:flex;gap:9px;align-items:center">${med(m[0],cols[i])}<div style="flex:1;min-width:0;line-height:1.2"><b style="font-size:15px">${m[1]}</b><div style="font-size:13px;color:#6b4a1a;font-style:italic">${m[2]}</div></div><span style="font-size:18px;color:#8a5a12">${ab?'▾':'▸'}</span></div>
+ ${ab?`<div style="font-size:13px;margin:8px 0 3px"><b>Encargo actual:</b> Herrería a nivel 3 · 2 manípulos de hastati</div><div class="barra-av"><i style="width:40%"></i></div>
+ <div style="border-top:1px dashed #b8a06a;margin-top:9px;padding-top:8px"><div style="font-size:13px;font-weight:700;margin-bottom:5px">Nuevo encargo</div>
+ <div style="display:flex;align-items:center;gap:6px;font-size:13px;margin-bottom:8px"><span style="width:76px">Herrería:</span>${[1,2,3,4].map(n=>`<span style="flex:1;text-align:center;padding:7px 0;border-radius:9px;border:1px solid #8a5a12;${n===3?'background:linear-gradient(#e9c063,#b8862b);font-weight:800':'background:#eadcb4'}">nivel ${n}</span>`).join('')}</div>
+ <div style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:9px">${[['Hastati',1],['Príncipes',0],['Triarios',0],['Vélites',0],['Caballería',0]].map(([n,c])=>`<span style="font-size:13px;padding:6px 9px;border-radius:9px;border:1px solid #8a5a12;background:${c?'#cfe0a0':'#eadcb4'}">${c?'☑':'☐'} ${n}</span>`).join('')}</div>
+ <button class="btn pri">Dar el encargo</button></div>`:`<div style="font-size:13px;margin:7px 0 4px">${m[3]}</div><div class="barra-av"><i style="width:${m[4]*100}%"></i></div>`}</div>`};
+ UI=`<div class="hoja" style="top:124px;bottom:0"><div class="asa"></div><h2>Tus ministros</h2><div id="sc" style="position:absolute;left:0;right:0;top:50px;bottom:0;overflow-y:auto;padding:8px 10px 14px">${mini.map(card).join('')}</div></div>`}
+if(P===5){
+ const est=[['Otoño 278',[['Acueducto, tramo 1','In','#3a5f8a','Infraestructura'],['Granero grande','Ag','#5a6e2c','Agricultura']]],['Invierno 278',[['Cuartel','Ej','#8a2a22','Ejército']]],['Primavera 277',[['Termas del foro','In','#3a5f8a','Infraestructura'],['Manzanas del río','Ar','#7a4a1a','Arquitecto']]],['Verano 277',[['Templo de Ceres','Cu','#8a3a5a','Culto']]],['Otoño 277',[['Acueducto, tramo 2','In','#3a5f8a','Infraestructura']]],['Invierno 277',[['Mercado cubierto','Co','#a0562a','Artesanía y comercio']]]];
+ const chip=(t,on)=>`<span style="flex:1;text-align:center;padding:8px 0;border-radius:11px;border:1px solid #8a5a12;font-weight:700;${on?'background:linear-gradient(#e9c063,#b8862b);color:#1c1206':'background:#eadcb4'}">${t}</span>`;
+ UI=`<div class="hoja" style="top:34px;bottom:0;display:flex;flex-direction:column"><div class="asa"></div><h2>Plan del Senado</h2><div style="padding:6px 12px 0;overflow:hidden;flex:1">
+ <div style="font-size:13px;font-weight:700;margin:2px 0 4px">¿Cuántas estaciones?</div><div style="display:flex;gap:5px;font-size:15px">${[4,5,6,7,8].map(n=>chip(n,n===6)).join('')}</div>
+ <div style="font-size:13px;font-weight:700;margin:8px 0 4px">Prioridad</div><div style="display:grid;grid-template-columns:1fr 1.05fr 1.35fr 1.4fr;gap:4px;font-size:13px">${['Crecer','Defender','Contentar a la plebe','Enriquecerse'].map((t,i)=>`<span style="text-align:center;padding:6px 1px;border-radius:11px;border:1px solid #8a5a12;line-height:1.1;font-weight:700;display:flex;align-items:center;justify-content:center;${i===0?'background:linear-gradient(#e9c063,#b8862b);color:#1c1206':'background:#eadcb4'}">${t}</span>`).join('')}</div>
+ <div style="position:relative;margin:10px 0 0 10px;border-left:3px solid #b8862b;padding-left:12px">${est.map(([e,ob])=>`<div style="position:relative;margin-bottom:3px"><span style="position:absolute;left:-21px;top:3px;width:12px;height:12px;border-radius:50%;background:#b8862b;border:2px solid #f3e8c5"></span><div style="font-family:var(--serif);font-weight:700;font-size:13px;color:#5a3a10">${e}</div>${ob.map(o=>`<div style="display:flex;align-items:center;gap:7px;background:#f3e8c5;border:1px solid #c9b57a;border-radius:10px;padding:2px 6px;margin-top:2px;font-size:13px">${med(o[1],o[2],'p')}<span style="flex:1;line-height:1.15">${o[0]}<br><i style="color:#6b4a1a">${o[3]}</i></span></div>`).join('')}</div>`).join('')}</div>
+ </div><div style="padding:6px 12px 10px;border-top:1px solid #b8a06a;background:#e3d3a0">
+ <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><span>Coste total:<br><b>1 640 den. · 920 mat.</b></span><b style="text-align:right">Apoyos:<br>182 de 300 escaños</b></div>
+ <div style="display:flex;height:11px;border-radius:9px;overflow:hidden;border:1px solid #8a5a12"><i style="width:36%;background:#8a2a22"></i><i style="width:24.7%;background:#3a5f8a"></i><i style="width:20%;background:#c9b57a"></i><i style="width:19.3%;background:#5a6e2c"></i></div>
+ <div style="display:flex;justify-content:space-between;font-size:13px;margin-top:3px">${[['#8a2a22','Escipiones'],['#3a5f8a','Emilios'],['#c9b57a','Fabios'],['#5a6e2c','Sempronios']].map(([c,n])=>`<span><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:${c};margin-right:4px;border:1px solid #6b4a1a"></i>${n}</span>`).join('')}</div>
+ <div style="display:grid;grid-template-columns:1.5fr 1fr;gap:6px;margin-top:7px"><button class="btn pri">Votar el plan</button><button class="btn">Cambiar obras</button></div>
+ <div style="font-size:13px;text-align:center;margin-top:3px;line-height:1.2;color:#5a3a10">Aprobado, los ministros lo cumplen mientras tú haces otra cosa.</div></div></div>`}
+if(P===6){
+ const col={b:'#6fb04a',a:'#e0a52e',m:'#d4402e'};
+ const B=[[115,222,'bbbab'],[275,222,'bbaab'],[105,452,'baabb'],[282,452,'bbbbb'],[170,538,'mbmab']];
+ const names=['agua','comida','salud','ocio','orden'];
+ const gl=[ '<path d="M12 3C8 9 6 12 6 15a6 6 0 0 0 12 0c0-3-2-6-6-12z" fill="#fff"/>','<path d="M12 21V8M12 8c-3 0-4-2-4-4 3 0 4 2 4 4zm0 4c-3 0-4-2-4-4 3 0 4 2 4 4zm0 4c-3 0-4-2-4-4 3 0 4 2 4 4zM12 8c3 0 4-2 4-4-3 0-4 2-4 4zm0 4c3 0 4-2 4-4-3 0-4 2-4 4zm0 4c3 0 4-2 4-4-3 0-4 2-4 4z" fill="#fff" stroke="#fff"/>','<path d="M9 3h6v6h6v6h-6v6H9v-6H3V9h6z" fill="#fff"/>','<path d="M4 6h16v6a8 8 0 0 1-16 0z" fill="#fff"/>','<path d="M12 3l8 3v6c0 5-4 8-8 9-4-1-8-4-8-9V6z" fill="#fff"/>'];
+ ex=B.map(([x,y,st],bi)=>{const worst=st.includes('m')?'m':st.includes('a')?'a':'b';let g=`<circle cx="${x}" cy="${y}" r="28" fill="${col[worst]}" opacity=".5" stroke="${col[worst]}" stroke-width="3"/>`;
+  g+=[...st].map((c,i)=>`<g transform="translate(${x-50+i*20},${y-54})"><circle cx="8" cy="8" r="9.5" fill="${col[c]}" stroke="#1a120a" stroke-width="1.2"/><g transform="translate(1.5,1.5) scale(.28)">${gl[i]}</g></g>`).join('');return g}).join('')+`<circle cx="170" cy="538" r="33" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="4 3"/>`;
+ UI=`<div style="position:absolute;left:8px;top:76px;z-index:3;display:flex;gap:5px;font-size:13px;flex-wrap:wrap"><span style="background:var(--glass);border:1px solid var(--line2);border-radius:99px;padding:3px 10px;color:var(--gold)">Capa: Necesidades</span>${[['b','Bien'],['a','Falta algo'],['m','Mal']].map(([k,t])=>`<span style="background:var(--glass);border:1px solid var(--line);border-radius:99px;padding:3px 9px"><i style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${col[k]};margin-right:4px"></i>${t}</span>`).join('')}</div>
+ <div style="position:absolute;left:8px;right:8px;bottom:78px;z-index:5;background:linear-gradient(var(--pap),var(--pap2));color:var(--tinta);border:2px solid var(--gold2);border-radius:18px;padding:10px 12px">
+ <div style="font-family:var(--serif);font-weight:700;font-size:15px;color:#5a3a10">Barrio del río · plebe</div><div style="font-size:13px;margin:1px 0 5px">1 200 vecinos</div>
+ <div style="font-size:14px;line-height:1.3"><b style="color:#a02a1c">Falta:</b> agua y salud.<br>Si sigue así 2 estaciones: <b>fiebres y protesta</b>.<br><b>Remedio:</b> fuente y termas (encargar a Infraestructura).</div>
+ <button class="btn pri" style="margin-top:8px">Encargar a Infraestructura</button></div>`+barra3()}
+A.innerHTML=`<svg id="plano" viewBox="0 0 390 844">${ciudad(opt)}${P===6?'':''}${ex}</svg>${topbar}${UI}`;
+if(P===4&&/abajo=1/.test(location.search)){const sc=document.getElementById('sc');sc.scrollTop=sc.scrollHeight}
+</script></body></html>
