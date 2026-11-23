@@ -2096,6 +2096,12 @@
       "titulo": "Taller · AL10 Aligerar y rigguear el galo grande v2b de Meshy (Opus)",
       "nota": "Abierta el 23/11",
       "url": "https://claude.ai/code/session_01QiKC38fjk4a8X1rvncVFnz"
+    },
+    {
+      "tarea": "MIN4",
+      "titulo": "Músculo · MIN4 Jueces de navegador por área (Opus)",
+      "nota": "Abierta el 23/11; de paso en jueces.mjs",
+      "url": "https://claude.ai/code/session_01QiKC379KcRCmhu5AQPDkJm"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"
