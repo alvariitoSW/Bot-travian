@@ -64,6 +64,18 @@ bitácora y `lista.json`, commit y push a la rama de trabajo; **sin PR; `main` n
 **No abras dos sesiones que toquen los mismos archivos** (`js/ui.js`, `js/game.js`, `js/data.js`, `js/simulador.js`,
 `js/ui-guerra.js`): encadénalas. Antes de abrir una, mira con `list_sessions` que no hay ya una viva para esa tarea.
 
+**Ministerios (usuario, 23/11: mapa A y reglas para todas las sesiones; `gobierno/MINISTERIOS.md`).** Al abrir una sesión:
+- Di su **área** y que empiece por su guía: `ministerio-batallas`, `ministerio-cerebro`, `ministerio-musculo` o `arte`. Etiqueta `area:<id>`.
+- Batallas y arte: `environment_id` `env_01CJEDdinXvGa5FE4zimPosh` («AQVILA Batallas taller»: Blender, Quaternius y MakeHuman puestos).
+- **Una sola sesión «de paso» a la vez** para los archivos comunes (`js/ui.js`, `js/game.js`, `js/data.js`, `js/registro.js`, `sw.js`,
+  `index.html`): dilo en su encargo y dale los **pases** pendientes de los partes. Las demás no los tocan.
+- Las sesiones cierran con `node gobierno/juez-area.mjs <área>`; **no** pasan los jueces completos ni tocan tablero, bitácora, `lista.json` ni `sw.js`.
+  Tú pasas de su parte al tablero y a la bitácora lo hecho, los pases, las ideas (a la nevera, con su área) y las preguntas.
+- **Despacho del día**: junta las preguntas de todos los partes una vez al día en «Esperando algo del usuario» (tres a la vista,
+  con recomendación y «decide tú»). Lo que no conteste ese día sigue con lo recomendado, apuntado como provisional.
+- **Sesión de subida** (con su «sube»): une las áreas, sube la caché de `sw.js`, pasa los jueces completos una vez y sube.
+- Gasto de los ministerios: sin tope fijo, medido. Lleva la cuenta MIN2 del tablero.
+
 ## 5. Lo que cuesta dinero (lecciones del 19/11, obligatorias)
 - Las tareas de la jornada gastaron de **2 a 13 veces** lo declarado (CE3 ≈10,4 M frente a 2,0; CI1b+CI3a 13,6 M frente a 1,0; MN1
   2,74 frente a 1,2): casi siempre por **encargos de constructor demasiado grandes** (≈46 pasos), pasadas de jueces repetidas por
