@@ -21,6 +21,7 @@ import { filasRomano, N_R } from './enemigo.js';
 import { crearAcciones, NPILA } from './acciones.js';
 import { crearCamara } from './camara.js';
 import { crearHud } from './hud.js';
+import { crearPuente, crearDedos, botDedos } from './dedos.js';
 import * as Son from './sonido.js';
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), MARCAS = Q.get('marcas'), ANTES = Q.get('antes') === '1', COSTADO = Q.get('costado');
@@ -492,25 +493,26 @@ function astas() {
   return { dispersion: dispersion(fases), separacion: +(suma / Math.max(1, n) * 180 / Math.PI).toFixed(2) };
 }
 /* la partida entera con el «bot» (y sin hacer nada), sin dibujar */
+/* FA3: la partida entera solo con los dedos (botDedos manda por el puente, no por acciones) */
+function partidaDedos() { reinicia(); parado = true; let k = 0; for (; k < 30 * 240 && S.fase !== 'fin'; k++) { BOTD(); ACC.paso(1 / 30); PUENTE.paso(1 / 30); } return { fin: S.fase === 'fin', ganador: S.ganador, tRoto: +S.tRoto.toFixed(1), ganado: +S.ganado.toFixed(1), coh: Math.round(S.coh), segundos: +S.T.toFixed(1), golpes: S.golpes, estocadas: PUENTE.lee().estocadas }; }
 function partida(conBot) { reinicia(); parado = true; let k = 0; for (; k < 30 * 240 && S.fase !== 'fin'; k++) { if (conBot) ACC.bot(conBot === true ? 'bien' : conBot); ACC.paso(1 / 30); } return { fin: S.fase === 'fin', ganador: S.ganador, tRoto: +S.tRoto.toFixed(1), ganado: +S.ganado.toFixed(1), coh: Math.round(S.coh), porRuptura: S.ganador === 'falange' ? S.R.roto : S.U.roto, segundos: +S.T.toFixed(1), bajasF: M - S.U.enPie, bajasR: N_R - S.R.enPie, golpes: S.golpes, pila: S.PILA.map(p => p.est) }; }
 
 /* ---------- arranque ---------- */
-let ultimo = 0, CAMPO = null;
+let ultimo = 0, CAMPO = null, PUENTE = null, DEDOS = null, BOTD = null;
 function bucle(t) {
   if (CAMPO) CAMPO.tick(t / 1000);
   const dt = Math.min(0.05, (t - ultimo) / 1000 || 0); ultimo = t;
-  if (!parado) ACC.paso(dt);
+  /* FA3: con el abanico abierto, el tiempo va a un tercio */
+  const k = HUD.lento() ? 1 / 3 : 1;
+  if (!parado) ACC.paso(dt * k);
+  DEDOS.paso(parado ? 0 : dt * k);
   dibuja(parado ? 0 : dt); HUD.hud(); requestAnimationFrame(bucle);
 }
 const enPantalla = v => { v.project(camara); return { x: +((v.x + 1) / 2).toFixed(3), y: +((1 - v.y) / 2).toFixed(3), delante: v.z < 1 }; };
-lienzo.addEventListener('pointerdown', e => {
-  /* tocar al enemigo marcado es dar el golpe */
-  const r = ACC && ACC.marcado(); if (!r) return; const p = enPantalla(new THREE.Vector3(r.x, H(r.x, r.z) + 1.1, r.z));
-  if (Math.hypot((p.x - e.clientX / innerWidth) * innerWidth, (p.y - e.clientY / innerHeight) * innerHeight) < 90) ACC.golpe();
-});
 window.__tp = {
   lista: false, S, renderer, escena, camara, salta: (s, b) => salta(s, b), parar: v => { parado = v; }, orden: n => ACC.orden(n), golpe: () => ACC.golpe(),
   patinaje: (q, m, s, c) => patinaje(q, m, s, c), astas: () => astas(), astasMin: () => astasMin(), partida: b => partida(b),
+  puente: null, dedos: () => DEDOS.estado(), lee: () => PUENTE.lee(), partidaDedos: () => partidaDedos(), saltaDedos: s => { for (let t = 0; t < s; t += 1 / 30) { ACC.paso(1 / 30); PUENTE.paso(1 / 30); } }, abanico: () => HUD.abierto(),
   estado: () => ({ T: +S.T.toFixed(2), fase: S.fase, choque: S.choque, picas: S.picas, kFrente: +S.kFrente.toFixed(2), orden: S.orden, ganador: S.ganador, yo: S.yo, coh: Math.round(S.coh), ganado: +S.ganado.toFixed(1), objetivo: $('objetivo').textContent, nos: S.U.palabras(), ellos: S.R.palabras(), pila: S.PILA.map(p => p.est), cinta: $('cinta').textContent, kB: S.fal.map(h => +h.kB.toFixed(2)) }),
   enPantalla: () => { const yo = S.fal[S.yo], r = ACC.marcado(); return { yo: enPantalla(new THREE.Vector3(yo.x, H(yo.x, yo.z) + 1.6, yo.z)), enemigo: r ? enPantalla(new THREE.Vector3(r.x, H(r.x, r.z) + 1.1, r.z)) : null }; },
 };
@@ -521,7 +523,10 @@ window.__tp = {
   await creaFigs();
   ACC = crearAcciones({ S, H, azar, azarP, zanF: FIG_F.zan, zanR: FIG_R.zan, avisa });
   CAMARA = crearCamara({ Q, S, H, suave, lerp, DX, marcado: () => ACC.marcado(), get vertical() { return vertical; } });
-  HUD = crearHud({ S, Son, $, orden: n => ACC.orden(n), golpe: () => ACC.golpe(), acc: ACC });
+  PUENTE = crearPuente({ S, acc: ACC, avisa }); window.__tp.puente = PUENTE;
+  DEDOS = crearDedos({ puente: PUENTE, S, zona: {} });
+  BOTD = botDedos(PUENTE, S, ACC);
+  HUD = crearHud({ S, Son, $, puente: PUENTE, dedos: DEDOS, acc: ACC });
   reinicia();
   if (FASE) prepara(FASE);
   $('carga').hidden = true;

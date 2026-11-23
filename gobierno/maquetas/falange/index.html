@@ -28,7 +28,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 @keyframes grano{25%{transform:translate(-31px,17px)}50%{transform:translate(23px,-41px)}75%{transform:translate(-13px,-29px)}}
 @media (prefers-reduced-motion:reduce){#grano{animation:none}}
 
-#arriba{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);top:calc(env(safe-area-inset-top) + 8px);display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
+#arriba{position:absolute;min-height:44px;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);top:calc(env(safe-area-inset-top) + 8px);display:flex;gap:8px;align-items:flex-start;justify-content:space-between}
 .pildora{height:44px;padding:0 14px 0 10px;display:flex;align-items:center;gap:6px;border-radius:22px;background:var(--vidrio);border:1px solid var(--fil);font-weight:600;white-space:nowrap;box-shadow:0 3px 10px rgba(0,0,0,.4)}
 .pildora svg{width:18px;height:18px}
 #mision{max-width:calc(100% - 104px);min-width:0;padding:7px 11px 8px;border-radius:12px;background:var(--vidrio);border:1px solid var(--fil);box-shadow:0 3px 10px rgba(0,0,0,.4);overflow:clip}
@@ -40,57 +40,58 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 #barra{flex:1;min-width:90px;height:7px;border-radius:4px;background:rgba(255,255,255,.15);overflow:clip}
 #barra b{display:block;height:100%;width:100%;border-radius:4px;background:var(--verde);transition:width .5s,background .5s}
 
-#cinta{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 64px);transform:translateX(-50%);max-width:calc(100% - 24px);padding:9px 18px;border-radius:18px;background:rgba(14,12,9,.8);border:1px solid rgba(221,90,67,.75);font:700 16px Cinzel,Georgia,serif;letter-spacing:.04em;color:#ffb39e;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .25s}
+#cinta{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 80px);transform:translateX(-50%);max-width:calc(100% - 24px);padding:6px 14px;border-radius:16px;background:rgba(14,12,9,.8);border:1px solid rgba(221,90,67,.75);font:700 13px Cinzel,Georgia,serif;letter-spacing:.04em;color:#ffb39e;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .25s}
 #cinta.ve{opacity:1}
 #cinta.buena{color:#c9ecae;border-color:rgba(124,198,94,.6)}
 
-/* abajo: avanzar a la izquierda; escudos y la orden del momento a la derecha. El centro, libre */
-#abajo{position:absolute;left:calc(env(safe-area-inset-left) + 10px);right:calc(env(safe-area-inset-right) + 10px);bottom:calc(env(safe-area-inset-bottom) + 10px);display:flex;align-items:flex-end;justify-content:space-between;gap:10px}
-#derecha,#izquierda{display:flex;gap:10px;align-items:flex-end}
-#aliento-c{position:absolute;left:12px;right:12px;bottom:6px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);overflow:clip}
-#aliento{display:block;height:100%;width:100%;background:#8fd0e8;border-radius:2px}
-#correr{position:relative}
-#correr.cansado{opacity:.6}#correr.cansado #aliento{background:var(--rojo)}
-#miescudo{width:16px;height:19px;flex:none;color:var(--verde)}
-#miescudo.e1{color:#e6ac3c}#miescudo.e2{color:var(--rojo)}#miescudo.roto{color:#8d846f}
-#miescudo .x{display:none}#miescudo.roto .x{display:block}#miescudo .g1{display:none}#miescudo.e1 .g1,#miescudo.e2 .g1{display:block}#miescudo .g2{display:none}#miescudo.e2 .g2{display:block}
 #grito{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 86px);transform:translateX(-50%);max-width:36%;font:700 20px Cinzel,Georgia,serif;letter-spacing:.04em;color:#fff3dc;text-shadow:0 2px 6px #000,0 0 12px rgba(0,0,0,.9);text-align:center;white-space:nowrap;overflow:clip;opacity:0;transition:opacity .2s}
 #grito.ve{opacity:1}
-.boton{min-width:128px;height:58px;padding:0 16px;border-radius:14px;background:linear-gradient(#3a2c14,#241b0d);border:1.5px solid var(--bronce);display:flex;align-items:center;justify-content:center;gap:8px;font:700 15px Cinzel,Georgia,serif;letter-spacing:.03em;white-space:nowrap;box-shadow:0 3px 12px rgba(0,0,0,.5);overflow:clip}
-.boton svg{width:22px;height:22px;color:var(--oro)}
-.boton.activa{background:linear-gradient(#8a2a20,#5c1b15);border-color:var(--oro)}
-.boton.pide{animation:pide .8s infinite}
-.boton.roja{background:linear-gradient(#8a2a20,#5c1b15);border-color:var(--oro)}
-/* GM43h: «Lanzar» se mantiene pulsado; debajo, el medidor con la zona del buen tiro (verde) */
-#accion{position:relative;min-width:150px;padding-bottom:8px}
-#accion.espera{opacity:.62}
-#medidor{position:absolute;left:12px;right:12px;bottom:7px;height:8px;border-radius:4px;background:rgba(255,255,255,.16);overflow:clip}
-#zona{position:absolute;top:0;bottom:0;left:72%;right:0;background:rgba(124,198,94,.5)}
-#aguja{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--marmol);border-right:2px solid #fff}
-#aguja.buena{background:var(--verde)}
-#accion.espera #aguja{background:#8d846f;border-right-color:#8d846f}
-/* TP8b-P2: cohesión, compás y flanco */
 #forma{margin-top:5px}#forma b{transition:width .2s,background .3s}#cohn{min-width:22px;text-align:right;font-weight:700}
-#terreno{margin-top:4px;font-size:11px;color:#f1e3bd;white-space:nowrap;font-variant-numeric:tabular-nums}
-.boton.apagado{opacity:.38;filter:saturate(.3)}
-#golpe{position:relative;overflow:visible}
-#anillo{position:absolute;inset:-5px;border-radius:18px;border:3px solid #fff3dc;pointer-events:none;opacity:0;box-shadow:0 0 8px rgba(0,0,0,.6)}
-#golpe.ya{border-color:#c9ecae;box-shadow:0 0 0 4px rgba(124,198,94,.85),0 0 18px rgba(124,198,94,.9)}
-#golpe.ya #anillo{border-color:#9be37a}
-#golpe .ha{position:absolute;top:-30px;left:50%;transform:translateX(-50%);font:700 20px Cinzel,Georgia,serif;color:#c9ecae;text-shadow:0 2px 5px #000;opacity:0}
-#golpe.ya .ha{opacity:1}
-#flanco{position:absolute;top:30%;right:10px;display:flex;flex-direction:column;align-items:center;gap:2px;padding:10px 14px 8px;border-radius:14px;background:rgba(122,22,14,.88);border:2px solid #ffd2a0;font:700 20px Cinzel,Georgia,serif;color:#fff3dc;text-shadow:0 2px 4px #000;animation:pide .6s infinite}
-#flanco.izq{right:auto;left:10px}
-#flanco svg{width:64px;height:64px;stroke-width:3;color:#ffd2a0}#flanco.izq svg{transform:scaleX(-1)}
-#flanco small{font:600 13px system-ui,sans-serif}
-@media (orientation:landscape){#cinta{top:calc(env(safe-area-inset-top) + 128px)}#flanco{top:33%}}
+#terreno{margin-left:6px;font-size:11px;color:#f1e3bd;white-space:nowrap;font-variant-numeric:tabular-nums}
+/* FA3: pantalla limpia. Las líneas de las dos unidades siguen en el DOM, fuera de la vista */
+.fuera{position:absolute!important;width:1px!important;height:1px!important;overflow:clip!important;clip-path:inset(50%);opacity:0}
+/* el estandarte: el único botón de mando, arriba al centro, con la orden vigente debajo */
+#estandarte{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 6px);transform:translateX(-50%);width:54px;height:54px;border-radius:50%;background:radial-gradient(#5c1b15,#2b0d09);border:2px solid var(--oro);box-shadow:0 3px 12px rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;color:var(--oro);overflow:visible}
+#estandarte svg{width:34px;height:34px;stroke-width:1.6}
+#estandarte.pide{animation:pide .8s infinite}
+#estandarte.abierto{background:radial-gradient(#8a2a20,#5c1b15);border-color:#fff3dc}
+#estandarte small{position:absolute;top:57px;left:50%;transform:translateX(-50%);font:700 11px Cinzel,Georgia,serif;color:#fff3dc;text-shadow:0 1px 3px #000;white-space:nowrap;pointer-events:none}
+#abanico{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 80px);transform:translateX(-50%);display:flex;gap:4px;align-items:flex-start}
+#abanico button{width:90px;min-height:46px;padding:4px 2px;border-radius:14px;background:linear-gradient(#3a2c14,#241b0d);border:1.5px solid var(--bronce);font:700 11px/1.1 Cinzel,Georgia,serif;letter-spacing:0;color:var(--marmol);box-shadow:0 3px 12px rgba(0,0,0,.55);overflow:clip}
+#abanico button:nth-child(2),#abanico button:nth-child(3){margin-top:16px}
+#abanico button.vigente{background:linear-gradient(#8a2a20,#5c1b15);border-color:var(--oro)}
+/* las cinco rayas de filas: abajo a la izquierda. Bajada: trazo dorado largo con punta. Alzada: corto y pálido */
+#rayas{position:absolute;left:calc(env(safe-area-inset-left) + 8px);bottom:calc(env(safe-area-inset-bottom) + 8px);width:112px;pointer-events:auto;touch-action:none;padding:2px 4px;border-radius:12px;background:rgba(18,15,11,.35)}
+.raya{position:relative;height:36px;display:flex;align-items:center}
+.raya i{display:block;height:4px;width:34px;border-radius:2px;background:rgba(241,234,217,.45);transition:width .2s,background .2s;pointer-events:none}
+.raya.baja i{width:88px;background:linear-gradient(90deg,var(--bronce),var(--oro));box-shadow:0 0 4px rgba(0,0,0,.6)}
+.raya.baja i::after{content:"";position:absolute;left:92px;top:50%;margin-top:-6px;border:6px solid transparent;border-left:9px solid var(--oro)}
+.raya b{position:absolute;left:-2px;top:3px;font:600 9px system-ui,sans-serif;color:#cfc3a6;pointer-events:none}
+/* las huellas de los pulgares (no son botones). La derecha hace de aro del compás en el choque */
+.huella{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:2px solid rgba(241,234,217,.28);background:rgba(241,234,217,.05);pointer-events:none;transition:opacity .3s}
+.huella.toca{border-color:rgba(241,234,217,.6);background:rgba(241,234,217,.12)}
+#aro{position:absolute;inset:-6px;border-radius:50%;border:3px solid #fff3dc;opacity:0}
+#huella-d.ya{border-color:#9be37a;box-shadow:0 0 0 4px rgba(124,198,94,.7),0 0 18px rgba(124,198,94,.9)}
+#huella-d.ya #aro{border-color:#9be37a}
+.pista{position:absolute;transform:translate(-50%,-50%);font:700 12px Cinzel,Georgia,serif;color:#fff3dc;text-shadow:0 1px 4px #000;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .6s}
+.pista.ve{opacity:.9}
+#arco{position:absolute;width:84px;height:42px;margin-left:-42px;border-radius:42px 42px 0 0;border:3px solid rgba(233,192,99,.85);border-bottom:0;pointer-events:none;display:flex;justify-content:center;align-items:flex-start;padding-top:8px;font:700 13px system-ui,sans-serif;color:#fff3dc;text-shadow:0 1px 3px #000;font-variant-numeric:tabular-nums}
+/* el aviso de flanco: el borde de ese lado en rojo, con tres cuñas que laten */
+.borde{position:absolute;top:0;bottom:0;width:70px;pointer-events:none;opacity:0;display:flex;flex-direction:column;justify-content:center;gap:26px;align-items:center}
+#borde-d{right:0;background:linear-gradient(to left,rgba(190,30,18,.8),rgba(190,30,18,0))}
+#borde-i{left:0;background:linear-gradient(to right,rgba(190,30,18,.8),rgba(190,30,18,0))}
+.borde svg{width:34px;height:34px;color:#fff3dc;filter:drop-shadow(0 1px 3px #000);stroke-width:3;animation:cuna .7s infinite}
+.borde svg:nth-child(2){animation-delay:.12s}.borde svg:nth-child(3){animation-delay:.24s}
+#borde-d svg{transform:scaleX(-1)}
+@keyframes cuna{50%{opacity:.35}}
 @keyframes pide{50%{border-color:#fff;box-shadow:0 0 0 3px rgba(233,192,99,.6)}}
 @media (orientation:portrait){
-  #derecha,#izquierda{flex-direction:column-reverse}
+  #mision{position:absolute;top:74px;left:0;right:0;max-width:none}
+  #cinta{top:calc(env(safe-area-inset-top) + 152px)}
+  #abanico{top:calc(env(safe-area-inset-top) + 82px)}
   #grito{bottom:calc(env(safe-area-inset-bottom) + 240px);max-width:90%}
-  .boton{min-width:136px}
-  #cinta{top:calc(env(safe-area-inset-top) + 118px)}
 }
+@media (orientation:landscape){#mision{position:absolute;right:0;top:0;max-width:calc(50% - 50px)}}
 
 .velo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:rgba(10,8,6,.66);pointer-events:auto}
 #carga{background:#15130f}
@@ -109,28 +110,36 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
   <div id="sombra"></div>
   <div id="cinta"></div>
   <div id="grito"></div>
-  <div id="flanco" hidden><svg viewBox="0 0 24 24"><path d="M3 12h16M13 5l7 7-7 7"/></svg><span id="flanco-t">¡Por la derecha!</span><small id="flanco-s">Aguantar · 5 s</small></div>
+  <div id="borde-i" class="borde"><svg viewBox="0 0 24 24"><path d="M8 4l8 8-8 8"/></svg><svg viewBox="0 0 24 24"><path d="M8 4l8 8-8 8"/></svg><svg viewBox="0 0 24 24"><path d="M8 4l8 8-8 8"/></svg></div>
+  <div id="borde-d" class="borde"><svg viewBox="0 0 24 24"><path d="M8 4l8 8-8 8"/></svg><svg viewBox="0 0 24 24"><path d="M8 4l8 8-8 8"/></svg><svg viewBox="0 0 24 24"><path d="M8 4l8 8-8 8"/></svg></div>
   <div id="arriba">
     <button id="salir" class="pildora"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Salir</button>
     <div id="mision">
-      <div id="objetivo">Avanza hacia el manípulo romano</div>
-      <div id="forma">Cohesión <span id="barra"><b id="coh"></b></span><span id="cohn">100</span></div>
-      <div id="terreno">Terreno ganado: 0 de 15 m</div>
-      <div id="nos">Falange · 96 en pie · firme · fresca · igualado</div>
-      <div id="ellos">Romanos · 96 en pie · firme · fresca · igualado</div>
+      <div id="objetivo">Toca para avanzar</div>
+      <div id="forma">Cohesión <span id="barra"><b id="coh"></b></span><span id="cohn">100</span><span id="terreno">0 de 15 m</span></div>
+      <div id="nos" class="fuera">Falange · 96 en pie · firme · fresca · igualado</div>
+      <div id="ellos" class="fuera">Romanos · 96 en pie · firme · fresca · igualado</div>
     </div>
   </div>
-  <div id="abajo">
-    <div id="izquierda">
-      <button id="avanzar" class="boton"><svg viewBox="0 0 24 24"><path d="M12 20V5M12 5l-6 6M12 5l6 6"/></svg><span id="avanzar-t">Avanzar</span></button>
-      <button id="aguantar" class="boton"><svg viewBox="0 0 24 24"><path d="M5 20h14M8 20V9M16 20V9M5 9h14"/></svg>Aguantar</button>
-    </div>
-    <div id="derecha">
-      <button id="picas" class="boton"><svg viewBox="0 0 24 24"><path d="M4 19L20 7M17 5l4 1-2 3M3 14l14-9"/></svg><span id="picas-t">Picas abajo</span></button>
-      <button id="empujad" class="boton" hidden><svg viewBox="0 0 24 24"><path d="M4 12h12M12 6l6 6-6 6M20 5v14"/></svg>Empujad</button>
-      <button id="golpe" class="boton roja" hidden><i id="anillo"></i><span class="ha">¡Ha!</span><svg viewBox="0 0 24 24"><path d="M3 12h16M15 8l5 4-5 4"/></svg>Golpe</button>
-    </div>
+  <button id="estandarte" aria-label="Estandarte: abrir las órdenes"><svg viewBox="0 0 40 40"><path d="M20 3v34M13 37h14"/><path d="M20 5h13l-3 5 3 5H20"/><g transform="translate(14 23)"><circle r="2.2"/><path d="M0-6.5V-3.2M0 6.5V3.2M-6.5 0H-3.2M6.5 0H3.2M-4.6-4.6l2.3 2.3M4.6 4.6L2.3 2.3M-4.6 4.6l2.3-2.3M4.6-4.6L2.3-2.3"/></g></svg><small id="estandarte-t">Libre</small></button>
+  <div id="abanico" hidden>
+    <button data-o="aguantar">Aguantar</button>
+    <button data-o="empujad">Empujad</button>
+    <button data-o="cerrar">Cerrar filas</button>
+    <button data-o="retroceder">Retroceder</button>
   </div>
+  <div id="rayas" aria-label="Filas: toca para bajar o alzar">
+    <div class="raya" data-i="0"><b>1</b><i></i></div>
+    <div class="raya" data-i="1"><b>2</b><i></i></div>
+    <div class="raya" data-i="2"><b>3</b><i></i></div>
+    <div class="raya" data-i="3"><b>4</b><i></i></div>
+    <div class="raya" data-i="4"><b>5</b><i></i></div>
+  </div>
+  <div id="huella-i" class="huella"></div>
+  <div id="huella-d" class="huella"><i id="aro"></i></div>
+  <div id="pista-i" class="pista">Filas</div>
+  <div id="pista-d" class="pista">Toca · desliza · arrastra</div>
+  <div id="arco" hidden>0°</div>
   <div id="fin" class="velo" hidden>
     <h1 id="fin-t">Victoria</h1>
     <p id="fin-p"></p>
