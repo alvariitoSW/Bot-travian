@@ -80,7 +80,7 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
   - ✅ FA3 **Dedos y pantalla limpia** (hecha el 23/11: `maquetas/falange/dedos.js`, `hud.js`; gestos de pulgar y estandarte sin botones de golpe; prueba a 844×390 APTO; subida `943ac23`; gasto ≈1,4 M de 0,9; FA4 solo cambia `crearPuente`; parte `partes/2026-11-23-FA3.md`).
   - ⬜ FA4 **La escena nueva** (≈1,8 M; ola 2, tras la 1): la maqueta usa `js/falange.js` y `js/falange-rivales.js`.
   - ⬜ FA6 **Movimientos de sarisa** (≈1,5 M; ola 2, tras FA2; taller). No a la vez que TP9c.
-  - ⬜ FA7 **Rivales en pantalla y su menú** (≈1,8 M; ola 2): `caballeria.js`, `elefante.js`, `rival.js` de la maqueta y elegir rival en `js/ui-escaramuza.js`.
+  - ✅ FA7 **Rivales en pantalla y su menú** (hecha el 23/11: `maquetas/falange/rival.js`, `caballeria.js`, `elefante.js`, elegir rival en `js/ui-escaramuza.js`; banco `maquetas/falange/banco-rivales.html`; subida `e33a3e8`; juez APTO; gasto 2,14 M de 1,8; parte `partes/2026-11-23-FA7.md`). **Queda el enchufe en `escena.js` (tres líneas, pase para FA4)**: hasta entonces el menú elige rival pero la maqueta abre manípulos.
   - ⬜ FA8 **El soldado nuevo en la falange** (≈1,5 M; ola 3, tras FA2, FA4 y FA6).
   - ⬜ FA9 **Espectáculo** (≈1,5 M; ola 3): plano corto, polvo, sonido por capas.
   - ⬜ FA10 **La falange al «Bajar a pie»** (≈1,5 M; ola 4; tras TP9f y nunca a la vez que CG9): `js/ui-mando.js`, gancho en `js/simulador.js`, `css/mando.css`.
