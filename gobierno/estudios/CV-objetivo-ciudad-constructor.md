@@ -1,7 +1,7 @@
-# CV · La ciudad como constructor de ciudades (borrador, 23/11/2026)
+# CV · La ciudad como constructor de ciudades (aprobado el 23/11/2026)
 
-**Qué es.** Borrador del objetivo de la ciudad tras el pedido del usuario del 23/11. No está aprobado: lo cierra él
-contestando las tres preguntas de la bitácora. Completa `CI0-objetivo-ciudad.md` (aspecto) y `CE1-objetivo-cerebro.md`
+**Qué es.** El objetivo de la ciudad tras el pedido del usuario del 23/11. **Aprobado con «1-A 2-B 3-A»**: el tiempo corre
+solo en la ciudad; se construye directamente en el juego (sin maqueta aparte); Roma primero, luego griega y púnica, íbera y gala al final. Completa `CI0-objetivo-ciudad.md` (aspecto) y `CE1-objetivo-cerebro.md`
 (economía); donde choque con ellos, decide el usuario. No se ha construido nada.
 
 ## 1. Pedido (literal)
