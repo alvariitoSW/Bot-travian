@@ -77,7 +77,7 @@ ok(!R.calmar(R.memoriaNueva(), 'juegos').ok && !R.calmar(e.mem, 'rezos').ok, 'ca
 // 7. avisos
 const un = R.estacion(R.memoriaNueva(), { ...nada, agua: 0.5 }, 10);
 const f1 = R.fichaBarrio({ cobertura: { ...nada, agua: 0.5 }, clases: { ple: 10, ciu: 5, esc: 5 }, mem: un.mem });
-ok(f1.avisos.some(t => /ministro de infraestructura|ministro de/.test(t) && /estaci/.test(t)), 'tras 1 estación descontento: aviso antes de la consecuencia con ministro: ' + f1.avisos[0]);
+ok(f1.avisos.some(t => /ministro de infraestructura/.test(t) && /estaci/.test(t)), 'tras 1 estación descontento: aviso antes de la consecuencia con ministro: ' + f1.avisos[0]);
 let mm = R.memoriaNueva();
 for (let i = 0; i < 3; i++) mm = R.estacion(mm, sinOrden, 90).mem;
 const f3 = R.fichaBarrio({ cobertura: sinOrden, clases: { ple: 10, ciu: 5, esc: 5 }, mem: mm });
@@ -90,7 +90,7 @@ ok(fr.avisos.some(t => /En revuelta/.test(t)), 'en revuelta: aviso de cálmala')
 const hogares = [{ id: 'h1', celda: cel(8, 9) }, { id: 'h2', celda: cel(9, 9) }, { id: 'h3', celda: cel(10, 9) }, { id: 'h4', celda: cel(5, 25) }];
 const sinNada = Object.fromEntries(hogares.map(h => [h.id, {}]));
 const rem = R.remedio(red, hogares, sinNada, 'agua', [cel(5, 26), cel(9, 9)]);
-ok(rem.servicio === 'fuente' && rem.celda === cel(9, 9) && rem.casas === 3 && rem.ministro === 'infraestructura', 'remedio elige el candidato que cubre más casas');
+ok(rem.servicio === 'fuente' && rem.celda === cel(9, 9) && rem.casas === 3 && rem.ministro === 'infra', 'remedio elige el candidato que cubre más casas');
 const rem0 = R.remedio(red, hogares, sinNada, 'agua', []);
 ok(rem0.celda === null && rem0.casas === 0 && rem0.servicio === 'fuente', 'remedio sin candidatos: servicio más barato, sin celda');
 const fr2 = R.fichaBarrio({ cobertura: { ...Object.fromEntries(ids.map(i => [i, 0.25])), agua: 0.2 }, clases: { ple: 1, ciu: 1, esc: 1 }, mem: { desc: 1, mal: {}, revuelta: false }, remedios: [{ ...rem, necesidad: 'agua' }] });
