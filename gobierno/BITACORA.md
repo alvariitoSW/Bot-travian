@@ -598,6 +598,7 @@ Cada una, al cerrar cada tarea: jueces APTO, unir a la rama única, tablero y bi
 En cola tras el carril Campaña (tocan lo mismo): J3 Capital y pueblos → J4 Mapa más grande por regiones → J5 Política territorial.
 
 ## Encargo de la próxima sesión
+- **(23/11) Al empezar: regenerar y publicar el cuadro de mando** (no se hizo al cerrar CV1 por la alerta de gasto). CV4a empieza por la vuelta de aspecto del plano. El constructor no lanza jueces: los pasa el director una vez.
 - **(23/11) Siguiente: CV4a «Urbe sin diana»**, ya aprobada (1,0 M, sin corte). Leer antes `estudios/CV0-criterios-ciudad.md` y mirar `capturas-tarea/P190-maqueta-ciudad-plano.png` y las capturas `CV1-*`. Después CV4b, CV2 y CV3, en ese orden.
 **Plan de guerra y de menús abiertos (18/11, 19:25 UTC).** En obra: CE2 (recursos), GM44 (soldados), CI1 (ciudad), TP1b y TP7a (escena a pie y falange), GC10 y CG3 (simulador). Al acabar cada una: archivar y abrir la que desbloquea. CE2 → CG2 y MN1 (comparten `ui.js`: de una en una; CE3 detrás); GM44 + GC10 + CG3 → CG4 → CG5 → CG7 y, con TP1b y TP7a, CG6; CI1 → CS2 (tras CS1); CE3 → MN3. MN2 tras MN1; MN4 la última antes de V10b. `main` en `3efa400`: otra subida pide un «sube».
 
