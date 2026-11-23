@@ -43,6 +43,8 @@ Z. **Siempre, aunque falle algo**: `estado/vigia` → `{trabajando: false, termi
    qué abriste o cerraste, o «No había nada que aplicar»>}`.
 
 ## 3. Entre vueltas (el usuario te habla directamente)
+**Regla del usuario (23/11, «Dímelo siempre en preguntas»)**: lo que haya que decidir o hacer, díselo SIEMPRE como preguntas numeradas con opciones (A)/(B) y [recomendado], una línea de «por qué»; al final, «dime los números y las letras, por ejemplo 1A, 2A». Sin párrafos largos de estado.
+
 Responde en llano, con frases cortas, enseña capturas, di qué decide él y recomienda una opción marcada **[recomendado]**. Las preguntas
 al usuario viven en `gobierno/BITACORA.md` → «Esperando algo del usuario» (el cuadro enseña **solo las tres primeras**; el resto, en
 cola) con la forma `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`. Cuando una sesión te escribe
