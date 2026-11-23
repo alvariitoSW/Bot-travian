@@ -452,7 +452,7 @@ async function creaHombres() {
   cuerpos.customDepthMaterial = matSombra(tex); LR.m = inst(gL, cuerpos.material, M); LR.m.customDepthMaterial = cuerpos.customDepthMaterial; LR.m.castShadow = LR.m.receiveShadow = true;
   console.log(`[E2] triángulos por romano: ${gc.attributes.position.count / 3} detallado / ${gL.attributes.position.count / 3} sencillo`);
   for (const o of [cuerpos, escudos, mio, espadas, pila]) { o.castShadow = true; o.receiveShadow = true; }
-  HOM = { ...tab, u, C: u.clips, cuerpos, fr, fr2, mx, escudos, mio, espadas, pila, D: { m: cuerpos, fr, fr2, mx, vA, vh }, L: LR };
+  HOM = { ...tab, u, C: u.clips, cuerpos, fr, fr2, mx, escudos, mio, espadas, pila, D: { m: cuerpos, fr, fr2, mx, vA, vh }, LJ: LR };
   /* TP1: la zancada de andar y de correr (medida en el clip), dónde están los pies y en qué punto de cada clip va el pie
      izquierdo delante (la fase 0): así, al pasar de andar a correr, la pierna sigue donde iba */
   zancadas(u); HOM.pies = datosPies(tab.T, tab.hues, u.geo, u.clips.idle.start); HOM.corre0 = tab.LC;
@@ -1149,7 +1149,7 @@ function dibuja() {
     else HOM.pila.setMatrixAt(i, CERO);
   }
   for (const m of [HOM.escudos, HOM.espadas, HOM.pila]) m.instanceMatrix.needsUpdate = true;
-  reparte(HOM.D, HOM.L, R, CERCA);
+  reparte(HOM.D, HOM.LJ, R, CERCA);
   HOM.mio.visible = !S.roto; HOM.mio.matrix.copy(yo.mEsc); HOM.mio.matrixWorld.copy(yo.mEsc); dibujaMarcas();
   /* enemigos */
   const P = figuras.peltastas, CP = P.u.clips;
@@ -1341,9 +1341,12 @@ function tira(quien, modo, t) {
 
 /* ---------- arranque ---------- */
 let ultimo = 0, CAMPO = null;
+/* TP9a: medidor de fluidez (idea de la maqueta «lucha»): cuadros de los últimos 5 s; cada 0,5 s, la media y el peor */
+const tiempos = []; let medT = 0;
 function bucle(t) {
   if (CAMPO) CAMPO.tick(t / 1000);
-  const dt = Math.min(0.05, (t - ultimo) / 1000 || 0); ultimo = t;
+  const dtR = (t - ultimo) / 1000 || 0, dt = Math.min(0.05, dtR); ultimo = t;
+  if (dtR > 0 && dtR < 10) { tiempos.push([t, dtR * 1000]); while (tiempos.length && t - tiempos[0][0] > 5000) tiempos.shift(); medT -= dtR; if (medT <= 0 && tiempos.length > 2) { medT = 0.5; HUD.medidor((tiempos.length - 1) / Math.max(0.001, (t - tiempos[0][0]) / 1000), Math.max(...tiempos.map(x => x[1]))); } }
   if (!parado) { if (S.congela > 0) S.congela -= dt; else { const k = S.lento > 0 ? 0.4 : 1; if (S.lento > 0) S.lento -= dt; paso(dt * k); } }   /* TP8b-L1: y la cámara lenta al matarlo */   /* TP8 1a: la pausa mínima al acertar en tu duelo */
   dibuja(); hud(); requestAnimationFrame(bucle);
 }
