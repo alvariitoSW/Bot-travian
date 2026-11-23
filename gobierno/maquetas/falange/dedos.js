@@ -1,79 +1,33 @@
 /* Pieza «dedos» (FA3, falange): los gestos de los pulgares y el puente que los traduce a las órdenes de hoy.
    Diseño: gobierno/estudios/FA3-diseno-dedos.md.
-   - crearPuente({ S, acc, avisa }): EL ÚNICO SITIO que convierte gestos en órdenes de acciones.js. FA4 cambia solo este
-     puente (cada función dice qué campo del contrato usará). Corre en Node: no toca el DOM.
+   - crearPuente({ S, acc, avisa }): EL ÚNICO SITIO que convierte gestos en órdenes del motor (js/falange.js, por acciones.js). Corre en Node: no toca el DOM.
    - crearDedos({ puente, S, zona }): reconoce los gestos con Pointer Events sobre window (dos dedos a la vez).
-   - botDedos(puente, S, acc): un jugador que juega bien SOLO por el puente (para las pruebas).
+   - botDedos(puente, S): un jugador que juega bien SOLO por el puente (para las pruebas).
    Gestos, compás a toques y abanico de órdenes: licencia de juego. */
-import { PULSO } from './acciones.js';
+import { PULSO, VENTANA } from './acciones.js';
 
-const GIRO_V = 8 * Math.PI / 180, GIRO_MAX = 60 * Math.PI / 180;
-
+/* FA4: el puente va derecho al motor (js/falange.js). acc es el objeto de crearAcciones (el de crearFalange).
+   Tocar → toque() · deslizar → estocada() · arrastrar → gira(±1), soltar → gira(0) · raya → fila(i, abajo) · estandarte → orden(n) */
 export function crearPuente({ S, acc, avisa = () => {} }) {
-  let tPrev = -1, lado = 0, soltarFlanco = false, picasVistas = null, estocadas = 0;
-  const filas = () => { if (!Array.isArray(S.filas) || S.filas.length !== 5) S.filas = Array(5).fill(!!S.picas); return S.filas; };
-  function nueva() { S.giro = 0; S.filas = Array(5).fill(!!S.picas); lado = 0; soltarFlanco = false; picasVistas = !!S.picas; estocadas = 0; S.tMiEstocada = -9; S.retrocede = false; }
-  function asegura() {
-    if (S.T === undefined) return;
-    if (typeof S.giro !== 'number' || !Array.isArray(S.filas) || S.T < tPrev - 1e-6) nueva();
-    tPrev = S.T;
-    /* las picas cambiaron por otra vía (bot viejo, ?fase=): las cinco rayas se ponen iguales */
-    if (picasVistas !== !!S.picas) { picasVistas = !!S.picas; const F = filas(); if ((F.filter(Boolean).length >= 3) !== picasVistas) F.fill(picasVistas); }
-  }
-  const flancoVivo = () => S.flanco && !S.flanco.hecho ? S.flanco : null;
-  /* Tocar. Hoy: antes del choque echa a andar; en el choque, acc.golpe(). FA4: S.pulso (el muro empuja medio metro) */
-  function toque() {
-    asegura();
-    if (S.fase === 'fin' || S.ganador) return null;
-    if (!S.choque) { if (!S.andando) { S.retrocede = false; acc.orden('avanzar'); } return 'anda'; }
-    return acc.golpe();
-  }
-  /* Deslizar hacia delante. Hoy solo se ve (tu sarisa clava y el marcado recula), sin dado. FA4: S.yo.tEstocada */
-  function estocada() {
-    asegura();
-    if (S.fase === 'fin' || S.ganador) return false;
-    estocadas++; S.tMiEstocada = S.T;
-    const yo = S.fal && S.fal[S.yo]; if (yo) yo.tG = S.T;
-    const r = S.choque ? acc.marcado() : null; if (r) r.tRecibe = S.T;
-    avisa('clava', {});
-    return true;
-  }
-  /* Arrastrar a un lado (lado -1, 0 o 1). Hoy: S.giro a 8°/s y, hacia el flanco anunciado, «aguantar». FA4: S.giro mueve muro, picas y cámara */
-  function gira(l) {
-    asegura(); lado = Math.sign(l || 0);
-    const F = flancoVivo();
-    if (lado && F && lado === F.lado && S.fase !== 'fin' && !S.ganador) { if (S.orden !== 'aguantar') { acc.orden('aguantar'); soltarFlanco = true; } }
-  }
-  /* Una raya (pulgar izquierdo). baja: true/false (o nada para cambiarla). Hoy manda la mayoría. FA4: S.filas[i], cada fila la suya */
-  function fila(i, baja) {
-    asegura(); const F = filas(); if (i < 0 || i > 4) return;
-    F[i] = baja === undefined ? !F[i] : !!baja;
-    const may = F.filter(Boolean).length >= 3;
-    if (may !== !!S.picas && S.fase !== 'fin' && !S.ganador) { acc.orden('picas'); picasVistas = !!S.picas; }
-  }
-  /* El estandarte: aguantar · empujad · cerrar · retroceder. FA4 separa «cerrar» de «aguantar» y hace ceder terreno a «retroceder» */
-  function estandarte(n) {
-    asegura(); if (S.fase === 'fin' || S.ganador) return;
-    if (n === 'aguantar' || n === 'cerrar') { if (S.orden !== 'aguantar') acc.orden('aguantar'); S.retrocede = false; }
-    if (n === 'empujad') { S.retrocede = false; if (S.choque) acc.orden('empujad'); else if (!S.andando) acc.orden('avanzar'); }
-    if (n === 'retroceder') {
-      S.retrocede = true;
-      if (S.andando) acc.orden('avanzar');
-      else if (S.orden) { S.orden = null; avisa('grito', { texto: '¡Atrás, paso a paso!' }); }
-    }
-  }
-  /* cada fotograma: el giro, soltar el «aguantar» del flanco y las rayas al día */
-  function paso(dt) {
-    asegura(); if (typeof S.giro !== 'number') return;
-    if (lado) S.giro = Math.max(-GIRO_MAX, Math.min(GIRO_MAX, S.giro + lado * GIRO_V * dt));
-    if (soltarFlanco && !S.flanco) { soltarFlanco = false; if (S.orden === 'aguantar') acc.orden('aguantar'); }
-  }
-  /* lo que leen el HUD y las pruebas. giro en grados */
+  let estocadas = 0, tPrev = -1;
+  const vivo = () => S.fase !== 'fin' && !S.ganador;
+  /* si la partida vuelve a empezar, se cuentan de nuevo las estocadas */
+  const asegura = () => { if (S.T < tPrev - 1e-6) estocadas = 0; tPrev = S.T; };
+  /* devuelve 'bueno' | 'destiempo' | 'nada' | 'gira' (o null al acabar) */
+  function toque() { asegura(); return acc.toque(); }
+  function estocada() { asegura(); const r = acc.estocada(); if (r && r !== 'espera') estocadas++; return r; }
+  function gira(l) { asegura(); acc.gira(Math.sign(l || 0)); }
+  function fila(i, baja) { asegura(); if (i < 0 || i > 4) return; acc.fila(i, baja); }
+  /* el estandarte: aguantar · empujad · cerrar · retroceder (la misma orden otra vez la suelta) */
+  function orden(n) { asegura(); return vivo() ? acc.orden(n) : null; }
+  /* el motor gira solo con S.girando: aquí no hay nada que hacer cada fotograma */
+  function paso() { asegura(); }
+  /* lo que leen el HUD y las pruebas. giro en grados; pulso 0 en el latido */
   function lee() {
-    asegura();
-    return { giro: +((S.giro || 0) * 180 / Math.PI).toFixed(2), filas: filas().slice(), pulso: S.choque ? acc.fasePulso() / PULSO : 0, enCompas: !!(S.choque && acc.enPulso()), orden: S.orden || null, estocadas, girando: lado };
+    asegura(); const p = S.pulso || 0;
+    return { giro: +((S.giro || 0) * 180 / Math.PI).toFixed(2), filas: S.filas.slice(), pulso: p, enCompas: Math.min(p, 1 - p) * PULSO <= VENTANA, orden: S.orden || null, estocadas, girando: S.girando || 0 };
   }
-  return { toque, estocada, gira, fila, estandarte, paso, lee };
+  return { toque, estocada, gira, fila, orden, estandarte: orden, paso, lee };
 }
 
 /* Umbrales del diseño §2 (px y ms) */
@@ -138,21 +92,27 @@ export function crearDedos({ puente, S, zona = {} }) {
   };
 }
 
-/* El bot de los dedos: la lógica de acc.bot('bien') traducida a llamadas del puente. Solo lee S y el compás; manda por el puente */
-export function botDedos(puente, S, acc) {
+/* El bot de los dedos: la lógica de F.bot('compas') del motor, pero mandando SOLO por el puente. Gira hacia el flanco al
+   aviso y vuelve al frente cuando se resuelve */
+const GIRO_BOT = 57 * Math.PI / 180;
+export function botDedos(puente, S) {
+  let kBot = -99;
   return function juega() {
-    if (S.fase === 'marcha' && !S.andando && S.T > 0.5) puente.toque();
-    const F = S.filas || [];
-    if (!S.choque && !S.salva && S.andando && S.picas) for (let i = 0; i < 5; i++) puente.fila(i, false);
-    if (S.salva && !S.picas && S.T - S.tSalva > 1.6) for (let i = 0; i < 5; i++) if (!F[i]) puente.fila(i, true);
-    if (!S.choque) return;
-    const ag = S.orden === 'aguantar', fl = S.flanco && !S.flanco.hecho ? S.flanco : null;
-    puente.gira(fl ? fl.lado : 0);
-    if (S.colado || fl) { if (!ag) puente.estandarte('cerrar'); return; }
-    if (ag) { if (S.coh >= 95 && !S.flanco) puente.estandarte('empujad'); return; }
-    if (S.orden === 'empujar' && S.coh < 64) { puente.estandarte('aguantar'); return; }
-    if (S.orden !== 'empujar' && S.coh >= 90) puente.estandarte('empujad');
-    const f = acc.fasePulso(), n = Math.round((S.T - S.tChoque) / PULSO);
-    if (S.pulsoUsado !== n && Math.min(f, PULSO - f) < 0.1) puente.toque();
+    if (S.ganador || S.fase === 'fin') return;
+    const T = S.T, M = S.motor;
+    let cerca = 1e9; for (const h of S.ene) if (h.vivo && h.est !== 'huye') { const l = M.local(h.x, h.z); if (Math.abs(l.lado) < 12 && l.delante > -1) cerca = Math.min(cerca, l.delante); }
+    const vuela = S.proyectiles.some(p => p.est === 1), bajar = S.choque || (cerca < 11 && !vuela);
+    for (let i = 0; i < 5; i++) if (S.filas[i] !== bajar) puente.fila(i, bajar);
+    const Fl = S.flanco, obj = Fl && Fl.estado === 'viene' ? Fl.lado * GIRO_BOT : 0, dif = obj - S.giro;
+    puente.gira(Math.abs(dif) < 0.006 ? 0 : Math.sign(dif));
+    const colado = S.ene.some(h => h.vivo && h.est === 'dentro' && h.por === 'frente');
+    if (colado) { if (S.orden !== 'cerrar') puente.orden('cerrar'); }
+    else if (S.orden === 'cerrar') puente.orden('cerrar');
+    else if (S.orden === 'aguantar') { if (S.coh >= 90) puente.orden('aguantar'); }
+    else if (S.choque && S.coh < 50) puente.orden('aguantar');
+    else if (S.choque && S.orden !== 'empujar' && S.coh >= 90) puente.orden('empujad');
+    if (S.yo.blanco && S.yo.blanco.est === 'dentro') puente.estocada();
+    const fase = ((T % PULSO) + PULSO) % PULSO, d = Math.min(fase, PULSO - fase), k = Math.round(T / PULSO);
+    if (d < 0.05 && k !== kBot) { kBot = k; puente.toque(); if (S.yo.blanco) puente.estocada(); }
   };
 }

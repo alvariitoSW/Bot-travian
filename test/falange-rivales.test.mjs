@@ -5,7 +5,7 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { RIVALES, variedad, rivalDe, GRADO } from '../js/falange-rivales.js';
-import { crearUnidad } from '../gobierno/maquetas/falange/unidad.js';
+import { crearUnidad } from '../js/falange.js';   /* FA4: la copia de la maqueta se borró; la pieza vive en el motor */
 
 const RAIZ = fileURLToPath(new URL('..', import.meta.url));
 const t0 = Date.now();

@@ -7,36 +7,35 @@
 import { META, AVISO_FLANCO } from './acciones.js';
 export function crearHud(m) {
   const { S, Son, $, puente, dedos, acc } = m;
-  const linea = (nombre, u) => { const p = u.palabras(); return `${nombre} · ${p.enPie} en pie · ${p.animo} · ${p.cansancio} · ${p.combate}`; };
+  /* FA4: la unidad de un rival de js/falange-rivales.js puede no traer palabras(): se dicen aquí con sus números */
+  const pal = u => u.palabras ? u.palabras() : { enPie: u.enPie, animo: u.roto ? 'rompe' : u.animo > 0.45 ? 'firme' : 'duda', cansancio: (u.cansancio || 0) < 0.35 ? 'fresca' : u.cansancio < 0.7 ? 'cansada' : 'agotada', combate: 'igualado' };
+  const NOMBRE = { manipulos: 'Romanos', caballeria: 'Jinetes', elefantes: 'Elefantes', falange: 'Falange rival', hoplitas: 'Hoplitas' };
+  const linea = (nombre, u) => { const p = pal(u); return `${nombre} · ${p.enPie} en pie · ${p.animo} · ${p.cansancio} · ${p.combate}`; };
   let abierto = false, t0 = null, tPrev = -1;
-  const ORDEN_T = { aguantar: 'Aguantar', empujar: 'Empujad' };
+  const ORDEN_T = { aguantar: 'Aguantar', empujar: 'Empujad', cerrar: 'Cerrar', retroceder: 'Atrás' };
   /* la situación, en pocas palabras */
   function situacion() {
     if (S.ganador) return S.ganador === 'falange' ? 'El manípulo rompe' : 'Tu falange rompe';
-    if (!S.choque) {
-      if (S.fase === 'marcha') return !S.andando ? 'Toca para avanzar' : S.picas ? 'Vienen pila: alza las filas' : 'Avanzáis con las filas alzadas';
-      if (!S.salva || S.T - S.tSalva < 1.6) return S.picas ? 'Vienen pila: alza las filas' : 'Los pila caen en el bosque de astas';
-      return S.picas ? 'Filas abajo: llega el choque' : 'Cargan: baja las filas';
-    }
-    if (S.flanco && !S.flanco.hecho) return S.flanco.lado > 0 ? 'Entran por la derecha' : 'Entran por la izquierda';
-    if (S.colado) return 'Hay uno dentro: cerrad filas';
+    if (!S.choque) return S.filas.some(Boolean) ? 'Filas abajo: llega el choque' : 'Toca al compás para avanzar';   /* FA4 */
+    if (S.flanco && S.flanco.estado === 'viene') return S.flanco.lado > 0 ? 'Entran por la derecha' : 'Entran por la izquierda';
+    if (S.ene.some(h => h.vivo && h.est === 'dentro')) return 'Hay uno dentro: cerrad filas';
     if (S.orden === 'aguantar') return S.coh < 95 ? 'El muro se rehace' : 'Muro firme';
     if (S.coh < 40 || (S.orden === 'empujar' && S.coh < 68)) return 'El muro se afloja';
     return S.orden === 'empujar' ? 'Empujáis: marca el compás' : 'Marca el compás';
   }
   function abre(v) { abierto = v; $('abanico').hidden = !v; $('estandarte').classList.toggle('abierto', v); $('cinta').style.visibility = v ? 'hidden' : ''; }
   function hud() {
-    $('nos').textContent = linea('Falange', S.U); $('ellos').textContent = linea('Romanos', S.R);
-    const fin = S.fase === 'fin' || !!S.ganador, c = acc.consejo(), L = puente.lee(), D = dedos.estado(), W = innerWidth, Hh = innerHeight;
+    $('nos').textContent = linea('Falange', S.U); $('ellos').textContent = linea(NOMBRE[S.rival] || 'Rival', S.R);
+    const fin = S.fase === 'fin' || !!S.ganador, L = puente.lee(), D = dedos.estado(), W = innerWidth, Hh = innerHeight;
     if (t0 === null || S.T < tPrev - 1e-6) t0 = S.T; tPrev = S.T;
     $('objetivo').textContent = situacion();
     const k = Math.round(S.coh); $('coh').style.width = k + '%'; $('coh').style.background = k >= 60 ? 'var(--verde)' : k >= 40 ? '#e6ac3c' : 'var(--rojo)'; $('cohn').textContent = k;
     $('terreno').textContent = `${Math.floor(S.ganado)} de ${META} m`;
     /* el estandarte y su abanico */
     $('estandarte').hidden = fin; if (fin && abierto) abre(false);
-    $('estandarte-t').textContent = ORDEN_T[S.orden] || (S.andando ? 'Adelante' : S.retrocede ? 'Atrás' : 'Libre');
-    $('estandarte').classList.toggle('pide', !abierto && !fin && (c.toca === 'aguantar' || c.toca === 'empujad') && !(S.flanco && !S.flanco.hecho));
-    for (const b of $('abanico').children) b.classList.toggle('vigente', (b.dataset.o === 'aguantar' && S.orden === 'aguantar') || (b.dataset.o === 'empujad' && S.orden === 'empujar') || (b.dataset.o === 'retroceder' && S.retrocede));
+    $('estandarte-t').textContent = ORDEN_T[S.orden] || 'Libre';
+    $('estandarte').classList.toggle('pide', !abierto && !fin && S.choque && !S.orden && S.coh < 50);
+    for (const b of $('abanico').children) b.classList.toggle('vigente', (b.dataset.o === 'aguantar' && S.orden === 'aguantar') || (b.dataset.o === 'empujad' && S.orden === 'empujar') || (b.dataset.o === 'retroceder' && S.orden === 'retroceder') || (b.dataset.o === 'cerrar' && S.orden === 'cerrar'));
     /* las rayas */
     $('rayas').hidden = fin;
     for (const r of $('rayas').children) r.classList.toggle('baja', !!L.filas[+r.dataset.i]);
@@ -59,7 +58,7 @@ export function crearHud(m) {
     $('arco').hidden = !gira || fin;
     if (gira) { $('arco').style.left = D.der.x + 'px'; $('arco').style.top = (D.der.y - 92) + 'px'; $('arco').textContent = `${L.giro > 0 ? '+' : ''}${Math.round(L.giro)}°`; }
     /* el flanco: el borde de ese lado en rojo, más fuerte según se acaba el tiempo */
-    const F = S.flanco && !S.flanco.hecho && !fin ? S.flanco : null;
+    const F = S.flanco && S.flanco.estado === 'viene' && !fin ? S.flanco : null;
     for (const [id, l] of [['borde-d', 1], ['borde-i', -1]]) { const q = F && F.lado === l ? Math.min(1, Math.max(0, 1 - (F.tI - S.T) / AVISO_FLANCO)) : -1; $(id).style.opacity = q < 0 ? 0 : (0.4 + 0.6 * q).toFixed(2); }
     if (S.tCinta && S.T - S.tCinta > 2.2) { $('cinta').classList.remove('ve'); S.tCinta = 0; }
     if (S.tGrito && S.T - S.tGrito > 1.8) { $('grito').classList.remove('ve'); S.tGrito = 0; }
@@ -69,7 +68,7 @@ export function crearHud(m) {
     abre(false);
     $('fin-t').textContent = gana ? (q > 0.8 ? 'Victoria clara' : 'Victoria por poco') : (q > 0.8 ? 'Derrota clara' : 'Derrota por poco');
     $('fin-p').textContent = (gana ? 'El manípulo rompe y huye ante el muro de puntas. ' : 'Tu falange rompe y huye. ') + `Bajas: ${bF} de los tuyos y ${bR} romanos. Terreno ganado: ${Math.floor(S.ganado)} m. ` +
-      `Estocadas: ${S.golpes.buenos} al compás y ${S.golpes.parados} a destiempo. ` + (gana ? 'Muro firme, golpe a compás y flancos cerrados: así ganaba la falange de Pirro.' : 'Toca al compás, cierra filas cuando se abra un hueco y gira hacia el flanco.');
+      `Toques: ${S.toques.buenos} al compás y ${S.toques.malos} a destiempo. ` + (gana ? 'Muro firme, golpe a compás y flancos cerrados: así ganaba la falange de Pirro.' : 'Toca al compás, cierra filas cuando se abra un hueco y gira hacia el flanco.');
     $('fin').hidden = false;
   }
   addEventListener('pointerdown', () => { if (!Son.listo() && Son.inicia()) Son.cuerno(); }, { once: true });
