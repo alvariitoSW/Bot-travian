@@ -27,12 +27,19 @@ button{font:inherit;color:inherit;border:0;cursor:pointer;pointer-events:auto;ma
 #aliento{width:54px;height:3px;border-radius:2px;background:rgba(255,255,255,.18);overflow:clip}#aliento b{display:block;height:100%;width:100%;background:#8fd0e8}#aliento b.bajo{background:var(--rojo)}
 #escudo{width:13px;height:16px;flex:none;color:var(--verde)}#escudo.rajado{color:#e6ac3c}#escudo.roto{color:#8d846f}#escudo.arriba{filter:drop-shadow(0 0 3px #fff)}
 #escudo .x{display:none}#escudo.roto .x,#escudo.rajado .g{display:block}#escudo .g{display:none}
+/* golpe que te hiere: bordes rojos 0,4 s */
+#dano{position:absolute;inset:0;opacity:0;box-shadow:inset 0 0 0 5px rgba(230,40,30,.9),inset 0 0 70px 26px rgba(200,20,10,.6)}
+#dano.ve{animation:dano .4s ease-out}@keyframes dano{0%{opacity:1}100%{opacity:0}}
+/* palabra pequeña junto al aro del rival */
+#marca{position:absolute;transform:translate(-50%,-50%);width:max-content;font:700 13px Cinzel,Georgia,serif;letter-spacing:.04em;text-shadow:0 1px 4px #000,0 0 8px rgba(0,0,0,.8);overflow:clip;opacity:0;transition:opacity .1s}
+#marca.ve{opacity:1}#marca.oro{color:#ffd65a}#marca.rojo{color:#ff7a5e}
+#racha{font-size:11.5px;font-weight:700;color:#cfc4a8;white-space:nowrap}#racha.sube{color:#f3dc9a}#racha.fuerte{color:#ffd65a;text-shadow:0 0 6px rgba(255,190,40,.8)}
 /* respuesta junto al rival */
 #eco{position:absolute;left:50%;top:30%;transform:translate(-50%,-50%);width:max-content;max-width:60%;text-align:center;font:700 17px Cinzel,Georgia,serif;letter-spacing:.03em;color:#fff3dc;text-shadow:0 2px 6px #000,0 0 12px rgba(0,0,0,.9);overflow:clip;opacity:0;transition:opacity .15s}
 #eco.ve{opacity:1}#eco.bien{color:#c9ecae}#eco.mal{color:#ffb39e}
 /* huellas de los pulgares y la palanca */
-.huella{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:1.5px solid rgba(255,245,220,.35);background:rgba(255,245,220,.07);opacity:0;transition:opacity .6s}
-.huella.ve{opacity:1;transition:opacity .1s}
+.huella{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font:700 12px Cinzel,Georgia,serif;color:#fff3dc;text-shadow:0 1px 3px #000;white-space:nowrap;overflow:clip;border:1.5px solid rgba(255,245,220,.35);background:rgba(255,245,220,.07);opacity:0;transition:opacity .6s}
+.huella.ve{opacity:1;transition:opacity .1s}.huella.salta{border-color:rgba(255,214,90,.8);background:rgba(255,214,90,.18);animation:salta .25s ease-out}@keyframes salta{0%{transform:scale(.7)}60%{transform:scale(1.15)}100%{transform:scale(1)}}
 #palanca{position:absolute;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;border:1.5px solid rgba(255,245,220,.3);opacity:0}
 #palanca.ve{opacity:1}#palanca b{position:absolute;left:30px;top:30px;width:36px;height:36px;border-radius:50%;background:rgba(255,245,220,.28)}
 #medidor{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 4px);transform:translateX(-50%);font-size:10.5px;color:rgba(241,234,217,.55);font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -40,7 +47,7 @@ button{font:inherit;color:inherit;border:0;cursor:pointer;pointer-events:auto;ma
 .velo h1{margin:0;font:700 26px Cinzel,Georgia,serif;color:var(--oro);letter-spacing:.05em}
 .velo p{margin:0;max-width:420px;line-height:1.4}
 #ayuda .tarjeta{padding:14px 18px;border-radius:14px;background:rgba(24,19,12,.9);border:1px solid var(--fil);text-align:left;line-height:1.65;font-size:14.5px}
-#ayuda b{color:var(--oro)}#ayuda small{display:block;margin-top:6px;text-align:center;color:#bfb49c}
+#ayuda b{color:var(--oro)}.aro-ayuda{display:flex;align-items:center;gap:8px;margin-top:4px}.aro-d{width:26px;height:12px;border-radius:50%;border:2.5px solid #ffc93a;box-shadow:0 0 6px rgba(255,200,60,.7);flex:none}#ayuda small{display:block;margin-top:6px;text-align:center;color:#bfb49c}
 .gordo{height:48px;padding:0 26px;border-radius:14px;background:linear-gradient(#8a2a20,#5c1b15);border:1.5px solid var(--oro);font:700 16px Cinzel,Georgia,serif;letter-spacing:.04em}
 #creditos{max-width:560px;font-size:10.5px;line-height:1.35;color:#a9a08c}
 </style>
@@ -50,6 +57,8 @@ button{font:inherit;color:inherit;border:0;cursor:pointer;pointer-events:auto;ma
 <div id="hud">
   <div id="vineta"></div>
   <div id="rodea"></div>
+  <div id="dano"></div>
+  <div id="marca"></div>
   <div id="huella-i" class="huella"></div><div id="huella-d" class="huella"></div>
   <div id="palanca"><b></b></div>
   <div id="eco"></div>
@@ -57,6 +66,7 @@ button{font:inherit;color:inherit;border:0;cursor:pointer;pointer-events:auto;ma
     <button id="salir">Salir</button>
     <div id="linea">
       <span id="meta">Rompe su línea · 0 de 8</span>
+      <span id="racha">Racha 0 de 5</span>
       <span id="heridas" title="Tus heridas"><b></b><b></b><b></b></span>
       <span id="aliento" title="Tu aliento"><b></b></span>
       <svg id="escudo" viewBox="0 0 16 19" fill="none" stroke="currentColor" stroke-width="1.6" aria-label="Tu escudo"><rect x="2" y="1.5" width="12" height="16" rx="3" fill="currentColor" fill-opacity=".25"/><path class="g" d="M7 2l2 5-2 4 2 6"/><path class="x" d="M3 3l10 13M13 3L3 16"/></svg>
@@ -64,11 +74,10 @@ button{font:inherit;color:inherit;border:0;cursor:pointer;pointer-events:auto;ma
   </div>
   <div id="medidor">— img/s</div>
   <div id="ayuda" class="velo"><div class="tarjeta">
-    <div><b>Tocar:</b> estocada</div>
-    <div><b>Deslizar a un lado:</b> tajo</div>
-    <div><b>Deslizar arriba:</b> empujón</div>
-    <div><b>Mantener:</b> escudo</div>
-    <div><b>Pulgar izquierdo:</b> moverte y acercarte</div>
+    <div><b>Toca:</b> golpe</div>
+    <div><b>Mantén:</b> escudo</div>
+    <div><b>Desliza:</b> tajo · <b>arriba:</b> empujón</div>
+    <div class="aro-ayuda"><span class="aro-d"></span> Cuando el aro esté dorado, ¡golpea!</div>
     <small>Toca para empezar</small></div></div>
   <div id="fin" class="velo" hidden>
     <h1 id="fin-t">Has caído</h1>
