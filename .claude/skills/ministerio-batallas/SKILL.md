@@ -1,6 +1,6 @@
 ---
 name: ministerio-batallas
-description: Ministerio de Batallas de AQVILA, con su taller de arte (soldados, movimientos, sonido de guerra). Úsala al empezar cualquier tarea de batalla (carriles CG, TP, GM, ES, UB): dice qué archivos son tuyos, cuáles están vetados, cómo se prueba sin pasar los jueces enteros y a quién se pasa cada cosa.
+description: Ministerio de Batallas de AQVILA, con su taller de arte (soldados y movimientos). Úsala al empezar cualquier tarea de batalla (carriles CG, TP, GM, ES, UB): dice qué archivos son tuyos, cuáles están vetados, cómo se prueba sin pasar los jueces enteros y a quién se pasa cada cosa.
 ---
 
 # Ministerio de Batallas
@@ -20,7 +20,9 @@ La tabla viva es `gobierno/areas.json` → `batallas`. Pregunta por un archivo: 
   `maniobra.js`), sus pantallas (`js/ui-guerra.js`, `ui-mando.js`, `ui-maniobra.js`, `ui-escaramuza.js`), su dibujo
   (`js/gfx/soldado.js`, `units.js`, `campo-mando.js`, `sonido.js`, `models.js`), sus estilos (`css/guerra.css`, `mando.css`,
   `maniobra.css`), sus pruebas y su juez (`gobierno/juez-guerra.mjs`), y las maquetas de batalla.
-- **Taller de arte** (tuyo, con las reglas de la skill `arte`): `assets/soldados/`, `assets/units/`, `assets/sonido/`,
+- **Sonido** (`js/gfx/sonido.js` sigue siendo tuyo): los archivos de audio (`assets/sonido/`, `tools/sonido*`) son del
+  Director de Sonido (skill `sonido`). Él te pasa la partitura (qué suena, cuándo, a qué volumen) y tú la montas.
+- **Taller de arte** (tuyo, con las reglas de la skill `arte`): `assets/soldados/`, `assets/units/`,
   `tools/blender/`, `tools/glb_a_static.mjs`, y el entorno `gobierno/entornos/batallas-taller.*`.
 - **Comunes** (NO se tocan salvo que el vigía te nombre sesión «de paso»): `js/ui.js`, `js/game.js`, `js/data.js`,
   `js/registro.js`, `index.html`, `css/style.css`, `sw.js`, `test/sim.test.js`, `gobierno/jueces.mjs`.

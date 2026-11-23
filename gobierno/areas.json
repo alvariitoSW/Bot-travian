@@ -118,13 +118,10 @@
       "taller": [
         "assets/soldados/",
         "assets/units/",
-        "assets/sonido/",
         "tools/blender/",
         "tools/glb_a_static.mjs",
         "tools/build_units.mjs",
         "tools/resolve_units.py",
-        "tools/sonido.py",
-        "tools/sonido-fuentes.sh",
         "gobierno/entornos/batallas-taller.sh",
         "gobierno/entornos/batallas-taller.md"
       ],
@@ -146,7 +143,8 @@
         ],
         "si_toca_arte": [
           "gobierno/arte.mjs",
-          "gobierno/fichas.mjs"
+          "gobierno/fichas.mjs",
+          "gobierno/juez-sonido.mjs"
         ]
       }
     },
@@ -202,7 +200,8 @@
         "navegador": [],
         "si_toca_arte": [
           "gobierno/arte.mjs",
-          "gobierno/fichas.mjs"
+          "gobierno/fichas.mjs",
+          "gobierno/juez-sonido.mjs"
         ],
         "al_subir": [
           "test/sim.test.js",
@@ -277,6 +276,43 @@
       },
       "guia": ".claude/skills/arte/SKILL.md",
       "objetivo": "Arte coherente con la época, con licencia libre comprobada y dentro del presupuesto de peso y triángulos."
+    },
+    "sonido": {
+      "nombre": "Taller de Sonido (Director de Sonido): cómo suena todo el juego, mezcla, licencias y presupuesto de audio",
+      "en_vigor": true,
+      "guia": ".claude/skills/sonido/SKILL.md",
+      "objetivo": "OBJETIVOS.md, los tres órganos: la batalla se oye de verdad (Corazón), la ciudad suena viva (Cerebro), el juego suena cuidado y sin conexión (Músculo).",
+      "propios": [
+        "assets/sonido/",
+        "assets/musica/",
+        "tools/sonido.py",
+        "tools/sonido-fuentes.sh",
+        "tools/musica*",
+        "js/gfx/musica.js",
+        "test/musica.test.mjs",
+        "gobierno/juez-sonido.mjs",
+        "gobierno/maquetas/sonido*/"
+      ],
+      "taller": [],
+      "por_partitura": {
+        "_regla": "Archivos de sonido de otras áreas: el director escribe la partitura como pase y el área la monta.",
+        "batallas": [
+          "js/gfx/sonido.js"
+        ],
+        "cerebro": [
+          "js/gfx/sonido-ciudad.js"
+        ]
+      },
+      "juez": {
+        "logica": [
+          "gobierno/juez-sonido.mjs"
+        ],
+        "navegador": [],
+        "si_toca_arte": [
+          "gobierno/arte.mjs",
+          "gobierno/fichas.mjs"
+        ]
+      }
     }
   }
 }

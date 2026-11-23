@@ -10,6 +10,7 @@ sin tope de gasto para montarlo, pero midiendo. El código del juego no se ha to
 | **Cerebro** (ramas Ciudades y Política) | `ministerio-cerebro` | lógica 63 s; sin juez de navegador propio todavía | el de siempre |
 | **Músculo** (mapa, menús, manejo, fluidez) | `ministerio-musculo` | lógica 10 s; sin juez de navegador propio todavía | el de siempre |
 | **Taller de Arte** común | `arte` | `arte.mjs` y `fichas.mjs`, segundos | «AQVILA Batallas taller» |
+| **Taller de Sonido** (director de sonido, 23/11) | `sonido` (+ `sonido-efectos`, `sonido-musica`) | `juez-sonido.mjs`, 3 s | «AQVILA Batallas taller» (OpenGameArt abierto) |
 
 ## 1. Lo medido antes de cambiar nada
 Página entera: `estudios/MIN1-medicion.md`. Resumen:
@@ -111,6 +112,14 @@ con el sí del usuario y sacando otra. Ninguna sesión de área abre estudio, ma
 
 **R5 · Herramientas puestas, no reinstaladas.** Cada área con taller tiene su entorno en la nube con guion de
 instalación guardado en `gobierno/entornos/`. Si falta algo, se arregla el guion, no la sesión.
+
+## 4b. El Taller de Sonido (pedido del usuario, 23/11)
+Literal: «Quiero un director de sonido para todo el proyecto con sus habilidades». Como el taller de Arte: guarda las
+reglas, la mezcla, las licencias, el presupuesto de audio (`arte.json` → `sonido`, **provisional**) y los archivos de audio
+(`assets/sonido/`, `assets/musica/`, `tools/sonido*`, el futuro `js/gfx/musica.js`). Los dos archivos de código que ya suenan
+siguen con su área (`js/gfx/sonido.js` en Batallas, `js/gfx/sonido-ciudad.js` en Cerebro): el director les pasa la
+**partitura** y ellos la montan, para que ningún archivo tenga dos dueños. Juez: `node gobierno/juez-sonido.mjs` (también
+lo pasan Batallas y Cerebro si tocan arte). Aquí nada se oye: el juez mide y el usuario escucha en el móvil.
 
 ## 5. Lo que NO cambia
 `OBJETIVOS.md` y la lista de la 1.0; «una sesión, una tarea»; el plan socialista (presupuesto, constructor, verificador,

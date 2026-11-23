@@ -37,5 +37,38 @@
     "triangulosMax": 14000,
     "nota": "Decidido por el usuario el 17/11/2026 («Si subimos el tope incluso a 14000»): los 40 soldados más cercanos a la cámara pueden llegar a 14 000 triángulos; el resto sigue en triangulosPorUnidad. 40 × 14 000 = 560 000 de los 650 000 de triangulosDeCerca: medir fluidez en el móvil antes de dejarlo fijo (GM4b, GM44)."
   },
-  "notaDescarga": "Subido de 37 a 50 MB por el usuario el 17/11/2026 (respuesta al plan P167)."
+  "notaDescarga": "Subido de 37 a 50 MB por el usuario el 17/11/2026 (respuesta al plan P167).",
+  "sonido": {
+    "provisional": true,
+    "nota": "Taller de Sonido (usuario, 23/11: «un director de sonido para todo el proyecto»). Cifras propuestas por el director tras medir los 36 sonidos de GM43i (384 KB; medias de -12,6 a -25,4 dB). Provisional hasta que el usuario las apruebe; subir un tope lo decide él.",
+    "descargaKB": 4000,
+    "licencias": [
+      "CC0 1.0",
+      "CC BY 3.0",
+      "CC BY 4.0",
+      "OGA-BY 3.0",
+      "propio"
+    ],
+    "picoMaxDB": 0.0,
+    "mediaDB": [
+      -26,
+      -12
+    ],
+    "carpetas": {
+      "assets/sonido/": {
+        "uso": "efectos y voces cortas",
+        "archivoKB": 64,
+        "maxSeg": 10,
+        "canales": 1,
+        "hz": 32000
+      },
+      "assets/musica/": {
+        "uso": "banda sonora (aún no existe)",
+        "archivoKB": 900,
+        "maxSeg": 240,
+        "canales": 2,
+        "hz": 44100
+      }
+    }
+  }
 }
