@@ -138,13 +138,14 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
   - ❎ (sustituida por el carril CD el 23/11, «Sí, la sustituye») CI3b **La ciudad ×5 que cuenta** (L1; detrás de CE3): que las casas y la población de la urbe grande cuenten en la economía y la política.
   - **Carril CD — Ciudad nueva** (usuario, 23/11: sustituye a la cola de ciudad; orden «1-2 → 3 → 4 → 5»; área Cerebro, rama Ciudades. Precios: los pone CD0). Detrás quedan CE4, CE5, CE10, CE11 y CE12.
   - ✅ CD0 **La ciudad nueva en maqueta, hablada con el usuario** (23/11; parte `partes/2026-11-23-CD0.md`; página `estudios/CD0-ciudad-nueva.md`; ficha `estudios/REF-ciudad-iberus.md`; capturas `capturas-tarea/CD0-*`; ≈1,4 M). Siete familias (5 + Puerto + Viviendas; parques y jardines en Principales), 8 ministros con Culto y fiestas, más arquitecto y gobernador; cada ministro lidera un bando; plan «Obras + prioridad»; si el Senado lo rechaza, cambias y votas otra vez.
-  - ⬜ CD1 **Vista desde arriba y «Construir» por familias** (≈1,0 M; de paso; tras la subida del «Plano» de CV4a).
+  - ⬜ CD0b **Concurso de arte de la vista desde arriba** (usuario, 23/11: «Ahora, antes de CD1»; ≈1,2 M; solo maqueta): 3 o 4 estilos en maqueta a 390 px, con las skills `arte` e `historia`; elige el usuario.
+  - ⬜ CD1 **Vista desde arriba y «Construir» por familias** (≈1,0 M; de paso; tras el ganador de CD0b y la subida del «Plano» de CV4a).
   - ⬜ CD2a **Calles con el dedo y el arquitecto** (≈0,9 M).
   - ⬜ CD2b **Las casas de la urbe grande cuentan** (≈0,6 M; de paso; migrar en `G.load`; bot de campaña).
   - ⬜ CD3a **Ministros y encargos (reglas)**, tope del Foro en todas las vías, tropas con hierro y paga (≈1,0 M; de paso; bot de campaña).
   - ⬜ CD3b **Pantalla «Tus ministros»** (≈0,7 M). Después va MN3 (gobernador).
   - ⬜ CD4 **Plan del Senado a 4–8 estaciones** (≈1,0 M; de paso; bot de campaña).
-  - ⬜ CD5a **Necesidades por barrio y clase (reglas)** (≈0,7 M; de paso; bot de campaña).
+  - ⬜ CD5a **Necesidades por barrio y clase (reglas)**: 8 necesidades (alimentación, agua, limpieza, salud, trabajo, cultura, culto y ocio, orden); el barrio sube de nivel al cubrirlas (≈0,7 M; de paso; bot de campaña).
   - ⬜ CD5b **Capa «Necesidades» y consecuencias a la vista** (≈0,7 M).
   - ⬜ CD6 **Embellecer** (≈1,0 M; pase a Arte: cuartel y grúa).
   - ✅ L4 y L7 ya no esperan PO1: su plan es CE6 a CE10 (CE1, 18/11). Maquetas EV8, EV7 y EV4a archivadas sin borrar; P166 y P176 cerradas; el plan del año, detrás de la 1.0.
