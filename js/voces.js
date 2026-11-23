@@ -1,6 +1,6 @@
 /* AQVILA — SON1-b: las voces de los soldados (lógica pura, también en Node; no toca la pantalla ni el audio).
    Cada frase: { id, ev (situación), quien (centurion | optio | soldado | enemigo), lat (lo que se dice), es (traducción; vacía en el enemigo,
-   donde lat es una descripción entre paréntesis de lo que se oye), grupo (sonido del banco que la acompaña), peso, fuente | licencia: 'juego' }.
+   donde lat es una descripción entre paréntesis de lo que se oye), grupo (sonido del banco que la acompaña), peso, pron (SON2: pronunciación para la voz grabada de assets/voces/<id>.mp3), fuente | licencia: 'juego' }.
    Voces.elige(situacion, estado, rng) devuelve una frase o null: no repite la última ni las recientes de esa situación, guarda una pausa
    mínima entre frases (más corta cuanto más tensión) y habla más a menudo cuanto más tensión.
    Dictamen histórico: gobierno/historia/SON1-voces.md. Lo atestiguado lleva su fuente; lo demás va marcado licencia: 'juego'. */
@@ -14,121 +14,122 @@
   /* estas se dicen siempre (con solo 1,2 s de pausa): cambian la batalla */
   const URGENTES = ['victoria', 'derrota', 'elefantes', 'roto-propio', 'roto-enemigo', 'flanco'];
 
-  /* [situación, quién, latín o descripción, traducción, grupo, peso, fuente (o '' = licencia de juego)] */
+  /* [situación, quién, latín o descripción, traducción, grupo, peso, fuente (o '' = licencia de juego), pron (solo romanos: cómo se lee con voz española; c y g duras, v = b entre vocales, ae = ai)] */
   const T = [
     // ---- despliegue y espera: tensa, contenida
-    ['espera', 'centurion', 'Tenete ordines!', '¡Mantened las filas!', 'orden', 3, ''],
-    ['espera', 'centurion', 'Silentium in acie!', '¡Silencio en la formación!', 'orden', 2, ''],
-    ['espera', 'centurion', 'Signifer, statue signum! Hic manebimus optime!', '¡Portaestandarte, planta la enseña! ¡Aquí estaremos muy bien!', 'orden', 1, 'Livio 5.55.1 (frase de un centurión en 390 a.C., anterior a la época; probable)'],
-    ['espera', 'optio', 'Servate ordinem, milites.', 'Guardad vuestro puesto, soldados.', 'orden', 2, ''],
-    ['espera', 'optio', 'Scuta parata! Pila in manu!', '¡Escudos listos! ¡Los pila en la mano!', 'orden', 2, ''],
-    ['espera', 'soldado', 'Fortes fortuna adiuvat.', 'A los valientes los ayuda la fortuna.', 'esfuerzo', 2, 'Terencio, Formión 203 (161 a.C.; proverbio)'],
-    ['espera', 'soldado', 'Iuppiter, adiuva nos.', 'Júpiter, ayúdanos.', 'esfuerzo', 2, ''],
-    ['espera', 'soldado', 'Veniunt. Exspectemus.', 'Vienen. Esperemos.', 'esfuerzo', 2, ''],
-    ['espera', 'soldado', 'Mars pater, tecum sumus.', 'Padre Marte, estamos contigo.', 'esfuerzo', 1, ''],
+    ['espera', 'centurion', 'Tenete ordines!', '¡Mantened las filas!', 'orden', 3, '', '¡Tenéte órdines!'],
+    ['espera', 'centurion', 'Silentium in acie!', '¡Silencio en la formación!', 'orden', 2, '', '¡Siléntium in ákie!'],
+    ['espera', 'centurion', 'Signifer, statue signum! Hic manebimus optime!', '¡Portaestandarte, planta la enseña! ¡Aquí estaremos muy bien!', 'orden', 1, 'Livio 5.55.1 (frase de un centurión en 390 a.C., anterior a la época; probable)', '¡Sígnifer, státue sígnum! ¡Ik manébimus óptime!'],
+    ['espera', 'optio', 'Servate ordinem, milites.', 'Guardad vuestro puesto, soldados.', 'orden', 2, '', 'Serbáte órdinem, mílites.'],
+    ['espera', 'optio', 'Scuta parata! Pila in manu!', '¡Escudos listos! ¡Los pila en la mano!', 'orden', 2, '', '¡Skúta paráta! ¡Píla in mánu!'],
+    ['espera', 'soldado', 'Fortes fortuna adiuvat.', 'A los valientes los ayuda la fortuna.', 'esfuerzo', 2, 'Terencio, Formión 203 (161 a.C.; proverbio)', 'Fórtes fortúna adiúbat.'],
+    ['espera', 'soldado', 'Iuppiter, adiuva nos.', 'Júpiter, ayúdanos.', 'esfuerzo', 2, '', 'Yúpiter, adiúba nos.'],
+    ['espera', 'soldado', 'Veniunt. Exspectemus.', 'Vienen. Esperemos.', 'esfuerzo', 2, '', 'Uéniunt. Ekspektémus.'],
+    ['espera', 'soldado', 'Mars pater, tecum sumus.', 'Padre Marte, estamos contigo.', 'esfuerzo', 1, '', 'Mars páter, tékum súmus.'],
     ['espera', 'enemigo', '(Al otro lado suenan cuernos y gritos que no entiendes)', '', 'canto', 2, 'Polibio, Historias 2.29 (cuernos y trompas galos; probable)'],
     ['espera', 'enemigo', '(Un canto grave y un golpeteo de armas en la otra línea)', '', 'canto', 2, ''],
     // ---- primeras jabalinas y pila
-    ['pila', 'centurion', 'Pila! Mittite!', '¡Los pila! ¡Lanzad!', 'orden', 3, ''],
-    ['pila', 'optio', 'Scuta alte!', '¡Escudos en alto!', 'orden', 3, ''],
-    ['pila', 'soldado', 'Cavete pila!', '¡Cuidado con las jabalinas!', 'grito', 2, ''],
-    ['pila', 'soldado', 'Sub scuta!', '¡Bajo el escudo!', 'grito', 2, ''],
-    ['pila', 'soldado', 'Iaculate! Iaculate!', '¡Tirad! ¡Tirad!', 'grito', 2, ''],
+    ['pila', 'centurion', 'Pila! Mittite!', '¡Los pila! ¡Lanzad!', 'orden', 3, '', '¡Píla! ¡Mítite!'],
+    ['pila', 'optio', 'Scuta alte!', '¡Escudos en alto!', 'orden', 3, '', '¡Skúta álte!'],
+    ['pila', 'soldado', 'Cavete pila!', '¡Cuidado con las jabalinas!', 'grito', 2, '', '¡Kabéte píla!'],
+    ['pila', 'soldado', 'Sub scuta!', '¡Bajo el escudo!', 'grito', 2, '', '¡Sub skúta!'],
+    ['pila', 'soldado', 'Iaculate! Iaculate!', '¡Tirad! ¡Tirad!', 'grito', 2, '', '¡Yakuláte! ¡Yakuláte!'],
     ['pila', 'enemigo', '(Una lluvia de dardos silba desde su línea)', '', 'grito', 2, ''],
     // ---- el choque
-    ['choque', 'centurion', 'Signa inferte!', '¡Adelante las enseñas!', 'orden', 3, 'Livio, passim («signa inferre»; probable)'],
-    ['choque', 'centurion', 'Iungite scuta!', '¡Juntad los escudos!', 'orden', 2, ''],
-    ['choque', 'optio', 'Ferite! Ferite!', '¡Golpead! ¡Golpead!', 'orden', 2, ''],
-    ['choque', 'soldado', 'Gladio! Gladio!', '¡Con la espada! ¡Con la espada!', 'esfuerzo', 2, ''],
-    ['choque', 'soldado', 'Pro Roma!', '¡Por Roma!', 'grito', 2, ''],
-    ['choque', 'soldado', 'Ad arma!', '¡A las armas!', 'grito', 1, 'Livio, passim («ad arma conclamatur»)'],
+    ['choque', 'centurion', 'Signa inferte!', '¡Adelante las enseñas!', 'orden', 3, 'Livio, passim («signa inferre»; probable)', '¡Sígna inférte!'],
+    ['choque', 'centurion', 'Iungite scuta!', '¡Juntad los escudos!', 'orden', 2, '', '¡Yúnguite skúta!'],
+    ['choque', 'optio', 'Ferite! Ferite!', '¡Golpead! ¡Golpead!', 'orden', 2, '', '¡Feríte! ¡Feríte!'],
+    ['choque', 'soldado', 'Gladio! Gladio!', '¡Con la espada! ¡Con la espada!', 'esfuerzo', 2, '', '¡Gládio! ¡Gládio!'],
+    ['choque', 'soldado', 'Pro Roma!', '¡Por Roma!', 'grito', 2, '', '¡Pro Róma!'],
+    ['choque', 'soldado', 'Ad arma!', '¡A las armas!', 'grito', 1, 'Livio, passim («ad arma conclamatur»)', '¡Ad árma!'],
     ['choque', 'enemigo', '(Rugidos y un golpeteo furioso de armas contra los escudos)', '', 'clamor', 3, ''],
     ['choque', 'enemigo', '(Un aullido largo recorre su línea)', '', 'clamor', 2, ''],
     // ---- empujar
-    ['empujar', 'centurion', 'Urgete! Urgete!', '¡Apretad! ¡Apretad!', 'orden', 3, ''],
-    ['empujar', 'centurion', 'Pro Roma! Impetum facite!', '¡Por Roma! ¡Cargad!', 'grito', 2, 'Livio y César, passim («impetum facere»; la frase es del juego)'],
-    ['empujar', 'optio', 'Premite, premite!', '¡Empujad, empujad!', 'orden', 2, ''],
-    ['empujar', 'soldado', 'Heia! Heia!', '¡Ea! ¡Ea!', 'esfuerzo', 2, 'Plauto (interjección atestiguada; probable)'],
-    ['empujar', 'soldado', 'Impellite!', '¡Empujad!', 'esfuerzo', 2, ''],
+    ['empujar', 'centurion', 'Urgete! Urgete!', '¡Apretad! ¡Apretad!', 'orden', 3, '', '¡Urguéte! ¡Urguéte!'],
+    ['empujar', 'centurion', 'Pro Roma! Impetum facite!', '¡Por Roma! ¡Cargad!', 'grito', 2, 'Livio y César, passim («impetum facere»; la frase es del juego)', '¡Pro Róma! ¡Ímpetum fákite!'],
+    ['empujar', 'optio', 'Premite, premite!', '¡Empujad, empujad!', 'orden', 2, '', '¡Prémite, prémite!'],
+    ['empujar', 'soldado', 'Heia! Heia!', '¡Ea! ¡Ea!', 'esfuerzo', 2, 'Plauto (interjección atestiguada; probable)', '¡Éya! ¡Éya!'],
+    ['empujar', 'soldado', 'Impellite!', '¡Empujad!', 'esfuerzo', 2, '', '¡Impelíte!'],
     // ---- aguantar
-    ['aguantar', 'centurion', 'State, milites!', '¡Firmes, soldados!', 'orden', 3, ''],
-    ['aguantar', 'optio', 'Scuta iuncta!', '¡Escudos juntos!', 'orden', 2, ''],
-    ['aguantar', 'soldado', 'Hic manebimus.', 'De aquí no nos movemos.', 'esfuerzo', 2, ''],
-    ['aguantar', 'soldado', 'Tenete! Tenete!', '¡Aguantad! ¡Aguantad!', 'esfuerzo', 2, ''],
+    ['aguantar', 'centurion', 'State, milites!', '¡Firmes, soldados!', 'orden', 3, '', '¡Státe, mílites!'],
+    ['aguantar', 'optio', 'Scuta iuncta!', '¡Escudos juntos!', 'orden', 2, '', '¡Skúta yúnkta!'],
+    ['aguantar', 'soldado', 'Hic manebimus.', 'De aquí no nos movemos.', 'esfuerzo', 2, '', 'Ik manébimus.'],
+    ['aguantar', 'soldado', 'Tenete! Tenete!', '¡Aguantad! ¡Aguantad!', 'esfuerzo', 2, '', '¡Tenéte! ¡Tenéte!'],
     // ---- carga enemiga
-    ['carga-enemiga', 'centurion', 'Excipite impetum!', '¡Recibid la carga!', 'orden', 3, ''],
-    ['carga-enemiga', 'optio', 'Hostes veniunt! Parati!', '¡Vienen! ¡Preparados!', 'orden', 3, ''],
-    ['carga-enemiga', 'soldado', 'Ecce, ruunt!', '¡Ahí vienen, se lanzan!', 'grito', 2, ''],
+    ['carga-enemiga', 'centurion', 'Excipite impetum!', '¡Recibid la carga!', 'orden', 3, '', '¡Ékskipite ímpetum!'],
+    ['carga-enemiga', 'optio', 'Hostes veniunt! Parati!', '¡Vienen! ¡Preparados!', 'orden', 3, '', '¡Óstes uéniunt! ¡Paráti!'],
+    ['carga-enemiga', 'soldado', 'Ecce, ruunt!', '¡Ahí vienen, se lanzan!', 'grito', 2, '', '¡Ékke, rúunt!'],
     ['carga-enemiga', 'enemigo', '(Se lanzan a la carga entre gritos y pisadas)', '', 'clamor', 3, ''],
     ['carga-enemiga', 'enemigo', '(Los galos aúllan y hacen sonar sus cuernos)', '', 'clamor', 2, 'Polibio, Historias 2.29 (los galos en Telamón, 225 a.C.)'],
     ['carga-enemiga', 'enemigo', '(Cada pueblo grita en su lengua; no se oye un solo grito)', '', 'clamor', 1, 'Polibio, Historias 15.12 y Livio 30.34 (Zama, 202 a.C.: los romanos a una sola voz, los cartagineses dispares)'],
     // ---- elefantes
-    ['elefantes', 'centurion', 'Intervalla aperite!', '¡Abrid los pasillos!', 'orden', 3, 'Táctica de Zama: Polibio 15.9 y Livio 30.33 (la frase es del juego)'],
-    ['elefantes', 'soldado', 'Boves Lucae!', '¡Bueyes de Lucania!', 'grito', 2, 'Plinio, Historia Natural 8.16 (así llamaron a los elefantes de Pirro en 280 a.C.)'],
-    ['elefantes', 'soldado', 'Elephanti! Cedite!', '¡Elefantes! ¡Apartaos!', 'grito', 2, ''],
-    ['elefantes', 'optio', 'Pila in bestias!', '¡Los pila contra las bestias!', 'orden', 2, ''],
+    ['elefantes', 'centurion', 'Intervalla aperite!', '¡Abrid los pasillos!', 'orden', 3, 'Táctica de Zama: Polibio 15.9 y Livio 30.33 (la frase es del juego)', '¡Interbála aperíte!'],
+    ['elefantes', 'soldado', 'Boves Lucae!', '¡Bueyes de Lucania!', 'grito', 2, 'Plinio, Historia Natural 8.16 (así llamaron a los elefantes de Pirro en 280 a.C.)', '¡Bóbes Lúkai!'],
+    ['elefantes', 'soldado', 'Elephanti! Cedite!', '¡Elefantes! ¡Apartaos!', 'grito', 2, '', '¡Elefánti! ¡Kédite!'],
+    ['elefantes', 'optio', 'Pila in bestias!', '¡Los pila contra las bestias!', 'orden', 2, '', '¡Píla in béstias!'],
     ['elefantes', 'enemigo', '(Un barrito ensordecedor hace temblar el suelo)', '', 'grito', 3, ''],
     ['elefantes', 'enemigo', '(Los cornacas azuzan a las bestias en una lengua extraña)', '', 'clamor', 1, ''],
     // ---- caballería (la nuestra y la del enemigo)
-    ['caballeria', 'optio', 'Equites! Equites in latere!', '¡Jinetes! ¡Jinetes al flanco!', 'orden', 3, ''],
-    ['caballeria', 'centurion', 'Equites, ite!', '¡Jinetes, adelante!', 'orden', 2, ''],
-    ['caballeria', 'soldado', 'Nostri equites veniunt!', '¡Llegan nuestros jinetes!', 'grito', 2, ''],
-    ['caballeria', 'soldado', 'Equites hostium!', '¡La caballería enemiga!', 'grito', 2, ''],
+    ['caballeria', 'optio', 'Equites! Equites in latere!', '¡Jinetes! ¡Jinetes al flanco!', 'orden', 3, '', '¡Ékuites! ¡Ékuites in látere!'],
+    ['caballeria', 'centurion', 'Equites, ite!', '¡Jinetes, adelante!', 'orden', 2, '', '¡Ékuites, íte!'],
+    ['caballeria', 'soldado', 'Nostri equites veniunt!', '¡Llegan nuestros jinetes!', 'grito', 2, '', '¡Nóstri ékuites uéniunt!'],
+    ['caballeria', 'soldado', 'Equites hostium!', '¡La caballería enemiga!', 'grito', 2, '', '¡Ékuites óstium!'],
     ['caballeria', 'enemigo', '(Jinetes sin silla ni brida gritan y revolotean por el flanco)', '', 'grito', 2, 'Livio 21.46 y 35.11 (los númidas montan sin brida; probable, pasaje por cotejar)'],
     // ---- flanco envuelto
-    ['flanco', 'soldado', 'Circumvenimur!', '¡Nos rodean!', 'grito', 3, 'Livio, passim («circumveniri»)'],
-    ['flanco', 'centurion', 'Latus tuemini!', '¡Cubrid el flanco!', 'orden', 3, ''],
-    ['flanco', 'optio', 'Conversi! Orbem facite!', '¡Volveos! ¡Formad el círculo!', 'orden', 2, ''],
-    ['flanco', 'soldado', 'A tergo! A tergo!', '¡Por la espalda!', 'grito', 2, ''],
+    ['flanco', 'soldado', 'Circumvenimur!', '¡Nos rodean!', 'grito', 3, 'Livio, passim («circumveniri»)', '¡Kirkumbenímur!'],
+    ['flanco', 'centurion', 'Latus tuemini!', '¡Cubrid el flanco!', 'orden', 3, '', '¡Látus tuémini!'],
+    ['flanco', 'optio', 'Conversi! Orbem facite!', '¡Volveos! ¡Formad el círculo!', 'orden', 2, '', '¡Konbérsi! ¡Órbem fákite!'],
+    ['flanco', 'soldado', 'A tergo! A tergo!', '¡Por la espalda!', 'grito', 2, '', '¡A térgo! ¡A térgo!'],
     // ---- cansancio
-    ['cansancio', 'optio', 'Durate, milites! Paulum adhuc!', '¡Resistid, soldados! ¡Un poco más!', 'orden', 3, ''],
-    ['cansancio', 'soldado', 'Lassus sum...', 'Estoy agotado...', 'quejido', 2, ''],
-    ['cansancio', 'soldado', 'Brachia mihi gravia sunt.', 'Los brazos me pesan.', 'quejido', 2, ''],
-    ['cansancio', 'soldado', 'Aquam! Aquam!', '¡Agua! ¡Agua!', 'quejido', 1, ''],
+    ['cansancio', 'optio', 'Durate, milites! Paulum adhuc!', '¡Resistid, soldados! ¡Un poco más!', 'orden', 3, '', '¡Duráte, mílites! ¡Páulum adúk!'],
+    ['cansancio', 'soldado', 'Lassus sum...', 'Estoy agotado...', 'quejido', 2, '', 'Lásus sum...'],
+    ['cansancio', 'soldado', 'Brachia mihi gravia sunt.', 'Los brazos me pesan.', 'quejido', 2, '', 'Brákia míi grábia sunt.'],
+    ['cansancio', 'soldado', 'Aquam! Aquam!', '¡Agua! ¡Agua!', 'quejido', 1, '', '¡Ákuam! ¡Ákuam!'],
     // ---- un cuerpo que flaquea
-    ['flaquea', 'soldado', 'Non possumus!', '¡No podemos más!', 'quejido', 3, ''],
-    ['flaquea', 'soldado', 'Cedimus!', '¡Cedemos!', 'quejido', 2, ''],
-    ['flaquea', 'centurion', 'Nolite cedere! Retro nemo!', '¡No cedáis! ¡Nadie atrás!', 'orden', 3, ''],
-    ['flaquea', 'centurion', 'Res ad triarios rediit!', '¡Hemos llegado a los triarios!', 'orden', 1, 'Livio 8.8.11 (proverbio sobre la última línea)'],
-    ['flaquea', 'optio', 'Ordines! Ordines servate!', '¡Las filas! ¡Guardad las filas!', 'orden', 2, ''],
+    ['flaquea', 'soldado', 'Non possumus!', '¡No podemos más!', 'quejido', 3, '', '¡Non pósumus!'],
+    ['flaquea', 'soldado', 'Cedimus!', '¡Cedemos!', 'quejido', 2, '', '¡Kédimus!'],
+    ['flaquea', 'centurion', 'Nolite cedere! Retro nemo!', '¡No cedáis! ¡Nadie atrás!', 'orden', 3, '', '¡Nolíte kédere! ¡Rétro némo!'],
+    ['flaquea', 'centurion', 'Res ad triarios rediit!', '¡Hemos llegado a los triarios!', 'orden', 1, 'Livio 8.8.11 (proverbio sobre la última línea)', '¡Res ad triários redíit!'],
+    ['flaquea', 'optio', 'Ordines! Ordines servate!', '¡Las filas! ¡Guardad las filas!', 'orden', 2, '', '¡Órdines! ¡Órdines serbáte!'],
     // ---- un cuerpo propio se rompe
-    ['roto-propio', 'soldado', 'Fugite! Fugite!', '¡Huid! ¡Huid!', 'panico', 3, ''],
-    ['roto-propio', 'soldado', 'Perdita res est!', '¡Todo está perdido!', 'panico', 2, ''],
-    ['roto-propio', 'soldado', 'Di immortales!', '¡Dioses inmortales!', 'panico', 2, 'Terencio (exclamación de la época; probable)'],
-    ['roto-propio', 'centurion', 'Subsistite! Subsistite!', '¡Deteneos! ¡Deteneos!', 'orden', 3, 'Livio, passim («subsistere»; probable)'],
+    ['roto-propio', 'soldado', 'Fugite! Fugite!', '¡Huid! ¡Huid!', 'panico', 3, '', '¡Fúguite! ¡Fúguite!'],
+    ['roto-propio', 'soldado', 'Perdita res est!', '¡Todo está perdido!', 'panico', 2, '', '¡Pérdita res est!'],
+    ['roto-propio', 'soldado', 'Di immortales!', '¡Dioses inmortales!', 'panico', 2, 'Terencio (exclamación de la época; probable)', '¡Di inmortáles!'],
+    ['roto-propio', 'centurion', 'Subsistite! Subsistite!', '¡Deteneos! ¡Deteneos!', 'orden', 3, 'Livio, passim («subsistere»; probable)', '¡Subsístite! ¡Subsístite!'],
     // ---- un cuerpo enemigo se rompe
-    ['roto-enemigo', 'soldado', 'Fugiunt! Fugiunt!', '¡Huyen! ¡Huyen!', 'grito', 3, 'Livio, passim'],
-    ['roto-enemigo', 'soldado', 'Terga dant!', '¡Dan la espalda!', 'grito', 2, 'Livio y César («terga dare»; probable)'],
-    ['roto-enemigo', 'centurion', 'Instate! Insequimini!', '¡Apretad! ¡Perseguidlos!', 'orden', 2, ''],
+    ['roto-enemigo', 'soldado', 'Fugiunt! Fugiunt!', '¡Huyen! ¡Huyen!', 'grito', 3, 'Livio, passim', '¡Fúguiunt! ¡Fúguiunt!'],
+    ['roto-enemigo', 'soldado', 'Terga dant!', '¡Dan la espalda!', 'grito', 2, 'Livio y César («terga dare»; probable)', '¡Térga dant!'],
+    ['roto-enemigo', 'centurion', 'Instate! Insequimini!', '¡Apretad! ¡Perseguidlos!', 'orden', 2, '', '¡Instáte! ¡Insekuímini!'],
     ['roto-enemigo', 'enemigo', '(Gritos de pánico y armas tiradas al suelo)', '', 'panico', 3, ''],
     // ---- el enemigo cede
-    ['enemigo-cede', 'soldado', 'Cedunt! Premite!', '¡Ceden! ¡Apretad!', 'aclamacion', 3, ''],
-    ['enemigo-cede', 'centurion', 'Nunc! Nunc! Urgete!', '¡Ahora! ¡Ahora! ¡Apretad!', 'orden', 3, ''],
-    ['enemigo-cede', 'optio', 'Ordines servate! Ne sequamini temere!', '¡Guardad las filas! ¡No persigáis sin orden!', 'orden', 2, ''],
+    ['enemigo-cede', 'soldado', 'Cedunt! Premite!', '¡Ceden! ¡Apretad!', 'aclamacion', 3, '', '¡Kédunt! ¡Prémite!'],
+    ['enemigo-cede', 'centurion', 'Nunc! Nunc! Urgete!', '¡Ahora! ¡Ahora! ¡Apretad!', 'orden', 3, '', '¡Nunk! ¡Nunk! ¡Urguéte!'],
+    ['enemigo-cede', 'optio', 'Ordines servate! Ne sequamini temere!', '¡Guardad las filas! ¡No persigáis sin orden!', 'orden', 2, '', '¡Órdines serbáte! ¡Ne sekuámini témere!'],
     ['enemigo-cede', 'enemigo', '(Su línea se agrieta entre gritos de aviso)', '', 'grito', 2, ''],
     // ---- relevo
-    ['relevo', 'centurion', 'Hastati, recedite! Principes, procedite!', '¡Hastati, retiraos! ¡Príncipes, adelante!', 'orden', 3, 'Livio 8.8 y Polibio 15.9 (el relevo de líneas; la frase es del juego)'],
-    ['relevo', 'optio', 'Acies secunda, procede!', '¡Segunda línea, adelante!', 'orden', 2, ''],
-    ['relevo', 'soldado', 'Succedimus vobis!', '¡Os relevamos!', 'grito', 2, ''],
-    ['relevo', 'soldado', 'Res ad triarios rediit!', '¡Hemos llegado a los triarios!', 'grito', 1, 'Livio 8.8.11 (proverbio)'],
+    ['relevo', 'centurion', 'Hastati, recedite! Principes, procedite!', '¡Hastati, retiraos! ¡Príncipes, adelante!', 'orden', 3, 'Livio 8.8 y Polibio 15.9 (el relevo de líneas; la frase es del juego)', '¡Astáti, rekédite! ¡Prínkipes, prokédite!'],
+    ['relevo', 'optio', 'Acies secunda, procede!', '¡Segunda línea, adelante!', 'orden', 2, '', '¡Ákies sekúnda, prokéde!'],
+    ['relevo', 'soldado', 'Succedimus vobis!', '¡Os relevamos!', 'grito', 2, '', '¡Sukédimus bóbis!'],
+    ['relevo', 'soldado', 'Res ad triarios rediit!', '¡Hemos llegado a los triarios!', 'grito', 1, 'Livio 8.8.11 (proverbio)', '¡Res ad triários redíit!'],
     // ---- victoria y derrota
-    ['victoria', 'centurion', 'Vicimus!', '¡Hemos vencido!', 'aclamacion', 3, ''],
-    ['victoria', 'soldado', 'Io triumphe!', '¡Viva el triunfo!', 'aclamacion', 3, 'Livio (libro 45) y Plutarco, Paulo Emilio (el grito del triunfo; probable)'],
-    ['victoria', 'soldado', 'Roma! Roma!', '¡Roma! ¡Roma!', 'aclamacion', 2, ''],
-    ['victoria', 'centurion', 'Gratias tibi, Mars pater!', 'Gracias, padre Marte.', 'aclamacion', 2, ''],
-    ['derrota', 'centurion', 'Recedite! Servate quos potestis!', '¡Retiraos! ¡Salvad a los que podáis!', 'orden', 3, ''],
-    ['derrota', 'soldado', 'Di, miseremini nostri!', '¡Dioses, apiadaos de nosotros!', 'quejido', 2, ''],
-    ['derrota', 'soldado', 'Perdidimus...', 'Hemos perdido...', 'quejido', 2, ''],
+    ['victoria', 'centurion', 'Vicimus!', '¡Hemos vencido!', 'aclamacion', 3, '', '¡Uíkimus!'],
+    ['victoria', 'soldado', 'Io triumphe!', '¡Viva el triunfo!', 'aclamacion', 3, 'Livio (libro 45) y Plutarco, Paulo Emilio (el grito del triunfo; probable)', '¡Yo triúnfe!'],
+    ['victoria', 'soldado', 'Roma! Roma!', '¡Roma! ¡Roma!', 'aclamacion', 2, '', '¡Róma! ¡Róma!'],
+    ['victoria', 'centurion', 'Gratias tibi, Mars pater!', 'Gracias, padre Marte.', 'aclamacion', 2, '', 'Grátias tíbi, Mars páter.'],
+    ['derrota', 'centurion', 'Recedite! Servate quos potestis!', '¡Retiraos! ¡Salvad a los que podáis!', 'orden', 3, '', '¡Rekédite! ¡Serbáte kuos potéstis!'],
+    ['derrota', 'soldado', 'Di, miseremini nostri!', '¡Dioses, apiadaos de nosotros!', 'quejido', 2, '', '¡Di, miserémini nóstri!'],
+    ['derrota', 'soldado', 'Perdidimus...', 'Hemos perdido...', 'quejido', 2, '', 'Perdídimus...'],
     ['derrota', 'enemigo', '(El enemigo aúlla de triunfo sobre el campo)', '', 'clamor', 3, ''],
     // ---- charla suelta en plena lucha (jadeos y ánimos entre golpes)
-    ['lucha', 'soldado', 'Sta! Sta!', '¡Aguanta! ¡Aguanta!', 'esfuerzo', 2, ''],
-    ['lucha', 'soldado', 'Frater, tege me!', '¡Hermano, cúbreme!', 'grito', 2, ''],
-    ['lucha', 'optio', 'Ne rumpite ordines!', '¡No rompáis las filas!', 'orden', 2, ''],
+    ['lucha', 'soldado', 'Sta! Sta!', '¡Aguanta! ¡Aguanta!', 'esfuerzo', 2, '', '¡Sta! ¡Sta!'],
+    ['lucha', 'soldado', 'Frater, tege me!', '¡Hermano, cúbreme!', 'grito', 2, '', '¡Fráter, tégue me!'],
+    ['lucha', 'optio', 'Ne rumpite ordines!', '¡No rompáis las filas!', 'orden', 2, '', '¡Ne rúmpite órdines!'],
     ['lucha', 'enemigo', '(Entre el estruendo se oyen voces que animan en otra lengua)', '', 'canto', 1, ''],
   ];
   const FRASES = T.map((f, k) => {
     const o = { id: f[0] + '-' + (k + 1), ev: f[0], quien: f[1], lat: f[2], es: f[3], grupo: f[4], peso: f[5] };
     if (f[6]) o.fuente = f[6]; else o.licencia = 'juego';
+    if (f[7]) o.pron = f[7];   /* SON2: el latín restituido escrito para la voz española (tools/voces.py lo lee y graba assets/voces/<id>.mp3) */
     return o;
   });
   const POR = {}; for (const f of FRASES) (POR[f.ev] = POR[f.ev] || []).push(f);
@@ -181,6 +182,18 @@
       default: return null;
     }
   }
+  /* SON2: gritos del enemigo cuando es griego (falange u hoplitas); grabados en assets/voces/griego<n>.mp3.
+     alalá (ἀλαλά / ἀλαλαί): grito de guerra; eleleú (ἐλελεῦ): su variante; peán (ἰὴ παιάν): canto antes de cargar. Dictamen en gobierno/historia/SON1-voces.md */
+  const GRIEGO = [
+    { id: 'griego1', lat: '(Los griegos lanzan su grito de guerra: «¡Alalá! ¡Alalá!»)', ev: ['carga-enemiga', 'choque'], fuente: 'Jenofonte, Anábasis 1.8.18 y Plutarco, Pirro 16 y Alejandro 33 («alalázein»); probable' },
+    { id: 'griego2', lat: '(Gritan «¡Eleleú! ¡Eleleú!» al lanzarse)', ev: ['carga-enemiga', 'choque'], fuente: 'Píndaro, fr. 78 y Aristófanes, Aves 364 («eleleú»); probable' },
+    { id: 'griego3', lat: '(Entonan el peán: «¡Yé, yé, paián!»)', ev: ['espera', 'carga-enemiga'], fuente: 'Tucídides 4.43 y Jenofonte, Anábasis 1.8.17 (el peán antes de cargar); probable' },
+  ];
+  /* si el rival es griego y esta frase del enemigo admite un grito suyo, devuelve uno (al azar); si no, null */
+  function griegoDe(f, esGriego, rng) {
+    if (!esGriego || !f || f.quien !== 'enemigo') return null;
+    const c = GRIEGO.filter(g => g.ev.includes(f.ev)); return c.length ? c[Math.floor((rng || Math.random)() * c.length)] : null;
+  }
   const rotulo = f => f ? NOMBRE[f.quien] + ': ' + f.lat + (f.es ? ' — ' + f.es : '') : '';
   /* el primer grupo del banco que exista (g, o su sustituto); null si ninguno. tiene(g) → bool */
   function grupoDisponible(g, tiene) {
@@ -189,7 +202,7 @@
     return null;
   }
 
-  const Voces = { FRASES, GRUPOS, SITUACIONES, URGENTES, NOMBRE, CAIDA, nuevo, elige, deEvento, rotulo, grupoDisponible, pausaMin };
+  const Voces = { GRIEGO, griegoDe, FRASES, GRUPOS, SITUACIONES, URGENTES, NOMBRE, CAIDA, nuevo, elige, deEvento, rotulo, grupoDisponible, pausaMin };
   raiz.Voces = Voces;
   if (typeof module !== 'undefined' && module.exports) module.exports = Voces;
 })(typeof window !== 'undefined' ? window : globalThis);

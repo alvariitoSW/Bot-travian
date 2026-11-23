@@ -20,6 +20,32 @@ ok(F.filter(f => f.grupo === 'canto').every(f => f.quien === 'enemigo'), '«cant
 ok(F.filter(f => f.grupo === 'panico').every(f => f.ev === 'roto-propio' || f.ev === 'roto-enemigo'), '«panico» solo cuando un cuerpo se rompe');
 ok(F.filter(f => f.grupo === 'aclamacion').every(f => f.ev === 'victoria' || f.ev === 'enemigo-cede'), '«aclamacion» solo en victoria o enemigo que cede');
 ok(F.filter(f => f.grupo === 'orden').every(f => f.quien === 'centurion' || f.quien === 'optio'), '«orden» solo del centurión u optio');
+// SON2: voz hablada. Cada frase romana trae su pronunciación y su mp3; los gritos griegos también
+import { existsSync, statSync } from 'node:fs';
+const RAIZ = new URL('..', import.meta.url).pathname, rom = F.filter(f => f.quien !== 'enemigo');
+ok(rom.every(f => typeof f.pron === 'string' && f.pron.length > 2), `las ${rom.length} frases romanas traen «pron» (latín restituido para voz española)`);
+ok(F.filter(f => f.quien === 'enemigo').every(f => !f.pron), 'el enemigo no lleva «pron» (sin idiomas inventados)');
+ok(!rom.some(f => /[vVjJ]|ae|oe|ph|ch|qu(?![aeio])|ñ|ll/.test(f.pron.replace(/Boues/, ''))), 'pron: sin v, j, ae, oe, ph, ch ni ll (se escribe como suena)');
+ok(!rom.some(f => /c[eiéí]|g[eiéí]/i.test(f.pron.replace(/gu[eiéí]/gi, 'gx'))), 'pron: c y g siempre duras (qu/gu ante e, i)');
+ok(rom.every(f => existsSync(RAIZ + 'assets/voces/' + f.id + '.mp3') && statSync(RAIZ + 'assets/voces/' + f.id + '.mp3').size > 2000), 'cada frase romana tiene su mp3 en assets/voces/');
+ok(V.GRIEGO.length === 3 && V.GRIEGO.every(g => existsSync(RAIZ + 'assets/voces/' + g.id + '.mp3') && g.fuente && g.lat), 'los 3 gritos griegos (alalá, eleleú, peán) tienen mp3, texto y fuente');
+const fe = F.find(f => f.quien === 'enemigo' && f.ev === 'carga-enemiga');
+ok(V.griegoDe(fe, false) === null && V.griegoDe(fe, true) !== null && V.griegoDe(F.find(f => f.quien === 'soldado'), true) === null, 'el grito griego solo suena si el rival es griego y habla el enemigo');
+ok(V.griegoDe(F.find(f => f.quien === 'enemigo' && f.ev === 'elefantes'), true) === null, '…y no en situaciones sin grito griego (elefantes)');
+// la voz no se pisa: Sonido.voz con un contexto falso
+const S = createRequire(import.meta.url)('../js/gfx/sonido.js');
+ok(S.voz('inexistente') === false, 'Sonido.voz devuelve false si la voz no está cargada');
+{
+  let t = 0; const nodo = () => ({ connect() {}, disconnect() {}, gain: { value: 1 }, start() {}, pan: { value: 0 } });
+  S.ctx = { get currentTime() { return t; }, state: 'running', createBufferSource: () => nodo(), createGain: nodo, createStereoPanner: nodo }; S.maestro = nodo(); S.activo = true;
+  S.vbuf = { a: { duration: 2 }, b: { duration: 1 } }; S.vozHasta = 0;
+  ok(S.voz('a', { retraso: 0.1 }) === true && S.hablando(), 'suena una frase y se sabe que alguien habla');
+  ok(S.voz('b', { retraso: 0.1, espera: 0.4 }) === 'ocupado', 'si alguien habla y no hay hueco, la siguiente se salta');
+  ok(S.voz('b', { retraso: 0.1, espera: 3 }) === true, 'con espera suficiente, la siguiente aguarda su turno');
+  ok(S.vozHasta > 3, 'el turno queda detrás de las dos frases');
+  t = 100; ok(!S.hablando() && S.voz('b', {}) === true, 'cuando acaba, vuelve a poder hablar otra');
+  S.ctx = null; S.maestro = null; S.vbuf = {};
+}
 // sin repetir la última, con pausa mínima
 const e = V.nuevo(), rng = semilla(42); let t = 0, dichas = [], intentos = 0;
 for (let k = 0; k < 600; k++) { t += 1; e.t = t; e.tension = 0.5; intentos++; const f = V.elige('choque', e, rng); if (f) dichas.push({ f, t }); }

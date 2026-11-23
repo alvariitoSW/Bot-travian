@@ -92,10 +92,7 @@ BUCLES = [
 
 # SON1-a: voces nuevas. (nombre, archivo, desde, hasta, pico dB, fundido de entrada, fundido de salida)
 VOCES = [
-    ('orden1', 'fs623449.mp3', 0.45, 1.40, -2, 0.01, 0.12),   # guerrero que grita una orden seca (WelvynZPorter)
-    ('orden2', 'fs623449.mp3', 2.30, 3.20, -2, 0.01, 0.12),
-    ('orden3', 'fs396230.mp3', 0.45, 1.40, -2, 0.01, 0.15),   # grito de guerra con eco (zatar)
-    ('orden4', 'fs661242.mp3', 0.00, 1.05, -2, 0.01, 0.10),   # grito gutural sin palabra (DeqstersLab)
+    ('orden1', 'fs661242.mp3', 0.00, 1.05, -2, 0.01, 0.10),   # grito gutural sin palabra (DeqstersLab). SON2: quitadas las otras tres (podían llevar palabras no permitidas)
     ('aclamacion1', 'fs264377.mp3', 3.0, 6.2, -3, 0.25, 0.7),  # veinte voces vitorean (HowardV)
     ('aclamacion2', 'fs264377.mp3', 14.0, 17.5, -3, 0.25, 0.8),
     ('panico1', 'fs325548.mp3', 1.0, 2.9, -2, 0.01, 0.2),     # hombre que grita de dolor y miedo (Archeos)

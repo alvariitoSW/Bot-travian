@@ -62,6 +62,13 @@
         "canales": 1,
         "hz": 32000
       },
+      "assets/voces/": {
+        "uso": "frases habladas",
+        "archivoKB": 40,
+        "maxSeg": 6,
+        "canales": 1,
+        "hz": 32000
+      },
       "assets/musica/": {
         "uso": "banda sonora (aún no existe)",
         "archivoKB": 2500,

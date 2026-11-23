@@ -725,9 +725,19 @@
     function dice(f, sect) {
       if (!f) return; const d = $('dialogo'), So = root.Sonido;
       d.className = 've ' + f.quien; d.children[0].textContent = root.Voces.NOMBRE[f.quien] + ':'; d.children[1].textContent = f.lat; d.children[2].textContent = f.es ? '— ' + f.es : ''; dialogoHasta = performance.now() + 3200;
-      if (!So || !So.muestra) return; let gr = f.grupo; if (gr === 'canto' && !(B.n0[1] && B.n0[1].galos)) gr = 'clamor';   /* el cántico es celta: solo los galos */
+      if (!So || !So.muestra) return;
+      /* SON2: la frase dicha en voz alta (assets/voces); si el enemigo es griego, su grito en griego antiguo. Si no está cargada, suena el grito del banco como antes */
+      const esGr = !!(B.n0[1] && (B.n0[1].falange > 0 || B.n0[1].hoplitas > 0)), gg = root.Voces.griegoDe(f, esGr), idv = gg ? gg.id : f.quien === 'enemigo' ? '' : f.id;
+      if (idv && So.vbuf && So.vbuf[idv]) {
+        if (gg) d.children[1].textContent = gg.lat;
+        const urg = root.Voces.URGENTES.includes(f.ev), sc = sect >= 0 ? (sect - 1) * 0.5 : 0;
+        if (f.quien === 'centurion' && root.Musica) root.Musica.agacha();
+        So.voz(idv, { v: f.quien === 'centurion' ? 0.95 : f.quien === 'optio' ? 0.85 : f.quien === 'enemigo' ? 0.6 : 0.75, pan: sc, retraso: 0.1, espera: urg ? 2.5 : 0.4 });   /* si alguien habla, espera un momento o se salta: no se pisan */
+        return;
+      }
+      let gr = f.grupo; if (gr === 'canto' && !(B.n0[1] && B.n0[1].galos)) gr = 'clamor';   /* el cántico es celta: solo los galos */
       const g = root.Voces.grupoDisponible(gr, So.tiene), pan = sect >= 0 ? (sect - 1) * 0.5 : 0;
-      if (g) { if (f.grupo === 'orden' && root.Musica) root.Musica.agacha(); So.muestra(g, { v: g === 'panico' ? 0.5 : f.quien === 'centurion' ? 0.85 : f.quien === 'enemigo' ? 0.55 : 0.65, pan: g === 'panico' ? (pan || (Math.random() < 0.5 ? -0.7 : 0.7)) : pan, i: g === 'orden' && So.buf.orden && So.buf.orden[2] ? 3 + (Math.random() < 0.5 ? 1 : 0) : 0, vel: f.quien === 'enemigo' ? 0.88 + 0.08 * Math.random() : f.quien === 'centurion' ? 0.95 : 1 + 0.1 * Math.random(), retraso: 0.12 }); }
+      if (g) { if (f.grupo === 'orden' && root.Musica) root.Musica.agacha(); So.muestra(g, { v: g === 'panico' ? 0.5 : f.quien === 'centurion' ? 0.85 : f.quien === 'enemigo' ? 0.55 : 0.65, pan: g === 'panico' ? (pan || (Math.random() < 0.5 ? -0.7 : 0.7)) : pan, vel: f.quien === 'enemigo' ? 0.88 + 0.08 * Math.random() : f.quien === 'centurion' ? 0.95 : 1 + 0.1 * Math.random(), retraso: 0.12 }); }
     }
     function habla(e) { if (!vz) return; const sit = root.Voces.deEvento(e); if (sit) dice(root.Voces.elige(sit, vz, Math.random), e.sect); }
     function resumenMusica() {
@@ -827,6 +837,7 @@
         campo(); const retomada = cfg.estado.fase === 'fin' || cfg.estado.t > 0; retardo0 = retomada; montar(cfg.estado, retomada); moverCamara(0, true);
         lista = true; $('carga').hidden = true; $('mando').hidden = false;
         if (root.Musica && B.fase !== 'fin') root.Musica.iniciar({ semilla: B.sem });   /* SON1-b: la banda sonora, con fundido de entrada */
+        if (root.Sonido && root.Sonido.cargaVoces && root.Voces) { root.Sonido.contexto(); root.Sonido.cargaVoces(root.Voces.FRASES.filter(f => f.pron).map(f => f.id).concat(root.Voces.GRIEGO.map(g => g.id))); }   /* SON2: las frases habladas, sin esperar */
         if (B.fase === 'fin') fin(); else { cinta(retomada ? 'La batalla sigue donde la dejaste' : 'Se acercan. Si te tiran, pulsa «Escudos»'); cintaHasta = performance.now() + 6000; }
       } catch (e) { console.error(e); $('carga-p').textContent = 'No se ha podido cargar la batalla.'; $('carga-s').hidden = false; }
     }

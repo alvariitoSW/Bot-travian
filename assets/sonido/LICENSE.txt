@@ -1,7 +1,8 @@
 Sonido grabado de AQVILA (assets/sonido)
 
-Los 48 sonidos son CC0 1.0 (dominio público, https://creativecommons.org/publicdomain/zero/1.0/).
-No obligan a citar, pero se cita a cada autor por gratitud. Licencia comprobada en la página de cada fuente el 20/11/2026 (los 12 de voces SON1-a, el 23/11/2026: todos CC0 1.0, ninguno CC BY).
+Los 45 sonidos son CC0 1.0 (dominio público, https://creativecommons.org/publicdomain/zero/1.0/).
+No obligan a citar, pero se cita a cada autor por gratitud. Licencia comprobada en la página de cada fuente el 20/11/2026 (los 9 de voces SON1-a, el 23/11/2026: todos CC0 1.0, ninguno CC BY).
+SON2 (23/11/2026): se quitaron orden1-3 (posible inglés y «grito élfico»; regla del usuario: solo español, griego antiguo o latín); la antigua orden4 es ahora orden1. Las frases habladas están en assets/voces/.
 AQVILA los cortó, igualó y comprimió (mp3 mono a 32 kHz) con tools/sonido.py; las fuentes se bajan con tools/sonido-fuentes.sh.
 
 archivo        autor                 fuente
@@ -41,10 +42,7 @@ cuerno2.mp3    DeVern                Freesound 512490 — https://freesound.org/
 lucha1.mp3     DeadVDI               Freesound 376646 — https://freesound.org/s/376646/
 lucha2.mp3     mario1298             Freesound 177084 — https://freesound.org/s/177084/
 viento1.mp3    Globofonia            Freesound 553733 — https://freesound.org/s/553733/
-orden1.mp3     WelvynZPorterSamples  Freesound 623449 — https://freesound.org/s/623449/
-orden2.mp3     WelvynZPorterSamples  Freesound 623449 — https://freesound.org/s/623449/
-orden3.mp3     zatar                 Freesound 396230 — https://freesound.org/s/396230/
-orden4.mp3     DeqstersLab           Freesound 661242 — https://freesound.org/s/661242/
+orden1.mp3     DeqstersLab           Freesound 661242 — https://freesound.org/s/661242/
 aclamacion1.mp3 HowardV               Freesound 264377 — https://freesound.org/s/264377/
 aclamacion2.mp3 HowardV               Freesound 264377 — https://freesound.org/s/264377/
 panico1.mp3    Archeos               Freesound 325548 — https://freesound.org/s/325548/
