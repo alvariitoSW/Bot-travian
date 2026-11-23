@@ -16,4 +16,9 @@ for p in 588/588278_6461270 511/511023_1484610 803/803168_17274093 57/57204_6028
          177/177084_499617 553/553733_4905159; do
   id=$(basename "$p" | cut -d_ -f1); curl -sfL --retry 3 --max-time 180 -o "fs$id.mp3" "$FS/$p-hq.mp3"
 done
+# SON1-a: voces nuevas (órdenes, aclamación, pánico, canto, quejidos). Freesound; todas CC0 1.0 salvo que la ficha diga otra cosa
+for p in 623/623449_13749321 396/396230_5338586 264/264377_1654262 491/491405_9616576 588/588578_11109094 \
+         556/556006_12424405 325/325548_2826150 477/477756_1192746 661/661242_189858; do
+  id=$(basename "$p" | cut -d_ -f1); curl -sfL --retry 3 --max-time 180 -o "fs$id.mp3" "$FS/$p-hq.mp3" || echo "no se pudo bajar fs$id"
+done
 echo "fuentes en $D"

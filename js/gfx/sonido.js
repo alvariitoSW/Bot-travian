@@ -69,7 +69,7 @@
   };
   /* ---------- GM43i: sonido grabado ----------
      BANCO: grupo → cuántas variantes hay (assets/sonido/<grupo><n>.mp3). Una variante al azar cada vez, sin repetir la última. */
-  const BANCO = { madera: 4, hierro: 4, escudo: 4, paso: 4, vuelo: 3, esfuerzo: 4, herido: 2, coro: 1, grito: 3, clamor: 2, cuerno: 2, lucha: 2, viento: 1 };
+  const BANCO = { madera: 4, hierro: 4, escudo: 4, paso: 4, vuelo: 3, esfuerzo: 4, herido: 2, coro: 1, grito: 3, clamor: 2, cuerno: 2, lucha: 2, viento: 1, orden: 4, aclamacion: 2, panico: 2, canto: 2, quejido: 2 };
   S.BANCO = BANCO;
   S.archivos = () => Object.entries(BANCO).flatMap(([g, n]) => Array.from({ length: n }, (_, i) => 'assets/sonido/' + g + (i + 1) + '.mp3'));
   S.buf = {}; S.ultima = {}; S.muestras = 0; S.fondos = {}; S.banco = null;
