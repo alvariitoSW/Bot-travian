@@ -12,7 +12,8 @@ Origen y licencias:
 Qué cambia frente al hastatus:
  - Sin piezas de equipo: el atlas lleva el cuerpo (u <= 0,86) y las manos de MakeHuman en la franja derecha (fino y lejos);
    en muylejos y fondo el cuerpo ocupa el atlas entero.
- - Sin máscara de tinte: el rojo de la cresta, la capa y la túnica es el del centurión en cualquier bando (lo distingue).
+ - Tinte de bando solo en la túnica (faldón y brazaletes; decisión del usuario, 23/11): la capa y la cresta siguen rojas en
+   cualquier bando (lo distinguen).
  - Cresta y capa más vivas en lejos, muylejos y fondo: el rojo se satura y aclara para que se lean a distancia.
  - Relieve enderezado: los texeles con la normal hacia dentro (horneado que tocó el forro de la capa) se llevan a plano.
  - Texturas más pequeñas (cuida el peso: ver SALIDA).
@@ -55,8 +56,8 @@ def empaquetar_franja(pz, lado, U0):
 #        nivel      sufijo       lod    muy    fondo  lado  tope (triángulos), manos (objetivo MakeHuman)
 NIVEL = {'fino': ('', False, False, False, 2048, 6000, 700), 'lejos': ('_lejos', True, False, False, 1024, 2200, 200),
          'muylejos': ('_muylejos', True, True, False, 512, 800, 0), 'fondo': ('_fondo', True, True, True, 512, 380, 0)}
-SALIDA = {'fino': dict(color=(1024, 72), normal=(512, 66), orm=(256, 66)), 'lejos': dict(color=(512, 72), normal=(256, 62), orm=(128, 66)),   # sin máscara
-          'muylejos': dict(color=(256, 80), normal=(128, 70), orm=(128, 70)), 'fondo': dict(color=(256, 78), normal=(128, 70), orm=(128, 70))}
+SALIDA = {'fino': dict(color=(1024, 72), normal=(512, 66), orm=(256, 66), masc=(512, 85)), 'lejos': dict(color=(512, 72), normal=(256, 62), orm=(128, 66), masc=(256, 85)),
+          'muylejos': dict(color=(256, 80), normal=(128, 70), orm=(128, 70), masc=(128, 85)), 'fondo': dict(color=(256, 78), normal=(128, 70), orm=(128, 70), masc=(128, 85))}
 VIVO = {'fino': 0.0, 'lejos': 0.5, 'muylejos': 1.0, 'fondo': 1.0}    # cuánto se avivan la cresta y la capa rojas
 TELA_ROMANA = np.array([0x8f, 0x2f, 0x22]) / 255               # TELAS[0] de js/gfx/soldado.js (la paleta romana)
 
@@ -77,10 +78,20 @@ def avivar_rojo(col, x0, f):
     viva = np.stack([np.clip(r * 1.30 + 0.06, 0, 1), g * 0.75, b * 0.75], -1); c[:] = c * (1 - k[..., None]) + viva * k[..., None]
     return float(k.mean())
 
-def tunica_a_gris(col, x0):
-    """Túnica roja de Meshy (u <= 0,75) -> gris con su sombreado + máscara de tela. El juego hace color·tela·2,2 (en lineal)."""
+def zona_tunica(Pm, Tm, UVm, lado):
+    """Dónde puede estar la túnica en el atlas: triángulos por debajo de la cintura (y < 1,02 m en reposo: faldón y
+    brazaletes) y no detrás del cuerpo (z > -0,045: así no entra la capa). La cresta y el pañuelo del cuello quedan fuera."""
+    from PIL import ImageDraw
+    c = Pm[Tm].mean(1); ok = (c[:, 1] < 1.02) & (Pm[Tm][..., 2].min(1) > -0.045)
+    im = Image.new('L', (lado, lado), 0); d = ImageDraw.Draw(im); uv = UVm * [1, -1] + [0, 1]
+    for t in Tm[ok]: d.polygon([tuple(q) for q in uv[t] * lado], fill=255)
+    return np.asarray(im, np.float32) / 255
+
+def tunica_a_gris(col, x0, zona):
+    """Túnica roja de Meshy (solo en «zona») -> gris con su sombreado + máscara de tela. El juego hace color·tela·2,2 (en lineal).
+    Decisión del usuario (23/11, «2B»): se tiñe la túnica con el color del bando; la capa y la cresta siguen rojas."""
     c = col[:, :x0]; r, g, b = c[..., 0], c[..., 1], c[..., 2]
-    k = np.clip((0.40 - g / np.maximum(r, 1e-3)) / 0.12, 0, 1) * np.clip((0.40 - b / np.maximum(r, 1e-3)) / 0.12, 0, 1) * np.clip((r - 0.09) / 0.08, 0, 1)
+    k = zona[:, :x0] * np.clip((0.40 - g / np.maximum(r, 1e-3)) / 0.12, 0, 1) * np.clip((0.40 - b / np.maximum(r, 1e-3)) / 0.12, 0, 1) * np.clip((r - 0.09) / 0.08, 0, 1)
     t = lin(TELA_ROMANA); cl = lin(c); gl = np.clip((cl @ t) / (t @ t) / 2.2, 0, 1)   # gris que, teñido de rojo romano, da el rojo de Meshy
     gris = srgb(gl)[..., None] * np.ones(3); c[:] = c * (1 - k[..., None]) + gris * k[..., None]
     m = np.zeros(col.shape[:2], np.float32); m[:, :x0] = k; return m
@@ -116,12 +127,14 @@ def soldado(nivel, m):
         hp = np.concatenate([p['uvpx'] for p in pieles]).astype(int).clip(0, lado - 1); act = cE[hp[:, 1], hp[:, 0]].mean(0); f = np.clip(ref / np.maximum(act, 1e-3), 0.3, 3)
         for p in pieles:
             x, y, w, h = p['rect']; sl = (slice(max(y - 4, 0), y + h + 4), slice(max(x - 4, x0), x + w + 4)); cE[sl] = np.clip(cE[sl] * f, 0, 1); mE[sl] = 0
-    viv = avivar_rojo(col_m, x0, VIVO[nivel]) if VIVO[nivel] else 0.0          # sin tinte de facción (sin máscara)
+    mt = np.zeros_like(col_m); mt[..., 0] = tunica_a_gris(col_m, x0, zona_tunica(Pm, Tm, UVm, lado))   # tinte de bando solo en la túnica
+    if pieles and mE is not None: mE[:] = 0                                      # manos sin tinte
+    viv = avivar_rojo(col_m, x0, VIVO[nivel]) if VIVO[nivel] else 0.0          # capa y cresta (la túnica ya es gris)
     nm = np.asarray(Image.open(os.path.join(ENT, 'normal_%s.png' % nivel)).convert('RGB'), np.float32) / 255
     nm, malos = enderezar_relieve(nm); nm[..., 1] = 1 - nm[..., 1]   # verde invertido, como el falangita
     om = np.asarray(Image.open(os.path.join(ENT, 'orm_%s.png' % nivel)).convert('RGB'), np.float32) / 255
     out = {}
-    for k, cuerpo, franja in (('color', col_m, cE), ('normal', nm, nE), ('orm', om, oE)):
+    for k, cuerpo, franja in (('color', col_m, cE), ('normal', nm, nE), ('orm', om, oE), ('masc', mt, mE)):
         im = cuerpo.copy()
         if franja is not None: im[:, x0:] = franja[:, x0:]
         img = Image.fromarray(np.clip(im * 255 + 0.5, 0, 255).astype(np.uint8))

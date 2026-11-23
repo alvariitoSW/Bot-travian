@@ -31,8 +31,8 @@ def leer(nombre):
     CACHE[nombre] = d = dict(j=j, P=P, UV=UV, SI=SI, SW=SW, SET=SET, T=T, A=A); return d
 
 MAT = {}
-def material(nombre, negro=False):
-    k = (nombre, negro)
+def material(nombre, negro=False, tela=None):
+    k = (nombre, negro, tela)
     if k in MAT: return MAT[k]
     mt = bpy.data.materials.new('%s%s' % nombre_k(k)); mt.use_nodes = True; nt = mt.node_tree; nt.nodes.clear(); L = nt.links; o = nt.nodes.new('ShaderNodeOutputMaterial')
     if negro:
@@ -41,6 +41,12 @@ def material(nombre, negro=False):
     def t(c, cs):
         n = nt.nodes.new('ShaderNodeTexImage'); n.image = bpy.data.images.load(os.path.join(SOL, tx[c])); n.image.colorspace_settings.name = cs; return n
     pb = nt.nodes.new('ShaderNodeBsdfPrincipled'); tc = t('color', 'sRGB'); L.new(tc.outputs[0], pb.inputs['Base Color'])
+    if tela and 'masc' in tx:                                   # tinte de bando como el juego: color · tela · 2,2 (lineal) donde la máscara R
+        c = np.asarray(Image.open(os.path.join(SOL, tx['color'])).convert('RGB'), np.float32) / 255; L_ = lambda v: np.where(v <= 0.04045, v / 12.92, ((v + 0.055) / 1.055) ** 2.4)
+        mk = np.asarray(Image.open(os.path.join(SOL, tx['masc'])).convert('RGB').resize(c.shape[1::-1]), np.float32)[..., :1] / 255
+        tl = L_(np.array([int(tela[i:i + 2], 16) for i in (1, 3, 5)]) / 255); cl = L_(c); cl = cl * (1 - mk) + cl * tl * 2.2 * mk
+        ruta = os.path.join(TMP, '%s_%s.png' % (nombre, tela[1:])); Image.fromarray((np.clip(np.where(cl <= 0.0031308, cl * 12.92, 1.055 * np.clip(cl, 0, None) ** (1 / 2.4) - 0.055), 0, 1) * 255).astype(np.uint8)).save(ruta)
+        tc.image = bpy.data.images.load(ruta); tc.image.colorspace_settings.name = 'sRGB'
     if 'orm' in tx:
         to = t('orm', 'Non-Color'); sp = nt.nodes.new('ShaderNodeSeparateColor'); L.new(to.outputs[0], sp.inputs[0]); L.new(sp.outputs[1], pb.inputs['Roughness']); L.new(sp.outputs[2], pb.inputs['Metallic'])
     if 'normal' in tx and ARG.get('normal', '1') == '1':
@@ -49,9 +55,9 @@ def material(nombre, negro=False):
         sv = nt.nodes.new('ShaderNodeSeparateColor'); iv = nt.nodes.new('ShaderNodeMath'); iv.operation = 'SUBTRACT'; iv.inputs[0].default_value = 1.0; cb = nt.nodes.new('ShaderNodeCombineColor')
         L.new(tn.outputs[0], sv.inputs[0]); L.new(sv.outputs[1], iv.inputs[1]); L.new(sv.outputs[0], cb.inputs[0]); L.new(iv.outputs[0], cb.inputs[1]); L.new(sv.outputs[2], cb.inputs[2]); L.new(cb.outputs[0], nm.inputs['Color']); L.new(nm.outputs[0], pb.inputs['Normal'])
     L.new(pb.outputs[0], o.inputs[0]); MAT[k] = mt; return mt
-def nombre_k(k): return (k[0], '_negro' if k[1] else '')
+def nombre_k(k): return (k[0], ('_negro' if k[1] else '') + (k[2] or ''))
 
-def figura(nombre, clip='quieto', x=0.0, z=0.0, giro=0.0, negro=False):
+def figura(nombre, clip='quieto', x=0.0, z=0.0, giro=0.0, negro=False, tela=None):
     d = leer(nombre); j = d['j']; c = j['clips'][clip]; M = d['A'][c['ini']]
     mu = j.get('muestra', {}).get(clip, [[0, 0]])[0][1]
     vis = (d['SET'] == 0) | ((mu >> np.maximum(d['SET'].astype(int) - 1, 0)) & 1).astype(bool)
@@ -61,7 +67,7 @@ def figura(nombre, clip='quieto', x=0.0, z=0.0, giro=0.0, negro=False):
     me = bpy.data.meshes.new(nombre); me.from_pydata(BL(Pp).tolist(), [], T.tolist()); me.update()
     uv = d['UV'][T.ravel()] * [1, -1] + [0, 1]; me.uv_layers.new(name='UVMap').data.foreach_set('uv', uv.astype(np.float32).ravel())
     for p in me.polygons: p.use_smooth = True
-    me.materials.append(material(nombre, negro)); ob = bpy.data.objects.new(nombre, me); sc.collection.objects.link(ob); return ob
+    me.materials.append(material(nombre, negro, tela)); ob = bpy.data.objects.new(nombre, me); sc.collection.objects.link(ob); return ob
 
 def limpiar():
     for o in list(sc.objects):
@@ -107,6 +113,12 @@ for i, az in enumerate((20, 160)):
     limpiar(); figura(QUIEN); p = foto(780, 844, (0, 0.98, 0), 3.4, az, 6, lente=60); img.paste(p, (0, 844 * i))
 etiqueta(img, 'Centurión · fino · de frente', 16, 14, 26); etiqueta(img, 'de espaldas', 16, 858, 26); img.save(os.path.join(FOTOS if ARG.get('normal', '1') == '1' else TMP, 'AL3-1-cerca-v.jpg'), quality=88)
 if ARG.get('solo') == '1': sys.exit(0)
+
+# ---- 4. tinte de bando: solo la túnica (decisión del usuario, 23/11)
+img = Image.new('RGB', (1688, 780))
+for i, (tela, txt) in enumerate((('#8f2f22', 'Bando romano'), ('#6a2c5a', 'Bando cartaginés'))):
+    limpiar(); figura(QUIEN, tela=tela); p = foto(844, 780, (0, 1.0, 0), 3.8, 25, 6, lente=55); img.paste(p, (844 * i, 0)); etiqueta(img, txt + ' · capa y cresta no cambian', 844 * i + 14, 12, 22)
+img.save(os.path.join(FOTOS, 'AL3-4-tinte-h.jpg'), quality=88)
 
 # ---- 2. vista del jugador: detrás y arriba
 sc.collection.objects.link(suelo)
