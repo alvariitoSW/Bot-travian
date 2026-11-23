@@ -4,7 +4,8 @@
 
    CONTRATO
    import { crearFisica } from './fisica-batalla.js';
-   const Fi = crearFisica({ H });         H(x, z) → altura del suelo (por defecto 0)
+   const Fi = crearFisica({ H, escala, parMin }); H(x, z) → altura del suelo (por defecto 0); escala de los radios (por defecto 1);
+                                          parMin(a, b): distancia mínima propia de una pareja (p. ej. dos que se baten), o undefined
      Fi.paso(S, dt)                       tras el paso de las reglas: separa cuerpos, aprieta filas y aplica los empujes de las picas
      Fi.pica(h, P, D, L)                  P contera y D dirección unitaria de la sarisa de h (arrays o {x,y,z}); L su largo.
                                           → { ret, h, en }: cuánto retirar el asta (m) y contra quién ('escudo' | 'cuerpo'); o { ret: 0 }
@@ -42,7 +43,7 @@ const xyz = v => Array.isArray(v) ? v : [v.x, v.y, v.z];
 const tipoF = h => h.tipo || 'falangita';
 
 export function crearFisica(op = {}) {
-  const H = op.H || (() => 0);
+  const H = op.H || (() => 0), ESC = op.escala || 1, parMin = op.parMin;   /* FI2: escala de los radios (1 en la falange) y, si se da, parMin(a, b) → distancia mínima propia de esa pareja (o undefined) */
   let rivales = [], empujes = new Map();
 
   /* cuerpos que cuentan: tus hombres vivos y no huidos, y los del rival vivos */
@@ -59,7 +60,7 @@ export function crearFisica(op = {}) {
     for (const h of S.ene) if (!h.vivo) L.push(h);
     return L;
   }
-  const rad = h => RADIO[tipoF(h)] ?? 0.25, radC = h => RADIO_CAIDO[tipoF(h)] ?? 0.35, masa = h => MASA[tipoF(h)] || 1;
+  const rad = h => (RADIO[tipoF(h)] ?? 0.25) * ESC, radC = h => (RADIO_CAIDO[tipoF(h)] ?? 0.35) * ESC, masa = h => MASA[tipoF(h)] || 1;
   /* dónde se dibuja un caído: donde cayó (h.x, h.z; la escena lo guarda en h.caido) más lo que lo han arrastrado (fx, fz) */
   const dondeC = h => [h.x + (h.fx || 0), h.z + (h.fz || 0)];
   const clave = (ix, iz) => ((ix + 32768) << 16) | ((iz + 32768) & 0xffff);
@@ -90,7 +91,7 @@ export function crearFisica(op = {}) {
         const c = G.get(clave(cx + dx, cz + dz)); if (!c) continue;
         for (const j of c) {
           if (j <= i) continue;
-          const b = L[j], min = ra + rad(b); let vx = (b.x + b.fx) - (a.x + a.fx), vz = (b.z + b.fz) - (a.z + a.fz), d = Math.hypot(vx, vz);
+          const b = L[j], pm = parMin ? parMin(a, b) : undefined, min = pm === undefined ? ra + rad(b) : Math.min(ra + rad(b), pm); let vx = (b.x + b.fx) - (a.x + a.fx), vz = (b.z + b.fz) - (a.z + a.fz), d = Math.hypot(vx, vz);
           if (d >= min) continue;
           if (d < 1e-6) { const g = (i * 2.399 + j) % 6.283; vx = Math.cos(g); vz = Math.sin(g); d = 0; } else { vx /= d; vz /= d; }
           const ib = 1 / M[j], wa = ia / (ia + ib), o = min - d;
