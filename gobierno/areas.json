@@ -289,7 +289,10 @@
         "tools/sonido-fuentes.sh",
         "tools/musica*",
         "js/gfx/musica.js",
+        "js/voces.js",
         "test/musica.test.mjs",
+        "test/voces.test.mjs",
+        "gobierno/historia/SON*",
         "gobierno/juez-sonido.mjs",
         "gobierno/maquetas/sonido*/"
       ],
