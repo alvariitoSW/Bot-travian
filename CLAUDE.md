@@ -41,7 +41,7 @@ Cómo se trabaja cada sesión: §7 (gobierno).
 | `tools/` | Conversión de arte de 0 A.D. (ver README) |
 
 ## 4. Cómo probar (obligatorio antes de dar algo por hecho)
-- **Un solo comando: `node gobierno/jueces.mjs`** (de 15 a 20 minutos en la nube, medido el 16/11; lánzalo en segundo plano con margen de 30). Pasa la lógica, recorre el juego en un navegador a
+- **Un solo comando: `node gobierno/jueces.mjs`** (≈59 minutos de mediana en la nube, medido del 18 al 20/11; lánzalo en segundo plano con margen de 90; solo lo pasa la sesión de subida, las demás usan el juez de su área). Pasa la lógica, recorre el juego en un navegador a
   390×844 y deja capturas e informe en `gobierno/capturas/`. Debe decir APTO. `--rapido` pasa solo la lógica.
 - `node test/sim.test.js` — batallas, campaña completa con un bot, economía.
 - A mano, para lo que el recorrido no cubre: servir con `python3 -m http.server` y conducir con Playwright a 390×844 (Chromium con
@@ -82,4 +82,9 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
   sirve tu tarea; si no sirve a ninguna, no se hace. Lo empezado se termina; nada entra sin sacar otra.
 - **Meta: la 1.0** (usuario, 17/11). Solo se trabaja en el Carril V del tablero, en orden. Nada nuevo entra; lo nuevo
   va a «Después de la 1.0» en la bitácora, o entra sacando otra. Sin concursos ni estudios hasta la 1.0.
+- **Ministerios por área** (usuario, 23/11: mapa «A» y reglas para todas las sesiones; `gobierno/MINISTERIOS.md`): Cerebro
+  (ramas Ciudades y Política), Corazón (Batallas), Músculo y taller de Arte. Cada sesión carga la guía de su área
+  (`ministerio-batallas`, `ministerio-cerebro`, `ministerio-musculo`, `arte`), toca solo sus archivos (`gobierno/areas.json`),
+  cierra con `node gobierno/juez-area.mjs <área>` y deja pases, ideas y preguntas en su parte. Tablero y bitácora: solo el
+  vigía. Jueces completos: una vez, en la sesión de subida. Gasto: sin tope fijo para los ministerios, pero medido.
 - **Cuadro de mando** (Artifact para el móvil del usuario): dirección en `gobierno/cuadro.json`; skill `cuadro-de-mando`.

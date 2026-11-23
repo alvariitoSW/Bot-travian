@@ -4,7 +4,7 @@
 estudio de cómo está el juego en eso, cuál es el objetivo final exacto, y qué habría que hacer para llevarlo a cabo de manera
 impresionantemente artística y perfecta». Sirve a **L11** y **L17**. No cambia el objetivo aprobado
 (`TP9-objetivo-lucha-a-pie.md`, que manda): lo mide contra el juego de hoy, lo vuelve exacto y afina el reparto.
-**Estado: BORRADOR.** Lo aprueba o corrige el usuario; hasta entonces no se construye nada.
+**Estado: APROBADO por el usuario el 23/11** (decisiones en §5). Solo lo cambia él.
 
 **En cuatro frases.** (1) La pantalla en blanco del pilum es **un fallo de código**, no el móvil: se arregla en una tarea
 pequeña. (2) La lucha «es pulsar botones» porque está hecha así: ocho botones, un golpe que bloquea 1,2 s y un anillo que
@@ -253,6 +253,14 @@ a 150 px, cada figura se reconoce**. Cada una tiene tres anclas de silueta: cabe
 | Dudar y huir | bucle | Miran a los lados, un paso atrás; luego vuelven la espalda | Hay «correr»; falta la duda |
 | Alzar el gladio y gritar (momento épico) | 20 | Brazo arriba, pecho abierto | Nuevo |
 | Falange: recoger y clavar · girar el muro · alzar y bajar el asta | 6 · 4 · 10 | Pasos cortos de lado al girar; las dos manos guían el asta | Parte en «movimientos de sarisa»; el giro, nuevo |
+**Cómo se fabrican (dato nuevo, 23/11)**: otra sesión («Ciudad generada por IA») probó con éxito rehacer el lanzamiento del
+pilum en **Blender en la nube**, sobre el mismo esqueleto libre de los clips del juego, con un guion de poses clave y
+cinemática inversa que cierra los dedos sobre el asta (`tools/blender/pilum_tiro.py`, rama `ccr-eda89860-50oj5c`; al usuario
+le gustó; unos 30 céntimos la prueba). Ese es el método para estos movimientos: cada gesto, un guion así, visto en vídeo
+antes de entrar al juego. Corrige lo dicho arriba: Blender **sí** está al alcance, por la nube.
+La plantilla ya existe: para un movimiento nuevo se cambia solo la tabla de poses clave del guion; la cinemática inversa,
+el giro repartido por la espalda y el cierre de dedos van solos. Falta, para que entre al juego: los cuatro niveles de
+detalle y el formato de `movimientos_escudo_*.bin` (eso es de TP9c).
 Son unos 22 movimientos nuevos o rehechos. Peso estimado: 1 a 1,5 MB de descarga (caben en los 6 MB libres).
 
 **D. Mecánicas que salen del cuerpo: la distancia.** Añado una regla que no estaba en TP9 y que nace de las armas reales.
@@ -319,12 +327,19 @@ Antes: 6,4 M declarados, 8–9 esperables.
 ≈7–8 M esperables. Se gana jugabilidad antes; no se llega a «impresionante», hay un solo galo (los otros tres serían el
 mismo con otra talla y otro color) y los gestos se rehacen cuando el testudo pase al soldado nuevo.
 
-## 5. Lo que decide el usuario
-1. **Soldado**: (A) soldado nuevo y prueba rápida «Lucha a pie» **[recomendado]**; (B) muñecos de hoy dentro de «Testudo a pie».
-2. **El grande**: (A) espada larga y torso desnudo, como cuentan las fuentes **[recomendado]**; (B) hacha, como licencia de juego.
-3. **El rediseño de §3.4** (figuras, movimientos y la regla de la distancia): aprobar o corregir.
-4. **El reparto y su coste** (§4): aprobar, o recortar piezas.
+## 5. Lo que decidió el usuario (23/11, en el chat de TP9-0)
+| Pregunta | Decidió |
+|---|---|
+| Con qué soldado se construye | **Soldado nuevo**, en la prueba rápida «Lucha a pie» («A, haz la maqueta») |
+| El galo grande | **Espada larga y torso desnudo** (no hacha) |
+| El rediseño de §3.4 (nueve figuras, 22 movimientos, la regla de la distancia) | **Sí, todo** |
+| El reparto de §4 (siete tareas, ≈13 M declarados, 15–17 M esperables) | **Sí, las siete**, en ese orden; prueba cada una en su móvil antes de abrir la siguiente |
+- Pidió además (literal): «Puedes rediseñar los soldados y sus animaciones y mecánicas con la skill de /creature-artist» → §3.4.
+- Pidió ver una maqueta → **«Lucha a pie» mínima, ya subida** (`gobierno/maquetas/lucha/`; Escaramuzas → Pruebas rápidas).
+  Adelanta la mitad de TP9b: reglas sin pantalla con tres bots, dedos, palanca con las tres distancias, encadenar, remate,
+  rodeo, retirada, medidor. Le falta: marcar al rival, movimientos nuevos (la estocada aún es un tajo), cambio de guardia
+  suave, y **su prueba en el móvil**, que aún no ha contado. Con eso TP9b baja a ≈1,2 M (pasar las reglas a `js/lucha.js` y corregir lo que él diga).
 
 ## 6. Cuentas del estudio
-Declarado 1,2 M; corte 1,8 M. Medido el 23/11: ≈4,9 M (Fable ≈1,5, Opus ≈3,4). Se fue en tres mediciones con navegador
+Declarado 1,2 M; corte 1,8 M. Medido al cerrar, el 23/11: ≈8,3 M (Fable ≈2,6, Opus ≈5,7), con la maqueta incluida (≈2,6 M). Se fue en tres mediciones con navegador
 sin tarjeta gráfica. El director lo midió tarde y no avisó en 0,6 ni en 1,2 M. El usuario amplió el tope a 10 M el 23/11.

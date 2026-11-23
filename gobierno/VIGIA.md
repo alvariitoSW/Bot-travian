@@ -43,6 +43,8 @@ Z. **Siempre, aunque falle algo**: `estado/vigia` → `{trabajando: false, termi
    qué abriste o cerraste, o «No había nada que aplicar»>}`.
 
 ## 3. Entre vueltas (el usuario te habla directamente)
+**Regla del usuario (23/11, «Dímelo siempre en preguntas»)**: lo que haya que decidir o hacer, díselo SIEMPRE como preguntas numeradas con opciones (A)/(B) y [recomendado], una línea de «por qué»; al final, «dime los números y las letras, por ejemplo 1A, 2A». Sin párrafos largos de estado.
+
 Responde en llano, con frases cortas, enseña capturas, di qué decide él y recomienda una opción marcada **[recomendado]**. Las preguntas
 al usuario viven en `gobierno/BITACORA.md` → «Esperando algo del usuario» (el cuadro enseña **solo las tres primeras**; el resto, en
 cola) con la forma `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`. Cuando una sesión te escribe
@@ -50,8 +52,7 @@ cola) con la forma `**Título**: pregunta (A) opción [recomendado]; (B) opción
 
 ## 4. Abrir una sesión (`create_session`)
 Siempre con `source_url: https://github.com/alvariitosw/bot-travian`, `source_revision` y `outcome_branch` = la rama de trabajo, título
-«<Carril> · <ID> <nombre>», etiquetas `aqvila`, `tarea:<ID>`, **modelo `claude-opus-5-5`** (construye Opus). **Fable solo si el usuario lo
-pide expresamente** (regla del 18/11: «hay que dejar de usar Fable 5.2»; excepciones pedidas por él el 19/11: ES0, TP8b, BG1; apúntalas
+«<Carril> · <ID> <nombre>», etiquetas `aqvila`, `tarea:<ID>`, **modelo `claude-opus-5-5`** (construye Opus). **Fable ya no: el 23/11 el usuario dijo «a partir de ahora todas las sesiones con Opus, ya con Fable no»**; antes: Fable solo si lo pedía expresamente (regla del 18/11: «hay que dejar de usar Fable 5.2»; excepciones pedidas por él el 19/11: ES0, TP8b, BG1; apúntalas
 en la bitácora). El encargo (prompt) debe llevar, completo, porque la sesión empieza sin contexto: qué es la tarea y a qué línea de
 `gobierno/OBJETIVOS.md` sirve; qué leer (`CLAUDE.md`, `gobierno/LEEME.md`, la línea del tablero, los estudios pertinentes y
 `gobierno/estudios/REF-batallas-referencias.md` si toca batallas); qué hace y qué NO toca; **reglas de la casa**: un solo constructor
@@ -63,6 +64,18 @@ test/sim.test.js` para ver todos los fallos de golpe, unir con la rama antes de 
 bitácora y `lista.json`, commit y push a la rama de trabajo; **sin PR; `main` no se toca**; no abre sesiones ni cierra la del vigía).
 **No abras dos sesiones que toquen los mismos archivos** (`js/ui.js`, `js/game.js`, `js/data.js`, `js/simulador.js`,
 `js/ui-guerra.js`): encadénalas. Antes de abrir una, mira con `list_sessions` que no hay ya una viva para esa tarea.
+
+**Ministerios (usuario, 23/11: mapa A y reglas para todas las sesiones; `gobierno/MINISTERIOS.md`).** Al abrir una sesión:
+- Di su **área** y que empiece por su guía: `ministerio-batallas`, `ministerio-cerebro`, `ministerio-musculo` o `arte`. Etiqueta `area:<id>`.
+- Batallas y arte: `environment_id` `env_01CJEDdinXvGa5FE4zimPosh` («AQVILA Batallas taller»: Blender, Quaternius y MakeHuman puestos).
+- **Una sola sesión «de paso» a la vez** para los archivos comunes (`js/ui.js`, `js/game.js`, `js/data.js`, `js/registro.js`, `sw.js`,
+  `index.html`): dilo en su encargo y dale los **pases** pendientes de los partes. Las demás no los tocan.
+- Las sesiones cierran con `node gobierno/juez-area.mjs <área>`; **no** pasan los jueces completos ni tocan tablero, bitácora, `lista.json` ni `sw.js`.
+  Tú pasas de su parte al tablero y a la bitácora lo hecho, los pases, las ideas (a la nevera, con su área) y las preguntas.
+- **Despacho del día**: junta las preguntas de todos los partes una vez al día en «Esperando algo del usuario» (tres a la vista,
+  con recomendación y «decide tú»). Lo que no conteste ese día sigue con lo recomendado, apuntado como provisional.
+- **Sesión de subida** (con su «sube»): une las áreas, sube la caché de `sw.js`, pasa los jueces completos una vez y sube.
+- Gasto de los ministerios: sin tope fijo, medido. Lleva la cuenta MIN2 del tablero.
 
 ## 5. Lo que cuesta dinero (lecciones del 19/11, obligatorias)
 - Las tareas de la jornada gastaron de **2 a 13 veces** lo declarado (CE3 ≈10,4 M frente a 2,0; CI1b+CI3a 13,6 M frente a 1,0; MN1

@@ -1,4 +1,5 @@
-Soldados nuevos de AQVILA (hastatus, triario, vélite, hondero, peltasta, hoplita, falangita, íbero y galo;
+Soldados nuevos de AQVILA (hastatus, triario, vélite, hondero, peltasta, hoplita, falangita, oficial de la falange
+(oficial-falange), íbero y galo;
 cuatro niveles de detalle cada uno; movimientos compartidos en movimientos_escudo_*.bin y movimientos_sarisa_*.bin).
 
 - Cuerpo, esqueleto, pesos y deformadores: MakeHuman 1.3.2 (base.obj, default.mhskel, default_weights.mhw, targets),
@@ -9,7 +10,29 @@ cuatro niveles de detalle cada uno; movimientos compartidos en movimientos_escud
   https://opengameart.org/content/universal-animation-library y https://opengameart.org/content/universal-animation-library-2
   Licencia CC0 1.0.
 - Equipo (yelmos, gorros, cotas, linotórax, escudos, pila, hastas, jabalinas, hondas, sarisa, espadas), ropa y texturas: hechos por código en el proyecto AQVILA
-  (gobierno/maquetas/soldado-rome2/).
+  (gobierno/maquetas/soldado-rome2/). El equipo del falangita y del oficial de la falange (casco frigio, escudo con
+  estrella, correa, coraza musculada, penacho, plumas, faja, manguito de la sarisa) sale de tools/blender/falangita_macedonio.py.
+- Falangita y oficial de la falange (falangita*, oficial-falange*): el cuerpo, la ropa y la armadura (con su casco y
+  sus texturas) vienen de un modelo generado por el usuario con Meshy (https://www.meshy.ai), de texto e imagen a 3D,
+  con su cuenta gratuita, el 23/11/2026. Crédito: «Meshy».
+  Licencia CC BY 4.0: https://creativecommons.org/licenses/by/4.0/
+  Aligerado y adaptado en AQVILA (esqueleto del juego, niveles de detalle, texturas horneadas):
+  tools/blender/falangita_meshy_ligero.py y tools/blender/falangita_meshy_juego.py. El modelo original no está en el repositorio.
+  Cambios: aligerado a cuatro niveles de detalle, esqueleto del juego, manos nuevas, escudo y sarisa añadidos,
+  teñido por bando.
+  Sus manos son de MakeHuman (CC0 1.0). Escudo, sarisa, correa, penacho y plumas son propios de AQVILA (código de
+  tools/blender/falangita_macedonio.py). Estos ocho archivos de malla y sus texturas se comparten con CC BY 4.0.
+- Hastatus (hastatus*): el cuerpo, la ropa, la cota, el casco y la greba (con sus texturas) vienen de otro modelo
+  generado por el usuario con Meshy (https://www.meshy.ai), de texto e imagen a 3D, con su cuenta gratuita, el
+  23/11/2026. Crédito: «Meshy». Licencia CC BY 4.0:
+  https://creativecommons.org/licenses/by/4.0/
+  Aligerado y adaptado en AQVILA: tools/blender/hastatus_meshy_ligero.py y tools/blender/hastatus_meshy_juego.py.
+  El modelo original no está en el repositorio. Sus manos son de MakeHuman (CC0 1.0). Escudo oval, pilum, espada,
+  vaina y espada envainada son propios de AQVILA (código de gobierno/maquetas/soldado-rome2/construir/piezas.py).
+  Cambios: aligerado a cuatro niveles de detalle, esqueleto del juego, manos nuevas, escudo y armas añadidos,
+  y la túnica pasada a gris para teñirla con el color de cada pueblo. Estos cuatro niveles y sus texturas se comparten
+  con CC BY 4.0. (Los movimientos compartidos movimientos_escudo_* siguen siendo CC0, de Quaternius.)
 
+CC BY 4.0 obliga a citar a Meshy y enlazar la licencia (aquí, en el README y en Créditos del juego).
 CC0 no obliga a citar, pero se cita. El detalle de la conversión está en gobierno/maquetas/soldado-rome2/LEEME.md.
 Esta licencia se aplica solo al contenido de assets/soldados/. El código del juego es independiente.

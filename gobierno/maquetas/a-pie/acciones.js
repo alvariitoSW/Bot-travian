@@ -33,6 +33,7 @@ export function crearAcciones(m) {
   /* GM43h: el lanzamiento. Tu soldado arma más el brazo (atrás y alto, la postura que sostiene el dedo) */
   fns.poseLanza = function poseLanza(h, tl, b, esYo) {
     const L = m.HOM.L, L0 = esYo ? L + 4 : L;
+    if (!Number.isFinite(L)) return [b, b, 0];   /* TP9a: seguro; si L no es una fila (p. ej. un objeto), postura base y no huesos NaN */
     if (tl > 0.47) h.tiro = true;
     if (tl < 0.3) return [b, L0, suave(0, 0.3, tl)];
     if (tl < 0.42) return [L0, L + 1, (tl - 0.3) / 0.12];
@@ -188,7 +189,7 @@ export function crearAcciones(m) {
     if (S.galos.filter(x => x.vivo && x.corre).length >= 2 || S.T - S.tRefuerzo < R_CADA) return 'espera';
     /* TP8b-E2: sale de la masa de reserva el que está más cerca del hueco (delante y a su altura) */
     const g = res.sort((a, b) => (Math.abs(a.x - muerto.px) - 2 * a.z) - (Math.abs(b.x - muerto.px) - 2 * b.z))[0];
-    Object.assign(g, { reserva: false, vivo: true, lado: 'g', duelo: null, corre: true, golpes: 0, jy: (azarL() - 0.5) * 0.1, rit: 0.5 + azarL() * 0.5, camino: 0, off: 0, v: 0, est: { modo: 'guardia' } });
+    Object.assign(g, { reserva: false, entra: true, vivo: true, lado: 'g', duelo: null, corre: true, golpes: 0, jy: (azarL() - 0.5) * 0.1, rit: 0.5 + azarL() * 0.5, camino: 0, off: 0, v: 0, est: { modo: 'guardia' } });
     g.xd = g.x; g.zd = g.z; g.yaw = 0;
     S.tRefuerzo = S.T; S.nRefuerzos++; S.unidadG.hombres++; S.unidadG.enPie++; S.unidadG.anima(R_ANIMO * W_REF); S.unidadG.balance *= 1 - 0.6 * W_REF;   /* ven llegar a los suyos: se rehacen (TP8b-E2: con más galos, cada refuerzo pesa menos) */
     return g;

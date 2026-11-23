@@ -24,6 +24,7 @@ import { crearAcciones, RESERVA_G, N_GF } from './acciones.js';
 import { crearCamara } from './camara.js';
 import { crearHud } from './hud.js';
 import * as Son from './sonido.js';
+import { crearFisicaEscena } from './fisica.js';   /* FI2 */
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), MARCAS = Q.get('marcas'), ANTES = Q.get('antes') === '1', COSTADO = Q.get('costado'), FUERA = Q.get('vista') === 'fuera';
 const $ = id => document.getElementById(id);
@@ -452,7 +453,7 @@ async function creaHombres() {
   cuerpos.customDepthMaterial = matSombra(tex); LR.m = inst(gL, cuerpos.material, M); LR.m.customDepthMaterial = cuerpos.customDepthMaterial; LR.m.castShadow = LR.m.receiveShadow = true;
   console.log(`[E2] triángulos por romano: ${gc.attributes.position.count / 3} detallado / ${gL.attributes.position.count / 3} sencillo`);
   for (const o of [cuerpos, escudos, mio, espadas, pila]) { o.castShadow = true; o.receiveShadow = true; }
-  HOM = { ...tab, u, C: u.clips, cuerpos, fr, fr2, mx, escudos, mio, espadas, pila, D: { m: cuerpos, fr, fr2, mx, vA, vh }, L: LR };
+  HOM = { ...tab, u, C: u.clips, cuerpos, fr, fr2, mx, escudos, mio, espadas, pila, D: { m: cuerpos, fr, fr2, mx, vA, vh }, LJ: LR };
   /* TP1: la zancada de andar y de correr (medida en el clip), dónde están los pies y en qué punto de cada clip va el pie
      izquierdo delante (la fase 0): así, al pasar de andar a correr, la pierna sigue donde iba */
   zancadas(u); HOM.pies = datosPies(tab.T, tab.hues, u.geo, u.clips.idle.start); HOM.corre0 = tab.LC;
@@ -567,8 +568,8 @@ function actualiza() {
       }
     }
     h.A = A; h.B = B; h.mx = mx;
-    const xd = S.choque && h.xd !== undefined ? h.xd : h.x, zd = S.choque && h.zd !== undefined ? h.zd : h.z;
-    h.inst.compose(PA.set(xd, H(xd, zd), zd), S.choque && h.tipoGolpe && h.vivo ? QY.setFromEuler(EUL.set(dobla(h), h.yaw + h.jy * (1 - h.k), 0)) : S.choque || h.jy ? QY.setFromAxisAngle(EJE_Y, (S.choque ? h.yaw : Math.PI) + h.jy * (1 - h.k)) : Q_PI, ANTES ? SB : h.sv);
+    const xd = (S.choque && h.xd !== undefined ? h.xd : h.x) + (h.fx || 0), zd = (S.choque && h.zd !== undefined ? h.zd : h.z) + (h.fz || 0);   /* FI2 */
+    h.inst.compose(PA.set(xd, H(xd, zd), zd), S.choque && h.tipoGolpe && h.vivo ? QY.setFromEuler(EUL.set(dobla(h), h.yaw + h.jy * (1 - h.k), 0)) : S.choque || h.jy ? QY.setFromAxisAngle(EJE_Y, (S.choque ? (!h.vivo && h.fCae !== undefined ? h.fCae + Math.PI /* FI2: cae de espaldas hacia donde le empujan */ : h.yaw) : Math.PI) + h.jy * (1 - h.k)) : Q_PI, ANTES ? SB : h.sv);
     /* los que quedan entre la cámara y vosotros dos, o pegados a ella, no se dibujan (su escudo sí) */
     h.oculto = h.vivo && S.k > 0.5 && h.r > 0 && (h.f === YO || h.f === CMP) && h.z < CAM.z + 0.5;
     /* escudo: en la mano (como lo trae el modelo) y, al cerrar, en su sitio del muro o del techo */
@@ -577,7 +578,7 @@ function actualiza() {
     if (w > 0) {
       MA.decompose(PA, QA, SA);
       const hunde = tg > 0 && tg < 1 ? 0.07 * Math.exp(-tg * 9) * Math.cos(tg * 30) : 0, hs = te > 0 && te < 1 ? 0.03 * Math.exp(-te * 7) * Math.cos(te * 25) : 0;
-      escudoEn(h, h.x, h.z, hunde + hs, PB, QB); PA.lerp(PB, w); QA.slerp(QB, w); SA.lerp(SB, w); MA.compose(PA, QA, SA); h.qEsc.copy(QA);
+      escudoEn(h, h.x + (h.fx || 0), h.z + (h.fz || 0) /* FI2 */, hunde + hs, PB, QB); PA.lerp(PB, w); QA.slerp(QB, w); SA.lerp(SB, w); MA.compose(PA, QA, SA); h.qEsc.copy(QA);
     } else h.qEsc.setFromRotationMatrix(MA);
     h.mEsc.copy(MA);
   }
@@ -713,7 +714,7 @@ function galoAhora(g) {
   if (g.reserva) {   /* TP8b-E2: la reserva se ve: anda detrás de los suyos y espera en masa (con ?antes=1, oculta como antes) */
     if (ANTES || S.huida) { g.inst.makeScale(0, 0, 0); return; }
     if (S.choque) { g.A = g.B = frameOf(FIG_G.C.idle, S.T + g.fase); g.mx = 0; g.pitch = 0; } else { g.vivo = true; filasGalo(g, FIG_G, S.T, frameOf, frameOnce); g.vivo = false; }
-    g.inst.compose(PA.set(g.x, H(g.x, g.z), g.z), QG.setFromEuler(EUL.set(g.pitch, 0, 0)), g.sv); return;
+    { const x = g.x + (g.fx || 0), z = g.z + (g.fz || 0); g.inst.compose(PA.set(x, H(x, z), z), QG.setFromEuler(EUL.set(g.pitch, 0, 0)), g.sv); } return;   /* FI2 */
   }
   const T = S.T, CG = FIG_G.C, e = g.est || { modo: 'guardia' }; let tw = 0;
   if (ANTES) { g.A = g.B = frameGalo(g); g.mx = 0; g.pitch = 0; }
@@ -734,7 +735,7 @@ function galoAhora(g) {
     if (g.tipoGolpe && S.T - g.tGolpe < 1) g.pitch = dobla(g);   /* TP8 1a: se encoge si le dan; si es en el escudo, se echa atrás */
   }
   if (S.choque && !g.vivo && g.atras && !ANTES) g.pitch = -0.32 * suave(0, 0.5, T - g.muere);   /* TP8b-L1: tu estocada lo tumba hacia atrás */
-  const x = S.choque && g.xd !== undefined ? g.xd : g.x, z = S.choque && g.zd !== undefined ? g.zd : g.z, yaw = S.choque && g.yaw !== undefined ? g.yaw + (g.jy || 0) + tw : 0;
+  const x = (S.choque && g.xd !== undefined ? g.xd : g.x) + (g.fx || 0), z = (S.choque && g.zd !== undefined ? g.zd : g.z) + (g.fz || 0), yaw = S.choque && !g.vivo && g.fCae !== undefined ? g.fCae + Math.PI : S.choque && g.yaw !== undefined ? g.yaw + (g.jy || 0) + tw : 0;   /* FI2: con su desplazamiento; el caído, hacia donde le empujan */
   g.inst.compose(PA.set(x, H(x, z), z), QG.setFromEuler(EUL.set(g.pitch, yaw, 0)), ANTES ? SB : g.sv);
 }
 
@@ -843,6 +844,7 @@ function alChocar() {
 }
 
 /* ---------- el paso de la simulación ---------- */
+const FIS = crearFisicaEscena({ H });   /* FI2: la física del dibujo (?fisica=0 la apaga) */
 function paso(dt) {
   S.T += dt; const T = S.T, yo = S.romanos[YO], co = S.romanos[CMP];
   S.k += Math.sign((S.escudos ? 1 : 0) - S.k) * Math.min(Math.abs((S.escudos ? 1 : 0) - S.k), dt * 1.6);
@@ -902,6 +904,7 @@ function paso(dt) {
     }
     for (const o of S.ordenes) if (!o.hecha && T >= o.t) { o.hecha = true; cumple(o.n); }
   }
+  FIS.paso(S, dt, sitio);   /* FI2: tras las reglas, antes de colocar a nadie */
   for (const g of S.galos) galoAhora(g);
   if (S.fase === 'pila' && S.tGalos > 0 && hueco() <= D_GLADIO) alGladio();
   if (S.fase === 'carga' && !S.choque && hueco() <= 1.3) alChocar();
@@ -1106,7 +1109,7 @@ function dibujaMarcas() {
   const d = S.yo && S.yo.vivo && S.yo.duelo, g = d && d.activo && !S.huida && !S.derrota ? d.g : null;
   ARO.visible = !!(g && g.vivo && S.choque);
   if (ARO.visible) {
-    const x = g.xd ?? g.x, z = g.zd ?? g.z, arma = d.aviso && d.t0 > 0 && S.T < d.ts + 0.15, abierto = S.T < (d.abierto || 0) || S.T < (d.deseq || 0);
+    const x = (g.xd ?? g.x) + (g.fx || 0), z = (g.zd ?? g.z) + (g.fz || 0) /* FI2 */, arma = d.aviso && d.t0 > 0 && S.T < d.ts + 0.15, abierto = S.T < (d.abierto || 0) || S.T < (d.deseq || 0);
     ARO.position.set(x, H(x, z) + 0.05, z);
     ARO.material.color.set(arma ? '#ffc93a' : abierto ? '#8ef07a' : '#f1ead9'); ARO.material.opacity = arma ? 0.75 + 0.25 * Math.sin(S.T * 18) : abierto ? 0.85 : 0.35;
     ARO.scale.setScalar(arma ? 1 + 0.12 * (S.T - d.t0) : 1);
@@ -1118,7 +1121,7 @@ function dibujaMarcas() {
   const ve = ARO.visible && !ANTES, arma = ve && d.aviso && d.t0 > 0 && S.T < d.ts + 0.08, abierto = ve && (S.T < (d.abierto || 0) || S.T < (d.deseq || 0));
   ANILLO.visible = arma; DIANA.visible = arma || abierto;
   if (DIANA.visible) {
-    const x = g.xd ?? g.x, z = g.zd ?? g.z, y = H(x, z) + 1.25;
+    const x = (g.xd ?? g.x) + (g.fx || 0), z = (g.zd ?? g.z) + (g.fz || 0) /* FI2 */, y = H(x, z) + 1.25;
     for (const a of [ANILLO, DIANA]) { a.position.set(x, y, z); a.quaternion.copy(camara.quaternion); }
     if (arma) {
       const t = S.T - d.t0, tot = d.ts - d.t0, tA = d.tA || d.tb, fin = d.tipo === 'finta' ? Math.min(0.8, t / (tot - (d.tb - tA))) : 0;
@@ -1149,7 +1152,7 @@ function dibuja() {
     else HOM.pila.setMatrixAt(i, CERO);
   }
   for (const m of [HOM.escudos, HOM.espadas, HOM.pila]) m.instanceMatrix.needsUpdate = true;
-  reparte(HOM.D, HOM.L, R, CERCA);
+  reparte(HOM.D, HOM.LJ, R, CERCA);
   HOM.mio.visible = !S.roto; HOM.mio.matrix.copy(yo.mEsc); HOM.mio.matrixWorld.copy(yo.mEsc); dibujaMarcas();
   /* enemigos */
   const P = figuras.peltastas, CP = P.u.clips;
@@ -1341,9 +1344,12 @@ function tira(quien, modo, t) {
 
 /* ---------- arranque ---------- */
 let ultimo = 0, CAMPO = null;
+/* TP9a: medidor de fluidez (idea de la maqueta «lucha»): cuadros de los últimos 5 s; cada 0,5 s, la media y el peor */
+const tiempos = []; let medT = 0;
 function bucle(t) {
   if (CAMPO) CAMPO.tick(t / 1000);
-  const dt = Math.min(0.05, (t - ultimo) / 1000 || 0); ultimo = t;
+  const dtR = (t - ultimo) / 1000 || 0, dt = Math.min(0.05, dtR); ultimo = t;
+  if (dtR > 0 && dtR < 10) { tiempos.push([t, dtR * 1000]); while (tiempos.length && t - tiempos[0][0] > 5000) tiempos.shift(); medT -= dtR; if (medT <= 0 && tiempos.length > 2) { medT = 0.5; HUD.medidor((tiempos.length - 1) / Math.max(0.001, (t - tiempos[0][0]) / 1000), Math.max(...tiempos.map(x => x[1]))); } }
   if (!parado) { if (S.congela > 0) S.congela -= dt; else { const k = S.lento > 0 ? 0.4 : 1; if (S.lento > 0) S.lento -= dt; paso(dt * k); } }   /* TP8b-L1: y la cámara lenta al matarlo */   /* TP8 1a: la pausa mínima al acertar en tu duelo */
   dibuja(); hud(); requestAnimationFrame(bucle);
 }
@@ -1441,6 +1447,7 @@ window.__tp = {
   /* TP8 1a: en cada duelo de la primera fila, la distancia entre caderas y cuánto pasa la punta del arma del que golpea al
      otro lado del plano de su escudo (metros; negativo: no llega). El plano pasa por el centro del escudo y mira al rival */
   contacto: () => contacto(),
+  fisica: () => FIS.medida(), fisicaEmpieza: () => FIS.empieza(), fisicaActiva: FIS.activa,   /* FI2 */
   lucha: () => ({ ...ACC.medLucha(), relevos: S.duelos.filter(d => d.activo && !d.sec && d.r.j === 0 && d.r.r > 0).length, dibujadosCaidos: S.romanos.filter(h => !h.vivo).length }),
   gesto: () => { const yo = S.romanos[YO], P = new THREE.Vector3(), Qm = new THREE.Quaternion(); pilumEnMano(yo, P, Qm); const punta = P.clone().addScaledVector(new THREE.Vector3(0, 0, 1).applyQuaternion(Qm), PUNTA); return { mano: enPantalla(ancla(yo, HU.espada, [0, 0, 0], new THREE.Vector3())), punta: enPantalla(punta), conPilum: !yo.tiro, galo: enPantalla(new THREE.Vector3(0, H(0, frenteGalo()) + 1.2, frenteGalo())) }; },
   galos: () => ({ vivos: S.galos.filter(g => g.vivo).length, porPila: S.caidos, hueco: +hueco().toFixed(2), clavados: PILA.filter(p => p.est === 4).length, enTierra: PILA.filter(p => p.est === 3).length, enAire: PILA.filter(p => p.est === 2).length, corren: S.galos.filter(g => g.vivo && g.v > 3).length, andan: S.galos.filter(g => g.vivo && g.v > 0.25 && g.v <= 3).length }),

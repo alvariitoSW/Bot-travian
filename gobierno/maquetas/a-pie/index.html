@@ -96,6 +96,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 .velo h1{margin:0;font:700 30px Cinzel,Georgia,serif;letter-spacing:.06em;color:var(--oro)}
 .velo p{margin:0;max-width:360px;font-size:15px;line-height:1.4}
 .gordo{min-width:150px;height:54px;padding:0 22px;border-radius:14px;background:linear-gradient(#8a2a20,#5c1b15);border:1.5px solid var(--oro);font:700 16px Cinzel,Georgia,serif;letter-spacing:.04em}
+#fluidez{position:absolute;left:calc(env(safe-area-inset-left) + 12px);bottom:calc(env(safe-area-inset-bottom) + 1px);font-size:10px;line-height:9px;color:rgba(241,234,217,.55);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
 #creditos{position:absolute;left:0;right:0;bottom:calc(env(safe-area-inset-bottom) + 8px);font-size:10.5px;color:#8d846f;text-align:center;padding:0 16px}
 </style>
 </head>
@@ -136,6 +137,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
       <button id="relevo" class="boton"><span id="relevo-t">Relevo</span></button>
     </div>
   </div>
+  <div id="fluidez">— img/s</div>
   <div id="fin" class="velo" hidden>
     <h1 id="fin-t">¡Choque!</h1>
     <p id="fin-p"></p>

@@ -5,11 +5,15 @@
    de tu duelo (Parar · Estocada · Empujar), el estado de los dos bandos en palabras (unidad.js) y la respuesta a cada golpe.
    Contrato: crearHud(m) con m = { S, Son, $, M, RECARGA, ZONA, vivos, armar, soltar, ordena, puedeOrden } devuelve { hud, muestraFin }. */
 import { palabras, veredicto } from './unidad.js';
+import { N_GF } from './acciones.js';
 export function crearHud(m) {
   const { S, Son, $, M, RECARGA, ZONA, vivos, armar, soltar, ordena, puedeOrden } = m;
   let textoR = '', textoG = '';
-  const linea = (quien, u, n) => {
-    const p = palabras(u), mal = { duda: 1, rompe: 1, cansada: 1, agotada: 1, perdiendo: 1 }, c = w => `<span class="${mal[w] ? 'mal' : w === 'ganando' ? 'bien' : ''}">${w}</span>`;
+  /* TP9a: decidida la batalla (S.ruptura), la palabra de combate no contradice al veredicto: el que rompió «huye», el otro «vence» */
+  const linea = (quien, u, n, lado) => {
+    const p = palabras(u);
+    if (S.ruptura) p.combate = S.ruptura === lado ? 'huye' : 'vence';
+    const mal = { duda: 1, rompe: 1, cansada: 1, agotada: 1, perdiendo: 1, huye: 1 }, c = w => `<span class="${mal[w] ? 'mal' : w === 'ganando' || w === 'vence' ? 'bien' : ''}">${w}</span>`;
     return `<b>${quien}</b> ${n ?? p.enPie} en pie · ${c(p.animo)} · ${c(p.cansancio)} · ${c(p.combate)}`;
   };
   function hud() {
@@ -47,19 +51,20 @@ export function crearHud(m) {
     $('objetivo').textContent = S.fase === 'avance' ? 'Lleva el cuerpo hasta la loma' : S.fase === 'pila' ? (S.salvas === 0 ? 'Lanza los pila' : S.salvas === 1 ? 'Lanza el segundo pilum' : 'Aguanta, ya llegan')
       : !S.choque ? 'Carga contra su línea' : S.huida ? 'Huyen: la línea es tuya' : S.derrota ? 'Tu línea se rompe' : 'Rompe su línea: para, golpea, releva';
     /* el estado en palabras: tus hombres y, si caben, los galos */
-    const tr = linea('Tuyos', S.unidad), tg = linea('Galos', S.unidadG, S.galos.filter(g => g.vivo || g.reserva).length);
+    const tr = linea('Tuyos', S.unidad, undefined, 'romanos'), tg = linea('Galos', S.unidadG, S.galos.filter(g => g.vivo || g.reserva).length, 'galos');
     if (tr !== textoR) { $('est-r').innerHTML = tr; textoR = tr; }
     if (tg !== textoG) { $('est-g').innerHTML = tg; textoG = tg; }
+    $('fluidez').hidden = !$('fin').hidden;
     const ec = $('eco'), ve = S.eco && S.T - S.eco.t < 1.4 && S.T >= S.eco.t;
     if (ve && ec.textContent !== S.eco.texto) ec.textContent = S.eco.texto;
     ec.className = ve ? 've ' + (S.eco.tipo || '') : '';
   }
   function muestraFin() {
-    const n = S.llegaron, c = S.caidos, cg = S.galos.filter(g => !g.vivo).length, cr = M - vivos();
+    const n = S.llegaron, c = S.caidos, cg = S.galos.filter(g => !g.vivo && !g.reserva).length, eg = Math.max(cg, S.galos.filter(g => !g.reserva && (g.i < N_GF || g.entra)).length), cr = M - vivos();
     if (S.ruptura) {
       /* TP1b: gana quien rompe al otro. El veredicto en palabras y las bajas de los dos bandos */
       $('fin-t').textContent = veredicto(S.unidad, S.unidadG);
-      $('fin-p').textContent = (S.ruptura === 'galos' ? 'Los galos rompieron y huyeron. ' : 'Tus hombres rompieron. ') + `Bajas: ${cr} de tus ${M} hombres; ${cg} de 16 galos (${c} por los pila). `
+      $('fin-p').textContent = (S.ruptura === 'galos' ? 'Los galos rompieron y huyeron. ' : 'Tus hombres rompieron. ') + `Bajas: ${cr} de tus ${M} hombres; cayeron ${cg} de los ${eg} galos que entraron en lucha (${c} por los pila). `
         + (S.ruptura === 'galos' ? (cr <= 6 ? 'El manípulo aguantó entero.' : 'Para a tiempo y releva a los cansados: perderás menos.') : 'Sube los escudos cuando cansen, y releva la primera fila.');
     } else {
       $('fin-t').textContent = n >= M * 0.8 ? '¡Choque!' : n >= M * 0.5 ? 'Llegasteis' : 'Llegasteis a duras penas';
@@ -85,5 +90,7 @@ export function crearHud(m) {
   for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) accion.addEventListener(ev, () => { if (!S.dedo) return; S.dedo = false; soltar(); });
   $('otra').addEventListener('click', () => { location.href = location.pathname; });
   $('salir').addEventListener('click', () => { location.href = document.baseURI; });
-  return { hud, muestraFin };
+  /* TP9a: la fluidez, pequeña y apagada en la esquina de abajo */
+  const medidor = (fps, peor) => { $('fluidez').textContent = fps.toFixed(0) + ' img/s · peor ' + Math.round(peor) + ' ms'; };
+  return { hud, muestraFin, medidor };
 }

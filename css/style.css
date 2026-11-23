@@ -1453,12 +1453,12 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 #hoja .esc-campo { padding: 4px; font-size: 14px; }
 #hoja .esc-dif > button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; min-height: 56px; }
 /* GM43f: entrada «Testudo a pie» (abre la escena a pie); misma tablilla clara que facciones y campos, con flecha */
-#hoja .esc-testudo, #hoja .esc-falange { display: flex; align-items: center; gap: 10px; min-height: 60px; margin-top: 2px; padding: 8px 14px; border-radius: 6px; border: 1px solid rgba(60, 35, 10, .35); background: rgba(255, 245, 215, .28); color: var(--tinta); text-decoration: none; }
-#hoja .esc-testudo:active, #hoja .esc-falange:active { background: linear-gradient(#f3e2b4, #d8bb80); }
-#hoja .esc-testudo span, #hoja .esc-falange span { flex: 1; min-width: 0; }
-#hoja .esc-testudo b, #hoja .esc-falange b { display: block; font: 700 16px 'Cinzel', Georgia, serif; letter-spacing: .03em; }
-#hoja .esc-testudo small, #hoja .esc-falange small { display: block; margin-top: 2px; font: 400 14px/1.25 var(--libro); color: var(--tinta2); }
-#hoja .esc-testudo i, #hoja .esc-falange i { flex: none; width: 9px; height: 9px; border-right: 2px solid var(--minio); border-top: 2px solid var(--minio); transform: rotate(45deg); }
+#hoja .esc-testudo, #hoja .esc-falange, #hoja .esc-lucha { display: flex; align-items: center; gap: 10px; min-height: 60px; margin-top: 2px; padding: 8px 14px; border-radius: 6px; border: 1px solid rgba(60, 35, 10, .35); background: rgba(255, 245, 215, .28); color: var(--tinta); text-decoration: none; }
+#hoja .esc-testudo:active, #hoja .esc-falange:active, #hoja .esc-lucha:active { background: linear-gradient(#f3e2b4, #d8bb80); }
+#hoja .esc-testudo span, #hoja .esc-falange span, #hoja .esc-lucha span { flex: 1; min-width: 0; }
+#hoja .esc-testudo b, #hoja .esc-falange b, #hoja .esc-lucha b { display: block; font: 700 16px 'Cinzel', Georgia, serif; letter-spacing: .03em; }
+#hoja .esc-testudo small, #hoja .esc-falange small, #hoja .esc-lucha small { display: block; margin-top: 2px; font: 400 14px/1.25 var(--libro); color: var(--tinta2); }
+#hoja .esc-testudo i, #hoja .esc-falange i, #hoja .esc-lucha i { flex: none; width: 9px; height: 9px; border-right: 2px solid var(--minio); border-top: 2px solid var(--minio); transform: rotate(45deg); }
 
 /* ---- C18 · nombre de ciudad sobre cinta con el escudo del bando (mapa de campaña) ---- */
 .mlabel.cinta { background: none; border: 0; box-shadow: none; border-radius: 0; gap: 2px; padding: 0 13px 0 0; min-height: 26px; isolation: isolate; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .75)); }
