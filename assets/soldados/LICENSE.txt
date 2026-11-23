@@ -8,6 +8,8 @@ cuatro niveles de detalle cada uno; movimientos compartidos en movimientos_escud
 - Movimientos: Quaternius, Universal Animation Library 1 y 2 (Standard),
   https://opengameart.org/content/universal-animation-library y https://opengameart.org/content/universal-animation-library-2
   Licencia CC0 1.0.
+- Movimiento «lanzar2» (lanzamiento de pilum, jabalina y venablo): hecho por código en el proyecto AQVILA con Blender
+  (tools/blender/pilum_tiro.py), sobre el esqueleto de Quaternius UAL2 (CC0). Arte propio del proyecto.
 - Equipo (yelmos, gorros, cotas, linotórax, escudos, pila, hastas, jabalinas, hondas, sarisa, espadas), ropa y texturas: hechos por código en el proyecto AQVILA
   (gobierno/maquetas/soldado-rome2/).
 
