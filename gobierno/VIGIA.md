@@ -50,8 +50,7 @@ cola) con la forma `**Título**: pregunta (A) opción [recomendado]; (B) opción
 
 ## 4. Abrir una sesión (`create_session`)
 Siempre con `source_url: https://github.com/alvariitosw/bot-travian`, `source_revision` y `outcome_branch` = la rama de trabajo, título
-«<Carril> · <ID> <nombre>», etiquetas `aqvila`, `tarea:<ID>`, **modelo `claude-opus-5-5`** (construye Opus). **Fable solo si el usuario lo
-pide expresamente** (regla del 18/11: «hay que dejar de usar Fable 5.2»; excepciones pedidas por él el 19/11: ES0, TP8b, BG1; apúntalas
+«<Carril> · <ID> <nombre>», etiquetas `aqvila`, `tarea:<ID>`, **modelo `claude-opus-5-5`** (construye Opus). **Fable ya no: el 23/11 el usuario dijo «a partir de ahora todas las sesiones con Opus, ya con Fable no»**; antes: Fable solo si lo pedía expresamente (regla del 18/11: «hay que dejar de usar Fable 5.2»; excepciones pedidas por él el 19/11: ES0, TP8b, BG1; apúntalas
 en la bitácora). El encargo (prompt) debe llevar, completo, porque la sesión empieza sin contexto: qué es la tarea y a qué línea de
 `gobierno/OBJETIVOS.md` sirve; qué leer (`CLAUDE.md`, `gobierno/LEEME.md`, la línea del tablero, los estudios pertinentes y
 `gobierno/estudios/REF-batallas-referencias.md` si toca batallas); qué hace y qué NO toca; **reglas de la casa**: un solo constructor
