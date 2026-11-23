@@ -1,0 +1,88 @@
+{
+  "_ayuda": "Dueño por archivo y juez por área (gobierno/MINISTERIOS.md). Lo lee gobierno/juez-area.mjs. Un patrón que acaba en '/' vale para toda la carpeta; '*' vale por cualquier trozo de nombre. Gana el patrón más largo. Lo que no casa con nada es 'sin dueño': se pregunta al vigía antes de tocarlo.",
+  "estado": "PRUEBA (23/11/2026). Solo 'batallas' está en vigor. Las demás áreas son la propuesta A y no obligan hasta que el usuario elija el mapa.",
+  "comunes": {
+    "_regla": "Archivos que usan varias áreas. Solo los toca UNA sesión a la vez: la que el vigía nombre «de paso». Un área que necesite un cambio aquí lo pide en su parte (línea «Pase») y sigue con lo suyo.",
+    "archivos": [
+      "js/ui.js", "js/game.js", "js/data.js", "js/registro.js", "js/carga.js", "js/codice.js", "js/asesor.js",
+      "index.html", "css/style.css", "sw.js", "manifest.json", "README.md", "CLAUDE.md",
+      "js/vendor/", "icons/", "test/sim.test.js", "test/soft-assert.js", "test/partida-vieja.json",
+      "gobierno/jueces.mjs", "gobierno/areas.json", "gobierno/juez-area.mjs", "gobierno/arte.json", "gobierno/arte.mjs", "gobierno/fichas.mjs"
+    ],
+    "solo_vigia": [
+      "gobierno/BITACORA.md", "gobierno/TABLERO.md", "gobierno/lista.json", "gobierno/cuadro.json", "gobierno/OBJETIVOS.md",
+      "gobierno/MINISTERIOS.md", "gobierno/VIGIA.md", "gobierno/LEEME.md"
+    ]
+  },
+  "libres": {
+    "_regla": "Cada sesión escribe aquí solo archivos NUEVOS con el ID de su tarea en el nombre; no edita los de otra.",
+    "archivos": ["gobierno/partes/", "gobierno/capturas-tarea/", "gobierno/estudios/", "capturas-tarea/"]
+  },
+  "areas": {
+    "batallas": {
+      "nombre": "Ministerio de Batallas (con su taller de arte)",
+      "en_vigor": true,
+      "guia": ".claude/skills/ministerio-batallas/SKILL.md",
+      "objetivo": "OBJETIVOS.md, órgano Corazón: se puede lograr el camino de las armas; hay una sola batalla, con el testudo a pie alcanzable desde el juego.",
+      "propios": [
+        "js/battle.js", "js/guerra.js", "js/simulador.js", "js/maniobra.js",
+        "js/ui-guerra.js", "js/ui-mando.js", "js/ui-maniobra.js", "js/ui-escaramuza.js",
+        "js/gfx/soldado.js", "js/gfx/units.js", "js/gfx/campo-mando.js", "js/gfx/sonido.js", "js/gfx/models.js",
+        "css/guerra.css", "css/mando.css", "css/maniobra.css",
+        "test/guerra.test.mjs", "test/guerra-juego.test.mjs", "test/simulador.test.mjs", "test/maniobra.test.mjs",
+        "test/campo.test.mjs", "test/nb7.test.mjs", "test/equilibrio.js", "test/ref-normal.json", "test/ref-normal.mjs",
+        "gobierno/juez-guerra.mjs", "gobierno/captura-guerra.mjs", "gobierno/captura-batalla.mjs", "gobierno/captura-gm*.mjs",
+        "gobierno/maquetas/a-pie/", "gobierno/maquetas/falange/", "gobierno/maquetas/testudo-*/", "gobierno/maquetas/guerra-*/",
+        "gobierno/maquetas/soldado-*/", "gobierno/maquetas/piezas-batalla/",
+        "gobierno/estudios/REF-batallas-referencias.md"
+      ],
+      "taller": [
+        "assets/soldados/", "assets/units/", "assets/sonido/",
+        "tools/blender/", "tools/glb_a_static.mjs", "tools/build_units.mjs", "tools/resolve_units.py", "tools/sonido.py", "tools/sonido-fuentes.sh",
+        "gobierno/entornos/batallas-taller.sh", "gobierno/entornos/batallas-taller.md"
+      ],
+      "juez": {
+        "logica": [
+          "test/guerra.test.mjs", "test/guerra-juego.test.mjs", "test/simulador.test.mjs",
+          "test/maniobra.test.mjs", "test/campo.test.mjs", "test/nb7.test.mjs"
+        ],
+        "navegador": ["gobierno/juez-guerra.mjs"],
+        "si_toca_arte": ["gobierno/arte.mjs", "gobierno/fichas.mjs"]
+      }
+    },
+    "cerebro": {
+      "nombre": "Cerebro: ciudad, recursos, clases, Senado y comercio (propuesta A)",
+      "en_vigor": false,
+      "propios": [
+        "js/ciudad.js", "js/diplomacia.js", "js/gfx/city3d.js", "js/gfx/roma-siglo.js", "js/gfx/vida.js", "js/gfx/trajin.js",
+        "js/gfx/fachadas.js", "js/gfx/civicas.js", "js/gfx/campos.js", "js/gfx/mundo.js", "js/gfx/sonido-ciudad.js",
+        "test/ciudad.test.mjs", "test/senado.test.js", "test/saber.test.mjs", "test/diplomacia.test.mjs", "test/encargos.test.mjs",
+        "test/investigador.test.mjs", "test/economia.js", "test/bot-mercado.js", "test/consejo.test.js", "test/sonido-ciudad.test.mjs",
+        "gobierno/captura-ciudad.mjs", "gobierno/captura-ce6.mjs", "gobierno/captura-cn26.mjs", "gobierno/captura-cultura.mjs",
+        "gobierno/captura-saber.mjs", "gobierno/captura-trajin.mjs", "gobierno/captura-viva.mjs", "gobierno/captura-sonido.mjs",
+        "gobierno/maquetas/ciudad*/", "gobierno/maquetas/senado-nuevo/", "gobierno/maquetas/politica*/", "gobierno/maquetas/gobierno-turnos/"
+      ],
+      "taller": [],
+      "juez": { "logica": ["test/ciudad.test.mjs", "test/senado.test.js", "test/saber.test.mjs", "test/diplomacia.test.mjs", "test/encargos.test.mjs"], "navegador": [], "si_toca_arte": ["gobierno/arte.mjs", "gobierno/fichas.mjs"] }
+    },
+    "musculo": {
+      "nombre": "Músculo: mapa, menús, manejo y fluidez (propuesta A)",
+      "en_vigor": false,
+      "propios": [
+        "js/gfx/map3d.js", "js/gfx/ground.js", "js/gfx/statics.js", "js/gfx/fluidez.js", "js/gfx/movil.js",
+        "test/mapa.test.mjs", "test/movil.test.mjs", "test/ajustes.test.mjs", "test/avisos.test.mjs", "test/pausas.test.mjs",
+        "gobierno/captura-mapa.mjs", "gobierno/captura-mn2.mjs", "gobierno/captura-mr2c.mjs", "gobierno/captura-r2.mjs", "gobierno/captura-r5.mjs", "gobierno/captura-cg2.mjs",
+        "gobierno/maquetas/menus*/", "gobierno/maquetas/concurso*/", "gobierno/maquetas/provincias/"
+      ],
+      "taller": [],
+      "juez": { "logica": ["test/mapa.test.mjs", "test/movil.test.mjs", "test/avisos.test.mjs", "test/pausas.test.mjs"], "navegador": [], "si_toca_arte": ["gobierno/arte.mjs"] }
+    },
+    "arte": {
+      "nombre": "Taller de Arte común (propuesta A): lo que no es de soldados ni de batalla",
+      "en_vigor": false,
+      "propios": ["assets/static/", "assets/mapa/", "assets/fuentes/", "tools/", "gobierno/kits/", "gobierno/maquetas/piezas/"],
+      "taller": [],
+      "juez": { "logica": [], "navegador": [], "si_toca_arte": ["gobierno/arte.mjs", "gobierno/fichas.mjs"] }
+    }
+  }
+}
