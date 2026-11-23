@@ -69,11 +69,11 @@
       const [ax, ay] = PROY ? PROY(x, y - r) : [x, y - r], lx = Math.max(3, Math.min(387 - w, ax - w / 2)), rev = b.revuelta;
       o += `<div class="halo e-${b.estado}${rev ? ' revuelta' : ''}" style="${hl(r)}"></div>`;
       if (b === rio) o += `<div class="halo sel" style="${hl(r + 5)}"></div>`;
-      if (rev) { const [cx, cy] = PROY ? PROY(x, y) : [x, y]; o += `<div class="rev" style="left:${cx}px;top:${cy}px">${sv(PUNO)}Revuelta</div>`; }
+      if (rev) o += `<div class="rev" style="left:${ax}px;top:${ay + 11}px">${sv(PUNO)}Revuelta</div>`;
       o += `<div class="iconos" style="left:${lx}px;top:${ay - 19}px">${e.NECESIDADES.map(([k]) => icono(k, b.necesidades[k])).join('')}</div>`;
     }
     const falta = listaTxt(rio, 'falta'), mal = listaTxt(rio, 'mal');
-    o += `<div class="ficha"><h3>${rio.nombre} · ${rio.clase}</h3><div class="vec">1 200 vecinos</div>
+    o += `<div class="ficha${rio.revuelta ? ' frev' : ''}"><h3>${rio.nombre} · ${rio.clase}</h3><div class="vec">1 200 vecinos</div>
       ${rio.revuelta ? '<div class="revtxt"><b>En revuelta:</b> no paga ni obedece. Cálmala con tropas, grano o juegos.</div>' : ''}<p>${falta ? `<b class="mal">Falta:</b> ${falta}. ` : ''}${mal ? `<b class="mal">Mal:</b> ${mal}.` : ''}<br>Si sigue así 2 estaciones: <b>fiebres y protesta</b>.<br><b>Remedio:</b> fuente y termas.</p>${rio.revuelta ? '<div class="chicos"><button class="btn2">Repartir grano</button><button class="btn2">Dar juegos</button></div>' : ''}
       <button class="btn">Encargar a Infraestructura</button></div>` + barra(false);
     return o;

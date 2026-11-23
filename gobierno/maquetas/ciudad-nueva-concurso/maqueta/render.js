@@ -74,15 +74,15 @@ export function dibujarCiudad(E, host) {
   const proy = (x, y, z) => { const v = new THREE.Vector3(x, y, z).project(cam); return [(v.x + 1) * W / 2, (1 - v.y) * H / 2]; };
   let D = 900;
   for (let it = 0; it < 4; it++) {
-    for (D = 400; D < 4000; D += 5) { colocar(D); let mn = 1e9, mx = -1e9; for (let a = 0; a < 360; a += 10) { const p = proy((RX + 6) * Math.cos(rad(a)), 24, RY * Math.sin(rad(a)))[0]; mn = Math.min(mn, p); mx = Math.max(mx, p); } if (mx - mn <= 368) break; }
-    const sc = (proy(0, 0, 100)[1] - proy(0, 0, 0)[1]) / 100; T.z += (proy(0, 10, 0)[1] - 408) / sc;
+    for (D = 400; D < 4000; D += 5) { colocar(D); let mn = 1e9, mx = -1e9; for (let a = 0; a < 360; a += 10) { const p = proy((RX + 6) * Math.cos(rad(a)), 24, RY * Math.sin(rad(a)))[0]; mn = Math.min(mn, p); mx = Math.max(mx, p); } if (mx - mn <= 356) break; }
+    const sc = (proy(0, 0, 100)[1] - proy(0, 0, 0)[1]) / 100; T.z += (proy(0, 10, 0)[1] - 378) / sc;
   }
   colocar(D); T.x = 0;
   scene.fog = new THREE.Fog(FONDO, D * 1.15, D * 2.4);
 
   /* ---- luces: sol bajo de tarde, cálido ---- */
-  scene.add(new THREE.HemisphereLight('#fff0d2', '#8c7050', 1.05));
-  const sol = new THREE.DirectionalLight('#ffd49a', 3.4); sol.position.set(-330, 190, 250); sol.target.position.set(0, 0, 60);
+  scene.add(new THREE.HemisphereLight('#fff0d2', '#8c7050', 1.25));
+  const sol = new THREE.DirectionalLight('#ffd49a', 3.4); sol.position.set(-300, 290, 230); sol.target.position.set(0, 0, 60);
   sol.castShadow = true; sol.shadow.mapSize.set(4096, 4096); sol.shadow.bias = -0.0006; sol.shadow.normalBias = 0.5; sol.shadow.radius = 2.5;
   const sc2 = sol.shadow.camera; sc2.left = -420; sc2.right = 420; sc2.top = 470; sc2.bottom = -470; sc2.near = 50; sc2.far = 1400;
   scene.add(sol, sol.target);
@@ -107,7 +107,7 @@ export function dibujarCiudad(E, host) {
   /* ---- suelo ---- */
   const hierba = new THREE.Mesh(new THREE.PlaneGeometry(5000, 5000).rotateX(-Math.PI / 2), new THREE.MeshStandardMaterial({ map: texturaHierba(), roughness: 1 }));
   hierba.position.set(0, -.5, 0); hierba.receiveShadow = true; scene.add(hierba);
-  const interior = new THREE.Mesh(new THREE.CircleGeometry(1, 72).rotateX(-Math.PI / 2), mLiso('#dcc99c', 1)); interior.scale.set(RX, 1, RY); interior.position.y = .1; interior.receiveShadow = true; scene.add(interior);
+  const interior = new THREE.Mesh(new THREE.CircleGeometry(1, 72).rotateX(-Math.PI / 2), mLiso('#e4d3a8', 1)); interior.scale.set(RX, 1, RY); interior.position.y = .1; interior.receiveShadow = true; scene.add(interior);
 
   /* ---- bandas planas: calles, caminos (una sola malla por color) ---- */
   function cinta(grupos, col, y) {
@@ -115,7 +115,7 @@ export function dibujarCiudad(E, host) {
     for (const { pts, ancho } of grupos) for (let i = 1; i < pts.length; i++) {
       const a = pts[i - 1], b = pts[i]; let dx = b[0] - a[0], dz = b[1] - a[1]; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l;
       const nx = -dz * ancho / 2, nz = dx * ancho / 2, ex = dx * .8, ez = dz * .8, ax = X(a[0]) - ex, az = Z(a[1]) - ez, bx = X(b[0]) + ex, bz = Z(b[1]) + ez;
-      pos.push(ax + nx, y, az + nz, ax - nx, y, az - nz, bx - nx, y, bz - nz, ax + nx, y, az + nz, bx - nx, y, bz - nz, bx + nx, y, bz + nz);
+      pos.push(ax + nx, y, az + nz, bx - nx, y, bz - nz, ax - nx, y, az - nz, ax + nx, y, az + nz, bx + nx, y, bz + nz, bx - nx, y, bz - nz);
     }
     const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('normal', new THREE.Float32BufferAttribute(pos.map((v, k) => k % 3 === 1 ? 1 : 0), 3));
     const m = new THREE.Mesh(g, mLiso(col, 1)); m.receiveShadow = true; scene.add(m);
@@ -236,7 +236,6 @@ export function dibujarCiudad(E, host) {
   // tejados: el color por instancia ya lleva el tinte; la textura solo marca las hileras
 
   /* ---- primer cuadro, con medidas ---- */
-  window.__escena = scene; window.__r = renderer; window.__cam = cam;
   const t0 = performance.now(); renderer.render(scene, cam); renderer.getContext().finish();
   const ms = performance.now() - t0, info = renderer.info.render;
   const medidas = { triangulos: info.triangles, llamadas: info.calls, ms_primer_cuadro: Math.round(ms), camara_dist: Math.round(D) };

@@ -1,1 +1,1 @@
-window.ESTILOS=["plano-claro"];
+window.ESTILOS=["pintado","maqueta","lamina"];

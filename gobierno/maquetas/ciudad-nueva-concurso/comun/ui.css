@@ -70,3 +70,11 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0}
 .ficha .revtxt{background:#7d1712;color:#fff;border-radius:10px;padding:5px 8px;font-size:13px;line-height:1.25;margin:0 0 5px}
 .ficha .chicos{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
 .ficha .btn2{border-radius:11px;padding:6px 4px;font-size:13px;font-weight:700;border:1px solid var(--ui-acento2);background:var(--ui-papel2);color:var(--ui-tinta)}
+.ficha.frev{padding:7px 10px 8px}
+.ficha.frev h3{font-size:14px}
+.ficha.frev .vec{font-size:12px;margin:0 0 3px}
+.ficha.frev .revtxt{font-size:12px;line-height:1.2;padding:4px 7px;margin:0 0 4px}
+.ficha.frev p{font-size:12.5px;line-height:1.25}
+.ficha.frev .chicos{margin-top:5px;gap:5px}
+.ficha.frev .btn2{padding:4px 2px;font-size:12.5px}
+.ficha.frev .btn{margin-top:5px;padding:8px;font-size:14px}

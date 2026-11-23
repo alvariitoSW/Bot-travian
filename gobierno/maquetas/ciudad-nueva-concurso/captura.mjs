@@ -27,7 +27,7 @@ for (const e of estilos) for (const m of modos) {
   console.log('ok', e, m);
 }
 const parcial = process.argv.length > 2; // con estilos concretos no se toca la hoja (faltarían imágenes de los demás)
-if (!parcial) writeFileSync(join(D, 'hoja', 'datos.js'), `window.ESTILOS=${JSON.stringify(estilos)};\n`);
+if (!parcial) writeFileSync(join(D, "hoja", "datos.js"), `window.ESTILOS=${JSON.stringify(["pintado", "maqueta", "lamina"].filter(e => estilos.includes(e)))};\n`); // concurso: los tres que eligió el usuario (23/11); plano-claro es el punto de partida
 const hp = await abrir(1600, 1000, 1);
 for (const [q, n] of parcial ? [] : [['', 'CD0b-hoja'], ['?v=ciudad', 'CD0b-hoja-ciudad']]) {
   await hp.goto(pathToFileURL(join(D, 'hoja', 'index.html')).href + q);
