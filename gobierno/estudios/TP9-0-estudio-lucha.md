@@ -253,6 +253,11 @@ a 150 px, cada figura se reconoce**. Cada una tiene tres anclas de silueta: cabe
 | Dudar y huir | bucle | Miran a los lados, un paso atrás; luego vuelven la espalda | Hay «correr»; falta la duda |
 | Alzar el gladio y gritar (momento épico) | 20 | Brazo arriba, pecho abierto | Nuevo |
 | Falange: recoger y clavar · girar el muro · alzar y bajar el asta | 6 · 4 · 10 | Pasos cortos de lado al girar; las dos manos guían el asta | Parte en «movimientos de sarisa»; el giro, nuevo |
+**Cómo se fabrican (dato nuevo, 23/11)**: otra sesión («Ciudad generada por IA») probó con éxito rehacer el lanzamiento del
+pilum en **Blender en la nube**, sobre el mismo esqueleto libre de los clips del juego, con un guion de poses clave y
+cinemática inversa que cierra los dedos sobre el asta (`tools/blender/pilum_tiro.py`, rama `ccr-eda89860-50oj5c`; al usuario
+le gustó; unos 30 céntimos la prueba). Ese es el método para estos movimientos: cada gesto, un guion así, visto en vídeo
+antes de entrar al juego. Corrige lo dicho arriba: Blender **sí** está al alcance, por la nube.
 Son unos 22 movimientos nuevos o rehechos. Peso estimado: 1 a 1,5 MB de descarga (caben en los 6 MB libres).
 
 **D. Mecánicas que salen del cuerpo: la distancia.** Añado una regla que no estaba en TP9 y que nace de las armas reales.
