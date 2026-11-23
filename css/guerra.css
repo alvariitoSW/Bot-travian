@@ -70,3 +70,16 @@
 #gu .velo h1{font-size:28px}
 }
 #gu .esc{display:block}
+
+/* FA7: Escaramuzas → Pruebas rápidas → «Falange a pie» se despliega en «Elige rival» (js/ui-escaramuza.js). Vive en la hoja, fuera de #gu. */
+#hoja button.esc-falange{width:100%;font:inherit;text-align:left;cursor:pointer;-webkit-appearance:none;appearance:none}
+#hoja button.esc-falange.on{background:linear-gradient(#f3e2b4,#d8bb80);border-color:var(--minio,#a33a22)}
+#hoja button.esc-falange.on i{transform:rotate(135deg);margin-top:-4px}
+#hoja .esc-rv{grid-column:1/-1;margin:0 0 2px;padding:8px;border-radius:6px;border:1px solid rgba(60,35,10,.35);background:rgba(255,245,215,.42)}
+#hoja .esc-rv-t{margin:0 0 6px;font:700 13px 'Cinzel',Georgia,serif;letter-spacing:.06em;text-transform:uppercase;color:var(--tinta2)}
+#hoja .esc-rv-g{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+#hoja .esc-rv-b{display:flex;flex-direction:column;justify-content:center;min-height:56px;min-width:0;padding:6px 10px;border-radius:6px;border:1px solid rgba(60,35,10,.45);background:linear-gradient(#fbf1d6,#ead6a6);color:var(--tinta);text-decoration:none;box-shadow:0 1px 0 rgba(60,35,10,.25)}
+#hoja .esc-rv-b:active{background:linear-gradient(#f3e2b4,#d8bb80)}
+#hoja .esc-rv-b b{font:700 15px 'Cinzel',Georgia,serif;letter-spacing:.02em}
+#hoja .esc-rv-b small{margin-top:2px;font:400 12px/1.2 var(--libro,Georgia,serif);color:var(--tinta2)}
+@media (min-width:600px){#hoja .esc-rv-g{grid-template-columns:repeat(4,1fr)}}

@@ -61,6 +61,8 @@ function humo(E) {
 }
 
 /* ---------- gente y carros: caminan por E.vias ---------- */
+/* UR1 (usuario, 20/11): los carros iban solos, sin animal que tirase, y daban la vuelta al final de la calle. Fuera hasta que haya yunta. */
+const CARROS_SOLOS = false;
 function pos(g) {
   const p = g.v.p, f = g.s / g.v.largo * (p.length - 1), k = Math.min(p.length - 2, Math.floor(f)), u = f - k, a = p[k], b = p[k + 1], ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
   return { x: a[0] + (b[0] - a[0]) * u - Math.sin(ang) * g.lat, z: a[1] + (b[1] - a[1]) * u + Math.cos(ang) * g.lat, yaw: -ang + Math.PI / 2 + (g.vel < 0 ? Math.PI : 0) };
@@ -75,7 +77,7 @@ function repartoGente(E) {
   while (gente.l.length < quiero && vs.length && guard++ < 300) { const v = vs[Math.floor(rnd() * vs.length)]; gente.l.push({ v, s: rnd() * v.largo, vel: (rnd() < 0.5 ? 1 : -1) * (3.2 + rnd() * 1.6), lat: (rnd() - 0.5) * v.w * 1.1, fase: rnd() * 6, e: 0.7 + rnd() * 0.1 }); }
 }
 function repartoCarros(E) {
-  const vs = E.vias.filter(v => v.largo > 60 && v.p && v.p.length > 1), rnd = C.azar(E.vias.length * 7 + 5), quiero = vs.length ? Math.min(N_CARROS, 3 + Math.floor(E.parcelas.length / 40)) : 0;
+  const vs = E.vias.filter(v => v.largo > 60 && v.p && v.p.length > 1), rnd = C.azar(E.vias.length * 7 + 5), quiero = CARROS_SOLOS && vs.length ? Math.min(N_CARROS, 3 + Math.floor(E.parcelas.length / 40)) : 0;
   carros = carros.filter(g => vs.includes(g.v)).slice(0, quiero); let guard = 0;
   while (carros.length < quiero && guard++ < 100) { const v = vs[Math.floor(rnd() * vs.length)]; carros.push({ v, s: rnd() * v.largo, vel: (rnd() < 0.5 ? 1 : -1) * (1.6 + rnd() * 0.8), lat: (rnd() - 0.5) * v.w * 0.4, e: 1.6 }); }
 }

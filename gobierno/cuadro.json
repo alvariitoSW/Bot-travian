@@ -2014,16 +2014,10 @@
   "rama": "claude/roman-strategy-mobile-game-bx9oq2",
   "sesiones": [
     {
-      "tarea": "TP9-0",
-      "titulo": "Corazón · TP9-0 Estudio de la lucha a pie (Fable, solo documento)",
-      "nota": "Abierta el 20/11: habla contigo en su chat",
-      "url": "https://claude.ai/code/session_01QiKC36xm7ZGUXDfQH8pXZR"
-    },
-    {
-      "tarea": "CG2",
-      "titulo": "Corazón · CG2a Constructor de ejército de Escaramuzas (Opus; corte 2,0 M)",
-      "nota": "Abierta el 20/11 tras subir MN2",
-      "url": "https://claude.ai/code/session_01QiKC36ZiXPT2RBtNPZER29"
+      "tarea": "FA2",
+      "titulo": "Corazón · FA2 Falangita macedonio y oficial (Fable dirige, Opus construye)",
+      "nota": "Ola 1 de la falange, abierta el 23/11",
+      "url": "https://claude.ai/code/session_01QiKC37EkYPrnF1g5nLbW5x"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"

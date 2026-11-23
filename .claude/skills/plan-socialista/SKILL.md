@@ -8,6 +8,11 @@ description: El «plan socialista» del usuario. Presupuesta y reparte UNA tarea
 Tú eres el **director**. Una sesión, una tarea. No se empieza otra aunque sobre tiempo.
 
 ## 1. Antes de tocar nada
+0. **Ministerios (usuario, 23/11; `gobierno/MINISTERIOS.md`)**: mira de qué área es la tarea y carga su guía: `ministerio-batallas`,
+   `ministerio-cerebro`, `ministerio-musculo` o `arte`. Esa guía manda sobre esta en tres cosas: solo tocas los archivos de
+   tu área (`node gobierno/juez-area.mjs <área> --archivos`), cierras con el **juez de área** (`node gobierno/juez-area.mjs <área>`)
+   y **no** con los jueces completos (§5.1 es solo para la sesión de subida), y **no escribes en tablero ni bitácora** (§5.3 y
+   §5.4 los hace el vigía con tu parte). Gasto: sin tope fijo, pero medido y apuntado.
 1. Lee `CLAUDE.md`, `gobierno/BITACORA.md` y `gobierno/TABLERO.md`.
 2. Aplica los pedidos del cuadro de mando (skill `cuadro-de-mando`). Pueden cambiar la tarea del día.
 3. Elige la tarea: la que diga el usuario; si no, el «Encargo de la próxima sesión» de la bitácora.
