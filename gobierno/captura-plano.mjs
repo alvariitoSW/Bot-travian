@@ -37,5 +37,24 @@ await page.tap('#ctop .vo.plano'); await page.waitForTimeout(2500);
 console.log('boton', await caja()); await foto('plano');
 await page.tap('#ctop .vo.plano'); await page.waitForTimeout(2500);
 console.log('boton', await caja()); await foto('plano-vuelta');
+
+/* CV1 vuelta: gestos reales en plano */
+const ok = (n, v) => console.log((v ? 'OK   ' : 'FALLA') + ' ' + n);
+const dato = () => page.evaluate(() => ({ plano: UI.cityV.enPlano, d: Math.round(UI.cityV.c.dist), txt: document.querySelector('#ctop .vo.plano').textContent, sel: !!UI.bsel, tab: UI.tab, foro: UI.cityV.aPantalla(Game.ciudadE(UI.city).foro.x, Game.ciudadE(UI.city).foro.z, 4) }));
+await page.tap('#ctop .vo.plano'); await page.waitForTimeout(2500);
+let a = await dato(); await page.mouse.move(200, 520); await page.mouse.down(); await page.mouse.move(260, 470, { steps: 8 }); await page.mouse.up(); await page.waitForTimeout(400);
+let b = await dato(); ok('arrastrar con el ratón desplaza y sigue en plano (foro ' + Math.round(a.foro.x) + ',' + Math.round(a.foro.y) + ' -> ' + Math.round(b.foro.x) + ',' + Math.round(b.foro.y) + ')', b.plano && (Math.abs(a.foro.x - b.foro.x) + Math.abs(a.foro.y - b.foro.y)) > 20);
+console.log('   bajo el ratón:', await page.evaluate(() => { const e = document.elementFromPoint(200, 520); return e.tagName + '#' + e.id + '.' + e.className; })); await page.mouse.move(200, 520); for (let i = 0; i < 30; i++) { await page.mouse.wheel(0, -150); await page.waitForTimeout(60); } await page.waitForTimeout(1800);
+b = await dato(); ok('rueda hacia dentro sale solo del plano (d=' + b.d + ', botón «' + b.txt + '»)', !b.plano && b.txt === 'Plano' && b.d < 400);
+await page.screenshot({ path: join(RAIZ, 'gobierno/capturas-tarea/CV1-salida-rueda.jpg'), type: 'jpeg', quality: 80 });
+await page.evaluate(() => UI.cityV.view('ciudad')); await page.waitForTimeout(800);
+await page.tap('#ctop .vo.plano'); await page.waitForTimeout(2500); a = await dato(); await page.touchscreen.tap(a.foro.x, a.foro.y); await page.waitForTimeout(2500); b = await dato();
+ok('tocar un edificio en plano abre su ficha (ficha ' + b.sel + ', plano ' + b.plano + ', d=' + b.d + ')', b.sel);
+await page.evaluate(() => UI.cityV.view('ciudad'));
+await page.evaluate(() => { const c = document.querySelector('#fichab [data-act="cclose"]'); if (c) c.click(); }); await page.waitForTimeout(500);
+await page.tap('#ctop .vo.plano'); await page.waitForTimeout(2500); a = await dato(); ok('plano activo antes de salir', a.plano);
+await page.tap('#miga-b'); await page.waitForTimeout(2500); a = await dato(); console.log('   tras «Salir al mapa»: pestaña ' + a.tab + ', plano ' + a.plano);
+await page.evaluate(() => { const b = document.createElement('button'); b.dataset.act = 'barra'; b.dataset.v = 'ciudad'; document.body.appendChild(b); b.click(); b.remove(); }); await page.waitForTimeout(3000); a = await dato();
+ok('al volver a la ciudad el plano está apagado (pestaña ' + a.tab + ', botón «' + a.txt + '»)', !a.plano && a.txt === 'Plano');
 console.log(errores.length ? 'ERRORES:\n' + errores.join('\n') : 'sin errores de consola');
 await br.close(); srv.close();
