@@ -212,7 +212,8 @@
         "TP9d",
         "TP9e",
         "TP9f",
-        "TP9-0"
+        "TP9-0",
+        "FA10"
       ]
     },
     {
@@ -279,9 +280,18 @@
         "TP9b",
         "TP9c",
         "TP9d",
-        "TP9e",
         "TP9f",
-        "TP9-0"
+        "TP9-0",
+        "FA1",
+        "FA2",
+        "FA3",
+        "FA4",
+        "FA5",
+        "FA6",
+        "FA7",
+        "FA8",
+        "FA9",
+        "FA10"
       ],
       "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a). Desde CG2a (20/11), cada tropa con su retrato, coste, barras, lo que sabe hacer (testudo, cuña, muro, falange, orden abierto, pilum) y su ficha."
     },

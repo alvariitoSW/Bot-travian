@@ -105,7 +105,11 @@
         "gobierno/maquetas/guerra-*/",
         "gobierno/maquetas/soldado-*/",
         "gobierno/maquetas/piezas-batalla/",
-        "gobierno/estudios/REF-batallas-referencias.md"
+        "gobierno/estudios/REF-batallas-referencias.md",
+        "js/falange.js",
+        "js/falange-rivales.js",
+        "test/falange.test.mjs",
+        "test/falange-rivales.test.mjs"
       ],
       "taller": [
         "assets/soldados/",
