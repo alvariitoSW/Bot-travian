@@ -178,20 +178,19 @@ MUESTRA_HASTATUS = {'quieto': [[0, 5]], 'quieto2': [[0, 5]], 'quieto3': [[0, 5]]
 if PILUM_GLB: CLIPS['lanzar2'] = (3, 'Pilum_Throw', 0); CFG_HASTATUS['lanzar2'] = ('bajo', None)
 CAMBIO_S, SUELTA_S = 0.23, 1.10                                # segundos del clip en que la mano cambia de agarre y en que suelta el arma
 
-def lanzamiento_nuevo(pz, m, muestra):
-    """Lo que 'lanzar2' pide al equipo, para cualquier soldado:
-    · si lanza su arma (su muestra de 'lanzar' la esconde al soltarla), una copia del arma de la mano con el agarre de tiro (conjunto 4):
-      la misma arma girada media vuelta en la mano, con la punta hacia el meñique, y la muestra en tres tiempos (porte · tiro · suelta);
+def lanzamiento_nuevo(pz, m, muestra, asta=True):
+    """Lo que 'lanzar2' pide al equipo, para cualquier soldado. Devuelve (piezas, muestra, datos de tiro para el .json):
+    · si lanza un arma de asta (su muestra de 'lanzar' la esconde al soltarla; asta=False para el hondero), la muestra va en tres tiempos:
+      porte · tiro (bit 8: el dibujo gira el arma media vuelta en la palma, punta hacia el meñique; sin triángulos de más) · suelta;
     · la vaina y la espada envainada cuelgan del tramo bajo de la espalda (spine05) y no de la raíz, para seguir al tronco cuando gira;
       ese tramo va siempre ~15° inclinado respecto a la raíz (así salen los movimientos de UAL): se compensa para que en «quieto» cuelguen igual."""
-    muestra = dict(muestra); ml = muestra.get('lanzar') or [[0, 5]]; lanza = len(ml) == 2 and ml[0][1] & 1 and not ml[1][1] & 1
-    muestra['lanzar2'] = [[0, ml[0][1]], [CAMBIO_S, (ml[0][1] & ~1) | 8], [SUELTA_S, ml[1][1]]] if lanza and len([p for p in pz if p.get('hueso') == 'wrist.R' and p['conj'] == 1]) else [list(x) for x in ml]
-    ixh = {h: i for i, h in enumerate(m['huesos'])}; hR = poses.mano(m, 'R'); c = hR['c']; R = anim.eje(hR['N'], np.pi); out = []
+    muestra = dict(muestra); ml = muestra.get('lanzar') or [[0, 5]]; lanza = asta and len(ml) == 2 and ml[0][1] & 1 and not ml[1][1] & 1 and any(p.get('hueso') == 'wrist.R' and p['conj'] == 1 for p in pz)
+    muestra['lanzar2'] = [[0, ml[0][1]], [CAMBIO_S, ml[0][1] | 8], [SUELTA_S, ml[1][1]]] if lanza else [list(x) for x in ml]
+    ixh = {h: i for i, h in enumerate(m['huesos'])}; hR = poses.mano(m, 'R')
     Dq = anim.retarget(m, 1, 'Idle_Loop', 30)[0][0]; Rc = Dq[ixh['spine05']].T @ Dq[ixh['root']]; c5 = m['cab']['spine05']
     for p in pz:
         if p.get('hueso') == 'root' and p['nombre'].startswith(('vaina', 'espada_env')): p['hueso'] = 'spine05'; p['P'] = c5 + (p['P'] - c5) @ Rc.T; p['N'] = p['N'] @ Rc.T
-        if len(muestra['lanzar2']) == 3 and p.get('hueso') == 'wrist.R' and p['conj'] == 1: q = dict(p); q['P'] = c + (p['P'] - c) @ R.T; q['N'] = p['N'] @ R.T; q['conj'] = 4; out.append(q)
-    return pz + out, muestra
+    return pz, muestra, (dict(c=[round(float(x), 5) for x in hR['c']], n=[round(float(x), 5) for x in hR['N']]) if lanza else None)
 
 FUERA_LEJOS = ('escudo_asa', 'suela', 'espada_env')
 def aligerar_piezas(pz, r=0.34, muy=False, fondo=False):
@@ -217,7 +216,7 @@ def montar(nombre, piezas_, m, util, clips, muestra, lado=2048, tex=True, juego=
         else: si, sw = ix[p['hueso']], 1.0
         M.pon(p['nombre'].rstrip('0123456789LR'), p['P'], p['N'], uv, si, sw, p['T'], p['conj'])
     arch = texturas.pintar(piezas_, lado, os.path.join(SAL, nombre), m) if tex else {}
-    j = X.guardar(os.path.join(SAL, nombre), M, clips, util, dict(texturas=arch, muestra=muestra), juego=juego); return j
+    j = X.guardar(os.path.join(SAL, nombre), M, clips, util, dict(texturas=arch, muestra=muestra, **({'tiro': globals()['TIRO']} if globals().get('TIRO') else {})), juego=juego); return j
 
 if __name__ == '__main__':
     import texturas
@@ -231,7 +230,8 @@ if __name__ == '__main__':
         if MOV != 'no': MOV = e.get('mov', MOV)
     elif quien == 'galo': texturas.ESTILO = dict(pelo=[0.55, 0.47, 0.30], calzado='zapato', melena=[0.74, 0.66, 0.47]); pz = galo(m, B, lod, muy, fondo)
     else: pz = hastatus(m, B, lod, muy, fondo)
-    if PILUM_GLB and 'lanzar2' in cfg: pz, muestra = lanzamiento_nuevo(pz, m, muestra)
+    TIRO = None
+    if PILUM_GLB and 'lanzar2' in cfg: pz, muestra, TIRO = lanzamiento_nuevo(pz, m, muestra, asta=quien != 'hondero')
     if lod:                                                    # de lejos no hay huesos de dedos: el puño va ya cerrado en la malla
         utilF, aF = X.huesos_utiles(m); BF = ropa.Base(m, utilF, aF); D = np.tile(np.eye(3), (1, len(m['huesos']), 1, 1)); lib = np.zeros(len(m['huesos']), bool); poses.punos(m, D, lib)
         A = X.hornear(D, anim.fk(m, D, lib, m['cab']['root'][None]), m, utilF)[0].reshape(len(utilF), 3, 4)
