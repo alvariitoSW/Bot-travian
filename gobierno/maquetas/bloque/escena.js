@@ -245,6 +245,10 @@ function salta(fase) {
   else if (fase === 'choque' || fase === 'datos') { hasta(() => { if (tu.contactos.length && choqueT < 0) choqueT = S.T; return choqueT > 0 && S.T - choqueT > 4; }); }
   else if (fase === 'flanco') hasta(() => !!S.flanco && !!S.flanco.de && Math.hypot(S.flanco.de.x - tu.x, S.flanco.de.z - tu.z) < 45);
   else if (fase === 'relevo') hasta(() => C.ordenUtil() === 'relevo');
+  else if (fase === 'trabado' || fase === 'retirada') {   /* LP4b: trabado y perdiendo (fila agotada, sin relevos); luego «Retirada» */
+    hasta(() => tu.contactos.length > 0 && S.T > 40); tu.relevos = 0; tu.fila = 0.8; tu.U.animo = 0.5; hasta(() => C.ordenUtil() === 'retirada');
+    if (fase === 'retirada') { C.orden('retirada'); for (let i = 0; i < 110; i++) paso(); }
+  }
   else if (fase === 'fin') hasta(() => false);
   oyente = null; TR.asienta(); for (let i = 0; i < 30; i++) TR.paso(0.05, S.T);
   if (fase !== 'testudo') $('grito').classList.remove('ve');
