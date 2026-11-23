@@ -186,7 +186,7 @@ function paso1() {
     (g.length ? '<p class="ro-rubrica cg2-r">Mis ejércitos</p><div class="cg2-guard">' + g.map((x, i) => '<div><button class="chip" data-act="escel" data-v="carga:' + i + '">' + esc(x.n) + '</button><button class="cg2-bx" data-act="escel" data-v="borra:' + i + '" aria-label="Borrar">×</button></div>').join('') + '</div>' : '') +
     '<p class="ro-rubrica cg2-r">Pruebas rápidas</p><div class="cg2-pruebas"><a class="esc-testudo" href="gobierno/maquetas/a-pie/"><span><b>Testudo a pie</b><small>Cruza el campo bajo los venablos</small></span><i></i></a>' +
     '<a class="esc-falange" href="gobierno/maquetas/falange/"><span><b>Falange a pie</b><small>Aguanta con las picas de Pirro</small></span><i></i></a>' +
-    '<a class="esc-testudo" href="gobierno/maquetas/lucha/"><span><b>Lucha a pie</b><small>Pelea con los dedos en la primera fila</small></span><i></i></a></div>';
+    '<a class="esc-lucha" href="gobierno/maquetas/lucha/"><span><b>Lucha a pie</b><small>Pelea con los dedos en la primera fila</small></span><i></i></a></div>';
 }
 function paso3() {
   const rotulo = '<p class="cg2-nota">' + (S.rivMano ? 'Ejército retocado por ti.' : 'La máquina ha comprado un ejército típico de ' + NOMBRE[S.pueblo[1]] + ' con su dinero.') + '</p>';
