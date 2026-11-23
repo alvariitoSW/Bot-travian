@@ -2,6 +2,9 @@
 /* AQVILA — jueces: un solo comando que dice si el juego funciona.
    Uso:  node gobierno/jueces.mjs            (todo)
          node gobierno/jueces.mjs --rapido   (solo la lógica, sin navegador)
+         node gobierno/jueces.mjs --area cerebro|musculo|batallas
+              (MIN4: solo los pasos de navegador de esa área, más los que la preparan; capturas en
+               gobierno/capturas-area/<área>/. Lo usa gobierno/juez-area.mjs. Sin lógica ni juez de la guerra.)
    Pasa test/sim.test.js, recorre el juego en un navegador a 390×844 y deja las capturas
    y un informe en gobierno/capturas/. Sale con código 1 si algo falla. */
 import { spawnSync } from 'node:child_process';
@@ -12,8 +15,13 @@ import { dirname, join, normalize, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..');
-const CAPS = join(RAIZ, 'gobierno', 'capturas');
 const RAPIDO = process.argv.includes('--rapido');
+/* MIN4: cada paso del navegador dice de qué área es (de) y a qué otras áreas prepara (para): con --area solo corren los suyos,
+   los comunes y los que preparan su estado. Sin --area corre todo, en el mismo orden de siempre (las mismas 43 comprobaciones). */
+const AREA = process.argv.includes('--area') ? process.argv[process.argv.indexOf('--area') + 1] : null;
+if (AREA !== null && !['batallas', 'cerebro', 'musculo'].includes(AREA)) { console.error('Áreas con pasos de navegador: batallas, cerebro, musculo.'); process.exit(2); }
+const CAPS = AREA ? join(RAIZ, 'gobierno', 'capturas-area', AREA) : join(RAIZ, 'gobierno', 'capturas');
+const CAPS_TAREA = AREA ? CAPS : join(RAIZ, 'gobierno', 'capturas-tarea');   // R3 y R4 dejan ahí sus capturas fijas
 const pasos = [];                       // { nombre, ok, detalle, captura }
 const errores = [];                     // errores de consola del navegador
 const t0 = Date.now();
@@ -23,7 +31,8 @@ function apunta(nombre, ok, detalle, captura) {
   console.log((ok ? '  ✔ ' : '  ✘ ') + nombre + (detalle ? ' — ' + detalle : ''));
 }
 
-/* ---------- 1. Lógica ---------- */
+/* ---------- 1. Lógica (con --area no corre: el juez de área pasa la lógica de su área) ---------- */
+if (!AREA) {
 console.log('Juez 1 · lógica (test/sim.test.js)');
 {
   const r = spawnSync(process.execPath, ['test/sim.test.js'], { cwd: RAIZ, encoding: 'utf8', timeout: 2400000 });
@@ -162,6 +171,8 @@ console.log('Juez 1f · sonido de la ciudad (test/sonido-ciudad.test.mjs)');
   apunta('Sonido de la ciudad', r.status === 0, ult.slice(0, 200));
 }
 
+}   // fin de la lógica
+
 /* ---------- 2. Navegador ---------- */
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.txt': 'text/plain; charset=utf-8' };
 function servidor() {
@@ -180,7 +191,7 @@ function servidor() {
 }
 
 async function navegador() {
-  console.log('Juez 2 · recorrido en navegador (390×844)');
+  console.log('Juez 2 · recorrido en navegador (390×844)' + (AREA ? ' · área ' + AREA : ''));
   let chromium;
   try { chromium = createRequire(import.meta.url)('playwright').chromium; }
   catch (e) { apunta('Abrir el navegador', false, 'Playwright no está instalado: ' + e.message.split('\n')[0]); return; }
@@ -199,13 +210,16 @@ async function navegador() {
   const estado = (fn, arg) => page.evaluate(fn, arg);
   // cierra los avisos históricos que tapen la pantalla (no los de batalla)
   const cierraAvisos = async () => { for (let i = 0; i < 12; i++) { const b = page.locator('#modal:not([hidden]) [data-act="close"]').first(); if (!(await b.count())) break; await b.click(); await espera(120); } };
-  const paso = async (nombre, fn) => {
+  const paso = async (nombre, quien, fn) => {
+    const q = typeof quien === 'string' ? { de: quien } : quien;
+    if (AREA && q.de !== 'comun' && q.de !== AREA && !(q.para || []).includes(AREA)) return null;   // de otra área: no corre
+    if (AREA && q.de !== 'comun' && q.de !== AREA) nombre += ' (preparación, de ' + q.de + ')';
     try { const r = await fn(); apunta(nombre, r.ok, r.detalle, r.captura); return r.ok; }
     catch (e) { let c = null; try { c = await foto('fallo'); } catch (x) { } apunta(nombre, false, String(e.message).split('\n')[0].slice(0, 300), c); return false; }
   };
 
   try {
-    await paso('El juego carga y aparecen los modelos', async () => {
+    await paso('El juego carga y aparecen los modelos', 'comun', async () => {
       await page.goto(url, { waitUntil: 'load' });
       await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
       const t = Date.now();
@@ -215,7 +229,7 @@ async function navegador() {
     });
 
     /* GM43f: Escaramuzas lleva a la escena «Testudo a pie» (página aparte) y su «Salir» vuelve al juego */
-    await paso('Escaramuzas: «Testudo a pie» abre la escena y vuelve', async () => {
+    await paso('Escaramuzas: «Testudo a pie» abre la escena y vuelve', 'batallas', async () => {
       await page.click('#menu .mesc'); await espera(800);
       const a = page.locator('#hoja a.esc-testudo');
       if (!(await a.count())) return { ok: false, detalle: 'no está la entrada «Testudo a pie» en Escaramuzas', captura: await foto('escaramuzas') };
@@ -231,26 +245,35 @@ async function navegador() {
       return { ok, detalle: 'entrada de ' + m.h + ' px; escena «' + titulo + '»; «Salir» vuelve al menú', captura: cap };
     });
 
-    /* TP7a: Escaramuzas lleva también a «Falange a pie» y su «Salir» vuelve al juego */
-    await paso('Escaramuzas: «Falange a pie» abre la escena y vuelve', async () => {
+    /* TP7a + FA7: «Falange a pie» es un botón que despliega «Elige rival» (cuatro enlaces con ?rival=); se abre uno, carga sin errores y «Salir» vuelve */
+    await paso('Escaramuzas: «Falange a pie» abre la escena y vuelve', 'batallas', async () => {
       await page.click('#menu .mesc'); await espera(800);
-      const a = page.locator('#hoja a.esc-falange');
-      if (!(await a.count())) return { ok: false, detalle: 'no está la entrada «Falange a pie» en Escaramuzas', captura: await foto('escaramuzas') };
-      await a.scrollIntoViewIfNeeded(); await espera(300);
-      const m = await a.evaluate(el => { const r = el.getBoundingClientRect(); return { h: Math.round(r.height), d: Math.round(r.right), t: el.textContent, url: el.href }; });
+      const b = page.locator('#hoja button.esc-falange');
+      if (!(await b.count())) return { ok: false, detalle: 'no está el botón «Falange a pie» en Escaramuzas', captura: await foto('escaramuzas') };
+      await b.scrollIntoViewIfNeeded(); await espera(300);
+      const m = await b.evaluate(el => { const r = el.getBoundingClientRect(); return { h: Math.round(r.height), d: Math.round(r.right), t: el.textContent }; });
+      if (m.h < 44 || m.d > 390 || !/Falange a pie/.test(m.t)) return { ok: false, detalle: 'botón mal: alto ' + m.h + ' px, borde ' + m.d + ' px', captura: await foto('escaramuzas-falange') };
+      await b.click(); await espera(600);
+      const rv = page.locator('#hoja a.esc-rv-b');
+      await rv.first().scrollIntoViewIfNeeded().catch(() => { }); await espera(300);
+      const rivales = await rv.evaluateAll(as => as.map(a => ({ t: a.textContent, url: a.href, h: Math.round(a.getBoundingClientRect().height), d: Math.round(a.getBoundingClientRect().right) })));
       const cap = await foto('escaramuzas-falange');
-      if (m.h < 44 || m.d > 390 || !/Falange a pie/.test(m.t) || !/\/gobierno\/maquetas\/falange\/$/.test(m.url)) return { ok: false, detalle: 'entrada mal: alto ' + m.h + ' px, borde ' + m.d + ' px, ' + m.url, captura: cap };
-      await a.click(); await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
-      const titulo = await page.title(); await espera(1500);
+      const bienR = rivales.length === 4 && rivales.every(r => /\/gobierno\/maquetas\/falange\/\?rival=\w+$/.test(r.url) && r.h >= 44 && r.d <= 390);
+      if (!bienR) return { ok: false, detalle: 'rivales mal: ' + rivales.length + ' enlaces · ' + rivales.map(r => r.url.split('/').pop() + ' ' + r.h + ' px').join(', '), captura: cap };
+      const elegido = rivales.find(r => /rival=caballeria$/.test(r.url)) || rivales[0], antes = errores.length;
+      await page.locator('#hoja a.esc-rv-b[href$="' + elegido.url.split('/').pop() + '"]').click();
+      await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
+      const titulo = await page.title(), ruta = page.url(); await espera(4000);
+      const capE = await foto('falange-escena'), fallosE = errores.slice(antes);
       await page.click('#salir'); await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
       await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
-      const ok = /Falange a pie/.test(titulo);
-      return { ok, detalle: 'entrada de ' + m.h + ' px; escena «' + titulo + '»; «Salir» vuelve al menú', captura: cap };
+      const ok = /Falange a pie/.test(titulo) && /\?rival=/.test(ruta) && !fallosE.length;
+      return { ok, detalle: 'botón de ' + m.h + ' px; 4 rivales; abre «' + titulo + '» con ' + ruta.split('/').pop() + (fallosE.length ? '; ' + fallosE.length + ' error(es): ' + fallosE[0] : '; sin errores') + '; «Salir» vuelve al menú', captura: ok ? capE : cap };
     });
 
     /* CG4: «Empezar la batalla» de Escaramuzas abre la pantalla de mando (js/ui-mando.js, window.__mn); se ordena y se mira el efecto
        en el simulador (no el aviso: con render por software va a ~1 fotograma/s); al acabar, la hoja del resultado; la partida guardada no cambia */
-    await paso('Escaramuzas: batalla nueva con mando en vivo', async () => {
+    await paso('Escaramuzas: batalla nueva con mando en vivo', 'batallas', async () => {
       await page.setViewportSize({ width: 844, height: 390 }); await espera(500);
       const guardada = await estado(() => localStorage.getItem('aqvila-save-v1'));
       if (!(await page.locator('#hoja .esc').count())) { await page.click('#menu .mesc'); await espera(800); }
@@ -283,7 +306,7 @@ async function navegador() {
 
     /* CG6: a pie. Se baja con un hastati, se mira que la cámara va al hombro, se anda con la palanca y se vuelve al mando.
        Se mira el EFECTO (posiciones, cámara, reloj del simulador). El dibujo va a ~1 fotograma/s: se avanza a mano con cuadro(0.1) */
-    await paso('Escaramuzas: bajar a pie y volver al mando', async () => { try { return await bajarApie(); } finally {
+    await paso('Escaramuzas: bajar a pie y volver al mando', 'batallas', async () => { try { return await bajarApie(); } finally {
       /* pase lo que pase, se deja la página como la encontró (en vertical, sin la pantalla de mando): si no, los pasos siguientes fallan */
       await estado(() => { if (window.__mn && !window.__mn.cerrado && window.__mn.terminar) window.__mn.terminar(); }).catch(() => { }); await espera(800);
       if (await page.locator('#hoja [data-act="hojax"]').count()) await page.click('#hoja [data-act="hojax"]').catch(() => { });
@@ -321,20 +344,20 @@ async function navegador() {
       return { ok, detalle: 'cámara a ' + dCam.toFixed(1) + ' m y ' + a0.camara.y.toFixed(1) + ' m de alto; el centurión anda ' + anda.toFixed(1) + ' m; el manípulo se mueve ' + mueveMan.toFixed(1) + ' m; reloj ' + u0.t.toFixed(1) + ' → ' + u1.t.toFixed(1) + ' s; arriba de nuevo a ' + (+arriba.y).toFixed(0) + ' m', captura: cap };
     }
 
-    await paso('Nueva partida: se ve el mapa', async () => {
+    await paso('Nueva partida: se ve el mapa', 'comun', async () => {
       await page.click('#menu [data-act="new"]'); await espera(2500); await cierraAvisos();
       await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; Game.autoVivo = true; });      // CN14-C: el asesor de serie no cambia el recorrido
       const ok = await estado(() => !!Game.state && !UI.menu && Game.myCities().includes('roma'));
-      return { ok, detalle: ok ? await estado(() => Game.dateStr(Game.state.t)) : 'no hay partida', captura: await foto('mapa') };
+      return { ok, detalle: ok ? await estado(() => Game.dateStr(Game.state.t)) : 'no hay partida', captura: await foto('ciudad-inicio') };
     });
 
-    await paso('Ciudad en 3D', async () => {
+    await paso('Ciudad en 3D', 'cerebro', async () => {
       await espera(3000);   // la partida nueva abre en la Ciudad
       const ok = await estado(() => !document.getElementById('citywrap').hidden && !!document.querySelector('#citywrap canvas'));
       return { ok, detalle: ok ? '' : 'no aparece la vista 3D de la ciudad', captura: await foto('ciudad') };
     });
 
-    await paso('Ajustes y asesor: dificultad en Ajustes (☰)', async () => {
+    await paso('Ajustes y asesor: dificultad en Ajustes (☰)', 'musculo', async () => {
       await page.click('#bmas'); await espera(500);   // MN1: Ajustes se abre desde ☰, ya no hay pestaña «Gobierno»
       await page.click('#hoja [data-act="hoja"][data-v="ajustes"]'); await espera(400);   // K12a: Ajustes es una hoja inferior
       const hay = await estado(() => !!document.getElementById('ajustes') && !!document.getElementById('dif-g') && !!document.getElementById('ase-g'));
@@ -353,7 +376,7 @@ async function navegador() {
       return { ok, detalle: ok ? 'bloque Ajustes presente; «Dura» se guarda; vuelve a Normal' : 'ajustes=' + hay + ' dura=' + dura + ' guardada=' + sigue + ' normal=' + normal + ' botón=' + alto + ' px' };
     });
 
-    await paso('Construir un edificio', async () => {
+    await paso('Construir un edificio', 'cerebro', async () => {
       // Ciudad: se elige una ficha de la bandeja, se ve el fantasma, se pulsa «Construir aquí»; luego ficha de pieza y Gobierno limpio
       const fallos = [];
       await page.click('#tabs3 [data-v="ciudad"]'); await espera(1500); await cierraAvisos();
@@ -403,14 +426,14 @@ async function navegador() {
       return { ok: !fallos.length, detalle: fallos.length ? fallos.join('; ') : 'en obras: ' + obra.t + ' · fantasma «' + lin.slice(0, 50) + '» · ficha con mejorar · ficha de ROMA ▾ limpia' + (enObras ? '' : ' (sin texto de obra en la ficha de ROMA ▾)'), captura };
     });
 
-    await paso('Reclutar tropas', async () => {
+    await paso('Reclutar tropas', 'cerebro', async () => {
       await page.click('#tabs3 [data-v="mapa"]'); await espera(500); await page.click('#tabs3 [data-v="tropas"]'); await espera(500);   // MN1: sin modos; la barra lleva al mapa y a Tropas
       const b = page.locator('#view [data-act="train"]:not(.no)').first(); await b.scrollIntoViewIfNeeded(); await b.click(); await espera(500);
       const q = await estado(() => Game.state.cities.roma.train.map(t => t.n + ' ' + DATA.UNITS[t.u].n).join(', '));
       return { ok: !!q, detalle: q ? 'en instrucción: ' + q : 'no se reclutó nada', captura: await foto('reclutar') };
     });
 
-    await paso('Abrir el Códice', async () => {
+    await paso('Abrir el Códice', 'cerebro', async () => {
       await page.click('#bmas'); await page.click('#hoja [data-act="tab"][data-v="log"]'); await espera(500);
       await page.click('#view [data-act="codice"]'); await espera(500);
       const r = await page.evaluate(() => ({ n: document.querySelectorAll('#view .cdx').length, h: document.querySelectorAll('#view .lic-h').length, w: document.documentElement.scrollWidth }));
@@ -421,7 +444,7 @@ async function navegador() {
     });
 
     let objetivo = '';
-    await paso('Atacar una ciudad vecina', async () => {
+    await paso('Atacar una ciudad vecina', { de: 'musculo', para: ['batallas'] }, async () => {
       objetivo = await estado(() => Game.neighbors('roma').filter(n => Game.state.cities[n].owner !== 'roma' && !Game.edge('roma', n)[2]).sort((a, b) => Game.power(Game.state.cities[a].units) - Game.power(Game.state.cities[b].units))[0] || '');
       if (!objetivo) return { ok: false, detalle: 'Roma no tiene vecina enemiga por tierra' };
       await page.evaluate(id => { UI.sel = id; UI.sheetKey = ''; }, objetivo);
@@ -433,7 +456,7 @@ async function navegador() {
       return { ok, detalle: ok ? 'el ejército marcha hacia ' + await page.evaluate(id => DATA.CITIES[id].n, objetivo) : 'el ejército no salió', captura };
     });
 
-    await paso('Llega la batalla', async () => {
+    await paso('Llega la batalla', { de: 'batallas', para: ['musculo'] }, async () => {
       // se adelanta el reloj del juego en vez de esperar meses de campaña
       for (let i = 0; i < 400; i++) {
         const hay = await estado(() => { for (let k = 0; k < 20 && !Game.state.pending.length && !Game.state.over; k++) Game.tick(0.25); return Game.state.pending.length > 0; });
@@ -444,7 +467,7 @@ async function navegador() {
     });
 
     // GC4: la batalla es la Guerra (js/ui-guerra.js). Con más de 600 hombres pasa antes por la maniobra.
-    await paso('Dirigir la batalla (horizontal): una orden con el dedo', async () => {
+    await paso('Dirigir la batalla (horizontal): una orden con el dedo', { de: 'batallas', para: ['musculo'] }, async () => {
       await page.setViewportSize({ width: 844, height: 390 });
       await page.click('#mbox [data-act="bview"]'); await espera(1500);
       for (let i = 0; i < 14 && !(await page.locator('#gu').count()); i++) {
@@ -464,7 +487,7 @@ async function navegador() {
       return { ok, detalle: ok ? 'Retirarse, tres cuerpos, cuatro órdenes; «' + o2 + '» obedece' : 'retirar ' + retirar + ', cuerpos ' + cuerpos + ', órdenes ' + ordenes + ', empuja ' + empuja, captura };
     });
 
-    await paso('La batalla termina y se aplica el resultado', async () => {
+    await paso('La batalla termina y se aplica el resultado', { de: 'batallas', para: ['musculo'] }, async () => {
       // se juega hasta el final con el bot de la campaña de pruebas; el cartel final da paso al resultado
       await estado(() => { const g = window.__gc; let n = 0; while (g.B.fase !== 'fin' && n++ < 600) { Game.botGuerra(g.B); g.salta(1.5); } });
       await page.waitForSelector('#gu-seguir:visible', { timeout: 20000 });
@@ -478,7 +501,7 @@ async function navegador() {
       return { ok, detalle: titulo, captura };
     });
 
-    await paso('Recargar sin red: la partida sigue', async () => {
+    await paso('Recargar sin red: la partida sigue', 'musculo', async () => {
       await page.evaluate(() => Game.save());
       const sw = await page.evaluate(() => 'serviceWorker' in navigator ? Promise.race([navigator.serviceWorker.ready.then(() => true), new Promise(r => setTimeout(() => r(false), 15000))]) : false);
       if (!sw) return { ok: false, detalle: 'el service worker no se activó' };
@@ -493,7 +516,7 @@ async function navegador() {
       return { ok: ok && modelos, detalle: !ok ? 'la partida guardada no se recuperó' : modelos ? 'partida y modelos disponibles sin conexión' : 'la partida vuelve, pero los modelos 3D no cargan sin red', captura: await foto('sin-red') };
     });
 
-    await paso('Mapa por escalones: tocar Italia acerca y «← volver» devuelve', async () => {
+    await paso('Mapa por escalones: tocar Italia acerca y «← volver» devuelve', 'musculo', async () => {
       await estado(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('#tabs3 [data-v="mapa"]').click(); const m = document.getElementById('modal'); if (m) m.hidden = true; UI.map.esc.anim = null; UI.map.esc.zona = null; UI.map.esc.pila = []; UI.map.c.x = 94; UI.map.c.z = 46; UI.map.c.dist = 330; UI.map.clamp(); });
       await espera(1500);
       const antes = await estado(() => ({ x: UI.map.c.x, z: UI.map.c.z, dist: UI.map.c.dist, zonas: [...document.querySelectorAll('.mlabel.zona')].filter(e => e.style.display !== 'none').length }));
@@ -510,7 +533,7 @@ async function navegador() {
       return { ok, detalle: ok ? 'ocho zonas; Italia acerca la cámara (' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ') y «← volver» la devuelve' : 'zonas ' + antes.zonas + ', dist ' + Math.round(antes.dist) + ' a ' + Math.round(dentro.dist) + ', migas «' + dentro.migas + '», volver ' + dentro.volver + ', igual ' + igual + ', migas finales «' + fin.migas + '»', captura: fotoZona, detalle2: fotoMare };
     });
 
-    await paso('C8b menú del mapa en cinco cosas; se entra tocando Roma y la miga devuelve al mapa (≥44 px, ≥11 px)', async () => {
+    await paso('C8b menú del mapa en cinco cosas; se entra tocando Roma y la miga devuelve al mapa (≥44 px, ≥11 px)', 'musculo', async () => {
       await estado(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('#tabs3 [data-v="mapa"]').click(); const m = document.getElementById('modal'); if (m) m.hidden = true; });
       await espera(1500);
       const ves = () => estado(() => Object.fromEntries(['res', 'datebox', 'bmas', 'turno', 'tabs3', 'citybtn', 'miga', 'zoom'].map(i => { const e = document.getElementById(i), r = e.getBoundingClientRect(), cs = getComputedStyle(e); return [i, !e.hidden && cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.bottom > 0 && r.top < innerHeight]; })));
@@ -533,7 +556,7 @@ async function navegador() {
       return { ok, detalle: ok ? 'en el mapa: tira, ☰, «Pasar turno» y la barra de seis (en horizontal, columna de ' + col.w + ' px a la izquierda); la ficha dice «' + ficha + '»; tocar Roma entra y «' + ciu.b + '» vuelve al mapa' : JSON.stringify({ v, vh, col, ficha, ciu, vuelta }) };
     });
 
-    await paso('Barra de seis: Ciudad, Senado, Saber, Tropas, Mapa e Imperio (palabra entera, ≥44 px, cada toque a su vista)', async () => {
+    await paso('Barra de seis: Ciudad, Senado, Saber, Tropas, Mapa e Imperio (palabra entera, ≥44 px, cada toque a su vista)', 'musculo', async () => {
       await estado(() => { Game.state.speed = 0; const m = document.getElementById('modal'); if (m) m.hidden = true; const x = document.querySelector('#hoja [data-act="hojax"]'); if (x && !document.getElementById('hoja').hidden) x.click(); }); await espera(400);
       const VISTA = { ciudad: 'city', senado: 'senado', saber: 'saber', tropas: 'army', mapa: 'map', imperio: 'imperio' }, fallos = [];
       const med = await estado(() => [...document.querySelectorAll('#tabs3 [data-act="barra"]')].map(b => { const r = b.getBoundingClientRect(), s = b.querySelector('span') || b, cs = getComputedStyle(b); return { v: b.dataset.v, t: s.textContent.trim(), vis: !b.hidden && cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.top >= 0 && r.bottom <= innerHeight + 1, alto: Math.round(r.height), corta: b.scrollWidth > b.clientWidth || s.scrollWidth > s.clientWidth || s.getBoundingClientRect().width > b.clientWidth + .5 }; }));
@@ -552,7 +575,7 @@ async function navegador() {
       return { ok: !fallos.length, detalle: fallos.length ? fallos.join('; ') : 'seis botones de ' + Math.min(...med.map(m => m.alto)) + ' px o más, palabras enteras (' + med.map(m => m.t).join(' · ') + '); cada toque abre su vista y se marca', captura };
     });
 
-    await paso('CN22 avisos: máx. 2 avisos y tarjeta de estación baja', async () => {
+    await paso('CN22 avisos: máx. 2 avisos y tarjeta de estación baja', 'cerebro', async () => {
       await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; Game.state.speed = 0; });
       await cierraAvisos();
       if (!(await page.locator('#turno:not([hidden])').count())) return { ok: false, detalle: 'no hay botón «Pasar turno»' };
@@ -572,9 +595,9 @@ async function navegador() {
       return { ok, detalle: 'avisos=' + toasts + ' #inf=' + (m.i | 0) + ' px; «Ver más»=' + (m.a | 0) + ' «Seguir»=' + (m.b | 0) + ' px; detalle ' + (dentro ? 'dentro' : 'FUERA') + ' de pantalla', captura };
     });
 
-    await paso('R3 pausas: la obra que termina para el reloj con su motivo; el ajuste cambia', async () => {
-      await mkdir(join(RAIZ, 'gobierno', 'capturas-tarea'), { recursive: true });
-      const tarea = async nombre => { await page.screenshot({ path: join(RAIZ, 'gobierno', 'capturas-tarea', nombre), type: 'jpeg', quality: 80 }); return nombre; };
+    await paso('R3 pausas: la obra que termina para el reloj con su motivo; el ajuste cambia', 'musculo', async () => {
+      await mkdir(CAPS_TAREA, { recursive: true });
+      const tarea = async nombre => { await page.screenshot({ path: join(CAPS_TAREA, nombre), type: 'jpeg', quality: 80 }); return nombre; };
       await cierraAvisos(); await estado(() => { UI.modalQ = []; UI.modalOpen = false; document.getElementById('modal').hidden = true; const inf = document.getElementById('inf'); if (inf) inf.remove(); });
       await estado(() => document.querySelector('#tabs3 [data-v="ciudad"]').click()); await espera(1200);
       await estado(() => { const s = Game.state; if (s.ajustes) { s.ajustes.asesor = false; s.ajustes.pausas = 'todas'; } s.speed = 0; UI.pausa = null; const inf = document.getElementById('inf'); if (inf) inf.remove(); for (const r in s.res) s.res[r] = Math.max(s.res[r], 900); });
@@ -609,8 +632,8 @@ async function navegador() {
       return { ok, detalle: ok ? 'la obra para el reloj («' + m.txt.slice(0, 60) + '»); «Continuar» lo reanuda; el ajuste cambia a «graves» y vuelve a «todas»' : JSON.stringify({ emp, salio, m, sigue, hay, cambia, norm, alto }), captura: f1 };
     });
 
-    await paso('R4 aviso del asesor: una frase corta que se lee entera', async () => {
-      const tarea = async nombre => { await page.screenshot({ path: join(RAIZ, 'gobierno', 'capturas-tarea', nombre), type: 'jpeg', quality: 80 }); return nombre; };
+    await paso('R4 aviso del asesor: una frase corta que se lee entera', 'musculo', async () => {
+      const tarea = async nombre => { await page.screenshot({ path: join(CAPS_TAREA, nombre), type: 'jpeg', quality: 80 }); return nombre; };
       await cierraAvisos(); await estado(() => { UI.modalQ = []; UI.modalOpen = false; document.getElementById('modal').hidden = true; const inf = document.getElementById('inf'); if (inf) inf.remove(); const s = Game.state; s.speed = 0; UI.pausa = null; if (s.ajustes) { s.ajustes.asesor = true; s.ajustes.vistos = []; delete s.ajustes.asesorMes; delete s.ajustes.asesorMs; } UI.modo3 = 'mirar'; UI.linK = null; });
       await estado(() => document.querySelector('#tabs3 [data-v="ciudad"]').click()); await espera(800);
       const salio = await page.waitForFunction(() => { const l = document.getElementById('linea'); return l && !l.hidden && /leccion/.test(l.className); }, null, { timeout: 20000 }).then(() => true, () => false);
@@ -622,7 +645,7 @@ async function navegador() {
       return { ok, detalle: ok ? '«' + m.txt + '» (' + m.n + ' caracteres, ' + Math.round(m.alto) + ' px de alto)' : JSON.stringify({ salio, m }), captura: f };
     });
 
-    await paso('Región de Italia: mapa con 7 ciudades', async () => {
+    await paso('Región de Italia: mapa con 7 ciudades', 'musculo', async () => {
       await page.evaluate(() => Game.save());
       await page.reload({ waitUntil: 'load' });
       await page.waitForSelector('#menu [data-act="newregion"]', { timeout: 30000 });
@@ -634,7 +657,7 @@ async function navegador() {
       return { ok, detalle: ok ? '7 ciudades visibles, ' + r.rutas + ' rutas' : 'región ' + r.reg + ', visibles ' + r.vis + ', fantasmas ' + r.fantasmas, captura: await foto('italia') };
     });
 
-    await paso('I8 partida corta: menú, en pie, fundar, continuar y final con resumen', async () => {
+    await paso('I8 partida corta: menú, en pie, fundar, continuar y final con resumen', 'musculo', async () => {
       const recarga = async () => { await page.evaluate(() => Game.save()); await page.reload({ waitUntil: 'load' }); await page.waitForSelector('#menu [data-act="hoja"][data-v="corta"]', { timeout: 30000 }); await page.waitForFunction(() => window.UI && window.UI.cityV && window.UI.cityV.listo, null, { timeout: 90000 }).catch(() => { }); };
       await recarga();   // el menú vuelve a estar a la vista (la partida de Italia seguía abierta)
       const abreCorta = async () => { await page.click('#menu [data-act="hoja"][data-v="corta"]'); await espera(400); };
@@ -670,13 +693,13 @@ async function navegador() {
   } finally {
     await br.close().catch(() => { }); srv.close();
   }
-  apunta('Sin errores de consola', errores.length === 0, errores.length ? errores.length + ' error(es): ' + errores.slice(0, 3).join(' ‖ ') : '');
+  apunta('Sin errores de consola' + (AREA ? ' (pasos de ' + AREA + ')' : ''), errores.length === 0, errores.length ? errores.length + ' error(es): ' + errores.slice(0, 3).join(' ‖ ') : '');
 }
 
 if (!RAPIDO) await navegador();
 
 /* ---------- 2. Juez de la guerra jugada de verdad (GC2: gobierno/juez-guerra.mjs, ~4 min, hasta 30 en una máquina lenta; solo en el recorrido completo) ---------- */
-if (!RAPIDO) {
+if (!RAPIDO && !AREA) {   // con --area batallas, juez-area.mjs lo pasa aparte
   console.log('Juez 2 · Guerra jugada de verdad (gobierno/juez-guerra.mjs)');
   const r = spawnSync(process.execPath, ['gobierno/juez-guerra.mjs'], { cwd: RAIZ, encoding: 'utf8', timeout: 1800000 });
   const lineas = (r.stdout || '').split('\n'), mal = lineas.filter(l => /MAL:|^prueba:|^consola:|^excepción:/.test(l)), avisos = lineas.filter(l => /AVISO/.test(l)).length, bien = lineas.filter(l => /^\s*bien:/.test(l)).length;
@@ -684,7 +707,7 @@ if (!RAPIDO) {
 }
 
 const fallos = pasos.filter(p => !p.ok);
-const informe = { fecha: new Date().toISOString(), segundos: Math.round((Date.now() - t0) / 1000), ok: fallos.length === 0, rapido: RAPIDO, pasos, errores };
+const informe = { fecha: new Date().toISOString(), segundos: Math.round((Date.now() - t0) / 1000), ok: fallos.length === 0, rapido: RAPIDO, area: AREA, pasos, errores };
 if (!RAPIDO) await writeFile(join(CAPS, 'informe.json'), JSON.stringify(informe, null, 1));
-console.log('\n' + (informe.ok ? 'VEREDICTO: APTO' : 'VEREDICTO: NO APTO (' + fallos.length + ' fallo' + (fallos.length > 1 ? 's' : '') + ')') + ' · ' + pasos.length + ' comprobaciones · ' + informe.segundos + ' s' + (RAPIDO ? '' : ' · capturas en gobierno/capturas/'));
+console.log('\n' + (informe.ok ? 'VEREDICTO: APTO' : 'VEREDICTO: NO APTO (' + fallos.length + ' fallo' + (fallos.length > 1 ? 's' : '') + ')') + ' · ' + pasos.length + ' comprobaciones · ' + informe.segundos + ' s' + (AREA ? ' · área ' + AREA : '') + (RAPIDO ? '' : ' · capturas en ' + CAPS.slice(RAIZ.length + 1) + '/'));
 process.exit(informe.ok ? 0 : 1);
