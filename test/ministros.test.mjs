@@ -11,8 +11,8 @@ const J = x => JSON.stringify(x);
 t('ocho ministros con bando y cargo', () => {
   assert.strictEqual(M.DATOS.length, 8); assert.strictEqual(M.ORDEN.length, 8);
   const cargos = { ejercito: 'Legado', ciencia: 'Sabio', infra: 'Censor', hacienda: 'Cuestor', agricultura: 'Edil del grano', mineria: 'Publicano de minas', artesania: 'Edil del mercado', culto: 'Pontífice' };
-  const bandos = { ejercito: 'mil', ciencia: 'pro', infra: 'pue', hacienda: 'mer', agricultura: 'ter', mineria: 'mil', artesania: 'ita', culto: 'sac' };
-  for (const f of M.DATOS) { assert.ok(D.BANDOS[f.bando], f.id); assert.strictEqual(f.cargo, cargos[f.id]); assert.strictEqual(f.bando, bandos[f.id]); assert.ok(f.nota.startsWith('Licencia de juego')); }
+  const bandos = { ejercito: 'mil', ciencia: null, infra: 'pue', hacienda: 'mer', agricultura: 'ter', mineria: 'pro', artesania: 'ita', culto: 'sac' };
+  for (const f of M.DATOS) { assert.ok(f.bando === null || D.BANDOS[f.bando], f.id); assert.strictEqual(f.cargo, cargos[f.id]); assert.strictEqual(f.bando, bandos[f.id]); assert.ok(f.nota.startsWith('Licencia de juego')); }
 });
 t('migrar crea el estado y es idempotente', () => {
   const s = nueva(); M.migrar(s); const a = J(s.ministros); M.migrar(s); assert.strictEqual(J(s.ministros), a);
@@ -202,4 +202,12 @@ t('fiesta: reposo contado desde la celebración', () => {
   assert.ok(!M.ordenes(s, 10 + F.reposo - 1).find(x => x.tipo === 'fiesta'));
   assert.ok(M.ordenes(s, 10 + F.reposo).find(x => x.tipo === 'fiesta'));
 });
-console.log(n + ' bien, ' + mal + ' mal'); process.exit(mal ? 1 : 0);
+t('ciencia sin bando: cumple sin humor y sin romper (usuario, 23/11)', () => {
+  const s = G.newGame('Test', 'mediterraneo', {}); G.onEvent = null; s.inv = s.inv || { hechas: {}, edad: 1 };
+  const id = Object.keys(D.INVEST).find(k => !s.inv.hechas[k] && D.INVEST[k].edad <= (s.inv.edad || 1));
+  assert.ok(M.encargar(s, 'ciencia', { tipo: 'saber', saber: id }, 0).ok); s.inv.hechas[id] = true;
+  const r = M.revisar(s, 1); assert.deepStrictEqual(r.cumplidos, ['ciencia']); assert.ok(!r.efectos.some(x => x.tipo === 'humor'));
+  assert.strictEqual(M.estado(s, 1).find(x => x.id === 'ciencia').familia, null);
+});
+console.log(n + ' bien, ' + mal + ' mal');
+process.exit(mal ? 1 : 0);

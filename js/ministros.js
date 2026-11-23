@@ -11,11 +11,11 @@
   const L = 'Licencia de juego: ';
   M.DATOS = [
     { id: 'ejercito', area: 'Ejército', cargo: 'Legado', i: '🛡️', bando: 'mil', edificios: ['cuartel', 'establo', 'herreria', 'muralla', 'guardia'], tipos: ['nivel', 'tropas'], nota: L + 'el mando delegado lo ejercían los legados.' },
-    { id: 'ciencia', area: 'Ciencia', cargo: 'Sabio', i: '📜', bando: 'pro', edificios: ['escuela'], tipos: ['saber'], nota: L + 'el «Sabio» no existía; reparte el saber entre los provinciales.' },
+    { id: 'ciencia', area: 'Ciencia', cargo: 'Sabio', i: '📜', bando: null, edificios: ['escuela'], tipos: ['saber'], nota: L + 'el «Sabio» no existía; no encabeza ningún bando (usuario, 23/11).' },
     { id: 'infra', area: 'Infraestructura', cargo: 'Censor', i: '🏛️', bando: 'pue', edificios: ['fuente', 'cloaca', 'termas', 'medico', 'acueducto', 'jardin', 'parque'], tipos: ['nivel', 'reserva'], nota: L + 'los censores contrataban las obras públicas (Livio 9.29; Frontino 1.5).' },
     { id: 'hacienda', area: 'Hacienda', cargo: 'Cuestor', i: '💰', bando: 'mer', edificios: ['foro', 'almacen'], tipos: ['impuesto', 'reserva'], nota: L + 'los cuestores guardaban el tesoro.' },
     { id: 'agricultura', area: 'Agricultura', cargo: 'Edil del grano', i: '🌾', bando: 'ter', edificios: ['granja', 'granero'], tipos: ['nivel', 'reserva'], nota: L + 'los ediles cuidaban el grano (Cicerón, Leyes 3.7).' },
-    { id: 'mineria', area: 'Minería', cargo: 'Publicano de minas', i: '⛏️', bando: 'mil', edificios: ['cantera', 'mina', 'aserradero'], tipos: ['nivel', 'reserva'], nota: L + 'los censores arrendaban las minas a publicanos (Polibio 6.17).' },
+    { id: 'mineria', area: 'Minería', cargo: 'Publicano de minas', i: '⛏️', bando: 'pro', edificios: ['cantera', 'mina', 'aserradero'], tipos: ['nivel', 'reserva'], nota: L + 'los censores arrendaban las minas a publicanos (Polibio 6.17).' },
     { id: 'artesania', area: 'Artesanía y comercio', cargo: 'Edil del mercado', i: '🏺', bando: 'ita', edificios: ['mercado', 'puerto', 'taller'], tipos: ['nivel', 'acto'], actos: ['ruta'], nota: L + 'los ediles vigilaban mercados y pesos (Cicerón, Leyes 3.7).' },
     { id: 'culto', area: 'Culto y fiestas', cargo: 'Pontífice', i: '🔱', bando: 'sac', edificios: ['templo', 'teatro'], tipos: ['nivel', 'acto'], actos: ['juegos', 'ofrenda'], nota: L + 'los pontífices regían el culto; los ediles, los juegos.' }
   ];
@@ -291,7 +291,7 @@
     const humor = (bando, d) => r.efectos.push({ tipo: 'humor', bando, d, activo: activos.indexOf(bando) >= 0 });
     for (const mid of M.ORDEN) {
       const e = m.encargos[mid]; if (!e) continue;
-      const f = FICHA[mid], B = D.BANDOS[f.bando];
+      const f = FICHA[mid], B = f.bando ? D.BANDOS[f.bando] : null;
       if (e.ciudad && !(s.cities[e.ciudad] && s.cities[e.ciudad].owner === 'roma')) {
         m.perdidos[mid]++; m.encargos[mid] = null; delete m.avisos[mid]; r.fallidos.push(mid); r.perdidos.push(mid);
         r.efectos.push({ tipo: 'log', texto: 'El encargo se pierde con la ciudad', tono: 'bad' });
@@ -299,13 +299,13 @@
       }
       if (M.medir(s, e) >= e.objetivo) {
         m.hechos[mid]++; m.encargos[mid] = null; delete m.avisos[mid]; r.cumplidos.push(mid);
-        humor(f.bando, M.PREMIO); for (const rv of B.rival) humor(rv, -1);
-        r.efectos.push({ tipo: 'log', texto: '🏛️ El ' + f.cargo.toLowerCase() + ' cumple: ' + e.texto + '. Contenta a los ' + B.fam + ' (+' + M.PREMIO + ').', tono: 'good' });
+        if (B) { humor(f.bando, M.PREMIO); for (const rv of B.rival) humor(rv, -1); }
+        r.efectos.push({ tipo: 'log', texto: '🏛️ El ' + f.cargo.toLowerCase() + ' cumple: ' + e.texto + (B ? '. Contenta a los ' + B.fam + ' (+' + M.PREMIO + ').' : '.'), tono: 'good' });
         m.propuestas[mid] = M.proponer(s, mid, mes);
       } else if (mes > e.plazo) {
         m.fallos[mid]++; m.encargos[mid] = null; delete m.avisos[mid]; r.fallidos.push(mid);
-        humor(f.bando, M.CASTIGO);
-        r.efectos.push({ tipo: 'log', texto: '🏛️ El ' + f.cargo.toLowerCase() + ' no llegó a tiempo: ' + e.texto + '. Disgusta a los ' + B.fam + ' (' + M.CASTIGO + ').', tono: 'bad' });
+        if (B) humor(f.bando, M.CASTIGO);
+        r.efectos.push({ tipo: 'log', texto: '🏛️ El ' + f.cargo.toLowerCase() + ' no llegó a tiempo: ' + e.texto + (B ? '. Disgusta a los ' + B.fam + ' (' + M.CASTIGO + ').' : '.'), tono: 'bad' });
       }
     }
     return r;
@@ -317,7 +317,7 @@
     return M.DATOS.map(f => {
       const e = m.encargos[f.id], p = m.propuestas[f.id];
       return {
-        id: f.id, area: f.area, cargo: f.cargo, i: f.i, bando: f.bando, familia: D.BANDOS[f.bando].fam,
+        id: f.id, area: f.area, cargo: f.cargo, i: f.i, bando: f.bando, familia: f.bando ? D.BANDOS[f.bando].fam : null,
         encargo: e ? { texto: e.texto, progreso: M.progreso(s, e), plazoEst: Math.max(0, Math.ceil((e.plazo - mes) / D.TURNO_MESES)) } : null,
         propuesta: p ? { texto: p.texto } : null,
         aviso: m.avisos[f.id] || '', hechos: m.hechos[f.id] || 0, fallos: m.fallos[f.id] || 0
