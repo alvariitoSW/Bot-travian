@@ -11,6 +11,18 @@ con él en esta sesión. Sirve a **L1** (una ciudad que construyes y ves crecer)
 - Ministros: **«8: añadir Culto y fiestas»**, más el arquitecto y el gobernador.
 - Plan del Senado: **«Obras + prioridad»**.
 
+## Decisiones cerradas (23/11, segunda ronda, «que me pregunten y evitar cuellos de botella»)
+| Tarea | Pregunta | Respuesta del usuario |
+|---|---|---|
+| CD1 | Parques y jardines | **En Infraestructura** |
+| CD1 | Vista | **Arriba fija, acercar con dos dedos** (sin girar ni inclinar) |
+| CD0b | Estilos del concurso | **Plano pintado, 3D real desde arriba y Mapa antiguo ilustrado** (tres) |
+| CD2 | Calles | **El arquitecto solo propone**: se pueden dejar torcidas; la cuadrícula da algo más de orden y limpieza |
+| CD3 | Ministros y bandos | **Cada ministro es jefe de un bando**: cumplir sus encargos contenta a su bando y da votos |
+| CD3 | Libertad | **Cumplen y proponen**: al acabar, proponen el siguiente encargo y se acepta con un toque |
+| CD4 | Plan rechazado | **Cambias y votas otra vez** en la misma estación |
+| CD5 | Dureza | **Duro**: un barrio mal mucho tiempo puede acabar en **revuelta** (deja de obedecer; se calma con tropas, grano o juegos) |
+
 ## 1. La vista grande desde arriba es la base (CD1)
 La ciudad se mira **desde arriba**, como un plano pintado (Iberus), a pantalla casi completa. Fuera la bandeja de fichas.
 Arriba, una barra fina de recursos y fecha. Abajo, tres botones: **Construir**, **Ministros**, **Senado**. Sale de la
