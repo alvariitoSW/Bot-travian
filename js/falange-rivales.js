@@ -162,6 +162,9 @@ const suave = u => { const t = Math.min(1, Math.max(0, u)); return t * t * (3 - 
 /* centro del cuerpo del muro, en el mundo */
 const centro = S => { const p = pivote(S), g = giroDe(S); return { x: p.x - Math.sin(g) * CUERPO, z: p.z + Math.cos(g) * CUERPO }; };
 /* punto del mundo a la vista del muro: delante (m por delante del pivote) y lado (m a su derecha) */
+/* FA4 (nota del usuario, 23/11: «si giro me siguen los enemigos»): elefantes y muros rivales no giran con tu muro. Se colocan en el
+   eje del campo (giro 0) por delante de tu pivote; si tú giras, te llegan de lado. La regla ya medía «encarada» con |giro| ≤ ENCARA. */
+const enCampo = (S, delante, lado) => { const p = pivote(S); return { x: p.x + lado, z: p.z - delante }; };
 const enMuro = (S, delante, lado) => { const p = pivote(S), g = giroDe(S); return { x: p.x + Math.sin(g) * delante + Math.cos(g) * lado, z: p.z - Math.cos(g) * delante + Math.sin(g) * lado }; };
 
 /* Variedad de una partida (con el pivote en el origen y el muro mirando a -z): qué rival, por qué lado llega el primer flanco
@@ -304,10 +307,10 @@ const elefantes = {
       riv.fase = 'pausa'; riv.tl = T + ELE_PAUSA;
     } else if (riv.fase === 'pausa' && T >= riv.tl) {
       riv.fase = 'carga'; riv.tFase = T; riv.tl = T + ELE_BARRITO; riv.carga++; avisa(S, 'barrito', { t: ELE_BARRITO });
-      for (const b of enJuego) { b.est = 'carga'; b.toca = null; }
+      for (const b of enJuego) { b.est = 'carga'; b.toca = null; b.d0 = b.d; }   /* FA4: carga desde donde está, sin salto */
     } else if (riv.fase === 'carga') {
       const u = (T - riv.tFase) / ELE_BARRITO;
-      for (const b of enJuego) if (b.est === 'carga' && b.contacto !== riv.carga) b.d = 40 - (40 - 0.5) * Math.min(1, u);
+      for (const b of enJuego) if (b.est === 'carga' && b.contacto !== riv.carga) { const d0 = b.d0 ?? 40; b.d = d0 - (d0 - 0.5) * Math.min(1, u); }
       if (T >= riv.tl) { for (const b of enJuego) if (b.est === 'carga' && (!llamaChoque(S) || b.contacto !== riv.carga)) elefantes.choque(S, b); riv.fase = 'espera'; riv.tFase = T; }
     }
     for (const b of riv.bestias) {
@@ -347,9 +350,9 @@ const elefantes = {
 };
 /* bestias y escolta, a la vista del muro (por delante; d = metros por delante del pivote) */
 function colocaEle(S, riv) {
-  const g = giroDe(S);
-  for (const b of riv.bestias) { if (!b.vivo) continue; const q = enMuro(S, b.d, b.l); b.x = q.x; b.z = q.z; b.yaw = (b.est === 'carga' || b.est === 'lista' ? -g : Math.PI - g); }
-  for (const h of riv.hombres) { if (!h.vivo) continue; const q = enMuro(S, h.est === 'cuela' ? 0.8 : 46, h.l); h.x = q.x; h.z = q.z; h.yaw = -g; }
+  const g = 0;
+  for (const b of riv.bestias) { if (!b.vivo) continue; const q = enCampo(S, b.d, b.l); b.x = q.x; b.z = q.z; b.yaw = (b.est === 'carga' || b.est === 'lista' ? -g : Math.PI - g); }
+  for (const h of riv.hombres) { if (!h.vivo) continue; const q = enCampo(S, h.est === 'cuela' ? 0.8 : 46, h.l); h.x = q.x; h.z = q.z; h.yaw = -g; }
 }
 
 /* ================= EMPUJE: falange rival y muro hoplita ================= */
@@ -407,9 +410,9 @@ function creaEmpuje(nombre) {
   };
   /* filas del rival delante del muro; la línea (S.riv.linea) no las mueve: eso lo decide quien dibuja */
   function coloca(S, riv, b) {
-    const z0 = nombre === 'hoplitas' && b < 3 ? 1.5 : riv.contacto /* el hoplita se queda a la punta de las sarisas; con menos de 3 filas se mete debajo */, g = giroDe(S);
+    const z0 = nombre === 'hoplitas' && b < 3 ? 1.5 : riv.contacto /* el hoplita se queda a la punta de las sarisas; con menos de 3 filas se mete debajo */, g = 0;
     const clave = z0 + '|' + g + '|' + pivote(S).x + '|' + pivote(S).z + '|' + riv.hombres.filter(h => h.vivo).length; if (riv.clave === clave) return; riv.clave = clave;
-    for (const h of riv.hombres) { if (!h.vivo) continue; const q = enMuro(S, z0 + h.r * 0.95, (h.f - 5.5) * 0.78); h.x = q.x; h.z = q.z; h.yaw = -g; }
+    for (const h of riv.hombres) { if (!h.vivo) continue; const q = enCampo(S, z0 + h.r * 0.95, (h.f - 5.5) * 0.78); h.x = q.x; h.z = q.z; h.yaw = -g; }
   }
   return R;
 }

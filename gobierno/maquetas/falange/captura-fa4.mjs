@@ -121,6 +121,8 @@ const FOTOS = {
   'h-estocada': ['estocada', Hz], 'h-caidos': ['caidos', Hz], 'v-choque': ['choque', V], 'v-giro': ['girofl', V],
   /* el enchufe de FA7: con rival.js, al rival lo pinta su módulo */
   'h-rival-elefantes': ['choque&rival=elefantes', Hz], 'h-rival-caballeria': ['choque&rival=caballeria', Hz],
+  /* nota del usuario (23/11): al girar, los elefantes no giran contigo */
+  'h-alto-elefantes-giro': ['giro&rival=elefantes&alto=1', Hz],
 };
 if (!args.includes('sinfotos')) for (const [nombre, [fase, [fw, fh]]] of Object.entries(FOTOS)) {
   if (solo && !solo.includes(nombre)) continue;
