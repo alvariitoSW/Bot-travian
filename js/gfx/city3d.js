@@ -174,11 +174,12 @@ const matBulto = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE
 
 /* ---------- cámara: gira alrededor de un punto del suelo (de la maqueta; el tamaño es el del contenedor, no el de la ventana) ---------- */
 export const cam = { tx: 0, tz: -20, d: 640, az: 0, el: 0 };
+const PLANO_EL = 80;                               // CV1: elevación de la vista de plano, en grados
 const camara = new THREE.PerspectiveCamera(38, 1, 2, 20000);
 const vista = { w: 1, h: 1 };                      // tamaño del lienzo
 let desvio = 0;                                    // desplazamiento vertical de la imagen (para dejar sitio a la ficha)
 export function ponerCamara() {
-  cam.d = Math.max(30, Math.min(1050, cam.d)); cam.tx = Math.max(-430, Math.min(430, cam.tx)); cam.tz = Math.max(-440, Math.min(400, cam.tz));
+  cam.d = Math.max(30, Math.min(cam.dMax || 1050, cam.d)); cam.tx = Math.max(-430, Math.min(430, cam.tx)); cam.tz = Math.max(-440, Math.min(400, cam.tz));
   const k = Math.min(1, Math.max(0, (cam.d - 120) / 700)); cam.el = cam.elF || (21 + 13 * k * (2 - k)) * Math.PI / 180;
   const ty = altura(cam.tx, cam.tz); camara.position.set(cam.tx + Math.sin(cam.az) * Math.cos(cam.el) * cam.d, ty + Math.sin(cam.el) * cam.d, cam.tz + Math.cos(cam.az) * Math.cos(cam.el) * cam.d);
   camara.position.y = Math.max(camara.position.y, altura(camara.position.x, camara.position.z) + 2);
@@ -211,7 +212,7 @@ const ANCLAS = [
 for (const a of ANCLAS) { a.dir = new THREE.Vector3(...a.dir).normalize(); for (const k of ['sol', 'hc', 'hg', 'h']) a[k] = new THREE.Color(a[k]); }
 const ORO = { sol: new THREE.Color('#ff8f3c'), h: new THREE.Color('#e2a574'), hc: new THREE.Color('#d8a888') };
 const _c1 = new THREE.Color(), _sm = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
-let estSol = -1, luzT = NaN, cieloU = null, noche = 0, estK = 1, estF = 0;
+let nieblaBase = 0.00029, nieblaK = 1, estSol = -1, luzT = NaN, cieloU = null, noche = 0, estK = 1, estF = 0;
 /* CN15a: estación actual para quien la necesite. k = ancla de la que se parte (0 primavera, 1 verano, 2 otoño, 3 invierno; el índice A de luz()), f = mezcla suave hacia la siguiente (0..1), ks = estación del calendario */
 export function estacionActual() { return { k: estK, f: estF, ks: estSol < 0 ? estK : estSol }; }
 function luz() {
@@ -222,7 +223,7 @@ function luz() {
   if (ks !== estSol) { estSol = ks; SOL.copy(ANCLAS[ks].dir); sol.position.set(0, 0, -70).addScaledVector(SOL, 1500); if (cieloU) cieloU.uSol.value.copy(SOL); sombraPend = true; }
   sol.color.copy(A.sol).lerp(B.sol, f).lerp(ORO.sol, oro * 0.75); sol.intensity = (A.si + (B.si - A.si) * f) * (1 - 0.3 * oro);
   hemi.color.copy(A.hc).lerp(B.hc, f).lerp(ORO.hc, oro * 0.45); hemi.groundColor.copy(A.hg).lerp(B.hg, f); hemi.intensity = (A.hi + (B.hi - A.hi) * f) * (1 - 0.18 * oro);
-  _c1.copy(A.h).lerp(B.h, f).lerp(ORO.h, oro * 0.5); scene.background.copy(_c1); scene.fog.color.copy(_c1); scene.fog.density = A.fog + (B.fog - A.fog) * f;
+  _c1.copy(A.h).lerp(B.h, f).lerp(ORO.h, oro * 0.5); scene.background.copy(_c1); scene.fog.color.copy(_c1); nieblaBase = A.fog + (B.fog - A.fog) * f; scene.fog.density = nieblaBase * nieblaK;
   if (cieloU) for (const c of cieloU.uH) c.copy(_c1);
 }
 const sol = new THREE.DirectionalLight('#ffdfb4', 3.3), hemi = new THREE.HemisphereLight('#b6c6de', '#927252', 1.45);
@@ -698,7 +699,7 @@ export class CityView3D {
     if (!this.listo) { renderer.render(scene, camara); return; }
     const Gm = window.Game, e = Gm && Gm.ciudadE ? Gm.ciudadE(id) : null;
     if (e !== E || !sueloJ) { mundo(e); this.view('ciudad'); this._sel = null; }
-    if (sel !== this._sel) { this._sel = sel || null; const p = sel && this.posDe(sel); if (p) this.camA = { t0: performance.now(), de: { tx: cam.tx, tz: cam.tz, d: cam.d }, tx: p.x, tz: p.z, d: Math.min(cam.d, 300) }; }
+    if (sel !== this._sel) { this._sel = sel || null; const p = sel && this.posDe(sel); if (p) { if (this._plano) this.plano(false, { tx: p.x, tz: p.z, d: 300, az: cam.az }); else this.camA = { t0: performance.now(), de: { tx: cam.tx, tz: cam.tz, d: cam.d }, tx: p.x, tz: p.z, d: Math.min(cam.d, 300) }; } }
     if (this.camA) { const u = Math.min(1, (performance.now() - this.camA.t0) / 900), f = 1 - Math.pow(1 - u, 3), A = this.camA; cam.tx = A.de.tx + (A.tx - A.de.tx) * f; cam.tz = A.de.tz + (A.tz - A.de.tz) * f; cam.d = A.de.d + (A.d - A.de.d) * f; if (u >= 1) this.camA = null; }
     /* la ficha tapa la parte de abajo: la imagen sube para que el punto mirado quede en el centro de lo que se ve */
     const H = vista.h, top = this.fichaTop ? this.fichaTop - host.getBoundingClientRect().top : 0;
@@ -706,6 +707,7 @@ export class CityView3D {
     this.shift += (this.shiftT - this.shift) * 0.15; if (Math.abs(this.shift - desvio) > 0.4) desvio = this.shift; else if (!this.shiftT && Math.abs(this.shift) < 0.4) desvio = 0;
     obrasLista = city && city.obras || null;
     if (this.cont) cam.az += dt * 0.12;
+    this.planoPaso();
     ponerCamara();
     this.people(city, t, dt);
     this.sonar(city, id);
@@ -760,9 +762,36 @@ export class CityView3D {
     cv.addEventListener('contextmenu', e => e.preventDefault());
   }
   zoom(f) { cam.d /= f; ponerCamara(); }
+  /* CV1: vista de plano. Cámara casi a plomo que encuadra la urbe entera y sin bruma. Solo vista; no toca reglas ni datos. */
+  get enPlano() { return !!this._plano; }
+  plano(on, hacia, ya) {
+    on = !!on; if (on === !!this._plano && !ya) return; if (on === !!this._plano && ya && !this.planoA) return;
+    const now = performance.now(), de = { tx: cam.tx, tz: cam.tz, d: cam.d, az: cam.az, el: cam.el, nk: nieblaK };
+    const kEl = d => { const k = Math.min(1, Math.max(0, (d - 120) / 700)); return (21 + 13 * k * (2 - k)) * Math.PI / 180; };
+    let a;
+    if (on) {
+      this.camA = null; this._prev = { tx: cam.tx, tz: cam.tz, d: cam.d, az: cam.az, elF: cam.elF || 0 };
+      const u = E && E.urbe, f = E && E.foro, R = (u && u.RU ? Math.max(...u.RU) + 7 : 300), cx = f ? f.x : 0, cz = f ? f.z : -20, asp = vista.w / Math.max(1, vista.h), fov = vista.w < vista.h ? 50 : 38;
+      const tv = Math.tan(fov * Math.PI / 360), th = Math.min(tv, tv * asp);
+      a = { tx: cx, tz: cz, d: Math.min(4000, R * 1.4 / th), az: cam.az, el: PLANO_EL * Math.PI / 180, nk: 0.02 }; cam.dMax = 4000; this._plano = true;
+    } else {
+      const P = hacia || this._prev || { tx: cam.tx, tz: cam.tz, d: Math.min(cam.d, 640), az: cam.az, elF: 0 }, efi = P.elF || 0;
+      a = { tx: P.tx, tz: P.tz, d: P.d, az: P.az === undefined ? cam.az : P.az, el: efi || kEl(P.d), nk: 1, fin: true, elF: efi }; this._plano = false; this._prev = null;
+    }
+    if (!de.el) de.el = kEl(de.d);
+    if (ya) { this.planoA = null; Object.assign(cam, { tx: a.tx, tz: a.tz, d: a.d, az: a.az, elF: a.elF || 0 }); nieblaK = a.nk; if (scene.fog) scene.fog.density = nieblaBase * nieblaK; if (!on) delete cam.dMax; ponerCamara(); return; }
+    cam.elF = de.el; this.planoA = { t0: now, de, a }; if (this.opts && this.opts.onPlano && !hacia) this.opts.onPlano(on);
+  }
+  planoPaso() {
+    const A = this.planoA;
+    if (A) { const u = Math.min(1, (performance.now() - A.t0) / 800), f = u * u * (3 - 2 * u), d = A.de, a = A.a, L = (x, y) => x + (y - x) * f;
+      cam.tx = L(d.tx, a.tx); cam.tz = L(d.tz, a.tz); cam.d = Math.exp(L(Math.log(d.d), Math.log(a.d))); cam.az = L(d.az, a.az); cam.elF = L(d.el, a.el); nieblaK = L(d.nk, a.nk); scene.fog.density = nieblaBase * nieblaK;
+      if (u >= 1) { this.planoA = null; if (a.fin) { cam.elF = a.elF || 0; delete cam.dMax; } } }
+    else if (this._plano && cam.d < 300) { this.plano(false, { tx: cam.tx, tz: cam.tz, d: cam.d, az: cam.az }); if (this.opts && this.opts.onPlano) this.opts.onPlano(false); }
+  }
   /* vistas rápidas: ciudad entera, calle o ejército */
   view(name) {
-    this.camA = null; cam.elF = 0; const f = E && E.foro, vert = vista.w < vista.h;
+    this.plano(false, null, true); this.camA = null; cam.elF = 0; const f = E && E.foro, vert = vista.w < vista.h;
     if (name === 'calle') { let v = null, mejor = 0; if (E && E.vias && E.parcelas) { const nc = {}; for (const l of E.parcelas) if (l.casa && !l.fuera) nc[l.via] = (nc[l.via] || 0) + 1; for (const q of E.vias) if (q.p && q.p.length > 1 && q.largo >= 40 && (nc[q.id] || 0) > mejor) { mejor = nc[q.id]; v = q; } }      // la vía con más casas, vista a lo largo
       if (v) { const p = v.p; let sx = 0, sz = 0, n = 0; for (const l of E.parcelas) if (l.casa && !l.fuera && l.via === v.id) { sx += l.x; sz += l.z; n++; } sx /= n || 1; sz /= n || 1;      // el centro de las casas de esa vía
         let k = 0, dm = 1e9; p.forEach((q, i) => { const dd = Math.hypot(q[0] - sx, q[1] - sz); if (dd < dm) { dm = dd; k = i; } }); const i0 = Math.max(0, k - 2), i1 = Math.min(p.length - 1, k + 2), a = p[i0], b = p[k]; cam.tx = b[0]; cam.tz = b[1]; cam.az = Math.atan2(-(p[i1][0] - a[0]), -(p[i1][1] - a[1])); } else { cam.tx = f ? f.x : 0; cam.tz = f ? f.z + 20 : 0; cam.az = 0.25; }
