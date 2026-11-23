@@ -22,3 +22,10 @@
 - **Publicar el pilum** (PIL2): falta su «publícalo»; cómo subirlo sin arrastrar lo demás, en el parte de relevo.
 - **Publicar el menú despejado** (MD1) y si las pestañas «Lo hago yo · Encargar · Gobernador» siguen ocultas.
 **Cuentas**: sin agentes. Esta sesión corrió con el modelo que tenía configurado (Fable), no con Opus como manda la regla del 18/11: el relevo la abrió así; lo dejo dicho para que el vigía lo corrija en la siguiente. Gasto: la cifra de `gasto.mjs` de esta sesión.
+
+## Subida (23/11, por orden del usuario: «Sí a lo recomendado», «Subir ya»)
+Subida a la rama del juego **solo la ciudad: CV1 + CV4a** (la prueba de cuartel, quitada de `city3d.js`; MD1 fuera, espera respuesta del usuario).
+**Jueces completos** (dos pasadas, la segunda sobre v146 con la ciudad sola): 42 de 43 bien (3687 s). Único fallo, **ajeno y ya publicado**: «Escaramuzas: Falange a pie» (el juez busca `#hoja a.esc-falange`; FA7 lo cambió a un botón con menú de rivales). El usuario decidió subir con ese fallo. Después se unieron cambios de batalla llegados durante la pasada (soldados de Meshy, `fisica-batalla.js`, `ui-escaramuza.js`): no tocan archivos de ciudad; juez del Cerebro repetido tras la unión.
+**PIL2 (pilum) NO subido** aunque el usuario lo pidió («Sí publícalo también»): choca con los soldados de Meshy. PIL2 cambia `assets/soldados/movimientos_escudo_*.bin` (añade «lanzar2») y rehace hastatus, triario, vélite y otros; entre tanto esos soldados se rehicieron con Meshy contra el archivo de movimientos antiguo y sin «lanzar2». **Pase → Batallas**: rehacer los soldados de Meshy con escudo incluyendo «lanzar2» (`tools/blender/pilum_tiro.py`, `construir.py`) y subir entonces PIL2. Lo de PIL2 queda en la rama `subida-ciudad` (sobre v144) y en `ccr-eda89860-50oj5c`.
+**Pase → Batallas / común**: poner al día el paso «Falange a pie» de `gobierno/jueces.mjs` (≈236–247).
+**Aviso**: al parar `jueces.mjs` a medias quedan procesos colgados un rato y el juez de guerra falla por tiempo; esperar antes de relanzar.
