@@ -1,8 +1,8 @@
 """AL5 · paso A «galo lancero aligerado»: el galo lancero que el usuario generó con Meshy (plan de pago, lote MS2),
 convertido en un modelo ligero con el esqueleto del juego, en cuatro niveles (fino, lejos, muylejos, fondo).
 Copia de tools/blender/hastatus_meshy_ligero.py (FA2-R), que no se toca. Cambios: origen GLB, topes de triángulos más
-bajos (sin armas ni escudo, y el peso por soldado es ≈0,5 MB), ángulo de desplegado UV mayor (menos costuras, menos
-vértices), centrado por las piernas, brazos sin el borde de la capa, cabeza, capucha y casco al hueso «head» (en el original esa línea quedó dentro de un comentario) y fotos AL5-*.
+bajos (sin armas ni escudo, y el peso por soldado es ≈0,6 MB), desplegado UV por zonas grandes (de AL2: menos costuras,
+menos vértices), centrado por las piernas, brazos sin el borde de la capa, cabeza, capucha y casco al hueso «head» (en el original esa línea quedó dentro de un comentario) y fotos AL5-*.
 
 Origen del modelo: generado por el usuario con Meshy (meshy.ai), plan de pago; salida propiedad del usuario, que la publica
 bajo CC BY-SA 3.0 citando a Meshy como herramienta. Refine 01a20a7d-30d2-7087-b698-51522e21f7b7 (GET /openapi/v2/text-to-3d/<id>).
@@ -26,8 +26,7 @@ ORIGEN = ARG.get('origen', ''); SAL = ARG.get('salida', '/tmp/r6'); FOTOS = ARG.
 ETAPA = int(ARG.get('etapa', 1)); MUESTRAS = int(ARG.get('muestras', 64))
 os.makedirs(SAL, exist_ok=True)
 def nota(*a): print('[AL5 %5.0fs]' % (time.time() - T0), *a, flush=True)
-NIVELES = [('fino', int(ARG.get('fino', 5000)), 2048, 0.012, 0.04), ('lejos', int(ARG.get('lejos', 1750)), 1024, 0.025, 0.07), ('muylejos', 788, 512, 0.05, 0.12), ('fondo', 374, 512, 0.07, 0.16)]
-ANGULO = float(ARG.get('angulo', 80))
+NIVELES = [('fino', int(ARG.get('fino', 7800)), 2048, 0.012, 0.04), ('lejos', int(ARG.get('lejos', 2500)), 1024, 0.025, 0.07), ('muylejos', 788, 512, 0.05, 0.12), ('fondo', 374, 512, 0.07, 0.16)]
 ALTO = 1.75; U_MAX = 0.75
 sc = bpy.context.scene
 def BL(P): P = np.asarray(P, float); return np.stack([P[:, 0], -P[:, 2], P[:, 1]], 1)      # juego -> Blender
@@ -78,17 +77,39 @@ if ETAPA == 1:
             if ntris(ob) <= tope: break
             objetivo *= 0.97
         nota('nivel', nombre, n0, '->', ntris(ob), 'triángulos'); BAJOS[nombre] = ob; fuente_ob = ob
-    # UV: islas estiradas en u, empaquetadas en el cuadrado y comprimidas al 75 % izquierdo
+    def costuras_por_zonas(ob, k=16, iters=3, semilla=0):
+        """Copiada de tools/blender/galo-rapido_meshy_ligero.py (AL2): costuras entre zonas grandes, no por ángulo. El «smart project» del hastatus partía la malla cerrada en islas
+        diminutas (3 827 vértices -> 10 916 al partir por UV). Aquí: 16 zonas por cercanía (k-medias de los centros de las caras)
+        y, dentro de cada una, 6 direcciones según la normal suavizada (delante, detrás, lados, arriba, abajo). Unas 90 islas
+        y ≈6 400 vértices en el fino; el 92 % de la superficie con menos de ×2 de estiramiento."""
+        import bmesh
+        me = ob.data; Pg = MH(verts(ob)); Tg = np.array([list(p.vertices) for p in me.polygons])
+        C = Pg[Tg].mean(1); Nf = np.cross(Pg[Tg[:, 1]] - Pg[Tg[:, 0]], Pg[Tg[:, 2]] - Pg[Tg[:, 0]]); Nf /= np.linalg.norm(Nf, axis=1, keepdims=True) + 1e-12
+        rng = np.random.default_rng(semilla); F = C * [1, 0.8, 1]; cen = F[rng.choice(len(F), k, replace=False)]
+        for _ in range(30):
+            lab = np.argmin(((F[:, None] - cen[None]) ** 2).sum(2), 1); cen = np.array([F[lab == i].mean(0) if (lab == i).any() else cen[i] for i in range(k)])
+        for _ in range(iters):
+            acc = np.zeros_like(Pg)
+            for c_ in range(3): np.add.at(acc, Tg[:, c_], Nf)
+            Nf = acc[Tg].mean(1)
+        Nf /= np.linalg.norm(Nf, axis=1, keepdims=True) + 1e-12
+        DIR = np.array([[0, 0, 1], [0, 0, -1], [1, 0, 0], [-1, 0, 0], [0, 0.8, 0], [0, -0.8, 0]])
+        lab = lab * 6 + np.argmax(Nf @ DIR.T, 1)
+        bm = bmesh.new(); bm.from_mesh(me); bm.faces.ensure_lookup_table()
+        for e in bm.edges: f_ = e.link_faces; e.seam = bool(len(f_) != 2 or lab[f_[0].index] != lab[f_[1].index])
+        bm.to_mesh(me); bm.free(); me.update()
+    # UV: islas por zonas (método de AL2), estiradas en u, empaquetadas en el cuadrado y comprimidas al 75 % izquierdo
     sc.tool_settings.use_uv_select_sync = True
     for nombre, ob in BAJOS.items():
         while len(ob.data.uv_layers): ob.data.uv_layers.remove(ob.data.uv_layers[0])
         ob.data.uv_layers.new(name='UVMap')
+        costuras_por_zonas(ob)                                    # islas grandes (menos vértices partidos = menos KB)
         sel_solo([ob], ob); bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.uv.smart_project(angle_limit=math.radians(ANGULO), island_margin=0.003); bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.uv.unwrap(method='ANGLE_BASED', margin=0.004); bpy.ops.object.mode_set(mode='OBJECT')
         uv = np.zeros(len(ob.data.loops) * 2); ob.data.uv_layers.active.data.foreach_get('uv', uv); uv = uv.reshape(-1, 2); uv[:, 0] /= U_MAX
         ob.data.uv_layers.active.data.foreach_set('uv', uv.ravel())
         bpy.ops.object.mode_set(mode='EDIT'); bpy.ops.mesh.select_all(action='SELECT')
-        bpy.ops.uv.pack_islands(rotate=False, scale=True, margin=0.004, shape_method='CONVEX'); bpy.ops.object.mode_set(mode='OBJECT')
+        bpy.ops.uv.pack_islands(rotate=True, scale=True, margin=0.004, shape_method='CONVEX'); bpy.ops.object.mode_set(mode='OBJECT')
         uv = np.zeros(len(ob.data.loops) * 2); ob.data.uv_layers.active.data.foreach_get('uv', uv); uv = uv.reshape(-1, 2); uv[:, 0] *= U_MAX
         ob.data.uv_layers.active.data.foreach_set('uv', uv.ravel()); nota('UV', nombre, 'u máx %.3f v máx %.3f' % (uv[:, 0].max(), uv[:, 1].max()))
     # horneado

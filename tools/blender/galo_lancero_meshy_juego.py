@@ -1,7 +1,7 @@
 """AL5 · paso B: el galo lancero de Meshy, ya aligerado (paso A), metido en el juego como soldado «galo-lancero».
 
 Copia de tools/blender/hastatus_meshy_juego.py (FA2-R), que no se toca. Cambios: sin escudo ni armas (los pone el juego por
-código), texturas más pequeñas (≈0,5 MB por soldado en los cuatro niveles), manos con menos triángulos y tinte de facción
+código), texturas más pequeñas (≈0,6 MB por soldado en los cuatro niveles), manos con menos triángulos y tinte de facción
 en la túnica y la capa azul oscuro (no en una túnica roja).
 
 Origen y licencias:
@@ -56,7 +56,7 @@ def empaquetar_franja(pz, lado):
     for p, (px, py), (w, h) in zip(pz, pos, tam): p['uvpx'] = np.array([px, py]) + p['UV'] * [w, h]; p['rect'] = (px, py, w, h)
     return d
 #        nivel      sufijo       lod    muy    fondo  lado  tope (triángulos), manos (objetivo MakeHuman)
-NIVEL = {'fino': ('', False, False, False, 2048, 5600, 560), 'lejos': ('_lejos', True, False, False, 1024, 2000, 160),
+NIVEL = {'fino': ('', False, False, False, 2048, 8800, 800), 'lejos': ('_lejos', True, False, False, 1024, 2800, 200),
          'muylejos': ('_muylejos', True, True, False, 512, 1080, 0), 'fondo': ('_fondo', True, True, True, 512, 490, 0)}
 SALIDA = {'fino': dict(color=(1024, 70), normal=(512, 62), orm=(256, 70), masc=(256, 80)), 'lejos': dict(color=(512, 68), normal=(256, 60), orm=(128, 70), masc=(128, 80)),
           'muylejos': dict(color=(256, 72), normal=(128, 60), orm=(128, 70), masc=(128, 80)), 'fondo': dict(color=(256, 68), normal=(128, 60), orm=(128, 70), masc=(128, 80))}

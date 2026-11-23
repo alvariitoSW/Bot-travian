@@ -75,7 +75,7 @@ def limpia():
 # 1 · vertical 390×844 (a doble resolución): el fino de cerca, en guardia, tres cuartos
 figura('', 'guardia', 12, TELAS[0], 0.0)
 im = foto(os.path.join(TMP, 'cerca.png'), 780, 1688, (0, 0, 1.0), 4.2, -30, 8, 50); etiqueta(im, 'Galo lancero · fino · guardia', 16, 14, 30)
-etiqueta(im, '5 243 triángulos · sin lanza ni escudo (los pone el juego)', 16, 1620, 22); im.save(os.path.join(FOTOS, 'AL5-1-cerca-v.jpg'), quality=88)
+etiqueta(im, '8 043 triángulos · sin lanza ni escudo (los pone el juego)', 16, 1620, 22); im.save(os.path.join(FOTOS, 'AL5-1-cerca-v.jpg'), quality=88)
 # 2 · horizontal 844×390: tres tintes del fino y los tres niveles de lejos, vistos como en la batalla (desde atrás y arriba no: de frente, algo alto)
 limpia()
 for i, (suf, tela) in enumerate((('', TELAS[0]), ('', TELAS[1]), ('', TELAS[2]), ('_lejos', TELAS[0]), ('_muylejos', TELAS[0]), ('_fondo', TELAS[0]))):
