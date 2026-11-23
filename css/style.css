@@ -1733,3 +1733,7 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
 
 /* CV1: botón «Plano» bajo el ojo, con zona de toque de 44 px */
 #ctop .vo.plano { min-height: 44px; min-width: 76px; }
+
+/* CV4a: vista de plano con los menús recogidos (solo quedan recursos, «Salir al mapa», ojo, «De cerca» y la barra de abajo) */
+#app.plano #bar2, #app.plano #miga-t, #app.plano #linea, #app.plano #csheet, #app.plano #citymenu { display: none !important; }
+#app.plano #miga { justify-content: flex-end; }

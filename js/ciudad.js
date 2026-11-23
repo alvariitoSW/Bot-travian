@@ -344,8 +344,8 @@ export function fundar(E, x, z) {
   E.sitio = { x, z }; E.rev++; return true;
 }
 /* ---------- CI3a (plano 3): la urbe a la vista ----------
-   Radio ≈ 2,2 × el del surco (≈ 5 × el área), encogido junto al agua y en el borde del territorio. Lleva calles de ADORNO (anillos y callejones
-   escalonados) que solo pinta la vista y por las que la vista pone casas de relleno. No toca la rejilla, no cuenta en la economía y no gasta del azar de la partida. */
+   Radio ≈ 2,2 × el del surco (≈ 5 × el área), encogido junto al agua y en el borde del territorio. Lleva calles de ADORNO (CV4a: red orgánica
+   que nace del foro; ver urbe()) que solo pinta la vista y por las que la vista pone casas de relleno. No toca la rejilla, no cuenta en la economía y no gasta del azar de la partida. */
 export const URBE_K = 2.2;
 export const areaPolar = R => R.reduce((a, r) => a + r * r, 0) * Math.PI / R.length;
 function urbe(E) {
@@ -353,18 +353,70 @@ function urbe(E) {
   const RU = E.RS.map((r0, i) => { const t = i / NR * Math.PI * 2, c = Math.cos(t), s = Math.sin(t); let r = r0; while (r < r0 * URBE_K && !malo(x + c * (r + 6), z + s * (r + 6))) r += 3; return r; });
   for (let n = 0; n < 4; n++) { const o = RU.slice(); for (let i = 0; i < NR; i++) RU[i] = Math.max(E.RS[i], Math.min(o[i], (o[(i + NR - 1) % NR] + o[i] * 2 + o[(i + 1) % NR]) / 4 + 1)); }
   const rad = (R, t) => { const f = ((t / (Math.PI * 2)) % 1 + 1) % 1 * NR, i = Math.floor(f), u = f - i; return R[i % NR] * (1 - u) + R[(i + 1) % NR] * u; };
-  const h = (a, b) => { let v = Math.imul(a * 374761393 + b * 668265263 + (E.semilla | 0) * 2246822519, 1274126177); v = Math.imul(v ^ (v >>> 13), 1103515245); return ((v ^ (v >>> 16)) >>> 0) / 4294967296; };
   const libre = (px, pz) => { const k = ci(px, pz); return k >= 0 && E.ocup[k] === 0 && !malo(px, pz) && E.dVia[k] > 5; };
-  const calles = [], corta = pts => { let t = []; for (const p of pts) { if (p && libre(p[0], p[1])) t.push(p); else { if (t.length > 3) calles.push({ p: t, w: 2 }); t = []; } } if (t.length > 3) calles.push({ p: t, w: 2 }); };
-  /* anillos: dentro del surco, a radio fijo; fuera, siguiendo el surco. Cada uno algo ondulado (sin cuadrícula a la vista) */
-  const anillos = [], rs = Math.max(...E.RS); for (let r = 62; r < rs - 14; r += 26) anillos.push({ R: () => r, dentro: true });
-  for (let k = 0; k < 9; k++) anillos.push({ R: t => rad(E.RS, t) + 16 + 26 * k, dentro: false });
-  anillos.forEach((A, k) => { const f = h(k, 7) * 6.28, pts = []; for (let t = 0; t <= Math.PI * 2 + 1e-6; t += 4 / Math.max(40, A.R(t))) { const r = A.R(t) + 3 * Math.sin(3 * t + f), ok = A.dentro ? r < rad(E.RS, t) - 12 : r < rad(RU, t) - 10; pts.push(ok ? [x + Math.cos(t) * r, z + Math.sin(t) * r] : null); } corta(pts); });
-  /* callejones entre un anillo y el siguiente, escalonados: cada franja empieza en otro ángulo y con otro paso */
-  for (let k = 0; k + 1 < anillos.length; k++) { const A = anillos[k].R, B = anillos[k + 1].R; let t = h(k, 3) * 6.28; const t1 = t + Math.PI * 2;
-    while (t < t1) { const ra = A(t), rb = B(t); if (rb > ra + 10) { const tor = (h(k, Math.round(t * 100)) - 0.5) * 8 / rb, pts = []; for (let r = ra; r <= rb; r += 4) { const tt = t + tor * (r - ra) / (rb - ra); pts.push(r < rad(RU, tt) - 4 ? [x + Math.cos(tt) * r, z + Math.sin(tt) * r] : null); } corta(pts); }
-      t += (40 + 34 * h(k, Math.round(t * 1000))) / Math.max(40, (ra + rb) / 2); } }
-  E.urbe = { RU, calles, borde: RU.map((r, i) => [x + Math.cos(i / NR * Math.PI * 2) * r, z + Math.sin(i / NR * Math.PI * 2) * r]), area: Math.round(areaPolar(RU)), areaSurco: Math.round(areaPolar(E.RS)) };
+  /* CV4a: red orgánica (Livio 5.55: Roma se rehízo «sin orden», cada cual donde quiso). Vías torcidas del foro a las puertas; de ellas y de las vías de verdad
+     nacen calles que siguen la ladera y mueren contra otra calle o la muralla; de esas, callejas. Manzanas desiguales y alguna plazuela.
+     Azar propio sembrado por la semilla: no gasta del azar de la partida. */
+  const rnd = azar((E.semilla | 0) * 104729 + 7717), D2 = Math.PI * 2, calles = [], puertasU = [], cola = [];
+  const marca = new Int32Array(N * N), mx = new Float32Array(N * N), mz = new Float32Array(N * N); let nId = 0;
+  const dentroU = (px, pz, m) => Math.hypot(px - x, pz - z) < rad(RU, Math.atan2(pz - z, px - x)) - m;
+  const sube = (px, pz, a) => (alt(px + Math.cos(a) * 6, pz + Math.sin(a) * 6) - alt(px, pz)) / 6;
+  const pinta = (pts, id) => { for (let q = 1; q < pts.length; q++) { const a = pts[q - 1], b = pts[q], L = Math.hypot(b[0] - a[0], b[1] - a[1]); for (let s = 0; s <= L; s += 2) { const px = a[0] + (b[0] - a[0]) * s / (L || 1), pz = a[1] + (b[1] - a[1]) * s / (L || 1), k = ci(px, pz); if (k >= 0 && !marca[k]) { marca[k] = id; mx[k] = px; mz[k] = pz; } } } };
+  /* otra calle a menos de ~10: devuelve su punto para empalmar */
+  const topa = (px, pz, id, padre, s) => { const i0 = Math.floor((px - X0) / C), j0 = Math.floor((pz - Z0) / C); for (let j = j0 - 2; j <= j0 + 2; j++) for (let i = i0 - 2; i <= i0 + 2; i++) { if (i < 0 || j < 0 || i >= N || j >= N) continue; const k = j * N + i, o = marca[k]; if (o && o !== id && (o !== padre || s > 14)) return [mx[k], mz[k]]; } return null; };
+  const emite = (pts, w, nivel) => { const out = []; let t = []; for (const p of pts) { if (p && libre(p[0], p[1])) t.push(p); else { if (t.length > 2) out.push(t); t = []; } } if (t.length > 2) out.push(t); for (const p of out) calles.push({ p, w, nivel }); return out; };
+  /* crece una calle paso a paso: elige el rumbo que menos sube (sigue la ladera), con algo de deriva; para en otra calle, la muralla, el agua o lo construido */
+  const crece = (x0, z0, a0, o) => { const id = ++nId, pts = [[x0, z0]]; let a = a0, px = x0, pz = z0, s = 0, fin = null;
+    while (s < o.largo) { let mejor = a, mc = 1e9;
+      for (const d of [-0.36, -0.18, 0, 0.18, 0.36]) { const aa = a + d; let c = Math.abs(sube(px, pz, aa)) * o.ladera + Math.abs(d) * o.recto; if (o.meta) { const dm = Math.atan2(o.meta[1] - pz, o.meta[0] - px) + o.vaiven(s); c += (1 - Math.cos(aa - dm)) * 3; } if (c < mc) { mc = c; mejor = aa; } }
+      a = mejor + (rnd() - 0.5) * o.giro; px += Math.cos(a) * 4; pz += Math.sin(a) * 4; s += 4;
+      if (!dentroU(px, pz, 7) || malo(px, pz)) break;
+      if (o.meta && Math.hypot(o.meta[0] - px, o.meta[1] - pz) < 6) { pts.push(o.meta); break; }
+      if (!o.meta && s > 6 && !libre(px, pz)) break;
+      const e = o.meta ? null : topa(px, pz, id, o.padre, s); if (e && s > 6) { fin = e; break; }
+      pts.push([px, pz]); }
+    if (fin) pts.push(fin); pinta(pts, id); return { id, pts }; };
+  /* puertas: donde las vías de verdad cruzan el borde, y más en los huecos grandes que no dan al agua */
+  const angP = []; for (const v of E.vias) { if (!(v.w >= 3)) continue; for (let i = 1; i < v.p.length; i++) { const a = v.p[i - 1], b = v.p[i]; if (dentroU(a[0], a[1], 0) !== dentroU(b[0], b[1], 0)) angP.push(Math.atan2(a[1] - z, a[0] - x)); } }
+  const dAng = (a, b) => Math.abs(((a - b) % D2 + D2 * 1.5) % D2 - Math.PI), seca = i => RU[i] > E.RS[i] * 1.35 && !malo(x + Math.cos(i / NR * D2) * (RU[i] + 14), z + Math.sin(i / NR * D2) * (RU[i] + 14));
+  const sep = 0.55 + 0.15 * rnd();
+  for (let n = 0; n < 7; n++) { let mi = -1, md = 0; const f0 = Math.floor(rnd() * NR); for (let q = 0; q < NR; q++) { const i = (q + f0) % NR; if (!seca(i)) continue; const t = i / NR * D2, d = angP.reduce((m, p) => Math.min(m, dAng(t, p)), 9); if (d > md) { md = d; mi = i; } } if (mi < 0 || md < sep) break; angP.push(mi / NR * D2);
+    const t = mi / NR * D2 + (rnd() - 0.5) * 0.06, r = rad(RU, t) - 8, G = [x + Math.cos(t) * r, z + Math.sin(t) * r], f1 = rnd() * D2, f2 = rnd() * D2, A = 0.25 + 0.2 * rnd();
+    const v = crece(x + Math.cos(t) * 26, z + Math.sin(t) * 26, t, { largo: 900, ladera: 1.2, recto: 0.15, giro: 0.08, meta: G, vaiven: s => A * Math.sin(s / 41 + f1) + 0.12 * Math.sin(s / 15 + f2) });
+    if (Math.hypot(v.pts[v.pts.length - 1][0] - G[0], v.pts[v.pts.length - 1][1] - G[1]) < 8) puertasU.push({ x: G[0], z: G[1], ang: t }); v.nivel = 1; cola.push(v); }
+  /* las vías de verdad también echan calles (su tramo por la urbe) */
+  for (const v of E.vias) if (v.w >= 3) { const id = ++nId; pinta(v.p, id); cola.push({ id, pts: v.p, nivel: 1, ancha: true }); }
+  /* ramas: cada calle echa otras a los lados, más cortas y estrechas cuanto más baja */
+  const ramas = c0 => { for (let c = c0; c < cola.length && c < 1400; c++) { const P = cola[c], nv = P.nivel; if (nv >= 4) continue; const L = [12, 34, 26, 20][nv], Lv = [0, 30, 22, 16][nv], mL = [0, 150, 90, 55][nv], sepa = P.ancha ? 9 : 6;
+    let s = 0, sig = L * (0.4 + 0.8 * rnd());
+    for (let q = 1; q < P.pts.length; q++) { const a = P.pts[q - 1], b = P.pts[q], d = Math.hypot(b[0] - a[0], b[1] - a[1]); if (!d) continue; const ux = (b[0] - a[0]) / d, uz = (b[1] - a[1]) / d;
+      while (sig <= s + d) { const u = sig - s, px = a[0] + ux * u, pz = a[1] + uz * u; sig += L + Lv * rnd();
+        for (const lado of [1, -1]) { if (rnd() > (nv === 1 ? 0.85 : 0.62)) continue; const sx = px - uz * lado * sepa, sz = pz + ux * lado * sepa; if (!dentroU(sx, sz, 10) || !libre(sx, sz)) continue;
+          const an = Math.atan2(uz, ux) + lado * (Math.PI / 2 + (rnd() - 0.5) * 0.9), h0 = crece(sx, sz, an, { largo: mL * (0.5 + 0.5 * rnd()), ladera: 3, recto: 0.5, giro: 0.12, padre: P.id });
+          if (h0.pts.length > 3) { h0.pts.unshift([px, pz]); h0.nivel = nv + 1; cola.push(h0); } } }
+      s += d; } } };
+  ramas(0);
+  /* huecos: donde quede tierra libre lejos de toda calle, una calleja desde la calle más cercana que lo cruce (así no quedan manzanas peladas) */
+  const bx = RU.map((r, i) => x + Math.cos(i / NR * D2) * r), bz = RU.map((r, i) => z + Math.sin(i / NR * D2) * r);
+  const i0 = Math.max(1, Math.floor((Math.min(...bx) - X0) / C)), i1 = Math.min(N - 2, Math.ceil((Math.max(...bx) - X0) / C)), j0 = Math.max(1, Math.floor((Math.min(...bz) - Z0) / C)), j1 = Math.min(N - 2, Math.ceil((Math.max(...bz) - Z0) / C));
+  const dist = new Float32Array(N * N).fill(1e9), src = new Int32Array(N * N), V = [[-1, -1, 1.414], [0, -1, 1], [1, -1, 1.414], [-1, 0, 1]];
+  for (let it = 0; it < 40; it++) {
+    for (let j = j0; j <= j1; j++) for (let i = i0; i <= i1; i++) { const k = j * N + i; dist[k] = marca[k] ? 0 : 1e9; src[k] = k; }
+    for (const sg of [1, -1]) for (let jj = j0; jj <= j1; jj++) { const j = sg > 0 ? jj : j1 + j0 - jj; for (let ii = i0; ii <= i1; ii++) { const i = sg > 0 ? ii : i1 + i0 - ii, k = j * N + i; for (const [di, dj, w] of V) { const kk = (j + dj * sg) * N + i + di * sg; if (dist[kk] + w < dist[k]) { dist[k] = dist[kk] + w; src[k] = src[kk]; } } } }
+    const cand = []; for (let j = j0; j <= j1; j += 2) for (let i = i0; i <= i1; i += 2) { const k = j * N + i; if (dist[k] > 5.5 && libre(X0 + (i + 0.5) * C, Z0 + (j + 0.5) * C) && dentroU(X0 + (i + 0.5) * C, Z0 + (j + 0.5) * C, 12)) cand.push(k); }
+    if (!cand.length) break; cand.sort((a, b) => dist[b] - dist[a] || a - b); const hechos = [];       // varios huecos por vuelta, lejos entre sí (cada vuelta rehace las distancias)
+    for (const mk of cand) { if (hechos.length >= 10) break; const mi = mk % N, mj = Math.floor(mk / N); if (hechos.some(([a, b]) => Math.hypot(a - mi, b - mj) < 16)) continue; hechos.push([mi, mj]);
+      const md = dist[mk], sk = src[mk], qx = X0 + (mi + 0.5) * C, qz = Z0 + (mj + 0.5) * C, ox = mx[sk], oz = mz[sk], an = Math.atan2(qz - oz, qx - ox) + (rnd() - 0.5) * 0.5;
+      const n0 = cola.length, h0 = crece(ox + Math.cos(an) * 6, oz + Math.sin(an) * 6, an, { largo: 40 + md * C * 1.6, ladera: 2, recto: 0.6, giro: 0.1, padre: marca[sk] });
+      if (h0.pts.length > 2) { h0.pts.unshift([ox, oz]); h0.nivel = 3; cola.push(h0); ramas(n0); } else { const k = ci(qx, qz); marca[k] = -1; mx[k] = qx; mz[k] = qz; } } }
+  /* callejas en ladera muy empinada: no llevan casas (el relleno no las pone ahí); se quitan esos tramos */
+  const empinado = (px, pz) => Math.abs(alt(px + 4, pz) - alt(px - 4, pz)) + Math.abs(alt(px, pz + 4) - alt(px, pz - 4)) > 4.6;
+  for (const v of cola) if (v.nivel >= 3) v.pts = v.pts.map(p => empinado(p[0], p[1]) ? null : p);
+  for (const v of cola) if (!v.ancha) emite(v.pts, v.nivel === 1 ? 3 : v.nivel === 2 ? 2 : 1.5, v.nivel);
+  /* plazuelas: en algunos cruces de calles mayores, un ensanche (anillo cerrado de calle ancha) */
+  let np = 0; for (const c of calles) { if (np >= 6 || c.nivel > 2 || rnd() > 0.35) continue; const e = c.p[c.p.length - 1], R0 = 4 + rnd() * 2, anillo = []; for (let k = 0; k <= 7; k++) { const t = k / 7 * D2; anillo.push([e[0] + Math.cos(t) * R0, e[1] + Math.sin(t) * R0]); }
+    if (anillo.every(p => libre(p[0], p[1]) && dentroU(p[0], p[1], 14)) && !calles.some(o => o.plaza && Math.hypot(o.x - e[0], o.z - e[1]) < 70)) { calles.push({ p: anillo, w: R0 + 1, plaza: true, x: e[0], z: e[1], r: 2 * R0 + 1 }); np++; } }
+  E.urbe = { RU, calles, puertas: puertasU, borde: RU.map((r, i) => [x + Math.cos(i / NR * Math.PI * 2) * r, z + Math.sin(i / NR * Math.PI * 2) * r]), area: Math.round(areaPolar(RU)), areaSurco: Math.round(areaPolar(E.RS)) };
 }
 export const enUrbe = (E, x, z) => !!(E.urbe && E.foro) && Math.hypot(x - E.foro.x, z - E.foro.z) < radioDe(E.urbe.RU, E, x, z);
 function puertas(E) { if (!E.fundada) return; const o = [];

@@ -354,6 +354,20 @@ prueba('CN23: ampliar la muralla deja los barrios nuevos dentro; guardar y carga
       assert.ok(F.urbe.RU.filter((r, i) => r >= F.RS[i] * R.URBE_K * 0.95).length >= F.RS.length * 0.4, 'el 40 % de los rayos (los que no topan con el río) llega a 2,2×');
       assert.equal(R.aDatos(D).plano, 2); assert.equal(JSON.stringify(D.ocup.slice ? Array.from(D.ocup) : D.ocup), JSON.stringify(Array.from(F.ocup)), 'la urbe no toca la rejilla');
       for (const c of F.urbe.calles) for (const p of c.p) { const i = Math.floor((p[0] - R.X0) / R.C), j = Math.floor((p[1] - R.Z0) / R.C); assert.equal(F.ocup[j * R.N + i], 0, 'calle de adorno sobre algo'); } } });
+  prueba('CV4a la urbe tiene vías torcidas del foro a las puertas, calles que no forman anillos, y sale igual con la misma semilla sin gastar el azar de la partida', () => {
+    for (const sem of [1, 3, 7]) { const F = R.crear(sem); R.fundar(F, 172, -196); const D = R.crear(sem); D.plano = 2; R.fundar(D, 172, -196); const f = F.foro, U = F.urbe, rf = (x, z) => Math.hypot(x - f.x, z - f.z);
+      assert.equal(F.rnd(), D.rnd(), 'la urbe no gasta del azar de la partida');
+      const G = R.crear(sem); R.fundar(G, 172, -196); assert.equal(JSON.stringify(G.urbe.calles), JSON.stringify(U.calles), 'misma semilla, mismas calles');
+      /* vías del foro al borde: al menos 3 puertas, cada una al final de una vía ancha que viene de dentro (dentro del surco la tapan las calles de verdad: su tramo de adorno empieza a menos del 70 % del radio de la puerta) */
+      assert.ok(U.puertas.length >= 3, 'puertas ' + U.puertas.length);
+      for (const p of U.puertas) { const rp = rf(p.x, p.z), v = U.calles.filter(c => c.w >= 3 && !c.plaza && c.p.some(q => Math.hypot(q[0] - p.x, q[1] - p.z) < 10)); assert.ok(v.length, 'una vía llega a la puerta');
+        assert.ok(Math.min(...v.flatMap(c => c.p.map(q => rf(q[0], q[1])))) < rp * 0.7, 'la vía de la puerta viene de dentro'); }
+      /* no es una diana: poco largo de calle va en redondo alrededor del foro (los anillos de antes daban ~70 %) */
+      let tg = 0, tot = 0; for (const c of U.calles) { if (c.plaza) continue; for (let i = 1; i < c.p.length; i++) { const a = c.p[i - 1], b = c.p[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]); tot += L; if (Math.abs(rf(b[0], b[1]) - rf(a[0], a[1])) < 0.3 * L) tg += L; } }
+      assert.ok(tg / tot < 0.45, 'tramo en redondo ' + (tg / tot).toFixed(2));
+      /* ramas: hay calles de tres anchos (vía, calle, calleja) y ninguna sale de la muralla */
+      assert.ok(new Set(U.calles.filter(c => !c.plaza).map(c => c.w)).size >= 3, 'tres anchos de calle');
+      for (const c of U.calles) for (const q of c.p) assert.ok(R.enUrbe(F, q[0], q[1]), 'calle fuera de la muralla'); } });
   prueba('CI3a datos del plano 2 se rehacen en el plano 3 con los mismos edificios en su sitio', () => {
     const F = R.crear(4); F.plano = 2; R.fundar(F, 172, -196); for (const id of ['granja', 'fuente', 'granja', 'aserradero', 'granero', 'cantera', 'templo', 'almacen']) { const s = R.mejorSitio(F, id); if (s) R.colocar(F, id, s[0], s[1], true); R.mes(F); }
     const d = R.aDatos(F); assert.equal(d.plano, 2); const H = R.deDatos(d), q = E2 => E2.edificios.map(e => e.tipo + '@' + e.x.toFixed(1) + ',' + e.z.toFixed(1)).join(' ');

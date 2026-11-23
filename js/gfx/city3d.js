@@ -216,7 +216,8 @@ let hemiBase = 1.45, solBase = 3.3, copasM = null, nieblaBase = 0.00029, nieblaK
 /* CN15a: estación actual para quien la necesite. k = ancla de la que se parte (0 primavera, 1 verano, 2 otoño, 3 invierno; el índice A de luz()), f = mezcla suave hacia la siguiente (0..1), ks = estación del calendario */
 export function estacionActual() { return { k: estK, f: estF, ks: estSol < 0 ? estK : estSol }; }
 /* CV1: el aspecto de plano (niebla, luz, exposición, río, copas de árbol) sale de un solo número, 0 de cerca y 1 en plano, derivado de nieblaK */
-const PLANO_LUZ = { exposicion: 0.65, hemi: 1.3, sol: 0.2 }, AZUL_RIO = new THREE.Color('#2f7fae'), _rio0 = new THREE.Color('#6f8288');
+/* CV4a: menos relleno de cielo y más sol: el suelo del plano no sale lavado */
+const PLANO_LUZ = { exposicion: 0.4, hemi: 0.7, sol: 0.5 }, AZUL_RIO = new THREE.Color('#2f7fae'), _rio0 = new THREE.Color('#6f8288');
 function ambientePlano() {
   const k = Math.max(0, Math.min(1, (1 - nieblaK) / 0.98)); scene.fog.density = nieblaBase * nieblaK;
   hemi.intensity = hemiBase * (1 + PLANO_LUZ.hemi * k); sol.intensity = solBase * (1 + PLANO_LUZ.sol * k); renderer.toneMappingExposure = 0.92 + PLANO_LUZ.exposicion * k;
@@ -411,6 +412,9 @@ function cercoVista() {
       for (let k = 0; k < 12; k++) { const c = [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2]; if (den(c[0], c[1]) === da) a = c; else b = c; }
       const t = Math.atan2(a[1] - f.z, a[0] - f.x), j = Math.round(((t / D2) % 1 + 1) % 1 * NR) % NR, p0 = S[(j + NR - 1) % NR], p1 = S[(j + 1) % NR];
       if (distRio(a[0], a[1]) >= RIBERA && !PU.some(p => Math.hypot(p.x - a[0], p.z - a[1]) < 40)) PU.push({ x: a[0], z: a[1], ang: Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) }); } }
+  /* CV4a: también donde llegan las vías de adorno de la urbe (E.urbe.puertas), para que no mueran contra el muro */
+  for (const p of E.urbe.puertas || []) { const t = Math.atan2(p.z - f.z, p.x - f.x), j = Math.round(((t / D2) % 1 + 1) % 1 * NR) % NR, p0 = S[(j + NR - 1) % NR], p1 = S[(j + 1) % NR], q = S[j];
+    if (distRio(q[0], q[1]) >= RIBERA && !PU.some(o => Math.hypot(o.x - q[0], o.z - q[1]) < 40)) PU.push({ x: q[0], z: q[1], ang: Math.atan2(p1[1] - p0[1], p1[0] - p0[0]) }); }
   return { S, PU };
 }
 /* muralla: por el surco; primero empalizada (por código), luego tramos de piedra reales con torres; puertas donde cruzan las calles */
@@ -790,9 +794,11 @@ export class CityView3D {
     let a;
     if (on) {
       this.camA = null; this._prev = { tx: cam.tx, tz: cam.tz, d: cam.d, az: cam.az, elF: cam.elF || 0 };
-      const u = E && E.urbe, f = E && E.foro, R = (u && u.RU ? Math.max(...u.RU) + 7 : 300), cx = f ? f.x : 0, cz = f ? f.z : -20, asp = vista.w / Math.max(1, vista.h), fov = vista.w < vista.h ? 50 : 38;
+      const u = E && E.urbe, f = E && E.foro, B = u && u.borde, bx = B ? B.map(q => q[0]) : null, bz = B ? B.map(q => q[1]) : null;
+      /* CV4a: centrado en la caja de la muralla (no en el foro: junto al río la urbe se encoge) y con poco aire */
+      const cx = B ? (Math.min(...bx) + Math.max(...bx)) / 2 : f ? f.x : 0, cz = B ? (Math.min(...bz) + Math.max(...bz)) / 2 : f ? f.z : -20, R = B ? Math.max(...B.map(q => Math.hypot(q[0] - cx, q[1] - cz))) + 9 : (u && u.RU ? Math.max(...u.RU) + 7 : 300), asp = vista.w / Math.max(1, vista.h), fov = vista.w < vista.h ? 50 : 38;
       const tv = Math.tan(fov * Math.PI / 360), th = Math.min(tv, tv * asp);
-      a = { tx: cx, tz: cz, d: Math.min(4000, R * 1.7 / th), az: cam.az, el: PLANO_EL * Math.PI / 180, nk: 0.02 }; cam.dMax = 4000; this._plano = true;
+      a = { tx: cx, tz: cz, d: Math.min(4000, R * 1.08 / th), az: cam.az, el: PLANO_EL * Math.PI / 180, nk: 0.02 }; cam.dMax = 4000; this._plano = true;
     } else {
       const P = hacia || this._prev || { tx: cam.tx, tz: cam.tz, d: Math.min(cam.d, 640), az: cam.az, elF: 0 }, efi = P.elF || 0;
       a = { tx: P.tx, tz: P.tz, d: P.d, az: P.az === undefined ? cam.az : P.az, el: efi || kEl(P.d), nk: 1, fin: true, elF: efi }; this._plano = false; this._prev = null;

@@ -217,7 +217,10 @@ function pintarCiudad3(M, T, E, fino) {
     else { const w = c.t === 'via' ? c.w * 1.4 : c.w;      // CI1b: tierra clara que se lee contra el suelo; las vías del foro (el eje de puerta a puerta) algo más anchas
       trazo(M, c.p, w * 2 + (c.t === 'camino' ? 2 : 1.2), 1.4, '255,0,0'); trazo(T, c.p, w * 2, 1.6, '204,186,150', 0.9); trazo(T, c.p, w * 0.9, w * 0.4, '228,214,182', 0.8); } }
   /* CI3a: calles de adorno de la urbe (solo vista; no cuentan en el juego): tierra batida, algo más oscura que las de verdad */
-  if (E.urbe) for (const c of E.urbe.calles) { trazo(M, c.p, c.w * 2 + 1.4, 1.4, '240,0,0'); trazo(T, c.p, c.w * 2, 1.6, '196,178,142', 0.85); }
+  /* CV4a: manda la jerarquía: vías anchas legibles, calles más tenues y callejas apenas insinuadas entre las casas */
+  if (E.urbe) for (const c of E.urbe.calles) { if (c.plaza) { trazo(M, c.p, c.w * 2 + 1.4, 1.4, '240,0,0'); trazo(T, c.p, c.w * 2, 1.6, '190,172,138', 0.7); continue; }
+    const k = c.w >= 3 ? 0 : c.w >= 2 ? 1 : 2, an = [c.w * 1.7, c.w * 1.3, 1.9][k];
+    trazo(M, c.p, an + [1.2, 0.8, 0.4][k], 1.2, ['240,0,0', '200,0,0', '140,0,0'][k]); trazo(T, c.p, an, [1.4, 1.1, 0.8][k], ['192,174,140', '176,158,124', '160,142,110'][k], [0.75, 0.5, 0.32][k]); }
   /* plaza del foro, enlosada */
   if (E.foro) { const f = E.foro, c = Math.cos(f.ang), s = Math.sin(f.ang), rect = [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]) => [f.x + u * f.w / 2 * c - v * f.d / 2 * s, f.z + u * f.w / 2 * s + v * f.d / 2 * c]);
     M.fillStyle = fino ? 'rgb(40,255,0)' : 'rgb(230,0,0)'; poli(M, rect); M.fill(); trazo(M, rect, 1, 2, fino ? '40,255,0' : '230,0,0', 1, true); T.fillStyle = 'rgba(150,140,124,0.55)'; poli(T, rect); T.fill(); }
@@ -225,7 +228,7 @@ function pintarCiudad3(M, T, E, fino) {
   const huella = (x, z, ang, w, d, m, a) => { T.save(); T.translate(x, z); T.rotate(ang); for (let k = 0; k < 3; k++) { const e = m * (1 - k / 3); T.fillStyle = `rgba(50,42,34,${a * [0.3, 0.45, 0.7][k]})`; T.beginPath(); T.roundRect(-w / 2 - e, -d / 2 - e, w + 2 * e, d + 2 * e, e + 0.5); T.fill(); } T.restore(); };
   if (fino) for (const l of E.parcelas) if (l.casa && !l.fuera) { const k = [0, 0.55, 0.66, 0.86, 0.98][l.casa.nivel]; huella(l.x, l.z, l.ang, 13.5 * k, 14 * k, 2.5, l.casa.ruina ? 0.8 : 0.55); }
   for (const e of E.edificios) huella(e.x, e.z, e.ang + Math.PI / 2, e.w, e.d, 3, 0.45);
-  if (E.muralla.fase && E.surco) trazo(T, E.surco, 8, 5, '48,42,34', 0.5, true);
+  if (E.muralla.fase && E.surco && !E.urbe) trazo(T, E.surco, 8, 5, '48,42,34', 0.5, true);      // CV4a: con la urbe la muralla va por fuera; la sombra del surco dibujaba una diana
 }
 
 /* CN15a: tintes por estación (primavera, verano, otoño, invierno). MULTIPLICADORES, no repintan texturas: así el terreno futuro (CN19) también los recibe.

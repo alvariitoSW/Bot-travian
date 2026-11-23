@@ -434,6 +434,7 @@ function setTab(t) {
   UI.tab = t; hojaCierra(true); $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
   const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D
   if (!c3 && UI.cityV && UI.cityV.enPlano) UI.cityV.plano(false, null, true);   // CV1: al salir de la ciudad, el plano se apaga (o en lista si se prefiere)
+  marcaPlano();
   $('view').hidden = t === 'map' || c3; $('zoom').hidden = t !== 'map'; $('citywrap').hidden = !c3; $('ctop').hidden = !c3; $('csheet').hidden = !c3; UI.linK = null; if (!c3) $('linea').hidden = true;
   if (c3) { UI.cityV.resize(); renderCity3D(); }
   if (t !== 'city') UI.deMapa = false;
@@ -1208,7 +1209,10 @@ function tocarCiudad(b, ed, g) {
   else { const i = Ciudad.barrioDe(E, g[0], g[1]); if (i >= 0 && E.barrios[i]) lineaPon(Ciudad.textoBarrio(E, i), 'aviso barrio', '', 7); else lineaPon(''); }
   renderCity3D(); tickUI();
 }
+/* CV4a (usuario, 23/11: «el resto habría que minimizarlo para tener más visión de juego»): en plano se recogen los menús con una clase en #app; el CSS los oculta */
+function marcaPlano() { const a = $('app'); if (a) a.classList.toggle('plano', !!(UI.tab === 'city' && UI.cityV && UI.cityV.enPlano && !UI.cityList)); }
 function renderCity3D() {
+  marcaPlano();
   const s = S(), c = s.cities[UI.city], m = cityMeta(c); UI.metaK = metaKey(m);
   if (UI.cityV) UI.cityV.meta = m;
   $('ctop').innerHTML = '<button class="vb" data-act="cvistas" aria-label="Cambiar la vista de la ciudad" title="Cambiar la vista">' + ICO_VER + '</button>' +
