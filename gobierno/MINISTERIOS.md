@@ -48,7 +48,24 @@ Política) y Arte Visual y Jugabilidad trabajan **por encargo** de ella, nunca p
 - **Juez propio**: `node gobierno/juez-area.mjs batallas`.
 - **Entorno en la nube**: guion `gobierno/entornos/batallas-taller.sh` y guía `batallas-taller.md`.
 
-<!-- TALLER -->
+**El entorno, creado y aprobado el 23/11**: «AQVILA Batallas taller» (personal, `env_01CJEDdinXvGa5FE4zimPosh`; red: registros de
+paquetes, `opengameart.org` y `patch.gg`). Las sesiones de batalla se abren en él. Al arrancar deja en `/opt/aqvila-taller`:
+| Qué | Cómo queda | Probado aquí |
+|---|---|---|
+| Blender sin pantalla | `bpy` 5.3.0; se usa con `blender-py guion.py` | Sí: rehízo el cuartel de UR2 (1 832 triángulos), horneó su textura y `glb_a_static.mjs` lo convirtió |
+| Movimientos de Quaternius (CC0) | Bibliotecas 1 y 2, de OpenGameArt | Sí |
+| Datos de MakeHuman (CC0) | Malla, esqueleto, pesos y 1 280 deformadores | Sí: `construir.py hastatus` saca los 1 033 triángulos de siempre |
+Tarda 28 s y ocupa 1,3 GB. **No comprobado**: que corra igual al construir un contenedor nuevo (se probó a mano aquí); si
+GitHub no responde en ese momento, faltará MakeHuman y lo dirá `/opt/aqvila-taller/LEEME.txt`.
+
+**Patch (el Blender en la nube de patch.gg) no va en el guion, y no puede ir**: pide entrar con la cuenta del usuario o
+una clave secreta, y gasta créditos (≈0,83 por minuto; 1 crédito = 0,01 $). El Blender instalado hace lo mismo que
+se usó de Patch el 20/11 (modelar por código, hornear, exportar, render con Cycles) sin cuenta ni gasto. Patch queda
+como opción: su red está permitida y basta con que el usuario entre con su cuenta en la sesión que lo necesite.
+
+**Material de la sesión «Ciudad generada por IA»** (rama `ccr-eda89860-50oj5c`, sin unir): `tools/glb_a_static.mjs`,
+`tools/blender/cuartel_build.py` y, ya guardada allí (commit `f6f292d`), la prueba del pilum `tools/blender/pilum_tiro.py`
+con sus vídeos `capturas-tarea/PIL-*`. Son del taller de Batallas; se unen cuando el usuario apruebe UR2 o la primera tarea del taller.
 
 **Cómo se sabe si la prueba funciona** (tres tareas de batalla seguidas, comparadas con la medición del §1):
 1. Ninguna pasa los jueces completos; cada una cierra con el juez de área.

@@ -510,6 +510,9 @@ Regla: lo nuevo se apunta aquí; cuando el usuario lo aprueba, pasa al tablero. 
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
+- **Mapa de ministerios**: ¿cómo repartimos el gobierno? (A) tres áreas, Cerebro, Corazón y Músculo, más un taller de Arte común; Ciudades y Política son ramas del Cerebro y «jugabilidad» es un examen que pasa cada área [recomendado]; (B) tus cinco ministerios tal como los dijiste. Por qué: lo medido dice que el atasco son los archivos compartidos y los jueces; en B, Arte Visual y Jugabilidad tocarían los mismos archivos que los otros tres. Detalle: `MINISTERIOS.md` §2.
+- **Reglas contra atascos**: ¿las aplicamos ya a todas las sesiones o solo a Batallas? (A) solo a Batallas durante tres tareas y luego comparamos con lo medido [recomendado]; (B) a todas desde hoy. Las reglas: cada archivo con un dueño, tus decisiones juntas una vez al día (lo que no contestes sigue con lo recomendado), jueces por área y los completos solo al subir, ideas aparte. Por qué: probar en pequeño cuesta poco y se puede deshacer.
+- **Tope de gasto de los ministerios**: esta sesión ha gastado ≈3 M sin tope dicho. ¿Cuánto das para montar el resto si la prueba sale bien? (A) 3 M más, en una sola sesión de Opus [recomendado]; (B) otra cifra; (C) nada más hasta la 1.0. Por qué: el resto es copiar el patrón de Batallas.
 
 
 

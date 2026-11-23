@@ -64,6 +64,11 @@ bitácora y `lista.json`, commit y push a la rama de trabajo; **sin PR; `main` n
 **No abras dos sesiones que toquen los mismos archivos** (`js/ui.js`, `js/game.js`, `js/data.js`, `js/simulador.js`,
 `js/ui-guerra.js`): encadénalas. Antes de abrir una, mira con `list_sessions` que no hay ya una viva para esa tarea.
 
+**Sesiones de batalla (prueba de ministerios, 23/11; `gobierno/MINISTERIOS.md`)**: ábrelas con `environment_id`
+`env_01CJEDdinXvGa5FE4zimPosh` («AQVILA Batallas taller») y di en el encargo que empiecen por la skill `ministerio-batallas`:
+cierran con `node gobierno/juez-area.mjs batallas`, no pasan los jueces completos, no tocan tablero ni bitácora (tú pasas
+su parte: pases, ideas y preguntas) ni `sw.js`. Los jueces completos, una vez, en la sesión de subida. Lleva la cuenta de MIN2.
+
 ## 5. Lo que cuesta dinero (lecciones del 19/11, obligatorias)
 - Las tareas de la jornada gastaron de **2 a 13 veces** lo declarado (CE3 ≈10,4 M frente a 2,0; CI1b+CI3a 13,6 M frente a 1,0; MN1
   2,74 frente a 1,2): casi siempre por **encargos de constructor demasiado grandes** (≈46 pasos), pasadas de jueces repetidas por

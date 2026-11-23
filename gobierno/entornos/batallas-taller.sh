@@ -8,7 +8,13 @@ echo "== $(date -u +%FT%TZ) inicio" >> "$LOG"
 PY=$(command -v python3.13 || command -v python3)
 
 # 1) Blender sin pantalla: módulo bpy 5.3.0 de PyPI (exige Python 3.13) en un entorno propio.
-if [ ! -x "$T/blender/bin/python" ]; then "$PY" -m venv "$T/blender" || aviso "no se pudo crear el entorno de Python"; fi
+export DEBIAN_FRONTEND=noninteractive; PAQ="libegl1 libgl1 libegl-mesa0"   # EGL de Mesa: lo pide Eevee (Cycles no)
+apt-get install -y -q --no-install-recommends $PAQ >> "$LOG" 2>&1 || { apt-get update -q >> "$LOG" 2>&1 \
+  && apt-get install -y -q --no-install-recommends $PAQ >> "$LOG" 2>&1; } || aviso "apt: no se instaló EGL (Eevee no irá)"
+if [ ! -x "$T/blender/bin/python" ]; then
+  if "$PY" -c 'import sys; sys.exit(sys.version_info[:2] != (3, 13))'; then "$PY" -m venv "$T/blender"
+  else uv venv -q --seed --python 3.13 "$T/blender"; fi || aviso "no se pudo crear el entorno de Python 3.13"
+fi
 if ! "$T/blender/bin/python" -c "import bpy" >/dev/null 2>&1; then
   "$T/blender/bin/pip" install -q --no-cache-dir "bpy==5.3.0" numpy pillow >> "$LOG" 2>&1 || aviso "falló pip install bpy (PyPI)"
 fi

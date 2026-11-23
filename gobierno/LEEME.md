@@ -15,6 +15,9 @@ Cómo se organiza el trabajo. Reducido a propósito: ocho oficios, tres comandos
 | **Historia** | Fidelidad a 280–146 a.C.: fichas con fuentes, dictamen histórico, lo que se aprende jugando | skill `historia`, `gobierno/historia/` |
 | **Cuadro de mando** | Página para el móvil del usuario con el estado y botones para decidir | skill `cuadro-de-mando`, `cuadro.mjs`, `cuadro.json` |
 
+**En prueba desde el 23/11: ministerios por área** (`MINISTERIOS.md`). Hoy solo Batallas: skill `ministerio-batallas`,
+dueño de cada archivo en `areas.json`, `node gobierno/juez-area.mjs batallas` y entorno «AQVILA Batallas taller».
+
 ## Los comandos
 ```bash
 node gobierno/jueces.mjs            # todo: ~3 min, deja capturas e informe en gobierno/capturas/

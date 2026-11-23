@@ -54,9 +54,11 @@ mirará `test/sim.test.js` primero.
 - **Una idea nueva**: una línea en el parte, «Idea:». No abre sesión, estudio ni maqueta. El vigía decide si llega a tarea.
 
 ## El taller de arte
-Entorno en la nube «AQVILA · Batallas (taller)»: guion `gobierno/entornos/batallas-taller.sh`, guía
+Entorno en la nube «AQVILA Batallas taller» (las sesiones de batalla se abren en él): guion `gobierno/entornos/batallas-taller.sh`, guía
 `gobierno/entornos/batallas-taller.md` (rutas, versiones, órdenes de ejemplo y lo que no está comprobado). Deja
 Blender sin pantalla, los movimientos de Quaternius (CC0) y los datos de MakeHuman (CC0) en `/opt/aqvila-taller/`.
+- Blender se usa así: `blender-py tools/blender/<guion>.py`, y luego `node tools/glb_a_static.mjs <modelo.glb> <clave> <textura.webp>`.
+  Render: con Cycles (Eevee por software tarda 76 s). Patch (patch.gg) solo si el usuario entra con su cuenta: gasta créditos.
 - Se modela **por código** (`tools/blender/*.py`): el guion es la fuente; el `.glb` y el `.bin` se regeneran.
 - Licencia antes que píxeles (skill `arte`). Arte propio: se apunta como propio en `assets/*/LICENSE.txt`.
 - Presupuesto de peso y triángulos: `gobierno/arte.json`. Subirlo es decisión del usuario.

@@ -510,6 +510,9 @@ Una tarea por sesión, constructor en Sonnet. SN2 después de SN1. No tocar `js/
 - ✅ D5 Jueces automáticos: `node gobierno/jueces.mjs` (lógica + recorrido en navegador + capturas).
 
 ## Gobierno
+- ✅ MIN1 **Ministerios por área: medición, mapa propuesto y ministerio de prueba (Batallas con taller de arte)** (pedido del usuario, 23/11; excepción suya a «nada nuevo hasta la 1.0»): `gobierno/MINISTERIOS.md`, medición `estudios/MIN1-medicion.md`, skill `ministerio-batallas`, tabla de dueños `areas.json`, juez `juez-area.mjs`, entorno «AQVILA Batallas taller». Parte `partes/2026-11-23-MIN1.md`.
+- ⬜ MIN2 **Prueba del ministerio de Batallas**: las tres próximas tareas de batalla se abren en el entorno «AQVILA Batallas taller», con la skill `ministerio-batallas`, y al cerrar la tercera se compara con la medición (`MINISTERIOS.md` §3). No es una sesión: es una cuenta que lleva el vigía.
+- ⬜ MIN3 **Montar las demás áreas** (espera: que el usuario elija el mapa y que MIN2 salga bien; tope el que él diga).
 - ✅ G3 Dos informes de diseño con plan y presupuesto: `gobierno/estudios/G3-batallas-estrategicas.md` (diez tareas; reparte A1 a A6) y `G3-gran-diseno.md` (seis decisiones y tres fases). Propuestas P40 a P49 en la bitácora; nada se construye sin aprobar.
 - ✅ G2 Ministerio de Adecuación Histórica montado (11/11/2026): skill `historia`. Sus tareas, cuando el usuario las apruebe, irán en un carril H.
 - ✅ G1 Gobierno reducido y cuadro de mando montados (11/11/2026). Guía: `gobierno/LEEME.md`.
