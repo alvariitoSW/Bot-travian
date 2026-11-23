@@ -62,3 +62,11 @@ button{font:inherit;color:inherit;border:0;background:none;padding:0}
 .ficha .btn{display:block;width:100%;margin-top:8px;border-radius:14px;padding:11px 8px;font-size:15px;font-weight:700;text-align:center;border:1px solid var(--ui-acento);background:linear-gradient(var(--ui-rojo),var(--ui-rojo2));color:#fff}
 .mal{color:#a02a1c;font-weight:700}
 .etq.bar{font-size:11px;padding:0 7px;opacity:.88}
+/* revuelta (Barrio del río con dureza «Duro») */
+.halo.revuelta{background:rgba(212,40,20,.62);border-color:#ff7a1f;box-shadow:0 0 10px #ff4a10,0 0 20px #ffb02e;opacity:.85}
+.halo.revuelta::after{content:"";position:absolute;inset:-9px;border-radius:50%;background:repeating-conic-gradient(#ff9a2a 0 9deg,transparent 9deg 18deg);-webkit-mask:radial-gradient(closest-side,transparent 82%,#000 84%,#000 100%);mask:radial-gradient(closest-side,transparent 82%,#000 84%,#000 100%)}
+.rev{position:absolute;transform:translate(-50%,-50%);z-index:3;display:flex;align-items:center;gap:3px;background:#7d1712;color:#fff;border:1.5px solid #ffb02e;border-radius:99px;padding:1px 8px 1px 4px;font-size:13px;font-weight:800;white-space:nowrap;pointer-events:none}
+.rev svg{width:16px;height:16px}
+.ficha .revtxt{background:#7d1712;color:#fff;border-radius:10px;padding:5px 8px;font-size:13px;line-height:1.25;margin:0 0 5px}
+.ficha .chicos{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.ficha .btn2{border-radius:11px;padding:6px 4px;font-size:13px;font-weight:700;border:1px solid var(--ui-acento2);background:var(--ui-papel2);color:var(--ui-tinta)}
