@@ -422,5 +422,23 @@ t('FI3u: los avisos se vacían al leerlos y no crecen sin límite', () => {
   const av = Pr.avisos(); assert.ok(av.length <= 256 && av.length > 0, av.length); assert.strictEqual(Pr.avisos().length, 0);
 });
 
+/* LP7: «Bajar a pie» desde la batalla grande, con las fuerzas tope de js/ui-mando.js (TOPE_AP: 600 hombres en el campo).
+   Al motor solo van los bloques despiertos (cerca de otro, huyendo o con algo en el aire). Vara pedida en LP7: < 1 ms por paso;
+   medido 1,0–1,2 con el campo lleno (sin despertar, 1,9). Esta prueba guarda que no empeore: < 1,3 */
+{
+  const BL = await import('../js/bloque.js'), { crearCombate } = await import('../js/bloque-ia.js'), { FIN_LUCHA } = await import('../js/falange.js');
+  const { crearTropas } = await import('../gobierno/maquetas/bloque/tropas.js'), FB = await import('../gobierno/maquetas/bloque/fisica.js');
+  t('LP7: con las fuerzas tope de «Bajar a pie» (600 hombres) el motor de física ronda 1 ms por paso (< 1,3) y nadie se cuela', () => {
+    const fuerzas = { tuyo: 120, centro: 120, amigas: [70, 70], alas: [70, 70], reserva: 50, tiradores: 30 }, ms = [];
+    for (const semilla of [3, 7]) {
+      const C = crearCombate({ semilla, nivel: 'normal', motor: BL, fuerzas, lejos: 50, fin: FIN_LUCHA }), S = C.S, TR = crearTropas({ S }), FS = FB.crearFisicaBloque({ S, TR, semilla });
+      let k = 0; while (!S.ganador && S.T < 200) { C.bot('bueno'); C.paso(1 / 30); TR.paso(1 / 30, S.T); FS.paso(1 / 30); if (++k === 300) FS.reinicia(); }
+      const m = FS.medir(); ms.push(m.motor); assert.ok(m.rival >= 0.8 && m.colados <= 0.2, JSON.stringify(m));
+    }
+    console.log('   motor ' + ms.join(' y ') + ' ms por paso (enganche entero aparte)');
+    assert.ok(Math.max(...ms) < 1.3, ms.join(' '));
+  });
+}
+
 console.log(`\n${n} bien, ${mal} mal`);
 if (mal) process.exit(1);

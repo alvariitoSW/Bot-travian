@@ -25,9 +25,22 @@ export const ARMAS = { centurion: 'hastatus', 'jefe-galo': 'galo', 'galo-grande'
   'galo-lancero': 'galo', 'galo-rapido': 'galo', 'galo-rapido-b': 'galo' };
 /* en el nivel de fondo (más de 70 m, ≈40 px de alto) las variantes parecidas se pintan con una: menos llamadas de dibujo
    (vara LP0: ≤30). De cerca y a media distancia, cada una la suya */
-export const FONDO = { 'galo-grande-v2a': 'galo-grande', 'galo-grande-v2b': 'galo-grande', 'galo-rapido-b': 'galo-rapido' };
+export const FONDO = { 'galo-grande-v2a': 'galo-grande', 'galo-grande-v2b': 'galo-grande', 'galo-rapido-b': 'galo-rapido',
+  /* LP7: de media distancia en adelante (más de 26 m) el centurión se pinta como un hastatus: dos llamadas menos (≤ 30 en el choque) */
+  centurion: 'hastatus' };
 /* paleta de cada uno (sin entrada: la de su nombre en PUEBLOS, o la de la legión) */
-export const paleta = nombre => (nombre.startsWith('galo') || nombre === 'jefe-galo') ? PUEBLOS.galo : undefined;
+const PAL = {};   /* LP7: paleta puesta por ponBandos, por bando y modelo ('g:hastatus'): el mismo modelo puede ir en los dos bandos */
+export const paleta = (nombre, bando) => PAL[bando + ':' + nombre] !== undefined ? PAL[bando + ':' + nombre] || undefined : (nombre.startsWith('galo') || nombre === 'jefe-galo') ? PUEBLOS.galo : undefined;
+
+/* LP7 («Bajar a pie» desde la batalla grande): cada bando con el soldado de su tropa. null = los de siempre (hastatus y
+   centurión; los galos de Meshy). { modelo, paleta } = un soldado de js/gfx/soldado.js para todo el bando (ya lleva sus armas);
+   paleta: objeto de PUEBLOS/gama o null (la suya). Si el modelo es 'hastatus' se queda el centurión de oficial */
+const SERIE = { r: SOLDADOS.r, g: SOLDADOS.g };
+export function ponBandos(r, g) {
+  SOLDADOS.r = r && r.modelo ? { tropa: [r.modelo], oficial: r.modelo === 'hastatus' ? 'centurion' : r.modelo } : SERIE.r;
+  SOLDADOS.g = g && g.modelo ? { galos: [g.modelo], nobles: [g.modelo], jefe: g.modelo, tiradores: [g.modelo] } : SERIE.g;
+  for (const [b, x] of [['r', r], ['g', g]]) if (x && x.modelo) { PAL[b + ':' + x.modelo] = x.paleta || null; if (!(x.modelo in ARMAS)) ARMAS[x.modelo] = null; }
+}
 
 /* todos los modelos de un bando, sin repetir */
 export function modelos(b) {

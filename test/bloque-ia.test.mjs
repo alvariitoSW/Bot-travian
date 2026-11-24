@@ -247,5 +247,25 @@ t('Testudo: tocarlo otra vez lo quita (en el choque es lo que se ilumina para ab
   const C = nuevo(); C.orden('testudo'); assert.strictEqual(C.S.tuyo.orden, 'testudo'); C.orden('testudo'); assert.strictEqual(C.S.tuyo.orden, 'alto');
 });
 
+/* LP7: «Bajar a pie» desde la batalla grande: fuerzas reales, distancia y final al 15 % */
+import { FIN_LUCHA } from '../js/falange.js';
+t('LP7: fuerzas reales (los que faltan, fuera), distancia pedida y lucha hasta el 15 % (bot bueno gana 10 de 10 solo contra su centro)', () => {
+  const FU = { tuyo: 110, centro: 150, amigas: [0, 90], alas: [0, 0], reserva: 0, tiradores: 0 };
+  const C = nuevo({ fuerzas: FU, lejos: 30, fin: FIN_LUCHA }), S = C.S;
+  assert.strictEqual(S.tuyo.U.hombres, 110); assert.strictEqual(S.ene.centro.U.hombres, 150); assert.strictEqual(S.amigas[1].U.hombres, 90);
+  for (const b of [S.amigas[0], S.ene.alas[0], S.ene.alas[1], S.ene.reserva, S.ene.tiradores]) { assert.strictEqual(b.estado, 'fuera'); assert.ok(!S.bloques.includes(b)); }
+  assert.strictEqual(S.bloques.length, 3);
+  assert.ok(Math.abs(-S.ene.centro.z - 30) < 1e-9, 'a ' + (-S.ene.centro.z) + ' m');
+  const sol = { tuyo: 120, centro: 140, amigas: [0, 0], alas: [0, 0], reserva: 0, tiradores: 0 };
+  const L = SEM(10).map(sm => { const C = nuevo({ semilla: sm, fuerzas: sol, lejos: 40, fin: FIN_LUCHA }); while (!C.S.ganador) { C.bot('bueno'); C.paso(DT); } return C; });
+  assert.strictEqual(L.filter(C => C.S.ganador === 'tuyo').length, 10);
+  /* rompe quien queda al 15 % o menos (no antes por miedo) */
+  for (const C of L) { const c = C.S.ene.centro.U; assert.ok(c.roto && c.enPie <= c.hombres * FIN_LUCHA + 1e-9, c.enPie + '/' + c.hombres); }
+  console.log('   solo contra su centro: duran ' + L.map(C => Math.round(C.S.T)).join(' ') + ' s; pierdes ' + L.map(C => C.resumen().perdidos).join(' '));
+  /* sin las opciones LP7, igual que antes */
+  const A = juega('normal', 'bueno', 4, DT, BL), B = (() => { const C = nuevo({ semilla: 4, fuerzas: {} }); while (!C.S.ganador) { C.bot('bueno'); C.paso(DT); } return C.resumen(); })();
+  assert.strictEqual(A.perdidos, B.perdidos); assert.strictEqual(A.T, B.T);
+});
+
 console.log(`\n${n} bien, ${mal} mal`);
 process.exit(mal ? 1 : 0);
