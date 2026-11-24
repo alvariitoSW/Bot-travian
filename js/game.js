@@ -320,7 +320,11 @@
   /* ---------- bien especial por ciudad (B1) ---------- */
   G.fuentesExtra = [];   // ganchos de otras tareas (rutas comerciales con aliados): cada uno recibe el bien y devuelve ids de ciudad
   G.fuentesEspecial = function (k) { const l = G.myCities().filter(id => D.CITIES[id].esp === k); for (const f of G.fuentesExtra) for (const id of f(k) || []) if (l.indexOf(id) < 0) l.push(id); return l; };
-  G.especiales = function () { const o = {}; for (const k in D.ESPECIAL) if (G.fuentesEspecial(k).length) o[k] = true; return o; };
+  let espMem = null, espClave = null, espEstado = null;   // CDe4: memoria por instante y ciudades propias (bonoMul y G.prod la piden miles de veces por mes)
+  G.especiales = function () {
+    const s = G.state, clave = s ? s.t + '|' + Object.keys(s.cities).map(id => s.cities[id].owner).join(',') + '|' + G.fuentesExtra.length + '|' + JSON.stringify(G.rutasAbiertas()) : null;
+    if (espMem && s === espEstado && clave === espClave) return Object.assign({}, espMem);
+    const o = {}; for (const k in D.ESPECIAL) if (G.fuentesEspecial(k).length) o[k] = true; espMem = o; espClave = clave; espEstado = s; return Object.assign({}, o); };
   G.dondeEspecial = k => G.ciudadesRegion().filter(id => D.CITIES[id].esp === k);   // todas las ciudades del mapa que lo dan
   G.bonoMul = function (campo, tipoMul) { const fm = (campo === 'obra' || campo === 'instr') ? G.factor(campo) : 1; return fm === 1 ? bonoMul0(campo, tipoMul) : bonoMul0(campo, tipoMul) * fm; };   // I8: el modo acorta obras e instrucción
   const bonoMul0 = function (campo, tipoMul) { let m = 1; const e = G.especiales(); for (const k in e) { const v = D.ESPECIAL[k].bono[campo]; if (v) m *= v; }
