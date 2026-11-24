@@ -49,7 +49,13 @@
       "gobierno/plan-12.md",
       "gobierno/relevo-gobierno.md",
       "gobierno/cadena-gm.md",
-      "gobierno/entornos/"
+      "gobierno/entornos/",
+      "gobierno/arte-fotos.mjs",
+      "gobierno/arte-fotos.html",
+      "gobierno/arte-piezas.json",
+      "gobierno/arte-fotos/",
+      "gobierno/equipos.json",
+      "gobierno/captura-cm3.mjs"
     ]
   },
   "libres": {
