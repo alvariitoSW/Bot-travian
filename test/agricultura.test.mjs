@@ -50,19 +50,19 @@ ok(!A.puedeMejorar({ campo: 'trigo', suelo: 'llano', mejoras: [] }, 'lagar').ok 
 
 // 7. producción anual
 const olivar = { campo: 'olivar', suelo: 'ladera_seca', nivel: 2, mejoras: [] };
-ok(cerca(A.produccionAnual(olivar).aceite, 10), 'olivar nivel 2 bien sin almazara: 10 × 2 × 0,5 = 10');
-ok(cerca(A.produccionAnual({ ...olivar, mejoras: ['almazara'] }).aceite, 20), 'olivar con almazara: 20');
+ok(cerca(A.produccionAnual(olivar).aceite, 192), 'olivar nivel 2 bien sin almazara: 192 × 2 × 0,5 = 192');
+ok(cerca(A.produccionAnual({ ...olivar, mejoras: ['almazara'] }).aceite, 384), 'olivar con almazara: 384');
 const vina = { campo: 'vina', suelo: 'ladera_sol', nivel: 1, mejoras: [] };
-ok(cerca(A.produccionAnual(vina).vino, 5) && cerca(A.produccionAnual({ ...vina, mejoras: ['lagar'] }).vino, 10), 'viña: ×0,5 sin lagar, entera con lagar');
+ok(cerca(A.produccionAnual(vina).vino, 96) && cerca(A.produccionAnual({ ...vina, mejoras: ['lagar'] }).vino, 192), 'viña: ×0,5 sin lagar, entera con lagar');
 const trigo = { campo: 'trigo', suelo: 'llano', nivel: 3, mejoras: [] };
-ok(cerca(A.produccionAnual(trigo).grano, 108), 'trigo nivel 3 en llano: 108');
+ok(cerca(A.produccionAnual(trigo).grano, 900), 'trigo nivel 3 en llano: 900');
 ok(A.produccionAnual({ campo: 'olivar', suelo: 'ribera', nivel: 5 }).aceite === 0, 'donde no se puede, produce 0');
 
 // 8. estercolero
 const est = { ...trigo, mejoras: ['estercolero'] };
-ok(cerca(A.produccionAnual(est).grano, 129.6), 'estercolero solo: ×1,2');
-ok(cerca(A.produccionAnual(est, [{ campo: 'pasto', suelo: 'baja', nivel: 1, mejoras: [] }]).grano, 145.8), 'estercolero con pasto vecino: ×1,35');
-ok(cerca(A.produccionAnual(est, [{ campo: 'pasto', mejoras: ['redil'] }]).grano, 145.8) && cerca(A.produccionAnual(est, [{ campo: 'huerto', mejoras: [] }]).grano, 129.6), 'estercolero con redil vecino ×1,35; con otro vecino ×1,2');
+ok(cerca(A.produccionAnual(est).grano, 1080), 'estercolero solo: ×1,2');
+ok(cerca(A.produccionAnual(est, [{ campo: 'pasto', suelo: 'baja', nivel: 1, mejoras: [] }]).grano, 1215), 'estercolero con pasto vecino: ×1,35');
+ok(cerca(A.produccionAnual(est, [{ campo: 'pasto', mejoras: ['redil'] }]).grano, 1215) && cerca(A.produccionAnual(est, [{ campo: 'huerto', mejoras: [] }]).grano, 1080), 'estercolero con redil vecino ×1,35; con otro vecino ×1,2');
 
 // 9. producción mensual
 const parcelas = [trigo, olivar, { ...olivar, mejoras: ['almazara'] }, vina, { campo: 'huerto', suelo: 'ribera', nivel: 4, mejoras: ['noria'] }, { campo: 'pasto', suelo: 'baja', nivel: 2, mejoras: ['redil'] }];
@@ -72,7 +72,7 @@ for (const p of parcelas) {
   for (const rep of [true, false]) { let t = 0; for (let m = 0; m < 12; m++) t += A.produccionMes(p, m, [], { granoRepartido: rep })[k]; if (!cerca(t, anual[k])) suma = false; }
 }
 ok(suma, 'los 12 meses suman la producción anual (grano repartido o no)');
-ok(cerca(A.produccionMes(trigo, 0)[ 'grano'], 9) && A.produccionMes(trigo, 0, [], { granoRepartido: false }).grano === 0 && cerca(A.produccionMes(trigo, 5, [], { granoRepartido: false }).grano, 54), 'grano: 1/12 al mes, o todo en la siega');
+ok(cerca(A.produccionMes(trigo, 0)['grano'], 75) && A.produccionMes(trigo, 0, [], { granoRepartido: false }).grano === 0 && cerca(A.produccionMes(trigo, 5, [], { granoRepartido: false }).grano, 450), 'grano: 1/12 al mes, o todo en la siega');
 ok(A.produccionMes(olivar, 3).aceite === 0 && A.produccionMes(olivar, 10).aceite > 0 && A.produccionMes({ campo: 'huerto', suelo: 'ribera', nivel: 1 }, 7).verdura > 0, 'otros productos solo en meses de cosecha (el huerto, siempre)');
 
 // 10. pérdida mensual
@@ -96,10 +96,10 @@ const sumaEst = [0, 1, 2, 3].reduce((a, e) => a + A.produccionEstacion(olivar, e
 ok(cerca(sumaEst, A.produccionAnual(olivar).aceite) && cerca(A.produccionEstacion(olivar, 2).aceite, [8, 9, 10].reduce((a, m) => a + A.produccionMes(olivar, m).aceite, 0)), 'produccionEstacion: las 4 estaciones suman el año; otoño = meses 8-10');
 ok(A.produccionEstacion(olivar, 3).aceite > 0 && A.produccionEstacion(olivar, 1).aceite === 0, 'produccionEstacion: invierno = meses 11, 0, 1 (aceituna)');
 const of = A.ofertaPorEstacion('vina', 'ladera_sol');
-ok(of.length === 4 && cerca(of.reduce((a, b) => a + b, 0), 5) && of[2] > 0 && of[0] === 0 && A.ofertaPorEstacion('olivar', 'ribera').every(x => x === 0), 'ofertaPorEstacion: 4 números, nivel 1 sin mejoras (vendimia en otoño)');
+ok(of.length === 4 && cerca(of.reduce((a, b) => a + b, 0), 96) && of[2] > 0 && of[0] === 0 && A.ofertaPorEstacion('olivar', 'ribera').every(x => x === 0), 'ofertaPorEstacion: 4 números, nivel 1 sin mejoras (vendimia en otoño)');
 const sc = { agro: { v: 1, parcelas: [{ id: 'a', ciudad: 'roma', campo: 'trigo', suelo: 'llano', nivel: 1, mejoras: ['estercolero'] }, { id: 'b', ciudad: 'roma', campo: 'pasto', suelo: 'baja', nivel: 1, mejoras: [] }, { id: 'c', ciudad: 'capua', campo: 'trigo', suelo: 'llano', nivel: 1, mejoras: [] }] } };
 const pc = A.produccionCiudad(sc, 'roma', 3);
-ok(Object.keys(pc).join() === 'grano,aceite,vino,verdura,lana' && cerca(pc.grano, 36 * 1.35 / 12) && cerca(pc.lana, 8 / 2) && A.produccionCiudad(sc, 'nada', 3).grano === 0 && A.produccionCiudad({}, 'roma', 0).lana === 0, 'produccionCiudad: suma las parcelas de la ciudad, con vecinos y todas las claves');
+ok(Object.keys(pc).join() === 'grano,aceite,vino,verdura,lana' && cerca(pc.grano, 300 * 1.35 / 12) && cerca(pc.lana, 72 / 2) && A.produccionCiudad(sc, 'nada', 3).grano === 0 && A.produccionCiudad({}, 'roma', 0).lana === 0, 'produccionCiudad: suma las parcelas de la ciudad, con vecinos y todas las claves');
 
 // 12. encargos
 const e0 = A.encargosAgricultura({ parcelas: [], libres: [{ id: 'l1', suelo: 'ladera_sol' }], almacen: { grano: 1000 }, bocas: 10, mes: 0 });
@@ -115,7 +115,7 @@ ok(A.encargosAgricultura({ parcelas: [], libres: [], almacen: { grano: 1000 }, b
 
 // 13. migrar
 const s1 = A.migrar({ oro: 5, bienes: { roma: { grano: 3 } } });
-ok(s1.oro === 5 && s1.bienes.roma.grano === 3 && s1.agro.v === 1 && s1.agro.parcelas.length === 0 && !('almacen' in s1.agro), 'migrar: crea agro {v, parcelas} sin tocar el resto ni bienes');
+ok(s1.oro === 5 && s1.bienes.roma.grano === 3 && s1.agro.v === 1 && s1.agro.parcelas.length === 0 && !('almacen' in s1.agro) && JSON.stringify(s1.agro.villas) === '{}', 'migrar: crea agro {v, parcelas, villas} sin tocar el resto ni bienes');
 const s2 = A.migrar({ agro: { v: 1, parcelas: [{ id: 'x', ciudad: 'roma' }] } });
 ok(s2.agro.parcelas[0].id === 'x' && s2.agro.parcelas.length === 1, 'migrar: no pisa datos existentes');
 
@@ -126,6 +126,19 @@ A.produccionAnual(ent.parcela, ent.vec); A.produccionMes(ent.parcela, 5, ent.vec
 A.dieta(ent.prod, 10); A.valor(ent.prod, pr); A.encaje('huerto', 'llano', ent.mj); A.consejo('llano', ent.mj); A.puedeMejorar(ent.parcela, 'era');
 ok(JSON.stringify(ent) === antes, 'ninguna función cambia lo que recibe');
 ok(Object.values(A.CAMPOS).every(c => c.d && c.fuente && c.nombre) && Object.values(A.SUELOS).every(s => s.d && s.nombre) && Object.values(A.MEJORAS).every(m => m.fuente && m.nombre), 'tablas con nombre, frase y fuente');
+
+// 14. ciencia (usuario, 24/11)
+ok(A.consejo('ladera_sol', [], []).every(x => x.campo !== 'vina' && x.campo !== 'olivar'), 'ciencia: sin «Viña y olivar» no se aconseja viña ni olivar');
+ok(A.consejo('ladera_sol', [], ['vina'])[0].campo === 'vina' && A.consejo('ladera_sol')[0].campo === 'vina', 'ciencia: con el saber, o sin filtro, la viña vuelve');
+ok(A.consejo('ladera_seca', [], []).length > 0 && A.consejo('ladera_seca', [], []).every(x => x.campo === 'pasto'), 'ciencia: en ladera seca sin saber queda el pasto');
+ok(!A.puedeMejorar({ campo: 'huerto', suelo: 'ribera', mejoras: [] }, 'noria', { vina: true }).ok && /Magón/.test(A.puedeMejorar({ campo: 'huerto', suelo: 'ribera', mejoras: [] }, 'noria', []).motivo), 'ciencia: la noria pide el Tratado de Magón y lo dice');
+ok(A.puedeMejorar({ campo: 'huerto', suelo: 'ribera', mejoras: [] }, 'noria', ['magon']).ok && A.puedeMejorar({ campo: 'trigo', suelo: 'llano', mejoras: [] }, 'era', []).ok, 'ciencia: con Magón hay noria; la era está abierta desde el principio');
+ok(A.abierto('villa', []).falta === 'latif' && A.abierto('trigo', []).ok, 'ciencia: la villa pide «Villa esclavista»; el trigo, nada');
+const sv = { agro: { v: 1, parcelas: [{ id: 'a', ciudad: 'roma', campo: 'trigo', suelo: 'llano', nivel: 1, mejoras: [] }], villas: { roma: 1 } } };
+const sn = { agro: { v: 1, parcelas: sv.agro.parcelas, villas: {} } };
+ok(Math.abs(A.produccionCiudad(sv, 'roma', 3).grano - A.produccionCiudad(sn, 'roma', 3).grano * 1.1) < 1e-9, 'villa: los campos de la ciudad rinden ×1,1');
+const enc = A.encargosAgricultura({ parcelas: [], libres: [{ id: 'l1', suelo: 'ladera_sol' }], almacen: { grano: 999 }, bocas: 10, mes: 0, saberes: [] });
+ok(enc.length && enc[0].campo !== 'vina', 'ciencia: el ministro no propone viña sin el saber');
 
 console.log('\n' + bien + '/' + n);
 process.exit(bien === n ? 0 : 1);

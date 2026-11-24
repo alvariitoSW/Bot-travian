@@ -230,7 +230,7 @@ function pintarCiudad3(M, T, E, fino) {
 
 /* CN15a: tintes por estación (primavera, verano, otoño, invierno). MULTIPLICADORES, no repintan texturas: así el terreno futuro (CN19) también los recibe.
    Suaves: primavera verde fresco, verano dorado y seco, otoño ocre, invierno apagado y frío. Mezcla de la estación k hacia la siguiente con f (0..1). */
-const EST_SUELO = [[0.94, 1.06, 0.92], [1.03, 1.0, 0.93], [1.10, 0.95, 0.80], [0.91, 0.96, 1.03]];
+const EST_SUELO = [[0.94, 1.06, 0.92], [1.03, 1.0, 0.93], [1.10, 0.95, 0.80], [0.90, 1.0, 0.95]];   // MN4b: invierno algo más verde
 const EST_ARBOL = [[0.95, 1.08, 0.90], [1.02, 1.0, 0.92], [1.22, 0.92, 0.70], [0.88, 0.94, 1.0]];
 /* Multiplicador del suelo por terreno de colonia: costa arena clara, pantano verde oscuro húmedo, terrazas ocre, llanura verde claro. */
 const TINTE_TERRENO = { costa: [1.18, 1.12, 0.92], pantano: [0.74, 0.88, 0.7], terrazas: [1.12, 1.0, 0.78], llanura: [0.94, 1.1, 0.9] };

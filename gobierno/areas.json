@@ -163,8 +163,8 @@
           "test/bloque.test.mjs",
           "test/bloque-ia.test.mjs",
           "test/fisica-batalla.test.mjs",
-          "test/dialogos.test.mjs",
-          "test/batalla-rapida.test.mjs"
+          "test/batalla-rapida.test.mjs",
+          "test/dialogos.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area batallas",
@@ -230,7 +230,25 @@
         "js/mercado.js",
         "test/mercado.test.mjs",
         "test/barrio-ui.test.mjs",
-        "js/mercado-ui.js"
+        "js/mercado-ui.js",
+        "js/gobernador.js",
+        "js/gobernador-ui.js",
+        "test/gobernador.test.mjs",
+        "gobierno/maquetas/gobernador/",
+        "js/clases-ui.js",
+        "gobierno/maquetas/clases/",
+        "js/caminos.js",
+        "js/caminos-ui.js",
+        "js/este-ano.js",
+        "js/este-ano-ui.js",
+        "test/caminos.test.mjs",
+        "test/este-ano.test.mjs",
+        "js/calles.js",
+        "js/calles-ui.js",
+        "js/gfx/calles3d.js",
+        "test/calles.test.mjs",
+        "gobierno/maquetas/calles/",
+        "gobierno/maquetas/mercado/"
       ],
       "taller": [],
       "juez": {
@@ -239,7 +257,11 @@
           "test/senado.test.js",
           "test/saber.test.mjs",
           "test/diplomacia.test.mjs",
-          "test/encargos.test.mjs"
+          "test/encargos.test.mjs",
+          "test/caminos.test.mjs",
+          "test/este-ano.test.mjs",
+          "test/gobernador.test.mjs",
+          "test/calles.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area cerebro"
@@ -280,6 +302,7 @@
         "gobierno/maquetas/menus*/",
         "gobierno/maquetas/concurso*/",
         "gobierno/maquetas/provincias/",
+        "css/aspecto.css",
         "css/portada.css",
         "js/portada.js"
       ],
@@ -314,7 +337,11 @@
         "tools/",
         "gobierno/kits/",
         "gobierno/maquetas/piezas/",
-        "assets/laminas/"
+        "assets/iconos/",
+        "assets/personajes/",
+        "assets/laminas/",
+        "assets/edificios-griegos/",
+        "tools/aligerar_edificios_griegos.mjs"
       ],
       "taller": [],
       "juez": {

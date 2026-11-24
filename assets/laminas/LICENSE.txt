@@ -1,0 +1,16 @@
+Láminas y miniaturas de AQVILA (assets/laminas/)
+
+Contenido: portada-v.webp, portada-h.webp, saber.webp, senado.webp, tropas.webp, imperio.webp y edif/*.webp.
+
+Son renders de los modelos 3D de los edificios, murallas y árboles del juego 0 A.D.
+(https://play0ad.com), Copyright (C) Wildfire Games (https://www.wildfiregames.com/),
+licencia Creative Commons Attribution-Share Alike 3.0 (CC BY-SA 3.0): https://creativecommons.org/licenses/by-sa/3.0/
+
+Las escenas (portada y láminas) son capturas de la ciudad de Roma del propio juego, sin interfaz, con retoque de color,
+viñeta y degradado (tools/laminas/escenas.mjs y retoque.py). Las miniaturas de edificio se dibujan solas, con luz cálida
+y vista de tres cuartos (tools/laminas/estudio.html y hacer.mjs). Los árboles, el suelo y el agua que salen en las escenas
+son también de 0 A.D. o de arte propio del Proyecto AQVILA (misma licencia). No se ha usado ninguna otra fuente.
+
+Obra derivada hecha por el Proyecto AQVILA y publicada bajo la misma licencia, CC BY-SA 3.0:
+puedes usarla, modificarla y redistribuirla, también con fines comerciales, siempre que cites a Wildfire Games como autor
+original, enlaces la licencia y distribuyas esta obra (y lo derivado) bajo CC BY-SA 3.0.

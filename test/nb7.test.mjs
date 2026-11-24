@@ -46,7 +46,7 @@ function campana(modo, sem) {
     const s = G.newGame('Test');  const meta = G.region().capitalRival, cuenta = { maniobra: 0, directo: 0, sola: 0, clasica: 0 };
     const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const nb of G.neighbors(q[i])) if (!(nb in dist)) { dist[nb] = dist[q[i]] + 1; q.push(nb); }
     G.onEvent = () => {}; let guard = 0;
-    while (!s.over && guard++ < 200000) {
+    while (!G.finDePrueba() && !(G.campanaLarga() && G.yearOf(s.t) <= 150) && guard++ < 200000) {
       G.tick(0.25);
       while (s.pending.length && !s.over) { const r = G.resolverPendiente(); cuenta[r.plan.via]++; assert(r.out && typeof r.out.win === 'boolean'); }
       if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: el bot compra hierro y vende lo que sobra (test/bot-mercado.js)
@@ -61,6 +61,7 @@ function campana(modo, sem) {
         for (const nb of G.neighbors(id)) { const tt = s.cities[nb]; if (tt.owner === 'roma') continue; const u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (id === 'roma' ? 0.65 : 0.8)); if (G.power(u) > G.power(tt.units) * (1.6 + 0.12 * tt.b.muralla) && !s.marches.some(m => m.owner === 'roma' && s.cities[m.to].owner !== 'roma')) { G.send(id, nb, u, G.heroAvailable(id)); break; } }
       }
     }
+    if (!s.over && G.campanaLarga()) s.over = { win: !!(s.caminos && s.caminos.victoria), why: 'fin de prueba' };   // CE10: sin plazo ni final por Cartago, el bot para en G.finDePrueba()
     assert(s.over, 'la campaña debe terminar'); return { s, cuenta };
   } finally { Math.random = rnd; G.onEvent = null; }
 }

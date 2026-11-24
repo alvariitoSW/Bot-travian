@@ -1,0 +1,145 @@
+/* ===== MN4a · Aspecto nuevo de los menús (papiro, bronce, iconos pintados) =====
+   Se carga DESPUÉS de style.css y solo actúa si <body> lleva la clase `aspecto`.
+   Variables --as-*. Iconos en assets/iconos/ (arte propio, CC BY-SA 3.0). Contrato: gobierno/maquetas/aspecto/CONTRATO.md */
+:root {
+  --as-papiro: #e8d4a2; --as-papiro2: #d9bd84; --as-claro: #f3e2b4; --as-tinta: #2b1c0a; --as-tinta2: #5a4220;
+  --as-minio: #9b2a1a; --as-oliva: #46661f; --as-cera: #2e2214; --as-cera2: #3d2d1a; --as-madera: #6b4a26;
+  --as-bronce: #b8862b; --as-bronce2: #7a5a1f; --as-bronce3: #4a3512; --as-oro: #e9c063; --as-lacre: #a3231a; --as-noche: #17110d;
+  --as-letra: Georgia, 'Noto Serif', 'DejaVu Serif', serif; --as-cinzel: var(--serif, 'Cinzel', Georgia, serif);
+  --as-filete: linear-gradient(#ecc977, #b8862b 50%, #7a5a1f);
+  --as-hoja: radial-gradient(ellipse at 20% 0%, rgba(255, 246, 214, .7), transparent 55%), radial-gradient(ellipse at 100% 100%, rgba(140, 92, 36, .3), transparent 60%), linear-gradient(var(--as-papiro), #dcc48c);
+}
+body.aspecto { --glass: var(--as-papiro); }
+
+/* ---------- (a) TIRA DE RECURSOS: cinta de papiro con filete de bronce ---------- */
+body.aspecto #res { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 4px 3px; height: auto; align-items: stretch; padding: 5px 4px 4px; border-radius: 10px;
+  background: var(--as-hoja); border: 0; backdrop-filter: none; -webkit-backdrop-filter: none; color: var(--as-tinta);
+  box-shadow: inset 0 0 0 2px var(--as-bronce), inset 0 0 0 3px var(--as-bronce3), inset 0 0 0 5px rgba(255, 238, 190, .55), 0 3px 8px rgba(0, 0, 0, .5); }
+body.aspecto #res::before { display: none; }
+body.aspecto #res .r { position: relative; display: flex; align-items: center; justify-content: flex-start; gap: 2px; min-width: 0; height: 32px; padding: 0 3px 0 3px; border-radius: 99px;
+  background: linear-gradient(#f6e8c0, #e2c98f); border: 1px solid var(--as-bronce2); color: var(--as-tinta); font: 700 14px var(--as-letra); white-space: nowrap; backdrop-filter: none; -webkit-backdrop-filter: none;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), inset 0 -2px 3px rgba(120, 78, 28, .22); }
+body.aspecto #res .r .ico, body.aspecto #res .r > img { flex: none; display: block; width: 20px; height: 20px; margin: 0; stroke: none; filter: drop-shadow(0 1px 0 rgba(255, 255, 255, .5)); }
+body.aspecto #res .r b { display: block; flex: 0 1 auto; min-width: 0; font: 700 12.5px var(--as-letra); letter-spacing: -.04em; color: var(--as-tinta); font-variant-numeric: tabular-nums; text-align: left; }
+body.aspecto #res .r small { flex: none; margin-left: 1px; font: 700 8px var(--as-letra); color: var(--as-oliva); }
+body.aspecto #res .r small.neg, body.aspecto #res .r small.baja { color: var(--as-minio); }
+body.aspecto #res .r small.alm { display: none; }
+body.aspecto #res .r { overflow: clip; }
+body.aspecto #res .r small.tn { margin-left: 0; font-size: 7px; }
+/* CDe4: «Tus caminos» (CE10) y «Este año» sobre papiro: títulos en tinta, no en oro pálido */
+body.aspecto .cam-cab h2 { color: var(--as-tinta); }
+body.aspecto #res .r.full b { color: var(--as-minio); }
+body.aspecto #res .r.w-only, body.aspecto #res .r.g-only { }
+body.aspecto #bar2 #citybtn, body.aspecto #bar2 #datebox { background: var(--as-hoja); border: 0; color: var(--as-tinta); font-family: var(--as-cinzel);
+  box-shadow: inset 0 0 0 2px var(--as-bronce), inset 0 0 0 3px var(--as-bronce3), 0 3px 6px rgba(0, 0, 0, .45); }
+body.aspecto #bar2 #citybtn b, body.aspecto #bar2 #citybtn, body.aspecto #bar2 #date, body.aspecto #bar2 #speed { color: var(--as-tinta); text-shadow: none; opacity: 1; }   /* CDe4: se leía oro claro sobre papiro */
+
+/* ---------- (b) piezas comunes .as-* ---------- */
+/* miniatura de edificio en marco de bronce, con placa de nivel */
+.as-mini { position: relative; flex: none; width: 64px; height: 64px; border-radius: 9px; background: radial-gradient(ellipse at 50% 30%, #4a3a26, var(--as-cera));
+  box-shadow: 0 0 0 2px var(--as-bronce), 0 0 0 3px var(--as-bronce3), inset 0 0 0 1px rgba(0, 0, 0, .6), 0 3px 5px rgba(0, 0, 0, .45); }
+.as-mini img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 9px; }
+.as-mini.claro { background: var(--as-claro); }
+.as-mini.g { width: 84px; height: 84px; } .as-mini.p { width: 48px; height: 48px; }
+.as-mini .nv { position: absolute; right: -5px; bottom: -5px; padding: 1px 7px 0; border-radius: 99px; background: linear-gradient(#b8321f, #7e1910); color: #fbe9c7; font: 700 11px/16px var(--as-cinzel);
+  letter-spacing: .03em; box-shadow: 0 0 0 1px var(--as-oro), 0 2px 3px rgba(0, 0, 0, .55); white-space: nowrap; }
+.as-mini.nuevo { box-shadow: 0 0 0 2px var(--as-oro), 0 0 0 3px var(--as-bronce2), 0 0 12px 2px rgba(233, 192, 99, .75), 0 3px 5px rgba(0, 0, 0, .45); }
+.as-mini.nuevo .nv { background: linear-gradient(#e9c063, #b8862b); color: #3a2405; box-shadow: 0 0 0 1px var(--as-bronce3), 0 2px 3px rgba(0, 0, 0, .55); }
+/* antes → después */
+.as-mejora { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 6px 0; }
+.as-flecha { position: relative; flex: none; width: 34px; height: 14px; background: var(--as-minio); clip-path: polygon(0 35%, 62% 35%, 62% 0, 100% 50%, 62% 100%, 62% 65%, 0 65%); filter: drop-shadow(0 1px 0 rgba(255, 240, 200, .6)); }
+/* icono de tinta en medallón tipo moneda */
+.as-ico { position: relative; flex: none; display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 28%, #fff1c0, #e2b860 45%, #a8781f 100%); box-shadow: 0 0 0 2px var(--as-bronce3), inset 0 0 0 2px rgba(255, 238, 190, .6), inset 0 -3px 4px rgba(80, 50, 10, .4), 0 2px 4px rgba(0, 0, 0, .45); }
+.as-ico img { width: 62%; height: 62%; display: block; }
+.as-ico.p { width: 30px; height: 30px; } .as-ico.g { width: 56px; height: 56px; }
+.as-ico.lacre { background: radial-gradient(circle at 35% 28%, #d8503a, #a3231a 55%, #6e130d); box-shadow: 0 0 0 2px var(--as-oro), 0 0 0 3px var(--as-bronce3), inset 0 -3px 4px rgba(40, 0, 0, .45), 0 2px 4px rgba(0, 0, 0, .45); }
+.as-ico.cera { background: radial-gradient(circle at 35% 28%, #5a4528, var(--as-cera) 70%); box-shadow: 0 0 0 2px var(--as-oro), 0 0 0 3px var(--as-bronce3), 0 2px 4px rgba(0, 0, 0, .45); }
+.as-ico.cera img { filter: drop-shadow(0 0 1px #f3e2b4); }
+/* costes con icono pintado */
+.as-costes { display: flex; flex-wrap: wrap; gap: 5px; margin: 6px 0; }
+.as-coste { display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 9px 0 3px; border-radius: 99px; background: linear-gradient(#f6e8c0, #e2c98f); box-shadow: inset 0 0 0 1px var(--as-bronce2), inset 0 1px 0 rgba(255, 255, 255, .6);
+  color: var(--as-tinta); font: 700 15px var(--as-letra); white-space: nowrap; }
+.as-coste img { width: 22px; height: 22px; display: block; }
+.as-coste.falta { box-shadow: inset 0 0 0 1.5px var(--as-minio); color: var(--as-minio); }
+.as-coste small { font: 400 12px var(--as-letra); color: var(--as-tinta2); }
+/* lámina: franja de imagen con su crédito */
+.as-lamina { position: relative; margin: 0 0 8px; height: 92px; overflow: hidden; border-radius: 5px; background: var(--as-cera); box-shadow: 0 0 0 1.5px var(--as-bronce2), 0 2px 4px rgba(0, 0, 0, .4); }
+.as-lamina img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.as-lamina figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: 2px 8px; font: 400 11px/1.3 var(--as-letra); color: #f3e2b4; background: rgba(23, 17, 13, .72); }
+/* tarjeta de papiro */
+.as-tarjeta { position: relative; margin: 0 0 10px; padding: 12px 12px 10px; border-radius: 8px; color: var(--as-tinta); font: 15px/1.35 var(--as-letra);
+  background: var(--as-hoja); box-shadow: inset 0 0 0 1px rgba(90, 60, 20, .55), inset 0 0 0 3px rgba(255, 238, 190, .45), 0 2px 5px rgba(0, 0, 0, .4); }
+.as-tarjeta h4 { margin: 0 0 4px; color: var(--as-tinta); font: 700 16px var(--as-cinzel); letter-spacing: .05em; text-transform: uppercase; }
+.as-tarjeta p { margin: 2px 0 6px; padding: 0; color: var(--as-tinta2); font: 15px/1.35 var(--as-letra); }
+.as-tarjeta .as-fila { display: flex; align-items: center; gap: 10px; }
+.as-tarjeta .as-fila > div { flex: 1; min-width: 0; }
+.as-tarjeta .as-pie { display: flex; gap: 8px; margin-top: 8px; }
+.as-tarjeta .rub { display: block; color: var(--as-minio); font: 700 13px var(--as-cinzel); letter-spacing: .08em; text-transform: uppercase; }
+.as-tarjeta .est { color: var(--as-oliva); font-weight: 700; } .as-tarjeta .est.mal { color: var(--as-minio); }
+.as-barra { height: 8px; border-radius: 99px; background: rgba(60, 35, 10, .2); box-shadow: inset 0 1px 2px rgba(60, 35, 10, .5); overflow: hidden; }
+.as-barra i { display: block; height: 100%; border-radius: 99px; background: linear-gradient(#e9c063, #b8862b); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5); }
+/* botones (misma gramática que .ro-*) */
+.as-btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; flex: 1; min-height: 44px; padding: 0 12px; border: 0; border-radius: 6px; color: #ecd9a8; font: 700 14px var(--as-cinzel); letter-spacing: .05em; text-transform: uppercase;
+  background: linear-gradient(#3e2e16, #1f160a); box-shadow: inset 0 0 0 1px var(--as-bronce), inset 0 0 0 3px rgba(184, 134, 43, .25), 0 3px 4px rgba(0, 0, 0, .45); }
+.as-btn.sello { color: #fbe9c7; background: radial-gradient(ellipse at 30% 0%, rgba(255, 190, 160, .3), transparent 60%), linear-gradient(#b8321f, #7e1910 70%, #6a140c); box-shadow: 0 0 0 2px #6a4a18, 0 0 0 3px rgba(233, 192, 99, .55), 0 4px 8px rgba(0, 0, 0, .5); }
+.as-btn.tinta { color: var(--as-tinta); background: linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 1px var(--as-bronce2); }
+.as-btn.off { color: var(--as-tinta2); background: rgba(90, 66, 32, .18); box-shadow: inset 0 0 0 1px rgba(90, 66, 32, .5); }
+
+/* ---------- (c) Hojas: bandeja Construir, ministros, Senado, Imperio, Saber y Tropas en papiro ---------- */
+body.aspecto #sheet, body.aspecto #csheet, body.aspecto #mbox, body.aspecto .as-hoja { background: var(--as-hoja); color: var(--as-tinta); font-family: var(--as-letra); border-radius: 10px; backdrop-filter: none; -webkit-backdrop-filter: none;
+  box-shadow: 0 10px 26px rgba(0, 0, 0, .6), inset 0 0 0 2px var(--as-bronce), inset 0 0 0 3px var(--as-bronce3), inset 0 0 0 5px rgba(255, 238, 190, .5); }
+body.aspecto #sheet::before, body.aspecto #mbox::before { opacity: .9; }
+body.aspecto #sheet h3, body.aspecto .as-hoja h3 { margin: 0; color: var(--as-tinta); font: 700 19px var(--as-cinzel); letter-spacing: .1em; text-transform: uppercase; }
+body.aspecto #sheet p { color: var(--as-tinta2); font-size: 15px; }
+body.aspecto #sheet .x, body.aspecto .as-x { color: var(--as-tinta); background: linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 1px var(--as-bronce2); }
+/* título en tabula ansata (sin las dos asas: caben en 390 px) */
+.as-titulo { display: flex; align-items: center; justify-content: center; height: 38px; margin: 0 20px 10px; color: #3a2405; font: 700 18px var(--as-cinzel); letter-spacing: .1em; text-transform: uppercase; white-space: nowrap;
+  background: linear-gradient(#ecc977, #c2913a 45%, #8c6520 75%, #a77b2c); text-shadow: 0 1px 0 rgba(255, 238, 190, .7);
+  box-shadow: inset 0 0 0 2px rgba(80, 50, 10, .55), inset 0 0 0 4px rgba(255, 232, 170, .35), 0 3px 4px rgba(0, 0, 0, .4); position: relative; }
+.as-titulo::before, .as-titulo::after { content: ''; position: absolute; top: 0; bottom: 0; width: 16px; background: linear-gradient(#d6aa55, #8c6520); }
+.as-titulo::before { left: -16px; clip-path: polygon(100% 0, 0 30%, 30% 50%, 0 70%, 100% 100%); }
+.as-titulo::after { right: -16px; clip-path: polygon(0 0, 100% 30%, 70% 50%, 100% 70%, 0 100%); }
+/* pestañas de cera */
+.as-pestanas { display: flex; gap: 3px; padding: 5px; margin: 0 0 10px; border-radius: 6px; background: linear-gradient(#8a6034, #5a3b1b); box-shadow: inset 0 0 0 1px rgba(30, 15, 5, .6), 0 3px 5px rgba(0, 0, 0, .4); }
+.as-pestanas > button { flex: 1; min-width: 0; min-height: 44px; border: 0; border-radius: 3px; padding: 2px 1px; color: #ead9b0; font: 600 14px/1.1 var(--as-letra);
+  background: linear-gradient(#3f2e1b, #2a1e10); box-shadow: inset 0 3px 5px rgba(0, 0, 0, .7); }
+.as-pestanas > button.on { color: var(--as-tinta); background: linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--as-minio); }
+/* rejilla de la bandeja Construir */
+.as-rejilla { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.as-cat { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 4px 7px; border: 0; border-radius: 7px; color: var(--as-tinta); font: 700 13px/1.1 var(--as-cinzel); letter-spacing: .03em; text-transform: uppercase; text-align: center;
+  background: linear-gradient(#f3e2b4, #dcc48c); box-shadow: inset 0 0 0 1px var(--as-bronce2), 0 2px 3px rgba(0, 0, 0, .35); }
+/* sello de «lo lleva …» y barra de abajo */
+.as-lleva { display: inline-flex; align-items: center; gap: 5px; padding: 2px 9px 2px 3px; border-radius: 99px; background: var(--as-lacre); color: #fbe9c7; font: 700 12px var(--as-cinzel); letter-spacing: .04em; box-shadow: 0 0 0 1px var(--as-oro); }
+body.aspecto #tabs3 { background: var(--as-hoja); border: 0; box-shadow: inset 0 0 0 2px var(--as-bronce), inset 0 0 0 3px var(--as-bronce3), 0 -3px 10px rgba(0, 0, 0, .45); }
+body.aspecto #tabs3 button { color: #ecd9a8; background: linear-gradient(#3e2e16, #1f160a); box-shadow: inset 0 0 0 1px var(--as-bronce), inset 0 0 0 3px rgba(184, 134, 43, .22); font-family: var(--as-cinzel); }
+body.aspecto #tabs3 button.on { color: var(--as-tinta); background: linear-gradient(#f3e2b4, #d8bb80); box-shadow: inset 0 0 0 2px var(--as-minio); }
+body.aspecto #tabs3 button i img, .as-nav img { display: block; width: 26px; height: 26px; margin: 0 auto; }
+body.aspecto #tabs3 button:not(.on) i img { filter: brightness(1.25) saturate(1.1) drop-shadow(0 0 1px #000); }
+/* barra de abajo: seis botones iguales (icono pintado + palabra) */
+body.aspecto #tabs3 { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; padding: 5px; }
+body.aspecto #tabs3 button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 54px; padding: 2px 0; border: 0; font-size: 11px; letter-spacing: .02em; text-transform: uppercase; }
+body.aspecto #tabs3 button i { display: block; font-style: normal; line-height: 0; }
+
+body.aspecto .cam-tira .cam-nom { letter-spacing: 0; font-size: 11px; }
+body.aspecto .clases .bn { display: flex; align-items: center; }
+body.aspecto #tabs3 { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; padding: 5px; }
+body.aspecto #tabs3 button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 54px; padding: 2px 0; border: 0; font-size: 11px; letter-spacing: .02em; text-transform: uppercase; }
+body.aspecto #tabs3 button i { display: block; font-style: normal; line-height: 0; }
+
+/* MN4b: hojas de altura variable (la hoja mide lo que mide su contenido, sin media hoja vacía) */
+.as-hoja.as-lleno.as-auto { bottom: auto; max-height: calc(100% - 134px); }
+.as-hoja.as-lleno.as-auto .as-scroll { flex: 0 1 auto; }
+/* barra de abajo: seis pestañas que caben a 390 px (sin desbordar ni cortar la palabra) */
+body.aspecto #tabs3 { left: 4px; right: 4px; gap: 2px; padding: 4px; }
+body.aspecto #tabs3 button { min-width: 0; overflow: clip; font-size: 10px; letter-spacing: 0; white-space: nowrap; text-overflow: clip; }
+/* horizontal (844×390): barra y hojas más bajas, la hoja a un lado para ver el mapa */
+@media (orientation: landscape) and (max-height: 520px) {
+  body.aspecto #tabs3 { left: 50%; right: auto; width: min(560px, calc(100% - 16px)); transform: translateX(-50%); bottom: calc(4px + env(safe-area-inset-bottom)); padding: 3px; }
+  body.aspecto #tabs3 button { min-height: 44px; gap: 1px; font-size: 10px; }
+  body.aspecto #tabs3 button i img { width: 20px; height: 20px; }
+  body.aspecto #sheet, body.aspecto #csheet { left: auto; right: 8px; width: min(420px, 55%); max-height: calc(100% - 60px); bottom: calc(56px + env(safe-area-inset-bottom)); }
+  body.aspecto #bar2 #citybtn, body.aspecto #bar2 #datebox { padding-top: 2px; padding-bottom: 2px; }
+  .as-hoja.as-lleno { top: 48px; bottom: 56px; left: auto; right: 8px; width: min(460px, 60%); }
+  .as-hoja.as-lleno.as-auto { bottom: auto; max-height: calc(100% - 104px); }
+}

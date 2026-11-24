@@ -3,10 +3,9 @@
 (function (root) {
   'use strict';
   const LECCIONES = [
-    { id: 'bandeja', texto: 'Toca una pieza de la bandeja para colocarla en la ciudad.', cuando: c => !!c.bandeja },
     { id: 'cifra', texto: 'La cifra grande dice cuánto mejora tu ciudad si colocas ahí: busca la mayor.', cuando: c => !!c.cifra },
     { id: 'cuotas', texto: 'Las obras grandes se pagan en cuotas: si faltan denarios, se pausan.', cuando: c => !!c.cuotas },
-    { id: 'riesgo', texto: 'Un riesgo se apaga al construir la pieza que lo remedia: la bandeja la resalta.', cuando: c => !!c.riesgo },
+    { id: 'riesgo', texto: 'Un riesgo se apaga al construir la pieza que lo remedia: el botón Construir la resalta.', cuando: c => !!c.riesgo },
     { id: 'barrio', texto: 'Un barrio sube de nivel si recibe agua, grano y cobijo: no le dejes sin nada.', cuando: c => !!c.barrioSube },
     { id: 'almacen', texto: 'Lo que no cabe en el almacén se pierde cada mes: amplíalo.', cuando: c => !!c.almacenLleno },
     { id: 'arrabal', texto: 'Las casas fuera de la muralla arden y se anegan antes: levanta muralla.', cuando: c => !!c.arrabal },

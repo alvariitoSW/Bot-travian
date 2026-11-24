@@ -16,5 +16,6 @@ while (pend.length) {
   const f = pend.shift(), txt = readFileSync(join(R, f), 'utf8'), dir = posix.dirname(f);
   for (const m of txt.matchAll(/(?:from\s+|import\(\s*)['"](\.{1,2}\/[^'"]+\.js)['"]/g)) mira(posix.join(dir, m[1]), f);
 }
+for (const f of files) if (/\.[a-z0-9]+$/i.test(f) && f.includes('/') && !existsSync(join(R, f))) falta.push(f + '  (está en FILES pero no existe: sin red, la caché entera falla)');
 if (falta.length) { console.log('FALLO: faltan en FILES de sw.js:\n  ' + falta.join('\n  ')); process.exit(1); }
 console.log('sw-archivos: ' + vistos.size + ' archivos .js cargados, todos en la caché sin conexión. OK');

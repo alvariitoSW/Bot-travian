@@ -39,6 +39,8 @@ for (const [carpeta, indice, tope, nombre] of [['assets/units', 'units.json', P.
   for (const f of mp3) { const k = f.slice(0, -4), r = (REG.sonidos || {})[k];
     if (!r || !((P.sonido && P.sonido.licencias) || ['CC0 1.0']).includes(r.licencia) || !r.credito || !r.fuente) fallos.push('sonido ' + f + ': falta su ficha completa en js/registro.js (R.sonidos)');
     if (!l.includes(f)) fallos.push('sonido ' + f + ': no está en assets/sonido/LICENSE.txt'); } }
+/* CDe4: modelos de Meshy fuera de las carpetas de arriba (personajes de clases CS3 y edificios griegos CD7): cuentan en la descarga */
+for (const c of ['personajes', 'edificios-griegos', 'laminas', 'iconos']) { const dir = join(RAIZ, 'assets', c); try { const b = await peso(dir); total += b; console.log('assets/' + c + ' · ' + MB(b)); } catch (e) {} }
 console.log('Descarga total de arte: ' + MB(total) + ' (tope: ' + P.descargaMB + ' MB)');
 if (total > P.descargaMB * 1048576) fallos.push('el arte pesa ' + MB(total) + ' y el tope es ' + P.descargaMB + ' MB');
 for (const [f, re] of [['README.md', /CC BY-SA 3\.0/], ['js/ui.js', /Wildfire Games/]]) if (!re.test(await readFile(join(RAIZ, f), 'utf8'))) fallos.push('falta el crédito de 0 A.D. en ' + f);

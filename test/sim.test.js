@@ -1,8 +1,10 @@
 /* Pruebas sin navegador: node test/sim.test.js */
+require('./sim-paralelo.js');   // JZ1: arranca ya los procesos que juegan las campañas del bot (ver test/sim-paralelo.js); SIM_HILOS=1 lo hace en serie
 const assert = require('assert');
 const D = require('../js/data.js');
 const { Battle } = require('../js/battle.js');
 const G = require('../js/game.js');
+const MERCADO = require('../js/mercado.js'); G.usarMercado(null);   // CDe3-F2a: las pruebas viejas miden las reglas de siempre (rutas y cambio por tasa); el bot de campaña y el bloque CDe3 encienden el mercado nuevo
 const botMercado = require('./bot-mercado.js');   // CE2
 const CIUDADES_0 = JSON.stringify(D.CITIES);   // I8-a: pruebas anteriores retocan guarniciones de D.CITIES y no las devuelven; el bloque de la partida corta las restaura
 
@@ -257,57 +259,8 @@ for (const id in D.CITIES) { assert(D.FACTIONS[D.CITIES[id].f]); for (const k in
 }
 
 // 5. Campaña completa con un bot sencillo: no debe lanzar excepciones y debe terminar
-function mulberry32(a) { return function () { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
-function campaign(aggressive, seed, region, opciones) {
-  const rndOrig = Math.random; if (seed) Math.random = mulberry32(seed);
-  try { return campaign1(aggressive, region, opciones); } finally { Math.random = rndOrig; }
-}
-// I8b: el bot que investiga (opciones.investiga): sube de edad en cuanto puede y estudia el saber más barato de una rama nueva, solo si le sobra el doble de lo que cuesta (si no, gasta lo del ejército y pierde ciudades)
-function investigarBot(s) {
-  if (s.inv.cola) return; const holgado = id => { const c = G.invCoste(id); return D.RES.every(r => G.disponible(r) >= 2 * (c[r] || 0)); };
-  const sigE = 'E' + (s.inv.edad + 1); if (D.EDADES[sigE] && holgado(sigE) && G.edadUp().ok) return;
-  const ramas = {}; for (const k in s.inv.hechas) if (D.INVEST[k]) ramas[D.INVEST[k].rama] = 1;
-  const coste = id => { const c = G.invCoste(id); return D.RES.reduce((a, r) => a + (c[r] || 0), 0); };
-  const l = Object.keys(D.INVEST).filter(id => G.invEstado(id).e === 'ok' && holgado(id)).sort((a, b) => (ramas[D.INVEST[a].rama] ? 1 : 0) - (ramas[D.INVEST[b].rama] ? 1 : 0) || coste(a) - coste(b));
-  if (l.length) G.invUp(l[0]);
-}
-function campaign1(aggressive, region, opciones) {
-  const s = G.newGame('Test', region, opciones); const meta = G.capitalRival(); const events = [];
-  G.onEvent = (t, p) => { events.push(t); if (process.env.V && t === 'log' && /⚠|🔥|🏆|💀|rechaza|📜/.test(p.x)) console.log('  ', G.yearOf(s.t), p.x); };
-  if (G.fundando()) { const sitio = G.modo().inicio.fundar.sitio; let pt = G.notaFundar(sitio, 172, -196).vale ? [172, -196] : null; for (let x = -300; x <= 300 && !pt; x += 20) for (let z = -300; z <= 300 && !pt; z += 20) if (G.notaFundar(sitio, x, z).vale) pt = [x, z]; assert(pt, 'hay un punto válido para fundar'); assert(G.fundarColonia(sitio, pt[0], pt[1]).ok); }   // I8: el bot funda su primera ciudad
-  const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
-  let guard = 0;
-  while (!s.over && guard++ < 200000) {
-    G.tick(0.25);
-    while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); if (process.env.DBG) console.log(G.yearOf(s.t), JSON.stringify(info.cfg.sides.map(x => x.units)), 'def', info.cfg.defender, 'wall', info.cfg.wall, '->', b.result().winner, Math.round(b.t)); G.applyBattle(b.result()); }
-    if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: al final de cada mes el bot compra hierro y vende lo que sobra (test/bot-mercado.js)
-    if (guard % 8) continue;
-    if (opciones && opciones.investiga) investigarBot(s);
-    if (D.SENADO.sala && s.senado && s.senado.votacion) G.votar(G.tratos(s.senado.votacion.id).filter(t => t.etiqueta === 'Favorable'));   // SN1: el bot vota con la tarjeta Favorable (o deja pasar)
-    if (!process.env.SINPLAN && !s.modo) {   // CDe1: en la partida corta el bot no vota planes (le restan obras: medido 3/10 con plan, 4/10 sin él)
-      const PL = require('../js/plan-senado.js'); if (!s.planSenado || !s.planSenado.plan) { if (!s.planSenado || !s.planSenado.borrador) PL.sugerir(s, 4, 'crecer', G.planAyuda()); G.planVotar([]); } }   // CDe1-A: si no hay plan del Senado, el bot arma uno que crece y lo vota
-    for (const id of G.myCities()) {
-      const c = s.cities[id];
-      if (G.enRevuelta && G.enRevuelta(c)) c.nec.mem.forEach((m, i) => { if (m && m.revuelta) for (const r of ['grano', 'juegos', 'tropas']) if (G.calmarRevuelta(id, i, r).ok) break; });   // CDe2: el bot calma las revueltas de barrio
-      if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
-      for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }
-      G.levantarMuralla(id);   // CN7: la muralla de la guerra sale de la obra de ciudad, no de c.b.muralla
-      if (!aggressive) continue;
-      const yr = G.yearOf(s.t); if (yr <= 230 && yr >= 209) continue;   // el bot se atrinchera ante la invasión de Aníbal
-      // concentración: las tropas avanzan por la ruta más corta hacia Carthago mientras la siguiente plaza sea romana
-      const sig = G.neighbors(id).sort((a, b) => dist[a] - dist[b])[0];
-      if (id !== meta && dist[sig] < dist[id] && s.cities[sig].owner === 'roma' && !s.marches.some(m => m.owner === 'roma' && m.from === id)) { const u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (id === G.capital() ? 0.15 : 0.65)); if (G.men(u) >= 100 && G.send(id, sig, u, false)) continue; }
-      for (const n of G.neighbors(id)) {
-        const t = s.cities[n]; if (t.owner === 'roma') continue;
-        const keepHome = id === G.capital() ? 0.35 : 0.2, u = {}; for (const k in c.units) u[k] = Math.floor(c.units[k] * (1 - keepHome));
-        if (G.power(u) > G.power(t.units) * (1.6 + 0.12 * t.b.muralla) && !s.marches.some(m => m.owner === 'roma' && s.cities[m.to].owner !== 'roma')) { if (s.senado) s.senado.permisos[t.owner] = 99999; G.send(id, n, u, G.heroAvailable(id)); break; }   // SN1: el bot declara la guerra por su cuenta
-      }
-    }
-  }
-  assert(s.over, 'la campaña debe terminar');
-  assert(events.includes('event'));
-  return s;
-}
+// JZ1: el bot vive en test/campana-bot.js; las campañas se reparten entre varios procesos (test/sim-paralelo.js) y aquí se recogen
+const campaign = require('./sim-paralelo.js').campana;
 // 10 semillas del azar de la IA: el agresivo debe tomar Carthago antes del 146 a.C. en la mayoría; el pasivo, nunca
 const res = { pas: [], agr: [] }; let activo = null;
 for (const ag of [false, true]) for (let sd = 1; sd <= 10; sd++) { const s = campaign(ag, sd); res[ag ? 'agr' : 'pas'].push(s); if (ag && sd === 1) activo = s; }
@@ -337,7 +290,7 @@ assert(Object.values(active.cities).filter(c => c.owner === 'roma').length >= 3,
   for (const ag of [false, true]) for (let sd = 1; sd <= 10; sd++) { const s = campaign(ag, sd, 'italia'); ri[ag ? 'agr' : 'pas'].push(s);
     assert.strictEqual(s.region, 'italia'); const dentro = new Set(D.regionCiudades('italia'));
     for (const id in s.cities) assert(dentro.has(id), 'ciudad fuera de Italia: ' + id);
-    for (const r of s.rutas) assert(dentro.has(r.a) && dentro.has(r.b), 'ruta fuera de Italia');
+    for (const r of s.rutas.concat(s.mercado ? s.mercado.rutas : [])) assert(dentro.has(r.a) && dentro.has(r.b), 'ruta fuera de Italia');
     for (const m of s.marches) assert((!m.from || dentro.has(m.from)) && dentro.has(m.to), 'marcha fuera de Italia'); }
   console.log('Italia pasivo  →', resumen(ri.pas)); console.log('Italia agresivo →', resumen(ri.agr));
   const gi = ri.agr.filter(s => s.over.win).length, pi = ri.pas.filter(s => s.over.win).length;
@@ -509,7 +462,7 @@ assert(G.cityGen('carthago', 149) && G.cityGen('carthago', 146), 'Asdrúbal defi
 // Registro de piezas: carga en Node y toda tropa y edificio tiene ficha
 { const R = require('../js/registro.js');
   for (const t of Object.keys(D.UNITS)) assert(R.de('tropa', t) && R.de('tropa', t).historia, 'falta la ficha de la tropa ' + t);
-  for (const b of Object.keys(D.BUILD)) assert(R.de('edificio', b) && R.de('edificio', b).arte, 'falta la ficha del edificio ' + b);
+  for (const b of Object.keys(D.BUILD)) if (!D.BUILD[b].agro) assert(R.de('edificio', b) && R.de('edificio', b).arte, 'falta la ficha del edificio ' + b);   // los campos agri_* tendrán ficha con la pantalla (AG1, contrato 9)
   assert(R.de('hecho', D.EVENTS[0].y), 'falta la ficha del primer hecho'); }
 
 
@@ -2186,4 +2139,93 @@ console.log('OK — todas las pruebas superadas');
     assert(!G.migrarEstaciones(v), 'idempotente'); assert(s.estaciones, 'partida nueva marcada'); }
   G.turnos = false;
   console.log('CE3-A1: obras, lotes, estudios, marchas y migración en estaciones OK');
+}
+{ // CDe4: enganche de caminos de victoria, «Este año», tributo, indemnización, gobernador y casas de la ciudad
+  const CAM = require('../js/caminos.js'), EA = require('../js/este-ano.js'), GOB = require('../js/gobernador.js');
+  G.usarCiudad(require('../js/ciudad.js')); delete global.localStorage;
+  const s = G.newGame('T', 'mediterraneo', {}); G.onEvent = null; const cap = G.capital();
+  assert(s.caminos && s.caminos.v && s.esteAno && s.esteAno.actual && s.gobernador && s.indem, 'partida nueva: caminos, Este año, gobernador e indemnizaciones');
+  assert(G.campanaLarga(), 'la campaña del Mediterráneo es la larga');
+  // un mes de juego apunta en Este año y pasa por CAMINOS.paso
+  const pasoAntes = CAM.paso; let pasos = 0; CAM.paso = function () { pasos++; return pasoAntes.apply(CAM, arguments); };
+  for (let i = 0; i < 8; i++) G.tick(0.25); CAM.paso = pasoAntes; assert(pasos >= 1, 'cada mes llama a CAMINOS.paso');
+  { const lib = s.esteAno.actual, den = lib.c[cap] && lib.c[cap].denarios; assert(den && (den.entra.impuestos > 0 || den.entra.comercio > 0), 'impuestos y comercio apuntados'); assert(lib.c[cap].grano.entra.cosecha > 0 && lib.c[cap].grano.sale.comida > 0, 'cosecha y comida apuntadas'); assert(lib.c._imperio.denarios.sale.edificios > 0, 'mantenimiento de edificios apuntado'); }
+  // obras: un gasto de obra queda apuntado en «obras»
+  { s.res.denarios = 5000; s.res.materiales = 5000; s.res.hierro = 5000; s.res.grano = 5000; const b = ['foro', 'almacen', 'aserradero'].find(x => G.upgrade(cap, x)); assert(b, 'sube un edificio'); const m = s.esteAno.actual.c[cap]; assert(['denarios', 'materiales', 'grano', 'hierro'].some(r => m[r] && m[r].sale.obras > 0), 'la obra se apunta'); }
+  // cerrar el año: el libro pasa a «anterior»
+  { const y0 = G.yearOf(s.t); while (G.yearOf(s.t) === y0) G.tick(0.5); assert(s.esteAno.anterior && s.esteAno.actual.anio === G.yearOf(s.t) && s.esteAno.anterior.anio === y0, 'al cambiar de año el libro actual pasa a anterior'); }
+  assert(G.esteAnoCuentas('imperio').filas && G.esteAnoCuentas(cap).ambito === cap, 'G.esteAnoCuentas por ámbito');
+  // tributo de primavera: con guerra y tropas hay que decidir; 'caja' lo resuelve una sola vez
+  { s.marches.push({ owner: 'cartago', from: 'carthago', to: cap, units: { libios: 10 }, t0: s.t, t1: s.t + 50 }); s.cities[cap].units = { hastati: 3000 }; s.esteAno.anterior = EA.nuevoLibro(0);
+    s.t = Math.ceil(s.t / 12) * 12 + 2.99; G.tick(0.05); const t = G.tributoPendiente(); assert(t && t.falta > 0 && !t.suspendido, 'en primavera con guerra hay tributo por decidir');
+    s.res.denarios = 100000; const d0 = G.disponible('denarios'); assert(G.resolverTributo('caja').ok && G.disponible('denarios') <= d0 - t.falta + 1e-6 && G.tributoPendiente() === null, 'pagarlo de la caja'); assert(!G.resolverTributo('caja').ok, 'no se paga dos veces'); s.marches.length = 0; }
+  // indemnización de paz: cuota anual a plazos
+  { const p = G.indemniza('cartago', 400, 1, 'normal'); assert(p && p.total === 400 && s.indem.cartago.pagado === p.cuota, 'la primera cuota se cobra al pactar'); }
+  // tomar Cartago NO termina la partida
+  { const ex = G.capitalRival(); s.cities[ex].owner = 'roma'; G.tick(0.25); assert(!s.over, 'tomar Cartago no acaba la campaña larga'); s.cities[ex].owner = 'cartago'; }
+  // partida vieja: migrarCD crea lo que falta; el gobernador actúa por estación
+  { const v = JSON.parse(JSON.stringify(s)); delete v.caminos; delete v.esteAno; delete v.gobernador; delete v.indem; G.state = v; G.migrarCD(v); assert(v.caminos && v.esteAno && v.gobernador && v.indem, 'migrarCD crea los campos que faltan'); G.state = s;
+    GOB.poner(s, cap, true); const m = Math.floor(s.t) + (3 - Math.floor(s.t) % 3) % 3 + 3; s.t = m - 0.05; s.res.denarios = 5000; s.res.materiales = 5000; s.res.hierro = 5000; s.res.grano = 5000; G.tick(0.1); assert(GOB.informe(s, cap) && GOB.informe(s, cap).mes === m, 'el gobernador actúa en la estación (mes ' + m + ')'); }
+  { const a = G.gobAyuda(), h = G.gobHacer(); assert(typeof a.barrios === 'function' && typeof h.obra === 'function' && Array.isArray(a.barrios(cap)), 'gobAyuda y gobHacer'); }
+  // CD2b: la población máxima sale de las casas del barrio (no tapiadas); una casa en ruinas deja de contar
+  { const E = G.ciudadE(cap), cs = E ? E.parcelas.filter(l => l.casa && !l.casa.ruina) : [], c = s.cities[cap]; if (cs.length) { const antes = G.popCap(c); cs[0].casa.ruina = 1; E.rev = (E.rev || 0) + 1; const despues = G.popCap(c); cs[0].casa.ruina = 0; E.rev++; assert(despues < antes, 'una casa tapiada no da vivienda'); } }
+  console.log('CDe4: caminos, Este año, tributo, indemnización, gobernador y casas OK');
+}
+
+// CDe3-F2a: la agricultura por suelos y el mercado de los recursos, enganchados a la economía
+{
+  G.usarMercado(MERCADO);
+  try {
+    const s = G.newGame('Test'); const MIN = require('../js/ministros.js');
+    assert(G.hayAgricultura() && G.hayMercado(), 'los dos módulos están cargados en Node');
+    assert(s.agro && s.agro.parcelas.some(p => p.ciudad === 'roma' && p.granja && p.campo === 'trigo'), 'la granja de Roma es una parcela de trigo en su suelo');
+    assert(s.mercado && s.mercado.v === 1 && Array.isArray(s.mercado.rutas), 'newGame crea s.mercado');
+    assert(D.FAMILIAS.some(f => f[0] === 'agricultura') && D.BUILD.agri_trigo && D.BUILD.agri_almazara && D.BUILD.agri_noria, 'familia Agricultura en D.BUILD');
+    assert(!G.upgrade('roma', 'agri_trigo') && G.derivado(s.cities.roma, 'agri_trigo'), 'los campos no suben de nivel: se plantan');
+    s.res.denarios = 5000; s.res.materiales = 5000; s.alm.denarios = 5000; s.alm.materiales = 5000;
+    // el suelo: «no» impide y da la razón; «mal» planta y avisa; «bien» no avisa
+    const no = G.plantarCampo('roma', 'huerto', 'ladera_seca'); assert(!no.ok && /agua/.test(no.motivo), 'huerto en ladera seca: no ' + no.motivo);
+    assert(G.agroProduccion(s, 'roma', 3).grano === 0, 'sin campos nuevos, el grano del cierre es 0 (la granja ya está en G.prod)');
+    const mal = G.plantarCampo('roma', 'trigo', 'ladera_sol'); assert(mal.ok && mal.aviso && mal.nota === 'mal', 'trigo en ladera al sol: mal, avisa');
+    const cer = G.plantarCampo('roma', 'olivar', 'ladera_seca'); assert(!cer.ok && /Hace falta/.test(cer.motivo) && !G.agroAbierto('olivar').ok && G.agroAbierto('trigo').ok, 'el olivar pide el saber: ' + cer.motivo);
+    s.inv.hechas.vina = 1; s.inv.hechas.magon = 1; s.cities.roma.b.foro = 5;
+    assert(G.agroAbierto('olivar').ok && G.consejoCampo('ladera_seca')[0].campo === 'olivar', 'con el saber hay olivar');
+    assert(s.agro.parcelas.some(p => p.ciudad === 'roma' && p.campo === 'huerto') && s.agro.parcelas.some(p => p.ciudad === 'roma' && p.campo === 'pasto'), 'partida nueva: huerto y pasto además del trigo');
+    const bien = G.plantarCampo('roma', 'olivar', 'ladera_seca'); assert(bien.ok && !bien.aviso, 'olivar en ladera seca: bien');
+    assert(G.consejoCampo('ribera')[0].campo === 'huerto' && G.consejoCampo('ribera').every(x => x.campo !== 'olivar'), 'el consejo del suelo');
+    assert(!G.mejorarParcela('roma', bien.parcela, 'lagar').ok && G.mejorarParcela('roma', bien.parcela, 'almazara').ok, 'la almazara va en el olivar, el lagar no');
+    assert(!G.mejorarParcela('roma', bien.parcela, 'almazara').ok, 'no se repite la mejora');
+    assert(G.parcelas('roma').find(p => p.id === bien.parcela).mejoras.includes('almazara'), 'la mejora queda en la parcela');
+    // grano: la granja de siempre no se cuenta dos veces; un campo de trigo nuevo suma
+    const gr = G.plantarCampo('roma', 'trigo', 'llano'); assert(gr.ok && G.agroProduccion(s, 'roma', 3).grano > 0, 'el campo de trigo nuevo suma grano');
+    const pre = G.construirVilla('roma'); assert(pre.ok || /Hace falta|Faltan/.test(pre.motivo), 'villa: ' + pre.motivo); s.res.denarios = 5000; s.res.materiales = 5000; s.alm.denarios = 5000; s.alm.materiales = 5000; assert(G.hayVilla('roma') || !G.agroAbierto('villa').ok, 'la villa se construye con el saber, y si no, pide Villa esclavista');
+    // cierre de mes: el aceite entra a s.bienes en su cosecha
+    s.t = Math.floor(s.t) + 1; let ac = 0; for (let i = 0; i < 12; i++) { G.cierreMes(); ac = Math.max(ac, s.bienes.aceite || 0); s.t += 1; }
+    assert(ac > 0, 'el olivar da aceite en s.bienes (' + ac + ')'); assert(s.mercado.ult !== undefined, 'MERCADO.mes corre en el cierre');
+    // comercio por el mercado nuevo: precios por ciudad y movimiento de la oferta
+    s.res.denarios = 500; s.res.materiales = 300; s.cities.roma.b.mercado = 2; assert(G.mercadoPuede('roma') === '', 'con mercado se puede');
+    const tb = G.mercadoTabla('roma'); assert(tb.length >= 5 && tb[0].existencias !== undefined && 'flecha' in tb[0], 'tabla del mercado con existencias y flecha');
+    const d0 = s.res.denarios, got = G.trade('materiales', 'denarios', 100); assert(got > 0 && s.res.denarios > d0 && s.res.materiales < 300, 'G.trade vende por el mercado nuevo (' + got + ')');
+    s.bienes.vino = 20; const v = G.mercadoVender('roma', 'vino', 10); assert(v.ok && s.bienes.vino === 10 && v.delta.denarios > 0, 'vender vino del almacén');
+    s.bienes.lana = 0; const c = G.mercadoComprar('roma', 'lana', 5); assert(c.ok && s.bienes.lana >= 5, 'comprar lana al almacén de bienes');
+    assert(!G.mercadoComprar('capua', 'lana', 99999).ok, 'no se compra sin hueco ni dinero');
+    // rutas y contratos
+    s.cities.capua.b.mercado = 2; const rr = G.rutaCrear('roma', 'capua', 'grano', 2); assert(rr.ok && G.rutasMercado().length === 1 && G.rutasTotal(s) === 1, 'ruta del mercado ' + rr.motivo);
+    assert(G.rutaPuede('roma', 'capua') && G.prod().rutas === 0, 'las rutas viejas ya no abren ni suman a G.prod');
+    assert(G.rutaQuitar(G.rutasMercado()[0].id).ok && !G.rutasMercado().length, 'quitar la ruta');
+    assert(typeof G.contratoProponer('annona').ok === 'boolean', 'contrato del Senado');
+    // dieta: con grano, aceite y verdura comen de todo; sin nada, hambre
+    s.res.grano = 400; s.bienes.aceite = 100; s.bienes.verdura = 100; s.bienes.vino = 100; assert(/aceite/.test(G.dietaTexto()) && G.dieta().cubre === 1, 'dieta: ' + G.dietaTexto());
+    s.res.grano = 0; s.alm.grano = 0; s.bienes.aceite = 0; s.bienes.verdura = 0; s.bienes.vino = 0; assert(G.dieta().cubre < 1, 'sin comida no se cubre la alimentación');
+    // ministro: el Edil del grano encarga campo, mejora o cambio, y el juego lo ejecuta
+    s.res.grano = 400; s.res.denarios = 3000; const mes = Math.floor(s.t) + 1;
+    const ag = G.ministrosAyuda().encargosAgro('roma'); assert(Array.isArray(ag), 'encargosAgro devuelve una lista');
+    s.cities.roma.b.foro = 5; const n0 = G.parcelas('roma').length; const enc = MIN.encargar(s, 'agricultura', { tipo: 'campo', ciudad: 'roma', campo: 'pasto', suelo: 'baja', txt: 'Plantar pasto en tierra baja' }, mes); assert(enc.ok, 'encargo de campo: ' + enc.motivo);
+    s.t = mes + 0.1; G.cierreMes(); assert(G.parcelas('roma').length === n0 + 1 && G.parcelas('roma').some(p => p.campo === 'pasto'), 'el ministro planta el campo encargado');
+    // partida vieja: las rutas viejas pasan al mercado y se borran; la granja pasa a parcela
+    G.usarMercado(null); const v0 = G.newGame('Test'); v0.rutas.push({ a: 'roma', b: 'capua', f: 'roma' }); delete v0.agro; delete v0.mercado;
+    G.usarMercado(MERCADO); G.migrarAgro(v0); assert(v0.rutas.length === 0 && v0.mercado.rutas.length === 1 && v0.agro.parcelas.some(p => p.granja), 'migración: rutas al mercado y granja a parcela');
+    assert(G.migrarAgro(v0) && v0.mercado.rutas.length === 1, 'idempotente');
+    console.log('CDe3-F2a: agricultura y mercado enganchados OK');
+  } finally { G.usarMercado(null); }
 }

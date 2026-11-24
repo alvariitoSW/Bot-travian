@@ -77,6 +77,8 @@ como herramienta: el **centurión**, el **triario**, el **vélite** y siete galo
 movimientos de Quaternius (CC0 1.0); escudos y armas los pone el juego por código
 (`tools/blender/*_meshy_*.py`; detalle de cada uno en `assets/soldados/LICENSE.txt`).
 
+El **templo** y el **bouleuterion** de las ciudades griegas (`assets/edificios-griegos/`) y los **personajes de las clases sociales** (`assets/personajes/`) parten de modelos que el usuario generó con Meshy (plan de pago), con licencia **[CC BY-SA 3.0](https://creativecommons.org/licenses/by-sa/3.0/)**; se aligeraron con `tools/aligerar_edificios_griegos.mjs` y `tools/aligerar_personajes.mjs`.
+
 El sonido grabado de las batallas (`assets/sonido`, 36 sonidos) es todo **[CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/)**: de OpenGameArt (rubberduck, Kenney, artisticdude) y de Freesound (marchelonia, ale-batec, salemaudio, joelcarrsound, WelvynZPorterSamples, florianreichelt, adharca, DeVern, DeadVDI, mario1298, Globofonia). Cada archivo con su fuente en `assets/sonido/LICENSE.txt`; `tools/sonido-fuentes.sh` y `tools/sonido.py` lo rehacen.
 
 La letra de los títulos es **Cinzel**, de The Cinzel Project Authors, con licencia **[SIL OFL 1.1](https://openfontlicense.org)**

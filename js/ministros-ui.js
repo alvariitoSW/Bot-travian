@@ -19,6 +19,7 @@
     '.mn-hoja{--tinta:#2b1c0a;--tinta2:#5a4220;--oliva:#46661f;pointer-events:auto;box-sizing:border-box;width:100%;max-width:560px;max-height:min(85vh,calc(100vh - 84px));display:flex;flex-direction:column;color:var(--tinta);font-family:var(--libro,Georgia,serif);' +
     'background-color:var(--papiro,#e8d4a2);background-image:var(--fibras),var(--manchas),radial-gradient(ellipse at 20% 0%,rgba(255,246,214,.7),transparent 55%),radial-gradient(ellipse at 100% 100%,rgba(140,92,36,.38),transparent 60%);' +
     'border-radius:4px 4px 0 0;box-shadow:inset 14px 0 18px -12px rgba(100,60,18,.8),inset -14px 0 18px -12px rgba(100,60,18,.8),0 -14px 40px #000c;padding:0 14px;animation:mn-sube .22s ease-out}' +
+    '.mn-hoja.mn-inc{max-height:none;padding:0;background:none;box-shadow:none;border-radius:0;animation:none;display:block}.mn-inc .mn-lista{overflow:visible;padding:2px 0 8px}.mn-intro{margin:2px 0 10px;font-size:14px;line-height:1.35;color:var(--tinta2)}' +
     '@keyframes mn-sube{from{transform:translateY(40px);opacity:0}to{transform:none;opacity:1}}' +
     '@keyframes mn-brilla{0%,100%{opacity:.25;transform:scale(.7)}50%{opacity:1;transform:scale(1.15)}}' +
     '.mn-asa{flex:none;position:relative;height:22px;margin:0 -14px 8px;border-radius:9px;background:var(--veta),linear-gradient(#9a6c38,#6a4520 40%,#3a230c);box-shadow:0 3px 5px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,220,160,.35)}' +
@@ -215,7 +216,8 @@
   const pintar = () => {
     if (!U.el || !U.s) return;
     const s = U.s, est = M().estado(s, U.op.mes), lista0 = U.el.querySelector('.mn-lista'), y = lista0 ? lista0.scrollTop : 0;
-    let h = '<div class="mn-hoja" role="dialog" aria-label="Tus ministros"><div class="mn-asa"></div><div class="mn-cab"><h2 class="ro-ansata" style="margin:0 22px 0 20px">Tus ministros</h2><button class="mn-cerrar" data-acc="cerrar">Cerrar</button></div><div class="mn-lista">';
+    let h = U.inc ? '<div class="mn-hoja mn-inc" role="region" aria-label="Tus ministros"><p class="mn-intro">Los ministros son jefes de bando: cada uno lleva su grupo del Senado y cumple los encargos que le des.</p><div class="mn-lista">'   // CDe3: dentro de la pestaña Senado, sin asa ni «Cerrar»
+      : '<div class="mn-hoja" role="dialog" aria-label="Tus ministros"><div class="mn-asa"></div><div class="mn-cab"><h2 class="ro-ansata" style="margin:0 22px 0 20px">Tus ministros</h2><button class="mn-cerrar" data-acc="cerrar">Cerrar</button></div><div class="mn-lista">';
     est.forEach(st => { h += tarjeta(s, M().DATOS.find(x => x.id === st.id), st); });
     h += '</div></div>';
     U.el.innerHTML = h;
@@ -243,7 +245,7 @@
   };
 
   const abrir = (s, op) => {
-    meter(); cerrar();
+    meter(); cerrar(); U.inc = false;
     U.s = s; U.op = Object.assign({ mes: Math.floor((s.t || 0) + 1e-9) }, op || {}); U.abierta = null; U.lista = null; U.err = {};
     M().migrar(s);
     U.el = document.createElement('div'); U.el.className = 'mn-fondo'; U.el.id = 'mn-fondo';
@@ -251,7 +253,13 @@
     U.el.addEventListener('click', clic);
     pintar();
   };
-  const cerrar = () => { if (U.el) { U.el.remove(); U.el = null; } };
-  const api = { abrir, cerrar, pintar, abre: id => { U.abierta = id; U.lista = null; pintar(); verAbierta(); }, lista: id => { U.abierta = id; U.lista = id; pintar(); verAbierta(); }, nombreVisible: vis };
+  const cerrar = () => { if (U.el) { if (!U.inc) U.el.remove(); U.el = null; } U.inc = false; };
+  /* CDe3: pinta la lista dentro de un contenedor de la pantalla (pestaña Senado). Si ya estaba abierta una tarjeta, la conserva al repintar. */
+  const incrustar = (el, s, op) => {
+    meter(); const igual = U.inc && U.s === s; U.inc = true; U.el = el; U.s = s; U.op = Object.assign({ mes: Math.floor((s.t || 0) + 1e-9) }, op || {});
+    if (!igual) { U.abierta = null; U.lista = null; U.err = {}; }
+    M().migrar(s); el.addEventListener('click', clic); pintar();
+  };
+  const api = { abrir, incrustar, cerrar, pintar, abre: id => { U.abierta = id; U.lista = null; pintar(); verAbierta(); }, lista: id => { U.abierta = id; U.lista = id; pintar(); verAbierta(); }, nombreVisible: vis };
   root.MINISTROS_UI = api;
 })(typeof window !== 'undefined' ? window : globalThis);
