@@ -5,6 +5,7 @@ los gritos de HaelDB son OGA-BY 3.0 (https://opengameart.org/content/oga-by-30-f
 SON10 (24/11/2026): los gritos, heridos, clamor, fragor de fondo, vítores y pánico de antes se sustituyeron por grabaciones reales; licencia comprobada en la página de cada sonido el 24/11/2026. De Freesound se usa la vista previa «hq» (mp3), porque bajar el original pide cuenta; de OpenGameArt, el original. Se cortaron, igualaron (volumen medio −18 dB) y comprimieron con tools/sonido.py. Se quitó cualquier palabra suelta en otra lengua.
 No obligan a citar, pero se cita a cada autor por gratitud. Licencia comprobada en la página de cada fuente el 20/11/2026 (los 9 de voces SON1-a, el 23/11/2026: todos CC0 1.0, ninguno CC BY).
 SON2 (23/11/2026): se quitaron orden1-3 (posible inglés y «grito élfico»; regla del usuario: solo español, griego antiguo o latín); la antigua orden4 es ahora orden1. Las frases habladas están en assets/voces/.
+SON12 (24/11/2026): regla del usuario, «nada en inglés salvo voces de galos enemigos». Con faster-whisper se oyeron «hey» y «come on» en clamor1 (craigsmith 480809), «get back» en lucha1 (craigsmith 675091) y «hey» en coro1 (Jace 57204): los tres se rehicieron como mezclas sin palabras (ver sus líneas) y esas fuentes ya no se usan. Como llevan trozos de HaelDB, F.M.Audio y Michel Baradari, cuentan como CC BY 4.0 / OGA-BY 3.0 (cita en Créditos).
 AQVILA los cortó, igualó y comprimió (mp3 mono a 32 kHz) con tools/sonido.py; las fuentes se bajan con tools/sonido-fuentes.sh.
 
 archivo        autor                 fuente
@@ -27,14 +28,14 @@ paso4.mp3      Kenney                «50 RPG sound effects» — https://openga
 vuelo1.mp3     artisticdude          «Swishes sound pack» — https://opengameart.org/content/swishes-sound-pack
 vuelo2.mp3     artisticdude          «Swishes sound pack» — https://opengameart.org/content/swishes-sound-pack
 vuelo3.mp3     artisticdude          «Swishes sound pack» — https://opengameart.org/content/swishes-sound-pack
-coro1.mp3      Jace                  Freesound 57204 — https://freesound.org/s/57204/
+coro1.mp3      (mezcla)              SON12: tres gritos sin palabra de grito2, grito4 y grito5 (autores abajo), casi a la vez
 cuerno1.mp3    adharca               Freesound 539956 — https://freesound.org/s/539956/
 cuerno2.mp3    DeVern                Freesound 512490 — https://freesound.org/s/512490/
 viento1.mp3    Globofonia            Freesound 553733 — https://freesound.org/s/553733/
 orden1.mp3     DeqstersLab           Freesound 661242 — https://freesound.org/s/661242/
 canto1.mp3     marconi68             Freesound 588578 — https://freesound.org/s/588578/
 canto2.mp3     marconi68             Freesound 588578 — https://freesound.org/s/588578/
-clamor1.mp3    craigsmith            Freesound 480809 (CC0) — https://freesound.org/s/480809/
+clamor1.mp3    (mezcla)              SON12: la masa de felix.blume (Freesound 612131, CC0, trozo de 20 a 26 s) con cinco gritos de grito1 a grito5 (autores abajo)
 masa1.mp3      felix.blume           Freesound 612131 (CC0) — https://freesound.org/s/612131/
 grito1.mp3     HaelDB                OGA-BY 3.0 «Male grunt/yelling sounds» — https://opengameart.org/content/male-gruntyelling-sounds
 grito2.mp3     HaelDB                OGA-BY 3.0 «Male grunt/yelling sounds» — https://opengameart.org/content/male-gruntyelling-sounds
@@ -52,7 +53,7 @@ herido5.mp3    Michel Baradari       CC BY 3.0 «11 male human pain/death sounds
 quejido1.mp3   Michel Baradari       CC BY 3.0 «11 male human pain/death sounds» — https://opengameart.org/content/11-male-human-paindeath-sounds
 quejido2.mp3   Michel Baradari       CC BY 3.0 «11 male human pain/death sounds» — https://opengameart.org/content/11-male-human-paindeath-sounds
 quejido3.mp3   Michel Baradari       CC BY 3.0 «11 male human pain/death sounds» — https://opengameart.org/content/11-male-human-paindeath-sounds
-lucha1.mp3     craigsmith            Freesound 675091 (CC0) — https://freesound.org/s/675091/
+lucha1.mp3     (mezcla)              SON12: bucle de 10 s: masa de felix.blume (Freesound 612131, CC0, trozo de 30 a 40 s) con golpes y voces de los demás archivos de esta lista, al azar con semilla fija
 aclamacion1.mp3 chripei              CC BY 4.0 Freesound 165492 — https://freesound.org/s/165492/
 panico1.mp3    JohnsonBrandEditing   Freesound 173944 (CC0) — https://freesound.org/s/173944/
 panico2.mp3    JohnsonBrandEditing   Freesound 173944 (CC0) — https://freesound.org/s/173944/

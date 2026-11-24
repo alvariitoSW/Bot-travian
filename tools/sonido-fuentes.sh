@@ -11,7 +11,7 @@ for z in 100-CC0-SFX_0.zip:100-CC0-SFX 80-CC0-RPG-SFX_0.zip:80-CC0-RPG-SFX RPGso
 done
 # Freesound (vista previa «hq» de cada sonido; misma licencia CC0)
 FS=https://cdn.freesound.org/previews
-for p in 588/588278_6461270 57/57204_60285 539/539956_4366671 512/512490_2866779 553/553733_4905159; do
+for p in 588/588278_6461270 539/539956_4366671 512/512490_2866779 553/553733_4905159; do
   id=$(basename "$p" | cut -d_ -f1); curl -sfL --retry 3 --max-time 180 -o "fs$id.mp3" "$FS/$p-hq.mp3"
 done
 # SON1-a: voces nuevas (canto, orden). Freesound; CC0 1.0
@@ -19,9 +19,9 @@ for p in 588/588578_11109094 661/661242_189858; do
   id=$(basename "$p" | cut -d_ -f1); curl -sfL --retry 3 --max-time 180 -o "fs$id.mp3" "$FS/$p-hq.mp3" || echo "no se pudo bajar fs$id"
 done
 # SON10 (24/11/2026): gritos y fragor reales. Freesound, vista previa «hq» (el original pide cuenta). Licencias en assets/sonido/LICENSE.txt
-#   craigsmith 480809 y 675091 (CC0), felix.blume 612131 (CC0), JohnsonBrandEditing 173944 (CC0),
+#   (SON12: quitados craigsmith 480809 y 675091 y Jace 57204, que decían inglés) felix.blume 612131 (CC0), JohnsonBrandEditing 173944 (CC0),
 #   F.M.Audio 695377 695383 695381 695382 695387 695389 695388 695384 (CC BY 4.0), chripei 165492 (CC BY 4.0)
-for p in 480/480809_2524442 675/675091_2524442 612/612131_1661766 173/173944_3229685 695/695377_7805242 695/695383_7805242 \
+for p in 612/612131_1661766 173/173944_3229685 695/695377_7805242 695/695383_7805242 \
          695/695381_7805242 695/695382_7805242 695/695387_7805242 695/695389_7805242 695/695388_7805242 695/695384_7805242 165/165492_1617412; do
   id=$(basename "$p" | cut -d_ -f1); curl -sfL --retry 3 --max-time 180 -o "fs$id.mp3" "$FS/$p-hq.mp3" || echo "no se pudo bajar fs$id"
 done
