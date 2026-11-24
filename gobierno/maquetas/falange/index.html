@@ -50,38 +50,31 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 #terreno{margin-left:6px;font-size:11px;color:#f1e3bd;white-space:nowrap;font-variant-numeric:tabular-nums}
 /* FA3: pantalla limpia. Las líneas de las dos unidades siguen en el DOM, fuera de la vista */
 .fuera{position:absolute!important;width:1px!important;height:1px!important;overflow:clip!important;clip-path:inset(50%);opacity:0}
-/* el estandarte: el único botón de mando, arriba al centro, con la orden vigente debajo */
-#estandarte{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 6px);transform:translateX(-50%);width:54px;height:54px;border-radius:50%;background:radial-gradient(#5c1b15,#2b0d09);border:2px solid var(--oro);box-shadow:0 3px 12px rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;color:var(--oro);overflow:visible}
-#estandarte svg{width:34px;height:34px;stroke-width:1.6}
-#estandarte.pide{animation:pide .8s infinite}
-#estandarte.abierto{background:radial-gradient(#8a2a20,#5c1b15);border-color:#fff3dc}
-#estandarte small{position:absolute;top:57px;left:50%;transform:translateX(-50%);font:700 11px Cinzel,Georgia,serif;color:#fff3dc;text-shadow:0 1px 3px #000;white-space:nowrap;pointer-events:none}
-#abanico{position:absolute;left:50%;top:calc(env(safe-area-inset-top) + 80px);transform:translateX(-50%);display:flex;gap:4px;align-items:flex-start}
-#abanico button{width:90px;min-height:46px;padding:4px 2px;border-radius:14px;background:linear-gradient(#3a2c14,#241b0d);border:1.5px solid var(--bronce);font:700 11px/1.1 Cinzel,Georgia,serif;letter-spacing:0;color:var(--marmol);box-shadow:0 3px 12px rgba(0,0,0,.55);overflow:clip}
-#abanico button:nth-child(2),#abanico button:nth-child(3){margin-top:16px}
-#abanico button.vigente{background:linear-gradient(#8a2a20,#5c1b15);border-color:var(--oro)}
-/* las cinco rayas de filas: abajo a la izquierda, con su rótulo y encima el botón de las cinco a la vez.
-   Bajada: trazo dorado largo con punta. Alzada: corto y claro (se tiene que ver que está ahí) */
-#filas{position:absolute;left:calc(env(safe-area-inset-left) + 8px);bottom:calc(env(safe-area-inset-bottom) + 8px);width:120px;display:flex;flex-direction:column;align-items:stretch;gap:4px}
-#picas{justify-content:center;padding:0 10px;border-color:var(--oro);font:700 13px Cinzel,Georgia,serif;letter-spacing:.02em;color:var(--oro)}
-#picas svg{width:16px;height:16px;stroke-width:2.6;flex:none}
-#picas.alzar svg{transform:rotate(180deg)}
-#filas-t{font:700 11px Cinzel,Georgia,serif;color:#fff3dc;text-shadow:0 1px 3px #000,0 0 6px #000;text-align:center;white-space:nowrap;overflow:clip;pointer-events:none}
-#rayas{position:relative;pointer-events:auto;touch-action:none;padding:2px 4px 2px 14px;border-radius:12px;background:rgba(18,15,11,.45);border:1px solid rgba(184,134,43,.35)}
-.raya{position:relative;height:36px;display:flex;align-items:center}
-.raya i{display:block;height:5px;width:40px;border-radius:3px;background:rgba(241,234,217,.8);box-shadow:0 0 3px rgba(0,0,0,.8);transition:width .2s,background .2s;pointer-events:none}
-.raya.baja i{width:84px;background:linear-gradient(90deg,var(--bronce),var(--oro));box-shadow:0 0 4px rgba(0,0,0,.6)}
-.raya.baja i::after{content:"";position:absolute;left:86px;top:50%;margin-top:-6px;border:6px solid transparent;border-left:9px solid var(--oro)}
-.raya b{position:absolute;left:-10px;top:50%;margin-top:-6px;font:600 10px system-ui,sans-serif;color:#e6dcc3;text-shadow:0 1px 2px #000;pointer-events:none}
-/* las huellas de los pulgares (no son botones). La derecha hace de aro del compás en el choque */
-.huella{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:2px solid rgba(241,234,217,.28);background:rgba(241,234,217,.05);pointer-events:none;transition:opacity .3s}
-.huella.toca{border-color:rgba(241,234,217,.6);background:rgba(241,234,217,.12)}
-#aro{position:absolute;inset:-6px;border-radius:50%;border:3px solid #fff3dc;opacity:0}
-#huella-d.ya{border-color:#9be37a;box-shadow:0 0 0 4px rgba(124,198,94,.7),0 0 18px rgba(124,198,94,.9)}
-#huella-d.ya #aro{border-color:#9be37a}
-.pista{position:absolute;transform:translate(-50%,-50%);font:700 12px Cinzel,Georgia,serif;color:#fff3dc;text-shadow:0 1px 4px #000;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .6s}
-.pista.ve{opacity:.9}
-#arco{position:absolute;width:84px;height:42px;margin-left:-42px;border-radius:42px 42px 0 0;border:3px solid rgba(233,192,99,.85);border-bottom:0;pointer-events:none;display:flex;justify-content:center;align-items:flex-start;padding-top:8px;font:700 13px system-ui,sans-serif;color:#fff3dc;text-shadow:0 1px 3px #000;font-variant-numeric:tabular-nums}
+/* LP6: el control de «Manípulo a pie» (LP3): cuatro órdenes abajo, como estandartes con aro y palabra. La vigente, rellena
+   de rojo; la que conviene, con aro dorado que late. En horizontal, en columna a la derecha */
+#abajo{position:absolute;left:calc(env(safe-area-inset-left) + 8px);right:calc(env(safe-area-inset-right) + 8px);bottom:calc(env(safe-area-inset-bottom) + 8px)}
+#ordenes{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.orden{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:2px 0 0;min-height:84px;background:none}
+.orden .aro{position:relative;width:60px;height:60px;border-radius:50%;background:radial-gradient(#3a2c14,#1f170b);border:2.5px solid var(--bronce);display:flex;align-items:center;justify-content:center;color:var(--marmol);box-shadow:0 3px 10px rgba(0,0,0,.55)}
+.orden .aro svg{width:32px;height:32px;stroke-width:2.2}
+.orden b{font:700 12.5px Cinzel,Georgia,serif;letter-spacing:.02em;color:#fff3dc;text-shadow:0 1px 3px #000,0 0 6px #000;white-space:nowrap}
+.orden.vigente .aro{background:radial-gradient(#9a3024,#5c1b15);border-color:#f1ead9}
+.orden.luz .aro{border-color:var(--oro);color:#fff3dc;animation:luz .9s infinite}
+.orden.luz b{color:var(--oro)}
+.orden[data-o=picas].alza .aro svg{transform:rotate(180deg)}
+@keyframes luz{0%,100%{box-shadow:0 0 0 2px rgba(233,192,99,.9),0 0 12px 3px rgba(233,192,99,.75)}50%{box-shadow:0 0 0 7px rgba(233,192,99,.25),0 0 26px 8px rgba(233,192,99,.55)}}
+@media (prefers-reduced-motion:reduce){.orden.luz .aro{animation:none;box-shadow:0 0 0 4px rgba(233,192,99,.8)}}
+/* «Datos ▾»: las cifras, plegadas */
+#datosB{flex:none;height:26px;margin:-2px -4px 0 6px;padding:0 9px;border-radius:13px;background:rgba(255,255,255,.06);border:1px solid var(--fil);font:600 11.5px system-ui,sans-serif;color:#e6dcc3}
+#datosB[aria-expanded="true"]{border-color:var(--oro);color:var(--oro)}
+#cab{display:flex;align-items:flex-start;justify-content:space-between}
+#datos[hidden]{display:none}
+/* el botón de la vista del oficial (lo crea maquetas/bloque/camara.js): aquí, debajo de la misión */
+#vista{top:calc(env(safe-area-inset-top) + 128px)!important}
+#hud:has(#datos:not([hidden])) #vista{top:calc(env(safe-area-inset-top) + 186px)!important}
+/* «Salir» siempre a mano, también sobre la tarjeta de inicio y el final */
+#salir{position:relative;z-index:3}
+#hud:has(#fin:not([hidden])) #vista,#hud:has(#inicio:not([hidden])) #vista{display:none}
 /* el aviso de flanco: el borde de ese lado en rojo, con tres cuñas que laten */
 .borde{position:absolute;top:0;bottom:0;width:70px;pointer-events:none;opacity:0;display:flex;flex-direction:column;justify-content:center;gap:26px;align-items:center}
 #borde-d{right:0;background:linear-gradient(to left,rgba(190,30,18,.8),rgba(190,30,18,0))}
@@ -94,15 +87,19 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 @media (orientation:portrait){
   #mision{position:absolute;top:74px;left:0;right:0;max-width:none}
   #cinta{top:calc(env(safe-area-inset-top) + 152px)}
-  #abanico{top:calc(env(safe-area-inset-top) + 82px)}
-  #grito{bottom:calc(env(safe-area-inset-bottom) + 240px);max-width:90%}
-  /* en vertical, rayas más grandes: 44 px de alto cada una */
-  #filas{width:156px}
-  .raya{height:44px}
-  .raya.baja i{width:112px}
-  .raya.baja i::after{left:114px}
+  #grito{bottom:calc(env(safe-area-inset-bottom) + 112px);max-width:92%}
 }
-@media (orientation:landscape){#mision{position:absolute;right:0;top:0;max-width:calc(50% - 50px)}}
+@media (orientation:landscape){#mision{position:absolute;right:0;top:0;max-width:calc(50% - 50px)}
+  #abajo{left:auto;width:auto;top:calc(env(safe-area-inset-top) + 58px);bottom:calc(env(safe-area-inset-bottom) + 6px);display:flex;flex-direction:column;justify-content:flex-end}
+  #ordenes{grid-template-columns:1fr;gap:0}
+  .orden{min-height:0;flex-direction:row;gap:0;justify-content:flex-end;padding:1px 0}
+  .orden .aro{width:52px;height:52px;order:2}
+  .orden .aro svg{width:28px;height:28px}
+  .orden b{order:1;margin-right:6px;font-size:12px;text-align:right}
+  #grito{bottom:calc(env(safe-area-inset-bottom) + 14px);max-width:60%}
+  #vista{top:calc(env(safe-area-inset-top) + 8px)!important;right:auto!important;left:calc(env(safe-area-inset-left) + 104px)}
+  #hud:has(#datos:not([hidden])) #vista{top:calc(env(safe-area-inset-top) + 8px)!important}
+}
 
 .velo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:rgba(10,8,6,.66);pointer-events:auto}
 #carga{background:#15130f}
@@ -126,39 +123,34 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
   <div id="arriba">
     <button id="salir" class="pildora"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Salir</button>
     <div id="mision">
-      <div id="objetivo">Toca para avanzar</div>
-      <div id="forma">Cohesión <span id="barra"><b id="coh"></b></span><span id="cohn">100</span><span id="terreno">0 de 15 m</span></div>
-      <div id="nos" class="fuera">Falange · 96 en pie · firme · fresca · igualado</div>
-      <div id="ellos" class="fuera">Romanos · 96 en pie · firme · fresca · igualado</div>
+      <div id="cab"><div id="objetivo">Dibuja tu frente en el suelo</div><button id="datosB" aria-expanded="false" aria-controls="datos">Datos ▾</button></div>
+      <div id="datos" hidden>
+        <div id="forma">Cohesión <span id="barra"><b id="coh"></b></span><span id="cohn">100</span><span id="terreno">0 m</span></div>
+        <div id="nos">Falange · 96 en pie · firme · fresca · igualado</div>
+        <div id="ellos">Romanos · 96 en pie · firme · fresca · igualado</div>
+      </div>
     </div>
   </div>
-  <button id="estandarte" aria-label="Estandarte: abrir las órdenes"><svg viewBox="0 0 40 40"><path d="M20 3v34M13 37h14"/><path d="M20 5h13l-3 5 3 5H20"/><g transform="translate(14 23)"><circle r="2.2"/><path d="M0-6.5V-3.2M0 6.5V3.2M-6.5 0H-3.2M6.5 0H3.2M-4.6-4.6l2.3 2.3M4.6 4.6L2.3 2.3M-4.6 4.6l2.3-2.3M4.6-4.6L2.3-2.3"/></g></svg><small id="estandarte-t">Libre</small></button>
-  <div id="abanico" hidden>
-    <button data-o="aguantar">Aguantar</button>
-    <button data-o="empujad">Empujad</button>
-    <button data-o="cerrar">Cerrar filas</button>
-    <button data-o="retroceder">Retroceder</button>
-  </div>
-  <div id="filas">
-    <button id="picas" class="pildora"><svg viewBox="0 0 24 24"><path d="M12 4v15M6 13l6 6 6-6"/></svg><span id="picas-t">Bajar picas</span></button>
-    <div id="filas-t">Filas · toca una</div>
-    <div id="rayas" aria-label="Filas: toca una para bajarla o alzarla">
-      <div class="raya" data-i="0"><b>1</b><i></i></div>
-      <div class="raya" data-i="1"><b>2</b><i></i></div>
-      <div class="raya" data-i="2"><b>3</b><i></i></div>
-      <div class="raya" data-i="3"><b>4</b><i></i></div>
-      <div class="raya" data-i="4"><b>5</b><i></i></div>
+  <div id="abajo">
+    <div id="ordenes">
+      <button class="orden" data-o="picas" aria-label="Bajar picas"><span class="aro"><svg viewBox="0 0 32 32"><path d="M16 4v20M9 18l7 7 7-7"/><path d="M10 6l-3 16M22 6l3 16"/></svg></span><b>Bajar picas</b></button>
+      <button class="orden" data-o="cerrar" aria-label="Cerrar filas"><span class="aro"><svg viewBox="0 0 32 32"><path d="M4 16h9M9 11l5 5-5 5"/><path d="M28 16h-9M23 11l-5 5 5 5"/></svg></span><b>Cerrar filas</b></button>
+      <button class="orden" data-o="avanzar" aria-label="Avanzar"><span class="aro"><svg viewBox="0 0 32 32"><path d="M9 20l7-7 7 7"/><path d="M9 27l7-7 7 7"/><path d="M16 4v8"/><path d="M13 7l3-3 3 3"/></svg></span><b>Avanzar</b></button>
+      <button class="orden" data-o="alto" aria-label="Alto"><span class="aro"><svg viewBox="0 0 32 32"><path d="M7 11h18M7 16h18M7 21h18"/></svg></span><b>Alto</b></button>
     </div>
   </div>
-  <div id="huella-i" class="huella"></div>
-  <div id="huella-d" class="huella"><i id="aro"></i></div>
-  <div id="pista-d" class="pista">Toca · desliza · arrastra</div>
-  <div id="arco" hidden>0°</div>
   <div id="fin" class="velo" hidden>
     <h1 id="fin-t">Victoria</h1>
     <p id="fin-p"></p>
     <button class="gordo" id="otra">Otra vez</button>
     <div id="creditos">TP7a · Falange de Pirro contra un manípulo romano (Heraclea y Ásculo, 280–279 a.C.; Polibio 18.29–30, Plutarco, Pirro 21) · Soldados y árboles de 0 A.D. (Wildfire Games, CC BY-SA 3.0) · Cielo «Kloofendal 48d» (Greg Zaal y Jarod Guest) y suelos de Poly Haven (CC0)</div>
+  </div>
+  <div id="inicio" class="velo" hidden>
+    <h1>Falange a pie</h1>
+    <p>Mandas la sintagma entera, no a un hombre. <b>Arrastra el dedo por el suelo</b>: ahí formará tu primera fila, y el muro girará como una puerta hasta llegar.</p>
+    <p>Abajo tienes cuatro órdenes. La que conviene en cada momento <b>se ilumina</b>. En el choque tus hombres pelean solos, hasta que a uno de los dos le quede el 15 %.</p>
+    <p>Pellizca hacia fuera para bajar a la vista del oficial.</p>
+    <button class="gordo" id="empieza">A la batalla</button>
   </div>
   <div id="carga" class="velo"><h1>AQVILA</h1><p>Formando la falange…</p></div>
 </div>
