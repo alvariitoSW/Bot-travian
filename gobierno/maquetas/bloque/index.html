@@ -43,6 +43,11 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 .est.ambar i{border-color:var(--ambar)}.est.rojo i{border-color:var(--rojo)}
 .est.rojo b{color:#ffb39e}.est.ambar b{color:#ffe0a0}
 .est s{display:block;width:2px;height:10px;background:rgba(255,255,255,.7);text-decoration:none}
+/* LP4b: la placa «Trabados» sobre tu estandarte mientras estás en el choque */
+.est em{display:none;order:3;margin-top:3px;padding:2px 7px 3px;border-radius:9px;background:linear-gradient(#a3281c,#6a160f);border:1.5px solid var(--oro);font:700 11px Cinzel,Georgia,serif;font-style:normal;letter-spacing:.04em;color:#fff3dc;text-shadow:0 1px 2px #000;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.6)}
+.est.trabado em{display:block}
+.orden.cambia .aro{animation:cambia .6s}
+@keyframes cambia{0%{transform:scale(.8)}60%{transform:scale(1.08)}100%{transform:scale(1)}}
 
 /* avisos en el borde: una franja roja del lado del peligro, con su frase */
 .borde{position:absolute;pointer-events:none;opacity:0;transition:opacity .35s;display:flex;align-items:center}
@@ -92,7 +97,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
   #raya{position:fixed;left:calc(env(safe-area-inset-left) + 8px);bottom:calc(env(safe-area-inset-bottom) + 8px);width:300px}
   #grito{bottom:calc(env(safe-area-inset-bottom) + 50px)}
   #borde-i,#borde-d{top:18%;bottom:14%}
-  #borde-d{right:96px}
+  #borde-d{right:176px}   /* que no pise los nombres de las órdenes */
   #datos{right:auto;width:420px}
   #mision{max-width:460px}
 }
@@ -136,7 +141,7 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
   <div id="inicio" class="velo" hidden>
     <h1>Manípulo a pie</h1>
     <p>Mandas tu manípulo, no a un hombre. <b>Arrastra el dedo por el suelo</b>: ahí formará tu primera fila, y el bloque girará como una puerta hasta llegar.</p>
-    <p>Abajo tienes cuatro órdenes. La que conviene en cada momento <b>se ilumina</b>.</p>
+    <p>Abajo tienes cuatro órdenes. La que conviene en cada momento <b>se ilumina</b>. Trabado en el choque solo se gira, despacio; «Alto» se vuelve <b>«Retirada»</b>: sales formado, pero pagando.</p>
     <p>Enfrente, los galos. Rompe su centro antes de que su jefe te alcance.</p>
     <div class="niveles"><button class="gordo claro" data-nivel="facil">Fácil</button><button class="gordo" data-nivel="normal">Normal</button><button class="gordo claro" data-nivel="dificil">Difícil</button></div>
   </div>
