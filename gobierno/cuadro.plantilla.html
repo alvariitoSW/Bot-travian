@@ -2,7 +2,7 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Inter:wght@400;500;600&display=swap">
 <style>
-/* Disposición (CM1, 18/11): el cuadro enseña el juego, no las tareas. Cuatro vistas con pestañas fijas abajo, para el pulgar:
+/* Disposición (CM1, 18/11; CM3, 24/11: se añaden Arte y Equipos): el cuadro enseña el juego, no las tareas. Seis vistas con pestañas fijas abajo, para el pulgar:
    Juego (estandarte, tres órganos y las tres comprobaciones), Lista (la 1.0 línea a línea), Decidir (tres preguntas como mucho)
    y Taller (sesiones, vigía, pedidos, capturas y, plegado, el tablero entero). */
 :root {
@@ -185,12 +185,48 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
 .ordenes { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; }
 .ordenes .boton { background: var(--tabla); border-color: var(--raya); color: var(--tinta); text-align: center; min-height: 56px; font-weight: 500; }
 
+/* CM3 · arte: una foto por pieza, dos por fila en el móvil */
+.indice { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; margin-right: -16px; padding-right: 16px; }
+.indice .chip { display: inline-flex; align-items: center; text-decoration: none; min-height: 44px; box-sizing: border-box; }
+.indice .chip b:empty { display: none; }
+.grupo-arte { scroll-margin-top: 12px; }
+.piezas { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+.pieza { margin: 0; background: var(--tabla); border: 1px solid var(--raya); border-radius: 12px; padding: 8px; display: flex; flex-direction: column; gap: 8px; min-width: 0; position: relative; }
+.pieza img, .pieza .sinfoto { width: 100%; height: auto; aspect-ratio: 1; border-radius: 8px; display: block; background: var(--fondo); object-fit: cover; }
+.pieza .sinfoto { display: flex; align-items: center; justify-content: center; color: var(--tenue); font-size: 13px; border: 1px dashed var(--raya); box-sizing: border-box; }
+.pieza figcaption { flex: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pieza figcaption b { font-size: 15px; line-height: 1.25; overflow-wrap: anywhere; }
+.pieza figcaption .nota { font-size: 12px; line-height: 1.3; overflow-wrap: anywhere; }
+.pieza .boton { width: 100%; border-color: var(--purpura); color: var(--purpura); }
+.pieza.mas { display: none; } .grupo-arte.abierto .pieza.mas { display: flex; }
+.pieza > .estado.pedido { position: absolute; top: 14px; left: 14px; background: var(--tabla); }
+.vermas { align-self: stretch; }
+/* CM3 · equipos */
+.equipo { scroll-margin-top: 12px; gap: 8px; }
+.equipo .cab { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.equipo .nom { font: 700 19px var(--rotulo); letter-spacing: .06em; color: var(--purpura); }
+.equipo .de { font-size: 13px; color: var(--tenue); }
+.equipo .cab .estado.pedido { margin-left: auto; }
+.mini.eq { gap: 6px; font-size: 15px; } .mini.eq:empty { display: flex; }
+.mini.eq li b { min-width: 44px; font-size: 13px; line-height: 22px; color: var(--bronce); }
+.mini.eq li.nota { font-size: 14px; }
+.mini.eq .dia { font-style: normal; font-size: 12px; color: var(--tenue); white-space: nowrap; }
+.mini.eq .estado { margin-left: 6px; }
+.equipo .fila { margin-top: 6px; }
+/* hoja de escribir: sube desde abajo, para el pulgar */
+#hoja { border: 0; padding: 0; margin: auto auto 0; width: 100%; max-width: 680px; background: transparent; color: var(--tinta); }
+#hoja::backdrop { background: rgba(20, 12, 22, .55); }
+#hoja form { background: var(--tabla); border-radius: 18px 18px 0 0; border-top: 3px solid var(--purpura); display: flex; flex-direction: column; gap: 10px; padding: 16px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); }
+#hoja .quien { font-size: 12px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--tenue); }
+#hoja label { font: 700 17px/1.3 var(--rotulo); letter-spacing: .03em; }
+#hoja .fila .boton { flex: 1; }
+
 /* barras fijas */
-.pestanas { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--tabla); border-top: 1px solid var(--raya); padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
-.pestanas a { position: relative; min-height: var(--barra); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; color: var(--tenue); font-size: 12px; font-weight: 500; }
+.pestanas { position: fixed; left: 0; right: 0; bottom: 0; z-index: 5; display: grid; grid-template-columns: repeat(6, 1fr); background: var(--tabla); border-top: 1px solid var(--raya); padding: 0 env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+.pestanas a { position: relative; min-width: 0; min-height: var(--barra); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; text-decoration: none; color: var(--tenue); font-size: 12px; font-weight: 500; }
 .pestanas svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 .pestanas a[aria-current="page"] { color: var(--purpura); font-weight: 600; }
-.pestanas a[aria-current="page"]::before { content: ""; position: absolute; top: -1px; left: 26%; right: 26%; height: 3px; border-radius: 0 0 3px 3px; background: var(--purpura); }
+.pestanas a[aria-current="page"]::before { content: ""; position: absolute; top: -1px; left: 18%; right: 18%; height: 3px; border-radius: 0 0 3px 3px; background: var(--purpura); }
 .pestanas .n { position: absolute; top: 7px; left: calc(50% + 6px); font: 600 11px var(--texto); min-width: 17px; text-align: center; padding: 0 4px; box-sizing: border-box; border-radius: 999px; background: var(--mal); color: var(--tabla); }
 #lote, #aviso { position: fixed; left: 0; right: 0; bottom: calc(var(--barra) + env(safe-area-inset-bottom, 0px)); padding: 10px max(16px, env(safe-area-inset-right, 0px)) 10px max(16px, env(safe-area-inset-left, 0px)); }
 #lote { z-index: 4; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: center; background: var(--tabla); border-top: 2px solid var(--purpura); }
@@ -267,6 +303,21 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
       <ul class="lista">{{ESPERA}}</ul>
       {{COLA}}
     </section>
+  </div>
+
+  <div class="vista" data-vista="arte" id="arte" hidden>
+    <p class="titulo">El arte del juego</p>
+    <p class="nota">Las {{N_ARTE}} piezas que hay hoy, con su foto. Si quieres cambiar una, pulsa «Pedir cambio», escribe qué harías y se lo pasamos al equipo de Arte.</p>
+    <nav class="indice" aria-label="Grupos de arte">{{ARTE_INDICE}}</nav>
+    {{ARTE}}
+    <p class="nota">El sonido no tiene foto: para pedir cambios de sonido, ve a Equipos y pulsa «Recomendar mejora» en Sonido.</p>
+  </div>
+
+  <div class="vista" data-vista="equipos" id="equipos" hidden>
+    <p class="titulo">Equipos de trabajo</p>
+    <p class="nota" id="eq-nota">Qué hace cada equipo, lo último que entregó y lo que le toca después. Con «Recomendar mejora» le dejas una idea con tus palabras.</p>
+    <nav class="indice" aria-label="Equipos">{{EQUIPOS_INDICE}}</nav>
+    <section aria-label="Equipos" class="lista-equipos">{{EQUIPOS}}</section>
   </div>
 
   <div class="vista" data-vista="taller" id="taller" hidden>
@@ -348,9 +399,18 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
   <a href="#juego"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/></svg>Juego</a>
   <a href="#lista"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11M4 6l1 1 2-2M4 12l1 1 2-2M4 18l1 1 2-2"/></svg>Lista</a>
   <a href="#decidir"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v18M5 7h14M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/></svg>Decidir<span class="n" {{TAB_DECIDIR_OCULTO}}>{{N_ESP}}</span></a>
+  <a href="#arte"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v3c-3 2-4.5 4.5-4.5 8 0 3 2.5 7 6.5 7s6.5-4 6.5-7c0-3.5-1.5-6-4.5-8V3M6 12h12"/></svg>Arte</a>
+  <a href="#equipos"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM16.5 12a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5zM3 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M15.5 15c3 0 5.5 1.5 5.5 4"/></svg>Equipos<span class="n" id="tab-n-equipos" hidden>0</span></a>
   <a href="#taller"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20l1-4L16 5l3 3L8 19zM14 7l3 3"/></svg>Taller<span class="n" id="tab-n-taller" hidden>0</span></a>
 </nav>
 <div id="lote" hidden><span class="cuenta" id="lote-n"></span><button class="boton lleno fino" data-lote="abrir">Abrir sesión</button><button class="boton fino" data-lote="priorizar">Dar prioridad</button><button class="boton fino" data-lote="quitar">Quitar marcas</button></div>
+<dialog id="hoja" aria-labelledby="hoja-t"><form method="dialog">
+  <span class="quien" id="hoja-q"></span>
+  <label id="hoja-t" for="hoja-texto"></label>
+  <textarea id="hoja-texto"></textarea>
+  <p class="nota" id="hoja-n"></p>
+  <div class="fila"><button class="boton" type="button" data-hoja-cerrar>Cancelar</button><button class="boton lleno" type="button" id="hoja-enviar" data-pedir="arte" data-texto="hoja-texto" data-cierra="1">Enviar</button></div>
+</form></dialog>
 <div id="aviso" role="status" hidden></div>
 
 <script>
@@ -358,7 +418,10 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
   var $ = function (id) { return document.getElementById(id); };
   var todos = function (sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); };
   var db = null, avisoT = 0;
-  var ROTULO = { priorizar: 'Prioridad', cambio: 'Cambio pedido', aprobar: 'Aprobada', rechazar: 'Rechazada', nuevo: 'Pedido nuevo', respuesta: 'Tu respuesta', abrir: 'Encargo', orden: 'Orden', nevera: 'A la nevera' };
+  var sinUso = 'Aquí no se pueden guardar pedidos (hace falta abrir la página con tu sesión de Claude). Mientras tanto, dilo en el chat.';
+  var ROTULO = { priorizar: 'Prioridad', cambio: 'Cambio pedido', aprobar: 'Aprobada', rechazar: 'Rechazada', nuevo: 'Pedido nuevo', respuesta: 'Tu respuesta', abrir: 'Encargo', orden: 'Orden', nevera: 'A la nevera', arte: 'Cambio de arte', mejora: 'Mejora' };
+  {{EQUIPOS_JS}}
+  var nomEquipo = function (id) { for (var i = 0; i < EQUIPOS.length; i++) if (EQUIPOS[i].id === id) return EQUIPOS[i].nombre; return id; };
   var EST = { trabajando: ['trabaja', 'trabajando'], esperando: ['espera', 'te espera'], terminada: ['acabada', 'ha acabado'] };
   function hace(iso) { var m = Math.round((Date.now() - new Date(iso).getTime()) / 60000); return isNaN(m) ? '' : m < 2 ? 'ahora mismo' : m < 90 ? 'hace ' + m + ' min' : 'hace ' + Math.round(m / 60) + ' h'; }
   function pintarSesiones(docs) {
@@ -379,11 +442,45 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
       if (x.estado !== 'terminada') { var p = document.createElement('button'); p.className = 'boton fino'; p.textContent = 'Parar'; p.dataset.pedir = 'orden'; p.dataset.ref = 'parar:' + x.id; p.dataset.titulo = 'Parar la sesión ' + (x.titulo || x.id); li.appendChild(p); }
       ul.appendChild(li);
     });
+    pintarEquipos(filas);
     $('n-marcha').textContent = filas.length;
     var ac = filas.filter(function (x) { return x.estado === 'terminada'; }).length;
     $('ses-limpiar').textContent = ac ? 'Cerrar las ' + ac + ' que ya han acabado' : 'No hay sesiones acabadas'; $('ses-limpiar').disabled = !ac;
     $('ses-nota').textContent = filas.length + ' sesiones abiertas: ' + filas.filter(function (x) { return x.estado === 'esperando'; }).length + ' te esperan, ' + filas.filter(function (x) { return x.estado === 'trabajando'; }).length + ' trabajan y ' + ac + ' han acabado. Lista de ' + hace(ult) + '; la refresca el vigía.';
   }
+
+  // CM3: reparte las sesiones vivas entre los equipos (por la etiqueta area, el ID de la tarea o el título)
+  function pintarEquipos(filas) {
+    var por = {}, vivas = 0;
+    filas.forEach(function (x) { if (x.estado === 'terminada') return; var e = equipoDe(EQUIPOS, { id: x.tarea, titulo: x.titulo, area: x.area }); if (!e) return; (por[e] = por[e] || []).push(x); vivas++; });
+    todos('[data-eq-ahora]').forEach(function (ul) {
+      var id = ul.dataset.eqAhora, l = por[id] || []; ul.textContent = '';
+      l.forEach(function (x) {
+        var li = document.createElement('li'), b = document.createElement('b'), s = document.createElement('span'), t = String(x.titulo || x.id).replace(/^AQVILA\s*·\s*/i, ''), m = t.match(/^(?:[^·]{1,14}·\s*)?([A-Z][A-Za-z]{0,3}\d[\w-]*)\s+(.*)$/);
+        b.textContent = x.tarea || (m ? m[1] : '·'); s.textContent = (m ? m[2] : t) + (x.hace ? ' — ' + x.hace : '');
+        var e = EST[x.estado] || EST.trabajando, et = document.createElement('span'); et.className = 'estado ' + e[0]; et.textContent = e[1]; s.appendChild(et);
+        li.appendChild(b); li.appendChild(s); ul.appendChild(li);
+      });
+      if (!l.length) { var v = document.createElement('li'); v.className = 'nota'; v.textContent = 'Ninguna sesión abierta ahora.'; ul.appendChild(v); }
+      todos('[data-eq-n="' + id + '"]').forEach(function (n) { n.textContent = l.length || ''; });
+    });
+    var n = $('tab-n-equipos'); n.textContent = vivas; n.hidden = !vivas;
+    $('eq-nota').textContent = vivas + (vivas === 1 ? ' sesión trabaja ahora' : ' sesiones trabajan ahora') + ' en los equipos. Con «Recomendar mejora» le dejas una idea a un equipo con tus palabras.';
+  }
+  // CM3: la hoja de escribir sirve para «Pedir cambio» (arte) y «Recomendar mejora» (equipo)
+  function abrirHoja(b) {
+    var h = $('hoja'), tipo = b.dataset.hoja, env = $('hoja-enviar'), tit = b.dataset.titulo || '';
+    env.dataset.pedir = tipo; env.dataset.ref = b.dataset.ref || '';
+    env.dataset.titulo = tipo === 'arte' ? 'Cambio en el arte de «' + tit + '»' : 'Mejora para el equipo de ' + tit;
+    $('hoja-q').textContent = tipo === 'arte' ? 'Pedir cambio · va al equipo de Arte' : 'Recomendar mejora · va al equipo de ' + tit;
+    $('hoja-t').textContent = tipo === 'arte' ? 'Qué cambiarías en «' + tit + '»' : 'Qué mejorarías en ' + tit;
+    $('hoja-texto').placeholder = tipo === 'arte' ? 'Por ejemplo: el casco más oscuro y con penacho' : 'Por ejemplo: que las cargas se sientan más fuertes';
+    $('hoja-n').textContent = db ? 'Queda apuntado con tus palabras. Nada se construye sin pasar antes por la lista de la 1.0.' : sinUso;
+    $('hoja-texto').value = '';
+    if (h.showModal) h.showModal(); else h.setAttribute('open', '');
+    $('hoja-texto').focus();
+  }
+  function cerrarHoja() { var h = $('hoja'); if (h.close) h.close(); else h.removeAttribute('open'); }
 
   function aviso(txt) { var a = $('aviso'); a.textContent = txt; a.hidden = false; clearTimeout(avisoT); avisoT = setTimeout(function () { a.hidden = true; }, 3500); }
   function apagar(motivo) {
@@ -405,13 +502,13 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
     $('porap-t').textContent = frase;
     todos('[data-porap-t]').forEach(function (e) { e.textContent = frase; });
     todos('[data-porap]').forEach(function (e) { e.hidden = !np; });
-    pendientes.slice(0, 8).forEach(function (x) { var li = document.createElement('li'), k = document.createElement('b'), t = document.createElement('span'); k.textContent = (ROTULO[x.tipo] || 'Pedido') + (x.ref && x.tipo !== 'respuesta' ? ' · ' + x.ref : ''); t.textContent = (x.titulo || '') + ((x.tipo === 'respuesta' || x.tipo === 'nevera') && x.texto ? ': ' + x.texto : ''); li.appendChild(k); li.appendChild(t); lista.appendChild(li); });
+    pendientes.slice(0, 8).forEach(function (x) { var li = document.createElement('li'), k = document.createElement('b'), t = document.createElement('span'); k.textContent = (ROTULO[x.tipo] || 'Pedido') + (x.ref && x.tipo !== 'respuesta' ? ' · ' + x.ref : ''); t.textContent = (x.titulo || '') + ((x.tipo === 'respuesta' || x.tipo === 'nevera' || x.tipo === 'arte' || x.tipo === 'mejora') && x.texto ? ': ' + x.texto : ''); li.appendChild(k); li.appendChild(t); lista.appendChild(li); });
     if (np > 8) { var mas = document.createElement('li'); mas.textContent = 'y ' + (np - 8) + ' más, abajo en «Tus pedidos».'; lista.appendChild(mas); }
     vacio.hidden = pendientes.length + aplicados.length > 0;
     pendientes.concat(aplicados).forEach(function (x) {
       var li = document.createElement('li'); li.className = 'ficha';
       var q = document.createElement('span'); q.className = 'quien';
-      q.textContent = (ROTULO[x.tipo] || 'Pedido') + (x.ref ? ' · ' + x.ref : '') + (x.estado === 'aplicado' ? ' · aplicado' : ' · pendiente');
+      q.textContent = (ROTULO[x.tipo] || 'Pedido') + (x.tipo === 'arte' || x.tipo === 'mejora' ? (x.titulo ? ' · ' + x.titulo.replace(/^(Cambio en el arte de|Mejora para el equipo de)\s*/, '') : '') : x.ref ? ' · ' + x.ref : '') + (x.estado === 'aplicado' ? ' · aplicado' : ' · pendiente');
       li.appendChild(q);
       if (x.texto) { var p = document.createElement('p'); p.textContent = x.texto; li.appendChild(p); }
       if (x.nota) { var n = document.createElement('p'); n.className = 'nota'; n.textContent = x.nota; li.appendChild(n); }
@@ -419,6 +516,7 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
         var f = document.createElement('div'); f.className = 'fila';
         var b = document.createElement('button'); b.className = 'boton fino'; b.textContent = 'Deshacer'; b.dataset.deshacer = x.id;
         f.appendChild(b); li.appendChild(f);
+        if ((x.tipo === 'arte' || x.tipo === 'mejora') && x.ref && /^[\w:-]+$/.test(x.ref)) todos('[data-marca="' + x.ref + '"]').forEach(function (s) { var d = s.querySelector('.cab') || s; if (!d.querySelector('.estado.pedido')) { var e = document.createElement('span'); e.className = 'estado pedido'; e.textContent = 'pedido'; d.appendChild(e); } });
         [x.ref, x.linea].forEach(function (r) { if (r && /^[\w:-]+$/.test(r)) todos('details[data-ref="' + r + '"] > summary').forEach(function (s) { if (!s.querySelector('.estado.pedido')) { var e = document.createElement('span'); e.className = 'estado pedido'; e.textContent = 'pedido'; s.appendChild(e); } }); });
       }
       ul.appendChild(li);
@@ -501,7 +599,7 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
     var unico = tipo === 'priorizar' || tipo === 'aprobar' || tipo === 'rechazar' || tipo === 'abrir' || tipo === 'orden';
     var destino = unico ? col.doc((tipo === 'priorizar' ? 'priorizar-' : tipo === 'abrir' ? 'abrir-' : tipo === 'orden' ? 'orden-' : 'decision-') + ref.replace(/[^A-Za-z0-9_-]/g, '-')) : col.doc();
     b.disabled = true;
-    destino.set(doc).then(function () { aviso(tipo === 'nevera' ? 'Guardada en la nevera.' : 'Apuntado. Llama al vigía para que lo aplique.'); if (caja) caja.value = ''; })
+    destino.set(doc).then(function () { aviso(tipo === 'nevera' ? 'Guardada en la nevera.' : tipo === 'arte' ? 'Apuntado para el equipo de Arte. Llama al vigía para que se lo pase.' : tipo === 'mejora' ? 'Apuntado para el equipo de ' + nomEquipo(ref) + '. Llama al vigía para que se lo pase.' : 'Apuntado. Llama al vigía para que lo aplique.'); if (caja) caja.value = ''; if (b.dataset.cierra) cerrarHoja(); })
       .catch(function (e) { aviso(e && e.code === 'invalid_argument' ? 'No tienes permiso para guardar aquí. Dilo en el chat.' : 'No se pudo guardar. Prueba otra vez.'); })
       .then(function () { b.disabled = false; });
   }
@@ -509,6 +607,9 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
   document.addEventListener('click', function (ev) {
     var b = ev.target.closest('button'); if (!b) return;
     if (b.hasAttribute('data-llamar')) { llamar(); return; }
+    if (b.dataset.hoja) { abrirHoja(b); return; }
+    if (b.hasAttribute('data-hoja-cerrar')) { cerrarHoja(); return; }
+    if (b.hasAttribute('data-vermas')) { var g = b.closest('.grupo-arte'), ab = g.classList.toggle('abierto'); b.setAttribute('aria-expanded', ab ? 'true' : 'false'); b.textContent = ab ? 'Ver menos' : 'Ver ' + b.dataset.n + ' más'; if (!ab) g.scrollIntoView({ block: 'start' }); return; }
     if (b.dataset.lote) {
       if (b.dataset.lote === 'quitar') { marcadas().forEach(function (c) { c.checked = false; }); lote(); return; }
       if (!db) { aviso('Aquí no se pueden guardar pedidos. Dilo en el chat.'); return; }
@@ -524,7 +625,6 @@ textarea { min-height: 84px; resize: vertical; } #buscar { min-height: 44px; }
     else if (b.dataset.deshacer) { b.disabled = true; db.collection('pedidos').doc(b.dataset.deshacer).delete().then(function () { aviso('Pedido retirado.'); }, function () { b.disabled = false; aviso('No se pudo retirar.'); }); }
   });
 
-  var sinUso = 'Aquí no se pueden guardar pedidos (hace falta abrir la página con tu sesión de Claude). Mientras tanto, dilo en el chat.';
   if (!window.claude || !window.claude.use) { apagar(sinUso); return; }
   window.claude.use('mcp').then(function (m) { mcp = m; if (!m) estadoVigia('En esta pantalla no se puede llamar al vigía con el botón. Escribe «aplica el cuadro» en el chat de Claude.'); });
   window.claude.use('db').then(function (d) {

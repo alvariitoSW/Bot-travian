@@ -49,7 +49,13 @@
       "gobierno/plan-12.md",
       "gobierno/relevo-gobierno.md",
       "gobierno/cadena-gm.md",
-      "gobierno/entornos/"
+      "gobierno/entornos/",
+      "gobierno/arte-fotos.mjs",
+      "gobierno/arte-fotos.html",
+      "gobierno/arte-piezas.json",
+      "gobierno/arte-fotos/",
+      "gobierno/equipos.json",
+      "gobierno/captura-cm3.mjs"
     ]
   },
   "libres": {
@@ -117,7 +123,10 @@
         "js/fisica-batalla.js",
         "test/fisica-batalla.test.mjs",
         "gobierno/maquetas/a-pie/fisica.js",
-        "gobierno/maquetas/falange/fisica.js"
+        "gobierno/maquetas/falange/fisica.js",
+        "test/fi4-campo.mjs",
+        "test/fi4-captura.mjs",
+        "test/fi4-escaramuza.mjs"
       ],
       "taller": [
         "assets/soldados/",

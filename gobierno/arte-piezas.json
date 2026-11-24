@@ -1,0 +1,997 @@
+{
+ "_ayuda": "Lo escribe gobierno/arte-fotos.mjs; no se edita a mano. Lo lee gobierno/cuadro.mjs para el apartado «Arte».",
+ "piezas": [
+  {
+   "id": "soldado:hastatus",
+   "grupo": "soldado",
+   "nombre": "Hastatus (legionario)",
+   "origen": "Generado por ti con Meshy y adaptado en AQVILA",
+   "licencia": "CC BY 4.0",
+   "foto": "gobierno/arte-fotos/soldado-hastatus.jpg"
+  },
+  {
+   "id": "soldado:triario",
+   "grupo": "soldado",
+   "nombre": "Triario",
+   "origen": "Generado por ti con Meshy y adaptado en AQVILA",
+   "licencia": "CC BY-SA 3.0 y CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-triario.jpg"
+  },
+  {
+   "id": "soldado:velite",
+   "grupo": "soldado",
+   "nombre": "Vélite",
+   "origen": "Generado por ti con Meshy y adaptado en AQVILA",
+   "licencia": "CC BY-SA 3.0 y CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-velite.jpg"
+  },
+  {
+   "id": "soldado:centurion",
+   "grupo": "soldado",
+   "nombre": "Centurión",
+   "origen": "Generado por ti con Meshy y adaptado en AQVILA",
+   "licencia": "CC BY-SA 3.0 y CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-centurion.jpg"
+  },
+  {
+   "id": "soldado:hondero",
+   "grupo": "soldado",
+   "nombre": "Hondero balear",
+   "origen": "Hecho en AQVILA sobre MakeHuman y Quaternius",
+   "licencia": "CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-hondero.jpg"
+  },
+  {
+   "id": "soldado:peltasta",
+   "grupo": "soldado",
+   "nombre": "Peltasta",
+   "origen": "Hecho en AQVILA sobre MakeHuman y Quaternius",
+   "licencia": "CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-peltasta.jpg"
+  },
+  {
+   "id": "soldado:hoplita",
+   "grupo": "soldado",
+   "nombre": "Hoplita",
+   "origen": "Hecho en AQVILA sobre MakeHuman y Quaternius",
+   "licencia": "CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-hoplita.jpg"
+  },
+  {
+   "id": "soldado:falangita",
+   "grupo": "soldado",
+   "nombre": "Falangita macedonio",
+   "origen": "Generado por ti con Meshy y adaptado en AQVILA",
+   "licencia": "CC BY 4.0",
+   "foto": "gobierno/arte-fotos/soldado-falangita.jpg"
+  },
+  {
+   "id": "soldado:oficial-falange",
+   "grupo": "soldado",
+   "nombre": "Oficial de la falange",
+   "origen": "Hecho en AQVILA sobre MakeHuman y Quaternius",
+   "licencia": "CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-oficial-falange.jpg"
+  },
+  {
+   "id": "soldado:ibero",
+   "grupo": "soldado",
+   "nombre": "Guerrero íbero",
+   "origen": "Hecho en AQVILA sobre MakeHuman y Quaternius",
+   "licencia": "CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-ibero.jpg"
+  },
+  {
+   "id": "soldado:galo",
+   "grupo": "soldado",
+   "nombre": "Guerrero galo",
+   "origen": "Hecho en AQVILA sobre MakeHuman y Quaternius",
+   "licencia": "CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-galo.jpg"
+  },
+  {
+   "id": "soldado:galo-grande",
+   "grupo": "soldado",
+   "nombre": "Galo grande",
+   "origen": "Generado por ti con Meshy y adaptado en AQVILA",
+   "licencia": "CC BY-SA 3.0 y CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-galo-grande.jpg"
+  },
+  {
+   "id": "soldado:galo-grande-v2a",
+   "grupo": "soldado",
+   "nombre": "Galo grande, versión 2a",
+   "origen": "Generado por ti con Meshy y adaptado en AQVILA",
+   "licencia": "CC BY-SA 3.0 y CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-galo-grande-v2a.jpg"
+  },
+  {
+   "id": "soldado:galo-grande-v2b",
+   "grupo": "soldado",
+   "nombre": "Galo grande, versión 2b",
+   "origen": "Generado por ti con Meshy y adaptado en AQVILA",
+   "licencia": "CC BY-SA 3.0 y CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-galo-grande-v2b.jpg"
+  },
+  {
+   "id": "soldado:galo-rapido",
+   "grupo": "soldado",
+   "nombre": "Galo rápido",
+   "origen": "Generado por ti con Meshy y adaptado en AQVILA",
+   "licencia": "CC BY-SA 3.0 y CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-galo-rapido.jpg"
+  },
+  {
+   "id": "soldado:galo-rapido-b",
+   "grupo": "soldado",
+   "nombre": "Galo rápido B",
+   "origen": "Generado por ti con Meshy y adaptado en AQVILA",
+   "licencia": "CC BY-SA 3.0 y CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-galo-rapido-b.jpg"
+  },
+  {
+   "id": "soldado:galo-lancero",
+   "grupo": "soldado",
+   "nombre": "Galo lancero",
+   "origen": "Generado por ti con Meshy y adaptado en AQVILA",
+   "licencia": "CC BY-SA 3.0 y CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-galo-lancero.jpg"
+  },
+  {
+   "id": "soldado:jefe-galo",
+   "grupo": "soldado",
+   "nombre": "Jefe galo",
+   "origen": "Generado por ti con Meshy y adaptado en AQVILA",
+   "licencia": "CC BY-SA 3.0 y CC0 1.0",
+   "foto": "gobierno/arte-fotos/soldado-jefe-galo.jpg"
+  },
+  {
+   "id": "tropa:hastati",
+   "grupo": "tropa",
+   "nombre": "Hastati",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-hastati.jpg"
+  },
+  {
+   "id": "tropa:principes",
+   "grupo": "tropa",
+   "nombre": "Príncipes",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-principes.jpg"
+  },
+  {
+   "id": "tropa:triarii",
+   "grupo": "tropa",
+   "nombre": "Triarios",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-triarii.jpg"
+  },
+  {
+   "id": "tropa:velites",
+   "grupo": "tropa",
+   "nombre": "Vélites",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-velites.jpg"
+  },
+  {
+   "id": "tropa:vigiles",
+   "grupo": "tropa",
+   "nombre": "Guardia urbana",
+   "origen": "0 A.D. (Wildfire Games) · figura provisional",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-vigiles.jpg"
+  },
+  {
+   "id": "tropa:milicia",
+   "grupo": "tropa",
+   "nombre": "Milicia",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-milicia.jpg"
+  },
+  {
+   "id": "tropa:hoplitas",
+   "grupo": "tropa",
+   "nombre": "Hoplitas",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-hoplitas.jpg"
+  },
+  {
+   "id": "tropa:falange",
+   "grupo": "tropa",
+   "nombre": "Falange",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-falange.jpg"
+  },
+  {
+   "id": "tropa:peltastas",
+   "grupo": "tropa",
+   "nombre": "Peltastas",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-peltastas.jpg"
+  },
+  {
+   "id": "tropa:honderos",
+   "grupo": "tropa",
+   "nombre": "Honderos baleares",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-honderos.jpg"
+  },
+  {
+   "id": "tropa:libios",
+   "grupo": "tropa",
+   "nombre": "Infantería libia",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-libios.jpg"
+  },
+  {
+   "id": "tropa:iberos",
+   "grupo": "tropa",
+   "nombre": "Guerreros íberos",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-iberos.jpg"
+  },
+  {
+   "id": "tropa:galos",
+   "grupo": "tropa",
+   "nombre": "Guerreros galos",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-galos.jpg"
+  },
+  {
+   "id": "tropa:sagrada",
+   "grupo": "tropa",
+   "nombre": "Ciudadanos de Cartago",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-sagrada.jpg"
+  },
+  {
+   "id": "tropa:ciudadana",
+   "grupo": "tropa",
+   "nombre": "Ciudadana",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-ciudadana.jpg"
+  },
+  {
+   "id": "tropa:sacerdote",
+   "grupo": "tropa",
+   "nombre": "Sacerdote",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-sacerdote.jpg"
+  },
+  {
+   "id": "tropa:equites",
+   "grupo": "tropa",
+   "nombre": "Équites",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-equites.jpg"
+  },
+  {
+   "id": "tropa:general",
+   "grupo": "tropa",
+   "nombre": "General",
+   "origen": "0 A.D. (Wildfire Games) · figura provisional",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-general.jpg"
+  },
+  {
+   "id": "tropa:jinetes",
+   "grupo": "tropa",
+   "nombre": "Jinetes",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-jinetes.jpg"
+  },
+  {
+   "id": "tropa:numidas",
+   "grupo": "tropa",
+   "nombre": "Caballería númida",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-numidas.jpg"
+  },
+  {
+   "id": "tropa:tesalios",
+   "grupo": "tropa",
+   "nombre": "Caballería tesalia",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-tesalios.jpg"
+  },
+  {
+   "id": "tropa:elefantes",
+   "grupo": "tropa",
+   "nombre": "Elefantes de guerra",
+   "origen": "0 A.D. (Wildfire Games) · figura provisional",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/tropa-elefantes.jpg"
+  },
+  {
+   "id": "edificio:aserradero",
+   "grupo": "edificio",
+   "nombre": "Aserradero",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-aserradero.jpg"
+  },
+  {
+   "id": "edificio:cantera",
+   "grupo": "edificio",
+   "nombre": "Cantera",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-cantera.jpg"
+  },
+  {
+   "id": "edificio:mina",
+   "grupo": "edificio",
+   "nombre": "Mina de hierro",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-mina.jpg"
+  },
+  {
+   "id": "edificio:granja",
+   "grupo": "edificio",
+   "nombre": "Granja",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-granja.jpg"
+  },
+  {
+   "id": "edificio:foro",
+   "grupo": "edificio",
+   "nombre": "Foro",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-foro.jpg"
+  },
+  {
+   "id": "edificio:almacen",
+   "grupo": "edificio",
+   "nombre": "Almacén",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-almacen.jpg"
+  },
+  {
+   "id": "edificio:mercado",
+   "grupo": "edificio",
+   "nombre": "Mercado",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-mercado.jpg"
+  },
+  {
+   "id": "edificio:puerto",
+   "grupo": "edificio",
+   "nombre": "Puerto",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-puerto.jpg"
+  },
+  {
+   "id": "barco:barco",
+   "grupo": "barco",
+   "nombre": "Barco mercante",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/barco-barco.jpg"
+  },
+  {
+   "id": "barco:trirreme",
+   "grupo": "barco",
+   "nombre": "Trirreme romano",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/barco-trirreme.jpg"
+  },
+  {
+   "id": "edificio:cuartel",
+   "grupo": "edificio",
+   "nombre": "Cuartel",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-cuartel.jpg"
+  },
+  {
+   "id": "edificio:establo",
+   "grupo": "edificio",
+   "nombre": "Establo",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-establo.jpg"
+  },
+  {
+   "id": "edificio:templo",
+   "grupo": "edificio",
+   "nombre": "Templo (0 A.D.)",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-templo.jpg"
+  },
+  {
+   "id": "edificio:casa",
+   "grupo": "edificio",
+   "nombre": "Casa romana",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-casa.jpg"
+  },
+  {
+   "id": "edificio:arco",
+   "grupo": "edificio",
+   "nombre": "Arco",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-arco.jpg"
+  },
+  {
+   "id": "edificio:vesta",
+   "grupo": "edificio",
+   "nombre": "Templo redondo de Vesta",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-vesta.jpg"
+  },
+  {
+   "id": "edificio:muro",
+   "grupo": "edificio",
+   "nombre": "Tramo de muralla",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-muro.jpg"
+  },
+  {
+   "id": "edificio:torre",
+   "grupo": "edificio",
+   "nombre": "Torre",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-torre.jpg"
+  },
+  {
+   "id": "edificio:puerta",
+   "grupo": "edificio",
+   "nombre": "Puerta de la muralla",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-puerta.jpg"
+  },
+  {
+   "id": "arbol:cipres",
+   "grupo": "arbol",
+   "nombre": "Ciprés",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/arbol-cipres.jpg"
+  },
+  {
+   "id": "arbol:olivo",
+   "grupo": "arbol",
+   "nombre": "Olivo",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/arbol-olivo.jpg"
+  },
+  {
+   "id": "arbol:pino",
+   "grupo": "arbol",
+   "nombre": "Pino",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/arbol-pino.jpg"
+  },
+  {
+   "id": "arbol:algarrobo",
+   "grupo": "arbol",
+   "nombre": "Algarrobo",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/arbol-algarrobo.jpg"
+  },
+  {
+   "id": "cultura:cart_templo",
+   "grupo": "cultura",
+   "nombre": "Templo púnico",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/cultura-cart_templo.jpg"
+  },
+  {
+   "id": "barco:cart_trirreme",
+   "grupo": "barco",
+   "nombre": "Trirreme púnico",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/barco-cart_trirreme.jpg"
+  },
+  {
+   "id": "cultura:grie_templo",
+   "grupo": "cultura",
+   "nombre": "Templo griego",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/cultura-grie_templo.jpg"
+  },
+  {
+   "id": "barco:grie_trirreme",
+   "grupo": "barco",
+   "nombre": "Trirreme griego",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/barco-grie_trirreme.jpg"
+  },
+  {
+   "id": "cultura:galo_centro",
+   "grupo": "cultura",
+   "nombre": "Casa grande gala",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/cultura-galo_centro.jpg"
+  },
+  {
+   "id": "cultura:iber_centro",
+   "grupo": "cultura",
+   "nombre": "Centro íbero",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/cultura-iber_centro.jpg"
+  },
+  {
+   "id": "edificio:casa_b",
+   "grupo": "edificio",
+   "nombre": "Casa romana B",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-casa_b.jpg"
+  },
+  {
+   "id": "edificio:casa_c",
+   "grupo": "edificio",
+   "nombre": "Casa romana C",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-casa_c.jpg"
+  },
+  {
+   "id": "edificio:casa_d",
+   "grupo": "edificio",
+   "nombre": "Casa romana D",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/edificio-casa_d.jpg"
+  },
+  {
+   "id": "objeto:prop_paja",
+   "grupo": "objeto",
+   "nombre": "Bala de paja",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/objeto-prop_paja.jpg"
+  },
+  {
+   "id": "objeto:prop_pozo",
+   "grupo": "objeto",
+   "nombre": "Pozo",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/objeto-prop_pozo.jpg"
+  },
+  {
+   "id": "objeto:prop_carreta",
+   "grupo": "objeto",
+   "nombre": "Carreta",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/objeto-prop_carreta.jpg"
+  },
+  {
+   "id": "cultura:grie_casa",
+   "grupo": "cultura",
+   "nombre": "Casa griega",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/cultura-grie_casa.jpg"
+  },
+  {
+   "id": "cultura:grie_casa_b",
+   "grupo": "cultura",
+   "nombre": "Casa griega B",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/cultura-grie_casa_b.jpg"
+  },
+  {
+   "id": "cultura:grie_casa_c",
+   "grupo": "cultura",
+   "nombre": "Casa griega C",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/cultura-grie_casa_c.jpg"
+  },
+  {
+   "id": "cultura:grie_casa_d",
+   "grupo": "cultura",
+   "nombre": "Casa griega D",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/cultura-grie_casa_d.jpg"
+  },
+  {
+   "id": "cultura:grie_casa_e",
+   "grupo": "cultura",
+   "nombre": "Casa griega E",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/cultura-grie_casa_e.jpg"
+  },
+  {
+   "id": "cultura:cart_casa",
+   "grupo": "cultura",
+   "nombre": "Casa púnica",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/cultura-cart_casa.jpg"
+  },
+  {
+   "id": "cultura:cart_casa_b",
+   "grupo": "cultura",
+   "nombre": "Casa púnica B",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/cultura-cart_casa_b.jpg"
+  },
+  {
+   "id": "cultura:cart_casa_c",
+   "grupo": "cultura",
+   "nombre": "Casa púnica C",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/cultura-cart_casa_c.jpg"
+  },
+  {
+   "id": "objeto:prop_puesto_cart",
+   "grupo": "objeto",
+   "nombre": "Puesto de mercado púnico",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/objeto-prop_puesto_cart.jpg"
+  },
+  {
+   "id": "objeto:prop_mesa",
+   "grupo": "objeto",
+   "nombre": "Mesa",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/objeto-prop_mesa.jpg"
+  },
+  {
+   "id": "objeto:prop_cesto",
+   "grupo": "objeto",
+   "nombre": "Cesto",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/objeto-prop_cesto.jpg"
+  },
+  {
+   "id": "objeto:prop_sacos",
+   "grupo": "objeto",
+   "nombre": "Sacos",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/objeto-prop_sacos.jpg"
+  },
+  {
+   "id": "objeto:prop_vaso",
+   "grupo": "objeto",
+   "nombre": "Vasija",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/objeto-prop_vaso.jpg"
+  },
+  {
+   "id": "objeto:prop_caja",
+   "grupo": "objeto",
+   "nombre": "Caja",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/objeto-prop_caja.jpg"
+  },
+  {
+   "id": "objeto:prop_cajas",
+   "grupo": "objeto",
+   "nombre": "Cajas",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/objeto-prop_cajas.jpg"
+  },
+  {
+   "id": "objeto:prop_paja_grande",
+   "grupo": "objeto",
+   "nombre": "Almiar",
+   "origen": "0 A.D. (Wildfire Games)",
+   "licencia": "CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/objeto-prop_paja_grande.jpg"
+  },
+  {
+   "id": "personaje:patricio",
+   "grupo": "personaje",
+   "nombre": "Patricio",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-patricio.jpg"
+  },
+  {
+   "id": "personaje:ecuestre",
+   "grupo": "personaje",
+   "nombre": "Ecuestre",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-ecuestre.jpg"
+  },
+  {
+   "id": "personaje:plebeyo",
+   "grupo": "personaje",
+   "nombre": "Plebeyo",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-plebeyo.jpg"
+  },
+  {
+   "id": "personaje:artesano-b",
+   "grupo": "personaje",
+   "nombre": "Artesano",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-artesano-b.jpg"
+  },
+  {
+   "id": "personaje:liberto-b",
+   "grupo": "personaje",
+   "nombre": "Liberto",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-liberto-b.jpg"
+  },
+  {
+   "id": "personaje:esclavo",
+   "grupo": "personaje",
+   "nombre": "Esclavo",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-esclavo.jpg"
+  },
+  {
+   "id": "personaje:matrona",
+   "grupo": "personaje",
+   "nombre": "Matrona",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-matrona.jpg"
+  },
+  {
+   "id": "personaje:dama",
+   "grupo": "personaje",
+   "nombre": "Dama",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-dama.jpg"
+  },
+  {
+   "id": "personaje:plebeya",
+   "grupo": "personaje",
+   "nombre": "Plebeya",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-plebeya.jpg"
+  },
+  {
+   "id": "personaje:artesana",
+   "grupo": "personaje",
+   "nombre": "Artesana",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-artesana.jpg"
+  },
+  {
+   "id": "personaje:liberta",
+   "grupo": "personaje",
+   "nombre": "Liberta",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-liberta.jpg"
+  },
+  {
+   "id": "personaje:esclava",
+   "grupo": "personaje",
+   "nombre": "Esclava",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-esclava.jpg"
+  },
+  {
+   "id": "personaje:consul",
+   "grupo": "personaje",
+   "nombre": "Cónsul",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-consul.jpg"
+  },
+  {
+   "id": "personaje:censor",
+   "grupo": "personaje",
+   "nombre": "Censor",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-censor.jpg"
+  },
+  {
+   "id": "personaje:pontifice",
+   "grupo": "personaje",
+   "nombre": "Pontífice",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-pontifice.jpg"
+  },
+  {
+   "id": "personaje:tribuno",
+   "grupo": "personaje",
+   "nombre": "Tribuno de la plebe",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-tribuno.jpg"
+  },
+  {
+   "id": "personaje:edil",
+   "grupo": "personaje",
+   "nombre": "Edil",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-edil.jpg"
+  },
+  {
+   "id": "personaje:cuestor",
+   "grupo": "personaje",
+   "nombre": "Cuestor",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-cuestor.jpg"
+  },
+  {
+   "id": "personaje:legado",
+   "grupo": "personaje",
+   "nombre": "Legado",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-legado.jpg"
+  },
+  {
+   "id": "personaje:publicano",
+   "grupo": "personaje",
+   "nombre": "Publicano",
+   "origen": "Generado por ti con Meshy (plan de pago) · aún no está en el juego",
+   "licencia": "tuya; se publicará como CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/personaje-publicano.jpg"
+  },
+  {
+   "id": "escena:mapa",
+   "grupo": "escena",
+   "nombre": "Mapa de Italia",
+   "origen": "Hecho por código en AQVILA",
+   "licencia": "propia",
+   "foto": "gobierno/arte-fotos/escena-mapa.jpg"
+  },
+  {
+   "id": "escena:mapamundi",
+   "grupo": "escena",
+   "nombre": "Mapa del Mediterráneo",
+   "origen": "Hecho por código en AQVILA",
+   "licencia": "propia",
+   "foto": "gobierno/arte-fotos/escena-mapamundi.jpg"
+  },
+  {
+   "id": "escena:ciudad",
+   "grupo": "escena",
+   "nombre": "Roma desde lejos",
+   "origen": "Código de AQVILA con piezas de 0 A.D.",
+   "licencia": "propia y CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/escena-ciudad.jpg"
+  },
+  {
+   "id": "escena:barrios",
+   "grupo": "escena",
+   "nombre": "Barrios e ínsulas",
+   "origen": "Código de AQVILA con piezas de 0 A.D.",
+   "licencia": "propia y CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/escena-barrios.jpg"
+  },
+  {
+   "id": "escena:muralla",
+   "grupo": "escena",
+   "nombre": "Muralla de toba",
+   "origen": "Hecho por código en AQVILA",
+   "licencia": "propia",
+   "foto": "gobierno/arte-fotos/escena-muralla.jpg"
+  },
+  {
+   "id": "escena:templo",
+   "grupo": "escena",
+   "nombre": "Templo romano",
+   "origen": "Hecho por código en AQVILA",
+   "licencia": "propia",
+   "foto": "gobierno/arte-fotos/escena-templo.jpg"
+  },
+  {
+   "id": "escena:campos",
+   "grupo": "escena",
+   "nombre": "Campos por suelos",
+   "origen": "Hecho por código en AQVILA",
+   "licencia": "propia",
+   "foto": "gobierno/arte-fotos/escena-campos.jpg"
+  },
+  {
+   "id": "escena:ciudad-arriba",
+   "grupo": "escena",
+   "nombre": "Ciudad desde arriba",
+   "origen": "Código de AQVILA con piezas de 0 A.D.",
+   "licencia": "propia y CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/escena-ciudad-arriba.jpg"
+  },
+  {
+   "id": "escena:senado",
+   "grupo": "escena",
+   "nombre": "Sala del Senado",
+   "origen": "Hecho por código en AQVILA",
+   "licencia": "propia",
+   "foto": "gobierno/arte-fotos/escena-senado.jpg"
+  },
+  {
+   "id": "escena:batalla",
+   "grupo": "escena",
+   "nombre": "Batalla de manípulos",
+   "origen": "Código de AQVILA con piezas de 0 A.D.",
+   "licencia": "propia y CC BY-SA 3.0",
+   "foto": "gobierno/arte-fotos/escena-batalla.jpg"
+  },
+  {
+   "id": "escena:a-pie",
+   "grupo": "escena",
+   "nombre": "Manípulo a pie",
+   "origen": "Código de AQVILA con los soldados nuevos",
+   "licencia": "propia, CC0 y CC BY",
+   "foto": "gobierno/arte-fotos/escena-a-pie.jpg"
+  },
+  {
+   "id": "escena:falange",
+   "grupo": "escena",
+   "nombre": "Falange y elefantes",
+   "origen": "Código de AQVILA con los soldados nuevos",
+   "licencia": "propia, CC0 y CC BY",
+   "foto": "gobierno/arte-fotos/escena-falange.jpg"
+  },
+  {
+   "id": "escena:menus",
+   "grupo": "escena",
+   "nombre": "Menús de papiro y tablilla",
+   "origen": "Hecho por código en AQVILA",
+   "licencia": "propia",
+   "foto": "gobierno/arte-fotos/escena-menus.jpg"
+  }
+ ]
+}
