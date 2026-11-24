@@ -18,6 +18,7 @@
   EA.CAMINOS = ['guerra', 'ciudad', 'comercio', 'politica', 'ciencia', 'otros', 'perdido'];
   EA.K = { pagaHombreAnio: 0.12, tributoPorCiudadano: 0.05, humorPorDenario: 0.004, humorMax: 15, plazos: { leve: 5, normal: 10, dura: 20 }, factor: { leve: 0.5, normal: 1, dura: 2 } };
   const IMP = '_imperio';
+  const VETADO = ['__proto__', 'constructor', 'prototype'];
   const fin = x => (typeof x === 'number' && isFinite(x)) ? x : 0;
   const pos = x => Math.max(0, fin(x));
   const own = (o, k) => Object.prototype.hasOwnProperty.call(o, k);
@@ -28,6 +29,7 @@
     if (!libro || !libro.c || !ciudad || !recurso) return libro;
     if (typeof cantidad !== 'number' || !isFinite(cantidad) || cantidad === 0) return libro;
     const m = motivo || 'otros';
+    if (VETADO.indexOf(ciudad) >= 0 || VETADO.indexOf(recurso) >= 0 || VETADO.indexOf(m) >= 0) return libro;
     const c = own(libro.c, ciudad) ? libro.c[ciudad] : (libro.c[ciudad] = {});
     const r = own(c, recurso) ? c[recurso] : (c[recurso] = { entra: {}, sale: {} });
     const lado = cantidad > 0 ? r.entra : r.sale;
@@ -82,11 +84,11 @@
     return pc;
   }
 
-  EA.adondeVa = function (libro, recurso) {
+  EA.adondeVa = function (libro, recurso, ciudad) {
     const rec = recurso || 'denarios';
-    const suma = sumar(libro, libro && libro.c ? Object.keys(libro.c) : []);
+    const suma = sumar(libro, ciudad ? [ciudad] : (libro && libro.c ? Object.keys(libro.c) : []));
     const sale = suma[rec] ? suma[rec].sale : {};
-    const mot = Object.keys(sale).filter(m => sale[m] > 0).map(m => ({ motivo: m, n: sale[m] })).sort((a, b) => b.n - a.n || (a.motivo < b.motivo ? -1 : 1));
+    const mot = Object.keys(sale).filter(m => Math.round(sale[m]) > 0).map(m => ({ motivo: m, n: sale[m] })).sort((a, b) => b.n - a.n || (a.motivo < b.motivo ? -1 : 1));
     const tot = mot.reduce((a, b) => a + b.n, 0);
     const pcs = porCien(mot.map(x => x.n));
     const partes = mot.map((x, i) => ({ motivo: x.motivo, n: Math.round(x.n), pc: pcs[i], camino: own(EA.CAMINO, x.motivo) ? EA.CAMINO[x.motivo] : 'otros' }));
@@ -97,8 +99,8 @@
     return { total: Math.round(tot), partes, caminos, mayor: partes[0] || null };
   };
 
-  EA.balanceGuerra = function (libro) {
-    const d = sumar(libro, libro && libro.c ? Object.keys(libro.c) : []).denarios || { entra: {}, sale: {} };
+  EA.balanceGuerra = function (libro, ciudad) {
+    const d = sumar(libro, ciudad ? [ciudad] : (libro && libro.c ? Object.keys(libro.c) : [])).denarios || { entra: {}, sale: {} };
     const cuesta = (d.sale.legiones || 0) + (d.sale.tributoGuerra || 0) + (d.sale.indemnizacion || 0);
     const gana = (d.entra.botin || 0) + (d.entra.indemnizacion || 0);
     return { cuesta: Math.round(cuesta), gana: Math.round(gana), saldo: Math.round(gana - cuesta) };
@@ -109,8 +111,10 @@
     const idsAnt = anterior && anterior.c ? Object.keys(anterior.c) : [];
     const imperio = filas(sumar(libro, ids), anterior ? sumar(anterior, idsAnt) : null);
     const ciudades = {};
+    const porCiudad = {};
+    for (const id of ids) if (id !== IMP) { porCiudad[id] = { adonde: EA.adondeVa(libro, 'denarios', id), guerra: EA.balanceGuerra(libro, id) }; }
     for (const id of ids) if (id !== IMP) ciudades[id] = filas(sumar(libro, [id]), anterior ? sumar(anterior, [id]) : null);
-    return { anio: libro ? libro.anio : null, imperio, ciudades, faltan: imperio.filter(f => f.saldo < 0).map(f => f.r), adonde: EA.adondeVa(libro), guerra: EA.balanceGuerra(libro) };
+    return { anio: libro ? libro.anio : null, imperio, ciudades, porCiudad, faltan: imperio.filter(f => f.saldo < 0).map(f => f.r), adonde: EA.adondeVa(libro), guerra: EA.balanceGuerra(libro) };
   };
 
   EA.registro = function (anio) { return { v: 1, actual: EA.nuevoLibro(anio), anterior: null }; };
@@ -118,7 +122,7 @@
   const libroOk = l => l && typeof l === 'object' && l.c && typeof l.c === 'object' && !Array.isArray(l.c);
   EA.migrar = function (s, anio) {
     const e = s.esteAno;
-    if (e && typeof e === 'object' && e.v === 1 && libroOk(e.actual) && (e.anterior === null || libroOk(e.anterior))) return false;
+    if (e && typeof e === 'object' && e.v === 1 && libroOk(e.actual) && (e.anterior === null || e.anterior === undefined || libroOk(e.anterior))) { const ch = e.anterior === undefined; if (ch) e.anterior = null; return ch; }
     s.esteAno = EA.registro(anio); return true;
   };
 
@@ -144,10 +148,10 @@
     const K = EA.K, d = own(K.plazos, o.dureza) ? o.dureza : 'normal';
     const rq = pos(o.riquezaAnual), an = Math.min(Math.max(fin(o.anios) || 1, 1), 10);
     const tot = Math.round(rq * K.factor[d] * an), plazos = K.plazos[d];
-    return { total: tot, plazos, cuota: Math.ceil(tot / plazos), inicio: o.inicio, pagado: 0 };
+    return { total: tot, plazos, cuota: Math.ceil(tot / plazos), inicio: isFinite(o.inicio) && typeof o.inicio === 'number' ? o.inicio : 0, pagado: 0 };
   };
   EA.cuotaAnio = function (plan, anio) {
-    if (!plan || !(fin(anio) === anio)) return 0;
+    if (!plan || !(fin(anio) === anio) || !isFinite(plan.inicio) || !isFinite(plan.plazos) || typeof plan.inicio !== 'number') return 0;
     const resta = Math.max(0, fin(plan.total) - fin(plan.pagado));
     if (anio < plan.inicio || anio > plan.inicio + plan.plazos - 1 || resta <= 0) return 0;
     return anio === plan.inicio + plan.plazos - 1 ? resta : Math.min(plan.cuota, resta);

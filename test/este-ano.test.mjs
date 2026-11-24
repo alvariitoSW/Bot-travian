@@ -93,4 +93,20 @@ t('valores raros', () => {
   assert.strictEqual(EA.indemnizacion({ riquezaAnual: -50, inicio: 1 }).total, 0); assert.strictEqual(EA.cuotaAnio(EA.indemnizacion({ riquezaAnual: 0, inicio: 1 }), 1), 0);
   assert.doesNotThrow(() => EA.cuentas(EA.nuevoLibro(1)));
 });
+t('revisor: ámbito por ciudad, inicio, anterior, redondeo, vetados', () => {
+  const l = EA.nuevoLibro(1);
+  EA.apunta(l, 'roma', 'denarios', -50, 'legiones'); EA.apunta(l, 'capua', 'denarios', -30, 'obras'); EA.apunta(l, 'capua', 'denarios', 10, 'botin');
+  const c = EA.cuentas(l);
+  assert.strictEqual(c.porCiudad.roma.adonde.total, 50); assert.strictEqual(c.porCiudad.capua.adonde.mayor.motivo, 'obras');
+  assert.deepStrictEqual(c.porCiudad.capua.guerra, { cuesta: 0, gana: 10, saldo: 10 }); assert.deepStrictEqual(EA.balanceGuerra(l, 'roma'), { cuesta: 50, gana: 0, saldo: -50 });
+  assert.ok(!('_imperio' in c.porCiudad)); assert.strictEqual(EA.adondeVa(l, 'denarios', 'roma').caminos[0].pc, 100);
+  const p = EA.indemnizacion({ riquezaAnual: 100 }); assert.strictEqual(p.inicio, 0); assert.strictEqual(EA.cuotaAnio({ total: 10, cuota: 5, pagado: 0, plazos: NaN, inicio: 0 }, 0), 0);
+  assert.strictEqual(EA.cuotaAnio({ total: 10, cuota: 5, pagado: 0, plazos: 2, inicio: undefined }, 0), 0);
+  const s = { esteAno: { v: 1, actual: EA.nuevoLibro(7) } }; EA.apunta(s.esteAno.actual, 'r', 'denarios', 3, 'x');
+  assert.strictEqual(EA.migrar(s, 99), true); assert.strictEqual(s.esteAno.anterior, null); assert.strictEqual(s.esteAno.actual.anio, 7); assert.strictEqual(EA.migrar(s, 99), false);
+  const m = EA.nuevoLibro(1); EA.apunta(m, 'a', 'denarios', -0.3, 'x'); EA.apunta(m, 'a', 'denarios', -20, 'legiones');
+  const a = EA.adondeVa(m); assert.strictEqual(a.partes.length, 1); assert.strictEqual(a.total, 20); assert.strictEqual(a.partes[0].pc, 100);
+  const v = EA.nuevoLibro(1); for (const k of ['__proto__', 'constructor', 'prototype']) { EA.apunta(v, k, 'denarios', 1, 'x'); EA.apunta(v, 'a', k, 1, 'x'); EA.apunta(v, 'a', 'denarios', 1, k); }
+  assert.deepStrictEqual(Object.keys(v.c), []); assert.strictEqual(({}).denarios, undefined);
+});
 console.log(`\nOK ${n} pruebas`); if (mal) { console.log(`${mal} fallan`); process.exit(1); }
