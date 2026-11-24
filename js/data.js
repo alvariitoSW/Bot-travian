@@ -77,7 +77,7 @@
     agri_vina: { n: 'Viña', fam: 'agricultura', i: '🍇', agro: 1, campo: 'vina', cost: { materiales: 80, denarios: 60 }, time: 1, d: 'Vides en espaldera: dan vino. Piden sol de cara al sur.' },
     agri_huerto: { n: 'Huerto', fam: 'agricultura', i: '🥬', agro: 1, campo: 'huerto', cost: { materiales: 50, denarios: 20 }, time: 1, d: 'Verdura todo el año. Necesita agua cerca; la verdura se pasa pronto.' },
     agri_pasto: { n: 'Pasto', fam: 'agricultura', i: '🐑', agro: 1, campo: 'pasto', cost: { materiales: 40, denarios: 20 }, time: 1, d: 'Prado para ovejas: da lana. Sirve donde nada más crece.' },
-    agri_estercolero: { n: 'Estercolero', fam: 'agricultura', i: '💩', agro: 1, mejora: 'estercolero', campo: 'trigo', cost: { materiales: 40, denarios: 120 }, time: 1, d: 'El trigo rinde un 20 % más (un 35 % con pasto vecino).' },
+    agri_estercolero: { n: 'Estercolero', fam: 'agricultura', i: '🪣', agro: 1, mejora: 'estercolero', campo: 'trigo', cost: { materiales: 40, denarios: 120 }, time: 1, d: 'El trigo rinde un 20 % más (un 35 % con pasto vecino).' },
     agri_era: { n: 'Era empedrada', fam: 'agricultura', i: '🪨', agro: 1, mejora: 'era', campo: 'trigo', cost: { materiales: 60, denarios: 150 }, time: 1, d: 'El trigo rinde un 15 % más.' },
     agri_almazara: { n: 'Almazara y prensa', fam: 'agricultura', i: '🛢️', agro: 1, mejora: 'almazara', campo: 'olivar', cost: { materiales: 100, denarios: 250 }, time: 1, d: 'Sin ella el aceite rinde la mitad.' },
     agri_lagar: { n: 'Lagar', fam: 'agricultura', i: '🍷', agro: 1, mejora: 'lagar', campo: 'vina', cost: { materiales: 100, denarios: 250 }, time: 1, d: 'Sin él el vino rinde la mitad.' },
