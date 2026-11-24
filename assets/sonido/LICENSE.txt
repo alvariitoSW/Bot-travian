@@ -1,6 +1,6 @@
 Sonido grabado de AQVILA (assets/sonido)
 
-Los 45 sonidos son CC0 1.0 (dominio público, https://creativecommons.org/publicdomain/zero/1.0/).
+Los 54 sonidos son CC0 1.0 (dominio público, https://creativecommons.org/publicdomain/zero/1.0/).
 No obligan a citar, pero se cita a cada autor por gratitud. Licencia comprobada en la página de cada fuente el 20/11/2026 (los 9 de voces SON1-a, el 23/11/2026: todos CC0 1.0, ninguno CC BY).
 SON2 (23/11/2026): se quitaron orden1-3 (posible inglés y «grito élfico»; regla del usuario: solo español, griego antiguo o latín); la antigua orden4 es ahora orden1. Las frases habladas están en assets/voces/.
 AQVILA los cortó, igualó y comprimió (mp3 mono a 32 kHz) con tools/sonido.py; las fuentes se bajan con tools/sonido-fuentes.sh.
@@ -51,3 +51,16 @@ canto1.mp3     marconi68             Freesound 588578 — https://freesound.org/
 canto2.mp3     marconi68             Freesound 588578 — https://freesound.org/s/588578/
 quejido1.mp3   Morshuman             Freesound 556006 — https://freesound.org/s/556006/
 quejido2.mp3   RepDac3               Freesound 477756 — https://freesound.org/s/477756/
+
+SON7 (24/11/2026): 9 golpes de la lucha a pie compuestos por AQVILA con tools/sonido-fragor.py, mezclando sonidos CC0 1.0 de OpenGameArt
+(licencia comprobada en cada página el 24/11/2026: https://opengameart.org/content/100-cc0-sfx, https://opengameart.org/content/80-cc0-rpg-sfx,
+https://opengameart.org/content/50-rpg-sound-effects). El resultado también es CC0 1.0.
+caida1.mp3     Kenney «50 RPG sound effects» + rubberduck «100 CC0 SFX» + rubberduck «80 CC0 RPG SFX» — mezcla de slam_03, dropLeather, chain_01, wooden_01
+caida2.mp3     Kenney «50 RPG sound effects» + rubberduck «100 CC0 SFX» + rubberduck «80 CC0 RPG SFX» — mezcla de slam_01, cloth1, dropLeather, chain_02, item_wood_01
+caida3.mp3     Kenney «50 RPG sound effects» + rubberduck «100 CC0 SFX» + rubberduck «80 CC0 RPG SFX» — mezcla de slam_05, dropLeather, stones_02, wood_03
+clava1.mp3     Kenney «50 RPG sound effects» + rubberduck «80 CC0 RPG SFX» — mezcla de chop, wood_01, blade_01
+clava2.mp3     Kenney «50 RPG sound effects» + rubberduck «100 CC0 SFX» + rubberduck «80 CC0 RPG SFX» — mezcla de chop, wooden_01, blade_02
+empuje1.mp3    Kenney «50 RPG sound effects» + rubberduck «100 CC0 SFX» — mezcla de slam_01, wooden_01, cloth3
+empuje2.mp3    Kenney «50 RPG sound effects» + rubberduck «100 CC0 SFX» + rubberduck «80 CC0 RPG SFX» — mezcla de slam_03, item_wood_01, cloth1
+tajo1.mp3      Kenney «50 RPG sound effects» + rubberduck «100 CC0 SFX» + rubberduck «80 CC0 RPG SFX» — mezcla de hit_02, blade_01, cloth3
+tajo2.mp3      Kenney «50 RPG sound effects» + rubberduck «100 CC0 SFX» + rubberduck «80 CC0 RPG SFX» — mezcla de hit_04, blade_02, beltHandle1
