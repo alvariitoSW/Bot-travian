@@ -22,10 +22,12 @@ const N_R = 160;   /* FA4: plazas de figura para los hombres del rival (manípul
 import { crearAcciones, NPILA } from './acciones.js';
 import { crearCamara } from './camara.js';
 import { crearHud } from './hud.js';
-import { crearPuente, crearDedos, botDedos } from './dedos.js';
+import { crearMando, botMando } from './mando.js';   /* LP6: el control de «Manípulo a pie» */
+import { crearDedos } from '../bloque/dedos.js';   /* LP6: el dibujo del frente, el de la maqueta del bloque (sin copiarlo) */
+import { crearCamara as crearVistaOficial } from '../bloque/camara.js';   /* LP6: el pellizco hasta la vista del oficial (LP4) */
 import * as Son from './sonido.js';
 import { crearFisicaEscena } from './fisica.js';   /* FI1 */
-import { crearFalangitas, filasNuevo, espadaVista, activaSoloSombra, GESTO } from './soldados.js';   /* FE2: el soldado nuevo */
+import { crearFalangitas, filasNuevo, espadaVista, activaSoloSombra, GESTO, CUANTOS } from './soldados.js';   /* FE2: el soldado nuevo */
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), MARCAS = Q.get('marcas'), ANTES = Q.get('antes') === '1', COSTADO = Q.get('costado');
 const $ = id => document.getElementById(id);
@@ -385,7 +387,7 @@ function avisa(tipo, d = {}) {
   if (tipo === 'cerrado') Son.madera(0.5, 0, 0);
   if (tipo === 'oleada') Son.cuerno([[130.8, 0.6]]);
 }
-function reinicia() { semilla = 43; semillaP = 5; temblor = 0; ACC.reinicia(); for (const h of S.fal) { delete h.tRotaD; delete h.munon; delete h.munonS; }   /* FE2 */ colocaTerreno(); $('fin').hidden = true; }
+function reinicia() { semilla = 43; semillaP = 5; temblor = 0; ACC.reinicia(); if (MANDO) MANDO.reinicia(); if (DEDOS) DEDOS.oculta(); for (const h of S.fal) { delete h.tRotaD; delete h.munon; delete h.munonS; }   /* FE2 */ colocaTerreno(); $('fin').hidden = true; }
 
 /* ---------- cámara ---------- */
 let CAMARA = null;
@@ -548,6 +550,8 @@ function dibuja(dt) {
   /* FA4: en tu estocada, la cámara da un empujón de 15 cm hacia delante que vuelve en 0,4 s */
   const eC = 0.15 * curvaEstocada(T - S.yo.tEstocada, 0.12, 0.4);
   camara.position.set(C.x + Math.sin(T * 41) * tb - Math.sin(C.yaw) * eC, C.y + Math.sin(T * 37 + 1) * tb, C.z - Math.cos(C.yaw) * eC); camara.rotation.set(C.pitch, C.yaw, 0); if (camara.fov !== C.fov) { camara.fov = C.fov; camara.updateProjectionMatrix(); }
+  CUANTOS[0] = VISTA && VISTA.t() > 0.3 ? 7 : 4;   /* LP6: hombres finos: 4 desde arriba, 7 abajo (≤ 750 mil triángulos) */
+  if (VISTA && !CAMFIJA) { VISTA.aplica(parado ? (VISTA_YA ? 5 : 0) : dt); }   /* LP6: el pellizco baja de aquí al hombro del oficial */
   if (CAMFIJA) { camara.position.set(CAMFIJA[0], CAMFIJA[1], CAMFIJA[2]); camara.rotation.set(CAMFIJA[4], CAMFIJA[3], 0); }   /* FE2: cámara puesta a mano para las fotos (__tp.mira) */
   /* la sombra va con el pivote del muro (S.xF, S.zF) */
   const fx = Math.sin(S.giro), fz = -Math.cos(S.giro), lx = S.xF + fx * 2, lz = S.zF + fz * 2; luz.target.position.set(lx, H(lx, lz), lz); luz.position.copy(luz.target.position).addScaledVector(SOL, 40); luz.target.updateMatrixWorld();
@@ -562,8 +566,19 @@ let CAMFIJA = null;   /* FE2: [x, y, z, yaw, pitch] o null */
 /* bot: true (el del motor, que gira al flanco), false (nadie manda) o un modo del motor ('nogira'…) */
 const salta = (s, bot = true) => { for (let t = 0; t < s; t += 1 / 30) { if (bot) ACC.bot(bot === true ? undefined : bot); ACC.paso(1 / 30); if (CAMARA) CAMARA.camBase(1 / 30); } };
 const hasta = (cond, max = 200, bot = true) => { for (let i = 0; i < max * 10 && !cond(); i++) salta(0.1, bot); };
+/* LP6: saltar con el mando (el bot de mando.js) */
+const saltaM = (s, bot = true) => { for (let t = 0; t < s; t += 1 / 30) { if (bot) BOTM(); MANDO.paso(1 / 30); ACC.paso(1 / 30); if (CAMARA) CAMARA.camBase(1 / 30); if (RIV) RIV.paso(1 / 30); } };
+const hastaM = (cond, max = 200, bot = true) => { for (let i = 0; i < max * 10 && !cond(); i++) saltaM(0.1, bot); };
 function prepara(f) {
   const baja = n => { for (let i = 0; i < 5; i++) ACC.fila(i, i < n); };
+  /* LP6: ?fase=lp-inicio|lp-dibuja|lp-marcha|lp-choque|lp-picas|lp-lucha|lp-final */
+  const fz = () => ({ x: Math.sin(S.giro), z: -Math.cos(S.giro) });
+  if (f === 'lp-inicio') saltaM(1, false);
+  if (f === 'lp-dibuja' || f === 'lp-marcha') { saltaM(1, false); const F = fz(), c = { x: S.xF + F.x * 14 + 6, z: S.zF + F.z * 14 }, r = 25 * Math.PI / 180, D = { x: Math.cos(r), z: Math.sin(r) }; MANDO.frente({ x: c.x - D.x * 6, z: c.z - D.z * 6 }, { x: c.x + D.x * 6, z: c.z + D.z * 6 }); saltaM(f === 'lp-marcha' ? +(Q.get('t') || 6) : 0.5, false); }
+  if (f === 'lp-choque') { BOTM = botMando(MANDO, S, 'bien'); hastaM(() => S.choque); saltaM(1.2); }
+  if (f === 'lp-picas') { BOTM = botMando(MANDO, S, 'bien'); hastaM(() => S.filas.every(Boolean) && !S.choque && S.T > 3); saltaM(0.4, false); }
+  if (f === 'lp-lucha') { BOTM = botMando(MANDO, S, 'bien'); hastaM(() => S.choque); saltaM(+(Q.get('t') || 25)); }
+  if (f === 'lp-final') { BOTM = botMando(MANDO, S, 'bien'); hastaM(() => S.fase === 'fin'); saltaM(0.3); }
   if (f === 'marcha') salta(4);
   if (f === 'filas') { salta(4, false); baja(+(Q.get('n') || 3)); salta(2, false); }
   if (f === 'giro') { baja(5); ACC.gira(1); salta(+(Q.get('t') || 5), false); ACC.gira(0); }
@@ -581,7 +596,7 @@ function prepara(f) {
   }
   if (f === 'contacto') { hasta(() => S.choque, 200, 'compas'); const tc = +Q.get('t') || 0; for (let i = 0; i < 30 * 200 && S.T < tc - 1e-6; i++) { ACC.bot('compas'); ACC.paso(1 / 30); CAMARA.camBase(1 / 30); } }   /* FI1: el instante con más puntas tocando (?t= lo da captura-fi1.mjs) */
   if (f === 'estocada') { hasta(() => S.choque); salta(1.5); ACC.estocada(); salta(0.1, false); }
-  parado = true;
+  parado = true; if (S.fase === 'fin' && HUD) HUD.muestraFin();
 }
 
 /* ---------- medidas para captura.mjs ---------- */
@@ -596,20 +611,37 @@ function astas() {
 }
 /* la partida entera con el «bot» (y sin hacer nada), sin dibujar */
 /* FA3: la partida entera solo con los dedos (botDedos manda por el puente, no por acciones) */
-function partidaDedos() { reinicia(); parado = true; let k = 0, paradoFl = 0; const fp = () => { paradoFl++; }; for (; k < 30 * 400 && S.fase !== 'fin'; k++) { const n0 = S.flanco && S.flanco.estado; BOTD(); ACC.paso(1 / 30); PUENTE.paso(1 / 30); if (n0 === 'viene' && S.flanco && S.flanco.estado === 'parado') fp(); } return { fin: S.fase === 'fin', ganador: S.ganador, causa: S.causa, ganado: +S.ganado.toFixed(1), coh: Math.round(S.coh), segundos: +S.T.toFixed(1), flancosParados: paradoFl, toques: { ...S.toques }, estocadas: PUENTE.lee().estocadas }; }
+/* LP6: la partida entera solo con el mando (botMando toca lo que se ilumina y dibuja el frente al flanco) */
+function partidaMando(modo = 'bien') { reinicia(); parado = true; const b = botMando(MANDO, S, modo); for (let k = 0; k < 30 * 400 && S.fase !== 'fin'; k++) { b(); MANDO.paso(1 / 30); ACC.paso(1 / 30); } return { ...ACC.resumen(), U: S.U.enPie, R: S.R.enPie, choque: +S.tChoque.toFixed(1) }; }
 /* la partida entera con un bot del motor ('compas' | 'destiempo' | 'nogira' | 'loco'), sin dibujar */
 function partida(modo = 'compas') { reinicia(); parado = true; let k = 0; for (; k < 30 * 400 && S.fase !== 'fin'; k++) { ACC.bot(modo); ACC.paso(1 / 30); } return ACC.resumen(); }
 
 /* ---------- arranque ---------- */
-let ultimo = 0, CAMPO = null, PUENTE = null, DEDOS = null, BOTD = null;
+let ultimo = 0, CAMPO = null, MANDO = null, DEDOS = null, BOTM = null, VISTA = null, VISTA_YA = false;
+/* LP6: el dedo en el suelo (plano a la altura del muro) */
+const rayo = new THREE.Raycaster(), RV2 = new THREE.Vector2(), RV3 = new THREE.Vector3(), PLANO = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
+function suelo(px, py) {
+  if (S.fase === 'fin' || parado && !FASE) return null;
+  RV2.set(px / innerWidth * 2 - 1, -(py / innerHeight) * 2 + 1); rayo.setFromCamera(RV2, camara); PLANO.constant = -H(S.xF, S.zF);
+  const p = rayo.ray.intersectPlane(PLANO, RV3); if (!p || Math.hypot(p.x - camara.position.x, p.z - camara.position.z) > 200) return null; return { x: p.x, z: p.z };
+}
+/* la raya se queda en el suelo mientras el muro va; al llegar, se borra */
+function rayaSigue() { const m = MANDO.meta(); if (DEDOS.activo()) return; if (m && !m.sinRaya && !S.choque) DEDOS.muestra(m.p0, m.p1, m.rumbo, false); else DEDOS.oculta(); }
+/* el oficial para la vista de abajo: los hombres del muro con la forma que pide maquetas/bloque/camara.js */
+let BSOMBRA = null;
+function bloqueVista() {
+  if (!BSOMBRA || BSOMBRA.S !== S || BSOMBRA.n !== S.fal.length) BSOMBRA = { S, n: S.fal.length, cols: FILES, get rumbo() { return S.giro; },
+    hombres: S.fal.map(h => ({ get vivo() { return h.vivo && !h.huye; }, get fila() { return h.r; }, col: h.f, get x() { return h.x; }, get z() { return h.z; } })) };
+  return BSOMBRA;
+}
 function bucle(t) {
   if (CAMPO) CAMPO.tick(t / 1000);
   const dt = Math.min(0.05, (t - ultimo) / 1000 || 0); ultimo = t;
   /* FA3: con el abanico abierto, el tiempo va a un tercio */
   const k = HUD.lento() ? 1 / 3 : 1;
-  if (!parado) ACC.paso(dt * k);
+  if (!parado) { MANDO.paso(dt * k); ACC.paso(dt * k); }
   if (RIV) RIV.paso(parado ? 0 : dt * k);
-  DEDOS.paso(parado ? 0 : dt * k);
+  rayaSigue();
   dibuja(parado ? 0 : dt); HUD.hud(); requestAnimationFrame(bucle);
 }
 const camT = new THREE.PerspectiveCamera(55, 1, 0.06, 12000); camT.rotation.order = 'YXZ';
@@ -617,8 +649,9 @@ const enPantalla = v => { v.project(camara); return { x: +((v.x + 1) / 2).toFixe
 window.__tp = {
   lista: false, S, F: null, renderer, escena, camara, salta: (s, b) => salta(s, b), parar: v => { parado = v; }, orden: n => ACC.orden(n),
   astas: () => astas(), astasMin: () => astasMin(), partida: b => partida(b),
-  puente: null, dedos: () => DEDOS.estado(), lee: () => PUENTE.lee(), partidaDedos: () => partidaDedos(), abanico: () => HUD.abierto(),
-  saltaDedos: s => { for (let t = 0; t < s; t += 1 / 30) { ACC.paso(1 / 30); PUENTE.paso(1 / 30); CAMARA.camBase(1 / 30); } },
+  /* LP6: el mando */
+  mando: () => MANDO, lee: () => MANDO.lee(), partidaMando: m => partidaMando(m), saltaM: (s, b) => saltaM(s, b), vista: () => VISTA, dedosActivo: () => DEDOS.activo(),
+  vistaYa: v => { VISTA_YA = v; },
   /* la cámara tal como la calcula camara.js (sin dibujar) */
   cam: () => ({ ...CAMARA.CAM }),
   estado: () => ({ T: +S.T.toFixed(2), fase: S.fase, choque: S.choque, filas: S.filas.slice(), giro: +(S.giro * 180 / Math.PI).toFixed(2), orden: S.orden, ganador: S.ganador, causa: S.causa, yo: S.yo.i, coh: Math.round(S.coh), ganado: +S.ganado.toFixed(1), objetivo: $('objetivo').textContent, nos: (S.U.palabras ? S.U.palabras() : null), ellos: (S.R.palabras ? S.R.palabras() : null), proyectiles: S.proyectiles.map(p => p.est), flanco: S.flanco ? { lado: S.flanco.lado, estado: S.flanco.estado } : null, kB: S.fal.map(h => +h.kB.toFixed(2)) }),
@@ -656,12 +689,14 @@ async function montaRival() {
      Con RIV, la escena no pinta S.ene (lo pinta él) y le pasa cada paso y cada aviso */
   if (S.rival !== 'manipulos') RIV = await montaRival();
   CAMARA = crearCamara({ Q, S, H, suave, lerp, DX, marcado: () => ACC.marcado(), get vertical() { return vertical; } });
-  PUENTE = crearPuente({ S, acc: ACC, avisa }); window.__tp.puente = PUENTE;
-  DEDOS = crearDedos({ puente: PUENTE, S, zona: {} });
-  BOTD = botDedos(PUENTE, S);
-  HUD = crearHud({ S, Son, $, puente: PUENTE, dedos: DEDOS, acc: ACC });
+  MANDO = crearMando({ S, acc: ACC, avisa }); BOTM = botMando(MANDO, S, 'bien');
+  VISTA = crearVistaOficial({ camara, lienzo, H, estado: () => ({ B: bloqueVista() }), hud: $('hud'), inicial: Q.get('vista') === 'oficial' ? 'oficial' : 'arriba' });
+  DEDOS = crearDedos({ lienzo, suelo, haciaDonde: (a, b) => MANDO.haciaDonde(a, b), alSoltar: (a, b) => { if (!parado) MANDO.frente(a, b); }, H, libre: () => VISTA.libre(), escala: () => 0.5 - 0.3 * VISTA.t() });
+  escena.add(DEDOS.raya);
+  HUD = crearHud({ S, Son, $, mando: MANDO });
   reinicia();
   if (FASE) prepara(FASE);
+  else if (Q.get('inicio') !== '0') { parado = true; $('inicio').hidden = false; $('empieza').addEventListener('click', () => { $('inicio').hidden = true; parado = false; }); }
   $('carga').hidden = true;
   requestAnimationFrame(t => { ultimo = t; bucle(t); });
   setTimeout(() => { window.__tp.lista = true; }, 400);

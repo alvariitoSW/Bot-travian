@@ -10,7 +10,10 @@
            H,                  función (x, z) → altura del suelo; por defecto 0
            hombres,            falangitas (12 de frente; por defecto 96)
            terreno,            { x, z, r } del trozo roto, null para ninguno; si falta, sale al azar con la semilla
-           locomocion }        opcional { crearPaso, velocidad, pisa } (la de la maqueta) para que los pies no patinen
+           locomocion,         opcional { crearPaso, velocidad, pisa } (la de la maqueta) para que los pies no patinen
+           fin }               LP6: null (lo de siempre) o FIN_LUCHA. Con fin, los dos bandos luchan hasta que les queda ese tanto por uno
+                               (sin miedo por bajas), ganar terreno no hace romper a nadie y en el choque «la lucha» mata sola en cada
+                               latido (lucha()). Es lo que usa la maqueta con el control del bloque: los hombres pelean solos
    F = { S, reinicia(), paso(dt), toque(), estocada(), gira(dir), fila(i, abajo), orden(n), marcado(), frente(), bot(modo), resumen() }
 
    EL ESTADO S (lo lee la escena para dibujar; los rivales lo leen y escriben solo lo suyo)
@@ -104,6 +107,9 @@ export function azarSemilla(s) {
 
 /* Pieza «unidad» (copiada de la maqueta): enPie, animo, cansancio, roto. Con ánimo 0,12 o menos, o con menos de un tercio, rompe */
 export const ROMPE = 0.12;
+/* LP6: la lucha sola (crearFalange con fin). Por latido y por hombre del rival en las puntas: r0 + rB·filas bajadas de que caiga él;
+   f0 + fA·filas alzadas de que hiera a uno tuyo. Empujar sube las dos; aguantar baja las dos. Licencia de juego */
+export const LUCHA = { r0: 0.09, rB: 0.028, f0: 0.03, fA: 0.03, empuja: 1.3, aguanta: 0.6 };
 /* FE1 (usuario, 24/11: «que luchen hasta que quedan el 15 %»): la constante única del final de una lucha. Una unidad con
    fin = FIN_LUCHA rompe cuando le queda el 15 % de sus hombres (o menos), no antes por bajas; con miedo = false las bajas, el
    cansancio y el ir perdiendo no le quitan ánimo: solo se lo quitan las reglas de cohesión de este archivo (anima directo).
@@ -253,6 +259,7 @@ export const MANIPULOS = {
 export function crearFalange(m = {}) {
   const rival = m.rival || MANIPULOS, avisaExt = m.avisa || (() => {});
   const N = Math.max(24, Math.min(192, Math.round(m.hombres || 96))), FILAS = Math.max(2, Math.round(N / FILES)), MF = FILES * FILAS;
+  const FIN = m.fin ?? null;   /* LP6 */
   const LOC = m.locomocion || null, ZAN = m.zancadas || { walk: 1.5, run: 2.2 }, semilla = m.semilla ?? 1;
   const S = {}; let azar, azarB, caja = null, kPulso = 0, tLoco = -9, kBot = -99;
   const avisa = (tipo, datos = {}) => avisaExt(tipo, datos);
@@ -336,9 +343,10 @@ export function crearFalange(m = {}) {
     }
     if ('terreno' in m) S.terreno = m.terreno ? { ...m.terreno } : null;
     else { const d = 6 + azar() * 8, l = (azar() - 0.5) * 6, r = 4 + azar() * 2, w = mundo(d, l); S.terreno = { x: w.x, z: w.z, r }; }
-    S.U = crearUnidad({ hombres: MF, nombre: 'Tu sintagma', ref: Math.min(MF, 84) });
+    S.U = crearUnidad({ hombres: MF, nombre: 'Tu sintagma', ref: Math.min(MF, 84), fin: FIN, miedo: FIN == null });
     rival.crea(S, azar);
     if (!S.R) S.R = crearUnidad({ hombres: Math.max(1, S.ene.length), nombre: rival.nombre });
+    if (FIN != null && S.R.fin == null) { S.R.fin = FIN; S.R.miedo = false; }   /* LP6: el rival también lucha hasta el 15 % */
     for (const h of S.ene) { h.toca ??= null; h.est ??= 'marcha'; h.tipo ??= 'infante'; h.vivo ??= true; h.muere ??= 0; h.yaw ??= 0; }
   }
 
@@ -461,8 +469,9 @@ export function crearFalange(m = {}) {
     S.yo.blanco = marcado();
     /* las unidades, la ruptura y el fin */
     if (S.choque) { U.tic(dt); R.tic(dt); if (S.orden !== 'aguantar') R.cansa(dt, 0.008); }
-    if (!S.ganador && S.ganado >= META && !R.roto) { R.roto = true; R.animo = 0; S.causa = 'empuje'; }
-    if (!S.ganador && S.ganado <= -META && !U.roto) { U.roto = true; U.animo = 0; S.causa = 'empuje'; }
+    if (latido && enChoque && FIN != null) lucha();
+    if (!S.ganador && FIN == null && S.ganado >= META && !R.roto) { R.roto = true; R.animo = 0; S.causa = 'empuje'; }
+    if (!S.ganador && FIN == null && S.ganado <= -META && !U.roto) { U.roto = true; U.animo = 0; S.causa = 'empuje'; }
     if (!S.ganador && (U.roto || R.roto)) {
       S.ganador = U.roto ? 'rival' : 'falange'; S.tRompe = T; S.orden = null; S.girando = 0;
       if (!S.causa) {
@@ -474,6 +483,22 @@ export function crearFalange(m = {}) {
     }
     if (S.ganador) for (const h of S.ene) if (h.vivo && h.est === 'huye') { const l = local(h.x, h.z), a = mundo(l.delante + 30, l.lado * 1.5); mueve(h, a.x, a.z, V_HUYE, dt); h.yaw = Math.atan2(a.x - h.x, a.z - h.z); }
     if (S.ganador && S.fase !== 'fin' && T - S.tRompe > 4) { S.fase = 'fin'; avisa('fin', {}); }
+  }
+  /* LP6 · la lucha sola (solo con fin): en cada latido del choque, cada infante del rival que toca tus puntas puede caer
+     ensartado (más con más filas bajadas, empujando y con el muro firme) o herir a uno de tus dos primeras filas (más con las
+     picas alzadas, con el muro flojo o empujando). Aguantar protege a los dos. Las cifras son licencia de juego (LUCHA) */
+  function lucha() {
+    const b = bajadas(), o = S.orden, k = S.coh / 100, L = LUCHA, Fp = frente();
+    const qR = (L.r0 + L.rB * b) * (o === 'empujar' ? L.empuja : o === 'aguantar' ? L.aguanta : 1) * (0.5 + 0.5 * k) * (1 - 0.4 * S.U.cansancio);
+    const qF = (L.f0 + L.fA * (BAJAN - b)) * (o === 'empujar' ? L.empuja : o === 'aguantar' ? L.aguanta : 1) * (2 - k);
+    for (const h of S.ene) {
+      if (!h.vivo || h.est === 'dentro' || h.est === 'huye' || h.est === 'vuelve' || h.tipo === 'elefante' || h.tipo === 'jinete') continue;
+      /* en la lucha: el que toca tus puntas o el que está en su primera fila a menos de 2,5 m de ellas (empujando, se separan) */
+      if (h.toca !== 'puntas') { if (h.est !== 'muro' && h.est !== 'asalta') continue; const l = local(h.x, h.z); if (l.delante < -0.5 || l.delante > Fp + 2.5 || Math.abs(l.lado) > medio + 0.6) continue; }
+      h.tAtk = S.T;
+      if (azar() < qR) { caeRival(h); continue; }
+      if (azar() < qF) { let v = null, dm = 1e9; for (const f of S.fal) if (f.vivo && !f.huye && f.r <= 1) { const d = dist(f, h) + f.r; if (d < dm) { dm = d; v = f; } } if (v) caeFalangita(v, 'lucha'); }
+    }
   }
   /* se abre un hueco: el romano de primera fila más cercano a ti se cuela */
   function abreHueco() {
