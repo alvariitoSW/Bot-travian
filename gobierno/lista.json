@@ -6,9 +6,9 @@
   "frase": "Gobiernas una ciudad romana con sus clases y su Senado, levantas ejércitos y cambias la historia. Se gana con tres de cuatro caminos: las armas, el comercio, la política y la ciencia.",
   "comprobaciones": [
     {
-      "texto": "Puedes ganar una campaña con tres de los cuatro caminos: armas, comercio, política y ciencia",
+      "texto": "Puedes ganar una campaña con dos de los tres caminos: armas, comercio y política",
       "estado": "falta",
-      "nota": "Hoy solo existe el camino de las armas (tomar la capital). El comercio y la política esperan a CE10 (la meta y «Tus caminos») y CE12 (equilibrio). La ciencia salió de la 1.0 el 24/11 por la agricultura; está en tus preguntas."
+      "nota": "Hoy solo existe el camino de las armas (tomar la capital). El comercio y la política esperan a CE10 (la meta y «Tus caminos») y CE12 (equilibrio). La ciencia vuelve después de la 1.0 (tu «1A» del 24/11)."
     },
     {
       "texto": "Lo alcanzas todo desde el mismo menú y la misma partida, con un aspecto cuidado y coherente",
@@ -292,17 +292,6 @@
       "hecho": "Jueces por área (Cerebro 3,6 min, Músculo 8 min, Batallas 12 min) y jueces completos 43 de 43 antes de cada subida; subidas a main de la v140 a la v157b. El 24/11 SB4 arregló la caché: sin red la ciudad no cargaba, ya carga. Tope de descarga subido a 56 MB (24/11); hoy 49,8."
     },
     {
-      "id": "L16",
-      "organo": "cerebro",
-      "titulo": "Camino de la ciencia",
-      "estado": "falta",
-      "veras": "Un cuarto camino de victoria: todos los saberes de la última edad y tres grandes obras (acueducto, calzada y puerto de hormigón).",
-      "falta": "Todo: lo hacía CE11, tras CE10. Salió de la 1.0 el 24/11 para que entrara la agricultura («1 y 2»), pero luego pediste abrirla desde el cuadro: está en tus preguntas.",
-      "tareas": [
-        "CE11"
-      ]
-    },
-    {
       "id": "L17",
       "organo": "corazon",
       "titulo": "Formaciones en Escaramuzas",
@@ -467,6 +456,12 @@
           "CD6"
         ],
         "nota": "Embellecer la ciudad: sale de la 1.0 para que entre la agricultura (tú, 24/11, «1 y 2»)."
+      },
+      {
+        "tareas": [
+          "CE11"
+        ],
+        "nota": "Camino de la ciencia: fuera de la 1.0 (usuario 24/11, «1A»); vuelve después."
       }
     ],
     "sobra": [],

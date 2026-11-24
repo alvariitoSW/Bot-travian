@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 24/11 (13:00) — **El usuario contesta «1A, 2A, 3A»**: **(1A)** el camino de la ciencia (CE11) se queda fuera de la 1.0 y vuelve después; la 1.0 se gana con 2 de 3 caminos (armas, comercio y política; `OBJETIVOS.md` y `lista.json` al día, L16 fuera de la lista). **(2A)** tras FI4 y su subida (SB5), batallas sigue con **CG4b** (la campaña usa la batalla nueva), luego **TH1** y **GM22**. **(3A)** a la nevera hasta la 1.0: las maquetas de luz y tiempo (CR4, CR4b) y el «motor de lucha» (CB1) se terminan como maqueta y no entran al juego; P186–P188 (arqueros contra la falange, brazos que no atraviesan, rival a pie de Meshy) también.
 - 24/11 (12:45) — **Cuadro con «Arte» y «Equipos»** (literal: «Quiero añadir una opción desde el cuadro de mando, en la que se enseñe el arte del juego […] y se encargue el equipo de arte. Y que aparezca el equipo de desarrollo de batallas, el de ciudades, el de físicas […] y poder recomendar mejoras»; «1-B, 2-a, 3-a»): **CM3** abierta con **Fable** (excepción pedida por él), ya, con una foto por pieza y botón «Pedir cambio»; equipos con «Recomendar mejora».
 - 24/11 (12:43) — **Menú principal con versión, novedades y % hecho** (literal: «Quiero añadir un pequeño mensaje en el menú principal que indique la versión que está, y lo nuevo que se ha añadido»): lo hace CDe3 (`js/novedades.js`). **Regla**: cada subida a `main` escribe 3–6 frases en `js/novedades.js` y pone al día `estado` de `lista.json` (el % sale de ahí).
 - 24/11 (12:41) — **SB4 subida**: `main` = `a1fc549`, caché v157b (la ciudad y las escenas a pie cargan sin red); APTO 43/43.
@@ -68,17 +69,12 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
 
-- **Camino de la ciencia**: el 24/11 lo sacaste de la 1.0 para que entrara la agricultura, y luego pediste abrirlo desde el cuadro. ¿Qué hacemos? (A) Se queda fuera: la 1.0 se gana con dos de los tres caminos que quedan (armas, comercio y política) y la ciencia vuelve después [recomendado]; (B) Vuelve a la 1.0 y sale otra cosa a cambio, por ejemplo los muchos cuerpos con estandarte (GM22). Por qué: respeta tu «1 y 2» y la regla de los dos tercios sigue valiendo sin añadir trabajo.
-- **Qué sigue en batallas tras la física**: cuando FI4 llegue a tu móvil, ¿por dónde seguimos? (A) Primero que la campaña use la batalla nueva (CG4b), y después las tácticas de la época (TH1) y los muchos cuerpos con estandarte (GM22) [recomendado]; (B) Primero TH1 y GM22, y la campaña después. Por qué: sin CG4b la 1.0 no tiene «una sola batalla», y es lo que más se nota al jugar una campaña.
-- **Lo nuevo de batallas que no está en la lista**: otro director tiene abiertas maquetas de luz y hora del día (CR4, CR4b) y un «motor de lucha» (CB1), y quedan tres pedidos tuyos del 24/11 (arqueros y honderos contra la falange, brazos que no atraviesan escudos, rival a pie con soldados de Meshy). (A) A la nevera hasta la 1.0: las maquetas se acaban como maqueta y no entran en el juego [recomendado]; (B) Entran en la 1.0 y sale a cambio otra tarea de batallas. Por qué: la regla es «nada entra sin sacar otra», y un motor de lucha aparte puede repetir el que ya hay.
 
 ## Propuestas por aprobar
-- P186 Arqueros y honderos que tiran a la falange a pie; las picas alzadas la protegen (pedido del 24/11, en LP7b). Ver la pregunta «Lo nuevo de batallas».
-- P187 Brazos que no atraviesan escudos, picas ni cuerpos (pedido del 24/11, en LP7b). Ver la misma pregunta.
-- P188 El rival a pie con los soldados de Meshy en vez de los de 0 A.D. (pedido del 24/11, en LP7b). Ver la misma pregunta.
 - Fuera el 24/11, ya decididas: P185 (aprobada, «1A»: es TH1); P183 (después de la 1.0, «2A»: en pausa en el tablero); P158 (su primera pieza es GM22, «3B»; el resto, después de la 1.0, en el orden de `estudios/GM42-guerra-como-rome2.md`); P166, P168 a P172, P176 y P178 a P182 (cerradas, «1A»).
 
 ## Después de la 1.0 (nevera: ideas nuevas sin estudio ni maqueta; no se abren hasta la 1.0)
+- 24/11 (usuario «3A») — Arqueros y honderos contra la falange a pie; brazos que no atraviesan escudos, picas ni cuerpos; rival a pie con soldados de Meshy (eran P186–P188). Maquetas de luz y hora del día (CR4, CR4b) y «motor de lucha» (CB1): se acaban como maqueta, no entran al juego hasta la 1.0.
 - 24/11/2026 — Cuando un elefante empuja, que tus filas se vean recular y doblarse un poco (de FE3).
 - (24/11) **Embellecer la ciudad (CD6)**: sale de la 1.0 por la agricultura («1 y 2»); después de la 1.0. (El camino de la ciencia, CE11, espera tu respuesta arriba.)
 - (24/11, de SB2) Pequeños de aspecto: hoja de Escaramuzas que no tapa el fondo, aviso de pausa a pie poco legible, «Pirro» cortado en el menú del mapa, «Tu manípulo» cortado en la vista del oficial, aviso tapado por «Salir al mapa» con la barra de dos filas.
