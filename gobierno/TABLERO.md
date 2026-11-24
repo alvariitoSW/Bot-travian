@@ -99,8 +99,8 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
   - ✅ FU0 **Plan del motor de batalla único** (hecho: `estudios/FU0-plan-motor-batalla.md`, `837c513`; 6 etapas, ≈8,2 M) (usuario 24/11, «1A»: testudo, falange y manípulo a pie en un solo motor con arte, física y animación comunes; solo plan, `estudios/FU0-plan-motor-batalla.md`; luego sus etapas FU1…; va antes de CG4b, «2A»; L10, L11, L17).
   - ✅ SON11 **Sonido de batalla en las escenas a pie** (hecha el 24/11: `js/gfx/fragor.js`, golpes según la lucha y el miedo, cada caído se oye, clamor, pánico y aclamación; «Manípulo a pie» con banda, voces y pasos; 9 golpes CC0; subida `e2909b80`; jueces de sonido y fichas APTO; pase a FU: llamar `Son.pulso` en el motor único; parte `partes/2026-11-24-SON11.md`).
   - ✅ FU1 **El testudo con el control del manípulo** (hecha el 24/11: Escaramuzas → «Testudo a pie» abre la escena del bloque; cruzas bajo dos salvas, «Testudo» cierra el techo de escudos donde se clavan las jabalinas y luego cargan los galos; testudo viejo tras `?antiguo=1`; subida `76c299d3`; juez de batallas APTO 11/11; gasto 2,71 M, por encima del corte de 2,4; parte `partes/2026-11-24-FU1.md`).
-  - 🔶 FU2 **Tú en la fila, en cualquier formación** (plan FU0; tras FU1); sesión `session_01QiKC3AZF7aDtGiHKDTdKpn`; absorbe CG6c).
-  - ⬜ FU3 **La falange en el motor único** (plan FU0; tras FU2).
+  - ✅ FU2 **Tú en la fila, en cualquier formación** (hecha el 24/11: bajas al oficial y peleas en la fila; absorbe CG6c; `4e8bae07`; juez de batallas APTO 14 pruebas; 2,66 M sobre el corte de 2,3; parte `partes/2026-11-24-FU2.md`).
+  - 🔶 FU3 **La falange en el motor único** (plan FU0; en obra desde el 24/11, sesión `session_01QiKC36Bgy4astcZzx78PW3`; ≈1,6 M, corte 2,4).
   - ⬜ FU4 **Los rivales de la falange en el motor único** (plan FU0; tras FU3).
   - ⬜ FU5 **Muro y orden abierto** (plan FU0; tras FU4).
   - ⬜ FU6 **Limpieza: fuera las escenas viejas** (plan FU0; la última).
