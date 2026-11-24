@@ -28,6 +28,7 @@ node gobierno/jueces.mjs --rapido   # solo la lógica: segundos
 node gobierno/arte.mjs              # peso, triángulos y licencias del arte
 node gobierno/fichas.mjs            # cada pieza de data.js tiene su ficha (arte + fuente histórica) en js/registro.js
 node gobierno/cuadro.mjs            # genera gobierno/cuadro.html para publicarlo
+node gobierno/arte-fotos.mjs        # lista y fotos pequeñas de las piezas de arte, para la pestaña «Arte» del cuadro
 ```
 
 ## Una sesión, de principio a fin

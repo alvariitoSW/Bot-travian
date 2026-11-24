@@ -250,6 +250,70 @@ for (const inf of (config.informes || []).slice().reverse()) {
   try { htmlInformes += '<details class="informe"><summary>' + esc(inf.titulo) + '</summary><div class="md">' + informeHtml(await readFile(join(RAIZ, inf.archivo), 'utf8')) + '</div></details>'; } catch (e) { }
 }
 
+/* ---------- CM3 · Arte: una foto de cada pieza, por grupos, con «Pedir cambio» (lista y fotos: node gobierno/arte-fotos.mjs) ---------- */
+const GRUPOS_ARTE = [['soldado', 'Soldados de las batallas', 'Los que ves luchar de cerca.'], ['tropa', 'Tropas del mapa y de los retratos', 'Las figuras del mapa, los retratos y la ciudad.'],
+  ['personaje', 'Personajes de las clases y la política', 'Hechos con Meshy. Aún no están dentro del juego.'], ['edificio', 'Edificios romanos', ''], ['cultura', 'Edificios de otros pueblos', 'Griegos, púnicos, galos e íberos.'],
+  ['barco', 'Barcos', ''], ['arbol', 'Árboles', ''], ['objeto', 'Objetos de la ciudad', ''], ['escena', 'Mapa y escenas', 'Lo que se dibuja por código: mapa, ciudad, campos, batalla y menús.']];
+let piezasArte = []; try { piezasArte = JSON.parse(await lee('arte-piezas.json')).piezas || []; } catch (e) { avisa('falta gobierno/arte-piezas.json: ejecuta node gobierno/arte-fotos.mjs'); }
+let htmlArte = '', htmlArteIndice = '', pesoArte = 0, sinFoto = 0; const A_LA_VISTA = 4;
+for (const [g, rot, nota] of GRUPOS_ARTE) {
+  const ps = piezasArte.filter(p => p.grupo === g); if (!ps.length) continue;
+  let fichas = '';
+  for (const [i, p] of ps.entries()) {
+    let foto = '<span class="sinfoto">Sin foto</span>';
+    if (p.foto) try { const b = await readFile(join(RAIZ, p.foto)); pesoArte += b.length; foto = '<img loading="lazy" width="240" height="240" alt="' + esc(p.nombre) + '" src="data:image/jpeg;base64,' + b.toString('base64') + '">'; } catch (e) { sinFoto++; }
+    else sinFoto++;
+    fichas += '<figure class="pieza' + (i >= A_LA_VISTA ? ' mas' : '') + '" data-marca="' + esc(p.id) + '">' + foto + '<figcaption><b>' + esc(p.nombre) + '</b><span class="nota">' + esc(p.origen) + ' · ' + esc(p.licencia) + '</span></figcaption>' +
+      '<button class="boton fino" data-hoja="arte" data-ref="' + esc(p.id) + '" data-titulo="' + esc(p.nombre) + '">Pedir cambio</button></figure>';
+  }
+  htmlArteIndice += '<a class="chip" href="#arte-' + g + '">' + esc(rot.split(' ')[0]) + ' <b>' + ps.length + '</b></a>';
+  htmlArte += '<section class="grupo-arte" id="arte-' + g + '" aria-labelledby="ta-' + g + '"><h2 id="ta-' + g + '">' + esc(rot) + ' <span class="n">' + ps.length + '</span></h2>' + (nota ? '<p class="nota">' + esc(nota) + '</p>' : '') +
+    '<div class="piezas">' + fichas + '</div>' + (ps.length > A_LA_VISTA ? '<button class="boton vermas" data-vermas aria-expanded="false" data-n="' + (ps.length - A_LA_VISTA) + '">Ver ' + (ps.length - A_LA_VISTA) + ' más</button>' : '') + '</section>';
+}
+if (sinFoto) avisa(sinFoto + ' piezas de arte sin foto');
+
+/* ---------- CM3 · Equipos: qué hace cada uno, lo último que entregó, su cola y «Recomendar mejora» (gobierno/equipos.json) ---------- */
+/* La misma función reparte aquí los partes y las tareas y, en la página, las sesiones vivas: se copia tal cual al navegador. */
+function equipoDe(E, x) {
+  var t = String(x.titulo || '').replace(/^AQVILA\s*·\s*/i, '').slice(0, 70), id = String(x.id || ''), i, e, m;
+  if (!id) { m = t.match(/(?:^|·\s*)([A-Z][A-Za-z]{0,3}\d[\w-]*)/); if (m) id = m[1]; }
+  for (i = 0; i < E.length; i++) { e = E[i]; if (e.gana && e.titulo && new RegExp(e.titulo, 'i').test(t)) return e.id; }
+  for (i = 0; i < E.length; i++) { e = E[i]; if (id && e.ids && new RegExp(e.ids).test(id)) return e.id; }
+  for (i = 0; i < E.length; i++) { e = E[i]; if (e.titulo && new RegExp(e.titulo, 'i').test(t)) return e.id; }
+  for (i = 0; i < E.length; i++) { e = E[i]; if ((x.area && e.areas.indexOf(x.area) >= 0) || (x.organo && e.organos.indexOf(x.organo) >= 0)) return e.id; }
+  return '';
+}
+let cfgEquipos = { equipos: [], orden: [] }; try { cfgEquipos = JSON.parse(await lee('equipos.json')); } catch (e) { avisa('falta gobierno/equipos.json'); }
+const EQ = cfgEquipos.equipos, porEquipo = new Map(EQ.map(e => [e.id, { ahora: [], ultimo: [], cola: [] }]));
+// partes de los últimos días: el más nuevo primero (hora de su primer commit; si no hay git, la fecha del nombre)
+{ const horas = new Map();
+  try { const { execSync } = await import('node:child_process');
+    let h = 0; for (const l of execSync('git log --since=10.days --diff-filter=A --name-only --format=%ct -- gobierno/partes/', { cwd: RAIZ, stdio: ['ignore', 'pipe', 'ignore'], timeout: 20000 }).toString().split('\n')) { if (/^\d+$/.test(l)) h = +l; else if (l) horas.set(l.split('/').pop(), h); } } catch (e) { }
+  const { readdir } = await import('node:fs/promises');
+  const fs = (await readdir(join(AQUI, 'partes'))).filter(f => /^\d{4}-\d\d-\d\d-.+\.md$/.test(f)).sort().slice(-90).map(f => ({ f, dia: f.slice(0, 10), h: horas.get(f) || Date.parse(f.slice(0, 10)) / 1000 })).sort((a, b) => b.h - a.h);
+  for (const { f, dia } of fs) {
+    const id = f.slice(11, -3).replace(/-(maquetas|aspecto|codigo)$/, '');
+    let tit = ''; try { tit = ((await readFile(join(AQUI, 'partes', f), 'utf8')).match(/^#\s+(.*)/m) || [])[1] || ''; } catch (e) { }
+    tit = plano(tit).replace(/^Parte\b\s*·?\s*/i, '').replace(new RegExp('^' + id.replace(/[-]/g, '\\-') + '\\b\\s*·?\\s*'), '').replace(/\s*[·(,]?\s*\(?\d{1,2}(?:[–-]\d{1,2})?\/11(?:\/2026)?\)?\s*$/, '').replace(/^«([^«»]*)»$/, '$1').trim();
+    const eq = porEquipo.get(equipoDe(EQ, { id, titulo: tit })); if (eq && eq.ultimo.length < 3) eq.ultimo.push({ id, tit: tit.charAt(0).toUpperCase() + tit.slice(1), dia: +dia.slice(8) + '/' + +dia.slice(5, 7) });
+  } }
+// cola: las tareas del tablero sin pausa, en su orden; el órgano de su línea decide si el ID no dice nada
+const organoDe = id => { const l = lineas.find(x => x.id === enLinea.get(id)); return l ? l.organo : ''; };
+for (const { t, c } of listaPend) { if (t.pausa) continue; const eq = porEquipo.get(equipoDe(EQ, { id: t.id, titulo: corto(t.texto), organo: organoDe(t.id) })); if (eq && eq.cola.length < 3) eq.cola.push({ id: t.id, tit: plano((t.texto.match(/\*\*(.+?)\*\*/) || [])[1] || corto(t.texto)).replace(/\s*\([^)]*$/, ''), medias: t.est === '🔶' }); }
+for (const x of sesiones) { const eq = porEquipo.get(equipoDe(EQ, { id: x.tarea, titulo: x.titulo })); if (eq) eq.ahora.push(x); }
+const filaEq = (id, txt, cola) => '<li><b>' + esc(id) + '</b><span>' + esc(txt) + (cola || '') + '</span></li>';
+let htmlEquipos = '', htmlEquiposIndice = '';
+for (const id of cfgEquipos.orden) {
+  const e = EQ.find(x => x.id === id), d = porEquipo.get(id); if (!e) continue;
+  htmlEquiposIndice += '<a class="chip" href="#eq-' + id + '">' + esc(e.nombre) + ' <b data-eq-n="' + id + '">' + (d.ahora.length || '') + '</b></a>';
+  htmlEquipos += '<article class="ficha equipo" id="eq-' + id + '" data-marca="' + id + '"><p class="cab"><b class="nom">' + esc(e.nombre) + '</b><span class="de">' + esc(e.de) + '</span></p><p class="nota">' + esc(e.que) + '</p>' +
+    '<p class="rotulo">Qué hace ahora</p><ul class="mini eq" data-eq-ahora="' + id + '">' + (d.ahora.map(x => filaEq(x.tarea || '', (x.titulo || '').replace(/^[^·]{1,12}·\s*\S+\s+/, ''))).join('') || '<li class="nota">Ninguna sesión apuntada.</li>') + '</ul>' +
+    '<p class="rotulo">Lo último que entregó</p><ul class="mini eq">' + (d.ultimo.map(x => filaEq(x.id, x.tit, ' <i class="dia">' + x.dia + '</i>')).join('') || '<li class="nota">Nada en los últimos partes.</li>') + '</ul>' +
+    '<p class="rotulo">Lo siguiente en su cola</p><ul class="mini eq">' + (d.cola.map(x => filaEq(x.id, x.tit, x.medias ? ' <i class="dia">a medias</i>' : '')).join('') || '<li class="nota">Nada suyo en el tablero sin pausa.</li>') + '</ul>' +
+    '<div class="fila"><button class="boton lleno" data-hoja="mejora" data-ref="' + id + '" data-titulo="' + esc(e.nombre) + '">Recomendar mejora</button>' + (id === 'arte' ? '<a class="boton" href="#arte">Ver el arte</a>' : '') + '</div></article>';
+}
+const equiposJs = 'var EQUIPOS = ' + JSON.stringify(EQ.map(e => ({ id: e.id, nombre: e.nombre, ids: e.ids, titulo: e.titulo, gana: !!e.gana, areas: e.areas, organos: e.organos }))).replace(/</g, '\\u003c') + ';\n  ' + equipoDe.toString();
+
 const fecha = new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' });
 const datos = {
   FECHA: fecha, JUEGO: esc(config.juego), VEREDICTO: esc(veredicto), VEREDICTO_CLASE: vClase, FRASE: esc(lista.frase || ''), VIGIA: esc(config.vigia || ''),
@@ -257,8 +321,9 @@ const datos = {
   N_LINEAS: lineas.length, LISTA_PROPUESTA: htmlPropuesta, LISTA: htmlLista, RESTO: htmlResto, RESTO_RESUMEN: esc(resumenResto), N_NEVERA: nevera.length, NEVERA: htmlNevera,
   ESPERA: htmlEspera, COLA: htmlCola, N_ESP: vistas.length, TAB_DECIDIR_OCULTO: vistas.length ? '' : 'hidden',
   MARCHA: htmlMarcha, N_MARCHA: sesiones.length, PENDIENTE: htmlPendiente, CHIPS: htmlChips, N_ACTIVAS: nActivas, N_TODAS: listaPend.length, N_PAUSA: nPausa, N_HECHAS: nHechas, CARRILES: htmlCarriles,
+  ARTE: htmlArte, ARTE_INDICE: htmlArteIndice, N_ARTE: piezasArte.length, EQUIPOS: htmlEquipos, EQUIPOS_INDICE: htmlEquiposIndice, EQUIPOS_JS: equiposJs,
   HECHOS: hechos.map(h => '<li>' + md(h) + '</li>').join(''), ENSENAR: htmlEnsenar, INFORMES: htmlInformes, CAPTURAS: htmlCapturas, CAPTURAS_NOTA: esc(notaCapturas),
 };
 const html = (await lee('cuadro.plantilla.html')).replace(/\{\{(\w+)\}\}/g, (_, k) => datos[k] ?? '');
 await writeFile(join(AQUI, 'cuadro.html'), html);
-console.log('Cuadro generado: gobierno/cuadro.html · ' + Math.round(html.length / 1024) + ' KB · lista ' + lista.estado + ' de ' + lineas.length + ' líneas · ' + vistas.length + ' preguntas a la vista y ' + enCola + ' en cola · ' + nevera.length + ' ideas en la nevera · ' + avisos.length + ' avisos');
+console.log('Cuadro generado: gobierno/cuadro.html · ' + Math.round(html.length / 1024) + ' KB · lista ' + lista.estado + ' de ' + lineas.length + ' líneas · ' + vistas.length + ' preguntas a la vista y ' + enCola + ' en cola · ' + nevera.length + ' ideas en la nevera · ' + piezasArte.length + ' piezas de arte (' + Math.round(pesoArte / 1024) + ' KB de fotos) · ' + EQ.length + ' equipos · ' + avisos.length + ' avisos');
