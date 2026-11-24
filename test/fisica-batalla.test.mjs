@@ -366,5 +366,61 @@ t('FI3: clavado con la punta en el escudo vecino: sale o gira hasta no tocarlo',
   });
 }
 
+/* ===== FI3u: lo que vino del otro motor (Fi.lanza, ya quitado): tipos, pilum que se dobla, herida en el casco, escudo lastrado ===== */
+function lanzaT(Pr, tipo, Q, a, obst, que, lado = 0, v0 = 20) {
+  const d = [Math.sin(R3(lado)) * Math.cos(R3(a)), -Math.sin(R3(a)), Math.cos(R3(lado)) * Math.cos(R3(a))], v = d.map(x => x * v0), p = tipo ? { tipo } : {};
+  Pr.vuela(p, Q.map((x, k) => x - d[k] * 1.5), v, obst); Pr.vuela(p, Q.map((x, k) => x + d[k] * 0.3), v, obst);
+  return { p, modo: Pr.llega(p, que, obst, IDENT) };
+}
+t('FI3u: pilum de frente al escudo se clava y se dobla (≥ 80 de 100) con aviso «dobla»; rasante rebota y no se dobla', () => {
+  const Pr = crearProyectiles({ semilla: 11 }); let clava = 0, dobla = 0, aviso = 0;
+  for (let i = 0; i < 100; i++) {
+    const a = {}, O = [escudoDe(a), cuerpoDe(a)], r = lanzaT(Pr, 'pilum', [0.09 + (i % 10) * 0.015, 0.9 + Math.floor(i / 10) * 0.03, 0], (i % 15), O, { tipo: 'escudo', dueno: a });
+    if (r.modo === 'clava') clava++; if (r.p.fi.doblado) dobla++; if (Pr.avisos().some(x => x.aviso === 'dobla' && x.p === r.p)) aviso++;
+  }
+  const a = {}, O = [escudoDe(a)], r = lanzaT(Pr, 'pilum', [0.15, 1.15, 0], 10, O, { tipo: 'escudo', dueno: a }, 70);
+  console.log(`   de frente: clava ${clava}, dobla ${dobla}; rasante: ${r.modo}`);
+  assert.ok(clava >= 95, 'clava ' + clava); assert.ok(dobla >= 80, 'dobla ' + dobla); assert.strictEqual(aviso, dobla);
+  assert.strictEqual(r.modo, 'rebota'); assert.ok(!r.p.fi.doblado);
+});
+t('FI3u: jabalina y flecha nunca se doblan; pilum y jabalina lastran el escudo (pila), la flecha no; al soltarse, olvidarse o reiniciar, deja de lastrar', () => {
+  const Pr = crearProyectiles({ semilla: 21 }), a = {}, O = [escudoDe(a)], que = { tipo: 'escudo', dueno: a };
+  let dob = 0; for (let i = 0; i < 40; i++) for (const tp of ['jabalina', 'flecha']) { const r = lanzaT(Pr, tp, [0.1, 1.1, 0], 3, O, que, 0, tp === 'flecha' ? 45 : 22); if (r.p.fi.doblado) dob++; }
+  assert.strictEqual(dob, 0); assert.strictEqual(Pr.pila(a), 40, 'solo las 40 jabalinas: ' + Pr.pila(a));
+  const b = {}, Ob = [escudoDe(b)], r = lanzaT(Pr, 'pilum', [0.1, 1.1, 0], 3, Ob, { tipo: 'escudo', dueno: b }); assert.strictEqual(Pr.pila(b), 1);
+  Pr.pose(r.p, IDENT); Pr.suelta(r.p); assert.strictEqual(Pr.pila(b), 0); Pr.suelta(r.p); assert.strictEqual(Pr.pila(b), 0, 'no baja de cero');
+  const c = {}; lanzaT(Pr, 'flecha', [0.1, 1.1, 0], 3, [escudoDe(c)], { tipo: 'escudo', dueno: c }, 0, 45); assert.strictEqual(Pr.pila(c), 0);
+  const d = {}, r2 = lanzaT(Pr, 'pilum', [0.1, 1.1, 0], 3, [escudoDe(d)], { tipo: 'escudo', dueno: d }); assert.strictEqual(Pr.pila(d), 1);
+  Pr.olvida(r2.p); assert.strictEqual(Pr.pila(d), 0, 'olvida'); Pr.olvida(r2.p); Pr.olvida({}); assert.strictEqual(Pr.pila(d), 0);
+  lanzaT(Pr, 'pilum', [0.1, 1.1, 0], 3, [escudoDe(d)], { tipo: 'escudo', dueno: d }); Pr.reinicia(); assert.strictEqual(Pr.pila(d) + Pr.pila(a), 0, 'reinicia');
+});
+t('FI3u: el casco rebota siempre (se ve igual), pero de frente y con fuerza avisa «hiere» (grave); de refilón, no', () => {
+  const Pr = crearProyectiles(), a = {}, O = [cuerpoDe(a, 0, 0)], que = { tipo: 'cuerpo', dueno: a };
+  const f = lanzaT(Pr, 'pilum', [0, 1.75, -0.2], 10, O, que); let av = Pr.avisos();
+  assert.strictEqual(f.modo, 'rebota'); assert.strictEqual(f.p.fi.hiere, 'grave'); assert.ok(av.some(x => x.aviso === 'hiere' && x.en === 'casco' && x.herida === 'grave'), JSON.stringify(av.map(x => x.aviso)));
+  const l = lanzaT(Pr, 'flecha', [0, 1.75, -0.2], 10, O, que, 0, 20); av = Pr.avisos(); assert.ok(!l.p.fi.hiere && !av.some(x => x.aviso === 'hiere'), 'una flecha floja no hiere');
+  const s = lanzaT(Pr, 'pilum', [0.15, 1.75, -0.1], 10, [cuerpoDe(a, 0, 0)], que, 75); av = Pr.avisos(); assert.ok(!s.p.fi.hiere, 'de refilón ' + s.p.fi.ang);
+});
+t('FI3u: clavado en el cuerpo avisa la herida (leve o grave); la física no decide bajas', () => {
+  const Pr = crearProyectiles(), a = {}, O = [cuerpoDe(a, 0, 0)], que = { tipo: 'cuerpo', dueno: a };
+  const g = lanzaT(Pr, 'pilum', [0, 1.2, -0.2], 10, O, que); const ag = Pr.avisos().find(x => x.aviso === 'clava');
+  const l = lanzaT(Pr, 'flecha', [0, 1.2, -0.2], 10, O, que, 0, 15); const al = Pr.avisos().find(x => x.aviso === 'clava');
+  assert.strictEqual(g.modo, 'clava'); assert.strictEqual(ag.herida, 'grave'); assert.strictEqual(l.modo, 'clava'); assert.strictEqual(al.herida, 'leve');
+  assert.deepStrictEqual(Object.keys(a), [], 'no escribe en el dueño');
+});
+t('FI3u: el tipo no cambia lo que se ve: mismo modo y misma pose con pilum, jabalina, flecha o sin tipo', () => {
+  const L = {}; for (const tp of [null, 'pilum', 'jabalina', 'flecha']) {
+    const Pr = crearProyectiles({ semilla: 9 }), a = {}, b = {}, O = [escudoDe(a), escudoDe(b, 0.2, -0.9), cuerpoDe(a)], out = [];
+    for (let k = 0; k < 30; k++) { const r = lanzaT(Pr, tp, [-0.25 + k * 0.017, 1.0 + (k % 5) * 0.06, 0], 5 + k * 2, O, { tipo: 'escudo', dueno: a }, (k % 7) * 12); for (let i = 0; i < 60; i++) Pr.mueve(r.p, DT, O); const q = Pr.pose(r.p, IDENT); out.push(r.modo + ':' + r.p.fi.modo + ':' + q.punta.map(x => x.toFixed(4)).join(',')); }
+    L[tp] = out.join('|');
+  }
+  assert.ok(L.pilum === L[null] && L.jabalina === L[null] && L.flecha === L[null]);
+});
+t('FI3u: los avisos se vacían al leerlos y no crecen sin límite', () => {
+  const Pr = crearProyectiles(), a = {}, O = [escudoDe(a)];
+  for (let i = 0; i < 400; i++) lanzaT(Pr, 'pilum', [0.1, 1.1, 0], 3, O, { tipo: 'escudo', dueno: a });
+  const av = Pr.avisos(); assert.ok(av.length <= 256 && av.length > 0, av.length); assert.strictEqual(Pr.avisos().length, 0);
+});
+
 console.log(`\n${n} bien, ${mal} mal`);
 if (mal) process.exit(1);
