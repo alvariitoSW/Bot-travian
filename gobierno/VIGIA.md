@@ -100,6 +100,8 @@ git merge --no-commit -s ours "$H"; git read-tree -u --reset "$H"
 git commit -m "Subir a main: … (orden del usuario, <fecha>)"        # comprueba que HEAD^{tree} == $H^{tree}
 git push origin main-subida:main                                      # avance limpio; nunca -f
 ```
+**Regla del usuario (24/11, «Quiero añadir un pequeño mensaje en el menú principal que indique la versión que está, y lo nuevo que se ha añadido»):** toda subida a `main` (batallas, ciudad o sonido) escribe en `js/novedades.js` de 3 a 6 frases llanas de lo nuevo, con la misma versión que la caché de `sw.js` (hay prueba que lo vigila; el archivo lo crea CDe3 en su fase 1). Díselo a las sesiones de subida y a las «de paso».
+**Y (24/11):** el menú principal enseña el % hecho de la 1.0 sacado de `gobierno/lista.json` ((hechas + ½ a medias) / total): en cada subida, pon al día `estado` de cada línea.
 Antes: `node --check` de todos los `.js`, `node test/senado.test.js` y `node test/simulador.test.mjs`; di al usuario si la rama entera
 no ha pasado los jueces completos de una vez. Después: apunta en la bitácora `main` en qué commit y en qué caché (`sw.js`) está; dile
 que **cierre el juego del todo y lo vuelva a abrir** (el móvil guarda la versión vieja). Desde aquí no se puede ver la web publicada
