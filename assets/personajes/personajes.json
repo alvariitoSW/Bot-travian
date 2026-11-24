@@ -1,0 +1,192 @@
+{
+  "plebeyo": {
+    "archivo": "plebeyo.glb",
+    "kb": 242,
+    "triangulos": 9804,
+    "clase": "plebe",
+    "sexo": "m",
+    "nombre": "Plebeyo",
+    "meshy": "01a20d1e-9456-745d-8026-ae4ec4a18ec8",
+    "textura": true
+  },
+  "plebeya": {
+    "archivo": "plebeya.glb",
+    "kb": 241,
+    "triangulos": 10118,
+    "clase": "plebe",
+    "sexo": "f",
+    "nombre": "Plebeya",
+    "meshy": "01a20d2e-5be0-77ff-9dc8-8b8dc011a442",
+    "textura": true
+  },
+  "artesano": {
+    "archivo": "artesano.glb",
+    "kb": 241,
+    "triangulos": 9906,
+    "clase": "plebe",
+    "sexo": "m",
+    "nombre": "Artesano",
+    "meshy": "01a20d25-1cc7-73ef-aee0-0c24bdb4b67a",
+    "textura": true
+  },
+  "artesana": {
+    "archivo": "artesana.glb",
+    "kb": 241,
+    "triangulos": 10048,
+    "clase": "plebe",
+    "sexo": "f",
+    "nombre": "Artesana",
+    "meshy": "01a20d2e-707f-71a4-9541-a6d24ed9a80a",
+    "textura": true
+  },
+  "ecuestre": {
+    "archivo": "ecuestre.glb",
+    "kb": 241,
+    "triangulos": 9806,
+    "clase": "ciudadanos",
+    "sexo": "m",
+    "nombre": "Caballero ecuestre",
+    "meshy": "01a20d1e-d1e6-733f-850c-fcf78a262db9",
+    "textura": true
+  },
+  "dama": {
+    "archivo": "dama.glb",
+    "kb": 242,
+    "triangulos": 9588,
+    "clase": "ciudadanos",
+    "sexo": "f",
+    "nombre": "Dama ecuestre",
+    "meshy": "01a20d2e-189f-765e-81e3-ee8a0009bcc3",
+    "textura": true
+  },
+  "liberto": {
+    "archivo": "liberto.glb",
+    "kb": 239,
+    "triangulos": 10218,
+    "clase": "ciudadanos",
+    "sexo": "m",
+    "nombre": "Liberto",
+    "meshy": "01a20d25-d5cb-71b1-bedf-09fe812b3532",
+    "textura": true
+  },
+  "liberta": {
+    "archivo": "liberta.glb",
+    "kb": 240,
+    "triangulos": 9814,
+    "clase": "ciudadanos",
+    "sexo": "f",
+    "nombre": "Liberta",
+    "meshy": "01a20d2d-f6b3-75da-848f-e58f8c4fbae6",
+    "textura": true
+  },
+  "patricio": {
+    "archivo": "patricio.glb",
+    "kb": 242,
+    "triangulos": 9522,
+    "clase": "patricios",
+    "sexo": "m",
+    "nombre": "Patricio",
+    "meshy": "01a20d1e-95a0-7152-ac23-fd0d33ed68dd",
+    "textura": true
+  },
+  "matrona": {
+    "archivo": "matrona.glb",
+    "kb": 244,
+    "triangulos": 9280,
+    "clase": "patricios",
+    "sexo": "f",
+    "nombre": "Matrona patricia",
+    "meshy": "01a20d2e-1229-70a5-a4fb-fcc72d939df7",
+    "textura": true
+  },
+  "esclavo": {
+    "archivo": "esclavo.glb",
+    "kb": 241,
+    "triangulos": 10500,
+    "clase": "esclavos",
+    "sexo": "m",
+    "nombre": "Esclavo",
+    "meshy": "01a20d1e-9620-7390-9bc0-1f00ef730573",
+    "textura": true
+  },
+  "esclava": {
+    "archivo": "esclava.glb",
+    "kb": 243,
+    "triangulos": 10014,
+    "clase": "esclavos",
+    "sexo": "f",
+    "nombre": "Esclava",
+    "meshy": "01a20d2e-110e-720e-9943-2ef2ffb93eea",
+    "textura": true
+  },
+  "consul": {
+    "archivo": "consul.glb",
+    "kb": 241,
+    "triangulos": 9804,
+    "clase": "magistrados",
+    "sexo": "m",
+    "nombre": "Cónsul",
+    "meshy": "01a20d2e-4144-7545-b88d-6b929d5932e9",
+    "textura": true
+  },
+  "censor": {
+    "archivo": "censor.glb",
+    "kb": 241,
+    "triangulos": 9688,
+    "clase": "magistrados",
+    "sexo": "m",
+    "nombre": "Censor",
+    "meshy": "01a20d2e-0ef6-74d0-9643-b40658bb280a",
+    "textura": true
+  },
+  "edil": {
+    "archivo": "edil.glb",
+    "kb": 242,
+    "triangulos": 9358,
+    "clase": "magistrados",
+    "sexo": "m",
+    "nombre": "Edil",
+    "meshy": "01a20d2e-1758-7664-b2ef-f11020b154d2",
+    "textura": true
+  },
+  "cuestor": {
+    "archivo": "cuestor.glb",
+    "kb": 240,
+    "triangulos": 10056,
+    "clase": "magistrados",
+    "sexo": "m",
+    "nombre": "Cuestor",
+    "meshy": "01a20d2e-5909-7317-aa36-116855bb4658",
+    "textura": true
+  },
+  "pontifice": {
+    "archivo": "pontifice.glb",
+    "kb": 162,
+    "triangulos": 13914,
+    "clase": "magistrados",
+    "sexo": "m",
+    "nombre": "Pontífice",
+    "meshy": "01a20d30-5731-75b6-8a45-4217958778fd",
+    "textura": false
+  },
+  "legado": {
+    "archivo": "legado.glb",
+    "kb": 243,
+    "triangulos": 10132,
+    "clase": "magistrados",
+    "sexo": "m",
+    "nombre": "Legado",
+    "meshy": "01a20d31-1ca6-7569-8575-6a334a07d0b2",
+    "textura": true
+  },
+  "tribuno": {
+    "archivo": "tribuno.glb",
+    "kb": 165,
+    "triangulos": 13996,
+    "clase": "magistrados",
+    "sexo": "m",
+    "nombre": "Tribuno",
+    "meshy": "01a20d30-7ab4-7006-900b-97a221d35290",
+    "textura": false
+  }
+}

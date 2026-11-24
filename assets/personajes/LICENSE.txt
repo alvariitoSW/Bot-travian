@@ -1,0 +1,17 @@
+Personajes de clases sociales de AQVILA (CS3, 24/11/2026): plebeyo, plebeya, artesano, artesana, caballero ecuestre
+(ecuestre), dama ecuestre (dama), liberto, liberta, patricio, matrona patricia (matrona), esclavo, esclava, cónsul
+(consul), censor, edil, cuestor, pontífice (pontifice), legado y tribuno. Un archivo .glb por personaje; la lista con
+sus datos está en personajes.json.
+
+Los generó el usuario con Meshy (https://www.meshy.ai), de texto a 3D, con su plan de pago; la salida es del usuario.
+Meshy es la herramienta y se cita como tal. Crédito: «Meshy».
+El usuario los publica con licencia CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/
+(pontífice y tribuno son la vista previa de Meshy, sin textura: llevan un color yeso liso).
+
+Aligerados en AQVILA con tools/aligerar_personajes.mjs. Los modelos originales no están en el repositorio.
+Cambios: una sola malla y un solo material por personaje; solo la textura de color, reducida a 512×512 (JPEG);
+malla simplificada con meshoptimizer; posiciones, normales y UV cuantizadas (KHR_mesh_quantization); sin esqueleto ni
+animación; pies en el suelo, centrado y a 1,8 unidades de alto, mirando a +Z. Estos archivos se comparten con
+CC BY-SA 3.0.
+
+El publicano no entra (descartado por anacronismo).
