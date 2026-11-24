@@ -297,6 +297,7 @@ export async function montar() {
 }
 /* el terreno de una partida: suelo, río, bosque, puente */
 export function mundo(estado) {
+  estJuego = '';
   vida.reiniciar(); E = estado; cul = CASAS_C[estado.cultura] ? estado.cultura : 'roma'; OPC_SUELO.apretado = romaS(); tinteO = cul === 'roma' && estado.tinte ? TINTE_O[estado.tinte] || null : null; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1; estClave = -1; firmaArb = ''; Fachadas.reiniciar(); Civicas.reiniciar(); trajin.reiniciar();
   for (const m of [sueloJ && sueloJ.malla, rio, crecida, estM, dinM, andM, andL, estBarM, estBarL, surcoM, aradoM, plazaM]) if (m) { scene.remove(m); if (m.geometry) m.geometry.dispose(); }
   dinM = andM = andL = estBarM = estBarL = surcoM = aradoM = plazaM = null; plazaF = ''; if (antM) { scene.remove(antM); antM.geometry.dispose(); antM = null; } antFirma = ''; obrasF = []; firmaObras = '';
@@ -352,6 +353,7 @@ const hashXZ = (x, z) => { const v = Math.sin(x * 12.9898 + z * 78.233) * 43758.
 const tejaTono = (h, nueva) => { if (nueva) return TEJA_NUEVA.slice(0, 3); const b = TEJAS_T[Math.floor(h * 3) % 3], v = 1 + (((h * 37) % 1) - 0.5) * 0.16; return [b[0] * v, b[1] * v, b[2] * v]; };
 /* CD5b: estado de un barrio a la vista. 'sube' = andamios en unas casas; 'cae' = casas tapiadas y tejados rotos; 'revuelta' = gentío apiñado y humo.
    Se fuerza con estadoBarrioVista(i, estado) (la ficha de barrio y las capturas) y, si no, se lee de E.barrios[i].estado (o .sube / .cae / .revuelta). null = como siempre. */
+let estJuego = '';   // CDe2: firma de los estados que dio el juego (estadosBarrios)
 const estForzado = new Map(); let estBarM = null, estBarL = null, estHumos = [], estFirma = '', ultR = null;
 export function estadoBarrioVista(i, est) { if (est) estForzado.set(i, est); else estForzado.delete(i); estFirma = ''; aplicarEstados(); }
 const estadoDe = i => { if (estForzado.has(i)) return estForzado.get(i); const b = E && E.barrios && E.barrios[i]; return b ? (b.estado || (b.revuelta ? 'revuelta' : b.sube ? 'sube' : b.cae ? 'cae' : null)) : null; };
@@ -938,4 +940,6 @@ export function capaSuelo(nombre, canvas, rect, opc = {}) {
 CityView3D.prototype.capaSuelo = function (n, c, r, o) { capaSuelo(n, c, r, o); };
 CityView3D.prototype.quitarCapa = function (n) { quitarCapa(n); };
 CityView3D.prototype.camObj = function () { return cam; };
+/* CDe2: estados de los barrios que da el juego (Game.necEstados): solo repinta si cambian. Reemplaza lo forzado antes. */
+CityView3D.prototype.estadosBarrios = function (lista) { const f = (lista || []).map(x => x || '').join(','); if (f === estJuego) return; estJuego = f; estForzado.clear(); (lista || []).forEach((e, i) => { if (e) estForzado.set(i, e); }); estFirma = ''; aplicarEstados(); };
 CityView3D.prototype.firma = function () { return [cam.tx.toFixed(1), cam.tz.toFixed(1), cam.d.toFixed(1), cam.az.toFixed(3), desvio.toFixed(1), vista.w, vista.h].join('|'); };

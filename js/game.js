@@ -279,7 +279,7 @@
       p.grano += (6 + G.rateCampo(c, 'granja')) * rp.granja / 5 * mo * rm * (cGra ? G.bonoMul('grano', rm) : 1) * cer;
       const oF = (G.rate(c.b.foro) * 0.5 + 5 * (c.b.puerto || 0)) * (tp.oroCom || 1) * (cOro ? G.bonoMul('oroCom', tp.oroCom || 1) : ocm) * (c.puertas ? D.PUERTAS.comercio : 1), oI = G.cabezasImp(c, gOk) * 0.03 * G.impMult(c) * imm * D.BARRIO[c.barrio || 1].imp, oP = ((tp.oroPuerto || 0) + (dg && dg.oroPuerto ? dg.oroPuerto * G.diosNivel(c) : 0)) * (c.b.puerto || 0);
       const pb = G.puebloProd(id, gOk); for (const r in pb) p[r] += pb[r];   // pueblos (J3)
-      const oE = (c.esc || 0) * G.K().escRenta, rT = CI ? info(c) : null, oT = rT && rT.oroT ? rT.oroT : 0; const rv = G.enRevuelta(c) ? 0 : 1; p.denarios += oF + (oI + oE) * rv + oP + oT; det.foro += oF + oP + oT; det.impuestos += (oI + oE) * rv;   // CDe1-A: un barrio en revuelta no paga   // Villa esclavista: renta por esclavo (0 sin ese saber)   // foro + impuestos de la población + comercio del puerto
+      const oE = (c.esc || 0) * G.K().escRenta, rT = CI ? info(c) : null, oT = rT && rT.oroT ? rT.oroT : 0; const rv = 1 - G.revueltaParte(c); p.denarios += oF + (oI + oE) * rv + oP + oT; det.foro += oF + oP + oT; det.impuestos += (oI + oE) * rv;   // CDe1-A: un barrio en revuelta no paga   // Villa esclavista: renta por esclavo (0 sin ese saber)   // foro + impuestos de la población + comercio del puerto
       { const gc = (c.pop || 0) * 0.02 * G.racionDe(c).grano; p.grano -= gc; comPop += gc; }   // la ración (c.rac) baja el consumo de grano
       for (const k in c.units) up += c.units[k] * D.UNITS[k].up;
     }
@@ -3073,25 +3073,48 @@
     return { cob: x.cob, animo: x.an, mem, nivel: NEC.nivelBarrio(x.cob) };
   };
   G.enRevuelta = c => !!(D.NEC_CASTIGOS && c && c.nec && Array.isArray(c.nec.mem) && c.nec.mem.some(m => m && m.revuelta));
+  /* CDe2: parte de la ciudad (por casas) que está en revuelta y no paga impuestos; 0..1. Sin vista de barrios, toda la ciudad si hay revuelta. */
+  G.revueltaParte = function (c) {
+    if (!G.enRevuelta(c)) return 0; const m = necDatos(c); if (!m || !m.casas.length) return 1;
+    let n = 0; for (const x of m.casas) { const k = c.nec.mem[x.barrio]; if (k && k.revuelta) n++; } return n / m.casas.length;
+  };
+  /* CDe2: estado a la vista de cada barrio (lo pinta city3d.js): 'revuelta', 'cae' (descontento) o 'sube' (el ánimo sube y está contento); null = normal */
+  G.necEstados = function (cid) {
+    const c = G.state && G.state.cities[cid]; if (!c || c.owner !== 'roma' || !c.nec || !Array.isArray(c.nec.mem)) return [];
+    return c.nec.mem.map(k => !k ? null : k.revuelta ? 'revuelta' : k.desc > 0 ? 'cae' : k.sube ? 'sube' : null);
+  };
+  /* CDe2: «Encargar al ministro» desde la ficha del barrio. r = remedio de barrio-ui.js {necesidad, servicio, tipoJuego, ministro} */
+  G.necEncargar = function (cid, r) {
+    const s = G.state; if (!s || !libs() || !MIN) return { ok: false, motivo: 'Los ministros no están disponibles' };
+    if (!r) return { ok: false, motivo: 'No hay remedio' };
+    const serv = D.BUILD[r.servicio] ? r.servicio : D.BUILD[r.tipoJuego] ? r.tipoJuego : null;
+    if (!serv) return { ok: false, motivo: (r.nombre || 'Esa obra') + ' no se encarga: constrúyela tú con «Construir la mejora»' };
+    const res = MIN.remedio(s, { necesidad: r.necesidad, servicio: serv, ministro: r.ministro, casas: r.casas, ciudad: cid }, mesAhora(s));
+    if (res.ok) { G.log('📜 Encargo al ministro: ' + D.BUILD[serv].n + ' en ' + D.CITIES[cid].n + '.', 'good'); emit('dirty'); }
+    return res;
+  };
   const FRASE_NEC = { hambre: 'pasa hambre', fiebres: 'sufre fiebres', se_van: 'se vacía', pierde_votos: 'pierde apoyos en el Senado', protesta: 'protesta en la calle', paran_obras: 'frena las obras' };
   function necesidadesEstacion(s, mes) {
     if (!NEC || !CI || mes % D.TURNO_MESES !== 0) return;
     for (const id of G.myCities()) {
       const c = s.cities[id], m = necDatos(c); if (!m || !m.casas.length) continue;
-      const nom = D.CITIES[id].n, mem = necDe(c).mem; let dichos = 0;
+      const nom = D.CITIES[id].n, mem = necDe(c).mem, hechos = {}; let dichos = 0;   // CDe2: votos, protesta y obras cuentan una vez por ciudad y estación (no por barrio)
       m.E.barrios.forEach((b, i) => {
         const x = calcBarrio(c, m, i); if (!x.cs.length) return;
         const r = NEC.estacion(mem[i], x.cob, x.an), share = x.cs.length / m.casas.length, nb = (b && b.nombre) || ('barrio ' + (i + 1));
+        r.mem.sube = typeof (mem[i] || {}).an === 'number' && x.an >= 60 && x.an > mem[i].an + 3; r.mem.an = x.an;   // CDe2: andamios si mejora
         mem[i] = r.mem;
         for (const su of r.sucesos) {
           if (su.tipo === 'revuelta') G.log(D.NEC_CASTIGOS ? '✊ ' + nom + ', ' + nb + ': revuelta de la plebe. No paga impuestos hasta que la calmes (tropas, grano o juegos).' : '✊ ' + nom + ', ' + nb + ': la plebe amenaza con sublevarse. Le faltan servicios.', 'bad');
           else if (su.tipo === 'consecuencia' && !D.NEC_CASTIGOS) { if (dichos++ < 2) G.log('🏘️ ' + nom + ', ' + nb + ': ' + (FRASE_NEC[su.efecto] || su.efecto) + '.', 'bad', true); }   // CDe1: solo aviso hasta CD5b (D.NEC_CASTIGOS)
           else if (su.tipo === 'consecuencia') {
-            const ef = su.efecto, perdida = Math.ceil((c.pop || 0) * 0.015 * share), baja = ef === 'hambre' || ef === 'fiebres' || ef === 'se_van';
+            const ef = su.efecto, baja = ef === 'hambre' || ef === 'fiebres' || ef === 'se_van', perdida = baja ? Math.ceil((c.pop || 0) * D.NEC_PERDIDA * share) : 0;
             if (baja) c.pop = Math.max(G.MIN_POP, (c.pop || 0) - perdida);
+            else if (hechos[ef]) continue;
             else if (ef === 'pierde_votos') hum3(-1);
             else if (ef === 'protesta') G.favorAplica(0, -1);
             else if (ef === 'paran_obras') G.favorAplica(0, -0.5);
+            hechos[ef] = true;
             if (dichos++ < 2) G.log('🏘️ ' + nom + ', ' + nb + ': ' + (FRASE_NEC[ef] || ef) + (baja && perdida ? ' (-' + perdida + ')' : '') + '.', 'bad', true);
           }
         }

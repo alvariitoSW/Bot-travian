@@ -257,7 +257,8 @@ export function montarBarrioUI(vista, ctx) {
 
   /* ----- datos ----- */
   const ciudadId = () => U && U.city;
-  const claveDe = E => (ciudadId() || '') + '|' + (E ? E.rev + '|' + E.mesN + '|' + E.parcelas.length + '|' + E.edificios.length + '|' + E.barrios.length : '');
+  const memFirma = () => { const c = G && G.state && G.state.cities[ciudadId()], m = c && c.nec && c.nec.mem; return Array.isArray(m) ? m.map(q => q ? (q.revuelta ? 2 : q.desc > 0 ? 1 : 0) : 0).join('') : ''; };   // CDe2: la revuelta la marca el juego
+  const claveDe = E => (ciudadId() || '') + '|' + (E ? E.rev + '|' + E.mesN + '|' + E.parcelas.length + '|' + E.edificios.length + '|' + E.barrios.length + '|' + memFirma() : '');
   function calcular(E) {
     const c = G.state && G.state.cities[ciudadId()], cl = c && G.clases ? G.clases(c) : null;
     const prev = est.D && est.D.E === E ? est.D : null;
@@ -330,13 +331,15 @@ export function montarBarrioUI(vista, ctx) {
     const ref = document.querySelector('.vo.plano'), rr = ref ? ref.getBoundingClientRect() : null, ar = app.getBoundingClientRect();
     btn.style.top = Math.round(rr && rr.height ? rr.bottom - ar.top + 10 : 360) + 'px';
     const sal = [...document.querySelectorAll('button')].find(q => q.offsetParent && /Salir al mapa/.test(q.textContent || '')), sr = sal ? sal.getBoundingClientRect() : null;
-    ley.style.top = Math.round(sr && sr.height ? sr.bottom - ar.top + 6 : 154) + 'px';
+    const fr = fila.hidden ? null : fila.getBoundingClientRect();   // CDe2: la leyenda va justo encima de la fila de necesidades (antes pisaba el aviso)
+    ley.style.top = Math.round(fr && fr.height ? fr.top - ar.top - 30 : sr && sr.height ? sr.bottom - ar.top + 6 : 154) + 'px';
   }
   function pintaFila() {
     const D = est.D, c = est.capa, n = c && NEC.NECESIDADES.find(q => q.id === c);
     const sin = c && D ? casasSin(D, c).length : 0;
     fila.innerHTML = '<div class="bf-ico">' + NEC.NECESIDADES.map(q => '<button type="button" data-n="' + q.id + '" aria-label="' + esc(q.nombre) + '" aria-pressed="' + (q.id === c) + '" class="' + (q.id === c ? 'on' : '') + '" style="background:' + COL_NEC[q.id] + '">' + svg(q.id, 22) + '</button>').join('') + '</div>' +
       '<div class="bf-tx"><b>' + (n ? esc(n.nombre) + ' · ' + (sin ? sin + (sin === 1 ? ' casa sin llegar' : ' casas sin llegar') : 'llega a todas') : 'Elige una necesidad') + '</b><button type="button" class="bf-x" data-n="">✕ Cerrar</button></div>';
+    if (!fila.hidden) colocaBoton();   // CDe2: la leyenda sigue a la fila
   }
   function ponerCapa(id) {
     est.capa = id || null; if (id) cerrarFicha();
@@ -345,7 +348,7 @@ export function montarBarrioUI(vista, ctx) {
   let filaAbierta = false;
   function alternaFila(abrir) {
     filaAbierta = abrir; fila.hidden = !abrir || !est.visible; ley.hidden = !abrir || !est.visible; btn.classList.toggle('on', abrir);
-    if (abrir) { cerrarFicha(); colocaBoton(); pintaLey(); pintaFila(); } else if (est.capa) { est.capa = null; pintarCapas(); }
+    if (abrir) { cerrarFicha(); pintaLey(); pintaFila(); colocaBoton(); } else if (est.capa) { est.capa = null; pintarCapas(); }
   }
   function pintaLey() {
     ley.innerHTML = ['bien', 'falta', 'mal'].map(e => '<span><i style="background:' + COL_ESTADO[e] + '"></i>' + TXT_ESTADO[e] + '</span>').join('') + '<span><i class="g" style="background:#d4382f"></i>Sin llegar</span>';
@@ -393,12 +396,13 @@ export function montarBarrioUI(vista, ctx) {
     est.barrio = i; ficha.hidden = false; ficha.scrollTop = 0; pintaFicha(); posicionar();
     try { // el barrio sube a la parte que la ficha no tapa
       const cam = vista.camObj(), r = host.getBoundingClientRect(), ft = ficha.getBoundingClientRect().top, objetivo = [r.left + r.width / 2, Math.max(r.top + 170, (r.top + 150 + ft) / 2)], g = vista.sueloEn(objetivo[0], objetivo[1]);
-      if (g) { est.camPrev = { tx: cam.tx, tz: cam.tz }; cam.tx += b.x - g[0]; cam.tz += b.z - g[1]; est.camSet = { tx: cam.tx, tz: cam.tz }; est.firma = ''; }
+      if (g) { est.movido = false; est.camPrev = { tx: cam.tx, tz: cam.tz }; cam.tx += b.x - g[0]; cam.tz += b.z - g[1]; est.camSet = { tx: cam.tx, tz: cam.tz }; est.firma = ''; }
     } catch (e) { /* la vista sigue donde estaba */ }
   }
   function cerrarFicha() {
     if (est.barrio < 0 && ficha.hidden) return;
-    const cm = vista.camObj(); if (est.camPrev && est.camSet && Math.abs(cm.tx - est.camSet.tx) < 1 && Math.abs(cm.tz - est.camSet.tz) < 1) { cm.tx = est.camPrev.tx; cm.tz = est.camPrev.tz; } est.camPrev = est.camSet = null;
+    const cm = vista.camObj(); if (est.camPrev && est.camSet && !est.movido) {   // CDe2: la vista recorta el desplazamiento en el borde; se vuelve salvo que el jugador la haya movido
+      cm.tx = est.camPrev.tx; cm.tz = est.camPrev.tz; } est.camPrev = est.camSet = null;
     est.barrio = -1; ficha.hidden = true; vista.quitarCapa('remedio'); posicionar(); }
   function avisa(t) { if (ctx.aviso) ctx.aviso(t); }
   const evento = (nombre, detalle) => { const ev = new CustomEvent(nombre, { detail: detalle, bubbles: true, cancelable: true }); document.dispatchEvent(ev); return ev.defaultPrevented; };
@@ -420,6 +424,7 @@ export function montarBarrioUI(vista, ctx) {
 
   /* ----- tocar una casa en el suelo ----- */
   let toque = null; const cv = vista.cv;
+  cv.addEventListener('pointermove', e => { if (toque && !ficha.hidden && Math.hypot(e.clientX - toque.x, e.clientY - toque.y) > 8) est.movido = true; });   // CDe2: solo arrastrar cuenta como mover la vista
   cv.addEventListener('pointerdown', e => { toque = { x: e.clientX, y: e.clientY, t: performance.now() }; });
   cv.addEventListener('pointerup', e => {
     const t0 = toque; toque = null; if (!t0 || !est.visible || !est.D || est.capa) return;
@@ -440,7 +445,7 @@ export function montarBarrioUI(vista, ctx) {
     est.visible = ver && refrescar();
     if (est.visible !== antes) {
       etq.style.display = ver ? '' : 'none'; btn.hidden = !est.visible; gotas.style.display = est.visible ? '' : 'none';
-      if (est.visible) { colocaBoton(); fila.hidden = !filaAbierta; ley.hidden = !filaAbierta; if (est.D) pintarCapas(); }
+      if (est.visible) { fila.hidden = !filaAbierta; ley.hidden = !filaAbierta; colocaBoton(); if (est.D) pintarCapas(); }
       else { fila.hidden = true; ley.hidden = true; ficha.hidden = true; vista.quitarCapa('barrios'); vista.quitarCapa('zonas'); vista.quitarCapa('remedio'); est.barrio = -1; est.capa = null; filaAbierta = false; btn.classList.remove('on'); est.firma = ''; posicionar(); }
     }
     if (est.visible) { const f = vista.firma(); if (f !== est.firma) { est.firma = f; posicionar(); } }
