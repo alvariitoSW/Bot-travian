@@ -546,7 +546,8 @@ function dibuja(dt) {
   sarisas.instanceMatrix.needsUpdate = true; munones.instanceMatrix.needsUpdate = true; sombrasAsta.instanceMatrix.needsUpdate = true;
   if (S.resp && S.T >= S.resp.t) { grita(S.resp.texto); Son.trueno(0.35); S.resp = null; }
   /* GM43i: el fragor grabado de la lucha mientras las líneas se tocan */
-  { const kL = S.choque && S.fase !== 'fin' && !parado ? 1 : 0; if (kL !== S.kLucha) { S.kLucha = kL; Son.lucha(kL); } }
+  { const kL = S.choque && S.fase !== 'fin' && !parado ? 1 : 0; S.kLucha = kL;   /* SON7: golpes según la lucha y cada caído se oye (js/gfx/fragor.js) */
+    Son.pulso(parado ? 0 : dt, { lucha: kL, moral: S.U ? S.U.animo : 1, caen: (S.fal || []).filter(h => !h.vivo).length, caenR: (S.ene || []).filter(h => !h.vivo).length }); }
   muevePolvo(); ESC_P.value = renderer.domElement.height / 2 / Math.tan(camara.fov * Math.PI / 360);
   /* los pila: en el aire, clavados en un asta (la siguen), en un escudo, en un hombre o en el suelo */
   for (let i = S.proyectiles.length; i < NPILA; i++) pila.setMatrixAt(i, MS.makeScale(0, 0, 0));

@@ -3,6 +3,7 @@ import { createRequire } from 'node:module';
 import assert from 'node:assert';
 const require = createRequire(import.meta.url);
 const D = require('../js/data.js'); const G = require('../js/game.js'); const MER = require('../js/mercado.js');
+import * as Agro from '../js/agricultura.js';
 let n = 0, mal = 0;
 function t(nombre, f) { try { f(); n++; console.log('bien', nombre); } catch (e) { mal++; console.log('MAL', nombre, '—', e.message); } }
 const nueva = () => { const s = G.newGame('Test', 'mediterraneo', {}); G.onEvent = null; s.t = 3; s.cities.roma.b.mercado = 2; s.cities.roma.b.puerto = 2; MER.migrar(s); s.mercado.sucesos = []; return s; };
@@ -148,5 +149,69 @@ t('24 meses sin NaN ni precios <= 0, y cabe en 30 KB', () => {
     for (const c of Object.keys(s.cities)) for (const p of MER.ORDEN) { const x = MER.precio(s, c, p); assert.ok(Number.isFinite(x) && x > 0, c + p + x); }
   }
   const kb = J(s.mercado).length / 1024; assert.ok(Object.keys(s.cities).length >= 26 && kb < 30, kb.toFixed(1) + ' KB');
+});
+
+const AYM = () => ({ enGuerra: () => false, bloqueada: () => false, cosecha: () => null });
+const avanza = (s, k, ay) => { let r; for (let i = 0; i < k; i++) { s.t++; r = MER.mes(s, ay || AYM()); } return r; };
+t('publicanos: migrar es idempotente', () => {
+  const s = nueva(); assert.deepStrictEqual(s.mercado.publicanos, { ofertas: [], aceptados: [] }); assert.deepStrictEqual(s.mercado.recaudo, {});
+  const a = J(s.mercado); MER.migrar(s); assert.strictEqual(J(s.mercado), a);
+  delete s.mercado.publicanos; delete s.mercado.recaudo; MER.migrar(s); assert.ok(Array.isArray(s.mercado.publicanos.ofertas) && s.mercado.recaudo);
+  assert.ok(MER.PUBLICANOS.ejercito && MER.PUBLICANOS.obras && MER.PUBLICANOS.annona && MER.PUBLICANOS.obras.fuente);
+});
+t('publicanos: salen ofertas en 24 meses (máx. 2, bien formadas)', () => {
+  const s = nueva(); let vistas = 0;
+  for (let i = 0; i < 24; i++) { avanza(s, 1); const v = MER.publicanosVer(s); assert.ok(v.ofertas.length <= 2); vistas += v.ofertas.length;
+    for (const o of v.ofertas) { assert.ok(o.cargas >= 6 && o.cargas <= 20 && o.paga > 0 && o.fianza === Math.round(o.paga * 0.2) && o.plazo === 4 && o.caduca > s.t - 1 && o.fuente && MER.PUBLICANOS[o.tipo]); if (o.tipo !== 'ejercito') assert.strictEqual(o.destino, 'roma'); } }
+  assert.ok(vistas > 0);
+});
+const conOferta = () => { const s = nueva(); for (let i = 0; i < 60 && !MER.publicanosVer(s).ofertas.length; i++) avanza(s, 1); return s; };
+t('publicanos: aceptar cobra la fianza; sin dinero no deja', () => {
+  const s = conOferta(), o = MER.publicanosVer(s).ofertas[0];
+  assert.ok(!MER.publicanoAceptar(s, o.id, { tiene: () => 0 }).ok);
+  const r = MER.publicanoAceptar(s, o.id, { tiene: () => 1e6 }); assert.ok(r.ok && r.delta.denarios === -o.fianza);
+  const v = MER.publicanosVer(s); assert.ok(!v.ofertas.some(x => x.id === o.id)); const a = v.aceptados[0]; assert.ok(a.entregado === 0 && a.falta === o.cargas && a.hasta === Math.floor(s.t) + 4);
+  assert.ok(!MER.publicanoAceptar(s, 'nada').ok);
+});
+t('publicanos: entregar completo paga paga + fianza', () => {
+  const s = conOferta(), o = MER.publicanosVer(s).ofertas[0]; MER.publicanoAceptar(s, o.id, { tiene: () => 1e6 });
+  assert.ok(!MER.publicanoEntregar(s, o.id, 1, { tiene: () => 0 }).ok); assert.ok(!MER.publicanoEntregar(s, o.id, o.cargas + 1, { tiene: () => 1e6 }).ok);
+  const a = MER.publicanoEntregar(s, o.id, 2, { tiene: () => 1e6 }); assert.ok(a.ok && a.delta[o.prod] === -2 && !a.delta.denarios);
+  const b = MER.publicanoEntregar(s, o.id, o.cargas - 2, { tiene: () => 1e6 }); assert.ok(b.ok && b.delta.denarios === o.paga + o.fianza && b.avisos.length === 1 && b.avisos[0].tono === 'bueno');
+  assert.strictEqual(MER.publicanosVer(s).aceptados.length, 0);
+});
+t('publicanos: plazo vencido pierde el contrato y la fianza', () => {
+  const s = conOferta(), o = MER.publicanosVer(s).ofertas[0]; MER.publicanoAceptar(s, o.id, { tiene: () => 1e6 });
+  let fallidos = 0, malo = false; for (let i = 0; i < 6; i++) { const r = avanza(s, 1); fallidos += r.efectos.contratosFallidos; malo = malo || r.avisos.some(x => x.tono === 'malo' && /pierdes la fianza/.test(x.texto)); }
+  assert.strictEqual(fallidos, 1); assert.ok(malo); assert.strictEqual(MER.publicanosVer(s).aceptados.length, 0);
+});
+t('publicanos: máximo 3 aceptados a la vez', () => {
+  const s = nueva(); const ay = { tiene: () => 1e6 };
+  s.mercado.publicanos.ofertas = [1, 2, 3, 4].map(i => ({ id: 'x' + i, tipo: 'annona', n: 'Grano para Roma', prod: 'grano', cargas: 6, destino: 'roma', paga: 50, fianza: 10, caduca: 99, plazo: 4 }));
+  for (const i of [1, 2, 3]) assert.ok(MER.publicanoAceptar(s, 'x' + i, ay).ok); assert.ok(!MER.publicanoAceptar(s, 'x4', ay).ok);
+});
+t('ayudaAgro: con olivar propio el aceite baja de precio', () => {
+  const mk = () => { const s = nueva(); quieto(s); s.t = 3; s.agro = { parcelas: [1, 2, 3].map(() => ({ campo: 'olivar', suelo: 'ladera_seca', nivel: 5, mejoras: ['almazara'], ciudad: 'roma' })) }; return s; };
+  const a = mk(), b = mk(); assert.ok(Agro.produccionCiudad(a, 'roma', 10).aceite > 0 || Agro.produccionCiudad(a, 'roma', 11).aceite > 0);
+  const ay0 = MER.ayudaAgro(Agro, a, AYM()); assert.ok(typeof ay0.produccion === 'function' && typeof ay0.perdida === 'function' && ay0.enGuerra);
+  assert.strictEqual(ay0.perdida('verdura', null), 0.3); assert.strictEqual(ay0.perdida('hierro', 'roma'), 0); assert.strictEqual(MER.ayudaAgro(Agro, a, { perdida: () => 7 }).perdida(), 7);
+  assert.deepStrictEqual(Object.keys(MER.ayudaAgro(Agro, a)).sort(), ['perdida', 'produccion']);
+  avanza(a, 9, MER.ayudaAgro(Agro, a, AYM())); avanza(b, 9, AYM()); assert.ok(MER.precio(a, 'roma', 'aceite') < MER.precio(b, 'roma', 'aceite'), MER.precio(a, 'roma', 'aceite') + ' vs ' + MER.precio(b, 'roma', 'aceite'));
+});
+t('aduana más alta: los rivales no pasan más ni pagan más en 12 meses', () => {
+  const corre = tasa => { const s = nueva(); for (const c of Object.keys(s.cities)) if (s.cities[c].owner === 'roma') MER.portoriumFijar(s, c, tasa); let ops = 0; for (let i = 0; i < 12; i++) { avanza(s, 1); } for (const r of Object.values(s.mercado.rivales)) ops += r.ops; return ops; };
+  assert.ok(corre(0.05) <= corre(0));
+});
+t('rivalesVer y aduanasVer: forma y recaudo', () => {
+  const s = nueva(); assert.strictEqual(MER.TASA_MAX, 0.05); MER.portoriumFijar(s, 'roma', 0.05);
+  let tot = 0; for (let i = 0; i < 6; i++) { s.mercado.S.roma = { hierro: 1, grano: 1, vino: 1, aceite: 1, lana: 1 }; avanza(s, 1); tot += MER.aduanasVer(s).find(x => x.ciudad === 'roma').recaudado; }
+  assert.ok(tot > 0);
+  const rv = MER.rivalesVer(s); assert.strictEqual(rv.length, 3);
+  for (const r of rv) { assert.ok(r.id && r.n && Array.isArray(r.f) && typeof r.ops === 'number' && typeof r.enGuerra === 'boolean' && typeof r.texto === 'string'); if (r.que) for (const k of ['prod', 'n', 'a', 'b', 'na', 'nb']) assert.ok(r.que[k]); }
+  assert.ok(rv.some(r => r.que)); s.mercado.rivales.punicos.ult = 'guerra'; const g = MER.rivalesVer(s).find(r => r.id === 'punicos'); assert.ok(g.enGuerra && g.que === null);
+  const ad = MER.aduanasVer(s); assert.ok(ad.length >= 1 && ad.every(x => x.ciudad && x.n && typeof x.tasa === 'number' && typeof x.recaudado === 'number'));
+});
+t('determinismo: dos partidas iguales, mismo mercado tras 12 meses', () => {
+  const a = nueva(), b = nueva(); avanza(a, 12); avanza(b, 12); assert.strictEqual(J(a.mercado), J(b.mercado));
 });
 console.log(`\n${n}/${n + mal}`); if (mal) process.exit(1);

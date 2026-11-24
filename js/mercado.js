@@ -1,5 +1,5 @@
 /* AQVILA — CE4: el mercado de los recursos. Lógica pura (corre en Node), sin pantalla ni Math.random.
-   Solo escribe en s.mercado = { v, semilla, rng, seq, S, prev, sucesos, rutas, viajes, portoria, contratos, rivales, avisos, mig, ult }.
+   Solo escribe en s.mercado = { v, semilla, rng, seq, S, prev, sucesos, rutas, viajes, portoria, contratos, rivales, avisos, mig, ult, publicanos, recaudo }.
    No toca s.res ni s.bienes: lo que mueve dinero o mercancía lo devuelve como `delta` y el juego lo aplica.
    Diseño: gobierno/estudios/CE4-mercado.md. Mes 0 = enero; mes = floor(s.t) % 12 (llamar a MER.mes con s.t ya avanzado).
    Convención de la oferta S (en [-1,1], por ciudad y producto): S alto = sobra = precio bajo (precio × (1 − 0,4·S)).
@@ -92,6 +92,9 @@
     if (typeof m.seq !== 'number') m.seq = 0;
     for (const k of ['S', 'prev', 'portoria', 'rivales', 'mig']) if (!obj(m[k])) m[k] = {};
     for (const k of ['sucesos', 'rutas', 'viajes', 'contratos', 'avisos']) if (!Array.isArray(m[k])) m[k] = [];
+    if (!obj(m.recaudo)) m.recaudo = {};
+    if (!obj(m.publicanos)) m.publicanos = {};
+    for (const k of ['ofertas', 'aceptados']) if (!Array.isArray(m.publicanos[k])) m.publicanos[k] = [];
     for (const c of ciudadesDe(s)) if (typeof m.portoria[c] !== 'number') m.portoria[c] = K.PORT0; // la quadragesima (licencia de juego en la cifra)
     for (const k of CASAS_ORD) if (!obj(m.rivales[k])) m.rivales[k] = { ult: '', ops: 0 };
     // Rutas viejas {a,b,f} -> ruta con el producto que más gana. No se borra s.rutas (lo hace el juego).
@@ -321,6 +324,94 @@
     return e;
   };
 
+  // ---------- Publicanos: contratos públicos (subasta del Senado) ----------
+  /* HISTORIA: Polibio 6.17.2-5 (los censores sacan a contrata obras y rentas en toda Italia y casi todo el pueblo participa);
+     Livio 23.48.10-49.4 (215 a.C.: tres sociedades de diecinueve hombres suministran al ejército de Hispania a crédito);
+     Livio 25.3.8-4.11 (212 a.C.: fraude de Postumio de Pirgos con naufragios fingidos). La fianza (praedes) es real
+     (Polibio 6.17.4 menciona fiadores). Cifras, plazos y entrega directa sin flete = LICENCIA DE JUEGO. */
+  MER.PUBLICANOS = {
+    ejercito: { id: 'ejercito', n: 'Suministro al ejército', i: '🛡️', prods: ['grano', 'lana', 'hierro', 'vino'], texto: 'Llevas provisiones a una ciudad tuya o a Roma para las legiones.', fuente: 'Livio 23.48.10-49.4 (215 a.C.: sociedades de publicanos abastecen al ejército de Hispania).', nota: L + 'cifras y plazo de juego; la entrega es directa, sin flete.' },
+    obras: { id: 'obras', n: 'Obras públicas', i: '🏛️', prods: ['materiales'], texto: 'Materiales para las obras que el censor saca a contrata en Roma.', fuente: 'Polibio 6.17.2-5 (los censores contratan obras y rentas en toda Italia).', nota: L + 'cifras y plazo de juego; la entrega es directa, sin flete.' },
+    annona: { id: 'annona', n: 'Grano para Roma', i: '🌾', prods: ['grano'], texto: 'Grano para el reparto a la plebe de Roma.', fuente: 'Livio 25.3.8-4.11 (212 a.C.: el fraude de Postumio de Pirgos muestra el riesgo de la contrata) y Polibio 6.17.4 (fiadores).', nota: L + 'cifras y plazo de juego; la entrega es directa, sin flete.' }
+  };
+  const PUB = { MAX_OFERTAS: 2, MAX_ACEPTADOS: 3, PROB: 0.35, PAGA: 1.4, FIANZA: 0.2, ABIERTA: 2, PLAZO: 4 };
+  const copia = o => Object.assign({}, o);
+  const pubEst = m => { if (!obj(m.publicanos)) m.publicanos = {}; if (!Array.isArray(m.publicanos.ofertas)) m.publicanos.ofertas = []; if (!Array.isArray(m.publicanos.aceptados)) m.publicanos.aceptados = []; return m.publicanos; };
+  function ofertaNueva(s, m, ay, mes) {
+    const tipo = ['ejercito', 'obras', 'annona'][Math.floor(rnd(m) * 3)], T = MER.PUBLICANOS[tipo];
+    const prod = T.prods[Math.floor(rnd(m) * T.prods.length)], cargas = 6 + Math.floor(rnd(m) * 15);
+    let destino = 'roma';
+    if (tipo === 'ejercito') { const op = ['roma'].concat(mias(s, ay).filter(c => c !== 'roma')); destino = op[Math.floor(rnd(m) * op.length)]; }
+    const d = detalle(s, destino, prod, mes, ay), base = d ? d.sinOferta : P[prod].base, paga = Math.round(base * cargas * PUB.PAGA);
+    return { id: 'p' + (++m.seq), tipo, n: T.n, prod, cargas, destino, paga, fianza: Math.round(paga * PUB.FIANZA), caduca: mes + PUB.ABIERTA, plazo: PUB.PLAZO, fuente: T.fuente };
+  }
+  MER.publicanosVer = (s, ay) => {
+    const pu = pubEst(est(s));
+    const mes = mesAbs(s);
+    return { ofertas: pu.ofertas.filter(o => o.caduca > mes).map(copia), aceptados: pu.aceptados.map(o => Object.assign(copia(o), { entregado: o.entregado || 0, hasta: o.hasta, falta: o.cargas - (o.entregado || 0) })) };
+  };
+  MER.publicanoAceptar = (s, id, ay) => {
+    const m = est(s), pu = pubEst(m), mes = mesAbs(s), o = pu.ofertas.find(x => x.id === id);
+    if (!o || o.caduca <= mes) return { ok: false, motivo: 'Esa subasta ya no está abierta', delta: {} };
+    if (pu.aceptados.length >= PUB.MAX_ACEPTADOS) return { ok: false, motivo: 'Ya tienes ' + PUB.MAX_ACEPTADOS + ' contratos en marcha', delta: {} };
+    if (ay && ay.tiene && ay.tiene('denarios') < o.fianza) return { ok: false, motivo: 'Faltan denarios para la fianza', delta: {} };
+    pu.ofertas = pu.ofertas.filter(x => x.id !== id);
+    pu.aceptados.push(Object.assign(copia(o), { entregado: 0, hasta: mes + o.plazo }));
+    return { ok: true, motivo: '', delta: { denarios: -o.fianza } };
+  };
+  MER.publicanoEntregar = (s, id, n, ay) => {
+    const m = est(s), pu = pubEst(m), o = pu.aceptados.find(x => x.id === id);
+    if (!o) return { ok: false, motivo: 'Contrato desconocido', delta: {}, avisos: [] };
+    const falta = o.cargas - (o.entregado || 0);
+    if (!(n >= 1) || n !== Math.floor(n) || n > falta) return { ok: false, motivo: 'Cantidad no válida: faltan ' + falta, delta: {}, avisos: [] };
+    if (ay && ay.tiene && ay.tiene(o.prod) < n) return { ok: false, motivo: 'No tienes tanto', delta: {}, avisos: [] };
+    o.entregado = (o.entregado || 0) + n;
+    const delta = { [o.prod]: -n }, avisos = [];
+    if (o.entregado >= o.cargas) {
+      delta.denarios = o.paga + o.fianza;
+      pu.aceptados = pu.aceptados.filter(x => x.id !== id);
+      avisos.push({ texto: 'Contrato cumplido: ' + o.n + '. Cobras ' + o.paga + ' denarios y te devuelven la fianza', tono: 'bueno' });
+    }
+    return { ok: true, motivo: '', delta, avisos };
+  };
+  // Se llama desde MER.mes: quita ofertas caducadas, pierde contratos vencidos y saca ofertas nuevas.
+  function publicanosMes(s, m, ay, mes, av) {
+    const pu = pubEst(m); let fallidos = 0;
+    pu.ofertas = pu.ofertas.filter(o => o.caduca > mes);
+    pu.aceptados = pu.aceptados.filter(o => {
+      if (o.hasta > mes || (o.entregado || 0) >= o.cargas) return true;
+      fallidos++; av.push({ texto: 'El Senado te quita el contrato de ' + o.n.toLowerCase() + ': pierdes la fianza', tono: 'malo' }); return false;
+    });
+    if (pu.ofertas.length < PUB.MAX_OFERTAS && rnd(m) < PUB.PROB) {
+      const o = ofertaNueva(s, m, ay, mes); pu.ofertas.push(o);
+      av.push({ texto: 'Los censores sacan a subasta: ' + o.n.toLowerCase() + ' (' + o.cargas + ' cargas de ' + P[o.prod].n.toLowerCase() + ')', tono: 'info' });
+    }
+    return fallidos;
+  }
+  // Ayuda lista para la agricultura: la producción de tus parcelas y lo que se pierde. Agro = js/agricultura.js ya importado.
+  MER.ayudaAgro = (Agro, s, ay) => {
+    const a = Object.assign({}, ay || {});
+    const parcelas = c => ((s && s.agro && s.agro.parcelas) || []).filter(p => p && p.ciudad === c);
+    if (!a.produccion) a.produccion = (c, mes) => Agro.produccionCiudad(s, c, mes);
+    if (!a.perdida) a.perdida = (p, c) => { if (!MER.PRODUCTOS[p]) return 0; const mj = c ? [].concat(...parcelas(c).map(x => x.mejoras || [])) : []; return Agro.perdidaMes(p, mj); };
+    return a;
+  };
+  MER.TASA_MAX = K.PORT_MAX;
+  MER.rivalesVer = (s, ay) => {
+    const m = est(s);
+    return CASAS_ORD.map(id => {
+      const casa = MER.CASAS[id], r = m.rivales[id] || {}, ult = r.ult || '', enGuerra = ult === 'guerra';
+      let que = null, texto = enGuerra ? 'En guerra con tu bando: no comercia.' : 'Esta casa no ve negocio ahora.';
+      const mt = /^([^:]+):([^>]+)>(.+)$/.exec(ult);
+      if (mt && P[mt[1]]) { que = { prod: mt[1], n: P[mt[1]].n, a: mt[2], b: mt[3], na: nomC(mt[2]), nb: nomC(mt[3]) }; texto = 'Lleva ' + P[mt[1]].n.toLowerCase() + ' de ' + nomC(mt[2]) + ' a ' + nomC(mt[3]) + '.'; }
+      return { id, n: casa.n, f: casa.f.slice(), ops: r.ops || 0, enGuerra, que, texto };
+    });
+  };
+  MER.aduanasVer = (s, ay) => {
+    const m = est(s);
+    return mias(s, ay).map(c => ({ ciudad: c, n: nomC(c), tasa: m.portoria[c] == null ? K.PORT0 : m.portoria[c], recaudado: r2((m.recaudo && m.recaudo[c]) || 0) }));
+  };
+
   // ---------- El mes ----------
   const sumar = (d, k, x) => { d[k] = r2((d[k] || 0) + x); };
   function sincronizarSucesos(s, m, ay, mes, av) {
@@ -367,12 +458,13 @@
       const fr = casa.f.some(f => tr.indexOf(f) >= 0); // con tratado no pagan aduana
       const n = CARGAS_RIVAL;
       const ca = simular(s, mejor.a, mejor.p, n, -1, ay, true), vb = simular(s, mejor.b, mejor.p, n, 1, ay, true);
-      if (!fr) { if (mejor.ta) sumar(delta, 'denarios', ca.total * mejor.ta); if (mejor.tb) sumar(delta, 'denarios', vb.total * mejor.tb); }
+      if (!fr) { if (mejor.ta) { sumar(delta, 'denarios', ca.total * mejor.ta); m.recaudo[mejor.a] = r2((m.recaudo[mejor.a] || 0) + ca.total * mejor.ta); } if (mejor.tb) { sumar(delta, 'denarios', vb.total * mejor.tb); m.recaudo[mejor.b] = r2((m.recaudo[mejor.b] || 0) + vb.total * mejor.tb); } }
       m.rivales[id].ult = mejor.p + ':' + mejor.a + '>' + mejor.b; m.rivales[id].ops = (m.rivales[id].ops || 0) + 1;
     }
   }
   MER.mes = (s, ay) => {
     const m = est(s), mes = mesAbs(s), delta = {}, av = [];
+    m.recaudo = {};
     // 1) guardar los precios del mes anterior (para las flechas) antes de mover nada
     const old = typeof m.ult === 'number' ? m.ult : mes - 1;
     for (const c of ciudadesDe(s)) { m.prev[c] = {}; for (const p of MER.ORDEN) m.prev[c][p] = r2(precioEn(s, c, p, old, ay)); }
@@ -415,6 +507,7 @@
     if (ef.renta) sumar(delta, 'denarios', ef.renta);
     m.contratos = m.contratos.filter(k => { if (k.hasta > mes) return true; av.push({ texto: 'Vence el contrato: ' + MER.CONTRATOS[k.id].n, tono: 'info' }); return false; });
     const ef2 = MER.efectos(s); ef2.felicidad = { pue: ef.felicidad.pue };
+    ef2.contratosFallidos = publicanosMes(s, m, ay, mes, av);
     // 9) verdura que caduca y acaparamiento de grano
     const ex = ay && ay.existencias ? ay.existencias() : (s.bienes || null);
     if (ex) {

@@ -3,7 +3,7 @@
    tiene sus hombres: un hueco en la formación y un hombre que anda hacia él a su paso, sin saltos.
    Tu manípulo no: sus hombres son los del bloque de LP1 (S.B.hombres), que ya andan solos hacia su hueco.
    Cuando un bloque pierde hombres, caen los de delante (se quedan en el suelo) y los de atrás cierran filas.
-   Contrato: crearTropas({ S }) → { figs, caidos, paso(dt, T), asienta(), lanzan(b, T), ofs }
+   Contrato: crearTropas({ S, muroDelante? }) → { figs, caidos, paso(dt, T), asienta(), lanzan(b, T), ofs }
      ofs: Map bloque → { x, z }: cuánto se dibuja apartado ese bloque entero (LP5a, lo pone fisica.js). f.tx, f.tz: el sitio de las reglas
      figs[]   hombres en pie: { bando 'r'|'g', x, z, yaw, clip, t, semilla, talla, b }  (yaw: mira hacia (sen yaw, cos yaw))
      caidos[] hombres caídos: los mismos campos, con clip 'morir' (se quedan donde cayeron) */
@@ -18,7 +18,7 @@ const DUR = { golpear: 1.55, lanzar: 1.85, cubrirse: 1.25, morir: 2.4, encajar: 
 const CAIDOS_MAX = 700;
 const FRENA = 0.88;   /* LP5a: el que va contra alguien afloja hasta 1 − FRENA de su paso (lo mismo que fisica.js FRENA) */
 
-export function crearTropas({ S }) {
+export function crearTropas({ S, muroDelante = false }) {   /* FU1: muroDelante: en testudo la 1.ª fila no se cubre arriba, lleva el escudo de frente (guardia) */
   const figs = [], caidos = [];
   /* LP5a: cuánto se dibuja apartado cada bloque entero (lo pone la física cuando las reglas meten un bloque en otro):
      sus hombres van a su sitio más esto, y las filas no se deforman */
@@ -70,7 +70,7 @@ export function crearTropas({ S }) {
     const enChoque = b.contactos && b.contactos.length > 0, huye = b.estado === 'huye' || b.estado === 'fuera';
     let clip;
     if (huye) clip = 'correr';
-    else if (b.bando === 'r' && b.orden === 'testudo') clip = 'cubrirse';
+    else if (b.bando === 'r' && b.orden === 'testudo') clip = muroDelante && fila === 0 ? 'guardia' : 'cubrirse';
     else if (enChoque && fila <= 1 && f.v < 1.2) clip = 'golpear';
     else if (f.v > 2.3) clip = 'correr';
     else if (f.v > 0.3) clip = 'andar';

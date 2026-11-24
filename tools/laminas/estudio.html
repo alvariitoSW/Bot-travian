@@ -1,0 +1,29 @@
+<!doctype html><meta charset="utf-8"><base href="/"><title>Estudio de miniaturas</title>
+<style>html,body{margin:0;background:transparent}canvas{display:block}</style>
+<script type="module">
+/* Estudio de miniaturas de edificio (MN4c): pinta cada modelo de 0 A.D. (CC BY-SA 3.0) solo, con luz cálida y vista 3/4. Lo maneja hacer.mjs */
+import { THREE } from '/js/gfx/models.js';
+import { loadStaticIndex, loadStatic, staticMesh } from '/js/gfx/statics.js';
+const T = 320;   // se dibuja a 320 y se reduce a 160 al guardar
+const r = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+r.setSize(T, T); r.setPixelRatio(1); r.outputColorSpace = THREE.SRGBColorSpace; r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.05; r.setClearColor(0x000000, 0);
+document.body.appendChild(r.domElement);
+const esc = new THREE.Scene();
+const sol = new THREE.DirectionalLight('#ffd7a0', 3.4); sol.position.set(-4, 5, 3.5);
+esc.add(sol, new THREE.HemisphereLight('#d9d2c4', '#8a6a44', 1.7));
+window.pinta = async (key, ajuste) => {
+  await loadStaticIndex(); const st = await loadStatic(key); if (!st) return null;
+  const g = staticMesh(key, '#b3261e'); esc.add(g);
+  g.updateMatrixWorld(true);
+  /* quita piezas sueltas muy pequeñas y alejadas (troncos, utensilios fuera de la caja del edificio) */
+  const cajas = g.children.map(m => new THREE.Box3().setFromObject(m)), vol = c => { const z = c.getSize(new THREE.Vector3()); return z.x * z.y * z.z; };
+  if (cajas.length > 1) { const mx = cajas.reduce((a, c) => vol(c) > vol(a) ? c : a), cm0 = mx.getCenter(new THREE.Vector3()), d0 = mx.getSize(new THREE.Vector3()).length();
+    g.children.slice().forEach((m, i) => { if (vol(cajas[i]) < vol(mx) * 0.06 && cajas[i].getCenter(new THREE.Vector3()).distanceTo(cm0) > d0 * 0.6) g.remove(m); }); }
+  g.updateMatrixWorld(true); const bx = new THREE.Box3().setFromObject(g), sz = bx.getSize(new THREE.Vector3()), ct = bx.getCenter(new THREE.Vector3());
+  const rad = 0.5 * Math.hypot(sz.x, sz.y, sz.z) * (ajuste || 1);
+  const cm = new THREE.PerspectiveCamera(28, 1, 1, 2000); cm.position.set(ct.x + rad * 2.0, ct.y + rad * 1.55, ct.z + rad * 2.5); cm.lookAt(ct.x, ct.y - rad * 0.06, ct.z);
+  r.render(esc, cm); await new Promise(ok => setTimeout(ok, 900)); r.render(esc, cm); esc.remove(g);
+  return r.domElement.toDataURL('image/png');
+};
+window.listo = true;
+</script>

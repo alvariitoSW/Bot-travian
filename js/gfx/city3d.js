@@ -17,14 +17,17 @@ import * as Fachadas from './fachadas.js';           // CN15a: puestos, toldos y
 import { crearRio, crearCielo, texturaRuido, texturasMundo, loadGroundTextures, crearSuelo3, GLSL_NUBES, tintesEstacion, OPC_SUELO } from './ground.js';
 import { altura, RIO, NIVEL_RIO, azar, distRio } from './mundo.js';
 import * as CI from '../ciudad.js';
+import * as Calles from '../calles.js';           // CD2a: calles con el dedo y el arquitecto (reglas)
+import * as Calles3d from './calles3d.js';
+import { crearBarra } from '../calles-ui.js';
 import * as RS from './roma-siglo.js';
 import * as Campos from './campos.js';          // CI1-8: campos de trigo en franjas alrededor de la ciudad (solo vista)          // CI1: Roma de su siglo (templo toscano, muralla de toba, ínsulas, tabernas); RS.ROMA_SIGLO = false la apaga
 const { PUENTE } = CI;
 const D = window.DATA;
 
-const ASSETS = 'assets/static/', HORIZ = '#cdc3b2';
+const ASSETS = 'assets/static/', HORIZ = '#e0c698';
 let renderer = null, host = null;                  // el renderer y el contenedor los crea CityView3D
-const scene = new THREE.Scene(); scene.background = new THREE.Color(HORIZ); scene.fog = new THREE.FogExp2(HORIZ, 0.00029);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(HORIZ); scene.fog = new THREE.FogExp2(HORIZ, 0.00022);
 const U = { uRuido: { value: null }, uTiempo: { value: 0 }, uPlano: { value: 0 } };          /* CV4a: uPlano = 0 de cerca, 1 en la vista de plano */
 
 /* ---------- carga (copiado de ciudad2) ---------- */
@@ -208,10 +211,10 @@ export const LUZ_ESTACIONAL = true;
    quedaba siempre de noche, y en marcha anochecía cada 4 s. Ahora siempre es de día, con la luz de la estación; sin antorchas. true = como antes. */
 export const DIA_NOCHE = false;
 const ANCLAS = [
-  { dir: [-0.82, 0.45, 0.30], sol: '#ffe6b8', si: 3.2, hc: '#b2cade', hg: '#80904c', hi: 1.5, h: '#c3cdb0', fog: 0.00029 },     // primavera: verde y limpia
-  { dir: [-0.84, 0.52, 0.26], sol: '#ffdfb4', si: 3.3, hc: '#b6c6de', hg: '#927252', hi: 1.45, h: '#cdc3b2', fog: 0.00029 },     // verano: dorado (como siempre)
-  { dir: [-0.86, 0.36, 0.22], sol: '#ffbe80', si: 3.0, hc: '#c4b4b4', hg: '#8a5a38', hi: 1.3, h: '#cba98c', fog: 0.00034 },      // otoño: ocre
-  { dir: [-0.90, 0.24, 0.20], sol: '#d4e0f6', si: 2.5, hc: '#a4b6d6', hg: '#6a6866', hi: 1.4, h: '#b4bec8', fog: 0.00042 }];     // invierno: frío, sol bajo
+  { dir: [-0.82, 0.45, 0.30], sol: '#ffe2b0', si: 3.5, hc: '#b2cade', hg: '#80904c', hi: 1.35, h: '#dccf9c', fog: 0.00023 },     // primavera: verde y limpia
+  { dir: [-0.84, 0.52, 0.26], sol: '#ffd8a4', si: 3.7, hc: '#b2c4de', hg: '#8c6a40', hi: 1.25, h: '#e0c698', fog: 0.00022 },     // verano: dorado (como siempre)
+  { dir: [-0.86, 0.36, 0.22], sol: '#ffbe80', si: 3.0, hc: '#c8bcb4', hg: '#7c7a40', hi: 1.3, h: '#cba98c', fog: 0.00034 },      // otoño: ocre
+  { dir: [-0.90, 0.24, 0.20], sol: '#ffeccc', si: 3.0, hc: '#bccade', hg: '#6f8650', hi: 1.55, h: '#cfc4b0', fog: 0.00032 }];     // invierno: frío, sol bajo
 for (const a of ANCLAS) { a.dir = new THREE.Vector3(...a.dir).normalize(); for (const k of ['sol', 'hc', 'hg', 'h']) a[k] = new THREE.Color(a[k]); }
 const ORO = { sol: new THREE.Color('#ff8f3c'), h: new THREE.Color('#e2a574'), hc: new THREE.Color('#d8a888') };
 const _c1 = new THREE.Color(), _sm = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
@@ -220,10 +223,10 @@ let hemiBase = 1.45, solBase = 3.3, copasM = null, nieblaBase = 0.00029, nieblaK
 export function estacionActual() { return { k: estK, f: estF, ks: estSol < 0 ? estK : estSol }; }
 /* CV1: el aspecto de plano (niebla, luz, exposición, río, copas de árbol) sale de un solo número, 0 de cerca y 1 en plano, derivado de nieblaK */
 const SOL_P = new THREE.Vector3(-0.90, 0.60, 0.36).normalize(), _dirP = new THREE.Vector3(); let kqLuz = -1;      /* CD1a: sol de tarde en plano, a unos 31° de altura, del oeste-suroeste */
-const PLANO_LUZ = { exposicion: 0.08, hemi: 0.7, sol: 0.12, sombra: 0.42 }, _solC = new THREE.Color('#ffdfb4'), _hemC = new THREE.Color('#b6c6de'), _hemG = new THREE.Color('#927252'), LUZ_PLANO = { sol: new THREE.Color('#ffd49c'), cielo: new THREE.Color('#f7e6cc'), suelo: new THREE.Color('#b09a70') }, AZUL_RIO = new THREE.Color('#2f7fae'), _rio0 = new THREE.Color('#6f8288');
+const PLANO_LUZ = { exposicion: 0.08, hemi: 0.7, sol: 0.12, sombra: 0.42 }, _solC = new THREE.Color('#ffdfb4'), _hemC = new THREE.Color('#b6c6de'), _hemG = new THREE.Color('#927252'), LUZ_PLANO = { sol: new THREE.Color('#ffd49c'), cielo: new THREE.Color('#f7e6cc'), suelo: new THREE.Color('#b09a70') }, AZUL_RIO = new THREE.Color('#2a8cc4'), _rio0 = new THREE.Color('#3f8fb8');
 function ambientePlano() {
   const k = Math.max(0, Math.min(1, (1 - nieblaK) / 0.98)); scene.fog.density = nieblaBase * nieblaK;
-  hemi.intensity = hemiBase * (1 + PLANO_LUZ.hemi * k); sol.intensity = solBase * (1 + PLANO_LUZ.sol * k); renderer.toneMappingExposure = 0.92 + PLANO_LUZ.exposicion * k;
+  hemi.intensity = hemiBase * (1 + PLANO_LUZ.hemi * k); sol.intensity = solBase * (1 + PLANO_LUZ.sol * k); renderer.toneMappingExposure = 1.02 + PLANO_LUZ.exposicion * k;
   /* CV4a: en plano la luz es clara y neutra (sin el tinte frío o dorado de la estación en tejados y suelo) y las sombras, más suaves; de cerca no cambia nada */
   U.uPlano.value = k; sol.color.copy(_solC).lerp(LUZ_PLANO.sol, k * 0.85); hemi.color.copy(_hemC).lerp(LUZ_PLANO.cielo, k * 0.85); hemi.groundColor.copy(_hemG).lerp(LUZ_PLANO.suelo, k * 0.85); if (sol.shadow) sol.shadow.intensity = 1 - PLANO_LUZ.sombra * k;
   { const kq = Math.round(k * 20) / 20; if (kq !== kqLuz) { kqLuz = kq; _dirP.copy(SOL).lerp(SOL_P, kq).normalize(); sol.position.set(0, 0, -70).addScaledVector(_dirP, 1500); const sc = sol.shadow && sol.shadow.camera; if (sc) { const RS = 600 + 340 * kq; sc.left = -RS; sc.right = RS; sc.top = RS; sc.bottom = -RS; sc.updateProjectionMatrix(); } sombraPend = true; } }
@@ -348,7 +351,7 @@ export function ponerFantasma(f) { fantasma = f; pinM.visible = !!f; if (f) { co
 /* CI1-7: relleno de la vista (casas de fondo, ínsulas, patios y huertos del arrabal) en las celdas libres; cede ante calles, parcelas, edificios y el fantasma */
 let rellenoC = null, rellenoN = -1;
 /* CD5b: teja con tono por casa: rojizo, anaranjado u ocre, ±8 % (la teja nueva, más viva). h: azar fijo 0..1 de la casa */
-const TEJAS_T = [[1.04, 0.84, 0.86], [1.08, 1.22, 0.9], [1.0, 1.5, 1.4]];
+const TEJAS_T = [[1.16, 0.74, 0.72], [1.12, 1.0, 0.78], [1.04, 1.3, 1.2]];
 const hashXZ = (x, z) => { const v = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return v - Math.floor(v); };
 const tejaTono = (h, nueva) => { if (nueva) return TEJA_NUEVA.slice(0, 3); const b = TEJAS_T[Math.floor(h * 3) % 3], v = 1 + (((h * 37) % 1) - 0.5) * 0.16; return [b[0] * v, b[1] * v, b[2] * v]; };
 /* CD5b: estado de un barrio a la vista. 'sube' = andamios en unas casas; 'cae' = casas tapiadas y tejados rotos; 'revuelta' = gentío apiñado y humo.
@@ -635,7 +638,7 @@ function repartir(todo) { camara.updateMatrixWorld(); _pm.multiplyMatrices(camar
 /* ---------- E5: ambiente. Tono por estación (suave, SE SUMA a la luz y los tintes de Q11/CN15a), viñeta y contorno dorado de lo elegido.
    Las piezas de efectos de three.js (js/vendor/postprocessing/) se cargan aparte: si fallan, la ciudad sigue sin efectos. Apagado = renderer.render directo, como siempre. ---------- */
 let FX = null, fxFallo = false, fxCarga = null, composer = null, fxTono = null, fxContorno = null, ambienteOn = true, neutro = false, contornoClave = '', contornoMallas = [], contornoSucio = true, vistaActual = null, selActual = null;
-const TONO_E = [{ m: [0.98, 1.02, 1.01], s: 1.05 }, { m: [1.04, 1.0, 0.94], s: 1.04 }, { m: [1.06, 0.99, 0.91], s: 1.06 }, { m: [0.94, 0.99, 1.06], s: 0.86 }];      // primavera fresca, verano cálido, otoño dorado, invierno frío y apagado (en luz lineal)
+const TONO_E = [{ m: [0.96, 1.05, 0.98], s: 1.18 }, { m: [1.05, 1.0, 0.93], s: 1.16 }, { m: [1.06, 1.0, 0.9], s: 1.14 }, { m: [0.92, 1.07, 0.94], s: 1.22 }];      // primavera fresca, verano cálido, otoño dorado, invierno frío y apagado (en luz lineal)
 const matFantasma = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
 function cargarFX() {
   if (!fxCarga) fxCarga = Promise.all([import('../vendor/postprocessing/EffectComposer.js'), import('../vendor/postprocessing/RenderPass.js'), import('../vendor/postprocessing/ShaderPass.js'), import('../vendor/postprocessing/OutlinePass.js')])
@@ -645,7 +648,7 @@ function cargarFX() {
 const SHADER_TONO = {
   uniforms: { tDiffuse: { value: null }, uTono: { value: new THREE.Vector3(1, 1, 1) }, uSat: { value: 1 }, uVig: { value: 0 } },
   vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-  fragmentShader: 'uniform sampler2D tDiffuse; uniform vec3 uTono; uniform float uSat, uVig; varying vec2 vUv; void main() { vec4 c = texture2D(tDiffuse, vUv); float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722)); vec3 r = mix(vec3(l), c.rgb, uSat) * uTono; float d = length((vUv - 0.5) * vec2(1.0, 1.15)) * 1.414; r *= 1.0 - uVig * smoothstep(0.55, 1.15, d); gl_FragColor = vec4(r, c.a);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' };      // va a pantalla: hace también el ACES y el sRGB (una sola pasada; sin OutputPass)
+  fragmentShader: 'uniform sampler2D tDiffuse; uniform vec3 uTono; uniform float uSat, uVig; varying vec2 vUv; void main() { vec4 c = texture2D(tDiffuse, vUv); float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722)); vec3 r = mix(vec3(l), c.rgb, uSat) * uTono; r = 0.18 * pow(max(r, vec3(0.0)) / 0.18, vec3(1.12)); r *= mix(vec3(0.94, 0.95, 1.04), vec3(1.05, 1.0, 0.92), smoothstep(0.03, 0.5, l)); float d = length((vUv - 0.5) * vec2(1.0, 1.15)) * 1.414; r *= 1.0 - uVig * smoothstep(0.55, 1.15, d); gl_FragColor = vec4(r, c.a);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' };      // va a pantalla: hace también el ACES y el sRGB (una sola pasada; sin OutputPass)
 function montarComposer() {
   if (composer || !FX || fxFallo) return !!composer;
   try {
@@ -735,7 +738,7 @@ export class CityView3D {
   constructor(hostEl, opts) {
     host = this.host = hostEl; this.opts = opts || {}; planoBaseOn = !!this.opts.planoBase; vistaActual = this; try { const Gm = window.Game; ambienteOn = !Gm || !Gm.ambiente || Gm.ambiente(); if (ambienteOn) cargarFX(); } catch (e) { }
     renderer = this.r = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.92; renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.02; renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false;      // la sombra se calcula a petición
     this.cv = renderer.domElement; this.cv.className = 'gl'; this.cv.style.touchAction = 'none'; host.appendChild(this.cv);
     this.labels = document.createElement('div'); this.labels.className = 'mlabels'; host.appendChild(this.labels);      // vacío: las medallas las quitó CN3 (CN4 pone la ficha)
@@ -845,16 +848,19 @@ export class CityView3D {
     const cv = this.cv, dedos = new Map(); let gesto = null; const fija = () => this._plano && planoBaseOn;      // CD1a: en plano no se gira ni se inclina
     cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); dedos.set(e.pointerId, { x: e.clientX, y: e.clientY }); this.camA = null;
       if (dedos.size === 1) gesto = { tipo: (e.button === 2 || e.shiftKey) && !fija() ? 'giro' : 'mover', x0: e.clientX, y0: e.clientY, t0: performance.now(), movido: 0, g: sueloEn(e.clientX, e.clientY) };
-      if (dedos.size === 1 && this.opts.agarra) { const o = this.opts.agarra(e.clientX, e.clientY); if (o) Object.assign(gesto, { tipo: 'ficha', dx: o.dx, dy: o.dy }); }      // CN4: un dedo cerca del fantasma lo arrastra
-      if (dedos.size === 2) { const [a, b] = [...dedos.values()]; gesto = { tipo: 'dos', d: Math.hypot(a.x - b.x, a.y - b.y), ang: Math.atan2(b.y - a.y, b.x - a.x), cd: cam.d, az: cam.az, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, movido: 99 }; } });
+      if (dedos.size === 1 && this._calles) { gesto = { tipo: 'calle', x0: e.clientX, y0: e.clientY, t0: performance.now(), movido: 0 }; this.callesEmpieza(e.clientX, e.clientY); }      // CD2a: con «Calles» activo un dedo traza
+      else if (dedos.size === 1 && this.opts.agarra) { const o = this.opts.agarra(e.clientX, e.clientY); if (o) Object.assign(gesto, { tipo: 'ficha', dx: o.dx, dy: o.dy }); }      // CN4: un dedo cerca del fantasma lo arrastra
+      if (dedos.size === 2) { if (this._calles) this.callesAbandona(); const [a, b] = [...dedos.values()]; gesto = { tipo: 'dos', d: Math.hypot(a.x - b.x, a.y - b.y), ang: Math.atan2(b.y - a.y, b.x - a.x), cd: cam.d, az: cam.az, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, movido: 99 }; } });
     cv.addEventListener('pointermove', e => { const p = dedos.get(e.pointerId); if (!p || !gesto) return; const ax = p.x; p.x = e.clientX; p.y = e.clientY;
       if (gesto.tipo === 'dos' && dedos.size >= 2) { const [a, b] = [...dedos.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2; let da = ang - gesto.ang; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
         cam.d = gesto.cd * gesto.d / Math.max(20, d); if (!fija() && (Math.abs(da) > 0.12 || gesto.gira)) { gesto.gira = true; cam.az = gesto.az - da; } const k = cam.d / vista.h * 0.9, c = Math.cos(cam.az), s = Math.sin(cam.az), ux = -(mx - gesto.mx) * k, uy = -(my - gesto.my) * k * (fija() ? 1.0 : 1.6); cam.tx += ux * c + uy * s; cam.tz += -ux * s + uy * c; gesto.mx = mx; gesto.my = my; ponerCamara(); return; }
       if (dedos.size !== 1) return; gesto.movido = Math.max(gesto.movido, Math.hypot(e.clientX - gesto.x0, e.clientY - gesto.y0));
-      if (gesto.tipo === 'ficha') { if (this.opts.onFicha) this.opts.onFicha(e.clientX + gesto.dx, e.clientY + gesto.dy); }
+      if (gesto.tipo === 'calle') this.callesSigue(e.clientX, e.clientY);
+      else if (gesto.tipo === 'ficha') { if (this.opts.onFicha) this.opts.onFicha(e.clientX + gesto.dx, e.clientY + gesto.dy); }
       else if (gesto.tipo === 'giro') { cam.az -= (e.clientX - ax) * 0.008; ponerCamara(); }
       else if (gesto.movido > 6 && gesto.g) { const g = sueloEn(e.clientX, e.clientY); if (g) { cam.tx += gesto.g[0] - g[0]; cam.tz += gesto.g[1] - g[1]; ponerCamara(); } } });
     const soltar = e => { if (!dedos.has(e.pointerId)) return; dedos.delete(e.pointerId);
+      if (gesto && gesto.tipo === 'calle') { if (dedos.size === 0) { if (e.type === 'pointerup') this.callesSuelta(); else this.callesAbandona(); gesto = null; } return; }
       if (gesto && gesto.tipo !== 'dos' && dedos.size === 0 && gesto.movido < 9 && performance.now() - gesto.t0 < 600 && e.type === 'pointerup') this.tocar(e.clientX, e.clientY);
       if (dedos.size === 1) { const p = [...dedos.values()][0]; gesto = { tipo: 'mover', x0: p.x, y0: p.y, t0: 0, movido: 99, g: sueloEn(p.x, p.y) }; } else if (dedos.size === 0) gesto = null; };
     cv.addEventListener('pointerup', soltar); cv.addEventListener('pointercancel', soltar);
@@ -862,6 +868,32 @@ export class CityView3D {
     cv.addEventListener('contextmenu', e => e.preventDefault());
   }
   zoom(f) { cam.d /= f; ponerCamara(); }
+  /* CD2a: modo «Calles». Con él activo, un dedo dibuja el trazo sobre el suelo; dos dedos siguen moviendo la cámara. Apagado, nada cambia. */
+  get enCalles() { return !!this._calles; }
+  calles(on) {
+    on = !!on; if (on === !!this._calles) return;
+    if (!on) { const c = this._calles; c.barra.quitar(); Calles3d.limpiar(); this._calles = null; if (c.puso && this._plano) this.plano(false); if (this.opts.onCallesSalir) this.opts.onCallesSalir(); return; }
+    if (!E) return; const puso = !this._plano; if (puso) this.plano(true);
+    Calles3d.montar(scene);
+    const c = this._calles = { puso, trazo: [], formas: null, cual: 'tal', prop: null, barra: null };
+    c.barra = crearBarra(this.host, { salir: () => this.calles(false), proponer: () => this.callesProponer(), forma: k => { c.cual = k; this.callesMuestra(); }, borrar: () => this.callesBorra(),
+      hacer: () => this.callesHaz(c.formas && c.formas[c.cual]), aceptar: () => this.callesHaz(c.prop && c.prop.pts), descartar: () => this.callesBorra() });
+  }
+  callesBorra() { const c = this._calles; if (!c) return; c.trazo = []; c.formas = null; c.prop = null; Calles3d.pintar({}); c.barra.elegir(); }
+  callesEmpieza(x, y) { const c = this._calles; c.trazo = []; c.formas = null; c.prop = null; c.barra.elegir(); const g = sueloEn(x, y); if (g) c.trazo.push(g); Calles3d.pintar({ trazo: c.trazo }); }
+  callesSigue(x, y) { const c = this._calles; if (!c) return; const g = sueloEn(x, y), u = c.trazo[c.trazo.length - 1]; if (!g) return; if (!u || Math.hypot(g[0] - u[0], g[1] - u[1]) >= 3) { c.trazo.push(g); Calles3d.pintar({ trazo: c.trazo }); } }
+  callesAbandona() { const c = this._calles; if (c) { c.trazo = []; Calles3d.pintar({}); } }
+  callesSuelta() { const c = this._calles; if (!c) return; if (c.trazo.length < 2 || CI.largoTrazo(c.trazo) < 6) { this.callesBorra(); return; }
+    c.formas = Calles.formas(E, c.trazo); c.cual = 'tal'; this.callesMuestra(); }
+  callesMuestra() { const c = this._calles; if (!c || !c.formas) return; const pts = c.formas[c.cual], v = Calles.validar(E, pts);
+    Calles3d.pintar({ forma: pts, ok: v.ok }); c.barra.trazado({ cual: c.cual, ok: v.ok, motivo: v.motivo, largo: v.largo, costeTxt: Calles.costeTexto(v.coste) }); }
+  callesProponer() { const c = this._calles; if (!c) return; const p = Calles.proponer(E);
+    if (!p) { Calles3d.pintar({}); c.barra.aviso('Ahora el arquitecto no ve un buen sitio para otra calle.'); return; }
+    c.trazo = []; c.formas = null; c.prop = p; Calles3d.pintar({ propuesta: p.pts }); c.barra.propuesta({ porque: p.porque, costeTxt: Calles.costeTexto(Calles.coste(p.largo)) }); }
+  callesHaz(pts) { const c = this._calles; if (!c || !pts) return;
+    const r = this.opts.onCalle ? this.opts.onCalle(pts) : CI.trazarCalle(E, pts, false);
+    if (r === false || (r && r.ok === false)) { Calles3d.pintar({}); c.barra.aviso((r && r.motivo) || 'No se pudo hacer la calle.'); return; }
+    sincronizar(true); this.callesBorra(); Calles3d.pintar({ hecha: pts }); clearTimeout(c.tHecha); c.tHecha = setTimeout(() => { if (this._calles === c) Calles3d.pintar({}); }, this.opts.msDestello || 3000); }
   /* CV1: vista de plano. Cámara casi a plomo que encuadra la urbe entera y sin bruma. Solo vista; no toca reglas ni datos. */
   get enPlano() { return !!this._plano; }
   plano(on, hacia, ya) {
