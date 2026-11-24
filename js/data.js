@@ -51,6 +51,7 @@
   D.HIERRO_COMPRA = 0.6;   // CE2: el hierro comprado en el mercado rinde un 60 % del cambio (escasea fuera de Etruria e Hispania; licencia de juego)
   D.CAP_MUL = { materiales: 2 };   // CE2: el almacén guarda el doble de materiales (antes eran dos recursos, madera y piedra; licencia de juego)
   D.MAT_MUL = 0.8;   // CE2: multiplica los materiales de aserradero, cantera y aldeas (ajuste con el bot; licencia de juego)
+  D.BIENES_AGRO = { aceite: { precio: 5, n: 'Aceite', i: '🫒' }, verdura: { precio: 2, n: 'Verdura', i: '🥬' }, lana: { precio: 4, n: 'Lana', i: '🐑' } };   // CDe3-F2a: se guardan en s.bienes junto a los de D.BIENES (el vino ya está allí), pero no son bienes especiales de ciudad. Precios de referencia: licencia de juego
   D.BIEN_MES = 4; D.BIEN_TOPE = 60; D.LUJO_POR_CIU = 0.02; D.BIEN_SOBRA = 0.5;
   D.MONTHS = ['Ianuarius', 'Februarius', 'Martius', 'Aprilis', 'Maius', 'Iunius', 'Quintilis', 'Sextilis', 'September', 'October', 'November', 'December'];
 
@@ -69,14 +70,27 @@
     muralla: { n: 'Muralla', fam: 'militar', i: '🧱', cost: { materiales: 190, denarios: 10 }, time: 3, d: '+10 % de defensa por nivel y más guardia urbana al defender.' },
     herreria: { n: 'Herrería', fam: 'militar', i: '🔨', solar: 1, cost: { materiales: 220, denarios: 45 }, time: 2.5, d: 'Forja mejoras de armas y armaduras para todo el ejército. Cada mejora no puede pasar del nivel de la herrería.' },
     escuela: { n: 'Escuela', fam: 'principales', i: '📜', solar: 1, cost: { materiales: 170, denarios: 80 }, time: 3, d: 'Aquí estudian los sabios: aceleran las investigaciones y cobran paga.' },
-    templo: { n: 'Templo', fam: 'politica', i: '🔥', solar: 1, cost: { materiales: 210, denarios: 80 }, time: 3, d: 'Un templo a un dios por ciudad (Marte, Ceres o Neptuno). Por nivel: +4 de felicidad, +10 de población máxima, +10 % de experiencia del héroe, calma antes a una ciudad conquistada y el don de su dios.' }
+    templo: { n: 'Templo', fam: 'politica', i: '🔥', solar: 1, cost: { materiales: 210, denarios: 80 }, time: 3, d: 'Un templo a un dios por ciudad (Marte, Ceres o Neptuno). Por nivel: +4 de felicidad, +10 de población máxima, +10 % de experiencia del héroe, calma antes a una ciudad conquistada y el don de su dios.' },
+    /* CDe3-F2a: familia Agricultura. No son edificios de c.b: se plantan en el suelo (G.plantarCampo, G.mejorarParcela) y viven en s.agro. Costes y tiempos: licencia de juego. */
+    agri_trigo: { n: 'Campo de trigo', fam: 'agricultura', i: '🌾', agro: 1, campo: 'trigo', cost: { materiales: 60, denarios: 10 }, time: 1, d: 'Cereal del pan. Pide llano y tierra honda; en ladera seca no se ara.' },
+    agri_olivar: { n: 'Olivar', fam: 'agricultura', i: '🫒', agro: 1, campo: 'olivar', cost: { materiales: 80, denarios: 60 }, time: 1, d: 'Olivos en hilera: dan aceite. Aguantan la ladera seca y se pudren con el pie en agua.' },
+    agri_vina: { n: 'Viña', fam: 'agricultura', i: '🍇', agro: 1, campo: 'vina', cost: { materiales: 80, denarios: 60 }, time: 1, d: 'Vides en espaldera: dan vino. Piden sol de cara al sur.' },
+    agri_huerto: { n: 'Huerto', fam: 'agricultura', i: '🥬', agro: 1, campo: 'huerto', cost: { materiales: 50, denarios: 20 }, time: 1, d: 'Verdura todo el año. Necesita agua cerca; la verdura se pasa pronto.' },
+    agri_pasto: { n: 'Pasto', fam: 'agricultura', i: '🐑', agro: 1, campo: 'pasto', cost: { materiales: 40, denarios: 20 }, time: 1, d: 'Prado para ovejas: da lana. Sirve donde nada más crece.' },
+    agri_estercolero: { n: 'Estercolero', fam: 'agricultura', i: '💩', agro: 1, mejora: 'estercolero', campo: 'trigo', cost: { materiales: 40, denarios: 120 }, time: 1, d: 'El trigo rinde un 20 % más (un 35 % con pasto vecino).' },
+    agri_era: { n: 'Era empedrada', fam: 'agricultura', i: '🪨', agro: 1, mejora: 'era', campo: 'trigo', cost: { materiales: 60, denarios: 150 }, time: 1, d: 'El trigo rinde un 15 % más.' },
+    agri_almazara: { n: 'Almazara y prensa', fam: 'agricultura', i: '🛢️', agro: 1, mejora: 'almazara', campo: 'olivar', cost: { materiales: 100, denarios: 250 }, time: 1, d: 'Sin ella el aceite rinde la mitad.' },
+    agri_lagar: { n: 'Lagar', fam: 'agricultura', i: '🍷', agro: 1, mejora: 'lagar', campo: 'vina', cost: { materiales: 100, denarios: 250 }, time: 1, d: 'Sin él el vino rinde la mitad.' },
+    agri_bodega: { n: 'Bodega de dolias', fam: 'agricultura', i: '🏺', agro: 1, mejora: 'bodega', campo: 'vina', cost: { materiales: 80, denarios: 200 }, time: 1, d: 'El vino se guarda sin perderse y vale más.' },
+    agri_noria: { n: 'Noria o riego', fam: 'agricultura', i: '⚙️', agro: 1, mejora: 'noria', campo: 'huerto', cost: { materiales: 70, denarios: 180 }, time: 1, d: 'El huerto rinde un 30 % más y se da bien en llano y tierra baja.' },
+    agri_redil: { n: 'Redil', fam: 'agricultura', i: '🐏', agro: 1, mejora: 'redil', campo: 'pasto', cost: { materiales: 40, denarios: 100 }, time: 1, d: 'Lana un 25 % mayor y estiércol para el trigo vecino.' }
   };
   /* CD1b: familias del menú «Construir» (CD0 §2). Licencia de juego: es una agrupación para el jugador. */
   /* CDe1/CDe2: las necesidades de barrio (js/necesidades.js) tienen consecuencia (dureza «Duro»): gente que se va, votos y favor, y la revuelta deja sin impuestos
      a las casas de ese barrio hasta que se calma. Se ven y se remedian en la ficha del barrio (CD5b). Licencia de juego. */
   D.NEC_CASTIGOS = true;
   D.NEC_PERDIDA = 0.003;   // CDe2: parte de los vecinos del barrio que se va por estación (una vez por barrio) con hambre, fiebres o abandono. Antes 1,5 %; medido con el bot de campaña (larga y corta) y el investigador
-  D.FAMILIAS = [['principales', 'Principales'], ['infra', 'Infraestructura'], ['politica', 'Política y culto'], ['militar', 'Militar'], ['produccion', 'Producción'], ['viviendas', 'Viviendas'], ['puerto', 'Puerto']];
+  D.FAMILIAS = [['principales', 'Principales'], ['infra', 'Infraestructura'], ['politica', 'Política y culto'], ['militar', 'Militar'], ['produccion', 'Producción'], ['viviendas', 'Viviendas'], ['puerto', 'Puerto'], ['agricultura', 'Agricultura']];
   D.FAMILIA_PIEZA = { fuente: 'infra', granero: 'principales', taller: 'produccion', salinas: 'produccion', zanja: 'infra', dique: 'infra', compitum: 'viviendas' };   // piezas de ciudad.js sin edificio de D.BUILD
   /* CDe1-C: las diez obras que eran «Pronto» ya se construyen: viven en EDIF de ciudad.js y su familia está en D.FAMILIA_PIEZA.
      Vacío a propósito: ciudad-menu.js lo recorre y tolera que no haya fichas. Acueducto: Aqua Appia, 312 a.C. (Frontino 1.5). Cloaca: Cloaca Máxima (Livio 1.38).
