@@ -198,7 +198,7 @@ export async function crearFalangitas({ escena, cap, carril, sombra = true }) {
   const texDe = nv => nv.j.huesos.length === nb ? tex : tex36;
   const niveles = NIVELES_F.map(k => malla(F.niveles[k], cap, conHuesos(F.niveles[k].mat, texDe(F.niveles[k]))));
   const oficial = malla(O.niveles[0], 1, conHuesos(O.niveles[0].mat, texDe(O.niveles[0])));
-  const espada = P ? malla(geoEspada(P.niveles[0]), CUANTOS[0] + 1, conHuesos(P.niveles[0].mat, tex)) : null;
+  const espada = P ? malla(geoEspada(P.niveles[0]), CUANTOS[0] + 25, conHuesos(P.niveles[0].mat, tex)) : null;
   /* la hoja brilla un poco por sí misma: a contraluz (el sol de la escena viene de frente) el hierro salía negro */
   if (espada) { const m = espada.malla.material; m.emissive = new THREE.Color(0.42, 0.4, 0.37); m.emissiveMap = m.map; }
   /* la sombra: nivel _fondo de todos (y el oficial), solo en el mapa de sombras (ver soloSombra) */
@@ -232,7 +232,9 @@ export async function crearFalangitas({ escena, cap, carril, sombra = true }) {
       for (const t of niveles) t.limpiar(); oficial.limpiar(); if (espada) espada.limpiar(); if (sombraT) sombraT.limpiar();
       orden.forEach((h, k) => { let n = 0; for (let a = CUANTOS[0]; n < CUANTOS.length && k >= a; a += CUANTOS[++n] || 0); const t = niveles[Math.min(n, niveles.length - 1)]; poner(t, t.sig(), h); });
       if (yo) poner(oficial, oficial.sig(), yo);
-      if (espada) { const cerca = (yo ? [yo] : []).concat(orden.slice(0, CUANTOS[0])); for (const h of cerca) { const e = espadaDe ? espadaDe(h) : 1; if (!e) continue; const i = espada.sig(); if (i < 0) break; poner(espada, i, h); mu(espada).setX(i, e); } }
+      /* la espada: primero los que la tienen en la mano (estén donde estén, los más cercanos antes), luego la envainada de los de cerca */
+      if (espada) { const todos = (yo ? [yo] : []).concat(orden), e2 = todos.filter(h => espadaDe && espadaDe(h) === 2), e1 = todos.slice(0, CUANTOS[0] + 1).filter(h => !espadaDe || espadaDe(h) === 1);
+        for (const h of e2.concat(e1)) { const i = espada.sig(); if (i < 0) break; poner(espada, i, h); mu(espada).setX(i, espadaDe ? espadaDe(h) : 1); } }
       if (sombraT) for (const h of lista) if (h.vivo || h.caido) poner(sombraT, sombraT.sig(), h);
       for (const t of niveles.concat([oficial], espada ? [espada] : [], sombraT ? [sombraT] : [])) fin(t);
       for (const t of niveles.concat([oficial], espada ? [espada] : [])) t.malla.visible = t.malla.count > 0;   /* sin hombres, sin llamada */

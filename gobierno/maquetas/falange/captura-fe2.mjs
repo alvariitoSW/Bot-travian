@@ -52,6 +52,8 @@ const MOMENTOS = {
   hombroEspada: `hasta(() => S.fal.some(h => h.picaRota && h.vivo && S.T - h.tRota > 2.4)); sobreHombro(S.fal.find(h => h.picaRota && h.vivo && S.T - h.tRota > 2.4))`,
   /* al acabar: la primera fila con las espadas fuera, de frente y en diagonal (el de la pica rota más cerca de la cámara) */
   final: `hasta(() => !!S.ganador); anda(2.5); const vs = S.fal.filter(h => h.picaRota && h.vivo && h.r === 0), h = vs.sort((a, b) => Math.abs(a.f - 5.5) - Math.abs(b.f - 5.5))[0] || rotoDe(), [fx, fz] = fr(), [rx, rz] = de(), g = t.H(h.x, h.z); miraA(h.x + fx * 6.5 + rx * 1.8, g + 3.9, h.z + fz * 6.5 + rz * 1.8, h.x + rx * 0.4, g + 0.9, h.z + rz * 0.4)`,
+  /* los soldados nuevos de frente, en diagonal, antes de la carga (tú, el oficial del penacho, a la derecha de la foto) */
+  frente: `anda(6); const h = S.fal[S.yo.i], [fx, fz] = fr(), [rx, rz] = de(), g = t.H(h.x, h.z); miraA(h.x + fx * 3.0 + rx * 1.2, g + 1.6, h.z + fz * 3.0 + rz * 1.2, h.x + rx * 1.4, g + 1.1, h.z + rz * 1.4)`,
   /* el elefante ensartado, de costado */
   ensartadoLado: `hasta(() => S.ene.some(e => e.tipo === 'elefante' && e.est === 'ensartada' && !e.vivo)); anda(3.2); const e = S.ene.find(e => e.tipo === 'elefante' && e.est === 'ensartada'), [fx, fz] = fr(), [rx, rz] = de(), lado = e.x > S.xF ? 1 : -1; miraA(e.x + rx * lado * 9 + fx * 7, t.H(e.x, e.z) + 3.4, e.z + rz * lado * 9 + fz * 7, e.x - fx * 0.5, t.H(e.x, e.z) + 0.9, e.z - fz * 0.5)`,
   /* la falange con los soldados nuevos, sarisas bajadas, antes del choque */
@@ -68,6 +70,7 @@ const FOTOS = [
   ['espadaLinea-h', Hz, 'rival=elefantes', 'espadaLinea'], ['espadaLinea-v', V, 'rival=elefantes', 'espadaLinea'],
   ['hombroRota-h', Hz, 'rival=elefantes', 'hombroRota'], ['hombroRota-v', V, 'rival=elefantes', 'hombroRota'], ['hombroEspada-h', Hz, 'rival=elefantes', 'hombroEspada'], ['hombroEspada-v', V, 'rival=elefantes', 'hombroEspada'],
   ['final-h', Hz, 'rival=elefantes', 'final'], ['final-v', V, 'rival=elefantes', 'final'],
+  ['frente-h', Hz, 'rival=elefantes', 'frente'], ['frente-v', V, 'rival=elefantes', 'frente'],
   ['ensartadoLado-h', Hz, 'rival=elefantes', 'ensartadoLado'], ['ensartadoLado-v', V, 'rival=elefantes', 'ensartadoLado'],
   ['falange-h', Hz, 'rival=elefantes', 'falange'], ['falange-v', V, 'rival=elefantes', 'falange'], ['lado-h', Hz, 'rival=elefantes', 'lado'],
 ];
