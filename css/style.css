@@ -445,6 +445,27 @@ canvas.gl { position: absolute; inset: 0; width: 100% !important; height: 100% !
 .pza.cara { filter: saturate(.5); } .pza.cara span { color: var(--bad); } .pza.cara span::before { background: var(--bad); box-shadow: none; }
 .pza.nueva { border-color: #9be07a; box-shadow: 0 0 0 2px rgba(155, 224, 122, .35), 0 4px 12px rgba(0, 0, 0, .45); }
 .pza:active { transform: translateY(1px); filter: brightness(1.15); }
+/* CD1: menú Construir */
+#bandeja, #bpest { display: none !important; }
+#cbtn { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 52px; margin: 0; border-radius: 14px; color: #1c1206; background: linear-gradient(var(--gold), var(--gold2)); border: 1px solid rgba(255, 240, 200, .5); box-shadow: 0 6px 18px rgba(0, 0, 0, .5); font-size: 17px; font-weight: 750; overflow: clip; }
+#cbtn[hidden] { display: none; } #cbtn:active { filter: brightness(1.1); transform: translateY(1px); } #cbtn.on { filter: saturate(.7); }
+#cmenu { position: absolute; left: 8px; right: 8px; bottom: calc(136px + env(safe-area-inset-bottom)); max-width: 560px; margin: 0 auto; z-index: 7; max-height: min(58%, 470px); overflow-x: clip; overflow-y: auto; overscroll-behavior: contain; padding: 8px; border-radius: 16px; background: rgba(24, 20, 15, .95); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1px solid var(--line2); box-shadow: 0 10px 30px #000a; color: var(--ink, #f3ead7); }
+#cmenu[hidden] { display: none; }
+#cmenu .cm-cab { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 2px 2px 8px; overflow: clip; }
+#cmenu .cm-cab b { flex: 1; text-align: center; font-size: 15px; white-space: nowrap; overflow: clip; text-overflow: ellipsis; }
+#cmenu .cm-cab button { flex: none; min-height: 40px; padding: 0 12px; border-radius: 20px; background: rgba(255, 255, 255, .08); border: 1px solid var(--line2); color: var(--gold); font-size: 14px; font-weight: 650; }
+#cmenu .cm-fams, #cmenu .cm-eds { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+#cmenu .cm-fam, #cmenu .cm-ed { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: flex-start; gap: 4px; min-width: 0; padding: 6px 4px 7px; border-radius: 12px; background: linear-gradient(rgba(54, 44, 31, .95), rgba(28, 23, 17, .95)); border: 1px solid var(--line2); color: inherit; overflow: clip; }
+#cmenu .cm-fam img, #cmenu .cm-ed img, #cmenu .cm-sv { width: 100%; height: 66px; object-fit: contain; display: grid; place-items: center; pointer-events: none; }
+#cmenu .cm-eds .cm-ed img, #cmenu .cm-eds .cm-sv { height: 78px; }
+#cmenu .cm-svg { width: 52px; height: 52px; color: var(--gold); }
+#cmenu .cm-fam b, #cmenu .cm-ed b { max-width: 100%; font-size: 13px; font-weight: 650; line-height: 1.15; text-align: center; white-space: nowrap; overflow: clip; text-overflow: ellipsis; }
+#cmenu .cm-ed span:not(.cm-sv) { font-size: 12px; font-weight: 650; color: var(--gold); text-align: center; line-height: 1.15; max-width: 100%; overflow: clip; white-space: nowrap; min-height: 14px; }
+#cmenu .cm-ed.cara { filter: saturate(.55); } #cmenu .cm-ed.cara span:not(.cm-sv) { color: var(--bad, #f07a5a); }
+#cmenu .cm-ed.cerrada, #cmenu .cm-ed.obra { opacity: .55; }
+#cmenu .cm-ed.pronto { opacity: .6; } #cmenu .cm-ed.pronto .cm-sello { color: #1c1206; background: var(--gold); border-radius: 9px; padding: 1px 8px; font-size: 11px; text-transform: uppercase; letter-spacing: .04em; }
+#cmenu .cm-fam:active, #cmenu .cm-ed:not(.pronto):active { filter: brightness(1.18); transform: translateY(1px); }
+#cmenu .cm-vacio { grid-column: 1 / -1; text-align: center; color: var(--mute); margin: 14px 0; }
 #acciones { gap: 8px; padding: 0; }
 #acciones button { height: 54px; border-radius: 12px; font-size: 15px; font-weight: 700; }
 #acciones { display: flex; }
@@ -1730,3 +1751,5 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
   .cg2-fcu > *:not(.cg2-fret) { grid-column: 2; }
   .cg2-fret { grid-row: 1 / span 12; height: 160px; }
 }
+/* CV1: botón «Plano» bajo el ojo, con zona de toque de 44 px */
+#ctop .vo.plano { min-height: 44px; min-width: 76px; }

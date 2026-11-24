@@ -10,10 +10,10 @@ export const CAMPOS = true;
 const LADO = 44, MARGEN = 1.6, HUECO = 1.3, PASO = 7, ALZA = 0.22;
 /* color por cultivo y estación (0 primavera, 1 verano, 2 otoño, 3 invierno) */
 const COL = {
-  trigo: [[0.50, 0.66, 0.27], [0.95, 0.80, 0.42], [0.76, 0.66, 0.46], [0.47, 0.41, 0.31]],
-  verde: [[0.36, 0.56, 0.22], [0.47, 0.60, 0.26], [0.56, 0.54, 0.32], [0.40, 0.44, 0.29]],
-  barbecho: [[0.56, 0.50, 0.35], [0.66, 0.56, 0.38], [0.52, 0.44, 0.31], [0.45, 0.39, 0.30]],
-  vina: [[0.30, 0.46, 0.18], [0.27, 0.42, 0.16], [0.52, 0.36, 0.18], [0.36, 0.30, 0.22]]      // viña en hileras: verde oscuro, rojiza en otoño
+  trigo: [[0.50, 0.66, 0.27], [0.95, 0.80, 0.42], [0.76, 0.66, 0.46], [0.50, 0.60, 0.30]],      /* CV4a: en invierno el trigo sembrado en otoño ya verdea (antes pardo gris) */
+  verde: [[0.36, 0.56, 0.22], [0.47, 0.60, 0.26], [0.56, 0.54, 0.32], [0.38, 0.50, 0.24]],
+  barbecho: [[0.56, 0.50, 0.35], [0.66, 0.56, 0.38], [0.52, 0.44, 0.31], [0.52, 0.40, 0.27]],
+  vina: [[0.30, 0.46, 0.18], [0.27, 0.42, 0.16], [0.52, 0.36, 0.18], [0.44, 0.33, 0.21]]      // viña en hileras: verde oscuro, rojiza en otoño
 };
 const TIPOS = ['trigo', 'verde', 'barbecho', 'vina'];
 let C = null, malla = null, firma = '', tipoV = null, varV = null, estQ = -1, cuadros = [], extra = [];
@@ -29,6 +29,8 @@ function texturaSurcos() {
 /* C = { scene, altura, distRio, NIVEL_RIO, CI } */
 export function iniciar(ctx) {
   C = ctx; const mat = new THREE.MeshLambertMaterial({ map: texturaSurcos(), vertexColors: true, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -4 });
+  /* CV4a: en la vista de plano (uPlano = 1) los cuadros ganan color para leerse como en un mapa; de cerca no cambia nada */
+  if (C.uPlano) { mat.onBeforeCompile = sh => { sh.uniforms.uPlano = C.uPlano; sh.fragmentShader = 'uniform float uPlano;\n' + sh.fragmentShader.replace('#include <color_fragment>', '#include <color_fragment>\n float lpl = dot(diffuseColor.rgb, vec3(0.3, 0.5, 0.2)); diffuseColor.rgb = mix(diffuseColor.rgb, mix(vec3(lpl), diffuseColor.rgb, 1.7) * 0.82, uPlano);\n float bnd = vMapUv.x * 2.6 / 2.2, bi = floor(bnd), bf = fract(bnd), bh = fract(sin(bi * 12.9898 + floor(vMapUv.y * 9.0 / 40.0) * 3.7) * 43758.5453);\n float surco = 0.86 + 0.2 * smoothstep(0.0, 0.25, bf) * (1.0 - smoothstep(0.7, 1.0, bf));\n diffuseColor.rgb *= mix(1.0, surco * (0.88 + 0.26 * bh), uPlano);'); }; mat.customProgramCacheKey = () => 'campos-plano'; }
   malla = new THREE.Mesh(new THREE.BufferGeometry(), mat); malla.receiveShadow = true; malla.visible = false; malla.renderOrder = 1; C.scene.add(malla);
 }
 const hash = (a, b, s) => { let x = Math.imul(a * 374761393 + b * 668265263, 1274126177) ^ (s | 0); x = Math.imul(x ^ (x >>> 13), 1103515245); return ((x ^ (x >>> 16)) >>> 0) / 4294967296; };
@@ -49,11 +51,13 @@ function franjas(E) {
   const f = E.foro, c = Math.cos(f.ang), s = Math.sin(f.ang), mu = (u, v) => [f.x + c * u - s * v, f.z + s * u + c * v], esc = {};
   for (const a of E.arboles) (esc[a.pieza] = esc[a.pieza] || []).push(a.esc); for (const k in esc) { esc[k].sort((x, y) => x - y); esc[k] = esc[k][esc[k].length >> 1]; }
   const granjas = E.edificios.filter(e => e.tipo === 'granja');
-  for (let j = -10; j <= 10; j++) for (let i = -10; i <= 10; i++) {
-    const cx = (i + 0.5) * LADO, cz = (j + 0.5) * LADO, p = mu(cx, cz), d = Math.hypot(p[0] - f.x, p[1] - f.z); if (d > 400 || d < 60) continue;
+  /* CV4a: con la urbe grande a la vista la vega llega más lejos (antes 400, y casi toda caía debajo del caserío) y ningún cuadro se mete dentro de la urbe */
+  const urbe = !!(E.urbe && C.CI.enUrbe), LEJOS = urbe ? 540 : 400;
+  for (let j = -13; j <= 13; j++) for (let i = -13; i <= 13; i++) {
+    const cx = (i + 0.5) * LADO, cz = (j + 0.5) * LADO, p = mu(cx, cz), d = Math.hypot(p[0] - f.x, p[1] - f.z); if (d > LEJOS || d < 60) continue;
     const hacia = (x, z, m) => { const dx = x - f.x, dz = z - f.z, dd = Math.hypot(dx, dz) || 1; return [x - dx / dd * m, z - dz / dd * m]; };
-    let ok = true; const pts = []; for (let b = 0; b <= 2 && ok; b++) for (let a = 0; a <= 2; a++) { const q = mu(cx + (a - 1) * LADO * 0.5, cz + (b - 1) * LADO * 0.5); pts.push(q); const h = hacia(q[0], q[1], 24);
-      if (!libre(q[0], q[1]) || !tierra(q[0], q[1]) || (E.fundada && C.CI.cercado(E, h[0], h[1]))) { ok = false; break; } }
+    let ok = true; const pts = []; for (let b = 0; b <= 2 && ok; b++) for (let a = 0; a <= 2; a++) { const q = mu(cx + (a - 1) * LADO * 0.5, cz + (b - 1) * LADO * 0.5); pts.push(q); const h = hacia(q[0], q[1], 24), h2 = hacia(q[0], q[1], 12);
+      if (!libre(q[0], q[1]) || !tierra(q[0], q[1]) || (E.fundada && C.CI.cercado(E, h[0], h[1])) || (urbe && C.CI.enUrbe(E, h2[0], h2[1]))) { ok = false; break; } }
     if (!ok) continue; const ys = pts.map(q => C.altura(q[0], q[1])); if (Math.max(...ys) - Math.min(...ys) > 7) continue;
     if (granjas.some(g => Math.hypot(g.x - p[0], g.z - p[1]) < 46)) continue; if (hash(i, j, E.semilla) < 0.18) continue;
     /* olivar en cuadrícula (la tríada romana: trigo, vid y olivo) en algún cuadro */
