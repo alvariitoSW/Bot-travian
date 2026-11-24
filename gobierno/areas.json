@@ -126,7 +126,10 @@
         "js/tacticas.js",
         "test/tacticas.test.mjs",
         "gobierno/captura-th1.mjs",
-        "test/fu3c-falange.test.mjs"
+        "test/fu3c-falange.test.mjs",
+        "test/tropas.test.mjs",
+        "test/tropas-sim.test.mjs",
+        "test/tropas-precios.test.mjs"
       ],
       "taller": [],
       "juez": {

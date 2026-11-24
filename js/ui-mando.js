@@ -244,7 +244,7 @@
       flecha.renderOrder = 3; flecha.visible = false; escena.add(flecha);
       salidas.push(() => { tex.dispose(); geo.dispose(); });
       if (SOLD && SOLD.crearPila) { pila = SOLD.crearPila(escena, TALLA); salidas.push(() => pila.soltar()); }   /* PIL3: pila en el aire */
-      for (const u of S.man) { const b = document.createElement('div'); b.className = 'mn-e' + (u.lado ? ' ene' : ''); b.innerHTML = '<i class="h"><b></b></i><i class="m"><b></b></i><i class="f"><b></b></i>'; $('capa').appendChild(b); mans[u.id].barra = b; }
+      for (const u of S.man) { const b = document.createElement('div'); b.className = 'mn-e' + (u.lado ? ' ene' : ''); b.innerHTML = '<i class="h"><b></b><b class="her"></b></i><i class="m"><b></b></i><i class="f"><b></b></i>'; $('capa').appendChild(b); mans[u.id].barra = b; }
     }
     let sombras = null, rects = null, fantasmas = null, flecha = null, pila = null;
     /* CG8a: cámara de cine (js/gfx/cine-mando.js) y estandarte de cada manípulo (js/gfx/estandartes.js) */
@@ -422,7 +422,8 @@
         const cl = 'mn-e' + (u.lado ? ' ene' : '') + (sel.includes(u.id) ? ' sel' : '') + (!vivo(u) ? ' roto' : '');
         if (b.className !== cl) b.className = cl;
         const [h, mo, fa] = b.children, pon = (i, v) => { const w = Math.round(Math.max(0, Math.min(1, v)) * 100) + '%'; if (i.firstChild.style.width !== w) i.firstChild.style.width = w; };
-        pon(h, u.n / u.n0); pon(mo, u.moral); pon(fa, 1 - u.fatiga);
+        pon(h, u.n / u.n0); { const w = Math.round(Math.max(0, Math.min(1, (u.her || 0) / u.n0)) * 100) + '%', hb = h.lastChild; if (hb.style.width !== w) hb.style.width = w; }   /* sanos blanco, heridos ámbar, muertos el hueco */
+        pon(mo, u.moral); pon(fa, 1 - u.fatiga);
       }
     }
 
@@ -442,7 +443,7 @@
         if (us.length === 1) {
           const u = us[0], p = Sim.palabras(u, S), tono = { firme: 'bien', duda: 'medio', rompe: 'mal' }[p.animo] || '', tc = { fresca: 'bien', cansada: 'medio', agotada: 'mal' }[p.cansancio] || '', tb = { ganando: 'bien', igualado: 'medio', perdiendo: 'mal' }[p.combate] || '';
           html = '<b>' + esc(u.nom) + '</b> <small>' + esc(FORMAS[u.forma].n) + (u.cambio > 0 ? ' (formando)' : '') + ' · ' + (u.mando === 'jugador' ? 'lo llevas tú' : 'lo lleva el tribuno') + '</small><br>' +
-            '<span>' + Math.round(u.n) + ' de ' + u.n0 + ' hombres</span> <em class="' + tono + '">' + esc(p.animo) + '</em> <em class="' + tc + '">' + esc(p.cansancio) + '</em>' + (p.combate ? ' <em class="' + tb + '">' + esc(p.combate) + '</em>' : '');
+            '<span>' + Math.round(u.n) + ' en pie' + (u.her ? ' · ' + Math.round(u.her) + ' heridos' : '') + (u.muertos ? ' · ' + Math.round(u.muertos) + ' muertos' : '') + ' de ' + u.n0 + '</span> <em class="' + tono + '">' + esc(p.animo) + '</em> <em class="' + tc + '">' + esc(p.cansancio) + '</em>' + (p.combate ? ' <em class="' + tb + '">' + esc(p.combate) + '</em>' : '');
         } else html = '<b>' + us.length + ' manípulos</b><br><span>' + Math.round(us.reduce((s, u) => s + u.n, 0)) + ' hombres</span>';
         const boton = (o, que, sub, on) => { const no = puedeYa(o); return '<button type="button" class="mn-o' + (no ? ' no' : '') + (on ? ' on' : '') + '" data-o="' + esc(JSON.stringify(o)) + '" data-no="' + esc(no) + '"><span>' + esc(que) + '</span><small>' + esc(sub) + '</small></button>'; };
         if (verFormas) {
@@ -684,7 +685,10 @@
       $('fin-t').textContent = { victoria: 'Victoria', derrota: 'Derrota', retirada: 'Retirada' }[R.como] || 'Fin';
       $('fin-p').textContent = R.motivo || '';
       const m = Math.floor(R.t / 60), s = Math.round(R.t % 60);
-      $('fin-c').innerHTML = '<span>Tus bajas</span><b>' + mil(R.bajas[0]) + ' de ' + mil(R.inicial[0]) + '</b><span>Bajas del enemigo</span><b>' + mil(R.bajas[1]) + ' de ' + mil(R.inicial[1]) + '</b><span>Duración</span><b>' + m + ' min ' + s + ' s</b>';
+      const ob = l => { const w = R.muertos && R.heridos ? 'muertos ' + mil(R.muertos[l]) + ' · heridos ' + mil(R.heridos[l]) : mil(R.bajas[l]) + ' de ' + mil(R.inicial[l]);
+        const gana = (R.como === 'victoria' ? 0 : 1) === l, ex = !R.heridos ? '' : gana ? (R.recuperados ? ' (' + mil(R.recuperados) + ' recuperados)' : '') : (l === 0 ? R.cautivos : R.prisioneros) ? ' (' + mil(l === 0 ? R.cautivos : R.prisioneros) + ' prisioneros)' : '';
+        return w + ex; };
+      $('fin-c').innerHTML = '<span>Tus bajas</span><b>' + ob(0) + '</b><span>Bajas del enemigo</span><b>' + ob(1) + '</b>' + (R.como === 'victoria' && R.prisioneros ? '<span>Prisioneros</span><b>' + mil(R.prisioneros) + '</b>' : '') + '<span>Duración</span><b>' + m + ' min ' + s + ' s</b>';
       if (apie) subir(); $('fin').hidden = false; $('abajo').hidden = true; sel = [];
     }
 

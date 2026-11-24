@@ -4,7 +4,7 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
-    { v: 166, fecha: '24/11/2026', cosas: [
+    { v: 167, fecha: '24/11/2026', cosas: [
       'Caminos de victoria afinados: el del comercio se gana con la renta del año, que crece con tus ciudades.',
       'La ciudad pide casas en barrios ricos según cuántas ciudades tengas; la política, planes del Senado bien hechos.',
       'Las rutas no se cierran en una guerra: quedan paradas y vuelven con la paz.',
@@ -38,7 +38,7 @@
       'Botones de Construir, Ministros y plan del Senado.'] }
   ];
   /* AVANCE: lo escribe gobierno/avance.mjs desde gobierno/lista.json; no tocar a mano */
-  const AVANCE = {"hecho":67,"total":18,"hechas":7,"medias":10,"faltan":1,"pendientes":[{"t":"Rutas y acuerdos comerciales","e":"a medias"},{"t":"Camino del comercio","e":"a medias"},{"t":"Camino de la política: Príncipe del Senado","e":"a medias"},{"t":"Camino de las armas","e":"a medias"},{"t":"Una sola batalla, con un solo aspecto","e":"a medias"},{"t":"El testudo a pie, dentro del juego","e":"a medias"},{"t":"Escaramuzas: batallas sueltas desde el menú","e":"a medias"},{"t":"Fluido y sin conexión en tu móvil, y publicada","e":"por hacer"},{"t":"Formaciones en Escaramuzas","e":"a medias"},{"t":"Menús reordenados y con un solo aspecto antiguo","e":"a medias"},{"t":"Soldados nuevos, con licencia clara","e":"a medias"}]};
+  const AVANCE = {"hecho":69,"total":18,"hechas":8,"medias":9,"faltan":1,"pendientes":[{"t":"Camino del comercio","e":"a medias"},{"t":"Camino de la política: Príncipe del Senado","e":"a medias"},{"t":"Camino de las armas","e":"a medias"},{"t":"Una sola batalla, con un solo aspecto","e":"a medias"},{"t":"El testudo a pie, dentro del juego","e":"a medias"},{"t":"Escaramuzas: batallas sueltas desde el menú","e":"a medias"},{"t":"Fluido y sin conexión en tu móvil, y publicada","e":"por hacer"},{"t":"Formaciones en Escaramuzas","e":"a medias"},{"t":"Menús reordenados y con un solo aspecto antiguo","e":"a medias"},{"t":"Soldados nuevos, con licencia clara","e":"a medias"}]};
   /* FIN AVANCE */
   NOVEDADES.avance = AVANCE;
   root.NOVEDADES = NOVEDADES;
