@@ -202,7 +202,10 @@
         "js/ministros-ui.js",
         "test/ministros.test.mjs",
         "test/necesidades.test.mjs",
-        "test/plan-senado.test.mjs"
+        "test/plan-senado.test.mjs",
+        "js/agricultura.js",
+        "test/agricultura.test.mjs",
+        "js/barrio-ui.js"
       ],
       "taller": [],
       "juez": {
