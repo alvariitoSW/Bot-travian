@@ -4,18 +4,17 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
-    { v: 161, fecha: '24/11/2026', cosas: [
+    { v: 162, fecha: '24/11/2026', cosas: [
+      'La ciudad ocupa casi toda la pantalla: una tira fina arriba (toca para ver todo) y las pestañas abajo.',
+      '«Construir» es un botón redondo; los ministros están dentro del Senado.',
       'Economía nueva: tus ciudades producen aceite, vino, verdura y lana, además del grano.',
-      'Agricultura en «Construir»: eliges el campo (trigo, olivar, viña, huerto o pasto) y el juego te avisa si el suelo no vale.',
-      'La ciencia abre cultivos: «Viña y olivar» trae olivares y viñas; la noria y la bodega llegan después.',
-      'Mercado nuevo: precios que suben y bajan por ciudad y estación, rutas, viajes, aduanas y contratos del Senado.',
-      'Arriba ves denarios, grano, aceite, vino y materiales. Toca la tira para ver todo.'] },
+      'Agricultura en «Construir»: eliges el campo y el juego te avisa si el suelo no vale; la ciencia abre olivar y viña.',
+      'Mercado nuevo: precios que suben y bajan, rutas, viajes, aduanas y contratos del Senado.',
+      'En las batallas: fragor de golpes, caídas y pila que se clavan.'] },
     { v: 160, fecha: '24/11/2026', cosas: [
-      'La ciudad ocupa casi toda la pantalla: una tira fina arriba y las pestañas abajo.',
-      'Toca la tira para ver todos los recursos, cambiar de ciudad o abrir el menú.',
-      '«Construir» es ahora un botón redondo sobre la ciudad.',
-      'Los ministros están dentro del Senado, porque son jefes de bando.',
-      'El ojo, la vista desde arriba y las capas van en un solo botón.'] },
+      'Banda sonora de época en menú, ciudad, mapa y batalla.',
+      'Gritos reales en la batalla y arenga del general antes de empezar.',
+      'Los oficiales de Cartago, galos e iberos hablan con su voz.'] },
     { v: 159, fecha: '24/11/2026', cosas: [
       'Arreglo: sin conexión la ciudad y la falange vuelven a cargar.'] },
     { v: 157, fecha: '24/11/2026', cosas: [
