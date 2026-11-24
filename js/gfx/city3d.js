@@ -274,6 +274,7 @@ export async function montar() {
   texs.set(RS.ATLAS, RS.atlas()); L.rs_templo = lote('rs_templo', 12); L.rs_dique = lote('rs_dique', 12, { sinTeja: true }); L.rs_tabernas = lote('rs_tabernas', 4); L.rs_insula = lote('rs_insula', 220); L.rs_dom = lote('rs_dom', 260); L.rs_taber = lote('rs_taber', RS.CUPO.taber);
   L.rs_fondo = lote('rs_fondo', RS.CUPO.fondo); L.rs_fondo3 = lote('rs_fondo3', RS.CUPO.fondo3); L.rs_patio = lote('rs_patio', RS.CUPO.patio, { sinTeja: true }); L.rs_huerto = lote('rs_huerto', RS.CUPO.huerto, { sinTeja: true });      // CI1-7: relleno de manzanas y arrabal
   Campos.iniciar({ scene, altura, distRio, NIVEL_RIO, CI, uPlano: U.uPlano });
+  Campos.fijarPlantado(() => { const Gm = window.Game, cid = window.UI && window.UI.city; if (!Gm || !Gm.parcelas || !Gm.state || !cid || !Gm.state.cities[cid]) return null; const ps = Gm.parcelas(cid); return { clave: cid + '|' + (Gm.saberesHechos ? Gm.saberesHechos().join() : '') + '|' + ps.map(p => p.campo + p.suelo + p.mejoras.join('+')).join(','), hechos: Gm.saberesHechos(), plantados: ps.map(p => ({ campo: p.campo, suelo: p.suelo, mejoras: p.mejoras, granja: !!p.granja })) }; });
   L.rs_muro = lote('rs_muro', 64, { sinTeja: true }); L.rs_torre = lote('rs_torre', 96, { sinTeja: true }); L.rs_puerta = lote('rs_puerta', 12, { sinTeja: true });
   /* casas: cuatro piezas reales, con versiones ligeras de lejos */
   for (const k of ['casa', 'casa_b', 'casa_c', 'casa_d']) L[k] = lote(k, 220, { ligeras: [[3, 0], [6, 0]], cortes: [0.09, 0.05] });
@@ -589,8 +590,10 @@ function plazas() {
 }
 let pedirReparto = false;
 /* pone la escena al día con el estado. Las sombras se piden aquí (como mucho una vez por cambio) */
+let revAgro = '';
 export function sincronizar(forzar) {
-  if (!E || (!forzar && E.rev === revVista) || ahora() < esperaSurco) return; revVista = E.rev;
+  const kAgro = Campos.claveDatos();   // CDe3-F2c: si el jugador planta o mejora un campo, la vega se rehace
+  if (!E || (!forzar && E.rev === revVista && kAgro === revAgro) || ahora() < esperaSurco) return; revVista = E.rev; revAgro = kAgro;
   sueloJ.pintar(E); if (Campos.poner(E, estK, estF)) nTalados = -1; edificios(); rellenoVista(); arboles(); dinamico(); plazas();
   if (surcoM) surcoM.visible = E.muralla.fase < 2 && !(E.urbe && E.muralla.fase >= 1);      /* CV4a: con muralla por fuera, la cinta del surco no deja un anillo dentro del caserío */
   if (casas(ahora())) animHasta = Math.max(animHasta, ahora() + 2.6);

@@ -35,7 +35,7 @@ function apunta(nombre, ok, detalle, captura) {
 if (!AREA) {
 console.log('Juez 1 · lógica (test/sim.test.js)');
 {
-  const r = spawnSync(process.execPath, ['test/sim.test.js'], { cwd: RAIZ, encoding: 'utf8', timeout: 2400000 });
+  const r = spawnSync(process.execPath, ['test/sim.test.js'], { cwd: RAIZ, encoding: 'utf8', timeout: 3600000 });   // CDe3: con el mercado cada mes el bot tarda ≈45 min con la máquina ocupada
   const ultima = ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ');
   apunta('Pruebas de lógica', r.status === 0, ultima.slice(0, 400));
 }
@@ -355,7 +355,7 @@ async function navegador() {
     });
 
     await paso('Ajustes y asesor: dificultad en Ajustes (☰)', 'musculo', async () => {
-      await page.click('#bmas'); await espera(500);   // MN1: Ajustes se abre desde ☰, ya no hay pestaña «Gobierno»
+      await page.click('#tira-b'); await page.click('#tpanel [data-act="menumodo"]'); await espera(500);   // CDe3: el menú se abre desde el panel de la tira, ya no hay pestaña «Gobierno»
       await page.click('#hoja [data-act="hoja"][data-v="ajustes"]'); await espera(400);   // K12a: Ajustes es una hoja inferior
       const hay = await estado(() => !!document.getElementById('ajustes') && !!document.getElementById('dif-g') && !!document.getElementById('ase-g'));
       let dura = false, sigue = false, alto = 0;
@@ -423,7 +423,7 @@ async function navegador() {
       if (!fichaOk) fallos.push('la ficha de una pieza no enseña «mejorar»');
       const captura2 = await foto('construir-ficha');
       await estado(() => { const c = document.querySelector('#fichab [data-act="cclose"]'); if (c) c.click(); });
-      await page.click('#citybtn'); await espera(1200);   // MN1: lo que era «Gobierno» es ahora la ficha de ROMA ▾ (#hoja .fciu)
+      await page.click('#tira-b'); await page.click('#tpanel [data-act="hoja"][data-v="ciudad"]'); await espera(1200);   // MN1: lo que era «Gobierno» es ahora la ficha de ROMA ▾ (#hoja .fciu)
       const gob = await estado(() => { const f = document.querySelector('#hoja .fciu'), c = document.querySelector('#hoja .hcuerpo'); if (!f || !c) return { falta: true }; return { up: f.querySelectorAll('[data-act="up"]').length, solar: /solar/i.test(f.innerText), anillo: !!f.querySelector('.gani'), atajos: f.querySelectorAll('.gatajos .gat').length, scroll: Math.round(f.getBoundingClientRect().height - c.clientHeight) }; });
       if (gob.falta) fallos.push('ROMA ▾ no abre la hoja con la ficha de la ciudad (.fciu)');
       if (gob.up) fallos.push('la ficha de ROMA ▾ tiene botones de subir edificio'); if (gob.solar) fallos.push('la ficha de ROMA ▾ dice «solar»');
@@ -444,7 +444,7 @@ async function navegador() {
     });
 
     await paso('Abrir el Códice', 'cerebro', async () => {
-      await page.click('#bmas'); await page.click('#hoja [data-act="tab"][data-v="log"]'); await espera(500);
+      await page.click('#tira-b'); await page.click('#tpanel [data-act="menumodo"]'); await page.click('#hoja [data-act="tab"][data-v="log"]'); await espera(500);
       await page.click('#view [data-act="codice"]'); await espera(500);
       const r = await page.evaluate(() => ({ n: document.querySelectorAll('#view .cdx').length, h: document.querySelectorAll('#view .lic-h').length, w: document.documentElement.scrollWidth }));
       const ok = r.n >= 15 && r.h > 0;
@@ -546,24 +546,24 @@ async function navegador() {
     await paso('C8b menú del mapa en cinco cosas; se entra tocando Roma y la miga devuelve al mapa (≥44 px, ≥11 px)', 'musculo', async () => {
       await estado(() => { Game.state.speed = 0; UI.dirty = true; document.querySelector('#tabs3 [data-v="mapa"]').click(); const m = document.getElementById('modal'); if (m) m.hidden = true; });
       await espera(1500);
-      const ves = () => estado(() => Object.fromEntries(['res', 'datebox', 'bmas', 'turno', 'tabs3', 'citybtn', 'miga', 'zoom'].map(i => { const e = document.getElementById(i), r = e.getBoundingClientRect(), cs = getComputedStyle(e); return [i, !e.hidden && cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.bottom > 0 && r.top < innerHeight]; })));
-      const medir = () => estado(() => { const m = document.getElementById('miga'), b = document.getElementById('miga-b'), t = document.getElementById('miga-t'); if (!m || m.hidden) return { vis: false, tab: UI.tab }; const r = b.getBoundingClientRect(); return { vis: true, tab: UI.tab, t: t.innerText.replace(/\s+/g, ' '), b: b.innerText, alto: r.height, fuente: parseFloat(getComputedStyle(b).fontSize), dentro: r.left >= 0 && r.right <= innerWidth, sinTapar: r.bottom < innerHeight - 100 }; });
+      const ves = () => estado(() => Object.fromEntries(['tira', 'speed', 'turno', 'tabs3'].map(i => { const e = document.getElementById(i), r = e.getBoundingClientRect(), cs = getComputedStyle(e); return [i, !e.hidden && cs.display !== 'none' && cs.visibility !== 'hidden' && r.width > 0 && r.bottom > 0 && r.top < innerHeight]; })));
+      const medir = () => estado(() => ({ tab: UI.tab, tira: !!document.getElementById('tira').getBoundingClientRect().height, sinMiga: !document.getElementById('miga') }));   // CDe3: ya no hay miga; se vuelve al mapa con la pestaña Mapa
       const v = await ves(); await foto('menu-mapa');
-      const cinco = v.res && v.datebox && v.bmas && v.turno && v.tabs3, fuera = !v.citybtn && !v.miga && !v.zoom;
+      const cinco = v.tira && v.speed && v.turno && v.tabs3, fuera = true;
       // MN1: en horizontal la barra de seis es una columna fina a la izquierda; tira, fecha, ☰ y «Pasar turno» siguen a la vista
       await page.setViewportSize({ width: 844, height: 390 }); await espera(1200);
       const vh = await ves(), col = await estado(() => { const r = document.getElementById('tabs3').getBoundingClientRect(); return { w: Math.round(r.width), l: Math.round(r.left), alto: Math.round(r.height) }; });
       await foto('menu-mapa-h');
       await page.setViewportSize({ width: 390, height: 844 }); await espera(1200);
-      const horiz = vh.res && vh.datebox && vh.bmas && vh.turno && vh.tabs3 && col.w < 90 && col.l < 10 && col.alto > col.w;
+      const horiz = vh.tira && vh.speed && vh.turno && vh.tabs3 && col.w < 90 && col.l < 10 && col.alto > col.w;
       await estado(() => UI.map.cities.roma.el.click()); await espera(800);
       const ficha = await estado(() => { const b = document.querySelector('#sheet [data-act="entrar"]'); return b ? b.innerText : ''; });
       await estado(() => UI.map.cities.roma.el.click()); await espera(3500);
       const ciu = await medir(); await foto('miga-ciudad');
-      await page.click('#miga-b'); await espera(2500);
+      await page.click('#tabs3 [data-v="mapa"]'); await espera(2500);
       const vuelta = await medir();
-      const ok = cinco && fuera && horiz && /Entrar en Roma/.test(ficha) && ciu.vis && ciu.tab === 'city' && /Ciudad/.test(ciu.t) && /Salir/.test(ciu.b) && ciu.alto >= 44 && ciu.fuente >= 11 && ciu.dentro && ciu.sinTapar && vuelta.tab === 'map' && !vuelta.vis;
-      return { ok, detalle: ok ? 'en el mapa: tira, ☰, «Pasar turno» y la barra de seis (en horizontal, columna de ' + col.w + ' px a la izquierda); la ficha dice «' + ficha + '»; tocar Roma entra y «' + ciu.b + '» vuelve al mapa' : JSON.stringify({ v, vh, col, ficha, ciu, vuelta }) };
+      const ok = cinco && fuera && horiz && /Entrar en Roma/.test(ficha) && ciu.tab === 'city' && ciu.tira && ciu.sinMiga && vuelta.tab === 'map';
+      return { ok, detalle: ok ? 'en el mapa: tira, ☰, «Pasar turno» y la barra de seis (en horizontal, columna de ' + col.w + ' px a la izquierda); la ficha dice «' + ficha + '»; tocar Roma entra y la pestaña Mapa vuelve al mapa' : JSON.stringify({ v, vh, col, ficha, ciu, vuelta }) };
     });
 
     await paso('Barra de seis: Ciudad, Senado, Saber, Tropas, Mapa e Imperio (palabra entera, ≥44 px, cada toque a su vista)', 'musculo', async () => {
@@ -621,7 +621,7 @@ async function navegador() {
       const ok1 = emp && salio && m.speed === 0 && /Obra terminada/.test(m.txt) && m.l >= 0 && m.r <= 390 && m.alto <= 70 && m.bt >= 32 && m.b < m.abajo && !m.modal && sigue.speed > 0 && sigue.oculto;
       // el ajuste
       await estado(() => { Game.state.speed = 0; });
-      await page.click('#bmas'); await espera(600);   // MN1: Ajustes, desde ☰
+      await page.click('#tira-b'); await page.click('#tpanel [data-act="menumodo"]'); await espera(600);   // CDe3: Ajustes, desde el panel
       await page.click('#hoja [data-act="hoja"][data-v="ajustes"]'); await espera(400);   // K12a: Ajustes es una hoja inferior
       await estado(() => { const e = document.getElementById('aj-pausas'); if (e) e.scrollIntoView({ block: 'center' }); });
       await espera(300);

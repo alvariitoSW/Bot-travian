@@ -43,6 +43,23 @@ export const MEJORAS = {
   noria: { id: 'noria', nombre: 'Noria o riego', campo: 'huerto', coste: { denarios: 180 }, efecto: 'Rinde ×1,3 y el huerto rinde bien en llano y tierra baja.', fuente: F('Filón de Bizancio', 'Pneumatica (rueda de agua, s. III a.C.)', 'probable') },
   redil: { id: 'redil', nombre: 'Redil', campo: 'pasto', coste: { denarios: 100 }, efecto: 'Lana ×1,25 y da estiércol al trigo vecino.', fuente: F(VARRON, 'Res rusticae', '2.2.8–9') }
 };
+/* Ciencia: qué saber (id de D.INVEST en js/data.js) abre cada campo, mejora o edificio. Lo que no sale aquí está abierto desde el principio
+   (trigo, huerto y pasto, con era, estercolero y redil). Usuario, 24/11: «Hacerlo ya». Reparto: licencia de juego.
+   Ojo histórico: Magón se tradujo al latín por orden del Senado después de 146 a.C. (Plinio, Historia natural 18.22; Columela 1.1.13). */
+export const SABERES = { vina: 'Viña y olivar', magon: 'Tratado de Magón', latif: 'Villa esclavista' };
+export const SABER = { olivar: 'vina', vina: 'vina', almazara: 'vina', lagar: 'vina', noria: 'magon', bodega: 'magon', villa: 'latif' };
+/* Edificios nuevos de la agricultura. La villa junta los campos de la ciudad bajo un capataz (vilicus) y una plantilla de esclavos. */
+export const EDIFICIOS = {
+  villa: { id: 'villa', nombre: 'Villa', coste: { denarios: 400, materiales: 200 }, efecto: 'Todos los campos de la ciudad rinden ×1,1.', mul: 1.1,
+    d: 'Casa de campo con capataz y lagar, almacén y establo.', fuente: F(CATON, 'De agri cultura', '10–11 (plantilla de una villa con olivar y viña)') }
+};
+/* ¿Está abierto? hechos = lista de ids de saber o un objeto id→verdadero. Sin hechos (undefined) no se filtra: todo abierto. */
+export function abierto(id, hechos) {
+  const sab = SABER[id];
+  if (!sab || hechos === undefined) return { ok: true, falta: null };
+  const ok = Array.isArray(hechos) ? hechos.includes(sab) : !!(hechos && hechos[sab]);
+  return ok ? { ok: true, falta: null } : { ok: false, falta: sab, motivo: 'Hace falta el saber «' + SABERES[sab] + '».' };
+}
 const MULT = { estercolero: 1.2, era: 1.15, noria: 1.3, redil: 1.25 };
 
 /* Productos: lo que el mercado (js/mercado.js) necesita saber. Los PRECIOS no están aquí: los pone el mercado.
@@ -50,11 +67,11 @@ const MULT = { estercolero: 1.2, era: 1.15, noria: 1.3, redil: 1.25 };
    cada MES sin guardar bien; suelos = suelos donde su campo rinde «bien» (sale de la tabla de CAMPOS); base = producción anual
    de una parcela de nivel 1 (licencia de juego). */
 const PROD = [
-  ['grano', 'Grano', 'trigo', 'si', 0, ['comida', 'tropa'], 1, 36],
-  ['aceite', 'Aceite', 'olivar', 'si', 0, ['comida', 'comercio', 'culto', 'banos'], 0.5, 10],
-  ['vino', 'Vino', 'vina', 'bodega', 0.07, ['comercio', 'fiesta', 'culto', 'tropa'], 0.3, 10],
-  ['verdura', 'Verdura', 'huerto', 'no', 0.3, ['comida', 'comercio'], 0.8, 24],
-  ['lana', 'Lana', 'pasto', 'si', 0, ['comercio', 'taller', 'tropa'], 0, 8]
+  ['grano', 'Grano', 'trigo', 'si', 0, ['comida', 'tropa'], 1, 300],
+  ['aceite', 'Aceite', 'olivar', 'si', 0, ['comida', 'comercio', 'culto', 'banos'], 0.5, 192],
+  ['vino', 'Vino', 'vina', 'bodega', 0.07, ['comercio', 'fiesta', 'culto', 'tropa'], 0.3, 192],
+  ['verdura', 'Verdura', 'huerto', 'no', 0.3, ['comida', 'comercio'], 0.8, 240],
+  ['lana', 'Lana', 'pasto', 'si', 0, ['comercio', 'taller', 'tropa'], 0, 72]
 ];
 export const PRODUCTOS = Object.fromEntries(PROD.map(([id, nombre, campo, guarda, estropea, usos, alimento, base]) => [id, {
   id, nombre, campo, guarda, estropea, usos, alimento, base,
@@ -110,8 +127,8 @@ export function encaje(campo, suelo, mejoras = []) {
   return { nota, rinde: RINDE[nota], razon };
 }
 
-export function consejo(suelo, mejoras = []) {
-  return Object.keys(CAMPOS).map((campo, i) => ({ campo, i, ...encaje(campo, suelo, mejoras) }))
+export function consejo(suelo, mejoras = [], hechos) {
+  return Object.keys(CAMPOS).filter(c => abierto(c, hechos).ok).map((campo, i) => ({ campo, i, ...encaje(campo, suelo, mejoras) }))
     .filter(x => x.nota !== 'no').sort((a, b) => b.rinde - a.rinde || a.i - b.i)
     .map(({ campo, nota, rinde }) => ({ campo, nota, rinde }));
 }
@@ -125,9 +142,10 @@ export function labor(campo, mes) {
 export function laborEstacion(campo, est) { return labor(campo, MES_ESTACION[((Math.floor(num(est, 0)) % 4) + 4) % 4]); }
 
 export function mejorasDe(campo) { return Object.values(MEJORAS).filter(m => m.campo === campo).map(m => m.id); }
-export function puedeMejorar(parcela, mejora) {
+export function puedeMejorar(parcela, mejora, hechos) {
   const m = MEJORAS[mejora];
   if (!m) return { ok: false, motivo: 'Esa mejora no existe.' };
+  const ab = abierto(mejora, hechos); if (!ab.ok) return { ok: false, motivo: ab.motivo };
   if (!parcela || parcela.campo !== m.campo) return { ok: false, motivo: m.nombre + ' solo sirve en ' + CAMPOS[m.campo].nombre.toLowerCase() + '.' };
   if ((parcela.mejoras || []).includes(mejora)) return { ok: false, motivo: 'Ya tiene ' + m.nombre.toLowerCase() + '.' };
   if (encaje(parcela.campo, parcela.suelo, parcela.mejoras || []).nota === 'no') return { ok: false, motivo: 'Aquí no se puede cultivar.' };
@@ -180,9 +198,10 @@ export function ofertaPorEstacion(campo, suelo) {
 export function produccionCiudad(s, idCiudad, mes) {
   const out = { grano: 0, aceite: 0, vino: 0, verdura: 0, lana: 0 };
   const ps = ((s && s.agro && s.agro.parcelas) || []).filter(p => p && p.ciudad === idCiudad);
+  const villa = s && s.agro && s.agro.villas && s.agro.villas[idCiudad] ? EDIFICIOS.villa.mul : 1;
   ps.forEach((p, i) => {
     const pm = produccionMes(p, mes, ps.filter((_, j) => j !== i));
-    for (const k of Object.keys(pm)) out[k] += pm[k];
+    for (const k of Object.keys(pm)) out[k] += pm[k] * villa;
   });
   return out;
 }
@@ -219,21 +238,21 @@ export function valor(productos, precios) {
 
 /* Propone al edil del grano hasta 3 cosas, de más a menos urgente. */
 export function encargosAgricultura(estado) {
-  const s = estado || {}, parcelas = s.parcelas || [], libres = s.libres || [], alm = s.almacen || {}, bocas = num(s.bocas, 0);
+  const s = estado || {}, hechos = s.saberes, parcelas = s.parcelas || [], libres = s.libres || [], alm = s.almacen || {}, bocas = num(s.bocas, 0);
   const urgente = [], campos = [], cambios = [], mejoras = [], reserva = [];
   const aviso = { tipo: 'reserva', recurso: 'grano', objetivo: Math.ceil(bocas * 3), texto: 'Guardar grano para tres meses' };
   if (bocas > 0 && num(alm.grano, 0) < bocas * 0.5) urgente.push(aviso);
   else if (bocas > 0 && num(alm.grano, 0) < bocas * 3) reserva.push(aviso);
   for (const l of libres) {
-    const mejor = consejo(l.suelo)[0];
+    const mejor = consejo(l.suelo, [], hechos)[0];
     if (mejor) campos.push({ tipo: 'campo', parcela: l.id, campo: mejor.campo, texto: 'Plantar ' + CAMPOS[mejor.campo].nombre.toLowerCase() + ' ' + SUELOS[l.suelo].en });
   }
   for (const p of parcelas) {
-    const e = encaje(p.campo, p.suelo, p.mejoras || []), mejor = consejo(p.suelo, [])[0];
+    const e = encaje(p.campo, p.suelo, p.mejoras || []), mejor = consejo(p.suelo, [], hechos)[0];
     if ((e.nota === 'mal' || e.nota === 'no') && mejor && mejor.campo !== p.campo && mejor.rinde > e.rinde) {
       cambios.push({ tipo: 'cambiar', parcela: p.id, campo: mejor.campo, texto: 'Cambiar ' + CAMPOS[p.campo].art + ' ' + CAMPOS[p.campo].nombre.toLowerCase() + ' ' + SUELOS[p.suelo].de + ' por ' + CAMPOS[mejor.campo].nombre.toLowerCase() });
     } else if (e.nota !== 'no') {
-      const falta = mejorasDe(p.campo).filter(id => puedeMejorar(p, id).ok).sort((a, b) => (b === 'almazara' || b === 'lagar') - (a === 'almazara' || a === 'lagar'));
+      const falta = mejorasDe(p.campo).filter(id => puedeMejorar(p, id, hechos).ok).sort((a, b) => (b === 'almazara' || b === 'lagar') - (a === 'almazara' || a === 'lagar'));
       if (falta.length) mejoras.push({ tipo: 'mejora', parcela: p.id, mejora: falta[0], texto: 'Poner ' + MEJORAS[falta[0]].nombre.toLowerCase() + ' en ' + CAMPOS[p.campo].art + ' ' + CAMPOS[p.campo].nombre.toLowerCase() });
     }
   }
@@ -248,5 +267,6 @@ export function migrar(s) {
     if (s.agro.v === undefined) s.agro.v = 1;
     if (!Array.isArray(s.agro.parcelas)) s.agro.parcelas = [];
   }
+  if (!s.agro.villas || typeof s.agro.villas !== 'object') s.agro.villas = {};
   return s;
 }

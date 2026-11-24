@@ -14,7 +14,7 @@
     { id: 'ciencia', area: 'Ciencia', cargo: 'Sabio', i: '📜', bando: null, edificios: ['escuela'], tipos: ['saber'], nota: L + 'el «Sabio» no existía; no encabeza ningún bando (usuario, 23/11).' },
     { id: 'infra', area: 'Infraestructura', cargo: 'Censor', i: '🏛️', bando: 'pue', edificios: ['fuente', 'cloaca', 'termas', 'medico', 'acueducto', 'jardin', 'parque'], tipos: ['nivel', 'reserva'], nota: L + 'los censores contrataban las obras públicas (Livio 9.29; Frontino 1.5).' },
     { id: 'hacienda', area: 'Hacienda', cargo: 'Cuestor', i: '💰', bando: 'mer', edificios: ['foro', 'almacen'], tipos: ['impuesto', 'reserva'], nota: L + 'los cuestores guardaban el tesoro.' },
-    { id: 'agricultura', area: 'Agricultura', cargo: 'Edil del grano', i: '🌾', bando: 'ter', edificios: ['granja', 'granero'], tipos: ['nivel', 'reserva'], nota: L + 'los ediles cuidaban el grano (Cicerón, Leyes 3.7).' },
+    { id: 'agricultura', area: 'Agricultura', cargo: 'Edil del grano', i: '🌾', bando: 'ter', edificios: ['granja', 'granero'], tipos: ['nivel', 'reserva', 'campo', 'mejora', 'cambiar'], nota: L + 'los ediles cuidaban el grano (Cicerón, Leyes 3.7).' },
     { id: 'mineria', area: 'Minería', cargo: 'Publicano de minas', i: '⛏️', bando: 'pro', edificios: ['cantera', 'mina', 'aserradero'], tipos: ['nivel', 'reserva'], nota: L + 'los censores arrendaban las minas a publicanos (Polibio 6.17).' },
     { id: 'artesania', area: 'Artesanía y comercio', cargo: 'Edil del mercado', i: '🏺', bando: 'ita', edificios: ['mercado', 'puerto', 'taller'], tipos: ['nivel', 'acto'], actos: ['ruta'], nota: L + 'los ediles vigilaban mercados y pesos (Cicerón, Leyes 3.7).' },
     { id: 'culto', area: 'Culto y fiestas', cargo: 'Pontífice', i: '🔱', bando: 'sac', edificios: ['templo', 'teatro'], tipos: ['nivel', 'acto'], actos: ['juegos', 'ofrenda'], nota: L + 'los pontífices regían el culto; los ediles, los juegos.' }
@@ -60,6 +60,7 @@
   M.costeTropas = (d, u, n) => { const k = (d.UNITS[u] && d.UNITS[u].cost) || {}; return { hombres: n, hierro: (k.hierro || 0) * n, denarios: (k.denarios || 0) * n, grano: (k.grano || 0) * n }; };
   M.pagaTropa = (d, u) => { const up = (d.UNITS[u] && d.UNITS[u].up) || 0; return { grano: r2(up * 3), denarios: r2(up * 3 * d.MANT_TROPA) }; };
 
+  const parcelaDe = (s, e) => ((s.agro && s.agro.parcelas) || []).find(p => p.id === e.parcela && p.ciudad === e.ciudad) || null;   // CDe3-F2a: campos de la agricultura por suelos
   M.medir = (s, e) => {
     const c = e.ciudad ? s.cities[e.ciudad] : null;
     switch (e.tipo) {
@@ -68,6 +69,9 @@
       case 'saber': return (s.inv && s.inv.hechas && s.inv.hechas[e.saber]) ? 1 : 0;
       case 'impuesto': return c && (c.imp || 'normal') === e.nivel ? 1 : 0;
       case 'reserva': return (s.res && s.res[e.recurso]) || 0;
+      case 'campo': return ((s.agro && s.agro.parcelas) || []).filter(p => p.ciudad === e.ciudad && p.campo === e.campo).length;
+      case 'mejora': { const p = parcelaDe(s, e); return p && (p.mejoras || []).indexOf(e.mejora) >= 0 ? 1 : 0; }
+      case 'cambiar': { const p = parcelaDe(s, e); return p && p.campo === e.campo ? 1 : 0; }
       case 'acto': return ((s.ministros && s.ministros.actos && s.ministros.actos[e.acto]) || 0);
     }
     return 0;
@@ -83,7 +87,14 @@
     const f = FICHA[e.mid];
     if (f.tipos.indexOf(e.tipo) < 0) return 'Ese ministro no admite ese encargo';
     const c = e.ciudad ? s.cities[e.ciudad] : null;
-    if (['nivel', 'tropas', 'impuesto'].indexOf(e.tipo) >= 0 && (!c || c.owner !== 'roma')) return 'La ciudad no es tuya';
+    if (['nivel', 'tropas', 'impuesto', 'campo', 'mejora', 'cambiar'].indexOf(e.tipo) >= 0 && (!c || c.owner !== 'roma')) return 'La ciudad no es tuya';
+    if (e.tipo === 'campo') return e.campo && e.suelo ? (e.objetivo > M.medir(s, e) ? '' : 'Ya está hecho') : 'Falta el campo o el suelo';
+    if (e.tipo === 'mejora' || e.tipo === 'cambiar') {
+      const p = parcelaDe(s, e); if (!p) return 'Esa parcela ya no existe';
+      if (e.tipo === 'mejora' && !e.mejora) return 'Falta la mejora';
+      if (e.tipo === 'cambiar' && !e.campo) return 'Falta el campo';
+      return e.objetivo > M.medir(s, e) ? '' : 'Ya está hecho';
+    }
     if (e.tipo === 'nivel') {
       if (!D.BUILD[e.b] || (!e.libre && f.edificios.indexOf(e.b) < 0)) return 'Ese edificio no existe';
       if (!(e.objetivo > nivelB(c, e.b))) return 'Ya tiene ese nivel';
@@ -125,6 +136,7 @@
       case 'saber': return 'Investigar ' + ((D.INVEST[e.saber] && D.INVEST[e.saber].n) || e.saber);
       case 'impuesto': return 'Poner impuestos «' + e.nivel + '» en ' + c;
       case 'reserva': return 'Reunir ' + e.objetivo + ' de ' + e.recurso + (e.recurso === 'grano' ? ' para el invierno' : '');
+      case 'campo': case 'mejora': case 'cambiar': return (e.txt || 'Trabajo en los campos') + ' (' + c + ')';
       case 'acto': return 'Hacer ' + ((e.objetivo - (e.base || 0)) || 0) + ' acto de ' + e.acto;
     }
     return '';
@@ -135,6 +147,8 @@
     if ((e.tipo === 'tropas' || e.tipo === 'acto') && e.n > 0) e.objetivo = e.base + e.n;
     if (e.tipo === 'saber') e.objetivo = 1;
     if (e.tipo === 'impuesto') e.objetivo = 1;
+    if (e.tipo === 'campo') e.objetivo = e.base + 1;
+    if (e.tipo === 'mejora' || e.tipo === 'cambiar') e.objetivo = 1;
     e.desde = mes; e.plazo = mes + (e.tipo === 'saber' ? M.PLAZO_SABER : M.PLAZO);
     e.id = e.mid + '-' + mes + '-' + e.tipo; e.texto = textoDe(s, e);
     return e;
@@ -212,6 +226,7 @@
         const cons = ayuda.consumoMes ? ayuda.consumoMes() : 0.5 * hombres(s) + 0.1 * popTotal(s);
         const inv = cons * 3, lista = [];
         if ((res.grano || 0) < inv) lista.push(reserva('grano', Math.ceil(inv * 3)));
+        if (ayuda.encargosAgro) for (const g of ayuda.encargosAgro(mayor) || []) if (g.tipo === 'campo' || g.tipo === 'mejora' || g.tipo === 'cambiar') lista.push(() => ({ tipo: g.tipo, ciudad: mayor, parcela: g.parcela, campo: g.campo, suelo: g.suelo, mejora: g.mejora, txt: g.texto }));   // CDe3-F2a: campos, mejoras y cambios de la agricultura por suelos
         lista.push(nivelMas(s, 'granja', cs));
         return P(lista);
       }
@@ -271,6 +286,12 @@
         if (!(s.inv && s.inv.cola)) out.push({ mid, tipo: 'investigar', saber: e.saber });
       } else if (e.tipo === 'impuesto') {
         out.push({ mid, tipo: 'impuesto', ciudad: e.ciudad, nivel: e.nivel });
+      } else if (e.tipo === 'campo') {
+        out.push({ mid, tipo: 'plantar', ciudad: e.ciudad, campo: e.campo, suelo: e.suelo });
+      } else if (e.tipo === 'mejora') {
+        out.push({ mid, tipo: 'mejorar', ciudad: e.ciudad, parcela: e.parcela, mejora: e.mejora });
+      } else if (e.tipo === 'cambiar') {
+        out.push({ mid, tipo: 'cambiar', ciudad: e.ciudad, parcela: e.parcela, campo: e.campo });
       } else if (e.tipo === 'acto' && (e.acto === 'juegos' || e.acto === 'ofrenda')) {
         const cid = e.ciudad || porPop(s)[0], F = D.FIESTAS[e.acto], ult = cid && s.cities[cid] && s.cities[cid].fiesta ? s.cities[cid].fiesta[e.acto] : -99;
         if (cid && !(F && mes - (typeof ult === 'number' ? ult : -99) < (F.reposo || 0))) out.push({ mid, tipo: 'fiesta', ciudad: cid, fiesta: e.acto });

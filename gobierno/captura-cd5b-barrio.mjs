@@ -49,7 +49,7 @@ const mejor = await page.evaluate(() => { const D = BarrioUI.estado.D; return D.
 await page.evaluate(i => BarrioUI.abrirFicha(i), op.barrio !== undefined ? +op.barrio : mejor); await page.waitForTimeout(1500);
 await foto('ficha');
 await page.evaluate(() => BarrioUI.cerrar()); await page.waitForTimeout(500);
-await page.click('#bui-capa'); await page.waitForTimeout(600);
+await page.click('#ctop .vb'); await page.click('#ctop [data-act="capas"]').catch(() => { }); await page.waitForTimeout(600);
 await page.evaluate(n => BarrioUI.ponerCapa(n), op.capa || 'agua'); await page.waitForTimeout(1500);
 await foto('capa-agua');
 console.log(await page.evaluate(() => { const i = UI.cityV.r.info.render; return i.triangles + ' triángulos, ' + i.calls + ' llamadas'; }));
