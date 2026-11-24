@@ -87,126 +87,237 @@ const tipoF = h => h.tipo || 'falangita';
 export function crearFisica(op = {}) {
   const H = op.H || (() => 0), ESC = op.escala || 1, parMin = op.parMin;   /* FI2: escala de los radios (1 en la falange) y, si se da, parMin(a, b) → distancia mínima propia de esa pareja (o undefined) */
   let rivales = [], empujes = new Map();
+  /* FI5: el paso no pide memoria nueva: listas, radios, masas y rejillas se reutilizan de un paso a otro (crecen si hace falta) */
+  const L = [], C = [];
+  let R, M, RC;   /* radios, masas (vivos) y radios de los caídos: arrays tipados, ver carga() */
 
   /* cuerpos que cuentan: tus hombres vivos y no huidos, y los del rival vivos */
-  function cuerpos(S) {
-    const L = [];
+  function cuerpos(S, L = []) {   /* paso le da su lista (reutilizada); medir y vuela, una nueva */
+    L.length = 0;
     for (const h of S.fal) if (h.vivo && !h.huye) L.push(h);
     for (const h of S.ene) if (h.vivo) L.push(h);
     return L;
   }
   /* los caídos: estorbo bajo, quietos donde cayeron (masa infinita) */
-  function caidos(S) {
-    const L = [];
-    for (const h of S.fal) if (!h.vivo) L.push(h);
-    for (const h of S.ene) if (!h.vivo) L.push(h);
-    return L;
+  function caidos(S, C = []) {
+    C.length = 0;
+    for (const h of S.fal) if (!h.vivo) C.push(h);
+    for (const h of S.ene) if (!h.vivo) C.push(h);
+    return C;
   }
   const rad = h => (RADIO[tipoF(h)] ?? 0.25) * ESC, radC = h => (RADIO_CAIDO[tipoF(h)] ?? 0.35) * ESC, masa = h => MASA[tipoF(h)] || 1;
   /* dónde se dibuja un caído: donde cayó (h.x, h.z; la escena lo guarda en h.caido) más lo que lo han arrastrado (fx, fz) */
   const dondeC = h => [h.x + (h.fx || 0), h.z + (h.fz || 0)];
   const clave = (ix, iz) => ((ix + 32768) << 16) | ((iz + 32768) & 0xffff);
-  function rejilla(L, pos) {
+  /* FI5: rejilla espacial de 1 m en arrays tipados que se reutilizan. Densa sobre la caja que ocupan los cuerpos (celda
+     (ix, iz) → (ix - x0)·alto + (iz - z0)): las celdas de una misma columna quedan seguidas, y un tramo de items las recorre
+     en el orden de siempre (dz creciente; dentro de cada celda, índices crecientes). Si la caja es enorme (alguien muy
+     lejos), tabla hash abierta. En los dos modos el orden de los choques es el de la rejilla con Map de antes. */
+  function nuevaRejilla() {
+    let T = 0, mask = 0, llave = null, sello = null, cuenta = null, inicio = null, gen = 0, usadas = null;
+    let celdaDe = new Int32Array(0), items = new Int32Array(0), CI = new Int32Array(0), CZ = new Int32Array(0), arranque = new Int32Array(0);
+    let densa = false, x0 = 0, z0 = 0, ancho = 0, alto = 0;
+    const G = {
+      ini: 0, fin: 0,
+      haz(n, X, Z, FX, FZ) {
+        if (celdaDe.length < n) { const c = n * 2; celdaDe = new Int32Array(c); items = new Int32Array(c); CI = new Int32Array(c); CZ = new Int32Array(c); }
+        let mx = Infinity, Mx = -Infinity, mz = Infinity, Mz = -Infinity;
+        for (let i = 0; i < n; i++) {
+          const ix = Math.floor((X[i] + FX[i]) / CELDA), iz = Math.floor((Z[i] + FZ[i]) / CELDA); CI[i] = ix; CZ[i] = iz;
+          if (ix < mx) mx = ix; if (ix > Mx) Mx = ix; if (iz < mz) mz = iz; if (iz > Mz) Mz = iz;
+        }
+        const nc = n ? (Mx - mx + 1) * (Mz - mz + 1) : 0;
+        densa = nc <= Math.max(4096, n * 16);
+        if (densa) {
+          x0 = mx; z0 = mz; ancho = n ? Mx - mx + 1 : 0; alto = n ? Mz - mz + 1 : 0;
+          if (arranque.length < nc + 1) arranque = new Int32Array(Math.max(nc + 1, 1024));
+          arranque.fill(0, 0, nc + 1);
+          for (let i = 0; i < n; i++) { const c = (CI[i] - x0) * alto + (CZ[i] - z0); celdaDe[i] = c; arranque[c + 1]++; }
+          for (let c = 0; c < nc; c++) arranque[c + 1] += arranque[c];
+          for (let i = 0; i < n; i++) items[arranque[celdaDe[i]]++] = i;
+          for (let c = nc; c > 0; c--) arranque[c] = arranque[c - 1];   /* deshace el corrimiento: arranque[c] vuelve a ser el inicio de c */
+          arranque[0] = 0;
+          return;
+        }
+        let t = 64; while (t < n * 4) t <<= 1;
+        if (t > T) { T = t; mask = t - 1; llave = new Int32Array(t); sello = new Int32Array(t); cuenta = new Int32Array(t); inicio = new Int32Array(t); usadas = new Int32Array(t); gen = 0; }
+        if (++gen > 0x3fffffff) { sello.fill(0); gen = 1; }
+        let nu = 0;
+        for (let i = 0; i < n; i++) {
+          const k = clave(CI[i], CZ[i]);
+          let s = Math.imul(k, 0x9E3779B1) >>> 0 & mask;
+          while (sello[s] === gen && llave[s] !== k) s = (s + 1) & mask;
+          if (sello[s] !== gen) { sello[s] = gen; llave[s] = k; cuenta[s] = 0; usadas[nu++] = s; }
+          cuenta[s]++; celdaDe[i] = s;
+        }
+        let a = 0; for (let u = 0; u < nu; u++) { const s = usadas[u]; inicio[s] = a; a += cuenta[s]; cuenta[s] = inicio[s]; }
+        for (let i = 0; i < n; i++) items[cuenta[celdaDe[i]]++] = i;   /* al acabar, cuenta[s] es el fin de la celda s */
+      },
+      /* deja en G.ini, G.fin el tramo de items de las celdas (ix, iz0..iz1), seguidas y en orden; false si no hay nadie */
+      columna(ix, iz0, iz1) {
+        if (densa) {
+          if (ix < x0 || ix >= x0 + ancho) return false;
+          const a = Math.max(iz0, z0) - z0, b = Math.min(iz1, z0 + alto - 1) - z0; if (a > b) return false;
+          const base = (ix - x0) * alto; G.ini = arranque[base + a]; G.fin = arranque[base + b + 1]; return G.ini < G.fin;
+        }
+        return false;
+      },
+      get densa() { return densa; },
+      /* solo en modo hash: una celda */
+      celda(ix, iz) {
+        const k = clave(ix, iz); let s = Math.imul(k, 0x9E3779B1) >>> 0 & mask;
+        while (sello[s] === gen) { if (llave[s] === k) { G.ini = inicio[s]; G.fin = cuenta[s]; return true; } s = (s + 1) & mask; }
+        return false;
+      },
+      get items() { return items; },
+    };
+    return G;
+  }
+  const GV = nuevaRejilla(), GC = nuevaRejilla();
+  const posV = h => [h.x + (h.fx || 0), h.z + (h.fz || 0)];
+  function rejilla(L, pos) {   /* la de siempre, con Map: para medir y vuela (fuera del paso) */
     const G = new Map();
     for (let i = 0; i < L.length; i++) { const p = pos(L[i], i), k = clave(Math.floor(p[0] / CELDA), Math.floor(p[1] / CELDA)); let c = G.get(k); if (!c) G.set(k, c = []); c.push(i); }
     return G;
   }
-  const posV = h => [h.x + (h.fx || 0), h.z + (h.fz || 0)];
   /* tope duro: nadie se aparta más de TOPE de su sitio; si lo toca, pierde la velocidad hacia fuera */
   const tope = h => { const m = Math.hypot(h.fx, h.fz); if (m > TOPE) { const ux = h.fx / m, uz = h.fz / m, vn = h.vx * ux + h.vz * uz; h.fx = ux * TOPE; h.fz = uz * TOPE; if (vn > 0) { h.vx -= ux * vn; h.vz -= uz * vn; } } };
-  /* velocidad que dan las reglas (lo que se movió x, z en este paso); con tope, por si hubo un salto */
-  let prev = new WeakMap(), vivoAntes = new WeakMap();
-  function velReglas(h, dt) {
-    const p = prev.get(h); let ux = 0, uz = 0;
-    if (p && dt > 0) { ux = (h.x - p[0]) / dt; uz = (h.z - p[1]) / dt; const m = Math.hypot(ux, uz); if (m > V_MAX) { ux *= V_MAX / m; uz *= V_MAX / m; } }
+  /* velocidad que dan las reglas (lo que se movió x, z en este paso); con tope, por si hubo un salto.
+     antes: por hombre, dónde lo puso la regla en el paso anterior y si estaba vivo ({ x, z, vivo }; se reescribe, no se crea) */
+  let antes = new WeakMap();
+  function velReglas(h, dt, p) {
+    let ux = 0, uz = 0;
+    if (p && dt > 0) { ux = (h.x - p.x) / dt; uz = (h.z - p.z) / dt; const m = Math.hypot(ux, uz); if (m > V_MAX) { ux *= V_MAX / m; uz *= V_MAX / m; } }
     h.ux = ux; h.uz = uz;
+  }
+
+  /* FI5: durante el paso, los vivos (L) y los caídos (C) se copian a arrays tipados (Float64: las mismas cuentas, bit a bit)
+     y se devuelven al final. X, Z: sitio de las reglas; FX, FZ: desplazamiento; VX, VZ: velocidad; UX, UZ: la de las reglas */
+  let cap = 0, X, Z, FX, FZ, VX, VZ, UX, UZ, capC = 0, CX, CZ, CFX, CFZ;
+  function carga() {
+    const n = L.length, m = C.length;
+    if (n > cap) { cap = n * 2; X = new Float64Array(cap); Z = new Float64Array(cap); FX = new Float64Array(cap); FZ = new Float64Array(cap); VX = new Float64Array(cap); VZ = new Float64Array(cap); UX = new Float64Array(cap); UZ = new Float64Array(cap); R = new Float64Array(cap); M = new Float64Array(cap); }
+    if (m > capC) { capC = m * 2 + 8; CX = new Float64Array(capC); CZ = new Float64Array(capC); CFX = new Float64Array(capC); CFZ = new Float64Array(capC); RC = new Float64Array(capC); }
+    for (let i = 0; i < n; i++) { const h = L[i]; X[i] = h.x; Z[i] = h.z; FX[i] = h.fx; FZ[i] = h.fz; VX[i] = h.vx; VZ[i] = h.vz; UX[i] = h.ux; UZ[i] = h.uz; }
+    for (let j = 0; j < m; j++) { const h = C[j]; CX[j] = h.x; CZ[j] = h.z; CFX[j] = h.fx; CFZ[j] = h.fz; }
+  }
+  function descarga() {
+    for (let i = 0, n = L.length; i < n; i++) { const h = L[i]; h.fx = FX[i]; h.fz = FZ[i]; h.vx = VX[i]; h.vz = VZ[i]; }
+    for (let j = 0, m = C.length; j < m; j++) { const h = C[j]; h.fx = CFX[j]; h.fz = CFZ[j]; }
+  }
+  const TOPE2 = TOPE * TOPE * (1 - 1e-9);   /* por debajo de esto el tope ni se mira (sin raíz) */
+  function topeI(i) {
+    const fx = FX[i], fz = FZ[i]; if (fx * fx + fz * fz < TOPE2) return;
+    const m = Math.hypot(fx, fz); if (m > TOPE) { const ux = fx / m, uz = fz / m, vn = VX[i] * ux + VZ[i] * uz; FX[i] = ux * TOPE; FZ[i] = uz * TOPE; if (vn > 0) { VX[i] -= ux * vn; VZ[i] -= uz * vn; } }
   }
 
   /* una pasada de choques entre vivos: se apartan a la suma de radios (cada uno según su masa) y el choque es
      inelástico: la velocidad que se acercaban se reparte por masa (el impulso pasa de uno a otro) */
-  function choca(L, rMax, M) {
-    const G = rejilla(L, posV);
-    for (let i = 0; i < L.length; i++) {
-      const a = L[i], ra = rad(a), n = Math.ceil((ra + rMax) / CELDA), ax = a.x + a.fx, az = a.z + a.fz;
+  function choca(rMax) {
+    const nL = L.length; GV.haz(nL, X, Z, FX, FZ); const I = GV.items;
+    for (let i = 0; i < nL; i++) {
+      const ra = R[i], n = Math.ceil((ra + rMax) / CELDA), ax = X[i] + FX[i], az = Z[i] + FZ[i];
       const cx = Math.floor(ax / CELDA), cz = Math.floor(az / CELDA), ia = 1 / M[i];
+      const densa = GV.densa;
       for (let dx = -n; dx <= n; dx++) for (let dz = -n; dz <= n; dz++) {
-        const c = G.get(clave(cx + dx, cz + dz)); if (!c) continue;
-        for (const j of c) {
+        if (densa) { if (!GV.columna(cx + dx, cz - n, cz + n)) { dz = n; continue; } dz = n; } else if (!GV.celda(cx + dx, cz + dz)) continue;   /* densa: la columna entera de una vez */
+        for (let q = GV.ini, fin = GV.fin; q < fin; q++) {
+          const j = I[q];
           if (j <= i) continue;
-          const b = L[j], pm = parMin ? parMin(a, b) : undefined, min = pm === undefined ? ra + rad(b) : Math.min(ra + rad(b), pm); let vx = (b.x + b.fx) - (a.x + a.fx), vz = (b.z + b.fz) - (a.z + a.fz), d = Math.hypot(vx, vz);
+          const rs = ra + R[j];
+          let vx = (X[j] + FX[j]) - (X[i] + FX[i]), vz = (Z[j] + FZ[j]) - (Z[i] + FZ[i]);
+          if (vx * vx + vz * vz >= rs * rs * (1 + 1e-9)) continue;   /* lejos, sin raíz (parMin solo acorta la distancia mínima) */
+          const pm = parMin ? parMin(L[i], L[j]) : undefined, min = pm === undefined ? rs : Math.min(rs, pm); let d = Math.hypot(vx, vz);
           if (d >= min) continue;
           if (d < 1e-6) { const g = (i * 2.399 + j) % 6.283; vx = Math.cos(g); vz = Math.sin(g); d = 0; } else { vx /= d; vz /= d; }
           const ib = 1 / M[j], wa = ia / (ia + ib), o = min - d;
-          a.fx -= vx * o * wa; a.fz -= vz * o * wa; b.fx += vx * o * (1 - wa); b.fz += vz * o * (1 - wa);
-          const vr = (b.ux + b.vx - a.ux - a.vx) * vx + (b.uz + b.vz - a.uz - a.vz) * vz;
-          if (vr < 0) { const J = -vr / (ia + ib); a.vx -= vx * J * ia; a.vz -= vz * J * ia; b.vx += vx * J * ib; b.vz += vz * J * ib; }
-          tope(a); tope(b);
+          FX[i] -= vx * o * wa; FZ[i] -= vz * o * wa; FX[j] += vx * o * (1 - wa); FZ[j] += vz * o * (1 - wa);
+          const vr = (UX[j] + VX[j] - UX[i] - VX[i]) * vx + (UZ[j] + VZ[j] - UZ[i] - VZ[i]) * vz;
+          if (vr < 0) { const J = -vr / (ia + ib); VX[i] -= vx * J * ia; VZ[i] -= vz * J * ia; VX[j] += vx * J * ib; VZ[j] += vz * J * ib; }
+          topeI(i); topeI(j);
         }
       }
     }
   }
   /* los vivos no pisan a los caídos: se apartan los dos según su masa (el caído pesa MASA_CAIDO y se arrastra, sin muelle:
      queda donde lo dejan, como mucho a TOPE_CAIDO de donde cayó); el vivo pierde la velocidad que llevaba hacia él */
-  function noPisa(L, M, C) {
-    if (!C.length) return;
-    const G = rejilla(C, posV), n = Math.ceil((1.3 + 1.6) / CELDA);
-    for (let i = 0; i < L.length; i++) {
-      const a = L[i], ra = rad(a), k = ra > 0.5 ? n : 1, wa = (1 / M[i]) / (1 / M[i] + 1 / MASA_CAIDO);
-      for (let pase = 0; pase < 2; pase++) {
-        const ax = a.x + a.fx, az = a.z + a.fz, cx = Math.floor(ax / CELDA), cz = Math.floor(az / CELDA);
+  const TOPE_C2 = (TOPE_CAIDO - 1e-6) * (TOPE_CAIDO - 1e-6) * (1 - 1e-9);
+  function noPisa() {
+    const nC = C.length; if (!nC) return;
+    GC.haz(nC, CX, CZ, CFX, CFZ); const I = GC.items, n = Math.ceil((1.3 + 1.6) / CELDA), densa = GC.densa;
+    for (let i = 0, nL = L.length; i < nL; i++) {
+      const ra = R[i], k = ra > 0.5 ? n : 1, wa = (1 / M[i]) / (1 / M[i] + 1 / MASA_CAIDO);
+      for (let pase = 0, movido = true; pase < 2 && movido; pase++) {   /* la 2.ª pasada, solo si la 1.ª movió algo (si no, daría lo mismo) */
+        movido = false;
+        const ax = X[i] + FX[i], az = Z[i] + FZ[i], cx = Math.floor(ax / CELDA), cz = Math.floor(az / CELDA);
         for (let dx = -k; dx <= k; dx++) for (let dz = -k; dz <= k; dz++) {
-          const c = G.get(clave(cx + dx, cz + dz)); if (!c) continue;
-          for (const j of c) {
-            const b = C[j], min = ra + radC(b); let vx = a.x + a.fx - b.x - b.fx, vz = a.z + a.fz - b.z - b.fz, d = Math.hypot(vx, vz);
+          if (densa) { if (!GC.columna(cx + dx, cz - k, cz + k)) { dz = k; continue; } dz = k; } else if (!GC.celda(cx + dx, cz + dz)) continue;
+          for (let q = GC.ini, fin = GC.fin; q < fin; q++) {
+            const j = I[q], min = ra + RC[j]; let vx = X[i] + FX[i] - CX[j] - CFX[j], vz = Z[i] + FZ[i] - CZ[j] - CFZ[j];
+            if (vx * vx + vz * vz >= min * min * (1 + 1e-9)) continue;   /* lejos, sin raíz */
+            let d = Math.hypot(vx, vz);
             if (d >= min) continue;
             if (d < 1e-6) { vx = 1; vz = 0; } else { vx /= d; vz /= d; }
             /* el caído ya no se deja arrastrar más: el vivo pasa por encima (las reglas lo llevan allí) */
-            if (Math.hypot(b.fx, b.fz) >= TOPE_CAIDO - 1e-6) continue;
-            const o = min - d; a.fx += vx * o * wa; a.fz += vz * o * wa; b.fx -= vx * o * (1 - wa); b.fz -= vz * o * (1 - wa);
-            const vn = (a.ux + a.vx) * vx + (a.uz + a.vz) * vz; if (vn < 0) { a.vx -= vx * vn * wa; a.vz -= vz * vn * wa; }
-            tope(a); const m = Math.hypot(b.fx, b.fz); if (m > TOPE_CAIDO) { b.fx *= TOPE_CAIDO / m; b.fz *= TOPE_CAIDO / m; }
+            const bx = CFX[j], bz = CFZ[j]; if (bx * bx + bz * bz >= TOPE_C2 && Math.hypot(bx, bz) >= TOPE_CAIDO - 1e-6) continue;
+            movido = true; const o = min - d; FX[i] += vx * o * wa; FZ[i] += vz * o * wa; CFX[j] -= vx * o * (1 - wa); CFZ[j] -= vz * o * (1 - wa);
+            const vn = (UX[i] + VX[i]) * vx + (UZ[i] + VZ[i]) * vz; if (vn < 0) { VX[i] -= vx * vn * wa; VZ[i] -= vz * vn * wa; }
+            topeI(i); const m = Math.hypot(CFX[j], CFZ[j]); if (m > TOPE_CAIDO) { CFX[j] *= TOPE_CAIDO / m; CFZ[j] *= TOPE_CAIDO / m; }
           }
         }
       }
     }
   }
 
-  /* compresión fila a fila: si el de delante recula, el de detrás recula al menos PASA_ATRAS de eso */
+  /* compresión fila a fila: si el de delante recula, el de detrás recula al menos PASA_ATRAS de eso.
+     Los primeros nF de L son S.fal vivos y no huidos, en su orden: se trabaja por índice. Las columnas se guardan entre pasos */
+  const col = new Map(), porR = (a, b) => L[a].r - L[b].r;
+  let nF = 0;
   function aprieta(S) {
-    const Fx = Math.sin(S.giro || 0), Fz = -Math.cos(S.giro || 0), col = new Map();
-    for (const h of S.fal) if (h.vivo && !h.huye) { let c = col.get(h.f); if (!c) col.set(h.f, c = []); c.push(h); }
+    const Fx = Math.sin(S.giro || 0), Fz = -Math.cos(S.giro || 0);
+    for (const c of col.values()) c.length = 0;
+    if (col.size > 4096) col.clear();
+    for (let i = 0; i < nF; i++) { const f = L[i].f; let c = col.get(f); if (!c) col.set(f, c = []); c.push(i); }
     for (const c of col.values()) {
-      c.sort((a, b) => a.r - b.r);
+      if (c.length < 2) continue;
+      c.sort(porR);
       for (let k = 1; k < c.length; k++) {
-        const a = c[k - 1], b = c[k], ra = -(a.fx * Fx + a.fz * Fz), rb = -(b.fx * Fx + b.fz * Fz), falta = PASA_ATRAS * ra - rb;
-        if (ra > 0 && falta > 0) { b.fx -= Fx * falta; b.fz -= Fz * falta; tope(b); }
+        const a = c[k - 1], b = c[k], ra = -(FX[a] * Fx + FZ[a] * Fz), rb = -(FX[b] * Fx + FZ[b] * Fz), falta = PASA_ATRAS * ra - rb;
+        if (ra > 0 && falta > 0) { FX[b] -= Fx * falta; FZ[b] -= Fz * falta; topeI(b); }
       }
     }
   }
 
+  function muelle(h, dt) {
+    h.fx = h.fx || 0; h.fz = h.fz || 0; h.vx = h.vx || 0; h.vz = h.vz || 0;
+    let p = antes.get(h);
+    if (h.vivo) {
+      velReglas(h, dt, p);
+      const ax = -K_MUELLE * h.fx - C_FRENO * h.vx, az = -K_MUELLE * h.fz - C_FRENO * h.vz;
+      h.vx += ax * dt; h.vz += az * dt; h.fx += h.vx * dt; h.fz += h.vz * dt;
+    } else if (p && p.vivo) {
+      /* acaba de caer: hacia donde iba (su velocidad de dibujo y la de las reglas) o hacia donde le empujaban */
+      const e = empujes.get(h), gx = h.vx + (h.ux || 0) * 0.3 + (e ? e.x / Math.max(dt, 1e-3) : 0), gz = h.vz + (h.uz || 0) * 0.3 + (e ? e.z / Math.max(dt, 1e-3) : 0);
+      if (Math.hypot(gx, gz) > 0.05) h.fCae = Math.atan2(gx, gz);
+      h.vx = h.vz = 0;
+    }
+    if (!p) antes.set(h, p = { x: 0, z: 0, vivo: false });
+    p.vivo = h.vivo; p.x = h.x; p.z = h.z;
+  }
   function paso(S, dt) {
     /* muelle amortiguado hacia el sitio de las reglas (sin rebote) y rozamiento */
-    const todos = S.fal.concat(S.ene);
-    for (const h of todos) {
-      h.fx = h.fx || 0; h.fz = h.fz || 0; h.vx = h.vx || 0; h.vz = h.vz || 0;
-      if (h.vivo) {
-        velReglas(h, dt);
-        const ax = -K_MUELLE * h.fx - C_FRENO * h.vx, az = -K_MUELLE * h.fz - C_FRENO * h.vz;
-        h.vx += ax * dt; h.vz += az * dt; h.fx += h.vx * dt; h.fz += h.vz * dt;
-      } else if (vivoAntes.get(h)) {
-        /* acaba de caer: hacia donde iba (su velocidad de dibujo y la de las reglas) o hacia donde le empujaban */
-        const e = empujes.get(h), gx = h.vx + (h.ux || 0) * 0.3 + (e ? e.x / Math.max(dt, 1e-3) : 0), gz = h.vz + (h.uz || 0) * 0.3 + (e ? e.z / Math.max(dt, 1e-3) : 0);
-        if (Math.hypot(gx, gz) > 0.05) h.fCae = Math.atan2(gx, gz);
-        h.vx = h.vz = 0;
-      }
-      vivoAntes.set(h, h.vivo); prev.set(h, [h.x, h.z]);
-    }
+    for (const h of S.fal) muelle(h, dt);
+    for (const h of S.ene) muelle(h, dt);
     /* los empujes que dejaron las picas en el último fotograma: mueven ya y dejan velocidad */
     for (const [h, e] of empujes) if (h.vivo) { h.fx += e.x; h.fz += e.z; if (dt > 0) { h.vx += e.x / dt * 0.5; h.vz += e.z / dt * 0.5; } tope(h); }
-    empujes = new Map();
-    const L = cuerpos(S), M = L.map(masa), C = caidos(S); let rMax = 0; for (const h of L) rMax = Math.max(rMax, rad(h));
-    choca(L, rMax, M); noPisa(L, M, C); aprieta(S); noPisa(L, M, C); choca(L, rMax, M); choca(L, rMax, M);   /* al final, que los vivos no se solapen */
-    rivales = S.ene.filter(h => h.vivo);
+    empujes.clear();
+    cuerpos(S, L); caidos(S, C); carga();
+    nF = 0; for (const h of S.fal) if (h.vivo && !h.huye) nF++;
+    let rMax = 0; for (let i = 0; i < L.length; i++) { const h = L[i]; R[i] = rad(h); M[i] = masa(h); rMax = Math.max(rMax, R[i]); }
+    for (let j = 0; j < C.length; j++) RC[j] = radC(C[j]);
+    choca(rMax); noPisa(); aprieta(S); noPisa(); choca(rMax); choca(rMax);   /* al final, que los vivos no se solapen */
+    descarga();
+    rivales.length = 0; for (const h of S.ene) if (h.vivo) rivales.push(h);
   }
 
   /* tramo [tin, tout] del rayo P + D·t dentro del volumen de h (cuerpo o escudo), o null */
@@ -473,5 +584,321 @@ export function crearFisica(op = {}) {
   /* quita de la lista los que ya no vuelan (los clavados en un hombre muerto o los del suelo, cuando quien dibuja no los quiera) */
   function limpia(quedar = () => false) { for (let i = proyectiles.length - 1; i >= 0; i--) { const p = proyectiles[i]; if (p.est !== 'vuela' && !quedar(p)) proyectiles.splice(i, 1); } }
 
-  return { paso, pica, medir, lanza, vuela, dondeP, limpia, proyectiles, reinicia() { empujes = new Map(); rivales = []; prev = new WeakMap(); vivoAntes = new WeakMap(); proyectiles.length = 0; } };
+  return { paso, pica, medir, lanza, vuela, dondeP, limpia, proyectiles, reinicia() { empujes = new Map(); rivales = []; antes = new WeakMap(); proyectiles.length = 0; } };
+}
+
+/* ===================== FI3: proyectiles que se clavan, rebotan o resbalan =====================
+   Solo decide CÓMO SE VE cada pilum (o venablo). Quién muere y qué para cada uno lo deciden las reglas. Azar propio con
+   semilla: nunca toca el azar de las reglas. Diseño: gobierno/estudios/FI3-diseno-proyectiles.md. Contrato en la cabecera
+   de crearProyectiles. Ángulo de llegada: 0° = de frente a la cara (escudo, cuerpo), al suelo (vertical) o al asta (de lado). */
+export const PR = {
+  LARGO: 2.06, CM: 0.85,        /* largo del pilum y su centro de masas desde la punta (el hierro pesa delante) */
+  PUNTA: 0.25, HUNDE: 0.12,     /* lo que puede quedar dentro de lo que lo lleva; lo que se hunde al clavarse (≤ 0,15) */
+  CLAVA_ESCUDO: 60, CLAVA_SUELO: 25, CLAVA_ASTA: 35,   /* grados: escudo de frente, suelo bajo la horizontal, asta casi de frente */
+  CANTO: 0.06, CASCO: 0.25,     /* a menos de 6 cm del borde del escudo rebota; lo alto del cuerpo (casco) rebota */
+  E: 0.25, MU: 0.5, G: 9.8,     /* elasticidad del rebote, rozamiento, gravedad */
+  RADIO: 0.02, T_MAX: 2.5        /* grosor del asta; segundos máximos dando tumbos antes de quedarse tumbado */
+};
+const sub = (a, b) => [a[0] - b[0], a[1] - b[1], a[2] - b[2]], sum = (a, b, k = 1) => [a[0] + b[0] * k, a[1] + b[1] * k, a[2] + b[2] * k];
+const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2], len = a => Math.hypot(a[0], a[1], a[2]);
+const nor = a => { const l = len(a) || 1; return [a[0] / l, a[1] / l, a[2] / l]; };
+const cruz = (a, b) => [a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0]];
+const gira = (v, e, w) => { const c = Math.cos(w), s = Math.sin(w), k = dot(e, v) * (1 - c), x = cruz(e, v); return [v[0] * c + x[0] * s + e[0] * k, v[1] * c + x[1] * s + e[1] * k, v[2] * c + x[2] * s + e[2] * k]; };
+/* matrices 4×4 por columnas (como THREE.Matrix4.elements) */
+const mPunto = (M, p) => [M[0] * p[0] + M[4] * p[1] + M[8] * p[2] + M[12], M[1] * p[0] + M[5] * p[1] + M[9] * p[2] + M[13], M[2] * p[0] + M[6] * p[1] + M[10] * p[2] + M[14]];
+const mDir = (M, p) => [M[0] * p[0] + M[4] * p[1] + M[8] * p[2], M[1] * p[0] + M[5] * p[1] + M[9] * p[2], M[2] * p[0] + M[6] * p[1] + M[10] * p[2]];
+function mInv(M) {   /* inversa de una matriz afín */
+  const [a, b, c, d, e, f, g, h, i] = [M[0], M[4], M[8], M[1], M[5], M[9], M[2], M[6], M[10]];
+  const A = e * i - f * h, B = f * g - d * i, C = d * h - e * g, det = a * A + b * B + c * C || 1e-12;
+  const R = [A / det, (c * h - b * i) / det, (b * f - c * e) / det, B / det, (a * i - c * g) / det, (c * d - a * f) / det, C / det, (b * g - a * h) / det, (a * e - b * d) / det];
+  const t = [M[12], M[13], M[14]], T = [-(R[0] * t[0] + R[1] * t[1] + R[2] * t[2]), -(R[3] * t[0] + R[4] * t[1] + R[5] * t[2]), -(R[6] * t[0] + R[7] * t[1] + R[8] * t[2])];
+  return [R[0], R[3], R[6], 0, R[1], R[4], R[7], 0, R[2], R[5], R[8], 0, T[0], T[1], T[2], 1];
+}
+function generador(a) { return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const hashI = i => { let h = Math.imul(i + 1, 2654435761) >>> 0; h ^= h >>> 16; return Math.imul(h, 2246822507) >>> 0; };
+
+/* CONTRATO (FI3)
+   import { crearProyectiles } from './fisica-batalla.js';
+   const Pr = crearProyectiles({ H, escala, semilla, largo, mismo });   H(x, z) suelo; escala de los grosores (1); semilla del azar
+                                  propio; largo del asta (PR.LARGO; cada proyectil puede traer el suyo en p.largo, y su centro de
+                                  masas se escala con él); mismo(a, b): dos dueños que cuentan como uno (p. ej. tiras de un escudo)
+   Obstáculos (los da el adaptador cada fotograma, como se dibujan; mejor solo los cercanos):
+     { tipo: 'escudo', c: [x,y,z] centro, n normal hacia fuera, u ancho, v alto (unitarios), m: [½ grueso, ½ ancho, ½ alto], umbo?: radio, dueno }
+     { tipo: 'cuerpo', x, z, y0, y1, r, dueno }              cilindro; lo alto (PR.CASCO) es el casco
+     { tipo: 'asta', a: [x,y,z], b: [x,y,z], r, dueno }      cápsula (sarisa alzada)
+   Pr.vuela(p, punta, vel, obst)  en vuelo (manda la regla): punta del pilum y su velocidad. Si el tramo desde la punta anterior
+                                  toca algo, o el astil (cola→punta) cruza algo, se para en el contacto (p.fi.toca) y sigue a ese
+                                  escudo o cuerpo. → pose { punta, dir }
+   Pr.llega(p, que, obst, M)      la regla decide: que = { tipo: 'escudo'|'cuerpo'|'asta'|'suelo', dueno, o? (su obstáculo) };
+                                  M = matriz del hueso o del asta que lo lleva. → modo: 'clava' | 'rebota' | 'resbala' | 'cae'
+                                  ('cae': la regla dijo suelo y aún no lo toca: sigue cayendo y decide al tocar).
+                                  Si el vuelo tocó otra cosa (o nada), vale lo de la regla y cuenta p.fi.salto = 'otro' | 'nada'
+                                  (y llega desde ≥ 50° de alto, para no cruzar a los de delante). que.otroVale = true: vale
+                                  cualquier obstáculo de ese tipo (p. ej. un asta alzada cualquiera); p.fi.dueno dice cuál.
+                                  que.vale = ['asta', 'escudo']: también vale lo tocado de esos tipos (decide como él).
+                                  M puede ser una función (dueno, tipo) → matriz, para el dueño y el tipo que resulten
+   Pr.mueve(p, dt, obst)          rebotes, caídas y resbalones (nunca atraviesa suelo ni obstáculos); el clavado en el suelo que
+                                  queda dentro de un hombre que pasa se tumba
+   Pr.pose(p, M, obst?)           → { punta, dir } a dibujar; el clavado sigue a M (la matriz actual de lo que lo lleva).
+                                  Con obst: si el astil del clavado entra en algo que no es su dueño, gira sobre la punta
+                                  (hasta 30°) o sale hasta 15 cm (p.fi.ajustes cuenta cada arreglo); si no basta, se suelta y cae
+   Pr.medir(lista, obst)          → { dentro, muestras, detalle, tramos, saltos }: astiles dentro de escudo, cuerpo o suelo
+                                  (al clavado se le perdona la punta, PR.PUNTA, en lo que lo lleva), la cuenta por tramo de ángulo
+                                  (tramos: solo caras de escudo y cuerpo, y suelo) y aparte { canto, umbo, casco, asta, cae }
+   Pr.suelta(p)                   lo clavado cae desde donde está (el asta que lo lleva se baja, el escudo se suelta…)
+   Pr.reinicia()                  pone a cero la cuenta
+   Escribe solo en p.fi (las reglas no lo leen). Quien dibuja pone la cola en punta − largo·dir. */
+export function crearProyectiles(op = {}) {
+  const H = op.H || (() => 0), ESC = op.escala || 1, SEM = (op.semilla ?? 1) | 0, RA = PR.RADIO * ESC, L0 = op.largo || PR.LARGO;
+  const mismo = op.mismo || ((a, b) => a === b);   /* dos dueños que son lo mismo (p. ej. las tiras de un mismo escudo) */
+  let cuenta, contador = 0;
+  function reinicia() { cuenta = { tramos: [0, 1, 2].map(() => ({ clava: 0, rebota: 0, resbala: 0 })), aparte: { canto: { clava: 0, rebota: 0 }, umbo: { clava: 0, rebota: 0 }, casco: { clava: 0, rebota: 0 }, asta: { clava: 0, rebota: 0 }, cae: { clava: 0, rebota: 0 } }, saltos: { otro: 0, nada: 0 }, saltosPor: {}, llegan: 0 }; }
+  reinicia();
+  const fi = p => p.fi || (p.fi = { modo: 'vuela', k: contador, az: generador(SEM ^ hashI(contador++)), L: p.largo || L0, CM: (p.largo || L0) * PR.CM / PR.LARGO });
+  const suelo = q => H(q[0], q[2]);
+  /* centro y radio de un obstáculo, para descartar los lejanos */
+  function esfera(o) { return o.esf || (o.esf = esferaDe(o)); }
+  function esferaDe(o) {
+    if (o.tipo === 'escudo') return [o.c, Math.hypot(o.m[0], o.m[1], o.m[2])];
+    if (o.tipo === 'cuerpo') return [[o.x, (o.y0 + o.y1) / 2, o.z], Math.hypot(o.r, (o.y1 - o.y0) / 2)];
+    return [[(o.a[0] + o.b[0]) / 2, (o.a[1] + o.b[1]) / 2, (o.a[2] + o.b[2]) / 2], len(sub(o.b, o.a)) / 2 + o.r];
+  }
+  function cerca(obst, A, B, extra = 0) {   /* los obstáculos a menos de su radio del tramo AB */
+    const L = [], dx = B[0] - A[0], dy = B[1] - A[1], dz = B[2] - A[2], dd = dx * dx + dy * dy + dz * dz || 1e-9;   /* sin arrays nuevos: es el camino caliente */
+    for (let i = 0; i < obst.length; i++) { const o = obst[i], e = esfera(o), c = e[0], R = e[1] + extra + 0.05, cx = c[0] - A[0], cy = c[1] - A[1], cz = c[2] - A[2], t = Math.max(0, Math.min(1, (cx * dx + cy * dy + cz * dz) / dd)), ex = cx - dx * t, ey = cy - dy * t, ez = cz - dz * t; if (ex * ex + ey * ey + ez * ez < R * R) L.push(o); }
+    return L;
+  }
+  const local = (o, q) => { const w = sub(q, o.c); return [dot(w, o.n), dot(w, o.u), dot(w, o.v)]; };
+  /* primer corte del tramo A→B (t en 0–1) con un obstáculo: { t, punto, normal, cara, canto, umbo } */
+  function corta(o, A, B) {
+    if (o.tipo === 'escudo') {
+      const a = local(o, A), b = local(o, B); let t0 = 0, t1 = 1, k0 = -1, s0 = 1;
+      for (let k = 0; k < 3; k++) {
+        const d = b[k] - a[k], m = o.m[k];
+        if (Math.abs(d) < 1e-12) { if (Math.abs(a[k]) > m) return null; continue; }
+        let ta = (-m - a[k]) / d, tb = (m - a[k]) / d, s = -1; if (ta > tb) { [ta, tb] = [tb, ta]; s = 1; }
+        if (ta > t0) { t0 = ta; k0 = k; s0 = s; } t1 = Math.min(t1, tb); if (t0 > t1) return null;
+      }
+      if (k0 < 0) k0 = 0, s0 = Math.sign(a[0]) || 1;   /* ya dentro: sale por la cara */
+      const ax = [o.n, o.u, o.v][k0], normal = [ax[0] * s0, ax[1] * s0, ax[2] * s0], q = a.map((x, k) => x + (b[k] - x) * t0);
+      return { t: t0, punto: sum(A, sub(B, A), t0), normal, cara: k0 === 0, canto: Math.min(o.m[1] - Math.abs(q[1]), o.m[2] - Math.abs(q[2])), umbo: !!o.umbo && Math.hypot(q[1], q[2]) < o.umbo * ESC };
+    }
+    if (o.tipo === 'cuerpo') {
+      const dx = B[0] - A[0], dz = B[2] - A[2], ax = A[0] - o.x, az = A[2] - o.z, aa = dx * dx + dz * dz, bb = 2 * (ax * dx + az * dz), cc = ax * ax + az * az - o.r * o.r;
+      let mejor = null;
+      if (cc <= 0 && A[1] >= o.y0 && A[1] <= o.y1) return { t: 0, punto: A.slice(), normal: nor([ax, 0, az]) };
+      if (aa > 1e-12) { const D = bb * bb - 4 * aa * cc; if (D >= 0) { const t = (-bb - Math.sqrt(D)) / (2 * aa); if (t >= 0 && t <= 1) { const y = A[1] + (B[1] - A[1]) * t; if (y >= o.y0 && y <= o.y1) mejor = { t, punto: sum(A, sub(B, A), t), normal: nor([ax + dx * t, 0, az + dz * t]) }; } } }
+      if (A[1] > o.y1 && B[1] <= o.y1) { const t = (A[1] - o.y1) / (A[1] - B[1]), x = ax + dx * t, z = az + dz * t; if (x * x + z * z <= o.r * o.r && (!mejor || t < mejor.t)) mejor = { t, punto: sum(A, sub(B, A), t), normal: [0, 1, 0] }; }
+      return mejor;
+    }
+    /* asta: segmentos más cercanos */
+    const u = sub(B, A), v = sub(o.b, o.a), w = sub(A, o.a), a = dot(u, u), b = dot(u, v), c = dot(v, v), d = dot(u, w), e = dot(v, w), D = a * c - b * b;
+    let s = D > 1e-12 ? (b * e - c * d) / D : 0; s = Math.max(0, Math.min(1, s)); let t = c > 1e-12 ? (b * s + e) / c : 0; t = Math.max(0, Math.min(1, t)); s = a > 1e-12 ? Math.max(0, Math.min(1, (b * t - d) / a)) : 0;
+    const p = sum(A, u, s), q = sum(o.a, v, t), dist = len(sub(p, q)); if (dist > o.r + RA) return null;
+    return { t: s, punto: p, normal: dist > 1e-6 ? nor(sub(p, q)) : nor(cruz(v, cruz(u, v))), eje: nor(v) };
+  }
+  function cortaSuelo(A, B) {
+    if (B[1] >= suelo(B)) return null; let lo = 0, hi = 1;
+    if (A[1] < suelo(A)) return { t: 0, punto: A.slice(), normal: [0, 1, 0] };
+    for (let i = 0; i < 12; i++) { const m = (lo + hi) / 2, q = sum(A, sub(B, A), m); if (q[1] < suelo(q)) hi = m; else lo = m; }
+    const q = sum(A, sub(B, A), hi); q[1] = suelo(q); return { t: hi, punto: q, normal: [0, 1, 0] };
+  }
+  function primero(A, B, obst) {
+    let m = cortaSuelo(A, B); if (m) m.tipo = 'suelo';
+    for (const o of cerca(obst, A, B)) { const c = corta(o, A, B); if (c && (!m || c.t < m.t)) { c.tipo = o.tipo; c.dueno = o.dueno; c.o = o; m = c; } }
+    return m;
+  }
+  function dentro(o, q, tol = 0.005) {
+    if (o.tipo === 'escudo') { const wx = q[0] - o.c[0], wy = q[1] - o.c[1], wz = q[2] - o.c[2], n = o.n, u = o.u, v = o.v, m = o.m; return Math.abs(wx * n[0] + wy * n[1] + wz * n[2]) < m[0] - tol && Math.abs(wx * u[0] + wy * u[1] + wz * u[2]) < m[1] - tol && Math.abs(wx * v[0] + wy * v[1] + wz * v[2]) < m[2] - tol; }
+    if (o.tipo === 'cuerpo') return q[1] > o.y0 && q[1] < o.y1 && Math.hypot(q[0] - o.x, q[2] - o.z) < o.r - tol;
+    return false;   /* el asta es fina: no se cuenta */
+  }
+  /* saca un punto de un obstáculo: → vector de salida y su normal */
+  function saca(o, q) {
+    if (o.tipo === 'escudo') { const l = local(o, q), ax = [o.n, o.u, o.v]; let k = 0, pen = Infinity; for (let i = 0; i < 3; i++) { const p = o.m[i] - Math.abs(l[i]) + (i ? 0.02 : 0); if (p < pen) { pen = p; k = i; } } const s = Math.sign(l[k]) || 1, n = [ax[k][0] * s, ax[k][1] * s, ax[k][2] * s]; return [n, o.m[k] - Math.abs(l[k]) + 0.01]; }
+    const n = nor([q[0] - o.x, 0, q[2] - o.z]); return [n, o.r - Math.hypot(q[0] - o.x, q[2] - o.z) + 0.01];
+  }
+  const grados = (d, n) => Math.acos(Math.min(1, Math.abs(dot(d, n)))) * 180 / Math.PI;
+  const extremos = f => [sum(f.x, f.d, f.CM), sum(f.x, f.d, f.CM - f.L * 0.5), sum(f.x, f.d, f.CM - f.L)];
+
+  function vuela(p, punta, vel, obst) {
+    const f = fi(p); if (f.modo !== 'vuela') return pose(p);
+    if (f.toca) {   /* parado en el contacto: sigue al escudo o al cuerpo que tocó, que se mueve */
+      const c = f.toca, o = c.o && obst.find(x => x.tipo === c.tipo && x.dueno === c.dueno);
+      if (o && c.l) { const pt = o.tipo === 'escudo' ? sum(sum(sum(o.c, o.n, c.l[0]), o.u, c.l[1]), o.v, c.l[2]) : [o.x + c.l[0], o.y0 + c.l[1], o.z + c.l[2]]; c.punto = pt; f.pose = { punta: pt, dir: f.pose.dir }; }
+      return f.pose;
+    }
+    const d = nor(vel);
+    let c = f.prev ? primero(f.prev, punta, obst) : null;
+    if (!c && f.prev) { const cola = sum(punta, d, -f.L); for (const o of cerca(obst, cola, punta)) { const k = corta(o, cola, punta); if (k && (!c || k.t < c.t)) { k.tipo = o.tipo; k.dueno = o.dueno; k.o = o; c = k; } } }   /* el astil entra en algo que la punta ya pasó: se para ahí */
+    if (c) { if (c.o) c.l = c.o.tipo === 'escudo' ? local(c.o, c.punto) : c.o.tipo === 'cuerpo' ? [c.punto[0] - c.o.x, c.punto[1] - c.o.y0, c.punto[2] - c.o.z] : null; f.toca = c; f.v = vel.slice(); f.pose = { punta: c.punto, dir: d }; return f.pose; }
+    f.prev = punta.slice(); f.v = vel.slice(); f.pose = { punta: punta.slice(), dir: d }; return f.pose;
+  }
+  /* la cuenta por ángulo solo para los golpes en la CARA (escudo, cuerpo) y en el suelo; canto, umbo, casco, asta y lo que
+     encuentra al caer (la regla dijo suelo) van aparte: rebotan (o se clavan, el asta) por el sitio, no por el ángulo */
+  function anota(f, ang, modo, sitio) { f.ang = ang; if (sitio) { cuenta.aparte[sitio][modo === 'clava' ? 'clava' : 'rebota']++; f.sitio = sitio; return; } const k = ang < 30 ? 0 : ang < 60 ? 1 : 2; cuenta.tramos[k][modo]++; }
+  const sitioEscudo = c => !c.cara || c.canto <= PR.CANTO ? 'canto' : c.umbo ? 'umbo' : null;
+  function clava(f, c, d, M) {
+    const punta = sum(c.punto, d, PR.HUNDE); f.modo = 'clava';
+    if (M) { const I = mInv(M); f.loc = mPunto(I, punta); f.dloc = mDir(I, d); } else { f.punta = punta; f.d = d; }
+    return 'clava';
+  }
+  function rebota(f, c, v) {
+    let n = c.normal; if (dot(v, n) > 0) n = [-n[0], -n[1], -n[2]];
+    const d = nor(v), vn = dot(v, n), vt = sum(v, n, -vn), az = f.az;
+    f.v = sum(sum([0, 0, 0], n, -PR.E * vn), vt, 1 - PR.MU);
+    f.d = d; f.x = sum(sum(c.punto, n, 0.01), d, -f.CM);
+    let e = cruz(d, n); if (len(e) < 1e-3) e = cruz(d, [0, 1, 0]); if (len(e) < 1e-3) e = [1, 0, 0];
+    f.eje = nor(e); f.w = (4 + 6 * az()) * (az() < 0.5 ? -1 : 1); f.t = 0; f.modo = 'rebota'; return 'rebota';
+  }
+  function resbala(f, c, v) {
+    const h = [v[0], 0, v[2]], s = len(h); f.dh = s > 1e-6 ? [h[0] / s, 0, h[2] / s] : nor([f.az() - 0.5, 0, f.az() - 0.5]);
+    f.s = s * 0.7; f.punta = c.punto.slice(); f.modo = 'resbala'; asienta(f); return 'resbala';
+  }
+  /* pone el asta tumbada a ras de suelo, con la punta en f.punta y a lo largo de f.dh */
+  function asienta(f) {
+    const t = f.punta, c = sum(t, f.dh, -f.L); t[1] = suelo(t) + RA; c[1] = suelo(c) + RA; f.d = nor(sub(t, c));
+  }
+  function tumba(f) {
+    const t = f.x ? sum(f.x, f.d, f.CM) : f.punta; let h = [f.d[0], 0, f.d[2]];
+    f.dh = len(h) > 1e-3 ? nor(h) : nor([f.az() - 0.5, 0, f.az() - 0.5]); f.punta = t.slice(); f.modo = 'tumbado'; asienta(f);
+  }
+  function decideSuelo(f, c, v) {
+    const d = nor(v), ang = grados(d, [0, 1, 0]);
+    if (90 - ang > PR.CLAVA_SUELO) { anota(f, ang, 'clava'); return clava(f, c, d, null); }
+    anota(f, ang, 'resbala'); return resbala(f, c, v);
+  }
+  function llega(p, que, obst = [], M = null) {
+    const f = fi(p); if (f.modo !== 'vuela') return f.modo;
+    cuenta.llegan++; f.que = que.tipo; f.dueno = que.dueno ?? null;
+    const v = f.v || [0, -1, 0]; let d = nor(v), c = f.toca;
+    const casa = c && (c.tipo === que.tipo || (que.vale && que.vale.includes(c.tipo))) && (que.tipo === 'suelo' || c.dueno === que.dueno || que.otroVale);
+    if (casa && que.otroVale) f.dueno = c.dueno;
+    if (casa && c.tipo !== que.tipo) { que = { ...que, tipo: c.tipo, o: c.o }; f.que = c.tipo; }   /* vale otro tipo (que.vale): decide como lo tocado */
+    if (typeof M === 'function') M = (casa ? c.tipo : que.tipo) === 'suelo' ? null : M(f.dueno, casa ? c.tipo : que.tipo);
+    if (!casa) { f.salto = c ? 'otro' : 'nada'; if (que.tipo !== 'suelo' || c) { cuenta.saltos[f.salto]++; const k = que.tipo + '←' + (c ? c.tipo : 'nada'); cuenta.saltosPor[k] = (cuenta.saltosPor[k] || 0) + 1; } c = null; }
+    if (que.tipo === 'suelo') {
+      if (c) return decideSuelo(f, c, v);
+      if (f.salto === 'nada') { delete f.salto; }   /* aún en el aire: no es salto, sigue cayendo */
+      f.x = sum(f.pose ? f.pose.punta : p.p, d, -f.CM); f.d = d; f.modo = 'cae'; f.t = 0; return 'cae';
+    }
+    if (!c) {   /* lo de la regla: proyecta la llegada sobre su obstáculo */
+      if (que.tipo !== 'asta') { const hz = Math.hypot(d[0], d[2]) || 1, b = Math.max(Math.atan2(-d[1], hz), 50 * Math.PI / 180); d = [d[0] / hz * Math.cos(b), -Math.sin(b), d[2] / hz * Math.cos(b)]; }   /* licencia visual */
+      const o = que.o || obst.find(o => o.tipo === que.tipo && o.dueno === que.dueno);
+      if (o) { const [cc] = esfera(o), A = sum(o.tipo === 'asta' ? cc : (o.tipo === 'escudo' ? o.c : [o.x, (o.y0 + o.y1) / 2 + 0.2, o.z]), d, -3), B = sum(A, d, 6); c = corta(o, A, B); if (c) { c.tipo = o.tipo; c.o = o; } else c = { punto: o.tipo === 'asta' ? cc : sum(A, d, 3), normal: [-d[0], -d[1], -d[2]], tipo: o.tipo, o, cara: true, canto: 1 }; }
+      else { f.x = sum(f.pose ? f.pose.punta : p.p, d, -f.CM); f.d = d; f.modo = 'cae'; f.t = 0; return 'cae'; }
+    }
+    const o = c.o;
+    if (que.tipo === 'escudo') { const ang = grados(d, c.normal), si = sitioEscudo(c); if (si || ang >= PR.CLAVA_ESCUDO) { anota(f, ang, 'rebota', si); return rebota(f, c, v); } anota(f, ang, 'clava'); return clava(f, c, d, M); }
+    if (que.tipo === 'cuerpo') { const ang = grados(d, c.normal); if (o && c.punto[1] > o.y1 - PR.CASCO * ESC) { anota(f, ang, 'rebota', 'casco'); return rebota(f, c, v); } anota(f, ang, 'clava'); return clava(f, c, d, M); }
+    const eje = c.eje || (o ? nor(sub(o.b, o.a)) : [0, 1, 0]), ang = 90 - grados(d, eje);
+    if (ang < PR.CLAVA_ASTA) { anota(f, ang, 'clava', 'asta'); return clava(f, c, d, M); }
+    anota(f, ang, 'rebota', 'asta'); return rebota(f, { punto: c.punto, normal: c.normal }, v);
+  }
+  function mueve(p, dt, obst = []) {
+    const f = p.fi; if (!f || dt <= 0 || f.modo === 'tumbado' || f.modo === 'vuela' || (f.modo === 'clava' && f.que !== 'suelo')) return;
+    { const c0 = f.x || f.punta, vv = f.v || [0, 0, 0]; obst = cerca(obst, sum(c0, vv, -dt), sum(c0, vv, dt), f.L + (f.s || 0) * dt); }   /* solo los cercanos, una vez por fotograma */
+    if (f.modo === 'clava' && f.que === 'suelo') {   /* lo pisa quien pasa: se tumba */
+      for (let s = PR.PUNTA; s < f.L; s += 0.3) { const q = sum(f.punta, f.d, -s); if (obst.some(o => dentro(o, q))) { tumba(f); break; } }
+      return;
+    }
+    if (f.modo === 'resbala') {
+      const n = Math.max(1, Math.ceil(dt / 0.017)), h = dt / n;
+      for (let i = 0; i < n && f.modo === 'resbala'; i++) {
+        f.s = Math.max(0, f.s - PR.MU * PR.G * h); const t = sum(f.punta, f.dh, f.s * h); t[1] = suelo(t) + RA;
+        if (f.s <= 0 || obst.some(o => dentro(o, t, 0))) { f.modo = 'tumbado'; break; }
+        f.punta = t; asienta(f);
+      }
+      return;
+    }
+    if (f.modo !== 'rebota' && f.modo !== 'cae') return;
+    const n = Math.min(6, Math.max(1, Math.ceil((Math.abs(f.w || 0) * 1.2 + len(f.v)) * dt / 0.05))), h = dt / n;   /* cada subpaso mueve el asta ≤ 5 cm (el escudo tiene 6 de grueso y el asta se mira entera) */
+    let cer = null, esf = null;   /* los cercanos, una vez por fotograma, con su esfera para descartar sin cortar */
+    const MED = f.CM - f.L / 2, R2 = f.L / 2 + 0.05;
+    const choca = (x, d) => {
+      if (!cer.length) return null; const mx = x[0] + d[0] * MED, my = x[1] + d[1] * MED, mz = x[2] + d[2] * MED; let T = null, C;
+      for (let i = 0; i < cer.length; i++) { const e = esf[i], c = e[0], r = e[1] + R2; if ((c[0] - mx) ** 2 + (c[1] - my) ** 2 + (c[2] - mz) ** 2 > r * r) continue; if (!T) { T = sum(x, d, f.CM); C = sum(x, d, f.CM - f.L); } if (corta(cer[i], C, T)) return cer[i]; }
+      return null;
+    };
+    const fuera = (o, x) => o.tipo === 'escudo' ? (dot(sub(x, o.c), o.n) >= 0 ? o.n : o.n.map(v => -v)) : nor([x[0] - o.x, 0, x[2] - o.z]);
+    for (let i = 0; i < n; i++) {
+      const A = sum(f.x, f.d, f.CM);
+      f.v[1] -= PR.G * h; f.t += h;
+      if (f.modo === 'cae') {   /* cae hasta tocar: decide como en el suelo; si da en un escudo o un hombre, rebota */
+        f.x = sum(f.x, f.v, h); f.d = nor(f.v); const B = sum(f.x, f.d, f.CM), c = primero(A, B, obst);
+        if (c && c.tipo === 'suelo') { decideSuelo(f, c, f.v); return; }
+        if (c) { const ang = grados(f.d, c.normal); anota(f, ang, 'rebota', 'cae'); rebota(f, c, f.v); }   /* la regla dijo suelo: lo que encuentre al caer, rebota siempre (aparte) */
+        else { if (!cer) { cer = obst.filter(o => o.tipo !== 'asta'); esf = cer.map(esfera); } const o = choca(f.x, f.d); if (o) { f.x = sum(f.x, f.v, -h); const nn = fuera(o, f.x); anota(f, grados(f.d, nn), 'rebota', 'cae'); rebota(f, { punto: sum(f.x, f.d, f.CM), normal: nn }, f.v); for (let k = 0, q; k < 10 && (q = choca(f.x, f.d)); k++) f.x = sum(f.x, fuera(q, f.x), 0.03); } }   /* el astil (no la punta) da en algo: rebota de canto */
+        continue;
+      }
+      /* el asta entera (segmento) contra escudos y cuerpos: si girar la mete, no gira; si avanzar la mete, rebota y no avanza */
+      if (!cer) { cer = obst.filter(o => o.tipo !== 'asta'); esf = cer.map(esfera);   /* si algo se le ha metido encima, primero sale (hasta 30 cm) */
+        for (let k = 0, o; k < 10 && (o = choca(f.x, f.d)); k++) f.x = sum(f.x, fuera(o, f.x), 0.03);
+        if (choca(f.x, f.d)) { tumba(f); return; } }   /* no sale: cae a ras de suelo (bajo el escudo y por debajo del cuerpo) */
+      const d1 = nor(gira(f.d, f.eje, f.w * h));
+      if (!choca(f.x, d1)) f.d = d1; else f.w *= -0.3;
+      const x1 = sum(f.x, f.v, h), o = choca(x1, f.d);
+      if (!o) f.x = x1;
+      else {
+        const nn = fuera(o, f.x), vn = dot(f.v, nn); if (vn < 0) f.v = sum(f.v, nn, -(1 + PR.E * 0.6) * vn); f.w *= 0.3; f.apoya = true;
+        for (let k = 0, q; k < 10 && (q = choca(f.x, f.d)); k++) f.x = sum(f.x, fuera(q, f.x), 0.03);   /* el obstáculo se ha movido encima: se aparta */
+      }
+      let toca = false;
+      for (const q of extremos(f)) { const pen = suelo(q) + RA - q[1]; if (pen > 0) { f.x[1] += pen; toca = true; } }
+      if (toca && f.v[1] < 0) { f.v[1] *= -PR.E; f.v[0] *= 1 - PR.MU; f.v[2] *= 1 - PR.MU; f.w *= 0.5; }
+      if (((toca || f.apoya) && (len(f.v) < 0.7 || f.t > 1)) || f.t > PR.T_MAX) { tumba(f); return; }   /* lento y apoyado (suelo o escudo): cae y se queda tumbado */
+    }
+    if (f.modo === 'rebota' && cer && choca(f.x, f.d)) tumba(f);   /* lo levantó el suelo contra un escudo: a ras de suelo */
+  }
+  /* el astil de un clavado (salvo la punta) no puede quedar dentro de nada que no sea su dueño: margen de 3 cm */
+  const Q = [0, 0, 0];   /* vector de trabajo reutilizado */
+  function astilLibre(f, punta, d, obst) {
+    const cola = sum(punta, d, -f.L); if (cola[1] < suelo(cola) - 0.01) return false;
+    for (const o of cerca(obst, punta, cola)) {
+      if (o.tipo === 'asta') continue;
+      const suyo = o.tipo === f.que && mismo(o.dueno, f.dueno);
+      for (let s = suyo ? PR.PUNTA + 0.05 : 0.05; s <= f.L; s += 0.15) { Q[0] = punta[0] - d[0] * s; Q[1] = punta[1] - d[1] * s; Q[2] = punta[2] - d[2] * s; if (dentro(o, Q, -0.03)) return false; }
+    }
+    return true;
+  }
+  /* si el astil entra en otro (p. ej. el hombre que lo lleva cae sobre su vecino): gira sobre la punta hasta 30°; si no basta, se suelta */
+  function libra(p, f, M, r, obst) {
+    if (astilLibre(f, r.punta, r.dir, obst)) return r;
+    let e1 = cruz(r.dir, [0, 1, 0]); if (len(e1) < 1e-3) e1 = [1, 0, 0]; e1 = nor(e1); const e2 = nor(cruz(r.dir, e1));
+    const ejes = [e2, e1, e2.map(x => -x), e1.map(x => -x)];
+    for (const k of [0, 0.05, 0.1, 0.15]) {   /* sacarlo k metros (la punta sigue en su escudo: se hunde PR.HUNDE) y girar sobre la punta */
+      const pt = sum(r.punta, r.dir, -k);
+      for (const w of k ? [0, 0.14, 0.28, 0.42, 0.52] : [0.14, 0.28, 0.42, 0.52]) for (const e of w ? ejes : [e1]) {
+        const d = w ? nor(gira(r.dir, e, w)) : r.dir; if (!astilLibre(f, pt, d, obst)) continue;
+        const I = mInv(M); f.dloc = mDir(I, d); f.loc = mPunto(I, pt); f.ajustes = (f.ajustes || 0) + 1; return { punta: pt, dir: d };
+      }
+    }
+    f.pose = r; suelta(p); mueve(p, 1e-3, obst); return pose(p);   /* suelto: sale de lo que lo tiene metido */
+  }
+  function pose(p, M, obst) {
+    const f = fi(p); let r;
+    if (f.modo === 'vuela') return f.pose || null;
+    if (f.modo === 'clava' && f.loc) { r = M ? { punta: mPunto(M, f.loc), dir: nor(mDir(M, f.dloc)) } : (f.pose || null); if (r && M && obst) r = libra(p, f, M, r, obst); if (f.modo !== 'clava') return f.pose; }
+    else if (f.modo === 'rebota' || f.modo === 'cae') r = { punta: sum(f.x, f.d, f.CM), dir: f.d.slice() };
+    else r = { punta: f.punta.slice(), dir: f.d.slice() };
+    return (f.pose = r);
+  }
+  function medir(lista, obst = []) {
+    let malos = 0, muestras = 0; const detalle = [];
+    for (const p of lista) {
+      const f = p.fi, q0 = f && f.pose; if (!q0) continue; muestras++;
+      const suyo = o => f.modo === 'clava' && o.tipo === f.que && mismo(o.dueno, f.dueno);
+      let mal = null;
+      for (let s = 0.05; s <= f.L && !mal; s += 0.15) {
+        const q = sum(q0.punta, q0.dir, -s), perdona = f.modo === 'clava' && s <= PR.PUNTA;
+        if (q[1] < suelo(q) - 0.02 && !(perdona && f.que === 'suelo')) mal = { en: 'suelo', s };
+        else for (const o of obst) if (dentro(o, q) && !(perdona && suyo(o))) { mal = { en: o.tipo, s, propio: o.dueno === f.dueno }; break; }
+      }
+      if (mal) { malos++; if (detalle.length < 6) detalle.push({ modo: f.modo, que: f.que, ...mal, s: +mal.s.toFixed(2) }); }
+    }
+    return { dentro: malos, muestras, detalle, tramos: JSON.parse(JSON.stringify(cuenta.tramos)), aparte: JSON.parse(JSON.stringify(cuenta.aparte)), saltos: { ...cuenta.saltos }, saltosPor: { ...cuenta.saltosPor }, llegan: cuenta.llegan };
+  }
+  /* lo clavado se suelta (p. ej. el asta que lo llevaba se baja): cae desde donde está, con un poco de giro */
+  function suelta(p) { const f = p.fi, q = f && f.pose; if (!q || f.modo !== 'clava') return; f.x = sum(q.punta, q.dir, -f.CM); f.d = q.dir.slice(); f.v = [0, -0.5, 0]; f.eje = nor(cruz(f.d, [0, 1, 0]).map((x, k) => x || (k ? 0 : 1))); f.w = (1 + 2 * f.az()) * (f.az() < 0.5 ? -1 : 1); f.t = 0; f.modo = 'rebota'; delete f.loc; }
+  return { vuela, llega, mueve, pose, medir, reinicia, suelta };
 }

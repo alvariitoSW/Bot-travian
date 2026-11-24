@@ -245,21 +245,30 @@ async function navegador() {
       return { ok, detalle: 'entrada de ' + m.h + ' px; escena «' + titulo + '»; «Salir» vuelve al menú', captura: cap };
     });
 
-    /* TP7a: Escaramuzas lleva también a «Falange a pie» y su «Salir» vuelve al juego */
+    /* TP7a + FA7: «Falange a pie» es un botón que despliega «Elige rival» (cuatro enlaces con ?rival=); se abre uno, carga sin errores y «Salir» vuelve */
     await paso('Escaramuzas: «Falange a pie» abre la escena y vuelve', 'batallas', async () => {
       await page.click('#menu .mesc'); await espera(800);
-      const a = page.locator('#hoja a.esc-falange');
-      if (!(await a.count())) return { ok: false, detalle: 'no está la entrada «Falange a pie» en Escaramuzas', captura: await foto('escaramuzas') };
-      await a.scrollIntoViewIfNeeded(); await espera(300);
-      const m = await a.evaluate(el => { const r = el.getBoundingClientRect(); return { h: Math.round(r.height), d: Math.round(r.right), t: el.textContent, url: el.href }; });
+      const b = page.locator('#hoja button.esc-falange');
+      if (!(await b.count())) return { ok: false, detalle: 'no está el botón «Falange a pie» en Escaramuzas', captura: await foto('escaramuzas') };
+      await b.scrollIntoViewIfNeeded(); await espera(300);
+      const m = await b.evaluate(el => { const r = el.getBoundingClientRect(); return { h: Math.round(r.height), d: Math.round(r.right), t: el.textContent }; });
+      if (m.h < 44 || m.d > 390 || !/Falange a pie/.test(m.t)) return { ok: false, detalle: 'botón mal: alto ' + m.h + ' px, borde ' + m.d + ' px', captura: await foto('escaramuzas-falange') };
+      await b.click(); await espera(600);
+      const rv = page.locator('#hoja a.esc-rv-b');
+      await rv.first().scrollIntoViewIfNeeded().catch(() => { }); await espera(300);
+      const rivales = await rv.evaluateAll(as => as.map(a => ({ t: a.textContent, url: a.href, h: Math.round(a.getBoundingClientRect().height), d: Math.round(a.getBoundingClientRect().right) })));
       const cap = await foto('escaramuzas-falange');
-      if (m.h < 44 || m.d > 390 || !/Falange a pie/.test(m.t) || !/\/gobierno\/maquetas\/falange\/$/.test(m.url)) return { ok: false, detalle: 'entrada mal: alto ' + m.h + ' px, borde ' + m.d + ' px, ' + m.url, captura: cap };
-      await a.click(); await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
-      const titulo = await page.title(); await espera(1500);
+      const bienR = rivales.length === 4 && rivales.every(r => /\/gobierno\/maquetas\/falange\/\?rival=\w+$/.test(r.url) && r.h >= 44 && r.d <= 390);
+      if (!bienR) return { ok: false, detalle: 'rivales mal: ' + rivales.length + ' enlaces · ' + rivales.map(r => r.url.split('/').pop() + ' ' + r.h + ' px').join(', '), captura: cap };
+      const elegido = rivales.find(r => /rival=caballeria$/.test(r.url)) || rivales[0], antes = errores.length;
+      await page.locator('#hoja a.esc-rv-b[href$="' + elegido.url.split('/').pop() + '"]').click();
+      await page.waitForSelector('#salir', { state: 'visible', timeout: 30000 });
+      const titulo = await page.title(), ruta = page.url(); await espera(4000);
+      const capE = await foto('falange-escena'), fallosE = errores.slice(antes);
       await page.click('#salir'); await page.waitForSelector('#menu [data-act="new"]', { timeout: 30000 });
       await page.waitForFunction(() => window.UI && window.UI.cityV, null, { timeout: 90000 }).catch(() => { });
-      const ok = /Falange a pie/.test(titulo);
-      return { ok, detalle: 'entrada de ' + m.h + ' px; escena «' + titulo + '»; «Salir» vuelve al menú', captura: cap };
+      const ok = /Falange a pie/.test(titulo) && /\?rival=/.test(ruta) && !fallosE.length;
+      return { ok, detalle: 'botón de ' + m.h + ' px; 4 rivales; abre «' + titulo + '» con ' + ruta.split('/').pop() + (fallosE.length ? '; ' + fallosE.length + ' error(es): ' + fallosE[0] : '; sin errores') + '; «Salir» vuelve al menú', captura: ok ? capE : cap };
     });
 
     /* CG4: «Empezar la batalla» de Escaramuzas abre la pantalla de mando (js/ui-mando.js, window.__mn); se ordena y se mira el efecto
@@ -339,7 +348,7 @@ async function navegador() {
       await page.click('#menu [data-act="new"]'); await espera(2500); await cierraAvisos();
       await estado(() => { const a = Game.state.ajustes; if (a) a.asesor = false; Game.autoVivo = true; });      // CN14-C: el asesor de serie no cambia el recorrido
       const ok = await estado(() => !!Game.state && !UI.menu && Game.myCities().includes('roma'));
-      return { ok, detalle: ok ? await estado(() => Game.dateStr(Game.state.t)) : 'no hay partida', captura: await foto('mapa') };
+      return { ok, detalle: ok ? await estado(() => Game.dateStr(Game.state.t)) : 'no hay partida', captura: await foto('ciudad-inicio') };
     });
 
     await paso('Ciudad en 3D', 'cerebro', async () => {
