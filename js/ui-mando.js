@@ -2,7 +2,7 @@
    De momento solo la usan las Escaramuzas; la campaña sigue con js/ui-guerra.js (se retira en el paso B).
    Uso: UIMando.abrir(cfg, alTerminar).
      cfg = { S } (un estado ya creado, p. ej. con manípulos a mano: CG5) o { semilla, ejercitos } (o { semilla, manipulos });
-     cfg.campo: llano, colina, bosque o mixto (solo paisaje). alTerminar(r) recibe Simulador.resumen(S) (r.estado.resultado = {como, motivo, t, bajas, inicial}).
+     cfg.campo: llano, colina, bosque o mixto (solo paisaje). cfg.pueblo (o cfg.ejercitos.pueblo): el pueblo de tu bando (roma, cartago, epiro, macedonia, galos, iberos); decide en qué lengua gritan los tuyos (SON5). alTerminar(r) recibe Simulador.resumen(S) (r.estado.resultado = {como, motivo, t, bajas, inicial}).
    Cómo se juega: arrastrar en vacío mueve la cámara; pellizcar acerca y aleja. Tocar un manípulo tuyo lo elige (con «Varios», cada toque
    suma o quita); tocar el suelo vacío suelta la elección. Arrastrar DESDE un elegido lo manda allí (mirando hacia donde arrastras;
    si arrastras hacia atrás, retroceden mirando al enemigo). Tocar un enemigo con tropa elegida: cargar contra él. Botones abajo.
@@ -95,8 +95,45 @@
     let banda = null;
     try {
       const n0 = l => { const o = {}; for (const u of S.man) if (u.lado === l) o[u.tropa] = (o[u.tropa] || 0) + u.n0; return o; };
-      if (root.Banda) banda = root.Banda.crea({ padre: el, propio: root.Banda.propioDe(n0(0)), rival: root.Banda.rivalDe(n0(1)), semilla: S.sem, abajo: '96px' });
+      if (root.Banda) banda = root.Banda.crea({ padre: el, propio: root.Banda.propioDe(n0(0), cfg.pueblo || (cfg.ejercitos && cfg.ejercitos.pueblo)), rival: root.Banda.rivalDe(n0(1)), semilla: S.sem, abajo: '96px' });
     } catch (e) { banda = null; }
+    /* SON5: efectos de la batalla, los mismos que en la campaña (js/ui-guerra.js: suena y ambiente) desde los mismos momentos que traduce Voces.deSim.
+       Todo sale por Sonido.maestro; Sonido ya sabe callarse (apagado, sin toque aún, app oculta). Cada cuerno agacha la música. */
+    let primerChoque = false, tRuido = 0;
+    const claseDe = t => (root.DATA && root.DATA.UNITS && root.DATA.UNITS[t] && root.DATA.UNITS[t].cls) || '';
+    function suena(e) {
+      const So = root.Sonido; if (!So) return;
+      const u = e.id !== undefined ? S.man[e.id] : null, tropa = u ? u.tropa : '', mio = e.lado === 0, cls = claseDe(tropa);
+      const cuerno = (v, rival) => { if (root.Musica) root.Musica.agacha(); if (rival) So.cuernoRival(v); else So.cuerno(v); };
+      switch (e.tipo) {
+        case 'choque':
+          if (!primerChoque) { primerChoque = true; cuerno(0.8, false); setTimeout(() => { if (!cerrado) So.cuernoRival(0.6); }, 700); setTimeout(() => { if (!cerrado) So.choque(1, 1); }, 1400); }   /* «Las líneas chocan»: cuerno propio, cuerno rival y el golpe */
+          else So.choque(0.9, 1);
+          break;
+        case 'testudo-roto': So.choque(1, 1); break;
+        case 'carga':
+          if (tropa === 'elefantes' || cls === 'ele') So.elefante(0.8);
+          else if (tropa === 'falange') So.falange(0.7);
+          else { if (cls === 'cav') cuerno(0.6, !mio); So.carga(0.7); }
+          break;
+        case 'carga-frenada': So.choque(1, 0.9); if (tropa === 'falange' || (e.con !== undefined && S.man[e.con] && S.man[e.con].tropa === 'falange')) So.falange(0.5); break;
+        case 'pila': case 'tiro': So.jabalina(0.7); setTimeout(() => { if (!cerrado) So.choque(0.4, 1.3); }, 650); break;
+        case 'desboque': So.elefante(1); setTimeout(() => { if (!cerrado) So.choque(0.8, 1); }, 500); break;
+        case 'flanqueo': case 'retaguardia': case 'ruptura': case 'caida': So.choque(0.8, 0.9); break;
+        case 'relevo': if (mio) { cuerno(0.5, false); } break;
+        default: break;
+      }
+    }
+    /* el fragor de fondo (grabado «lucha») sube con los manípulos que están trabados y suena un golpe suelto de vez en cuando */
+    function ambiente(dt) {
+      const So = root.Sonido; if (!So || !So.fondo) return;
+      const lucha = S.fase !== 'fin' && !S.pausa ? S.man.filter(u => vivo(u) && u.lucha > 0) : [];
+      if (!lucha.length) { if (So.fondos && So.fondos.lucha) So.fondo('lucha', 0); return; }
+      tRuido -= dt; if (tRuido > 0) return;
+      const emp = lucha.filter(u => u.postura === 'empujar').length;
+      So.fondo('lucha', Math.min(0.5, 0.22 + 0.08 * Math.min(4, emp)));
+      So.choque(0.25 + 0.2 * Math.min(4, emp), 0.8); tRuido = 1.1 + Math.random() * 0.8 - 0.15 * Math.min(4, emp);
+    }
     let SOLD = null, escN = 0.84, altoN = 1.78; const soldados = new Map(), V3 = new THREE.Vector3();
     const nombreTropa = t => (root.DATA && root.DATA.UNITS && root.DATA.UNITS[t] && root.DATA.UNITS[t].n) || t;
     const vivo = u => u.estado === 'firme' || u.estado === 'duda';
@@ -566,7 +603,7 @@
     function avisos() {
       const nuevos = [];
       for (; nReg < S.reg.length; nReg++) {
-        const e = S.reg[nReg]; if (banda && root.Voces) { if (e.tipo === 'fin') banda.fin(e.como); else { const sit = root.Voces.deSim(e); if (sit) banda.dice(sit); } }
+        const e = S.reg[nReg]; suena(e); if (banda && root.Voces) { if (e.tipo === 'fin') banda.fin(e.como); else { const sit = root.Voces.deSim(e); if (sit) banda.dice(sit); } }
         const u = e.id !== undefined ? S.man[e.id] : null, nom = u ? u.nom : '', mio = e.lado === 0;
         let t = '', tono = '';
         if (e.tipo === 'flanqueo') { t = mio ? '¡Flanco al aire! Os flanquean a ' + nom : 'Flanqueáis a ' + nom; tono = mio ? 'mal' : 'bien'; }
@@ -694,7 +731,7 @@
       const real = Math.max(0, (ahora - antes) / 1000 || 0); antes = ahora;
       if (!lista) return;
       if (banda && !S.pausa && S.fase !== 'fin') banda.tic(Math.min(0.1, real) * vel, () => root.Banda.resumenSim(S), () => S.man.some(u => u.lado === 0 && u.estado === 'duda'));
-      avanza(real); if (apie) camaraApie(Math.min(0.1, real)); pinta(S.pausa || S.fase === 'fin' ? 0 : Math.min(0.1, real) * vel); avisos();
+      ambiente(Math.min(0.1, real) * vel); avanza(real); if (apie) camaraApie(Math.min(0.1, real)); pinta(S.pausa || S.fase === 'fin' ? 0 : Math.min(0.1, real) * vel); avisos();
       if (ahora - tHud > 250) { tHud = ahora; pintarHud(); }
     }
 
@@ -718,7 +755,7 @@
     }
 
     function cerrarTodo() {
-      cerrado = true; cancelAnimationFrame(raf); clearTimeout(tFin); if (banda) banda.quita();   /* window.__mn se queda con cerrado = true para las pruebas */
+      cerrado = true; cancelAnimationFrame(raf); clearTimeout(tFin); if (banda) banda.quita(); if (root.Sonido && root.Sonido.callaFondos) root.Sonido.callaFondos();   /* SON5: cállalo todo (fragor, música) */   /* window.__mn se queda con cerrado = true para las pruebas */
       for (const f of salidas) f();
       for (const m of mallas.values()) { try { if (m.nv) for (const t of m.nv) { escena.remove(t.malla); t.dispose(); } else { escena.remove(m.malla); m.malla.geometry.dispose(); } } catch (e) { /* ya liberada */ } }
       soltarSoldados(); if (entorno) entorno.soltar();

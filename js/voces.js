@@ -133,13 +133,103 @@
     return o;
   });
   const POR = {}; for (const f of FRASES) (POR[f.ev] = POR[f.ev] || []).push(f);
+  /* ---------- SON5: frases habladas de NUESTRA falange (Falange a pie, Escaramuzas con falange u hoplitas) ----------
+     Griego antiguo en transliteración legible: `gr` (escritura griega), `lat` (transliteración latina: es lo que se lee en el subtítulo, p. ej. «Émba!»),
+     `es` (traducción) y `pron` (cómo la lee la voz española: pronunciación koiné aproximada; ει y η = i, ω y ο = o, υ = i, θ = z, φ = f, χ = j, ou = u).
+     [situación, quién (lochagos = oficial de la falange | falangita), gr, lat, es, grupo, peso, fuente (o '' = licencia de juego), pron] */
+  const TG = [
+    ['espera', 'lochagos', 'Μένετε ἐν τάξει!', 'Ménete en táxei!', '¡Mantened la formación!', 'orden', 3, '', '¡Ménete en táksi!'],
+    ['espera', 'lochagos', 'Σιγή, ἄνδρες!', 'Sigé, ándres!', '¡Silencio, hombres!', 'orden', 2, 'Jenofonte, Anábasis 1.8 (los griegos avanzan callados hasta el peán; pasaje por cotejar; probable)', '¡Sigué, ándres!'],
+    ['espera', 'lochagos', 'Σύνθημα: Ζεὺς σωτὴρ καὶ νίκη!', 'Sýnthema: Zeús sotér kai níke!', '¡Contraseña: Zeus Salvador y Victoria!', 'orden', 2, 'Jenofonte, Anábasis 1.8.16 (la contraseña de los griegos en Cunaxa, 401 a.C.)', '¡Súnzema: Zeus sotér kai níke!'],
+    ['espera', 'falangita', 'Ζεῦ σῶτερ, βοήθει!', 'Zeú sóter, boéthei!', '¡Zeus Salvador, ayúdanos!', 'esfuerzo', 2, 'Jenofonte, Anábasis 1.8.16 (Zeus Salvador; la frase es del juego; probable)', '¡Zeus sóter, boézi!'],
+    ['pila', 'lochagos', 'Ἀκοντίζετε!', 'Akontízete!', '¡Lanzad las jabalinas!', 'orden', 3, '', '¡Akontízete!'],
+    ['pila', 'falangita', 'Ὑπὸ τὰς ἀσπίδας!', 'Hypó tas aspídas!', '¡Bajo los escudos!', 'grito', 2, '', '¡Ipó tas aspídas!'],
+    ['choque', 'lochagos', 'Ἀσπὶς ἐπ᾽ ἀσπίδι!', 'Aspís ep’ aspídi!', '¡Escudo contra escudo!', 'orden', 3, 'Tirteo, fr. 11 («ἐπ᾽ ἀσπίδος ἀσπίδ᾽ ἐρείσας») y Homero, Ilíada 13.131; la frase es del juego; probable', '¡Aspís ep aspídi!'],
+    ['choque', 'falangita', 'Πρόσφερε τὸ δόρυ!', 'Prósfere tó dóry!', '¡Adelanta la lanza!', 'esfuerzo', 2, '', '¡Prósfere to dóri!'],
+    ['choque', 'falangita', 'Ἐνυάλιε!', 'Enyálie!', '¡Enialio!', 'grito', 2, 'Jenofonte, Anábasis 1.8.18 y 5.2.14 (el grito a Enialio, sobrenombre de Ares, al cargar; pasaje por cotejar; probable)', '¡Eniálie!'],
+    ['empujar', 'lochagos', 'Ἔμβα!', 'Émba!', '¡Adelante!', 'orden', 3, '', '¡Émba!'],
+    ['empujar', 'lochagos', 'Ἴτε, ὦ ἄνδρες!', 'Íte, ō ándres!', '¡Adelante, hombres!', 'orden', 3, 'Jenofonte, Anábasis (arengas con «ὦ ἄνδρες»; el imperativo es del juego; probable)', '¡Íte, o ándres!'],
+    ['empujar', 'falangita', 'Ὠθεῖτε! Ὠθεῖτε!', 'Ōtheíte! Ōtheíte!', '¡Empujad! ¡Empujad!', 'esfuerzo', 3, 'Tucídides 4.96 (el «ὠθισμός», el empuje de escudos, en Delio, 424 a.C.); probable', '¡Ozíte! ¡Ozíte!'],
+    ['aguantar', 'lochagos', 'Μὴ λείπετε τὴν τάξιν!', 'Mē leípete tēn táxin!', '¡No abandonéis vuestro puesto!', 'orden', 3, 'Tirteo, fr. 10–12 (el que deja su puesto en la línea se deshonra); probable', '¡Mi lípete tin táksin!'],
+    ['aguantar', 'falangita', 'Μένε, ὦ ἑταῖρε!', 'Méne, ō hetaíre!', '¡Aguanta, compañero!', 'esfuerzo', 2, '', '¡Méne, o etaíre!'],
+    ['carga-enemiga', 'lochagos', 'Δέχεσθε τὴν ἔφοδον!', 'Déjesthe tēn éfodon!', '¡Recibid la carga!', 'orden', 3, '', '¡Déjeste tin éfodon!'],
+    ['carga-enemiga', 'falangita', 'Οἱ πολέμιοι ἐπέρχονται!', 'Hoi polémioi epérjontai!', '¡Vienen los enemigos!', 'grito', 2, '', '¡Oi polémioi epérjontai!'],
+    ['elefantes', 'lochagos', 'Ἐλέφαντες! Διάστητε!', 'Eléfantes! Diástēte!', '¡Elefantes! ¡Abrid paso!', 'orden', 3, 'Plutarco, Pirro 17 (los elefantes de Pirro rompen la falange; la frase es del juego)', '¡Elefántes! ¡Diástite!'],
+    ['elefantes', 'falangita', 'Τὰ θηρία!', 'Tá thería!', '¡Las bestias!', 'grito', 2, 'Polibio 5.84 (llama «θηρία» a los elefantes); probable', '¡Ta ziría!'],
+    ['caballeria', 'lochagos', 'Ἱππεῖς! Φυλάττεσθε!', 'Hippeís! Fylátesthe!', '¡Jinetes! ¡Cuidado!', 'orden', 3, '', '¡Ipís! ¡Filátese!'],
+    ['flanco', 'falangita', 'Κυκλούμεθα!', 'Kykloúmetha!', '¡Nos rodean!', 'grito', 3, 'Jenofonte, Anábasis (el verbo «κυκλοῦσθαι», ser rodeado); probable', '¡Kikloúmeza!'],
+    ['flanco', 'lochagos', 'Στρέφεσθε! Φυλάττετε τὸ πλευρόν!', 'Stréfesthe! Fylátete tó pleurón!', '¡Volveos! ¡Cubrid el flanco!', 'orden', 3, '', '¡Stréfeste! ¡Filátete to pleurón!'],
+    ['cansancio', 'lochagos', 'Ἀντέχετε, ὦ ἄνδρες!', 'Antéjete, ō ándres!', '¡Resistid, hombres!', 'orden', 3, '', '¡Antéjete, o ándres!'],
+    ['flaquea', 'falangita', 'Οὐ δυνάμεθα!', 'U dynámetha!', '¡No podemos más!', 'quejido', 3, '', '¡U dinámeza!'],
+    ['flaquea', 'lochagos', 'Μὴ φεύγετε! Μείνατε!', 'Mē feúgete! Meínate!', '¡No huyáis! ¡Quedaos!', 'orden', 3, 'Tirteo, fr. 10–12 (contra la huida); probable', '¡Mi feúguete! ¡Mínate!'],
+    ['roto-propio', 'falangita', 'Φεύγωμεν!', 'Feúgōmen!', '¡Huyamos!', 'panico', 3, '', '¡Feúgomen!'],
+    ['roto-propio', 'lochagos', 'Ἀναστρέφετε!', 'Anastréfete!', '¡Volveos, dad la cara!', 'orden', 2, '', '¡Anastréfete!'],
+    ['roto-enemigo', 'falangita', 'Φεύγουσιν!', 'Feúgusin!', '¡Huyen!', 'grito', 3, '', '¡Feúgusin!'],
+    ['roto-enemigo', 'lochagos', 'Διώκετε!', 'Diókete!', '¡Perseguidlos!', 'orden', 2, '', '¡Diókete!'],
+    ['enemigo-cede', 'falangita', 'Ἐνδιδόασιν!', 'Endidóasin!', '¡Ceden!', 'aclamacion', 3, '', '¡Endidóasin!'],
+    ['enemigo-cede', 'lochagos', 'Ἐπίκεισθε!', 'Epíkeisthe!', '¡Apretad!', 'orden', 3, '', '¡Epíkiste!'],
+    ['victoria', 'lochagos', 'Νενικήκαμεν!', 'Nenikékamen!', '¡Hemos vencido!', 'aclamacion', 3, 'Luciano (s. II d.C.) la pone en boca del corredor de Maratón (490 a.C.): fuente tardía, vale como forma griega correcta; probable', '¡Nenikékamen!'],
+    ['victoria', 'falangita', 'Νίκη! Νίκη!', 'Níkē! Níkē!', '¡Victoria! ¡Victoria!', 'aclamacion', 3, 'Jenofonte, Anábasis 1.8.16 («Ζεὺς σωτὴρ καὶ νίκη»)', '¡Níke! ¡Níke!'],
+    ['derrota', 'lochagos', 'Ἀναχωρεῖτε κατὰ τάξιν!', 'Anajoreíte katá táxin!', '¡Retiraos en orden!', 'orden', 3, 'Jenofonte, Anábasis (la retirada, «ἀναχώρησις»; la frase es del juego); probable', '¡Anajoríte katá táksin!'],
+    ['derrota', 'falangita', 'Ὦ θεοί, σῴζετε ἡμᾶς!', 'Ō theoí, sṓzete hēmás!', '¡Oh dioses, salvadnos!', 'quejido', 2, '', '¡O zeoí, sózete imás!'],
+    ['lucha', 'falangita', 'Ὦ φίλε, κάλυπτέ με!', 'Ō fíle, kálypté me!', '¡Amigo, cúbreme!', 'grito', 2, '', '¡O fíle, kálipte me!'],
+    ['lucha', 'lochagos', 'Τὴν τάξιν φυλάττετε!', 'Tēn táxin fylátete!', '¡Guardad el puesto!', 'orden', 2, '', '¡Ten táksin filátete!'],
+  ];
+  const GRIEGAS = TG.map((f, k) => {
+    const o = { id: 'gr-' + f[0] + '-' + (k + 1), ev: f[0], quien: f[1], pueblo: 'griego', gr: f[2], lat: f[3], es: f[4], grupo: f[5], peso: f[6], pron: f[8] };
+    if (f[7]) o.fuente = f[7]; else o.licencia = 'juego';
+    return o;
+  });
+
+  /* ---------- SON5: gritos de guerra en castellano de NUESTRO bando cuando es Cartago, los galos o los íberos ----------
+     En español (la lengua del juego): lo que se lee es lo que se oye. quien: jefe | guerrero. El enemigo no los usa: sigue con sus descripciones.
+     [pueblo, situación, quién, grito, grupo, peso, fuente (o '' = licencia de juego), pron (cómo lo lee la voz)] */
+  const TC = [
+    ['cartago', 'espera', 'jefe', '¡Baal Hammón, danos la victoria!', 'orden', 3, 'Baal Hammón, dios principal de Cartago (inscripciones púnicas); la frase es del juego', '¡Baál Hamón, danos la victoria!'],
+    ['cartago', 'espera', 'guerrero', '¡Por Cartago!', 'esfuerzo', 2, '', '¡Por Kartágo!'],
+    ['cartago', 'empujar', 'jefe', '¡Por Melqart, adelante!', 'orden', 3, 'Livio 21.21 (Aníbal hace votos a Melqart en Gades, 218 a.C.); la frase es del juego', '¡Por Melkárt, adelante!'],
+    ['cartago', 'choque', 'guerrero', '¡Por Tanit y por Baal!', 'grito', 3, 'Tanit «pene Baal» («rostro de Baal»), diosa de Cartago desde el s. V a.C. (inscripciones púnicas); la frase es del juego', '¡Por Tánit y por Baál!'],
+    ['cartago', 'elefantes', 'jefe', '¡Elefantes, adelante!', 'orden', 3, 'Polibio 3.46 y 15.9 (los elefantes cartagineses)', '¡Elefántes, adelante!'],
+    ['cartago', 'roto-enemigo', 'guerrero', '¡Huyen! ¡Por Melqart!', 'grito', 3, '', '¡Huyen! ¡Por Melkárt!'],
+    ['cartago', 'victoria', 'guerrero', '¡Cartago! ¡Cartago!', 'aclamacion', 3, '', '¡Kartágo! ¡Kartágo!'],
+    ['cartago', 'derrota', 'guerrero', '¡Baal, apiádate de Cartago!', 'quejido', 2, '', '¡Baál, apiádate de Kartágo!'],
+    ['galos', 'espera', 'guerrero', '¡Por Tutatis!', 'esfuerzo', 2, 'Tutatis (Teutates), dios céltico: Lucano, Farsalia 1.445 (s. I d.C.) e inscripciones; probable', '¡Por Tutátis!'],
+    ['galos', 'empujar', 'jefe', '¡A ellos, hijos de Breno!', 'orden', 3, 'Breno saqueó Roma en 390 a.C. (Livio 5.38) y otro Breno atacó Delfos en 279 a.C. (Pausanias 10.19-23); la frase es del juego', '¡A ellos, hijos de Bréno!'],
+    ['galos', 'choque', 'guerrero', '¡Por Taranis, señor del trueno!', 'grito', 3, 'Taranis, dios céltico del trueno: Lucano, Farsalia 1.446 (s. I d.C.); probable', '¡Por Taránis, señor del trueno!'],
+    ['galos', 'carga-enemiga', 'guerrero', '¡Que suenen los carnyx!', 'grito', 2, 'Polibio 2.29 (cuernos y trompas galos en Telamón, 225 a.C.)', '¡Que suenen los kárnix!'],
+    ['galos', 'roto-enemigo', 'guerrero', '¡Huyen! ¡Tras ellos!', 'grito', 3, '', '¡Huyen! ¡Tras ellos!'],
+    ['galos', 'victoria', 'jefe', '¡Hemos vencido, hijos de Breno!', 'aclamacion', 3, '', '¡Hemos vencido, hijos de Bréno!'],
+    ['galos', 'derrota', 'guerrero', '¡Ay de los vencidos!', 'quejido', 2, 'Livio 5.48 («vae victis», dicho por Breno en 390 a.C.); probable', '¡Ay de los vencidos!'],
+    ['iberos', 'espera', 'guerrero', '¡Por la tierra de los íberos!', 'esfuerzo', 2, '', '¡Por la tierra de los ibéros!'],
+    ['iberos', 'empujar', 'jefe', '¡Por Neto, dios de la guerra!', 'orden', 3, 'Neto, dios guerrero de los acitanos: Macrobio, Saturnales 1.19.5 (s. V d.C.); probable', '¡Por Néto, dios de la guerra!'],
+    ['iberos', 'choque', 'guerrero', '¡Por Indíbil y Mandonio!', 'grito', 3, 'Polibio 3.76 y Livio 28.31 (régulos ilergetes, 218-205 a.C.); probable', '¡Por Indíbil y Mandónio!'],
+    ['iberos', 'flaquea', 'guerrero', '¡No cedáis! ¡Es nuestra tierra!', 'orden', 3, '', '¡No cedáis! ¡Es nuestra tierra!'],
+    ['iberos', 'roto-enemigo', 'guerrero', '¡Huyen! ¡A ellos, íberos!', 'grito', 3, '', '¡Huyen! ¡A ellos, ibéros!'],
+    ['iberos', 'victoria', 'guerrero', '¡Íberos! ¡Íberos!', 'aclamacion', 3, '', '¡Ibéros! ¡Ibéros!'],
+    ['iberos', 'derrota', 'guerrero', '¡Ay de nuestra tierra!', 'quejido', 2, '', '¡Ay de nuestra tierra!'],
+  ];
+  const PREF = { cartago: 'ca', galos: 'ga', iberos: 'ib' };
+  const GRITOS = TC.map((f, k) => {
+    const o = { id: PREF[f[0]] + '-' + f[1] + '-' + (k + 1), ev: f[1], quien: f[2], pueblo: f[0], lat: f[3], es: '', grupo: f[4], peso: f[5], pron: f[7] };
+    if (f[6]) o.fuente = f[6]; else o.licencia = 'juego';
+    return o;
+  });
+  /* el nombre que se lee ante cada frase de un pueblo */
+  const NOMBRE_PUEBLO = { griego: { lochagos: 'Lochagós', falangita: 'Falangita' }, cartago: { jefe: 'Jefe cartaginés', guerrero: 'Cartaginés' }, galos: { jefe: 'Jefe galo', guerrero: 'Guerrero galo' }, iberos: { jefe: 'Caudillo íbero', guerrero: 'Guerrero íbero' } };
+  const nombreDe = f => (f && f.pueblo && NOMBRE_PUEBLO[f.pueblo] && NOMBRE_PUEBLO[f.pueblo][f.quien]) || (f && NOMBRE[f.quien]) || '';
+  /* los pueblos que hablan de nuestro lado: pueblo → situación → frases propias (+ lo que se oye del enemigo, que no depende de quién somos) */
+  const FRASES_PUEBLO = { griego: GRIEGAS.slice() };
+  for (const f of GRITOS) (FRASES_PUEBLO[f.pueblo] = FRASES_PUEBLO[f.pueblo] || []).push(f);
+  const POR_PUEBLO = {};
+  for (const p in FRASES_PUEBLO) { const m = POR_PUEBLO[p] = {}; for (const f of FRASES_PUEBLO[p]) (m[f.ev] = m[f.ev] || []).push(f); for (const f of FRASES) if (f.quien === 'enemigo') (m[f.ev] = m[f.ev] || []).push(f); }
 
   /* el estado de las voces de una batalla: t = segundos de batalla (lo pone quien llama), tension 0..1 */
   const nuevo = () => ({ t: 0, tension: 0.3, ultimaId: '', tUlt: -99, tCharla: 9, recientes: {} });
   const pausaMin = ten => 5 - 3 * Math.max(0, Math.min(1, ten === undefined ? 0.3 : ten));   // 5 s en calma, 2 s al máximo
 
-  function elige(situacion, estado, rng) {
-    const lista = POR[situacion]; if (!lista || !estado) return null;
+  /* pueblo (SON5): si nuestro bando habla en su lengua ('griego', 'cartago', 'galos', 'iberos'), la lista son sus frases propias más lo que se oye del enemigo; sin pueblo, las romanas de siempre */
+  function elige(situacion, estado, rng, pueblo) {
+    const lista = pueblo && POR_PUEBLO[pueblo] ? POR_PUEBLO[pueblo][situacion] : POR[situacion]; if (!lista || !estado) return null;
     rng = rng || Math.random;
     const ten = Math.max(0, Math.min(1, estado.tension === undefined ? 0.3 : estado.tension)), t = estado.t || 0;
     const urgente = URGENTES.includes(situacion);
@@ -239,7 +329,7 @@
       default: return null;
     }
   }
-  const rotulo = f => f ? NOMBRE[f.quien] + ': ' + f.lat + (f.es ? ' — ' + f.es : '') : '';
+  const rotulo = f => f ? nombreDe(f) + ': ' + (f.gr ? f.gr + ' · ' : '') + f.lat + (f.es ? ' — ' + f.es : '') : '';
   /* el primer grupo del banco que exista (g, o su sustituto); null si ninguno. tiene(g) → bool */
   function grupoDisponible(g, tiene) {
     if (tiene(g)) return g;
@@ -255,7 +345,7 @@
     n0 = n0 || {}; const hay = t => (n0[t] || 0) > 0;
     return (hay('falange') || hay('hoplitas')) && !CARTAGO.some(hay);
   }
-  const Voces = { GRIEGO, GRIEGO_PROPIO, griegoPropio, deAviso, deSim, griegoDe, esGriego, FRASES, GRUPOS, SITUACIONES, URGENTES, NOMBRE, CAIDA, nuevo, elige, deEvento, rotulo, grupoDisponible, pausaMin };
+  const Voces = { GRIEGAS, GRITOS, FRASES_PUEBLO, NOMBRE_PUEBLO, nombreDe, GRIEGO, GRIEGO_PROPIO, griegoPropio, deAviso, deSim, griegoDe, esGriego, FRASES, GRUPOS, SITUACIONES, URGENTES, NOMBRE, CAIDA, nuevo, elige, deEvento, rotulo, grupoDisponible, pausaMin };
   raiz.Voces = Voces;
   if (typeof module !== 'undefined' && module.exports) module.exports = Voces;
 })(typeof window !== 'undefined' ? window : globalThis);

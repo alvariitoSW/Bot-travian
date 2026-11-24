@@ -12,7 +12,8 @@
 # Uso:
 #   pip install piper-tts
 #   (bajar es_ES-sharvard-medium.onnx y .onnx.json de https://huggingface.co/rhasspy/piper-voices/tree/main/es/es_ES/sharvard/medium)
-#   python3 -I tools/voces.py <carpeta-con-la-voz> assets/voces [ids a rehacer...]
+#   python3 -I tools/voces.py <carpeta-con-la-voz> assets/voces [ids a rehacer...] [--faltan]
+#   (SON5: también las frases griegas de la falange propia, ids gr-*, y los gritos en español de Cartago, galos e íberos, ids ca-*, ga-*, ib-*)
 # Necesita ffmpeg (con libmp3lame) y numpy. Salida: mp3 mono a 32 kHz. Solo se usa al hacer los archivos; el juego lleva el audio ya grabado.
 import json, os, subprocess, sys
 import numpy as np
@@ -92,15 +93,21 @@ def escribe(nombre, x):
 
 if __name__ == '__main__':
     os.makedirs(SALIDA, exist_ok=True)
-    frases = json.loads(subprocess.run(['node', '-e', "console.log(JSON.stringify(require('./js/voces.js').FRASES))"], cwd=RAIZ, capture_output=True, check=True).stdout)
+    todo = json.loads(subprocess.run(['node', '-e', "const V = require('./js/voces.js'); console.log(JSON.stringify({ romanas: V.FRASES, griegas: V.GRIEGAS, gritos: V.GRITOS }))"], cwd=RAIZ, capture_output=True, check=True).stdout)
     voz = PiperVoice.load(os.path.join(VOZ, 'es_ES-sharvard-medium.onnx'))
     hechas = 0
-    solo = set(sys.argv[3:])   # opcional: ids a rehacer
-    for f in frases:
+    args = sys.argv[3:]
+    faltan = '--faltan' in args   # solo las que aún no tienen mp3 (no toca lo ya grabado: Piper no repite exactamente la misma toma)
+    solo = set(a for a in args if not a.startswith('--'))   # opcional: ids a rehacer
+    # SON5: papel de cada frase → receta de tomas. lochagos = oficial (una toma); falangita = grupo (dos tomas); jefe/guerrero: gritos en español (jefe una toma, guerrero dos).
+    PAPEL_DE = {'centurion': 'centurion', 'optio': 'optio', 'soldado': 'soldado', 'lochagos': 'centurion', 'falangita': 'soldado', 'jefe': 'centurion', 'guerrero': 'soldado'}
+    for f in todo['romanas'] + todo['griegas'] + todo['gritos']:
         if f['quien'] == 'enemigo': continue
         if solo and f['id'] not in solo: continue
-        escribe(f['id'], frase(voz, f['pron'], f['quien'])); hechas += 1
+        if faltan and os.path.exists(os.path.join(SALIDA, f['id'] + '.mp3')): continue
+        escribe(f['id'], frase(voz, f['pron'], PAPEL_DE[f['quien']])); hechas += 1
     for nombre, texto in GRIEGO:
         if solo and nombre not in solo: continue
+        if faltan and os.path.exists(os.path.join(SALIDA, nombre + '.mp3')): continue
         escribe(nombre, frase(voz, texto, 'griego')); hechas += 1
     print('hecho:', hechas, 'frases en', SALIDA)
