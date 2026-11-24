@@ -3,7 +3,7 @@
      en orden, cada una en su proceso. El proceso principal sigue con el resto de pruebas y, al llegar a cada campaña, recoge
      el resultado; si nadie la ha empezado, la juega él. Mismo bot (test/campana-bot.js), misma semilla: mismo resultado.
    - Los criterios de aprobado no cambian: siguen en test/sim.test.js y se miran en el proceso principal.
-   - SIM_HILOS=1 lo hace todo en serie, como antes. Por defecto: tantos procesos como núcleos (el principal cuenta como uno). */
+   - SIM_HILOS=1 lo hace todo en serie, como antes. Por defecto: un obrero por núcleo; el principal casi solo espera y recoge. */
 const fs = require('fs'), os = require('os'), path = require('path');
 const { spawn } = require('child_process');
 
@@ -43,7 +43,7 @@ const HILOS = Math.max(1, +process.env.SIM_HILOS || os.cpus().length);
 let DIR = null; const hijos = [];
 if (HILOS > 1) {
   DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'aqvila-sim-'));
-  for (let i = 0; i < HILOS - 1; i++) hijos.push(spawn(process.execPath, [__filename], { env: Object.assign({}, process.env, { SIM_OBRERO: DIR }), stdio: ['ignore', 'inherit', 'inherit'] }));
+  for (let i = 0; i < HILOS; i++) hijos.push(spawn(process.execPath, [__filename], { env: Object.assign({}, process.env, { SIM_OBRERO: DIR }), stdio: ['ignore', 'inherit', 'inherit'] }));
   for (const h of hijos) h.unref();   // al acabar las pruebas el proceso sale sin esperarlos (y el «exit» de abajo los cierra)
   process.on('exit', () => { for (const h of hijos) try { h.kill(); } catch (e) { } try { fs.rmSync(DIR, { recursive: true, force: true }); } catch (e) { } });
 }
