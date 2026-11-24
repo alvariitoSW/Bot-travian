@@ -38,6 +38,7 @@
     if (!Array.isArray(p.votacion.firmas)) p.votacion.firmas = [];
     if (!Array.isArray(p.avisos)) p.avisos = [];
     if (!Array.isArray(p.historial)) p.historial = [];
+    if (typeof p.bienTotal !== 'number' || !isFinite(p.bienTotal) || p.bienTotal < 0) p.bienTotal = 0;   // CE12: planes juzgados «bien» en toda la partida (el historial solo guarda los últimos)
     if (p.borrador && !Array.isArray(p.borrador.obras)) p.borrador.obras = [];
     if (p.plan && !Array.isArray(p.plan.obras)) p.plan.obras = [];
     return s;
@@ -293,6 +294,7 @@
 
   const guardarHistorial = (p, plan, juicio) => {
     const vivas = plan.obras.filter(o => !o.perdida);
+    if (juicio === 'bien') p.bienTotal = (p.bienTotal || 0) + 1;
     p.historial.push({ id: plan.id, e0: plan.e0, estaciones: plan.estaciones, hechas: vivas.filter(o => o.hecha).length, total: vivas.length, juicio });
     while (p.historial.length > P.HISTORIAL) p.historial.shift();
   };

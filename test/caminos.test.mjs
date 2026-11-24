@@ -10,7 +10,7 @@ const buena = (o) => Object.assign({ cartago: false, plazas: 0, denarios: 0, ren
 const armasOk = { cartago: true, plazas: 8 };
 const comercioOk = { renta: CAM.CIFRAS.comercio.rentaPorCiudad, rutas: CAM.CIFRAS.comercio.rutas, acuerdos: CAM.CIFRAS.comercio.acuerdos };   // CE12: sigue a las cifras
 const politicaOk = { cargo: 'princeps', bandos: [{ id: 'a', humor: 70, escanos: 10 }], planesBien: CAM.CIFRAS.politica.planesBien };   // CE12: sigue a las cifras
-const ciudadOk = { barrios: { cubiertos: 5, total: 5 }, nivelUrbe: 4, casasUrbe: CAM.CIFRAS.ciudad.casasMin, casasTotal: CAM.CIFRAS.ciudad.casasMin };
+const ciudadOk = { barrios: { cubiertos: 5, total: 5 }, nivelUrbe: 4, casasUrbe: CAM.CIFRAS.ciudad.casasPorCiudad, casasTotal: CAM.CIFRAS.ciudad.casasPorCiudad };
 const junta = (...fs) => buena(Object.assign({}, ...fs));
 
 t('necesarios', () => { assert.strictEqual(CAM.necesarios(4), 3); assert.strictEqual(CAM.necesarios(5), 4); assert.strictEqual(CAM.necesarios(), 3); });
@@ -73,7 +73,7 @@ t('3 de 4 da victoria y se mantiene', () => {
   void f;
 });
 t('marcarVista', () => {
-  const s = {}; for (let m = 1; m <= 12; m++) CAM.paso(s, junta(armasOk, ciudadOk, politicaOk), m);
+  const s = {}; for (let m = 1; m <= Math.max(CAM.CIFRAS.sostener.armas, CAM.CIFRAS.sostener.ciudad, CAM.CIFRAS.sostener.politica); m++) CAM.paso(s, junta(armasOk, ciudadOk, politicaOk), m);
   assert.strictEqual(CAM.vista(s, {}).nuevaVictoria, true); CAM.marcarVista(s); assert.strictEqual(CAM.vista(s, {}).nuevaVictoria, false);
 });
 t('migrar con basura', () => {
@@ -115,11 +115,18 @@ t('comercio: la renta es la neta del año anterior y el umbral crece con las ciu
 });
 t('ciudad: casas en barrios de nivel 4, con fraccion y minimo', () => {
   const C = CAM.CIFRAS.ciudad, h = (o) => CAM.evaluar(buena(Object.assign({ barrios: { cubiertos: 5, total: 5 } }, o))).caminos[3].hitos[1];
-  assert.strictEqual(h({ casasUrbe: C.casasMin, casasTotal: C.casasMin }).ok, true);
-  assert.strictEqual(h({ casasUrbe: C.casasMin - 1, casasTotal: C.casasMin - 1 }).ok, false);
-  assert.strictEqual(h({ casasUrbe: C.casasMin, casasTotal: Math.ceil(C.casasMin / C.fraccionUrbe) + 5 }).ok, false);   // muchas casas, pero pocas en nivel 4
-  const f = CAM.foto({ cities: { roma: { b: {}, barrio: 4, pop: 2400 } }, res: {}, alm: {} }, null);
+  assert.strictEqual(h({ casasUrbe: C.casasPorCiudad, casasTotal: C.casasPorCiudad }).ok, true);
+  assert.strictEqual(h({ casasUrbe: C.casasPorCiudad - 1, casasTotal: C.casasPorCiudad - 1 }).ok, false);
+  assert.strictEqual(h({ casasUrbe: C.casasPorCiudad, casasTotal: Math.ceil(C.casasPorCiudad / C.fraccionUrbe) + 5 }).ok, false);   // muchas casas, pero pocas en nivel 4
+  const f = CAM.foto({ cities: { roma: { owner: 'roma', b: {}, barrio: 4, pop: 2400 } }, res: {}, alm: {} }, null);
   assert.strictEqual(f.casasTotal, 120); assert.strictEqual(f.casasUrbe, 120);
+});
+t('foto: planesBien lee el contador acumulado bienTotal si existe', () => {
+  assert.strictEqual(CAM.foto({ cities: {}, planSenado: { bienTotal: 5, historial: [{ juicio: 'bien' }] } }, null).planesBien, 5);
+  assert.strictEqual(CAM.foto({ cities: {}, planSenado: { historial: [{ juicio: 'bien' }, { juicio: 'mal' }] } }, null).planesBien, 1);
+  const f = CAM.foto({ cities: { roma: { owner: 'roma', pop: 2400, barrio: 4 }, capua: { owner: 'roma', pop: 1000, barrio: 2 } }, res: {}, alm: {} }, null);
+  assert.strictEqual(f.casasTotal, 170); assert.strictEqual(f.casasUrbe, 120);
+  assert.strictEqual(CAM.evaluar(Object.assign({}, f, { casasUrbe: CAM.CIFRAS.ciudad.casasPorCiudad * 2 - 1, casasTotal: 170, ciudades: 2 })).caminos[3].hitos[1].ok, false);
 });
 console.log('caminos: ' + n + ' pruebas OK');
 

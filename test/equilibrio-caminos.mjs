@@ -97,7 +97,7 @@ function jugar(bot, modo) {
     if (s.cities[meta] && s.cities[meta].owner === 'roma' && R.capRivalMes === null) R.capRivalMes = mes;
     CAM.evaluar(f).caminos.forEach(c => c.hitos.forEach(h => { const k = c.id + '.' + h.id; R.max[k] = Math.max(R.max[k] === undefined ? -1 : R.max[k], h.v); }));
     R.maxPlazas = Math.max(R.maxPlazas, f.plazas);
-    if (mes % 12 === 0) (R.casas = R.casas || []).push([mes, f.casasUrbe, f.casasTotal]);   // para calibrar casasMin
+    if (mes % 12 === 0) (R.casas = R.casas || []).push([mes, f.casasUrbe, f.casasTotal, f.ciudades, f.planesBien]);   // para calibrar casasMin
     if (mes % 12 === 0) (R.rentas = R.rentas || []).push([mes, Math.round(f.renta), f.ciudades]);   // renta neta del año anterior (para calibrar rentaPorCiudad)
     if (process.env.ROMA && mes % 12 === 0) { const c = s.cities[G.capital()]; console.error(G.yearOf(s.t), 'hombres', G.men(c.units), 'total', G.myCities().reduce((a, id) => a + G.men(s.cities[id].units), 0), 'den', Math.round(G.disponible('denarios')), 'deuda', Math.round(s.deudaPaga || 0), 'grano', Math.round(G.disponible('grano')), 'ciu', G.myCities().length, 'hierro', Math.round(G.disponible('hierro')), 'cola', c.train.length, 'pop', Math.round(c.pop), 'unidades', JSON.stringify(c.units), 'tasa', G.tradeRate(), 'ok', ['triarii','principes','equites','hastati'].filter(k => G.unitOk(c, k)).join('/') + ' max' + G.maxTrain('hastati'), 'marchas', s.marches.filter(m => m.owner !== 'roma').map(m => m.owner + '>' + m.to + ':' + G.men(m.units || {})).join(',')); }
     ponGob();
