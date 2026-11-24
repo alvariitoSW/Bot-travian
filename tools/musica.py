@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Prepara la banda sonora de AQVILA (SON7): recorta, cose en bucle, iguala a -16 LUFS y codifica mp3 a 80 kb/s.
 Uso: python3 -I tools/musica.py <carpeta con las originales> <carpeta de salida>
-Originales (de OpenGameArt, ver assets/musica/LICENSE.txt): menu.mp3, ciudad.mp3, mapa.mp3, batalla.wav (el «Loop»),
+Originales (de OpenGameArt, ver assets/musica/LICENSE.txt): menu.mp3, ciudad.mp3, mapa.mp3, batalla.wav (SON12: el «Blackmoor Colossus Loop (No Vocals).wav», sin coro),
 victoria.wav, derrota.wav. Solo ffmpeg y numpy."""
 import os, re, subprocess, sys, tempfile
 import numpy as np

@@ -135,7 +135,9 @@
         "js/batalla-rapida.js",
         "js/ui-batalla-rapida.js",
         "test/batalla-rapida.test.mjs",
-        "gobierno/captura-cg7.mjs"
+        "gobierno/captura-cg7.mjs",
+        "js/gfx/cine-mando.js",
+        "js/gfx/estandartes.js"
       ],
       "taller": [
         "assets/soldados/",
@@ -299,7 +301,9 @@
         "gobierno/maquetas/menus*/",
         "gobierno/maquetas/concurso*/",
         "gobierno/maquetas/provincias/",
-        "css/aspecto.css"
+        "css/aspecto.css",
+        "css/portada.css",
+        "js/portada.js"
       ],
       "taller": [],
       "juez": {
@@ -333,7 +337,8 @@
         "gobierno/kits/",
         "gobierno/maquetas/piezas/",
         "assets/iconos/",
-        "assets/personajes/"
+        "assets/personajes/",
+        "assets/laminas/"
       ],
       "taller": [],
       "juez": {

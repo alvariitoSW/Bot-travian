@@ -109,7 +109,7 @@
   D.SISTEMAS = {
     ministros: { n: 'Ministros' }, censor: { n: 'Censor' }, edil: { n: 'Edil' }, cuestor: { n: 'Cuestor' }, pontifice: { n: 'Pontífice' }, legado: { n: 'Legado' },
     publicanos: { n: 'Publicano de minas' }, necesidades: { n: 'Necesidades del barrio' }, revuelta: { n: 'Revuelta de la plebe' }, planSenado: { n: 'Plan del Senado' },
-    caminos: { n: 'Caminos de victoria' }, princeps: { n: 'Príncipe del Senado' }, esteAno: { n: 'Este año (cuentas y tributo)' }, gobernador: { n: 'Gobernador' }, personajes: { n: 'Personajes de las clases sociales' }   // CDe4
+    caminos: { n: 'Caminos de victoria' }, princeps: { n: 'Príncipe del Senado' }, esteAno: { n: 'Este año (cuentas y tributo)' }, gobernador: { n: 'Gobernador' }, personajes: { n: 'Personajes de las clases sociales' }, estandartes: { n: 'Estandartes de la batalla' }   // CDe4
   };
   /* Templos (F5): cada ciudad puede dedicar su templo a un dios. Los dones son por nivel de templo. Licencia de juego:
      los romanos no «elegían» un dios por ciudad, pero Marte, Ceres y Neptuno eran divinidades reales de Roma (Livio 2.41 para el templo de Ceres, 493 a.C.; Marte, Campo de Marte; Neptuno, Circo Flaminio). Dones inventados. */

@@ -70,7 +70,7 @@
   };
   /* ---------- GM43i: sonido grabado ----------
      BANCO: grupo → cuántas variantes hay (assets/sonido/<grupo><n>.mp3). Una variante al azar cada vez, sin repetir la última. */
-  const BANCO = { madera: 4, hierro: 4, escudo: 4, paso: 4, vuelo: 3, esfuerzo: 3, herido: 5, coro: 1, grito: 5, clamor: 1, masa: 1, cuerno: 2, lucha: 1, viento: 1, orden: 1, aclamacion: 1, panico: 3, canto: 2, quejido: 3, caida: 3, clava: 2, empuje: 2, tajo: 2 };   /* SON7 (caídas, pila, empuje, gladio) unido con SON10 (gritos reales) */
+  const BANCO = { madera: 4, hierro: 4, escudo: 4, paso: 4, vuelo: 3, esfuerzo: 3, herido: 5, coro: 1, grito: 5, clamor: 1, masa: 1, cuerno: 2, lucha: 1, viento: 1, orden: 1, aclamacion: 1, panico: 3, canto: 2, quejido: 3, caida: 3, clava: 2, empuje: 2, tajo: 2 };   /* SON11: caídas, pila que se clavan, escudo contra escudo y gladio (tools/sonido-fragor.py) */
   S.BANCO = BANCO;
   S.archivos = () => Object.entries(BANCO).flatMap(([g, n]) => Array.from({ length: n }, (_, i) => 'assets/sonido/' + g + (i + 1) + '.mp3'));
   S.buf = {}; S.ultima = {}; S.muestras = 0; S.fondos = {}; S.banco = null;
