@@ -475,7 +475,7 @@ function preparaGalos() {
 /* ---------- estado de la partida ---------- */
 const S = {};
 function reinicia() {
-  semilla = 43; semillaP = 5; if (ACC) ACC.reinicia();
+  semilla = 43; semillaP = 5; if (ACC) ACC.reinicia(); if (BANDA) BANDA.reinicia();
   Object.assign(S, { unidad: crearUnidad({ hombres: M, ref: Math.min(M, REF_R) }), velObj: 0, sueltas: [], duelos: [], tChoque: -9, T: 0, zF: 0, k: 0, escudos: false, andando: false, fase: 'avance', proxima: 4, aviso: false, impacto: -1, paso: 0, tCinta: 0, tFin: -1, choque: false, llegaron: 0, sacude: 0, vel: 0, golpes: 0, roto: false, encoge: -9, destello: 0, corre: false, corriendo: false, aliento: 1, tGrito: -9, armas: 'pilum', nPaso: 0, kSon: -1, agotado: false,
     /* GM43h: salvas lanzadas, cuándo está listo el segundo pilum, el dedo en el botón, el medidor, los galos y tu pilum (la cámara lo sigue) */
     salvas: 0, listo: 0, dedo: false, armando: false, tArma: -9, medidor: 0, tGalos: -1, corrida: false, caidos: 0, caidosSalva: [0, 0], buenoSalva: [false, false], buenos: 0, ojo: null, tOjo: -9, kP: 0, zChoque: 0, aviso2: false,
@@ -505,6 +505,10 @@ function sitio(h) {
 /* ---------- avisos ---------- */
 function cinta(texto, buena) { const c = $('cinta'); c.textContent = texto; c.classList.toggle('ve', !!texto); c.classList.toggle('buena', !!buena); S.tCinta = texto ? S.T : 0; }
 const GRITOS = { aguante: ['¡Aguantad!', '¡Firmes!', '¡Juntos!', '¡No os mováis!'], aviso: ['¡Escudos!', '¡Arriba los escudos!', '¡Ahí vienen!'], paso: ['¡Ya casi!', '¡Paso a paso!', '¡Adelante, juntos!'] };
+/* SON4: música, voces y subtítulo (js/gfx/banda.js): romanos contra galos; los galos gritan y cantan (grupo «canto») */
+let BANDA = null;
+const dicen = sit => { if (BANDA && !parado) BANDA.dice(sit); };
+const resumenBanda = () => ({ fase: S.fase === 'fin' ? 'fin' : S.choque ? 'lucha' : 'lejos', moral: [S.unidad.animo, S.unidadG.animo], rotos: [S.unidad.roto ? 1 : 0, S.unidadG.roto ? 1 : 0], cansancio: S.unidad.cansancio || 0, resultado: S.ruptura === 'galos' ? 'victoria' : 'derrota' });
 function grita(t) { if (Array.isArray(t)) t = t[Math.floor(azar() * t.length)]; Son.voz(t); const g = $('grito'); g.textContent = t; g.classList.add('ve'); S.tGrito = S.T; }
 
 /* ---------- la cámara ----------
@@ -655,7 +659,7 @@ function bajas(n) {
 function llegaDescarga() {
   S.impacto = -1;
   if (S.k > 0.7) {
-    S.encoge = S.T; S.sacude = 0.6; S.destello = 0.14; Son.trueno(1); grita(GRITOS.aguante);
+    S.encoge = S.T; S.sacude = 0.6; S.destello = 0.14; Son.trueno(1); grita(GRITOS.aguante); dicen('pila');
     camBase(); for (let i = 0; i < 9; i++) { const q = POLVO.find(q => S.T - q.t > 3); if (!q) break; q.t = S.T + azar() * 0.2; q.e = 0.1 + azar() * 0.08; q.s.position.set(CAM.x + (azar() - 0.5) * 1.2, CAM.y + 0.2, CAM.z - 0.5 - azar() * 0.9); q.v.set(0, -0.45 - azar() * 0.3, 0); }
     if (S.roto) { bajas(1); cinta('Sin tu escudo, cae un hombre', false); } else cinta('¡Aguantan! Los venablos no pasan', true);
   }
@@ -745,7 +749,7 @@ function galoAhora(g) {
 function aTiro() {
   S.zF = Z_PILA; S.fase = 'pila'; S.andando = false; S.corre = false; S.escudos = false; S.tGalos = S.T + 0.8; S.listo = S.T + 0.3;
   for (const t of S.tiradores) if (t.vivo) t.huye = true;
-  cinta('¡A tiro! Mantén pulsado y suelta', true); grita('¡Ahí vienen!'); Son.trueno(0.35);
+  cinta('¡A tiro! Mantén pulsado y suelta', true); grita('¡Ahí vienen!'); Son.trueno(0.35); dicen('carga-enemiga');
 }
 /* el dedo baja: tu soldado echa el brazo atrás y las dos primeras filas arman contigo */
 function armar() {
@@ -834,12 +838,12 @@ function alGladio() {
   for (const h of S.romanos) if (h.sujeta) { h.sujeta = false; h.lanza = -9; }
   for (const p of PILA) if (p.est === 1) p.est = 0;
   S.fase = 'carga'; S.armas = 'espada'; S.corrida = true; S.escudos = false;
-  cinta(tarde ? '¡Tarde! A las espadas' : '¡Gladios! ¡Cargad!', !tarde); grita('¡Cargad!'); Son.cuerno([[146.83, 0.35], [146.83, 0.35], [196, 1.1]]);
+  cinta(tarde ? '¡Tarde! A las espadas' : '¡Gladios! ¡Cargad!', !tarde); grita('¡Cargad!'); Son.cuerno([[146.83, 0.35], [146.83, 0.35], [196, 1.1]]); dicen('empujar');
 }
 /* el choque, donde se encuentran las dos líneas (provisional: aquí enganchará la pieza 2, la lucha cuerpo a cuerpo) */
 function alChocar() {
   const T = S.T, zc = S.zF - 1; S.zChoque = zc; S.choque = true; S.vel = 0; for (const g of S.galos) g.v = 0;   /* TP1: en el choque se paran en seco: los mueve la lucha */
-  S.llegaron = vivos(); S.sacude = 0.9; Son.choque();
+  S.llegaron = vivos(); S.sacude = 0.9; Son.choque(); dicen('choque');
   for (const p of POLVO) { p.e = 1; p.t = T + azar() * 0.4; const x = (azar() - 0.5) * 8; p.s.position.set(x, H(x, zc) + 0.4 + azar() * 0.6, zc - azar() * 2.5); p.v.set((azar() - 0.5) * 1.5, 0.6 + azar() * 0.6, (azar() - 0.5) * 1.5); }
   ACC.empiezaLucha(); S.tFin = 1e9; S.muro = false;   /* TP1b: la lucha (acciones.js) dura hasta que un bando rompe */
 }
@@ -902,8 +906,8 @@ function paso(dt) {
     if (ng < UG.enPie) { const n = UG.enPie - ng; UG.baja(n); UR.mata(n); }
     if (S.choque && !S.huida && !S.derrota) {
       const rR = UR.lucha(dt, { muro: S.muro, carga: T < S.cargaHasta }), rG = UG.lucha(dt, { contraMuro: S.muro });
-      if (rG) { S.ruptura = 'galos'; ACC.huida(); S.tFin = T + 3.6; cinta('¡Rompen! Los galos huyen', true); grita('¡Victoria!'); Son.cuerno([[196, 0.4], [246.94, 0.4], [293.66, 1.2]]); }
-      else if (rR) { S.ruptura = 'romanos'; S.derrota = T; for (const d of S.duelos) d.activo = false; S.tFin = T + 2.4; cinta('¡Los tuyos rompen!', false); grita('¡Los galos se vienen gritando!'); }
+      if (rG) { S.ruptura = 'galos'; ACC.huida(); S.tFin = T + 3.6; cinta('¡Rompen! Los galos huyen', true); grita('¡Victoria!'); Son.cuerno([[196, 0.4], [246.94, 0.4], [293.66, 1.2]]); dicen('roto-enemigo'); }
+      else if (rR) { S.ruptura = 'romanos'; S.derrota = T; for (const d of S.duelos) d.activo = false; S.tFin = T + 2.4; cinta('¡Los tuyos rompen!', false); grita('¡Los galos se vienen gritando!'); dicen('roto-propio'); }
     }
     for (const o of S.ordenes) if (!o.hecha && T >= o.t) { o.hecha = true; cumple(o.n); }
   }
@@ -911,7 +915,7 @@ function paso(dt) {
   for (const g of S.galos) galoAhora(g);
   if (S.fase === 'pila' && S.tGalos > 0 && hueco() <= D_GLADIO) alGladio();
   if (S.fase === 'carga' && !S.choque && hueco() <= 1.3) alChocar();
-  if (S.fase === 'carga' && S.choque && T >= S.tFin) { S.fase = 'fin'; muestraFin(); }
+  if (S.fase === 'carga' && S.choque && T >= S.tFin) { S.fase = 'fin'; muestraFin(); if (BANDA && !parado) BANDA.fin(S.ruptura === 'galos' ? 'victoria' : 'derrota'); }
   /* descargas: aviso 1,2 s antes de soltar */
   if (S.fase === 'avance') {
     if (!S.aviso && T >= S.proxima - 1.2) { S.aviso = true; cinta('¡Venablos! Escudos arriba', false); if (S.k > 0.3) grita(GRITOS.aviso); }
@@ -1245,11 +1249,11 @@ function ordena(n) {
 }
 function cumple(n) {
   if (n === 'escudos') {
-    if (S.choque) { S.muro = !S.muro; Son.clac(S.muro ? 10 : 6); grita(S.muro ? '¡Escudos! ¡Aguantad!' : '¡A ellos!'); }
+    if (S.choque) { S.muro = !S.muro; Son.clac(S.muro ? 10 : 6); grita(S.muro ? '¡Escudos! ¡Aguantad!' : '¡A ellos!'); dicen(S.muro ? 'aguantar' : 'empujar'); }
     else if (S.fase === 'avance') { S.escudos = !S.escudos; if (S.escudos) S.corre = false; Son.clac(S.escudos ? 10 : 6); }
   }
-  if (n === 'cargad') { if (S.fase === 'pila') alGladio(); else if (S.choque) { ACC.cargad(); S.muro = false; grita('¡Cargad!'); Son.choque(); } }
-  if (n === 'relevo' && S.choque) { ACC.relevoOrden(); grita('¡Relevo! ¡La segunda, adelante!'); Son.cuerno([[220, 0.25], [220, 0.5]]); }
+  if (n === 'cargad') { if (S.fase === 'pila') alGladio(); else if (S.choque) { ACC.cargad(); S.muro = false; grita('¡Cargad!'); Son.choque(); dicen('empujar'); } }
+  if (n === 'relevo' && S.choque) { ACC.relevoOrden(); grita('¡Relevo! ¡La segunda, adelante!'); Son.cuerno([[220, 0.25], [220, 0.5]]); dicen('relevo'); }
 }
 /* el nombre de cada hombre, para decirte quién eres cuando caes */
 const NOMBRES = ['Marco', 'Tito', 'Lucio', 'Cayo', 'Quinto', 'Publio', 'Aulo', 'Sexto', 'Décimo', 'Gneo', 'Servio', 'Espurio', 'Numerio', 'Opiter', 'Vibio'];
@@ -1356,7 +1360,7 @@ function bucle(t) {
   if (CAMPO) CAMPO.tick(t / 1000);
   const dtR = (t - ultimo) / 1000 || 0, dt = Math.min(0.05, dtR); ultimo = t;
   if (dtR > 0 && dtR < 10) { tiempos.push([t, dtR * 1000]); while (tiempos.length && t - tiempos[0][0] > 5000) tiempos.shift(); medT -= dtR; if (medT <= 0 && tiempos.length > 2) { medT = 0.5; HUD.medidor((tiempos.length - 1) / Math.max(0.001, (t - tiempos[0][0]) / 1000), Math.max(...tiempos.map(x => x[1]))); } }
-  if (!parado) { if (S.congela > 0) S.congela -= dt; else { const k = S.lento > 0 ? 0.4 : 1; if (S.lento > 0) S.lento -= dt; paso(dt * k); } }   /* TP8b-L1: y la cámara lenta al matarlo */   /* TP8 1a: la pausa mínima al acertar en tu duelo */
+  if (!parado) { if (S.congela > 0) S.congela -= dt; else { const k = S.lento > 0 ? 0.4 : 1; if (S.lento > 0) S.lento -= dt; paso(dt * k); if (BANDA) BANDA.tic(dt * k, resumenBanda(), !S.unidad.roto && S.unidad.animo < 0.3); } }   /* TP8b-L1: y la cámara lenta al matarlo */   /* TP8 1a: la pausa mínima al acertar en tu duelo */
   dibuja(); hud(); requestAnimationFrame(bucle);
 }
 /* TP8 1a: el sitio donde para la hoja: el centro del escudo del que recibe o, si le dan, la cara de su pecho */
@@ -1471,6 +1475,7 @@ window.__tp = {
   await creaHombres(); creaCresta(); malla('peltastas', 10, '#3456a8'); malla('galos', N_GF + RESERVA_G, '#3456a8'); preparaGalos();
   try { await escudoGalo(); } catch (e) { console.warn('Sin escudo galo para clavar pila', e); }
   ACC = crearAcciones({ S, Son, panDe, chispa, V3, H, PIES, azarV, CJ, suave, E, figuras, cinta, nombre, get HOM() { return HOM; }, alcance: ANTES ? undefined : alcance, golpe: ANTES ? undefined : golpe, aliento: !ANTES });
+  try { BANDA = window.Banda.crea({ padre: $('hud'), propio: 'romano', rival: { esGriego: false, galos: true }, semilla: 43, abajo: '124px' }); Son.alSonar(() => BANDA.inicia()); window.__tp.banda = BANDA; } catch (e) { console.log('[SON4] sin banda: ' + e.message); }
   reinicia();
   if (FASE) prepara(FASE);
   $('carga').hidden = true;

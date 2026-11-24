@@ -15,6 +15,7 @@ descuidar a una clase social tiene consecuencias que se ven. Plan: `gobierno/est
 ## Tus archivos (`gobierno/areas.json` → `cerebro`; duda: `node gobierno/juez-area.mjs --dueno <ruta>`)
 - **Rama Ciudades**: `js/ciudad.js`, `js/gfx/city3d.js`, `roma-siglo.js`, `vida.js`, `trajin.js`, `fachadas.js`, `civicas.js`,
   `campos.js`, `mundo.js`, `sonido-ciudad.js`; pruebas `ciudad`, `encargos`, `sonido-ciudad`; maquetas de ciudad.
+  `sonido-ciudad.js` sigue siendo tuyo, pero cómo suena lo dicta el Director de Sonido (skill `sonido`) con su partitura.
 - **Rama Política**: `js/diplomacia.js`; pruebas `senado`, `saber`, `diplomacia`, `investigador`, `consejo`; maquetas de Senado y política.
 - **Ojo**: casi toda la economía, el Senado y los datos viven en `js/game.js` y `js/data.js`, que son **comunes**. Por eso
   **solo hay una sesión del Cerebro que los toque a la vez**: las dos ramas se encadenan, no van en paralelo, salvo

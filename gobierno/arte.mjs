@@ -37,7 +37,7 @@ for (const [carpeta, indice, tope, nombre] of [['assets/units', 'units.json', P.
   console.log('assets/sonido · ' + MB(b) + ' · ' + mp3.length + ' sonidos');
   let l = ''; try { l = await readFile(join(dir, 'LICENSE.txt'), 'utf8'); if (!/CC0 1\.0/.test(l)) fallos.push('assets/sonido/LICENSE.txt no cita la CC0 1.0'); } catch (e) { fallos.push('falta assets/sonido/LICENSE.txt'); }
   for (const f of mp3) { const k = f.slice(0, -4), r = (REG.sonidos || {})[k];
-    if (!r || r.licencia !== 'CC0 1.0' || !r.credito || !r.fuente) fallos.push('sonido ' + f + ': falta su ficha completa en js/registro.js (R.sonidos)');
+    if (!r || !((P.sonido && P.sonido.licencias) || ['CC0 1.0']).includes(r.licencia) || !r.credito || !r.fuente) fallos.push('sonido ' + f + ': falta su ficha completa en js/registro.js (R.sonidos)');
     if (!l.includes(f)) fallos.push('sonido ' + f + ': no está en assets/sonido/LICENSE.txt'); } }
 console.log('Descarga total de arte: ' + MB(total) + ' (tope: ' + P.descargaMB + ' MB)');
 if (total > P.descargaMB * 1048576) fallos.push('el arte pesa ' + MB(total) + ' y el tope es ' + P.descargaMB + ' MB');

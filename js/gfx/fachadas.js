@@ -22,6 +22,7 @@ const PANOS = ['#cfc4a8', '#a8553f', '#7d8f9a', '#b59a5c', '#8c7a62'];
 const CREMA = '#d8c9a4', MADERA = '#6b5238', CUERDA = '#8a7a5c';
 
 let C = null;                                      // contexto de city3d: { scene, altura, azar, pieza, lote, matriz, Bulto, matBulto, pedirReparto }
+let mallaR = null, ropaF = '';
 let rev = -1, mallaP = null, mallaC = null, LP = null, listaP = {}, listaC = {}, verP = true, verC = true;
 const CLAVES = ['prop_mesa', 'prop_cesto', 'prop_sacos', 'prop_vaso', 'prop_caja', 'prop_puesto_cart'];
 
@@ -30,8 +31,8 @@ export function iniciar(ctx) { C = ctx; }
 export function reiniciar() { quita(); rev = -1; listaP = {}; listaC = {}; if (LP) aplicar(); }
 
 function quita() {
-  for (const m of [mallaP, mallaC]) if (m) { C.scene.remove(m); m.geometry.dispose(); }
-  mallaP = mallaC = null;
+  for (const m of [mallaP, mallaC, mallaR]) if (m) { C.scene.remove(m); m.geometry.dispose(); }
+  mallaP = mallaC = mallaR = null; ropaF = '';
 }
 /* un lote por pieza, creado una sola vez y solo si algo está encendido; si falta la pieza, city3d devuelve uno vacío */
 function lotes() {
@@ -155,4 +156,15 @@ export function actualizar(E, camD) {
   if (E.rev !== rev) { rev = E.rev; reconstruir(E); sucio = true; }
   const p = camD < CAM_PUESTOS, d = camD < CAM_DETALLE;
   if (p !== verP || d !== verC) { verP = p; verC = d; if (!sucio) aplicar(); }
+}
+
+/* CD5b: ropa tendida en los patios de las ínsulas, vista desde arriba: una cuerda a cada lado del hueco con paños de colores. lista: [{ x, z, giro, s, y }] (y = altura de la cuerda) */
+export function ropaPatios(lista) {
+  if (!C) return; const f = lista.map(q => Math.round(q.x) + ',' + Math.round(q.z)).join('|'); if (f === ropaF && (mallaR || !lista.length)) return; ropaF = f;
+  if (mallaR) { C.scene.remove(mallaR); mallaR.geometry.dispose(); mallaR = null; }
+  if (!FACHADAS_ROPA || !lista.length) return;
+  const B = new C.Bulto();
+  lista.forEach((q, n) => { const s = q.s || 1; for (const dz of [-0.65, 0.7]) { const a = rot(q.x, q.z, q.giro, 0, dz * s); B.caja(2.8 * s, 0.05, 0.05, a[0], q.y, a[1], CUERDA, q.giro);
+    for (let k = 0; k < 3; k++) { const c = rot(q.x, q.z, q.giro, (k - 1) * 0.85 * s, dz * s); B.caja(0.6 * s, 0.55 * s, 0.4 * s, c[0], q.y - 0.3 * s, c[1], PANOS[(n + k + (dz > 0 ? 2 : 0)) % PANOS.length], q.giro); } } });
+  mallaR = new THREE.Mesh(B.geo(), C.matBulto); mallaR.castShadow = false; mallaR.receiveShadow = false; C.scene.add(mallaR);
 }

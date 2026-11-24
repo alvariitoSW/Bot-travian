@@ -1,6 +1,10 @@
 // AQVILA — pruebas de js/necesidades.js SIN pantalla (Node): node test/necesidades.test.mjs
 import * as R from '../js/necesidades.js';
 const fallos = [], ok = (c, t) => { if (!c) fallos.push(t); console.log((c ? 'bien  ' : 'MAL   ') + t); };
+// CD5b: la lógica se prueba en una rejilla pequeña de 30×30: se vuelven los alcances a su escala de entonces (el factor 2,8 del juego se divide). La regla del juego se comprueba abajo.
+const ALC_JUEGO = Object.fromEntries(Object.entries(R.SERVICIOS).map(([k, s]) => [k, s.alcance]));
+for (const s of Object.values(R.SERVICIOS)) s.alcance = Math.round(s.alcance / 2.8);
+ok(ALC_JUEGO.fuente * 4 * 0.75 >= 80 && ALC_JUEGO.fuente < ALC_JUEGO.cloaca && ALC_JUEGO.cloaca < ALC_JUEGO.templo && ALC_JUEGO.templo < ALC_JUEGO.granero, 'alcance de la fuente ≈ 85 u por la calle y el orden relativo se mantiene');
 const N = 30;
 // calle recta horizontal en fila 10 (columnas 0..29) y una perpendicular en columna 5 (filas 10..29); hueco: columna 20 sin calle
 const calles = new Set();

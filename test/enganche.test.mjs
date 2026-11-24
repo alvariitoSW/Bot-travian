@@ -53,9 +53,14 @@ ok(G.planPuedeVotar() === null || typeof G.planPuedeVotar() === 'string', 'planP
   const nb = G.necBarrio('roma', 0); ok(nb && nb.cob && typeof nb.animo === 'number' && nb.mem && nb.nivel && nb.nivel.nombre, 'G.necBarrio da {cob, animo, mem, nivel}');
   ok(!Object.keys(c.nec).includes('alc') && !JSON.stringify(c.nec).includes('porCasa'), 'c.nec.alc no se guarda');
   ok(G.calmarRevuelta('roma', 0, 'tropas').ok === false, 'calmar sin revuelta se niega');
-  ok(!(c.nec.mem[0] = { desc: 0, mal: {}, revuelta: true }, G.enRevuelta(c)), 'sin castigos (D.NEC_CASTIGOS) la revuelta no corta impuestos');   // CDe1
-  D.NEC_CASTIGOS = true; ok(G.enRevuelta(c), 'barrio en revuelta');
-  const sin = G.prod().det.impuestos; c.nec.mem[0].revuelta = false; ok(G.prod().det.impuestos > sin, 'un barrio en revuelta no paga impuestos'); D.NEC_CASTIGOS = false;
+  ok(D.NEC_CASTIGOS === true, 'CDe2: las necesidades tienen consecuencia');
+  D.NEC_CASTIGOS = false; ok(!(c.nec.mem[0] = { desc: 0, mal: {}, revuelta: true }, G.enRevuelta(c)), 'sin castigos (D.NEC_CASTIGOS) la revuelta no corta impuestos'); D.NEC_CASTIGOS = true;
+  ok(G.enRevuelta(c), 'barrio en revuelta');
+  const parte = G.revueltaParte(c); ok(parte > 0 && parte <= 1, 'parte de la ciudad en revuelta: ' + parte.toFixed(2));
+  ok(G.necEstados('roma')[0] === 'revuelta', 'G.necEstados marca el barrio en revuelta');
+  const sin = G.prod().det.impuestos; c.nec.mem[0].revuelta = false; ok(G.prod().det.impuestos > sin, 'un barrio en revuelta no paga impuestos');
+  ok(G.necEncargar('roma', { necesidad: 'culto', servicio: 'templo', ministro: 'culto' }).ok !== undefined, 'G.necEncargar responde');
+  ok(G.necEncargar('roma', { necesidad: 'agua', servicio: 'fuente', nombre: 'Fuente' }).ok === false, 'una fuente no se encarga al ministro (se construye)');
   c.nec.mem[0] = { desc: 0, mal: {}, revuelta: true }; c.units.hastati = (c.units.hastati || 0) + 200;
   const r = G.calmarRevuelta('roma', 0, 'tropas'); ok(r.ok && !c.nec.mem[0].revuelta, 'las tropas calman la revuelta'); }
 // una estación entera con la ciudad nueva sin servicios: no revienta y deja memoria por barrio

@@ -1,5 +1,5 @@
 # AQVILA — GM43i: corta, iguala y comprime el sonido grabado de las escenas a pie (assets/sonido/).
-# Todo es CC0 (dominio público) y sale de OpenGameArt y Freesound; la lista con autor y enlace está en
+# Casi todo es CC0 (dominio público; ver assets/sonido/LICENSE.txt para lo que no) y sale de OpenGameArt y Freesound; la lista con autor y enlace está en
 # assets/sonido/LICENSE.txt. Uso:
 #   sh tools/sonido-fuentes.sh <carpeta>        # baja las fuentes (una vez)
 #   python3 -I tools/sonido.py <carpeta> assets/sonido
@@ -90,6 +90,19 @@ BUCLES = [
     ('viento1', 'fs553733.mp3', 20.0, 29.6, -6),           # viento en campo abierto
 ]
 
+# SON1-a: voces nuevas. (nombre, archivo, desde, hasta, pico dB, fundido de entrada, fundido de salida)
+VOCES = [
+    ('orden1', 'fs661242.mp3', 0.00, 1.05, -2, 0.01, 0.10),   # grito gutural sin palabra (DeqstersLab). SON2: quitadas las otras tres (podían llevar palabras no permitidas)
+    ('aclamacion1', 'fs264377.mp3', 3.0, 6.2, -3, 0.25, 0.7),  # veinte voces vitorean (HowardV)
+    ('aclamacion2', 'fs264377.mp3', 14.0, 17.5, -3, 0.25, 0.8),
+    ('panico1', 'fs325548.mp3', 1.0, 2.9, -2, 0.01, 0.2),     # hombre que grita de dolor y miedo (Archeos)
+    ('panico2', 'fs491405.mp3', 1.0, 3.8, -3, 0.15, 0.5),     # multitud que huye gritando (IENBA)
+    ('canto1', 'fs588578.mp3', 0.25, 2.55, -2, 0.03, 0.25),   # hombres que cantan a coro (marconi68)
+    ('canto2', 'fs588578.mp3', 2.55, 4.85, -2, 0.03, 0.25),
+    ('quejido1', 'fs556006.mp3', 0.9, 2.5, -3, 0.05, 0.25),   # lamento de herido (Morshuman)
+    ('quejido2', 'fs477756.mp3', 36.8, 38.5, -3, 0.03, 0.25), # hombre que sufre (RepDac3)
+]
+
 os.makedirs(SALIDA, exist_ok=True)
 for nombre, ruta, a, b, pico in GOLPES:
     x = lee(ruta)
@@ -101,4 +114,6 @@ for nombre, ruta, a, b, pico in BUCLES:
     x = trozo(lee(ruta), a, b)
     if nombre.startswith('viento'): x = suave(x, 5000)
     escribe(nombre, iguala(bucle(x), pico), 8)
-print('hecho:', len(GOLPES) + len(LARGOS) + len(BUCLES), 'sonidos en', SALIDA)
+for nombre, ruta, a, b, pico, ent, sal in VOCES:
+    escribe(nombre, fundidos(iguala(trozo(lee(ruta), a, b), pico), ent, sal))
+print('hecho:', len(GOLPES) + len(LARGOS) + len(BUCLES) + len(VOCES), 'sonidos en', SALIDA)
