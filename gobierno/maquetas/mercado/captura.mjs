@@ -22,7 +22,7 @@ const chicos = p => p.evaluate(() => [...document.querySelectorAll('.mu-hoja but
 const den = async p => parseFloat((await p.innerText('[data-mu-den]')).replace(/[^0-9,]/g, '').replace(',', '.'));
 const foto = (p, nom) => p.screenshot({ path: join(SAL, nom + '.jpg'), type: 'jpeg', quality: 85 });
 if (false) 0;
-for (const [t, nom] of [['precios', 'CE4b-1-precios'], ['rutas', 'CE4b-2-rutas'], ['senado', 'CE4b-3-senado'], ['aduanas', 'CE4b-4-aduanas']]) {
+for (const [t, nom] of [['precios', (process.env.PFX||'CE4b-')+'1-precios'], ['rutas', (process.env.PFX||'CE4b-')+'2-rutas'], ['senado', (process.env.PFX||'CE4b-')+'3-senado'], ['aduanas', (process.env.PFX||'CE4b-')+'4-aduanas']]) {
   const p = await pag(t);
   if (t === 'senado') await p.evaluate(() => [...document.querySelectorAll('.mu-sec h3')].find(h => /publicanos/.test(h.textContent)).scrollIntoView());
   await foto(p, nom);
@@ -33,10 +33,10 @@ for (const [t, nom] of [['precios', 'CE4b-1-precios'], ['rutas', 'CE4b-2-rutas']
   await p.close();
 }
 { // ficha abierta (captura 5) y mapa de cerca (captura 6)
-  const p = await pag('precios'); await p.click('.mu-prod >> nth=2'); await p.waitForSelector('[data-mu=comprar]'); await foto(p, 'CE4b-5-ficha');
+  const p = await pag('precios'); await p.click('.mu-prod >> nth=2'); await p.waitForSelector('[data-mu=comprar]'); await foto(p, (process.env.PFX||'CE4b-')+'5-ficha');
   chk('ficha: medallón visible', await p.locator('.mu-fic .mu-med').count() === 1);
   chk('ancho ≤ 390 en ficha', await ancho(p) <= 390); chk('nada sobresale en ficha', await fuera(p) === 0); await p.close();
-  const r = await pag('rutas'); await r.locator('.mu-mapa').screenshot({ path: join(SAL, 'CE4b-6-mapa.jpg'), type: 'jpeg', quality: 90 });
+  const r = await pag('rutas'); await r.locator('.mu-mapa').screenshot({ path: join(SAL, (process.env.PFX||'CE4b-')+'6-mapa.jpg'), type: 'jpeg', quality: 90 });
   chk('mapa: ciudades dibujadas', await r.locator('.mu-mapa circle').count() >= 4, String(await r.locator('.mu-mapa circle').count()));
   chk('mapa: nombres de ciudad', (await r.locator('.mu-mapa text').allTextContents()).includes('Roma'));
   chk('sin emojis en los productos', !/[\u{1F300}-\u{1FAFF}]/u.test(await r.locator('.mu-hoja').innerText())); await r.close();

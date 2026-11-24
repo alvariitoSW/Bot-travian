@@ -17,7 +17,7 @@ const errores = [], fallos = []; let n = 0;
 page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|GPU stall|GL Driver/.test(m.text())) errores.push(m.text().slice(0, 300)); });
 page.on('pageerror', e => errores.push('EXCEPCIÓN: ' + String(e.stack || e.message).slice(0, 500)));
 const paso = (ok, t) => { console.log((ok ? 'OK   ' : 'MAL  ') + t); if (!ok) fallos.push(t); };
-const foto = nombre => page.screenshot({ path: join(SALIDA, 'CD2a-' + nombre + '.jpg'), type: 'jpeg', quality: 82 });
+const foto = nombre => page.screenshot({ path: join(SALIDA, (process.env.PFX || 'CD2a-') + nombre + '.jpg'), type: 'jpeg', quality: 82 });
 await mkdir(SALIDA, { recursive: true });
 try {
   await page.goto('http://127.0.0.1:' + srv.address().port + '/', { waitUntil: 'load' });

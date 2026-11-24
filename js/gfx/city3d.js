@@ -25,9 +25,9 @@ import * as Campos from './campos.js';          // CI1-8: campos de trigo en fra
 const { PUENTE } = CI;
 const D = window.DATA;
 
-const ASSETS = 'assets/static/', HORIZ = '#cdc3b2';
+const ASSETS = 'assets/static/', HORIZ = '#e0c698';
 let renderer = null, host = null;                  // el renderer y el contenedor los crea CityView3D
-const scene = new THREE.Scene(); scene.background = new THREE.Color(HORIZ); scene.fog = new THREE.FogExp2(HORIZ, 0.00029);
+const scene = new THREE.Scene(); scene.background = new THREE.Color(HORIZ); scene.fog = new THREE.FogExp2(HORIZ, 0.00022);
 const U = { uRuido: { value: null }, uTiempo: { value: 0 }, uPlano: { value: 0 } };          /* CV4a: uPlano = 0 de cerca, 1 en la vista de plano */
 
 /* ---------- carga (copiado de ciudad2) ---------- */
@@ -211,10 +211,10 @@ export const LUZ_ESTACIONAL = true;
    quedaba siempre de noche, y en marcha anochecía cada 4 s. Ahora siempre es de día, con la luz de la estación; sin antorchas. true = como antes. */
 export const DIA_NOCHE = false;
 const ANCLAS = [
-  { dir: [-0.82, 0.45, 0.30], sol: '#ffe6b8', si: 3.2, hc: '#b2cade', hg: '#80904c', hi: 1.5, h: '#c3cdb0', fog: 0.00029 },     // primavera: verde y limpia
-  { dir: [-0.84, 0.52, 0.26], sol: '#ffdfb4', si: 3.3, hc: '#b6c6de', hg: '#927252', hi: 1.45, h: '#cdc3b2', fog: 0.00029 },     // verano: dorado (como siempre)
-  { dir: [-0.86, 0.36, 0.22], sol: '#ffbe80', si: 3.0, hc: '#c4b4b4', hg: '#8a5a38', hi: 1.3, h: '#cba98c', fog: 0.00034 },      // otoño: ocre
-  { dir: [-0.90, 0.24, 0.20], sol: '#d4e0f6', si: 2.5, hc: '#a4b6d6', hg: '#6a6866', hi: 1.4, h: '#b4bec8', fog: 0.00042 }];     // invierno: frío, sol bajo
+  { dir: [-0.82, 0.45, 0.30], sol: '#ffe2b0', si: 3.5, hc: '#b2cade', hg: '#80904c', hi: 1.35, h: '#dccf9c', fog: 0.00023 },     // primavera: verde y limpia
+  { dir: [-0.84, 0.52, 0.26], sol: '#ffd8a4', si: 3.7, hc: '#b2c4de', hg: '#8c6a40', hi: 1.25, h: '#e0c698', fog: 0.00022 },     // verano: dorado (como siempre)
+  { dir: [-0.86, 0.36, 0.22], sol: '#ffbe80', si: 3.0, hc: '#c8bcb4', hg: '#7c7a40', hi: 1.3, h: '#cba98c', fog: 0.00034 },      // otoño: ocre
+  { dir: [-0.90, 0.24, 0.20], sol: '#ffeccc', si: 3.0, hc: '#bccade', hg: '#6f8650', hi: 1.55, h: '#cfc4b0', fog: 0.00032 }];     // invierno: frío, sol bajo
 for (const a of ANCLAS) { a.dir = new THREE.Vector3(...a.dir).normalize(); for (const k of ['sol', 'hc', 'hg', 'h']) a[k] = new THREE.Color(a[k]); }
 const ORO = { sol: new THREE.Color('#ff8f3c'), h: new THREE.Color('#e2a574'), hc: new THREE.Color('#d8a888') };
 const _c1 = new THREE.Color(), _sm = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
@@ -223,10 +223,10 @@ let hemiBase = 1.45, solBase = 3.3, copasM = null, nieblaBase = 0.00029, nieblaK
 export function estacionActual() { return { k: estK, f: estF, ks: estSol < 0 ? estK : estSol }; }
 /* CV1: el aspecto de plano (niebla, luz, exposición, río, copas de árbol) sale de un solo número, 0 de cerca y 1 en plano, derivado de nieblaK */
 const SOL_P = new THREE.Vector3(-0.90, 0.60, 0.36).normalize(), _dirP = new THREE.Vector3(); let kqLuz = -1;      /* CD1a: sol de tarde en plano, a unos 31° de altura, del oeste-suroeste */
-const PLANO_LUZ = { exposicion: 0.08, hemi: 0.7, sol: 0.12, sombra: 0.42 }, _solC = new THREE.Color('#ffdfb4'), _hemC = new THREE.Color('#b6c6de'), _hemG = new THREE.Color('#927252'), LUZ_PLANO = { sol: new THREE.Color('#ffd49c'), cielo: new THREE.Color('#f7e6cc'), suelo: new THREE.Color('#b09a70') }, AZUL_RIO = new THREE.Color('#2f7fae'), _rio0 = new THREE.Color('#6f8288');
+const PLANO_LUZ = { exposicion: 0.08, hemi: 0.7, sol: 0.12, sombra: 0.42 }, _solC = new THREE.Color('#ffdfb4'), _hemC = new THREE.Color('#b6c6de'), _hemG = new THREE.Color('#927252'), LUZ_PLANO = { sol: new THREE.Color('#ffd49c'), cielo: new THREE.Color('#f7e6cc'), suelo: new THREE.Color('#b09a70') }, AZUL_RIO = new THREE.Color('#2a8cc4'), _rio0 = new THREE.Color('#3f8fb8');
 function ambientePlano() {
   const k = Math.max(0, Math.min(1, (1 - nieblaK) / 0.98)); scene.fog.density = nieblaBase * nieblaK;
-  hemi.intensity = hemiBase * (1 + PLANO_LUZ.hemi * k); sol.intensity = solBase * (1 + PLANO_LUZ.sol * k); renderer.toneMappingExposure = 0.92 + PLANO_LUZ.exposicion * k;
+  hemi.intensity = hemiBase * (1 + PLANO_LUZ.hemi * k); sol.intensity = solBase * (1 + PLANO_LUZ.sol * k); renderer.toneMappingExposure = 1.02 + PLANO_LUZ.exposicion * k;
   /* CV4a: en plano la luz es clara y neutra (sin el tinte frío o dorado de la estación en tejados y suelo) y las sombras, más suaves; de cerca no cambia nada */
   U.uPlano.value = k; sol.color.copy(_solC).lerp(LUZ_PLANO.sol, k * 0.85); hemi.color.copy(_hemC).lerp(LUZ_PLANO.cielo, k * 0.85); hemi.groundColor.copy(_hemG).lerp(LUZ_PLANO.suelo, k * 0.85); if (sol.shadow) sol.shadow.intensity = 1 - PLANO_LUZ.sombra * k;
   { const kq = Math.round(k * 20) / 20; if (kq !== kqLuz) { kqLuz = kq; _dirP.copy(SOL).lerp(SOL_P, kq).normalize(); sol.position.set(0, 0, -70).addScaledVector(_dirP, 1500); const sc = sol.shadow && sol.shadow.camera; if (sc) { const RS = 600 + 340 * kq; sc.left = -RS; sc.right = RS; sc.top = RS; sc.bottom = -RS; sc.updateProjectionMatrix(); } sombraPend = true; } }
@@ -351,7 +351,7 @@ export function ponerFantasma(f) { fantasma = f; pinM.visible = !!f; if (f) { co
 /* CI1-7: relleno de la vista (casas de fondo, ínsulas, patios y huertos del arrabal) en las celdas libres; cede ante calles, parcelas, edificios y el fantasma */
 let rellenoC = null, rellenoN = -1;
 /* CD5b: teja con tono por casa: rojizo, anaranjado u ocre, ±8 % (la teja nueva, más viva). h: azar fijo 0..1 de la casa */
-const TEJAS_T = [[1.04, 0.84, 0.86], [1.08, 1.22, 0.9], [1.0, 1.5, 1.4]];
+const TEJAS_T = [[1.16, 0.74, 0.72], [1.12, 1.0, 0.78], [1.04, 1.3, 1.2]];
 const hashXZ = (x, z) => { const v = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return v - Math.floor(v); };
 const tejaTono = (h, nueva) => { if (nueva) return TEJA_NUEVA.slice(0, 3); const b = TEJAS_T[Math.floor(h * 3) % 3], v = 1 + (((h * 37) % 1) - 0.5) * 0.16; return [b[0] * v, b[1] * v, b[2] * v]; };
 /* CD5b: estado de un barrio a la vista. 'sube' = andamios en unas casas; 'cae' = casas tapiadas y tejados rotos; 'revuelta' = gentío apiñado y humo.
@@ -638,7 +638,7 @@ function repartir(todo) { camara.updateMatrixWorld(); _pm.multiplyMatrices(camar
 /* ---------- E5: ambiente. Tono por estación (suave, SE SUMA a la luz y los tintes de Q11/CN15a), viñeta y contorno dorado de lo elegido.
    Las piezas de efectos de three.js (js/vendor/postprocessing/) se cargan aparte: si fallan, la ciudad sigue sin efectos. Apagado = renderer.render directo, como siempre. ---------- */
 let FX = null, fxFallo = false, fxCarga = null, composer = null, fxTono = null, fxContorno = null, ambienteOn = true, neutro = false, contornoClave = '', contornoMallas = [], contornoSucio = true, vistaActual = null, selActual = null;
-const TONO_E = [{ m: [0.98, 1.02, 1.01], s: 1.05 }, { m: [1.04, 1.0, 0.94], s: 1.04 }, { m: [1.06, 0.99, 0.91], s: 1.06 }, { m: [0.94, 0.99, 1.06], s: 0.86 }];      // primavera fresca, verano cálido, otoño dorado, invierno frío y apagado (en luz lineal)
+const TONO_E = [{ m: [0.96, 1.05, 0.98], s: 1.18 }, { m: [1.05, 1.0, 0.93], s: 1.16 }, { m: [1.06, 1.0, 0.9], s: 1.14 }, { m: [0.92, 1.07, 0.94], s: 1.22 }];      // primavera fresca, verano cálido, otoño dorado, invierno frío y apagado (en luz lineal)
 const matFantasma = new THREE.MeshBasicMaterial({ colorWrite: false, depthWrite: false });
 function cargarFX() {
   if (!fxCarga) fxCarga = Promise.all([import('../vendor/postprocessing/EffectComposer.js'), import('../vendor/postprocessing/RenderPass.js'), import('../vendor/postprocessing/ShaderPass.js'), import('../vendor/postprocessing/OutlinePass.js')])
@@ -648,7 +648,7 @@ function cargarFX() {
 const SHADER_TONO = {
   uniforms: { tDiffuse: { value: null }, uTono: { value: new THREE.Vector3(1, 1, 1) }, uSat: { value: 1 }, uVig: { value: 0 } },
   vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
-  fragmentShader: 'uniform sampler2D tDiffuse; uniform vec3 uTono; uniform float uSat, uVig; varying vec2 vUv; void main() { vec4 c = texture2D(tDiffuse, vUv); float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722)); vec3 r = mix(vec3(l), c.rgb, uSat) * uTono; float d = length((vUv - 0.5) * vec2(1.0, 1.15)) * 1.414; r *= 1.0 - uVig * smoothstep(0.55, 1.15, d); gl_FragColor = vec4(r, c.a);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' };      // va a pantalla: hace también el ACES y el sRGB (una sola pasada; sin OutputPass)
+  fragmentShader: 'uniform sampler2D tDiffuse; uniform vec3 uTono; uniform float uSat, uVig; varying vec2 vUv; void main() { vec4 c = texture2D(tDiffuse, vUv); float l = dot(c.rgb, vec3(0.2126, 0.7152, 0.0722)); vec3 r = mix(vec3(l), c.rgb, uSat) * uTono; r = 0.18 * pow(max(r, vec3(0.0)) / 0.18, vec3(1.12)); r *= mix(vec3(0.94, 0.95, 1.04), vec3(1.05, 1.0, 0.92), smoothstep(0.03, 0.5, l)); float d = length((vUv - 0.5) * vec2(1.0, 1.15)) * 1.414; r *= 1.0 - uVig * smoothstep(0.55, 1.15, d); gl_FragColor = vec4(r, c.a);\n#include <tonemapping_fragment>\n#include <colorspace_fragment>\n}' };      // va a pantalla: hace también el ACES y el sRGB (una sola pasada; sin OutputPass)
 function montarComposer() {
   if (composer || !FX || fxFallo) return !!composer;
   try {
@@ -738,7 +738,7 @@ export class CityView3D {
   constructor(hostEl, opts) {
     host = this.host = hostEl; this.opts = opts || {}; planoBaseOn = !!this.opts.planoBase; vistaActual = this; try { const Gm = window.Game; ambienteOn = !Gm || !Gm.ambiente || Gm.ambiente(); if (ambienteOn) cargarFX(); } catch (e) { }
     renderer = this.r = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
-    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.92; renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 1.02; renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false;      // la sombra se calcula a petición
     this.cv = renderer.domElement; this.cv.className = 'gl'; this.cv.style.touchAction = 'none'; host.appendChild(this.cv);
     this.labels = document.createElement('div'); this.labels.className = 'mlabels'; host.appendChild(this.labels);      // vacío: las medallas las quitó CN3 (CN4 pone la ficha)
