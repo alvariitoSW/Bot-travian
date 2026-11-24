@@ -11,7 +11,7 @@ el rumbo de la historia. Incluso puedes hacer crecer tu ciudad, llegar a muchos 
 partida sin dedicarla a la guerra: ganarla por política y por economía.»
 
 Un solo juego, **cuatro caminos de victoria: armas, comercio, política y ciencia**. Se gana con **dos tercios** de los que
-haya (hoy, 3 de 4); con uno solo no se gana. Sin plazo: se puede jugar siglos, y un camino logrado se puede perder
+haya (hoy, 2 de 3: la ciencia sale de la 1.0 y vuelve después, usuario 24/11, «1A»); con uno solo no se gana. Sin plazo: se puede jugar siglos, y un camino logrado se puede perder
 (usuario, 18/11: «2/3 de lo que haya… y puede haber alguna forma más de ganar»; detalle en `estudios/CE1-objetivo-cerebro.md`).
 
 ## Tres órganos
@@ -22,7 +22,7 @@ haya (hoy, 3 de 4); con uno solo no se gana. Sin plazo: se puede jugar siglos, y
 | **Músculo** | Gráficos, manejo y entretenimiento | Aspecto cuidado y coherente; fluido y sin conexión en el móvil del usuario |
 
 ## La 1.0 está terminada cuando el usuario, en su móvil
-1. Puede ganar una campaña con 3 de los 4 caminos (armas, comercio, política y ciencia).
+1. Puede ganar una campaña con 2 de los 3 caminos (armas, comercio y política; la ciencia, después de la 1.0).
 2. Lo alcanza todo desde el mismo menú y la misma partida, con un aspecto cuidado y coherente.
 3. Juega fluido y sin conexión.
 

@@ -70,7 +70,6 @@ GOLPES = [
     ('paso1', f'{KEN}/footstep00.ogg', 0, None, -2), ('paso2', f'{KEN}/footstep02.ogg', 0, None, -2),
     ('paso3', f'{KEN}/footstep05.ogg', 0, None, -2), ('paso4', f'{KEN}/footstep08.ogg', 0, None, -2),
     ('vuelo1', f'{SW}/swish-1.wav', 0, None, -2), ('vuelo2', f'{SW}/swish-5.wav', 0, None, -2), ('vuelo3', f'{SW}/swish-9.wav', 0, None, -2),
-    ('coro1', 'fs57204.mp3', 0.02, 0.7, -2),
 ]
 # (nombre, archivo, desde, hasta, pico dB, fundido de salida) — frases largas
 LARGOS = [
@@ -125,7 +124,6 @@ def recorta(x, umbral=-32):
 # (nombre, archivo, desde, hasta, recortar, fundido de entrada, fundido de salida, ¿bucle?) — cada grito, en su propio archivo.
 # Freesound: vista previa «hq» (bajar el original pide cuenta); OpenGameArt: el original.
 GRABADOS = [
-    ('clamor1', 'fs480809.mp3', 5.0, 10.8, False, 0.3, 1.0, False),     # craigsmith: hombres que se animan y avanzan (CC0). Solo este trozo: antes y después se oyen frases en inglés («come on», «hey»)
     ('masa1', 'fs612131.mp3', 8.0, 17.5, False, 1.5, 1.5, False),       # felix.blume: 60 000 voces «huuu»; bajo el clamor, según el tamaño del ejército (CC0)
     ('grito1', 'yell/yell5.wav', 0, None, True, 0.005, 0.08, False),    # HaelDB: cuatro hombres que gritan al atacar (OGA-BY 3.0)
     ('grito2', 'yell/1yell4.wav', 0, None, True, 0.005, 0.08, False),
@@ -143,12 +141,44 @@ GRABADOS = [
     ('quejido1', 'mb/pain2.wav', 0, None, True, 0.005, 0.1, False),     # Michel Baradari: quejidos de dolor (CC BY 3.0)
     ('quejido2', 'mb/pain4.wav', 0, None, True, 0.005, 0.1, False),
     ('quejido3', 'mb/pain5.wav', 0, None, True, 0.005, 0.1, False),
-    ('lucha1', 'fs675091.mp3', 0.5, 10.5, False, 0, 0, True),           # craigsmith: hombres que gritan y espadas que chocan; bucle sin costura (CC0)
     ('aclamacion1', 'fs165492.mp3', 0.62, None, True, 0.005, 0.4, False),  # chripei: diez hombres vitorean; se corta el «yeah» inicial (CC BY 4.0)
     ('panico1', 'fs173944.mp3', 0.0, 4.2, True, 0.005, 0.3, False),     # JohnsonBrandEditing: gritos de miedo, tres tomas (CC0)
     ('panico2', 'fs173944.mp3', 6.0, 9.7, True, 0.005, 0.3, False),
     ('panico3', 'fs173944.mp3', 9.7, 12.8, True, 0.005, 0.3, False),
 ]
+
+# ---- SON12 (24/11/2026): mezclas sin una sola palabra ----
+# Regla del usuario: nada que suene en el juego lleva inglés (salvo la voz de los galos enemigos). Whisper oyó «hey» y «come on» en clamor1
+# (craigsmith 480809), «get back» en lucha1 (craigsmith 675091) y «hey» en coro1 (fs57204): se quitaron. Ahora se hacen mezclando la masa
+# «huuu» de felix.blume (CC0, sin palabras) con los gritos sin palabra de HaelDB y F.M.Audio ya cortados arriba, y los golpes del juego.
+def lee_sal(nombre):
+    return lee(os.path.abspath(os.path.join(SALIDA, nombre + '.mp3')))   # os.path.join ignora FUENTE si la ruta es absoluta
+
+
+def pon(base, x, t, g):
+    i = int(t * SR); n = min(len(x), len(base) - i)
+    if n > 0: base[i:i + n] += x[:n] * g
+
+
+def mezclas():
+    masa = lee('fs612131.mp3')
+    # clamor1: hombres que cargan; masa de fondo y cinco gritos, uno tras otro
+    x = trozo(masa, 20.0, 26.0) * 0.8
+    for k, (n, t, g) in enumerate([('grito1', 0.15, 0.9), ('grito3', 0.8, 0.8), ('grito5', 1.5, 0.9), ('grito2', 2.2, 0.8), ('grito4', 3.0, 0.7)]):
+        pon(x, lee_sal(n), t, g)
+    escribe('clamor1', iguala_rms(fundidos(x, 0.3, 1.0), -18.0), 7)
+    # coro1: el grito corto de la falange; tres voces casi a la vez
+    x = np.zeros(int(0.8 * SR), dtype=np.float32)
+    for n, t, g in [('grito2', 0.0, 0.8), ('grito4', 0.03, 0.8), ('grito5', 0.06, 0.8)]: pon(x, lee_sal(n), t, g)
+    escribe('coro1', iguala_rms(fundidos(x, 0.004, 0.25), -18.0), 7)
+    # lucha1: bucle de 10 s del fragor (golpes y esfuerzos al azar sobre un lecho de masa); semilla fija
+    rng = np.random.default_rng(12)
+    x = trozo(masa, 30.0, 40.0) * 0.35
+    golpes = [f'{g}{i}' for g, k in (('hierro', 4), ('escudo', 4), ('madera', 4), ('tajo', 2), ('clava', 2), ('empuje', 2)) for i in range(1, k + 1)]
+    voces = [f'{g}{i}' for g, k in (('esfuerzo', 3), ('grito', 5), ('herido', 5), ('quejido', 3)) for i in range(1, k + 1)]
+    for _ in range(45): pon(x, lee_sal(golpes[rng.integers(len(golpes))]), rng.uniform(0, 9.6), rng.uniform(0.3, 0.7))
+    for _ in range(14): pon(x, lee_sal(voces[rng.integers(len(voces))]), rng.uniform(0, 9.0), rng.uniform(0.25, 0.5))
+    escribe('lucha1', iguala_rms(bucle(x, 1.0), -18.0), 7)
 
 os.makedirs(SALIDA, exist_ok=True)
 for nombre, ruta, a, b, pico in GOLPES:
@@ -170,4 +200,5 @@ for nombre, ruta, a, b, rec, ent, sal, es_bucle in GRABADOS:
     if es_bucle: x = bucle(x, 1.0)
     else: x = fundidos(x, ent, sal)
     escribe(nombre, iguala_rms(x, -18.0), 7)
-print('hecho:', len(GOLPES) + len(LARGOS) + len(BUCLES) + len(VOCES) + len(GRABADOS), 'sonidos en', SALIDA)
+mezclas()
+print('hecho:', len(GOLPES) + len(LARGOS) + len(BUCLES) + len(VOCES) + len(GRABADOS) + 3, 'sonidos en', SALIDA)

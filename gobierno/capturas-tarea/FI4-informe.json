@@ -1,0 +1,230 @@
+{
+ "fisica": 1,
+ "informe": [
+  {
+   "v": "v",
+   "nombre": "pila",
+   "t": 44.7,
+   "fase": "lejos",
+   "llamadas": 28,
+   "tri": 204415,
+   "figs": 132,
+   "fisica": {
+    "distMin": 1.066,
+    "ahora": 1.066,
+    "pisados": 0,
+    "cargas": 0,
+    "empuje": 0,
+    "avisos": {
+     "clava_suelo": 1,
+     "clava_cuerpo": 1
+    },
+    "ms": 0.237,
+    "msTodo": 0.9,
+    "n": 116,
+    "caidos": 3,
+    "vuelan": 165
+   }
+  },
+  {
+   "v": "v",
+   "nombre": "carga",
+   "t": 45.4,
+   "fase": "lejos",
+   "llamadas": 27,
+   "tri": 277648,
+   "figs": 131,
+   "fisica": {
+    "distMin": 0.604,
+    "ahora": 0.604,
+    "pisados": 0,
+    "cargas": 0,
+    "empuje": 0,
+    "avisos": {
+     "clava_suelo": 11,
+     "clava_cuerpo": 27,
+     "rebota_casco": 12,
+     "rebota_escudo": 15,
+     "rebota_cuerpo": 3,
+     "clava_escudo": 4,
+     "cae_suelo": 4
+    },
+    "ms": 0.371,
+    "msTodo": 1.413,
+    "n": 115,
+    "caidos": 4,
+    "vuelan": 168
+   }
+  },
+  {
+   "v": "v",
+   "nombre": "lucha",
+   "t": 70.9,
+   "fase": "lucha",
+   "llamadas": 27,
+   "tri": 259857,
+   "figs": 124,
+   "fisica": {
+    "distMin": 0.604,
+    "ahora": 0.604,
+    "pisados": 0,
+    "cargas": 5,
+    "empuje": 0.118,
+    "avisos": {
+     "clava_suelo": 93,
+     "clava_cuerpo": 41,
+     "rebota_casco": 19,
+     "rebota_escudo": 33,
+     "rebota_cuerpo": 11,
+     "clava_escudo": 5,
+     "cae_suelo": 20
+    },
+    "ms": 0.165,
+    "msTodo": 0.381,
+    "n": 97,
+    "caidos": 10,
+    "vuelan": 26
+   }
+  },
+  {
+   "v": "v",
+   "nombre": "campo",
+   "llamadas": 27,
+   "tri": 152817,
+   "fisica": {
+    "distMin": 0.604,
+    "ahora": 0.604,
+    "pisados": 0,
+    "cargas": 6,
+    "empuje": 0.118,
+    "avisos": {
+     "clava_suelo": 93,
+     "clava_cuerpo": 41,
+     "rebota_casco": 19,
+     "rebota_escudo": 33,
+     "rebota_cuerpo": 11,
+     "clava_escudo": 5,
+     "cae_suelo": 20
+    },
+    "ms": 0.165,
+    "msTodo": 0.381,
+    "n": 97,
+    "caidos": 10,
+    "vuelan": 26
+   }
+  },
+  {
+   "v": "h",
+   "nombre": "pila",
+   "t": 44.7,
+   "fase": "lejos",
+   "llamadas": 28,
+   "tri": 214746,
+   "figs": 132,
+   "fisica": {
+    "distMin": 1.103,
+    "ahora": 1.103,
+    "pisados": 0,
+    "cargas": 0,
+    "empuje": 0,
+    "avisos": {
+     "rebota_escudo": 1,
+     "clava_suelo": 1
+    },
+    "ms": 0.275,
+    "msTodo": 1.112,
+    "n": 116,
+    "caidos": 3,
+    "vuelan": 167
+   }
+  },
+  {
+   "v": "h",
+   "nombre": "carga",
+   "t": 45.4,
+   "fase": "lejos",
+   "llamadas": 28,
+   "tri": 235170,
+   "figs": 131,
+   "fisica": {
+    "distMin": 0.604,
+    "ahora": 0.604,
+    "pisados": 0,
+    "cargas": 0,
+    "empuje": 0,
+    "avisos": {
+     "rebota_escudo": 20,
+     "clava_suelo": 22,
+     "rebota_cuerpo": 12,
+     "rebota_casco": 12,
+     "clava_escudo": 9,
+     "clava_cuerpo": 9,
+     "cae_suelo": 4
+    },
+    "ms": 0.246,
+    "msTodo": 1.104,
+    "n": 115,
+    "caidos": 4,
+    "vuelan": 172
+   }
+  },
+  {
+   "v": "h",
+   "nombre": "lucha",
+   "t": 70.9,
+   "fase": "lucha",
+   "llamadas": 27,
+   "tri": 207814,
+   "figs": 124,
+   "fisica": {
+    "distMin": 0.604,
+    "ahora": 0.604,
+    "pisados": 0,
+    "cargas": 5,
+    "empuje": 0.118,
+    "avisos": {
+     "rebota_escudo": 43,
+     "clava_suelo": 95,
+     "rebota_cuerpo": 19,
+     "rebota_casco": 24,
+     "clava_escudo": 9,
+     "clava_cuerpo": 28,
+     "cae_suelo": 36
+    },
+    "ms": 0.191,
+    "msTodo": 0.401,
+    "n": 93,
+    "caidos": 10,
+    "vuelan": 26
+   }
+  },
+  {
+   "v": "h",
+   "nombre": "campo",
+   "llamadas": 27,
+   "tri": 152817,
+   "fisica": {
+    "distMin": 0.604,
+    "ahora": 0.604,
+    "pisados": 0,
+    "cargas": 6,
+    "empuje": 0.118,
+    "avisos": {
+     "rebota_escudo": 43,
+     "clava_suelo": 95,
+     "rebota_cuerpo": 19,
+     "rebota_casco": 24,
+     "clava_escudo": 9,
+     "clava_cuerpo": 28,
+     "cae_suelo": 36
+    },
+    "ms": 0.192,
+    "msTodo": 0.401,
+    "n": 93,
+    "caidos": 10,
+    "vuelan": 26
+   }
+  }
+ ],
+ "errores": []
+}

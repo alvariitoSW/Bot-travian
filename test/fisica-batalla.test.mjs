@@ -332,13 +332,93 @@ t('FI3u: los avisos se vacían al leerlos y no crecen sin límite', () => {
   const { crearTropas } = await import('../gobierno/maquetas/bloque/tropas.js'), FB = await import('../gobierno/maquetas/bloque/fisica.js');
   t('LP7: con las fuerzas tope de «Bajar a pie» (600 hombres) el motor de física ronda 1 ms por paso (< 1,3) y nadie se cuela', () => {
     const fuerzas = { tuyo: 120, centro: 120, amigas: [70, 70], alas: [70, 70], reserva: 50, tiradores: 30 }, ms = [];
+    /* FI4 (decisión del vigía, 24/11, «A»): la mejor de tres tandas. La partida es la misma en cada tanda (misma semilla): cada paso
+       del motor se cronometra en las tres y vale el mejor de los tres; la media de esos es la cifra. Un pico de la máquina en un paso
+       no cuenta; un motor lento sí. El tope (1,3 ms) no cambia */
     for (const semilla of [3, 7]) {
-      const C = crearCombate({ semilla, nivel: 'normal', motor: BL, fuerzas, lejos: 50, fin: FIN_LUCHA }), S = C.S, TR = crearTropas({ S }), FS = FB.crearFisicaBloque({ S, TR, semilla });
-      let k = 0; while (!S.ganador && S.T < 200) { C.bot('bueno'); C.paso(1 / 30); TR.paso(1 / 30, S.T); FS.paso(1 / 30); if (++k === 300) FS.reinicia(); }
-      const m = FS.medir(); ms.push(m.motor); assert.ok(m.rival >= 0.8 && m.colados <= 0.2, JSON.stringify(m));
+      let mejor = null, ultima = null;
+      for (let tanda = 0; tanda < 3; tanda++) {
+        const C = crearCombate({ semilla, nivel: 'normal', motor: BL, fuerzas, lejos: 50, fin: FIN_LUCHA }), S = C.S, TR = crearTropas({ S }), FS = FB.crearFisicaBloque({ S, TR, semilla });
+        const tiempos = [], paso0 = FS.Fi.paso; FS.Fi.paso = (SF, dt) => { const t0 = performance.now(); paso0(SF, dt); tiempos.push(performance.now() - t0); };
+        let k = 0; while (!S.ganador && S.T < 200) { C.bot('bueno'); C.paso(1 / 30); TR.paso(1 / 30, S.T); FS.paso(1 / 30); if (++k === 300) FS.reinicia(); }
+        const m = FS.medir(); assert.ok(m.rival >= 0.8 && m.colados <= 0.2, JSON.stringify(m));
+        if (ultima) assert.strictEqual(JSON.stringify(m.rival), JSON.stringify(ultima.rival), 'la misma partida en cada tanda');
+        ultima = m; mejor = mejor ? mejor.map((x, i) => Math.min(x, tiempos[i] ?? Infinity)) : tiempos;
+      }
+      ms.push(+(mejor.reduce((a, b) => a + b, 0) / mejor.length).toFixed(3));
     }
     console.log('   motor ' + ms.join(' y ') + ' ms por paso (enganche entero aparte)');
     assert.ok(Math.max(...ms) < 1.3, ms.join(' '));
+  });
+}
+
+/* ---------- FI4: la física en las batallas grandes (crearFisicaFiguras; campo de prueba como el de js/ui-guerra.js) ---------- */
+{
+  const { crearCampo } = await import('./fi4-campo.mjs');
+  const { FIG } = await import('../js/fisica-batalla.js');
+  const dmin = C => { let d = Infinity; const v = C.figs.filter(f => f.est === 0); for (let i = 0; i < v.length; i++) for (let j = i + 1; j < v.length; j++) { const [ax, az] = C.dibujado(v[i]), [bx, bz] = C.dibujado(v[j]); d = Math.min(d, Math.hypot(ax - bx, az - bz)); } return d; };
+  const cruza = C => lv => lv.lado === 0 && lv.k < 2 ? C.L.find(o => o.s === lv.s && o.lado === 0 && o.k === 1 - lv.k) : null;
+  t('FI4 vara de coste: campo lleno (540 figuras, 200 caídos, frentes trabados): motor < 1 ms por paso, enganche < 2 ms', () => {
+    const C = crearCampo({ caidos: 200 }); C.coloca(0, 0); C.inicio(); for (let k = 0; k < 100; k++) C.paso(0.05);
+    const ms = [], todo = [];
+    for (let r = 0; r < 5; r++) { C.ff.cero(); for (let k = 0; k < 60; k++) C.paso(0.05); const m = C.ff.medir(); ms.push(m.ms); todo.push(m.msTodo); }
+    const mejor = Math.min(...ms), mejorT = Math.min(...todo);
+    console.log('   motor ' + mejor.toFixed(3) + ' ms (tandas ' + ms.map(x => x.toFixed(2)).join(' ') + '), enganche ' + mejorT.toFixed(3) + ' ms');
+    assert.ok(mejor < 1, 'motor ' + mejor); assert.ok(mejorT < 2, 'enganche ' + mejorT);
+  });
+  t('FI4 relevo: dos líneas que se cruzan no se meten una dentro de otra (sin física, sí)', () => {
+    const una = fisica => { const C = crearCampo({ fisica }); C.coloca(0, 0); C.inicio(); C.coloca(0, 0, cruza(C)); let d = Infinity; for (let k = 0; k < 400; k++) { C.paso(0.05, 1.5); if (k % 5 === 0) d = Math.min(d, dmin(C)); } return d; };
+    const con = una(true), sin = una(false); console.log('   distancia mínima con física ' + con.toFixed(3) + ' m, sin ella ' + sin.toFixed(3));
+    assert.ok(con >= MIN_DIST, con); assert.ok(sin < 0.1, sin);
+  });
+  t('FI4 la carga empuja: quien llega corriendo hace recular al de enfrente (≥ 0,1 m) y el muelle lo devuelve', () => {
+    const C = crearCampo({}); C.coloca(12, 0); C.inicio(); C.coloca(0, 0);
+    let fondo = 0; for (let k = 0; k < 120; k++) { C.paso(0.05, 4); for (const f of C.figs) if (f.lado === 1 && f.fila === 0) fondo = Math.max(fondo, -(f.fz || 0)); }
+    const m = C.ff.medir(), queda = Math.max(...C.figs.filter(f => f.lado === 1).map(f => Math.hypot(f.fx || 0, f.fz || 0)));
+    console.log('   cargas ' + m.cargas + ', recula ' + fondo.toFixed(3) + ' m, al final ' + queda.toFixed(3) + ' m');
+    assert.ok(m.cargas >= 10 && fondo >= 0.1 && fondo <= 0.6, fondo); assert.ok(queda < 0.03, queda); assert.ok(dmin(C) >= MIN_DIST);
+  });
+  const salva = (guardia, semilla = 5) => {
+    const C = crearCampo({ semilla }); C.coloca(12, 0); C.inicio();
+    if (guardia) for (const f of C.figs) if (f.lado === 1) f.guardia = f.fila === 0 ? 'muro' : 'alto';
+    C.paso(0.05);
+    const ro = C.figs.filter(f => f.lado === 0 && f.fila === 0), en = C.figs.filter(f => f.lado === 1 && f.fila < 2);
+    let a = 7; const az = () => { a = (Math.imul(a, 1664525) + 1013904223) >>> 0; return a / 4294967296; };
+    for (let k = 0; k < 120; k++) { const d = ro[Math.floor(az() * ro.length)], b = en[Math.floor(az() * en.length)]; C.ff.lanza('pilum', d, [d.x, 1.75, d.z - 0.3], [b.x + (az() - 0.5), 1.2, b.z + (az() - 0.5)], 0.9 + az() * 0.4); }
+    for (let k = 0; k < 80; k++) C.paso(0.05);
+    return C;
+  };
+  t('FI4 salva de pila: se clavan en escudos (y se doblan), en cuerpos o en el suelo, o rebotan; nada sigue volando ni queda bajo tierra', () => {
+    const C = salva(null), A = C.ff.medir().avisos, P = C.ff.proyectiles;
+    console.log('   ' + JSON.stringify(A));
+    /* con crearProyectiles (FI3u) el escudo para (clava o rebota) en vez de solo clavar: la vara cuenta lo que para el escudo */
+    const esc = (A.clava_escudo || 0) + (A.rebota_escudo || 0) + (A.resbala_escudo || 0);
+    assert.ok(esc >= 40, 'escudo ' + esc); assert.ok((A.dobla_escudo || 0) > 0 && (A.clava_cuerpo || 0) > 0);
+    assert.ok((A.rebota_escudo || 0) + (A.rebota_casco || 0) + (A.rebota_cuerpo || 0) + (A.rebota_suelo || 0) > 0);
+    assert.ok(P.every(p => p.fi && p.fi.modo !== 'vuela'), 'vuela'); assert.ok(P.every(p => { const q = C.ff.dondeP(p), L = p.largo || 2, hinca = p.fi.modo === 'clava'; return q.y >= (hinca ? -0.2 : -0.01) && q.y - q.dy * L >= -0.01; }), 'bajo tierra');   /* lo clavado lleva la punta dentro de lo que lo lleva (PR.HUNDE): a ras de suelo puede asomar bajo tierra; el asta, nunca */
+  });
+  t('FI4 contra un testudo (escudos arriba) para más el escudo y menos el casco', () => {
+    const a = salva(null).ff.medir().avisos, b = salva('testudo').ff.medir().avisos;
+    const esc = A => (A.clava_escudo || 0) + (A.rebota_escudo || 0) + (A.resbala_escudo || 0), cas = A => (A.rebota_casco || 0) + (A.clava_casco || 0);
+    console.log('   escudo ' + esc(a) + ' → ' + esc(b) + ', casco ' + cas(a) + ' → ' + cas(b));
+    assert.ok(esc(b) > esc(a) + 5 && cas(b) < cas(a), esc(a) + ' → ' + esc(b) + '; casco ' + cas(a) + ' → ' + cas(b));
+  });
+  t('FI4 lo clavado en un hombre que cae se va al suelo con él (no flota)', () => {
+    const C = salva(null), fijos = C.ff.proyectiles.filter(p => p.fi.modo === 'clava' && p.fi.que !== 'suelo' && p.fi.dueno && p.fi.dueno.lado === 1); assert.ok(fijos.length > 0);
+    for (const f of C.figs) if (f.lado === 1) f.est = 1;
+    for (let k = 0; k < 80; k++) C.paso(0.05);
+    const alto = fijos.map(p => C.ff.dondeP(p).y); assert.ok(fijos.every(p => !(p.fi.modo === 'clava' && p.fi.que !== 'suelo')) && Math.max(...alto) < 0.6, 'altura ' + Math.max(...alto).toFixed(2));
+  });
+  t('FI4 pintaArmas: matrices sin deformar (dos ejes del grueso, el tercero a lo largo del vuelo) y el doblado cuelga sin bajar del suelo', () => {
+    const C = salva(null), A = new Float32Array(16 * 300), n = C.ff.pintaArmas(A, 300);
+    assert.ok(n === C.ff.proyectiles.length && n > 0);
+    for (let i = 0; i < n; i++) {
+      const o = i * 16, p = C.ff.proyectiles[i], q = C.ff.dondeP(p), c = k => Math.hypot(A[o + k], A[o + k + 1], A[o + k + 2]);
+      assert.ok(Math.abs(c(0) - c(4)) < 1e-4 && Math.abs(c(8) - ({ pilum: 1, jabalina: 0.72, flecha: 0.38 })[p.tipo]) < 1e-4, 'escala');
+      const dot = (j, k) => A[o + j] * A[o + k] + A[o + j + 1] * A[o + k + 1] + A[o + j + 2] * A[o + k + 2];
+      assert.ok(Math.abs(dot(0, 4)) < 1e-4 && Math.abs(dot(0, 8)) < 1e-4 && Math.abs(dot(4, 8)) < 1e-4, 'ortogonal');
+      if (p.fi.doblado && p.fi.modo === 'clava') assert.ok(q.y - 2.11 * A[o + 9] >= 0.049, 'el asta doblada no entra en el suelo');
+    }
   });
 }
 

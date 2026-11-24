@@ -1,4 +1,5 @@
 Banda sonora de AQVILA (assets/musica), SON7 (24/11/2026)
+SON12: revisión con faster-whisper de las seis piezas; sale el mismo «thanks for watching» que Whisper alucina en música sin voz (también sale en la versión «No Vocals»), así que no es letra. Queda por oír el coro de menu.mp3.
 Pedido del usuario: una banda sonora de orquesta épica y coro, de aire «saga nórdica». Piezas grabadas de OpenGameArt.
 Licencia comprobada en la página de cada pieza el 24/11/2026. CC BY 3.0 obliga a citar al autor (está en Créditos del menú).
 Las piezas se recortaron, se cosieron en bucle con un fundido cruzado, se igualaron a -16 LUFS y se pasaron a mp3 de 80 kb/s
@@ -16,6 +17,8 @@ mapa.mp3
 batalla.mp3
   «Colossal Boss Battle Theme» (versión en bucle «Blackmoor Colossus Loop»), Matthew Pablo. Licencia CC BY 3.0.
   https://opengameart.org/content/colossal-boss-battle-theme  Entera (1:58), en bucle.
+  SON12 (24/11/2026): se usa «Blackmoor Colossus Loop (No Vocals).wav», de la misma descarga y misma licencia. La versión con coro se quitó:
+  la regla del usuario es «nada en inglés»; la voz separada (original menos «No Vocals») dio sílabas y palabras sueltas dudosas, y la página no da la letra.
 victoria.mp3
   «Medieval: Victory Theme», RandomMind. Licencia CC0 1.0 (dominio público).
   https://opengameart.org/content/medieval-victory-theme  Entera (0:32), suena una vez.

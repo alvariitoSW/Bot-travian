@@ -7,6 +7,7 @@ import '../../../js/gfx/sonido.js';
 import '../../../js/voces.js';        /* SON4: las voces, la música y el subtítulo del juego (globales Voces, Musica, Banda) */
 import '../../../js/gfx/musica.js';
 import '../../../js/gfx/banda.js';
+import '../../../js/gfx/fragor.js';   /* SON7: el director de la lucha a pie (golpes según la lucha, caídas, gritos de masa) */
 
 const So = () => window.Sonido, RAIZ = new URL('../../../', import.meta.url).href;   /* la raíz del juego: de ahí cuelga assets/sonido/ */
 const alSonarFns = [];
@@ -48,7 +49,10 @@ function fondo() { const S = So(); if (S && ctx && (propio || S.activo)) S.fondo
 export function bajoTecho(k) { if (!ctx) return; tapa.frequency.setTargetAtTime(16000 * Math.pow(0.075, k), ctx.currentTime, 0.08); fuera.gain.setTargetAtTime(1 - 0.35 * k, ctx.currentTime, 0.08); fondo(); }
 
 /* venablo que se clava en un escudo: madera hueca */
-export function madera(fuerza = 1, pan = 0, retraso = 0) { toca('madera', dentro, { v: 0.85 * fuerza, pan, retraso, vel: al(0.85, 1.1) }); }
+export function madera(fuerza = 1, pan = 0, retraso = 0) {
+  toca('madera', dentro, { v: 0.85 * fuerza, pan, retraso, vel: al(0.85, 1.1) });
+  if (fuerza >= 0.5) toca('clava', dentro, { v: 0.7 * fuerza, pan, retraso: retraso + 0.005, vel: al(0.9, 1.1) });   /* SON7: la punta que entra en la tabla */
+}
 /* venablo que cae en la hierba: un paso sordo, más grave */
 export function tierra(pan = 0, retraso = 0) { toca('paso', fuera, { v: 0.55, pan, retraso, vel: al(0.55, 0.7) }); }
 /* la salva en el aire: silbidos que se acercan y se juntan al llegar */
@@ -99,3 +103,19 @@ export function esfuerzo(pan = 0, fuerza = 1) { toca('esfuerzo', dentro, { v: 0.
 export function herido(pan = 0, retraso = 0) { toca('herido', fuera, { v: 0.45, pan, retraso, vel: al(0.9, 1.1) }); }
 /* el fragor de la lucha cuerpo a cuerpo: k de 0 (nada) a 1 (todo el frente pegándose) */
 export function lucha(k) { const S = So(); if (S && ctx && (propio || S.activo)) S.fondo('lucha', 0.45 * Math.max(0, Math.min(1, k)), fuera, ctx); }
+
+/* ---------- SON7: el fragor de la lucha (js/gfx/fragor.js) ----------
+   pulso(dt, e) cada fotograma, con e = { lucha 0..1, moral 0..1, caen, caenR, marcha }: golpes según la lucha, cada caído se oye
+   caer, y el clamor, el pánico o la aclamación cuando toca. Lo cercano va por «dentro» (tu fila); lo lejano, por «fuera»
+   (se apaga bajo el techo de escudos). Lleva también el volumen del bucle de lucha. */
+let FR = null, kFondo = -1;
+export function pulso(dt, e) {
+  const Fr = window.Fragor; if (!Fr || !ctx) return; if (!FR) Fr.vivo = FR = Fr.nuevo(43);
+  const lista = Fr.paso(FR, dt, e); if (!vale()) return;
+  for (const s of lista) toca(s.g, s.capa === 'cerca' ? dentro : fuera, s);
+  const k = Math.round(FR.nivelLucha * 20) / 20; if (k !== kFondo) { kFondo = k; const S = So(); if (S && (propio || S.activo)) S.fondo('lucha', 0.45 * k, fuera, ctx); }
+}
+/* SON7: las cifras del director, para medir (pruebas y parte) */
+export const fragor = () => FR;
+/* SON7: un toque corto al dar una orden con el dedo («Manípulo a pie»): un escudo que se alza */
+export function toque() { toca('escudo', dentro, { v: 0.22, vel: al(1.15, 1.3), pan: al(-0.3, 0.3) }); }

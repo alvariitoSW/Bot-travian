@@ -1,0 +1,34 @@
+{
+ "falange": {
+  "choque": true,
+  "fase": "choque",
+  "caidosF": 5,
+  "golpes": 4,
+  "caidas": 3,
+  "masas": 0,
+  "tension": 0.54,
+  "sonidos": 173,
+  "grupos": {
+   "madera": 117,
+   "cuerno": 1,
+   "paso": 4,
+   "grito": 1,
+   "vuelo": 7,
+   "clava": 19,
+   "caida": 3,
+   "herido": 1,
+   "clamor": 2,
+   "escudo": 10,
+   "hierro": 4,
+   "coro": 1,
+   "empuje": 1,
+   "esfuerzo": 1,
+   "tajo": 1
+  },
+  "fondoMax": {
+   "viento": 0.32,
+   "lucha": 0.3825
+  }
+ },
+ "errores": []
+}

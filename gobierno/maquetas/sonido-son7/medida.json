@@ -1,0 +1,85 @@
+{
+ "testudo": {
+  "choque": true,
+  "fase": "fin",
+  "caidosR": 10,
+  "caidosG": 33,
+  "golpes": 366,
+  "caidas": 18,
+  "masas": 3,
+  "tension": 0.33,
+  "sonidos": 823,
+  "grupos": {
+   "clamor": 4,
+   "escudo": 114,
+   "madera": 239,
+   "hierro": 152,
+   "empuje": 58,
+   "tajo": 89,
+   "esfuerzo": 26,
+   "paso": 81,
+   "herido": 33,
+   "caida": 15,
+   "clava": 9,
+   "quejido": 1,
+   "grito": 1,
+   "panico": 1
+  },
+  "fondoMax": {
+   "lucha": 0.45,
+   "viento": 0.32
+  }
+ },
+ "falange": {
+  "choque": true,
+  "fase": "choque",
+  "caidosF": 5,
+  "golpes": 0,
+  "caidas": 1,
+  "masas": 0,
+  "tension": 0.05,
+  "sonidos": 251,
+  "grupos": {
+   "cuerno": 2,
+   "madera": 171,
+   "paso": 1,
+   "grito": 4,
+   "vuelo": 7,
+   "clava": 19,
+   "clamor": 2,
+   "escudo": 18,
+   "hierro": 6,
+   "coro": 4,
+   "herido": 17
+  },
+  "fondoMax": {
+   "viento": 0.32
+  }
+ },
+ "manipulo": {
+  "golpes": 7,
+  "caidas": 5,
+  "masas": 0,
+  "T": 34.9,
+  "contactos": 1,
+  "caenTuyos": 4.5526844704622285,
+  "banda": true,
+  "sonidos": 37,
+  "grupos": {
+   "vuelo": 7,
+   "grito": 1,
+   "madera": 17,
+   "caida": 4,
+   "empuje": 3,
+   "esfuerzo": 1,
+   "tajo": 1,
+   "hierro": 2,
+   "escudo": 1
+  },
+  "fondoMax": {
+   "lucha": 0.3375,
+   "viento": 0.32
+  }
+ },
+ "errores": []
+}

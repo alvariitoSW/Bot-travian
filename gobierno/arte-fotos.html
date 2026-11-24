@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><base href="/"><title>Foto de una pieza de arte</title>
+<style>html,body{margin:0;background:#d9d2b8;overflow:hidden}canvas,img{display:block;width:240px;height:240px}img{object-fit:cover}</style></head>
+<body><canvas id="c" width="240" height="240"></canvas>
+<script type="module">
+/* CM3: foto pequeña de una pieza de arte para el apartado «Arte» del cuadro de mando. La conduce gobierno/arte-fotos.mjs.
+   ?tipo=soldado|unidad|static|imagen  &id=<nombre>  (imagen: &src=<ruta desde la raíz>&pos=<object-position>)
+   Usa los mismos cargadores que el juego (js/gfx/soldado.js, units.js y statics.js). Pone window.__listo (true o 'fallo'). */
+import { THREE } from './js/gfx/models.js';
+const q = new URLSearchParams(location.search), tipo = q.get('tipo'), id = q.get('id');
+const fin = v => { window.__listo = v; };
+try {
+  if (tipo === 'imagen') {
+    const im = new Image(); im.style.objectPosition = q.get('pos') || '50% 30%'; document.getElementById('c').replaceWith(im);
+    im.onload = () => fin(true); im.onerror = () => fin('fallo'); im.src = q.get('src');
+  } else {
+    const r = new THREE.WebGLRenderer({ canvas: document.getElementById('c'), antialias: true, preserveDrawingBuffer: true }); r.setPixelRatio(1); r.setSize(240, 240, false);
+    r.toneMapping = THREE.ACESFilmicToneMapping; r.toneMappingExposure = 1.12;
+    const esc = new THREE.Scene(); esc.background = new THREE.Color('#d9d2b8'); esc.add(new THREE.HemisphereLight('#dfeaff', '#7a6238', 1.5));
+    const sol = new THREE.DirectionalLight('#ffe9c4', 2.8); sol.position.set(-6, 9, 8); esc.add(sol);
+    const suelo = new THREE.Mesh(new THREE.CircleGeometry(400, 40), new THREE.MeshLambertMaterial({ color: '#a39468' })); suelo.rotation.x = -Math.PI / 2; suelo.position.y = -0.01; esc.add(suelo);
+    const cam = new THREE.PerspectiveCamera(30, 1, 0.05, 2000);
+    /* encuadra una caja (centro y medidas) vista de tres cuartos y un poco desde arriba */
+    const mira = (cx, cy, cz, ancho, alto, giro = 0.5, sube = 0.28) => { const rad = Math.max(ancho, alto) * 0.5, d = rad / Math.tan(15 * Math.PI / 180) * 1.18;
+      cam.position.set(cx + Math.sin(giro) * d, cy + d * sube, cz + Math.cos(giro) * d); cam.lookAt(cx, cy, cz); cam.far = d * 6 + 500; cam.updateProjectionMatrix(); };
+    if (tipo === 'soldado') {
+      const { cargarSoldado, tropa } = await import('./js/gfx/soldado.js');
+      const S = await cargarSoldado(id); if (!S) throw new Error('no carga');
+      const T = tropa(S.niveles[0], 1), i = T.sig(); T.pon(i, 0, 0, 0.45, 3); T.pose(i, 'quieto', 0.8, T.muestra('quieto', 0.8)); esc.add(T.malla);
+      mira(0, S.alto * 0.53, 0, S.alto * 0.6, S.alto * 0.98, 0, 0.1);
+    } else if (tipo === 'unidad') {
+      const U = await import('./js/gfx/units.js'); const u = await U.loadUnit(id); if (!u) throw new Error('no carga');
+      const g = U.instancedGeometry(u, 1); g.attributes.aFrame.array[0] = U.frameOf(u.clips.idle, 0);
+      const m = new THREE.InstancedMesh(g, U.unitMaterialReal(u, '#a3261e'), 1); m.frustumCulled = false;
+      m.setMatrixAt(0, new THREE.Matrix4().makeRotationY(u.wide ? 0.9 : 0.45).scale(new THREE.Vector3(U.UNIT_SCALE, U.UNIT_SCALE, U.UNIT_SCALE))); esc.add(m);
+      const h = u.height; mira(0, h * 0.5, 0, u.wide ? h * 1.35 : h * 0.6, h * 1.0, 0, 0.1);
+    } else if (tipo === 'static') {
+      const St = await import('./js/gfx/statics.js'); const st = await St.loadStatic(id); if (!st) throw new Error('no carga');
+      const m = St.staticMesh(id, '#a3261e'); esc.add(m);
+      const caja = new THREE.Box3().setFromObject(m), c = caja.getCenter(new THREE.Vector3()), t = caja.getSize(new THREE.Vector3());
+      suelo.position.y = caja.min.y - 0.01 + (caja.min.y < -0.5 ? Math.min(-caja.min.y, t.y * 0.25) : 0);   /* piezas con cimiento bajo tierra */
+      mira(c.x, Math.max(c.y, suelo.position.y + t.y * 0.4), c.z, Math.hypot(t.x, t.z) * 0.86, t.y * 1.1, 0.7, 0.42);
+    } else throw new Error('tipo desconocido');
+    /* las texturas llegan después de la malla: se pinta varias veces antes de dar la foto por buena */
+    let n = 0; const pinta = () => { r.render(esc, cam); if (++n < 14) setTimeout(pinta, 120); else fin(true); }; pinta();
+  }
+} catch (e) { console.warn('foto', tipo, id, e); fin('fallo'); }
+</script></body></html>
