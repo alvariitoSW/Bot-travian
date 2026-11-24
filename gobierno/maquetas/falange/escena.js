@@ -25,6 +25,7 @@ import { crearHud } from './hud.js';
 import { crearPuente, crearDedos, botDedos } from './dedos.js';
 import * as Son from './sonido.js';
 import { crearFisicaEscena } from './fisica.js';   /* FI1 */
+import { crearFalangitas, filasNuevo, espadaVista, activaSoloSombra, GESTO } from './soldados.js';   /* FE2: el soldado nuevo */
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), MARCAS = Q.get('marcas'), ANTES = Q.get('antes') === '1', COSTADO = Q.get('costado');
 const $ = id => document.getElementById(id);
@@ -278,6 +279,14 @@ let FIG_F = null, FIG_R = null, ACC = null;
 const m4 = () => new THREE.Matrix4();
 async function creaFigs() {
   await loadIndex();
+  /* FE2: el falangita nuevo (soldados.js). ?nuevo=0, o si no carga, el de 0 A.D. de antes */
+  const N = Q.get('nuevo') === '0' ? null : await crearFalangitas({ escena, cap: M, carril: CARRIL });
+  if (N) {
+    const C = N.C, pies = datosPies(N.T, N.hues, N.geoPies, C.idle.start), f0 = { anda: faseCero(N.T, N.hues, pies, C.walk), corre: faseCero(N.T, N.hues, pies, C.run) };
+    const paso = { anda: tablaPaso(N.T, N.hues, pies, C.walk, C.walk.start, f0.anda, C.idle.start), corre: tablaPaso(N.T, N.hues, pies, C.run, C.run.start, f0.corre, C.idle.start) };
+    FIG_F = Object.assign(N, { pies, paso, zan: { walk: paso.anda.total, run: paso.corre.total } }); activaSoloSombra(renderer); cresta.visible = false;
+  } else {
+  await preload(['falange']);
   /* el falangita: su tabla con las posturas de la sarisa (soldado.js); sin la pica del modelo (pieza 4), que va aparte */
   const uF = getUnit('falange'), meta = (await (await fetch('assets/units/units.json')).json()).falange;
   const buf = await (await fetch('assets/units/falange.bin')).arrayBuffer(), CELL = new Uint8Array(buf, meta.off[6], meta.verts);
@@ -290,12 +299,14 @@ async function creaFigs() {
   const pies = datosPies(tab.T, tab.hues, uF.geo, C.idle.start), f0 = { anda: faseCero(tab.T, tab.hues, pies, C.walk), corre: faseCero(tab.T, tab.hues, pies, C.run) };
   const paso = { anda: tablaPaso(tab.T, tab.hues, pies, C.walk, C.walk.start, f0.anda, C.idle.start), corre: tablaPaso(tab.T, tab.hues, pies, C.run, C.run.start, f0.corre, C.idle.start) };
   FIG_F = { ...figura(g, M, matFigura(uF.tex, tex, '#2f5fa8', 'f'), matSombra(tex, 'f')), u: uF, C, tab, T: tab.T, hues: tab.hues, pies, paso, cima, zan: { walk: paso.anda.total * E, run: paso.corre.total * E } };
+  lejos(FIG_F, g, M);
+  }
   /* los romanos: su tabla es la del modelo */
   const uR = getUnit('hastati'); zancadas(uR); const tR = { T: uR.bones.image.data, hues: uR.bones.image.width / 3 }, CR = uR.clips, piesR = datosPies(tR.T, tR.hues, uR.geo, CR.idle.start);
   const f0R = { anda: faseCero(tR.T, tR.hues, piesR, CR.walk), corre: faseCero(tR.T, tR.hues, piesR, CR.run) }, pasoR = { anda: tablaPaso(tR.T, tR.hues, piesR, CR.walk, CR.walk.start, f0R.anda, CR.idle.start), corre: tablaPaso(tR.T, tR.hues, piesR, CR.run, CR.run.start, f0R.corre, CR.idle.start) };
   const gR = new THREE.BufferGeometry(); for (const k of ['position', 'normal', 'uv', 'aSkinI', 'aSkinW', 'aMode']) gR.setAttribute(k, uR.geo.attributes[k]); gR.boundingSphere = uR.geo.boundingSphere;
   FIG_R = { ...figura(gR, N_R, matFigura(uR.tex, uR.bones, '#c23a2e', 'r'), matSombra(uR.bones, 'r')), u: uR, C: CR, tab: tR, T: tR.T, hues: tR.hues, pies: piesR, paso: pasoR, zan: { walk: pasoR.anda.total * E, run: pasoR.corre.total * E } };
-  lejos(FIG_F, g, M); lejos(FIG_R, gR, N_R); console.log(`[E1] triángulos por hombre: falangita ${FIG_F.triCerca} / ${FIG_F.triLejos} sencillo; romano ${FIG_R.triCerca} / ${FIG_R.triLejos}`);
+  lejos(FIG_R, gR, N_R); console.log(`[E1] triángulos por hombre: romano ${FIG_R.triCerca} / ${FIG_R.triLejos} sencillo`);
 }
 const hueso = (fig, slot, A, B, mx, out) => huesoT(fig.tab, slot, A, B, mx, out);
 /* TP8b-E1: el mismo soldado, sencillo, para los lejanos. Se juntan los vértices que caen en la misma celda de una rejilla
@@ -374,7 +385,7 @@ function avisa(tipo, d = {}) {
   if (tipo === 'cerrado') Son.madera(0.5, 0, 0);
   if (tipo === 'oleada') Son.cuerno([[130.8, 0.6]]);
 }
-function reinicia() { semilla = 43; semillaP = 5; temblor = 0; ACC.reinicia(); colocaTerreno(); $('fin').hidden = true; }
+function reinicia() { semilla = 43; semillaP = 5; temblor = 0; ACC.reinicia(); for (const h of S.fal) delete h.tRotaD;   /* FE2 */ colocaTerreno(); $('fin').hidden = true; }
 
 /* ---------- cámara ---------- */
 let CAMARA = null;
@@ -385,6 +396,9 @@ const O = new THREE.Object3D(), MA = m4(), MB = m4(), V3 = new THREE.Vector3(), 
    seguidos: se mezclan dos de ellos) o la estocada */
 function filasFal(h, T) {
   const F = FIG_F, C = F.C;
+  /* FE2: la pica rota (h.picaRota, de las reglas de FE1) se ve desde aquí: el dibujo guarda cuándo la vio */
+  if (h.picaRota && h.tRotaD === undefined) h.tRotaD = T;
+  if (F.nuevo) return filasNuevo(F, h, T, h.vivo ? filasMarcha(F, h.paso, T + h.fase, frameOf) : null, frameOnce);
   if (!h.vivo) { h.A = h.B = frameOnce(C.death, Math.max(0, T - h.muere)); h.mx = 0; return; }
   let [A, B, mx] = filasMarcha(F, h.paso, T + h.fase, frameOf);
   const c0 = h.r === 0 ? CJF.baja : CJF.alta, k = h.huye ? 0 : h.kB, fila = F.tab.fila;
@@ -397,9 +411,13 @@ function filasFal(h, T) {
 }
 /* FA4: el caído se queda donde cayó (h.caido: sitio y giro al azar, guardados al caer); no se recoloca ni se borra */
 const fijaCaido = h => { if (!h.vivo && !h.caido) h.caido = { x: h.x, z: h.z, yaw: (g => h.fCae !== undefined ? h.fCae + Math.PI : h.yaw + g)((azarV() - 0.5) * 1.4) /* FI1: cae de espaldas hacia donde le empujan */, a: azarV() * 6.283 }; return h.caido; };
-const instDe = (h, fig, pitch = 0, dx = 0, dz = 0, dyaw = 0) => { const p = !h.vivo && h.caido ? h.caido : h; const fx = h.fx || 0, fz = h.fz || 0; O.position.set(p.x + dx + fx, H(p.x + dx + fx, p.z + dz + fz), p.z + dz + fz);   /* FI1 */ O.rotation.set(pitch, p.yaw + dyaw, 0, 'YXZ'); O.scale.setScalar(E * (h.esc || 1)); O.updateMatrix(); return O.matrix; };
+const instDe = (h, fig, pitch = 0, dx = 0, dz = 0, dyaw = 0) => { const p = !h.vivo && h.caido ? h.caido : h; const fx = h.fx || 0, fz = h.fz || 0; O.position.set(p.x + dx + fx, H(p.x + dx + fx, p.z + dz + fz), p.z + dz + fz);   /* FI1 */ O.rotation.set(pitch, p.yaw + dyaw, 0, 'YXZ'); O.scale.setScalar((fig && fig.esc || E) * (h.esc || 1)); O.updateMatrix(); return O.matrix; };   /* FE2: el soldado nuevo va en metros (esc 1) */
 /* dónde está un punto de un hueso en el mundo (p en coordenadas del modelo en reposo) */
 const ancla = (h, fig, slot, p, out) => out.set(p[0], p[1], p[2]).applyMatrix4(MA.multiplyMatrices(h.inst, hueso(fig, slot, h.A, h.B, h.mx, MB)));
+/* FE2: los anclajes con nombre (mano de la sarisa, escudo, pecho, cabeza): del soldado nuevo, o los de 0 A.D. de antes */
+const ANC0 = { manoD: () => [HF.manoD, FIG_F.tab.esq.J.munecaD], escudo: () => [HF.escudo, [0.75, 0.3, 2.6]], pecho: () => [HF.pecho, [0, 0.3, 3.0]], cabeza: () => [HF.casco, FIG_F.cima] };
+const anc = nombre => FIG_F.nuevo ? FIG_F.ancla[nombre] : ANC0[nombre]();
+const anclaN = (h, nombre, out) => { const [s, p] = anc(nombre); return ancla(h, FIG_F, s, p, out); };
 /* la dirección de una sarisa: alzada (casi derecha, inclinada hacia delante y en abanico) o bajada (al frente), con su vaivén */
 const DIR = new THREE.Vector3(), DA = new THREE.Vector3(), DB = new THREE.Vector3();
 function dirSarisa(h, T, out) {
@@ -420,7 +438,7 @@ function poseSarisa(h, T, P, D) {
     /* el caído (o el que huye) suelta la sarisa: queda en el suelo, a su lado */
     const a = h.i * 2.3; D.set(Math.sin(a) * 0.4, 0, -1).normalize().applyAxisAngle(EJE_Y, c.yaw - Math.PI); P.set(c.x, 0, c.z).addScaledVector(RG, 0.3).addScaledVector(FG, h.huye ? 0.5 : -0.8); P.y = H(P.x, P.z) + 0.03; return;
   }
-  ancla(h, FIG_F, HF.manoD, FIG_F.tab.esq.J.munecaD, PS); dirSarisa(h, T, D);
+  anclaN(h, 'manoD', PS); dirSarisa(h, T, D);
   P.copy(PS).addScaledVector(D, -AGARRE + empuje(h));
   /* TP8b: bajada, cada sarisa va por su carril (CARRIL de formacion.js): así no se cruzan */
   const s = h.r < BAJAN ? suave(0, 1, h.kB) : 0;
@@ -434,7 +452,7 @@ function poseSarisa(h, T, P, D) {
 const PL = new THREE.Vector3();
 const FIS = crearFisicaEscena({ H, SARISA }), poseF = h => { const P = new THREE.Vector3(), D = new THREE.Vector3(); posaFal(h, S.T); poseSarisa(h, S.T, P, D); return [P.toArray(), D.toArray()]; };   /* FI1 */
 const MF3 = m4(), MF3b = m4(), PF3 = new THREE.Vector3(), DF3 = new THREE.Vector3(), QF3 = new THREE.Quaternion();   /* FI3 */
-FIS.conecta({ prepara: h => posaFal(h, S.T), matriz: (h, s) => MF3.multiplyMatrices(h.inst, hueso(FIG_F, s === 'escudo' ? HF.escudo : HF.pecho, h.A, h.B, h.mx, MF3b)).elements, centroEscudo: h => ancla(h, FIG_F, HF.escudo, [0.75, 0.3, 2.6], PF3).toArray(), sarisa: h => { poseSarisa(h, S.T, PF3, DF3); return { P: PF3.toArray(), D: DF3.toArray() }; }, matSarisa: h => { poseSarisa(h, S.T, PF3, DF3); QF3.setFromUnitVectors(Z1, DF3); return MF3.compose(PF3, QF3, UNO).elements; } });   /* FI3: cómo se dibuja cada falangita, para los pila */
+FIS.conecta({ prepara: h => posaFal(h, S.T), matriz: (h, s) => MF3.multiplyMatrices(h.inst, hueso(FIG_F, anc(s === 'escudo' ? 'escudo' : 'pecho')[0], h.A, h.B, h.mx, MF3b)).elements, centroEscudo: h => anclaN(h, 'escudo', PF3).toArray(),   /* FE2: anc */ sarisa: h => { poseSarisa(h, S.T, PF3, DF3); return { P: PF3.toArray(), D: DF3.toArray() }; }, matSarisa: h => { poseSarisa(h, S.T, PF3, DF3); QF3.setFromUnitVectors(Z1, DF3); return MF3.compose(PF3, QF3, UNO).elements; } });   /* FI3: cómo se dibuja cada falangita, para los pila */
 /* FA4: tu estocada (S.yo.tEstocada): el asta sale 0,9 m en 0,12 s y vuelve en 0,35 s; k da la forma (0–1) */
 const curvaEstocada = (t, ida, vuelta) => t < 0 || t > ida + vuelta ? 0 : t < ida ? suave(0, ida, t) : 1 - suave(ida, ida + vuelta, t);
 const empuje = h => S.yo && h.i === S.yo.i && h.vivo ? 0.9 * curvaEstocada(S.T - S.yo.tEstocada, 0.12, 0.35) : 0;
@@ -460,7 +478,7 @@ function finaCerca(P, D) {
 }
 /* la postura de un falangita (tabla y matriz), sin dibujar: la usan dibuja y las medidas */
 /* FA4: en tu estocada, el oficial se vence hacia delante (e: 0–1) */
-function posaFal(h, T) { if (!h.vivo) fijaCaido(h); filasFal(h, T); const sB = h.vivo && !h.huye ? suave(0, 1, h.kB) : 0, ola = h.vivo && !h.huye ? Math.sin(Math.PI * Math.min(1, Math.max(0, h.kB))) : 0, e = empuje(h) / 0.9; ejesH(h); h.inst = (h.inst || m4()).copy(instDe(h, FIG_F, 0.05 * sB + 0.07 * ola + 0.16 * e, FG.x * 0.16 * e, -0.12 * sB + FG.z * 0.16 * e, 0.1 * sB + 0.08 * ola)); }
+function posaFal(h, T) { if (!h.vivo) fijaCaido(h); filasFal(h, T); const sB = h.vivo && !h.huye ? suave(0, 1, h.kB) * (h.tRotaD !== undefined ? 1 - suave(GESTO.suelta, GESTO.suelta + 0.4, T - h.tRotaD) : 1) : 0,   /* FE2: con la espada, de frente */ ola = h.vivo && !h.huye ? Math.sin(Math.PI * Math.min(1, Math.max(0, h.kB))) : 0, e = empuje(h) / 0.9; ejesH(h); h.inst = (h.inst || m4()).copy(instDe(h, FIG_F, 0.05 * sB + 0.07 * ola + 0.16 * e, FG.x * 0.16 * e, -0.12 * sB + FG.z * 0.16 * e, 0.1 * sB + 0.08 * ola)); }
 function dibuja(dt) {
   const T = S.T, F = FIG_F, R = FIG_R;
   for (const h of S.fal) {
@@ -477,7 +495,8 @@ function dibuja(dt) {
     if (!h.vivo) fijaCaido(h);
     filasRomano(h, R, T, frameOf, frameOnce); h.inst = (h.inst || m4()).copy(h.vivo ? instDe(h, R, h.pitch) : instDe(h, R));
   }
-  reparte(F, S.fal, CERCA * FILES); reparte(R, ENE, CERCA * FILES);
+  if (F.nuevo) F.pinta(S.fal, S.fal[S.yo.i], camara.position, h => espadaVista(h, T)); else reparte(F, S.fal, CERCA * FILES);   /* FE2 */
+  reparte(R, ENE, CERCA * FILES);
   for (let j = 0; j < N_R; j++) {
     const h = ENE[j], c = h && !h.vivo && h.caido;
     if (!c) { pila.setMatrixAt(NPILA + j, MS.makeScale(0, 0, 0)); continue; }
@@ -499,14 +518,14 @@ function dibuja(dt) {
     DD.fromArray(P.dir).normalize();
     if (P.est === 1 || P.est === 5) PP.fromArray(P.p).addScaledVector(DD, -1.6);
     if (P.est === 2) { poseSarisa(P.h, T, PP, V4); PP.addScaledVector(V4, P.s); DD.applyAxisAngle(V4, P.giro); PP.addScaledVector(DD, -1.75); }
-    if (P.est === 3 || P.est === 4) { ancla(P.h, F, P.est === 3 ? HF.escudo : HF.pecho, P.est === 3 ? [0.75, 0.3, 2.6] : [0, 0.3, 3.0], PP); PP.addScaledVector(DD, -1.75); }
+    if (P.est === 3 || P.est === 4) { anclaN(P.h, P.est === 3 ? 'escudo' : 'pecho', PP); PP.addScaledVector(DD, -1.75); }
     /* FA4: el venablo clavado en un asta cercana se desvanece con ella (si no, cruza la vista como un poste) */
     Q1.setFromUnitVectors(Z1, DD); pila.setMatrixAt(i, MS.compose(PP, Q1, finaCerca(PP, DD)));
   });
   pila.instanceMatrix.needsUpdate = true;
   /* tu cresta: en el casco del oficial (si cae, se queda con él) */
-  const of = S.fal[S.yo.i]; ancla(of, F, HF.casco, F.cima, PP); Q1.setFromRotationMatrix(MA.extractRotation(MA.multiplyMatrices(of.inst, hueso(F, HF.casco, of.A, of.B, of.mx, MB))));
-  cresta.matrix.compose(PP, Q1.multiply(QC), UNO); cresta.matrixWorldNeedsUpdate = true;
+  const of = S.fal[S.yo.i]; if (!F.nuevo) { ancla(of, F, HF.casco, F.cima, PP); Q1.setFromRotationMatrix(MA.extractRotation(MA.multiplyMatrices(of.inst, hueso(F, HF.casco, of.A, of.B, of.mx, MB))));
+  cresta.matrix.compose(PP, Q1.multiply(QC), UNO); cresta.matrixWorldNeedsUpdate = true; }   /* FE2: el oficial nuevo lleva su penacho */
   const r = ACC.marcado(); aro.visible = !!r; if (r) aro.position.set(r.x, H(r.x, r.z) + 0.04, r.z);
   /* la cámara, con su temblor en el choque */
   temblor = Math.max(0, temblor - dt * 2.5);
@@ -514,6 +533,7 @@ function dibuja(dt) {
   /* FA4: en tu estocada, la cámara da un empujón de 15 cm hacia delante que vuelve en 0,4 s */
   const eC = 0.15 * curvaEstocada(T - S.yo.tEstocada, 0.12, 0.4);
   camara.position.set(C.x + Math.sin(T * 41) * tb - Math.sin(C.yaw) * eC, C.y + Math.sin(T * 37 + 1) * tb, C.z - Math.cos(C.yaw) * eC); camara.rotation.set(C.pitch, C.yaw, 0); if (camara.fov !== C.fov) { camara.fov = C.fov; camara.updateProjectionMatrix(); }
+  if (CAMFIJA) { camara.position.set(CAMFIJA[0], CAMFIJA[1], CAMFIJA[2]); camara.rotation.set(CAMFIJA[4], CAMFIJA[3], 0); }   /* FE2: cámara puesta a mano para las fotos (__tp.mira) */
   /* la sombra va con el pivote del muro (S.xF, S.zF) */
   const fx = Math.sin(S.giro), fz = -Math.cos(S.giro), lx = S.xF + fx * 2, lz = S.zF + fz * 2; luz.target.position.set(lx, H(lx, lz), lz); luz.position.copy(luz.target.position).addScaledVector(SOL, 40); luz.target.updateMatrixWorld();
   renderer.render(escena, camara);
@@ -523,6 +543,7 @@ const QC = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), M
 
 /* ---------- fases para las capturas: colocan la escena y la congelan ---------- */
 let parado = false;
+let CAMFIJA = null;   /* FE2: [x, y, z, yaw, pitch] o null */
 /* bot: true (el del motor, que gira al flanco), false (nadie manda) o un modo del motor ('nogira'…) */
 const salta = (s, bot = true) => { for (let t = 0; t < s; t += 1 / 30) { if (bot) ACC.bot(bot === true ? undefined : bot); ACC.paso(1 / 30); if (CAMARA) CAMARA.camBase(1 / 30); } };
 const hasta = (cond, max = 200, bot = true) => { for (let i = 0; i < max * 10 && !cond(); i++) salta(0.1, bot); };
@@ -596,6 +617,8 @@ window.__tp = {
   proyecta: (x, y, z) => { const C = CAMARA.CAM; camT.position.set(C.x, C.y, C.z); camT.rotation.set(C.pitch, C.yaw, 0); camT.fov = C.fov; camT.aspect = innerWidth / innerHeight; camT.updateProjectionMatrix(); camT.updateMatrixWorld(); const v = new THREE.Vector3(x, y ?? H(x, z) + 1.1, z).project(camT); return { x: +((v.x + 1) / 2).toFixed(3), y: +((1 - v.y) / 2).toFixed(3), delante: v.z < 1 }; },
   posDibujo: (bando, i) => { const h = (bando === 'f' ? S.fal : S.ene)[i]; let m; if (bando === 'f') { posaFal(h, S.T); m = h.inst; } else { fijaCaido(h); m = instDe(h, FIG_R); } return [+m.elements[12].toFixed(3), +m.elements[14].toFixed(3)]; },
   info: () => ({ llamadas: renderer.info.render.calls, triangulos: renderer.info.render.triangles }),
+  mira: (x, y, z, yaw, pitch) => { CAMFIJA = x === null ? null : [x, y, z, yaw, pitch]; },   /* FE2 */
+  soldados: () => FIG_F && FIG_F.nuevo ? { nuevo: true, triangulos: FIG_F.triangulos() } : { nuevo: false },   /* FE2 */
   dirSarisa: i => { const d = new THREE.Vector3(), P = new THREE.Vector3(); posaFal(S.fal[i], S.T); poseSarisa(S.fal[i], S.T, P, d); return d.toArray(); },
 };
 async function montaRival() {
@@ -605,12 +628,12 @@ async function montaRival() {
   } catch (e) { console.log('[FA4] el rival va con el muñeco de hoy: ' + e.message); return null; }
 }
 (async () => {
-  await preload(['falange', 'hastati']);
-  if (!getUnit('falange') || !getUnit('hastati')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
+  await preload(['hastati']);   /* FE2: el falangita de 0 A.D. solo se baja si no carga el nuevo */
+  if (!getUnit('hastati')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
   CAMPO = await crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color });
   await creaFigs();
   ACC = crearAcciones({ H, avisa, hombres: M, zanF: FIG_F.zan });
-  S = ACC.S; window.__tp.S = S; window.__tp.F = ACC.F;
+  S = ACC.S; window.__tp.S = S; window.__tp.F = ACC.F; window.__tp.acc = ACC;   /* FE2: acc para las fotos */
   { const p0 = ACC.paso, r0 = ACC.reinicia; ACC.paso = dt => { p0(dt); FIS.paso(ACC.S, dt); }; ACC.reinicia = () => { r0(); FIS.reinicia(ACC.S); }; window.__tp.fisica = () => FIS.medida(ACC.S, poseF); window.__tp.fisicaJuega = (n, bot) => FIS.juega(n, ACC, poseF, bot); }   /* FI1 */
   window.__tp.proyectiles = () => FIS.medidaPr(ACC.S); window.__tp.proyectilesJuega = (n, bot) => FIS.juegaPr(n, ACC, bot);   /* FI3: medida de la salva y la salva entera sin dibujar */
   /* FA7: el dibujo de los demás rivales vive en rival.js (montaRivalDe). Si no está o falla, se pintan con el muñeco de hoy.
