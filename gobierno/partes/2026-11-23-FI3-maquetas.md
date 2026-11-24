@@ -89,3 +89,12 @@ constructores en lugar de dos: la primera vuelta dejaba astiles dentro de los cu
 
 **Gasto final** (`gasto.mjs`): **4,48 M**, todo Opus: director 0,99 M; constructores 0,88 + 0,47 + 0,89 + 0,65 M; verificador 0,61 M.
 Ningún ayudante pasó de 30 pasos.
+
+## Decisión del usuario tras el cierre (23/11)
+Respuesta literal a las tres preguntas: «Si a lo recomendado».
+- **Dos motores de proyectiles → (A)**: se queda `crearProyectiles()` (el conectado a las maquetas) y se le lleva lo bueno del otro
+  (pilum que se dobla, herida en el casco). Después se quita `Fi.lanza`/`Fi.vuela` de `crearFisica`, avisando a LP5.
+- **Techo del testudo → (A)**: lo que llega de refilón rebota, como ahora.
+- **Picos de coste → (A)**: el usuario lo prueba en su móvil antes de reescribir nada.
+- Pase → vigía (bitácora y tablero): apuntar las tres decisiones y abrir la tarea de unir los dos motores (antes de FI4 o con ella).
+  Pase → LP5: conectar el bloque con `crearProyectiles()`, no con `Fi.lanza`.

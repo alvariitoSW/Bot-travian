@@ -2,14 +2,15 @@
    Se pinta una raya azul discontinua con tres flechas: ahí formará tu primera fila, mirando hacia donde apuntan.
    Al soltar, el bloque marcha y gira como una puerta. Mientras va, la raya se queda en el suelo; al llegar, se borra.
    Un toque corto no hace nada (no hay gestos invisibles). Los botones y velos no dibujan.
-   Contrato: crearDedos({ lienzo, suelo, haciaDonde, alSoltar }) → { raya (THREE.Mesh), muestra(p0, p1, rumbo), oculta(), activo() }
-     suelo(px, py) → { x, z } | null · haciaDonde(p0, p1) → rumbo previsto · alSoltar(p0, p1) */
+   Contrato: crearDedos({ lienzo, suelo, haciaDonde, alSoltar, libre }) → { raya (THREE.Mesh), muestra(p0, p1, rumbo), oculta(), activo() }
+     suelo(px, py) → { x, z } | null · haciaDonde(p0, p1) → rumbo previsto · alSoltar(p0, p1)
+     libre() → false mientras hay un pellizco (camara.js, LP4): entonces no se dibuja y lo empezado se borra */
 import { THREE } from '../../../js/gfx/models.js';
 
 const ARRASTRA_PX = 14, MIN_M = 1.5;
 const fr = a => ({ x: Math.sin(a), z: -Math.cos(a) });
 
-export function crearDedos({ lienzo, suelo, haciaDonde, alSoltar, H = () => 0 }) {
+export function crearDedos({ lienzo, suelo, haciaDonde, alSoltar, H = () => 0, libre = () => true }) {
   /* la raya: guiones y flechas en una sola malla, encima de todo (se tiene que ver entre los hombres) */
   const MAX = 64 * 6 + 3 * 9, pos = new Float32Array(MAX * 3), geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setDrawRange(0, 0);
@@ -40,12 +41,13 @@ export function crearDedos({ lienzo, suelo, haciaDonde, alSoltar, H = () => 0 })
   let dedo = null;   /* { id, x, y, p0, p1, dibuja } */
   const fuera = e => e.target !== lienzo;
   addEventListener('pointerdown', e => {
-    if (dedo || fuera(e)) return;
+    if (dedo || fuera(e) || !libre()) return;
     const p = suelo(e.clientX, e.clientY); if (!p) return;
     dedo = { id: e.pointerId, x: e.clientX, y: e.clientY, p0: p, p1: p, dibuja: false };
   });
   addEventListener('pointermove', e => {
     if (!dedo || e.pointerId !== dedo.id) return;
+    if (!libre()) { dedo = null; oculta(); return; }
     if (!dedo.dibuja && Math.hypot(e.clientX - dedo.x, e.clientY - dedo.y) < ARRASTRA_PX) return;
     const p = suelo(e.clientX, e.clientY); if (!p) return;
     dedo.dibuja = true; dedo.p1 = p; muestra(dedo.p0, p, haciaDonde(dedo.p0, p), true);
