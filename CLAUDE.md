@@ -41,8 +41,11 @@ Cómo se trabaja cada sesión: §7 (gobierno).
 | `tools/` | Conversión de arte de 0 A.D. (ver README) |
 
 ## 4. Cómo probar (obligatorio antes de dar algo por hecho)
-- **Un solo comando: `node gobierno/jueces.mjs`** (≈59 minutos de mediana en la nube, medido del 18 al 20/11; lánzalo en segundo plano con margen de 90; solo lo pasa la sesión de subida, las demás usan el juez de su área). Pasa la lógica, recorre el juego en un navegador a
-  390×844 y deja capturas e informe en `gobierno/capturas/`. Debe decir APTO. `--rapido` pasa solo la lógica.
+- **Un solo comando: `node gobierno/jueces.mjs`**. Pasa la lógica, recorre el juego en un navegador a 390×844 y deja capturas
+  e informe en `gobierno/capturas/`. Debe decir APTO. Solo lo pasa la sesión de subida; las demás, el juez de su área.
+- **Memoria (JZ1)**: cada prueba guarda en `gobierno/jueces-cache.json` (va en el commit) la huella de los archivos que lee al dar
+  APTO; si no cambió ninguno, no se repite. La lógica corre a la vez que el navegador y `sim.test.js` reparte sus campañas entre
+  los núcleos. `--todo` repite todo (subida final de la 1.0); `--seguido`, en serie; `--rapido`, solo la lógica; `SIM_HILOS=1`, sim en serie.
 - `node test/sim.test.js` — batallas, campaña completa con un bot, economía.
 - A mano, para lo que el recorrido no cubre: servir con `python3 -m http.server` y conducir con Playwright a 390×844 (Chromium con
   `--use-gl=angle --use-angle=swiftshader --enable-unsafe-swiftshader`); esperar ~10 s a que carguen los modelos.
