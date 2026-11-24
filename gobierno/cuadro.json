@@ -2042,12 +2042,6 @@
       "titulo": "Subida · SB2 Jueces completos sobre v149 antes de subir a main (Opus)",
       "nota": "Abierta el 24/11; con APTO se sube a main (orden del usuario)",
       "url": "https://claude.ai/code/session_01QiKC3Awu8jtqF4GEGvKeaQ"
-    },
-    {
-      "tarea": "SB3",
-      "titulo": "Subida · SB3 Jueces completos sobre v155 (LP7) antes de subir a main (Opus)",
-      "nota": "Abierta el 24/11; con APTO se sube a main (orden del usuario)",
-      "url": "https://claude.ai/code/session_01QiKC36H7eKMmVyvyPum7iV"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"
