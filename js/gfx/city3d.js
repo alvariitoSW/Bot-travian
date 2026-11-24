@@ -17,6 +17,9 @@ import * as Fachadas from './fachadas.js';           // CN15a: puestos, toldos y
 import { crearRio, crearCielo, texturaRuido, texturasMundo, loadGroundTextures, crearSuelo3, GLSL_NUBES, tintesEstacion, OPC_SUELO } from './ground.js';
 import { altura, RIO, NIVEL_RIO, azar, distRio } from './mundo.js';
 import * as CI from '../ciudad.js';
+import * as Calles from '../calles.js';           // CD2a: calles con el dedo y el arquitecto (reglas)
+import * as Calles3d from './calles3d.js';
+import { crearBarra } from '../calles-ui.js';
 import * as RS from './roma-siglo.js';
 import * as Campos from './campos.js';          // CI1-8: campos de trigo en franjas alrededor de la ciudad (solo vista)          // CI1: Roma de su siglo (templo toscano, muralla de toba, ínsulas, tabernas); RS.ROMA_SIGLO = false la apaga
 const { PUENTE } = CI;
@@ -845,16 +848,19 @@ export class CityView3D {
     const cv = this.cv, dedos = new Map(); let gesto = null; const fija = () => this._plano && planoBaseOn;      // CD1a: en plano no se gira ni se inclina
     cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); dedos.set(e.pointerId, { x: e.clientX, y: e.clientY }); this.camA = null;
       if (dedos.size === 1) gesto = { tipo: (e.button === 2 || e.shiftKey) && !fija() ? 'giro' : 'mover', x0: e.clientX, y0: e.clientY, t0: performance.now(), movido: 0, g: sueloEn(e.clientX, e.clientY) };
-      if (dedos.size === 1 && this.opts.agarra) { const o = this.opts.agarra(e.clientX, e.clientY); if (o) Object.assign(gesto, { tipo: 'ficha', dx: o.dx, dy: o.dy }); }      // CN4: un dedo cerca del fantasma lo arrastra
-      if (dedos.size === 2) { const [a, b] = [...dedos.values()]; gesto = { tipo: 'dos', d: Math.hypot(a.x - b.x, a.y - b.y), ang: Math.atan2(b.y - a.y, b.x - a.x), cd: cam.d, az: cam.az, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, movido: 99 }; } });
+      if (dedos.size === 1 && this._calles) { gesto = { tipo: 'calle', x0: e.clientX, y0: e.clientY, t0: performance.now(), movido: 0 }; this.callesEmpieza(e.clientX, e.clientY); }      // CD2a: con «Calles» activo un dedo traza
+      else if (dedos.size === 1 && this.opts.agarra) { const o = this.opts.agarra(e.clientX, e.clientY); if (o) Object.assign(gesto, { tipo: 'ficha', dx: o.dx, dy: o.dy }); }      // CN4: un dedo cerca del fantasma lo arrastra
+      if (dedos.size === 2) { if (this._calles) this.callesAbandona(); const [a, b] = [...dedos.values()]; gesto = { tipo: 'dos', d: Math.hypot(a.x - b.x, a.y - b.y), ang: Math.atan2(b.y - a.y, b.x - a.x), cd: cam.d, az: cam.az, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, movido: 99 }; } });
     cv.addEventListener('pointermove', e => { const p = dedos.get(e.pointerId); if (!p || !gesto) return; const ax = p.x; p.x = e.clientX; p.y = e.clientY;
       if (gesto.tipo === 'dos' && dedos.size >= 2) { const [a, b] = [...dedos.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2; let da = ang - gesto.ang; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
         cam.d = gesto.cd * gesto.d / Math.max(20, d); if (!fija() && (Math.abs(da) > 0.12 || gesto.gira)) { gesto.gira = true; cam.az = gesto.az - da; } const k = cam.d / vista.h * 0.9, c = Math.cos(cam.az), s = Math.sin(cam.az), ux = -(mx - gesto.mx) * k, uy = -(my - gesto.my) * k * (fija() ? 1.0 : 1.6); cam.tx += ux * c + uy * s; cam.tz += -ux * s + uy * c; gesto.mx = mx; gesto.my = my; ponerCamara(); return; }
       if (dedos.size !== 1) return; gesto.movido = Math.max(gesto.movido, Math.hypot(e.clientX - gesto.x0, e.clientY - gesto.y0));
-      if (gesto.tipo === 'ficha') { if (this.opts.onFicha) this.opts.onFicha(e.clientX + gesto.dx, e.clientY + gesto.dy); }
+      if (gesto.tipo === 'calle') this.callesSigue(e.clientX, e.clientY);
+      else if (gesto.tipo === 'ficha') { if (this.opts.onFicha) this.opts.onFicha(e.clientX + gesto.dx, e.clientY + gesto.dy); }
       else if (gesto.tipo === 'giro') { cam.az -= (e.clientX - ax) * 0.008; ponerCamara(); }
       else if (gesto.movido > 6 && gesto.g) { const g = sueloEn(e.clientX, e.clientY); if (g) { cam.tx += gesto.g[0] - g[0]; cam.tz += gesto.g[1] - g[1]; ponerCamara(); } } });
     const soltar = e => { if (!dedos.has(e.pointerId)) return; dedos.delete(e.pointerId);
+      if (gesto && gesto.tipo === 'calle') { if (dedos.size === 0) { if (e.type === 'pointerup') this.callesSuelta(); else this.callesAbandona(); gesto = null; } return; }
       if (gesto && gesto.tipo !== 'dos' && dedos.size === 0 && gesto.movido < 9 && performance.now() - gesto.t0 < 600 && e.type === 'pointerup') this.tocar(e.clientX, e.clientY);
       if (dedos.size === 1) { const p = [...dedos.values()][0]; gesto = { tipo: 'mover', x0: p.x, y0: p.y, t0: 0, movido: 99, g: sueloEn(p.x, p.y) }; } else if (dedos.size === 0) gesto = null; };
     cv.addEventListener('pointerup', soltar); cv.addEventListener('pointercancel', soltar);
@@ -862,6 +868,32 @@ export class CityView3D {
     cv.addEventListener('contextmenu', e => e.preventDefault());
   }
   zoom(f) { cam.d /= f; ponerCamara(); }
+  /* CD2a: modo «Calles». Con él activo, un dedo dibuja el trazo sobre el suelo; dos dedos siguen moviendo la cámara. Apagado, nada cambia. */
+  get enCalles() { return !!this._calles; }
+  calles(on) {
+    on = !!on; if (on === !!this._calles) return;
+    if (!on) { const c = this._calles; c.barra.quitar(); Calles3d.limpiar(); this._calles = null; if (c.puso && this._plano) this.plano(false); if (this.opts.onCallesSalir) this.opts.onCallesSalir(); return; }
+    if (!E) return; const puso = !this._plano; if (puso) this.plano(true);
+    Calles3d.montar(scene);
+    const c = this._calles = { puso, trazo: [], formas: null, cual: 'tal', prop: null, barra: null };
+    c.barra = crearBarra(this.host, { salir: () => this.calles(false), proponer: () => this.callesProponer(), forma: k => { c.cual = k; this.callesMuestra(); }, borrar: () => this.callesBorra(),
+      hacer: () => this.callesHaz(c.formas && c.formas[c.cual]), aceptar: () => this.callesHaz(c.prop && c.prop.pts), descartar: () => this.callesBorra() });
+  }
+  callesBorra() { const c = this._calles; if (!c) return; c.trazo = []; c.formas = null; c.prop = null; Calles3d.pintar({}); c.barra.elegir(); }
+  callesEmpieza(x, y) { const c = this._calles; c.trazo = []; c.formas = null; c.prop = null; c.barra.elegir(); const g = sueloEn(x, y); if (g) c.trazo.push(g); Calles3d.pintar({ trazo: c.trazo }); }
+  callesSigue(x, y) { const c = this._calles; if (!c) return; const g = sueloEn(x, y), u = c.trazo[c.trazo.length - 1]; if (!g) return; if (!u || Math.hypot(g[0] - u[0], g[1] - u[1]) >= 3) { c.trazo.push(g); Calles3d.pintar({ trazo: c.trazo }); } }
+  callesAbandona() { const c = this._calles; if (c) { c.trazo = []; Calles3d.pintar({}); } }
+  callesSuelta() { const c = this._calles; if (!c) return; if (c.trazo.length < 2 || CI.largoTrazo(c.trazo) < 6) { this.callesBorra(); return; }
+    c.formas = Calles.formas(E, c.trazo); c.cual = 'tal'; this.callesMuestra(); }
+  callesMuestra() { const c = this._calles; if (!c || !c.formas) return; const pts = c.formas[c.cual], v = Calles.validar(E, pts);
+    Calles3d.pintar({ forma: pts, ok: v.ok }); c.barra.trazado({ cual: c.cual, ok: v.ok, motivo: v.motivo, largo: v.largo, costeTxt: Calles.costeTexto(v.coste) }); }
+  callesProponer() { const c = this._calles; if (!c) return; const p = Calles.proponer(E);
+    if (!p) { Calles3d.pintar({}); c.barra.aviso('Ahora el arquitecto no ve un buen sitio para otra calle.'); return; }
+    c.trazo = []; c.formas = null; c.prop = p; Calles3d.pintar({ propuesta: p.pts }); c.barra.propuesta({ porque: p.porque, costeTxt: Calles.costeTexto(Calles.coste(p.largo)) }); }
+  callesHaz(pts) { const c = this._calles; if (!c || !pts) return;
+    const r = this.opts.onCalle ? this.opts.onCalle(pts) : CI.trazarCalle(E, pts, false);
+    if (r === false || (r && r.ok === false)) { Calles3d.pintar({}); c.barra.aviso((r && r.motivo) || 'No se pudo hacer la calle.'); return; }
+    sincronizar(true); this.callesBorra(); Calles3d.pintar({ hecha: pts }); clearTimeout(c.tHecha); c.tHecha = setTimeout(() => { if (this._calles === c) Calles3d.pintar({}); }, this.opts.msDestello || 3000); }
   /* CV1: vista de plano. Cámara casi a plomo que encuadra la urbe entera y sin bruma. Solo vista; no toca reglas ni datos. */
   get enPlano() { return !!this._plano; }
   plano(on, hacia, ya) {

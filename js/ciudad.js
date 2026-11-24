@@ -625,6 +625,32 @@ export function mejorar(E, id, gratis, pago) { const s = mejoraSiguiente(E, id);
   if (!gratis) { const mo = cobrar(E, s.coste, pago); if (mo) return { ok: false, motivo: mo }; }
   const e = E.edificios.find(q => q.id === id); e.mejora = (e.mejora || 0) + 1; e.radio = alcance(E, e.tipo, e.x, e.z, e.mejora); E.diario.push({ a: 'u', n: E.mesN, id }); E.rev++; return { ok: true, e }; }
 
+/* ---------- CD2a: calles trazadas por el jugador. Las reglas del trazo viven aquí; js/calles.js las usa para las tres formas y el arquitecto. ---------- */
+export const CALLE_MIN = 30, CALLE_MAX = 260, CALLE_ANCHO = 2.3;
+export const largoTrazo = pts => { let L = 0; for (let i = 1; i < pts.length; i++) L += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]); return L; };
+/* Cuesta de una calle: como una fuente por cada 120 m (piedra y algo de madera), de 5 en 5 */
+export function costeCalle(largo) { const f = EDIF.fuente.coste, k = largo / 120, o = R5(); o.piedra = Math.max(5, Math.round(f.piedra * k / 5) * 5); o.madera = Math.max(5, Math.round(f.madera * 2 * k / 5) * 5); return o; }
+/* Por qué un trazo no vale: devuelve una frase, o null si vale. Cruzar o tocar otras calles (1) vale: se une. */
+export function motivoCalle(E, pts) {
+  if (!E.fundada) return 'Primero hay que fundar la ciudad';
+  if (!pts || pts.length < 2) return 'Falta el trazo';
+  const L = largoTrazo(pts); if (L < CALLE_MIN) return 'Es muy corta: al menos ' + CALLE_MIN + ' m'; if (L > CALLE_MAX) return 'Es muy larga: como mucho ' + CALLE_MAX + ' m';
+  for (let i = 1; i < pts.length; i++) { const a = pts[i - 1], b = pts[i], l = Math.hypot(b[0] - a[0], b[1] - a[1]), n = Math.max(1, Math.ceil(l / 3));
+    for (let j = i === 1 ? 0 : 1; j <= n; j++) { const x = a[0] + (b[0] - a[0]) * j / n, z = a[1] + (b[1] - a[1]) * j / n, k = ci(x, z);
+      if (k < 0 || barrioDe(E, x, z) < 0) return 'Se sale de la ciudad'; if (esAgua(x, z) || DRIO[k] < 56) return 'Pasa por el agua';
+      const o = E.ocup[k]; if (o === 2) return 'Choca con un edificio'; if (o === 4) return 'Cruza la plaza'; if (o === 6) return 'Pisa un campo';
+      if (o === 3 && conCasa(E, k)) return 'Pasa por encima de una casa'; if (PEND[k] > 0.42) return 'La cuesta es demasiado fuerte'; } }
+  return null;
+}
+export function trazarCalle(E, pts, gratis, pago) {
+  pts = (pts || []).map(q => [Math.round(q[0] * 10) / 10, Math.round(q[1] * 10) / 10]);      // lo que se guarda es lo que se hace: así rehacer da la misma calle
+  const mo = motivoCalle(E, pts); if (mo) return { ok: false, motivo: mo };
+  if (!gratis) { const m = cobrar(E, costeCalle(largoTrazo(pts)), pago); if (m) return { ok: false, motivo: m }; }
+  const v = nuevaVia(E, suavizar(pts, 3), CALLE_ANCHO, 'calle'); v.trazada = true;
+  if (E.urbe && E.urbe.calles) { const lim = CALLE_ANCHO + 6, fuera = []; for (const c of E.urbe.calles) { let t = []; for (const q of c.p) { if (distPoli(v.p, q[0], q[1]) > lim) t.push(q); else { if (t.length > 1) fuera.push({ p: t, w: c.w }); t = []; } } if (t.length > 1) fuera.push({ p: t, w: c.w }); } E.urbe.calles = fuera; }      // las calles de adorno ceden bajo la calle nueva
+  E.diario.push({ a: 'k', n: E.mesN, p: pts }); reparcelar(E); return { ok: true, via: v };
+}
+export { ci, conCasa, DRIO, PEND };
 /* ---------- guardar y cargar ---------- */
 /* Lo mínimo para guardar: la semilla, el sitio de fundación y lo que hizo el jugador mes a mes. La ciudad se rehace al cargar. */
 export function aDatos(E) {
@@ -646,7 +672,7 @@ function rehacer(datos, plano) {
   if (datos.sitio) fundar(E, datos.sitio.x, datos.sitio.z);
   const ac = datos.acciones || [];
   for (let n = datos.n0 || 0; n <= datos.mesN; n++) {
-    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') { const r = colocar(E, a.tipo, a.x, a.z, true); if (!r.ok) E.fallos++; if (r.ok && E.modoJuego) r.e.obra = 0; } else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 'a') ampliarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); else if (a.a === 'q') saquearArrabal(E, a.fz); else if (a.a === 'j') techarBarrio(E, a.i, true); else if (a.a === 'f') apagarFuego(E, a.ids); }
+    for (const a of ac) { if (a.n !== n) continue; if (a.a === 'c') { const r = colocar(E, a.tipo, a.x, a.z, true); if (!r.ok) E.fallos++; if (r.ok && E.modoJuego) r.e.obra = 0; } else if (a.a === 'u') mejorar(E, a.id, true); else if (a.a === 'm') levantarMuralla(E, true); else if (a.a === 'a') ampliarMuralla(E, true); else if (a.a === 's') sembrarCasas(E, a.pob); else if (a.a === 'q') saquearArrabal(E, a.fz); else if (a.a === 'j') techarBarrio(E, a.i, true); else if (a.a === 'f') apagarFuego(E, a.ids); else if (a.a === 'k') trazarCalle(E, a.p, true); }
     if (n < datos.mesN) mes(E);
   }
   E.monedas = datos.monedas; (datos.barrios || []).forEach((b, i) => { if (E.barrios[i]) { E.barrios[i].nombre = b.nombre; E.barrios[i].corto = b.corto; } }); E.rev++;
