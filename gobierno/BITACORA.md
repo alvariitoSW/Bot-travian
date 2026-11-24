@@ -71,6 +71,9 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
+- **Menú de Escaramuzas con el motor único**: ¿cómo se entra a las batallas a pie? (A) Tres botones, Testudo, Falange y Manípulo, que abren el mismo motor con su formación [recomendado]; (B) Un solo botón «A pie» y eliges la formación dentro. Por qué: de un toque llegas a lo que quieres probar.
+- **Testudo viejo**: (A) Se guarda escondido para comparar hasta la limpieza final (FU6) [recomendado]; (B) Se borra ya en FU1. Por qué: si el nuevo falla en algo, se ve en qué.
+- **Muro y orden abierto**: ¿cómo los ordenas? (A) Desde el abanico del estandarte, como las demás formaciones [recomendado]; (B) Con más botones en pantalla. Por qué: la pantalla del móvil ya va justa de botones.
 
 
 ## Propuestas por aprobar
