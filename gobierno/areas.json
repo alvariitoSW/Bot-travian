@@ -216,7 +216,13 @@
         "js/mercado.js",
         "test/mercado.test.mjs",
         "test/barrio-ui.test.mjs",
-        "js/mercado-ui.js"
+        "js/mercado-ui.js",
+        "js/gobernador.js",
+        "js/gobernador-ui.js",
+        "test/gobernador.test.mjs",
+        "gobierno/maquetas/gobernador/",
+        "js/clases-ui.js",
+        "gobierno/maquetas/clases/"
       ],
       "taller": [],
       "juez": {
