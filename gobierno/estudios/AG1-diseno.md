@@ -64,6 +64,10 @@ central de la estación (primavera = mes 3, verano 6, otoño 9, invierno 0).
 equivalente / bocas (tope 1); con 3 o 4 productos la variedad suma +0,1 a la cobertura (tope 1). Ración de Catón 56–58
 (grano, vino, aceite, aceitunas y sal para la familia). `texto` en llano: «Comen pan, aceite y verdura; falta vino».
 
+**Cambio (usuario, 24/11: «Que esos productos tengan peso en el mercado»)**: los precios NO van aquí; los pone CE4
+(`js/mercado.js`). PRODUCTOS lleva `campo`, `guarda`, `estropea`, `usos`, `alimento` y `suelos` (donde rinde bien);
+`valor(productos, precios)`; y además `produccionEstacion(parcela, est)` y `ofertaPorEstacion(campo, suelo)`.
+
 ## 6. API (ESM, funciones puras, sin `window`, sin azar, sin mutar entradas)
 ```
 SUELOS, CAMPOS, PRODUCTOS, MEJORAS, LABORES   // tablas exportadas
