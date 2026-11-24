@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Maqueta del combate</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* CB1m: maqueta 2D de la nueva lucha. Campo arriba (o a la izquierda en horizontal), mandos debajo (o a la derecha). */
+:root {
+  --bg: #eef0ec; --panel: #ffffff; --ink: #1f2a24; --muted: #5d6a62; --line: #d3d8d2;
+  --roja: #a3202a; --bronce: #9a6a1f; --azul: #2c5a8a; --ocre: #8a5a22; --arena: #e4dcc7; --arena-linea: #d6cbb0;
+  --bien: #2f7a45; --mal: #b3261e;
+  --f-titulo: "Cinzel", "Trajan Pro", Georgia, serif;
+  --f-texto: "Source Sans 3", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141a17; --panel: #1d2520; --ink: #e8ece6; --muted: #9aa79e; --line: #313b35;
+  --roja: #e0525b; --bronce: #d6a04a; --azul: #6fa3dc; --ocre: #d09a55; --arena: #2c2a22; --arena-linea: #38352b;
+  --bien: #63c07e; --mal: #f07a72; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #141a17; --panel: #1d2520; --ink: #e8ece6; --muted: #9aa79e; --line: #313b35;
+  --roja: #e0525b; --bronce: #d6a04a; --azul: #6fa3dc; --ocre: #d09a55; --arena: #2c2a22; --arena-linea: #38352b;
+  --bien: #63c07e; --mal: #f07a72; color-scheme: dark }
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body { background: var(--bg); color: var(--ink); font: 16px/1.4 var(--f-texto); overflow-x: hidden; }
+h1 { font-family: var(--f-titulo); letter-spacing: .04em; font-size: 1.2rem; margin: 0; }
+p { margin: 0; }
+.app { display: grid; grid-template-areas: "cab" "campo" "mando"; }
+.cab { grid-area: cab; padding: 10px 16px 8px; display: grid; gap: 2px; }
+.etiqueta { font-size: .7rem; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); font-weight: 700; }
+.ayuda { color: var(--muted); font-size: .92rem; }
+.campo { grid-area: campo; position: relative; height: min(48vh, 470px); min-height: 300px; background: var(--arena); overflow: clip; }
+canvas { display: block; width: 100%; height: 100%; touch-action: manipulation; }
+.marcador { position: absolute; top: 6px; left: 8px; right: 8px; display: flex; justify-content: space-between; gap: 8px; pointer-events: none;
+  font-weight: 700; font-variant-numeric: tabular-nums; font-size: .9rem; }
+.marcador span { background: color-mix(in srgb, var(--panel) 82%, transparent); border-radius: 6px; padding: 2px 8px; }
+.marcador .mio { color: var(--azul); } .marcador .suyo { color: var(--ocre); }
+.ms { position: absolute; right: 6px; bottom: 4px; font-size: .68rem; color: var(--muted); font-variant-numeric: tabular-nums; pointer-events: none;
+  background: color-mix(in srgb, var(--panel) 70%, transparent); border-radius: 4px; padding: 0 4px; }
+.aviso { position: absolute; left: 8px; right: 8px; bottom: 22px; text-align: center; pointer-events: none; }
+.aviso span { display: inline-block; background: var(--panel); border: 2px solid var(--bronce); border-radius: 8px; padding: 4px 10px; font-weight: 700; font-size: .95rem; }
+.aviso span.mal { border-color: var(--mal); color: var(--mal); }
+.aviso span:empty { display: none; }
+.final { position: absolute; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--bg) 55%, transparent); }
+.final[hidden] { display: none; }
+.final .caja { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px 18px; display: grid; gap: 8px; text-align: center; max-width: 320px; margin: 16px; }
+.final h2 { font-family: var(--f-titulo); margin: 0; font-size: 1.3rem; }
+.mando { grid-area: mando; padding: 10px 16px 24px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.ordenes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.tiempo { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+button { font: inherit; font-weight: 600; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); padding: 10px 6px;
+  min-height: 46px; cursor: pointer; line-height: 1.15; }
+button:disabled { opacity: .45; cursor: default; }
+button:focus-visible, select:focus-visible { outline: 3px solid var(--azul); outline-offset: 2px; }
+button.principal { background: var(--roja); border-color: var(--roja); color: #fff; }
+.tiempo button { min-height: 40px; font-size: .9rem; background: var(--bg); }
+select { font: inherit; padding: 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); width: 100%; min-height: 42px; }
+.rival { display: grid; grid-template-columns: auto 1fr; gap: 8px; align-items: center; font-weight: 600; }
+.estado { display: grid; gap: 4px; }
+.fila-m { display: grid; grid-template-columns: 6.2em 3.6em minmax(0, 1fr) 6.3em; gap: 8px; align-items: center; font-size: .88rem; font-variant-numeric: tabular-nums;
+  padding: 5px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); min-height: 36px; text-align: left; font-weight: 400; }
+.fila-m b { font-weight: 700; }
+.fila-m.sel { border: 2px solid var(--azul); }
+.fila-m.roto { opacity: .5; }
+.fila-m .que { color: var(--muted); font-size: .8rem; text-align: right; }
+.fila-m.suyo b { color: var(--ocre); }
+.barra { height: 9px; border-radius: 5px; background: var(--line); overflow: clip; }
+.barra i { display: block; height: 100%; width: 0; background: var(--bronce); }
+.leyenda { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: .8rem; color: var(--muted); }
+.leyenda span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 4px; vertical-align: -1px; background: var(--c); }
+.pie { font-size: .8rem; color: var(--muted); border-top: 1px solid var(--line); padding-top: 8px; display: grid; gap: 4px; }
+@media (orientation: landscape) and (max-height: 560px) {
+  .app { grid-template-areas: "campo cab" "campo mando"; grid-template-columns: minmax(0, 1fr) 360px; grid-template-rows: auto 1fr; height: 100vh; height: 100dvh; }
+  .campo { height: 100vh; height: 100dvh; min-height: 0; }
+  .cab { padding: 6px 12px 4px; padding-right: max(12px, env(safe-area-inset-right, 0px)); }
+  .cab h1 { font-size: 1rem; }
+  .ayuda { font-size: .82rem; }
+  .mando { overflow-y: auto; padding: 4px 12px 16px; padding-right: max(12px, env(safe-area-inset-right, 0px)); gap: 8px; }
+  button { min-height: 42px; padding: 8px 4px; font-size: .92rem; }
+  .tiempo button { min-height: 36px; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="cab">
+    <span class="etiqueta">Departamento de Combate · maqueta CB1m</span>
+    <h1>Manípulos contra el rival</h1>
+    <p class="ayuda" id="ayuda">Toca un manípulo azul para elegirlo. Luego da la orden con los botones.</p>
+  </header>
+
+  <section class="campo" id="campo" aria-label="Campo de batalla visto desde arriba">
+    <canvas id="lienzo"></canvas>
+    <div class="marcador"><span class="mio" id="bajasMias">Roma: 0 bajas</span><span id="reloj">0:00</span><span class="suyo" id="bajasSuyas">Galos: 0 bajas</span></div>
+    <div class="aviso"><span id="aviso"></span></div>
+    <div class="ms" id="ms">—</div>
+    <div class="final" id="final" hidden>
+      <div class="caja">
+        <h2 id="finTitulo">Gana Roma</h2>
+        <p id="finTexto"></p>
+        <button class="principal" id="otraVez">Empezar de nuevo</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="mando">
+    <div class="ordenes">
+      <button id="bAvanzar">Avanzar</button>
+      <button id="bAlto">Alto</button>
+      <button id="bRelevo">Relevo</button>
+      <button id="bTestudo">Testudo</button>
+      <button id="bFlanco">Al flanco</button>
+      <button id="bPila">Lanzar pila</button>
+    </div>
+    <div class="tiempo">
+      <button id="bPausa">Pausa</button>
+      <button id="bRapido">Más rápido ×2</button>
+      <button id="bNuevo">Empezar de nuevo</button>
+    </div>
+    <div class="estado" id="estado"></div>
+    <label class="rival"><span>Rival</span>
+      <select id="rival">
+        <option value="galos">Galos (un bloque grande)</option>
+        <option value="macedonios">Macedonios (falange de sarisas)</option>
+        <option value="iberos">Iberos (falcata)</option>
+        <option value="romanos">Romanos iguales (sin relevo)</option>
+      </select>
+    </label>
+    <div class="leyenda">
+      <span style="--c: var(--azul)">Roma</span><span style="--c: var(--ocre)">Rival</span>
+      <span style="--c: #b9c4cf">Pálido: cansado</span><span style="--c: #e3261b">Rojo: herido</span><span style="--c: #8d8d88">Gris: caído</span>
+      <span style="--c: var(--bronce)">Arco: su escudo</span>
+    </div>
+    <div class="pie">
+      <p>Fuentes: Polibio VI 21-23 (hastati, principes, triarii) y XVIII 29-30 (la falange); Livio VIII 8 (el relevo de las líneas) y XLIV 9 (la testudo).</p>
+      <p>Las cifras son ajustes para que se pueda jugar.</p>
+    </div>
+  </section>
+</div>
+
+<script type="module">
+import * as Combate from '../../../js/combate.js';
+import { crearFisica } from '../../../js/fisica-batalla.js';
+
+const { ARMAS, ROTURA, AGOTADO, GRAVE, LADO, CONO } = Combate;
+const $ = (id) => document.getElementById(id);
+const lienzo = $('lienzo'), ctx = lienzo.getContext('2d');
+
+/* ---------- tropas ---------- */
+const MIOS = [
+  { linea: 'hastati', nombre: 'Hastati', arma: 'gladius', escudo: 'scutum', pila: true },
+  { linea: 'principes', nombre: 'Principes', arma: 'gladius', escudo: 'scutum' },
+  { linea: 'triarii', nombre: 'Triarii', arma: 'hasta', escudo: 'scutum' }
+];
+const RIVALES = {
+  galos: { nombre: 'Galos', los: 'los galos', vel: 1.5, jabalinas: true,
+    cuerpos: [{ nombre: 'Galos', filas: 10, frente: 12, arma: 'espada_gala', escudo: 'thureos' }] },
+  macedonios: { nombre: 'Macedonios', los: 'los macedonios', vel: 0.8,
+    cuerpos: [{ nombre: 'Falange', filas: 8, frente: 15, arma: 'sarisa', escudo: 'pelta' }] },
+  iberos: { nombre: 'Iberos', los: 'los iberos', vel: 1.3, jabalinas: true,
+    cuerpos: ['Iberos (delante)', 'Iberos (medio)', 'Iberos (detrás)'].map(n => ({ nombre: n, filas: 4, frente: 10, arma: 'falcata', escudo: 'thureos' })) },
+  romanos: { nombre: 'Romanos', los: 'los otros romanos', vel: 1.2,
+    cuerpos: MIOS.map(m => ({ nombre: m.nombre + ' rivales', filas: 4, frente: 10, arma: m.arma, escudo: 'scutum' })) }
+};
+/* largo que se dibuja del arma (m) */
+const LARGO = { gladius: 0.55, pilum: 0.9, hasta: 1.5, sarisa: 4.5, falcata: 0.55, espada_gala: 0.75 };
+const DT = 1 / 30, Z0 = 16, HUECO = 6, GIRO = 1.6;
+const V = { avanza: 1.2, puesto: 1.5, relevo: 2, flanco: 2.5, huye: 2.5 };
+const ALCANCE_PILA = 20, ALCANCE_JAB = 22;
+const ORDEN_TXT = { avanza: 'avanza', alto: 'quieto', puesto: 'en su puesto', relevo: 'relevo', flanco: 'al flanco', huye: 'huye' };
+
+let J = null, semilla = 0, pausa = false, velocidad = 1;
+
+function hacerManipulo(def, bando, i, x, z, yaw) {
+  const M = Combate.crearManipulo({ id: bando + i, bando, linea: def.linea || 'rival', filas: def.filas || 4, frente: def.frente || 10,
+    x, z, yaw, arma: def.arma, escudo: def.escudo, semilla: semilla * 31 + i + (bando === 'b' ? 11 : 0) });
+  Object.assign(M, { nombre: def.nombre, modo: 'linea', orden: 'puesto', ruta: null, trasRuta: null, pila: !!def.pila, idx: i,
+    contacto: false, tContacto: 0, roto: false, relevoDest: null });
+  for (const h of M.hombres) Object.assign(h, { fx: 0, fz: 0, vx: 0, vz: 0, tipo: 'infante', jab: 0, flashEsc: 0, flashHer: 0, f: 0, r: 0 });
+  return M;
+}
+const fondoDe = (M) => M.filas * M.fondo;
+
+function nuevaPartida() {
+  semilla++;
+  const R = RIVALES[$('rival').value];
+  J = { t: 0, R, rnd: Combate.crearAzar(semilla), Fi: crearFisica(), S: { fal: [], ene: [], giro: 0 },
+    mios: [], suyos: [], lineaA: [], lineaB: [], todos: [], porId: new Map(), caidos: [], proy: [], fin: null,
+    sel: null, ordenLineaA: 'alto', msMedia: 0, msN: 0, tChequeo: 0, tPanel: 0, cam: null, avisoTxt: '', avisoMal: false, avisoFijo: 0 };
+  let z = Z0;
+  MIOS.forEach((d, i) => { const M = hacerManipulo(d, 'a', i, 0, z, 0); z += fondoDe(M) + HUECO; J.mios.push(M); });
+  z = -Z0;
+  R.cuerpos.forEach((d, i) => { const M = hacerManipulo(d, 'b', i, 0, z, Math.PI); z -= fondoDe(M) + HUECO; J.suyos.push(M);
+    if (R.jabalinas) for (const h of M.hombres) h.jab = 1; });
+  J.lineaA = [...J.mios]; J.lineaB = [...J.suyos];
+  J.lineaA[0].orden = 'alto'; J.lineaB[0].orden = 'avanza';
+  J.todos = [...J.mios, ...J.suyos].flatMap(M => M.hombres);
+  for (const h of J.todos) J.porId.set(h.id, h);
+  J.sel = J.mios[0];
+  $('final').hidden = true;
+  $('bajasSuyas').textContent = R.nombre + ': 0 bajas';
+  aviso('', false);
+  panel();
+}
+
+/* ---------- geometría de manípulo (la misma cuenta que colocar() del motor) ---------- */
+function colocar(M) {
+  const Fx = Math.sin(M.yaw), Fz = -Math.cos(M.yaw), Rx = Math.cos(M.yaw), Rz = Math.sin(M.yaw);
+  M.primera.length = 0;
+  for (const h of M.hombres) {
+    const lado = (h.col - (M.frente - 1) / 2) * M.lado, fondo = h.fila * M.fondo;
+    h.x = M.x + Rx * lado - Fx * fondo; h.z = M.z + Rz * lado - Fz * fondo; h.yaw = M.yaw;
+    if (h.fila === 0 && h.vivo && !h.huye) M.primera[h.col] = h;
+  }
+}
+const frenteDe = (M) => [Math.sin(M.yaw), -Math.cos(M.yaw)];
+const ladoDe = (M) => [Math.cos(M.yaw), Math.sin(M.yaw)];
+const rumbo = (dx, dz) => Math.atan2(dx, -dz);
+const giroCorto = (g) => Math.atan2(Math.sin(g), Math.cos(g));
+const vivos = (M) => M.hombres.filter(h => h.vivo && !h.huye);
+const muertos = (M) => M.hombres.reduce((s, h) => s + (h.vivo ? 0 : 1), 0);
+function cansancioMedio(M, primera) {
+  const L = vivos(M).filter(h => !primera || h.fila === 0);
+  return L.length ? L.reduce((s, h) => s + h.cansancio, 0) / L.length : 0;
+}
+
+/* mueve el ancla hacia (tx, tz) a v m/s y gira hacia yawD; true si ha llegado */
+function mover(M, tx, tz, v, dt, yawD) {
+  const dx = tx - M.x, dz = tz - M.z, d = Math.hypot(dx, dz);
+  let cambia = false;
+  if (d > 0.02 && v > 0) { const s = Math.min(d, v * dt); M.x += dx / d * s; M.z += dz / d * s; cambia = true; }
+  let falta = 0;
+  if (yawD != null) {
+    const g = giroCorto(yawD - M.yaw); falta = Math.abs(g);
+    if (falta > 1e-3) { M.yaw += Math.sign(g) * Math.min(falta, GIRO * dt); cambia = true; falta = Math.abs(giroCorto(yawD - M.yaw)); }
+  }
+  if (cambia) colocar(M);
+  return d <= 0.05 && falta < 0.02;
+}
+
+/* ¿la primera fila llega a un enemigo, o un amigo le tapa el paso? */
+function contacto(M, enemigos, amigos) {
+  const [Fx, Fz] = frenteDe(M);
+  let n = 0, llegan = 0;
+  for (const h of M.hombres) {
+    if (h.fila !== 0 || !h.vivo || h.huye) continue;
+    n++;
+    const sar = h.arma === 'sarisa', alc = ARMAS[h.arma].alcance * 0.85, cosC = Math.cos((sar ? 30 : CONO) * Math.PI / 180);
+    for (const o of enemigos) {
+      const dx = o.x - h.x, dz = o.z - h.z, d2 = dx * dx + dz * dz;
+      if (d2 < 0.16) return true;   /* cuerpo contra cuerpo: no se mete más */
+      if (d2 < alc * alc) { const d = Math.sqrt(d2); if ((dx * Fx + dz * Fz) / d >= cosC) { llegan++; break; } }
+    }
+    for (const o of amigos) {
+      if (o.manip === M) continue;
+      const dx = o.x - h.x, dz = o.z - h.z, d2 = dx * dx + dz * dz;
+      if (d2 < 1.7 && (dx * Fx + dz * Fz) / Math.sqrt(d2) > 0.6) return true;
+    }
+  }
+  /* para cuando llega a golpear buena parte de su primera fila (si no, sigue apretando) */
+  return n > 0 && llegan >= Math.max(1, Math.ceil(0.6 * n));
+}
+
+/* ¿hay algún enemigo delante (±60°, a menos de 60 m)? si no, no sigue andando */
+function hayDelante(M, enemigos) {
+  const [Fx, Fz] = frenteDe(M);
+  for (const o of enemigos) { const dx = o.x - M.x, dz = o.z - M.z, d = Math.hypot(dx, dz); if (d < 60 && (dx * Fx + dz * Fz) > 0.5 * d) return true; }
+  return false;
+}
+function seguirRuta(M, dt) {
+  const p = M.ruta[0];
+  if (p.blanco) {   /* sigue al rival: apunta a su costado de ahora */
+    const ev = vivos(p.blanco);
+    if (ev.length) { let mx = -Infinity, cz = 0; for (const h of ev) { mx = Math.max(mx, h.x); cz += h.z; } p.x = mx + 7.5; p.z = cz / ev.length; }
+  }
+  let yawD = p.mira;
+  if (yawD == null) { const dx = p.x - M.x, dz = p.z - M.z; yawD = Math.hypot(dx, dz) > 0.6 ? rumbo(dx, dz) : M.yaw; }
+  if (mover(M, p.x, p.z, p.v, dt, yawD)) M.ruta.shift();
+  if (!M.ruta.length) { M.ruta = null; M.orden = M.trasRuta || 'alto'; M.relevoDest = null; }
+}
+
+/* ---------- el movimiento de cada manípulo (capa sencilla, fuera del motor) ---------- */
+function movimiento(dt) {
+  const vivosA = [], vivosB = [];
+  for (const M of J.mios) for (const h of M.hombres) if (h.vivo && !h.huye) vivosA.push(h);
+  for (const M of J.suyos) for (const h of M.hombres) if (h.vivo && !h.huye) vivosB.push(h);
+  for (const M of [...J.mios, ...J.suyos]) {
+    if (M.roto) { const [Fx, Fz] = frenteDe(M); mover(M, M.x - Fx, M.z - Fz, V.huye, dt, null); continue; }
+    const mio = M.bando === 'a';
+    M.contacto = contacto(M, mio ? vivosB : vivosA, mio ? vivosA : vivosB);
+    if (M.contacto) M.tContacto += dt; else M.tContacto = 0;
+  }
+  for (const [L, vFrente] of [[J.lineaA, V.avanza], [J.lineaB, J.R.vel]]) {
+    if (!L.length) continue;
+    const F = L[0];
+    if (F.ruta) { if (F.orden === 'relevo' && F.contacto && F.trasRuta === 'avanza') { F.ruta = null; F.orden = 'avanza'; F.relevoDest = null; } else seguirRuta(F, dt); }
+    else if (F.orden === 'avanza' && !F.contacto && hayDelante(F, F.bando === 'a' ? vivosB : vivosA)) {
+      const [Fx, Fz] = frenteDe(F); mover(F, F.x + Fx, F.z + Fz, vFrente, dt, null);
+    }
+    /* los de detrás guardan su puesto, a HUECO m del de delante */
+    const [Fx, Fz] = frenteDe(F), base = F.relevoDest || F;
+    let bx = base.x, bz = base.z, prev = F;
+    for (let k = 1; k < L.length; k++) {
+      const M = L[k]; const d = fondoDe(prev) + HUECO; bx -= Fx * d; bz -= Fz * d; prev = M;
+      if (M.ruta) { seguirRuta(M, dt); continue; }
+      const lejos = Math.hypot(bx - M.x, bz - M.z);
+      mover(M, bx, bz, lejos > 6 ? 2.2 : V.puesto, dt, F.yaw);
+    }
+  }
+  /* los sueltos (al flanco, o con orden propia) */
+  for (const M of J.mios) {
+    if (M.roto || M.modo !== 'libre') continue;
+    if (M.ruta) { if (M.contacto && M.orden === 'flanco' && M.ruta.length <= 1) { M.ruta = null; M.orden = 'avanza'; } else { seguirRuta(M, dt); continue; } }
+    if (M.orden === 'avanza' && !M.contacto && hayDelante(M, vivosB)) { const [Fx, Fz] = frenteDe(M); mover(M, M.x + Fx, M.z + Fz, V.avanza, dt, null); }
+  }
+}
+
+/* ---------- proyectiles (pila romanos y jabalinas del rival) ---------- */
+function lanzar(de, a, tipo, retraso) {
+  const d = Math.hypot(a.x - de.x, a.z - de.z);
+  J.proy.push({ tipo, de, a, x0: de.x, z0: de.z, x1: a.x + (J.rnd() - 0.5) * 0.6, z1: a.z + (J.rnd() - 0.5) * 0.6, t: -retraso, T: 0.45 + d / 22 });
+}
+function caer(h) {
+  if (!h.vivo) return;
+  h.vivo = false; h.der.estado = 'guardia';
+  if (h.manip) h.manip.sucio = true;
+}
+function anotarCaido(h, x, z) {
+  J.caidos.push({ vivo: false, huye: false, x, z, fx: 0, fz: 0, vx: 0, vz: 0, tipo: 'infante', bando: h.bando, yaw: h.yaw });
+}
+function moverProyectiles(dt) {
+  for (const p of J.proy) {
+    p.t += dt;
+    if (p.t < p.T || p.hecho) continue;
+    p.hecho = true;
+    const h = p.a;
+    if (!h.vivo || h.huye) continue;
+    const pilum = p.tipo === 'pilum';
+    const arriba = pilum ? 50 + J.rnd() * 25 : 35 + J.rnd() * 30;
+    const ang = Combate.anguloLlegada(h, { x: p.x0, z: p.z0 });
+    const r = Combate.proyectil(h, arriba, ang, pilum ? 'pilum' : 'jabalina', J.rnd);
+    if (r.para) {
+      h.flashEsc = 0.35;
+      h.escudoVida -= pilum ? 5 : 1.5;   /* el pilum clavado carga y estropea el escudo */
+      if (h.escudoVida <= 0) { h.escudoVida = 0; h.izq.estado = 'roto'; }
+      continue;
+    }
+    const d = (pilum ? 0.7 : 0.5) * (0.5 + J.rnd());
+    h.flashHer = 0.7;
+    if (d >= GRAVE) h.vida = 0; else { h.vida -= d; h.cansancio = Math.min(1, h.cansancio + 0.08); }
+    if (h.vida <= 0) { anotarCaido(h, h.x + h.fx, h.z + h.fz); caer(h); }
+  }
+  J.proy = J.proy.filter(p => p.t < p.T + 0.6);
+}
+/* el rival lanza jabalinas mientras se acerca */
+function jabalinas(dt) {
+  if (!J.R.jabalinas || !J.lineaB.length) return;
+  const F = J.lineaB[0];
+  const lanzadores = F.hombres.filter(h => h.vivo && !h.huye && h.jab > 0 && h.fila >= 1);
+  if (!lanzadores.length) return;
+  const blancos = J.mios.filter(M => !M.roto).flatMap(vivos);
+  if (!blancos.length) return;
+  let cerca = Infinity;
+  for (const o of blancos) for (const h of F.primera) if (h) cerca = Math.min(cerca, Math.hypot(o.x - h.x, o.z - h.z));
+  if (cerca < 5 || cerca > ALCANCE_JAB - 2) return;
+  let n = 0; const tasa = 9 * dt;
+  while (J.rnd() < tasa - n && n < 3) {
+    n++;
+    const de = lanzadores[Math.floor(J.rnd() * lanzadores.length)];
+    let mejor = null, dm = Infinity;
+    for (const o of blancos) { const d = Math.hypot(o.x - de.x, o.z - de.z) + J.rnd() * 6; if (d < dm) { dm = d; mejor = o; } }
+    if (mejor && dm < ALCANCE_JAB + 6) { de.jab--; lanzar(de, mejor, 'jabalina', 0); }
+  }
+}
+function lanzarPila() {
+  const M = J.mios.find(m => m.pila && !m.roto);
+  if (!M) return;
+  if (M.hombres[0].guardia === 'testudo') { aviso('En testudo no se puede lanzar: vuelve a la formación normal.', true, 3); return; }
+  const enem = J.suyos.filter(m => !m.roto).flatMap(vivos);
+  const [Fx, Fz] = frenteDe(M);
+  let tiros = 0, encima = false;
+  for (const h of vivos(M)) {
+    const L = enem.filter(o => { const dx = o.x - h.x, dz = o.z - h.z, d = Math.hypot(dx, dz); if (d < 3) encima = true; return d >= 3 && d <= ALCANCE_PILA && (dx * Fx + dz * Fz) / d > 0.5; });
+    if (!L.length) continue;
+    L.sort((p, q) => Math.hypot(p.x - h.x, p.z - h.z) - Math.hypot(q.x - h.x, q.z - h.z));
+    const o = L[Math.floor(J.rnd() * Math.min(L.length, 12))];
+    lanzar(h, o, 'pilum', J.rnd() * 0.6); tiros++;
+  }
+  if (!tiros) { aviso(encima ? 'Ya están encima: no hay sitio para lanzar.' : 'Aún están lejos: los pila llegan a unos 20 m.', true, 3); return; }
+  M.pila = false;
+  aviso(tiros + ' pila en el aire.', false, 2);
+}
+
+/* ---------- órdenes ---------- */
+function relevo() {
+  const L = J.lineaA;
+  if (L.length < 2) { aviso('No queda nadie detrás para el relevo.', true, 3); return; }
+  const A = L[0];
+  const B = J.sel && J.sel !== A && L.includes(J.sel) ? J.sel : L[1];
+  if (A.orden === 'relevo' || B.orden === 'relevo') return;
+  for (const M of [A, B]) if (M.hombres[0].guardia !== 'normal') Combate.ponerGuardia(M, 'normal');
+  const a0 = { x: A.x, z: A.z }, b0 = { x: B.x, z: B.z };
+  const ev = Combate.relevo(A, B);   /* el motor cambia los sitios; aquí se recorre el camino */
+  void ev;
+  A.x = a0.x; A.z = a0.z; B.x = b0.x; B.z = b0.z; colocar(A); colocar(B);
+  const [Fx, Fz] = frenteDe(A), [Rx, Rz] = ladoDe(A), q = LADO / 4, atras = fondoDe(B) + HUECO;
+  const dA = { x: a0.x - Fx * atras, z: a0.z - Fz * atras };
+  /* los cansados se apartan un cuarto de paso a un lado, los frescos al otro: pasan por los huecos entre columnas */
+  A.ruta = [{ x: a0.x - Rx * q, z: a0.z - Rz * q, v: V.relevo, mira: A.yaw }, { x: dA.x - Rx * q, z: dA.z - Rz * q, v: V.relevo, mira: A.yaw }, { x: dA.x, z: dA.z, v: 1, mira: A.yaw }];
+  B.ruta = [{ x: b0.x + Rx * q, z: b0.z + Rz * q, v: V.relevo, mira: B.yaw }, { x: a0.x + Rx * q, z: a0.z + Rz * q, v: V.relevo, mira: B.yaw }, { x: a0.x, z: a0.z, v: 1, mira: B.yaw }];
+  A.orden = B.orden = 'relevo'; A.trasRuta = 'puesto'; B.trasRuta = J.ordenLineaA === 'alto' && !A.contacto ? 'alto' : 'avanza';
+  B.relevoDest = { x: a0.x, z: a0.z };
+  J.lineaA = [B, A, ...L.filter(m => m !== A && m !== B)];
+  aviso('Relevo: los ' + B.nombre.toLowerCase() + ' pasan al frente.', false, 3);
+}
+function alFlanco() {
+  const M = J.sel;
+  if (!M || M.roto) return;
+  const E = J.lineaB[0];
+  if (!E) return;
+  const ev = vivos(E);
+  if (!ev.length) return;
+  let maxX = -Infinity, cz = 0;
+  for (const h of ev) { maxX = Math.max(maxX, h.x); cz += h.z; }
+  cz /= ev.length;
+  const nuestroFrente = J.lineaA.find(m => m !== M);
+  const zFrente = nuestroFrente ? nuestroFrente.z : M.z;
+  const x1 = maxX + 7.5;
+  if (J.lineaA.includes(M)) {
+    J.lineaA = J.lineaA.filter(m => m !== M);
+    if (J.lineaA[0] && J.lineaA[0].orden === 'puesto') J.lineaA[0].orden = J.ordenLineaA;
+  }
+  M.modo = 'libre'; M.orden = 'flanco'; M.trasRuta = 'avanza';
+  M.ruta = [{ x: x1, z: Math.max(Math.min(M.z, zFrente + 4), cz + 6), v: V.flanco }, { x: x1, z: cz, v: V.flanco, blanco: E }, { x: x1, z: cz, v: 0.6, mira: -Math.PI / 2, blanco: E }];
+  aviso('Los ' + M.nombre.toLowerCase() + ' rodean por la derecha para atacar el costado.', false, 3);
+}
+function ordenar(que) {
+  if (!J || J.fin) return;
+  const M = J.sel;
+  if (que === 'relevo') return relevo();
+  if (que === 'pila') return lanzarPila();
+  if (!M || M.roto) return;
+  if (que === 'testudo') { Combate.ponerGuardia(M, M.hombres[0].guardia === 'testudo' ? 'normal' : 'testudo'); colocar(M); panel(); return; }
+  if (que === 'flanco') return alFlanco();
+  if (M.orden === 'relevo') return;
+  const frente = J.lineaA[0] === M;
+  if (frente) { J.ordenLineaA = que; M.orden = que; M.ruta = null; }
+  else {
+    if (J.lineaA.includes(M)) J.lineaA = J.lineaA.filter(m => m !== M);
+    M.modo = 'libre'; M.orden = que; M.ruta = null;
+  }
+  panel();
+}
+
+/* ---------- reglas de la batalla: huida y fin ---------- */
+function chequeos() {
+  for (const M of [...J.mios, ...J.suyos]) {
+    if (M.roto) continue;
+    if (muertos(M) >= ROTURA * M.total || (M.contacto && cansancioMedio(M, true) >= AGOTADO) || !vivos(M).length) romper(M);
+  }
+  const quedanA = J.mios.some(m => !m.roto), quedanB = J.suyos.some(m => !m.roto);
+  if (!quedanA || !quedanB) acabar(quedanA ? 'a' : 'b');
+}
+function romper(M) {
+  M.roto = true; M.orden = 'huye'; M.ruta = null;
+  for (const h of M.hombres) if (h.vivo) h.huye = true;
+  const mio = M.bando === 'a';
+  if (mio) { J.lineaA = J.lineaA.filter(m => m !== M); if (J.lineaA[0] && J.lineaA[0].orden === 'puesto') J.lineaA[0].orden = 'avanza'; }
+  else { J.lineaB = J.lineaB.filter(m => m !== M); if (J.lineaB[0]) J.lineaB[0].orden = 'avanza'; }
+  if (J.sel === M) J.sel = J.mios.find(m => !m.roto) || null;
+  aviso(M.nombre === 'Falange' ? 'La falange huye.' : 'Los ' + M.nombre.toLowerCase() + ' huyen.', mio, 3);
+}
+function acabar(gana) {
+  if (J.fin) return;
+  J.fin = { gana, t: J.t };
+  const bA = J.mios.reduce((s, M) => s + muertos(M), 0), bB = J.suyos.reduce((s, M) => s + muertos(M), 0);
+  $('finTitulo').textContent = gana === 'a' ? 'Gana Roma' : 'Ganan ' + J.R.los;
+  $('finTexto').textContent = 'En ' + tiempo(J.t) + '. Bajas: Roma ' + bA + ', ' + J.R.nombre.toLowerCase() + ' ' + bB + '.';
+  $('final').hidden = false;
+}
+const tiempo = (t) => { const m = Math.floor(t / 60), s = Math.floor(t % 60); return m ? m + ' min ' + s + ' s' : s + ' s'; };
+
+/* ---------- un paso de la simulación ---------- */
+const eventos = [];
+function paso(dt) {
+  J.t += dt;
+  movimiento(dt);
+  jabalinas(dt);
+  moverProyectiles(dt);
+  for (const h of J.todos) { h.px = h.x; h.pz = h.z; }
+  const t0 = performance.now();
+  eventos.length = 0;
+  Combate.paso(J.todos, dt, { rnd: J.rnd, eventos });
+  const t1 = performance.now();
+  for (const e of eventos) {
+    if (e.tipo === 'para' && e.en === 'escudo') { const h = J.porId.get(e.de); if (h) h.flashEsc = 0.3; }
+    else if (e.tipo === 'herida') { const h = J.porId.get(e.a); if (h) h.flashHer = 0.7; }
+    else if (e.tipo === 'cae') { const h = J.porId.get(e.a); if (h) anotarCaido(h, h.px + h.fx, h.pz + h.fz); }
+  }
+  for (const h of J.todos) { if (h.flashEsc > 0) h.flashEsc -= dt; if (h.flashHer > 0) h.flashHer -= dt; }
+  /* la física: que los cuerpos no se atraviesen, se empujen y no pisen a los caídos */
+  const S = J.S; S.fal.length = 0; S.ene.length = 0;
+  for (const M of J.mios) {
+    const recto = Math.abs(giroCorto(M.yaw)) < 0.3;
+    for (const h of M.hombres) if (h.vivo) { h.f = recto ? M.idx * 100 + h.col : 'u' + h.id; h.r = recto ? h.fila : 0; S.fal.push(h); }
+  }
+  for (const M of J.suyos) for (const h of M.hombres) if (h.vivo) S.ene.push(h);
+  for (const c of J.caidos) (c.bando === 'a' ? S.fal : S.ene).push(c);
+  const t2 = performance.now();
+  J.Fi.paso(S, dt);
+  const t3 = performance.now();
+  const ms = (t1 - t0) + (t3 - t2);
+  J.msMedia = J.msN < 60 ? (J.msMedia * J.msN + ms) / (J.msN + 1) : J.msMedia * 0.97 + ms * 0.03; J.msN++;
+  if ((J.tChequeo += dt) >= 0.25) { J.tChequeo = 0; chequeos(); }
+  if (J.t > 900 && !J.fin) acabar(null);
+}
+
+/* ---------- avisos y panel ---------- */
+function aviso(txt, mal, fijo = 0) { J.avisoTxt = txt; J.avisoMal = mal; J.avisoFijo = fijo; const el = $('aviso'); el.textContent = txt; el.className = mal ? 'mal' : ''; }
+function consejo() {
+  if (J.avisoFijo > 0) return;
+  const F = J.lineaA[0];
+  let txt = '', mal = false;
+  if (F) {
+    const c = cansancioMedio(F, true);
+    const n = F.nombre.toLowerCase();
+    const enem = J.lineaB[0];
+    let dist = Infinity;
+    if (enem) for (const h of F.primera) if (h) for (const o of enem.primera) if (o) dist = Math.min(dist, Math.hypot(o.x - h.x, o.z - h.z));
+    if (c >= 0.55 && J.lineaA.length > 1) { txt = 'Los ' + n + ' no pueden más: releva.'; mal = true; }
+    else if (c >= 0.35 && J.lineaA.length > 1) txt = 'Los ' + n + ' se cansan. Prepara el relevo.';
+    else if (J.R.nombre === 'Macedonios' && F.tContacto > 10 && !J.mios.some(m => m.modo === 'libre' && !m.roto)) txt = 'De frente la falange no cede. Prueba «Al flanco».';
+    else if (J.proy.some(p => p.tipo === 'jabalina') && !J.mios.some(m => !m.roto && m.hombres[0].guardia === 'testudo')) txt = 'Llueven jabalinas: «Testudo» os cubre.';
+    else if (J.mios.some(m => m.pila && !m.roto) && dist > 6 && dist < ALCANCE_PILA) txt = 'A tiro: «Lanzar pila».';
+    else if (J.t < 6) txt = 'Toca «Avanzar» o espera a que lleguen.';
+  }
+  if (txt !== J.avisoTxt) aviso(txt, mal);
+}
+function panel() {
+  if (!J) return;
+  const el = $('estado');
+  const filas = J.mios.map(M => {
+    const v = vivos(M).length, c = cansancioMedio(M, false), tes = !M.roto && M.hombres[0].guardia === 'testudo';
+    const que = M.roto ? 'huye' : (tes ? 'testudo · ' : '') + (J.lineaA[0] === M && M.orden !== 'relevo' ? (M.orden === 'alto' ? 'quieto' : 'en primera línea') : ORDEN_TXT[M.orden] || M.orden);
+    return `<button class="fila-m${M === J.sel ? ' sel' : ''}${M.roto ? ' roto' : ''}" data-m="${M.idx}" aria-pressed="${M === J.sel}"><b>${M.nombre}</b><span>${v}/${M.total}</span><span class="barra" title="Cansancio"><i style="width:${Math.round(c * 100)}%"></i></span><span class="que">${que}</span></button>`;
+  });
+  const vB = J.suyos.reduce((s, M) => s + (M.roto ? 0 : vivos(M).length), 0), tB = J.suyos.reduce((s, M) => s + M.total, 0);
+  const cB = J.lineaB[0] ? cansancioMedio(J.lineaB[0], false) : 0;
+  filas.push(`<div class="fila-m suyo"><b>${J.R.nombre}</b><span>${vB}/${tB}</span><span class="barra" title="Cansancio"><i style="width:${Math.round(cB * 100)}%"></i></span><span class="que">${J.lineaB.length ? 'rival' : 'huyen'}</span></div>`);
+  el.innerHTML = '<div class="etiqueta">En pie · cansancio · qué hace</div>' + filas.join('');
+  const bA = J.mios.reduce((s, M) => s + muertos(M), 0), bB = J.suyos.reduce((s, M) => s + muertos(M), 0);
+  $('bajasMias').textContent = 'Roma: ' + bA + ' bajas';
+  $('bajasSuyas').textContent = J.R.nombre + ': ' + bB + ' bajas';
+  $('reloj').textContent = Math.floor(J.t / 60) + ':' + String(Math.floor(J.t % 60)).padStart(2, '0');
+  const M = J.sel;
+  $('bTestudo').textContent = M && !M.roto && M.hombres[0].guardia === 'testudo' ? 'Formación normal' : 'Testudo';
+  $('bPila').disabled = !J.mios.some(m => m.pila && !m.roto);
+  $('bPila').textContent = $('bPila').disabled ? 'Pila lanzados' : 'Lanzar pila';
+  $('bRelevo').disabled = J.lineaA.length < 2;
+  for (const id of ['bAvanzar', 'bAlto', 'bTestudo', 'bFlanco']) $(id).disabled = !M || M.roto;
+}
+$('estado').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-m]'); if (!b || !J) return;
+  const M = J.mios[+b.dataset.m]; if (M && !M.roto) { J.sel = M; panel(); }
+});
+
+/* ---------- dibujo ---------- */
+let W = 0, H = 0, DPR = 1, apaisado = false, colores = {};
+function medir() {
+  const r = lienzo.getBoundingClientRect();
+  DPR = Math.min(2, window.devicePixelRatio || 1); W = r.width; H = r.height;
+  lienzo.width = Math.round(W * DPR); lienzo.height = Math.round(H * DPR);
+  apaisado = W > H * 1.05;
+  const cs = getComputedStyle(document.documentElement);
+  for (const k of ['arena', 'arena-linea', 'ink', 'muted', 'bronce', 'panel', 'azul', 'ocre']) colores[k] = cs.getPropertyValue('--' + k).trim();
+  colores.oscuro = matchMedia('(prefers-color-scheme: dark)').matches;
+}
+new ResizeObserver(medir).observe(lienzo);
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', medir);
+
+const cam = { x: 0, z: 0, s: 8 };
+const aPantalla = (x, z) => apaisado ? [W / 2 - (z - cam.z) * cam.s, H / 2 + (x - cam.x) * cam.s] : [W / 2 + (x - cam.x) * cam.s, H / 2 + (z - cam.z) * cam.s];
+const dirPantalla = (vx, vz) => apaisado ? [-vz, vx] : [vx, vz];
+const aMundo = (sx, sy) => apaisado ? [cam.x + (sy - H / 2) / cam.s, cam.z - (sx - W / 2) / cam.s] : [cam.x + (sx - W / 2) / cam.s, cam.z + (sy - H / 2) / cam.s];
+
+function encuadre(dt, salto) {
+  const grupo = [];
+  if (J.lineaB[0]) grupo.push(J.lineaB[0]);
+  if (J.lineaA[0]) grupo.push(J.lineaA[0]);
+  for (const M of J.mios) if (!M.roto && (M.modo === 'libre' || M.orden === 'relevo')) grupo.push(M);
+  if (J.fin) grupo.push(...J.mios.filter(m => !m.roto), ...J.suyos.filter(m => !m.roto));
+  let x0 = Infinity, x1 = -Infinity, z0 = Infinity, z1 = -Infinity;
+  for (const M of grupo) for (const h of M.hombres) if (h.vivo && !h.huye) { x0 = Math.min(x0, h.x); x1 = Math.max(x1, h.x); z0 = Math.min(z0, h.z); z1 = Math.max(z1, h.z); }
+  if (!isFinite(x0)) { x0 = -10; x1 = 10; z0 = -10; z1 = 10; }
+  const m = 4, ancho = Math.max(x1 - x0 + 2 * m, 22), alto = Math.max(z1 - z0 + 2 * m, 22);
+  const anchoP = apaisado ? alto : ancho, altoP = apaisado ? ancho : alto;
+  const s = Math.min(26, Math.min(W / anchoP, (H - 44) / altoP));
+  const k = salto ? 1 : 1 - Math.exp(-dt * 2.5);
+  cam.x += ((x0 + x1) / 2 - cam.x) * k; cam.z += ((z0 + z1) / 2 - cam.z) * k; cam.s += (s - cam.s) * k;
+}
+
+function colorCuerpo(h) {
+  const c = h.cansancio, mio = h.bando === 'a', osc = colores.oscuro;
+  const hue = mio ? 212 : 30, sat = (mio ? 60 : 62) - 38 * c, lum = (osc ? 52 : 36) + ((osc ? 88 : 84) - (osc ? 52 : 36)) * c;
+  return `hsl(${hue} ${sat}% ${lum}%)`;
+}
+
+function dibujarHombre(h, alfa) {
+  const s = cam.s, F = [Math.sin(h.yaw), -Math.cos(h.yaw)], R = [Math.cos(h.yaw), Math.sin(h.yaw)];
+  let wx = h.x + (h.fx || 0), wz = h.z + (h.fz || 0);
+  const golpea = h.der.estado === 'golpea';
+  if (golpea) { wx += F[0] * 0.18; wz += F[1] * 0.18; }
+  const [sx, sy] = aPantalla(wx, wz);
+  if (sx < -60 || sy < -60 || sx > W + 60 || sy > H + 60) return;
+  const sF = dirPantalla(F[0], F[1]), sR = dirPantalla(R[0], R[1]);
+  const r = Math.max(2.2, 0.27 * s);
+  ctx.globalAlpha = alfa;
+  /* arma: raya desde la mano derecha hacia su frente */
+  let largo = LARGO[h.arma] || 0.6;
+  if (h.arma === 'sarisa' && (h.fila >= 5 || h.guardia !== 'falange')) largo = 0.6;
+  if (golpea) largo += 0.35;
+  const bx = sx + sR[0] * 0.16 * s, by = sy + sR[1] * 0.16 * s;
+  ctx.strokeStyle = golpea ? (colores.oscuro ? '#fff' : '#000') : colores.ink;
+  ctx.lineWidth = golpea ? Math.max(1.6, 0.07 * s) : Math.max(1, 0.045 * s);
+  ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(bx + sF[0] * largo * s, by + sF[1] * largo * s); ctx.stroke();
+  /* cuerpo */
+  const herido = h.flashHer > 0;
+  const tes = h.guardia === 'testudo';
+  ctx.fillStyle = herido ? '#e3261b' : colorCuerpo(h);
+  ctx.beginPath();
+  if (tes) { ctx.rect(sx - r, sy - r, 2 * r, 2 * r); } else ctx.arc(sx, sy, r, 0, Math.PI * 2);
+  ctx.fill();
+  if (tes && h.izq.estado !== 'roto') { ctx.fillStyle = h.flashEsc > 0 ? '#fff3a0' : colores.bronce; ctx.globalAlpha = alfa * 0.75; ctx.fillRect(sx - r * 0.65, sy - r * 0.65, r * 1.3, r * 1.3); ctx.globalAlpha = alfa; }
+  /* escudo: el arco que cubre ahora */
+  const A = Combate.arcoEscudo(h);
+  if (A) {
+    const tF = Math.atan2(sF[1], sF[0]), D = Math.PI / 180;
+    const para = h.flashEsc > 0;
+    ctx.strokeStyle = para ? '#fff3a0' : colores.bronce;
+    ctx.lineWidth = para ? Math.max(3, 0.16 * s) : Math.max(1.4, (h.izq.estado === 'bajo' ? 0.05 : 0.1) * s);
+    ctx.beginPath(); ctx.arc(sx, sy, r * 1.45, tF - A[0] * D, tF - A[1] * D, true); ctx.stroke();
+    if (para) { ctx.strokeStyle = '#7a5a00'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(sx, sy, r * 1.45 + 2, tF - A[0] * D, tF - A[1] * D, true); ctx.stroke(); }
+  }
+  ctx.globalAlpha = 1;
+}
+
+function dibujarCaido(c) {
+  const [sx, sy] = aPantalla(c.x + c.fx, c.z + c.fz);
+  if (sx < -20 || sy < -20 || sx > W + 20 || sy > H + 20) return;
+  const r = Math.max(2, 0.3 * cam.s);
+  ctx.fillStyle = colores.oscuro ? '#6c6c66' : '#8d8d88';
+  ctx.globalAlpha = 0.85;
+  ctx.beginPath(); ctx.ellipse(sx, sy, r * 1.3, r * 0.7, (c.yaw || 0) + (apaisado ? Math.PI / 2 : 0), 0, Math.PI * 2); ctx.fill();
+  ctx.globalAlpha = 1;
+}
+
+function cajaPantalla(M) {
+  let a = Infinity, b = -Infinity, c = Infinity, d = -Infinity;
+  for (const h of M.hombres) if (h.vivo) { const [x, y] = aPantalla(h.x + h.fx, h.z + h.fz); a = Math.min(a, x); b = Math.max(b, x); c = Math.min(c, y); d = Math.max(d, y); }
+  return isFinite(a) ? { x0: a, x1: b, y0: c, y1: d } : null;
+}
+let puestas = [];
+function etiqueta(txt, x, y, color, fondo) {
+  ctx.font = '600 12px "Source Sans 3", system-ui, sans-serif';
+  const w = ctx.measureText(txt).width + 10;
+  x = Math.max(4 + w / 2, Math.min(W - 4 - w / 2, x)); y = Math.max(34, Math.min(H - 26, y));
+  /* que no se monten: si choca con otra, se aparta hacia el centro */
+  for (let k = 0; k < 6; k++) {
+    const otra = puestas.find(e => Math.abs(e.x - x) < (e.w + w) / 2 + 2 && Math.abs(e.y - y) < 20);
+    if (!otra) break;
+    y += y > H / 2 ? -22 : 22;
+  }
+  puestas.push({ x, y, w });
+  ctx.fillStyle = fondo; ctx.globalAlpha = 0.88;
+  ctx.beginPath(); ctx.roundRect(x - w / 2, y - 9, w, 18, 6); ctx.fill(); ctx.globalAlpha = 1;
+  ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(txt, x, y + 0.5);
+}
+
+function dibujar() {
+  ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  ctx.fillStyle = colores.arena; ctx.fillRect(0, 0, W, H);
+  /* cuadrícula cada 5 m */
+  ctx.strokeStyle = colores['arena-linea']; ctx.lineWidth = 1;
+  const [mx0, mz0] = aMundo(0, 0), [mx1, mz1] = aMundo(W, H);
+  const xa = Math.min(mx0, mx1), xb = Math.max(mx0, mx1), za = Math.min(mz0, mz1), zb = Math.max(mz0, mz1);
+  ctx.beginPath();
+  for (let x = Math.floor(xa / 5) * 5; x <= xb; x += 5) { const [p, q] = aPantalla(x, za), [r, t] = aPantalla(x, zb); ctx.moveTo(p, q); ctx.lineTo(r, t); }
+  for (let z = Math.floor(za / 5) * 5; z <= zb; z += 5) { const [p, q] = aPantalla(xa, z), [r, t] = aPantalla(xb, z); ctx.moveTo(p, q); ctx.lineTo(r, t); }
+  ctx.stroke();
+  for (const c of J.caidos) dibujarCaido(c);
+  for (const M of [...J.suyos, ...J.mios]) { const a = M.roto ? 0.3 : 1; for (const h of M.hombres) if (h.vivo) dibujarHombre(h, a); }
+  /* proyectiles: sombra en el suelo y el asta algo más arriba */
+  for (const p of J.proy) {
+    if (p.t < 0 || p.t > p.T) continue;
+    const u = p.t / p.T, x = p.x0 + (p.x1 - p.x0) * u, z = p.z0 + (p.z1 - p.z0) * u, alto = 4 * u * (1 - u) * (p.tipo === 'pilum' ? 3 : 4);
+    const d = Math.hypot(p.x1 - p.x0, p.z1 - p.z0) || 1, ux = (p.x1 - p.x0) / d, uz = (p.z1 - p.z0) / d, L = p.tipo === 'pilum' ? 1.4 : 1.1;
+    const [sx, sy] = aPantalla(x, z), [ex, ey] = aPantalla(x - ux * L, z - uz * L);
+    ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(ex, ey); ctx.stroke();
+    const lev = alto * cam.s * 0.5;
+    ctx.strokeStyle = p.tipo === 'pilum' ? (colores.oscuro ? '#cfe0f5' : '#123a66') : (colores.oscuro ? '#f3d2a2' : '#5a3410');
+    ctx.lineWidth = 2.2; ctx.beginPath(); ctx.moveTo(sx, sy - lev); ctx.lineTo(ex, ey - lev); ctx.stroke();
+  }
+  /* manípulos: nombre y el elegido recuadrado */
+  puestas = [];
+  for (const M of [...J.mios, ...J.suyos]) {
+    if (M.roto && vivos(M).length === 0 && !M.hombres.some(h => h.vivo)) continue;
+    const c = cajaPantalla(M); if (!c) continue;
+    const mio = M.bando === 'a';
+    if (M === J.sel && !M.roto) {
+      ctx.strokeStyle = colores.ink; ctx.lineWidth = 2; ctx.setLineDash([6, 4]);
+      ctx.strokeRect(c.x0 - 6, c.y0 - 6, c.x1 - c.x0 + 12, c.y1 - c.y0 + 12); ctx.setLineDash([]);
+    }
+    const fuera = c.x1 < 0 || c.x0 > W || c.y1 < 0 || c.y0 > H;
+    let txt = M.nombre + (M.roto ? ' (huyen)' : '');
+    if (fuera) txt += apaisado ? (c.x0 > W ? ' →' : c.x1 < 0 ? ' ←' : c.y0 > H ? ' ↓' : ' ↑') : (c.y0 > H ? ' ↓' : c.y1 < 0 ? ' ↑' : c.x0 > W ? ' →' : ' ←');
+    const y = mio ? c.y1 + 14 : c.y0 - 14;
+    etiqueta(txt, (c.x0 + c.x1) / 2, y, mio ? '#fff' : '#fff', mio ? colores.azul : colores.ocre);
+  }
+}
+
+/* tocar el campo: elige el manípulo romano más cercano */
+lienzo.addEventListener('pointerdown', (e) => {
+  if (!J) return;
+  const r = lienzo.getBoundingClientRect(), [x, z] = aMundo(e.clientX - r.left, e.clientY - r.top);
+  let mejor = null, dm = 3.5;
+  for (const M of J.mios) if (!M.roto) for (const h of M.hombres) if (h.vivo) { const d = Math.hypot(h.x + h.fx - x, h.z + h.fz - z); if (d < dm) { dm = d; mejor = M; } }
+  if (mejor) { J.sel = mejor; panel(); }
+});
+
+/* ---------- mandos ---------- */
+$('bAvanzar').onclick = () => ordenar('avanza');
+$('bAlto').onclick = () => ordenar('alto');
+$('bRelevo').onclick = () => { ordenar('relevo'); panel(); };
+$('bTestudo').onclick = () => ordenar('testudo');
+$('bFlanco').onclick = () => { ordenar('flanco'); panel(); };
+$('bPila').onclick = () => { ordenar('pila'); panel(); };
+$('bPausa').onclick = () => { pausa = !pausa; $('bPausa').textContent = pausa ? 'Seguir' : 'Pausa'; };
+$('bRapido').onclick = () => {
+  velocidad = velocidad === 1 ? 2 : velocidad === 2 ? 4 : 1;
+  $('bRapido').textContent = velocidad === 1 ? 'Más rápido ×2' : velocidad === 2 ? 'Más rápido ×4' : 'Velocidad normal';
+};
+const reiniciar = () => { nuevaPartida(); encuadre(0, true); };
+$('bNuevo').onclick = reiniciar;
+$('otraVez').onclick = reiniciar;
+$('rival').onchange = reiniciar;
+
+/* ---------- bucle ---------- */
+let antes = performance.now(), acum = 0, fps = 60, tFps = 0, nFps = 0;
+function bucle(ahora) {
+  const real = Math.min(0.1, (ahora - antes) / 1000); antes = ahora;
+  tFps += real; nFps++; if (tFps > 0.5) { fps = nFps / tFps; tFps = 0; nFps = 0; }
+  if (!pausa && !J.fin) {
+    acum += real * velocidad;
+    let n = 0;
+    while (acum >= DT && n < 8) { paso(DT); acum -= DT; n++; }
+    if (n === 8) acum = 0;
+    if (J.avisoFijo > 0) J.avisoFijo -= real * velocidad;
+    if ((J.tPanel += real) > 0.25) { J.tPanel = 0; consejo(); panel(); }
+  }
+  encuadre(real, false);
+  dibujar();
+  $('ms').textContent = 'motor + física: ' + J.msMedia.toFixed(2).replace('.', ',') + ' ms/paso · ' + Math.round(fps) + ' fps';
+  requestAnimationFrame(bucle);
+}
+medir();
+nuevaPartida();
+encuadre(0, true);
+window.__maqueta = { get J() { return J; }, ordenar, paso };   /* para las pruebas con Playwright */
+requestAnimationFrame(bucle);
+</script>
+</body>
+</html>
