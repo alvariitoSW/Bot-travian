@@ -1,7 +1,9 @@
 """AL2 · paso B: el galo rápido de Meshy, ya aligerado (paso A), metido en el juego como soldado «galo-rapido».
 
-Copia de tools/blender/hastatus_meshy_juego.py (FA2-R). Cambia: SIN armas ni escudo (se ponen por código), sin teñido de
-facción (la túnica y los pantalones verdes son los de Meshy; la máscara va vacía) y texturas más pequeñas (cuidar los KB).
+Copia de tools/blender/hastatus_meshy_juego.py (FA2-R). Cambia: SIN armas ni escudo (se ponen por código), texturas más
+pequeñas (cuidar los KB) y el teñido: solo la túnica (decisión del usuario, 23/11: «color b»), elegida por altura en la
+malla (entre cinturón y hombros) y no por color, porque túnica y pantalones son del mismo verde oliva. Los pantalones a
+cuadros quedan con su color de Meshy.
 
 Origen y licencias:
 - Cuerpo, ropa y pelo: modelo generado por el usuario con Meshy (meshy.ai), plan de pago, MS2 «galo rápido, 2.º intento»
@@ -56,12 +58,28 @@ def empaquetar_franja(pz, lado):
 NIVEL = {'fino': ('', False, False, False, 2048, 9000, 900), 'lejos': ('_lejos', True, False, False, 1024, 2900, 240),
          'muylejos': ('_muylejos', True, True, False, 512, 760, 0), 'fondo': ('_fondo', True, True, True, 512, 360, 0)}
 # AL2: texturas más pequeñas que el hastatus (≈400–600 KB por soldado). (lado, calidad webp)
-SALIDA = {'fino': dict(color=(1024, 74), normal=(512, 70), orm=(256, 70), masc=(64, 85)), 'lejos': dict(color=(512, 74), normal=(256, 68), orm=(128, 70), masc=(32, 85)),
-          'muylejos': dict(color=(256, 78), normal=(128, 70), orm=(64, 70), masc=(32, 85)), 'fondo': dict(color=(256, 76), normal=(64, 70), orm=(64, 70), masc=(32, 85))}
-MUESTRA = {k: [[0, 1]] for k in ('quieto', 'quieto2', 'quieto3', 'andar', 'correr', 'guardia', 'lanzar', 'golpear', 'cubrirse', 'encajar', 'morir')}   # solo el cuerpo (conj. 0)
-
+SALIDA = {'fino': dict(color=(1024, 74), normal=(512, 70), orm=(256, 70), masc=(512, 85)), 'lejos': dict(color=(512, 74), normal=(256, 68), orm=(128, 70), masc=(256, 85)),
+          'muylejos': dict(color=(256, 78), normal=(128, 70), orm=(64, 70), masc=(128, 85)), 'fondo': dict(color=(256, 76), normal=(64, 70), orm=(64, 70), masc=(128, 85))}
+TELA_GALA = np.array([0x5a, 0x7a, 0x4a]) / 255                # telas[1] de PUEBLOS.galo (js/gfx/soldado.js): con ella sale el verde de Meshy
 lin = lambda c: np.where(c <= 0.04045, c / 12.92, ((c + 0.055) / 1.055) ** 2.4)
 srgb = lambda c: np.where(c <= 0.0031308, c * 12.92, 1.055 * np.clip(c, 0, None) ** (1 / 2.4) - 0.055)
+
+def tunica_a_gris(col, x0, P, T, UV):
+    """AL2: túnica de Meshy -> gris con su sombreado + máscara de tela (canal R). El juego hace color·tela·2,2 (en lineal).
+    Zona: triángulos del cuerpo entre el cinturón (y 1,05) y los hombros (1,49), |x| < 0,26, en reposo. Dentro, fuera la piel
+    y el bronce del colgante (verde/rojo < 0,8). Se pinta la zona en el atlas y se ensancha 2 px para cubrir los bordes."""
+    from PIL import ImageDraw, ImageFilter
+    L = col.shape[0]; c3 = P[T].mean(1); sel = (c3[:, 1] > 1.05) & (c3[:, 1] < 1.49) & (np.abs(c3[:, 0]) < 0.26)
+    z = Image.new('L', (L, L), 0); dr = ImageDraw.Draw(z)
+    for t in T[sel]: dr.polygon([(UV[i, 0] * L, (1 - UV[i, 1]) * L) for i in t], fill=255)
+    z = np.asarray(z.filter(ImageFilter.MaxFilter(5)), np.float32) / 255; z[:, x0:] = 0
+    r, g = col[..., 0], col[..., 1]; k = z * np.clip((g / np.maximum(r, 1e-3) - 0.80) / 0.06, 0, 1)
+    t = lin(TELA_GALA); cl = lin(col); gl = np.clip((cl @ t) / (t @ t) / 2.2, 0, 1)
+    gris = srgb(gl)[..., None] * np.ones(3); col[:] = col * (1 - k[..., None]) + gris * k[..., None]
+    return k.astype(np.float32)
+
+MUESTRA = {k: [[0, 1]] for k in ('quieto', 'quieto2', 'quieto3', 'andar', 'correr', 'guardia', 'lanzar', 'golpear', 'cubrirse', 'encajar', 'morir')}   # solo el cuerpo (conj. 0)
+
 
 def soldado(nivel, m):
     suf, lod, muy, fondo, lado, tope, manos = NIVEL[nivel]
@@ -96,7 +114,7 @@ def soldado(nivel, m):
         hp = np.concatenate([p['uvpx'] for p in pieles]).astype(int).clip(0, lado - 1); act = cE[hp[:, 1], hp[:, 0]].mean(0); f = np.clip(ref / np.maximum(act, 1e-3), 0.3, 3)
         for p in pieles:
             x, y, w, h = p['rect']; sl = (slice(max(y - 4, 0), y + h + 4), slice(max(x - 4, x0), x + w + 4)); cE[sl] = np.clip(cE[sl] * f, 0, 1); mE[sl] = 0
-    mt = np.zeros_like(col_m)                                  # AL2: sin teñido de facción (ropa con su color de Meshy)
+    mt = np.zeros_like(col_m); mt[..., 0] = tunica_a_gris(col_m, x0, Pm, Tm, UVm)   # AL2: tinte de bando solo en la túnica
     nm = np.asarray(Image.open(os.path.join(ENT, 'normal_%s.png' % nivel)).convert('RGB'), np.float32) / 255; nm[..., 1] = 1 - nm[..., 1]   # como el falangita
     om = np.asarray(Image.open(os.path.join(ENT, 'orm_%s.png' % nivel)).convert('RGB'), np.float32) / 255
     out = {}

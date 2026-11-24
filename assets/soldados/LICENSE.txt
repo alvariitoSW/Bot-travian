@@ -1,5 +1,7 @@
 Soldados nuevos de AQVILA (hastatus, triario, vélite, hondero, peltasta, hoplita, falangita, oficial de la falange
-(oficial-falange), íbero y galo;
+(oficial-falange), íbero, galo, centurión (centurion) y las variantes galas de Meshy: galo grande (galo-grande),
+galo grande v2a y v2b (galo-grande-v2a, galo-grande-v2b), galo rápido y rápido B (galo-rapido, galo-rapido-b),
+galo lancero (galo-lancero) y jefe galo (jefe-galo);
 cuatro niveles de detalle cada uno; movimientos compartidos en movimientos_escudo_*.bin y movimientos_sarisa_*.bin).
 
 - Cuerpo, esqueleto, pesos y deformadores: MakeHuman 1.3.2 (base.obj, default.mhskel, default_weights.mhw, targets),
@@ -33,6 +35,102 @@ cuatro niveles de detalle cada uno; movimientos compartidos en movimientos_escud
   y la túnica pasada a gris para teñirla con el color de cada pueblo. Estos cuatro niveles y sus texturas se comparten
   con CC BY 4.0. (Los movimientos compartidos movimientos_escudo_* siguen siendo CC0, de Quaternius.)
 
-CC BY 4.0 obliga a citar a Meshy y enlazar la licencia (aquí, en el README y en Créditos del juego).
+Soldados de Meshy con plan de pago (AL1–AL10, 23/11/2026). Los generó el usuario con Meshy (https://www.meshy.ai),
+de texto a 3D, con su plan de pago; la salida es del usuario. Meshy es la herramienta y se cita como tal.
+El usuario los publica con licencia CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/
+En todos, las manos, el esqueleto y los pesos son de MakeHuman 1.3.2 (CC0 1.0) y los movimientos compartidos
+movimientos_escudo_* siguen siendo CC0, de Quaternius. Los modelos originales no están en el repositorio.
+Escudos y armas los pone el juego por código (propios de AQVILA).
+- Galo grande (galo-grande*): el cuerpo, el pelo, la barba, la ropa y las correas (con sus texturas) vienen de un modelo
+  generado por el usuario con Meshy (https://www.meshy.ai), de texto a 3D, con su plan de pago, el 23/11/2026
+  (tarea 01a20a6f-1e10-7476-8ca9-4cd8c2c89660). Meshy es la herramienta; el modelo se publica con licencia
+  CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/ (crédito: «generado con Meshy»).
+  Aligerado y adaptado en AQVILA: tools/blender/galo-grande_meshy_ligero.py y tools/blender/galo-grande_meshy_juego.py.
+  El modelo original no está en el repositorio. Sus manos son de MakeHuman (CC0 1.0). No lleva escudo ni armas.
+  Cambios: aligerado a cuatro niveles de detalle, esqueleto del juego, manos nuevas. Estos cuatro niveles y sus
+  texturas se comparten con CC BY-SA 3.0.
+- Galo grande v2, primera versión (galo-grande-v2a*): el cuerpo, el pelo y la barba, la falda a cuadros, la esclavina,
+  el cinturón y las botas (con sus texturas) vienen de un modelo generado por el usuario con Meshy (https://www.meshy.ai),
+  de texto a 3D, con su plan de pago, el 23/11/2026 (tarea 01a20a77-63b8-71ab-9d57-bf0863662554). Meshy es la herramienta
+  con que se hizo; el modelo es del usuario y se publica con licencia CC BY-SA 3.0:
+  https://creativecommons.org/licenses/by-sa/3.0/
+  Aligerado y adaptado en AQVILA: tools/blender/galo-grande-v2a_meshy_ligero.py y tools/blender/galo-grande-v2a_meshy_juego.py.
+  El modelo original no está en el repositorio. Sus manos son de MakeHuman (CC0 1.0) y sus movimientos, de Quaternius (CC0 1.0).
+  Cambios: aligerado a cuatro niveles de detalle, esqueleto del juego, manos nuevas y la falda pasada a gris para teñirla
+  con el color de cada bando. Sin armas ni escudo (los pone el juego por código). Estos cuatro niveles y sus texturas
+  se comparten con CC BY-SA 3.0.
+- Galo grande v2b (galo-grande-v2b*): el cuerpo, la ropa y los adornos (con sus texturas) vienen de un modelo
+  generado por el usuario con Meshy (https://www.meshy.ai), de texto a 3D, con su plan de pago, el 23/11/2026
+  (refine 01a20a79-d04a-75f0-b92b-1d9e329f50f4). Meshy se cita como herramienta. Se publica con licencia
+  CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/
+  Aligerado y adaptado en AQVILA: tools/blender/galo-grande-v2b_meshy_ligero.py y galo-grande-v2b_meshy_juego.py.
+  El modelo original no está en el repositorio. Sus manos y su esqueleto son de MakeHuman (CC0 1.0).
+  Cambios: proporciones ajustadas al esqueleto del juego, aligerado a cuatro niveles de detalle, manos nuevas,
+  botas repintadas a cuero liso y la falda pasada a gris para teñirla con el color de cada bando. Sin armas ni
+  escudo (los pone el juego). Estos cuatro niveles y sus texturas se comparten con CC BY-SA 3.0.
+- Galo rápido (galo-rapido*): el cuerpo, la ropa y el pelo (con sus texturas) vienen de un modelo generado por el
+  usuario con Meshy (https://www.meshy.ai), de texto a 3D, con su plan de pago, el 23/11/2026 (tarea
+  01a20a86-e8e0-717d-b1bc-1fdc351c7609). Meshy es la herramienta; crédito: «Meshy».
+  Se publica con licencia CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/
+  Aligerado y adaptado en AQVILA: tools/blender/galo-rapido_meshy_ligero.py y tools/blender/galo-rapido_meshy_juego.py.
+  El modelo original no está en el repositorio. Sus manos son de MakeHuman (CC0 1.0).
+  Cambios: aligerado a cuatro niveles de detalle, esqueleto del juego, manos nuevas y la túnica pasada a gris para
+  teñirla con el color de cada bando. Sin armas ni escudo. Estos cuatro niveles y sus texturas se comparten con CC BY-SA 3.0.
+- Galo rápido «B» (galo-rapido-b*): el cuerpo y la ropa (con sus texturas) vienen de un modelo generado por el
+  usuario con Meshy (https://www.meshy.ai), de texto a 3D, con su plan de pago, el 23/11/2026. Herramienta: Meshy.
+  Se publica en AQVILA con licencia CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/
+  Aligerado y adaptado en AQVILA: tools/blender/galo-rapido-b_meshy_ligero.py y tools/blender/galo-rapido-b_meshy_juego.py.
+  El modelo original no está en el repositorio. Cambios: funda de pistola borrada (cadera derecha rehecha con la
+  izquierda reflejada), aligerado a cuatro niveles de detalle, esqueleto del juego, manos nuevas de MakeHuman (CC0 1.0),
+  camiseta pasada a gris para teñirla con el color de cada pueblo, zapatos repintados de cuero y hebilla de bronce.
+  Sin armas ni escudo (los pone el juego). Estos cuatro niveles y sus texturas se comparten con CC BY-SA 3.0.
+- Galo lancero (galo-lancero*): el cuerpo, la ropa, la capa con capucha, el casco y la barba (con sus texturas) vienen
+  de un modelo generado por el usuario con Meshy (https://www.meshy.ai), de texto a 3D, con su plan de pago, el
+  23/11/2026 (lote MS2). La salida es propiedad del usuario, que la publica bajo CC BY-SA 3.0:
+  https://creativecommons.org/licenses/by-sa/3.0/ . Herramienta: «Meshy».
+  Aligerado y adaptado en AQVILA: tools/blender/galo_lancero_meshy_ligero.py y tools/blender/galo_lancero_meshy_juego.py.
+  El modelo original no está en el repositorio. Sus manos son de MakeHuman (CC0 1.0).
+  Cambios: aligerado a cuatro niveles de detalle, esqueleto del juego, manos nuevas, y la túnica y la capa pasadas a
+  gris para teñirlas con el color de cada pueblo. Sin armas ni escudo. Estos cuatro niveles y sus texturas se
+  comparten con CC BY-SA 3.0.
+- Jefe galo (jefe-galo*, AL6): cuerpo, casco con penacho, coraza, capa y faldón generados por el usuario con
+  Meshy (meshy.ai; plan de pago, la salida es del usuario; refine 01a20a7f-0b5d-70e4-b039-2918c7b43cf1), el 23/11/2026.
+  El usuario lo publica bajo CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/), citando a Meshy como
+  herramienta. Aligerado, con esqueleto y texturas horneadas en AQVILA (tools/blender/jefe_galo_meshy_*). Manos, esqueleto
+  y pesos: MakeHuman (CC0 1.0). Movimientos: Quaternius, Universal Animation Library (CC0 1.0). Sin armas: las pone el
+  juego. Estos cuatro niveles y sus texturas se comparten con CC BY-SA 3.0.
+- Centurión (centurion*): el cuerpo, la ropa, la cota, el casco con su cresta, la capa, las grebas y la vaina (con sus
+  texturas) vienen de un modelo generado por el usuario con Meshy (https://www.meshy.ai), de texto a 3D, con su plan de
+  pago, el 23/11/2026 (tarea 01a20a81-6441-70c2-9f9f-06a46097040d). Herramienta: Meshy. Se publica con licencia
+  CC BY-SA 3.0: https://creativecommons.org/licenses/by-sa/3.0/
+  Aligerado y adaptado en AQVILA: tools/blender/centurion_meshy_ligero.py y tools/blender/centurion_meshy_juego.py.
+  El modelo original no está en el repositorio. Sus manos son de MakeHuman (CC0 1.0); movimientos de Quaternius (CC0 1.0).
+  Cambios: aligerado a cuatro niveles de detalle, esqueleto del juego, manos nuevas, rojo avivado en los niveles lejanos,
+  túnica pasada a gris para teñirla con el color de cada bando y relieve corregido. Sin escudo ni armas. Estos cuatro
+  niveles y sus texturas se comparten con CC BY-SA 3.0.
+- Triario (triario*): el cuerpo, la ropa, la cota, el casco con su cimera, la capa y las grebas (con sus texturas)
+  vienen de un modelo generado por el usuario con Meshy (https://www.meshy.ai), de texto a 3D, con su plan de pago, el
+  23/11/2026. Meshy fue la herramienta. Se publica con licencia CC BY-SA 3.0:
+  https://creativecommons.org/licenses/by-sa/3.0/
+  Aligerado y adaptado en AQVILA: tools/blender/triario_meshy_ligero.py y tools/blender/triario_meshy_juego.py.
+  El modelo original no está en el repositorio. Sus manos son de MakeHuman (CC0 1.0). Escudo oval, lanza, espada,
+  vaina y espada envainada son propios de AQVILA (código de gobierno/maquetas/soldado-rome2/construir/piezas.py).
+  Cambios: aligerado a cuatro niveles de detalle, esqueleto del juego, manos nuevas, escudo y armas añadidos,
+  y la túnica y la capa pasadas a gris para teñirlas con el color de cada pueblo. Estos cuatro niveles y sus
+  texturas se comparten con CC BY-SA 3.0.
+- Vélite (velite*): el cuerpo, la túnica, la faja, el casco y las sandalias (con sus texturas) vienen de un modelo
+  generado por el usuario con Meshy (https://www.meshy.ai), de texto a 3D, con su plan de pago, el 23/11/2026
+  (tarea 01a20a85-7229-71f3-9ed0-2b3c976a8313). Meshy es la herramienta; el modelo es del usuario y se publica con
+  licencia CC BY-SA 3.0 (https://creativecommons.org/licenses/by-sa/3.0/). Crédito: «hecho con Meshy».
+  Aligerado y adaptado en AQVILA: tools/blender/velite_meshy_ligero.py, velite_meshy_juego.py y velite_meshy_cresta.py.
+  El modelo original no está en el repositorio. Cambios: cresta del casco aplastada (casco liso), aligerado a cuatro
+  niveles de detalle, esqueleto del juego, manos nuevas, parma, jabalinas y espada añadidas. Sus manos son de MakeHuman
+  (CC0 1.0). Parma, jabalinas, espada y vaina son propias de AQVILA (código de gobierno/maquetas/soldado-rome2/construir/).
+  Estos cuatro niveles y sus texturas se comparten con CC BY-SA 3.0. (Los movimientos movimientos_escudo_* siguen
+  siendo CC0, de Quaternius.)
+
+CC BY 4.0 (falangita, oficial de la falange y hastatus) obliga a citar a Meshy y enlazar la licencia (aquí, en el README y en Créditos del juego).
+CC BY-SA 3.0 (los diez soldados de Meshy con plan de pago) obliga a citar a Meshy como herramienta y a compartir
+estos archivos y sus cambios con la misma licencia.
 CC0 no obliga a citar, pero se cita. El detalle de la conversión está en gobierno/maquetas/soldado-rome2/LEEME.md.
 Esta licencia se aplica solo al contenido de assets/soldados/. El código del juego es independiente.

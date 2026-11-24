@@ -4,7 +4,7 @@
    Las reglas no son de aquí: el bloque es js/bloque.js (LP1) y las órdenes y el enemigo, js/bloque-ia.js (LP2).
    Esta escena solo pinta y suena. Reutiliza el campo, el cielo y la luz de la falange (../falange/campo.js y su sombreado
    de cine, copiado), los soldados de js/gfx/soldado.js y el sonido de ../a-pie/sonido.js. Cámara detrás y arriba de tu
-   bloque (el pellizco hasta el oficial es LP4). Qué soldado pinta cada bando: soldados.js (punto único).
+   bloque; con un pellizco baja al hombro del centurión (camara.js, LP4). Qué soldado pinta cada bando: soldados.js (punto único).
    LP5a: física de js/fisica-batalla.js por fisica.js (cuerpos que no se atraviesan, caídos en el suelo, pilum y jabalinas que
    se clavan o rebotan); ?fisica=0 la apaga. ?nivel=facil|normal|dificil empieza sin la tarjeta · ?semilla=N · ?fase=dibuja|gira|salva|testudo|carga|choque|lucha|flanco|relevo|datos|fin
    salta a ese momento con un jugador automático y congela (capturas) · ?cam=d,alto,adelante,abertura retoca la cámara.
@@ -19,7 +19,8 @@ import { crearTropas } from './tropas.js';
 import { crearFisicaBloque } from './fisica.js';   /* LP5a: los cuerpos no se atraviesan; pilum y jabalinas con física (?fisica=0, el antes) */
 import { crearHud } from './hud.js';
 import { crearDedos } from './dedos.js';
-import { SOLDADOS } from './soldados.js';
+import { crearCamara } from './camara.js';
+import { modelos, prestan, ARMAS, FONDO, paleta, modeloDe, eligeOficial, soloArmas } from './soldados.js';
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), $ = id => document.getElementById(id);
 const suave = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
@@ -111,8 +112,10 @@ const rayo = new THREE.Raycaster(), PLANO = new THREE.Plane(new THREE.Vector3(0,
 function suelo(px, py) { V2.set(px / innerWidth * 2 - 1, -(py / innerHeight) * 2 + 1); rayo.setFromCamera(V2, camara); const p = rayo.ray.intersectPlane(PLANO, V3); if (!p) return null; if (Math.hypot(p.x - camara.position.x, p.z - camara.position.z) > 260) return null; return { x: p.x, z: p.z }; }
 
 /* ---------- soldados: tres niveles de detalle por bando, elegidos por distancia (y fuera de cámara no se pintan) ---------- */
-const NIV = [1, 2, 3], TOPE = { r: [22, 150, 900], g: [12, 130, 1300] }, DMAX = [26, 70];
-const T = { r: [], g: [] };
+/* AL11: los galos no usan el nivel cercano (con siete modelos serían siete llamadas más por una docena de hombres) */
+const NIV = [1, 2, 3], TOPE = { r: [22, 150, 900], g: [0, 142, 1300] }, DMAX = [26, 70];
+const T = { r: {}, g: {} }, A = { r: {}, g: {} };   /* AL11: T[bando][modelo] = 3 tropas (una por nivel); A[bando][quien presta] = sus armas */
+let oficial = null;
 const M4 = new THREE.Matrix4(), QT = new THREE.Quaternion(), P3 = new THREE.Vector3(), E3 = new THREE.Vector3(), Y = new THREE.Vector3(0, 1, 0);
 const frustum = new THREE.Frustum(), PM = new THREE.Matrix4(), ESF = new THREE.Sphere(new THREE.Vector3(), 1.6);
 const var4 = s => [0, 1, 2, 3].map(k => { const v = Math.sin(s * 127.1 + k * 311.7) * 43758.5453; return v - Math.floor(v); });
@@ -134,16 +137,18 @@ function pintaSoldados() {
   }
   let ns = 0;
   for (const b of ['r', 'g']) {
-    const tr = T[b]; for (const t of tr) t.limpiar(); if (!tr.length) continue;
+    const tr = T[b], ar = A[b], hay = Object.keys(tr); for (const g of [tr, ar]) for (const k in g) for (const t of g[k]) t.limpiar(); if (!hay.length) continue;
     L[b].sort((a, c) => a.d2 - c.d2); let usados = [0, 0, 0];
     for (const f of L[b]) {
       const d = Math.sqrt(f.d2); let n = d < DMAX[0] && usados[0] < TOPE[b][0] ? 0 : d < DMAX[1] && usados[1] < TOPE[b][1] ? 1 : 2;
-      if (usados[n] >= TOPE[b][n]) continue; const t = tr[n], i = t.sig(); if (i < 0) continue; usados[n]++;
+      if (usados[n] >= TOPE[b][n]) continue; let mo = tr[modeloDe(f, oficial)] ? f.modelo : hay[0]; if (n === 2 && tr[FONDO[mo]]) mo = FONDO[mo]; const t = tr[mo][n], i = t.sig(); if (i < 0) continue; usados[n]++;
       const y = H(f.x, f.z); P3.set(f.x, y, f.z); QT.setFromAxisAngle(Y, f.yaw); E3.set(f.talla, f.talla, f.talla); M4.compose(P3, QT, E3);
-      t.matriz(i, M4.elements); t.vars(i, var4(f.semilla)); t.pose(i, f.clip, f.t, t.muestra(f.clip, f.t));
+      const v4 = var4(f.semilla), mu = t.muestra(f.clip, f.t); t.matriz(i, M4.elements); t.vars(i, v4); t.pose(i, f.clip, f.t, mu);
+      const pa = ar[ARMAS[mo]]; if (pa) { const ta = pa[n], ia = ta.sig(); if (ia >= 0) { ta.matriz(ia, M4.elements); ta.vars(ia, v4); ta.pose(ia, f.clip, f.t, ta.muestra(f.clip, f.t)); } }
       if (sombras && ns < 2400 && f.clip !== 'morir') { P3.y = y + 0.04; E3.set(1, 1, 1); QT.identity(); M4.compose(P3, QT, E3); sombras.setMatrixAt(ns++, M4); }
     }
   }
+  for (const b of ['r', 'g']) for (const g of [T[b], A[b]]) for (const k in g) for (const t of g[k]) t.malla.visible = t.malla.count > 0;
   if (sombras) { sombras.count = ns; sombras.instanceMatrix.needsUpdate = true; }
 }
 
@@ -208,7 +213,7 @@ function pintaVuelos(dt) {
 }
 
 /* ---------- partida ---------- */
-let C = null, TR = null, FS = null, hud = null, dedos = null, congelado = false, nivel = NIVELES.includes(Q.get('nivel')) ? Q.get('nivel') : null;
+let C = null, TR = null, FS = null, hud = null, dedos = null, cam1 = null, congelado = false, nivel = NIVELES.includes(Q.get('nivel')) ? Q.get('nivel') : null;
 const semilla = +(Q.get('semilla') || (1 + Math.floor(Math.random() * 999)));
 let oyente = null;
 function avisa(tipo, d) {
@@ -226,7 +231,7 @@ function avisa(tipo, d) {
   } catch (e) { /* sin sonido */ }
 }
 function nueva(n) {
-  nivel = n; C = crearCombate({ semilla, nivel, motor: BL, avisa }); TR = crearTropas({ S: C.S }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla }); hud.pon(C); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
+  nivel = n; C = crearCombate({ semilla, nivel, motor: BL, avisa }); TR = crearTropas({ S: C.S }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla }); oficial = eligeOficial(TR.figs); hud.pon(C); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
   window.__bloque.C = C; window.__bloque.S = C.S;
 }
 /* lo que prevé LP1 al dibujar: mira hacia el lado de la raya más cerca de donde mira ahora */
@@ -257,6 +262,10 @@ function salta(fase) {
   else if (fase === 'choque' || fase === 'datos' || fase === 'lucha') { const dura = fase === 'lucha' ? 30 : 4; hasta(() => { if (tu.contactos.length && choqueT < 0) choqueT = S.T; return choqueT > 0 && S.T - choqueT > dura; }); }   /* lucha (LP5a): 30 s de choque, con caídos */
   else if (fase === 'flanco') hasta(() => !!S.flanco && !!S.flanco.de && Math.hypot(S.flanco.de.x - tu.x, S.flanco.de.z - tu.z) < 45);
   else if (fase === 'relevo') hasta(() => C.ordenUtil() === 'relevo');
+  else if (fase === 'trabado' || fase === 'retirada') {   /* LP4b: trabado y perdiendo (fila agotada, sin relevos); luego «Retirada» */
+    hasta(() => tu.contactos.length > 0 && S.T > 40); tu.relevos = 0; tu.fila = 0.8; tu.U.animo = 0.5; hasta(() => C.ordenUtil() === 'retirada');
+    if (fase === 'retirada') { C.orden('retirada'); for (let i = 0; i < 110; i++) paso(); }
+  }
   else if (fase === 'fin') hasta(() => false);
   oyente = null; TR.asienta(); for (let i = 0; i < 60; i++) { TR.paso(0.05, S.T); FS.paso(0.05); }
   if (fase !== 'testudo') $('grito').classList.remove('ve');
@@ -277,7 +286,7 @@ function bucle(ahora) {
       const B = C.S.B; if (!dedos.activo()) { if (B && B.meta) dedos.muestra(B.meta.p0, B.meta.p1, B.meta.rumbo, false); else dedos.oculta(); }
       try { Son.lucha && Son.lucha(C.S.tuyo.contactos.length ? 1 : 0); } catch (e) { /* sin sonido */ }
     }
-    camaraSigue(congelado ? 5 : dt); camara.updateMatrixWorld();
+    camaraSigue(congelado ? 5 : dt); cam1 && cam1.aplica(congelado ? 5 : dt); camara.updateMatrixWorld();
     avanza(polvo, POLVO_N, mPolvo, congelado ? 0 : dt, -0.1); avanza(chispa, CHISPA_N, mChispa, congelado ? 0 : dt, 6); pintaVuelos(congelado ? 0 : dt);
     pintaSoldados(); hud.tick(dt); campo && campo.tick(ahora / 1000);
   }
@@ -291,15 +300,20 @@ window.__bloque = { listo: false, dibuja: (a, b) => C && frenteDesdeRaya(a, b), 
 
 async function arranca() {
   hud = crearHud({ $, proyecta, ladoEnPantalla, Son });
-  dedos = crearDedos({ lienzo, suelo, haciaDonde: (a, b) => haciaDonde(a, b), alSoltar: (a, b) => { if (C && nivel && !congelado) frenteDesdeRaya(a, b); }, H });
+  dedos = crearDedos({ lienzo, suelo, haciaDonde: (a, b) => haciaDonde(a, b), alSoltar: (a, b) => { if (C && nivel && !congelado) frenteDesdeRaya(a, b); }, H, libre: () => !cam1 || cam1.libre() });
+  cam1 = crearCamara({ camara, lienzo, H, estado: () => C && C.S, hud: $('hud'), inicial: Q.get('vista') === 'oficial' ? 'oficial' : 'arriba' }); window.__bloque.vista = cam1;
   escena.add(dedos.raya);
   creaSombras(); creaEfectos();
   $('carga-t').textContent = 'Formando el manípulo…';
-  const [cs, rom, gal] = await Promise.all([crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color }).catch(e => { console.warn('Sin campo', e); return null; }),
-    cargarSoldado(SOLDADOS.r), cargarSoldado(SOLDADOS.g)]);
+  /* AL11: cada bando carga sus modelos y los que les prestan armas (soldados.js); una tropa por modelo y nivel */
+  const pide = [], nombres = new Set(); for (const b of ['r', 'g']) for (const n of [...modelos(b), ...prestan(b)]) nombres.add(n);
+  const cargados = {}; for (const n of nombres) pide.push(cargarSoldado(n, paleta(n)).then(s => { cargados[n] = s; }));
+  const [cs] = await Promise.all([crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color }).catch(e => { console.warn('Sin campo', e); return null; }), ...pide]);
   campo = cs;
-  for (const [b, s] of [['r', rom], ['g', gal]]) if (s) T[b] = NIV.map((nv, k) => { const t = tropa(s.niveles[nv], TOPE[b][k]); escena.add(t.malla); return t; });
-  if (!rom || !gal) console.warn('Faltan soldados', !!rom, !!gal);
+  for (const b of ['r', 'g']) {
+    for (const n of modelos(b)) { const s = cargados[n]; if (s) T[b][n] = NIV.map((nv, k) => { const t = tropa(s.niveles[nv], TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Falta soldado', n); }
+    for (const n of prestan(b)) { const s = cargados[n]; if (s) A[b][n] = NIV.map((nv, k) => { const t = tropa(soloArmas(s.niveles[nv]), TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Faltan armas de', n); }
+  }
   nueva(nivel || 'normal');
   $('salir').addEventListener('click', salir); $('salir2').addEventListener('click', salir);
   $('otra').addEventListener('click', () => { $('fin').hidden = true; $('inicio').hidden = false; });

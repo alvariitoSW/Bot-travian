@@ -421,6 +421,8 @@ function poseSarisa(h, T, P, D) {
 }
 const PL = new THREE.Vector3();
 const FIS = crearFisicaEscena({ H, SARISA }), poseF = h => { const P = new THREE.Vector3(), D = new THREE.Vector3(); posaFal(h, S.T); poseSarisa(h, S.T, P, D); return [P.toArray(), D.toArray()]; };   /* FI1 */
+const MF3 = m4(), MF3b = m4(), PF3 = new THREE.Vector3(), DF3 = new THREE.Vector3(), QF3 = new THREE.Quaternion();   /* FI3 */
+FIS.conecta({ prepara: h => posaFal(h, S.T), matriz: (h, s) => MF3.multiplyMatrices(h.inst, hueso(FIG_F, s === 'escudo' ? HF.escudo : HF.pecho, h.A, h.B, h.mx, MF3b)).elements, centroEscudo: h => ancla(h, FIG_F, HF.escudo, [0.75, 0.3, 2.6], PF3).toArray(), sarisa: h => { poseSarisa(h, S.T, PF3, DF3); return { P: PF3.toArray(), D: DF3.toArray() }; }, matSarisa: h => { poseSarisa(h, S.T, PF3, DF3); QF3.setFromUnitVectors(Z1, DF3); return MF3.compose(PF3, QF3, UNO).elements; } });   /* FI3: cómo se dibuja cada falangita, para los pila */
 /* FA4: tu estocada (S.yo.tEstocada): el asta sale 0,9 m en 0,12 s y vuelve en 0,35 s; k da la forma (0–1) */
 const curvaEstocada = (t, ida, vuelta) => t < 0 || t > ida + vuelta ? 0 : t < ida ? suave(0, ida, t) : 1 - suave(ida, ida + vuelta, t);
 const empuje = h => S.yo && h.i === S.yo.i && h.vivo ? 0.9 * curvaEstocada(S.T - S.yo.tEstocada, 0.12, 0.35) : 0;
@@ -475,9 +477,11 @@ function dibuja(dt) {
   muevePolvo(); ESC_P.value = renderer.domElement.height / 2 / Math.tan(camara.fov * Math.PI / 360);
   /* los pila: en el aire, clavados en un asta (la siguen), en un escudo, en un hombre o en el suelo */
   for (let i = S.proyectiles.length; i < NPILA; i++) pila.setMatrixAt(i, MS.makeScale(0, 0, 0));
+  const PF = FIS.proyectiles(S);   /* FI3: poses de los pila con física (null con ?fisica=0) */
   S.proyectiles.slice(0, NPILA).forEach((P, i) => {
     if (P.est === 2 && P.s === undefined) { P.s = 2.2 + azarV() * 2.5; P.giro = (azarV() - 0.5) * 1.2; }
     if (!P.est || (P.est === 1 && T < P.t0)) { pila.setMatrixAt(i, MS.makeScale(0, 0, 0)); return; }
+    if (PF && PF[i]) { DD.fromArray(PF[i].dir); PP.fromArray(PF[i].punta).addScaledVector(DD, -FIS.LARGO); Q1.setFromUnitVectors(Z1, DD); pila.setMatrixAt(i, MS.compose(PP, Q1, finaCerca(PP, DD))); return; }   /* FI3 */
     DD.fromArray(P.dir).normalize();
     if (P.est === 1 || P.est === 5) PP.fromArray(P.p).addScaledVector(DD, -1.6);
     if (P.est === 2) { poseSarisa(P.h, T, PP, V4); PP.addScaledVector(V4, P.s); DD.applyAxisAngle(V4, P.giro); PP.addScaledVector(DD, -1.75); }
@@ -593,6 +597,7 @@ async function montaRival() {
   ACC = crearAcciones({ H, avisa, hombres: M, zanF: FIG_F.zan });
   S = ACC.S; window.__tp.S = S; window.__tp.F = ACC.F;
   { const p0 = ACC.paso, r0 = ACC.reinicia; ACC.paso = dt => { p0(dt); FIS.paso(ACC.S, dt); }; ACC.reinicia = () => { r0(); FIS.reinicia(ACC.S); }; window.__tp.fisica = () => FIS.medida(ACC.S, poseF); window.__tp.fisicaJuega = (n, bot) => FIS.juega(n, ACC, poseF, bot); }   /* FI1 */
+  window.__tp.proyectiles = () => FIS.medidaPr(ACC.S); window.__tp.proyectilesJuega = (n, bot) => FIS.juegaPr(n, ACC, bot);   /* FI3: medida de la salva y la salva entera sin dibujar */
   /* FA7: el dibujo de los demás rivales vive en rival.js (montaRivalDe). Si no está o falla, se pintan con el muñeco de hoy.
      Con RIV, la escena no pinta S.ene (lo pinta él) y le pasa cada paso y cada aviso */
   if (S.rival !== 'manipulos') RIV = await montaRival();
