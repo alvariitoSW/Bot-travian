@@ -117,7 +117,11 @@
         "gobierno/captura-cg7.mjs",
         "js/gfx/cine-mando.js",
         "js/gfx/estandartes.js",
-        "test/fu2-oficial.test.mjs"
+        "test/fu2-oficial.test.mjs",
+        "js/mando-varios.js",
+        "js/tiro.js",
+        "test/es2-mando.test.mjs",
+        "test/es3-tiro.test.mjs"
       ],
       "taller": [],
       "juez": {
