@@ -1,6 +1,6 @@
 ---
 name: ministerio-batallas
-description: Ministerio de Batallas de AQVILA, con su taller de arte (soldados y movimientos). Úsala al empezar cualquier tarea de batalla (carriles CG, TP, GM, ES, UB): dice qué archivos son tuyos, cuáles están vetados, cómo se prueba sin pasar los jueces enteros y a quién se pasa cada cosa.
+description: Ministerio de Batallas de AQVILA (ejércitos, mando, campo y pantallas de la batalla; el cuerpo a cuerpo, las físicas y los soldados son del Departamento de Combate). Úsala al empezar cualquier tarea de batalla (carriles CG, TP, GM, ES, UB): dice qué archivos son tuyos, cuáles están vetados, cómo se prueba sin pasar los jueces enteros y a quién se pasa cada cosa.
 ---
 
 # Ministerio de Batallas
@@ -17,13 +17,15 @@ Lo que no sirva a esto no se hace: va a ideas (abajo).
 ## Tus archivos
 La tabla viva es `gobierno/areas.json` → `batallas`. Pregunta por un archivo: `node gobierno/juez-area.mjs --dueno <ruta>`.
 - **Propios** (los cambias sin pedir nada): la lógica de guerra (`js/battle.js`, `guerra.js`, `simulador.js`,
-  `maniobra.js`), sus pantallas (`js/ui-guerra.js`, `ui-mando.js`, `ui-maniobra.js`, `ui-escaramuza.js`), su dibujo
-  (`js/gfx/soldado.js`, `units.js`, `campo-mando.js`, `sonido.js`, `models.js`), sus estilos (`css/guerra.css`, `mando.css`,
+  `maniobra.js`, `falange.js`, `bloque.js`), sus pantallas (`js/ui-guerra.js`, `ui-mando.js`, `ui-maniobra.js`, `ui-escaramuza.js`), su dibujo
+  (`js/gfx/campo-mando.js`, `sonido.js`), sus estilos (`css/guerra.css`, `mando.css`,
   `maniobra.css`), sus pruebas y su juez (`gobierno/juez-guerra.mjs`), y las maquetas de batalla.
 - **Sonido** (`js/gfx/sonido.js` sigue siendo tuyo): los archivos de audio (`assets/sonido/`, `tools/sonido*`) son del
   Director de Sonido (skill `sonido`). Él te pasa la partitura (qué suena, cuándo, a qué volumen) y tú la montas.
-- **Taller de arte** (tuyo, con las reglas de la skill `arte`): `assets/soldados/`, `assets/units/`,
-  `tools/blender/`, `tools/glb_a_static.mjs`, y el entorno `gobierno/entornos/batallas-taller.*`.
+- **Departamento de Combate** (desde el 24/11, skill `ministerio-combate`): el motor de lucha (`js/combate.js`), las
+  físicas (`js/fisica-batalla.js`), los soldados y sus movimientos (`js/gfx/soldado.js`, `units.js`, `models.js`), las
+  piezas de lucha de la maqueta a pie y el **taller de arte de soldados** (`assets/soldados/`, `assets/units/`,
+  `tools/blender/`). Tú usas su motor y lo conectas en tus escenas; un cambio en él se pide como pase → Combate.
 - **Comunes** (NO se tocan salvo que el vigía te nombre sesión «de paso»): `js/ui.js`, `js/game.js`, `js/data.js`,
   `js/registro.js`, `index.html`, `css/style.css`, `sw.js`, `test/sim.test.js`, `gobierno/jueces.mjs`.
 - **Solo el vigía**: `gobierno/BITACORA.md`, `TABLERO.md`, `lista.json`, `cuadro.json`. Tú escribes tu **parte**; él lo pasa.
@@ -56,7 +58,8 @@ mirará `test/sim.test.js` primero.
   junta en el despacho del día. Solo se para si es irreversible o cuesta más de lo aprobado.
 - **Una idea nueva**: una línea en el parte, «Idea:». No abre sesión, estudio ni maqueta. El vigía decide si llega a tarea.
 
-## El taller de arte
+## El taller de arte (pasó a Combate el 24/11)
+Lo que sigue es para cuando Combate te pida montar algo suyo; el taller lo dirige él.
 Entorno en la nube «AQVILA Batallas taller» (las sesiones de batalla se abren en él): guion `gobierno/entornos/batallas-taller.sh`, guía
 `gobierno/entornos/batallas-taller.md` (rutas, versiones, órdenes de ejemplo y lo que no está comprobado). Deja
 Blender sin pantalla, los movimientos de Quaternius (CC0) y los datos de MakeHuman (CC0) en `/opt/aqvila-taller/`.

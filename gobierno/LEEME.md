@@ -13,12 +13,13 @@ Cómo se organiza el trabajo. Reducido a propósito: ocho oficios, tres comandos
 | **Exteriores** | Estudia mecánicas de otros juegos y rastrea arte libre, técnica e historia. Ideas sí; código y arte, no | skills `ingenieria-reversa` y `radar` |
 | **Arte** | Dueño de `tools/`, las licencias y el presupuesto de peso y triángulos | skill `arte`, `node gobierno/arte.mjs`, `arte.json` |
 | **Sonido** | Director de Sonido de todo el juego: carta sonora, mezcla, licencias y presupuesto de audio | skills `sonido`, `sonido-efectos`, `sonido-musica`; `node gobierno/juez-sonido.mjs` |
+| **Combate** | Motor de lucha (escudo, mano del arma, armas, manípulos), físicas, soldados y sus movimientos | skill `ministerio-combate`; `node gobierno/juez-area.mjs combate` |
 | **Historia** | Fidelidad a 280–146 a.C.: fichas con fuentes, dictamen histórico, lo que se aprende jugando | skill `historia`, `gobierno/historia/` |
 | **Cuadro de mando** | Página para el móvil del usuario con el estado y botones para decidir | skill `cuadro-de-mando`, `cuadro.mjs`, `cuadro.json` |
 
 **Ministerios por área, en vigor desde el 23/11** (`MINISTERIOS.md`; decisión del usuario): Cerebro (Ciudades y Política),
-Corazón (Batallas), Músculo, taller de Arte y taller de Sonido (23/11). Guías: skills `ministerio-batallas`, `ministerio-cerebro`,
-`ministerio-musculo`, `arte` y `sonido`. Dueño de cada archivo: `areas.json`. Cada tarea cierra con `node gobierno/juez-area.mjs <área>`; los jueces
+Corazón (Batallas y Combate), Músculo, taller de Arte y taller de Sonido (23/11). Guías: skills `ministerio-batallas`, `ministerio-cerebro`,
+`ministerio-musculo`, `ministerio-combate`, `arte` y `sonido`. Dueño de cada archivo: `areas.json`. Cada tarea cierra con `node gobierno/juez-area.mjs <área>`; los jueces
 completos, una vez al subir. Tablero y bitácora los escribe solo el vigía, con los partes.
 
 ## Los comandos
