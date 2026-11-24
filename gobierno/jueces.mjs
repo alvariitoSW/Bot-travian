@@ -392,13 +392,24 @@ async function navegador() {
           if (pt) { await espera(600); await page.touchscreen.tap(pt.x, pt.y); await espera(800); const c2 = await cifra(); if (c2 === c1) fallos.push('la cifra no cambia al mover la pieza (' + c1 + ')'); } } }
       const captura = await foto('construir');
       // si el sitio no vale, se toca el suelo en el mejor sitio verde
-      if (await estado(() => document.getElementById('b-si').disabled)) {
-        const pt = await estado(() => { const E = Game.ciudadE('roma'), pz = UI.bsel && UI.bsel.id || 'granja'; let m = null; for (let x = E.foro.x - 250; x <= E.foro.x + 250; x += 10) for (let z = E.foro.z - 250; z <= E.foro.z + 250; z += 10) { const n = Game.notaSitio('roma', pz, x, z); if (n && n.vale && (!m || n.nota > m.n)) m = { n: n.nota, x, z }; } if (!m) return null; UI.cityV.mirar(m.x, m.z, 300, 0); return UI.cityV.aPantalla(m.x, m.z, 0); });
-        if (pt) { await espera(800); await page.touchscreen.tap(pt.x, pt.y); await espera(700); } else fallos.push('no hay ningún sitio verde');
+      // CDe4: antes de «Construir aquí» se comprueba con la misma función que usa el juego al colocar (notaSitio → huella de ciudad.js) que el sitio está libre;
+      // si no, se busca otro libre y válido y se toca ahí (hasta 5 intentos). Se arregla la prueba: el juego decía «Mal sitio: Ya hay un edificio» con razón.
+      const sitioLibre = () => estado(() => { const s = UI.sel3; if (!s || !s.id || s.mover) return false; const n = Game.notaSitio('roma', s.id, s.x, s.z); return !!(n && n.vale) && !document.getElementById('b-si').disabled; });
+      const probados = [], nObras = () => estado(() => Game.state.cities.roma.obras.length);
+      /* JU1 + CDe4: con fotogramas lentos (render por software) el botón desaparece al pulsarlo antes de que Playwright reciba el acuse del clic, y entre
+         comprobar el sitio y pulsar pueden pasar segundos (la ciudad sigue viva). Por eso se comprueba y se pulsa en UN solo paso dentro de la página;
+         si el sitio resulta ocupado, se busca otro y se repite (hasta 5 veces). Se mira el efecto (la obra entra en la cola), no el acuse. */
+      for (let k = 0; k < 5 && !(await nObras()); k++) {
+        for (let j = 0; j < 5 && ((k > 0 && j === 0) || !(await sitioLibre())); j++) {
+          const pt = await estado(ex => { const E = Game.ciudadE('roma'), pz = (UI.sel3 && UI.sel3.id) || (UI.bsel && UI.bsel.id) || 'granja'; let m = null; for (let x = E.foro.x - 250; x <= E.foro.x + 250; x += 10) for (let z = E.foro.z - 250; z <= E.foro.z + 250; z += 10) { if (ex.some(q => q.x === x && q.z === z)) continue; const n = Game.notaSitio('roma', pz, x, z); if (n && n.vale && (!m || n.nota > m.n)) m = { n: n.nota, x, z }; } if (!m) return null; UI.cityV.mirar(m.x, m.z, 300, 0); return { ...UI.cityV.aPantalla(m.x, m.z, 0), gx: m.x, gz: m.z }; }, probados);
+          if (!pt) { fallos.push('no hay ningún sitio libre y válido'); break; }
+          probados.push({ x: pt.gx, z: pt.gz }); await espera(800); await page.touchscreen.tap(pt.x, pt.y); await espera(700);
+        }
+        const r = await estado(() => { const s = UI.sel3, bs = document.getElementById('b-si'), n = s && s.id && !s.mover && Game.notaSitio('roma', s.id, s.x, s.z); if (!(n && n.vale) || bs.disabled) return 'ocupado: ' + (n && n.razones ? n.razones.join(', ') : 'sin selección'); bs.click(); return 'pulsado'; });
+        await espera(1800);
+        if (!(await nObras())) { if (k === 4) fallos.push('«Construir aquí» no metió la obra tras 5 intentos (' + r + ' · ' + await estado(() => document.getElementById('linea').textContent.trim().slice(0, 80)) + ')'); }
       }
-      /* JU1: con fotogramas lentos (render por software) el botón desaparece al pulsarlo antes de que Playwright reciba el acuse del clic:
-         se comprueba el efecto (la obra entra en la cola), no el acuse. Si no entró, sigue siendo fallo. */
-      await page.click('#b-si', { timeout: 5000 }).catch(async () => { await espera(1500); if (!(await estado(() => Game.state.cities.roma.obras.length))) fallos.push('«Construir aquí» no se puede pulsar'); }); await espera(1500);
+      await espera(300);
       const obra = await estado(() => { const c = Game.state.cities.roma.obras[0]; return c ? { n: Game.state.cities.roma.obras.length, t: c.b ? DATA.BUILD[c.b].n : c.pieza } : null; });
       if (!obra || obra.n !== 1) fallos.push('la obra no entró en la cola (' + (obra ? obra.n : 0) + ' obras)');
       // ficha de una pieza ya colocada
