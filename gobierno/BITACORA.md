@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 24/11 (vigía 4): JZ1 hecha (rama `jz1-jueces`, entra con CDe4): jueces con memoria y en paralelo; `sim.test.js` 77 → 23 min sin cambiar cifras.
 - 24/11 — **Departamento de Combate instalado en la rama del juego** (pedido del usuario: «¿no se puede instalar el departamento de combate para que pueda ser usado por todas las sesiones?»). Área `combate` en `areas.json`, guía `ministerio-combate`, `MINISTERIOS.md` §4c. Pasan a Combate la física, los soldados y el taller de arte de soldados, y la falange y el testudo (`falange.js`, `falange-rivales.js`, `bloque.js`, `bloque-ia.js`; «Sí pasan», 24/11). Los demás departamentos (Batallas, Cerebro, Músculo, Arte, Sonido) ya estaban en la rama del juego. CB1, CB2 y CB3 hechas y subidas (partes `partes/2026-11-24-CB1.md`, `CB2.md`, `CB3.md`); al tablero, CB2b.
 - 24/11/2026 ~18:27 — La falange sin duelo de espada (aprobado), pero (literal) «en la falange hay que hacer algo parecido para mejorar la jugabilidad» → FU3b fase 2: gesto propio (bajar sarisas a tiempo, sostener el empuje, cerrar el hueco, othismos); ≤120 min en total.
 - 24/11/2026 ~18:25 — «Lo que falta que se haga en otra sesión rápidamente» (lo sin terminar de FU3) → FU3b en la rama `fu3-falange`; FU3 + FU3b suben juntas.
