@@ -312,6 +312,10 @@
     general: { n: 'General', lic: 'Un mismo modelo y valores para todos los generales', g: '★', cls: 'gen', atk: 17, def: 16, spd: 68, mor: 100, hp: 3, up: 0 }
   };
 
+  /* CDe1-A: paga de cada tropa por estación (3 meses), igual que MIN.pagaTropa: grano = up × 3, denarios = up × 3 × MANT_TROPA.
+     Es un dato derivado para la pantalla: el cobro ya se hace cada mes en game.js (grano: up por hombre; denarios: up × MANT_TROPA). Licencia de juego. */
+  for (const k in D.UNITS) { const up = D.UNITS[k].up || 0; D.UNITS[k].paga = { grano: Math.round(up * 3 * 100) / 100, denarios: Math.round(up * 3 * D.MANT_TROPA * 100) / 100 }; }
+
   D.FACTIONS = {
     roma: { n: 'Roma', col: '#b3261e' },
     cartago: { n: 'Cartago', col: '#7b3fa8', raid: true, from: 264 },
