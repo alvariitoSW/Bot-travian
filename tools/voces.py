@@ -13,6 +13,8 @@
 #   pip install piper-tts
 #   (bajar es_ES-sharvard-medium.onnx y .onnx.json de https://huggingface.co/rhasspy/piper-voices/tree/main/es/es_ES/sharvard/medium)
 #   python3 -I tools/voces.py <carpeta-con-la-voz> assets/voces [ids a rehacer...] [--faltan]
+#   (SON9: también las frases de js/dialogos.js, ids dl-*: arengas del general, preguntas de los oficiales y el clamor de la tropa;
+#    SON10: y las mismas en español de Cartago, los galos y los íberos, ids dl-ca-*, dl-ga-*, dl-ib-*, con la misma receta que los gritos españoles)
 #   (SON5: también las frases griegas de la falange propia, ids gr-*, y los gritos en español de Cartago, galos e íberos, ids ca-*, ga-*, ib-*)
 # Necesita ffmpeg (con libmp3lame) y numpy. Salida: mp3 mono a 32 kHz. Solo se usa al hacer los archivos; el juego lleva el audio ya grabado.
 import json, os, subprocess, sys
@@ -93,15 +95,16 @@ def escribe(nombre, x):
 
 if __name__ == '__main__':
     os.makedirs(SALIDA, exist_ok=True)
-    todo = json.loads(subprocess.run(['node', '-e', "const V = require('./js/voces.js'); console.log(JSON.stringify({ romanas: V.FRASES, griegas: V.GRIEGAS, gritos: V.GRITOS }))"], cwd=RAIZ, capture_output=True, check=True).stdout)
+    todo = json.loads(subprocess.run(['node', '-e', "const V = require('./js/voces.js'); const Dl = require('./js/dialogos.js'); console.log(JSON.stringify({ romanas: V.FRASES, griegas: V.GRIEGAS, gritos: V.GRITOS, dialogos: Dl.DICHOS.concat(Dl.DICHOS_PUEBLO) }))"], cwd=RAIZ, capture_output=True, check=True).stdout)
     voz = PiperVoice.load(os.path.join(VOZ, 'es_ES-sharvard-medium.onnx'))
     hechas = 0
     args = sys.argv[3:]
     faltan = '--faltan' in args   # solo las que aún no tienen mp3 (no toca lo ya grabado: Piper no repite exactamente la misma toma)
     solo = set(a for a in args if not a.startswith('--'))   # opcional: ids a rehacer
     # SON5: papel de cada frase → receta de tomas. lochagos = oficial (una toma); falangita = grupo (dos tomas); jefe/guerrero: gritos en español (jefe una toma, guerrero dos).
-    PAPEL_DE = {'centurion': 'centurion', 'optio': 'optio', 'soldado': 'soldado', 'lochagos': 'centurion', 'falangita': 'soldado', 'jefe': 'centurion', 'guerrero': 'soldado'}
-    for f in todo['romanas'] + todo['griegas'] + todo['gritos']:
+    PAPEL_DE = {'centurion': 'centurion', 'optio': 'optio', 'soldado': 'soldado', 'lochagos': 'centurion', 'falangita': 'soldado', 'jefe': 'centurion', 'guerrero': 'soldado',
+               'general': 'centurion', 'tribuno': 'centurion', 'primipilo': 'centurion', 'tropa': 'soldado'}   # SON9: el general y los oficiales, una toma; la tropa que aclama, dos
+    for f in todo['romanas'] + todo['griegas'] + todo['gritos'] + todo['dialogos']:
         if f['quien'] == 'enemigo': continue
         if solo and f['id'] not in solo: continue
         if faltan and os.path.exists(os.path.join(SALIDA, f['id'] + '.mp3')): continue

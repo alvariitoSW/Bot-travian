@@ -14,21 +14,10 @@
    velocidad que le dan las reglas) y, al caer, fCae (hacia dónde cae: ángulo como el yaw). Las reglas no lo leen: las partidas no cambian.
    Quien dibuja suma h.fx, h.fz a la posición del hombre vivo.
 
-   PROYECTILES (FI3). OBSOLETO (FI3u, 24/11): el motor que vale es crearProyectiles(), más abajo; ya trae el pilum que se dobla,
-   la herida en el casco, los tipos y el lastre del escudo. Este de aquí (Fi.lanza, Fi.vuela, Fi.dondeP) se queda solo porque lo
-   usa la maqueta del bloque (LP5a, gobierno/maquetas/bloque/fisica.js); se quita en cuanto conecte con crearProyectiles().
-   Lo de antes: pilum, jabalina y flecha con física. Diseño y varas: gobierno/partes/2026-11-23-FI3.md.
-     Fi.lanza(tipo, P, V, de)             tipo 'pilum' | 'jabalina' | 'flecha'; P la punta, V la velocidad (m/s); de: quien lanza (no se da a sí mismo)
-                                          → el proyectil p: { tipo, x, y, z, vx, vy, vz, est: 'vuela' | 'clavado' | 'caido', en, doblado, rebotes, fijo }
-     Fi.vuela(S, dt)                      mueve los que vuelan (con gravedad) y resuelve cada impacto → avisos [{ aviso, en, p, h, ang, v, herida }]
-                                          aviso: 'clava' (en 'escudo' | 'cuerpo' | 'suelo'), 'dobla' (el pilum clavado en un escudo), 'rebota'
-                                          (en 'escudo' | 'casco' | 'cuerpo' | 'suelo'), 'hiere' (en 'casco': el proyectil cae a sus pies),
-                                          'cae' (en 'suelo': de plano). ang: grados entre la trayectoria y la perpendicular a lo que toca.
-     Fi.dondeP(p)                         dónde dibujar p: { x, y, z, dx, dy, dz } (punta y dirección); el clavado en un hombre le sigue
-     Fi.proyectiles                       la lista viva (quien dibuja la recorre; Fi.limpia() quita los quietos)
-   Guardia del hombre (h.guardia): 'alto' escudo sobre la cabeza (techo del testudo); 'muro' algo agachado, con el escudo subido hasta los ojos; si no, al frente.
-   Solo escribe en el hombre h.pila (pilum y jabalinas clavados en su escudo: estorban; quien lleve las reglas lo lee si quiere).
-   La física no mata a nadie: avisa de la herida (herida: 'leve' | 'grave') y las reglas deciden.
+   PROYECTILES (FI3, FI3u). Hay un solo motor: crearProyectiles(), más abajo (pilum, jabalina y flecha; se clavan, rebotan o
+   resbalan; el pilum que se dobla, la herida en el casco y el lastre del escudo). Su contrato, en su cabecera «CONTRATO (FI3)».
+   El de crearFisica (Fi.lanza, Fi.vuela, Fi.dondeP) se quitó en FI3u (24/11): la maqueta del bloque usa ya crearProyectiles().
+   Diseño y varas: gobierno/partes/2026-11-23-FI3.md.
 
    HISTORIA. Las filas de detrás empujan con el peso del cuerpo (othismos): Asclepiódoto 5; Polibio 18.30 (histórico).
    Radios, cuánto resbala el asta y cuánto pasa a la fila de detrás: licencia de juego.
@@ -40,8 +29,12 @@ import { AGARRE } from './falange.js';
 
 export const RADIO = { infante: 0.25, piquero: 0.25, falangita: 0.25, jinete: 0.45, elefante: 1.3 };
 export const ALTO = { infante: 1.8, piquero: 1.8, falangita: 1.8, jinete: 2.5, elefante: 3.6 };
-/* masa por tipo: un jinete o un elefante apartan a los hombres; un hombre no aparta a un elefante */
-export const MASA = { infante: 1, piquero: 1, falangita: 1, jinete: 4, elefante: 20 };
+/* masa por tipo, en hombres armados (≈ 90 kg con su equipo). FE3, masas de verdad (ficha gobierno/historia/FE3-masas.md, probable):
+   caballo de la época (≈ 1,40 m a la cruz) con su jinete ≈ 500–550 kg → 6; elefante de guerra ≈ 4 t → 45 (el africano de bosque de
+   Cartago, 2,5–3 t; el indio de Pirro y los seléucidas, 4–5 t). Un jinete o un elefante apartan a los hombres; un hombre no aparta a un elefante */
+export const MASA = { infante: 1, piquero: 1, falangita: 1, jinete: 6, elefante: 45 };
+export const MASA_BESTIA = 10;   /* FE3: desde esta masa (en hombres) una pica no hace recular: el elefante */
+export const ANCHO_BESTIA = 1.8; /* FE3: lo menos que se apartan dos elefantes de costado (m, de centro a centro) */
 export const MASA_CAIDO = 2, TOPE_CAIDO = 2.5;   /* el caído se arrastra: pesa como dos hombres */
 export const RADIO_CAIDO = { infante: 0.35, piquero: 0.35, falangita: 0.35, jinete: 0.8, elefante: 1.6 };   /* el caído: estorbo bajo */
 /* el escudo del infante: una caja de pie delante del cuerpo, algo a su izquierda (scutum, aspís) */
@@ -49,6 +42,8 @@ export const ESCUDO = { ancho: 0.65, grueso: 0.08, y0: 0.25, y1: 1.35, delante: 
 export const CON_ESCUDO = { infante: true, piquero: true };
 export const MIN_DIST = 0.45;     /* la vara: dos hombres dibujados nunca más cerca que esto */
 export const TOPE = 1.2;          /* lo más que se aparta un hombre de su sitio de las reglas (tope duro; lo normal lo frena el muelle) */
+/* FE3: lo pesado se deja apartar menos de su sitio: TOPE / √masa (hombre 1,2 m; jinete 0,49; elefante 0,18) */
+export const topeDe = m => m > 1 ? TOPE / Math.sqrt(m) : TOPE;
 export const K_MUELLE = 9, C_FRENO = 7;   /* muelle hacia el sitio (ω = 3/s) con amortiguación algo por encima de la crítica (6) y rozamiento: no rebota */
 export const V_MAX = 8;           /* m/s: más que esto en las reglas es un salto (reinicio), no una carrera */
 export const CELDA = 1;           /* rejilla espacial de 1 m */
@@ -66,25 +61,8 @@ export const PROYECTIL = {
   jabalina: { masa: 0.8,  largo: 1.5,  v: 22, E: { escudo: 40, casco: 90,  cuerpo: 10 }, dobla: false },
   flecha:   { masa: 0.03, largo: 0.75, v: 45, E: { escudo: 8,  casco: 25,  cuerpo: 4 },  dobla: false },
 };
-/* ángulos límite (grados desde la perpendicular): más inclinado que esto, rebota (con algo de azar, ±AZAR_ANG) */
-export const ANG = { escudo: 58, casco: 32, cuerpo: 70 };
-export const AZAR_ANG = 8;
 export const HIERE_CASCO = 32;       /* FI3u, crearProyectiles: grados desde la perpendicular; más de frente, y con energía, el casco hiere */
 export const DOBLA_E = 250;          /* J sobre la perpendicular: desde aquí el hierro del pilum se dobla (con azar ±30 %) */
-export const SUELO_CLAVA = 30;       /* grados de caída bajo la horizontal: más empinado y con V_CLAVA, se clava de pie */
-export const V_CLAVA = 6;            /* m/s: más lento que esto, nada se clava: cae */
-export const REBOTE = { normal: 0.25, roce: 0.55 };   /* lo que conserva el rebote: de la velocidad perpendicular y de la de roce */
-export const MAX_REBOTES = 2;        /* tras dos rebotes, el siguiente toque lo deja en el suelo */
-export const G = 9.81;
-export const SUBPASO = 1;            /* m: largo máximo de cada tramo recto del vuelo */
-export const CASCO = { r: 0.14, baja: 0.14 };        /* el casco: esfera de 0,14 m con el centro 0,14 m bajo la coronilla */
-export const CUELLO = 0.28;          /* el cuerpo (cilindro) acaba 0,28 m bajo la coronilla; encima, el casco */
-/* el escudo alzado (testudo, h.guardia === 'alto'): la misma caja, tumbada sobre la cabeza */
-export const ESCUDO_ALTO = { y: 1.85, delante: 0.4 };   /* adelantado: tapa también la cabeza del de delante (las tejas del testudo) */
-/* el muro cerrado (h.guardia === 'muro': la 1.ª fila del testudo, o quien aguanta una salva): algo agachado (la cabeza baja
-   MURO.agacha) y con el escudo subido MURO.sube, hasta los ojos; por arriba casi toca el techo de la 2.ª fila */
-export const MURO = { sube: 0.28, agacha: 0.1 };
-
 const xyz = v => Array.isArray(v) ? v : [v.x, v.y, v.z];
 const tipoF = h => h.tipo || 'falangita';
 
@@ -188,7 +166,7 @@ export function crearFisica(op = {}) {
     return G;
   }
   /* tope duro: nadie se aparta más de TOPE de su sitio; si lo toca, pierde la velocidad hacia fuera */
-  const tope = h => { const m = Math.hypot(h.fx, h.fz); if (m > TOPE) { const ux = h.fx / m, uz = h.fz / m, vn = h.vx * ux + h.vz * uz; h.fx = ux * TOPE; h.fz = uz * TOPE; if (vn > 0) { h.vx -= ux * vn; h.vz -= uz * vn; } } };
+  const tope = h => { const m = Math.hypot(h.fx, h.fz), T = topeDe(masa(h)); if (m > T) { const ux = h.fx / m, uz = h.fz / m, vn = h.vx * ux + h.vz * uz; h.fx = ux * T; h.fz = uz * T; if (vn > 0) { h.vx -= ux * vn; h.vz -= uz * vn; } } };
   /* velocidad que dan las reglas (lo que se movió x, z en este paso); con tope, por si hubo un salto.
      antes: por hombre, dónde lo puso la regla en el paso anterior y si estaba vivo ({ x, z, vivo }; se reescribe, no se crea) */
   let antes = new WeakMap();
@@ -212,10 +190,9 @@ export function crearFisica(op = {}) {
     for (let i = 0, n = L.length; i < n; i++) { const h = L[i]; h.fx = FX[i]; h.fz = FZ[i]; h.vx = VX[i]; h.vz = VZ[i]; }
     for (let j = 0, m = C.length; j < m; j++) { const h = C[j]; h.fx = CFX[j]; h.fz = CFZ[j]; }
   }
-  const TOPE2 = TOPE * TOPE * (1 - 1e-9);   /* por debajo de esto el tope ni se mira (sin raíz) */
   function topeI(i) {
-    const fx = FX[i], fz = FZ[i]; if (fx * fx + fz * fz < TOPE2) return;
-    const m = Math.hypot(fx, fz); if (m > TOPE) { const ux = fx / m, uz = fz / m, vn = VX[i] * ux + VZ[i] * uz; FX[i] = ux * TOPE; FZ[i] = uz * TOPE; if (vn > 0) { VX[i] -= ux * vn; VZ[i] -= uz * vn; } }
+    const fx = FX[i], fz = FZ[i], T = M[i] > 1 ? topeDe(M[i]) : TOPE; if (fx * fx + fz * fz < T * T * (1 - 1e-9)) return;   /* FE3: el tope de cada uno, por su masa */
+    const m = Math.hypot(fx, fz); if (m > T) { const ux = fx / m, uz = fz / m, vn = VX[i] * ux + VZ[i] * uz; FX[i] = ux * T; FZ[i] = uz * T; if (vn > 0) { VX[i] -= ux * vn; VZ[i] -= uz * vn; } }
   }
 
   /* una pasada de choques entre vivos: se apartan a la suma de radios (cada uno según su masa) y el choque es
@@ -234,7 +211,11 @@ export function crearFisica(op = {}) {
           const rs = ra + R[j], rl = rs > DMAX_PAR ? rs : DMAX_PAR;
           let vx = (X[j] + FX[j]) - (X[i] + FX[i]), vz = (Z[j] + FZ[j]) - (Z[i] + FZ[i]);
           if (vx * vx + vz * vz >= rl * rl * (1 + 1e-9)) continue;   /* lejos, sin raíz (sin parMax, parMin solo acorta la distancia mínima) */
-          const pm = parMin ? parMin(L[i], L[j]) : undefined, min = pm === undefined ? rs : DMAX_PAR ? Math.min(pm, DMAX_PAR) : Math.min(rs, pm); let d = Math.hypot(vx, vz);
+          let pm = parMin ? parMin(L[i], L[j]) : undefined;
+          /* FE3: dos bestias juntas: su círculo (el largo) es más ancho que su cuerpo; de costado guardan lo que digan las reglas
+             (y al menos ANCHO_BESTIA): si no, se empujaban de lado, y la que se desbocaba apartaba de golpe a su vecina */
+          if (M[i] >= MASA_BESTIA && M[j] >= MASA_BESTIA) { const dr = Math.hypot(X[j] - X[i], Z[j] - Z[i]); if (dr < rs) pm = Math.max(ANCHO_BESTIA, pm === undefined ? dr : Math.min(pm, dr)); }
+          const min = pm === undefined ? rs : DMAX_PAR ? Math.min(pm, DMAX_PAR) : Math.min(rs, pm); let d = Math.hypot(vx, vz);
           if (d >= min) continue;
           if (d < 1e-6) { const g = (i * 2.399 + j) % 6.283; vx = Math.cos(g); vz = Math.sin(g); d = 0; } else { vx /= d; vz /= d; }
           const ib = 1 / M[j], wa = ia / (ia + ib), o = min - d;
@@ -257,7 +238,7 @@ export function crearFisica(op = {}) {
     GC.haz(nC, CX, CZ, CFX, CFZ); const I = GC.items, n = Math.ceil((1.3 + 1.6 + largoC) / CELDA), densa = GC.densa;
     for (let i = 0, nL = L.length; i < nL; i++) {
       if (L[i].salta) continue;
-      const ra = R[i], k = ra > 0.5 ? n : Math.ceil((1 + largoC) / CELDA), wa = fijoC ? 1 : (1 / M[i]) / (1 / M[i] + 1 / MASA_CAIDO);
+      const ra = R[i], k = ra > 0.5 ? n : Math.ceil((1 + largoC) / CELDA), wa = M[i] >= MASA_BESTIA ? 0 : fijoC ? 1 : (1 / M[i]) / (1 / M[i] + 1 / MASA_CAIDO);   /* FE3: la bestia no se aparta de un caído: lo arrastra o pasa por encima */
       for (let pase = 0, movido = true; pase < 2 && movido; pase++) {   /* la 2.ª pasada, solo si la 1.ª movió algo (si no, daría lo mismo) */
         movido = false;
         const ax = X[i] + FX[i], az = Z[i] + FZ[i], cx = Math.floor(ax / CELDA), cz = Math.floor(az / CELDA);
@@ -386,12 +367,16 @@ export function crearFisica(op = {}) {
     const o = L - m.t + 0.02; let ret = Math.min(o, RESBALA); const e = Math.min(TOPE_EMPUJE, (o - EMPUJA_DESDE) / 2);
     const n = Math.hypot(D[0], D[2]) || 1, ux = D[0] / n, uz = D[2] / n;
     /* si el asta ya no resbala más (de golpe: la pica baja o el rival da un paso), el rival recula ya lo que sobra */
+    /* FE3: la masa manda: una pica no hace recular a una bestia de MASA_BESTIA o más (el elefante); a un jinete, por la razón de
+       masas (1/6). Lo que no recula, lo resbala el asta (se para en la piel; romperse lo deciden las reglas) y el empujón vuelve
+       entero al piquero. Entre hombres, igual que antes (1) */
+    const km = masa(m.h) >= MASA_BESTIA * masa(h) ? 0 : Math.min(1, masa(h) / masa(m.h));
     if (o > RESBALA) {
-      const b = m.h, x0 = b.fx || 0, z0 = b.fz || 0; b.fx = x0 + ux * (o - RESBALA); b.fz = z0 + uz * (o - RESBALA); b.vx = b.vx || 0; b.vz = b.vz || 0; tope(b);
+      const b = m.h, x0 = b.fx || 0, z0 = b.fz || 0; b.fx = x0 + ux * (o - RESBALA) * km; b.fz = z0 + uz * (o - RESBALA) * km; b.vx = b.vx || 0; b.vz = b.vz || 0; tope(b);
       /* si el rival ya está a tope y no recula todo, el asta resbala lo que falta (solo entonces pasa de 0,5) */
       const hecho = (b.fx - x0) * ux + (b.fz - z0) * uz; ret = Math.min(o, Math.max(ret, o - hecho));
     }
-    if (e > 0) { apunta(m.h, ux * e, uz * e); apunta(h, -ux * e, -uz * e); }
+    if (e > 0) { apunta(m.h, ux * e * km, uz * e * km); apunta(h, -ux * e, -uz * e); }
     return { ret, h: m.h, en: m.en };
   }
   /* cada hombre se lleva el mayor empujón del fotograma (no la suma: varias picas, o la misma dibujada dos veces) */
@@ -413,191 +398,7 @@ export function crearFisica(op = {}) {
     return { distMin: dMin, puntasDentro: dentro, pisados, detalle };
   }
 
-  /* ---------- FI3: proyectiles ---------- */
-  let semilla = (op.semilla ?? 1) >>> 0;
-  const azar = op.azar || (() => { semilla = (semilla + 0x6D2B79F5) >>> 0; let t = semilla; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; });
-  const proyectiles = [];
-  const marco = h => { const y = h.yaw || 0; return { fx: Math.sin(y), fz: Math.cos(y), lx: Math.cos(y), lz: -Math.sin(y) }; };
-  const altoDe = h => ((ALTO[tipoF(h)] || 1.8) - (h.guardia === 'muro' ? MURO.agacha : 0)) * ESC;
-
-  function lanza(tipo, P0, V0, de) {
-    const P = xyz(P0), V = xyz(V0);
-    const p = { tipo, x: P[0], y: P[1], z: P[2], vx: V[0], vy: V[1], vz: V[2], est: 'vuela', en: null, doblado: false, rebotes: 0, de: de || null, t: 0, fijo: null };
-    proyectiles.push(p); return p;
-  }
-  /* la caja del escudo de h en su marco: centro y ejes (frente, izquierda, arriba) con sus medias medidas */
-  function cajaEscudo(h) {
-    if (!CON_ESCUDO[tipoF(h)]) return null;
-    const m = marco(h), px = h.x + (h.fx || 0), pz = h.z + (h.fz || 0), g = H(px, pz);
-    const ancho = ESCUDO.ancho / 2 * ESC, alto = (ESCUDO.y1 - ESCUDO.y0) / 2 * ESC, grueso = ESCUDO.grueso / 2 * ESC;
-    if (h.guardia === 'alto') {
-      /* tumbado: su cara mira arriba; lo largo va hacia delante */
-      const c = [px + m.fx * ESCUDO_ALTO.delante * ESC, g + ESCUDO_ALTO.y * ESC, pz + m.fz * ESCUDO_ALTO.delante * ESC];
-      return { c, ejes: [[[0, 1, 0], grueso], [[m.lx, 0, m.lz], ancho], [[m.fx, 0, m.fz], alto]] };
-    }
-    const sube = h.guardia === 'muro' ? MURO.sube : 0;
-    const c = [px + (m.fx * ESCUDO.delante + m.lx * ESCUDO.izq) * ESC, g + ((ESCUDO.y0 + ESCUDO.y1) / 2 + sube) * ESC, pz + (m.fz * ESCUDO.delante + m.lz * ESCUDO.izq) * ESC];
-    return { c, ejes: [[[m.fx, 0, m.fz], grueso], [[m.lx, 0, m.lz], ancho], [[0, 1, 0], alto]] };
-  }
-  /* primer t ∈ [0, 1] en que el tramo A→A+D entra en la caja; normal: el eje de la cara (la cara del escudo es el eje 0) */
-  function cortaCaja(K, A, D) {
-    let tin = -Infinity, tout = Infinity, cara = 0;
-    for (let k = 0; k < 3; k++) {
-      const [e, m] = K.ejes[k], o = (A[0] - K.c[0]) * e[0] + (A[1] - K.c[1]) * e[1] + (A[2] - K.c[2]) * e[2], d = D[0] * e[0] + D[1] * e[1] + D[2] * e[2];
-      if (Math.abs(d) < 1e-12) { if (Math.abs(o) > m) return null; continue; }
-      let t0 = (-m - o) / d, t1 = (m - o) / d; if (t0 > t1) [t0, t1] = [t1, t0];
-      if (t0 > tin) { tin = t0; cara = k; } tout = Math.min(tout, t1); if (tin > tout) return null;
-    }
-    if (tin > 1 || tout < 0) return null;
-    const t = Math.max(0, tin), e = K.ejes[0][0];   /* la normal es siempre la de la cara ancha: el canto no cuenta aparte */
-    return { t, n: e };
-  }
-  function cortaCasco(h, A, D) {
-    const px = h.x + (h.fx || 0), pz = h.z + (h.fz || 0), r = CASCO.r * ESC, c = [px, H(px, pz) + altoDe(h) - CASCO.baja * ESC, pz];
-    const o = [A[0] - c[0], A[1] - c[1], A[2] - c[2]], a = D[0] * D[0] + D[1] * D[1] + D[2] * D[2], b = o[0] * D[0] + o[1] * D[1] + o[2] * D[2], cc = o[0] * o[0] + o[1] * o[1] + o[2] * o[2] - r * r;
-    if (a < 1e-12) return null;
-    const q = b * b - a * cc; if (q < 0) return null;
-    const t = cc <= 0 ? 0 : (-b - Math.sqrt(q)) / a; if (t < 0 || t > 1) return null;
-    const P = [A[0] + D[0] * t - c[0], A[1] + D[1] * t - c[1], A[2] + D[2] * t - c[2]], m = Math.hypot(...P) || 1;
-    return { t, n: [P[0] / m, P[1] / m, P[2] / m] };
-  }
-  function cortaCuerpo(h, A, D) {
-    const r = rad(h), cx = h.x + (h.fx || 0), cz = h.z + (h.fz || 0), g = H(cx, cz), y1 = g + altoDe(h) - CUELLO * ESC;
-    const ox = A[0] - cx, oz = A[2] - cz, a = D[0] * D[0] + D[2] * D[2];
-    let tin = -Infinity, tout = Infinity, tapa = false;
-    if (a < 1e-12) { if (ox * ox + oz * oz > r * r) return null; }
-    else { const b = ox * D[0] + oz * D[2], c = ox * ox + oz * oz - r * r, q = b * b - a * c; if (q < 0) return null; const s = Math.sqrt(q); tin = (-b - s) / a; tout = (-b + s) / a; }
-    if (Math.abs(D[1]) < 1e-12) { if (A[1] < g || A[1] > y1) return null; }
-    else { let t0 = (g - A[1]) / D[1], t1 = (y1 - A[1]) / D[1]; if (t0 > t1) [t0, t1] = [t1, t0]; if (t0 > tin) { tin = t0; tapa = true; } tout = Math.min(tout, t1); }
-    if (tin > tout || tin > 1 || tout < 0) return null;
-    /* entra por arriba (los hombros: lo que cae casi en vertical) → normal hacia arriba; si no, la del costado */
-    if (tapa && tin >= 0) return { t: tin, n: [0, Math.sign(-D[1]) || 1, 0] };
-    const t = Math.max(0, tin), x = A[0] + D[0] * t - cx, z = A[2] + D[2] * t - cz, m = Math.hypot(x, z) || 1;
-    return { t, n: [x / m, 0, z / m] };
-  }
-  /* lo primero que toca el tramo A→A+D: escudo, casco o cuerpo de alguien (no de quien lo lanzó ni del que acaba de rebotar).
-     Solo mira las celdas de la rejilla Rj que cubre el tramo (más 1,6 m: el elefante) */
-  function toca(p, A, D, L, Rj) {
-    let mejor = null;
-    const cx0 = Math.floor((Math.min(A[0], A[0] + D[0]) - 1.6) / CELDA), cx1 = Math.floor((Math.max(A[0], A[0] + D[0]) + 1.6) / CELDA);
-    const cz0 = Math.floor((Math.min(A[2], A[2] + D[2]) - 1.6) / CELDA), cz1 = Math.floor((Math.max(A[2], A[2] + D[2]) + 1.6) / CELDA);
-    for (let ix = cx0; ix <= cx1; ix++) for (let iz = cz0; iz <= cz1; iz++) {
-      const c = Rj.get(clave(ix, iz)); if (!c) continue;
-      for (const j of c) {
-        const h = L[j]; if (h === p.de || h === p.ignora) continue;
-        const K = cajaEscudo(h);
-        let r = K && cortaCaja(K, A, D); if (r && (!mejor || r.t < mejor.t - 1e-9)) mejor = { ...r, h, en: 'escudo' };
-        r = cortaCasco(h, A, D); if (r && (!mejor || r.t < mejor.t - 1e-9)) mejor = { ...r, h, en: 'casco' };
-        r = cortaCuerpo(h, A, D); if (r && (!mejor || r.t < mejor.t - 1e-9)) mejor = { ...r, h, en: 'cuerpo' };
-      }
-    }
-    return mejor;
-  }
-  const grados = r => r * 180 / Math.PI;
-  /* deja p quieto donde está; si se clava en un hombre, guarda dónde en su marco para seguirle */
-  function fija(p, h) {
-    p.vx = p.vy = p.vz = 0;
-    if (!h) return;
-    const m = marco(h), ox = p.x - (h.x + (h.fx || 0)), oz = p.z - (h.z + (h.fz || 0)), d = p.dir;
-    p.fijo = { h, f: ox * m.fx + oz * m.fz, l: ox * m.lx + oz * m.lz, y: p.y - H(h.x + (h.fx || 0), h.z + (h.fz || 0)), df: d[0] * m.fx + d[2] * m.fz, dl: d[0] * m.lx + d[2] * m.lz, dy: d[1] };
-  }
-  function rebota(p, n, av, en, h, ang, v) {
-    const vn = p.vx * n[0] + p.vy * n[1] + p.vz * n[2], tx = p.vx - vn * n[0], ty = p.vy - vn * n[1], tz = p.vz - vn * n[2];
-    /* sale por el lado de donde vino, con lo que conserva y un poco de azar (el asta gira) */
-    const k = REBOTE.roce * (0.7 + 0.6 * azar()), s = -vn * REBOTE.normal;
-    p.vx = tx * k + n[0] * s + (azar() - 0.5) * 1.5; p.vy = ty * k + n[1] * s + (azar() - 0.5) * 1.0; p.vz = tz * k + n[2] * s + (azar() - 0.5) * 1.5;
-    /* lo saca un poco de la superficie para que no la vuelva a tocar en el acto */
-    p.x += n[0] * 0.02 * Math.sign(-vn || 1); p.y += n[1] * 0.02 * Math.sign(-vn || 1); p.z += n[2] * 0.02 * Math.sign(-vn || 1);
-    p.rebotes++; p.ignora = h || null; av.push({ aviso: 'rebota', en, p, h: h || null, ang, v });
-  }
-
-  /* un impacto: decide clavar, rebotar, herir o caer */
-  function impacto(p, c, av) {
-    const T = PROYECTIL[p.tipo] || PROYECTIL.jabalina, v = Math.hypot(p.vx, p.vy, p.vz) || 1e-9, n = c.n;
-    const cosA = Math.min(1, Math.abs(p.vx * n[0] + p.vy * n[1] + p.vz * n[2]) / v), ang = grados(Math.acos(cosA));
-    const En = 0.5 * T.masa * v * v * cosA * cosA, lento = v < V_CLAVA || p.rebotes >= MAX_REBOTES;
-    p.dir = [p.vx / v, p.vy / v, p.vz / v];
-    const lim = (ANG[c.en] ?? 60) + (azar() * 2 - 1) * AZAR_ANG;
-    if (c.en === 'escudo') {
-      if (!lento && ang < lim && En > T.E.escudo) {
-        p.est = 'clavado'; p.en = 'escudo'; fija(p, c.h); av.push({ aviso: 'clava', en: 'escudo', p, h: c.h, ang, v });
-        if (T.masa >= 0.5) c.h.pila = (c.h.pila || 0) + 1;   /* un pilum o una jabalina clavados estorban; una flecha, no */
-        if (T.dobla && En > DOBLA_E * (0.7 + 0.6 * azar())) { p.doblado = true; av.push({ aviso: 'dobla', en: 'escudo', p, h: c.h, ang, v }); }
-        return;
-      }
-      if (lento) return cae(p, av, c.h);
-      return rebota(p, n, av, 'escudo', c.h, ang, v);
-    }
-    if (c.en === 'casco') {
-      if (!lento && ang < lim && En > T.E.casco) { av.push({ aviso: 'hiere', en: 'casco', p, h: c.h, ang, v, herida: 'grave' }); return cae(p, av, c.h, true); }
-      if (lento) return cae(p, av, c.h);
-      return rebota(p, n, av, 'casco', c.h, ang, v);
-    }
-    /* cuerpo */
-    if (!lento && ang < lim && En > T.E.cuerpo) {
-      p.est = 'clavado'; p.en = 'cuerpo'; fija(p, c.h);
-      av.push({ aviso: 'clava', en: 'cuerpo', p, h: c.h, ang, v, herida: En > 3 * T.E.cuerpo + 30 ? 'grave' : 'leve' });
-      return;
-    }
-    if (lento) return cae(p, av, c.h);
-    return rebota(p, n, av, 'cuerpo', c.h, ang, v);
-  }
-  /* cae al suelo bajo donde está (a los pies de h si se dio con él); sin aviso propio si ya hubo uno */
-  function cae(p, av, h, callado) {
-    const g = H(p.x, p.z); p.y = g + 0.03; p.est = 'caido'; p.en = 'suelo'; p.plano = true;
-    const v = Math.hypot(p.vx, p.vz) || 1; p.dir = [p.vx / v, 0, p.vz / v]; if (!(Math.abs(p.dir[0]) + Math.abs(p.dir[2]))) p.dir = [1, 0, 0];
-    p.vx = p.vy = p.vz = 0; if (!callado) av.push({ aviso: 'cae', en: 'suelo', p, h: h || null, ang: 90, v });
-  }
-  function suelo(p, t, A, D, av) {
-    p.x = A[0] + D[0] * t; p.z = A[2] + D[2] * t; const g = H(p.x, p.z); p.y = g;
-    const vh = Math.hypot(p.vx, p.vz), v = Math.hypot(vh, p.vy), caida = grados(Math.atan2(-p.vy, vh));
-    if (!(p.rebotes >= MAX_REBOTES) && v >= V_CLAVA && caida > SUELO_CLAVA) {
-      p.est = 'clavado'; p.en = 'suelo'; p.dir = [p.vx / v, p.vy / v, p.vz / v]; p.plano = false; p.vx = p.vy = p.vz = 0;
-      av.push({ aviso: 'clava', en: 'suelo', p, h: null, ang: 90 - caida, v }); return;
-    }
-    /* de plano: si viene rápido y rasante, rebota una vez en la tierra; si no, se queda tendido */
-    if (p.rebotes < 1 && v > 12 && caida < 15) return rebota(p, [0, 1, 0], av, 'suelo', null, 90 - caida, v);
-    cae(p, av, null);
-  }
-
-  /* mueve los que vuelan y resuelve sus impactos. Cada tramo se corta de forma exacta con escudos, cascos y cuerpos (no se
-     salta ninguno); los subpasos de ≤ SUBPASO solo siguen la curva de la gravedad */
-  function vuela(S, dt) {
-    const av = []; if (!proyectiles.some(p => p.est === 'vuela')) return av;
-    const L = cuerpos(S), Rj = rejilla(L, posV);
-    for (const p of proyectiles) {
-      if (p.est !== 'vuela') continue;
-      const v0 = Math.hypot(p.vx, p.vy, p.vz), n = Math.max(1, Math.ceil(v0 * dt / SUBPASO)), h = dt / n;
-      for (let k = 0; k < n && p.est === 'vuela'; k++) {
-        p.t += h;
-        const A = [p.x, p.y, p.z], vy1 = p.vy - G * h, D = [p.vx * h, (p.vy + vy1) / 2 * h, p.vz * h];
-        const c = toca(p, A, D, L, Rj);
-        /* el suelo: primer t en que la punta baja de H */
-        let ts = null; const gB = H(A[0] + D[0], A[2] + D[2]);
-        if (A[1] + D[1] <= gB) { const gA = H(A[0], A[2]), fa = A[1] - gA, fb = A[1] + D[1] - gB; ts = fa <= 0 ? 0 : fa / (fa - fb); }
-        if (c && (ts === null || c.t <= ts)) {
-          p.x = A[0] + D[0] * c.t; p.y = A[1] + D[1] * c.t; p.z = A[2] + D[2] * c.t; p.vy = p.vy - G * h * c.t; p.ignora = null;
-          impacto(p, c, av);
-        } else if (ts !== null) { p.vy = p.vy - G * h * ts; suelo(p, ts, A, D, av); }
-        else { p.x += D[0]; p.y += D[1]; p.z += D[2]; p.vy = vy1; if (p.ignora && p.rebotes && p.t > 0) { /* se aleja: deja de ignorarlo al salir de su alcance */ const q = p.ignora; if (Math.hypot(p.x - q.x - (q.fx || 0), p.z - q.z - (q.fz || 0)) > 1) p.ignora = null; } }
-        if (p.t > 20 && p.est === 'vuela') cae(p, av, null);   /* seguro: nada vuela más de 20 s */
-      }
-    }
-    return av;
-  }
-  /* dónde dibujar p: punta y dirección; el clavado en un hombre le sigue (y si el hombre gira, gira con él) */
-  function dondeP(p) {
-    if (p.fijo) {
-      const f = p.fijo, h = f.h, m = marco(h), hx = h.x + (h.fx || 0), hz = h.z + (h.fz || 0);
-      return { x: hx + m.fx * f.f + m.lx * f.l, y: H(hx, hz) + f.y, z: hz + m.fz * f.f + m.lz * f.l, dx: m.fx * f.df + m.lx * f.dl, dy: f.dy, dz: m.fz * f.df + m.lz * f.dl };
-    }
-    const v = Math.hypot(p.vx, p.vy, p.vz), d = v > 1e-6 ? [p.vx / v, p.vy / v, p.vz / v] : (p.dir || [1, 0, 0]);
-    return { x: p.x, y: p.y, z: p.z, dx: d[0], dy: d[1], dz: d[2] };
-  }
-  /* quita de la lista los que ya no vuelan (los clavados en un hombre muerto o los del suelo, cuando quien dibuja no los quiera) */
-  function limpia(quedar = () => false) { for (let i = proyectiles.length - 1; i >= 0; i--) { const p = proyectiles[i]; if (p.est !== 'vuela' && !quedar(p)) proyectiles.splice(i, 1); } }
-
-  return { paso, pica, medir, lanza, vuela, dondeP, limpia, proyectiles, reinicia() { empujes = new Map(); rivales = []; antes = new WeakMap(); proyectiles.length = 0; } };
+  return { paso, pica, medir, reinicia() { empujes = new Map(); rivales = []; antes = new WeakMap(); } };
 }
 
 /* ===================== FI3: proyectiles que se clavan, rebotan o resbalan =====================
@@ -756,13 +557,15 @@ export function crearProyectiles(op = {}) {
     const f = fi(p); if (f.modo !== 'vuela') return pose(p);
     if (f.toca) {   /* parado en el contacto: sigue al escudo o al cuerpo que tocó, que se mueve */
       const c = f.toca, o = c.o && obst.find(x => x.tipo === c.tipo && x.dueno === c.dueno);
-      if (o && c.l) { const pt = o.tipo === 'escudo' ? sum(sum(sum(o.c, o.n, c.l[0]), o.u, c.l[1]), o.v, c.l[2]) : [o.x + c.l[0], o.y0 + c.l[1], o.z + c.l[2]]; c.punto = pt; f.pose = { punta: pt, dir: f.pose.dir }; }
+      if (o && c.l) { const pt = o.tipo === 'escudo' ? sum(sum(sum(o.c, o.n, c.l[0]), o.u, c.l[1]), o.v, c.l[2]) : [o.x + c.l[0], o.y0 + c.l[1], o.z + c.l[2]]; c.punto = pt;
+        const dir = o.tipo === 'escudo' && c.dl ? nor(sum(sum(sum([0, 0, 0], o.n, c.dl[0]), o.u, c.dl[1]), o.v, c.dl[2])) : f.pose.dir;   /* FI3u: el astil gira con el escudo que lo paró (si no, al girar el galo el escudo se le mete dentro) */
+        f.pose = { punta: pt, dir }; }
       return f.pose;
     }
     const d = nor(vel);
     let c = f.prev ? primero(f.prev, punta, obst) : null;
     if (!c && f.prev) { const cola = sum(punta, d, -f.L); for (const o of cerca(obst, cola, punta)) { const k = corta(o, cola, punta); if (k && (!c || k.t < c.t)) { k.tipo = o.tipo; k.dueno = o.dueno; k.o = o; c = k; } } }   /* el astil entra en algo que la punta ya pasó: se para ahí */
-    if (c) { if (c.o) c.l = c.o.tipo === 'escudo' ? local(c.o, c.punto) : c.o.tipo === 'cuerpo' ? [c.punto[0] - c.o.x, c.punto[1] - c.o.y0, c.punto[2] - c.o.z] : null; f.toca = c; f.v = vel.slice(); f.pose = { punta: c.punto, dir: d }; return f.pose; }
+    if (c) { if (c.o) c.l = c.o.tipo === 'escudo' ? local(c.o, c.punto) : c.o.tipo === 'cuerpo' ? [c.punto[0] - c.o.x, c.punto[1] - c.o.y0, c.punto[2] - c.o.z] : null; if (c.o && c.o.tipo === 'escudo') c.dl = [dot(d, c.o.n), dot(d, c.o.u), dot(d, c.o.v)]; f.toca = c; f.v = vel.slice(); f.pose = { punta: c.punto, dir: d }; return f.pose; }
     f.prev = punta.slice(); f.v = vel.slice(); f.pose = { punta: punta.slice(), dir: d }; return f.pose;
   }
   /* la cuenta por ángulo solo para los golpes en la CARA (escudo, cuerpo) y en el suelo; canto, umbo, casco, asta y lo que

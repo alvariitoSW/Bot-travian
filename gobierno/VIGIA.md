@@ -14,7 +14,7 @@ programador, juega en un móvil de 390 px y juzga por lo que ve: enséñale capt
   pendiente?}`), `estado/vigia` (`{trabajando, empezado, terminado, resumen}`). Escribe con `if_version`; los lotes (`batch`) son
   atómicos; `{"__delete__": true}` quita un campo.
 - El botón «Llamar al vigía ahora» del cuadro dispara (`fire_trigger`) la tarea programada cuyo id está en `gobierno/cuadro.json`,
-  clave `vigia` (hoy `trig_01YBdP6TKBoUKapWTkRgcABr`, sesión fija 3 `session_01QiKC36sd3X3Rq3yApUZxjB`; la vieja `trig_01NY6a1NUH95SsjX9sAsB5ZY` está desactivada); esa tarea despierta **esta** sesión con el texto «Vuelta del vigía…». Si cambias de sesión fija: crea una tarea nueva
+  clave `vigia` (hoy `trig_01W71MJ9W2Z2cBMbH8cD57fL`, sesión fija 4 `session_01QiKC39TGQxxbr2tqcszWcR`; las viejas `trig_01YBdP6TKBoUKapWTkRgcABr` (sesión 3) y `trig_01NY6a1NUH95SsjX9sAsB5ZY` están desactivadas); esa tarea despierta **esta** sesión con el texto «Vuelta del vigía…». Si cambias de sesión fija: crea una tarea nueva
   (`create_trigger`, `persistent_session_id` = la sesión nueva, sin cron), pon su id en `cuadro.json` → `vigia`, regenera y publica el
   cuadro, y desactiva la vieja (`update_trigger enabled=false`).
 - Skill `cuadro-de-mando` (`.claude/skills/cuadro-de-mando/SKILL.md`): tabla de tipos de pedido, «Abrir sesiones» y «Órdenes de un
@@ -126,3 +126,29 @@ que **cierre el juego del todo y lo vuelva a abrir** (el móvil guarda la versi�
   (economía, Senado y victoria), MN2, MN3, MN4, CI3b, CS1, CS2, P183, V10b (la última). CG8/CG5/CG7 esperan la respuesta del usuario a BG1.
 - Lección pendiente para CE12: en `test/sim.test.js`, un `//` en la línea de la partida corta anula la comprobación del pasivo; hay que
   repararlo. La prueba CN6 depende del estado de pruebas anteriores.
+
+## 9. Relevo del 24/11/2026 (sesión fija 3 → sesión fija 4). LEE ESTO PRIMERO
+La sesión fija 3 (`session_01QiKC36sd3X3Rq3yApUZxjB`) se cierra por exceso de contexto, por orden del usuario. Su tarea programada (`trig_01YBdP6TKBoUKapWTkRgcABr`) queda desactivada; la de la sesión 4 está en `gobierno/cuadro.json` → `vigia`.
+
+**Normas nuevas del usuario (todas verificadas en su chat):**
+- **Siempre en preguntas** (§3): todo lo que haya que decidir, como preguntas numeradas con (A)/(B), la recomendada marcada, y «Dime los números y las letras, por ejemplo «1A, 2A»». Solo escribirle cuando haya algo que decidir o probar. Cuando manda fotos, las envía el vigía con `SendUserFile`.
+- **Cadenas sin supervisión (24/11):** **ciudad** y **batallas**: las sesiones no le preguntan nada, eligen lo recomendado y lo apuntan en su parte. **Subes a `main` sin preguntar** cuando los jueces completos den APTO 43/43 (método §6: worktree desde `origin/main`, `git merge --no-commit -s ours <H>`, `git read-tree -u --reset <H>`, commit con árbol idéntico a `<H>`, `git push origin main-subida:main`, nunca -f; antes `node --check`, tests de senado y simulador y `sw.js` sin rutas que falten). Después le dices que **cierre el juego del todo y lo vuelva a abrir** y avisas a la sesión de ciudad (`session_01QiKC36ADB24uvg47K3icWr`) para que se lo cuente. Los jueces completos los pasa una sesión de subida (SB, Opus, ≈75 min, solo comprueba) sobre un commit exacto; sube ese commit exacto, no la punta.
+- **Opus siempre** (sin Fable). Gasto medido: las sesiones de batallas se pasan de su tope 2–4 veces (LP5a 6,5 M, FE2 5,3 M, LP7 3,8 M): pídeles medir `gasto.mjs` cada ~30 pasos.
+- **Regla «archiva al acabar»:** sesión terminada y sin nada que preguntarle, se archiva. Nunca la del usuario («Game art scene improvements» `session_01QiKC37LpvJYtiviPCfxa4i` es un chat suyo) ni la del vigía.
+- **Otro director** abrió sesiones de batallas (padres `session_01QiKC38kr4hTAHT5PyvnXhC` y `session_01QiKC36QhZ4pcBXU9LgG3X3`: LP4, LP5a, FI3u, FE3). A `main` sube solo el vigía. El usuario eligió que FE3 (elefantes sin rebote) **siga**.
+- **Los jueces no se relajan** (usuario «5B»): no se sube el tope de ninguna vara de coste de física; se optimiza.
+- Si el sistema bloquea abrir una sesión por una orden anterior del usuario, **no se rodea**: se le pregunta en su chat.
+
+**Lo que está en marcha (comprueba con `list_sessions`):**
+- **CDe3** (`session_01QiKC38arYpjMywJKEFfHi5`, la lleva la sesión de ciudad): pantalla mínima de ciudad y agricultura + mercado; **tiene los comunes** (`ui.js`, `game.js`, `data.js`, `registro.js`, `style.css`, `sw.js`, `index.html`): nadie más los toca hasta que cierre. Al acabar avisa con commit y caché.
+- **FI4** (`session_01QiKC39cWnfXfbC6vm6DgPf`): física en escaramuzas y batalla de campaña. **LP7b** (`session_01QiKC38s19RyPA8vazAaPvD`): la falange desde la batalla grande; su juez de área da NO APTO solo por la vara de tiempo de física de LP7 (máquina lenta): ya se le dijo que no la toque. Pases pendientes de ambas: `sw.js` (archivos nuevos y caché; hazlos tú o CDe3) y `js/ui-mando.js`.
+- **Subida a `main` pendiente** cuando acaben FI4, LP7b y CDe3: abre una sesión SB (copia el prompt de `gobierno/partes/2026-11-24-SB3.md`: «solo comprueba», jueces completos 43/43, commit exacto) y sube con APTO.
+- `main` está en **`7ee1e0ff`** (caché v157); la rama del juego va por delante (LP7b, FI4, MS3/MS4 en partes).
+
+**Cola aprobada (tablero):** TH1 (tácticas de la época: triarios, flanco, envolvimiento, carga gala; después de LP7b y FI4), GM22 (muchos cuerpos con sitio y estandarte propios; después de FI4 y TH1), MN4 (renovación artística, menú de recursos más artístico y con más imágenes; después de CDe3), CS3 (menú de clases sociales rehecho con los personajes de Meshy), CD2a, CE11, CG2 (esperan a CDe3: tocan los comunes), CE5. **P183** (mundo más ancho) y **P158** (guerra «como Rome II») después de la 1.0 salvo GM22.
+
+**Meshy (arte):** saldo **66 créditos**; la clave de la API tiene su propio tope y cortó en 400. MS3 (6 clases) y MS4 (14: 6 mujeres, 7 políticos y ministros útiles; publicano descartado; **pontífice y tribuno sin textura**: 10 créditos cada uno si el usuario sube el tope de la clave). Modelos crudos NO están en el repositorio: se bajan por identificador (tablas en `gobierno/partes/2026-11-24-MS3.md` y `MS4.md`). Licencia: CC BY-SA 3.0 citando a Meshy como herramienta. Decisión del usuario «2B»: personajes de clases como **modelos 3D completos**, tope de descarga **56 MB** (`gobierno/arte.json`; hoy 49,8). 20 personajes a 600 KB no caben: apuntar a **un nivel de ≈250 KB cada uno**. Pendiente: sesión de aligerado y de menús (CS3), tras CDe3. **Preguntas al usuario sin contestar** (hechas el 24/11 a las 11:10): (1) qué le parecen los 14 personajes, (2) pontífice y tribuno sin textura: ¿sube el tope de la clave? (3) ¿abrir ya el aligerado y los menús al acabar CDe3?
+
+**Gobierno al día:** `lista.json` pasó a 19 líneas (nuevas **L18** física y **L19** soldados y personajes, órgano nuevo **Arte**); la bitácora tiene todas las decisiones del 23 y 24/11; propuestas antiguas limpiadas (quedan P185 aprobada→TH1, P183 y P158). Si el cuadro avisa de «tareas sin colocar», colócalas en `lista.json`.
+
+**URGENTE al cerrar la sesión 3 (24/11, 11:25 UTC):** en `main` (v157, `7ee1e0ff`) falta `js/agricultura.js` en `FILES` de `sw.js` y `js/gfx/campos.js` lo importa: **sin red, la ciudad no carga**. La sesión de ciudad se lo pidió a CDe3. Prioridad: subir a `main` un arreglo (solo `sw.js`, caché v158) en cuanto exista. Idea: que `jueces.mjs` compruebe que cada `js/` importado está en `FILES`.

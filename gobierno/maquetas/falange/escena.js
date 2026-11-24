@@ -8,7 +8,12 @@
    Esta escena.js junta las piezas y dibuja: hombres, sarisas, pila, cresta, luz y campo (los de TP1).
    Soldados: arte de 0 A.D. (Wildfire Games, CC BY-SA 3.0); el arte del campo, de testudo-luz-campo/arte/. No toca js/.
    ?fase=marcha|astas|bajar|pila|choque|golpe|huida|final coloca la escena y la congela (para las capturas).
-   ?t=segundos (con fase=bajar): cuánto después de la orden. */
+   ?t=segundos (con fase=bajar): cuánto después de la orden.
+   LP7b: ?lp7=<JSON> la abre la batalla grande («Bajar a pie» con una falange, js/ui-mando.js) en una capa, como la del bloque:
+   { semilla, lejos (metros hasta el rival), unidad (su soldado de 0 A.D.: libios, galos…), color, rival { los, Los }, objetivo }.
+   Sin tarjeta de inicio; reglas del rival, las de los manípulos (licencia de juego); lucha hasta el 15 % (FIN_LUCHA).
+   Al salir, postMessage({ aqvila: 'lp7', r }) al padre, con r = window.__bloque.lp7(): el mismo contrato que la maqueta del
+   bloque (bloques tuyo y centro con hombres, en pie y roto; dónde acabó tu muro). */
 import { THREE } from '../../../js/gfx/models.js';
 import { preload, getUnit, loadIndex, frameOf, frameOnce, zancadas, UNIT_SCALE } from '../../../js/gfx/units.js';
 import { texturaRuido } from '../../../js/gfx/ground.js';
@@ -19,7 +24,7 @@ import { dispersion } from './locomocion.js';
 import { CJF, generaTablaFalange, hueso as huesoT, datosPies, pieEn, faseCero, filasMarcha, filaEnFase, tablaPaso } from './soldado.js';
 import { filasRomano } from './enemigo.js';
 const N_R = 160;   /* FA4: plazas de figura para los hombres del rival (manípulos: 96) */
-import { crearAcciones, NPILA } from './acciones.js';
+import { crearAcciones, NPILA, acercaRival, resultadoLP7 } from './acciones.js';
 import { crearCamara } from './camara.js';
 import { crearHud } from './hud.js';
 import { crearMando, botMando } from './mando.js';   /* LP6: el control de «Manípulo a pie» */
@@ -29,7 +34,11 @@ import * as Son from './sonido.js';
 import { crearFisicaEscena } from './fisica.js';   /* FI1 */
 import { crearFalangitas, filasNuevo, espadaVista, activaSoloSombra, GESTO, CUANTOS } from './soldados.js';   /* FE2: el soldado nuevo */
 
-const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), MARCAS = Q.get('marcas'), ANTES = Q.get('antes') === '1', COSTADO = Q.get('costado');
+const Q = new URLSearchParams(location.search);
+let LP7 = null; try { LP7 = Q.get('lp7') ? JSON.parse(Q.get('lp7')) : null; } catch (e) { console.warn('lp7 mal escrito', e); }
+const RIVALES_0AD = ['hastati', 'principes', 'triarii', 'libios', 'iberos', 'galos', 'hoplitas', 'falange', 'sagrada'];
+const KR = LP7 && RIVALES_0AD.includes(LP7.unidad) ? LP7.unidad : 'hastati', COLOR_R = LP7 && /^#[0-9a-f]{6}$/i.test(LP7.color || '') ? LP7.color : '#c23a2e';   /* LP7b: el soldado y el color del rival */
+const FASE = Q.get('fase'), MARCAS = Q.get('marcas'), ANTES = Q.get('antes') === '1', COSTADO = Q.get('costado');
 const $ = id => document.getElementById(id);
 const lerp = (a, b, t) => a + (b - a) * t, suave = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 /* ---------- luz de cine: dos retoques a los sombreadores de three, solo en esta página ----------
@@ -304,10 +313,11 @@ async function creaFigs() {
   lejos(FIG_F, g, M);
   }
   /* los romanos: su tabla es la del modelo */
-  const uR = getUnit('hastati'); zancadas(uR); const tR = { T: uR.bones.image.data, hues: uR.bones.image.width / 3 }, CR = uR.clips, piesR = datosPies(tR.T, tR.hues, uR.geo, CR.idle.start);
+  if (KR !== 'hastati') await preload([KR]);
+  const uR = getUnit(KR) || getUnit('hastati'); zancadas(uR); const tR = { T: uR.bones.image.data, hues: uR.bones.image.width / 3 }, CR = uR.clips, piesR = datosPies(tR.T, tR.hues, uR.geo, CR.idle.start);
   const f0R = { anda: faseCero(tR.T, tR.hues, piesR, CR.walk), corre: faseCero(tR.T, tR.hues, piesR, CR.run) }, pasoR = { anda: tablaPaso(tR.T, tR.hues, piesR, CR.walk, CR.walk.start, f0R.anda, CR.idle.start), corre: tablaPaso(tR.T, tR.hues, piesR, CR.run, CR.run.start, f0R.corre, CR.idle.start) };
   const gR = new THREE.BufferGeometry(); for (const k of ['position', 'normal', 'uv', 'aSkinI', 'aSkinW', 'aMode']) gR.setAttribute(k, uR.geo.attributes[k]); gR.boundingSphere = uR.geo.boundingSphere;
-  FIG_R = { ...figura(gR, N_R, matFigura(uR.tex, uR.bones, '#c23a2e', 'r'), matSombra(uR.bones, 'r')), u: uR, C: CR, tab: tR, T: tR.T, hues: tR.hues, pies: piesR, paso: pasoR, zan: { walk: pasoR.anda.total * E, run: pasoR.corre.total * E } };
+  FIG_R = { ...figura(gR, N_R, matFigura(uR.tex, uR.bones, COLOR_R, 'r'), matSombra(uR.bones, 'r')), u: uR, C: CR, tab: tR, T: tR.T, hues: tR.hues, pies: piesR, paso: pasoR, zan: { walk: pasoR.anda.total * E, run: pasoR.corre.total * E } };
   lejos(FIG_R, gR, N_R); console.log(`[E1] triángulos por hombre: romano ${FIG_R.triCerca} / ${FIG_R.triLejos} sencillo`);
 }
 const hueso = (fig, slot, A, B, mx, out) => huesoT(fig.tab, slot, A, B, mx, out);
@@ -392,7 +402,15 @@ function avisa(tipo, d = {}) {
   if (tipo === 'cerrado') Son.madera(0.5, 0, 0);
   if (tipo === 'oleada') Son.cuerno([[130.8, 0.6]]);
 }
-function reinicia() { semilla = 43; semillaP = 5; temblor = 0; ACC.reinicia(); if (MANDO) MANDO.reinicia(); if (DEDOS) DEDOS.oculta(); for (const h of S.fal) { delete h.tRotaD; delete h.munon; delete h.munonS; }   /* FE2 */ colocaTerreno(); $('fin').hidden = true; }
+function reinicia() { semilla = 43; semillaP = 5; temblor = 0; ACC.reinicia(); if (LP7) acercaRival(S, LP7.lejos); if (MANDO) MANDO.reinicia(); if (DEDOS) DEDOS.oculta(); for (const h of S.fal) { delete h.tRotaD; delete h.munon; delete h.munonS; }   /* FE2 */ colocaTerreno(); $('fin').hidden = true; P0 = { x: S.xF, z: S.zF, giro: S.giro }; }
+/* ---------- LP7b: la capa de «Bajar a pie» ---------- */
+let P0 = { x: 0, z: -10, giro: 0 }, enviado = false;
+function vuelveLP7() { if (enviado) return; enviado = true; try { parent.postMessage({ aqvila: 'lp7', r: resultadoLP7(S, P0) }, location.origin); } catch (e) { console.warn(e); } }
+/* el mismo gancho que la maqueta del bloque (window.__bloque): lo usa js/ui-mando.js sin saber qué escena hay dentro */
+window.__bloque = { listo: false, falange: true, lp7: () => resultadoLP7(S, P0), vuelve: () => vuelveLP7(), dibuja: (a, b) => MANDO && MANDO.frente(a, b), orden: n => MANDO && MANDO.orden(n),
+  C: { paso: dt => { if (S.fase !== 'fin') { MANDO.paso(dt); ACC.paso(dt); } } }, muestraFin: () => HUD && HUD.muestraFin(), salta: f => prepara(f),   /* salta('lp-picas' | 'lp-choque' | 'lp-lucha' | 'lp-final'): para las fotos (queda en pausa) */
+  estado: () => S && { T: S.T, ganador: S.ganador, util: MANDO && MANDO.lee().conviene, orden: S.orden, choque: S.choque, llamadas: renderer.info.render.calls, triangulos: renderer.info.render.triangles },
+  vista: () => VISTA, fisica: () => window.__tp.fisica && window.__tp.fisica() };
 
 /* ---------- cámara ---------- */
 let CAMARA = null;
@@ -687,9 +705,9 @@ async function montaRival() {
   if (!getUnit('hastati')) { $('carga').querySelector('p').textContent = 'No se han podido cargar los soldados'; throw new Error('No se han podido cargar los soldados'); }
   CAMPO = await crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color });
   await creaFigs();
-  ACC = crearAcciones({ H, avisa, hombres: M, zanF: FIG_F.zan });
+  ACC = crearAcciones({ H, avisa, hombres: M, zanF: FIG_F.zan, ...(LP7 ? { rival: 'manipulos', semilla: LP7.semilla || 1 } : {}) });
   S = ACC.S; window.__tp.S = S; window.__tp.F = ACC.F; window.__tp.acc = ACC;   /* FE2: acc para las fotos */
-  try { BANDA = window.Banda.crea({ padre: $('hud'), propio: 'griego', rival: window.Banda.rivalDe(N0_RIVAL[S.rival]), semilla: 43, abajo: '92px' }); Son.alSonar(() => BANDA.inicia()); window.__tp.banda = BANDA; } catch (e) { console.log('[SON4] sin banda: ' + e.message); }
+  try { BANDA = window.Banda.crea({ padre: $('hud'), propio: 'griego', rival: window.Banda.rivalDe(LP7 ? { [KR]: 1 } : N0_RIVAL[S.rival]), semilla: 43, abajo: '92px' }); Son.alSonar(() => BANDA.inicia()); window.__tp.banda = BANDA; } catch (e) { console.log('[SON4] sin banda: ' + e.message); }
   { const p0 = ACC.paso, r0 = ACC.reinicia; ACC.paso = dt => { p0(dt); FIS.paso(ACC.S, dt); }; ACC.reinicia = () => { r0(); FIS.reinicia(ACC.S); if (BANDA) BANDA.reinicia(); }; window.__tp.fisica = () => FIS.medida(ACC.S, poseF); window.__tp.fisicaJuega = (n, bot) => FIS.juega(n, ACC, poseF, bot); }   /* FI1 */
   window.__tp.proyectiles = () => FIS.medidaPr(ACC.S); window.__tp.proyectilesJuega = (n, bot) => FIS.juegaPr(n, ACC, bot);   /* FI3: medida de la salva y la salva entera sin dibujar */
   /* FA7: el dibujo de los demás rivales vive en rival.js (montaRivalDe). Si no está o falla, se pintan con el muñeco de hoy.
@@ -700,11 +718,13 @@ async function montaRival() {
   VISTA = crearVistaOficial({ camara, lienzo, H, estado: () => ({ B: bloqueVista() }), hud: $('hud'), inicial: Q.get('vista') === 'oficial' ? 'oficial' : 'arriba' });
   DEDOS = crearDedos({ lienzo, suelo, haciaDonde: (a, b) => MANDO.haciaDonde(a, b), alSoltar: (a, b) => { if (!parado) MANDO.frente(a, b); }, H, libre: () => VISTA.libre(), escala: () => 0.5 - 0.3 * VISTA.t() });
   escena.add(DEDOS.raya);
-  HUD = crearHud({ S, Son, $, mando: MANDO });
+  HUD = crearHud({ S, Son, $, mando: MANDO, ...(LP7 ? { rival: LP7.rival && LP7.rival.Los, vuelve: vuelveLP7 } : {}) });
   reinicia();
   if (FASE) prepara(FASE);
+  else if (LP7) { parado = false; if (LP7.objetivo) $('objetivo').textContent = LP7.objetivo;
+    const cr = $('creditos'); if (cr) cr.textContent = cr.textContent.replace(/^TP7a · .*?\) · /, ''); }   /* el crédito, sin «contra un manípulo romano» */
   else if (Q.get('inicio') !== '0') { parado = true; $('inicio').hidden = false; $('empieza').addEventListener('click', () => { $('inicio').hidden = true; parado = false; }); }
   $('carga').hidden = true;
   requestAnimationFrame(t => { ultimo = t; bucle(t); });
-  setTimeout(() => { window.__tp.lista = true; }, 400);
+  setTimeout(() => { window.__tp.lista = true; window.__bloque.listo = true; }, 400);
 })();

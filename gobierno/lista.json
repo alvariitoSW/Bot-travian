@@ -25,17 +25,22 @@
     {
       "id": "cerebro",
       "nombre": "Cerebro",
-      "que": "Ciudad, recursos, clases sociales, Senado y comercio"
+      "que": "Ciudad desde arriba y viva por barrios, ministros, necesidades, Senado, recursos y comercio"
     },
     {
       "id": "corazon",
       "nombre": "Corazón",
-      "que": "Guerras, batallas y estrategia"
+      "que": "Batallas y escaramuzas: «Manípulo a pie» y la falange con el control del bloque, física de cuerpos y proyectiles, elefantes y «Bajar a pie»"
     },
     {
       "id": "musculo",
       "nombre": "Músculo",
-      "que": "Gráficos, manejo y entretenimiento"
+      "que": "Menús, mapa, manejo, fluidez y juego sin conexión; jueces por área y subidas a main"
+    },
+    {
+      "id": "arte",
+      "nombre": "Arte",
+      "que": "Soldados nuevos de Meshy (CC BY-SA 3.0), esqueleto y movimientos, peso de la descarga y créditos"
     }
   ],
   "lineas": [
@@ -45,8 +50,8 @@
       "titulo": "Una ciudad que construyes y ves crecer",
       "estado": "medias",
       "veras": "Colocas cada edificio donde quieres. Los barrios crecen solos alrededor y hay incendios y crecidas que atender.",
-      "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría. Roma con el aspecto de su siglo (CI1): templo toscano, muralla de toba lisa, ínsulas, foro con tabernas, más ciudad a la vista y campos por estaciones. Calles con sentido (CI1b): eje de puerta a puerta por el foro y nada cruza casas ni campos. Ciudad mucho mayor a la vista (CI3a): urbe dibujada de 3,5 a 3,8 veces el área.",
-      "captura": "gobierno/capturas-tarea/CI3a-lejos.jpg",
+      "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría. Roma con el aspecto de su siglo (CI1): templo toscano, muralla de toba lisa, ínsulas, foro con tabernas, más ciudad a la vista y campos por estaciones. Calles con sentido (CI1b): eje de puerta a puerta por el foro y nada cruza casas ni campos. Ciudad mucho mayor a la vista (CI3a): urbe dibujada de 3,5 a 3,8 veces el área. Ciudad nueva (23 y 24/11): vista desde arriba con «Construir» por familias (CD1), ministros con encargos (CD3), necesidades por barrio y clase (CD5a), plan del Senado a 4–8 estaciones que reparte obras entre bandos (CD4), y ciudad viva por barrios con ficha de barrio, andamios, casas tapiadas y revuelta (CD5b y CDe2). Ya en tu móvil (v157).",
+      "captura": "gobierno/capturas-tarea/CDe2-arriba.jpg",
       "tareas": [
         "CI1b",
         "CI3a",
@@ -59,9 +64,12 @@
         "CD4",
         "CD5a",
         "CD5b",
-        "CD6"
+        "CD6",
+        "CDe1",
+        "CDe2",
+        "CDe3"
       ],
-      "falta": "Que la ciudad grande cuente en la economía (CI3b, tras CE3), el gobierno visible en la ciudad (dentro de CS2) y el pulido que queda de la ciudad romana (pregunta CI1c del cuadro)."
+      "falta": "Pantalla mínima de ciudad (tira fina y barra de 6 pestañas, «Construir» flotante) en obra (CDe3); calles con el dedo (CD2a), casas de la urbe grande (CD2b) y embellecer (CD6, después de la 1.0)."
     },
     {
       "id": "L2",
@@ -69,15 +77,16 @@
       "titulo": "Recursos, mercado y cuentas claras",
       "estado": "medias",
       "veras": "Una economía nueva: grano, denarios, materiales, hierro, hombres y un bien por región. Cada estación te falta algo y tienes que elegir.",
-      "hecho": "Recursos nuevos (CE2): grano, denarios, materiales, hierro, hombres y un bien por región, con barra, hoja de cuentas y mercado; las partidas viejas se convierten solas.",
+      "hecho": "Recursos nuevos (CE2): grano, denarios, materiales, hierro, hombres y un bien por región, con barra, hoja de cuentas y mercado; las partidas viejas se convierten solas. Reglas del mercado con 14 productos y agricultura por suelos (trigo, olivar, viña, huerto, pasto; aceite, vino, verdura y lana) hechas aparte; se enganchan con CDe3.",
       "captura": "gobierno/capturas-tarea/CE2-cuentas-bienes.jpg",
       "tareas": [
         "CE2",
         "CE3",
         "CE4",
-        "CE5"
+        "CE5",
+        "AG1"
       ],
-      "falta": "Reinventada entera (CE1, 18/11): edificios, tropas y tiempos (CE3), comercio con precios (CE4) y «Este año» con el tributo de guerra (CE5)."
+      "falta": "CDe3 mete la agricultura y el mercado en la partida; después, «Este año» con el tributo de guerra (CE5). Y el menú de recursos, más artístico y bello, con más imágenes (pedido del 24/11; dentro de MN4)."
     },
     {
       "id": "L3",
@@ -88,13 +97,15 @@
       "hecho": "Cada ciudad tiene ya sus clases con su ánimo, y puedes dar la ciudadanía.",
       "falta": "Que el descuido tenga una consecuencia que se vea en pantalla, no solo una cifra.",
       "captura": "gobierno/capturas-tarea/Q6-1-clases.jpg",
-      "tareas": []
+      "tareas": [
+        "CS3"
+      ]
     },
     {
       "id": "L4",
       "organo": "cerebro",
       "titulo": "Un solo Senado, con intrigas",
-      "estado": "medias",
+      "estado": "hecha",
       "veras": "Una sala viva con hasta siete bandos, cada uno con su gran familia. Ves debatir a los senadores; los jefes de bando son tus consejeros; hay banquetes, juegos y ritos.",
       "hecho": "Senado de familias (CE6): hasta siete bandos con su familia (Fabios, Emilios, Escipiones; entran Valerios, Fulvios, Claudios y Sempronios al crecer Roma), de 30 a 300 escaños por población y provincia, humor por tus actos, una petición por bando y estación; tratos y tribuno. Desde MN2 (20/11) el Senado tiene cuatro pestañas: Hoy se vota, Bandos, Tu carrera y Fiestas.",
       "falta": "Sala viva y jefes-consejeros (CE8), banquete, juegos y rito (CE9).",
@@ -171,8 +182,8 @@
       "titulo": "Una sola batalla, con un solo aspecto",
       "estado": "medias",
       "veras": "Un simulador de batallas en tiempo real, el mismo en campaña y en Escaramuzas: plan previo que se puede saltar con «Ver cómo irá», mando en vivo por manípulos con tus tribunos, y batalla rápida si no quieres jugarla larga.",
-      "hecho": "Escaramuzas ya juega la batalla nueva: el simulador de manípulos, mando en vivo (tocar y arrastrar, formar, cargar, relevar, pausa), la luz y el campo elegidos y el soldado nuevo en todas las tropas a pie.",
-      "falta": "Que la campaña use la misma batalla (CG4b) y retirar la vieja; tribunos y plan previo (CG5); batalla rápida (CG7). Caballería y elefantes siguen con el modelo viejo.",
+      "hecho": "Escaramuzas ya juega la batalla nueva: el simulador de manípulos, mando en vivo (tocar y arrastrar, formar, cargar, relevar, pausa), la luz y el campo elegidos y el soldado nuevo en todas las tropas a pie. Soldados nuevos de Meshy: diez tipos (galos, centurión, triario, vélite) en «Manípulo a pie» (23 y 24/11).",
+      "falta": "Que la campaña use la misma batalla (CG4b); «Bajar a pie» con la falange (LP7b) y la física en escaramuzas y campaña (FI4), en obra.",
       "captura": "gobierno/capturas-tarea/CG4-3-arrastre-h.jpg",
       "tareas": [
         "BG1",
@@ -184,7 +195,14 @@
         "CG5",
         "CG7",
         "CG8",
-        "CG9"
+        "CG9",
+        "MS1",
+        "MS2",
+        "AL1",
+        "AL11",
+        "PIL3",
+        "FI4",
+        "GM22"
       ]
     },
     {
@@ -193,9 +211,9 @@
       "titulo": "El testudo a pie, dentro del juego",
       "estado": "medias",
       "veras": "Bajas a pie desde un manípulo de la batalla, con la vista desde el hombro: te mueves, luchas y usas habilidades (el testudo, una más); si caes, sigues como otro soldado.",
-      "hecho": "Se entra desde Escaramuzas y se avanza bajo los escudos con la luz y el campo elegidos. El pilum está en dos maquetas. En la batalla nueva de Escaramuzas ya se baja a un manípulo («Bajar»): eres el centurión, con la cámara al hombro, andas y corres con la palanca, tu manípulo te sigue y la batalla sigue alrededor; «Mando» te sube (CG6, tanda 1). A pie ya se lucha (Golpear, Parar, Empujar, Pilum; si caes, sigues como otro soldado), se dan órdenes y lo hecho cuenta en la batalla (CG6b). Suena grabado: golpes en escudo, madera y hierro, pasos, gritos, cuernos y fragor de lucha (GM43i).",
-      "falta": "El duelo de cerca dentro de la fila (CG6c) y las caras (GM43j).",
-      "captura": "gobierno/capturas-tarea/CG6b-2-duelo-h.jpg",
+      "hecho": "Ya en tu móvil (v155): «Manípulo a pie» (dibujas el frente con el dedo, cuatro órdenes que se iluminan, vista del oficial con el pellizco, trabados en combate y retirada ordenada), la falange con el mismo control (LP6) y «Bajar a pie» de la batalla grande con el control del bloque (LP7). La lucha acaba cuando a un bando le queda el 15 %. El pilum se lanza de verdad (PIL3).",
+      "falta": "La falange desde la batalla grande (LP7b, en obra); el duelo de cerca (CG6c) y las caras (GM43j).",
+      "captura": "gobierno/capturas-tarea/FE2-2-carga-h.jpg",
       "tareas": [
         "TP1",
         "TP1b",
@@ -214,9 +232,16 @@
         "LP2",
         "LP3",
         "LP4",
-        "LP5",
         "LP6",
-        "LP7"
+        "LP7",
+        "LP4b",
+        "LP5a",
+        "LP7b",
+        "FE1",
+        "FE2",
+        "FI3",
+        "FI5",
+        "TH1"
       ]
     },
     {
@@ -225,14 +250,14 @@
       "titulo": "Escaramuzas: batallas sueltas desde el menú",
       "estado": "falta",
       "veras": "Eliges tu ejército con tu dinero, el enemigo y el campo, y luchas sin empezar una campaña; cada soldado tiene su vida y sus datos según su tropa y su cultura.",
-      "hecho": "Botón en el menú principal; desde CG2a (20/11) el constructor de ejército: cuatro pasos, seis pueblos, compras por manípulos con tope de denarios, dificultad = dinero del rival y «A mi gusto», rival retocable y hasta 5 ejércitos guardados. La batalla nueva de manípulos ya se juega aquí.",
+      "hecho": "Botón en el menú principal; desde CG2a (20/11) el constructor de ejército: cuatro pasos, seis pueblos, compras por manípulos con tope de denarios, dificultad = dinero del rival y «A mi gusto», rival retocable y hasta 5 ejércitos guardados. La batalla nueva de manípulos ya se juega aquí. Los soldados de Meshy ya salen en la maqueta del manípulo; la física de FI1 a FI5 está en las maquetas y en «Bajar a pie».",
       "captura": "gobierno/capturas-tarea/CG2-v-2-ejercito.jpg",
       "tareas": [
         "ES0",
         "CG2",
         "CG9"
       ],
-      "falta": "Precios y bolsas medidos con el bot, veteranía y los 12 datos por tropa y pueblo (CG9); vida real del soldado (CG9); despliegue (CG5a)."
+      "falta": "Física en las escaramuzas (FI4, en obra); precios medidos con el bot, veteranía y datos por tropa (CG9); despliegue (CG5a)."
     },
     {
       "id": "L14",
@@ -250,10 +275,14 @@
       "titulo": "Fluido y sin conexión en tu móvil, y publicada",
       "estado": "falta",
       "veras": "Juegas una campaña entera en tu móvil sin tirones y sin red. Con tu visto bueno, se publica la 1.0.",
-      "falta": "Tu prueba, los arreglos que salgan de ella y publicar.",
+      "falta": "Tu prueba en el móvil, los arreglos que salgan de ella (pequeños de aspecto: hoja de Escaramuzas, aviso de pausa, «Pirro» cortado) y publicar. La descarga está al límite: cada soldado nuevo exige recortar.",
       "tareas": [
-        "V10b"
-      ]
+        "V10b",
+        "SB1",
+        "SB2",
+        "SB3"
+      ],
+      "hecho": "Jueces por área (Cerebro 3,6 min, Músculo 8 min, Batallas 12 min) y jueces completos 43 de 43 antes de cada subida; subidas a main de la v140 a la v157. Descarga 49,7 de 50 MB."
     },
     {
       "id": "L16",
@@ -272,7 +301,7 @@
       "titulo": "Formaciones en Escaramuzas",
       "estado": "falta",
       "veras": "En Escaramuzas eliges tus tropas con su dibujo, su coste y lo que saben hacer (testudo, picas, muro…) y pruebas las formaciones; las escenas a pie quedan como minijuegos.",
-      "falta": "Veteranía y los 12 datos en la ficha (CG9) y los minijuegos (CG7).",
+      "falta": "Veteranía y los 12 datos en la ficha (CG9) y los minijuegos (CG7); la falange desde la batalla grande (LP7b).",
       "tareas": [
         "TP7a",
         "CG2",
@@ -292,11 +321,21 @@
         "LP2",
         "LP3",
         "LP4",
-        "LP5",
         "LP6",
-        "LP7"
+        "LP7",
+        "FI3",
+        "FI4",
+        "FI5",
+        "PIL3",
+        "FE1",
+        "FE2",
+        "LP5a",
+        "LP4b",
+        "LP7b",
+        "TH1",
+        "FA0"
       ],
-      "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a). Desde CG2a (20/11), cada tropa con su retrato, coste, barras, lo que sabe hacer (testudo, cuña, muro, falange, orden abierto, pilum) y su ficha."
+      "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a). Desde CG2a (20/11), cada tropa con su retrato, coste, barras, lo que sabe hacer (testudo, cuña, muro, falange, orden abierto, pilum) y su ficha. Falange nueva (FA1 a FA7): falangita y oficial macedonios, cuatro rivales (caballería, elefantes, falange, hoplitas), picas que se rompen y espada (FE2), elefantes que se ensartan (FE1)."
     },
     {
       "id": "L13",
@@ -304,12 +343,60 @@
       "titulo": "Menús reordenados y con un solo aspecto antiguo",
       "estado": "medias",
       "veras": "Una barra de seis (Ciudad · Senado · Saber · Tropas · Mapa · Imperio); llegas al Senado y a la política a un toque; construyes con «Lo hago yo · Encargar · Gobernador»; todo en papiro, tablilla y bronce.",
-      "falta": "MN1 hecha (19/11: barra de seis, ROMA ▾ con la ficha, fuera los modos). MN2 hecha (20/11: Senado en cuatro pestañas, huecos de Imperio). Quedan: gobernador (MN3) y renovación artística con maqueta (MN4). Absorbe el papiro del Códice y de los avisos (PA1 a PA3), que habías sacado con la respuesta A de las formaciones.",
+      "falta": "MN1 y MN2 hechas. Quedan: pantalla mínima de ciudad (CDe3, en obra), gobernador (MN3) y renovación artística con maqueta y más imágenes en todos los menús (MN4, pedido del 23/11). Absorbe el papiro del Códice y de los avisos (PA1 a PA3).",
       "tareas": [
         "MN1",
         "MN2",
         "MN3",
-        "MN4"
+        "MN4",
+        "MIN5"
+      ]
+    },
+    {
+      "id": "L18",
+      "organo": "corazon",
+      "titulo": "Las batallas se sienten: física de cuerpos y proyectiles",
+      "estado": "medias",
+      "veras": "Los hombres de los dos bandos no se atraviesan, la carga empuja, la pica resbala y empuja, el pilum y las jabalinas se clavan o rebotan según dónde dan, los elefantes embisten y caen.",
+      "hecho": "Motor de físicas propio (FI1 a FI3), tres veces más barato (FI5: 0,29 ms por paso con 200 cuerpos), conectado al testudo a pie, a la falange con elefantes (FE1, FE2), a «Manípulo a pie» (LP5a) y a «Bajar a pie» (LP7).",
+      "falta": "Conectarlo a las escaramuzas y a la batalla de campaña (FI4, en obra).",
+      "captura": "gobierno/capturas-tarea/FE1-h-ensartado.jpg",
+      "tareas": [
+        "FI1",
+        "FI2",
+        "FI3",
+        "FI4",
+        "FI5",
+        "FE1",
+        "FE2",
+        "LP5a"
+      ]
+    },
+    {
+      "id": "L19",
+      "organo": "arte",
+      "titulo": "Soldados nuevos, con licencia clara",
+      "estado": "medias",
+      "veras": "Soldados con aspecto propio y variedad: galos distintos (grande, rápido, lancero, jefe), centurión, triario y vélite, con la túnica teñida por bando.",
+      "hecho": "Diez soldados generados con Meshy (plan de pago), aligerados a cuatro niveles con el esqueleto del juego y publicados como CC BY-SA 3.0 con crédito (MS1, MS2, AL1 a AL11, CR1); 0,6 a 1,0 MB cada uno.",
+      "falta": "Descarga en 49,7 de 50 MB: no caben más sin recortar. Pendientes: piel de lobo del vélite como pieza aparte, galos sin barba (necesitan imagen de referencia) y ciudades griegas con los modelos de templo y curia ya generados.",
+      "captura": "gobierno/capturas-tarea/AL11-2-galos-grandes-v.jpg",
+      "tareas": [
+        "MS1",
+        "MS2",
+        "AL1",
+        "AL2",
+        "AL3",
+        "AL4",
+        "AL5",
+        "AL6",
+        "AL7",
+        "AL8",
+        "AL9",
+        "AL10",
+        "AL11",
+        "CR1",
+        "PIL3"
       ]
     }
   ],
@@ -349,13 +436,20 @@
           "GM-K6d"
         ],
         "nota": "Sellos y franja de mando de la batalla."
+      },
+      {
+        "tareas": [
+          "GM-K6e"
+        ],
+        "nota": "Fichas del despliegue: van con GM-K6a a d, después de la 1.0 (CM2, 18/11)."
       }
     ],
     "sobra": [],
     "esperan": "L4 y L7 esperan el estudio PO1 (política). K7e, de L5, también: toca el Senado. Los restos de los concursos (K10, K1, K5, K8, EV4a, EV7, EV8, P166, P176) se resuelven dentro de L4 y L10, no como tareas sueltas.",
     "gobierno": [
       "CM1",
-      "CM2"
+      "CM2",
+      "MIN2"
     ]
   }
 }

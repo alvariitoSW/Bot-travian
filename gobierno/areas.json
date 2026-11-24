@@ -73,6 +73,9 @@
         "js/battle.js",
         "js/guerra.js",
         "js/simulador.js",
+        "js/dialogos.js",
+        "js/gfx/dialogos-ui.js",
+        "test/dialogos.test.mjs",
         "js/maniobra.js",
         "js/ui-guerra.js",
         "js/ui-mando.js",
@@ -97,6 +100,7 @@
         "test/ref-normal.mjs",
         "gobierno/juez-guerra.mjs",
         "gobierno/captura-guerra.mjs",
+        "gobierno/captura-son9.mjs",
         "gobierno/captura-batalla.mjs",
         "gobierno/captura-gm*.mjs",
         "gobierno/maquetas/a-pie/",
@@ -141,7 +145,8 @@
           "test/falange-rivales.test.mjs",
           "test/bloque.test.mjs",
           "test/bloque-ia.test.mjs",
-          "test/fisica-batalla.test.mjs"
+          "test/fisica-batalla.test.mjs",
+          "test/dialogos.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area batallas",
@@ -206,7 +211,8 @@
         "js/barrio-ui.js",
         "js/mercado.js",
         "test/mercado.test.mjs",
-        "test/barrio-ui.test.mjs"
+        "test/barrio-ui.test.mjs",
+        "js/mercado-ui.js"
       ],
       "taller": [],
       "juez": {

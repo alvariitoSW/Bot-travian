@@ -1,5 +1,5 @@
 # AQVILA — GM43i: corta, iguala y comprime el sonido grabado de las escenas a pie (assets/sonido/).
-# Casi todo es CC0 (dominio público; ver assets/sonido/LICENSE.txt para lo que no) y sale de OpenGameArt y Freesound; la lista con autor y enlace está en
+# Casi todo es CC0 (dominio público); los gritos de SON10 son CC BY 3.0/4.0 u OGA-BY 3.0 (ver assets/sonido/LICENSE.txt) y sale de OpenGameArt y Freesound; la lista con autor y enlace está en
 # assets/sonido/LICENSE.txt. Uso:
 #   sh tools/sonido-fuentes.sh <carpeta>        # baja las fuentes (una vez)
 #   python3 -I tools/sonido.py <carpeta> assets/sonido
@@ -70,37 +70,84 @@ GOLPES = [
     ('paso1', f'{KEN}/footstep00.ogg', 0, None, -2), ('paso2', f'{KEN}/footstep02.ogg', 0, None, -2),
     ('paso3', f'{KEN}/footstep05.ogg', 0, None, -2), ('paso4', f'{KEN}/footstep08.ogg', 0, None, -2),
     ('vuelo1', f'{SW}/swish-1.wav', 0, None, -2), ('vuelo2', f'{SW}/swish-5.wav', 0, None, -2), ('vuelo3', f'{SW}/swish-9.wav', 0, None, -2),
-    ('esfuerzo1', 'fs511023.mp3', 0.50, 0.95, -3), ('esfuerzo2', 'fs511023.mp3', 5.32, 5.75, -3),
-    ('esfuerzo3', 'fs511023.mp3', 9.02, 9.5, -3), ('esfuerzo4', 'fs511023.mp3', 26.27, 26.85, -3),
-    ('herido1', 'fs803168.mp3', 4.20, 4.75, -3), ('herido2', 'fs803168.mp3', 11.58, 12.25, -3),
     ('coro1', 'fs57204.mp3', 0.02, 0.7, -2),
-    ('grito1', 'fs521830.mp3', 0.05, 1.5, -2), ('grito2', 'fs521831.mp3', 0.0, 2.5, -2), ('grito3', 'fs521832.mp3', 0.03, 0.95, -2),
 ]
 # (nombre, archivo, desde, hasta, pico dB, fundido de salida) — frases largas
 LARGOS = [
-    ('clamor1', 'fs621374.mp3', 1.9, 6.4, -2, 0.8),       # vikingos que gritan antes de la batalla
-    ('clamor2', 'fs563011.mp3', 11.0, 15.0, -2, 0.8),      # gente que grita al cargar
     ('cuerno1', 'fs539956.mp3', 0.0, 4.3, -2, 0.5),        # cuerno de guerra (tubo), el romano
     ('cuerno2', 'fs512490.mp3', 1.0, 5.4, -2, 0.9),        # cuerno de guerra lejano, el rival
 ]
 # (nombre, archivo, desde, hasta, pico dB) — fondos que se repiten sin corte
 BUCLES = [
-    ('lucha1', 'fs376646.mp3', 70.0, 77.6, -3),            # recreadores vikingos: espadas y escudos de verdad
-    ('lucha2', 'fs177084.mp3', 0.3, 9.9, -3),              # guerreros con espada y escudo
     ('viento1', 'fs553733.mp3', 20.0, 29.6, -6),           # viento en campo abierto
 ]
 
 # SON1-a: voces nuevas. (nombre, archivo, desde, hasta, pico dB, fundido de entrada, fundido de salida)
 VOCES = [
     ('orden1', 'fs661242.mp3', 0.00, 1.05, -2, 0.01, 0.10),   # grito gutural sin palabra (DeqstersLab). SON2: quitadas las otras tres (podían llevar palabras no permitidas)
-    ('aclamacion1', 'fs264377.mp3', 3.0, 6.2, -3, 0.25, 0.7),  # veinte voces vitorean (HowardV)
-    ('aclamacion2', 'fs264377.mp3', 14.0, 17.5, -3, 0.25, 0.8),
-    ('panico1', 'fs325548.mp3', 1.0, 2.9, -2, 0.01, 0.2),     # hombre que grita de dolor y miedo (Archeos)
-    ('panico2', 'fs491405.mp3', 1.0, 3.8, -3, 0.15, 0.5),     # multitud que huye gritando (IENBA)
     ('canto1', 'fs588578.mp3', 0.25, 2.55, -2, 0.03, 0.25),   # hombres que cantan a coro (marconi68)
     ('canto2', 'fs588578.mp3', 2.55, 4.85, -2, 0.03, 0.25),
-    ('quejido1', 'fs556006.mp3', 0.9, 2.5, -3, 0.05, 0.25),   # lamento de herido (Morshuman)
-    ('quejido2', 'fs477756.mp3', 36.8, 38.5, -3, 0.03, 0.25), # hombre que sufre (RepDac3)
+]
+
+# ---- SON10: gritos y fragor de batalla grabados (CC0, CC BY 3.0/4.0 y OGA-BY 3.0; autor y enlace en assets/sonido/LICENSE.txt) ----
+# Se igualan por volumen medio (RMS) con limitador, no por pico: son voces y multitudes que deben sonar parejas.
+def rms_db(x):
+    return 20 * np.log10(np.sqrt(np.mean(x ** 2)) + 1e-12)
+
+
+def limita(x, techo=-2.6):
+    # limitador con anticipación: la ganancia baja un poco antes de cada pico y se suaviza
+    t = 10 ** (techo / 20)
+    g = np.minimum(1, t / (np.abs(x) + 1e-9))
+    w = int(0.004 * SR)
+    gp = np.pad(g, (w, w), mode='edge')
+    gm = np.lib.stride_tricks.sliding_window_view(gp, 2 * w + 1).min(axis=1)[:len(x)]
+    k = np.hanning(2 * w + 1)
+    k /= k.sum()
+    gs = np.convolve(np.pad(gm, (w, w), mode='edge'), k, 'valid')[:len(x)]
+    return x * np.minimum(gs, g)
+
+
+def iguala_rms(x, obj=-18.0):
+    for _ in range(6):
+        x = limita(x * 10 ** ((obj - rms_db(x)) / 20))
+    return x
+
+
+def recorta(x, umbral=-32):
+    # quita el silencio de los extremos (lo que queda a más de `umbral` dB bajo el máximo)
+    w = int(0.01 * SR)
+    e = np.array([np.sqrt(np.mean(x[i:i + w] ** 2)) + 1e-9 for i in range(0, len(x), w)])
+    ok = np.where(20 * np.log10(e) > 20 * np.log10(e.max()) + umbral)[0]
+    return x[max(0, ok[0] * w - int(0.02 * SR)):min(len(x), (ok[-1] + 1) * w + int(0.12 * SR))]
+
+
+# (nombre, archivo, desde, hasta, recortar, fundido de entrada, fundido de salida, ¿bucle?) — cada grito, en su propio archivo.
+# Freesound: vista previa «hq» (bajar el original pide cuenta); OpenGameArt: el original.
+GRABADOS = [
+    ('clamor1', 'fs480809.mp3', 5.0, 10.8, False, 0.3, 1.0, False),     # craigsmith: hombres que se animan y avanzan (CC0). Solo este trozo: antes y después se oyen frases en inglés («come on», «hey»)
+    ('masa1', 'fs612131.mp3', 8.0, 17.5, False, 1.5, 1.5, False),       # felix.blume: 60 000 voces «huuu»; bajo el clamor, según el tamaño del ejército (CC0)
+    ('grito1', 'yell/yell5.wav', 0, None, True, 0.005, 0.08, False),    # HaelDB: cuatro hombres que gritan al atacar (OGA-BY 3.0)
+    ('grito2', 'yell/1yell4.wav', 0, None, True, 0.005, 0.08, False),
+    ('grito3', 'yell/2yell4.wav', 0, None, True, 0.005, 0.08, False),
+    ('grito4', 'yell/yell11.wav', 0, None, True, 0.005, 0.08, False),
+    ('grito5', 'fs695377.mp3', 0, None, True, 0.005, 0.08, False),      # F.M.Audio: grito de ataque (CC BY 4.0)
+    ('esfuerzo1', 'fs695383.mp3', 0, None, True, 0.005, 0.08, False),   # F.M.Audio: gruñidos de ataque, el esfuerzo del golpe (CC BY 4.0)
+    ('esfuerzo2', 'fs695381.mp3', 0, None, True, 0.005, 0.08, False),
+    ('esfuerzo3', 'fs695382.mp3', 0, None, True, 0.005, 0.08, False),
+    ('herido1', 'fs695387.mp3', 0, None, True, 0.005, 0.1, False),      # F.M.Audio: gritos de muerte al caer (CC BY 4.0)
+    ('herido2', 'fs695389.mp3', 0, None, True, 0.005, 0.1, False),
+    ('herido3', 'fs695388.mp3', 0, None, True, 0.005, 0.1, False),
+    ('herido4', 'fs695384.mp3', 0, None, True, 0.005, 0.1, False),
+    ('herido5', 'mb/die1.wav', 0, None, True, 0.005, 0.1, False),       # Michel Baradari: muerte con voz grave (CC BY 3.0)
+    ('quejido1', 'mb/pain2.wav', 0, None, True, 0.005, 0.1, False),     # Michel Baradari: quejidos de dolor (CC BY 3.0)
+    ('quejido2', 'mb/pain4.wav', 0, None, True, 0.005, 0.1, False),
+    ('quejido3', 'mb/pain5.wav', 0, None, True, 0.005, 0.1, False),
+    ('lucha1', 'fs675091.mp3', 0.5, 10.5, False, 0, 0, True),           # craigsmith: hombres que gritan y espadas que chocan; bucle sin costura (CC0)
+    ('aclamacion1', 'fs165492.mp3', 0.62, None, True, 0.005, 0.4, False),  # chripei: diez hombres vitorean; se corta el «yeah» inicial (CC BY 4.0)
+    ('panico1', 'fs173944.mp3', 0.0, 4.2, True, 0.005, 0.3, False),     # JohnsonBrandEditing: gritos de miedo, tres tomas (CC0)
+    ('panico2', 'fs173944.mp3', 6.0, 9.7, True, 0.005, 0.3, False),
+    ('panico3', 'fs173944.mp3', 9.7, 12.8, True, 0.005, 0.3, False),
 ]
 
 os.makedirs(SALIDA, exist_ok=True)
@@ -116,4 +163,11 @@ for nombre, ruta, a, b, pico in BUCLES:
     escribe(nombre, iguala(bucle(x), pico), 8)
 for nombre, ruta, a, b, pico, ent, sal in VOCES:
     escribe(nombre, fundidos(iguala(trozo(lee(ruta), a, b), pico), ent, sal))
-print('hecho:', len(GOLPES) + len(LARGOS) + len(BUCLES) + len(VOCES), 'sonidos en', SALIDA)
+for nombre, ruta, a, b, rec, ent, sal, es_bucle in GRABADOS:
+    x = lee(ruta)
+    x = trozo(x, a, b if b is not None else len(x) / SR)
+    if rec: x = recorta(x)
+    if es_bucle: x = bucle(x, 1.0)
+    else: x = fundidos(x, ent, sal)
+    escribe(nombre, iguala_rms(x, -18.0), 7)
+print('hecho:', len(GOLPES) + len(LARGOS) + len(BUCLES) + len(VOCES) + len(GRABADOS), 'sonidos en', SALIDA)
