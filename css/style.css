@@ -1909,3 +1909,12 @@ body.contemplando .mlabels, body.contemplando #toasts, body.contemplando #pausa 
   #tira-r { gap: 6px; }
   #tira .tr { gap: 1px; } #tira .tr .ico { width: 14px; height: 14px; } #tira .tr b { font-size: 12px; letter-spacing: -.01em; }
 }
+/* CDe3: versión y novedades en el menú principal */
+#menu .mver { margin: 6px auto 0; min-height: 44px; padding: 0 16px; background: none; border: 0; color: #ffffff80; font-size: 12.5px; letter-spacing: .04em; text-decoration: underline; text-underline-offset: 3px; }
+#menu .mnov { position: fixed; inset: 0; z-index: 61; background: rgba(3, 5, 8, .72); display: grid; place-items: center; padding: calc(16px + env(safe-area-inset-top)) 14px calc(16px + env(safe-area-inset-bottom)); }
+#menu .nv-hoja { width: 100%; max-width: 420px; max-height: 100%; overflow-y: auto; text-align: left; padding: 18px 18px 8px; border-radius: 6px; color: var(--tinta); }
+#menu .nv-t { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+#menu .nv-t .mtit { margin: 0; }
+#menu .nv-v { margin-bottom: 12px; } #menu .nv-v ul { margin: 4px 0 0; padding-left: 18px; } #menu .nv-v li { font-size: 14.5px; line-height: 1.35; margin: 4px 0; }
+#menu .nv-ant { margin: 14px 0 4px; font-family: var(--serif); letter-spacing: .12em; font-size: 12px; color: var(--tinta2); border-top: 1px solid #5a422055; padding-top: 10px; }
+#menu .nv-v .ro-rubrica { color: var(--minio); margin: 0; font-size: 12.5px; letter-spacing: .1em; }

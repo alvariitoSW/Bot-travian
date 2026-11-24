@@ -264,8 +264,15 @@ function showMenu() {
     '<header class="mtop">' + AGUILA + '<div><h1>AQVILA</h1><div class="sub">El ascenso de Roma · 280–146 a.C.</div></div></header>' + tarjeta +
     '<nav class="mlista" aria-label="Menú principal">' + (nueva ? '' : mFila('mpanel', 'nueva', ICO_ESPADA, 'Nueva campaña', 'Roma contra Cartago, de 280 a 146 a.C.')) +
     mFila('hoja', 'escaramuza', ICO_ESC, 'Escaramuzas', 'Una batalla suelta, sin campaña', 'mesc') + mFila('hoja', 'corta', ICO_RELOJ, 'Partida corta', 'Italia, de 3 a 5 horas, con final') +
-    mFila('newregion', 'italia', ICO_GLOBO, 'Región de Italia', 'Campaña solo en el mapa de Italia') + mFila('hoja', 'sonmenu', ICO_AJUS, 'Opciones', 'Sonido, fluidez y copias de la partida') + '</nav>' +
+    mFila('newregion', 'italia', ICO_GLOBO, 'Región de Italia', 'Campaña solo en el mapa de Italia') + mFila('hoja', 'sonmenu', ICO_AJUS, 'Opciones', 'Sonido, fluidez y copias de la partida') + '</nav>' + novedadesHtml() +
     '<div class="mcred">' + CREDITOS + '</div><div class="spqr">S·P·Q·R</div>';
+}
+/* CDe3: «Versión v… · Novedades» abajo en el menú; al tocarlo, hoja de papiro con lo nuevo y las 3 versiones anteriores (js/novedades.js) */
+function novedadesHtml() {
+  const N = window.NOVEDADES; if (!N || !N.length) return '';
+  const ver = e => '<section class="nv-v"><p class="ro-rubrica">Versión v' + e.v + ' · ' + esc(e.fecha) + '</p><ul>' + e.cosas.map(c => '<li>' + esc(c) + '</li>').join('') + '</ul></section>';
+  return '<button class="mver" data-act="novedades">Versión v' + N[0].v + ' · Novedades</button>' +
+    (UI.novedades ? '<div class="mnov" data-act="novedades"><div class="nv-hoja ro-papiro"><div class="nv-t"><p class="mtit">Lo nuevo</p><button class="mvolver" data-act="novedades">Cerrar</button></div>' + ver(N[0]) + (N.length > 1 ? '<p class="nv-ant">Antes</p>' + N.slice(1, 4).map(ver).join('') : '') + '</div></div>' : '');
 }
 { let tv = 0; const sf = () => { clearTimeout(tv); tv = setTimeout(() => { UI.svDown = false; }, 150); };   // Saber: no repintar entre pulsar y soltar
   document.addEventListener('pointerdown', e => { if (e.target.closest && e.target.closest('.sv')) { UI.svDown = true; clearTimeout(tv); tv = setTimeout(() => { UI.svDown = false; }, 1500); } }, true);
@@ -1808,6 +1815,7 @@ document.addEventListener('click', function (e) {
     case 'new': case 'newregion': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'cortaen': case 'cortafun': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', null, { modo: 'corta', inicio: a === 'cortafun' ? 'fundar' : 'enPie', dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
     case 'refundar': closeModal(); iniciarFundar(); break;
+    case 'novedades': if (UI.menu && (!e.target.closest('.nv-hoja') || el.classList.contains('mvolver'))) { UI.novedades = !UI.novedades; showMenu(); } break;   // CDe3
     case 'continue': if (G.load()) { const pa = S().parada; UI.overShown = false; startGame(); if (S().over) showOver(); else if (pa) carta('<div class="yr">DÓNDE LO DEJASTE</div><h2>' + esc(pa.fecha || '') + '</h2><p>' + esc(pa.texto) + '</p><div class="acts"><button class="btn" data-act="close">Seguir jugando</button></div>'); } break;
     case 'postal': if (UI.tab !== 'city' || UI.menu || !UI.cityV || !UI.cityV.listo) toast('Abre una ciudad para sacar la postal.', 'bad'); else hacerPostal(UI.cityV, G, D, cityOk()).then(ok => toast(ok ? 'Postal guardada en tus descargas.' : 'No se pudo hacer la postal.', ok ? '' : 'bad')); break;
     case 'contemplar': if (UI.tab !== 'city' || UI.menu || !UI.cityV || !UI.cityV.listo) toast('Abre una ciudad para contemplarla.', 'bad'); else { hojaCierra(); contemplar(UI.cityV); } break;

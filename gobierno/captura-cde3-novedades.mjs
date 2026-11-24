@@ -1,0 +1,20 @@
+/* CDe3: menú principal con «Versión · Novedades» y la hoja abierta, a 390×844. Uso: node gobierno/captura-cde3-novedades.mjs */
+import { createRequire } from 'node:module';
+import { createServer } from 'node:http';
+import { readFile } from 'node:fs/promises';
+import { join, extname, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..'), require = createRequire(import.meta.url), { chromium } = require('playwright');
+const TIPOS = { '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.bin': 'application/octet-stream', '.webp': 'image/webp', '.mp3': 'audio/mpeg', '.woff2': 'font/woff2' };
+const srv = createServer(async (q, r) => { try { const p = decodeURIComponent(q.url.split('?')[0]); const f = join(RAIZ, p === '/' ? 'index.html' : p); const d = await readFile(f); r.writeHead(200, { 'content-type': TIPOS[extname(f)] || 'application/octet-stream' }); r.end(d); } catch (e) { if (!r.headersSent) r.writeHead(404); r.end(); } }).listen(0);
+const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
+const page = await b.newPage({ viewport: { width: 390, height: 844 } }); const errs = [];
+page.on('pageerror', e => errs.push(e.message)); page.on('console', m => { if (m.type() === 'error') errs.push(m.text()); });
+await page.goto('http://127.0.0.1:' + srv.address().port + '/'); await page.waitForTimeout(6000);
+const foto = n => page.screenshot({ path: join(RAIZ, 'gobierno/capturas-tarea/CDe3-' + n + '.jpg'), type: 'jpeg', quality: 80 });
+await foto('menu-version');
+await page.click('#menu .mver'); await page.waitForTimeout(600); await foto('novedades');
+await page.click('#menu .nv-hoja li'); await page.waitForTimeout(300); const sigue = await page.$('#menu .mnov');
+await page.click('#menu .nv-t .mvolver'); await page.waitForTimeout(300); const cerrada = !(await page.$('#menu .mnov'));
+console.log('tocar el papiro no cierra:', !!sigue, '· Cerrar cierra:', cerrada, '· errores:', errs.filter(e => !/Failed to load resource/.test(e)));
+await b.close(); srv.close();
