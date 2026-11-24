@@ -273,7 +273,7 @@ function ponerLuz() { const RS = 600; sol.position.set(0, 0, -70).addScaledVecto
 const PZ = { foro: ['foro', 0.78, 0, 0.2], fuente: ['prop_pozo', 2.2, 0, 0.1], granero: ['almacen', 1.35, 0, 0.3], almacen: ['almacen', 1.1, 0, 0.3], granja: ['granja', 1.0, 0, 0.3], aserradero: ['aserradero', 1.25, 0, 0.2], taller: ['aserradero', 1.25, 0, 0.2],
   cantera: ['cantera', 0.8, 0, 0.3], mina: ['mina', 1.0, 0, 0.3], templo: ['templo', 0.86, 0, 1.2], mercado: ['mercado', 0.82, 0, 0.2], herreria: ['aserradero', 0.95, 0, 0.2], escuela: ['mercado', 0.7, 0, 0.2], cuartel: ['cuartel', 1.1, 0, 0.3], establo: ['establo', 1.1, 0, 0.3],
   muelle: ['puerto', 0.85, 0, 0], salinas: ['almacen', 0.8, 0, 0.3], zanja: ['prop_pozo', 1.2, 0, 0.1], compitum: ['vesta', 0.5, 0, 0.6], dique: ['muro', 1.0, 0, 0.2],
-  termas: ['mercado', 0.75, 0, 0.2], acueducto: ['arco', 1.2, 0, 0.2], cloaca: ['prop_pozo', 1.4, 0, 0.1], medico: ['casa_c', 0.9, 0, 0.3], jardin: ['olivo', 1.4, 0, 0], parque: ['cipres', 1.4, 0, 0],
+  termas: ['termas', 0.7, 0, 0.2], acueducto: ['acueducto', 0.8, 0, 0.2], cloaca: ['prop_pozo', 1.4, 0, 0.1], medico: ['casa_c', 0.9, 0, 0.3], jardin: ['olivo', 1.4, 0, 0], parque: ['cipres', 1.4, 0, 0],
   curia: ['foro', 0.55, 0, 0.2], comicio: ['mercado', 0.95, 0, 0.2], astillero: ['puerto', 0.8, 0, 0], faro: ['torre', 1.6, 0, 0.2] };       // herrería usa el taller reducido (aún no hay pieza propia); la fuente espera a prop_pozo
 const PIEL_U = { muro: [0.93, 0.86, 0.76], teja: [0.86, 0.8, 0.76, 0.15] };
 const L = {}, G = {};                 // lotes y mallas sueltas
@@ -286,7 +286,7 @@ const tNace = new Map(), firma = new Map();
 const ahora = () => performance.now() / 1000;
 
 export async function montar() {
-  const claves = ['casa', 'almacen', 'aserradero', 'mercado', 'foro', 'vesta', 'templo', 'granja', 'puerto', 'cantera', 'mina', 'cuartel', 'establo', 'muro', 'torre', 'puerta', 'cipres', 'olivo', 'pino', 'algarrobo', 'casa_b', 'casa_c', 'casa_d', 'prop_paja', 'prop_pozo', 'prop_carreta', 'prop_mesa', 'prop_cesto', 'prop_sacos', 'prop_vaso', 'prop_caja', 'prop_cajas', 'prop_paja_grande', 'prop_puesto_cart', 'arco', ...CASAS_C.grie, ...CASAS_C.cart, 'grie_templo', 'cart_templo'];
+  const claves = ['casa', 'almacen', 'aserradero', 'mercado', 'foro', 'vesta', 'templo', 'granja', 'puerto', 'cantera', 'mina', 'cuartel', 'establo', 'muro', 'torre', 'puerta', 'cipres', 'olivo', 'pino', 'algarrobo', 'casa_b', 'casa_c', 'casa_d', 'prop_paja', 'prop_pozo', 'prop_carreta', 'prop_mesa', 'prop_cesto', 'prop_sacos', 'prop_vaso', 'prop_caja', 'prop_cajas', 'prop_paja_grande', 'prop_puesto_cart', 'arco', 'termas', 'acueducto', ...CASAS_C.grie, ...CASAS_C.cart, 'grie_templo', 'cart_templo'];
   await Promise.all([preloadStatic(claves), cargarGriegas(), loadGroundTextures(), UN.preload(['ciudadana', 'sacerdote'])]);
   const T = texturasMundo();
   U.uRuido.value = texturaRuido(); ponerCamara(); ponerLuz(); { const cl = crearCielo(SOL, HORIZ, U); cieloU = cl.userData.luz; scene.add(cl); }
