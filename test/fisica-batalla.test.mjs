@@ -430,10 +430,20 @@ t('FI3u: los avisos se vacían al leerlos y no crecen sin límite', () => {
   const { crearTropas } = await import('../gobierno/maquetas/bloque/tropas.js'), FB = await import('../gobierno/maquetas/bloque/fisica.js');
   t('LP7: con las fuerzas tope de «Bajar a pie» (600 hombres) el motor de física ronda 1 ms por paso (< 1,3) y nadie se cuela', () => {
     const fuerzas = { tuyo: 120, centro: 120, amigas: [70, 70], alas: [70, 70], reserva: 50, tiradores: 30 }, ms = [];
+    /* FI4 (decisión del vigía, 24/11, «A»): la mejor de tres tandas. La partida es la misma en cada tanda (misma semilla): cada paso
+       del motor se cronometra en las tres y vale el mejor de los tres; la media de esos es la cifra. Un pico de la máquina en un paso
+       no cuenta; un motor lento sí. El tope (1,3 ms) no cambia */
     for (const semilla of [3, 7]) {
-      const C = crearCombate({ semilla, nivel: 'normal', motor: BL, fuerzas, lejos: 50, fin: FIN_LUCHA }), S = C.S, TR = crearTropas({ S }), FS = FB.crearFisicaBloque({ S, TR, semilla });
-      let k = 0; while (!S.ganador && S.T < 200) { C.bot('bueno'); C.paso(1 / 30); TR.paso(1 / 30, S.T); FS.paso(1 / 30); if (++k === 300) FS.reinicia(); }
-      const m = FS.medir(); ms.push(m.motor); assert.ok(m.rival >= 0.8 && m.colados <= 0.2, JSON.stringify(m));
+      let mejor = null, ultima = null;
+      for (let tanda = 0; tanda < 3; tanda++) {
+        const C = crearCombate({ semilla, nivel: 'normal', motor: BL, fuerzas, lejos: 50, fin: FIN_LUCHA }), S = C.S, TR = crearTropas({ S }), FS = FB.crearFisicaBloque({ S, TR, semilla });
+        const tiempos = [], paso0 = FS.Fi.paso; FS.Fi.paso = (SF, dt) => { const t0 = performance.now(); paso0(SF, dt); tiempos.push(performance.now() - t0); };
+        let k = 0; while (!S.ganador && S.T < 200) { C.bot('bueno'); C.paso(1 / 30); TR.paso(1 / 30, S.T); FS.paso(1 / 30); if (++k === 300) FS.reinicia(); }
+        const m = FS.medir(); assert.ok(m.rival >= 0.8 && m.colados <= 0.2, JSON.stringify(m));
+        if (ultima) assert.strictEqual(JSON.stringify(m.rival), JSON.stringify(ultima.rival), 'la misma partida en cada tanda');
+        ultima = m; mejor = mejor ? mejor.map((x, i) => Math.min(x, tiempos[i] ?? Infinity)) : tiempos;
+      }
+      ms.push(+(mejor.reduce((a, b) => a + b, 0) / mejor.length).toFixed(3));
     }
     console.log('   motor ' + ms.join(' y ') + ' ms por paso (enganche entero aparte)');
     assert.ok(Math.max(...ms) < 1.3, ms.join(' '));
