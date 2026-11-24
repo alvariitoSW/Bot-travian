@@ -5,7 +5,10 @@ const aqui = path.dirname(fileURLToPath(import.meta.url)), sal = path.join(aqui,
 const b = await chromium.launch(); const p = await b.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
 await p.goto(pathToFileURL(path.join(aqui, 'index.html')).href); await p.waitForTimeout(800);
 const ids = ['ciudad', 'construir', 'senado-ministros', 'imperio', 'saber', 'tropas'];
-for (let i = 0; i < ids.length; i++) await (await p.$('#' + ids[i])).screenshot({ path: path.join(sal, `MN4a-${i + 1}-${ids[i]}.jpg`), type: 'jpeg', quality: 80 });
+for (let i = 0; i < ids.length; i++) await (await p.$('#' + ids[i])).screenshot({ path: path.join(sal, `${process.env.PFX||"MN4a-"}${i + 1}-${ids[i]}.jpg`), type: 'jpeg', quality: 80 });
 // tira sola con 9 recursos
-await (await p.$('#tira')).screenshot({ path: path.join(sal, 'MN4a-0-tira.jpg'), type: 'jpeg', quality: 80 });
+await (await p.$('#tira')).screenshot({ path: path.join(sal, (process.env.PFX||'MN4a-')+'0-tira.jpg'), type: 'jpeg', quality: 80 });
+// MN4b: horizontal 844×390 (ciudad e imperio)
+await p.setViewportSize({ width: 844, height: 390 }); await p.waitForTimeout(400);
+for (const id of ['ciudad', 'imperio']) { const el = await p.$('#' + id); if (el) await el.screenshot({ path: path.join(sal, `${process.env.PFX || 'MN4a-'}h-${id}.jpg`), type: 'jpeg', quality: 80 }); }
 await b.close();

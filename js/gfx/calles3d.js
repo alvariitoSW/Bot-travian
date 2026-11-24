@@ -5,7 +5,7 @@ import { THREE } from './models.js';
 import { altura } from './mundo.js';
 
 let escena = null; const capas = {};
-const COL = { tinta: 0x2b2118, crema: 0xf1e2b0, borde: 0x5a4524, rojo: 0xd8402e, oro: 0xf2b630 };
+const COL = { tinta: 0x2b2118, crema: 0xf1e2b0, borde: 0x5a4524, rojo: 0xd8402e, oro: 0xf2b630, piedra: 0xe9e0c8, bordillo: 0x6b5a3c };
 const ALZA = 1.7;
 
 /* cinta de ancho w siguiendo el relieve; con raya = [largo, hueco] se parte en trozos (discontinua) */
@@ -34,6 +34,7 @@ export function pintar(o) {
   poner('formaB', o.forma, 8, COL.borde, 2);
   poner('forma', o.forma, 6, o.ok ? COL.crema : COL.rojo, 3);
   poner('propuesta', o.propuesta, 5, COL.oro, 4, [7, 4]);
-  poner('hecha', o.hecha, 7, COL.crema, 5);      // la calle recién hecha: se enciende un momento para que se note
+  poner('hechaB', o.hecha, 9.5, COL.bordillo, 5);      // bordillo oscuro de piedra
+  poner('hecha', o.hecha, 7, COL.piedra, 6);      // la calle recién hecha: se enciende un momento para que se note
 }
 export function limpiar() { for (const k in capas) { capas[k].visible = false; capas[k].geometry.dispose(); capas[k].geometry = new THREE.BufferGeometry(); } }

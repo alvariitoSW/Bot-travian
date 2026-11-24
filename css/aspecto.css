@@ -123,3 +123,23 @@ body.aspecto #tabs3 button i { display: block; font-style: normal; line-height: 
 
 body.aspecto .cam-tira .cam-nom { letter-spacing: 0; font-size: 11px; }
 body.aspecto .clases .bn { display: flex; align-items: center; }
+body.aspecto #tabs3 { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 3px; padding: 5px; }
+body.aspecto #tabs3 button { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 54px; padding: 2px 0; border: 0; font-size: 11px; letter-spacing: .02em; text-transform: uppercase; }
+body.aspecto #tabs3 button i { display: block; font-style: normal; line-height: 0; }
+
+/* MN4b: hojas de altura variable (la hoja mide lo que mide su contenido, sin media hoja vacía) */
+.as-hoja.as-lleno.as-auto { bottom: auto; max-height: calc(100% - 134px); }
+.as-hoja.as-lleno.as-auto .as-scroll { flex: 0 1 auto; }
+/* barra de abajo: seis pestañas que caben a 390 px (sin desbordar ni cortar la palabra) */
+body.aspecto #tabs3 { left: 4px; right: 4px; gap: 2px; padding: 4px; }
+body.aspecto #tabs3 button { min-width: 0; overflow: clip; font-size: 10px; letter-spacing: 0; white-space: nowrap; text-overflow: clip; }
+/* horizontal (844×390): barra y hojas más bajas, la hoja a un lado para ver el mapa */
+@media (orientation: landscape) and (max-height: 520px) {
+  body.aspecto #tabs3 { left: 50%; right: auto; width: min(560px, calc(100% - 16px)); transform: translateX(-50%); bottom: calc(4px + env(safe-area-inset-bottom)); padding: 3px; }
+  body.aspecto #tabs3 button { min-height: 44px; gap: 1px; font-size: 10px; }
+  body.aspecto #tabs3 button i img { width: 20px; height: 20px; }
+  body.aspecto #sheet, body.aspecto #csheet { left: auto; right: 8px; width: min(420px, 55%); max-height: calc(100% - 60px); bottom: calc(56px + env(safe-area-inset-bottom)); }
+  body.aspecto #bar2 #citybtn, body.aspecto #bar2 #datebox { padding-top: 2px; padding-bottom: 2px; }
+  .as-hoja.as-lleno { top: 48px; bottom: 56px; left: auto; right: 8px; width: min(460px, 60%); }
+  .as-hoja.as-lleno.as-auto { bottom: auto; max-height: calc(100% - 104px); }
+}

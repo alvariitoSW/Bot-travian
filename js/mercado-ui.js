@@ -62,7 +62,20 @@
     '.mu-fic{display:flex;align-items:center;gap:12px}.mu-fict{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}.mu-fict b{font:700 20px/1.15 var(--serif,Georgia,serif);letter-spacing:.04em}.mu-fict span{font-size:17px}.mu-fict em{font-size:14px;color:var(--tinta2,#5a4220)}' +
     '.mu-leyenda{margin-top:-4px}' +
     '.mu-barra{height:14px;border-radius:7px;background:#8f7a52;border:1px solid #5a4220;box-shadow:inset 0 2px 3px rgba(0,0,0,.35)}' +
-    '.mu-barra i{background:repeating-linear-gradient(115deg,#c9964a 0 5px,#8a5a1e 5px 8px);border-right:2px solid #5a3a0e}';
+    '.mu-barra i{background:repeating-linear-gradient(115deg,#c9964a 0 5px,#8a5a1e 5px 8px);border-right:2px solid #5a3a0e}' +
+    /* MN4b: mármol veteado en la cabecera, filete y esquinas de bronce en las tarjetas, rótulos romanos */
+    '.mu-cab{padding:4px 6px 4px 12px;border-radius:8px;border:1.5px solid #b8862b;box-shadow:inset 0 0 0 2px #f6ead0,inset 0 0 0 3px rgba(139,98,30,.55),0 1px 3px rgba(60,35,10,.35);background:linear-gradient(112deg,transparent 0 22%,rgba(120,100,80,.22) 22.4%,transparent 23.2% 47%,rgba(120,100,80,.18) 47.3%,transparent 48.2% 71%,rgba(150,120,80,.2) 71.3%,transparent 72.4%),linear-gradient(68deg,transparent 0 33%,rgba(130,110,90,.16) 33.4%,transparent 34.2% 85%,rgba(130,110,90,.18) 85.3%,transparent 86.2%),radial-gradient(ellipse at 30% 20%,#fffaf0,#efe6d2 60%,#ddd0b4)}' +
+    '.mu-cab h2{text-shadow:0 1px 0 #fffaf0;color:#3a2410}' +
+    '.mu-prod{position:relative;box-shadow:inset 0 0 0 3px #f2e2b6,inset 0 0 0 4px rgba(184,134,43,.65)}' +
+    '.mu-prod::before,.mu-prod::after{content:"";position:absolute;width:10px;height:10px;pointer-events:none;border:0 solid #a8741f}' +
+    '.mu-prod::before{left:2px;top:2px;border-width:2.5px 0 0 2.5px;border-radius:3px 0 0 0}.mu-prod::after{right:2px;bottom:2px;border-width:0 2.5px 2.5px 0;border-radius:0 0 3px 0}' +
+    '.mu-prod .nm{letter-spacing:.04em;text-transform:uppercase;font-size:13.5px;color:#2b1c0a}' +
+    '.mu-prod .mu-mot{margin-top:1px;font:700 11px/1.2 var(--serif,Georgia,serif);letter-spacing:.09em;text-transform:uppercase;color:#4a3210;text-shadow:0 1px 0 rgba(255,250,235,.7)}' +
+    '.mu-sec{border:1.5px solid rgba(139,98,30,.7);box-shadow:inset 0 0 0 2px rgba(255,246,214,.7),inset 0 0 0 3px rgba(139,98,30,.35)}' +
+    '.mu-sec>h3{text-transform:uppercase;letter-spacing:.1em;font-size:15px;padding-bottom:5px;border-bottom:2px solid #b8862b;background:linear-gradient(90deg,#b8862b,transparent) left bottom/100% 1px no-repeat}' +
+    '.mu-nota{color:#4a3210;opacity:1}' +
+    '.mu-tab{letter-spacing:.06em;text-transform:uppercase;font-size:13px;box-shadow:inset 0 0 0 2px #f6ead0,inset 0 0 0 3px rgba(139,98,30,.4)}' +
+    '.mu-tab[aria-selected=true]{box-shadow:inset 0 0 0 2px #f6ead0,inset 0 0 0 4px var(--oliva,#46661f)}';
   function css() {
     if (typeof document === 'undefined' || document.getElementById('mu-css')) return;
     const e = document.createElement('style'); e.id = 'mu-css'; e.textContent = CSS; (document.head || document.documentElement).appendChild(e);
