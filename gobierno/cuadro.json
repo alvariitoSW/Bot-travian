@@ -2036,6 +2036,12 @@
       "titulo": "Subida · SB2 Jueces completos sobre v149 antes de subir a main (Opus)",
       "nota": "Abierta el 24/11; con APTO se sube a main (orden del usuario)",
       "url": "https://claude.ai/code/session_01QiKC3Awu8jtqF4GEGvKeaQ"
+    },
+    {
+      "tarea": "CDe3",
+      "titulo": "Ciudad · CDe3 Pantalla mínima y agricultura + mercado enganchados (de paso; Opus)",
+      "nota": "Abierta el 24/11 por la sesión de ciudad; pedido del usuario tras probar la v157",
+      "url": "https://claude.ai/code/session_01QiKC38arYpjMywJKEFfHi5"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"
