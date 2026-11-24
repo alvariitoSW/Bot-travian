@@ -86,7 +86,7 @@
         "CE5",
         "AG1"
       ],
-      "falta": "CDe3 mete la agricultura y el mercado en la partida; después, «Este año» con el tributo de guerra (CE5)."
+      "falta": "CDe3 mete la agricultura y el mercado en la partida; después, «Este año» con el tributo de guerra (CE5). Y el menú de recursos, más artístico y bello, con más imágenes (pedido del 24/11; dentro de MN4)."
     },
     {
       "id": "L3",
@@ -97,7 +97,9 @@
       "hecho": "Cada ciudad tiene ya sus clases con su ánimo, y puedes dar la ciudadanía.",
       "falta": "Que el descuido tenga una consecuencia que se vea en pantalla, no solo una cifra.",
       "captura": "gobierno/capturas-tarea/Q6-1-clases.jpg",
-      "tareas": []
+      "tareas": [
+        "CS3"
+      ]
     },
     {
       "id": "L4",
