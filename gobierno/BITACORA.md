@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 24/11 (13:10) — **Motor único: el usuario contesta «1A, 2A, 3a»**: (1A) en Escaramuzas, tres botones (Testudo, Falange, Manípulo) que abren el mismo motor; (2A) el testudo viejo queda escondido tras `?antiguo=1` hasta FU6; (3A) muro y orden abierto desde el abanico del estandarte. Coincide con lo que ya hace FU1.
 - 24/11 (13:02) — **Sonido de otro director descubierto**: la rama `ccr-85d92c05-p7hlfy` lleva SON7–SON10 hechos hoy (banda sonora grabada de OpenGameArt, ≈6,4 MB; gritos y fragor reales; arenga y preguntas de oficiales de cuatro pueblos; caché v160), con decisiones del usuario en su bitácora («publícalo tras los jueces completos»). Choca en `js/ui-guerra.js`; tarea **UN1** para unirla cuando CDe3 suelte los comunes. La sesión de sonido de hoy pasa a SON11.
 - 24/11 (13:55) — **Pedido del usuario con captura de «Testudo a pie»** (literal): «aquí en testudo lleva sin aplicarse mejoras un tiempo, nose si la física ya actúa y el sonido hay que mejorarlo sobre todo los sonidos de guerra y de los soldados y la música ambiente, y el combate. […] hay que empezar a fusionar la de testudo falange de picas y manipuló a pie para crear nuestro motor de batalla del simulador de batallas junto con arte, físicas y animacion». Contesta «1A, 2A, 3a»: **(1A)** plan primero (**FU0** abierta, `session_01QiKC3ARTJPMyn6ffcwX66m`): un motor con el control de «Manípulo a pie», testudo y falange como formaciones, arte, física y animación comunes, por etapas; **(2A)** la fusión va **antes de CG4b**; **(3a)** **SON11** (abierta como «SON7») ya en paralelo (`session_01QiKC3ATeGShuJbUtRgpdvU`): gritos, voces, golpes y música de batalla.
 - 24/11 (13:00) — **FI4 hecha** (`3330fc5`, APTO en su juez de batallas; ≈5,6 M). El vigía aplica su parche de escaramuza a `js/ui-mando.js` (`cb5df55`; pase que era para LP7b, ya cerrada) y da a batallas sus tres pruebas en `areas.json`. Abre **SB5** (subida de batallas, «1a»). En la escaramuza la física va a 1,31 ms por paso en plena lucha (más de 1 ms): vigilar en SB5.
@@ -71,9 +72,6 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
-- **Menú de Escaramuzas con el motor único**: ¿cómo se entra a las batallas a pie? (A) Tres botones, Testudo, Falange y Manípulo, que abren el mismo motor con su formación [recomendado]; (B) Un solo botón «A pie» y eliges la formación dentro. Por qué: de un toque llegas a lo que quieres probar.
-- **Testudo viejo**: (A) Se guarda escondido para comparar hasta la limpieza final (FU6) [recomendado]; (B) Se borra ya en FU1. Por qué: si el nuevo falla en algo, se ve en qué.
-- **Muro y orden abierto**: ¿cómo los ordenas? (A) Desde el abanico del estandarte, como las demás formaciones [recomendado]; (B) Con más botones en pantalla. Por qué: la pantalla del móvil ya va justa de botones.
 
 
 ## Propuestas por aprobar
