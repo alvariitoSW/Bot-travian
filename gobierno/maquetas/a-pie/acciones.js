@@ -21,6 +21,7 @@
      y el galo no queda abierto; el empujón es de hombro. S.tuyo añade fuelle, roto y lo que cuesta cada gesto. */
 import { FILES, YO, CMP, HOMBRES } from './formacion.js';
 import { velocidad, pisa } from './locomocion.js';
+import { posturaDePose } from './esqueleto.js';   /* CB2 */
 let semillaL = 11; const azarL = () => { semillaL = (semillaL * 16807) % 2147483647; return (semillaL - 1) / 2147483646; };
 /* TP8b-L3: cuántos galos de refuerzo guarda la escena (enemigo.js los crea; la lucha los trae) */
 /* TP8b-E2: galos que cargan (dos filas de FILES + 2) y los de reserva, hasta HOMBRES (al menos 30, como antes) */
@@ -360,4 +361,12 @@ export function crearAcciones(m) {
   const primera = () => S.duelos.filter(d => d.activo && !d.sec).map(d => d.r.i);
   Object.assign(fns, { RESERVA: RESERVA_G, VENTANA, clipPos, poseLucha, empiezaLucha, lucha, medLucha, polvoEn, sAtaque, relevoOrden, cargad, huida, primera, ocupado: d => ocupado(d, S.T) });
   return fns;
+}
+
+/* CB2: pone en la tabla de huesos la pose del motor de lucha para un hombre. tab: lo que da generaTabla (T, esq, hues);
+   fila: fila libre de la tabla para ese hombre; base: fila de partida (reposo); pose: poseDe(h, t) de js/combate-poses.js.
+   Devuelve la fila (para aFrame). Quien llama pone needsUpdate en la textura de huesos. */
+export function aplicaPoseCombate(tab, fila, base, pose, E) {
+  tab.T.set(posturaDePose(tab.esq, base, pose, E), fila * tab.hues * 12);
+  return fila;
 }

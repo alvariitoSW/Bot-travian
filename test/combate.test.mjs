@@ -2,7 +2,7 @@
 import assert from 'node:assert';
 import {
   crearAzar, crearHombre, crearManipulo, paso, golpear, pelea, tablaMedia, cicloEfectivo, proyectil, ponerGuardia,
-  ARMAS, ESCUDOS, GUARDIAS
+  ARMAS, ESCUDOS, GUARDIAS, herirProyectil, T_PARA, UMBO
 } from '../js/combate.js';
 let n = 0, mal = 0;
 function t(nombre, f) { try { f(); n++; console.log('bien', nombre); } catch (e) { mal++; console.log('MAL', nombre, '—', e.message); } }
@@ -188,6 +188,43 @@ t('tabla de medias para la batalla grande', () => {
   const m = tablaMedia('gladius', 'scutum', 'espada_gala', 'thureos', 4);
   console.log(`   gladius+scutum contra espada gala+thureos (10×3, 60 s): bajas/min ${m.bajasMinA.toFixed(1)} / ${m.bajasMinB.toFixed(1)}; paradas ${m.paradasA.toFixed(0)} % / ${m.paradasB.toFixed(0)} %`);
   assert.ok(m.bajasMinA < m.bajasMinB);
+});
+
+/* CB2 */
+t('CB2 pilum: en el cuerpo sin escudo hiere siempre; en el escudo, 0 heridas', () => {
+  let cuerpo = 0, caen = 0, escudo = 0;
+  for (let s = 1; s <= 100; s++) {
+    const rnd = crearAzar(s);
+    const a = crearHombre({ id: 'a', arma: 'espada_gala', escudo: 'ninguno' });
+    const ev = herirProyectil(a, { tipo: 'pilum', en: 'cuerpo' }, rnd);
+    if (ev.some(e => e.tipo === 'herida')) cuerpo++;
+    if (ev.some(e => e.tipo === 'cae')) caen++;
+    const b = crearHombre({ id: 'b', arma: 'espada_gala', escudo: 'thureos' });
+    if (herirProyectil(b, { tipo: 'pilum', en: 'escudo' }, rnd).some(e => e.tipo === 'herida')) escudo++;
+  }
+  console.log(`   pilum: hiere ${cuerpo}/100 en el cuerpo (cae ${caen}); en el escudo hiere ${escudo}/100`);
+  assert.ok(cuerpo >= 95 && caen > 10 && caen < 90 && escudo === 0);
+});
+
+t('CB2 se ve la parada, el golpe de umbo, el tajo y la estocada', () => {
+  let paras = 0, umbos = 0, vistoPara = false, vistoEmpuja = false, vuelve = true;
+  for (let s = 1; s <= 40; s++) {
+    const rnd = crearAzar(s);
+    const leg = crearHombre({ id: 'leg', bando: 'a', x: 0, z: 0, yaw: 0, arma: 'gladius', escudo: 'scutum', rnd });
+    const gal = crearHombre({ id: 'gal', bando: 'b', x: 0, z: -0.9, yaw: Math.PI, arma: 'espada_gala', escudo: 'thureos', rnd });
+    for (let k = 0; k < 90; k++) {
+      const ev = paso([leg, gal], DT, { rnd });
+      for (const e of ev) { if (e.tipo === 'para' && e.en === 'escudo') paras++; if (e.tipo === 'umbo') { umbos++; assert.ok(e.de && e.a && e.de !== e.a); } }
+      if (leg.izq.estado === 'para') vistoPara = true;
+      if (leg.izq.estado === 'empuja') { vistoEmpuja = true; if (leg.izq.t > UMBO.t + 0.05) vuelve = false; }
+      if (leg.izq.estado === 'para' && leg.izq.t > T_PARA + 0.05) vuelve = false;
+      if (!leg.vivo || !gal.vivo) break;
+    }
+  }
+  assert.strictEqual(crearHombre({ arma: 'gladius' }).der.golpe, 'punta');
+  assert.strictEqual(crearHombre({ arma: 'espada_gala' }).der.golpe, 'filo');
+  console.log(`   a 0,9 m: paradas ${paras}, golpes de umbo ${umbos}`);
+  assert.ok(umbos > 0 && vistoEmpuja && vuelve && paras >= umbos && (vistoPara || vistoEmpuja));
 });
 
 console.log(`\n${n} bien, ${mal} mal`);

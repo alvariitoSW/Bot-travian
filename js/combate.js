@@ -8,6 +8,10 @@
    Combate.crearHombre({ id, bando, x, z, yaw, arma, escudo, fila, linea })
                                          → hombre: { izq: { estado: 'alzado'|'bajo'|'roto' }, der: { estado: 'guardia'|'golpea'|'recupera' },
                                            vida (0..1), heridas { leve, grave }, cansancio (0..1), vivo, huye, escudoVida, arma, escudo, ... }
+                                           Estados que se ven (CB2): izq.estado también 'para' (acaba de parar con el escudo, T_PARA s) y
+                                           'empuja' (golpe de umbo, UMBO.t s); luego vuelve a izq.base ('alzado'|'bajo'). der.estado también
+                                           'para' (paró con el arma). izq.t, der.t: segundos en el estado actual. der.golpe: 'punta'|'filo'
+                                           (estocada o tajo del último golpe). muerto: segundos desde que cayó (para animar la caída).
                                            yaw como en fisica-batalla.js: frente = (sin yaw, −cos yaw); derecha = (cos yaw, sin yaw).
    Combate.crearManipulo({ bando, linea, filas, frente, x, z, yaw, arma, escudo, id }) → { id, bando, linea, hombres, x, z, yaw, ... }
                                            x, z: centro de la primera fila. Filas hacia atrás cada FONDO m; hombres cada LADO m.
@@ -15,6 +19,11 @@
    Combate.paso(hombres, dt, { rnd, eventos }) → eventos [{ tipo, de, a, arma, en, ... }] de este paso:
        'golpe'  (en: 'aire'|'escudo'|'cuerpo')   'para' (en: 'escudo'|'arma')   'escudo_roto'   'herida' (grado 'leve'|'grave')
        'cae'    'relevo' (en: 'fila'|'manipulo')  'lanza' (pilum arrojado)   'dobla' (espada gala doblada)   'rompe' (manípulo que huye)
+       'umbo'   (de: el que para, a: el atacante): para con scutum o thureos a un enemigo a menos de UMBO.dist m y le mete el
+                umbo (una de cada dos paradas, si no está a media estocada). Regla fija, sin azar ni daño: solo se ve y marca el ritmo; no cambia bajas.
+   Combate.herirProyectil(h, { tipo, en?, energia?, arriba?, ang? }, rnd) → eventos de un proyectil que llega a h: en 'escudo'|'techo'
+                                         'para' (gasta escudoVida; 'escudo_roto'); en 'cuerpo' 'herida' leve o grave y quizá 'cae'.
+                                         Sin `en`, lo decide proyectil(h, arriba, ang, tipo, rnd). energia 0..1 (por defecto 1).
    Combate.golpear(atacante, defensor, rnd, arma?) → eventos de un golpe suelto (lo usa paso; sirve para pruebas y duelos).
    Combate.pelea({ a: [manípulos de delante a atrás], b: [...], dt, tMax, semilla, relevo: { a: { umbralCansancio }, b: null } })
                                          → { gana: 'a'|'b'|null, bajas: { a, b }, tiempo, eventosContados: { golpe: n, ... } }
@@ -81,6 +90,10 @@ export const TESTUDO = { arco: [-45, 120], vecino: 45, para: 0.04, lento: 3, can
 export const FALANGE = { filas: 5, cono: 15, puntas: 3, lado: 0.9, fondo: 0.9 };
 /* falange: pegan las 5 primeras filas (la punta de la fila k queda ≈ alcance − 0,9·k delante del frente, sale sola de la
    geometría con fondo 0,9 m); la sarisa no gira (cono de ataque ±15°); un arma corta no entra de frente con ≥3 puntas delante */
+export const T_PARA = 0.25;        /* lo que se ve la parada (estado 'para') */
+export const UMBO = { dist: 1.0, t: 0.3 };   /* golpe de umbo: a menos de 1 m, empuja 0,3 s (solo visual) */
+/* daño al cuerpo de lo que se arroja (licencia de juego; el pilum, de su tabla) */
+export const PROYECTILES = { flecha: 0.35, piedra: 0.3, jabalina: 0.5, pilum: 0.7 };
 export const CORTA = 2;            /* m: alcance por debajo del cual un arma es «corta» frente a las puntas */
 
 /* ---------- armas ---------- */
@@ -135,7 +148,7 @@ export const GUARDIAS = {
 
 export const ESCUDOS = {
   scutum: {
-    nombre: 'scutum', arco: [ARCO_DER, ARCO_IZQ], para: 0.92, resistencia: 12,
+    nombre: 'scutum', arco: [ARCO_DER, ARCO_IZQ], para: 0.92, resistencia: 12, umbo: true,
     fuente: 'Polibio 6.23 (2,5 × 4 pies, curvo, de dos capas de tabla con lienzo y cuero, borde de hierro y umbo)',
     dictamen: 'histórico; cifras: licencia de juego'
   },
@@ -150,7 +163,7 @@ export const ESCUDOS = {
     dictamen: 'histórico; cifras: licencia de juego'
   },
   thureos: {
-    nombre: 'escudo galo (thureos)', arco: [-25, 90], para: 0.85, resistencia: 9,
+    nombre: 'escudo galo (thureos)', arco: [-25, 90], para: 0.85, resistencia: 9, umbo: true,
     fuente: 'Polibio 2.30 (el escudo galo no cubre todo el cuerpo); Livio 38.21 (escudos largos pero estrechos de los gálatas, 189 a.C.)',
     dictamen: 'histórico; cifras: licencia de juego'
   },
@@ -166,7 +179,7 @@ export function crearHombre({ id, bando = 'a', x = 0, z = 0, yaw = 0, arma = 'gl
   return {
     id: id ?? sigId++, bando, x, z, yaw, arma, escudo, fila, col, linea, manip: null,
     guardia: guardia || (arma === 'sarisa' ? 'falange' : 'normal'),
-    izq: { estado: E.arco ? 'alzado' : 'roto' }, der: { estado: 'guardia' },
+    izq: { estado: E.arco ? 'alzado' : 'roto', base: E.arco ? 'alzado' : 'roto', t: 0 }, der: { estado: 'guardia', t: 0, golpe: A.golpe === 'filo' ? 'filo' : 'punta' }, muerto: 0,
     vida: 1, heridas: { leve: 0, grave: 0 }, cansancio: 0, vivo: true, huye: false, escudoVida: E.resistencia,
     pilos: A.arroja ? 1 : 0, reloj: rnd ? rnd() * A.ciclo : 0, tEstado: 0, quieto: 99, golpes: 0
   };
@@ -192,6 +205,7 @@ function colocar(M) {
   const Fx = Math.sin(M.yaw), Fz = -Math.cos(M.yaw), Rx = Math.cos(M.yaw), Rz = Math.sin(M.yaw);
   M.primera.length = 0;
   for (const h of M.hombres) {
+    if (!h.vivo) continue;   /* el caído se queda donde cayó (CB2: se ve caer) */
     const lado = (h.col - (M.frente - 1) / 2) * M.lado, fondo = h.fila * M.fondo;
     h.x = M.x + Rx * lado - Fx * fondo; h.z = M.z + Rz * lado - Fz * fondo; h.yaw = M.yaw;
     if (h.fila === 0 && h.vivo && !h.huye) M.primera[h.col] = h;
@@ -205,6 +219,14 @@ export function ponerGuardia(M, guardia) {
   for (const h of M.hombres) h.guardia = guardia;
   colocar(M);
 }
+
+/* estado de fondo del escudo: 'alzado'|'bajo'|'roto' (la parada y el umbo son un momento encima de él) */
+export function escudoBase(h) {
+  const e = h.izq.estado;
+  return e === 'para' || e === 'empuja' ? (h.izq.base || 'alzado') : e;
+}
+function ponIzq(h, e) { if (e !== 'para' && e !== 'empuja') h.izq.base = e; else if (h.izq.estado !== 'para' && h.izq.estado !== 'empuja') h.izq.base = h.izq.estado; h.izq.estado = e; h.izq.t = 0; }
+function ponDer(h, e) { h.der.estado = e; h.der.t = 0; }
 
 /* arco que cubre el escudo de h ahora mismo ([der, izq] en grados) o null */
 export function arcoEscudo(h) {
@@ -220,7 +242,7 @@ export function arcoEscudo(h) {
       if (izq && izq.guardia === 'testudo' && izq.vivo) i += TESTUDO.vecino;
     }
   }
-  if (h.izq.estado === 'bajo') { const c = (d + i) / 2, m = (i - d) / 2 * ESCUDO_BAJO.arco; d = c - m; i = c + m; }
+  if (escudoBase(h) === 'bajo') { const c = (d + i) / 2, m = (i - d) / 2 * ESCUDO_BAJO.arco; d = c - m; i = c + m; }
   return [d, i];
 }
 
@@ -248,6 +270,32 @@ export function proyectil(h, arriba, ang = 0, tipo = 'jabalina', rnd = azarComun
   if (arriba < 45) p *= 0.25;   /* de arriba, el escudo de pie apenas tapa */
   if (!A || ang < A[0] || ang > A[1]) p = 0;
   return rnd() < p ? { para: true, en: 'escudo' } : { para: false, en: 'cuerpo' };
+}
+
+/* un proyectil que llega a h y lo que hace: para en el escudo o hiere. → eventos */
+export function herirProyectil(h, { tipo = 'jabalina', en, energia = 1, arriba = 70, ang = 0, de = null } = {}, rnd = azarComun, eventos = []) {
+  if (!h.vivo) return eventos;
+  if (!en) en = proyectil(h, arriba, ang, tipo, rnd).en;
+  const ev = (o) => { eventos.push(o); return o; };
+  if (en === 'escudo' || en === 'techo') {
+    ev({ tipo: 'para', de: h.id, a: de, arma: tipo, en });
+    if (ESCUDOS[h.escudo].arco && h.izq.estado !== 'roto') {
+      h.escudoVida -= tipo === 'pilum' ? ARMAS.pilum.arroja.danoEscudo : 0.5;
+      if (h.izq.estado !== 'roto') ponIzq(h, 'para');
+      if (h.escudoVida <= 0) { h.escudoVida = 0; ponIzq(h, 'roto'); ev({ tipo: 'escudo_roto', de, a: h.id, arma: tipo, en: 'escudo' }); }
+    }
+    return eventos;
+  }
+  const d = (PROYECTILES[tipo] ?? 0.5) * energia * (0.5 + rnd());
+  h.quieto = 0;
+  if (d >= GRAVE) { h.heridas.grave++; h.vida = 0; ev({ tipo: 'herida', de, a: h.id, arma: tipo, en: 'cuerpo', grado: 'grave', dano: d }); }
+  else { h.heridas.leve++; h.vida -= d; cansar(h, 0.08); ev({ tipo: 'herida', de, a: h.id, arma: tipo, en: 'cuerpo', grado: 'leve', dano: d }); }
+  if (h.vida <= 0) {
+    h.vivo = false; ponDer(h, 'guardia'); h.muerto = 0;
+    ev({ tipo: 'cae', de, a: h.id, arma: tipo, en: 'cuerpo' });
+    if (h.manip) h.manip.sucio = true;
+  }
+  return eventos;
 }
 
 /* el de detrás ocupa el hueco del caído, columna a columna */
@@ -301,7 +349,7 @@ export function golpear(atk, def, rnd, A = ARMAS[atk.arma], eventos = []) {
   /* ¿dentro del arco del escudo? */
   const arco = arcoEscudo(def);
   if (arco) {
-    const bajo = def.izq.estado === 'bajo';
+    const bajo = escudoBase(def) === 'bajo';
     if (ang >= arco[0] && ang <= arco[1]) {
       let pPara = E.para * (bajo ? ESCUDO_BAJO.para : 1) + (def.guardia === 'testudo' ? TESTUDO.para : 0);
       if (A.golpe === 'punta') pPara -= HUECO_PUNTA;
@@ -310,7 +358,14 @@ export function golpear(atk, def, rnd, A = ARMAS[atk.arma], eventos = []) {
         ev({ tipo: 'para', de: def.id, a: atk.id, arma: atk.arma, en: 'escudo' });
         def.escudoVida -= A.danoEscudo;
         cansar(def, PARA_CANSA * A.danoEscudo);
-        if (def.escudoVida <= 0) { def.escudoVida = 0; def.izq.estado = 'roto'; ev({ tipo: 'escudo_roto', de: atk.id, a: def.id, arma: atk.arma, en: 'escudo' }); }
+        ponIzq(def, 'para');
+        def.paradas = (def.paradas || 0) + 1;
+        /* umbo: de cada dos paradas, una, y no a media estocada */
+        if (E.umbo && !def.huye && def.paradas % 2 === 0 && def.der.estado !== 'golpea') {
+          const dx = atk.x - def.x, dz = atk.z - def.z;
+          if (dx * dx + dz * dz < UMBO.dist * UMBO.dist) { ponIzq(def, 'empuja'); ev({ tipo: 'umbo', de: def.id, a: atk.id, arma: def.escudo, en: 'cuerpo' }); }
+        }
+        if (def.escudoVida <= 0) { def.escudoVida = 0; ponIzq(def, 'roto'); ev({ tipo: 'escudo_roto', de: atk.id, a: def.id, arma: atk.arma, en: 'escudo' }); }
         if (A.dobla && rnd() < A.dobla) { atk.reloj += A.enderezar; ev({ tipo: 'dobla', de: atk.id, a: def.id, arma: atk.arma, en: 'escudo' }); }
         return eventos;
       }
@@ -320,6 +375,7 @@ export function golpear(atk, def, rnd, A = ARMAS[atk.arma], eventos = []) {
     if (Math.abs(ang) < 60 && rnd() < PARADA_ARMA) {
       ev({ tipo: 'golpe', de: atk.id, a: def.id, arma: atk.arma, en: 'escudo', ang });
       ev({ tipo: 'para', de: def.id, a: atk.id, arma: atk.arma, en: 'arma' });
+      if (def.der.estado !== 'golpea') ponDer(def, 'para');
       cansar(def, PARA_CANSA);
       return eventos;
     }
@@ -336,7 +392,7 @@ export function golpear(atk, def, rnd, A = ARMAS[atk.arma], eventos = []) {
     ev({ tipo: 'herida', de: atk.id, a: def.id, arma: atk.arma, en: 'cuerpo', grado: 'leve', dano: d });
   }
   if (def.vida <= 0) {
-    def.vivo = false; def.der.estado = 'guardia';
+    def.vivo = false; ponDer(def, 'guardia'); def.muerto = 0;
     ev({ tipo: 'cae', de: atk.id, a: def.id, arma: atk.arma, en: 'cuerpo' });
     if (def.manip) def.manip.sucio = true;
   }
@@ -376,19 +432,26 @@ export function paso(hombres, dt, opciones = {}) {
     const L = rejilla.get(k); if (L) L.push(h); else rejilla.set(k, [h]);
   }
   for (const h of hombres) {
-    if (!h.vivo || h.huye) continue;
+    if (!h.vivo) { h.muerto += dt; continue; }
+    if (h.huye) continue;
     /* cansancio: tensión en la pelea o descanso */
     h.quieto += dt;
     if (h.quieto > QUIETO) h.cansancio = Math.max(0, h.cansancio - DESCANSO * dt); else cansar(h, TENSION * dt);
     if (h.guardia === 'testudo') cansar(h, TESTUDO.cansa * dt);   /* aguantar el escudo así cansa */
     /* mano izquierda: el escudo baja con el cansancio */
-    if (h.izq.estado === 'alzado' && h.cansancio >= BAJA_ESCUDO) h.izq.estado = 'bajo';
-    else if (h.izq.estado === 'bajo' && h.cansancio < ALZA_ESCUDO) h.izq.estado = 'alzado';
+    const I = h.izq; I.t += dt;
+    if (I.estado === 'para' || I.estado === 'empuja') {
+      if (I.base === 'alzado' && h.cansancio >= BAJA_ESCUDO) I.base = 'bajo';
+      else if (I.base === 'bajo' && h.cansancio < ALZA_ESCUDO) I.base = 'alzado';
+      if (I.t >= (I.estado === 'para' ? T_PARA : UMBO.t)) { I.estado = I.base; I.t = 0; }
+    } else if (I.estado === 'alzado' && h.cansancio >= BAJA_ESCUDO) ponIzq(h, 'bajo');
+    else if (I.estado === 'bajo' && h.cansancio < ALZA_ESCUDO) ponIzq(h, 'alzado');
     /* mano derecha */
-    h.tEstado += dt;
-    if (h.der.estado === 'golpea' && h.tEstado >= T_GOLPE) { h.der.estado = 'recupera'; h.tEstado = 0; }
+    h.tEstado += dt; h.der.t += dt;
+    if (h.der.estado === 'golpea' && h.tEstado >= T_GOLPE) { ponDer(h, 'recupera'); h.tEstado = 0; }
+    if (h.der.estado === 'para' && h.der.t >= T_PARA) ponDer(h, 'guardia');
     h.reloj -= dt;
-    if (h.der.estado === 'recupera' && h.reloj <= 0) h.der.estado = 'guardia';
+    if (h.der.estado === 'recupera' && h.reloj <= 0) ponDer(h, 'guardia');
     if (h.reloj > 0) continue;
     if (h.guardia === 'falange' && h.fila >= FALANGE.filas) { h.reloj = 0.5; continue; }   /* de la sexta fila atrás, la sarisa va alzada */
     const A = ARMAS[h.arma];
@@ -398,14 +461,15 @@ export function paso(hombres, dt, opciones = {}) {
       if (lejos) {
         h.pilos--; eventos.push({ tipo: 'lanza', de: h.id, a: lejos.id, arma: h.arma, en: 'aire' });
         golpear(h, lejos, rnd, { ...A.arroja, golpe: 'punta', cansa: A.cansa }, eventos);
-        h.arma = A.arroja.luego; h.der.estado = 'golpea'; h.tEstado = 0; h.reloj = cicloEfectivo(h);
+        h.arma = A.arroja.luego; ponDer(h, 'golpea'); h.der.golpe = 'punta'; h.tEstado = 0; h.reloj = cicloEfectivo(h);
         continue;
       }
       if (buscar(h, rejilla, A.alcance)) { h.pilos = 0; h.arma = A.arroja.luego; }   /* ya encima: sin tiempo de arrojar */
     }
     const B = ARMAS[h.arma], o = buscar(h, rejilla, B.alcance);
     if (!o) { h.reloj = 0.2 + rnd() * 0.1; continue; }   /* nadie a mano: vuelve a mirar dentro de un rato */
-    h.der.estado = 'golpea'; h.tEstado = 0; h.reloj = cicloEfectivo(h);
+    ponDer(h, 'golpea'); h.tEstado = 0; h.reloj = cicloEfectivo(h);
+    h.der.golpe = B.golpe === 'ambos' ? (h.golpes % 2 ? 'filo' : 'punta') : B.golpe;   /* la falcata alterna punta y tajo */
     golpear(h, o, rnd, B, eventos);
   }
   /* huecos: los de detrás avanzan */

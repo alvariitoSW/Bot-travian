@@ -168,7 +168,7 @@ const RIVALES = {
 /* largo que se dibuja del arma (m) */
 const LARGO = { gladius: 0.55, pilum: 0.9, hasta: 1.5, sarisa: 4.5, falcata: 0.55, espada_gala: 0.75 };
 const DT = 1 / 30, Z0 = 16, HUECO = 6, GIRO = 1.6;
-const V = { avanza: 1.2, puesto: 1.5, relevo: 2, flanco: 2.5, huye: 2.5 };
+const V = { avanza: 1.2, puesto: 1.5, relevo: 2, flanco: 3.4, huye: 2.5 };   /* CB2: el flanco va al trote (antes 2,5) */
 const ALCANCE_PILA = 20, ALCANCE_JAB = 22;
 const ORDEN_TXT = { avanza: 'avanza', alto: 'quieto', puesto: 'en su puesto', relevo: 'relevo', flanco: 'al flanco', huye: 'huye' };
 
@@ -323,11 +323,6 @@ function lanzar(de, a, tipo, retraso) {
   const d = Math.hypot(a.x - de.x, a.z - de.z);
   J.proy.push({ tipo, de, a, x0: de.x, z0: de.z, x1: a.x + (J.rnd() - 0.5) * 0.6, z1: a.z + (J.rnd() - 0.5) * 0.6, t: -retraso, T: 0.45 + d / 22 });
 }
-function caer(h) {
-  if (!h.vivo) return;
-  h.vivo = false; h.der.estado = 'guardia';
-  if (h.manip) h.manip.sucio = true;
-}
 function anotarCaido(h, x, z) {
   J.caidos.push({ vivo: false, huye: false, x, z, fx: 0, fz: 0, vx: 0, vz: 0, tipo: 'infante', bando: h.bando, yaw: h.yaw });
 }
@@ -342,16 +337,11 @@ function moverProyectiles(dt) {
     const arriba = pilum ? 50 + J.rnd() * 25 : 35 + J.rnd() * 30;
     const ang = Combate.anguloLlegada(h, { x: p.x0, z: p.z0 });
     const r = Combate.proyectil(h, arriba, ang, pilum ? 'pilum' : 'jabalina', J.rnd);
-    if (r.para) {
-      h.flashEsc = 0.35;
-      h.escudoVida -= pilum ? 5 : 1.5;   /* el pilum clavado carga y estropea el escudo */
-      if (h.escudoVida <= 0) { h.escudoVida = 0; h.izq.estado = 'roto'; }
-      continue;
-    }
-    const d = (pilum ? 0.7 : 0.5) * (0.5 + J.rnd());
+    /* CB2: lo que hace al llegar lo decide el motor (herirProyectil: para en el escudo, herida leve o grave, cae) */
+    const ev = Combate.herirProyectil(h, { tipo: pilum ? 'pilum' : 'jabalina', en: r.en, de: p.de.id }, J.rnd);
+    if (r.para) { h.flashEsc = 0.35; continue; }
     h.flashHer = 0.7;
-    if (d >= GRAVE) h.vida = 0; else { h.vida -= d; h.cansancio = Math.min(1, h.cansancio + 0.08); }
-    if (h.vida <= 0) { anotarCaido(h, h.x + h.fx, h.z + h.fz); caer(h); }
+    if (ev.some(e => e.tipo === 'cae')) anotarCaido(h, h.x + h.fx, h.z + h.fz);
   }
   J.proy = J.proy.filter(p => p.t < p.T + 0.6);
 }
@@ -423,19 +413,21 @@ function alFlanco() {
   if (!E) return;
   const ev = vivos(E);
   if (!ev.length) return;
-  let maxX = -Infinity, cz = 0;
-  for (const h of ev) { maxX = Math.max(maxX, h.x); cz += h.z; }
+  let maxX = -Infinity, minX = Infinity, cz = 0;
+  for (const h of ev) { maxX = Math.max(maxX, h.x); minX = Math.min(minX, h.x); cz += h.z; }
   cz /= ev.length;
+  /* CB2: por la derecha descubierta del rival (su lado sin escudo): derecha = (cos yaw, sin yaw) */
+  const s = Math.cos(E.yaw) >= 0 ? 1 : -1, borde = s > 0 ? maxX : minX;
   const nuestroFrente = J.lineaA.find(m => m !== M);
   const zFrente = nuestroFrente ? nuestroFrente.z : M.z;
-  const x1 = maxX + 7.5;
+  const x1 = borde + s * 5, x2 = borde + s * 2.6;   /* antes 7,5 m fuera y por la izquierda: llegaba tarde */
   if (J.lineaA.includes(M)) {
     J.lineaA = J.lineaA.filter(m => m !== M);
     if (J.lineaA[0] && J.lineaA[0].orden === 'puesto') J.lineaA[0].orden = J.ordenLineaA;
   }
   M.modo = 'libre'; M.orden = 'flanco'; M.trasRuta = 'avanza';
-  M.ruta = [{ x: x1, z: Math.max(Math.min(M.z, zFrente + 4), cz + 6), v: V.flanco }, { x: x1, z: cz, v: V.flanco, blanco: E }, { x: x1, z: cz, v: 0.6, mira: -Math.PI / 2, blanco: E }];
-  aviso('Los ' + M.nombre.toLowerCase() + ' rodean por la derecha para atacar el costado.', false, 3);
+  M.ruta = [{ x: x1, z: Math.max(Math.min(M.z, zFrente + 4), cz + 6), v: V.flanco }, { x: x1, z: cz, v: V.flanco, blanco: E }, { x: x2, z: cz, v: 1.2, mira: -s * Math.PI / 2, blanco: E }];
+  aviso('Los ' + M.nombre.toLowerCase() + ' rodean al rival y entran por su derecha, la que no cubre el escudo.', false, 3);
 }
 function ordenar(que) {
   if (!J || J.fin) return;

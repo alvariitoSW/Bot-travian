@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1016">
+<title>AQVILA · Combate de cerca</title>
+<base href="../../../">
+<style>
+html,body{margin:0;height:100%;background:#9fb3c4;overflow:hidden;font-family:system-ui,sans-serif}
+canvas{display:block;width:100vw;height:100vh;touch-action:none}
+#rotulo{position:fixed;left:50%;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%);background:rgba(11,16,22,.78);color:#f3e7c9;
+  padding:6px 12px;border-radius:14px;font-size:15px;white-space:nowrap;overflow:clip}
+#rotulo b{color:#ffcf6b}
+#info{position:fixed;left:10px;top:max(8px,env(safe-area-inset-top));color:#10161c;font-size:12px;background:rgba(255,255,255,.55);padding:3px 8px;border-radius:8px}
+</style>
+</head>
+<body>
+<div id="info">cargando…</div>
+<div id="rotulo"></div>
+<script type="module">
+/* AQVILA — CB2: el cuerpo a cuerpo de cerca. Motor real (js/combate.js) y poses sacadas de su estado (js/combate-poses.js).
+   Los hastati se mueven con la pose del motor puesta en sus huesos (a-pie/esqueleto.js: posturaDePose); los galos, con sus
+   clips (golpe, muerte) elegidos por el mismo estado. Parámetros: ?t=<s> (avanza hasta ahí y congela) &semilla= &mira=<id>. */
+import { THREE } from './js/gfx/models.js';
+import { loadIndex, loadUnit, unitMaterialReal, instancedGeometry, UNIT_SCALE } from './js/gfx/units.js';
+import { T_GOLPE } from './js/combate.js';
+import { poseDe, rotuloDe } from './js/combate-poses.js';
+import { crearEsqueleto } from './gobierno/maquetas/a-pie/esqueleto.js';
+import { aplicaPoseCombate } from './gobierno/maquetas/a-pie/acciones.js';
+import { montar, avanzar, DT } from './gobierno/maquetas/combate-cerca/montaje.js';
+
+const Q = new URLSearchParams(location.search), E = UNIT_SCALE;
+const tFijo = Q.has('t') ? +Q.get('t') : null, semilla = +(Q.get('semilla') || 1), MIRA = Q.get('mira') || 'A:0:1';
+const S = montar(semilla), H = S.A.hombres, G = S.G.hombres;
+const CB2 = window.CB2 = { S, listo: false, coste: { motor: 0, poses: 0, cuadro: 0, n: 0 } };
+
+/* escena */
+const ren = new THREE.WebGLRenderer({ antialias: true });
+ren.setPixelRatio(Math.min(2, devicePixelRatio)); ren.shadowMap.enabled = true; document.body.appendChild(ren.domElement);
+const escena = new THREE.Scene(); escena.background = new THREE.Color('#9fb3c4'); escena.fog = new THREE.Fog('#9fb3c4', 18, 60);
+const cam = new THREE.PerspectiveCamera(45, 1, 0.1, 200);
+escena.add(new THREE.HemisphereLight('#dfe8f0', '#5b4a32', 1.3));
+const sol = new THREE.DirectionalLight('#fff2d8', 2.2); sol.position.set(4, 9, 3); sol.castShadow = true; sol.shadow.mapSize.set(1024, 1024);
+Object.assign(sol.shadow.camera, { left: -6, right: 6, top: 6, bottom: -6 }); escena.add(sol);
+const suelo = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), new THREE.MeshLambertMaterial({ color: '#8b7a55' }));
+suelo.rotation.x = -Math.PI / 2; suelo.receiveShadow = true; escena.add(suelo);
+const aro = new THREE.Mesh(new THREE.RingGeometry(0.42, 0.5, 32), new THREE.MeshBasicMaterial({ color: '#ffcf6b', transparent: true, opacity: 0.85 }));
+aro.rotation.x = -Math.PI / 2; aro.position.y = 0.02; escena.add(aro);
+
+/* figuras: la tabla de huesos del modelo + una fila propia por hastatus (su pose de este cuadro) */
+await loadIndex();
+const [uH, uG] = await Promise.all([loadUnit('hastati'), loadUnit('galos')]);
+const hues = uH.bones.image.width / 3, N0 = uH.bones.image.height;
+const T = new Float32Array((N0 + H.length) * hues * 12); T.set(uH.bones.image.data.subarray(0, N0 * hues * 12));
+const g = uH.geo.attributes, esq = crearEsqueleto(uH.bones.image.data, hues, N0, g.position.array, g.aSkinI.array, g.aSkinW.array);
+const texH = new THREE.DataTexture(T, hues * 3, N0 + H.length, THREE.RGBAFormat, THREE.FloatType);
+texH.minFilter = texH.magFilter = THREE.NearestFilter; texH.generateMipmaps = false; texH.needsUpdate = true;
+const tab = { T, esq, hues }, BASE = uH.clips.idle.start;
+function malla(u, n, color, bones) {
+  const uu = bones ? { ...u, bones, mats: new Map() } : u, geo = instancedGeometry(uu, n), m = new THREE.InstancedMesh(geo, unitMaterialReal(uu, color), n);
+  m.frustumCulled = false; m.castShadow = true; m.receiveShadow = true; escena.add(m); return m;
+}
+const mH = malla(uH, H.length, '#c23a2e', texH), mG = malla(uG, G.length, '#2f5f9e');
+const _m = new THREE.Matrix4(), _r = new THREE.Matrix4(), _c = new THREE.Matrix4(), _s = new THREE.Matrix4().makeScale(E, E, E);
+/* matriz de una figura: sitio, giro (el modelo mira a +z; el motor, a (sin yaw, −cos yaw)) y, si cae, tumbada de espaldas */
+function colocaFig(m, i, h, cae) {
+  _m.makeTranslation(h.x, 0, h.z).multiply(_r.makeRotationY(Math.PI - h.yaw));
+  if (cae > 0) _m.multiply(_c.makeRotationX(-1.4 * cae * cae * (3 - 2 * cae)));
+  m.setMatrixAt(i, _m.multiply(_s));
+}
+const CG = uG.clips, fr = (c, k) => c.start + Math.min(c.frames - 1, Math.floor(k * c.frames));
+function cuadroGalo(h, t) {
+  if (!h.vivo) return fr(CG.death, Math.min(1, h.muerto / 1.1));
+  if (h.der.estado === 'golpea') return fr(CG.attack_melee, 0.15 + 0.55 * Math.min(1, h.der.t / T_GOLPE));
+  if (h.der.estado === 'recupera') return fr(CG.attack_melee, 0.7 + 0.3 * Math.min(1, h.der.t / 0.4));
+  return fr(CG.idle, ((t * 0.4 + h.col * 0.17) % 1));
+}
+function pinta(t) {
+  const t0 = performance.now(), aH = mH.geometry.attributes.aFrame, aG = mG.geometry.attributes.aFrame;
+  H.forEach((h, i) => {
+    const p = poseDe(h, t);
+    aH.array[i] = aplicaPoseCombate(tab, N0 + i, BASE, p, E);
+    colocaFig(mH, i, h, p.cae);
+  });
+  texH.needsUpdate = true;
+  const t1 = performance.now();
+  G.forEach((h, i) => { aG.array[i] = cuadroGalo(h, t); colocaFig(mG, i, h, 0); });
+  aH.needsUpdate = aG.needsUpdate = true; mH.instanceMatrix.needsUpdate = mG.instanceMatrix.needsUpdate = true;
+  return t1 - t0;
+}
+
+/* cámara: de lado, a ~3,5 m, a la altura del hombro, mirando al hueco entre el señalado y su rival */
+const yo = S.hombres.find(h => h.id === MIRA) || H[1];
+function encuadra() {
+  const w = innerWidth, h = innerHeight, vertical = h > w;
+  ren.setSize(w, h, false); cam.aspect = w / h; cam.fov = vertical ? 62 : 40; cam.updateProjectionMatrix();
+  const Fx = Math.sin(yo.yaw), Fz = -Math.cos(yo.yaw), M = yo.manip;
+  /* desde el flanco más cercano, fuera de la fila: ~3 m más allá del último hombre (3-5 m del señalado) */
+  const lat = (yo.col - (M.frente - 1) / 2) * M.lado, borde = (M.frente - 1) / 2 * M.lado, lado = lat >= 0 ? 1 : -1;
+  const d = borde - Math.abs(lat) + (vertical ? 2.6 : 3.0), Rx = Math.cos(yo.yaw) * lado, Rz = Math.sin(yo.yaw) * lado;
+  cam.position.set(yo.x + Rx * d + Fx * 0.9, 1.55, yo.z + Rz * d + Fz * 0.9);
+  cam.lookAt(yo.x + Fx * 0.5, 1.05, yo.z + Fz * 0.5);
+}
+addEventListener('resize', encuadra); encuadra();
+const rotulo = document.getElementById('rotulo'), info = document.getElementById('info');
+function textos() {
+  const quien = yo.bando === 'a' ? 'hastatus' : 'galo';
+  rotulo.innerHTML = `${quien} <b>${rotuloDe(yo)}</b>`;
+  const vivos = L => L.filter(h => h.vivo).length;
+  info.textContent = `${S.t.toFixed(1)} s · hastati ${vivos(H)} · galos ${vivos(G)}`;
+  aro.position.x = yo.x; aro.position.z = yo.z;
+}
+
+if (tFijo !== null) {
+  avanzar(S, tFijo); const c = pinta(tFijo); textos(); ren.render(escena, cam);
+  CB2.coste.poses = c; CB2.listo = true;
+} else {
+  let ult = performance.now(), acu = 0;
+  ren.setAnimationLoop(() => {
+    const ahora = performance.now(); acu += Math.min(0.1, (ahora - ult) / 1000); ult = ahora;
+    const a = performance.now(); while (acu >= DT) { avanzar(S, S.t + DT); acu -= DT; }
+    const b = performance.now(), cp = pinta(S.t); textos(); ren.render(escena, cam);
+    const K = CB2.coste; K.motor += b - a; K.poses += cp; K.cuadro += performance.now() - a; K.n++;
+    CB2.listo = true;
+  });
+}
+</script>
+</body>
+</html>
