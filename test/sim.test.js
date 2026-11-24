@@ -276,10 +276,13 @@ function campaign1(aggressive, region, opciones) {
   G.onEvent = (t, p) => { events.push(t); if (process.env.V && t === 'log' && /⚠|🔥|🏆|💀|rechaza|📜/.test(p.x)) console.log('  ', G.yearOf(s.t), p.x); };
   if (G.fundando()) { const sitio = G.modo().inicio.fundar.sitio; let pt = G.notaFundar(sitio, 172, -196).vale ? [172, -196] : null; for (let x = -300; x <= 300 && !pt; x += 20) for (let z = -300; z <= 300 && !pt; z += 20) if (G.notaFundar(sitio, x, z).vale) pt = [x, z]; assert(pt, 'hay un punto válido para fundar'); assert(G.fundarColonia(sitio, pt[0], pt[1]).ok); }   // I8: el bot funda su primera ciudad
   const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
-  let guard = 0;
-  while (!s.over && guard++ < 200000) {
+  let guard = 0, ultGob = -1; const GOBM = require('../js/gobernador.js');
+  // CDe4 (CE10): la campaña larga ya no acaba al tomar Cartago ni por años: el bot para al lograr los caminos (s.caminos.victoria) o al llegar al año límite
+  while (!G.finDePrueba() && guard++ < 200000) {
     G.tick(0.25);
     while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); if (process.env.DBG) console.log(G.yearOf(s.t), JSON.stringify(info.cfg.sides.map(x => x.units)), 'def', info.cfg.defender, 'wall', info.cfg.wall, '->', b.result().winner, Math.round(b.t)); G.applyBattle(b.result()); }
+    { const mesB = Math.floor(s.t + 1e-9); if (mesB % D.TURNO_MESES === 0 && mesB !== ultGob) { ultGob = mesB;   // CDe4 (MN3): una vez por estación y ciudad, el gobernador calma revueltas y levanta lo que falta (ya no lo hace el bot a mano)
+      const ay = G.gobAyuda(), ha = G.gobHacer(); for (const id of G.myCities()) GOBM.estacion(s, id, mesB, ay, ha); } }
     if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: al final de cada mes el bot compra hierro y vende lo que sobra (test/bot-mercado.js)
     if (guard % 8) continue;
     if (opciones && opciones.investiga) investigarBot(s);
@@ -288,9 +291,7 @@ function campaign1(aggressive, region, opciones) {
       const PL = require('../js/plan-senado.js'); if (!s.planSenado || !s.planSenado.plan) { if (!s.planSenado || !s.planSenado.borrador) PL.sugerir(s, 4, 'crecer', G.planAyuda()); G.planVotar([]); } }   // CDe1-A: si no hay plan del Senado, el bot arma uno que crece y lo vota
     for (const id of G.myCities()) {
       const c = s.cities[id];
-      if (G.enRevuelta && G.enRevuelta(c)) c.nec.mem.forEach((m, i) => { if (m && m.revuelta) for (const r of ['grano', 'juegos', 'tropas']) if (G.calmarRevuelta(id, i, r).ok) break; });   // CDe2: el bot calma las revueltas de barrio
       if (c.train.length < 4 && G.prod().grano > 8) for (const k of ['triarii', 'principes', 'equites', 'hastati']) { if (G.unitOk(c, k)) { const n = Math.min(150, G.maxTrain(k)); if (n >= 10) { G.train(id, k, n); break; } } }
-      for (let hz = 0; G.huecosLibres(c) > 0 && hz < 4; hz++) { const bs = Object.keys(D.BUILD).filter(b => !['herreria', 'escuela', 'muralla'].includes(b) && (c.b[b] || 0) < D.MAX_LVL).sort((p, q) => (c.b[p] || 0) - (c.b[q] || 0) - (G.prod().grano < 25 ? (q === 'granja') - (p === 'granja') : 0) * 3); let hizo = false; for (const b of bs) if (G.upgrade(id, b)) { hizo = true; break; } if (!hizo) break; }
       G.levantarMuralla(id);   // CN7: la muralla de la guerra sale de la obra de ciudad, no de c.b.muralla
       if (!aggressive) continue;
       const yr = G.yearOf(s.t); if (yr <= 230 && yr >= 209) continue;   // el bot se atrinchera ante la invasión de Aníbal
@@ -304,6 +305,7 @@ function campaign1(aggressive, region, opciones) {
       }
     }
   }
+  if (!s.over && G.campanaLarga()) s.over = { win: !!s.caminos.victoria, why: s.caminos.victoria ? 'Caminos logrados en ' + G.yearOf(s.t) + ' a.C.' : 'Sin victoria en ' + G.yearOf(s.t) + ' a.C.' };   // CE10: victoria = !!s.caminos.victoria (el equilibrio de cuántos caminos logra el bot es CE12)
   assert(s.over, 'la campaña debe terminar');
   assert(events.includes('event'));
   return s;
@@ -2186,4 +2188,35 @@ console.log('OK — todas las pruebas superadas');
     assert(!G.migrarEstaciones(v), 'idempotente'); assert(s.estaciones, 'partida nueva marcada'); }
   G.turnos = false;
   console.log('CE3-A1: obras, lotes, estudios, marchas y migración en estaciones OK');
+}
+{ // CDe4: enganche de caminos de victoria, «Este año», tributo, indemnización, gobernador y casas de la ciudad
+  const CAM = require('../js/caminos.js'), EA = require('../js/este-ano.js'), GOB = require('../js/gobernador.js');
+  G.usarCiudad(require('../js/ciudad.js')); delete global.localStorage;
+  const s = G.newGame('T', 'mediterraneo', {}); G.onEvent = null; const cap = G.capital();
+  assert(s.caminos && s.caminos.v && s.esteAno && s.esteAno.actual && s.gobernador && s.indem, 'partida nueva: caminos, Este año, gobernador e indemnizaciones');
+  assert(G.campanaLarga(), 'la campaña del Mediterráneo es la larga');
+  // un mes de juego apunta en Este año y pasa por CAMINOS.paso
+  const pasoAntes = CAM.paso; let pasos = 0; CAM.paso = function () { pasos++; return pasoAntes.apply(CAM, arguments); };
+  for (let i = 0; i < 8; i++) G.tick(0.25); CAM.paso = pasoAntes; assert(pasos >= 1, 'cada mes llama a CAMINOS.paso');
+  { const lib = s.esteAno.actual, den = lib.c[cap] && lib.c[cap].denarios; assert(den && (den.entra.impuestos > 0 || den.entra.comercio > 0), 'impuestos y comercio apuntados'); assert(lib.c[cap].grano.entra.cosecha > 0 && lib.c[cap].grano.sale.comida > 0, 'cosecha y comida apuntadas'); assert(lib.c._imperio.denarios.sale.edificios > 0, 'mantenimiento de edificios apuntado'); }
+  // obras: un gasto de obra queda apuntado en «obras»
+  { s.res.denarios = 5000; s.res.materiales = 5000; s.res.hierro = 5000; s.res.grano = 5000; const b = ['foro', 'almacen', 'aserradero'].find(x => G.upgrade(cap, x)); assert(b, 'sube un edificio'); const m = s.esteAno.actual.c[cap]; assert(['denarios', 'materiales', 'grano', 'hierro'].some(r => m[r] && m[r].sale.obras > 0), 'la obra se apunta'); }
+  // cerrar el año: el libro pasa a «anterior»
+  { const y0 = G.yearOf(s.t); while (G.yearOf(s.t) === y0) G.tick(0.5); assert(s.esteAno.anterior && s.esteAno.actual.anio === G.yearOf(s.t) && s.esteAno.anterior.anio === y0, 'al cambiar de año el libro actual pasa a anterior'); }
+  assert(G.esteAnoCuentas('imperio').filas && G.esteAnoCuentas(cap).ambito === cap, 'G.esteAnoCuentas por ámbito');
+  // tributo de primavera: con guerra y tropas hay que decidir; 'caja' lo resuelve una sola vez
+  { s.marches.push({ owner: 'cartago', from: 'carthago', to: cap, units: { libios: 10 }, t0: s.t, t1: s.t + 50 }); s.cities[cap].units = { hastati: 3000 }; s.esteAno.anterior = EA.nuevoLibro(0);
+    s.t = Math.ceil(s.t / 12) * 12 + 2.99; G.tick(0.05); const t = G.tributoPendiente(); assert(t && t.falta > 0 && !t.suspendido, 'en primavera con guerra hay tributo por decidir');
+    s.res.denarios = 100000; const d0 = G.disponible('denarios'); assert(G.resolverTributo('caja').ok && G.disponible('denarios') <= d0 - t.falta + 1e-6 && G.tributoPendiente() === null, 'pagarlo de la caja'); assert(!G.resolverTributo('caja').ok, 'no se paga dos veces'); s.marches.length = 0; }
+  // indemnización de paz: cuota anual a plazos
+  { const p = G.indemniza('cartago', 400, 1, 'normal'); assert(p && p.total === 400 && s.indem.cartago.pagado === p.cuota, 'la primera cuota se cobra al pactar'); }
+  // tomar Cartago NO termina la partida
+  { const ex = G.capitalRival(); s.cities[ex].owner = 'roma'; G.tick(0.25); assert(!s.over, 'tomar Cartago no acaba la campaña larga'); s.cities[ex].owner = 'cartago'; }
+  // partida vieja: migrarCD crea lo que falta; el gobernador actúa por estación
+  { const v = JSON.parse(JSON.stringify(s)); delete v.caminos; delete v.esteAno; delete v.gobernador; delete v.indem; G.state = v; G.migrarCD(v); assert(v.caminos && v.esteAno && v.gobernador && v.indem, 'migrarCD crea los campos que faltan'); G.state = s;
+    GOB.poner(s, cap, true); const m = Math.floor(s.t) + (3 - Math.floor(s.t) % 3) % 3 + 3; s.t = m - 0.05; s.res.denarios = 5000; s.res.materiales = 5000; s.res.hierro = 5000; s.res.grano = 5000; G.tick(0.1); assert(GOB.informe(s, cap) && GOB.informe(s, cap).mes === m, 'el gobernador actúa en la estación (mes ' + m + ')'); }
+  { const a = G.gobAyuda(), h = G.gobHacer(); assert(typeof a.barrios === 'function' && typeof h.obra === 'function' && Array.isArray(a.barrios(cap)), 'gobAyuda y gobHacer'); }
+  // CD2b: la población máxima sale de las casas del barrio (no tapiadas); una casa en ruinas deja de contar
+  { const E = G.ciudadE(cap), cs = E ? E.parcelas.filter(l => l.casa && !l.casa.ruina) : [], c = s.cities[cap]; if (cs.length) { const antes = G.popCap(c); cs[0].casa.ruina = 1; E.rev = (E.rev || 0) + 1; const despues = G.popCap(c); cs[0].casa.ruina = 0; E.rev++; assert(despues < antes, 'una casa tapiada no da vivienda'); } }
+  console.log('CDe4: caminos, Este año, tributo, indemnización, gobernador y casas OK');
 }
