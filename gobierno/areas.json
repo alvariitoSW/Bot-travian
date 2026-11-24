@@ -305,7 +305,8 @@
         "tools/",
         "gobierno/kits/",
         "gobierno/maquetas/piezas/",
-        "assets/iconos/"
+        "assets/iconos/",
+        "assets/personajes/"
       ],
       "taller": [],
       "juez": {
