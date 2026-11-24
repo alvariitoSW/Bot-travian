@@ -1431,7 +1431,8 @@
   const anioN = s => Math.floor(s.t / 12 + 1e-9);
   function cobraIndemnizaciones(s) {
     const e = EA(); if (!e || !s.indem) return;
-    for (const f in s.indem) { const r = e.cobrarCuota(s.indem[f], anioN(s)); if (r.cuota > 0) { s.indem[f] = r.plan; s.res.denarios += r.cuota; s.gan.denarios += r.cuota; apunta(null, 'denarios', r.cuota, 'indemnizacion'); G.log('🪙 ' + (D.FACTIONS[f] ? D.FACTIONS[f].n : f) + ' paga ' + r.cuota + ' denarios de indemnización (' + Math.round(r.plan.pagado) + ' de ' + r.plan.total + ').', 'good'); } }
+    for (const f in s.indem) { const an = anioN(s); if (s.indem[f] && s.indem[f].ult === an) continue;   // CDe4: una sola cuota por año (G.indemniza dentro de newYear no cobra dos veces)
+      const r = e.cobrarCuota(s.indem[f], an); if (r.cuota > 0) { s.indem[f] = Object.assign(r.plan, { ult: an }); s.res.denarios += r.cuota; s.gan.denarios += r.cuota; apunta(null, 'denarios', r.cuota, 'indemnizacion'); G.log('🪙 ' + (D.FACTIONS[f] ? D.FACTIONS[f].n : f) + ' paga ' + r.cuota + ' denarios de indemnización (' + Math.round(r.plan.pagado) + ' de ' + r.plan.total + ').', 'good'); } }
   }
   // paz con indemnización: riquezaAnual × años × dureza ('leve' | 'normal' | 'dura'); se cobra en cuotas anuales, la primera ya
   G.indemniza = function (f, riquezaAnual, anios, dureza) {
