@@ -8,6 +8,8 @@
      libre() → false mientras hay un pellizco (camara.js, LP4): entonces no se dibuja y lo empezado se borra
    FU3b · la falange: fal() → null | { bajar: bool, anillo: { x, y, r } | null } (el hueco abierto, en pantalla). Con bajar (acometida): deslizar hacia abajo
      (> 40 px, casi vertical, < 400 ms) → 'bajar'. Con anillo: tocar el anillo, o arrastrar hasta él → 'cerrar'. En los dos casos no se dibuja raya.
+   FU3c: fal() añade sostener (empuje en curso o falange en lucha), empuje (hay empuje en curso: no dibuja) y othismos (cada toque → 'golpe', sin raya).
+     Todo dedo que toca el lienzo con sostener manda 'sostener' {on:true}; al soltar el último, {on:false}.
    FU2 · modo pelea (vista del oficial): pelea() → 'nada' | 'pilum' | 'duelo' y alGesto(gesto, datos).
      'duelo': un dedo no dibuja. Tocar (< 0,2 s, quieto) → 'estocada'; mantener quieto ≥ 0,2 s → 'parar' y al levantar 'suelta-parar';
               deslizar hacia arriba (más de 40 px) → 'empujar'.
@@ -50,11 +52,18 @@ export function crearDedos({ lienzo, suelo, haciaDonde, alSoltar, H = () => 0, l
   let dedo = null, reloj = 0;   /* { id, x, y, cx, cy, p0, p1, dibuja, modo, lejos, manten, hecho, pilum } */
   const fuera = e => e.target !== lienzo;
   const gesto = (g, d) => { try { alGesto(g, d); } catch (err) { console.warn('gesto', err); } };
+  /* FU3c: dedos que mantienen la pantalla (sostener) */
+  const tiene = new Set();
+  const alza = e => { if (tiene.delete(e.pointerId) && !tiene.size) gesto('sostener', { on: false }); };
   addEventListener('pointerdown', e => {
-    if (dedo || fuera(e) || !libre()) return;
+    if (fuera(e) || !libre()) return;
+    const f3 = fal();
+    if (f3 && f3.sostener) { tiene.add(e.pointerId); gesto('sostener', { on: true }); }
+    if (f3 && f3.othismos) { gesto('golpe'); return; }   /* FU3c: cada toque es un golpe al compás; no dibuja ni se queda colgado */
+    if (dedo) return;
     const modo = pelea(), p = modo === 'duelo' ? null : suelo(e.clientX, e.clientY), fa = fal();
     if (!p && modo === 'nada') return;
-    dedo = { id: e.pointerId, x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY, p0: p, p1: p, dibuja: false, modo, lejos: false, manten: false, hecho: false, pilum: false, t0: e.timeStamp, fa: !!(fa && (fa.bajar || fa.anillo)) };
+    dedo = { id: e.pointerId, x: e.clientX, y: e.clientY, cx: e.clientX, cy: e.clientY, p0: p, p1: p, dibuja: false, modo, lejos: false, manten: false, hecho: false, pilum: false, t0: e.timeStamp, fa: !!(fa && (fa.bajar || fa.anillo || fa.empuje)) };
     const d = dedo; clearTimeout(reloj);
     if (modo === 'duelo') reloj = setTimeout(() => { if (dedo === d && !d.lejos && !d.hecho && libre()) { d.manten = true; gesto('parar'); } }, TOQUE_S);
     else if (modo === 'pilum') reloj = setTimeout(() => { if (dedo === d && !d.lejos && !d.dibuja && libre()) { d.pilum = true; gesto('pilum-arma'); } }, PILUM_S);
@@ -74,7 +83,7 @@ export function crearDedos({ lienzo, suelo, haciaDonde, alSoltar, H = () => 0, l
       const fa = fal(), dx = e.clientX - dedo.x, dy = e.clientY - dedo.y;
       if (fa && fa.bajar && !dedo.hecho && dy > DESLIZA_PX && Math.abs(dx) < dy * 0.6 && e.timeStamp - dedo.t0 < DESLIZA_MS) { dedo.hecho = true; gesto('bajar'); }
       if (fa && fa.anillo && !dedo.hecho && Math.hypot(e.clientX - fa.anillo.x, e.clientY - fa.anillo.y) < Math.max(ANILLO_PX, fa.anillo.r)) { dedo.hecho = true; gesto('cerrar'); }
-      if (dedo.hecho || (fa && (fa.anillo || (fa.bajar && dy > 8 && Math.abs(dx) < dy * 0.6)))) return;
+      if (dedo.hecho || (fa && (fa.anillo || (fa.bajar && dy > 8 && Math.abs(dx) < dy * 0.6) || fa.empuje))) return;   /* FU3c: con empuje, mantener no dibuja */
     }
     if (dedo.hecho && dedo.fa) return;
     if (dedo.pilum) return;
@@ -84,6 +93,7 @@ export function crearDedos({ lienzo, suelo, haciaDonde, alSoltar, H = () => 0, l
     dedo.dibuja = true; dedo.p1 = p; muestra(dedo.p0, p, haciaDonde(dedo.p0, p), true);
   });
   const suelta = e => {
+    alza(e);
     if (!dedo || e.pointerId !== dedo.id) return;
     const d = dedo; dedo = null; clearTimeout(reloj);
     if (d.modo === 'duelo') {
@@ -99,6 +109,6 @@ export function crearDedos({ lienzo, suelo, haciaDonde, alSoltar, H = () => 0, l
     if (d.pilum) { gesto('pilum-suelta', suelo(e.clientX, e.clientY)); return; }
     if (d.dibuja && Math.hypot(d.p1.x - d.p0.x, d.p1.z - d.p0.z) >= MIN_M) alSoltar(d.p0, d.p1); else if (d.dibuja) oculta();
   };
-  addEventListener('pointerup', suelta); addEventListener('pointercancel', e => { if (dedo && e.pointerId === dedo.id) corta(); });
+  addEventListener('pointerup', suelta); addEventListener('pointercancel', e => { alza(e); if (dedo && e.pointerId === dedo.id) corta(); });
   return { raya, muestra, oculta, activo: () => !!(dedo && dedo.dibuja), dedoEn: () => dedo ? { x: dedo.cx, y: dedo.cy } : null };
 }

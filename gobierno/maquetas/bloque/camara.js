@@ -73,7 +73,7 @@ export function crearCamara({ camara, lienzo, H, estado, hud, inicial = 'arriba'
     O.h = m; O.B = B; return m;
   }
 
-  function aplica(dt) {
+  function aplica0(dt) {
     const v = meta > t ? 1 : -1; if (t !== meta) t = Math.min(1, Math.max(0, t + v * dt / DUR));
     const S = estado(), B = S && S.B; if (!B) return;
     const h = (yo && yo()) || centurion(B); if (!h) return;
@@ -101,5 +101,11 @@ export function crearCamara({ camara, lienzo, H, estado, hud, inicial = 'arriba'
     camara.fov = camara.fov + (fov1 - camara.fov) * e; camara.updateProjectionMatrix();
   }
 
-  return { aplica, libre: () => !pellizco, cerca: () => t > 0.5, pon, modo: () => meta > 0.5 ? 'oficial' : 'arriba', t: () => t };
+  /* FU3c: cámara fija de prueba (capturas): fija({ p:[x,y,z], mira:[x,y,z], fov }) la pone ahí tras el cálculo normal; fija(null) la suelta. Solo la usan las pruebas */
+  let fijo = null;
+  function aplica(dt) {
+    aplica0(dt);
+    if (fijo) { camara.position.set(...fijo.p); camara.lookAt(...fijo.mira); if (fijo.fov) { camara.fov = fijo.fov; camara.updateProjectionMatrix(); } }
+  }
+  return { aplica, fija: p => { fijo = p; }, libre: () => !pellizco, cerca: () => t > 0.5, pon, modo: () => meta > 0.5 ? 'oficial' : 'arriba', t: () => t };
 }
