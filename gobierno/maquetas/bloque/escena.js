@@ -533,6 +533,7 @@ async function arranca() {
   try { BANDA = window.Banda.crea({ padre: $('hud'), propio: 'romano', rival: { esGriego: false, galos: true }, semilla: 43, abajo: '120px' }); Son.alSonar(() => BANDA.inicia()); window.__bloque.banda = BANDA; } catch (e) { console.log('[SON7] sin banda: ' + e.message); }   /* SON7 */
   if (FASE) { nivel = nivel || 'normal'; nueva(nivel); salta(FASE); congelado = FASE !== 'duelo';   /* FU2: ?fase=duelo deja la partida viva en el choque */ if (FASE === 'fin') hud.muestraFin(); }
   else if (!Q.get('nivel') && !LP7) { nivel = null; $('inicio').hidden = false; }
+  if (FALANGE) { const cr = document.querySelector('#fin .creditos'); if (cr) cr.textContent = 'FU4 · Falange a pie (Polibio 18.29–32; elefantes: Polibio 11.1, Plutarco, Pirro 25). Falangitas: Meshy (CC BY 4.0) adaptado en AQVILA · Elefantes, jinetes y rivales: 0 A.D. (Wildfire Games, CC BY-SA 3.0) · Movimientos: Quaternius (CC0) · Cielo y suelos de Poly Haven (CC0) · Sonido CC0'; }   /* FU4: los créditos de la falange, no los del manípulo */
   if (LP7) { $('otra').hidden = true; $('salir2').textContent = 'Volver a la batalla'; if (LP7.objetivo) $('objetivo').textContent = LP7.objetivo;
     const cr = document.querySelector('#fin .creditos'); if (cr) cr.textContent = cr.textContent.replace(/^LP3 · [^)]*\)\. /, ''); }   /* el crédito, sin «contra galos» */
   $('carga').hidden = true;
