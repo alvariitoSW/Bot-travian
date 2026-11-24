@@ -60,6 +60,8 @@ export const PROYECTIL = {
   pilum:    { masa: 2.0,  largo: 2.0,  v: 20, E: { escudo: 60, casco: 120, cuerpo: 15 }, dobla: true },
   jabalina: { masa: 0.8,  largo: 1.5,  v: 22, E: { escudo: 40, casco: 90,  cuerpo: 10 }, dobla: false },
   flecha:   { masa: 0.03, largo: 0.75, v: 45, E: { escudo: 8,  casco: 25,  cuerpo: 4 },  dobla: false },
+  /* ES3a: la piedra de honda (masa y velocidad: probable). Nunca se clava: golpea, rebota y rueda */
+  piedra:   { masa: 0.05, largo: 0.04, v: 30, E: { escudo: 1e9, casco: 1e9, cuerpo: 1e9 }, dobla: false, nunca: true },
 };
 export const HIERE_CASCO = 32;       /* FI3u, crearProyectiles: grados desde la perpendicular; más de frente, y con energía, el casco hiere */
 export const DOBLA_E = 250;          /* J sobre la perpendicular: desde aquí el hierro del pilum se dobla (con azar ±30 %) */
@@ -601,7 +603,7 @@ export function crearProyectiles(op = {}) {
   }
   function decideSuelo(f, c, v) {
     const d = nor(v), ang = grados(d, [0, 1, 0]);
-    if (90 - ang > PR.CLAVA_SUELO) { anota(f, ang, 'clava'); return clava(f, c, d, null); }
+    if (!tipoDe(pAct).nunca && 90 - ang > PR.CLAVA_SUELO) { anota(f, ang, 'clava'); return clava(f, c, d, null); }
     anota(f, ang, 'resbala'); return resbala(f, c, v);
   }
   function llega(p, que, obst = [], M = null) {
@@ -625,10 +627,10 @@ export function crearProyectiles(op = {}) {
       else { f.x = sum(f.pose ? f.pose.punta : p.p, d, -f.CM); f.d = d; f.modo = 'cae'; f.t = 0; return 'cae'; }
     }
     const o = c.o;
-    if (que.tipo === 'escudo') { const ang = grados(d, c.normal), si = sitioEscudo(c); if (si || ang >= PR.CLAVA_ESCUDO) { anota(f, ang, 'rebota', si); return rebota(f, c, v); } anota(f, ang, 'clava'); clava(f, c, d, M); lastra(p, f, ang); return 'clava'; }
-    if (que.tipo === 'cuerpo') { const ang = grados(d, c.normal); if (o && c.punto[1] > o.y1 - PR.CASCO * ESC) { casco(p, f, ang); anota(f, ang, 'rebota', 'casco'); if (f.hiere) avisa('hiere', f, { en: 'casco', E: +energia(f, ang).toFixed(1), herida: f.hiere }); return rebota(f, c, v); } const T = tipoDe(p), E = energia(f, ang); f.herida = E > 3 * T.E.cuerpo + 30 ? 'grave' : 'leve'; anota(f, ang, 'clava'); return clava(f, c, d, M); }
+    if (que.tipo === 'escudo') { const ang = grados(d, c.normal), si = sitioEscudo(c); if (si || ang >= PR.CLAVA_ESCUDO || tipoDe(p).nunca) { anota(f, ang, 'rebota', si); return rebota(f, c, v); } anota(f, ang, 'clava'); clava(f, c, d, M); lastra(p, f, ang); return 'clava'; }
+    if (que.tipo === 'cuerpo') { const ang = grados(d, c.normal); if (o && c.punto[1] > o.y1 - PR.CASCO * ESC) { casco(p, f, ang); anota(f, ang, 'rebota', 'casco'); if (f.hiere) avisa('hiere', f, { en: 'casco', E: +energia(f, ang).toFixed(1), herida: f.hiere }); return rebota(f, c, v); } const T = tipoDe(p), E = energia(f, ang); if (T.nunca) { anota(f, ang, 'rebota'); return rebota(f, c, v); } f.herida = E > 3 * T.E.cuerpo + 30 ? 'grave' : 'leve'; anota(f, ang, 'clava'); return clava(f, c, d, M); }
     const eje = c.eje || (o ? nor(sub(o.b, o.a)) : [0, 1, 0]), ang = 90 - grados(d, eje);
-    if (ang < PR.CLAVA_ASTA) { anota(f, ang, 'clava', 'asta'); return clava(f, c, d, M); }
+    if (ang < PR.CLAVA_ASTA && !tipoDe(p).nunca) { anota(f, ang, 'clava', 'asta'); return clava(f, c, d, M); }
     anota(f, ang, 'rebota', 'asta'); return rebota(f, { punto: c.punto, normal: c.normal }, v);
   }
   /* FI3u: el pilum o la jabalina clavados en un escudo lo lastran; el pilum con energía se dobla (licencia de juego: César, BG 1.25) */
