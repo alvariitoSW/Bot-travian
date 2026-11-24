@@ -126,7 +126,8 @@
         "gobierno/maquetas/falange/fisica.js",
         "test/fi4-campo.mjs",
         "test/fi4-captura.mjs",
-        "test/fi4-escaramuza.mjs"
+        "test/fi4-escaramuza.mjs",
+        "test/fu1-testudo.test.mjs"
       ],
       "taller": [
         "assets/soldados/",
