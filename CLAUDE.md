@@ -75,7 +75,7 @@ Guía de una página: `gobierno/LEEME.md`. Lo esencial:
   `gobierno/estudios/REF-batallas-referencias.md` antes de cerrar; quien diseñe batallas la lee primero y no le pide que repita.
 - **Mirar fuera**: skills `ingenieria-reversa` (una mecánica de otro juego) y `radar` (arte libre, técnica, historia).
   Ideas sí; código y arte de juegos comerciales, nunca.
-- **Gasto**: presupuesto antes de empezar y `node gobierno/gasto.mjs` al cerrar. El director no construye.
+- **Gasto**: sin tope ni corte (usuario 24/11: las sesiones siguen hasta acabar), pero medido con `node gobierno/gasto.mjs` y apuntado en el parte. El director no construye.
   **Sin Fable** (usuario, 18/11: «hay que dejar de usar Fable 5.2»): dirige, diseña y construye **Opus**. La skill
   `ahorro` revisa los partes y propone recortes.
 - **Objetivos finales** (usuario, 18/11): `gobierno/OBJETIVOS.md` manda sobre el tablero. Léela al empezar y di a qué línea

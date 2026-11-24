@@ -59,8 +59,8 @@ en la bitácora). El encargo (prompt) debe llevar, completo, porque la sesión e
 a la vez, encargos de **máximo 30 pasos**, medir `node gobierno/gasto.mjs` al volver cada constructor, **una sola pasada de jueces
 completos** (`node gobierno/jueces.mjs`, 45–75 min, en segundo plano) y subir **solo con APTO**, `node -r ./test/soft-assert.js
 test/sim.test.js` para ver todos los fallos de golpe, unir con la rama antes de subir y usar la **siguiente caché libre** de `sw.js`
-(mira la que hay), capturas a 390×844 y 844×390 en `gobierno/capturas-tarea/<ID>-*.jpg`; **presupuesto**: declarado, **corte duro**
-(1,5× lo declarado como mucho) y avisos al vigía en cuatro umbrales; cierre (parte `gobierno/partes/<fecha>-<ID>.md`, tablero,
+(mira la que hay), capturas a 390×844 y 844×390 en `gobierno/capturas-tarea/<ID>-*.jpg`; **gasto**: sin tope ni corte (usuario 24/11 ~19:40): se
+mide con `gasto.mjs` y se apunta en el parte, y la sesión sigue hasta terminar; cierre (parte `gobierno/partes/<fecha>-<ID>.md`, tablero,
 bitácora y `lista.json`, commit y push a la rama de trabajo; **sin PR; `main` no se toca**; no abre sesiones ni cierra la del vigía).
 **No abras dos sesiones que toquen los mismos archivos** (`js/ui.js`, `js/game.js`, `js/data.js`, `js/simulador.js`,
 `js/ui-guerra.js`): encadénalas. Antes de abrir una, mira con `list_sessions` que no hay ya una viva para esa tarea.
@@ -86,8 +86,8 @@ bitácora y `lista.json`, commit y push a la rama de trabajo; **sin PR; `main` n
   quietas**: si acabó, archívala; si falta trabajo, abre una nueva con un encargo completo y contexto limpio.
 - El límite semanal de la cuenta estaba en aviso (`allowed_warning`) hasta el **lunes 23/11 a las 14:00 UTC**: avisa al usuario cuando
   una decisión grande se acerque a él.
-- Tope por sesión: declarado y corte duro; si una sesión llega al corte sin APTO, **para y lo decide el usuario** (no se amplía por
-  tu cuenta salvo una última prórroga cerrada y corta, apuntada en la bitácora).
+- **Sin tope de gasto por sesión** (usuario 24/11 ~19:40, literal: «Quita el limite de gastos para las sesiones pero mantén que midan lo
+  que gastan pero que sigan con el trabajo hasta que acaben»): nada de «corte duro» en los encargos; cada sesión mide y apunta su gasto.
 
 ## 6. Subir a `main` (solo con el «sube» explícito del usuario)
 El botón «Subir lo terminado a mi móvil» del cuadro (pestaña Móvil, CM6, 24/11) cuenta como ese «sube»: llega como texto de la llamada al vigía y como pedido `orden-subir`.
