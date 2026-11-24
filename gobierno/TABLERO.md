@@ -125,7 +125,7 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
   - ✅ SB3 **Jueces completos APTO 43/43; `main` `4a0f4ff9`** (hecha el 23 y 24/11).
   - ✅ LP4b **Trabados en combate y «Retirada ordenada»** (hecha el 24/11; juez APTO 13/13).
   - ✅ LP5a **Físicas cerradas en «Manípulo a pie», también en la lucha** (hecha el 24/11, `4af6b3f`; 6,5 M; la mía LP5 se cerró a su favor).
-  - 🔶 LP7b **La falange desde la batalla grande** (24/11; sesión `session_01QiKC38s19RyPA8vazAaPvD`; `js/ui-mando.js`, `js/simulador.js`).
+  - ✅ LP7b **La falange desde la batalla grande** (hecha el 24/11: «Bajar» con una falange abre «Falange a pie» con el rival que tenías delante, su soldado y su color; lucha hasta el 15 % y devuelve bajas a escala; subida a la rama `03ece47c`; juez de área NO APTO solo por la vara de tiempo de física de LP7, que falla igual sin sus cambios; capturas APTO a 390×844 y 844×390; gasto 1,67 M de 1,2; parte `partes/2026-11-24-LP7b.md`). Hoplitas y Batallón Sagrado no bajan aún: esperan su lanza propia (recomendado A, cadena sin supervisión).
   - ✅ FE2 **Falange y elefantes con los soldados nuevos, animaciones y física** (hecha el 24/11, `99298fcc`; 5,3 M).
   - ✅ FI5 **Físicas más baratas** (hecha el 24/11, `0a27bf28`: de 0,66 a 0,29 ms por paso, misma conducta).
   - 🔶 FI1 **Físicas en las batallas** (L17; pedida por el usuario el 23/11 noche: «Abre una sesión con opus que se encargue de las físicas en las batallas»; Opus; sesión `session_01QiKC38MwAapFqsQ21GofYS` abierta desde FA4; archivos nuevos `js/fisica-batalla.js` y `maquetas/falange/fisica.js`, en `escena.js` solo la conexión): que no se atraviesen picas, brazos ni cuerpos. Sin tope fijo, medido.
