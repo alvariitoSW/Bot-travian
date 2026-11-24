@@ -308,8 +308,39 @@ function depurar(r, E, K) {
   for (const o of listaH) add(o);
   const libre = q => { for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (const o of grid.get(KC(q.x + i * ge, q.z + j * ge)) || []) if (chocan(q, o, 0.15)) return false;
     return !pisaCalle(q, pts); };
-  const out = { celdas: r.celdas };
-  for (const n of ['fondo3', 'fondo', 'taber', 'patio', 'huerto']) out[n] = r[n].filter(q => { const a = rect(q.x, q.z, q.giro, MEDIA * (q.sx || 1) + 0.05, MEDIA + 0.05); if (!libre(a)) return false; add(a); return true; });
+  const out = { celdas: r.celdas, fondo3: [], fondo: [], taber: [], patio: [], huerto: [] };
+  /* CD5b (2.ª vuelta): pasada densa. Casas PEGADAS entre sí (0,3 m de medianera), de anchos distintos (de 5,3 a 8,6 m) y con la fachada a la calle,
+     en hasta tres filas paralelas a ella (la segunda, espalda con espalda). Se hace primero: lo que sobra del relleno antiguo solo entra donde queda hueco. */
+  if (E.urbe && K && K.cercado) { const { X0, Z0, C, N } = K, O = E.ocup, f = E.foro, rmax = Math.max(...E.urbe.RU), hh = (i, j) => { const v = Math.sin(i * 12.9898 + j * 78.233 + (E.semilla | 0) + 3) * 43758.5453; return v - Math.floor(v); };
+    const cel = (x, z) => { const i = Math.floor((x - X0) / C), j = Math.floor((z - Z0) / C); return i < 1 || j < 1 || i >= N - 1 || j >= N - 1 ? -1 : j * N + i; };
+    const tramos = E.urbe.calles.map(c => { const P = c.p, cum = [0]; for (let q = 1; q < P.length; q++) cum.push(cum[q - 1] + Math.hypot(P[q][0] - P[q - 1][0], P[q][1] - P[q - 1][1])); return { c, P, cum, L: cum[cum.length - 1] }; }),
+      en = (T, s) => { let q = 1; while (q < T.P.length - 1 && T.cum[q] < s) q++; const a = T.P[q - 1], b = T.P[q], l = (T.cum[q] - T.cum[q - 1]) || 1, u = (s - T.cum[q - 1]) / l; return { x: a[0] + (b[0] - a[0]) * u, z: a[1] + (b[1] - a[1]) * u, ang: Math.atan2(b[1] - a[1], b[0] - a[0]) }; };
+    for (let fila = 0; fila < 3; fila++) { let nc = 0; for (const T of tramos) { nc++; const c = T.c, L = T.L;
+        for (const lado of [1, -1]) { let sc = 0.3, n = 0;
+          while (sc < L) { n++; const rr = hh(nc * 977 + n + fila * 5003, lado + 11), t = hh(lado + 9, nc * 131 + n + fila * 331), sx = 0.8 + 0.45 * t, hx = MEDIA * sx + 0.05;
+            const sm = sc + hx, pp = en(T, Math.min(sm, L)), ux = Math.cos(pp.ang), uz = Math.sin(pp.ang), ang = pp.ang, o = c.w / 2 + MEDIA + 0.45 + fila * (2 * MEDIA + 0.2), x = pp.x - uz * o * lado, z = pp.z + ux * o * lado; sc += 1.5;
+            if (sm + hx > L + 2.5) continue; if (rr > 0.985 || !K.cercado(E, x, z)) continue; let ok = true; for (const [p1, p2] of [[0, 0], [-2.8, -2.8], [2.8, -2.8], [-2.8, 2.8], [2.8, 2.8]]) { const k = cel(x + ux * p1 - uz * p2, z + uz * p1 + ux * p2); if (k < 0 || O[k]) { ok = false; break; } } if (!ok) continue;
+            if (K.distRio(x, z) < 30 || K.altura(x, z) < K.NIVEL_RIO + 0.9) continue; const y = [K.altura(x - 4, z - 4), K.altura(x + 4, z - 4), K.altura(x - 4, z + 4), K.altura(x + 4, z + 4)]; if (Math.max(...y) - Math.min(...y) > 4.4) continue;
+            const giro = -ang + (lado > 0 ? 0 : Math.PI) + (fila === 1 ? Math.PI : 0), d = Math.hypot(x - f.x, z - f.z) / rmax, rc = rect(x, z, giro, hx, MEDIA + 0.05); if (!libre(rc)) continue;
+            const kind = fila === 0 && t > 0.9 ? 'taber' : rr < 0.3 - 0.26 * d ? 'fondo3' : d > 0.88 && rr < 0.5 ? 'huerto' : rr < 0.93 ? 'fondo' : 'patio';
+            add(rc); out[kind].push({ x, z, giro, sx, sy: kind === 'fondo3' ? 0.85 + 0.3 * t : kind === 'fondo' ? 0.8 + 0.4 * t : 1, tono: t }); sc = sm + hx + 0.2; } } } } }
+  /* CD5b (2.ª vuelta): relleno de huecos por barrido. Se recorre el recinto cada 2,2 m; cada punto libre toma la orientación de la calle más cercana (fachada a ella),
+     y se ponen primero los más próximos a la calle. La casa nace pequeña y se ensancha hasta tocar a su vecina (medianera de 0,2 m). */
+  if (E.urbe && K && K.cercado) { const { X0, Z0, C, N } = K, O = E.ocup, f = E.foro, rmax = Math.max(...E.urbe.RU), hh = (i, j) => { const v = Math.sin(i * 12.9898 + j * 78.233 + (E.semilla | 0) + 5) * 43758.5453; return v - Math.floor(v); };
+    const cel = (x, z) => { const i = Math.floor((x - X0) / C), j = Math.floor((z - Z0) / C); return i < 1 || j < 1 || i >= N - 1 || j >= N - 1 ? -1 : j * N + i; }, cand = [], R0 = rmax * 1.3;
+    for (let gz = Math.floor((f.z - R0) / 2.2); gz <= (f.z + R0) / 2.2; gz++) for (let gx = Math.floor((f.x - R0) / 2.2); gx <= (f.x + R0) / 2.2; gx++) { const x = gx * 2.2, z = gz * 2.2; if (!K.cercado(E, x, z)) continue; const k0 = cel(x, z); if (k0 < 0 || O[k0]) continue;
+      let mj = 28, pa = null; for (let a = Math.floor((x - 28) / 8); a <= Math.floor((x + 28) / 8); a++) for (let b = Math.floor((z - 28) / 8); b <= Math.floor((z + 28) / 8); b++) for (const q of pts.get(a + ',' + b) || []) { const d = Math.hypot(q[0] - x, q[1] - z) - q[2]; if (d < mj) { mj = d; pa = q; } }
+      if (pa && mj > 2.2) cand.push({ px: pa[0], pz: pa[1], x, z, d: mj + (hh(gx, gz) - 0.5) * 2.4, ang: pa[3], lado: (-(x - pa[0]) * Math.sin(pa[3]) + (z - pa[1]) * Math.cos(pa[3])) >= 0 ? 1 : -1 }); }
+    cand.sort((p, q) => p.d - q.d); let cuenta = 0;
+    for (const c of cand) { if (cuenta > 2200) break; let { x, z } = c; const { ang, lado } = c, giro = -ang + (lado > 0 ? 0 : Math.PI), t = hh(Math.round(x), Math.round(z)), mk = (s2, s3) => rect(x, z, giro, MEDIA * s2 + 0.05, MEDIA * s3 + 0.05);
+      let sx = 0.72, sz = 0.8; if (!libre(mk(sx, sz))) continue;
+      const vx = c.px - x, vz = c.pz - z, vl = Math.hypot(vx, vz) || 1; for (let i = 0; i < 12; i++) { const x1 = x + vx / vl * 0.35, z1 = z + vz / vl * 0.35, q = rect(x1, z1, giro, MEDIA * sx + 0.05, MEDIA * sz + 0.05); if (!libre(q)) break; x = x1; z = z1; }      /* se arrima a la calle */
+      let ok = true; for (const [p1, p2] of [[0, 0], [-2.6, -2.6], [2.6, -2.6], [-2.6, 2.6], [2.6, 2.6]]) { const k = cel(x + p1, z + p2); if (k < 0 || O[k]) { ok = false; break; } } if (!ok) continue;
+      if (K.distRio(x, z) < 30 || K.altura(x, z) < K.NIVEL_RIO + 0.9) continue; const y = [K.altura(x - 4, z - 4), K.altura(x + 4, z - 4), K.altura(x - 4, z + 4), K.altura(x + 4, z + 4)]; if (Math.max(...y) - Math.min(...y) > 4.4) continue;
+      while (sx < 1.3 && libre(mk(sx + 0.05, sz))) sx += 0.05; while (sz < 1.5 && libre(mk(sx, sz + 0.05))) sz += 0.05;
+      const d = Math.hypot(x - f.x, z - f.z) / rmax, rr = hh(Math.round(z), Math.round(x)), kind = c.d < 7 && t > 0.93 ? 'taber' : rr < 0.3 - 0.26 * d ? 'fondo3' : d > 0.88 && rr < 0.5 ? 'huerto' : rr < 0.94 ? 'fondo' : 'patio';
+      add(mk(sx, sz)); cuenta++; out[kind].push({ x, z, giro, sx, sz, sy: kind === 'fondo3' ? 0.85 + 0.3 * t : kind === 'fondo' ? 0.8 + 0.4 * t : 1, tono: t }); } }
+  for (const n of ['fondo3', 'fondo', 'taber', 'patio', 'huerto']) out[n].push(...r[n].filter(q => { const a = rect(q.x, q.z, q.giro, MEDIA * (q.sx || 1) + 0.05, MEDIA + 0.05); if (!libre(a)) return false; add(a); return true; }));
   /* segunda pasada: huecos a pie de calle, casa con casa (7,4 m), hasta tres filas; solo donde no hay edificio, río ni cuesta fuerte */
   if (E.urbe && K && K.cercado) { const { X0, Z0, C, N } = K, O = E.ocup, f = E.foro, rmax = Math.max(...E.urbe.RU), hh = (i, j) => { const v = Math.sin(i * 12.9898 + j * 78.233 + (E.semilla | 0)) * 43758.5453; return v - Math.floor(v); };
     const cel = (x, z) => { const i = Math.floor((x - X0) / C), j = Math.floor((z - Z0) / C); return i < 1 || j < 1 || i >= N - 1 || j >= N - 1 ? -1 : j * N + i; };
@@ -376,7 +407,7 @@ function calcularRelleno(E, K) {
   return out;
 }
 /* CI3a: cupo de cada pieza de relleno (lo usa también city3d.js para sus lotes) */
-export const CUPO = { fondo: 2600, fondo3: 1500, patio: 1100, huerto: 900, taber: 900 };
+export const CUPO = { fondo: 4200, fondo3: 2200, patio: 1100, huerto: 900, taber: 900 };
 /* CI3a (plano 3): casas de relleno a los dos lados de las calles de adorno de la urbe (E.urbe.calles), en hilera, pared con pared y con
    huecos sueltos; más ínsulas cerca del foro, patios y huertos hacia el borde. Nada pisa calles, parcelas, edificios ni campos (E.ocup), ni otra casa */
 function rellenoUrbe(E, K, out, h) {
@@ -409,3 +440,4 @@ function rellenoUrbe(E, K, out, h) {
           if (r < 0.3 - 0.26 * d) out.fondo3.push(Object.assign(q0, { sy: 0.85 + 0.3 * t })); else if (d > 0.86 && r < 0.6) out.huerto.push(Object.assign(q0, { sy: 1, sx: 0.85 })); else if (r < 0.86) { if (fila === 0 && t > 0.62) out.taber.push(Object.assign(q0, { sy: 1 })); else out.fondo.push(q0); } else out.patio.push(Object.assign(q0, { sy: 1 })); } }
       paso = s - L; } }
 }
+

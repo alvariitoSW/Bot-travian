@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import { datosCiudad, calleCerca, remedioBarrio, zonaNecesidad, zonaServicio, casasSin } from '../js/barrio-ui.js';
 import * as NEC from '../js/necesidades.js';
 
+/* CD5b: la ciudad de mentira es de 30×30 celdas de 1 u: se vuelven los alcances a la escala de antes (el factor 2,8 del juego se divide); la regla del juego se prueba en necesidades.test.mjs */
+for (const sv of Object.values(NEC.SERVICIOS)) sv.alcance = Math.round(sv.alcance / 2.8);
+
 /* ciudad de mentira: rejilla 30x30 de celdas de 1 unidad; una calle recta en la fila 10 */
 const N = 30, ocup = new Uint8Array(N * N); for (let i = 2; i < 28; i++) ocup[10 * N + i] = 1;
 const casa = (id, x, z, barrio = 0) => ({ id, x, z, barrio, fuera: false, casa: { nivel: 1 } });

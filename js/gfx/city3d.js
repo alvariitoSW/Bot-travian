@@ -381,7 +381,7 @@ const hayEstados = () => estForzado.size > 0 || !!(E && E.barrios && E.barrios.s
 function rellenoVista() {
   const r = romaS() && E ? RS.relleno(E, { X0: CI.X0, Z0: CI.Z0, C: CI.C, N: CI.N, barrioDe: CI.barrioDe, cercado: CI.cercado, altura, distRio, NIVEL_RIO }, fantasma, CI.EDIF) : null;
   const tm = q => { const v = 0.86 + 0.2 * q.tono, h = hashXZ(q.x, q.z); return { muro: [v, v * 0.96, v * 0.9], teja: [...tejaTono(h, false), 0.05 + 0.25 * h] }; };
-  for (const n of ['fondo', 'fondo3', 'patio', 'huerto', 'taber']) L['rs_' + n].poner(r ? r[n].map(q => ({ m: matriz(q.x, suelo(q.x, q.z, 4) - 0.1, q.z, q.giro, q.sx || 1, q.sy, 1), ...tm(q) })) : []);
+  for (const n of ['fondo', 'fondo3', 'patio', 'huerto', 'taber']) L['rs_' + n].poner(r ? r[n].map(q => ({ m: matriz(q.x, suelo(q.x, q.z, 4) - 0.1, q.z, q.giro, q.sx || 1, q.sy, q.sz || 1), ...tm(q) })) : []);
   ultR = r; { const hu = [], ro = [];      // CD5b: humo de hornos (tabernas y casas al azar fijo) y ropa tendida en los patios de las ínsulas
     if (r) { for (const q of r.taber) if (hashXZ(q.x + 3, q.z) < 0.16) hu.push({ x: q.x, z: q.z, y: 6 }); for (const q of r.fondo) if (hashXZ(q.x, q.z + 5) < 0.02) hu.push({ x: q.x, z: q.z, y: 6 });
       for (const q of r.fondo3) if (hashXZ(q.x + 1, q.z + 9) < 0.55) ro.push({ x: q.x, z: q.z, giro: q.giro, s: 1, y: suelo(q.x, q.z, 4) - 0.1 + 6.4 * (q.sy || 1) });
