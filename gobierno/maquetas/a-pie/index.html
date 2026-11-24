@@ -6,6 +6,15 @@
 <meta name="theme-color" content="#0b1016">
 <title>AQVILA · Testudo a pie</title>
 <base href="../../../">
+<script>
+/* FU1: «Testudo a pie» es ahora la escena del bloque con ?formacion=testudo (control del manípulo, techo de escudos). Se conservan los otros
+   parámetros de la dirección. ?antiguo=1 deja esta escena vieja, para comparar y para las capturas de FI/TP. */
+(function () { try {
+  var q = new URLSearchParams(location.search); if (q.get('antiguo') === '1') return;
+  if (!q.get('formacion')) q.set('formacion', 'testudo');
+  location.replace(new URL('gobierno/maquetas/bloque/', document.baseURI).href + '?' + q.toString());
+} catch (e) { /* si falla, se queda la escena vieja */ } })();
+</script>
 <style>
 @font-face{font-family:Cinzel;font-weight:700;src:url("assets/fuentes/cinzel-700.woff2") format("woff2")}
 :root{--oro:#e9c063;--bronce:#b8862b;--marmol:#f1ead9;--vidrio:rgba(18,15,11,.82);--fil:rgba(184,134,43,.55);--roma:#c23a2e;--verde:#7cc65e;--rojo:#dd5a43;--ri:28%;--rs:58%}
