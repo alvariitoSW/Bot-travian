@@ -32,7 +32,8 @@
   for (const id of Object.keys(D.BIENES || {})) {
     if (P[id]) continue;
     const b = bien(id);
-    prod(id, b.n || id, b.i || '📦', b.precio, GRANDES[id] || 1, enOrigen(c => c.esp === id), ['roma'].concat(enOrigen(c => c.tipo === 'emporio' && c.esp !== id)), plano);
+    const esp = (D.ESPECIAL && D.ESPECIAL[id]) || {};
+    prod(id, esp.n || b.n || id, esp.i || b.i || '📦', b.precio, GRANDES[id] || 1, enOrigen(c => c.esp === id), ['roma'].concat(enOrigen(c => c.tipo === 'emporio' && c.esp !== id)), plano);
   }
   P.denarios = { id: 'denarios', n: 'Denarios', i: '🪙', base: 1, peso: 0, origen: [], demanda: [], estacion: plano, caduca: 0, moneda: true, nota: 'Es la moneda: no se compra ni se vende.' };
   MER.PRODUCTOS = P;
@@ -51,9 +52,9 @@
 
   // ---------- Casas mercantes rivales ----------
   MER.CASAS = {
-    punicos: { id: 'punicos', n: 'Mercaderes púnicos', f: 'cartago', ciudades: ['carthago', 'gades', 'panormus', 'lilybaeum', 'carales', 'hadrumetum'], nota: 'Polibio 3.22-24. Cifras: licencia de juego.' },
-    griegos: { id: 'griegos', n: 'Mercaderes griegos', f: 'griegos', ciudades: ['massalia', 'syracusae', 'neapolis', 'emporion'], nota: L + 'reparto de ciudades por casa.' },
-    italicos: { id: 'italicos', n: 'Mercaderes itálicos', f: 'italicos', ciudades: ['capua', 'neapolis', 'tarentum'], nota: L + 'reparto de ciudades por casa.' }
+    punicos: { id: 'punicos', n: 'Mercaderes púnicos', f: ['cartago'], ciudades: ['carthago', 'gades', 'panormus', 'lilybaeum', 'carales', 'hadrumetum'], nota: 'Polibio 3.22-24. Cifras: licencia de juego.' },
+    griegos: { id: 'griegos', n: 'Mercaderes griegos', f: ['griegos', 'siracusa', 'akragas'], ciudades: ['massalia', 'syracusae', 'neapolis', 'emporion'], nota: L + 'reparto de ciudades por casa.' },
+    italicos: { id: 'italicos', n: 'Mercaderes itálicos', f: ['etruscos', 'epiro', 'mamertinos'], ciudades: ['capua', 'neapolis', 'tarentum'], nota: L + 'reparto de ciudades por casa.' }
   };
   const CASAS_ORD = Object.keys(MER.CASAS);
   const CARGAS_RIVAL = 4;
@@ -94,9 +95,11 @@
     for (const c of ciudadesDe(s)) if (typeof m.portoria[c] !== 'number') m.portoria[c] = K.PORT0; // la quadragesima (licencia de juego en la cifra)
     for (const k of CASAS_ORD) if (!obj(m.rivales[k])) m.rivales[k] = { ult: '', ops: 0 };
     // Rutas viejas {a,b,f} -> ruta con el producto que más gana. No se borra s.rutas (lo hace el juego).
+    const vistas = {};
     if (Array.isArray(s.rutas)) for (const r of s.rutas) {
       if (!r || !CI[r.a] || !CI[r.b]) continue;
-      const key = r.a + '>' + r.b;
+      vistas[r.a + '>' + r.b] = (vistas[r.a + '>' + r.b] || 0) + 1;
+      const key = r.a + '>' + r.b + '#' + vistas[r.a + '>' + r.b]; // dos rutas viejas iguales no se funden
       if (m.mig[key]) continue;
       m.mig[key] = 1;
       let mejor = null, g = -1e9;
@@ -173,10 +176,11 @@
     const m = est(s), d = detalle(s, c, p, mes == null ? mesAbs(s) : mes, ay);
     if (!d) return null;
     const paso = 1 / (K.EMPUJE * Math.max(1, CI[c].w || 1));
+    // Cada carga se cobra al punto medio de su paso: comprar n y vender n en el mismo sitio recorre los mismos precios (sin ganancia).
     let S = Sget(m, c, p), total = 0;
-    for (let k = 0; k < n; k++) { total += Math.max(0.05, d.sinOferta * (1 - K.OFERTA * S)); S = clamp(S + dir * paso, -1, 1); }
-    if (aplicar) { if (!m.S[c]) m.S[c] = {}; m.S[c][p] = r2(S * 1000) / 1000 === 0 ? 0 : Math.round(S * 1000) / 1000; }
-    return { total: r2(total), medio: r2(total / n) };
+    for (let k = 0; k < n; k++) { total += Math.max(0.05, d.sinOferta * (1 - K.OFERTA * clamp(S + dir * paso / 2, -1, 1))); S = clamp(S + dir * paso, -1, 1); }
+    if (aplicar) { if (!m.S[c]) m.S[c] = {}; m.S[c][p] = S; }
+    return { total: r2(total), medio: r2(total / n), raw: total };
   }
   function validarOp(s, c, p, n) {
     if (!CI[c]) return 'Ciudad desconocida';
@@ -193,13 +197,13 @@
     if (ay && ay.tiene && ay.tiene('denarios') < r.total) return { ok: false, motivo: 'Faltan denarios', delta: {}, precioMedio: r.medio };
     if (ay && ay.cabe && ay.cabe(p) < n) return { ok: false, motivo: 'No cabe en el almacén', delta: {}, precioMedio: r.medio };
     simular(s, c, p, n, -1, ay, true);
-    return { ok: true, motivo: '', delta: { denarios: -r.total, [p]: n }, precioMedio: r.medio };
+    return { ok: true, motivo: '', delta: { denarios: -Math.ceil(r.raw * 100 - 1e-9) / 100, [p]: n }, precioMedio: r.medio };
   };
   MER.vender = (s, c, p, n, ay) => {
     const mal = validarOp(s, c, p, n); if (mal) return { ok: false, motivo: mal, delta: {}, precioMedio: 0 };
     if (ay && ay.tiene && ay.tiene(p) < n) return { ok: false, motivo: 'No tienes tanto', delta: {}, precioMedio: 0 };
     const r = simular(s, c, p, n, 1, ay, true);
-    return { ok: true, motivo: '', delta: { denarios: r.total, [p]: -n }, precioMedio: r.medio };
+    return { ok: true, motivo: '', delta: { denarios: Math.floor(r.raw * 100 + 1e-9) / 100, [p]: -n }, precioMedio: r.medio };
   };
 
   // ---------- Flete ----------
@@ -268,7 +272,7 @@
   MER.rutaQuitar = (s, id) => { const m = est(s), n = m.rutas.length; m.rutas = m.rutas.filter(r => r.id !== id); return m.rutas.length < n; };
   MER.viajeLanzar = (s, o, ay) => {
     const m = est(s), n = Math.floor(o.cargas || 0);
-    const mal = validarOp(s, o.a, o.prod, n) || (!CI[o.b] ? 'Ciudad desconocida' : o.a === o.b ? 'Mismo lugar' : '');
+    const mal = validarOp(s, o.a, o.prod, n) || MER.puedeComerciar(s, o.a, ay) || (!CI[o.b] ? 'Ciudad desconocida' : o.a === o.b ? 'Mismo lugar' : '');
     if (mal) return { ok: false, motivo: mal, delta: {} };
     const fl = MER.flete(s, o.a, o.b, o.prod, n, ay);
     if (fl.bloqueado) return { ok: false, motivo: 'Puerto bloqueado: el mar está cortado', delta: {} };
@@ -282,7 +286,7 @@
   };
 
   // ---------- Contratos ----------
-  const ctrActivo = (m, id) => m.contratos.some(k => k.id === id);
+  const ctrActivo = (m, id, mes) => m.contratos.some(k => k.id === id && (mes == null || k.hasta > mes));
   MER.contratosPosibles = (s, ay) => {
     const m = est(s), pais = {};
     ciudadesDe(s).forEach(c => { const f = dueno(s, c, ay); if (f !== 'roma') pais[f] = 1; });
@@ -310,10 +314,10 @@
     return { ok: true, aprobado: true, motivo: '' };
   };
   MER.efectos = s => {
-    const m = est(s), n = mias(s).length, e = { felicidad: { pue: 0 }, riesgoMar: 1, portoriaCero: tratados(m), costeMes: 0, renta: 0 };
-    if (ctrActivo(m, 'annona')) { e.felicidad.pue += 8; e.costeMes += 8 * n; }
-    if (ctrActivo(m, 'monopolio_sal')) e.renta += 6 * n;
-    if (ctrActivo(m, 'flota')) { e.riesgoMar = 0.5; e.costeMes += 10 * n; }
+    const m = est(s), mes = mesAbs(s), n = mias(s).length, e = { felicidad: { pue: 0 }, riesgoMar: 1, portoriaCero: m.contratos.filter(k => k.id === 'tratado' && k.f && k.hasta > mes).map(k => k.f), costeMes: 0, renta: 0 };
+    if (ctrActivo(m, 'annona', mes)) { e.felicidad.pue += 8; e.costeMes += 8 * n; }
+    if (ctrActivo(m, 'monopolio_sal', mes)) e.renta += 6 * n;
+    if (ctrActivo(m, 'flota', mes)) { e.riesgoMar = 0.5; e.costeMes += 10 * n; }
     return e;
   };
 
@@ -323,7 +327,7 @@
     m.sucesos = m.sucesos.filter(e => !e.juego && e.hasta > mes);
     const owners = {}; ciudadesDe(s).forEach(c => { const f = dueno(s, c, ay); if (f !== 'roma') owners[f] = 1; });
     const fs = Object.keys(owners).sort(), cs = ciudadesDe(s);
-    if (ay && ay.enGuerra) fs.forEach(f => { if (ay.enGuerra(f)) m.sucesos.push({ t: 'guerra', f, hasta: mes + 1, juego: 1 }); });
+    if (ay && ay.enGuerra) fs.forEach(f => { if (ay.enGuerra(f) && !m.sucesos.some(e => e.t === 'guerra' && e.f === f)) m.sucesos.push({ t: 'guerra', f, hasta: mes + 1, juego: 1 }); });
     if (ay && ay.bloqueada) cs.forEach(c => { if (ay.bloqueada(c)) m.sucesos.push({ t: 'bloqueo', c, hasta: mes + 1, juego: 1 }); });
     if (ay && ay.cosecha) cs.forEach(c => { const k = ay.cosecha(c); if (k === 'mala' || k === 'buena') m.sucesos.push({ t: k, c, hasta: mes + 1, juego: 1 }); });
     // Al azar (con semilla) solo lo que el juego no da.
@@ -333,7 +337,7 @@
     if (!(ay && ay.cosecha)) falta.push('cosecha');
     if (falta.length && m.sucesos.filter(e => !e.juego).length < 4 && rnd(m) < 0.1) {
       const t = falta[Math.floor(rnd(m) * falta.length)], dur = 2 + Math.floor(rnd(m) * 3);
-      if (t === 'guerra') { const f = fs[Math.floor(rnd(m) * fs.length)]; m.sucesos.push({ t, f, hasta: mes + dur }); av.push({ texto: 'Guerra con ' + f + ': sube el grano y el hierro allí', tono: 'malo' }); }
+      if (t === 'guerra') { const f = fs[Math.floor(rnd(m) * fs.length)]; if (m.sucesos.some(e => e.t === 'guerra' && e.f === f)) return; m.sucesos.push({ t, f, hasta: mes + dur }); av.push({ texto: 'Guerra con ' + f + ': sube el grano y el hierro allí', tono: 'malo' }); }
       else if (t === 'bloqueo') { const c = cs[Math.floor(rnd(m) * cs.length)]; m.sucesos.push({ t, c, hasta: mes + dur }); av.push({ texto: 'Bloqueo del puerto de ' + nomC(c) + ': todo más caro y sin rutas de mar', tono: 'malo' }); }
       else { const c = cs[Math.floor(rnd(m) * cs.length)], mala = rnd(m) < 0.5; m.sucesos.push({ t: mala ? 'mala' : 'buena', c, hasta: mes + dur }); av.push({ texto: (mala ? 'Mala' : 'Buena') + ' cosecha cerca de ' + nomC(c), tono: mala ? 'malo' : 'bueno' }); }
     }
@@ -342,8 +346,8 @@
     const tr = tratados(m), pool = ciudadesDe(s), mes = mesAbs(s);
     for (const id of CASAS_ORD) {
       const casa = MER.CASAS[id];
-      if (guerra(ay, casa.f)) { m.rivales[id].ult = 'guerra'; continue; } // en guerra con quien esté su facción
-      const compite = tr.indexOf(casa.f) >= 0;
+      if (casa.f.some(f => guerra(ay, f))) { m.rivales[id].ult = 'guerra'; continue; } // en guerra con quien esté su facción
+      const compite = casa.f.some(f => tr.indexOf(f) >= 0);
       let mejor = null;
       for (const p of MER.ORDEN) {
         let a = null, b = null, pa = 1e9, pb = -1;
@@ -360,7 +364,7 @@
         if (margen > 0.08 * pa && (!mejor || margen / pa > mejor.rel)) mejor = { p, a, b, rel: margen / pa, pa, pb, ta, tb };
       }
       if (!mejor) { m.rivales[id].ult = ''; continue; }
-      const fr = tratados(m).indexOf(casa.f) >= 0; // con tratado no pagan aduana
+      const fr = casa.f.some(f => tr.indexOf(f) >= 0); // con tratado no pagan aduana
       const n = CARGAS_RIVAL;
       const ca = simular(s, mejor.a, mejor.p, n, -1, ay, true), vb = simular(s, mejor.b, mejor.p, n, 1, ay, true);
       if (!fr) { if (mejor.ta) sumar(delta, 'denarios', ca.total * mejor.ta); if (mejor.tb) sumar(delta, 'denarios', vb.total * mejor.tb); }
@@ -436,13 +440,14 @@
     for (const p of MER.ORDEN) for (const a of srcs) for (const b of ciudadesDe(s)) {
       if (a === b) continue;
       const pa = precioEn(s, a, p, mes, ay);
+      if (P[p].origen.indexOf(a) < 0 && pa > P[p].base) continue; // solo se aconseja comprar donde se produce o a precio de base o menos
       if (pa <= 0 || precioEn(s, b, p, mes, ay) < pa * 1.1) continue; // descarte barato antes de simular
       const cu = cuentaCruda(s, { a, b, prod: p, cargas: n }, ay);
       if (cu.fl.bloqueado) continue;
       if (!mejor || cu.neto > mejor.ganancia) mejor = { prod: p, a, b, ganancia: cu.neto };
     }
     if (!mejor || mejor.ganancia <= 0) return { prod: null, a: null, b: null, ganancia: 0, texto: 'Ahora no hay negocio que valga la pena.' };
-    mejor.texto = 'Compra ' + P[mejor.prod].n + ' en ' + nomC(mejor.a) + ' y véndelo en ' + nomC(mejor.b) + ': unos ' + Math.round(mejor.ganancia) + ' denarios por ' + n + ' cargas.';
+    mejor.texto = 'Compra ' + P[mejor.prod].n + ' en ' + nomC(mejor.a) + ' y vende ' + P[mejor.prod].n + ' en ' + nomC(mejor.b) + ': unos ' + Math.round(mejor.ganancia) + ' denarios por ' + n + ' cargas.';
     return mejor;
   };
 

@@ -5,7 +5,7 @@ const require = createRequire(import.meta.url);
 const D = require('../js/data.js'); const G = require('../js/game.js'); const MER = require('../js/mercado.js');
 let n = 0, mal = 0;
 function t(nombre, f) { try { f(); n++; console.log('bien', nombre); } catch (e) { mal++; console.log('MAL', nombre, '—', e.message); } }
-const nueva = () => { const s = G.newGame('Test', 'mediterraneo', {}); G.onEvent = null; s.t = 3; MER.migrar(s); s.mercado.sucesos = []; return s; };
+const nueva = () => { const s = G.newGame('Test', 'mediterraneo', {}); G.onEvent = null; s.t = 3; s.cities.roma.b.mercado = 2; s.cities.roma.b.puerto = 2; MER.migrar(s); s.mercado.sucesos = []; return s; };
 const J = x => JSON.stringify(x);
 const quieto = s => { s.mercado.sucesos = []; s.mercado.S = {}; };
 
@@ -33,6 +33,19 @@ t('vender baja el precio y comprar lo sube', () => {
   const c = MER.comprar(s, 'roma', 'hierro', 20); assert.ok(c.ok && c.delta.denarios < 0 && c.delta.hierro === 20); assert.ok(MER.precio(s, 'roma', 'hierro') > p1);
   assert.ok(!MER.comprar(s, 'roma', 'denarios', 1).ok); assert.ok(!MER.comprar(s, 'roma', 'hierro', 5, { tiene: () => 0, cabe: () => 99 }).ok);
   assert.ok(!MER.comprar(s, 'roma', 'hierro', 5, { tiene: () => 999, cabe: () => 1 }).ok); assert.ok(!MER.vender(s, 'roma', 'hierro', 5, { tiene: () => 1 }).ok);
+});
+t('comprar y vender en el mismo sitio no crea dinero', () => {
+  for (const n of [1, 7, 200]) { const s = nueva(); quieto(s); const c = MER.comprar(s, 'roma', 'hierro', n), v = MER.vender(s, 'roma', 'hierro', n); assert.ok(c.delta.denarios + v.delta.denarios <= 1e-9, n + ': ' + (c.delta.denarios + v.delta.denarios)); }
+  const s = nueva(); quieto(s); let tot = 0; for (let i = 0; i < 1000; i++) { tot += MER.comprar(s, 'syracusae', 'vino', 3).delta.denarios + MER.vender(s, 'syracusae', 'vino', 3).delta.denarios; } assert.ok(tot <= 0, 'ganó ' + tot);
+});
+t('nombres, casas y consejo', () => {
+  assert.ok(MER.PRODUCTOS.caballos.n === D.ESPECIAL.caballos.n && MER.PRODUCTOS.caballos.i === D.ESPECIAL.caballos.i);
+  const facs = new Set(Object.values(D.CITIES).map(c => c.f)); for (const k of Object.values(MER.CASAS)) for (const f of k.f) assert.ok(facs.has(f), f);
+  const s = nueva(); quieto(s); s.t = 6; const c = MER.consejo(s); if (c.prod) assert.ok(c.texto.includes('vende ' + MER.PRODUCTOS[c.prod].n) && MER.PRODUCTOS[c.prod].origen.includes(c.a) || MER.precio(s, c.a, c.prod) <= MER.PRODUCTOS[c.prod].base);
+});
+t('dos rutas viejas iguales no se funden; viaje exige mercado', () => {
+  const s = nueva(); s.rutas = [{ a: 'roma', b: 'carthago', f: 1 }, { a: 'roma', b: 'carthago', f: 2 }]; MER.migrar(s); MER.migrar(s); assert.strictEqual(s.mercado.rutas.length, 2);
+  s.cities.roma.b.mercado = 0; s.cities.roma.b.puerto = 0; assert.ok(!MER.viajeLanzar(s, { a: 'roma', b: 'carthago', prod: 'vino', cargas: 1 }).ok);
 });
 t('S vuelve hacia 0 mes a mes', () => {
   const s = nueva(); quieto(s); MER.vender(s, 'roma', 'hierro', 30); const a = Math.abs(s.mercado.S.roma.hierro);
