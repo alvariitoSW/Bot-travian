@@ -48,9 +48,9 @@
       "id": "L1",
       "organo": "cerebro",
       "titulo": "Una ciudad que construyes y ves crecer",
-      "estado": "medias",
+      "estado": "hecha",
       "veras": "Colocas cada edificio donde quieres. Los barrios crecen solos alrededor y hay incendios y crecidas que atender.",
-      "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría. Roma con el aspecto de su siglo (CI1): templo toscano, muralla de toba lisa, ínsulas, foro con tabernas, más ciudad a la vista y campos por estaciones. Calles con sentido (CI1b): eje de puerta a puerta por el foro y nada cruza casas ni campos. Ciudad mucho mayor a la vista (CI3a): urbe dibujada de 3,5 a 3,8 veces el área. Ciudad nueva (23 y 24/11): vista desde arriba con «Construir» por familias (CD1), ministros con encargos (CD3), necesidades por barrio y clase (CD5a), plan del Senado a 4–8 estaciones que reparte obras entre bandos (CD4), y ciudad viva por barrios con ficha de barrio, andamios, casas tapiadas y revuelta (CD5b y CDe2). Vista de plano sin diana de anillos (CV1, CV4a). Ya en tu móvil (v157).",
+      "hecho": "Fundas la ciudad, eliges dónde va cada obra con un mapa de colores, las casas piden agua y templo y los barrios suben de categoría. Roma con el aspecto de su siglo (CI1): templo toscano, muralla de toba lisa, ínsulas, foro con tabernas, más ciudad a la vista y campos por estaciones. Calles con sentido (CI1b): eje de puerta a puerta por el foro y nada cruza casas ni campos. Ciudad mucho mayor a la vista (CI3a): urbe dibujada de 3,5 a 3,8 veces el área. Ciudad nueva (23 y 24/11): vista desde arriba con «Construir» por familias (CD1), ministros con encargos (CD3), necesidades por barrio y clase (CD5a), plan del Senado a 4–8 estaciones que reparte obras entre bandos (CD4), y ciudad viva por barrios con ficha de barrio, andamios, casas tapiadas y revuelta (CD5b y CDe2). Vista de plano sin diana de anillos (CV1, CV4a). Ya en tu móvil (v157). CDe4 (v164): calles con el dedo y el arquitecto (CD2a) y la población sale de las casas reales de los barrios (CD2b).",
       "captura": "gobierno/capturas-tarea/CDe2-arriba.jpg",
       "tareas": [
         "CI1b",
@@ -66,7 +66,8 @@
         "CD5b",
         "CDe1",
         "CDe2",
-        "CDe3"
+        "CDe3",
+        "CDe4"
       ],
       "falta": "Pantalla mínima de ciudad (tira fina arriba, barra de 6 pestañas, «Construir» flotante) y agricultura y mercado dentro de la partida: en obra (CDe3). Después, calles con el dedo (CD2a) y casas de la urbe grande que cuentan (CD2b). Embellecer (CD6) salió de la 1.0 el 24/11."
     },
@@ -74,9 +75,9 @@
       "id": "L2",
       "organo": "cerebro",
       "titulo": "Recursos, mercado y cuentas claras",
-      "estado": "medias",
+      "estado": "hecha",
       "veras": "Una economía nueva: grano, denarios, materiales, hierro, hombres y un bien por región. Cada estación te falta algo y tienes que elegir.",
-      "hecho": "Recursos nuevos (CE2): grano, denarios, materiales, hierro, hombres y un bien por región, con barra, hoja de cuentas y mercado; las partidas viejas se convierten solas. Reglas del mercado con 14 productos y agricultura por suelos (trigo, olivar, viña, huerto, pasto; aceite, vino, verdura y lana) hechas aparte; se enganchan con CDe3.",
+      "hecho": "Recursos nuevos (CE2): grano, denarios, materiales, hierro, hombres y un bien por región, con barra, hoja de cuentas y mercado; las partidas viejas se convierten solas. Reglas del mercado con 14 productos y agricultura por suelos (trigo, olivar, viña, huerto, pasto; aceite, vino, verdura y lana) hechas aparte; se enganchan con CDe3. CDe4 (v164): «Este año» con a dónde va el dinero, tributo de guerra e indemnizaciones (CE5); mercado completo con aduana al 2,5 %, contratos de publicanos y casas rivales (CE4b).",
       "captura": "gobierno/capturas-tarea/CE2-cuentas-bienes.jpg",
       "tareas": [
         "CE2",
@@ -84,7 +85,9 @@
         "CE4",
         "CE5",
         "AG1",
-        "CDe3"
+        "CDe3",
+        "CE4b",
+        "CDe4"
       ],
       "falta": "CDe3 (en obra) mete en la partida la agricultura por suelos (AG1) y una parte del mercado (CE4). Después: el resto del mercado (aduanas, contratos del Senado, mercaderes rivales), «Este año» con el tributo de guerra (CE5) y el menú de recursos más artístico y con más imágenes (MN4)."
     },
@@ -92,9 +95,9 @@
       "id": "L3",
       "organo": "cerebro",
       "titulo": "Clases sociales: descuidarlas se nota",
-      "estado": "medias",
+      "estado": "hecha",
       "veras": "Si desatiendes a los plebeyos o a los patricios, lo ves en la ciudad: protestas, gente que se va, obras paradas.",
-      "hecho": "Cada ciudad tiene sus clases con su ánimo y puedes dar la ciudadanía. Desde la v157 (24/11) descuidar a una clase se ve: la gente se va del barrio desatendido, baja el favor y estalla la revuelta, que quita los impuestos del barrio (CD5a, CD5b, CDe2). Hechos con Meshy 20 personajes para el menú: seis clases, seis mujeres y siete políticos y ministros (MS3, MS4).",
+      "hecho": "Cada ciudad tiene sus clases con su ánimo y puedes dar la ciudadanía. Desde la v157 (24/11) descuidar a una clase se ve: la gente se va del barrio desatendido, baja el favor y estalla la revuelta, que quita los impuestos del barrio (CD5a, CD5b, CDe2). Hechos con Meshy 20 personajes para el menú: seis clases, seis mujeres y siete políticos y ministros (MS3, MS4). CDe4 (v164): menú «Clases sociales» con sus personajes en 3D, ánimo y necesidades por clase y los barrios que protestan (CS3).",
       "falta": "Rehacer el menú de clases con esos personajes, aligerados a unos 250 KB cada uno; pontífice y tribuno, de momento sin pintar (CS3, se abre al cerrar CDe3).",
       "captura": "gobierno/capturas-tarea/CDe2-revuelta.jpg",
       "tareas": [
@@ -103,7 +106,8 @@
         "CDe2",
         "MS3",
         "MS4",
-        "CS3"
+        "CS3",
+        "CDe4"
       ]
     },
     {
@@ -138,23 +142,27 @@
       "id": "L6",
       "organo": "cerebro",
       "titulo": "Camino del comercio",
-      "estado": "falta",
+      "estado": "medias",
       "veras": "Un camino de victoria: riqueza y acuerdos con los reinos, a la vista en «Tus caminos».",
       "falta": "Todo: la meta y «Tus caminos» (CE10) y el equilibrio con el bot (CE12). Absorbe VC1 a VC3.",
       "tareas": [
-        "CE10"
-      ]
+        "CE10",
+        "CDe4"
+      ],
+      "hecho": "CDe4 (v164): el camino existe y se ve en Imperio, «Tus caminos», con sus hitos; se gana con 3 de 4. Falta el equilibrio con el bot (CE12)."
     },
     {
       "id": "L7",
       "organo": "cerebro",
       "titulo": "Camino de la política: Príncipe del Senado",
-      "estado": "falta",
+      "estado": "medias",
       "veras": "Edil, pretor, cónsul y Príncipe del Senado con la barra de Autoridad; alianza con los reinos, ningún bando hostil y ninguna clase en revuelta.",
       "falta": "La meta a la vista (CE10). Autoridad y cargos (CE7) quedó sustituida el 23/11 por la ciudad nueva: hoy no hay cargos; CE10 fija cómo se mide este camino.",
       "tareas": [
-        "CE10"
-      ]
+        "CE10",
+        "CDe4"
+      ],
+      "hecho": "CDe4 (v164): el camino existe y se ve en Imperio, «Tus caminos», con sus hitos; se gana con 3 de 4. Falta el equilibrio con el bot (CE12)."
     },
     {
       "id": "L8",
@@ -173,11 +181,12 @@
       "titulo": "Camino de las armas",
       "estado": "medias",
       "veras": "Tomas la capital enemiga y eso cuenta como un camino logrado, no como el final de la partida.",
-      "hecho": "Funciona y está equilibrado con partidas de prueba: Cartago cae en 7 de cada 10.",
+      "hecho": "Funciona y está equilibrado con partidas de prueba: Cartago cae en 7 de cada 10. CDe4 (v164): tomar Cartago ya es un hito del camino de las armas, no el final; falta el equilibrio de los cuatro caminos (CE12).",
       "captura": "gobierno/capturas-tarea/ES1-7-resultado.png",
       "tareas": [
         "CE10",
-        "CE12"
+        "CE12",
+        "CDe4"
       ],
       "falta": "Con la regla de «tres de cuatro, sin plazo», tomar Cartago ya no acaba la partida: lo cambia CE10; CE12 equilibra los cuatro caminos."
     },
@@ -370,8 +379,10 @@
         "MN3",
         "MN4",
         "MIN5",
-        "CDe3"
-      ]
+        "CDe3",
+        "CDe4"
+      ],
+      "hecho": "CDe4 (v164): gobernador en la ficha de la ciudad (MN3); aspecto de papiro y bronce con iconos pintados, portada del menú y láminas (MN4a, MN4b, MN4c). Falta vestir de papiro las hojas de Senado, Saber y Tropas."
     },
     {
       "id": "L18",

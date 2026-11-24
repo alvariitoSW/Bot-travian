@@ -4,6 +4,13 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 164, fecha: '24/11/2026', cosas: [
+      'Se gana con tres de cuatro caminos: armas, comercio, política y ciudad. Míralos en Imperio, «Tus caminos».',
+      'Tomar Cartago ya no acaba la partida y no hay límite de años.',
+      '«Este año» en Imperio: a dónde va tu dinero y el tributo de guerra de cada primavera.',
+      'Gobernador: enciéndelo en la ficha de una ciudad y él la cuida cada estación.',
+      'Clases sociales con sus personajes en 3D, calles que trazas con el dedo y menús nuevos de papiro y bronce.',
+      'Batalla rápida: al entrar en combate eliges jugarla, mirarla por rondas o resolverla.'] },
     { v: 162, fecha: '24/11/2026', cosas: [
       'La ciudad ocupa casi toda la pantalla: una tira fina arriba (toca para ver todo) y las pestañas abajo.',
       '«Construir» es un botón redondo; los ministros están dentro del Senado.',
@@ -26,7 +33,7 @@
       'Botones de Construir, Ministros y plan del Senado.'] }
   ];
   /* AVANCE: lo escribe gobierno/avance.mjs desde gobierno/lista.json; no tocar a mano */
-  const AVANCE = {"hecho":56,"total":18,"hechas":5,"medias":10,"faltan":3,"pendientes":[{"t":"Una ciudad que construyes y ves crecer","e":"a medias"},{"t":"Recursos, mercado y cuentas claras","e":"a medias"},{"t":"Clases sociales: descuidarlas se nota","e":"a medias"},{"t":"Rutas y acuerdos comerciales","e":"a medias"},{"t":"Camino del comercio","e":"por hacer"},{"t":"Camino de la política: Príncipe del Senado","e":"por hacer"},{"t":"Camino de las armas","e":"a medias"},{"t":"Una sola batalla, con un solo aspecto","e":"a medias"},{"t":"El testudo a pie, dentro del juego","e":"a medias"},{"t":"Escaramuzas: batallas sueltas desde el menú","e":"a medias"},{"t":"Fluido y sin conexión en tu móvil, y publicada","e":"por hacer"},{"t":"Formaciones en Escaramuzas","e":"a medias"},{"t":"Menús reordenados y con un solo aspecto antiguo","e":"a medias"}]};
+  const AVANCE = {"hecho":67,"total":18,"hechas":7,"medias":10,"faltan":1,"pendientes":[{"t":"Rutas y acuerdos comerciales","e":"a medias"},{"t":"Camino del comercio","e":"a medias"},{"t":"Camino de la política: Príncipe del Senado","e":"a medias"},{"t":"Camino de las armas","e":"a medias"},{"t":"Una sola batalla, con un solo aspecto","e":"a medias"},{"t":"El testudo a pie, dentro del juego","e":"a medias"},{"t":"Escaramuzas: batallas sueltas desde el menú","e":"a medias"},{"t":"Fluido y sin conexión en tu móvil, y publicada","e":"por hacer"},{"t":"Formaciones en Escaramuzas","e":"a medias"},{"t":"Menús reordenados y con un solo aspecto antiguo","e":"a medias"},{"t":"Soldados nuevos, con licencia clara","e":"a medias"}]};
   /* FIN AVANCE */
   NOVEDADES.avance = AVANCE;
   root.NOVEDADES = NOVEDADES;
