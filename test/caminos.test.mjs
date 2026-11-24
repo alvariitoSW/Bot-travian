@@ -8,7 +8,7 @@ const t = (nombre, f) => { f(); n++; };
 
 const buena = (o) => Object.assign({ cartago: false, plazas: 0, denarios: 0, rutas: 0, acuerdos: 0, cargo: 'ninguno', favorSenado: 0, bandos: [], planesBien: 0, barrios: { cubiertos: 0, total: 5 }, nivelUrbe: 1 }, o || {});
 const armasOk = { cartago: true, plazas: 8 };
-const comercioOk = { denarios: 3000, rutas: 4, acuerdos: 3 };
+const comercioOk = { denarios: CAM.CIFRAS.comercio.denarios, rutas: CAM.CIFRAS.comercio.rutas, acuerdos: CAM.CIFRAS.comercio.acuerdos };   // CE12: sigue a las cifras
 const politicaOk = { cargo: 'princeps', bandos: [{ id: 'a', humor: 70, escanos: 10 }], planesBien: 2 };
 const ciudadOk = { barrios: { cubiertos: 5, total: 5 }, nivelUrbe: 4 };
 const junta = (...fs) => buena(Object.assign({}, ...fs));
@@ -35,16 +35,16 @@ t('Cartago sola no gana', () => {
   for (let m = 1; m <= 30; m++) r = CAM.paso(s, buena({ cartago: true, plazas: 8 }), m);
   assert.strictEqual(s.caminos.victoria, null); assert.strictEqual(s.caminos.estado.armas.logrado, true);
 });
-t('comercio exige 12 meses', () => {
-  const s = {};
-  for (let m = 1; m <= 11; m++) CAM.paso(s, buena(comercioOk), m);
+t('comercio exige sus meses seguidos', () => {
+  const N = CAM.CIFRAS.sostener.comercio, s = {};   // CE12: la cifra la fija el equilibrio
+  for (let m = 1; m < N; m++) CAM.paso(s, buena(comercioOk), m);
   assert.strictEqual(s.caminos.estado.comercio.logrado, false);
-  const r = CAM.paso(s, buena(comercioOk), 12);
+  const r = CAM.paso(s, buena(comercioOk), N);
   assert.strictEqual(s.caminos.estado.comercio.logrado, true); assert.deepStrictEqual(r.logra, ['comercio']);
   const s2 = {};
-  for (let m = 1; m <= 11; m++) CAM.paso(s2, buena(comercioOk), m);
-  CAM.paso(s2, buena(), 12);
-  for (let m = 13; m <= 22; m++) CAM.paso(s2, buena(comercioOk), m);
+  for (let m = 1; m < N; m++) CAM.paso(s2, buena(comercioOk), m);
+  CAM.paso(s2, buena(), N);
+  for (let m = N + 1; m < 2 * N; m++) CAM.paso(s2, buena(comercioOk), m);
   assert.strictEqual(s2.caminos.estado.comercio.logrado, false);
 });
 t('se pierde a los 3 meses', () => {
@@ -63,16 +63,17 @@ t('3 de 4 da victoria y se mantiene', () => {
   const s = {}; const f = junta(armasOk, ciudadOk, politicaOk, comercioOk);
   const sin = junta(armasOk, ciudadOk, politicaOk);
   let gana = false;
-  for (let m = 1; m <= 6; m++) { const r = CAM.paso(s, sin, m); gana = gana || r.gana; }
+  const SO = Math.max(CAM.CIFRAS.sostener.armas, CAM.CIFRAS.sostener.ciudad, CAM.CIFRAS.sostener.politica);   // CE12
+  for (let m = 1; m <= SO; m++) { const r = CAM.paso(s, sin, m); gana = gana || r.gana; }
   assert.strictEqual(gana, true); assert.strictEqual(s.caminos.victoria.caminos.length, 3);
   const v = CAM.vista(s, sin); assert.strictEqual(v.nuevaVictoria, true); assert.strictEqual(v.logrados, 3);
-  for (let m = 7; m <= 12; m++) CAM.paso(s, buena(), m);
+  for (let m = SO + 1; m <= SO + 6; m++) CAM.paso(s, buena(), m);
   assert.strictEqual(s.caminos.estado.armas.logrado, false);
   assert.ok(s.caminos.victoria); assert.strictEqual(CAM.vista(s, buena()).logrados, 0);
   void f;
 });
 t('marcarVista', () => {
-  const s = {}; for (let m = 1; m <= 6; m++) CAM.paso(s, junta(armasOk, ciudadOk, politicaOk), m);
+  const s = {}; for (let m = 1; m <= 12; m++) CAM.paso(s, junta(armasOk, ciudadOk, politicaOk), m);
   assert.strictEqual(CAM.vista(s, {}).nuevaVictoria, true); CAM.marcarVista(s); assert.strictEqual(CAM.vista(s, {}).nuevaVictoria, false);
 });
 t('migrar con basura', () => {
@@ -94,7 +95,7 @@ t('vista con textos', () => {
   const v = CAM.vista({}, buena({ plazas: 5, denarios: 2140, cartago: true }));
   assert.strictEqual(v.total, 4); assert.strictEqual(v.necesarios, 3);
   const a = v.caminos[0].hitos, c = v.caminos[1].hitos;
-  assert.strictEqual(a[0].texto, 'Hecho'); assert.strictEqual(a[1].texto, '5 de 8'); assert.strictEqual(c[0].texto, '2.140 de 3.000 denarios');
+  assert.strictEqual(a[0].texto, 'Hecho'); assert.strictEqual(a[1].texto, '5 de ' + CAM.CIFRAS.armas.plazas); assert.strictEqual(c[0].texto, '2.140 de ' + CAM.CIFRAS.comercio.denarios.toLocaleString('de-DE') + ' denarios');
   v.caminos.forEach((k) => k.hitos.forEach((h) => assert.ok(typeof h.texto === 'string' && h.texto.length)));
 });
 t('bandos hostiles', () => {
