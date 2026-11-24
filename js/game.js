@@ -3448,6 +3448,19 @@
     if (r.ok) { G.log(r.aprobado ? '📜 El Senado aprueba: ' + M.CONTRATOS[id].n + '.' : '📜 El Senado rechaza: ' + M.CONTRATOS[id].n + '.', r.aprobado ? 'good' : 'bad'); emit('dirty'); }
     return r;
   };
+  /* CE4b: contratos públicos de publicanos, casas rivales y aduana propia. Cifras: licencia de juego */
+  G.publicanosVer = () => { const M = merc(), s = G.state; return M && s && M.publicanosVer ? M.publicanosVer(s, G.mercadoAyuda()) : { ofertas: [], aceptados: [] }; };
+  G.rivalesVer = () => { const M = merc(), s = G.state; return M && s && M.rivalesVer ? M.rivalesVer(s, G.mercadoAyuda()) : []; };
+  G.aduanasVer = () => { const M = merc(), s = G.state; return M && s && M.aduanasVer ? M.aduanasVer(s, G.mercadoAyuda()) : []; };
+  G.publicanoPujar = function (id) {
+    const M = merc(), s = G.state; if (!M || !s || !M.publicanoAceptar) return { ok: false, motivo: 'El mercado nuevo no está disponible' };
+    const r = M.publicanoAceptar(s, id, G.mercadoAyuda()); if (r.ok) { aplicaDelta(s, r.delta); G.log('📜 Aceptas un contrato de los censores: dejas la fianza.', 'good'); emit('dirty'); } return r;
+  };
+  G.publicanoEntregar = function (id, n) {
+    const M = merc(), s = G.state; if (!M || !s || !M.publicanoEntregar) return { ok: false, motivo: 'El mercado nuevo no está disponible' };
+    const r = M.publicanoEntregar(s, id, n, G.mercadoAyuda()); if (r.ok) { aplicaDelta(s, r.delta); for (const a of r.avisos || []) G.log('📜 ' + a.texto, a.tono === 'malo' ? 'bad' : 'good'); emit('dirty'); } return r;
+  };
+  G.aduanaFijar = function (cid, tasa) { const M = merc(), s = G.state; if (!M || !s || !M.portoriumFijar) return false; const ok = M.portoriumFijar(s, cid, tasa); if (ok) emit('dirty'); return ok; };
   G.mercadoConsejo = () => { const M = merc(), s = G.state; return M && s ? M.consejo(s, G.mercadoAyuda()) : null; };
   G.rutasMercado = () => { const s = G.state; return s && s.mercado && Array.isArray(s.mercado.rutas) ? s.mercado.rutas : []; };
   G.rutasTotal = s => ((s && s.rutas) || []).length + (s && s.mercado && Array.isArray(s.mercado.rutas) ? s.mercado.rutas.length : 0);

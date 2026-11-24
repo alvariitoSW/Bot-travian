@@ -588,6 +588,8 @@
     emporion: vH(H_HIS, 'Hispania'), saguntum: vH(H_HIS, 'Hispania'), carthagonova: vH(H_HIS, 'Hispania; Carthago Nova es más famosa por sus minas de plata (Polibio 34.9, por cotejar)'), tarraco: vH(H_HIS, 'Hispania'), gades: vH(H_HIS, 'Hispania')
   };
   const BIEN_LIC = h('', 'licencia de juego', 'guardar el bien en almacén, su tope, su precio fijo y que los ricos lo consuman cada mes es regla del juego; de dónde salía cada bien está en su ficha de bien especial');
+  const BIEN_AGRO = h('Catón, De agri cultura 1.7 y 144-147 (olivar, huerto y ganado; aceite, hortalizas y lana como productos de la finca)', 'historico', 'el aceite, la verdura y la lana eran productos de la villa de la época; guardarlos en almacén, el precio fijo y su tope son reglas del juego');
+  const bienAgro = {}; for (const k of ['aceite', 'verdura', 'lana']) bienAgro[k] = f(SIN_R, BIEN_AGRO);
   const bien = {}; for (const k of ['sal', 'vino', 'caballos', 'pieles', 'plata', 'marmol', 'purpura', 'maderanaval']) bien[k] = f(SIN_R, BIEN_LIC);
 
 
@@ -629,7 +631,7 @@
     cuestor: f(SIN_REGLA, h('Polibio 6.13', 'probable', 'los cuestores guardaban el tesoro (aerarium); el ministro del juego es una simplificación')),
     pontifice: f(SIN_REGLA, h('Livio 1.20 (los pontífices, desde Numa)', 'probable', 'los pontífices cuidaban el culto y el calendario')),
     legado: f(SIN_REGLA, h('Polibio 6.12; Livio 26.1', 'probable', 'los legados acompañaban al general; el encargo es licencia de juego')),
-    publicanos: f(SIN_REGLA, h('Polibio 6.17 (los censores arriendan contratos a los publicanos)', 'historico', 'el «procurador de minas» es imperial; en la República eran publicanos')),
+    publicanos: f(SIN_REGLA, h('Polibio 6.17.2-5 (los censores arriendan obras y suministros a los publicanos); Livio 23.48.10-49.4 (los contratistas de 215 a.C. que fingen naufragios para cobrar del Estado); Livio 25.3.8-4.11 (el proceso por ese fraude, 212 a.C.)', 'historico', 'los publicanos arrendaban al Estado obras y suministros: eso es histórico. Que los jugadores pujen en meses, las fianzas y lo que pagan son cifras de licencia de juego; el «procurador de minas» es imperial')),
     necesidades: f(SIN_REGLA, h('Frontino, Acueductos 1.5; Livio 1.38; Plinio, Historia natural 29.12; Cicerón, Leyes 3.7', 'licencia de juego', 'que el servicio llegue por la calle hasta la casa, las ocho necesidades, el umbral del 80 % y los pesos de cada clase son reglas del juego')),
     revuelta: f(SIN_REGLA, h('Livio 2.32 (secesión de la plebe, 494 a.C.); Livio, Periocha 11 y Plinio, Historia natural 16.37 (287 a.C., lex Hortensia)', 'historico', 'calmarla con grano o juegos se inspira en Livio 31.4 y 31.50; los repartos de grano por ley son de Cayo Graco (123 a.C.) y quedan fuera de la época')),
     planSenado: f(SIN_REGLA, h('Polibio 6.13 y 6.17; Livio 9.33-34, 39.44, 40.46, 44.16', 'licencia de juego', 'el Senado concedía el dinero de las obras y los censores las contrataban (histórico), pero votar planes por bandos y el juicio final son licencia de juego')),
@@ -641,7 +643,7 @@
     personajes: f({ modelo: 'assets/personajes/personajes.json', licencia: 'CC BY-SA 3.0 (generado con Meshy)', credito: 'modelos generados por el usuario con Meshy (meshy.ai, herramienta), plan de pago, 24/11/2026; aligerados en AQVILA con tools/aligerar_personajes.mjs', fuente: 'assets/personajes/LICENSE.txt' }, h('gobierno/partes/2026-11-24-MS3.md y 2026-11-24-MS4.md (dictamen de vestido por personaje)', 'probable', 'túnica, toga y estola reconstruidas; patricios como 10 % de los ciudadanos es licencia de juego (CS3)')),   // CDe4 (CS3)
     estandartes: f({ modelo: 'js/gfx/estandartes.js', licencia: 'propia, por código', credito: 'AQVILA (arte propio, por código)', nota: 'estandartes de la batalla (CG8a)' }, h('', 'por cotejar')),   // CDe4 (pase de CG8a)
   };
-  R.fichas = { obra, sistema, vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, recurso, veta, bien, invest, edad: edades, pueblo, bando, provincia };
+  R.fichas = { obra, sistema, vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, recurso, veta, bien, bienAgro, invest, edad: edades, pueblo, bando, provincia };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
@@ -684,7 +686,8 @@
     vida: { tabla: 'VIDA', numericos: [], textos: ['n', 'la'] },
     recurso: { tabla: 'RES_NOM', numericos: [], textos: [] },   // CE2
     veta: { tabla: 'VETAS_HIERRO', numericos: [], textos: [] },   // CE2: lista de ids de ciudad
-    bien: { tabla: 'BIENES', numericos: ['precio'], textos: [] }   // CE2: bienes guardados
+    bien: { tabla: 'BIENES', numericos: ['precio'], textos: [] },
+    bienAgro: { tabla: 'BIENES_AGRO', numericos: ['precio'], textos: ['n', 'i'] }   // CDe4: aceite, verdura y lana de la agricultura
   };
 
   /* Ficha de una pieza. Para un hecho vale el id completo ('280-pirro') o solo el año (280; si hay dos, el primero). */

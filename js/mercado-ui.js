@@ -38,6 +38,7 @@ const CSS = '' +
   '.mu-sub{margin:8px 0 4px;font:700 12px var(--serif,serif);letter-spacing:.1em;color:#e9c063}' +
   '.mu-fila{display:flex;align-items:center;gap:8px;min-height:36px;padding:3px 0;border-bottom:1px solid rgba(241,234,217,.1);font-size:14px}' +
   '.mu-fila>span{flex:1;min-width:0}.mu-fila b{font-variant-numeric:tabular-nums}' +
+  '.mu-nota{margin:0 0 10px;font-size:12px;color:#b9b19c}.mu-fila small{color:#b9b19c}.mu-fila .mu-btn{min-width:46px;flex:none}' +
   '.mu-caja{margin:0 0 10px;padding:10px 12px;border-radius:12px;border:1px solid rgba(241,234,217,.2);background:rgba(241,234,217,.05);overflow:clip}' +
   '.mu-caja h3{margin:0 0 4px;font:700 15px var(--serif,serif);color:#f1ead9}' +
   '.mu-caja p{margin:2px 0 6px;font-size:13px;color:#cfc7b0}' +
@@ -164,10 +165,15 @@ function vistaSenado() {
       (ops ? (ops.length ? '<label class="mu-lab" for="mu-f-' + k.id + '">Con quién</label><select id="mu-f-' + k.id + '" class="mu-sel" data-m="ctrop" data-v="' + k.id + '">' + ops.map(f => '<option value="' + f + '"' + (E.ctrOp[k.id] === f ? ' selected' : '') + '>' + esc(nomF(f)) + '</option>').join('') + '</select>' : '<p>Ninguna facción en paz con ciudades que puedas firmar.</p>') : '') +
       '<div class="mu-btns"><button type="button" class="mu-btn" data-m="proponer" data-v="' + k.id + '"' + (k.vigente || (ops && !ops.length) ? ' disabled' : '') + '>' + (k.vigente ? 'Ya está vigente' : 'Proponer al Senado') + '</button></div></div>';
   }
-  const pt = mias().map(c => '<div class="mu-fila"><span>' + esc(nomC(c)) + '</span><b>' + d1((m.portoria && typeof m.portoria[c] === 'number' ? m.portoria[c] : 0.025) * 100) + ' %</b></div>').join('');
-  h += '<div class="mu-sub">ADUANA DE TUS CIUDADES (PORTORIA)</div><div class="mu-caja">' + (pt || '<div class="mu-vacio">Sin ciudades.</div>') + '</div>';
-  const casas = Object.keys(M().CASAS).map(id => { const c = M().CASAS[id], r = (m.rivales && m.rivales[id]) || {}; return '<div class="mu-fila"><span>' + esc(c.n) + '</span><b>' + (r.ult === 'guerra' ? 'en guerra' : r.ult ? esc(r.ult) : 'quieta') + '</b></div>'; }).join('');
-  h += '<div class="mu-sub">CASAS RIVALES</div><div class="mu-caja">' + casas + '</div>';
+  let pv = { ofertas: [], aceptados: [] }; try { pv = G().publicanosVer(); } catch (e) { /* sin publicanos */ }
+  h += '<div class="mu-sub">CONTRATOS PÚBLICOS (PUBLICANOS)</div>';
+  h += '<div class="mu-caja">' + (pv.ofertas.length ? pv.ofertas.map(k => '<div class="mu-fila"><span><b>' + esc(k.n) + '</b><br>' + k.cargas + ' cargas de ' + esc(nomP(k.prod).toLowerCase()) + (k.destino ? ' para ' + esc(nomC(k.destino)) : '') + '. Pagan ' + k.paga + ' denarios, plazo ' + k.plazo + ' meses.</span><button type="button" class="mu-btn" data-m="pujar" data-v="' + esc(k.id) + '">Pujar (fianza ' + k.fianza + ')</button></div>').join('') : '<div class="mu-vacio">Hoy los censores no sacan nada a subasta.</div>') + '</div>';
+  if (pv.aceptados.length) h += '<div class="mu-caja">' + pv.aceptados.map(k => { const tiene = Math.floor(G().mercadoAyuda().tiene(k.prod) || 0), n = Math.max(0, Math.min(k.falta, tiene)); return '<div class="mu-fila"><span><b>' + esc(k.n) + '</b><br>Entregado ' + (k.entregado || 0) + ' de ' + k.cargas + ' de ' + esc(nomP(k.prod).toLowerCase()) + '.</span><button type="button" class="mu-btn" data-m="entregar" data-v="' + esc(k.id) + '" data-n="' + n + '"' + (n < 1 ? ' disabled' : '') + '>Entregar ' + n + '</button></div>'; }).join('') + '</div>';
+  h += '<p class="mu-nota">Los publicanos arrendaban al Estado obras y suministros (Polibio 6.17.2-5; Livio 23.48.10-49.4; 25.3.8-4.11). Cifras y plazos: licencia de juego.</p>';
+  const ad = G().aduanasVer();
+  h += '<div class="mu-sub">ADUANA DE TUS CIUDADES (PORTORIA)</div><div class="mu-caja">' + (ad.length ? ad.map(a => '<div class="mu-fila"><span>' + esc(a.n) + '<br><small>Recaudado el último mes: ' + d1(a.recaudado) + ' denarios</small></span><button type="button" class="mu-btn sec" data-m="tasa" data-v="' + esc(a.ciudad) + '" data-d="-1" aria-label="Bajar la aduana de ' + esc(a.n) + '"' + (a.tasa <= 1e-9 ? ' disabled' : '') + '>−</button><b>' + d1(a.tasa * 100) + ' %</b><button type="button" class="mu-btn sec" data-m="tasa" data-v="' + esc(a.ciudad) + '" data-d="1" aria-label="Subir la aduana de ' + esc(a.n) + '"' + (a.tasa >= M().TASA_MAX - 1e-9 ? ' disabled' : '') + '>+</button></div>').join('') + '<p>Subir la aduana da dinero, pero espanta a los mercaderes rivales.</p>' : '<div class="mu-vacio">Sin ciudades.</div>') + '</div>';
+  const rv = G().rivalesVer();
+  h += '<div class="mu-sub">CASAS RIVALES</div><div class="mu-caja">' + rv.map(r => '<div class="mu-fila"><span><b>' + esc(r.n) + '</b><br>' + esc(r.texto) + '</span></div>').join('') + '</div>';
   const su = (m.sucesos || []);
   h += '<div class="mu-sub">SUCESOS DEL MES</div><div class="mu-caja">' + (su.length ? su.map(e => '<div class="mu-fila"><span>' + esc(textoSuceso(e)) + '</span></div>').join('') : '<div class="mu-vacio">Sin sucesos: el mar y los caminos están tranquilos.</div>') + '</div>';
   return h;
@@ -205,6 +211,9 @@ function clic(e) {
   else if (a === 'quitar') { const r = g.rutaQuitar(v); aviso(r.ok ? 'Ruta quitada.' : r.motivo, r.ok ? '' : 'bad'); }
   else if (a === 'rutacrear') { const r = g.rutaCrear(E.cid, E.destino, E.rprod, E.cargas); aviso(r.ok ? 'Ruta creada: ' + nomP(E.rprod) + ' a ' + nomC(E.destino) + '.' : r.motivo, r.ok ? 'good' : 'bad'); }
   else if (a === 'viaje') { const r = g.viajeLanzar(E.cid, E.destino, E.rprod, E.cargas); aviso(r.ok ? 'Sale un viaje con ' + E.cargas + ' cargas de ' + nomP(E.rprod).toLowerCase() + '.' : r.motivo, r.ok ? 'good' : 'bad'); }
+  else if (a === 'pujar') { const r = g.publicanoPujar(v); aviso(r.ok ? 'Contrato aceptado. Corre el plazo.' : r.motivo, r.ok ? 'good' : 'bad'); }
+  else if (a === 'entregar') { const r = g.publicanoEntregar(v, +b.dataset.n); aviso(r.ok ? 'Entregadas ' + b.dataset.n + ' cargas.' : r.motivo, r.ok ? 'good' : 'bad'); }
+  else if (a === 'tasa') { const cur = (g.aduanasVer().find(x => x.ciudad === v) || {}).tasa || 0; const nueva = Math.max(0, Math.min(M().TASA_MAX, Math.round((cur + 0.005 * (+b.dataset.d)) * 1000) / 1000)); g.aduanaFijar(v, nueva); aviso('Aduana de ' + nomC(v) + ': ' + d1(nueva * 100) + ' %.', 'good'); }
   else if (a === 'proponer') {
     const op = E.ctrOp[v] || (host.querySelector('#mu-f-' + v) || {}).value, r = g.contratoProponer(v, v === 'tratado' ? { f: op } : null);
     aviso(!r.ok ? r.motivo : r.aprobado ? 'El Senado aprueba el contrato.' : 'El Senado lo rechaza.', r.ok && r.aprobado ? 'good' : 'bad');
