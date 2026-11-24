@@ -126,7 +126,9 @@
         "js/tacticas.js",
         "test/tacticas.test.mjs",
         "gobierno/captura-th1.mjs",
-        "test/fu3c-falange.test.mjs"
+        "test/fu3c-falange.test.mjs",
+        "test/fu3-falange.test.mjs",
+        "test/fu3b-falange.test.mjs"
       ],
       "taller": [],
       "juez": {
@@ -143,7 +145,12 @@
           "test/bloque-ia.test.mjs",
           "test/fisica-batalla.test.mjs",
           "test/batalla-rapida.test.mjs",
-          "test/dialogos.test.mjs"
+          "test/dialogos.test.mjs",
+          "test/fu3-falange.test.mjs",
+          "test/fu3b-falange.test.mjs",
+          "test/fu3c-falange.test.mjs",
+          "test/fu5-formaciones.test.mjs",
+          "test/tacticas.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area batallas",

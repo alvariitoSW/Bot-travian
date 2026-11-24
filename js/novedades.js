@@ -4,6 +4,12 @@
 (function (root) {
   'use strict';
   const NOVEDADES = [
+    { v: 167, fecha: '24/11/2026', cosas: [
+      'Falange a pie nueva: baja las sarisas a tiempo, cierra los huecos y aguanta el empuje.',
+      'Othismos: cuando las dos falanges chocan, empuja a compás y mira la barra para no ceder.',
+      'Las sarisas se parten en el choque y los falangitas siguen con el muñón.',
+      'Muro de escudos y orden abierto en el abanico del estandarte: muro contra lo que viene de frente, abierto para pasar.',
+      'Tácticas de la época en la batalla dirigida: los triarios se alzan, la falange cae por el flanco, el que queda rodeado sufre y la furia gala se agota.'] },
     { v: 165, fecha: '24/11/2026', cosas: [
       'Se gana con tres de cuatro caminos: armas, comercio, política y ciudad. Míralos en Imperio, «Tus caminos».',
       'Tomar Cartago ya no acaba la partida y no hay límite de años.',
