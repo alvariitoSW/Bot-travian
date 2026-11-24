@@ -764,7 +764,7 @@
     // postura por tipo de ley para los bandos nuevos (si la ley no trae la suya); en 'ley' el Pueblo sigue a chips.ple
     posturaTipo: { guerra: { sac: 0, ita: -1, pro: 1, pue: -1 }, paz: { sac: 1, ita: 1, pro: -1, pue: 1 }, leva: { sac: 0, ita: -2, pro: 0, pue: -1 }, obra: { sac: 1, ita: 0, pro: 0, pue: 1 }, ciudadania: { sac: -1, ita: 2, pro: 1, pue: -1 }, ley: { sac: 0, ita: 0, pro: 0 } },
     // lo que pide cada bando: dos peticiones; cada estación toca una, por el número de turno
-    pide: { ter: ['sinLeva', 'granja'], mer: ['rutaMercado', 'denarios'], mil: ['leva', 'victoria'], sac: ['templo', 'paz'], ita: ['sinLevaItalia', 'ciudadania'], pro: ['victoriaFuera', 'guarnicion'], pue: ['grano', 'juegos'] }
+    pide: { ter: ['sinLeva', 'granja'], mer: ['rutaMercado', 'denarios'], mil: ['leva', 'guarnicion'], sac: ['templo', 'paz'], ita: ['sinLevaItalia', 'ciudadania'], pro: ['victoriaFuera', 'guarnicion'], pue: ['grano', 'juegos'] }
   };
   /* CE6: Senado de familias, siete bandos. Todas las cifras son licencia de juego (gobierno/estudios/CE6-encargo.md).
      fam = familia que lo encabeza; entra = condición en texto llano; trato = lo que ofrece por sus dudosos; rival = bandos que pierden cuando este gana. */
