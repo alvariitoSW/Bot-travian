@@ -1,6 +1,7 @@
 /* CR4: capturas de la maqueta de luz a 390×844 y medida del tiempo por cuadro (luz de hoy frente a luz nueva).
    Uso: node gobierno/maquetas/ciudad-luz/captura.mjs [estacion=1] [dpr=1] [vistas=hoy,amanecer,mediodia,atardecer,amanecer@este] [prefijo=CR4] [vista=oeste|este|cerca|arriba] [turno=0]
-   Cada vista es una hora (o «hoy») y, tras @, la cámara.
+   Cada vista es una hora (o «hoy»), tras + el tiempo (CR4b: despejado, nublado, lluvia, niebla) y, tras @, la cámara. Ej.: mediodia+lluvia@oeste.
+   turno=1 pasa un turno partiendo del tiempo «tiempo=…» (por defecto despejado) y saca fotos en medio; semilla=… cambia el sorteo.
    Deja gobierno/capturas-tarea/<prefijo>-<vista>.jpg. */
 import { createRequire } from 'node:module';
 import { createServer } from 'node:http';
@@ -19,28 +20,31 @@ const page = await (await br.newContext({ viewport: { width: 390, height: 844 },
 const errores = [];
 const mira = p => { p.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|GPU stall|GL Driver/.test(m.text())) errores.push(m.text().slice(0, 300)); }); p.on('pageerror', e => errores.push('EXCEPCIÓN: ' + String(e.stack || e.message).slice(0, 500))); };
 mira(page);
-await page.goto('http://127.0.0.1:' + srv.address().port + '/gobierno/maquetas/ciudad-luz/index.html' + (op.vista ? '?vista=' + op.vista : ''), { waitUntil: 'load' });
+await page.goto('http://127.0.0.1:' + srv.address().port + '/gobierno/maquetas/ciudad-luz/index.html?' + (op.vista ? 'vista=' + op.vista : '') + (op.semilla ? '&semilla=' + op.semilla : ''), { waitUntil: 'load' });
 await page.waitForFunction(() => window.__luz && window.__luz.listo, null, { timeout: 180000 });
 await page.evaluate(e => window.__luz.estacion(e), est); await page.waitForTimeout(8000);      // que carguen modelos y texturas
 await mkdir(join(RAIZ, 'gobierno/capturas-tarea'), { recursive: true });
-const medir = async (seg) => page.evaluate(async s => { const m = window.__luz.med, n0 = m.lista.length; const l0 = m.n, ms0 = m.ms; await new Promise(ok => setTimeout(ok, s * 1000)); return { cuadros: m.n - l0, ms: (m.ms - ms0) / Math.max(1, m.n - l0) }; }, seg);
+/* ms = lo que tarda la ciudad en preparar cada cuadro (CPU); entre = tiempo real entre cuadros (con render por software, incluye el dibujo: aquí se ve lo que cuesta la lluvia) */
+const medir = async (seg) => page.evaluate(async s => { const m = window.__luz.med, W = window.__luz.W(); const l0 = m.n, ms0 = m.ms; let n = 0, vivo = true; const f = () => { n++; if (vivo) W.requestAnimationFrame(f); }; W.requestAnimationFrame(f); const t0 = performance.now();
+  await new Promise(ok => setTimeout(ok, s * 1000)); vivo = false; return { cuadros: m.n - l0, ms: (m.ms - ms0) / Math.max(1, m.n - l0), entre: (performance.now() - t0) / Math.max(1, n) }; }, seg);
 const resultado = {};
 for (const vv of vistas) {
-  const [v, cam] = vv.split('@'); if (cam) { await page.evaluate(c => window.__luz.vista(c), cam); await page.waitForTimeout(1500); }
+  const [hv, cam] = vv.split('@'), [v, w] = hv.split('+'); if (cam) { await page.evaluate(c => window.__luz.vista(c), cam); await page.waitForTimeout(1500); }
   if (v === 'hoy') await page.evaluate(() => { window.__luz.H.activa = false; });
-  else await page.evaluate(h => { const H = window.__luz.H; H.activa = true; H.ya(h); }, v);
+  else await page.evaluate(([h, w]) => { const H = window.__luz.H; H.activa = true; H.ya(h); window.__luz.X.ya(w || 'despejado'); }, [v, w]);
   await page.waitForTimeout(2500);
   resultado[vv] = await medir(6);
   await page.screenshot({ path: join(RAIZ, 'gobierno/capturas-tarea', pref + '-' + vv.replace('@', '-') + '.jpg'), type: 'jpeg', quality: 85 });
-  console.log(vv + ': ' + resultado[vv].ms.toFixed(1) + ' ms por cuadro (' + resultado[vv].cuadros + ' cuadros)');
+  console.log(vv + ': ' + resultado[vv].ms.toFixed(1) + ' ms por cuadro de ciudad; ' + resultado[vv].entre.toFixed(0) + ' ms entre cuadros (' + resultado[vv].cuadros + ' cuadros)');
 }
 if (op.turno !== '0') {      // el paso de turno entero, con fotos en medio para ver que no hay saltos ni noche
-  await page.evaluate(() => { const H = window.__luz.H; H.activa = true; H.ya('mediodia'); }); await page.waitForTimeout(800);
+  await page.evaluate(w => { const H = window.__luz.H; H.activa = true; H.ya('mediodia'); window.__luz.X.ya(w); }, op.tiempo || 'despejado'); await page.waitForTimeout(1500);
   await page.tap('#panel [data-h="turno"]'); const t0 = Date.now(), m0 = await page.evaluate(() => ({ n: window.__luz.med.n, ms: window.__luz.med.ms }));
   for (const [ms, n] of [[1500, 'turno-1'], [4800, 'turno-2'], [12000, 'turno-3'], [24000, 'turno-4']]) { await page.waitForTimeout(Math.max(0, ms - (Date.now() - t0))); await page.screenshot({ path: join(RAIZ, 'gobierno/capturas-tarea', pref + '-' + n + '.jpg'), type: 'jpeg', quality: 80 }); }
   await page.waitForTimeout(Math.max(0, 36500 - (Date.now() - t0)));
-  const m1 = await page.evaluate(() => ({ n: window.__luz.med.n, ms: window.__luz.med.ms, sigue: window.__luz.H.enMarcha(), hora: window.__luz.H.ultimaHora }));
-  console.log('turno (con sombras rehechas en el paso): ' + ((m1.ms - m0.ms) / Math.max(1, m1.n - m0.n)).toFixed(1) + ' ms por cuadro; hora final ' + m1.hora + (m1.sigue ? ' (aún en marcha)' : ' (terminado)'));
+  const m1 = await page.evaluate(() => ({ n: window.__luz.med.n, ms: window.__luz.med.ms, sigue: window.__luz.H.enMarcha(), hora: window.__luz.H.ultimaHora, tiempo: window.__luz.X.actual }));
+  console.log('turno (con sombras rehechas en el paso): ' + ((m1.ms - m0.ms) / Math.max(1, m1.n - m0.n)).toFixed(1) + ' ms por cuadro; hora final ' + m1.hora + ', tiempo ' + m1.tiempo + (m1.sigue ? ' (aún en marcha)' : ' (terminado)'));
 }
+console.log('capa del tiempo: ' + await page.evaluate(() => { const m = window.__luz.X.medidas; return (m.ms / Math.max(1, m.cuadros)).toFixed(2) + ' ms por cuadro; materiales mojables ' + window.__luz.X.parcheados; }));
 console.log(errores.length ? 'ERRORES:\n' + errores.join('\n') : 'sin errores de consola');
 await br.close(); srv.close();

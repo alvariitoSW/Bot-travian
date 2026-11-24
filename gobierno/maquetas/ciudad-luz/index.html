@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
-<title>Maqueta de luz CR4</title>
+<title>Maqueta de luz y tiempo</title>
 <style>
 html,body{margin:0;height:100%;background:#1b1a17;overflow:clip;font:600 12px/1.2 system-ui,sans-serif;color:#f1ead9}
 iframe{position:fixed;inset:0;width:100vw;height:100vh;border:0;display:block}
@@ -20,6 +20,7 @@ iframe{position:fixed;inset:0;width:100vw;height:100vh;border:0;display:block}
 <iframe id="juego" src="../../../index.html" title="La ciudad del juego"></iframe>
 <div id="panel" hidden>
   <button data-h="amanecer">Amanecer</button><button data-h="mediodia" class="on">Mediodía</button><button data-h="atardecer">Atardecer</button><button data-h="turno">Pasar turno</button>
+  <div class="est"><button data-w="despejado" class="on">Despejado</button><button data-w="nublado">Nublado</button><button data-w="lluvia">Lluvia</button><button data-w="niebla">Niebla</button></div>
   <div class="est"><button data-e="0">Primavera</button><button data-e="1" class="on">Verano</button><button data-e="2">Otoño</button><button data-e="3">Invierno</button><button data-h="hoy">Luz de hoy</button></div>
   <div class="est"><button data-v="arriba">Desde arriba</button><button data-v="cerca">De cerca</button><button data-v="oeste" class="on">Horizonte oeste</button><button data-v="este">Horizonte este</button></div>
   <div id="pie"></div>
@@ -28,6 +29,7 @@ iframe{position:fixed;inset:0;width:100vw;height:100vh;border:0;display:block}
 <script type="module">
 /* CR4: maqueta de la luz. Carga el juego tal cual (iframe), abre Roma y conecta la capa de hora (hora.js) al dibujo de la ciudad.
    No toca ningún archivo del juego: la capa envuelve renderer.render de la vista de ciudad.
+   CR4b: encima, el tiempo (tiempo.js): despejado, nublado, lluvia y niebla; «Pasar turno» sortea el del turno siguiente.
    Botones: amanecer, mediodía, atardecer (paso suave de 4 s), «Pasar turno» (atardece, amanece y vuelve al mediodía), estación y «Luz de hoy» (sin la capa). */
 const fr = document.getElementById('juego'), pie = document.getElementById('pie'), panel = document.getElementById('panel');
 const espera = (f, ms = 120000) => new Promise((ok, mal) => { const t0 = performance.now(), v = () => { let r; try { r = f(); } catch (e) { } if (r) ok(r); else if (performance.now() - t0 > ms) mal(new Error('tiempo')); else setTimeout(v, 200); }; v(); });
@@ -50,25 +52,30 @@ const G = W().Game; G.state.speed = 0; if (G.state.ajustes) G.state.ajustes.ases
 /* el módulo se importa DENTRO del juego, para que use su mismo three.js */
 const hora = await new (W().Function)('return import("' + new URL('hora.js', location.href).href + '")')();
 const H = hora.conectar(W().UI.cityV.r);
+/* CR4b: el tiempo encima de la hora. Semilla en la dirección (?semilla=…); si no, 280 (la del sorteo de la maqueta) */
+const tiempo = await new (W().Function)('return import("' + new URL('tiempo.js', location.href).href + '")')();
+const X = tiempo.crearTiempo({ semilla: +(new URLSearchParams(location.search).get('semilla') || 280) }); H.tiempo = X;
+let estAct = 1;
 /* medidor: tiempo de cada cuadro de la ciudad (update entero: vida, reparto, sombras y dibujo) */
 const cv = W().UI.cityV, upd = cv.update.bind(cv), med = { n: 0, ms: 0, lista: [] };
 cv.update = (...a) => { const t0 = performance.now(); const r = upd(...a); const d = performance.now() - t0; med.n++; med.ms += d; med.lista.push(d); if (med.lista.length > 400) med.lista.shift(); return r; };
 const ESTT = [28.5, 31.5, 34.5, 25.5];      // el centro de cada estación en Game.state.t (luz pura de su ancla en city3d.js: t = 3·k + 1,5)
-const marca = () => { for (const b of panel.querySelectorAll('[data-h]')) b.classList.toggle('on', b.dataset.h === 'hoy' ? !H.activa : H.activa && b.dataset.h === H.ultimaHora); };
-const estacion = e => { G.state.t = ESTT[e]; for (const b of panel.querySelectorAll('[data-e]')) b.classList.toggle('on', +b.dataset.e === e); };
+const marca = () => { for (const b of panel.querySelectorAll('[data-w]')) b.classList.toggle('on', H.activa && b.dataset.w === X.actual); for (const b of panel.querySelectorAll('[data-h]')) b.classList.toggle('on', b.dataset.h === 'hoy' ? !H.activa : H.activa && b.dataset.h === H.ultimaHora); };
+const estacion = e => { estAct = e; G.state.t = ESTT[e]; for (const b of panel.querySelectorAll('[data-e]')) b.classList.toggle('on', +b.dataset.e === e); };
 panel.addEventListener('click', ev => {
   const b = ev.target.closest('button'); if (!b) return;
   if (b.dataset.e) { estacion(+b.dataset.e); return; }
   if (b.dataset.v) { vista(b.dataset.v); return; }
+  if (b.dataset.w) { H.activa = true; X.ir(b.dataset.w, 4); marca(); return; }
   const h = b.dataset.h;
   if (h === 'hoy') { H.activa = !H.activa; marca(); return; }
   H.activa = true;
-  if (h === 'turno') H.turno(); else H.ir(h, 4);
+  if (h === 'turno') H.turno(() => X.siguiente(estAct, 5)); else H.ir(h, 4);
   marca();
 });
-setInterval(() => { marca(); const l = med.lista.slice(-120), m = l.length ? l.reduce((s, x) => s + x, 0) / l.length : 0; pie.textContent = (H.activa ? 'Luz nueva · ' + ({ amanecer: 'amanecer', mediodia: 'mediodía', atardecer: 'atardecer' })[H.ultimaHora] : 'Luz de hoy') + ' · ' + m.toFixed(1) + ' ms por cuadro'; }, 500);
+setInterval(() => { marca(); const l = med.lista.slice(-120), m = l.length ? l.reduce((s, x) => s + x, 0) / l.length : 0; pie.textContent = (H.activa ? 'Turno ' + (X.turno + 1) + ' · ' + tiempo.NOMBRE[X.actual] + ' · ' + ({ amanecer: 'amanecer', mediodia: 'mediodía', atardecer: 'atardecer' })[H.ultimaHora] : 'Luz de hoy') + ' · ' + m.toFixed(1) + ' ms por cuadro'; }, 500);
 document.getElementById('cargando').remove(); panel.hidden = false;
-window.__luz = { H, G, med, estacion, vista, listo: true, W };
+window.__luz = { H, X, tiempo, G, med, estacion, vista, listo: true, W };
 </script>
 </body>
 </html>
