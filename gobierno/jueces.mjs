@@ -35,7 +35,7 @@ function apunta(nombre, ok, detalle, captura) {
 if (!AREA) {
 console.log('Juez 1 · lógica (test/sim.test.js)');
 {
-  const r = spawnSync(process.execPath, ['test/sim.test.js'], { cwd: RAIZ, encoding: 'utf8', timeout: 2400000 });
+  const r = spawnSync(process.execPath, ['test/sim.test.js'], { cwd: RAIZ, encoding: 'utf8', timeout: 3600000 });   // CDe3: con el mercado cada mes el bot tarda ≈45 min con la máquina ocupada
   const ultima = ((r.status === 0 ? r.stdout : r.stderr || r.stdout) || '').trim().split('\n').filter(Boolean).slice(r.status === 0 ? -1 : -6).join(' | ');
   apunta('Pruebas de lógica', r.status === 0, ultima.slice(0, 400));
 }
