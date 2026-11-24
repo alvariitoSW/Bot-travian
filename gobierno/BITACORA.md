@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- **24/11 MN4c hecha** (11ee845; juez músculo y arte APTO, 49,9 de 56 MB): portada de época del menú principal (render propio de Roma al atardecer, título en bronce, papiro y mármol; vertical y horizontal) y láminas de Saber, Senado, Tropas e Imperio más 15 miniaturas de edificio, renders propios de 0 A.D. (516 KB). Gasto 1,27 M. Pasa a CDe4 o al SB final. Sesión archivada.
 - **24/11 MN4b hecha** (a7a1e64; juez cerebro y arte APTO): ciudad con río azul, tejados terracota, bruma dorada y más contraste (mismos triángulos); calles empedradas y barra «VIAE»; mercado en mármol y bronce; aspecto con hojas de altura variable, barra de 6 y horizontal. Gasto 1,13 M (dentro de lo previsto). Pasa a CDe4. Sesión archivada.
 - **24/11 usuario**, al ver mercado y calles: «Me gusta me gusta, mejora aún más la parte artística, pero se va viendo mejor». Se abre MN4b, segunda pasada de arte en archivos propios (aspecto.css, iconos, mercado-ui, calles, city3d), entrega ≤90 min (session_01QiKC38aXD3TXrkNWbg1Jnr). La engancha CDe4 si llega a tiempo; si no, la subida final.
 - **24/11 CD2a hecha** (490c431; juez cerebro APTO 9/9, calles 16/16): calles con el dedo y arquitecto que propone (`js/calles.js`, `js/gfx/calles3d.js`, `js/calles-ui.js`); las calles cuestan (una fuente cada 120 m). Gasto 2,63 M (+150 %), sin revisor: CDe4 le pasa uno. Pasa a CDe4; ya no hay CDe5. Sesión archivada.
