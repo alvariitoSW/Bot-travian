@@ -2050,16 +2050,16 @@
       "url": "https://claude.ai/code/session_01QiKC3Awu8jtqF4GEGvKeaQ"
     },
     {
-      "tarea": "FE2",
-      "titulo": "Corazón · FE2 Elefantes y falange con los soldados nuevos y la física (Opus)",
-      "nota": "Abierta el 24/11 por orden expresa del usuario",
-      "url": "https://claude.ai/code/session_01QiKC37P6qijB9adGvUrj7Z"
-    },
-    {
       "tarea": "PIL3",
       "titulo": "Taller · PIL3 Pilum al juego: soldados con escudo y «lanzar2» (Opus)",
       "nota": "Abierta el 24/11 por orden del usuario; sin supervisión",
       "url": "https://claude.ai/code/session_01QiKC37VqeiULJxd6D9GjJ3"
+    },
+    {
+      "tarea": "LP6",
+      "titulo": "Corazón · LP6 La falange con el control del bloque (Opus)",
+      "nota": "Abierta el 24/11; sin supervisión",
+      "url": "https://claude.ai/code/session_01QiKC3A35AWtBMS7VNofHhe"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"
