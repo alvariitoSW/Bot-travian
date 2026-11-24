@@ -674,7 +674,7 @@
     return null;
   };
 
-  /* GM43i: sonido grabado (assets/sonido, todo CC0 1.0). Uno por archivo; lo comprueba gobierno/arte.mjs */
+  /* GM43i: sonido grabado (assets/sonido: casi todo CC0 1.0; los gritos de SON10, CC BY 3.0/4.0 u OGA-BY 3.0 con crédito en Créditos). Uno por archivo; lo comprueba gobierno/arte.mjs */
   R.sonidos = {
     madera1: { archivo: 'assets/sonido/madera1.mp3', licencia: 'CC0 1.0', credito: 'rubberduck', fuente: 'https://opengameart.org/content/100-cc0-sfx' },
     madera2: { archivo: 'assets/sonido/madera2.mp3', licencia: 'CC0 1.0', credito: 'rubberduck', fuente: 'https://opengameart.org/content/100-cc0-sfx' },
@@ -695,31 +695,35 @@
     vuelo1: { archivo: 'assets/sonido/vuelo1.mp3', licencia: 'CC0 1.0', credito: 'artisticdude', fuente: 'https://opengameart.org/content/swishes-sound-pack' },
     vuelo2: { archivo: 'assets/sonido/vuelo2.mp3', licencia: 'CC0 1.0', credito: 'artisticdude', fuente: 'https://opengameart.org/content/swishes-sound-pack' },
     vuelo3: { archivo: 'assets/sonido/vuelo3.mp3', licencia: 'CC0 1.0', credito: 'artisticdude', fuente: 'https://opengameart.org/content/swishes-sound-pack' },
-    esfuerzo1: { archivo: 'assets/sonido/esfuerzo1.mp3', licencia: 'CC0 1.0', credito: 'ale-batec', fuente: 'https://freesound.org/s/511023/' },
-    esfuerzo2: { archivo: 'assets/sonido/esfuerzo2.mp3', licencia: 'CC0 1.0', credito: 'ale-batec', fuente: 'https://freesound.org/s/511023/' },
-    esfuerzo3: { archivo: 'assets/sonido/esfuerzo3.mp3', licencia: 'CC0 1.0', credito: 'ale-batec', fuente: 'https://freesound.org/s/511023/' },
-    esfuerzo4: { archivo: 'assets/sonido/esfuerzo4.mp3', licencia: 'CC0 1.0', credito: 'ale-batec', fuente: 'https://freesound.org/s/511023/' },
-    herido1: { archivo: 'assets/sonido/herido1.mp3', licencia: 'CC0 1.0', credito: 'salemaudio', fuente: 'https://freesound.org/s/803168/' },
-    herido2: { archivo: 'assets/sonido/herido2.mp3', licencia: 'CC0 1.0', credito: 'salemaudio', fuente: 'https://freesound.org/s/803168/' },
     orden1: { archivo: 'assets/sonido/orden1.mp3', licencia: 'CC0 1.0', credito: 'DeqstersLab', fuente: 'https://freesound.org/s/661242/' },
-    aclamacion1: { archivo: 'assets/sonido/aclamacion1.mp3', licencia: 'CC0 1.0', credito: 'HowardV', fuente: 'https://freesound.org/s/264377/' },
-    aclamacion2: { archivo: 'assets/sonido/aclamacion2.mp3', licencia: 'CC0 1.0', credito: 'HowardV', fuente: 'https://freesound.org/s/264377/' },
-    panico1: { archivo: 'assets/sonido/panico1.mp3', licencia: 'CC0 1.0', credito: 'Archeos', fuente: 'https://freesound.org/s/325548/' },
-    panico2: { archivo: 'assets/sonido/panico2.mp3', licencia: 'CC0 1.0', credito: 'IENBA', fuente: 'https://freesound.org/s/491405/' },
     canto1: { archivo: 'assets/sonido/canto1.mp3', licencia: 'CC0 1.0', credito: 'marconi68', fuente: 'https://freesound.org/s/588578/' },
     canto2: { archivo: 'assets/sonido/canto2.mp3', licencia: 'CC0 1.0', credito: 'marconi68', fuente: 'https://freesound.org/s/588578/' },
-    quejido1: { archivo: 'assets/sonido/quejido1.mp3', licencia: 'CC0 1.0', credito: 'Morshuman', fuente: 'https://freesound.org/s/556006/' },
-    quejido2: { archivo: 'assets/sonido/quejido2.mp3', licencia: 'CC0 1.0', credito: 'RepDac3', fuente: 'https://freesound.org/s/477756/' },
+    clamor1: { archivo: 'assets/sonido/clamor1.mp3', licencia: 'CC0 1.0', credito: 'craigsmith', fuente: 'https://freesound.org/s/480809/' },
+    masa1: { archivo: 'assets/sonido/masa1.mp3', licencia: 'CC0 1.0', credito: 'felix.blume', fuente: 'https://freesound.org/s/612131/' },
+    grito1: { archivo: 'assets/sonido/grito1.mp3', licencia: 'OGA-BY 3.0', credito: 'HaelDB', fuente: 'https://opengameart.org/content/male-gruntyelling-sounds' },
+    grito2: { archivo: 'assets/sonido/grito2.mp3', licencia: 'OGA-BY 3.0', credito: 'HaelDB', fuente: 'https://opengameart.org/content/male-gruntyelling-sounds' },
+    grito3: { archivo: 'assets/sonido/grito3.mp3', licencia: 'OGA-BY 3.0', credito: 'HaelDB', fuente: 'https://opengameart.org/content/male-gruntyelling-sounds' },
+    grito4: { archivo: 'assets/sonido/grito4.mp3', licencia: 'OGA-BY 3.0', credito: 'HaelDB', fuente: 'https://opengameart.org/content/male-gruntyelling-sounds' },
+    grito5: { archivo: 'assets/sonido/grito5.mp3', licencia: 'CC BY 4.0', credito: 'F.M.Audio', fuente: 'https://freesound.org/s/695377/' },
+    esfuerzo1: { archivo: 'assets/sonido/esfuerzo1.mp3', licencia: 'CC BY 4.0', credito: 'F.M.Audio', fuente: 'https://freesound.org/s/695383/' },
+    esfuerzo2: { archivo: 'assets/sonido/esfuerzo2.mp3', licencia: 'CC BY 4.0', credito: 'F.M.Audio', fuente: 'https://freesound.org/s/695381/' },
+    esfuerzo3: { archivo: 'assets/sonido/esfuerzo3.mp3', licencia: 'CC BY 4.0', credito: 'F.M.Audio', fuente: 'https://freesound.org/s/695382/' },
+    herido1: { archivo: 'assets/sonido/herido1.mp3', licencia: 'CC BY 4.0', credito: 'F.M.Audio', fuente: 'https://freesound.org/s/695387/' },
+    herido2: { archivo: 'assets/sonido/herido2.mp3', licencia: 'CC BY 4.0', credito: 'F.M.Audio', fuente: 'https://freesound.org/s/695389/' },
+    herido3: { archivo: 'assets/sonido/herido3.mp3', licencia: 'CC BY 4.0', credito: 'F.M.Audio', fuente: 'https://freesound.org/s/695388/' },
+    herido4: { archivo: 'assets/sonido/herido4.mp3', licencia: 'CC BY 4.0', credito: 'F.M.Audio', fuente: 'https://freesound.org/s/695384/' },
+    herido5: { archivo: 'assets/sonido/herido5.mp3', licencia: 'CC BY 3.0', credito: 'Michel Baradari', fuente: 'https://opengameart.org/content/11-male-human-paindeath-sounds' },
+    quejido1: { archivo: 'assets/sonido/quejido1.mp3', licencia: 'CC BY 3.0', credito: 'Michel Baradari', fuente: 'https://opengameart.org/content/11-male-human-paindeath-sounds' },
+    quejido2: { archivo: 'assets/sonido/quejido2.mp3', licencia: 'CC BY 3.0', credito: 'Michel Baradari', fuente: 'https://opengameart.org/content/11-male-human-paindeath-sounds' },
+    quejido3: { archivo: 'assets/sonido/quejido3.mp3', licencia: 'CC BY 3.0', credito: 'Michel Baradari', fuente: 'https://opengameart.org/content/11-male-human-paindeath-sounds' },
+    lucha1: { archivo: 'assets/sonido/lucha1.mp3', licencia: 'CC0 1.0', credito: 'craigsmith', fuente: 'https://freesound.org/s/675091/' },
+    aclamacion1: { archivo: 'assets/sonido/aclamacion1.mp3', licencia: 'CC BY 4.0', credito: 'chripei', fuente: 'https://freesound.org/s/165492/' },
+    panico1: { archivo: 'assets/sonido/panico1.mp3', licencia: 'CC0 1.0', credito: 'JohnsonBrandEditing', fuente: 'https://freesound.org/s/173944/' },
+    panico2: { archivo: 'assets/sonido/panico2.mp3', licencia: 'CC0 1.0', credito: 'JohnsonBrandEditing', fuente: 'https://freesound.org/s/173944/' },
+    panico3: { archivo: 'assets/sonido/panico3.mp3', licencia: 'CC0 1.0', credito: 'JohnsonBrandEditing', fuente: 'https://freesound.org/s/173944/' },
     coro1: { archivo: 'assets/sonido/coro1.mp3', licencia: 'CC0 1.0', credito: 'Jace', fuente: 'https://freesound.org/s/57204/' },
-    grito1: { archivo: 'assets/sonido/grito1.mp3', licencia: 'CC0 1.0', credito: 'joelcarrsound', fuente: 'https://freesound.org/s/521830/' },
-    grito2: { archivo: 'assets/sonido/grito2.mp3', licencia: 'CC0 1.0', credito: 'joelcarrsound', fuente: 'https://freesound.org/s/521831/' },
-    grito3: { archivo: 'assets/sonido/grito3.mp3', licencia: 'CC0 1.0', credito: 'joelcarrsound', fuente: 'https://freesound.org/s/521832/' },
-    clamor1: { archivo: 'assets/sonido/clamor1.mp3', licencia: 'CC0 1.0', credito: 'WelvynZPorterSamples', fuente: 'https://freesound.org/s/621374/' },
-    clamor2: { archivo: 'assets/sonido/clamor2.mp3', licencia: 'CC0 1.0', credito: 'florianreichelt', fuente: 'https://freesound.org/s/563011/' },
     cuerno1: { archivo: 'assets/sonido/cuerno1.mp3', licencia: 'CC0 1.0', credito: 'adharca', fuente: 'https://freesound.org/s/539956/' },
     cuerno2: { archivo: 'assets/sonido/cuerno2.mp3', licencia: 'CC0 1.0', credito: 'DeVern', fuente: 'https://freesound.org/s/512490/' },
-    lucha1: { archivo: 'assets/sonido/lucha1.mp3', licencia: 'CC0 1.0', credito: 'DeadVDI', fuente: 'https://freesound.org/s/376646/' },
-    lucha2: { archivo: 'assets/sonido/lucha2.mp3', licencia: 'CC0 1.0', credito: 'mario1298', fuente: 'https://freesound.org/s/177084/' },
     viento1: { archivo: 'assets/sonido/viento1.mp3', licencia: 'CC0 1.0', credito: 'Globofonia', fuente: 'https://freesound.org/s/553733/' }
   };
 
@@ -742,7 +746,9 @@
   const VOCES_SON5 = 'gr-espera-1 gr-espera-2 gr-espera-3 gr-espera-4 gr-pila-5 gr-pila-6 gr-choque-7 gr-choque-8 gr-choque-9 gr-empujar-10 gr-empujar-11 gr-empujar-12 gr-aguantar-13 gr-aguantar-14 gr-carga-enemiga-15 gr-carga-enemiga-16 gr-elefantes-17 gr-elefantes-18 gr-caballeria-19 gr-flanco-20 gr-flanco-21 gr-cansancio-22 gr-flaquea-23 gr-flaquea-24 gr-roto-propio-25 gr-roto-propio-26 gr-roto-enemigo-27 gr-roto-enemigo-28 gr-enemigo-cede-29 gr-enemigo-cede-30 gr-victoria-31 gr-victoria-32 gr-derrota-33 gr-derrota-34 gr-lucha-35 gr-lucha-36 ca-espera-1 ca-espera-2 ca-empujar-3 ca-choque-4 ca-elefantes-5 ca-roto-enemigo-6 ca-victoria-7 ca-derrota-8 ga-espera-9 ga-empujar-10 ga-choque-11 ga-carga-enemiga-12 ga-roto-enemigo-13 ga-victoria-14 ga-derrota-15 ib-espera-16 ib-empujar-17 ib-choque-18 ib-flaquea-19 ib-roto-enemigo-20 ib-victoria-21 ib-derrota-22'.split(' ');
   /* SON9: la arenga del general, las preguntas de los oficiales y el clamor de la tropa (js/dialogos.js, DICHOS); ids dl-* */
   const VOCES_SON9 = 'dl-arenga-hogares dl-arenga-botin dl-arenga-auspicios dl-clamor dl-q-elefantes dl-q-caballeria dl-q-flanco dl-q-triarios dl-q-cansancio dl-q-flaquea dl-q-tiempo'.split(' ');
-  for (const id of VOCES_HABLADAS.concat(VOCES_SON5, VOCES_SON9)) R.sonidos[id] = { archivo: 'assets/voces/' + id + '.mp3', licencia: 'CC BY 3.0', credito: 'Voz sintética hecha con Piper y es_ES-sharvard-medium; datos del Corpus Sharvard: Vincent Aubanel, Maria Luisa García Lecumberri, Martin Cooke (Univ. de Edimburgo)', fuente: 'https://datashare.ed.ac.uk/handle/10283/574' };
+  /* SON10: lo mismo en español para Cartago, los galos y los íberos en Escaramuzas (ids dl-ca-*, dl-ga-*, dl-ib-*) */
+  const VOCES_SON10 = 'dl-ca-arenga-auspicios dl-ca-arenga-botin dl-ca-arenga-hogares dl-ca-clamor dl-ca-q-caballeria dl-ca-q-cansancio dl-ca-q-elefantes dl-ca-q-flanco dl-ca-q-flaquea dl-ca-q-tiempo dl-ca-q-triarios dl-ga-arenga-auspicios dl-ga-arenga-botin dl-ga-arenga-hogares dl-ga-clamor dl-ga-q-caballeria dl-ga-q-cansancio dl-ga-q-elefantes dl-ga-q-flanco dl-ga-q-flaquea dl-ga-q-tiempo dl-ga-q-triarios dl-ib-arenga-auspicios dl-ib-arenga-botin dl-ib-arenga-hogares dl-ib-clamor dl-ib-q-caballeria dl-ib-q-cansancio dl-ib-q-elefantes dl-ib-q-flanco dl-ib-q-flaquea dl-ib-q-tiempo dl-ib-q-triarios'.split(' ');
+  for (const id of VOCES_HABLADAS.concat(VOCES_SON5, VOCES_SON9, VOCES_SON10)) R.sonidos[id] = { archivo: 'assets/voces/' + id + '.mp3', licencia: 'CC BY 3.0', credito: 'Voz sintética hecha con Piper y es_ES-sharvard-medium; datos del Corpus Sharvard: Vincent Aubanel, Maria Luisa García Lecumberri, Martin Cooke (Univ. de Edimburgo)', fuente: 'https://datashare.ed.ac.uk/handle/10283/574' };
 
   /* Fichas vacías para copiar y rellenar al añadir contenido nuevo. */
   const ARTE_TROPA = { modelo: 'assets/units/<id>.bin', licencia: 'CC BY-SA 3.0', credito: 'Wildfire Games (0 A.D.)' };   // o { sin: '<motivo>' }; añade provisional: true si el modelo es prestado

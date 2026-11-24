@@ -87,22 +87,24 @@
       const n0 = l => { const o = {}; for (const u of S.man) if (u.lado === l) o[u.tropa] = (o[u.tropa] || 0) + u.n0; return o; };
       if (root.Banda) banda = root.Banda.crea({ padre: el, propio: root.Banda.propioDe(n0(0), cfg.pueblo || (cfg.ejercitos && cfg.ejercitos.pueblo)), rival: root.Banda.rivalDe(n0(1)), semilla: S.sem, abajo: '96px' });
     } catch (e) { banda = null; }
-    /* SON9: la arenga antes de la batalla y las preguntas de tus oficiales (js/dialogos.js, js/gfx/dialogos-ui.js). Solo si hablas como romano; desactivado en pruebas
+    /* SON9: la arenga antes de la batalla y las preguntas de tus oficiales (js/dialogos.js, js/gfx/dialogos-ui.js). Hablan los romanos (en latín) y, en español, Cartago, los galos y los íberos; desactivado en pruebas
        automáticas (navigator.webdriver), salvo con ?arenga=1. Mientras eliges, la batalla espera (con un tope de 8 s en las preguntas). */
-    const romano = (() => { try { const o = {}; for (const u of S.man) if (u.lado === 0) o[u.tropa] = (o[u.tropa] || 0) + u.n0; return !root.Banda || root.Banda.propioDe(o, cfg.pueblo || (cfg.ejercitos && cfg.ejercitos.pueblo)) === 'romano'; } catch (e) { return true; } })();
-    const DU = romano && root.DialogosUI && root.Dialogos && root.DialogosUI.quiere(cfg) ? root.DialogosUI.crea({ padre: $('hud'), abajo: '150px', abajoH: '96px' }) : null;
+    const propioD = (() => { try { const o = {}; for (const u of S.man) if (u.lado === 0) o[u.tropa] = (o[u.tropa] || 0) + u.n0; return root.Banda ? root.Banda.propioDe(o, cfg.pueblo || (cfg.ejercitos && cfg.ejercitos.pueblo)) : 'romano'; } catch (e) { return 'romano'; } })();
+    /* SON10: hablan los romanos (latín) y, en español, Cartago, los galos y los íberos; el resto de pueblos, no */
+    const puebloD = ['cartago', 'galos', 'iberos'].includes(propioD) ? propioD : null;
+    const DU = (propioD === 'romano' || puebloD) && root.DialogosUI && root.Dialogos && root.DialogosUI.quiere(cfg) ? root.DialogosUI.crea({ padre: $('hud'), abajo: '150px', abajoH: '96px', pueblo: puebloD }) : null;
     let preg = null, tPreg = 0, arengando = false;
     function preguntas(dtReal) {
-      if (!DU || preg || arengando || apie || S.pausa || S.fase === 'fin') return;
+      if (!DU || preg || arengando || apie || S.pausa || S.fase === 'fin' || !root.Dialogos.preguntasOn()) return;   /* ajuste «Preguntas de oficiales» */
       tPreg -= dtReal; if (tPreg > 0) return; tPreg = 1;
-      const Dl = root.Dialogos, p = Dl.detectar(S); if (!p) return;
+      const Dl = root.Dialogos, p = Dl.detectar(S, puebloD); if (!p) return;
       Dl.mostrada(S, p); preg = p; sel = [p.uid]; pausa(true); pintarHud(true);
       const sigue = r => { preg = null; pausa(false); if (!r.ok && r.no) aviso(r.no); pintarHud(true); };
-      DU.pregunta(p, { alElegir: k => sigue(Dl.responder(S, p, k)), alTiempo: () => { const r = Dl.porTiempo(S, p); DU.habla(Dl.TIEMPO, { nombre: Dl.NOMBRE.tribuno, espera: 3 }); sigue(r); if (r.ok) aviso('Sin tu orden, el tribuno mantiene la línea'); } });
+      DU.pregunta(p, { alElegir: k => sigue(Dl.responder(S, p, k)), alTiempo: () => { const r = Dl.porTiempo(S, p); DU.habla(r.frase, { nombre: Dl.nombreDe('tribuno', puebloD), espera: 3 }); sigue(r); if (r.ok) aviso('Sin tu orden, ' + (puebloD ? 'tu ' + Dl.nombreDe('tribuno', puebloD).toLowerCase() : 'el tribuno') + ' mantiene la línea'); } });
     }
     function arengar() {
       arengando = true; pausa(true);
-      DU.arenga(id => { root.Dialogos.arengar(S, id); arengando = false; pausa(false); pintarHud(true); const a = root.Dialogos.arenga(id); if (a) aviso(a.efecto); });
+      DU.arenga(id => { root.Dialogos.arengar(S, id); arengando = false; pausa(false); pintarHud(true); const a = root.Dialogos.arenga(id, puebloD); if (a) aviso(a.efecto); });
     }
     /* SON5: efectos de la batalla, los mismos que en la campaña (js/ui-guerra.js: suena y ambiente) desde los mismos momentos que traduce Voces.deSim.
        Todo sale por Sonido.maestro; Sonido ya sabe callarse (apagado, sin toque aún, app oculta). Cada cuerno agacha la música. */
@@ -121,7 +123,7 @@
         case 'carga':
           if (tropa === 'elefantes' || cls === 'ele') So.elefante(0.8);
           else if (tropa === 'falange') So.falange(0.7);
-          else { if (cls === 'cav') cuerno(0.6, !mio); So.carga(0.7); }
+          else { if (cls === 'cav') cuerno(0.6, !mio); So.carga(0.7, Math.min(1, S.man.filter(x => x.lado === e.lado && vivo(x)).reduce((a, x) => a + x.n, 0) / 1500)); }   /* SON10: la masa que suena debajo crece con el ejército */
           break;
         case 'carga-frenada': So.choque(1, 0.9); if (tropa === 'falange' || (e.con !== undefined && S.man[e.con] && S.man[e.con].tropa === 'falange')) So.falange(0.5); break;
         case 'pila': case 'tiro': So.jabalina(0.7); setTimeout(() => { if (!cerrado) So.choque(0.4, 1.3); }, 650); break;

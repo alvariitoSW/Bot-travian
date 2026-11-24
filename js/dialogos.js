@@ -9,6 +9,8 @@
      prudente si no se contesta. El estado guarda lo suyo en estado.arenga y estado.dlg (se guardan con la batalla a medias).
    Estado de campaña (estado.sect) o de Escaramuzas (estado.man): se distingue solo.
    DICHOS: todas las frases habladas (assets/voces/<id>.mp3, hechas con tools/voces.py). Dictamen histórico: gobierno/historia/SON9-dialogos.md.
+   SON10: en Escaramuzas, si tu bando es Cartago, los galos o los íberos, el general y los oficiales hablan en español, con sus dioses y nombres de época
+   (DICHOS_PUEBLO; los mismos efectos que las arengas romanas). El ajuste «Preguntas de oficiales» (localStorage `aqvila-preguntas`, encendido) las apaga; la arenga sigue.
    Todo el texto latino es licencia de juego (restitución sencilla); lo atestiguado lleva su fuente y dictamen. */
 (function (raiz) {
   'use strict';
@@ -94,6 +96,94 @@
   for (const id in PREGUNTAS) { const q = PREGUNTAS[id]; q.id = id; DICHOS.push({ id: 'dl-q-' + id, quien: q.ofi, lat: q.lat, es: q.es, pron: q.pron, fuente: q.fuente, licencia: 'juego' }); }
   DICHOS.push({ id: 'dl-q-tiempo', quien: 'tribuno', lat: TIEMPO.lat, es: TIEMPO.es, pron: TIEMPO.pron, fuente: 'Sin fuente: frase de juego', licencia: 'juego' });
   const NOMBRE = { general: 'General', tropa: 'Tropa', tribuno: 'Tribuno', primipilo: 'Primipilo' };
+  /* ---------- SON10: Cartago, los galos y los íberos (solo Escaramuzas) ----------
+     Mismas situaciones y mismos efectos que los romanos (las arengas copian sus `mod`), pero en español y con los dioses y nombres de su época.
+     Cada frase: [texto, pronunciación para la voz española, fuente (o '' = licencia de juego)]. Dictamen: gobierno/historia/SON9-dialogos.md.
+     ofi 'tribuno' y 'primipilo' son los dos papeles de oficial; el nombre que se lee ante ellos cambia con el pueblo (nom). */
+  const F_ZAMA = 'Polibio 15.9 (los manípulos abren calles para que pasen los elefantes en Zama, 202 a. C.; probable)', F_CANNAS = 'Polibio 3.115-116 (la caballería númida y cartaginesa en Cannas, 216 a. C.; probable)';
+  const PU = {
+    cartago: { pref: 'ca', nom: { general: 'General cartaginés', tropa: 'Tropa cartaginesa', tribuno: 'Lugarteniente', primipilo: 'Capitán' }, reserva: ['sagrada', 'libios'],
+      nombres: { hogares: 'Por Cartago y por vuestros hogares', botin: 'Por el botín y la gloria', auspicios: 'Los dioses están con nosotros' },
+      arengas: {
+        hogares: ['¡Por Cartago, por Melqart y por vuestros hogares, luchad!', '¡Por Kartágo, por Melkárt y por vuestros ogáres, luchad!', 'Livio 21.21 (Aníbal hace votos a Melqart, el «Hércules» de Gades, antes de partir, 218 a. C.; probable) y Polibio 3.108-111 (su arenga antes de Cannas); el discurso exacto es licencia de juego'],
+        botin: ['¡Las riquezas de Italia serán vuestras, soldados! ¡Luchad con valor!', '¡Las rikézas de Itália serán vuestras, soldados! ¡Luchad con balór!', 'Polibio 3.111 (Aníbal promete a sus hombres las tierras y las riquezas de Italia antes de Cannas, 216 a. C.; probable); el discurso exacto es licencia de juego'],
+        auspicios: ['¡Baal Hammón y Tanit están con nosotros! ¡Los presagios son buenos, soldados!', '¡Baál Hamón y Tánit están con nosotros! ¡Los presagios son buenos, soldados!', 'Baal Hammón y Tanit, dioses principales de Cartago (estelas púnicas); Polibio 7.9 (el tratado de Aníbal con Filipo V, 215 a. C., jura por los dioses de Cartago, que el griego nombra a su manera: la identificación con Baal y Tanit es de los estudiosos); los presagios del jefe: Livio 21.22 (el sueño de Aníbal en Gades; probable); el discurso es licencia de juego']
+      },
+      clamor: ['¡Por Cartago, general!', '¡Por Kartágo, general!', ''],
+      q: {
+        elefantes: ['¡Elefantes! ¡Vienen los elefantes enemigos!', '¡Elefántes! ¡Vienen los elefántes enemigos!', F_ZAMA],
+        caballeria: ['¡Jinetes enemigos por el flanco!', '¡Jinétes enemigos por el flanko!', F_CANNAS],
+        flanco: ['¡General, la línea cede!', '¡General, la línea kéde!', 'Polibio 3.113-116 (el centro cartaginés cede a propósito y los libios cierran por los flancos en Cannas; probable); la frase es licencia de juego'],
+        triarios: ['Los libios están listos. ¿Qué ordenas?', 'Los líbios están listos. ¿Qué ordenas?', 'Polibio 3.113-116 (los libios de las alas cierran sobre los flancos romanos en Cannas, 216 a. C.) y 15.11-14 (los veteranos de Aníbal, tercera línea en Zama); probable; la frase es licencia de juego'],
+        cansancio: ['Están agotados, general.', 'Están agotados, general.', ''],
+        flaquea: ['¡El enemigo flaquea! ¡Apretemos!', '¡El enemigo flaquea! ¡Apretemos!', '']
+      }, ops_reserva: ['¡Libios, adelante!', 'Que esperen: mantened la línea'], tiempo: ['¡Mantendré la línea!', '¡Mantendré la línea!'] },
+    galos: { pref: 'ga', nom: { general: 'Jefe galo', tropa: 'Tropa gala', tribuno: 'Campeón', primipilo: 'Veterano' }, reserva: ['galos'],
+      nombres: { hogares: 'Por vuestras tribus y vuestra tierra', botin: 'Por el botín y la gloria', auspicios: 'Los dioses están con nosotros' },
+      arengas: {
+        hogares: ['¡Por nuestras tribus y por la tierra de nuestros padres, luchad!', '¡Por nuestras tribus y por la tiérra de nuestros pádres, luchad!', 'Polibio 2.17-22 (las tribus galas del norte de Italia, boyos, insubres y senones, y su tierra); el discurso exacto es licencia de juego'],
+        botin: ['¡El oro de Roma será nuestro, guerreros! ¡Luchad con valor!', '¡El oro de Róma será nuestro, guerreros! ¡Luchad con balór!', 'Livio 5.48 (el rescate en oro que Roma paga a Breno, 390 a. C.) y Pausanias 10.19-22 (Breno y el tesoro de Delfos, 279 a. C.); probable; el discurso exacto es licencia de juego'],
+        auspicios: ['¡Teutates y Taranis están con nosotros! ¡El trueno nos acompaña, guerreros!', '¡Teutátes y Taránis están con nosotros! ¡El trueno nos acompaña, guerreros!', 'Teutates y Taranis: Lucano, Farsalia 1.444-446 (s. I d. C.), fuente tardía (la costumbre es de la época; los nombres exactos de los dioses galos de entonces no se saben con seguridad); probable; el discurso es licencia de juego']
+      },
+      clamor: ['¡Jefe! ¡Jefe!', '¡Jéfe! ¡Jéfe!', ''],
+      q: {
+        elefantes: ['¡Bestias enormes! ¡Vienen los elefantes!', '¡Béstias enórmes! ¡Vienen los elefántes!', 'Plutarco, Pirro 17 (los elefantes de Pirro espantan a los romanos en Heraclea, 280 a. C.; probable); la frase es licencia de juego'],
+        caballeria: ['¡Jinetes enemigos por el flanco!', '¡Jinétes enemigos por el flanko!', F_CANNAS],
+        flanco: ['¡Jefe, la línea cede!', '¡Jéfe, la línea kéde!', ''],
+        triarios: ['Los guerreros de reserva esperan. ¿Qué ordenas?', 'Los guerréros de reserva esperan. ¿Qué ordenas?', ''],
+        cansancio: ['Están agotados, jefe.', 'Están agotados, jéfe.', ''],
+        flaquea: ['¡El enemigo flaquea! ¡A ellos!', '¡El enemigo flaquea! ¡A ellos!', '']
+      }, ops_reserva: ['¡Que entre la reserva!', 'Que esperen: mantened la línea'], tiempo: ['¡Mantendré la línea!', '¡Mantendré la línea!'] },
+    iberos: { pref: 'ib', nom: { general: 'Régulo íbero', tropa: 'Tropa íbera', tribuno: 'Caudillo', primipilo: 'Veterano' }, reserva: ['iberos'],
+      nombres: { hogares: 'Por la tierra de los íberos', botin: 'Por el botín y la gloria', auspicios: 'Los dioses están con nosotros' },
+      arengas: {
+        hogares: ['¡Por la tierra de los íberos y por nuestras familias, luchad!', '¡Por la tiérra de los ibéros y por nuestras familias, luchad!', 'Livio 28.31 (Indíbil y Mandonio alzan a sus pueblos por su libertad, 206 a. C.; probable) y Polibio 3.76 (los régulos ilergetes); el discurso exacto es licencia de juego'],
+        botin: ['¡El botín de los vencidos será vuestro, guerreros! ¡Luchad con bravura!', '¡El botín de los bencidos será vuestro, guerreros! ¡Luchad con bravúra!', 'Polibio 3.33 y 3.76 (los íberos que sirven en los ejércitos de la guerra anibálica, 218-205 a. C.; probable); el discurso exacto es licencia de juego'],
+        auspicios: ['¡Neto, dios de la guerra, está con nosotros! ¡Guerreros, venceremos!', '¡Néto, dios de la guerra, está con nosotros! ¡Guerreros, vencerémos!', 'Neto, dios guerrero de los acitanos: Macrobio, Saturnales 1.19.5 (s. V d. C.), fuente tardía; probable; el discurso es licencia de juego']
+      },
+      clamor: ['¡Régulo! ¡Régulo!', '¡Régulo! ¡Régulo!', 'Polibio 10.38-40 y Livio 27.19 (los íberos aclaman a su caudillo y a Escipión como «rey» en Baécula, 208 a. C.); la frase es licencia de juego'],
+      q: {
+        elefantes: ['¡Elefantes! ¡Vienen las bestias!', '¡Elefántes! ¡Vienen las béstias!', F_ZAMA],
+        caballeria: ['¡Jinetes enemigos por el flanco!', '¡Jinétes enemigos por el flanko!', F_CANNAS],
+        flanco: ['¡Régulo, la línea cede!', '¡Régulo, la línea kéde!', ''],
+        triarios: ['Los guerreros de reserva esperan. ¿Qué ordenas?', 'Los guerréros de reserva esperan. ¿Qué ordenas?', ''],
+        cansancio: ['Están agotados, régulo.', 'Están agotados, régulo.', ''],
+        flaquea: ['¡El enemigo flaquea! ¡A ellos, íberos!', '¡El enemigo flaquea! ¡A ellos, ibéros!', '']
+      }, ops_reserva: ['¡Que entre la reserva!', 'Que esperen: mantened la línea'], tiempo: ['¡Mantendré la línea!', '¡Mantendré la línea!'] }
+  };
+  const PUEBLOS = Object.keys(PU);
+  const dicho = (id, quien, pueblo, f) => { const o = { id, quien, pueblo, lat: f[0], es: '', pron: f[1], licencia: 'juego' }; o.fuente = f[2] || 'Sin fuente: frase de juego'; return o; };
+  const ARENGAS_P = {}, PREGUNTAS_P = {}, TIEMPO_P = {}, CLAMOR_P = {}, DICHOS_PUEBLO = [];
+  for (const pu of PUEBLOS) {
+    const d = PU[pu], pre = 'dl-' + d.pref + '-';
+    ARENGAS_P[pu] = ARENGAS.map(a => {
+      const f = d.arengas[a.id], o = { id: a.id, voz: pre + 'arenga-' + a.id, nombre: d.nombres[a.id], efecto: a.efecto, lat: f[0], es: '', pron: f[1], fuente: f[2], mod: a.mod, pueblo: pu };
+      DICHOS_PUEBLO.push(dicho(o.voz, 'general', pu, f)); return o;
+    });
+    CLAMOR_P[pu] = dicho(pre + 'clamor', 'tropa', pu, d.clamor); DICHOS_PUEBLO.push(CLAMOR_P[pu]);
+    PREGUNTAS_P[pu] = {};
+    for (const tipo in PREGUNTAS) {
+      const base = PREGUNTAS[tipo], f = d.q[tipo];
+      const ops = tipo === 'triarios' ? base.ops.map((op, i) => Object.assign({}, op, { txt: d.ops_reserva[i] })) : base.ops;
+      PREGUNTAS_P[pu][tipo] = Object.assign({}, base, { id: tipo, lat: f[0], es: '', pron: f[1], fuente: f[2] || 'Sin fuente: frase de juego', ops, audio: pre + 'q-' + tipo, pueblo: pu });
+      DICHOS_PUEBLO.push(dicho(pre + 'q-' + tipo, base.ofi, pu, f));
+    }
+    TIEMPO_P[pu] = { id: pre + 'q-tiempo', quien: 'tribuno', ofi: 'tribuno', pueblo: pu, lat: d.tiempo[0], es: '', pron: d.tiempo[1] };
+    DICHOS_PUEBLO.push(dicho(pre + 'q-tiempo', 'tribuno', pu, [d.tiempo[0], d.tiempo[1], '']));
+  }
+  const esPueblo = pu => !!(pu && PU[pu]);
+  /* lo que cambia según el pueblo de quien habla (null o 'romano' = los romanos de siempre) */
+  const arengas = pu => esPueblo(pu) ? ARENGAS_P[pu] : ARENGAS;
+  const arengaDe = (id, pu) => arengas(pu).find(a => a.id === id) || null;
+  const nombreDe = (quien, pu) => esPueblo(pu) ? PU[pu].nom[quien] || '' : NOMBRE[quien] || '';
+  const tiempoDe = pu => esPueblo(pu) ? TIEMPO_P[pu] : TIEMPO;
+  const clamorDe = pu => esPueblo(pu) ? CLAMOR_P[pu] : DICHOS.find(x => x.id === 'dl-clamor');
+  const dichosDe = pu => esPueblo(pu) ? DICHOS_PUEBLO.filter(f => f.pueblo === pu) : DICHOS;
+  /* el ajuste «Preguntas de oficiales» (Ajustes y hoja de opciones del menú): encendido salvo que se apague. La arenga no depende de él. */
+  const CLAVE_PREG = 'aqvila-preguntas';
+  const preguntasOn = () => { try { return !(raiz.localStorage && raiz.localStorage.getItem(CLAVE_PREG) === '0'); } catch (e) { return true; } };
+  const ponPreguntas = on => { try { if (raiz.localStorage) raiz.localStorage.setItem(CLAVE_PREG, on ? '1' : '0'); } catch (e) { /* sin guardado: vale hasta cerrar */ } return !!on; };
+
   const PRIORIDAD = ['elefantes', 'caballeria', 'flanco', 'triarios', 'cansancio', 'flaquea'];
   const COOLDOWN = 40, MAX = 4, PRIMERA = 15, TIEMPO_MAX = 8;
   const DONDE = ['por la izquierda', 'en el centro', 'por la derecha'];
@@ -122,7 +212,7 @@
     }
     return r;
   }
-  function candidatosS(S) {
+  function candidatosS(S, pueblo) {
     const Sm = motor('Simulador'), r = [], vivo = u => u.estado === 'firme' || u.estado === 'duda', cab = u => ['equites', 'jinetes', 'numidas', 'tesalios'].includes(u.tropa);
     const mios = S.man.filter(u => u.lado === 0 && vivo(u) && !cab(u)), suyos = S.man.filter(u => u.lado === 1 && vivo(u));
     const d = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
@@ -130,11 +220,13 @@
       if (v.tropa === 'elefantes') { const u = mios.filter(m => d(m, v) < 90).sort((a, b) => d(a, v) - d(b, v))[0]; if (u) r.push({ tipo: 'elefantes', uid: u.id, peso: d(u, v) / 100 }); }
       else if (cab(v) && (v.carga || v.estado === 'firme')) { const u = mios.filter(m => d(m, v) < 80).sort((a, b) => d(a, v) - d(b, v))[0]; if (u && v.carga) r.push({ tipo: 'caballeria', uid: u.id, peso: d(u, v) / 100 }); }
     }
-    const reserva = mios.some(u => u.tropa === 'triarii' && !(u.lucha > 0) && u.fatiga < 0.3 && u.n > 0.5 * u.n0);
+    /* la reserva: los triarios romanos; en los otros pueblos, sus tropas de choque que aún no han luchado (SON10) */
+    const res = esPueblo(pueblo) ? PU[pueblo].reserva : ['triarii'];
+    const reservaDe = u => mios.some(r => r.id !== u.id && res.includes(r.tropa) && !(r.lucha > 0) && r.fatiga < 0.3 && r.n > 0.5 * r.n0);
     for (const u of mios) {
       if (!(u.lucha > 0)) continue;
       if (u.estado === 'duda' || u.moral < 0.4 || u.flanqueado) r.push({ tipo: 'flanco', uid: u.id, peso: u.moral - (u.flanqueado ? 0.2 : 0) });
-      if (reserva && u.tropa !== 'triarii' && u.moral < 0.55 && Sm.puede(S, { tipo: 'relevar', lado: 0, ids: [u.id] }) === '') r.push({ tipo: 'triarios', uid: u.id, peso: u.moral });
+      if (reservaDe(u) && (esPueblo(pueblo) || u.tropa !== 'triarii') && u.moral < 0.55 && Sm.puede(S, { tipo: 'relevar', lado: 0, ids: [u.id] }) === '') r.push({ tipo: 'triarios', uid: u.id, peso: u.moral });
       if (u.fatiga > 0.65) r.push({ tipo: 'cansancio', uid: u.id, peso: u.moral });
       const rv = S.man[u.rival]; if (rv && rv.lado === 1 && vivo(rv) && rv.moral < 0.3) r.push({ tipo: 'flaquea', uid: u.id, peso: u.moral });
     }
@@ -165,14 +257,14 @@
 
   /* ¿Hay una pregunta que hacer? Devuelve { tipo, id, ofi, quien, nombre, lat, es, pron, audio, donde, sect | uid, opciones:[{ k, txt, sub, orden, moral }], pru, tope } o null.
      No cambia nada: para dejar constancia de que se hizo, el que la muestra llama a mostrada(estado, p). */
-  function detectar(e) {
+  function detectar(e, pueblo) {
     if (!e || !toca(e)) return null;
-    const D = dlg(e), sim = esSim(e), cs = sim ? candidatosS(e) : candidatosG(e);
+    const D = dlg(e), sim = esSim(e), cs = sim ? candidatosS(e, pueblo) : candidatosG(e), PQ = esPueblo(pueblo) ? PREGUNTAS_P[pueblo] : PREGUNTAS;
     for (const tipo of PRIORIDAD) {
       if (tipo === D.tipo) continue;   /* nunca dos seguidas del mismo tipo */
       const hay = cs.filter(c => c.tipo === tipo).sort((a, b) => a.peso - b.peso);
       for (const c of hay) {
-        const q = PREGUNTAS[tipo], ops = [];
+        const q = PQ[tipo], ops = [];
         for (const op of q.ops) {
           if (op.solo && op.solo !== (sim ? 'sim' : 'guerra')) continue;
           const o = sim ? ordenS(e, e.man[c.uid], op) : ordenG(e, c.sect, op);
@@ -182,7 +274,7 @@
         if (ops.length < 2) continue;
         let pru = null; for (const o of q.pru) { pru = ops.find(x => x.orden === o); if (pru) break; } pru = pru || ops[0];
         const donde = sim ? e.man[c.uid].nom : DONDE[c.sect];
-        return { tipo, id: tipo, ofi: q.ofi, quien: q.ofi, nombre: NOMBRE[q.ofi], lat: q.lat, es: q.es, pron: q.pron, audio: 'dl-q-' + tipo, donde, sect: c.sect, uid: c.uid, opciones: ops, pru: pru.k, tope: Dialogos.TIEMPO_MAX, t: e.t };   /* tope se lee del objeto exportado: las capturas lo alargan para poder fotografiar */
+        return { tipo, id: tipo, pueblo: esPueblo(pueblo) ? pueblo : null, ofi: q.ofi, quien: q.ofi, nombre: nombreDe(q.ofi, pueblo), lat: q.lat, es: q.es, pron: q.pron, audio: q.audio || 'dl-q-' + tipo, donde, sect: c.sect, uid: c.uid, opciones: ops, pru: pru.k, tope: Dialogos.TIEMPO_MAX, t: e.t };   /* tope se lee del objeto exportado: las capturas lo alargan para poder fotografiar */
       }
     }
     return null;
@@ -206,10 +298,10 @@
   /* Si no se contesta a tiempo, el oficial hace lo prudente (y lo dice, en latín y en castellano). */
   function porTiempo(e, p) {
     const r = responder(e, p, p.pru);
-    return Object.assign(r, { porTiempo: true, frase: TIEMPO });
+    return Object.assign(r, { porTiempo: true, frase: tiempoDe(p.pueblo) });
   }
 
-  const Dialogos = { ARENGAS, arenga, arengar, DICHOS, PREGUNTAS, PRIORIDAD, NOMBRE, TIEMPO, TIEMPO_MAX, COOLDOWN, MAX, PRIMERA, toca, detectar, mostrada, responder, porTiempo };
+  const Dialogos = { ARENGAS, arenga: arengaDe, arengas, arengar, DICHOS, DICHOS_PUEBLO, PUEBLOS, PREGUNTAS_P, nombreDe, tiempoDe, clamorDe, dichosDe, preguntasOn, ponPreguntas, CLAVE_PREG, PREGUNTAS, PRIORIDAD, NOMBRE, TIEMPO, TIEMPO_MAX, COOLDOWN, MAX, PRIMERA, toca, detectar, mostrada, responder, porTiempo };
   raiz.Dialogos = Dialogos;
   if (typeof module !== 'undefined' && module.exports) module.exports = Dialogos;
 })(typeof window !== 'undefined' ? window : globalThis);

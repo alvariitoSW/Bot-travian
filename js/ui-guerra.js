@@ -675,7 +675,7 @@
       if (root.Musica && ((e.tipo === 'choque' && /^Las líneas/.test(e.texto)) || e.tipo === 'caballeria' || e.tipo === 'relevo' || e.tipo === 'numidas-aviso')) root.Musica.agacha();   /* SON1-b: suena un cuerno */
       if (e.tipo === 'choque') { if (/^Las líneas/.test(e.texto)) { S.cuerno(0.8); setTimeout(() => S.cuernoRival(0.6), 700); setTimeout(() => S.choque(1, 1), 1400); } else S.choque(1, 1); }
       else if (e.tipo === 'pila') S.choque(0.4, 1.3);
-      else if (e.tipo === 'carga-enemiga') { if (tropa === 'elefantes') S.elefante(0.8); else if (tropa === 'falange') S.falange(0.7); else { S.carga(0.7); } }
+      else if (e.tipo === 'carga-enemiga') { if (tropa === 'elefantes') S.elefante(0.8); else if (tropa === 'falange') S.falange(0.7); else { S.carga(0.7, Math.min(1, B.sect.reduce((a, s) => a + (s.c[1].roto ? 0 : s.c[1].lineas.reduce((b, l) => b + (l.hombres || 0), 0)), 0) / 3000)); } }   /* SON10: la masa de debajo crece con el ejército rival */
       else if (e.tipo === 'elefantes-desbocados') { S.elefante(1); setTimeout(() => S.choque(0.8, 1), 500); }
       else if (e.tipo === 'caballeria') S.cuerno(0.7);
       else if (e.tipo === 'impacto') { S.carga(0.9); S.choque(1, 1); }
@@ -735,7 +735,7 @@
     const DU = root.DialogosUI && root.Dialogos && root.DialogosUI.quiere(cfg) ? root.DialogosUI.crea({ padre: $('hud'), abajo: 'calc(env(safe-area-inset-bottom) + 200px)', abajoH: 'calc(env(safe-area-inset-bottom) + 96px)' }) : null;
     let preg = null, tPreg = 0, arengando = false;
     function preguntas(dt) {
-      if (!DU || preg || arengando || B.fase === 'fin') return;
+      if (!DU || preg || arengando || B.fase === 'fin' || !root.Dialogos.preguntasOn()) return;   /* ajuste «Preguntas de oficiales» */
       tPreg -= dt; if (tPreg > 0) return; tPreg = 1;
       const Dl = root.Dialogos, p = Dl.detectar(B); if (!p) return;
       Dl.mostrada(B, p); preg = p; pausa = true; sel = p.sect; mirar(p.sect, 4, true); pintarCartas();

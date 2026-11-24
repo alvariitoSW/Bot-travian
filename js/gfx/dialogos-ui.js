@@ -1,7 +1,8 @@
 /* AQVILA — SON9: la pantalla de la arenga y de las preguntas de los oficiales, para las dos batallas (js/ui-guerra.js y js/ui-mando.js).
    La lógica (qué se pregunta, qué hace cada respuesta) está en js/dialogos.js; aquí solo se dibuja y se oye.
-   DialogosUI.crea({ padre, abajo, abajoH }) → { quiere(cfg), arenga(alAcabar(id|null)), pregunta(p, { alElegir(k), alTiempo() }), habla(dicho), cerrar(), get abierto }
+   DialogosUI.crea({ padre, abajo, abajoH, pueblo }) → { quiere(cfg), arenga(alAcabar(id|null)), pregunta(p, { alElegir(k), alTiempo() }), habla(dicho), cerrar(), get abierto }
      · padre: el HUD de la batalla (#gu-hud o #mn-hud). abajo / abajoH: separación del subtítulo al borde de abajo, en vertical y en horizontal.
+       pueblo (SON10): 'cartago' | 'galos' | 'iberos' si tu bando habla en español como ellos; sin él, los romanos (latín).
      · arenga(): un panel abajo, sobre el campo ya montado (no lo tapa entero), con las 3 arengas y «Sin arenga». Al elegir: el general la dice en voz alta
        (latín, con subtítulo en castellano) y la tropa responde con un clamor; después llama a alAcabar(id).
      · pregunta(p): panel con el oficial, su frase en latín (voz y subtítulo) y 2–4 botones grandes. Cuenta atrás de p.tope segundos: si pasa, alTiempo().
@@ -55,7 +56,7 @@
   C.crea = function (opc) {
     opc = opc || {}; const doc = raiz.document; if (!doc || !opc.padre || !D) return null;
     if (!doc.getElementById('dlg-css')) { const st = doc.createElement('style'); st.id = 'dlg-css'; st.textContent = CSS; doc.head.appendChild(st); }
-    const padre = opc.padre, So = () => raiz.Sonido;
+    const padre = opc.padre, So = () => raiz.Sonido, PU = opc.pueblo || null;
     const sub = doc.createElement('div'); sub.className = 'dlg-sub'; sub.setAttribute('aria-live', 'polite'); sub.style.bottom = opc.abajo || '120px'; sub.innerHTML = '<b></b><i></i><span></span>'; padre.appendChild(sub);
     const mq = raiz.matchMedia ? raiz.matchMedia('(orientation:landscape)') : null, ajusta = () => { sub.style.bottom = (mq && mq.matches ? opc.abajoH || opc.abajo : opc.abajo) || '120px'; };
     ajusta(); if (mq && mq.addEventListener) mq.addEventListener('change', ajusta);
@@ -65,16 +66,16 @@
     function rotulo(nombre, lat, es, seg) { sub.children[0].textContent = nombre + ':'; sub.children[1].textContent = lat; sub.children[2].textContent = es ? '— ' + es : ''; sub.classList.add('ve'); clearTimeout(tSub); tSub = setTimeout(() => sub.classList.remove('ve'), (seg || 3.4) * 1000); }
     /* dice una frase (de D.DICHOS o D.TIEMPO): subtítulo y voz. Devuelve cuántos segundos dura, para esperarla. */
     function habla(f, o) {
-      o = o || {}; const nombre = o.nombre || D.NOMBRE[f.quien] || '', S = So(), b = S && S.vbuf && S.vbuf[f.id];
+      o = o || {}; const nombre = o.nombre || D.nombreDe(f.quien, PU) || '', S = So(), b = S && S.vbuf && S.vbuf[f.id];
       const dur = b && b.duration ? b.duration + 0.4 : 3.2;
       if (!o.sinRotulo) rotulo(nombre, f.lat, f.es, Math.max(3.2, dur + 0.8));
       if (S && S.voz && b) { if (raiz.Musica && raiz.Musica.agacha) raiz.Musica.agacha(); S.voz(f.id, { v: f.quien === 'tropa' ? 0.85 : 0.95, retraso: o.retraso === undefined ? 0.1 : o.retraso, espera: o.espera === undefined ? 2.5 : o.espera }); }
       return dur;
     }
     function clamor() {   // la tropa responde: la voz que aclama y el griterío del banco
-      const S = So(), V = raiz.Voces, f = D.DICHOS.find(x => x.id === 'dl-clamor');
+      const S = So(), V = raiz.Voces, f = D.clamorDe(PU);
       if (S && S.muestra && V) { const g = V.grupoDisponible('aclamacion', S.tiene); if (g) S.muestra(g, { v: 0.8, vel: 1, retraso: 0.05 }); }
-      return habla(f, { nombre: 'Tropa', retraso: 0.15, espera: 0.5 });
+      return habla(f, { nombre: D.nombreDe('tropa', PU), retraso: 0.15, espera: 0.5 });
     }
     function html(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]); }
     function monta(clase, cuerpo) {
@@ -87,15 +88,15 @@
       habla, clamor,
       arenga(alAcabar) {
         const p = monta('arenga', '<h2>Arenga a tus tropas</h2><p>Elige lo que les dirás. Cada discurso cambia un poco la batalla.</p><div class="dlg-op">'
-          + D.ARENGAS.map(a => '<button type="button" data-a="' + a.id + '"><b>' + html(a.nombre) + '</b><i>' + html(a.efecto) + '</i></button>').join('') + '</div><button type="button" class="sin" data-a=""><b>Sin arenga</b></button>');
+          + D.arengas(PU).map(a => '<button type="button" data-a="' + a.id + '"><b>' + html(a.nombre) + '</b><i>' + html(a.efecto) + '</i></button>').join('') + '</div><button type="button" class="sin" data-a=""><b>Sin arenga</b></button>');
         p.addEventListener('click', e => {
           const b = e.target.closest('button'); if (!b || cerrado) return; const id = b.dataset.a || null;
           if (!id) { quita(); alAcabar(null); return; }
           p.remove(); panel = null;   // el velo se queda mientras habla el general: la batalla espera
-          const a = D.arenga(id), d1 = habla({ id: 'dl-arenga-' + id, quien: 'general', lat: a.lat, es: a.es });
+          const a = D.arenga(id, PU), d1 = habla({ id: a.voz || 'dl-arenga-' + id, quien: 'general', lat: a.lat, es: a.es });
           setTimeout(() => { if (cerrado) return; const d2 = clamor(); setTimeout(() => { if (!cerrado) { quita(); alAcabar(id); } }, Math.min(2500, d2 * 1000)); }, d1 * 1000);
         });
-        const S = So(); if (S && S.cargaVoces) { try { S.cargaVoces(D.DICHOS.map(f => f.id)); } catch (e) { /* sin voz: solo subtítulo */ } }
+        const S = So(); if (S && S.cargaVoces) { try { S.cargaVoces(D.dichosDe(PU).map(f => f.id)); } catch (e) { /* sin voz: solo subtítulo */ } }
         return p;
       },
       pregunta(q, cb) {

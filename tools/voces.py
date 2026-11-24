@@ -13,7 +13,8 @@
 #   pip install piper-tts
 #   (bajar es_ES-sharvard-medium.onnx y .onnx.json de https://huggingface.co/rhasspy/piper-voices/tree/main/es/es_ES/sharvard/medium)
 #   python3 -I tools/voces.py <carpeta-con-la-voz> assets/voces [ids a rehacer...] [--faltan]
-#   (SON9: también las frases de js/dialogos.js, ids dl-*: arengas del general, preguntas de los oficiales y el clamor de la tropa)
+#   (SON9: también las frases de js/dialogos.js, ids dl-*: arengas del general, preguntas de los oficiales y el clamor de la tropa;
+#    SON10: y las mismas en español de Cartago, los galos y los íberos, ids dl-ca-*, dl-ga-*, dl-ib-*, con la misma receta que los gritos españoles)
 #   (SON5: también las frases griegas de la falange propia, ids gr-*, y los gritos en español de Cartago, galos e íberos, ids ca-*, ga-*, ib-*)
 # Necesita ffmpeg (con libmp3lame) y numpy. Salida: mp3 mono a 32 kHz. Solo se usa al hacer los archivos; el juego lleva el audio ya grabado.
 import json, os, subprocess, sys
@@ -94,7 +95,7 @@ def escribe(nombre, x):
 
 if __name__ == '__main__':
     os.makedirs(SALIDA, exist_ok=True)
-    todo = json.loads(subprocess.run(['node', '-e', "const V = require('./js/voces.js'); const Dl = require('./js/dialogos.js'); console.log(JSON.stringify({ romanas: V.FRASES, griegas: V.GRIEGAS, gritos: V.GRITOS, dialogos: Dl.DICHOS }))"], cwd=RAIZ, capture_output=True, check=True).stdout)
+    todo = json.loads(subprocess.run(['node', '-e', "const V = require('./js/voces.js'); const Dl = require('./js/dialogos.js'); console.log(JSON.stringify({ romanas: V.FRASES, griegas: V.GRIEGAS, gritos: V.GRITOS, dialogos: Dl.DICHOS.concat(Dl.DICHOS_PUEBLO) }))"], cwd=RAIZ, capture_output=True, check=True).stdout)
     voz = PiperVoice.load(os.path.join(VOZ, 'es_ES-sharvard-medium.onnx'))
     hechas = 0
     args = sys.argv[3:]
