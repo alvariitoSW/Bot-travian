@@ -20,11 +20,13 @@
   CAM.necesarios = function (n) { n = n == null ? 4 : n; return Math.ceil(n * 2 / 3); };
   // Cifras de juego (las ajusta CE12). Todas licencia de juego.
   const CIFRAS = {
-    armas: { plazas: 8 },
-    comercio: { denarios: 3000, rutas: 4, acuerdos: 3 },
-    politica: { favorPrinceps: 80, hostil: 35, apoyo: 0.6, humorApoyo: 50, planesBien: 2 },
-    ciudad: { cubiertos: 0.8, nivelUrbe: 4 },
-    sostener: { armas: 0, comercio: 12, politica: 6, ciudad: 6 },
+    // CE12 (24/11, medido con test/equilibrio-caminos.mjs): plazas 8→6, tesoro 3000→2500, rutas 4→3, acuerdos 3→4,
+    // príncipe 80→70, planes 2→1, Urbs 4→3 (el nivel 4 pide lujo, que una Roma en paz no tiene), sostener comercio 12→6 y ciudad 6→12.
+    armas: { plazas: 6 },
+    comercio: { denarios: 2500, rutas: 3, acuerdos: 4 },
+    politica: { favorPrinceps: 70, hostil: 35, apoyo: 0.6, humorApoyo: 50, planesBien: 1 },
+    ciudad: { cubiertos: 0.8, nivelUrbe: 3 },
+    sostener: { armas: 0, comercio: 6, politica: 6, ciudad: 12 },
     gracia: 3
   };
   CAM.CIFRAS = CIFRAS;
