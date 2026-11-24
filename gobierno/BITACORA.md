@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 24/11 (15:47) — **AR1 parada**: Meshy rechaza por el tope de la clave (0 créditos gastados). El apaño con el galo grande y tatuajes no le gustó al usuario (en el chat de AR1: «feísimo y poco realista») y no entra. Dictamen: pelo encalado, bigote, torques y cuadros son históricos; los tatuajes de glasto en galos, licencia de juego. Hace falta que el usuario suba el tope de la clave (30 créditos).
 - 24/11 (15:33) — La sesión de ciudad abre **MN4c** por el pedido de menús: portada del menú principal (`css/portada.css`, `js/portada.js`, dueño Músculo) y láminas con renders de nuestros modelos (`assets/laminas/`, ≤1,5 MB, dueño Arte). Entra en CDe4 o en la SB final.
 - 24/11 (15:31) — **Pedidos del usuario desde el cuadro** (pestañas nuevas): (1) Arte, «Guerrero galo» (literal: «Haz un guerrero más realista y con tatuajes d la época este es una mierda») → **AR1** abierta (Meshy ≤40 créditos, marcas en la piel según la historia, sustituye al de MakeHuman). (2) Mejora a Mapa y menús (literal: «Habría que mejorar artísticamente el menú principal y el resto de menús, y embellecerlos y hacerlos más visuales y los menús del juego con más imágenes») → pasado a la sesión de ciudad para MN4a/CDe4.
 - 24/11 (15:20) — **CG7 hecha** (`28ccb83`): batalla rápida y la hoja «en vivo / rápida / resolver»; juez de batallas APTO al repetir las dos pruebas que la máquina cargada hizo fallar (incluido `juez-guerra`: el cuelgue de «Escudos» parece de carga, no de código; JG1 lo confirma). Pases a CDe4: `sw.js` (2 archivos), `ui.js` `escEmpieza` → `UIBatallaRapida.elegir`; CG4b engancha `elegir()` en la campaña.
@@ -85,6 +86,7 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
+- **Tope de la clave de Meshy para el galo nuevo**: ¿subes el tope de la clave de la API en Meshy (meshy.ai → API → la clave → límite de créditos) para gastar 30 de los 66 créditos? (A) Sí, lo subo y se hace el galo nuevo [recomendado]; (B) No, se queda el galo de ahora hasta después de la 1.0. Por qué: sin ese cambio la API no deja crear nada.
 
 
 ## Propuestas por aprobar
