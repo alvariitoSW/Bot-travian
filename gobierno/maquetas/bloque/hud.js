@@ -27,6 +27,7 @@ export function palabraDe(b) {
   if (b.fila >= AGOTADA) return ['ambar', 'agotada'];
   if (b.fila >= 0.4) return ['ambar', 'cansada'];
   if (b.bando === 'r' && b.orden === 'testudo') return ['verde', 'testudo'];
+  if (b.bando === 'r' && (b.forma === 'muro' || b.forma === 'abierto')) return ['verde', b.forma === 'muro' ? 'muro' : 'abierto'];   /* FU5 */
   if (b.contactos && b.contactos.length) return ['verde', 'firme'];
   return ['verde', 'fresca'];
 }
