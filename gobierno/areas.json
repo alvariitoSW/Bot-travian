@@ -79,6 +79,9 @@
         "js/battle.js",
         "js/guerra.js",
         "js/simulador.js",
+        "js/dialogos.js",
+        "js/gfx/dialogos-ui.js",
+        "test/dialogos.test.mjs",
         "js/maniobra.js",
         "js/ui-guerra.js",
         "js/ui-mando.js",
@@ -103,6 +106,7 @@
         "test/ref-normal.mjs",
         "gobierno/juez-guerra.mjs",
         "gobierno/captura-guerra.mjs",
+        "gobierno/captura-son9.mjs",
         "gobierno/captura-batalla.mjs",
         "gobierno/captura-gm*.mjs",
         "gobierno/maquetas/a-pie/",
@@ -127,7 +131,13 @@
         "test/fi4-campo.mjs",
         "test/fi4-captura.mjs",
         "test/fi4-escaramuza.mjs",
-        "test/fu1-testudo.test.mjs"
+        "test/fu1-testudo.test.mjs",
+        "js/batalla-rapida.js",
+        "js/ui-batalla-rapida.js",
+        "test/batalla-rapida.test.mjs",
+        "gobierno/captura-cg7.mjs",
+        "js/gfx/cine-mando.js",
+        "js/gfx/estandartes.js"
       ],
       "taller": [
         "assets/soldados/",
@@ -151,7 +161,9 @@
           "test/falange-rivales.test.mjs",
           "test/bloque.test.mjs",
           "test/bloque-ia.test.mjs",
-          "test/fisica-batalla.test.mjs"
+          "test/fisica-batalla.test.mjs",
+          "test/dialogos.test.mjs",
+          "test/batalla-rapida.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area batallas",
@@ -266,7 +278,9 @@
         "gobierno/captura-cg2.mjs",
         "gobierno/maquetas/menus*/",
         "gobierno/maquetas/concurso*/",
-        "gobierno/maquetas/provincias/"
+        "gobierno/maquetas/provincias/",
+        "css/portada.css",
+        "js/portada.js"
       ],
       "taller": [],
       "juez": {
@@ -298,7 +312,8 @@
         "assets/fuentes/",
         "tools/",
         "gobierno/kits/",
-        "gobierno/maquetas/piezas/"
+        "gobierno/maquetas/piezas/",
+        "assets/laminas/"
       ],
       "taller": [],
       "juez": {

@@ -87,6 +87,25 @@
       const n0 = l => { const o = {}; for (const u of S.man) if (u.lado === l) o[u.tropa] = (o[u.tropa] || 0) + u.n0; return o; };
       if (root.Banda) banda = root.Banda.crea({ padre: el, propio: root.Banda.propioDe(n0(0), cfg.pueblo || (cfg.ejercitos && cfg.ejercitos.pueblo)), rival: root.Banda.rivalDe(n0(1)), semilla: S.sem, abajo: '96px' });
     } catch (e) { banda = null; }
+    /* SON9: la arenga antes de la batalla y las preguntas de tus oficiales (js/dialogos.js, js/gfx/dialogos-ui.js). Hablan los romanos (en latín) y, en español, Cartago, los galos y los íberos; desactivado en pruebas
+       automáticas (navigator.webdriver), salvo con ?arenga=1. Mientras eliges, la batalla espera (con un tope de 8 s en las preguntas). */
+    const propioD = (() => { try { const o = {}; for (const u of S.man) if (u.lado === 0) o[u.tropa] = (o[u.tropa] || 0) + u.n0; return root.Banda ? root.Banda.propioDe(o, cfg.pueblo || (cfg.ejercitos && cfg.ejercitos.pueblo)) : 'romano'; } catch (e) { return 'romano'; } })();
+    /* SON10: hablan los romanos (latín) y, en español, Cartago, los galos y los íberos; el resto de pueblos, no */
+    const puebloD = ['cartago', 'galos', 'iberos'].includes(propioD) ? propioD : null;
+    const DU = (propioD === 'romano' || puebloD) && root.DialogosUI && root.Dialogos && root.DialogosUI.quiere(cfg) ? root.DialogosUI.crea({ padre: $('hud'), abajo: '150px', abajoH: '96px', pueblo: puebloD }) : null;
+    let preg = null, tPreg = 0, arengando = false;
+    function preguntas(dtReal) {
+      if (!DU || preg || arengando || apie || S.pausa || S.fase === 'fin' || !root.Dialogos.preguntasOn()) return;   /* ajuste «Preguntas de oficiales» */
+      tPreg -= dtReal; if (tPreg > 0) return; tPreg = 1;
+      const Dl = root.Dialogos, p = Dl.detectar(S, puebloD); if (!p) return;
+      Dl.mostrada(S, p); preg = p; sel = [p.uid]; pausa(true); pintarHud(true);
+      const sigue = r => { preg = null; pausa(false); if (!r.ok && r.no) aviso(r.no); pintarHud(true); };
+      DU.pregunta(p, { alElegir: k => sigue(Dl.responder(S, p, k)), alTiempo: () => { const r = Dl.porTiempo(S, p); DU.habla(r.frase, { nombre: Dl.nombreDe('tribuno', puebloD), espera: 3 }); sigue(r); if (r.ok) aviso('Sin tu orden, ' + (puebloD ? 'tu ' + Dl.nombreDe('tribuno', puebloD).toLowerCase() : 'el tribuno') + ' mantiene la línea'); } });
+    }
+    function arengar() {
+      arengando = true; pausa(true);
+      DU.arenga(id => { root.Dialogos.arengar(S, id); arengando = false; pausa(false); pintarHud(true); const a = root.Dialogos.arenga(id, puebloD); if (a) aviso(a.efecto); });
+    }
     /* SON5: efectos de la batalla, los mismos que en la campaña (js/ui-guerra.js: suena y ambiente) desde los mismos momentos que traduce Voces.deSim.
        Todo sale por Sonido.maestro; Sonido ya sabe callarse (apagado, sin toque aún, app oculta). Cada cuerno agacha la música. */
     let primerChoque = false, tRuido = 0;
@@ -104,7 +123,7 @@
         case 'carga':
           if (tropa === 'elefantes' || cls === 'ele') So.elefante(0.8);
           else if (tropa === 'falange') So.falange(0.7);
-          else { if (cls === 'cav') cuerno(0.6, !mio); So.carga(0.7); }
+          else { if (cls === 'cav') cuerno(0.6, !mio); So.carga(0.7, Math.min(1, S.man.filter(x => x.lado === e.lado && vivo(x)).reduce((a, x) => a + x.n, 0) / 1500)); }   /* SON10: la masa que suena debajo crece con el ejército */
           break;
         case 'carga-frenada': So.choque(1, 0.9); if (tropa === 'falange' || (e.con !== undefined && S.man[e.con] && S.man[e.con].tropa === 'falange')) So.falange(0.5); break;
         case 'pila': case 'tiro': So.jabalina(0.7); setTimeout(() => { if (!cerrado) So.choque(0.4, 1.3); }, 650); break;
@@ -228,6 +247,19 @@
       for (const u of S.man) { const b = document.createElement('div'); b.className = 'mn-e' + (u.lado ? ' ene' : ''); b.innerHTML = '<i class="h"><b></b></i><i class="m"><b></b></i><i class="f"><b></b></i>'; $('capa').appendChild(b); mans[u.id].barra = b; }
     }
     let sombras = null, rects = null, fantasmas = null, flecha = null, pila = null;
+    /* CG8a: cámara de cine (js/gfx/cine-mando.js) y estandarte de cada manípulo (js/gfx/estandartes.js) */
+    let cine = null, estandartes = null; const celdaDe = [];
+    function crearEst(ES) {
+      const cel = {}, letras = []; let k = [0, 0];
+      for (const u of S.man) { const c = u.lado + ':' + u.tropa; if (cel[c] === undefined) { cel[c] = k[u.lado]++ % 8; letras.push([String(nombreTropa(u.tropa)).trim().charAt(0).toUpperCase(), u.lado, cel[c]]); } celdaDe[u.id] = cel[c]; }
+      return ES.crearEstandartes({ THREE, escena, n: S.man.length, talla: TALLA, letras });
+    }
+    function pintarEstandartes() {
+      if (!estandartes) return; const al = Math.max(0, Math.min(1, acum / PASO));
+      for (const u of S.man) { const p0 = previo[u.id] || u, fuera = u.estado === 'fuera' || u.estado === 'caida' || u.n <= 0;
+        estandartes.pon(u.id, p0.x + (u.x - p0.x) * al, -(p0.y + (u.y - p0.y) * al), celdaDe[u.id] || 0, u.lado, fuera ? -1 : sel.includes(u.id) ? 1 : vivo(u) ? 0 : 2); }
+      estandartes.fin(camara, alto, Tv + performance.now() / 4000);
+    }
     function texturaRect() {
       const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d');
       g.fillStyle = 'rgba(255,255,255,0.22)'; g.fillRect(0, 0, 64, 64);
@@ -306,6 +338,8 @@
       }
       for (let k = 0; k < 2; k++) if (cuenta[k].length > TOPE_N[k]) { cuenta[k].sort((p, q) => p.dc - q.dc); for (let i = TOPE_N[k]; i < cuenta[k].length; i++) { cuenta[k][i].nv = k + 1; if (k === 0) cuenta[1].push(cuenta[k][i]); } }
     }
+    /* CG8a: de lejos, las figuras crecen algo (hasta +40 % a 650 m): el bloque se lee como hombres y no como hormigas (licencia de vista) */
+    const lejos = f => 1 + 0.4 * Math.max(0, Math.min(1, ((f.dc || 0) - 150) / 500));
     function pintarFiguras() {
       for (const m of mallas.values()) if (m.nv) for (const t of m.nv) t.limpiar();
       niveles();
@@ -316,20 +350,20 @@
         const [clip, val, modo] = movimiento(f);
         let a, o, sc;
         if (m.nv) {
-          const tr = m.nv[f.nv], ii = tr.sig(); if (ii < 0) continue; a = tr.malla.instanceMatrix.array; o = ii * 16; sc = escN * f.talla * TALLA;
+          const tr = m.nv[f.nv], ii = tr.sig(); if (ii < 0) continue; a = tr.malla.instanceMatrix.array; o = ii * 16; sc = escN * f.talla * TALLA * lejos(f);
           const k0 = clip === 'lanzar' && tr.s.j.clips.lanzar2 && ((tr.s.j.muestra || {}).lanzar2 || []).length === 3 ? 'lanzar2' : clip;      /* lanzamiento nuevo (pilum, jabalina, venablo): quien lo trae lo usa; el hondero sigue con el suyo */
           const k = tr.s.j.clips[k0] ? k0 : 'quieto', cl = tr.s.j.clips[k], dur = (cl.n - 1) / cl.fps, tt = modo === 's' ? val : modo === 'c' ? (val - Math.floor(val)) * dur : Math.min(1, Math.max(0, val)) * dur;
           tr.vars(ii, f.vr); tr.pose(ii, k, tt, tr.muestra(k, tt));
           if (pila) { const su = k === 'lanzar2' ? SOLD.soltarDe(tr.s) : null; if (su != null && f.tl != null && f.tl < su && tt >= su && f.dc < 160) tirarPila(f, sc); f.tl = su != null ? tt : null; }   /* PIL3: suelta el arma: vuela */
         } else {
-          a = m.malla.instanceMatrix.array; o = f.slot * 16; sc = UNIT_SCALE * TALLA;
+          a = m.malla.instanceMatrix.array; o = f.slot * 16; sc = UNIT_SCALE * TALLA * lejos(f);
           const Cl = m.u.clips, cl = Cl[VIEJO[clip]] || Cl.attack_melee || Cl.idle;
           m.fr.array[f.slot] = !cl ? 0 : modo === 'c' ? cl.start + Math.min(cl.frames - 1, Math.floor((val - Math.floor(val)) * cl.frames)) : modo === 'p' ? frameOnce(cl, Math.min(1, Math.max(0, val)) * cl.dur) : frameOf(cl, val);
         }
         const c = Math.cos(f.yaw) * sc, s = Math.sin(f.yaw) * sc;
         a[o] = c; a[o + 1] = 0; a[o + 2] = -s; a[o + 3] = 0; a[o + 4] = 0; a[o + 5] = sc; a[o + 6] = 0; a[o + 7] = 0;
         a[o + 8] = s; a[o + 9] = 0; a[o + 10] = c; a[o + 11] = 0; a[o + 12] = f.x + (f.fx || 0); a[o + 13] = 0; a[o + 14] = f.z + (f.fz || 0); a[o + 15] = 1;
-        const e = f.est === 0 ? (m.nv ? 1 : 1.5) * TALLA : 0;
+        const e = (f.est === 0 ? (m.nv ? 1 : 1.5) : 1.15) * TALLA * lejos(f);   /* CG8a: el caído deja su mancha en el suelo */
         sm[q] = e; sm[q + 1] = 0; sm[q + 2] = 0; sm[q + 3] = 0; sm[q + 4] = 0; sm[q + 5] = 1; sm[q + 6] = 0; sm[q + 7] = 0; sm[q + 8] = 0; sm[q + 9] = 0; sm[q + 10] = e; sm[q + 11] = 0; sm[q + 12] = f.x + (f.fx || 0); sm[q + 13] = 0.03; sm[q + 14] = f.z + (f.fz || 0); sm[q + 15] = 1;
       }
       for (const m of mallas.values()) { if (m.nv) { for (const t of m.nv) t.malla.instanceMatrix.needsUpdate = true; continue; } m.malla.instanceMatrix.needsUpdate = true; m.fr.needsUpdate = true; }
@@ -381,8 +415,8 @@
       const al = Math.max(0, Math.min(1, acum / PASO)), y = altoN * TALLA * 1.9;
       for (const u of S.man) {
         const m = mans[u.id]; if (!m || !m.barra) continue; const b = m.barra;
-        if (u.estado === 'fuera' || u.estado === 'caida') { if (!b.hidden) b.hidden = true; continue; }
-        const p0 = previo[u.id] || u; V3.set(p0.x + (u.x - p0.x) * al, y, -(p0.y + (u.y - p0.y) * al)).project(camara);
+        if (u.estado === 'fuera' || u.estado === 'caida' || (cine && cine.modo === 'apertura')) { if (!b.hidden) b.hidden = true; continue; }   /* CG8a: sin barras en el plano de apertura */
+        const p0 = previo[u.id] || u, ye = estandartes && estandartes.alto(u.id) ? estandartes.alto(u.id) * 0.22 : y; V3.set(p0.x + (u.x - p0.x) * al, ye, -(p0.y + (u.y - p0.y) * al)).project(camara);   /* CG8a: bajo el paño del estandarte */
         if (V3.z > 1 || Math.abs(V3.x) > 1.05 || Math.abs(V3.y) > 1.05) { if (!b.hidden) b.hidden = true; continue; }
         b.hidden = false; b.style.transform = 'translate3d(' + Math.round((V3.x + 1) / 2 * ancho) + 'px,' + Math.round((1 - V3.y) / 2 * alto) + 'px,0)';
         const cl = 'mn-e' + (u.lado ? ' ene' : '') + (sel.includes(u.id) ? ' sel' : '') + (!vivo(u) ? ' roto' : '');
@@ -521,7 +555,7 @@
       if (r) { const o = Sim.vuelveDePie(S, { tuyo: a.id, mapa: a.P.mapa, r }); txt = (r.ganador === 'tuyo' ? 'Victoria a pie' : r.ganador === 'enemigo' ? (a.P.falange ? 'Tu falange rompió' : 'Tu manípulo rompió') : 'Vuelves al mando') + ' · bajas: ' + o.bajas[0] + ' tuyas, ' + o.bajas[1] + ' suyas'; }
       try { a.frame.src = 'about:blank'; } catch (e) { /* nada */ } a.frame.remove();
       el.classList.remove('apie'); medir(); previo = S.man.map(u => ({ x: u.x, y: u.y, a: u.a })); colocar(0, true); avisos();
-      const u = S.man[a.id]; cam.x = u.x; cam.z = -u.y; ponCamara();
+      const u = S.man[a.id]; if (cine) cine.libre(); cam.x = u.x; cam.z = -u.y; ponCamara();
       sel = vivo(u) ? [a.id] : []; pausa(a.pausaAntes); pintarHud(true); aviso(txt);
       if (S.fase === 'fin') finYa();
     }
@@ -532,10 +566,17 @@
 
     /* ---------- avisos en palabras, del registro S.reg ---------- */
     let nReg = 0, chocaron = false, nCuadros = 0; const cinta = [];
+    /* CG8a: una nube de polvo donde chocan o cargan */
+    function polvoDe(e) {
+      if (!entorno || !entorno.golpe || !/^(choque|carga|carga-frenada|ruptura|desboque)$/.test(e.tipo)) return;
+      const u = e.id !== undefined ? S.man[e.id] : null, v = e.con !== undefined ? S.man[e.con] : null; if (!u) return;
+      const x = v ? (u.x + v.x) / 2 : u.x, y = v ? (u.y + v.y) / 2 : u.y, a = v ? Math.atan2(v.y - u.y, v.x - u.x) + Math.PI / 2 : u.a + Math.PI / 2;
+      entorno.golpe(x, -y, Math.min(Sim.frente(u), v ? Sim.frente(v) : 99), a, e.tipo === 'choque' ? 1 : 0.8);
+    }
     function avisos() {
       const nuevos = [];
       for (; nReg < S.reg.length; nReg++) {
-        const e = S.reg[nReg]; suena(e); if (banda && root.Voces) { if (e.tipo === 'fin') banda.fin(e.como); else { const sit = root.Voces.deSim(e); if (sit) banda.dice(sit); } }
+        const e = S.reg[nReg]; suena(e); if (cine) cine.evento(e); polvoDe(e); if (banda && root.Voces) { if (e.tipo === 'fin') banda.fin(e.como); else { const sit = root.Voces.deSim(e); if (sit) banda.dice(sit); } }
         const u = e.id !== undefined ? S.man[e.id] : null, nom = u ? u.nom : '', mio = e.lado === 0;
         let t = '', tono = '';
         if (e.tipo === 'flanqueo') { t = mio ? '¡Flanco al aire! Os flanquean a ' + nom : 'Flanqueáis a ' + nom; tono = mio ? 'mal' : 'bien'; }
@@ -581,7 +622,7 @@
     const dedos = new Map(); let gesto = null;
     function abajo(e) {
       if (!lista) return;
-      if (apie) return; lienzo.setPointerCapture && lienzo.setPointerCapture(e.pointerId);
+      if (apie) return; lienzo.setPointerCapture && lienzo.setPointerCapture(e.pointerId); if (cine) cine.toca();
       dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
       if (dedos.size === 2) { const [a, b] = [...dedos.values()]; gesto = { tipo: 'pellizco', d0: Math.hypot(a.x - b.x, a.y - b.y) || 1, cd: cam.d }; arrastre = null; return; }
       if (dedos.size > 2) return;
@@ -591,9 +632,9 @@
     }
     function mueve(e) {
       if (!dedos.has(e.pointerId) || !gesto) return; dedos.set(e.pointerId, { x: e.clientX, y: e.clientY });
-      if (gesto.tipo === 'pellizco') { if (dedos.size < 2) return; const [a, b] = [...dedos.values()]; cam.d = gesto.cd * gesto.d0 / (Math.hypot(a.x - b.x, a.y - b.y) || 1); ponCamara(); return; }
+      if (gesto.tipo === 'pellizco') { if (dedos.size < 2) return; if (cine) cine.libre(); const [a, b] = [...dedos.values()]; cam.d = gesto.cd * gesto.d0 / (Math.hypot(a.x - b.x, a.y - b.y) || 1); ponCamara(); return; }
       if (!gesto.movido && Math.hypot(e.clientX - gesto.x0, e.clientY - gesto.y0) < 10) return; gesto.movido = true;
-      if (gesto.tipo === 'camara') { if (!gesto.p0) return; const p = suelo(e.clientX, e.clientY); if (!p) return; cam.x += gesto.p0.x - p.x; cam.z -= gesto.p0.y - p.y; ponCamara(); return; }
+      if (gesto.tipo === 'camara') { if (!gesto.p0) return; if (cine) cine.libre(); const p = suelo(e.clientX, e.clientY); if (!p) return; cam.x += gesto.p0.x - p.x; cam.z -= gesto.p0.y - p.y; ponCamara(); return; }
       const p = suelo(e.clientX, e.clientY); if (!p || !gesto.p0) return;
       const dx = p.x - gesto.p0.x, dy = p.y - gesto.p0.y, u0 = S.man[sel[0]];
       let a = Math.atan2(dy, dx); if (u0 && Math.cos(a - u0.a) < -0.3) a = u0.a;       /* hacia atrás: retroceden mirando al enemigo */
@@ -623,7 +664,7 @@
       pintarHud(true);
     }
     lienzo.addEventListener('pointerdown', abajo); lienzo.addEventListener('pointermove', mueve); lienzo.addEventListener('pointerup', arriba); lienzo.addEventListener('pointercancel', arriba);
-    lienzo.addEventListener('wheel', e => { e.preventDefault(); if (apie) return; cam.d *= Math.exp(e.deltaY * 0.0012); ponCamara(); }, { passive: false });
+    lienzo.addEventListener('wheel', e => { e.preventDefault(); if (apie) return; if (cine) cine.libre(); cam.d *= Math.exp(e.deltaY * 0.0012); ponCamara(); }, { passive: false });
 
     /* ---------- arriba: pausa, velocidad, retirarse ---------- */
     function pausa(v) { const p = v === undefined ? !S.pausa : !!v; if (p !== S.pausa && S.fase !== 'fin') Sim.ordenar(S, { tipo: 'pausa', valor: p }); $('pausa').textContent = S.pausa ? 'Seguir' : 'Pausa'; $('pausa').classList.toggle('on', S.pausa); $('enpausa').hidden = !S.pausa; }
@@ -655,7 +696,7 @@
       Tv += dt; colocar(dt, false); if (FF && dt > 0) FF.paso(figs, dt, leeFig);
       if (S.fase === 'fin' && !finVisto && !tFin) tFin = setTimeout(finYa, 1500);
     }
-    function pinta(dt) { nCuadros++; pintarSuelo(); pintarFiguras(); if (entorno) entorno.tick(dt || 0, S, Sim, camara, alto * dpr); renderer.render(escena, camara); pintarBarras(); }
+    function pinta(dt) { nCuadros++; if (cine) cine.tick(); pintarSuelo(); pintarFiguras(); pintarEstandartes(); if (entorno) entorno.tick(dt || 0, S, Sim, camara, alto * dpr); renderer.render(escena, camara); pintarBarras(); }
     let raf = 0, antes = 0, tHud = 0;
     function cuadro(ahora) {
       if (cerrado) return; raf = requestAnimationFrame(cuadro);
@@ -664,7 +705,7 @@
       if (banda && !S.pausa && S.fase !== 'fin') banda.tic(Math.min(0.1, real) * vel, () => root.Banda.resumenSim(S), () => S.man.some(u => u.lado === 0 && u.estado === 'duda'));
       ambiente(Math.min(0.1, real) * vel);   /* SON4-5: música y fragor siguen también a pie */
       if (apie) return;   /* LP7: a pie pinta la capa; aquí no se dibuja (un solo lienzo trabajando) */
-      avanza(real); pinta(S.pausa || S.fase === 'fin' ? 0 : Math.min(0.1, real) * vel); avisos();
+      avanza(real); pinta(S.pausa || S.fase === 'fin' ? 0 : Math.min(0.1, real) * vel); avisos(); preguntas(real);
       if (ahora - tHud > 250) { tHud = ahora; pintarHud(); }
     }
 
@@ -679,20 +720,24 @@
         if (cerrado) { soltarSoldados(); return; }
         if (!getUnit('hastati') && !soldados.size) throw new Error('No se han podido cargar los soldados');
         entorno = await C.montarEntorno({ THREE, escena, Gr, St, UNIT_SCALE, campo: cfg.campo, renderer });
+        const [CI, ES] = await Promise.all([import('./gfx/cine-mando.js').catch(() => null), import('./gfx/estandartes.js').catch(() => null)]);   /* CG8a: cámara de cine y estandartes */
         if (cerrado) { entorno.soltar(); soltarSoldados(); return; }
         preparar(); camaraInicial(); colocar(0, true);
+        if (ES) estandartes = crearEst(ES);
+        if (CI) { cine = CI.crearCine({ THREE, camara, cam, ponCamara, S }); cine.apertura(); }
         if (FIS) FF = FIS.crearFisicaFiguras({ escala: altoN * TALLA / 1.78 });   /* FI4: radios y escudos a la medida de la figura (TALLA) */
         lista = true; if (banda) banda.inicia(); $('carga').hidden = true; pausa(S.pausa); pintarHud(true);
         if (S.fase === 'fin') finYa();
+        else if (DU && !S.arenga && S.t === 0) arengar();
         else { cinta.push({ t: 'Toca un manípulo tuyo y arrástralo para moverlo', tono: '', hasta: performance.now() + 7000 }); }
       } catch (e) { console.error(e); $('carga-p').textContent = 'No se ha podido cargar la batalla.'; $('carga-s').hidden = false; }
     }
 
     function cerrarTodo() {
-      cerrado = true; cancelAnimationFrame(raf); clearTimeout(tFin); if (banda) banda.quita(); if (root.Sonido && root.Sonido.callaFondos) root.Sonido.callaFondos();   /* SON5: cállalo todo (fragor, música) */   /* window.__mn se queda con cerrado = true para las pruebas */
+      cerrado = true; cancelAnimationFrame(raf); clearTimeout(tFin); if (DU) DU.cerrar(); if (banda) banda.quita(); if (root.Sonido && root.Sonido.callaFondos) root.Sonido.callaFondos();   /* SON5: cállalo todo (fragor, música) */   /* window.__mn se queda con cerrado = true para las pruebas */
       for (const f of salidas) f();
       for (const m of mallas.values()) { try { if (m.nv) for (const t of m.nv) { escena.remove(t.malla); t.dispose(); } else { escena.remove(m.malla); m.malla.geometry.dispose(); } } catch (e) { /* ya liberada */ } }
-      soltarSoldados(); if (entorno) entorno.soltar();
+      soltarSoldados(); if (entorno) entorno.soltar(); if (estandartes) estandartes.soltar();
       try { renderer.dispose(); renderer.forceContextLoss(); } catch (e) { /* nada que liberar */ }
     }
     function terminar() { const r = Sim.resumen(S); cerrarTodo(); alTerminar(r); }
@@ -708,13 +753,14 @@
       pausa: v => pausa(v),
       salta: seg => { const hasta = S.t + seg; while (S.t < hasta - 1e-9 && S.fase !== 'fin' && !S.pausa) pasoSim(); acum = 0; previo = S.man.map(u => ({ x: u.x, y: u.y, a: u.a })); colocar(0, true); avisos(); pintarHud(true); if (S.fase === 'fin') finYa(); return S.t; },
       cuadro: dt => { if (apie) { const b = dentro(); if (b && b.C) for (let k = 0; k < Math.round((dt || 0) / 0.05); k++) b.C.paso(0.05); return; } avanza(dt || 0); pinta(S.pausa ? 0 : Math.min(0.1, dt || 0) * vel); avisos(); pintarHud(); },
-      camara: o => { if (o) Object.assign(cam, o); else camaraInicial(); ponCamara(); return Object.assign({}, cam); },
+      camara: o => { if (cine) cine.libre(); if (o) Object.assign(cam, o); else camaraInicial(); ponCamara(); return Object.assign({}, cam); },
       /* para pruebas del dedo: el punto de pantalla (px CSS) de un manípulo */
       pantalla: id => { const u = S.man[id]; V3.set(u.x, 0, -u.y).project(camara); return { x: (V3.x + 1) / 2 * ancho, y: (1 - V3.y) / 2 * alto }; },
       terminar, ver: () => verFormas,
       /* LP7: a pie. bajar(id) devuelve '' o el motivo; apie() lo de la capa; frente(p0, p1) dibuja el frente (metros, marco del bloque);
          orden(n) una de las cuatro; subir() vuelve con las bajas de ahora */
       camaraY: () => camara.position.y,
+      cine: otra => { if (cine && otra) cine.apertura(otra === true ? undefined : otra); return cine ? cine.modo : null; },   /* CG8a: 'apertura', 'sigue' o 'mando'; cine(true) repite la apertura; cine(s) la deja quieta en el segundo s (capturas) */
       /* PIL3: pila en el aire o hincados ahora mismo */
       pila: () => pila ? (FF ? FF.proyectiles.length : pila.vivos.length) : 0,
       fisica: () => FF ? FF.medir() : null, fisicaCero: () => FF && FF.cero(),   /* FI4 */
