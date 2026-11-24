@@ -56,7 +56,11 @@ function campana(ag, seed, region, opciones) {
     if (fs.existsSync(err) || !fs.existsSync(DIR) || Date.now() - t0 > 45 * 60000) return campaign(ag, seed, region, opciones);   // falló fuera (o el obrero murió): se repite aquí para que el fallo salga con su mensaje
     duerme(150);
   }
-  return JSON.parse(fs.readFileSync(f, 'utf8'));
+  /* como si la hubiera jugado aquí: la partida queda en G.state y sus colonias fundadas, registradas en D (igual que al cargar).
+     Así las pruebas que siguen ven lo mismo que en serie (p. ej. D.regionCiudades('italia', true) con la colonia del bot). */
+  const s = JSON.parse(fs.readFileSync(f, 'utf8')), G = require('../js/game.js');
+  G.state = s; if (G.quitarColonias && G.migrarColonias) { G.quitarColonias(); G.migrarColonias(s); }
+  return s;
 }
 
 module.exports = { campana, TAREAS, HILOS };
