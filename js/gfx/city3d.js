@@ -176,12 +176,13 @@ const matBulto = new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE
 
 /* ---------- cámara: gira alrededor de un punto del suelo (de la maqueta; el tamaño es el del contenedor, no el de la ventana) ---------- */
 export const cam = { tx: 0, tz: -20, d: 640, az: 0, el: 0 };
-const PLANO_EL = 80, PLANO_MARGEN = 1.22;          /* CV4a: margen 1,22 (antes 1,7): la urbe llena el ancho y deja una franja de campos */                               // CV1: elevación de la vista de plano, en grados
+const PLANO_EL = 86, PLANO_MARGEN = 1.03, PLANO_DMIN = 110, PLANO_PAN = 1.15;  /* CD1a: cenital (86°); la urbe llena el ancho; acercar hasta d=110; el arrastre se limita a la urbe y sus campos */ let planoBaseOn = false; const PLANO_ALT = 0;          /* CV4a: margen 1,22 (antes 1,7): la urbe llena el ancho y deja una franja de campos */                               // CV1: elevación de la vista de plano, en grados
 const camara = new THREE.PerspectiveCamera(38, 1, 2, 20000);
 const vista = { w: 1, h: 1 };                      // tamaño del lienzo
 let desvio = 0;                                    // desplazamiento vertical de la imagen (para dejar sitio a la ficha)
 export function ponerCamara() {
-  cam.d = Math.max(30, Math.min(cam.dMax || 1050, cam.d)); cam.tx = Math.max(-430, Math.min(430, cam.tx)); cam.tz = Math.max(-440, Math.min(400, cam.tz));
+  cam.d = Math.max(cam.dMin || 30, Math.min(cam.dMax || 1050, cam.d)); cam.tx = Math.max(-430, Math.min(430, cam.tx)); cam.tz = Math.max(-440, Math.min(400, cam.tz));
+  if (cam.pan) { const dx = cam.tx - cam.pan.x, dz = cam.tz - cam.pan.z, dd = Math.hypot(dx, dz), m = cam.pan.r; if (dd > m) { cam.tx = cam.pan.x + dx / dd * m; cam.tz = cam.pan.z + dz / dd * m; } }
   const k = Math.min(1, Math.max(0, (cam.d - 120) / 700)); cam.el = cam.elF || (21 + 13 * k * (2 - k)) * Math.PI / 180;
   const ty = altura(cam.tx, cam.tz); camara.position.set(cam.tx + Math.sin(cam.az) * Math.cos(cam.el) * cam.d, ty + Math.sin(cam.el) * cam.d, cam.tz + Math.cos(cam.az) * Math.cos(cam.el) * cam.d);
   camara.position.y = Math.max(camara.position.y, altura(camara.position.x, camara.position.z) + 2);
@@ -218,12 +219,14 @@ let hemiBase = 1.45, solBase = 3.3, copasM = null, nieblaBase = 0.00029, nieblaK
 /* CN15a: estación actual para quien la necesite. k = ancla de la que se parte (0 primavera, 1 verano, 2 otoño, 3 invierno; el índice A de luz()), f = mezcla suave hacia la siguiente (0..1), ks = estación del calendario */
 export function estacionActual() { return { k: estK, f: estF, ks: estSol < 0 ? estK : estSol }; }
 /* CV1: el aspecto de plano (niebla, luz, exposición, río, copas de árbol) sale de un solo número, 0 de cerca y 1 en plano, derivado de nieblaK */
-const PLANO_LUZ = { exposicion: 0.1, hemi: 0.75, sol: -0.1, sombra: 0.5 }, _solC = new THREE.Color('#ffdfb4'), _hemC = new THREE.Color('#b6c6de'), _hemG = new THREE.Color('#927252'), LUZ_PLANO = { sol: new THREE.Color('#fff4e0'), cielo: new THREE.Color('#f2f0e6'), suelo: new THREE.Color('#b8a880') }, AZUL_RIO = new THREE.Color('#2f7fae'), _rio0 = new THREE.Color('#6f8288');
+const SOL_P = new THREE.Vector3(-0.90, 0.60, 0.36).normalize(), _dirP = new THREE.Vector3(); let kqLuz = -1;      /* CD1a: sol de tarde en plano, a unos 31° de altura, del oeste-suroeste */
+const PLANO_LUZ = { exposicion: 0.08, hemi: 0.7, sol: 0.12, sombra: 0.42 }, _solC = new THREE.Color('#ffdfb4'), _hemC = new THREE.Color('#b6c6de'), _hemG = new THREE.Color('#927252'), LUZ_PLANO = { sol: new THREE.Color('#ffd49c'), cielo: new THREE.Color('#f7e6cc'), suelo: new THREE.Color('#b09a70') }, AZUL_RIO = new THREE.Color('#2f7fae'), _rio0 = new THREE.Color('#6f8288');
 function ambientePlano() {
   const k = Math.max(0, Math.min(1, (1 - nieblaK) / 0.98)); scene.fog.density = nieblaBase * nieblaK;
   hemi.intensity = hemiBase * (1 + PLANO_LUZ.hemi * k); sol.intensity = solBase * (1 + PLANO_LUZ.sol * k); renderer.toneMappingExposure = 0.92 + PLANO_LUZ.exposicion * k;
   /* CV4a: en plano la luz es clara y neutra (sin el tinte frío o dorado de la estación en tejados y suelo) y las sombras, más suaves; de cerca no cambia nada */
   U.uPlano.value = k; sol.color.copy(_solC).lerp(LUZ_PLANO.sol, k * 0.85); hemi.color.copy(_hemC).lerp(LUZ_PLANO.cielo, k * 0.85); hemi.groundColor.copy(_hemG).lerp(LUZ_PLANO.suelo, k * 0.85); if (sol.shadow) sol.shadow.intensity = 1 - PLANO_LUZ.sombra * k;
+  { const kq = Math.round(k * 20) / 20; if (kq !== kqLuz) { kqLuz = kq; _dirP.copy(SOL).lerp(SOL_P, kq).normalize(); sol.position.set(0, 0, -70).addScaledVector(_dirP, 1500); const sc = sol.shadow && sol.shadow.camera; if (sc) { const RS = 600 + 340 * kq; sc.left = -RS; sc.right = RS; sc.top = RS; sc.bottom = -RS; sc.updateProjectionMatrix(); } sombraPend = true; } }
   if (rio && rio.material) rio.material.color.copy(_rio0).lerp(AZUL_RIO, k);
   if (copasM) { copasM.visible = k > 0.02 && copasM.count > 0; copasM.material.opacity = k; }
 }
@@ -373,7 +376,7 @@ function casas(t) {
   return anim;
 }
 /* CI1: pieza romana de su siglo para un tipo, o null. El templo toscano hasta 146 a.C.; desde entonces, el de mármol (Veleyo 1.11) */
-function piezaRS(tipo) { if (!romaS()) return null; if (tipo === 'templo' && CI.fecha(E).ano > 146) return ['rs_templo', 1, 0, 0.3]; if (tipo === 'dique') return ['rs_dique', 1.0, 0, 0.2]; return null; }
+function piezaRS(tipo) { if (!romaS()) return null; if (tipo === 'templo' && planoBaseOn) return null; if (tipo === 'templo' && CI.fecha(E).ano > 146) return ['rs_templo', 1, 0, 0.3]; if (tipo === 'dique') return ['rs_dique', 1.0, 0, 0.2]; return null; }
 function edificios() {
   contornoSucio = true;      // E5: el contorno se rehace con las matrices nuevas
   const por = {}; for (const t in PZ) por[PZ[t][0]] = []; for (const k of TEMPLO_PZ) por[k] = []; for (const k of ['rs_templo', 'rs_dique', 'rs_tabernas']) por[k] = [];
@@ -390,14 +393,25 @@ function arboles() { const n = E.arboles.reduce((s, a) => s + (a.talado ? 1 : 0)
   for (const k in L.arbol) L.arbol[k].poner(arb[k] || []);
   copas(te); }
 /* CV1: en plano cada árbol lleva una copa redonda plana (disco con borde oscuro) sobre su cartel; solo se ve en plano */
+/* CD1a: copa pintada (canvas pequeño, semilla fija): redonda y opaca, luz arriba a la izquierda, sombra abajo a la derecha */
+function texCopa() {
+  const N = 64, cv = document.createElement('canvas'); cv.width = cv.height = N; const g = cv.getContext('2d'); let sd = 12345; const r = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+  const gr = g.createRadialGradient(N * 0.38, N * 0.34, N * 0.04, N * 0.5, N * 0.5, N * 0.5); gr.addColorStop(0, '#ffffff'); gr.addColorStop(0.55, '#c9c9c9'); gr.addColorStop(1, '#6e6e6e');
+  g.fillStyle = gr; g.beginPath(); g.arc(N / 2, N / 2, N * 0.47, 0, 7); g.fill();
+  g.save(); g.beginPath(); g.arc(N / 2, N / 2, N * 0.47, 0, 7); g.clip();
+  for (let i = 0; i < 60; i++) { const a = r() * 6.28, d = r() * N * 0.42, x = N / 2 + Math.cos(a) * d, y = N / 2 + Math.sin(a) * d, luz = (x + y) < N, q = 3 + r() * 4; g.fillStyle = luz ? 'rgba(255,255,255,' + (0.16 + 0.2 * r()) + ')' : 'rgba(40,50,30,' + (0.14 + 0.2 * r()) + ')'; g.beginPath(); g.arc(x, y, q, 0, 7); g.fill(); }
+  g.restore(); g.strokeStyle = 'rgba(30,40,20,0.45)'; g.lineWidth = 2; g.beginPath(); g.arc(N / 2, N / 2, N * 0.46, 0.1, 1.7); g.stroke();
+  const t = new THREE.CanvasTexture(cv); t.colorSpace = THREE.SRGBColorSpace; return t;
+}
+const VERDES = [[0.20, 0.42, 0.13], [0.26, 0.50, 0.16], [0.17, 0.36, 0.14], [0.32, 0.50, 0.14], [0.14, 0.34, 0.20]];
 function copas(te) {
-  if (!copasM) { const g = new THREE.CircleGeometry(1, 14); g.rotateX(-Math.PI / 2); const n = g.attributes.position.count, c = new Float32Array(n * 3); for (let i = 0; i < n; i++) { const centro = i === 0 ? 1 : 0.62; c.set([centro, centro, centro * 0.9], i * 3); } g.setAttribute('color', new THREE.BufferAttribute(c, 3));
-    copasM = new THREE.InstancedMesh(g, new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, opacity: 0, depthWrite: false }), 9000); copasM.count = 0; copasM.visible = false; copasM.frustumCulled = false; copasM.renderOrder = 3; scene.add(copasM); }
+  if (!copasM) { const g = new THREE.PlaneGeometry(2, 2); g.rotateX(-Math.PI / 2);
+    copasM = new THREE.InstancedMesh(g, new THREE.MeshLambertMaterial({ map: texCopa(), alphaTest: 0.45, transparent: true, opacity: 0 }), 9000); copasM.count = 0; copasM.visible = false; copasM.frustumCulled = false; copasM.renderOrder = 3; scene.add(copasM); }
   const col = new THREE.Color(), m4 = new THREE.Matrix4(); let n = 0;
   for (const a of [...E.arboles, ...Campos.arbolesExtra()]) { if (n >= 9000) break; if (a.talado || Campos.tapa(a.x, a.z)) continue; if (rellenoC && rellenoC.has(Math.floor((a.z - CI.Z0) / CI.C) * CI.N + Math.floor((a.x - CI.X0) / CI.C))) continue;
     const st = pieza(a.pieza); if (!st) continue; const b = st.bb, r = Math.max(b[3] - b[0], b[5] - b[2]) * 0.5 * a.esc * 0.8, y = altura(a.x, a.z) + (b[4] - b[1]) * a.esc * 0.8;
-    copasM.setMatrixAt(n, m4.compose(new THREE.Vector3(a.x, y, a.z), _q.identity(), new THREE.Vector3(r, 1, r))); const v = 0.85 + 0.3 * a.tono;
-    copasM.setColorAt(n, col.setRGB(0.2 * v * te[0] * 1.6, 0.42 * v * te[1] * 1.3, 0.13 * v * te[2] * 1.4)); n++; }
+    copasM.setMatrixAt(n, m4.compose(new THREE.Vector3(a.x, y, a.z), _q.identity(), new THREE.Vector3(r, 1, r))); const v = 0.9 + 0.25 * a.tono, vc = VERDES[Math.floor(((a.tono * 7.3 + a.x * 0.013 + a.z * 0.007) % 1 + 1) % 1 * VERDES.length)];
+    copasM.setColorAt(n, col.setRGB(vc[0] * v * te[0] * 1.6, vc[1] * v * te[1] * 1.3, vc[2] * v * te[2] * 1.4)); n++; }
   copasM.count = n; copasM.instanceMatrix.needsUpdate = true; if (copasM.instanceColor) copasM.instanceColor.needsUpdate = true; ambientePlano(); }
 /* UR1 (usuario, 20/11: «muralla de madera que la ciudad se la ha comido»): con la urbe grande a la vista (E.urbe, plano 3) la muralla se DIBUJA por el borde
    de fuera, abrazando todas las casas, y no por el surco de dentro. Solo vista: la fase, las puertas del juego y «dentro o fuera» siguen saliendo de ciudad.js.
@@ -537,7 +551,7 @@ export function sincronizar(forzar) {
 export function miniaturas() {
   const out = {}, T = 144, rt = new THREE.WebGLRenderTarget(T, T), esc = new THREE.Scene(); esc.add(new THREE.DirectionalLight('#ffe8c8', 3.2).translateX(-3).translateY(4).translateZ(3), new THREE.HemisphereLight('#c8d4e8', '#8a7458', 1.6));
   const c2 = document.createElement('canvas'); c2.width = c2.height = T; const g = c2.getContext('2d'), px = new Uint8Array(T * T * 4), ca = new THREE.Color(); renderer.getClearColor(ca);
-  for (const [id, k] of [...Object.entries(PZ).map(([t, d]) => [t, RS.ROMA_SIGLO && cul === 'roma' && (t === 'templo' || t === 'dique') ? (t === 'templo' ? 'rs_templo' : 'rs_dique') : d[0]]), ['muralla', RS.ROMA_SIGLO && cul === 'roma' ? 'rs_puerta' : 'torre']]) { const st = pieza(k); if (!st) continue; const lt = new Lote(k, [st], 1, { escena: esc, sinTeja: id === 'fuente' || id === 'muralla' }); lt.poner([{ m: new THREE.Matrix4(), ...(id === 'muralla' ? { muro: [0.7, 0.66, 0.6] } : PIEL_U) }]); for (const m of lt.niv[0].mallas) { m.count = 1; lt.niv[0].iM.array.set(lt.M.subarray(0, 16)); lt.niv[0].iA.array.set(lt.aM.subarray(0, 3)); lt.niv[0].iT.array.set(lt.aT.subarray(0, 4)); }
+  for (const [id, k] of [...Object.entries(PZ).map(([t, d]) => [t, RS.ROMA_SIGLO && cul === 'roma' && (t === 'templo' ? !planoBaseOn : t === 'dique') ? (t === 'templo' ? 'rs_templo' : 'rs_dique') : d[0]]), ['muralla', RS.ROMA_SIGLO && cul === 'roma' ? 'rs_puerta' : 'torre'], ['curia', 'foro'], ...(pieza('arco') ? [['acueducto', 'arco']] : [])]) { const st = pieza(k); if (!st) continue; const lt = new Lote(k, [st], 1, { escena: esc, sinTeja: id === 'fuente' || id === 'muralla' }); lt.poner([{ m: new THREE.Matrix4(), ...(id === 'muralla' ? { muro: [0.7, 0.66, 0.6] } : PIEL_U) }]); for (const m of lt.niv[0].mallas) { m.count = 1; lt.niv[0].iM.array.set(lt.M.subarray(0, 16)); lt.niv[0].iA.array.set(lt.aM.subarray(0, 3)); lt.niv[0].iT.array.set(lt.aT.subarray(0, 4)); }
     const b = st.bb, y0 = Math.max(b[1], -1), cx = (b[0] + b[3]) / 2, cy = (y0 + b[4]) / 2, cz = (b[2] + b[5]) / 2, r = 0.5 * Math.hypot(b[3] - b[0], b[4] - y0, b[5] - b[2]), cm = new THREE.PerspectiveCamera(30, 1, 1, 500); cm.position.set(cx + r * 2.1, cy + r * 1.7, cz + r * 2.4); cm.lookAt(cx, cy, cz);
     renderer.setRenderTarget(rt); renderer.setClearColor('#000000', 0); renderer.clear(); renderer.render(esc, cm); renderer.readRenderTargetPixels(rt, 0, 0, T, T, px); renderer.setRenderTarget(null);
     const im = g.createImageData(T, T); for (let y = 0; y < T; y++) for (let x = 0; x < T; x++) { const o = ((T - 1 - y) * T + x) * 4, d = (y * T + x) * 4; for (let q = 0; q < 3; q++) im.data[d + q] = 255 * Math.pow(Math.min(1, px[o + q] / 255 * 1.15), 1 / 2.2); im.data[d + 3] = px[o + 3]; }
@@ -656,7 +670,7 @@ const PK = 0.7;                                    // escala de las personas res
 const hash = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 export class CityView3D {
   constructor(hostEl, opts) {
-    host = this.host = hostEl; this.opts = opts || {}; vistaActual = this; try { const Gm = window.Game; ambienteOn = !Gm || !Gm.ambiente || Gm.ambiente(); if (ambienteOn) cargarFX(); } catch (e) { }
+    host = this.host = hostEl; this.opts = opts || {}; planoBaseOn = !!this.opts.planoBase; vistaActual = this; try { const Gm = window.Game; ambienteOn = !Gm || !Gm.ambiente || Gm.ambiente(); if (ambienteOn) cargarFX(); } catch (e) { }
     renderer = this.r = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' }); renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.75));
     renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.toneMappingExposure = 0.92; renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; renderer.shadowMap.autoUpdate = false;      // la sombra se calcula a petición
@@ -721,8 +735,8 @@ export class CityView3D {
     this.coast = !!(D.CITIES[id] && D.CITIES[id].sea);
     if (!this.listo) { renderer.render(scene, camara); return; }
     const Gm = window.Game, e = Gm && Gm.ciudadE ? Gm.ciudadE(id) : null;
-    if (e !== E || !sueloJ) { mundo(e); this.view('ciudad'); this._sel = null; }
-    if (sel !== this._sel) { this._sel = sel || null; const p = sel && this.posDe(sel); if (p) { if (this._plano) this.plano(false, { tx: p.x, tz: p.z, d: 300, az: cam.az }); else this.camA = { t0: performance.now(), de: { tx: cam.tx, tz: cam.tz, d: cam.d }, tx: p.x, tz: p.z, d: Math.min(cam.d, 300) }; } }
+    if (e !== E || !sueloJ) { mundo(e); this.view('ciudad'); this._sel = null; if (planoBaseOn) this.planoBase(); }
+    if (sel !== this._sel) { this._sel = sel || null; const p = sel && this.posDe(sel); if (p) { if (this._plano && planoBaseOn) { /* CD1a: en plano base la ficha no saca de la vista de arriba */ } else if (this._plano) this.plano(false, { tx: p.x, tz: p.z, d: 300, az: cam.az }); else this.camA = { t0: performance.now(), de: { tx: cam.tx, tz: cam.tz, d: cam.d }, tx: p.x, tz: p.z, d: Math.min(cam.d, 300) }; } }
     if (this.camA) { const u = Math.min(1, (performance.now() - this.camA.t0) / 900), f = 1 - Math.pow(1 - u, 3), A = this.camA; cam.tx = A.de.tx + (A.tx - A.de.tx) * f; cam.tz = A.de.tz + (A.tz - A.de.tz) * f; cam.d = A.de.d + (A.d - A.de.d) * f; if (u >= 1) this.camA = null; }
     /* la ficha tapa la parte de abajo: la imagen sube para que el punto mirado quede en el centro de lo que se ve */
     const H = vista.h, top = this.fichaTop ? this.fichaTop - host.getBoundingClientRect().top : 0;
@@ -765,14 +779,14 @@ export class CityView3D {
   }
   /* dedos y ratón: un dedo arrastra el suelo; dos dedos acercan, giran y arrastran; la rueda acerca; el botón derecho o Mayús gira */
   bind() {
-    const cv = this.cv, dedos = new Map(); let gesto = null;
+    const cv = this.cv, dedos = new Map(); let gesto = null; const fija = () => this._plano && planoBaseOn;      // CD1a: en plano no se gira ni se inclina
     cv.addEventListener('pointerdown', e => { cv.setPointerCapture(e.pointerId); dedos.set(e.pointerId, { x: e.clientX, y: e.clientY }); this.camA = null;
-      if (dedos.size === 1) gesto = { tipo: e.button === 2 || e.shiftKey ? 'giro' : 'mover', x0: e.clientX, y0: e.clientY, t0: performance.now(), movido: 0, g: sueloEn(e.clientX, e.clientY) };
+      if (dedos.size === 1) gesto = { tipo: (e.button === 2 || e.shiftKey) && !fija() ? 'giro' : 'mover', x0: e.clientX, y0: e.clientY, t0: performance.now(), movido: 0, g: sueloEn(e.clientX, e.clientY) };
       if (dedos.size === 1 && this.opts.agarra) { const o = this.opts.agarra(e.clientX, e.clientY); if (o) Object.assign(gesto, { tipo: 'ficha', dx: o.dx, dy: o.dy }); }      // CN4: un dedo cerca del fantasma lo arrastra
       if (dedos.size === 2) { const [a, b] = [...dedos.values()]; gesto = { tipo: 'dos', d: Math.hypot(a.x - b.x, a.y - b.y), ang: Math.atan2(b.y - a.y, b.x - a.x), cd: cam.d, az: cam.az, mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, movido: 99 }; } });
     cv.addEventListener('pointermove', e => { const p = dedos.get(e.pointerId); if (!p || !gesto) return; const ax = p.x; p.x = e.clientX; p.y = e.clientY;
       if (gesto.tipo === 'dos' && dedos.size >= 2) { const [a, b] = [...dedos.values()], d = Math.hypot(a.x - b.x, a.y - b.y), ang = Math.atan2(b.y - a.y, b.x - a.x), mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2; let da = ang - gesto.ang; while (da > Math.PI) da -= 2 * Math.PI; while (da < -Math.PI) da += 2 * Math.PI;
-        cam.d = gesto.cd * gesto.d / Math.max(20, d); if (Math.abs(da) > 0.12 || gesto.gira) { gesto.gira = true; cam.az = gesto.az - da; } const k = cam.d / vista.h * 0.9, c = Math.cos(cam.az), s = Math.sin(cam.az), ux = -(mx - gesto.mx) * k, uy = -(my - gesto.my) * k * 1.6; cam.tx += ux * c + uy * s; cam.tz += -ux * s + uy * c; gesto.mx = mx; gesto.my = my; ponerCamara(); return; }
+        cam.d = gesto.cd * gesto.d / Math.max(20, d); if (!fija() && (Math.abs(da) > 0.12 || gesto.gira)) { gesto.gira = true; cam.az = gesto.az - da; } const k = cam.d / vista.h * 0.9, c = Math.cos(cam.az), s = Math.sin(cam.az), ux = -(mx - gesto.mx) * k, uy = -(my - gesto.my) * k * (fija() ? 1.0 : 1.6); cam.tx += ux * c + uy * s; cam.tz += -ux * s + uy * c; gesto.mx = mx; gesto.my = my; ponerCamara(); return; }
       if (dedos.size !== 1) return; gesto.movido = Math.max(gesto.movido, Math.hypot(e.clientX - gesto.x0, e.clientY - gesto.y0));
       if (gesto.tipo === 'ficha') { if (this.opts.onFicha) this.opts.onFicha(e.clientX + gesto.dx, e.clientY + gesto.dy); }
       else if (gesto.tipo === 'giro') { cam.az -= (e.clientX - ax) * 0.008; ponerCamara(); }
@@ -799,21 +813,24 @@ export class CityView3D {
       if (u && u.borde && u.borde.length) { let x0 = 1e9, x1 = -1e9, z0 = 1e9, z1 = -1e9; for (const q of u.borde) { x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); z0 = Math.min(z0, q[1]); z1 = Math.max(z1, q[1]); } cx = (x0 + x1) / 2; cz = (z0 + z1) / 2; R = 7; for (const q of u.borde) R = Math.max(R, Math.hypot(q[0] - cx, q[1] - cz) + 7); }
       const asp = vista.w / Math.max(1, vista.h), fov = vista.w < vista.h ? 50 : 38;
       const tv = Math.tan(fov * Math.PI / 360), th = Math.min(tv, tv * asp);
-      a = { tx: cx, tz: cz, d: Math.min(4000, R * PLANO_MARGEN / th), az: cam.az, el: PLANO_EL * Math.PI / 180, nk: 0.02 }; cam.dMax = 4000; this._plano = true;
+      const dEnc = Math.min(4000, R * PLANO_MARGEN / th);
+      a = { tx: cx, tz: cz, d: dEnc, az: planoBaseOn ? 0 : cam.az, el: PLANO_EL * Math.PI / 180, nk: 0.02 }; cam.dMax = planoBaseOn ? dEnc * 1.12 : 4000; if (planoBaseOn) { cam.dMin = PLANO_DMIN; cam.pan = { x: cx, z: cz, r: R * PLANO_PAN }; } this._plano = true;
     } else {
       const P = hacia || this._prev || { tx: cam.tx, tz: cam.tz, d: Math.min(cam.d, 640), az: cam.az, elF: 0 }, efi = P.elF || 0;
       a = { tx: P.tx, tz: P.tz, d: P.d, az: P.az === undefined ? cam.az : P.az, el: efi || kEl(P.d), nk: 1, fin: true, elF: efi }; this._plano = false; this._prev = null;
     }
     if (!de.el) de.el = kEl(de.d);
-    if (ya) { this.planoA = null; Object.assign(cam, { tx: a.tx, tz: a.tz, d: a.d, az: a.az, elF: a.elF || 0 }); nieblaK = a.nk; ambientePlano(); if (!on) delete cam.dMax; ponerCamara(); return; }
+    if (ya) { this.planoA = null; Object.assign(cam, { tx: a.tx, tz: a.tz, d: a.d, az: a.az, elF: on ? a.el : (a.elF || 0) }); nieblaK = a.nk; ambientePlano(); if (!on) { delete cam.dMax; delete cam.dMin; delete cam.pan; } ponerCamara(); return; }
     cam.elF = de.el; this.planoA = { t0: now, de, a }; if (this.opts && this.opts.onPlano && !hacia) this.opts.onPlano(on);
   }
+  /* CD1a: vuelve a la vista de arriba sin animación, con la urbe entera encuadrada */
+  planoBase() { planoBaseOn = true; this.plano(false, null, true); this.plano(true, null, true); }
   planoPaso() {
     const A = this.planoA;
     if (A) { const u = Math.min(1, (performance.now() - A.t0) / 800), f = u * u * (3 - 2 * u), d = A.de, a = A.a, L = (x, y) => x + (y - x) * f;
       cam.tx = L(d.tx, a.tx); cam.tz = L(d.tz, a.tz); cam.d = Math.exp(L(Math.log(d.d), Math.log(a.d))); cam.az = L(d.az, a.az); cam.elF = L(d.el, a.el); nieblaK = L(d.nk, a.nk); ambientePlano();
-      if (u >= 1) { this.planoA = null; if (a.fin) { cam.elF = a.elF || 0; delete cam.dMax; } } }
-    else if (this._plano && cam.d < 300) { this.plano(false, { tx: cam.tx, tz: cam.tz, d: cam.d, az: cam.az }); if (this.opts && this.opts.onPlano) this.opts.onPlano(false); }
+      if (u >= 1) { this.planoA = null; if (a.fin) { cam.elF = a.elF || 0; delete cam.dMax; delete cam.dMin; delete cam.pan; } } }
+    else if (this._plano && !planoBaseOn && cam.d < 300) { this.plano(false, { tx: cam.tx, tz: cam.tz, d: cam.d, az: cam.az }); if (this.opts && this.opts.onPlano) this.opts.onPlano(false); }
   }
   /* vistas rápidas: ciudad entera, calle o ejército */
   view(name) {

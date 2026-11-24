@@ -253,7 +253,7 @@ t('juicio final: bien (+2 a todos), regular, mal (−3 a los que no hicieron)', 
 });
 t('historial guarda solo los cuatro últimos', () => {
   const s = nueva(); P.migrar(s);
-  for (let i = 0; i < 6; i++) { s.cities.roma.b.foro = 5; s.planSenado.plan = null; P.nuevo(s, 4, 'crecer'); pon(s, 'roma', 'cuartel', 0); pon(s, 'roma', 'mina', 1); P.votar(s, 0, { si: 30, total: 30, mayoria: 16 }); P.mes(s, 12); s.cities.roma.b.cuartel = 1; s.cities.roma.b.mina = 2; s.planSenado.votacion = { est: -1, n: 0, firmas: [] }; }
+  for (let i = 0; i < 6; i++) { s.cities.roma.b.foro = 5; s.cities.roma.b.cuartel = 0; s.cities.roma.b.granja = 1; s.planSenado.plan = null; P.nuevo(s, 4, 'crecer'); pon(s, 'roma', 'cuartel', 0); pon(s, 'roma', 'granja', 1); P.votar(s, 0, { si: 30, total: 30, mayoria: 16 }); P.mes(s, 12); s.cities.roma.b.cuartel = 1; s.cities.roma.b.granja = 2; s.planSenado.votacion = { est: -1, n: 0, firmas: [] }; }
   assert.strictEqual(s.planSenado.historial.length, 4);
 });
 t('abandonar: −3 a los bandos con obras sin hacer, historial y encargos', () => {
@@ -304,7 +304,7 @@ t('aprobar y abandonar no deja humor neto de más', () => {
   for (const b in neto) assert.ok(neto[b] <= 0, b + ' ' + neto[b]);
 });
 t('encargo del plan sin recursos no se castiga antes del fin del plan', () => {
-  const s = nueva(); s.cities.roma.b.foro = 5; aprobado(s, [['roma', 'cuartel', 0], ['roma', 'mina', 1]]); P.mes(s, 0);
+  const s = nueva(); s.cities.roma.b.foro = 5; aprobado(s, [['roma', 'cuartel', 0], ['roma', 'granja', 1]]); P.mes(s, 0);
   assert.strictEqual(s.ministros.encargos.ejercito.plazo, 11);
   const r = M.revisar(s, 11); assert.strictEqual(r.fallidos.length, 0);
 });
@@ -317,10 +317,30 @@ t('ciudad recuperada vuelve a contar; Faltan solo cuenta obras con encargo del p
   const s = nueva(); s.cities.roma.b.foro = 5; aprobado(s, [['capua', 'cuartel', 0], ['roma', 'cuartel', 0], ['roma', 'granja', 1]]);
   s.cities.capua.owner = 'cartago'; P.mes(s, 0); assert.ok(s.planSenado.plan.obras[0].perdida);
   s.cities.capua.owner = 'roma'; P.mes(s, 1); assert.strictEqual(s.planSenado.plan.obras[0].perdida, false);
-  const s2 = nueva(); s2.cities.roma.b.foro = 5; aprobado(s2, [['roma', 'cuartel', 0], ['capua', 'cuartel', 0], ['roma', 'mina', 1]]); s2.res.denarios = 0;
+  const s2 = nueva(); s2.cities.roma.b.foro = 5; aprobado(s2, [['roma', 'cuartel', 0], ['capua', 'cuartel', 0], ['roma', 'granja', 1]]); s2.res.denarios = 0;
   P.mes(s2, 0); const f = s2.planSenado.avisos.find(a => a.clave === 'falta:denarios'); assert.ok(f);
   const un = P.coste(s2, 'cuartel', 1).denarios || 0, dos = 2 * un;
   assert.ok(f.texto.includes('Faltan ' + Math.ceil(un) + ' ') || un === 0, f.texto); void dos;
+});
+t('reparto (usuario, «B»): un plan de un solo bando no sale y dice qué falta', () => {
+  const s = nueva(); s.cities.roma.b.foro = 5; P.nuevo(s, 4, 'defender');
+  pon(s, 'roma', 'cuartel', 0); pon(s, 'roma', 'herreria', 1); pon(s, 'roma', 'establo', 2);
+  const rep = P.reparto(s, s.planSenado.borrador); assert.ok(!rep.ok); assert.ok(rep.motivo.includes('solo beneficia a los Militares'), rep.motivo);
+  assert.ok(rep.faltan.some(f => f.bando === 'ter') && rep.motivo.includes('Granja'), rep.motivo);
+  assert.strictEqual(P.votos(s, s.planSenado.borrador).sale, false);
+  const r = P.votar(s, 0, { si: 30, total: 30, mayoria: 16 }); assert.ok(r.ok && !r.sale); assert.ok(r.motivo.includes('Faltan obras'), r.motivo);
+  assert.ok(r.efectos.some(e => e.tipo === 'log' && e.texto.includes('Faltan obras')));
+  pon(s, 'roma', 'granja', 3); assert.ok(!P.reparto(s, s.planSenado.borrador).ok, 'tres de cuatro aún es demasiado');
+  pon(s, 'roma', 'almacen', 3); assert.ok(P.reparto(s, s.planSenado.borrador).ok, J(P.reparto(s, s.planSenado.borrador)));
+  assert.ok(P.votar(s, 0, { si: 30, total: 30, mayoria: 16 }).sale);
+});
+t('reparto: ninguno se lleva más de dos tercios', () => {
+  const s = nueva(); s.cities.roma.b.foro = 5; P.nuevo(s, 4, 'defender');
+  pon(s, 'roma', 'cuartel', 0); pon(s, 'roma', 'herreria', 0); pon(s, 'roma', 'establo', 1); pon(s, 'roma', 'muralla', 1); pon(s, 'roma', 'granja', 2);
+  const rep = P.reparto(s, s.planSenado.borrador); assert.ok(!rep.ok); assert.ok(rep.motivo.includes('se llevan 4 de 5'), rep.motivo);
+});
+t('reparto: el plan que sugiere «crecer» sale con el Senado inicial', () => {
+  for (const n of [4, 6, 8]) { const s = nueva(); P.sugerir(s, n, 'crecer'); const v = P.votos(s, s.planSenado.borrador); assert.ok(v.reparto.ok && v.sale, n + ' ' + J(v.reparto)); }
 });
 console.log(n + ' bien, ' + mal + ' mal');
 process.exit(mal ? 1 : 0);

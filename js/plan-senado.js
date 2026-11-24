@@ -222,7 +222,33 @@
     }
     const familia = q.familia || 0; si += familia;
     const total = familia + esc, mayoria = Math.floor(total / 2) + 1;
-    return { si, duda, no, porBando: por, familia, total, mayoria, sale: si >= mayoria };
+    const rep = P.reparto(s, B);
+    return { si, duda, no, porBando: por, familia, total, mayoria, reparto: rep, sale: si >= mayoria && rep.ok };
+  };
+  /* Reparto (usuario, 23/11, «B»): el Senado rechaza un plan que solo beneficie a un bando. Hacen falta obras de al menos
+     dos bandos activos y ninguno puede llevarse más de dos tercios de las obras con bando. Licencia de juego. */
+  P.REPARTO = { minBandos: 2, maxParte: 2 / 3 };
+  const NOMBRE_B = b => (D.BANDOS[b] && D.BANDOS[b].n) || b;
+  const remedioDe = b => {
+    const f = MIN.DATOS.find(x => x.bando === b), eds = Object.keys(D.BUILD).filter(x => P.bandoDe(x) === b).map(x => D.BUILD[x].n);
+    return 'pon una obra ' + (f ? 'del ' + f.cargo + ' ' : '') + '(' + eds.join(', ') + ')';
+  };
+  P.reparto = (s, B) => {
+    const A = activos(s), obras = (B && B.obras) || [], por = {};
+    let conBando = 0;
+    for (const o of obras) { const b = bandoObra(o); if (b && A.indexOf(b) >= 0) { por[b] = (por[b] || 0) + 1; conBando++; } }
+    const tienen = Object.keys(por), hace = Math.min(P.REPARTO.minBandos, A.length);
+    const faltan = A.filter(b => !por[b]).map(b => ({ bando: b, n: NOMBRE_B(b), remedio: remedioDe(b) }));
+    if (tienen.length < hace) {
+      const f = faltan.slice(0, 2);
+      return { ok: false, por, faltan, motivo: 'El plan solo beneficia a ' + (tienen.length ? 'los ' + NOMBRE_B(tienen[0]) : 'nadie') + '. Faltan obras para ' + f.map(x => 'los ' + x.n + ': ' + x.remedio).join('; o para ') + '.' };
+    }
+    const top = tienen.sort((a, b) => por[b] - por[a])[0];
+    if (conBando >= 3 && por[top] > P.REPARTO.maxParte * conBando) {
+      const f = faltan.length ? faltan : A.filter(b => b !== top).map(b => ({ bando: b, n: NOMBRE_B(b), remedio: remedioDe(b) }));
+      return { ok: false, por, faltan: f, motivo: 'Los ' + NOMBRE_B(top) + ' se llevan ' + por[top] + ' de ' + conBando + ' obras. Cambia alguna: para los ' + f[0].n + ', ' + f[0].remedio + '.' };
+    }
+    return { ok: true, por, faltan, motivo: '' };
   };
   const firma = B => B.obras.map(o => o.ciudad + ':' + o.b + ':' + o.nivel + ':' + o.est).sort().join('|') + '#' + B.prioridad + '#' + B.estaciones;
   P.puedeVotar = (s, mes) => {
@@ -243,7 +269,7 @@
     const pv = P.puedeVotar(s, mes); if (!pv.ok) return { ok: false, motivo: pv.motivo, efectos: [] };
     const p = s.planSenado, B = p.borrador, v = p.votacion, est = estDe(mes);
     const r = resultado || P.votos(s, B);
-    const mayoria = r.mayoria, sale = r.si >= mayoria;
+    const rep = P.reparto(s, B), mayoria = r.mayoria, sale = r.si >= mayoria && rep.ok;
     if (v.est !== est) { v.est = est; v.n = 0; v.firmas = []; }
     v.n++;
     const efectos = [];
@@ -260,9 +286,9 @@
       efectos.push({ tipo: 'log', texto: '🏛️ El Senado aprueba el plan de obras ' + cuenta + '. Los ministros se ponen a ello.', tono: 'good' });
     } else {
       v.firmas.push(firma(B));
-      efectos.push({ tipo: 'log', texto: '🏛️ El Senado rechaza el plan ' + cuenta + '. Cambia obras y vota otra vez.', tono: 'bad' });
+      efectos.push({ tipo: 'log', texto: '🏛️ El Senado rechaza el plan ' + cuenta + '. ' + (rep.ok ? 'Cambia obras y vota otra vez.' : rep.motivo), tono: 'bad' });
     }
-    return { ok: true, motivo: '', sale, si: r.si, total: r.total, mayoria, efectos };
+    return { ok: true, motivo: sale || rep.ok ? '' : rep.motivo, reparto: rep, sale, si: r.si, total: r.total, mayoria, efectos };
   };
 
   const guardarHistorial = (p, plan, juicio) => {

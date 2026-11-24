@@ -1,6 +1,6 @@
 /* LP4 · Vista del oficial (diseño: gobierno/estudios/LP0-como-se-pelea-a-pie.md §3).
    Un pellizco hacia fuera (o el botón «Oficial») baja la cámara desde el plano de mando hasta el hombro del centurión,
-   en la primera fila de tu manípulo, a su derecha (el puesto del centurión prior). Otro pellizco hacia dentro (o el botón
+   en el centro de la primera fila de tu manípulo (decisión del usuario, 23/11: «Centro de la primera fila»). Otro pellizco hacia dentro (o el botón
    «Arriba») vuelve. Solo cámara: desde abajo se sigue dibujando el frente en el suelo y las cuatro órdenes siguen vivas.
    Sin mareo: la bajada dura 1,4 s con arranque y llegada suaves; abajo la cámara no copia el paso ni el giro de cada
    hombre, sigue al centurión y al rumbo del bloque con retraso (0,3 s y 0,9 s). En vertical se abre el ángulo de visión.
@@ -12,8 +12,8 @@
 import { THREE } from '../../../js/gfx/models.js';
 
 const DUR = 1.4, SIGUE = 0.3, GIRA = 0.9, UMBRAL = 1.22;
-/* el ojo: detrás del hombro derecho del centurión, algo más alto que él; mira al suelo a 16 m, un poco hacia dentro (su bloque) */
-const OF = { atras: 1.6, lado: 0.25, alto: 2.25, mira: 16, miraAlto: 0.2, dentro: 0.12, fovV: 78, fovH: 52 };
+/* el ojo: detrás del hombre del centro de la primera fila, algo más alto que él; mira al suelo a 16 m, de frente */
+const OF = { atras: 1.5, lado: 0, alto: 2.35, mira: 16, miraAlto: 0.2, dentro: 0, fovV: 78, fovH: 52 };
 const fr = a => ({ x: Math.sin(a), z: -Math.cos(a) }), de = a => ({ x: Math.cos(a), z: Math.sin(a) });
 const angDif = (a, b) => { let d = (a - b) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return d; };
 const suave = t => t * t * (3 - 2 * t);
@@ -60,10 +60,11 @@ export function crearCamara({ camara, lienzo, H, estado, hud, inicial = 'arriba'
   /* en el ordenador: la rueda */
   addEventListener('wheel', e => { if (e.target === lienzo && Math.abs(e.deltaY) > 4) pon(e.deltaY < 0 ? 'oficial' : 'arriba'); }, { passive: true });
 
-  /* ---------- el centurión: el de la derecha de la primera fila, vivo ---------- */
+  /* ---------- el centurión: el del centro de la primera fila, vivo ---------- */
   function centurion(B) {
     if (O.h && O.h.vivo && O.B === B && O.h.fila === 0) return O.h;
-    let m = null; for (const h of B.hombres) if (h.vivo && (!m || h.fila < m.fila || (h.fila === m.fila && h.col > m.col))) m = h;
+    const mid = (B.cols - 1) / 2, lejos = h => Math.abs(h.col - mid);
+    let m = null; for (const h of B.hombres) if (h.vivo && (!m || h.fila < m.fila || (h.fila === m.fila && lejos(h) < lejos(m)))) m = h;
     O.h = m; O.B = B; return m;
   }
 
