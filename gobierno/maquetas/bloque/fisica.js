@@ -8,10 +8,12 @@
    escudo (el escudo va 0,32 m delante del cuerpo y abulta 0,04; dos frente a frente, 0,72, más la holgura del brazo).
    El caído es una cápsula tendida hacia atrás (el muñeco de morir cae de espaldas: la cabeza queda 1,2 m detrás de los
    pies) y no se arrastra: el vivo se aparta de él.
-   Proyectiles (FI3): pilum y jabalinas se lanzan con el motor y se clavan en escudos, cuerpos y suelo, o rebotan.
+   Proyectiles (FI3u): el motor de proyectiles de js/fisica-batalla.js (crearProyectiles). El vuelo lo lleva este archivo
+   (gravedad, tramos de ≤ 1 m); el motor decide en qué se para, si se clava, rebota o resbala, y lo clavado sigue a su hombre.
+   Obstáculos: escudo (caja) y cuerpo (cilindro; lo alto, el casco) de los hombres cercanos a lo que se mueve; nunca el que lanza.
    La guardia de cada romano sale de la orden: en testudo, la 1.ª fila en muro y las demás con el escudo arriba.
    Medidas (D_RIVAL, TENDIDO, los tiempos de los proyectiles): licencia de juego. */
-import { crearFisica, MIN_DIST, ESCUDO, RADIO } from '../../../js/fisica-batalla.js';
+import { crearFisica, crearProyectiles, MIN_DIST, ESCUDO, RADIO, ALTO, PROYECTIL } from '../../../js/fisica-batalla.js';
 
 export const D_RIVAL = 0.95;     /* m entre dos rivales (centro a centro): los escudos se tocan, no se cruzan */
 export const TENDIDO = 1.25;     /* m de los pies a la cabeza del caído */
@@ -20,6 +22,12 @@ export const CAE_T = 1.8;        /* s que tarda en quedar tendido (el muñeco de
 export const VARA = { mismo: MIN_DIST, rival: 0.9 };   /* las varas de la medida: 0,45 m entre los de un bando; 0,9 entre rivales */
 export const PROY_MAX = 160;     /* los que se dibujan (los más viejos del suelo se quitan) */
 export const SUELO_VIDA = 25;    /* s que se queda en el suelo un proyectil */
+/* FI3u: la geometría del escudo y del cuerpo para los proyectiles (venía del motor viejo de fisica-batalla.js) */
+export const ESCUDO_ALTO = { y: 1.85, delante: 0.4 };   /* testudo (guardia 'alto'): la caja tumbada sobre la cabeza, adelantada */
+export const MURO = { sube: 0.28, agacha: 0.1 };        /* guardia 'muro': algo agachado y con el escudo subido hasta los ojos */
+export const CUELLO = 0.28;      /* el casco empieza 0,28 m bajo la coronilla */
+export const G_PR = 9.81, TRAMO = 1;   /* gravedad del vuelo y largo máximo (m) de cada tramo recto */
+const CERCA_PR = 4;              /* m: los hombres más lejos que esto de todo proyectil que se mueve no son obstáculo */
 export const V_APARTA = 1.5, A_APARTA = 2;   /* m/s y m/s²: lo más deprisa que se aparta un bloque entero de otro, y cómo acelera (sin saltos ni tirones) */
 export const V_FRONTERA = 2.5;  /* m/s: lo más deprisa que la frontera devuelve a su lado a quien se ha pasado */
 export const V_DIBUJO = 6.5;    /* m/s: lo más deprisa que se mueve un hombre dibujado (corre, no salta) */
@@ -50,7 +58,7 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
   const DESPIERTA = 10, despiertos = new Set();
   function despierta() {
     despiertos.clear();
-    const L = S.bloques.filter(b => b.estado !== 'fuera'), vuela = Fi.proyectiles.some(p => p.est === 'vuela');
+    const L = S.bloques.filter(b => b.estado !== 'fuera'), vuela = proyectiles.some(p => !p.fi || p.fi.modo === 'vuela');   /* FI3u */
     for (const a of L) if (vuela || a.U.roto || a.estado === 'huye' || a.estado === 'retira') despiertos.add(a);   /* el que corre pasa entre otros */
     for (const a of L) for (const b of L) {
       if (a.id >= b.id) continue;   /* rivales y también amigos que se cruzan (la reserva por detrás de su centro) */
@@ -162,14 +170,86 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
         if (e > 0.004) { const nx = -ex / e, nz = -ez / e, w = Math.min(1, e / (0.02 + 0.5 * Math.hypot(f.px || 0, f.pz || 0))); b.x += (nx - b.x) * w; b.z += (nz - b.z) * w; const m = Math.hypot(b.x, b.z) || 1; b.x /= m; b.z /= m; b.k = Math.min(1, b.k + w * 0.5); }
         else b.k = Math.max(0, b.k - dt * 0.4);
       }
-      const av = Fi.vuela(SF, dt); for (const x of av) if (avisos) avisos(x);
-      /* fuera: los clavados en un caído (de pie en un muerto no se ven bien), los del suelo viejos y lo que pase del tope */
-      Fi.limpia(p => p.fijo ? p.fijo.h.vivo !== false : (T - (p.tFin ?? (p.tFin = T))) < SUELO_VIDA);
-      const L = Fi.proyectiles; if (L.length > PROY_MAX) { let quita = L.length - PROY_MAX; for (let i = 0; i < L.length && quita > 0; i++) if (L[i].est !== 'vuela') { L.splice(i--, 1); quita--; } }
+      if (proyectiles.length) mueveProyectiles(dt);
     }
     msPaso += ahora() - a; nPaso++;
   }
   let avisos = null;
+
+  /* ---------- FI3u: proyectiles con crearProyectiles ----------
+     Cada proyectil: { tipo, largo, p (punta), v (m/s), de (el cuerpo de quien lo lanzó), t, tFin }; el motor escribe en p.fi.
+     El dueño de un escudo o de un cuerpo es el cuerpo del hombre (cuerpo(f)); su marco sale de su figura (f.x, f.z, f.yaw) */
+  const Pr = crearProyectiles({ H, semilla }), proyectiles = [];
+  const mueveEl = p => !p.fi || p.fi.modo === 'vuela' || p.fi.modo === 'rebota' || p.fi.modo === 'cae' || p.fi.modo === 'resbala';
+  const guardiaDe = f => S.tuyo.orden === 'testudo' && f.h ? (f.h.fila === 0 ? 'muro' : 'alto') : null;
+  /* marco del hombre: columnas izquierda, arriba, frente (frente = (sen yaw, 0, cos yaw)) y su sitio en el suelo */
+  function marcoDe(f) { const y = f.yaw || 0, s = Math.sin(y), c = Math.cos(y); return { fx: s, fz: c, lx: c, lz: -s, x: f.x, z: f.z, g: H(f.x, f.z) }; }
+  const matriz = (u, v, n, o) => [u[0], u[1], u[2], 0, v[0], v[1], v[2], 0, n[0], n[1], n[2], 0, o[0], o[1], o[2], 1];
+  /* el escudo de un hombre: caja (obstáculo) y su matriz (para seguirle lo clavado) */
+  function escudoDe(f, c, gu) {
+    const m = marcoDe(f), F = [m.fx, 0, m.fz], I = [m.lx, 0, m.lz], A = [0, 1, 0], ancho = ESCUDO.ancho / 2, alto = (ESCUDO.y1 - ESCUDO.y0) / 2, grueso = ESCUDO.grueso / 2;
+    let o;
+    if (gu === 'alto') o = { tipo: 'escudo', c: [m.x + m.fx * ESCUDO_ALTO.delante, m.g + ESCUDO_ALTO.y, m.z + m.fz * ESCUDO_ALTO.delante], n: A, u: I, v: F, m: [grueso, ancho, alto], dueno: c };
+    else { const sube = gu === 'muro' ? MURO.sube : 0; o = { tipo: 'escudo', c: [m.x + m.fx * ESCUDO.delante + m.lx * ESCUDO.izq, m.g + (ESCUDO.y0 + ESCUDO.y1) / 2 + sube, m.z + m.fz * ESCUDO.delante + m.lz * ESCUDO.izq], n: F, u: I, v: A, m: [grueso, ancho, alto], dueno: c }; }
+    o.M = matriz(o.u, o.v, o.n, o.c); return o;
+  }
+  /* el cuerpo: cilindro del suelo a la coronilla; lo alto (desde CUELLO bajo la coronilla, PR.CASCO en el motor) es el casco */
+  function cuerpoDe(f, c, gu) { const m = marcoDe(f), alto = ALTO.infante - (gu === 'muro' ? MURO.agacha : 0); return { tipo: 'cuerpo', x: m.x, z: m.z, y0: m.g, y1: m.g + alto - CUELLO + 0.25, r: RADIO.infante, dueno: c }; }
+  /* la matriz de lo que lleva un clavado: el escudo o el marco del hombre */
+  function matrizDe(c, tipo) {
+    const f = c && c.fig; if (!f) return null; const gu = guardiaDe(f);
+    if (tipo === 'escudo') return escudoDe(f, c, gu).M;
+    const m = marcoDe(f); return matriz([m.lx, 0, m.lz], [0, 1, 0], [m.fx, 0, m.fz], [m.x, m.g, m.z]);
+  }
+  /* los obstáculos: escudo y cuerpo de los hombres vivos a menos de CERCA_PR m de algún proyectil o de lo que vuele en este
+     paso (rejilla de CERCA_PR m; el que vuela marca todo su tramo: a 50 m/s recorre 5 m en 0,1 s) */
+  function obstaculos(vivos, dt) {
+    const celdas = new Set(), k = (x, z) => Math.floor(x / CERCA_PR) * 65536 + Math.floor(z / CERCA_PR), O = [];
+    for (const p of proyectiles) {
+      const q = p.fi && p.fi.pose ? p.fi.pose.punta : p.p; celdas.add(k(q[0], q[2]));
+      if (p.fi && p.fi.modo !== 'vuela') continue;
+      const n = Math.ceil(Math.hypot(p.v[0], p.v[2]) * dt / CERCA_PR); for (let i = 1; i <= n; i++) celdas.add(k(p.p[0] + p.v[0] * dt * i / n, p.p[2] + p.v[2] * dt * i / n));
+    }
+    for (const f of vivos) {
+      const cx = Math.floor(f.x / CERCA_PR), cz = Math.floor(f.z / CERCA_PR); let cerca = false;
+      for (let dx = -1; dx <= 1 && !cerca; dx++) for (let dz = -1; dz <= 1; dz++) if (celdas.has((cx + dx) * 65536 + cz + dz)) { cerca = true; break; }
+      if (!cerca) continue;
+      const c = cuerpo(f), gu = guardiaDe(f); O.push(escudoDe(f, c, gu), cuerpoDe(f, c, gu));
+    }
+    return O;
+  }
+  function mueveProyectiles(dt) {
+    const vivos = new Set(TR.figs), obst = obstaculos(TR.figs, dt);
+    for (const p of proyectiles) {
+      if (!p.fi) Pr.vuela(p, p.p, p.v, []);   /* el primer punto: desde aquí mira el motor */
+      if (p.fi.modo === 'vuela') {
+        const ob = obst.filter(o => o.dueno !== p.de), sp = Math.hypot(p.v[0], p.v[1], p.v[2]), n = Math.max(1, Math.ceil(sp * dt / TRAMO)), h = dt / n;
+        for (let i = 0; i < n && !p.fi.toca; i++) {
+          p.p = [p.p[0] + p.v[0] * h, p.p[1] + (p.v[1] - 0.5 * G_PR * h) * h, p.p[2] + p.v[2] * h]; p.v = [p.v[0], p.v[1] - G_PR * h, p.v[2]]; p.t += h;
+          Pr.vuela(p, p.p, p.v, ob);
+        }
+        const toca = p.fi.toca;
+        if (toca && toca.tipo !== 'suelo') Pr.llega(p, { tipo: toca.tipo, dueno: toca.dueno, o: toca.o }, ob, matrizDe(toca.dueno, toca.tipo));
+        else if (toca || p.p[1] < H(p.p[0], p.p[2]) || p.t > 20) Pr.llega(p, { tipo: 'suelo' }, ob);
+        continue;
+      }
+      Pr.mueve(p, dt, obst);
+      if (p.fi.modo === 'clava' && p.fi.que !== 'suelo') Pr.pose(p, matrizDe(p.fi.dueno, p.fi.que), obst); else Pr.pose(p);
+    }
+    if (avisos) for (const a of Pr.avisos()) avisos({ ...a, h: a.dueno || null }); else Pr.avisos();
+    /* fuera: los clavados en un caído (de pie en un muerto no se ven bien), los quietos del suelo viejos y lo que pase del tope */
+    for (let i = proyectiles.length - 1; i >= 0; i--) {
+      const p = proyectiles[i], f = p.fi; if (!f || mueveEl(p)) continue;
+      const enHombre = f.modo === 'clava' && f.que !== 'suelo';
+      if (enHombre ? !(f.dueno && vivos.has(f.dueno.fig)) : (T - (p.tFin ?? (p.tFin = T))) >= SUELO_VIDA) { Pr.olvida(p); proyectiles.splice(i, 1); }
+    }
+    if (proyectiles.length > PROY_MAX) { let quita = proyectiles.length - PROY_MAX; for (let i = 0; i < proyectiles.length && quita > 0; i++) if (!mueveEl(proyectiles[i])) { Pr.olvida(proyectiles[i]); proyectiles.splice(i--, 1); quita--; } }
+  }
+  /* dónde dibujar p: punta y dirección (el clavado sigue a su escudo o a su hombre) */
+  function dondeP(p) {
+    const q = p.fi && p.fi.pose; if (q) return { x: q.punta[0], y: q.punta[1], z: q.punta[2], dx: q.dir[0], dy: q.dir[1], dz: q.dir[2] };
+    const v = Math.hypot(p.v[0], p.v[1], p.v[2]) || 1; return { x: p.p[0], y: p.p[1], z: p.p[2], dx: p.v[0] / v, dy: p.v[1] / v, dz: p.v[2] / v };
+  }
   /* una salva: n proyectiles de los hombres de delante del bloque de (figuras con f.b === de) a puntos del bloque a,
      que llegan en unos dur s. Devuelve cuántos salieron */
   function salva(de, a, n, dur, tipo, punto) {
@@ -183,7 +263,7 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
       const f = delante[(i * 7) % delante.length], q = punto(i), t = dur * (0.9 + 0.2 * ((i * 0.618) % 1));
       const x0 = f.x + F.x * 0.4, z0 = f.z + F.z * 0.4, y0 = H(x0, z0) + 1.9, y1 = H(q.x, q.z) + 0.9;
       const V = [(q.x - x0) / t, (y1 - y0 + 0.5 * 9.81 * t * t) / t, (q.z - z0) / t];
-      Fi.lanza(tipo, [x0, y0, z0], V, cuerpo(f)); k++;
+      proyectiles.push({ tipo, largo: (PROYECTIL[tipo] || PROYECTIL.jabalina).largo, p: [x0, y0, z0], v: V, de: cuerpo(f), t: 0 }); k++;   /* FI3u */
     }
     return k;
   }
@@ -241,5 +321,5 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
     }
     return true;
   }
-  return { Fi, paso, salva, medir, rayas: () => ultimas, activa, set alAviso(f) { avisos = f; }, reinicia() { Fi.reinicia(); msPaso = 0; nPaso = 0; msMotor = 0; } };
+  return { Fi, Pr, paso, salva, medir, proyectiles, dondeP, rayas: () => ultimas, activa, set alAviso(f) { avisos = f; }, reinicia() { Fi.reinicia(); Pr.reinicia(); proyectiles.length = 0; msPaso = 0; nPaso = 0; msMotor = 0; } };
 }

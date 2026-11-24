@@ -241,5 +241,35 @@ t('LP7: vuelveDePie pone las bajas (a escala), rompe al que rompió a pie y muev
   assert.deepEqual(o2.bajas, [0, 0]); assert.equal(S2.man[0].n, S2.man[0].n0);
 });
 
+/* LP7b: la falange baja a «Falange a pie» (maqueta de LP6) y vuelve con el mismo contrato que el bloque */
+const ACCF = await import('../gobierno/maquetas/falange/acciones.js'), MANF = await import('../gobierno/maquetas/falange/mando.js'), FAL = await import('../js/falange.js');
+function partidaFalange(semilla, lejos, modo = 'bien') {
+  const A = ACCF.crearAcciones({ rival: 'manipulos', semilla, hombres: 96 }), S = A.S, M = MANF.crearMando({ S, acc: A });
+  A.reinicia(); const d = ACCF.acercaRival(S, lejos); M.reinicia(); const P0 = { x: S.xF, z: S.zF, giro: S.giro }, b = MANF.botMando(M, S, modo);
+  const g0 = Math.min(...S.ene.map(h => S.motor.local(h.x, h.z).delante));
+  for (let k = 0; k < 30 * 400 && S.fase !== 'fin'; k++) { b(); M.paso(1 / 30); A.paso(1 / 30); }
+  return { S, d, g0, r: ACCF.resultadoLP7(S, P0) };
+}
+t('LP7b: a pie con la falange se lucha hasta el 15 % y el resultado tiene el contrato del bloque', () => {
+  for (const s of [1, 2, 3]) {
+    const { S, d, g0, r } = partidaFalange(s, 30);
+    assert.equal(d, 22); assert.ok(g0 > 26 && g0 < 32, 'el rival sale a ' + g0.toFixed(1) + ' m');
+    assert.equal(S.U.fin, FAL.FIN_LUCHA); assert.equal(S.R.fin, FAL.FIN_LUCHA);
+    assert.equal(r.ganador, 'tuyo', JSON.stringify(r)); assert.ok(r.bloques.centro.roto && r.bloques.centro.enPie <= Math.ceil(96 * 0.15), JSON.stringify(r.bloques));
+    assert.ok(r.bloques.tuyo.enPie > 50 && r.bloques.tuyo.hombres === 96);
+    assert.ok(r.pose.z < -8 && Math.abs(r.pose.x) < 5, 'el muro avanzó: ' + JSON.stringify(r.pose));
+  }
+  /* sin tocar nada (el bot que solo avanza) también acaba: alguien rompe */
+  const { S } = partidaFalange(4, 52, 'nada'); assert.equal(S.fase, 'fin');
+});
+t('LP7b: la falange vuelve a la batalla grande con las bajas a escala (96 allí, sus hombres aquí)', () => {
+  const S = Z.crear({ semilla: 5, manipulos: [{ lado: 0, tropa: 'falange', x: 0, y: -40, mando: 'jugador' }, { lado: 1, tropa: 'libios', x: 0, y: 40, mando: 'jugador' }] });
+  const u = S.man[0], g = S.man[1], nu = u.n, ng = g.n, { r } = partidaFalange(2, 40);
+  const o = Z.vuelveDePie(S, { tuyo: 0, mapa: { tuyo: { id: 0, esc: nu / 96 }, centro: { id: 1, esc: ng / 96 } }, r });
+  assert.equal(o.bajas[0], Math.round((96 - r.bloques.tuyo.enPie) * nu / 96)); assert.equal(u.n, nu - o.bajas[0]);
+  assert.ok(g.n <= Math.ceil(ng * 0.16) && (g.estado === 'roto' || g.estado === 'caida'), g.n + ' ' + g.estado);
+  assert.ok(S.reg.some(e => e.tipo === 'apie' && /victoria/.test(e.texto)));
+});
+
 console.log(`\n${n} bien, ${mal} mal`);
 if (mal) process.exit(1);
