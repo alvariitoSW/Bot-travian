@@ -122,3 +122,15 @@ Política: los mercaderes piden «denarios» y quedan hostiles; planes bien 2 de
 | Ciudad | 0/10 | 10/10 en el 278 a.C. con el vino (N=10, solo ese bot); 9 de 10 lo pierden después |
 Ciudad: con 36 o 60 meses seguidos sigue 10/10, en el 276 y el 274 a.C. Es la Roma del principio, con un solo barrio, la que
 llega pronto al nivel 4 y luego decae. Hace falta una meta que crezca (barrios o casas). Se deja en 12 meses. Pendiente.
+
+## Fase 2c (24/11, último ajuste antes de la subida)
+- **Ciudad**: el hito «urbe» pasa a casas de la capital en barrios de nivel 4 (al menos la mitad de las casas, y como
+  mínimo `casasMin`). El bot llega a 66 casas en el mes 24 y a 71 en el 96, y ahí se queda. Con 70 casas lo logran 10/10
+  hacia el 272 a.C.; con 72 o más, 0/10. No hay término medio con una sola ciudad. Se deja en **100** para que no se logre
+  antes que las armas. Pendiente: contar las casas de **todas** las ciudades propias, para que la meta crezca con el imperio.
+- **Política**: los militares piden «leva» y «victoria» por turnos (la «guarnicion» es de los provinciales). El bot hace leva
+  y sube el cuartel, y no da juegos con los militares fríos. Resultado: 10/10 hacia el 277 a.C., y 10/10 lo pierden después.
+  Con 24 meses seguidos, igual (276 a.C.). La política sale pronto porque el Senado empieza de buen humor. Pendiente: una
+  meta que crezca (p. ej. favor sostenido más años o planes bien acumulados).
+- **Comercio**: Roma la toma Cartago en 216–217 a.C. (Aníbal) aun con 600 hombres. Con la renta ≈740 el bot no aguanta esa
+  invasión. Comercio 3/10 (230 a.C.).

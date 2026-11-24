@@ -26,7 +26,7 @@
     armas: { plazas: 6, plazasCorta: 3 },   // CE12: en la partida corta (Italia) la partida acaba al caer la capital rival
     comercio: { rentaPorCiudad: 800, rutas: 6, acuerdos: 6 },   // CE12: «tesoro» es la renta neta del año anterior: umbral = rentaPorCiudad x ciudades propias
     politica: { favorPrinceps: 80, hostil: 35, apoyo: 0.6, humorApoyo: 50, planesBien: 2 },
-    ciudad: { cubiertos: 0.8, nivelUrbe: 4, casasMin: 70, fraccionUrbe: 0.5 },   // CE12: «urbe» = casas de la capital en barrios de nivel >= nivelUrbe (y al menos la fracción de las casas)
+    ciudad: { cubiertos: 0.8, nivelUrbe: 4, casasMin: 100, fraccionUrbe: 0.5 },   // CE12: «urbe» = casas de la capital en barrios de nivel >= nivelUrbe (y al menos la fracción de las casas)
     sostener: { armas: 0, comercio: 24, politica: 12, ciudad: 12 },
     gracia: 3
   };
