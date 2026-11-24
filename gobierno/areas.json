@@ -122,7 +122,10 @@
         "js/tiro.js",
         "test/es2-mando.test.mjs",
         "test/es3-tiro.test.mjs",
-        "test/fu5-formaciones.test.mjs"
+        "test/fu5-formaciones.test.mjs",
+        "js/tacticas.js",
+        "test/tacticas.test.mjs",
+        "gobierno/captura-th1.mjs"
       ],
       "taller": [],
       "juez": {
