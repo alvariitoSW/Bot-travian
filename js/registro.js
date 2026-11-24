@@ -723,6 +723,18 @@
     viento1: { archivo: 'assets/sonido/viento1.mp3', licencia: 'CC0 1.0', credito: 'Globofonia', fuente: 'https://freesound.org/s/553733/' }
   };
 
+  /* SON7: la banda sonora (assets/musica/<id>.mp3), piezas grabadas de OpenGameArt; detalle en assets/musica/LICENSE.txt. Orquesta y coro «de película»: licencia de juego (no son de 280-146 a.C.). */
+  const MUS = (titulo, autor, licencia, url, uso) => ({ licencia, credito: autor + ', «' + titulo + '»', fuente: url, dictamen: 'licencia de juego', nota: uso + '. Orquesta y coro grabados: no son música de 280-146 a.C. (la música romana casi no se conserva); se eligen por el aire épico que pidió el usuario.' });
+  const MB = ['CC BY 3.0', 'Matthew Pablo'], RM = ['CC0 1.0', 'RandomMind'];
+  Object.assign(R.sonidos, {
+    menu: Object.assign({ archivo: 'assets/musica/menu.mp3' }, MUS('Heroic Demise (Updated Version)', MB[1], MB[0], 'https://opengameart.org/content/heroic-demise-updated-version', 'Menú principal, en bucle')),
+    ciudad: Object.assign({ archivo: 'assets/musica/ciudad.mp3' }, MUS('Woodland Fantasy', MB[1], MB[0], 'https://opengameart.org/content/woodland-fantasy', 'Ciudad, Saber, Tropas, Imperio y Senado, en bucle')),
+    mapa: Object.assign({ archivo: 'assets/musica/mapa.mp3' }, MUS('Varyag War Drum', 'Tausdei', 'CC BY 3.0', 'https://opengameart.org/content/varyag-war-drum', 'Mapa de campaña, en bucle')),
+    batalla: Object.assign({ archivo: 'assets/musica/batalla.mp3' }, MUS('Colossal Boss Battle Theme', MB[1], MB[0], 'https://opengameart.org/content/colossal-boss-battle-theme', 'Todas las batallas, en bucle; sube con la tensión')),
+    victoria: Object.assign({ archivo: 'assets/musica/victoria.mp3' }, MUS('Medieval: Victory Theme', RM[1], RM[0], 'https://opengameart.org/content/medieval-victory-theme', 'Al ganar una batalla, una vez')),
+    derrota: Object.assign({ archivo: 'assets/musica/derrota.mp3' }, MUS('Medieval: Defeat Theme', RM[1], RM[0], 'https://opengameart.org/content/medieval-defeat-theme', 'Al perder una batalla, una vez')),
+  });
+
   /* SON2: las frases habladas (assets/voces/<id>.mp3, id = el de la frase de js/voces.js; griego1-3 = gritos del enemigo griego).
      Hechas por AQVILA con Piper (síntesis de voz libre) y la voz es_ES-sharvard-medium (datos Sharvard, CC BY 3.0, Univ. de Edimburgo); detalle en assets/voces/LICENSE.txt. */
   const VOCES_HABLADAS = 'espera-1 espera-2 espera-3 espera-4 espera-5 espera-6 espera-7 espera-8 espera-9 pila-12 pila-13 pila-14 pila-15 pila-16 choque-18 choque-19 choque-20 choque-21 choque-22 choque-23 empujar-26 empujar-27 empujar-28 empujar-29 empujar-30 aguantar-31 aguantar-32 aguantar-33 aguantar-34 carga-enemiga-35 carga-enemiga-36 carga-enemiga-37 elefantes-41 elefantes-42 elefantes-43 elefantes-44 caballeria-47 caballeria-48 caballeria-49 caballeria-50 flanco-52 flanco-53 flanco-54 flanco-55 cansancio-56 cansancio-57 cansancio-58 cansancio-59 flaquea-60 flaquea-61 flaquea-62 flaquea-63 flaquea-64 roto-propio-65 roto-propio-66 roto-propio-67 roto-propio-68 roto-enemigo-69 roto-enemigo-70 roto-enemigo-71 enemigo-cede-73 enemigo-cede-74 enemigo-cede-75 relevo-77 relevo-78 relevo-79 relevo-80 victoria-81 victoria-82 victoria-83 victoria-84 derrota-85 derrota-86 derrota-87 lucha-89 lucha-90 lucha-91 griego1 griego2 griego3'.split(' ');
