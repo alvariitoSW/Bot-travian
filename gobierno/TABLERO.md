@@ -131,7 +131,7 @@ Meta cerrada: nada nuevo entra aquí salvo un fallo que rompa el juego; lo nuevo
   - ✅ SB2 **Jueces completos APTO 43/43; `main` `2042d71a`** (hecha el 23 y 24/11).
   - ✅ SB3 **Jueces completos APTO 43/43; `main` `4a0f4ff9`** (hecha el 23 y 24/11).
   - ✅ SB4 (hecha el 24/11: jueces completos APTO 43/43; `main` `a1fc549`, caché v157b; parte `partes/2026-11-24-SB4.md`; 0,49 M) **Arreglo de `main` sin red**: faltaban en la caché `js/agricultura.js` y tres archivos de física de las maquetas; sin red la ciudad no cargaba. Ya carga.
-  - 🔶 CM3 **Cuadro: apartados «Arte» (foto de cada pieza y «Pedir cambio») y «Equipos» (qué hace cada uno y «Recomendar mejora»)** (usuario 24/11, «1-B, 2-a, 3-a»; Fable por excepción suya; sesión `session_01QiKC36kp2Z4r1erTKvPf9H`).
+  - ✅ CM3 **Cuadro: apartados «Arte» (foto de cada pieza y «Pedir cambio») y «Equipos» (qué hace cada uno y «Recomendar mejora»)** (usuario 24/11, «1-B, 2-a, 3-a»; Fable por excepción suya; sesión `session_01QiKC36kp2Z4r1erTKvPf9H`).
   - 🔶 SB5 **Subida de batallas a `main`** (usuario 24/11, «1a»: sin esperar a CDe3): en cuanto FI4 suba a la rama, jueces completos 43/43 sobre ese commit exacto (LP7b, FE3, FI3u, FI4 y `sw.js` v159) y, con APTO, a `main`.
   - ✅ LP4b **Trabados en combate y «Retirada ordenada»** (hecha el 24/11; juez APTO 13/13).
   - ✅ LP5a **Físicas cerradas en «Manípulo a pie», también en la lucha** (hecha el 24/11, `4af6b3f`; 6,5 M; la mía LP5 se cerró a su favor).

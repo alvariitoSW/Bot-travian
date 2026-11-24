@@ -361,10 +361,10 @@
       "id": "L18",
       "organo": "corazon",
       "titulo": "Las batallas se sienten: física de cuerpos y proyectiles",
-      "estado": "medias",
+      "estado": "hecha",
       "veras": "Los hombres de los dos bandos no se atraviesan, la carga empuja, la pica resbala y empuja, el pilum y las jabalinas se clavan o rebotan según dónde dan, los elefantes embisten y caen.",
       "hecho": "Motor de físicas propio (FI1 a FI3), tres veces más barato (FI5: 0,29 ms por paso con 200 cuerpos), conectado al testudo a pie, a la falange con elefantes (FE1, FE2), a «Manípulo a pie» (LP5a) y a «Bajar a pie» (LP7). El 24/11: masas de verdad, el elefante pesa como 45 hombres y ya no rebota (FE3), y un solo motor de proyectiles en el que el galo suelta el escudo con dos pila (FI3u).",
-      "falta": "Conectarlo a las escaramuzas y a la batalla de campaña (FI4, se está rehaciendo sobre el motor de FI3u) y subirlo a tu móvil.",
+      "falta": "Nada para la 1.0: la física ya está en todas las escenas (FI4, 24/11).",
       "captura": "gobierno/capturas-tarea/FI3u-h-suelta.jpg",
       "tareas": [
         "FI1",
