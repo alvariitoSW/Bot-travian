@@ -74,20 +74,22 @@
   /* CD1b: familias del menú «Construir» (CD0 §2). Licencia de juego: es una agrupación para el jugador. */
   D.FAMILIAS = [['principales', 'Principales'], ['infra', 'Infraestructura'], ['politica', 'Política y culto'], ['militar', 'Militar'], ['produccion', 'Producción'], ['viviendas', 'Viviendas'], ['puerto', 'Puerto']];
   D.FAMILIA_PIEZA = { fuente: 'infra', granero: 'principales', taller: 'produccion', salinas: 'produccion', zanja: 'infra', dique: 'infra', compitum: 'viviendas' };   // piezas de ciudad.js sin edificio de D.BUILD
-  /* CD1b: fichas del menú que aún no se pueden construir (el coste y la obra los pone CDe1). Fuera de D.BUILD a propósito: game.js y el bot recorren D.BUILD.
-     Acueducto: Aqua Appia, 312 a.C. (Frontino 1.5). Cloaca: Cloaca Máxima (Livio 1.38). Médico: primer médico griego en Roma, 219 a.C. (Plinio 29.12).
-     Curia, comicio, astillero y faro: sedes y obras de la República. Baños, jardín y parque: licencia de juego. */
-  D.OBRAS_PRONTO = {
-    termas: { n: 'Baños', fam: 'infra', d: 'Aseo y salud para el barrio', pronto: true },
-    acueducto: { n: 'Acueducto', fam: 'infra', d: 'Trae agua de lejos a la ciudad', pronto: true },
-    cloaca: { n: 'Cloaca', fam: 'infra', d: 'Evacúa las aguas sucias', pronto: true },
-    medico: { n: 'Médico', fam: 'infra', d: 'Cura a los enfermos del barrio', pronto: true },
-    jardin: { n: 'Jardín', fam: 'infra', d: 'Verde y calma para las casas', pronto: true },
-    parque: { n: 'Parque', fam: 'infra', d: 'Paseo público entre árboles', pronto: true },
-    curia: { n: 'Curia', fam: 'politica', d: 'Sede del Senado de la ciudad', pronto: true },
-    comicio: { n: 'Comicio', fam: 'politica', d: 'Plaza donde vota el pueblo', pronto: true },
-    astillero: { n: 'Astillero', fam: 'puerto', d: 'Construye y repara naves', pronto: true },
-    faro: { n: 'Faro', fam: 'puerto', d: 'Guía a los barcos de noche', pronto: true }
+  /* CDe1-C: las diez obras que eran «Pronto» ya se construyen: viven en EDIF de ciudad.js y su familia está en D.FAMILIA_PIEZA.
+     Vacío a propósito: ciudad-menu.js lo recorre y tolera que no haya fichas. Acueducto: Aqua Appia, 312 a.C. (Frontino 1.5). Cloaca: Cloaca Máxima (Livio 1.38).
+     Médico: primer médico griego en Roma, 219 a.C. (Plinio 29.12). Baños, jardín y parque: licencia de juego. */
+  D.OBRAS_PRONTO = {};
+  /* CDe1-C: las diez obras de ciudad nuevas (sus números viven en EDIF de js/ciudad.js) y su familia en el menú. Nombre visible: «Baños», nunca «termas»
+     (balneae, ya en Plauto; las grandes termas son de Agripa, 25 a.C.). El id interno termas se queda: lo traduce js/necesidades.js. */
+  D.OBRAS = {
+    termas: { n: 'Baños', fam: 'infra' }, acueducto: { n: 'Acueducto', fam: 'infra' }, cloaca: { n: 'Cloaca', fam: 'infra' }, medico: { n: 'Médico', fam: 'infra' },
+    jardin: { n: 'Jardín', fam: 'infra' }, parque: { n: 'Parque', fam: 'infra' }, curia: { n: 'Curia', fam: 'politica' }, comicio: { n: 'Comicio', fam: 'politica' },
+    astillero: { n: 'Astillero', fam: 'puerto' }, faro: { n: 'Faro', fam: 'puerto' }
+  };
+  for (const id in D.OBRAS) D.FAMILIA_PIEZA[id] = D.OBRAS[id].fam;
+  /* CDe1-C: reglas y cargos de la ciudad nueva que tienen ficha de historia en registro.js (ministros, necesidades, revuelta, plan del Senado). */
+  D.SISTEMAS = {
+    ministros: { n: 'Ministros' }, censor: { n: 'Censor' }, edil: { n: 'Edil' }, cuestor: { n: 'Cuestor' }, pontifice: { n: 'Pontífice' }, legado: { n: 'Legado' },
+    publicanos: { n: 'Publicano de minas' }, necesidades: { n: 'Necesidades del barrio' }, revuelta: { n: 'Revuelta de la plebe' }, planSenado: { n: 'Plan del Senado' }
   };
   /* Templos (F5): cada ciudad puede dedicar su templo a un dios. Los dones son por nivel de templo. Licencia de juego:
      los romanos no «elegían» un dios por ciudad, pero Marte, Ceres y Neptuno eran divinidades reales de Roma (Livio 2.41 para el templo de Ceres, 493 a.C.; Marte, Campo de Marte; Neptuno, Circo Flaminio). Dones inventados. */

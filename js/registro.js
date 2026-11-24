@@ -593,11 +593,40 @@
   const SIN_PRO = { sin: 'una provincia del Senado no tiene modelo 3D' }, LIC_PRO = 'agrupación de ciudades, bando afín y escaños: licencia de juego';
   const provincia = {};
   for (const id of ['lacio', 'campania', 'etruria', 'magnagrecia', 'cisalpina', 'sicilia', 'cerdena', 'hispania', 'grecia', 'galia', 'africa']) provincia[id] = f(SIN_PRO, h('Livio 23.23 (unos 300 senadores); Cicerón, In Verrem 2.2.2 (Sicilia, primera provincia)', 'licencia de juego', LIC_PRO));
-  R.fichas = { vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, recurso, veta, bien, invest, edad: edades, pueblo, bando, provincia };
+  /* CDe1-C: las diez obras de ciudad nuevas (js/ciudad.js, EDIF). Arte: piezas ya cargadas de 0 A.D. reutilizadas; no hay modelo propio de cada obra. */
+  const obra = {
+    termas: f(est('mercado', { nota: 'baños con la pieza del mercado, provisional' , provisional: true }), h('Plauto (balneae); las grandes termas son de Agripa, 25 a.C.', 'probable', 'baños de pago en el siglo II a.C.; por eso se llaman «Baños» y no «termas»; su efecto sobre salud y limpieza es licencia de juego')),
+    acueducto: f(est('arco', { nota: 'tramo de arcos de 0 A.D.' }), h('Frontino, Acueductos 1.5 (Aqua Appia, 312 a.C., censura de Apio Claudio)', 'historico')),
+    cloaca: f(est('prop_pozo', { nota: 'sumidero con la pieza del pozo, provisional', provisional: true }), h('Livio 1.38 y 1.56 (Cloaca Máxima)', 'historico', 'la tradición la atribuye a los reyes')),
+    medico: f(est('casa_c', { nota: 'tienda con una casa, provisional', provisional: true }), h('Plinio, Historia natural 29.12 (Arcágato, primer médico griego en Roma, 219 a.C.)', 'historico')),
+    jardin: f(est('olivo', { nota: 'verde con el olivo de 0 A.D., provisional', provisional: true }), h('', 'licencia de juego', 'un jardín público de barrio es una pieza del juego')),
+    parque: f(est('cipres', { nota: 'verde con el ciprés de 0 A.D., provisional', provisional: true }), h('', 'licencia de juego', 'un parque público de barrio es una pieza del juego')),
+    curia: f(est('foro', { nota: 'RESERVA PROVISIONAL: el centro cívico de 0 A.D. no es una curia', provisional: true }), h('Livio 1.30 (Curia Hostilia, tradición de Tulo Hostilio)', 'probable', 'sede del Senado; el modelo es provisional')),
+    comicio: f(est('mercado', { nota: 'plaza con la pieza del mercado, provisional', provisional: true }), h('Livio 1.36 (el comicio, junto al foro); Polibio 6.14', 'probable', 'plaza donde vota el pueblo; su coste y sitio son licencia de juego')),
+    astillero: f(est('puerto', { nota: 'con la pieza del puerto' }), h('Polibio 1.20-1.21 (la flota de 260 a.C., construida deprisa); Livio 40.51 (arsenal)', 'probable', 'obra de la costa; coste y sitio son licencia de juego')),
+    faro: f(est('torre', { nota: 'torre de 0 A.D., provisional', provisional: true }), h('Suetonio, Claudio 20 (faro de Ostia, siglo I d.C.); Estrabón 17.1.6 (Faros de Alejandría, 280 a.C.)', 'probable', 'en Roma no hay faro antes de 146; el de Alejandría es de 280 a.C.; el juego lo deja en la costa como licencia de juego'))
+  };
+  /* CDe1-C: reglas y cargos de la ciudad nueva (D.SISTEMAS). Sin modelo 3D. */
+  const SIN_REGLA = { sin: 'una regla o un cargo no tiene modelo 3D' };
+  const sistema = {
+    ministros: f(SIN_REGLA, h('Regla de juego: el Senado reparte encargos entre ministros', 'licencia de juego', 'en la República no había ministros, sino magistrados con tareas propias')),
+    censor: f(SIN_REGLA, h('Livio 9.29; Frontino, Acueductos 1.5 (Aqua Appia, 312 a.C.); Polibio 6.13', 'historico', 'los censores llevaban las obras públicas y los arriendos')),
+    edil: f(SIN_REGLA, h('Cicerón, Leyes 3.7', 'historico', 'los ediles cuidaban mercados, calles, grano y juegos; el «edil del grano» es un edil plebeyo con el abasto (las Ceriales son del 44 a.C.)')),
+    cuestor: f(SIN_REGLA, h('Polibio 6.13', 'probable', 'los cuestores guardaban el tesoro (aerarium); el ministro del juego es una simplificación')),
+    pontifice: f(SIN_REGLA, h('Livio 1.20 (los pontífices, desde Numa)', 'probable', 'los pontífices cuidaban el culto y el calendario')),
+    legado: f(SIN_REGLA, h('Polibio 6.12; Livio 26.1', 'probable', 'los legados acompañaban al general; el encargo es licencia de juego')),
+    publicanos: f(SIN_REGLA, h('Polibio 6.17 (los censores arriendan contratos a los publicanos)', 'historico', 'el «procurador de minas» es imperial; en la República eran publicanos')),
+    necesidades: f(SIN_REGLA, h('Frontino, Acueductos 1.5; Livio 1.38; Plinio, Historia natural 29.12; Cicerón, Leyes 3.7', 'licencia de juego', 'que el servicio llegue por la calle hasta la casa, las ocho necesidades, el umbral del 80 % y los pesos de cada clase son reglas del juego')),
+    revuelta: f(SIN_REGLA, h('Livio 2.32 (secesión de la plebe, 494 a.C.); Livio, Periocha 11 y Plinio, Historia natural 16.37 (287 a.C., lex Hortensia)', 'historico', 'calmarla con grano o juegos se inspira en Livio 31.4 y 31.50; los repartos de grano por ley son de Cayo Graco (123 a.C.) y quedan fuera de la época')),
+    planSenado: f(SIN_REGLA, h('Polibio 6.13 y 6.17; Livio 9.33-34, 39.44, 40.46, 44.16', 'licencia de juego', 'el Senado concedía el dinero de las obras y los censores las contrataban (histórico), pero votar planes por bandos y el juicio final son licencia de juego'))
+  };
+  R.fichas = { obra, sistema, vida, calzada, puerto, rumbo, tribu, monumento, adorno, sitio, terreno, piezaTerreno, edificio, tropa, fiesta, leva, remedio, ciudad, hecho, mision, ley, encargo, hito, colonia, region, modo, zona, faccion, mejora, tipo, especial, recurso, veta, bien, invest, edad: edades, pueblo, bando, provincia };
 
   /* De qué tabla de data.js sale cada tipo y qué campos son obligatorios allí (lo usa el juez).
      numericos: números sueltos · mapas: objetos de números (costes, guarnición) · textos: cadenas · segunClase: extra según cls. */
   R.tipos = {
+    obra: { tabla: 'OBRAS', numericos: [], textos: ['n', 'fam'] },
+    sistema: { tabla: 'SISTEMAS', numericos: [], textos: ['n'] },
     edificio: { tabla: 'BUILD', numericos: ['time'], mapas: ['cost'], textos: ['n', 'd'] },
     tropa: { tabla: 'UNITS', numericos: ['atk', 'def', 'spd', 'mor', 'up'], textos: ['n', 'cls'], segunClase: { rng: ['ratk', 'range'] } },
     ciudad: { tabla: 'CITIES', numericos: ['lon', 'lat', 'w', 'wl'], mapas: ['g'], textos: ['n', 'f'] },

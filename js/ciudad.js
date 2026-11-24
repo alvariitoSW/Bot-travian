@@ -94,7 +94,17 @@ export const EDIF = {
   establo: { nombre: 'Establo', bid: 'establo', coste: R5(110, 60, 80, 70, 0), obra: 2, w: 26, d: 20, radio: 0, desde: 500, que: 'Recluta caballería; en llano y junto a una puerta' },
   muralla: { nombre: 'Muralla', bid: 'muralla', coste: R5(40, 120, 30, 20, 0), obra: 3, radio: 0, desde: 1000, accion: true, que: 'Sigue el surco' },
   dique: { nombre: 'Dique', bid: null, coste: R5(40, 70, 10, 0, 0), obra: 2, w: 26, d: 7, radio: 110, desde: 0, que: 'Guarda del Tíber las casas de la ribera baja; va en la ribera, junto al río' },
-  compitum: { nombre: 'Abrir barrio', bid: null, coste: R5(40, 40, 10, 20, 20), obra: 1, w: 9, d: 9, radio: 0, desde: 1400, que: 'Capilla de cruce: nace un barrio' }
+  compitum: { nombre: 'Abrir barrio', bid: null, coste: R5(40, 40, 10, 20, 20), obra: 1, w: 9, d: 9, radio: 0, desde: 1400, que: 'Capilla de cruce: nace un barrio' },
+  termas: { nombre: 'Baños', bid: null, coste: R5(80, 90, 10, 0, 30), obra: 2, w: 22, d: 18, radio: 80, desde: 150, que: 'Aseo y salud: las casas cercanas enferman menos' },
+  cloaca: { nombre: 'Cloaca', bid: null, coste: R5(30, 100, 20, 0, 20), obra: 2, w: 20, d: 8, radio: 80, desde: 200, que: 'Se llevan las aguas sucias de las casas cercanas' },
+  medico: { nombre: 'Médico', bid: null, coste: R5(50, 30, 10, 20, 30), obra: 1, w: 14, d: 14, radio: 80, desde: 150, que: 'Un médico atiende a los enfermos del barrio' },
+  jardin: { nombre: 'Jardín', bid: null, coste: R5(20, 10, 0, 10, 5), obra: 1, w: 14, d: 14, radio: 60, desde: 0, que: 'Verde y calma para las casas de alrededor' },
+  parque: { nombre: 'Parque', bid: null, coste: R5(40, 30, 0, 10, 15), obra: 1, w: 22, d: 22, radio: 90, desde: 250, que: 'Paseo público entre árboles para el barrio' },
+  acueducto: { nombre: 'Acueducto', bid: null, coste: R5(40, 200, 40, 0, 80), obra: 3, w: 30, d: 8, radio: 130, desde: 900, que: 'Trae agua de lejos: las casas cercanas tienen agua sin fuente' },
+  curia: { nombre: 'Curia', bid: null, coste: R5(100, 150, 20, 0, 90), obra: 3, w: 28, d: 22, radio: 0, desde: 1000, que: 'Sede del Senado de la ciudad; cerca del foro' },
+  comicio: { nombre: 'Comicio', bid: null, coste: R5(60, 100, 10, 0, 50), obra: 2, w: 30, d: 30, radio: 0, desde: 1100, que: 'Plaza donde vota el pueblo; cerca del foro' },
+  astillero: { nombre: 'Astillero', bid: null, coste: R5(130, 60, 60, 0, 60), obra: 2, w: 26, d: 32, radio: 0, desde: 800, terreno: 'costa', que: 'Solo en la costa: construye y repara naves' },
+  faro: { nombre: 'Faro', bid: null, coste: R5(60, 160, 20, 0, 50), obra: 2, w: 12, d: 12, radio: 0, desde: 900, terreno: 'costa', que: 'Solo en la costa: guía a los barcos de noche' }
 };
 /* id de D.BUILD -> id de pieza; y nivel de D.BUILD equivalente a cada mejora (0, I, II, III). */
 export const PIEZA_DE = Object.fromEntries(Object.entries(EDIF).filter(([, D]) => D.bid).map(([k, D]) => [D.bid, k]));
@@ -104,7 +114,7 @@ export const MEJORA_DE_NIVEL = n => n < 1 ? -1 : n === 1 ? 0 : n <= 3 ? 1 : n <=
    Sin bid: coste base × 1.5 por mejora. radioMul = cuánto crece su radio; rinde = multiplicador de lo que da (provisional). */
 const SALTA = [[1, 2], [3, 4, 5], [6, 7, 8, 9]], MEJ = [[1.15, 1.2], [1.3, 1.5], [1.5, 2]];
 for (const D of Object.values(EDIF)) D.mejoras = MEJ.map(([radioMul, rinde], k) => ({ coste: D.bid ? sumaCostes(SALTA[k].map(L => costeNivel(D.coste, L))) : costeNivel(D.coste, k + 1), radioMul, rinde }));
-export const ORDEN = ['fuente', 'granero', 'granja', 'salinas', 'zanja', 'aserradero', 'cantera', 'mina', 'almacen', 'templo', 'mercado', 'taller', 'muelle', 'herreria', 'escuela', 'cuartel', 'establo', 'muralla', 'compitum', 'dique'];
+export const ORDEN = ['fuente', 'granero', 'granja', 'salinas', 'zanja', 'aserradero', 'cantera', 'mina', 'almacen', 'templo', 'mercado', 'taller', 'muelle', 'herreria', 'escuela', 'cuartel', 'establo', 'muralla', 'compitum', 'dique', 'jardin', 'termas', 'medico', 'cloaca', 'parque', 'astillero', 'acueducto', 'faro', 'curia', 'comicio'];
 /* Monedero interno E.monedas: solo para pruebas y modo normal sin juego. Un coste en 5 recursos vale la suma de sus números. */
 const valor = c => RECURSOS.reduce((s, r) => s + (c[r] || 0), 0);
 /* Cobro: pago(coste)->bool lo decide el juego; sin pago se descuenta del monedero interno. */
@@ -426,6 +436,12 @@ const EFECTO_SITIO = {
   dique: ctx => ({ n: ctx.c, txt: ctx.c ? 'protege ' + ctx.c + (ctx.c === 1 ? ' casa' : ' casas') : 'no protege casas', tono: ctx.c ? 'bien' : 'neutro' }),
   salinas: ctx => ({ n: -ctx.c, txt: ctx.c ? '\u2212' + ctx.c + (ctx.c === 1 ? ' granja estropeada' : ' granjas estropeadas') : 'Ninguna granja cerca', tono: ctx.c ? 'mal' : 'neutro' }),
   zanja: ctx => ({ n: ctx.c, txt: ctx.c ? '+' + ctx.c + ' casas protegidas' : '0 casas protegidas', tono: ctx.c ? 'bien' : 'neutro' }),
+  termas: ctx => ({ n: ctx.c, txt: ctx.c ? '+' + ctx.c + (ctx.c === 1 ? ' casa con baños' : ' casas con baños') : '0 casas con baños', tono: ctx.c ? 'bien' : 'neutro' }),
+  cloaca: ctx => ({ n: ctx.c, txt: ctx.c ? '+' + ctx.c + (ctx.c === 1 ? ' casa con desagüe' : ' casas con desagüe') : '0 casas con desagüe', tono: ctx.c ? 'bien' : 'neutro' }),
+  medico: ctx => ({ n: ctx.c, txt: ctx.c ? '+' + ctx.c + (ctx.c === 1 ? ' casa con médico' : ' casas con médico') : '0 casas con médico', tono: ctx.c ? 'bien' : 'neutro' }),
+  jardin: ctx => ({ n: ctx.c, txt: ctx.c ? '+' + ctx.c + (ctx.c === 1 ? ' casa con verde' : ' casas con verde') : '0 casas con verde', tono: ctx.c ? 'bien' : 'neutro' }),
+  parque: ctx => ({ n: ctx.c, txt: ctx.c ? '+' + ctx.c + (ctx.c === 1 ? ' casa con parque' : ' casas con parque') : '0 casas con parque', tono: ctx.c ? 'bien' : 'neutro' }),
+  acueducto: ctx => ({ n: ctx.c, txt: ctx.c ? '+' + ctx.c + (ctx.c === 1 ? ' casa con agua' : ' casas con agua') : '0 casas con agua', tono: ctx.c ? 'bien' : 'neutro' }),
 };
 export function notaSitio(E, id, x, z, cx) {
   const D = EDIF[id], k = ci(x, z); cx = cx || contexto(E);
@@ -487,6 +503,11 @@ export function notaSitio(E, id, x, z, cx) {
   else if (id === 'compitum') { const db = Math.min(...E.barrios.map(b => Math.hypot(b.x - x, b.z - z)));
     if (den) return mal('El barrio nuevo se abre fuera del surco'); if (db < 215) return mal('Demasiado cerca de otro barrio'); if (E.dVia[k] > 22) return mal('Tiene que estar junto a un camino'); if (cuantas(45)) return mal('Aquí ya hay casas');
     n += 2; raz.push('Junto al camino +2'); if (PEND[k] < 0.06) { n += 1; raz.push('Llano para crecer +1'); } if (d < 230 && !inu) { n += 1; raz.push('Agua cerca +1'); } }
+  else if (id === 'termas' || id === 'cloaca' || id === 'medico' || id === 'jardin' || id === 'parque' || id === 'acueducto') { const c = cuantas(radio); ctx.c = c;
+    if (c) { const p = Math.min(3, Math.ceil(c / 6)); n += p; raz.push('Llega a ' + c + ' casas +' + p); } else raz.push('Sin casas cerca');
+    if (id !== 'cloaca' && id !== 'acueducto' && E.edificios.some(q => q.tipo === id && !q.ruina && Math.hypot(q.x - x, q.z - z) < radio * 0.8)) { n -= 1; raz.push('Pisa a otro igual \u22121'); } }
+  else if (id === 'curia' || id === 'comicio') { if (dF > 170) return mal('Va cerca del foro'); n += 2; raz.push('Cerca del foro +2'); }
+  else if (id === 'astillero' || id === 'faro') { if (terr(E) !== 'costa') return mal('Solo se abre en la costa'); if (d > reglas('costa').salinasDrio) return mal('Va junto al agua'); n += 2; raz.push('Junto al agua +2'); }
   if (inu) { n -= 3; raz.push(id === 'granja' ? 'Ribera baja: se inunda −3' : 'Se inunda en primavera −3'); }
   return { nota: n, vale: true, razones: raz, radio, ang, efecto: (EFECTO_SITIO[id] || (() => null))(ctx) };
 }
