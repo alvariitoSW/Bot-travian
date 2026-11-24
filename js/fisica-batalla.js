@@ -93,6 +93,8 @@ export function crearFisica(op = {}) {
   /* LP5a: caidoFijo (el caído no se arrastra: el vivo se aparta entero); parMax (m): con él, parMin también puede ALARGAR la
      distancia de una pareja hasta parMax (escudo contra escudo). Sin ellos, todo como antes */
   const fijoC = !!op.caidoFijo, DMAX_PAR = op.parMax || 0;
+  /* LP7b: parRival (m), atajo de parMin = (a, b) => a.bando !== b.bando ? parRival : undefined, sin llamar a nada por pareja */
+  const PRIVAL = op.parRival;
   let rivales = [], empujes = new Map();
   /* FI5: el paso no pide memoria nueva: listas, radios, masas y rejillas se reutilizan de un paso a otro (crecen si hace falta) */
   const L = [], C = [];
@@ -201,12 +203,16 @@ export function crearFisica(op = {}) {
   /* FI5: durante el paso, los vivos (L) y los caídos (C) se copian a arrays tipados (Float64: las mismas cuentas, bit a bit)
      y se devuelven al final. X, Z: sitio de las reglas; FX, FZ: desplazamiento; VX, VZ: velocidad; UX, UZ: la de las reglas */
   let cap = 0, X, Z, FX, FZ, VX, VZ, UX, UZ, capC = 0, CX, CZ, CFX, CFZ;
+  /* LP7b: lo que el bucle de parejas leía del objeto en cada pareja, leído una vez por paso: salta y bando de los vivos;
+     el cuerpo tendido de los caídos (TL < 0: sin tender) */
+  let SAL, CTX, CTZ, CTL; const LB = [];
   function carga() {
     const n = L.length, m = C.length;
-    if (n > cap) { cap = n * 2; X = new Float64Array(cap); Z = new Float64Array(cap); FX = new Float64Array(cap); FZ = new Float64Array(cap); VX = new Float64Array(cap); VZ = new Float64Array(cap); UX = new Float64Array(cap); UZ = new Float64Array(cap); R = new Float64Array(cap); M = new Float64Array(cap); }
-    if (m > capC) { capC = m * 2 + 8; CX = new Float64Array(capC); CZ = new Float64Array(capC); CFX = new Float64Array(capC); CFZ = new Float64Array(capC); RC = new Float64Array(capC); }
-    for (let i = 0; i < n; i++) { const h = L[i]; X[i] = h.x; Z[i] = h.z; FX[i] = h.fx; FZ[i] = h.fz; VX[i] = h.vx; VZ[i] = h.vz; UX[i] = h.ux; UZ[i] = h.uz; }
-    for (let j = 0; j < m; j++) { const h = C[j]; CX[j] = h.x; CZ[j] = h.z; CFX[j] = h.fx; CFZ[j] = h.fz; }
+    if (n > cap) { cap = n * 2; X = new Float64Array(cap); Z = new Float64Array(cap); FX = new Float64Array(cap); FZ = new Float64Array(cap); VX = new Float64Array(cap); VZ = new Float64Array(cap); UX = new Float64Array(cap); UZ = new Float64Array(cap); R = new Float64Array(cap); M = new Float64Array(cap); SAL = new Uint8Array(cap); }
+    if (m > capC) { capC = m * 2 + 8; CX = new Float64Array(capC); CZ = new Float64Array(capC); CFX = new Float64Array(capC); CFZ = new Float64Array(capC); RC = new Float64Array(capC); CTX = new Float64Array(capC); CTZ = new Float64Array(capC); CTL = new Float64Array(capC); }
+    LB.length = n;
+    for (let i = 0; i < n; i++) { const h = L[i]; X[i] = h.x; Z[i] = h.z; FX[i] = h.fx; FZ[i] = h.fz; VX[i] = h.vx; VZ[i] = h.vz; UX[i] = h.ux; UZ[i] = h.uz; SAL[i] = h.salta ? 1 : 0; LB[i] = h.bando; }
+    for (let j = 0; j < m; j++) { const h = C[j]; CX[j] = h.x; CZ[j] = h.z; CFX[j] = h.fx; CFZ[j] = h.fz; const t = h.tendido; if (t) { CTX[j] = t.dx; CTZ[j] = t.dz; CTL[j] = t.largo; } else CTL[j] = -1; }
   }
   function descarga() {
     for (let i = 0, n = L.length; i < n; i++) { const h = L[i]; h.fx = FX[i]; h.fz = FZ[i]; h.vx = VX[i]; h.vz = VZ[i]; }
@@ -231,10 +237,10 @@ export function crearFisica(op = {}) {
         for (let q = GV.ini, fin = GV.fin; q < fin; q++) {
           const j = I[q];
           if (j <= i) continue;
-          const rs = ra + R[j], rl = rs > DMAX_PAR ? rs : DMAX_PAR;
+          const rs = ra + R[j], rl = rs > DMAX_PAR || (PRIVAL !== undefined && LB[i] === LB[j]) ? rs : DMAX_PAR;   /* LP7b: con parRival, el mismo bando no alarga: corta antes de la raíz */
           let vx = (X[j] + FX[j]) - (X[i] + FX[i]), vz = (Z[j] + FZ[j]) - (Z[i] + FZ[i]);
           if (vx * vx + vz * vz >= rl * rl * (1 + 1e-9)) continue;   /* lejos, sin raíz (sin parMax, parMin solo acorta la distancia mínima) */
-          const pm = parMin ? parMin(L[i], L[j]) : undefined, min = pm === undefined ? rs : DMAX_PAR ? Math.min(pm, DMAX_PAR) : Math.min(rs, pm); let d = Math.hypot(vx, vz);
+          const pm = PRIVAL !== undefined ? (LB[i] !== LB[j] ? PRIVAL : undefined) : parMin ? parMin(L[i], L[j]) : undefined, min = pm === undefined ? rs : DMAX_PAR ? Math.min(pm, DMAX_PAR) : Math.min(rs, pm); let d = Math.hypot(vx, vz);
           if (d >= min) continue;
           if (d < 1e-6) { const g = (i * 2.399 + j) % 6.283; vx = Math.cos(g); vz = Math.sin(g); d = 0; } else { vx /= d; vz /= d; }
           const ib = 1 / M[j], wa = ia / (ia + ib), o = min - d;
@@ -251,25 +257,29 @@ export function crearFisica(op = {}) {
   /* LP5a: el caído puede ser una cápsula tendida (h.tendido = { dx, dz, largo, r }: de los pies hacia la cabeza); con caidoFijo
      no se arrastra (el vivo se aparta entero); el vivo con h.salta (va deprisa) pasa por encima */
   const TOPE_C2 = (TOPE_CAIDO - 1e-6) * (TOPE_CAIDO - 1e-6) * (1 - 1e-9);
-  let largoC = 0;
+  let largoC = 0, rcMax = 0; const MARGEN_NP = 0.5;
   function noPisa() {
     const nC = C.length; if (!nC) return;
     GC.haz(nC, CX, CZ, CFX, CFZ); const I = GC.items, n = Math.ceil((1.3 + 1.6 + largoC) / CELDA), densa = GC.densa;
     for (let i = 0, nL = L.length; i < nL; i++) {
-      if (L[i].salta) continue;
+      if (SAL[i]) continue;
       const ra = R[i], k = ra > 0.5 ? n : Math.ceil((1 + largoC) / CELDA), wa = fijoC ? 1 : (1 / M[i]) / (1 / M[i] + 1 / MASA_CAIDO);
       for (let pase = 0, movido = true; pase < 2 && movido; pase++) {   /* la 2.ª pasada, solo si la 1.ª movió algo (si no, daría lo mismo) */
         movido = false;
         const ax = X[i] + FX[i], az = Z[i] + FZ[i], cx = Math.floor(ax / CELDA), cz = Math.floor(az / CELDA);
-        for (let dx = -k; dx <= k; dx++) for (let dz = -k; dz <= k; dz++) {
-          if (densa) { if (!GC.columna(cx + dx, cz - k, cz + k)) { dz = k; continue; } dz = k; } else if (!GC.celda(cx + dx, cz + dz)) continue;
+        /* LP7b: con caídos fijos (no se mueven en noPisa), solo las celdas donde puede estar el pie de un caído que toque:
+           a menos de ra + rcMax + largoC, más MARGEN_NP (lo que el vivo se mueve en la misma pasada). Medido: mismo resultado bit a bit con 0,3 */
+        let x0 = cx - k, x1 = cx + k, z0 = cz - k, z1 = cz + k;
+        if (fijoC && ra <= 0.5) { const a = ra + rcMax + largoC + MARGEN_NP; x0 = Math.max(x0, Math.floor((ax - a) / CELDA)); x1 = Math.min(x1, Math.floor((ax + a) / CELDA)); z0 = Math.max(z0, Math.floor((az - a) / CELDA)); z1 = Math.min(z1, Math.floor((az + a) / CELDA)); }
+        for (let ix = x0; ix <= x1; ix++) for (let iz = z0; iz <= z1; iz++) {
+          if (densa) { iz = z1; if (!GC.columna(ix, z0, z1)) continue; } else if (!GC.celda(ix, iz)) continue;
           for (let q = GC.ini, fin = GC.fin; q < fin; q++) {
-            const j = I[q], min = ra + RC[j], t = C[j].tendido; let vx = X[i] + FX[i] - CX[j] - CFX[j], vz = Z[i] + FZ[i] - CZ[j] - CFZ[j];
-            if (t) { const s = Math.max(0, Math.min(t.largo, vx * t.dx + vz * t.dz)); vx -= t.dx * s; vz -= t.dz * s; }   /* al punto más cercano del cuerpo tendido */
+            const j = I[q], min = ra + RC[j], tl = CTL[j]; let vx = X[i] + FX[i] - CX[j] - CFX[j], vz = Z[i] + FZ[i] - CZ[j] - CFZ[j];
+            if (tl >= 0) { const tx = CTX[j], tz = CTZ[j], s = Math.max(0, Math.min(tl, vx * tx + vz * tz)); vx -= tx * s; vz -= tz * s; }   /* al punto más cercano del cuerpo tendido */
             if (vx * vx + vz * vz >= min * min * (1 + 1e-9)) continue;   /* lejos, sin raíz */
             let d = Math.hypot(vx, vz);
             if (d >= min) continue;
-            if (d < 1e-6) { vx = t ? -t.dz : 1; vz = t ? t.dx : 0; } else { vx /= d; vz /= d; }
+            if (d < 1e-6) { vx = tl >= 0 ? -CTZ[j] : 1; vz = tl >= 0 ? CTX[j] : 0; } else { vx /= d; vz /= d; }
             /* el caído ya no se deja arrastrar más: el vivo pasa por encima (las reglas lo llevan allí) */
             const bx = CFX[j], bz = CFZ[j]; if (!fijoC && bx * bx + bz * bz >= TOPE_C2 && Math.hypot(bx, bz) >= TOPE_CAIDO - 1e-6) continue;
             movido = true; const o = min - d; FX[i] += vx * o * wa; FZ[i] += vz * o * wa; if (!fijoC) { CFX[j] -= vx * o * (1 - wa); CFZ[j] -= vz * o * (1 - wa); }
@@ -326,7 +336,7 @@ export function crearFisica(op = {}) {
     cuerpos(S, L); caidos(S, C); carga();
     nF = 0; for (const h of S.fal) if (h.vivo && !h.huye) nF++;
     let rMax = 0; for (let i = 0; i < L.length; i++) { const h = L[i]; R[i] = rad(h); M[i] = masa(h); rMax = Math.max(rMax, R[i]); }
-    largoC = 0; for (let j = 0; j < C.length; j++) { RC[j] = radC(C[j]); const t = C[j].tendido; if (t && t.largo > largoC) largoC = t.largo; }
+    largoC = 0; rcMax = 0; for (let j = 0; j < C.length; j++) { RC[j] = radC(C[j]); if (RC[j] > rcMax) rcMax = RC[j]; const t = C[j].tendido; if (t && t.largo > largoC) largoC = t.largo; }
     choca(rMax); noPisa(); aprieta(S); noPisa(); choca(rMax); choca(rMax);   /* al final, que los vivos no se solapen */
     if (fijoC) { noPisa(); choca(rMax); }   /* LP5a: con caídos fijos, otra vuelta: que nadie acabe sobre un caído */
     descarga();

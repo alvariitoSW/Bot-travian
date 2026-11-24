@@ -27,7 +27,7 @@ export const V_SALTA = 1.6;     /* m/s: el que anda más deprisa que esto pasa p
 export const FRENA = 0.88;       /* el que va contra alguien (k = 1) afloja su paso hasta 1 − FRENA: no se mete empujando */
 
 export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla = 1 }) {
-  const Fi = crearFisica({ H, caidoFijo: true, parMax: D_RIVAL, semilla, parMin: (a, b) => a.bando !== b.bando ? D_RIVAL : undefined });
+  const Fi = crearFisica({ H, caidoFijo: true, parMax: D_RIVAL, semilla, parMin: (a, b) => a.bando !== b.bando ? D_RIVAL : undefined, parRival: D_RIVAL });
   const SF = { fal: [], ene: [], giro: 0 };
   const ahora = () => (typeof performance !== 'undefined' ? performance : Date).now();
   let msPaso = 0, nPaso = 0, T = 0, msMotor = 0;   /* LP7: msMotor, solo el motor (Fi.paso); msPaso, todo el enganche */
