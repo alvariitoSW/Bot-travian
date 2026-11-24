@@ -2050,10 +2050,16 @@
       "url": "https://claude.ai/code/session_01QiKC3Awu8jtqF4GEGvKeaQ"
     },
     {
-      "tarea": "LP5",
-      "titulo": "Corazón · LP5 Físicas y proyectiles conectados al «Manípulo a pie» (Opus)",
-      "nota": "Abierta el 24/11; para en 3,0 M",
-      "url": "https://claude.ai/code/session_01QiKC39qmkjaoPhD1ckDTEj"
+      "tarea": "FE1",
+      "titulo": "Corazón · FE1 Elefantes: rompen picas, se ensartan y no huyen (Opus)",
+      "nota": "Abierta el 24/11; para en 2,5 M",
+      "url": "https://claude.ai/code/session_01QiKC37w7RKFz9sQNwCa6dy"
+    },
+    {
+      "tarea": "FE2",
+      "titulo": "Corazón · FE2 Elefantes y falange con los soldados nuevos y la física (Opus)",
+      "nota": "Abierta el 24/11 por orden expresa del usuario",
+      "url": "https://claude.ai/code/session_01QiKC37P6qijB9adGvUrj7Z"
     }
   ],
   "vigia": "trig_01YBdP6TKBoUKapWTkRgcABr"

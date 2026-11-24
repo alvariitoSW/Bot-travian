@@ -4,6 +4,7 @@
    5) una sola raya: el cansancio de la fila que pelea · 6) las cuatro órdenes; la que conviene se ilumina (sin texto).
    LP4b · Trabados: mientras tu manípulo está en el choque, su estandarte lleva la placa «Trabados» y el botón «Alto» se
    vuelve «Retirada» (siempre cuatro botones). Tocar «Testudo» cuando ya lo tienes lo abre.
+   LP4b (4B): cuando conviene girar hacia su jefe (C.giroUtil()), una raya dorada en el suelo marca el frente; tocarla gira ahí.
    Y «Datos ▾», plegado: cifras de los dos bandos en una tira fina arriba.
    Contrato: crearHud({ $, proyecta, ladoEnPantalla, Son }) → { pon(C), tick(dt), aviso(tipo, d), muestraFin(), oculta() }
      proyecta(x, y, z) → [px, py, visible] · ladoEnPantalla(x, z) → −1 izquierda | 1 derecha (según la cámara) */
@@ -49,6 +50,22 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     el.addEventListener('click', e => { e.stopPropagation(); if (!C) return; Son.toque && Son.toque(); C.orden(el.dataset.o); });
   }
   $('datosB').addEventListener('pointerdown', e => e.stopPropagation());
+  /* la raya dorada: tocarla dibuja ese frente */
+  let giro = null, giroVisto = false;
+  $('giro-t').addEventListener('pointerdown', e => e.stopPropagation());
+  $('giro-t').addEventListener('click', e => { e.stopPropagation(); if (C && giro) { Son.toque && Son.toque(); C.frente(giro); } });
+  function pintaGiro(g) {
+    giro = g; const sv = $('giro'); if (!g) { sv.toggleAttribute('hidden', true); return; }   /* (un svg no tiene .hidden) */
+    const tu = S.tuyo, w = tu.ancho / 2, F = { x: Math.sin(g.ang), z: -Math.cos(g.ang) }, D = { x: Math.cos(g.ang), z: Math.sin(g.ang) };
+    const P = (l, d) => proyecta(g.x + D.x * l + F.x * d, 0.2, g.z + D.z * l + F.z * d);
+    const a = P(-w, 0), b = P(w, 0); if (!a[2] && !b[2]) { sv.toggleAttribute('hidden', true); return; }
+    sv.toggleAttribute('hidden', false); const L = `M${a[0].toFixed(1)},${a[1].toFixed(1)}L${b[0].toFixed(1)},${b[1].toFixed(1)}`;
+    $('giro-l').setAttribute('d', L); $('giro-t').setAttribute('d', L);
+    let f = '';   /* tres flechas: hacia dónde mirará la primera fila */
+    for (const k of [-0.6, 0, 0.6]) { const q = P(k * w, 6.5), l = P(k * w - 0.9, 1.2), r = P(k * w + 0.9, 1.2);
+      f += `M${q[0].toFixed(1)},${q[1].toFixed(1)}L${l[0].toFixed(1)},${l[1].toFixed(1)}L${r[0].toFixed(1)},${r[1].toFixed(1)}Z`; }
+    $('giro-f').setAttribute('d', f);
+  }
   $('datosB').addEventListener('click', () => { const ab = $('datos').hidden; $('datos').hidden = !ab; $('datosB').setAttribute('aria-expanded', String(ab)); $('datosB').textContent = ab ? 'Datos ▴' : 'Datos ▾'; tDatos = 0; });
 
   function pon(c) {
@@ -59,7 +76,7 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
       const el = document.createElement('div'); el.className = 'est ' + (b.bando === 'g' ? 'g' : 'r') + (b.papel === 'tuyo' ? ' tuyo' : '');
       el.innerHTML = (b.papel === 'tuyo' ? '<em>Trabados</em>' : '') + '<i></i><s></s><b></b>'; cont.appendChild(el); ests.push({ b, el, w: el.querySelector('b'), clase: '', pal: '', trab: false });
     }
-    cuarto = ''; ponCuarto('alto'); suelta = 0;
+    cuarto = ''; ponCuarto('alto'); suelta = 0; giro = null; giroVisto = false; $('giro').toggleAttribute('hidden', true);
     $('fin').hidden = true; cont.style.visibility = ''; for (const id of ['borde-i', 'borde-d', 'borde-a']) $(id).classList.remove('ve', 'late');
   }
 
@@ -71,6 +88,7 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     if (tu.U.roto) return ['Tu manípulo huye', 'mal'];
     if (tu.estado === 'retira') return tu.coh >= COH_ORDEN ? ['Retirada en orden' + (suelta ? ' · cayeron ' + suelta : ''), ''] : ['Retirada en desorden: os persiguen', 'mal'];
     if (tu.estado === 'reforma') return ['Os rehacéis · ' + Math.max(1, Math.ceil(tu.tReforma - S.T)) + ' s', 'bien'];
+    if (giro && tu.vueltas) return ['Toca la raya dorada: gira', 'mal'];
     if (S.flanco && S.flanco.de && S.flanco.de.estado !== 'fuera') { const l = ladoEnPantalla(S.flanco.de.x, S.flanco.de.z); return ['Su jefe viene por la ' + (l < 0 ? 'izquierda' : 'derecha'), 'mal']; }
     if (ce.U.roto) return R && !R.U.roto ? ['Su centro huye · queda su jefe', 'bien'] : ['Su centro huye', 'bien'];
     if (!tocado) {
@@ -104,6 +122,8 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     const trab = !S.ganador && !tu.U.roto && (C.trabado() || tu.estado === 'retira');
     ponCuarto(trab ? 'retirada' : 'alto');
     const util = C.ordenUtil();
+    const g = C.giroUtil(); pintaGiro(g);
+    if (g && tu.vueltas && !giroVisto) { giroVisto = true; grito('¡Su jefe vuelve! Girad'); } else if (!g) giroVisto = false;
     for (const el of botones) {
       const o = el.dataset.o, vig = o === 'relevo' ? tu.tRelevo > S.T : o === 'retirada' ? tu.estado === 'retira' : tu.orden === o;
       el.classList.toggle('vigente', vig); el.classList.toggle('luz', o === util && (!vig || o === 'testudo'));   /* Testudo vigente e iluminado: tócalo para abrirlo */
