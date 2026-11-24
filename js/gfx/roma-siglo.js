@@ -14,7 +14,7 @@ import { THREE } from './models.js';
 
 export const ROMA_SIGLO = true;
 export const ATLAS = 'rs_atlas';           // nombre de la textura (city3d la registra con este nombre)
-export const PIEZAS = ['rs_templo', 'rs_muro', 'rs_dique', 'rs_fondo', 'rs_fondo3', 'rs_patio', 'rs_huerto', 'rs_torre', 'rs_puerta', 'rs_insula', 'rs_tabernas'];
+export const PIEZAS = ['rs_templo', 'rs_muro', 'rs_dique', 'rs_fondo', 'rs_fondo3', 'rs_patio', 'rs_huerto', 'rs_torre', 'rs_puerta', 'rs_insula', 'rs_dom', 'rs_tabernas', 'rs_taber'];
 export const esPieza = k => typeof k === 'string' && k.startsWith('rs_');
 
 /* ---------- atlas: 1024 × 1024, regiones en píxeles [x, y, ancho, alto] ---------- */
@@ -22,7 +22,8 @@ const A = 1024;
 const R = {
   toba: [0, 0, 256, 256], cal: [256, 0, 256, 256], teja: [512, 0, 256, 256], zocalo: [768, 0, 256, 256],
   ventana: [0, 256, 256, 256], taberna: [256, 256, 256, 256], columna: [512, 256, 256, 256], madera: [768, 256, 256, 256],
-  timpano: [0, 512, 512, 256], friso: [512, 512, 512, 128], oscuro: [512, 640, 256, 128], toba2: [768, 640, 256, 128]
+  timpano: [0, 512, 512, 256], friso: [512, 512, 512, 128], oscuro: [512, 640, 256, 128], toba2: [768, 640, 256, 128],
+  agua: [0, 768, 256, 128], huerto: [256, 768, 256, 128], tierra: [512, 768, 256, 128]
 };
 function semilla(s) { let a = s >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
 const rgb = (c, k = 1) => `rgb(${Math.round(Math.min(255, c[0] * k))},${Math.round(Math.min(255, c[1] * k))},${Math.round(Math.min(255, c[2] * k))})`;
@@ -84,6 +85,10 @@ function pintarAtlas() {
     g.strokeStyle = rgb([28, 22, 18]); g.lineWidth = 4; g.beginPath(); for (let x = 0; x < w; x += 32) { g.moveTo(x0 + x, y0 + h * 0.9); g.lineTo(x0 + x + 16, y0 + h * 0.78); g.lineTo(x0 + x + 32, y0 + h * 0.9); } g.stroke();
     g.fillStyle = rgb([28, 22, 18]); g.fillRect(x0, y0 + 4, w, 5); });
   g.fillStyle = rgb([40, 32, 26]); g.fillRect(...R.oscuro); ruido(R.oscuro, 0.1);
+  /* CD5b: agua del impluvium, bancales con surcos y tierra del corral (sin rojo: no se confunden con teja) */
+  g.fillStyle = rgb([64, 116, 150]); g.fillRect(...R.agua); for (let i = 0; i < 40; i++) { g.fillStyle = `rgba(190,225,240,${0.15 + 0.2 * rnd()})`; g.fillRect(R.agua[0] + rnd() * 240, R.agua[1] + rnd() * 120, 14 + rnd() * 30, 3); }
+  g.fillStyle = rgb([100, 134, 58]); g.fillRect(...R.huerto); for (let y = 0; y < 128; y += 16) { g.fillStyle = rgb([78, 62, 40]); g.fillRect(R.huerto[0], R.huerto[1] + y, 256, 5); g.fillStyle = rgb([128, 160, 70]); g.fillRect(R.huerto[0], R.huerto[1] + y + 7, 256, 4); }
+  g.fillStyle = rgb([140, 122, 90]); g.fillRect(...R.tierra); ruido(R.tierra, 0.3, 3);
   const t = new THREE.CanvasTexture(cv); t.flipY = false; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4; t.needsUpdate = true; return t;
 }
 let atlasT = null;
@@ -203,12 +208,44 @@ function tabernas() {
   return m.geo();
 }
 /* relleno de las manzanas (CI1-7): casas de fondo, de uno y de tres pisos, patios con tapia y huertos del arrabal; 8 × 8 (el huerto, 10 × 10) */
-function fondo() { const m = new Malla(); m.caja(-3.9, -2, -3.9, 3.9, 0.05, 3.9, R.toba, 5, 2, 'fbxX'); m.caja(-3.9, 0, -3.9, 3.9, 4.6, 3.9, { f: R.ventana, b: R.cal, x: R.ventana, X: R.cal }, 3.9, 4.6, 'fbxX'); m.cuatroAguas(4.5, 4.5, 4.6, 2.2); return m.geo(); }
-function fondo3() { const m = new Malla(); m.caja(-3.9, -2, -3.9, 3.9, 0.05, 3.9, R.toba, 5, 2, 'fbxX'); m.caja(-3.9, 0, -3.9, 3.9, 1.0, 3.9, R.zocalo, 4, 1, 'fbxX'); m.caja(-3.9, 1.0, -3.9, 3.9, 7.4, 3.9, R.ventana, 3.9, 3.2, 'fbxX'); m.cuatroAguas(4.9, 4.9, 7.4, 2.2); return m.geo(); }
-function patio() { const m = new Malla(), h = 3.2, e = 0.5; m.caja(-3.9, -1.5, -3.9, 3.9, h, -3.9 + e, R.cal, 4, h + 1.5, 'fbxXt'); m.caja(-3.9, -1.5, 3.9 - e, 3.9, h, 3.9, R.cal, 4, h + 1.5, 'fbxXt'); m.caja(-3.9, -1.5, -3.4, -3.9 + e, h, 3.4, R.cal, 4, h + 1.5, 'xXt'); m.caja(3.9 - e, -1.5, -3.4, 3.9, h, 3.4, R.cal, 4, h + 1.5, 'xXt');
+function fondoViejo() { const m = new Malla(); m.caja(-3.9, -2, -3.9, 3.9, 0.05, 3.9, R.toba, 5, 2, 'fbxX'); m.caja(-3.9, 0, -3.9, 3.9, 4.6, 3.9, { f: R.ventana, b: R.cal, x: R.ventana, X: R.cal }, 3.9, 4.6, 'fbxX'); m.cuatroAguas(4.5, 4.5, 4.6, 2.2); return m.geo(); }
+function fondo3Viejo() { const m = new Malla(); m.caja(-3.9, -2, -3.9, 3.9, 0.05, 3.9, R.toba, 5, 2, 'fbxX'); m.caja(-3.9, 0, -3.9, 3.9, 1.0, 3.9, R.zocalo, 4, 1, 'fbxX'); m.caja(-3.9, 1.0, -3.9, 3.9, 7.4, 3.9, R.ventana, 3.9, 3.2, 'fbxX'); m.cuatroAguas(4.9, 4.9, 7.4, 2.2); return m.geo(); }
+function patioViejo() { const m = new Malla(), h = 3.2, e = 0.5; m.caja(-3.9, -1.5, -3.9, 3.9, h, -3.9 + e, R.cal, 4, h + 1.5, 'fbxXt'); m.caja(-3.9, -1.5, 3.9 - e, 3.9, h, 3.9, R.cal, 4, h + 1.5, 'fbxXt'); m.caja(-3.9, -1.5, -3.4, -3.9 + e, h, 3.4, R.cal, 4, h + 1.5, 'xXt'); m.caja(3.9 - e, -1.5, -3.4, 3.9, h, 3.4, R.cal, 4, h + 1.5, 'xXt');
   m.cara([3.9, h + 0.9, -3.4], [0, 0, 6.8], [-2.6, -0.7, 0], R.teja, 4, 4); m.caja(-3.9, -1.5, -3.4, -2.2, 3.6, 3.4, R.ventana, 3.4, 3.6, 'X'); return m.geo(); }
-function huerto() { const m = new Malla(), h = 1.4, e = 0.45; m.caja(-5, -1.2, -5, 5, h, -5 + e, R.toba2, 5, 1.3, 'fbxXt'); m.caja(-5, -1.2, 5 - e, 5, h, 5, R.toba2, 5, 1.3, 'fbxXt'); m.caja(-5, -1.2, -4.5, -5 + e, h, 4.5, R.toba2, 5, 1.3, 'xXt'); m.caja(5 - e, -1.2, -4.5, 5, h, 1.5, R.toba2, 5, 1.3, 'xXt'); return m.geo(); }
-const HACER = { rs_templo: templo, rs_muro: muro, rs_dique: muro, rs_fondo: fondo, rs_fondo3: fondo3, rs_patio: patio, rs_huerto: huerto, rs_torre: torre, rs_puerta: puerta, rs_insula: insula, rs_tabernas: tabernas };
+/* CD5b: casas romanas desde arriba (arte propio por código; huella de 6,6 m con aleros: el relleno las separa 8,4 m). Orientación: -Z mira a la calle.
+   fondo = domus con atrio (compluvium e impluvium), fondo3 = ínsula con patio central y tejado en anillo, taber = taberna a la calle (un agua),
+   patio = corral (cerca baja y tierra), huerto = bancales con surcos. */
+Malla.prototype.anillo = function (ax, bz, yo, ix, iz, yi) {      // anillo de cuatro faldones: borde exterior (ax, bz, yo) e interior (ix, iz, yi); sube o baja según yi
+  const co = [[-ax, yo, bz], [ax, yo, bz], [ax, yo, -bz], [-ax, yo, -bz]], ci = [[-ix, yi, iz], [ix, yi, iz], [ix, yi, -iz], [-ix, yi, -iz]];
+  for (let i = 0; i < 4; i++) { const j = (i + 1) % 4; this.poli([co[i], co[j], ci[j], ci[i]], R.teja, true); } };
+function domus() { const m = new Malla(), a = 2.9;
+  m.caja(-a, -2, -a, a, 0.05, a, R.toba, 5, 2, 'fbxX'); m.caja(-a, 0, -a, a, 3.3, a, { f: R.ventana, b: R.cal, x: R.ventana, X: R.cal }, 2.9, 3.3, 'fbxX');
+  m.anillo(3.3, 3.3, 3.3, 1.9, 1.9, 4.5); m.anillo(1.9, 1.9, 4.5, 0.85, 0.85, 3.9);            // aleros hacia fuera, compluvium hacia dentro
+  m.caja(-0.85, 1.4, -0.85, 0.85, 3.9, 0.85, R.cal, 1.7, 2.5, 'fbxX'); m.poli([[-0.85, 1.4, -0.85], [0.85, 1.4, -0.85], [0.85, 1.4, 0.85], [-0.85, 1.4, 0.85]], R.agua);     // el impluvium azul al fondo del hueco
+  return m.geo(); }
+function insulaPatio() { const m = new Malla(), a = 2.9, h = 6.6;
+  m.caja(-a, -2, -a, a, 0.05, a, R.toba, 5, 2, 'fbxX'); m.caja(-a, 0, -a, a, 1, a, R.zocalo, 3, 1, 'fbxX'); m.caja(-a, 1, -a, a, h, a, R.ventana, 2.9, 3.2, 'fbxX');
+  m.caja(-a - 0.2, h - 0.4, -a - 0.2, a + 0.2, h, a + 0.2, R.toba2, 5, 0.4, 'fbxXt');
+  m.anillo(3.3, 3.3, h, 1.5, 1.5, h + 1.0);                                                  // tejado en anillo alrededor del patio
+  m.caja(-1.5, 0.1, -1.5, 1.5, h + 1.0, 1.5, R.cal, 3, 4, 'fbxX'); m.poli([[-1.5, 0.15, -1.5], [1.5, 0.15, -1.5], [1.5, 0.15, 1.5], [-1.5, 0.15, 1.5]], R.tierra);
+  return m.geo(); }
+function taber() { const m = new Malla(), X = 3.3, z0 = -2.4, z1 = 2.0;
+  m.caja(-X, -1.5, z0, X, 0.05, z1, R.toba, 5, 2, 'fbxX'); m.caja(-X, 0, z0, X, 3.2, z0 + 0.15, { b: R.taberna }, 3.3, 3.2, 'b'); m.caja(-X, 0, z1 - 0.15, X, 4.4, z1, { f: R.cal }, 3.3, 4.4, 'f');
+  for (const s of [-1, 1]) m.poli([[s * X, 0, z0], [s * X, 0, z1], [s * X, 4.4, z1], [s * X, 3.2, z0]], R.cal);
+  m.poli([[-X - 0.3, 3.1, z0 - 0.7], [X + 0.3, 3.1, z0 - 0.7], [X + 0.3, 4.6, z1 + 0.2], [-X - 0.3, 4.6, z1 + 0.2]], R.teja, true);      // un agua, baja hacia la calle
+  m.cara([-X, 3.2, z0 - 0.02], [2 * X, 0, 0], [0, 0.5, 0], R.friso, 4, null);
+  return m.geo(); }
+function corral() { const m = new Malla(), a = 3.3, e = 0.18, h = 0.95;
+  m.poli([[-a, 0.5, -a], [a, 0.5, -a], [a, 0.5, a], [-a, 0.5, a]], R.tierra);
+  m.caja(-a, 0, -a, a, h, -a + e, R.madera, 3, 1, 'fbxXt'); m.caja(-a, 0, a - e, a, h, a, R.madera, 3, 1, 'fbxXt'); m.caja(-a, 0, -a, -a + e, h, a, R.madera, 3, 1, 'fbxXt'); m.caja(a - e, 0, -a, a, h, a, R.madera, 3, 1, 'fbxXt');
+  m.caja(-a + 0.3, 0, 0.9, -a + 2.3, 2.1, a - 0.3, R.madera, 2, 2, 'fbxX'); m.poli([[-a + 0.1, 2.0, 0.7], [-a + 2.5, 2.0, 0.7], [-a + 2.5, 2.6, a - 0.1], [-a + 0.1, 2.6, a - 0.1]], R.teja, true);      // cobertizo
+  m.caja(1.0, 0, -1.2, 2.2, 0.7, 0.0, R.toba2, 1.2, 0.7, 'fbxXt');                                 // un montón de heno / un pesebre
+  return m.geo(); }
+function huerto() { const m = new Malla(), a = 3.3, h = 0.5, e = 0.28;
+  m.caja(-a, 0, -a, a, h, -a + e, R.toba2, 4, 0.5, 'fbxXt'); m.caja(-a, 0, a - e, a, h, a, R.toba2, 4, 0.5, 'fbxXt'); m.caja(-a, 0, -a + e, -a + e, h, a - e, R.toba2, 4, 0.5, 'xXt'); m.caja(a - e, 0, -a + e, a, h, a - e, R.toba2, 4, 0.5, 'xXt');
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const x0 = sx > 0 ? 0.25 : -2.75, z0 = sz > 0 ? 0.25 : -2.75; m.caja(x0, 0, z0, x0 + 2.5, 0.4, z0 + 2.5, { t: R.huerto, f: R.huerto, b: R.huerto, x: R.huerto, X: R.huerto }, 2.5, 2.5, 'fbxXt'); }
+  return m.geo(); }
+const HACER = { rs_templo: templo, rs_muro: muro, rs_dique: muro, rs_fondo: domus, rs_fondo3: insulaPatio, rs_patio: corral, rs_huerto: huerto, rs_taber: taber, rs_torre: torre, rs_puerta: puerta, rs_insula: insulaPatio, rs_dom: domus, rs_tabernas: tabernas };
 const hechas = new Map();
 export function pieza(k) {
   if (hechas.has(k)) return hechas.get(k); const f = HACER[k]; if (!f) return null;
@@ -228,6 +265,106 @@ export function estirones(parcelas) {
 }
 /* ¿esta casa es ínsula? Barrios de nivel IV: buena parte de las casas de III y IV; barrios de III: alguna de IV */
 export function esInsula(l, nb) { const c = l.casa; if (!c || c.ruina || c.nivel < 3) return false; const b = nb === undefined ? (c.nivel === 4 ? 3 : 2) : nb; return (b >= 4 && (c.nivel === 4 ? l.tipo < 0.6 : l.tipo < 0.3)) || (b === 3 && c.nivel === 4 && l.tipo < 0.25); }
+/* ---------- CD5b: huellas de las casas de parcela: ninguna pisa a otra, ni a una choza ni (con el relleno, que las respeta) a una vecina de fondo ---------- */
+const rect = (x, z, g, hx, hz) => ({ x, z, hx, hz, c: Math.cos(g), s: Math.sin(g) });      // eje X local = (c, -s), eje Z local = (s, c)
+export function chocan(a, b, m = 0) {
+  const dx = b.x - a.x, dz = b.z - a.z;
+  for (const [nx, nz] of [[a.c, -a.s], [a.s, a.c], [b.c, -b.s], [b.s, b.c]]) {
+    const ra = a.hx * Math.abs(nx * a.c - nz * a.s) + a.hz * Math.abs(nx * a.s + nz * a.c), rb = b.hx * Math.abs(nx * b.c - nz * b.s) + b.hz * Math.abs(nx * b.s + nz * b.c);
+    if (Math.abs(dx * nx + dz * nz) > ra + rb + m) return false; }
+  return true;
+}
+export const MEDIA = 3.3;       // media huella de las piezas de casa (aleros incluidos) a escala 1
+/* puntos de la línea de cada calle (cada 1,2 m) en casillas de 8 m: [x, z, medio ancho] */
+const callesDe = E => [...(E.vias || []).filter(v => v.p && v.w >= 2), ...(E.urbe && E.urbe.calles || [])];
+function puntosCalle(E) { const pts = new Map(), P = (x, z) => Math.floor(x / 8) + ',' + Math.floor(z / 8);
+  for (const v of callesDe(E)) { const m = Math.max(0.4, v.w / 2 - 0.3);
+    for (let i = 1; i < v.p.length; i++) { const a = v.p[i - 1], b = v.p[i], ax = a[0] !== undefined ? a[0] : a.x, az = a[1] !== undefined ? a[1] : a.z, bx = b[0] !== undefined ? b[0] : b.x, bz = b[1] !== undefined ? b[1] : b.z, L = Math.hypot(bx - ax, bz - az); if (!L) continue;
+      for (let t = 0; t <= L; t += 1.2) { const x = ax + (bx - ax) * t / L, z = az + (bz - az) * t / L, k = P(x, z); if (!pts.has(k)) pts.set(k, []); pts.get(k).push([x, z, m, Math.atan2(bz - az, bx - ax)]); } } }
+  return pts; }
+const pisaCalle = (q, pts) => { const Rr = Math.hypot(q.hx, q.hz) + 1; for (let a = Math.floor((q.x - Rr) / 8); a <= Math.floor((q.x + Rr) / 8); a++) for (let b = Math.floor((q.z - Rr) / 8); b <= Math.floor((q.z + Rr) / 8); b++) for (const [x, z, m] of pts.get(a + ',' + b) || []) { const dx = x - q.x, dz = z - q.z; if (Math.abs(dx * q.c - dz * q.s) < q.hx + m && Math.abs(dx * q.s + dz * q.c) < q.hz + m) return true; } return false; };
+let firmaH = '', huellasP = new Map(), listaH = [];
+export function huellasParcelas(E) {
+  const f = E.parcelas.map(l => l.casa && !l.fuera ? l.id + (l.casa.ruina ? 'r' : l.casa.nivel) : '').join('|') + '#' + (E.barrios || []).map(b => b.nivel).join(''); if (f === firmaH) return huellasP; firmaH = f; huellasP = new Map(); listaH = [];
+  const cs = E.parcelas.filter(l => l.casa && !l.fuera).sort((a, b) => a.id - b.id);
+  const giroDe = l => -l.ang + (l.lado > 0 ? Math.PI : 0), fijas = [];
+  for (const l of cs) { if (l.casa.ruina) { fijas.push(rect(l.x, l.z, giroDe(l), 5, 5)); continue; } if (l.casa.nivel === 1 && !E.urbe) fijas.push(rect(l.x, l.z, giroDe(l), 3.5, 3.5)); }
+  const puestas = fijas.slice(), calP = puntosCalle(E);
+  for (const l of cs) { const c = l.casa; if (c.ruina || (c.nivel === 1 && !E.urbe)) continue;
+    const nb = E.barrios && E.barrios[l.barrio] ? E.barrios[l.barrio].nivel : undefined, ins = esInsula(l, nb), g = giroDe(l);
+    let s = ins ? 1.75 : c.nivel >= 4 ? 1.6 : c.nivel === 3 ? 1.5 : c.nivel === 2 ? 1.3 : 1.1, r = rect(l.x, l.z, g, MEDIA * s, MEDIA * s);
+    const ch = q => pisaCalle(q, calP) || puestas.some(o => (Math.abs(o.x - q.x) + Math.abs(o.z - q.z) < 40) && chocan(q, o, 0.5));
+    while (ch(r) && s > 0.62) { s *= 0.93; r = rect(l.x, l.z, g, MEDIA * s, MEDIA * s); }
+    if (ch(r)) { huellasP.set(l.id, { s: 0, k: null }); continue; }
+    puestas.push(r); huellasP.set(l.id, { s, k: ins || c.nivel >= 4 && l.tipo < 0.5 ? 'rs_insula' : 'rs_dom' }); }
+  listaH = puestas; return huellasP;
+}
+export const huellasListas = () => listaH;
+/* CD5b: del relleno se quita lo que pisaría a otra casa (de parcela o de relleno) o una calle. Prioridad: ínsulas, domus, tabernas, corrales y huertos */
+let depKey = null, depR = null;
+function depurar(r, E, K) {
+  const ge = 24, grid = new Map(), KC = (x, z) => Math.floor(x / ge) + ',' + Math.floor(z / ge), pts = puntosCalle(E);
+  const add = q => { const k = KC(q.x, q.z); if (!grid.has(k)) grid.set(k, []); grid.get(k).push(q); };
+  for (const o of listaH) add(o);
+  const libre = q => { for (let i = -1; i <= 1; i++) for (let j = -1; j <= 1; j++) for (const o of grid.get(KC(q.x + i * ge, q.z + j * ge)) || []) if (chocan(q, o, 0.15)) return false;
+    return !pisaCalle(q, pts); };
+  const out = { celdas: r.celdas, fondo3: [], fondo: [], taber: [], patio: [], huerto: [] };
+  /* CD5b (2.ª vuelta): pasada densa. Casas PEGADAS entre sí (0,3 m de medianera), de anchos distintos (de 5,3 a 8,6 m) y con la fachada a la calle,
+     en hasta tres filas paralelas a ella (la segunda, espalda con espalda). Se hace primero: lo que sobra del relleno antiguo solo entra donde queda hueco. */
+  if (E.urbe && K && K.cercado) { const { X0, Z0, C, N } = K, O = E.ocup, f = E.foro, rmax = Math.max(...E.urbe.RU), hh = (i, j) => { const v = Math.sin(i * 12.9898 + j * 78.233 + (E.semilla | 0) + 3) * 43758.5453; return v - Math.floor(v); };
+    const cel = (x, z) => { const i = Math.floor((x - X0) / C), j = Math.floor((z - Z0) / C); return i < 1 || j < 1 || i >= N - 1 || j >= N - 1 ? -1 : j * N + i; };
+    const tramos = E.urbe.calles.map(c => { const P = c.p, cum = [0]; for (let q = 1; q < P.length; q++) cum.push(cum[q - 1] + Math.hypot(P[q][0] - P[q - 1][0], P[q][1] - P[q - 1][1])); return { c, P, cum, L: cum[cum.length - 1] }; }),
+      en = (T, s) => { let q = 1; while (q < T.P.length - 1 && T.cum[q] < s) q++; const a = T.P[q - 1], b = T.P[q], l = (T.cum[q] - T.cum[q - 1]) || 1, u = (s - T.cum[q - 1]) / l; return { x: a[0] + (b[0] - a[0]) * u, z: a[1] + (b[1] - a[1]) * u, ang: Math.atan2(b[1] - a[1], b[0] - a[0]) }; };
+    for (let fila = 0; fila < 3; fila++) { let nc = 0; for (const T of tramos) { nc++; const c = T.c, L = T.L;
+        for (const lado of [1, -1]) { let sc = 0.3, n = 0;
+          while (sc < L) { n++; const rr = hh(nc * 977 + n + fila * 5003, lado + 11), t = hh(lado + 9, nc * 131 + n + fila * 331), sx = 0.8 + 0.45 * t, hx = MEDIA * sx + 0.05;
+            const sm = sc + hx, pp = en(T, Math.min(sm, L)), ux = Math.cos(pp.ang), uz = Math.sin(pp.ang), ang = pp.ang, o = c.w / 2 + MEDIA + 0.45 + fila * (2 * MEDIA + 0.2), x = pp.x - uz * o * lado, z = pp.z + ux * o * lado; sc += 1.5;
+            if (sm + hx > L + 2.5) continue; if (rr > 0.985 || !K.cercado(E, x, z)) continue; let ok = true; for (const [p1, p2] of [[0, 0], [-2.8, -2.8], [2.8, -2.8], [-2.8, 2.8], [2.8, 2.8]]) { const k = cel(x + ux * p1 - uz * p2, z + uz * p1 + ux * p2); if (k < 0 || O[k]) { ok = false; break; } } if (!ok) continue;
+            if (K.distRio(x, z) < 30 || K.altura(x, z) < K.NIVEL_RIO + 0.9) continue; const y = [K.altura(x - 4, z - 4), K.altura(x + 4, z - 4), K.altura(x - 4, z + 4), K.altura(x + 4, z + 4)]; if (Math.max(...y) - Math.min(...y) > 4.4) continue;
+            const giro = -ang + (lado > 0 ? 0 : Math.PI) + (fila === 1 ? Math.PI : 0), d = Math.hypot(x - f.x, z - f.z) / rmax, rc = rect(x, z, giro, hx, MEDIA + 0.05); if (!libre(rc)) continue;
+            const kind = fila === 0 && t > 0.9 ? 'taber' : rr < 0.3 - 0.26 * d ? 'fondo3' : d > 0.88 && rr < 0.5 ? 'huerto' : rr < 0.93 ? 'fondo' : 'patio';
+            add(rc); out[kind].push({ x, z, giro, sx, sy: kind === 'fondo3' ? 0.85 + 0.3 * t : kind === 'fondo' ? 0.8 + 0.4 * t : 1, tono: t }); sc = sm + hx + 0.2; } } } } }
+  /* CD5b (2.ª vuelta): relleno de huecos por barrido. Se recorre el recinto cada 2,2 m; cada punto libre toma la orientación de la calle más cercana (fachada a ella),
+     y se ponen primero los más próximos a la calle. La casa nace pequeña y se ensancha hasta tocar a su vecina (medianera de 0,2 m). */
+  if (E.urbe && K && K.cercado) { const { X0, Z0, C, N } = K, O = E.ocup, f = E.foro, rmax = Math.max(...E.urbe.RU), hh = (i, j) => { const v = Math.sin(i * 12.9898 + j * 78.233 + (E.semilla | 0) + 5) * 43758.5453; return v - Math.floor(v); };
+    const cel = (x, z) => { const i = Math.floor((x - X0) / C), j = Math.floor((z - Z0) / C); return i < 1 || j < 1 || i >= N - 1 || j >= N - 1 ? -1 : j * N + i; }, cand = [], R0 = rmax * 1.3;
+    for (let gz = Math.floor((f.z - R0) / 2.2); gz <= (f.z + R0) / 2.2; gz++) for (let gx = Math.floor((f.x - R0) / 2.2); gx <= (f.x + R0) / 2.2; gx++) { const x = gx * 2.2, z = gz * 2.2; if (!K.cercado(E, x, z)) continue; const k0 = cel(x, z); if (k0 < 0 || O[k0]) continue;
+      let mj = 28, pa = null; for (let a = Math.floor((x - 28) / 8); a <= Math.floor((x + 28) / 8); a++) for (let b = Math.floor((z - 28) / 8); b <= Math.floor((z + 28) / 8); b++) for (const q of pts.get(a + ',' + b) || []) { const d = Math.hypot(q[0] - x, q[1] - z) - q[2]; if (d < mj) { mj = d; pa = q; } }
+      if (pa && mj > 2.2) cand.push({ px: pa[0], pz: pa[1], x, z, d: mj + (hh(gx, gz) - 0.5) * 2.4, ang: pa[3], lado: (-(x - pa[0]) * Math.sin(pa[3]) + (z - pa[1]) * Math.cos(pa[3])) >= 0 ? 1 : -1 }); }
+    cand.sort((p, q) => p.d - q.d); let cuenta = 0;
+    for (const c of cand) { if (cuenta > 2200) break; let { x, z } = c; const { ang, lado } = c, giro = -ang + (lado > 0 ? 0 : Math.PI), t = hh(Math.round(x), Math.round(z)), mk = (s2, s3) => rect(x, z, giro, MEDIA * s2 + 0.05, MEDIA * s3 + 0.05);
+      let sx = 0.72, sz = 0.8; if (!libre(mk(sx, sz))) continue;
+      const vx = c.px - x, vz = c.pz - z, vl = Math.hypot(vx, vz) || 1; for (let i = 0; i < 12; i++) { const x1 = x + vx / vl * 0.35, z1 = z + vz / vl * 0.35, q = rect(x1, z1, giro, MEDIA * sx + 0.05, MEDIA * sz + 0.05); if (!libre(q)) break; x = x1; z = z1; }      /* se arrima a la calle */
+      let ok = true; for (const [p1, p2] of [[0, 0], [-2.6, -2.6], [2.6, -2.6], [-2.6, 2.6], [2.6, 2.6]]) { const k = cel(x + p1, z + p2); if (k < 0 || O[k]) { ok = false; break; } } if (!ok) continue;
+      if (K.distRio(x, z) < 30 || K.altura(x, z) < K.NIVEL_RIO + 0.9) continue; const y = [K.altura(x - 4, z - 4), K.altura(x + 4, z - 4), K.altura(x - 4, z + 4), K.altura(x + 4, z + 4)]; if (Math.max(...y) - Math.min(...y) > 4.4) continue;
+      while (sx < 1.3 && libre(mk(sx + 0.05, sz))) sx += 0.05; while (sz < 1.5 && libre(mk(sx, sz + 0.05))) sz += 0.05;
+      const d = Math.hypot(x - f.x, z - f.z) / rmax, rr = hh(Math.round(z), Math.round(x)), kind = c.d < 7 && t > 0.93 ? 'taber' : rr < 0.3 - 0.26 * d ? 'fondo3' : d > 0.88 && rr < 0.5 ? 'huerto' : rr < 0.94 ? 'fondo' : 'patio';
+      add(mk(sx, sz)); cuenta++; out[kind].push({ x, z, giro, sx, sz, sy: kind === 'fondo3' ? 0.85 + 0.3 * t : kind === 'fondo' ? 0.8 + 0.4 * t : 1, tono: t }); } }
+  for (const n of ['fondo3', 'fondo', 'taber', 'patio', 'huerto']) out[n].push(...r[n].filter(q => { const a = rect(q.x, q.z, q.giro, MEDIA * (q.sx || 1) + 0.05, MEDIA + 0.05); if (!libre(a)) return false; add(a); return true; }));
+  /* segunda pasada: huecos a pie de calle, casa con casa (7,4 m), hasta tres filas; solo donde no hay edificio, río ni cuesta fuerte */
+  if (E.urbe && K && K.cercado) { const { X0, Z0, C, N } = K, O = E.ocup, f = E.foro, rmax = Math.max(...E.urbe.RU), hh = (i, j) => { const v = Math.sin(i * 12.9898 + j * 78.233 + (E.semilla | 0)) * 43758.5453; return v - Math.floor(v); };
+    const cel = (x, z) => { const i = Math.floor((x - X0) / C), j = Math.floor((z - Z0) / C); return i < 1 || j < 1 || i >= N - 1 || j >= N - 1 ? -1 : j * N + i; };
+    let n = 0; for (const c of E.urbe.calles) { const P = c.p;
+      for (let q = 1; q < P.length; q++) { const a = P[q - 1], b = P[q], dx = b[0] - a[0], dz = b[1] - a[1], L = Math.hypot(dx, dz); if (!L) continue; const ux = dx / L, uz = dz / L, ang = Math.atan2(dz, dx);
+        for (let s = 3.7; s < L; s += 7.4) { n++; for (const lado of [1, -1]) for (let fila = 0; fila < 3; fila++) { const o = c.w / 2 + 3.9 + fila * 7.4, x = a[0] + ux * s - uz * o * lado, z = a[1] + uz * s + ux * o * lado, rr = hh(n * 7 + fila, lado + 5);
+          if (rr > 0.94 || !K.cercado(E, x, z)) continue; let ok = true; for (const [p1, p2] of [[0, 0], [-3, -3], [3, -3], [-3, 3], [3, 3]]) { const k = cel(x + ux * p1 - uz * p2, z + uz * p1 + ux * p2); if (k < 0 || O[k]) { ok = false; break; } } if (!ok) continue;
+          if (K.distRio(x, z) < 30 || K.altura(x, z) < K.NIVEL_RIO + 0.9) continue; const y = [K.altura(x - 4, z - 4), K.altura(x + 4, z - 4), K.altura(x - 4, z + 4), K.altura(x + 4, z + 4)]; if (Math.max(...y) - Math.min(...y) > 4.4) continue;
+          const giro = -ang + (lado > 0 ? 0 : Math.PI), d = Math.hypot(x - f.x, z - f.z) / rmax, t = hh(lado + 9, n + fila * 131), rc = rect(x, z, giro, MEDIA + 0.05, MEDIA + 0.05); if (!libre(rc)) continue;
+          const kind = fila === 0 && t > 0.6 ? 'taber' : rr < 0.3 - 0.26 * d ? 'fondo3' : d > 0.86 && rr < 0.6 ? 'huerto' : rr < 0.86 ? 'fondo' : 'patio';
+          add(rc); out[kind].push({ x, z, giro, sx: 1, sy: kind === 'fondo3' ? 0.85 + 0.3 * t : kind === 'fondo' ? 0.8 + 0.4 * t : 1, tono: t }); } } } } }
+  /* tercera pasada: el interior de las manzanas, en rejilla de 7,6 m y orientado como la calle más cercana (a menos de 26 m) */
+  if (E.urbe && K && K.cercado) { const { X0, Z0, C, N } = K, O = E.ocup, f = E.foro, rmax = Math.max(...E.urbe.RU), hh = (i, j) => { const v = Math.sin(i * 12.9898 + j * 78.233 + (E.semilla | 0) + 7) * 43758.5453; return v - Math.floor(v); };
+    const cel = (x, z) => { const i = Math.floor((x - X0) / C), j = Math.floor((z - Z0) / C); return i < 1 || j < 1 || i >= N - 1 || j >= N - 1 ? -1 : j * N + i; };
+    for (let gz = Math.floor((f.z - rmax * 1.3) / 7.6); gz <= Math.floor((f.z + rmax * 1.3) / 7.6); gz++) for (let gx = Math.floor((f.x - rmax * 1.3) / 7.6); gx <= Math.floor((f.x + rmax * 1.3) / 7.6); gx++) {
+      const rr = hh(gx, gz); if (rr > 0.72) continue; const x = gx * 7.6 + (rr - 0.36) * 1.2, z = gz * 7.6 + (hh(gz, gx) - 0.5) * 1.2; if (!K.cercado(E, x, z)) continue;
+      let ang = null, mejor = 26; for (let a = Math.floor((x - 26) / 8); a <= Math.floor((x + 26) / 8); a++) for (let b = Math.floor((z - 26) / 8); b <= Math.floor((z + 26) / 8); b++) for (const [px, pz, , an] of pts.get(a + ',' + b) || []) { const d = Math.hypot(px - x, pz - z); if (d < mejor) { mejor = d; ang = an; } }
+      if (ang === null) continue; let ok = true; for (const [p1, p2] of [[0, 0], [-3, -3], [3, -3], [-3, 3], [3, 3]]) { const k = cel(x + p1, z + p2); if (k < 0 || O[k]) { ok = false; break; } } if (!ok) continue;
+      if (K.distRio(x, z) < 30 || K.altura(x, z) < K.NIVEL_RIO + 0.9) continue; const y = [K.altura(x - 4, z - 4), K.altura(x + 4, z - 4), K.altura(x - 4, z + 4), K.altura(x + 4, z + 4)]; if (Math.max(...y) - Math.min(...y) > 4.4) continue;
+      const giro = -ang + (rr < 0.36 ? 0 : Math.PI), d = Math.hypot(x - f.x, z - f.z) / rmax, t = hh(gz + 5, gx + 3), rc = rect(x, z, giro, MEDIA + 0.05, MEDIA + 0.05); if (!libre(rc)) continue;
+      const kind = d > 0.8 && rr < 0.2 ? 'huerto' : rr > 0.66 ? 'patio' : rr < 0.12 * (1 - d) ? 'fondo3' : 'fondo'; add(rc); out[kind].push({ x, z, giro, sx: 1, sy: kind === 'fondo3' ? 0.85 + 0.3 * t : kind === 'fondo' ? 0.8 + 0.4 * t : 1, tono: t }); } }
+  for (const n of ['fondo', 'fondo3', 'patio', 'huerto', 'taber']) if (out[n].length > CUPO[n]) out[n].length = CUPO[n];
+  return out;
+}
 /* tabernas del foro: dos filas en los lados largos de la plaza, dentro de su huella y lejos del edificio del foro */
 export function tabernasForo(f) { const c = Math.cos(f.ang), s = Math.sin(f.ang), u = 7.2, v = f.d / 2 - 3.4;
   return [1, -1].map(k => ({ x: f.x + c * u - s * v * k, z: f.z + s * u + c * v * k, giro: -f.ang + (k > 0 ? Math.PI : 0) })); }
@@ -240,13 +377,14 @@ export const RELLENO = true;
 let rellenoF = -1, rellenoE = null, rellenoR = null;
 export function relleno(E, C, fantasma, EDIF) {
   if (!RELLENO || !E || !E.fundada || !E.ocup) return null;
-  if (rellenoE !== E || rellenoF !== E.rev) { rellenoE = E; rellenoF = E.rev; rellenoR = calcularRelleno(E, C); }
-  if (!fantasma) return rellenoR;
+  if (rellenoE !== E || rellenoF !== E.rev) { rellenoE = E; rellenoF = E.rev; rellenoR = calcularRelleno(E, C); depKey = null; }
+  huellasParcelas(E); const kd = firmaH + '#' + rellenoF; if (depKey !== kd) { depKey = kd; depR = depurar(rellenoR, E, C); }
+  const base = depR; if (!fantasma) return base;
   const d = EDIF && EDIF[fantasma.id], r = (d ? Math.max(d.w || 16, d.d || 16) / 2 : 12) + 9, fx = fantasma.x, fz = fantasma.z, fuera = q => Math.hypot(q.x - fx, q.z - fz) > r;
-  return { fondo: rellenoR.fondo.filter(fuera), fondo3: rellenoR.fondo3.filter(fuera), patio: rellenoR.patio.filter(fuera), huerto: rellenoR.huerto.filter(fuera), celdas: rellenoR.celdas };
+  return { fondo: base.fondo.filter(fuera), fondo3: base.fondo3.filter(fuera), patio: base.patio.filter(fuera), huerto: base.huerto.filter(fuera), taber: base.taber.filter(fuera), celdas: base.celdas };
 }
 function calcularRelleno(E, K) {
-  const { X0, Z0, C, N } = K, O = E.ocup, out = { fondo: [], fondo3: [], patio: [], huerto: [], celdas: new Set() };
+  const { X0, Z0, C, N } = K, O = E.ocup, out = { fondo: [], fondo3: [], patio: [], huerto: [], taber: [], celdas: new Set() };
   const casa = new Uint8Array(N * N); for (const l of E.parcelas) { if (!l.casa || l.fuera) continue; const i0 = Math.floor((l.x - X0) / C), j0 = Math.floor((l.z - Z0) / C), m = 7;
     for (let j = j0 - m; j <= j0 + m; j++) for (let i = i0 - m; i <= i0 + m; i++) if (i >= 0 && j >= 0 && i < N && j < N && (i - i0) ** 2 + (j - j0) ** 2 <= m * m) casa[j * N + i] = Math.max(casa[j * N + i], l.casa.nivel); }
   const f = E.foro, h = (i, j) => { let x = Math.imul(i * 374761393 + j * 668265263, 1274126177) ^ (E.semilla | 0); x = Math.imul(x ^ (x >>> 13), 1103515245); return ((x ^ (x >>> 16)) >>> 0) / 4294967296; };
@@ -265,11 +403,11 @@ function calcularRelleno(E, K) {
     for (let b = j - 1; b <= j + 2; b++) for (let a = i - 1; a <= i + 2; a++) out.celdas.add(b * N + a);
   }
   if (E.urbe) rellenoUrbe(E, K, out, h);
-  for (const n of ['fondo', 'fondo3', 'patio', 'huerto']) if (out[n].length > CUPO[n]) out[n].length = CUPO[n];
+  for (const n of ['fondo', 'fondo3', 'patio', 'huerto', 'taber']) if (out[n].length > CUPO[n]) out[n].length = CUPO[n];
   return out;
 }
 /* CI3a: cupo de cada pieza de relleno (lo usa también city3d.js para sus lotes) */
-export const CUPO = { fondo: 2600, fondo3: 1500, patio: 1100, huerto: 900 };
+export const CUPO = { fondo: 4200, fondo3: 2200, patio: 1100, huerto: 900, taber: 900 };
 /* CI3a (plano 3): casas de relleno a los dos lados de las calles de adorno de la urbe (E.urbe.calles), en hilera, pared con pared y con
    huecos sueltos; más ínsulas cerca del foro, patios y huertos hacia el borde. Nada pisa calles, parcelas, edificios ni campos (E.ocup), ni otra casa */
 function rellenoUrbe(E, K, out, h) {
@@ -299,6 +437,7 @@ function rellenoUrbe(E, K, out, h) {
           for (const k of ks) out.celdas.add(k);
           for (let p1 = -3.3; p1 <= 3.31; p1 += 0.825) for (let p2 = -3.3; p2 <= 3.31; p2 += 0.825) { const k = cf(x + ux * p1 - uz * p2, z + uz * p1 + ux * p2); if (k >= 0 && !fina[k]) fina[k] = 1; }
           const d = Math.hypot(x - f.x, z - f.z) / rmax, giro = -ang + (lado > 0 ? 0 : Math.PI), q0 = { x, z, giro, sx: 0.92 + 0.12 * t, sy: 0.8 + 0.45 * t, tono: t, k: ks[0] };
-          if (r < 0.3 - 0.26 * d) out.fondo3.push(Object.assign(q0, { sy: 0.85 + 0.3 * t })); else if (d > 0.86 && r < 0.6) out.huerto.push(Object.assign(q0, { sy: 1, sx: 0.85 })); else if (r < 0.86) out.fondo.push(q0); else out.patio.push(Object.assign(q0, { sy: 1 })); } }
+          if (r < 0.3 - 0.26 * d) out.fondo3.push(Object.assign(q0, { sy: 0.85 + 0.3 * t })); else if (d > 0.86 && r < 0.6) out.huerto.push(Object.assign(q0, { sy: 1, sx: 0.85 })); else if (r < 0.86) { if (fila === 0 && t > 0.62) out.taber.push(Object.assign(q0, { sy: 1 })); else out.fondo.push(q0); } else out.patio.push(Object.assign(q0, { sy: 1 })); } }
       paso = s - L; } }
 }
+

@@ -61,7 +61,7 @@ function material(p, o = {}) {
       vec3 muro = mix(tx.rgb, vec3(lum), ${PIEL.desat.toFixed(2)});
       muro = mix(muro, vec3(0.30 + 0.62 * pow(lum, 0.7)), vTeja.a * (1.0 - rojo)) * vMuro;
       vec3 tj = mix(vec3(lum), tx.rgb, ${PIEL.tejaSat.toFixed(2)}) * vTeja.rgb;
-      tj = mix(tj, vec3(0.86, 0.36, 0.22) * (0.55 + 0.9 * lum) * (0.8 + 0.2 * vTeja.r), uPlano * 0.8);      /* CV4a: en plano, teja de barro viva (de cerca, la de siempre) */
+      tj = mix(tj, vec3(0.86, 0.36, 0.22) * (0.55 + 0.9 * lum) * mix(vec3(1.0), vTeja.rgb, 0.9), uPlano * 0.8);      /* CV4a: en plano, teja de barro viva (de cerca, la de siempre) */
       muro = mix(muro, muro * vec3(1.12, 1.08, 0.98), uPlano);
       vec3 c = mix(muro, tj, teja);
       c *= mix(${PIEL.base.toFixed(2)}, 1.0, max(teja, smoothstep(-0.5, 5.5, vAlt + (lum - 0.5) * 2.0)));`}
@@ -268,7 +268,7 @@ export async function montar() {
   U.uRuido.value = texturaRuido(); ponerCamara(); ponerLuz(); { const cl = crearCielo(SOL, HORIZ, U); cieloU = cl.userData.luz; scene.add(cl); }
   G.T = T;
   /* CI1: atlas pintado por código y lotes de las piezas romanas de su siglo */
-  texs.set(RS.ATLAS, RS.atlas()); L.rs_templo = lote('rs_templo', 12); L.rs_dique = lote('rs_dique', 12, { sinTeja: true }); L.rs_tabernas = lote('rs_tabernas', 4); L.rs_insula = lote('rs_insula', 220);
+  texs.set(RS.ATLAS, RS.atlas()); L.rs_templo = lote('rs_templo', 12); L.rs_dique = lote('rs_dique', 12, { sinTeja: true }); L.rs_tabernas = lote('rs_tabernas', 4); L.rs_insula = lote('rs_insula', 220); L.rs_dom = lote('rs_dom', 260); L.rs_taber = lote('rs_taber', RS.CUPO.taber);
   L.rs_fondo = lote('rs_fondo', RS.CUPO.fondo); L.rs_fondo3 = lote('rs_fondo3', RS.CUPO.fondo3); L.rs_patio = lote('rs_patio', RS.CUPO.patio, { sinTeja: true }); L.rs_huerto = lote('rs_huerto', RS.CUPO.huerto, { sinTeja: true });      // CI1-7: relleno de manzanas y arrabal
   Campos.iniciar({ scene, altura, distRio, NIVEL_RIO, CI, uPlano: U.uPlano });
   L.rs_muro = lote('rs_muro', 64, { sinTeja: true }); L.rs_torre = lote('rs_torre', 96, { sinTeja: true }); L.rs_puerta = lote('rs_puerta', 12, { sinTeja: true });
@@ -298,8 +298,8 @@ export async function montar() {
 /* el terreno de una partida: suelo, río, bosque, puente */
 export function mundo(estado) {
   vida.reiniciar(); E = estado; cul = CASAS_C[estado.cultura] ? estado.cultura : 'roma'; OPC_SUELO.apretado = romaS(); tinteO = cul === 'roma' && estado.tinte ? TINTE_O[estado.tinte] || null : null; revVista = -1; tNace.clear(); firma.clear(); fantasma = null; surcoT0 = -1; esperaSurco = 0; nTalados = -1; estClave = -1; firmaArb = ''; Fachadas.reiniciar(); Civicas.reiniciar(); trajin.reiniciar();
-  for (const m of [sueloJ && sueloJ.malla, rio, crecida, estM, dinM, andM, andL, surcoM, aradoM, plazaM]) if (m) { scene.remove(m); if (m.geometry) m.geometry.dispose(); }
-  dinM = andM = andL = surcoM = aradoM = plazaM = null; plazaF = ''; if (antM) { scene.remove(antM); antM.geometry.dispose(); antM = null; } antFirma = ''; obrasF = []; firmaObras = '';
+  for (const m of [sueloJ && sueloJ.malla, rio, crecida, estM, dinM, andM, andL, estBarM, estBarL, surcoM, aradoM, plazaM]) if (m) { scene.remove(m); if (m.geometry) m.geometry.dispose(); }
+  dinM = andM = andL = estBarM = estBarL = surcoM = aradoM = plazaM = null; plazaF = ''; if (antM) { scene.remove(antM); antM.geometry.dispose(); antM = null; } antFirma = ''; obrasF = []; firmaObras = '';
   sueloJ = crearSuelo3(G.T, U, E ? E.bosquetes : []); sueloJ.terreno(E && E.terreno); scene.add(sueloJ.malla); rio = crearRio(G.T, U); scene.add(rio);
   /* lámina de la crecida: una cinta más ancha que el río, escondida bajo el cauce hasta que toca */
   { const n = RIO.length, pos = new Float32Array(n * 6), uv = new Float32Array(n * 4), idx = []; let sl = 0; for (let i = 0; i < n; i++) { const a = RIO[Math.max(0, i - 1)], b = RIO[Math.min(n - 1, i + 1)], l = Math.hypot(b[0] - a[0], b[1] - a[1]), nx = -(b[1] - a[1]) / l, nz = (b[0] - a[0]) / l, w = 124; if (i) sl += Math.hypot(RIO[i][0] - RIO[i - 1][0], RIO[i][1] - RIO[i - 1][1]); pos.set([RIO[i][0] + nx * w, 0, RIO[i][1] + nz * w, RIO[i][0] - nx * w, 0, RIO[i][1] - nz * w], i * 6); uv.set([0, sl / 60, 2.5, sl / 60], i * 4); if (i < n - 1) idx.push(i * 2, i * 2 + 1, i * 2 + 2, i * 2 + 1, i * 2 + 3, i * 2 + 2); }
@@ -346,22 +346,65 @@ export function ponerFantasma(f) { fantasma = f; pinM.visible = !!f; if (f) { co
 
 /* CI1-7: relleno de la vista (casas de fondo, ínsulas, patios y huertos del arrabal) en las celdas libres; cede ante calles, parcelas, edificios y el fantasma */
 let rellenoC = null, rellenoN = -1;
+/* CD5b: teja con tono por casa: rojizo, anaranjado u ocre, ±8 % (la teja nueva, más viva). h: azar fijo 0..1 de la casa */
+const TEJAS_T = [[1.04, 0.84, 0.86], [1.08, 1.22, 0.9], [1.0, 1.5, 1.4]];
+const hashXZ = (x, z) => { const v = Math.sin(x * 12.9898 + z * 78.233) * 43758.5453; return v - Math.floor(v); };
+const tejaTono = (h, nueva) => { if (nueva) return TEJA_NUEVA.slice(0, 3); const b = TEJAS_T[Math.floor(h * 3) % 3], v = 1 + (((h * 37) % 1) - 0.5) * 0.16; return [b[0] * v, b[1] * v, b[2] * v]; };
+/* CD5b: estado de un barrio a la vista. 'sube' = andamios en unas casas; 'cae' = casas tapiadas y tejados rotos; 'revuelta' = gentío apiñado y humo.
+   Se fuerza con estadoBarrioVista(i, estado) (la ficha de barrio y las capturas) y, si no, se lee de E.barrios[i].estado (o .sube / .cae / .revuelta). null = como siempre. */
+const estForzado = new Map(); let estBarM = null, estBarL = null, estHumos = [], estFirma = '', ultR = null;
+export function estadoBarrioVista(i, est) { if (est) estForzado.set(i, est); else estForzado.delete(i); estFirma = ''; aplicarEstados(); }
+const estadoDe = i => { if (estForzado.has(i)) return estForzado.get(i); const b = E && E.barrios && E.barrios[i]; return b ? (b.estado || (b.revuelta ? 'revuelta' : b.sube ? 'sube' : b.cae ? 'cae' : null)) : null; };
+function casasDeBarrio(i) {
+  const b = E.barrios[i], c = [];
+  if (ultR) for (const [n, top] of [['fondo', 4.6], ['fondo3', 7.6], ['taber', 4.6]]) for (const q of ultR[n]) if (CI.barrioDe(E, q.x, q.z) === i) c.push({ x: q.x, z: q.z, giro: q.giro, hx: RS.MEDIA * (q.sx || 1), top: top * (q.sy || 1) });
+  const hp = RS.huellasParcelas(E); for (const l of E.parcelas) { const h = hp.get(l.id); if (h && h.k && l.barrio === i) c.push({ x: l.x, z: l.z, giro: -l.ang + (l.lado > 0 ? Math.PI : 0), hx: RS.MEDIA * h.s, top: (h.k === 'rs_insula' ? 7.6 : 4.6) * 0.85 * h.s }); }
+  return c.sort((p, q) => Math.hypot(p.x - b.x, p.z - b.z) - Math.hypot(q.x - b.x, q.z - b.z));
+}
+function aplicarEstados() {
+  for (const m of [estBarM, estBarL]) if (m) { scene.remove(m); m.geometry.dispose(); } estBarM = estBarL = null; for (const h of estHumos) vida.apagar(h); estHumos = []; vida.gentio([]);
+  if (!E || !E.barrios || !E.parcelas) return;
+  const B = new Bulto(), B2 = new Bulto(), rr = azar(21), gente = []; let hay = false;
+  E.barrios.forEach((b, i) => { const st = estadoDe(i); if (!st) return; const cs = casasDeBarrio(i); hay = true;
+    if (st === 'sube') cs.filter((_, k) => k % 7 === 2).slice(0, 4).forEach(q => andamio(B, { x: q.x, z: q.z, ang: -q.giro - Math.PI / 2, w: q.hx * 2, d: q.hx * 2, av: 0.5, pausa: false }, rr, B2));
+    if (st === 'cae') cs.forEach((q, k) => { if (k % 5 > 1) return; const y = altura(q.x, q.z) + q.top;
+      B2.caja(q.hx * 0.9, 0.35, q.hx * 0.8, q.x, y - 0.35, q.z, '#1d1511', q.giro);                                 // agujero negro en el tejado
+      B2.caja(0.3, 0.3, q.hx * 1.5, q.x, y - 0.1, q.z, '#5a4028', q.giro + 0.5, 0.15, 0); B2.caja(0.3, 0.3, q.hx * 1.2, q.x + 0.5, y - 0.2, q.z - 0.5, '#4a3622', q.giro - 0.6, -0.1, 0);       // vigas caídas
+      const c = Math.cos(q.giro), s = Math.sin(q.giro), px = q.x + s * (-q.hx * 0.88), pz = q.z + c * (-q.hx * 0.88);
+      B2.caja(q.hx * 0.5, 2.2, 0.25, px, altura(px, pz) + 1.2, pz, '#2a1f17', q.giro); B2.caja(q.hx * 0.6, 0.18, 0.3, px, altura(px, pz) + 1.4, pz, '#6a5030', q.giro + 0.7); });      // puerta tapiada con tablas cruzadas
+    if (st === 'revuelta') { for (let k = 0; k < 46; k++) { const a = rr() * 6.283, r = 3 + Math.sqrt(rr()) * 20; gente.push({ x: b.x + Math.cos(a) * r, z: b.z + Math.sin(a) * r }); }
+      for (const q of [[b.x + 8, b.z - 6], [b.x - 10, b.z + 4], [b.x + 1, b.z + 12]]) estHumos.push(vida.pedirHumo(q[0], q[1], { y: 6, f: 0.7, col: [0.14, 0.13, 0.12], op: 1.2 }), vida.pedirHumo(q[0] + 1, q[1], { y: 2, f: 0.25, col: [1.6, 0.55, 0.08], op: 1.3, fuego: 1 })); } });
+  if (!hay) return; vida.gentio(gente);
+  if (B.p.length) { estBarM = new THREE.Mesh(B.geo(), matBulto); estBarM.castShadow = estBarM.receiveShadow = true; scene.add(estBarM); }
+  if (B2.p.length) { estBarL = new THREE.Mesh(B2.geo(), matBulto); estBarL.castShadow = false; estBarL.receiveShadow = true; scene.add(estBarL); }
+  sombraPend = true; pedirReparto = true;
+}
+const hayEstados = () => estForzado.size > 0 || !!(E && E.barrios && E.barrios.some(b => b.estado || b.revuelta || b.sube || b.cae));
 function rellenoVista() {
   const r = romaS() && E ? RS.relleno(E, { X0: CI.X0, Z0: CI.Z0, C: CI.C, N: CI.N, barrioDe: CI.barrioDe, cercado: CI.cercado, altura, distRio, NIVEL_RIO }, fantasma, CI.EDIF) : null;
-  const tm = q => { const v = 0.86 + 0.2 * q.tono; return { muro: [v, v * 0.96, v * 0.9], teja: [0.92 + 0.16 * q.tono, 0.95, 0.92, 0] }; };
-  for (const n of ['fondo', 'fondo3', 'patio', 'huerto']) L['rs_' + n].poner(r ? r[n].map(q => ({ m: matriz(q.x, suelo(q.x, q.z, 4) - 0.1, q.z, q.giro, q.sx || 1, q.sy, 1), ...tm(q) })) : []);
-  const n = r ? r.fondo.length + r.fondo3.length + r.patio.length + r.huerto.length : 0; if ((r && r.celdas) !== rellenoC || n !== rellenoN) { rellenoC = r && r.celdas; rellenoN = n; nTalados = -1; }
+  const tm = q => { const v = 0.86 + 0.2 * q.tono, h = hashXZ(q.x, q.z); return { muro: [v, v * 0.96, v * 0.9], teja: [...tejaTono(h, false), 0.05 + 0.25 * h] }; };
+  for (const n of ['fondo', 'fondo3', 'patio', 'huerto', 'taber']) L['rs_' + n].poner(r ? r[n].map(q => ({ m: matriz(q.x, suelo(q.x, q.z, 4) - 0.1, q.z, q.giro, q.sx || 1, q.sy, q.sz || 1), ...tm(q) })) : []);
+  ultR = r; { const hu = [], ro = [];      // CD5b: humo de hornos (tabernas y casas al azar fijo) y ropa tendida en los patios de las ínsulas
+    if (r) { for (const q of r.taber) if (hashXZ(q.x + 3, q.z) < 0.16) hu.push({ x: q.x, z: q.z, y: 6 }); for (const q of r.fondo) if (hashXZ(q.x, q.z + 5) < 0.02) hu.push({ x: q.x, z: q.z, y: 6 });
+      for (const q of r.fondo3) if (hashXZ(q.x + 1, q.z + 9) < 0.55) ro.push({ x: q.x, z: q.z, giro: q.giro, s: 1, y: suelo(q.x, q.z, 4) - 0.1 + 6.4 * (q.sy || 1) });
+      const hp = RS.huellasParcelas(E); for (const l of E.parcelas) { const h = hp.get(l.id); if (h && h.k === 'rs_insula') ro.push({ x: l.x, z: l.z, giro: -l.ang + (l.lado > 0 ? Math.PI : 0), s: h.s, y: suelo(l.x, l.z, 4) - 0.1 + 6.4 * 0.85 * h.s }); } }
+    vida.humosFijos(hu.slice(0, 60)); Fachadas.ropaPatios(ro.slice(0, 200)); }
+  if (hayEstados() || estBarM || estBarL) aplicarEstados();
+  const n = r ? r.fondo.length + r.fondo3.length + r.patio.length + r.huerto.length + r.taber.length : 0; if ((r && r.celdas) !== rellenoC || n !== rellenoN) { rellenoC = r && r.celdas; rellenoN = n; nTalados = -1; }
 }
 
 /* ---------- lo que cambia: casas, edificios, muralla, obras, humo ---------- */
 const _c = new THREE.Color();
 const facil = t => t <= 0 ? 0 : t >= 1 ? 1 : 1 - Math.pow(1 - t, 3);
 function casas(t) {
-  const fam = familia(), por = {}; for (const k in L) if (k.startsWith('casa') || k.startsWith('grie_casa') || k.startsWith('cart_casa') || k === 'rs_insula') por[k] = []; const rs = romaS(), vec = rs ? RS.estirones(E.parcelas) : null; const EC = fam === CASAS_C.roma ? 1 : ESC_C[cul]; let nc = 0, nt = 0, anim = false;
+  const fam = familia(), hp = romaS() && E.urbe ? RS.huellasParcelas(E) : null, por = {}; for (const k in L) if (k.startsWith('casa') || k.startsWith('grie_casa') || k.startsWith('cart_casa') || k === 'rs_insula' || k === 'rs_dom') por[k] = []; const rs = romaS(), vec = rs ? RS.estirones(E.parcelas) : null; const EC = fam === CASAS_C.roma ? 1 : ESC_C[cul]; let nc = 0, nt = 0, anim = false;
   for (const l of E.parcelas) { const c = l.casa; if (!c || l.fuera) continue;
     const fm = c.nivel + '|' + (c.ruina ? 1 : 0); if (firma.get(l.id) !== fm) { firma.set(l.id, fm); tNace.set(l.id, Math.max(t, esperaSurco) + (E.mesN === 0 ? 0.3 + (l.id % 20) * 0.09 : (l.id % 7) * 0.06)); }
     const u = (t - tNace.get(l.id)) / 0.9, f = facil(u); if (u < 1) { anim = true; animHasta = Math.max(animHasta, tNace.get(l.id) + 1.2); /* CI1: aunque un cuadro tarde, la casa termina de crecer */ } const giro = -l.ang + (l.lado > 0 ? Math.PI : 0), sy = 0.12 + 0.88 * f, sx = u < 0 ? 0.001 : 0.8 + 0.2 * f;
     if (c.ruina) { const k = fam[fam.length - 1 - l.id % 2]; por[k].push({ m: matriz(l.x, suelo(l.x, l.z, 5) - 0.3, l.z, giro, 0.8 * EC, 0.22 * EC, 0.8 * EC), muro: c.arde ? [0.2, 0.17, 0.15] : [0.3, 0.27, 0.23], teja: [0.2, 0.18, 0.17, 0] }); continue; }
+    if (rs && E.urbe && hp && !(c.nivel === 1 && !E.urbe)) { const h = hp.get(l.id); if (!h || !h.k) continue;
+      const nbr = E.barrios && E.barrios[l.barrio], hh = hashXZ(l.x, l.z), tj = tinteK(l.tono * 0.8 + 0.1, l.teja, nbr ? nbr.nivel : undefined, l.arrabal, nbr && nbr.tejas, nbr ? CI.caracterBarrio(E, l.barrio) : undefined), ss = h.s * (u < 0 ? 0.001 : 0.8 + 0.2 * f);
+      por[h.k].push({ m: matriz(l.x, suelo(l.x, l.z, 3.3 * h.s) - 0.1, l.z, giro, ss, ss * 0.85 * (0.15 + 0.85 * f), ss), muro: tj.muro, teja: [...tejaTono(hh, !!(nbr && nbr.tejas)), tj.teja[3]] }); continue; }
     const n1 = c.nivel === 1 && rs && !!E.urbe;      // UR1: en la Roma en pie, la casa de nivel I es una casa baja de teja, no una choza de paja en mitad del foro
     if (c.nivel === 1 && !n1) { const tienda = c.desde === 0 && E.mesN < 8, i = tienda ? nt++ : nc++, e = tienda ? 0.82 + 0.3 * l.tono : 0.8 + 0.2 * l.tono; if (i < (tienda ? 40 : 220)) { const mm = matriz(l.x, suelo(l.x, l.z, 4) - 0.05, l.z, giro + (tienda ? l.tipo * 3 : Math.PI / 2 + (l.tipo - 0.5) * 0.5), e * sx, e * sy, e * sx), cc = _c.setScalar(0.8 + 0.34 * l.teja); for (const m of tienda ? [tiendaM] : chozaM) { m.setMatrixAt(i, mm); m.setColorAt(i, cc); } } continue; }
     const nb = E.barrios && E.barrios[l.barrio] ? E.barrios[l.barrio].nivel : undefined;
@@ -646,6 +689,22 @@ function pintarFinal(sel) {
   renderer.render(scene, camara);
 }
 export const medidas = { triangulos: 0, llamadas: 0, sombras: 0, conSombra: 0 };
+/* CD5b: cuenta huellas de casa que se pisan entre sí o pisan una calle (0 = bien). Solo para pruebas y capturas */
+export function solapes() {
+  const A = [], rejilla = new Map(), cl = (x, z) => Math.floor(x / 24) + ',' + Math.floor(z / 24);
+  for (const k of ['rs_dom', 'rs_insula', 'rs_fondo', 'rs_fondo3', 'rs_patio', 'rs_huerto', 'rs_taber']) { const l = L[k]; if (!l || !l.n) continue;
+    for (let i = 0; i < l.n; i++) { const e = l.M, o = i * 16, sx = Math.hypot(e[o], e[o + 1], e[o + 2]), sz = Math.hypot(e[o + 8], e[o + 9], e[o + 10]), q = { k, x: e[o + 12], z: e[o + 14], hx: RS.MEDIA * sx, hz: RS.MEDIA * sz, c: e[o] / sx, s: -e[o + 2] / sx }; A.push(q); const g = cl(q.x, q.z); if (!rejilla.has(g)) rejilla.set(g, []); rejilla.get(g).push(q); } }
+  let casas = 0, entre = 0, calle = 0; const malos = [];
+  for (const a of A) { casas++; const gx = Math.floor(a.x / 24), gz = Math.floor(a.z / 24);
+    for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) for (const b of rejilla.get((gx + dx) + ',' + (gz + dz)) || []) if (b !== a && b.x + b.z * 1e-3 > a.x + a.z * 1e-3 && RS.chocan(a, b, 0)) { entre++; if (malos.length < 6) malos.push([a.k, b.k, Math.round(a.x), Math.round(a.z)]); } }
+  const calles = [...(E.vias || []).filter(v => v.p && v.w >= 2).map(v => ({ p: v.p, w: v.w })), ...(E.urbe && E.urbe.calles || [])];
+  for (const v of calles) for (let i = 1; i < v.p.length; i++) { const p0 = Array.isArray(v.p[i - 1]) ? v.p[i - 1] : [v.p[i - 1].x, v.p[i - 1].z], p1 = Array.isArray(v.p[i]) ? v.p[i] : [v.p[i].x, v.p[i].z], Ls = Math.hypot(p1[0] - p0[0], p1[1] - p0[1]); if (!Ls) continue; const ux = (p1[0] - p0[0]) / Ls, uz = (p1[1] - p0[1]) / Ls, m = Math.max(0, v.w / 2 - 0.5);
+    for (let t = 0; t <= Ls; t += 1.2) for (const o of m ? [-m, 0, m] : [0]) { const x = p0[0] + ux * t - uz * o, z = p0[1] + uz * t + ux * o, gx = Math.floor(x / 24), gz = Math.floor(z / 24);
+      for (const a of [-1, 0, 1].flatMap(i => [-1, 0, 1].flatMap(j => rejilla.get((gx + i) + ',' + (gz + j)) || []))) { const dx = x - a.x, dz = z - a.z, px = dx * a.c - dz * a.s, pz = dx * a.s + dz * a.c; if (Math.abs(px) < a.hx && Math.abs(pz) < a.hz) { a.enCalle = true; } } } }
+  for (const a of A) if (a.enCalle) { calle++; if (malos.length < 6) malos.push([a.k, 'calle', Math.round(a.x), Math.round(a.z)]); }
+  return { casas, solapes: entre, enCalle: calle, malos };
+}
+export const lotesInfo = () => Object.fromEntries(Object.entries(L).filter(([, v]) => v.n).map(([k, v]) => [k, v.n]));      // CD5b: cuántos ejemplares hay de cada lote (para pruebas y capturas)
 function dibujar() {
   if (LUZ_ESTACIONAL) luz(); antorchas();
   /* CN15a: tinte por estación (suelo, árboles, humo). Solo al cambiar de estación o de paso (8 pasos): sin repintar sombras */
@@ -849,3 +908,34 @@ export class CityView3D {
   ponerAmbiente(on) { ponerAmbiente(on); }
   ambienteNeutro(b) { neutro = !!b; }      // pruebas: sin tono ni viñeta, para comparar con el dibujo directo
 }
+
+/* ---------- CD5b: capas pintadas sobre el suelo (manchas de barrio, zonas de servicio) ----------
+   Una malla plana por capa, con una textura de canvas transparente y UNA llamada de dibujo. Sigue el relieve (altura) y se pinta
+   por encima de tejados y suelo (sin prueba de profundidad), como una acuarela encima del plano. Solo funciones nuevas: nada de lo anterior cambia. */
+const capasSuelo = new Map();
+export function quitarCapa(nombre) {
+  const c = capasSuelo.get(nombre); if (!c) return;
+  scene.remove(c.malla); c.malla.geometry.dispose(); c.malla.material.map.dispose(); c.malla.material.dispose(); capasSuelo.delete(nombre);
+}
+/* canvas: dibujo con la esquina de arriba a la izquierda en (x0, z0) del mundo. rect = {x0, z0, x1, z1}. opc = {orden, opacidad} */
+export function capaSuelo(nombre, canvas, rect, opc = {}) {
+  const k = [rect.x0, rect.z0, rect.x1, rect.z1].join(','), c = capasSuelo.get(nombre), op = opc.opacidad === undefined ? 1 : opc.opacidad;
+  if (c && c.k === k && c.malla.material.map.image === canvas) { c.malla.material.map.needsUpdate = true; c.malla.material.opacity = op; return; }
+  quitarCapa(nombre);
+  const { x0, z0, x1, z1 } = rect, sx = Math.max(2, Math.min(80, Math.ceil((x1 - x0) / 10))), sz = Math.max(2, Math.min(80, Math.ceil((z1 - z0) / 10)));
+  const pos = new Float32Array((sx + 1) * (sz + 1) * 3), uv = new Float32Array((sx + 1) * (sz + 1) * 2), idx = [];
+  for (let j = 0; j <= sz; j++) for (let i = 0; i <= sx; i++) {
+    const n = j * (sx + 1) + i, x = x0 + (x1 - x0) * i / sx, z = z0 + (z1 - z0) * j / sz;
+    pos[n * 3] = x; pos[n * 3 + 1] = altura(x, z) + 1.2; pos[n * 3 + 2] = z; uv[n * 2] = i / sx; uv[n * 2 + 1] = 1 - j / sz;
+    if (i < sx && j < sz) { const a = n, b = n + 1, d = n + sx + 1, e = n + sx + 2; idx.push(a, b, d, b, e, d); }
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(idx);
+  const tex = new THREE.CanvasTexture(canvas); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthTest: !!opc.bajoCasas || false, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide, opacity: op }));  /* bajoCasas: la mancha queda bajo los tejados, no los tiñe */
+  m.renderOrder = 20 + (opc.orden || 0); m.frustumCulled = false; scene.add(m); capasSuelo.set(nombre, { malla: m, k });
+}
+/* ganchos para la vista (barrio-ui.js los usa por la instancia, sin importar este módulo) */
+CityView3D.prototype.capaSuelo = function (n, c, r, o) { capaSuelo(n, c, r, o); };
+CityView3D.prototype.quitarCapa = function (n) { quitarCapa(n); };
+CityView3D.prototype.camObj = function () { return cam; };
+CityView3D.prototype.firma = function () { return [cam.tx.toFixed(1), cam.tz.toFixed(1), cam.d.toFixed(1), cam.az.toFixed(3), desvio.toFixed(1), vista.w, vista.h].join('|'); };
