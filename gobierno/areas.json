@@ -205,7 +205,9 @@
         "test/plan-senado.test.mjs",
         "js/agricultura.js",
         "test/agricultura.test.mjs",
-        "js/barrio-ui.js"
+        "js/barrio-ui.js",
+        "js/mercado.js",
+        "test/mercado.test.mjs"
       ],
       "taller": [],
       "juez": {
