@@ -322,26 +322,23 @@ async function navegador() {
       await estado(() => window.__mn.pausa(false)); await espera(800);
       const id = await estado(() => { const u = window.__mn.S.man.find(u => u.lado === 0 && u.tropa === 'hastati') || window.__mn.S.man.find(u => u.lado === 0); window.__mn.elegir([u.id]); return u.id; });
       const no = await estado(i => window.__mn.bajar(i), id);
-      await espera(1500);
+      /* LP7: «Bajar a pie» abre el control del bloque (gobierno/maquetas/bloque/) en una capa; la batalla grande espera en pausa */
+      await page.waitForFunction(() => { const a = window.__mn.apie(); return a && a.lista; }, null, { timeout: 180000 }).catch(() => { });
       const a0 = await estado(() => window.__mn.apie());
-      const u0 = await estado(i => { const u = window.__mn.S.man[i]; return { x: u.x, y: u.y, t: window.__mn.S.t }; }, id);
-      if (no || !a0) return { ok: false, detalle: 'no baja: «' + no + '»', captura: await foto('apie-no') };
-      const dCam = Math.hypot(a0.camara.x - a0.x, a0.camara.z + a0.y);
-      await estado(() => { window.__mn.palanca(0, -1); for (let k = 0; k < 30; k++) window.__mn.cuadro(0.1); window.__mn.palanca(0, 0); });
-      const a1 = await estado(() => window.__mn.apie());
-      const anda = Math.hypot(a1.x - a0.x, a1.y - a0.y);
+      if (no || !a0 || !a0.lista) return { ok: false, detalle: 'no baja: «' + no + '»', captura: await foto('apie-no') };
+      const t0 = await estado(() => window.__mn.S.t);
+      /* se dibuja el frente (lo que hace el dedo) y el bloque marcha hacia él */
+      const noF = await estado(() => window.__mn.frente({ x: -10, z: -14 }, { x: 12, z: -20 }));
       await estado(() => { for (let k = 0; k < 40; k++) window.__mn.cuadro(0.1); });
-      /* a pie, de cerca, el dibujo por programa puede tardar más de 30 s en dar un fotograma en un recorrido largo: se pausa, se espera más
-         y, si aun así no llega, el paso juzga el efecto sin la foto */
-      await estado(() => window.__mn.pausa(true));
+      const a1 = await estado(() => window.__mn.apie());
+      const anda = Math.hypot(a1.r.pose.x - a0.r.pose.x, a1.r.pose.z - a0.r.pose.z);
+      await espera(4000);
       const cap = await page.screenshot({ path: join(CAPS, String(++n).padStart(2, '0') + '-escaramuza-apie.jpg'), type: 'jpeg', quality: 72, timeout: 120000 }).then(() => String(n).padStart(2, '0') + '-escaramuza-apie.jpg').catch(() => null);
-      await estado(() => window.__mn.pausa(false));
-      const u1 = await estado(i => { const u = window.__mn.S.man[i]; return { x: u.x, y: u.y, t: window.__mn.S.t, oculto: getComputedStyle(document.getElementById('mn-abajo')).display === 'none' }; }, id);
-      const mueveMan = Math.hypot(u1.x - u0.x, u1.y - u0.y);
+      const u1 = await estado(() => ({ t: window.__mn.S.t, pausa: window.__mn.S.pausa, oculto: getComputedStyle(document.getElementById('mn-abajo')).display === 'none' }));
       await estado(() => window.__mn.subir()); await espera(1500);
-      const arriba = await estado(() => ({ a: window.__mn.apie(), y: window.__mn.camaraY(), sel: window.__mn.estado().sel }));
-      const ok = dCam < 6 && a0.camara.y < 4 && anda > 2 && mueveMan > 1 && u1.t > u0.t + 5 && u1.oculto && !arriba.a && arriba.y > 30 && arriba.sel.includes(id);
-      return { ok, detalle: 'cámara a ' + dCam.toFixed(1) + ' m y ' + a0.camara.y.toFixed(1) + ' m de alto; el centurión anda ' + anda.toFixed(1) + ' m; el manípulo se mueve ' + mueveMan.toFixed(1) + ' m; reloj ' + u0.t.toFixed(1) + ' → ' + u1.t.toFixed(1) + ' s; arriba de nuevo a ' + (+arriba.y).toFixed(0) + ' m', captura: cap };
+      const arriba = await estado(() => ({ a: window.__mn.apie(), y: window.__mn.camaraY(), sel: window.__mn.estado().sel, pausa: window.__mn.S.pausa }));
+      const ok = !noF && anda > 2 && a1.estado.T > a0.estado.T + 3 && u1.pausa && u1.t === t0 && u1.oculto && !arriba.a && !arriba.pausa && arriba.y > 30 && arriba.sel.includes(id);
+      return { ok, detalle: 'a pie, el bloque marcha ' + anda.toFixed(1) + ' m hacia el frente dibujado en ' + (a1.estado.T - a0.estado.T).toFixed(1) + ' s; la batalla grande espera (' + t0.toFixed(1) + ' s); arriba de nuevo a ' + (+arriba.y).toFixed(0) + ' m', captura: cap };
     }
 
     await paso('Nueva partida: se ve el mapa', 'comun', async () => {

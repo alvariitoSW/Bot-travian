@@ -8,6 +8,9 @@
    LP5a: física de js/fisica-batalla.js por fisica.js (cuerpos que no se atraviesan, caídos en el suelo, pilum y jabalinas que
    se clavan o rebotan); ?fisica=0 la apaga. ?nivel=facil|normal|dificil empieza sin la tarjeta · ?semilla=N · ?fase=dibuja|gira|salva|testudo|carga|choque|lucha|flanco|relevo|datos|fin
    salta a ese momento con un jugador automático y congela (capturas) · ?cam=d,alto,adelante,abertura retoca la cámara.
+   LP7: ?lp7=<JSON> la abre la batalla grande («Bajar a pie», js/ui-mando.js) en una capa: { semilla, nivel, fuerzas, lejos,
+   r, g (soldado de cada bando, ver soldados.js ponBandos), rival { los, Los }, objetivo }. Lucha hasta el 15 % (FIN_LUCHA) y, al
+   salir, manda al padre postMessage({ aqvila: 'lp7', r: __bloque.lp7() }): hombres y en pie de cada bloque y dónde acabó el tuyo.
    Gancho para pruebas: window.__bloque = { listo, C, S, dibuja(p0, p1), orden(n), estado() }. */
 import { THREE } from '../../../js/gfx/models.js';
 import { cargarSoldado, tropa } from '../../../js/gfx/soldado.js';
@@ -21,9 +24,11 @@ import { crearHud } from './hud.js';
 import { crearDedos } from './dedos.js';
 import { crearCamara } from './camara.js';
 import { separaEstandartes } from './rotulos.js';
-import { modelos, prestan, ARMAS, FONDO, paleta, modeloDe, eligeOficial, soloArmas } from './soldados.js';
+import { modelos, prestan, ARMAS, FONDO, paleta, modeloDe, eligeOficial, soloArmas, ponBandos } from './soldados.js';
+import { FIN_LUCHA } from '../../../js/falange.js';
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), $ = id => document.getElementById(id);
+let LP7 = null; try { LP7 = Q.get('lp7') ? JSON.parse(Q.get('lp7')) : null; } catch (e) { console.warn('lp7 mal escrito', e); }
 const suave = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const angDif = (a, b) => { let d = (a - b) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return d; };
 const fr = a => ({ x: Math.sin(a), z: -Math.cos(a) });
@@ -142,7 +147,7 @@ function pintaSoldados() {
     L[b].sort((a, c) => a.d2 - c.d2); let usados = [0, 0, 0];
     for (const f of L[b]) {
       const d = Math.sqrt(f.d2); let n = d < DMAX[0] && usados[0] < TOPE[b][0] ? 0 : d < DMAX[1] && usados[1] < TOPE[b][1] ? 1 : 2;
-      if (usados[n] >= TOPE[b][n]) continue; let mo = tr[modeloDe(f, oficial)] ? f.modelo : hay[0]; if (n === 2 && tr[FONDO[mo]]) mo = FONDO[mo]; const t = tr[mo][n], i = t.sig(); if (i < 0) continue; usados[n]++;
+      if (usados[n] >= TOPE[b][n]) continue; let mo = tr[modeloDe(f, oficial)] ? f.modelo : hay[0]; if (n >= 1 && tr[FONDO[mo]]) mo = FONDO[mo];   /* LP7: también a media distancia (≤ 30 llamadas con el campo lleno) */ const t = tr[mo][n], i = t.sig(); if (i < 0) continue; usados[n]++;
       const y = H(f.x, f.z); P3.set(f.x, y, f.z); QT.setFromAxisAngle(Y, f.yaw); E3.set(f.talla, f.talla, f.talla); M4.compose(P3, QT, E3);
       const v4 = var4(f.semilla), mu = t.muestra(f.clip, f.t); t.matriz(i, M4.elements); t.vars(i, v4); t.pose(i, f.clip, f.t, mu);
       const pa = ar[ARMAS[mo]]; if (pa) { const ta = pa[n], ia = ta.sig(); if (ia >= 0) { ta.matriz(ia, M4.elements); ta.vars(ia, v4); ta.pose(ia, f.clip, f.t, ta.muestra(f.clip, f.t)); } }
@@ -214,8 +219,8 @@ function pintaVuelos(dt) {
 }
 
 /* ---------- partida ---------- */
-let C = null, TR = null, FS = null, hud = null, dedos = null, cam1 = null, congelado = false, nivel = NIVELES.includes(Q.get('nivel')) ? Q.get('nivel') : null;
-const semilla = +(Q.get('semilla') || (1 + Math.floor(Math.random() * 999)));
+let C = null, TR = null, FS = null, hud = null, dedos = null, cam1 = null, congelado = false, nivel = NIVELES.includes(Q.get('nivel')) ? Q.get('nivel') : LP7 ? (NIVELES.includes(LP7.nivel) ? LP7.nivel : 'normal') : null;
+const semilla = +(Q.get('semilla') || (LP7 && LP7.semilla) || (1 + Math.floor(Math.random() * 999)));
 let oyente = null;
 function avisa(tipo, d) {
   if (oyente) oyente(tipo, d);
@@ -232,7 +237,8 @@ function avisa(tipo, d) {
   } catch (e) { /* sin sonido */ }
 }
 function nueva(n) {
-  nivel = n; C = crearCombate({ semilla, nivel, motor: BL, avisa }); TR = crearTropas({ S: C.S }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla }); oficial = eligeOficial(TR.figs); hud.pon(C); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
+  nivel = n; C = crearCombate(Object.assign({ semilla, nivel, motor: BL, avisa }, LP7 ? { fuerzas: LP7.fuerzas, lejos: LP7.lejos, fin: FIN_LUCHA } : {}));
+  if (LP7 && LP7.rival) C.S.rival = LP7.rival; TR = crearTropas({ S: C.S }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla }); oficial = eligeOficial(TR.figs); hud.pon(C); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
   window.__bloque.C = C; window.__bloque.S = C.S;
 }
 /* lo que prevé LP1 al dibujar: mira hacia el lado de la raya más cerca de donde mira ahora */
@@ -292,6 +298,7 @@ function bucle(ahora) {
       try { Son.lucha && Son.lucha(C.S.tuyo.contactos.length ? 1 : 0); } catch (e) { /* sin sonido */ }
     }
     camaraSigue(congelado ? 5 : dt); cam1 && cam1.aplica(congelado ? 5 : dt); camara.updateMatrixWorld();
+    mPolvo.material.opacity = cam1 ? 1 - 0.75 * cam1.t() : 1;   /* LP7: abajo, el polvo no tapa media pantalla */
     avanza(polvo, POLVO_N, mPolvo, congelado ? 0 : dt, -0.1); avanza(chispa, CHISPA_N, mChispa, congelado ? 0 : dt, 6); pintaVuelos(congelado ? 0 : dt);
     pintaSoldados(); hud.tick(dt); separaEstandartes($('ests')); campo && campo.tick(ahora / 1000);
   }
@@ -300,7 +307,15 @@ function bucle(ahora) {
 }
 
 let campo = null;
-window.__bloque = { listo: false, dibuja: (a, b) => C && frenteDesdeRaya(a, b), orden: n => C && C.orden(n), muestraFin: () => hud && hud.muestraFin(),
+/* LP7: lo que vuelve a la batalla grande. k: tuyo, centro, amigas0/1, alas0/1, reserva, tiradores */
+function resultadoLP7() {
+  if (!C) return null; const S = C.S, E = S.ene, todos = { tuyo: S.tuyo, amigas0: S.amigas[0], amigas1: S.amigas[1], centro: E.centro, alas0: E.alas[0], alas1: E.alas[1], reserva: E.reserva, tiradores: E.tiradores }, bl = {};
+  for (const k in todos) { const b = todos[k]; if (b.estado === 'fuera' && !S.bloques.includes(b)) continue; bl[k] = { hombres: b.U.hombres, enPie: b.U.enPie, roto: b.U.roto }; }
+  const tu = S.tuyo; return { ganador: S.ganador, causa: S.causa, T: +S.T.toFixed(1), bloques: bl, pose: { x: tu.x, z: tu.z, ang: tu.ang } };
+}
+let enviado = false;
+function vuelveLP7() { if (enviado) return; enviado = true; try { parent.postMessage({ aqvila: 'lp7', r: resultadoLP7() }, location.origin); } catch (e) { console.warn(e); } }
+window.__bloque = { listo: false, lp7: () => resultadoLP7(), vuelve: () => vuelveLP7(), salta: f => salta(f), dibuja: (a, b) => C && frenteDesdeRaya(a, b), orden: n => C && C.orden(n), muestraFin: () => hud && hud.muestraFin(),
   estado: () => ({ T: C && C.S.T, nivel, ganador: C && C.S.ganador, util: C && C.ordenUtil(), orden: C && C.S.tuyo.orden, llamadas: renderer.info.render.calls, triangulos: renderer.info.render.triangles, figs: TR && TR.figs.length, caidos: TR && TR.caidos.length }), fisica: () => FS && FS.medir() };
 
 async function arranca() {
@@ -311,13 +326,13 @@ async function arranca() {
   creaSombras(); creaEfectos();
   $('carga-t').textContent = 'Formando el manípulo…';
   /* AL11: cada bando carga sus modelos y los que les prestan armas (soldados.js); una tropa por modelo y nivel */
-  const pide = [], nombres = new Set(); for (const b of ['r', 'g']) for (const n of [...modelos(b), ...prestan(b)]) nombres.add(n);
-  const cargados = {}; for (const n of nombres) pide.push(cargarSoldado(n, paleta(n)).then(s => { cargados[n] = s; }));
+  const pide = [], nombres = new Set(); for (const b of ['r', 'g']) for (const n of [...modelos(b), ...prestan(b)]) nombres.add(b + ':' + n);   /* LP7: por bando (mismo modelo, otros colores) */
+  const cargados = {}; for (const k of nombres) { const [b, n] = k.split(':'); pide.push(cargarSoldado(n, paleta(n, b)).then(s => { cargados[k] = s; })); }
   const [cs] = await Promise.all([crearCampo(escena, { H, SOL, cine, sueloCine, BRUMA: escena.fog.color }).catch(e => { console.warn('Sin campo', e); return null; }), ...pide]);
   campo = cs;
   for (const b of ['r', 'g']) {
-    for (const n of modelos(b)) { const s = cargados[n]; if (s) T[b][n] = NIV.map((nv, k) => { const t = tropa(s.niveles[nv], TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Falta soldado', n); }
-    for (const n of prestan(b)) { const s = cargados[n]; if (s) A[b][n] = NIV.map((nv, k) => { const t = tropa(soloArmas(s.niveles[nv]), TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Faltan armas de', n); }
+    for (const n of modelos(b)) { const s = cargados[b + ':' + n]; if (s) T[b][n] = NIV.map((nv, k) => { const t = tropa(s.niveles[nv], TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Falta soldado', n); }
+    for (const n of prestan(b)) { const s = cargados[b + ':' + n]; if (s) A[b][n] = NIV.map((nv, k) => { const t = tropa(soloArmas(s.niveles[nv]), TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Faltan armas de', n); }
   }
   nueva(nivel || 'normal');
   $('salir').addEventListener('click', salir); $('salir2').addEventListener('click', salir);
@@ -325,10 +340,12 @@ async function arranca() {
   for (const b of document.querySelectorAll('[data-nivel]')) b.addEventListener('click', () => { $('inicio').hidden = true; nueva(b.dataset.nivel); });
   addEventListener('pointerdown', () => { try { Son.inicia(); } catch (e) { /* sin sonido */ } }, { once: true });
   if (FASE) { nivel = nivel || 'normal'; nueva(nivel); salta(FASE); congelado = true; if (FASE === 'fin') hud.muestraFin(); }
-  else if (!Q.get('nivel')) { nivel = null; $('inicio').hidden = false; }
+  else if (!Q.get('nivel') && !LP7) { nivel = null; $('inicio').hidden = false; }
+  if (LP7) { $('otra').hidden = true; $('salir2').textContent = 'Volver a la batalla'; if (LP7.objetivo) $('objetivo').textContent = LP7.objetivo;
+    const cr = document.querySelector('#fin .creditos'); if (cr) cr.textContent = cr.textContent.replace(/^LP3 · [^)]*\)\. /, ''); }   /* el crédito, sin «contra galos» */
   $('carga').hidden = true;
   requestAnimationFrame(t => { tPrev = t; bucle(t); });
   window.__bloque.listo = true;
 }
-function salir() { if (history.length > 1) history.back(); else location.href = './'; }
+function salir() { if (LP7) return vuelveLP7(); if (history.length > 1) history.back(); else location.href = './'; }
 arranca().catch(e => { console.error(e); $('carga-t').textContent = 'No se pudo cargar: ' + e.message; });

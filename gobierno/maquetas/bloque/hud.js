@@ -11,6 +11,9 @@
 import { AGOTADA, COH_ORDEN, centro } from '../../../js/bloque-ia.js';
 
 const NOMBRE = { tuyo: 'Tu manípulo', amiga: 'Compañeros', centro: 'Su centro', ala: 'Galos', reserva: 'Su jefe', tiradores: 'Tiradores' };
+/* LP7: desde la batalla grande el rival puede no ser galo: S.rival = { los: 'los cartagineses', Los: 'Cartagineses' } (si no, galos) */
+const RIVAL = { los: 'los galos', Los: 'Galos' };
+const rival = S => (S && S.rival) || RIVAL;
 const lim = (x, a, b) => Math.max(a, Math.min(b, x));
 
 /* la palabra y el color del estandarte de un bloque: verde «fresca/firme», ámbar «cede/cansada», rojo «huye» */
@@ -90,10 +93,10 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     if (tu.estado === 'reforma') return ['Os rehacéis · ' + Math.max(1, Math.ceil(tu.tReforma - S.T)) + ' s', 'bien'];
     if (giro && tu.vueltas) return ['Toca la raya dorada: gira', 'mal'];
     if (S.flanco && S.flanco.de && S.flanco.de.estado !== 'fuera') { const l = ladoEnPantalla(S.flanco.de.x, S.flanco.de.z); return ['Su jefe viene por la ' + (l < 0 ? 'izquierda' : 'derecha'), 'mal']; }
-    if (ce.U.roto) return R && !R.U.roto ? ['Su centro huye · queda su jefe', 'bien'] : ['Su centro huye', 'bien'];
+    if (ce.U.roto) return R && R.estado !== 'fuera' && !R.U.roto ? ['Su centro huye · queda su jefe', 'bien'] : ['Su centro huye', 'bien'];
     if (!tocado) {
       const c1 = centro(tu), c2 = centro(ce), d = Math.round(Math.hypot(c1.x - c2.x, c1.z - c2.z) - (tu.fondo + ce.fondo) / 2);
-      if (!(tu.contactos && tu.contactos.length)) return ['Los galos están a ' + Math.max(0, d) + ' m', ''];
+      if (!(tu.contactos && tu.contactos.length)) return [rival(S).Los + ' a ' + Math.max(0, d) + ' m', ''];
       tocado = true;
     }
     const r = tu.U.enPie / tu.U.hombres * (0.5 + tu.U.animo), g = ce.U.enPie / ce.U.hombres * (0.5 + ce.U.animo), d = r - g;
@@ -102,9 +105,9 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
   }
 
   function datos() {
-    const tu = S.tuyo, pct = x => Math.round(x * 100), e = S.ene, enPie = (...bs) => bs.reduce((s, b) => s + (b ? b.U.enPie : 0), 0);
+    const tu = S.tuyo, pct = x => Math.round(x * 100), e = S.ene, enPie = (...bs) => bs.reduce((s, b) => s + (b && b.estado !== 'fuera' ? b.U.enPie : 0), 0);
     $('datos-r').innerHTML = `<b>Tuyos</b> · ${tu.U.enPie} de ${tu.U.hombres} · moral ${pct(tu.U.animo)} · cohesión ${Math.round(tu.coh)} · relevos ${tu.relevos} · retiradas ${tu.retiradas} · compañeros ${enPie(...S.amigas)}`;
-    $('datos-g').innerHTML = `<b>Galos</b> · centro ${e.centro.U.enPie} (moral ${pct(e.centro.U.animo)}) · jefe ${e.reserva.U.enPie} · alas ${enPie(...e.alas)} · tiradores ${e.tiradores.U.enPie}`;
+    $('datos-g').innerHTML = `<b>${rival(S).Los}</b> · centro ${e.centro.U.enPie} (moral ${pct(e.centro.U.animo)}) · jefe ${enPie(e.reserva)} · alas ${enPie(...e.alas)} · tiradores ${enPie(e.tiradores)}`;
   }
 
   /* el borde de un lado: franja roja con su frase */
@@ -145,7 +148,7 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
       const [col, p] = palabraDe(b); if (col !== E.clase) { E.el.classList.remove('verde', 'ambar', 'rojo'); E.el.classList.add(col); E.clase = col; }
       const tb = trab && tu.estado !== 'retira';   /* la placa, solo mientras sigue dentro */
       if (b === tu && tb !== E.trab) { E.el.classList.toggle('trabado', tb); E.trab = tb; }
-      const t = (b.papel === 'tuyo' || b.papel === 'reserva' || b.papel === 'centro' ? NOMBRE[b.papel] + ' · ' : '') + p;
+      const t = (b.papel === 'tuyo' || b.papel === 'reserva' || b.papel === 'centro' ? (b.papel === 'ala' ? rival(S).Los : NOMBRE[b.papel]) + ' · ' : '') + p;
       if (t !== E.pal) { E.w.textContent = t; E.pal = t; }
     }
     /* avisos en el borde: flanco que viene, o enemigo pegado por tu costado */
@@ -187,7 +190,7 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     if (finHecho) return; finHecho = true;
     const r = C.resumen(), gana = r.ganador === 'tuyo', mm = Math.floor(r.T / 60), ss = String(Math.round(r.T % 60)).padStart(2, '0');
     $('fin-t').textContent = gana ? 'Victoria' : r.ganador === 'enemigo' ? 'Derrota' : 'Tablas';
-    $('fin-p').textContent = (gana ? 'Rompiste su centro' : 'Tu manípulo rompió') + ` en ${mm}:${ss}. Perdiste ${r.perdidos} de 120; cayeron ${r.matados} galos.`;
+    $('fin-p').textContent = (gana ? 'Rompiste su centro' : 'Tu manípulo rompió') + ` en ${mm}:${ss}. Perdiste ${r.perdidos} de ${S.tuyo.U.hombres}; cayeron ${r.matados} de ${rival(S).los}.` + (S.tuyo.U.fin ? ' Lucharon hasta quedar el 15 %.' : '');
     const peso = [], costo = [];
     if (r.salvasTestudo) peso.push(r.salvasTestudo === r.salvas ? `El testudo paró ${r.salvas > 1 ? 'las ' + r.salvas + ' salvas' : 'la salva'} de jabalinas.` : `El testudo paró ${r.salvasTestudo} de ${r.salvas} salvas de jabalinas.`);
     if (cuenta.pilum) peso.push(`Tu pilum mató a ${cuenta.pilum} antes del choque.`);
