@@ -223,7 +223,13 @@
         "test/gobernador.test.mjs",
         "gobierno/maquetas/gobernador/",
         "js/clases-ui.js",
-        "gobierno/maquetas/clases/"
+        "gobierno/maquetas/clases/",
+        "js/calles.js",
+        "js/gfx/calles3d.js",
+        "js/calles-ui.js",
+        "test/calles.test.mjs",
+        "gobierno/maquetas/calles/",
+        "gobierno/maquetas/mercado/"
       ],
       "taller": [],
       "juez": {
