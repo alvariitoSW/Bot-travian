@@ -12,8 +12,13 @@ const clave = (ag, seed, region, opciones) => JSON.stringify([!!ag, seed || 0, r
 const TAREAS = [];
 for (const ag of [false, true]) for (let sd = 1; sd <= 10; sd++) TAREAS.push({ k: clave(ag, sd), a: [ag, sd], ctx: 'base' });
 for (const ag of [false, true]) for (let sd = 1; sd <= 10; sd++) TAREAS.push({ k: clave(ag, sd, 'italia'), a: [ag, sd, 'italia'], ctx: 'base' });
+/* Partida corta (60 partidas, ≈1 h en serie): SOLO con SIM_CORTA_FUERA=1, en pruebas. Medido el 24/11: jugadas fuera, «fundar» dio 0/10
+   victorias del agresivo; en serie, sin medir aún (el bloque I8-a deja en D cambios de pruebas anteriores que un proceso nuevo no tiene).
+   Hasta comprobar que salen igual que en serie, se juegan en el proceso principal, como siempre. */
+if (process.env.SIM_CORTA_FUERA) {
 for (const ini of ['enPie', 'fundar']) for (const ag of [true, false]) for (let sd = 1; sd <= 10; sd++) { const o = { modo: 'corta', inicio: ini }; TAREAS.push({ k: clave(ag, sd, null, o), a: [ag, sd, null, o], ctx: 'corta' }); }
 for (const ini of ['enPie', 'fundar']) for (let sd = 1; sd <= 10; sd++) { const o = { modo: 'corta', inicio: ini, investiga: true }; TAREAS.push({ k: clave(true, sd, null, o), a: [true, sd, null, o], ctx: 'corta' }); }
+}
 const indice = {}; TAREAS.forEach((t, i) => { indice[t.k] = i; });
 const toma = (dir, i) => { try { fs.closeSync(fs.openSync(path.join(dir, i + '.toma'), 'wx')); return true; } catch (e) { return false; } };   // el primero que crea el archivo se la queda
 const duerme = ms => Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
