@@ -21,7 +21,7 @@
      y el galo no queda abierto; el empujón es de hombro. S.tuyo añade fuelle, roto y lo que cuesta cada gesto. */
 import { FILES, YO, CMP, HOMBRES } from './formacion.js';
 import { velocidad, pisa } from './locomocion.js';
-import { posturaDePose } from './esqueleto.js';   /* CB2 */
+import { posturaDePose, mul, punto, H as HU } from './esqueleto.js';   /* CB2 */
 let semillaL = 11; const azarL = () => { semillaL = (semillaL * 16807) % 2147483647; return (semillaL - 1) / 2147483646; };
 /* TP8b-L3: cuántos galos de refuerzo guarda la escena (enemigo.js los crea; la lucha los trae) */
 /* TP8b-E2: galos que cargan (dos filas de FILES + 2) y los de reserva, hasta HOMBRES (al menos 30, como antes) */
@@ -366,7 +366,31 @@ export function crearAcciones(m) {
 /* CB2: pone en la tabla de huesos la pose del motor de lucha para un hombre. tab: lo que da generaTabla (T, esq, hues);
    fila: fila libre de la tabla para ese hombre; base: fila de partida (reposo); pose: poseDe(h, t) de js/combate-poses.js.
    Devuelve la fila (para aFrame). Quien llama pone needsUpdate en la textura de huesos. */
-export function aplicaPoseCombate(tab, fila, base, pose, E) {
-  tab.T.set(posturaDePose(tab.esq, base, pose, E), fila * tab.hues * 12);
+export function aplicaPoseCombate(tab, fila, base, pose, E, filaArma = null) {
+  const o = fila * tab.hues * 12;
+  tab.T.set(posturaDePose(tab.esq, base, pose, E), o);
+  /* el arma en la mano: en reposo el gladius va envainado. Si se da filaArma (un cuadro con el arma empuñada), la espada
+     se pone donde la lleva ese cuadro respecto al antebrazo: espada = antebrazo · antebrazo(filaArma)⁻¹ · espada(filaArma) */
+  if (filaArma != null) {
+    const m = h => Array.from(tab.T.subarray(o + h * 12, o + h * 12 + 12));
+    const rel = mul(inversa(tab.esq.mat(filaArma, HU.anteD)), tab.esq.mat(filaArma, HU.espada));
+    tab.T.set(mul(m(HU.anteD), rel), o + HU.espada * 12);
+    /* el scutum derecho: guarda el giro que tiene respecto al pecho en filaArma (de pie, no tumbado hacia delante) y se
+       traslada para que el asa siga en la muñeca */
+    const E2 = tab.esq, ip = inversa(E2.mat(filaArma, HU.pecho)), P = m(HU.pecho);
+    const esc = mul(P, mul(ip, E2.mat(filaArma, HU.escudo))), ant = mul(P, mul(ip, E2.mat(filaArma, HU.anteI)));
+    const w1 = punto(m(HU.anteI), E2.J.munecaI), w0 = punto(ant, E2.J.munecaI);
+    esc[3] += w1[0] - w0[0]; esc[7] += w1[1] - w0[1]; esc[11] += w1[2] - w0[2];
+    tab.T.set(esc, o + HU.escudo * 12);
+  }
   return fila;
+}
+/* inversa de una matriz 3×4 (afín) */
+function inversa(a) {
+  const [m0, m1, m2, t0, m3, m4, m5, t1, m6, m7, m8, t2] = a;
+  const c0 = m4 * m8 - m5 * m7, c1 = m5 * m6 - m3 * m8, c2 = m3 * m7 - m4 * m6, d = 1 / (m0 * c0 + m1 * c1 + m2 * c2);
+  const r = [c0 * d, (m2 * m7 - m1 * m8) * d, (m1 * m5 - m2 * m4) * d, 0, c1 * d, (m0 * m8 - m2 * m6) * d, (m2 * m3 - m0 * m5) * d, 0,
+    c2 * d, (m1 * m6 - m0 * m7) * d, (m0 * m4 - m1 * m3) * d, 0];
+  r[3] = -(r[0] * t0 + r[1] * t1 + r[2] * t2); r[7] = -(r[4] * t0 + r[5] * t1 + r[6] * t2); r[11] = -(r[8] * t0 + r[9] * t1 + r[10] * t2);
+  return r;
 }

@@ -18,7 +18,7 @@ function busca(cond, bando = null, tMax = 90) {
   while (S.t < tMax) {
     paso(S.hombres, DT, { rnd: S.rnd }); S.t += DT;
     if (S.t < 2) continue;
-    for (const h of S.hombres) if ((h.fila === 0 || !h.vivo) && (h.col === 0 || h.col === 3) && (!bando || h.bando === bando) && cond(h)) return { t: S.t, mira: h.id };
+    for (const h of S.hombres) if ((h.fila === 0 || !h.vivo) && (h.col === 0 || h.col === 3 || !h.vivo) && (!bando || h.bando === bando) && cond(h)) return { t: S.t, mira: h.id };
   }
   throw new Error('no se encontró el momento');
 }
