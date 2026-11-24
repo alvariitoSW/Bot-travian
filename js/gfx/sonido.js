@@ -69,7 +69,7 @@
   };
   /* ---------- GM43i: sonido grabado ----------
      BANCO: grupo → cuántas variantes hay (assets/sonido/<grupo><n>.mp3). Una variante al azar cada vez, sin repetir la última. */
-  const BANCO = { madera: 4, hierro: 4, escudo: 4, paso: 4, vuelo: 3, esfuerzo: 4, herido: 2, coro: 1, grito: 3, clamor: 2, cuerno: 2, lucha: 2, viento: 1 };
+  const BANCO = { madera: 4, hierro: 4, escudo: 4, paso: 4, vuelo: 3, esfuerzo: 4, herido: 2, coro: 1, grito: 3, clamor: 2, cuerno: 2, lucha: 2, viento: 1, orden: 1, aclamacion: 2, panico: 2, canto: 2, quejido: 2 };
   S.BANCO = BANCO;
   S.archivos = () => Object.entries(BANCO).flatMap(([g, n]) => Array.from({ length: n }, (_, i) => 'assets/sonido/' + g + (i + 1) + '.mp3'));
   S.buf = {}; S.ultima = {}; S.muestras = 0; S.fondos = {}; S.banco = null;
@@ -84,6 +84,32 @@
     return S.banco;
   };
   S.tiene = g => !!(S.buf[g] && S.buf[g].some(Boolean));
+  /* ---------- SON2: frases habladas (assets/voces/<id>.mp3, hechas con Piper; ver assets/voces/LICENSE.txt) ----------
+     cargaVoces(lista de ids): baja y descodifica las que falten (tras el primer toque; en Node no hace nada). Devuelve una promesa.
+     voz(id, o): dice la frase `id`. o = { v volumen, pan, retraso, espera (s máx. que aguarda a que acabe quien habla), a nodo destino }.
+       Devuelve false si esa voz no está cargada (quien llama usa entonces el grito del banco), 'ocupado' si alguien está hablando
+       y no hay hueco (se salta: no se pisan), y true si suena. */
+  S.vbuf = {}; S.vozHasta = 0; S.vpend = {};
+  S.cargaVoces = function (lista, c, raizWeb) {
+    c = c || S.ctx; if (!c || typeof fetch !== 'function' || !lista) return Promise.resolve(0);
+    const base = raizWeb || (raiz.document && raiz.document.baseURI) || (raiz.location && raiz.location.href) || '';
+    return Promise.all(lista.filter(id => !S.vbuf[id] && !S.vpend[id]).map(id => (S.vpend[id] = fetch(new URL('assets/voces/' + id + '.mp3', base))
+      .then(r => r.ok ? r.arrayBuffer() : Promise.reject(new Error(r.status))).then(ab => decodifica(c, ab)).then(b => { S.vbuf[id] = b; return 1; }).catch(() => { delete S.vpend[id]; return 0; })))).then(r => r.reduce((a, b) => a + b, 0));
+  };
+  S.hablando = () => !!(S.ctx && S.ctx.currentTime < S.vozHasta);
+  S.voz = function (id, o) {
+    o = o || {}; const b = S.vbuf[id]; if (!b) return false;
+    if (!listo()) return 'ocupado';
+    const c = S.ctx, ahora = c.currentTime, inicio = Math.max(ahora + (o.retraso || 0), S.vozHasta);
+    if (inicio - ahora > (o.espera || 0) + (o.retraso || 0) + 0.01 || S.muestras >= 24) return 'ocupado';
+    try {
+      const s = c.createBufferSource(), gn = c.createGain(); s.buffer = b; gn.gain.value = vol(o.v === undefined ? 0.8 : o.v); let sal = o.a || S.maestro;
+      if (o.pan && c.createStereoPanner) { const p = c.createStereoPanner(); p.pan.value = Math.max(-1, Math.min(1, o.pan)); p.connect(sal); sal = p; }
+      s.connect(gn); gn.connect(sal); s.start(inicio); S.muestras++; S.vozHasta = inicio + b.duration + 0.2;
+      s.onended = () => { S.muestras = Math.max(0, S.muestras - 1); try { s.disconnect(); gn.disconnect(); } catch (e) { /* nada */ } };
+      return true;
+    } catch (e) { return false; }
+  };
   /* toca una variante del grupo g en el contexto c, hacia el nodo a. o = { v, pan, vel (velocidad), retraso, i (variante fija, desde 1) }.
      No mira el interruptor: eso lo hace quien llama (S.muestra, o la escena a pie). Devuelve la fuente o null. */
   S.toca = function (c, a, g, o) {

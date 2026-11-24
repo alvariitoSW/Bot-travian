@@ -83,3 +83,16 @@
 #hoja .esc-rv-b b{font:700 15px 'Cinzel',Georgia,serif;letter-spacing:.02em}
 #hoja .esc-rv-b small{margin-top:2px;font:400 12px/1.2 var(--libro,Georgia,serif);color:var(--tinta2)}
 @media (min-width:600px){#hoja .esc-rv-g{grid-template-columns:repeat(4,1fr)}}
+
+/* SON1-b: subtítulo de lo que dicen los soldados (js/voces.js). Una cajita sobre el mando, ~3 s; no tapa órdenes ni cinta */
+#gu #gu-dialogo{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(env(safe-area-inset-bottom) + 188px);width:max-content;max-width:calc(100% - 24px);padding:6px 12px;border-radius:12px;background:rgba(14,12,9,.8);border:1px solid var(--fil);font:600 13.5px/1.3 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;color:var(--marmol);text-align:center;opacity:0;transition:opacity .35s;pointer-events:none;overflow:clip;overflow-wrap:anywhere}
+#gu #gu-dialogo.ve{opacity:1}
+#gu #gu-dialogo b{font:700 12px Cinzel,Georgia,serif;letter-spacing:.03em;color:var(--oro)}
+#gu #gu-dialogo i{font-weight:700;color:#fff}
+#gu #gu-dialogo span{color:#cdbf9d;font-weight:500}
+#gu #gu-dialogo.enemigo{border-color:rgba(123,91,181,.8)}
+#gu #gu-dialogo.enemigo b{color:#c9b2ee}
+#gu #gu-dialogo.enemigo i{font-weight:500;font-style:italic;color:#d8cfe8}
+@media (orientation:landscape){
+#gu #gu-dialogo{bottom:calc(env(safe-area-inset-bottom) + 84px);max-width:60%}
+}

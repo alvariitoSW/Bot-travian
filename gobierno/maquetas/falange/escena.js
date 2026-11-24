@@ -351,8 +351,13 @@ let HUD = null;
 /* FA4: los avisos del motor (cabecera de js/falange.js) y de los rivales: sonido y grito corto, sin carteles */
 const PE = new THREE.Vector3(), DE = new THREE.Vector3();
 const AL = d => d && d.lado !== undefined ? d.lado : 0;
+/* SON4: música, voces y subtítulo (js/gfx/banda.js). Tú eres la falange: sin frases habladas de los nuestros (solo el grito de los falangitas); los rivales griegos gritan en griego */
+const N0_RIVAL = { manipulos: { hastati: 1 }, caballeria: { numidas: 1 }, elefantes: { elefantes: 1 }, falange: { falange: 1 }, hoplitas: { hoplitas: 1 } };
+let BANDA = null;
+const resumenBanda = () => ({ fase: S.fase === 'fin' ? 'fin' : S.choque ? 'lucha' : 'lejos', moral: [S.U ? S.U.animo : 1, S.R ? S.R.animo : 1], rotos: [S.U && S.U.roto ? 1 : 0, S.R && S.R.roto ? 1 : 0], cansancio: S.U ? S.U.cansancio : 0, resultado: S.ganador === 'falange' ? 'victoria' : 'derrota' });
 function avisa(tipo, d = {}) {
   const h = d.h; if (RIV) RIV.aviso(tipo, d);
+  if (BANDA && !parado) { const sit = window.Voces.deAviso(tipo, d); if (sit) BANDA.dice(sit); if (tipo === 'fin') BANDA.fin(S.ganador === 'falange' ? 'victoria' : 'derrota'); }
   if (tipo === 'grito') grita(d.texto);
   if (tipo === 'pulso' && !parado) Son.paso(1.1);
   if (tipo === 'ha') { Son.clac(6); if (S.choque) { Son.trueno(0.2); temblor = Math.max(temblor, 0.25); } }
@@ -640,6 +645,7 @@ function bucle(t) {
   /* FA3: con el abanico abierto, el tiempo va a un tercio */
   const k = HUD.lento() ? 1 / 3 : 1;
   if (!parado) { MANDO.paso(dt * k); ACC.paso(dt * k); }
+  if (BANDA && !parado) BANDA.tic(dt * k, resumenBanda(), S.U && !S.U.roto && S.U.animo < 0.3);
   if (RIV) RIV.paso(parado ? 0 : dt * k);
   rayaSigue();
   dibuja(parado ? 0 : dt); HUD.hud(); requestAnimationFrame(bucle);
@@ -683,7 +689,8 @@ async function montaRival() {
   await creaFigs();
   ACC = crearAcciones({ H, avisa, hombres: M, zanF: FIG_F.zan });
   S = ACC.S; window.__tp.S = S; window.__tp.F = ACC.F; window.__tp.acc = ACC;   /* FE2: acc para las fotos */
-  { const p0 = ACC.paso, r0 = ACC.reinicia; ACC.paso = dt => { p0(dt); FIS.paso(ACC.S, dt); }; ACC.reinicia = () => { r0(); FIS.reinicia(ACC.S); }; window.__tp.fisica = () => FIS.medida(ACC.S, poseF); window.__tp.fisicaJuega = (n, bot) => FIS.juega(n, ACC, poseF, bot); }   /* FI1 */
+  try { BANDA = window.Banda.crea({ padre: $('hud'), propio: 'griego', rival: window.Banda.rivalDe(N0_RIVAL[S.rival]), semilla: 43, abajo: '92px' }); Son.alSonar(() => BANDA.inicia()); window.__tp.banda = BANDA; } catch (e) { console.log('[SON4] sin banda: ' + e.message); }
+  { const p0 = ACC.paso, r0 = ACC.reinicia; ACC.paso = dt => { p0(dt); FIS.paso(ACC.S, dt); }; ACC.reinicia = () => { r0(); FIS.reinicia(ACC.S); if (BANDA) BANDA.reinicia(); }; window.__tp.fisica = () => FIS.medida(ACC.S, poseF); window.__tp.fisicaJuega = (n, bot) => FIS.juega(n, ACC, poseF, bot); }   /* FI1 */
   window.__tp.proyectiles = () => FIS.medidaPr(ACC.S); window.__tp.proyectilesJuega = (n, bot) => FIS.juegaPr(n, ACC, bot);   /* FI3: medida de la salva y la salva entera sin dibujar */
   /* FA7: el dibujo de los demás rivales vive en rival.js (montaRivalDe). Si no está o falla, se pintan con el muñeco de hoy.
      Con RIV, la escena no pinta S.ene (lo pinta él) y le pasa cada paso y cada aviso */

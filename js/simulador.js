@@ -788,7 +788,28 @@
     return r;
   }
 
-  const Simulador = { crear, paso, avanzar, ordenar, puede, retirarse, fin, resumen, guardar, cargar, vista, palabras, ordenesDe, rnd,
+  /* LP7: vuelve la lucha a pie («Bajar a pie», el control del bloque de js/bloque-ia.js en una capa). La batalla no sabe cómo se
+     peleó: recibe por bloque { hombres, enPie, roto } (r.bloques[k]) y lo pasa a sus manípulos con mapa[k] = { id, esc }
+     (esc = hombres de aquí por hombre de allí). r.pose = dónde acabó la primera fila de tu bloque en su marco (x a su derecha,
+     z hacia atrás, ang girado a su derecha), que empezó en (0, 0, 0). Devuelve { bajas: [tuyas, suyas], rotos: [ids] } */
+  function vuelveDePie(S, o) {
+    const r = (o && o.r) || {}, B = r.bloques || {}, out = { bajas: [0, 0], rotos: [] };
+    for (const k in (o.mapa || {})) {
+      const m = o.mapa[k], b = B[k], u = S.man[m.id]; if (!b || !u || !vivo(u)) continue;
+      const q = quitar(S, u, Math.round(Math.max(0, b.hombres - b.enPie) * (m.esc || 1))); out.bajas[u.lado] += q;
+      if (b.roto) { romper(S, u); out.rotos.push(u.id); } else estado(S, u);
+    }
+    const u = S.man[o.tuyo], p = r.pose;
+    if (u && vivo(u) && p) {
+      const c = Math.cos(u.a), s = Math.sin(u.a), lat = p.x, ade = -p.z;
+      u.x += s * lat + c * ade; u.y += -c * lat + s * ade; u.a -= p.ang || 0; u.dest = null;
+      if (u.orden === 'mover') u.orden = 'quieto';
+    }
+    if (u) ev(S, 'apie', u, (r.ganador === 'tuyo' ? 'Vuelves a pie con la victoria: ' : r.ganador === 'enemigo' ? 'Tu manípulo rompió a pie: ' : 'Vuelves al mando: ') + out.bajas[0] + ' bajas tuyas y ' + out.bajas[1] + ' suyas', { bajas: out.bajas });
+    return out;
+  }
+
+  const Simulador = { crear, vuelveDePie, paso, avanzar, ordenar, puede, retirarse, fin, resumen, guardar, cargar, vista, palabras, ordenesDe, rnd,
     fuerza, frente, fondo, lado, duelo, dueloPaso, dueloVer, apie, aPie, PASO, FORMAS, SABE, TAM, TRIBUNOS, JEFES, CAR, PLANES, CAMPO, DIST0, LIMITE };
   root.Simulador = Simulador;
   if (typeof module !== 'undefined') module.exports = Simulador;

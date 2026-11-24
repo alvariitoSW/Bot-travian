@@ -1,7 +1,8 @@
 Sonido grabado de AQVILA (assets/sonido)
 
-Los 36 sonidos son CC0 1.0 (dominio público, https://creativecommons.org/publicdomain/zero/1.0/).
-No obligan a citar, pero se cita a cada autor por gratitud. Licencia comprobada en la página de cada fuente el 20/11/2026.
+Los 45 sonidos son CC0 1.0 (dominio público, https://creativecommons.org/publicdomain/zero/1.0/).
+No obligan a citar, pero se cita a cada autor por gratitud. Licencia comprobada en la página de cada fuente el 20/11/2026 (los 9 de voces SON1-a, el 23/11/2026: todos CC0 1.0, ninguno CC BY).
+SON2 (23/11/2026): se quitaron orden1-3 (posible inglés y «grito élfico»; regla del usuario: solo español, griego antiguo o latín); la antigua orden4 es ahora orden1. Las frases habladas están en assets/voces/.
 AQVILA los cortó, igualó y comprimió (mp3 mono a 32 kHz) con tools/sonido.py; las fuentes se bajan con tools/sonido-fuentes.sh.
 
 archivo        autor                 fuente
@@ -41,3 +42,12 @@ cuerno2.mp3    DeVern                Freesound 512490 — https://freesound.org/
 lucha1.mp3     DeadVDI               Freesound 376646 — https://freesound.org/s/376646/
 lucha2.mp3     mario1298             Freesound 177084 — https://freesound.org/s/177084/
 viento1.mp3    Globofonia            Freesound 553733 — https://freesound.org/s/553733/
+orden1.mp3     DeqstersLab           Freesound 661242 — https://freesound.org/s/661242/
+aclamacion1.mp3 HowardV               Freesound 264377 — https://freesound.org/s/264377/
+aclamacion2.mp3 HowardV               Freesound 264377 — https://freesound.org/s/264377/
+panico1.mp3    Archeos               Freesound 325548 — https://freesound.org/s/325548/
+panico2.mp3    IENBA                 Freesound 491405 — https://freesound.org/s/491405/
+canto1.mp3     marconi68             Freesound 588578 — https://freesound.org/s/588578/
+canto2.mp3     marconi68             Freesound 588578 — https://freesound.org/s/588578/
+quejido1.mp3   Morshuman             Freesound 556006 — https://freesound.org/s/556006/
+quejido2.mp3   RepDac3               Freesound 477756 — https://freesound.org/s/477756/

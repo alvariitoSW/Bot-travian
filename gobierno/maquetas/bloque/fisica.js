@@ -30,7 +30,7 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
   const Fi = crearFisica({ H, caidoFijo: true, parMax: D_RIVAL, semilla, parMin: (a, b) => a.bando !== b.bando ? D_RIVAL : undefined });
   const SF = { fal: [], ene: [], giro: 0 };
   const ahora = () => (typeof performance !== 'undefined' ? performance : Date).now();
-  let msPaso = 0, nPaso = 0, T = 0;
+  let msPaso = 0, nPaso = 0, T = 0, msMotor = 0;   /* LP7: msMotor, solo el motor (Fi.paso); msPaso, todo el enganche */
 
   /* al motor no se le dan las figuras (objetos de formas muy distintas: el motor iría lento) sino un cuerpo por figura,
      todos de la misma forma. Entra dónde está y cómo; sale cuánto lo aparta la física (fx, fz) */
@@ -44,15 +44,29 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
   }
   /* mientras cae, el cuerpo se alarga en el suelo poco a poco (los de detrás se apartan a su paso, no de golpe) */
   function alarga(c, dt) { if (c.tCae < CAE_T) { c.tCae += dt; const u = Math.min(1, c.tCae / CAE_T); c.tendido.largo = TENDIDO * u * u * (3 - 2 * u); } }
+  /* LP7: al motor solo van los bloques despiertos: los que están a menos de DESPIERTA m (borde con borde, a lo grueso) de otro
+     bloque, los que huyen o se retiran y, mientras vuela algo, todos. Los demás los guarda en su sitio su formación (tropas.js).
+     (Despertar solo la línea del choque se probó: los de atrás, dormidos, se meten entre los de delante. No vale) */
+  const DESPIERTA = 10, despiertos = new Set();
+  function despierta() {
+    despiertos.clear();
+    const L = S.bloques.filter(b => b.estado !== 'fuera'), vuela = Fi.proyectiles.some(p => p.est === 'vuela');
+    for (const a of L) if (vuela || a.U.roto || a.estado === 'huye' || a.estado === 'retira') despiertos.add(a);   /* el que corre pasa entre otros */
+    for (const a of L) for (const b of L) {
+      if (a.id >= b.id) continue;   /* rivales y también amigos que se cruzan (la reserva por detrás de su centro) */
+      if (Math.hypot(a.x - b.x, a.z - b.z) - (Math.hypot(a.ancho, a.fondo) + Math.hypot(b.ancho, b.fondo)) / 2 < DESPIERTA) { despiertos.add(a); despiertos.add(b); }
+    }
+  }
   function lee(dt) {
     SF.fal.length = 0; SF.ene.length = 0; SF.giro = S.B ? S.B.rumbo : S.tuyo.ang;
-    const testudo = S.tuyo.orden === 'testudo';
+    const testudo = S.tuyo.orden === 'testudo'; despierta();
     for (const f of TR.figs) {
+      if (!despiertos.has(f.b)) continue;
       const c = cuerpo(f); c.x = f.x; c.z = f.z; c.yaw = f.yaw; c.vivo = true; c.salta = f.v > V_SALTA;
       if (f.h) { c.f = f.h.col; c.r = f.h.fila; c.guardia = testudo ? (f.h.fila === 0 ? 'muro' : 'alto') : null; SF.fal.push(c); }
       else { c.guardia = null; SF.ene.push(c); }
     }
-    for (const f of TR.caidos) { const c = cuerpo(f); if (c.vivo) { c.vivo = false; c.x = f.x; c.z = f.z; c.yaw = f.yaw; } tiende(c, f); alarga(c, dt); (f.h ? SF.fal : SF.ene).push(c); }
+    for (const f of TR.caidos) { if (!despiertos.has(f.b)) continue; const c = cuerpo(f); if (c.vivo) { c.vivo = false; c.x = f.x; c.z = f.z; c.yaw = f.yaw; } tiende(c, f); alarga(c, dt); (f.h ? SF.fal : SF.ene).push(c); }
   }
   /* la frontera: dos bloques rivales no se meten uno en otro, aunque las reglas metan un rectángulo en otro (o unos tiradores
      que huyen pasen por encima de tus filas). Para cada par de bloques rivales cuyos rectángulos (los de sus hombres, con MARGEN) se tocan: la
@@ -134,10 +148,10 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
     if (activa && dt > 0) frontera(dt);
     lee(dt);
     if (activa && dt > 0) {
-      Fi.paso(SF, dt);
+      { const m0 = ahora(); Fi.paso(SF, dt); msMotor += ahora() - m0; }
       /* lo que aparta la física se queda en el hombre dibujado (tropas.js lo devuelve andando a su sitio): sin tope ni muelle */
       for (const f of TR.figs) {
-        const c = f._c;
+        const c = f._c; if (!c || !despiertos.has(f.b)) continue;   /* LP7: dormido, no lo movió el motor */
         f.x += c.fx; f.z += c.fz;
         /* nadie va más deprisa que V_DIBUJO (su paso más lo que le empujan): un empujón grande se reparte en varios fotogramas */
         { const x0 = f._x0 - (f.px || 0), z0 = f._z0 - (f.pz || 0), mx = f.x - x0, mz = f.z - z0, m = Math.hypot(mx, mz), t = V_DIBUJO * dt; if (m > t) { f.x = x0 + mx * t / m; f.z = z0 + mz * t / m; } }
@@ -202,7 +216,7 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
       for (const f of L) { if (f.v > V_SALTA) continue; const [x, z] = P(f); if (Math.abs(x - px) > 2 || Math.abs(z - pz) > 2) continue;
         const s = Math.max(0, Math.min(t.largo, (x - px) * t.dx + (z - pz) * t.dz)); if (Math.hypot(x - px - t.dx * s, z - pz - t.dz * s) < RAD_CAIDO + 0.1) pisados++; }
     }
-    return { mismo: +mismo.toFixed(3), rival: +rival.toFixed(3), escudos, pisados, colados, pares, ms: +(msPaso / Math.max(1, nPaso)).toFixed(3) };
+    return { mismo: +mismo.toFixed(3), rival: +rival.toFixed(3), escudos, pisados, colados, pares, ms: +(msPaso / Math.max(1, nPaso)).toFixed(3), motor: +(msMotor / Math.max(1, nPaso)).toFixed(3) };
   }
   /* ¿el escudo de a (rectángulo visto desde arriba) entra en el escudo o en el cuerpo de b? (con un margen de 1 cm) */
   function escudoDentro(a, b) {
@@ -227,5 +241,5 @@ export function crearFisicaBloque({ S, TR, H = () => 0, activa = true, semilla =
     }
     return true;
   }
-  return { Fi, paso, salva, medir, rayas: () => ultimas, activa, set alAviso(f) { avisos = f; }, reinicia() { Fi.reinicia(); msPaso = 0; nPaso = 0; } };
+  return { Fi, paso, salva, medir, rayas: () => ultimas, activa, set alAviso(f) { avisos = f; }, reinicia() { Fi.reinicia(); msPaso = 0; nPaso = 0; msMotor = 0; } };
 }
