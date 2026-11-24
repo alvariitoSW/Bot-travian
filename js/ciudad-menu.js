@@ -1,7 +1,7 @@
 import { montarBarrioUI } from './barrio-ui.js';   // CD5b: manchas de barrio, ficha y capa de necesidades
 /* CD1b: el botón «Construir» de la ciudad y su mini menú por siete familias.
    Solo pinta y maneja el menú. Todo lo que necesita se lo pasa ui.js por parámetro (nada de globales):
-   ctx = { D, ids(), info(id), famDe(id), minis(), coste5(c), puede(coste), costa(), elegir(id), aviso(t) } */
+   ctx = { ministros(), senado(), D, ids(), info(id), famDe(id), minis(), coste5(c), puede(coste), costa(), elegir(id), aviso(t) } */
 
 /* dibujos sencillos propios (sin arte externo) para las fichas «Pronto» sin miniatura */
 const TR = 'fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"';
@@ -26,10 +26,19 @@ export function crearMenu(ctx) {
   const $ = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const app = $('app') || document.body, cs = $('csheet');
-  const btn = document.createElement('button'); btn.id = 'cbtn'; btn.type = 'button'; btn.hidden = true; btn.setAttribute('aria-label', 'Construir');
-  btn.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V10l7-6 7 6v11M10 21v-6h4v6"/></svg><b>Construir</b>';
+  const btn = document.createElement('button'); btn.id = 'cbtn'; btn.type = 'button'; btn.setAttribute('aria-label', 'Construir');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21h18M5 21V10l7-6 7 6v11M10 21v-6h4v6"/></svg><b>Construir</b>'; btn.className = 'cbar-b';
   const hoja = document.createElement('div'); hoja.id = 'cmenu'; hoja.hidden = true;
-  (cs || app).appendChild(btn); app.appendChild(hoja);
+  /* CDe1-B: tres botones en una fila: Construir (este menú), Ministros y Senado (los abre ui.js con ctx.ministros / ctx.senado) */
+  const ICO = p => '<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + p + '</svg>';
+  const mkBtn = (id, rotulo, ico) => { const b = document.createElement('button'); b.id = id; b.type = 'button'; b.className = 'cbar-b'; b.setAttribute('aria-label', rotulo); b.innerHTML = ICO(ico) + '<b>' + rotulo + '</b>'; return b; };
+  const bm = mkBtn('mbtn', 'Ministros', '<circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.4 3.6-7 8-7s8 2.6 8 7"/><path d="M9 3.5 12 2l3 1.5"/>');
+  const bs = mkBtn('sbtn', 'Senado', '<path d="M3 9 12 3l9 6z"/><path d="M5 9v10M9.5 9v10M14.5 9v10M19 9v10M3 21h18"/>');
+  const barra = document.createElement('div'); barra.id = 'cbar'; barra.hidden = true;
+  barra.appendChild(btn); barra.appendChild(bm); barra.appendChild(bs);
+  (cs || app).appendChild(barra); app.appendChild(hoja);
+  bm.addEventListener('click', () => { cerrar(); if (ctx.ministros) ctx.ministros(); });
+  bs.addEventListener('click', () => { cerrar(); if (ctx.senado) ctx.senado(); });
   const est = { fam: null };
 
   const foto = (id, fam) => {
@@ -57,8 +66,8 @@ export function crearMenu(ctx) {
     hoja.innerHTML = '<div class="cm-cab"><button type="button" data-cm="atras">‹ Familias</button><b>' + esc(nom) + '</b><button type="button" data-cm="x" aria-label="Cerrar">✕ Cerrar</button></div><div class="cm-eds">' + (fichas.join('') || '<p class="cm-vacio">Aún no hay nada aquí.</p>') + '</div>';
   }
   function pinta() { est.fam ? pintaFamilia(est.fam) : pintaFamilias(); }
-  function abrir() { est.fam = null; pinta(); hoja.hidden = false; btn.classList.add('on'); }
-  function cerrar() { if (hoja.hidden) return; hoja.hidden = true; est.fam = null; btn.classList.remove('on'); }
+  function abrir() { est.fam = null; pinta(); hoja.hidden = false; btn.classList.add('on'); barra.classList.add('oculta'); }
+  function cerrar() { if (hoja.hidden) return; hoja.hidden = true; est.fam = null; btn.classList.remove('on'); barra.classList.remove('oculta'); }
   btn.addEventListener('click', () => hoja.hidden ? abrir() : cerrar());
   hoja.addEventListener('click', e => {
     const t = e.target.closest('[data-cm]'); if (!t) return;
@@ -73,7 +82,7 @@ export function crearMenu(ctx) {
   let bui = null;
   function sync(m3, visible) {
     try { if (visible) { const V = window.UI && window.UI.cityV; if (!bui && V && V.listo && V.capaSuelo) bui = montarBarrioUI(V, ctx); if (bui) bui.sync(m3, visible); } } catch (e) { console.warn('Barrios: ', e); }
-    const ver = !!visible && m3 === 'mirar'; btn.hidden = !ver;
+    const ver = !!visible && m3 === 'mirar'; barra.hidden = !ver;
     if (!ver) cerrar(); else if (!hoja.hidden) { const k = ctx.minis() ? 1 : 0; if (est.k !== k) { est.k = k; pinta(); } }
   }
   return { sync, cerrar, abrir, get abierto() { return !hoja.hidden; } };

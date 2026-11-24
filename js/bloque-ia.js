@@ -10,7 +10,7 @@
            avisa     función (tipo, datos) hacia pantalla y sonido; en Node, nada
            motor     opcional: el módulo de LP1 (import * as BL from './bloque.js'); mueve tu manípulo (ver PUENTE)
            bloque    opcional, con motor: un B de LP1 ya creado para tu manípulo }
-   C = { S, paso(dt), orden(n), frente({ x, z, ang }), dibujaFrente(a, b), ordenUtil(), bot(modo), resumen() }
+   C = { S, paso(dt), orden(n), frente({ x, z, ang }), dibujaFrente(a, b), ordenUtil(), bot(modo), resumen(), trabado() }
 
    EJES (los de js/falange.js): metros; ang = 0 mira a −z; frente = (sen ang, −cos ang); derecha = (cos ang, sen ang);
    ang positivo = ha girado a su derecha. (x, z) de un bloque = el centro de su PRIMERA FILA (el pivote).
@@ -22,12 +22,13 @@
        { id, bando 'r'|'g', tipo 'manipulo'|'galos'|'nobles'|'tiradores', papel 'tuyo'|'amiga'|'centro'|'ala'|'reserva'|'tiradores',
          x, z, ang, ancho, fondo, U (crearUnidad: enPie, animo, roto), coh 0–100, fila 0–1 (cansancio de la fila que pelea),
          relevos (filas frescas que quedan), orden null|'marcha'|'cargar'|'alto'|'testudo', tRelevo (fin del relevo en curso o −1),
-         estado 'forma'|'marcha'|'choque'|'huye'|'reforma'|'fuera', obj { x, z, ang } | null, contactos [{ b, zona }] }
+         estado 'forma'|'marcha'|'choque'|'retira'|'reforma'|'huye'|'fuera', obj { x, z, ang } | null, contactos [{ b, zona }],
+         retiradas (las que le quedan a un manípulo), tContacto (último roce) }
      S.tuyo, S.amigas[2], S.ene { centro, alas[2], reserva, tiradores }
      S.salva   null | { t (llega), blanco }: jabalinas en el aire
      S.flanco  null | { lado −1|1, de (bloque), finta (bool) }: el aviso de flanco que está vivo
      S.ia      el plan del jefe enemigo { fase, lado, finta, tPlan, ... } (para la escena y las pruebas)
-     S.cuenta  { flanqueado, salvas, salvasTestudo, pilum, relevos, cargas, fintas }
+     S.cuenta  { flanqueado, salvas, salvasTestudo, pilum, relevos, cargas, fintas, retiradas, muertosSuelta, rotaRetira, retiradasGalas }
 
    LAS CUATRO ÓRDENES (LP0 §2–§3; romanos: Cargar · Alto · Testudo · Relevo)
      'cargar'   corren hacia el enemigo de delante; a 15 m lanzan el pilum (una vez); al chocar, golpe de carga 3 s. Cansa la fila.
@@ -35,7 +36,21 @@
      'alto'     se paran y forman: recuperan cohesión y aliento fuera del choque. Quita el testudo y la carga.
      'testudo'  techo de escudos: las jabalinas casi no matan; anda despacio y pega poco en el choque.
      'relevo'   la segunda fila pasa delante por los huecos: la fila que pelea vuelve fresca. 3 s flojos. Quedan S.tuyo.relevos.
+     'retirada' (LP4b) solo trabado: ver TRABADOS Y RETIRADA. Tocar 'testudo' cuando ya lo tienes lo quita (queda en 'alto').
    ordenUtil() → la orden que conviene ahora (la que se ilumina), o null. Nunca un texto: la pantalla solo la ilumina.
+
+   TRABADOS Y RETIRADA (LP4b; pedido del usuario 23/11: «que cueste, con salida»)
+     trabado() = tu manípulo está en el choque (o salió hace menos de T_TRABADO s). Trabado gira a la mitad (B.mods.giro 0,5)
+       y no avanza a través del enemigo: el frente que dibujes solo le hace girar donde está (aviso 'trabado').
+     'retirada' se suelta y retrocede D_RETIRA m formado, sin dar la espalda, a V_RETIRA. Al soltarse paga: el enemigo pega a gusto
+       T_SUELTA s (al menos cae uno), SUELTA_COH de cohesión y SUELTA_ANIMO de moral. Si la cohesión queda por debajo de
+       COH_ROMPE, puede romperse en huida ('desbanda'). Si no, al llegar se rehace T_REFORMA s ('reforma') y vuelve con la fila
+       descansada y REFORMA_ANIMO de moral ('vuelve'). Mientras retrocede no oye otra orden ('retirandose'). Quedan RETIRADAS.
+       Disciplina del manípulo: ya suelto, deja de ir «perdiendo» y recobra CALMA de moral por segundo (los galos no).
+       Un enemigo no persigue una retirada en orden (cohesión ≥ COH_ORDEN): se para y toma aliento; si va desordenada, carga,
+       y la golpea como al que huye. Se ilumina (ordenUtil) cuando, trabado, se va perdiendo sin relevo que lo arregle y
+       la cohesión aguanta el precio (≥ COH_ORDEN + SUELTA_COH).
+     La IA usa la MISMA función: sus bandas en Normal y Difícil se retiran a formar (24 m) cuando su moral baja de 0,3.
 
    EL ENEMIGO (LP0 §3–§4): vive en el campo, no en tu cámara. Piensa cada «reacción» segundos (Fácil 3 · Normal 2 · Difícil 1,2):
      entre dos planes sigue andando hacia el punto que eligió, con su velocidad y su giro; nunca salta. Si giras tu bloque,
@@ -52,14 +67,15 @@
      más de lado o de espalda entra (pesoDe, sin saltos entre 45° y 75°); un frente solo cabe a tantos (dos de frente pegan como
      1,3); el ánimo y la rotura son los de crearUnidad (js/falange.js).
 
-   BOTS (comprobaciones 5–7): 'bueno' (toca la orden iluminada y, cuando la reserva está a 32 m y se le va de frente,
+   BOTS (comprobaciones 5–7): 'bueno' (toca la orden iluminada salvo «Retirada»: aguanta, como en LP2, y, cuando la reserva está a 32 m y se le va de frente,
      redibuja el frente hacia ella sin dar la espalda al centro galo) · 'quieto' (no hace nada) · 'sinOrdenes' (como el bueno, sin Testudo, Relevo ni Cargar) · 'sinTestudo' ·
-     'sinRelevo' · 'sinCargar'.
+     'sinRelevo' · 'sinCargar' · 'retira' (el bueno que además se retira cuando se ilumina «Retirada»).
 
    AVISOS (avisa): 'orden' { n, texto } · 'ilumina' { n } · 'salva' { t, blanco } · 'jabalinas' { muertos, testudo } ·
      'pilum' { blanco, muertos } · 'carga' { de, a } · 'choque' { a, b, zona } · 'flanco' { lado, de, finta } · 'finta' { lado } ·
      'relevo' { de } · 'agotada' { de } · 'cede' { de } · 'reforma' { de } · 'vuelve' { de } · 'huye' { de } · 'rompe' { de } ·
-     'fin' { ganador, causa }
+     'fin' { ganador, causa } · LP4b: 'trabado' { de } · 'retirandose' { de } · 'suelta' { de, muertos } · 'retira' { de } ·
+     'desbanda' { de } (se rompió al retirarse) · 'vuelve' { de } (también el tuyo, al rehacerse)
 
    PUENTE CON LP1 (js/bloque.js). Con m.motor (el módulo de LP1) tu manípulo lo mueve su bloque B (S.B): la orden de frente
      va a su dibujaFrente, cada paso se llama a su paso(B, dt) con B.mods (testudo despacio, carga deprisa, giro a la mitad en
@@ -73,12 +89,18 @@
    César BG 1.25). Testudo en campo abierto contra jabalinas: licencia de juego (atestiguado en asaltos: Polibio 28.11,
    Livio 44.9). Galos por bandas con jefes y nobles: histórico (Polibio 2.28–33); que su reserva flanquee con método, finte y
    se retire a formar: licencia de juego (para que no sea fácil). Persecución que desordena: histórico (Polibio 2.33, 18.26).
+   LP4b: retroceder formado sin dar la espalda (pedem referre): histórico (Livio 8.8.9–11 y César BG 1.25 lo nombran; César es
+   algo posterior). Que soltarse del choque cueste y que una línea gastada se retire tras otra fresca: histórico (Polibio
+   6.21–23; Livio 8.8). Que retirarse con las filas deshechas acabe en huida: histórico (Polibio 15.13–14, Zama; 2.33).
+   Que el enemigo no persiga a una línea que se retira formada: probable (Goldsworthy 1996, sobre la persecución). Licencia
+   de juego: la orden única «Retirada» para un manípulo suelto (lo histórico es la retirada de la línea entera por los
+   huecos), la «calma» del manípulo, el número de retiradas y todas las cifras.
    Licencia de juego: todas las cifras de este archivo. */
 import { azarSemilla, crearUnidad } from './falange.js';
 
 export const NIVELES = ['facil', 'normal', 'dificil'];
-export const ORDENES = ['cargar', 'alto', 'testudo', 'relevo'];
-export const BOTS = ['bueno', 'quieto', 'sinOrdenes', 'sinTestudo', 'sinRelevo', 'sinCargar'];
+export const ORDENES = ['cargar', 'alto', 'testudo', 'relevo', 'retirada'];
+export const BOTS = ['bueno', 'quieto', 'sinOrdenes', 'sinTestudo', 'sinRelevo', 'sinCargar', 'retira'];
 export const GRADO = Math.PI / 180;
 export const DT = 0.1, T_MAX = 300;                                  /* paso de las pruebas y tope de partida (s) */
 export const V_MARCHA = 1.2, V_CARGA = 3.4, V_TESTUDO = 0.5, V_HUYE = 2.6, V_RODEA = 2.4;   /* m/s */
@@ -89,9 +111,19 @@ export const K_GOLPE = 0.85;                                          /* hombres
 export const ZONA = { frente: 1, flanco: 2.1, espalda: 2.8 };         /* cuánto pesa el golpe según por dónde entra */
 export const ANG_FRENTE = 60 * GRADO, ANG_ESPALDA = 120 * GRADO;   /* para el nombre de la zona (avisos); el golpe va por pesoDe */
 export const AGOTADA = 0.7;
-export const D_BOT = 32, OFF_BOT = 20;                               /* el bot bueno gira hacia la reserva cuando está a 32 m y a más de 20° */
+export const D_BOT = 32, OFF_BOT = 20, D_BOT_VUELTA = 50;                               /* el bot bueno gira hacia la reserva cuando está a 32 m y a más de 20° */
 export const VAR = 0.08;                                             /* suerte de cada banda galo: ±8 % de fuerza */
-export const T_PERSIGUE = 15;                                       /* segundos de persecución si tu manípulo rompe */                                          /* con la fila así de cansada, «Relevo» se ilumina */
+export const T_PERSIGUE = 15;                                       /* segundos de persecución si tu manípulo rompe */
+/* LP4b · trabados y retirada ordenada (licencia de juego: todas las cifras) */
+export const T_TRABADO = 1.0;          /* tras el último roce, sigue «trabado» 1 s (sin parpadeos) */
+export const V_RETIRA = 0.9, D_RETIRA = 16, RETIRADAS = 2;   /* paso atrás formado (m/s), cuánto se retira (m) y cuántas veces */
+export const T_SUELTA = 1.5;           /* al soltarse, el enemigo pega a gusto lo que pegaría en 1,5 s (y al menos cae uno) */
+export const SUELTA_COH = 12, SUELTA_ANIMO = 0.03;   /* lo que cuesta soltarse en cohesión y moral */
+export const COH_ROMPE = 35;           /* con menos cohesión, retirarse puede acabar en huida */
+export const COH_ORDEN = 50;           /* con esta cohesión o más, la retirada va en orden: el enemigo no se atreve a perseguir */
+export const T_REFORMA = 6, REFORMA_ANIMO = 0.2;     /* al llegar atrás, segundos para rehacerse y moral que vuelve */
+export const CALMA = 0.008;           /* moral por segundo que vuelve al retirarse, ya suelto */
+export const ANIMO_RETIRA = 0.42;      /* con la moral así de baja y perdiendo, «Retirada» se ilumina */
 
 /* lo que cambia con el nivel (licencia de juego: todas las cifras) */
 export const NIVEL = {
@@ -107,7 +139,7 @@ export const TIPOS = {
   nobles:    { hombres: 70,  ancho: 12, fondo: 6, atk: 1.35, rec: 0.9,  relevos: 0, cansa: 1 / 60, giro: 30 },
   tiradores: { hombres: 40,  ancho: 16, fondo: 3, atk: 0.4,  rec: 1.3,  relevos: 0, cansa: 1 / 40, giro: 30 },
 };
-const TEXTO = { cargar: '¡Pila! ¡A la carga!', alto: '¡Alto! ¡Formad!', testudo: '¡Testudo!', relevo: '¡Relevo! ¡Segunda fila, adelante!' };
+const TEXTO = { cargar: '¡Pila! ¡A la carga!', alto: '¡Alto! ¡Formad!', testudo: '¡Testudo!', abre: '¡Abrid el testudo! ¡Formad!', relevo: '¡Relevo! ¡Segunda fila, adelante!', retirada: '¡Atrás, paso a paso!' };
 
 const lim = (x, a, b) => Math.max(a, Math.min(b, x));
 const angDif = (a, b) => { let d = (a - b) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return d; };
@@ -160,14 +192,14 @@ export function crearCombate(m = {}) {
   const semilla = m.semilla ?? 1, nivel = NIVEL[m.nivel] ? m.nivel : 'normal', P = NIVEL[nivel];
   const avisa = (t, d) => { try { (m.avisa || (() => {}))(t, d); } catch (e) { /* la pantalla no tumba las reglas */ } };
   const azar = azarSemilla(semilla * 7919 + NIVELES.indexOf(nivel) * 31 + 3);
-  const S = { T: 0, nivel, ganador: null, causa: null, bloques: [], salva: null, flanco: null, cuenta: { flanqueado: 0, salvas: 0, salvasTestudo: 0, pilum: 0, relevos: 0, cargas: 0, fintas: 0 } };
+  const S = { T: 0, nivel, ganador: null, causa: null, bloques: [], salva: null, flanco: null, cuenta: { flanqueado: 0, salvas: 0, salvasTestudo: 0, pilum: 0, relevos: 0, cargas: 0, fintas: 0, retiradas: 0, muertosSuelta: 0, rotaRetira: 0, retiradasGalas: 0 } };
   let id = 0, kIlumina = null, tBot = -9, tGiro = -9;
 
   function crea(tipo, papel, bando, x, z, ang, n) {
     const T = TIPOS[tipo], hombres = n || T.hombres;
     const b = { id: id++, tipo, papel, bando, x, z, ang, ancho: T.ancho, fondo: T.fondo, T, U: crearUnidad({ hombres, nombre: papel }),
       coh: 100, fila: 0, relevos: T.relevos, orden: null, tOrden: 0, tRelevo: -1, tImpacto: -9, cargaAl: false, pilum: bando === 'r' ? 1 : 0,
-      estado: 'forma', obj: null, v: 0, contactos: [], reformas: bando === 'g' ? P.reformas : 0, tReforma: -1, golpes: 0, cedido: false, agotada: false };
+      estado: 'forma', obj: null, v: 0, contactos: [], tContacto: -9, retiradas: tipo === 'manipulo' ? RETIRADAS : 0, reformas: bando === 'g' ? P.reformas : 0, tReforma: -1, golpes: 0, cedido: false, agotada: false };
     S.bloques.push(b); return b;
   }
   /* el despliegue (LP0 §4, boceto 1): tu manípulo al centro, dos amigas, los galos a 70 m con su reserva y sus tiradores */
@@ -198,6 +230,9 @@ export function crearCombate(m = {}) {
     return mejor ? { o: mejor, d: dm } : null;
   };
   function enChoque(b) { return b.contactos.length > 0; }
+  /* trabado: en el choque, o recién salido de él (1 s). Dentro, girar cuesta el doble y no se avanza: solo se sale con «Retirada» */
+  function trabado(b) { return b.contactos.length > 0 || S.T - b.tContacto < T_TRABADO; }
+  const retirando = b => b.estado === 'retira' || b.estado === 'reforma';
   /* matar anima, pero menos que en la falange (aquí caen muchos): +0,003 por muerto */
   function causa(b, k) { b.U.causa(k); b.U.anima(-0.009 * k); }
   function flanqueado(b) { return acoso(b) > 0.5; }
@@ -207,6 +242,10 @@ export function crearCombate(m = {}) {
   /* ---------- las órdenes de tu manípulo ---------- */
   function orden(n) {
     if (S.ganador || !ORDENES.includes(n) || tuyo.U.roto) return false;
+    if (n === 'retirada') return retirada(tuyo, D_RETIRA);
+    if (tuyo.estado === 'retira') { avisa('retirandose', { de: tuyo }); return false; }   /* mientras retrocede, no se le puede mandar otra cosa */
+    if (tuyo.estado === 'reforma') tuyo.estado = enChoque(tuyo) ? 'choque' : 'forma';   /* otra orden corta el rehacerse (sin su premio) */
+    if (n === 'testudo' && tuyo.orden === 'testudo') { tuyo.orden = 'alto'; tuyo.tOrden = S.T; tuyo.obj = null; if (B) MO.dibujaFrente(B, B.frente.p0, B.frente.p1, { sentido: 'dibujo' }); avisa('orden', { n: 'alto', texto: TEXTO.abre }); return true; }   /* tocar Testudo otra vez lo quita */
     if (n === 'relevo') {
       if (tuyo.relevos <= 0 || tuyo.tRelevo > S.T) return false;
       tuyo.relevos--; tuyo.tRelevo = S.T + T_RELEVO; tuyo.coh = Math.max(0, tuyo.coh - 4); S.cuenta.relevos++; tuyo.agotada = false;
@@ -218,13 +257,18 @@ export function crearCombate(m = {}) {
   }
   function frente(o) {
     if (S.ganador || tuyo.U.roto || !o) return;
+    if (tuyo.estado === 'retira') { avisa('retirandose', { de: tuyo }); return; }
+    if (trabado(tuyo)) avisa('trabado', { de: tuyo });   /* se acepta el giro, pero solo se gira (despacio) donde se está */
     tuyo.obj = { x: o.x, z: o.z, ang: o.ang }; if (tuyo.orden === 'cargar' || tuyo.orden === 'alto' || tuyo.orden === null) tuyo.orden = 'marcha';
     if (B) mandaFrente(MO, B, tuyo.obj);
   }
   /* la raya que dibuja el dedo, de a a b: ahí la primera fila, mirando al lado de la raya que no es el de tu bloque */
   function dibujaFrente(a, b) {
     if (B) {   /* con LP1, la raya la interpreta él (qué lado es «delante»); se copia su meta */
-      if (S.ganador || tuyo.U.roto) return; const M = MO.dibujaFrente(B, a, b); if (!M) return;
+      if (S.ganador || tuyo.U.roto) return;
+      if (tuyo.estado === 'retira') { avisa('retirandose', { de: tuyo }); return; }
+      if (trabado(tuyo)) avisa('trabado', { de: tuyo });
+      const M = MO.dibujaFrente(B, a, b); if (!M) return;
       tuyo.obj = { x: M.x, z: M.z, ang: M.rumbo }; if (tuyo.orden === 'cargar' || tuyo.orden === 'alto' || tuyo.orden === null) tuyo.orden = 'marcha'; return;
     }
     const x = (a.x + b.x) / 2, z = (a.z + b.z) / 2, dx = b.x - a.x, dz = b.z - a.z;
@@ -232,24 +276,79 @@ export function crearCombate(m = {}) {
     if ((c.x - x) * f.x + (c.z - z) * f.z > 0) ang += Math.PI;
     frente({ x, z, ang: angDif(ang, 0) });
   }
+  /* ---------- la retirada ordenada (LP4b): la misma regla para tu manípulo y para los galos ----------
+     Solo trabado. Al soltarse, el enemigo pega a gusto (T_SUELTA s de golpes) y se pierden cohesión y moral. Con la cohesión
+     baja, puede romperse en huida. Si no, el bloque retrocede formado, sin dar la espalda, «atras» metros; allí se rehace
+     T_REFORMA s y vuelve con la fila descansada y moral. Un enemigo no persigue una retirada en orden (cohesión ≥ COH_ORDEN). */
+  function retirada(b, atras) {
+    if (S.ganador || b.U.roto || retirando(b) || !enChoque(b)) return false;
+    if (b === tuyo && b.retiradas <= 0) return false;
+    if (b.bando === 'r') b.retiradas--;
+    let k = 0;
+    for (const c of b.contactos) { const o = c.b; k += ataque(o) / Math.max(1, o.contactos.length) * c.peso * recibe(b) * T_SUELTA; }
+    k = Math.min(b.U.enPie, Math.max(1, Math.round(k))); b.U.baja(k); for (const c of b.contactos) causa(c.b, k / b.contactos.length);
+    b.coh = Math.max(0, b.coh - SUELTA_COH); b.U.anima(-SUELTA_ANIMO);
+    b.orden = b.bando === 'r' ? 'retirada' : null; b.tOrden = S.T; b.cargaAl = false;
+    if (b === tuyo) { S.cuenta.retiradas++; S.cuenta.muertosSuelta += k; avisa('orden', { n: 'retirada', texto: TEXTO.retirada }); }
+    else S.cuenta.retiradasGalas++;
+    avisa('suelta', { de: b, muertos: k });
+    /* ¿aguanta la retirada? con poca cohesión, la mitad o más salen corriendo */
+    if (b.coh < COH_ROMPE && !b.U.roto) {
+      const p = 0.25 + 0.6 * (COH_ROMPE - b.coh) / COH_ROMPE;
+      if (azar() < p) { b.U.animo = 0; b.U.roto = true; b.U.tRoto = b.U.T; if (b === tuyo) S.cuenta.rotaRetira++; avisa('desbanda', { de: b }); return true; }
+    }
+    if (b.U.roto) return true;
+    const f = fr(b.ang); b.obj = { x: b.x - f.x * atras, z: b.z - f.z * atras, ang: b.ang }; b.estado = 'retira'; b.tReforma = -1;
+    avisa('retira', { de: b }); if (b.bando === 'g') avisa('reforma', { de: b });
+    return true;
+  }
+  /* llega atrás: se rehace; pasado T_REFORMA vuelve formado y con la fila descansada. Si le alcanzan antes, se acabó el respiro */
+  function rehace(b, dt) {
+    /* disciplina del manípulo: ya suelto, el miedo se calma (no se sigue «perdiendo») y la moral vuelve poco a poco.
+       Los galos no la tienen: se rehacen solo al llegar (como en LP2) */
+    if (!enChoque(b) && b.tipo === 'manipulo') { b.U.sufrio = Math.min(b.U.sufrio, b.U.hizo); b.U.anima(CALMA * dt); }
+    if (b.estado === 'retira' && (!b.obj || dist(b, b.obj) < 0.4)) { b.estado = 'reforma'; b.obj = null; b.tReforma = S.T + T_REFORMA; if (b === tuyo) b.orden = 'alto'; }
+    if (b.estado === 'reforma') {
+      if (b.tReforma > 0 && S.T >= b.tReforma) {
+        b.estado = 'forma'; b.U.anima(REFORMA_ANIMO); b.coh = Math.max(b.coh, 75); b.fila = Math.min(b.fila, 0.15); b.tReforma = -1; b.agotada = false; b.cedido = false;
+        if (b === tuyo) tuyo.vueltas = (tuyo.vueltas || 0) + 1;
+        avisa('vuelve', { de: b });
+      }
+    }
+  }
+
   /* la orden que conviene ahora (la que se ilumina) */
-  function ordenUtil() {
-    if (S.ganador || tuyo.U.roto) return null;
+  function ordenUtil(sinRetirada = false) {
+    if (S.ganador || tuyo.U.roto || tuyo.estado === 'retira') return null;
     const ch = enChoque(tuyo);
     /* jabalinas en el aire: testudo, salvo si ya vas cargando y el enemigo está a menos de 15 m (mejor llegar) */
     const cerca = tuyo.orden === 'cargar' && delanteDe(tuyo, 15);
     if (S.salva && S.salva.blanco === tuyo && S.salva.t - S.T <= SALVA_VUELO + 0.2 && !ch && !cerca) return tuyo.orden === 'testudo' ? null : 'testudo';
     if (ch && tuyo.fila >= AGOTADA && tuyo.relevos > 0 && tuyo.tRelevo < S.T) return 'relevo';
-    if (tuyo.orden === 'cargar' && !ch) { const v = delanteDe(tuyo, 60); if (!v || v.o.estado === 'huye' || v.o.estado === 'reforma') return 'alto'; }
-    if (tuyo.orden === 'testudo' && !S.salva) return ch ? 'alto' : (delanteDe(tuyo, D_CARGA) ? 'cargar' : 'alto');
-    if (tuyo.orden !== 'cargar' && !ch) { const v = delanteDe(tuyo, D_CARGA); if (v && v.o.estado !== 'huye' && v.o.estado !== 'reforma') return 'cargar'; }
+    /* trabado y perdiendo, sin relevo que lo arregle: retirarse a tiempo, mientras la cohesión aguanta */
+    if (ch && !sinRetirada && conviene()) return 'retirada';
+    if (tuyo.estado === 'reforma') return null;
+    if (!ch && tuyo.vueltas && giroUtil()) return null;   /* rehecho y con su jefe a un lado: primero girar hacia él (la raya dorada), no cargar */
+    if (tuyo.orden === 'cargar' && !ch) { const v = delanteDe(tuyo, 60); if (!v || v.o.estado === 'huye' || retirando(v.o)) return 'alto'; }
+    if (tuyo.orden === 'testudo' && !S.salva) return ch ? 'testudo' : (delanteDe(tuyo, D_CARGA) ? 'cargar' : 'alto');   /* trabado: tocar Testudo otra vez lo quita */
+    if (tuyo.orden !== 'cargar' && !ch) { const v = delanteDe(tuyo, D_CARGA); if (v && v.o.estado !== 'huye' && !retirando(v.o)) return 'cargar'; }
     if (!ch && tuyo.coh < 45 && tuyo.orden !== 'alto') return 'alto';
     return null;
+  }
+  function conviene() {
+    const u = tuyo.U;
+    /* solo se ilumina si la retirada puede ir en orden: tras pagar al soltarse, la cohesión queda en COH_ORDEN o más */
+    if (tuyo.retiradas <= 0 || tuyo.tRelevo > S.T || tuyo.coh < COH_ORDEN + SUELTA_COH || S.T - tuyo.tImpacto < T_IMPACTO) return false;
+    const mal = u.combate() === 'perdiendo', agotada = tuyo.fila >= AGOTADA && tuyo.relevos <= 0;
+    if (u.animo < ANIMO_RETIRA && (mal || agotada)) return true;   /* la moral se va y nada la va a traer de vuelta ahí dentro */
+    if (flanqueado(tuyo) && mal && u.animo < 0.6) return true;
+    return agotada && mal;
   }
 
   /* ---------- mover: el bloque va hacia su objetivo con su velocidad y su giro; nunca salta ---------- */
   function velocidad(b) {
     if (b.estado === 'huye') return V_HUYE;
+    if (b.estado === 'retira') return V_RETIRA;
     if (b.orden === 'testudo') return V_TESTUDO;
     if (b.orden === 'cargar') return V_CARGA;
     if (b.papel === 'reserva' && S.ia.fase === 'rodea') return V_RODEA;
@@ -258,20 +357,20 @@ export function crearCombate(m = {}) {
   function mueve(b, dt) {
     const o = b.obj; let v = 0;
     if (o) {
-      const ch = enChoque(b) && b.estado !== 'huye' && b.estado !== 'reforma';
+      const ret = b.estado === 'retira', ch = enChoque(b) && b.estado !== 'huye' && !retirando(b);
       const giro = (b.T.giro * GRADO) * (ch ? V_GIRO_CHOQUE / V_GIRO : 1), d = dist(b, o);
       const dir = angHacia(o.x - b.x, o.z - b.z);   /* un bloque formado avanza sin girar si el punto está dentro de ±35° de su frente final */
-      const angObj = d > 2.5 && !ch && Math.abs(angDif(dir, o.ang)) > 35 * GRADO ? dir : o.ang;
+      const angObj = !ret && d > 2.5 && !ch && Math.abs(angDif(dir, o.ang)) > 35 * GRADO ? dir : o.ang;   /* la retirada no da la espalda */
       const g = angDif(angObj, b.ang), c0 = centro(b); b.ang = angDif(b.ang + lim(g, -giro * dt, giro * dt), 0);
       if (d <= 2.5 || ch) {   /* girar a pie quieto: sobre su centro (el mover de reserva; la puerta de verdad es de LP1) */
         const f = fr(b.ang), nx = c0.x + f.x * b.fondo / 2, nz = c0.z + f.z * b.fondo / 2;
         if (o) { o.x += nx - b.x; o.z += nz - b.z; } b.x = nx; b.z = nz;
       }
       /* anda si mira más o menos hacia donde va (si no, primero gira, como una puerta) */
-      if (!ch && d > 0.15 && Math.abs(angDif(dir, b.ang)) < 40 * GRADO) {
+      if (!ch && d > 0.15 && (ret || Math.abs(angDif(dir, b.ang)) < 40 * GRADO)) {
         v = velocidad(b); const paso = Math.min(d, v * dt); b.x += (o.x - b.x) / d * paso; b.z += (o.z - b.z) / d * paso;
       }
-      if (d <= 0.15 && Math.abs(angDif(o.ang, b.ang)) < 0.5 * GRADO && b !== tuyo) b.obj = null;
+      if (d <= 0.15 && Math.abs(angDif(o.ang, b.ang)) < 0.5 * GRADO && (b !== tuyo || ret)) b.obj = null;
     }
     b.v = v;
     if (b.estado === 'marcha' && !o) b.estado = 'forma';
@@ -284,19 +383,21 @@ export function crearCombate(m = {}) {
       const v = delanteDe(tuyo, 80, 70 * GRADO);
       if (v) { const c = centro(v.o), f = fr(tuyo.ang), k = v.o.fondo / 2 + 8;   /* apunta más allá: corre sin frenar hasta el choque */
         tuyo.obj = { x: c.x + f.x * k, z: c.z + f.z * k, ang: tuyo.ang };
-        if (v.o.estado === 'huye' || v.o.estado === 'reforma') tuyo.coh = Math.max(0, tuyo.coh - 2.5 * dt); /* perseguir desordena */
+        if (v.o.estado === 'huye' || retirando(v.o)) tuyo.coh = Math.max(0, tuyo.coh - 2.5 * dt); /* perseguir desordena */
         if (v.d <= D_PILUM && tuyo.pilum > 0) pilum(v.o);
       } else tuyo.obj = null;
     }
     if (tuyo.orden === 'alto') tuyo.obj = null;
     if (B) {
-      /* en el choque no se avanza a través del enemigo: solo se gira donde se está */
-      if (enChoque(tuyo)) {
+      const ret = tuyo.estado === 'retira';
+      /* en el choque no se avanza a través del enemigo: solo se gira donde se está (la retirada sí se mueve: hacia atrás) */
+      if (enChoque(tuyo) && !ret) {
         if (tuyo.obj) { tuyo.obj.x = tuyo.x; tuyo.obj.z = tuyo.z; }
         else if (B.meta && Math.hypot(B.meta.x - B.x, B.meta.z - B.z) > 0.3) MO.dibujaFrente(B, B.frente.p0, B.frente.p1, { sentido: 'dibujo' });
       }
       if (tuyo.obj) mandaFrente(MO, B, tuyo.obj);
-      pasoBloque(MO, B, dt, velocidad(tuyo), enChoque(tuyo), tuyo.orden);
+      /* LP1 marcha hacia atrás a la mitad de paso: la retirada le pide el doble para ir a V_RETIRA */
+      pasoBloque(MO, B, dt, ret ? V_RETIRA / 0.5 : velocidad(tuyo), trabado(tuyo) && !ret, tuyo.orden);   /* trabado: sin parpadeos del roce */
       const p = poseDe(B); tuyo.v = dist(p, tuyo) / dt; tuyo.x = p.x; tuyo.z = p.z; tuyo.ang = p.ang; medidasDe(B, tuyo);
       if (!B.meta && tuyo.obj && tuyo.orden !== 'cargar') tuyo.obj = null;
     }
@@ -324,13 +425,14 @@ export function crearCombate(m = {}) {
       const ta = anguloDe(a, b), tb = anguloDe(b, a);
       a.contactos.push({ b, zona: zonaDe(a, b), peso: pesoDe(ta) }); b.contactos.push({ b: a, zona: zonaDe(b, a), peso: pesoDe(tb) });
     }
+    for (const b of S.bloques) if (b.contactos.length) b.tContacto = S.T;
     for (const b of S.bloques) for (const c of b.contactos) {
       /* choque nuevo de verdad: no lo era en el paso anterior ni en los 3 s de antes (un roce que se abre y se cierra no cuenta) */
       const visto = b.visto || (b.visto = new Map()), antes = visto.get(c.b.id); visto.set(c.b.id, S.T);
       if (b.prev.has(c.b.id) || (antes != null && S.T - antes < 3)) continue;
       /* choque nuevo: el que llega cargando golpea; flanco y espalda hunden la cohesión */
       const o = c.b, zona = c.zona; if (b.id < o.id) avisa('choque', { a: b, b: o, zona });
-      if (b.estado !== 'huye') b.estado = b.estado === 'reforma' ? 'reforma' : 'choque';
+      if (b.estado !== 'huye' && !retirando(b)) b.estado = 'choque';
       if (c.peso > 1.05) { const k = (c.peso - 1) / (ZONA.flanco - 1); b.coh = Math.max(0, b.coh - 21 * k); b.U.anima(-0.05 * Math.min(1, k)); }
       if (b === tuyo && zona !== 'frente') S.cuenta.flanqueado++;
       const cargaO = (o.orden === 'cargar' || o.cargaAl) && o.v > 1.5 && S.T - o.tImpacto > 6;   /* un golpe de carga, no uno por roce */
@@ -348,6 +450,7 @@ export function crearCombate(m = {}) {
     if (a.tipo === 'galos' || a.tipo === 'nobles') k *= 1 + 0.3 * Math.max(0, 1 - (S.T - (a.tPrimer ?? S.T)) / 20); /* el ímpetu galo, que se gasta */
     k *= 1 - 0.3 * acoso(a);
     if (a.estado === 'reforma') k *= 0.3;
+    if (a.estado === 'retira') k *= 0.5;   /* retrocediendo se para más de lo que se pega */
     return k;
   }
   function recibe(b) {
@@ -360,7 +463,8 @@ export function crearCombate(m = {}) {
       const k = ataque(a) / a.contactos.length;
       for (const c of a.contactos) {
         const b = c.b, enB = c.b.contactos.find(x => x.b === a);
-        const z = b.estado === 'huye' || b.estado === 'reforma' ? ZONA.espalda : enB.peso;
+        /* al que huye se le pega por la espalda; a una retirada formada, por donde se le alcance; desordenada, como al que huye */
+        const z = b.estado === 'huye' || (retirando(b) && b.coh < COH_ORDEN) ? ZONA.espalda : enB.peso;
         /* un frente solo cabe a tantos: si dos te atacan de frente a la vez, entre los dos pegan como 1,3 */
         const nF = b.contactos.filter(x => x.peso < 1.5).length, cabe = enB.peso < 1.5 && nF > 1 ? 1.3 / nF : 1;
         const d = k * z * cabe * recibe(b) * dt; daño.set(b, (daño.get(b) || 0) + d); a.golpes += d;
@@ -448,26 +552,22 @@ export function crearCombate(m = {}) {
     const I = S.ia; if (S.T - I.tPlan < P.reaccion) return; I.tPlan = S.T;
     const { centro: C, alas, reserva: R, tiradores: Ti } = ene;
     /* retirarse a formar en vez de morir quieto (Normal y Difícil) */
+    /* retirarse a formar en vez de morir quieto (Normal y Difícil): la misma «Retirada» que la tuya, con su precio */
     for (const b of [C, ...alas, R]) {
-      if (!vivo(b) || b.estado === 'huye') continue;
-      if (b.estado === 'reforma') {
-        if (b.tReforma > 0 && S.T >= b.tReforma) { b.estado = 'forma'; b.U.anima(0.2); b.coh = Math.max(b.coh, 75); b.fila = Math.min(b.fila, 0.15); b.tReforma = -1; avisa('vuelve', { de: b }); }
-        else if (b.tReforma < 0 && !b.obj) b.tReforma = S.T + 7;
-        continue;
-      }
-      if (b.reformas > 0 && b.U.animo < 0.3 && enChoque(b)) {
-        b.reformas--; b.estado = 'reforma'; b.tReforma = -1; const f = fr(b.ang);
-        b.obj = { x: b.x - f.x * 24, z: b.z - f.z * 24, ang: b.ang }; avisa('reforma', { de: b }); continue;
-      }
+      if (!vivo(b) || b.estado === 'huye' || retirando(b)) continue;
+      if (b.reformas > 0 && b.U.animo < 0.3 && enChoque(b)) { b.reformas--; retirada(b, 24); continue; }
     }
     if (tuyo.U.roto && tuyo.estado === 'huye') {   /* persecución: el centro y la reserva corren tras los que huyen */
-      for (const b of [C, R]) if (vivo(b) && b.estado !== 'reforma') { const c = centro(tuyo); b.obj = { x: c.x, z: c.z, ang: angHacia(c.x - b.x, c.z - b.z) }; b.orden = 'cargar'; }
+      for (const b of [C, R]) if (vivo(b) && !retirando(b)) { const c = centro(tuyo); b.obj = { x: c.x, z: c.z, ang: angHacia(c.x - b.x, c.z - b.z) }; b.orden = 'cargar'; }
       return;
     }
     const blanco = vivo(tuyo) ? tuyo : cercano(C, 'r');
     if (!blanco) return;
+    /* una retirada en orden no se persigue (se deja ir y se toma aliento); una desordenada, sí, a la carga */
+    const seVa = retirando(blanco), enOrden = seVa && blanco.coh >= COH_ORDEN;
     /* centro: va a por ti. En Difícil espera fuera del pilum mientras quedan jabalinas, y contracarga si cargas */
-    if (vivo(C) && C.estado !== 'reforma' && !enChoque(C)) {
+    if (vivo(C) && !retirando(C) && !enChoque(C) && seVa) { C.obj = enOrden ? null : puntoFrente(blanco, C); C.orden = enOrden ? null : 'cargar'; if (C.orden && !C.cargaAl) C.cargaAl = true; }
+    else if (vivo(C) && !retirando(C) && !enChoque(C)) {
       const d = dist(centro(C), centro(blanco)) - C.fondo / 2 - blanco.fondo / 2;
       if (P.espera && I.fase === 'avanza' && I.salvas > 1 && S.T < 45 && blanco.orden !== 'cargar' && d < 36) C.obj = null;
       else C.obj = puntoFrente(blanco, C);
@@ -476,7 +576,7 @@ export function crearCombate(m = {}) {
     } else if (vivo(C) && enChoque(C)) { C.orden = null; if (I.tChoque < 0) I.tChoque = S.T; }
     /* alas: contra tus compañeras; en Difícil, si la rompen, vienen a tu flanco */
     alas.forEach((A, i) => {
-      if (!vivo(A) || A.estado === 'reforma' || enChoque(A)) { if (vivo(A) && enChoque(A)) A.orden = null; return; }
+      if (!vivo(A) || retirando(A) || enChoque(A)) { if (vivo(A) && enChoque(A)) A.orden = null; return; }
       const am = amigas.find(a => vivo(a) && Math.sign(a.x) === Math.sign(A.x)) || null;
       if (am) { A.obj = puntoFrente(am, A); const d = dist(centro(A), centro(am)); A.orden = d < 24 && nivel !== 'facil' ? 'cargar' : null; if (A.orden && !A.cargaAl) A.cargaAl = true; }
       else if (P.alasVienen && vivo(tuyo)) { A.obj = puntoLado(tuyo, ladoDe(A), 0.8); A.orden = null; }
@@ -492,8 +592,9 @@ export function crearCombate(m = {}) {
     reserva(blanco);
   }
   function reserva(blanco) {
-    const I = S.ia, R = ene.reserva; if (!vivo(R) || R.estado === 'reforma' || R.estado === 'huye') return;
+    const I = S.ia, R = ene.reserva; if (!vivo(R) || retirando(R) || R.estado === 'huye') return;
     if (enChoque(R)) { I.fase = 'choque'; R.orden = null; return; }
+    if (I.fase === 'choque' && retirando(blanco) && blanco.coh >= COH_ORDEN) { R.obj = null; R.orden = null; return; }   /* te dejan ir */
     if (I.fase === 'choque') {   /* perdió el contacto (giraste, o te soltaste): vuelve a por ti en línea recta */
       const c = centro(blanco); R.obj = { x: c.x, z: c.z, ang: angHacia(c.x - R.x, c.z - R.z) }; R.orden = 'cargar'; return;
     }
@@ -545,9 +646,9 @@ export function crearCombate(m = {}) {
     for (const b of S.bloques) {
       if (b.bando !== 'g' || b.estado === 'fuera') continue;
       if (b.U.roto) mueveHuida(b, dt); else mueve(b, dt);
-      if (b.estado === 'reforma' && !b.obj && b.tReforma < 0) b.tReforma = S.T + 7;
     }
-    contactos(); golpes(dt); if (B) bajasB(MO, B, tuyo.U.enPie);
+    contactos();
+    for (const b of S.bloques) if (!b.U.roto && retirando(b)) rehace(b, dt); golpes(dt); if (B) bajasB(MO, B, tuyo.U.enPie);
     for (const b of S.bloques) {
       if (b.estado === 'fuera') continue;
       if (b.orden === 'cargar' && enChoque(b) && S.T - b.tImpacto >= T_IMPACTO) b.orden = null;   /* tras el golpe, a pelear */
@@ -582,34 +683,45 @@ export function crearCombate(m = {}) {
   function bot(modo = 'bueno') {
     if (S.ganador || modo === 'quieto' || S.T - tBot < 0.5) return; tBot = S.T;
     const no = { sinOrdenes: ['testudo', 'relevo', 'cargar'], sinTestudo: ['testudo'], sinRelevo: ['relevo'], sinCargar: ['cargar'] }[modo] || [];
-    let u = ordenUtil();
-    if (u && no.includes(u)) u = u === 'testudo' || u === 'cargar' ? (tuyo.orden === 'alto' ? null : null) : null;
+    let u = ordenUtil(modo !== 'retira');   /* solo el bot «retira» se retira; los demás aguantan (como en LP2) */
+    if (u && no.includes(u)) u = null;
     if (u) orden(u);
     else if (no.includes('testudo') && tuyo.orden === 'testudo') orden('alto');
-    /* el flanco: cuando la reserva ya se compromete (a menos de 22 m), redibuja el frente 50° hacia ella */
-    const F = S.flanco;
-    if (F && vivo(F.de) && S.T - tGiro > 3) {
-      /* el flanco: cuando la reserva ya está cerca y se te va a más de 40° del frente, redibuja el frente hacia ella,
-         sin dar la espalda al centro galo (que los dos queden dentro del frente) */
-      const c = centro(tuyo), r = centro(F.de), dC = dist(r, c), aR = angHacia(r.x - c.x, r.z - c.z), off = angDif(aR, tuyo.ang);
-      if (dC < D_BOT && Math.abs(off) > OFF_BOT * GRADO) {
-        tGiro = S.T; const C0 = vivo(ene.centro) && enChoque(tuyo) ? centro(ene.centro) : null, l = Math.sign(off);
-        let a = aR - l * 30 * GRADO;
-        if (C0) {   /* con el centro galo encima: si caben los dos en el frente, mira entre ambos; si no, deja el centro a 50° */
-          const aC = angHacia(C0.x - c.x, C0.z - c.z), dd = angDif(aC, a), abre = angDif(aR, aC);
-          if (Math.abs(dd) > 50 * GRADO) a = Math.abs(abre) < 2 * ANG_FRENTE - 6 * GRADO ? aC + abre / 2 : aC - Math.sign(dd) * 50 * GRADO;
-        }
-        a = tuyo.ang + lim(angDif(a, tuyo.ang), -50 * GRADO, 50 * GRADO);   /* nunca más de 50° de una vez */
-        const prev = tuyo.orden; frente({ x: tuyo.x, z: tuyo.z, ang: angDif(a, 0) }); if (prev === 'testudo') tuyo.orden = 'testudo';
-      }
+    /* el flanco: cuando su jefe se acerca por un lado, redibuja el frente hacia él (giroUtil) */
+    if (S.T - tGiro > 3) { const g = giroUtil(); if (g) { tGiro = S.T; const prev = tuyo.orden; frente(g); if (prev === 'testudo') tuyo.orden = 'testudo'; } }
+  }
+  /* ---------- girar hacia su jefe (LP4b, pedido del usuario 24/11: «4B») ----------
+     El jefe que viene: el del aviso de flanco; y, si ya te retiraste y te rehiciste, su reserva aunque ya no haya aviso
+     (al soltarte te deja ir y luego vuelve a por ti en línea recta, casi siempre por un lado). */
+  function jefeQueViene() {
+    if (S.flanco && vivo(S.flanco.de)) return S.flanco.de;
+    const R = ene.reserva;
+    if (tuyo.vueltas > 0 && vivo(R) && !retirando(R) && R.estado !== 'huye') return R;
+    return null;
+  }
+  /* el frente que conviene dibujar ahora: cuando su jefe está cerca (D_BOT) y se te va a más de OFF_BOT del frente, girar hacia
+     él sin dar la espalda al centro galo (que los dos queden dentro del frente), nunca más de 50° de una vez. Si no, null */
+  function giroUtil() {
+    if (S.ganador || tuyo.U.roto || tuyo.estado === 'retira') return null;   /* rehaciéndose sí se puede ir girando */
+    const J = jefeQueViene(); if (!J) return null;
+    const c = centro(tuyo), r = centro(J), dC = dist(r, c), aR = angHacia(r.x - c.x, r.z - c.z), off = angDif(aR, tuyo.ang);
+    const lejos = tuyo.vueltas && J === ene.reserva && !S.flanco ? D_BOT_VUELTA : D_BOT;   /* tras rehacerte, con tiempo: girar pesa */
+    if (!(dC < lejos && Math.abs(off) > OFF_BOT * GRADO)) return null;
+    const C0 = vivo(ene.centro) && enChoque(tuyo) ? centro(ene.centro) : null, l = Math.sign(off);
+    let a = aR - l * 30 * GRADO;
+    if (C0) {   /* con el centro galo encima: si caben los dos en el frente, mira entre ambos; si no, deja el centro a 50° */
+      const aC = angHacia(C0.x - c.x, C0.z - c.z), dd = angDif(aC, a), abre = angDif(aR, aC);
+      if (Math.abs(dd) > 50 * GRADO) a = Math.abs(abre) < 2 * ANG_FRENTE - 6 * GRADO ? aC + abre / 2 : aC - Math.sign(dd) * 50 * GRADO;
     }
+    a = tuyo.ang + lim(angDif(a, tuyo.ang), -50 * GRADO, 50 * GRADO);
+    return { x: tuyo.x, z: tuyo.z, ang: angDif(a, 0), de: J };
   }
   function resumen() {
     const muertosG = S.bloques.filter(b => b.bando === 'g').reduce((s, b) => s + b.U.hombres - b.U.enPie, 0);
     return { ganador: S.ganador, causa: S.causa, T: +S.T.toFixed(1), nivel, perdidos: tuyo.U.hombres - tuyo.U.enPie, enPie: tuyo.U.enPie,
       matados: muertosG, flanqueado: S.cuenta.flanqueado > 0, ...S.cuenta, reservaFase: S.ia.fase, ladoReserva: S.ia.lado };
   }
-  return { S, paso, orden, frente, dibujaFrente, ordenUtil, bot, resumen };
+  return { S, paso, orden, frente, dibujaFrente, ordenUtil: () => ordenUtil(), giroUtil, bot, resumen, trabado: () => trabado(tuyo) };
 }
 
 /* una partida entera con un bot (para las pruebas y el juez) */

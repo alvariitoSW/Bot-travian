@@ -2,10 +2,13 @@
    1) arriba, el objetivo y cómo va, en palabras · 2) la línea de choque (la pinta la escena: polvo y chispas)
    3) sobre cada bloque, su estandarte con un aro de color y una palabra · 4) avisos en el borde, nunca en medio
    5) una sola raya: el cansancio de la fila que pelea · 6) las cuatro órdenes; la que conviene se ilumina (sin texto).
+   LP4b · Trabados: mientras tu manípulo está en el choque, su estandarte lleva la placa «Trabados» y el botón «Alto» se
+   vuelve «Retirada» (siempre cuatro botones). Tocar «Testudo» cuando ya lo tienes lo abre.
+   LP4b (4B): cuando conviene girar hacia su jefe (C.giroUtil()), una raya dorada en el suelo marca el frente; tocarla gira ahí.
    Y «Datos ▾», plegado: cifras de los dos bandos en una tira fina arriba.
    Contrato: crearHud({ $, proyecta, ladoEnPantalla, Son }) → { pon(C), tick(dt), aviso(tipo, d), muestraFin(), oculta() }
      proyecta(x, y, z) → [px, py, visible] · ladoEnPantalla(x, z) → −1 izquierda | 1 derecha (según la cámara) */
-import { AGOTADA, centro } from '../../../js/bloque-ia.js';
+import { AGOTADA, COH_ORDEN, centro } from '../../../js/bloque-ia.js';
 
 const NOMBRE = { tuyo: 'Tu manípulo', amiga: 'Compañeros', centro: 'Su centro', ala: 'Galos', reserva: 'Su jefe', tiradores: 'Tiradores' };
 const lim = (x, a, b) => Math.max(a, Math.min(b, x));
@@ -13,6 +16,7 @@ const lim = (x, a, b) => Math.max(a, Math.min(b, x));
 /* la palabra y el color del estandarte de un bloque: verde «fresca/firme», ámbar «cede/cansada», rojo «huye» */
 export function palabraDe(b) {
   if (b.U.roto || b.estado === 'huye' || b.estado === 'fuera') return ['rojo', 'huye'];
+  if (b.estado === 'retira') return ['ambar', 'se retira'];
   if (b.estado === 'reforma') return ['ambar', 'se rehace'];
   if (b.U.animo < 0.35) return ['ambar', 'cede'];
   if (b.fila >= AGOTADA) return ['ambar', 'agotada'];
@@ -22,10 +26,23 @@ export function palabraDe(b) {
   return ['verde', 'fresca'];
 }
 
+/* el cuarto botón: «Alto» fuera del choque, «Retirada» mientras estás trabado (o retrocediendo) */
+const CUARTO = {
+  alto: { o: 'alto', t: 'Alto', svg: '<path d="M7 11h18M7 16h18M7 21h18"/>' },
+  retirada: { o: 'retirada', t: 'Retirada', svg: '<path d="M16 6v16"/><path d="M10 16l6 6 6-6"/><path d="M7 27h18"/>' },
+};
+
 export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
-  let C = null, S = null, tocado = false, ests = [], tGrito = 0, tDatos = 0, salva = false, finHecho = false, tFin = -1;
+  let C = null, S = null, tocado = false, ests = [], tGrito = 0, tDatos = 0, salva = false, finHecho = false, tFin = -1, tAvisoTrabado = -9, cuarto = 'alto', suelta = 0;
   const cuenta = { jabSin: 0, jabCon: 0, pilum: 0, agotadaSinRelevo: 0 };
   const botones = [...document.querySelectorAll('.orden')];
+  const b4 = botones.find(el => el.dataset.o === 'alto');
+  if (b4) { const sm = document.createElement('small'); sm.id = 'retiradas'; sm.hidden = true; b4.appendChild(sm); }
+  function ponCuarto(k) {
+    if (!b4 || k === cuarto) return; cuarto = k; const c = CUARTO[k];
+    b4.dataset.o = c.o; b4.setAttribute('aria-label', c.t); b4.querySelector('b').textContent = c.t; b4.querySelector('svg').innerHTML = c.svg;
+    $('retiradas').hidden = k !== 'retirada'; b4.classList.toggle('cambia', true); setTimeout(() => b4.classList.remove('cambia'), 600);
+  }
 
   /* ---------- las cuatro órdenes ---------- */
   for (const el of botones) {
@@ -33,6 +50,22 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     el.addEventListener('click', e => { e.stopPropagation(); if (!C) return; Son.toque && Son.toque(); C.orden(el.dataset.o); });
   }
   $('datosB').addEventListener('pointerdown', e => e.stopPropagation());
+  /* la raya dorada: tocarla dibuja ese frente */
+  let giro = null, giroVisto = false;
+  $('giro-t').addEventListener('pointerdown', e => e.stopPropagation());
+  $('giro-t').addEventListener('click', e => { e.stopPropagation(); if (C && giro) { Son.toque && Son.toque(); C.frente(giro); } });
+  function pintaGiro(g) {
+    giro = g; const sv = $('giro'); if (!g) { sv.toggleAttribute('hidden', true); return; }   /* (un svg no tiene .hidden) */
+    const tu = S.tuyo, w = tu.ancho / 2, F = { x: Math.sin(g.ang), z: -Math.cos(g.ang) }, D = { x: Math.cos(g.ang), z: Math.sin(g.ang) };
+    const P = (l, d) => proyecta(g.x + D.x * l + F.x * d, 0.2, g.z + D.z * l + F.z * d);
+    const a = P(-w, 0), b = P(w, 0); if (!a[2] && !b[2]) { sv.toggleAttribute('hidden', true); return; }
+    sv.toggleAttribute('hidden', false); const L = `M${a[0].toFixed(1)},${a[1].toFixed(1)}L${b[0].toFixed(1)},${b[1].toFixed(1)}`;
+    $('giro-l').setAttribute('d', L); $('giro-t').setAttribute('d', L);
+    let f = '';   /* tres flechas: hacia dónde mirará la primera fila */
+    for (const k of [-0.6, 0, 0.6]) { const q = P(k * w, 6.5), l = P(k * w - 0.9, 1.2), r = P(k * w + 0.9, 1.2);
+      f += `M${q[0].toFixed(1)},${q[1].toFixed(1)}L${l[0].toFixed(1)},${l[1].toFixed(1)}L${r[0].toFixed(1)},${r[1].toFixed(1)}Z`; }
+    $('giro-f').setAttribute('d', f);
+  }
   $('datosB').addEventListener('click', () => { const ab = $('datos').hidden; $('datos').hidden = !ab; $('datosB').setAttribute('aria-expanded', String(ab)); $('datosB').textContent = ab ? 'Datos ▴' : 'Datos ▾'; tDatos = 0; });
 
   function pon(c) {
@@ -41,8 +74,9 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     for (const b of S.bloques) {
       if (b.papel === 'tiradores') continue;   /* tiradores sueltos: sin estandarte (lanzan y se retiran; un «huye» confundiría) */
       const el = document.createElement('div'); el.className = 'est ' + (b.bando === 'g' ? 'g' : 'r') + (b.papel === 'tuyo' ? ' tuyo' : '');
-      el.innerHTML = '<i></i><s></s><b></b>'; cont.appendChild(el); ests.push({ b, el, w: el.querySelector('b'), clase: '', pal: '' });
+      el.innerHTML = (b.papel === 'tuyo' ? '<em>Trabados</em>' : '') + '<i></i><s></s><b></b>'; cont.appendChild(el); ests.push({ b, el, w: el.querySelector('b'), clase: '', pal: '', trab: false });
     }
+    cuarto = ''; ponCuarto('alto'); suelta = 0; giro = null; giroVisto = false; $('giro').toggleAttribute('hidden', true);
     $('fin').hidden = true; cont.style.visibility = ''; for (const id of ['borde-i', 'borde-d', 'borde-a']) $(id).classList.remove('ve', 'late');
   }
 
@@ -52,6 +86,9 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
   function marcha() {
     const tu = S.tuyo, ce = S.ene.centro, R = S.ene.reserva;
     if (tu.U.roto) return ['Tu manípulo huye', 'mal'];
+    if (tu.estado === 'retira') return tu.coh >= COH_ORDEN ? ['Retirada en orden' + (suelta ? ' · cayeron ' + suelta : ''), ''] : ['Retirada en desorden: os persiguen', 'mal'];
+    if (tu.estado === 'reforma') return ['Os rehacéis · ' + Math.max(1, Math.ceil(tu.tReforma - S.T)) + ' s', 'bien'];
+    if (giro && tu.vueltas) return ['Toca la raya dorada: gira', 'mal'];
     if (S.flanco && S.flanco.de && S.flanco.de.estado !== 'fuera') { const l = ladoEnPantalla(S.flanco.de.x, S.flanco.de.z); return ['Su jefe viene por la ' + (l < 0 ? 'izquierda' : 'derecha'), 'mal']; }
     if (ce.U.roto) return R && !R.U.roto ? ['Su centro huye · queda su jefe', 'bien'] : ['Su centro huye', 'bien'];
     if (!tocado) {
@@ -66,7 +103,7 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
 
   function datos() {
     const tu = S.tuyo, pct = x => Math.round(x * 100), e = S.ene, enPie = (...bs) => bs.reduce((s, b) => s + (b ? b.U.enPie : 0), 0);
-    $('datos-r').innerHTML = `<b>Tuyos</b> · ${tu.U.enPie} de ${tu.U.hombres} · moral ${pct(tu.U.animo)} · cohesión ${Math.round(tu.coh)} · relevos ${tu.relevos} · compañeros ${enPie(...S.amigas)}`;
+    $('datos-r').innerHTML = `<b>Tuyos</b> · ${tu.U.enPie} de ${tu.U.hombres} · moral ${pct(tu.U.animo)} · cohesión ${Math.round(tu.coh)} · relevos ${tu.relevos} · retiradas ${tu.retiradas} · compañeros ${enPie(...S.amigas)}`;
     $('datos-g').innerHTML = `<b>Galos</b> · centro ${e.centro.U.enPie} (moral ${pct(e.centro.U.animo)}) · jefe ${e.reserva.U.enPie} · alas ${enPie(...e.alas)} · tiradores ${e.tiradores.U.enPie}`;
   }
 
@@ -82,13 +119,17 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     if (!S) return;
     const tu = S.tuyo;
     /* órdenes: la vigente rellena, la útil iluminada */
+    const trab = !S.ganador && !tu.U.roto && (C.trabado() || tu.estado === 'retira');
+    ponCuarto(trab ? 'retirada' : 'alto');
     const util = C.ordenUtil();
+    const g = C.giroUtil(); pintaGiro(g);
+    if (g && tu.vueltas && !giroVisto) { giroVisto = true; grito('¡Su jefe vuelve! Girad'); } else if (!g) giroVisto = false;
     for (const el of botones) {
-      const o = el.dataset.o, vig = o === 'relevo' ? tu.tRelevo > S.T : tu.orden === o;
-      el.classList.toggle('vigente', vig); el.classList.toggle('luz', o === util && !vig);
-      el.classList.toggle('apagada', !!(S.ganador || tu.U.roto || (o === 'relevo' && tu.relevos <= 0)));
+      const o = el.dataset.o, vig = o === 'relevo' ? tu.tRelevo > S.T : o === 'retirada' ? tu.estado === 'retira' : tu.orden === o;
+      el.classList.toggle('vigente', vig); el.classList.toggle('luz', o === util && (!vig || o === 'testudo'));   /* Testudo vigente e iluminado: tócalo para abrirlo */
+      el.classList.toggle('apagada', !!(S.ganador || tu.U.roto || (o === 'relevo' && tu.relevos <= 0) || (o === 'retirada' && tu.retiradas <= 0 && !vig) || (tu.estado === 'retira' && o !== 'retirada')));
     }
-    $('relevos').textContent = tu.relevos;
+    $('relevos').textContent = tu.relevos; if ($('retiradas')) $('retiradas').textContent = tu.retiradas;
     /* la raya: cansancio de la fila que pelea */
     const f = lim(tu.fila || 0, 0, 1), pal = tu.tRelevo > S.T ? 'relevando' : f >= AGOTADA ? 'agotada' : f >= 0.4 ? 'cansada' : 'fresca';
     $('barra-b').style.width = Math.round((1 - f) * 100) + '%';
@@ -102,6 +143,8 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
       if (!vis || b.estado === 'fuera') { E.el.style.display = 'none'; continue; }
       E.el.style.display = ''; E.el.style.transform = `translate(${px.toFixed(1)}px,${py.toFixed(1)}px) translate(-50%,-100%)`;
       const [col, p] = palabraDe(b); if (col !== E.clase) { E.el.classList.remove('verde', 'ambar', 'rojo'); E.el.classList.add(col); E.clase = col; }
+      const tb = trab && tu.estado !== 'retira';   /* la placa, solo mientras sigue dentro */
+      if (b === tu && tb !== E.trab) { E.el.classList.toggle('trabado', tb); E.trab = tb; }
       const t = (b.papel === 'tuyo' || b.papel === 'reserva' || b.papel === 'centro' ? NOMBRE[b.papel] + ' · ' : '') + p;
       if (t !== E.pal) { E.w.textContent = t; E.pal = t; }
     }
@@ -128,7 +171,13 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
       case 'jabalinas': if (d.blanco === S.tuyo) { if (d.testudo) cuenta.jabCon += d.muertos; else cuenta.jabSin += d.muertos; } salva = false; break;
       case 'pilum': cuenta.pilum += d.muertos; break;
       case 'agotada': if (d.de === S.tuyo && S.tuyo.relevos <= 0) cuenta.agotadaSinRelevo++; break;
-      case 'rompe': if (d.de === S.ene.centro) grito('¡Su centro huye!'); else if (d.de === S.tuyo) grito('¡Los tuyos huyen!'); break;
+      case 'rompe': if (d.de === S.ene.centro) grito('¡Su centro huye!'); else if (d.de === S.tuyo) grito(S.cuenta.rotaRetira ? '¡Se rompen al retirarse!' : '¡Los tuyos huyen!'); break;
+      /* LP4b: trabados y retirada */
+      case 'trabado': if (S.T - tAvisoTrabado > 4) { tAvisoTrabado = S.T; grito('¡Trabados! Solo giran'); } break;
+      case 'retirandose': if (S.T - tAvisoTrabado > 4) { tAvisoTrabado = S.T; grito('Retroceden: esperad'); } break;
+      case 'suelta': if (d.de === S.tuyo) suelta = d.muertos; break;
+      case 'retira': if (d.de === S.ene.centro) grito('¡Su centro se retira a formar!'); else if (d.de === S.ene.reserva) grito('¡Su jefe se retira a formar!'); break;
+      case 'vuelve': if (d.de === S.tuyo) grito('¡Formados! Fila fresca'); break;
       case 'fin': tFin = 2.5; break;
     }
   }
@@ -144,6 +193,8 @@ export function crearHud({ $, proyecta, ladoEnPantalla, Son }) {
     if (cuenta.pilum) peso.push(`Tu pilum mató a ${cuenta.pilum} antes del choque.`);
     if (r.relevos) peso.push(`${r.relevos} relevo${r.relevos > 1 ? 's' : ''}: tu primera fila peleó fresca.`);
     if (r.cargas) peso.push('La carga los hizo ceder al chocar.');
+    if (r.retiradas && !r.rotaRetira) peso.push(`Te retiraste en orden ${r.retiradas > 1 ? r.retiradas + ' veces' : 'a tiempo'}: al soltarte cayeron ${r.muertosSuelta}, pero volviste fresco.`);
+    if (r.rotaRetira) costo.push('Te retiraste con las filas deshechas y se rompieron.');
     if (r.flanqueado) costo.push('Su jefe entró por tu flanco: allí cada golpe pesa el doble.');
     if (cuenta.jabSin) costo.push(`Las jabalinas mataron a ${cuenta.jabSin} sin testudo.`);
     if (cuenta.agotadaSinRelevo || (!r.relevos && r.perdidos > 30)) costo.push('Tu fila se agotó sin relevo.');

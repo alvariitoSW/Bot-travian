@@ -8,11 +8,12 @@ import { CityView3D } from './gfx/city3d.js';
 import { loadGroundTextures } from './gfx/ground.js';
 import { fijar as fijarFluidez, estaEncendido as fluidezOn } from './gfx/fluidez.js';
 import * as Ciudad from './ciudad.js';
+import * as NEC from './necesidades.js';   // CDe1: necesidades de la ciudad (las usa game.js)
 import { crearMenu } from './ciudad-menu.js';   // CD1b: botón «Construir» y su menú por familias
 import { descargar, copiar, hacerPostal, guardarCopia, cargarCopia, contemplar } from './gfx/movil.js';   // CN18
 
 const D = window.DATA, G = window.Game, $ = id => document.getElementById(id);
-G.usarCiudad(Ciudad);   // CN2b: game.js (script clásico) recibe la ciudad nueva antes de cargar o crear partida
+G.usarCiudad(Ciudad); if (G.usarNecesidades) G.usarNecesidades(NEC);   // CN2b: game.js (script clásico) recibe la ciudad nueva antes de cargar o crear partida
 const UI = { codice: null, modo: 'gobierno', tab: 'map', city: 'roma', sel: null, modalQ: [], modalOpen: false, battle: null, menu: true, last: 0, saveT: 0, map: null };
 const ROMA = D.FACTIONS.roma.col;
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -139,7 +140,7 @@ G.onEvent = function (type, p) {
   else if (type === 'log') { if (!p.mudo) { if (p.k === 'good') toast(p.x, '', null, true); else if (p.k === 'bad') toast(p.x, 'bad', null, true); } UI.dirty = true; }
   else if (type === 'dirty') UI.dirty = true;
   else if (type === 'colonos') { const d = D.COLONIAS[p.sitio]; if (d) carta('<div class="yr">COLONOS</div><h2>Han llegado a ' + esc(d.n) + '</h2><p>Los colonos esperan tu orden. Elige el lugar del foro y el arado trazará el surco sagrado.</p><div class="acts"><button class="btn ghost" data-act="close">Más tarde</button><button class="btn gold" data-act="fundar" data-v="' + p.sitio + '">Fundar ' + esc(d.n) + '</button></div>'); }
-  else if (type === 'turno') { const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.vivo && !s.over) setTimeout(() => { const q = S(); if (q && !q.pending.length && !q.vivo && !q.over) consejoModal(); }, 0); UI.dirty = true; }   // SN2: tras pasarTurno, que ya ha abierto la votación del Senado
+  else if (type === 'turno') { if (window.MINISTROS_UI) MINISTROS_UI.pintar(); const s = S(); if (s) s.speed = 0; if (s && !s.pending.length && !s.vivo && !s.over) setTimeout(() => { const q = S(); if (q && !q.pending.length && !q.vivo && !q.over) consejoModal(); }, 0); UI.dirty = true; }   // SN2: tras pasarTurno, que ya ha abierto la votación del Senado
   else if (type === 'over') { if (!UI.binfo) showOver(); }
 };
 
@@ -431,6 +432,7 @@ function volverAlMapa() { UI.deMapa = false; setTab('map'); if (UI.map) UI.map.r
 
 /* ---------- paneles ---------- */
 function setTab(t) {
+  if (window.MINISTROS_UI) MINISTROS_UI.cerrar();   // CDe1: la hoja de ministros no sobrevive al cambio de pestaña
   if (UI.fundar) cerrarFundar(true);
   UI.tab = t; hojaCierra(true); $('popsheet').hidden = true; $('cuentas').hidden = true; $('citymenu').hidden = true;
   const c3 = t === 'city' && UI.cityV && !UI.cityList;            // ciudad en 3D
@@ -469,7 +471,7 @@ function bienesCu(mercado) {
 }
 function renderCuentas(forzar) { const e = $('cuentas'); if (!e || e.hidden || !S() || (UI.cuDown && !forzar)) return; const h = cuentasHtml(); if (forzar || e.dataset.k !== h) { e.dataset.k = h; e.innerHTML = h; } }
 /* K12a: HOJA INFERIOR única (menú, ajustes, mercado, rutas, pueblo…). #hoja es el panel y #hscrim el telón que oscurece. Cuerpo = HOJAS[id].html() */
-const CREDITOS = 'Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Hastatus y galo de las batallas: cuerpo y esqueleto de MakeHuman 1.3.2, movimientos de Quaternius (Universal Animation Library), licencia CC0 1.0<br>Falangita, oficial de la falange y hastatus: modelos generados con Meshy (meshy.ai), licencia CC BY 4.0 (creativecommons.org/licenses/by/4.0)<br>Sonido grabado: OpenGameArt (rubberduck, Kenney, artisticdude) y Freesound (marchelonia, ale-batec, salemaudio, Jace, joelcarrsound, WelvynZPorterSamples, florianreichelt, adharca, DeVern, DeadVDI, mario1298, Globofonia), licencia CC0 1.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1';
+const CREDITOS = 'Modelos y animaciones de las unidades: 0 A.D. © Wildfire Games, licencia CC BY-SA 3.0<br>Hastatus y galo de las batallas: cuerpo y esqueleto de MakeHuman 1.3.2, movimientos de Quaternius (Universal Animation Library), licencia CC0 1.0<br>Falangita, oficial de la falange y hastatus: modelos generados con Meshy (meshy.ai), licencia CC BY 4.0 (creativecommons.org/licenses/by/4.0)<br>Centurión, triario, vélite, galo grande (y v2a, v2b), galo rápido (y B), galo lancero y jefe galo: modelos generados por el usuario con Meshy (meshy.ai, herramienta), licencia CC BY-SA 3.0 (creativecommons.org/licenses/by-sa/3.0)<br>Sonido grabado: OpenGameArt (rubberduck, Kenney, artisticdude) y Freesound (marchelonia, ale-batec, salemaudio, Jace, joelcarrsound, WelvynZPorterSamples, florianreichelt, adharca, DeVern, DeadVDI, mario1298, Globofonia), licencia CC0 1.0<br>Letra Cinzel © The Cinzel Project Authors, licencia SIL OFL 1.1';
 const HOJA_ALT = [420, 600, 770];
 const ICO_AJ = svgIco('<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2"/><circle cx="9" cy="17" r="2"/>'), ICO_MERC = svgIco('<path d="M4 8h15l-3-3M20 16H5l3 3"/>'), ICO_RUTA = svgIco('<circle cx="6" cy="18" r="2"/><circle cx="18" cy="6" r="2"/><path d="M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6"/>'),
   ICO_PUEB = svgIco('<circle cx="9" cy="8" r="3"/><path d="M3 20c0-4 3-6 6-6s6 2 6 6M16 5a3 3 0 0 1 0 6M18 14c2 1 3 3 3 6"/>'), ICO_CRON = svgIco('<path d="M7 4h11v13a3 3 0 0 1-3 3H6M7 4a2 2 0 0 0-2 2v2h2M7 4v12a3 3 0 0 1-3 3 2 2 0 0 0 2 1M10 9h5M10 13h5"/>'),
@@ -1432,9 +1434,122 @@ function sn2Cambiar() {
 }
 /* MN2: el Senado en cuatro pestañas de cera. «Hoy se vota» es la sala (SN2) o, sin votación, la misión y el encargo;
    «Tu carrera» y «Fiestas» dejan el sitio que llenan CE7 (Autoridad y cargos) y CE9 (banquete, juegos y rito) */
-const SEN_T = [['hoy', 'Hoy se vota'], ['bandos', 'Bandos'], ['carrera', 'Tu carrera'], ['fiestas', 'Fiestas']];
+const SEN_T = [['hoy', 'Hoy se vota'], ['bandos', 'Bandos'], ['carrera', 'Tu carrera'], ['fiestas', 'Fiestas'], ['plan', 'Plan']];
 const senTabs = (t, vota) => '<div class="sen-tabs ro-tablilla" role="tablist" aria-label="Senado">' + SEN_T.map(x => '<button role="tab" data-act="sent" data-v="' + x[0] + '" class="' + (x[0] === t ? 'on' : '') + '" aria-selected="' + (x[0] === t) + '">' + x[1] + (x[0] === 'hoy' && vota ? '<i class="sen-voto" aria-label="hay votación"></i>' : '') + '</button>').join('') + '</div>';
 const SEN_CARGOS = [['Edil', 'Cuida mercados, calles y juegos'], ['Pretor', 'Juzga y manda un ejército'], ['Cónsul', 'Manda las legiones y preside el Senado'], ['Príncipe del Senado', 'Habla el primero en la sala']];
+/* CDe1-B: pantalla «Plan» del Senado. Solo pinta; las reglas son de js/plan-senado.js y las acciones de G.plan*. */
+const PLAN = () => window.PLAN_SENADO;
+const planAy = () => (G.planAyuda ? G.planAyuda() : {});
+const planMes = () => Math.floor((S().t || 0) + 1e-9);
+const planMini = b => { const u = UI.minis && UI.minis[b]; return u ? '<img src="' + u + '" alt="" draggable="false">' : '<span class="pl-glifo">' + ((D.BUILD[b] && D.BUILD[b].i) || '🏛️') + '</span>'; };
+const planCoste = c => '<span class="pl-coste">' + Object.keys(c || {}).map(r => '<i>' + D.RES_ICON[r] + ' ' + fmt(c[r]) + '</i>').join('') + '</span>';
+const PL_ICO = { crecer: '🌾', defender: '🛡️', plebe: '🎭', riqueza: '🪙' };
+const PL_ESTADO = { hecha: ['hecha', '✔ Hecha'], 'en marcha': ['marcha', '⚒ En marcha'], espera: ['espera', '⏳ Espera'], atrasada: ['atrasada', '⚠ Atrasada'], perdida: ['perdida', '✖ Perdida'] };
+function planObraDe(id) {
+  const p = S().planSenado || {}, B = p.borrador, L = p.plan;
+  return ((B && B.obras) || []).concat((L && L.obras) || []).find(o => o.id === id) || null;
+}
+function planBandoBarra(votos) {
+  const por = votos.porBando || {}, max = Math.max(1, ...Object.keys(por).map(b => por[b].escanos));
+  const filas = Object.keys(por).map(b => {
+    const q = por[b], B = D.BANDOS[b] || { n: b, col: '#999' }, w = n => (n / max * 100).toFixed(1) + '%';
+    return '<div class="pl-vb"><span class="pl-vn" style="--bc:' + B.col + '">' + esc(B.n) + '</span><div class="pl-vbar" role="img" aria-label="' + q.si + ' sí, ' + q.duda + ' dudan, ' + q.no + ' no"><i class="si" style="width:' + w(q.si) + ';background:' + B.col + '"></i><i class="du" style="width:' + w(q.duda) + ';background:' + B.col + '"></i><i class="no" style="width:' + w(q.no) + '"></i></div><b>' + q.si + '<small>/' + q.escanos + '</small></b></div>';
+  }).join('');
+  const extra = votos.familia ? '<div class="pl-vf">Tu familia: ' + votos.familia + ' votos a favor</div>' : '';
+  return '<div class="pl-votos"><div class="pl-vt"><b>Votos previstos</b><span class="' + (votos.sale ? 'ok' : 'no') + '">' + votos.si + ' sí de ' + votos.total + ' (hacen falta ' + votos.mayoria + ')</span></div>' + filas + extra +
+    '<p class="pl-vl"><i class="si"></i>sí <i class="du"></i>dudan <i class="no"></i>no</p></div>';
+}
+function planCatalogo(B) {
+  const cat = PLAN().catalogo(S(), B), ciudades = [];
+  cat.forEach(x => { if (ciudades.indexOf(x.ciudad) < 0) ciudades.push(x.ciudad); });
+  if (!ciudades.length) return '<div class="pl-cat"><p class="pl-vacio">No hay obras posibles ahora.</p><button class="pl-btn" data-act="plan-cierra">Cerrar el catálogo</button></div>';
+  if (ciudades.indexOf(UI.planCiu) < 0) UI.planCiu = ciudades[0];
+  const chips = ciudades.length > 1 ? '<div class="pl-chips">' + ciudades.map(c => '<button data-act="plan-ciu" data-v="' + c + '" class="' + (c === UI.planCiu ? 'on' : '') + '">' + esc(D.CITIES[c].n) + '</button>').join('') + '</div>' : '';
+  const baldosas = cat.map((x, i) => [x, i]).filter(q => q[0].ciudad === UI.planCiu).map(q => {
+    const x = q[0], i = q[1], F = D.BANDOS[x.bando] || { col: '#999' };
+    return '<button class="pl-bal" data-act="plan-poner" data-v="' + i + '" style="--bc:' + F.col + '">' + planMini(x.b) + '<b>' + esc((D.BUILD[x.b] || {}).n || x.b) + '</b><em>nivel ' + x.nivel + '</em>' + planCoste(x.coste) + '</button>';
+  }).join('');
+  return '<div class="pl-cat"><div class="pl-cab"><b>Añadir obra · estación ' + (UI.planAdd + 1) + '</b><button class="pl-btn peq" data-act="plan-cierra">Cerrar</button></div>' + chips + '<div class="pl-rejilla">' + baldosas + '</div></div>';
+}
+function viewPlan() {
+  const P = PLAN(), s = S();
+  if (!P) return '<div class="empty sn-nada">El plan del Senado no está disponible.</div>';
+  let est;
+  try { est = P.estado(s, planMes(), planAy()); } catch (e) { return '<div class="empty sn-nada">El plan del Senado aún no está listo.</div>'; }
+  const avisos = (est.avisos || []).slice(-3).map(a => '<div class="pl-aviso' + (a.tono === 'good' ? ' bien' : '') + '">' + esc(a.texto) + '</div>').join('');
+  if (est.plan) return planEnCurso(est, avisos);
+  const B = est.borrador;
+  let o = '<p class="sn-ex">Un plan son obras repartidas en estaciones. Si el Senado lo vota, tus ministros las harán. Hay que dar algo a cada bando.</p>' + avisos;
+  const prios = est.prioridades.map(p => '<button class="pl-prio' + ((B && B.prioridad === p.id) || (!B && (UI.planPrio || 'crecer') === p.id) ? ' on' : '') + '" data-act="plan-prio" data-v="' + p.id + '" style="--bc:' + ((D.BANDOS[p.bando] || {}).col || '#999') + '"><span>' + (PL_ICO[p.id] || '') + '</span><b>' + esc(p.n) + '</b></button>').join('');
+  o += '<div class="sec ro-rubrica">Prioridad</div><div class="pl-prios">' + prios + '</div>';
+  const n = B ? B.estaciones : (UI.planEst || 6);
+  o += '<div class="sec ro-rubrica">Estaciones</div><div class="pl-ests" role="group" aria-label="Estaciones del plan">' + [4, 5, 6, 7, 8].map(k => '<button data-act="plan-est" data-v="' + k + '" class="' + (k === n ? 'on' : '') + '">' + k + '</button>').join('') + '</div>';
+  o += '<button class="pl-btn grande" data-act="plan-sug">✨ Sugerir un plan</button>';
+  if (!B) return o + '<p class="pl-vacio">Aún no hay obras. Pulsa «Sugerir un plan» o elige tú las obras.</p><button class="pl-btn" data-act="plan-nuevo">Empezar un plan en blanco</button>';
+  for (let e = 0; e < B.estaciones; e++) {
+    const obras = B.obras.filter(x => x.est === e);
+    o += '<div class="pl-est"><div class="pl-et"><b>Estación ' + (e + 1) + '</b><span>' + obras.length + ' de 3 obras</span></div>';
+    for (const ob of obras) {
+      const raw = planObraDe(ob.id) || {};
+      o += '<div class="pl-ob"><div class="pl-im">' + planMini(raw.b) + '</div><div class="pl-tx"><b>' + esc(ob.texto) + '</b><small>' + esc(ob.i) + ' ' + esc(ob.cargo) + '</small>' + planCoste(ob.coste) + '</div>' +
+        '<div class="pl-mv"><button data-act="plan-mover" data-v="' + ob.id + '|-1" aria-label="A la estación anterior"' + (e === 0 ? ' disabled' : '') + '>‹</button><button data-act="plan-mover" data-v="' + ob.id + '|1" aria-label="A la estación siguiente"' + (e === B.estaciones - 1 ? ' disabled' : '') + '>›</button></div>' +
+        '<button class="pl-x" data-act="plan-quitar" data-v="' + ob.id + '" aria-label="Quitar esta obra">✕</button></div>';
+    }
+    if (obras.length < 3) o += '<button class="pl-mas" data-act="plan-add" data-v="' + e + '">＋ Añadir obra</button>';
+    o += '</div>';
+  }
+  if (UI.planAdd != null && UI.planAdd < B.estaciones) o += planCatalogo(B);
+  o += planBandoBarra(B.votos);
+  const rep = B.votos.reparto;
+  if (rep && !rep.ok) o += '<div class="pl-aviso">' + esc(rep.motivo) + '</div>';
+  const pv = B.puede;
+  o += '<button class="pl-btn grande voto' + (pv.ok ? '' : ' apagado') + '" data-act="plan-votar"' + (pv.ok ? '' : ' aria-disabled="true"') + '>🗳 Votar el plan</button>';
+  if (!pv.ok) o += '<p class="pl-motivo">' + esc(pv.motivo) + '</p>';
+  return o;
+}
+function planEnCurso(est, avisos) {
+  const L = est.plan, pr = est.prioridades.find(p => p.id === L.prioridad) || { n: L.prioridad, bando: 'ter' };
+  const k = Math.max(0, Math.min(L.estaciones - 1, L.k));
+  let o = avisos + '<div class="pl-curso"><span>' + (PL_ICO[L.prioridad] || '') + '</span><div><b>Plan en marcha: ' + esc(pr.n) + '</b><small>' + (L.k >= L.estaciones ? 'El Senado juzgará pronto.' : 'Estación ' + (k + 1) + ' de ' + L.estaciones) + ' · ' + L.hechas + ' de ' + L.total + ' obras hechas</small></div></div>';
+  o += '<div class="pl-prog"><i style="width:' + (L.total ? Math.round(L.hechas / L.total * 100) : 0) + '%"></i></div>';
+  for (let e = 0; e < L.estaciones; e++) {
+    const obras = L.obras.filter(x => x.est === e);
+    if (!obras.length) continue;
+    o += '<div class="pl-est' + (e === L.k ? ' ahora' : '') + '"><div class="pl-et"><b>Estación ' + (e + 1) + '</b><span>' + (e === L.k ? 'Ahora' : e < L.k ? 'Pasada' : 'Próxima') + '</span></div>';
+    for (const ob of obras) {
+      const raw = planObraDe(ob.id) || {}, st = PL_ESTADO[ob.estado] || ['espera', ob.estado];
+      o += '<div class="pl-ob ' + st[0] + '"><div class="pl-im">' + planMini(raw.b) + '</div><div class="pl-tx"><b>' + esc(ob.texto) + '</b><small>' + esc(ob.cargo) + '</small></div><span class="pl-sello ' + st[0] + '">' + st[1] + '</span></div>';
+    }
+    o += '</div>';
+  }
+  o += UI.planConf ? '<p class="pl-motivo">¿Seguro? El Senado lo recordará.</p><div class="pl-dos"><button class="pl-btn" data-act="plan-aband-no">No, seguir con el plan</button><button class="pl-btn peligro" data-act="plan-aband-si">Sí, abandonar el plan</button></div>'
+    : '<button class="pl-btn" data-act="plan-aband">Abandonar el plan</button>';
+  return o;
+}
+function planAccion(a, v) {
+  const P = PLAN(), s = S();
+  let r = { ok: true };
+  const B = s.planSenado && s.planSenado.borrador;
+  switch (a) {
+    case 'plan-prio': if (B) r = P.cambiarPrioridad(s, v); else UI.planPrio = v; break;
+    case 'plan-est': if (B) r = P.cambiarEstaciones(s, +v); else UI.planEst = +v; break;
+    case 'plan-nuevo': r = P.nuevo(s, UI.planEst || 6, UI.planPrio || 'crecer'); break;
+    case 'plan-sug': r = P.sugerir(s, B ? B.estaciones : (UI.planEst || 6), B ? B.prioridad : (UI.planPrio || 'crecer'), planAy()); break;
+    case 'plan-add': UI.planAdd = +v; break;
+    case 'plan-cierra': UI.planAdd = null; break;
+    case 'plan-ciu': UI.planCiu = v; break;
+    case 'plan-poner': { const x = P.catalogo(s, B)[+v]; if (x) { r = P.poner(s, { ciudad: x.ciudad, b: x.b, est: UI.planAdd }); if (r.ok) UI.planAdd = null; } break; }
+    case 'plan-quitar': r = P.quitar(s, v); break;
+    case 'plan-mover': { const q = v.split('|'), o = planObraDe(q[0]); r = o ? P.mover(s, q[0], o.est + (+q[1])) : { ok: false, motivo: 'Esa obra no está' }; break; }
+    case 'plan-votar': if (!G.planVotar) { r = { ok: false, motivo: 'El Senado aún no recibe planes' }; break; } r = G.planVotar(); UI.planAdd = null; break;
+    case 'plan-aband': UI.planConf = true; break;
+    case 'plan-aband-no': UI.planConf = false; break;
+    case 'plan-aband-si': UI.planConf = false; r = G.planAbandonar ? G.planAbandonar() : { ok: false, motivo: 'No se puede abandonar aún' }; break;
+  }
+  if (r && r.ok === false && r.motivo) toast(r.motivo, 'bad');
+  else if (r && r.quitadas > 1) toast('Se quitaron ' + r.quitadas + ' obras que dependían de esa.', '');
+  G.save(); render();
+}
 function viewSenado() {
   const sala = G.senadoSala && G.senadoSala(), t = SEN_T.some(x => x[0] === UI.senT) ? UI.senT : 'hoy';
   if (t === 'hoy' && sala) return viewSala(sala);   // SN2: con votación abierta, la sala
@@ -1456,6 +1571,7 @@ function viewSenado() {
       '<p class="sn-ex sen-pronto">Pronto: ganarás Autoridad con lo que hagas y subirás de cargo, de edil a príncipe del Senado.</p>' + hitosHtml();
     return o + pie;
   }
+  if (t === 'plan') return o + viewPlan() + pie;
   if (t === 'fiestas') {
     const cid = cityOk();
     o += '<div class="sec ro-rubrica">Fiestas en ' + esc(D.CITIES[cid].n) + '</div>';
@@ -1714,6 +1830,7 @@ document.addEventListener('click', function (e) {
     case 'sn2-votar': { const sl = G.senadoSala(); if (!sl) break; const tr = G.tratos(sl.ley).filter(t => t.tipo !== 'si' && UI.sn2 && UI.sn2.b[t.bando]); sn2Resultado(G.votar(tr)); break; }
     case 'sn2-pasar': sn2Resultado(G.dejarPasar()); break;
     case 'inf-senado': UI.infoCierra(); UI.codice = null; UI.senT = 'hoy'; setTab('senado'); break;
+    case 'plan-prio': case 'plan-est': case 'plan-nuevo': case 'plan-sug': case 'plan-add': case 'plan-cierra': case 'plan-ciu': case 'plan-poner': case 'plan-quitar': case 'plan-mover': case 'plan-votar': case 'plan-aband': case 'plan-aband-no': case 'plan-aband-si': planAccion(a, v); break;
     case 'sent': UI.senT = v; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;   // MN2: pestañas del Senado
     case 'codice': UI.codice = v || null; render(); { const vw = $('view'); if (vw) vw.scrollTop = 0; } break;
     case 'turno': if (!G.turnos || s.over || s.pending.length || s.vivo || UI.modalOpen) break; AV.acum = []; try { G.pasarTurno(); } finally { const l = AV.acum; AV.acum = null; toastResumen(l); } UI.dirty = true; tickUI(); break;
@@ -1854,7 +1971,12 @@ document.addEventListener('visibilitychange', () => { if (document.hidden && S()
 if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => { });
 
 buildTop(); buildTabs(); initBandeja();
-UI.menuC = crearMenu({ D, ids: bandejaIds, info: piezaInfo, minis: () => UI.minis, coste5, puede: c => G.canAfford(c), elegir: id => elegir3(id), aviso: t => lineaPon(t, 'aviso', '', 5),
+/* CDe1-B: botón «Ministros» de la ciudad */
+function abreMinistros() {
+  if (!window.MINISTROS_UI || !S()) return;
+  MINISTROS_UI.abrir(S(), { mes: planMes(), alCambiar: () => { G.save(); UI.dirty = true; }, imagenes: { edificio: id => UI.minis && (UI.minis[id] || (id === 'puerto' ? UI.minis.muelle : '')), unidad: k => realPortrait(k) }, coste: (b, L) => G.cost(b, L) });
+}
+UI.menuC = crearMenu({ ministros: abreMinistros, senado: () => { UI.senT = 'plan'; setTab('senado'); }, D, ids: bandejaIds, info: piezaInfo, minis: () => UI.minis, coste5, puede: c => G.canAfford(c), elegir: id => elegir3(id), aviso: t => lineaPon(t, 'aviso', '', 5),
   famDe: id => { const P = Ciudad.EDIF[id]; return (P && P.bid && D.BUILD[P.bid] && D.BUILD[P.bid].fam) || D.FAMILIA_PIEZA[id] || 'principales'; },
   costa: () => { const c = D.CITIES[UI.city]; return !!(c && c.sea); } });
 try { UI.map = new MapView3D($('mapwrap'), { onSelect: id => { const otra = id && id === UI.sel && propiaEntrable(id); UI.sel = id; UI.sheetKey = ''; renderSheet(); if (otra) UI.map.entrarCiudad(id); }, puedeEntrar: propiaEntrable, ocupado: () => !!UI.battle, onEntrar: id => { UI.city = id; UI.bsel = null; UI.cityList = false; UI.deMapa = true; setTab('city'); } }); }
