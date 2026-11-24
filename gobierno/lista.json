@@ -216,7 +216,8 @@
         "FU3",
         "FU4",
         "FU5",
-        "FU6"
+        "FU6",
+        "JG1"
       ]
     },
     {
@@ -300,8 +301,7 @@
         "SB1",
         "SB2",
         "SB3",
-        "SB4",
-        "SB5"
+        "SB4"
       ],
       "hecho": "Jueces por área (Cerebro 3,6 min, Músculo 8 min, Batallas 12 min) y jueces completos 43 de 43 antes de cada subida; subidas a main de la v140 a la v157b. El 24/11 SB4 arregló la caché: sin red la ciudad no cargaba, ya carga. Tope de descarga subido a 56 MB (24/11); hoy 49,8."
     },
