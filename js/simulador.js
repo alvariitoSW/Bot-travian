@@ -105,8 +105,41 @@
   const esEle = t => cls(t) === 'ele';
   const cal = t => CARACTER[t] ? CARACTER[t].cal : limita(((UN[t] && UN[t].atk) || 10) / 10, 0.3, 1.8);
   const defMul = t => limita(Math.sqrt(10 / ((UN[t] && UN[t].def) || 10)), 0.75, 1.35);
-  const morMul = t => limita(Math.sqrt(60 / ((UN[t] && UN[t].mor) || 60)), 0.75, 1.3);
-  const velBase = t => ((UN[t] && UN[t].spd) || 30) / 32 * 1.6;   /* m/s andando; hastati 1,6 m/s, équites 3,5 m/s */
+  const nTropa = x => typeof x === 'string' ? x : x.tropa;
+  /* CG9: con js/tropas.js, la calidad sale de sus 12 datos (por pueblo y veteranía). Sin él, todo va como antes (reserva).
+     En el navegador lo carga ui-escaramuza.js con import dinámico: se busca al usar, nunca al cargar este archivo. */
+  let _TR = null, _sinReq = false, _apagado = false;
+  const TR = () => {
+    if (_apagado) return null;
+    if (_TR) return _TR;
+    if (root.Tropas) return (_TR = root.Tropas);
+    if (!_sinReq && typeof require !== 'undefined') { try { _TR = require('./tropas.js'); } catch (e) { _sinReq = true; } }
+    return _TR;
+  };
+  const dd = x => { const T = TR(); return T ? (typeof x === 'string' ? T.datos(x, null, 'curtido') : T.datos(x.tropa, x.pueblo || null, x.vet || 'curtido')) : null; };
+  const morMul = x => { const d = dd(x); if (d) return limita(Math.sqrt(60 / Math.max(10, d.moral)), 0.75, 1.3); const t = nTropa(x); return limita(Math.sqrt(60 / ((UN[t] && UN[t].mor) || 60)), 0.75, 1.3); };
+  const velBase = x => { const d = dd(x); if (d) return d.velocidad; const t = nTropa(x); return ((UN[t] && UN[t].spd) || 30) / 32 * 1.6; };   /* m/s andando; hastati 1,6 m/s, équites 3,5 m/s */
+  const cansa = u => { const d = dd(u); return d ? limita(60 / Math.max(1, d.resistencia), 0.5, 2.5) : car(u.tropa).cansa; };
+  /* Golpe con los datos (ES0 §5): probabilidad de acertar × daño que pasa la armadura ÷ vida del que recibe, relativo a hastati contra hastati de frente.
+     Se multiplica por la cifra de hoy de ese choque (cal 1 × defMul de hastati) para que hastati contra hastati caiga igual que antes. */
+  const CARAS = { frente: 1, flanco: 0.3, retaguardia: 0 };
+  const golpeDe = (da, db, esc) => { const paso = da.perfora + da.dano * 10 / (10 + db.armadura); return paso * (da.acierto / (da.acierto + db.defensa + db.escudo * esc)) / db.vida; };
+  let _ref = null;
+  function razon(a, b, cara) {
+    const T = TR(); if (!T) return null;
+    if (!_ref || _ref.T !== T) { const h = T.datos('hastati'); _ref = { T, v: golpeDe(h, h, 1), hoy: defMul('hastati') }; }
+    const da = dd(a), db = dd(b), esc = CARAS[cara] !== undefined ? CARAS[cara] : 1;
+    let r = golpeDe(da, db, esc) / _ref.v * _ref.hoy;
+    if (da.contra) { if (da.contra.cab && esCab(b.tropa)) r *= da.contra.cab; if (da.contra.ele && esEle(b.tropa)) r *= da.contra.ele; }
+    return r;
+  }
+  /* Protección del blanco frente a un proyectil o un impacto, relativa a hastati (1 = igual). frontal: el escudo cuenta solo de frente */
+  function protRel(b, arma, frontal) {
+    const T = TR(), db = T && dd(b); if (!db) return null;
+    const h = T.datos('hastati'), f = (d, fr) => (arma.perfora + arma.dano * 10 / (10 + d.armadura)) * (fr ? 1 - d.escudo / 25 : 1) / d.vida;
+    return f(db, frontal) / f(h, true);
+  }
+  const ARMA_IMPACTO = { dano: 8, perfora: 2 };
   const peso = t => esEle(t) ? 2.2 : esCab(t) ? 1.8 : 1;
   const blanco = t => BLANCO[t] || 0.8;
   const num = k => { let r = ''; for (const [v, l] of [[100, 'C'], [90, 'XC'], [50, 'L'], [40, 'XL'], [10, 'X'], [9, 'IX'], [5, 'V'], [4, 'IV'], [1, 'I']]) while (k >= v) { r += l; k -= v; } return r; };
@@ -120,7 +153,7 @@
   function manipulo(S, m) {
     const t = m.tropa, n = Math.max(1, Math.round(m.n || tam(t))), forma = m.forma && sabe(t).includes(m.forma) ? m.forma : sabe(t)[0];
     S.cuenta[m.lado][t] = (S.cuenta[m.lado][t] || 0) + 1;
-    const u = { id: S.man.length, lado: m.lado, tropa: t, nom: nombre(t) + ' ' + num(S.cuenta[m.lado][t]), n, n0: n,
+    const u = { id: S.man.length, lado: m.lado, tropa: t, nom: nombre(t) + ' ' + num(S.cuenta[m.lado][t]), n, n0: n, her: 0, muertos: 0, pueblo: m.pueblo || null, vet: m.vet || 'curtido',
       x: m.x || 0, y: m.y || 0, a: m.a !== undefined ? m.a : (m.lado === 0 ? Math.PI / 2 : -Math.PI / 2),
       forma, luego: null, cambio: 0, moral: m.moral !== undefined ? m.moral : 1, fatiga: m.fatiga || 0, estado: 'firme',
       orden: 'quieto', dest: null, obj: -1, postura: 'aguantar', tPost: 0, mando: m.mando || 'tribuno', ala: m.ala !== undefined ? m.ala : 1,
@@ -133,20 +166,21 @@
   /* Despliegue clásico. Roma: vélites delante, hastati, príncipes tras los huecos (tresbolillo), triarios detrás, jinetes en las alas
      (Polibio 6.21-24 y Livio 8.8: histórico en lo general; las distancias, licencia de juego). Otro ejército: tiradores delante, elefantes
      delante del centro, una línea de infantería (la tropa más numerosa en el centro), una segunda si pasa de 12 manípulos, jinetes en las alas. */
-  function desplegar(S, lado, ej) {
+  function desplegar(S, lado, ej, pueblo, vets) {
     const sg = lado === 0 ? -1 : 1, y0 = sg * DIST0 / 2, partes = {};   /* sg: hacia su retaguardia */
     const trozos = t => { const n = ej[t] || 0, k = Math.max(1, Math.round(n / tam(t))), r = []; for (let i = 0; i < k; i++) r.push(Math.round(n / k)); return n > 0 ? r : []; };
+    const vetDe = (t, i) => (vets && vets[t] && vets[t][i]) || 'curtido';
     for (const t in ej) if (ej[t] > 0) partes[t] = trozos(t);
     const ancho = (t, n) => Math.ceil(n / FORMAS[sabe(t)[0]].filas) * FORMAS[sabe(t)[0]].hombre;
     const fila = (lista, y, hueco, tras) => {     /* lista: [[tropa, n]] centrada en x; devuelve los manípulos */
       const anchos = lista.map(([t, n]) => ancho(t, n)), tot = anchos.reduce((a, b) => a + b, 0) + hueco * Math.max(0, lista.length - 1);
       let x = -tot / 2; const r = [];
-      lista.forEach(([t, n], i) => { const cx = x + anchos[i] / 2; x += anchos[i] + hueco; r.push(manipulo(S, { lado, tropa: t, n, x: lado === 0 ? cx : -cx, y })); });
+      lista.forEach(([t, n, k], i) => { const cx = x + anchos[i] / 2; x += anchos[i] + hueco; r.push(manipulo(S, { lado, tropa: t, n, x: lado === 0 ? cx : -cx, y, pueblo, vet: vetDe(t, k) })); });
       if (tras) r.forEach(u => { let mejor = -1, d = 1e9; for (const v of tras) { const dd = Math.abs(v.x - u.x); if (dd < d) { d = dd; mejor = v.id; } } u.tras = mejor; });
       return { r, tot };
     };
     const tipos = Object.keys(partes), inf = tipos.filter(t => !esCab(t) && !esTiro(t) && !esEle(t)), tiro = tipos.filter(esTiro), cab = tipos.filter(esCab), ele = tipos.filter(esEle);
-    const lista = ts => { const l = []; for (const t of ts) for (const n of partes[t]) l.push([t, n]); return l; };
+    const lista = ts => { const l = []; for (const t of ts) partes[t].forEach((n, k) => l.push([t, n, k])); return l; };
     let primera;
     if (lado === 0 && (partes.hastati || partes.principes || partes.triarii)) {
       const l1 = lista(['hastati'].concat(inf.filter(t => !['hastati', 'principes', 'triarii'].includes(t)))), l2 = lista(['principes'].filter(t => partes[t])), l3 = lista(['triarii'].filter(t => partes[t]));
@@ -166,7 +200,7 @@
     if (ele.length) fila(lista(ele), y0 - sg * 28, 12);
     if (tiro.length && primera.r.some(u => !esTiro(u.tropa))) fila(lista(tiro), y0 - sg * 34, 14);
     const lc = lista(cab);                          /* jinetes: mitad a cada ala */
-    lc.forEach(([t, n], i) => { const lad = i % 2 ? 1 : -1, k = Math.floor(i / 2), x = lad * (primera.tot / 2 + 30 + k * 34); manipulo(S, { lado, tropa: t, n, x: lado === 0 ? x : -x, y: y0 }); });
+    lc.forEach(([t, n, kt], i) => { const lad = i % 2 ? 1 : -1, k = Math.floor(i / 2), x = lad * (primera.tot / 2 + 30 + k * 34); manipulo(S, { lado, tropa: t, n, x: lado === 0 ? x : -x, y: y0, pueblo, vet: vetDe(t, kt) }); });
     /* alas: por tercios del frente, vistas desde el propio bando (su izquierda) */
     const W = Math.max(60, primera.tot);
     for (const u of S.man) if (u.lado === lado) { const lx = lado === 0 ? u.x : -u.x; u.ala = lx < -W / 6 ? 0 : lx > W / 6 ? 2 : 1; }
@@ -179,7 +213,7 @@
       tribunos: cfg.tribunos || [TRIBUNOS.map(x => Object.assign({}, x)), JEFES.map(x => Object.assign({}, x))],
       planes: cfg.planes || [['avanzar', 'avanzar', 'avanzar'], ['avanzar', 'avanzar', 'avanzar']], n0: [{}, {}] };
     if (cfg.manipulos) for (const m of cfg.manipulos) manipulo(S, m);
-    else for (let b = 0; b < 2; b++) desplegar(S, b, (cfg.ejercitos && cfg.ejercitos[b]) || {});
+    else for (let b = 0; b < 2; b++) desplegar(S, b, (cfg.ejercitos && cfg.ejercitos[b]) || {}, cfg.ejercitos && cfg.ejercitos.pueblos ? cfg.ejercitos.pueblos[b] || null : null, cfg.ejercitos && cfg.ejercitos.vet ? cfg.ejercitos.vet[b] : null);
     for (const u of S.man) S.n0[u.lado][u.tropa] = (S.n0[u.lado][u.tropa] || 0) + u.n0;
     recontar(S);
     return S;
@@ -220,7 +254,7 @@
   /* ---------- fuerza en el choque: la de js/guerra.js (fuerza), por manípulo ---------- */
   function fuerza(u) {
     const fondoF = Math.max(0.3, Math.min(1, u.n / (0.4 * u.n0))), F = FORMAS[u.forma];
-    return cal(u.tropa) * fondoF * (1 - 0.55 * u.fatiga) * (u.postura === 'empujar' ? 1.25 : 0.8) * (u.relevo > 0 || u.cambio > 0 ? 0.7 : 1) * (0.7 + 0.3 * Math.max(0, u.moral)) *
+    return (dd(u) ? 1 : cal(u.tropa)) * fondoF * (1 - 0.55 * u.fatiga) * (u.postura === 'empujar' ? 1.25 : 0.8) * (u.relevo > 0 || u.cambio > 0 ? 0.7 : 1) * (0.7 + 0.3 * Math.max(0, u.moral)) *
       (u.impulso > 0 ? 1.15 * (F.choque || 1) : 1) * (u.frenada > 0 ? 0.8 : 1) * F.atk;
   }
   const escala = u => limita(u.n0 / tam(u.tropa), 0.15, 3);
@@ -419,15 +453,17 @@
     /* proyectiles */
     for (const u of M) if (vivo(u)) { if (esTiro(u.tropa)) tirar(S, u, dt); if (!u.pila) pila(S, u); }
     /* cuerpo a cuerpo: primero se suma el daño de todos, luego se aplica (así el orden de la lista no decide) */
-    const dano = M.map(() => 0), golpeF = M.map(() => 0), flanq = M.map(() => false);
+    const dano = M.map(() => 0), danoM = M.map(() => 0), golpeF = M.map(() => 0), flanq = M.map(() => false);
     for (const a of M) {
       if (!vivo(a) || !S.cont[a.id].length) continue;
       const blancos = S.cont[a.id].filter(c => c.cara === 'frente'); if (!blancos.length) continue;
       const fa = fuerza(a) / blancos.length, ruido = 0.9 + 0.2 * rnd(S);
       for (const c of blancos) {
         const b = M[c.id], cara = S.cont[b.id].find(x => x.id === a.id).cara, T = car(b.tropa), F = FORMAS[b.forma];
-        let d = fa * K_BAJAS * dt * ruido * escala(a);
-        if (!vivo(b)) d *= 2;                                                   /* persecución: el que huye no se defiende (licencia de juego) */
+        const R = razon(a, b, cara);
+        let d = fa * K_BAJAS * dt * ruido * escala(a), fm = 0.5;
+        if (R && vivo(b)) { const db = dd(b); fm = limita(0.25 + 0.45 * (dd(a).perfora + dd(a).dano * 10 / (10 + db.armadura)) / db.vida, 0.25, 0.75); }
+        if (!vivo(b)) { fm = 0.6; d *= 2; }                                      /* persecución: el que huye no se defiende (licencia de juego) */
         else {
           d *= b.postura === 'aguantar' ? (T.firme ? 0.45 : 0.6) : 1;           /* js/guerra.js */
           if (b.postura === 'empujar' && a.postura === 'aguantar') d *= 1.12;
@@ -435,27 +471,28 @@
           if (cara === 'frente') d *= F.recibe; else { d *= (T.flanco || 1.5) * F.flanco * (cara === 'retaguardia' ? 1.35 : 1); flanq[b.id] = true; }
           if (b.golpe > 0) d *= 1.4;
           if (b.cambio > 0) d *= 1.2;
-          golpeF[b.id] += fa;
+          golpeF[b.id] += fa * (R ? R : 1);
         }
-        dano[b.id] += d * defMul(b.tropa) / (VIDA[b.tropa] || 1);
+        const dm = d * (R ? R : defMul(b.tropa) / (VIDA[b.tropa] || 1));
+        dano[b.id] += dm; danoM[b.id] += dm * fm;
       }
     }
     for (const b of M) {
       if (!enCampo(b)) continue;
       const lucha = S.cont[b.id].length > 0;
-      if (dano[b.id] > 0) quitar(S, b, dano[b.id]);
+      if (dano[b.id] > 0) quitar(S, b, dano[b.id], danoM[b.id] / dano[b.id]);
       if (vivo(b) && lucha) {
-        const fb = fuerza(b), T = car(b.tropa);
-        b.moral -= morMul(b.tropa) * (dano[b.id] / b.n0 * MORAL_BAJA + TENSION * dt + (flanq[b.id] ? 0.028 : 0) * dt + (golpeF[b.id] > fb ? 0.013 * (golpeF[b.id] - fb) * dt : 0) + (b.fatiga > 0.85 ? 0.006 * dt : 0));
+        const rb = S.cont[b.id][0], Rb = rb ? razon(b, M[rb.id], 'frente') : null, fb = fuerza(b) * (Rb || 1), T = car(b.tropa);
+        b.moral -= morMul(b) * (dano[b.id] / b.n0 * MORAL_BAJA + TENSION * dt + (flanq[b.id] ? 0.028 : 0) * dt + (golpeF[b.id] > fb ? 0.013 * (golpeF[b.id] - fb) * dt : 0) + (b.fatiga > 0.85 ? 0.006 * dt : 0));
         if (b.postura === 'aguantar' && !flanq[b.id]) b.moral += 0.004 * dt;
-        b.fatiga = limita(b.fatiga + (b.postura === 'empujar' ? BASE_FATIGA * T.cansa : -BASE_FATIGA * 0.22) * dt, 0, 1);
+        b.fatiga = limita(b.fatiga + (b.postura === 'empujar' ? BASE_FATIGA * cansa(b) : -BASE_FATIGA * 0.22) * dt, 0, 1);
         if (flanq[b.id] && !b.flanqueado && S.t - (b.tFlanco || -99) > 8) b.tFlanco = S.t, ev(S, S.cont[b.id].some(c => c.cara === 'retaguardia') ? 'retaguardia' : 'flanqueo', b, b.nom + (S.cont[b.id].some(c => c.cara === 'retaguardia') ? ': ¡les atacan por la espalda!' : ': ¡les atacan por el flanco!'));
         b.flanqueado = flanq[b.id];
         if (esEle(b.tropa) && !b.desboque && (b.fatiga > 0.7 || b.n < 0.5 * b.n0)) desbocar(S, b);
       } else if (vivo(b)) {
         b.flanqueado = false;
         const F = FORMAS[b.forma];
-        if (F.cansa) b.fatiga = Math.min(1, b.fatiga + F.cansa * car(b.tropa).cansa * dt);
+        if (F.cansa) b.fatiga = Math.min(1, b.fatiga + F.cansa * cansa(b) * dt);
         else if (!b.dest && (b.orden === 'quieto' || b.orden === 'aguantar')) b.fatiga = Math.max(0, b.fatiga - DESCANSO * dt);
         if (S.t - b.fuego > 3 && b.moral < 1) b.moral = Math.min(1, b.moral + 0.002 * dt);
       }
@@ -475,13 +512,19 @@
     ev(S, 'choque', u, u.nom + ' chocan con ' + rivales[0].nom, { con: rivales[0].id });
   }
 
+  /* Lo que pesa el golpe de una carga sobre un blanco: antes, defMul; con datos, carga del que carga (contra la de referencia de su clase) y protección del blanco */
+  function kImpacto(a, b, cara) {
+    const T = TR(); if (!T) return defMul(b.tropa);
+    const ref = T.datos(esEle(a.tropa) ? 'elefantes' : esCab(a.tropa) ? 'equites' : 'hastati').carga;
+    return dd(a).carga / ref * protRel(b, ARMA_IMPACTO, cara === 'frente') * defMul('hastati');
+  }
   /* El impacto de una carga. Caballo o elefante contra picas o muro de frente: rebota (Polibio 18.29-30 para las picas; lo demás, licencia).
      Jinetes por el flanco: lo de js/guerra.js (moral −0,2 y bajas 22 por cada 60 jinetes). Infantería: menos, pero cuenta. */
   function impacto(S, a, rivales) {
     a.carga = false; a.orden = 'quieto'; a.postura = 'empujar'; a.tPost = 0;
     const b = rivales.find(v => v.id === a.obj) || rivales[0], cc = S.cont[b.id].find(c => c.id === a.id), cara = cc ? cc.cara : lado(b, a), pa = peso(a.tropa), esc = limita(a.n0 / tam(a.tropa), 0.25, 2.5);
     if ((esCab(a.tropa) || esEle(a.tropa)) && cara === 'frente' && (FORMAS[b.forma].frena || cls(b.tropa) === 'spear')) {
-      a.moral -= 0.15; quitar(S, a, a.n * 0.06 / (VIDA[a.tropa] || 1)); a.frenada = 5;
+      a.moral -= 0.15; quitar(S, a, a.n * 0.06 * (TR() ? protRel(a, ARMA_IMPACTO, true) : 1 / (VIDA[a.tropa] || 1))); a.frenada = 5;
       ev(S, 'carga-frenada', a, 'La carga de ' + a.nom + ' se estrella contra las lanzas de ' + b.nom, { con: b.id }); return;
     }
     a.impulso = 5;
@@ -490,7 +533,7 @@
     if (esCab(a.tropa)) { bajas = 22 * esc * (cara === 'frente' ? 0.4 : 1); moral = 0.2 * esc * (cara === 'frente' ? 0.4 : 1); }
     else if (esEle(a.tropa)) { bajas = 5 * a.n * lado2; moral = 0.18 * lado2; for (const v of S.man) if (v.lado !== a.lado && vivo(v) && Math.hypot(v.x - a.x, v.y - a.y) < 40) v.moral -= 0.05; }   /* pavor (Plutarco, Pirro 21) */
     else { bajas = 0.04 * a.n * (FORMAS[a.forma].choque || 1) * lado2; moral = 0.06 * lado2 * (FORMAS[a.forma].choque || 1); }
-    b.golpe = Math.max(b.golpe, 4); b.moral -= moral * morMul(b.tropa); quitar(S, b, bajas * defMul(b.tropa) * (FORMAS[b.forma].frena && cara === 'frente' ? 0.5 : 1));
+    b.golpe = Math.max(b.golpe, 4); b.moral -= moral * morMul(b); quitar(S, b, bajas * kImpacto(a, b, cara) * (FORMAS[b.forma].frena && cara === 'frente' ? 0.5 : 1), esCab(a.tropa) ? 0.4 : esEle(a.tropa) ? 0.55 : 0.5);
     ev(S, 'carga', a, a.nom + ' cargan contra ' + b.nom + (cara === 'frente' ? '' : cara === 'flanco' ? ' por el flanco' : ' por la espalda'), { con: b.id, cara, bajas: Math.round(bajas) });
   }
 
@@ -514,7 +557,7 @@
     if (u.estado === 'roto') {                                    /* huye hacia su borde */
       const sg = u.lado === 0 ? -1 : 1, quiere = sg > 0 ? Math.PI / 2 : -Math.PI / 2;
       u.a += limita(angDif(u.a, quiere), -2 * dt, 2 * dt);
-      const v = velBase(u.tropa) * 1.4 * (1 - 0.3 * u.fatiga);
+      const v = velBase(u) * 1.4 * (1 - 0.3 * u.fatiga);
       u.x += Math.cos(u.a) * v * dt; u.y += Math.sin(u.a) * v * dt;
       if (Math.abs(u.y) > S.campo.largo / 2 || Math.abs(u.x) > S.campo.ancho / 2) { u.estado = 'fuera'; ev(S, 'huida', u, u.nom + ' salen del campo', { n: Math.round(u.n) }); }
       return;
@@ -537,7 +580,7 @@
       const d = Math.hypot(v.x - u.x, v.y - u.y), corre = d < (esCab(u.tropa) ? 120 : 60);
       u.carga = corre; u.dest = { x: v.x, y: v.y };
       andar(S, u, dt, F, corre ? (esCab(u.tropa) ? 2.0 : 2.2) : 1);
-      if (corre) u.fatiga = Math.min(1, u.fatiga + dt / 40 * car(u.tropa).cansa);     /* correr cansa (licencia de juego) */
+      if (corre) u.fatiga = Math.min(1, u.fatiga + dt / 40 * cansa(u));     /* correr cansa (licencia de juego) */
       u.dest = null; return;
     }
     if (u.dest) andar(S, u, dt, F, u.dest.atras ? 0.5 : 1);
@@ -548,17 +591,23 @@
       if (D2.a !== undefined) { const e = angDif(u.a, D2.a); u.a += limita(e, -F.giro * dt, F.giro * dt); if (Math.abs(e) > 0.02) return; }
       u.dest = null; if (u.orden !== 'cargar') u.orden = 'quieto'; return;
     }
-    if (D2.vel) { const b = velBase(u.tropa) * F.vel * (1 - 0.4 * u.fatiga); ritmo = Math.max(ritmo, Math.min(VEL_APIE, D2.vel / b)); if (ritmo > 1.2) u.fatiga = Math.min(1, u.fatiga + dt / 40 * car(u.tropa).cansa); }
-    const v = velBase(u.tropa) * F.vel * (1 - 0.4 * u.fatiga) * ritmo * dt;
+    if (D2.vel) { const b = velBase(u) * F.vel * (1 - 0.4 * u.fatiga); ritmo = Math.max(ritmo, Math.min(VEL_APIE, D2.vel / b)); if (ritmo > 1.2) u.fatiga = Math.min(1, u.fatiga + dt / 40 * cansa(u)); }
+    const v = velBase(u) * F.vel * (1 - 0.4 * u.fatiga) * ritmo * dt;
     if (D2.atras) { u.x += dx / d * Math.min(v, d); u.y += dy / d * Math.min(v, d); return; }      /* marcha atrás mirando al enemigo */
     const quiere = Math.atan2(dy, dx), e = angDif(u.a, quiere);
     u.a += limita(e, -F.giro * dt * 1.5, F.giro * dt * 1.5);
     if (Math.abs(e) > 0.6 && d > 5) return;                       /* primero se vuelve, luego anda */
     u.x += Math.cos(u.a) * Math.min(v, d); u.y += Math.sin(u.a) * Math.min(v, d);
-    u.fatiga = Math.min(1, u.fatiga + dt / 900 * car(u.tropa).cansa);
+    u.fatiga = Math.min(1, u.fatiga + dt / 900 * cansa(u));
   }
 
   /* Tiradores (js/guerra.js: tirar, con sus cifras de Guerra.TIRO): tiran a lo que tengan delante a tiro */
+  /* Cuánto protege (o no) al blanco del tiro de u: antes BLANCO por tropa; con datos, la protección relativa a hastati (armadura, escudo de frente, vida) × 0,8, la cifra de hoy de hastati */
+  function kTiro(u, b, pila) {
+    const T = TR(); if (!T) return blanco(b.tropa);
+    const du = dd(u), arma = (pila ? du.arroja : du.tiro) || { dano: 4, perfora: 1 }, [lx, ly] = local(b, u.x, u.y);
+    return 0.8 * protRel(b, arma, ly > 0);
+  }
   function tirar(S, u, dt) {
     if (u.mun <= 0 || S.cont[u.id].length || u.estado === 'roto') { u.tirando = -1; return; }
     const A = tiroDe(u.tropa); let b = null, md = A.alc;
@@ -566,9 +615,9 @@
     if (!b) { u.tirando = -1; return; }
     if (u.tirando !== b.id) { u.tirando = b.id; ev(S, 'tiro', u, u.nom + ' lanzan sus ' + A.arma + ' sobre ' + b.nom, { con: b.id, arma: A.arma }); }
     u.mun -= dt;
-    const F = FORMAS[b.forma], n = u.n * A.tiro * dt * (0.85 + 0.3 * rnd(S)) * blanco(b.tropa) * F.tiro;
-    b.fuego = S.t; quitar(S, b, n / (VIDA[b.tropa] || 1));
-    b.moral -= morMul(b.tropa) * (n / b.n0 * 1.5 + (F.tiro >= 1 ? SUSTO : 0) * dt);
+    const F = FORMAS[b.forma], n = u.n * A.tiro * dt * (0.85 + 0.3 * rnd(S)) * kTiro(u, b) * F.tiro;
+    b.fuego = S.t; quitar(S, b, n / (TR() ? 1 : (VIDA[b.tropa] || 1)), 0.3);
+    b.moral -= morMul(b) * (n / b.n0 * 1.5 + (F.tiro >= 1 ? SUSTO : 0) * dt);
   }
   /* La descarga de pila justo antes del choque (js/guerra.js: acercar). Dentro del testudo no se puede lanzar */
   function pila(S, u) {
@@ -576,20 +625,24 @@
     let b = null; for (const v of S.man) { if (v.lado === u.lado || !vivo(v)) continue; const [lx, ly] = local(u, v.x, v.y); if (ly > 0 && ly - fondo(v) / 2 - fondo(u) / 2 < SALVA.alc && Math.abs(lx) < frente(u) / 2 + frente(v) / 2) { b = v; break; } }
     if (!b) return;
     u.pila = true;
-    const n = SALVA.parte * u.n * blanco(b.tropa) * FORMAS[b.forma].tiro;
-    quitar(S, b, n / (VIDA[b.tropa] || 1)); b.moral -= morMul(b.tropa) * n / b.n0 * 1.5; b.frenada = 5; b.fuego = S.t;
+    const n = SALVA.parte * u.n * kTiro(u, b, true) * FORMAS[b.forma].tiro;
+    quitar(S, b, n / (TR() ? 1 : (VIDA[b.tropa] || 1)), 0.35); b.moral -= morMul(b) * n / b.n0 * 1.5; b.frenada = 5; b.fuego = S.t;
     ev(S, 'pila', u, u.nom + ' arrojan ' + (ARROJA[u.tropa] === 'pila' ? 'los pila' : 'sus jabalinas') + ' sobre ' + b.nom, { con: b.id, arma: ARROJA[u.tropa] });
   }
   /* Elefantes heridos o agotados se vuelven contra los suyos (js/guerra.js: mente; Polibio 1.40) */
   function desbocar(S, u) {
     u.desboque = true; let v = null, md = 40;
     for (const w of S.man) { if (w === u || w.lado !== u.lado || !vivo(w)) continue; const d = Math.hypot(w.x - u.x, w.y - u.y); if (d < md) { md = d; v = w; } }
-    if (v) { quitar(S, v, v.n * 0.1); v.moral -= 0.1; }
+    if (v) { quitar(S, v, v.n * 0.1, 0.55); v.moral -= 0.1; }
     ev(S, 'desboque', u, 'Los elefantes se desbocan' + (v ? ': pisotean a ' + v.nom : ''), { con: v ? v.id : -1 });
     romper(S, u);
   }
 
-  function quitar(S, u, n) { const q = Math.min(Math.max(0, n), u.n); u.n -= q; return q; }
+  /* Lo quitado a u.n (los sanos) se reparte: fm = parte que muere; el resto, heridos (no luchan, pero no han muerto) */
+  function quitar(S, u, n, fm) {
+    const q = Math.min(Math.max(0, n), u.n), m = q * (fm === undefined ? 0.5 : fm); u.n -= q;
+    u.muertos = (u.muertos || 0) + m; u.her = (u.her || 0) + q - m; return q;
+  }
 
   function estado(S, u) {
     if (!enCampo(u)) return;
@@ -607,7 +660,7 @@
   }
   /* Una ruptura cercana asusta a los suyos y anima al rival (js/guerra.js: romper, a la escala de un manípulo) */
   function contagio(S, u) {
-    for (const v of S.man) { if (v === u || !vivo(v)) continue; const d = Math.hypot(v.x - u.x, v.y - u.y); if (d > CONTAGIO.radio) continue; if (v.lado === u.lado) v.moral = Math.max(0.02, v.moral - CONTAGIO.amigos * morMul(v.tropa)); else v.moral = Math.min(1, v.moral + CONTAGIO.rivales); }
+    for (const v of S.man) { if (v === u || !vivo(v)) continue; const d = Math.hypot(v.x - u.x, v.y - u.y); if (d > CONTAGIO.radio) continue; if (v.lado === u.lado) v.moral = Math.max(0.02, v.moral - CONTAGIO.amigos * morMul(v)); else v.moral = Math.min(1, v.moral + CONTAGIO.rivales); }
   }
 
   /* ---------- fin ---------- */
@@ -625,7 +678,11 @@
     S.fase = 'fin';
     if (!motivo) motivo = como === 'retirada' ? 'Sacas a la legión en orden. El campo queda para el enemigo.' : '';
     const tot = l => Math.round(S.man.reduce((a, u) => a + (u.lado === l ? u.n : 0), 0));
-    S.resultado = { como, motivo, t: S.t, bajas: [0, 1].map(l => Math.round(inicial(S, l)) - tot(l)), inicial: [0, 1].map(l => Math.round(inicial(S, l))), ordenes: S.ordenes };
+    const suma = (l, k) => S.man.reduce((a, u) => a + (u.lado === l ? (u[k] || 0) : 0), 0);
+    const ini = [0, 1].map(l => Math.round(inicial(S, l))), sanos = [0, 1].map(l => Math.round(tot(l))), muertos = [0, 1].map(l => Math.min(ini[l] - sanos[l], Math.round(suma(l, 'muertos')))), heridos = [0, 1].map(l => ini[l] - sanos[l] - muertos[l]);
+    const gano = como === 'victoria' ? 0 : 1;      /* quien se queda con el campo recoge a sus heridos; los del otro quedan prisioneros */
+    S.resultado = { como, motivo, t: S.t, bajas: [0, 1].map(l => ini[l] - tot(l)), inicial: ini, ordenes: S.ordenes, sanos, heridos, muertos,
+      prisioneros: gano === 0 ? heridos[1] : 0, cautivos: gano === 1 ? heridos[0] : 0, recuperados: heridos[gano] };
     ev(S, 'fin', null, motivo, { como });
   }
   const retirarse = S => fin(S, 'retirada');
@@ -645,7 +702,7 @@
   function cargar(texto) { const S = JSON.parse(texto); recontar(S); return S; }
   /* Los contactos no se guardan: se recalculan al cargar (los necesitan las órdenes antes del primer paso) */
   function recontar(S) {
-    const g = []; for (const u of S.man) g[u.id] = { f: frente(u), d: fondo(u) };
+    const g = []; for (const u of S.man) { g[u.id] = { f: frente(u), d: fondo(u) }; if (u.her === undefined) { u.her = 0; u.muertos = Math.max(0, u.n0 - u.n); } }   /* partidas viejas */
     S.cont = S.man.map(() => []);
     for (let i = 0; i < S.man.length; i++) for (let j = i + 1; j < S.man.length; j++) {
       const u = S.man[i], v = S.man[j]; if (u.lado === v.lado || !enCampo(u) || !enCampo(v) || (!vivo(u) && !vivo(v)) || !tocan(u, v, g)) continue;
@@ -657,14 +714,17 @@
   /* ---------- salida para la campaña: la misma forma que Guerra.resumen ---------- */
   function resumen(S) {
     if (S.fase !== 'fin') retirarse(S);
-    const f = S.resultado, filas = [];
+    const f = S.resultado, filas = [], ganador0 = f.como === 'victoria' ? 0 : 1;
     for (let b = 0; b < 2; b++) for (const t of Object.keys(S.n0[b])) {
-      const us = S.man.filter(u => u.lado === b && u.tropa === t), n0 = S.n0[b][t], n = Math.round(us.reduce((a, u) => a + u.n, 0));
-      filas.push({ id: 'b' + b + '-' + t, bando: b, tipo: t, nombre: nombre(t), n0, n: Math.min(n0, n), bajas: Math.max(0, n0 - n), huyo: us.every(u => !vivo(u)), vet: 0 });
+      const us = S.man.filter(u => u.lado === b && u.tropa === t), n0 = S.n0[b][t], sanos = Math.round(us.reduce((a, u) => a + u.n, 0));
+      const her = Math.round(us.reduce((a, u) => a + (u.her || 0), 0)), gana = b === ganador0, rec = gana ? Math.min(her, n0 - sanos) : 0;
+      const n = Math.min(n0, sanos + rec), bajas = Math.max(0, n0 - n), muertos = gana ? bajas : Math.min(bajas, Math.max(0, Math.round(us.reduce((a, u) => a + (u.muertos || 0), 0))));
+      filas.push({ id: 'b' + b + '-' + t, bando: b, tipo: t, nombre: nombre(t), n0, n, bajas, huyo: us.every(u => !vivo(u)), vet: 0,
+        heridos: gana ? rec : bajas - muertos, muertos, prisioneros: gana ? 0 : bajas - muertos, recuperados: rec });
     }
-    const ganador = f.como === 'victoria' ? 0 : 1, vivos = filas.filter(x => x.bando === 1).reduce((a, x) => a + x.n, 0);
+    const ganador = ganador0;
     return { ganador, victoria: ganador === 0, motivo: f.motivo, t: f.t, bajas: filas, bajasTotal: [0, 1].map(b => filas.filter(x => x.bando === b).reduce((a, x) => a + x.bajas, 0)),
-      general: null, prisioneros: ganador === 0 ? Math.round(0.25 * vivos) : 0, registro: S.reg, estado: S };
+      general: null, prisioneros: f.prisioneros, cautivos: f.cautivos, recuperados: f.recuperados, registro: S.reg, estado: S };
   }
 
   /* ---------- para pintar (CG4) ---------- */
@@ -673,12 +733,12 @@
     const animo = u.estado === 'roto' ? 'rompe' : u.estado === 'duda' ? 'duda' : vivo(u) ? 'firme' : u.estado;
     const cansancio = u.fatiga < 0.4 ? 'fresca' : u.fatiga < 0.8 ? 'cansada' : 'agotada';
     let combate = '';
-    if (S && S.cont && S.cont[u.id] && S.cont[u.id].length) { const r = S.man[S.cont[u.id][0].id], k = fuerza(u) * escala(u) - fuerza(r) * escala(r); combate = k > 0.12 ? 'ganando' : k < -0.12 ? 'perdiendo' : 'igualado'; }
+    if (S && S.cont && S.cont[u.id] && S.cont[u.id].length) { const r = S.man[S.cont[u.id][0].id], k = fuerza(u) * (razon(u, r, 'frente') || 1) * escala(u) - fuerza(r) * (razon(r, u, 'frente') || 1) * escala(r); combate = k > 0.12 ? 'ganando' : k < -0.12 ? 'perdiendo' : 'igualado'; }
     return { animo, cansancio, combate };
   }
   function vista(S) {
     return S.man.map(u => ({ id: u.id, lado: u.lado, tropa: u.tropa, nom: u.nom, x: u.x, y: u.y, a: u.a, frente: frente(u), fondo: fondo(u), forma: u.forma, luego: u.luego,
-      estado: u.estado, n: Math.round(u.n), n0: u.n0, moral: u.moral, fatiga: u.fatiga, mando: u.mando, ala: u.ala, orden: u.orden, dest: u.dest, obj: u.obj,
+      estado: u.estado, n: Math.round(u.n), her: Math.round(u.her || 0), muertos: Math.round(u.muertos || 0), n0: u.n0, moral: u.moral, fatiga: u.fatiga, mando: u.mando, ala: u.ala, orden: u.orden, dest: u.dest, obj: u.obj,
       lucha: !!(S.cont && S.cont[u.id] && S.cont[u.id].length), relevo: u.relevo > 0 ? 1 - u.relevo / T_RELEVO : 0, carga: u.carga, palabras: palabras(u, S) }));
   }
   /* Las órdenes que tocan ahora a un manípulo (para los botones): [{tipo, forma?, no}] con no = '' si se puede o el motivo */
@@ -809,7 +869,7 @@
     return out;
   }
 
-  const Simulador = { crear, vuelveDePie, paso, avanzar, ordenar, puede, retirarse, fin, resumen, guardar, cargar, vista, palabras, ordenesDe, rnd,
+  const Simulador = { sinTropas: f => { _apagado = !!f; }, crear, vuelveDePie, paso, avanzar, ordenar, puede, retirarse, fin, resumen, guardar, cargar, vista, palabras, ordenesDe, rnd,
     fuerza, frente, fondo, lado, duelo, dueloPaso, dueloVer, apie, aPie, PASO, FORMAS, SABE, TAM, TRIBUNOS, JEFES, CAR, PLANES, CAMPO, DIST0, LIMITE };
   root.Simulador = Simulador;
   if (typeof module !== 'undefined') module.exports = Simulador;
