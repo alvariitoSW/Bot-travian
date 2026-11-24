@@ -7,8 +7,7 @@ import { createRequire } from 'node:module';
 import { spawn } from 'node:child_process';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { montar, DT } from './maquetas/combate-cerca/montaje.js';
-import { paso } from '../js/combate.js';
+import { montar, paso1, distancias, VARAS } from './maquetas/combate-cerca/montaje.js';
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..'), SALIDA = join(RAIZ, 'gobierno/capturas-tarea');
 const semilla = +(process.argv[2] || 1);
 
@@ -16,15 +15,21 @@ const semilla = +(process.argv[2] || 1);
 function busca(cond, bando = null, tMax = 90) {
   const S = montar(semilla);
   while (S.t < tMax) {
-    paso(S.hombres, DT, { rnd: S.rnd }); S.t += DT;
+    paso1(S);
     if (S.t < 2) continue;
     for (const h of S.hombres) if ((h.fila === 0 || !h.vivo) && (h.col === 0 || h.col === 3 || !h.vivo) && (!bando || h.bando === bando) && cond(h)) return { t: S.t, mira: h.id };
   }
   throw new Error('no se encontró el momento');
 }
+/* CB2b: con la física, la menor distancia entre rivales y entre amigos vivos en 20 s (centro a centro) */
+{ const S = montar(semilla); let r = Infinity, a = Infinity; while (S.t < 20) { paso1(S); const d = distancias(S); r = Math.min(r, d.rival); a = Math.min(a, d.amigo); }
+  console.log(`física, 20 s: rivales ≥ ${r.toFixed(3)} m (vara ${VARAS.rival}), amigos ≥ ${a.toFixed(3)} m (vara ${VARAS.amigo}); motor ${(S.ms.motor / S.ms.n).toFixed(3)} ms y física ${(S.ms.fisica / S.ms.n).toFixed(3)} ms por paso (Node)`);
+  if (r < VARAS.rival - 0.01 || a < VARAS.amigo - 0.01) { console.error('SE METEN UNOS EN OTROS'); process.exitCode = 1; } }
+/* CB2b: la cámara va al flanco más cercano del señalado: con el de la columna 0 se ve su brazo del arma (estocada); con el
+   de la 3, el del escudo (umbo y parada) */
 const CAPTURAS = [
-  { nombre: 'CB2-1-vertical-estocada', w: 390, h: 844, ...busca(h => h.vivo && h.izq.estado === 'alzado' && h.der.estado === 'golpea' && h.der.golpe === 'punta' && h.der.t > 0.11 && h.der.t < 0.15, 'a') },
-  { nombre: 'CB2-2-vertical-umbo', w: 390, h: 844, ...busca(h => h.vivo && h.izq.estado === 'empuja' && h.izq.t > 0.13 && h.izq.t < 0.17, 'a') },
+  { nombre: 'CB2-1-vertical-estocada', w: 390, h: 844, ...busca(h => h.vivo && h.col === 0 && h.izq.estado === 'alzado' && h.der.estado === 'golpea' && h.der.golpe === 'punta' && h.der.t > 0.17 && h.der.t < 0.21, 'a') },
+  { nombre: 'CB2-2-vertical-umbo', w: 390, h: 844, ...busca(h => h.vivo && h.col === 3 && h.izq.estado === 'empuja' && h.izq.t > 0.13 && h.izq.t < 0.17, 'a') },
   { nombre: 'CB2-3-horizontal-parada', w: 844, h: 390, ...busca(h => h.vivo && h.izq.estado === 'para' && h.izq.t > 0.08 && h.izq.t < 0.12, 'a') },
   { nombre: 'CB2-4-horizontal-caida', w: 844, h: 390, ...busca(h => !h.vivo && h.muerto > 0.8 && h.muerto < 0.85, 'a') },
 ];
@@ -56,6 +61,6 @@ try {
   const page = await abre(844, 390, `?semilla=${semilla}`);
   await page.waitForTimeout(4000);
   const k = await page.evaluate(() => window.CB2.coste);
-  console.log(`maqueta en marcha: ${k.n} cuadros; motor ${(k.motor / k.n).toFixed(3)} ms, poses ${(k.poses / k.n).toFixed(3)} ms, cuadro entero ${(k.cuadro / k.n).toFixed(1)} ms (por cuadro)`);
+  console.log(`maqueta en marcha: ${k.n} cuadros; motor ${(k.motor / k.n).toFixed(3)} ms, física ${(k.fisica / k.n).toFixed(3)} ms, poses ${(k.poses / k.n).toFixed(3)} ms, cuadro entero ${(k.cuadro / k.n).toFixed(1)} ms (por cuadro)`);
 } finally { await br.close(); srv.kill(); }
 console.log(errores.length ? 'ERRORES DE CONSOLA:\n' + errores.join('\n') : 'sin errores de consola');
