@@ -194,7 +194,7 @@
   function crear(cfg) {
     cfg = cfg || {}; const ej = cfg.ejercitos || [{}, {}];
     const B = { sem: ((cfg.semilla || 7) >>> 0) || 1, t: 0, t0: null, fase: 'lejos', sect: [], eventos: [], resultado: null, ordenes: 0,
-      n0: [Object.assign({}, ej[0]), Object.assign({}, ej[1])], sitio: [{}, {}],
+      n0: [Object.assign({}, ej[0]), Object.assign({}, ej[1])], sitio: [{}, {}], arenga: null, dlg: null,
       cab: Object.assign({ estado: 'lista', sect: -1, t: 0 }, reserva(ej[0])),
       num: Object.assign({ estado: 'lejos', sect: -1, t: 0, veces: 0, proxima: 30 }, reserva(ej[1])) };
     const r = repartoRoma(ej[0]), e = repartoEnemigo(ej[1]), tr = tiradores(ej[0], deTiro(ej[0])), te = tiradores(ej[1], deTiro(ej[1]));
@@ -221,6 +221,7 @@
       for (const s of B.sect) { s.dist = enMarcha ? CONTACTO : 0; s.tChoque = enMarcha ? -1 : Math.min(B.t, 7); for (const c of s.c) Object.assign(c, { tir: null, z: 0, cambio: 0, pila: true, fuego: -9, impulso: 0, frenada: 0 }); }
       if (enMarcha) { B.fase = 'lejos'; B.t0 = null; B.num.espera = Math.max(0, B.num.proxima - 7); B.num.proxima = 1e9; } else B.t0 = Math.min(B.t, 7);
     }
+    if (B && B.arenga === undefined) { B.arenga = B.t > 0 ? 'ninguna' : null; B.dlg = B.dlg || null; }   /* SON9: batallas guardadas antes de la arenga y de las preguntas de los oficiales */
     return B;
   }
   const lejos = s => s.dist > 0;                                   /* el cuerpo aún se acerca */
@@ -234,7 +235,7 @@
   function fuerza(c) {
     const l = frente(c), T = car(l.tipo);
     const fondo = Math.max(0.3, Math.min(1, l.hombres / (0.4 * l.max)));
-    return T.cal * fondo * (1 - 0.55 * l.fatiga) * (c.postura === 'empujar' ? 1.25 : 0.8) * (c.relevo > 0 ? 0.7 : 1) * (0.7 + 0.3 * c.moral) * (c.impulso > 0 ? 1.15 : 1) * (c.frenada > 0 ? 0.8 : 1);
+    return T.cal * fondo * (1 - 0.55 * l.fatiga) * (c.postura === 'empujar' ? 1.25 : 0.8) * (c.relevo > 0 ? 0.7 : 1) * (0.7 + 0.3 * c.moral) * (c.impulso > 0 ? 1.15 : 1) * (c.frenada > 0 ? 0.8 : 1) * (c.mod && c.postura === 'empujar' ? c.mod.empuja : 1);
   }
   const escala = l => limita(l.max / l.ref, ESC_MIN, ESC_MAX);
 
@@ -268,7 +269,7 @@
     else if (POSTURAS[orden]) { c.postura = orden; ev(B, 'orden', i, orden === 'avanzar' ? '¡Adelante!' : orden === 'escudos' ? 'Escudos arriba' : 'Forman el testudo', { orden }); }
     else if (orden === 'empujar' || orden === 'aguantar') { c.postura = orden; ev(B, 'orden', i, orden === 'empujar' ? '¡Adelante!' : 'Escudos juntos', { orden }); }
     else if (orden === 'relevo') {
-      c.lineas.push(c.lineas.shift()); c.relevo = T_RELEVO; c.moral = Math.min(1, c.moral + 0.1);
+      c.lineas.push(c.lineas.shift()); c.relevo = T_RELEVO; c.moral = Math.min(c.tope || 1, c.moral + 0.1);
       ev(B, 'relevo', i, 'Entra la línea de ' + nombre(frente(c).tipo), { orden });
     } else if (orden === 'caballeria') { const t = tirando(B.sect[i].c[1]); B.cab.estado = 'yendo'; B.cab.sect = i; B.cab.t = 3; ev(B, 'caballeria', i, t ? 'Los jinetes van a por los ' + nombre(t.tipo).toLowerCase() : 'Los jinetes cargan ' + DONDE[i], { orden }); }
     return '';
@@ -430,12 +431,12 @@
         if (c.postura === 'empujar' && rival.postura === 'aguantar') d *= 1.12;
         if (c.postura === 'empujar' && rival.postura === 'empujar') d *= 1.2;
         const total = c.inicial;
-        c.moral -= d / total * 1.2 + (c.flanqueado ? 0.028 : 0) * dt + (f > fuerza(c) ? 0.013 * (f - fuerza(c)) * dt : 0) + (l.fatiga > 0.85 ? 0.006 * dt : 0);
+        c.moral -= (c.mod ? c.mod.moral : 1) * (d / total * 1.2 + (c.flanqueado ? 0.028 : 0) * dt + (f > fuerza(c) ? 0.013 * (f - fuerza(c)) * dt : 0) + (l.fatiga > 0.85 ? 0.006 * dt : 0));   /* SON9: la arenga (js/dialogos.js) pone c.mod y c.tope */
         if (c.postura === 'aguantar' && !c.flanqueado) c.moral += 0.004 * dt;
-        l.fatiga = Math.max(0, Math.min(1, l.fatiga + (c.postura === 'empujar' ? BASE_FATIGA * T.cansa : -BASE_FATIGA * 0.22) * dt));
+        l.fatiga = Math.max(0, Math.min(1, l.fatiga + (c.postura === 'empujar' ? BASE_FATIGA * T.cansa * (c.mod ? c.mod.cansa : 1) : -BASE_FATIGA * 0.22) * dt));
         const cayo = bajas(c, d);
         if (cayo && c.lado === 0) ev(B, 'linea-deshecha', s.i, 'Línea deshecha: entra la línea de ' + nombre(frente(c).tipo));
-        c.moral = Math.min(1, c.moral);
+        c.moral = Math.min(c.tope || 1, c.moral);
       }
       s.frente = Math.max(-1, Math.min(1, s.frente + (fr - fe) * 0.045 * dt));
       if (Math.abs(s.frente) >= 1) (s.frente > 0 ? e : r).moral -= 0.02 * dt;
