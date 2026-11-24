@@ -271,7 +271,9 @@
         "gobierno/captura-cg2.mjs",
         "gobierno/maquetas/menus*/",
         "gobierno/maquetas/concurso*/",
-        "gobierno/maquetas/provincias/"
+        "gobierno/maquetas/provincias/",
+        "css/portada.css",
+        "js/portada.js"
       ],
       "taller": [],
       "juez": {
@@ -303,7 +305,8 @@
         "assets/fuentes/",
         "tools/",
         "gobierno/kits/",
-        "gobierno/maquetas/piezas/"
+        "gobierno/maquetas/piezas/",
+        "assets/laminas/"
       ],
       "taller": [],
       "juez": {
