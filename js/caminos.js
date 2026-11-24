@@ -24,8 +24,8 @@
     // plazas 8→6 (3 en la corta), tesoro 3000→3600, rutas 4→6, acuerdos 3→6, planes 2→3, sostener comercio 24, política y ciudad 12.
     // Príncipe 80: con 75 o 78 la corta daba la política en el 276 a.C. Tesoro 3900 o más: nadie llega (el bot se queda en ≈3900).
     armas: { plazas: 6, plazasCorta: 3 },   // CE12: en la partida corta (Italia) la partida acaba al caer la capital rival
-    comercio: { denarios: 3600, rutas: 6, acuerdos: 6 },
-    politica: { favorPrinceps: 80, hostil: 35, apoyo: 0.6, humorApoyo: 50, planesBien: 3 },
+    comercio: { rentaPorCiudad: 800, rutas: 6, acuerdos: 6 },   // CE12: «tesoro» es la renta neta del año anterior: umbral = rentaPorCiudad x ciudades propias
+    politica: { favorPrinceps: 80, hostil: 35, apoyo: 0.6, humorApoyo: 50, planesBien: 2 },
     ciudad: { cubiertos: 0.8, nivelUrbe: 4 },
     sostener: { armas: 0, comercio: 24, politica: 12, ciudad: 12 },
     gracia: 3
@@ -36,6 +36,13 @@
   const obj = (x) => (x && typeof x === 'object' && !Array.isArray(x) ? x : null);
   const lista = (x) => (Array.isArray(x) ? x : []);
 
+  // Renta neta del año anterior completo en denarios (entra - sale, todas las ciudades y el imperio) según «Este año» (s.esteAno.anterior).
+  function rentaAnual(s) {
+    const l = obj(obj(s.esteAno) && s.esteAno.anterior), c = obj(l && l.c); if (!c) return 0;
+    let n = 0;
+    Object.keys(c).forEach((id) => { const d = obj(c[id]) && obj(c[id].denarios); if (!d) return; ['entra', 'sale'].forEach((k) => { const o = obj(d[k]) || {}; Object.keys(o).forEach((m) => { n += (k === 'entra' ? 1 : -1) * num(o[m]); }); }); });
+    return n;
+  }
   // La «foto»: lo que el juego mide cada mes, leído del estado guardado.
   CAM.foto = function (s, G) {
     s = obj(s) || {};
@@ -76,6 +83,7 @@
     return {
       cartago: !!(cities[objetivo] && cities[objetivo].owner === 'roma'), corta, objetivo: corta ? ((D.CITIES[objetivo] && D.CITIES[objetivo].n) || objetivo) : null, plazas,
       denarios: num(s.res && s.res.denarios) + num(s.alm && s.alm.denarios),
+      renta: rentaAnual(s), ciudades: Math.max(1, Object.keys(cities).filter((id) => cities[id] && cities[id].owner === 'roma').length),
       rutas: obj(s.mercado) ? lista(mer.rutas).filter((r) => r && !r.parada).length : lista(s.rutas).filter((r) => r && !r.parada).length,   // mercado.js migra las rutas viejas sin borrarlas: no contar dos veces
       acuerdos, cargo, favorSenado, bandos, planesBien,
       barrios: { cubiertos, total }, nivelUrbe: Math.max(1, num(c.barrio) || 1)
@@ -92,7 +100,7 @@
   // Valor de cada hito desde la foto.
   CAM.VALOR = {
     armas: { cartago: (f) => (f.cartago ? 1 : 0), plazas: (f) => num(f.plazas) },
-    comercio: { tesoro: (f) => num(f.denarios), rutas: (f) => num(f.rutas), acuerdos: (f) => num(f.acuerdos) },
+    comercio: { tesoro: (f) => num(f.renta), rutas: (f) => num(f.rutas), acuerdos: (f) => num(f.acuerdos) },
     politica: {
       princeps: (f) => (f.cargo === 'princeps' ? 1 : 0),
       bandos: (f) => {
@@ -113,7 +121,7 @@
       hitos: [{ id: 'cartago', n: 'Cartago tomada', meta: 1, unidad: 'hecho' }, { id: 'plazas', n: 'Plazas tomadas', meta: CIFRAS.armas.plazas, unidad: 'plazas' }],
       nota: 'Histórico: Cartago cae en 146 a.C. con Escipión Emiliano (Polibio 38.19-22; Apiano, Líbica 127-135). Licencia de juego: que sea un camino y no el fin, y la meta de plazas.' },
     { id: 'comercio', n: 'Camino del comercio', i: '🪙', lema: 'Roma prospera con sus tratos',
-      hitos: [{ id: 'tesoro', n: 'Tesoro reunido', meta: CIFRAS.comercio.denarios, unidad: 'denarios' }, { id: 'rutas', n: 'Rutas abiertas', meta: CIFRAS.comercio.rutas, unidad: 'rutas' }, { id: 'acuerdos', n: 'Acuerdos firmados', meta: CIFRAS.comercio.acuerdos, unidad: 'acuerdos' }],
+      hitos: [{ id: 'tesoro', n: 'Renta del año', meta: CIFRAS.comercio.rentaPorCiudad, unidad: 'denarios al año' }, { id: 'rutas', n: 'Rutas abiertas', meta: CIFRAS.comercio.rutas, unidad: 'rutas' }, { id: 'acuerdos', n: 'Acuerdos firmados', meta: CIFRAS.comercio.acuerdos, unidad: 'acuerdos' }],
       nota: 'Histórico: tratados con Cartago (Polibio 3.22-25) y alianza con Hierón II en 263 a.C. (Polibio 1.16). Licencia de juego: las metas de tesoro, rutas y acuerdos.' },
     { id: 'politica', n: 'Camino de la política', i: '🏛️', lema: 'Roma te sigue en el Senado',
       hitos: [{ id: 'princeps', n: 'Príncipe del Senado', meta: 1, unidad: 'hecho' }, { id: 'bandos', n: 'Apoyo de los bandos', meta: 1, unidad: 'apoyo' }, { id: 'planes', n: 'Planes bien juzgados', meta: CIFRAS.politica.planesBien, unidad: 'planes' }],
@@ -135,7 +143,7 @@
   ];
 
   // CE12: en la partida corta el hito de las plazas es menor y el de Cartago lee la capital rival.
-  function metaDe(h, f) { return h.id === 'plazas' && f.corta ? CIFRAS.armas.plazasCorta : h.meta; }
+  function metaDe(h, f) { return h.id === 'plazas' && f.corta ? CIFRAS.armas.plazasCorta : h.id === 'tesoro' ? CIFRAS.comercio.rentaPorCiudad * Math.max(1, num(f.ciudades)) : h.meta; }
   CAM.evaluar = function (foto) {
     const f = obj(foto) || {};
     const caminos = CAM.DATOS.map((c) => {
@@ -202,7 +210,7 @@
   function miles(n) { return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
   function textoHito(id, h) {
     if (h.ok) return 'Hecho';
-    if (id === 'tesoro') return miles(h.v) + ' de ' + miles(h.meta) + ' denarios';
+    if (id === 'tesoro') return miles(h.v) + ' de ' + miles(h.meta) + ' denarios al año';
     if (id === 'barrios') return Math.round(h.v * 100) + ' % (meta ' + Math.round(h.meta * 100) + ' %)';
     if (id === 'urbe') return 'Nivel ' + h.v + ' de ' + h.meta;
     if (id === 'bandos') return Math.round(h.avance * 100) + ' % del apoyo';

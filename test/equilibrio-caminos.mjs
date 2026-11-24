@@ -91,6 +91,7 @@ function jugar(bot, modo) {
     if (s.cities[meta] && s.cities[meta].owner === 'roma' && R.capRivalMes === null) R.capRivalMes = mes;
     CAM.evaluar(f).caminos.forEach(c => c.hitos.forEach(h => { const k = c.id + '.' + h.id; R.max[k] = Math.max(R.max[k] === undefined ? -1 : R.max[k], h.v); }));
     R.maxPlazas = Math.max(R.maxPlazas, f.plazas);
+    if (mes % 12 === 0) (R.rentas = R.rentas || []).push([mes, Math.round(f.renta), f.ciudades]);   // renta neta del año anterior (para calibrar rentaPorCiudad)
     if (process.env.ROMA && mes % 12 === 0) { const c = s.cities[G.capital()]; console.error(G.yearOf(s.t), 'hombres', G.men(c.units), 'total', G.myCities().reduce((a, id) => a + G.men(s.cities[id].units), 0), 'den', Math.round(G.disponible('denarios')), 'deuda', Math.round(s.deudaPaga || 0), 'grano', Math.round(G.disponible('grano')), 'ciu', G.myCities().length, 'hierro', Math.round(G.disponible('hierro')), 'cola', c.train.length, 'pop', Math.round(c.pop), 'unidades', JSON.stringify(c.units), 'tasa', G.tradeRate(), 'ok', ['triarii','principes','equites','hastati'].filter(k => G.unitOk(c, k)).join('/') + ' max' + G.maxTrain('hastati'), 'marchas', s.marches.filter(m => m.owner !== 'roma').map(m => m.owner + '>' + m.to + ':' + G.men(m.units || {})).join(',')); }
     ponGob();
   };
@@ -159,7 +160,8 @@ function conVino(s) {
   if (G.hayAgricultura() && G.agroAbierto('vina').ok && !(s.agro && s.agro.parcelas.some(p => p.ciudad === cap && p.campo === 'vina'))) {
     for (const suelo of Object.keys(AGRO.SUELOS)) if (AGRO.encaje('vina', suelo, []).nota === 'bien') { if (G.plantarCampo(cap, 'vina', suelo).ok) break; }
   }
-  if ((s.bienes.vino || 0) < 6 && G.disponible('denarios') > 400) G.mercadoComprar(cap, 'vino', 12);
+  const pide = Math.ceil(G.lujoPide());   // lo que los ricos beben al mes: se compra el doble para que no falte
+  if ((s.bienes.vino || 0) < 2 * pide + 2 && G.disponible('denarios') > 300) G.mercadoComprar(cap, 'vino', Math.min(2 * pide + 4, 50));
 }
 function accionesComercio(s) {
   for (const id of G.myCities()) {   // más mercados y puertos (G.rutaMax); almacén solo si el techo de denarios (G.cap) frena
@@ -183,7 +185,7 @@ function accionesPolitica(s, hacer) {
     if (typeof hum[b] !== 'number') continue; const x = pide[b]; if (!x) continue;
     switch (x.id) {
       case 'leva': if (c.pop > 60) G.leva(cap, 15); break;   // (ter pide 'sinLeva': se nota el choque con los militares)
-      case 'rutaMercado': { let ok = false; for (const n of G.neighbors(cap)) if (G.rutaPuede(cap, n) === null) { ok = G.rutaAbrir(cap, n); break; } if (!ok) sube('mercado'); break; }
+      case 'rutaMercado': case 'denarios': rutasMercado(s, cap); sube('mercado'); break;   // rutas del mercado nuevo: contentan a los mercaderes
       case 'granja': sube('granja'); break;
       case 'templo': sube('templo'); break;
       case 'juegos': if (G.disponible('denarios') > 200) G.juegos(); break;

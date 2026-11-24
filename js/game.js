@@ -244,6 +244,7 @@
     for (const k in m) { b[k] = (b[k] || 0) + m[k]; s.bienesGan = (s.bienesGan || 0) + m[k]; }
     let pide = G.lujoPide(); for (const k of D.LUJO) { if (pide <= 0) break; const de = Math.min(pide, b[k] || 0); b[k] = (b[k] || 0) - de; pide -= de; }
     s.lujoFalta = pide > 1e-9 && G.lujoPide() > 0;
+    s.lujoServido = !s.lujoFalta && G.lujoPide() > 0;   // CE12: los ricos tuvieron su lujo este mes aunque se gastara: el servicio «lujo» del barrio sigue
     for (const k in b) { const ag = D.BIENES_AGRO && D.BIENES_AGRO[k]; if (!D.BIENES[k] && !ag) { delete b[k]; continue; } if (b[k] > D.BIEN_TOPE) { const x = b[k] - D.BIEN_TOPE; b[k] = D.BIEN_TOPE; s.bienesPerdidos = (s.bienesPerdidos || 0) + x; per.push(Math.round(x) + ' de ' + (ag ? ag.n : D.ESPECIAL[k].n).toLowerCase()); } }
     return per;
   }
@@ -606,7 +607,7 @@
     // con ciudad nueva, agua, templo y mercado cuentan si cubren al menos la mitad de las casas (o si hay el edificio heredado). Sin el módulo de ciudad nueva (ciudad.js) el agua se da por cubierta: CN10 retiró el acueducto, que era su única fuente
     const E = ELBAR(c); let cv = null;
     if (E) { let ag = 0, te = 0, me = 0, n = 0; nbs(E).forEach(q => { ag += q.ag; te += q.te; me += q.me; n += q.casas; }); if (n > 0) cv = { ag: ag / n >= 0.5, te: te / n >= 0.5, me: me / n >= 0.5 }; }
-    return { grano: granoOk, templo: (c.b.templo || 0) >= 1 || !!(cv && cv.te), agua: !CI || !!(cv && cv.ag), mercado: (c.b.mercado || 0) >= 1 || !!(cv && cv.me), lujo: !G.state.lujoFalta && D.LUJO.some(k => (G.bienes()[k] || 0) >= 1) };   // CE2: el lujo se guarda; sin bienes de lujo, los ricos no lo tienen
+    return { grano: granoOk, templo: (c.b.templo || 0) >= 1 || !!(cv && cv.te), agua: !CI || !!(cv && cv.ag), mercado: (c.b.mercado || 0) >= 1 || !!(cv && cv.me), lujo: !G.state.lujoFalta && (D.LUJO.some(k => (G.bienes()[k] || 0) >= 1) || !!G.state.lujoServido) };   // CE2: el lujo se guarda; sin bienes de lujo, los ricos no lo tienen
   };
   // ánimo 0-100 por clase. granoOk: si se omite, sale de la producción de grano (G.prod lo pasa para no dar vueltas)
   G.animoClases = function (c, granoOk) {
@@ -2966,11 +2967,12 @@
       x.texto = PIDE_TXT[id] + (x.n ? x.n + (id === 'guarnicion' ? ' hombres' : '') : ''); q.pide[b] = x;
     }
   }
+  const rutasVivas = s => ((s.mercado && Array.isArray(s.mercado.rutas) ? s.mercado.rutas.length : 0) + (Array.isArray(s.rutas) ? s.rutas.filter(r => r && !r.parada).length : 0));   // CE12: rutas activas (mercado nuevo o viejas no paradas)
   const cumplePide = function (s, q, x) {
     const a = q.actos || {}, n = k => a[k] || 0;
     switch (x.id) {
-      case 'sinLeva': return !n('leva'); case 'granja': return n('granja') > 0; case 'rutaMercado': return n('ruta') + n('mercado') > 0;
-      case 'denarios': return s.res.denarios + s.alm.denarios >= x.n; case 'leva': return n('leva') > 0; case 'victoria': return n('victoria') > 0;
+      case 'sinLeva': return !n('leva'); case 'granja': return n('granja') > 0; case 'rutaMercado': return n('ruta') + n('mercado') > 0 || rutasVivas(s) > 0;
+      case 'denarios': return s.res.denarios + s.alm.denarios >= x.n || rutasVivas(s) >= 2; case 'leva': return n('leva') > 0; case 'victoria': return n('victoria') > 0;
       case 'templo': return n('templo') > 0; case 'paz': return !n('ataque'); case 'sinLevaItalia': return !n('levaItalia'); case 'ciudadania': return n('ciudadania') > 0;
       case 'victoriaFuera': return n('victoriaFuera') > 0; case 'guarnicion': return tropasTotal(s) >= x.n; case 'grano': return !n('hambre'); case 'juegos': return n('juegos') > 0;
     }
