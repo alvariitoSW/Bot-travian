@@ -126,7 +126,8 @@
         "gobierno/maquetas/falange/fisica.js",
         "test/fi4-campo.mjs",
         "test/fi4-captura.mjs",
-        "test/fi4-escaramuza.mjs"
+        "test/fi4-escaramuza.mjs",
+        "test/fu1-testudo.test.mjs"
       ],
       "taller": [
         "assets/soldados/",
@@ -325,7 +326,10 @@
         "js/gfx/musica.js",
         "js/voces.js",
         "test/musica.test.mjs",
-        "test/voces.test.mjs", "test/fragor.test.mjs", "js/gfx/fragor.js", "tools/sonido-fragor.py",
+        "test/voces.test.mjs",
+        "test/fragor.test.mjs",
+        "js/gfx/fragor.js",
+        "tools/sonido-fragor.py",
         "gobierno/historia/SON*",
         "gobierno/juez-sonido.mjs",
         "gobierno/maquetas/sonido*/"
