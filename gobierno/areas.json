@@ -334,7 +334,7 @@
         "js/gfx/musica.js",
         "js/voces.js",
         "test/musica.test.mjs",
-        "test/voces.test.mjs",
+        "test/voces.test.mjs", "test/fragor.test.mjs", "js/gfx/fragor.js", "tools/sonido-fragor.py",
         "gobierno/historia/SON*",
         "gobierno/juez-sonido.mjs",
         "gobierno/maquetas/sonido*/"
@@ -351,7 +351,8 @@
       },
       "juez": {
         "logica": [
-          "gobierno/juez-sonido.mjs"
+          "gobierno/juez-sonido.mjs",
+          "test/fragor.test.mjs"
         ],
         "navegador": [],
         "si_toca_arte": [

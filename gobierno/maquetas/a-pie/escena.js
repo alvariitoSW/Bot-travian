@@ -919,7 +919,8 @@ function paso(dt) {
   if (np !== S.nPaso) { S.nPaso = np; if (S.vel > 0.2) Son.paso(S.vel > 3 ? 1.3 : 0.8, S.k); }
   if (Math.abs(S.k - S.kSon) > 0.03 || (S.k === 0 || S.k === 1) && S.kSon !== S.k) { S.kSon = S.k; Son.bajoTecho(S.k); }
   /* GM43i: el fragor grabado de la lucha mientras dura el choque */
-  { const kL = S.choque && S.fase !== 'fin' ? (S.muro ? 0.6 : 1) : 0; if (kL !== S.kLucha) { S.kLucha = kL; Son.lucha(kL); } }
+  { const kL = S.choque && S.fase !== 'fin' ? (S.muro ? 0.6 : 1) : 0; S.kLucha = kL;   /* SON7: el fragor lo lleva js/gfx/fragor.js: golpes según la lucha y cada caído se oye */
+    Son.pulso(dt, { lucha: kL, moral: S.unidad.animo, caen: S.romanos.filter(h => !h.vivo).length, caenR: S.galos.filter(g => !g.vivo).length }); }
   if (S.fase === 'avance' && S.zF <= Z_PILA) aTiro();
   S.kP = Math.min(1, S.kP + (S.fase === 'avance' || S.choque ? -1 : 1) * dt * (S.choque ? 2 : 0.7)); if (S.kP < 0) S.kP = 0;
   /* GM43h: el dedo en el botón. Si se pulsó mientras pasaban el segundo pilum, arma en cuanto está listo */
