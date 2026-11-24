@@ -126,7 +126,12 @@
         "gobierno/maquetas/falange/fisica.js",
         "test/fi4-campo.mjs",
         "test/fi4-captura.mjs",
-        "test/fi4-escaramuza.mjs"
+        "test/fi4-escaramuza.mjs",
+        "test/fu1-testudo.test.mjs",
+        "js/batalla-rapida.js",
+        "js/ui-batalla-rapida.js",
+        "test/batalla-rapida.test.mjs",
+        "gobierno/captura-cg7.mjs"
       ],
       "taller": [
         "assets/soldados/",
@@ -150,7 +155,8 @@
           "test/falange-rivales.test.mjs",
           "test/bloque.test.mjs",
           "test/bloque-ia.test.mjs",
-          "test/fisica-batalla.test.mjs"
+          "test/fisica-batalla.test.mjs",
+          "test/batalla-rapida.test.mjs"
         ],
         "navegador": [
           "gobierno/jueces.mjs --area batallas",
@@ -325,7 +331,10 @@
         "js/gfx/musica.js",
         "js/voces.js",
         "test/musica.test.mjs",
-        "test/voces.test.mjs", "test/fragor.test.mjs", "js/gfx/fragor.js", "tools/sonido-fragor.py",
+        "test/voces.test.mjs",
+        "test/fragor.test.mjs",
+        "js/gfx/fragor.js",
+        "tools/sonido-fragor.py",
         "gobierno/historia/SON*",
         "gobierno/juez-sonido.mjs",
         "gobierno/maquetas/sonido*/"
