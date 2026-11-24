@@ -207,7 +207,9 @@
         "AL11",
         "PIL3",
         "FI4",
-        "GM22"
+        "GM22",
+        "FU0",
+        "SON7"
       ]
     },
     {
@@ -246,7 +248,9 @@
         "FE2",
         "FI3",
         "FI5",
-        "TH1"
+        "TH1",
+        "FU0",
+        "SON7"
       ]
     },
     {
@@ -331,7 +335,8 @@
         "TH1",
         "FA0",
         "FE3",
-        "FI3u"
+        "FI3u",
+        "FU0"
       ],
       "hecho": "La falange de picas a pie, con su entrada en Escaramuzas (TP7a). Desde CG2a (20/11), cada tropa con su retrato, coste, barras, lo que sabe hacer (testudo, cuña, muro, falange, orden abierto, pilum) y su ficha. Falange nueva (FA1 a FA7): falangita y oficial macedonios, cuatro rivales (caballería, elefantes, falange, hoplitas), picas que se rompen y espada (FE2), elefantes que se ensartan (FE1). El 24/11: la falange con el mismo control que «Manípulo a pie» (LP6) y desde la batalla grande (LP7b), elefantes que ya no rebotan y pesan como elefantes (FE3) y el galo que suelta el escudo con dos pila clavados (FI3u).",
       "captura": "gobierno/capturas-tarea/FE3-despues-h.jpg"
