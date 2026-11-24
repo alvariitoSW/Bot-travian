@@ -19,6 +19,7 @@ export const TINTES = {
 const MEDIODIA = { cenit: '#2f5d9e', brillo: '#fff1d6', nube: '#f7f4ee', el: 0 };      // el: grados sobre la altura del sol de la estación
 for (const t of [TINTES.amanecer, TINTES.atardecer, MEDIODIA]) for (const k of ['sol', 'cielo', 'suelo', 'horiz', 'cenit', 'brillo', 'nube']) if (t[k]) t[k] = new THREE.Color(t[k]);
 const ESTADOS = { amanecer: { a: 1, t: 0 }, mediodia: { a: 0, t: 0 }, atardecer: { a: 0, t: 1 } };
+export const SUBIDA = 25, QUIETO = 4;      // segundos: de amanecer a mediodía, y cuánto se queda quieto el amanecer antes de subir
 const sm = x => { x = Math.max(0, Math.min(1, x)); return x * x * (3 - 2 * x); };
 
 /* cielo por código: una esfera, un sombreador, cero texturas */
@@ -64,8 +65,9 @@ export function conectar(renderer) {
   /* mueve el estado hacia otra hora en «seg» segundos; dip = baja un poco la luz a mitad de camino (paso del atardecer al amanecer, sin noche) */
   H.ir = (hora, seg = 4, dip = 0) => { H.de = { ...H.estado }; H.a = { ...ESTADOS[hora] }; H.t0 = performance.now(); H.dur = Math.max(0.001, seg) * 1000; H.dipT = dip; H.ultimaHora = hora; H.cola.length = 0; };
   H.ya = hora => { H.estado = { ...ESTADOS[hora], dip: 0 }; H.de = H.a = null; H.ultimaHora = hora; H.cola.length = 0; };
-  /* el turno entero: atardece (3 s), pausa, amanece (2,5 s, con la luz algo más baja en medio) y sube al mediodía (8 s) */
-  H.turno = (alPasar) => { H.ir('atardecer', 3); H.cola.push([3600, () => { if (alPasar) alPasar(); H.ir('amanecer', 2.5, 0.35); }], [3600 + 2500 + 2200, () => H.ir('mediodia', 8)]); H.colaT0 = performance.now(); };
+  /* el turno entero: atardece (3 s), pausa, amanece (2,5 s, con la luz algo más baja en medio), se queda en la mañana y sube despacio al mediodía.
+     Usuario, 24/11 («1-A pero que sean más de 8 segundos»): la subida dura SUBIDA segundos (antes 8). */
+  H.turno = (alPasar) => { H.ir('atardecer', 3); H.cola.push([3600, () => { if (alPasar) alPasar(); H.ir('amanecer', 2.5, 0.35); }], [3600 + 2500 + QUIETO * 1000, () => H.ir('mediodia', SUBIDA)]); H.colaT0 = performance.now(); };
   H.enMarcha = () => !!H.a || H.cola.length > 0;
   function avanzar() {
     const now = performance.now();

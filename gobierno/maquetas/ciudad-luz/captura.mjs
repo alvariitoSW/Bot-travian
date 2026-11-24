@@ -37,10 +37,10 @@ for (const vv of vistas) {
 if (op.turno !== '0') {      // el paso de turno entero, con fotos en medio para ver que no hay saltos ni noche
   await page.evaluate(() => { const H = window.__luz.H; H.activa = true; H.ya('mediodia'); }); await page.waitForTimeout(800);
   await page.tap('#panel [data-h="turno"]'); const t0 = Date.now(), m0 = await page.evaluate(() => ({ n: window.__luz.med.n, ms: window.__luz.med.ms }));
-  for (const [ms, n] of [[1500, 'turno-1'], [4800, 'turno-2'], [8500, 'turno-3']]) { await page.waitForTimeout(Math.max(0, ms - (Date.now() - t0))); await page.screenshot({ path: join(RAIZ, 'gobierno/capturas-tarea', pref + '-' + n + '.jpg'), type: 'jpeg', quality: 80 }); }
-  await page.waitForTimeout(Math.max(0, 9000 - (Date.now() - t0)));
+  for (const [ms, n] of [[1500, 'turno-1'], [4800, 'turno-2'], [12000, 'turno-3'], [24000, 'turno-4']]) { await page.waitForTimeout(Math.max(0, ms - (Date.now() - t0))); await page.screenshot({ path: join(RAIZ, 'gobierno/capturas-tarea', pref + '-' + n + '.jpg'), type: 'jpeg', quality: 80 }); }
+  await page.waitForTimeout(Math.max(0, 36500 - (Date.now() - t0)));
   const m1 = await page.evaluate(() => ({ n: window.__luz.med.n, ms: window.__luz.med.ms, sigue: window.__luz.H.enMarcha(), hora: window.__luz.H.ultimaHora }));
-  console.log('turno (con sombras rehechas en el paso): ' + ((m1.ms - m0.ms) / Math.max(1, m1.n - m0.n)).toFixed(1) + ' ms por cuadro; hora final ' + m1.hora);
+  console.log('turno (con sombras rehechas en el paso): ' + ((m1.ms - m0.ms) / Math.max(1, m1.n - m0.n)).toFixed(1) + ' ms por cuadro; hora final ' + m1.hora + (m1.sigue ? ' (aún en marcha)' : ' (terminado)'));
 }
 console.log(errores.length ? 'ERRORES:\n' + errores.join('\n') : 'sin errores de consola');
 await br.close(); srv.close();
