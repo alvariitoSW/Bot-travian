@@ -11,6 +11,8 @@
    LP7: ?lp7=<JSON> la abre la batalla grande («Bajar a pie», js/ui-mando.js) en una capa: { semilla, nivel, fuerzas, lejos,
    r, g (soldado de cada bando, ver soldados.js ponBandos), rival { los, Los }, objetivo }. Lucha hasta el 15 % (FIN_LUCHA) y, al
    salir, manda al padre postMessage({ aqvila: 'lp7', r: __bloque.lp7() }): hombres y en pie de cada bloque y dónde acabó el tuyo.
+   FU1: ?formacion=testudo (por defecto, manípulo: lo de siempre) abre el testudo con el control del manípulo: formaciones/testudo.js
+   (escenario «cruzar bajo las salvas», techo de escudos) y ?fase=salva|testudo|lucha… también lo salta. a-pie/ lleva aquí (?antiguo=1 = la escena vieja).
    Gancho para pruebas: window.__bloque = { listo, C, S, dibuja(p0, p1), orden(n), estado() }. */
 import { THREE } from '../../../js/gfx/models.js';
 import { cargarSoldado, tropa } from '../../../js/gfx/soldado.js';
@@ -26,8 +28,13 @@ import { crearCamara } from './camara.js';
 import { separaEstandartes } from './rotulos.js';
 import { modelos, prestan, ARMAS, FONDO, paleta, modeloDe, eligeOficial, soloArmas, ponBandos } from './soldados.js';
 import { FIN_LUCHA } from '../../../js/falange.js';
+import { crear as formacionManipulo } from './formaciones/manipulo.js';
+import { crear as formacionTestudo } from './formaciones/testudo.js';
 
 const Q = new URLSearchParams(location.search), FASE = Q.get('fase'), $ = id => document.getElementById(id);
+const TESTUDO = Q.get('formacion') === 'testudo' && !Q.get('lp7');   /* FU1: la formación de la escena (cada una, su archivo en formaciones/) */
+const FORM = TESTUDO ? formacionTestudo() : formacionManipulo();
+if (TESTUDO) document.title = 'AQVILA · Testudo a pie';
 let LP7 = null; try { LP7 = Q.get('lp7') ? JSON.parse(Q.get('lp7')) : null; } catch (e) { console.warn('lp7 mal escrito', e); }
 const suave = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
 const angDif = (a, b) => { let d = (a - b) % (2 * Math.PI); if (d > Math.PI) d -= 2 * Math.PI; if (d < -Math.PI) d += 2 * Math.PI; return d; };
@@ -225,6 +232,7 @@ let oyente = null;
 function avisa(tipo, d) {
   if (oyente) oyente(tipo, d);
   if (hud) hud.aviso(tipo, d);
+  try { FORM.alAviso(tipo, d); } catch (e) { console.warn('formación', e); }
   try {
     switch (tipo) {
       case 'orden': Son.voz && Son.voz(d.texto); if (d.n === 'testudo') Son.clac && Son.clac(6); break;
@@ -237,8 +245,9 @@ function avisa(tipo, d) {
   } catch (e) { /* sin sonido */ }
 }
 function nueva(n) {
-  nivel = n; C = crearCombate(Object.assign({ semilla, nivel, motor: BL, avisa }, LP7 ? { fuerzas: LP7.fuerzas, lejos: LP7.lejos, fin: FIN_LUCHA } : {}));
-  if (LP7 && LP7.rival) C.S.rival = LP7.rival; TR = crearTropas({ S: C.S }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla }); oficial = eligeOficial(TR.figs); hud.pon(C); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
+  nivel = n; C = crearCombate(Object.assign({ semilla, nivel, motor: BL, avisa }, LP7 ? { fuerzas: LP7.fuerzas, lejos: LP7.lejos, fin: FIN_LUCHA } : {}, FORM.escenario ? { escenario: FORM.escenario, fin: FIN_LUCHA } : {}));
+  if (LP7 && LP7.rival) C.S.rival = LP7.rival; TR = crearTropas({ S: C.S, muroDelante: FORM.muroDelante }); FS = crearFisicaBloque({ S: C.S, TR, H, activa: Q.get('fisica') !== '0', semilla, guardia: FORM.guardia }); oficial = eligeOficial(TR.figs); hud.pon(C);
+  FORM.monta({ THREE, escena, H, C, S: C.S, TR, Son, texto: t => { $('objetivo').textContent = t; } }); dedos.oculta(); vuelos.length = 0; CAM.listo = false; camaraSigue(1e-4);
   window.__bloque.C = C; window.__bloque.S = C.S;
 }
 /* lo que prevé LP1 al dibujar: mira hacia el lado de la raya más cerca de donde mira ahora */
@@ -261,6 +270,7 @@ function salta(fase) {
   const S = C.S, tu = S.tuyo; let salva = false, choqueT = -1, n = 0;
   oyente = (t, d) => { if (t === 'salva' && d.blanco === tu) salva = true; };
   const paso = () => { C.paso(0.1); TR.paso(0.1, S.T); FS.paso(0.1); n++; };
+  if (S.escenario && fase !== 'dibuja' && fase !== 'gira') { const m = S.escenario.meta; C.frente({ x: m.x, z: m.z, ang: 0 }); }   /* FU1: cruzas hacia la colina */
   const hasta = (cond, conBot = true) => { while (!cond() && !S.ganador && S.T < 280) { if (conBot) C.bot('bueno'); paso(); } };
   if (fase === 'dibuja') { for (let i = 0; i < 20; i++) paso(); frenteDesdeRaya({ x: -4, z: -14 }, { x: 16, z: -24 }); for (let i = 0; i < 40; i++) paso(); }
   else if (fase === 'gira') { for (let i = 0; i < 20; i++) paso(); frenteDesdeRaya({ x: -16, z: 4 }, { x: -16, z: -14 }); for (let i = 0; i < 80; i++) paso(); }
@@ -297,6 +307,7 @@ function bucle(ahora) {
       const B = C.S.B; if (!dedos.activo()) { if (B && B.meta) dedos.muestra(B.meta.p0, B.meta.p1, B.meta.rumbo, false); else dedos.oculta(); }
       try { Son.lucha && Son.lucha(C.S.tuyo.contactos.length ? 1 : 0); } catch (e) { /* sin sonido */ }
     }
+    FORM.paso(congelado ? 5 : dt);   /* FU1: el techo, tras mover a los hombres */
     camaraSigue(congelado ? 5 : dt); cam1 && cam1.aplica(congelado ? 5 : dt); camara.updateMatrixWorld();
     mPolvo.material.opacity = cam1 ? 1 - 0.75 * cam1.t() : 1;   /* LP7: abajo, el polvo no tapa media pantalla */
     avanza(polvo, POLVO_N, mPolvo, congelado ? 0 : dt, -0.1); avanza(chispa, CHISPA_N, mChispa, congelado ? 0 : dt, 6); pintaVuelos(congelado ? 0 : dt);
@@ -333,6 +344,12 @@ async function arranca() {
   for (const b of ['r', 'g']) {
     for (const n of modelos(b)) { const s = cargados[b + ':' + n]; if (s) T[b][n] = NIV.map((nv, k) => { const t = tropa(s.niveles[nv], TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Falta soldado', n); }
     for (const n of prestan(b)) { const s = cargados[b + ':' + n]; if (s) A[b][n] = NIV.map((nv, k) => { const t = tropa(soloArmas(s.niveles[nv]), TOPE[b][k]); escena.add(t.malla); return t; }); else console.warn('Faltan armas de', n); }
+  }
+  if (TESTUDO) {   /* FU1: la tarjeta de entrada del testudo */
+    const ps = document.querySelectorAll('#inicio p'); $('inicio').querySelector('h1').textContent = 'Testudo a pie';
+    ps[0].innerHTML = 'Cruza el campo hasta la <b>colina</b>. <b>Arrastra el dedo por el suelo</b>: ahí formará tu primera fila.';
+    ps[1].innerHTML = 'Los tiradores galos lanzarán <b>dos salvas</b> mientras cruzas. Cuando se ilumine <b>«Testudo»</b>, tócalo: los escudos cierran un techo. Luego, tócalo otra vez para abrirlo.';
+    ps[2].innerHTML = 'Después, los galos cargan: se lucha hasta que queda el 15 %.';
   }
   nueva(nivel || 'normal');
   $('salir').addEventListener('click', salir); $('salir2').addEventListener('click', salir);

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0b1016">
 <title>AQVILA · Manípulo a pie</title>
+<script>/* FU1: el título del testudo desde el primer momento (la escena tarda en cargar) */ if (/[?&]formacion=testudo(&|$)/.test(location.search) && !/[?&]lp7=/.test(location.search)) document.title = "AQVILA · Testudo a pie";</script>
 <base href="../../../">
 <style>
 @font-face{font-family:Cinzel;font-weight:700;src:url("assets/fuentes/cinzel-700.woff2") format("woff2")}
@@ -109,6 +110,8 @@ svg{display:block;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:ro
 }
 
 .velo{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:24px;text-align:center;background:rgba(10,8,6,.7);pointer-events:auto;overflow:auto}
+/* FU1: «Salir» queda por encima de la tarjeta de entrada (antes la tarjeta lo tapaba y no se podía salir sin elegir nivel) */
+#salir{position:relative;z-index:3}
 #carga{background:#15130f}
 .velo h1{margin:0;font:700 28px Cinzel,Georgia,serif;letter-spacing:.06em;color:var(--oro)}
 .velo p{margin:0;max-width:360px;font-size:15px;line-height:1.4}

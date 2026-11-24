@@ -19,6 +19,8 @@ await mkdir(SALIDA, { recursive: true });
 const prefijo = join(SALIDA, 'FI2-'), errores = [];
 const bien = (ok, texto) => { console.log((ok ? '  bien: ' : '  MAL: ') + texto); if (!ok) errores.push('PRUEBA: ' + texto); };
 function escucha(page) {
+  /* FU1: a-pie/ ahora lleva al bloque (testudo); estas pruebas miden la escena vieja: &antiguo=1 */
+  { const ir = page.goto.bind(page); page.goto = (u, o) => ir(/a-pie\/(\?|$)/.test(u) ? u + (u.includes("?") ? "&" : "?") + "antiguo=1" : u, o); }
   page.on('console', m => { if ((m.type() === 'error' || m.type() === 'warning') && !/GPU stall|GL Driver|willReadFrequently/.test(m.text())) { errores.push(m.text().slice(0, 300)); console.log('  [' + m.type() + '] ' + m.text().slice(0, 300)); } });
   page.on('pageerror', e => { errores.push(e.message); console.log('  [error de página] ' + e.message.slice(0, 400)); });
 }
