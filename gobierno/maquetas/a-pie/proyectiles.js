@@ -60,7 +60,7 @@ export function crearProyectilesEscena({ H, ySup, geoV, geoP }) {
   }
   function obstGalo(g, L, solo) {
     const I = g.inst.elements, x = I[12], z = I[14], y = H(x, z), G = X.gesc(), r = {};
-    if (G) { const M = matGaloEsc(g), f = nor([I[8], 0, I[10]]); r.escudo = { tipo: 'escudo', c: mP(M, [G.c.x, G.c.y, G.c.z]), n: f, u: [f[2], 0, -f[0]], v: [0, 1, 0], m: [0.03, 0.3, 0.45], umbo: 0.08 / ESCALA, dueno: g }; }
+    if (G && !g.sinEscudo) { /* FI3u: sin escudo, sin obstáculo */ const M = matGaloEsc(g), f = nor([I[8], 0, I[10]]); r.escudo = { tipo: 'escudo', c: mP(M, [G.c.x, G.c.y, G.c.z]), n: f, u: [f[2], 0, -f[0]], v: [0, 1, 0], m: [0.03, 0.3, 0.45], umbo: 0.08 / ESCALA, dueno: g }; }
     r.cuerpo = { tipo: 'cuerpo', x, z, y0: y + 0.35, y1: y + 2.05, r: 0.22 * ESCALA, dueno: g };
     if (L) { if (r.escudo) L.push(r.escudo); L.push(r.cuerpo); } return solo ? r[solo] : r;
   }
@@ -84,6 +84,8 @@ export function crearProyectilesEscena({ H, ySup, geoV, geoP }) {
   function paso(S, dt) {
     if (!activa || !X) return;
     const a0 = ahora(), T = S.T; dt = tAntes === null ? dt : Math.min(0.1, Math.max(0, T - tAntes)); tAntes = T; mats.clear(); matsP.clear();
+    /* FI3u (César, BG 1.25): el galo vivo con dos pila clavados en el escudo lo suelta; los pila siguen en el escudo del suelo */
+    if (X.sueltaEscudo) for (const g of S.galos) { const n = g.vivo ? Pr.pila(g) : 0; if (n > pilaMax) pilaMax = n; if (n >= 2 && !g.sinEscudo && X.sueltaEscudo(g)) { sueltos++; for (const q of X.PILA) { const w = q.fi; if (w && w.fi && w.fi.modo === 'clava' && w.fi.que === 'escudo' && w.fi.dueno === g) Pr.suelta(w); } } }   /* FI3u: el escudo cae; sus pila caen con él (si no, el astil se mete en la tierra) */
     const sV = [], sP = [];
     for (const f of X.FL) { if (f.est === 1 && T >= f.t0) { sV.push([f.p.x, f.p.y, f.p.z]); if ((T - f.t0) / f.dur > 0.85) sV.push([f.p1.x, f.p1.y, f.p1.z]); } else if (f.fi && f.fi.dib && (mueveSi(f.fi) || f.fi.est !== f.est || clavadoEn(f.fi))) sV.push(f.fi.dib.punta); }
     for (const p of X.PILA) { if (p.est === 2) { sP.push([p.p.x, p.p.y, p.p.z]); if ((T - p.t0) / p.dur > 0.8) sP.push([p.p1.x, p.p1.y, p.p1.z]); } else if (p.fi && p.fi.dib && (mueveSi(p.fi) || p.fi.est !== p.est || clavadoEn(p.fi))) sP.push(p.fi.dib.punta); }
@@ -131,7 +133,7 @@ export function crearProyectilesEscena({ H, ySup, geoV, geoP }) {
         const fin = p.tipo === 'falla' || !g ? [p.p1.x, H(p.p1.x, p.p1.z), p.p1.z] : [p.p1.x, p.p1.y, p.p1.z];
         if (g && (p.tipo === 'mata' || p.est === 4)) { const L = []; obstGalo(g, L); if (!g.vivo) oG.push(...L); }   /* el que acaba de caer aún se dibuja de pie */
         remata(w, fin, d, oG); const c = fv.toca;
-        if (p.est === 4) Pr.llega(w, { tipo: 'escudo', dueno: g, o: obstGalo(g, null, 'escudo') }, oG, () => matGaloEsc(g));
+        if (p.est === 4 && !g.sinEscudo) Pr.llega(w, { tipo: 'escudo', dueno: g, o: obstGalo(g, null, 'escudo') }, oG, () => matGaloEsc(g));
         else if (p.tipo === 'mata' && g && g.porPila && g.muere === S.T) {
           /* mata: en su escudo si dio en él; en el cuerpo si el ángulo lo permite; si no, como antes (al suelo, a su lado) */
           if (c && c.tipo === 'escudo' && c.dueno === g) Pr.llega(w, { tipo: 'escudo', dueno: g, o: obstGalo(g, null, 'escudo') }, oG, () => matGaloEsc(g));
@@ -143,11 +145,12 @@ export function crearProyectilesEscena({ H, ySup, geoV, geoP }) {
       w.est = p.est; Pr.mueve(w, dt, oG);
       const cl = fv.modo === 'clava' && fv.que !== 'suelo' && fv.dueno;
       w.dib = Pr.pose(w, cl ? (fv.que === 'escudo' ? matGaloEsc(fv.dueno) : matGaloPecho(fv.dueno)) : null, cl ? oG : undefined);
+      if (cl && w.dib && fv.modo === 'clava' && w.dib.punta[1] < H(w.dib.punta[0], w.dib.punta[2]) + 0.03) { Pr.suelta(w); Pr.mueve(w, 1e-3, oG); w.dib = Pr.pose(w); }   /* FI3u: el galo cae y su escudo toca tierra: el pilum se suelta (si no, la punta entra en el suelo) */
     }
     ultimo = { oR, oG };
     tiempos.push(ahora() - a0); if (tiempos.length > 4000) tiempos.shift();
   }
-  let ultimo = { oR: [], oG: [] };
+  let ultimo = { oR: [], oG: [] }, sueltos = 0, pilaMax = 0;   /* FI3u: escudos soltados en la partida; lo más que ha llevado un galo vivo */
   /* el clavado que se hunde (PR.HUNDE) en el escudo de debajo (el techo va en tejas) sale lo justo: la punta en su escudo */
   function desclava(w, L, M) {
     const f = w.fi; if (!f || f.modo !== 'clava' || !f.loc || !M) return;
@@ -168,7 +171,8 @@ export function crearProyectilesEscena({ H, ySup, geoV, geoP }) {
     return q[1] > o.y0 && q[1] < o.y1 && Math.hypot(q[0] - o.x, q[2] - o.z) < o.r - tol;
   }
   /* el pilum que sale de la mano (≤ 0,25 s) cruza el cilindro de su lanzador, que lo lleva en la mano: se cuenta aparte */
-  const enMano = (p, cual, o, S) => cual === 'p' && p.est === 2 && o.tipo === 'cuerpo' && o.dueno === p.h && S.T - p.t0 <= 0.25;
+  const enMano = (p, cual, o, S, s) => cual === 'p' && p.est === 2 && ((o.tipo === 'cuerpo' && o.dueno === p.h && S.T - p.t0 <= 0.25)
+    || (s >= MPI.LD - 0.3 && S.T - p.t0 <= 0.1 && o.dueno && (o.dueno.h || o.dueno.r !== undefined) && !S.galos.includes(o.dueno)));   /* FI3u: y la contera, al salir de la mano (≤ 0,1 s), contra el escudo o el cuerpo de un compañero */
   const suyo = (fv, o) => fv.modo === 'clava' && o.tipo === fv.que && (o.dueno === fv.dueno || (o.dueno && fv.dueno && o.dueno.h && o.dueno.h === fv.dueno.h));
   function mide(S) {
     let malos = 0, muestras = 0, mano = 0; const detalle = [], sigue = { n: 0, mal: 0, max: 0 };
@@ -181,7 +185,7 @@ export function crearProyectilesEscena({ H, ySup, geoV, geoP }) {
       for (let s = 0.05; s <= G.LD && !mal; s += 0.15) {
         const q = [q0.punta[0] - q0.dir[0] * s, q0.punta[1] - q0.dir[1] * s, q0.punta[2] - q0.dir[2] * s], perdona = fv.modo === 'clava' && s <= 0.25;
         if (q[1] < H(q[0], q[2]) - 0.02 && !(perdona && fv.que === 'suelo')) mal = { en: 'suelo', s };
-        else for (const o of O) if (dentro(o, q) && !(perdona && suyo(fv, o))) { if (enMano(f, cual, o, S)) { mano++; continue; } mal = { en: o.tipo, s }; break; }
+        else for (const o of O) if (dentro(o, q) && !(perdona && suyo(fv, o))) { if (enMano(f, cual, o, S, s)) { mano++; continue; } mal = { en: o.tipo, s }; break; }
       }
       if (mal) { malos++; if (detalle.length < 8) detalle.push({ cual, modo: fv.modo, que: fv.que, ...mal, s: +mal.s.toFixed(2) }); }
       /* sigue a su dueño: la punta dibujada guarda su sitio respecto al hueso de ahora (matriz recién calculada), entre medidas */
@@ -195,8 +199,9 @@ export function crearProyectilesEscena({ H, ySup, geoV, geoP }) {
   function medida() {
     const m = Pr.medir([], []), L = tiempos.slice().sort((a, b) => a - b), media = L.length ? L.reduce((a, b) => a + b, 0) / L.length : 0;
     const modos = {}; for (const f of [...X.FL, ...X.PILA]) if (f.fi && f.fi.fi) modos[f.fi.fi.modo] = (modos[f.fi.fi.modo] || 0) + 1;
-    return { activa, tramos: m.tramos, aparte: m.aparte, saltos: m.saltos, llegan: m.llegan, modos, ms: { media: +media.toFixed(3), p95: +(L[Math.floor(L.length * 0.95)] || 0).toFixed(3), max: +(L[L.length - 1] || 0).toFixed(3), pasos: L.length } };
+        const dos = X.S.galos.filter(g => Pr.pila(g) >= 2).length, uno = X.S.galos.filter(g => Pr.pila(g) === 1).length;   /* FI3u: galos con 1 y con ≥ 2 en el escudo ahora */
+    return { activa, sueltos, pilaEnEscudo: { uno, dos, max: pilaMax }, tramos: m.tramos, aparte: m.aparte, saltos: m.saltos, llegan: m.llegan, modos, ms: { media: +media.toFixed(3), p95: +(L[Math.floor(L.length * 0.95)] || 0).toFixed(3), max: +(L[L.length - 1] || 0).toFixed(3), pasos: L.length } };
   }
-  function reinicia() { Pr.reinicia(); tiempos.length = 0; tAntes = null; }
+  function reinicia() { sueltos = 0; pilaMax = 0; Pr.reinicia(); tiempos.length = 0; tAntes = null; }
   return { activa, conecta, paso, pose, mide, medida, reinicia };
 }

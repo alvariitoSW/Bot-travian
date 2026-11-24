@@ -544,13 +544,15 @@ export function crearProyectiles(op = {}) {
     const f = fi(p); if (f.modo !== 'vuela') return pose(p);
     if (f.toca) {   /* parado en el contacto: sigue al escudo o al cuerpo que tocó, que se mueve */
       const c = f.toca, o = c.o && obst.find(x => x.tipo === c.tipo && x.dueno === c.dueno);
-      if (o && c.l) { const pt = o.tipo === 'escudo' ? sum(sum(sum(o.c, o.n, c.l[0]), o.u, c.l[1]), o.v, c.l[2]) : [o.x + c.l[0], o.y0 + c.l[1], o.z + c.l[2]]; c.punto = pt; f.pose = { punta: pt, dir: f.pose.dir }; }
+      if (o && c.l) { const pt = o.tipo === 'escudo' ? sum(sum(sum(o.c, o.n, c.l[0]), o.u, c.l[1]), o.v, c.l[2]) : [o.x + c.l[0], o.y0 + c.l[1], o.z + c.l[2]]; c.punto = pt;
+        const dir = o.tipo === 'escudo' && c.dl ? nor(sum(sum(sum([0, 0, 0], o.n, c.dl[0]), o.u, c.dl[1]), o.v, c.dl[2])) : f.pose.dir;   /* FI3u: el astil gira con el escudo que lo paró (si no, al girar el galo el escudo se le mete dentro) */
+        f.pose = { punta: pt, dir }; }
       return f.pose;
     }
     const d = nor(vel);
     let c = f.prev ? primero(f.prev, punta, obst) : null;
     if (!c && f.prev) { const cola = sum(punta, d, -f.L); for (const o of cerca(obst, cola, punta)) { const k = corta(o, cola, punta); if (k && (!c || k.t < c.t)) { k.tipo = o.tipo; k.dueno = o.dueno; k.o = o; c = k; } } }   /* el astil entra en algo que la punta ya pasó: se para ahí */
-    if (c) { if (c.o) c.l = c.o.tipo === 'escudo' ? local(c.o, c.punto) : c.o.tipo === 'cuerpo' ? [c.punto[0] - c.o.x, c.punto[1] - c.o.y0, c.punto[2] - c.o.z] : null; f.toca = c; f.v = vel.slice(); f.pose = { punta: c.punto, dir: d }; return f.pose; }
+    if (c) { if (c.o) c.l = c.o.tipo === 'escudo' ? local(c.o, c.punto) : c.o.tipo === 'cuerpo' ? [c.punto[0] - c.o.x, c.punto[1] - c.o.y0, c.punto[2] - c.o.z] : null; if (c.o && c.o.tipo === 'escudo') c.dl = [dot(d, c.o.n), dot(d, c.o.u), dot(d, c.o.v)]; f.toca = c; f.v = vel.slice(); f.pose = { punta: c.punto, dir: d }; return f.pose; }
     f.prev = punta.slice(); f.v = vel.slice(); f.pose = { punta: punta.slice(), dir: d }; return f.pose;
   }
   /* la cuenta por ángulo solo para los golpes en la CARA (escudo, cuerpo) y en el suelo; canto, umbo, casco, asta y lo que
