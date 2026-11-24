@@ -1,49 +1,47 @@
 {
   "_ayuda": "Camino a la 1.0 (CM5, pedido del usuario del 24/11). Lo pinta el cuadro de mando arriba del todo, en «Juego». Lo pone al día el vigía en cada subida: cambia «actualizado» (hora ISO en UTC), el «estado» de cada paso (hecho, prueba = en prueba, esperando) y, si cambia el plan, las horas y los %. Las horas van en UTC (terminan en Z); el cuadro las enseña en hora de España. «hasta» es opcional (una franja: de «hora» a «hasta»); sin «hora», «cuando» dice el texto que sale. «pct» es el % del cuadro al acabar ese paso. El % actual no se escribe aquí: sale de lista.json, (hechas + ½ a medias) / total, el mismo del menú del juego.",
-  "actualizado": "2026-11-24T18:57:00Z",
+  "actualizado": "2026-11-24T20:27:00Z",
   "pasos": [
     {
-      "que": "Ciudad CDe4: jueces finales y subida (los primeros se cortaron a las 2 h; los repite con la máquina libre)",
-      "hora": "2026-11-24T20:45:00Z",
+      "que": "Ciudad CDe4: jueces finales (relanzados a las 21:24 con los jueces rápidos de JZ1) y subida",
+      "hora": "2026-11-24T21:30:00Z",
       "pct": 67,
       "estado": "prueba"
     },
     {
-      "que": "CE12 fase 2, CG9 datos de tropas (hecha) y E4b termas (hecha)",
-      "hora": "2026-11-24T21:30:00Z",
-      "pct": 75,
+      "que": "Batallas: CG9 datos de tropas (aprobada), falange FU3+FU3b(+FU3c), CG10 Cartago y E4b termas",
+      "hora": "2026-11-24T22:30:00Z",
+      "pct": 72,
       "estado": "esperando"
     },
     {
-      "que": "Fusión de la lucha a pie: FU3 falange (hecha) + FU3b (en obra), FU4 a FU6",
-      "hora": "2026-11-24T22:00:00Z",
-      "hasta": "2026-11-25T00:30:00Z",
-      "pct": 80,
+      "que": "CE12 fase 2: los caminos de comercio, política y ciudad se pueden ganar",
+      "hora": "2026-11-24T23:30:00Z",
+      "pct": 78,
       "estado": "esperando"
     },
     {
-      "que": "CG4b: la batalla nueva en la campaña (tras la fusión: «mantener el orden»)",
-      "hora": "2026-11-25T01:30:00Z",
-      "pct": 90,
+      "que": "FU4 rivales y elefantes, FU5 muro y orden abierto, TH1 tácticas (en obra en paralelo)",
+      "hora": "2026-11-25T00:30:00Z",
+      "pct": 84,
       "estado": "esperando"
     },
     {
-      "que": "TH1 y CG5; CG10 Cartago en la partida larga ya hecha (4 de 10)",
-      "cuando": "en paralelo",
+      "que": "CG4b: la batalla nueva en la campaña (tras la fusión)",
+      "hora": "2026-11-25T03:00:00Z",
       "pct": 95,
       "estado": "esperando"
     },
     {
-      "que": "Subida final con los jueces completos (más rápidos con JZ1)",
-      "hora": "2026-11-25T03:30:00Z",
+      "que": "Subida final con los jueces completos; resumen por la mañana",
+      "hora": "2026-11-25T05:30:00Z",
       "pct": 100,
       "estado": "esperando"
     }
   ],
   "riesgos": [
     "Roma cae ante Aníbal en 6 de 10 partidas largas (CE12)",
-    "La fusión de la lucha a pie va por la mitad (3 de 6)",
-    "Los jueces tardan ~1 h por subida hasta que entre JZ1",
+    "Escaramuza combinada (ES2–ES4) va aparte: entra si llega a tiempo",
     "El límite semanal de uso"
   ]
 }
