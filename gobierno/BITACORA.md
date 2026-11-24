@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 24/11/2026 ~17:55 — Pedido (literal): «Hay que cambiar lo de los jueces para que no repitan la historia entera y tarden tanto» → JZ1 (sesión de ciudad, rama `jz1-jueces`; sin bajar varas).
 - 24/11/2026 ~17:05 — Pedido (literal): «Y esto no lo puedo ver así parecido en el cuadro de mando para ver lo que tarda en acabarse la 1.0 y poder juzgarla y así después pasar a la 2.0?» → CM5.
 - 24/11/2026 ~16:56 — **«Mantener el orden»** (B, preguntado por la sesión de ciudad tras su captura de la batalla de campaña con la pantalla vieja): CG4b sigue detrás de la fusión FU, CG9 y CDe4. No se vuelve a preguntar.
 - 24/11 (vigía 4): RAM1 hecha: de 42 ramas antiguas solo 2 guardan algo útil. R1 (termas y acueducto 3D de E4, nunca entraron) → E4b abierta. R2 (estudio P161 «batalla dentro de la ciudad») → después de la 1.0.
