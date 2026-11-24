@@ -7,7 +7,7 @@
    SOLANA: el sur es +z (convención del mapa: el norte queda arriba y la cámara por defecto mira hacia -z). Una cuesta «cara al sur»
    es la que baja hacia +z.
    Arte PROPIO por código (geometría y texturas pintadas en un lienzo); los olivos y cipreses son los de siempre (0 A.D.), los pone city3d.
-   Dibujo: 4 llamadas (suelo con surcos, suelo de hierba y huerto, piezas fusionadas, ovejas en instancias); hoy es 1 (+3 en total).
+   Dibujo: 4 llamadas (suelo con surcos, suelo de hierba y huerto, piezas fusionadas, ovejas en instancias); antes de AG1 era 1, así que suma 3.
    CAMPOS = false lo apaga. */
 import { THREE } from './models.js';
 import * as Agro from '../agricultura.js';
@@ -277,8 +277,8 @@ function piezas(est) {
   }
   const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(PP, 3)); g.setAttribute('color', new THREE.Float32BufferAttribute(PC, 3)); g.computeVertexNormals();
   mP.geometry.dispose(); mP.geometry = g; mP.visible = PP.length > 0;
-  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Vector3(0, 1, 0), pos = new THREE.Vector3(), esc = new THREE.Vector3(), n = Math.min(OVEJAS.length, mO.instanceMatrix.count);
-  for (let i = 0; i < n; i++) { const o = OVEJAS[i]; q.setFromAxisAngle(e, o[2]); pos.set(o[0], alt(o[0], o[1]) - 0.1, o[1]); esc.setScalar(o[3]); m.compose(pos, q, esc); mO.setMatrixAt(i, m); }
+  const m = new THREE.Matrix4(), q = new THREE.Quaternion(), e = new THREE.Vector3(0, 1, 0), pos = new THREE.Vector3(), esc = new THREE.Vector3(), n = Math.min(OVEJAS.length, mO.instanceMatrix.count), paso = OVEJAS.length / n || 1;      /* con más ovejas que el tope se toman repartidas, no solo las primeras */
+  for (let i = 0; i < n; i++) { const o = OVEJAS[Math.floor(i * paso)]; q.setFromAxisAngle(e, o[2]); pos.set(o[0], alt(o[0], o[1]) - 0.1, o[1]); esc.setScalar(o[3]); m.compose(pos, q, esc); mO.setMatrixAt(i, m); }
   mO.count = n; mO.instanceMatrix.needsUpdate = true; mO.visible = n > 0; PP = PC = null;
 }
 /* mes (0 = Ianuarius) → estación (0 primavera … 3 invierno): dic-feb invierno, mar-may primavera, jun-ago verano, sep-nov otoño */

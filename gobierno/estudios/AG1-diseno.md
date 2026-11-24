@@ -91,7 +91,7 @@ encargosAgricultura(estado) → propuestas para el ministro (edil del grano), m�
           {tipo:'mejora', parcela, mejora, texto:'Poner almazara en el olivar'}
           {tipo:'cambiar', parcela, campo, texto:'Cambiar el trigo de la ladera por olivar'} (si rinde «mal» o peor)
           {tipo:'reserva', recurso, objetivo, texto}
-migrar(s) → s.agro = {v:1, parcelas:[], almacen:{aceite:0, vino:0, verdura:0, lana:0}} si falta (no toca el resto)
+migrar(s) → s.agro = {v:1, parcelas:[]} si falta (las existencias viven en s.bienes, pactado con CE4)
 ```
 Textos en español, frases cortas.
 
