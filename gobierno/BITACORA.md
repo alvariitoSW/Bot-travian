@@ -557,6 +557,7 @@ Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; 
 - Fuera el 24/11, ya decididas: P185 (aprobada, «1A»: es TH1); P183 (después de la 1.0, «2A»: en pausa en el tablero); P158 (su primera pieza es GM22, «3B»; el resto, después de la 1.0, en el orden de `estudios/GM42-guerra-como-rome2.md`); P166, P168 a P172, P176 y P178 a P182 (cerradas, «1A»).
 
 ## Después de la 1.0 (nevera: ideas nuevas sin estudio ni maqueta; no se abren hasta la 1.0)
+- (24/11, aprobado por el usuario: «Ok») **Texturas de Poly Haven (CC0)** para ciudad y suelo, como apoyo mientras no hay créditos de Meshy; tarea pequeña de Arte. Revisados ese día: mcp-for-blender (MIT; útil sobre todo por Poly Haven, pide Blender abierto), blender-skills (ya en `.claude/skills`); descartados StableGen (GPU y modelos no comerciales), AnimalLift y NI-Tex (sin licencia), Hunyuan3D 2.1 (su licencia excluye la UE, el Reino Unido y Corea del Sur; pide ≈29 GB de GPU).
 - 24/11 (usuario «3A») — Arqueros y honderos contra la falange a pie; brazos que no atraviesan escudos, picas ni cuerpos; rival a pie con soldados de Meshy (eran P186–P188). Maquetas de luz y hora del día (CR4, CR4b) y «motor de lucha» (CB1): se acaban como maqueta, no entran al juego hasta la 1.0.
 - 24/11/2026 — Cuando un elefante empuja, que tus filas se vean recular y doblarse un poco (de FE3).
 - (24/11) **Embellecer la ciudad (CD6)**: sale de la 1.0 por la agricultura («1 y 2»); después de la 1.0. (El camino de la ciencia, CE11, espera tu respuesta arriba.)
