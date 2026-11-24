@@ -847,3 +847,34 @@ export class CityView3D {
   ponerAmbiente(on) { ponerAmbiente(on); }
   ambienteNeutro(b) { neutro = !!b; }      // pruebas: sin tono ni viñeta, para comparar con el dibujo directo
 }
+
+/* ---------- CD5b: capas pintadas sobre el suelo (manchas de barrio, zonas de servicio) ----------
+   Una malla plana por capa, con una textura de canvas transparente y UNA llamada de dibujo. Sigue el relieve (altura) y se pinta
+   por encima de tejados y suelo (sin prueba de profundidad), como una acuarela encima del plano. Solo funciones nuevas: nada de lo anterior cambia. */
+const capasSuelo = new Map();
+export function quitarCapa(nombre) {
+  const c = capasSuelo.get(nombre); if (!c) return;
+  scene.remove(c.malla); c.malla.geometry.dispose(); c.malla.material.map.dispose(); c.malla.material.dispose(); capasSuelo.delete(nombre);
+}
+/* canvas: dibujo con la esquina de arriba a la izquierda en (x0, z0) del mundo. rect = {x0, z0, x1, z1}. opc = {orden, opacidad} */
+export function capaSuelo(nombre, canvas, rect, opc = {}) {
+  const k = [rect.x0, rect.z0, rect.x1, rect.z1].join(','), c = capasSuelo.get(nombre), op = opc.opacidad === undefined ? 1 : opc.opacidad;
+  if (c && c.k === k && c.malla.material.map.image === canvas) { c.malla.material.map.needsUpdate = true; c.malla.material.opacity = op; return; }
+  quitarCapa(nombre);
+  const { x0, z0, x1, z1 } = rect, sx = Math.max(2, Math.min(80, Math.ceil((x1 - x0) / 10))), sz = Math.max(2, Math.min(80, Math.ceil((z1 - z0) / 10)));
+  const pos = new Float32Array((sx + 1) * (sz + 1) * 3), uv = new Float32Array((sx + 1) * (sz + 1) * 2), idx = [];
+  for (let j = 0; j <= sz; j++) for (let i = 0; i <= sx; i++) {
+    const n = j * (sx + 1) + i, x = x0 + (x1 - x0) * i / sx, z = z0 + (z1 - z0) * j / sz;
+    pos[n * 3] = x; pos[n * 3 + 1] = altura(x, z) + 1.2; pos[n * 3 + 2] = z; uv[n * 2] = i / sx; uv[n * 2 + 1] = 1 - j / sz;
+    if (i < sx && j < sz) { const a = n, b = n + 1, d = n + sx + 1, e = n + sx + 2; idx.push(a, b, d, b, e, d); }
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); g.setIndex(idx);
+  const tex = new THREE.CanvasTexture(canvas); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 4;
+  const m = new THREE.Mesh(g, new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false, toneMapped: false, fog: false, side: THREE.DoubleSide, opacity: op }));
+  m.renderOrder = 20 + (opc.orden || 0); m.frustumCulled = false; scene.add(m); capasSuelo.set(nombre, { malla: m, k });
+}
+/* ganchos para la vista (barrio-ui.js los usa por la instancia, sin importar este módulo) */
+CityView3D.prototype.capaSuelo = function (n, c, r, o) { capaSuelo(n, c, r, o); };
+CityView3D.prototype.quitarCapa = function (n) { quitarCapa(n); };
+CityView3D.prototype.camObj = function () { return cam; };
+CityView3D.prototype.firma = function () { return [cam.tx.toFixed(1), cam.tz.toFixed(1), cam.d.toFixed(1), cam.az.toFixed(3), desvio.toFixed(1), vista.w, vista.h].join('|'); };

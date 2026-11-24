@@ -1,3 +1,4 @@
+import { montarBarrioUI } from './barrio-ui.js';   // CD5b: manchas de barrio, ficha y capa de necesidades
 /* CD1b: el botón «Construir» de la ciudad y su mini menú por siete familias.
    Solo pinta y maneja el menú. Todo lo que necesita se lo pasa ui.js por parámetro (nada de globales):
    ctx = { D, ids(), info(id), famDe(id), minis(), coste5(c), puede(coste), costa(), elegir(id), aviso(t) } */
@@ -69,7 +70,9 @@ export function crearMenu(ctx) {
     else if (a === 'ed') { const i = ctx.info(t.dataset.id); if (i.cerrada) { ctx.aviso(i.cerrada + '.'); return; } if (i.enObra) { ctx.aviso('La obra ya está en marcha.'); return; } cerrar(); ctx.elegir(t.dataset.id); }
   });
   /* ui.js lo llama cada vez que repinta la pantalla de la ciudad: m3 es el modo; solo se ve al mirar */
+  let bui = null;
   function sync(m3, visible) {
+    try { if (visible) { const V = window.UI && window.UI.cityV; if (!bui && V && V.listo && V.capaSuelo) bui = montarBarrioUI(V, ctx); if (bui) bui.sync(m3, visible); } } catch (e) { console.warn('Barrios: ', e); }
     const ver = !!visible && m3 === 'mirar'; btn.hidden = !ver;
     if (!ver) cerrar(); else if (!hoja.hidden) { const k = ctx.minis() ? 1 : 0; if (est.k !== k) { est.k = k; pinta(); } }
   }
