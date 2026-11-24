@@ -51,7 +51,7 @@
   async function abrir(cfg, alTerminar) {
     cerrar(); cfg = cfg || {};
     const Sim = root.Simulador;
-    const S = cfg.S || Sim.crear({ semilla: cfg.semilla, ejercitos: cfg.ejercitos, manipulos: cfg.manipulos });
+    const S = cfg.S || Sim.crear({ semilla: cfg.semilla, ejercitos: cfg.ejercitos, manipulos: cfg.manipulos, tacticas: cfg.tacticas !== false });   /* TH1: tácticas de la época (js/tacticas.js), si está cargado */
     const el = document.createElement('div'); el.id = 'mn'; el.innerHTML = HTML; document.body.appendChild(el);
     const a = activa = { el, cerrar: () => {} };
     const $ = id => el.querySelector('#mn-' + id);
@@ -587,6 +587,7 @@
         else if (e.tipo === 'carga' || e.tipo === 'carga-frenada') { t = e.texto; tono = (e.tipo === 'carga') === mio ? 'bien' : 'mal'; }
         else if (e.tipo === 'relevo' && mio) t = e.texto;
         else if (e.tipo === 'caida') { t = e.texto; tono = mio ? 'mal' : 'bien'; }
+        else if (e.tipo === 'tactica') { t = e.texto; tono = (e.tac === 'galos-fin' || e.tac === 'falange' || e.tac === 'envuelto' || e.tac === 'copados') === mio ? 'mal' : 'bien'; }   /* TH1 */
         else if (e.tipo === 'choque' && !chocaron) { chocaron = true; t = '¡Chocan las líneas!'; }
         if (t) nuevos.push({ t, tono });
       }

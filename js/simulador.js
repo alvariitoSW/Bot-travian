@@ -14,6 +14,7 @@
      la mente del que lucha (`mente`), K_BAJAS, BASE_FATIGA, DESCANSO, T_RELEVO, T_DESHACER, SUSTO, SALVA, ARROJA, BLANCO, VIDA,
      el testudo que se deshace al chocar y los elefantes que se desbocan.
 
+   TH1: tácticas de la época (js/tacticas.js), solo si cfg.tacticas.
    API: crear(cfg) · paso(S) · avanzar(S, segundos, programadas?) · ordenar(S, orden) · puede(S, orden) · retirarse(S) · resumen(S)
         guardar(S) · cargar(texto) · vista(S) · palabras(u) · ordenesDe(S, id) · tablas SABE, FORMAS, TAM, TRIBUNOS
    cfg = { semilla, ejercitos: [{tropa: n}, {tropa: n}] }        → despliegue clásico (Roma en tres líneas; el enemigo en una o dos)
@@ -27,6 +28,8 @@
     try { if (!D) D = require('./data.js'); } catch (e) { /* sin datos */ }
     try { if (!G) G = require('./guerra.js'); } catch (e) { /* sin guerra: tablas vacías */ }
   }
+  let TAC = root.Tacticas;
+  if (!TAC && typeof require !== 'undefined') try { TAC = require('./tacticas.js'); } catch (e) { /* sin tácticas */ }
   const UN = (D && D.UNITS) || {};
   const CARACTER = (G && G.CARACTER) || {}, GENERICO = (G && G.GENERICO) || { cal: 1, cansa: 1, mente: 'media' };
   const POSTURAS = (G && G.POSTURAS) || { escudos: { recibe: 0.42, cansa: 1 / 90 }, testudo: { recibe: 0.1, cansa: 1 / 40 } };
@@ -178,6 +181,8 @@
       campo: Object.assign({}, CAMPO), limite: cfg.limite || LIMITE, cuenta: [{}, {}],
       tribunos: cfg.tribunos || [TRIBUNOS.map(x => Object.assign({}, x)), JEFES.map(x => Object.assign({}, x))],
       planes: cfg.planes || [['avanzar', 'avanzar', 'avanzar'], ['avanzar', 'avanzar', 'avanzar']], n0: [{}, {}] };
+    if (!TAC) TAC = root.Tacticas;   /* el navegador puede cargar js/tacticas.js después de este archivo */
+    if (cfg.tacticas && TAC) S.tac = {};
     if (cfg.manipulos) for (const m of cfg.manipulos) manipulo(S, m);
     else for (let b = 0; b < 2; b++) desplegar(S, b, (cfg.ejercitos && cfg.ejercitos[b]) || {});
     for (const u of S.man) S.n0[u.lado][u.tropa] = (S.n0[u.lado][u.tropa] || 0) + u.n0;
@@ -412,6 +417,7 @@
       if (vivo(u) && !u.lucha && S.t - (u.ultLucha || -99) > 3) choque(S, u); u.lucha += dt; u.ultLucha = S.t;
       const c = S.cont[u.id].find(c => c.cara === 'frente' && vivo(M[c.id])) || S.cont[u.id].find(c => vivo(M[c.id])); u.rival = c ? c.id : -1;
     } else u.lucha = 0;
+    if (S.tac && TAC) TAC.paso(S, dt);
     /* tribunos */
     if (S.n % TIC_TRIBUNO === 0) for (const u of M) if (vivo(u) && u.mando === 'tribuno') tribuno(S, u);
     /* mover */
@@ -423,7 +429,7 @@
     for (const a of M) {
       if (!vivo(a) || !S.cont[a.id].length) continue;
       const blancos = S.cont[a.id].filter(c => c.cara === 'frente'); if (!blancos.length) continue;
-      const fa = fuerza(a) / blancos.length, ruido = 0.9 + 0.2 * rnd(S);
+      const fa = fuerza(a) * (S.tac && TAC ? TAC.golpe(S, a) : 1) / blancos.length, ruido = 0.9 + 0.2 * rnd(S);
       for (const c of blancos) {
         const b = M[c.id], cara = S.cont[b.id].find(x => x.id === a.id).cara, T = car(b.tropa), F = FORMAS[b.forma];
         let d = fa * K_BAJAS * dt * ruido * escala(a);
@@ -437,6 +443,7 @@
           if (b.cambio > 0) d *= 1.2;
           golpeF[b.id] += fa;
         }
+        if (vivo(b) && S.tac && TAC) d *= TAC.recibe(S, b, cara);
         dano[b.id] += d * defMul(b.tropa) / (VIDA[b.tropa] || 1);
       }
     }
@@ -446,7 +453,7 @@
       if (dano[b.id] > 0) quitar(S, b, dano[b.id]);
       if (vivo(b) && lucha) {
         const fb = fuerza(b), T = car(b.tropa);
-        b.moral -= (b.mod ? b.mod.moral : 1) * morMul(b.tropa) * (dano[b.id] / b.n0 * MORAL_BAJA + TENSION * dt + (flanq[b.id] ? 0.028 : 0) * dt + (golpeF[b.id] > fb ? 0.013 * (golpeF[b.id] - fb) * dt : 0) + (b.fatiga > 0.85 ? 0.006 * dt : 0));
+        b.moral -= (S.tac && TAC ? TAC.moral(S, b) : 1) * (b.mod ? b.mod.moral : 1) * morMul(b.tropa) * (dano[b.id] / b.n0 * MORAL_BAJA + TENSION * dt + (flanq[b.id] ? 0.028 : 0) * dt + (golpeF[b.id] > fb ? 0.013 * (golpeF[b.id] - fb) * dt : 0) + (b.fatiga > 0.85 ? 0.006 * dt : 0));
         if (b.postura === 'aguantar' && !flanq[b.id]) b.moral += 0.004 * dt;
         b.fatiga = limita(b.fatiga + (b.postura === 'empujar' ? BASE_FATIGA * T.cansa * (b.mod ? b.mod.cansa : 1) : -BASE_FATIGA * 0.22) * dt, 0, 1);
         if (flanq[b.id] && !b.flanqueado && S.t - (b.tFlanco || -99) > 8) b.tFlanco = S.t, ev(S, S.cont[b.id].some(c => c.cara === 'retaguardia') ? 'retaguardia' : 'flanqueo', b, b.nom + (S.cont[b.id].some(c => c.cara === 'retaguardia') ? ': ¡les atacan por la espalda!' : ': ¡les atacan por el flanco!'));
@@ -600,6 +607,7 @@
     else if (u.estado === 'duda' && u.moral > 0.45) u.estado = 'firme';
   }
   function romper(S, u) {
+    if (S.tac && TAC) TAC.rompe(S, u);   /* TH1: copados */
     u.estado = 'roto'; u.moral = 0; u.orden = 'huir'; u.dest = null; u.carga = false; u.relevo = 0;
     if (u.con >= 0) { const r = S.man[u.con]; if (r) { r.con = -1; r.relevo = 0; } u.con = -1; }
     ev(S, 'ruptura', u, u.nom + ' se rompen y huyen', { n: Math.round(u.n) });
