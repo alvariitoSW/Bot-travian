@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 24/11/2026 — **Subido a `main`: sonido sin inglés (SON12) y fragor de la lucha a pie (SON11)**, sobre `16827b68`; jueces completos **APTO 43/43** (4750 s); caché **v161**.
 - 24/11/2026 — **SON12 hecho: fuera el inglés** (regla del usuario). Rehechos sin palabras `clamor1` («hey»), `lucha1` («get back») y `coro1`; la música de batalla cambia a «Blackmoor Colossus Loop (No Vocals)» (mismo autor y licencia) porque el coro de la anterior cantaba en inglés. Informe: `estudios/SON12-ingles.md`. Duda para el usuario: el coro del menú («Heroic Demise») podría llevar letra; si la oye, se cambia de pieza.
 - 24/11/2026 — **Nada en inglés** (literal: «No quiero nada en inglés salvo voces de galos enemigos. Soy español»). Regla para todo el sonido (gritos, multitudes, fondos, música y coros); única excepción, las voces de los galos enemigos. Apuntada en la skill `sonido-efectos`. SON12 revisa todo el audio y quita o reasigna lo que tenga inglés.
 - 24/11/2026 — **Sonido SON7–SON10 subido a `main`** (orden del usuario: «Sí, publícalo»): música grabada (menú, ciudad, mapa, batalla, victoria, derrota), gritos reales, arenga y preguntas de oficiales (romanos en latín; Cartago, galos e íberos en español) y botón «Preguntas de oficiales». Jueces completos **APTO 43/43** (4969 s) sobre `f1a448ca`; caché **v160**. No lleva SON11 (otra sesión, unida después a la rama del juego).
