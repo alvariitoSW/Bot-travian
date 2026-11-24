@@ -15,7 +15,7 @@ function campaign1(aggressive, region, dif) {
   G.onEvent = (t, p) => { events.push(t); if (process.env.V && t === 'log' && /⚠|🔥|🏆|💀|rechaza|📜/.test(p.x)) console.log('  ', G.yearOf(s.t), p.x); };
   const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
   let guard = 0;
-  while (!s.over && guard++ < 200000) {
+  while (!G.finDePrueba() && guard++ < 200000) {
     G.tick(0.25);
     while (s.pending.length && !s.over) { const info = G.battleInfo(s.pending[0]); const b = new Battle(info.cfg); b.finish(); if (process.env.DBG) console.log(G.yearOf(s.t), JSON.stringify(info.cfg.sides.map(x => x.units)), 'def', info.cfg.defender, 'wall', info.cfg.wall, '->', b.result().winner, Math.round(b.t)); G.applyBattle(b.result()); }
     if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: el bot compra hierro y vende lo que sobra (test/bot-mercado.js)
@@ -37,6 +37,7 @@ function campaign1(aggressive, region, dif) {
       }
     }
   }
+  if (!s.over && G.campanaLarga()) s.over = { win: !!(s.caminos && s.caminos.victoria), why: 'fin de prueba' };   // CE10: sin plazo ni final por Cartago, el bot para en G.finDePrueba()
   assert(s.over, 'la campaña debe terminar');
   assert(events.includes('event'));
   return s;

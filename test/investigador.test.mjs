@@ -16,7 +16,7 @@ function campana(inv, seed) {
     const s = G.newGame('Test'); const meta = G.region().capitalRival;
     const dist = {}; dist[meta] = 0; for (let q = [meta], i = 0; i < q.length; i++) for (const n of G.neighbors(q[i])) if (!(n in dist)) { dist[n] = dist[q[i]] + 1; q.push(n); }
     let guard = 0, i = 0, escuela = false;
-    while (!s.over && guard++ < 200000) {
+    while (!G.finDePrueba() && guard++ < 200000) {
       G.tick(0.25);
       while (s.pending.length && !s.over) { const b = new Battle(G.battleInfo(s.pending[0]).cfg); b.finish(); G.applyBattle(b.result()); }
       if (G.fraccionMes() >= 0.7) botMercado(G, D);   // CE2: el bot compra hierro y vende lo que sobra (test/bot-mercado.js)
@@ -48,6 +48,7 @@ function campana(inv, seed) {
         }
       }
     }
+    if (!s.over && G.campanaLarga()) s.over = { win: !!(s.caminos && s.caminos.victoria), why: 'fin de prueba' };   // CE10: sin plazo ni final por Cartago, el bot para en G.finDePrueba()
     assert(s.over, 'la campaña debe terminar');
     return { win: !!s.over.win, year: G.yearOf(s.t), saberes: Object.keys(s.inv.hechas).length, escuela: !!s.cities.roma.b.escuela };
   } finally { Math.random = rnd0; }
