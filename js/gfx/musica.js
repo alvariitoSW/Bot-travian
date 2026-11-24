@@ -104,73 +104,132 @@
   }
   M.fraseFinal = fraseFinal;
 
+  /* ---------- SON6: temas del resto del juego (menú, ciudad, mapa, Senado), por código ----------
+     Pantalla de la interfaz (UI.tab) → tema. Cada tema es un patrón determinista por compás de 4 pulsos: temaPatron(tema, compas, { sem, estacion 0..3, tension 0..1 }) → { bpm, notas }.
+     Capas: las de batalla más la lira (cuerda pulsada, cítara de época). Sobrios y por debajo de todo; ninguno es un bucle eterno: ciclo(tema) = segundos que suena y segundos que calla.
+     Toda melodía es reconstrucción de modos antiguos: licencia de juego. */
+  const PANTALLAS = { menu: 'menu', city: 'ciudad', saber: 'ciudad', army: 'ciudad', imperio: 'ciudad', hero: 'ciudad', map: 'mapa', senado: 'senado' };
+  const CICLO = { menu: { suena: 53, calla: 150 }, ciudad: { suena: 200, calla: 50 }, mapa: { suena: 150, calla: 45 }, senado: { suena: 120, calla: 60 } };
+  M.TEMAS = Object.keys(CICLO);
+  M.temaDe = pantalla => PANTALLAS[pantalla] || 'ciudad';
+  M.ciclo = tema => CICLO[tema] || CICLO.ciudad;
+  /* tensión del mapa según los ejércitos enemigos en marcha (0 = paz) */
+  M.tensionMapa = n => { n = Math.max(0, Math.floor(n || 0)); return n === 0 ? 0.1 : n === 1 ? 0.4 : n === 2 ? 0.55 : 0.7; };
+  const gr = (esc, g, oct) => RE + (oct || 0) + esc[((g % 7) + 7) % 7] + 12 * Math.floor(g / 7);
+  const MENU_TIBIA = { 2: [[0, 0, 2], [2, 2, 2]], 3: [[0, 4, 2], [2, 2, 2]], 4: [[0, 3, 2], [2, 1, 2]], 5: [[0, 0, 4]], 8: [[0, 4, 2], [2, 5, 2]], 9: [[0, 6, 2], [2, 4, 2]], 10: [[0, 2, 2], [2, 3, 2]], 11: [[0, 0, 4]] };   // [pulso, grado, duración]
+  function temaPatron(tema, compas, o) {
+    o = o || {}; const n = [], r = semilla((o.sem || 1) * 7919 + compas * 104729 + 29), ten = clamp(o.tension === undefined ? 0.2 : o.tension, 0, 1);
+    const est = ((Math.round(o.estacion === undefined ? 1 : o.estacion) % 4) + 4) % 4, nota = (t, d, c, nn, v) => n.push({ t, d, c, n: nn, v });
+    let bpm;
+    if (tema === 'menu') {                                    // solemne: cornu lejano, tympanum grave, tibia lenta en dorio; 12 compases ≈ 53 s
+      bpm = 54; const k = compas % 12, E = DORIO;
+      nota(0, 4, 'bordon', RE, 0.55); nota(0, 4, 'bordon', RE + 7, 0.3);
+      if (k === 0) { nota(0, 1, 'tambor', 41, 0.8); nota(0, 2.5, 'cornu', RE, 0.42); nota(2.5, 1.5, 'cornu', RE + 7, 0.4); }
+      else if (k === 6) nota(0, 3, 'cornu', RE + 7, 0.36);
+      else if (k % 4 === 0) nota(0, 1, 'tambor', 41, 0.45);
+      if (k === 11) nota(2, 1, 'tambor', 41, 0.5);
+      for (const [t, g, d] of MENU_TIBIA[k] || []) nota(t, d * 0.95, 'tibia', gr(E, g, 12), 0.5);
+      if (k >= 6 && k % 2 === 1) nota(1, 3, 'lira', gr(E, 4, 12), 0.4);
+    } else if (tema === 'senado') {                           // sobrio: bordón, lira en acordes lentos, tibia suelta, un golpe de tympanum cada cuatro compases
+      bpm = 56; const E = DORIO, k = compas % 8;
+      nota(0, 4, 'bordon', RE, 0.45); nota(0, 4, 'bordon', RE + 7, 0.25);
+      [0, 4, 7].forEach((g, i) => nota(i * 0.12, 3.5, 'lira', gr(E, g, 12), 0.45 - 0.05 * i));
+      if (k % 2 === 1) nota(2, 2, 'lira', gr(E, 2 + (k % 3), 12), 0.35);
+      if (k === 2) { nota(0, 2, 'tibia', gr(E, 4, 12), 0.45); nota(2, 2, 'tibia', gr(E, 2, 12), 0.45); }
+      if (k === 4) { nota(0, 1.5, 'tibia', gr(E, 3, 12), 0.42); nota(2, 2, 'tibia', gr(E, 1, 12), 0.42); }
+      if (k === 7) nota(0, 4, 'tibia', gr(E, 0, 12), 0.45);
+      if (compas % 4 === 0) nota(0, 1, 'tambor', 41, 0.3);
+    } else if (tema === 'mapa') {                             // paso de marcha: tambor en los pulsos, tibia con ritmo de marcha; con enemigos, frigio, más rápido y cornu
+      const tenso = ten >= 0.35, E = tenso ? FRIGIO : DORIO, f = compas % 4; bpm = 68 + 28 * ten;
+      nota(0, 4, 'bordon', RE, 0.5); if (ten >= 0.3) nota(0, 4, 'bordon', RE + 7, 0.3);
+      for (let b = 0; b < 4; b++) nota(b, 0.25, 'tambor', b % 2 ? 48 : 41, b === 0 ? 0.75 : b === 2 ? 0.5 : 0.22 + 0.1 * ten);
+      if (tenso) { nota(1.75, 0.25, 'tambor', 48, 0.28); nota(3.75, 0.25, 'tambor', 48, 0.28); }
+      const celda = [[0, 2, 4, 2], [3, 4, 2, 0], [4, 5, 4, 2], [2, 1, 0, 0]][f], tt = [0, 1.5, 2, 3], dd = [1.25, 0.5, 1, 1], reg = tenso ? 19 : 12;
+      for (let i = 0; i < 4; i++) { const g = celda[i] + (f !== 3 && r() < 0.25 ? 1 : 0); nota(tt[i], dd[i] * 0.9, 'tibia', gr(E, g, reg), 0.45 + 0.2 * ten); }
+      if (tenso && f === 2) nota(0, 1.5, 'cornu', RE, 0.5);
+      else if (compas % 8 === 0 && compas > 0) nota(0, 1.5, 'cornu', RE + 7, 0.3);
+    } else {                                                  // ciudad: lira que arpegia y tibia que responde; la estación cambia modo, ritmo y densidad
+      bpm = [74, 78, 68, 60][est]; const E = est <= 1 ? MIXOLIDIO : DORIO, f = compas % 4, cuantas = est === 3 ? 3 : est === 1 ? 5 : 4;
+      nota(0, 4, 'bordon', RE, 0.4); if (compas % 2 === 0) nota(0, 4, 'bordon', RE + 7, 0.22);
+      const pos = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5], sel = []; while (sel.length < cuantas) sel.push(pos.splice(Math.floor(r() * pos.length), 1)[0]); sel.sort((a, b) => a - b);
+      const PENTA = [0, 2, 4, 5, 7]; let g = 2;
+      for (const t of sel) { g = clamp(g + Math.floor(r() * 3) - 1, 0, 4); nota(t, 1.5, 'lira', gr(E, PENTA[g], 12), 0.5 + 0.15 * r()); }
+      if (f === 1 && est !== 3) { nota(0, 1.5, 'tibia', gr(E, 4, 12), 0.45); nota(2, 2, 'tibia', gr(E, 2, 12), 0.45); }
+      if (f === 3) { nota(0, 1.5, 'tibia', gr(E, 3, 12), 0.45); nota(1.5, 0.5, 'tibia', gr(E, 1, 12), 0.4); nota(2, 2, 'tibia', gr(E, 0, 12), 0.45); }
+      if (f === 0) nota(0, 1, 'tambor', 41, 0.28);
+    }
+    return { bpm, notas: n.sort((a, b) => a.t - b.t) };
+  }
+  M.temaPatron = temaPatron;
+
   /* ---------- parte de audio (solo en el navegador) ---------- */
   const CAPA = 0.42;                  // la capa música; los efectos van por encima
   const S = { ctx: null, bus: null, filtro: null, duck: null, fade: null, ruido: null, eco: null, id: 0, ten: 0.25, meta: 0.25, sem: 1, compas: 0, proximo: 0, pend: [], tUlt: 0, final: false, vivas: 0 };
 
-  function arma(c, Son) {
-    S.fade = c.createGain(); S.fade.gain.value = 0.0001;
-    S.duck = c.createGain(); S.duck.gain.value = 1;
-    S.filtro = c.createBiquadFilter(); S.filtro.type = 'lowpass'; S.filtro.frequency.value = 2200; S.filtro.Q.value = 0.5;
-    S.bus = c.createGain(); S.bus.gain.value = CAPA;
+  function arma(c, Son, E) {
+    E.fade = c.createGain(); E.fade.gain.value = 0.0001;
+    E.duck = c.createGain(); E.duck.gain.value = 1;
+    E.filtro = c.createBiquadFilter(); E.filtro.type = 'lowpass'; E.filtro.frequency.value = 2200; E.filtro.Q.value = 0.5;
+    E.bus = c.createGain(); E.bus.gain.value = CAPA;
     // un eco corto y oscuro da sala (sin convolución, barato en móvil)
     const ret = c.createDelay(1), fb = c.createGain(), lp = c.createBiquadFilter(), hum = c.createGain(); ret.delayTime.value = 0.31; fb.gain.value = 0.33; lp.type = 'lowpass'; lp.frequency.value = 1400; hum.gain.value = 0.28;
-    S.bus.connect(S.filtro); S.filtro.connect(S.duck); S.duck.connect(S.fade); S.fade.connect(Son.maestro);
-    S.filtro.connect(ret); ret.connect(lp); lp.connect(fb); fb.connect(ret); lp.connect(hum); hum.connect(S.duck);
-    S.eco = { ret, fb, lp, hum };
-    const nb = c.sampleRate, b = c.createBuffer(1, nb, nb), d = b.getChannelData(0); for (let i = 0; i < nb; i++) d[i] = Math.random() * 2 - 1; S.ruido = b;
+    E.bus.connect(E.filtro); E.filtro.connect(E.duck); E.duck.connect(E.fade); E.fade.connect(Son.maestro);
+    E.filtro.connect(ret); ret.connect(lp); lp.connect(fb); fb.connect(ret); lp.connect(hum); hum.connect(E.duck);
+    E.eco = { ret, fb, lp, hum };
+    const nb = c.sampleRate, b = c.createBuffer(1, nb, nb), d = b.getChannelData(0); for (let i = 0; i < nb; i++) d[i] = Math.random() * 2 - 1; E.ruido = b;
   }
 
   // cada instrumento programa su sonido en el instante t (s) con duración d (s); v 0..1
-  function bordon(c, t, d, f, v) {
-    const g = c.createGain(), lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380 + 220 * S.ten; lp.Q.value = 2.2;
+  function bordon(c, t, d, f, v, E) {
+    const g = c.createGain(), lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 380 + 220 * E.ten; lp.Q.value = 2.2;
     g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.09 * v, t + Math.min(0.5, d * 0.25)); g.gain.setValueAtTime(0.09 * v, t + Math.max(0.5, d - 0.7)); g.gain.linearRampToValueAtTime(0.0001, t + d);
     for (const [tipo, mul, det, ga] of [['sawtooth', 1, -6, 1], ['sawtooth', 1, 7, 0.8], ['triangle', 0.5, 0, 0.9]]) {
       const o = c.createOscillator(), og = c.createGain(); o.type = tipo; o.frequency.value = f * mul; o.detune.value = det; og.gain.value = ga; o.connect(og); og.connect(lp);
-      o.start(t); o.stop(t + d + 0.05); S.vivas++; o.onended = () => { S.vivas--; try { o.disconnect(); og.disconnect(); } catch (e) { /* nada */ } };
+      o.start(t); o.stop(t + d + 0.05); E.vivas++; o.onended = () => { E.vivas--; try { o.disconnect(); og.disconnect(); } catch (e) { /* nada */ } };
     }
-    lp.connect(g); g.connect(S.bus);
+    lp.connect(g); g.connect(E.bus);
   }
-  function tambor(c, t, f, v) {
+  function tambor(c, t, f, v, E) {
     const g = c.createGain(), o = c.createOscillator(); o.type = 'sine'; o.frequency.setValueAtTime(f * 2.4, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.09);
     g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.5 * v, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.38);
-    o.connect(g); g.connect(S.bus); o.start(t); o.stop(t + 0.42); S.vivas++; o.onended = () => { S.vivas--; try { o.disconnect(); g.disconnect(); } catch (e) { /* nada */ } };
-    const r = c.createBufferSource(), rf = c.createBiquadFilter(), rg = c.createGain(); r.buffer = S.ruido; rf.type = 'lowpass'; rf.frequency.value = 900; rf.Q.value = 0.7;
+    o.connect(g); g.connect(E.bus); o.start(t); o.stop(t + 0.42); E.vivas++; o.onended = () => { E.vivas--; try { o.disconnect(); g.disconnect(); } catch (e) { /* nada */ } };
+    const r = c.createBufferSource(), rf = c.createBiquadFilter(), rg = c.createGain(); r.buffer = E.ruido; rf.type = 'lowpass'; rf.frequency.value = 900; rf.Q.value = 0.7;
     rg.gain.setValueAtTime(0.0001, t); rg.gain.exponentialRampToValueAtTime(0.16 * v, t + 0.004); rg.gain.exponentialRampToValueAtTime(0.0001, t + 0.07);   // el golpe seco del parche
-    r.connect(rf); rf.connect(rg); rg.connect(S.bus); r.start(t, Math.random() * 0.5); r.stop(t + 0.1); r.onended = () => { try { r.disconnect(); rf.disconnect(); rg.disconnect(); } catch (e) { /* nada */ } };
+    r.connect(rf); rf.connect(rg); rg.connect(E.bus); r.start(t, Math.random() * 0.5); r.stop(t + 0.1); r.onended = () => { try { r.disconnect(); rf.disconnect(); rg.disconnect(); } catch (e) { /* nada */ } };
   }
-  function tibia(c, t, d, f, v) {
+  function tibia(c, t, d, f, v, E) {
     const g = c.createGain(), lp = c.createBiquadFilter(), lfo = c.createOscillator(), lg = c.createGain(); lp.type = 'lowpass'; lp.frequency.value = 2300; lp.Q.value = 0.8;
-    lfo.frequency.value = 5 + 0.8 * S.ten; lg.gain.value = 9 + 10 * S.ten; lfo.connect(lg);     // vibrato en cents; crece el vibrato con la tensión
+    lfo.frequency.value = 5 + 0.8 * E.ten; lg.gain.value = 9 + 10 * E.ten; lfo.connect(lg);     // vibrato en cents; crece el vibrato con la tensión
     g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.085 * v, t + 0.05); g.gain.exponentialRampToValueAtTime(0.06 * v, t + Math.min(0.3, d * 0.5)); g.gain.setValueAtTime(0.06 * v, t + Math.max(0.1, d - 0.1)); g.gain.linearRampToValueAtTime(0.0001, t + d + 0.08);
     // aulós: dos cañas casi iguales (+7 cents) y un octavo de armónico
     for (const [tipo, mul, det, ga] of [['triangle', 1, 0, 1], ['triangle', 1, 7, 0.7], ['sine', 2, 0, 0.18]]) {
       const o = c.createOscillator(), og = c.createGain(); o.type = tipo; o.frequency.value = f * mul; o.detune.value = det; og.gain.value = ga; lg.connect(o.detune); o.connect(og); og.connect(lp);
-      o.start(t); o.stop(t + d + 0.15); S.vivas++; o.onended = () => { S.vivas--; try { o.disconnect(); og.disconnect(); } catch (e) { /* nada */ } };
+      o.start(t); o.stop(t + d + 0.15); E.vivas++; o.onended = () => { E.vivas--; try { o.disconnect(); og.disconnect(); } catch (e) { /* nada */ } };
     }
     lfo.start(t); lfo.stop(t + d + 0.15); lfo.onended = () => { try { lfo.disconnect(); lg.disconnect(); } catch (e) { /* nada */ } };
-    const r = c.createBufferSource(), rf = c.createBiquadFilter(), rg = c.createGain(); r.buffer = S.ruido; rf.type = 'bandpass'; rf.frequency.value = f * 3; rf.Q.value = 1.2;   // soplo al atacar
+    const r = c.createBufferSource(), rf = c.createBiquadFilter(), rg = c.createGain(); r.buffer = E.ruido; rf.type = 'bandpass'; rf.frequency.value = f * 3; rf.Q.value = 1.2;   // soplo al atacar
     rg.gain.setValueAtTime(0.0001, t); rg.gain.linearRampToValueAtTime(0.03 * v, t + 0.02); rg.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
     r.connect(rf); rf.connect(rg); rg.connect(lp); r.start(t, Math.random() * 0.5); r.stop(t + 0.22); r.onended = () => { try { r.disconnect(); rf.disconnect(); rg.disconnect(); } catch (e) { /* nada */ } };
-    lp.connect(g); g.connect(S.bus);
+    lp.connect(g); g.connect(E.bus);
   }
-  function cornu(c, t, d, f, v) {
+  function cornu(c, t, d, f, v, E) {
     const g = c.createGain(), lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 1.4; lp.frequency.setValueAtTime(380, t); lp.frequency.linearRampToValueAtTime(950, t + Math.min(0.35, d * 0.4)); lp.frequency.linearRampToValueAtTime(600, t + d);
     g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(0.11 * v, t + 0.16); g.gain.setValueAtTime(0.1 * v, t + Math.max(0.2, d - 0.3)); g.gain.linearRampToValueAtTime(0.0001, t + d + 0.1);
     for (const [det, ga] of [[-4, 1], [5, 0.7]]) {
       const o = c.createOscillator(), og = c.createGain(); o.type = 'sawtooth'; o.frequency.setValueAtTime(f * 0.97, t); o.frequency.linearRampToValueAtTime(f, t + 0.12); o.detune.value = det; og.gain.value = ga; o.connect(og); og.connect(lp);   // el cuerno entra un poco bajo y sube a la nota
-      o.start(t); o.stop(t + d + 0.15); S.vivas++; o.onended = () => { S.vivas--; try { o.disconnect(); og.disconnect(); } catch (e) { /* nada */ } };
+      o.start(t); o.stop(t + d + 0.15); E.vivas++; o.onended = () => { E.vivas--; try { o.disconnect(); og.disconnect(); } catch (e) { /* nada */ } };
     }
-    lp.connect(g); g.connect(S.bus);
+    lp.connect(g); g.connect(E.bus);
   }
-  function toca(c, t, nota, bpm) {
+  function toca(c, t, nota, bpm, E) {
     const sp = 60 / bpm, st = t + nota.t * sp, d = Math.max(0.1, nota.d * sp);
-    if (nota.c === 'bordon') bordon(c, st, d, hz(nota.n), nota.v); else if (nota.c === 'tambor') tambor(c, st, hz(nota.n), nota.v);
-    else if (nota.c === 'tibia') tibia(c, st, d, hz(nota.n), nota.v); else if (nota.c === 'cornu') cornu(c, st, d, hz(nota.n), nota.v);
+    if (nota.c === 'bordon') bordon(c, st, d, hz(nota.n), nota.v, E); else if (nota.c === 'tambor') tambor(c, st, hz(nota.n), nota.v, E);
+    else if (nota.c === 'tibia') tibia(c, st, d, hz(nota.n), nota.v, E); else if (nota.c === 'cornu') cornu(c, st, d, hz(nota.n), nota.v, E);
+    else if (nota.c === 'lira') lira(c, st, d, hz(nota.n), nota.v, E);
   }
 
   const Son = () => raiz.Sonido;
-  const puedeSonar = () => { const so = Son(); return !!(so && so.activo !== false && so.ctx && so.ctx.state === 'running' && !(raiz.document && raiz.document.hidden) && so.maestro); };
+  const puedeSonar = () => { const so = Son(); return !!(so && ON && so.activo !== false && so.ctx && so.ctx.state === 'running' && !(raiz.document && raiz.document.hidden) && so.maestro); };
 
   // el programador: cada ~100 ms mira 0,3 s adelante y programa las notas que caen ahí
   function tic() {
@@ -182,7 +241,7 @@
       if (S.proximo < ahora) S.proximo = ahora + 0.05;
       while (S.proximo < ahora + 0.3) {
         const bpm = tempoDe(S.ten), sp = 60 / bpm, notas = patron(S.ten, S.compas, S.sem, M.estadoActual);
-        for (const n of notas) toca(c, S.proximo, n, bpm);
+        for (const n of notas) toca(c, S.proximo, n, bpm, S);
         S.proximo += 4 * sp; S.compas++;
       }
     } catch (e) { /* la música nunca rompe el juego */ }
@@ -195,7 +254,7 @@
       clearTimeout(S.tFin);
       if (S.id) clearInterval(S.id);
       if (S.fade) { try { S.fade.disconnect(); } catch (e) { /* nada */ } }
-      arma(c, so); opc = opc || {}; S.sem = opc.semilla || ((Math.random() * 1e9) | 0) || 1; S.compas = 0; S.final = false; S.pend = [];
+      apartaTema(); arma(c, so, S); opc = opc || {}; S.sem = opc.semilla || ((Math.random() * 1e9) | 0) || 1; S.compas = 0; S.final = false; S.pend = [];
       S.ten = S.meta = clamp(opc.tension === undefined ? 0.22 : opc.tension, 0, 1); S.proximo = c.currentTime + 0.2; S.tUlt = c.currentTime;
       S.fade.gain.setValueAtTime(0.0001, c.currentTime); S.fade.gain.linearRampToValueAtTime(1, c.currentTime + 2);   // fundido de entrada de 2 s
       M.activa = true; M.estadoActual = 'espera'; S.id = setInterval(tic, 100);
@@ -217,7 +276,7 @@
   M.final = function (res) {
     try {
       const so = Son(); if (!M.activa || S.final || !so || !so.ctx) return; const c = so.ctx; S.final = true; M.estadoActual = res === 'victoria' ? 'victoria' : 'derrota';
-      if (puedeSonar()) { const t0 = c.currentTime + 0.5; for (const n of fraseFinal(res)) toca(c, t0, { t: n.s, d: n.d, c: n.c, n: n.n, v: n.v }, 60); }   // a 60 ppm 1 pulso = 1 s: los tiempos van en segundos
+      if (puedeSonar()) { const t0 = c.currentTime + 0.5; for (const n of fraseFinal(res)) toca(c, t0, { t: n.s, d: n.d, c: n.c, n: n.n, v: n.v }, 60, S); }   // a 60 ppm 1 pulso = 1 s: los tiempos van en segundos
       if (S.id) clearInterval(S.id); S.id = 0; clearTimeout(S.tFin);
       S.tFin = setTimeout(() => { M.parar(2); }, 10500);
     } catch (e) { /* nada */ }
@@ -228,9 +287,72 @@
       const so = Son(), f = S.fade, c = so && so.ctx; seg = seg === undefined ? 2 : seg;
       M.activa = false;
       if (f && c) { const t = c.currentTime; f.gain.cancelScheduledValues(t); f.gain.setValueAtTime(f.gain.value, t); f.gain.linearRampToValueAtTime(0.0001, t + seg); const quien = f; setTimeout(() => { try { quien.disconnect(); } catch (e) { /* nada */ } }, seg * 1000 + 600); }
-      S.final = false;
+      S.final = false; devuelveTema();
     } catch (e) { M.activa = false; }
   };
+
+  /* ---------- SON6: reproductor de temas (menú, ciudad, mapa, Senado) ----------
+     M.tema(nombre, { estacion, tension }) lo llama la interfaz al cambiar de pantalla: fundido cruzado de 2 s con el tema anterior.
+     Un tema suena el tiempo de ciclo(tema).suena y calla el de .calla (no es un bucle eterno). Durante una batalla manda la de batalla
+     (M.iniciar lo aparta; M.parar lo devuelve). Se calla con el interruptor «Sonido», con el de «Música» y al ocultar la pestaña.
+     No crea el AudioContext: espera a que el primer toque del jugador lo cree (nunca bloquea el arranque). */
+  const CLAVE_MUSICA = 'aqvila-musica', GANA_TEMA = 0.6;      // el tema va por debajo de la batalla y de los efectos
+  let ON = true; try { if (raiz.localStorage && raiz.localStorage.getItem(CLAVE_MUSICA) === '0') ON = false; } catch (e) { /* sin almacenamiento: encendida */ }
+  const T = { tema: null, opc: {}, E: null, id: 0, compas: 0, proximo: 0, fase: 'suena', finFase: 0, pausado: false, sem: ((Math.random() * 1e9) | 0) || 1 };
+
+  function lira(c, t, d, f, v, E) {                           // cuerda pulsada: ataque seco y caída larga
+    const g = c.createGain(), lp = c.createBiquadFilter(), largo = Math.max(0.6, Math.min(2.4, d * 1.4)); lp.type = 'lowpass'; lp.frequency.setValueAtTime(3400, t); lp.frequency.exponentialRampToValueAtTime(900, t + largo);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.16 * v, t + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t + largo);
+    for (const [tipo, mul, ga] of [['triangle', 1, 1], ['sine', 2, 0.3], ['sine', 3, 0.12]]) {
+      const o = c.createOscillator(), og = c.createGain(); o.type = tipo; o.frequency.value = f * mul; og.gain.value = ga; o.connect(og); og.connect(lp);
+      o.start(t); o.stop(t + largo + 0.05); E.vivas++; o.onended = () => { E.vivas--; try { o.disconnect(); og.disconnect(); } catch (e) { /* nada */ } };
+    }
+    lp.connect(g); g.connect(E.bus);
+  }
+  function cierra(E, seg) {                                   // fundido a silencio y desmontaje de la cadena
+    try {
+      const so = Son(); if (!E || !so || !so.ctx) return; const t = so.ctx.currentTime, p = E.fade.gain;
+      p.cancelScheduledValues(t); p.setValueAtTime(p.value, t); p.linearRampToValueAtTime(0.0001, t + seg);
+      setTimeout(() => { try { E.fade.disconnect(); } catch (e) { /* nada */ } }, seg * 1000 + 2500);
+    } catch (e) { /* nada */ }
+  }
+  function cadena(c, so) {
+    const E = { bus: null, filtro: null, duck: null, fade: null, ruido: null, eco: null, ten: 0.25, vivas: 0 };
+    arma(c, so, E); E.ten = clamp(T.opc.tension === undefined ? 0.25 : T.opc.tension, 0, 1);
+    E.fade.gain.setValueAtTime(0.0001, c.currentTime); E.fade.gain.linearRampToValueAtTime(GANA_TEMA, c.currentTime + 2);   // fundido de entrada de 2 s
+    return E;
+  }
+  function ticT() {
+    try {
+      const so = Son(); if (!T.tema || !so || !so.ctx || M.activa || T.pausado) return;
+      const c = so.ctx, ahora = c.currentTime, ci = M.ciclo(T.tema);
+      if (!puedeSonar()) { if (T.E) T.proximo = Math.max(T.proximo, ahora + 0.1); return; }   // en silencio no se acumula nada
+      if (T.fase === 'suena' && T.E && T.finFase && ahora >= T.finFase) { cierra(T.E, 3); T.E = null; T.fase = 'calla'; T.finFase = ahora + ci.calla; return; }
+      if (T.fase === 'calla') { if (ahora < T.finFase) return; T.fase = 'suena'; T.compas = 0; }
+      if (!T.E) { T.E = cadena(c, so); T.proximo = ahora + 0.2; T.finFase = ahora + ci.suena; T.compas = 0; }
+      T.E.ten += clamp((T.opc.tension === undefined ? 0.25 : T.opc.tension) - T.E.ten, -0.05, 0.05);
+      if (T.proximo < ahora) T.proximo = ahora + 0.05;
+      while (T.proximo < ahora + 0.3) {
+        const p = temaPatron(T.tema, T.compas, { sem: T.sem, estacion: T.opc.estacion, tension: T.opc.tension }), sp = 60 / p.bpm;
+        for (const n of p.notas) toca(c, T.proximo, n, p.bpm, T.E);
+        T.proximo += 4 * sp; T.compas++;
+      }
+    } catch (e) { /* la música nunca rompe el juego */ }
+  }
+  M.tema = function (nombre, opc) {
+    if (nombre === null) { cierra(T.E, 2); T.E = null; T.tema = null; return true; }
+    if (!CICLO[nombre]) return false;
+    T.opc = opc || {};
+    if (T.tema !== nombre) { if (T.E) { cierra(T.E, 2); T.E = null; } T.tema = nombre; T.fase = 'suena'; T.finFase = 0; T.compas = 0; }   // fundido cruzado: el viejo baja mientras el nuevo sube
+    if (!T.id && raiz.document) T.id = setInterval(ticT, 100);
+    return true;
+  };
+  M.estadoTema = () => ({ tema: T.tema, fase: T.fase, sonando: !!T.E, batalla: M.activa, pausado: T.pausado, encendida: ON });
+  M.encendida = () => ON;
+  M.on = function () { ON = true; try { raiz.localStorage.setItem(CLAVE_MUSICA, '1'); } catch (e) { /* nada */ } };
+  M.off = function () { ON = false; try { raiz.localStorage.setItem(CLAVE_MUSICA, '0'); } catch (e) { /* nada */ } if (T.E) { cierra(T.E, 1); T.E = null; } T.fase = 'suena'; T.finFase = 0; };
+  const apartaTema = () => { T.pausado = true; if (T.E) { cierra(T.E, 2); T.E = null; } };              // empieza una batalla
+  const devuelveTema = () => { if (!T.pausado) return; T.pausado = false; T.fase = 'suena'; T.finFase = 0; T.compas = 0; };      // acaba: vuelve la de la pantalla
 
   raiz.Musica = M;
   if (typeof module !== 'undefined' && module.exports) module.exports = M;

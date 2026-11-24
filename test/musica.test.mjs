@@ -43,4 +43,38 @@ ok(notasDe('ventaja', 'cornu').length > notasDe('peligro', 'cornu').length, 'gan
 ok(notasDe('ventaja', 'tibia').some(x => (x.n - 50) % 12 === 4) && !notasDe('peligro', 'tibia').some(x => (x.n - 50) % 12 === 4), 'ganando, modo brillante (fa#); perdiendo, nunca');
 M.tension(0.5); M.agacha(); M.final('victoria'); M.parar(); ok(true, 'tension, agacha, final y parar sin audio no fallan');
 ok(Math.abs(M.hz(69) - 440) < 1e-9 && Math.abs(M.hz(57) - 220) < 1e-9, 'hz: la3 = 440 Hz');
+
+// SON6: temas del resto del juego (menú, ciudad, mapa, Senado)
+const CAPAS = ['bordon', 'tambor', 'tibia', 'cornu', 'lira'];
+ok(M.TEMAS.join() === 'menu,ciudad,mapa,senado', 'hay cuatro temas: menú, ciudad, mapa y Senado');
+ok(M.temaDe('city') === 'ciudad' && M.temaDe('map') === 'mapa' && M.temaDe('senado') === 'senado' && M.temaDe('saber') === 'ciudad' && M.temaDe('menu') === 'menu' && M.temaDe('xyz') === 'ciudad', 'cada pantalla de la interfaz toca su tema (las desconocidas, la de ciudad)');
+for (const t of M.TEMAS) {
+  const a = M.temaPatron(t, 5, { sem: 3, estacion: 1, tension: 0.4 });
+  ok(igual(a, M.temaPatron(t, 5, { sem: 3, estacion: 1, tension: 0.4 })), `${t}: el patrón es determinista`);
+  let malos2 = 0, vacios = 0;
+  for (const est of [0, 1, 2, 3]) for (const ten of [0, 0.5, 1]) for (let k = 0; k < 24; k++) {
+    const p = M.temaPatron(t, k, { sem: 9, estacion: est, tension: ten }); if (!p.notas.length) vacios++;
+    if (!(p.bpm >= 50 && p.bpm <= 100)) malos2++;
+    for (const n of p.notas) if (!(n.t >= 0 && n.t < 4 && n.d > 0 && n.v > 0 && n.v <= 1 && n.n >= 30 && n.n <= 96 && CAPAS.includes(n.c))) malos2++;
+  }
+  ok(malos2 === 0 && vacios === 0, `${t}: notas dentro del compás, en rango, capa conocida y tempo sereno (50-100)`);
+  const ci = M.ciclo(t); ok(ci.suena >= 40 && ci.suena <= 220 && ci.calla >= 40, `${t}: suena ${ci.suena} s y calla ${ci.calla} s (no es un bucle eterno)`);
+}
+ok(M.ciclo('menu').suena >= 40 && M.ciclo('menu').suena <= 60, 'el menú suena entre 40 y 60 s');
+const cap = (t, c, o) => { let n = 0; for (let k = 0; k < 48; k++) n += M.temaPatron(t, k, o).notas.filter(x => x.c === c).length; return n; };
+ok(cap('menu', 'cornu', {}) > 0 && cap('menu', 'tibia', {}) > 0 && cap('menu', 'tambor', {}) > 0, 'el menú tiene cornu lejano, tibia y tympanum');
+ok(cap('ciudad', 'lira', { estacion: 1 }) > 0 && cap('ciudad', 'tibia', { estacion: 1 }) > 0 && cap('ciudad', 'cornu', { estacion: 1 }) === 0, 'la ciudad es de lira y tibia, sin cornu');
+ok(cap('ciudad', 'lira', { estacion: 1 }) > cap('ciudad', 'lira', { estacion: 3 }) && M.temaPatron('ciudad', 0, { estacion: 3 }).bpm < M.temaPatron('ciudad', 0, { estacion: 1 }).bpm, 'la ciudad cambia con la estación: en invierno, más lenta y con menos notas');
+const fa = (t, o) => { let n = 0; for (let k = 0; k < 32; k++) n += M.temaPatron(t, k, o).notas.filter(x => x.c === 'tibia' && (x.n - 50) % 12 === 4).length; return n; };
+ok(fa('ciudad', { estacion: 1 }) + fa('ciudad', { estacion: 0 }) > 0 && fa('ciudad', { estacion: 2 }) === 0, 'primavera y verano, modo brillante; otoño, dorio');
+ok(M.tensionMapa(0) < M.tensionMapa(1) && M.tensionMapa(1) < M.tensionMapa(3) && M.tensionMapa(99) <= 1 && M.tensionMapa() >= 0, 'la tensión del mapa sube con los ejércitos enemigos');
+ok(M.temaPatron('mapa', 0, { tension: 0.7 }).bpm > M.temaPatron('mapa', 0, { tension: 0.1 }).bpm, 'el mapa va más rápido con enemigos cerca');
+ok(cap('mapa', 'tambor', { tension: 0.7 }) > cap('mapa', 'tambor', { tension: 0.1 }) && cap('mapa', 'cornu', { tension: 0.7 }) > cap('mapa', 'cornu', { tension: 0.1 }), 'el mapa, con enemigos, suma tambor y cornu');
+const rz = (o) => { let n = 0; for (let k = 0; k < 32; k++) n += M.temaPatron('mapa', k, o).notas.filter(x => x.c === 'tibia' && x.n === 70).length; return n; };
+ok(rz({ tension: 0.7 }) > 0 && rz({ tension: 0.1 }) === 0, 'con enemigos cerca, frigio (segunda menor); en paz, dorio');
+ok(cap('senado', 'tambor', {}) < cap('mapa', 'tambor', {}) / 4 && cap('senado', 'lira', {}) > 0, 'el Senado es sobrio: casi sin tambor y con lira');
+ok(M.tema('xyz') === false && M.tema('mapa', { tension: 0.3 }) === true && M.estadoTema().tema === 'mapa', 'M.tema acepta temas conocidos y recuerda el actual');
+ok(M.estadoTema().sonando === false, 'sin audio el tema no suena ni falla');
+M.on(); ok(M.encendida() === true, 'el interruptor Música arranca encendido'); M.off(); ok(M.encendida() === false, 'se apaga'); M.on();
+M.tema(null); ok(M.estadoTema().tema === null, 'M.tema(null) quita el tema');
 if (fallos.length) { console.log('\nFALLAN ' + fallos.length); process.exit(1); } else console.log('\nTodo bien');

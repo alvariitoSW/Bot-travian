@@ -153,6 +153,9 @@ function difFila(donde) {
 }
 /* CN15c: sonido sí/no (Sonido guarda la clave 'aqvila-sonido'); el contexto de audio nace en el primer toque (lo hace sonido.js) */
 const sonidoOn = () => !window.Sonido || window.Sonido.activo !== false, sonidoTxt = () => 'Sonido: ' + (sonidoOn() ? 'sí' : 'no');
+const musicaOn = () => !window.Musica || !window.Musica.encendida || window.Musica.encendida(), musicaTxt = () => 'Música: ' + (musicaOn() ? 'sí' : 'no');
+/* SON6: banda sonora del resto del juego: el tema según la pantalla (menú, ciudad, mapa, Senado); en el mapa, más tensa con ejércitos enemigos en marcha */
+function musicaPantalla() { try { const M = window.Musica; if (!M || !M.tema) return; const s = UI.menu ? null : S(); if (!s) { M.tema(UI.menu ? 'menu' : null); return; } M.tema(M.temaDe(UI.tab), { estacion: D.ESTACIONES.indexOf(G.estacion(s.t)), tension: M.tensionMapa(s.marches.filter(m => m.owner !== 'roma').length) }); } catch (e) { /* la música nunca rompe el juego */ } }
 function ajustesHtml() {
   const a = G.ajustes(); if (!a) return '';
   const sw = [['crecida', 'Crecida del río'], ['fuego', 'Incendios'], ['hambre', 'Hambre de invierno']];
@@ -160,7 +163,7 @@ function ajustesHtml() {
     '<small>Los cambios de dificultad y sucesos valen desde el mes siguiente.</small><div class="ajb"><button class="chip" data-act="repetirasesor">Repetir los consejos</button></div>' +
     '<div class="ajf" id="aj-pausas"><b>Pausas del reloj</b><div class="ajb">' + [['todas', 'Todas'], ['graves', 'Solo graves'], ['ninguna', 'Ninguna']].map(q => '<button class="chip' + (G.pausas() === q[0] ? ' on' : '') + '" data-act="pausas" data-v="' + q[0] + '">' + q[1] + '</button>').join('') + '</div><small>El reloj se para al acabar una obra o una leva, al cumplirse una misión o al venir un ataque.</small></div>' +
     '<div class="ajf" id="aj-ambiente"><div class="ajb"><button class="chip' + (G.ambiente() ? ' on' : '') + '" data-act="ambiente">Ambiente: ' + (G.ambiente() ? 'sí' : 'no') + '</button></div><small>Tono por estación, viñeta y contorno dorado en la ciudad.</small></div>' +
-    '<div class="ajf" id="aj-sonido"><div class="ajb"><button class="chip' + (sonidoOn() ? ' on' : '') + '" data-act="sonido">' + sonidoTxt() + '</button></div></div></div>';
+    '<div class="ajf" id="aj-sonido"><div class="ajb"><button class="chip' + (sonidoOn() ? ' on' : '') + '" data-act="sonido">' + sonidoTxt() + '</button><button class="chip' + (musicaOn() ? ' on' : '') + '" data-act="musica">' + musicaTxt() + '</button></div></div></div>';
 }
 /* I8: bloque «Partida corta» del menú: dos botones con su línea de explicación (los textos vienen de D.MODOS.corta) */
 function cortaHtml() {
@@ -240,7 +243,7 @@ function infoGuardada() {
 function subGuardada() { const i = infoGuardada(); return i ? i.fecha : ''; }
 function mFila(act, v, ico, t, d, cls) { return '<button class="mfila' + (cls ? ' ' + cls : '') + '" data-act="' + act + '"' + (v ? ' data-v="' + v + '"' : '') + '>' + ico + '<span><b>' + t + '</b><small>' + d + '</small></span><i class="mchev"></i></button>'; }
 function showMenu() {
-  hojaCierra(true); UI.menu = true; $('menu').hidden = false;
+  hojaCierra(true); UI.menu = true; musicaPantalla(); $('menu').hidden = false;
   const sv = G.hasSave(), inf = sv ? infoGuardada() : null, nueva = !inf || UI.mPanel === 'nueva', nombre = 'Lucio Cornelio Escipión';
   const act = UI.difSel || 'normal', ase = UI.asesorSel !== false, DIFD = { tranquila: 'Casi sin incendios ni hambre', normal: 'Como se pensó el juego', dura: 'Más incendios, crecidas y hambre' };
   const tarjeta = nueva
@@ -361,6 +364,7 @@ function setTxt(id, v) { const e = $(id); if (e && e.dataset.k !== v) { e.datase
 /* MN1: barra de seis (Ciudad · Senado · Saber · Tropas · Mapa · Imperio). Sin modos: cada pestaña marca su botón */
 const BARRA_DE = { city: 'ciudad', senado: 'senado', saber: 'saber', army: 'tropas', map: 'mapa', imperio: 'imperio', hero: 'imperio' };
 function hudDock() {
+  musicaPantalla();
   const s = S(); if (!s || G.fundando()) return; cityOk(); const nm = s.marches.filter(m => m.owner === 'roma').length;
   const t3 = UI.tab === 'city' && UI.cityList && UI.cityV ? '' : (BARRA_DE[UI.tab] || '');
   document.querySelectorAll('#tabs3 button').forEach(b => { const on = b.dataset.v === t3; b.classList.toggle('on', on); if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); }); $('app').dataset.tab = t3; $('app').dataset.vista = UI.tab; $('app').toggleAttribute('data-sala', UI.tab === 'senado' && (UI.senT || 'hoy') === 'hoy' && !!G.senadoSala());   // MN2: solo en la pestaña «Hoy se vota»   // SN2: en la sala, Votar y Dejar pasar sustituyen a «Pasar turno»
@@ -512,7 +516,7 @@ const HOJAS = {
   escaramuza: { titulo: 'Escaramuzas', alt: 2, html: () => escHtml() },   // ES1
   escfin: { titulo: 'Escaramuza', alt: 1, html: () => escFinHtml() },
   corta: { titulo: 'Partida corta', alt: 1, html: () => cortaHtml() || '<div class="empty">No disponible.</div>' },
-  sonmenu: { titulo: 'Opciones', alt: 0, html: () => '<button class="hf" data-act="sonido">' + ICO_INFO + '<span>' + sonidoTxt() + '</span></button><button class="hf" data-act="fluidez">' + ICO_FLU + '<span>' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</span></button>' + copiasHtml() },
+  sonmenu: { titulo: 'Opciones', alt: 0, html: () => '<button class="hf" data-act="sonido">' + ICO_INFO + '<span>' + sonidoTxt() + '</span></button><button class="hf" data-act="musica">' + ICO_INFO + '<span>' + musicaTxt() + '</span></button><button class="hf" data-act="fluidez">' + ICO_FLU + '<span>' + (fluidezOn() ? 'Dejar de medir fluidez' : 'Medir fluidez') + '</span></button>' + copiasHtml() },
   movil: { titulo: 'Postal y copias', alt: 1, html: () => '<button class="hf" data-act="postal">' + ICO_FOTO + '<span>Postal de la ciudad (imagen)</span></button><button class="hf" data-act="contemplar">' + ICO_FOTO + '<span>Contemplar la ciudad</span></button><button class="hf" data-act="hoja" data-v="cronicac">' + ICO_CRON + '<span>Crónica de la ciudad (texto)</span></button>' + copiasHtml() },
   cronicac: { titulo: 'Crónica de la ciudad', alt: 2, html: () => S() ? '<pre class="hcron">' + esc(G.cronicaTexto(cityOk())) + '</pre><div class="hdos2"><button class="hf" data-act="croncopiar"><span>Copiar texto</span></button><button class="hf" data-act="crondescargar"><span>Bajar archivo .txt</span></button></div>' : '<div class="empty">Aún no hay partida.</div>' },
   creditos: { titulo: 'Créditos', alt: 0, html: () => '<div class="hcred">' + CREDITOS + '</div>' },
@@ -1693,6 +1697,7 @@ document.addEventListener('click', function (e) {
     case 'cubos': case 'arder': { if (!G.vivo()) break; const r = a === 'cubos' ? G.apagarFuego() : G.dejarArder(); if (r && r.ok === false) { toast(r.motivo || 'No se pudo'); break; } UI.vivoK = ''; vivoPinta(); G.save(); UI.dirty = true; break; }
     case 'entendido': if (typeof ASESOR !== 'undefined' && UI.lesId) { ASESOR.marcar(S().ajustes, UI.lesId, { mes: Math.floor(S().t + 1e-9), ahora: Date.now() }); G.save(); } UI.linK = null; pintaLinea(); break;
     case 'ambiente': { const nv = el.type === 'checkbox' ? el.checked : !G.ambiente(), r = G.ponerAjustes({ ambiente: nv }); if (!r.ok) toast(r.motivo, 'bad'); else { G.save(); if (UI.cityV && UI.cityV.ponerAmbiente) UI.cityV.ponerAmbiente(nv); } render(); break; }
+    case 'musica': { const mu = window.Musica; if (mu && mu.on) { if (musicaOn()) mu.off(); else mu.on(); } if (UI.menu) hojaPinta(true); else render(); break; }
     case 'sonido': { const so = window.Sonido; if (so) { if (sonidoOn()) so.off(); else so.on(); } if (UI.menu) hojaPinta(true); else render(); break; }
     case 'fluidez': fijarFluidez(!fluidezOn()); hojaPinta(true); break;
     case 'new': case 'newregion': G.newGame(($('hname') ? $('hname').value : '').trim() || 'Lucio Cornelio Escipión', a === 'newregion' ? v : 'mediterraneo', { dificultad: UI.difSel || 'normal', asesor: UI.asesorSel !== false }); G.turnos = true; S().turnos = true; UI.overShown = false; G.save(); startGame(); break;
