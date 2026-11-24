@@ -93,5 +93,85 @@
   "huella": "32522177a4dc0d41",
   "ok": true,
   "fecha": "2026-11-24T21:03:39.163Z"
+ },
+ "area:test/guerra.test.mjs": {
+  "huella": "b662457822d3fb8e",
+  "ok": true,
+  "fecha": "2026-11-24T21:26:55.498Z"
+ },
+ "area:test/guerra-juego.test.mjs": {
+  "huella": "2e8bceba0da618b2",
+  "ok": true,
+  "fecha": "2026-11-24T21:26:59.948Z"
+ },
+ "area:test/simulador.test.mjs": {
+  "huella": "d596d52e815ed073",
+  "ok": true,
+  "fecha": "2026-11-24T21:27:09.333Z"
+ },
+ "area:test/maniobra.test.mjs": {
+  "huella": "8ea09c65d3735664",
+  "ok": true,
+  "fecha": "2026-11-24T21:27:09.417Z"
+ },
+ "area:test/campo.test.mjs": {
+  "huella": "88772aa596bb5c75",
+  "ok": true,
+  "fecha": "2026-11-24T21:27:15.330Z"
+ },
+ "area:test/nb7.test.mjs": {
+  "huella": "e80b75121692f1d5",
+  "ok": true,
+  "fecha": "2026-11-24T21:28:10.787Z"
+ },
+ "area:test/falange.test.mjs": {
+  "huella": "f6de1fbc5e5e7a5f",
+  "ok": true,
+  "fecha": "2026-11-24T21:30:13.818Z"
+ },
+ "area:test/falange-rivales.test.mjs": {
+  "huella": "a4de913712543bd1",
+  "ok": true,
+  "fecha": "2026-11-24T21:30:55.443Z"
+ },
+ "area:test/bloque.test.mjs": {
+  "huella": "9f7a49c37132d47c",
+  "ok": true,
+  "fecha": "2026-11-24T21:30:56.385Z"
+ },
+ "area:test/bloque-ia.test.mjs": {
+  "huella": "cb960a7313e1fa88",
+  "ok": true,
+  "fecha": "2026-11-24T21:31:13.319Z"
+ },
+ "area:test/fisica-batalla.test.mjs": {
+  "huella": "5100920f24ea2ac2",
+  "ok": true,
+  "fecha": "2026-11-24T21:32:53.321Z"
+ },
+ "area:test/batalla-rapida.test.mjs": {
+  "huella": "0d7cf2d4f8bd5be6",
+  "ok": true,
+  "fecha": "2026-11-24T21:32:54.450Z"
+ },
+ "area:test/dialogos.test.mjs": {
+  "huella": "4a90756664515bb7",
+  "ok": true,
+  "fecha": "2026-11-24T21:33:01.246Z"
+ },
+ "navegador-batallas": {
+  "huella": "ec18ab704bc4ec33",
+  "ok": true,
+  "fecha": "2026-11-24T21:38:03.514Z"
+ },
+ "area:gobierno/jueces.mjs --area batallas": {
+  "huella": "98bff076c91eb952",
+  "ok": true,
+  "fecha": "2026-11-24T21:38:03.528Z"
+ },
+ "area:gobierno/juez-guerra.mjs": {
+  "huella": "457b16556dce7619",
+  "ok": true,
+  "fecha": "2026-11-24T21:53:27.922Z"
  }
 }
