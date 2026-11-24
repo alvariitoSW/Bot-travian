@@ -2219,6 +2219,10 @@ console.log('OK — todas las pruebas superadas');
     const no = G.plantarCampo('roma', 'huerto', 'ladera_seca'); assert(!no.ok && /agua/.test(no.motivo), 'huerto en ladera seca: no ' + no.motivo);
     assert(G.agroProduccion(s, 'roma', 3).grano === 0, 'sin campos nuevos, el grano del cierre es 0 (la granja ya está en G.prod)');
     const mal = G.plantarCampo('roma', 'trigo', 'ladera_sol'); assert(mal.ok && mal.aviso && mal.nota === 'mal', 'trigo en ladera al sol: mal, avisa');
+    const cer = G.plantarCampo('roma', 'olivar', 'ladera_seca'); assert(!cer.ok && /Hace falta/.test(cer.motivo) && !G.agroAbierto('olivar').ok && G.agroAbierto('trigo').ok, 'el olivar pide el saber: ' + cer.motivo);
+    s.inv.hechas.vina = 1; s.inv.hechas.magon = 1; s.cities.roma.b.foro = 5;
+    assert(G.agroAbierto('olivar').ok && G.consejoCampo('ladera_seca')[0].campo === 'olivar', 'con el saber hay olivar');
+    assert(s.agro.parcelas.some(p => p.ciudad === 'roma' && p.campo === 'huerto') && s.agro.parcelas.some(p => p.ciudad === 'roma' && p.campo === 'pasto'), 'partida nueva: huerto y pasto además del trigo');
     const bien = G.plantarCampo('roma', 'olivar', 'ladera_seca'); assert(bien.ok && !bien.aviso, 'olivar en ladera seca: bien');
     assert(G.consejoCampo('ribera')[0].campo === 'huerto' && G.consejoCampo('ribera').every(x => x.campo !== 'olivar'), 'el consejo del suelo');
     assert(!G.mejorarParcela('roma', bien.parcela, 'lagar').ok && G.mejorarParcela('roma', bien.parcela, 'almazara').ok, 'la almazara va en el olivar, el lagar no');
@@ -2226,6 +2230,7 @@ console.log('OK — todas las pruebas superadas');
     assert(G.parcelas('roma').find(p => p.id === bien.parcela).mejoras.includes('almazara'), 'la mejora queda en la parcela');
     // grano: la granja de siempre no se cuenta dos veces; un campo de trigo nuevo suma
     const gr = G.plantarCampo('roma', 'trigo', 'llano'); assert(gr.ok && G.agroProduccion(s, 'roma', 3).grano > 0, 'el campo de trigo nuevo suma grano');
+    const pre = G.construirVilla('roma'); assert(pre.ok || /Hace falta|Faltan/.test(pre.motivo), 'villa: ' + pre.motivo); s.res.denarios = 5000; s.res.materiales = 5000; s.alm.denarios = 5000; s.alm.materiales = 5000; assert(G.hayVilla('roma') || !G.agroAbierto('villa').ok, 'la villa se construye con el saber, y si no, pide Villa esclavista');
     // cierre de mes: el aceite entra a s.bienes en su cosecha
     s.t = Math.floor(s.t) + 1; let ac = 0; for (let i = 0; i < 12; i++) { G.cierreMes(); ac = Math.max(ac, s.bienes.aceite || 0); s.t += 1; }
     assert(ac > 0, 'el olivar da aceite en s.bienes (' + ac + ')'); assert(s.mercado.ult !== undefined, 'MERCADO.mes corre en el cierre');
@@ -2234,7 +2239,7 @@ console.log('OK — todas las pruebas superadas');
     const tb = G.mercadoTabla('roma'); assert(tb.length >= 5 && tb[0].existencias !== undefined && 'flecha' in tb[0], 'tabla del mercado con existencias y flecha');
     const d0 = s.res.denarios, got = G.trade('materiales', 'denarios', 100); assert(got > 0 && s.res.denarios > d0 && s.res.materiales < 300, 'G.trade vende por el mercado nuevo (' + got + ')');
     s.bienes.vino = 20; const v = G.mercadoVender('roma', 'vino', 10); assert(v.ok && s.bienes.vino === 10 && v.delta.denarios > 0, 'vender vino del almacén');
-    const c = G.mercadoComprar('roma', 'lana', 5); assert(c.ok && s.bienes.lana >= 5, 'comprar lana al almacén de bienes');
+    s.bienes.lana = 0; const c = G.mercadoComprar('roma', 'lana', 5); assert(c.ok && s.bienes.lana >= 5, 'comprar lana al almacén de bienes');
     assert(!G.mercadoComprar('capua', 'lana', 99999).ok, 'no se compra sin hueco ni dinero');
     // rutas y contratos
     s.cities.capua.b.mercado = 2; const rr = G.rutaCrear('roma', 'capua', 'grano', 2); assert(rr.ok && G.rutasMercado().length === 1 && G.rutasTotal(s) === 1, 'ruta del mercado ' + rr.motivo);

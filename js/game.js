@@ -3005,7 +3005,7 @@
     encargosAgro: cid => {   // CDe3-F2a: lo que propone AGRO.encargosAgricultura para una ciudad (campo, mejora o cambiar), con el suelo de cada hueco libre
       const s = G.state, st = AGRO && G.agroEstado(cid); if (!st) return [];
       const alm = Object.assign({}, s.bienes, { grano: Math.max(0, s.res.grano) + (s.alm.grano || 0) });
-      return AGRO.encargosAgricultura({ parcelas: st.parcelas, libres: st.libres, almacen: alm, bocas: bocasMes(s), mes: mesAhora(s) % 12 })
+      return AGRO.encargosAgricultura({ parcelas: st.parcelas, libres: st.libres, almacen: alm, bocas: bocasMes(s), mes: mesAhora(s) % 12, saberes: G.saberesHechos() })
         .filter(g => !(g.tipo === 'cambiar' && (st.parcelas.find(p => p.id === g.parcela) || {}).granja))
         .map(g => Object.assign({}, g, { suelo: g.tipo === 'campo' ? (st.libres.find(l => l.id === g.parcela) || {}).suelo : undefined }));
     }
@@ -3210,7 +3210,11 @@
   G.migrarAgro = function (s) {
     if (!s) return s;
     if (!s.bienes || typeof s.bienes !== 'object') s.bienes = {};
-    if (AGRO) { AGRO.migrar(s); agroDe(s); G.sincGranjas(s, true); }
+    if (AGRO) {
+      AGRO.migrar(s); agroDe(s); G.sincGranjas(s, true);
+      /* CDe3-F2c: cada ciudad tuya empieza con un huerto junto al agua y un pasto en tierra baja, además del trigo (una sola vez) */
+      const A = s.agro; if (!A.inicio) { A.inicio = 1; for (const id of propiasDe(s)) for (const [campo, suelo] of [['huerto', 'ribera'], ['pasto', 'baja']]) if (!A.parcelas.some(p => p.ciudad === id && p.campo === campo) && A.parcelas.filter(p => p.ciudad === id).length < G.parcelasMax(id)) A.parcelas.push({ id: 'a' + (++A.n), ciudad: id, campo, suelo, nivel: 1, mejoras: [] }); }
+    }
     const M = merc();
     if (M) { M.migrar(s); if (Array.isArray(s.rutas) && s.rutas.length) s.rutas = []; }   // las rutas viejas ya son rutas del mercado nuevo
     return s;
@@ -3328,12 +3332,27 @@
     const s = G.state; if (!AGRO || !s || !s.cities[cid]) return [];
     return agroDe(s).parcelas.filter(p => p.ciudad === cid).map(p => {
       const e = AGRO.encaje(p.campo, p.suelo, p.mejoras || []), mj = AGRO.mejorasDe(p.campo);
-      return Object.assign({}, p, { mejoras: (p.mejoras || []).slice(), nombre: AGRO.CAMPOS[p.campo].nombre, produce: AGRO.CAMPOS[p.campo].produce, anual: AGRO.produccionAnual(p), nota: e.nota, razon: e.razon, posibles: mj.filter(m => AGRO.puedeMejorar(p, m).ok) });
+      return Object.assign({}, p, { mejoras: (p.mejoras || []).slice(), nombre: AGRO.CAMPOS[p.campo].nombre, produce: AGRO.CAMPOS[p.campo].produce, anual: AGRO.produccionAnual(p), nota: e.nota, razon: e.razon, posibles: mj.filter(m => AGRO.puedeMejorar(p, m, G.saberesHechos()).ok) });
     });
+  };
+  /* ids de los saberes hechos (para saber qué campos y mejoras abre la ciencia) */
+  G.saberesHechos = function () { const h = G.state && G.state.inv && G.state.inv.hechas; return h ? Object.keys(h).filter(k => h[k]) : []; };
+  /* ¿está abierto un campo, mejora o la villa? → { ok, motivo } (motivo: «Hace falta el saber …») */
+  G.agroAbierto = function (id) { if (!AGRO) return { ok: false, motivo: 'La agricultura nueva no está disponible' }; const a = AGRO.abierto(id, G.saberesHechos()); return { ok: a.ok, motivo: a.ok ? '' : a.motivo.replace(/\.$/, '').replace('Hace falta el saber', 'Hace falta') }; };
+  G.hayVilla = cid => !!(G.state && G.state.agro && G.state.agro.villas && G.state.agro.villas[cid]);
+  G.construirVilla = function (cid) {
+    const s = G.state, c = s && s.cities[cid]; if (!AGRO || !s) return { ok: false, motivo: 'La agricultura nueva no está disponible' };
+    if (!c || c.owner !== 'roma') return { ok: false, motivo: 'La ciudad no es tuya' };
+    const ab = G.agroAbierto('villa'); if (!ab.ok) return ab;
+    const A = agroDe(s); if (!A.villas) A.villas = {}; if (A.villas[cid]) return { ok: false, motivo: 'Ya hay una villa en la ciudad' };
+    const k = AGRO.EDIFICIOS.villa.coste; if (!G.canAfford(k)) { const f = Object.keys(k).filter(r => G.disponible(r) < k[r]).map(r => D.RES_NOM[r].toLowerCase()); return { ok: false, motivo: 'Faltan ' + f.join(' y ') }; }
+    for (const r in k) gasta(r, k[r]);
+    A.villas[cid] = 1; G.log('🌱 ' + D.CITIES[cid].n + ': villa con capataz; los campos rinden más.', 'good'); emit('dirty');
+    return { ok: true, motivo: '' };
   };
   G.consejoCampo = function (suelo) {
     if (!AGRO) return [];
-    return AGRO.consejo(suelo).map(x => Object.assign({ nombre: AGRO.CAMPOS[x.campo].nombre, produce: AGRO.CAMPOS[x.campo].produce, razon: AGRO.encaje(x.campo, suelo).razon, coste: G.cost('agri_' + x.campo, 0) }, x));
+    return AGRO.consejo(suelo, [], G.saberesHechos()).map(x => Object.assign({ nombre: AGRO.CAMPOS[x.campo].nombre, produce: AGRO.CAMPOS[x.campo].produce, razon: AGRO.encaje(x.campo, suelo).razon, coste: G.cost('agri_' + x.campo, 0) }, x));
   };
   const pagaObra = (b, motivo) => { const k = G.cost(b, 0); if (!G.canAfford(k)) { const f = Object.keys(k).filter(r => G.disponible(r) < k[r]).map(r => D.RES_NOM[r].toLowerCase()); return { ok: false, motivo: 'Faltan ' + f.join(' y ') }; } for (const r in k) gasta(r, k[r]); return { ok: true, motivo: motivo || '' }; };
   /* planta un campo: en un suelo nuevo (sueloOParcela es un suelo) o cambia el campo de una parcela que ya tienes (es el id de la parcela).
@@ -3342,6 +3361,7 @@
     const s = G.state, c = s && s.cities[cid]; if (!AGRO || !s) return { ok: false, motivo: 'La agricultura nueva no está disponible' };
     if (!c || c.owner !== 'roma') return { ok: false, motivo: 'La ciudad no es tuya' };
     if (!AGRO.CAMPOS[campo] || !D.BUILD['agri_' + campo]) return { ok: false, motivo: 'Ese campo no existe' };
+    const ab = G.agroAbierto(campo); if (!ab.ok) return ab;
     const A = agroDe(s); let par = null, suelo = sueloOParcela;
     if (!AGRO.SUELOS[suelo]) { par = A.parcelas.find(p => p.id === sueloOParcela && p.ciudad === cid); if (!par) return { ok: false, motivo: 'Ese suelo o parcela no existe' }; suelo = par.suelo; if (par.granja) return { ok: false, motivo: 'Es la granja de la ciudad: su campo de trigo no se cambia' }; if (par.campo === campo) return { ok: false, motivo: 'Ya es ' + AGRO.CAMPOS[campo].art + ' ' + AGRO.CAMPOS[campo].nombre.toLowerCase() }; }
     else if (A.parcelas.filter(p => p.ciudad === cid).length >= G.parcelasMax(cid)) return { ok: false, motivo: 'No caben más campos: sube el Foro' };
@@ -3357,7 +3377,7 @@
     const s = G.state, c = s && s.cities[cid]; if (!AGRO || !s) return { ok: false, motivo: 'La agricultura nueva no está disponible' };
     if (!c || c.owner !== 'roma') return { ok: false, motivo: 'La ciudad no es tuya' };
     const par = agroDe(s).parcelas.find(p => p.id === parcelaId && p.ciudad === cid); if (!par) return { ok: false, motivo: 'Esa parcela no existe' };
-    const q = AGRO.puedeMejorar(par, mejora); if (!q.ok) return q;
+    const q = AGRO.puedeMejorar(par, mejora, G.saberesHechos()); if (!q.ok) return q;
     const pg = pagaObra('agri_' + mejora); if (!pg.ok) return pg;
     par.mejoras = (par.mejoras || []).concat(mejora); G.log('🌱 ' + D.CITIES[cid].n + ': ' + AGRO.MEJORAS[mejora].nombre.toLowerCase() + '.', 'good'); emit('dirty');
     return { ok: true, motivo: '' };
