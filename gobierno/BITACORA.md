@@ -8,6 +8,7 @@ todo el trabajo que se está haciendo»). El texto entero de antes sigue en git:
 Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Decisiones del usuario (literal o casi)
+- 24/11 (16:10) — **El usuario sobre Meshy** (literal): «Ya te has fundido los 1000 créditos de meshy, espero que al menos uses todo lo que ha creado de meshy, ya no podemos hacer nada más hará el mes que viene». **Sin Meshy hasta el mes que viene**; AR1 (galo nuevo) espera a entonces. Regla: **todo lo creado con Meshy entra en el juego**: soldados (ya todos dentro), 20 personajes de MS3/MS4 (CS3) y templo y curia griegos (ciudades griegas) — preguntado a la sesión de ciudad.
 - 24/11 (16:05) — **CG8a hecha** (`635257c4`): batalla grande más épica (cámara de cine, polvo, luz, suelo, estandartes, caídos); juez de batallas bien salvo la vara de velocidad de LP7 en máquina lenta (5/5 repetida sola). Pases a CDe4: `sw.js` + `js/gfx/cine-mando.js`, `js/gfx/estandartes.js`; `registro.js` ficha de los estandartes (arte propio).
 - 24/11 (15:47) — **AR1 parada**: Meshy rechaza por el tope de la clave (0 créditos gastados). El apaño con el galo grande y tatuajes no le gustó al usuario (en el chat de AR1: «feísimo y poco realista») y no entra. Dictamen: pelo encalado, bigote, torques y cuadros son históricos; los tatuajes de glasto en galos, licencia de juego. Hace falta que el usuario suba el tope de la clave (30 créditos).
 - 24/11 (15:33) — La sesión de ciudad abre **MN4c** por el pedido de menús: portada del menú principal (`css/portada.css`, `js/portada.js`, dueño Músculo) y láminas con renders de nuestros modelos (`assets/laminas/`, ≤1,5 MB, dueño Arte). Entra en CDe4 o en la SB final.
@@ -87,7 +88,6 @@ Lo hecho, con su commit y su parte, está en `TABLERO.md`.
 
 ## Esperando algo del usuario
 Regla del 18/11 (`OBJETIVOS.md`): el cuadro enseña **solo las tres primeras**; las demás esperan en cola sin enseñarse. Solo lo que verá el jugador; lo técnico lo decide el director y lo apunta. Forma: `**Título**: pregunta (A) opción [recomendado]; (B) opción. Por qué: una frase.`
-- **Tope de la clave de Meshy para el galo nuevo**: ¿subes el tope de la clave de la API en Meshy (meshy.ai → API → la clave → límite de créditos) para gastar 30 de los 66 créditos? (A) Sí, lo subo y se hace el galo nuevo [recomendado]; (B) No, se queda el galo de ahora hasta después de la 1.0. Por qué: sin ese cambio la API no deja crear nada.
 
 
 ## Propuestas por aprobar
